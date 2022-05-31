@@ -189,6 +189,7 @@ void iACompUniformTable::drawHistogramTable(int bins)
 
 vtkSmartPointer<vtkPolyData> iACompUniformTable::drawRow(int currDataInd, int currentColumn, int amountOfBins, double offset)
 {
+	Q_UNUSED(amountOfBins);
 	bin::BinType* currDataset = m_uniformBinningData->getBinData()->at(currDataInd);
 	double numberOfBins = currDataset->size();
 

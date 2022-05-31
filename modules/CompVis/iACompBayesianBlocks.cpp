@@ -253,7 +253,7 @@ namespace BayesianBlocks
 		start = bb::clock::now();
 
 		// iteratively find the change points
-		std::vector<int> cp;
+		std::vector<size_t> cp;
 		for (auto i = N; i != 0; i = last[i - 1]) cp.push_back(i);
 		cp.push_back(0);
 

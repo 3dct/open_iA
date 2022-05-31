@@ -129,6 +129,7 @@ iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* c
 
 void iACompBarChart::showEvent(QShowEvent* event)
 {
+	Q_UNUSED(event);
 	if (m_lastState == iACompVisOptions::lastState::Undefined)
 	{
 		initializeBarChart();

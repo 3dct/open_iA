@@ -329,12 +329,13 @@ namespace FishersNaturalBreaks
 	void ClassifyJenksFisherFromValueCountPairs(LimitsContainer& breaksArray, SizeT k, const ValueCountPairContainer& vcpc)
 	{
 		breaksArray.resize(k);
-		SizeT m = vcpc.size();
 
-		assert(k <= m); // PRECONDITION
+		assert(k <= vcpc.size());  // PRECONDITION
 
 		if (!k)
+		{
 			return;
+		}
 
 		JenksFisher jf(vcpc, k);
 

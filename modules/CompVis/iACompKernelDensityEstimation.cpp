@@ -41,16 +41,16 @@ void iACompKernelDensityEstimation::calculateCurve(
 		kdeData::kdeBin* result = new kdeData::kdeBin();
 		calculateKDE(&m_datasets->at(dataID), result);
 
-		kdeData::kdeBins* kdeUniform = kdeData::initializeBins(static_cast<int>(uDataStore->at(dataID)->size()));
-		std::vector<double> binBoundariesUB = uData->getBinBoundaries()->at(dataID);
+		kdeData::kdeBins* kdeUniform = kdeData::initializeBins(static_cast<int>(uDataStore->at(static_cast<int>(dataID))->size()));
+		std::vector<double> binBoundariesUB = uData->getBinBoundaries()->at(static_cast<int>(dataID));
 		calculateKDEBinning(result, uData->getMaxVal(), &binBoundariesUB, kdeUniform);
 
-		kdeData::kdeBins* kdeNB = kdeData::initializeBins(static_cast<int>(nbDataStore->at(dataID)->size()));
-		std::vector<double> binBoundariesNB = nbData->getBinBoundaries()->at(dataID);
+		kdeData::kdeBins* kdeNB = kdeData::initializeBins(static_cast<int>(nbDataStore->at(static_cast<int>(dataID))->size()));
+		std::vector<double> binBoundariesNB = nbData->getBinBoundaries()->at(static_cast<int>(dataID));
 		calculateKDEBinning(result, nbData->getMaxVal(), &binBoundariesNB, kdeNB);
 
-		kdeData::kdeBins* kdeBB = kdeData::initializeBins(static_cast<int>(bbDataStore->at(dataID)->size()));
-		std::vector<double> binBoundariesBB = bbData->getBinBoundaries()->at(dataID);
+		kdeData::kdeBins* kdeBB = kdeData::initializeBins(static_cast<int>(bbDataStore->at(static_cast<int>(dataID))->size()));
+		std::vector<double> binBoundariesBB = bbData->getBinBoundaries()->at(static_cast<int>(dataID));
 		calculateKDEBinning(result, bbData->getMaxVal(), &binBoundariesBB, kdeBB);
 
 		kdeDataUniform->append(*kdeUniform);
@@ -76,8 +76,8 @@ void iACompKernelDensityEstimation::calculateCurveUB(iACompUniformBinningData* u
 		kdeData::kdeBin* result = new kdeData::kdeBin();
 		calculateKDE(&m_datasets->at(dataID), result);
 
-		kdeData::kdeBins* kdeUniform = kdeData::initializeBins(static_cast<int>(uDataStore->at(dataID)->size()));
-		std::vector<double> binBoundariesUB = uData->getBinBoundaries()->at(dataID);
+		kdeData::kdeBins* kdeUniform = kdeData::initializeBins(static_cast<int>(uDataStore->at(static_cast<int>(dataID))->size()));
+		std::vector<double> binBoundariesUB = uData->getBinBoundaries()->at(static_cast<int>(dataID));
 		calculateKDEBinning(result, uData->getMaxVal(), &binBoundariesUB, kdeUniform);
 
 		kdeDataUniform->append(*kdeUniform);

@@ -48,6 +48,7 @@ namespace kde
          */
         inline neighbourIndexVectorType indices(realVectorType const& x)
         {
+            Q_UNUSED(x);
             assert(mNumDims == x.rows());
             return mNIVect;
         }
