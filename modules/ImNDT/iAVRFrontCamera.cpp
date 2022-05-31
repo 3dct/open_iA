@@ -29,7 +29,7 @@
 #include <vtkOpenVRCamera.h>
 #include <vtkOpenVRRenderer.h>
 #include <vtkProperty.h>
-#include <vtkTexture.h>;
+#include <vtkTexture.h>
 #include <vtkExtractVOI.h>
 #include <vtkPNGWriter.h>
 
