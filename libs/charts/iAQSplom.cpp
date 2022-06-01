@@ -245,10 +245,10 @@ iAQSplom::iAQSplom(QWidget * parent):
 	quadraticPlotsAction->setChecked(settings.quadraticPlots);
 	showPCCAction = new QAction(tr("Show Pearsons's Correlation Coefficient"), this);
 	showPCCAction->setCheckable(true);
-	showPCCAction->setChecked(settings.quadraticPlots);
+	showPCCAction->setChecked(settings.showPCC);
 	showSCCAction = new QAction(tr("Show Spearman's Correlation Coefficient"), this);
 	showSCCAction->setCheckable(true);
-	showSCCAction->setChecked(settings.quadraticPlots);
+	showSCCAction->setChecked(settings.showSCC);
 	selectionModePolygonAction = new QAction(tr("Polygon Selection Mode"), this);
 	QActionGroup * selectionModeGroup = new QActionGroup(m_contextMenu);
 	selectionModeGroup->setExclusive(true);
