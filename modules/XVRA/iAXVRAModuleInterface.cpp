@@ -3,7 +3,7 @@
 #include "iAMainWindow.h"
 #include "iAMdiChild.h"
 #include "iARenderer.h"
-#include "vtkOpenglRenderer.h"
+#include "vtkOpenGLRenderer.h"
 #include "vtkCamera.h"
 
 // objectvis
