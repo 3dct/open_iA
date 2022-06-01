@@ -36,6 +36,12 @@ class vtkOpenVRRenderWindow;
 
 class iAVRInteractor;
 
+//! The VR environment. Currently deleted every time when the environment is stopped.
+//! Could be re-used, but that would require all features using it to cleanly remove
+//! all elements from the VR renderer before exiting!
+//! The **only** instance of it should be the one in the ImNDT module interface,
+//! so that we can keep track of whether it's currently running.
+//! TODO: Enforce this programmatically
 class iAVREnvironment: public QObject
 {
 	Q_OBJECT

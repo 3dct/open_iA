@@ -21,6 +21,8 @@
 
 #include "iAFrustumActor.h"
 
+#include "iAModuleDispatcher.h"
+
 #include <QAction>
 #include <QMenu>
 #include <QMessageBox>
@@ -29,7 +31,6 @@
 
 iAXVRAModuleInterface::iAXVRAModuleInterface() :
 	m_fsMain(nullptr),
-	m_vrMain(nullptr),
 	fsFrustum(nullptr),
 	vrFrustum(nullptr),
 	m_updateRequired(false)
@@ -89,41 +90,38 @@ void iAXVRAModuleInterface::startXVRA()
 			curvedFiberInfo = std::map<size_t, std::vector<iAVec3f>>();
 		}
 	}
-
 	vtkSmartPointer<vtkTable> m_objectTable = creator.table();
 
-	//Create PolyObject
+	// Create PolyObject visualization
 	m_polyObject = create3DObjectVis(
 		csvConfig.visType, m_objectTable, io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo)
 		.dynamicCast<iA3DColoredPolyObjectVis>();
 	if (!m_polyObject)
 	{
 		LOG(lvlError, "Invalid 3D object visualization!");
+		return;
 	}
 
+	// Start VR
+	auto vrMain = m_mainWnd->moduleDispatcher().module<iAImNDTModuleInterface>();
+	if (!vrMain->ImNDT(m_polyObject, m_objectTable, io, csvConfig))
+	{
+		return;
+	}
 
-	/***** Start Featurescout *****/
+	// Start FeatureScout (after VR, since starting VR could fail due to VR already running!)
 	auto child = m_mainWnd->createMdiChild(false);
 	m_fsMain = new dlg_FeatureScout(child, csvConfig.objectType, csvConfig.fileName, creator.table(),
 		csvConfig.visType, io.getOutputMapping(), m_polyObject);
 	iAFeatureScoutToolbar::addForChild(m_mainWnd, child);
 
-	/***** Start VR *****/
-
-	m_vrMain = new iAImNDTModuleInterface();
-	m_vrMain->ImNDT(m_polyObject, m_objectTable, io, csvConfig);
-
-	/***** Add Camera Frustum *****/
-
-	//Get camera from featureScout
-	vtkSmartPointer<vtkCamera> fsCam = m_mainWnd->activeMdiChild()->renderer()->camera(); //m_mainWnd->activeMdiChild()->renderer()->renderer()->GetActiveCamera();
-
-	//Get camera from featureScout
-	vtkSmartPointer<vtkCamera> vrCam = m_vrMain->getRenderer()->GetActiveCamera();
+	// Add Camera Frustum visualizations:
+	vtkSmartPointer<vtkCamera> fsCam = m_mainWnd->activeMdiChild()->renderer()->camera(); // camera from FeatureScout
+	vtkSmartPointer<vtkCamera> vrCam = vrMain->getRenderer()->GetActiveCamera();          // camera from VR
 
 	double const* bounds = m_polyObject->bounds();
 	double maxSize = std::max({bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4]});
-	vrFrustum = new iAFrustumActor(m_vrMain->getRenderer(), fsCam, maxSize/10);  // frustum of featurescout shown in vr
+	vrFrustum = new iAFrustumActor(vrMain->getRenderer(), fsCam, maxSize/10);  // frustum of featurescout shown in vr
 	fsFrustum = new iAFrustumActor(m_mainWnd->activeMdiChild()->renderer()->renderer(), vrCam, maxSize / 10);  // frustum of vr shown in featurescout
 
 	m_updateRenderer.callOnTimeout([this, child]()
@@ -140,7 +138,8 @@ void iAXVRAModuleInterface::startXVRA()
 	vrFrustum->show();
 	fsFrustum->show();
 
-	connect(m_vrMain, &iAImNDTModuleInterface::selectionChanged, m_fsMain, &dlg_FeatureScout::selectionChanged3D);
+	// set up selection propagation from VR to FeatureScout
+	connect(vrMain, &iAImNDTModuleInterface::selectionChanged, m_fsMain, &dlg_FeatureScout::selectionChanged3D);
 
 }
 
