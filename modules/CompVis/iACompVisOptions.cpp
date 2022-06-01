@@ -81,7 +81,7 @@ namespace iACompVisOptions
 
 		std::vector<double> bins = std::vector<double>();
 
-		for (size_t b = 0; b < static_cast<int>(numberOfBins); b++)
+		for (size_t b = 0; b < static_cast<size_t>(numberOfBins); b++)
 		{
 			double lowerBound = minVal + (binLength * b);
 			bins.push_back(lowerBound);

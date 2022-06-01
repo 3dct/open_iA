@@ -18,7 +18,7 @@ public:
 
 private:
 	//stores for each dataset how many objects are located in each bin
-	bin::BinType* m_numberOfObjectsPerBin;
+	//bin::BinType* m_numberOfObjectsPerBin;
 
 	//stores for each bin of each dataset its boundaries, where [lowerBound, upperBound[
 	QList<std::vector<double>>* m_binsBoundaries;

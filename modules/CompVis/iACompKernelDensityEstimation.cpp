@@ -8,12 +8,13 @@
 
 iACompKernelDensityEstimation::iACompKernelDensityEstimation(
 	iACsvDataStorage* dataStorage, bin::BinType* datasets) :
-	m_datasets(datasets), 
-	m_dataStorage(dataStorage), 
-	m_kdeData(nullptr), 
-	m_maxKDE(-INFINITY), 
+	m_datasets(datasets),
+	//m_dataStorage(dataStorage),
+	m_kdeData(nullptr),
+	m_maxKDE(-INFINITY),
 	m_minKDE(INFINITY)
 {
+	Q_UNUSED(dataStorage);
 	numSteps = 1000;  //(*std::minmax_element(amountObjectsEveryDataset->begin(), amountObjectsEveryDataset->end()).second); //
 }
 

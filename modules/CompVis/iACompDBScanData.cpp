@@ -1,7 +1,9 @@
 #include "iACompDBScanData.h"
 
 iACompDBScanData::iACompDBScanData() :
-	iACompHistogramTableData(), m_numberOfObjectsPerBin(nullptr), m_binsBoundaries(nullptr)
+	iACompHistogramTableData(),
+	//m_numberOfObjectsPerBin(nullptr), // unused!
+	m_binsBoundaries(nullptr)
 {
 }
 

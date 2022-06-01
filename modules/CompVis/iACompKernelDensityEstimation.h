@@ -50,7 +50,7 @@ private:
 	//array where the size of the rows is not always the same
 	bin::BinType* m_datasets;
 
-	iACsvDataStorage* m_dataStorage;
+	//iACsvDataStorage* m_dataStorage;
 
 	iACompKernelDensityEstimationData* m_kdeData;
 

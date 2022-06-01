@@ -1989,7 +1989,7 @@ void iAFiAKErController::mainOpacityChanged(int opacity)
 	addInteraction(QString("Set main opacity to %1.").arg(opacity));
 	m_settingsView->lbOpacityDefaultValue->setText(QString::number(opacity, 'f', 2));
 	m_selectionOpacity = opacity;
-	visitAllVisibleVis([opacity](QSharedPointer<iA3DColoredPolyObjectVis> vis, QSharedPointer<iA3DPolyObjectActor> actor, size_t /*resultID*/)
+	visitAllVisibleVis([opacity](QSharedPointer<iA3DColoredPolyObjectVis> vis, QSharedPointer<iA3DPolyObjectActor> /*actor*/, size_t /*resultID*/)
 	{
 		vis->setSelectionOpacity(opacity);
 		vis->updateColorSelectionRendering();
@@ -2002,7 +2002,7 @@ void iAFiAKErController::contextOpacityChanged(int opacity)
 	m_settingsView->lbOpacityContextValue->setText(QString::number(opacity, 'f', 2));
 	m_contextOpacity = opacity;
 	visitAllVisibleVis(
-		[opacity](QSharedPointer<iA3DColoredPolyObjectVis> vis,	QSharedPointer<iA3DPolyObjectActor> actor, size_t /*resultID*/)
+		[opacity](QSharedPointer<iA3DColoredPolyObjectVis> vis,	QSharedPointer<iA3DPolyObjectActor> /*actor*/, size_t /*resultID*/)
 	{
 		vis->setContextOpacity(opacity);
 		vis->updateColorSelectionRendering();
@@ -2019,8 +2019,7 @@ void iAFiAKErController::diameterFactorChanged(int diameterFactorInt)
 	m_diameterFactor = m_diameterFactorMapper->dstToSrc(diameterFactorInt);
 	addInteraction(QString("Set diameter modification factor to %1.").arg(m_diameterFactor));
 	m_settingsView->lbDiameterFactorDefaultValue->setText(QString::number(m_diameterFactor, 'f', 2));
-	visitAllVisibleVis([=](QSharedPointer<iA3DColoredPolyObjectVis> vis, QSharedPointer<iA3DPolyObjectActor> actor,
-						   size_t /*resultID*/)
+	visitAllVisibleVis([=](QSharedPointer<iA3DColoredPolyObjectVis> vis, QSharedPointer<iA3DPolyObjectActor> /*actor*/, size_t /*resultID*/)
 	{
 		(dynamic_cast<iA3DCylinderObjectVis*>(vis.data()))->setDiameterFactor(m_diameterFactor);
 	});
@@ -2035,8 +2034,7 @@ void iAFiAKErController::contextDiameterFactorChanged(int contextDiameterFactorI
 	m_contextDiameterFactor = m_diameterFactorMapper->dstToSrc(contextDiameterFactorInt);
 	addInteraction(QString("Set context diameter modification factor to %1.").arg(m_contextDiameterFactor));
 	m_settingsView->lbDiameterFactorContextValue->setText(QString::number(m_contextDiameterFactor, 'f', 2));
-	visitAllVisibleVis([=](QSharedPointer<iA3DColoredPolyObjectVis> vis, QSharedPointer<iA3DPolyObjectActor> actor,
-						   size_t /*resultID*/)
+	visitAllVisibleVis([=](QSharedPointer<iA3DColoredPolyObjectVis> vis, QSharedPointer<iA3DPolyObjectActor> /*actor*/, size_t /*resultID*/)
 	{
 		(dynamic_cast<iA3DCylinderObjectVis*>(vis.data()))->setContextDiameterFactor(m_contextDiameterFactor);
 	});
@@ -2074,8 +2072,7 @@ void iAFiAKErController::visitAllVisibleVis(
 void iAFiAKErController::showWireFrameChanged(int newState)
 {
 	m_showWireFrame = (newState == Qt::Checked);
-	visitAllVisibleVis([this](QSharedPointer<iA3DColoredPolyObjectVis> vis, QSharedPointer<iA3DPolyObjectActor> actor,
-						   size_t /*resultID*/)
+	visitAllVisibleVis([this](QSharedPointer<iA3DColoredPolyObjectVis> /*vis*/, QSharedPointer<iA3DPolyObjectActor> actor, size_t /*resultID*/)
 	{
 		actor->setShowWireFrame(m_showWireFrame);
 	});
@@ -2084,8 +2081,7 @@ void iAFiAKErController::showWireFrameChanged(int newState)
 void iAFiAKErController::showLinesChanged(int newState)
 {
 	m_showLines = (newState == Qt::Checked);
-	visitAllVisibleVis([this](QSharedPointer<iA3DColoredPolyObjectVis> vis, QSharedPointer<iA3DPolyObjectActor> actor,
-						   size_t /*resultID*/)
+	visitAllVisibleVis([this](QSharedPointer<iA3DColoredPolyObjectVis> /*vis*/, QSharedPointer<iA3DPolyObjectActor> actor, size_t /*resultID*/)
 	{
 		actor->setShowSimple(m_showLines);
 	});
