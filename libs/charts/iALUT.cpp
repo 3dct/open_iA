@@ -153,7 +153,6 @@ void iALUT::loadMaps(QString const& folder)
 
 int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRange, QString colorMap, int numCols /*= 256 */)
 {
-	QColor c;
 	if (!m_colorMaps.contains(colorMap))
 	{
 		LOG(lvlWarn, QString("Invalid color map name %1!").arg(colorMap));

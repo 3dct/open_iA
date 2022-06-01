@@ -38,8 +38,8 @@ public:
 	QString visualizationStatistics() const override;
 	vtkPolyData* finalPolyData() override;
 	//vtkAlgorithmOutput* output() override;
-	IndexType finalObjectStartPointIdx(IndexType objIdx) const;
-	IndexType finalObjectPointCount(IndexType objIdx) const;
+	IndexType finalObjectStartPointIdx(IndexType objIdx) const override;
+	IndexType finalObjectPointCount(IndexType objIdx) const override;
 	std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects(QColor c) const override;
 
 private:
@@ -47,7 +47,6 @@ private:
 	float* m_contextFactors;
 	IndexType m_objectCount;
 	float m_contextDiameterFactor;
-	bool m_lines;
 	//! maps the object ID to (first=) the first index in the points array that belongs to this object, and (second=) the number of final points
 	std::vector<std::pair<IndexType, IndexType>> m_finalObjectPointMap;
 };

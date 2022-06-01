@@ -39,8 +39,7 @@ iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkTable* objectTable, QSharedPoint
 	m_tubeFilter(vtkSmartPointer<iAvtkTubeFilter>::New()),
 	m_contextFactors(nullptr),
 	m_objectCount(objectTable->GetNumberOfRows()),
-	m_contextDiameterFactor(1.0),
-	m_lines(false)
+	m_contextDiameterFactor(1.0)
 {
 	auto tubeRadius = vtkSmartPointer<vtkDoubleArray>::New();
 	tubeRadius->SetName("TubeRadius");
