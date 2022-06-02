@@ -24,6 +24,8 @@
 
 #include <QToolBar>
 
+#include <memory>
+
 class iAMainWindow;
 class iAMdiChild;
 class Ui_FeatureScoutToolBar;
