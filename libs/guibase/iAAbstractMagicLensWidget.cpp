@@ -132,11 +132,11 @@ bool iAAbstractMagicLensWidget::event(QEvent* event)
 			const auto & touchPoint1 = touchPoints.last();
 			qreal currentScaleFactor = 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-				QLineF(touchPoint0.startPos(), touchPoint1.startPos()).length() /
-				QLineF(touchPoint0.pos(), touchPoint1.pos()).length();
+				QLineF(touchPoint0.pos(), touchPoint1.pos()).length() /
+				QLineF(touchPoint0.startPos(), touchPoint1.startPos()).length();
 #else
-				QLineF(touchPoint0.pressPosition(), touchPoint1.pressPosition()).length() /
-				QLineF(touchPoint0.position(), touchPoint1.position()).length();
+				QLineF(touchPoint0.position(), touchPoint1.position()).length() /
+				QLineF(touchPoint0.pressPosition(), touchPoint1.pressPosition()).length();
 #endif
 			//LOG(lvlDebug, QString("scale: %1").arg(currentScaleFactor));
 			// ToDo - handle special cases, e.g. :

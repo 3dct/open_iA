@@ -778,14 +778,9 @@ void MdiChild::setupView(bool active)
 
 void MdiChild::setupProject(bool /*active*/)
 {
-	QSharedPointer<iAModalityList> m = m_ioThread->modalities();
 	QString fileName = m_ioThread->fileName();
-	setModalities(m);
-	setCurrentFile(fileName);
-	m_mainWnd->setCurrentFile(fileName);
-	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
-	{
-		// TODO: make asynchronous, put into iASavableProject?
+	QSharedPointer<iAModalityList> m = m_ioThread->modalities();
+	auto projectLoader = [this, fileName]()	{
 		QSettings projectFile(fileName, QSettings::IniFormat);
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		projectFile.setIniCodec("UTF-8");
@@ -805,6 +800,17 @@ void MdiChild::setupProject(bool /*active*/)
 				addProject(projectKey, project);
 			}
 		}
+	};
+	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension) && m->size() > 0)
+	{	// if volume data available, wait for it to fully load before loading the projects:
+		connect(this, &iAMdiChild::histogramAvailable, this, projectLoader);
+	}
+	setModalities(m);
+	setCurrentFile(fileName);
+	m_mainWnd->setCurrentFile(fileName);
+	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension) && m->size() == 0)
+	{	// if no modalities loaded, continue immediately with loading the projects:
+		projectLoader();
 	}
 }
 
@@ -1268,9 +1274,9 @@ void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptInde
 		PointToOrigin_Translation->DeepCopy(PointToOrigin_matrix);
 
 		//rotate around Z to bring the vector to XZ plane
-		double alpha = acos(pow(normal[0], 2) / (sqrt(pow(normal[0], 2)) * (sqrt(pow(normal[0], 2) + pow(normal[1], 2)))));
-		double cos_theta_xz = cos(alpha);
-		double sin_theta_xz = sin(alpha);
+		double alpha = std::acos(std::pow(normal[0], 2) / (std::sqrt(std::pow(normal[0], 2)) * (std::sqrt(std::pow(normal[0], 2) + std::pow(normal[1], 2)))));
+		double cos_theta_xz = std::cos(alpha);
+		double sin_theta_xz = std::sin(alpha);
 
 		double rxz_matrix[16] = { cos_theta_xz,	-sin_theta_xz,	0,	 0,
 			sin_theta_xz,	cos_theta_xz,	0,	 0,
@@ -1281,9 +1287,9 @@ void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptInde
 		rotate_around_xz->DeepCopy(rxz_matrix);
 
 		//rotate around Y to bring vector parallel to Z axis
-		double beta = acos(pow(normal[2], 2) / sqrt(pow(normal[2], 2)) + sqrt(pow(cos_theta_xz, 2) + pow(normal[2], 2)));
-		double cos_theta_y = cos(beta);
-		double sin_theta_y = sin(beta);
+		double beta = std::acos(std::pow(normal[2], 2) / std::sqrt(std::pow(normal[2], 2)) + std::sqrt(std::pow(cos_theta_xz, 2) + std::pow(normal[2], 2)));
+		double cos_theta_y = std::cos(beta);
+		double sin_theta_y = std::sin(beta);
 
 		double ry_matrix[16] = { cos_theta_y,	0,	sin_theta_y,	0,
 			0,			1,		0,			0,
@@ -1294,8 +1300,8 @@ void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptInde
 		rotate_around_y->DeepCopy(ry_matrix);
 
 		//rotate around Z by 180 degree - to bring object correct view
-		double cos_theta_z = cos(vtkMath::Pi());
-		double sin_theta_z = sin(vtkMath::Pi());
+		double cos_theta_z = std::cos(vtkMath::Pi());
+		double sin_theta_z = std::sin(vtkMath::Pi());
 
 		double rz_matrix[16] = { cos_theta_z,	-sin_theta_z,	0,	0,
 			sin_theta_z,	cos_theta_z,	0,	0,
@@ -2669,22 +2675,6 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 	emit histogramAvailable(modalityIdx);
 }
 
-size_t MdiChild::histogramNewBinCount(QSharedPointer<iAModality> mod)
-{
-	size_t newBinCount = m_preferences.HistogramBins;
-	auto img = mod->image();
-	if (img->GetNumberOfScalarComponents() != 1)
-	{
-		LOG(lvlDebug, QString("Image of modality %1 has %2 components, only computing histogram of first one!").arg(mod->name()).arg(img->GetNumberOfScalarComponents()));
-	}
-	auto scalarRange = img->GetScalarRange();
-	if (isVtkIntegerImage(mod->image()))
-	{
-		newBinCount = std::min(newBinCount, static_cast<size_t>(scalarRange[1] - scalarRange[0] + 1));
-	}
-	return newBinCount;
-}
-
 bool MdiChild::histogramComputed(size_t newBinCount, QSharedPointer<iAModality> mod)
 {
 	auto histData = mod->histogramData();
@@ -2718,7 +2708,7 @@ void MdiChild::displayHistogram(int modalityIdx)
 		return;
 	}
 	auto mod = modality(modalityIdx);
-	size_t newBinCount = histogramNewBinCount(mod);
+	size_t newBinCount = iAHistogramData::finalNumBin(mod->image(), m_preferences.HistogramBins);
 	if (histogramComputed(newBinCount, mod))
 	{
 		showHistogram(modalityIdx);

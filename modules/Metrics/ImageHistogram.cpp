@@ -37,7 +37,7 @@ namespace
 	// Calculates log2=log(n)/log(2)
 	double dlog2(double n)
 	{
-		return log(n)*LOG2M1;
+		return std::log(n)*LOG2M1;
 	};
 
 	bool HistPosSortIncrIDX(cImageHistogram::HistPos a, cImageHistogram::HistPos b)	// Sort HistPos by IDX from lowest to highest
@@ -92,12 +92,12 @@ int cImageHistogram::CreateHist(float* fImage, unsigned int nPixelH, unsigned in
 			hist_x.push_back(curX);
 			curX+=StepPerBin;
 		}
-		int zero_idx = static_cast<int>(floor(((0.0f-min)/StepPerBin)+0.5f));
+		int zero_idx = static_cast<int>(std::floor(((0.0f-min)/StepPerBin)+0.5f));
 
 		// Calculate histogram by indexing
 		for(unsigned long long index=0; index<datasize; index++)
 		{
-			curX = floor(((fImage[index]-min)/StepPerBin)+0.5f);
+			curX = std::floor(((fImage[index]-min)/StepPerBin)+0.5f);
 			if (curX < 0)
 			{
 				hist_y[0]++;
@@ -172,7 +172,7 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 
 	// Generate Gauss kernel
 	// =========================================================================
-	int dknl_sz = (int)floor((0.5f*bins/dgauss_size_BINscale+0.5f));
+	int dknl_sz = (int)std::floor((0.5f*bins/dgauss_size_BINscale+0.5f));
 	if(dknl_sz<1)
 		dknl_sz = 1;                 // y' via gauss': [1.184 0 -1.184] ~= diff: [1 -1]
 	float gauss_sigma = (float)dknl_sz/4;
@@ -252,7 +252,7 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 			// Gauss kernel 1/gauss_sz_scal of peak to peak distance
 			// =========================================================================
 			std::vector<double> gauss_knl_P2P;
-			int knl_sz = (int)floor(0.5f*abs((float)Peaks[p+1].idx-Peaks[p].idx)/gauss_size_P2Pscale+0.5f);
+			int knl_sz = (int)std::floor(0.5f*std::abs((float)Peaks[p+1].idx-Peaks[p].idx)/gauss_size_P2Pscale+0.5f);
 			if(knl_sz<1)
 				knl_sz = 1;                 // y' via gauss': [1.184 0 -1.184] ~= diff: [1 -1]
 			float new_gauss_sigma = (float)knl_sz/4;
@@ -260,7 +260,7 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 			sum = 0.0;
 			for(int i=-knl_sz; i<=knl_sz; i++)
 			{
-				double value = 1/(sqrt(2*vtkMath::Pi())* new_gauss_sigma)*exp(-0.5*i*i/(new_gauss_sigma * new_gauss_sigma));
+				double value = 1/(std::sqrt(2*vtkMath::Pi())* new_gauss_sigma)*std::exp(-0.5*i*i/(new_gauss_sigma * new_gauss_sigma));
 				gauss_knl_P2P.push_back(value);
 				sum+=value;
 			}
@@ -349,10 +349,10 @@ float cImageHistogram::CalcQ(std::vector<int> thrsh_IDX, std::vector<ClassMeasur
 		sum = 0;
 		for (int i = CStart; i < CEnd; i++)
 		{
-			sum += pow(static_cast<double>(hist_x[i]) - val.mean, 2)*hist_y[i];
+			sum += std::pow(static_cast<double>(hist_x[i]) - val.mean, 2)*hist_y[i];
 		}
 
-		val.sigma = (float)pow(sum / nval, 0.5);
+		val.sigma = (float)std::pow(sum / nval, 0.5);
 
 		//probability
 		val.probability = (float)(count / counttotal);
@@ -373,11 +373,11 @@ float cImageHistogram::CalcQ(std::vector<int> thrsh_IDX, std::vector<ClassMeasur
 	// Total quality measure between the lowest absorbing (air) and the peak with highest probability
 	if (Q_equation == 0)
 	{
-		return abs(result[maxprobabilityClassIDX].mean - result[0].mean) / std::sqrt(result[maxprobabilityClassIDX].sigma*result[0].sigma);
+		return std::abs(result[maxprobabilityClassIDX].mean - result[0].mean) / std::sqrt(result[maxprobabilityClassIDX].sigma*result[0].sigma);
 	}
 	else
 	{
-		return abs(result[maxprobabilityClassIDX].mean - result[0].mean) / std::sqrt(result[maxprobabilityClassIDX].sigma*result[maxprobabilityClassIDX].sigma + result[0].sigma*result[0].sigma);
+		return std::abs(result[maxprobabilityClassIDX].mean - result[0].mean) / std::sqrt(result[maxprobabilityClassIDX].sigma*result[maxprobabilityClassIDX].sigma + result[0].sigma*result[0].sigma);
 	}
 }
 

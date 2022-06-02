@@ -43,6 +43,7 @@ struct iAobjectvis_API iACsvConfig
 		Length, Diameter,
 		Phi, Theta,
 		DimensionX, DimensionY, DimensionZ,
+		CurvedLength,
 		MappedCount
 	}; //!< must be the same order as dlg_CSVInput::m_mappingBoxes!
 	enum VisualizationType

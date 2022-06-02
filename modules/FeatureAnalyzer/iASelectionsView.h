@@ -31,7 +31,6 @@
 
 class vtkIdTypeArray;
 class QTreeWidgetItem;
-class vtkSelection;
 
 typedef iAQTtoUIConnector<QWidget, Ui_Selections> SelectionsConnector;
 

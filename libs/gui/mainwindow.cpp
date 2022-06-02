@@ -1846,6 +1846,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionResetLayout,  &QAction::triggered, this, &MainWindow::resetLayout);
 
 	connect(m_ui->mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::updateMenus);
+	connect(m_ui->mdiArea, &QMdiArea::subWindowActivated, this, &iAMainWindow::childChanged);
 }
 
 void MainWindow::readSettings()

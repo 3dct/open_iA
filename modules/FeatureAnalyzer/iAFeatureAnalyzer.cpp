@@ -38,7 +38,6 @@
 #include <io/iAIOProvider.h>
 
 #include <vtkIdTypeArray.h>
-#include <vtkSelection.h>
 
 #include <QCheckBox>
 #include <QDir>

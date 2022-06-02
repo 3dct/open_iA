@@ -208,8 +208,10 @@ private:
 	bool matchQualityVisActive() const;
 	void updateFiberContext();
 	//void startFeatureScout(int resultID, iAMdiChild* newChild);
-	void visitAllVisibleVis(std::function<void(QSharedPointer<iA3DColoredPolyObjectVis>, size_t resultID)> func);
-	void setClippingPlanes(QSharedPointer<iA3DColoredPolyObjectVis> vis);
+	void visitAllVisibleVis(std::function<void(
+			QSharedPointer<iA3DColoredPolyObjectVis>, QSharedPointer<iA3DPolyObjectActor>, size_t resultID)>
+			func);
+	void setClippingPlanes(QSharedPointer<iA3DPolyObjectActor> vis);
 
 	void setupMain3DView();
 	void setupSettingsView();
@@ -254,6 +256,7 @@ private:
 	int m_nameActionColumn, m_previewColumn, m_histogramColumn, m_stackedBarColumn;
 
 	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
+	QSharedPointer<iA3DPolyObjectActor> m_nearestReferenceActor;
 
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;

@@ -654,17 +654,17 @@ void iAScatterPlot::calculateNiceSteps( double * r, QList<double> * ticks )
 	{
 		int g = goodNums[i];
 		double ideal = delta / g;
-		double p = log10f( ideal );
+		double p = std::log10( ideal );
 		double intpart;
-		double fractpart = modf( p, &intpart );
+		double fractpart = std::modf( p, &intpart );
 		if ( fractpart < 0 )
 		{
 			fractpart += 1;
 			intpart -= 1;
 		}
-		int n = round( powf( 10, fractpart ) );
-		double curStepSize = g * n * pow( 10, intpart );
-		double curCloseness = abs( delta - curStepSize );
+		int n = std::round( std::pow( 10, fractpart ) );
+		double curStepSize = g * n * std::pow( 10, intpart );
+		double curCloseness = std::abs( delta - curStepSize );
 		if ( curCloseness < closeness )
 		{
 			closeness = curCloseness;
@@ -672,7 +672,7 @@ void iAScatterPlot::calculateNiceSteps( double * r, QList<double> * ticks )
 		}
 	}
 	ticks->clear();
-	double ip; modf( r[0] / stepSize, &ip );
+	double ip; std::modf( r[0] / stepSize, &ip );
 	double tick = stepSize*ip;
 	if (stepSize > 0)
 	{
@@ -726,7 +726,7 @@ size_t iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
 	if ( yrange[0] < 0 ) yrange[0] = 0;
 	if ( yrange[1] > m_gridDims[1] ) yrange[1] = m_gridDims[1];
 
-	double minDist = pow( pPtMag * ptRad, 2 );
+	double minDist = std::pow( pPtMag * ptRad, 2 );
 	size_t res = iASPLOMData::NoDataIdx;
 	for (int x = xrange[0]; x < xrange[1]; ++x)
 	{
@@ -738,7 +738,7 @@ size_t iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
 				size_t ptIdx = m_pointsGrid[binInd][indx];
 				double pixelX = p2x(m_splomData->paramData(m_paramIndices[0])[ptIdx]);
 				double pixelY = p2y(m_splomData->paramData(m_paramIndices[1])[ptIdx]);
-				double dist = pow(pixelX - mpos.x(), 2) + pow(pixelY - mpos.y(), 2);
+				double dist = std::pow(pixelX - mpos.x(), 2) + std::pow(pixelY - mpos.y(), 2);
 				if (dist < minDist && m_viewData->matchesFilter(m_splomData, ptIdx))
 				{
 					minDist = dist;

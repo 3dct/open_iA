@@ -191,12 +191,12 @@ void iARulerActor::BuildRepresentation(vtkViewport *viewport)
 			double d;
 			xL = LeftAxis->GetPositionCoordinate()->GetComputedWorldValue(viewport);
 			xR = LeftAxis->GetPosition2Coordinate()->GetComputedWorldValue(viewport);
-			d = sqrt (vtkMath::Distance2BetweenPoints(xL,xR));
+			d = std::sqrt (vtkMath::Distance2BetweenPoints(xL,xR));
 			LeftAxis->SetRange(d/2.0,-d/2.0);
 
 			xL = BottomAxis->GetPositionCoordinate()->GetComputedWorldValue(viewport);
 			xR = BottomAxis->GetPosition2Coordinate()->GetComputedWorldValue(viewport);
-			d = sqrt (vtkMath::Distance2BetweenPoints(xL,xR));
+			d = std::sqrt (vtkMath::Distance2BetweenPoints(xL,xR));
 			BottomAxis->SetRange(-d/2.0,d/2.0);
 		}
 		this->BuildTime.Modified();

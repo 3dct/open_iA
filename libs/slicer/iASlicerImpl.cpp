@@ -261,6 +261,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_cameraOwner(true),
 	m_transform(transform ? transform : vtkTransform::New()),
 	m_pointPicker(vtkSmartPointer<vtkWorldPointPicker>::New()),
+	m_textInfo(vtkSmartPointer<iAVtkText>::New()),
 	m_slabThickness(0),
 	m_roiActive(false),
 	m_sliceNumber(0),
@@ -334,6 +335,10 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 		actionGr->addAction(m_actionMagicLensOffset);
 	}
 
+	m_textInfo->addToScene(m_ren);
+	m_textInfo->setText(" ");
+	m_textInfo->show(m_decorations);
+
 	if (decorations)
 	{
 		m_snakeSpline = new iASnakeSpline;
@@ -371,12 +376,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 			m_axisTransform[i] = vtkSmartPointer<vtkTransform>::New();
 			m_axisTextActor[i] = vtkSmartPointer<vtkTextActor3D>::New();
 		}
-		m_textInfo = vtkSmartPointer<iAVtkText>::New();
 		m_rulerWidget = vtkSmartPointer<iARulerWidget>::New();
-
-		m_textInfo->addToScene(m_ren);
-		m_textInfo->setText(" ");
-		m_textInfo->show(true);
 
 		QImage img;
 		img.load(":/images/fhlogo.png");
@@ -631,9 +631,13 @@ void iASlicerImpl::setup( iASingleSlicerSettings const & settings )
 	{
 		m_axisTextActor[0]->SetVisibility(settings.ShowAxesCaption);
 		m_axisTextActor[1]->SetVisibility(settings.ShowAxesCaption);
-		m_textInfo->setFontSize(settings.ToolTipFontSize);
-		m_textInfo->show(settings.ShowTooltip);
 	}
+	// compromise between keeping old behavior (tooltips disabled if m_decorations == false),
+	// but still making it possible to enable tooltips via context menu: only enable tooltips
+	// from settings if decorations turned on:
+	m_settings.ShowTooltip &= m_decorations;
+	m_textInfo->setFontSize(settings.ToolTipFontSize);
+	m_textInfo->show(m_settings.ShowTooltip);
 	if (m_magicLens)
 	{
 		updateMagicLens();
@@ -1278,6 +1282,24 @@ void iASlicerImpl::setBackground(double r, double g, double b)
 	updateBackground();
 }
 
+// Qt versions before 5.10 don't have these operators yet:
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
+bool operator==(QCursor const & a, QCursor const & b)
+{
+	if (a.shape() != Qt::BitmapCursor)
+	{
+		return a.shape() == b.shape();
+	}
+	return b.shape() == Qt::BitmapCursor &&
+		a.hotSpot() == b.hotSpot() &&
+		(a.pixmap() == b.pixmap() || (a.bitmap() == b.bitmap() && a.mask() == b.mask()));
+}
+bool operator!=(QCursor const & a, QCursor const & b)
+{
+	return !operator==(a, b);
+}
+#endif
+
 void iASlicerImpl::execute(vtkObject * /*caller*/, unsigned long eventId, void * /*callData*/)
 {
 	if (m_channels.empty())
@@ -1321,6 +1343,10 @@ void iASlicerImpl::execute(vtkObject * /*caller*/, unsigned long eventId, void *
 	case vtkCommand::MouseMoveEvent:
 	{
 		//LOG(lvlInfo, "iASlicerImpl::execute vtkCommand::MouseMoveEvent");
+		if (m_cursorSet && cursor() != mouseCursor())
+		{
+			setCursor(mouseCursor());
+		}
 		if (m_decorations)
 		{
 			m_positionMarkerActor->SetVisibility(false);
@@ -1428,34 +1454,13 @@ namespace
 	double fisheyeMinInnerRadius(double radius) { return std::max(1, static_cast<int>((radius - 1) * 0.7)); }
 }
 
-// Qt versions before 5.10 don't have these operators yet:
-#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
-bool operator==(QCursor const & a, QCursor const & b)
-{
-	if (a.shape() != Qt::BitmapCursor)
-	{
-		return a.shape() == b.shape();
-	}
-	return b.shape() == Qt::BitmapCursor &&
-		a.hotSpot() == b.hotSpot() &&
-		(a.pixmap() == b.pixmap() || (a.bitmap() == b.bitmap() && a.mask() == b.mask()));
-}
-bool operator!=(QCursor const & a, QCursor const & b)
-{
-	return !operator==(a, b);
-}
-#endif
-
 void iASlicerImpl::printVoxelInformation()
 {
-	if (!m_decorations)
+	if (!m_decorations || !m_settings.ShowTooltip)
 	{
 		return;
 	}
-	if (m_cursorSet && cursor() != mouseCursor())
-	{
-		setCursor(mouseCursor());
-	}
+	bool infoAvailable = false;
 	QString strDetails;
 	if (!m_interactorStyle->windowLevelAdjustEnabled() || !m_interactorStyle->leftButtonDown())
 	{
@@ -1471,6 +1476,7 @@ void iASlicerImpl::printVoxelInformation()
 
 		if (m_interactorStyle->windowLevelAdjustEnabled() && m_interactorStyle->leftButtonDown())
 		{
+			infoAvailable = true;
 			strDetails += QString("%1: window: %2; level: %3")
 				.arg(padOrTruncate(m_channels[channelID]->name(), MaxNameLength))
 				.arg(m_channels[channelID]->imageActor()->GetProperty()->GetColorWindow())
@@ -1505,6 +1511,7 @@ void iASlicerImpl::printVoxelInformation()
 			}
 			double coords[3];
 			computeCoords(coords, channelID);
+			infoAvailable = true;
 			strDetails += QString("%1: %2 [%3 %4 %5]")
 				.arg(padOrTruncate(m_channels[channelID]->name(), MaxNameLength))
 				.arg(valueStr)
@@ -1533,10 +1540,12 @@ void iASlicerImpl::printVoxelInformation()
 			int slicerXAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::X),
 				slicerYAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y),
 				slicerZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+			// TODO: check if coords inside other window's image(s)?
 			tmpChild->slicer(m_mode)->setIndex(tmpCoord[0], tmpCoord[1], tmpCoord[2]);
 			dynamic_cast<iASlicerImpl*>(tmpChild->slicer(m_mode))->setPositionMarkerCenter(m_globalPt[slicerXAxisIdx], m_globalPt[slicerYAxisIdx], m_globalPt[slicerZAxisIdx]);
 			tmpChild->slicer(m_mode)->setSliceNumber(tmpCoord[slicerZAxisIdx]);
 			tmpChild->slicer(m_mode)->update();
+			infoAvailable = true;
 			strDetails += filePixel(tmpChild->slicer(m_mode), tmpCoord, slicerXAxisIdx, slicerYAxisIdx);
 			tmpChild->update();
 		}
@@ -1545,19 +1554,24 @@ void iASlicerImpl::printVoxelInformation()
 	// if requested calculate distance and show actor
 	if (m_lineActor && m_lineActor->GetVisibility())
 	{
-		double distance = sqrt(pow((m_startMeasurePoint[0] - m_slicerPt[0]), 2) +
-			pow((m_startMeasurePoint[1] - m_slicerPt[1]), 2));
+		double distance = std::sqrt(std::pow((m_startMeasurePoint[0] - m_slicerPt[0]), 2) +
+			std::pow((m_startMeasurePoint[1] - m_slicerPt[1]), 2));
 		m_lineSource->SetPoint2(m_slicerPt[0], m_slicerPt[1], 0.0);
 		m_diskSource->SetOuterRadius(distance);
 		m_diskSource->SetInnerRadius(distance);
 		m_diskSource->Update();
+		infoAvailable = true;
 		strDetails += QString("%1: %2\n").arg(padOrTruncate("Distance", MaxNameLength)).arg(distance);
 	}
-
-	// Update the info text with pixel coordinates/value if requested.
-	m_textInfo->setPosition(m_renWin->GetInteractor()->GetEventPosition()[0] + 10, m_renWin->GetInteractor()->GetEventPosition()[1] + 10);
-	m_textInfo->setText(strDetails.toStdString().c_str());
-	m_positionMarkerMapper->Update();
+	if (infoAvailable)
+	{
+		// Update the info text with pixel coordinates/value if requested.
+		m_textInfo->setPosition(m_renWin->GetInteractor()->GetEventPosition()[0] + 10,
+			m_renWin->GetInteractor()->GetEventPosition()[1] + 10);
+		m_textInfo->setText(strDetails.toStdString().c_str());
+		m_positionMarkerMapper->Update();
+	}
+	m_textInfo->show(infoAvailable);
 }
 
 void iASlicerImpl::executeKeyPressEvent()
@@ -1635,7 +1649,7 @@ void iASlicerImpl::snapToHighGradient(double &x, double &y)
 			double derivativeX = fabs(right_pix - left_pix);
 			double derivativeY = fabs(top_pix - bottom_pix);
 
-			double gradmag = sqrt ( pow(derivativeX,2) + pow(derivativeY,2) );
+			double gradmag = std::sqrt ( std::pow(derivativeX,2) + std::pow(derivativeY,2) );
 
 			H_x.push_back(center[0]);
 			H_y.push_back(center[1]);
@@ -1651,8 +1665,8 @@ void iASlicerImpl::snapToHighGradient(double &x, double &y)
 				if ( gradmag == H_maxGradMag )
 				{
 					//calculate the distance
-					double newdist = sqrt (pow( (cursorposition[0]-center[0]),2) + pow( (cursorposition[1]-center[1]),2));
-					double maxdist = sqrt (pow( (cursorposition[0]-H_maxcoord[0]),2) + pow( (cursorposition[1]-H_maxcoord[1]),2));
+					double newdist = std::sqrt (std::pow( (cursorposition[0]-center[0]),2) + std::pow( (cursorposition[1]-center[1]),2));
+					double maxdist = std::sqrt (std::pow( (cursorposition[0]-H_maxcoord[0]),2) + std::pow( (cursorposition[1]-H_maxcoord[1]),2));
 					//if newdist is < than the maxdist (meaning the current center position is closer to the cursor position
 					//replace the hMaxCoord with the current center position
 					if ( newdist < maxdist )
@@ -1699,7 +1713,7 @@ void iASlicerImpl::snapToHighGradient(double &x, double &y)
 			double derivativeX = fabs(right_pix - left_pix);
 			double derivativeY = fabs(top_pix - bottom_pix);
 
-			double gradmag = sqrt ( pow(derivativeX,2) + pow(derivativeY,2) );
+			double gradmag = std::sqrt ( std::pow(derivativeX,2) + std::pow(derivativeY,2) );
 
 			V_x.push_back(center[0]);
 			V_y.push_back(center[1]);
@@ -1715,8 +1729,8 @@ void iASlicerImpl::snapToHighGradient(double &x, double &y)
 				if ( gradmag == V_maxGradMag )
 				{
 					//calculate the distance
-					double newdist = sqrt (pow( (cursorposition[0]-center[0]),2) + pow( (cursorposition[1]-center[1]),2));
-					double maxdist = sqrt (pow( (cursorposition[0]-V_maxcoord[0]),2) + pow( (cursorposition[1]-V_maxcoord[1]),2));
+					double newdist = std::sqrt (std::pow( (cursorposition[0]-center[0]),2) + std::pow( (cursorposition[1]-center[1]),2));
+					double maxdist = std::sqrt (std::pow( (cursorposition[0]-V_maxcoord[0]),2) + std::pow( (cursorposition[1]-V_maxcoord[1]),2));
 					//if newdist is < than the maxdist (meaning the current center position is closer to the cursor position
 					//replace the hMaxCoord with the current center position
 					if ( newdist < maxdist )
@@ -1751,8 +1765,8 @@ void iASlicerImpl::snapToHighGradient(double &x, double &y)
 	else if ( v_bool == true && h_bool == true )
 	{
 		//pointselectionkey = 3; //new point is shortest distance between V_maxcoord,currentposition and H_maxcoord ,currentposition
-		double Hdist = sqrt (pow( (cursorposition[0]-H_maxcoord[0]),2) + pow( (cursorposition[1]-H_maxcoord[1]),2));
-		double Vdist = sqrt (pow( (cursorposition[0]-V_maxcoord[0]),2) + pow( (cursorposition[1]-V_maxcoord[1]),2));
+		double Hdist = std::sqrt (std::pow( (cursorposition[0]-H_maxcoord[0]),2) + std::pow( (cursorposition[1]-H_maxcoord[1]),2));
+		double Vdist = std::sqrt (std::pow( (cursorposition[0]-V_maxcoord[0]),2) + std::pow( (cursorposition[1]-V_maxcoord[1]),2));
 		if ( Hdist < Vdist )
 			pointselectionkey = 1; //new point is in horizontal direction H_maxcoord
 		else if ( Hdist > Vdist )
@@ -2229,7 +2243,7 @@ void iASlicerImpl::mouseDoubleClickEvent(QMouseEvent* event)
 void iASlicerImpl::contextMenuEvent(QContextMenuEvent *event)
 {
 	m_actionToggleWindowLevelAdjust->setChecked(m_interactorStyle->windowLevelAdjustEnabled());
-	m_actionShowTooltip->setChecked(m_textInfo->isShown());
+	m_actionShowTooltip->setChecked(m_settings.ShowTooltip);
 	m_actionFisheyeLens->setChecked(m_fisheyeLensActivated);
 	if (m_magicLens)
 	{
@@ -2474,7 +2488,8 @@ void iASlicerImpl::toggleWindowLevelAdjust()
 
 void iASlicerImpl::toggleShowTooltip()
 {
-	m_textInfo->show(m_actionShowTooltip->isChecked());
+	m_settings.ShowTooltip = !m_settings.ShowTooltip;
+	m_textInfo->show(m_settings.ShowTooltip);
 }
 
 void iASlicerImpl::fisheyeLensToggled(bool enabled)

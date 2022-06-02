@@ -262,7 +262,6 @@ public:
 	virtual void setReInitializeRenderWindows(bool reInit) = 0;
 
 	//! @{ for recomputing histogram. should probably be made private somehow; or members of modality, or triggered automatically on modality creation...
-	virtual size_t histogramNewBinCount(QSharedPointer<iAModality>) = 0;
 	virtual bool histogramComputed(size_t newBinCount, QSharedPointer<iAModality>) = 0;
 	virtual void computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality>) = 0;
 	virtual void setHistogramModality(int modalityIdx) = 0;

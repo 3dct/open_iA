@@ -20,7 +20,15 @@
 * ************************************************************************************/
 #include "iACompVisOptions.h"
 
+
+//Debug
+#include <iALog.h>
+
+//Qt
+#include "qstring.h"
+
 //vtk
+#include "vtkUnsignedCharArray.h"
 #include "vtkDoubleArray.h"
 #include "vtkTexture.h"
 #include "vtkImageData.h"
@@ -29,11 +37,21 @@
 #include "vtkMapper.h"
 #include "vtkPointData.h"
 
+#include <vector>
+
 namespace iACompVisOptions
 {
-	void getColorArray(double colors[3], unsigned char result[3])
+	void getColorArray3(double colors[3], unsigned char result[3])
 	{
 		for (size_t j = 0; j < 3; ++j)
+		{
+			result[j] = static_cast<unsigned char>(colors[j] * 255);
+		}
+	}
+
+	void getColorArray4(double colors[4], unsigned char result[4])
+	{
+		for (size_t j = 0; j < 4; ++j)
 		{
 			result[j] = static_cast<unsigned char>(colors[j] * 255);
 		}
@@ -51,8 +69,45 @@ namespace iACompVisOptions
 
 	double histogramNormalization(double value, double newMin, double newMax, double oldMin, double oldMax)
 	{
-		double result = ((newMax - newMin) * ((value - oldMin) / (oldMax - oldMin))) + newMin;
+		//double result = ((newMax - newMin) * ((value - oldMin) / (oldMax - oldMin))) + newMin;
+		double result = newMin + ((value - oldMin) * ((newMax - newMin) / (oldMax - oldMin)));
 		return result;
+	}
+
+	std::vector<double> calculateBinBoundaries(double minVal, double maxVal, int numberOfBins)
+	{
+		double length = computeIntervalLength(minVal, maxVal);
+		double binLength = length / numberOfBins;
+
+		std::vector<double> bins = std::vector<double>();
+
+		for (size_t b = 0; b < static_cast<size_t>(numberOfBins); b++)
+		{
+			double lowerBound = minVal + (binLength * b);
+			bins.push_back(lowerBound);
+		}
+
+		return bins;
+	}
+
+	double computeIntervalLength(double minVal, double maxVal)
+	{
+		double length = 0.0;
+
+		if (minVal < 0 || maxVal >= 0)
+		{
+			length = std::abs(minVal - maxVal);
+		}
+		else if (minVal < 0 && maxVal < 0)
+		{
+			length = std::abs(minVal) - std::abs(maxVal);
+		}
+		else if (minVal >= 0.0 && maxVal >= 0)
+		{
+			length = std::abs(maxVal) - std::abs(minVal);
+		}
+
+		return length;
 	}
 
 	 void getDoubleArray(const unsigned char colors[3], double result[3])
@@ -78,6 +133,22 @@ namespace iACompVisOptions
 		std::size_t pos = input.find(".");
 		std::string result = input.substr(0, (pos + 1) + decimal_places);
 		return result;
+	}
+
+	void copyVector(std::vector<int>* toCopy, std::vector<int>* copied)
+	{
+		for (int i = 0; i < ((int)toCopy->size()); i++)
+		{
+			copied->at(i) = toCopy->at(i);
+		}
+	}
+
+	void copyVector(std::vector<double>* toCopy, std::vector<double>* copied)
+	{
+		for (int i = 0; i < ((int)toCopy->size()); i++)
+		{
+			copied->at(i) = toCopy->at(i);
+		}
 	}
 
 	void stippledLine(vtkSmartPointer<vtkActor> actor, int lineStipplePattern, int lineStippleRepeat)
@@ -141,5 +212,45 @@ namespace iACompVisOptions
 		texture->RepeatOn();
 
 		actor->SetTexture(texture);
+	}
+
+	//calculates the percentage of a point in any range interval (with positive and negative values)
+	double calculatePercentofRange(double value, double min, double max)
+	{
+		return (value - min) / (max - min);
+	}
+
+	//calculates a value at a specific percentage in any range interval (with positive and negative values)
+	double calculateValueAccordingToPercent(double min, double max, double percent)
+	{
+		return percent * (max - min) + min;
+	}
+
+	QString getLabel(QString input)
+	{
+		int ind = input.lastIndexOf('/');
+		QString newLow = input.mid(ind+1,input.size());
+
+		QString result = newLow.replace(".csv", "");
+		return result;
+	}
+
+	/*************** Initialization of Computation & GUI Options ****************************/
+	void setComputeMDS(bool val)
+	{
+		computeMDS = val;
+	}
+	void setShow3DViews(bool val)
+	{
+		show3DViews = val;
+	}
+
+	bool getComputeMDS()
+	{
+		return computeMDS;
+	}
+	bool getShow3DViews()
+	{
+		return show3DViews; 
 	}
 }

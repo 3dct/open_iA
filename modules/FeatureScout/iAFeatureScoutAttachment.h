@@ -32,6 +32,8 @@ class dlg_FeatureScout;
 
 class vtkTable;
 
+class QSettings;
+
 class iAFeatureScoutAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
@@ -40,7 +42,13 @@ public:
 	void init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, int visType,
 		QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
 		std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip);
-	void FeatureScout_Options(int idx);
+	//! to ensure correct "order" of deletion (that for example object vis registered with renderer
+	//! can de-register itself, before renderer gets destroyed - if destroyed through MdiChild's
+	//! destructing its child widgets, then this happens after renderer is destroyed!
+	~iAFeatureScoutAttachment();
+	void saveProject(QSettings& projectFile);
+	void loadProject(QSettings& projectFile);
+
 private:
-	dlg_FeatureScout * imgFS;
+	dlg_FeatureScout * m_featureScout;
 };

@@ -1023,7 +1023,7 @@ void computeFhwThreshold( ImagePointer & image, PorosityFilterID /*filterId*/, R
 	otsuMultiFilter->ReleaseDataFlagOn();
 
 	// Calculate Fhw Threshold
-	fhwThr = round( omThr * ( fhwWeight / 100.0 ) + mdThr * ( 1.0 - ( fhwWeight / 100.0 ) ) );
+	fhwThr = std::round( omThr * ( fhwWeight / 100.0 ) + mdThr * ( 1.0 - ( fhwWeight / 100.0 ) ) );
 
 	// Segment image with Fhw Threshold
 	typedef itk::BinaryThresholdImageFilter <InputImageType, MaskImageType> BinaryThresholdImageFilterType;
@@ -1670,6 +1670,7 @@ void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMas
 	LabelGeometryImageFilterType::LabelsType::iterator allLabelsIt;
 
 	// Pore Characteristics calculation
+	// TODO: avoid duplication between here and FeatureCharacteristics computation!
 	for (allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++)
 	{
 		LabelGeometryImageFilterType::LabelPixelType labelValue = *allLabelsIt;
@@ -1717,14 +1718,14 @@ void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMas
 			dz = z2 - z1;
 		}
 
-		phi = asin(dy / sqrt(dx*dx + dy*dy));
-		theta = acos(dz / sqrt(dx*dx + dy*dy + dz*dz));
-		a11 = cos(phi)*cos(phi)*sin(theta)*sin(theta);
-		a22 = sin(phi)*sin(phi)*sin(theta)*sin(theta);
-		a33 = cos(theta)*cos(theta);
-		a12 = cos(phi)*sin(theta)*sin(theta)*sin(phi);
-		a13 = cos(phi)*sin(theta)*cos(theta);
-		a23 = sin(phi)*sin(theta)*cos(theta);
+		phi = std::asin(dy / std::sqrt(dx*dx + dy*dy));
+		theta = std::acos(dz / std::sqrt(dx*dx + dy*dy + dz*dz));
+		a11 = std::cos(phi)*std::cos(phi)*std::sin(theta)*std::sin(theta);
+		a22 = std::sin(phi)*std::sin(phi)*std::sin(theta)*std::sin(theta);
+		a33 = std::cos(theta)*std::cos(theta);
+		a12 = std::cos(phi)*std::sin(theta)*std::sin(theta)*std::sin(phi);
+		a13 = std::cos(phi)*std::sin(theta)*std::cos(theta);
+		a23 = std::sin(phi)*std::sin(theta)*std::cos(theta);
 
 		phi = (phi*180.0f) / vtkMath::Pi();
 		theta = (theta*180.0f) / vtkMath::Pi();
@@ -1749,9 +1750,9 @@ void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMas
 
 		majorlength = labelGeometryImageFilter->GetMajorAxisLength(labelValue);
 		minorlength = labelGeometryImageFilter->GetMinorAxisLength(labelValue);
-		dimX = abs(labelGeometryImageFilter->GetBoundingBox(labelValue)[0] - labelGeometryImageFilter->GetBoundingBox(labelValue)[1]) + 1;
-		dimY = abs(labelGeometryImageFilter->GetBoundingBox(labelValue)[2] - labelGeometryImageFilter->GetBoundingBox(labelValue)[3]) + 1;
-		dimZ = abs(labelGeometryImageFilter->GetBoundingBox(labelValue)[4] - labelGeometryImageFilter->GetBoundingBox(labelValue)[5]) + 1;
+		dimX = std::abs(labelGeometryImageFilter->GetBoundingBox(labelValue)[0] - labelGeometryImageFilter->GetBoundingBox(labelValue)[1]) + 1;
+		dimY = std::abs(labelGeometryImageFilter->GetBoundingBox(labelValue)[2] - labelGeometryImageFilter->GetBoundingBox(labelValue)[3]) + 1;
+		dimZ = std::abs(labelGeometryImageFilter->GetBoundingBox(labelValue)[4] - labelGeometryImageFilter->GetBoundingBox(labelValue)[5]) + 1;
 
 		// Calculation of other pore characteristics and writing the csv file
 		ShapeLabelObjectType *labelObject = labelMap->GetNthLabelObject(labelValue - 1); // debug -1 delated	// labelMap index contaions first pore at 0

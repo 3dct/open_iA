@@ -157,8 +157,8 @@ double iABlobImplicitFunction::EvaluateFunction (double x[3])
 			if (otherFunc != this)
 			{
 				otherVal = otherFunc->JustEvaluateFunction(x);
-				if (abs (value - otherVal) < 0.025)
-					return value * (  abs(value-otherVal)/0.025  );
+				if (std::abs (value - otherVal) < 0.025)
+					return value * (  std::abs(value-otherVal)/0.025  );
 			}
 		}
 	}

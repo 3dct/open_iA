@@ -94,7 +94,7 @@ void danielsson_distancemap(iAFilter* filter, QMap<QString, QVariant> const & pa
 	typedef itk::DanielssonDistanceMapImageFilter< InputImageType, UShortImageType, UShortImageType > danielssonDistFilterType;
 
 	auto distFilter = danielssonDistFilterType::New();
-	distFilter->SetInputIsBinary(parameters["Input binary"].toBool());
+	distFilter->SetInputIsBinary(parameters["Input is binary"].toBool());
 	distFilter->SetInput( dynamic_cast< InputImageType * >(filter->input(0)->itkImage() ) );
 	filter->progress()->observe(distFilter);
 	distFilter->Update();
@@ -125,11 +125,15 @@ IAFILTER_CREATE(iADanielssonDistanceMap)
 iADanielssonDistanceMap::iADanielssonDistanceMap() :
 	iAFilter("Danielsson Distance Map", "Distance Map",
 		"Computes the distance map of the input image as an approximation with "
-		"pixel accuracy to the Euclidean distance. <br/>"
+		"pixel accuracy to the Euclidean distance. "
+		"If <em>Input is binary</em> is set, each nonzero pixel in the input image will be "
+		"given a unique numeric code to be used by the Voronoi partition. If the image is "
+		"binary but you are not interested in the Voronoi regions of the different nonzero "
+		"pixels, then you need not set this. <br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1DanielssonDistanceMapImageFilter.html\">"
 		"Danielsson Distance Map Filter</a> in the ITK documentation.")
 {
-	addParameter("Input binary", iAValueType::Boolean, true);
+	addParameter("Input is binary", iAValueType::Boolean, true);
 	addParameter("Rescale to unsigned char", iAValueType::Boolean, false);
 }

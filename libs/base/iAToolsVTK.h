@@ -101,7 +101,7 @@ iAbase_API void writeSingleSliceImage(QString const & filename, vtkImageData* im
 
 //! Returns the size (in bytes) of the given VTK type.
 //! @param vtkType a VTK type identifier (VTK_INT, VTK_UNSIGNED_CHAR, ...)
-//! @return the size in bytes of the given type (VTK_CHAR -> 1, ...),
+//! @return the size in bytes of the given type (VTK_SIGNED_CHAR/VTK_UNSIGNED_CHAR -> 1, ...),
 //!        or 0 if it's an unknown type
 iAbase_API size_t mapVTKTypeToSize(int vtkType);
 

@@ -59,7 +59,7 @@ void iAConnectedComponents::performWork(QMap<QString, QVariant> const & paramete
 IAFILTER_CREATE(iAConnectedComponents)
 
 iAConnectedComponents::iAConnectedComponents() :
-	iAFilter("Connected Component Filter", "Connected Components",
+	iAFilter("Connected Component", "Connected Components",
 		"Assigns each distinct object in a binary image a unique label.<br/>"
 		"Non-zero pixels are considered to be objects, zero-valued pixels are "
 		"considered to be background).<br/>"
@@ -93,7 +93,7 @@ void iAScalarConnectedComponents::performWork(QMap<QString, QVariant> const & pa
 }
 
 iAScalarConnectedComponents::iAScalarConnectedComponents() :
-	iAFilter("Scalar Connected Component Filter", "Connected Components",
+	iAFilter("Scalar Connected Component", "Connected Components",
 		"Labels the objects in an arbitrary image.<br/>"
 		"Two pixels are similar if they are within <em>Distance Threshold</em> of each other.<br/>"
 		"For more information, see the "

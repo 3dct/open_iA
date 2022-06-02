@@ -27,7 +27,6 @@
 #include <vtkColorTransferFunction.h>
 
 #include <QFile>
-#include <QMessageBox>
 #include <QTextStream>
 
 iAXmlSettings::iAXmlSettings()

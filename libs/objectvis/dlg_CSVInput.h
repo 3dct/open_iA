@@ -57,6 +57,8 @@ public:
 private slots:
 	//! On button click for selecting CSV file
 	void selectFileBtnClicked();
+	//! On change of the file name (either through the select button, selection from recent list, or manual editing
+	void fileNameChanged();
 	//! On button click for selecting curved CSV file
 	void selectCurvedFileBtnClicked();
 	//! when checkbox for curved fiber info
@@ -144,6 +146,9 @@ private:
 
 	//! Catches events from list view to be able  to react on delete key event
 	bool eventFilter(QObject *obj, QEvent *event) override;
+
+	//! ask for a name for a format (for saving/exporting)
+	QString askForFormatName(bool forLocalSave);
 
 	iACsvConfig m_confParams;
 	QString m_path;

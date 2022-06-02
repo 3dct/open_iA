@@ -90,8 +90,7 @@ void iALUT::loadMaps(QString const& folder)
 		}
 		auto name = jsonName.toString();
 
-		double colorRange;
-		;
+		double colorRange = 0;
 		if (!jsonValToDouble(rootObj.value("colorRange"), colorRange) )
 		{
 			LOG(lvlWarn,
@@ -155,7 +154,6 @@ void iALUT::loadMaps(QString const& folder)
 
 int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRange, QString colorMap, int numCols /*= 256 */, bool reverse)
 {
-	QColor c;
 	if (!m_colorMaps.contains(colorMap))
 	{
 		LOG(lvlWarn, QString("Invalid color map name %1!").arg(colorMap));

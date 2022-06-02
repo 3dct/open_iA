@@ -557,7 +557,7 @@ size_t iAStackedBarChart::dividerWithinRange(int x) const
 {
 	for (size_t divID = 0; divID < m_dividers.size(); ++divID)
 	{
-		if (abs(m_dividers[divID] - x) < DividerRange)
+		if (std::abs(m_dividers[divID] - x) < DividerRange)
 		{
 			return divID;
 		}

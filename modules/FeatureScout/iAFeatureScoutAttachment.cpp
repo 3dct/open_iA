@@ -22,24 +22,45 @@
 
 #include "dlg_FeatureScout.h"
 
+#include <iA3DObjectFactory.h>
+#include <iACsvConfig.h>
+
+#include <iAModality.h>
+#include <iAModalityTransfer.h>
+#include <iAMdiChild.h>
+
+#include <vtkTable.h>
+
 iAFeatureScoutAttachment::iAFeatureScoutAttachment(iAMainWindow* mainWnd, iAMdiChild * child) :
 	iAModuleAttachmentToChild(mainWnd, child)
 {
+}
+
+iAFeatureScoutAttachment::~iAFeatureScoutAttachment()
+{
+	delete m_featureScout;
 }
 
 void iAFeatureScoutAttachment::init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl,
 	int visType, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
 	std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip)
 {
-	imgFS = new dlg_FeatureScout(m_child, static_cast<iAObjectType>(filterID),
-		fileName, csvtbl, visType, columnMapping, curvedFiberInfo, cylinderQuality, segmentSkip);
+	auto objvis = create3DObjectVis(visType, csvtbl, columnMapping,
+		QColor(dlg_FeatureScout::UnclassifiedColorName), curvedFiberInfo, cylinderQuality, segmentSkip,
+		visType == iACsvConfig::UseVolume ? m_child->modality(0)->transfer()->colorTF() : nullptr,
+		visType == iACsvConfig::UseVolume ? m_child->modality(0)->transfer()->opacityTF() : nullptr,
+		visType == iACsvConfig::UseVolume ? m_child->modality(0)->image()->GetBounds() : nullptr);
+	m_featureScout = new dlg_FeatureScout(
+		m_child, static_cast<iAObjectType>(filterID),
+		fileName, csvtbl, visType, columnMapping, objvis);
 }
 
-void iAFeatureScoutAttachment::FeatureScout_Options(int idx)
+void iAFeatureScoutAttachment::saveProject(QSettings& projectFile)
 {
-	if (!imgFS)
-	{
-		return;
-	}
-	imgFS->changeFeatureScout_Options(idx);
+	m_featureScout->saveProject(projectFile);
+}
+
+void iAFeatureScoutAttachment::loadProject(QSettings& projectFile)
+{
+	m_featureScout->loadProject(projectFile);
 }

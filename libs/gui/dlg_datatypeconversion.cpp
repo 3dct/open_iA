@@ -281,7 +281,7 @@ template<class T> void DataTypeConversionROI_template(QString const & filename, 
 	typename InputImageType::Pointer itkimage = InputImageType::New();
 
 	// create itk image
-	//float itkz = floor((float)((p.m_size[2]-1)/zSkip)+1);
+	//float itkz = std::floor((float)((p.m_size[2]-1)/zSkip)+1);
 	typename InputImageType::SpacingType itkspacing;
 	itkspacing[0] = p.m_spacing[0]; itkspacing[1] = p.m_spacing[1];	itkspacing[2] = p.m_spacing[2];
 	typename InputImageType::SizeType itksize;

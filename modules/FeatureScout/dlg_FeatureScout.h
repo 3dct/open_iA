@@ -20,10 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFeatureScoutModuleInterface.h"
+#include "FeatureScout_export.h"
 #include "iAObjectType.h"
-
-#include <iAVec3.h>
 
 #include <vtkSmartPointer.h>
 
@@ -31,7 +29,6 @@
 #include <QMap>
 #include <QSharedPointer>
 
-#include <map>
 #include <memory>    // for std::unique_ptr
 #include <vector>
 
@@ -51,6 +48,7 @@ class iAMdiChild;
 class iAQVTKWidget;
 
 class iA3DObjectVis;
+class iA3DObjectActor;
 
 class iAConnector;
 class iALookupTable;
@@ -82,21 +80,37 @@ class vtkVolume;
 class vtkVolumeProperty;
 
 class QComboBox;
+class QSettings;
 class QStandardItem;
 class QStandardItemModel;
 class QTreeView;
 class QTableView;
+class QXmlStreamReader;
 class QXmlStreamWriter;
 
 class FeatureScout_API dlg_FeatureScout : public QDockWidget
 {
 	Q_OBJECT
 public:
-	dlg_FeatureScout(iAMdiChild *parent, iAObjectType fid, QString const & fileName,
-		vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
-		std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip);
+	static const QString DlgObjectName;
+	static const QString UnclassifiedColorName;
+	dlg_FeatureScout(iAMdiChild *parent, iAObjectType fid, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl,
+		int visType, QSharedPointer<QMap<uint, uint>> columnMapping,
+		QSharedPointer<iA3DObjectVis> objvis);
 	~dlg_FeatureScout();
-	void changeFeatureScout_Options(int idx);
+	void showPCSettings();            //!< show settings dialog for parallel coordinates
+	void showScatterPlot();           //!< show the scatter plot matrix
+	void multiClassRendering();       //!< multi-class rendering
+	void renderLengthDistribution();  //!< render fiber-length distribution
+	void renderMeanObject();          //!< compute and render a mean object for each class
+	void renderOrientation();         //!< color all objects according to their orientation
+
+	void saveProject(QSettings& projectFile);
+	void loadProject(QSettings& projectFile);
+
+public slots:
+	void selectionChanged3D();
+
 private slots:
 	void SaveBlobMovie();
 	void ClassSaveButton();
@@ -106,7 +120,6 @@ private slots:
 	void WisetexSaveButton();
 	void ExportClassButton(); //!< The export defined classes to MDH File.
 	void CsvDVSaveButton();
-	void RenderOrientation();
 	void classClicked(const QModelIndex &index);
 	void classDoubleClicked(const QModelIndex &index);
 	void EnableBlobRendering();
@@ -119,6 +132,8 @@ private slots:
 	void spSelInformsPCChart(std::vector<size_t> const & selInds);
 	void spParameterVisibilityChanged(size_t paramIndex, bool enabled);
 	//! @}
+	//! set selection in the parallel coordinates charts
+	void setPCSelection(std::vector<size_t> const& sortedSelInds);
 	//! @{ parallel coordinate chart related methods:
 	void pcRightButtonPressed(vtkObject* obj, unsigned long, void* client_data, void*, vtkCommand* command);
 	void pcRightButtonReleased(vtkObject* obj, unsigned long, void* client_data, void*, vtkCommand* command);
@@ -129,8 +144,6 @@ private slots:
 private:
 	//create labelled output image based on defined classes
 	template <class T> void CreateLabelledOutputMask(iAConnector & con, const QString & fOutPath);
-	void showScatterPlot();
-	void showPCSettings();
 	void setupModel();
 	void setupViews();
 	void setupConnections();  //!< define signal and slots connections
@@ -160,16 +173,15 @@ private:
 	void updateLookupTable(double alpha = 0.7);
 	void updateClassStatistics(QStandardItem *item);
 	int calcOrientationProbability(vtkTable *t, vtkTable *ot);
+	void saveClassesXML(QXmlStreamWriter& stream);
+	void loadClassesXML(QXmlStreamReader& reader);
 	void writeClassesAndChildren(QXmlStreamWriter *writer, QStandardItem *item) const;
 	void writeWisetex(QXmlStreamWriter *writer);
 	//void autoAddClass(int NbOfClasses);
 	bool OpenBlobVisDialog();
 	//! @{ 3D-rendering-related methods:
 	void SingleRendering(int objectID = -10000);          //!< render a single object (if objectID > 0) or a single class
-	void MultiClassRendering();                           //!< multi-class rendering
 	void RenderSelection(std::vector<size_t> const & selInds); //!< render a selection (+ the class that contains it)
-	void RenderLengthDistribution();                      //!< render fiber-length distribution
-	void RenderMeanObject();                              //!< compute and render a mean object for each class
 	//! @}
 
 	//! @{ members referencing iAMdiChild, used for 3D rendering
@@ -253,5 +265,6 @@ private:
 
 	QSharedPointer<iAFeatureScoutSPLOM> m_splom;
 	QSharedPointer<iA3DObjectVis> m_3dvis;
+	QSharedPointer<iA3DObjectActor> m_3dactor;
 	QSharedPointer<iAMeanObject> m_meanObject;
 };

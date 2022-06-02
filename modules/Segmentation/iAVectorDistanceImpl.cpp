@@ -36,7 +36,7 @@ namespace
 		{
 			sum += static_cast<double>(spec->get(i)) * spec->get(i);
 		}
-		return sqrt(sum);
+		return std::sqrt(sum);
 	}
 
 	const char * const MeasureNames[dmCount+1] =

@@ -28,7 +28,7 @@ class vtkColorTransferFunction;
 class iAobjectvis_API iA3DLabelledVolumeVis : public iA3DObjectVis
 {
 public:
-	iA3DLabelledVolumeVis(vtkRenderer* ren, vtkColorTransferFunction* color, vtkPiecewiseFunction* opac,
+	iA3DLabelledVolumeVis(vtkColorTransferFunction* color, vtkPiecewiseFunction* opac,
 		vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, double const * bounds );
 	void renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem ) override;
 	void renderSingle(IndexType selectedObjID, int classID, QColor const & classColor, QStandardItem* activeClassItem ) override;
@@ -36,6 +36,8 @@ public:
 	void renderOrientationDistribution(vtkImageData* oi ) override;
 	void renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range ) override;
 	double const * bounds() override;
+	QSharedPointer<iA3DObjectActor> createActor(vtkRenderer* ren) override;
+
 private:
 	vtkPiecewiseFunction     *oTF;
 	vtkColorTransferFunction *cTF;

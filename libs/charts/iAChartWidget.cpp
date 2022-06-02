@@ -1128,11 +1128,11 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 #endif
 			if (diff < 0)
 			{
-				zoomAlongY(-pow(ZoomYStep,-diff)+ m_yZoomStart, false);
+				zoomAlongY(-std::pow(ZoomYStep,-diff)+ m_yZoomStart, false);
 			}
 			else
 			{
-				zoomAlongY(pow(ZoomYStep,diff)+ m_yZoomStart, false);
+				zoomAlongY(std::pow(ZoomYStep,diff)+ m_yZoomStart, false);
 			}
 			update();
 		}
@@ -1344,7 +1344,7 @@ void iAChartWidget::exportData()
 		return;
 	}
 	std::ofstream out( getLocalEncodingFileName(fileName));
-	out << m_xCaption.toStdString() << "," << QString("%1%2").arg(m_yCaption).arg(plotIdx).toStdString() << "\n";
+	out << m_xCaption.toStdString() << "," << QString("Plot %1: %2").arg(plotIdx).arg(m_yCaption).toStdString() << "\n";
 	for (size_t idx = 0; idx < m_plots[plotIdx]->data()->valueCount(); ++idx)
 	{
 		out << QString::number(m_plots[plotIdx]->data()->xValue(idx), 'g', 15).toStdString()

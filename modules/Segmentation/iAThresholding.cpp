@@ -183,7 +183,7 @@ void rats_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 	ratsFilter->SetPow( parameters["Power"].toDouble() );
 	filter->progress()->observe( ratsFilter );
 	ratsFilter->Update();
-	filter->addOutputValue("Rats threshold", (double)ratsFilter->GetThreshold());
+	filter->addOutputValue("Threshold", (double)ratsFilter->GetThreshold());
 	filter->addOutput(ratsFilter->GetOutput());
 }
 
@@ -207,6 +207,7 @@ iARatsThreshold::iARatsThreshold() :
 	addParameter("Power", iAValueType::Continuous, 1);
 	addParameter("Outside value", iAValueType::Continuous, 0);
 	addParameter("Inside value", iAValueType::Continuous, 1);
+	addOutputValue("Threshold");
 }
 
 
@@ -247,7 +248,7 @@ void otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 		otsuFilter->SetInput(dynamic_cast<InputImageType*>( filter->input(0)->itkImage() ) );
 		filter->progress()->observe( otsuFilter );
 		otsuFilter->Update();
-		filter->addOutputValue("Otsu threshold", (double)otsuFilter->GetThreshold());
+		filter->addOutputValue("Threshold", (double)otsuFilter->GetThreshold());
 		filter->addOutput(otsuFilter->GetOutput());
 	}
 	else
@@ -260,7 +261,7 @@ void otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 		otsuFilter->SetInput(dynamic_cast< InputImageType * >( filter->input(0)->itkImage() ) );
 		filter->progress()->observe( otsuFilter );
 		otsuFilter->Update();
-		filter->addOutputValue("Otsu threshold", (double)otsuFilter->GetThreshold());
+		filter->addOutputValue("Threshold", (double)otsuFilter->GetThreshold());
 		filter->addOutput(otsuFilter->GetOutput());
 	}
 }
@@ -285,7 +286,7 @@ iAOtsuThreshold::iAOtsuThreshold() :
 	addParameter("Outside value", iAValueType::Continuous, 0);
 	addParameter("Inside value", iAValueType::Continuous, 1);
 	addParameter("Remove peaks", iAValueType::Boolean, false);
-	addOutputValue("Otsu threshold");
+	addOutputValue("Threshold");
 }
 
 
@@ -419,6 +420,9 @@ iAMaximumDistance::iAMaximumDistance() :
 	addParameter("Width of histogram bin", iAValueType::Discrete, 256, 1);
 	addParameter("Low intensity", iAValueType::Continuous, 0);
 	addParameter("Use low intensity", iAValueType::Boolean, false);
+	addOutputValue("Maximum distance threshold");
+	addOutputValue("Maximum distance low peak");
+	addOutputValue("Maximum distance high peak");
 }
 
 
@@ -449,16 +453,18 @@ namespace
 		if (ParameterlessThresholdingNames.empty())
 		{
 			ParameterlessThresholdingNames.push_back("Otsu Threshold");
-			ParameterlessThresholdingNames.push_back("Isodata Thresold");
-			ParameterlessThresholdingNames.push_back("Maximum Entropy  Thresold");
+			ParameterlessThresholdingNames.push_back("Isodata Threshold");
+			ParameterlessThresholdingNames.push_back("Maximum Entropy Threshold");
+			ParameterlessThresholdingNames.push_back("Moments Threshold");
 			ParameterlessThresholdingNames.push_back("Yen Threshold");
-			ParameterlessThresholdingNames.push_back("Renyi Entropy Thresold");
+			ParameterlessThresholdingNames.push_back("Renyi Entropy Threshold");
 			ParameterlessThresholdingNames.push_back("Shanbhag Threshold");
 			ParameterlessThresholdingNames.push_back("Intermodes Threshold");
 			ParameterlessThresholdingNames.push_back("Huang Threshold");
 			ParameterlessThresholdingNames.push_back("Li Threshold");
 			ParameterlessThresholdingNames.push_back("Kittler Illingworth Threshold");
 			ParameterlessThresholdingNames.push_back("Triangle Threshold");
+			ParameterlessThresholdingNames.push_back("Minimum Threshold");
 		}
 		return ParameterlessThresholdingNames;
 	}
@@ -476,23 +482,47 @@ iAParameterlessThresholding::iAParameterlessThresholding() :
 		"Performs a parameterless global thresholding (threshold determined automatically based on histogram).<br/>"
 		"Several different <em>Method</em>s for determining the threshold are available, "
 		"you can also set the <em>Number of histogram bins</em> employed in the histogram used for determining the threshold. "
-		"The <em>Outside value</em> is assigned to values below the computed threshold value, the <em>Inside value</em> is assigned to values above threshold value.<br/>"
+		"The <em>Inside value</em> is assigned to values below the computed threshold value, the <em>Outside value</em> is assigned to values above the threshold.<br/>"
 		"For more information, see the "
-		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OtsuMultipleThresholdsImageFilter.html\">"
-		"Otsu Multiple Threshold Filter</a> in the ITK documentation."
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OtsuThresholdImageFilter.html\">"
+		"Otsu Threshold Filter</a>, the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1IsoDataThresholdImageFilter.html\">"
+		"IsoData Threshold Filter</a>, the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1MaximumEntropyThresholdImageFilter.html\">"
+		"Maximum Entropy Threshold Filter</a>, the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1MomentsThresholdImageFilter.html\">"
+		"Moments Threshold Filter</a>, the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_YenThresholdImageFilter.html\">"
+		"Yen Threshold Filter</a>, the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RenyiEntropyThresholdImageFilter.html\">"
+		"Renyi Entropy Threshold Filter</a>, the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ShanbhagThresholdImageFilter.html\">"
+		"Shanbhag Threshold Filter</a>, the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1IntermodesThresholdImageFilter.html\">"
+		"Intermodes Threshold Filter</a> (the 'Minimum Threshold' also uses this filter, with 'Use Intermodes' set to false), the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1HuangThresholdImageFilter.html\">"
+		"Huang Threshold Filter</a>, the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1LiThresholdImageFilter.html\">"
+		"Li Threshold Filter</a>, the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1KittlerIllingworthThresholdImageFilter.html\">"
+		"Kittler Illingworth Threshold Filter</a>, and the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1TriangleThresholdImageFilter.html\">"
+		"Triangle Threshold Filter</a> "
+		" in the ITK documentation."
 	)
 {
 	addParameter("Method", iAValueType::Categorical, GetParameterlessThresholdingNames());
 	addParameter("Number of histogram bins", iAValueType::Discrete, 128, 2);
-	addParameter("Outside value", iAValueType::Continuous, 0);
-	addParameter("Inside value", iAValueType::Continuous, 1);
+	addParameter("Inside value", iAValueType::Continuous, 0);
+	addParameter("Outside value", iAValueType::Continuous, 1);
+	addOutputValue("Threshold");
 }
 
 template <typename T>
 void parameterless(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
-	typedef itk::Image<T, DIM > InputImageType;
-	typedef itk::Image<unsigned char, DIM> MaskImageType;
+	typedef itk::Image<T, DIM> InputImageType;
+	typedef itk::Image<T, DIM> MaskImageType;
 	typedef itk::HistogramThresholdImageFilter<InputImageType, MaskImageType> parameterFreeThrFilterType;
 	typename parameterFreeThrFilterType::Pointer plFilter;
 	switch (MapMethodNameToID(params["Method"].toString()))

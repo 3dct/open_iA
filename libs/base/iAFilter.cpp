@@ -432,7 +432,7 @@ void iAFilter::abort()
 
 bool iAFilter::canAbort() const
 {
-	return false;
+	return m_canAbort;
 }
 
 bool iAFilter::isAborted() const
