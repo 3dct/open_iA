@@ -43,8 +43,8 @@ class iAVRMainThread : public QThread
 {
 
 public:
-	iAVRMainThread(vtkSmartPointer<vtkOpenVRRenderer> ren, vtkSmartPointer<vtkOpenVRRenderWindow> renderWindow, vtkSmartPointer<vtkOpenVRRenderWindowInteractor> interactor):
-		m_renderer(ren), m_renderWindow(renderWindow), m_interactor(interactor)
+	iAVRMainThread(vtkSmartPointer<vtkOpenVRRenderWindow> renderWindow, vtkSmartPointer<vtkOpenVRRenderWindowInteractor> interactor):
+		m_renderWindow(renderWindow), m_interactor(interactor)
 	{}
 	void run() override
 	{
@@ -69,7 +69,6 @@ public:
 	}
 
 private:
-	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
 	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
 	vtkSmartPointer<vtkOpenVRRenderWindowInteractor> m_interactor;
 	QString m_msg;
@@ -128,7 +127,7 @@ void iAVREnvironment::start()
 	m_renderer->ResetCameraClippingRange();
 	m_interactor->GetPickingManager()->EnabledOn();
 
-	m_vrMainThread = new iAVRMainThread(m_renderer, m_renderWindow, m_interactor);
+	m_vrMainThread = new iAVRMainThread(m_renderWindow, m_interactor);
 	connect(m_vrMainThread, &QThread::finished, this, &iAVREnvironment::vrDone);
 	m_vrMainThread->setObjectName("ImNDTRenderThread");
 	m_vrMainThread->start();
@@ -145,11 +144,8 @@ void iAVREnvironment::stop()
 		LOG(lvlWarn, "VR Environment not running!");
 		return;
 	}
-	if (m_vrMainThread)
-	{
-		m_vrMainThread->stop();
-		emit finished();
-	}
+	m_vrMainThread->stop();
+	emit finished();
 }
 
 void iAVREnvironment::showSkybox()
