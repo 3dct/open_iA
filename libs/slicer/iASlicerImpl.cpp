@@ -179,6 +179,31 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_renWin->GetInteractor()->Initialize();
 	m_interactorStyle->SetDefaultRenderer(m_ren);
 
+	connect(m_interactorStyle, &iASlicerInteractorStyle::selection, this,
+		[this](int dragStart[2], int dragEnd[2])
+		{
+			double slicerPosStart[3], slicerPosEnd[3], globalPosStart[4], globalPosEnd[4];
+			convertPixelPosToImgPos(dragStart, slicerPosStart, globalPosStart);
+			convertPixelPosToImgPos(dragEnd, slicerPosEnd, globalPosEnd);
+			LOG(lvlInfo,
+				QString("Selection: %1, %2, %3, %4 -> Global selection: %5, %6, %7 -> %8, %9, %10")
+					.arg(dragStart[0])
+					.arg(dragStart[1])
+					.arg(dragEnd[0])
+					.arg(dragEnd[1])
+					.arg(globalPosStart[0])
+					.arg(globalPosStart[1])
+					.arg(globalPosStart[2])
+					.arg(globalPosEnd[0])
+					.arg(globalPosEnd[1])
+					.arg(globalPosEnd[2]));
+			// TODO:
+			//   - convert to image coordinates via spacing
+			//   - extract image part
+			//   - get minimum/maximum intensity value
+			//   - adjust transfer function according to min/max
+		});
+
 	iAObserverRedirect* redirect(new iAObserverRedirect(this));
 	m_renWin->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, redirect);
 	m_renWin->GetInteractor()->AddObserver(vtkCommand::LeftButtonReleaseEvent, redirect);
@@ -1292,21 +1317,26 @@ void iASlicerImpl::updatePosition()
 {
 	// get slicer event position:
 	int const* epos = m_renWin->GetInteractor()->GetEventPosition();
-	m_pointPicker->Pick(epos[0], epos[1], 0, m_ren); // z is always zero
-	m_pointPicker->GetPickPosition(m_slicerPt);      // get position in local slicer scene/world coordinates
+	convertPixelPosToImgPos(epos, m_slicerPt, m_globalPt);
+}
+
+void iASlicerImpl::convertPixelPosToImgPos(int const pos[2], double * slicerPos, double* globalPos)
+{
+	m_pointPicker->Pick(pos[0], pos[1], 0, m_ren); // z is always zero
+	m_pointPicker->GetPickPosition(slicerPos);     // get position in local slicer scene/world coordinates
 
 	// compute global point:
 	const int ChannelID = 0; //< TODO: avoid using specific channel here!
 	if (!hasChannel(ChannelID))
 	{
-		std::fill(m_globalPt, m_globalPt + 3, 0);
+		std::fill(globalPos, globalPos + 3, 0);
 		return;
 	}
-	double point[4] = { m_slicerPt[0], m_slicerPt[1], m_slicerPt[2], 1 };
+	double point[4] = {slicerPos[0], slicerPos[1], slicerPos[2], 1};
 	auto reslicer = m_channels[ChannelID]->reslicer();
 	vtkMatrix4x4 *resliceAxes = vtkMatrix4x4::New();
 	resliceAxes->DeepCopy(reslicer->GetResliceAxes());
-	resliceAxes->MultiplyPoint(point, m_globalPt);
+	resliceAxes->MultiplyPoint(point, globalPos);
 	resliceAxes->Delete();
 }
 

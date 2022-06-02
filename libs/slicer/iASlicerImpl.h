@@ -420,6 +420,7 @@ private:
 	void updatePositionMarkerExtent();
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 	void updatePosition();
+	void convertPixelPosToImgPos(int const pos[2], double* slicerPos, double* globalPos);
 
 	//! Update the position of the raw profile line.
 	void updateRawProfile(double posY);
