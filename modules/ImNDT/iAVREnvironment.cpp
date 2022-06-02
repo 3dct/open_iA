@@ -77,10 +77,12 @@ private:
 
 
 
-iAVREnvironment::iAVREnvironment():	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()), m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New()), m_interactor(vtkSmartPointer<vtkOpenVRRenderWindowInteractor>::New()),
-	m_vrMainThread(nullptr)
-{	
-	m_worldScale = -1.0;
+iAVREnvironment::iAVREnvironment():
+	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()),
+	m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New()),
+	m_interactor(vtkSmartPointer<vtkOpenVRRenderWindowInteractor>::New()),
+	m_worldScale(-1.0)
+{
 	createLightKit();
 	createSkybox(0);
 	showSkybox();

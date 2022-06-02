@@ -62,7 +62,7 @@ public:
 private slots:
 	void vrDone();
 private:
-	iAVRMainThread* m_vrMainThread;
+	iAVRMainThread* m_vrMainThread = nullptr;
 	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
 	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
 	vtkSmartPointer<vtkOpenVRRenderWindowInteractor> m_interactor;
