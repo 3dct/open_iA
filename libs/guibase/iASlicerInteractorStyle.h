@@ -1,8 +1,17 @@
 #pragma once
 
+#include <vtkActor2D.h>
+#include <vtkCellArray.h>
+#include <vtkCellData.h>
 #include <vtkInteractorStyleImage.h>
-#include <vtkUnsignedCharArray.h>
+#include <vtkLine.h>
+#include <vtkPoints.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper2D.h>
+#include <vtkProperty2D.h>
+#include <vtkRendererCollection.h>
 #include <vtkRenderWindow.h>
+#include <vtkUnsignedCharArray.h>
 
 
 //! Custom interactor style for slicers, disabling some interactions from vtkInteractorStyleImage
@@ -23,10 +32,42 @@ public:
 	iASlicerInteractorStyle() :
 		m_rightButtonDragZoomEnabled(true),
 		m_leftButtonDown(false),
-		m_interactionMode(imNormal),
-		m_dragStartImage(vtkSmartPointer<vtkUnsignedCharArray>::New())
+		m_interactionMode(imNormal)
 	{
 		m_dragStart[0] = m_dragStart[1] = 0;
+
+		vtkNew<vtkPoints> pts;
+		pts->InsertNextPoint(0, 0, 0);
+		pts->InsertNextPoint(0, 0, 0);
+		pts->InsertNextPoint(0, 0, 0);
+		pts->InsertNextPoint(0, 0, 0);
+		m_selRectPolyData->SetPoints(pts.GetPointer());
+
+		vtkNew<vtkCellArray> lines;
+		for (int i = 0; i < 4; ++i)
+		{
+			vtkNew<vtkLine> line;
+			line->GetPointIds()->SetId(0, i);
+			line->GetPointIds()->SetId(1, (i + 1) % 4);
+			lines->InsertNextCell(line.GetPointer());
+		}
+		m_selRectPolyData->SetLines(lines.GetPointer());
+
+		vtkNew<vtkUnsignedCharArray> colors;
+		colors->SetNumberOfComponents(3);
+		double color[3] = {255, 0.0, 0.0};
+		for (int i = 0; i < 4; ++i)
+		{
+			colors->InsertNextTuple(color);
+		}
+		m_selRectPolyData->GetCellData()->SetScalars(colors.GetPointer());
+		m_selRectMapper->SetInputData(m_selRectPolyData);
+		m_selRectActor->GetProperty()->SetColor(1, 0, 0);
+		m_selRectActor->GetProperty()->SetOpacity(1);
+		m_selRectActor->GetProperty()->SetLineWidth(2.0);
+		m_selRectActor->SetMapper(m_selRectMapper);
+		m_selRectActor->SetPickable(false);
+		m_selRectActor->SetDragable(false);
 	}
 
 	void OnLeftButtonDown() override
@@ -61,18 +102,14 @@ public:
 			}
 			case imRegionSelect:
 			{
+				LOG(lvlInfo, QString("Starting region selection"));
 				auto renWin = this->Interactor->GetRenderWindow();
+				renWin->GetRenderers()->GetFirstRenderer()->AddActor(m_selRectActor);
 				m_dragStart[0] = this->Interactor->GetEventPosition()[0];
 				m_dragStart[1] = this->Interactor->GetEventPosition()[1];
 				m_dragEnd[0] = m_dragStart[0];
 				m_dragEnd[1] = m_dragStart[1];
-
-				m_dragStartImage->Initialize();
-				m_dragStartImage->SetNumberOfComponents(3);
-				int const* size = renWin->GetSize();
-				m_dragStartImage->SetNumberOfTuples(size[0] * size[1]);
-
-				renWin->GetPixelData(0, 0, size[0] - 1, size[1] - 1, 1, m_dragStartImage);
+				updateSelectionRect();
 			}
 			}
 		}
@@ -93,41 +130,12 @@ public:
 			m_dragEnd[0] = clamp(0, size[0] - 1, this->Interactor->GetEventPosition()[0]);
 			m_dragEnd[1] = clamp(0, size[1] - 1, this->Interactor->GetEventPosition()[1]);
 
-			vtkUnsignedCharArray* tmpPixelArray = vtkUnsignedCharArray::New();
-			tmpPixelArray->DeepCopy(m_dragStartImage);
-			unsigned char* pixels = tmpPixelArray->GetPointer(0);
-
 			int minVal[2], maxVal[2];
 			computeMinMax(minVal, maxVal, m_dragStart, m_dragEnd, size, 2);
 			LOG(lvlInfo, QString("Drawing box from %1, %2, to %3, %4")
 				.arg(minVal[0]).arg(minVal[1])
 				.arg(maxVal[0]).arg(maxVal[1]));
-			for (int i = minVal[0]; i <= maxVal[0]; ++i)
-			{
-				for (int c = 0; c < 3; ++c)
-				{
-					int minIdx = 3 * (minVal[1] * size[0] + i) + c;
-					int maxIdx = 3 * (maxVal[1] * size[0] + i) + c;
-					pixels[minIdx] = 255 ^ pixels[minIdx];
-					pixels[maxIdx] = 255 ^ pixels[maxIdx];
-				}
-			}
-			for (int i = minVal[1] + 1; i < maxVal[1]; ++i)
-			{
-				for (int c = 0; c < 3; ++c)
-				{
-					int minIdx = 3 * (i * size[0] + minVal[0]) + c;
-					int maxIdx = 3 * (i * size[0] + maxVal[0]) + c;
-					pixels[minIdx] = 255 ^ pixels[minIdx];
-					pixels[maxIdx] = 255 ^ pixels[maxIdx];
-				}
-			}
-
-			this->Interactor->GetRenderWindow()->SetPixelData(0, 0, size[0] - 1, size[1] - 1, pixels, 1);
-			this->Interactor->GetRenderWindow()->SetPixelData(1, 0, size[0] - 1, size[1] - 1, pixels, 1);
-			this->Interactor->GetRenderWindow()->Frame();
-
-			tmpPixelArray->Delete();
+			updateSelectionRect();
 		}
 		else
 		{
@@ -136,7 +144,6 @@ public:
 	}
 	void OnLeftButtonUp() override
 	{
-		m_leftButtonDown = false;
 		if (this->State == VTKIS_WINDOW_LEVEL)
 		{
 			this->EndWindowLevel();
@@ -144,14 +151,15 @@ public:
 		else if (m_leftButtonDown && m_interactionMode == imRegionSelect &&
 			!Interactor->GetShiftKey() && !Interactor->GetControlKey() && !Interactor->GetAltKey())
 		{
+			LOG(lvlInfo, QString("Ending region selection"));
 			int const* size = this->Interactor->GetRenderWindow()->GetSize();
 			m_dragEnd[0] = clamp(0, size[0] - 1, this->Interactor->GetEventPosition()[0]);
 			m_dragEnd[1] = clamp(0, size[1] - 1, this->Interactor->GetEventPosition()[1]);
-			// hide rectangle - reset image to what it was before starting dragging:
-			//unsigned char* pixels = m_dragStartImage->GetPointer(0);
-			//this->Interactor->GetRenderWindow()->SetPixelData(0, 0, size[0] - 1, size[1] - 1, pixels, 1);
+			auto renWin = this->Interactor->GetRenderWindow();
+			renWin->GetRenderers()->GetFirstRenderer()->RemoveActor(m_selRectActor);
 			// ... handle actual event with given rectangle...
 		}
+		m_leftButtonDown = false;
 		vtkInteractorStyleImage::OnLeftButtonUp();
 	}
 	//! @{ shift and control + mousewheel are used differently - don't use them for zooming!
@@ -215,11 +223,23 @@ public:
 	*/
 
 private:
+	void updateSelectionRect()
+	{
+		m_selRectPolyData->GetPoints()->SetPoint(0, m_dragStart[0], m_dragStart[1], 0);
+		m_selRectPolyData->GetPoints()->SetPoint(1, m_dragStart[0], m_dragEnd[1], 0);
+		m_selRectPolyData->GetPoints()->SetPoint(2, m_dragEnd[0], m_dragEnd[1], 0);
+		m_selRectPolyData->GetPoints()->SetPoint(3, m_dragEnd[0], m_dragStart[1], 0);
+		m_selRectPolyData->GetPoints()->Modified();
+	}
+
 	bool m_rightButtonDragZoomEnabled;
 	bool m_leftButtonDown;
 	InteractionMode m_interactionMode;
 	int m_dragStart[2], m_dragEnd[2];
-	vtkSmartPointer<vtkUnsignedCharArray> m_dragStartImage;
+
+	vtkNew<vtkPolyData> m_selRectPolyData;
+	vtkNew<vtkPolyDataMapper2D> m_selRectMapper;
+	vtkNew<vtkActor2D> m_selRectActor;
 };
 
 vtkStandardNewMacro(iASlicerInteractorStyle);
