@@ -722,15 +722,15 @@ void iAImNDTMain::multiPickMiMRegion()
 			m_distributionVis->hide();
 			multiPickIDs->resize(2); //only two regions allowed
 
-			std::vector<int>* featureList = new std::vector<int>(); //
+			std::vector<int> featureList;
 			//featureList->push_back(currentFeature); //
-			featureList->push_back(21);
-			featureList->push_back(20);
-			featureList->push_back(19);
-			featureList->push_back(11);
-			featureList->push_back(18);
-			featureList->push_back(17);
-			featureList->push_back(7);
+			featureList.push_back(21);
+			featureList.push_back(20);
+			featureList.push_back(19);
+			featureList.push_back(11);
+			featureList.push_back(18);
+			featureList.push_back(17);
+			featureList.push_back(7);
 
 			auto cubePos = m_volume->getCubePos(multiPickIDs->at(0));
 			auto cubeSize = m_volume->getCubeSize(multiPickIDs->at(0));

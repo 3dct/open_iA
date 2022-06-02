@@ -76,7 +76,7 @@ void iAComp3DView::update3DViews(
 		++it)
 	{
 		int selectedDataInd = it->first;
-		if (selectedDataInd >= m_dockWidgets->size())
+		if (selectedDataInd >= static_cast<int>(m_dockWidgets->size()))
 		{
 			continue;
 		}

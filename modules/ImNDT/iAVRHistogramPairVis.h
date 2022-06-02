@@ -21,26 +21,31 @@
 #pragma once
 
 #include <vtkSmartPointer.h>
-#include <vtkRenderer.h>
-#include <vtkActor.h>
-#include "vtkTable.h"
-#include <vtkGlyph3DMapper.h>
-#include <vtkAssembly.h>
 
 #include "iACsvIO.h"
 #include "iAVR3DText.h"
-#include "iAVRHistogramMetric.h"
-#include "iAVROctreeMetrics.h"
+
+#include <QColor>
 
 #include <unordered_map>
-#include <QColor>
+
+class vtkActor;
+class vtkAssembly;
+class vtkGlyph3DMapper;
+class vtkRenderer;
+class vtkTable;
+class vtkUnsignedCharArray;
+
+class iAVRHistogram;
+class iAVRHistogramMetric;
+class iAVROctreeMetrics;
 
 //! Creates a 3D Distribution Visualization of the volume in the VR Environment
 class iAVRHistogramPairVis
 {
 public:
 	iAVRHistogramPairVis(vtkRenderer* ren, iAVRHistogramMetric* histogramMetric, iAVROctreeMetrics* octreeMetric, vtkTable* objectTable, iACsvIO io);
-	void createVisualization(double* pos, double visSize, double offset, int level, std::vector<vtkIdType>* regions, std::vector<int>* featureList);
+	void createVisualization(double* pos, double visSize, double offset, int level, std::vector<vtkIdType>* regions, std::vector<int> const & featureList);
 	vtkSmartPointer<vtkAssembly> getVisAssembly();
 	void show();
 	void hide();

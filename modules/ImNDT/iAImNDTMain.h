@@ -92,7 +92,6 @@ public:
 signals:
 	void selectionChanged();
 
-	
 private:
 	iAVREnvironment* m_vrEnv;
 	std::vector<iAVROctree*>* m_octrees;

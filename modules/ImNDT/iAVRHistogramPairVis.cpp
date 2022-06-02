@@ -20,31 +20,38 @@
 * ************************************************************************************/
 #include "iAVRHistogramPairVis.h"
 
-#include <iALog.h>
-#include <iAVec3.h>
+#include "iAVRHistogramMetric.h"
+#include "iAVROctreeMetrics.h"
 
+#include <vtkActor.h>
+#include <vtkAppendPolyData.h>
+#include <vtkAssembly.h>
+#include <vtkCellData.h>
+#include <vtkCubeSource.h>
+#include <vtkDoubleArray.h>
+#include <vtkGlyph3DMapper.h>
+#include <vtkLine.h>
+#include <vtkMapper.h>
 #include <vtkMath.h>
-#include <vtkRegularPolygonSource.h>
+#include <vtkPointData.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
-#include <vtkMapper.h>
 #include <vtkProperty.h>
-#include <vtkTextProperty.h>
-#include <vtkTextActor3D.h>
-#include <vtkStringArray.h>
 #include <vtkProp3DCollection.h>
-#include <vtkPointData.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkCellData.h>
-#include <vtkLine.h>
-#include <vtkAppendPolyData.h>
-#include <vtkDoubleArray.h>
-#include <vtkUnsignedCharArray.h>
-#include <vtkCubeSource.h>
+#include <vtkRegularPolygonSource.h>
+#include <vtkRenderer.h>
+#include <vtkSphereSource.h>
+#include <vtkStringArray.h>
+#include <vtkTable.h>
+#include <vtkTextActor3D.h>
+#include <vtkTextProperty.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkTransformFilter.h>
-#include <vtkSphereSource.h>
+#include <vtkUnsignedCharArray.h>
+
+#include <iALog.h>
+#include <iAVec3.h>
 
 iAVRHistogramPairVis::iAVRHistogramPairVis(vtkRenderer* ren, iAVRHistogramMetric* histogramMetric, iAVROctreeMetrics* octreeMetric, vtkTable* objectTable, iACsvIO io) :m_renderer(ren), 
 m_histogramMetric(histogramMetric), m_octreeMetric(octreeMetric), m_objectTable(objectTable), m_sphereActor(vtkSmartPointer<vtkActor>::New()), m_io(io)
@@ -83,7 +90,7 @@ void iAVRHistogramPairVis::initialize()
 	barColorR2 = QColor(208, 28, 139);
 }
 
-void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, double offset, int level, std::vector<vtkIdType>* regions, std::vector<int>* featureList)
+void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, double offset, int level, std::vector<vtkIdType>* regions, std::vector<int> const& featureList)
 {
 	if (regions->size() < 2)
 	{
@@ -95,7 +102,7 @@ void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, doub
 
 	//Axes which are at 0° and 180°
 	m_frontAxes[0] = 0;
-	m_frontAxes[1] = static_cast<int>(featureList->size() - 1);
+	m_frontAxes[1] = static_cast<int>(featureList.size() - 1);
 
 	//Copy only values from position pointer
 	m_centerOfVis[0] = pos[0];
@@ -141,7 +148,7 @@ void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, doub
 	m_histogramBars->clear();
 
 	//Calculate Histogram Values and Bins for every feature
-	for(int feature : *featureList)
+	for(int feature : featureList)
 	{
 		//LOG(lvlImportant, QString("\n Feature: %1 (%2)").arg(feature).arg(m_octreeMetric->getFeatureName(feature)));
 
@@ -164,10 +171,10 @@ void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, doub
 	//start from new centerPos
 	double newCenterPos[3]{};
 
-	for (size_t i = 0; i < featureList->size(); i++)
+	for (size_t i = 0; i < featureList.size(); i++)
 	{
 		double posOnCircle[3]{};
-		calculateAxisPositionInCircle(i, static_cast<double>(featureList->size()) - 1, pos, m_radius, posOnCircle);
+		calculateAxisPositionInCircle(i, static_cast<double>(featureList.size()) - 1, pos, m_radius, posOnCircle);
 		calculateCenterOffsetPos(pos, posOnCircle, newCenterPos);
 		calculateAxis(newCenterPos, posOnCircle);
 		createAxisMarks(i);
@@ -330,7 +337,7 @@ void iAVRHistogramPairVis::flipThroughHistograms(double flipDir)
 	{
 		vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
 
-		if (i == m_frontAxes[currentFlip]) //The axis with 0 or 180 degree angle
+		if (static_cast<int>(i) == m_frontAxes[currentFlip]) //The axis with 0 or 180 degree angle
 		{
 			m_AxesViewDir->at(i) = iAVec3d(transformFront->TransformPoint(m_AxesViewDir->at(i).data()));
 
@@ -508,7 +515,7 @@ void iAVRHistogramPairVis::drawAxes(int visibleAxis)
 
 		for (size_t axisPoly = 0; axisPoly < m_axesPoly->size(); axisPoly++)
 		{
-			if (axisPoly == visibleAxis)
+			if (static_cast<int>(axisPoly) == visibleAxis)
 			{
 				appendActiveFilter->AddInputData(m_axesPoly->at(axisPoly));
 
@@ -554,7 +561,7 @@ void iAVRHistogramPairVis::drawHistogram(int visibleAxis)
 		vtkSmartPointer<vtkAppendPolyData> appendActiveFilter = vtkSmartPointer<vtkAppendPolyData>::New();
 		vtkSmartPointer<vtkAppendPolyData> appendInactiveFilter = vtkSmartPointer<vtkAppendPolyData>::New();
 
-		for (int axis = 0; axis < m_histogramBars->size(); axis++)
+		for (int axis = 0; axis < static_cast<int>(m_histogramBars->size()); axis++)
 		{
 			if (axis == visibleAxis)
 			{

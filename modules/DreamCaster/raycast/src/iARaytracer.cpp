@@ -379,13 +379,13 @@ bool iAEngine::RenderGPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, c
 				cuda_dipang_buff);
 	unsigned int col;
 	unsigned int* buffer=getBuffer();
-	float av_pl=0;
+	//float av_pl=0;
 	unsigned int active_rays_count=0;
 	for (int i=0; i<s->RFRAME_W*s->RFRAME_H; i++)
 	{
 		if(cuda_avpl_buff[i])
 		{
-			av_pl+=cuda_avpl_buff[i];
+			//av_pl+=cuda_avpl_buff[i];
 			active_rays_count++;
 			if(dipAsColor)
 			{
@@ -409,7 +409,7 @@ bool iAEngine::RenderGPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, c
 			*buffer++ = 0xffffff;
 		}
 	}
-	av_pl/=active_rays_count;
+	//av_pl/=active_rays_count;
 	//now extract all penetration data
 	float s1_avPenetrLen=0;
 	float s1_avDipAngle=0;
@@ -490,7 +490,7 @@ bool iAEngine::RenderBatchGPU( unsigned int batchSize, iAVec3f * a_o, iAVec3f * 
 		cuda_dipang_buff);
 	unsigned int col;
 	unsigned int* buffer=getBuffer();
-	float av_pl=0;
+	//float av_pl=0;
 	unsigned int active_rays_count=0;
 	unsigned int offset=0;
 	unsigned int buff_start, buff_end;
@@ -499,7 +499,7 @@ bool iAEngine::RenderBatchGPU( unsigned int batchSize, iAVec3f * a_o, iAVec3f * 
 	{
 		if(cuda_avpl_buff[i])
 		{
-			av_pl+=cuda_avpl_buff[i];
+			//av_pl+=cuda_avpl_buff[i];
 			active_rays_count++;
 			if(dipAsColor)
 			{
@@ -523,7 +523,7 @@ bool iAEngine::RenderBatchGPU( unsigned int batchSize, iAVec3f * a_o, iAVec3f * 
 			*buffer++ = 0xffffff;
 		}
 	}
-	av_pl/=active_rays_count;
+	//av_pl/=active_rays_count;
 	//now extract all penetration data of all renderings
 	for (unsigned int batch=0; batch<batchSize; batch++)
 	{
