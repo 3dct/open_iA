@@ -150,7 +150,6 @@ void iAVREnvironment::stop()
 		m_vrMainThread->stop();
 		emit finished();
 	}
-		
 }
 
 void iAVREnvironment::showSkybox()

@@ -58,8 +58,25 @@ void iAXVRAModuleInterface::Initialize()
 
 void iAXVRAModuleInterface::info()
 {
-	QString infoTxt("Cross-Virtuality Analysis of Rich X-Ray Computed Tomography Data for Materials Science Applications \n\n Actions with Right Controller: \n (1) Picking is detected at the bottom inner edge of the controller and activated by pressing the trigger inside cube in the MiM or the fiber model. \n (2) Multi-selection is made possible by holding one grip and then picking by triggering the right controller. To confirm the selection release the grip. Deselection by selecting the already selected cube again. \n (3) Pressing the trigger outside an object resets any highlighting. \n (4) Pressing the Application Button switches between similarity network and fiber model (only possible if MiM is present). \n (5) Picking two cubes (Multi-selection) in the similarity network opens the Histo-book through which the user can switch between the distributions by holding the right trigger - swiping left or right and releasing it. \n (6) The Trackpad changes the octree level or feature (both only possible if MiM is present) and resets the Fiber Model. Octree Level can be adjusted by pressing up (higher/detailed level) and down (lower/coarser level) on the trackpad. Feature can be changed by pressing right (next feature) and left (previous feature) on the trackpad. \n\n Actions with Left Controller: \n (1) Pressing the Application Button shows or hides the MiM. \n (2) Pressing the trigger changes the displacement mode. \n (3) The Trackpad changes the applied displacement (only possible if MiM is present) or the Jaccard index (only possible if similarity network is shown). Displacement can be adjusted by pressing up (shift away from center) and down (merge together) on the trackpad. Jaccard index can be changed by pressing right (shows higher similarity) and left (shows lower similarity) on the trackpad. \n (4) By holding one grip and then pressing the trigger on the right controller the AR View can be turned on/off. \n\n Actions using Both Controllers: \n  (1) Pressing a grid button on both controllers zooms or translates the world. The zoom can be controlled by pulling controllers apart (zoom in) or together (zoom out). To translate the world both controllers pull in the same direction (grab and pull closer or away). \n");
-
+	QString infoTxt("Cross-Virtuality Analysis of Rich X-Ray Computed Tomography Data for Materials Science Applications"
+		"\n\n"
+		"Actions with Right Controller:\n"
+		" (1) Picking is detected at the bottom inner edge of the controller and activated by pressing the trigger inside cube in the MiM or the fiber model.\n"
+		" (2) Multi-selection is made possible by holding one grip and then picking by triggering the right controller. To confirm the selection release the grip. Deselection by selecting the already selected cube again.\n"
+		" (3) Pressing the trigger outside an object resets any highlighting.\n"
+		" (4) Pressing the Application Button switches between similarity network and fiber model (only possible if MiM is present).\n"
+		" (5) Picking two cubes (Multi-selection) in the similarity network opens the Histo-book through which the user can switch between the distributions by holding the right trigger - swiping left or right and releasing it.\n"
+		" (6) The Trackpad changes the octree level or feature (both only possible if MiM is present) and resets the Fiber Model. Octree Level can be adjusted by pressing up (higher/detailed level) and down (lower/coarser level) on the trackpad. Feature can be changed by pressing right (next feature) and left (previous feature) on the trackpad."
+		"\n\n"
+		"Actions with Left Controller:\n"
+		" (1) Pressing the Application Button shows or hides the MiM.\n"
+		" (2) Pressing the trigger changes the displacement mode.\n"
+		" (3) The Trackpad changes the applied displacement (only possible if MiM is present) or the Jaccard index (only possible if similarity network is shown). Displacement can be adjusted by pressing up (shift away from center) and down (merge together) on the trackpad. Jaccard index can be changed by pressing right (shows higher similarity) and left (shows lower similarity) on the trackpad.\n"
+		" (4) By holding one grip and then pressing the trigger on the right controller the AR View can be turned on/off."
+		"\n\n"
+		"Actions using Both Controllers:\n"
+		" (1) Pressing a grid button on both controllers zooms or translates the world. The zoom can be controlled by pulling controllers apart (zoom in) or together (zoom out). To translate the world both controllers pull in the same direction (grab and pull closer or away).\n");
+	LOG(lvlInfo, infoTxt);
 	QMessageBox::information(m_mainWnd, "XVRA Module", infoTxt);
 }
 
