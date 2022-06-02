@@ -20,18 +20,21 @@
 * ************************************************************************************/
 #pragma once
 
+#include "ImNDT_export.h"
+#include "iAImNDTMain.h"
+#include "iAImNDTInteractorStyle.h"
+
+#include "iA3DColoredPolyObjectVis.h"
+
 #include <iAGUIModuleInterface.h>
-#include <ImNDT_export.h>
 
 #include <vtkSmartPointer.h>
 
 #include <QSharedPointer>
 
-#include "iAImNDTMain.h"
-#include "iA3DColoredPolyObjectVis.h"
-#include "iAImNDTInteractorStyle.h"
-
 class iAVREnvironment;
+
+class iAVolumeRenderer;
 
 class vtkTable;
 
@@ -42,7 +45,7 @@ class ImNDT_API iAImNDTModuleInterface : public iAGUIModuleInterface{
 	Q_OBJECT
 public:
 	void Initialize() override;
-	void ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io,
+	bool ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io,
 		iACsvConfig csvConfig);
 	vtkRenderer* getRenderer();
 
@@ -51,24 +54,27 @@ signals:
 	void arViewToggled();
 
 private:
-	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
 	bool vrAvailable();
 	bool loadImNDT();
-	void vrInfo();
-	QSharedPointer<iAVREnvironment> m_vrEnv;
+	//! The VR environment. Currently deleted every time when the environment is stopped.
+	//! Could be re-used, but that would require all features using it to cleanly remove
+	//! all elements from the VR renderer before exiting!
+	std::shared_ptr<iAVREnvironment> m_vrEnv;
+	//! @{ for ImNDT
 	QSharedPointer<iA3DColoredPolyObjectVis> m_polyObject;
-	iAImNDTMain* m_vrMain;
+	std::shared_ptr<iAImNDTMain> m_vrMain;
 	vtkSmartPointer<iAImNDTInteractorStyle> m_style;
 	iACsvConfig m_csvConfig;
 	iACsvIO m_io;
 	vtkSmartPointer<vtkTable> m_objectTable;
+	//! @}
+	std::shared_ptr<iAVolumeRenderer> m_volumeRenderer;  //! for VR volume rendering
 
-	QAction* m_actionVRStartAnalysis;
+	QAction *m_actionVRStartAnalysis, * m_actionVRVolumeRender;
 
 private slots:
 	void info();
-	void render();
-
+	void renderVolume();
 	void startAnalysis();
-	void vrDone();
+	void vrInfo();
 };

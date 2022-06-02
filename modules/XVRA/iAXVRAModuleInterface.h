@@ -19,7 +19,6 @@ public:
 private:
 	QSharedPointer<iA3DColoredPolyObjectVis> m_polyObject;
 	dlg_FeatureScout* m_fsMain;
-	iAImNDTModuleInterface* m_vrMain;
 	iAFrustumActor* fsFrustum;
 	iAFrustumActor* vrFrustum;
 	QTimer m_updateRenderer;
