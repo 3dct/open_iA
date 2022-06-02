@@ -149,6 +149,7 @@ void iAImNDTModuleInterface::startAnalysis()
 	}
 	else
 	{
+		LOG(lvlInfo, "Stopping ImNDT analysis.");
 		m_vrEnv->stop();
 	}
 }
@@ -170,8 +171,7 @@ bool iAImNDTModuleInterface::vrAvailable()
 	return true;
 }
 
-// Start ImNDT with pre-loaded data
-bool iAImNDTModuleInterface::ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io, iACsvConfig csvConfig)
+bool iAImNDTModuleInterface::setupVREnvironment()
 {
 	if (!vrAvailable())
 	{
@@ -184,8 +184,27 @@ bool iAImNDTModuleInterface::ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> poly
 		QMessageBox::information(m_mainWnd, "VR", msg);
 		return false;
 	}
+	if (m_vrEnvStartedBefore)
+	{
+		QString msg("Note that when starting the VR environment a second time within the same instance of open_iA, we "
+					"encountered flickering effects in the current implementation. You may continue, but we recommend "
+					"to restart the open_iA application before starting another VR environment!");
+		LOG(lvlInfo, msg);
+		QMessageBox::information(m_mainWnd, "VR", msg);
+	}
+	m_vrEnvStartedBefore = true;
 	m_vrEnv.reset(new iAVREnvironment());
+	return true;
+}
 
+// Start ImNDT with pre-loaded data
+bool iAImNDTModuleInterface::ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io, iACsvConfig csvConfig)
+{
+	if (!setupVREnvironment())
+	{
+		return false;
+	}
+	LOG(lvlInfo, QString("Starting ImNDT analysis of %1").arg(csvConfig.fileName));
 	//Create InteractorStyle
 	m_style = vtkSmartPointer<iAImNDTInteractorStyle>::New();
 
@@ -246,27 +265,20 @@ bool iAImNDTModuleInterface::loadImNDT()
 
 void iAImNDTModuleInterface::renderVolume()
 {
-	if (!vrAvailable())
+	if (m_vrEnv && m_vrEnv->isRunning() && m_volumeRenderer)
 	{
-		return;
-	}
-	if (m_vrEnv && m_vrEnv->isRunning())
-	{
-		if (!m_volumeRenderer)
-		{
-			QString msg(
-				"VR environment is currently running! Please stop the ongoing VR analysis before starting a new one!");
-			QMessageBox::information(m_mainWnd, "VR", msg);
-			return;
-		}
 		m_vrEnv->stop();  // triggers finished signal, which currently leads to destroying this vrEnv (see iAImNDTModuleInterface)
 		m_actionVRVolumeRender->setText("Start Volume Rendering");
 		return;
 	}
-	m_vrEnv.reset(new iAVREnvironment());
+	if (!setupVREnvironment())
+	{
+		return;
+	}
 	connect(m_vrEnv.get(), &iAVREnvironment::finished, this, [this]
 	{
 		// prepare for VR environment re-use: properly remove all renderers
+		LOG(lvlInfo, "iAVREnvironment::finished renderVolume lambda");
 		m_volumeRenderer->remove();
 		m_volumeRenderer->removeBoundingBox();
 		m_vrEnv.reset();

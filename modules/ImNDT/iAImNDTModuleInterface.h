@@ -56,10 +56,12 @@ signals:
 private:
 	bool vrAvailable();
 	bool loadImNDT();
+	bool setupVREnvironment();
 	//! The VR environment. Currently deleted every time when the environment is stopped.
 	//! Could be re-used, but that would require all features using it to cleanly remove
 	//! all elements from the VR renderer before exiting!
 	std::shared_ptr<iAVREnvironment> m_vrEnv;
+	bool m_vrEnvStartedBefore = false; //!< when started a second time, the VR environment variable flickers strangely. So we show a warning
 	//! @{ for ImNDT
 	QSharedPointer<iA3DColoredPolyObjectVis> m_polyObject;
 	std::shared_ptr<iAImNDTMain> m_vrMain;
