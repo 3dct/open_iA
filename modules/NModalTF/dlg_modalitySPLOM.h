@@ -18,36 +18,41 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include <iAModuleAttachmentToChild.h>
+#pragma once
 
-#include <QVector>
+#include <vtkSmartPointer.h>
 
-class iADockWidgetWrapper;
+#include <QDockWidget>
+#include <QSharedPointer>
 
-class iAParamFeaturesView;
-class iAParamSPLOMView;
-class iAParamSpatialView;
-class iAParamTableView;
+#include <vector>
 
-class QSettings;
+class iAModalityList;
+class iAQSplom;
+class iASPLOMData;
+class QTableWidget;
 
-class iAParameterExplorerAttachment : public iAModuleAttachmentToChild
+class vtkColorTransferFunction;
+class vtkImageData;
+class vtkLookupTable;
+class vtkPiecewiseFunction;
+
+class dlg_modalitySPLOM: public QDockWidget
 {
+	Q_OBJECT
 public:
-	static iAParameterExplorerAttachment* create(iAMainWindow * mainWnd, iAMdiChild * child);
-	void LoadCSV(QString const & fileName);
-	void ToggleDockWidgetTitleBars();
-	void ToggleSettings(bool visible);
-	void SaveAll(QString const & fileName);
-	void SaveSettings(QSettings & settings);
-	void LoadSettings(QSettings const & settings);
-	QString const & CSVFileName() const;
+	dlg_modalitySPLOM();
+	void SetData(QSharedPointer<iAModalityList> img);
+private slots:
+	void SplomSelection(std::vector<size_t> const &);
 private:
-	iAParameterExplorerAttachment(iAMainWindow * mainWnd, iAMdiChild * child);
-	iAParamSPLOMView* m_SPLOMView;
-	iAParamSpatialView* m_spatialView;
-	iAParamTableView* m_tableView;
-	iAParamFeaturesView* m_featuresView;
-	QVector<iADockWidgetWrapper*> m_dockWidgets;
-	QString m_csvFileName;
+	iAQSplom* m_splom;
+	QSharedPointer<iASPLOMData> m_data;
+	int m_extent[6];
+	double m_spacing[3];
+	double m_origin[3];
+	vtkSmartPointer<vtkColorTransferFunction> m_selection_ctf;
+	vtkSmartPointer<vtkPiecewiseFunction> m_selection_otf;
+	bool m_selected;
+	uint m_SPLOMSelectionChannelID;
 };

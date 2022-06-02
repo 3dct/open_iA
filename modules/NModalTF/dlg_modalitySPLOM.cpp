@@ -113,10 +113,6 @@ void dlg_modalitySPLOM::SplomSelection(std::vector<size_t> const & selInds)
 	mdiChild->updateViews();
 }
 
-dlg_modalitySPLOM::~dlg_modalitySPLOM()
-{
-}
-
 typedef unsigned short VoxelValueType;
 
 void IteratePixels(vtkSmartPointer<vtkImageData> img, const int step[3], std::function<void (int[3], VoxelValueType)> pixelVisitor)
