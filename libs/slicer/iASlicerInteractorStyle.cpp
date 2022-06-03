@@ -46,6 +46,7 @@ iASlicerInteractorStyle::iASlicerInteractorStyle() :
 {
 	m_dragStart[0] = m_dragStart[1] = 0;
 
+	// TODO: avoid duplication between here and selection interactor in Fiaker; maybe extract 2D rectangle "widget" class?
 	vtkNew<vtkPoints> pts;
 	pts->InsertNextPoint(0, 0, 0);
 	pts->InsertNextPoint(0, 0, 0);
@@ -112,7 +113,6 @@ void iASlicerInteractorStyle::OnLeftButtonDown()
 		}
 		case imRegionSelect:
 		{
-			LOG(lvlInfo, QString("Starting region selection"));
 			auto renWin = this->Interactor->GetRenderWindow();
 			renWin->GetRenderers()->GetFirstRenderer()->AddActor(m_selRectActor);
 			m_dragStart[0] = this->Interactor->GetEventPosition()[0];
@@ -139,12 +139,6 @@ void iASlicerInteractorStyle::OnMouseMove()
 		int const* size = this->Interactor->GetRenderWindow()->GetSize();
 		m_dragEnd[0] = clamp(0, size[0] - 1, this->Interactor->GetEventPosition()[0]);
 		m_dragEnd[1] = clamp(0, size[1] - 1, this->Interactor->GetEventPosition()[1]);
-
-		int minVal[2], maxVal[2];
-		computeMinMax(minVal, maxVal, m_dragStart, m_dragEnd, size, 2);
-		LOG(lvlInfo, QString("Drawing box from %1, %2, to %3, %4")
-			.arg(minVal[0]).arg(minVal[1])
-			.arg(maxVal[0]).arg(maxVal[1]));
 		updateSelectionRect();
 	}
 	else
@@ -161,7 +155,6 @@ void iASlicerInteractorStyle::OnLeftButtonUp()
 	else if (m_leftButtonDown && m_interactionMode == imRegionSelect &&
 		!Interactor->GetShiftKey() && !Interactor->GetControlKey() && !Interactor->GetAltKey())
 	{
-		LOG(lvlInfo, QString("Ending region selection"));
 		int const* size = this->Interactor->GetRenderWindow()->GetSize();
 		m_dragEnd[0] = clamp(0, size[0] - 1, this->Interactor->GetEventPosition()[0]);
 		m_dragEnd[1] = clamp(0, size[1] - 1, this->Interactor->GetEventPosition()[1]);

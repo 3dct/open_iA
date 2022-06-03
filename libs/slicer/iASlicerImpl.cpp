@@ -182,26 +182,53 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	connect(m_interactorStyle, &iASlicerInteractorStyle::selection, this,
 		[this](int dragStart[2], int dragEnd[2])
 		{
+			if (m_channels.isEmpty())
+			{
+				return;
+			}
+			// acquire coordinates of clicks and convert to slicer output coordinates:
 			double slicerPosStart[3], slicerPosEnd[3], globalPosStart[4], globalPosEnd[4];
-			convertPixelPosToImgPos(dragStart, slicerPosStart, globalPosStart);
-			convertPixelPosToImgPos(dragEnd, slicerPosEnd, globalPosEnd);
-			LOG(lvlInfo,
-				QString("Selection: %1, %2, %3, %4 -> Global selection: %5, %6, %7 -> %8, %9, %10")
-					.arg(dragStart[0])
-					.arg(dragStart[1])
-					.arg(dragEnd[0])
-					.arg(dragEnd[1])
-					.arg(globalPosStart[0])
-					.arg(globalPosStart[1])
-					.arg(globalPosStart[2])
-					.arg(globalPosEnd[0])
-					.arg(globalPosEnd[1])
-					.arg(globalPosEnd[2]));
-			// TODO:
-			//   - convert to image coordinates via spacing
-			//   - extract image part
-			//   - get minimum/maximum intensity value
-			//   - adjust transfer function according to min/max
+			screenPixelPosToImgPos(dragStart, slicerPosStart, globalPosStart);
+			screenPixelPosToImgPos(dragEnd, slicerPosEnd, globalPosEnd);
+			const int Component = 0;  // only check first component...
+			const int ChannelID = 0;  // ... of first channel
+			int const* slicerExtent = m_channels[ChannelID]->output()->GetExtent();
+			QPoint slicePixelPos[2] = {
+				slicerPosToImgPixelCoords(ChannelID, slicerPosStart),
+				slicerPosToImgPixelCoords(ChannelID, slicerPosEnd)
+			};
+			// make sure the coordinates stay inside valid range for slicer pixel image coordinates
+			for (int i = 0; i < 2; ++i)
+			{
+				slicePixelPos[i].setX(clamp(slicerExtent[0], slicerExtent[1], slicePixelPos[i].x()));
+				slicePixelPos[i].setY(clamp(slicerExtent[2], slicerExtent[3], slicePixelPos[i].y()));
+			}
+			// find the correctly ordered start/end for x/y:
+			// TODO: maybe use computeMinMax?
+			int startX = std::min(slicePixelPos[0].x(), slicePixelPos[1].x());
+			int endX   = std::max(slicePixelPos[0].x(), slicePixelPos[1].x());
+			int startY = std::min(slicePixelPos[0].y(), slicePixelPos[1].y());
+			int endY   = std::max(slicePixelPos[0].y(), slicePixelPos[1].y());
+			
+			// extract image part, get minimum/maximum intensity value:
+			double minVal = std::numeric_limits<double>::max();
+			double maxVal = std::numeric_limits<double>::lowest();
+			for (int x = startX; x <= endX; ++x)
+			{
+				for (int y = startY; y <= endY; ++y)
+				{
+					double value = m_channels[ChannelID]->output()->GetScalarComponentAsDouble(x, y, 0, Component);
+					if (value > maxVal)
+					{
+						maxVal = value;
+					}
+					if (value < minVal)
+					{
+						minVal = value;
+					}
+				}
+			}
+			emit regionSelected(minVal, maxVal);
 		});
 
 	iAObserverRedirect* redirect(new iAObserverRedirect(this));
@@ -221,15 +248,15 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_actionShowTooltip = m_contextMenu->addAction(tr("Show Tooltip"), this, &iASlicerImpl::toggleShowTooltip);
 	
 	m_contextMenu->addSeparator();
-	m_actionToggleWindowLevelAdjust = new QAction(tr("Adjust Window/Level via Click+Drag"), m_contextMenu);
-	m_actionToggleWindowLevelAdjust->setCheckable(true);
-	m_contextMenu->addAction(m_actionToggleWindowLevelAdjust);
-	m_actionToggleRegionTransferFunction = new QAction(tr("Set Transfer function for region via Click+Drag"), m_contextMenu);
-	m_actionToggleRegionTransferFunction->setCheckable(true);
-	m_contextMenu->addAction(m_actionToggleRegionTransferFunction);
-	m_actionToggleNormalInteraction = new QAction(tr("Set Normal Interaction Mode"), m_contextMenu);
+	m_actionToggleNormalInteraction = new QAction(tr("Click+Drag: disabled"), m_contextMenu);
 	m_actionToggleNormalInteraction->setCheckable(true);
 	m_contextMenu->addAction(m_actionToggleNormalInteraction);
+	m_actionToggleRegionTransferFunction = new QAction(tr("Click+Drag: Set Transfer Function for Region"), m_contextMenu);
+	m_actionToggleRegionTransferFunction->setCheckable(true);
+	m_contextMenu->addAction(m_actionToggleRegionTransferFunction);
+	m_actionToggleWindowLevelAdjust = new QAction(tr("Click+Drag: Adjust Window/Level"), m_contextMenu);
+	m_actionToggleWindowLevelAdjust->setCheckable(true);
+	m_contextMenu->addAction(m_actionToggleWindowLevelAdjust);
 	m_actionInteractionMode = new QActionGroup(m_contextMenu);
 	m_actionInteractionMode->addAction(m_actionToggleNormalInteraction);
 	m_actionInteractionMode->addAction(m_actionToggleRegionTransferFunction);
@@ -1317,10 +1344,10 @@ void iASlicerImpl::updatePosition()
 {
 	// get slicer event position:
 	int const* epos = m_renWin->GetInteractor()->GetEventPosition();
-	convertPixelPosToImgPos(epos, m_slicerPt, m_globalPt);
+	screenPixelPosToImgPos(epos, m_slicerPt, m_globalPt);
 }
 
-void iASlicerImpl::convertPixelPosToImgPos(int const pos[2], double * slicerPos, double* globalPos)
+void iASlicerImpl::screenPixelPosToImgPos(int const pos[2], double * slicerPos, double* globalPos)
 {
 	m_pointPicker->Pick(pos[0], pos[1], 0, m_ren); // z is always zero
 	m_pointPicker->GetPickPosition(slicerPos);     // get position in local slicer scene/world coordinates
@@ -1338,6 +1365,15 @@ void iASlicerImpl::convertPixelPosToImgPos(int const pos[2], double * slicerPos,
 	resliceAxes->DeepCopy(reslicer->GetResliceAxes());
 	resliceAxes->MultiplyPoint(point, globalPos);
 	resliceAxes->Delete();
+}
+
+QPoint iASlicerImpl::slicerPosToImgPixelCoords(int channelID, double const slicerPt[3])
+{
+	double const* slicerSpacing = m_channels[channelID]->output()->GetSpacing();
+	double const* slicerBounds = m_channels[channelID]->output()->GetBounds();
+	double dcX = (slicerPt[0] - slicerBounds[0]) / slicerSpacing[0] + 0.5;
+	double dcY = (slicerPt[1] - slicerBounds[2]) / slicerSpacing[1] + 0.5;
+	return QPoint(static_cast<int>(std::floor(dcX)), static_cast<int>(std::floor(dcY)));
 }
 
 void iASlicerImpl::computeCoords(double * coord, uint channelID)
@@ -1419,16 +1455,12 @@ void iASlicerImpl::printVoxelInformation()
 		}
 		else
 		{
-			double const * slicerSpacing = m_channels[channelID]->output()->GetSpacing();
-			int    const * slicerExtent  = m_channels[channelID]->output()->GetExtent();
-			double const * slicerBounds  = m_channels[channelID]->output()->GetBounds();
-			double dcX = (m_slicerPt[0] - slicerBounds[0]) / slicerSpacing[0] + 0.5;
-			double dcY = (m_slicerPt[1] - slicerBounds[2]) / slicerSpacing[1] + 0.5;
-			int cX = static_cast<int>(std::floor(dcX));
-			int cY = static_cast<int>(std::floor(dcY));
+			int const* slicerExtent = m_channels[channelID]->output()->GetExtent();
+			auto pixelPos = slicerPosToImgPixelCoords(channelID, m_slicerPt);
 
 			// check image extent; if outside ==> default output
-			if (cX < slicerExtent[0] || cX > slicerExtent[1] || cY < slicerExtent[2] || cY > slicerExtent[3])
+			if (pixelPos.x() < slicerExtent[0] || pixelPos.x() > slicerExtent[1] || pixelPos.y() < slicerExtent[2] ||
+				pixelPos.y() > slicerExtent[3])
 			{
 				continue;
 			}
@@ -1437,7 +1469,7 @@ void iASlicerImpl::printVoxelInformation()
 			{
 				// TODO:
 				//   - consider slab thickness / print slab projection result
-				double value = m_channels[channelID]->output()->GetScalarComponentAsDouble(cX, cY, 0, i);
+				double value = m_channels[channelID]->output()->GetScalarComponentAsDouble(pixelPos.x(), pixelPos.y(), 0, i);
 				if (i > 0)
 				{
 					valueStr += " ";

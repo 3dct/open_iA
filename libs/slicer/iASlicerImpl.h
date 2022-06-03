@@ -272,6 +272,7 @@ signals:
 	void deletedSnakeLine();
 	void sliceRotated(); //!< triggered when slice was rotated
 	void sliceRangeChanged(int minIdx, int maxIdx);
+	void regionSelected(double minVal, double maxVal);
 
 private:
 	QAction* m_actionLinearInterpolation, * m_actionFisheyeLens,
@@ -420,7 +421,9 @@ private:
 	void updatePositionMarkerExtent();
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 	void updatePosition();
-	void convertPixelPosToImgPos(int const pos[2], double* slicerPos, double* globalPos);
+	void screenPixelPosToImgPos(int const pos[2], double* slicerPos, double* globalPos);
+	QPoint slicerPosToImgPixelCoords(int channelID, double const slicerPt[3]);
+
 
 	//! Update the position of the raw profile line.
 	void updateRawProfile(double posY);

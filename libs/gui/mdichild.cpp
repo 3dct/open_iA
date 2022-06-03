@@ -272,8 +272,35 @@ void MdiChild::connectSignalsToSlots()
 		connect(m_slicer[s], &iASlicer::ctrlMouseWheel, this, &MdiChild::changeMagicLensSize);
 		connect(m_slicer[s], &iASlicerImpl::sliceRotated, this, &MdiChild::slicerRotationChanged);
 		connect(m_slicer[s], &iASlicer::sliceNumberChanged, this, &MdiChild::setSlice);
-
 		connect(m_slicer[s], &iASlicer::oslicerPos, this, &MdiChild::updatePositionMarker);
+		connect(m_slicer[s], &iASlicerImpl::regionSelected, this, [this](int minVal, int maxVal)
+		{
+			LOG(lvlInfo, QString("    value range: %1..%2").arg(minVal).arg(maxVal));
+			if (minVal == maxVal)
+			{
+				return;
+			}
+			auto modTrans = modality(0)->transfer();	// TODO: check how/whether to adapt modality ID
+			// create "windowed" transfer function,
+			// such that the full color and opacity contrast is available between minVal and maxVal
+			auto ctf = modTrans->colorTF();
+			double range[2];
+			ctf->GetRange(range);
+			ctf->RemoveAllPoints();
+			ctf->AddRGBPoint(range[0], 0.0, 0.0, 0.0);
+			ctf->AddRGBPoint(minVal, 0.0, 0.0, 0.0);
+			ctf->AddRGBPoint(maxVal, 1.0, 1.0, 1.0);
+			ctf->AddRGBPoint(range[1], 1.0, 1.0, 1.0);
+			ctf->Build();
+			auto otf = modTrans->opacityTF();
+			otf->RemoveAllPoints();
+			otf->AddPoint(range[0], 0.0);
+			otf->AddPoint(minVal, 0.0);
+			otf->AddPoint(maxVal, 1.0);
+			otf->AddPoint(range[1], 1.0);
+			updateViews();
+			m_histogram->update();
+		});
 	}
 
 	connect(m_histogram, &iAChartWithFunctionsWidget::updateViews, this, &MdiChild::updateViews);
