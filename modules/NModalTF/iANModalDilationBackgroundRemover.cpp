@@ -382,7 +382,7 @@ void iANModalDilationBackgroundRemover::setModalitySelected(QSharedPointer<iAMod
 	modality->image()->GetScalarRange(range);
 	double min = range[0];
 	double max = range[1];
-	int value = round(max - min) / 2 + min;
+	int value = std::round(max - min) / 2 + min;
 
 	m_threshold->spinBox()->setRange(min, max);
 	m_threshold->spinBox()->setValue(value);
@@ -544,7 +544,7 @@ iANModalThresholdingWidget::iANModalThresholdingWidget(QWidget* parent) : QWidge
 {
 	int min = 0;
 	int max = 0;
-	int threshold = round(max - min) / 2 + min;
+	int threshold = std::round(max - min) / 2 + min;
 
 	//auto slicer = display->createSlicer(m_mod);
 

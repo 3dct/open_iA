@@ -59,7 +59,7 @@ void getIntensities(iAProgress &imp, PathID m_pathID, ImagePointer &image, QList
 				int nbOfBitsPerDim[DIM];
 				for (int i = 0; i < DIM; ++i)
 				{
-					nbOfBitsPerDim[i] = ceil(sqrt((size[i] - 1)));
+					nbOfBitsPerDim[i] = std::ceil(std::sqrt((size[i] - 1)));
 				}
 
 				#pragma omp parallel for 

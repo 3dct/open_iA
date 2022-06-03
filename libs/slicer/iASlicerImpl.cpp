@@ -43,7 +43,10 @@
 
 // slicer
 #include "iASlicerProfile.h"
+#include "iASlicerSettings.h"
+#include "iASlicerInteractorStyle.h"
 #include "iASlicerProfileHandles.h"
+#include "iASlicerSettings.h"
 #include "iASnakeSpline.h"
 #include "iAVtkText.h"
 
@@ -64,7 +67,6 @@
 #include <vtkImageData.h>
 #include <vtkImageProperty.h>
 #include <vtkImageReslice.h>
-#include <vtkInteractorStyleImage.h>
 #include <vtkLineSource.h>
 #include <vtkLogoRepresentation.h>
 #include <vtkLogoWidget.h>
@@ -102,120 +104,6 @@
 #include <QtGlobal> // for QT_VERSION
 
 #include <cassert>
-
-//! Custom interactor style for slicers, for disabling certain vtk interactions we do differently.
-class iASlicerInteractorStyle : public vtkInteractorStyleImage
-{
-public:
-	static iASlicerInteractorStyle *New();
-	vtkTypeMacro(iASlicerInteractorStyle, vtkInteractorStyleImage);
-
-	void OnLeftButtonDown() override
-	{
-		m_leftButtonDown = true;
-		// if enabled, start "window-level" (click+drag) interaction:
-		if (m_windowLevelAdjustEnabled)
-		{	// mostly copied from base class; but we don't want the "GrabFocus" call there,
-			// that prevents the listeners to be notified of mouse move calls
-			int x = this->Interactor->GetEventPosition()[0];
-			int y = this->Interactor->GetEventPosition()[1];
-
-			this->FindPokedRenderer(x, y);
-			if (this->CurrentRenderer == nullptr)
-			{
-				return;
-			}
-			if (!this->Interactor->GetShiftKey() && !this->Interactor->GetControlKey())
-			{
-				this->WindowLevelStartPosition[0] = x;
-				this->WindowLevelStartPosition[1] = y;
-				this->StartWindowLevel();
-			}
-		}
-
-		// only allow moving the slice (Shift+Drag):
-		if (!this->Interactor->GetShiftKey())
-		{
-			return;
-		}
-		vtkInteractorStyleImage::OnLeftButtonDown();
-	}
-	void OnLeftButtonUp() override
-	{
-		m_leftButtonDown = false;
-		if (this->State == VTKIS_WINDOW_LEVEL)
-		{
-			this->EndWindowLevel();
-		}
-		vtkInteractorStyleImage::OnLeftButtonUp();
-	}
-	//! @{ shift and control + mousewheel are used differently - don't use them for zooming!
-	void OnMouseWheelForward() override
-	{
-		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
-		{
-			return;
-		}
-		vtkInteractorStyleImage::OnMouseWheelForward();
-	}
-	void OnMouseWheelBackward() override
-	{
-		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
-		{
-			return;
-		}
-		vtkInteractorStyleImage::OnMouseWheelBackward();
-	}
-	//! @}
-	//! @{ Conditionally disable zooming via right button dragging
-	void OnRightButtonDown() override
-	{
-		if (!m_rightButtonDragZoomEnabled)
-		{
-			return;
-		}
-		vtkInteractorStyleImage::OnRightButtonDown();
-	}
-	void setRightButtonDragZoomEnabled(bool enabled)
-	{
-		m_rightButtonDragZoomEnabled = enabled;
-	}
-	void setWindowLevelAdjust(bool enabled)
-	{
-		m_windowLevelAdjustEnabled = enabled;
-	}
-	bool windowLevelAdjustEnabled() const
-	{
-		return m_windowLevelAdjustEnabled;
-	}
-	bool leftButtonDown() const
-	{
-		return m_leftButtonDown;
-	}
-
-	//! @}
-	/*
-	virtual void OnChar()
-	{
-		vtkRenderWindowInteractor *rwi = this->Interactor;
-		switch (rwi->GetKeyCode())
-		{ // disable 'picking' action on p
-		case 'P':
-		case 'p':
-			break;
-		default:
-			vtkInteractorStyleImage::OnChar();
-		}
-	}
-	*/
-
-private:
-	bool m_rightButtonDragZoomEnabled = true;
-	bool m_windowLevelAdjustEnabled = false;
-	bool m_leftButtonDown = false;
-};
-
-vtkStandardNewMacro(iASlicerInteractorStyle);
 
 
 //! observer needs to be a separate class; otherwise there is an error when destructing,
@@ -261,6 +149,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_cameraOwner(true),
 	m_transform(transform ? transform : vtkTransform::New()),
 	m_pointPicker(vtkSmartPointer<vtkWorldPointPicker>::New()),
+	m_textInfo(vtkSmartPointer<iAVtkText>::New()),
 	m_slabThickness(0),
 	m_roiActive(false),
 	m_sliceNumber(0),
@@ -290,6 +179,58 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_renWin->GetInteractor()->Initialize();
 	m_interactorStyle->SetDefaultRenderer(m_ren);
 
+	connect(m_interactorStyle, &iASlicerInteractorStyle::selection, this,
+		[this](int dragStart[2], int dragEnd[2])
+		{
+			if (m_channels.isEmpty())
+			{
+				return;
+			}
+			// acquire coordinates of clicks and convert to slicer output coordinates:
+			double slicerPosStart[3], slicerPosEnd[3], globalPosStart[4], globalPosEnd[4];
+			screenPixelPosToImgPos(dragStart, slicerPosStart, globalPosStart);
+			screenPixelPosToImgPos(dragEnd, slicerPosEnd, globalPosEnd);
+			const int Component = 0;  // only check first component...
+			const int ChannelID = 0;  // ... of first channel
+			int const* slicerExtent = m_channels[ChannelID]->output()->GetExtent();
+			QPoint slicePixelPos[2] = {
+				slicerPosToImgPixelCoords(ChannelID, slicerPosStart),
+				slicerPosToImgPixelCoords(ChannelID, slicerPosEnd)
+			};
+			// make sure the coordinates stay inside valid range for slicer pixel image coordinates
+			for (int i = 0; i < 2; ++i)
+			{
+				slicePixelPos[i].setX(clamp(slicerExtent[0], slicerExtent[1], slicePixelPos[i].x()));
+				slicePixelPos[i].setY(clamp(slicerExtent[2], slicerExtent[3], slicePixelPos[i].y()));
+			}
+			// find the correctly ordered start/end for x/y:
+			// TODO: maybe use computeMinMax?
+			int startX = std::min(slicePixelPos[0].x(), slicePixelPos[1].x());
+			int endX   = std::max(slicePixelPos[0].x(), slicePixelPos[1].x());
+			int startY = std::min(slicePixelPos[0].y(), slicePixelPos[1].y());
+			int endY   = std::max(slicePixelPos[0].y(), slicePixelPos[1].y());
+			
+			// extract image part, get minimum/maximum intensity value:
+			double minVal = std::numeric_limits<double>::max();
+			double maxVal = std::numeric_limits<double>::lowest();
+			for (int x = startX; x <= endX; ++x)
+			{
+				for (int y = startY; y <= endY; ++y)
+				{
+					double value = m_channels[ChannelID]->output()->GetScalarComponentAsDouble(x, y, 0, Component);
+					if (value > maxVal)
+					{
+						maxVal = value;
+					}
+					if (value < minVal)
+					{
+						minVal = value;
+					}
+				}
+			}
+			emit regionSelected(minVal, maxVal);
+		});
+
 	iAObserverRedirect* redirect(new iAObserverRedirect(this));
 	m_renWin->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, redirect);
 	m_renWin->GetInteractor()->AddObserver(vtkCommand::LeftButtonReleaseEvent, redirect);
@@ -305,9 +246,23 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_actionLinearInterpolation = m_contextMenu->addAction(tr("Linear Interpolation"), this, &iASlicerImpl::toggleLinearInterpolation);
 	m_actionLinearInterpolation->setCheckable(true);
 	m_actionShowTooltip = m_contextMenu->addAction(tr("Show Tooltip"), this, &iASlicerImpl::toggleShowTooltip);
-	m_actionShowTooltip->setCheckable(true);
-	m_actionToggleWindowLevelAdjust = m_contextMenu->addAction(tr("Adjust Window/Level via Mouse Click+Drag"), this, &iASlicerImpl::toggleWindowLevelAdjust);
+	
+	m_contextMenu->addSeparator();
+	m_actionToggleNormalInteraction = new QAction(tr("Click+Drag: disabled"), m_contextMenu);
+	m_actionToggleNormalInteraction->setCheckable(true);
+	m_contextMenu->addAction(m_actionToggleNormalInteraction);
+	m_actionToggleRegionTransferFunction = new QAction(tr("Click+Drag: Set Transfer Function for Region"), m_contextMenu);
+	m_actionToggleRegionTransferFunction->setCheckable(true);
+	m_contextMenu->addAction(m_actionToggleRegionTransferFunction);
+	m_actionToggleWindowLevelAdjust = new QAction(tr("Click+Drag: Adjust Window/Level"), m_contextMenu);
 	m_actionToggleWindowLevelAdjust->setCheckable(true);
+	m_contextMenu->addAction(m_actionToggleWindowLevelAdjust);
+	m_actionInteractionMode = new QActionGroup(m_contextMenu);
+	m_actionInteractionMode->addAction(m_actionToggleNormalInteraction);
+	m_actionInteractionMode->addAction(m_actionToggleRegionTransferFunction);
+	m_actionInteractionMode->addAction(m_actionToggleWindowLevelAdjust);
+	connect(m_actionInteractionMode, &QActionGroup::triggered, this, &iASlicerImpl::toggleInteractionMode);
+	m_contextMenu->addSeparator();
 
 	m_actionFisheyeLens = m_contextMenu->addAction(QIcon(":/images/fisheyeLens.png"), tr("Fisheye Lens"), this, &iASlicerImpl::fisheyeLensToggled);
 	m_actionFisheyeLens->setShortcut(Qt::Key_O);
@@ -333,6 +288,10 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 		m_actionMagicLensOffset->setCheckable(true);
 		actionGr->addAction(m_actionMagicLensOffset);
 	}
+
+	m_textInfo->addToScene(m_ren);
+	m_textInfo->setText(" ");
+	m_textInfo->show(m_decorations);
 
 	if (decorations)
 	{
@@ -371,12 +330,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 			m_axisTransform[i] = vtkSmartPointer<vtkTransform>::New();
 			m_axisTextActor[i] = vtkSmartPointer<vtkTextActor3D>::New();
 		}
-		m_textInfo = vtkSmartPointer<iAVtkText>::New();
 		m_rulerWidget = vtkSmartPointer<iARulerWidget>::New();
-
-		m_textInfo->addToScene(m_ren);
-		m_textInfo->setText(" ");
-		m_textInfo->show(true);
 
 		QImage img;
 		img.load(":/images/fhlogo.png");
@@ -622,7 +576,10 @@ void iASlicerImpl::setup( iASingleSlicerSettings const & settings )
 	m_settings = settings;
 	m_actionLinearInterpolation->setChecked(settings.LinearInterpolation);
 	setLinearInterpolation(settings.LinearInterpolation);
-	m_interactorStyle->setWindowLevelAdjust(settings.AdjustWindowLevelEnabled);
+	m_interactorStyle->setInteractionMode(
+		settings.AdjustWindowLevelEnabled ? iASlicerInteractorStyle::imWindowLevelAdjust :
+		iASlicerInteractorStyle::imNormal
+	);
 	setMouseCursor(settings.CursorMode);
 	setContours(settings.NumberOfIsoLines, settings.MinIsoValue, settings.MaxIsoValue);
 	showIsolines(settings.ShowIsoLines);
@@ -631,9 +588,13 @@ void iASlicerImpl::setup( iASingleSlicerSettings const & settings )
 	{
 		m_axisTextActor[0]->SetVisibility(settings.ShowAxesCaption);
 		m_axisTextActor[1]->SetVisibility(settings.ShowAxesCaption);
-		m_textInfo->setFontSize(settings.ToolTipFontSize);
-		m_textInfo->show(settings.ShowTooltip);
 	}
+	// compromise between keeping old behavior (tooltips disabled if m_decorations == false),
+	// but still making it possible to enable tooltips via context menu: only enable tooltips
+	// from settings if decorations turned on:
+	m_settings.ShowTooltip &= m_decorations;
+	m_textInfo->setFontSize(settings.ToolTipFontSize);
+	m_textInfo->show(m_settings.ShowTooltip);
 	if (m_magicLens)
 	{
 		updateMagicLens();
@@ -1278,6 +1239,24 @@ void iASlicerImpl::setBackground(double r, double g, double b)
 	updateBackground();
 }
 
+// Qt versions before 5.10 don't have these operators yet:
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
+bool operator==(QCursor const & a, QCursor const & b)
+{
+	if (a.shape() != Qt::BitmapCursor)
+	{
+		return a.shape() == b.shape();
+	}
+	return b.shape() == Qt::BitmapCursor &&
+		a.hotSpot() == b.hotSpot() &&
+		(a.pixmap() == b.pixmap() || (a.bitmap() == b.bitmap() && a.mask() == b.mask()));
+}
+bool operator!=(QCursor const & a, QCursor const & b)
+{
+	return !operator==(a, b);
+}
+#endif
+
 void iASlicerImpl::execute(vtkObject * /*caller*/, unsigned long eventId, void * /*callData*/)
 {
 	if (m_channels.empty())
@@ -1321,6 +1300,10 @@ void iASlicerImpl::execute(vtkObject * /*caller*/, unsigned long eventId, void *
 	case vtkCommand::MouseMoveEvent:
 	{
 		//LOG(lvlInfo, "iASlicerImpl::execute vtkCommand::MouseMoveEvent");
+		if (m_cursorSet && cursor() != mouseCursor())
+		{
+			setCursor(mouseCursor());
+		}
 		if (m_decorations)
 		{
 			m_positionMarkerActor->SetVisibility(false);
@@ -1361,22 +1344,36 @@ void iASlicerImpl::updatePosition()
 {
 	// get slicer event position:
 	int const* epos = m_renWin->GetInteractor()->GetEventPosition();
-	m_pointPicker->Pick(epos[0], epos[1], 0, m_ren); // z is always zero
-	m_pointPicker->GetPickPosition(m_slicerPt);      // get position in local slicer scene/world coordinates
+	screenPixelPosToImgPos(epos, m_slicerPt, m_globalPt);
+}
+
+void iASlicerImpl::screenPixelPosToImgPos(int const pos[2], double * slicerPos, double* globalPos)
+{
+	m_pointPicker->Pick(pos[0], pos[1], 0, m_ren); // z is always zero
+	m_pointPicker->GetPickPosition(slicerPos);     // get position in local slicer scene/world coordinates
 
 	// compute global point:
 	const int ChannelID = 0; //< TODO: avoid using specific channel here!
 	if (!hasChannel(ChannelID))
 	{
-		std::fill(m_globalPt, m_globalPt + 3, 0);
+		std::fill(globalPos, globalPos + 3, 0);
 		return;
 	}
-	double point[4] = { m_slicerPt[0], m_slicerPt[1], m_slicerPt[2], 1 };
+	double point[4] = {slicerPos[0], slicerPos[1], slicerPos[2], 1};
 	auto reslicer = m_channels[ChannelID]->reslicer();
 	vtkMatrix4x4 *resliceAxes = vtkMatrix4x4::New();
 	resliceAxes->DeepCopy(reslicer->GetResliceAxes());
-	resliceAxes->MultiplyPoint(point, m_globalPt);
+	resliceAxes->MultiplyPoint(point, globalPos);
 	resliceAxes->Delete();
+}
+
+QPoint iASlicerImpl::slicerPosToImgPixelCoords(int channelID, double const slicerPt[3])
+{
+	double const* slicerSpacing = m_channels[channelID]->output()->GetSpacing();
+	double const* slicerBounds = m_channels[channelID]->output()->GetBounds();
+	double dcX = (slicerPt[0] - slicerBounds[0]) / slicerSpacing[0] + 0.5;
+	double dcY = (slicerPt[1] - slicerBounds[2]) / slicerSpacing[1] + 0.5;
+	return QPoint(static_cast<int>(std::floor(dcX)), static_cast<int>(std::floor(dcY)));
 }
 
 void iASlicerImpl::computeCoords(double * coord, uint channelID)
@@ -1428,37 +1425,15 @@ namespace
 	double fisheyeMinInnerRadius(double radius) { return std::max(1, static_cast<int>((radius - 1) * 0.7)); }
 }
 
-// Qt versions before 5.10 don't have these operators yet:
-#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
-bool operator==(QCursor const & a, QCursor const & b)
-{
-	if (a.shape() != Qt::BitmapCursor)
-	{
-		return a.shape() == b.shape();
-	}
-	return b.shape() == Qt::BitmapCursor &&
-		a.hotSpot() == b.hotSpot() &&
-		(a.pixmap() == b.pixmap() || (a.bitmap() == b.bitmap() && a.mask() == b.mask()));
-}
-bool operator!=(QCursor const & a, QCursor const & b)
-{
-	return !operator==(a, b);
-}
-#endif
-
 void iASlicerImpl::printVoxelInformation()
 {
-	if (!m_decorations)
+	if (!m_decorations || !m_settings.ShowTooltip)
 	{
 		return;
 	}
-	if (m_cursorSet && cursor() != mouseCursor())
-	{
-		setCursor(mouseCursor());
-	}
 	bool infoAvailable = false;
 	QString strDetails;
-	if (!m_interactorStyle->windowLevelAdjustEnabled() || !m_interactorStyle->leftButtonDown())
+	if (m_interactorStyle->interactionMode() != iASlicerInteractorStyle::imWindowLevelAdjust || !m_interactorStyle->leftButtonDown())
 	{
 		strDetails = QString("%1: %2, %3, %4\n").arg(padOrTruncate("Position", MaxNameLength))
 			.arg(m_globalPt[0]).arg(m_globalPt[1]).arg(m_globalPt[2]);
@@ -1470,7 +1445,7 @@ void iASlicerImpl::printVoxelInformation()
 			continue;
 		}
 
-		if (m_interactorStyle->windowLevelAdjustEnabled() && m_interactorStyle->leftButtonDown())
+		if (m_interactorStyle->interactionMode() == iASlicerInteractorStyle::imWindowLevelAdjust && m_interactorStyle->leftButtonDown())
 		{
 			infoAvailable = true;
 			strDetails += QString("%1: window: %2; level: %3")
@@ -1480,16 +1455,12 @@ void iASlicerImpl::printVoxelInformation()
 		}
 		else
 		{
-			double const * slicerSpacing = m_channels[channelID]->output()->GetSpacing();
-			int    const * slicerExtent  = m_channels[channelID]->output()->GetExtent();
-			double const * slicerBounds  = m_channels[channelID]->output()->GetBounds();
-			double dcX = (m_slicerPt[0] - slicerBounds[0]) / slicerSpacing[0] + 0.5;
-			double dcY = (m_slicerPt[1] - slicerBounds[2]) / slicerSpacing[1] + 0.5;
-			int cX = static_cast<int>(std::floor(dcX));
-			int cY = static_cast<int>(std::floor(dcY));
+			int const* slicerExtent = m_channels[channelID]->output()->GetExtent();
+			auto pixelPos = slicerPosToImgPixelCoords(channelID, m_slicerPt);
 
 			// check image extent; if outside ==> default output
-			if (cX < slicerExtent[0] || cX > slicerExtent[1] || cY < slicerExtent[2] || cY > slicerExtent[3])
+			if (pixelPos.x() < slicerExtent[0] || pixelPos.x() > slicerExtent[1] || pixelPos.y() < slicerExtent[2] ||
+				pixelPos.y() > slicerExtent[3])
 			{
 				continue;
 			}
@@ -1498,7 +1469,7 @@ void iASlicerImpl::printVoxelInformation()
 			{
 				// TODO:
 				//   - consider slab thickness / print slab projection result
-				double value = m_channels[channelID]->output()->GetScalarComponentAsDouble(cX, cY, 0, i);
+				double value = m_channels[channelID]->output()->GetScalarComponentAsDouble(pixelPos.x(), pixelPos.y(), 0, i);
 				if (i > 0)
 				{
 					valueStr += " ";
@@ -1550,8 +1521,8 @@ void iASlicerImpl::printVoxelInformation()
 	// if requested calculate distance and show actor
 	if (m_lineActor && m_lineActor->GetVisibility())
 	{
-		double distance = sqrt(pow((m_startMeasurePoint[0] - m_slicerPt[0]), 2) +
-			pow((m_startMeasurePoint[1] - m_slicerPt[1]), 2));
+		double distance = std::sqrt(std::pow((m_startMeasurePoint[0] - m_slicerPt[0]), 2) +
+			std::pow((m_startMeasurePoint[1] - m_slicerPt[1]), 2));
 		m_lineSource->SetPoint2(m_slicerPt[0], m_slicerPt[1], 0.0);
 		m_diskSource->SetOuterRadius(distance);
 		m_diskSource->SetInnerRadius(distance);
@@ -1645,7 +1616,7 @@ void iASlicerImpl::snapToHighGradient(double &x, double &y)
 			double derivativeX = fabs(right_pix - left_pix);
 			double derivativeY = fabs(top_pix - bottom_pix);
 
-			double gradmag = sqrt ( pow(derivativeX,2) + pow(derivativeY,2) );
+			double gradmag = std::sqrt ( std::pow(derivativeX,2) + std::pow(derivativeY,2) );
 
 			H_x.push_back(center[0]);
 			H_y.push_back(center[1]);
@@ -1661,8 +1632,8 @@ void iASlicerImpl::snapToHighGradient(double &x, double &y)
 				if ( gradmag == H_maxGradMag )
 				{
 					//calculate the distance
-					double newdist = sqrt (pow( (cursorposition[0]-center[0]),2) + pow( (cursorposition[1]-center[1]),2));
-					double maxdist = sqrt (pow( (cursorposition[0]-H_maxcoord[0]),2) + pow( (cursorposition[1]-H_maxcoord[1]),2));
+					double newdist = std::sqrt (std::pow( (cursorposition[0]-center[0]),2) + std::pow( (cursorposition[1]-center[1]),2));
+					double maxdist = std::sqrt (std::pow( (cursorposition[0]-H_maxcoord[0]),2) + std::pow( (cursorposition[1]-H_maxcoord[1]),2));
 					//if newdist is < than the maxdist (meaning the current center position is closer to the cursor position
 					//replace the hMaxCoord with the current center position
 					if ( newdist < maxdist )
@@ -1709,7 +1680,7 @@ void iASlicerImpl::snapToHighGradient(double &x, double &y)
 			double derivativeX = fabs(right_pix - left_pix);
 			double derivativeY = fabs(top_pix - bottom_pix);
 
-			double gradmag = sqrt ( pow(derivativeX,2) + pow(derivativeY,2) );
+			double gradmag = std::sqrt ( std::pow(derivativeX,2) + std::pow(derivativeY,2) );
 
 			V_x.push_back(center[0]);
 			V_y.push_back(center[1]);
@@ -1725,8 +1696,8 @@ void iASlicerImpl::snapToHighGradient(double &x, double &y)
 				if ( gradmag == V_maxGradMag )
 				{
 					//calculate the distance
-					double newdist = sqrt (pow( (cursorposition[0]-center[0]),2) + pow( (cursorposition[1]-center[1]),2));
-					double maxdist = sqrt (pow( (cursorposition[0]-V_maxcoord[0]),2) + pow( (cursorposition[1]-V_maxcoord[1]),2));
+					double newdist = std::sqrt (std::pow( (cursorposition[0]-center[0]),2) + std::pow( (cursorposition[1]-center[1]),2));
+					double maxdist = std::sqrt (std::pow( (cursorposition[0]-V_maxcoord[0]),2) + std::pow( (cursorposition[1]-V_maxcoord[1]),2));
 					//if newdist is < than the maxdist (meaning the current center position is closer to the cursor position
 					//replace the hMaxCoord with the current center position
 					if ( newdist < maxdist )
@@ -1761,8 +1732,8 @@ void iASlicerImpl::snapToHighGradient(double &x, double &y)
 	else if ( v_bool == true && h_bool == true )
 	{
 		//pointselectionkey = 3; //new point is shortest distance between V_maxcoord,currentposition and H_maxcoord ,currentposition
-		double Hdist = sqrt (pow( (cursorposition[0]-H_maxcoord[0]),2) + pow( (cursorposition[1]-H_maxcoord[1]),2));
-		double Vdist = sqrt (pow( (cursorposition[0]-V_maxcoord[0]),2) + pow( (cursorposition[1]-V_maxcoord[1]),2));
+		double Hdist = std::sqrt (std::pow( (cursorposition[0]-H_maxcoord[0]),2) + std::pow( (cursorposition[1]-H_maxcoord[1]),2));
+		double Vdist = std::sqrt (std::pow( (cursorposition[0]-V_maxcoord[0]),2) + std::pow( (cursorposition[1]-V_maxcoord[1]),2));
 		if ( Hdist < Vdist )
 			pointselectionkey = 1; //new point is in horizontal direction H_maxcoord
 		else if ( Hdist > Vdist )
@@ -2238,8 +2209,10 @@ void iASlicerImpl::mouseDoubleClickEvent(QMouseEvent* event)
 
 void iASlicerImpl::contextMenuEvent(QContextMenuEvent *event)
 {
-	m_actionToggleWindowLevelAdjust->setChecked(m_interactorStyle->windowLevelAdjustEnabled());
-	m_actionShowTooltip->setChecked(m_textInfo->isShown());
+	m_actionToggleWindowLevelAdjust->setChecked(m_interactorStyle->interactionMode() == iASlicerInteractorStyle::imWindowLevelAdjust);
+	m_actionToggleRegionTransferFunction->setChecked(m_interactorStyle->interactionMode() == iASlicerInteractorStyle::imRegionSelect);
+	m_actionToggleNormalInteraction->setChecked(m_interactorStyle->interactionMode() == iASlicerInteractorStyle::imNormal);
+	m_actionShowTooltip->setChecked(m_settings.ShowTooltip);
 	m_actionFisheyeLens->setChecked(m_fisheyeLensActivated);
 	if (m_magicLens)
 	{
@@ -2477,14 +2450,20 @@ void iASlicerImpl::toggleLinearInterpolation()
 	setLinearInterpolation(m_actionLinearInterpolation->isChecked());
 }
 
-void iASlicerImpl::toggleWindowLevelAdjust()
+void iASlicerImpl::toggleInteractionMode(QAction * )
 {
-	m_interactorStyle->setWindowLevelAdjust(!m_interactorStyle->windowLevelAdjustEnabled());
+	m_interactorStyle->setInteractionMode(
+		m_actionToggleWindowLevelAdjust->isChecked() ?
+			iASlicerInteractorStyle::imWindowLevelAdjust :
+			m_actionToggleRegionTransferFunction->isChecked() ?
+				iASlicerInteractorStyle::imRegionSelect :
+				iASlicerInteractorStyle::imNormal);
 }
 
 void iASlicerImpl::toggleShowTooltip()
 {
-	m_textInfo->show(m_actionShowTooltip->isChecked());
+	m_settings.ShowTooltip = !m_settings.ShowTooltip;
+	m_textInfo->show(m_settings.ShowTooltip);
 }
 
 void iASlicerImpl::fisheyeLensToggled(bool enabled)

@@ -40,6 +40,12 @@ namespace
 	const QString DefaultFormat = "DefaultFormat";
 	const QString AdvancedMode = "AdvancedMode";
 
+	
+	const QString CfgKeyPreviousCSVs("PreviousCSVFiles");
+	const QString CfgKeyLRU("LRU%1");
+	constexpr int MaxLRU = 25;
+}
+
 	QStringList const & ColumnSeparators()
 	{
 		static QStringList colSeparators;
@@ -63,7 +69,6 @@ namespace
 		}
 		return itemsInComboBox;
 	}
-}
 
 dlg_CSVInput::dlg_CSVInput(bool volumeDataAvailable, QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/)
 	: QDialog(parent, f),
@@ -89,6 +94,7 @@ dlg_CSVInput::dlg_CSVInput(bool volumeDataAvailable, QWidget * parent/* = 0,*/, 
 	m_mappingBoxes.push_back(m_ui->cmbbox_col_DimensionX);
 	m_mappingBoxes.push_back(m_ui->cmbbox_col_DimensionY);
 	m_mappingBoxes.push_back(m_ui->cmbbox_col_DimensionZ);
+	m_mappingBoxes.push_back(m_ui->cmbbox_col_CurvedLength);
 	m_ui->cb_AdvancedMode->setChecked(loadGeneralSetting(AdvancedMode).toBool());
 	for (int i = 0; i < iACsvConfig::VisTypeCount; ++i)
 	{
@@ -98,6 +104,16 @@ dlg_CSVInput::dlg_CSVInput(bool volumeDataAvailable, QWidget * parent/* = 0,*/, 
 	initParameters();
 	connectSignals();
 	m_ui->list_ColumnSelection->installEventFilter(this);
+
+	// load list of recently loaded files:
+	QSettings settings;
+	settings.beginGroup(CfgKeyPreviousCSVs);
+	int curNr = 0;
+	while (settings.contains(CfgKeyLRU.arg(curNr)))
+	{
+		m_ui->cmbbox_FileName->addItem(settings.value(CfgKeyLRU.arg(curNr)).toString());
+		++curNr;
+	}
 }
 
 void dlg_CSVInput::setPath(QString const & path)
@@ -105,9 +121,13 @@ void dlg_CSVInput::setPath(QString const & path)
 	m_path = path;
 }
 
-void dlg_CSVInput::setFileName(QString const & fileName)
+void dlg_CSVInput::setFileName(QString const& fileName)
 {
-	m_ui->ed_FileName->setText(fileName);
+	m_ui->cmbbox_FileName->setCurrentText(fileName);
+}
+
+void dlg_CSVInput::fileNameChanged()
+{
 	updatePreview();
 }
 
@@ -147,6 +167,7 @@ void dlg_CSVInput::initParameters()
 void dlg_CSVInput::connectSignals()
 {
 	connect(m_ui->btn_SelectFile, &QPushButton::clicked, this, &dlg_CSVInput::selectFileBtnClicked);
+	connect(m_ui->cmbbox_FileName, &QComboBox::currentTextChanged, this, &dlg_CSVInput::fileNameChanged);
 	connect(m_ui->cb_CurvedFiberInfo, &QCheckBox::stateChanged, this, &dlg_CSVInput::curvedFiberInfoChanged);
 	connect(m_ui->btn_SelectCurvedFile, &QPushButton::clicked, this, &dlg_CSVInput::selectCurvedFileBtnClicked);
 	connect(m_ui->btn_SaveFormat, &QPushButton::clicked, this, &dlg_CSVInput::saveFormatBtnClicked);
@@ -200,6 +221,19 @@ void dlg_CSVInput::okBtnClicked()
 		saveGeneralSetting(DefaultFormat, m_ui->cmbbox_Format->currentText());
 	}
 	saveGeneralSetting(AdvancedMode, m_ui->cb_AdvancedMode->isChecked());
+
+	// save list of recently loaded files:
+	QSettings settings;
+	settings.beginGroup(CfgKeyPreviousCSVs);
+	settings.setValue(CfgKeyLRU.arg(0), m_ui->cmbbox_FileName->currentText());
+	for (int curNr = 1; curNr < MaxLRU && curNr-1 < m_ui->cmbbox_FileName->count(); ++curNr)
+	{
+		if (m_ui->cmbbox_FileName->itemText(curNr - 1) != m_ui->cmbbox_FileName->currentText())
+		{
+			settings.setValue(CfgKeyLRU.arg(curNr), m_ui->cmbbox_FileName->itemText(curNr - 1));
+		}
+	}
+
 	accept();
 }
 
@@ -535,8 +569,7 @@ void dlg_CSVInput::selectFileBtnClicked()
 	{
 		return;
 	}
-	m_ui->ed_FileName->setText(fileName);
-	updatePreview();
+	m_ui->cmbbox_FileName->setCurrentText(fileName);
 }
 
 void dlg_CSVInput::selectCurvedFileBtnClicked()
@@ -601,7 +634,7 @@ void dlg_CSVInput::showConfigParams()
 
 void dlg_CSVInput::assignFormatSettings()
 {
-	m_confParams.fileName = m_ui->ed_FileName->text();
+	m_confParams.fileName = m_ui->cmbbox_FileName->currentText();
 	m_confParams.curvedFiberFileName = m_ui->cb_CurvedFiberInfo->isChecked() ? m_ui->ed_CurvedFileName->text() : "";
 	assignObjectTypes();
 	m_confParams.columnSeparator = ColumnSeparators()[m_ui->cmbbox_ColSeparator->currentIndex()];

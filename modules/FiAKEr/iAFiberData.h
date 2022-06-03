@@ -53,7 +53,7 @@ struct iAFiberData
 //! check if a point is contained in a fiber
 bool pointContainedInFiber(iAVec3f const& point, iAFiberData const& fiber);
 //! Samples points inside of the cylinder spanned by a single fiber
-void samplePoints(iAFiberData const & fiber, std::vector<iAVec3f> & result, size_t numSamples=DefaultSamplePoints);
+void samplePoints(iAFiberData const& fiber, std::vector<iAVec3f>& result, size_t numSamples = DefaultSamplePoints, double RadiusFactor = 1.0);
 
 //! Computes the similarity between two fibers according to a given measure
 //! @param fiber1raw data of the first fiber

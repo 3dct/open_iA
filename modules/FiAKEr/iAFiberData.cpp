@@ -97,8 +97,8 @@ iAFiberData iAFiberData::getOrientationCorrected(iAFiberData const & source, iAF
 		}
 		else
 		{
-			result.phi = asin(dir.y() / sqrt(dir.x()*dir.x() + dir.y() * dir.y()));
-			result.theta = acos(dir.z() / sqrt(dir.x()*dir.x() + dir.y() * dir.y() + dir.z() * dir.z()));
+			result.phi = std::asin(dir.y() / std::sqrt(dir.x()*dir.x() + dir.y() * dir.y()));
+			result.theta = std::acos(dir.z() / std::sqrt(dir.x()*dir.x() + dir.y() * dir.y() + dir.z() * dir.z()));
 			result.phi = vtkMath::DegreesFromRadians(result.phi);
 			result.theta = vtkMath::DegreesFromRadians(result.theta);
 			// locate the phi value to quadrant
@@ -221,10 +221,11 @@ namespace
 		{
 			sqdiffsum += std::pow(vec2[cur] - vec1[cur], 2);
 		}
-		return sqrt(sqdiffsum);
+		return std::sqrt(sqdiffsum);
 	}
 
-	void sampleSegmentPoints(iAVec3f const & start, iAVec3f const & dir, double radius, std::vector<iAVec3f> & result, size_t numSamples)
+	void sampleSegmentPoints(iAVec3f const& start, iAVec3f const& dir, double radius, std::vector<iAVec3f>& result,
+		size_t numSamples, double RadiusFactor)
 	{
 		std::random_device r;
 		std::default_random_engine generator(r());
@@ -258,7 +259,7 @@ namespace
 		for (size_t i = 0; i < numSamples; ++i)
 		{
 			size_t angleIdx = angleRnd(generator);
-			double newRadius = radius * std::sqrt(radiusRnd(generator));
+			double newRadius = radius * std::sqrt(radiusRnd(generator)) * RadiusFactor;
 			double t = posRnd(generator);
 			result.push_back(start + dir * t + perpDirs[angleIdx] * newRadius);
 			//LOG(lvlInfo, QString("    Sampled point: (%1, %2, %3)").arg(result[i][0]).arg(result[i][1]).arg(result[i][2]));
@@ -369,15 +370,14 @@ bool pointContainedInFiber(iAVec3f const& point, iAFiberData const& fiber)
 	}
 }
 
-void samplePoints(iAFiberData const & fiber, std::vector<iAVec3f> & result, size_t numSamples)
+void samplePoints(iAFiberData const& fiber, std::vector<iAVec3f>& result, size_t numSamples, double RadiusFactor)
 {
 	result.reserve(numSamples);
 
-	// TODO: iterate over curved fiber segments
 	if (fiber.curvedPoints.empty())
 	{
 		iAVec3f dir = fiber.pts[PtEnd] - fiber.pts[PtStart];
-		sampleSegmentPoints(fiber.pts[PtStart], dir, fiber.diameter / 2.0, result, numSamples );
+		sampleSegmentPoints(fiber.pts[PtStart], dir, fiber.diameter / 2.0, result, numSamples, RadiusFactor);
 	}
 	else
 	{
@@ -398,7 +398,8 @@ void samplePoints(iAFiberData const & fiber, std::vector<iAVec3f> & result, size
 			iAVec3f start(fiber.curvedPoints[i]);
 			sampleSegmentPoints(start, dir, fiber.diameter / 2.0, result,
 				// spread number of samples according to length ratio, make sure 1 point per segment
-				std::max(static_cast<size_t>(1), static_cast<size_t>(numSamples * dir.length() / curvedLength)));
+				std::max(static_cast<size_t>(1), static_cast<size_t>(numSamples * dir.length() / curvedLength)),
+				RadiusFactor);
 		}
 	}
 }

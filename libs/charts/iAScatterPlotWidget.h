@@ -61,7 +61,11 @@ public:
 	int PaddingBottom();
 	int PaddingLeft();
 	static const int TextPadding;
+	iAScatterPlotWidget();
 	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool columnSelection = false);
+	void initWidget();
+	iASPLOMData * data();
+	void setData(QSharedPointer<iASPLOMData> data);
 	void setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIdx);
 	QSharedPointer<iALookupTable> lookupTable() const;
 	void setPlotColor(QColor const & c, double rangeMin, double rangeMax);
@@ -70,6 +74,7 @@ public:
 	void setPickedPointFactor(double factor);
 	void setPointRadius(double pointRadius);
 	void setFixPointsEnabled(bool enabled);
+	void setShowToolTips(bool enabled);
 	void setPointInfo(QSharedPointer<iAScatterPlotPointInfo> pointInfo);
 	void toggleHighlightedPoint(size_t curPoint, Qt::KeyboardModifiers modifiers);
 	void setHighlightColor(QColor hltCol);
@@ -78,6 +83,25 @@ public:
 	void setSelectionEnabled(bool enabled);
 	//! proxy method for setting visible parameters in contained iAScatterPlot
 	void setVisibleParameters(size_t p1, size_t p2);
+	void setDrawGridLines(bool enabled);
+
+	void setXMarker(double xPos, QColor const& color, Qt::PenStyle penStyle)
+	{
+		m_xMarker[xPos] = qMakePair(color, penStyle);
+	}
+
+	void removeXMarker(double xPos)
+	{
+		m_xMarker.remove(xPos);
+	}
+
+	void clearMarkers()
+	{
+		m_xMarker.clear();
+	}
+	double const* yBounds() const;
+	void setYBounds(double yMin, double yMax);
+	void resetYBounds();
 
 	QSharedPointer<iAScatterPlotViewData> viewData();
 	const size_t* paramIndices() const;  //!< Get column indices of visible X and Y parameters in data table
@@ -100,13 +124,19 @@ private:
 	void drawTooltip(QPainter& painter);
 	void currentPointUpdated(size_t index);  //!< When hovered over a new point.
 
-	iAScatterPlot* m_scatterplot;
+	QSharedPointer<iAScatterPlot> m_scatterplot;
 	QSharedPointer<iASPLOMData> m_data;
 	QSharedPointer<iAScatterPlotViewData> m_viewData;
-	int m_fontHeight, m_maxTickLabelWidth;
-	bool m_fixPointsEnabled;
+	int m_fontHeight = 0,
+		m_maxTickLabelWidth = 0;
+	bool m_fixPointsEnabled = false,
+		m_columnSelection = false,
+		m_showTooltip = true;
 	QSharedPointer<iAScatterPlotPointInfo> m_pointInfo;
-	QMenu *m_contextMenu, *m_xMenu, *m_yMenu;  //!< the context menu for picking the two visible parameters
+	QMenu *m_contextMenu = nullptr,    //!< the context menu for picking the two visible parameters
+		*m_xMenu = nullptr,
+		*m_yMenu = nullptr;
+	QMap<double, QPair<QColor, Qt::PenStyle>> m_xMarker;
 
 signals:
 	//! emitted for each single point that was highlighted (or un-highlighted)
@@ -122,6 +152,7 @@ signals:
 	void highlightChanged();
 	void selectionModified();
 	void visibleParamChanged();
+	void chartClicked(double x, double y, Qt::KeyboardModifiers	modifiers);  //!< Emitted when a point in the chart is clicked (and no selection or fixed point selection happened)
 private slots:
 	void xParamChanged();
 	void yParamChanged();

@@ -28,7 +28,10 @@
 
 #include <QEventLoop>
 #include <QLabel>
+#include <QPainter>
 #include <QProgressBar>
+#include <QScrollArea>
+#include <QSpacerItem>
 #include <QTimer>
 #include <QToolButton>
 #include <QVariant>    // required for Linux build
@@ -85,6 +88,33 @@ private:
 	std::chrono::system_clock::time_point m_start;
 };
 
+class iAQShorteningLabel : public QScrollArea
+{
+public:
+	iAQShorteningLabel(QString const& text, QString const & qssClass = QString()) : m_label(new QLabel(text))
+	{
+		setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+		m_label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+		setFrameShape(QFrame::NoFrame); // this to remove borders; background-color: transparent; in qss to make background transparent
+		setWidgetResizable(true);
+		setContentsMargins(0, 0, 0, 0);
+		setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		setWidget(m_label);
+		if (!qssClass.isEmpty())
+		{
+			m_label->setProperty("qssClass", qssClass);
+		}
+	}
+public slots:
+	void setText(QString const& text)
+	{
+		m_label->setText(text);
+	}
+private:
+	QLabel* m_label;
+};
+
 iAJobListView* iAJobListView::get()
 {
 	static iAJobListView* jobList = new iAJobListView();
@@ -92,17 +122,22 @@ iAJobListView* iAJobListView::get()
 }
 
 iAJobListView::iAJobListView():
-	m_insideWidget(new QWidget)
+	m_insideLayout(new QVBoxLayout)
 {
-	m_insideWidget->setProperty("qssClass", "jobList");
-	m_insideWidget->setLayout(new QVBoxLayout());
-	m_insideWidget->layout()->setContentsMargins(4, 4, 4, 4);
-	m_insideWidget->layout()->setSpacing(4);
-	m_insideWidget->layout()->setAlignment(Qt::AlignTop);
+	auto insideWidget = new QScrollArea();
+	insideWidget->setProperty("qssClass", "jobList");
+	insideWidget->setLayout(m_insideLayout);
+	//insideWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	insideWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+	insideWidget->setWidgetResizable(true);
+	m_insideLayout->setContentsMargins(4, 4, 4, 4);
+	m_insideLayout->setSpacing(4);
+	//m_insideLayout->setAlignment(Qt::AlignTop);
+	m_insideLayout->addItem(new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Preferred));
 	setLayout(new QVBoxLayout());
 	layout()->setContentsMargins(1, 0, 1, 0);
 	layout()->setSpacing(0);
-	layout()->addWidget(m_insideWidget);
+	layout()->addWidget(insideWidget);
 	connect(this, &iAJobListView::newJobSignal, this, &iAJobListView::newJobSlot, Qt::QueuedConnection); // make sure widgets are created in GUI thread
 }
 
@@ -128,57 +163,52 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 		std::lock_guard<std::mutex> guard(jobsMutex);
 		m_jobs.push_back(j);
 	}
-	auto titleLabel = new QLabel(j->name);
-	titleLabel->setProperty("qssClass", "titleLabel");
+	auto titleLabel = new iAQShorteningLabel(j->name, "titleLabel");
 
 	auto progressBar = new QProgressBar();
+	progressBar->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	progressBar->setRange(0, 1000);
 	progressBar->setValue(0);
 
-	auto statusLabel = new QLabel("");
-	statusLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+	auto statusLabel = new iAQShorteningLabel("");
+	auto elapsedLabel = new iAQShorteningLabel("Elapsed: -");
+	auto remainingLabel = new iAQShorteningLabel("Remaining: unknown");
 
-	auto elapsedLabel = new QLabel("Elapsed: -");
-	elapsedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
-
-	auto remainingLabel = new QLabel("Remaining: unknown");
-	remainingLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
-
+	auto timesWidget = new QWidget();
+	timesWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	auto timesLayout = new QHBoxLayout();
+	timesWidget->setLayout(timesLayout);
 	timesLayout->setContentsMargins(0, 0, 0, 0);
 	timesLayout->setSpacing(2);
 	timesLayout->addWidget(elapsedLabel);
 	timesLayout->addWidget(remainingLabel);
 
 	auto statusWidget = new QWidget();
+	statusWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	auto statusLayout = new QVBoxLayout();
 	statusWidget->setLayout(statusLayout);
 	statusLayout->setContentsMargins(0, 0, 0, 0);
 	statusLayout->setSpacing(2);
+	statusLayout->addWidget(titleLabel);
 	statusLayout->addWidget(statusLabel);
-	statusLayout->addLayout(timesLayout);
+	statusLayout->addWidget(timesWidget);
 	statusLayout->addWidget(progressBar);
-
+	
 	auto abortButton = new QToolButton();
 	abortButton->setIcon(QIcon(":/images/remove.png"));
 	abortButton->setEnabled(j->abortListener);
 
-	auto contentWidget = new QWidget();
-	contentWidget->setLayout(new QHBoxLayout);
-	contentWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	contentWidget->layout()->setSpacing(2);
-	contentWidget->layout()->addWidget(statusWidget);
-	contentWidget->layout()->addWidget(abortButton);
-
 	auto jobWidget = new QWidget();
+	jobWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	jobWidget->setProperty("qssClass", "jobWidget");
-	jobWidget->setLayout(new QVBoxLayout());
+	auto jobVLayout = new QHBoxLayout();
+	jobWidget->setLayout(jobVLayout);
 	jobWidget->layout()->setContentsMargins(4, 4, 4, 4);
 	jobWidget->layout()->setSpacing(4);
-	jobWidget->layout()->addWidget(titleLabel);
-	jobWidget->layout()->addWidget(contentWidget);
+	jobWidget->layout()->addWidget(statusWidget);
+	jobWidget->layout()->addWidget(abortButton);
 
-	m_insideWidget->layout()->addWidget(jobWidget);
+	m_insideLayout->insertWidget(m_jobs.size()-1, jobWidget);
 	
 	if (!j->estimator)
 	{
@@ -217,7 +247,7 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 				statusLabel->setText("Aborting...");
 				if (j->progress)
 				{
-					QObject::disconnect(j->progress, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
+					QObject::disconnect(j->progress, &iAProgress::statusChanged, statusLabel, &iAQShorteningLabel::setText);
 				}
 				j->abortListener->abort();
 			});

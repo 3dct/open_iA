@@ -24,16 +24,13 @@
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
-#include <vtkOpenGLRenderer.h>
 #include <vtkRenderer.h>
-#include <vtkRendererCollection.h>
 #include <vtkTable.h>
 
 #include <QColor>
 #include <QtMath>
 
-iA3DObjectVis::iA3DObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping ):
-	m_ren(ren),
+iA3DObjectVis::iA3DObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping):
 	m_objectTable(objectTable),
 	m_columnMapping(columnMapping)
 {}
@@ -57,13 +54,29 @@ QColor iA3DObjectVis::getLengthColor( vtkColorTransferFunction* cTFun, IndexType
 	return QColor(dcolor[0]*255, dcolor[1]*255, dcolor[2]*255);
 }
 
-void iA3DObjectVis::updateRenderer()
+const QColor iA3DObjectVis::SelectedColor(255, 0, 0, 255);
+
+
+// iA3DObjectActor
+
+iA3DObjectActor::iA3DObjectActor(vtkRenderer* ren):
+	m_ren(ren)
+{}
+
+void iA3DObjectActor::updateRenderer()
 {
+	if (!m_ren)
+	{
+		return;
+	}
 	m_ren->Render();
 	emit updated();
 }
 
-void iA3DObjectVis::show()
+void iA3DObjectActor::show()
 {}
 
-const QColor iA3DObjectVis::SelectedColor(255, 0, 0, 255);
+void iA3DObjectActor::clearRenderer()
+{
+	m_ren = nullptr;
+}

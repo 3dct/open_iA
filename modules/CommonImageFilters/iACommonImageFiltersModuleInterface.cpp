@@ -96,8 +96,9 @@ void iACommonImageFiltersModuleInterface::Initialize()
 	// Filters requiring 2 input images:
 	REGISTER_FILTER(iAAddFilter);
 	REGISTER_FILTER(iADifferenceFilter);
-	REGISTER_FILTER(iAHistogramMatchingFilter);
+	REGISTER_FILTER(iAMultiplyFilter);
 	REGISTER_FILTER(iASubtractFilter);
+	REGISTER_FILTER(iAHistogramMatchingFilter);
 
 	// Morphological filters
 	REGISTER_FILTER(iADilation);

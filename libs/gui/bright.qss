@@ -854,6 +854,7 @@ Specific / Custom Widgets
 	}
 	QWidget[qssClass="jobWidget"] .QWidget,
 	QWidget[qssClass="jobWidget"] QLabel,
+	QWidget[qssClass="jobWidget"] QScrollArea,
 	QWidget[qssClass="jobWidget"] QToolButton:!hover
 	{
 		background-color: transparent;

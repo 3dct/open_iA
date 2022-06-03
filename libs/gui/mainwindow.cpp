@@ -1957,6 +1957,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionResetLayout,  &QAction::triggered, this, &MainWindow::resetLayout);
 
 	connect(m_ui->mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::updateMenus);
+	connect(m_ui->mdiArea, &QMdiArea::subWindowActivated, this, &iAMainWindow::childChanged);
 }
 
 void MainWindow::readSettings()
@@ -2379,6 +2380,7 @@ void MainWindow::applyQSS()
 		p.setColor(QPalette::Mid,             m_qssName.contains("bright") ? QColor(200, 200, 200) : QColor( 55,  55,  55));
 		p.setColor(QPalette::Dark,            m_qssName.contains("bright") ? QColor(180, 180, 180) : QColor( 75,  75,  75));
 		p.setColor(QPalette::Shadow,          m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
+		//p.setColor(QPalette::Highlight,       m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));		// TODO: determine proper highlight colors
 		p.setColor(QPalette::HighlightedText, m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
 		p.setColor(QPalette::Text,            m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
 		p.setColor(QPalette::ToolTipText,     m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));

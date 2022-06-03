@@ -55,14 +55,6 @@ namespace
 	QString const SelectModeText("Selection Mode (%1)");
 	QString const DragSelectionMode("Drag Rectangle");
 	QString const ClickSelectionMode("Click Fiber");
-
-	void computeMinMax(int minVal[2], int maxVal[2], int const startPos[2], int const endPos[2], int const size[2])
-	{
-		minVal[0] = clamp(0, size[0] - 1, startPos[0] <= endPos[0] ? startPos[0] : endPos[0]);
-		minVal[1] = clamp(0, size[1] - 1, startPos[1] <= endPos[1] ? startPos[1] : endPos[1]);
-		maxVal[0] = clamp(0, size[0] - 1, endPos[0] > startPos[0] ? endPos[0] : startPos[0]);
-		maxVal[1] = clamp(0, size[1] - 1, endPos[1] > startPos[1] ? endPos[1] : startPos[1]);
-	}
 }
 
 iASelectionProvider::~iASelectionProvider()
@@ -85,6 +77,7 @@ iASelectionInteractorStyle::iASelectionInteractorStyle() :
 	m_showModeActor->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
 	m_showModeActor->GetTextProperty()->SetBackgroundColor(1.0, 1.0, 1.0);
 	m_showModeActor->GetTextProperty()->SetBackgroundOpacity(0.5);
+	m_showModeActor->GetTextProperty()->SetFontFamilyAsString("MS Shell Dlg 2");
 	m_showModeActor->GetTextProperty()->SetFontSize(FontSize);
 	m_showModeActor->SetPosition(TextMargin, TextMargin);
 
@@ -187,7 +180,7 @@ void iASelectionInteractorStyle::pick()
 	int const* size = this->Interactor->GetRenderWindow()->GetSize();
 
 	int minVal[2], maxVal[2];
-	computeMinMax(minVal, maxVal, m_startPos, m_endPos, size);
+	computeMinMax(minVal, maxVal, m_startPos, m_endPos, size, 2);
 
 	rbcenter[0] = (minVal[0] + maxVal[0]) / 2.0;
 	rbcenter[1] = (minVal[1] + maxVal[1]) / 2.0;

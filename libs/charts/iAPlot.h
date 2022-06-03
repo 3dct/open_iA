@@ -39,6 +39,8 @@ public:
 	virtual ~iAPlot();
 	//! Draws the plot
 	virtual void draw(QPainter& painter, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const = 0;
+	//! Draws a legend item for the plot
+	virtual void drawLegendItem(QPainter& painter, QRect const& rect);
 	//! Retrieves the data used for drawing
 	virtual QSharedPointer<iAPlotData> data();
 	//! Whether the plot is currently being drawn

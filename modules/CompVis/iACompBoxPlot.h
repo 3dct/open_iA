@@ -20,23 +20,30 @@
 * ************************************************************************************/
 #pragma once
 
+//CompVis
 #include "iACsvDataStorage.h"
-#include "ui_CompHistogramTable.h"
-
-#include <vtkChartBox.h>
-#include <vtkPlotBox.h>
-#include <vtkSmartPointer.h>
+#include "iACompVisOptions.h"
 
 //Qt
 #include <QDockWidget>
+#include "ui_CompHistogramTable.h"
 
+//vtk
+#include <vtkChartBox.h>
+#include "vtkPlotBox.h"
+#include "vtkSmartPointer.h"
+
+//CompVis
 class iAMainWindow;
+
+//iA
 class iAQVTKWidget;
+
+//vtk
 class vtkContextView;
 class vtkTable;
 class vtkTextActor;
 class vtkLookupTable;
-
 class vtkRenderer;
 
 //TODO change to ui_boxplot
@@ -49,8 +56,6 @@ class iACompBoxPlot : public QDockWidget, public Ui_CompHistogramTable
 	void showEvent(QShowEvent* event);
 	
 	void renderWidget();
-
-	void reinitializeBoxPlot();
 	
 	void updateLegend();
 	
@@ -117,6 +122,8 @@ private:
 
 	};
 
+	void initializeChart();
+
 	void initializeData();
 	void initializeAxes(vtkSmartPointer<BoxPlotChart> chart, bool axesVisibleOn);
 	void initializeLutForOriginalBoxPlot();
@@ -136,6 +143,10 @@ private:
 	std::vector<double>* maxValsAttr;
 	std::vector<double>* minValsAttr;
 
+	int m_numberOfAttr;
+	std::vector<vtkSmartPointer<vtkTextActor>>* m_legendAttributes;
+	vtkSmartPointer<vtkStringArray> labels;
+
 	//stores the normalized values in the original order
 	vtkSmartPointer<vtkTable> m_originalOrderTable;
 	vtkSmartPointer<vtkTable> m_originalOrderTableNotNormalized;
@@ -143,11 +154,7 @@ private:
 	//new positions calculated from bar chart
 	std::vector<double>* m_orderedPositions;
 
-	int m_numberOfAttr;
-	std::vector<vtkSmartPointer<vtkTextActor>>* m_legendAttributes;
-	vtkSmartPointer<vtkStringArray> labels;
-
-		//table containing all values
+	//table containing all values
 	//vtkSmartPointer<vtkTable> m_originalBoxPlotTable;
 	//stores the minimum, first quartile, median, third quartile and maximum of the real values
 	vtkSmartPointer<vtkTable> outTable;
@@ -168,6 +175,9 @@ private:
 	vtkSmartPointer<vtkLookupTable> lutSelected;
 
 	vtkSmartPointer<vtkTextActor> notEnoughElementsSelectedTextActor;
+
+	//stores the last interaction that was performed to make a reinitialization after minimizing etc. possible
+	iACompVisOptions::lastState m_lastState;
 };
 
 

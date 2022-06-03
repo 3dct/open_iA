@@ -63,7 +63,7 @@ public:
 	QVariant next() override
 	{
 		double rndVal = dist(rng);
-		return m_isLog ? exp(rndVal) : rndVal;
+		return m_isLog ? std::exp(rndVal) : rndVal;
 	}
 };
 
@@ -86,7 +86,7 @@ public:
 		double randMin = m_isLog ? std::log(m_min) : m_min;
 		double randRng = m_isLog ? std::log(m_max + 1) - randMin : (m_max - m_min + 1);
 		double randDbl = randMin + dist(rng) * randRng;
-		int randInt = static_cast<int>(m_isLog ? exp(randDbl) : randDbl);
+		int randInt = static_cast<int>(m_isLog ? std::exp(randDbl) : randDbl);
 		return clamp(m_min, m_max, randInt);
 	}
 };

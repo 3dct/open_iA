@@ -21,6 +21,7 @@
 #include "iANModalTFModuleInterface.h"
 
 #include "iANModalMain.h"
+#include "dlg_modalitySPLOM.h"
 
 #include <iALog.h>
 #include <iAMainWindow.h>
@@ -35,10 +36,16 @@ void iANModalTFModuleInterface::Initialize()
 	{
 		return;
 	}
-	QAction* action = new QAction(tr("n-Modal Transfer Function"), m_mainWnd);
-	connect(action, &QAction::triggered, this, &iANModalTFModuleInterface::onMenuItemSelected);
+	QAction* actionNModalTF = new QAction(tr("n-Modal Transfer Function"), m_mainWnd);
+	connect(actionNModalTF, &QAction::triggered, this, &iANModalTFModuleInterface::nModalTF);
+
+	QAction * actionModalitySPLOM = new QAction(tr("Modality SPLOM"), m_mainWnd);
+	connect(actionModalitySPLOM, &QAction::triggered, this, &iANModalTFModuleInterface::modalitySPLOM);
+	m_mainWnd->makeActionChildDependent(actionModalitySPLOM);
+
 	auto submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Multi-Modal/-Channel Images"), false);
-	submenu->addAction(action);
+	addToMenuSorted(submenu, actionNModalTF);
+	addToMenuSorted(submenu, actionModalitySPLOM);
 }
 
 iAModuleAttachmentToChild* iANModalTFModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* childData)
@@ -46,7 +53,7 @@ iAModuleAttachmentToChild* iANModalTFModuleInterface::CreateAttachment(iAMainWin
 	return iANModalAttachment::create(mainWnd, childData);
 }
 
-void iANModalTFModuleInterface::onMenuItemSelected()
+void iANModalTFModuleInterface::nModalTF()
 {
 	auto attach = attachment<iANModalAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
@@ -60,4 +67,12 @@ void iANModalTFModuleInterface::onMenuItemSelected()
 		}
 	}
 	attach->start();
+}
+
+void iANModalTFModuleInterface::modalitySPLOM()
+{
+	auto child = m_mainWnd->activeMdiChild();
+	auto dlgModalitySPLOM = new dlg_modalitySPLOM();
+	dlgModalitySPLOM->SetData(child->modalities());
+	child->tabifyDockWidget(child->renderDockWidget(), dlgModalitySPLOM);
 }

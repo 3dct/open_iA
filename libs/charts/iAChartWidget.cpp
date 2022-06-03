@@ -118,6 +118,7 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_contextMenu(new QMenu(this)),
 	m_showTooltip(true),
 	m_showXAxisLabel(true),
+	m_showLegend(false),
 	m_fontHeight(0),
 	m_yMaxTickLabelWidth(0),
 	m_customXBounds(false),
@@ -398,6 +399,74 @@ void iAChartWidget::drawAxes(QPainter& painter)
 {
 	drawXAxis(painter);
 	drawYAxis(painter);
+}
+
+namespace
+{
+	int maxTextWidth(QFontMetrics fm, QStringList const& strings)
+	{
+		// determine max width:
+		int width = 0;
+		for (auto str : strings)
+		{
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+			width = std::max(width, fm.horizontalAdvance(str));
+#else
+			width = std::max(width, fm.width(str));
+#endif
+		}
+		return width;
+	}
+}
+
+void iAChartWidget::drawLegend(QPainter& painter)
+{
+	if (!m_showLegend)
+	{
+		return;
+	}
+	QStringList legendItems;
+	for (int pi = 0; pi < m_plots.size(); ++pi)
+	{
+		legendItems << m_plots[pi]->data()->name();
+	}
+	const int LegendPadding = 4;
+	const int LegendMargin = 5;
+	const int LineHeight = painter.fontMetrics().height();
+	const int LegendItemWidth = 20;
+	const int LegendItemSpacing = 2;
+	const int TextMaxWidth = maxTextWidth(painter.fontMetrics(), legendItems);
+	QSize boxSize(
+		LegendItemWidth + TextMaxWidth + 3 * LegendPadding,
+		LineHeight * static_cast<int>(m_plots.size()) + 2 * LegendPadding
+	);
+	QPoint upLeft(width() - boxSize.width() - LegendMargin, LegendMargin);
+	m_legendBox = QRect(upLeft, boxSize);
+	// Pen settings: SolidLine and SquareCap are default, but MiterJoin is       xxxxx
+	// required instead of default BevelJoin to avoid one pixel in the lower     x   x
+	// left corner to be left out (see "image" on right how rectangle would      x   x
+	// look like with BevelJoin)                                                  xxxx
+	painter.setPen(QPen(QApplication::palette().color(QPalette::Text), 1, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
+	QColor bgColor(QApplication::palette().color(QWidget::backgroundRole()));
+	bgColor.setAlpha(128);
+	painter.setBrush(bgColor);
+	painter.drawRect(m_legendBox);
+	const int LegendColorLeft = upLeft.x() + LegendPadding;
+	const int TextLeft = LegendColorLeft + LegendItemWidth + LegendPadding;
+	for (int pi = 0; pi < m_plots.size(); ++pi)
+	{
+		int top = upLeft.y() + LegendPadding + pi * LineHeight;
+		QRect legendItemRect(LegendColorLeft, top + LegendItemSpacing, LegendItemWidth, LineHeight - LegendItemSpacing);
+		m_plots[pi]->drawLegendItem(painter, legendItemRect);
+		auto textColor = qApp->palette().color(QPalette::Text);
+		if (!m_plots[pi]->visible())
+		{	// theme-agnostic way of making text appear less opaque:
+			textColor.setAlpha(92);
+		}
+		painter.setPen(textColor);
+		QRect textRect(TextLeft, top, TextMaxWidth + LegendPadding, LineHeight);
+		painter.drawText(textRect, m_plots[pi]->data()->name());
+	}
 }
 
 bool iAChartWidget::categoricalAxis() const
@@ -732,9 +801,14 @@ void iAChartWidget::setCaptionPosition(Qt::Alignment captionAlignment)
 	m_captionPosition = captionAlignment;
 }
 
-void iAChartWidget::setShowXAxisLabel(bool show)
+void iAChartWidget::showXAxisLabel(bool show)
 {
 	m_showXAxisLabel = show;
+}
+
+void iAChartWidget::showLegend(bool show)
+{
+	m_showLegend = show;
 }
 
 void iAChartWidget::addPlot(QSharedPointer<iAPlot> plot)
@@ -832,12 +906,6 @@ bool iAChartWidget::event(QEvent *event)
 	{
 		return iAChartParentWidget::event(event);
 	}
-	// maybe use mouseMove / setToolTip instead?
-	if (m_plots.empty() || !m_showTooltip)
-	{
-		QToolTip::hideText();
-		event->ignore();
-	}
 	QHelpEvent *helpEvent = static_cast<QHelpEvent *>(event);
 	showDataTooltip(helpEvent);
 	return true;
@@ -845,8 +913,10 @@ bool iAChartWidget::event(QEvent *event)
 
 void iAChartWidget::showDataTooltip(QHelpEvent* event)
 {
-	if (m_plots.empty() || !m_xMapper)
+	if (m_plots.empty() || !m_xMapper || !m_showTooltip ||
+		(m_showLegend && m_legendBox.contains(event->pos())))
 	{
+		QToolTip::hideText();
 		return;
 	}
 	int mouseX = clamp(0, geometry().width(), event->x()) - leftMargin();
@@ -939,9 +1009,23 @@ void iAChartWidget::mousePressEvent(QMouseEvent *event)
 	switch(event->button())
 	{
 	case Qt::LeftButton:
-		if (((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier) &&
-			((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) &&
-			((event->modifiers() & Qt::AltModifier) == Qt::AltModifier))
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
+		if (m_legendBox.contains(event->pos()))
+		{
+			auto yPos = event->pos().y();
+#else
+		if (m_legendBox.contains(event->position().toPoint()))
+		{
+			auto yPos = event->position().toPoint().y();
+#endif
+			auto plotIdx = clamp(static_cast<size_t>(0), m_plots.size() - 1,
+				mapValue(m_legendBox.top(), m_legendBox.bottom(), static_cast<size_t>(0), m_plots.size(), yPos));
+			m_plots[plotIdx]->setVisible(!m_plots[plotIdx]->visible());		// make option to let the implementer using iAChartWidget decide whether he wants to provide this functionality to users?
+			emit legendPlotClicked(plotIdx);
+		}
+		else if (event->modifiers().testFlag(Qt::ShiftModifier) &&
+			event->modifiers().testFlag(Qt::ControlModifier) &&
+			event->modifiers().testFlag(Qt::AltModifier))
 		{
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 			m_zoomYPos = event->y();
@@ -951,8 +1035,8 @@ void iAChartWidget::mousePressEvent(QMouseEvent *event)
 			m_yZoomStart = m_yZoom;
 			changeMode(Y_ZOOM_MODE, event);
 		}
-		else if (((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier) &&
-			((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier))
+		else if (event->modifiers().testFlag(Qt::ShiftModifier) &&
+			event->modifiers().testFlag(Qt::ControlModifier))
 		{
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 			m_zoomXPos = event->x();
@@ -964,7 +1048,7 @@ void iAChartWidget::mousePressEvent(QMouseEvent *event)
 			m_xZoomStart = m_xZoom;
 			changeMode(X_ZOOM_MODE, event);
 		}
-		else if ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier)
+		else if (event->modifiers().testFlag(Qt::ShiftModifier))
 		{
 			changeMode(MOVE_VIEW_MODE, event);
 		}
@@ -1044,11 +1128,11 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 #endif
 			if (diff < 0)
 			{
-				zoomAlongY(-pow(ZoomYStep,-diff)+ m_yZoomStart, false);
+				zoomAlongY(-std::pow(ZoomYStep,-diff)+ m_yZoomStart, false);
 			}
 			else
 			{
-				zoomAlongY(pow(ZoomYStep,diff)+ m_yZoomStart, false);
+				zoomAlongY(std::pow(ZoomYStep,diff)+ m_yZoomStart, false);
 			}
 			update();
 		}
@@ -1142,7 +1226,6 @@ void iAChartWidget::paintEvent(QPaintEvent* /*event*/)
 
 void iAChartWidget::drawAll(QPainter & painter)
 {
-	painter.setRenderHint(QPainter::Antialiasing);
 	if (m_plots.empty())
 	{
 		painter.drawText(QRect(0, 0, width(), height()), Qt::AlignCenter, m_emptyText);
@@ -1167,6 +1250,7 @@ void iAChartWidget::drawAll(QPainter & painter)
 	m_yMapper->update(m_yMappingMode == Logarithmic && m_yBounds[0] <= 0 ? LogYMapModeMin : m_yBounds[0], m_yBounds[1],
 		0, m_yZoom * (chartHeight() - 1));
 	painter.save();
+	painter.setRenderHint(QPainter::Antialiasing, true);
 	painter.translate(-xMapper().srcToDst(visibleXStart()) + leftMargin(), -bottomMargin());
 	drawImageOverlays(painter);
 	//change the origin of the window to left bottom
@@ -1191,9 +1275,11 @@ void iAChartWidget::drawAll(QPainter & painter)
 	drawAfterPlots(painter);
 
 	painter.scale(1, -1);
+	// axis, tick lines, legend rectangle etc. are transparent and more than 1 pixel width with AntiAliasing on
 	painter.setRenderHint(QPainter::Antialiasing, false);
 	drawAxes(painter);
 	painter.restore();
+	drawLegend(painter);
 }
 
 void iAChartWidget::setXMarker(double xPos, QColor const& color, Qt::PenStyle penStyle)

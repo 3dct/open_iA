@@ -128,9 +128,11 @@ iACompCorrelationMap::iACompCorrelationMap(iAMainWindow* parent, iACorrelationCo
 	outerArcWithLegend(new std::map<vtkSmartPointer<vtkActor>, vtkSmartPointer<vtkTextActor>>()),
 	m_arcDataIndxTypePair(new std::map<vtkSmartPointer<vtkActor>, std::map<int, double>*>()),
 	glyphActors(new std::vector<vtkSmartPointer<vtkActor>>()),
-	legendActors(new std::vector<vtkSmartPointer<vtkTextActor>>())
+	legendActors(new std::vector<vtkSmartPointer<vtkTextActor>>()),
+	m_lastState(iACompVisOptions::lastState::Undefined)
 {
 	setupUi(this);
+	this->setWindowTitle("Correlation Widget");
 
 	QVBoxLayout* layout = new QVBoxLayout;
 	dockWidgetContents->setLayout(layout);
@@ -164,96 +166,27 @@ iACompCorrelationMap::iACompCorrelationMap(iAMainWindow* parent, iACorrelationCo
 	initializeArcLegend();
 
 	m_graphLayoutView->ResetCamera();
+	m_lastState = iACompVisOptions::lastState::Defined;
 }
 
 void iACompCorrelationMap::showEvent(QShowEvent* event)
 {
 	QDockWidget::showEvent(event);
 
-	renderWidget();
-}
-
-void iACompCorrelationMap::reinitializeCorrelationMap(iACorrelationCoefficient* newCorrCalculation)
-{
-	m_corrCalculation = newCorrCalculation;
-
-	
-	m_graphLayoutView = vtkSmartPointer<vtkGraphLayoutView>::New();
-	m_graph = vtkSmartPointer<vtkMutableUndirectedGraph>::New();
-	m_lutForEdges = vtkSmartPointer<vtkLookupTable>::New();
-	m_lutForVertices = vtkSmartPointer<vtkLookupTable>::New(); 
-	m_lutForArcs = vtkSmartPointer<vtkLookupTable>::New();
-	m_theme = vtkSmartPointer<vtkViewTheme>::New();
-
-	m_vertices->clear();
-	delete m_vertices;
-	m_vertices = new std::map<vtkIdType, QString>();
-
-	arcActors->clear();
-	delete arcActors;
-	arcActors = new std::vector<vtkSmartPointer<vtkActor>>();
-
-	legendActors->clear();
-	delete legendActors;
-	legendActors = new std::vector<vtkSmartPointer<vtkTextActor>>();
-
-	glyphActors->clear();
-	delete glyphActors;
-	glyphActors = new std::vector<vtkSmartPointer<vtkActor>>();
-
-	arcPercentPair->clear();
-	delete arcPercentPair;
-	arcPercentPair = new std::map<vtkSmartPointer<vtkActor>, double>();
-
-	outerArcWithInnerArcs->clear();
-	delete outerArcWithInnerArcs;
-	outerArcWithInnerArcs = new std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>>();
-	
-	outerArcWithLegend->clear();
-	delete outerArcWithLegend;
-	outerArcWithLegend = new std::map<vtkSmartPointer<vtkActor>, vtkSmartPointer<vtkTextActor>>();
-
-	m_arcDataIndxTypePair->clear();
-	delete m_arcDataIndxTypePair;
-	m_arcDataIndxTypePair = new std::map< vtkSmartPointer<vtkActor>, std::map<int, double>*>();
-
-	m_qvtkWidget->renderWindow()->RemoveRenderer(m_renderer);
-
-	m_renderer = vtkSmartPointer<vtkRenderer>::New();
-	m_renderer->SetUseFXAA(true);
-
-	m_qvtkWidget->renderWindow()->AddRenderer(m_renderer);
-	m_graphLayoutView->SetRenderWindow(m_qvtkWidget->renderWindow());
-	m_graphLayoutView->SetInteractor(m_qvtkWidget->interactor());
-
-	style = vtkSmartPointer<GraphInteractorStyle>::New();
-	style->setGraphLayoutView(m_graphLayoutView);
-	style->setBaseClass(this);
-	m_graphLayoutView->GetInteractor()->SetInteractorStyle(style);
-
-	double col1[3];
-	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE, col1);
-	double col2[3];
-	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE, col2);
-	m_theme->SetBackgroundColor(col1);
-	m_theme->SetBackgroundColor2(col2);
-
-	//data preparation
-	m_attrNames = *m_dataStorage->getAttributeNamesWithoutLabel();
-	m_numberOfAttr = m_attrNames.size(); //amount of attributes
-	
-	initializeCorrelationMap();
-	initializeArcs();
-	initializeArcLegend();
-
-	m_graphLayoutView->ResetCamera();
-	renderWidget();
+	if (m_lastState == iACompVisOptions::lastState::Undefined)
+	{
+	}
+	else if (m_lastState == iACompVisOptions::lastState::Defined)
+	{
+		renderWidget();
+	}	
 }
 
 void iACompCorrelationMap::renderWidget()
 {
 	m_qvtkWidget->renderWindow()->GetInteractor()->Render();
 }
+
 
 void iACompCorrelationMap::initializeCorrelationMap()
 {
@@ -1306,9 +1239,10 @@ void iACompCorrelationMap::GraphInteractorStyle::drawSelectedArc(vtkSmartPointer
 
 void iACompCorrelationMap::GraphInteractorStyle::drawPercentLabel(vtkSmartPointer<vtkActor> arcActor)
 {
-	std::map<vtkSmartPointer<vtkActor>, double>* arcPercentPair = m_baseClass->getArcPercentPairs();
-	std::map<vtkSmartPointer<vtkActor>, double>::iterator iter = arcPercentPair->find(arcActor);
-	if (iter == arcPercentPair->end()) return;
+	std::map<vtkSmartPointer<vtkActor>, double>* thisArcPercentPair = m_baseClass->getArcPercentPairs();
+	std::map<vtkSmartPointer<vtkActor>, double>::iterator iter = thisArcPercentPair->find(arcActor);
+	if (iter == thisArcPercentPair->end())
+		return;
 
 	vtkSmartPointer<vtkAlgorithm> algorithm = arcActor->GetMapper()->GetInputConnection(0, 0)->GetProducer();
 	vtkSmartPointer<vtkArcSource> arc = vtkArcSource::SafeDownCast(algorithm);

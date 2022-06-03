@@ -39,6 +39,13 @@ iAPlot::iAPlot(QSharedPointer<iAPlotData> data, QColor const & color):
 
 iAPlot::~iAPlot() {}
 
+void iAPlot::drawLegendItem(QPainter& painter, QRect const& rect)
+{
+	painter.setPen(visible()? m_color: QColor(m_color.red(), m_color.green(), m_color.blue(), 64));
+	int y = rect.center().y();
+	painter.drawLine(rect.left(), y, rect.right(), y);
+}
+
 QSharedPointer<iAPlotData> iAPlot::data()
 {
 	return m_data;
@@ -106,7 +113,7 @@ namespace
 
 // iALinePlot
 
-iALinePlot::iALinePlot(QSharedPointer<iAPlotData> data, QColor const & color) :
+iALinePlot::iALinePlot(QSharedPointer<iAPlotData> data, QColor const& color) :
 	iAPlot(data, color),
 	m_lineWidth(1)
 {}
@@ -134,7 +141,7 @@ void iALinePlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMappe
 
 // iAFilledLinePlot
 
-iAFilledLinePlot::iAFilledLinePlot(QSharedPointer<iAPlotData> data, QColor const & color):
+iAFilledLinePlot::iAFilledLinePlot(QSharedPointer<iAPlotData> data, QColor const& color) :
 	iAPlot(data, color)
 {}
 
@@ -160,9 +167,32 @@ void iAFilledLinePlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, i
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
 }
 
+namespace
+{
+	void drawBoxLegendItem(QPainter& painter, QRect const& rect, QColor const & col, bool visible)
+	{
+		if (visible)
+		{
+			painter.fillRect(rect, QBrush(col));
+		}
+		else
+		{
+			painter.save();
+			painter.setPen(QPen(col, 2));
+			painter.drawRect(rect);
+			painter.restore();
+		}
+	}
+}
+
+void iAFilledLinePlot::drawLegendItem(QPainter& painter, QRect const& rect)
+{
+	drawBoxLegendItem(painter, rect, getFillColor(), visible());
+}
+
 // iAStepFunctionPlot
 
-iAStepFunctionPlot::iAStepFunctionPlot(QSharedPointer<iAPlotData> data, QColor const & color) :
+iAStepFunctionPlot::iAStepFunctionPlot(QSharedPointer<iAPlotData> data, QColor const& color) :
 	iAPlot(data, color)
 {}
 
@@ -191,9 +221,14 @@ void iAStepFunctionPlot::draw(QPainter& painter, size_t startIdx, size_t endIdx,
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
 }
 
+void iAStepFunctionPlot::drawLegendItem(QPainter& painter, QRect const& rect)
+{
+	drawBoxLegendItem(painter, rect, getFillColor(), visible());
+}
+
 // iABarGraphPlot
 
-iABarGraphPlot::iABarGraphPlot(QSharedPointer<iAPlotData> data, QColor const & color, int margin):
+iABarGraphPlot::iABarGraphPlot(QSharedPointer<iAPlotData> data, QColor const& color, int margin) :
 	iAPlot(data, color),
 	m_margin(margin)
 {}
@@ -216,6 +251,11 @@ void iABarGraphPlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, iAM
 	}
 }
 
+void iABarGraphPlot::drawLegendItem(QPainter& painter, QRect const& rect)
+{	// TODO: figure out what todo do if m_lut is set...
+	drawBoxLegendItem(painter, rect, color(), visible());
+}
+
 void iABarGraphPlot::setLookupTable(QSharedPointer<iALookupTable> lut)
 {
 	m_lut = lut;
@@ -223,7 +263,7 @@ void iABarGraphPlot::setLookupTable(QSharedPointer<iALookupTable> lut)
 
 // iAPlotCollection
 
-iAPlotCollection::iAPlotCollection():
+iAPlotCollection::iAPlotCollection() :
 	iAPlot(QSharedPointer<iAPlotData>(), QColor())
 {}
 

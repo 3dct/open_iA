@@ -149,6 +149,7 @@ private slots:
 	void histogramBinsChanged(int value);
 	void distributionColorThemeChanged(int index);
 	void resultColorThemeChanged(int index);
+	void setResultColorTheme(QString const& colorThemeName);
 	void stackedBarColorThemeChanged(int index);
 	void showReferenceInChartToggled();
 	void linkPreviewsToggled();
@@ -207,8 +208,10 @@ private:
 	bool matchQualityVisActive() const;
 	void updateFiberContext();
 	//void startFeatureScout(int resultID, iAMdiChild* newChild);
-	void visitAllVisibleVis(std::function<void(QSharedPointer<iA3DColoredPolyObjectVis>, size_t resultID)> func);
-	void setClippingPlanes(QSharedPointer<iA3DColoredPolyObjectVis> vis);
+	void visitAllVisibleVis(std::function<void(
+			QSharedPointer<iA3DColoredPolyObjectVis>, QSharedPointer<iA3DPolyObjectActor>, size_t resultID)>
+			func);
+	void setClippingPlanes(QSharedPointer<iA3DPolyObjectActor> vis);
 
 	void setupMain3DView();
 	void setupSettingsView();
@@ -231,8 +234,14 @@ private:
 	vtkSmartPointer<vtkTable> m_refVisTable;
 	iACsvConfig m_config;
 	QString m_colorByThemeName;
-	bool m_useStepData, m_showPreviews, m_showCharts;
-	bool m_showFiberContext, m_mergeContextBoxes, m_showWireFrame, m_showLines;
+	bool m_useStepData = false,
+		m_showPreviews = false,
+		m_showCharts = false,
+		m_showFiberContext = false,
+		m_mergeContextBoxes = false,
+		m_showWireFrame = false,
+		m_showLines = false;
+
 	double m_contextSpacing;
 	QString m_parameterFile; //! (.csv-)file containing eventual parameters used in creating the loaded results
 	std::vector<std::vector<double>> m_paramValues;
@@ -247,6 +256,7 @@ private:
 	int m_nameActionColumn, m_previewColumn, m_histogramColumn, m_stackedBarColumn;
 
 	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
+	QSharedPointer<iA3DPolyObjectActor> m_nearestReferenceActor;
 
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;
@@ -269,6 +279,9 @@ private:
 	std::vector<vtkSmartPointer<vtkActor> > m_contextActors;
 	iAMapper* m_diameterFactorMapper;
 	vtkSmartPointer<vtkActor> m_sampleActor;
+
+	bool m_colorOnlyShownResults;
+	std::vector<size_t> m_shownResults;
 
 	vtkSmartPointer<vtkCubeSource> m_customBoundingBoxSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_customBoundingBoxMapper;

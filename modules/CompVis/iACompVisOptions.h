@@ -20,9 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkSmartPointer.h>
+#include <qcolor.h>
+#include <QString>
 
-#include <QColor>
+#include "vtkSmartPointer.h"
 
 #include <vector>
 
@@ -30,6 +31,45 @@ class vtkActor;
 
 namespace iACompVisOptions
 {
+	/*************** Initialization of Computation & GUI Options ****************************/
+	static bool computeMDS; //initialized in dlg_CSVReader, since depending on user input at beginning
+	static bool show3DViews; //initialized in dlg_CSVReader, since depending on user input at beginning
+
+	void setComputeMDS(bool val);
+	void setShow3DViews(bool val);
+
+	bool getComputeMDS();
+	bool getShow3DViews();
+
+	/*************** Reinitialization of Charts ****************************/
+	enum class lastState
+	{
+		Undefined, //visualization before it was rendered for the first time
+		Defined, //visualization in a defined state - only renderWidget() has to be called
+		Changed //something was changed in the visualization and everything has to be drawn again
+	};
+
+	/*************** Binning Calculation ****************************/
+	enum class binningType
+	{
+		Undefined,
+		Uniform,
+		JenksNaturalBreaks,
+		BayesianBlocks
+	};
+
+	/*************** Active Visualization ****************************/
+	enum class activeVisualization 
+	{	Undefined,
+		UniformTable, 
+		VariableTable, 
+		CombTable, 
+		CurveVisualization,
+		WhiteCurveVisualization
+	};
+	
+	/*************** Rendering ****************************/
+	const unsigned char BACKGROUNDCOLOR_BLACK[3] = {0, 0, 0};
 	const unsigned char BACKGROUNDCOLOR_GREY[3] = { 25, 25, 25 };//{128, 128, 128 };
 	const unsigned char BACKGROUNDCOLOR_LIGHTGREY[3] = { 115, 115, 115 };
 	const unsigned char BACKGROUNDCOLOR_LIGHTERGREY[3] = { 189, 189, 189 };
@@ -47,11 +87,16 @@ namespace iACompVisOptions
 
 	const int LINE_WIDTH = 5; //3
 
-	void getColorArray(double colors[3], unsigned char result[3]);
+	void getColorArray3(double colors[3], unsigned char result[3]);
+	void getColorArray4(double colors[4], unsigned char result[4]);
 
 	QColor getQColor(const unsigned char colors[3]);
 
 	double histogramNormalization(double value, double newMin, double newMax, double oldMin, double oldMax);
+
+	std::vector<double> calculateBinBoundaries(double minVal, double maxVal, int numberOfBins);
+
+	double computeIntervalLength(double minVal, double maxVal);
 
 	void getDoubleArray(const unsigned char colors[3], double result[3]);
 
@@ -59,11 +104,18 @@ namespace iACompVisOptions
 
 	std::string cutStringAfterNDecimal(std::string input, int decimal_places);
 
-	template <typename T>
-	void copyVector(std::vector<T> const * toCopy, std::vector<T>* copied)
-	{
-		std::copy(toCopy->begin(), toCopy->end(), copied->begin());
-	}
+	void copyVector(std::vector<int>* toCopy, std::vector<int>* copied);
+
+	void copyVector(std::vector<double>* toCopy, std::vector<double>* copied);
 
 	void stippledLine(vtkSmartPointer<vtkActor> actor, int lineStipplePattern, int lineStippleRepeat);
+
+	//calculates the percentage of a point in any range interval (with positive and negative values)
+	double calculatePercentofRange(double value, double min, double max);
+
+	//calculates a value at a specific percentage in any range interval (with positive and negative values)
+	double calculateValueAccordingToPercent(double min, double max, double percent);
+
+	//return the label of the dataset from the whole path
+	QString getLabel(QString input);
 };

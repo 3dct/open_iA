@@ -206,7 +206,7 @@ void iABarycentricContextRenderer::drawImageNow()
 	//double c = (double) GRAY_VALUE_INTERVAL / (double) max;
 	QImage *buf = new QImage(width, height, IMAGE_FORMAT);
 	buf->fill(Qt::white);
-	double k = (double)GRAY_VALUE_INTERVAL / (double)std::log(max);
+	double k = static_cast<double>(GRAY_VALUE_INTERVAL) / std::log(max);
 	int grayValue, count;
 	QPoint p;
 	for (int y = 0; y < height; y++)
@@ -220,7 +220,7 @@ void iABarycentricContextRenderer::drawImageNow()
 				if (count > 0)
 				{
 					//grayValue = 255 - ((count * c) + GRAY_VALUE_MIN);
-					grayValue = 255 - (k * log(count) + GRAY_VALUE_MIN);
+					grayValue = 255 - (k * std::log(count) + GRAY_VALUE_MIN);
 					buf->setPixelColor(p, QColor(grayValue, grayValue, grayValue));
 
 				}

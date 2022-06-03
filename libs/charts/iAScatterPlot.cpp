@@ -43,7 +43,7 @@ iAScatterPlot::Settings::Settings() :
 	tickSpacing( 5 ),
 	maximizedParamsOffset( 5 ),
 	textRectHeight( 30 ),
-	rangeMargin( 0.08 ),
+	rangeMargin( 0.1 ),
 	pointRadius( 1.5/*2.5*/ ),
 	maximizedPointMagnification( 1.7 ),
 	defaultGridDimensions( 100 ),
@@ -62,7 +62,8 @@ iAScatterPlot::Settings::Settings() :
 	selectionMode(Polygon),
 	selectionEnabled(false),
 	showPCC(false),
-	showSCC(false)
+	showSCC(false),
+	drawGridLines(true)
 {}
 
 iAScatterPlot::iAScatterPlot(iAScatterPlotViewData* viewData, iAChartParentWidget* parent,
@@ -415,6 +416,10 @@ void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
 			m_selPoly.append(locPos);
 		}
 	}
+	else if (event->buttons() & Qt::LeftButton)
+	{
+		emit chartClicked(x2p(locPos.x()), y2p(locPos.y()), event->modifiers());
+	}
 }
 
 void iAScatterPlot::SPLOMMouseReleaseEvent( QMouseEvent * event )
@@ -457,6 +462,29 @@ double iAScatterPlot::p2x( double pval ) const
 		pixelX = invertValue(rangeDst, pixelX);
 	}
 	return applyTransformX(pixelX);
+}
+
+double const* iAScatterPlot::yBounds() const
+{
+	return m_prY;
+}
+
+void iAScatterPlot::setYBounds(double yMin, double yMax)
+{
+	m_prY[0] = yMin;
+	m_prY[1] = yMax;
+	m_useFixedYAxis = true;
+	applyMarginToRanges();
+	updateGrid();
+	updatePoints();
+}
+
+void iAScatterPlot::resetYBounds()
+{
+	m_useFixedYAxis = false;
+	applyMarginToRanges();
+	updateGrid();
+	updatePoints();
 }
 
 double iAScatterPlot::x2p( double x ) const
@@ -575,20 +603,27 @@ void iAScatterPlot::applyMarginToRanges()
 {
 	m_prX[0] = m_splomData->paramRange(m_paramIndices[0])[0];
 	m_prX[1] = m_splomData->paramRange(m_paramIndices[0])[1];
-	m_prY[0] = m_splomData->paramRange(m_paramIndices[1])[0];
-	m_prY[1] = m_splomData->paramRange(m_paramIndices[1])[1];
-	if ( m_prX[0] == m_prX[1] )
+	if (m_prX[0] == m_prX[1])
 	{
-		m_prX[0] -= 0.1; m_prX[1] += 0.1;
+		m_prX[0] -= 0.1;
+		m_prX[1] += 0.1;
 	}
-	if ( m_prY[0] == m_prY[1] )
+	double prLenX = m_prX[1] - m_prX[0];
+	m_prX[0] -= settings.rangeMargin * prLenX;
+	m_prX[1] += settings.rangeMargin * prLenX;
+	if (!m_useFixedYAxis)
 	{
-		m_prY[0] -= 0.1; m_prY[1] += 0.1;
+		m_prY[0] = m_splomData->paramRange(m_paramIndices[1])[0];
+		m_prY[1] = m_splomData->paramRange(m_paramIndices[1])[1];
+		if (m_prY[0] == m_prY[1])
+		{
+			m_prY[0] -= 0.1;
+			m_prY[1] += 0.1;
+		}
+		double prLenY = m_prY[1] - m_prY[0];
+		m_prY[0] -= settings.rangeMargin * prLenY;
+		m_prY[1] += settings.rangeMargin * prLenY;
 	}
-	double rM = settings.rangeMargin;
-	double prLenX = m_prX[1] - m_prX[0], prLenY = m_prY[1] - m_prY[0];
-	m_prX[0] -= rM * prLenX; m_prX[1] += rM * prLenX;
-	m_prY[0] -= rM * prLenY; m_prY[1] += rM * prLenY;
 	calculateNiceSteps();
 }
 
@@ -619,17 +654,17 @@ void iAScatterPlot::calculateNiceSteps( double * r, QList<double> * ticks )
 	{
 		int g = goodNums[i];
 		double ideal = delta / g;
-		double p = log10f( ideal );
+		double p = std::log10( ideal );
 		double intpart;
-		double fractpart = modf( p, &intpart );
+		double fractpart = std::modf( p, &intpart );
 		if ( fractpart < 0 )
 		{
 			fractpart += 1;
 			intpart -= 1;
 		}
-		int n = round( powf( 10, fractpart ) );
-		double curStepSize = g * n * pow( 10, intpart );
-		double curCloseness = abs( delta - curStepSize );
+		int n = std::round( std::pow( 10, fractpart ) );
+		double curStepSize = g * n * std::pow( 10, intpart );
+		double curCloseness = std::abs( delta - curStepSize );
 		if ( curCloseness < closeness )
 		{
 			closeness = curCloseness;
@@ -637,7 +672,7 @@ void iAScatterPlot::calculateNiceSteps( double * r, QList<double> * ticks )
 		}
 	}
 	ticks->clear();
-	double ip; modf( r[0] / stepSize, &ip );
+	double ip; std::modf( r[0] / stepSize, &ip );
 	double tick = stepSize*ip;
 	if (stepSize > 0)
 	{
@@ -691,7 +726,7 @@ size_t iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
 	if ( yrange[0] < 0 ) yrange[0] = 0;
 	if ( yrange[1] > m_gridDims[1] ) yrange[1] = m_gridDims[1];
 
-	double minDist = pow( pPtMag * ptRad, 2 );
+	double minDist = std::pow( pPtMag * ptRad, 2 );
 	size_t res = iASPLOMData::NoDataIdx;
 	for (int x = xrange[0]; x < xrange[1]; ++x)
 	{
@@ -703,7 +738,7 @@ size_t iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
 				size_t ptIdx = m_pointsGrid[binInd][indx];
 				double pixelX = p2x(m_splomData->paramData(m_paramIndices[0])[ptIdx]);
 				double pixelY = p2y(m_splomData->paramData(m_paramIndices[1])[ptIdx]);
-				double dist = pow(pixelX - mpos.x(), 2) + pow(pixelY - mpos.y(), 2);
+				double dist = std::pow(pixelX - mpos.x(), 2) + std::pow(pixelY - mpos.y(), 2);
 				if (dist < minDist && m_viewData->matchesFilter(m_splomData, ptIdx))
 				{
 					minDist = dist;
@@ -1140,19 +1175,22 @@ void iAScatterPlot::drawBorder( QPainter &painter )
 void iAScatterPlot::drawTicks( QPainter &painter )
 {
 	painter.save();
-	QPen p;
-	p.setColor( /*settings.tickLineColor*/ QApplication::palette().color(QPalette::Mid) );
-	p.setStyle( Qt::DotLine );
-	painter.setPen( p );
-	for (double t: m_ticksX)
+	if (settings.drawGridLines)
 	{
-		double loc_t = p2x( t );
-		painter.drawLine( QPointF( loc_t, m_locRect.top() ), QPointF( loc_t, m_locRect.bottom() ) );
-	}
-	for (double t : m_ticksY)
-	{
-		double loc_t = p2y( t );
-		painter.drawLine( QPointF( m_locRect.left(), loc_t ), QPointF( m_locRect.right(), loc_t ) );
+		QPen p;
+		p.setColor(/*settings.tickLineColor*/ QApplication::palette().color(QPalette::Mid));
+		p.setStyle(Qt::DotLine);
+		painter.setPen(p);
+		for (double t : m_ticksX)
+		{
+			double loc_t = p2x(t);
+			painter.drawLine(QPointF(loc_t, m_locRect.top()), QPointF(loc_t, m_locRect.bottom()));
+		}
+		for (double t : m_ticksY)
+		{
+			double loc_t = p2y(t);
+			painter.drawLine(QPointF(m_locRect.left(), loc_t), QPointF(m_locRect.right(), loc_t));
+		}
 	}
 
 	//if maximized plot also draw tick labels

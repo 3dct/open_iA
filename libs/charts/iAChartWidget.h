@@ -134,7 +134,9 @@ public:
 	//! Set position of x axis caption (Center/Left, Bottom/Top, via Qt::Align... flags).
 	void setCaptionPosition(Qt::Alignment captionAlignment);
 	//! Set whether x axis caption should be shown or not.
-	void setShowXAxisLabel(bool show);
+	void showXAxisLabel(bool show);
+	//! Set whether legend should be shown or not.
+	void showLegend(bool show);
 	//! Add a plot to the chart.
 	void addPlot(QSharedPointer<iAPlot> plot);
 	//! Remove a plot from the chart.
@@ -142,7 +144,7 @@ public:
 	//! Remove all plots from the chart.
 	void clearPlots();
 	//! Retrieve all plots currently in the chart.
-	std::vector< QSharedPointer< iAPlot > > const & plots();
+	std::vector<QSharedPointer<iAPlot>> const & plots();
 	//! Add an image overlay to the chart.
 	void addImageOverlay(QSharedPointer<QImage> imgOverlay, bool stretch=true);
 	//! Remove an image overlay from the chart.
@@ -192,6 +194,10 @@ signals:
 	//! @param modifiers modifier keys that were pressed at time of click
 	void clicked(double x, /*double y,*/ Qt::KeyboardModifiers modifiers);
 
+	//! Emitted when a plot is clicked in the legend
+	//! @param the index of the plot that was clicked (in the vector accessible via plots())
+	void legendPlotClicked(size_t plotID);
+
 protected:
 	QString m_xCaption, m_yCaption;
 	int m_zoomXPos, m_zoomYPos;
@@ -208,6 +214,7 @@ protected:
 
 	virtual void drawPlots(QPainter& painter);
 	virtual void drawAxes(QPainter& painter);
+	virtual void drawLegend(QPainter& painter);
 	virtual QString xAxisTickMarkLabel(double value, double stepWidth);
 
 	void zoomAlongY(double value, bool deltaMode);
@@ -253,8 +260,7 @@ private:
 	std::vector<std::pair<QSharedPointer<QImage>, bool> > m_overlays;
 	QMenu* m_contextMenu;
 	QPoint m_contextPos;
-	bool m_showTooltip;
-	bool m_showXAxisLabel;
+	bool m_showTooltip, m_showXAxisLabel, m_showLegend;
 	int  m_fontHeight;
 	int  m_yMaxTickLabelWidth;
 	bool m_customXBounds, m_customYBounds;
@@ -268,4 +274,5 @@ private:
 	size_t m_maxXAxisSteps;
 	bool m_drawXAxisAtZero;
 	QString m_emptyText;
+	QRect m_legendBox;
 };

@@ -65,10 +65,10 @@ void pca(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	pcaFilter->Update();
 	auto scaler = ScaleType::New();
 	auto v = pcaFilter->GetEigenValues();
-	double sv_mean = sqrt(v[0]);
+	double sv_mean = std::sqrt(v[0]);
 	for (size_t o = 0; o < static_cast<size_t>(parameters["Cutoff"].toUInt() + 1); ++o)
 	{
-		double sv = sqrt(v[o]);
+		double sv = std::sqrt(v[o]);
 		double sv_n = sv / sv_mean;
 		scaler->SetConstant(sv_n);
 		scaler->SetInput(pcaFilter->GetOutput(o));

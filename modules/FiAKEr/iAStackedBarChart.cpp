@@ -149,7 +149,7 @@ public:
 	}
 	QSize sizeHint() const override
 	{
-		return QSize(10, fontMetrics().lineSpacing() + 2 * BarVSpacing);  // font height?
+		return QSize(10, fontMetrics().lineSpacing() + 2 * BarVSpacing);
 	}
 	void contextMenuEvent(QContextMenuEvent* ev) override
 	{
@@ -557,7 +557,7 @@ size_t iAStackedBarChart::dividerWithinRange(int x) const
 {
 	for (size_t divID = 0; divID < m_dividers.size(); ++divID)
 	{
-		if (abs(m_dividers[divID] - x) < DividerRange)
+		if (std::abs(m_dividers[divID] - x) < DividerRange)
 		{
 			return divID;
 		}

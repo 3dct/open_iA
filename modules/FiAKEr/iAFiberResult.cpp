@@ -129,7 +129,6 @@ namespace
 		config.columnMapping.insert(iACsvConfig::Phi, 4);
 		config.columnMapping.insert(iACsvConfig::Theta, 5);
 		config.columnMapping.insert(iACsvConfig::Length, 6);
-		config.visType = iACsvConfig::Cylinders;
 		config.isDiameterFixed = true;
 		config.fixedDiameterValue = 7;
 		return config;

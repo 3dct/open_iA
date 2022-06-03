@@ -50,7 +50,7 @@ private:
 class iAcharts_API iALinePlot: public iAPlot
 {
 public:
-	iALinePlot(QSharedPointer<iAPlotData> data, QColor const & color);
+	iALinePlot(QSharedPointer<iAPlotData> data, QColor const& color);
 	void setLineWidth(int width);
 private:
 	int m_lineWidth;
@@ -65,6 +65,7 @@ public:
 	iAStepFunctionPlot(QSharedPointer<iAPlotData> data, QColor const & color);
 private:
 	void draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const & xMapper, iAMapper const & yMapper) const override;
+	void drawLegendItem(QPainter& painter, QRect const& rect) override;
 	QColor getFillColor() const;
 };
 
@@ -77,6 +78,7 @@ public:
 	iAFilledLinePlot(QSharedPointer<iAPlotData> data, QColor const & color);
 private:
 	void draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const & xMapper, iAMapper const & yMapper) const override;
+	void drawLegendItem(QPainter& painter, QRect const& rect) override;
 	QColor getFillColor() const;
 };
 
@@ -85,8 +87,9 @@ private:
 class iAcharts_API iABarGraphPlot: public iAPlot
 {
 public:
-	iABarGraphPlot(QSharedPointer<iAPlotData> data, QColor const & color, int margin=0);
+	iABarGraphPlot(QSharedPointer<iAPlotData> data, QColor const& color, int margin = 0);
 	void draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const& xMapper, iAMapper const& yMapper) const override;
+	void drawLegendItem(QPainter& painter, QRect const& rect) override;
 	void setLookupTable(QSharedPointer<iALookupTable> lut);
 private:
 	QSharedPointer<iALookupTable> m_lut;

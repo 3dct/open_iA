@@ -225,7 +225,7 @@ void GetCellCenter(vtkUnstructuredGrid* data, const unsigned int cellId, double 
 	cell->EvaluateLocation(subId, pcoords, center, weights);
 	for (int i = 0; i < DIM; ++i)
 	{
-		center[i] = floor(center[i] / spacing[i]);
+		center[i] = std::floor(center[i] / spacing[i]);
 	}
 }
 
@@ -308,8 +308,6 @@ iARendererImpl::iARendererImpl(QObject *par): iARenderer(par),
 
 iARendererImpl::~iARendererImpl(void)
 {
-	m_ren->RemoveAllObservers();
-	m_renWin->RemoveAllObservers();
 	if (m_renderObserver)
 	{
 		m_renderObserver->Delete();
@@ -1035,13 +1033,28 @@ void iARendererImpl::emitNoSelectedCells()
 void iARendererImpl::touchStart()
 {
 	m_touchStartScale = m_cam->GetParallelScale();
-	//LOG(lvlDebug, QString("Init scale: %1").arg(m_touchStartScale));
+	m_touchStartCamPos = iAVec3d(m_cam->GetPosition());
+	LOG(lvlDebug, QString("Init scale: %1").arg(m_touchStartScale));
 }
 
 void iARendererImpl::touchScaleSlot(float relScale)
 {
-	//LOG(lvlDebug, QString("Scale before: %1; new scale: %2").arg(m_touchStartScale).arg(m_touchStartScale * relScale));
-	m_cam->SetParallelScale(m_touchStartScale * relScale);
+	if (m_cam->GetParallelProjection())
+	{
+		float newScale = m_touchStartScale / relScale;
+		//LOG(lvlDebug, QString("PARALLEL: Scale before: %1; new scale: %2").arg(m_touchStartScale).arg(newScale));
+		m_cam->SetParallelScale(newScale);
+	}
+	else
+	{
+		auto camDir = m_touchStartCamPos - iAVec3d(m_cam->GetFocalPoint());
+		double diff = 1 - relScale;
+		auto newCamPos = m_touchStartCamPos + camDir * diff;
+		//LOG(lvlDebug, QString("PERSPECTIVE: start pos: %1; new pos: %3")
+		//	.arg(QString("%1,%2,%3").arg(m_touchStartCamPos[0]).arg(m_touchStartCamPos[2]).arg(m_touchStartCamPos[2]))
+		//	.arg(QString("%1,%2,%3").arg(newCamPos[0]).arg(newCamPos[2]).arg(newCamPos[2])));
+		m_cam->SetPosition(newCamPos.data());
+	}
 	update();
 }
 

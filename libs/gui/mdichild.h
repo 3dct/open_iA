@@ -317,13 +317,13 @@ public:
 	//! @}
 
 	//! @{
-	size_t histogramNewBinCount(QSharedPointer<iAModality>) override;
 	bool histogramComputed(size_t newBinCount, QSharedPointer<iAModality>) override;
 	void computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality>) override;
 	//! @}
 //signals:
 //	void preferencesChanged();
 
+	void set3DControlVisibility(bool visible) override;
 
 public slots:
 	void maximizeRC();
@@ -418,8 +418,11 @@ private:
 
 	void setupViewInternal(bool active);
 
-	void setHistogramModality(int modalityIdx);
+	void setHistogramModality(int modalityIdx) override;
+	//! display histogram - if not computed yet, trigger computation
 	void displayHistogram(int modalityIdx);
+	//! if available, show histogram (i.e. does not trigger computation, as displayHistogram does)
+	void showHistogram(int modalityIdx);
 	int  currentModality() const;
 	void initModalities();
 	void initVolumeRenderers();

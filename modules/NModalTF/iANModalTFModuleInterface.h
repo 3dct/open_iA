@@ -30,5 +30,6 @@ public:
 protected:
 	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
 private slots:
-	void onMenuItemSelected();
+	void nModalTF();
+	void modalitySPLOM();
 };

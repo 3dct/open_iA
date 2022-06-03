@@ -174,7 +174,7 @@ void iAFoamCharacterizationItemFilter::executeMedian()
 	pConnector->setImage(m_pImageData);
 
 	typedef itk::MedianImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
-	itkFilter::Pointer pFilter(itkFilter::New());
+	auto pFilter = itkFilter::New();
 	itkFilter::InputSizeType radius;
 	radius.Fill(m_uiMedianRadius);
 	pFilter->SetRadius(radius);

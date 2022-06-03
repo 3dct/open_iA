@@ -123,7 +123,7 @@ void iAMultidimensionalScaling::initializeMatrixUNormalized()
 
 	for (int k = 0; k < m_inputData->size(); k++)
 	{
-		m_amountOfElems = m_amountOfElems + m_inputData->at(k).values->size();
+		m_amountOfElems = static_cast<int> (m_amountOfElems + m_inputData->at(k).values->size());
 	}
 
 	m_matrixUNormalized = new csvDataType::ArrayType(m_amountOfElems, vec);

@@ -73,43 +73,56 @@ const int iAScatterPlotWidget::PaddingRight = 5;
 const int iAScatterPlotWidget::TextPadding = 5;
 
 
+iAScatterPlotWidget::iAScatterPlotWidget() :
+	m_viewData(new iAScatterPlotViewData())
+{
+	initWidget();
+}
+
 iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool columnSelection) :
-	m_data(data),
 	m_viewData(new iAScatterPlotViewData()),
-	m_fontHeight(0),
-	m_maxTickLabelWidth(0),
-	m_fixPointsEnabled(false),
-	m_pointInfo(new iADefaultScatterPlotPointInfo(data)),
-	m_contextMenu(nullptr)
+	m_columnSelection(columnSelection)
+{
+	initWidget();
+	setData(data);
+}
+
+void iAScatterPlotWidget::initWidget()
 {
 #ifdef CHART_OPENGL
 	auto fmt = defaultQOpenGLWidgetFormat();
-	#ifdef SP_OLDOPENGL
+#ifdef SP_OLDOPENGL
 	fmt.setStereo(true);
-	#endif
+#endif
 	setFormat(fmt);
 #endif
 	setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
-	m_scatterplot = new iAScatterPlot(m_viewData.data(), this);
+}
+
+void iAScatterPlotWidget::setData(QSharedPointer<iASPLOMData> d)
+{
+	m_data = d;
+	m_pointInfo = QSharedPointer<iADefaultScatterPlotPointInfo>::create(d);
+	m_scatterplot = QSharedPointer<iAScatterPlot>::create(m_viewData.data(), this, 5, false);
 	m_scatterplot->settings.selectionEnabled = true;
-	data->updateRanges();
-	if (data->numPoints() > std::numeric_limits<int>::max())
+	d->updateRanges();
+	if (d->numPoints() > std::numeric_limits<int>::max())
 	{
 		LOG(lvlWarn, QString("Number of points (%1) larger than supported (%2)")
-			.arg(data->numPoints())
+			.arg(d->numPoints())
 			.arg(std::numeric_limits<int>::max()));
 	}
-	if (columnSelection)
+	if (m_columnSelection)
 	{
 		m_contextMenu = new QMenu(this);
 		m_xMenu = m_contextMenu->addMenu("X Parameter");
 		m_yMenu = m_contextMenu->addMenu("Y Parameter");
 		auto xActGrp = new QActionGroup(m_contextMenu);
 		auto yActGrp = new QActionGroup(m_contextMenu);
-		for (size_t p = 0; p < data->numParams(); ++p)
+		for (size_t p = 0; p < d->numParams(); ++p)
 		{
-			auto xShowAct = new QAction(data->parameterName(p), this);
+			auto xShowAct = new QAction(d->parameterName(p), this);
 			xShowAct->setCheckable(true);
 			xShowAct->setChecked(p == 0);
 			xShowAct->setActionGroup(xActGrp);
@@ -117,7 +130,7 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool 
 			connect(xShowAct, &QAction::triggered, this, &iAScatterPlotWidget::xParamChanged);
 			m_xMenu->addAction(xShowAct);
 
-			auto yShowAct = new QAction(data->parameterName(p), this);
+			auto yShowAct = new QAction(d->parameterName(p), this);
 			yShowAct->setCheckable(true);
 			yShowAct->setChecked(p == 1);
 			yShowAct->setActionGroup(yActGrp);
@@ -126,11 +139,18 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool 
 			m_yMenu->addAction(yShowAct);
 		}
 	}
-	m_scatterplot->setData(0, 1, data);
+	m_scatterplot->setData(0, 1, d);
 	connect(m_viewData.data(), &iAScatterPlotViewData::updateRequired, this, QOverload<>::of(&iAChartParentWidget::update));
 	connect(m_viewData.data(), &iAScatterPlotViewData::filterChanged, this, &iAScatterPlotWidget::updateFilter);
-	connect(m_scatterplot, &iAScatterPlot::currentPointModified, this, &iAScatterPlotWidget::currentPointUpdated);
-	connect(m_scatterplot, &iAScatterPlot::selectionModified, this, &iAScatterPlotWidget::selectionModified);
+	connect(m_scatterplot.data(), &iAScatterPlot::currentPointModified, this, &iAScatterPlotWidget::currentPointUpdated);
+	connect(m_scatterplot.data(), &iAScatterPlot::selectionModified, this, &iAScatterPlotWidget::selectionModified);
+	connect(m_scatterplot.data(), &iAScatterPlot::chartClicked, this, &iAScatterPlotWidget::chartClicked);
+	update();
+}
+
+iASPLOMData * iAScatterPlotWidget::data()
+{
+	return m_data.data();
 }
 
 void iAScatterPlotWidget::currentPointUpdated(size_t index)
@@ -147,6 +167,26 @@ void iAScatterPlotWidget::setSelectionEnabled(bool enabled)
 void iAScatterPlotWidget::setVisibleParameters(size_t p1, size_t p2)
 {
 	m_scatterplot->setIndices(p1, p2);
+}
+
+void iAScatterPlotWidget::setDrawGridLines(bool enabled)
+{
+	m_scatterplot->settings.drawGridLines = enabled;
+}
+
+double const* iAScatterPlotWidget::yBounds() const
+{
+	return m_scatterplot->yBounds();
+}
+
+void iAScatterPlotWidget::setYBounds(double yMin, double yMax)
+{
+	m_scatterplot->setYBounds(yMin, yMax);
+}
+
+void iAScatterPlotWidget::resetYBounds()
+{
+	m_scatterplot->resetYBounds();
 }
 
 QSharedPointer<iAScatterPlotViewData> iAScatterPlotWidget::viewData()
@@ -228,24 +268,8 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
 	logger.startLogging();
 #endif
 	QPainter painter(this);
-	QFontMetrics fm = painter.fontMetrics();
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
-	if (m_fontHeight != fm.height() || m_maxTickLabelWidth != fm.horizontalAdvance("-0.99"))
-	{
-		m_fontHeight = fm.height();
-		m_maxTickLabelWidth = fm.horizontalAdvance("-0.99");
-		adjustScatterPlotSize();
-#else
-	if (m_fontHeight != fm.height() || m_maxTickLabelWidth != fm.width("-0.99"))
-	{
-		m_fontHeight = fm.height();
-		m_maxTickLabelWidth = fm.width("-0.99");
-#endif
-	}
-	painter.setRenderHint(QPainter::Antialiasing);
+	
 	QColor bgColor(QApplication::palette().color(QWidget::backgroundRole()));
-	QColor fg(QApplication::palette().color(QPalette::Text));
-	m_scatterplot->settings.tickLabelColor = fg;
 #if (defined(CHART_OPENGL))
 	painter.beginNativePainting();
 	glClearColor(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0, 1.0);
@@ -255,6 +279,44 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
 	Q_UNUSED(event);
 	painter.fillRect(rect(), bgColor);
 #endif
+
+	if (!m_data)
+	{
+		return;
+	}
+
+	QFontMetrics fm = painter.fontMetrics();
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+	if (m_fontHeight != fm.height() || m_maxTickLabelWidth != fm.horizontalAdvance("-0.999"))
+	{
+		m_fontHeight = fm.height();
+		m_maxTickLabelWidth = fm.horizontalAdvance("-0.999");
+		adjustScatterPlotSize();
+#else
+	if (m_fontHeight != fm.height() || m_maxTickLabelWidth != fm.width("-0.999"))
+	{
+		m_fontHeight = fm.height();
+		m_maxTickLabelWidth = fm.width("-0.999");
+#endif
+	}
+	painter.setRenderHint(QPainter::Antialiasing);
+	QColor fg(QApplication::palette().color(QPalette::Text));
+	m_scatterplot->settings.tickLabelColor = fg;
+
+	for (double x : m_xMarker.keys())
+	{
+		QColor color = m_xMarker[x].first;
+		Qt::PenStyle penStyle = m_xMarker[x].second;
+		QPen p(color, 1, penStyle);
+		painter.setPen(p);
+		QLine line;
+		QRect diagram = geometry();
+		int pos = static_cast<int>(m_scatterplot->getRect().left() +  m_scatterplot->p2x(x));
+		line.setP1(QPoint(pos, m_scatterplot->getRect().top()));
+		line.setP2(QPoint(pos, m_scatterplot->getRect().top()+m_scatterplot->getRect().height()));
+		painter.drawLine(line);
+	}
+
 	m_scatterplot->paintOnParent(painter);
 	// print axes tick labels:
 	painter.save();
@@ -282,13 +344,16 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
 	// print axes labels:
 	painter.save();
 	painter.setPen(m_scatterplot->settings.tickLabelColor);
-	painter.drawText(QRectF(-PaddingLeft(), height() - fm.height() - TextPadding, width(), fm.height()),
+	painter.drawText(QRectF(PaddingLeft(), height() - fm.height() - TextPadding, width()-PaddingLeft(), fm.height()),
 			Qt::AlignHCenter | Qt::AlignTop, m_data->parameterName(m_scatterplot->getIndices()[0]));
 	painter.rotate(-90);
-	painter.drawText(QRectF(-height(), 0, height(), fm.height()), Qt::AlignCenter | Qt::AlignTop, m_data->parameterName(m_scatterplot->getIndices()[1]));
+	painter.drawText(QRectF(-(height()-PaddingBottom()), 0, height()-PaddingBottom(), fm.height()), Qt::AlignHCenter | Qt::AlignTop, m_data->parameterName(m_scatterplot->getIndices()[1]));
 	painter.restore();
 
-	drawTooltip(painter);
+	if (m_showTooltip)
+	{
+		drawTooltip(painter);
+	}
 }
 
 void iAScatterPlotWidget::drawTooltip(QPainter& painter)
@@ -310,15 +375,15 @@ void iAScatterPlotWidget::drawTooltip(QPainter& painter)
 	QColor popupBorderColor(QApplication::palette().color(QPalette::Dark));
 	painter.setPen(popupBorderColor);
 	painter.translate(popupPos);
-	QString text = "<b>#" + QString::number(curInd) + "</b><br> " +
-		m_pointInfo->text(pInds, curInd);
+	QString text = "<b>#" + QString::number(curInd) + "</b><br> " + m_pointInfo->text(pInds, curInd);
+	double docScale = 1.0;
 	QTextDocument doc;
 	doc.setHtml(text);
 	int popupWidth = 200;	// = settings.popupWidth
 	doc.setTextWidth(popupWidth);
 	double tipDim[2] = { 5, 10 }; // = settings.popupTipDim
-	double popupWidthHalf = popupWidth / 2; // settings.popupWidth / 2
-	auto popupHeight = doc.size().height();
+	double popupWidthHalf = popupWidth * docScale / 2; // settings.popupWidth / 2
+	auto popupHeight = doc.size().height() * docScale;
 	QPointF points[7] = {
 		QPointF(0, 0),
 		QPointF(-tipDim[0], -tipDim[1]),
@@ -334,6 +399,7 @@ void iAScatterPlotWidget::drawTooltip(QPainter& painter)
 	QAbstractTextDocumentLayout::PaintContext ctx;
 	QColor popupTextColor(QApplication::palette().color(QPalette::ToolTipText));  // = settings.popupTextColor;
 	ctx.palette.setColor(QPalette::Text, popupTextColor);
+	painter.scale(docScale, docScale);
 	doc.documentLayout()->draw(&painter, ctx); //doc.drawContents( &painter );
 	painter.restore();
 }
@@ -536,6 +602,11 @@ void iAScatterPlotWidget::setPointRadius(double pointRadius)
 void iAScatterPlotWidget::setFixPointsEnabled(bool enabled)
 {
 	m_fixPointsEnabled = enabled;
+}
+
+void iAScatterPlotWidget::setShowToolTips(bool enabled)
+{
+	m_showTooltip = enabled;
 }
 
 void iAScatterPlotWidget::setPointInfo(QSharedPointer<iAScatterPlotPointInfo> pointInfo)

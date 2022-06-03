@@ -57,6 +57,8 @@ public:
 private slots:
 	//! On button click for selecting CSV file
 	void selectFileBtnClicked();
+	//! On change of the file name (either through the select button, selection from recent list, or manual editing
+	void fileNameChanged();
 	//! On button click for selecting curved CSV file
 	void selectCurvedFileBtnClicked();
 	//! when checkbox for curved fiber info

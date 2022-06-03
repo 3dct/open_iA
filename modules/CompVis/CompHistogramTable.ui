@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>DockWidget</string>
+   <string>SimilarityEnsembleExplorer</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents"/>
  </widget>

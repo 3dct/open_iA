@@ -20,171 +20,83 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QApplication>    // for qApp
+#include <QColor>
 #include <QWidget>
 
-// could go into .cpp if separated:
-#include <iALog.h>
-#include <iAMathUtility.h>
+class QMouseEvent;
+class QPainter;
 
-#include <QMouseEvent>
-#include <QPainter>
-#include <QPainterPath>
 
 class iAAlgorithmInfo : public QWidget
 {
 	Q_OBJECT
 public:
-	static const int ArrowHeadSize = 5;
-	static const int ArrowTextDistance = 1;
-	static const int ArrowTextLeft = 5;
-	static const int RoundedCornerRadius = 3;
-	static const int TopMargin = 1;
-	static const int BottomMargin = ArrowHeadSize;
-	static const int HMargin = 1;
-	static const int TextHPadding = 3;
-	static const int TextVPadding = 1;
-	static const int ArrowMinBottomDist = 1;
-	iAAlgorithmInfo(QString const& name, QStringList const& inNames, QStringList const& outNames,
-		QColor const & inColor, QColor const & outColor):
-		m_name(name), m_inNames(inNames), m_outNames(outNames), m_inColor(inColor), m_outColor(outColor),
-		m_selectedIn(-1)
+	using iAMatrixType = QVector<QVector<double>>;
+	enum DisplayMode
 	{
-		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
-	}
-	int boxWidth() const
-	{
-		return (geometry().width() - 2 * HMargin) / 3;
-	}
-	int boxHeight() const
-	{
-		return geometry().height() - (TopMargin + BottomMargin);
-	}
-	int oneEntryHeight() const
-	{
-		return fontMetrics().height() + 2 * TextVPadding + ArrowTextDistance;
-	}
-	void drawArrow(QPainter& p, int left, int top, int width, int height, QString const& text,
-		QVector<QRect>& rects, QColor const& color, bool selected, bool useColor)
-	{
-		int right = left + width;
-		p.drawLine(left, top, right, top);
-		p.drawLine(right - ArrowHeadSize, top - ArrowHeadSize, right, top);
-		p.drawLine(right - ArrowHeadSize, top + ArrowHeadSize, right, top);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
-		int textWidth = p.fontMetrics().horizontalAdvance(text);
-#else
-		int textWidth = p.fontMetrics().width(text);
-#endif
-		int boxHeight = p.fontMetrics().height() + 2 * TextVPadding;
-		QRect textRect(left + ArrowTextLeft,
-			top - ArrowTextDistance - boxHeight,
-			std::min(textWidth + 2 * TextHPadding, width - ArrowTextLeft - ArrowHeadSize),
-			std::min(height, boxHeight));
-		rects.push_back(textRect);
-		QPainterPath path;
-		path.addRoundedRect(textRect, RoundedCornerRadius, RoundedCornerRadius);
-		if (useColor)
-		{
-			p.fillPath(path, color);
-		}
-		if (selected)
-		{
-			p.drawPath(path);
-		}
-		p.drawText(textRect, Qt::AlignCenter, text);
-	}
-	void drawConnections(QPainter& p, int left, QStringList const& strings, QVector<QRect>& rects,
-		QColor const& color, int selected, QVector<int> const & shown, QVector<int> const &sort)
-	{
-		rects.clear();
-		int bottomDistance = boxHeight() / (strings.size() + 1);
-		double fontToBoxRatio = static_cast<double>(bottomDistance) / oneEntryHeight();
-		int arrowBottomDistance = clamp(ArrowMinBottomDist, bottomDistance,
-			static_cast<int>(mapValue(1.0, 4.0,	ArrowMinBottomDist, bottomDistance, fontToBoxRatio)));
-		//int arrowBottomDistance = ArrowBottomDist;
-		int oneHeight = (boxHeight() - arrowBottomDistance) / strings.size();
-		int baseTop = TopMargin + oneHeight;
-		for (int idx = 0; idx < strings.size(); ++idx)
-		{
-			QString name = strings[ sort.size() > idx ? sort[idx] : idx ];
-			drawArrow(p, left, baseTop + idx * oneHeight, boxWidth(), oneHeight,
-				name, rects, color, selected == idx, shown.size() == 0 || shown.contains(idx));
-		}
-	}
-	void setSelectedInput(int inIdx)
-	{
-		m_selectedIn = inIdx;
-		update();
-	}
-	void addShownOut(int outIdx)
-	{
-		m_shownOut.push_back(outIdx);
-	}
-	void removeShownOut(int outIdx)
-	{
-		int idx = m_shownOut.indexOf(outIdx);
-		if (idx == -1)
-		{
-			LOG(lvlWarn, QString("removeShownOut called for outIdx not currently shown (%1)!").arg(outIdx));
-			return;
-		}
-		m_shownOut.remove(idx);
-	}
-	void setInSortOrder(QVector<int> const& inSortOrder)
-	{
-		m_inSort = inSortOrder;
-		update();
-	}
+		Box,
+		Matrix,
+		DefaultDisplayMode = Matrix
+	};
+
+	iAAlgorithmInfo(QString const& name, QStringList const& inNames, QStringList const& outNames, QColor const& inColor,
+		QColor const& outColor);
+	void updateMatrixMax();
+	int boxHeight() const;
+	int oneEntryHeight() const;
+	void setSelectedInput(int inIdx);
+	void addShownOut(int outIdx);
+	void removeShownOut(int outIdx);
+	void setInSortOrder(QVector<int> const& inSortOrder);
+	void setMode(int mode);
+	void setNormalizePerOutput(bool maxPerOut);
+	void setShowArrows(bool showArrows);
+	void setShowHighlight(bool showHighlight);
+	void setMergeHighlight(bool mergeHighlight);
+	void setMatrix(iAMatrixType const& matrix);
+	void setInOutColor(QColor const& inColor, QColor const& outColor);
+	void setLegendLineWidth(int lineWidth);
 
 private:
-	void paintEvent(QPaintEvent* ev) override
-	{
-		Q_UNUSED(ev);
-		QPainter p(this);
-		p.setRenderHint(QPainter::Antialiasing);
-		p.setPen(QApplication::palette().color(QWidget::foregroundRole()));
-
-		QRect algoBox(HMargin + boxWidth(), TopMargin, boxWidth(), boxHeight());
-		p.drawRect(algoBox);
-		p.drawText(algoBox, Qt::AlignCenter, m_name);
-
-		drawConnections(p, HMargin, m_inNames, m_inRects, m_inColor, m_selectedIn, QVector<int>(), m_inSort);
-		drawConnections(p, HMargin + 2 * boxWidth(), m_outNames, m_outRects, m_outColor, -1, m_shownOut, QVector<int>());
-	}
-	void mousePressEvent(QMouseEvent* ev) override
-	{
-		for (int rIdx = 0; rIdx < m_inRects.size(); ++rIdx)
-		{
-			if (m_inRects[rIdx].contains(ev->pos()))
-			{
-				int clickedIn = (rIdx < m_inSort.size()) ? m_inSort[rIdx] : rIdx;
-				emit inputClicked(clickedIn);
-				return;
-			}
-		}
-		for (int rIdx = 0; rIdx < m_outRects.size(); ++rIdx)
-		{
-			if (m_outRects[rIdx].contains(ev->pos()))
-			{
-				emit outputClicked(rIdx);
-				return;
-			}
-		}
-	}
-	QSize sizeHint() const override
-	{
-		return QSize(1, oneEntryHeight() * std::max(m_inNames.size(), m_outNames.size()));
-	}
+	void drawInOut(QPainter& p, QRect textRect, QString const& text, QVector<QRect>& rects, QColor const& color,
+		bool selected, bool useColor, bool verticalText);
+	int connectorWidth(QFontMetrics fm, QStringList const& strings) const;
+	void drawConnectors(QPainter& p, int left, int width, QStringList const& strings, QVector<QRect>& rects,
+		QColor const& color, int selected, QVector<int> const& shown, QVector<int> const& sort, QVector<QPoint>& posOut,
+		bool isLeft, int connHeight);
+	void drawBoxLinks(QPainter& p, QVector<QPoint> inPt, QVector<QPoint> outPt, QRect const& algoBox);
+	void drawLegend(QPainter& p, int leftWidth, bool top);
+	void paintEvent(QPaintEvent* ev) override;
+	void mousePressEvent(QMouseEvent* ev) override;
+	void mouseMoveEvent(QMouseEvent* event) override;
+	QSize sizeHint() const override;
 signals:
 	void inputClicked(int inIdx);
 	void outputClicked(int outIdx);
 private:
+	double mapVal(int outIdx, double val);
+
 	QString m_name;
 	QStringList m_inNames, m_outNames;
 	QVector<QRect> m_inRects, m_outRects;
 	QColor m_inColor, m_outColor;
-	int m_selectedIn;
+	int m_selectedIn = -1;
 	QVector<int> m_shownOut;
 	QVector<int> m_inSort;
+
+	iAMatrixType m_matrix;
+	std::vector<double> m_maxPerColumn;
+	double m_maxTotal = 1.0;
+	// some widths as determined during painting:
+	int m_inWidth = 1,
+		m_outWidth = 1,
+		m_boxMinWidth = 1,
+		m_legendWidth = 1,
+		m_legendLineWidth;
+	DisplayMode m_displayMode;
+	bool m_normalizePerOutput = false,
+		m_showArrows = false,
+		m_showHighlight = false,
+		m_mergeHighlight = true;
+	QRect m_matrixRect;
 };

@@ -340,6 +340,7 @@
 			case VTK_UNSIGNED_CHAR:                                                      \
 				function<unsigned char>( __VA_ARGS__ );                                  \
 				break;                                                                   \
+			case VTK_SIGNED_CHAR:                                                        \
 			case VTK_CHAR:                                                               \
 				function<char>( __VA_ARGS__ );                                           \
 				break;                                                                   \
@@ -379,6 +380,7 @@
 			case VTK_UNSIGNED_CHAR:                                                      \
 				function < itk::RGBAPixel<unsigned char>>( __VA_ARGS__ );                \
 				break;                                                                   \
+			case VTK_SIGNED_CHAR:                                                        \
 			case VTK_CHAR:                                                               \
 				function < itk::RGBAPixel<char>>( __VA_ARGS__ );                         \
 				break;                                                                   \

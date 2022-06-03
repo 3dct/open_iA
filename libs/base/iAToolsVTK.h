@@ -27,8 +27,15 @@
 #include <QMap>
 #include <QStringList>
 
+class iAProgress;
+
 class vtkCamera;
 class vtkImageData;
+
+class vtkColorTransferFunction;
+class vtkLookupTable;
+class vtkPiecewiseFunction;
+class vtkScalarsToColors;
 
 class QString;
 
@@ -59,17 +66,20 @@ iAbase_API vtkSmartPointer<vtkImageData> allocateImage(int vtkType, int const di
 //! fill all pixels in the given image with the given value
 //! @param img image to be filled
 //! @param value used to fill each voxel in given image
-iAbase_API void fillImage(vtkSmartPointer<vtkImageData> img, double const value);
-
-//! add values of one image to the values of another image
-//! @param imgDst destination image (will be modified)
-//! @param imgToAdd image with values to be added to imgDst (will not be modified)
-iAbase_API void addImages(vtkSmartPointer<vtkImageData> imgDst, vtkSmartPointer<vtkImageData> const imgToAdd);
+//! @param p if given, used to report progress
+iAbase_API void fillImage(vtkSmartPointer<vtkImageData> img, double const value, iAProgress* p = nullptr);
 
 //! multiply all values of an image with the given value
 //! @param imgDst the image to be multiplied
 //! @param value multiplier used for each voxel
-iAbase_API void multiplyImage(vtkSmartPointer<vtkImageData> imgDst, double value);
+//! @param p if given, used to report progress
+iAbase_API void multiplyImage(vtkSmartPointer<vtkImageData> imgDst, double value, iAProgress* p = nullptr);
+
+//! add values of one image to the values of another image
+//! @param imgDst destination image (will be modified)
+//! @param imgToAdd image with values to be added to imgDst (will not be modified)
+//! @param p if given, used to report progress
+iAbase_API void addImages(vtkSmartPointer<vtkImageData> imgDst, vtkSmartPointer<vtkImageData> const imgToAdd, iAProgress* p = nullptr);
 
 //! Stores an image on disk (typically in .mhd format).
 //! @param img the image to store
@@ -91,7 +101,7 @@ iAbase_API void writeSingleSliceImage(QString const & filename, vtkImageData* im
 
 //! Returns the size (in bytes) of the given VTK type.
 //! @param vtkType a VTK type identifier (VTK_INT, VTK_UNSIGNED_CHAR, ...)
-//! @return the size in bytes of the given type (VTK_CHAR -> 1, ...),
+//! @return the size in bytes of the given type (VTK_SIGNED_CHAR/VTK_UNSIGNED_CHAR -> 1, ...),
 //!        or 0 if it's an unknown type
 iAbase_API size_t mapVTKTypeToSize(int vtkType);
 
@@ -147,3 +157,9 @@ enum iACameraPosition
 };
 
 iAbase_API void setCamPosition(vtkCamera* cam, iACameraPosition mode);
+
+// maybe better in iALUT (but that is in charts library -> move that to separate colors lib? to base?)
+iAbase_API void convertLUTToTF(vtkSmartPointer<vtkLookupTable> src, vtkSmartPointer<vtkColorTransferFunction> ctf,
+	vtkSmartPointer<vtkPiecewiseFunction> otf, double alphaOverride = -1);
+iAbase_API void convertTFToLUT(vtkSmartPointer<vtkLookupTable> dst, vtkSmartPointer<vtkScalarsToColors> ctf,
+	vtkSmartPointer<vtkPiecewiseFunction> otf, int numCols, double const* lutRange = nullptr, bool reverse = false);

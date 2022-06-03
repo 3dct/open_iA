@@ -20,6 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
+//CompVis
+#include "iACompVisOptions.h"
+
 //Qt
 #include "ui_CompBarChart.h"
 #include <QDockWidget>
@@ -28,17 +31,17 @@
 #include "vtkSmartPointer.h"
 #include "vtkContextInteractorStyle.h"
 
+//CompVis
 class iAMainWindow;
 class iACoefficientOfVariation;
 class iACsvDataStorage;
 class iAQVTKWidget;
 
+//vtk
 class vtkDataArray;
 class vtkDoubleArray;
 class vtkRenderer;
-
 class vtkIntArray;
-
 class vtkContextView;
 class vtkContextArea;
 class vtkUnsignedCharArray;
@@ -60,8 +63,6 @@ class iACompBarChart : public QDockWidget, public Ui_CompBarChart
 
 	void showEvent(QShowEvent* event);
 	void renderWidget();
-
-	void reinitializeBarChart(iACoefficientOfVariation* newCoeffVar);
 
 	//update the bar chart visualization with the selected objects
 	void updateBarChart(std::vector<double>* coefficientsOriginal, std::map<int, std::vector<double>>* pickStatistic);
@@ -103,37 +104,36 @@ private:
 	iACoefficientOfVariation* m_coeffVar;
 	iAQVTKWidget* m_qvtkWidget;
 
-	
-
-	
-
-	
-	
-	//stores the new positions of all values for all datasets after sorting according to the coefficient of variation
-	std::vector<double>* orderedPositions;
-	// stores the new positions after sorting according to the coefficient of variation
-	std::vector<double>* selected_orderedPositions;
-	
-	//width of the original bars --> not 1, otherwise there would be no space between them
-	const double m_barWidth = 0.8;
 	//drawing area of the bars
 	vtkSmartPointer<vtkContextArea> m_area;
-
-	vtkSmartPointer<vtkPropItem> m_originalBarChart;
-	vtkSmartPointer<vtkPropItem> m_originalBarChartRepositioned;
-	vtkSmartPointer<vtkPropItem> m_selectedBarChart;
 
 	//context view for 2D charts
 	vtkSmartPointer<vtkContextView> m_view;
 
+	//stores the new positions of all values for all datasets after sorting according to the coefficient of variation
+	std::vector<double>* orderedPositions;
+	// stores the new positions after sorting according to the coefficient of variation
+	std::vector<double>* selected_orderedPositions;
+
 	//stores the names of all attributes
 	QStringList* attrNames;
-	
+
 	//stores the coefficient of variation for all values of all datasets
 	std::vector<double>* coefficients;
 	//stores the coefficient of variation for all values of all datasets in original order
 	//according to the order of the attributes in the csv
 	std::vector<double>* coefficientsUnordered;
+	
+	//width of the original bars --> not 1, otherwise there would be no space between them
+	const double m_barWidth = 0.8;
+	
+
+	vtkSmartPointer<vtkPropItem> m_originalBarChart;
+	vtkSmartPointer<vtkPropItem> m_originalBarChartRepositioned;
+	vtkSmartPointer<vtkPropItem> m_selectedBarChart;
+
+	//stores the last interaction that was performed to make a reinitialization after minimizing etc. possible
+	iACompVisOptions::lastState m_lastState;
 	
 	//inner class
 	class BarChartInteractorStyle : public vtkContextInteractorStyle

@@ -36,5 +36,6 @@ IAFILTER_DEFAULT_CLASS(iAReplaceAndShiftFilter);
 // Filters requiring 2 input images:
 IAFILTER_DEFAULT_CLASS(iAAddFilter);
 IAFILTER_DEFAULT_CLASS(iADifferenceFilter);
+IAFILTER_DEFAULT_CLASS(iAMultiplyFilter);
 IAFILTER_DEFAULT_CLASS(iASubtractFilter);
 IAFILTER_DEFAULT_CLASS(iAHistogramMatchingFilter);

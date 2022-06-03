@@ -115,10 +115,14 @@ public:
 	void setHighlightColorTheme(iAColorTheme const* theme);
 	void setHighlightDrawMode(HighlightDrawModes drawMode);
 
+	double p2x( double pval ) const;                                 //!< Parameter scalar value to X coordinate (pixels)
+	double const* yBounds() const;
+	void setYBounds(double yMin, double yMax);
+	void resetYBounds();
+
 protected:
 	int p2binx( double p ) const;                                    //!< Get grid bin index using parameter value X
 	int p2biny( double p ) const;                                    //!< Get grid bin index using parameter value Y
-	double p2x( double pval ) const;                                 //!< Parameter scalar value to X coordinate (pixels)
 	double p2tx( double pval ) const;                                //!< Parameter scalar value to normalized X coordinate [0,1]
 	double x2p( double x ) const;                                    //!< X coordinate (pixels) to parameter value
 	double p2y( double pval ) const;                                 //!< Parameter scalar value to Y coordinate (pixels)
@@ -156,6 +160,7 @@ signals:
 	void selectionModified();                                        //!< Emitted when selected points changed
 	void transformModified( double scale, QPointF deltaOffset );     //!< Emitted when user transforms (scales, translates)
 	void currentPointModified( size_t index );                       //!< Emitted when hovered over new point
+	void chartClicked(double x, double y, Qt::KeyboardModifiers modifiers); //!< Emitted when a point in the chart is clicked (and no selection or fixed point selection happened)
 
 private slots:
 	void dataChanged(size_t paramIndex);
@@ -196,6 +201,7 @@ public:
 		SelectionMode selectionMode;
 		bool selectionEnabled;
 		bool showPCC, showSCC;
+		bool drawGridLines;
 	};
 
 	// Members
@@ -245,6 +251,8 @@ private:
 	QColor highlightColorPoint(size_t i, size_t idx);
 	double m_pcc, m_scc;                                             //!< correlation coefficients between the two given data columns
 	bool m_pccValid, m_sccValid;                                     //!< indicates whether current cached values cor correlation coefficients can be used
+	bool m_useFixedYAxis = false;                                    //!< whether y axis uses a custom range or should be set automatically from data ranges
+	
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(iAScatterPlot::HighlightDrawModes);

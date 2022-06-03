@@ -34,6 +34,7 @@
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
+#include <iAPreferences.h>
 #include <iARenderSettings.h>
 #include <iARenderer.h>
 #include <iASlicer.h>
@@ -124,7 +125,7 @@ void iANModalController::privateInitialize()
 		m_slicers[i] = slicer;
 		m_mapOverlayImageId2modality.insert(id, modality);
 
-		auto histogramNewBinCount = m_mdiChild->histogramNewBinCount(modality);
+		auto histogramNewBinCount = iAHistogramData::finalNumBin(modality->image(), m_mdiChild->preferences().HistogramBins);
 		if (m_mdiChild->histogramComputed(histogramNewBinCount, modality))
 		{
 			initializeHistogram(modality, i);

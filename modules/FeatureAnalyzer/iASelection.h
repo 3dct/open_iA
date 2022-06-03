@@ -28,7 +28,6 @@
 
 class vtkIdTypeArray;
 class QTreeWidgetItem;
-class vtkSelection;
 
 struct iASelection
 {

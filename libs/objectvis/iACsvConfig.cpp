@@ -234,7 +234,8 @@ iACsvConfig const & iACsvConfig::getFCPFiberFormat(QString const & fileName)
 	FCPFormat.columnMapping.insert(EndX,     4);
 	FCPFormat.columnMapping.insert(EndY,     5);
 	FCPFormat.columnMapping.insert(EndZ,     6);
-	FCPFormat.columnMapping.insert(Length,   7);
+	FCPFormat.columnMapping.insert(Length, 7);
+	FCPFormat.columnMapping.insert(CurvedLength, 8);
 	FCPFormat.columnMapping.insert(Diameter, 9);
 	return FCPFormat;
 }

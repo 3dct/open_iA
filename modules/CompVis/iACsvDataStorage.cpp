@@ -20,15 +20,38 @@
 * ************************************************************************************/
 #include "iACsvDataStorage.h"
 
+//CompVis
+#include "iACompVisOptions.h"
+
+//iAobjectvis
+#include "iACsvIO.h"
+#include "dlg_CSVInput.h"
+#include "iACsvConfig.h"
+#include "iACsvVtkTableCreator.h"
+#include "dlg_CSVInput.h"
+
+//QT
 #include <QMessageBox>
 #include <QFile>
 #include <QTextStream>
 
+//vtk
+#include "vtkTable.h"
+
+
 #include <cstdlib>
 
-iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles) :
-	m_filenames(csvFiles),
-	m_data(new QList<csvFileData>())
+iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles, int headerLineNumber) :
+	m_filenames(csvFiles), 
+	m_data(new QList<csvFileData>()),
+	m_totalNumberOfObjects(0),
+	m_MDSData(nullptr),
+	m_objectTables(new std::vector<vtkSmartPointer<vtkTable>>()),
+	m_ios(new std::vector<iACsvIO*>()),
+	m_csvConfigs(new std::vector<const iACsvConfig*>()),
+	m_dlgs(new std::vector<dlg_CSVInput*>()),
+	m_minVal(0.0),
+	m_maxVal(0.0)
 {
 	for (int ind = 0; ind < m_filenames->size(); ind++)
 	{
@@ -36,13 +59,20 @@ iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles) :
 
 		if (list == nullptr)
 		{
-			//QMessageBox::information(this, "CompVis",
-			//	"CSV File could not be read! "
-			//	"Please try again or specify another file.");
+			LOG(lvlError, QString("Unable to read file '%1'").arg(m_filenames->at(ind)));
 			return;
 		}
+		
+		//create data structure for MDS and CompVis
+		storeCSVToVectorArray(list, headerLineNumber);
 
-		storeCSVToVectorArray(list);
+	
+		//create data structure for 3DVis for library iAobjectvis
+		if (iACompVisOptions::getShow3DViews())
+		{
+			initializeObjectTableFor3DRendering();
+		}
+
 	}
 
 	//calculate overall number of objects of all datasets
@@ -54,6 +84,30 @@ iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles) :
 	}
 
 	m_totalNumberOfObjects = sum;
+}
+
+void iACsvDataStorage::initializeObjectTableFor3DRendering()
+{
+	dlg_CSVInput* dlg = new dlg_CSVInput(false);
+	if (dlg->exec() != QDialog::Accepted)
+	{
+		return;
+	}
+	
+	const iACsvConfig* csvConfig = &dlg->getConfig();
+	iACsvVtkTableCreator creator;
+	iACsvIO* io = new iACsvIO();
+	
+	if (!io->loadCSV(creator, *csvConfig))
+	{
+		return;
+	}
+
+	vtkSmartPointer<vtkTable> objectTable = creator.table();
+	m_objectTables->push_back(objectTable);
+	m_ios->push_back(io);
+	m_csvConfigs->push_back(csvConfig);
+	m_dlgs->push_back(dlg);
 }
 
 QList<QStringList>* iACsvDataStorage::readCSV(QString csvFile)
@@ -88,48 +142,83 @@ QList<QStringList>* iACsvDataStorage::readCSV(QString csvFile)
 	return new QList<QStringList>(list);
 }
 
-void iACsvDataStorage::storeCSVToVectorArray(QList<QStringList>* list)
+void iACsvDataStorage::storeCSVToVectorArray(QList<QStringList>* list, int headerLineNumber)
 {
 	struct csvFileData file;
 	file.header = new QStringList();
 	file.values = new csvDataType::ArrayType();
 
-	customizeCSVFile(list);
-	initializeHeader(list, file.header);
+	customizeCSVFile(list, headerLineNumber);
+	initializeHeader(list, file.header, headerLineNumber);
 	initializeValueArray(list, file.header->size(), file.values);
 
 	m_data->append(file);
 }
 
-void iACsvDataStorage::initializeHeader(QList<QStringList>* list, QStringList* headers)
+void iACsvDataStorage::initializeHeader(QList<QStringList>* list, QStringList* headers, int headerLineNumber)
 {
-	//store header Strings
-	for (int ind = 0; ind < list->at(0).size(); ind++)
+	if (headerLineNumber == 0)
+	{//when there are no attribute labels
+		std::vector<double> attrNames = std::vector<double>();
+		for (int col = 0; col < (list->at(0).size()); col++)
+		{
+			headers->append(QString("Attr" + QString::number(col)));
+		}
+	}
+	else
 	{
-		headers->append(list->at(0).at(ind));
+		//store header Strings
+		for (int ind = 0; ind < list->at(0).size(); ind++)
+		{
+			headers->append(list->at(0).at(ind));
+		}
+
+		//remove header from original data
+		list->removeAt(0);
 	}
 }
 
 void iACsvDataStorage::initializeValueArray(
 	QList<QStringList>* list, int const attrCount, csvDataType::ArrayType* values)
 {
-	for (int row = 1; row < (list->size()); row++)
+	int colNumber = list->at(0).size();
+	int rowNumber = list->size();
+
+	if (colNumber == 1)
 	{
-		std::vector<double> vec = std::vector<double>();
-		vec.reserve(attrCount);
-		for (int col = 0; col < attrCount; col++)
+		for (int row = 0; row < rowNumber; row++)
 		{
-			//values->at(row - 1).at(col) = list->at(row).at(col).toDouble();
-			vec.push_back(list->at(row).at(col).toDouble());
+			//for each feature
+
+			std::vector<double> vec = std::vector<double>();
+			vec.reserve(attrCount);
+			
+			vec.push_back(row); //add id
+			vec.push_back(list->at(row).at(0).toDouble()); //add value
+			
+			//store the feature's values
+			values->push_back(vec);
 		}
-		values->push_back(vec);
+	}
+	else
+	{
+		for (int row = 0; row < (list->size()); row++)
+		{
+			std::vector<double> vec = std::vector<double>();
+			vec.reserve(attrCount);
+			for (int col = 0; col < attrCount; col++)
+			{
+				vec.push_back(list->at(row).at(col).toDouble());
+			}
+			values->push_back(vec);
+		}
 	}
 }
 
-void iACsvDataStorage::customizeCSVFile(QList<QStringList>* list)
+void iACsvDataStorage::customizeCSVFile(QList<QStringList>* list, int headerLineNumber)
 {
-	//only for fiber CSVs
-	for (int i = 0; i < 4; i++)
+	//remove unnecessary lines of code before the line storing the attribute names
+	for (int i = 0; i < headerLineNumber; i++)
 	{
 		list->removeAt(0);
 	}
@@ -166,6 +255,54 @@ QStringList* iACsvDataStorage::getAttributeNames()
 	return this->getData()->at(0).header;
 }
 
+
+double iACsvDataStorage::getMinVal()
+{
+	return m_minVal;
+}
+
+void iACsvDataStorage::setMinVal(double minVal)
+{
+	m_minVal = minVal;
+}
+
+double iACsvDataStorage::getMaxVal()
+{
+	return m_maxVal;
+}
+
+void iACsvDataStorage::setMaxVal(double maxVal)
+{
+	m_maxVal = maxVal;
+}
+
+/*********************** 3D Rendering ******************************************/
+std::vector<vtkSmartPointer<vtkTable>>* iACsvDataStorage::getObjectTables()
+{
+	return m_objectTables;
+}
+
+std::vector<iACsvIO*>* iACsvDataStorage::getIOs()
+{
+	return m_ios;
+}
+
+std::vector<const iACsvConfig*>* iACsvDataStorage::getCsvConfigs()
+{
+	return m_csvConfigs;
+}
+
+/*********************** store data computed by MDS ******************************************/
+csvDataType::ArrayType* iACsvDataStorage::getMDSData()
+{
+	return m_MDSData;
+}
+
+void iACsvDataStorage::setMDSData(csvDataType::ArrayType* mdsData)
+{
+	m_MDSData = mdsData;
+}
+
 /*********************** csvFileData methods ******************************************/
 std::vector<int>* csvFileData::getAmountObjectsEveryDataset(QList<csvFileData>* data)
 {
@@ -174,11 +311,12 @@ std::vector<int>* csvFileData::getAmountObjectsEveryDataset(QList<csvFileData>* 
 
 	for (int i = 0; i < amountDatasets; i++)
 	{
-		result->at(i) = data->at(i).values->size();
+		result->at(i) = static_cast<int>(data->at(i).values->size());
 	}
 	
 	return result;
 }
+
 
 /***********************  csvDataType methods  ******************************************/
 void csvDataType::initialize(int rows, int columns, csvDataType::ArrayType* result)
@@ -208,22 +346,10 @@ void csvDataType::initializeRandom(int rows, int columns, csvDataType::ArrayType
 	double rand2 = 1.0 / rows;
 	for (int r = 0; r < rows; r++)
 	{
-		/*int rand1;
-		double rand2;*/
-
 		std::vector<double> vec(columns);
 		for (int c = 0; c < columns; c++)
 		{
-			//rand1 = rand() * rand() + rand() * rand() + rand();
-			////rand1 = rand();
-
-			//if (rand1 < 0)
-			//	rand1 = -rand1;
-			//rand2 = double(rand1 % 1000001) / 1000000;
-
-			//vec.at(c) = double(rand2);
-
-
+			//do not initialize random to reproduce the results of the MDS
 			vec.at(c) = double(rand2);
 
 		}
@@ -301,7 +427,7 @@ int csvDataType::getColumns(ArrayType* input)
 {
 	if (input->size() > 0)
 	{
-		return input->at(0).size();
+		return static_cast<int>(input->at(0).size());
 	}
 
 	LOG(lvlDebug,"There is no column inside this row!");
@@ -311,7 +437,7 @@ int csvDataType::getColumns(ArrayType* input)
 
 int csvDataType::getRows(ArrayType* input)
 {
-	return input->size();
+	return static_cast<int>(input->size());
 }
 
 csvDataType::ArrayType* csvDataType::elementCopy(ArrayType* input)

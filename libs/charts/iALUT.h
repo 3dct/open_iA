@@ -40,9 +40,9 @@ class iAcharts_API iALUT
 public:
 	static QStringList colorMapNames();
 	static void loadMaps(QString const& folder);
-	static int BuildLUT(vtkSmartPointer<vtkLookupTable> pLUT, double const* lutRange, QString colorMap, int numCols = 256);
-	static int BuildLUT(vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap, int numCols = 256);
-	static iALookupTable Build(double const* lutRange, QString colorMap, int numCols, double alpha);
+	static int BuildLUT(vtkSmartPointer<vtkLookupTable> pLUT, double const* lutRange, QString colorMap, int numCols = 256, bool reverse = false);
+	static int BuildLUT(vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap, int numCols = 256, bool reverse = false);
+	static iALookupTable Build(double const* lutRange, QString colorMap, int numCols, double alpha, bool reverse = false);
 
 	static vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOpacityTF(int labelCount);
 	static vtkSmartPointer<vtkLookupTable> BuildLabelColorTF(int labelCount, iAColorTheme const* colorTheme);

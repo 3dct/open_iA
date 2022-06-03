@@ -58,7 +58,7 @@ iAFilterChart::iAFilterChart(QWidget* parent,
 	m_minSliderPos = m_data->mapBinToValue(0);
 	m_maxSliderPos = m_data->mapBinToValue(m_data->valueCount());
 	setCaptionPosition(Qt::AlignLeft | Qt::AlignTop);
-	setShowXAxisLabel(showCaption);
+	showXAxisLabel(showCaption);
 	for (size_t i = 0; i < m_data->valueCount(); ++i)
 	{
 		m_binColors.push_back(QColor(0, 0, 0, 0));
@@ -208,12 +208,12 @@ void iAFilterChart::mousePressEvent( QMouseEvent *event )
 
 			int minX = xMapper().srcToDst(m_minSliderPos);
 			int maxX = xMapper().srcToDst(m_maxSliderPos);
-			if ( abs(x-minX) <= MarkerTriangleWidthHalf)
+			if ( std::abs(x-minX) <= MarkerTriangleWidthHalf)
 			{
 				m_selectedHandle = 0;
 				m_selectionOffset = minX - x;
 			}
-			else if ( abs(x-maxX) <= MarkerTriangleWidthHalf)
+			else if ( std::abs(x-maxX) <= MarkerTriangleWidthHalf)
 			{
 				m_selectedHandle = 1;
 				m_selectionOffset = maxX - x;

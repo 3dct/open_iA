@@ -773,7 +773,7 @@ void dlg_ParamSpaceSampling::createHistoPeaks()
 		while ( m_smoothValue[m_emi_peaks[i] + peak_runner] == m_smoothValue[m_emi_peaks[i]] )
 			peak_runner++;
 		peak_end = peak_start + peak_runner - 1;
-		peak_middle << floor( ( peak_end - peak_start ) / 2 + peak_start );
+		peak_middle << std::floor( ( peak_end - peak_start ) / 2 + peak_start );
 	}
 
 	// Create peak graphs
@@ -810,8 +810,8 @@ void dlg_ParamSpaceSampling::createHistoPeaks()
 	{
 		// iso X value between air/pore and material 1
 		m_isoXGrayValue =
-			floor( m_data[0][peak_middle[0]] +
-			abs( m_data[0][peak_middle[1]] - m_data[0][peak_middle[0]] ) *
+			std::floor( m_data[0][peak_middle[0]] +
+			std::abs( m_data[0][peak_middle[1]] - m_data[0][peak_middle[0]] ) *
 			( m_isoX / 100.0 ) );
 
 		QVector<double> pX, pY;

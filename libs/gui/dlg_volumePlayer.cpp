@@ -365,7 +365,7 @@ void dlg_volumePlayer::blendingStateChanged(int state)
 	{
 		// set slider parameters
 		volumeSlider->setMaximum(getNumberOfCheckedVolumes() - 1);
-		volumeSlider->setValue(floor((double)(oldVal + 1) / DIVISIONS_PER_VOLUME + 0.5));
+		volumeSlider->setValue(std::floor(static_cast<double>(oldVal + 1) / DIVISIONS_PER_VOLUME + 0.5));
 
 		// set multi channel
 		disableMultiChannelVisualization();
@@ -579,14 +579,14 @@ void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volume
 
 void dlg_volumePlayer::updateMultiChannelVisualization()
 {
-	double sliderVal = (double)volumeSlider->value() / DIVISIONS_PER_VOLUME;
-	double blend = sliderVal - floor(sliderVal);
+	double sliderVal = static_cast<double>(volumeSlider->value()) / DIVISIONS_PER_VOLUME;
+	double blend = sliderVal - std::floor(sliderVal);
 	if (volumeSlider->value() == volumeSlider->maximum())
 	{
-		setMultiChannelVisualization(sliderIndexToVolumeIndex(floor(sliderVal) - 1), sliderIndexToVolumeIndex(floor(sliderVal)), 1);
+		setMultiChannelVisualization(sliderIndexToVolumeIndex(std::floor(sliderVal) - 1), sliderIndexToVolumeIndex(std::floor(sliderVal)), 1);
 	}
 	else
 	{
-		setMultiChannelVisualization(sliderIndexToVolumeIndex(floor(sliderVal)), sliderIndexToVolumeIndex(floor(sliderVal) + 1), blend);
+		setMultiChannelVisualization(sliderIndexToVolumeIndex(std::floor(sliderVal)), sliderIndexToVolumeIndex(std::floor(sliderVal) + 1), blend);
 	}
 }

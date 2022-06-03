@@ -77,6 +77,7 @@ class vtkTransform;
 class vtkWorldPointPicker;
 
 class QAction;
+class QActionGroup;
 class QMenu;
 class QWidget;
 
@@ -258,7 +259,7 @@ private slots:
 	void menuCenteredMagicLens();
 	void menuOffsetMagicLens();
 	void toggleLinearInterpolation();
-	void toggleWindowLevelAdjust();
+	void toggleInteractionMode(QAction *);
 	void toggleShowTooltip();
 	void fisheyeLensToggled(bool enabled);
 
@@ -271,11 +272,14 @@ signals:
 	void deletedSnakeLine();
 	void sliceRotated(); //!< triggered when slice was rotated
 	void sliceRangeChanged(int minIdx, int maxIdx);
+	void regionSelected(double minVal, double maxVal);
 
 private:
-	QAction* m_actionLinearInterpolation, * m_actionToggleWindowLevelAdjust, * m_actionFisheyeLens,
+	QAction* m_actionLinearInterpolation, * m_actionFisheyeLens,
 		* m_actionMagicLens, * m_actionMagicLensCentered, * m_actionMagicLensOffset,
 		* m_actionDeleteSnakeLine, * m_actionShowTooltip;
+	QAction *m_actionToggleWindowLevelAdjust, * m_actionToggleRegionTransferFunction, * m_actionToggleNormalInteraction;
+	QActionGroup* m_actionInteractionMode;
 	QMenu *         m_contextMenu;               //!< context menu
 	InteractionMode m_interactionMode;           //!< current edit mode
 	int             m_xInd, m_yInd, m_zInd;      //!< current position
@@ -417,6 +421,9 @@ private:
 	void updatePositionMarkerExtent();
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 	void updatePosition();
+	void screenPixelPosToImgPos(int const pos[2], double* slicerPos, double* globalPos);
+	QPoint slicerPosToImgPixelCoords(int channelID, double const slicerPt[3]);
+
 
 	//! Update the position of the raw profile line.
 	void updateRawProfile(double posY);

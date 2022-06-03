@@ -36,7 +36,7 @@
 
 // Constants (more in the header file!)
 static const qreal RAD60 = vtkMath::Pi() / 3.0;
-static const qreal SIN60 = sin(RAD60);
+static const qreal SIN60 = std::sin(RAD60);
 static const qreal ONE_DIV_SIN60 = 1.0 / SIN60;
 
 static const int CONTROL_POINT_RADIUS = 10;
@@ -363,12 +363,12 @@ bool iABarycentricTriangleWidget::isTooTall(int width, int height)
 
 int iABarycentricTriangleWidget::getWidthForHeight(int height)
 {
-	return (int)round(height * ONE_DIV_SIN60);
+	return static_cast<int>(std::round(height * ONE_DIV_SIN60));
 }
 
 int iABarycentricTriangleWidget::getHeightForWidth(int width)
 {
-	return (int)round(width * SIN60);
+	return static_cast<int>(std::round(width * SIN60));
 }
 
 iABCoord iABarycentricTriangleWidget::getWeight()

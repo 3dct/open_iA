@@ -34,6 +34,7 @@
 #include <itkIntensityWindowingImageFilter.h>
 #include <itkInvertIntensityImageFilter.h>
 #include <itkMaskImageFilter.h>
+#include <itkMultiplyImageFilter.h>
 #include <itkNormalizeImageFilter.h>
 #include <itkRescaleIntensityImageFilter.h>
 #include <itkShiftScaleImageFilter.h>
@@ -440,6 +441,44 @@ iAAddFilter::iAAddFilter() :
 	setInputName(1u, "Second image");
 }
 
+// iAMultiplyFilter
+
+template <class T>
+void multiplyImages(iAFilter* filter)
+{
+	typedef itk::Image<T, 3> InputImageType;
+	typedef itk::Image<T, 3> OutputImageType;
+	typedef itk::MultiplyImageFilter<InputImageType, InputImageType, OutputImageType> MultiplyFilterType;
+
+	auto mulFilter = MultiplyFilterType::New();
+	mulFilter->SetInput1(dynamic_cast<InputImageType*>(filter->input(0)->itkImage()));
+	auto img2 = castImageTo<T>(filter->input(1)->itkImage());
+	mulFilter->SetInput2(dynamic_cast<InputImageType*>(img2.GetPointer()));
+	filter->progress()->observe(mulFilter);
+	mulFilter->Update();
+	filter->addOutput(mulFilter->GetOutput());
+}
+
+void iAMultiplyFilter::performWork(QMap<QString, QVariant> const& /*parameters*/)
+{
+	ITK_TYPED_CALL(multiplyImages, inputPixelType(), this);
+}
+
+IAFILTER_CREATE(iAMultiplyFilter)
+
+iAMultiplyFilter::iAMultiplyFilter() :
+	iAFilter("Multiply Images", "Intensity",
+		"Multiplies the intensities of the selected <em>Additional Image</em> with the intensities of the active "
+		"window.<br/>"
+		"Note: The second image will be converted to the pixel type of the first.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1MultiplyImageFilter.html\">"
+		"Multiply Image Filter</a> in the ITK documentation.",
+		2)
+{  // no parameters
+	setInputName(1u, "Additional image");
+}
+
 
 // iASubtractFilter
 
@@ -447,9 +486,9 @@ template<class T> void subtractImages(iAFilter* filter)
 {
 	typedef itk::Image< T, 3 > InputImageType;
 	typedef itk::Image< T, 3 > OutputImageType;
-	typedef itk::SubtractImageFilter<InputImageType, InputImageType, OutputImageType> SubractFilterType;
+	typedef itk::SubtractImageFilter<InputImageType, InputImageType, OutputImageType> SubtractFilterType;
 
-	auto subFilter = SubractFilterType::New();
+	auto subFilter = SubtractFilterType::New();
 	subFilter->SetInput1(dynamic_cast< InputImageType * >(filter->input(0)->itkImage()));
 	auto img2 = castImageTo<T>(filter->input(1)->itkImage());
 	subFilter->SetInput2(dynamic_cast<InputImageType *>(img2.GetPointer()));

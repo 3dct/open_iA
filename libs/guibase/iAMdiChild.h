@@ -265,11 +265,12 @@ public:
 	//! @deprecated. can be removed together with enableRenderWindow/disableRenderWindow
 	virtual void setReInitializeRenderWindows(bool reInit) = 0;
 
-	//! @{ for recomputing histogram. should probably be made private somehow
-	virtual size_t histogramNewBinCount(QSharedPointer<iAModality>) = 0;
+	//! @{ for recomputing histogram. should probably be made private somehow; or members of modality, or triggered automatically on modality creation...
 	virtual bool histogramComputed(size_t newBinCount, QSharedPointer<iAModality>) = 0;
 	virtual void computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality>) = 0;
+	virtual void setHistogramModality(int modalityIdx) = 0;
 	//! @}
+	virtual void set3DControlVisibility(bool visible) = 0;
 signals:
 	void closed();
 	//! @deprecated. no direct replacement
@@ -280,7 +281,7 @@ signals:
 	void fileLoaded();
 
 	//! emitted when a file is fully loaded and its statistics and histogram are available.
-	void histogramAvailable();
+	void histogramAvailable(int modalityIdx);
 
 	//! emitted when the renderer settings have changed
 	void renderSettingsChanged();

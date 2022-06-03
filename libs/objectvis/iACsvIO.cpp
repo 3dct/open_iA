@@ -278,8 +278,8 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 				}
 				else
 				{
-					phi = asin(dy / sqrt(dx * dx + dy * dy));
-					theta = acos(dz / sqrt(dx * dx + dy * dy + dz * dz));
+					phi = std::asin(dy / std::sqrt(dx * dx + dy * dy));
+					theta = std::acos(dz / std::sqrt(dx * dx + dy * dy + dz * dz));
 					phi = vtkMath::DegreesFromRadians(phi);
 					theta = vtkMath::DegreesFromRadians(theta);
 					// locate the phi value to quadrant
@@ -305,12 +305,12 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 			}
 			double rad_phi = vtkMath::RadiansFromDegrees(phi);
 			double rad_theta = vtkMath::RadiansFromDegrees(theta);
-			double a11 = cos(rad_phi) * cos(rad_phi) * sin(rad_theta) * sin(rad_theta);
-			double a22 = sin(rad_phi) * sin(rad_phi) * sin(rad_theta) * sin(rad_theta);
-			double a33 = cos(rad_theta) * cos(rad_theta);
-			double a12 = cos(rad_phi) * sin(rad_theta) * sin(rad_theta) * sin(rad_phi);
-			double a13 = cos(rad_phi) * sin(rad_theta) * cos(rad_theta);
-			double a23 = sin(rad_phi) * sin(rad_theta) * cos(rad_theta);
+			double a11 = std::cos(rad_phi) * std::cos(rad_phi) * std::sin(rad_theta) * std::sin(rad_theta);
+			double a22 = std::sin(rad_phi) * std::sin(rad_phi) * std::sin(rad_theta) * std::sin(rad_theta);
+			double a33 = std::cos(rad_theta) * std::cos(rad_theta);
+			double a12 = std::cos(rad_phi) * std::sin(rad_theta) * std::sin(rad_theta) * std::sin(rad_phi);
+			double a13 = std::cos(rad_phi) * std::sin(rad_theta) * std::cos(rad_theta);
+			double a23 = std::sin(rad_phi) * std::sin(rad_theta) * std::cos(rad_theta);
 			/*
 			if (dx == 0 && dy == 0)
 			{

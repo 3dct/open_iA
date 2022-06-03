@@ -32,15 +32,24 @@ namespace
 }
 
 iALookupTable::iALookupTable() :
-	m_isInitialized( false ),
 	m_rangeLen( 1.0 ),
 	m_numColors( 0 )
 {
 	m_range[0] = m_range[1] = 0.0;
 }
 
-iALookupTable::iALookupTable(vtkLookupTable * vtk_lut) :
-	m_isInitialized( false )
+iALookupTable::iALookupTable(QColor color):
+	m_rangeLen(1.0),
+	m_numColors(1)
+{
+	allocate(1);
+	m_data[0] = color.redF();
+	m_data[1] = color.greenF();
+	m_data[2] = color.blueF();
+	m_data[3] = color.alphaF();
+}
+
+iALookupTable::iALookupTable(vtkLookupTable * vtk_lut)
 {
 	copyFromVTK(vtk_lut);
 }

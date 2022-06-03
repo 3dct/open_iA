@@ -30,7 +30,8 @@
 //vtk
 
 #include "vtkRenderer.h"
-#include <vtkRenderWindow.h>
+
+#include "vtkRenderWindow.h"
 #include "vtkContextView.h"
 #include "vtkContextScene.h"
 
@@ -90,13 +91,28 @@ iACompBoxPlot::iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage
 	m_numberOfAttr(0),
 	m_legendAttributes(new std::vector<vtkSmartPointer<vtkTextActor>>()),
 	labels(vtkSmartPointer<vtkStringArray>::New()),
+	m_originalOrderTable(nullptr),
+	m_originalOrderTableNotNormalized(nullptr),
+	m_orderedPositions(nullptr),
+	outTable(nullptr),
+	normalizedTable(nullptr),
+	reorderedNormalizedTable(nullptr),
 	currentQuartileTable(vtkSmartPointer<vtkTable>::New()),
-	finishedInitalization(false)
 	
+	m_chartOriginal(nullptr),
+	m_boxOriginal(nullptr),
+	lutOriginal(nullptr),
+	finishedInitalization(false),
+	m_chartSelected(nullptr),
+	m_boxSelected(nullptr),
+	lutSelected(nullptr),
+	notEnoughElementsSelectedTextActor(nullptr),
+	m_lastState(iACompVisOptions::lastState::Undefined)
 {
 	setupUi(this);
 
 	this->setFeatures(DockWidgetVerticalTitleBar);
+	this->setWindowTitle("Box Plot");
 
 	QVBoxLayout* layout = new QVBoxLayout;
 	dockWidgetContents->setLayout(layout);
@@ -104,14 +120,13 @@ iACompBoxPlot::iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage
 	layout->addWidget(m_qvtkWidget);
 
 	m_view = vtkSmartPointer<vtkContextView>::New();
-
 	m_view->SetRenderWindow(m_qvtkWidget->renderWindow());
 	m_view->SetInteractor(m_qvtkWidget->interactor());
 }
 
-void iACompBoxPlot::showEvent(QShowEvent* event)
+
+void iACompBoxPlot::initializeChart()
 {
-	QDockWidget::showEvent(event);
 
 	//reset chart if something was drawn before
 	m_view->GetScene()->ClearItems();
@@ -150,8 +165,9 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 	renderWidget();
 
 	//set size of chart
-	m_chartOriginal->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.3));
-	m_chartOriginal->SetPoint2(m_qvtkWidget->width()*0.75, (m_qvtkWidget->height())*0.85);
+
+	m_chartOriginal->SetPoint1(m_qvtkWidget->width() * 0.0, (m_qvtkWidget->height() * 0.3));
+	m_chartOriginal->SetPoint2(m_qvtkWidget->width() * 0.75, (m_qvtkWidget->height()) * 0.85);
 	m_chartOriginal->Update();
 
 	initializeAxes(m_chartOriginal, true);
@@ -160,63 +176,33 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 	finishedInitalization = true;
 
 	this->renderWidget();
+
+	m_lastState = iACompVisOptions::lastState::Defined;
 }
 
-void iACompBoxPlot::reinitializeBoxPlot()
+
+void iACompBoxPlot::showEvent(QShowEvent* event)
 {
-	m_view->GetScene()->ClearItems();
-	removeSelectedMessage();
 
-	for(int i = 0; i < ((int)m_legendAttributes->size()); i++)
+	QDockWidget::showEvent(event);
+
+
+	if (m_lastState == iACompVisOptions::lastState::Undefined)
 	{
-		m_view->GetRenderer()->RemoveActor2D(m_legendAttributes->at(i));
+		//m_view->GetRenderer()->RemoveActor2D(m_legendAttributes->at(i));
+		initializeChart();
 	}
-
-	m_legendAttributes->clear();
-	labels->Initialize();
-
-	// data preparation
-	initializeData();
-
-	//create chart (a plot is stored inside a chart)
-	m_chartOriginal = vtkSmartPointer<BoxPlotChart>::New();
-	m_chartOriginal->setOuterClass(this);
-	m_chartOriginal->Update();
-	m_view->GetScene()->AddItem(m_chartOriginal);
-
-	//create box plot
-	m_boxOriginal = vtkSmartPointer<BoxPlot>::New();
-	m_boxOriginal->SetInputData(normalizedTable);
-	m_boxOriginal->SetLookupTable(lutOriginal);
-
-	double col[3];
-	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, col);
-	m_boxOriginal->SetColor(col[0], col[1], col[2]);
-	m_boxOriginal->GetPen()->SetWidth(m_boxOriginal->GetPen()->GetWidth() * 2.5);
-
-	m_chartOriginal->SetPlot(m_boxOriginal);
-	m_chartOriginal->SetColumnVisibilityAll(true);
-	m_chartOriginal->Update();
-
-	//render all to get position of columns
-	renderWidget();
-
-	//set size of chart
-	m_chartOriginal->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.3));
-	m_chartOriginal->SetPoint2(m_qvtkWidget->width()*0.75, (m_qvtkWidget->height())*0.85);
-	m_chartOriginal->Update();
-	renderWidget();
-
-	initializeAxes(m_chartOriginal, true);
-	initializeLegend(m_chartOriginal);
-
-	renderWidget();
+	else if (m_lastState == iACompVisOptions::lastState::Defined)
+	{
+		renderWidget();
+	}
 }
 
 void iACompBoxPlot::initializeData()
 {
 	// data preparation
-	QList<csvFileData>* csvData = m_dataStorage->getData();
+
+	QList<csvFileData>* dataPoints = m_dataStorage->getData();
 	QStringList* attrNames = m_dataStorage->getAttributeNamesWithoutLabel();
 	m_numberOfAttr = attrNames->size(); //amount of attributes
 	
@@ -243,29 +229,30 @@ void iACompBoxPlot::initializeData()
 
 	//calculate amount of objects(fibers)/rows
 	int numberOfRows = 0;
-	for (int i = 0; i < csvData->size(); i++)
+
+	for (int i = 0; i < dataPoints->size(); i++)
 	{
-		numberOfRows += csvDataType::getRows(csvData->at(i).values);
+		numberOfRows += csvDataType::getRows(dataPoints->at(i).values);
 	}
 	originalValuesTable->SetNumberOfRows(numberOfRows);
 	m_originalOrderTable->SetNumberOfRows(numberOfRows);
 
 	int row = 0;
 	//fill table with data
-	for (int i = 0; i < csvData->size(); i++)
+	for (int i = 0; i < dataPoints->size(); i++)
 	{//for all datasets
-		for (int dataInd = 0; dataInd < ((int)csvData->at(i).values->size()); dataInd++)
+		for (int dataInd = 0; dataInd < ((int)dataPoints->at(i).values->size()); dataInd++)
 		{ //for all values
 			for (int attrInd = 1; attrInd <= m_numberOfAttr; attrInd++)
 
 			{//for all attributes but without the label attribute
 
 				int col = attrInd - 1;
-				double val = csvData->at(i).values->at(dataInd).at(m_orderedPositions->at(col) + 1);
+				double val = dataPoints->at(i).values->at(dataInd).at(m_orderedPositions->at(col) + 1);
 				
 				originalValuesTable->SetValue(row, col, vtkVariant(val));
 
-				double valOriginalOrder = csvData->at(i).values->at(dataInd).at(attrInd);
+				double valOriginalOrder = dataPoints->at(i).values->at(dataInd).at(attrInd);
 				m_originalOrderTable->SetValue(row, col, valOriginalOrder);
 			}
 
@@ -708,11 +695,11 @@ void iACompBoxPlot::resetBoxPlot()
 
 	// Set the labels
 	QStringList* attrNames = m_dataStorage->getAttributeNamesWithoutLabel();
-	vtkSmartPointer<vtkStringArray> newLabels = vtkSmartPointer<vtkStringArray>::New();
+	vtkSmartPointer<vtkStringArray> labelNames = vtkSmartPointer<vtkStringArray>::New();
 
 	for (int i = 0; i < m_numberOfAttr; i++)
 	{
-		newLabels->InsertNextValue(attrNames->at(i).toStdString());
+		labelNames->InsertNextValue(attrNames->at(i).toStdString());
 	}
 
 	currentQuartileTable->DeepCopy(outTable);
@@ -734,7 +721,7 @@ void iACompBoxPlot::resetBoxPlot()
 	for (int i = 0; i < ((int)m_legendAttributes->size()); i++)
 	{
 		vtkSmartPointer<vtkTextActor> legend = m_legendAttributes->at(i);
-		legend->SetInput(newLabels->GetValue(m_orderedPositions->at(i)));
+		legend->SetInput(labels->GetValue(m_orderedPositions->at(i)));
 		legend->Modified();
 	}
 
@@ -840,7 +827,7 @@ void iACompBoxPlot::BoxPlotChart::setOuterClass(iACompBoxPlot * outerClass)
 	m_outerClass = outerClass;
 }
 
-iACompBoxPlot::BoxPlotChart::BoxPlotChart()
+iACompBoxPlot::BoxPlotChart::BoxPlotChart() : m_outerClass(nullptr)
 {
 }
 
@@ -852,7 +839,11 @@ public:
 	Private() = default;
 };
 
-iACompBoxPlot::BoxPlot::BoxPlot() {}
+iACompBoxPlot::BoxPlot::BoxPlot() : 
+	m_outerClass(nullptr), 
+	m_numberOfColumns(0)
+{
+}
 
 void iACompBoxPlot::BoxPlot::setOuterClass(iACompBoxPlot * outerClass)
 {

@@ -58,7 +58,7 @@ template<class T> void castImage(iAFilter* filter, int vtkType)
 	switch (vtkType)
 	{
 	case VTK_UNSIGNED_CHAR:      castImage<T, unsigned char>(filter);  break;
-	case VTK_CHAR:
+	case VTK_CHAR: // fall through
 	case VTK_SIGNED_CHAR:        castImage<T, char>(filter);           break;
 	case VTK_SHORT:              castImage<T, short>(filter);          break;
 	case VTK_UNSIGNED_SHORT:     castImage<T, unsigned short>(filter); break;
@@ -117,7 +117,7 @@ void dataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parame
 	switch (vtkDataType)
 	{
 		case VTK_UNSIGNED_CHAR:  dataTypeConversion<T, unsigned char>(filter, parameters);  break;
-		case VTK_CHAR:
+		case VTK_CHAR:  // fall through
 		case VTK_SIGNED_CHAR:    dataTypeConversion<T, char>(filter, parameters);           break;
 		case VTK_SHORT:          dataTypeConversion<T, short>(filter, parameters);          break;
 		case VTK_UNSIGNED_SHORT: dataTypeConversion<T, unsigned short>(filter, parameters); break;

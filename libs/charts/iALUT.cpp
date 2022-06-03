@@ -24,6 +24,7 @@
 #include "iAColorTheme.h"
 #include "iALog.h"
 #include "iALookupTable.h"
+#include "iAToolsVTK.h"      // for convertTFToLUT
 #include "iAVtkVersion.h"    // required for VTK < 9.0
 
 #include <QColor>
@@ -151,45 +152,29 @@ void iALUT::loadMaps(QString const& folder)
 	}
 }
 
-int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRange, QString colorMap, int numCols /*= 256 */)
+int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRange, QString colorMap, int numCols /*= 256 */, bool reverse)
 {
-	QColor c;
 	if (!m_colorMaps.contains(colorMap))
 	{
 		LOG(lvlWarn, QString("Invalid color map name %1!").arg(colorMap));
 		return 0;
 	}
 	auto ctf = m_colorMaps[colorMap];
-#if VTK_VERSION_NUMBER <= VTK_VERSION_CHECK(8, 0, 0)
-	double lutRangeNonConst[2];
-	std::copy(lutRange, lutRange + 2, lutRangeNonConst);
-	pLUT->SetRange(lutRangeNonConst);
-	pLUT->SetTableRange(lutRangeNonConst);
-#else
-	pLUT->SetRange( lutRange );
-	pLUT->SetTableRange( lutRange );
-#endif
-	pLUT->SetNumberOfColors( numCols );
-	for( int i = 0; i < numCols; ++i )
-	{
-		double rgb[3];
-		ctf->GetColor( static_cast<double>(i) / numCols, rgb );
-		pLUT->SetTableValue( i, rgb[0], rgb[1], rgb[2] );
-	}
-	pLUT->Build();
+	convertTFToLUT(pLUT, ctf, nullptr, numCols, lutRange, reverse);
 	return ctf->GetSize();
 }
 
-int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap, int numCols /*= 256 */)
+int iALUT::BuildLUT(vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap,
+	int numCols /*= 256 */, bool reverse /*= false*/)
 {
 	double lutRange[2] = { rangeFrom, rangeTo };
-	return BuildLUT( pLUT, lutRange, colorMap, numCols);
+	return BuildLUT( pLUT, lutRange, colorMap, numCols, reverse);
 }
 
-iALookupTable iALUT::Build(double const * lutRange, QString colorMap, int numCols, double /*alpha*/)
+iALookupTable iALUT::Build(double const * lutRange, QString colorMap, int numCols, double /*alpha*/, bool reverse /*= false*/)
 {
 	vtkSmartPointer<vtkLookupTable> vtkLUT(vtkSmartPointer<vtkLookupTable>::New());
-	BuildLUT(vtkLUT, lutRange, colorMap, numCols);
+	BuildLUT(vtkLUT, lutRange, colorMap, numCols, reverse);
 	iALookupTable result(vtkLUT);
 	return result;
 }

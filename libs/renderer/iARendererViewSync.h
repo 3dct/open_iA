@@ -24,6 +24,8 @@
 
 #include <QMap>
 
+#include <vector>
+
 class vtkCamera;
 class vtkObject;
 class vtkRenderer;
@@ -33,11 +35,12 @@ class vtkRenderer;
 //! - Shared camera (default, i.e. sharedCamera = true in constructor),
 //!   each added renderer gets assigned the same camera (the one from the
 //!   renderer added first).
-//!   Pro: Less overhead on updates (only triggering an update on other renderers)
+//!   Pro: Less overhead on updates (only triggering an update on other renderer windows)
 //!   Con: The views share the visible area; so if the renderers have different
-//!        pixel dimensions, viewed objects might be distorted
+//!        pixel dimensions, viewed objects might be distorted (i.e., the aspect ratio is
+//!        only correct in one window if they have different width/height ratios)
 //! - Synchronized camera settings: An observer is registered to each
-//!   added renderer, and whenever one of them is updated(=rendered),
+//!   added renderer's camera, and whenever in one of them, the camera is modified,
 //!   its main camera parameters (camera position, focal point, view up
 //!   direction, clipping planes, and parallel scale if source camera has
 //!   parallel projection turned on) are copied to all other renderers.
@@ -65,9 +68,19 @@ public:
 	void addToBundle(vtkRenderer* renderer);
 	//! Remove given renderer from bundle. Stops synchronizing this renderers'
 	//! viewing parameters with the other renderers in the bundle.
-	bool removeFromBundle(vtkRenderer* renderer);
+	//! @param renderer the renderer to remove from the bundle
+	//! @param resetCamera whether the camera of the removed renderer should be reset to a new one
+	//!        with a copy of the settings of the common renderer; set to false for example if the
+	//!        renderer is not used after removing from bundle, or if you set your own camera.
+	//!        Note that when resetCamera=false, and you reuse the renderer afterwards, but don't
+	//!        set your own camera to the renderer, camera updates will still be shared to other
+	//!        renderers added to the bundle, but updates will not propagate anymore!
+	bool removeFromBundle(vtkRenderer* renderer, bool resetCamera = true);
 	//! Remove all renderers from the bundle synchronized by this class.
 	void removeAll();
+
+	//! whether this renderer view sync instance uses a shared camera or not
+	bool sharedCamera() const;
 
 private:
 	//! @{ No copy construction or assignment
@@ -82,5 +95,6 @@ private:
 	bool m_updateInProgress;    //!< avoids recursion in redrawOtherRenderers.
 	vtkCamera* m_commonCamera;  //!< the common camera (if m_sharedCamera is true).
 	bool m_sharedCamera;        //!< the viewing parameter share mode
-	QMap<vtkRenderer*, unsigned long> m_rendererObserverTags;
+	std::vector<vtkRenderer*> m_renderers;
+	QMap<vtkCamera*, unsigned long> m_rendererObserverTags; //!< list of observed cameras and associated observer tags
 };

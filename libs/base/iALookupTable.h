@@ -36,6 +36,7 @@ class iAbase_API iALookupTable
 {
 public:
 	iALookupTable();                                           //!< Set up an empty (uninitialized) iALookupTable.
+	iALookupTable(QColor color);                               //!< Set up a lookup table with a single color.
 	explicit iALookupTable(vtkLookupTable * vtk_lut);          //!< Initialize an iALookupTable from the given vtkLookupTable.
 	void copyFromVTK(vtkLookupTable * vtk_lut);                //!< Copies data from the existing VTK lookup table (vtkLookupTable).
 	void allocate(size_t numberOfColors);                      //!< Allocate place for a given number of colors and fill with zeros.
@@ -52,7 +53,7 @@ public:
 	void setRange(double const * range);                       //!< Set the mapped scalar range.
 	bool initialized() const;                                  //!< Check if the table has data (initialized).
 protected:
-	bool m_isInitialized;                                      //!< flag which is on if lookup table data is set
+	bool m_isInitialized = false;                              //!< flag which is on if lookup table data is set
 	std::vector<double> m_data;                                //!< lookup table raw color data, each color is 4 doubles (RGBA)
 	double m_range[2];                                         //!< scalar range mapped by the lookup table
 	double m_rangeLen;                                         //!< length of the total scalar range that is mapped by the lookup table

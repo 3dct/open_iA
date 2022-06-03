@@ -33,14 +33,13 @@
 #include <vtkTable.h>
 
 
-iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 	QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, int numberOfCylinderSides, size_t segmentSkip):
-	iA3DLineObjectVis( ren, objectTable, columnMapping, color, curvedFiberData, segmentSkip),
+	iA3DLineObjectVis(objectTable, columnMapping, color, curvedFiberData, segmentSkip),
 	m_tubeFilter(vtkSmartPointer<iAvtkTubeFilter>::New()),
 	m_contextFactors(nullptr),
 	m_objectCount(objectTable->GetNumberOfRows()),
-	m_contextDiameterFactor(1.0),
-	m_lines(false)
+	m_contextDiameterFactor(1.0)
 {
 	auto tubeRadius = vtkSmartPointer<vtkDoubleArray>::New();
 	tubeRadius->SetName("TubeRadius");
@@ -60,9 +59,8 @@ iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectT
 	m_tubeFilter->SetNumberOfSides(numberOfCylinderSides);
 	m_tubeFilter->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
 	m_tubeFilter->Update();
-	m_mapper->SetInputConnection(m_tubeFilter->GetOutputPort());
-
-	m_outlineFilter->SetInputConnection(m_tubeFilter->GetOutputPort());
+	// add final point number
+	m_finalObjectPointMap = m_tubeFilter->GetFinalObjectPointMap();
 }
 
 iA3DCylinderObjectVis::~iA3DCylinderObjectVis()
@@ -75,7 +73,7 @@ void iA3DCylinderObjectVis::setDiameterFactor(double diameterFactor)
 	m_tubeFilter->SetRadiusFactor(diameterFactor);
 	m_tubeFilter->Modified();
 	m_tubeFilter->Update();
-	updateRenderer();
+	emit renderRequired();
 }
 
 void iA3DCylinderObjectVis::setContextDiameterFactor(double contextDiameterFactor)
@@ -117,7 +115,7 @@ void iA3DCylinderObjectVis::setContextDiameterFactor(double contextDiameterFacto
 	m_tubeFilter->SetIndividualFactors(m_contextFactors);
 	m_tubeFilter->Modified();
 	m_tubeFilter->Update();
-	updateRenderer();
+	emit renderRequired();
 }
 
 void iA3DCylinderObjectVis::setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive)
@@ -132,24 +130,28 @@ QString iA3DCylinderObjectVis::visualizationStatistics() const
 		QString::number(m_tubeFilter->GetNumberOfSides());
 }
 
-void iA3DCylinderObjectVis::setShowLines(bool lines)
+vtkPolyData* iA3DCylinderObjectVis::finalPolyData()
 {
-	m_lines = lines;
-	if (m_lines)
-	{
-		m_mapper->SetInputData(m_linePolyData);
-	}
-	else
-	{
-		m_mapper->SetInputConnection(m_tubeFilter->GetOutputPort());
-	}
-}
-
-vtkPolyData* iA3DCylinderObjectVis::finalPoly()
-{
-	m_tubeFilter->Update();
+	//m_tubeFilter->Update();
 	return m_tubeFilter->GetOutput();
 }
+
+iA3DColoredPolyObjectVis::IndexType iA3DCylinderObjectVis::finalObjectStartPointIdx(IndexType objIdx) const
+{
+	return m_finalObjectPointMap[objIdx].first;
+}
+
+iA3DColoredPolyObjectVis::IndexType iA3DCylinderObjectVis::finalObjectPointCount(IndexType objIdx) const
+{
+	return m_finalObjectPointMap[objIdx].second;
+}
+
+/*
+vtkAlgorithmOutput* iA3DCylinderObjectVis::output()
+{
+	return m_tubeFilter->GetOutputPort();
+}
+*/
 
 std::vector<vtkSmartPointer<vtkPolyData>> iA3DCylinderObjectVis::extractSelectedObjects(QColor color) const
 {
@@ -182,8 +184,8 @@ std::vector<vtkSmartPointer<vtkPolyData>> iA3DCylinderObjectVis::extractSelected
 			tmpCurvedFiberData.insert(std::make_pair(ExtractedID-1, it->second));
 		}
 		iA3DCylinderObjectVis tmpVis(
-			m_ren, tmpTbl.GetPointer(), m_columnMapping, color.isValid() ? color : QColor(0, 0, 0), tmpCurvedFiberData);
-		auto pd = tmpVis.finalPoly();
+			tmpTbl.GetPointer(), m_columnMapping, color.isValid() ? color : QColor(0, 0, 0), tmpCurvedFiberData);
+		auto pd = tmpVis.finalPolyData();
 		result.push_back(pd);
 	}
 	return result;

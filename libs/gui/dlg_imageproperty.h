@@ -30,12 +30,8 @@ class vtkImageData;
 
 class dlg_imageproperty : public QDockWidget, public Ui_ImageProperty
 {
-	Q_OBJECT
-
 public:
 	dlg_imageproperty(QWidget *parent);
-	void AddInfo(vtkImageData* src, iAImageInfo const & info, QString const & name, size_t channelCount);
-	void Clear();
-private:
-	void EnterMsg(QString txt);
+	void addInfo(vtkImageData* src, iAImageInfo const & info, QString const & name, size_t channelCount);
+	void clear();
 };

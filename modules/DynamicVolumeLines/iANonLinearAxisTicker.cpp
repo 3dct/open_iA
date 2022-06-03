@@ -32,7 +32,7 @@ void iANonLinearAxisTicker::setTickData(const QVector<double> &tickVector)
 	m_tickVector = tickVector;
 	// TODO: check getMantissa?
 	m_tickVector.size() < 10 ? m_tickStep = 1 :
-		m_tickStep = pow(10, (floor(log10(m_tickVector.size())) - 1));
+		m_tickStep = std::pow(10, (std::floor(std::log10(m_tickVector.size())) - 1));
 }
 
 void iANonLinearAxisTicker::setAxis(QCPAxis *xAxis)

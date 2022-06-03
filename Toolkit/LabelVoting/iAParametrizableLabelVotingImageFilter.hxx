@@ -238,7 +238,7 @@ void iAParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::Threaded
 			double pixelFBG = 0, pixelSBG = 0;
 			if (m_MaxPixelEntropy >= 0 || m_weightType == Certainty || m_weightType == FBGSBGDiff)
 			{
-				double probSum = 0.0;
+				//double probSum = 0.0;
 				for (unsigned int l = 0; l < m_TotalLabelCount; ++l)
 				{
 					if (probIt[i][l].IsAtEnd())
@@ -247,7 +247,7 @@ void iAParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::Threaded
 					}
 					const double probValue = probIt[i][l].Get();
 					++(probIt[i][l]);
-					probSum += probValue;
+					//probSum += probValue;
 					if (probValue > 0)
 					{
 						entropy += (probValue * std::log(probValue));

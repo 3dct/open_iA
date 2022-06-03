@@ -22,9 +22,13 @@
 
 #include "iAConnector.h"
 #include "iAFileUtils.h"
-#include "iALog.h"
-#include "iAVtkDraw.h"
 #include "iAITKIO.h"
+#include "iALog.h"
+#include "iAMathUtility.h"      // for mapValue
+#include "iAProgress.h"
+#include "iATypedCallHelper.h"
+#include "iAVtkDraw.h"
+#include "iAVtkVersion.h"
 
 #include <vtkBMPWriter.h>
 #include <vtkCamera.h>
@@ -36,9 +40,15 @@
 #include <vtkTIFFWriter.h>
 #include <vtkSmartVolumeMapper.h>
 
+#include <vtkColorTransferFunction.h>
+#include <vtkLookupTable.h>
+#include <vtkPiecewiseFunction.h>
+
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QStringList>
+
+//#include <omp.h>    // for  omp_get_thread_num
 
 // declared in iAVtkDraw.h
 vtkStandardNewMacro(iAvtkImageData);
@@ -65,40 +75,117 @@ vtkSmartPointer<vtkImageData> allocateImage(vtkSmartPointer<vtkImageData> img)
 	return allocateImage(img->GetScalarType(), img->GetDimensions(), img->GetSpacing());
 }
 
-void fillImage(vtkSmartPointer<vtkImageData> img, double const value)
+namespace
 {
-	// measure performance + improve!
-	// iATypedCallHelper together with std::fill / memset maybe?
-	FOR_VTKIMG_PIXELS(img, x, y, z)
+	template <typename T>
+	void processImg_tmpl(void* voidPtr, std::function<double(double)> func, qint64 count, iAProgress* p)
 	{
-		img->SetScalarComponentFromDouble(x, y, z, 0, value);
+		T* ptr = static_cast<T*>(voidPtr);
+		qint64 step = count / 100;
+		qint64 lastEmit = 0;
+//#pragma omp parallel for		// no (significant) speedup
+		for (qint64 i = 0; i < count; ++i)
+		{
+			ptr[i] = func(ptr[i]);
+			if (p && i > (lastEmit + step)) // && omp_get_thread_num() == 0)	// in case OpenMP used, see https://stackoverflow.com/questions/28050669/can-i-report-progress-for-openmp-tasks
+			{
+				p->emitProgress(100 * i / count);
+				lastEmit = i;
+			}
+		}
+		if (p)
+		{
+			p->emitProgress(100);
+		}
+	}
+
+	void processImg(vtkSmartPointer<vtkImageData> img, std::function<double(double)> func, iAProgress* p)
+	{
+		int const* dim = img->GetDimensions();
+		qint64 count = static_cast<qint64>(dim[0]) * static_cast<qint64>(dim[1]) * dim[2];
+		void* voidPtr = img->GetScalarPointer();
+		VTK_TYPED_CALL(processImg_tmpl, img->GetScalarType(), voidPtr, func, count, p);
+	}
+
+	template <typename T, typename U>
+	void processTwoImg_tmpl2(
+		T* dstPtr, void* srcVoidPtr, std::function<double(double, double)> func, qint64 count, iAProgress* p)
+	{
+		U* srcPtr = static_cast<U*>(srcVoidPtr);
+		qint64 step = count / 10;
+		qint64 lastEmit = 0;
+//#pragma omp parallel for		// no (significant) speedup
+		for (qint64 i = 0; i < count; ++i)
+		{
+			dstPtr[i] = static_cast<T>(func(static_cast<double>(dstPtr[i]), static_cast<double>(srcPtr[i])));
+			if (p && i > (lastEmit + step)) // && omp_get_thread_num() == 0)	// in case OpenMP used, see https://stackoverflow.com/questions/28050669/can-i-report-progress-for-openmp-tasks
+			{
+				p->emitProgress(100 * i / count);
+				lastEmit = i;
+			}
+		}
+		if (p)
+		{
+			p->emitProgress(100);
+		}
+	}
+
+	template <typename T>
+	void processTwoImg_tmpl1(void* dstVoidPtr, vtkSmartPointer<vtkImageData> const src, std::function<double(double, double)> func, qint64 count, iAProgress* p)
+	{
+		T* dstPtr = static_cast<T*>(dstVoidPtr);
+		void* srcVoidPtr = src->GetScalarPointer();
+		switch (src->GetScalarType())
+		{
+			case VTK_UNSIGNED_CHAR:      processTwoImg_tmpl2<T, unsigned char>     (dstPtr, srcVoidPtr, func, count, p); break;
+			case VTK_CHAR:
+			case VTK_SIGNED_CHAR:        processTwoImg_tmpl2<T, char>              (dstPtr, srcVoidPtr, func, count, p); break;
+			case VTK_SHORT:              processTwoImg_tmpl2<T, short>             (dstPtr, srcVoidPtr, func, count, p); break;
+			case VTK_UNSIGNED_SHORT:     processTwoImg_tmpl2<T, unsigned short>    (dstPtr, srcVoidPtr, func, count, p); break;
+			case VTK_INT:                processTwoImg_tmpl2<T, int>               (dstPtr, srcVoidPtr, func, count, p); break;
+			case VTK_UNSIGNED_INT:       processTwoImg_tmpl2<T, unsigned int>      (dstPtr, srcVoidPtr, func, count, p); break;
+			case VTK_LONG:               processTwoImg_tmpl2<T, long>              (dstPtr, srcVoidPtr, func, count, p); break;
+			case VTK_UNSIGNED_LONG:      processTwoImg_tmpl2<T, unsigned long>     (dstPtr, srcVoidPtr, func, count, p); break;
+			case VTK_LONG_LONG:          processTwoImg_tmpl2<T, long long>         (dstPtr, srcVoidPtr, func, count, p); break;
+			case VTK_UNSIGNED_LONG_LONG: processTwoImg_tmpl2<T, unsigned long long>(dstPtr, srcVoidPtr, func, count, p); break;
+			case VTK_FLOAT:              processTwoImg_tmpl2<T, float>             (dstPtr, srcVoidPtr, func, count, p); break;
+			case VTK_DOUBLE:             processTwoImg_tmpl2<T, double>            (dstPtr, srcVoidPtr, func, count, p); break;
+			default:
+			throw std::runtime_error("Invalid datatype in processTwoImg_tmpl1!");
+		}
+	}
+
+	void processTwoImg(vtkSmartPointer<vtkImageData> img1, vtkSmartPointer<vtkImageData> const img2,
+		std::function<double(double, double)> func, iAProgress* p)
+	{
+		// check for same dimensions/spacing/origin:
+		for (int i = 0; i < 3; ++i)
+		{
+			assert(img1->GetDimensions()[i] == img2->GetDimensions()[i]);
+			assert(img1->GetSpacing()[i]    == img2->GetSpacing()[i]);
+			assert(img1->GetOrigin()[i]     == img2->GetOrigin()[i]);
+		}
+		int const* dim = img1->GetDimensions();
+		qint64 count = static_cast<qint64>(dim[0]) * static_cast<qint64>(dim[1]) * dim[2];
+		void* dstPtr = img1->GetScalarPointer();
+		VTK_TYPED_CALL(processTwoImg_tmpl1, img1->GetScalarType(), dstPtr, img2, func, count, p);
 	}
 }
 
-void addImages(vtkSmartPointer<vtkImageData> imgDst, vtkSmartPointer<vtkImageData> const imgToAdd)
+void fillImage(vtkSmartPointer<vtkImageData> img, double const value, iAProgress* p)
 {
-	// check for same dimensions/spacing/origin:
-	for (int i=0; i<3; ++i)
-	{
-		assert(imgDst->GetDimensions()[i] == imgToAdd->GetDimensions()[i]);
-		assert(imgDst->GetSpacing()[i] == imgToAdd->GetSpacing()[i]);
-		assert(imgDst->GetOrigin()[i] == imgToAdd->GetOrigin()[i]);
-	}
-	FOR_VTKIMG_PIXELS(imgDst, x, y, z)
-	{
-		imgDst->SetScalarComponentFromDouble(x, y, z, 0,
-			imgDst->GetScalarComponentAsDouble(x, y, z, 0) + imgToAdd->GetScalarComponentAsDouble(x, y, z, 0));
-	}
+	processImg(img, [value](double) -> double { return value; }, p);
 }
 
-iAbase_API void multiplyImage(vtkSmartPointer<vtkImageData> imgDst, double value)
+iAbase_API void multiplyImage(vtkSmartPointer<vtkImageData> img, double value, iAProgress* p)
 {
-	FOR_VTKIMG_PIXELS(imgDst, x, y, z)
-	{
-		imgDst->SetScalarComponentFromDouble(x, y, z, 0, imgDst->GetScalarComponentAsDouble(x, y, z, 0) * value);
-	}
+	processImg(img, [value](double x) -> double { return x * value; }, p);
 }
 
+void addImages(vtkSmartPointer<vtkImageData> imgDst, vtkSmartPointer<vtkImageData> const imgToAdd, iAProgress* p)
+{
+	processTwoImg(imgDst, imgToAdd, [](double x, double y) -> double { return x + y; }, p);
+}
 
 void storeImage(vtkSmartPointer<vtkImageData> img, QString const & filename, bool useCompression)
 {
@@ -186,7 +273,7 @@ namespace
 	{
 		static QMap<int, QString> nameVTKTypeMap{
 			{VTK_UNSIGNED_CHAR     , "8 bit unsigned integer (0 to 255, unsigned char)"},
-			{VTK_CHAR              , "8 bit signed integer (-128 to 127, char)"},
+			{VTK_SIGNED_CHAR       , "8 bit signed integer (-128 to 127, char)"},
 			{VTK_UNSIGNED_SHORT    , "16 bit unsigned integer (0 to 65,535, unsigned short)"},
 			{VTK_SHORT             , "16 bit signed integer (-32,768 to 32,767, short)"},
 			{VTK_UNSIGNED_INT      , "32 bit unsigned integer (0 to 4,294,967,295, unsigned int)"},
@@ -216,7 +303,7 @@ int mapReadableDataTypeToVTKType(QString const& dataTypeName)
 QString mapVTKTypeToReadableDataType(int vtkType)
 {
 	// map aliases to the values contained in the map:
-	if (vtkType == VTK_SIGNED_CHAR)   vtkType = VTK_CHAR;
+	if (vtkType == VTK_CHAR)          vtkType = VTK_SIGNED_CHAR;
 	if (vtkType == VTK_LONG)          vtkType = VTK_INT;
 	if (vtkType == VTK_UNSIGNED_LONG) vtkType = VTK_UNSIGNED_INT;
 	// look up type in map:
@@ -267,4 +354,47 @@ void setCamPosition(vtkCamera* cam, iACameraPosition pos)
 		cam->SetViewUp(0, 0, 1); cam->SetPosition(1, 1, 1); break;
 	}
 	cam->SetFocalPoint(0, 0, 0);
+}
+
+
+
+void convertLUTToTF(vtkSmartPointer<vtkLookupTable> lut, vtkSmartPointer<vtkColorTransferFunction> ctf,
+	vtkSmartPointer<vtkPiecewiseFunction> otf, double alphaOverride)
+{
+	ctf->RemoveAllPoints();
+	otf->RemoveAllPoints();
+	double const* range = lut->GetRange();
+	for (long long i = 0; i < lut->GetNumberOfColors(); ++i)
+	{
+		double const* rgba = lut->GetTableValue(i);
+		double value = mapValue(0ll, lut->GetNumberOfColors() - 1, range[0], range[1], i);
+		ctf->AddRGBPoint(value, rgba[0], rgba[1], rgba[2]);
+		otf->AddPoint(value, alphaOverride >= 0 ? alphaOverride : rgba[3]);
+	}
+}
+
+void convertTFToLUT(vtkSmartPointer<vtkLookupTable> lut, vtkSmartPointer<vtkScalarsToColors> ctf,
+	vtkSmartPointer<vtkPiecewiseFunction> otf, int numCols, double const* lutRange, bool reverse)
+{
+	double rgb[3];
+	double const* inRange = ctf->GetRange();
+	double const* outRange = lutRange ? lutRange : inRange;
+#if VTK_VERSION_NUMBER <= VTK_VERSION_CHECK(8, 0, 0)
+	double rangeNonConst[2];
+	std::copy(outRange, outRange + 2, rangeNonConst);
+	lut->SetRange(rangeNonConst);
+	lut->SetTableRange(rangeNonConst);
+#else
+	lut->SetRange(outRange);
+	lut->SetTableRange(outRange);
+#endif
+	lut->SetNumberOfTableValues(numCols);
+	for (long long i = 0; i < numCols; ++i)
+	{
+		double value = mapValue(0ll, lut->GetNumberOfColors() - 1, inRange[0], inRange[1], i);
+		ctf->GetColor(value, rgb);
+		double alpha = otf ? otf->GetValue(value) : 1.0;
+		lut->SetTableValue( reverse ? numCols - 1 - i : i, rgb[0], rgb[1], rgb[2], alpha);
+	}
+	lut->Build();
 }
