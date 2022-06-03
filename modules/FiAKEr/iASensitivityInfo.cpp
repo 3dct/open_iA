@@ -159,7 +159,7 @@ namespace
 		textRep->SetPosition(x, y);
 		textRep->SetPosition2(w, h);
 		result = vtkSmartPointer<vtkTextWidget>::New();
-		result->SetRepresentation(textRep);
+		result->SetRepresentation(textRep.Get());
 		result->SetInteractor(interactor);
 		result->GetTextActor()->SetInput(text);
 		result->GetTextActor()->SetTextScaleModeToNone();
