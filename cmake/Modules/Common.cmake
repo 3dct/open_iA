@@ -241,7 +241,9 @@ if (VTK_MAJOR_VERSION GREATER_EQUAL 9)
 		IOXML                       # for vtkXMLImageDataReader used in iAIO
 	)
 else()
-	list(APPEND VTK_COMPONENTS vtkFiltersProgrammable)     # for vtkProgrammableGlyphFilter in CompVis
+	list(APPEND VTK_COMPONENTS
+		vtkFiltersPoints            # for vtkExtractSurface in FiAKEr
+		vtkFiltersProgrammable)     # for vtkProgrammableGlyphFilter in CompVis
 endif()
 if ("${vtkRenderingOSPRay_LOADED}")
 	add_compile_definitions(VTK_OSPRAY_AVAILABLE)

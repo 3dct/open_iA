@@ -24,6 +24,8 @@
 
 #include <QMap>
 
+#include <vector>
+
 class vtkCamera;
 class vtkObject;
 class vtkRenderer;

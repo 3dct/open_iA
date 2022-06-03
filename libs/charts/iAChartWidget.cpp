@@ -412,7 +412,7 @@ namespace
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 			width = std::max(width, fm.horizontalAdvance(str));
 #else
-			width = std::max(fm.width(str));
+			width = std::max(width, fm.width(str));
 #endif
 		}
 		return width;
