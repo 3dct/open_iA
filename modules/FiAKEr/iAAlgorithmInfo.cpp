@@ -200,7 +200,7 @@ int iAAlgorithmInfo::connectorWidth(QFontMetrics fm, QStringList const& strings)
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		width = std::max(width, fm.horizontalAdvance(str));
 #else
-		width = std::max(fm.width(str));
+		width = std::max(width, fm.width(str));
 #endif
 	}
 	return width;
@@ -229,7 +229,7 @@ void iAAlgorithmInfo::drawConnectors(QPainter& p, int left, int width, QStringLi
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		int textWidth = p.fontMetrics().horizontalAdvance(name);
 #else
-		int textWidth = p.fontMetrics().width(text);
+		int textWidth = p.fontMetrics().width(name);
 #endif
 		int boxHeight = p.fontMetrics().height() +  2 * (TextVPadding+RoundedCornerRadius);
 		QRect textRect(left + ArrowTextLeft, top - ArrowTextDistance - boxHeight,
@@ -341,10 +341,11 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 	// to make sure there's space for the legend:
 	m_inWidth = std::max(m_inWidth,
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
-		p.fontMetrics().horizontalAdvance(LegendCaption) + 2 * LegendMargin
+		p.fontMetrics().horizontalAdvance(LegendCaption)
 #else
-							p.fontMetrics().width(text);
+		p.fontMetrics().width(LegendCaption)
 #endif
+		+ 2 * LegendMargin
 	);
 
 	m_outWidth = connectorWidth(p.fontMetrics(), m_outNames) + 2 * ArrowTextLeft + 2 * RoundedCornerRadius;
