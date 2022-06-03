@@ -73,10 +73,6 @@ namespace
 
 	const QColor VariationHistogramColor(50, 50, 50, 255);
 	const QColor AverageHistogramColor(150, 150, 150, 255);
-	const QColor ParamSensitivityPlotColor(80, 80, 80, 255);
-
-	//const QColor ParamRowSelectedBGColor(245, 245, 245);
-	//const QColor ParamRowUnselectedBGColor(255, 255, 255);
 
 	QColor barGraphColor(QColor const& color)
 	{
@@ -440,7 +436,7 @@ void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state, Q
 				{
 					if (inGroupIdx != 0)
 					{
-						for (size_t r = 0; r < m_data->m_numOfSTARSteps; ++r)
+						for (size_t r = 0; static_cast<int>(r) < m_data->m_numOfSTARSteps; ++r)
 						{
 							auto rIdx = startResult + r;
 							double pv = m_data->m_paramValues[m_data->m_variedParams[paramIdx]][rIdx];
@@ -463,7 +459,7 @@ void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state, Q
 				{
 					if (inGroupIdx != 0)
 					{
-						for (size_t r = 0; r < m_data->m_numOfSTARSteps; ++r)
+						for (size_t r = 0; static_cast<int>(r) < m_data->m_numOfSTARSteps; ++r)
 						{
 							auto rIdx = startResult + r;
 							double pv = m_data->m_paramValues[m_data->m_variedParams[paramIdx]][rIdx];

@@ -565,7 +565,6 @@ void dlg_DynamicVolumeLines::visualize()
 		m_minEnsembleIntensity - offsetY, m_maxEnsembleIntensity + offsetY);
 }
 
-#pragma optimize("", off)
 void dlg_DynamicVolumeLines::exportCSV(QString path)
 {
 	for (auto dataPair : m_DatasetIntensityMap)
@@ -581,7 +580,6 @@ void dlg_DynamicVolumeLines::exportCSV(QString path)
 		}
 	}
 }
-#pragma optimize("", on)
 
 void dlg_DynamicVolumeLines::calcNonLinearMapping()
 {

@@ -426,14 +426,14 @@ iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> da
 	QString const& parameterFileName, int skipColumns, QStringList const& paramNames,
 	std::vector<std::vector<double>> const & paramValues, iAMdiChild* child, QDockWidget* nextToDW,
 	std::vector<iAFiberResultUIData> const & resultUIs, vtkRenderWindow* main3DWin) :
-	m_data(new iASensitivityData(data, paramNames, paramValues)),
 	m_parameterFileName(parameterFileName),
 	m_skipColumns(skipColumns),
 	m_child(child),
 	m_nextToDW(nextToDW),
 	m_resultUIs(resultUIs),
 	m_main3DWin(main3DWin),
-	m_aborted(false)
+	m_aborted(false),
+	m_data(new iASensitivityData(data, paramNames, paramValues)),
 {
 	child->set3DControlVisibility(false);
 }

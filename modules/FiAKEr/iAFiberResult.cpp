@@ -638,7 +638,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 
 	spmData->setParameterNames(paramNames, totalFiberCount);
 	size_t numParams = spmData->numParams();
-	size_t spmStartIdx = 0;
+	//size_t spmStartIdx = 0;
 	m_resultIDColumn = static_cast<uint>(numParams) - 2;
 	m_projectionErrorColumn = static_cast<uint>(numParams) - 1;
 	for (size_t resultID=0; resultID < result.size() && !abort; ++resultID)
@@ -667,8 +667,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			curData.table->SetValue(fiberID, m_projectionErrorColumn, projErrorRed);
 		}
 		// TODO: reuse spmData also for 3d visualization?
-
-		spmStartIdx += curData.fiberCount;
+		//spmStartIdx += curData.fiberCount;
 
 		progress->emitProgress(resultID * 100.0 / result.size());
 	}

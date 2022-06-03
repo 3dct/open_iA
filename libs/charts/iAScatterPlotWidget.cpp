@@ -310,7 +310,6 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
 		QPen p(color, 1, penStyle);
 		painter.setPen(p);
 		QLine line;
-		QRect diagram = geometry();
 		int pos = static_cast<int>(m_scatterplot->getRect().left() +  m_scatterplot->p2x(x));
 		line.setP1(QPoint(pos, m_scatterplot->getRect().top()));
 		line.setP2(QPoint(pos, m_scatterplot->getRect().top()+m_scatterplot->getRect().height()));

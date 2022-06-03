@@ -426,7 +426,7 @@ void iAChartWidget::drawLegend(QPainter& painter)
 		return;
 	}
 	QStringList legendItems;
-	for (int pi = 0; pi < m_plots.size(); ++pi)
+	for (size_t pi = 0; pi < m_plots.size(); ++pi)
 	{
 		legendItems << m_plots[pi]->data()->name();
 	}
@@ -453,7 +453,7 @@ void iAChartWidget::drawLegend(QPainter& painter)
 	painter.drawRect(m_legendBox);
 	const int LegendColorLeft = upLeft.x() + LegendPadding;
 	const int TextLeft = LegendColorLeft + LegendItemWidth + LegendPadding;
-	for (int pi = 0; pi < m_plots.size(); ++pi)
+	for (size_t pi = 0; pi < m_plots.size(); ++pi)
 	{
 		int top = upLeft.y() + LegendPadding + pi * LineHeight;
 		QRect legendItemRect(LegendColorLeft, top + LegendItemSpacing, LegendItemWidth, LineHeight - LegendItemSpacing);
@@ -1313,7 +1313,11 @@ void iAChartWidget::contextMenuEvent(QContextMenuEvent *event)
 	m_contextMenu->addAction(QIcon(":/images/save.png"), tr("Export histogram data"), this, &iAChartWidget::exportData);
 	m_contextMenu->addSeparator();
 	addContextMenuEntries(m_contextMenu);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	m_contextMenu->exec(event->globalPos());
+#else
+	m_contextMenu->exec(event->globalPosition().toPoint());
+#endif
 }
 
 void iAChartWidget::exportData()
