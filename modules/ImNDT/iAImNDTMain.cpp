@@ -324,17 +324,6 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 	}
 	cOrie[deviceID][3] = eventOrientation[3];
 
-	double movementPos[3]{};
-	double movementOrie[4]{};
-	movementPos[0] = cPos[deviceID][0] - oldcPos[0];
-	movementPos[1] = cPos[deviceID][1] - oldcPos[1];
-	movementPos[2] = cPos[deviceID][2] - oldcPos[2];
-
-	movementOrie[0] = cOrie[deviceID][0] - oldcOrie[0]; //W
-	movementOrie[1] = cOrie[deviceID][1] - oldcOrie[1]; //X
-	movementOrie[2] = cOrie[deviceID][2] - oldcOrie[2]; //Y
-	movementOrie[3] = cOrie[deviceID][3] - oldcOrie[3]; //Z
-
 	//Movement of Head
 	if (deviceID == static_cast<int>(vtkEventDataDevice::HeadMountedDisplay))
 	{
@@ -347,11 +336,6 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 		focalPoint[0] = tempFocalPos[0];
 		focalPoint[1] = tempFocalPos[1];
 		focalPoint[2] = tempFocalPos[2];
-
-		double rotation[3] = { 0,0,0 };
-		rotation[0] = oldFocalPoint[0] - focalPoint[0]; //X
-		rotation[1] = oldFocalPoint[1] - focalPoint[1]; //Y
-		rotation[2] = oldFocalPoint[2] - focalPoint[2]; //Z
 
 		m_3DTextLabels->at(2)->setLabelPos(tempFocalPos);
 
