@@ -433,7 +433,7 @@ iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> da
 	m_resultUIs(resultUIs),
 	m_main3DWin(main3DWin),
 	m_aborted(false),
-	m_data(new iASensitivityData(data, paramNames, paramValues)),
+	m_data(new iASensitivityData(data, paramNames, paramValues))
 {
 	child->set3DControlVisibility(false);
 }

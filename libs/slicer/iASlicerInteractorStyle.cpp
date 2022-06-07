@@ -42,7 +42,10 @@ vtkStandardNewMacro(iASlicerInteractorStyle);
 iASlicerInteractorStyle::iASlicerInteractorStyle() :
 	m_rightButtonDragZoomEnabled(true),
 	m_leftButtonDown(false),
-	m_interactionMode(imNormal)
+	m_interactionMode(imNormal),
+	m_selRectPolyData(vtkSmartPointer<vtkPolyData>::New()),
+	m_selRectMapper(vtkSmartPointer<vtkPolyDataMapper2D>::New()),
+	m_selRectActor(vtkSmartPointer<vtkActor2D>::New())
 {
 	m_dragStart[0] = m_dragStart[1] = 0;
 
@@ -90,9 +93,13 @@ void iASlicerInteractorStyle::OnLeftButtonDown()
 	// if no modifier key pressed:
 	if (!Interactor->GetShiftKey() && !Interactor->GetControlKey() && !Interactor->GetAltKey())
 	{
-		// if enabled, start "window-level" (click+drag) interaction:
 		switch (m_interactionMode)
 		{
+		default:    // fall through
+		case imNormal:
+			break;	// no handling
+
+		// if enabled, start "window-level" (click+drag) interaction:
 		case imWindowLevelAdjust:
 		{	// mostly copied from base class; but we don't want the "GrabFocus" call there,
 			// that prevents the listeners to be notified of mouse move calls
@@ -110,6 +117,7 @@ void iASlicerInteractorStyle::OnLeftButtonDown()
 				this->WindowLevelStartPosition[1] = y;
 				this->StartWindowLevel();
 			}
+			break;
 		}
 		case imRegionSelect:
 		{
@@ -120,6 +128,7 @@ void iASlicerInteractorStyle::OnLeftButtonDown()
 			m_dragEnd[0] = m_dragStart[0];
 			m_dragEnd[1] = m_dragStart[1];
 			updateSelectionRect();
+			break;
 		}
 		}
 	}

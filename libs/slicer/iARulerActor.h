@@ -24,12 +24,7 @@
 #include <vtkProp.h>
 
 class vtkAxisActor2D;
-class vtkPoints;
-class vtkPolyData;
-class vtkPolyDataMapper2D;
 class vtkPropCollection;
-class vtkTextMapper;
-class vtkTextProperty;
 class vtkWindow;
 
 class iARulerActor : public vtkProp

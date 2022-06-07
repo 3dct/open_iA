@@ -21,7 +21,7 @@
 #pragma once
 
 #include <vtkInteractorStyleImage.h>
-#include <vtkNew.h>
+#include <vtkSmartPointer.h>
 
 #include <QObject>
 
@@ -87,7 +87,7 @@ private:
 	InteractionMode m_interactionMode;
 	int m_dragStart[2], m_dragEnd[2];
 
-	vtkNew<vtkPolyData> m_selRectPolyData;
-	vtkNew<vtkPolyDataMapper2D> m_selRectMapper;
-	vtkNew<vtkActor2D> m_selRectActor;
+	vtkSmartPointer<vtkPolyData> m_selRectPolyData;
+	vtkSmartPointer<vtkPolyDataMapper2D> m_selRectMapper;
+	vtkSmartPointer<vtkActor2D> m_selRectActor;
 };
