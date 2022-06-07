@@ -25,6 +25,7 @@
 #include <vtkCellData.h>
 #include <vtkInteractorStyleImage.h>
 #include <vtkLine.h>
+#include <vtkNew.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper2D.h>

@@ -914,7 +914,7 @@ public:
 			{
 				continue;
 			}
-			for (size_t parIdx = 0; parIdx < m_sensInf->data().m_variedParams.size(); ++parIdx)
+			for (size_t parIdx = 0; static_cast<int>(parIdx) < m_sensInf->data().m_variedParams.size(); ++parIdx)
 			{
 				int lineSize = 1;
 				if (hiGrpAll.find(groupID) != hiGrpAll.end())
