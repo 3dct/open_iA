@@ -310,9 +310,9 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 
 	//TODO Initialize only after first call or they are filled wrong!
 	int oldViewDirection = viewDirection;
-	double oldFocalPoint[3] = {focalPoint[0], focalPoint[1], focalPoint[2]};
+	//double oldFocalPoint[3] = {focalPoint[0], focalPoint[1], focalPoint[2]};
 	double oldcPos[3] = { cPos[deviceID][0], cPos[deviceID][1], cPos[deviceID][2]};
-	double oldcOrie[4] = { cOrie[deviceID][0], cOrie[deviceID][1], cOrie[deviceID][2], cOrie[deviceID][3]}; //W,X,Y,Z
+	//double oldcOrie[4] = { cOrie[deviceID][0], cOrie[deviceID][1], cOrie[deviceID][2], cOrie[deviceID][3]}; //W,X,Y,Z
 
 	for (vtkIdType i = 0; i < 3; i++)
 	{
