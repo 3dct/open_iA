@@ -237,7 +237,7 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 				remainingLabel->setText(
 					QString("Remaining: %1").arg((estRem == -1) ? "unknown" : formatDuration(estRem, false, true)));
 			});
-		connect(j->progress, &iAProgress::statusChanged, [statusLabel, j](QString const& msg)
+		connect(j->progress, &iAProgress::statusChanged, jobWidget, [statusLabel, j](QString const& msg)
 			{
 				LOG(lvlDebug, QString("Job '%1': %2").arg(j->name).arg(msg));
 				statusLabel->setVisible(true);
