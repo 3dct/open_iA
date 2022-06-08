@@ -716,7 +716,7 @@ struct iAFiberDiffRenderer
 	std::vector<iAPolyActor> diffPolys;
 };
 
-class iASensitivityGUI : public iASensitivityViewState
+class iASensitivityGUI final : public iASensitivityViewState
 {
 public:
 	iASensitivityGUI(iASensitivityInfo* sensInf, float devicePixelRatio) :
@@ -1920,7 +1920,8 @@ void iASensitivityInfo::updateDifferenceView()
 			{
 				size_t fiber0ID = m_currentFiberSelection[rID][fidx];
 				auto const& sampleFiber = m_data->m_data->result[rID].fiberData[fiber0ID];
-				quint32 refFiberID = m_data->m_resultDissimMatrix[rID][refResID].fiberDissim[static_cast<int>(fiber0ID)][measureIdx][0].index;
+				quint32 refFiberID = m_data->m_resultDissimMatrix[static_cast<qvectorsizetype>(rID)][static_cast<qvectorsizetype>(refResID)]
+					.fiberDissim[static_cast<int>(fiber0ID)][measureIdx][0].index;
 
 				// original try: assert that the best match will always be in selection:
 				//assert(std::find(m_currentFiberSelection[refResID].begin(), m_currentFiberSelection[refResID].end(), refFiberID) != m_currentFiberSelection[refResID].end());
