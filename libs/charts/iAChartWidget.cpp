@@ -1313,11 +1313,7 @@ void iAChartWidget::contextMenuEvent(QContextMenuEvent *event)
 	m_contextMenu->addAction(QIcon(":/images/save.png"), tr("Export histogram data"), this, &iAChartWidget::exportData);
 	m_contextMenu->addSeparator();
 	addContextMenuEntries(m_contextMenu);
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	m_contextMenu->exec(event->globalPos());
-#else
-	m_contextMenu->exec(event->globalPosition().toPoint());
-#endif
 }
 
 void iAChartWidget::exportData()
