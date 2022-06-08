@@ -107,10 +107,16 @@ public:
 	//! @deprecated. Use a specific mdichilds, or even better, an mdichilds dlg_modalities methods instead!
 	virtual QString const& currentFile() const = 0;
 
+	//! Access to the main window (more or less singleton); implementation currently in iAModuleDispatcher.cpp
+	static iAMainWindow* get();
+
 signals:
 	//! Triggered whenever the user has changed the style of the program (bright/dark/...) via the preferences.
 	void styleChanged();
 	//! Triggered whenever the active child window has changed.
 	//! Use for example to adapt UI's depending on the current child (toolbars etc.)
 	void childChanged();
+
+protected:
+	static iAMainWindow* m_mainWnd; //!< the one main window
 };

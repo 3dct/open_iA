@@ -333,7 +333,7 @@ iADurationEstimator::~iADurationEstimator()
 
 
 /*
-// To debug job list layout, add this to some initialization, e.g. to MainWindow constructor.
+// To debug job list layout, add this to some GUI initialization, e.g. to MainWindow constructor.
 
 // requires includes:
 #include "iAProgress.h"

@@ -330,3 +330,10 @@ void iAModuleDispatcher::ChildCreated(iAMdiChild* child)
 		}
 	}
 }
+
+iAMainWindow* iAMainWindow::m_mainWnd = nullptr;
+
+iAMainWindow* iAMainWindow::get()
+{
+	return m_mainWnd;
+}
