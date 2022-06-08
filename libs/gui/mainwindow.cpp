@@ -2562,7 +2562,7 @@ void MainWindow::openWithDataTypeConversion()
 	}
 	iAParameterDlg::ParamListT params;
 	addParameter(params, "Slice sample rate", iAValueType::Discrete, m_owdtcs, 1);
-	iARawFileParamDlg dlg(fileName, this, "Open With DataType Conversion", params, m_rawFileParams);
+	iARawFileParamDlg dlg(fileName, this, "Open With DataType Conversion", params, m_rawFileParams, brightMode());
 	if (!dlg.accepted())
 	{
 		return;
