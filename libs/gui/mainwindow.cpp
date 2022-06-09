@@ -122,6 +122,9 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_dwJobs(dwJobs),
 	m_openJobListOnNewJob(false)
 {
+	assert(!m_mainWnd);
+	m_mainWnd = this;
+
 	m_ui->setupUi(this);
 	setAcceptDrops(true);
 
@@ -2670,7 +2673,7 @@ void MainWindow::openWithDataTypeConversion()
 	}
 	iAParameterDlg::ParamListT params;
 	addParameter(params, "Slice sample rate", iAValueType::Discrete, m_owdtcs, 1);
-	iARawFileParamDlg dlg(fileName, this, "Open With DataType Conversion", params, m_rawFileParams);
+	iARawFileParamDlg dlg(fileName, this, "Open With DataType Conversion", params, m_rawFileParams, brightMode());
 	if (!dlg.accepted())
 	{
 		return;

@@ -28,6 +28,7 @@
 #include "iAExtendedTypedCallHelper.h"
 #include "iAFileUtils.h"
 #include "iAJobListView.h"
+#include "iAMainWindow.h"    // TODO: check if it can be avoided
 #include "iAModalityList.h"
 #include "iAOIFReader.h"
 #include "iAParameterDlg.h"
@@ -1532,7 +1533,7 @@ bool iAIO::setupVolumeStackReader(QString const & f)
 	m_extension = "." + QFileInfo(f).suffix();
 	iAParameterDlg::ParamListT params;
 	addSeriesParameters(params, m_fileNamesBase, m_extension, digitsInIndex, indexRange);
-	iARawFileParamDlg dlg(f, m_parent, "RAW file specs", params, m_rawFileParams);
+	iARawFileParamDlg dlg(f, m_parent, "RAW file specs", params, m_rawFileParams, iAMainWindow::get()->brightMode());
 	if (!dlg.accepted())
 	{
 		return false;
@@ -1550,7 +1551,7 @@ bool iAIO::setupVolumeStackReader(QString const & f)
 bool iAIO::setupRAWReader( QString const & f )
 {
 	m_fileName = f;
-	iARawFileParamDlg dlg(f, m_parent, "RAW file specs", iAParameterDlg::ParamListT(), m_rawFileParams);
+	iARawFileParamDlg dlg(f, m_parent, "RAW file specs", iAParameterDlg::ParamListT(), m_rawFileParams, iAMainWindow::get()->brightMode());
 	return dlg.accepted();
 }
 

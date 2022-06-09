@@ -46,8 +46,9 @@ namespace
 }
 
 iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, QString const& title,
-	iAParameterDlg::ParamListT const& additionalParams, iARawFileParameters& rawFileParams) :
-	m_accepted(false)
+	iAParameterDlg::ParamListT const& additionalParams, iARawFileParameters& rawFileParams, bool brightTheme) :
+	m_accepted(false),
+	m_brightTheme(brightTheme)
 {
 	QFileInfo info1(fileName);
 	m_fileSize = info1.size();
@@ -141,7 +142,9 @@ void iARawFileParamDlg::checkFileSize()
 		"Predicted file size: " + QString::number(proposedSize) + " bytes" :
 		"Invalid numbers in size, data type or header size (too large/negative)?");
 	m_proposedSizeLabel->setStyleSheet(
-		QString("QLabel { background-color : %1; }").arg(proposedSize == m_fileSize ? "#BFB" : "#FBB"));
+		QString("QLabel { background-color : %1; }").arg(proposedSize == m_fileSize ?
+			(m_brightTheme ? "#BFB" : "#070"):
+			(m_brightTheme ? "#FBB" : "#700") ));
 	m_inputDlg->setOKEnabled(proposedSize == m_fileSize);
 }
 

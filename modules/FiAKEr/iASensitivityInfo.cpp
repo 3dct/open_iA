@@ -426,14 +426,14 @@ iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> da
 	QString const& parameterFileName, int skipColumns, QStringList const& paramNames,
 	std::vector<std::vector<double>> const & paramValues, iAMdiChild* child, QDockWidget* nextToDW,
 	std::vector<iAFiberResultUIData> const & resultUIs, vtkRenderWindow* main3DWin) :
-	m_data(new iASensitivityData(data, paramNames, paramValues)),
 	m_parameterFileName(parameterFileName),
 	m_skipColumns(skipColumns),
 	m_child(child),
 	m_nextToDW(nextToDW),
 	m_resultUIs(resultUIs),
 	m_main3DWin(main3DWin),
-	m_aborted(false)
+	m_aborted(false),
+	m_data(new iASensitivityData(data, paramNames, paramValues))
 {
 	child->set3DControlVisibility(false);
 }
@@ -716,7 +716,7 @@ struct iAFiberDiffRenderer
 	std::vector<iAPolyActor> diffPolys;
 };
 
-class iASensitivityGUI : public iASensitivityViewState
+class iASensitivityGUI final : public iASensitivityViewState
 {
 public:
 	iASensitivityGUI(iASensitivityInfo* sensInf, float devicePixelRatio) :
@@ -914,7 +914,7 @@ public:
 			{
 				continue;
 			}
-			for (size_t parIdx = 0; parIdx < m_sensInf->data().m_variedParams.size(); ++parIdx)
+			for (size_t parIdx = 0; static_cast<int>(parIdx) < m_sensInf->data().m_variedParams.size(); ++parIdx)
 			{
 				int lineSize = 1;
 				if (hiGrpAll.find(groupID) != hiGrpAll.end())
@@ -1920,7 +1920,8 @@ void iASensitivityInfo::updateDifferenceView()
 			{
 				size_t fiber0ID = m_currentFiberSelection[rID][fidx];
 				auto const& sampleFiber = m_data->m_data->result[rID].fiberData[fiber0ID];
-				quint32 refFiberID = m_data->m_resultDissimMatrix[rID][refResID].fiberDissim[static_cast<int>(fiber0ID)][measureIdx][0].index;
+				quint32 refFiberID = m_data->m_resultDissimMatrix[static_cast<qvectorsizetype>(rID)][static_cast<qvectorsizetype>(refResID)]
+					.fiberDissim[static_cast<int>(fiber0ID)][measureIdx][0].index;
 
 				// original try: assert that the best match will always be in selection:
 				//assert(std::find(m_currentFiberSelection[refResID].begin(), m_currentFiberSelection[refResID].end(), refFiberID) != m_currentFiberSelection[refResID].end());

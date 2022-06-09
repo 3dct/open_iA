@@ -426,7 +426,7 @@ void iAChartWidget::drawLegend(QPainter& painter)
 		return;
 	}
 	QStringList legendItems;
-	for (int pi = 0; pi < m_plots.size(); ++pi)
+	for (size_t pi = 0; pi < m_plots.size(); ++pi)
 	{
 		legendItems << m_plots[pi]->data()->name();
 	}
@@ -453,7 +453,7 @@ void iAChartWidget::drawLegend(QPainter& painter)
 	painter.drawRect(m_legendBox);
 	const int LegendColorLeft = upLeft.x() + LegendPadding;
 	const int TextLeft = LegendColorLeft + LegendItemWidth + LegendPadding;
-	for (int pi = 0; pi < m_plots.size(); ++pi)
+	for (size_t pi = 0; pi < m_plots.size(); ++pi)
 	{
 		int top = upLeft.y() + LegendPadding + pi * LineHeight;
 		QRect legendItemRect(LegendColorLeft, top + LegendItemSpacing, LegendItemWidth, LineHeight - LegendItemSpacing);

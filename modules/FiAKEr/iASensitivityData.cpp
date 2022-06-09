@@ -144,16 +144,6 @@ namespace
 	}
 
 	/*
-	iAVec3i mapPointToIndex(iAVec3f const& pt, double const* origin, double const* spacing, int const* size)
-	{
-		iAVec3i result;
-		for (int i = 0; i < 3; ++i)
-		{
-			result[i] = clamp(0, size[i] - 1, static_cast<int>(std::floor((pt[i] - origin[i]) / spacing[i])));
-		}
-		return result;
-	}
-*/
 	const size_t NoMatch = std::numeric_limits<size_t>::max();
 
 	size_t findMatch(iADissimilarityMatrixType const& dissimMatrix,
@@ -197,11 +187,9 @@ namespace
 				if (revMatchDissim.size() == 0 || revMatchDissim[measureIdx].size() == 0 ||
 					revMatchDissim[measureIdx][0].index != f1)
 				{
-					/*
-					LOG(lvlDebug, QString("r1=%1, f1=%2: Match to rm=%3, fm=%4 (m=%5) "
-						"isn't a reverse match; that's fID=%6!")
-						.arg(r1).arg(f1).arg(rm).arg(fm).arg(m).arg(bestMatchoffmInr1));
-					*/
+					//LOG(lvlDebug, QString("r1=%1, f1=%2: Match to rm=%3, fm=%4 (m=%5) "
+					//	"isn't a reverse match; that's fID=%6!")
+					//	.arg(r1).arg(f1).arg(rm).arg(fm).arg(m).arg(bestMatchoffmInr1));
 				}
 				if (rm == r0)
 				{
@@ -212,17 +200,15 @@ namespace
 									  .fiberDissim[static_cast<qvectorsizetype>(f1)][measureIdx][0];
 				if (fm != matchOther.index)
 				{
-					/*
-					LOG(lvlDebug, QString("r1=%1, f1=%2: Match not confirmed for m=%3 (rm=%4, fm=%5);"
-						" best match would be fID=%6!")
-						.arg(r1).arg(f1).arg(m).arg(rm).arg(fm).arg(matchOther.index));
-					*/
+					// LOG(lvlDebug, QString("r1=%1, f1=%2: Match not confirmed for m=%3 (rm=%4, fm=%5);"
+					//	" best match would be fID=%6!").arg(r1).arg(f1).arg(m).arg(rm).arg(fm).arg(matchOther.index));
 				}
 			}
 			return uniqueID;
 		}
 		return NoMatch;
 	}
+	*/
 
 	void projectFiberToImage(iAFiberData const& fiberData, iAAABB const& bb, vtkSmartPointer<vtkImageData> img,
 		int const size[3], iAVec3d const& spacing, iAVec3d const& origin)
@@ -1183,7 +1169,7 @@ double oneSidedCharacteristicsDifference(int charIdx, iAResultPairInfo const& ma
 	double diffSum = 0.0;
 	double diffMax = std::numeric_limits<double>::lowest();
 	qvectorsizetype numNoMatch = 0;
-	for (qvectorsizetype f0 = 0; f0 < r0.fiberCount; ++f0)
+	for (qvectorsizetype f0 = 0; f0 < static_cast<qvectorsizetype>(r0.fiberCount); ++f0)
 	{
 		auto& matches = mat.fiberDissim[f0];
 		if (matches.size() == 0)
@@ -1264,8 +1250,6 @@ void iASensitivityData::computeSpatialOverview(iAProgress* progress)
 			.arg(spacing[0])
 			.arg(spacing[1])
 			.arg(spacing[2]));
-
-	const int MeasureIdx = 0;
 
 	progress->setStatus("Computing fiber volume percentage.");
 	progress->emitProgress(0);

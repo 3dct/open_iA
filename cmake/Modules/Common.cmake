@@ -104,6 +104,12 @@ endif()
 set(BUNDLE_DIRS "")
 set(BUNDLE_LIBS "")
 
+# Suppress CMake warnings
+#    - triggered for OpenMP package
+#    - searched for within ITK and VTK
+#    - see https://cmake.org/cmake/help/v3.17/module/FindPackageHandleStandardArgs.html
+set(FPHSA_NAME_MISMATCHED 1)
+
 # ITK
 set(SAVED_CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}")
 find_package(ITK REQUIRED)
@@ -329,6 +335,9 @@ endif()
 set(BUILD_INFO_VTK_DETAILS "${BUILD_INFO_VTK_DETAILS}OpenVR: ${BUILD_INFO_VTK_VR_SUPPORT}, Video: ${VTK_VIDEO_SUPPORT}")
 set(BUILD_INFO_VTK "VTK: ${VTK_VERSION} (${BUILD_INFO_VTK_DETAILS})")
 set(BUILD_INFO "${BUILD_INFO}    \"${BUILD_INFO_VTK}\\n\"\n")
+
+# re-enable unmatched package name warning
+unset(FPHSA_NAME_MISMATCHED)
 
 
 # Qt (>= 5)

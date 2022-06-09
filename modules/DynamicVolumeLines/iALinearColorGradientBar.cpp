@@ -29,7 +29,6 @@
 #include <QEvent>
 #include <QHelpEvent>
 
-#pragma optimize("", off)
 iALinearColorGradientBar::iALinearColorGradientBar(QWidget *parent, QString colormapName,
 	bool modifiable, bool flipColormap) :
 	QWidget(parent),
@@ -47,7 +46,6 @@ iALinearColorGradientBar::iALinearColorGradientBar(QWidget *parent, QString colo
 		m_colormap.insert(i, color);
 	}
 }
-#pragma optimize("", on)
 
 vtkSmartPointer<vtkLookupTable> iALinearColorGradientBar::getLut()
 {

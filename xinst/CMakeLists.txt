@@ -15,3 +15,6 @@ else()
 		install(CODE "include(\"${CMAKE_CURRENT_SOURCE_DIR}/../cmake/ChangeRPath.cmake\")")
 	endif()
 endif()
+
+# install qt configuration file required for dark title bar with dark theme on Windows
+install(FILES qt.conf DESTINATION .)

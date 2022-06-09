@@ -282,7 +282,6 @@ void iAAlgorithmInfo::drawLegend(QPainter& p, int leftWidth, bool top)
 	const double LegendHeight = std::max(LegendHeightMin, LegendNumEntries * fm.height());
 	const double LegendEntryHeight = LegendHeight / LegendNumEntries;
 	const int LegendTextWidth = leftWidth - LegendMargin - LegendLineWidth;
-	const int C = 255;
 	double const LegendBottom = top ? LegendHeight + fm.height() + LegendSpacing : height() - LegendMargin;
 	p.setPen(QApplication::palette().color(QWidget::foregroundRole()));
 	p.drawText(LegendMargin, LegendBottom - LegendHeight - LegendSpacing, LegendCaption);
@@ -513,7 +512,11 @@ void iAAlgorithmInfo::mouseMoveEvent(QMouseEvent* event)
 	int col = clamp(0, static_cast<int>(m_matrix.size()-1), static_cast<int>(matrixPoint.x() / cellWidth));  // out
 	int row = clamp(0, static_cast<int>(m_matrix[col].size()-1), static_cast<int>(matrixPoint.y() / cellHeight)); // in
 	auto sortIdx = m_inSort.size() > row ? m_inSort[row] : row;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	QToolTip::showText(event->globalPos(),
+#else
+	QToolTip::showText(event->globalPosition().toPoint(),
+#endif
 		QString("%1/%2: %3").arg(m_inNames[sortIdx]).arg(m_outNames[col]).arg(m_matrix[col][sortIdx]));
 }
 

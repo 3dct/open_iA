@@ -280,7 +280,6 @@ void MdiChild::connectSignalsToSlots()
 		connect(m_slicer[s], &iASlicer::oslicerPos, this, &MdiChild::updatePositionMarker);
 		connect(m_slicer[s], &iASlicerImpl::regionSelected, this, [this](int minVal, int maxVal)
 		{
-			LOG(lvlInfo, QString("    value range: %1..%2").arg(minVal).arg(maxVal));
 			if (minVal == maxVal)
 			{
 				return;

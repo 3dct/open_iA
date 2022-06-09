@@ -21,7 +21,7 @@
 #pragma once
 
 #include <vtkInteractorStyleImage.h>
-#include <vtkNew.h>
+#include <vtkSmartPointer.h>
 
 #include <QObject>
 
@@ -29,12 +29,27 @@ class vtkActor2D;
 class vtkPolyData;
 class vtkPolyDataMapper2D;
 
+//! Separates Qt signal out from iASlicerInteractorStyle, to avoid iASlicerInteractorStyle being moc'ed
+//! directly; the mix of deriving from QObject and the Q_OBJECT declaration with the vtk way of object
+//! inheritance causes problems, a least with Qt 6:
+//! qmetatype.h(2250,1): error C2660: 'vtkObject::operator new': function does not take 3 arguments
+class iASlicerInteractionEvents: public QObject
+{
+	Q_OBJECT
+
+	friend class iASlicerInteractorStyle;
+signals:
+	void selection(int dragStart[2], int dragEnd[2]) const;
+
+private:
+	void triggerSelection(int dragStart[2], int dragEnd[2]);
+};
+
 //! Custom interactor style for slicers, disabling some interactions from vtkInteractorStyleImage
 //! (e.g. rotation via ctrl+drag, window/level adjustments if not explicitly enabled), and adding
 //! a transfer function by region mode.
-class iASlicerInteractorStyle : public QObject, public vtkInteractorStyleImage
+class iASlicerInteractorStyle: public vtkInteractorStyleImage
 {
-	Q_OBJECT
 public:
 	enum InteractionMode
 	{
@@ -60,6 +75,8 @@ public:
 	void setInteractionMode(InteractionMode mode);
 	bool leftButtonDown() const;
 	InteractionMode interactionMode() const;
+	
+	iASlicerInteractionEvents const & qtEventObject() const;
 
 	//! @}
 	/*
@@ -76,8 +93,6 @@ public:
 		}
 	}
 	*/
-signals:
-	void selection(int dragStart[2], int dragEnd[2]);
 
 private:
 	void updateSelectionRect();
@@ -86,8 +101,9 @@ private:
 	bool m_leftButtonDown;
 	InteractionMode m_interactionMode;
 	int m_dragStart[2], m_dragEnd[2];
+	iASlicerInteractionEvents m_events;
 
-	vtkNew<vtkPolyData> m_selRectPolyData;
-	vtkNew<vtkPolyDataMapper2D> m_selRectMapper;
-	vtkNew<vtkActor2D> m_selRectActor;
+	vtkSmartPointer<vtkPolyData> m_selRectPolyData;
+	vtkSmartPointer<vtkPolyDataMapper2D> m_selRectMapper;
+	vtkSmartPointer<vtkActor2D> m_selRectActor;
 };

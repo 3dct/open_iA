@@ -124,20 +124,23 @@ iAJobListView* iAJobListView::get()
 iAJobListView::iAJobListView():
 	m_insideLayout(new QVBoxLayout)
 {
-	auto insideWidget = new QScrollArea();
-	insideWidget->setProperty("qssClass", "jobList");
+	
+	auto insideWidget = new QWidget();
 	insideWidget->setLayout(m_insideLayout);
-	//insideWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	insideWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-	insideWidget->setWidgetResizable(true);
 	m_insideLayout->setContentsMargins(4, 4, 4, 4);
 	m_insideLayout->setSpacing(4);
-	//m_insideLayout->setAlignment(Qt::AlignTop);
-	m_insideLayout->addItem(new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Preferred));
+	m_insideLayout->addItem(new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Expanding));
+
+	auto scrollWidget = new QScrollArea();
+	scrollWidget->setWidget(insideWidget);
+	scrollWidget->setProperty("qssClass", "jobList");
+	scrollWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+	scrollWidget->setWidgetResizable(true);
+
 	setLayout(new QVBoxLayout());
 	layout()->setContentsMargins(1, 0, 1, 0);
 	layout()->setSpacing(0);
-	layout()->addWidget(insideWidget);
+	layout()->addWidget(scrollWidget);
 	connect(this, &iAJobListView::newJobSignal, this, &iAJobListView::newJobSlot, Qt::QueuedConnection); // make sure widgets are created in GUI thread
 }
 
@@ -164,6 +167,7 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 		m_jobs.push_back(j);
 	}
 	auto titleLabel = new iAQShorteningLabel(j->name, "titleLabel");
+	titleLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
 	auto progressBar = new QProgressBar();
 	progressBar->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
@@ -171,8 +175,11 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 	progressBar->setValue(0);
 
 	auto statusLabel = new iAQShorteningLabel("");
+	statusLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	auto elapsedLabel = new iAQShorteningLabel("Elapsed: -");
+	elapsedLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	auto remainingLabel = new iAQShorteningLabel("Remaining: unknown");
+	remainingLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
 	auto timesWidget = new QWidget();
 	timesWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
@@ -191,9 +198,10 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 	statusLayout->setSpacing(2);
 	statusLayout->addWidget(titleLabel);
 	statusLayout->addWidget(statusLabel);
+	statusLabel->setVisible(false);
 	statusLayout->addWidget(timesWidget);
 	statusLayout->addWidget(progressBar);
-	
+
 	auto abortButton = new QToolButton();
 	abortButton->setIcon(QIcon(":/images/remove.png"));
 	abortButton->setEnabled(j->abortListener);
@@ -232,9 +240,10 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 					QString("Remaining: %1").arg((estRem == -1) ? "unknown" : formatDuration(estRem, false, true)));
 			});
 		QString jobName(j->name);
-		connect(j->progress, &iAProgress::statusChanged, [statusLabel, jobName](QString const& msg)
+		connect(j->progress, &iAProgress::statusChanged, jobWidget, [statusLabel, jobName](QString const& msg)
 			{
 				LOG(lvlDebug, QString("Job '%1': %2").arg(jobName).arg(msg));
+				statusLabel->setVisible(true);
 				statusLabel->setText(msg);
 			});
 	}
@@ -244,6 +253,7 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 			{
 				LOG(lvlDebug, QString("Job '%1': Aborted.").arg(j->name));
 				abortButton->setEnabled(false);
+				statusLabel->setVisible(true);
 				statusLabel->setText("Aborting...");
 				if (j->progress)
 				{
@@ -322,3 +332,55 @@ QSharedPointer<QObject> iAJobListView::addJob(QString name, iAProgress* p,
 iADurationEstimator::~iADurationEstimator()
 {
 }
+
+
+
+/*
+// To debug job list layout, add this to some GUI initialization, e.g. to MainWindow constructor.
+
+// requires includes:
+#include "iAProgress.h"
+#include "iARunAsync.h"
+	
+auto createSimpleJob = new QAction("Add job");
+connect(createSimpleJob, &QAction::triggered, this, [this] {
+		static int simpleJobCounter = 0;
+		auto p = new iAProgress();
+		auto fw = runAsync(
+			[p]
+			{
+				const int N = 30;
+				for (int i=0; i<N; ++i)
+				{
+					QThread::sleep(1);
+					//p->setStatus(QString("Loop %1 / %2").arg(i).arg(N));
+					p->emitProgress(100 * static_cast<double>(i) / N);
+				}
+			},
+			[p] { delete p;
+			}, this);
+		iAJobListView::get()->addJob(QString("Simple Job %1").arg(simpleJobCounter++), p, fw);
+});
+m_ui->menuHelp->addAction(createSimpleJob);
+auto createStatusJob = new QAction("Add job with status");
+connect(createStatusJob, &QAction::triggered, this,
+	[this]
+	{
+		static int statusJobCounter = 0;
+		auto p = new iAProgress();
+		auto fw = runAsync(
+			[p]
+			{
+				const int N = 30;
+				for (int i = 0; i < N; ++i)
+				{
+					QThread::sleep(1);
+					p->setStatus(QString("Loop %1 / %2").arg(i).arg(N));
+					p->emitProgress(100 * static_cast<double>(i) / N);
+				}
+			},
+			[p] { delete p; }, this);
+		iAJobListView::get()->addJob(QString("Status Job %1").arg(statusJobCounter++), p, fw);
+	});
+m_ui->menuHelp->addAction(createStatusJob);
+*/
