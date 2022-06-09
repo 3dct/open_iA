@@ -179,7 +179,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_renWin->GetInteractor()->Initialize();
 	m_interactorStyle->SetDefaultRenderer(m_ren);
 
-	connect(m_interactorStyle, &iASlicerInteractorStyle::selection, this,
+	connect(&m_interactorStyle->qtEventObject(), &iASlicerInteractionEvents::selection, this,
 		[this](int dragStart[2], int dragEnd[2])
 		{
 			if (m_channels.isEmpty())

@@ -38,6 +38,11 @@
 #include <iALog.h>
 #include <iAMathUtility.h>
 
+void iASlicerInteractionEvents::triggerSelection(int dragStart[2], int dragEnd[2])
+{
+	emit selection(dragStart, dragEnd);
+}
+
 vtkStandardNewMacro(iASlicerInteractorStyle);
 
 iASlicerInteractorStyle::iASlicerInteractorStyle() :
@@ -171,7 +176,7 @@ void iASlicerInteractorStyle::OnLeftButtonUp()
 		auto renWin = this->Interactor->GetRenderWindow();
 		renWin->GetRenderers()->GetFirstRenderer()->RemoveActor(m_selRectActor);
 		// ... handle actual event with given rectangle...
-		emit selection(m_dragStart, m_dragEnd);
+		m_events.triggerSelection(m_dragStart, m_dragEnd);
 	}
 	m_leftButtonDown = false;
 	vtkInteractorStyleImage::OnLeftButtonUp();
@@ -227,4 +232,9 @@ void iASlicerInteractorStyle::updateSelectionRect()
 	m_selRectPolyData->GetPoints()->SetPoint(2, m_dragEnd[0], m_dragEnd[1], 0);
 	m_selRectPolyData->GetPoints()->SetPoint(3, m_dragEnd[0], m_dragStart[1], 0);
 	m_selRectPolyData->GetPoints()->Modified();
+}
+
+iASlicerInteractionEvents const& iASlicerInteractorStyle::qtEventObject() const
+{
+	return m_events;
 }
