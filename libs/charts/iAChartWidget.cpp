@@ -455,7 +455,7 @@ void iAChartWidget::drawLegend(QPainter& painter)
 	const int TextLeft = LegendColorLeft + LegendItemWidth + LegendPadding;
 	for (size_t pi = 0; pi < m_plots.size(); ++pi)
 	{
-		int top = upLeft.y() + LegendPadding + pi * LineHeight;
+		int top = upLeft.y() + LegendPadding + static_cast<int>(pi) * LineHeight;
 		QRect legendItemRect(LegendColorLeft, top + LegendItemSpacing, LegendItemWidth, LineHeight - LegendItemSpacing);
 		m_plots[pi]->drawLegendItem(painter, legendItemRect);
 		auto textColor = qApp->palette().color(QPalette::Text);
