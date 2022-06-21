@@ -292,8 +292,15 @@ a {
   display: inline-block;
   width: 8em;
 }
+.checkSumLine summary {
+  cursor: pointer;
+}
 .checkSumLine {
   margin-bottom: 1rem;
+  cursor: default;
+}
+.checkSumLine pre {
+  cursor: text;
 }
 summary::-webkit-details-marker {
   color: rgba(21, 153, 87, 0.8);
