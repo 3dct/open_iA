@@ -17,4 +17,8 @@ else()
 endif()
 
 # install qt configuration file required for dark title bar with dark theme on Windows
-install(FILES qt.conf DESTINATION .)
+if (FLATPAK_BUILD)
+	install(FILES qt.conf DESTINATION bin)
+else()
+	install(FILES qt.conf DESTINATION .)
+endif()
