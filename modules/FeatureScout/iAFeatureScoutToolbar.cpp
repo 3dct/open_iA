@@ -56,6 +56,10 @@ void iAFeatureScoutToolbar::addForChild(iAMainWindow* mainWnd, iAMdiChild* child
 		mainWnd->addToolBar(Qt::BottomToolBarArea, tlbFeatureScout);
 		tlbFeatureScout->setVisible(true);
 	}
+	else    // make sure toolbar is enabled when FeatureScout has finished loading
+	{       // for all FeatureScout instances after the first:
+		tlbFeatureScout->childChanged();
+	}
 	connect(child, &iAMdiChild::closed, tlbFeatureScout, &iAFeatureScoutToolbar::childClosed);
 }
 
