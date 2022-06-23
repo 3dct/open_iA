@@ -42,11 +42,9 @@
 #include <io/iAIOProvider.h>
 
 // slicer
-#include "iASlicerProfile.h"
-#include "iASlicerSettings.h"
 #include "iASlicerInteractorStyle.h"
+#include "iASlicerProfile.h"
 #include "iASlicerProfileHandles.h"
-#include "iASlicerSettings.h"
 #include "iASnakeSpline.h"
 #include "iAVtkText.h"
 
@@ -136,7 +134,6 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_profileHandles(nullptr),
 	m_mode(mode),
 	m_decorations(decorations),
-	m_userSetBackground(false),
 	m_showPositionMarker(false),
 	m_magicLensInput(NotExistingChannel),
 	m_fisheyeLensActivated(false),
@@ -594,6 +591,7 @@ void iASlicerImpl::setup( iASingleSlicerSettings const & settings )
 	// from settings if decorations turned on:
 	m_settings.ShowTooltip &= m_decorations;
 	m_textInfo->setFontSize(settings.ToolTipFontSize);
+	setBackground(settings.backgroundColor);
 	m_textInfo->show(m_settings.ShowTooltip);
 	if (m_magicLens)
 	{
@@ -1216,9 +1214,9 @@ void iASlicerImpl::setStatisticalExtent(int statExt)
 
 void iASlicerImpl::updateBackground()
 {
-	if (m_userSetBackground)
+	if (m_backgroundColor.isValid())
 	{
-		m_ren->SetBackground(m_backgroundRGB);
+		m_ren->SetBackground(m_backgroundColor.redF(), m_backgroundColor.blueF(), m_backgroundColor.greenF());
 		return;
 	}
 	switch (m_mode)
@@ -1230,12 +1228,9 @@ void iASlicerImpl::updateBackground()
 	}
 }
 
-void iASlicerImpl::setBackground(double r, double g, double b)
+void iASlicerImpl::setBackground(QColor color)
 {
-	m_userSetBackground = true;
-	m_backgroundRGB[0] = r;
-	m_backgroundRGB[1] = g;
-	m_backgroundRGB[2] = b;
+	m_backgroundColor = color;
 	updateBackground();
 }
 

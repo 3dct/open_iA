@@ -173,7 +173,7 @@ public:
 	//! @param r red color part (0..1)
 	//! @param g green color part (0..1)
 	//! @param b blue color part (0..1)
-	void setBackground(double r, double g, double b) override;
+	void setBackground(QColor color) override;
 
 	void setTransform(vtkAbstractTransform * tr);
 
@@ -321,7 +321,6 @@ private:
 	iASlicerMode m_mode;            //!< the (axis-aligned) slice plane this slicer views
 
 	bool m_decorations;             //!< whether "decorations" will be shown, i.e. scalar bar widget, text on hover, ...
-	bool m_userSetBackground;       //!< whether the user has set a background
 	bool m_showPositionMarker;      //!< whether the position marker is shown in the slicer
 
 	bool m_leftMouseDrag = false;   //!< whether the left mouse button is currently being held down
@@ -400,7 +399,7 @@ private:
 
 	int m_ext;
 	double m_angle[3];          //!< current rotation angle
-	double m_backgroundRGB[3];  //!< manual background RGB
+	QColor m_backgroundColor;   //!< background color; if invalid, indicates that user has not set a custom background
 	int m_sliceNumber;          //!< current slice
 
 	double m_slicerPt[3];       //!< point of last interaction in slicer coordinates

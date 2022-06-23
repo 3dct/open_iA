@@ -36,6 +36,7 @@ public:
 	int NumberOfIsoLines,
 		ToolTipFontSize;
 	QString CursorMode;
+	QColor backgroundColor;
 
 	iASingleSlicerSettings() :
 		LinearInterpolation(true),
@@ -48,7 +49,8 @@ public:
 		MaxIsoValue(40000),
 		NumberOfIsoLines(5),
 		ToolTipFontSize(12),
-		CursorMode(QString("Crosshair default"))
+		CursorMode(QString("Crosshair default")),
+		backgroundColor()	// invalid
 	{}
 };
 
@@ -61,6 +63,7 @@ public:
 		LinkMDIs;
 	int SnakeSlices;
 	iASingleSlicerSettings SingleSlicer;
+	QString BackgroundColor[3]; // background color per slicer mode
 
 	iASlicerSettings() :
 		InteractorsEnabled(true),

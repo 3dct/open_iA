@@ -113,11 +113,10 @@ public:
 	virtual void resetCamera() = 0;
 	//! Sets the background color of the slicer.
 	//! By default, background color is auto-determined via the slicer mode. If set manually
-	//! via this method, it will keep the given color indefinitely
-	//! @param r red color part (0..1)
-	//! @param g green color part (0..1)
-	//! @param b blue color part (0..1)
-	virtual void setBackground(double r, double g, double b) = 0;
+	//! via this method, it will keep the given color indefinitely; can be reset by setting
+	//! "invalid" color (i.e., QColor())
+	//! @param color the color to use as background
+	virtual void setBackground(QColor color) = 0;
 
 	virtual void setDefaultInteractor() = 0;
 
