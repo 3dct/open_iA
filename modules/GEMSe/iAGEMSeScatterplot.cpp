@@ -49,7 +49,7 @@ iAGEMSeScatterplot::iAGEMSeScatterplot(QWidget* parent):
 	vtkSmartPointer<vtkContextView> contextView(vtkSmartPointer<vtkContextView>::New());
 	contextView->SetRenderWindow(renderWindow());
 	m_chart = vtkSmartPointer<vtkChartXY>::New();
-	m_chart->SetSelectionMode(vtkContextScene::SELECTION_NONE);
+	m_chart->SetSelectionMode(vtkContextScene::SELECTION_DEFAULT);
 	contextView->GetScene()->AddItem(m_chart);
 
 	m_parent->layout()->addWidget(this);

@@ -32,6 +32,7 @@
 class vtkActor;
 class vtkAssembly;
 class vtkGlyph3DMapper;
+class vtkPoints;
 class vtkRenderer;
 class vtkTable;
 class vtkUnsignedCharArray;
