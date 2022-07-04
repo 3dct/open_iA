@@ -25,6 +25,7 @@
 #include "iAConnector.h"
 #include "iALog.h"
 #include "iAProgress.h"
+#include "iAStringHelper.h"    // for joinStdString
 #include "iATypedCallHelper.h"
 
 #include "itkCastImageFilter.h"
@@ -369,46 +370,69 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	{
 		for (int y = 0; y <= sizeY; y = y + sizeDNNout)
 		{
-			#pragma omp parallel for
+			std::vector<std::string> errors;
+#pragma omp parallel for
 			for (int z = 0; z <= sizeZ; z = z + sizeDNNout)
 			{
-				std::vector<float> tensor_img;
-				
-				int tempX, tempY, tempZ;
+				try  // exceptions must not exit the openmp block! see, e.g., https://pvs-studio.com/en/blog/posts/0008/
+				{
+					std::vector<float> tensor_img;
 
-				tempX = (x <= sizeX - sizeDNNout) ? x : (x - (sizeDNNout - sizeX % sizeDNNout)); 
-				tempY = (y <= sizeY - sizeDNNout) ? y : (y - (sizeDNNout - sizeY % sizeDNNout)); 
-				tempZ = (z <= sizeZ - sizeDNNout) ? z : (z - (sizeDNNout - sizeZ % sizeDNNout)); 
+					int tempX, tempY, tempZ;
 
-				int offset = (sizeDNNout - sizeDNNin)/2;
-				itk2tensor(itk_img_normalized_padded, tensor_img, tempX + offset, tempY + offset, tempZ + offset);
+					tempX = (x <= sizeX - sizeDNNout) ? x : (x - (sizeDNNout - sizeX % sizeDNNout));
+					tempY = (y <= sizeY - sizeDNNout) ? y : (y - (sizeDNNout - sizeY % sizeDNNout));
+					tempZ = (z <= sizeZ - sizeDNNout) ? z : (z - (sizeDNNout - sizeZ % sizeDNNout));
 
-				std::vector<Ort::Value> result;
+					int offset = (sizeDNNout - sizeDNNin) / 2;
+					itk2tensor(itk_img_normalized_padded, tensor_img, tempX + offset, tempY + offset, tempZ + offset);
 
+					std::vector<Ort::Value> result;
 
-				// create input tensor object from data values
-				auto memory_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
-				Ort::Value input_tensor = Ort::Value::CreateTensor<float>(
+					// create input tensor object from data values
+					auto memory_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
+					Ort::Value input_tensor = Ort::Value::CreateTensor<float>(
 						memory_info, tensor_img.data(), input_tensor_size, input_node_dims.data(), 5);
-				assert(input_tensor.IsTensor());
-				#pragma omp critical
-				{
-					// score model & input tensor, get back output tensor
-					result = session.Run(Ort::RunOptions{nullptr}, input_node_names.data(), &input_tensor, 1,
-						output_node_names.data(), 1);
-				}
-					assert(result.size() == 1 && result.front().IsTensor());
+					assert(input_tensor.IsTensor());
+					bool running = true;
+#pragma omp critical
+					{
+						try  // exceptions must not exit the openmp block! see, e.g., https://stackoverflow.com/questions/13663231
+						{
+							// score model & input tensor, get back output tensor
+							result = session.Run(Ort::RunOptions{nullptr}, input_node_names.data(), &input_tensor, 1,
+								output_node_names.data(), 1);
+						}
+						catch (const std::exception& e)
+						{
+							errors.push_back(e.what());
+							running = false;
+						}
+					}
+					if (running)
+					{
+						assert(result.size() == 1 && result.front().IsTensor());
 
-				int outputChannel = 0;
-				//ImageType::Pointer outputImage = ImageType::New();
-				for (auto outputImage : outputs)
-				{
-					tensor2itk(result, outputImage, tempX, tempY, tempZ, outputChannel, outputs.size());
-					outputChannel++;
+						int outputChannel = 0;
+						//ImageType::Pointer outputImage = ImageType::New();
+						for (auto outputImage : outputs)
+						{
+							tensor2itk(result, outputImage, tempX, tempY, tempZ, outputChannel, outputs.size());
+							outputChannel++;
+						}
+						count++;
+						double progress = count * 100.0 / (sizeX / sizeDNNout * sizeY / sizeDNNout * sizeZ / sizeDNNout);
+						progressPrediction->emitProgress(progress);
+					}
 				}
-				count++;
-				double progress = count * 100.0 / (sizeX / sizeDNNout * sizeY / sizeDNNout * sizeZ/sizeDNNout);
-				progressPrediction->emitProgress(progress);
+				catch (const std::exception& e)
+				{
+					errors.push_back(e.what());
+				}
+			}
+			if (errors.size() > 0)
+			{
+				throw std::runtime_error(joinStdString(errors, ", "));
 			}
 		}
 	}
