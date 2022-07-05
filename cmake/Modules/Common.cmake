@@ -16,7 +16,7 @@ message(STATUS "CMake: ${CMAKE_VERSION}")
 #-------------------------
 # CTest
 #-------------------------
-option (openiA_TESTING_ENABLED "Whether to enable testing. This allows to run CTest/ CDash builds. Default: disabled." OFF)
+option(openiA_TESTING_ENABLED "Whether to enable testing. This allows to run CTest/ CDash builds. Default: disabled." OFF)
 if (openiA_TESTING_ENABLED)
 	message(STATUS "Testing enabled")
 	include (CTest)
@@ -33,13 +33,13 @@ endif()
 # Precompiled headers
 #-------------------------
 if (CMAKE_VERSION VERSION_GREATER "3.15.99")
-	option (openiA_PRECOMPILE  "Whether to use precompiled headers to speed up build. Default: disabled." OFF)
+	option(openiA_PRECOMPILE  "Whether to use precompiled headers to speed up build. Default: disabled." OFF)
 	if (openiA_PRECOMPILE)
 		message(STATUS "openiA_PRECOMPILE enabled.")
 	endif()
 endif()
 
-option (openiA_CHART_OPENGL "Whether to use OpenGL in chart widgets" ON)
+option(openiA_CHART_OPENGL "Whether to use OpenGL in chart widgets" ON)
 option(openiA_OPENGL_DEBUG "Enable this to turn on debugging messages in OpenGL windows (currently charts)." OFF)
 
 #------------------------------
@@ -529,7 +529,6 @@ endif()
 # OpenCL
 find_package(OpenCL)
 if (OPENCL_FOUND)
-
 	set(openiA_OPENCL_VERSION_OPTIONS "1.1.0" "1.2.0" "2.0.0" "2.1.0"  "2.2.0")
 	list (FIND openiA_OPENCL_VERSION_OPTIONS "${openiA_OPENCL_VERSION}" opencl_version_index)
 	if (${opencl_version_index} EQUAL -1)
@@ -580,23 +579,25 @@ endif()
 
 
 # CUDA:
-find_package(CUDA)
-if (CUDA_FOUND)
-	message(STATUS "CUDA: ${CUDA_VERSION} in ${CUDA_TOOLKIT_ROOT_DIR}")
-	set(BUILD_INFO "${BUILD_INFO}    \"CUDA: ${CUDA_VERSION}\\n\"\n")
-	if (WIN32)
-		set(CUDA_LIB_DIR ${CUDA_TOOLKIT_ROOT_DIR}/bin)
-	elseif (UNIX AND NOT APPLE)
-		get_filename_component(CUDA_LIB_DIR "${CUDA_CUDART_LIBRARY}" DIRECTORY)
-		get_filename_component(CUFFT_LIB_DIR "${CUDA_cufft_LIBRARY}" DIRECTORY)
-		if (NOT "${CUDA_LIB_DIR}" STREQUAL "${CUFFT_LIB_DIR}")
-			message(STATUS "CudaRT / CuFFT libs in different folders!")
-			list(APPEND BUNDLE_DIRS "${CUFFT_LIB_DIR}")
+option(openiA_CUDA_ENABLED "Whether to enable search for CUDA toolkit. Default: enabled." ON)
+if (openiA_CUDA_ENABLED)
+	find_package(CUDA)
+	if (CUDA_FOUND)
+		message(STATUS "CUDA: ${CUDA_VERSION} in ${CUDA_TOOLKIT_ROOT_DIR}")
+		set(BUILD_INFO "${BUILD_INFO}    \"CUDA: ${CUDA_VERSION}\\n\"\n")
+		if (WIN32)
+			set(CUDA_LIB_DIR ${CUDA_TOOLKIT_ROOT_DIR}/bin)
+		elseif (UNIX AND NOT APPLE)
+			get_filename_component(CUDA_LIB_DIR "${CUDA_CUDART_LIBRARY}" DIRECTORY)
+			get_filename_component(CUFFT_LIB_DIR "${CUDA_cufft_LIBRARY}" DIRECTORY)
+			if (NOT "${CUDA_LIB_DIR}" STREQUAL "${CUFFT_LIB_DIR}")
+				message(STATUS "CudaRT / CuFFT libs in different folders!")
+				list(APPEND BUNDLE_DIRS "${CUFFT_LIB_DIR}")
+			endif()
 		endif()
+		list(APPEND BUNDLE_DIRS "${CUDA_LIB_DIR}")
 	endif()
-	list(APPEND BUNDLE_DIRS "${CUDA_LIB_DIR}")
 endif()
-
 
 # OpenMP
 include(${CMAKE_ROOT}/Modules/FindOpenMP.cmake)
