@@ -58,8 +58,8 @@ typedef itk::ImageRegionIterator<ImageType> 			    IteratorType;
 
 namespace
 {
-	const int sizeDNNin = 132;
-	const int sizeDNNout = 122;
+	//const int sizeDNNin = 132;
+	//const int sizeDNNout = 122;
 }
 
 typename ImageType::Pointer Normalize(typename ImageType::Pointer itk_img)
@@ -92,7 +92,7 @@ typename ImageType::Pointer AddPadding(typename ImageType::Pointer itk_img, int 
 	return filter->GetOutput();
 }
 
-bool itk2tensor(typename ImageType::Pointer itk_img, std::vector<float> &tensor_img, int offsetX, int offsetY, int offsetZ)
+bool itk2tensor(typename ImageType::Pointer itk_img, std::vector<float> &tensor_img, int offsetX, int offsetY, int offsetZ, int sizeDNNin)
 {
 	//typename ImageType::Pointer itk_img_normalized = Normalize(itk_img);
 
@@ -128,7 +128,7 @@ bool itk2tensor(typename ImageType::Pointer itk_img, std::vector<float> &tensor_
 	return true;
 }
 
-bool tensor2itk(std::vector<Ort::Value> &tensor_img, typename ImageType::Pointer itk_img, int offsetX, int offsetY, int offsetZ, int offset = 0, int chanels=1)
+bool tensor2itk(std::vector<Ort::Value> &tensor_img, typename ImageType::Pointer itk_img, int offsetX, int offsetY, int offsetZ, int sizeDNNout, int offset = 0, int chanels=1)
 {
 	ImageType::IndexType start;
 	start[0] = offsetX;  // first index on X
@@ -197,12 +197,11 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	castFilter->Update();
 	auto itk_img = castFilter->GetOutput();
 
-	typename ImageType::Pointer itk_img_normalized = Normalize(itk_img);
-	typename ImageType::Pointer itk_img_normalized_padded = AddPadding(itk_img_normalized,(sizeDNNin - sizeDNNout)/2);
+
 
 	// initialize  enviroment...one enviroment per process
 	// enviroment maintains thread pools and other state info
-	Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "test");
+	Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "Default");
 
 	// initialize session options if needed
 	Ort::SessionOptions session_options;
@@ -220,8 +219,8 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 			Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_CUDA(session_options, 0));
 		#endif
 #else
-		session_options.DisableMemPattern();
-		session_options.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
+		//session_options.DisableMemPattern();
+		//session_options.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
 		Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_DML(session_options, parameters["GPU"].toInt()));
 #endif
 	}
@@ -335,6 +334,13 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	// Input 0 : dim 3 = 224
 	// Input 0 : dim 3 = 1
 
+	int sizeDNNin = input_node_dims[1];
+	int sizeDNNout = output_node_dims[1];
+
+	typename ImageType::Pointer itk_img_normalized = Normalize(itk_img);
+	typename ImageType::Pointer itk_img_normalized_padded =
+		AddPadding(itk_img_normalized, (sizeDNNin - sizeDNNout) / 2);
+
 	//*************************************************************************
 	// Similar operations to get output node information.
 	// Use OrtSessionGetOutputCount(), OrtSessionGetOutputName()
@@ -385,7 +391,7 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 					tempZ = (z <= sizeZ - sizeDNNout) ? z : (z - (sizeDNNout - sizeZ % sizeDNNout));
 
 					int offset = (sizeDNNout - sizeDNNin) / 2;
-					itk2tensor(itk_img_normalized_padded, tensor_img, tempX + offset, tempY + offset, tempZ + offset);
+					itk2tensor(itk_img_normalized_padded, tensor_img, tempX + offset, tempY + offset, tempZ + offset, sizeDNNin);
 
 					std::vector<Ort::Value> result;
 
@@ -417,7 +423,7 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 						//ImageType::Pointer outputImage = ImageType::New();
 						for (auto outputImage : outputs)
 						{
-							tensor2itk(result, outputImage, tempX, tempY, tempZ, outputChannel, outputs.size());
+							tensor2itk(result, outputImage, tempX, tempY, tempZ, sizeDNNout,outputChannel,outputs.size());
 							outputChannel++;
 						}
 						count++;
