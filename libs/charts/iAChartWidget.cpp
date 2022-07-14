@@ -82,7 +82,7 @@ namespace
 	{
 		return (step == 0)
 			? markerX                  // right aligned to indicator line
-			: (step < stepCount)
+			: (step < (stepCount-1))
 			? markerX - textWidth / 2  // centered to the indicator line
 			: markerX - textWidth;     // left aligned to the indicator line
 	}
