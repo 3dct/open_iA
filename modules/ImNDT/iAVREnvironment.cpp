@@ -23,6 +23,7 @@
 #include "iAVRInteractor.h"
 
 #include <iALog.h>
+#include <iAVtkVersion.h>
 
 #include <vtkOpenVRRenderer.h>
 #include <vtkOpenVRRenderWindow.h>
@@ -33,10 +34,10 @@
 #include <vtkLightKit.h>
 #include <vtkPickingManager.h>
 
-#include <qstring.h>
 #include <QCoreApplication>
+#include <QDir>
 #include <QMessageBox>
-
+#include <QString>
 #include <QThread>
 
 class iAVRMainThread : public QThread
@@ -48,6 +49,11 @@ public:
 	{}
 	void run() override
 	{
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
+		// for correct input manifest json path
+		auto prevWorkingDir = QDir::currentPath();
+		QDir::setCurrent(QCoreApplication::applicationDirPath() + "/VR-input-manifests");
+#endif
 		m_renderWindow->Initialize();
 		if (!vr::VRInput())
 		{
@@ -56,6 +62,9 @@ public:
 			return;
 		}
 		m_renderWindow->Render();
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
+		QDir::setCurrent(prevWorkingDir);
+#endif
 		m_interactor->Start();
 	}
 	void stop()

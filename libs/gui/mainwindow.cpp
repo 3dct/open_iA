@@ -1239,7 +1239,7 @@ void MainWindow::slicerSettings()
 	addParameter(params, "Max Isovalue", iAValueType::Continuous, slicerSettings.SingleSlicer.MaxIsoValue);
 	addParameter(params, "Snake Slices", iAValueType::Discrete, slicerSettings.SnakeSlices);
 	addParameter(params, "Link MDIs", iAValueType::Boolean, slicerSettings.LinkMDIs);
-	addParameter(params, "Mouse Coursor Types", iAValueType::Categorical, mouseCursorOptions);
+	addParameter(params, "Mouse Cursor", iAValueType::Categorical, mouseCursorOptions);
 	addParameter(params, "Show Axes Caption", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowAxesCaption);
 	addParameter(params, "Tooltip Font Size (pt)", iAValueType::Discrete, slicerSettings.SingleSlicer.ToolTipFontSize);
 	addParameter(params, "Show Tooltip", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowTooltip);
