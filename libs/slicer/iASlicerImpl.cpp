@@ -2757,12 +2757,16 @@ void iASlicerImpl::updateMagicLens()
 	ren->WorldToDisplay();
 	double dpos[3];
 	ren->GetDisplayPoint(dpos);
-	int lensSz = m_magicLens->size();
-	lensSz = (std::min)(lensSz, (std::min)(geometry().width(), geometry().height())); // restrict size to size of smallest side
-	int lensSzHalf = 0.5*lensSz;
-	// clamp to image, round to int (=pixels)
-	dpos[0] = clamp(lensSzHalf, geometry().width() - lensSzHalf - 1, qRound(dpos[0]));
-	dpos[1] = clamp(lensSzHalf, geometry().height() - lensSzHalf - 1, qRound(dpos[1]));
+	float lensSz = m_magicLens->size();
+	// consider device pixel  ratio since measures from Qt are in "virtual" coordinates, but VTK ones are in "real" pixels
+	qreal pixelWidth = devicePixelRatio() * geometry().width();
+	qreal pixelHeight = devicePixelRatio() * geometry().height();
+	lensSz = (std::min)(static_cast<qreal>(lensSz),
+		(std::min)(pixelWidth, pixelHeight));  // restrict size to size of smallest side
+	qreal lensSzHalf = 0.5*lensSz;
+	// clamp to image, round to int (=pixels)	
+	dpos[0] = clamp(lensSzHalf, pixelWidth - lensSzHalf - 1, dpos[0]);
+	dpos[1] = clamp(lensSzHalf, pixelHeight - lensSzHalf - 1, dpos[1]);
 	dpos[2] = qRound(dpos[2]);
 	ren->SetDisplayPoint(dpos);
 	ren->DisplayToWorld();
