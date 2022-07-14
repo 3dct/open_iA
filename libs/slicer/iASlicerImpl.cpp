@@ -1141,7 +1141,7 @@ void iASlicerImpl::saveImageStack()
 	}
 	iAProgress p;
 	iASimpleAbortListener aborter;
-	auto jobHandle = iAJobListView::get()->addJob("Exporting Movie", &p, &aborter);
+	auto jobHandle = iAJobListView::get()->addJob("Exporting Image Stack", &p, &aborter);
 	m_renWin->GetInteractor()->Disable();
 	double movingOrigin[3];
 	imageData->GetOrigin(movingOrigin);
