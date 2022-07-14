@@ -607,9 +607,10 @@ void iASlicerImpl::setMagicLensEnabled( bool isEnabled )
 		LOG(lvlWarn, "SetMagicLensEnabled called on slicer which doesn't have a magic lens!");
 		return;
 	}
+	setCursor  (isEnabled ? Qt::BlankCursor : mouseCursor());
+	setShowText(isEnabled ? false : m_settings.ShowTooltip);
 	m_magicLens->setEnabled(isEnabled);
 	m_interactorStyle->setRightButtonDragZoomEnabled(!isEnabled);
-	setShowText(!isEnabled);
 	updateMagicLens();
 }
 
@@ -1295,7 +1296,7 @@ void iASlicerImpl::execute(vtkObject * /*caller*/, unsigned long eventId, void *
 	case vtkCommand::MouseMoveEvent:
 	{
 		//LOG(lvlInfo, "iASlicerImpl::execute vtkCommand::MouseMoveEvent");
-		if (m_cursorSet && cursor() != mouseCursor())
+		if (m_cursorSet && cursor() != mouseCursor() && !m_magicLens->isEnabled())
 		{
 			setCursor(mouseCursor());
 		}
@@ -1533,7 +1534,7 @@ void iASlicerImpl::printVoxelInformation()
 		m_textInfo->setText(strDetails.toStdString().c_str());
 		m_positionMarkerMapper->Update();
 	}
-	m_textInfo->show(infoAvailable);
+	m_textInfo->show(infoAvailable && !m_magicLens->isEnabled());
 }
 
 void iASlicerImpl::executeKeyPressEvent()
