@@ -85,9 +85,14 @@ void iAFast3DMagicLensWidget::updateLens()
 	magicLensCam->SetFocalPoint( mainCam->GetFocalPoint() );
 
 	// setup parameters for frustum calculations
-	double w =  (double)m_size[0] / height();
-	double h = (double)m_size[1] / height();
-	double p[2] = { ( (double)pos[0] * 2 / width() - 1 ) * ( (double)width() / height() ), (double)pos[1] * 2 / height() - 1 };
+	double pixelHeight = height() * devicePixelRatio();
+	double pixelWidth = width() * devicePixelRatio();
+	double w = m_size[0] / pixelHeight;
+	double h = m_size[1] / pixelHeight;
+	double p[2] = {
+		(pos[0] * 2.0 / pixelWidth - 1) * (pixelWidth / pixelHeight),
+		pos[1] * 2.0 / pixelHeight - 1
+	};
 	double z = calculateZ( m_viewAngle );
 	magicLensCam->SetScreenBottomLeft(  p[0] - w, p[1] - h, z );
 	magicLensCam->SetScreenBottomRight( p[0] + w, p[1] - h, z );

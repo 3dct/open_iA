@@ -47,7 +47,9 @@ iAAbstractMagicLensWidget::iAAbstractMagicLensWidget( QWidget * parent /*= 0 */ 
 	m_GUIActor { vtkSmartPointer<vtkActor2D>::New() },
 	m_viewMode( iAAbstractMagicLensWidget::OFFSET ),
 	m_magicLensEnabled(false)
-{ }
+{
+	setMouseTracking(true);
+}
 
 iAAbstractMagicLensWidget::~iAAbstractMagicLensWidget( )
 { /* not impemented */ }
