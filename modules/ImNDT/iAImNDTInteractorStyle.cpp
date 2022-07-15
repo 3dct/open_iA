@@ -57,8 +57,12 @@ void iAImNDTInteractorStyle::setVRMain(iAImNDTMain* vrMain)
 
 //! Calls, depending on Device - its input and action, the corresponding method
 //! Events can occure through left/right Controller and its input (trigger, grip, Trackpad,...) and an Action (Press, Release, Touch,...)
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 1, 0)
 void iAImNDTInteractorStyle::OnButton3D(vtkEventData* edata)
-{    
+#else
+void iAImNDTInteractorStyle::OnSelect3D(vtkEventData* edata)
+{
+#endif
 	// Used Device
 	vtkEventDataDevice3D* device = edata->GetAsEventDataDevice3D();
 	
@@ -92,8 +96,7 @@ void iAImNDTInteractorStyle::OnButton3D(vtkEventData* edata)
 	else if(action == vtkEventDataAction::Release || action == vtkEventDataAction::Untouch)
 	{
 		m_vrMain->endInteraction(device, InteractionProp, m_eventPosition, m_eventOrientation);
-	}
-	
+	}	
 }
 
 //! Is called when a Controller moves. Forwards the event to the main class

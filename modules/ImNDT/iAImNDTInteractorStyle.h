@@ -20,9 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
+#include <vtkEventData.h>
 #include <vtkOpenVRInteractorStyle.h>
 #include <vtkSmartPointer.h>
-#include "vtkEventData.h"
+
+#include "iAVtkVersion.h"
+
 #include "iAImNDTMain.h"
 
 #define NUMBER_OF_DEVICES static_cast<int>(vtkEventDataDevice::NumberOfDevices)
@@ -60,7 +63,11 @@ class iAImNDTInteractorStyle : public vtkOpenVRInteractorStyle
 	vtkTypeMacro(iAImNDTInteractorStyle, vtkOpenVRInteractorStyle);
 
 	void setVRMain(iAImNDTMain* vrMain);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 1, 0)
 	void OnButton3D(vtkEventData* edata) override;
+#else
+	void OnSelect3D(vtkEventData* edata) override;
+#endif
 	void OnMove3D(vtkEventData* edata) override;
 	void OnPinch() override;
 
