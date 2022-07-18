@@ -20,21 +20,23 @@
 * ************************************************************************************/
 #include "iAImNDTInteractorStyle.h"
 
-#include <iALog.h>
-#include <vtkObjectFactory.h>
-#include "vtkOpenVRRenderWindowInteractor.h"
-#include "vtkPropPicker.h"
-#include "vtkPointPicker.h"
 #include "iAImNDTMain.h"
-#include "vtkActor.h"
-#include "vtkProperty.h"
-#include "vtkPolyDataMapper.h"
-#include "vtkOpenVRModel.h"
-#include "vtkCamera.h"
-#include "vtkTransform.h"
-#include "vtkMatrix4x4.h"
 
+#include <iALog.h>
+
+#include <vtkActor.h>
+#include <vtkCamera.h>
 #include <vtkMath.h>
+#include <vtkMatrix4x4.h>
+#include <vtkObjectFactory.h>
+#include <vtkOpenVRModel.h>
+#include <vtkOpenVRRenderWindowInteractor.h>
+#include <vtkPointPicker.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
+#include <vtkPropPicker.h>
+#include <vtkTransform.h>
+#include <vtkVRMenuWidget.h>
 
 vtkStandardNewMacro(iAImNDTInteractorStyle);
 
