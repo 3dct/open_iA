@@ -36,7 +36,6 @@
 #include <vtkProperty.h>
 #include <vtkPropPicker.h>
 #include <vtkTransform.h>
-#include <vtkVRMenuWidget.h>
 
 vtkStandardNewMacro(iAImNDTInteractorStyle);
 
