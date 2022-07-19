@@ -561,7 +561,7 @@ double iAImNDTMain::calculateWorldScaleFactor()
 //! Increases/Decreases the current octree level and feature. Recalculates the Model in Miniature Object.
 void iAImNDTMain::changeOctreeAndMetric()
 {
-	iAVRTouchpadPosition touchpadPos = m_style->getTouchedPadSide(touchPadPosition);
+	iAVRTouchpadPosition touchpadPos = iAImNDTInteractorStyle::getTouchedPadSide(m_touchPadPosition);
 
 	if (touchpadPos == iAVRTouchpadPosition::Up || touchpadPos == iAVRTouchpadPosition::Down) {
 
@@ -802,7 +802,7 @@ void iAImNDTMain::pressLeftTouchpad()
 	auto initWorldScale = m_vrEnv->getInitialWorldScale();
 	double offsetMiM = initWorldScale * 0.022;
 	double offsetVol = initWorldScale * 0.039;
-	iAVRTouchpadPosition touchpadPos = m_style->getTouchedPadSide(touchPadPosition);
+	iAVRTouchpadPosition touchpadPos = iAImNDTInteractorStyle::getTouchedPadSide(m_touchPadPosition);
 
 	if (modelInMiniatureActive && currentOctreeLevel > 0)
 	{
