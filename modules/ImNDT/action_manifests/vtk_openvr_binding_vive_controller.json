@@ -89,7 +89,7 @@
               "output": "/actions/vtk/in/nextcamerapose"
             }
           },
-          "mode": "button",
+          "mode": "trigger",
           "path": "/user/hand/left/input/trigger"
         },
         {
@@ -98,7 +98,7 @@
               "output": "/actions/vtk/in/triggeraction"
             }
           },
-          "mode": "button",
+          "mode": "trigger",
           "path": "/user/hand/right/input/trigger"
         }
       ]
