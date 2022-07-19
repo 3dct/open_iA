@@ -20,6 +20,18 @@
         {
           "inputs": {
             "click": {
+              "output": "/actions/vtk/in/trackpadleftclick"
+            },
+            "position": {
+              "output": "/actions/vtk/in/trackpadleftmove"
+            }
+          },
+          "mode": "trackpad",
+          "path": "/user/hand/left/input/trackpad"
+        },
+        {
+          "inputs": {
+            "click": {
               "output": "/actions/vtk/in/rightgripaction"
             }
           },
@@ -43,6 +55,33 @@
           },
           "mode": "button",
           "path": "/user/hand/right/input/application_menu"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/vtk/in/showmenuleft"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/application_menu"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/vtk/in/secondbuttonright"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/system"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/vtk/in/secondbuttonleft"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/system"
         },
         {
           "inputs": {

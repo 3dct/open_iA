@@ -1,12 +1,15 @@
 {
   "action_manifest_version": 0,
   "alias_info": {},
-  "app_key": "system.generated.paraview.exe",
+  "app_key": "system.generated.vtk.exe",
   "bindings": {
     "/actions/vtk": {
       "sources": [
         {
           "inputs": {
+            "click": {
+              "output": "/actions/vtk/in/startmovement"
+            },
             "position": {
               "output": "/actions/vtk/in/movement"
             }
@@ -17,11 +20,68 @@
         {
           "inputs": {
             "click": {
+              "output": "/actions/vtk/in/trackpadleftclick"
+            },
+            "position": {
+              "output": "/actions/vtk/in/trackpadleftmove"
+            }
+          },
+          "mode": "joystick",
+          "path": "/user/hand/left/input/joystick"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/vtk/in/rightgripaction"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
               "output": "/actions/vtk/in/leftgripaction"
             }
           },
           "mode": "button",
           "path": "/user/hand/left/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/vtk/in/showmenu"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/a"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/vtk/in/showmenuleft"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/x"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/vtk/in/secondbuttonright"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/b"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/vtk/in/secondbuttonleft"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/y"
         },
         {
           "inputs": {
@@ -40,24 +100,6 @@
           },
           "mode": "trigger",
           "path": "/user/hand/right/input/trigger"
-        },
-        {
-          "inputs": {
-            "click": {
-              "output": "/actions/vtk/in/showmenu"
-            }
-          },
-          "mode": "button",
-          "path": "/user/hand/right/input/b"
-        },
-        {
-          "inputs": {
-            "click": {
-              "output": "/actions/vtk/in/rightgripaction"
-            }
-          },
-          "mode": "button",
-          "path": "/user/hand/right/input/grip"
         }
       ]
     }
@@ -65,7 +107,7 @@
   "category": "steamvr_input",
   "controller_type": "oculus_touch",
   "description": "",
-  "name": "vtk-oculus",
+  "name": "Bindings for VTK applications for Oculus Touch Controllers",
   "options": {},
   "simulated_actions": []
 }
