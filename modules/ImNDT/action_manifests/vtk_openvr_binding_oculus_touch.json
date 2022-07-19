@@ -1,7 +1,7 @@
 {
   "action_manifest_version": 0,
   "alias_info": {},
-  "app_key": "system.generated.vtk.exe",
+  "app_key": "system.generated.open_iA.exe",
   "bindings": {
     "/actions/vtk": {
       "sources": [
