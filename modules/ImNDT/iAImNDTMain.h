@@ -65,15 +65,14 @@ enum class iAVROperations {
   PickFibersinRegion,
   PickMiMRegion,
   MultiPickMiMRegion,
-  ChangeOctreeAndMetric,
+  ChangeOctreeAndMetric,     //  5
   ResetSelection,
   ExplodeMiM,
   DisplayNodeLinkDiagram,
   ChangeMiMDisplacementType,
-  ChangeJaccardIndex,
+  ChangeJaccardIndex,        // 10
   FlipHistoBookPages,
   LeftGrid,
-  ToggleArView,
   NumberOfOperations
 };
 

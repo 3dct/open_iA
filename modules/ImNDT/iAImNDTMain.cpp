@@ -154,8 +154,6 @@ iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAImNDTInteractorStyle* style, 
 		iAVRInteractionOptions::MiniatureModel, iAVROperations::SpawnModelInMiniature);
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Grip, vtkEventDataAction::Press,
 		iAVRInteractionOptions::Anywhere, iAVROperations::MultiPickMiMRegion);
-	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::Trigger, vtkEventDataAction::Press,
-		iAVRInteractionOptions::Anywhere, iAVROperations::ToggleArView);
 	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::Grip, vtkEventDataAction::Press,
 		iAVRInteractionOptions::Anywhere, iAVROperations::LeftGrid);
 
@@ -235,14 +233,15 @@ void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pick
 	case iAVROperations::ExplodeMiM:
 		this->pressLeftTouchpad();
 		break;
-	case iAVROperations::ToggleArView:
-		if (activeInput->at(deviceID) == static_cast<int>(iAVROperations::ToggleArView))
+	case iAVROperations::ChangeMiMDisplacementType:
+		if (activeInput->at(deviceID) == 1)
 		{
 			this->toggleArView();
 		}
-		break;
-	case iAVROperations::ChangeMiMDisplacementType:
-		this->changeMiMDisplacementType();
+		else
+		{
+			this->changeMiMDisplacementType();
+		}
 		break;
 	case iAVROperations::DisplayNodeLinkDiagram:
 		this->displayNodeLinkD();
@@ -255,7 +254,7 @@ void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pick
 		this->flipDistributionVis();
 		break;
 	case iAVROperations::LeftGrid:
-		activeInput->at(deviceID) = static_cast<int>(iAVROperations::ToggleArView);
+		activeInput->at(deviceID) = 1;
 		break;
 	default:
 		LOG(lvlDebug, QString("Start Operation %1 is not defined").arg(operation));
@@ -930,7 +929,6 @@ void iAImNDTMain::displayNodeLinkD()
 
 void iAImNDTMain::toggleArView()
 {
-
 	if (!arEnabled)
 	{
 		m_vrEnv->hideSkybox();
@@ -939,7 +937,6 @@ void iAImNDTMain::toggleArView()
 		arViewer->buildRepresentation();
 		arViewer->refreshImage();
 		arEnabled = true;
-
 		return;
 	}
 
