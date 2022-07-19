@@ -63,21 +63,13 @@ void iAImNDTInteractorStyle::SetInteractor(vtkRenderWindowInteractor* iren)
 {
 	this->Superclass::SetInteractor(iren);
 	auto oiren = vtkOpenVRRenderWindowInteractor::SafeDownCast(iren);
-	if (!oiren)
-	{
-		LOG(lvlError, "iAImNDTInteractorStyleSetInteractor: Invalid Parameter!");
-		return;
-	}
+	assert(oiren);
 	oiren->AddAction("/actions/vtk/in/leftgripaction", false,
 		[this](vtkEventData* edata)
 		{
 			// for some reason, the input ID is not set; set it to the proper Application Menu
 			vtkEventDataDevice3D* edd = edata->GetAsEventDataDevice3D();
-			if (!edd)
-			{
-				LOG(lvlError, "updateTrackPadPos: Invalid call!");
-				return;
-			}
+			assert(edd);
 			edd->SetInput(vtkEventDataDeviceInput::Grip);
 			OnButton3D(edata);
 		});
@@ -86,11 +78,7 @@ void iAImNDTInteractorStyle::SetInteractor(vtkRenderWindowInteractor* iren)
 		{
 			// for some reason, the input ID is not set; set it to the proper Application Menu
 			vtkEventDataDevice3D* edd = edata->GetAsEventDataDevice3D();
-			if (!edd)
-			{
-				LOG(lvlError, "updateTrackPadPos: Invalid call!");
-				return;
-			}
+			assert(edd);
 			edd->SetInput(vtkEventDataDeviceInput::Grip);
 			OnButton3D(edata);
 		});
@@ -107,14 +95,9 @@ void iAImNDTInteractorStyle::SetInteractor(vtkRenderWindowInteractor* iren)
 	oiren->AddAction("/actions/vtk/in/ShowMenuLeft", false,
 		[this](vtkEventData* edata)
 		{
-			LOG(lvlInfo, QString("Left Show Menu."));
 			// for some reason, the input ID is not set; set it to the proper Application Menu
 			vtkEventDataDevice3D* edd = edata->GetAsEventDataDevice3D();
-			if (!edd)
-			{
-				LOG(lvlError, "updateTrackPadPos: Invalid call!");
-				return;
-			}
+			assert(edd);
 			edd->SetInput(vtkEventDataDeviceInput::ApplicationMenu);
 			OnButton3D(edata);
 		});
@@ -141,11 +124,7 @@ void iAImNDTInteractorStyle::OnMenu3D(vtkEventData* edata)
 {	// right controller menu button press
 	// for some reason, the input ID is not set; set it to the proper Application Menu
 	vtkEventDataDevice3D* edd = edata->GetAsEventDataDevice3D();
-	if (!edd)
-	{
-		LOG(lvlWarn, "OnMenu3D: Invalid call!");
-		return;
-	}
+	assert(edd);
 	edd->SetInput(vtkEventDataDeviceInput::ApplicationMenu);
 	OnButton3D(edata);
 }
@@ -159,11 +138,7 @@ void iAImNDTInteractorStyle::Dolly3D(vtkEventData* edata)
 void iAImNDTInteractorStyle::OnViewerMovement3D(vtkEventData* edata)
 {
 	vtkEventDataDevice3D* edd = edata->GetAsEventDataDevice3D();
-	if (!edd)
-	{
-		LOG(lvlError, "OnViewerMovement3D: Invalid call!");
-		return;
-	}
+	assert(edd);
 	// right trackpad position changes as well as clicks are both mapped to ViewerMovement3D in VTK, we have to distinguish:
 	if (edd->GetAction() == vtkEventDataAction::Unknown)
 	{
@@ -178,11 +153,7 @@ void iAImNDTInteractorStyle::OnViewerMovement3D(vtkEventData* edata)
 void iAImNDTInteractorStyle::updateTrackPadPos(vtkEventData* edata)
 {
 	vtkEventDataDevice3D* edd = edata->GetAsEventDataDevice3D();
-	if (!edd)
-	{
-		LOG(lvlError, "updateTrackPadPos: Invalid call!");
-		return;
-	}
+	assert(edd);
 	const double* pos = edd->GetTrackPadPosition();
 	if (pos[0] == 0 && pos[1] == 0)
 	{  // only if not both are 0 does it seem to be actually coming from the touch/trackpad...
@@ -214,15 +185,9 @@ iAImNDTInteractorStyle::iAVec2d iAImNDTInteractorStyle::getTrackPadPos(vtkEventD
 
 void iAImNDTInteractorStyle::OnButton3D(vtkEventData* edata)
 {
-	LOG(lvlInfo, QString("OnButton3D."));
 	// Used Device
 	vtkEventDataDevice3D* device = edata->GetAsEventDataDevice3D();
-	
-	if (!device)
-	{
-		LOG(lvlWarn, "    Invalid call!");
-		return;
-	}
+	assert(device);
 	//vtkEventDataDevice deviceData = device->GetDevice();			// Controller
 	//vtkEventDataDeviceInput input = device->GetInput();              // Input Method
 	vtkEventDataAction action = device->GetAction();                 // Action of Input Method
@@ -255,13 +220,8 @@ void iAImNDTInteractorStyle::OnButton3D(vtkEventData* edata)
 //! Is called when a Controller moves. Forwards the event to the main class
 void iAImNDTInteractorStyle::OnMove3D(vtkEventData * edata)
 {
-	// Used Device
 	vtkEventDataDevice3D* device = edata->GetAsEventDataDevice3D();
-	if (!device)
-	{
-		LOG(lvlWarn, "    Invalid call!");
-		return;
-	}
+	assert(device);
 
 	int x = this->Interactor->GetEventPosition()[0];
 	int y = this->Interactor->GetEventPosition()[1];
