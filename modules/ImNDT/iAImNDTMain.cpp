@@ -186,37 +186,6 @@ iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAImNDTInteractorStyle* style, 
 	}
 }
 
-namespace
-{
-	QString mapInputToString(int input)
-	{
-		switch (vtkEventDataDeviceInput(input))
-		{
-			default:
-			case vtkEventDataDeviceInput::Unknown : return "Unknown";
-			case vtkEventDataDeviceInput::Any : return "Any";
-			case vtkEventDataDeviceInput::Trigger : return "Trigger";
-			case vtkEventDataDeviceInput::TrackPad : return "TrackPad";
-			case vtkEventDataDeviceInput::Joystick : return "Joystick";
-			case vtkEventDataDeviceInput::Grip : return "Grip";
-			case vtkEventDataDeviceInput::ApplicationMenu : return "ApplicationMenu";
-		}
-	}
-	QString mapActionToString(int input)
-	{
-		switch (vtkEventDataAction(input))
-		{
-			default:
-			case vtkEventDataAction::Unknown : return "Unknown";
-			case vtkEventDataAction::Any : return "Any";
-			case vtkEventDataAction::Press : return "Press";
-			case vtkEventDataAction::Release : return "Release";
-			case vtkEventDataAction::Touch : return "Touch";
-			case vtkEventDataAction::Untouch : return "Grip";
-		}
-	}
-}
-
 //! Defines the action executed for specific controller inputs
 //! Position and Orientation are in WorldCoordinates and Orientation is in Degree
 void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4])
@@ -230,52 +199,11 @@ void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pick
 	m_vrEnv->interactor()->GetTouchPadPosition(device->GetDevice(), device->GetInput(), m_touchPadPosition);
 #endif
 
-	inputScheme* scheme = m_style->getInputScheme();
-
 	int deviceID = static_cast<int>(device->GetDevice()); // Device
-	if (deviceID < 0 || deviceID >= scheme->size())
-	{
-		LOG(lvlInfo, QString("startInteraction: invalid deviceID=%1, valid range 0..%2")
-			.arg(deviceID).arg(static_cast<int>(scheme->size())-1));
-		return;
-	}
 	int inputID = static_cast<int>(device->GetInput());  // Input Method
-	if (inputID < 0 || inputID >= scheme->at(deviceID).size())
-	{
-		LOG(lvlInfo, QString("startInteraction: invalid inputID=%1, valid range 0..%2 (deviceID=%3)")
-			.arg(inputID).arg(static_cast<int>(scheme->at(deviceID).size())-1).arg(deviceID));
-		return;
-	}
 	int actioniD = static_cast<int>(device->GetAction()); // Action of Input Method
-	if (actioniD < 0 || actioniD >= scheme->at(deviceID).at(inputID).size())
-	{
-		LOG(lvlInfo, QString("startInteraction: invalid actioniD=%1, valid range 0..%2 (deviceID=%3, inputID=%4)")
-			.arg(actioniD).arg(static_cast<int>(scheme->at(deviceID).at(inputID).size())-1).arg(deviceID).arg(inputID));
-		return;
-	}
 	int optionID = getOptionForObject(pickedProp);
-	if (optionID < 0 || optionID >= scheme->at(deviceID).at(inputID).at(actioniD).size())
-	{
-		LOG(lvlInfo, QString("startInteraction: invalid optionID=%1, valid range 0..%2 (deviceID=%3, inputID=%4, actioniD=%5)")
-			.arg(optionID).arg(static_cast<int>(scheme->at(deviceID).at(inputID).at(actioniD).size())-1).arg(deviceID).arg(inputID).arg(actioniD));
-		return;
-	}
-	
-	//LOG(QString("Object Number: %1").arg(optionID));
-	//if (optionID == -1) return;
-
-	int operation = scheme->at(deviceID).at(inputID).at(actioniD).at(optionID);
-
-	LOG(lvlInfo, QString("startInteraction: deviceID=%1, inputID=%2, actioniD=%3, optionID=%4, operation=%5, touchPadPos=%6")
-			.arg(deviceID)
-			.arg(mapInputToString(inputID))
-			.arg(mapActionToString(actioniD))
-			.arg(optionID)
-			.arg(operation)
-			.arg(QString("%1, %2, %3")
-					 .arg(m_touchPadPosition[0])
-					 .arg(m_touchPadPosition[1])
-					 .arg(m_touchPadPosition[2])));
+	int operation = m_style->getInputScheme()->at(deviceID).at(inputID).at(actioniD).at(optionID);
 
 	switch (iAVROperations(operation))
 	{
@@ -341,49 +269,11 @@ void iAImNDTMain::endInteraction(vtkEventDataDevice3D* device, vtkProp3D* picked
 	Q_UNUSED(eventPosition);
 	Q_UNUSED(eventOrientation);
 
-	inputScheme* scheme = m_style->getInputScheme();
-
 	int deviceID = static_cast<int>(device->GetDevice()); // Device
-	if (deviceID < 0 || deviceID >= scheme->size())
-	{
-		LOG(lvlInfo, QString("endInteraction: invalid deviceID=%1, valid range 0..%2")
-			.arg(deviceID).arg(static_cast<int>(scheme->size())-1));
-		return;
-	}
 	int inputID = static_cast<int>(device->GetInput());  // Input Method
-	if (inputID < 0 || inputID >= scheme->at(deviceID).size())
-	{
-		LOG(lvlInfo, QString("endInteraction: invalid inputID=%1, valid range 0..%2 (deviceID=%3)")
-			.arg(inputID).arg(static_cast<int>(scheme->at(deviceID).size())-1).arg(deviceID));
-		return;
-	}
 	int actioniD = static_cast<int>(device->GetAction()); // Action of Input Method
-	if (actioniD < 0 || actioniD >= scheme->at(deviceID).at(inputID).size())
-	{
-		LOG(lvlInfo, QString("endInteraction: invalid actioniD=%1, valid range 0..%2 (deviceID=%3, inputID=%4)")
-			.arg(actioniD).arg(static_cast<int>(scheme->at(deviceID).at(inputID).size())-1).arg(deviceID).arg(inputID));
-		return;
-	}
 	int optionID = getOptionForObject(pickedProp);
-	if (optionID < 0 || optionID >= scheme->at(deviceID).at(inputID).at(actioniD).size())
-	{
-		LOG(lvlInfo, QString("endInteraction: invalid optionID=%1, valid range 0..%2 (deviceID=%3, inputID=%4, actioniD=%5)")
-			.arg(optionID).arg(static_cast<int>(scheme->at(deviceID).at(inputID).at(actioniD).size())-1).arg(deviceID).arg(inputID).arg(actioniD));
-		return;
-	}
-
-	int operation = scheme->at(deviceID).at(inputID).at(actioniD).at(optionID);
-
-	LOG(lvlInfo, QString("endInteraction: deviceID=%1, inputID=%2, actioniD=%3, optionID=%4, operation=%5, touchPadPos=%6")
-			.arg(deviceID)
-			.arg(mapInputToString(inputID))
-			.arg(mapActionToString(actioniD))
-			.arg(optionID)
-			.arg(operation)
-			.arg(QString("%1, %2, %3")
-					 .arg(m_touchPadPosition[0])
-					 .arg(m_touchPadPosition[1])
-					 .arg(m_touchPadPosition[2])));
+	int operation = m_style->getInputScheme()->at(deviceID).at(inputID).at(actioniD).at(optionID);
 
 	switch (iAVROperations(operation))
 	{
