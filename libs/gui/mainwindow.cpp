@@ -69,11 +69,13 @@
 #include <QDropEvent>
 #include <QComboBox>
 #include <QFileDialog>
+#include <QHeaderView>
 #include <QMessageBox>
 #include <QMimeData>
 #include <QMdiSubWindow>
 #include <QSettings>
 #include <QSplashScreen>
+#include <QTableWidget>
 #include <QTextStream>
 #include <QTimer>
 #include <QtXml/QDomDocument>
@@ -113,7 +115,8 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_buildInformation(buildInformation),
 	m_ui(new Ui_MainWindow()),
 	m_dwJobs(dwJobs),
-	m_openJobListOnNewJob(false)
+	m_openJobListOnNewJob(false),
+	m_logoImg(splashImage)
 {
 	assert(!m_mainWnd);
 	m_mainWnd = this;
@@ -136,8 +139,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	restoreGeometry(settings.value("geometry", saveGeometry()).toByteArray());
 	restoreState(settings.value("state", saveState()).toByteArray());
 
-	QPixmap pixmap( splashImage );
-	m_splashScreen = new QSplashScreen(pixmap);
+	m_splashScreen = new QSplashScreen(m_logoImg);
 	m_splashScreen->setWindowFlags(m_splashScreen->windowFlags() | Qt::WindowStaysOnTopHint);
 	m_splashScreen->show();
 	m_splashScreen->showMessage("\n      Reading settings...", Qt::AlignTop, QColor(255, 255, 255));
@@ -1538,13 +1540,60 @@ void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
 
 void MainWindow::about()
 {
-	m_splashScreen->show();
-	m_splashScreen->showMessage(QString("\n      Version: %1").arg(m_gitVersion), Qt::AlignTop, QColor(255, 255, 255));
-}
+	QDialog dlg(this);
+	dlg.setWindowTitle("About open_iA");
+	dlg.setLayout(new QVBoxLayout());
 
-void MainWindow::buildInformation()
-{
-	QMessageBox::information(this, "Build Information", m_buildInformation, QMessageBox::Ok);
+	// TODO: center image
+	auto imgLabel = new QLabel();
+	imgLabel->setPixmap(m_logoImg);
+	dlg.layout()->addWidget(imgLabel);
+	
+	auto rows = m_buildInformation.count('\n') + 1;
+	auto table = new QTableWidget(rows, 2, this);
+	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	table->setItem(0, 0, new QTableWidgetItem("Version"));
+	table->setItem(0, 1, new QTableWidgetItem(m_gitVersion));
+	auto lines = m_buildInformation.split("\n");
+	int row = 1;
+	for (auto line: lines)
+	{
+		auto tokens = line.split("\t");
+		if (tokens.size() != 2)
+		{
+			continue;
+		}
+		table->setItem(row, 0, new QTableWidgetItem(tokens[0]));
+		table->setItem(row, 1, new QTableWidgetItem(tokens[1]));
+		++row;
+	}
+	table->resizeColumnsToContents();
+	table->verticalHeader()->hide();
+	table->horizontalHeader()->hide();
+	dlg.layout()->addWidget(table);
+
+	auto okBtn = new QPushButton("Ok");
+	connect(okBtn, &QPushButton::clicked, &dlg, &QDialog::accept);
+	dlg.layout()->addWidget(okBtn);
+
+	// TODO: Set alternating row colors - below not working:
+	// table->setAlternatingRowColors(true);
+	// table->setStyleSheet("alternate-background-color: #999;");
+	// --
+
+	// TODO: Resize dialog to make full table fit - below not working:
+	// dlg.show(); tried to show dialog to update layout; changes sizes somehow but still not to proper values
+	//auto tablesize = table->viewport()->sizeHint();	// should get size of region inside scroll area, but doesn't work?
+	/*
+	LOG(lvlInfo, QString("viewport size: %1, %2; table size: %3, %4")
+		.arg(tablesize.width())
+		.arg(tablesize.height())
+		.arg(table->width())
+		.arg(table->height()));
+	dlg.setFixedWidth(std::max(imgLabel->width(), tablesize.width()));
+	dlg.setFixedHeight(imgLabel->height() + tablesize.height());
+	*/
+	dlg.exec();
 }
 
 void MainWindow::wiki()
@@ -1836,7 +1885,6 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionReleases, &QAction::triggered, this, &MainWindow::wiki);
 	connect(m_ui->actionBug, &QAction::triggered, this, &MainWindow::wiki);
 	connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
-	connect(m_ui->actionBuildInformation, &QAction::triggered, this, &MainWindow::buildInformation);
 
 	// Renderer toolbar:
 	connect(m_ui->actionViewXDirectionInRaycaster, &QAction::triggered, this, &MainWindow::rendererCamPosition);
