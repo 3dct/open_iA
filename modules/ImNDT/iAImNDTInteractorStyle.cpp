@@ -101,13 +101,13 @@ void iAImNDTInteractorStyle::SetInteractor(vtkRenderWindowInteractor* iren)
 			OnButton3D(edata);
 		});
 	oiren->AddAction("/actions/vtk/in/SecondButtonRight", false,
-		[this](vtkEventData* edata)
+		[](vtkEventData* edata)
 		{	// currently unused (not working on VIVE as system button there apparently cannot be remapped)
 			Q_UNUSED(edata);
 			LOG(lvlInfo, QString("Right Second Button."));
 		});
 	oiren->AddAction("/actions/vtk/in/SecondButtonLeft", false,
-		[this](vtkEventData* edata)
+		[](vtkEventData* edata)
 		{	// currently unused (not working on VIVE as system button there apparently cannot be remapped)
 			Q_UNUSED(edata);
 			LOG(lvlInfo, QString("Left Second Button."));

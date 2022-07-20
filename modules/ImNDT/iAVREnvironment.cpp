@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #include "iAVREnvironment.h"
 
-#include "iAVRInteractor.h"
-
 #include <iALog.h>
 #include <iAVtkVersion.h>
 

@@ -26,7 +26,6 @@
 #include "iAVRColorLegend.h"
 #include "iAVRFrontCamera.h"
 #include "iAVRHistogramPairVis.h"
-#include "iAVRInteractor.h"
 #include "iAVRMip.h"
 #include "iAVRModelInMiniature.h"
 #include "iAVRObjectModel.h"
