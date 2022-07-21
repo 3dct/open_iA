@@ -466,6 +466,7 @@ QTreeWidget
 		color: rgba(230, 230, 230, 255);
 	}
 	QListView::item:alternate,
+	QTableWidget::item:alternate,
 	QListWidget::item:alternate
 	{
 		background-color: rgba(20, 20, 20, 255);
