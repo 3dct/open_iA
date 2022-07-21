@@ -1583,9 +1583,9 @@ void MainWindow::about()
 	table->horizontalHeader()->hide();
 	// set fixed table height:
 	auto tableHeight = 0;
-	for (int i = 0; i < table->rowCount(); ++i)
+	for (int r = 0; r < table->rowCount(); ++r)
 	{
-		tableHeight += table->rowHeight(i);
+		tableHeight += table->rowHeight(r);
 	}
 	auto tableWidth = 0;
 	for (int c=0; c < table->columnCount(); ++c)
@@ -1602,11 +1602,6 @@ void MainWindow::about()
 	auto okBtn = new QPushButton("Ok");
 	connect(okBtn, &QPushButton::clicked, &dlg, &QDialog::accept);
 	dlg.layout()->addWidget(okBtn);
-
-	// TODO: Set alternating row colors - below not working:
-	// table->setAlternatingRowColors(true);
-	// table->setStyleSheet("alternate-background-color: #999;");
-	// --
 
 	dlg.exec();
 }
