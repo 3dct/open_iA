@@ -1544,10 +1544,21 @@ void MainWindow::about()
 	dlg.setWindowTitle("About open_iA");
 	dlg.setLayout(new QVBoxLayout());
 
-	// TODO: center image
 	auto imgLabel = new QLabel();
 	imgLabel->setPixmap(m_logoImg);
+	imgLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
 	dlg.layout()->addWidget(imgLabel);
+
+	auto linkLabel = new QLabel("<a href=\"https://3dct.github.io/open_iA/\">3dct.github.io/open_iA</a>");
+	linkLabel->setTextFormat(Qt::RichText);
+	linkLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
+	linkLabel->setOpenExternalLinks(true);
+	linkLabel->setAlignment(Qt::AlignRight);
+	dlg.layout()->addWidget(linkLabel);
+
+	auto buildInfoLabel = new QLabel("Build information:");
+	buildInfoLabel->setIndent(0);
+	dlg.layout()->addWidget(buildInfoLabel);
 	
 	auto rows = m_buildInformation.count('\n') + 1;
 	auto table = new QTableWidget(rows, 2, this);
@@ -1570,6 +1581,22 @@ void MainWindow::about()
 	table->resizeColumnsToContents();
 	table->verticalHeader()->hide();
 	table->horizontalHeader()->hide();
+	// set fixed table height:
+	auto tableHeight = 0;
+	for (int i = 0; i < table->rowCount(); ++i)
+	{
+		tableHeight += table->rowHeight(i);
+	}
+	auto tableWidth = 0;
+	for (int c=0; c < table->columnCount(); ++c)
+	{
+		tableWidth += table->columnWidth(c);
+	}    // +2 to avoid minor scrolling when clicking on the left/right- up/bottom-most cell in the table:
+	table->setFixedWidth(tableWidth + 2);
+	table->setFixedHeight(tableHeight + 2);
+	table->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	table->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	table->setAlternatingRowColors(true);
 	dlg.layout()->addWidget(table);
 
 	auto okBtn = new QPushButton("Ok");
@@ -1581,18 +1608,6 @@ void MainWindow::about()
 	// table->setStyleSheet("alternate-background-color: #999;");
 	// --
 
-	// TODO: Resize dialog to make full table fit - below not working:
-	// dlg.show(); tried to show dialog to update layout; changes sizes somehow but still not to proper values
-	//auto tablesize = table->viewport()->sizeHint();	// should get size of region inside scroll area, but doesn't work?
-	/*
-	LOG(lvlInfo, QString("viewport size: %1, %2; table size: %3, %4")
-		.arg(tablesize.width())
-		.arg(tablesize.height())
-		.arg(table->width())
-		.arg(table->height()));
-	dlg.setFixedWidth(std::max(imgLabel->width(), tablesize.width()));
-	dlg.setFixedHeight(imgLabel->height() + tablesize.height());
-	*/
 	dlg.exec();
 }
 
