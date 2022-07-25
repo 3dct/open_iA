@@ -44,6 +44,7 @@ class QAction;
 class ImNDT_API iAImNDTModuleInterface : public iAGUIModuleInterface{
 	Q_OBJECT
 public:
+	~iAImNDTModuleInterface();
 	void Initialize() override;
 	bool ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io,
 		iACsvConfig csvConfig);

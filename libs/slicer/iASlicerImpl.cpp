@@ -607,9 +607,10 @@ void iASlicerImpl::setMagicLensEnabled( bool isEnabled )
 		LOG(lvlWarn, "SetMagicLensEnabled called on slicer which doesn't have a magic lens!");
 		return;
 	}
+	setCursor  (isEnabled ? Qt::BlankCursor : mouseCursor());
+	setShowText(isEnabled ? false : m_settings.ShowTooltip);
 	m_magicLens->setEnabled(isEnabled);
 	m_interactorStyle->setRightButtonDragZoomEnabled(!isEnabled);
-	setShowText(!isEnabled);
 	updateMagicLens();
 }
 
@@ -1140,7 +1141,7 @@ void iASlicerImpl::saveImageStack()
 	}
 	iAProgress p;
 	iASimpleAbortListener aborter;
-	auto jobHandle = iAJobListView::get()->addJob("Exporting Movie", &p, &aborter);
+	auto jobHandle = iAJobListView::get()->addJob("Exporting Image Stack", &p, &aborter);
 	m_renWin->GetInteractor()->Disable();
 	double movingOrigin[3];
 	imageData->GetOrigin(movingOrigin);
@@ -1295,7 +1296,7 @@ void iASlicerImpl::execute(vtkObject * /*caller*/, unsigned long eventId, void *
 	case vtkCommand::MouseMoveEvent:
 	{
 		//LOG(lvlInfo, "iASlicerImpl::execute vtkCommand::MouseMoveEvent");
-		if (m_cursorSet && cursor() != mouseCursor())
+		if (m_cursorSet && cursor() != mouseCursor() && !m_magicLens->isEnabled())
 		{
 			setCursor(mouseCursor());
 		}
@@ -1533,7 +1534,7 @@ void iASlicerImpl::printVoxelInformation()
 		m_textInfo->setText(strDetails.toStdString().c_str());
 		m_positionMarkerMapper->Update();
 	}
-	m_textInfo->show(infoAvailable);
+	m_textInfo->show(infoAvailable && !m_magicLens->isEnabled());
 }
 
 void iASlicerImpl::executeKeyPressEvent()
@@ -2756,12 +2757,16 @@ void iASlicerImpl::updateMagicLens()
 	ren->WorldToDisplay();
 	double dpos[3];
 	ren->GetDisplayPoint(dpos);
-	int lensSz = m_magicLens->size();
-	lensSz = (std::min)(lensSz, (std::min)(geometry().width(), geometry().height())); // restrict size to size of smallest side
-	int lensSzHalf = 0.5*lensSz;
-	// clamp to image, round to int (=pixels)
-	dpos[0] = clamp(lensSzHalf, geometry().width() - lensSzHalf - 1, qRound(dpos[0]));
-	dpos[1] = clamp(lensSzHalf, geometry().height() - lensSzHalf - 1, qRound(dpos[1]));
+	float lensSz = m_magicLens->size();
+	// consider device pixel  ratio since measures from Qt are in "virtual" coordinates, but VTK ones are in "real" pixels
+	qreal pixelWidth = devicePixelRatio() * geometry().width();
+	qreal pixelHeight = devicePixelRatio() * geometry().height();
+	lensSz = (std::min)(static_cast<qreal>(lensSz),
+		(std::min)(pixelWidth, pixelHeight));  // restrict size to size of smallest side
+	qreal lensSzHalf = 0.5*lensSz;
+	// clamp to image, round to int (=pixels)	
+	dpos[0] = clamp(lensSzHalf, pixelWidth - lensSzHalf - 1, dpos[0]);
+	dpos[1] = clamp(lensSzHalf, pixelHeight - lensSzHalf - 1, dpos[1]);
 	dpos[2] = qRound(dpos[2]);
 	ren->SetDisplayPoint(dpos);
 	ren->DisplayToWorld();

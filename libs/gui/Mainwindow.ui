@@ -55,7 +55,7 @@
      <x>0</x>
      <y>0</y>
      <width>1130</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="toolTipDuration">
@@ -223,7 +223,6 @@
     <addaction name="actionReleases"/>
     <addaction name="actionBug"/>
     <addaction name="actionAbout"/>
-    <addaction name="actionBuildInformation"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>

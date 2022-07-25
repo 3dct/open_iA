@@ -45,6 +45,16 @@
 #include <QMessageBox>
 
 
+
+iAImNDTModuleInterface::~iAImNDTModuleInterface()
+{
+	if (m_vrEnv)
+	{
+		LOG(lvlInfo, "Application shutdown while VR environment still active; stopping!");
+		m_vrEnv->stop();
+	}
+}
+
 void iAImNDTModuleInterface::Initialize()
 {
 	if (!m_mainWnd)

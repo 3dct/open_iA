@@ -69,3 +69,23 @@ ENDIF()
 IF (AstraToolbox_FIND_REQUIRED AND NOT ASTRA_TOOLBOX_FOUND)
 	MESSAGE(SEND_ERROR "Astra Toolbox not found, but it is specified to be required! Please set ASTRA_TOOLBOX_DIR!")
 ENDIF()
+
+if (ASTRA_TOOLBOX_FOUND)
+	execute_process(COMMAND
+		"${GIT_EXECUTABLE}" describe --tags
+		WORKING_DIRECTORY "${ASTRA_TOOLBOX_DIR}"
+		RESULT_VARIABLE astra_describe_res
+		OUTPUT_VARIABLE astra_describe_out
+		ERROR_VARIABLE astra_describe_err
+		OUTPUT_STRIP_TRAILING_WHITESPACE)
+	if (${astra_describe_res} EQUAL 0)
+		STRING(REGEX REPLACE "v" "" ASTRA_VERSION ${astra_describe_out})
+	else ()
+		set(ASTRA_VERSION "unknown")
+		string(FIND "${ASTRA_TOOLBOX_DIR}" "-" ASTRA_DASH_POS REVERSE)
+		if (${ASTRA_DASH_POS} GREATER -1)
+			MATH(EXPR ASTRA_DASH_POS "${ASTRA_DASH_POS} + 1")
+			string(SUBSTRING "${ASTRA_TOOLBOX_DIR}" ${ASTRA_DASH_POS} -1 ASTRA_VERSION)
+		endif()
+	endif()
+endif()

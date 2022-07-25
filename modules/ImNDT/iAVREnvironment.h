@@ -34,8 +34,6 @@ class vtkOpenVRRenderer;
 class vtkRenderer;
 class vtkOpenVRRenderWindow;
 
-class iAVRInteractor;
-
 //! The VR environment. Currently deleted every time when the environment is stopped.
 //! Could be re-used, but that would require all features using it to cleanly remove
 //! all elements from the VR renderer before exiting!

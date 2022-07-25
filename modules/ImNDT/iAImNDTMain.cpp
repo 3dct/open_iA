@@ -26,7 +26,6 @@
 #include "iAVRColorLegend.h"
 #include "iAVRFrontCamera.h"
 #include "iAVRHistogramPairVis.h"
-#include "iAVRInteractor.h"
 #include "iAVRMip.h"
 #include "iAVRModelInMiniature.h"
 #include "iAVRObjectModel.h"
@@ -154,8 +153,6 @@ iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAImNDTInteractorStyle* style, 
 		iAVRInteractionOptions::MiniatureModel, iAVROperations::SpawnModelInMiniature);
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Grip, vtkEventDataAction::Press,
 		iAVRInteractionOptions::Anywhere, iAVROperations::MultiPickMiMRegion);
-	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::Trigger, vtkEventDataAction::Press,
-		iAVRInteractionOptions::Anywhere, iAVROperations::ToggleArView);
 	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::Grip, vtkEventDataAction::Press,
 		iAVRInteractionOptions::Anywhere, iAVROperations::LeftGrid);
 
@@ -192,18 +189,20 @@ iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAImNDTInteractorStyle* style, 
 //! Position and Orientation are in WorldCoordinates and Orientation is in Degree
 void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4])
 {
-	m_vrEnv->interactor()->GetTouchPadPosition(device->GetDevice(), device->GetInput(), touchPadPosition);
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
+	auto touchPos = m_style->getTrackPadPos(device->GetDevice());
+	m_touchPadPosition[0] = touchPos.c[0];
+	m_touchPadPosition[1] = touchPos.c[1];
+	m_touchPadPosition[2] = 0.0;
+#else
+	m_vrEnv->interactor()->GetTouchPadPosition(device->GetDevice(), device->GetInput(), m_touchPadPosition);
+#endif
 
 	int deviceID = static_cast<int>(device->GetDevice()); // Device
 	int inputID = static_cast<int>(device->GetInput());  // Input Method
 	int actioniD = static_cast<int>(device->GetAction()); // Action of Input Method
 	int optionID = getOptionForObject(pickedProp);
-	
-	//LOG(QString("Object Number: %1").arg(optionID));
-	//if (optionID == -1) return;
-
-	inputScheme* scheme = m_style->getInputScheme();
-	int operation = scheme->at(deviceID).at(inputID).at(actioniD).at(optionID);
+	int operation = m_style->getInputScheme()->at(deviceID).at(inputID).at(actioniD).at(optionID);
 
 	switch (iAVROperations(operation))
 	{
@@ -235,14 +234,15 @@ void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pick
 	case iAVROperations::ExplodeMiM:
 		this->pressLeftTouchpad();
 		break;
-	case iAVROperations::ToggleArView:
-		if (activeInput->at(deviceID) == static_cast<int>(iAVROperations::ToggleArView))
+	case iAVROperations::ChangeMiMDisplacementType:
+		if (activeInput->at(deviceID) == 1)
 		{
 			this->toggleArView();
 		}
-		break;
-	case iAVROperations::ChangeMiMDisplacementType:
-		this->changeMiMDisplacementType();
+		else
+		{
+			this->changeMiMDisplacementType();
+		}
 		break;
 	case iAVROperations::DisplayNodeLinkDiagram:
 		this->displayNodeLinkD();
@@ -255,7 +255,7 @@ void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pick
 		this->flipDistributionVis();
 		break;
 	case iAVROperations::LeftGrid:
-		activeInput->at(deviceID) = static_cast<int>(iAVROperations::ToggleArView);
+		activeInput->at(deviceID) = 1;
 		break;
 	default:
 		LOG(lvlDebug, QString("Start Operation %1 is not defined").arg(operation));
@@ -267,13 +267,12 @@ void iAImNDTMain::endInteraction(vtkEventDataDevice3D* device, vtkProp3D* picked
 {
 	Q_UNUSED(eventPosition);
 	Q_UNUSED(eventOrientation);
+
 	int deviceID = static_cast<int>(device->GetDevice()); // Device
 	int inputID = static_cast<int>(device->GetInput());  // Input Method
-	int actioniD = static_cast<int>(device->GetAction());     // Action of Input Method
+	int actioniD = static_cast<int>(device->GetAction()); // Action of Input Method
 	int optionID = getOptionForObject(pickedProp);
-
-	inputScheme* scheme = m_style->getInputScheme();
-	int operation = scheme->at(deviceID).at(inputID).at(actioniD).at(optionID);
+	int operation = m_style->getInputScheme()->at(deviceID).at(inputID).at(actioniD).at(optionID);
 
 	switch (iAVROperations(operation))
 	{
@@ -561,7 +560,7 @@ double iAImNDTMain::calculateWorldScaleFactor()
 //! Increases/Decreases the current octree level and feature. Recalculates the Model in Miniature Object.
 void iAImNDTMain::changeOctreeAndMetric()
 {
-	iAVRTouchpadPosition touchpadPos = m_style->getTouchedPadSide(touchPadPosition);
+	iAVRTouchpadPosition touchpadPos = iAImNDTInteractorStyle::getTouchedPadSide(m_touchPadPosition);
 
 	if (touchpadPos == iAVRTouchpadPosition::Up || touchpadPos == iAVRTouchpadPosition::Down) {
 
@@ -802,7 +801,7 @@ void iAImNDTMain::pressLeftTouchpad()
 	auto initWorldScale = m_vrEnv->getInitialWorldScale();
 	double offsetMiM = initWorldScale * 0.022;
 	double offsetVol = initWorldScale * 0.039;
-	iAVRTouchpadPosition touchpadPos = m_style->getTouchedPadSide(touchPadPosition);
+	iAVRTouchpadPosition touchpadPos = iAImNDTInteractorStyle::getTouchedPadSide(m_touchPadPosition);
 
 	if (modelInMiniatureActive && currentOctreeLevel > 0)
 	{
@@ -930,7 +929,6 @@ void iAImNDTMain::displayNodeLinkD()
 
 void iAImNDTMain::toggleArView()
 {
-
 	if (!arEnabled)
 	{
 		m_vrEnv->hideSkybox();
@@ -939,7 +937,6 @@ void iAImNDTMain::toggleArView()
 		arViewer->buildRepresentation();
 		arViewer->refreshImage();
 		arEnabled = true;
-
 		return;
 	}
 

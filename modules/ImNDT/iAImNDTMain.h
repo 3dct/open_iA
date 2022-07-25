@@ -65,15 +65,14 @@ enum class iAVROperations {
   PickFibersinRegion,
   PickMiMRegion,
   MultiPickMiMRegion,
-  ChangeOctreeAndMetric,
+  ChangeOctreeAndMetric,     //  5
   ResetSelection,
   ExplodeMiM,
   DisplayNodeLinkDiagram,
   ChangeMiMDisplacementType,
-  ChangeJaccardIndex,
+  ChangeJaccardIndex,        // 10
   FlipHistoBookPages,
   LeftGrid,
-  ToggleArView,
   NumberOfOperations
 };
 
@@ -124,7 +123,7 @@ private:
 	//Current view direction of the head
 	int viewDirection;
 	//Current touchpad Position
-	float touchPadPosition[3];
+	float m_touchPadPosition[3];
 	// Active Input Saves the current applied Input in case Multiinput is requires
 	std::vector<int>* activeInput;
 	// Map Actors to iAVRInteractionOptions
