@@ -69,11 +69,13 @@
 #include <QDropEvent>
 #include <QComboBox>
 #include <QFileDialog>
+#include <QHeaderView>
 #include <QMessageBox>
 #include <QMimeData>
 #include <QMdiSubWindow>
 #include <QSettings>
 #include <QSplashScreen>
+#include <QTableWidget>
 #include <QTextStream>
 #include <QTimer>
 #include <QtXml/QDomDocument>
@@ -113,7 +115,8 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_buildInformation(buildInformation),
 	m_ui(new Ui_MainWindow()),
 	m_dwJobs(dwJobs),
-	m_openJobListOnNewJob(false)
+	m_openJobListOnNewJob(false),
+	m_logoImg(splashImage)
 {
 	assert(!m_mainWnd);
 	m_mainWnd = this;
@@ -136,8 +139,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	restoreGeometry(settings.value("geometry", saveGeometry()).toByteArray());
 	restoreState(settings.value("state", saveState()).toByteArray());
 
-	QPixmap pixmap( splashImage );
-	m_splashScreen = new QSplashScreen(pixmap);
+	m_splashScreen = new QSplashScreen(m_logoImg);
 	m_splashScreen->setWindowFlags(m_splashScreen->windowFlags() | Qt::WindowStaysOnTopHint);
 	m_splashScreen->show();
 	m_splashScreen->showMessage("\n      Reading settings...", Qt::AlignTop, QColor(255, 255, 255));
@@ -1239,7 +1241,7 @@ void MainWindow::slicerSettings()
 	addParameter(params, "Max Isovalue", iAValueType::Continuous, slicerSettings.SingleSlicer.MaxIsoValue);
 	addParameter(params, "Snake Slices", iAValueType::Discrete, slicerSettings.SnakeSlices);
 	addParameter(params, "Link MDIs", iAValueType::Boolean, slicerSettings.LinkMDIs);
-	addParameter(params, "Mouse Coursor Types", iAValueType::Categorical, mouseCursorOptions);
+	addParameter(params, "Mouse Cursor", iAValueType::Categorical, mouseCursorOptions);
 	addParameter(params, "Show Axes Caption", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowAxesCaption);
 	addParameter(params, "Tooltip Font Size (pt)", iAValueType::Discrete, slicerSettings.SingleSlicer.ToolTipFontSize);
 	addParameter(params, "Show Tooltip", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowTooltip);
@@ -1538,13 +1540,86 @@ void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
 
 void MainWindow::about()
 {
-	m_splashScreen->show();
-	m_splashScreen->showMessage(QString("\n      Version: %1").arg(m_gitVersion), Qt::AlignTop, QColor(255, 255, 255));
-}
+	QDialog dlg(this);
+	dlg.setWindowTitle("About open_iA");
+	dlg.setLayout(new QVBoxLayout());
 
-void MainWindow::buildInformation()
-{
-	QMessageBox::information(this, "Build Information", m_buildInformation, QMessageBox::Ok);
+	auto imgLabel = new QLabel();
+	imgLabel->setPixmap(m_logoImg);
+	imgLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+	dlg.layout()->addWidget(imgLabel);
+
+	auto linkLabel = new QLabel("<a href=\"https://3dct.github.io/open_iA/\">3dct.github.io/open_iA</a>");
+	linkLabel->setTextFormat(Qt::RichText);
+	linkLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
+	linkLabel->setOpenExternalLinks(true);
+	linkLabel->setAlignment(Qt::AlignRight);
+	dlg.layout()->addWidget(linkLabel);
+
+	auto buildInfoLabel = new QLabel("Build information:");
+	buildInfoLabel->setIndent(0);
+	dlg.layout()->addWidget(buildInfoLabel);
+	
+	auto rows = m_buildInformation.count('\n') + 1;
+	auto table = new QTableWidget(rows, 2, this);
+	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	table->setItem(0, 0, new QTableWidgetItem("Version"));
+	table->setItem(0, 1, new QTableWidgetItem(m_gitVersion));
+	auto lines = m_buildInformation.split("\n");
+	int row = 1;
+	for (auto line: lines)
+	{
+		auto tokens = line.split("\t");
+		if (tokens.size() != 2)
+		{
+			continue;
+		}
+		table->setItem(row, 0, new QTableWidgetItem(tokens[0]));
+		table->setItem(row, 1, new QTableWidgetItem(tokens[1]));
+		++row;
+	}
+	table->resizeColumnsToContents();
+	table->verticalHeader()->hide();
+	table->horizontalHeader()->hide();
+	// set fixed table height:
+	auto tableHeight = 0;
+	for (int r = 0; r < table->rowCount(); ++r)
+	{
+		tableHeight += table->rowHeight(r);
+	}
+	// +2 to avoid minor scrolling when clicking on the left/right- up/bottom-most cell in the table:
+	tableHeight += 2;
+	auto tableWidth = 0;
+	for (int c=0; c < table->columnCount(); ++c)
+	{
+		tableWidth += table->columnWidth(c);
+	}
+	auto screenHeightThird = screen()->geometry().height() / 3;
+	if (imgLabel->height() > screenHeightThird)
+	{
+		imgLabel->setFixedSize(
+			screenHeightThird * static_cast<double>(imgLabel->width()) / imgLabel->height(),
+			screenHeightThird);
+	}
+
+	imgLabel->setScaledContents(true);
+	// make sure about dialog isn't higher than roughly 2/3 the screen size:
+	tableWidth = std::max(tableWidth, imgLabel->width());
+	const int MinTableHeight = 50;
+	auto newTableHeight = std::max(MinTableHeight, std::min(tableHeight, screenHeightThird));
+	table->setFixedWidth(tableWidth + 2);
+	table->setFixedHeight(newTableHeight);
+	//table->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	table->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	table->setAlternatingRowColors(true);
+	table->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	dlg.layout()->addWidget(table);
+
+	auto okBtn = new QPushButton("Ok");
+	connect(okBtn, &QPushButton::clicked, &dlg, &QDialog::accept);
+	dlg.layout()->addWidget(okBtn);
+
+	dlg.exec();
 }
 
 void MainWindow::wiki()
@@ -1836,7 +1911,6 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionReleases, &QAction::triggered, this, &MainWindow::wiki);
 	connect(m_ui->actionBug, &QAction::triggered, this, &MainWindow::wiki);
 	connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
-	connect(m_ui->actionBuildInformation, &QAction::triggered, this, &MainWindow::buildInformation);
 
 	// Renderer toolbar:
 	connect(m_ui->actionViewXDirectionInRaycaster, &QAction::triggered, this, &MainWindow::rendererCamPosition);

@@ -191,7 +191,6 @@ private slots:
 	void toggleChildStatusBar();
 	void toggleToolbar();
 	void about();
-	void buildInformation();
 	void wiki();
 	void saveLayout();
 	void resetLayout();
@@ -229,6 +228,7 @@ private:
 	static const int MaxRecentFiles = 8;
 
 	QSplashScreen *m_splashScreen;
+	QPixmap m_logoImg;
 	QAction *m_separatorAct;
 	QAction *m_recentFileActs[MaxRecentFiles];
 	QActionGroup *m_slicerToolsGroup, *m_mdiViewModeGroup;
