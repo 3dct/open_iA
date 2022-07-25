@@ -18,6 +18,9 @@ namespace
 	QString PointColor = "Point Color";
 	QString LineColor = "Line Color";
 	QString LineWidth = "Line Width";
+
+	QString PolyColor = "Color";
+	QString PolyOpacity = "Opacity";
 }
 
 iADataSetRenderer::iADataSetRenderer(iARenderer* renderer):
@@ -36,13 +39,22 @@ void iADataSetRenderer::setAttributes(QMap<QString, QVariant> values)
 void iADataSetRenderer::addAttribute(
 	QString const& name, iAValueType valueType, QVariant defaultValue, double min, double max)
 {
+#ifndef _NDEBUG
+	for (auto attr : m_attributes)
+	{
+		if (attr->name() == name)
+		{
+			LOG(lvlWarn, QString("iADataSetRenderer::addAttribute: Attribute with name %1 already exists!").arg(name));
+		}
+	}
+#endif
 	m_attributes.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
 }
 
 class iAGraphRenderer : public iADataSetRenderer
 {
 public:
-	iAGraphRenderer(iARenderer* renderer, iAGraphData* data):
+	iAGraphRenderer(iARenderer* renderer, iAGraphData* data) :
 		iADataSetRenderer(renderer),
 		m_lineActor(vtkSmartPointer<vtkActor>::New()),
 		m_pointActor(vtkSmartPointer<vtkActor>::New())
@@ -100,12 +112,55 @@ private:
 };
 
 
+class iAMeshRenderer: public iADataSetRenderer
+{
+public:
+	iAMeshRenderer(iARenderer* renderer, iAPolyData * data):
+		iADataSetRenderer(renderer),
+		m_polyActor(vtkSmartPointer<vtkActor>::New())
+	{
+		vtkNew<vtkPolyDataMapper> mapper;
+		mapper->SetInputData(data->poly());
+		//m_polyMapper->SelectColorArray("Colors");
+		mapper->SetScalarModeToUsePointFieldData();
+		m_polyActor->SetPickable(false);
+		m_polyActor->SetDragable(false);
+		m_polyActor->SetMapper(mapper);
+
+		addAttribute(PolyColor, iAValueType::Color, "#FFFFFF");
+		addAttribute(PolyColor, iAValueType::Color, "#FFFFFF");
+		addAttribute(PolyOpacity, iAValueType::Continuous, 1.0, 0.0, 1.0);
+	}
+	void show() override
+	{
+		m_renderer->renderer()->AddActor(m_polyActor);
+	}
+	void hide() override
+	{
+		m_renderer->renderer()->RemoveActor(m_polyActor);
+	}
+	void setAttributes(QMap<QString, QVariant> values) override
+	{
+		QColor color(values[PolyColor].toString());
+		double opacity = values[PolyOpacity].toDouble();
+		m_polyActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
+		m_polyActor->GetProperty()->SetOpacity(opacity);
+	}
+
+private:
+	vtkSmartPointer<vtkActor> m_polyActor;
+};
+
+
 std::shared_ptr<iADataSetRenderer> createDataRenderer(iADataSet* dataset, iARenderer* renderer)
 {
 	switch(dataset->type())
 	{
 	case iADataSetType::dstGraph:
 		return std::make_shared<iAGraphRenderer>(renderer, dynamic_cast<iAGraphData*>(dataset));
+	case iADataSetType::dstMesh:
+		return std::make_shared<iAMeshRenderer>(renderer, dynamic_cast<iAPolyData*>(dataset));
+
 	default:
 		LOG(lvlWarn, QString("Requested renderer for unknown type %1!")
 			.arg(dataset->type()));

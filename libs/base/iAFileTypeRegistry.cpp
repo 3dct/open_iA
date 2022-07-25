@@ -1,6 +1,7 @@
 #include "iAFileTypeRegistry.h"
 
 #include <vtkPointData.h>
+#include <vtkSTLReader.h>
 #include <vtkUnsignedCharArray.h>
 
 #include <QTextStream>
@@ -286,4 +287,22 @@ std::shared_ptr<iADataSet> iAGraphFileIO::load(iAProgress* p, QMap<QString, QVar
 	myPolyData->GetPointData()->AddArray(colors);
 
 	return std::make_shared<iAGraphData>(QFileInfo(m_fileName).baseName(), m_fileName, myPolyData);
+}
+
+iASTLFileIO::iASTLFileIO() : iAFileIO(iADataSetType::dstMesh)
+{
+	//addParameter("Opacity", iAValueType::Continuous, 1.0, 0.0, 1.0);
+	//addParameter("Color", iAValueType::Color, "white");
+}
+
+std::shared_ptr<iADataSet> iASTLFileIO::load(iAProgress* p, QMap<QString, QVariant> const& params)
+{
+	Q_UNUSED(params);
+	auto stlReader = vtkSmartPointer<vtkSTLReader>::New();
+	p->observe(stlReader);
+	stlReader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
+	vtkNew<vtkPolyData> polyData;
+	stlReader->SetOutput(polyData);
+	stlReader->Update();
+	return std::make_shared<iAPolyData>(QFileInfo(m_fileName).baseName(), m_fileName, polyData);
 }

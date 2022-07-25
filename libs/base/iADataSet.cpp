@@ -42,15 +42,17 @@ namespace iANewIO
 	{
 		iAFileTypeRegistry::addFileType<iAITKFileIO>("mhd");
 		iAFileTypeRegistry::addFileType<iAGraphFileIO>("txt");
+		iAFileTypeRegistry::addFileType<iASTLFileIO>("stl");
 	}
 
 	iAbase_API QString getRegisteredFileTypes(iADataSetTypes allowedTypes)
 	{
 		Q_UNUSED(allowedTypes);
 		// TODO: put together from list of available file loaders!
-		return QString("Any supported format (*.mhd *.mha *.txt);;"
+		return QString("Any supported format (*.mhd *.mha *.stl *.txt);;"
 				"Meta Images (*.mhd *.mha);;"
-			   "Graph files (*.txt *.pdb);;");  // (Brookhaven "Protein Data Bank" format (?)
+				"STL file (*.stl);;"
+				"Graph files (*.txt *.pdb);;");  // (Brookhaven "Protein Data Bank" format (?)
 	}
 }
 
@@ -79,9 +81,21 @@ QString iADataSet::info() const
 	return "";
 }
 
-iAGraphData::iAGraphData(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyData> mesh):
-	iADataSet(iADataSetType::dstGraph, name, fileName),
+iAPolyData::iAPolyData(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyData> mesh) :
+	iADataSet(iADataSetType::dstMesh, name, fileName),
 	m_mesh(mesh)
+{
+}
+
+vtkSmartPointer<vtkPolyData> iAPolyData::poly()
+{
+	return m_mesh;
+}
+
+
+
+iAGraphData::iAGraphData(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyData> mesh) :
+	iADataSet(iADataSetType::dstGraph, name, fileName), m_mesh(mesh)
 {
 }
 
@@ -89,6 +103,7 @@ vtkSmartPointer<vtkPolyData> iAGraphData::poly()
 {
 	return m_mesh;
 }
+
 
 
 iAImageData::iAImageData(QString const& name, QString const& fileName, vtkSmartPointer<vtkImageData> img):

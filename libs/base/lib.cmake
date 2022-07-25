@@ -12,9 +12,11 @@ else()
 		CommonCore
 		CommonDataModel
 		CommonExecutionModel
-		# ideally, base would not reference any VTK libraries, but at least not GUI/Rendering libraries:
+		IOImage               # for volume loading; move to a new "io" library?
+		IOGeometry            # for vtkSTLReader/Writer; move to a new "io" library?
+		# ideally, base would not reference any VTK libraries;
+		# at least the following GUI/Rendering library references should be removed:
 		GUISupportQt
-		IOImage
 		ImagingCore
 		RenderingCore
 		RenderingOpenGL2

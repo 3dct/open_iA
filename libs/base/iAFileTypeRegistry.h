@@ -42,7 +42,8 @@ private:
 
 
 //! Generic factory class with shared pointers
-// (unique pointers -> trouble in static context?). TODO: Replace iAGenericFactory with this one!
+//! TODO: Replace iAGenericFactory with this one!
+// (unique pointers -> trouble in static context?).
 // error C2280: "std::unique_ptr<iAIFileIOFactory,std::default_delete<iAIFileIOFactory>> &std::unique_ptr<iAIFileIOFactory,std::default_delete<iAIFileIOFactory>>::operator =(const std::unique_ptr<iAIFileIOFactory,std::default_delete<iAIFileIOFactory>> &)" : Es wurde versucht, auf eine gelöschte Funktion zu verweisen
 template <typename BaseType>
 class iAUPFactory
@@ -107,5 +108,12 @@ class iAGraphFileIO: public iAFileIO
 {
 public:
 	iAGraphFileIO();
+	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
+};
+
+class iASTLFileIO: public iAFileIO
+{
+public:
+	iASTLFileIO();
 	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
 };

@@ -46,11 +46,21 @@ private:
 	QString m_fileName;
 };
 
+class iAbase_API iAPolyData : public iADataSet
+{
+public:
+	iAPolyData(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyData> mesh);
+	vtkSmartPointer<vtkPolyData> poly();
+private:
+	vtkSmartPointer<vtkPolyData> m_mesh;
+};
+
 class iAbase_API iAGraphData : public iADataSet
 {
 public:
 	iAGraphData(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyData> mesh);
 	vtkSmartPointer<vtkPolyData> poly();
+
 private:
 	vtkSmartPointer<vtkPolyData> m_mesh;
 };
