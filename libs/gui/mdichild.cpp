@@ -1563,7 +1563,12 @@ void MdiChild::setupSlicers(iASlicerSettings const& ss, bool init)
 
 	for (int s = 0; s < 3; ++s)
 	{
-		m_slicer[s]->setup(ss.SingleSlicer);
+		auto settings(ss.SingleSlicer);
+		if (!ss.BackgroundColor[s].isEmpty())
+		{
+			settings.backgroundColor = QColor(ss.BackgroundColor[s]);
+		}
+		m_slicer[s]->setup(settings);
 	}
 
 	if (init)

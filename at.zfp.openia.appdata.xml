@@ -39,6 +39,14 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="2022.06.22" date="2022-06-22">
+            <description>Minor release (changes required by flatpak, e.g. this manifest)</description>
+        </release>
+        <release version="2022.06" date="2022-06-21">
+            <description>
+                New tools for immersive and collaborative analysis, new comparative visualizations for multi-dimensional data, and various smaller improvements and fixes!
+            </description>
+        </release>
         <release version="2021.08" date="2021-08-20">
             <description>
                 New tools for the comparative visualization of multi-dimensional data, new tools to guide in creating a transfer function for n-modal data, improved manual labelling capabilities, improvements/fixes to fuzzy feature tracking, improved sampling

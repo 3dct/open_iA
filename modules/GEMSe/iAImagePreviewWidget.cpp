@@ -74,7 +74,7 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 {
 	m_slicer = new iASlicerImpl(this, mode, false, magicLens, m_slicerTransform);
 	m_slicer->setup(iASingleSlicerSettings());
-	m_slicer->setBackground(SLICER_BACKGROUND_COLOR[0], SLICER_BACKGROUND_COLOR[1], SLICER_BACKGROUND_COLOR[2]);
+	m_slicer->setBackground(DefaultColors::SlicerBackgroundColor);
 	if (m_sliceNumber == SliceNumberNotSet)
 	{
 		m_sliceNumber = GetMiddleSliceNumber(m_imageData, m_slicer->mode());

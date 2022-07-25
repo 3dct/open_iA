@@ -33,10 +33,6 @@ const int MaxPreviewWidgets = 24;
 
 const int FontSize = 10;
 
-// IMAGE PREVIEW
-
-const double SLICER_BACKGROUND_COLOR[3] = {1.0, 1.0, 1.0};
-
 // EXAMPLE VIEW
 
 //! example widget will show NUM_PREVIEWS_GRID_WIDTH x NUM_PREVIEWS_GRID_HEIGHT example images
@@ -125,6 +121,7 @@ struct DefaultColors
 	static const QColor DifferenceColor;
 	static const QColor BackgroundLikeColor;
 	static const QColor BackgroundHateColor;
+	static const QColor SlicerBackgroundColor;
 
 	static const QString BackgroundColorText;
 

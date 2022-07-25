@@ -116,7 +116,7 @@ ChartWidgetData CreateChartWidget(const char * xTitle, const char * yTitle,
 	auto contextView = vtkSmartPointer<vtkContextView>::New();
 	contextView->SetRenderWindow(result.vtkWidget->renderWindow());
 	result.chart = vtkSmartPointer<vtkChartXY>::New();
-	result.chart->SetSelectionMode(vtkContextScene::SELECTION_NONE);
+	result.chart->SetSelectionMode(vtkContextScene::SELECTION_DEFAULT);
 	auto xAxis1 = result.chart->GetAxis(vtkAxis::BOTTOM);
 	auto yAxis1 = result.chart->GetAxis(vtkAxis::LEFT);
 	xAxis1->SetTitle(xTitle);
