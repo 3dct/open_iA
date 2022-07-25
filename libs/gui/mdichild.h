@@ -98,7 +98,8 @@ public:
 	~MdiChild();
 
 	void showPoly();
-	bool loadFile(const QString &f, bool isStack) override;
+	bool loadFile(const QString& f, bool isStack) override;
+	void setSTLParameter();
 	bool loadRaw(const QString &f);
 	bool displayResult(QString const & title, vtkImageData* image = nullptr, vtkPolyData* poly = nullptr) override;
 	void prepareForResult();

@@ -83,6 +83,7 @@
 #include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkPlane.h>
+#include <vtkProperty.h>
 #include <vtkRenderWindow.h>
 #include <vtkWindowToImageFilter.h>
 
@@ -610,6 +611,7 @@ bool MdiChild::loadFile(const QString& f, bool isStack)
 	connectIOThreadSignals(m_ioThread);
 	connect(m_dwModalities, &dlg_modalities::modalityAvailable, this, &MdiChild::modalityAdded);
 	connect(m_ioThread, &iAIO::done, this, &MdiChild::fileLoaded);
+	connect(m_ioThread, &iAIO::done, this, &MdiChild::setSTLParameter);
 
 	m_polyData->ReleaseData();
 
@@ -621,6 +623,26 @@ bool MdiChild::loadFile(const QString& f, bool isStack)
 	m_ioThread->start();
 	return true;
 }
+
+void MdiChild::setSTLParameter()
+{
+	
+	
+	iAParameterDlg::ParamListT params;
+	addParameter(params, "Transparency", iAValueType::Continuous, 1.0,0.0,1.0);
+	addParameter(params, "Color", iAValueType::Color, QColor("green"));
+	iAParameterDlg componentChoice(this, "Setup STL Properties", params);
+
+	componentChoice.exec();
+
+	QColor color(componentChoice.parameterValues()["Color"].toString());
+	float transparency = componentChoice.parameterValues()["Transparency"].toFloat();
+
+	this->renderer()->polyActor()->GetProperty()->SetOpacity(transparency);
+	this->renderer()->polyActor()->GetProperty()->SetColor(color.redF(),color.greenF(),color.blueF());
+
+}
+
 
 void MdiChild::setImageData(QString const& /*filename*/, vtkSmartPointer<vtkImageData> imgData)
 {
