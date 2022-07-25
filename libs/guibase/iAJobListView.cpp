@@ -129,7 +129,7 @@ iAJobListView::iAJobListView():
 	insideWidget->setLayout(m_insideLayout);
 	m_insideLayout->setContentsMargins(4, 4, 4, 4);
 	m_insideLayout->setSpacing(4);
-	m_insideLayout->addItem(new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Expanding));
+	m_insideLayout->addItem(new QSpacerItem(40, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
 
 	auto scrollWidget = new QScrollArea();
 	scrollWidget->setWidget(insideWidget);
@@ -182,18 +182,18 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 	remainingLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
 	auto timesWidget = new QWidget();
-	timesWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	auto timesLayout = new QHBoxLayout();
 	timesWidget->setLayout(timesLayout);
+	timesWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	timesLayout->setContentsMargins(0, 0, 0, 0);
 	timesLayout->setSpacing(2);
 	timesLayout->addWidget(elapsedLabel);
 	timesLayout->addWidget(remainingLabel);
 
 	auto statusWidget = new QWidget();
-	statusWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	auto statusLayout = new QVBoxLayout();
 	statusWidget->setLayout(statusLayout);
+	statusWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	statusLayout->setContentsMargins(0, 0, 0, 0);
 	statusLayout->setSpacing(2);
 	statusLayout->addWidget(titleLabel);

@@ -1697,16 +1697,32 @@ void MainWindow::about()
 	{
 		tableHeight += table->rowHeight(r);
 	}
+	// +2 to avoid minor scrolling when clicking on the left/right- up/bottom-most cell in the table:
+	tableHeight += 2;
 	auto tableWidth = 0;
 	for (int c=0; c < table->columnCount(); ++c)
 	{
 		tableWidth += table->columnWidth(c);
-	}    // +2 to avoid minor scrolling when clicking on the left/right- up/bottom-most cell in the table:
+	}
+	auto screenHeightThird = screen()->geometry().height() / 3;
+	if (imgLabel->height() > screenHeightThird)
+	{
+		imgLabel->setFixedSize(
+			screenHeightThird * static_cast<double>(imgLabel->width()) / imgLabel->height(),
+			screenHeightThird);
+	}
+
+	imgLabel->setScaledContents(true);
+	// make sure about dialog isn't higher than roughly 2/3 the screen size:
+	tableWidth = std::max(tableWidth, imgLabel->width());
+	const int MinTableHeight = 50;
+	auto newTableHeight = std::max(MinTableHeight, std::min(tableHeight, screenHeightThird));
 	table->setFixedWidth(tableWidth + 2);
-	table->setFixedHeight(tableHeight + 2);
-	table->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	table->setFixedHeight(newTableHeight);
+	//table->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	table->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	table->setAlternatingRowColors(true);
+	table->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	dlg.layout()->addWidget(table);
 
 	auto okBtn = new QPushButton("Ok");
