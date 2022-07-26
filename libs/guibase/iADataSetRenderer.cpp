@@ -4,7 +4,6 @@
 #include "iARenderer.h"
 
 #include <vtkActor.h>
-#include <vtkGlyph3DMapper.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkOpenGLRenderer.h>
@@ -12,19 +11,9 @@
 
 #include <QColor>
 
-namespace
-{
-	QString PointRadius = "Point Radius";
-	QString PointColor = "Point Color";
-	QString LineColor = "Line Color";
-	QString LineWidth = "Line Width";
-
-	QString PolyColor = "Color";
-	QString PolyOpacity = "Opacity";
-}
-
 iADataSetRenderer::iADataSetRenderer(iARenderer* renderer):
-	m_renderer(renderer)
+	m_renderer(renderer),
+	m_visible(false)
 {}
 
 iAAttributes const& iADataSetRenderer::attributes() const
@@ -34,6 +23,23 @@ iAAttributes const& iADataSetRenderer::attributes() const
 
 void iADataSetRenderer::setAttributes(QMap<QString, QVariant> values)
 {
+}
+
+void iADataSetRenderer::show()
+{
+	showDataSet();
+	m_visible = true;
+}
+
+void iADataSetRenderer::hide()
+{
+	showDataSet();
+	m_visible = false;
+}
+
+bool iADataSetRenderer::isVisible() const
+{
+	return m_visible;
 }
 
 void iADataSetRenderer::addAttribute(
@@ -49,6 +55,18 @@ void iADataSetRenderer::addAttribute(
 	}
 #endif
 	m_attributes.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
+}
+
+// ---------- iAGraphRenderer ----------
+
+#include <vtkGlyph3DMapper.h>
+
+namespace
+{
+	const QString PointRadius = "Point Radius";
+	const QString PointColor = "Point Color";
+	const QString LineColor = "Line Color";
+	const QString LineWidth = "Line Width";
 }
 
 class iAGraphRenderer : public iADataSetRenderer
@@ -84,12 +102,12 @@ public:
 		addAttribute(LineColor, iAValueType::Color, "#00FF00");
 		addAttribute(LineWidth, iAValueType::Continuous, 1.0, 0.1, 100);
 	}
-	void show() override
+	void showDataSet() override
 	{
 		m_renderer->renderer()->AddActor(m_lineActor);
 		m_renderer->renderer()->AddActor(m_pointActor);
 	}
-	void hide() override
+	void hideDataSet() override
 	{
 		m_renderer->renderer()->RemoveActor(m_pointActor);
 		m_renderer->renderer()->RemoveActor(m_lineActor);
@@ -111,6 +129,13 @@ private:
 	vtkSmartPointer<vtkSphereSource> m_sphereSource;
 };
 
+// ---------- iAMeshRenderer ----------
+
+namespace
+{
+	const QString PolyColor = "Color";
+	const QString PolyOpacity = "Opacity";
+}
 
 class iAMeshRenderer: public iADataSetRenderer
 {
@@ -131,11 +156,11 @@ public:
 		addAttribute(PolyColor, iAValueType::Color, "#FFFFFF");
 		addAttribute(PolyOpacity, iAValueType::Continuous, 1.0, 0.0, 1.0);
 	}
-	void show() override
+	void showDataSet() override
 	{
 		m_renderer->renderer()->AddActor(m_polyActor);
 	}
-	void hide() override
+	void hideDataSet() override
 	{
 		m_renderer->renderer()->RemoveActor(m_polyActor);
 	}
@@ -151,11 +176,133 @@ private:
 	vtkSmartPointer<vtkActor> m_polyActor;
 };
 
+// ---------- iAVolRenderer ----------
+#include "iAModalityTransfer.h"
+#include "iAToolsVTK.h"
+#include "iAVolumeSettings.h"
+
+#include <vtkImageData.h>
+#include <vtkVolume.h>
+#include <vtkVolumeProperty.h>
+#include <vtkSmartVolumeMapper.h>
+
+namespace
+{
+	const QString LinearInterpolation = "Linear interpolation";
+	const QString Shading = "Shading";
+	const QString SampleDistance = "Sample distance";
+	const QString AmbientLighting = "Ambient lighting";
+	const QString DiffuseLighting= "Diffuse lighting";
+	const QString SpecularLighting = "Specular lighting";
+	const QString SpecularPower = "Specular power";
+	const QString ScalarOpacityUnitDistance = "Scalar Opacity Unit Distance";
+	const QString RendererType = "Renderer type";
+}
+
+class iAVolRenderer: public iADataSetRenderer
+{
+public:
+	iAVolRenderer(iARenderer* renderer, iAImageData* data) :
+		iADataSetRenderer(renderer),
+		m_volume(vtkSmartPointer<vtkVolume>::New()),
+		m_volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
+		m_volMapper(vtkSmartPointer<vtkSmartVolumeMapper>::New()),
+		m_transfer(std::make_shared<iAModalityTransfer>(data->image()->GetScalarRange()))
+	{
+		m_volMapper->SetBlendModeToComposite();
+		m_volume->SetMapper(m_volMapper);
+		m_volume->SetProperty(m_volProp);
+		m_volume->SetVisibility(true);
+		m_volMapper->SetInputData(data->image());
+		if (data->image()->GetNumberOfScalarComponents() > 1)
+		{
+			m_volMapper->SetBlendModeToComposite();
+			m_volProp->IndependentComponentsOff();
+			m_volProp->SetScalarOpacity(0, m_transfer->opacityTF());
+		}
+		else
+		{
+			//if (m_volSettings.ScalarOpacityUnitDistance < 0)
+			{
+				//m_volSettings.ScalarOpacityUnitDistance = data->image()->GetSpacing()[0];
+				m_volProp->SetScalarOpacityUnitDistance(data->image()->GetSpacing()[0]);
+			}
+			m_volProp->SetColor(0, m_transfer->colorTF());
+			m_volProp->SetScalarOpacity(0, m_transfer->opacityTF());
+		}
+		m_volProp->Modified();
+
+		iAVolumeSettings volumeSettings;
+		addAttribute(LinearInterpolation, iAValueType::Boolean, volumeSettings.LinearInterpolation);
+		addAttribute(Shading, iAValueType::Boolean, volumeSettings.Shading);
+		addAttribute(SampleDistance, iAValueType::Continuous, volumeSettings.SampleDistance);
+		addAttribute(AmbientLighting, iAValueType::Continuous, volumeSettings.AmbientLighting);
+		addAttribute(DiffuseLighting, iAValueType::Continuous, volumeSettings.DiffuseLighting);
+		addAttribute(SpecularLighting, iAValueType::Continuous, volumeSettings.SpecularLighting);
+		addAttribute(SpecularPower, iAValueType::Continuous, volumeSettings.SpecularPower);
+		addAttribute(ScalarOpacityUnitDistance, iAValueType::Continuous, volumeSettings.ScalarOpacityUnitDistance);
+		QStringList renderTypes = RenderModeMap().values();
+		selectOption(renderTypes, renderTypes[volumeSettings.RenderMode]);
+		addAttribute(RendererType, iAValueType::Categorical, renderTypes);
+	}
+	void showDataSet() override
+	{
+		m_renderer->renderer()->AddVolume(m_volume);
+	}
+	void hideDataSet() override
+	{
+		m_renderer->renderer()->RemoveVolume(m_volume);
+	}
+	void setAttributes(QMap<QString, QVariant> values) override
+	{
+		m_volProp->SetAmbient(values[AmbientLighting].toDouble());
+		m_volProp->SetDiffuse(values[DiffuseLighting].toDouble());
+		m_volProp->SetSpecular(values[SpecularLighting].toDouble());
+		m_volProp->SetSpecularPower(values[SpecularPower].toDouble());
+		m_volProp->SetInterpolationType(values[LinearInterpolation].toInt());
+		m_volProp->SetShade(values[Shading].toBool());
+		if (values[ScalarOpacityUnitDistance].toDouble() > 0)
+		{
+			m_volProp->SetScalarOpacityUnitDistance(values[ScalarOpacityUnitDistance].toDouble());
+		}
+		/*
+		else
+		{
+			m_volSettings.ScalarOpacityUnitDistance = m_volProp->GetScalarOpacityUnitDistance();
+		}
+		*/
+		m_volMapper->SetRequestedRenderMode(values[RendererType].toInt());
+		m_volMapper->SetSampleDistance(values[SampleDistance].toDouble());
+		
+		// maybe provide as option: (see also AutoAdjustSampleDistances, InteractiveUpdateRate)
+		m_volMapper->InteractiveAdjustSampleDistancesOff();
+	}
+	/*
+	void setMovable(bool movable) override
+	{
+		m_volume->SetPickable(movable);
+		m_volume->SetDragable(movable);
+	}
+	*/
+	
+
+private:
+	//iAVolumeSettings m_volSettings;
+	std::shared_ptr<iAModalityTransfer> m_transfer;
+
+	vtkSmartPointer<vtkVolume> m_volume;
+	vtkSmartPointer<vtkVolumeProperty> m_volProp;
+	vtkSmartPointer<vtkSmartVolumeMapper> m_volMapper;
+};
+
+// ---------- Factory method ----------
 
 std::shared_ptr<iADataSetRenderer> createDataRenderer(iADataSet* dataset, iARenderer* renderer)
 {
 	switch(dataset->type())
 	{
+	case iADataSetType::dstVolume:
+		return std::make_shared<iAVolRenderer>(renderer, dynamic_cast<iAImageData*>(dataset));
 	case iADataSetType::dstGraph:
 		return std::make_shared<iAGraphRenderer>(renderer, dynamic_cast<iAGraphData*>(dataset));
 	case iADataSetType::dstMesh:

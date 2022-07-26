@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iARawFileParamDlg.h"
 
-#include "iAAttributeDescriptor.h"
+#include "iAAttributeDescriptor.h"    // for selectOption
 #include "io/iARawFileParameters.h"
 #include "iALog.h"
 #include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType, readableDataTypes, ...

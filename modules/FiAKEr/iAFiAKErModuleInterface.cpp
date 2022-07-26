@@ -25,7 +25,7 @@
 #include "iAFiAKErController.h"
 #include "iAFiAKErAttachment.h"
 
-#include <iAAttributeDescriptor.h>
+#include <iAAttributeDescriptor.h>    // for selectOption
 #include <iAFileUtils.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
