@@ -522,7 +522,7 @@ void MainWindow::openNew()
 	}
 	auto io = iANewIO::createIO(fileName, dstVolume | dstMesh);
 	if (!io)
-	{
+	{   // did not find an appropriate file IO; createIO already outputs a warning in that case
 		return;
 	}
 	QMap<QString, QVariant> paramValues;

@@ -50,6 +50,7 @@ std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileExtens
 #include "defines.h"
 #include "iAConnector.h"
 #include "iAToolsITK.h"
+#include "iAToolsVTK.h"
 #include "iADataSet.h"
 #include "iAExtendedTypedCallHelper.h"
 #include "iAFileUtils.h"
@@ -64,6 +65,7 @@ std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileExtens
 
 #include <QFileInfo>
 
+/*
 template <class T>
 void read_image_template(QString const& fileName, iAProgress* progress, iAConnector& con)
 {
@@ -77,6 +79,7 @@ void read_image_template(QString const& fileName, iAProgress* progress, iAConnec
 	con.setImage(reader->GetOutput());
 	con.modified();
 }
+*/
 
 iAITKFileIO::iAITKFileIO() :
 	iAFileIO(iADataSetType::dstVolume)
@@ -84,31 +87,33 @@ iAITKFileIO::iAITKFileIO() :
 
 std::shared_ptr<iADataSet> iAITKFileIO::load(iAProgress* p, QMap<QString, QVariant> const& parameters)
 {
+	// not working (probably because some shared pointer destroyed...)
+	/*
 	Q_UNUSED(parameters);
 	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
 	typedef itk::ImageIOBase::IOPixelType PixelType;
 	auto imageIO = itk::ImageIOFactory::CreateImageIO(
 		getLocalEncodingFileName(m_fileName).c_str(), itk::ImageIOFactory::ReadMode);
 	if (!imageIO)
+	{
 		throw std::invalid_argument("Could not find a reader that could handle the format of the specified file!");
+	}
 	imageIO->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
 	imageIO->ReadImageInformation();
 	const ScalarPixelType pixelType = imageIO->GetComponentType();
 	const PixelType imagePixelType = imageIO->GetPixelType();
 	iAConnector con;
 	ITK_EXTENDED_TYPED_CALL(read_image_template, pixelType, imagePixelType, m_fileName, p, con);
-	storeImage(con.itkImage(), "C:/fh/testnewio2.mhd", false);
 	return std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, con.vtkImage());
+	*/
+
+	// using 
+	auto img = vtkSmartPointer<vtkImageData>::New();
+	readImage(m_fileName, true, img);
+	return std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, img);
 }
 
-/*
-std::shared_ptr<iAFileIO> iAITKFileIO::create()
-{
-	return std::make_shared<iAITKFileIO>();
-}
-*/
 
-//#include <vtkPDBReader.h>
 #include <QColor>
 
 #include <vtkCellData.h>
@@ -291,8 +296,6 @@ std::shared_ptr<iADataSet> iAGraphFileIO::load(iAProgress* p, QMap<QString, QVar
 
 iASTLFileIO::iASTLFileIO() : iAFileIO(iADataSetType::dstMesh)
 {
-	//addParameter("Opacity", iAValueType::Continuous, 1.0, 0.0, 1.0);
-	//addParameter("Color", iAValueType::Color, "white");
 }
 
 std::shared_ptr<iADataSet> iASTLFileIO::load(iAProgress* p, QMap<QString, QVariant> const& params)
