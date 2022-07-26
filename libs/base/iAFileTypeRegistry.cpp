@@ -48,38 +48,16 @@ std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileExtens
 }
 
 #include "defines.h"
-#include "iAConnector.h"
-#include "iAToolsITK.h"
-#include "iAToolsVTK.h"
 #include "iADataSet.h"
-#include "iAExtendedTypedCallHelper.h"
-#include "iAFileUtils.h"
+#include <iAFileUtils.h>
 #include "iAProgress.h"
+//#include "iAToolsVTK.h"
 
 #include <vtkImageData.h>
-#include <vtkPolyData.h>
+#include <vtkMetaImageReader.h>
 
-#include <itkImageFileReader.h>
-#include <itkImageIOBase.h>
-#include <itkImageIOFactory.h>
-
+#include <QElapsedTimer>
 #include <QFileInfo>
-
-/*
-template <class T>
-void read_image_template(QString const& fileName, iAProgress* progress, iAConnector& con)
-{
-	typedef itk::Image<T, DIM> InputImageType;
-	typedef itk::ImageFileReader<InputImageType> ReaderType;
-	auto reader = ReaderType::New();
-	reader->SetFileName(getLocalEncodingFileName(fileName));
-	reader->ReleaseDataFlagOn();
-	progress->observe(reader);
-	reader->Update();
-	con.setImage(reader->GetOutput());
-	con.modified();
-}
-*/
 
 iAITKFileIO::iAITKFileIO() :
 	iAFileIO(iADataSetType::dstVolume)
@@ -87,30 +65,27 @@ iAITKFileIO::iAITKFileIO() :
 
 std::shared_ptr<iADataSet> iAITKFileIO::load(iAProgress* p, QMap<QString, QVariant> const& parameters)
 {
-	// not working (probably because some shared pointer destroyed...)
-	/*
 	Q_UNUSED(parameters);
-	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
-	typedef itk::ImageIOBase::IOPixelType PixelType;
-	auto imageIO = itk::ImageIOFactory::CreateImageIO(
-		getLocalEncodingFileName(m_fileName).c_str(), itk::ImageIOFactory::ReadMode);
-	if (!imageIO)
-	{
-		throw std::invalid_argument("Could not find a reader that could handle the format of the specified file!");
-	}
-	imageIO->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
-	imageIO->ReadImageInformation();
-	const ScalarPixelType pixelType = imageIO->GetComponentType();
-	const PixelType imagePixelType = imageIO->GetPixelType();
-	iAConnector con;
-	ITK_EXTENDED_TYPED_CALL(read_image_template, pixelType, imagePixelType, m_fileName, p, con);
-	return std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, con.vtkImage());
-	*/
-
-	// using 
+	QElapsedTimer t;
+	t.start();
+	/*
+	// using iAToolsVTK:
 	auto img = vtkSmartPointer<vtkImageData>::New();
 	readImage(m_fileName, true, img);
-	return std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, img);
+	// duration: ~400ms
+	*/
+	vtkNew<vtkMetaImageReader> reader;
+	p->observe(reader);
+	//reader->SetFileName(m_fileName.toStdString().c_str());
+	reader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
+	reader->Update();
+	reader->ReleaseDataFlagOn();
+	auto img = reader->GetOutput();
+	// duration: 362,362,368,368,383 ms
+
+	auto ret = std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, img);
+	LOG(lvlInfo, QString("Elapsed: %1 ms.").arg(t.elapsed()));
+	return ret;
 }
 
 
@@ -118,6 +93,7 @@ std::shared_ptr<iADataSet> iAITKFileIO::load(iAProgress* p, QMap<QString, QVaria
 
 #include <vtkCellData.h>
 #include <vtkLine.h>
+#include <vtkPolyData.h>
 
 // TODO: move to separate iAAABB class and re-use in FIAKER/FiberSA(/DreamCaster?)
 #include <iAVec3.h>
@@ -293,6 +269,8 @@ std::shared_ptr<iADataSet> iAGraphFileIO::load(iAProgress* p, QMap<QString, QVar
 
 	return std::make_shared<iAGraphData>(QFileInfo(m_fileName).baseName(), m_fileName, myPolyData);
 }
+
+#include <iAFileUtils.h>
 
 iASTLFileIO::iASTLFileIO() : iAFileIO(iADataSetType::dstMesh)
 {
