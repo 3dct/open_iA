@@ -487,49 +487,97 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 {
 	if (!m_dwDatasets)
 	{
-		auto dataList = new QListView;
-		dataList->setEditTriggers(QAbstractItemView::NoEditTriggers);
-		m_dataModel = new QStringListModel;
+		m_dataList = new QListWidget;
+		m_dataList->setEditTriggers(QAbstractItemView::NoEditTriggers);
+		//m_dataModel = new QStringListModel;
 		//m_dataModel->set
-		dataList->setModel(m_dataModel);
+		//dataList->setModel(m_dataModel);
 
 		auto buttons = new QWidget();
 		buttons->setLayout(new QVBoxLayout);
+		buttons->layout()->setContentsMargins(0, 0, 0, 0);
+		buttons->layout()->setSpacing(4);
 		auto editButton = new QToolButton();
-		editButton->setText("Edit");
+		//editButton->setText("Edit");
+		editButton->setIcon(QIcon(":/images/edit.svg"));
 		buttons->layout()->addWidget(editButton);
+		auto minusButton = new QToolButton();
+		minusButton->setIcon(QIcon(":/images/minus.svg"));
+		buttons->layout()->addWidget(minusButton);
+		auto spacer = new QSpacerItem(10, 0, QSizePolicy::Fixed, QSizePolicy::Expanding);
+		buttons->layout()->addItem(spacer);
 
 		connect(editButton, &QToolButton::clicked, this,
-		[this, dataList]()
+		[this]()
 		{
-			auto rows = dataList->selectionModel()->selectedRows();
+			auto rows = m_dataList->selectionModel()->selectedRows();
 			if (rows.size() != 1)
 			{
+				LOG(lvlWarn, "Please select exactly one row for editing!");
 				return;
 			}
-			iAParameterDlg dlg(this, "Renderer parameters", m_dataRenderers[rows[0].row()]->attributes());
+			if (rows[0].row() >= m_dataRenderers.size())
+			{
+				LOG(lvlWarn, QString("Invalid dataset index %1!").arg(rows[0].row()));
+				return;
+			}
+			iAParameterDlg dlg(this, "Dataset parameters", m_dataRenderers[rows[0].row()]->attributes());
 			if (dlg.exec() != QDialog::Accepted)
 			{
 				return;
 			}
 			m_dataRenderers[rows[0].row()]->setAttributes(dlg.parameterValues());
 		});
+		connect(minusButton, &QToolButton::clicked, this, [this]()
+			{
+				auto rows = m_dataList->selectionModel()->selectedRows();
+				if (rows.size() != 1)
+				{
+					LOG(lvlWarn, "Please select exactly one row for deleting!");
+					return;
+				}
+				auto idx = rows[0].row();
+				m_dataRenderers[idx]->hide();
+				updateRenderer();
+				m_dataRenderers.erase(m_dataRenderers.begin() + idx); 
+				m_datasets.erase(m_datasets.begin() + idx);
+				m_dataList->takeItem(idx);
+			});
+
+		connect(m_dataList, &QListWidget::itemChanged, this, [this](QListWidgetItem* item)
+			{
+				auto idx = m_dataList->row(item);
+				if (m_dataRenderers[idx]->isVisible())
+				{
+					m_dataRenderers[idx]->hide();
+					updateRenderer();
+				}
+				else
+				{
+					m_dataRenderers[idx]->show();
+					updateRenderer();
+				}
+			});
 
 		auto content = new QWidget();
 		content->setLayout(new QHBoxLayout);
-		content->layout()->addWidget(dataList);
+		content->layout()->addWidget(m_dataList);
 		content->layout()->addWidget(buttons);
-		content->layout()->setContentsMargins(0, 0, 0, 0);
+		content->layout()->setContentsMargins(1, 0, 0, 0);
+		content->layout()->setSpacing(4);
 		m_dwDatasets = new iADockWidgetWrapper(content, "Datasets", "datasets");
 		splitDockWidget(m_dwModalities, m_dwDatasets, Qt::Horizontal);
 	}
 	m_datasets.push_back(dataset);
-	auto curList = m_dataModel->stringList();
-	curList.append(dataset->name());
-	m_dataModel->setStringList(curList);
+	auto item = new QListWidgetItem(dataset->name());
+	item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+	m_dataList->addItem(item);
+	m_dataList->setCurrentItem(item);
 	auto dataRenderer = createDataRenderer(dataset.get(), renderer());
 	dataRenderer->show();
 	m_dataRenderers.push_back(dataRenderer);
+	QSignalBlocker blockList(m_dataList);
+	item->setCheckState(Qt::Checked);
 }
 
 bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyData* poly)	// = opening new window

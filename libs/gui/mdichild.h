@@ -43,8 +43,7 @@
 #include <vector>
 #include <functional>
 
-class QListView;
-class QStringListModel;
+class QListWidget;
 
 class vtkAbstractTransform;
 class vtkActor;
@@ -522,6 +521,5 @@ private:
 	std::vector<std::shared_ptr<iADataSetRenderer>> m_dataRenderers;
 
 	iADockWidgetWrapper* m_dwDatasets;
-	//QListView* m_dataList;
-	QStringListModel* m_dataModel;
+	QListWidget* m_dataList;
 };

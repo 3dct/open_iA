@@ -33,7 +33,7 @@ void iADataSetRenderer::show()
 
 void iADataSetRenderer::hide()
 {
-	showDataSet();
+	hideDataSet();
 	m_visible = false;
 }
 
