@@ -336,9 +336,9 @@ void iAFAQSplom::updatePreviewPixmap()
 			uchar * maskPtr = maskImg.bits();
 			uchar * fixedPtr = fixedMaskImg.bits();
 			const long size = maskImg.height()*maskImg.width();
-			long i;
-			#pragma omp parallel for private(i)
-			for( i = 0; i < size; ++i )
+
+			#pragma omp parallel for
+			for (long i = 0; i < size; ++i)
 			{
 				if (maskPtr[i] && !fixedPtr[i])
 				{
