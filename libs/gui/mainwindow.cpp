@@ -73,6 +73,7 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QMdiSubWindow>
+#include <QScreen>
 #include <QSettings>
 #include <QSplashScreen>
 #include <QTableWidget>

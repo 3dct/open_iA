@@ -611,7 +611,11 @@ bool MdiChild::loadFile(const QString& f, bool isStack)
 	connectIOThreadSignals(m_ioThread);
 	connect(m_dwModalities, &dlg_modalities::modalityAvailable, this, &MdiChild::modalityAdded);
 	connect(m_ioThread, &iAIO::done, this, &MdiChild::fileLoaded);
-	connect(m_ioThread, &iAIO::done, this, &MdiChild::setSTLParameter);
+
+	if (f.toLower().endsWith(".stl"))
+	{
+		connect(m_ioThread, &iAIO::done, this, &MdiChild::setSTLParameter);
+	}
 
 	m_polyData->ReleaseData();
 
