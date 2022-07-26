@@ -25,6 +25,7 @@
 #include "iAFiAKErController.h"
 #include "iAFiAKErAttachment.h"
 
+#include <iAAttributeDescriptor.h>
 #include <iAFileUtils.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>

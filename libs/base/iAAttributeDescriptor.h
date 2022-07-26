@@ -101,3 +101,5 @@ private:
 	QString m_name;
 	mutable QSharedPointer<iANameMapper> m_nameMapper;
 };
+
+iAbase_API void selectOption(QStringList& options, QString const& selected);

@@ -254,3 +254,14 @@ QSharedPointer<iANameMapper> iAAttributeDescriptor::nameMapper() const
 	}
 	return m_nameMapper;
 }
+
+void selectOption(QStringList& options, QString const& selected)
+{
+	for (int i = 0; i < options.size(); ++i)
+	{
+		if (options[i].compare(selected, Qt::CaseInsensitive) == 0)
+		{
+			options[i] = "!" + options[i];
+		}
+	}
+}

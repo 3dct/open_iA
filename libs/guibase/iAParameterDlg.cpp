@@ -598,14 +598,3 @@ void addParameter(iAParameterDlg::ParamListT & params, QString const& name, iAVa
 {
 	params.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
 }
-
-void selectOption(QStringList& options, QString const& selected)
-{
-	for (int i = 0; i < options.size(); ++i)
-	{
-		if (options[i].compare(selected, Qt::CaseInsensitive) == 0)
-		{
-			options[i] = "!" + options[i];
-		}
-	}
-}
