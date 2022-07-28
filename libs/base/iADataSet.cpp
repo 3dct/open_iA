@@ -38,13 +38,6 @@ namespace iANewIO
 		return io;
 	}
 
-	void setupDefaultIOFactories()
-	{
-		iAFileTypeRegistry::addFileType<iAITKFileIO>("mhd");
-		iAFileTypeRegistry::addFileType<iAGraphFileIO>("txt");
-		iAFileTypeRegistry::addFileType<iASTLFileIO>("stl");
-	}
-
 	iAbase_API QString getRegisteredFileTypes(iADataSetTypes allowedTypes)
 	{
 		Q_UNUSED(allowedTypes);

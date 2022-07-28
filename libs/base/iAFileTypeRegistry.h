@@ -77,6 +77,8 @@ public:
 	static void addFileType(QString const& fileExtension);
 	//static QList<QString> const fileTypeKeys();
 	static std::shared_ptr<iAFileIO> createIO(QString const& fileExtension);
+	
+	static void setupDefaultIOFactories();
 
 private:
 	static QMap<QString, std::shared_ptr<iAIFileIOFactory>> m_fileTypes;
@@ -96,24 +98,3 @@ void iAFileTypeRegistry::addFileType(QString const& fileExtension)
 	}
 	m_fileTypes.insert(fileExtension, std::make_shared<iAFileIOFactory<FileIOType>>());
 }
-
-class iAITKFileIO : public iAFileIO
-{
-public:
-	iAITKFileIO();
-	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
-};
-
-class iAGraphFileIO: public iAFileIO
-{
-public:
-	iAGraphFileIO();
-	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
-};
-
-class iASTLFileIO: public iAFileIO
-{
-public:
-	iASTLFileIO();
-	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
-};

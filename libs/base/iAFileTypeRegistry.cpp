@@ -6,6 +6,8 @@
 
 #include <QTextStream>
 
+// ---------- iAFileIO ----------
+
 iAFileIO::iAFileIO(iADataSetType type): m_type(type)
 {}
 
@@ -32,6 +34,7 @@ iADataSetType iAFileIO::type() const
 	return m_type;
 }
 
+// ---------- iAFileTypeRegistry ----------
 
 QMap<QString, std::shared_ptr<iAIFileIOFactory>> iAFileTypeRegistry::m_fileTypes;
 
@@ -47,6 +50,41 @@ std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileExtens
 	}
 }
 
+// ---------- specific File IO's ----------
+
+class iAMetaFileIO : public iAFileIO
+{
+public:
+	iAMetaFileIO();
+	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
+};
+
+class iAGraphFileIO : public iAFileIO
+{
+public:
+	iAGraphFileIO();
+	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
+};
+
+class iASTLFileIO : public iAFileIO
+{
+public:
+	iASTLFileIO();
+	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
+};
+
+
+// ---------- iAFileTypeRegistry::setupDefaultIOFactories ----------
+
+void iAFileTypeRegistry::setupDefaultIOFactories()
+{
+	iAFileTypeRegistry::addFileType<iAMetaFileIO>("mhd");
+	iAFileTypeRegistry::addFileType<iAGraphFileIO>("txt");
+	iAFileTypeRegistry::addFileType<iASTLFileIO>("stl");
+}
+
+// ---------- iAMetaFileIO ----------
+
 #include "defines.h"
 #include "iADataSet.h"
 #include <iAFileUtils.h>
@@ -59,11 +97,11 @@ std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileExtens
 #include <QElapsedTimer>
 #include <QFileInfo>
 
-iAITKFileIO::iAITKFileIO() :
+iAMetaFileIO::iAMetaFileIO() :
 	iAFileIO(iADataSetType::dstVolume)
 {}
 
-std::shared_ptr<iADataSet> iAITKFileIO::load(iAProgress* p, QMap<QString, QVariant> const& parameters)
+std::shared_ptr<iADataSet> iAMetaFileIO::load(iAProgress* p, QMap<QString, QVariant> const& parameters)
 {
 	Q_UNUSED(parameters);
 	QElapsedTimer t;
@@ -88,6 +126,7 @@ std::shared_ptr<iADataSet> iAITKFileIO::load(iAProgress* p, QMap<QString, QVaria
 	return ret;
 }
 
+// ---------- iAGraphFileIO ----------
 
 #include <QColor>
 
@@ -269,6 +308,8 @@ std::shared_ptr<iADataSet> iAGraphFileIO::load(iAProgress* p, QMap<QString, QVar
 
 	return std::make_shared<iAGraphData>(QFileInfo(m_fileName).baseName(), m_fileName, myPolyData);
 }
+
+// ---------- iASTLFileIO ----------
 
 #include <iAFileUtils.h>
 

@@ -21,7 +21,6 @@
 #include "mainwindow.h"
 
 #include "defines.h"
-#include "iADataSet.h"
 #include "iAProgress.h"
 
 #include "dlg_datatypeconversion.h"
@@ -42,6 +41,10 @@
 #include "iATLGICTLoader.h"
 #include "mdichild.h"
 #include "ui_Mainwindow.h"
+
+// io:
+#include "iADataSet.h"
+#include "iAFileTypeRegistry.h"
 
 // qthelper
 #include "iADockWidgetWrapper.h"
@@ -86,8 +89,6 @@
 #include <QTimer>
 #include <QtXml/QDomDocument>
 #include <QDesktopServices>
-
-#include "iAFileTypeRegistry.h"
 
 const int MainWindow::MaxRecentFiles;
 
@@ -2885,7 +2886,7 @@ void MainWindow::initResources()
 int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString const & version,
 	QString const& buildInformation, QString const & splashPath, QString const & iconPath)
 {
-	iANewIO::setupDefaultIOFactories();
+	iAFileTypeRegistry::setupDefaultIOFactories();
 	QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
 	QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);
 #if defined(__APPLE__) && defined(__MACH__)
