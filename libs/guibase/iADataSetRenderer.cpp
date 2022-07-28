@@ -153,7 +153,6 @@ public:
 		m_polyActor->SetMapper(mapper);
 
 		addAttribute(PolyColor, iAValueType::Color, "#FFFFFF");
-		addAttribute(PolyColor, iAValueType::Color, "#FFFFFF");
 		addAttribute(PolyOpacity, iAValueType::Continuous, 1.0, 0.0, 1.0);
 	}
 	void showDataSet() override
