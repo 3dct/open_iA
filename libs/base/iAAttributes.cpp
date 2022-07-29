@@ -73,3 +73,27 @@ int countAttributes(iAAttributes const& attributes, iAAttributeDescriptor::iAAtt
 	}
 	return count;
 }
+
+
+iAAttributes combineAttributesWithValues(iAAttributes const& attributes, QMap<QString, QVariant> values)
+{
+	iAAttributes combined;
+	combined.reserve(attributes.size());
+	for (auto param : attributes)
+	{
+		QSharedPointer<iAAttributeDescriptor> p(param);
+		if (p->valueType() == iAValueType::Categorical)
+		{
+			QStringList comboValues = p->defaultValue().toStringList();
+			QString storedValue = values[p->name()].toString();
+			selectOption(comboValues, storedValue);
+			p->setDefaultValue(comboValues);
+		}
+		else
+		{
+			p->setDefaultValue(values[p->name()]);
+		}
+		combined.push_back(p);
+	}
+	return combined;
+}

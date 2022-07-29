@@ -36,3 +36,4 @@ iAbase_API QSharedPointer<iAAttributes> createAttributes(QTextStream& in);
 iAbase_API void storeAttributes(QTextStream& out, iAAttributes const& attributes);
 iAbase_API int findAttribute(iAAttributes const& attributes, QString const& name);
 iAbase_API int countAttributes(iAAttributes const& attributes, iAAttributeDescriptor::iAAttributeType type = iAAttributeDescriptor::None);
+iAbase_API iAAttributes combineAttributesWithValues(iAAttributes const& attributes, QMap<QString, QVariant> values);

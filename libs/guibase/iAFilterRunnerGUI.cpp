@@ -191,27 +191,15 @@ void iAFilterRunnerGUI::storeParameters(QSharedPointer<iAFilter> filter, QMap<QS
 bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
 	iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool askForAdditionalInput)
 {
-	iAAttributes dlgParams;
+
+	auto dlgParams = combineAttributesWithValues(filter->parameters(), paramValues);
 	bool showROI = false;	// TODO: find better way to check this?
 	for (auto filterParam : filter->parameters())
 	{
-		QSharedPointer<iAAttributeDescriptor> p(filterParam->clone());
-		if (p->valueType() == iAValueType::Categorical)
-		{
-			QStringList comboValues = p->defaultValue().toStringList();
-			QString storedValue = paramValues[p->name()].toString();
-			selectOption(comboValues, storedValue);
-			p->setDefaultValue(comboValues);
-		}
-		else
-		{
-			p->setDefaultValue(paramValues[p->name()]);
-		}
-		if (p->name() == "Index X")
+		if (filterParam->name() == "Index X")
 		{
 			showROI = true;
 		}
-		dlgParams.push_back(p);
 	}
 	if (filter->requiredInputs() == 1 && dlgParams.empty())
 	{
