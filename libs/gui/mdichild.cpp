@@ -486,13 +486,18 @@ void MdiChild::showPoly()
 
 void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 {
+	enum ViewCheckBoxes
+	{
+		View3D = 1,
+		View3DBox = 2,
+	};
 	if (!m_dwDatasets)
 	{
 		m_dataList = new QTableWidget;
 		QStringList columnNames;
 		columnNames << "Name"
 					<< "3D"
-		//			<< "BB"
+					<< "Box"
 		//			<< "2D"
 		//			<< "Histo"
 			;
@@ -502,9 +507,7 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 		m_dataList->verticalHeader()->hide();
 		m_dataList->setSelectionBehavior(QAbstractItemView::SelectRows);
 		m_dataList->setEditTriggers(QAbstractItemView::NoEditTriggers);
-		//m_dataModel = new QStringListModel;
-		//m_dataModel->set
-		//dataList->setModel(m_dataModel);
+		m_dataList->resizeColumnsToContents();
 
 		auto buttons = new QWidget();
 		buttons->setLayout(new QVBoxLayout);
@@ -520,8 +523,7 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 		auto spacer = new QSpacerItem(10, 0, QSizePolicy::Fixed, QSizePolicy::Expanding);
 		buttons->layout()->addItem(spacer);
 
-		connect(editButton, &QToolButton::clicked, this,
-		[this]()
+		connect(editButton, &QToolButton::clicked, this, [this]()
 		{
 			auto rows = m_dataList->selectionModel()->selectedRows();
 			if (rows.size() != 1)
@@ -547,37 +549,44 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 			m_dataRenderers[rows[0].row()]->setAttributes(dlg.parameterValues());
 		});
 		connect(minusButton, &QToolButton::clicked, this, [this]()
+		{
+			auto rows = m_dataList->selectionModel()->selectedRows();
+			if (rows.size() != 1)
 			{
-				auto rows = m_dataList->selectionModel()->selectedRows();
-				if (rows.size() != 1)
-				{
-					LOG(lvlWarn, "Please select exactly one row for deleting!");
-					return;
-				}
-				auto idx = rows[0].row();
-				m_dataRenderers[idx]->hide();
+				LOG(lvlWarn, "Please select exactly one row for deleting!");
+				return;
+			}
+			auto idx = rows[0].row();
+			m_dataRenderers[idx]->setVisible(false);
+			updateRenderer();
+			m_dataRenderers.erase(m_dataRenderers.begin() + idx); 
+			m_datasets.erase(m_datasets.begin() + idx);
+			m_dataList->removeRow(idx);
+		});
+		connect(m_dataList, &QTableWidget::itemClicked, this, [this](QTableWidgetItem* item)
+		{
+//		connect(m_dataList, &QTableWidget::itemChanged, this, [this](QTableWidgetItem* item)
+//			{
+			auto row = m_dataList->row(item);
+			auto col = m_dataList->column(item);
+			auto checked = ! item->data(Qt::UserRole).toBool();
+			item->setData(Qt::UserRole, checked);
+			item->setIcon(checked ? QIcon(":/images/eye.svg") : QIcon(":/images/eye_light.svg"));
+			switch (col)
+			{
+			case View3D:
+				m_dataRenderers[row]->setVisible(checked);
 				updateRenderer();
-				m_dataRenderers.erase(m_dataRenderers.begin() + idx); 
-				m_datasets.erase(m_datasets.begin() + idx);
-				m_dataList->removeRow(idx);
-			});
-
-		connect(m_dataList, &QTableWidget::itemChanged, this, [this](QTableWidgetItem* item)
-			{
-				auto idx = m_dataList->row(item);
-				if (m_dataList->column(item) == 1)		// show in 3D renderer
-				{
-					if (m_dataRenderers[idx]->isVisible())
-					{
-						m_dataRenderers[idx]->hide();
-					}
-					else
-					{
-						m_dataRenderers[idx]->show();
-					}
-					updateRenderer();
-				}
-			});
+				break;
+			case View3DBox:
+				m_dataRenderers[row]->setBoundsVisible(checked);
+				updateRenderer();
+				break;
+			default:
+				LOG(lvlWarn, QString("Unhandled itemChanged(colum = %1)").arg(col));
+				break;
+			}
+		});
 
 		auto content = new QWidget();
 		content->setLayout(new QHBoxLayout);
@@ -591,20 +600,25 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 	m_datasets.push_back(dataset);
 	
 	auto dataRenderer = createDataRenderer(dataset.get(), renderer());
-	dataRenderer->show();
+	dataRenderer->setVisible(true);
 	m_dataRenderers.push_back(dataRenderer);
 	{
 		QSignalBlocker blockList(m_dataList);
 		auto nameItem = new QTableWidgetItem(dataset->name());
-		//nameItem->setFlags(item->flags() | Qt::ItemIsUserCheckable);
 		int row = m_dataList->rowCount();
 		m_dataList->insertRow(row);
 		m_dataList->setItem(row, 0, nameItem);
 
-		auto view3DItem = new QTableWidgetItem("");  // QIcon(":/images/camera.png"), "" to show icon only; maybe use "checked icon"?
-		view3DItem->setFlags(view3DItem->flags() | Qt::ItemIsUserCheckable);
-		view3DItem->setCheckState(Qt::Checked);
-		m_dataList->setItem(row, 1, view3DItem);
+		// TODO: use icons for these?
+		auto view3DItem = new QTableWidgetItem(QIcon(":/images/eye.svg"), "");
+		view3DItem->setData(Qt::UserRole, 1);
+		m_dataList->setItem(row, View3D, view3DItem);
+
+		auto view3DBoxItem = new QTableWidgetItem(QIcon(":/images/eye_light.svg"), "");
+		view3DBoxItem->setData(Qt::UserRole, 0);
+		m_dataList->setItem(row, View3DBox, view3DBoxItem);
+
+		m_dataList->resizeColumnsToContents();
 	}
 }
 

@@ -134,42 +134,7 @@ std::shared_ptr<iADataSet> iAMetaFileIO::load(iAProgress* p, QMap<QString, QVari
 #include <vtkLine.h>
 #include <vtkPolyData.h>
 
-// TODO: move to separate iAAABB class and re-use in FIAKER/FiberSA(/DreamCaster?)
-#include <iAVec3.h>
-class iAAABB
-{
-public:
-	iAAABB()
-	{
-		box[0].fill(std::numeric_limits<double>::max());
-		box[1].fill(std::numeric_limits<double>::lowest());
-	}
-	void addPointToBox(iAVec3d const & pt)
-	{
-		for (int i = 0; i < 3; ++i)
-		{
-			box[0][i] = std::min(box[0][i], pt[i]);
-			box[1][i] = std::max(box[1][i], pt[i]);
-		}
-		
-	}
-	iAVec3d const & topLeft() const
-	{
-		return box[0];
-	}
-	iAVec3d const& bottomRight() const
-	{
-		return box[1];
-	}
-
-private:
-	std::array<iAVec3d, 2> box;
-};
-
-QString toStr(iAAABB const & box)
-{
-	return QString("%1, %2; %3, %4").arg(box.topLeft().x()).arg(box.topLeft().y()).arg(box.bottomRight().x()).arg(box.bottomRight().y());
-}
+#include "iAAABB.h"
 
 iAGraphFileIO::iAGraphFileIO() : iAFileIO(iADataSetType::dstMesh)
 {

@@ -32,9 +32,14 @@ public:
 	//iAVec3d bounds();
 	//virtual double const* bounds() const = 0;
 	//virtual QString information() const =0;
+	
+	//! Type of dataset (used to determine the renderer used for the datasets)
 	iADataSetType type() const;
+	//! The name of the dataset (defaults to the "basename" of the file)
 	QString const& name() const;
+	//! The name of the file in which this dataset is stored
 	QString const& fileName() const;
+
 	virtual QString info() const;
 
 protected:
@@ -60,7 +65,6 @@ class iAbase_API iAGraphData : public iADataSet
 public:
 	iAGraphData(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyData> mesh);
 	vtkSmartPointer<vtkPolyData> poly();
-
 private:
 	vtkSmartPointer<vtkPolyData> m_mesh;
 };

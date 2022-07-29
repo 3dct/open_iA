@@ -1,15 +1,56 @@
 #include "iADataSetRenderer.h"
 
+#include "iAAABB.h"
 #include "iADataSet.h"
 #include "iARenderer.h"
 
 #include <vtkActor.h>
+#include <vtkCubeSource.h>
+#include <vtkOpenGLRenderer.h>
+#include <vtkOutlineFilter.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
-#include <vtkOpenGLRenderer.h>
 #include <vtkSphereSource.h>
 
 #include <QColor>
+
+class iAOutlineImpl
+{
+public:
+	iAOutlineImpl(iAAABB const& box, iARenderer* renderer): m_renderer(renderer)
+	{
+		m_cubeSource->SetBounds(
+			box.topLeft().x(), box.bottomRight().x(),
+			box.topLeft().y(), box.bottomRight().y(),
+			box.topLeft().z(), box.bottomRight().z()
+		);
+		m_mapper->SetInputConnection(m_cubeSource->GetOutputPort());
+		m_actor->GetProperty()->SetColor(0, 0, 0);
+		m_actor->GetProperty()->SetRepresentationToWireframe();
+		m_actor->PickableOff();
+		m_actor->SetMapper(m_mapper);
+		renderer->renderer()->AddActor(m_actor);
+	}
+
+	void setVisible(bool visible)
+	{
+		if (visible)
+		{
+			m_renderer->renderer()->AddActor(m_actor);
+		}
+		else
+		{
+			m_renderer->renderer()->RemoveActor(m_actor);
+		}
+	}
+
+private:
+	vtkNew<vtkCubeSource> m_cubeSource;
+	vtkNew<vtkPolyDataMapper> m_mapper;
+	vtkNew<vtkActor> m_actor;
+	iARenderer* m_renderer;
+};
+
 
 iADataSetRenderer::iADataSetRenderer(iARenderer* renderer):
 	m_renderer(renderer),
@@ -32,21 +73,31 @@ QMap<QString, QVariant> const& iADataSetRenderer::attributeValues() const
 	return m_attribValues;
 }
 
-void iADataSetRenderer::show()
+void iADataSetRenderer::setVisible(bool visible)
 {
-	showDataSet();
-	m_visible = true;
-}
-
-void iADataSetRenderer::hide()
-{
-	hideDataSet();
-	m_visible = false;
+	m_visible = visible;
+	if (m_visible)
+	{
+		showDataSet();
+	}
+	else
+	{
+		hideDataSet();
+	}
 }
 
 bool iADataSetRenderer::isVisible() const
 {
 	return m_visible;
+}
+
+void iADataSetRenderer::setBoundsVisible(bool visible)
+{
+	if (!m_outline)
+	{
+		m_outline = std::make_shared<iAOutlineImpl>(bounds(), m_renderer);
+	}
+	m_outline->setVisible(visible);
 }
 
 void iADataSetRenderer::addAttribute(
@@ -132,9 +183,17 @@ public:
 	}
 
 private:
+	iAAABB bounds() override
+	{
+		iAAABB result(m_pointActor->GetBounds());
+		result.merge(iAAABB(m_lineActor->GetBounds()));
+		return result;
+	}
 	vtkSmartPointer<vtkActor> m_lineActor, m_pointActor;
 	vtkSmartPointer<vtkSphereSource> m_sphereSource;
 };
+
+
 
 // ---------- iAMeshRenderer ----------
 
@@ -176,6 +235,10 @@ public:
 		double opacity = attributeValues()[PolyOpacity].toDouble();
 		m_polyActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
 		m_polyActor->GetProperty()->SetOpacity(opacity);
+	}
+	iAAABB bounds() override
+	{
+		return iAAABB(m_polyActor->GetBounds());
 	}
 
 private:
@@ -290,6 +353,10 @@ public:
 		m_volume->SetDragable(movable);
 	}
 	*/
+	iAAABB bounds() override
+	{
+		return iAAABB(m_volume->GetBounds());
+	}
 	
 
 private:

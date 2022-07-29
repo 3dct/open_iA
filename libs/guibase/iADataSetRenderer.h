@@ -6,7 +6,9 @@
 
 #include <memory>
 
+class iAAABB;
 class iADataSet;
+class iAOutlineImpl;
 
 class iARenderer;
 
@@ -14,19 +16,27 @@ class iARenderer;
 class iAguibase_API iADataSetRenderer
 {
 public:
-	// necessary to implement:
+	//! Create a dataset renderer
 	iADataSetRenderer(iARenderer* renderer);
-	void show();
-	void hide();
+	//! Set visibility of dataset
+	void setVisible(bool visible);
+	//! Whether dataset is currently visible
 	bool isVisible() const;
-
+	
+	//! The list of display attributes of this renderer
 	iAAttributes const & attributes() const;
+	//! Call to change the attributes of this renderer
 	void setAttributes(QMap<QString, QVariant> const& values);
+	//! The current values of the display attributes
 	QMap<QString, QVariant> const & attributeValues() const;
+
+	//! Set the visibility of the axis-aligned bounding box:
+	void setBoundsVisible(bool visible);
+	//! The coordinates of the axis-aligned bounding box
+	virtual iAAABB bounds() = 0;
 
 	// optional additional features:
 	/*
-	virtual iAAABB bounds(); // -> separate show bounds
 	
 	// interactions:
 	virtual void setMovable(bool movable);
@@ -47,14 +57,16 @@ protected:
 	iARenderer* m_renderer;
 
 private:
-	//! @{ internal logic of showing/hiding dataset in renderer; never called directly, see show/hide above
+	//! @{ internal logic of showing/hiding dataset in renderer; called internally from setVisible; implement in derived classes
 	virtual void showDataSet() = 0;
 	virtual void hideDataSet() = 0;
 	//! @}
+	//! called when the attributes have changed; derive to apply such a change to renderer
 	virtual void applyAttributes() = 0;
 
 	iAAttributes m_attributes;
 	QMap<QString, QVariant> m_attribValues;
+	std::shared_ptr<iAOutlineImpl> m_outline;
 	bool m_visible;
 };
 
