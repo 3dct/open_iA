@@ -41,7 +41,6 @@ class iALookupTable;
 class iAScatterPlotViewData;
 class iASPLOMData;
 
-class QTableWidget;
 class QTimer;
 
 class vtkLookupTable;

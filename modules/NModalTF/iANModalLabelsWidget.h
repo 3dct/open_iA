@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QListWidget>
-#include <QMap>
 #include <QSharedPointer>
 #include <QWidget>
 

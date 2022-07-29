@@ -25,7 +25,6 @@
 
 //QT
 #include <QString>
-#include <QListView>
 
 #include <vector>
 

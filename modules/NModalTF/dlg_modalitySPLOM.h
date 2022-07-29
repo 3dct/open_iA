@@ -30,7 +30,6 @@
 class iAModalityList;
 class iAQSplom;
 class iASPLOMData;
-class QTableWidget;
 
 class vtkColorTransferFunction;
 class vtkImageData;

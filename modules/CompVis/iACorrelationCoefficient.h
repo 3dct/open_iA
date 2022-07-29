@@ -7,6 +7,8 @@
 
 #include "iACsvDataStorage.h"
 
+#include <map>
+
 namespace Correlation
 {
 	using CorrelationStore = std::map<QString, double>;
