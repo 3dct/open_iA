@@ -43,7 +43,7 @@
 #include <vector>
 #include <functional>
 
-class QListWidget;
+class QTableWidget;
 
 class vtkAbstractTransform;
 class vtkActor;
@@ -522,5 +522,5 @@ private:
 	std::vector<std::shared_ptr<iADataSetRenderer>> m_dataRenderers;
 
 	iADockWidgetWrapper* m_dwDatasets;
-	QListWidget* m_dataList;
+	QTableWidget* m_dataList;
 };

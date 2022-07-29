@@ -488,7 +488,19 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 {
 	if (!m_dwDatasets)
 	{
-		m_dataList = new QListWidget;
+		m_dataList = new QTableWidget;
+		QStringList columnNames;
+		columnNames << "Name"
+					<< "3D"
+		//			<< "BB"
+		//			<< "2D"
+		//			<< "Histo"
+			;
+
+		m_dataList->setColumnCount(columnNames.size());
+		m_dataList->setHorizontalHeaderLabels(columnNames);
+		m_dataList->verticalHeader()->hide();
+		m_dataList->setSelectionBehavior(QAbstractItemView::SelectRows);
 		m_dataList->setEditTriggers(QAbstractItemView::NoEditTriggers);
 		//m_dataModel = new QStringListModel;
 		//m_dataModel->set
@@ -542,20 +554,22 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 				updateRenderer();
 				m_dataRenderers.erase(m_dataRenderers.begin() + idx); 
 				m_datasets.erase(m_datasets.begin() + idx);
-				m_dataList->takeItem(idx);
+				m_dataList->removeRow(idx);
 			});
 
-		connect(m_dataList, &QListWidget::itemChanged, this, [this](QListWidgetItem* item)
+		connect(m_dataList, &QTableWidget::itemChanged, this, [this](QTableWidgetItem* item)
 			{
 				auto idx = m_dataList->row(item);
-				if (m_dataRenderers[idx]->isVisible())
+				if (m_dataList->column(item) == 1)		// show in 3D renderer
 				{
-					m_dataRenderers[idx]->hide();
-					updateRenderer();
-				}
-				else
-				{
-					m_dataRenderers[idx]->show();
+					if (m_dataRenderers[idx]->isVisible())
+					{
+						m_dataRenderers[idx]->hide();
+					}
+					else
+					{
+						m_dataRenderers[idx]->show();
+					}
 					updateRenderer();
 				}
 			});
@@ -570,15 +584,23 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 		splitDockWidget(m_dwModalities, m_dwDatasets, Qt::Horizontal);
 	}
 	m_datasets.push_back(dataset);
-	auto item = new QListWidgetItem(dataset->name());
-	item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-	m_dataList->addItem(item);
-	m_dataList->setCurrentItem(item);
+	
 	auto dataRenderer = createDataRenderer(dataset.get(), renderer());
 	dataRenderer->show();
 	m_dataRenderers.push_back(dataRenderer);
-	QSignalBlocker blockList(m_dataList);
-	item->setCheckState(Qt::Checked);
+	{
+		QSignalBlocker blockList(m_dataList);
+		auto nameItem = new QTableWidgetItem(dataset->name());
+		//nameItem->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+		int row = m_dataList->rowCount();
+		m_dataList->insertRow(row);
+		m_dataList->setItem(row, 0, nameItem);
+
+		auto view3DItem = new QTableWidgetItem("");  // QIcon(":/images/camera.png"), "" to show icon only; maybe use "checked icon"?
+		view3DItem->setFlags(view3DItem->flags() | Qt::ItemIsUserCheckable);
+		view3DItem->setCheckState(Qt::Checked);
+		m_dataList->setItem(row, 1, view3DItem);
+	}
 }
 
 bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyData* poly)	// = opening new window
