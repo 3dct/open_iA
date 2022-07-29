@@ -146,7 +146,8 @@ public:
 	//sets bounds of the slicing volume, using the spacing of image
 	void setSlicingBounds(const int roi[6], const double *spacing);
 
-	void setCubeVisible(bool visible); //Visibility of the slice cube
+	//! Visibility of the ROI indicator
+	void setROIVisible(bool visible);
 
 	void saveMovie(const QString& fileName, int mode, int qual = 2);	//!< move out of here
 	iARenderObserver * getRenderObserver() override;
@@ -249,9 +250,9 @@ private:
 	float m_slicePlaneOpacity; //!< Slice Plane Opacity
 	//! @}
 
-	vtkSmartPointer<vtkCubeSource> m_slicingCube;
-	vtkSmartPointer<vtkPolyDataMapper> m_sliceCubeMapper;
-	vtkSmartPointer<vtkActor> m_sliceCubeActor;
+	vtkSmartPointer<vtkCubeSource> m_roiCube;
+	vtkSmartPointer<vtkPolyDataMapper> m_roiMapper;
+	vtkSmartPointer<vtkActor> m_roiActor;
 
 	//! bounding box for "stick-out" information (currently used for lines leading to profile points)
 	iAVec3d m_stickOutBox[2];

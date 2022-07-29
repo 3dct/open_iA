@@ -2093,7 +2093,7 @@ void MdiChild::setROIVisible(bool visible)
 	{
 		m_slicer[s]->setROIVisible(visible);
 	}
-	m_renderer->setCubeVisible(visible);
+	m_renderer->setROIVisible(visible);
 }
 
 QString MdiChild::userFriendlyCurrentFile() const

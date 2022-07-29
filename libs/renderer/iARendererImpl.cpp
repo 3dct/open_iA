@@ -262,9 +262,9 @@ iARendererImpl::iARendererImpl(QObject *par): iARenderer(par),
 	m_profileLineEndPointMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_profileLineEndPointActor(vtkSmartPointer<vtkActor>::New()),
 	m_slicePlaneOpacity(0.8),
-	m_slicingCube(vtkSmartPointer<vtkCubeSource>::New()),
-	m_sliceCubeMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	m_sliceCubeActor(vtkSmartPointer<vtkActor>::New()),
+	m_roiCube(vtkSmartPointer<vtkCubeSource>::New()),
+	m_roiMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	m_roiActor(vtkSmartPointer<vtkActor>::New()),
 	m_initialized(false),
 	m_touchStartScale(1.0)
 {
@@ -390,19 +390,18 @@ void iARendererImpl::initialize( vtkImageData* ds, vtkPolyData* pd)
 	m_profileLineStartPointActor->GetProperty()->SetColor(ProfileStartColor.redF(), ProfileStartColor.greenF(), ProfileStartColor.blueF());
 	m_profileLineEndPointActor->GetProperty()->SetColor(ProfileEndColor.redF(), ProfileEndColor.greenF(), ProfileEndColor.blueF());
 
-	//slicing cube settings for surface extraction
-	m_sliceCubeMapper->SetInputConnection(m_slicingCube->GetOutputPort());
-	m_sliceCubeActor->SetMapper(m_sliceCubeMapper);
-	m_sliceCubeActor->GetProperty()->SetColor(1.0, 0, 0);
-	m_sliceCubeActor->GetProperty()->SetRepresentationToWireframe();
-	m_sliceCubeActor->GetProperty()->SetOpacity(1);
-	m_sliceCubeActor->GetProperty()->SetLineWidth(2.3);
-	m_sliceCubeActor->GetProperty()->SetAmbient(1.0);
-	m_sliceCubeActor->GetProperty()->SetDiffuse(0.0);
-	m_sliceCubeActor->GetProperty()->SetSpecular(0.0);
-	m_sliceCubeActor->SetPickable(false);
-	m_sliceCubeActor->SetDragable(false);
-	m_sliceCubeActor->SetVisibility(false);
+	m_roiMapper->SetInputConnection(m_roiCube->GetOutputPort());
+	m_roiActor->SetMapper(m_roiMapper);
+	m_roiActor->GetProperty()->SetColor(1.0, 0, 0);
+	m_roiActor->GetProperty()->SetRepresentationToWireframe();
+	m_roiActor->GetProperty()->SetOpacity(1);
+	m_roiActor->GetProperty()->SetLineWidth(2.3);
+	m_roiActor->GetProperty()->SetAmbient(1.0);
+	m_roiActor->GetProperty()->SetDiffuse(0.0);
+	m_roiActor->GetProperty()->SetSpecular(0.0);
+	m_roiActor->SetPickable(false);
+	m_roiActor->SetDragable(false);
+	m_roiActor->SetVisibility(false);
 
 	setProfileHandlesOn(false);
 
@@ -564,7 +563,7 @@ void iARendererImpl::setupRenderer()
 	}
 	m_ren->AddActor(m_profileLineStartPointActor);
 	m_ren->AddActor(m_profileLineEndPointActor);
-	m_ren->AddActor(m_sliceCubeActor);
+	m_ren->AddActor(m_roiActor);
 	emit onSetupRenderer();
 }
 
@@ -948,13 +947,13 @@ void iARendererImpl::setSlicingBounds(const int roi[6], const double * spacing)
 	double xMax = xMin + roi[3] * spacing[0],
 	       yMax = yMin + roi[4] * spacing[1],
 	       zMax = zMin + roi[5] * spacing[2];
-	m_slicingCube->SetBounds(xMin, xMax, yMin, yMax, zMin, zMax);
+	m_roiCube->SetBounds(xMin, xMax, yMin, yMax, zMin, zMax);
 	update();
 }
 
-void iARendererImpl::setCubeVisible(bool visible)
+void iARendererImpl::setROIVisible(bool visible)
 {
-	m_sliceCubeActor->SetVisibility(visible);
+	m_roiActor->SetVisibility(visible);
 }
 
 void iARendererImpl::setSlicePlanePos(int planeID, double originX, double originY, double originZ)
