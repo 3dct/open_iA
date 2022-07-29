@@ -21,8 +21,15 @@ iAAttributes const& iADataSetRenderer::attributes() const
 	return m_attributes;
 }
 
-void iADataSetRenderer::setAttributes(QMap<QString, QVariant> values)
+void iADataSetRenderer::setAttributes(QMap<QString, QVariant> const & values)
 {
+	m_attribValues = values;
+	applyAttributes();
+}
+
+QMap<QString, QVariant> const& iADataSetRenderer::attributeValues() const
+{
+	return m_attribValues;
 }
 
 void iADataSetRenderer::show()
@@ -113,15 +120,15 @@ public:
 		m_renderer->renderer()->RemoveActor(m_lineActor);
 	}
 
-	void setAttributes(QMap<QString, QVariant> values) override
+	void applyAttributes() override
 	{
-		m_sphereSource->SetRadius(values[PointRadius].toDouble());
-		QColor pointColor(values[PointColor].toString());
+		m_sphereSource->SetRadius(attributeValues()[PointRadius].toDouble());
+		QColor pointColor(attributeValues()[PointColor].toString());
 		m_pointActor->GetProperty()->SetColor(pointColor.redF(), pointColor.greenF(), pointColor.blueF());
 		m_sphereSource->Update();
-		QColor lineColor(values[LineColor].toString());
+		QColor lineColor(attributeValues()[LineColor].toString());
 		m_lineActor->GetProperty()->SetColor(lineColor.redF(), lineColor.greenF(), lineColor.blueF());
-		m_lineActor->GetProperty()->SetLineWidth(values[LineWidth].toFloat());
+		m_lineActor->GetProperty()->SetLineWidth(attributeValues()[LineWidth].toFloat());
 	}
 
 private:
@@ -163,10 +170,10 @@ public:
 	{
 		m_renderer->renderer()->RemoveActor(m_polyActor);
 	}
-	void setAttributes(QMap<QString, QVariant> values) override
+	void applyAttributes() override
 	{
-		QColor color(values[PolyColor].toString());
-		double opacity = values[PolyOpacity].toDouble();
+		QColor color(attributeValues()[PolyColor].toString());
+		double opacity = attributeValues()[PolyOpacity].toDouble();
 		m_polyActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
 		m_polyActor->GetProperty()->SetOpacity(opacity);
 	}
@@ -252,17 +259,17 @@ public:
 	{
 		m_renderer->renderer()->RemoveVolume(m_volume);
 	}
-	void setAttributes(QMap<QString, QVariant> values) override
+	void applyAttributes() override
 	{
-		m_volProp->SetAmbient(values[AmbientLighting].toDouble());
-		m_volProp->SetDiffuse(values[DiffuseLighting].toDouble());
-		m_volProp->SetSpecular(values[SpecularLighting].toDouble());
-		m_volProp->SetSpecularPower(values[SpecularPower].toDouble());
-		m_volProp->SetInterpolationType(values[LinearInterpolation].toInt());
-		m_volProp->SetShade(values[Shading].toBool());
-		if (values[ScalarOpacityUnitDistance].toDouble() > 0)
+		m_volProp->SetAmbient(attributeValues()[AmbientLighting].toDouble());
+		m_volProp->SetDiffuse(attributeValues()[DiffuseLighting].toDouble());
+		m_volProp->SetSpecular(attributeValues()[SpecularLighting].toDouble());
+		m_volProp->SetSpecularPower(attributeValues()[SpecularPower].toDouble());
+		m_volProp->SetInterpolationType(attributeValues()[LinearInterpolation].toInt());
+		m_volProp->SetShade(attributeValues()[Shading].toBool());
+		if (attributeValues()[ScalarOpacityUnitDistance].toDouble() > 0)
 		{
-			m_volProp->SetScalarOpacityUnitDistance(values[ScalarOpacityUnitDistance].toDouble());
+			m_volProp->SetScalarOpacityUnitDistance(attributeValues()[ScalarOpacityUnitDistance].toDouble());
 		}
 		/*
 		else
@@ -270,8 +277,8 @@ public:
 			m_volSettings.ScalarOpacityUnitDistance = m_volProp->GetScalarOpacityUnitDistance();
 		}
 		*/
-		m_volMapper->SetRequestedRenderMode(values[RendererType].toInt());
-		m_volMapper->SetSampleDistance(values[SampleDistance].toDouble());
+		m_volMapper->SetRequestedRenderMode(attributeValues()[RendererType].toInt());
+		m_volMapper->SetSampleDistance(attributeValues()[SampleDistance].toDouble());
 		
 		// maybe provide as option: (see also AutoAdjustSampleDistances, InteractiveUpdateRate)
 		m_volMapper->InteractiveAdjustSampleDistancesOff();

@@ -21,7 +21,8 @@ public:
 	bool isVisible() const;
 
 	iAAttributes const & attributes() const;
-	virtual void setAttributes(QMap<QString, QVariant> values);
+	void setAttributes(QMap<QString, QVariant> const& values);
+	QMap<QString, QVariant> const & attributeValues() const;
 
 	// optional additional features:
 	/*
@@ -50,8 +51,10 @@ private:
 	virtual void showDataSet() = 0;
 	virtual void hideDataSet() = 0;
 	//! @}
+	virtual void applyAttributes() = 0;
 
 	iAAttributes m_attributes;
+	QMap<QString, QVariant> m_attribValues;
 	bool m_visible;
 };
 

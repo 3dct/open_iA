@@ -529,12 +529,17 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 				LOG(lvlWarn, "Please select exactly one row for editing!");
 				return;
 			}
-			if (rows[0].row() >= m_dataRenderers.size())
+			int row = rows[0].row();
+			if (row >= m_dataRenderers.size())
 			{
-				LOG(lvlWarn, QString("Invalid dataset index %1!").arg(rows[0].row()));
+				LOG(lvlWarn, QString("Invalid dataset index %1!").arg(row));
 				return;
 			}
-			iAParameterDlg dlg(this, "Dataset parameters", m_dataRenderers[rows[0].row()]->attributes());
+			auto values = m_dataRenderers[row]->attributeValues();
+			auto paramValues = (values.empty()) ?       // if no values stored
+				m_dataRenderers[row]->attributes() :    // use default values
+				combineAttributesWithValues(m_dataRenderers[row]->attributes(), values);
+			iAParameterDlg dlg(this, "Dataset parameters", paramValues);
 			if (dlg.exec() != QDialog::Accepted)
 			{
 				return;
