@@ -605,6 +605,7 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 	{
 		QSignalBlocker blockList(m_dataList);
 		auto nameItem = new QTableWidgetItem(dataset->name());
+		nameItem->setToolTip(dataset->info());
 		int row = m_dataList->rowCount();
 		m_dataList->insertRow(row);
 		m_dataList->setItem(row, 0, nameItem);

@@ -56,6 +56,8 @@ class iAbase_API iAPolyData : public iADataSet
 public:
 	iAPolyData(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyData> mesh);
 	vtkSmartPointer<vtkPolyData> poly();
+	QString info() const override;
+
 private:
 	vtkSmartPointer<vtkPolyData> m_mesh;
 };
@@ -65,6 +67,8 @@ class iAbase_API iAGraphData : public iADataSet
 public:
 	iAGraphData(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyData> mesh);
 	vtkSmartPointer<vtkPolyData> poly();
+	QString info() const override;
+
 private:
 	vtkSmartPointer<vtkPolyData> m_mesh;
 };
@@ -74,6 +78,8 @@ class iAbase_API iAImageData : public iADataSet
 public:
 	iAImageData(QString const& name, QString const& fileName, vtkSmartPointer<vtkImageData> img);
 	vtkSmartPointer<vtkImageData> image();
+	QString info() const override;
+
 private:
 	vtkSmartPointer<vtkImageData> m_img;
 };
