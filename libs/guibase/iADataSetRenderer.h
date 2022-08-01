@@ -32,7 +32,7 @@ public:
 
 	//! Set the visibility of the axis-aligned bounding box:
 	void setBoundsVisible(bool visible);
-	//! The coordinates of the axis-aligned bounding box
+	//! The coordinates of the axis-aligned bounding box (of the dataset, untransformed to any current position/orientation changes)
 	virtual iAAABB bounds() = 0;
 
 	// optional additional features:

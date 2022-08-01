@@ -164,7 +164,8 @@ public:
 	iAGraphRenderer(iARenderer* renderer, iAGraphData* data) :
 		iADataSetRenderer(renderer),
 		m_lineActor(vtkSmartPointer<vtkActor>::New()),
-		m_pointActor(vtkSmartPointer<vtkActor>::New())
+		m_pointActor(vtkSmartPointer<vtkActor>::New()),
+		m_data(data)
 	{
 		auto lineMapper = vtkPolyDataMapper::New();
 		lineMapper->SetInputData(data->poly());
@@ -225,10 +226,7 @@ public:
 private:
 	iAAABB bounds() override
 	{
-		// TODO: return untransformed bounds of dataset itself here
-		iAAABB result(m_pointActor->GetBounds());
-		result.merge(iAAABB(m_lineActor->GetBounds()));
-		return result;
+		return iAAABB(m_data->poly()->GetBounds());
 	}
 	double const* orientation() const override
 	{
@@ -244,6 +242,7 @@ private:
 	}
 	vtkSmartPointer<vtkActor> m_lineActor, m_pointActor;
 	vtkSmartPointer<vtkSphereSource> m_sphereSource;
+	iAGraphData* m_data;
 };
 
 
@@ -261,7 +260,8 @@ class iAMeshRenderer: public iADataSetRenderer
 public:
 	iAMeshRenderer(iARenderer* renderer, iAPolyData * data):
 		iADataSetRenderer(renderer),
-		m_polyActor(vtkSmartPointer<vtkActor>::New())
+		m_polyActor(vtkSmartPointer<vtkActor>::New()),
+		m_data(data)
 	{
 		vtkNew<vtkPolyDataMapper> mapper;
 		mapper->SetInputData(data->poly());
@@ -300,8 +300,7 @@ public:
 private:
 	iAAABB bounds() override
 	{
-		// TODO: return untransformed bounds of dataset itself here, i.e. data->poly()->GetBounds();
-		return iAAABB(m_polyActor->GetBounds());
+		return iAAABB(m_data->poly()->GetBounds());
 	}
 	double const* orientation() const override
 	{
@@ -312,6 +311,7 @@ private:
 		return m_polyActor->GetPosition();
 	}
 	vtkSmartPointer<vtkActor> m_polyActor;
+	iAPolyData* m_data;
 };
 
 // ---------- iAVolRenderer ----------
@@ -345,7 +345,8 @@ public:
 		m_volume(vtkSmartPointer<vtkVolume>::New()),
 		m_volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
 		m_volMapper(vtkSmartPointer<vtkSmartVolumeMapper>::New()),
-		m_transfer(std::make_shared<iAModalityTransfer>(data->image()->GetScalarRange()))
+		m_transfer(std::make_shared<iAModalityTransfer>(data->image()->GetScalarRange())),
+		m_image(data)
 	{
 		m_volMapper->SetBlendModeToComposite();
 		m_volume->SetMapper(m_volMapper);
@@ -434,8 +435,7 @@ public:
 private:
 	iAAABB bounds() override
 	{
-		// TODO: return untransformed bounds of dataset itself here
-		return iAAABB(m_volume->GetBounds());
+		return iAAABB(m_image->image()->GetBounds());
 	}
 	double const* orientation() const override
 	{
@@ -451,6 +451,7 @@ private:
 	vtkSmartPointer<vtkVolume> m_volume;
 	vtkSmartPointer<vtkVolumeProperty> m_volProp;
 	vtkSmartPointer<vtkSmartVolumeMapper> m_volMapper;
+	iAImageData* m_image;
 };
 
 // ---------- Factory method ----------
