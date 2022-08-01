@@ -43,13 +43,13 @@ public:
 
 	void setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3);
 	void removeCuttingPlanes();
+	*/
 
 	// retrieve/set orientation/position:
-	virtual double const* orientation() const;
-	virtual double const* position() const;
-	virtual void setPosition(double*);
-	virtual void setOrientation(double*);
-	*/
+	virtual double const* orientation() const =0;
+	virtual double const* position() const = 0;
+	//virtual void setPosition(double*) = 0;
+	//virtual void setOrientation(double*) = 0;
 
 protected:
 	void addAttribute(QString const& name, iAValueType valueType, QVariant defaultValue = 0.0,

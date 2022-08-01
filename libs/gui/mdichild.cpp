@@ -488,8 +488,10 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 {
 	enum ViewCheckBoxes
 	{
-		View3D = 1,
+		ViewFirst = 1,      // index of first column with "checkbox" behavior
+		View3D = ViewFirst,
 		View3DBox = 2,
+		ViewLast = View3DBox // index of last column with "checkbox" behavior
 	};
 	if (!m_dwDatasets)
 	{
@@ -538,6 +540,8 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 				return;
 			}
 			auto values = m_dataRenderers[row]->attributeValues();
+			// TODO: probably not ideal yet: values from derived renderers are uninitialized on first run;
+			//       but orientation and position get set in attributeValues(), so values is probably never empty...?
 			auto paramValues = (values.empty()) ?       // if no values stored
 				m_dataRenderers[row]->attributes() :    // use default values
 				combineAttributesWithValues(m_dataRenderers[row]->attributes(), values);
@@ -567,8 +571,12 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 		{
 //		connect(m_dataList, &QTableWidget::itemChanged, this, [this](QTableWidgetItem* item)
 //			{
-			auto row = m_dataList->row(item);
 			auto col = m_dataList->column(item);
+			if (col < ViewFirst || col > ViewLast)
+			{
+				return;
+			}
+			auto row = m_dataList->row(item);
 			auto checked = ! item->data(Qt::UserRole).toBool();
 			item->setData(Qt::UserRole, checked);
 			item->setIcon(checked ? QIcon(":/images/eye.svg") : QIcon(":/images/eye_light.svg"));
@@ -583,10 +591,7 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 				updateRenderer();
 				break;				
 			default:
-				if (col != 0)	// for column 0, nothing should happen
-				{
-					LOG(lvlWarn, QString("Unhandled itemChanged(colum = %1)").arg(col));
-				}
+				LOG(lvlWarn, QString("Unhandled itemChanged(colum = %1)").arg(col));
 				break;
 			}
 		});

@@ -43,6 +43,13 @@ public:
 			m_renderer->renderer()->RemoveActor(m_actor);
 		}
 	}
+	void setOrientationAndPosition(QVector<double> pos, QVector<double> ori)
+	{
+		assert(pos.size() == 3);
+		assert(ori.size() == 3);
+		m_actor->SetPosition(pos.data());
+		m_actor->SetOrientation(ori.data());
+	}
 
 private:
 	vtkNew<vtkCubeSource> m_cubeSource;
@@ -51,11 +58,19 @@ private:
 	iARenderer* m_renderer;
 };
 
+namespace
+{
+	const QString Position("Position");
+	const QString Orientation("Orientation");
+}
 
 iADataSetRenderer::iADataSetRenderer(iARenderer* renderer):
 	m_renderer(renderer),
 	m_visible(false)
-{}
+{
+	addAttribute(Position, iAValueType::Vector3);
+	addAttribute(Orientation, iAValueType::Vector3);
+}
 
 iAAttributes const& iADataSetRenderer::attributes() const
 {
@@ -66,10 +81,16 @@ void iADataSetRenderer::setAttributes(QMap<QString, QVariant> const & values)
 {
 	m_attribValues = values;
 	applyAttributes();
+	m_outline->setOrientationAndPosition(
+		m_attribValues[Position].value<QVector<double>>(), m_attribValues[Orientation].value<QVector<double>>());
 }
 
 QMap<QString, QVariant> const& iADataSetRenderer::attributeValues() const
 {
+	auto pos = position();
+	auto ori = orientation();
+	m_attribValues[Position] = QVariant::fromValue(QVector<double>({pos[0], pos[1], pos[2]}));
+	m_attribValues[Orientation] = QVariant::fromValue(QVector<double>({ori[0], ori[1], ori[2]}));
 	return m_attribValues;
 }
 
@@ -180,6 +201,15 @@ public:
 		QColor lineColor(attributeValues()[LineColor].toString());
 		m_lineActor->GetProperty()->SetColor(lineColor.redF(), lineColor.greenF(), lineColor.blueF());
 		m_lineActor->GetProperty()->SetLineWidth(attributeValues()[LineWidth].toFloat());
+
+		QVector<double> pos = attributeValues()[Position].value<QVector<double>>();
+		QVector<double> ori = attributeValues()[Orientation].value<QVector<double>>();
+		assert(pos.size() == 3);
+		assert(ori.size() == 3);
+		m_pointActor->SetPosition(pos.data());
+		m_pointActor->SetOrientation(ori.data());
+		m_lineActor->SetPosition(pos.data());
+		m_lineActor->SetOrientation(ori.data());
 	}
 
 private:
@@ -188,6 +218,18 @@ private:
 		iAAABB result(m_pointActor->GetBounds());
 		result.merge(iAAABB(m_lineActor->GetBounds()));
 		return result;
+	}
+	double const* orientation() const override
+	{
+		auto o1 = m_pointActor->GetOrientation(), o2 = m_lineActor->GetOrientation();
+		assert(o1[0] == o2[0] && o1[1] == o2[1] && o1[2] == o2[2]);
+		return m_pointActor->GetOrientation();
+	}
+	double const* position() const override
+	{
+		auto p1 = m_pointActor->GetPosition(), p2 = m_lineActor->GetPosition();
+		assert(p1[0] == p2[0] && p1[1] == p2[1] && p1[2] == p2[2]);
+		return m_lineActor->GetPosition();
 	}
 	vtkSmartPointer<vtkActor> m_lineActor, m_pointActor;
 	vtkSmartPointer<vtkSphereSource> m_sphereSource;
@@ -235,13 +277,28 @@ public:
 		double opacity = attributeValues()[PolyOpacity].toDouble();
 		m_polyActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
 		m_polyActor->GetProperty()->SetOpacity(opacity);
+
+		QVector<double> pos = attributeValues()[Position].value<QVector<double>>();
+		QVector<double> ori = attributeValues()[Orientation].value<QVector<double>>();
+		assert(pos.size() == 3);
+		assert(ori.size() == 3);
+		m_polyActor->SetPosition(pos.data());
+		m_polyActor->SetOrientation(ori.data());
 	}
+
+private:
 	iAAABB bounds() override
 	{
 		return iAAABB(m_polyActor->GetBounds());
 	}
-
-private:
+	double const* orientation() const override
+	{
+		return m_polyActor->GetOrientation();
+	}
+	double const* position() const override
+	{
+		return m_polyActor->GetPosition();
+	}
 	vtkSmartPointer<vtkActor> m_polyActor;
 };
 
@@ -345,6 +402,13 @@ public:
 		
 		// maybe provide as option: (see also AutoAdjustSampleDistances, InteractiveUpdateRate)
 		m_volMapper->InteractiveAdjustSampleDistancesOff();
+
+		QVector<double> pos = attributeValues()[Position].value<QVector<double>>();
+		QVector<double> ori = attributeValues()[Orientation].value<QVector<double>>();
+		assert(pos.size() == 3);
+		assert(ori.size() == 3);
+		m_volume->SetPosition(pos.data());
+		m_volume->SetOrientation(ori.data());
 	}
 	/*
 	void setMovable(bool movable) override
@@ -353,13 +417,21 @@ public:
 		m_volume->SetDragable(movable);
 	}
 	*/
+	
+
+private:
 	iAAABB bounds() override
 	{
 		return iAAABB(m_volume->GetBounds());
 	}
-	
-
-private:
+	double const* orientation() const override
+	{
+		return m_volume->GetOrientation();
+	}
+	double const* position() const override
+	{
+		return m_volume->GetPosition();
+	}
 	//iAVolumeSettings m_volSettings;
 	std::shared_ptr<iAModalityTransfer> m_transfer;
 
