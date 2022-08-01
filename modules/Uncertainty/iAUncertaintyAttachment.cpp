@@ -139,7 +139,7 @@ void iAUncertaintyAttachment::ContinueEnsembleLoading()
 	m_child->splitDockWidget(m_dockWidgets[3], m_dockWidgets[4], Qt::Vertical);	// Uncertainty Distribution View
 	m_child->splitDockWidget(m_dockWidgets[5], m_dockWidgets[1], Qt::Horizontal);	// Member View
 	m_child->slicerDockWidget(iASlicerMode::XY)->hide();
-	m_child->imagePropertyDockWidget()->hide();
+	m_child->dataInfoDockWidget()->hide();
 	if (!m_ensembleFile->LayoutName().isEmpty())
 	{
 		m_child->loadLayout(m_ensembleFile->LayoutName());

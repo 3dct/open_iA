@@ -93,8 +93,8 @@ public:
 	
 	//! Access to 3D renderer dock widget
 	virtual QDockWidget* renderDockWidget() = 0;
-	//! Access to image property dock widget
-	virtual QDockWidget* imagePropertyDockWidget() = 0;
+	//! Access to dataset information dock widget
+	virtual QDockWidget* dataInfoDockWidget() = 0;
 	//! Access to histogram dock widget
 	virtual QDockWidget* histogramDockWidget() = 0;
 

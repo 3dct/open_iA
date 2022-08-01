@@ -3051,7 +3051,7 @@ void dlg_FeatureScout::initFeatureScoutUI()
 
 	if (m_visualization == iACsvConfig::UseVolume)
 	{
-		m_activeChild->imagePropertyDockWidget()->hide();
+		m_activeChild->dataInfoDockWidget()->hide();
 	}
 	m_activeChild->histogramDockWidget()->hide();
 	m_activeChild->renderDockWidget()->hide();

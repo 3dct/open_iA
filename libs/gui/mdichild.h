@@ -43,6 +43,7 @@
 #include <vector>
 #include <functional>
 
+class QListWidget;
 class QTableWidget;
 
 class vtkAbstractTransform;
@@ -57,7 +58,6 @@ class vtkPolyData;
 class vtkScalarsToColors;
 class vtkTransform;
 
-class dlg_imageproperty;
 class dlg_slicer;
 class dlg_volumePlayer;
 class iAParametricSpline;
@@ -183,8 +183,8 @@ public:
 	QDockWidget* slicerDockWidget(int mode) override;
 	//! Access to 3D renderer dock widget
 	QDockWidget* renderDockWidget() override;
-	//! Access to image property dock widget
-	QDockWidget* imagePropertyDockWidget() override;
+	//! Access to dataset information dock widget
+	QDockWidget* dataInfoDockWidget() override;
 	//! Access to histogram dock widget
 	QDockWidget* histogramDockWidget() override;
 	//! Access to modalities dock widget
@@ -365,7 +365,7 @@ private slots:
 	void updateRenderWindows(int channels);
 	void updatePositionMarker(int x, int y, int z, int mode);
 	void ioFinished();
-	void updateImageProperties();
+	void updateDatasetInfo();
 	void modalityTFChanged();
 	void histogramDataAvailable(int modalityIdx);
 	void statisticsAvailable(int modalityIdx);
@@ -382,7 +382,6 @@ private slots:
 
 private:
 	void closeEvent(QCloseEvent *event) override;
-	void addImageProperty( );
 	bool addVolumePlayer();
 	void addProfile();
 	void updateProfile();
@@ -484,10 +483,14 @@ private:
 	iAProfileWidget* m_profile;
 	QSharedPointer<iAPlot> m_histogramPlot;
 
+	//! dataset info:
+	QListWidget* m_datasetInfo;
+
 	//! @{ dock widgets
 	iADockWidgetWrapper* m_dwHistogram;
 	iADockWidgetWrapper* m_dwProfile;
-	dlg_imageproperty * m_dwImgProperty;
+	iADockWidgetWrapper* m_dwInfo;
+	iADockWidgetWrapper* m_dwDatasets;
 	dlg_volumePlayer * m_dwVolumePlayer;
 	dlg_slicer * m_dwSlicer[3];
 	dlg_modalities * m_dwModalities;
@@ -521,6 +524,5 @@ private:
 	std::vector<std::shared_ptr<iADataSet>> m_datasets;
 	std::vector<std::shared_ptr<iADataSetRenderer>> m_dataRenderers;
 
-	iADockWidgetWrapper* m_dwDatasets;
 	QTableWidget* m_dataList;
 };

@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "mdichild.h"
 
-#include "dlg_imageproperty.h"
 #include "dlg_slicer.h"
 #include "dlg_volumePlayer.h"
 #include "iAParametricSpline.h"
@@ -69,6 +68,7 @@
 #include <iAFileUtils.h>    // for fileNameOnly
 #include <iALog.h>
 #include <iAProgress.h>
+#include <iAStringHelper.h>
 #include <iAToolsVTK.h>
 #include <iATransferFunction.h>
 #include <iAVtkVersion.h>    // required for VTK < 9.0
@@ -99,6 +99,7 @@
 #include <QCloseEvent>
 #include <QFile>
 #include <QFileDialog>
+#include <QListWidget>
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QSettings>
@@ -132,7 +133,8 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_profile(nullptr),
 	m_dwHistogram(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
 	m_dwProfile(nullptr),
-	m_dwImgProperty(nullptr),
+	m_datasetInfo(new QListWidget(this)),
+	m_dwInfo(new iADockWidgetWrapper(m_datasetInfo, "Dataset Info", "Info")),
 	m_dwVolumePlayer(nullptr),
 	m_nextChannelID(0),
 	m_magicLensChannel(NotExistingChannel),
@@ -166,6 +168,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::XY], Qt::Horizontal);
 	splitDockWidget(m_dwSlicer[iASlicerMode::XY], m_dwSlicer[iASlicerMode::XZ], Qt::Vertical);
 	splitDockWidget(m_dwSlicer[iASlicerMode::XZ], m_dwSlicer[iASlicerMode::YZ], Qt::Vertical);
+	splitDockWidget(m_dwRenderer, m_dwInfo, Qt::Horizontal);
 
 	setAttribute(Qt::WA_DeleteOnClose);
 
@@ -225,9 +228,6 @@ MdiChild::~MdiChild()
 		delete m_slicer[s];
 	}
 	delete m_renderer; m_renderer = nullptr;
-
-	delete m_dwImgProperty;
-	delete m_dwProfile;
 }
 
 void MdiChild::slicerVisibilityChanged(int mode)
@@ -315,7 +315,7 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_histogram, &iAChartWithFunctionsWidget::active, this, &MdiChild::active);
 	connect((iAChartTransferFunction*)(m_histogram->functions()[0]), &iAChartTransferFunction::changed, this, &MdiChild::modalityTFChanged);
 
-	connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::updateImageProperties);
+	//connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::updateDatasetInfo);
 	connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::updateViews);
 	connect(m_dwModalities, &dlg_modalities::modalitySelected , this, &MdiChild::showModality);
 	connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::resetCamera);
@@ -382,7 +382,7 @@ void MdiChild::enableRenderWindows()	// = image data available
 			m_slicer[s]->triggerSliceRangeChange();
 		}
 		updateViews();
-		updateImageProperties();
+		//updateDatasetInfo();
 		if (modalities()->size() > 0 && modality(0)->image()->GetNumberOfScalarComponents() == 1)
 		{
 			setHistogramModality(0);
@@ -581,7 +581,7 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 			case View3DBox:
 				m_dataRenderers[row]->setBoundsVisible(checked);
 				updateRenderer();
-				break;
+				break;				
 			default:
 				LOG(lvlWarn, QString("Unhandled itemChanged(colum = %1)").arg(col));
 				break;
@@ -621,6 +621,7 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 
 		m_dataList->resizeColumnsToContents();
 	}
+	updateDatasetInfo();
 }
 
 bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyData* poly)	// = opening new window
@@ -2008,7 +2009,6 @@ bool MdiChild::initView(QString const& title)
 
 	if (isVolumeDataLoaded())
 	{
-		addImageProperty();
 		if (m_imageData->GetNumberOfScalarComponents() == 1)
 		{   // No histogram/profile for rgb, rgba or vector pixel type images
 			splitDockWidget(m_dwModalities, m_dwHistogram, Qt::Vertical);
@@ -2025,32 +2025,14 @@ bool MdiChild::initView(QString const& title)
 	return true;
 }
 
-void MdiChild::addImageProperty()
+void MdiChild::updateDatasetInfo()
 {
-	if (m_dwImgProperty)
+	m_datasetInfo->clear();
+	for (int i = 0; i < m_datasets.size(); ++i)
 	{
-		return;
-	}
-	m_dwImgProperty = new dlg_imageproperty(this);
-	splitDockWidget(m_dwModalities, m_dwImgProperty, Qt::Horizontal);
-}
-
-void MdiChild::updateImageProperties()
-{
-	if (!m_dwImgProperty)
-	{
-		return;
-	}
-	m_dwImgProperty->clear();
-	for (int i = 0; i < modalities()->size(); ++i)
-	{
-		m_dwImgProperty->addInfo(modality(i)->image(), modality(i)->info(), modality(i)->name(),
-			(i == 0 &&
-				modality(i)->componentCount() == 1 &&
-				m_volumeStack->numberOfVolumes() > 1) ?
-			m_volumeStack->numberOfVolumes() :
-			modality(i)->componentCount()
-		);
+		auto lines = m_datasets[i]->info().split("\n", Qt::SkipEmptyParts);
+		std::for_each(lines.begin(), lines.end(), [](QString& s) { s = "    " + s; });
+		m_datasetInfo->addItem(m_datasets[i]->name() + "\n" + lines.join("\n"));
 	}
 }
 
@@ -2501,9 +2483,9 @@ QDockWidget* MdiChild::renderDockWidget()
 	return m_dwRenderer;
 }
 
-QDockWidget* MdiChild::imagePropertyDockWidget()
+QDockWidget* MdiChild::dataInfoDockWidget()
 {
-	return m_dwImgProperty;
+	return m_dwInfo;
 }
 
 QDockWidget* MdiChild::histogramDockWidget()
@@ -2797,7 +2779,7 @@ void MdiChild::computeStatisticsAsync(std::function<void()> callbackSlot, QShare
 	}
 
 	mod->info().setComputing();
-	updateImageProperties();
+	//updateDatasetInfo();	// TODO: Datasets - provide statistics information in iAImageData::info?
 	auto compute = [mod] { mod->computeImageStatistics(); };
 	auto fw = runAsync(compute, callbackSlot, this);
 	iAJobListView::get()->addJob(QString("Computing statistics for modality %1")
@@ -2867,7 +2849,7 @@ void MdiChild::showHistogram(int modalityIdx)
 void MdiChild::histogramDataAvailable(int modalityIdx)
 {
 	showHistogram(modalityIdx);
-	updateImageProperties();
+	//updateDatasetInfo();	 // TODO: Datasets - provide histogram information in iAImageData::info?
 	if (!findChild<iADockWidgetWrapper*>("Histogram"))
 	{
 		splitDockWidget(m_dwRenderer, m_dwHistogram, Qt::Vertical);
