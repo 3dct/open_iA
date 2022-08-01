@@ -81,8 +81,11 @@ void iADataSetRenderer::setAttributes(QMap<QString, QVariant> const & values)
 {
 	m_attribValues = values;
 	applyAttributes();
-	m_outline->setOrientationAndPosition(
-		m_attribValues[Position].value<QVector<double>>(), m_attribValues[Orientation].value<QVector<double>>());
+	if (m_outline)
+	{
+		m_outline->setOrientationAndPosition(
+			m_attribValues[Position].value<QVector<double>>(), m_attribValues[Orientation].value<QVector<double>>());
+	}
 }
 
 QMap<QString, QVariant> const& iADataSetRenderer::attributeValues() const
@@ -117,6 +120,13 @@ void iADataSetRenderer::setBoundsVisible(bool visible)
 	if (!m_outline)
 	{
 		m_outline = std::make_shared<iAOutlineImpl>(bounds(), m_renderer);
+		QVector<double> pos(3), ori(3);
+		for (int i=0; i<3; ++i)
+		{
+			pos[i] = position()[i];
+			ori[i] = orientation()[i];
+		}
+		m_outline->setOrientationAndPosition(pos, ori);
 	}
 	m_outline->setVisible(visible);
 }
@@ -215,6 +225,7 @@ public:
 private:
 	iAAABB bounds() override
 	{
+		// TODO: return untransformed bounds of dataset itself here
 		iAAABB result(m_pointActor->GetBounds());
 		result.merge(iAAABB(m_lineActor->GetBounds()));
 		return result;
@@ -289,6 +300,7 @@ public:
 private:
 	iAAABB bounds() override
 	{
+		// TODO: return untransformed bounds of dataset itself here, i.e. data->poly()->GetBounds();
 		return iAAABB(m_polyActor->GetBounds());
 	}
 	double const* orientation() const override
@@ -422,6 +434,7 @@ public:
 private:
 	iAAABB bounds() override
 	{
+		// TODO: return untransformed bounds of dataset itself here
 		return iAAABB(m_volume->GetBounds());
 	}
 	double const* orientation() const override
