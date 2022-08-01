@@ -20,29 +20,52 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAbase_export.h"
+#include <QDoubleSpinBox>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QVector>
+#include <QWidget>
 
-enum class iAValueType
+//! Input line for a 2- or 3 dimensional vector.
+//! Currently only used in iAParameterDialog. If used somewhere else, extract method
+//! definitions to separate .cpp file to avoid according errors
+class iAVectorInput : public QWidget
 {
-	Invalid = -1,
-	Continuous,
-	Discrete,
-	Categorical,
-	String,
-	Text,
-	Boolean,
-	FilterName,
-	FilterParameters,
-	Folder,
-	FileNameOpen,
-	FileNamesOpen,
-	FileNameSave,
-	Color,
-	Vector2,    // vector of 2 continuous values
-	Vector3     // vector of 3 continuous values
+	Q_OBJECT
+public:
+	iAVectorInput(QWidget* parent, int vecLength, QVariant const & values) : QWidget(parent), m_inputs(vecLength)
+	{
+		setLayout(new QHBoxLayout);
+		layout()->setContentsMargins(0, 0, 0, 0);
+		layout()->setSpacing(4);
+		for (int i = 0; i < vecLength; ++i)
+		{
+			layout()->addWidget(new QLabel(ComponentNames[i]));
+			m_inputs[i] = new QDoubleSpinBox(this);
+			layout()->addWidget(m_inputs[i]);
+		}
+		setValue(values);
+	}
+	QVariant value() const
+	{
+		QVector<double> values(m_inputs.size());
+		for (int i = 0; i < m_inputs.size(); ++i)
+		{
+			values[i] = m_inputs[i]->value();
+		}
+		return QVariant::fromValue(values);
+	}
+	void setValue(QVariant const& valueVariant)
+	{
+		QVector<double> values = valueVariant.value<QVector<double>>();
+		assert(values.size() <= m_inputs.size());
+		for (int i = 0; i < m_inputs.size() && i < values.size(); ++i)
+		{
+			m_inputs[i]->setValue(values[i]);
+		}
+	}
+
+private:
+	const QString ComponentNames[3] = {"x", "y", "z"};
+	QVector<QDoubleSpinBox*> m_inputs;
 };
-
-class QString;
-
-iAbase_API QString ValueType2Str(iAValueType type);
-iAValueType Str2ValueType(QString const & str);

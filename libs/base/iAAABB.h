@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-// TODO: move to separate iAAABB class and re-use in FIAKER/FiberSA(/DreamCaster?)
+// TODO: re-use in FIAKER/FiberSA(/DreamCaster?)
 #include <iAVec3.h>
 class iAAABB
 {

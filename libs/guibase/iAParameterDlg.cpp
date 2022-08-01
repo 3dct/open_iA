@@ -27,6 +27,7 @@
 #include "iAFilterRunnerRegistry.h"
 #include "iAFilterRunnerGUI.h"
 #include "iAStringHelper.h"
+#include "iAVectorInput.h"
 #include "io/iAFileChooserWidget.h"
 #include "iAMdiChild.h"
 
@@ -242,6 +243,16 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT
 			newWidget = createFileChooser(p->valueType(), p->defaultValue().toString());
 			break;
 		}
+		case iAValueType::Vector2:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+			// fall through
+		case iAValueType::Vector3:
+		{
+			newWidget = new iAVectorInput(this, (static_cast<int>(p->valueType()) - static_cast<int>(iAValueType::Vector2)) + 2, p->defaultValue());
+			break;
+		}
 		}
 		m_widgetList[i] = newWidget;
 		containerLayout->addWidget(newWidget, i, 1);
@@ -323,6 +334,11 @@ void iAParameterDlg::setValue(QString const& key, QString const& value)
 		// fall through
 	case iAValueType::Folder:
 		qobject_cast<iAFileChooserWidget*>(widget)->setText(value);
+		break;
+	case iAValueType::Vector2:
+		// fall through
+	case iAValueType::Vector3:
+		qobject_cast<iAVectorInput*>(widget)->setValue(value);
 		break;
 	default:
 		LOG(lvlError,
@@ -566,6 +582,17 @@ QMap<QString, QVariant> iAParameterDlg::parameterValues() const
 			iAFileChooserWidget* t = qobject_cast<iAFileChooserWidget*>(m_widgetList[i]);
 			assert(t);
 			result.insert(p->name(), t->text());
+			break;
+		}
+		case iAValueType::Vector2:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+			// fall through
+		case iAValueType::Vector3:
+		{
+			iAVectorInput* t = qobject_cast<iAVectorInput*>(m_widgetList[i]);
+			result.insert(p->name(), t->value());
 			break;
 		}
 		}
