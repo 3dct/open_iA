@@ -583,7 +583,10 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 				updateRenderer();
 				break;				
 			default:
-				LOG(lvlWarn, QString("Unhandled itemChanged(colum = %1)").arg(col));
+				if (col != 0)	// for column 0, nothing should happen
+				{
+					LOG(lvlWarn, QString("Unhandled itemChanged(colum = %1)").arg(col));
+				}
 				break;
 			}
 		});

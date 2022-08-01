@@ -94,4 +94,5 @@ void LOG(iALogLevel level, QString const& msg)
 	{
 		iALog::get()->log(level, msg);
 	}
+	// else    // if no logger set, discard? ToDo: use multiple separate loggers
 }

@@ -161,6 +161,7 @@ void iALogWidget::shutdown()
 {
 	get()->m_closed = true;
 	get()->close();
+	iALog::setLogger(nullptr);
 }
 
 void iALogWidget::clear()
