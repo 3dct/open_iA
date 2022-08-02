@@ -52,6 +52,9 @@ protected:
 	void addAttribute(QString const& name, iAValueType valueType, QVariant defaultValue = 0.0,
 		double min = std::numeric_limits<double>::lowest(), double max = std::numeric_limits<double>::max());
 
+	//! needs to be called by derived classes whenever the bounds of the dataset change (position, orientation, ...)
+	void updateOutlineTransform();
+
 	iARenderer* m_renderer;
 	QMap<QString, QVariant> m_attribValues;
 

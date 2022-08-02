@@ -2,9 +2,14 @@
 
 #include "iAAABB.h"
 #include "iADataSet.h"
+#ifndef _NDEBUG
+#include "iAMathUtility.h"    // for dblApproxEqual
+#endif
 #include "iARenderer.h"
 
 #include <vtkActor.h>
+#include <vtkCallbackCommand.h>
+#include <vtkCommand.h>
 #include <vtkCubeSource.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkOutlineFilter.h>
@@ -102,9 +107,8 @@ void iADataSetRenderer::setAttributes(QMap<QString, QVariant> const & values)
 	if (m_outline)
 	{
 		m_outline->setBounds(bounds());	// only potentially changes for volume currently; maybe use signals instead?
-		m_outline->setOrientationAndPosition(
-			m_attribValues[Position].value<QVector<double>>(), m_attribValues[Orientation].value<QVector<double>>());
 		m_outline->setColor(m_attribValues[OutlineColor].value<QColor>());
+		updateOutlineTransform();
 	}
 }
 
@@ -145,13 +149,7 @@ void iADataSetRenderer::setBoundsVisible(bool visible)
 	{
 		m_outline = std::make_shared<iAOutlineImpl>(bounds(), m_renderer,
 			m_attribValues.contains(OutlineColor) ? m_attribValues[OutlineColor].value<QColor>() : OutlineDefaultColor);
-		QVector<double> pos(3), ori(3);
-		for (int i=0; i<3; ++i)
-		{
-			pos[i] = position()[i];
-			ori[i] = orientation()[i];
-		}
-		m_outline->setOrientationAndPosition(pos, ori);
+		updateOutlineTransform();
 	}
 	m_outline->setVisible(visible);
 }
@@ -170,6 +168,21 @@ void iADataSetRenderer::addAttribute(
 #endif
 	m_attributes.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
 	m_attribValues[name] = defaultValue;
+}
+
+void iADataSetRenderer::updateOutlineTransform()
+{
+	if (!m_outline)
+	{
+		return;
+	}
+	QVector<double> pos(3), ori(3);
+	for (int i = 0; i < 3; ++i)
+	{
+		pos[i] = position()[i];
+		ori[i] = orientation()[i];
+	}
+	m_outline->setOrientationAndPosition(pos, ori);
 }
 
 // ---------- iAGraphRenderer ----------
@@ -211,12 +224,27 @@ public:
 		pointMapper->SetInputData(glyphPoints);
 		pointMapper->SetSourceConnection(m_sphereSource->GetOutputPort());
 		m_pointActor->SetMapper(pointMapper);
+		m_pointActor->SetPickable(false);
 		m_pointActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 
 		addAttribute(PointRadius, iAValueType::Continuous, 5, 0.001, 100000000);
 		addAttribute(PointColor, iAValueType::Color, "#FF0000");
 		addAttribute(LineColor, iAValueType::Color, "#00FF00");
 		addAttribute(LineWidth, iAValueType::Continuous, 1.0, 0.1, 100);
+
+		// adapt bounding box to changes in position/orientation of volume:
+		// idea how to connect lambda to observer from https://gist.github.com/esmitt/7ca96193f2c320ba438e0453f9136c20
+		vtkNew<vtkCallbackCommand> modifiedCallback;
+		modifiedCallback->SetCallback(
+			[](vtkObject* vtkNotUsed(caller), long unsigned int vtkNotUsed(eventId), void* clientData,
+				void* vtkNotUsed(callData))
+			{
+				auto graphRenderer = reinterpret_cast<iAGraphRenderer*>(clientData);
+				graphRenderer->updateOutlineTransform();
+				graphRenderer->updatePointRendererPosOri();
+			});
+		modifiedCallback->SetClientData(this);
+		m_lineActor->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
 	}
 	void showDataSet() override
 	{
@@ -227,6 +255,11 @@ public:
 	{
 		m_renderer->renderer()->RemoveActor(m_pointActor);
 		m_renderer->renderer()->RemoveActor(m_lineActor);
+	}
+	void updatePointRendererPosOri()
+	{
+		m_pointActor->SetPosition(m_lineActor->GetPosition());
+		m_pointActor->SetOrientation(m_lineActor->GetOrientation());
 	}
 
 	void applyAttributes(QMap<QString, QVariant> const& values) override
@@ -248,9 +281,8 @@ public:
 		m_lineActor->SetPosition(pos.data());
 		m_lineActor->SetOrientation(ori.data());
 
-		// Link / move both together somehow?
 		m_lineActor->SetPickable(values[Pickable].toBool());
-		m_pointActor->SetPickable(values[Pickable].toBool());
+		//m_pointActor->SetPickable(values[Pickable].toBool()); // both move together same as bounds
 	}
 
 private:
@@ -261,13 +293,13 @@ private:
 	double const* orientation() const override
 	{
 		auto o1 = m_pointActor->GetOrientation(), o2 = m_lineActor->GetOrientation();
-		assert(o1[0] == o2[0] && o1[1] == o2[1] && o1[2] == o2[2]);
+		assert(dblApproxEqual(o1[0], o2[0], 1e-6) && dblApproxEqual(o1[1], o2[1], 1e-6) && dblApproxEqual(o1[2], o2[2], 1e-6));
 		return m_pointActor->GetOrientation();
 	}
 	double const* position() const override
 	{
 		auto p1 = m_pointActor->GetPosition(), p2 = m_lineActor->GetPosition();
-		assert(p1[0] == p2[0] && p1[1] == p2[1] && p1[2] == p2[2]);
+		assert(dblApproxEqual(p1[0], p2[0], 1e-6) && dblApproxEqual(p1[1], p2[1], 1e-6) && dblApproxEqual(p1[2], p2[2], 1e-6));
 		return m_lineActor->GetPosition();
 	}
 	vtkSmartPointer<vtkActor> m_lineActor, m_pointActor;
@@ -301,6 +333,17 @@ public:
 
 		addAttribute(PolyColor, iAValueType::Color, "#FFFFFF");
 		addAttribute(PolyOpacity, iAValueType::Continuous, 1.0, 0.0, 1.0);
+
+		// adapt bounding box to changes in position/orientation of volume:
+		vtkNew<vtkCallbackCommand> modifiedCallback;
+		modifiedCallback->SetCallback(
+			[](vtkObject* vtkNotUsed(caller), long unsigned int vtkNotUsed(eventId), void* clientData,
+				void* vtkNotUsed(callData))
+			{
+				reinterpret_cast<iAMeshRenderer*>(clientData)->updateOutlineTransform();
+			});
+		modifiedCallback->SetClientData(this);
+		m_polyActor->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
 	}
 	void showDataSet() override
 	{
@@ -433,6 +476,17 @@ public:
 		addAttribute(Spacing, iAValueType::Vector3, QVariant::fromValue(spacing));
 
 		applyAttributes(m_attribValues);  // addAttribute adds default values; apply them now!
+
+		// adapt bounding box to changes in position/orientation of volume:
+		vtkNew<vtkCallbackCommand> modifiedCallback;
+		modifiedCallback->SetCallback(
+			[](vtkObject* vtkNotUsed(caller), long unsigned int vtkNotUsed(eventId), void* clientData,
+				void* vtkNotUsed(callData))
+			{
+				reinterpret_cast<iAVolRenderer*>(clientData)->updateOutlineTransform();
+			});
+		modifiedCallback->SetClientData(this);
+		m_volume->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
 	}
 	void showDataSet() override
 	{
