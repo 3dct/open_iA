@@ -574,7 +574,8 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 			auto row = m_dataList->row(item);
 			auto checked = ! item->data(Qt::UserRole).toBool();
 			item->setData(Qt::UserRole, checked);
-			item->setIcon(checked ? QIcon(":/images/eye.svg") : QIcon(":/images/eye_light.svg"));
+			item->setIcon(	//in dark mode, icons are switched!
+				(checked ^ !m_mainWnd->brightMode()) ? QIcon(":/images/eye.svg") : QIcon(":/images/eye_light.svg"));
 			switch (col)
 			{
 			case View3D:
@@ -590,6 +591,19 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 				break;
 			}
 		});
+		connect(m_mainWnd, &iAMainWindow::styleChanged, this, [this]() {
+				for (auto row = 0; row < m_dataList->rowCount(); ++row)
+				{
+					for (int col = ViewFirst; col <= ViewLast; ++col)
+					{
+						auto item = m_dataList->item(row, col);
+						auto checked = item->data(Qt::UserRole).toBool();
+						item->setIcon(  //in dark mode, icons are switched!
+							(checked ^ !m_mainWnd->brightMode()) ? QIcon(":/images/eye.svg")
+																 : QIcon(":/images/eye_light.svg"));
+					}
+				}
+			});
 
 		auto content = new QWidget();
 		content->setLayout(new QHBoxLayout);
