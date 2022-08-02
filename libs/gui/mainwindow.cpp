@@ -83,6 +83,7 @@
 #include <QMdiSubWindow>
 #include <QScreen>
 #include <QSettings>
+#include <QSpacerItem>
 #include <QSplashScreen>
 #include <QTableWidget>
 #include <QTextStream>
@@ -1655,11 +1656,17 @@ void MainWindow::about()
 	QDialog dlg(this);
 	dlg.setWindowTitle("About open_iA");
 	dlg.setLayout(new QVBoxLayout());
-
+	
 	auto imgLabel = new QLabel();
 	imgLabel->setPixmap(m_logoImg);
-	imgLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-	dlg.layout()->addWidget(imgLabel);
+	// to center image:
+	auto imgWidget = new QWidget();
+	imgWidget->setLayout(new QHBoxLayout());
+	imgWidget->layout()->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
+	imgWidget->layout()->addWidget(imgLabel);
+	imgWidget->layout()->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
+
+	dlg.layout()->addWidget(imgWidget);
 
 	auto linkLabel = new QLabel("<a href=\"https://3dct.github.io/open_iA/\">3dct.github.io/open_iA</a>");
 	linkLabel->setTextFormat(Qt::RichText);
@@ -1670,6 +1677,7 @@ void MainWindow::about()
 
 	auto buildInfoLabel = new QLabel("Build information:");
 	buildInfoLabel->setIndent(0);
+	buildInfoLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	dlg.layout()->addWidget(buildInfoLabel);
 	
 	auto rows = m_buildInformation.count('\n') + 1;
@@ -1719,12 +1727,13 @@ void MainWindow::about()
 	tableWidth = std::max(tableWidth, imgLabel->width());
 	const int MinTableHeight = 50;
 	auto newTableHeight = std::max(MinTableHeight, std::min(tableHeight, screenHeightThird));
-	table->setFixedWidth(tableWidth + 2);
-	table->setFixedHeight(newTableHeight);
+	table->setMinimumWidth(tableWidth + 20); // + 20 for approximation of scrollbar width; verticalScrollBar()->height is wildly inaccurate before first show (100 or so)
+	table->setMinimumHeight(newTableHeight);
 	//table->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	table->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	table->setAlternatingRowColors(true);
 	table->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	table->horizontalHeader()->setStretchLastSection(true);
 	dlg.layout()->addWidget(table);
 
 	auto okBtn = new QPushButton("Ok");
