@@ -21,6 +21,7 @@
 #include "iAParameterDlg.h"
 
 #include "iAAttributeDescriptor.h"
+#include "iAColorInput.h"
 #include "iAFilterSelectionDlg.h"
 #include "iALog.h"
 #include "iAFilter.h"
@@ -253,6 +254,11 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT
 			newWidget = new iAVectorInput(this, (static_cast<int>(p->valueType()) - static_cast<int>(iAValueType::Vector2)) + 2, p->defaultValue());
 			break;
 		}
+		case iAValueType::Color:
+		{
+			newWidget = new iAColorInput(this, p->defaultValue());
+			break;
+		}
 		}
 		m_widgetList[i] = newWidget;
 		containerLayout->addWidget(newWidget, i, 1);
@@ -326,6 +332,9 @@ void iAParameterDlg::setValue(QString const& key, QString const& value)
 		// fall through
 	case iAValueType::Vector3:
 		qobject_cast<iAVectorInput*>(widget)->setValue(value);
+		break;
+	case iAValueType::Color:
+		qobject_cast<iAColorInput*>(widget)->setValue(value);
 		break;
 	default:
 		LOG(lvlError,
@@ -579,6 +588,12 @@ QMap<QString, QVariant> iAParameterDlg::parameterValues() const
 		case iAValueType::Vector3:
 		{
 			iAVectorInput* t = qobject_cast<iAVectorInput*>(m_widgetList[i]);
+			result.insert(p->name(), t->value());
+			break;
+		}
+		case iAValueType::Color:
+		{
+			iAColorInput* t = qobject_cast<iAColorInput*>(m_widgetList[i]);
 			result.insert(p->name(), t->value());
 			break;
 		}
