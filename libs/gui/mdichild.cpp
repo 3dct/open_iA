@@ -516,11 +516,10 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 		buttons->layout()->setContentsMargins(0, 0, 0, 0);
 		buttons->layout()->setSpacing(4);
 		auto editButton = new QToolButton();
-		//editButton->setText("Edit");
-		editButton->setIcon(QIcon(":/images/edit.svg"));
+		editButton->setObjectName("tbEdit");
 		buttons->layout()->addWidget(editButton);
 		auto minusButton = new QToolButton();
-		minusButton->setIcon(QIcon(":/images/minus.svg"));
+		minusButton->setObjectName("tbRemove");
 		buttons->layout()->addWidget(minusButton);
 		auto spacer = new QSpacerItem(10, 0, QSizePolicy::Fixed, QSizePolicy::Expanding);
 		buttons->layout()->addItem(spacer);

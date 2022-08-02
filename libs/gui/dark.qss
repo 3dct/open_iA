@@ -275,7 +275,9 @@ QPushButton
 	QToolButton[objectName="add_class"],
 	QPushButton[objectName="pbAdd"]    { qproperty-icon: url(:/images/plus-dark.svg);  }
 	QToolButton[objectName="delete_class"],
+	QToolButton[objectName="tbRemove"],
 	QPushButton[objectName="pbRemove"] { qproperty-icon: url(:/images/minus-dark.svg); }
+	QToolButton[objectName="tbEdit"],
 	QPushButton[objectName="pbEdit"]   { qproperty-icon: url(:/images/edit-dark.svg);  }
 /****************************************************************************
 QTabWidget
