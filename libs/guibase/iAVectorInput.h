@@ -43,6 +43,8 @@ public:
 		{
 			layout()->addWidget(new QLabel(ComponentNames[i]));
 			m_inputs[i] = new QDoubleSpinBox(this);
+			m_inputs[i]->setRange(-9999999999, 9999999999);	// To Do: pass in as parameters?
+			m_inputs[i]->setDecimals(2);
 			layout()->addWidget(m_inputs[i]);
 		}
 		setValue(values);
