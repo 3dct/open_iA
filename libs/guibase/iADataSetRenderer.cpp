@@ -88,20 +88,15 @@ iADataSetRenderer::iADataSetRenderer(iARenderer* renderer):
 	m_renderer(renderer),
 	m_visible(false)
 {
-	addAttribute(Position, iAValueType::Vector3);
-	addAttribute(Orientation, iAValueType::Vector3);
-	addAttribute(OutlineColor, iAValueType::Color);
-}
-
-iAAttributes const& iADataSetRenderer::attributes() const
-{
-	return m_attributes;
+	addAttribute(Position, iAValueType::Vector3, QVariant::fromValue(QVector<double>({0, 0, 0})));
+	addAttribute(Orientation, iAValueType::Vector3, QVariant::fromValue(QVector<double>({0, 0, 0})));
+	addAttribute(OutlineColor, iAValueType::Color, OutlineDefaultColor);
 }
 
 void iADataSetRenderer::setAttributes(QMap<QString, QVariant> const & values)
 {
 	m_attribValues = values;
-	applyAttributes();
+	applyAttributes(values);
 	if (m_outline)
 	{
 		m_outline->setBounds(bounds());	// only potentially changes for volume currently; maybe use signals instead?
@@ -111,15 +106,9 @@ void iADataSetRenderer::setAttributes(QMap<QString, QVariant> const & values)
 	}
 }
 
-QMap<QString, QVariant> const& iADataSetRenderer::attributeValues() const
-{
-	return m_attribValues;
-}
-
 iAAttributes iADataSetRenderer::attributesWithValues() const
 {
-	iAAttributes result = !attributeValues().empty() ? combineAttributesWithValues(attributes(), attributeValues())
-													 : attributes();
+	iAAttributes result = combineAttributesWithValues(m_attributes, m_attribValues);
 	// set position and orientation from current values:
 	assert(result[0]->name() == Position);
 	auto pos = position();
@@ -127,9 +116,6 @@ iAAttributes iADataSetRenderer::attributesWithValues() const
 	assert(result[1]->name() == Orientation);
 	auto ori = orientation();
 	result[1]->setDefaultValue(QVariant::fromValue(QVector<double>({ori[0], ori[1], ori[2]})));
-	// initialize ouline color (probably only necessary first time)
-	assert(result[2]->name() == OutlineColor);
-	result[2]->setDefaultValue(QVariant::fromValue(m_outline ? m_outline->color() : OutlineDefaultColor));
 	return result;
 }
 
@@ -181,6 +167,7 @@ void iADataSetRenderer::addAttribute(
 	}
 #endif
 	m_attributes.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
+	m_attribValues[name] = defaultValue;
 }
 
 // ---------- iAGraphRenderer ----------
@@ -240,18 +227,18 @@ public:
 		m_renderer->renderer()->RemoveActor(m_lineActor);
 	}
 
-	void applyAttributes() override
+	void applyAttributes(QMap<QString, QVariant> const& values) override
 	{
-		m_sphereSource->SetRadius(attributeValues()[PointRadius].toDouble());
-		QColor pointColor(attributeValues()[PointColor].toString());
+		m_sphereSource->SetRadius(values[PointRadius].toDouble());
+		QColor pointColor(values[PointColor].toString());
 		m_pointActor->GetProperty()->SetColor(pointColor.redF(), pointColor.greenF(), pointColor.blueF());
 		m_sphereSource->Update();
-		QColor lineColor(attributeValues()[LineColor].toString());
+		QColor lineColor(values[LineColor].toString());
 		m_lineActor->GetProperty()->SetColor(lineColor.redF(), lineColor.greenF(), lineColor.blueF());
-		m_lineActor->GetProperty()->SetLineWidth(attributeValues()[LineWidth].toFloat());
+		m_lineActor->GetProperty()->SetLineWidth(values[LineWidth].toFloat());
 
-		QVector<double> pos = attributeValues()[Position].value<QVector<double>>();
-		QVector<double> ori = attributeValues()[Orientation].value<QVector<double>>();
+		QVector<double> pos = values[Position].value<QVector<double>>();
+		QVector<double> ori = values[Orientation].value<QVector<double>>();
 		assert(pos.size() == 3);
 		assert(ori.size() == 3);
 		m_pointActor->SetPosition(pos.data());
@@ -319,15 +306,15 @@ public:
 	{
 		m_renderer->renderer()->RemoveActor(m_polyActor);
 	}
-	void applyAttributes() override
+	void applyAttributes(QMap<QString, QVariant> const& values) override
 	{
-		QColor color(attributeValues()[PolyColor].toString());
-		double opacity = attributeValues()[PolyOpacity].toDouble();
+		QColor color(values[PolyColor].toString());
+		double opacity = values[PolyOpacity].toDouble();
 		m_polyActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
 		m_polyActor->GetProperty()->SetOpacity(opacity);
 
-		QVector<double> pos = attributeValues()[Position].value<QVector<double>>();
-		QVector<double> ori = attributeValues()[Orientation].value<QVector<double>>();
+		QVector<double> pos = values[Position].value<QVector<double>>();
+		QVector<double> ori = values[Orientation].value<QVector<double>>();
 		assert(pos.size() == 3);
 		assert(ori.size() == 3);
 		m_polyActor->SetPosition(pos.data());
@@ -403,22 +390,16 @@ public:
 		{
 			m_volMapper->SetBlendModeToComposite();
 			m_volProp->IndependentComponentsOff();
-			m_volProp->SetScalarOpacity(0, m_transfer->opacityTF());
 		}
 		else
 		{
-			//if (m_volSettings.ScalarOpacityUnitDistance < 0)
-			{
-				//m_volSettings.ScalarOpacityUnitDistance = data->image()->GetSpacing()[0];
-				m_volProp->SetScalarOpacityUnitDistance(data->image()->GetSpacing()[0]);
-			}
 			m_volProp->SetColor(0, m_transfer->colorTF());
-			m_volProp->SetScalarOpacity(0, m_transfer->opacityTF());
 		}
+		m_volProp->SetScalarOpacity(0, m_transfer->opacityTF());
 		m_volProp->Modified();
 
 		// volume properties:
-		iAVolumeSettings volumeSettings;
+		iAVolumeSettings volumeSettings;	// get global default settings?
 		addAttribute(LinearInterpolation, iAValueType::Boolean, volumeSettings.LinearInterpolation);
 		addAttribute(Shading, iAValueType::Boolean, volumeSettings.Shading);
 		addAttribute(AmbientLighting, iAValueType::Continuous, volumeSettings.AmbientLighting);
@@ -445,6 +426,8 @@ public:
 		auto spc = data->image()->GetSpacing();
 		QVector<double> spacing({spc[0], spc[1], spc[2]});
 		addAttribute(Spacing, iAValueType::Vector3, QVariant::fromValue(spacing));
+
+		applyAttributes(m_attribValues);  // addAttribute adds default values; apply them now!
 	}
 	void showDataSet() override
 	{
@@ -454,17 +437,17 @@ public:
 	{
 		m_renderer->renderer()->RemoveVolume(m_volume);
 	}
-	void applyAttributes() override
+	void applyAttributes(QMap<QString, QVariant> const& values) override
 	{
-		m_volProp->SetAmbient(attributeValues()[AmbientLighting].toDouble());
-		m_volProp->SetDiffuse(attributeValues()[DiffuseLighting].toDouble());
-		m_volProp->SetSpecular(attributeValues()[SpecularLighting].toDouble());
-		m_volProp->SetSpecularPower(attributeValues()[SpecularPower].toDouble());
-		m_volProp->SetInterpolationType(attributeValues()[LinearInterpolation].toInt());
-		m_volProp->SetShade(attributeValues()[Shading].toBool());
-		if (attributeValues()[ScalarOpacityUnitDistance].toDouble() > 0)
+		m_volProp->SetAmbient(values[AmbientLighting].toDouble());
+		m_volProp->SetDiffuse(values[DiffuseLighting].toDouble());
+		m_volProp->SetSpecular(values[SpecularLighting].toDouble());
+		m_volProp->SetSpecularPower(values[SpecularPower].toDouble());
+		m_volProp->SetInterpolationType(values[LinearInterpolation].toInt());
+		m_volProp->SetShade(values[Shading].toBool());
+		if (values[ScalarOpacityUnitDistance].toDouble() > 0)
 		{
-			m_volProp->SetScalarOpacityUnitDistance(attributeValues()[ScalarOpacityUnitDistance].toDouble());
+			m_volProp->SetScalarOpacityUnitDistance(values[ScalarOpacityUnitDistance].toDouble());
 		}
 		/*
 		else
@@ -472,25 +455,25 @@ public:
 			m_volSettings.ScalarOpacityUnitDistance = m_volProp->GetScalarOpacityUnitDistance();
 		}
 		*/
-		m_volMapper->SetRequestedRenderMode(attributeValues()[RendererType].toInt());
-		m_volMapper->SetInteractiveAdjustSampleDistances(attributeValues()[InteractiveAdjustSampleDistance].toBool());
-		m_volMapper->SetAutoAdjustSampleDistances(attributeValues()[AutoAdjustSampleDistance].toBool());
-		m_volMapper->SetSampleDistance(attributeValues()[SampleDistance].toDouble());
-		m_volMapper->SetInteractiveUpdateRate(attributeValues()[InteractiveUpdateRate].toDouble());
-		m_volMapper->SetFinalColorLevel(attributeValues()[FinalColorLevel].toDouble());
-		m_volMapper->SetFinalColorWindow(attributeValues()[FinalColorWindow].toDouble());
+		m_volMapper->SetRequestedRenderMode(values[RendererType].toInt());
+		m_volMapper->SetInteractiveAdjustSampleDistances(values[InteractiveAdjustSampleDistance].toBool());
+		m_volMapper->SetAutoAdjustSampleDistances(values[AutoAdjustSampleDistance].toBool());
+		m_volMapper->SetSampleDistance(values[SampleDistance].toDouble());
+		m_volMapper->SetInteractiveUpdateRate(values[InteractiveUpdateRate].toDouble());
+		m_volMapper->SetFinalColorLevel(values[FinalColorLevel].toDouble());
+		m_volMapper->SetFinalColorWindow(values[FinalColorWindow].toDouble());
 		// VTK 9.2:
 		//m_volMapper->SetGlobalIlluminationReach
 		//m_volMapper->SetVolumetricScatteringBlending
 
-		QVector<double> pos = attributeValues()[Position].value<QVector<double>>();
-		QVector<double> ori = attributeValues()[Orientation].value<QVector<double>>();
+		QVector<double> pos = values[Position].value<QVector<double>>();
+		QVector<double> ori = values[Orientation].value<QVector<double>>();
 		assert(pos.size() == 3);
 		assert(ori.size() == 3);
 		m_volume->SetPosition(pos.data());
 		m_volume->SetOrientation(ori.data());
 		
-		QVector<double> spc = attributeValues()[Spacing].value<QVector<double>>();
+		QVector<double> spc = values[Spacing].value<QVector<double>>();
 		assert(spc.size() == 3);
 		m_image->image()->SetSpacing(spc.data());
 	}
