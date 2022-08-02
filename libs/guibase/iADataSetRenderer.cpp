@@ -17,12 +17,18 @@
 class iAOutlineImpl
 {
 public:
-	iAOutlineImpl(iAAABB const& box, iARenderer* renderer): m_renderer(renderer)
+	iAOutlineImpl(iAAABB const& box, iARenderer* renderer, QColor const & c): m_renderer(renderer)
 	{
 		setBounds(box);
 		m_mapper->SetInputConnection(m_cubeSource->GetOutputPort());
-		m_actor->GetProperty()->SetColor(0, 0, 0);
 		m_actor->GetProperty()->SetRepresentationToWireframe();
+		m_actor->GetProperty()->SetShading(false);
+		m_actor->GetProperty()->SetOpacity(1);
+		//m_actor->GetProperty()->SetLineWidth(2);
+		m_actor->GetProperty()->SetAmbient(1.0);
+		m_actor->GetProperty()->SetDiffuse(0.0);
+		m_actor->GetProperty()->SetSpecular(0.0);
+		setColor(c);
 		m_actor->PickableOff();
 		m_actor->SetMapper(m_mapper);
 		renderer->renderer()->AddActor(m_actor);
@@ -53,6 +59,15 @@ public:
 			box.topLeft().z(), box.bottomRight().z()
 		);
 	}
+	void setColor(QColor const& c)
+	{
+		m_actor->GetProperty()->SetColor(c.redF(), c.greenF(), c.blueF());
+	}
+	QColor color() const
+	{
+		auto rgb = m_actor->GetProperty()->GetColor();
+		return QColor(rgb[0], rgb[1], rgb[2]);
+	}
 
 private:
 	vtkNew<vtkCubeSource> m_cubeSource;
@@ -65,6 +80,8 @@ namespace
 {
 	const QString Position("Position");
 	const QString Orientation("Orientation");
+	const QString OutlineColor("Box Color");
+	const QColor OutlineDefaultColor(Qt::black);
 }
 
 iADataSetRenderer::iADataSetRenderer(iARenderer* renderer):
@@ -73,6 +90,7 @@ iADataSetRenderer::iADataSetRenderer(iARenderer* renderer):
 {
 	addAttribute(Position, iAValueType::Vector3);
 	addAttribute(Orientation, iAValueType::Vector3);
+	addAttribute(OutlineColor, iAValueType::Color);
 }
 
 iAAttributes const& iADataSetRenderer::attributes() const
@@ -89,16 +107,30 @@ void iADataSetRenderer::setAttributes(QMap<QString, QVariant> const & values)
 		m_outline->setBounds(bounds());	// only potentially changes for volume currently; maybe use signals instead?
 		m_outline->setOrientationAndPosition(
 			m_attribValues[Position].value<QVector<double>>(), m_attribValues[Orientation].value<QVector<double>>());
+		m_outline->setColor(m_attribValues[OutlineColor].value<QColor>());
 	}
 }
 
 QMap<QString, QVariant> const& iADataSetRenderer::attributeValues() const
 {
-	auto pos = position();
-	auto ori = orientation();
-	m_attribValues[Position] = QVariant::fromValue(QVector<double>({pos[0], pos[1], pos[2]}));
-	m_attribValues[Orientation] = QVariant::fromValue(QVector<double>({ori[0], ori[1], ori[2]}));
 	return m_attribValues;
+}
+
+iAAttributes iADataSetRenderer::attributesWithValues() const
+{
+	iAAttributes result = !attributeValues().empty() ? combineAttributesWithValues(attributes(), attributeValues())
+													 : attributes();
+	// set position and orientation from current values:
+	assert(result[0]->name() == Position);
+	auto pos = position();
+	result[0]->setDefaultValue(QVariant::fromValue(QVector<double>({pos[0], pos[1], pos[2]})));
+	assert(result[1]->name() == Orientation);
+	auto ori = orientation();
+	result[1]->setDefaultValue(QVariant::fromValue(QVector<double>({ori[0], ori[1], ori[2]})));
+	// initialize ouline color (probably only necessary first time)
+	assert(result[2]->name() == OutlineColor);
+	result[2]->setDefaultValue(QVariant::fromValue(m_outline ? m_outline->color() : OutlineDefaultColor));
+	return result;
 }
 
 void iADataSetRenderer::setVisible(bool visible)
@@ -123,7 +155,8 @@ void iADataSetRenderer::setBoundsVisible(bool visible)
 {
 	if (!m_outline)
 	{
-		m_outline = std::make_shared<iAOutlineImpl>(bounds(), m_renderer);
+		m_outline = std::make_shared<iAOutlineImpl>(bounds(), m_renderer,
+			m_attribValues.contains(OutlineColor) ? m_attribValues[OutlineColor].value<QColor>() : OutlineDefaultColor);
 		QVector<double> pos(3), ori(3);
 		for (int i=0; i<3; ++i)
 		{

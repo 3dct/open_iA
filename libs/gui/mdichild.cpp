@@ -539,13 +539,7 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 				LOG(lvlWarn, QString("Invalid dataset index %1!").arg(row));
 				return;
 			}
-			auto values = m_dataRenderers[row]->attributeValues();
-			// TODO: probably not ideal yet: values from derived renderers are uninitialized on first run;
-			//       but orientation and position get set in attributeValues(), so values is probably never empty...?
-			auto paramValues = (values.empty()) ?       // if no values stored
-				m_dataRenderers[row]->attributes() :    // use default values
-				combineAttributesWithValues(m_dataRenderers[row]->attributes(), values);
-			iAParameterDlg dlg(this, "Dataset parameters", paramValues);
+			iAParameterDlg dlg(this, "Dataset parameters", m_dataRenderers[row]->attributesWithValues());
 			if (dlg.exec() != QDialog::Accepted)
 			{
 				return;
