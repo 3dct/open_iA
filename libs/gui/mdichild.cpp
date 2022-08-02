@@ -566,6 +566,7 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 			m_dataRenderers.erase(m_dataRenderers.begin() + idx); 
 			m_datasets.erase(m_datasets.begin() + idx);
 			m_dataList->removeRow(idx);
+			updateDatasetInfo();
 		});
 		connect(m_dataList, &QTableWidget::itemClicked, this, [this](QTableWidgetItem* item)
 		{

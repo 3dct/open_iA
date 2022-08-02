@@ -19,11 +19,7 @@ class iAOutlineImpl
 public:
 	iAOutlineImpl(iAAABB const& box, iARenderer* renderer): m_renderer(renderer)
 	{
-		m_cubeSource->SetBounds(
-			box.topLeft().x(), box.bottomRight().x(),
-			box.topLeft().y(), box.bottomRight().y(),
-			box.topLeft().z(), box.bottomRight().z()
-		);
+		setBounds(box);
 		m_mapper->SetInputConnection(m_cubeSource->GetOutputPort());
 		m_actor->GetProperty()->SetColor(0, 0, 0);
 		m_actor->GetProperty()->SetRepresentationToWireframe();
@@ -31,7 +27,6 @@ public:
 		m_actor->SetMapper(m_mapper);
 		renderer->renderer()->AddActor(m_actor);
 	}
-
 	void setVisible(bool visible)
 	{
 		if (visible)
@@ -49,6 +44,14 @@ public:
 		assert(ori.size() == 3);
 		m_actor->SetPosition(pos.data());
 		m_actor->SetOrientation(ori.data());
+	}
+	void setBounds(iAAABB const& box)
+	{
+		m_cubeSource->SetBounds(
+			box.topLeft().x(), box.bottomRight().x(),
+			box.topLeft().y(), box.bottomRight().y(),
+			box.topLeft().z(), box.bottomRight().z()
+		);
 	}
 
 private:
@@ -83,6 +86,7 @@ void iADataSetRenderer::setAttributes(QMap<QString, QVariant> const & values)
 	applyAttributes();
 	if (m_outline)
 	{
+		m_outline->setBounds(bounds());	// only potentially changes for volume currently; maybe use signals instead?
 		m_outline->setOrientationAndPosition(
 			m_attribValues[Position].value<QVector<double>>(), m_attribValues[Orientation].value<QVector<double>>());
 	}
@@ -328,13 +332,22 @@ namespace
 {
 	const QString LinearInterpolation = "Linear interpolation";
 	const QString Shading = "Shading";
-	const QString SampleDistance = "Sample distance";
 	const QString AmbientLighting = "Ambient lighting";
 	const QString DiffuseLighting= "Diffuse lighting";
 	const QString SpecularLighting = "Specular lighting";
 	const QString SpecularPower = "Specular power";
 	const QString ScalarOpacityUnitDistance = "Scalar Opacity Unit Distance";
 	const QString RendererType = "Renderer type";
+	const QString Spacing = "Spacing";
+	const QString InteractiveAdjustSampleDistance = "Interactively Adjust Sample Distances";
+	const QString AutoAdjustSampleDistance = "Auto-Adjust Sample Distances";
+	const QString SampleDistance = "Sample distance";
+	const QString InteractiveUpdateRate = "Interactive Update Rate";
+	const QString FinalColorLevel = "Final Color Level";
+	const QString FinalColorWindow = "Final Color Window";
+	// VTK 9.2
+	//const QString GlobalIlluminationReach = "Global Illumination Reach";
+	//const QString VolumetricScatteringBlending = "VolumetricScatteringBlending";
 }
 
 class iAVolRenderer: public iADataSetRenderer
@@ -371,18 +384,34 @@ public:
 		}
 		m_volProp->Modified();
 
+		// volume properties:
 		iAVolumeSettings volumeSettings;
 		addAttribute(LinearInterpolation, iAValueType::Boolean, volumeSettings.LinearInterpolation);
 		addAttribute(Shading, iAValueType::Boolean, volumeSettings.Shading);
-		addAttribute(SampleDistance, iAValueType::Continuous, volumeSettings.SampleDistance);
 		addAttribute(AmbientLighting, iAValueType::Continuous, volumeSettings.AmbientLighting);
 		addAttribute(DiffuseLighting, iAValueType::Continuous, volumeSettings.DiffuseLighting);
 		addAttribute(SpecularLighting, iAValueType::Continuous, volumeSettings.SpecularLighting);
 		addAttribute(SpecularPower, iAValueType::Continuous, volumeSettings.SpecularPower);
 		addAttribute(ScalarOpacityUnitDistance, iAValueType::Continuous, volumeSettings.ScalarOpacityUnitDistance);
+
+		// mapper properties:
 		QStringList renderTypes = RenderModeMap().values();
 		selectOption(renderTypes, renderTypes[volumeSettings.RenderMode]);
 		addAttribute(RendererType, iAValueType::Categorical, renderTypes);
+		addAttribute(InteractiveAdjustSampleDistance, iAValueType::Boolean, false);
+		addAttribute(AutoAdjustSampleDistance, iAValueType::Boolean, false);
+		addAttribute(SampleDistance, iAValueType::Continuous, volumeSettings.SampleDistance);
+		addAttribute(InteractiveUpdateRate, iAValueType::Continuous, 1.0);
+		addAttribute(FinalColorLevel, iAValueType::Continuous, 0.5);
+		addAttribute(FinalColorWindow, iAValueType::Continuous, 1.0);
+		// -> VTK 9.2 ?
+		//addAttribute(GlobalIlluminationReach, iAValueType::Continuous, 0.0, 0.0, 1.0);
+		//addAttribute(VolumetricScatteringBlending, iAValueType::Continuous, -1.0, 0.0, 2.0);
+
+		// volume properties:
+		auto spc = data->image()->GetSpacing();
+		QVector<double> spacing({spc[0], spc[1], spc[2]});
+		addAttribute(Spacing, iAValueType::Vector3, QVariant::fromValue(spacing));
 	}
 	void showDataSet() override
 	{
@@ -411,10 +440,15 @@ public:
 		}
 		*/
 		m_volMapper->SetRequestedRenderMode(attributeValues()[RendererType].toInt());
+		m_volMapper->SetInteractiveAdjustSampleDistances(attributeValues()[InteractiveAdjustSampleDistance].toBool());
+		m_volMapper->SetAutoAdjustSampleDistances(attributeValues()[AutoAdjustSampleDistance].toBool());
 		m_volMapper->SetSampleDistance(attributeValues()[SampleDistance].toDouble());
-		
-		// maybe provide as option: (see also AutoAdjustSampleDistances, InteractiveUpdateRate)
-		m_volMapper->InteractiveAdjustSampleDistancesOff();
+		m_volMapper->SetInteractiveUpdateRate(attributeValues()[InteractiveUpdateRate].toDouble());
+		m_volMapper->SetFinalColorLevel(attributeValues()[FinalColorLevel].toDouble());
+		m_volMapper->SetFinalColorWindow(attributeValues()[FinalColorWindow].toDouble());
+		// VTK 9.2:
+		//m_volMapper->SetGlobalIlluminationReach
+		//m_volMapper->SetVolumetricScatteringBlending
 
 		QVector<double> pos = attributeValues()[Position].value<QVector<double>>();
 		QVector<double> ori = attributeValues()[Orientation].value<QVector<double>>();
@@ -422,6 +456,10 @@ public:
 		assert(ori.size() == 3);
 		m_volume->SetPosition(pos.data());
 		m_volume->SetOrientation(ori.data());
+		
+		QVector<double> spc = attributeValues()[Spacing].value<QVector<double>>();
+		assert(spc.size() == 3);
+		m_image->image()->SetSpacing(spc.data());
 	}
 	/*
 	void setMovable(bool movable) override
