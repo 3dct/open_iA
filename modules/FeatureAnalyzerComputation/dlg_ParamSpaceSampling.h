@@ -37,6 +37,7 @@ class QWidget;
 
 const int MAX_PEAK = 8000;
 
+// TODO: avoid duplication with iAParameterDlg
 class dlg_ParamSpaceSampling : public QDialog, public Ui_ParamSpaceSampling
 {
 	Q_OBJECT

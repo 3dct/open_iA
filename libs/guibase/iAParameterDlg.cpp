@@ -258,28 +258,15 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT
 		containerLayout->addWidget(newWidget, i, 1);
 	}
 
-	//Controls the containers width and sets the correct width for the widgets
-	containerLayout->setColumnMinimumWidth(0, WIDTH/3);
-	containerLayout->setColumnMinimumWidth(1, WIDTH/3);
+	// Try to resize dialog so that all controls are visible without scrolling; but use at most 2/3 of screen width and height
 	m_container->setLayout(containerLayout);
-
-	//Set scrollbar if needed
-	if(containerLayout->minimumSize().height() > HEIGHT)
-	{
-		scrollArea->setMinimumHeight(HEIGHT);
-	}
-	else
-	{
-		scrollArea->setMinimumHeight(containerLayout->minimumSize().height()+5);
-	}
-	if(containerLayout->minimumSize().width() > WIDTH)
-	{
-		scrollArea->setMinimumWidth(WIDTH+20);
-	}
-	else
-	{
-		scrollArea->setMinimumWidth(containerLayout->minimumSize().width());
-	}
+	int maxWidth = 2 * screen()->geometry().width() / 3;
+	int maxHeight = 2 * screen()->geometry().height() / 3;
+	const int ScrollBarSize = 20;
+	int desiredWidth = containerLayout->minimumSize().width() + ScrollBarSize;
+	int desiredHeight = containerLayout->minimumSize().height() + ScrollBarSize;
+	scrollArea->setMinimumWidth(std::min(desiredWidth, maxWidth));
+	scrollArea->setMinimumHeight(std::min(desiredHeight, maxHeight));
 	scrollArea->setWidget(m_container);
 	scrollArea->setWidgetResizable(true);
 

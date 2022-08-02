@@ -36,6 +36,7 @@ public:
 	iAVectorInput(QWidget* parent, int vecLength, QVariant const & values) : QWidget(parent), m_inputs(vecLength)
 	{
 		setLayout(new QHBoxLayout);
+		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		layout()->setContentsMargins(0, 0, 0, 0);
 		layout()->setSpacing(4);
 		for (int i = 0; i < vecLength; ++i)

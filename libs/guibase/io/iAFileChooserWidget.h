@@ -49,6 +49,7 @@ public:
 		m_choiceType(type)
 	{
 		m_browseButton->setText("...");
+		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		setLayout(new QHBoxLayout);
 		layout()->setSpacing(0);
 		setContentsMargins(0, 0, 0, 0);
