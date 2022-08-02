@@ -624,6 +624,7 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 
 		m_dataList->resizeColumnsToContents();
 	}
+	updateRenderer();
 	updateDatasetInfo();
 }
 

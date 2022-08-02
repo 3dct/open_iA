@@ -29,7 +29,7 @@ public:
 		m_actor->GetProperty()->SetDiffuse(0.0);
 		m_actor->GetProperty()->SetSpecular(0.0);
 		setColor(c);
-		m_actor->PickableOff();
+		m_actor->SetPickable(false);
 		m_actor->SetMapper(m_mapper);
 		renderer->renderer()->AddActor(m_actor);
 	}
@@ -81,6 +81,7 @@ namespace
 	const QString Position("Position");
 	const QString Orientation("Orientation");
 	const QString OutlineColor("Box Color");
+	const QString Pickable("Pickable");
 	const QColor OutlineDefaultColor(Qt::black);
 }
 
@@ -91,6 +92,7 @@ iADataSetRenderer::iADataSetRenderer(iARenderer* renderer):
 	addAttribute(Position, iAValueType::Vector3, QVariant::fromValue(QVector<double>({0, 0, 0})));
 	addAttribute(Orientation, iAValueType::Vector3, QVariant::fromValue(QVector<double>({0, 0, 0})));
 	addAttribute(OutlineColor, iAValueType::Color, OutlineDefaultColor);
+	addAttribute(Pickable, iAValueType::Boolean, true);
 }
 
 void iADataSetRenderer::setAttributes(QMap<QString, QVariant> const & values)
@@ -245,6 +247,10 @@ public:
 		m_pointActor->SetOrientation(ori.data());
 		m_lineActor->SetPosition(pos.data());
 		m_lineActor->SetOrientation(ori.data());
+
+		// Link / move both together somehow?
+		m_lineActor->SetPickable(values[Pickable].toBool());
+		m_pointActor->SetPickable(values[Pickable].toBool());
 	}
 
 private:
@@ -291,8 +297,6 @@ public:
 		mapper->SetInputData(data->poly());
 		//m_polyMapper->SelectColorArray("Colors");
 		mapper->SetScalarModeToUsePointFieldData();
-		m_polyActor->SetPickable(false);
-		m_polyActor->SetDragable(false);
 		m_polyActor->SetMapper(mapper);
 
 		addAttribute(PolyColor, iAValueType::Color, "#FFFFFF");
@@ -319,6 +323,7 @@ public:
 		assert(ori.size() == 3);
 		m_polyActor->SetPosition(pos.data());
 		m_polyActor->SetOrientation(ori.data());
+		m_polyActor->SetPickable(values[Pickable].toBool());
 	}
 
 private:
@@ -472,6 +477,7 @@ public:
 		assert(ori.size() == 3);
 		m_volume->SetPosition(pos.data());
 		m_volume->SetOrientation(ori.data());
+		m_volume->SetPickable(values[Pickable].toBool());
 		
 		QVector<double> spc = values[Spacing].value<QVector<double>>();
 		assert(spc.size() == 3);
