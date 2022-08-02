@@ -40,10 +40,7 @@
 
 #include <QGridLayout>
 #include <QScrollArea>
-#include <QScrollBar>
-#include <QSizePolicy>
 #include <QSlider>
-#include <QStandardItemModel>
 
 iANModalWidget::iANModalWidget(iAMdiChild* mdiChild)
 {

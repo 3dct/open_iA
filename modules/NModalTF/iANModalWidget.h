@@ -36,7 +36,6 @@ class iAMdiChild;
 
 class QLabel;
 class QGridLayout;
-class QScrollArea;
 
 class iANModalWidget : public QWidget
 {
