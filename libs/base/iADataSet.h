@@ -15,6 +15,7 @@ class iAProgress;
 class vtkPolyData;
 class vtkImageData;
 
+//! Dataset type; should probably be removed, since it somewhat duplicates the class hierarchy below iADataSet
 enum iADataSetType
 {
 	dstVolume = 1,
@@ -34,6 +35,7 @@ public:
 	//virtual QString information() const =0;
 	
 	//! Type of dataset (used to determine the renderer used for the datasets)
+	//! @deprecated should be removed; use polymorphy instead (or class type check if really required, e.g. factory method for renderers)
 	iADataSetType type() const;
 	//! The name of the dataset (defaults to the "basename" of the file)
 	QString const& name() const;
@@ -83,30 +85,3 @@ public:
 private:
 	vtkSmartPointer<vtkImageData> m_img;
 };
-
-class iAFileIO;
-
-// maybe: vector of datasets?
-// move to iAFileIO or similar?
-namespace iANewIO
-{
-	//! get a I/O object for a file with the given filename
-	iAbase_API std::shared_ptr<iAFileIO> createIO(
-		QString fileName, iADataSetTypes allowedTypes = dstVolume | dstMesh);
-	//! set up the default file loaders included in the base library
-	iAbase_API void setupDefaultIOFactories();
-	//! retrieve list of file types for file open dialog
-	iAbase_API QString getRegisteredFileTypes(iADataSetTypes allowedTypes = dstVolume | dstMesh);
-}
-
-/*
-std::unique_ptr<iAVolumeDataSet> loadVolumeFile(QString const& fileName)
-{
-	return loadFile(fileName, dstVolume);
-}
-
-std::unique_ptr<iAMeshDataSet> loadMeshFile(QString const& fileName)
-{
-	return loadFile(fileName, dstMesh);
-}
-*/

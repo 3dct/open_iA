@@ -518,7 +518,7 @@ void MainWindow::openNew()
 			child = nullptr;
 		}
 	}
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open Files (new)"), m_path, iANewIO::getRegisteredFileTypes());
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open Files (new)"), m_path, iAFileTypeRegistry::registeredFileTypes());
 	if (fileName.isEmpty())
 	{
 		return;
@@ -548,7 +548,6 @@ void MainWindow::openNew()
 		try
 		{
 			d->data = io->load(p.get(), paramValues);
-			//storeImage(d->data->image(), "C:/fh/testnewio-mainwnd-afterLoad.mhd", false);
 		}
 		catch (itk::ExceptionObject & e)
 		{

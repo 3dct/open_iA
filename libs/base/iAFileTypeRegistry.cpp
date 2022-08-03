@@ -36,18 +36,46 @@ iADataSetType iAFileIO::type() const
 
 // ---------- iAFileTypeRegistry ----------
 
-QMap<QString, std::shared_ptr<iAIFileIOFactory>> iAFileTypeRegistry::m_fileTypes;
+std::vector<std::shared_ptr<iAIFileIOFactory>> iAFileTypeRegistry::m_fileIOs;
+QMap<QString, size_t> iAFileTypeRegistry::m_fileTypes;
 
 std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileExtension)
 {
 	if (m_fileTypes.contains(fileExtension))
 	{
-		return m_fileTypes[fileExtension]->create();
+		return m_fileIOs[m_fileTypes[fileExtension]]->create();
 	}
 	else
 	{
 		return std::shared_ptr<iAFileIO>();
 	}
+}
+
+QString iAFileTypeRegistry::registeredFileTypes(iADataSetTypes allowedTypes)
+{
+	QStringList allExtensions;
+	QString singleTypes;
+	for (auto ioFactory : m_fileIOs)  // all registered file types
+	{
+		auto io = ioFactory->create();
+		if (!allowedTypes.testFlag(io->type()))
+		{
+			continue;
+		}
+		auto extCpy = io->extensions();
+		for (auto & ext: extCpy)
+		{
+			ext = "*." + ext;
+		}
+		singleTypes += QString("%1 (%2);;").arg(io->name()).arg(extCpy.join(" "));
+		allExtensions.append(extCpy);
+	}
+	if (singleTypes.isEmpty())
+	{
+		LOG(lvlWarn, "No matching registered file types found!");
+		return ";;";
+	}
+	return QString("Any supported format (%1);;").arg(allExtensions.join(" ")) + singleTypes;
 }
 
 // ---------- specific File IO's ----------
@@ -57,6 +85,8 @@ class iAMetaFileIO : public iAFileIO
 public:
 	iAMetaFileIO();
 	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
+	QString name() const override;
+	QStringList extensions() const override;
 };
 
 class iAGraphFileIO : public iAFileIO
@@ -64,6 +94,8 @@ class iAGraphFileIO : public iAFileIO
 public:
 	iAGraphFileIO();
 	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
+	QString name() const override;
+	QStringList extensions() const override;
 };
 
 class iASTLFileIO : public iAFileIO
@@ -71,16 +103,17 @@ class iASTLFileIO : public iAFileIO
 public:
 	iASTLFileIO();
 	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
+	QString name() const override;
+	QStringList extensions() const override;
 };
 
-
-// ---------- iAFileTypeRegistry::setupDefaultIOFactories ----------
+// ---------- iAFileTypeRegistry::setupDefaultIOFactories (needs to be after declaration of specific IO classes) ----------
 
 void iAFileTypeRegistry::setupDefaultIOFactories()
 {
-	iAFileTypeRegistry::addFileType<iAMetaFileIO>("mhd");
-	iAFileTypeRegistry::addFileType<iAGraphFileIO>("txt");
-	iAFileTypeRegistry::addFileType<iASTLFileIO>("stl");
+	iAFileTypeRegistry::addFileType<iAMetaFileIO>();
+	iAFileTypeRegistry::addFileType<iAGraphFileIO>();
+	iAFileTypeRegistry::addFileType<iASTLFileIO>();
 }
 
 // ---------- iAMetaFileIO ----------
@@ -124,6 +157,16 @@ std::shared_ptr<iADataSet> iAMetaFileIO::load(iAProgress* p, QMap<QString, QVari
 	auto ret = std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, img);
 	LOG(lvlInfo, QString("Elapsed: %1 ms.").arg(t.elapsed()));
 	return ret;
+}
+
+QString iAMetaFileIO::name() const
+{
+	return "Meta Image";
+}
+
+QStringList iAMetaFileIO::extensions() const
+{
+	return QStringList{"mhd", "mha"};
 }
 
 // ---------- iAGraphFileIO ----------
@@ -274,6 +317,16 @@ std::shared_ptr<iADataSet> iAGraphFileIO::load(iAProgress* p, QMap<QString, QVar
 	return std::make_shared<iAGraphData>(QFileInfo(m_fileName).baseName(), m_fileName, myPolyData);
 }
 
+QString iAGraphFileIO::name() const
+{
+	return "Graph file";
+}
+
+QStringList iAGraphFileIO::extensions() const
+{                             // pdb as in Brookhaven "Protein Data Bank" format (?)
+	return QStringList{"txt", "pdb"};
+}
+
 // ---------- iASTLFileIO ----------
 
 #include <iAFileUtils.h>
@@ -292,4 +345,44 @@ std::shared_ptr<iADataSet> iASTLFileIO::load(iAProgress* p, QMap<QString, QVaria
 	stlReader->SetOutput(polyData);
 	stlReader->Update();
 	return std::make_shared<iAPolyData>(QFileInfo(m_fileName).baseName(), m_fileName, polyData);
+}
+
+QString iASTLFileIO::name() const
+{
+	return "STL file";
+}
+
+QStringList iASTLFileIO::extensions() const
+{
+	return QStringList{"stl"};
+}
+
+
+namespace iANewIO
+{
+	std::shared_ptr<iAFileIO> createIO(QString fileName, iADataSetTypes allowedTypes)
+	{
+		QFileInfo fi(fileName);
+		// special handling for directory ? TLGICT-loader... -> fi.isDir();
+		auto io = iAFileTypeRegistry::createIO(fi.suffix());
+		if (!io)
+		{
+			LOG(lvlWarn,
+				QString("Failed to load %1: There is no handler registered files with suffix '%2'")
+					.arg(fileName)
+					.arg(fi.suffix()));
+			return {};
+		}
+		io->setup(fileName);
+		// TODO: extend type check in io / only try loaders for allowedTypes (but how to handle file types that can contain multiple?)
+		if (!allowedTypes.testFlag(io->type()))
+		{
+			LOG(lvlWarn,
+				QString("Failed to load %1: The loaded dataset type %2 does not match any allowed type.")
+					.arg(fileName)
+					.arg(io->type()));
+			return {};
+		}
+		return io;
+	}
 }

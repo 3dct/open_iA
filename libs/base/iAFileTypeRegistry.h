@@ -8,6 +8,7 @@
 #include <QString>
 
 #include <memory>
+#include <vector>
 
 class iAProgress;
 
@@ -17,9 +18,17 @@ public:
 	iAFileIO(iADataSetType type);
 	void setup(QString const& fileName);  // TODO: make possible to also use e.g. folder name or list of files
 	virtual ~iAFileIO();
+	//! The name of the file type that this IO supports
+	virtual QString name() const = 0;
+	//! The file extensions that this file IO should be used for
+	virtual QStringList extensions() const = 0;
+	//! Load the dataset
 	virtual std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& paramValues) = 0;
-	// copied from iAFilter - maybe reuse? move to new common base class iAParameterizedSomething ...?
+	//! Required parameters for loading the file
+	//! Copied from iAFilter - maybe reuse? move to new common base class iAParameterizedSomething ...?
 	iAAttributes const& parameters() const;
+	//! Type of dataset that the the file type this IO is for delivers
+	//! should probably be a collection(vector?) instead, for file types that contain different datasets
 	iADataSetType type() const;
 
 protected:
@@ -72,16 +81,18 @@ class iAbase_API iAFileTypeRegistry
 {
 public:
 	//! Adds a given file type to the registry.
-	//! TODO: add one handler for multiple extensions!
-	template <typename FileIOType>
-	static void addFileType(QString const& fileExtension);
-	//static QList<QString> const fileTypeKeys();
+	template <typename FileIOType> static void addFileType();
 	static std::shared_ptr<iAFileIO> createIO(QString const& fileExtension);
 	
+	//! set up default IO factories included by default in open_iA
 	static void setupDefaultIOFactories();
 
+	//! retrieve list of file types for file open dialog
+	static QString registeredFileTypes(iADataSetTypes allowedTypes = dstVolume | dstMesh);
+
 private:
-	static QMap<QString, std::shared_ptr<iAIFileIOFactory>> m_fileTypes;
+	static std::vector<std::shared_ptr<iAIFileIOFactory>> m_fileIOs;
+	static QMap<QString, size_t> m_fileTypes;
 	iAFileTypeRegistry() = delete;  //!< class is meant to be used statically only, prevent creation of objects
 };
 
@@ -90,11 +101,38 @@ template <typename FileIOType>
 using iAFileIOFactory = iASpecUPFactory<FileIOType, iAFileIO>;
 
 template <typename FileIOType>
-void iAFileTypeRegistry::addFileType(QString const& fileExtension)
+void iAFileTypeRegistry::addFileType()
 {
-	if (m_fileTypes.contains(fileExtension))
+	auto ioFactory = std::make_shared<iAFileIOFactory<FileIOType>>();
+	m_fileIOs.push_back(ioFactory);
+	auto io = ioFactory->create();
+	for (auto extension : io->extensions())
 	{
-		LOG(lvlWarn, QString("Trying to add a handler for already registered file type %1!").arg(fileExtension));
+		if (m_fileTypes.contains(extension))
+		{
+			LOG(lvlWarn, QString("File IO %1 tries to add a handler for file extension %2, already registered to file IO %3!")
+				.arg(io->name())
+				.arg(extension)
+				.arg(m_fileIOs[m_fileTypes[extension]]->create()->name()));
+		}
+		m_fileTypes.insert(extension, m_fileIOs.size() - 1);
 	}
-	m_fileTypes.insert(fileExtension, std::make_shared<iAFileIOFactory<FileIOType>>());
 }
+
+namespace iANewIO
+{
+	//! get a I/O object for a file with the given filename
+	iAbase_API std::shared_ptr<iAFileIO> createIO(QString fileName, iADataSetTypes allowedTypes = dstVolume | dstMesh);
+}
+
+/*
+std::unique_ptr<iAVolumeDataSet> loadVolumeFile(QString const& fileName)
+{
+	return loadFile(fileName, dstVolume);
+}
+
+std::unique_ptr<iAMeshDataSet> loadMeshFile(QString const& fileName)
+{
+	return loadFile(fileName, dstMesh);
+}
+*/

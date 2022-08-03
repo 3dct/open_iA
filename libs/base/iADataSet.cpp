@@ -1,53 +1,8 @@
 #include "iADataSet.h"
-#include "iAFileTypeRegistry.h"
-#include "iAToolsVTK.h"
-
-#include <QFileInfo>
+#include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType
 
 #include <vtkImageData.h>
 #include <vtkPolyData.h>
-
-namespace iANewIO
-{
-	std::shared_ptr<iAFileIO> createIO(QString fileName, iADataSetTypes allowedTypes)
-	{
-
-	//iADataSet* loadFile(QString const& fileName, iAProgress* p, iAParamSource paramSource, iADataSetTypes allowedTypes)
-	//{
-		QFileInfo fi(fileName);
-		// special handling for directory ? TLGICT-loader... -> fi.isDir();
-		auto io = iAFileTypeRegistry::createIO(fi.suffix());
-		if (!io)
-		{
-			LOG(lvlWarn,
-				QString("Failed to load %1: There is no handler registered files with suffix '%2'")
-					.arg(fileName)
-					.arg(fi.suffix()));
-			return {};
-		}
-		io->setup(fileName);
-		// TODO: extend type check in io / only try loaders for allowedTypes (but how to handle file types that can contain multiple?)
-		if (!allowedTypes.testFlag(io->type()))
-		{
-			LOG(lvlWarn,
-				QString("Failed to load %1: The loaded dataset type %2 does not match allowed any allowed type.")
-					.arg(fileName)
-					.arg(io->type()));
-			return {};
-		}
-		return io;
-	}
-
-	QString getRegisteredFileTypes(iADataSetTypes allowedTypes)
-	{
-		Q_UNUSED(allowedTypes);
-		// TODO: put together from list of available file loaders!
-		return QString("Any supported format (*.mhd *.mha *.stl *.txt);;"
-				"Meta Images (*.mhd *.mha);;"
-				"STL file (*.stl);;"
-				"Graph files (*.txt *.pdb);;");  // (Brookhaven "Protein Data Bank" format (?)
-	}
-}
 
 namespace
 {
