@@ -559,9 +559,12 @@ void MainWindow::openNew()
 		
 		if (d->data)
 		{
-			//storeImage(d->data->image(), "C:/fh/testnewio-mainwnd-finished.mhd", false);
 			iAMdiChild* targetChild = child ? child : createMdiChild(false);
 			targetChild->addDataset(d->data);
+			if (!child)
+			{
+				targetChild->show();
+			}
 		}
 	}
 	, this);
