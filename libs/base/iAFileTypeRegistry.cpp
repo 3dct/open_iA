@@ -89,6 +89,15 @@ public:
 	QStringList extensions() const override;
 };
 
+class iAVTIFileIO : public iAFileIO
+{
+public:
+	iAVTIFileIO();
+	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
+	QString name() const override;
+	QStringList extensions() const override;
+};
+
 class iAGraphFileIO : public iAFileIO
 {
 public:
@@ -107,12 +116,35 @@ public:
 	QStringList extensions() const override;
 };
 
+class iAAmiraVolumeFileIO : public iAFileIO
+{
+public:
+	iAAmiraVolumeFileIO();
+	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
+	QString name() const override;
+	QStringList extensions() const override;
+};
+
+class iARawFileIO : public iAFileIO
+{
+public:
+	iARawFileIO();
+	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
+	QString name() const override;
+	QStringList extensions() const override;
+};
+
 // ---------- iAFileTypeRegistry::setupDefaultIOFactories (needs to be after declaration of specific IO classes) ----------
 
 void iAFileTypeRegistry::setupDefaultIOFactories()
 {
 	iAFileTypeRegistry::addFileType<iAMetaFileIO>();
+	iAFileTypeRegistry::addFileType<iAVTIFileIO>();
+	iAFileTypeRegistry::addFileType<iAAmiraVolumeFileIO>();
+	iAFileTypeRegistry::addFileType<iARawFileIO>();
+
 	iAFileTypeRegistry::addFileType<iAGraphFileIO>();
+
 	iAFileTypeRegistry::addFileType<iASTLFileIO>();
 }
 
@@ -181,9 +213,7 @@ QStringList iAMetaFileIO::extensions() const
 
 iAGraphFileIO::iAGraphFileIO() : iAFileIO(iADataSetType::dstMesh)
 {
-	addParameter("Spacing X", iAValueType::Continuous, 1.0);
-	addParameter("Spacing Y", iAValueType::Continuous, 1.0);
-	addParameter("Spacing Z", iAValueType::Continuous, 1.0);
+	addParameter("Spacing", iAValueType::Vector3, QVariant::fromValue(QVector<double>{1.0, 1.0, 1.0}));
 }
 
 std::shared_ptr<iADataSet> iAGraphFileIO::load(iAProgress* p, QMap<QString, QVariant> const& params)
@@ -191,11 +221,7 @@ std::shared_ptr<iADataSet> iAGraphFileIO::load(iAProgress* p, QMap<QString, QVar
 	// maybe we could also use vtkPDBReader, but not sure that's the right "PDB" file type...
 	Q_UNUSED(p);
 
-	double spacing[3] = {
-		params["Spacing X"].toDouble(),
-		params["Spacing Y"].toDouble(),
-		params["Spacing Z"].toDouble()
-	};
+	auto spacing = params["Spacing"].value<QVector<double>>();
 
 	vtkNew<vtkPolyData> myPolyData;
 
@@ -356,6 +382,178 @@ QStringList iASTLFileIO::extensions() const
 {
 	return QStringList{"stl"};
 }
+
+
+// ---------- iAVTIFileIO ----------
+
+#include <vtkXMLImageDataReader.h>
+
+iAVTIFileIO::iAVTIFileIO() : iAFileIO(iADataSetType::dstVolume)
+{
+}
+
+std::shared_ptr<iADataSet> iAVTIFileIO::load(iAProgress* p, QMap<QString, QVariant> const& parameters)
+{
+	Q_UNUSED(parameters);
+	QElapsedTimer t;
+	t.start();
+
+	auto reader = vtkSmartPointer<vtkXMLImageDataReader>::New();
+	p->observe(reader);
+	reader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
+	reader->Update();
+	reader->ReleaseDataFlagOn();
+	auto img = reader->GetOutput();
+
+	auto ret = std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, img);
+	LOG(lvlInfo, QString("Elapsed: %1 ms.").arg(t.elapsed()));
+	return ret;
+}
+
+QString iAVTIFileIO::name() const
+{
+	return "Serial XML VTK image data";
+}
+
+QStringList iAVTIFileIO::extensions() const
+{
+	return QStringList{"vti"};
+}
+
+
+// ---------- iAAmiraVolumeFileIO ----------
+
+#include "iAAmiraMeshIO.h"
+
+iAAmiraVolumeFileIO::iAAmiraVolumeFileIO() : iAFileIO(iADataSetType::dstVolume)
+{
+}
+
+std::shared_ptr<iADataSet> iAAmiraVolumeFileIO::load(iAProgress* p, QMap<QString, QVariant> const& parameters)
+{
+	Q_UNUSED(p);
+	Q_UNUSED(parameters);
+	QElapsedTimer t;
+	t.start();
+
+	auto img = iAAmiraMeshIO::Load(m_fileName);
+
+	auto ret = std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, img);
+	LOG(lvlInfo, QString("Elapsed: %1 ms.").arg(t.elapsed()));
+	return ret;
+}
+
+QString iAAmiraVolumeFileIO::name() const
+{
+	return "Amira volume data";
+}
+
+QStringList iAAmiraVolumeFileIO::extensions() const
+{
+	return QStringList{"am"};
+}
+
+
+// ---------- iARawFileIO ---------
+
+#include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType, readableDataTypes, ...
+#include <vtkImageReader2.h>
+
+iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::dstVolume)
+{
+	auto datatype = readableDataTypeList(false);
+	QString selectedType = mapVTKTypeToReadableDataType(VTK_UNSIGNED_SHORT);
+	selectOption(datatype, selectedType);
+	auto byteOrders = readableByteOrderList();
+	auto defaultByteOrder = "Little Endian";
+	selectOption(byteOrders, defaultByteOrder);
+	addParameter("Size", iAValueType::Vector3i, QVariant::fromValue(QVector<int>{1, 1, 1}));
+	addParameter("Spacing", iAValueType::Vector3, QVariant::fromValue(QVector<double>{1.0, 1.0, 1.0}));
+	addParameter("Origin", iAValueType::Vector3, QVariant::fromValue(QVector<double>{0.0, 0.0, 0.0}));
+	addParameter("Headersize", iAValueType::Discrete, 0, 0);
+	addParameter("Data Type", iAValueType::Categorical, datatype);
+	addParameter("Byte Order", iAValueType::Categorical, byteOrders);
+}
+/*
+template <class T>
+void read_raw_image_template(
+	iARawFileParameters const& params, QString const& fileName, iAProgress* progress, iAConnector& image)
+{
+	typedef itk::RawImageIO<T, DIM> RawImageIOType;
+	auto io = RawImageIOType::New();
+	io->SetFileName(getLocalEncodingFileName(fileName).c_str());
+	io->SetHeaderSize(params.m_headersize);
+	for (int i = 0; i < DIM; i++)
+	{
+		io->SetDimensions(i, params.m_size[i]);
+		io->SetSpacing(i, params.m_spacing[i]);
+		io->SetOrigin(i, params.m_origin[i]);
+	}
+	if (params.m_byteOrder == VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN)
+	{
+		io->SetByteOrderToLittleEndian();
+	}
+	else
+	{
+		io->SetByteOrderToBigEndian();
+	}
+
+	typedef itk::Image<T, DIM> InputImageType;
+	typedef itk::ImageFileReader<InputImageType> ReaderType;
+	auto reader = ReaderType::New();
+	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
+	reader->SetImageIO(io);
+	progress->observe(reader);
+	reader->Modified();
+	reader->Update();
+	image->setImage(reader->GetOutput());
+	image->modified();
+	reader->ReleaseDataFlagOn();
+}
+*/
+
+std::shared_ptr<iADataSet> iARawFileIO::load(iAProgress* p, QMap<QString, QVariant> const& parameters)
+{
+	Q_UNUSED(parameters);
+	QElapsedTimer t;
+	t.start();
+	/*
+	// ITK way:
+	VTK_TYPED_CALL(read_raw_image_template, parameters, m_rawFileParams, m_fileName,
+		reportProgress ? ProgressObserver() : &dummyProgress, getConnector());
+	*/
+
+	// VTK way:
+	
+	vtkSmartPointer<vtkImageReader2> reader = vtkSmartPointer<vtkImageReader2>::New();
+	reader->SetFileName(m_fileName.toStdString().c_str());
+	auto size = parameters["Size"].value<QVector<int>>();
+	auto spacing = parameters["Spacing"].value<QVector<double>>();
+	auto origin = parameters["Origin"].value<QVector<double>>();
+	reader->SetDataExtent(0, size[0] - 1, 0, size[1] - 1, 0, size[2] - 1);
+	reader->SetDataSpacing(spacing[0], spacing[1], spacing[2]);
+	reader->SetDataOrigin(origin[0], origin[1], origin[2]);
+	reader->SetDataScalarType(mapReadableDataTypeToVTKType(parameters["Data Type"].toString()));
+	reader->SetDataByteOrder(mapReadableByteOrderToVTKType(parameters["Byte Order"].toString()));
+	p->observe(reader);
+	reader->UpdateWholeExtent();
+	auto img = reader->GetOutput();
+
+	auto ret = std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, img);
+	LOG(lvlInfo, QString("Elapsed: %1 ms.").arg(t.elapsed()));
+	return ret;
+}
+
+QString iARawFileIO::name() const
+{
+	return "RAW files";
+}
+
+QStringList iARawFileIO::extensions() const
+{
+	return QStringList{"raw", "vol", "rec", "pro"};
+}
+
 
 
 namespace iANewIO

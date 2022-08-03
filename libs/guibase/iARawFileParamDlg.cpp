@@ -117,14 +117,7 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 	rawFileParams.m_origin[2] = values["Origin Z"].toDouble();
 	rawFileParams.m_headersize = values["Headersize"].toULongLong();
 	rawFileParams.m_scalarType = mapReadableDataTypeToVTKType(values["Data Type"].toString());
-	if (values["Byte Order"].toString() == "Little Endian")
-	{
-		rawFileParams.m_byteOrder = VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN;
-	}
-	else // if (values["Byte Order"].toString() == "Big Endian")
-	{
-		rawFileParams.m_byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
-	}
+	rawFileParams.m_byteOrder = mapReadableByteOrderToVTKType(values["Byte Order"].toString());
 	m_accepted = true;
 }
 

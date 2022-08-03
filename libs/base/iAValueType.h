@@ -38,11 +38,15 @@ enum class iAValueType
 	FileNamesOpen,
 	FileNameSave,
 	Color,
+	// better way?
 	Vector2,    // vector of 2 continuous values
-	Vector3     // vector of 3 continuous values
+	Vector3,    // vector of 3 continuous values
+	Vector2i,   // vector of 2 discrete values
+	Vector3i    // vector of 3 discrete values
 };
 
 class QString;
 
+// TODO: use something like magic enum (https://github.com/Neargye/magic_enum) instead to convert between enum/string
 iAbase_API QString ValueType2Str(iAValueType type);
 iAValueType Str2ValueType(QString const & str);

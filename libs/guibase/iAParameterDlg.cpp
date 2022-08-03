@@ -244,6 +244,11 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT
 			newWidget = createFileChooser(p->valueType(), p->defaultValue().toString());
 			break;
 		}
+		case iAValueType::Color:
+		{
+			newWidget = new iAColorInput(this, p->defaultValue());
+			break;
+		}
 		case iAValueType::Vector2:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
@@ -251,12 +256,18 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT
 			// fall through
 		case iAValueType::Vector3:
 		{
-			newWidget = new iAVectorInput(this, (static_cast<int>(p->valueType()) - static_cast<int>(iAValueType::Vector2)) + 2, p->defaultValue());
+			newWidget = new iAVectorInput(this, iAValueType::Continuous, (static_cast<int>(p->valueType()) - static_cast<int>(iAValueType::Vector2)) + 2, p->defaultValue());
 			break;
 		}
-		case iAValueType::Color:
+		case iAValueType::Vector2i:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+			// fall through
+		case iAValueType::Vector3i:
 		{
-			newWidget = new iAColorInput(this, p->defaultValue());
+			newWidget = new iAVectorInput(this, iAValueType::Discrete,
+				(static_cast<int>(p->valueType()) - static_cast<int>(iAValueType::Vector2i)) + 2, p->defaultValue());
 			break;
 		}
 		}
@@ -298,8 +309,14 @@ void iAParameterDlg::setValue(QString const& key, QString const& value)
 	switch ((*param)->valueType())
 	{
 	case iAValueType::FilterParameters:
+#if __cplusplus >= 201703L
+		[[fallthrough]];
+#endif
 		// fall through
 	case iAValueType::Continuous:
+#if __cplusplus >= 201703L
+		[[fallthrough]];
+#endif
 		// fall through
 	case iAValueType::String:
 		qobject_cast<QLineEdit*>(widget)->setText(value);
@@ -320,17 +337,39 @@ void iAParameterDlg::setValue(QString const& key, QString const& value)
 		qobject_cast<QComboBox*>(widget)->setCurrentText(value);
 		break;
 	case iAValueType::FileNameOpen:
+#if __cplusplus >= 201703L
+		[[fallthrough]];
+#endif
 		// fall through
 	case iAValueType::FileNamesOpen:
+#if __cplusplus >= 201703L
+		[[fallthrough]];
+#endif
 		// fall through
 	case iAValueType::FileNameSave:
+#if __cplusplus >= 201703L
+		[[fallthrough]];
+#endif
 		// fall through
 	case iAValueType::Folder:
 		qobject_cast<iAFileChooserWidget*>(widget)->setText(value);
 		break;
 	case iAValueType::Vector2:
+#if __cplusplus >= 201703L
+		[[fallthrough]];
+#endif
 		// fall through
 	case iAValueType::Vector3:
+#if __cplusplus >= 201703L
+		[[fallthrough]];
+#endif
+		// fall through
+	case iAValueType::Vector2i:
+#if __cplusplus >= 201703L
+		[[fallthrough]];
+#endif
+		// fall through
+	case iAValueType::Vector3i:
 		qobject_cast<iAVectorInput*>(widget)->setValue(value);
 		break;
 	case iAValueType::Color:
@@ -586,6 +625,16 @@ QMap<QString, QVariant> iAParameterDlg::parameterValues() const
 #endif
 			// fall through
 		case iAValueType::Vector3:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+			// fall through
+		case iAValueType::Vector2i:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+			// fall through
+		case iAValueType::Vector3i:
 		{
 			iAVectorInput* t = qobject_cast<iAVectorInput*>(m_widgetList[i]);
 			result.insert(p->name(), t->value());

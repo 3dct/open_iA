@@ -250,7 +250,9 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	}
 	size_t dataMemorySize = dataTypeSize * numOfValues;
 	if (!rawDataSize)
+	{
 		rawDataSize = dataMemorySize;
+	}
 	RawDataType* rawData = new RawDataType[rawDataSize];
 	size_t rawDataTypeSize = sizeof(RawDataType);
 
@@ -259,8 +261,7 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 		fclose(fp);
 		throw std::runtime_error(QString("Could not allocate memory (%1 bytes)!").arg(rawDataSize).toStdString());
 	}
-	size_t actRead = fread(
-		(void*)rawData, rawDataTypeSize, rawDataSize, fp);
+	size_t actRead = fread(	(void*)rawData, rawDataTypeSize, rawDataSize, fp);
 
 	if (rawDataSize != actRead)
 	{

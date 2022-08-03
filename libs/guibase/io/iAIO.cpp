@@ -21,7 +21,6 @@
 #include "iAIO.h"
 
 #include "defines.h"
-#include "iAAmiraMeshIO.h"
 #include "iAConnector.h"
 #include "iALog.h"
 #include "iAExceptionThrowingErrorObserver.h"
@@ -67,7 +66,6 @@
 #include <vtkStringArray.h>
 #include <vtkTable.h>
 #include <vtkTIFFReader.h>
-#include <vtkXMLImageDataReader.h>
 #include <vtkGenericDataObjectReader.h>
 #include <vtkRectilinearGrid.h>
 #include <vtkPointData.h>
@@ -128,8 +126,6 @@ mapQString2int const & extensionToId()
 		m["HDR"] = MHD_READER;
 		m["IMG"] = MHD_READER;
 		m["OIF"] = OIF_READER;
-		m["AM"] = AM_READER;
-		m["VTI"] = VTI_READER;
 		m["VTK"] = VTK_READER;
 		m["MOD"] = PROJECT_READER;
 		m["IAPROJ"] = PROJECT_READER;
@@ -176,7 +172,6 @@ mapQString2int const & extensionToSaveId()
 		m["PNG"] = PNG_STACK_WRITER;
 		m["BMP"] = BMP_STACK_WRITER;
 		m["DCM"] = DCM_WRITER;
-		m["AM"] = AM_WRITER;
 		m["CSV"] = CSV_WRITER;
 		m["HDF5"] = MHD_WRITER;
 		m["HE5"] = MHD_WRITER;
@@ -560,17 +555,12 @@ void iAIO::run()
 				}
 				break;
 			}
-			case AM_READER: {
-				vtkSmartPointer<vtkImageData> img = iAAmiraMeshIO::Load(fileName());
-				getConnector()->setImage(img);
-				getConnector()->modified();
-				postImageReadActions();
-				break;
-			}
+			/*
 			case AM_WRITER: {
 				iAAmiraMeshIO::Write(fileName(), getVtkImageData());
 				break;
 			}
+			*/
 			case CSV_WRITER: {
 				// TODO: write more than one modality!
 				auto img = getVtkImageData();
@@ -589,15 +579,6 @@ void iAIO::run()
 					out << std::endl;
 				}
 				out.close();
-				break;
-			}
-			case VTI_READER: {
-				vtkSmartPointer<vtkXMLImageDataReader> reader = vtkSmartPointer<vtkXMLImageDataReader>::New();
-				reader->SetFileName( getLocalEncodingFileName(fileName()).c_str() );
-				reader->Update();
-				getConnector()->setImage(reader->GetOutput());
-				getConnector()->modified();
-				postImageReadActions();
 				break;
 			}
 	#ifdef USE_HDF5
@@ -913,22 +894,13 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel, bool addJob)
 			[[fallthrough]];
 #endif
 			// fall through
-		case AM_READER:
-#if __cplusplus >= 201703L
-			[[fallthrough]];
-#endif
-			// fall through
 		case AM_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
 			// fall through
 		case CSV_WRITER:
-#if __cplusplus >= 201703L
-			[[fallthrough]];
-#endif
-			// fall through
-		case VTI_READER:
+
 			m_fileName = f; break;
 #ifdef USE_HDF5
 		case HDF5_READER:

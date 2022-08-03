@@ -130,6 +130,11 @@ iAbase_API int mapReadableDataTypeToVTKType(QString const & dataTypeName);
 //!        or -1 if the given VTK type identifier is unknown
 iAbase_API QString mapVTKTypeToReadableDataType(int vtkType);
 
+//! Returns a human-readable list of available byte orders (little/big endian)
+iAbase_API QStringList const& readableByteOrderList();
+
+//! Maps a given readable string to the according VTK byte order type
+iAbase_API unsigned int mapReadableByteOrderToVTKType(QString const& name);
 
 iAbase_API QMap<int, QString> const & RenderModeMap();
 

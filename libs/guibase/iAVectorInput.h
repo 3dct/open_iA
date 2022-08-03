@@ -20,20 +20,23 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAValueType.h"
+
 #include <QDoubleSpinBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QVector>
 #include <QWidget>
 
-//! Input line for a 2- or 3 dimensional vector.
+//! Input line for a 2- or 3 dimensional vector with either continuous (double) or discrete (integer) values.
 //! Currently only used in iAParameterDialog. If used somewhere else, extract method
 //! definitions to separate .cpp file to avoid according errors
 class iAVectorInput : public QWidget
 {
 	Q_OBJECT
 public:
-	iAVectorInput(QWidget* parent, int vecLength, QVariant const & values) : QWidget(parent), m_inputs(vecLength)
+	iAVectorInput(QWidget* parent, iAValueType valueType, int vecLength, QVariant const & values) :
+		QWidget(parent), m_inputs(vecLength), m_valueType(valueType)
 	{
 		setLayout(new QHBoxLayout);
 		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -42,21 +45,44 @@ public:
 		for (int i = 0; i < vecLength; ++i)
 		{
 			layout()->addWidget(new QLabel(ComponentNames[i]));
-			m_inputs[i] = new QDoubleSpinBox(this);
-			m_inputs[i]->setRange(-9999999999, 9999999999);	// To Do: pass in as parameters?
-			m_inputs[i]->setDecimals(2);
+			if (valueType == iAValueType::Discrete)
+			{
+				auto in = new QSpinBox(this);
+				in->setRange(std::numeric_limits<int>::lowest(), std::numeric_limits<int>::max());
+				m_inputs[i] = in;
+			}
+			else
+			{
+				auto in = new QDoubleSpinBox(this);
+				in->setRange(-9999999999, 9999999999);  // To Do: pass in as parameters?
+				in->setDecimals(2);
+				m_inputs[i] = in;
+			}
 			layout()->addWidget(m_inputs[i]);
 		}
 		setValue(values);
 	}
 	QVariant value() const
 	{
-		QVector<double> values(m_inputs.size());
-		for (int i = 0; i < m_inputs.size(); ++i)
+		if (m_valueType == iAValueType::Discrete)
 		{
-			values[i] = m_inputs[i]->value();
+			QVector<int> values(m_inputs.size());
+
+			for (int i = 0; i < m_inputs.size(); ++i)
+			{
+				values[i] = qobject_cast<QSpinBox*>(m_inputs[i])->value();
+			}
+			return QVariant::fromValue(values);
 		}
-		return QVariant::fromValue(values);
+		else
+		{
+			QVector<double> values(m_inputs.size());
+			for (int i = 0; i < m_inputs.size(); ++i)
+			{
+				values[i] = qobject_cast<QDoubleSpinBox*>(m_inputs[i])->value();
+			}
+			return QVariant::fromValue(values);
+		}
 	}
 	void setValue(QVariant const& valueVariant)
 	{
@@ -64,11 +90,19 @@ public:
 		assert(values.size() <= m_inputs.size());
 		for (int i = 0; i < m_inputs.size() && i < values.size(); ++i)
 		{
-			m_inputs[i]->setValue(values[i]);
+			if (m_valueType == iAValueType::Discrete)
+			{
+				qobject_cast<QSpinBox*>(m_inputs[i])->setValue(values[i]);
+			}
+			else
+			{
+				 qobject_cast<QDoubleSpinBox*>(m_inputs[i])->setValue(values[i]);
+			}
 		}
 	}
 
 private:
 	const QString ComponentNames[3] = {"x", "y", "z"};
-	QVector<QDoubleSpinBox*> m_inputs;
+	QVector<QAbstractSpinBox*> m_inputs;
+	iAValueType m_valueType;
 };

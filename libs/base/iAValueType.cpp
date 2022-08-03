@@ -37,6 +37,11 @@ namespace
 	const QString FileNamesOpenStr("File names (read)");
 	const QString FileNameSaveStr("File name (write)");
 	const QString FolderStr("Folder");
+	const QString ColorStr("Color");
+	const QString Vector2Str("2-component double vector");
+	const QString Vector3Str("3-component double vector");
+	const QString Vector2iStr("2-component integer vector");
+	const QString Vector3iStr("3-component integer vector");
 	const QString UnknownStr("Unknown");
 }
 
@@ -83,6 +88,26 @@ iAValueType Str2ValueType(QString const & str)
 	{
 		return iAValueType::Folder;
 	}
+	else if (str == ColorStr)
+	{
+		return iAValueType::Color;
+	}
+	else if (str == Vector2Str)
+	{
+		return iAValueType::Vector2;
+	}
+	else if (str == Vector3Str)
+	{
+		return iAValueType::Vector3;
+	}
+	else if (str == Vector2iStr)
+	{
+		return iAValueType::Vector2i;
+	}
+	else if (str == Vector3iStr)
+	{
+		return iAValueType::Vector3i;
+	}
 	else
 	{
 		LOG(lvlWarn, QString("Unknown value type '%1'\n").arg(str));
@@ -114,6 +139,16 @@ QString ValueType2Str(iAValueType type)
 		return FileNameSaveStr;
 	case iAValueType::Folder:
 		return FolderStr;
+	case iAValueType::Color:
+		return ColorStr;
+	case iAValueType::Vector2:
+		return Vector2Str;
+	case iAValueType::Vector3:
+		return Vector3Str;
+	case iAValueType::Vector2i:
+		return Vector2iStr;
+	case iAValueType::Vector3i:
+		return Vector3iStr;
 	default:
 		return UnknownStr;
 	}

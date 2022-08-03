@@ -77,7 +77,7 @@ public:
 
 using iAIFileIOFactory = iAUPFactory<iAFileIO>;
 
-class iAbase_API iAFileTypeRegistry
+class iAbase_API iAFileTypeRegistry final
 {
 public:
 	//! Adds a given file type to the registry.

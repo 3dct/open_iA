@@ -41,6 +41,7 @@
 #include <vtkSmartVolumeMapper.h>
 
 #include <vtkColorTransferFunction.h>
+#include <vtkImageReader.h>    // for VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN, ...
 #include <vtkLookupTable.h>
 #include <vtkPiecewiseFunction.h>
 
@@ -308,6 +309,24 @@ QString mapVTKTypeToReadableDataType(int vtkType)
 	if (vtkType == VTK_UNSIGNED_LONG) vtkType = VTK_UNSIGNED_INT;
 	// look up type in map:
 	return readableDataTypeMap().value(vtkType, "");
+}
+
+iAbase_API QStringList const& readableByteOrderList()
+{
+	static QStringList byteOrders = (QStringList() << "Big Endian" << "Little Endian");
+	return byteOrders;
+}
+
+unsigned int mapReadableByteOrderToVTKType(QString const& name)
+{
+	if (name == "Little Endian")
+	{
+		return VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN;
+	}
+	else  // if (name == "Big Endian")
+	{
+		return VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
+	}
 }
 
 QMap<int, QString> const & RenderModeMap()
