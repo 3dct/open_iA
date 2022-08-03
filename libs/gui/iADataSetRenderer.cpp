@@ -185,6 +185,11 @@ void iADataSetRenderer::updateOutlineTransform()
 	m_outline->setOrientationAndPosition(pos, ori);
 }
 
+//QWidget* iADataSetRenderer::controlWidget()
+//{
+//	return nullptr;
+//}
+
 // ---------- iAGraphRenderer ----------
 
 #include <vtkGlyph3DMapper.h>
@@ -387,6 +392,7 @@ private:
 };
 
 // ---------- iAVolRenderer ----------
+//#include "iAChartWithFunctionsWidget.h"
 #include "iAModalityTransfer.h"
 #include "iAToolsVTK.h"
 #include "iAVolumeSettings.h"
@@ -427,7 +433,8 @@ public:
 		m_volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
 		m_volMapper(vtkSmartPointer<vtkSmartVolumeMapper>::New()),
 		m_transfer(std::make_shared<iAModalityTransfer>(data->image()->GetScalarRange())),
-		m_image(data)
+		m_image(data)//,
+		//m_histogram(new iAChartWithFunctionsWidget(nullptr))
 	{
 		m_volMapper->SetBlendModeToComposite();
 		m_volume->SetMapper(m_volMapper);
@@ -487,6 +494,8 @@ public:
 			});
 		modifiedCallback->SetClientData(this);
 		m_volume->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
+
+		//m_histogram->setTransferFunction(m_transfer.get());
 	}
 	void showDataSet() override
 	{
@@ -544,7 +553,10 @@ public:
 		m_volume->SetDragable(movable);
 	}
 	*/
-	
+	//QWidget* controlWidget() override
+	//{
+	//
+	//}
 
 private:
 	iAAABB bounds() override
@@ -566,6 +578,7 @@ private:
 	vtkSmartPointer<vtkVolumeProperty> m_volProp;
 	vtkSmartPointer<vtkSmartVolumeMapper> m_volMapper;
 	iAImageData* m_image;
+	//iAChartWithFunctionsWidget* m_histogram;
 };
 
 // ---------- Factory method ----------

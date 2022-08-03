@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iAguibase_export.h>
+#include <iAgui_export.h>
 
 #include "iAAttributes.h"
 
@@ -13,7 +13,7 @@ class iAOutlineImpl;
 class iARenderer;
 
 //! abstract interface for a class for 3D rendering of a dataset (in an iARenderer)
-class iAguibase_API iADataSetRenderer
+class iAgui_API iADataSetRenderer
 {
 public:
 	//! Create a dataset renderer
@@ -37,6 +37,9 @@ public:
 	virtual double const* position() const = 0;
 	//! Get Orientation of this dataset in scene:
 	virtual double const* orientation() const =0;
+
+	//! optional additional control widget needed for additional settings in the renderer
+	//virtual QWidget* controlWidget();
 
 	// optional additional features:
 	/*
@@ -72,4 +75,4 @@ private:
 };
 
 //! Factory function to create a renderer for a given dataset
-iAguibase_API std::shared_ptr<iADataSetRenderer> createDataRenderer(iADataSet* dataset, iARenderer* renderer);
+iAgui_API std::shared_ptr<iADataSetRenderer> createDataRenderer(iADataSet* dataset, iARenderer* renderer);

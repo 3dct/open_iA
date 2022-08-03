@@ -520,9 +520,8 @@ private:
 	iAInteractionMode m_interactionMode;                      //!< current interaction mode in slicers/renderer (see iAInteractionMode)
 	bool m_slicerVisibility[3];
 
-	//! datasets:
-	std::vector<std::shared_ptr<iADataSet>> m_datasets;
-	std::vector<std::shared_ptr<iADataSetRenderer>> m_dataRenderers;
+	std::vector<std::shared_ptr<iADataSet>> m_datasets;       //!< list of all currently loaded datasets
+	std::vector<std::shared_ptr<iADataSetRenderer>> m_dataRenderers; //!< list of 3D renderers (one per dataset in m_datasets)
 
-	QTableWidget* m_dataList;
+	QTableWidget* m_dataList;                                 //!< table displaying datasets and their renderers and settings from m_datasets
 };
