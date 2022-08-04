@@ -31,6 +31,7 @@ class iAPreferences;
 class QMdiSubWindow;
 class QString;
 
+//! Abstract interface class for the application's main window, provides access to all global graphical user interface elements.
 class iAguibase_API iAMainWindow : public QMainWindow
 {
 	Q_OBJECT

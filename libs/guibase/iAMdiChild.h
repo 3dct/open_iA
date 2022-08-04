@@ -212,7 +212,7 @@ public:
 	virtual bool editRendererSettings(iARenderSettings const& rs, iAVolumeSettings const& vs) = 0;
 
 	//! add a dataset
-	virtual void addDataset(std::shared_ptr<iADataSet> dataset) = 0;
+	virtual void addDataSet(std::shared_ptr<iADataSet> dataSet) = 0;
 
 	//! display an image or a mesh
 	//! @deprecated use addDataset instead

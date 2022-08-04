@@ -2,6 +2,7 @@
 
 #include "iAAABB.h"
 #include "iADataSet.h"
+#include "iADataForDisplay.h"
 #ifndef _NDEBUG
 #include "iAMathUtility.h"    // for dblApproxEqual
 #endif
@@ -395,6 +396,7 @@ private:
 //#include "iAChartWithFunctionsWidget.h"
 #include "iAModalityTransfer.h"
 #include "iAToolsVTK.h"
+#include "iAVolumeDataForDisplay.h"
 #include "iAVolumeSettings.h"
 
 #include <vtkImageData.h>
@@ -427,15 +429,15 @@ namespace
 class iAVolRenderer: public iADataSetRenderer
 {
 public:
-	iAVolRenderer(iARenderer* renderer, iAImageData* data) :
+	iAVolRenderer(iARenderer* renderer, iAImageData* data, iAVolumeDataForDisplay* volDataForDisplay) :
 		iADataSetRenderer(renderer),
 		m_volume(vtkSmartPointer<vtkVolume>::New()),
 		m_volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
 		m_volMapper(vtkSmartPointer<vtkSmartVolumeMapper>::New()),
-		m_transfer(std::make_shared<iAModalityTransfer>(data->image()->GetScalarRange())),
 		m_image(data)//,
 		//m_histogram(new iAChartWithFunctionsWidget(nullptr))
 	{
+		assert(volDataForDisplay);
 		m_volMapper->SetBlendModeToComposite();
 		m_volume->SetMapper(m_volMapper);
 		m_volume->SetProperty(m_volProp);
@@ -448,9 +450,9 @@ public:
 		}
 		else
 		{
-			m_volProp->SetColor(0, m_transfer->colorTF());
+			m_volProp->SetColor(0, volDataForDisplay->transfer()->colorTF());
 		}
-		m_volProp->SetScalarOpacity(0, m_transfer->opacityTF());
+		m_volProp->SetScalarOpacity(0, volDataForDisplay->transfer()->opacityTF());
 		m_volProp->Modified();
 
 		// volume properties:
@@ -572,7 +574,6 @@ private:
 		return m_volume->GetPosition();
 	}
 	//iAVolumeSettings m_volSettings;
-	std::shared_ptr<iAModalityTransfer> m_transfer;
 
 	vtkSmartPointer<vtkVolume> m_volume;
 	vtkSmartPointer<vtkVolumeProperty> m_volProp;
@@ -583,19 +584,25 @@ private:
 
 // ---------- Factory method ----------
 
-std::shared_ptr<iADataSetRenderer> createDataRenderer(iADataSet* dataset, iARenderer* renderer)
+std::shared_ptr<iADataSetRenderer> createDataRenderer(iADataSet* dataSet, iADataForDisplay* dataForDisplay, iARenderer* renderer)
 {
-	auto img = dynamic_cast<iAImageData*>(dataset);
+	auto img = dynamic_cast<iAImageData*>(dataSet);
 	if (img)
 	{
-		return std::make_shared<iAVolRenderer>(renderer, img);
+		auto volDataForDisplay = dynamic_cast<iAVolumeDataForDisplay*>(dataForDisplay);
+		if (!volDataForDisplay)
+		{
+			LOG(lvlWarn, QString("Required additional data for displaying volume couldn't be created!"));
+			return {};
+		}
+		return std::make_shared<iAVolRenderer>(renderer, img, volDataForDisplay);
 	}
-	auto graph = dynamic_cast<iAGraphData*>(dataset);
+	auto graph = dynamic_cast<iAGraphData*>(dataSet);
 	if (graph)
 	{
 		return std::make_shared<iAGraphRenderer>(renderer, graph);
 	}
-	auto mesh = dynamic_cast<iAPolyData*>(dataset);
+	auto mesh = dynamic_cast<iAPolyData*>(dataSet);
 	if (mesh)
 	{
 		return std::make_shared<iAMeshRenderer>(renderer, mesh);

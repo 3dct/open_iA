@@ -8,6 +8,7 @@
 
 class iAAABB;
 class iADataSet;
+class iADataForDisplay;
 class iAOutlineImpl;
 
 class iARenderer;
@@ -75,4 +76,4 @@ private:
 };
 
 //! Factory function to create a renderer for a given dataset
-iAgui_API std::shared_ptr<iADataSetRenderer> createDataRenderer(iADataSet* dataset, iARenderer* renderer);
+iAgui_API std::shared_ptr<iADataSetRenderer> createDataRenderer(iADataSet* dataset, iADataForDisplay* dataForDisplay, iARenderer* renderer);

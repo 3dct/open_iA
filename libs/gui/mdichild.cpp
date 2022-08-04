@@ -22,6 +22,7 @@
 
 #include "dlg_slicer.h"
 #include "dlg_volumePlayer.h"
+#include "iADataForDisplay.h"
 #include "iAParametricSpline.h"
 #include "iAProfileProbe.h"
 #include "mainwindow.h"
@@ -132,8 +133,8 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_profile(nullptr),
 	m_dwHistogram(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
 	m_dwProfile(nullptr),
-	m_datasetInfo(new QListWidget(this)),
-	m_dwInfo(new iADockWidgetWrapper(m_datasetInfo, "Dataset Info", "DataInfo")),
+	m_dataSetInfo(new QListWidget(this)),
+	m_dwInfo(new iADockWidgetWrapper(m_dataSetInfo, "Dataset Info", "DataInfo")),
 	m_dataSetListWidget(new iADataSetListWidget()),
 	m_dwDatasets(new iADockWidgetWrapper(m_dataSetListWidget, "Datasets", "DataSets")),
 	m_dwVolumePlayer(nullptr),
@@ -196,9 +197,11 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 		{
 			m_dataRenderers[idx]->setVisible(false);
 			updateRenderer();
-			m_dataRenderers.erase(m_dataRenderers.begin() + idx);
-			m_datasets.erase(m_datasets.begin() + idx);
-			updateDatasetInfo();
+			m_dataRenderers.erase(idx);
+			m_dataForDisplay[idx]->close();
+			m_dataForDisplay.erase(idx);
+			m_dataSets.erase(m_dataSets.begin() + idx);
+			updateDataSetInfo();
 		});
 	connect(m_dataSetListWidget, &iADataSetListWidget::editDataSet, this,
 		[this](int idx)
@@ -523,15 +526,32 @@ void MdiChild::showPoly()
 	changeVisibility(m_visibility);
 }
 
-void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
+void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 {
-	m_datasets.push_back(dataset);
-	auto dataRenderer = createDataRenderer(dataset.get(), renderer());
-	dataRenderer->setVisible(true);
-	m_dataRenderers.push_back(dataRenderer);
-	m_dataSetListWidget->addDataSet(dataset.get());
-	updateRenderer();
-	updateDatasetInfo();
+	auto dataSetIdx = m_dataSets.size();
+	m_dataSets.push_back(dataSet);
+	runAsync([this, dataSet, dataSetIdx]()
+		{
+			assert(m_dataForDisplay.size() == dataSetIdx);
+			m_dataForDisplay[dataSetIdx] = createDataForDisplay(dataSet.get());
+		},
+		[this, dataSet, dataSetIdx]()
+		{
+			auto dataRenderer = createDataRenderer(dataSet.get(), m_dataForDisplay[dataSetIdx].get(), renderer());
+			if (dataRenderer)
+			{
+				dataRenderer->setVisible(true);
+				m_dataRenderers[dataSetIdx] = dataRenderer;
+				updateRenderer();
+			}
+			if (m_dataForDisplay[dataSetIdx])
+			{
+				m_dataForDisplay[dataSetIdx]->show(this);
+			}
+			m_dataSetListWidget->addDataSet(dataSet.get());
+			updateDataSetInfo();
+		},
+		this);
 }
 
 bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyData* poly)	// = opening new window
@@ -1935,14 +1955,14 @@ bool MdiChild::initView(QString const& title)
 	return true;
 }
 
-void MdiChild::updateDatasetInfo()
-{
-	m_datasetInfo->clear();
-	for (int i = 0; i < m_datasets.size(); ++i)
+void MdiChild::updateDataSetInfo()
+{   // TODO: optimize - don't fully recreate each time, just do necessary adjustments?
+	m_dataSetInfo->clear();
+	for (int i = 0; i < m_dataSets.size(); ++i)
 	{
-		auto lines = m_datasets[i]->info().split("\n", Qt::SkipEmptyParts);
+		auto lines = m_dataSets[i]->info().split("\n", Qt::SkipEmptyParts);
 		std::for_each(lines.begin(), lines.end(), [](QString& s) { s = "    " + s; });
-		m_datasetInfo->addItem(m_datasets[i]->name() + "\n" + lines.join("\n"));
+		m_dataSetInfo->addItem(m_dataSets[i]->name() + "\n" + lines.join("\n"));
 	}
 }
 

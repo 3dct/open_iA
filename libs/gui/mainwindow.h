@@ -59,7 +59,7 @@ class iAXmlSettings;
 
 class Ui_MainWindow;
 
-//! Application main window, provides access to all global graphical user interface elements.
+//! Application main window; implementation of iAMainWindow interface
 class iAgui_API MainWindow : public iAMainWindow
 {
 	Q_OBJECT

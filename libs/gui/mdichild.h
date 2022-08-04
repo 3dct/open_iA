@@ -59,37 +59,36 @@ class vtkPolyData;
 class vtkScalarsToColors;
 class vtkTransform;
 
-class dlg_slicer;
+// gui
 class dlg_volumePlayer;
+class iADataForDisplay;
 class iADataSetListWidget;
-class iAParametricSpline;
+class iADataSetRenderer; class iAParametricSpline;
 struct iAProfileProbe;
-class iAProfileWidget;
 class MainWindow;
 
-// renderer
-class iARendererImpl;
+// guibase
+class dlg_modalities;
+class iAAlgorithm;
+class iAChannelData;
+class iAIO;
+class iAModality;
+class iAModalityList;
+class iAProjectBase;
+class iAVolumeStack;
 
-// slicer
+// slicer / renderer
+class dlg_slicer;
+class iARendererImpl;
 class iASlicerImpl;
 
 // charts
 class iAChartWithFunctionsWidget;
 class iAPlot;
+class iAProfileWidget;
 
-// core
-class iAAbortListener;
-class dlg_modalities;
-class iAAlgorithm;
-class iAChannelData;
-class iADataSetRenderer;
+// base
 class iADockWidgetWrapper;
-class iAIO;
-class iAModality;
-class iAStatisticsUpdater;
-class iAModalityList;
-class iAProjectBase;
-class iAVolumeStack;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>  dlg_renderer;
 
@@ -107,7 +106,7 @@ public:
 	void setSTLParameter();
 	bool loadRaw(const QString &f);
 	bool displayResult(QString const & title, vtkImageData* image = nullptr, vtkPolyData* poly = nullptr) override;
-	void addDataset(std::shared_ptr<iADataSet> dataset) override;
+	void addDataSet(std::shared_ptr<iADataSet> dataSet) override;
 	void prepareForResult();
 	bool save();
 	bool saveAs();
@@ -367,7 +366,7 @@ private slots:
 	void updateRenderWindows(int channels);
 	void updatePositionMarker(int x, int y, int z, int mode);
 	void ioFinished();
-	void updateDatasetInfo();
+	void updateDataSetInfo();
 	void modalityTFChanged();
 	void histogramDataAvailable(int modalityIdx);
 	void statisticsAvailable(int modalityIdx);
@@ -486,7 +485,7 @@ private:
 	QSharedPointer<iAPlot> m_histogramPlot;
 
 	//! dataset info:
-	QListWidget* m_datasetInfo;
+	QListWidget* m_dataSetInfo;
 
 	//! @{ dock widgets
 	iADockWidgetWrapper* m_dwHistogram;
@@ -519,11 +518,12 @@ private:
 	int m_currentComponent;
 	int m_currentHistogramModality;
 	bool m_initVolumeRenderers;
-	int m_storedModalityNr;		                              //!< modality nr being stored
-	QMap<QString, QSharedPointer<iAProjectBase>> m_projects;  //!< list of currently active "projects" (i.e. Tools)
-	iAInteractionMode m_interactionMode;                      //!< current interaction mode in slicers/renderer (see iAInteractionMode)
+	int m_storedModalityNr;		                                     //!< modality nr being stored
+	QMap<QString, QSharedPointer<iAProjectBase>> m_projects;         //!< list of currently active "projects" (i.e. Tools)
+	iAInteractionMode m_interactionMode;                             //!< current interaction mode in slicers/renderer (see iAInteractionMode)
 	bool m_slicerVisibility[3];
 
-	std::vector<std::shared_ptr<iADataSet>> m_datasets;       //!< list of all currently loaded datasets
-	std::vector<std::shared_ptr<iADataSetRenderer>> m_dataRenderers; //!< list of 3D renderers (one per dataset in m_datasets)
+	std::vector<std::shared_ptr<iADataSet>> m_dataSets;              //!< list of all currently loaded datasets
+	std::map<size_t, std::shared_ptr<iADataForDisplay>> m_dataForDisplay; //!< optional additional data required for displaying a dataset
+	std::map<size_t, std::shared_ptr<iADataSetRenderer>> m_dataRenderers; //!< 3D renderers (one per dataset in m_datasets)
 };

@@ -560,7 +560,7 @@ void MainWindow::openNew()
 		if (d->data)
 		{
 			iAMdiChild* targetChild = child ? child : createMdiChild(false);
-			targetChild->addDataset(d->data);
+			targetChild->addDataSet(d->data);
 			if (!child)
 			{
 				targetChild->show();
