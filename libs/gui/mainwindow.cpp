@@ -523,7 +523,7 @@ void MainWindow::openNew()
 	{
 		return;
 	}
-	auto io = iANewIO::createIO(fileName, dstVolume | dstMesh);
+	auto io = iANewIO::createIO(fileName);
 	if (!io)
 	{   // did not find an appropriate file IO; createIO already outputs a warning in that case
 		return;

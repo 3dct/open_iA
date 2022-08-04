@@ -12,10 +12,21 @@
 
 class iAProgress;
 
+//! Dataset type contained in files
+enum class iADataSetType
+{
+	Volume = 0x1,
+	Mesh   = 0x2,
+	Graph  = 0x4,
+	All    = 0xF
+};
+Q_DECLARE_FLAGS(iADataSetTypes, iADataSetType)
+Q_DECLARE_OPERATORS_FOR_FLAGS(iADataSetTypes)
+
 class iAbase_API iAFileIO
 {
 public:
-	iAFileIO(iADataSetType type);
+	iAFileIO(iADataSetTypes type);
 	void setup(QString const& fileName);  // TODO: make possible to also use e.g. folder name or list of files
 	virtual ~iAFileIO();
 	//! The name of the file type that this IO supports
@@ -27,9 +38,8 @@ public:
 	//! Required parameters for loading the file
 	//! Copied from iAFilter - maybe reuse? move to new common base class iAParameterizedSomething ...?
 	iAAttributes const& parameters() const;
-	//! Type of dataset that the the file type this IO is for delivers
-	//! should probably be a collection(vector?) instead, for file types that contain different datasets
-	iADataSetType type() const;
+	//! Types of dataset that the the file format which this IO is for delivers
+	iADataSetTypes supportedDataSetTypes() const;
 
 protected:
 	//! Adds the description of a parameter to the filter.
@@ -46,7 +56,7 @@ protected:
 
 private:
 	iAAttributes m_parameters;
-	iADataSetType m_type;					// TODO: make possible to reflect files which can contain multipe types
+	iADataSetTypes m_dataSetTypes;
 };
 
 
@@ -88,7 +98,7 @@ public:
 	static void setupDefaultIOFactories();
 
 	//! retrieve list of file types for file open dialog
-	static QString registeredFileTypes(iADataSetTypes allowedTypes = dstVolume | dstMesh);
+	static QString registeredFileTypes(iADataSetTypes allowedTypes = iADataSetType::All);
 
 private:
 	static std::vector<std::shared_ptr<iAIFileIOFactory>> m_fileIOs;
@@ -122,7 +132,7 @@ void iAFileTypeRegistry::addFileType()
 namespace iANewIO
 {
 	//! get a I/O object for a file with the given filename
-	iAbase_API std::shared_ptr<iAFileIO> createIO(QString fileName, iADataSetTypes allowedTypes = dstVolume | dstMesh);
+	iAbase_API std::shared_ptr<iAFileIO> createIO(QString fileName);
 }
 
 /*

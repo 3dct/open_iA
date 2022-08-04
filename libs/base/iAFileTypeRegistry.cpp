@@ -8,7 +8,7 @@
 
 // ---------- iAFileIO ----------
 
-iAFileIO::iAFileIO(iADataSetType type): m_type(type)
+iAFileIO::iAFileIO(iADataSetTypes types): m_dataSetTypes(types)
 {}
 
 void iAFileIO::setup(QString const & fileName)
@@ -29,9 +29,9 @@ iAAttributes const& iAFileIO::parameters() const
 	return m_parameters;
 }
 
-iADataSetType iAFileIO::type() const
+iADataSetTypes iAFileIO::supportedDataSetTypes() const
 {
-	return m_type;
+	return m_dataSetTypes;
 }
 
 // ---------- iAFileTypeRegistry ----------
@@ -58,7 +58,7 @@ QString iAFileTypeRegistry::registeredFileTypes(iADataSetTypes allowedTypes)
 	for (auto ioFactory : m_fileIOs)  // all registered file types
 	{
 		auto io = ioFactory->create();
-		if (!allowedTypes.testFlag(io->type()))
+		if (!io->supportedDataSetTypes().testAnyFlags(allowedTypes))
 		{
 			continue;
 		}
@@ -163,7 +163,7 @@ void iAFileTypeRegistry::setupDefaultIOFactories()
 #include <QFileInfo>
 
 iAMetaFileIO::iAMetaFileIO() :
-	iAFileIO(iADataSetType::dstVolume)
+	iAFileIO(iADataSetType::Volume)
 {}
 
 std::shared_ptr<iADataSet> iAMetaFileIO::load(iAProgress* p, QMap<QString, QVariant> const& parameters)
@@ -211,7 +211,7 @@ QStringList iAMetaFileIO::extensions() const
 
 #include "iAAABB.h"
 
-iAGraphFileIO::iAGraphFileIO() : iAFileIO(iADataSetType::dstMesh)
+iAGraphFileIO::iAGraphFileIO() : iAFileIO(iADataSetType::Graph)
 {
 	addParameter("Spacing", iAValueType::Vector3, QVariant::fromValue(QVector<double>{1.0, 1.0, 1.0}));
 }
@@ -357,7 +357,7 @@ QStringList iAGraphFileIO::extensions() const
 
 #include <iAFileUtils.h>
 
-iASTLFileIO::iASTLFileIO() : iAFileIO(iADataSetType::dstMesh)
+iASTLFileIO::iASTLFileIO() : iAFileIO(iADataSetType::Mesh)
 {
 }
 
@@ -388,7 +388,7 @@ QStringList iASTLFileIO::extensions() const
 
 #include <vtkXMLImageDataReader.h>
 
-iAVTIFileIO::iAVTIFileIO() : iAFileIO(iADataSetType::dstVolume)
+iAVTIFileIO::iAVTIFileIO() : iAFileIO(iADataSetType::Volume)
 {
 }
 
@@ -425,7 +425,7 @@ QStringList iAVTIFileIO::extensions() const
 
 #include "iAAmiraMeshIO.h"
 
-iAAmiraVolumeFileIO::iAAmiraVolumeFileIO() : iAFileIO(iADataSetType::dstVolume)
+iAAmiraVolumeFileIO::iAAmiraVolumeFileIO() : iAFileIO(iADataSetType::Volume)
 {
 }
 
@@ -459,7 +459,7 @@ QStringList iAAmiraVolumeFileIO::extensions() const
 #include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType, readableDataTypes, ...
 #include <vtkImageReader2.h>
 
-iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::dstVolume)
+iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::Volume)
 {
 	auto datatype = readableDataTypeList(false);
 	QString selectedType = mapVTKTypeToReadableDataType(VTK_UNSIGNED_SHORT);
@@ -558,7 +558,7 @@ QStringList iARawFileIO::extensions() const
 
 namespace iANewIO
 {
-	std::shared_ptr<iAFileIO> createIO(QString fileName, iADataSetTypes allowedTypes)
+	std::shared_ptr<iAFileIO> createIO(QString fileName)
 	{
 		QFileInfo fi(fileName);
 		// special handling for directory ? TLGICT-loader... -> fi.isDir();
@@ -572,15 +572,8 @@ namespace iANewIO
 			return {};
 		}
 		io->setup(fileName);
-		// TODO: extend type check in io / only try loaders for allowedTypes (but how to handle file types that can contain multiple?)
-		if (!allowedTypes.testFlag(io->type()))
-		{
-			LOG(lvlWarn,
-				QString("Failed to load %1: The loaded dataset type %2 does not match any allowed type.")
-					.arg(fileName)
-					.arg(io->type()));
-			return {};
-		}
+		// for file formats that support multiple dataset types: check if an allowed type was loaded?
+		// BUT currently no such format supported
 		return io;
 	}
 }

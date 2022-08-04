@@ -585,18 +585,21 @@ private:
 
 std::shared_ptr<iADataSetRenderer> createDataRenderer(iADataSet* dataset, iARenderer* renderer)
 {
-	switch(dataset->type())
+	auto img = dynamic_cast<iAImageData*>(dataset);
+	if (img)
 	{
-	case iADataSetType::dstVolume:
-		return std::make_shared<iAVolRenderer>(renderer, dynamic_cast<iAImageData*>(dataset));
-	case iADataSetType::dstGraph:
-		return std::make_shared<iAGraphRenderer>(renderer, dynamic_cast<iAGraphData*>(dataset));
-	case iADataSetType::dstMesh:
-		return std::make_shared<iAMeshRenderer>(renderer, dynamic_cast<iAPolyData*>(dataset));
-
-	default:
-		LOG(lvlWarn, QString("Requested renderer for unknown type %1!")
-			.arg(dataset->type()));
-		return {};
+		return std::make_shared<iAVolRenderer>(renderer, img);
 	}
+	auto graph = dynamic_cast<iAGraphData*>(dataset);
+	if (graph)
+	{
+		return std::make_shared<iAGraphRenderer>(renderer, graph);
+	}
+	auto mesh = dynamic_cast<iAPolyData*>(dataset);
+	if (mesh)
+	{
+		return std::make_shared<iAMeshRenderer>(renderer, mesh);
+	}
+	LOG(lvlWarn, QString("Requested renderer for unknown dataset type!"));
+	return {};
 }
