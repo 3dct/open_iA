@@ -38,6 +38,7 @@
 #include <iAAlgorithm.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
+#include <iADataSetListWidget.h>
 #include <iADataSetRenderer.h>
 #include <iAJobListView.h>
 #include <iAModality.h>
@@ -105,8 +106,6 @@
 #include <QSettings>
 #include <QSpinBox>
 #include <QStatusBar>
-#include <QStringListModel>
-#include <QToolButton>
 #include <QtGlobal> // for QT_VERSION
 
 
@@ -134,7 +133,9 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_dwHistogram(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
 	m_dwProfile(nullptr),
 	m_datasetInfo(new QListWidget(this)),
-	m_dwInfo(new iADockWidgetWrapper(m_datasetInfo, "Dataset Info", "Info")),
+	m_dwInfo(new iADockWidgetWrapper(m_datasetInfo, "Dataset Info", "DataInfo")),
+	m_dataSetListWidget(new iADataSetListWidget()),
+	m_dwDatasets(new iADockWidgetWrapper(m_dataSetListWidget, "Datasets", "DataSets")),
 	m_dwVolumePlayer(nullptr),
 	m_nextChannelID(0),
 	m_magicLensChannel(NotExistingChannel),
@@ -142,8 +143,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_currentComponent(0),
 	m_currentHistogramModality(-1),
 	m_initVolumeRenderers(false),
-	m_interactionMode(imCamera),
-	m_dwDatasets(nullptr)
+	m_interactionMode(imCamera)
 {
 	m_histogram->setYMappingMode(prefs.HistogramLogarithmicYAxis ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
 	std::fill(m_slicerVisibility, m_slicerVisibility + 3, false);
@@ -189,6 +189,45 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	connectSignalsToSlots();
 	connect(mainWnd, &MainWindow::fullScreenToggled, this, &MdiChild::toggleFullScreen);
 	connect(mainWnd, &MainWindow::styleChanged, this, &MdiChild::styleChanged);
+
+	// Dataset list events:
+	connect(m_dataSetListWidget, &iADataSetListWidget::removeDataSet, this,
+		[this](int idx)
+		{
+			m_dataRenderers[idx]->setVisible(false);
+			updateRenderer();
+			m_dataRenderers.erase(m_dataRenderers.begin() + idx);
+			m_datasets.erase(m_datasets.begin() + idx);
+			updateDatasetInfo();
+		});
+	connect(m_dataSetListWidget, &iADataSetListWidget::editDataSet, this,
+		[this](int idx)
+		{
+			if (idx >= m_dataRenderers.size())
+			{
+				LOG(lvlWarn, QString("Invalid dataset index %1!").arg(idx));
+				return;
+			}
+			iAParameterDlg dlg(this, "Dataset parameters", m_dataRenderers[idx]->attributesWithValues());
+			if (dlg.exec() != QDialog::Accepted)
+			{
+				return;
+			}
+			m_dataRenderers[idx]->setAttributes(dlg.parameterValues());
+		});
+	connect(m_dataSetListWidget, &iADataSetListWidget::set3DRendererVisibility, this,
+		[this](int idx, int visibility)
+		{
+			m_dataRenderers[idx]->setVisible(visibility);
+			updateRenderer();
+		});
+	connect(m_dataSetListWidget, &iADataSetListWidget::set3DRendererVisibility, this,
+		[this](int idx, int visibility)
+		{
+			m_dataRenderers[idx]->setBoundsVisible(visibility);
+			updateRenderer();
+		});
+	splitDockWidget(m_dwModalities, m_dwDatasets, Qt::Horizontal);
 }
 
 void MdiChild::toggleFullScreen()
@@ -486,157 +525,11 @@ void MdiChild::showPoly()
 
 void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 {
-	enum ViewCheckBoxes
-	{
-		ViewFirst = 1,      // index of first column with "checkbox" behavior
-		View3D = ViewFirst,
-		View3DBox = 2,
-		ViewLast = View3DBox // index of last column with "checkbox" behavior
-	};
-	if (!m_dwDatasets)
-	{
-		m_dataList = new QTableWidget;
-		QStringList columnNames;
-		columnNames << "Name"
-					<< "3D"
-					<< "Box"
-		//			<< "2D"
-		//			<< "Histo"
-			;
-
-		m_dataList->setColumnCount(columnNames.size());
-		m_dataList->setHorizontalHeaderLabels(columnNames);
-		m_dataList->verticalHeader()->hide();
-		m_dataList->setSelectionBehavior(QAbstractItemView::SelectRows);
-		m_dataList->setEditTriggers(QAbstractItemView::NoEditTriggers);
-		m_dataList->resizeColumnsToContents();
-
-		auto buttons = new QWidget();
-		buttons->setLayout(new QVBoxLayout);
-		buttons->layout()->setContentsMargins(0, 0, 0, 0);
-		buttons->layout()->setSpacing(4);
-		auto editButton = new QToolButton();
-		editButton->setObjectName("tbEdit");
-		buttons->layout()->addWidget(editButton);
-		auto minusButton = new QToolButton();
-		minusButton->setObjectName("tbRemove");
-		buttons->layout()->addWidget(minusButton);
-		auto spacer = new QSpacerItem(10, 0, QSizePolicy::Fixed, QSizePolicy::Expanding);
-		buttons->layout()->addItem(spacer);
-
-		connect(editButton, &QToolButton::clicked, this, [this]()
-		{
-			auto rows = m_dataList->selectionModel()->selectedRows();
-			if (rows.size() != 1)
-			{
-				LOG(lvlWarn, "Please select exactly one row for editing!");
-				return;
-			}
-			int row = rows[0].row();
-			if (row >= m_dataRenderers.size())
-			{
-				LOG(lvlWarn, QString("Invalid dataset index %1!").arg(row));
-				return;
-			}
-			iAParameterDlg dlg(this, "Dataset parameters", m_dataRenderers[row]->attributesWithValues());
-			if (dlg.exec() != QDialog::Accepted)
-			{
-				return;
-			}
-			m_dataRenderers[rows[0].row()]->setAttributes(dlg.parameterValues());
-		});
-		connect(minusButton, &QToolButton::clicked, this, [this]()
-		{
-			auto rows = m_dataList->selectionModel()->selectedRows();
-			if (rows.size() != 1)
-			{
-				LOG(lvlWarn, "Please select exactly one row for deleting!");
-				return;
-			}
-			auto idx = rows[0].row();
-			m_dataRenderers[idx]->setVisible(false);
-			updateRenderer();
-			m_dataRenderers.erase(m_dataRenderers.begin() + idx); 
-			m_datasets.erase(m_datasets.begin() + idx);
-			m_dataList->removeRow(idx);
-			updateDatasetInfo();
-		});
-		connect(m_dataList, &QTableWidget::itemClicked, this, [this](QTableWidgetItem* item)
-		{
-//		connect(m_dataList, &QTableWidget::itemChanged, this, [this](QTableWidgetItem* item)
-//			{
-			auto col = m_dataList->column(item);
-			if (col < ViewFirst || col > ViewLast)
-			{
-				return;
-			}
-			auto row = m_dataList->row(item);
-			auto checked = ! item->data(Qt::UserRole).toBool();
-			item->setData(Qt::UserRole, checked);
-			item->setIcon(	//in dark mode, icons are switched!
-				(checked ^ !m_mainWnd->brightMode()) ? QIcon(":/images/eye.svg") : QIcon(":/images/eye_light.svg"));
-			switch (col)
-			{
-			case View3D:
-				m_dataRenderers[row]->setVisible(checked);
-				updateRenderer();
-				break;
-			case View3DBox:
-				m_dataRenderers[row]->setBoundsVisible(checked);
-				updateRenderer();
-				break;				
-			default:
-				LOG(lvlWarn, QString("Unhandled itemChanged(colum = %1)").arg(col));
-				break;
-			}
-		});
-		connect(m_mainWnd, &iAMainWindow::styleChanged, this, [this]() {
-				for (auto row = 0; row < m_dataList->rowCount(); ++row)
-				{
-					for (int col = ViewFirst; col <= ViewLast; ++col)
-					{
-						auto item = m_dataList->item(row, col);
-						auto checked = item->data(Qt::UserRole).toBool();
-						item->setIcon(  //in dark mode, icons are switched!
-							(checked ^ !m_mainWnd->brightMode()) ? QIcon(":/images/eye.svg")
-																 : QIcon(":/images/eye_light.svg"));
-					}
-				}
-			});
-
-		auto content = new QWidget();
-		content->setLayout(new QHBoxLayout);
-		content->layout()->addWidget(m_dataList);
-		content->layout()->addWidget(buttons);
-		content->layout()->setContentsMargins(1, 0, 0, 0);
-		content->layout()->setSpacing(4);
-		m_dwDatasets = new iADockWidgetWrapper(content, "Datasets", "datasets");
-		splitDockWidget(m_dwModalities, m_dwDatasets, Qt::Horizontal);
-	}
 	m_datasets.push_back(dataset);
-	
 	auto dataRenderer = createDataRenderer(dataset.get(), renderer());
 	dataRenderer->setVisible(true);
 	m_dataRenderers.push_back(dataRenderer);
-	{
-		QSignalBlocker blockList(m_dataList);
-		auto nameItem = new QTableWidgetItem(dataset->name());
-		nameItem->setToolTip(dataset->info());
-		int row = m_dataList->rowCount();
-		m_dataList->insertRow(row);
-		m_dataList->setItem(row, 0, nameItem);
-
-		// TODO: use icons for these?
-		auto view3DItem = new QTableWidgetItem(QIcon(":/images/eye.svg"), "");
-		view3DItem->setData(Qt::UserRole, 1);
-		m_dataList->setItem(row, View3D, view3DItem);
-
-		auto view3DBoxItem = new QTableWidgetItem(QIcon(":/images/eye_light.svg"), "");
-		view3DBoxItem->setData(Qt::UserRole, 0);
-		m_dataList->setItem(row, View3DBox, view3DBoxItem);
-
-		m_dataList->resizeColumnsToContents();
-	}
+	m_dataSetListWidget->addDataSet(dataset.get());
 	updateRenderer();
 	updateDatasetInfo();
 }

@@ -20,9 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAgui_export.h"
+
+// get rid of ui_ includes (use ui internally only, see )
 #include "ui_Mdichild.h"
 #include "ui_renderer.h"
-#include "iAgui_export.h"
 
 // core
 #include "qthelper/iAQTtoUIConnector.h"
@@ -40,11 +42,10 @@
 #include <QString>
 #include <QSharedPointer>
 
-#include <vector>
 #include <functional>
+#include <vector>
 
 class QListWidget;
-class QTableWidget;
 
 class vtkAbstractTransform;
 class vtkActor;
@@ -60,6 +61,7 @@ class vtkTransform;
 
 class dlg_slicer;
 class dlg_volumePlayer;
+class iADataSetListWidget;
 class iAParametricSpline;
 struct iAProfileProbe;
 class iAProfileWidget;
@@ -490,6 +492,7 @@ private:
 	iADockWidgetWrapper* m_dwHistogram;
 	iADockWidgetWrapper* m_dwProfile;
 	iADockWidgetWrapper* m_dwInfo;
+	iADataSetListWidget* m_dataSetListWidget;                          //!< display widget for list of currently loaded datasets
 	iADockWidgetWrapper* m_dwDatasets;
 	dlg_volumePlayer * m_dwVolumePlayer;
 	dlg_slicer * m_dwSlicer[3];
@@ -497,6 +500,7 @@ private:
 	dlg_renderer * m_dwRenderer;
 	//! @}
 
+	//! @deprecated use jobs instead (iARunAsync + iAJobListWidget)
 	std::vector<iAAlgorithm*> m_workingAlgorithms;
 
 	QMap<uint, QSharedPointer<iAChannelData> > m_channels;
@@ -522,6 +526,4 @@ private:
 
 	std::vector<std::shared_ptr<iADataSet>> m_datasets;       //!< list of all currently loaded datasets
 	std::vector<std::shared_ptr<iADataSetRenderer>> m_dataRenderers; //!< list of 3D renderers (one per dataset in m_datasets)
-
-	QTableWidget* m_dataList;                                 //!< table displaying datasets and their renderers and settings from m_datasets
 };
