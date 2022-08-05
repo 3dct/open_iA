@@ -28,6 +28,8 @@
 #endif
 #include "iARenderer.h"
 
+#include "iAMainWindow.h"
+
 #include <vtkActor.h>
 #include <vtkCallbackCommand.h>
 #include <vtkCommand.h>
@@ -476,7 +478,9 @@ public:
 		m_volProp->Modified();
 
 		// volume properties:
-		iAVolumeSettings volumeSettings;	// get global default settings?
+		
+		//iAVolumeSettings volumeSettings;	// get global default settings?
+		auto volumeSettings = iAMainWindow::get()->defaultVolumeSettings();
 		addAttribute(LinearInterpolation, iAValueType::Boolean, volumeSettings.LinearInterpolation);
 		addAttribute(Shading, iAValueType::Boolean, volumeSettings.Shading);
 		addAttribute(AmbientLighting, iAValueType::Continuous, volumeSettings.AmbientLighting);

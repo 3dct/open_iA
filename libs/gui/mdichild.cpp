@@ -543,6 +543,11 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 			{
 				dataRenderer->setVisible(true);
 				m_dataRenderers[dataSetIdx] = dataRenderer;
+				if (dataSetIdx == 0)    // TODO: better recognition of whether first loaded dataset?
+				{
+					// ToDo: use MdiChild::resetCamera instead
+					m_renderer->renderer()->ResetCamera();
+				}
 				updateRenderer();
 			}
 			if (m_dataForDisplay[dataSetIdx])
@@ -1510,7 +1515,7 @@ void MdiChild::enableInteraction(bool b)
 	}
 }
 
-bool MdiChild::editPrefs(iAPreferences const& prefs)
+bool MdiChild::applyPreferences(iAPreferences const& prefs)
 {
 	m_preferences = prefs;
 	if (m_ioThread)	// don't do any updates if image still loading
@@ -1639,7 +1644,7 @@ void MdiChild::setupSlicers(iASlicerSettings const& ss, bool init)
 	}
 }
 
-bool MdiChild::editRendererSettings(iARenderSettings const& rs, iAVolumeSettings const& vs)
+bool MdiChild::applyRendererSettings(iARenderSettings const& rs, iAVolumeSettings const& vs)
 {
 	setRenderSettings(rs, vs);
 	applyVolumeSettings(false);

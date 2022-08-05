@@ -262,7 +262,7 @@ void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 	FS_VolumeSettings.Shading = true;
 	FS_VolumeSettings.SpecularLighting = 0.0;
 	FS_VolumeSettings.RenderMode = vtkSmartVolumeMapper::RayCastRenderMode;
-	m_mdiChild->editRendererSettings(FS_RenderSettings, FS_VolumeSettings);
+	m_mdiChild->applyRendererSettings(FS_RenderSettings, FS_VolumeSettings);
 }
 
 void iAFeatureScoutModuleInterface::LoadFeatureScout(iACsvConfig const & csvConfig, iAMdiChild * mdiChild)

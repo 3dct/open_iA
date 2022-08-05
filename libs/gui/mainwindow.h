@@ -129,6 +129,7 @@ public:
 	QMdiSubWindow* addSubWindow(QWidget * child) override;
 	void loadArguments(int argc, char** argv);
 	iAPreferences const & defaultPreferences() const override;
+	iAVolumeSettings const& defaultVolumeSettings() const override;
 	iAModuleDispatcher& moduleDispatcher() const override;
 	iAMdiChild* createMdiChild(bool unsavedChanges) override;
 	void closeMdiChild(iAMdiChild* child) override;

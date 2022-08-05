@@ -117,9 +117,9 @@ public:
 	void waitForPreviousIO();
 
 	void multiview() override;
-	bool editPrefs(iAPreferences const & p);
+	bool applyPreferences(iAPreferences const & p);
 	void applyViewerPreferences();
-	bool editRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs) override;
+	bool applyRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs) override;
 	bool editSlicerSettings(iASlicerSettings const & slicerSettings);
 	bool loadTransferFunction();
 	bool saveTransferFunction();

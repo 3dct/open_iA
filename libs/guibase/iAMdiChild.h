@@ -208,8 +208,8 @@ public:
 	//! whether the child currently has volume data loaded
 	virtual bool isVolumeDataLoaded() const = 0;
 
-	//! "set" rednder settings
-	virtual bool editRendererSettings(iARenderSettings const& rs, iAVolumeSettings const& vs) = 0;
+	//! apply the given (3D) renderer settings
+	virtual bool applyRendererSettings(iARenderSettings const& rs, iAVolumeSettings const& vs) = 0;
 
 	//! add a dataset
 	virtual void addDataSet(std::shared_ptr<iADataSet> dataSet) = 0;

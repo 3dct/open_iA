@@ -556,13 +556,17 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 		
 		if (d->data)
 		{
-			iAMdiChild* targetChild = child ? child : createMdiChild(false);
-			setCurrentFile(d->data->fileName());
-			targetChild->addDataSet(d->data);
-			if (!child)
+			iAMdiChild* targetChild = child;
+			if (!targetChild)
 			{
+				targetChild = createMdiChild(false);
+				// TODO: check if we need to apply preferences...
+				//dynamic_cast<MdiChild*>(targetChild)->applyPreferences(m_defaultPreferences);
+				targetChild->applyRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
 				targetChild->show();
 			}
+			setCurrentFile(d->data->fileName());
+			targetChild->addDataSet(d->data);
 		}
 	}
 	, this);
@@ -940,7 +944,7 @@ void MainWindow::loadPreferences(QDomNode preferencesNode)
 
 	iALogWidget::get()->setLogToFile(prefLogToFile, logFileName);
 
-	activeMDI()->editPrefs(m_defaultPreferences);
+	activeMDI()->applyPreferences(m_defaultPreferences);
 }
 
 void MainWindow::saveRenderSettings(iAXmlSettings &xml)
@@ -996,7 +1000,7 @@ void MainWindow::loadRenderSettings(QDomNode renderSettingsNode)
 	m_defaultVolumeSettings.SpecularPower = attributes.namedItem("specularPower").nodeValue().toDouble();
 	m_defaultVolumeSettings.RenderMode = attributes.namedItem("renderMode").nodeValue().toInt();
 
-	activeMDI()->editRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
+	activeMDI()->applyRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
 }
 
 void MainWindow::saveSlicerSettings(iAXmlSettings &xml)
@@ -1236,10 +1240,9 @@ void MainWindow::prefs()
 	m_defaultPreferences.MagicLensSize = clamp(MinimumMagicLensSize, MaximumMagicLensSize, values["Magic lens size"].toInt());
 	m_defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(values["Magic lens frame width"].toInt()));
 	m_defaultPreferences.HistogramLogarithmicYAxis = values["Logarithmic Histogram y axis"].toBool();
-
-	if (activeMdiChild() && activeMDI()->editPrefs(m_defaultPreferences))
+	if (activeMdiChild())
 	{
-		statusBar()->showMessage(tr("Edit preferences"), 5000);
+		activeMDI()->applyPreferences(m_defaultPreferences);
 	}
 	iALogWidget::get()->setLogToFile(logToFile, logFileName, true);
 }
@@ -1318,7 +1321,7 @@ void MainWindow::renderSettings()
 
 	if (activeMdiChild())
 	{
-		activeMDI()->editRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
+		activeMDI()->applyRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
 	}
 	statusBar()->showMessage(tr("Changed renderer settings"), 5000);
 }
@@ -2763,6 +2766,11 @@ void MainWindow::loadArguments(int argc, char** argv)
 iAPreferences const & MainWindow::defaultPreferences() const
 {
 	return m_defaultPreferences;
+}
+
+iAVolumeSettings const& MainWindow::defaultVolumeSettings() const
+{
+	return m_defaultVolumeSettings;
 }
 
 iAModuleDispatcher & MainWindow::moduleDispatcher() const
