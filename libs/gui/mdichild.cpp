@@ -353,7 +353,7 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_histogram, &iAChartWithFunctionsWidget::pointSelected, this, &MdiChild::pointSelected);
 	connect(m_histogram, &iAChartWithFunctionsWidget::noPointSelected, this, &MdiChild::noPointSelected);
 	connect(m_histogram, &iAChartWithFunctionsWidget::endPointSelected, this, &MdiChild::endPointSelected);
-	connect((iAChartTransferFunction*)(m_histogram->functions()[0]), &iAChartTransferFunction::changed, this, &MdiChild::modalityTFChanged);
+	connect((iAChartTransferFunction*)(m_histogram->functions()[0]), &iAChartTransferFunction::changed, this, &MdiChild::changeTransferFunction);
 
 	//connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::updateDatasetInfo);
 	connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::updateViews);
@@ -467,7 +467,7 @@ void MdiChild::enableRenderWindows()	// = image data available
 	m_dwModalities->enableUI();
 }
 
-void MdiChild::modalityTFChanged()
+void MdiChild::changeTransferFunction()
 {
 	for (int s = 0; s < 3; ++s)
 	{
@@ -2830,7 +2830,7 @@ void MdiChild::statisticsAvailable(int modalityIdx)
 	displayHistogram(modalityIdx);
 	// TODO: only initialize volume renderer of modalityIdx modality here!
 	initVolumeRenderers();
-	modalityTFChanged();
+	changeTransferFunction();
 	updateViews();
 }
 

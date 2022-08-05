@@ -312,6 +312,10 @@ public slots:
 	virtual void updateSlicers() = 0;
 	//! Update 3D renderer
 	virtual void updateRenderer() = 0;
+
+	//! transfer function was changed.
+	virtual void changeTransferFunction() = 0;
+
 	//! method "enabling render windows", basically called when dataset is ready to be shown
 	//! but quite convoluted and confusing, so:
 	//! @deprecated. will be removed soon, no direct replacement

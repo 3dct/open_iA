@@ -332,6 +332,7 @@ public slots:
 	void updateSlicers() override;
 	void updateRenderer() override;
 	void updateViews() override;
+	void changeTransferFunction() override;
 	//! @deprecated use logging or global status bar (iAMainWindow::statusBar) instead
 	void addStatusMsg(QString const& txt) override;
 	void setupView(bool active = false);
@@ -365,7 +366,6 @@ private slots:
 	void updatePositionMarker(int x, int y, int z, int mode);
 	void ioFinished();
 	void updateDataSetInfo();
-	void modalityTFChanged();
 	void histogramDataAvailable(int modalityIdx);
 	void statisticsAvailable(int modalityIdx);
 	void changeMagicLensModality(int chg);
