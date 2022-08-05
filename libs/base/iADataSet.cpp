@@ -102,14 +102,20 @@ vtkSmartPointer<vtkImageData> iAImageData::image()
 
 QString iAImageData::info() const
 {
+	auto const ext = m_img->GetExtent();
+	auto const spc = m_img->GetSpacing();
+	auto const ori = m_img->GetOrigin();
+	auto voxelCount = (ext[1] - ext[0] + 1) * (ext[3] - ext[2] + 1) * (ext[5] - ext[4] + 1);
 	return
-		QString("Extent (pixel): x=%1..%2; y=%3..%4 z=%5..%6\n")
-			.arg(m_img->GetExtent()[0]).arg(m_img->GetExtent()[1])
-			.arg(m_img->GetExtent()[2]).arg(m_img->GetExtent()[3])
-			.arg(m_img->GetExtent()[4]).arg(m_img->GetExtent()[5]) +
+		QString("Extent (pixel): x=%1..%2; y=%3..%4 z=%5..%6 (%7 voxels)\n")
+			.arg(ext[0]).arg(ext[1])
+			.arg(ext[2]).arg(ext[3])
+			.arg(ext[4]).arg(ext[5])
+			.arg(voxelCount)
+		+
 		QString("Origin: %1 %2 %3; Spacing: %4 %5 %6\n")
-			.arg(m_img->GetOrigin()[0]).arg(m_img->GetOrigin()[1]).arg(m_img->GetOrigin()[2])
-			.arg(m_img->GetSpacing()[0]).arg(m_img->GetSpacing()[1]).arg(m_img->GetSpacing()[2]) +
+			.arg(ori[0]).arg(ori[1]).arg(ori[2])
+			.arg(spc[0]).arg(spc[1]).arg(spc[2]) +
 		QString("Data type: %1\n").arg(mapVTKTypeToReadableDataType(m_img->GetScalarType())) +
 		QString("Components: %1").arg(m_img->GetNumberOfScalarComponents());
 	/*
