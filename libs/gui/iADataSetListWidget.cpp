@@ -37,8 +37,16 @@ namespace
 		ViewFirst = 1,  // index of first column with "checkbox" behavior
 		View3D = ViewFirst,
 		View3DBox = 2,
-		ViewLast = View3DBox  // index of last column with "checkbox" behavior
+		Pickable = 3,
+		ViewLast = Pickable  // index of last column with "checkbox" behavior
 	};
+
+	QIcon iconForCol(int col, bool checked)
+	{
+		return QIcon(QString(":/images/%1%2.svg")
+			.arg(col == Pickable ? "transform-move" : "eye")
+			.arg((checked ^ !iAMainWindow::get()->brightMode()) ? "" : "_light"));
+	}
 }
 
 iADataSetListWidget::iADataSetListWidget()
@@ -48,6 +56,7 @@ iADataSetListWidget::iADataSetListWidget()
 	columnNames << "Name"
 				<< "3D"
 				<< "Box"
+				<< "Pick"
 		//			<< "2D" (Slicers)
 		//			<< "Histo"
 		//          << "Move"  (manual 3D registration)
@@ -113,9 +122,7 @@ iADataSetListWidget::iADataSetListWidget()
 			auto row = m_dataList->row(item);
 			auto checked = !item->data(Qt::UserRole).toBool();
 			item->setData(Qt::UserRole, checked);
-			item->setIcon(  //in dark mode, icons are switched!
-				(checked ^ !iAMainWindow::get()->brightMode()) ? QIcon(":/images/eye.svg")
-															   : QIcon(":/images/eye_light.svg"));
+			item->setIcon(iconForCol(col, checked));
 			switch (col)
 			{
 			case View3D:
@@ -123,6 +130,9 @@ iADataSetListWidget::iADataSetListWidget()
 				break;
 			case View3DBox:
 				emit setBoundsVisibility(row, checked);
+				break;
+			case Pickable:
+				emit setPickable(row, checked);
 				break;
 			default:
 				LOG(lvlWarn, QString("Unhandled itemChanged(colum = %1)").arg(col));
@@ -138,9 +148,7 @@ iADataSetListWidget::iADataSetListWidget()
 				{
 					auto item = m_dataList->item(row, col);
 					auto checked = item->data(Qt::UserRole).toBool();
-					item->setIcon(  //in dark mode, icons are switched!
-						(checked ^ !iAMainWindow::get()->brightMode()) ? QIcon(":/images/eye.svg")
-															 : QIcon(":/images/eye_light.svg"));
+					item->setIcon(iconForCol(col, checked));
 				}
 			}
 		});
@@ -161,14 +169,18 @@ void iADataSetListWidget::addDataSet(iADataSet* dataset)
 	m_dataList->insertRow(row);
 	m_dataList->setItem(row, 0, nameItem);
 
-	// TODO: use icons for these?
-	auto view3DItem = new QTableWidgetItem(QIcon(":/images/eye.svg"), "");
+	// TODO: avoid duplication, extract method
+	auto view3DItem = new QTableWidgetItem(iconForCol(View3D, true), "");
 	view3DItem->setData(Qt::UserRole, 1);
 	m_dataList->setItem(row, View3D, view3DItem);
 
-	auto view3DBoxItem = new QTableWidgetItem(QIcon(":/images/eye_light.svg"), "");
+	auto view3DBoxItem = new QTableWidgetItem(iconForCol(View3DBox, false), "");
 	view3DBoxItem->setData(Qt::UserRole, 0);
 	m_dataList->setItem(row, View3DBox, view3DBoxItem);
+
+	auto pickableItem = new QTableWidgetItem(iconForCol(Pickable, true), "");
+	pickableItem->setData(Qt::UserRole, 1);
+	m_dataList->setItem(row, Pickable, pickableItem);
 
 	m_dataList->resizeColumnsToContents();
 }

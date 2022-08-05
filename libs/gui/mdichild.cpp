@@ -229,6 +229,11 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 			m_dataRenderers[idx]->setBoundsVisible(visibility);
 			updateRenderer();
 		});
+	connect(m_dataSetListWidget, &iADataSetListWidget::setPickable, this,
+		[this](int idx, int visibility)
+		{
+			m_dataRenderers[idx]->setPickable(visibility);
+		});
 	splitDockWidget(m_dwModalities, m_dwDatasets, Qt::Horizontal);
 }
 

@@ -93,7 +93,8 @@
     <file>images/splashscreen.png</file>
     <file>images/stepbackward.png</file>
     <file>images/stepforward.png</file>
-    <file>images/transform-move.png</file>
+    <file>images/transform-move.svg</file>
+    <file>images/transform-move_light.svg</file>
     <file>images/undock_white.png</file>
     <file>images/up_arrow.png</file>
     <file>images/w2b_colormap.png</file>

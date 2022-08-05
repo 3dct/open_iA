@@ -41,6 +41,7 @@ signals:
 	void removeDataSet(int idx);
 	void set3DRendererVisibility(int idx, bool visibility);
 	void setBoundsVisibility(int idx, bool visibility);
+	void setPickable(int idx, bool pickable);
 
 private:
 	QTableWidget* m_dataList;  //!< the actual table displaying datasets and controls for their visibility

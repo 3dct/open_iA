@@ -49,6 +49,9 @@ public:
 	//! Call to change the attributes of this renderer
 	void setAttributes(QMap<QString, QVariant> const& values);
 
+	//! convenience method for setting the Pickable attribute
+	void setPickable(bool pickable);
+
 	//! Set the visibility of the axis-aligned bounding box:
 	void setBoundsVisible(bool visible);
 	//! The coordinates of the axis-aligned bounding box (of the dataset, untransformed to any current position/orientation changes)

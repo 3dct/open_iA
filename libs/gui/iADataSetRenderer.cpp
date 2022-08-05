@@ -135,6 +135,13 @@ void iADataSetRenderer::setAttributes(QMap<QString, QVariant> const & values)
 	}
 }
 
+void iADataSetRenderer::setPickable(bool pickable)
+{
+	m_attribValues[Pickable] = pickable;
+	// TODO: maybe only apply pickable?
+	applyAttributes(m_attribValues);
+}
+
 iAAttributes iADataSetRenderer::attributesWithValues() const
 {
 	iAAttributes result = combineAttributesWithValues(m_attributes, m_attribValues);

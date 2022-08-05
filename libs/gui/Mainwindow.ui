@@ -1084,7 +1084,7 @@
    </property>
    <property name="icon">
     <iconset resource="gui.qrc">
-     <normaloff>:/images/transform-move.png</normaloff>:/images/transform-move.png</iconset>
+     <normaloff>:/images/transform-move.svg</normaloff>:/images/transform-move.svg</iconset>
    </property>
    <property name="text">
     <string>Manual registration</string>
