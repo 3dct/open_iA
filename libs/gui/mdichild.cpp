@@ -223,7 +223,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 			m_dataRenderers[idx]->setVisible(visibility);
 			updateRenderer();
 		});
-	connect(m_dataSetListWidget, &iADataSetListWidget::set3DRendererVisibility, this,
+	connect(m_dataSetListWidget, &iADataSetListWidget::setBoundsVisibility, this,
 		[this](int idx, int visibility)
 		{
 			m_dataRenderers[idx]->setBoundsVisible(visibility);
