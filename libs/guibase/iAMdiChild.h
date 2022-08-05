@@ -302,9 +302,6 @@ signals:
 	void endPointSelected();
 	//! @}
 
-	//! obscure signal, actual use has to be determined
-	void active();
-
 	//! emitted whenever the magic lens has been toggled on or off
 	void magicLensToggled(bool isToggled);
 

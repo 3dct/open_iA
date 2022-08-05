@@ -260,8 +260,8 @@ void iAChartWithFunctionsWidget::enterEvent(QEvent*)
 #else
 void iAChartWithFunctionsWidget::enterEvent(QEnterEvent*)
 #endif
-{
-	emit active(); // TODO: check use of th
+{   // to get keyboard events;
+	setFocus(Qt::OtherFocusReason);
 }
 
 void iAChartWithFunctionsWidget::keyPressEvent(QKeyEvent *event)
@@ -321,6 +321,7 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 		contextMenu->addAction(QIcon(":/images/TFTableView.png"), tr("Transfer Function Table View"), this, &iAChartWithFunctionsWidget::showTFTable);
 		contextMenu->addAction(QIcon(":/images/loadtrf.png"), tr("Load transfer function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::loadTransferFunction));
 		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Save transfer function"), this, &iAChartWithFunctionsWidget::saveTransferFunction);
+		// only relevant for volume stack:
 		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Apply transfer function for all"), this, &iAChartWithFunctionsWidget::applyTransferFunctionForAll);
 		if (m_allowTrfReset)
 		{

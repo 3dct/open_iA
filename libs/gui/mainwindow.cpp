@@ -1942,7 +1942,6 @@ iAMdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	connect(child, &MdiChild::pointSelected, this, &MainWindow::pointSelected);
 	connect(child, &MdiChild::noPointSelected, this, &MainWindow::noPointSelected);
 	connect(child, &MdiChild::endPointSelected, this, &MainWindow::endPointSelected);
-	connect(child, &MdiChild::active, this, &MainWindow::setHistogramFocus);
 	connect(child, &MdiChild::closed, this, &MainWindow::childClosed);
 
 	m_moduleDispatcher->ChildCreated(child);
@@ -2456,14 +2455,6 @@ void MainWindow::endPointSelected()
 {
 	m_ui->actionChangeColor->setEnabled(true);
 	m_ui->actionDeletePoint->setEnabled(false);
-}
-
-void MainWindow::setHistogramFocus()
-{
-	if (activeMdiChild())
-	{
-		activeMDI()->setHistogramFocus();
-	}
 }
 
 void MainWindow::toggleMdiViewMode()

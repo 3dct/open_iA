@@ -353,7 +353,6 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_histogram, &iAChartWithFunctionsWidget::pointSelected, this, &MdiChild::pointSelected);
 	connect(m_histogram, &iAChartWithFunctionsWidget::noPointSelected, this, &MdiChild::noPointSelected);
 	connect(m_histogram, &iAChartWithFunctionsWidget::endPointSelected, this, &MdiChild::endPointSelected);
-	connect(m_histogram, &iAChartWithFunctionsWidget::active, this, &MdiChild::active);
 	connect((iAChartTransferFunction*)(m_histogram->functions()[0]), &iAChartTransferFunction::changed, this, &MdiChild::modalityTFChanged);
 
 	//connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::updateDatasetInfo);
@@ -1727,11 +1726,6 @@ int MdiChild::isFuncEndPoint(int index)
 	return m_histogram->isFuncEndPoint(index);
 }
 
-void MdiChild::setHistogramFocus()
-{
-	m_histogram->setFocus(Qt::OtherFocusReason);
-}
-
 void MdiChild::resetTrf()
 {
 	m_histogram->resetTrf();
@@ -2701,9 +2695,6 @@ void MdiChild::computeStatisticsAsync(std::function<void()> callbackSlot, QShare
 	{
 		return;
 	}
-
-	mod->info().setComputing();
-	//updateDatasetInfo();	// TODO: Datasets - provide statistics information in iAImageData::info?
 	auto compute = [mod] { mod->computeImageStatistics(); };
 	auto fw = runAsync(compute, callbackSlot, this);
 	iAJobListView::get()->addJob(QString("Computing statistics for modality %1")
@@ -2792,7 +2783,7 @@ void MdiChild::computeHistogramAsync(std::function<void()> callbackSlot, size_t 
 {
 	auto fw = runAsync([newBinCount, mod]
 		{   // run computation of histogram...
-			auto histData = iAHistogramData::create("Frequency", mod->image(), newBinCount, &mod->info());
+			auto histData = iAHistogramData::create("Frequency", mod->image(), newBinCount);
 			mod->setHistogramData(histData);
 		},
 		callbackSlot,

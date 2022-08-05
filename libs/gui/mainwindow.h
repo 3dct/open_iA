@@ -209,7 +209,6 @@ private slots:
 	void pointSelected();
 	void noPointSelected();
 	void endPointSelected();
-	void setHistogramFocus();
 	void toggleMdiViewMode();
 
 private:
