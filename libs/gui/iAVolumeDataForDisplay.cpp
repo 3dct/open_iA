@@ -22,8 +22,10 @@ iAVolumeDataForDisplay::iAVolumeDataForDisplay(iAImageData* data, size_t binCoun
 	m_imgStatistics("Computing...")
 {
 	LOG(lvlDebug, QString("Computing statistics and histogram for %1.").arg(data->name()));
-	m_transfer->computeStatistics(data->image());
+	m_transfer->computeRange(data->image());
 	iAImageStatistics stats;
+	// TODO: handle multiple components; but for that, we need to extract the vtkImageAccumulate part,
+	//       as it computes the histograms for all components at once!
 	m_histogramData = iAHistogramData::create("Frequency", data->image(), binCount, &stats);
 	m_imgStatistics = QString("min=%1, max=%2, mean=%3, stddev=%4")
 		.arg(stats.minimum)

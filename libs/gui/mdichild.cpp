@@ -2675,17 +2675,12 @@ void MdiChild::initModalities()
 
 bool MdiChild::statisticsComputed(QSharedPointer<iAModality> modality)
 {
-	return modality->transfer()->statisticsComputed();
+	return modality->transfer()->isRangeComputed();
 }
 
 bool MdiChild::statisticsComputable(QSharedPointer<iAModality> modality, int modalityIdx /* = -1 */)
 //bool MdiChild::histogramComputedOrComputing(QSharedPointer<iAModality> modality, int modalityIdx /* = -1 */) {
 {
-	if (modality->info().isComputing())
-	{
-		return false;
-	}
-
 	// If modality index is provided
 	if (modalityIdx != -1)
 	{
