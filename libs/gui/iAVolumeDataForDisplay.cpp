@@ -41,7 +41,7 @@ iAVolumeDataForDisplay::iAVolumeDataForDisplay(iAImageData* data, iAProgress* p,
 
 QString iAVolumeDataForDisplay::information() const
 {
-	return iADataForDisplay::information() + QString("Statistics: %1").arg(m_imgStatistics);
+	return iADataForDisplay::information() + "\n" + QString("Statistics: %1").arg(m_imgStatistics);
 }
 
 void iAVolumeDataForDisplay::show(iAMdiChild* child)
