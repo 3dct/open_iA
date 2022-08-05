@@ -27,7 +27,7 @@
 iAModalityTransfer::iAModalityTransfer(double const range[2]):
 	m_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
 	m_otf(vtkSmartPointer<vtkPiecewiseFunction>::New()),
-	m_statisticsComputed(false),
+	m_rangeComputed(false),
 	m_opacityRamp(true)
 {
 	m_range[0] = range[0];
@@ -35,9 +35,9 @@ iAModalityTransfer::iAModalityTransfer(double const range[2]):
 	resetFunctions();
 }
 
-void iAModalityTransfer::computeStatistics(vtkSmartPointer<vtkImageData> img)
+void iAModalityTransfer::computeRange(vtkSmartPointer<vtkImageData> img)
 {
-	if (m_statisticsComputed)  // already calculated
+	if (m_rangeComputed)  // already calculated
 	{
 		return;
 	}
@@ -45,16 +45,8 @@ void iAModalityTransfer::computeStatistics(vtkSmartPointer<vtkImageData> img)
 	m_opacityRamp = img->GetNumberOfScalarComponents() == 1;
 	img->GetScalarRange(m_range);
 	resetFunctions();
-	m_statisticsComputed = true;
+	m_rangeComputed = true;
 }
-
-/*
-void iAModalityTransfer::resetHistogram()
-{
-	m_statisticsComputed = false;
-	m_histogramData.clear();
-}
-*/
 
 void iAModalityTransfer::resetFunctions()
 {
@@ -74,7 +66,7 @@ vtkColorTransferFunction* iAModalityTransfer::colorTF()
 	return m_ctf;
 }
 
-bool iAModalityTransfer::statisticsComputed() const
+bool iAModalityTransfer::isRangeComputed() const
 {
-	return m_statisticsComputed;
+	return m_rangeComputed;
 }

@@ -37,9 +37,8 @@ class iAguibase_API iAModalityTransfer : public iATransferFunction
 {
 public:
 	iAModalityTransfer(double const range[2]);
-	void computeStatistics(vtkSmartPointer<vtkImageData> img);
-	//void resetHistogram();
-	bool statisticsComputed() const;
+	void computeRange(vtkSmartPointer<vtkImageData> img);
+	bool isRangeComputed() const;
 
 	//! @{ functions overridden from iATransferFunction:
 	vtkPiecewiseFunction* opacityTF() override;
@@ -50,7 +49,7 @@ public:
 private:
 	vtkSmartPointer<vtkColorTransferFunction> m_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
-	bool m_statisticsComputed;
+	bool m_rangeComputed;
 	bool m_opacityRamp;  //! whether to use a varying opacity in default TF
 	double m_range[2];
 };

@@ -256,7 +256,7 @@ QString iAModality::positionString()
 
 void iAModality::computeImageStatistics()
 {
-	m_transfer->computeStatistics(image());
+	m_transfer->computeRange(image());
 	if (!m_tfFileName.isEmpty())
 	{
 		loadTransferFunction();
