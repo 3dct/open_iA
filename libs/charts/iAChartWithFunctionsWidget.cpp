@@ -532,10 +532,7 @@ void iAChartWithFunctionsWidget::addBezierFunction()
 	bezier->addPoint(contextMenuPos().x(), chartHeight()- contextMenuPos().y());
 	m_selectedFunction = m_functions.size();
 	m_functions.push_back(bezier);
-
 	update();
-	emit updateTFTable();
-	emit updateViews();
 }
 
 void iAChartWithFunctionsWidget::addGaussianFunction()
@@ -557,8 +554,6 @@ void iAChartWithFunctionsWidget::addGaussianFunction(double mean, double sigma, 
 	m_functions.push_back(gaussian);
 
 	update();
-	emit updateTFTable();
-	emit updateViews();
 }
 
 void iAChartWithFunctionsWidget::loadFunctions()
@@ -708,13 +703,17 @@ void iAChartWithFunctionsWidget::saveFunctions()
 
 void iAChartWithFunctionsWidget::removeFunction()
 {
-	std::vector<iAChartFunction*>::iterator it = m_functions.begin()+ m_selectedFunction;
+	assert(m_selectedFunction != 0);
+	if (m_selectedFunction == 0)
+	{
+		return;
+	}
+	std::vector<iAChartFunction*>::iterator it = m_functions.begin() + m_selectedFunction;
 	iAChartFunction *function = *it;
 	m_functions.erase(it);
 	delete function;
 	m_selectedFunction--;
 	update();
-	emit updateViews();
 }
 
 void iAChartWithFunctionsWidget::setTransferFunction(iATransferFunction* f)
