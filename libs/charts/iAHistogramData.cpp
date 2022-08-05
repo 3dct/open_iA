@@ -21,7 +21,6 @@
 #include "iAHistogramData.h"
 
 #include "iALog.h"
-#include "iAImageInfo.h"
 #include "iAMathUtility.h"
 #include "iAVtkDataTypeMapper.h"
 #include "iAToolsVTK.h"
@@ -180,7 +179,7 @@ size_t iAHistogramData::finalNumBin(vtkImageData* img, size_t desiredBins)
 }
 
 QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name,
-	vtkImageData* img, size_t desiredNumBin, iAImageInfo* info)
+	vtkImageData* img, size_t desiredNumBin, iAImageStatistics* imgStatistics)
 {
 	if (!img)
 	{
@@ -231,10 +230,9 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name,
 	std::copy(vtkRawData, vtkRawData + result->m_numBin, result->m_histoData);
 	result->m_spacing = histRange / result->m_numBin;
 	result->updateYBounds();
-	if (info)
+	if (imgStatistics)
 	{
-		*info = iAImageInfo(*accumulate->GetMin(), *accumulate->GetMax(),
-			*accumulate->GetMean(), *accumulate->GetStandardDeviation());
+		*imgStatistics = iAImageStatistics{ *accumulate->GetMin(), *accumulate->GetMax(), *accumulate->GetMean(), *accumulate->GetStandardDeviation() };
 	}
 	return result;
 }

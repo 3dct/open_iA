@@ -21,7 +21,6 @@
 #pragma once
 
 #include "iAguibase_export.h"
-#include "iAImageInfo.h"
 #include "iAVolumeSettings.h"
 
 #include <vtkImageData.h>
@@ -76,8 +75,6 @@ public:
 	vtkSmartPointer<vtkImageData> image() const;
 	//! return the name of the given component
 	QString imageName(int componentIdx);
-	//! return statistical information about the image
-	iAImageInfo & info();
 	//! return ID of channel used in mdichild to represent this modality in slicer (don't confuse with channel in input file, see channel() above!)
 	uint channelID() const;
 	//! set ID of channel used in mdichild to represent this modality in slicer
@@ -164,7 +161,6 @@ private:
 	vtkSmartPointer<vtkImageData> m_imgData;
 
 	QSharedPointer<iAHistogramData> m_histogramData;
-	iAImageInfo m_imageInfo;
 
 	// TODO: Refactor
 	QString m_positionSettings;

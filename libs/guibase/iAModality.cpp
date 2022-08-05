@@ -162,11 +162,6 @@ QString iAModality::imageName(int componentIdx)
 	return result;
 }
 
-iAImageInfo & iAModality::info()
-{
-	return m_imageInfo;
-}
-
 bool iAModality::hasRenderFlag(RenderFlag loc) const
 {
 	return (m_renderFlags & loc) == loc;

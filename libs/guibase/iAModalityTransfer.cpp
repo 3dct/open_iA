@@ -73,13 +73,6 @@ vtkColorTransferFunction* iAModalityTransfer::colorTF()
 	assert(m_ctf);
 	return m_ctf;
 }
-/*
-iAImageInfo const & iAModalityTransfer::info() const
-{
-	// TODO: make sure image info is initialzed!
-	return m_imageInfo;
-}
-*/
 
 bool iAModalityTransfer::statisticsComputed() const
 {
