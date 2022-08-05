@@ -22,21 +22,30 @@
 
 #include "iAgui_export.h"
 
+#include <QString>
+
 #include <memory>
 
 class iADataSet;
 class iAMdiChild;
 
-//! Abstract base class for data linked to a dataset required for displaying it,
+//! Base class for data linked to a dataset required for displaying it,
 //! in addition to the dataset itself (e.g., the histogram for a volume dataset)
 //! TODO: Find a better name!
 class iAgui_API iADataForDisplay
 {
 public:
+	iADataForDisplay(iADataSet* dataSet);
 	//! called from GUI thread when the data computation (via createDataForDisplay method below) is complete
-	virtual void show(iAMdiChild* child) =0;
+	virtual void show(iAMdiChild* child);
 	//! called when the dataset is removed and its related controls should close down
-	virtual void close() = 0;
+	virtual ~iADataForDisplay();
+	//! Get information to display about the dataset
+	virtual QString information() const;
+protected:
+	iADataSet* const dataSet();
+private:
+	iADataSet* m_dataSet;
 };
 
-std::shared_ptr<iADataForDisplay> createDataForDisplay(iADataSet* dataSet);
+std::shared_ptr<iADataForDisplay> createDataForDisplay(iADataSet* dataSet, int numBins);

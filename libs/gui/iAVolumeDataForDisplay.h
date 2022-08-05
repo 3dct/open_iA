@@ -4,17 +4,25 @@
 
 #include "iADataForDisplay.h"
 
+#include <QSharedPointer>
+
+class iAChartWithFunctionsWidget;
+class iADockWidgetWrapper;
 class iAImageData;
+class iAHistogramData;
 class iAModalityTransfer;
 
 class iAgui_API iAVolumeDataForDisplay : public iADataForDisplay
 {
 public:
-	iAVolumeDataForDisplay(iAImageData* data);
+	iAVolumeDataForDisplay(iAImageData* data, size_t binCount);
 	void show(iAMdiChild* child) override;
-	void close() override;
+	QString information() const override;
 	iAModalityTransfer* transfer();
 private:
 	std::shared_ptr<iAModalityTransfer> m_transfer;
-
+	QSharedPointer<iAHistogramData> m_histogramData;
+	iAChartWithFunctionsWidget* m_histogram;
+	std::shared_ptr<iADockWidgetWrapper> m_histogramDW;
+	QString m_imgStatistics;
 };

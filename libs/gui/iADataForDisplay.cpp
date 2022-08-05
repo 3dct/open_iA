@@ -24,12 +24,35 @@
 
 #include "iADataSet.h"
 
-std::shared_ptr<iADataForDisplay> createDataForDisplay(iADataSet* dataSet)
+iADataForDisplay::iADataForDisplay(iADataSet* dataSet):
+	m_dataSet(dataSet)
+{
+}
+
+iADataForDisplay::~iADataForDisplay()
+{}
+
+void iADataForDisplay::show(iAMdiChild* child)
+{	// by default, nothing to do
+	Q_UNUSED(child);
+}
+
+QString iADataForDisplay::information() const
+{
+	return m_dataSet->info();
+}
+
+iADataSet* const iADataForDisplay::dataSet()
+{
+	return m_dataSet;
+}
+
+std::shared_ptr<iADataForDisplay> createDataForDisplay(iADataSet* dataSet, int numBins)
 {
 	auto volData = dynamic_cast<iAImageData*>(dataSet);
 	if (volData)
 	{
-		return std::make_shared<iAVolumeDataForDisplay>(volData);
+		return std::make_shared<iAVolumeDataForDisplay>(volData, numBins);
 	}
-	return std::shared_ptr<iADataForDisplay>();
+	return std::make_shared<iADataForDisplay>(dataSet);
 }

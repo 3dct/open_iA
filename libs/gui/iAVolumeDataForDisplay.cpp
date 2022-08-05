@@ -2,24 +2,58 @@
 
 #include "iADataSet.h"
 
+#include "iADockWidgetWrapper.h"
+
 #include "iAModalityTransfer.h"
+#include "iAChartWithFunctionsWidget.h"
+#include "iAHistogramData.h"
+#include "iAPlotTypes.h"
+
+#include "iAMdiChild.h"
 
 #include <vtkImageData.h>
 
-iAVolumeDataForDisplay::iAVolumeDataForDisplay(iAImageData* data) :
-	m_transfer(std::make_shared<iAModalityTransfer>(data->image()->GetScalarRange()))
+#include <QApplication>
+
+iAVolumeDataForDisplay::iAVolumeDataForDisplay(iAImageData* data, size_t binCount) :
+	m_transfer(std::make_shared<iAModalityTransfer>(data->image()->GetScalarRange())),
+	iADataForDisplay(data),
+	m_histogram(nullptr),
+	m_imgStatistics("Computing...")
 {
+	LOG(lvlDebug, QString("Computing statistics and histogram for %1.").arg(data->name()));
+	m_transfer->computeStatistics(data->image());
+	iAImageStatistics stats;
+	m_histogramData = iAHistogramData::create("Frequency", data->image(), binCount, &stats);
+	m_imgStatistics = QString("min=%1, max=%2, mean=%3, stddev=%4")
+		.arg(stats.minimum)
+		.arg(stats.maximum)
+		.arg(stats.mean)
+		.arg(stats.standardDeviation);
+}
+
+QString iAVolumeDataForDisplay::information() const
+{
+	return iADataForDisplay::information() + QString("Statistics: %1").arg(m_imgStatistics);
 }
 
 void iAVolumeDataForDisplay::show(iAMdiChild* child)
 {
 	Q_UNUSED(child);
-	// compute histogram, show
-}
-
-void iAVolumeDataForDisplay::close()
-{
-	// close / delete open widgets
+	// show histogram
+	QString histoName = "Histogram " + dataSet()->name();
+	m_histogram = new iAChartWithFunctionsWidget(child, histoName, "Frequency");
+	// TODO: histogram connections...?
+	auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(
+		m_histogramData,
+		QApplication::palette().color(QPalette::Shadow));
+	m_histogram->addPlot(histogramPlot);
+	m_histogram->setTransferFunction(m_transfer.get());
+	m_histogram->update();
+	// TODO: better unique widget name!
+	static int histoNum = -1;
+	m_histogramDW = std::make_shared<iADockWidgetWrapper>(m_histogram, histoName, QString("Histogram%1").arg(++histoNum));
+	child->splitDockWidget(child->renderDockWidget(), m_histogramDW.get(), Qt::Vertical);
 }
 
 iAModalityTransfer* iAVolumeDataForDisplay::transfer()

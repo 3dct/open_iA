@@ -198,7 +198,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 			m_dataRenderers[idx]->setVisible(false);
 			updateRenderer();
 			m_dataRenderers.erase(idx);
-			m_dataForDisplay[idx]->close();
 			m_dataForDisplay.erase(idx);
 			m_dataSets.erase(m_dataSets.begin() + idx);
 			updateDataSetInfo();
@@ -533,7 +532,7 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 	runAsync([this, dataSet, dataSetIdx]()
 		{
 			assert(m_dataForDisplay.size() == dataSetIdx);
-			m_dataForDisplay[dataSetIdx] = createDataForDisplay(dataSet.get());
+			m_dataForDisplay[dataSetIdx] = createDataForDisplay(dataSet.get(), m_preferences.HistogramBins);
 		},
 		[this, dataSet, dataSetIdx]()
 		{
@@ -1960,7 +1959,7 @@ void MdiChild::updateDataSetInfo()
 	m_dataSetInfo->clear();
 	for (int i = 0; i < m_dataSets.size(); ++i)
 	{
-		auto lines = m_dataSets[i]->info().split("\n", Qt::SkipEmptyParts);
+		auto lines = m_dataForDisplay[i]->information().split("\n", Qt::SkipEmptyParts);
 		std::for_each(lines.begin(), lines.end(), [](QString& s) { s = "    " + s; });
 		m_dataSetInfo->addItem(m_dataSets[i]->name() + "\n" + lines.join("\n"));
 	}
