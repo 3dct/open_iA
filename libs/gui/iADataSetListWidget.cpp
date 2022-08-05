@@ -66,9 +66,11 @@ iADataSetListWidget::iADataSetListWidget()
 	buttons->layout()->setSpacing(4);
 	auto editButton = new QToolButton();
 	editButton->setObjectName("tbEdit");
+	editButton->setToolTip(tr("Edit dataset and display properties"));
 	buttons->layout()->addWidget(editButton);
 	auto minusButton = new QToolButton();
 	minusButton->setObjectName("tbRemove");
+	minusButton->setToolTip(tr("Remove dataset from display, unload from memory"));
 	buttons->layout()->addWidget(minusButton);
 	auto spacer = new QSpacerItem(10, 0, QSizePolicy::Fixed, QSizePolicy::Expanding);
 	buttons->layout()->addItem(spacer);
