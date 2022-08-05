@@ -233,8 +233,7 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name,
 	result->updateYBounds();
 	if (info)
 	{
-		*info = iAImageInfo(accumulate->GetVoxelCount(),
-			*accumulate->GetMin(), *accumulate->GetMax(),
+		*info = iAImageInfo(*accumulate->GetMin(), *accumulate->GetMax(),
 			*accumulate->GetMean(), *accumulate->GetStandardDeviation());
 	}
 	return result;

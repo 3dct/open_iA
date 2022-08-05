@@ -26,11 +26,11 @@
 class iAImageInfo
 {
 public:
+	// TODO: check why m_computing is not set to true in first constructor?
 	iAImageInfo():
-		m_voxelCount(0), m_min(0), m_max(0), m_mean(0), m_stdDev(0), m_computing(false) {}
-	iAImageInfo(size_t voxelCount, double min, double max, double mean, double stdDev) :
-		m_voxelCount(voxelCount), m_min(min), m_max(max), m_mean(mean), m_stdDev(stdDev), m_computing(false) {}
-	size_t voxelCount() const { return m_voxelCount; }
+		m_min(0), m_max(0), m_mean(0), m_stdDev(0), m_computing(false) {}
+	iAImageInfo(double min, double max, double mean, double stdDev) :
+		m_min(min), m_max(max), m_mean(mean), m_stdDev(stdDev), m_computing(false) {}
 	double min() const  { return m_min; }
 	double max() const  { return m_max; }
 	double mean() const { return m_mean; }
@@ -38,7 +38,6 @@ public:
 	bool isComputing() const { return m_computing; }
 	void setComputing() const { m_computing = true; }
 private:
-	size_t m_voxelCount;
 	double m_min, m_max, m_mean, m_stdDev;
 	mutable bool m_computing; // TODO: think of way around mutable!
 };
