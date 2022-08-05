@@ -1,6 +1,7 @@
 #include "iAVolumeDataForDisplay.h"
 
 #include "iADataSet.h"
+#include "iAProgress.h"
 
 #include "iADockWidgetWrapper.h"
 
@@ -16,18 +17,21 @@
 
 #include <QApplication>
 
-iAVolumeDataForDisplay::iAVolumeDataForDisplay(iAImageData* data, size_t binCount) :
+iAVolumeDataForDisplay::iAVolumeDataForDisplay(iAImageData* data, iAProgress* p, size_t binCount) :
 	m_transfer(std::make_shared<iAModalityTransfer>(data->image()->GetScalarRange())),
 	iADataForDisplay(data),
 	m_histogram(nullptr),
 	m_imgStatistics("Computing...")
 {
-	LOG(lvlDebug, QString("Computing statistics and histogram for %1.").arg(data->name()));
+	p->setStatus(QString("%1: Computing scalar range").arg(data->name()));
 	m_transfer->computeRange(data->image());
 	iAImageStatistics stats;
 	// TODO: handle multiple components; but for that, we need to extract the vtkImageAccumulate part,
 	//       as it computes the histograms for all components at once!
+	p->emitProgress(50);
+	p->setStatus(QString("%1: Computing histogram and statistics.").arg(data->name()));
 	m_histogramData = iAHistogramData::create("Frequency", data->image(), binCount, &stats);
+	p->emitProgress(100);
 	m_imgStatistics = QString("min=%1, max=%2, mean=%3, stddev=%4")
 		.arg(stats.minimum)
 		.arg(stats.maximum)

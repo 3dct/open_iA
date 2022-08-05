@@ -528,10 +528,12 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 {
 	auto dataSetIdx = m_dataSets.size();
 	m_dataSets.push_back(dataSet);
-	runAsync([this, dataSet, dataSetIdx]()
+
+	auto p = std::make_shared<iAProgress>();
+	auto fw = runAsync([this, dataSet, dataSetIdx, p]()
 		{
 			assert(m_dataForDisplay.size() == dataSetIdx);
-			m_dataForDisplay[dataSetIdx] = createDataForDisplay(dataSet.get(), m_preferences.HistogramBins);
+			m_dataForDisplay[dataSetIdx] = createDataForDisplay(dataSet.get(), p.get(), m_preferences.HistogramBins);
 		},
 		[this, dataSet, dataSetIdx]()
 		{
@@ -550,6 +552,7 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 			updateDataSetInfo();
 		},
 		this);
+	iAJobListView::get()->addJob(QString("Computing display data for %1").arg(dataSet->name()), p.get(), fw);
 }
 
 bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyData* poly)	// = opening new window

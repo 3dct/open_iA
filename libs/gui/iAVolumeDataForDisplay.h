@@ -11,11 +11,12 @@ class iADockWidgetWrapper;
 class iAImageData;
 class iAHistogramData;
 class iAModalityTransfer;
+class iAProgress;
 
 class iAgui_API iAVolumeDataForDisplay : public iADataForDisplay
 {
 public:
-	iAVolumeDataForDisplay(iAImageData* data, size_t binCount);
+	iAVolumeDataForDisplay(iAImageData* data, iAProgress* p, size_t binCount);
 	void show(iAMdiChild* child) override;
 	QString information() const override;
 	iAModalityTransfer* transfer();

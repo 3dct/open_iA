@@ -28,6 +28,7 @@
 
 class iADataSet;
 class iAMdiChild;
+class iAProgress;
 
 //! Base class for data linked to a dataset required for displaying it,
 //! in addition to the dataset itself (e.g., the histogram for a volume dataset)
@@ -48,4 +49,4 @@ private:
 	iADataSet* m_dataSet;
 };
 
-std::shared_ptr<iADataForDisplay> createDataForDisplay(iADataSet* dataSet, int numBins);
+std::shared_ptr<iADataForDisplay> createDataForDisplay(iADataSet* dataSet, iAProgress* p, int numBins);
