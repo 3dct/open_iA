@@ -560,6 +560,7 @@ void MainWindow::openNew()
 		if (d->data)
 		{
 			iAMdiChild* targetChild = child ? child : createMdiChild(false);
+			setCurrentFile(d->data->fileName());
 			targetChild->addDataSet(d->data);
 			if (!child)
 			{
@@ -2330,6 +2331,7 @@ void MainWindow::writeSettings()
 	settings.setValue("OpenWithDataTypeConversion/owdtczsize", m_owdtczsize);
 }
 
+// TODO: check iAMainWindow:: vs. iAMdiChild:: setCurrentFile
 void MainWindow::setCurrentFile(const QString &fileName)
 {
 	if (fileName.isEmpty())
