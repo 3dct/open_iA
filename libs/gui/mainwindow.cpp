@@ -535,11 +535,9 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 			return;
 		}
 	}
-	statusBar()->showMessage(tr("Loading data..."), 5000);
-	QString t;
-	t = fileName;
-	t.truncate(t.lastIndexOf('/'));
-	m_path = t;
+	QString filePath(fileName);
+	filePath.truncate(filePath.lastIndexOf('/'));
+	m_path = filePath;
 	auto d = std::make_shared<iALoadedData>();
 	auto p = std::make_shared<iAProgress>();
 	auto future = runAsync([d, p, fileName, io, paramValues]()
