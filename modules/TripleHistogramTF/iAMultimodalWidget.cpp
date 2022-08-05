@@ -503,7 +503,7 @@ void iAMultimodalWidget::updateModalities()
 		{
 			m_modalitiesActive[i]->computeImageStatistics();
 			auto histData = iAHistogramData::create(
-				"Frequency", m_modalitiesActive[i]->image(), newHistBins, &m_modalitiesActive[i]->info());
+				"Frequency", m_modalitiesActive[i]->image(), newHistBins);
 			m_modalitiesActive[i]->setHistogramData(histData);
 		}
 		m_modalitiesHistogramAvailable[i] = true;
