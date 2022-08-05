@@ -6,6 +6,7 @@
 
 #include "iAModalityTransfer.h"
 #include "iAChartWithFunctionsWidget.h"
+#include "iAChartFunctionTransfer.h"
 #include "iAHistogramData.h"
 #include "iAPlotTypes.h"
 
@@ -45,7 +46,10 @@ void iAVolumeDataForDisplay::show(iAMdiChild* child)
 	// show histogram
 	QString histoName = "Histogram " + dataSet()->name();
 	m_histogram = new iAChartWithFunctionsWidget(child, histoName, "Frequency");
-	// TODO: histogram connections...?
+
+	QObject::connect(m_histogram, &iAChartWithFunctionsWidget::updateViews, child, &iAMdiChild::updateViews);
+	QObject::connect(dynamic_cast<iAChartTransferFunction*>(m_histogram->functions()[0]), &iAChartTransferFunction::changed, child, &iAMdiChild::changeTransferFunction);
+
 	auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(
 		m_histogramData,
 		QApplication::palette().color(QPalette::Shadow));
