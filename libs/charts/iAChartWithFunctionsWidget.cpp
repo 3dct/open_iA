@@ -62,6 +62,8 @@ iAChartWithFunctionsWidget::iAChartWithFunctionsWidget(QWidget *parent,
 	m_TFTable(nullptr)
 {
 	iAChartTransferFunction *transferFunction = new iAChartTransferFunction(this, QColor(0, 0, 0, 255));
+	connect(transferFunction, &iAChartTransferFunction::changed,
+		this, &iAChartWithFunctionsWidget::transferFunctionChanged);
 	m_functions.push_back(transferFunction);
 }
 
@@ -212,7 +214,6 @@ void iAChartWithFunctionsWidget::mouseReleaseEvent(QMouseEvent *event)
 		}
 		update();
 		emit updateTFTable();
-		emit updateViews();
 	}
 	m_mode = NO_MODE;
 	func->mouseReleaseEvent(event);
@@ -438,7 +439,6 @@ int iAChartWithFunctionsWidget::deletePoint()
 	func->removePoint(selectedPoint);
 	update();
 	emit updateTFTable();
-	emit updateViews();
 
 	return selectedPoint;
 }
@@ -463,7 +463,6 @@ void iAChartWithFunctionsWidget::changeColor(QMouseEvent *event)
 
 	update();
 	emit updateTFTable();
-	emit updateViews();
 }
 
 void iAChartWithFunctionsWidget::resetTrf()
@@ -474,7 +473,6 @@ void iAChartWithFunctionsWidget::resetTrf()
 	func->reset();
 	update();
 	emit updateTFTable();
-	emit updateViews();
 }
 
 void iAChartWithFunctionsWidget::newTransferFunction()
@@ -483,7 +481,6 @@ void iAChartWithFunctionsWidget::newTransferFunction()
 	emit noPointSelected();
 	emit updateTFTable();
 	dynamic_cast<iAChartTransferFunction*>(m_functions[0])->triggerOnChange();
-	emit updateViews();
 }
 
 void iAChartWithFunctionsWidget::loadTransferFunction()
@@ -580,7 +577,6 @@ void iAChartWithFunctionsWidget::loadFunctions()
 		return;
 	}
 	emit noPointSelected();
-	emit updateViews();
 	update();
 }
 
@@ -754,12 +750,14 @@ void iAChartWithFunctionsWidget::showTFTable()
 		iAChartFunction* func = m_functions[0];
 
 		m_TFTable = new iATFTableDlg( this, func );
-		m_TFTable->setWindowTitle( "Transfer Function Table View" );
+		m_TFTable->setWindowTitle("Transfer Function Table View");
 		m_TFTable->setWindowFlags( Qt::Dialog |Qt::WindowMinimizeButtonHint |Qt::WindowCloseButtonHint );
 		m_TFTable->setAttribute( Qt::WA_DeleteOnClose, true);
 		m_TFTable->show();
 
 		connect(m_TFTable, &iATFTableDlg::destroyed, this, &iAChartWithFunctionsWidget::tfTableIsFinished);
+		connect(m_TFTable, &iATFTableDlg::transferFunctionChanged, this, [this] { update(); });
+		connect(m_TFTable, &iATFTableDlg::transferFunctionChanged, this, &iAChartWithFunctionsWidget::transferFunctionChanged);
 		connect(this, &iAChartWithFunctionsWidget::updateTFTable, m_TFTable, &iATFTableDlg::updateTable);
 	}
 }

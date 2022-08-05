@@ -101,15 +101,12 @@ protected:
 	bool m_showFunctions;
 
 signals:
-	// TODO: this "knowledge" of when some other views should be updated should probably be somewhere else (mdichild?)
-	// also, make it more clear when iAChartWithFunctionsWidget::updateViews and iAChartTransferFunction::changed
-	//    are emitted, what it means, and what should be done as result of it
-	void updateViews();
 	void pointSelected();
 	void noPointSelected();
 	void endPointSelected();
 	void applyTFForAll();
 	void updateTFTable();
+	void transferFunctionChanged();
 
 public slots:
 	int deletePoint();

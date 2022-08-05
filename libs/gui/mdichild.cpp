@@ -349,7 +349,6 @@ void MdiChild::connectSignalsToSlots()
 		});
 	}
 
-	connect(m_histogram, &iAChartWithFunctionsWidget::updateViews, this, &MdiChild::updateViews);
 	connect(m_histogram, &iAChartWithFunctionsWidget::pointSelected, this, &MdiChild::pointSelected);
 	connect(m_histogram, &iAChartWithFunctionsWidget::noPointSelected, this, &MdiChild::noPointSelected);
 	connect(m_histogram, &iAChartWithFunctionsWidget::endPointSelected, this, &MdiChild::endPointSelected);
@@ -474,6 +473,7 @@ void MdiChild::changeTransferFunction()
 		m_slicer[s]->updateChannelMappers();
 		m_slicer[s]->updateMagicLensColors();
 	}
+	updateViews();
 	emit transferFunctionChanged();
 }
 

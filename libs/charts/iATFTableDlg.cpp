@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iATFTableDlg.h"
 
-#include "iAChartWithFunctionsWidget.h"
 #include "iAChartFunctionTransfer.h"
 
 #include <vtkColorTransferFunction.h>
@@ -55,11 +54,10 @@ class iAColorColumnDelegate : public QItemDelegate
 };
 
 
-iATFTableDlg::iATFTableDlg(iAChartWithFunctionsWidget* parent, iAChartFunction* func) :
+iATFTableDlg::iATFTableDlg(QWidget* parent, iAChartFunction* func) :
 	QDialog(parent),
 	m_tf(dynamic_cast<iAChartTransferFunction*>(func)->tf()),
-	m_newPointColor(Qt::gray),
-	m_parent(parent)
+	m_newPointColor(Qt::gray)
 {
 	setupUi(this);
 	m_tf->opacityTF()->GetRange(m_xRange);
@@ -198,7 +196,7 @@ void iATFTableDlg::updateHistogram()
 		m_tf->opacityTF()->AddPoint(x, y);
 		m_tf->colorTF()->AddRGBPoint(x, c.redF(), c.greenF(), c.blueF());
 	}
-	m_parent->update();
+	emit transferFunctionChanged();
 }
 
 void iATFTableDlg::itemClicked(QTableWidgetItem* item)

@@ -541,7 +541,7 @@ void iAMeanObject::modifyMeanObjectTF()
 	//iAChartWithFunctionsWidget* histogram = m_activeChild->histogram();
 	auto histogram = new iAChartWithFunctionsWidget(m_motfView, "Probability", "Frequency");
 	histogram->setTransferFunction(m_MOData->moHistogramList[moIndex]);
-	connect(histogram, &iAChartWithFunctionsWidget::updateViews, this,
+	connect(histogram, &iAChartWithFunctionsWidget::transferFunctionChanged, this,
 		[this] { m_meanObjectWidget->renderWindow()->Render(); });
 	m_motfView->setLayout(new QHBoxLayout);
 	m_motfView->layout()->addWidget(histogram);

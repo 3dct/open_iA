@@ -23,7 +23,6 @@
 #include "ui_TFTable.h"
 
 class iAChartFunction;
-class iAChartWithFunctionsWidget;
 class iATransferFunction;
 
 //! Dialog for editing the precise values of a transfer function.
@@ -32,7 +31,7 @@ class iATFTableDlg : public QDialog, public Ui_TFTableWidget
 	Q_OBJECT
 
 public:
-	iATFTableDlg(iAChartWithFunctionsWidget* parent, iAChartFunction* func);
+	iATFTableDlg(QWidget* parent, iAChartFunction* func);
 
 public slots:
 	void changeColor();
@@ -43,6 +42,9 @@ public slots:
 	void cellValueChanged(int, int);
 	void updateTable();
 
+signals:
+	void transferFunctionChanged();
+
 private:
 	bool isValueXValid(double xVal, int row = -1);
 
@@ -50,5 +52,4 @@ private:
 	QColor m_newPointColor;
 	double m_xRange[2];
 	double m_oldItemValue;
-	iAChartWithFunctionsWidget* m_parent;
 };
