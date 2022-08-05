@@ -121,7 +121,7 @@ public:
 	virtual void loadLayout(QString const& layout) = 0;
 	
 	//! whether the current qss theme is bright mode (true) or dark mode (false)
-	virtual bool brightMode() const = 0;
+	//virtual bool brightMode() const = 0;
 
 
 	// Settings:
