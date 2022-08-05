@@ -81,6 +81,8 @@ public:
 	void loadFile(QString fileName, bool isStack) override;
 	void loadFiles(QStringList fileNames);
 
+	void loadFileNew(QString const& fileName, bool newWindow);
+
 	void saveCamera(iAXmlSettings & xml);
 	bool loadCamera(iAXmlSettings & xml);
 	void saveSliceViews(iAXmlSettings & xml);
@@ -149,7 +151,6 @@ private slots:
 	void quitTimerSlot();
 	void hideSplashSlot();
 	void open();
-	void openNew();
 	void openRaw();
 	void openImageStack();
 	void openVolumeStack();

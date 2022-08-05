@@ -369,9 +369,22 @@ void MainWindow::openRecentFile()
 	{
 		return;
 	}
-
 	QString fileName = action->data().toString();
-	loadFile(fileName);
+	bool loadInNewWindow = true;
+	if (activeMdiChild())
+	{
+		auto result = QMessageBox::question(
+			this, "", "Load data into the active window?", QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+		if (result == QMessageBox::Cancel)
+		{
+			return;
+		}
+		if (result == QMessageBox::Yes)
+		{
+			loadInNewWindow = false;
+		}
+	}
+	loadFileNew(fileName, loadInNewWindow);
 }
 
 void MainWindow::loadFile(QString const & fileName)
@@ -502,23 +515,9 @@ bool askForParameters(MainWindow* mainWnd, iAAttributes const& parameters, QMap<
 	return true;
 }
 
-void MainWindow::openNew()
+void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 {
-	iAMdiChild* child = activeMdiChild();
-	if (child)
-	{
-		auto result = QMessageBox::question(
-			this, "", "Load data into the active window?", QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-		if (result == QMessageBox::Cancel)
-		{
-			return;
-		}
-		if (result == QMessageBox::No)
-		{
-			child = nullptr;
-		}
-	}
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open Files (new)"), m_path, iAFileTypeRegistry::registeredFileTypes());
+	auto child = newWindow ? nullptr : activeMdiChild();
 	if (fileName.isEmpty())
 	{
 		return;
@@ -1963,7 +1962,11 @@ void MainWindow::connectSignalsToSlots()
 {
 	// "File menu entries:
 	connect(m_ui->actionOpen, &QAction::triggered, this, &MainWindow::open);
-	connect(m_ui->actionOpenNew, &QAction::triggered, this, &MainWindow::openNew);
+	auto getOpenFileName = [this]() -> QString {
+		return QFileDialog::getOpenFileName(this, tr("Open Files (new)"), m_path, iAFileTypeRegistry::registeredFileTypes());
+	};
+	connect(m_ui->actionOpenNew, &QAction::triggered, this, [this, getOpenFileName] { loadFileNew(getOpenFileName(), false); });
+	connect(m_ui->actionOpenInNewWindow, &QAction::triggered, this, [this, getOpenFileName] { loadFileNew(getOpenFileName(), true); });
 	connect(m_ui->actionOpenRaw, &QAction::triggered, this, &MainWindow::openRaw);
 	connect(m_ui->actionOpenImageStack, &QAction::triggered, this, &MainWindow::openImageStack);
 	connect(m_ui->actionOpenVolumeStack, &QAction::triggered, this, &MainWindow::openVolumeStack);

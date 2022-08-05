@@ -73,6 +73,7 @@
     </property>
     <addaction name="actionOpen"/>
     <addaction name="actionOpenNew"/>
+    <addaction name="actionOpenInNewWindow"/>
     <addaction name="actionOpenRaw"/>
     <addaction name="actionOpenImageStack"/>
     <addaction name="actionOpenVolumeStack"/>
@@ -382,9 +383,6 @@
    </property>
    <property name="toolTip">
     <string>Open an existing file</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+O</string>
    </property>
   </action>
   <action name="actionSave">
@@ -1159,6 +1157,17 @@
   <action name="actionOpenNew">
    <property name="text">
     <string>Open (new) ...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionOpenInNewWindow">
+   <property name="text">
+    <string>Open in new window...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+O</string>
    </property>
   </action>
  </widget>
