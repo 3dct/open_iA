@@ -44,7 +44,7 @@ public:
 	//! Get information to display about the dataset
 	virtual QString information() const;
 protected:
-	iADataSet* const dataSet();
+	iADataSet* dataSet();
 private:
 	iADataSet* m_dataSet;
 };

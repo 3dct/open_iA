@@ -42,7 +42,7 @@ QString iADataForDisplay::information() const
 	return m_dataSet->info();
 }
 
-iADataSet* const iADataForDisplay::dataSet()
+iADataSet* iADataForDisplay::dataSet()
 {
 	return m_dataSet;
 }

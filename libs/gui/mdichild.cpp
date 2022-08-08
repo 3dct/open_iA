@@ -132,9 +132,9 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_ioThread(nullptr),
 	m_histogram(new iAChartWithFunctionsWidget(nullptr, " Histogram", "Frequency")),
 	m_profile(nullptr),
+	m_dataSetInfo(new QListWidget(this)),
 	m_dwHistogram(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
 	m_dwProfile(nullptr),
-	m_dataSetInfo(new QListWidget(this)),
 	m_dwInfo(new iADockWidgetWrapper(m_dataSetInfo, "Dataset Info", "DataInfo")),
 	m_dataSetListWidget(new iADataSetListWidget()),
 	m_dwDatasets(new iADockWidgetWrapper(m_dataSetListWidget, "Datasets", "DataSets")),
@@ -205,7 +205,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	connect(m_dataSetListWidget, &iADataSetListWidget::editDataSet, this,
 		[this](int idx)
 		{
-			if (idx >= m_dataRenderers.size())
+			if (idx >= static_cast<int>(m_dataRenderers.size()))
 			{
 				LOG(lvlWarn, QString("Invalid dataset index %1!").arg(idx));
 				return;
@@ -570,7 +570,7 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 				}
 				updatePositionMarkerSize();
 				iAAABB sceneBounds = m_dataRenderers[0]->bounds();
-				for (int d = 1; d < m_dataRenderers.size(); ++d)
+				for (size_t d = 1; d < m_dataRenderers.size(); ++d)
 				{
 					sceneBounds.merge(m_dataRenderers[d]->bounds());
 				}
@@ -1584,7 +1584,7 @@ void MdiChild::updatePositionMarkerSize()
 {
 	const double MinSpacing = 0.00000001;
 	std::array<double, 3> maxSpacing{ MinSpacing, MinSpacing, MinSpacing };
-	for (int d = 0; d < m_dataSets.size(); ++d)
+	for (size_t d = 0; d < m_dataSets.size(); ++d)
 	{
 		auto unitDist = m_dataSets[d]->unitDistance();
 		for (int c = 0; c < 3; ++c)
@@ -2000,7 +2000,7 @@ bool MdiChild::initView(QString const& title)
 void MdiChild::updateDataSetInfo()
 {   // TODO: optimize - don't fully recreate each time, just do necessary adjustments?
 	m_dataSetInfo->clear();
-	for (int i = 0; i < m_dataSets.size(); ++i)
+	for (size_t i = 0; i < m_dataSets.size(); ++i)
 	{
 		auto lines = m_dataForDisplay[i]->information().split("\n", Qt::SkipEmptyParts);
 		std::for_each(lines.begin(), lines.end(), [](QString& s) { s = "    " + s; });

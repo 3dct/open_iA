@@ -29,7 +29,6 @@
 #include <QFlags>
 #include <QString>
 
-class iADataSet;
 class iAProgress;
 
 class vtkPolyData;
@@ -39,6 +38,8 @@ class vtkImageData;
 class iAbase_API iADataSet
 {
 public:
+	//! called when the dataset is removed/unloaded and its related resources should be released
+	virtual ~iADataSet();
 	//iAVec3d bounds();
 	//virtual double const* bounds() const = 0;
 	//virtual QString information() const =0;

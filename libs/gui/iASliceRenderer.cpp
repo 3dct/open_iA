@@ -27,6 +27,9 @@
 #include "iASlicerImpl.h"
 #include "iAVolumeDataForDisplay.h"
 
+iASliceRenderer::~iASliceRenderer()
+{}
+
 void iASliceRenderer::setVisible(bool visible)
 {
 	Q_UNUSED(visible);

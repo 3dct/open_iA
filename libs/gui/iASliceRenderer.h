@@ -33,6 +33,9 @@ class iASlicerImpl;
 class iAgui_API iASliceRenderer
 {
 public:
+	//! called when the slice renderer is removed and its resources should be released
+	virtual ~iASliceRenderer();
+	//! called when the renderer is set (in)visible in slicer
 	virtual void setVisible(bool visible);
 };
 

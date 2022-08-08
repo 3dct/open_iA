@@ -38,8 +38,8 @@
 #include <QApplication>
 
 iAVolumeDataForDisplay::iAVolumeDataForDisplay(iAImageData* data, iAProgress* p, size_t binCount) :
-	m_transfer(std::make_shared<iAModalityTransfer>(data->image()->GetScalarRange())),
 	iADataForDisplay(data),
+	m_transfer(std::make_shared<iAModalityTransfer>(data->image()->GetScalarRange())),
 	m_histogram(nullptr),
 	m_imgStatistics("Computing...")
 {

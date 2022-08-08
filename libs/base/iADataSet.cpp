@@ -41,6 +41,9 @@ iADataSet::iADataSet(QString const& name, QString const& fileName) :
 {
 }
 
+iADataSet::~iADataSet()
+{}
+
 QString const& iADataSet::name() const
 {
 	return m_name;

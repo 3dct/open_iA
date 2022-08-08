@@ -123,6 +123,9 @@ iADataSetRenderer::iADataSetRenderer(iARenderer* renderer):
 	addAttribute(Pickable, iAValueType::Boolean, true);
 }
 
+iADataSetRenderer::~iADataSetRenderer()
+{}
+
 void iADataSetRenderer::setAttributes(QMap<QString, QVariant> const & values)
 {
 	m_attribValues = values;
