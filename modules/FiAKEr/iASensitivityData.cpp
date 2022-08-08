@@ -533,10 +533,12 @@ void iASensitivityData::compute(iAProgress* progress)
 		{
 			sensitivityFiberCount[i][paramIdx].resize(paramSetValues.size());
 		}
+		/*
 		int numAllLeft = 0,
 			numAllRight = 0,
 			numAllLeftRight = 0,
 			numAllTotal = 0;
+		*/
 		for (int paramSetIdx = 0; paramSetIdx < paramSetValues.size(); ++paramSetIdx)
 		{
 			int resultIdxGroupStart = m_starGroupSize * paramSetIdx;
@@ -564,7 +566,7 @@ void iASensitivityData::compute(iAProgress* progress)
 					m_data->result[resultIdxParamStart].fiberCount);
 				//LOG(lvlDebug, QString("        Left var available: %1").arg(leftVar));
 				++numLeftRight;
-				++numAllLeft;
+				//++numAllLeft;
 			}
 
 			int k = 1;
@@ -582,7 +584,7 @@ void iASensitivityData::compute(iAProgress* progress)
 					m_data->result[firstPosStepIdx].fiberCount);
 				//LOG(lvlDebug, QString("        Right var available: %1").arg(rightVar));
 				++numLeftRight;
-				++numAllRight;
+				//++numAllRight;
 			}
 			double sumTotal = 0;
 			bool wasSmaller = true;
@@ -599,8 +601,8 @@ void iASensitivityData::compute(iAProgress* progress)
 					m_data->result[resultIdxParamStart + i].fiberCount);
 				sumTotal += difference;
 			}
-			numAllLeftRight += numLeftRight;
-			numAllTotal += m_numOfSTARSteps;
+			//numAllLeftRight += numLeftRight;
+			//numAllTotal += m_numOfSTARSteps;
 			double meanLeftRightVar = (leftVar + rightVar) / numLeftRight;
 			double meanTotal = sumTotal / m_numOfSTARSteps;
 			//LOG(lvlDebug, QString("        (left+right)/(numLeftRight=%1) = %2").arg(numLeftRight).arg(meanLeftRightVar));
@@ -978,7 +980,7 @@ void iASensitivityData::compute(iAProgress* progress)
 			{
 				sensDissimField[m][a][paramIdx].resize(paramSetValues.size());
 			}
-			int numAllLeft = 0, numAllRight = 0, numAllLeftRight = 0, numAllTotal = 0;
+			int numAllLeft = 0, numAllRight = 0;//, numAllLeftRight = 0, numAllTotal = 0;
 			for (int paramSetIdx = 0; paramSetIdx < paramSetValues.size(); ++paramSetIdx)
 			{
 				int resultIdxGroupStart = m_starGroupSize * paramSetIdx;
@@ -1041,8 +1043,8 @@ void iASensitivityData::compute(iAProgress* progress)
 					//std::abs(static_cast<double>(m_data->result[compareIdx].fiberCount) -	m_data->result[resultIdxParamStart + i].fiberCount);
 					sumTotal += difference;
 				}
-				numAllLeftRight += numLeftRight;
-				numAllTotal += m_numOfSTARSteps;
+				//numAllLeftRight += numLeftRight;
+				//numAllTotal += m_numOfSTARSteps;
 				double meanLeftRightVar = (leftVar + rightVar) / numLeftRight;
 				double meanTotal = sumTotal / m_numOfSTARSteps;
 				//LOG(lvlDebug, QString("        (left+right)/(numLeftRight=%1) = %2").arg(numLeftRight).arg(meanLeftRightVar));
