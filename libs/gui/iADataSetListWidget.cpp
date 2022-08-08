@@ -32,15 +32,41 @@
 
 namespace
 {
+	// possible more compact, easier to extend solution to below, separated constants & switch/case cascade in itemClicked:
+	//struct CheckableColumn
+	//{
+	//    QString name;
+	//    bool defaultCheckState;
+	//    QString iconName;
+	//    std::function<void(int, bool)> handler;
+	//};
+	// std::vector<CheckableColumn> checkableColumns = {
+	//	CheckableColumn{"3D", true, "eye", [this](int row, bool checked) {emit set3DRendererVisibility(row, checked); } },
+	//	CheckableColumn{"Box", true, "eye", [this](int row, bool checked) {emit setBoundsVisibility(row, checked); } },
+	//	CheckableColumn{"2D", true, "eye", [this](int row, bool checked) {emit setPickable(row, checked); } },
+	//	CheckableColumn{"Pick", true, "transform-move", [this](int row, bool checked) {emit set2DVisibility(row, checked); } }
+	//};
+	// but such a list of items would need to be in iADataSetListWidget (unnecessarily exposing it to users)
 	enum ViewCheckBoxes
 	{
 		ViewFirst = 1,  // index of first column with "checkbox" behavior
 		View3D = ViewFirst,
 		View3DBox = 2,
-		Pickable = 3,
+		View2D = 3,
+		Pickable = 4,
 		ViewLast = Pickable  // index of last column with "checkbox" behavior
 	};
-
+	QStringList columnNames = QStringList() << "Name"
+		// ---------------------------
+		<< "3D"
+		<< "Box"
+		<< "2D"
+		<< "Pick"
+		//			<< "Histo"
+		;
+	std::vector<bool> DefaultChecked = {
+		true, false, true, true
+	};
 	QIcon iconForCol(int col, bool checked)
 	{
 		return QIcon(QString(":/images/%1%2.svg")
@@ -52,16 +78,6 @@ namespace
 iADataSetListWidget::iADataSetListWidget()
 {
 	m_dataList = new QTableWidget;
-	QStringList columnNames;
-	columnNames << "Name"
-				<< "3D"
-				<< "Box"
-				<< "Pick"
-		//			<< "2D" (Slicers)
-		//			<< "Histo"
-		//          << "Move"  (manual 3D registration)
-		;
-
 	m_dataList->setColumnCount(columnNames.size());
 	m_dataList->setHorizontalHeaderLabels(columnNames);
 	m_dataList->verticalHeader()->hide();
@@ -135,6 +151,9 @@ iADataSetListWidget::iADataSetListWidget()
 			case Pickable:
 				emit setPickable(row, checked);
 				break;
+			case View2D:
+				emit set2DVisibility(row, checked);
+				break;
 			default:
 				LOG(lvlWarn, QString("Unhandled itemChanged(colum = %1)").arg(col));
 				break;
@@ -169,20 +188,13 @@ void iADataSetListWidget::addDataSet(iADataSet* dataset)
 	int row = m_dataList->rowCount();
 	m_dataList->insertRow(row);
 	m_dataList->setItem(row, 0, nameItem);
-
-	// TODO: avoid duplication, extract method
-	auto view3DItem = new QTableWidgetItem(iconForCol(View3D, true), "");
-	view3DItem->setData(Qt::UserRole, 1);
-	m_dataList->setItem(row, View3D, view3DItem);
-
-	auto view3DBoxItem = new QTableWidgetItem(iconForCol(View3DBox, false), "");
-	view3DBoxItem->setData(Qt::UserRole, 0);
-	m_dataList->setItem(row, View3DBox, view3DBoxItem);
-
-	auto pickableItem = new QTableWidgetItem(iconForCol(Pickable, true), "");
-	pickableItem->setData(Qt::UserRole, 1);
-	m_dataList->setItem(row, Pickable, pickableItem);
-
+	for (int i = ViewFirst; i <= ViewLast; ++i)
+	{
+		auto checked = DefaultChecked[i - ViewFirst];
+		auto viewItem = new QTableWidgetItem(iconForCol(i, checked), "");
+		viewItem->setData(Qt::UserRole, checked ? 1 : 0);
+		m_dataList->setItem(row, i, viewItem);
+	}
 	m_dataList->resizeColumnsToContents();
 }
 

@@ -63,8 +63,10 @@ class vtkTransform;
 class dlg_volumePlayer;
 class iADataForDisplay;
 class iADataSetListWidget;
-class iADataSetRenderer; class iAParametricSpline;
+class iADataSetRenderer;
+class iAParametricSpline;
 struct iAProfileProbe;
+class iASliceRenderer;
 class MainWindow;
 
 // guibase
@@ -472,7 +474,7 @@ private:
 	vtkTransform * m_axesTransform;
 	vtkTransform * m_slicerTransform;
 	iARendererImpl * m_renderer;
-	iASlicerImpl * m_slicer[3];
+	std::array<iASlicerImpl*, 3> m_slicer;
 	QSharedPointer<iAProfileProbe> m_profileProbe;
 	QScopedPointer<iAVolumeStack> m_volumeStack;
 	QList<int> m_checkedList;
@@ -524,4 +526,5 @@ private:
 	std::vector<std::shared_ptr<iADataSet>> m_dataSets;              //!< list of all currently loaded datasets
 	std::map<size_t, std::shared_ptr<iADataForDisplay>> m_dataForDisplay; //!< optional additional data required for displaying a dataset
 	std::map<size_t, std::shared_ptr<iADataSetRenderer>> m_dataRenderers; //!< 3D renderers (one per dataset in m_datasets)
+	std::map<size_t, std::shared_ptr<iASliceRenderer>> m_sliceRenderers;  //!< slice renderers (one per dataset in m_datsets)
 };

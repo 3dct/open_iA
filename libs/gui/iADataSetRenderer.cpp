@@ -486,7 +486,6 @@ public:
 
 		// volume properties:
 		
-		//iAVolumeSettings volumeSettings;	// get global default settings?
 		auto volumeSettings = iAMainWindow::get()->defaultVolumeSettings();
 		addAttribute(LinearInterpolation, iAValueType::Boolean, volumeSettings.LinearInterpolation);
 		addAttribute(Shading, iAValueType::Boolean, volumeSettings.Shading);

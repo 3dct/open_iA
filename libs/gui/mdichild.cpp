@@ -52,6 +52,7 @@
 #include <iAProjectRegistry.h>
 #include <iARenderSettings.h>
 #include <iARunAsync.h>
+#include <iASliceRenderer.h>
 #include <iAVolumeStack.h>
 #include <io/iAIO.h>
 #include <io/iAIOProvider.h>
@@ -228,6 +229,12 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 		{
 			m_dataRenderers[idx]->setBoundsVisible(visibility);
 			updateRenderer();
+		});
+	connect(m_dataSetListWidget, &iADataSetListWidget::set2DVisibility, this,
+		[this](int idx, int visibility)
+		{
+			m_sliceRenderers[idx]->setVisible(visibility);
+			updateSlicers();
 		});
 	connect(m_dataSetListWidget, &iADataSetListWidget::setPickable, this,
 		[this](int idx, int visibility)
@@ -550,10 +557,16 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 				m_dataRenderers[dataSetIdx] = dataRenderer;
 				if (dataSetIdx == 0)    // TODO: better recognition of whether first loaded dataset?
 				{
-					// ToDo: use MdiChild::resetCamera instead
+					// ToDo: use MdiChild::resetCamera instead?
 					m_renderer->renderer()->ResetCamera();
 				}
 				updateRenderer();
+			}
+			auto sliceRenderer = createSliceRenderer(dataSet.get(), m_dataForDisplay[dataSetIdx].get(), m_slicer, this);
+			if (sliceRenderer)
+			{
+				sliceRenderer->setVisible(true);
+				m_sliceRenderers[dataSetIdx] = sliceRenderer;
 			}
 			if (m_dataForDisplay[dataSetIdx])
 			{
