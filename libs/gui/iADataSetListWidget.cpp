@@ -68,6 +68,7 @@ iADataSetListWidget::iADataSetListWidget()
 	m_dataList->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_dataList->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_dataList->resizeColumnsToContents();
+	enablePicking(false);
 
 	auto buttons = new QWidget();
 	buttons->setLayout(new QVBoxLayout);
@@ -183,4 +184,9 @@ void iADataSetListWidget::addDataSet(iADataSet* dataset)
 	m_dataList->setItem(row, Pickable, pickableItem);
 
 	m_dataList->resizeColumnsToContents();
+}
+
+void iADataSetListWidget::enablePicking(bool enable)
+{
+	m_dataList->setColumnHidden(Pickable, !enable);
 }

@@ -2965,6 +2965,7 @@ void MdiChild::setInteractionMode(iAInteractionMode mode)
 {
 	m_interactionMode = mode;
 	m_mainWnd->updateInteractionModeControls(mode);
+	m_dataSetListWidget->enablePicking(mode == imRegistration);
 	m_dwModalities->setInteractionMode(mode == imRegistration);
 }
 

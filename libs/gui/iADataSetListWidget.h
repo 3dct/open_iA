@@ -43,6 +43,9 @@ signals:
 	void setBoundsVisibility(int idx, bool visibility);
 	void setPickable(int idx, bool pickable);
 
+public slots:
+	void enablePicking(bool enable);
+
 private:
 	QTableWidget* m_dataList;  //!< the actual table displaying datasets and controls for their visibility
 };
