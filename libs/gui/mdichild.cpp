@@ -179,9 +179,8 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 
 	m_parametricSpline->SetPoints(m_worldSnakePoints);
 
-	m_renderer = new iARendererImpl(this);
+	m_renderer = new iARendererImpl(this, dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_dwRenderer->vtkWidgetRC->renderWindow()));
 	m_renderer->setAxesTransform(m_axesTransform);
-	m_dwRenderer->vtkWidgetRC->SetMainRenderWindow((vtkGenericOpenGLRenderWindow*)m_renderer->renderWindow());
 
 	m_dwModalities = new dlg_modalities(m_dwRenderer->vtkWidgetRC, m_renderer->renderer(), this);
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
@@ -1668,11 +1667,7 @@ bool MdiChild::applyRendererSettings(iARenderSettings const& rs, iAVolumeSetting
 	applyVolumeSettings(false);
 	m_renderer->applySettings(renderSettings(), m_slicerVisibility);
 	m_dwRenderer->vtkWidgetRC->show();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_dwRenderer->vtkWidgetRC->GetRenderWindow()->Render();
-#else
 	m_dwRenderer->vtkWidgetRC->renderWindow()->Render();
-#endif
 	emit renderSettingsChanged();
 	return true;
 }

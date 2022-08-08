@@ -64,13 +64,13 @@ protected:
 	void LoadAndApplySettings();
 	void UpdateColorCoding();
 protected:
-	iARendererImpl * m_renderer;
 	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
 	bool m_rendInitialized;
 	vtkSmartPointer<vtkTransform> m_axesTransform;
 	vtkRenderer * m_observedRenderer;
 	unsigned long m_tag;
 	iAFast3DMagicLensWidget * m_wgt;
+	iARendererImpl* m_renderer;
 	vtkSmartPointer<vtkScalarBarWidget> scalarBarWgt;
 	vtkSmartPointer<vtkScalarBarWidget> volScalarBarWgt;
 	double m_sensitivity;

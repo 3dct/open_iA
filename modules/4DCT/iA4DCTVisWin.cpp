@@ -74,17 +74,12 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin * parent /*= 0*/ )
 	splitter->setStretchFactor( 1, 0 );
 
 	// setup renderer
-	m_renderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New( );
-	qvtkWidget->SetMainRenderWindow( m_renderWindow );
+	m_renderWindow = dynamic_cast<vtkGenericOpenGLRenderWindow*>(qvtkWidget->renderWindow());
 	m_mainRen = vtkSmartPointer<vtkRenderer>::New( );
 	m_mainRen->SetLayer( 0 );
 	m_mainRen->SetBackground( 0.5, 0.5, 0.5 );
 	m_mainRen->InteractiveOn( );
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	qvtkWidget->GetRenderWindow( )->AddRenderer( m_mainRen );
-#else
-	qvtkWidget->renderWindow()->AddRenderer(m_mainRen);
-#endif
+	m_renderWindow->AddRenderer(m_mainRen);
 	m_magicLensRen = qvtkWidget->getLensRenderer( );
 
 	m_renList = vtkSmartPointer<vtkRendererCollection>::New( );

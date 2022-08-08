@@ -71,7 +71,7 @@ class iArenderer_API iARendererImpl: public iARenderer
 	Q_OBJECT
 public:
 	//! Creates a renderer widget. In order to show something, you need to call initialize too!
-	iARendererImpl(QObject *parent = nullptr);
+	iARendererImpl(QObject *parent, vtkGenericOpenGLRenderWindow* renderWindow);
 	virtual ~iARendererImpl( );
 
 	void initialize( vtkImageData* ds, vtkPolyData* pd );
@@ -197,7 +197,8 @@ private:
 	vtkSmartPointer<vtkActor> m_selectedActor;
 	vtkSmartPointer<vtkUnstructuredGrid> m_finalSelection;
 
-	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renWin;
+	vtkGenericOpenGLRenderWindow* m_renWin;
+	vtkRenderWindowInteractor* m_interactor;  //!< convenience store for m_renWin->GetInteractor()
 	vtkSmartPointer<vtkOpenGLRenderer> m_ren, m_labelRen;
 	vtkSmartPointer<vtkCamera> m_cam;
 	vtkSmartPointer<vtkCellLocator> m_cellLocator;
@@ -221,9 +222,12 @@ private:
 	//! @}
 	int m_ext; //!< statistical extent size
 
+	//! @{ Axes direction information:
 	vtkSmartPointer<vtkAnnotatedCubeActor> m_annotatedCubeActor;
 	vtkSmartPointer<vtkAxesActor> m_axesActor;
 	vtkSmartPointer<vtkOrientationMarkerWidget> m_orientationMarkerWidget;
+	//! @}
+
 	vtkSmartPointer<vtkPlane> m_plane1, m_plane2, m_plane3;
 	vtkSmartPointer<vtkPicker> m_pointPicker;
 

@@ -57,7 +57,7 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget* parent, iAVolumeStack* volumeStack):
 	for(size_t i = 0; i < numOfVolumes; i++)
 	{
 		m_vtkWidgets[i] = new iAFuzzyVTKWidget(this);
-		m_renderers[i] = new iARendererImpl(this);
+		m_renderers[i] = new iARendererImpl(this, dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_vtkWidgets[i]->renderWindow()));
 		// TODO: VOLUME: check if this is working!
 		iASimpleTransferFunction transferFunction(
 			m_volumeStack->colorTF(i),
@@ -65,11 +65,6 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget* parent, iAVolumeStack* volumeStack):
 		);
 		m_volumeRenderer[i] = new iAVolumeRenderer(&transferFunction, m_volumeStack->volume(i));
 		m_renderers[i]->setAxesTransform(m_axesTransform);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_vtkWidgets[i]->SetRenderWindow(m_renderers[i]->renderWindow());
-#else
-		m_vtkWidgets[i]->setRenderWindow(m_renderers[i]->renderWindow());
-#endif
 		m_renderers[i]->initialize(m_volumeStack->volume(i), m_mdiChild->polyData());
 		m_volumeRenderer[i]->addTo(m_renderers[i]->renderer());
 		bool slicerVisibility[3] = { false, false, false };

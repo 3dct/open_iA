@@ -34,19 +34,13 @@
 
 dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 	dlg_elemRendererContainer(parent),
-	m_renderer( new iARendererImpl(this) ),
+	m_renderer( new iARendererImpl(this, dynamic_cast<vtkGenericOpenGLRenderWindow*>(renContainer->renderWindow()) )),
 	m_rendInitialized(false),
 	m_axesTransform( vtkSmartPointer<vtkTransform>::New() ),
 	m_indexInReferenceLib(std::numeric_limits<size_t>::max())
 {
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	renContainer->SetRenderWindow(dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_renderer->renderWindow()));
-#else
-	renContainer->setRenderWindow(dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_renderer->renderWindow()));
-#endif
 	m_renderer->setAxesTransform(m_axesTransform);
 	m_renderer->showHelpers(false);
-
 	connect(renContainer, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARendererImpl::mouseRightButtonReleasedSlot);
 	connect(renContainer, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARendererImpl::mouseLeftButtonReleasedSlot);
 }

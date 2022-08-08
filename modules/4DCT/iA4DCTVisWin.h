@@ -73,7 +73,7 @@ private:
 
 	vtkSmartPointer<vtkRenderer>			m_mainRen;	// ToDo: renderer into iAFast3DMagicLensWidget?
 	vtkSmartPointer<vtkRendererCollection>	m_renList;
-	vtkSmartPointer<vtkGenericOpenGLRenderWindow>	m_renderWindow;
+	vtkGenericOpenGLRenderWindow*	m_renderWindow;
 	vtkSmartPointer<vtkOrientationMarkerWidget>		m_orientWidget;
 	vtkRenderer *							m_magicLensRen;
 	double									m_size[3];

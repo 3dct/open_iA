@@ -180,12 +180,12 @@ void iASegm3DView::ShowWireframe( bool visible )
 
 
 iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
-	m_renderer( new iARendererImpl( parent ) ),
 	m_rendInitialized( false ),
 	m_axesTransform( vtkSmartPointer<vtkTransform>::New() ),
 	m_observedRenderer( 0 ),
 	m_tag( 0 ),
 	m_wgt( new iAFast3DMagicLensWidget ),
+	m_renderer(new iARendererImpl(parent, dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_wgt->renderWindow()) )),
 	scalarBarWgt( vtkSmartPointer<vtkScalarBarWidget>::New() ),
 	volScalarBarWgt( vtkSmartPointer<vtkScalarBarWidget>::New() ),
 	m_sensitivity( 1.0 ),
@@ -227,12 +227,6 @@ iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
 	m_wireActor->GetProperty()->SetDiffuse( 0.0 );
 	m_wireActor->GetProperty()->SetSpecular( 0.0 );
 	m_renderer->renderer()->AddActor( m_wireActor );
-
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_wgt->SetRenderWindow( (vtkGenericOpenGLRenderWindow* )m_renderer->renderWindow() );
-#else
-	m_wgt->setRenderWindow((vtkGenericOpenGLRenderWindow*)m_renderer->renderWindow());
-#endif
 	m_renderer->setAxesTransform( m_axesTransform );
 
 	QObject::connect(m_wgt, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARendererImpl::mouseRightButtonReleasedSlot);

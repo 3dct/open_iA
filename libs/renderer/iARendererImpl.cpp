@@ -229,11 +229,11 @@ void GetCellCenter(vtkUnstructuredGrid* data, const unsigned int cellId, double 
 	}
 }
 
-iARendererImpl::iARendererImpl(QObject *par): iARenderer(par),
+iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* renderWindow): iARenderer(parent),
 	m_renderObserver(nullptr),
-	m_interactor(nullptr),
 	m_imageData(nullptr),
-	m_renWin(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New()),		// TODO: move out of here?
+	m_renWin(renderWindow),
+	m_interactor(renderWindow->GetInteractor()),
 	m_ren(vtkSmartPointer<vtkOpenGLRenderer>::New()),
 	m_labelRen(vtkSmartPointer<vtkOpenGLRenderer>::New()),
 	m_cam(vtkSmartPointer<vtkCamera>::New()),

@@ -46,7 +46,6 @@ public:
 	void setLensSize( int sizeX, int sizeY );
 	vtkRenderer* getLensRenderer( );
 	void setViewMode( ViewMode mode );
-	void SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin);
 	bool isMagicLensEnabled() const;
 
 signals:
