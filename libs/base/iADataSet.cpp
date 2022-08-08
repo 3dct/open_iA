@@ -24,6 +24,8 @@
 #include <vtkImageData.h>
 #include <vtkPolyData.h>
 
+#include <array>
+
 namespace
 {
 	QString meshInfo(vtkPolyData* mesh)
@@ -49,10 +51,17 @@ QString const& iADataSet::fileName() const
 	return m_fileName;
 }
 
+std::array<double, 3> iADataSet::unitDistance() const
+{
+	return { 1.0, 1.0, 1.0 };
+}
+
 QString iADataSet::info() const
 {
 	return "";
 }
+
+// ---------- iAPolyData ----------
 
 iAPolyData::iAPolyData(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyData> mesh) :
 	iADataSet(name, fileName),
@@ -70,7 +79,18 @@ QString iAPolyData::info() const
 	return meshInfo(m_mesh);
 }
 
+std::array<double, 3> iAPolyData::unitDistance() const
+{
+	auto bounds = m_mesh->GetBounds();
+	const double Divisor = 100;
+	return {
+		(bounds[1] - bounds[0]) / Divisor,
+		(bounds[3] - bounds[2]) / Divisor,
+		(bounds[5] - bounds[4]) / Divisor
+	};
+}
 
+// ---------- iAGraphData ----------
 
 iAGraphData::iAGraphData(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyData> mesh) :
 	iADataSet(name, fileName), m_mesh(mesh)
@@ -87,7 +107,7 @@ QString iAGraphData::info() const
 	return meshInfo(m_mesh);
 }
 
-
+// ---------- iAImageData ----------
 
 iAImageData::iAImageData(QString const& name, QString const& fileName, vtkSmartPointer<vtkImageData> img):
 	iADataSet(name, fileName),
@@ -139,4 +159,10 @@ QString iAImageData::info() const
 		}
 	}
 	*/
+}
+
+std::array<double, 3> iAImageData::unitDistance() const
+{
+	auto const spc = m_img->GetSpacing();
+	return { spc[0],  spc[1], spc[2] };
 }

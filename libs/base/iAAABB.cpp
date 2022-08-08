@@ -18,29 +18,44 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAAABB.h"
 
-// TODO: re-use in FIAKER/FiberSA(/DreamCaster?)
-#include "iAbase_export.h"
-
-#include <iAVec3.h>
-
-#include <QString>
-
-#include <array>
-
-class iAbase_API iAAABB
+iAAABB::iAAABB()
 {
-public:
-	iAAABB();
-	iAAABB(double const* b);
-	void addPointToBox(iAVec3d const& pt);
-	void merge(iAAABB const& other);
-	iAVec3d const& minCorner() const;
-	iAVec3d const& maxCorner() const;
+	box[0].fill(std::numeric_limits<double>::max());
+	box[1].fill(std::numeric_limits<double>::lowest());
+}
 
-private:
-	std::array<iAVec3d, 2> box;
-};
+iAAABB::iAAABB(double const* b) : box{ iAVec3d(b[0], b[2], b[4]), iAVec3d(b[1], b[3], b[5]) }
+{
+}
 
-iAbase_API QString toStr(iAAABB const& box);
+void iAAABB::addPointToBox(iAVec3d const& pt)
+{
+	for (int i = 0; i < 3; ++i)
+	{
+		box[0][i] = std::min(box[0][i], pt[i]);
+		box[1][i] = std::max(box[1][i], pt[i]);
+	}
+}
+
+void iAAABB::merge(iAAABB const& other)
+{
+	addPointToBox(other.minCorner());
+	addPointToBox(other.maxCorner());
+}
+
+iAVec3d const& iAAABB::minCorner() const
+{
+	return box[0];
+}
+
+iAVec3d const& iAAABB::maxCorner() const
+{
+	return box[1];
+}
+
+QString toStr(iAAABB const& box)
+{
+	return QString("%1, %2; %3, %4").arg(box.minCorner().x()).arg(box.minCorner().y()).arg(box.maxCorner().x()).arg(box.maxCorner().y());
+}

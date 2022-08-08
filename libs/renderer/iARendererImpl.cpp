@@ -247,7 +247,6 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_cSource(vtkSmartPointer<vtkCubeSource>::New()),
 	m_cMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_cActor(vtkSmartPointer<vtkActor>::New()),
-	m_ext(1),
 	m_annotatedCubeActor(vtkSmartPointer<vtkAnnotatedCubeActor>::New()),
 	m_axesActor(vtkSmartPointer<vtkAxesActor>::New()),
 	m_orientationMarkerWidget(vtkSmartPointer<vtkOrientationMarkerWidget>::New()),
@@ -265,7 +264,6 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_roiCube(vtkSmartPointer<vtkCubeSource>::New()),
 	m_roiMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_roiActor(vtkSmartPointer<vtkActor>::New()),
-	m_initialized(false),
 	m_touchStartScale(1.0)
 {
 	// fill m_profileLine; cannot do it via  m_profileLine(NumOfProfileLines, iALineSegment()),
@@ -375,10 +373,10 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 
 	m_axesActor->AxisLabelsOff();
 	m_axesActor->SetShaftTypeToCylinder();
-	m_axesActor->SetTotalLength(15, 15, 15);
+	m_axesActor->SetTotalLength(1, 1, 1);
 	m_moveableAxesActor->AxisLabelsOff();
 	m_moveableAxesActor->SetShaftTypeToCylinder();
-	m_moveableAxesActor->SetTotalLength(15, 15, 15);
+	m_moveableAxesActor->SetTotalLength(1, 1, 1);
 	m_moveableAxesActor->SetPickable(false);
 	m_moveableAxesActor->SetDragable(false);
 
@@ -448,8 +446,6 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_profileLineStartPointActor->GetProperty()->SetColor(ProfileStartColor.redF(), ProfileStartColor.greenF(), ProfileStartColor.blueF());
 	m_profileLineEndPointActor->GetProperty()->SetColor(ProfileEndColor.redF(), ProfileEndColor.greenF(), ProfileEndColor.blueF());
 	setProfileHandlesOn(false);
-
-	m_initialized = true;
 }
 
 iARendererImpl::~iARendererImpl(void)
@@ -460,36 +456,10 @@ iARendererImpl::~iARendererImpl(void)
 	}
 }
 
-void iARendererImpl::initialize( vtkImageData* ds, vtkPolyData* pd)
+void iARendererImpl::initialize(vtkImageData* ds, vtkPolyData* pd)
 {
 	m_imageData = ds;
 	setPolyData(pd);
-	updatePositionMarkerExtent();
-
-	double spacing[3];
-	ds->GetSpacing(spacing);
-	iAVec3d spacingVec(spacing);
-	iAVec3d origin(m_imageData->GetOrigin());
-	int const* sizeArr = m_imageData->GetDimensions();
-	iAVec3d sizePx(sizeArr[0], sizeArr[1], sizeArr[2]);
-	iAVec3d size = (sizePx * spacingVec);
-	// for stick out size, we compute average size over all 3 dimensions; maybe use max instead?
-	double stickOutSize = (size[0] + size[1] + size[2]) * (IndicatorsLenMultiplier - 1) / 6;
-	m_stickOutBox[0] = origin - stickOutSize;
-	m_stickOutBox[1] = origin + size + stickOutSize;
-
-	vtkTransform* transform = vtkTransform::New();
-	transform->Scale(spacing[0] * 3, spacing[1] * 3, spacing[2] * 3);
-	m_axesActor->SetUserTransform(transform);
-	transform->Delete();
-
-	m_moveableAxesTransform->Scale(spacing[0] * 3, spacing[1] * 3, spacing[2] * 3);
-	m_moveableAxesActor->SetUserTransform(m_moveableAxesTransform);
-
-	m_profileLineStartPointSource->SetRadius(2 * spacing[0]);
-	m_profileLineEndPointSource->SetRadius(2 * spacing[0]);
-
-	updateSlicePlanes(m_imageData->GetSpacing());
 
 	m_polyMapper->SelectColorArray("Colors");
 	m_polyMapper->SetScalarModeToUsePointFieldData();
@@ -501,18 +471,50 @@ void iARendererImpl::initialize( vtkImageData* ds, vtkPolyData* pd)
 	emit onSetupRenderer();
 }
 
-void iARendererImpl::reInitialize( vtkImageData* ds, vtkPolyData* pd)
+void iARendererImpl::reInitialize(vtkImageData* ds, vtkPolyData* pd)
 {
 	m_imageData = ds;
 	setPolyData(pd);
-	updatePositionMarkerExtent();
 
 	m_renderObserver->ReInitialize(m_ren, m_labelRen, m_interactor, m_pointPicker,
 		m_moveableAxesTransform, ds,
-		m_plane1, m_plane2, m_plane3, m_cellLocator );
+		m_plane1, m_plane2, m_plane3, m_cellLocator);
 	m_interactor->ReInitialize();
 	emit reInitialized();
 	update();
+}
+
+void iARendererImpl::setSceneBounds(iAAABB aabb)
+{
+	iAVec3d origin(aabb.minCorner());
+	auto size = (aabb.maxCorner() - aabb.minCorner());
+	// for stick out size, we compute average size over all 3 dimensions; maybe use max instead?
+	double stickOutSize = (size[0] + size[1] + size[2]) * (IndicatorsLenMultiplier - 1) / 6;
+	m_stickOutBox[0] = origin - stickOutSize;
+	m_stickOutBox[1] = origin + size + stickOutSize;
+
+	const double IndicatorsSizeDivisor = 10; // maybe make configurable?
+	auto indicatorsSize = size / IndicatorsSizeDivisor;
+
+	m_axesActor->SetTotalLength(indicatorsSize[0], indicatorsSize[1], indicatorsSize[2]);
+	m_moveableAxesActor->SetTotalLength(indicatorsSize[0], indicatorsSize[1], indicatorsSize[2]);
+
+	m_profileLineStartPointSource->SetRadius(indicatorsSize[0]);
+	m_profileLineEndPointSource->SetRadius(indicatorsSize[0]);
+
+	iAVec3d center = origin + size / 2;
+	for (int s = 0; s < 3; ++s)
+	{
+		m_slicePlaneSource[s]->SetXLength((s == iASlicerMode::XY || s == iASlicerMode::XZ) ?
+			IndicatorsLenMultiplier * size[0] : m_unitSize[0]);
+		m_slicePlaneSource[s]->SetYLength((s == iASlicerMode::XY || s == iASlicerMode::YZ) ?
+			IndicatorsLenMultiplier * size[1] : m_unitSize[1]);
+		m_slicePlaneSource[s]->SetZLength((s == iASlicerMode::XZ || s == iASlicerMode::YZ) ?
+			IndicatorsLenMultiplier * size[2] : m_unitSize[2]);
+		m_slicePlaneSource[s]->SetCenter(center.data());
+	}
+
+	// TODO: also change camera so that full new bounding box is visible?
 }
 
 void iARendererImpl::setAreaPicker()
@@ -561,10 +563,6 @@ void iARendererImpl::setDefaultInteractor()
 
 void iARendererImpl::update()
 {
-	if (!m_initialized)
-	{
-		return;
-	}
 	if (m_polyData)
 	{
 		m_polyMapper->Update();
@@ -688,22 +686,12 @@ vtkCamera* iARendererImpl::camera()
 	return m_cam;
 }
 
-void iARendererImpl::setStatExt(int s)
+void iARendererImpl::setUnitSize(std::array<double, 3> size)
 {
-	m_ext = s;
-	updatePositionMarkerExtent();
-}
-
-void iARendererImpl::updatePositionMarkerExtent()
-{
-	if (!m_imageData)
-	{
-		return;
-	}
-	double const * spacing = m_imageData->GetSpacing();
-	m_cSource->SetXLength(m_ext * spacing[0]);
-	m_cSource->SetYLength(m_ext * spacing[1]);
-	m_cSource->SetZLength(m_ext * spacing[2]);
+	m_unitSize = size;
+	m_cSource->SetXLength(size[0]);
+	m_cSource->SetYLength(size[1]);
+	m_cSource->SetZLength(size[2]);
 }
 
 void iARendererImpl::setSlicePlaneOpacity(float opc)
@@ -872,7 +860,6 @@ void iARendererImpl::setProfileHandlesOn(bool isOn)
 	}
 	m_profileLineStartPointActor->SetVisibility(isOn);
 	m_profileLineEndPointActor->SetVisibility(isOn);
-	update();
 }
 
 void iARendererImpl::setPolyData(vtkPolyData* pd)
@@ -1028,32 +1015,3 @@ void iARendererImpl::touchScaleSlot(float relScale)
 	update();
 }
 
-void iARendererImpl::updateSlicePlanes(double const * newSpacing)
-{
-	if (!newSpacing)
-	{
-		LOG(lvlWarn, "Spacing is nullptr");
-		return;
-	}
-	double const * spc = newSpacing;
-	const int * dim = m_imageData->GetDimensions();
-	if (dim[0] == 0 || dim[1] == 0 || dim[2] == 0)
-	{
-		return;
-	}
-	double center[3];
-	for (int i = 0; i < 3; ++i)
-	{
-		center[i] = dim[i] * spc[i] / 2;
-	}
-	for (int s = 0; s < 3; ++s)
-	{
-		m_slicePlaneSource[s]->SetXLength((s == iASlicerMode::XY || s == iASlicerMode::XZ) ?
-			IndicatorsLenMultiplier * dim[0] * spc[0] : spc[0]);
-		m_slicePlaneSource[s]->SetYLength((s == iASlicerMode::XY || s == iASlicerMode::YZ) ?
-			IndicatorsLenMultiplier * dim[1] * spc[1] : spc[1]);
-		m_slicePlaneSource[s]->SetZLength((s == iASlicerMode::XZ || s == iASlicerMode::YZ) ?
-			IndicatorsLenMultiplier * dim[2] * spc[2] : spc[2]);
-		m_slicePlaneSource[s]->SetCenter(center);
-	}
-}

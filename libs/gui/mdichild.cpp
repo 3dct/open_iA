@@ -216,6 +216,19 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 				return;
 			}
 			m_dataRenderers[idx]->setAttributes(dlg.parameterValues());
+			/*
+			// TODO: reset camera in 3D renderer / slicer when the spacing of modality was changed
+			// TODO: maybe instead of reset, apply a zoom corresponding to the ratio of spacing change?
+			m_renderer->updateSlicePlanes(newSpacing);
+			m_renderer->renderer()->ResetCamera();
+			m_renderer->update();
+			for (int s = 0; s < 3; ++s)
+			{
+				set3DSlicePlanePos(s, sliceNumber(s));
+				slicer(s)->renderer()->ResetCamera();
+				slicer(s)->update();
+			}
+			*/
 		});
 	connect(m_dataSetListWidget, &iADataSetListWidget::set3DRendererVisibility, this,
 		[this](int idx, int visibility)
@@ -368,7 +381,6 @@ void MdiChild::connectSignalsToSlots()
 	//connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::updateDatasetInfo);
 	connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::updateViews);
 	connect(m_dwModalities, &dlg_modalities::modalitySelected , this, &MdiChild::showModality);
-	connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::resetCamera);
 }
 
 void MdiChild::connectThreadSignalsToChildSlots(iAAlgorithm* thread)
@@ -556,6 +568,13 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 					// ToDo: use MdiChild::resetCamera instead?
 					m_renderer->renderer()->ResetCamera();
 				}
+				updatePositionMarkerSize();
+				iAAABB sceneBounds = m_dataRenderers[0]->bounds();
+				for (int d = 1; d < m_dataRenderers.size(); ++d)
+				{
+					sceneBounds.merge(m_dataRenderers[d]->bounds());
+				}
+				m_renderer->setSceneBounds(sceneBounds);
 				updateRenderer();
 			}
 			auto sliceRenderer = createSliceRenderer(dataSet.get(), m_dataForDisplay[dataSetIdx].get(), m_slicer, this);
@@ -563,6 +582,7 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 			{
 				sliceRenderer->setVisible(true);
 				m_sliceRenderers[dataSetIdx] = sliceRenderer;
+				updateSlicers();
 			}
 			if (m_dataForDisplay[dataSetIdx])
 			{
@@ -1557,7 +1577,22 @@ void MdiChild::applyViewerPreferences()
 		m_slicer[s]->setStatisticalExtent(m_preferences.StatisticalExtent);
 	}
 	m_dwRenderer->vtkWidgetRC->setLensSize(m_preferences.MagicLensSize, m_preferences.MagicLensSize);
-	m_renderer->setStatExt(m_preferences.StatisticalExtent);
+	updatePositionMarkerSize();
+}
+
+void MdiChild::updatePositionMarkerSize()
+{
+	const double MinSpacing = 0.00000001;
+	std::array<double, 3> maxSpacing{ MinSpacing, MinSpacing, MinSpacing };
+	for (int d = 0; d < m_dataSets.size(); ++d)
+	{
+		auto unitDist = m_dataSets[d]->unitDistance();
+		for (int c = 0; c < 3; ++c)
+		{
+			maxSpacing[c] = std::max(maxSpacing[c], unitDist[c] * m_preferences.StatisticalExtent);
+		}
+	}
+	m_renderer->setUnitSize(maxSpacing);
 }
 
 void MdiChild::setRenderSettings(iARenderSettings const& rs, iAVolumeSettings const& vs)
@@ -2311,6 +2346,7 @@ void MdiChild::toggleProfileHandles(bool isChecked)
 		m_slicer[s]->setProfileHandlesOn(m_profileHandlesEnabled);
 	}
 	m_renderer->setProfileHandlesOn(m_profileHandlesEnabled);
+	updateViews();
 }
 
 bool MdiChild::profileHandlesEnabled() const
@@ -2852,26 +2888,6 @@ void MdiChild::statisticsAvailable(int modalityIdx)
 	initVolumeRenderers();
 	changeTransferFunction();
 	updateViews();
-}
-
-void MdiChild::resetCamera(bool spacingChanged, double const* newSpacing)
-{
-	if (!spacingChanged)
-	{
-		return;
-	}
-	// reset camera when the spacing of modality was changed
-	// TODO: maybe instead of reset, apply a zoom corresponding to the ratio of spacing change?
-	m_renderer->updateSlicePlanes(newSpacing);
-	m_renderer->renderer()->ResetCamera();
-	m_renderer->update();
-	for (int s = 0; s < 3; ++s)
-	{
-		set3DSlicePlanePos(s, sliceNumber(s));
-		slicer(s)->renderer()->ResetCamera();
-		slicer(s)->update();
-	}
-	emit viewsUpdated();
 }
 
 void MdiChild::initVolumeRenderers()

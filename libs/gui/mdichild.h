@@ -328,20 +328,33 @@ public:
 
 public slots:
 	void maximizeRC();
+	//! @{ @deprecated not required
 	void disableRenderWindows(int ch) override;
 	void enableRenderWindows() override;
+	//! @}
+	//! update a specific slicer (specified through slicer mode, @see iASlicerMode)
 	void updateSlicer(int index);
+	//! update all 3 axis-aligned slicer
 	void updateSlicers() override;
+	//! update 3D renderer
 	void updateRenderer() override;
+	//! update all dataset views (3D renderer + all 3 axis-aligned slicers)
 	void updateViews() override;
+
+	//! called whenever the transfer function is changed and the views using it need updating
 	void changeTransferFunction() override;
+
 	//! @deprecated use logging or global status bar (iAMainWindow::statusBar) instead
 	void addStatusMsg(QString const& txt) override;
+
+	//! @{ @deprecated will be removed soon, see addDataset instead
 	void setupView(bool active = false);
 	void setupStackView(bool active = false);
 	void setupProject(bool active = false);
-	bool updateVolumePlayerView(int updateIndex, bool isApplyForAll);
 	void removeFinishedAlgorithms();
+	//! @}
+
+	bool updateVolumePlayerView(int updateIndex, bool isApplyForAll);
 
 	//! Calls the camPosition function of iARenderer (described there in more detail).
 	//! @param camOptions All informations of the camera stored in a double array
@@ -355,6 +368,8 @@ public slots:
 	void setCamPosition(double * camOptions, bool rsParallelProjection);
 	void updateProbe(int ptIndex, double * newPos);
 	void resetLayout();
+	//! called when the user wants to display the profile handles inside the views
+	//! showing the dataset (3D renderer and slicers)
 	void toggleProfileHandles(bool isChecked);
 
 private slots:
@@ -376,7 +391,6 @@ private slots:
 	void showModality(int modIdx);
 	void saveFinished();
 	void modalityAdded(int modalityIdx);
-	void resetCamera(bool spacingChanged, double const * newSpacing);
 	void toggleFullScreen();
 	void rendererKeyPressed(int keyCode);
 	void styleChanged();
@@ -427,6 +441,7 @@ private:
 	void initModalities();
 	void initVolumeRenderers();
 	void slicerVisibilityChanged(int mode);
+	void updatePositionMarkerSize();
 
 	static const unsigned char RC = 0x01;
 	static const unsigned char XY = 0x02;

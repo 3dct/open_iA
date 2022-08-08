@@ -47,7 +47,9 @@ public:
 	QString const& name() const;
 	//! The name of the file in which this dataset is stored
 	QString const& fileName() const;
-
+	//! a sensible unit distance for this dataset (e.g. the spacing of a single voxel, for volume datasets)
+	virtual std::array<double, 3> unitDistance() const;
+	//! should deliver information about the dataset interesting to users viewing it
 	virtual QString info() const;
 
 protected:
@@ -64,6 +66,7 @@ public:
 	iAPolyData(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyData> mesh);
 	vtkSmartPointer<vtkPolyData> poly();
 	QString info() const override;
+	std::array<double, 3> unitDistance() const override;
 
 private:
 	vtkSmartPointer<vtkPolyData> m_mesh;
@@ -86,6 +89,7 @@ public:
 	iAImageData(QString const& name, QString const& fileName, vtkSmartPointer<vtkImageData> img);
 	vtkSmartPointer<vtkImageData> image();
 	QString info() const override;
+	std::array<double, 3> unitDistance() const override;
 
 private:
 	vtkSmartPointer<vtkImageData> m_img;

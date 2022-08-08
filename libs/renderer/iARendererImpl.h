@@ -25,6 +25,7 @@
 #include <iARenderer.h>
 
 #include "iAVec3.h"
+#include "iAAABB.h"
 
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkSmartPointer.h>
@@ -70,13 +71,14 @@ class iArenderer_API iARendererImpl: public iARenderer
 {
 	Q_OBJECT
 public:
-	//! Creates a renderer widget. In order to show something, you need to call initialize too!
 	iARendererImpl(QObject *parent, vtkGenericOpenGLRenderWindow* renderWindow);
 	virtual ~iARendererImpl( );
 
+	//! @{ deprecated. Look at addDataSet method in MdiChild for alternatives
 	void initialize( vtkImageData* ds, vtkPolyData* pd );
 	void reInitialize( vtkImageData* ds, vtkPolyData* pd );
 	void setPolyData( vtkPolyData* pd ) override;
+	//! @}
 
 	void setDefaultInteractor() override;
 	void disableInteractor();
@@ -85,13 +87,20 @@ public:
 	//vtkTransform* axesTransform(void) override;
 
 	void setPlaneNormals( vtkTransform *tr ) ;
-	//! set the position of the position marker to the given world coordinates
+	//! Set the position of the position marker to the given world coordinates
 	void setPositionMarkerCenter(double x, double y, double z);
+	//! Set size of a single standard "unit" across all shown datasets; used
+	//! for the size of the position marker and the width of the slice planes
+	//! unit: world coordinates
+	void setUnitSize(std::array<double, 3> size);
+
+	//! sets the bounds of the whole scene; adapts axes markers, plane indicators etc.
+	//! to be properly visible for the given bounding box
+	void setSceneBounds(iAAABB aabb);
 
 	//! Sets one of the pre-defined camera positions
 	//! @param pos descriptor of the position, @see iACameraPosition
 	void setCamPosition(int pos);
-
 	//! Sets viewup, position and focal point of a renderer from the information in a double array.
 	//! @param camOptions All informations of the camera stored in a double array
 	//! @param rsParallelProjection boolean variable to determine if parallel projection option is on.
@@ -101,9 +110,6 @@ public:
 	void camPosition ( double * camOptions );
 	void setCamera(vtkCamera* c) override;
 	vtkCamera* camera() override;
-
-	//! set size of statistical extent
-	void setStatExt(int s);
 
 	//! sets opacity of the slicing planes
 	void setSlicePlaneOpacity(float opc);
@@ -118,9 +124,6 @@ public:
 	//! @param axis index of the axis (x..0, y..1, z..2)
 	//! @param show whether to show (true) or hide (false) the given axis slice plane
 	void showSlicePlane(int axis, bool show);
-	//! Updates the position and size of the three slice planes according to the given spacing (and the dimensions of the internally stored image data)
-	//! @param newSpacing the spacing of the dataset.
-	void updateSlicePlanes(double const * newSpacing);
 
 	vtkPlane* plane1() override;
 	vtkPlane* plane2() override;
@@ -179,11 +182,6 @@ public slots:
 	void setProfileHandlesOn(bool isOn);
 
 private:
-	void initObserver();
-	void updatePositionMarkerExtent();
-	void setupCutter();
-	void setupAxes(double spacing[3]);
-	void setupRenderer();
 
 	iARenderObserver *m_renderObserver;
 	//! @{ things that are set from the outside
@@ -218,7 +216,6 @@ private:
 	vtkSmartPointer<vtkPolyDataMapper> m_cMapper;
 	vtkSmartPointer<vtkActor> m_cActor;
 	//! @}
-	int m_ext; //!< statistical extent size
 
 	//! @{ Axes direction information:
 	vtkSmartPointer<vtkAnnotatedCubeActor> m_annotatedCubeActor;
@@ -259,10 +256,9 @@ private:
 	//! bounding box for "stick-out" information (currently used for lines leading to profile points)
 	iAVec3d m_stickOutBox[2];
 
-	//! flag indicating whether renderer is initialized
-	bool m_initialized;
-
 	// for touch interaction:
 	double m_touchStartScale;   //! scale when touch started (if parallel projection used)
 	iAVec3d m_touchStartCamPos; //! camera position (for non-parallel projection)
+
+	std::array<double, 3> m_unitSize; //!< size of a single "item", e.g. the position marker; also thickness of slicing planes
 };

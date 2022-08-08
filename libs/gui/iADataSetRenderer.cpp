@@ -82,9 +82,9 @@ public:
 	void setBounds(iAAABB const& box)
 	{
 		m_cubeSource->SetBounds(
-			box.topLeft().x(), box.bottomRight().x(),
-			box.topLeft().y(), box.bottomRight().y(),
-			box.topLeft().z(), box.bottomRight().z()
+			box.minCorner().x(), box.maxCorner().x(),
+			box.minCorner().y(), box.maxCorner().y(),
+			box.minCorner().z(), box.maxCorner().z()
 		);
 	}
 	void setColor(QColor const& c)
