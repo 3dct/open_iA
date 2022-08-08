@@ -286,6 +286,7 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_renWin->AddRenderer(m_ren);
 	m_renWin->AddRenderer(m_labelRen);
 
+	// interaction mode indicator:
 	m_txtActor->SetInput("Selection mode");
 	m_txtActor->GetTextProperty()->SetFontSize(24);
 	m_txtActor->GetTextProperty()->SetColor(1.0, 0.0, 0.0);
@@ -294,77 +295,136 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_txtActor->VisibilityOff();
 	m_txtActor->SetPickable(false);
 	m_txtActor->SetDragable(false);
+
+	// slice plane display:
 	for (int s = 0; s < 3; ++s)
 	{
 		m_slicePlaneSource[s] = vtkSmartPointer<vtkCubeSource>::New();
 		//m_slicePlaneSource[s]->SetOutputPointsPrecision(10);
 		m_slicePlaneMapper[s] = vtkSmartPointer<vtkPolyDataMapper>::New();
+		m_slicePlaneMapper[s]->SetInputConnection(m_slicePlaneSource[s]->GetOutputPort());
+		m_slicePlaneMapper[s]->Update();
 		m_slicePlaneActor[s] = vtkSmartPointer<vtkActor>::New();
 		m_slicePlaneActor[s]->GetProperty()->LightingOff();
 		m_slicePlaneActor[s]->SetPickable(false);
 		m_slicePlaneActor[s]->SetDragable(false);
+		m_slicePlaneActor[s]->SetMapper(m_slicePlaneMapper[s]);
+		m_slicePlaneActor[s]->GetProperty()->SetColor((s == 0) ? 1 : 0, (s == 1) ? 1 : 0, (s == 2) ? 1 : 0);
+		m_slicePlaneActor[s]->GetProperty()->SetOpacity(1.0);
 	}
-}
+	// set up cutting planes:
+	m_plane1->SetNormal(1, 0, 0);
+	m_plane2->SetNormal(0, 1, 0);
+	m_plane3->SetNormal(0, 0, 1);
 
-iARendererImpl::~iARendererImpl(void)
-{
-	if (m_renderObserver)
+	m_labelRen->SetActiveCamera(m_cam);
+	m_ren->SetActiveCamera(m_cam);
+	setCamPosition(iACameraPosition::PZ);
+
+	// set up region of interest (ROI) cube marker:
+	m_roiMapper->SetInputConnection(m_roiCube->GetOutputPort());
+	m_roiActor->SetMapper(m_roiMapper);
+	m_roiActor->GetProperty()->SetColor(1.0, 0, 0);
+	m_roiActor->GetProperty()->SetRepresentationToWireframe();
+	m_roiActor->GetProperty()->SetOpacity(1);
+	m_roiActor->GetProperty()->SetLineWidth(2.3);
+	m_roiActor->GetProperty()->SetAmbient(1.0);
+	m_roiActor->GetProperty()->SetDiffuse(0.0);
+	m_roiActor->GetProperty()->SetSpecular(0.0);
+	m_roiActor->SetPickable(false);
+	m_roiActor->SetDragable(false);
+	m_roiActor->SetVisibility(false);
+	
+	// set up annotated axis cube:
+	m_annotatedCubeActor->SetPickable(1);
+	m_annotatedCubeActor->SetXPlusFaceText("+X");
+	m_annotatedCubeActor->SetXMinusFaceText("-X");
+	m_annotatedCubeActor->SetYPlusFaceText("+Y");
+	m_annotatedCubeActor->SetYMinusFaceText("-Y");
+	m_annotatedCubeActor->SetZPlusFaceText("+Z");
+	m_annotatedCubeActor->SetZMinusFaceText("-Z");
+	m_annotatedCubeActor->SetXFaceTextRotation(0);
+	m_annotatedCubeActor->SetYFaceTextRotation(0);
+	m_annotatedCubeActor->SetZFaceTextRotation(90);
+	m_annotatedCubeActor->SetFaceTextScale(0.45);
+	m_annotatedCubeActor->GetCubeProperty()->SetColor(0.7, 0.78, 1);
+	m_annotatedCubeActor->GetTextEdgesProperty()->SetDiffuse(0);
+	m_annotatedCubeActor->GetTextEdgesProperty()->SetAmbient(0);
+	m_annotatedCubeActor->GetXPlusFaceProperty()->SetColor(1, 0, 0);
+	m_annotatedCubeActor->GetXPlusFaceProperty()->SetInterpolationToFlat();
+	m_annotatedCubeActor->GetXMinusFaceProperty()->SetColor(1, 0, 0);
+	m_annotatedCubeActor->GetXMinusFaceProperty()->SetInterpolationToFlat();
+	m_annotatedCubeActor->GetYPlusFaceProperty()->SetColor(0, 1, 0);
+	m_annotatedCubeActor->GetYPlusFaceProperty()->SetInterpolationToFlat();
+	m_annotatedCubeActor->GetYMinusFaceProperty()->SetColor(0, 1, 0);
+	m_annotatedCubeActor->GetYMinusFaceProperty()->SetInterpolationToFlat();
+	m_annotatedCubeActor->GetZPlusFaceProperty()->SetColor(0, 0, 1);
+	m_annotatedCubeActor->GetZPlusFaceProperty()->SetInterpolationToFlat();
+	m_annotatedCubeActor->GetZMinusFaceProperty()->SetColor(0, 0, 1);
+	m_annotatedCubeActor->GetZMinusFaceProperty()->SetInterpolationToFlat();
+
+	// set up position marker:
+	m_cSource->SetXLength(1);
+	m_cSource->SetYLength(1);
+	m_cSource->SetZLength(1);
+	m_cMapper->SetInputConnection(m_cSource->GetOutputPort());
+	m_cActor->SetMapper(m_cMapper);
+	m_cActor->GetProperty()->SetColor(1, 0, 0);
+	m_cActor->SetPickable(false);
+	m_cActor->SetDragable(false);
+
+	m_axesActor->AxisLabelsOff();
+	m_axesActor->SetShaftTypeToCylinder();
+	m_axesActor->SetTotalLength(15, 15, 15);
+	m_moveableAxesActor->AxisLabelsOff();
+	m_moveableAxesActor->SetShaftTypeToCylinder();
+	m_moveableAxesActor->SetTotalLength(15, 15, 15);
+	m_moveableAxesActor->SetPickable(false);
+	m_moveableAxesActor->SetDragable(false);
+
+	// add actors of helpers to renderer:
+	m_ren->GradientBackgroundOn();
+	m_ren->AddActor2D(m_txtActor);
+	m_ren->AddActor(m_cActor);
+	m_ren->AddActor(m_axesActor);
+	m_ren->AddActor(m_moveableAxesActor);
+	for (int i = 0; i < NumOfProfileLines; ++i)
 	{
-		m_renderObserver->Delete();
+		m_ren->AddActor(m_profileLine[i].actor);
 	}
-}
+	m_ren->AddActor(m_profileLineStartPointActor);
+	m_ren->AddActor(m_profileLineEndPointActor);
+	m_ren->AddActor(m_roiActor);
 
-void iARendererImpl::initialize( vtkImageData* ds, vtkPolyData* pd)
-{
-	m_imageData = ds;
-	setPolyData(pd);
-	double spacing[3];
-	ds->GetSpacing(spacing);
-
-	iAVec3d spacingVec(spacing);
-	iAVec3d origin(m_imageData->GetOrigin());
-	int const* sizeArr = m_imageData->GetDimensions();
-	iAVec3d sizePx(sizeArr[0], sizeArr[1], sizeArr[2]);
-	iAVec3d size = (sizePx * spacingVec);
-	// for stick out size, we compute average size over all 3 dimensions; maybe use max instead?
-	double stickOutSize = (size[0] + size[1] + size[2]) * (IndicatorsLenMultiplier - 1) / 6;
-	m_stickOutBox[0] = origin - stickOutSize;
-	m_stickOutBox[1] = origin + size + stickOutSize;
-
-	m_interactor = m_renWin->GetInteractor();
-	setPointPicker();
-	initObserver();
-
+	// set up logo:
 	QImage img;
 	img.load(":/images/fhlogo.png");
 	m_logoImage->SetQImage(&img);
 	m_logoImage->Update();
-	m_logoRep->SetImage(m_logoImage->GetOutput( ));
+	m_logoRep->SetImage(m_logoImage->GetOutput());
 	m_logoWidget->SetInteractor(m_interactor);
 	m_logoWidget->SetRepresentation(m_logoRep);
 	m_logoWidget->SetResizable(false);
 	m_logoWidget->SetSelectable(true);
 	m_logoWidget->On();
 
-	m_interactor->Initialize();
+	// Set up orientation marker widget:
+	m_orientationMarkerWidget->SetOrientationMarker(m_annotatedCubeActor);
+	m_orientationMarkerWidget->SetViewport(0.0, 0.0, 0.2, 0.2);
+	m_orientationMarkerWidget->SetInteractor(m_interactor);
+	m_orientationMarkerWidget->SetEnabled(1);
+	m_orientationMarkerWidget->InteractiveOff();
 
-	// setup cube source
-	updatePositionMarkerExtent();
-	m_cMapper->SetInputConnection(m_cSource->GetOutputPort());
-	m_cActor->SetMapper(m_cMapper);
-	m_cActor->GetProperty()->SetColor(1,0,0);
-	m_cActor->SetPickable(false);
-	m_cActor->SetDragable(false);
+	m_renderObserver = iARenderObserver::New(m_ren, m_labelRen, m_interactor, m_pointPicker,
+		m_moveableAxesTransform, m_imageData,
+		m_plane1, m_plane2, m_plane3, m_cellLocator);
+	m_interactor->AddObserver(vtkCommand::KeyPressEvent, m_renderObserver, 0.0);
+	m_interactor->AddObserver(vtkCommand::LeftButtonPressEvent, m_renderObserver);
+	m_interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, m_renderObserver);
+	m_interactor->AddObserver(vtkCommand::RightButtonPressEvent, m_renderObserver);
+	m_interactor->AddObserver(vtkCommand::RightButtonReleaseEvent, m_renderObserver);
 
-	setupCutter();
-	setupCube();
-	setupAxes(spacing);
-	setupOrientationMarker();
-	setupRenderer();
-
-	m_labelRen->SetActiveCamera(m_cam);
-	m_ren->SetActiveCamera(m_cam);
-	setCamPosition( iACameraPosition::PZ );
+	setPointPicker();
 
 	for (int i = 0; i < NumOfProfileLines; ++i)
 	{
@@ -385,36 +445,60 @@ void iARendererImpl::initialize( vtkImageData* ds, vtkPolyData* pd)
 	m_profileLineEndPointActor->SetMapper(m_profileLineEndPointMapper);
 	m_profileLineEndPointActor->SetPickable(false);
 	m_profileLineEndPointActor->SetDragable(false);
-	m_profileLineStartPointSource->SetRadius(2 * spacing[0]);
-	m_profileLineEndPointSource->SetRadius(2 * spacing[0]);
 	m_profileLineStartPointActor->GetProperty()->SetColor(ProfileStartColor.redF(), ProfileStartColor.greenF(), ProfileStartColor.blueF());
 	m_profileLineEndPointActor->GetProperty()->SetColor(ProfileEndColor.redF(), ProfileEndColor.greenF(), ProfileEndColor.blueF());
-
-	m_roiMapper->SetInputConnection(m_roiCube->GetOutputPort());
-	m_roiActor->SetMapper(m_roiMapper);
-	m_roiActor->GetProperty()->SetColor(1.0, 0, 0);
-	m_roiActor->GetProperty()->SetRepresentationToWireframe();
-	m_roiActor->GetProperty()->SetOpacity(1);
-	m_roiActor->GetProperty()->SetLineWidth(2.3);
-	m_roiActor->GetProperty()->SetAmbient(1.0);
-	m_roiActor->GetProperty()->SetDiffuse(0.0);
-	m_roiActor->GetProperty()->SetSpecular(0.0);
-	m_roiActor->SetPickable(false);
-	m_roiActor->SetDragable(false);
-	m_roiActor->SetVisibility(false);
-
 	setProfileHandlesOn(false);
 
-	updateSlicePlanes(m_imageData->GetSpacing());
-	for (int s = 0; s < 3; ++s)
-	{
-		m_slicePlaneMapper[s]->SetInputConnection(m_slicePlaneSource[s]->GetOutputPort());
-		m_slicePlaneActor[s]->SetMapper(m_slicePlaneMapper[s]);
-		m_slicePlaneActor[s]->GetProperty()->SetColor( (s == 0) ? 1:0, (s == 1) ? 1 : 0, (s == 2) ? 1 : 0);
-		m_slicePlaneActor[s]->GetProperty()->SetOpacity(1.0);
-		m_slicePlaneMapper[s]->Update();
-	}
 	m_initialized = true;
+}
+
+iARendererImpl::~iARendererImpl(void)
+{
+	if (m_renderObserver)
+	{
+		m_renderObserver->Delete();
+	}
+}
+
+void iARendererImpl::initialize( vtkImageData* ds, vtkPolyData* pd)
+{
+	m_imageData = ds;
+	setPolyData(pd);
+	updatePositionMarkerExtent();
+
+	double spacing[3];
+	ds->GetSpacing(spacing);
+	iAVec3d spacingVec(spacing);
+	iAVec3d origin(m_imageData->GetOrigin());
+	int const* sizeArr = m_imageData->GetDimensions();
+	iAVec3d sizePx(sizeArr[0], sizeArr[1], sizeArr[2]);
+	iAVec3d size = (sizePx * spacingVec);
+	// for stick out size, we compute average size over all 3 dimensions; maybe use max instead?
+	double stickOutSize = (size[0] + size[1] + size[2]) * (IndicatorsLenMultiplier - 1) / 6;
+	m_stickOutBox[0] = origin - stickOutSize;
+	m_stickOutBox[1] = origin + size + stickOutSize;
+
+	vtkTransform* transform = vtkTransform::New();
+	transform->Scale(spacing[0] * 3, spacing[1] * 3, spacing[2] * 3);
+	m_axesActor->SetUserTransform(transform);
+	transform->Delete();
+
+	m_moveableAxesTransform->Scale(spacing[0] * 3, spacing[1] * 3, spacing[2] * 3);
+	m_moveableAxesActor->SetUserTransform(m_moveableAxesTransform);
+
+	m_profileLineStartPointSource->SetRadius(2 * spacing[0]);
+	m_profileLineEndPointSource->SetRadius(2 * spacing[0]);
+
+	updateSlicePlanes(m_imageData->GetSpacing());
+
+	m_polyMapper->SelectColorArray("Colors");
+	m_polyMapper->SetScalarModeToUsePointFieldData();
+	m_polyActor->SetMapper(m_polyMapper);
+	m_polyActor->SetPickable(false);
+	m_polyActor->SetDragable(false);
+	m_ren->AddActor(m_polyActor);
+
+	emit onSetupRenderer();
 }
 
 void iARendererImpl::reInitialize( vtkImageData* ds, vtkPolyData* pd)
@@ -422,6 +506,7 @@ void iARendererImpl::reInitialize( vtkImageData* ds, vtkPolyData* pd)
 	m_imageData = ds;
 	setPolyData(pd);
 	updatePositionMarkerExtent();
+
 	m_renderObserver->ReInitialize(m_ren, m_labelRen, m_interactor, m_pointPicker,
 		m_moveableAxesTransform, ds,
 		m_plane1, m_plane2, m_plane3, m_cellLocator );
@@ -472,99 +557,6 @@ void iARendererImpl::setPointPicker()
 void iARendererImpl::setDefaultInteractor()
 {
 	m_interactor->SetInteractorStyle(vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New());
-}
-
-void iARendererImpl::setupCutter()
-{
-	m_plane1->SetNormal(1, 0, 0);
-	m_plane2->SetNormal(0, 1, 0);
-	m_plane3->SetNormal(0, 0, 1);
-}
-
-void iARendererImpl::setupCube()
-{
-	m_annotatedCubeActor->SetPickable(1);
-	m_annotatedCubeActor->SetXPlusFaceText("+X");
-	m_annotatedCubeActor->SetXMinusFaceText("-X");
-	m_annotatedCubeActor->SetYPlusFaceText("+Y");
-	m_annotatedCubeActor->SetYMinusFaceText("-Y");
-	m_annotatedCubeActor->SetZPlusFaceText("+Z");
-	m_annotatedCubeActor->SetZMinusFaceText("-Z");
-	m_annotatedCubeActor->SetXFaceTextRotation(0);
-	m_annotatedCubeActor->SetYFaceTextRotation(0);
-	m_annotatedCubeActor->SetZFaceTextRotation(90);
-	m_annotatedCubeActor->SetFaceTextScale(0.45);
-	m_annotatedCubeActor->GetCubeProperty()->SetColor(0.7, 0.78, 1);
-	m_annotatedCubeActor->GetTextEdgesProperty()->SetDiffuse(0);
-	m_annotatedCubeActor->GetTextEdgesProperty()->SetAmbient(0);
-	m_annotatedCubeActor->GetXPlusFaceProperty()->SetColor(1, 0, 0);
-	m_annotatedCubeActor->GetXPlusFaceProperty()->SetInterpolationToFlat();
-	m_annotatedCubeActor->GetXMinusFaceProperty()->SetColor(1, 0, 0);
-	m_annotatedCubeActor->GetXMinusFaceProperty()->SetInterpolationToFlat();
-	m_annotatedCubeActor->GetYPlusFaceProperty()->SetColor(0, 1, 0);
-	m_annotatedCubeActor->GetYPlusFaceProperty()->SetInterpolationToFlat();
-	m_annotatedCubeActor->GetYMinusFaceProperty()->SetColor(0, 1, 0);
-	m_annotatedCubeActor->GetYMinusFaceProperty()->SetInterpolationToFlat();
-	m_annotatedCubeActor->GetZPlusFaceProperty()->SetColor(0, 0, 1);
-	m_annotatedCubeActor->GetZPlusFaceProperty()->SetInterpolationToFlat();
-	m_annotatedCubeActor->GetZMinusFaceProperty()->SetColor(0, 0, 1);
-	m_annotatedCubeActor->GetZMinusFaceProperty()->SetInterpolationToFlat();
-}
-
-void iARendererImpl::setupAxes(double spacing[3])
-{
-	m_axesActor->AxisLabelsOff();
-	m_axesActor->SetShaftTypeToCylinder();
-	m_axesActor->SetTotalLength(15, 15, 15);
-
-	vtkTransform *transform = vtkTransform::New();
-	transform->Scale(spacing[0]*3, spacing[1]*3, spacing[2]*3);
-
-	m_axesActor->SetUserTransform(transform);
-	transform->Delete();
-
-	m_moveableAxesActor->AxisLabelsOff();
-	m_moveableAxesActor->SetShaftTypeToCylinder();
-	m_moveableAxesActor->SetTotalLength(15, 15, 15);
-	m_moveableAxesActor->SetPickable(false);
-	m_moveableAxesActor->SetDragable(false);
-
-	m_moveableAxesTransform->Scale(spacing[0]*3, spacing[1]*3, spacing[2]*3);
-
-	m_moveableAxesActor->SetUserTransform(m_moveableAxesTransform);
-}
-
-void iARendererImpl::setupOrientationMarker()
-{
-	m_orientationMarkerWidget->SetOrientationMarker(m_annotatedCubeActor);
-	m_orientationMarkerWidget->SetViewport(0.0, 0.0, 0.2, 0.2);
-	m_orientationMarkerWidget->SetInteractor(m_interactor);
-	m_orientationMarkerWidget->SetEnabled( 1 );
-	m_orientationMarkerWidget->InteractiveOff();
-}
-
-void iARendererImpl::setupRenderer()
-{
-	m_polyMapper->SelectColorArray("Colors");
-	m_polyMapper->SetScalarModeToUsePointFieldData();
-	m_polyActor->SetMapper(m_polyMapper);
-	m_polyActor->SetPickable(false);
-	m_polyActor->SetDragable(false);
-
-	m_ren->GradientBackgroundOn();
-	m_ren->AddActor2D(m_txtActor);
-	m_ren->AddActor(m_polyActor);
-	m_ren->AddActor(m_cActor);
-	m_ren->AddActor(m_axesActor);
-	m_ren->AddActor(m_moveableAxesActor);
-	for (int i = 0; i < NumOfProfileLines; ++i)
-	{
-		m_ren->AddActor(m_profileLine[i].actor);
-	}
-	m_ren->AddActor(m_profileLineStartPointActor);
-	m_ren->AddActor(m_profileLineEndPointActor);
-	m_ren->AddActor(m_roiActor);
-	emit onSetupRenderer();
 }
 
 void iARendererImpl::update()
@@ -645,7 +637,6 @@ void iARendererImpl::setCamPosition(int pos)
 	m_ren->ResetCamera();
 	update();
 }
-
 
 void iARendererImpl::camPosition( double * camOptions )
 {
@@ -885,19 +876,6 @@ void iARendererImpl::setProfileHandlesOn(bool isOn)
 	update();
 }
 
-void iARendererImpl::initObserver()
-{
-	m_renderObserver = iARenderObserver::New(m_ren, m_labelRen, m_interactor, m_pointPicker,
-		m_moveableAxesTransform, m_imageData,
-		m_plane1, m_plane2, m_plane3, m_cellLocator);
-
-	m_interactor->AddObserver(vtkCommand::KeyPressEvent, m_renderObserver, 0.0);
-	m_interactor->AddObserver(vtkCommand::LeftButtonPressEvent, m_renderObserver);
-	m_interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, m_renderObserver);
-	m_interactor->AddObserver(vtkCommand::RightButtonPressEvent, m_renderObserver);
-	m_interactor->AddObserver(vtkCommand::RightButtonReleaseEvent, m_renderObserver);
-}
-
 void iARendererImpl::setPolyData(vtkPolyData* pd)
 {
 	m_polyData = pd;
@@ -982,14 +960,8 @@ void iARendererImpl::applySettings(iARenderSettings const & settings, bool slice
 	m_renWin->SetMultiSamples(settings.MultiSamples);
 	//m_ren->SetOcclusionRatio(0.0);
 	m_cam->SetParallelProjection(settings.ParallelProjection);
-
 	setSlicePlaneOpacity(settings.PlaneOpacity);
-
 	setBackgroundColors(settings);
-	if (!m_imageData)
-	{
-		return;
-	}
 	showHelpers(settings.ShowHelpers);
 	showRPosition(settings.ShowRPosition);
 	for (int i = 0; i < 3; ++i)

@@ -110,7 +110,6 @@ private:
 
 	// TODO: move modalities out of here (mdichild? common data repository?)
 	QSharedPointer<iAModalityList> m_modalities;
-	QString m_FileName;
 	iAFast3DMagicLensWidget* m_magicLensWidget;
 	vtkRenderer* m_mainRenderer;
 	iAMdiChild* m_mdiChild;

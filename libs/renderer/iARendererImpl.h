@@ -181,14 +181,11 @@ private:
 	void initObserver();
 	void updatePositionMarkerExtent();
 	void setupCutter();
-	void setupCube();
 	void setupAxes(double spacing[3]);
-	void setupOrientationMarker();
 	void setupRenderer();
 
 	iARenderObserver *m_renderObserver;
 	//! @{ things that are set from the outside
-	vtkRenderWindowInteractor* m_interactor;
 	vtkPolyData* m_polyData;
 	// TODO: VOLUME: check if this can be removed:
 	vtkImageData* m_imageData;
