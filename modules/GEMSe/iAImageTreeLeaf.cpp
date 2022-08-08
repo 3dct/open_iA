@@ -167,15 +167,19 @@ CombinedProbPtr iAImageTreeLeaf::UpdateProbabilities() const
 }
 
 
-double iAImageTreeLeaf::GetProbabilityValue(int l, int x, int y, int z) const
+double iAImageTreeLeaf::GetProbabilityValue(int l, double x, double y, double z) const
 {
 	if (!m_singleResult->probabilityAvailable())
 	{
 		return 0;
 	}
-	itk::Index<3> idx; idx[0] = x; idx[1] = y; idx[2] = z;
+	double worldCoord[3] = { x, y, z };
+	double voxelCoord[3];
+	auto itkImg = m_singleResult->probabilityImg(l).GetPointer();
+	mapWorldToVoxelCoords(itkImg, worldCoord, voxelCoord);
+	itk::Index<3> idx; idx[0] = voxelCoord[0]; idx[1] = voxelCoord[1]; idx[2] = voxelCoord[2];
 	// probably very inefficient - dynamic cast involved!
-	return dynamic_cast<ProbabilityImageType*>(m_singleResult->probabilityImg(l).GetPointer())->GetPixel(idx);
+	return dynamic_cast<ProbabilityImageType*>(itkImg)->GetPixel(idx);
 }
 
 

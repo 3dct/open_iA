@@ -620,16 +620,15 @@ void iARendererImpl::setPlaneNormals( vtkTransform *tr )
 	m_ren->Render();
 };
 
-void iARendererImpl::setCubeCenter( int x, int y, int z )
+void iARendererImpl::setPositionMarkerCenter(double x, double y, double z )
 {
-	if (m_interactor->GetEnabled())
+	if (!m_interactor->GetEnabled())
 	{
-		m_cSource->SetCenter( x * m_imageData->GetSpacing()[0],
-			y * m_imageData->GetSpacing()[1],
-			z * m_imageData->GetSpacing()[2] );
-		update();
+		return;
 	}
-};
+	m_cSource->SetCenter(x, y, z);
+	update();
+}
 
 void iARendererImpl::setCamPosition(int pos)
 {

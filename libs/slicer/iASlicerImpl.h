@@ -416,7 +416,8 @@ private:
 	//! @param xCoord x coordinate (pixel index) in channel
 	//! @param yCoord y coordinate (pixel index) in channel
 	//! @param zCoord z coordinate (pixel index) in channel
-	void computeCoords(double * coords, uint channelID);
+	//! @param channelID ID of channel
+	void computeChannelVoxelCoords(double * coords, uint channelID);
 	void updatePositionMarkerExtent();
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 	void updatePosition();

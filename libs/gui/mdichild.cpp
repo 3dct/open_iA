@@ -488,16 +488,13 @@ void MdiChild::changeTransferFunction()
 	emit transferFunctionChanged();
 }
 
-void MdiChild::updatePositionMarker(int x, int y, int z, int mode)
+void MdiChild::updatePositionMarker(double x, double y, double z, int mode)
 {
 	m_position[0] = x; m_position[1] = y; m_position[2] = z;
 	if (m_renderSettings.ShowRPosition)
 	{
-		m_renderer->setCubeCenter(x, y, z);
+		m_renderer->setPositionMarkerCenter(x, y, z);
 	}
-	double spacing[3];
-	// TODO: Use a separate "display" spacing here instead of the one from the first modality?
-	modality(0)->image()->GetSpacing(spacing);
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
 		if (mode == i)  // only update other slicers
@@ -515,9 +512,9 @@ void MdiChild::updatePositionMarker(int x, int y, int z, int mode)
 			int slicerYAxisIdx = mapSliceToGlobalAxis(i, iAAxisIndex::Y);
 			int slicerZAxisIdx = mapSliceToGlobalAxis(i, iAAxisIndex::Z);
 			m_slicer[i]->setPositionMarkerCenter(
-				m_position[slicerXAxisIdx] * spacing[slicerXAxisIdx],
-				m_position[slicerYAxisIdx] * spacing[slicerYAxisIdx],
-				m_position[slicerZAxisIdx] * spacing[slicerZAxisIdx]);
+				m_position[slicerXAxisIdx],
+				m_position[slicerYAxisIdx],
+				m_position[slicerZAxisIdx]);
 		}
 	}
 }
@@ -1606,7 +1603,7 @@ void MdiChild::resetLayout()
 	m_isSmthMaximized = false;
 }
 
-int const* MdiChild::position() const
+double const* MdiChild::position() const
 {
 	return m_position;
 }

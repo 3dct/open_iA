@@ -50,7 +50,7 @@ private slots:
 	void visualizeXRF( int isOn );
 	void updateXRFOpacity( int value );
 	void updateXRF();
-	void updateXRFVoxelEnergy( int x, int y, int z, int mode );
+	void updateXRFVoxelEnergy(double x, double y, double z, int mode );
 	void xrfLoadingDone();
 	void xrfLoadingFailed();
 	void reInitXRF();

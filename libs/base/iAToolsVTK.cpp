@@ -244,6 +244,22 @@ bool isVtkIntegerImage(vtkImageData* img)
 	return img->GetScalarType() != VTK_FLOAT && img->GetScalarType() != VTK_DOUBLE;
 }
 
+void mapWorldToVoxelCoords(vtkImageData* img, double const* worldCoord, double* voxelCoord)
+{
+	double const* imgSpacing = img->GetSpacing();
+	double const* imgOrigin  = img->GetOrigin();
+	int    const* imgExtent  = img->GetExtent();
+	// coords will contain voxel coordinates for the given channel
+	for (int i = 0; i < 3; ++i)
+	{
+		voxelCoord[i] = clamp(
+			static_cast<double>(imgExtent[i * 2]),
+			imgExtent[i * 2 + 1] + 1 - std::numeric_limits<double>::epsilon(),
+			(worldCoord[i] - imgOrigin[i]) / imgSpacing[i] + 0.5);	// + 0.5 to correct for BorderOn
+	}
+	// TODO: check for negative origin images!
+}
+
 size_t mapVTKTypeToSize(int vtkType)
 {
 	switch (vtkType)

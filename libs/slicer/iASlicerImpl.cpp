@@ -1272,7 +1272,7 @@ void iASlicerImpl::execute(vtkObject * /*caller*/, unsigned long eventId, void *
 	updatePosition();
 
 	double channel0Coords[3];
-	computeCoords(channel0Coords, 0);
+	computeChannelVoxelCoords(channel0Coords, 0);
 	switch (eventId)
 	{
 	case vtkCommand::LeftButtonPressEvent:
@@ -1309,7 +1309,7 @@ void iASlicerImpl::execute(vtkObject * /*caller*/, unsigned long eventId, void *
 		{
 			emit leftDragged(channel0Coords[0], channel0Coords[1], channel0Coords[2]);
 		}
-		emit oslicerPos(channel0Coords[0], channel0Coords[1], channel0Coords[2], m_mode);
+		emit oslicerPos(m_globalPt[0], m_globalPt[1], m_globalPt[2], m_mode);
 		emit userInteraction();
 		break;
 	}
@@ -1372,27 +1372,13 @@ QPoint iASlicerImpl::slicerPosToImgPixelCoords(int channelID, double const slice
 	return QPoint(static_cast<int>(std::floor(dcX)), static_cast<int>(std::floor(dcY)));
 }
 
-void iASlicerImpl::computeCoords(double * coord, uint channelID)
+void iASlicerImpl::computeChannelVoxelCoords(double * coord, uint channelID)
 {
 	if (!hasChannel(channelID))
 	{
 		return;
 	}
-
-	auto imageData = m_channels[channelID]->input();
-	double const * imgSpacing = imageData->GetSpacing();
-	double const * imgOrigin  = imageData->GetOrigin();
-	int    const * imgExtent  = imageData->GetExtent();
-	// coords will contain voxel coordinates for the given channel
-	for (int i = 0; i < 3; ++i)
-	{
-		coord[i] = clamp(
-			static_cast<double>(imgExtent[i * 2]),
-			imgExtent[i * 2 + 1] + 1 - std::numeric_limits<double>::epsilon(),
-			(m_globalPt[i] - imgOrigin[i]) / imgSpacing[i] + 0.5);	// + 0.5 to correct for BorderOn
-	}
-
-	// TODO: check for negative origin images!
+	mapWorldToVoxelCoords(m_channels[channelID]->input(), m_globalPt, coord);
 }
 
 namespace
@@ -1473,7 +1459,7 @@ void iASlicerImpl::printVoxelInformation()
 				valueStr += QString::number(value);
 			}
 			double coords[3];
-			computeCoords(coords, channelID);
+			computeChannelVoxelCoords(coords, channelID);
 			infoAvailable = true;
 			strDetails += QString("%1: %2 [%3 %4 %5]")
 				.arg(padOrTruncate(m_channels[channelID]->name(), MaxNameLength))

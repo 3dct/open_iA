@@ -164,7 +164,8 @@ signals:
 	void rightClicked(int x, int y, int z);
 	void released(int x, int y, int z);
 	void userInteraction();
-	void oslicerPos(int x, int y, int z, int mode); //!< triggered on mouse move
+	//! Triggered on mouse move, sends x,y,z (world) coordinates and mode of slicer
+	void oslicerPos(double x, double y, double z, int mode);
 	void pick();
 	void leftDragged(int x, int y, int z);
 	//! triggered when slice number changed.

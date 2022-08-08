@@ -253,8 +253,8 @@ public:
 	int  magicLensFrameWidth() const;
 	//! @}
 
-	//! Current coordinate position (defined by the respective slice number in the slice views).
-	int const * position() const override;
+	//! Current coordinate position (in world coordinates, i.e. not pixel coordinates)
+	double const * position() const override;
 
 	iAMainWindow* mainWnd() override;
 	//! Apply current volume settings to all modalities in the current list in dlg_modalities.
@@ -365,7 +365,7 @@ private slots:
 	void slicerRotationChanged();
 	void setChannel(int ch);
 	void updateRenderWindows(int channels);
-	void updatePositionMarker(int x, int y, int z, int mode);
+	void updatePositionMarker(double x, double y, double z, int mode);
 	void ioFinished();
 	void updateDataSetInfo();
 	void histogramDataAvailable(int modalityIdx);
@@ -438,9 +438,8 @@ private:
 	MainWindow * m_mainWnd;
 	QFileInfo m_fileInfo;
 	QString m_curFile, m_path;
-	//! current "position" in image (in voxel indices).
-	//! @deprecated use global coordinates instead of voxel indices
-	int m_position[3];
+	
+	double m_position[3];  //!< current "position" in "scene" (in world coordinates).
 
 	QByteArray m_beforeMaximizeState;
 	QDockWidget* m_whatMaximized;

@@ -172,7 +172,7 @@ QThread* iAInSpectrAttachment::recalculateXRF()
 	return dlgXRF->UpdateForVisualization();
 }
 
-void iAInSpectrAttachment::updateXRFVoxelEnergy( int x, int y, int z, int /*mode*/ )
+void iAInSpectrAttachment::updateXRFVoxelEnergy( double x, double y, double z, int /*mode*/ )
 {
 	if (!dlgXRF)
 	{

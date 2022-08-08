@@ -92,7 +92,7 @@ signals:
 	void Hate();
 	void GoToCluster();
 	void ViewUpdated();
-	void SlicerHover(int, int, int, int);
+	void SlicerHover(double, double, double, int);
 	void ResultFilterUpdate();
 protected:
 	virtual void paintEvent(QPaintEvent * );

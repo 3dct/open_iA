@@ -85,7 +85,8 @@ public:
 	//vtkTransform* axesTransform(void) override;
 
 	void setPlaneNormals( vtkTransform *tr ) ;
-	void setCubeCenter( int x, int y, int z );
+	//! set the position of the position marker to the given world coordinates
+	void setPositionMarkerCenter(double x, double y, double z);
 
 	//! Sets one of the pre-defined camera positions
 	//! @param pos descriptor of the position, @see iACameraPosition

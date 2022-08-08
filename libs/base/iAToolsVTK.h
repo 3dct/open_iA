@@ -111,6 +111,12 @@ iAbase_API size_t mapVTKTypeToSize(int vtkType);
 //!        false if it holds floating point numbers
 iAbase_API bool isVtkIntegerImage(vtkImageData* img);
 
+//! Translate from world coordinates to voxel coordinates for the given image
+//! @param img a VTK image
+//! @param worldCoord world (=scene) coordinates (3 components: x, y, z)
+//! @param voxelCoord place for storing 3 components of voxel coordinates in img for the given world coordinates (clamped)
+iAbase_API void mapWorldToVoxelCoords(vtkImageData* img, double const* worldCoord, double* voxelCoord);
+
 //! Returns a human-readable list of available data types for a single pixel/voxel.
 //! @param withLongLongTypes
 iAbase_API QStringList const & readableDataTypeList(bool withLongLongTypes);

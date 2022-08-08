@@ -50,7 +50,7 @@ public:
 	void SetAttribute(int id, double value);
 	virtual LabelPixelHistPtr UpdateLabelDistribution() const;
 	virtual CombinedProbPtr UpdateProbabilities() const;
-	double GetProbabilityValue(int l, int x, int y, int z) const;
+	double GetProbabilityValue(int l, double x, double y, double z) const;
 	int GetDatasetID() const;
 	QSharedPointer<iAAttributes> GetAttributes() const;
 	virtual void GetSelection(QVector<QSharedPointer<iASingleResult> > & result) const;

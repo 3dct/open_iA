@@ -248,6 +248,22 @@ void storeImage(iAITKIO::ImagePtr image, QString const & filename, bool useCompr
 	iAITKIO::writeFile(filename, image, itkScalarPixelType(image), useCompression);
 }
 
+void mapWorldToVoxelCoords(iAITKIO::ImagePointer img, double const* worldCoord, double* voxelCoord)
+{
+	auto imgSpacing = img->GetSpacing();
+	auto imgOrigin = img->GetOrigin();
+	auto imgExtent = img->GetLargestPossibleRegion().GetSize();
+	// coords will contain voxel coordinates for the given channel
+	for (int i = 0; i < 3; ++i)
+	{
+		voxelCoord[i] = clamp(
+			static_cast<double>(imgExtent[i * 2]),
+			imgExtent[i * 2 + 1] + 1 - std::numeric_limits<double>::epsilon(),
+			(worldCoord[i] - imgOrigin[i]) / imgSpacing[i] + 0.5);	// + 0.5 to correct for BorderOn
+	}
+	// TODO: check for negative origin images!
+}
+
 template <class TImage>
 void itkPixel2(double & result, TImage* image, typename TImage::IndexType idx)
 {

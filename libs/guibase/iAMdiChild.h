@@ -133,7 +133,7 @@ public:
 	virtual bool linkedViews() const = 0;
 
 	//! Current coordinate position (defined by the respective slice number in the slice views).
-	virtual int const* position() const = 0;
+	virtual double const* position() const = 0;
 
 
 	//! Checks whether the main image data is fully loaded.

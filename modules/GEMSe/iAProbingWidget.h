@@ -40,7 +40,7 @@ public:
 	void SetSelectedNode(iAImageTreeNode const * node);
 	void SetLabelInfo(iALabelInfo const * labelInfo);
 public slots:
-	void ProbeUpdate(int x, int y, int z, int mode);
+	void ProbeUpdate(double x, double y, double z, int mode);
 private:
 	iALabelInfo const * m_labelInfo;
 	QVector<iAChartWidget *> m_charts;
