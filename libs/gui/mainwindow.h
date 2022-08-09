@@ -27,7 +27,7 @@
 #include "iARenderSettings.h"
 #include "iASlicerSettings.h"
 #include "iAVolumeSettings.h"
-#include "io/iARawFileParameters.h"
+#include "iARawFileParameters.h"
 
 #include <vtkSmartPointer.h>
 
