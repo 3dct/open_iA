@@ -212,10 +212,10 @@ iADetailView::iADetailView(
 	connect(m_previewWidget->slicer(), &iASlicer::dblClicked, this, &iADetailView::dblClicked);
 	connect(m_previewWidget->slicer(), &iASlicer::shiftMouseWheel, this, &iADetailView::changeModality);
 	connect(m_previewWidget->slicer(), &iASlicer::altMouseWheel, this, &iADetailView::changeMagicLensOpacity);
-	connect(m_previewWidget->slicer(), &iASlicer::oslicerPos, this, &iADetailView::SlicerHover);
-	connect(m_previewWidget->slicer(), &iASlicer::oslicerPos, this, &iADetailView::SlicerMouseMove);
+	connect(m_previewWidget->slicer(), &iASlicer::mouseMoved, this, &iADetailView::SlicerHover);
+	connect(m_previewWidget->slicer(), &iASlicer::mouseMoved, this, &iADetailView::SlicerMouseMove);
 	connect(m_previewWidget->slicer(), &iASlicer::leftClicked, this, &iADetailView::SlicerClicked);
-	connect(m_previewWidget->slicer(), &iASlicer::released, this, &iADetailView::SlicerReleased);
+	connect(m_previewWidget->slicer(), &iASlicer::leftReleased, this, &iADetailView::SlicerReleased);
 }
 
 
@@ -607,7 +607,7 @@ private:
 };
 
 
-void iADetailView::SlicerClicked(int x, int y, int z)
+void iADetailView::SlicerClicked(double x, double y, double z)
 {
 	AddResultFilterPixel(x, y, z);
 	if (!m_resultFilterTriggerThread)
@@ -627,27 +627,31 @@ void iADetailView::TriggerResultFilterUpdate()
 }
 
 
-void iADetailView::SlicerReleased(int /*x*/, int /*y*/, int /*z*/)
+void iADetailView::SlicerReleased(double /*x*/, double /*y*/, double /*z*/)
 {
 	m_MouseButtonDown = false;
 }
 
 
-void iADetailView::SlicerMouseMove(int x, int y, int z, int /*c*/)
+void iADetailView::SlicerMouseMove(double x, double y, double z, int /*c*/)
 {
 	if (m_MouseButtonDown)
 	{
 		AddResultFilterPixel(x, y, z);
 		if (!m_resultFilterTriggerThread)
+		{
 			m_MouseButtonDown = false;
 			//LOG(lvlError, "Result Filter Trigger not yet started....");
+		}
 		else
+		{
 			m_resultFilterTriggerThread->restart();
+		}
 	}
 }
 
 
-void iADetailView::AddResultFilterPixel(int x, int y, int z)
+void iADetailView::AddResultFilterPixel(double x, double y, double z)
 {
 	if (x == m_lastResultFilterX && y == m_lastResultFilterY && z == m_lastResultFilterZ)
 	{
@@ -668,10 +672,12 @@ void iADetailView::AddResultFilterPixel(int x, int y, int z)
 		m_resultFilterOverlayLUT = iALUT::BuildLabelColorTF(m_labelCount, m_colorTheme);
 		m_resultFilterOverlayOTF = iALUT::BuildLabelOpacityTF(m_labelCount);
 	}
-	drawPixel(m_resultFilterImg, x, y, z, label+1);
+	double worldCoord[3] = { x, y, z };
+	auto vxCoord = mapWorldCoordsToIndex(m_resultFilterImg, worldCoord);
+	drawPixel(m_resultFilterImg, vxCoord[0], vxCoord[1], vxCoord[2], label + 1);
 	m_resultFilterImg->Modified();
 	m_resultFilterImg->SetScalarRange(0, m_labelCount);
-	m_resultFilter.append(QPair<iAImageCoordinate, int>(iAImageCoordinate(x, y, z), label));
+	m_resultFilter.append(QPair<iAImageCoordinate, int>(iAImageCoordinate(vxCoord[0], vxCoord[1], vxCoord[2]), label));
 
 	iASlicer* slicer = m_previewWidget->slicer();
 	if (!m_resultFilterChannel)

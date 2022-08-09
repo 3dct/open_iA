@@ -260,6 +260,13 @@ void mapWorldToVoxelCoords(vtkImageData* img, double const* worldCoord, double* 
 	// TODO: check for negative origin images!
 }
 
+iAVec3i mapWorldCoordsToIndex(vtkImageData* img, double const* worldCoord)
+{
+	double voxelCoord[3];
+	mapWorldToVoxelCoords(img, worldCoord, voxelCoord);
+	return iAVec3i(static_cast<int>(voxelCoord[0]), static_cast<int>(voxelCoord[1]), static_cast<int>(voxelCoord[2]));
+}
+
 size_t mapVTKTypeToSize(int vtkType)
 {
 	switch (vtkType)

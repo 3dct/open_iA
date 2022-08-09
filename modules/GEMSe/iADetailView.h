@@ -92,7 +92,7 @@ signals:
 	void Hate();
 	void GoToCluster();
 	void ViewUpdated();
-	void SlicerHover(double, double, double, int);
+	void SlicerHover(double x, double y, double z, int);
 	void ResultFilterUpdate();
 protected:
 	virtual void paintEvent(QPaintEvent * );
@@ -100,14 +100,14 @@ private slots:
 	void dblClicked();
 	void changeModality(int);
 	void changeMagicLensOpacity(int);
-	void SlicerClicked(int, int, int);
-	void SlicerMouseMove(int x, int y, int z, int c);
-	void SlicerReleased(int x, int y, int z);
+	void SlicerClicked(double x, double y, double z);
+	void SlicerMouseMove(double x, double y, double z, int c);
+	void SlicerReleased(double x, double y, double z);
 	void TriggerResultFilterUpdate();
 	void ResetResultFilter();
 private:
 	void setImage();
-	void AddResultFilterPixel(int x, int y, int z);
+	void AddResultFilterPixel(double x, double y, double z);
 	void AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf, QString const & name);
 	void UpdateComparisonNumbers();
 	int GetCurLabelRow() const;

@@ -25,7 +25,8 @@
 // why is this not unsigned int?
 typedef int iAVoxelIndexType;
 
-//! Helper for storing 3D image coordinates.
+//! Helper for storing 3D image coordinates
+//! Maybe use iAVec3i instead?
 class iAbase_API iAImageCoordinate
 {
 public:
@@ -42,6 +43,7 @@ public:
 bool operator==(iAImageCoordinate const & a, iAImageCoordinate const & b);
 
 //! Utility class for converting (2D/)3D indices to a flat (1D) index
+//! TODO: maybe merge with stuff from DynamicVolumeLines?
 class iAbase_API iAImageCoordConverter
 {
 public:

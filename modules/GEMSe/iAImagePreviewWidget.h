@@ -97,5 +97,5 @@ private:
 
 private slots:
 	void SlicerRightClicked(int x, int y, int z);
-	void SlicerHovered(int x, int y, int z, int mode);
+	void SlicerHovered(double x, double y, double z, int mode);
 };

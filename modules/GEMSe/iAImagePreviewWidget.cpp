@@ -93,7 +93,7 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 
 	connect(m_slicer, &iASlicer::clicked, this, &iAImagePreviewWidget::clicked);
 	connect(m_slicer, &iASlicer::rightClicked, this, &iAImagePreviewWidget::SlicerRightClicked);
-	connect(m_slicer, &iASlicer::oslicerPos, this, &iAImagePreviewWidget::SlicerHovered);
+	connect(m_slicer, &iASlicer::mouseMoved, this, &iAImagePreviewWidget::SlicerHovered);
 	connect(m_slicer, &iASlicer::userInteraction, this, &iAImagePreviewWidget::updated);
 	setLayout(new QHBoxLayout);
 	layout()->setSpacing(0);
@@ -111,7 +111,7 @@ void iAImagePreviewWidget::SlicerRightClicked(int /*x*/, int /*y*/, int /*z*/)
 	emit rightClicked();
 }
 
-void iAImagePreviewWidget::SlicerHovered(int /*x*/, int /*y*/, int /*z*/, int /*mode*/)
+void iAImagePreviewWidget::SlicerHovered(double /*x*/, double /*y*/, double /*z*/, int /*mode*/)
 {
 	emit mouseHover();
 }

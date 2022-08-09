@@ -29,6 +29,7 @@
 #include <iALog.h>
 #include <iAMathUtility.h>
 #include <iASlicerMode.h>
+#include <iAToolsITK.h>
 
 #include <QLabel>
 #include <QVBoxLayout>
@@ -141,12 +142,13 @@ void iAProbingWidget::ProbeUpdate(double x, double y, double z, int /*mode*/)
 	{
 		m_labelDistributionChartData[l]->reset();
 	}
-	itk::Index<3> idx;
-	idx[0] = x; idx[1] = y; idx[2] = z;
 	int valueCount = 0;
 	VisitLeafs(m_selectedNode, [&](iAImageTreeLeaf const * leaf)
 	{
-		int label = dynamic_cast<LabelImageType*>(leaf->GetLargeImage().GetPointer())->GetPixel(idx);
+		double worldCoords[3] = { x, y, z };
+		auto itkImg = leaf->GetLargeImage();
+		itk::Index<3> idx = mapWorldCoordsToIndex(itkImg, worldCoords);
+		int label = dynamic_cast<LabelImageType*>(itkImg.GetPointer())->GetPixel(idx);
 		m_labelDistributionChartData[label]->addValue(label);
 		valueCount++;
 	});

@@ -125,7 +125,6 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	iASlicer(parent),
 	m_contextMenu(new QMenu(this)),
 	m_interactionMode(Normal),
-	m_xInd(0), m_yInd(0), m_zInd(0),
 	m_snakeSpline(nullptr),
 	m_worldSnakePoints(snakeSlicerPoints),
 	m_isSliceProfEnabled(false),
@@ -1271,27 +1270,24 @@ void iASlicerImpl::execute(vtkObject * /*caller*/, unsigned long eventId, void *
 		emit userInteraction();
 	}
 	updatePosition();
-
-	double channel0Coords[3];
-	computeChannelVoxelCoords(channel0Coords, 0);
 	switch (eventId)
 	{
 	case vtkCommand::LeftButtonPressEvent:
 	{
-		emit leftClicked(channel0Coords[0], channel0Coords[1], channel0Coords[2]);
+		emit leftClicked(m_globalPt[0], m_globalPt[1], m_globalPt[2]);
 		emit userInteraction();
 		break;
 	}
 	case vtkCommand::LeftButtonReleaseEvent:
 	{
 		m_leftMouseDrag = false;
-		emit released(channel0Coords[0], channel0Coords[1], channel0Coords[2]);
+		emit leftReleased(m_globalPt[0], m_globalPt[1], m_globalPt[2]);
 		emit userInteraction();
 		break;
 	}
 	case vtkCommand::RightButtonPressEvent:
 	{
-		emit rightClicked(channel0Coords[0], channel0Coords[1], channel0Coords[2]);
+		emit rightClicked(m_globalPt[0], m_globalPt[1], m_globalPt[2]);
 		break;
 	}
 	case vtkCommand::MouseMoveEvent:
@@ -1308,9 +1304,9 @@ void iASlicerImpl::execute(vtkObject * /*caller*/, unsigned long eventId, void *
 		}
 		if (m_leftMouseDrag)
 		{
-			emit leftDragged(channel0Coords[0], channel0Coords[1], channel0Coords[2]);
+			emit leftDragged(m_globalPt[0], m_globalPt[1], m_globalPt[2]);
 		}
-		emit oslicerPos(m_globalPt[0], m_globalPt[1], m_globalPt[2], m_mode);
+		emit mouseMoved(m_globalPt[0], m_globalPt[1], m_globalPt[2], m_mode);
 		emit userInteraction();
 		break;
 	}
@@ -1361,15 +1357,6 @@ QPoint iASlicerImpl::slicerPosToImgPixelCoords(int channelID, double const slice
 	double dcX = (slicerPt[0] - slicerBounds[0]) / slicerSpacing[0] + 0.5;
 	double dcY = (slicerPt[1] - slicerBounds[2]) / slicerSpacing[1] + 0.5;
 	return QPoint(static_cast<int>(std::floor(dcX)), static_cast<int>(std::floor(dcY)));
-}
-
-void iASlicerImpl::computeChannelVoxelCoords(double * coord, uint channelID)
-{
-	if (!hasChannel(channelID))
-	{
-		return;
-	}
-	mapWorldToVoxelCoords(m_channels[channelID]->input(), m_globalPt, coord);
 }
 
 namespace
@@ -1449,13 +1436,12 @@ void iASlicerImpl::printVoxelInformation()
 				}
 				valueStr += QString::number(value);
 			}
-			double coords[3];
-			computeChannelVoxelCoords(coords, channelID);
+			auto coord = mapWorldCoordsToIndex(m_channels[channelID]->input(), m_globalPt);
 			infoAvailable = true;
 			strDetails += QString("%1: %2 [%3 %4 %5]")
 				.arg(padOrTruncate(m_channels[channelID]->name(), MaxNameLength))
 				.arg(valueStr)
-				.arg(static_cast<int>(coords[0])).arg(static_cast<int>(coords[1])).arg(static_cast<int>(coords[2]));
+				.arg(coord.x()).arg(coord.y()).arg(coord.y());
 
 		}
 		strDetails += "\n";
@@ -1481,7 +1467,6 @@ void iASlicerImpl::printVoxelInformation()
 				slicerYAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y),
 				slicerZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
 			// TODO: check if coords inside other window's image(s)?
-			tmpChild->slicer(m_mode)->setIndex(tmpCoord[0], tmpCoord[1], tmpCoord[2]);
 			dynamic_cast<iASlicerImpl*>(tmpChild->slicer(m_mode))->setPositionMarkerCenter(m_globalPt[slicerXAxisIdx], m_globalPt[slicerYAxisIdx], m_globalPt[slicerZAxisIdx]);
 			tmpChild->slicer(m_mode)->setSliceNumber(tmpCoord[slicerZAxisIdx]);
 			tmpChild->slicer(m_mode)->update();
@@ -2350,11 +2335,6 @@ void iASlicerImpl::setProfileHandlesOn(bool isOn)
 #else
 	renderWindow()->GetInteractor()->Render();
 #endif
-}
-
-void iASlicerImpl::setIndex(int x, int y, int z)
-{
-	m_xInd = x; m_yInd = y; m_zInd = z;
 }
 
 void iASlicerImpl::setLinkedMdiChild(iAMdiChild* mdiChild)

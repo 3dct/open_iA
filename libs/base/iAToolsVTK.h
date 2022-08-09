@@ -22,6 +22,8 @@
 
 #include "iAbase_export.h"
 
+#include "iAVec3.h"
+
 #include <vtkSmartPointer.h>
 
 #include <QMap>
@@ -116,6 +118,12 @@ iAbase_API bool isVtkIntegerImage(vtkImageData* img);
 //! @param worldCoord world (=scene) coordinates (3 components: x, y, z)
 //! @param voxelCoord place for storing 3 components of voxel coordinates in img for the given world coordinates (clamped)
 iAbase_API void mapWorldToVoxelCoords(vtkImageData* img, double const* worldCoord, double* voxelCoord);
+
+//! Translate from world coordinates to voxel indices for the given image
+//! @param img a VTK image
+//! @param worldCoord world (=scene) coordinates (3 components: x, y, z)
+//! @return voxel indices, the coordinates in img for the given world coordinates (clamped)
+iAbase_API iAVec3i mapWorldCoordsToIndex(vtkImageData* img, double const* worldCoord);
 
 //! Returns a human-readable list of available data types for a single pixel/voxel.
 //! @param withLongLongTypes

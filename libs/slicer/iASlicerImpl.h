@@ -212,7 +212,6 @@ public:
 
 	void setRightButtonDragZoomEnabled(bool enabled);
 
-	void setIndex(int x, int y, int z) override;
 	//! in case the "linked mdi" feature is used, use this to set the mdi child this slicer is linked to.
 	void setLinkedMdiChild(iAMdiChild* mdiChild) override;
 	//! call if the dimension of the input in direction of the slice axis has changed.
@@ -282,7 +281,6 @@ private:
 	QActionGroup* m_actionInteractionMode;
 	QMenu *         m_contextMenu;               //!< context menu
 	InteractionMode m_interactionMode;           //!< current edit mode
-	int             m_xInd, m_yInd, m_zInd;      //!< current position
 	iASnakeSpline * m_snakeSpline;				 //!< holds the visualization data for the points of the snake splicer
 	vtkPoints *     m_worldSnakePoints;          //!< points of the snake slicer (owned by mdichild, not by this slicer)
 	bool            m_isSliceProfEnabled;        //!< if slice profile mode is enabled
@@ -412,12 +410,6 @@ private:
 	iAMdiChild* m_linkedMdiChild;  //! main window access for linked mdi childs feature - get rid of this somehow!
 
 	QSharedPointer<iAChannelSlicerData> createChannel(uint id, iAChannelData const & chData);
-	//! compute the voxel coordinates in the given channel for the current slicer coordinate point.
-	//! @param xCoord x coordinate (pixel index) in channel
-	//! @param yCoord y coordinate (pixel index) in channel
-	//! @param zCoord z coordinate (pixel index) in channel
-	//! @param channelID ID of channel
-	void computeChannelVoxelCoords(double * coords, uint channelID);
 	void updatePositionMarkerExtent();
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 	void updatePosition();

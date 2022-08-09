@@ -33,6 +33,7 @@
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
 #include <iASlicer.h>
+#include <iAToolsVTK.h>
 #include <io/iAIO.h>
 
 #include "defines.h"    // for NotExistingChannel
@@ -56,7 +57,7 @@ iAInSpectrAttachment::iAInSpectrAttachment( iAMainWindow * mainWnd, iAMdiChild *
 	connect(m_child, &iAMdiChild::magicLensToggled, this, &iAInSpectrAttachment::magicLensToggled);
 	for (int i = 0; i < 3; ++i)
 	{
-		connect(m_child->slicer(i), &iASlicer::oslicerPos, this, &iAInSpectrAttachment::updateXRFVoxelEnergy);
+		connect(m_child->slicer(i), &iASlicer::mouseMoved, this, &iAInSpectrAttachment::updateXRFVoxelEnergy);
 	}
 	//TODO: move
 	if (!filter_SimilarityMap())
@@ -174,61 +175,25 @@ QThread* iAInSpectrAttachment::recalculateXRF()
 
 void iAInSpectrAttachment::updateXRFVoxelEnergy( double x, double y, double z, int /*mode*/ )
 {
-	if (!dlgXRF)
+	if (!dlgXRF || !dlgXRF->cb_spectrumProbing->isChecked())
 	{
 		return;
 	}
-	if (dlgXRF->cb_spectrumProbing->isChecked())
+	iAXRFData * xrfData = dlgXRF->GetXRFData().data();
+	if (!xrfData || xrfData->begin() == xrfData->end())
 	{
-		iAXRFData * xrfData = dlgXRF->GetXRFData().data();
-		if (!xrfData || xrfData->begin() == xrfData->end())
-		{
-			return;
-		}
-		vtkSmartPointer<vtkImageData> firstImg = *xrfData->begin();
-		double imgSpacing[3];
-		m_child->imageData()->GetSpacing( imgSpacing );
+		return;
+	}
+	auto firstImg = *xrfData->begin();
+	double worldCoord[3] = { x, y, z };
+	auto xrfCoord = mapWorldCoordsToIndex(firstImg, worldCoord);
+	dlgXRF->UpdateVoxelSpectrum(xrfCoord.x(), xrfCoord.y(), xrfCoord.z());
 
-		double xrfSpacing[3];
-		firstImg->GetSpacing( xrfSpacing );
-
-		double spacing[3];
-		for (int i = 0; i<3; ++i)
-		{
-			spacing[i] = xrfSpacing[i] / imgSpacing[i];
-		}
-
-		int extent[6];
-		firstImg->GetExtent( extent );
-
-		int xrfX = qFloor( x / spacing[0] );
-		int xrfY = qFloor( y / spacing[1] );
-		int xrfZ = qFloor( z / spacing[2] );
-
-		if (xrfX > extent[1])
-		{
-			xrfX = extent[1];
-		}
-		if (xrfY > extent[3])
-		{
-			xrfY = extent[3];
-		}
-		if (xrfZ > extent[5])
-		{
-			xrfZ = extent[5];
-		}
-
-		dlgXRF->UpdateVoxelSpectrum( xrfX, xrfY, xrfZ );
-
-		if( dlgXRF->isDecompositionLoaded() )
-		{
-			double * compositionSpacing = dlgXRF->GetElementConcentrations()->getImage( 0 )->GetSpacing();
-			int concPos[3] = {
-				qFloor( x*imgSpacing[0] / compositionSpacing[0] ),
-				qFloor( y*imgSpacing[1] / compositionSpacing[1] ),
-				qFloor( z*imgSpacing[2] / compositionSpacing[2] ) };
-			dlgXRF->UpdateConcentrationViews( concPos[0], concPos[1], concPos[2] );
-		}
+	if( dlgXRF->isDecompositionLoaded() )
+	{
+		auto concImg = dlgXRF->GetElementConcentrations()->getImage(0);
+		auto concPos = mapWorldCoordsToIndex(concImg, worldCoord);
+		dlgXRF->UpdateConcentrationViews( concPos.x(), concPos.y(), concPos.z());
 	}
 }
 

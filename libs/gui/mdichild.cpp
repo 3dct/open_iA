@@ -175,7 +175,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	setAttribute(Qt::WA_DeleteOnClose);
 
 	m_visibility = MULTI;
-	std::fill(m_position, m_position + 3, 0);
 
 	m_parametricSpline->SetPoints(m_worldSnakePoints);
 
@@ -343,7 +342,7 @@ void MdiChild::connectSignalsToSlots()
 		connect(m_slicer[s], &iASlicer::ctrlMouseWheel, this, &MdiChild::changeMagicLensSize);
 		connect(m_slicer[s], &iASlicerImpl::sliceRotated, this, &MdiChild::slicerRotationChanged);
 		connect(m_slicer[s], &iASlicer::sliceNumberChanged, this, &MdiChild::setSlice);
-		connect(m_slicer[s], &iASlicer::oslicerPos, this, &MdiChild::updatePositionMarker);
+		connect(m_slicer[s], &iASlicer::mouseMoved, this, &MdiChild::updatePositionMarker);
 		connect(m_slicer[s], &iASlicerImpl::regionSelected, this, [this](int minVal, int maxVal)
 		{
 			if (minVal == maxVal)
@@ -502,7 +501,7 @@ void MdiChild::changeTransferFunction()
 
 void MdiChild::updatePositionMarker(double x, double y, double z, int mode)
 {
-	m_position[0] = x; m_position[1] = y; m_position[2] = z;
+	double pos[3] = { x, y, z };
 	if (m_renderSettings.ShowRPosition)
 	{
 		m_renderer->setPositionMarkerCenter(x, y, z);
@@ -513,10 +512,10 @@ void MdiChild::updatePositionMarker(double x, double y, double z, int mode)
 		{
 			continue;
 		}
-		if (m_slicerSettings.LinkViews)
-		{
-			m_slicer[i]->setIndex(x, y, z);
-			m_dwSlicer[i]->sbSlice->setValue(m_position[mapSliceToGlobalAxis(i, iAAxisIndex::Z)]);
+		if (m_slicerSettings.LinkViews && m_slicer[i]->hasChannel(0))  // TODO: check for whether dataset is shown in slicer?
+		{   // TODO: set "slice" based on world coordinates directly instead of spacing?
+			double spacing = m_slicer[i]->channel(0)->input()->GetSpacing()[i];
+			m_dwSlicer[i]->sbSlice->setValue(pos[mapSliceToGlobalAxis(i, iAAxisIndex::Z)] / spacing);
 		}
 		if (m_slicerSettings.SingleSlicer.ShowPosition)
 		{
@@ -524,9 +523,9 @@ void MdiChild::updatePositionMarker(double x, double y, double z, int mode)
 			int slicerYAxisIdx = mapSliceToGlobalAxis(i, iAAxisIndex::Y);
 			int slicerZAxisIdx = mapSliceToGlobalAxis(i, iAAxisIndex::Z);
 			m_slicer[i]->setPositionMarkerCenter(
-				m_position[slicerXAxisIdx],
-				m_position[slicerYAxisIdx],
-				m_position[slicerZAxisIdx]);
+				pos[slicerXAxisIdx],
+				pos[slicerYAxisIdx],
+				pos[slicerZAxisIdx]);
 		}
 	}
 }
@@ -1361,7 +1360,6 @@ void MdiChild::setSlice(int mode, int s)
 			m_dwSlicer[mode]->verticalScrollBar->setValue(s);
 		}
 
-		m_position[mode] = s;
 		if (m_renderSettings.ShowSlicers || m_renderSettings.ShowSlicePlanes)
 		{
 			set3DSlicePlanePos(mode, s);
@@ -1636,11 +1634,6 @@ void MdiChild::resetLayout()
 {
 	restoreState(m_initialLayoutState);
 	m_isSmthMaximized = false;
-}
-
-double const* MdiChild::position() const
-{
-	return m_position;
 }
 
 void MdiChild::setupSlicers(iASlicerSettings const& ss, bool init)

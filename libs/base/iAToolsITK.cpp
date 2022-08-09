@@ -247,25 +247,6 @@ void storeImage(iAITKIO::ImagePtr image, QString const & filename, bool useCompr
 	iAITKIO::writeFile(filename, image, itkScalarPixelType(image), useCompression);
 }
 
-itk::Index<3> mapWorldCoordsToIndex(iAITKIO::ImagePointer img, double const* worldCoord)
-{
-	auto imgSpacing = img->GetSpacing();
-	auto imgOrigin = img->GetOrigin();
-	auto voxelStart = img->GetLargestPossibleRegion().GetIndex();
-	auto voxelSize = img->GetLargestPossibleRegion().GetSize();
-	// coords will contain voxel coordinates for the given channel
-	itk::Index<3> idx;
-	for (int i = 0; i < 3; ++i)
-	{
-		unsigned long long minIdx = voxelStart[i];
-		auto maxIdx = voxelStart[i] + voxelSize[i] - 1;
-		auto value = static_cast<itk::SizeValueType>((worldCoord[i] - imgOrigin[i]) / imgSpacing[i] + 0.5);// + 0.5 to correct for BorderOn
-		idx[i] = clamp(minIdx, maxIdx, value);
-	}
-	return idx;
-	// TODO: check for negative origin images!
-}
-
 void mapWorldToVoxelCoords(iAITKIO::ImagePointer img, double const* worldCoord, double * voxelCoord)
 {
 	auto imgSpacing = img->GetSpacing();
@@ -281,6 +262,16 @@ void mapWorldToVoxelCoords(iAITKIO::ImagePointer img, double const* worldCoord, 
 		voxelCoord[i] = clamp(minIdx, maxIdx, value);
 	}
 	// TODO: check for negative origin images!
+}
+
+itk::Index<3> mapWorldCoordsToIndex(iAITKIO::ImagePointer img, double const* worldCoord)
+{
+	double voxelCoord[3];
+	mapWorldToVoxelCoords(img, worldCoord, voxelCoord);
+	return itk::Index<3>({
+		static_cast<itk::IndexValueType>(voxelCoord[0]),
+		static_cast<itk::IndexValueType>(voxelCoord[1]),
+		static_cast<itk::IndexValueType>(voxelCoord[2]) });
 }
 
 template <class TImage>

@@ -141,7 +141,6 @@ public:
 
 	virtual void setScalarBarTF(vtkScalarsToColors* ctf) = 0;
 
-	virtual void setIndex(int x, int y, int z) = 0;
 	//! in case the "linked mdi" feature is used, use this to set the mdi child this slicer is linked to.
 	virtual void setLinkedMdiChild(iAMdiChild* mdiChild) = 0;
 public slots:
@@ -161,12 +160,16 @@ signals:
 	void dblClicked();
 	void updateSignal();
 	void userInteraction();
-	void leftClicked(int x, int y, int z);
-	void rightClicked(int x, int y, int z);
-	void released(int x, int y, int z);
 	//! Triggered on mouse move, sends x,y,z (world) coordinates and mode of slicer
-	void oslicerPos(double x, double y, double z, int mode);
-	void leftDragged(int x, int y, int z);
+	void mouseMoved(double x, double y, double z, int mode);
+	//! Triggered on mouse move with left button clicked
+	void leftDragged(double x, double y, double z);
+	//! Triggered on mouse left button clicked
+	void leftClicked(double x, double y, double z);
+	//! Triggered on mouse button released
+	void leftReleased(double x, double y, double z);
+	//! Triggered on mouse right button clicked
+	void rightClicked(double x, double y, double z);
 	//! triggered when slice number changed.
 	//! @param mode slicer mode (=plane)
 	//! @param sliceNumber number of the slice that was switched to

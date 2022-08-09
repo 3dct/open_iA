@@ -254,9 +254,6 @@ public:
 	int  magicLensFrameWidth() const;
 	//! @}
 
-	//! Current coordinate position (in world coordinates, i.e. not pixel coordinates)
-	double const * position() const override;
-
 	iAMainWindow* mainWnd() override;
 	//! Apply current volume settings to all modalities in the current list in dlg_modalities.
 	void applyVolumeSettings(const bool loadSavedVolumeSettings);
@@ -454,8 +451,6 @@ private:
 	MainWindow * m_mainWnd;
 	QFileInfo m_fileInfo;
 	QString m_curFile, m_path;
-	
-	double m_position[3];  //!< current "position" in "scene" (in world coordinates).
 
 	QByteArray m_beforeMaximizeState;
 	QDockWidget* m_whatMaximized;
