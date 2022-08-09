@@ -42,6 +42,7 @@
 #include <QString>
 #include <QSharedPointer>
 
+#include <array>
 #include <functional>
 #include <vector>
 

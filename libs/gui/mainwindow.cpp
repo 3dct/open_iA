@@ -1944,8 +1944,6 @@ iAMdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	connect(child, &MdiChild::noPointSelected, this, &MainWindow::noPointSelected);
 	connect(child, &MdiChild::endPointSelected, this, &MainWindow::endPointSelected);
 	connect(child, &MdiChild::closed, this, &MainWindow::childClosed);
-
-	m_moduleDispatcher->ChildCreated(child);
 	return child;
 }
 

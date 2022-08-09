@@ -532,8 +532,9 @@ void iASlicerImpl::saveMovie()
 void iASlicerImpl::setSliceNumber( int sliceNumber )
 {
 	// TODO: set slice position (in scene coordinates) instead of number
-	//       then we wouldn'T need image spacing and origin below
+	//       then we wouldn't need image spacing and origin below
 	//       (which don't make too much sense anyway, if it's not the same between loaded datasets)
+	// also, maybe clamp to boundaries of all currently loaded datasets?
 	if (!hasChannel(0))
 	{
 		return;
@@ -1319,17 +1320,7 @@ void iASlicerImpl::execute(vtkObject * /*caller*/, unsigned long eventId, void *
 			executeKeyPressEvent();
 		}
 		break;
-	case vtkCommand::KeyReleaseEvent:
-		if (m_renWin->GetInteractor()->GetKeyCode() == 'p')
-		{
-			emit pick();
-		}
-		break;
 	default:
-		if (m_renWin->GetInteractor()->GetKeyCode() == 'p')
-		{
-			emit pick();
-		}
 		break;
 	}
 

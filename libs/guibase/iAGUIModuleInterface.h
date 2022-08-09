@@ -49,9 +49,6 @@ public:
 	virtual void Initialize() = 0;		// TODO: split up into GUI part and other?
 	//! Override to store custom settings of this module; called when program is shut down.
 	virtual void SaveSettings() const;
-	//! Called whenever an iAMdiChild object is created. Override to react on this.
-	// TODO: get rid of this, only one module is using it!
-	virtual void ChildCreated(iAMdiChild* child);
 	//! Get an attachment of an mdi child; the type of attachment is given by the templated type.
 	//! Call by explicitly specifying a type, e.g. `auto attach = GetAttachment<iAMyModuleAttachment>();`
 	//!     @param child the child window to check for attachments

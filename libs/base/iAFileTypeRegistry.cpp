@@ -78,8 +78,12 @@ QString iAFileTypeRegistry::registeredFileTypes(iADataSetTypes allowedTypes)
 	for (auto ioFactory : m_fileIOs)  // all registered file types
 	{
 		auto io = ioFactory->create();
+#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
+		if ( (io->supportedDataSetTypes() & allowedTypes) == 0 )
+#else
 		if (!io->supportedDataSetTypes().testAnyFlags(allowedTypes))
-		{
+#endif
+		{   // current I/O does not support any of the allowed types
 			continue;
 		}
 		auto extCpy = io->extensions();

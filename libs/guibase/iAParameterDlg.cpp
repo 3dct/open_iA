@@ -41,6 +41,7 @@
 #include <QLineEdit>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QScreen>
 #include <QSpinBox>
 #include <QScrollArea>
 #include <QTextBrowser>

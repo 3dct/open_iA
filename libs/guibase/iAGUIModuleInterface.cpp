@@ -72,10 +72,6 @@ void iAGUIModuleInterface::PrepareActiveChild()
 
 void iAGUIModuleInterface::SaveSettings() const {}
 
-void iAGUIModuleInterface::ChildCreated(iAMdiChild * /*child*/)
-{
-}
-
 iAGUIModuleInterface::~iAGUIModuleInterface()
 {
 	for( int i = 0; i < m_attachments.size(); ++i )

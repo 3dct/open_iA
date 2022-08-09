@@ -174,10 +174,8 @@ double iAImageTreeLeaf::GetProbabilityValue(int l, double x, double y, double z)
 		return 0;
 	}
 	double worldCoord[3] = { x, y, z };
-	double voxelCoord[3];
 	auto itkImg = m_singleResult->probabilityImg(l).GetPointer();
-	mapWorldToVoxelCoords(itkImg, worldCoord, voxelCoord);
-	itk::Index<3> idx; idx[0] = voxelCoord[0]; idx[1] = voxelCoord[1]; idx[2] = voxelCoord[2];
+	auto idx = mapWorldCoordsToIndex(itkImg, worldCoord);
 	// probably very inefficient - dynamic cast involved!
 	return dynamic_cast<ProbabilityImageType*>(itkImg)->GetPixel(idx);
 }

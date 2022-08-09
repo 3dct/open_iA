@@ -36,7 +36,6 @@
 
 class iAFilterRunnerGUI;
 class iALogger;
-class iAMdiChild;
 class iAMainWindow;
 
 class QFileInfo;
@@ -72,7 +71,6 @@ public:
 	void SaveModulesSettings() const;
 	iAMainWindow * mainWnd() const;
 	template <typename T> T* module();
-	void ChildCreated(iAMdiChild* child);
 private slots:
 	void executeFilter();
 	void removeFilter();

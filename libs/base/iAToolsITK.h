@@ -52,7 +52,8 @@ iAbase_API void storeImage(iAITKIO::ImagePtr image, QString const & filename, bo
 //! @param img a VTK image
 //! @param worldCoord world (=scene) coordinates (3 components: x, y, z)
 //! @param voxelCoord place for storing 3 components of voxel coordinates in img for the given world coordinates (clamped)
-iAbase_API void mapWorldToVoxelCoords(iAITKIO::ImagePointer img, double const* worldCoord, double* voxelCoord);
+iAbase_API itk::Index<3> mapWorldCoordsToIndex(iAITKIO::ImagePointer img, double const* worldCoord);
+iAbase_API void mapWorldToVoxelCoords(iAITKIO::ImagePointer img, double const* worldCoord, double * voxelCoord);
 
 //! @{
 //! Generic access to pixels of any ITK image as double.

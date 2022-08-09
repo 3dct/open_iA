@@ -319,18 +319,6 @@ iAMainWindow * iAModuleDispatcher::mainWnd() const
 	return m_mainWnd;
 }
 
-void iAModuleDispatcher::ChildCreated(iAMdiChild* child)
-{
-	// notify all modules that a new child was created:
-	for (iALoadedModule m : m_loadedModules)
-	{
-		if (dynamic_cast<iAGUIModuleInterface*>(m.moduleInterface))
-		{
-			dynamic_cast<iAGUIModuleInterface*>(m.moduleInterface)->ChildCreated(child);
-		}
-	}
-}
-
 iAMainWindow* iAMainWindow::m_mainWnd = nullptr;
 
 iAMainWindow* iAMainWindow::get()

@@ -242,24 +242,43 @@ iAITKIO::ImagePointer allocateImage(int const size[iAITKIO::m_DIM], double const
 	return result;
 }
 
-
 void storeImage(iAITKIO::ImagePtr image, QString const & filename, bool useCompression)
 {
 	iAITKIO::writeFile(filename, image, itkScalarPixelType(image), useCompression);
 }
 
-void mapWorldToVoxelCoords(iAITKIO::ImagePointer img, double const* worldCoord, double* voxelCoord)
+itk::Index<3> mapWorldCoordsToIndex(iAITKIO::ImagePointer img, double const* worldCoord)
 {
 	auto imgSpacing = img->GetSpacing();
 	auto imgOrigin = img->GetOrigin();
-	auto imgExtent = img->GetLargestPossibleRegion().GetSize();
+	auto voxelStart = img->GetLargestPossibleRegion().GetIndex();
+	auto voxelSize = img->GetLargestPossibleRegion().GetSize();
+	// coords will contain voxel coordinates for the given channel
+	itk::Index<3> idx;
+	for (int i = 0; i < 3; ++i)
+	{
+		unsigned long long minIdx = voxelStart[i];
+		auto maxIdx = voxelStart[i] + voxelSize[i] - 1;
+		auto value = static_cast<itk::SizeValueType>((worldCoord[i] - imgOrigin[i]) / imgSpacing[i] + 0.5);// + 0.5 to correct for BorderOn
+		idx[i] = clamp(minIdx, maxIdx, value);
+	}
+	return idx;
+	// TODO: check for negative origin images!
+}
+
+void mapWorldToVoxelCoords(iAITKIO::ImagePointer img, double const* worldCoord, double * voxelCoord)
+{
+	auto imgSpacing = img->GetSpacing();
+	auto imgOrigin = img->GetOrigin();
+	auto voxelStart = img->GetLargestPossibleRegion().GetIndex();
+	auto voxelSize = img->GetLargestPossibleRegion().GetSize();
 	// coords will contain voxel coordinates for the given channel
 	for (int i = 0; i < 3; ++i)
 	{
-		voxelCoord[i] = clamp(
-			static_cast<double>(imgExtent[i * 2]),
-			imgExtent[i * 2 + 1] + 1 - std::numeric_limits<double>::epsilon(),
-			(worldCoord[i] - imgOrigin[i]) / imgSpacing[i] + 0.5);	// + 0.5 to correct for BorderOn
+		auto minIdx = static_cast<double>(voxelStart[i]);
+		auto maxIdx = static_cast<double>(voxelStart[i] + voxelSize[i]) - std::numeric_limits<double>::epsilon();
+		auto value = (worldCoord[i] - imgOrigin[i]) / imgSpacing[i] + 0.5;	// + 0.5 to correct for BorderOn
+		voxelCoord[i] = clamp(minIdx, maxIdx, value);
 	}
 	// TODO: check for negative origin images!
 }
