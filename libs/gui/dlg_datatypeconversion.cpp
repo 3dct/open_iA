@@ -22,7 +22,7 @@
 
 // guibase
 #include <iAQVTKWidget.h>
-#include <io/iARawFileParameters.h>
+#include <iARawFileParameters.h>
 
 // charts
 #include <iAChartWidget.h>
