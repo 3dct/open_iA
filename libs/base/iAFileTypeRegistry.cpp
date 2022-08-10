@@ -176,12 +176,19 @@ void iAFileTypeRegistry::setupDefaultIOFactories()
 
 #include "defines.h"
 #include "iADataSet.h"
-#include <iAFileUtils.h>
+#include "iAFileUtils.h"
 #include "iAProgress.h"
-//#include "iAToolsVTK.h"
 
+#define VTK 0
+#define ITK 1
+
+#define META_LOAD_METHOD VTK
+#if META_LOAD_METHOD == VTK
 #include <vtkImageData.h>
 #include <vtkMetaImageReader.h>
+#else
+#include "iAToolsVTK.h"
+#endif
 
 #include <QElapsedTimer>
 #include <QFileInfo>
@@ -195,12 +202,8 @@ std::shared_ptr<iADataSet> iAMetaFileIO::load(iAProgress* p, QMap<QString, QVari
 	Q_UNUSED(parameters);
 	QElapsedTimer t;
 	t.start();
-	/*
-	// using iAToolsVTK:
-	auto img = vtkSmartPointer<vtkImageData>::New();
-	readImage(m_fileName, true, img);
-	// duration: ~400ms
-	*/
+
+#if META_LOAD_METHOD == VTK
 	vtkNew<vtkMetaImageReader> reader;
 	p->observe(reader);
 	//reader->SetFileName(m_fileName.toStdString().c_str());
@@ -209,6 +212,18 @@ std::shared_ptr<iADataSet> iAMetaFileIO::load(iAProgress* p, QMap<QString, QVari
 	reader->ReleaseDataFlagOn();
 	auto img = reader->GetOutput();
 	// duration: 362,362,368,368,383 ms
+#else
+	Q_UNUSED(p);
+	auto img = vtkSmartPointer<vtkImageData>::New();
+	readImage(m_fileName, true, img);    //< using iAToolsVTK
+	// duration: ~400ms
+#endif
+
+	// new tests with large dataset (D:\TestDatasets\large\CFK-Probe_Stahlstift_10xavg_freebeam_448proj.raw):
+	//
+	// VTK: 50571(ignore, caching...), 4484, 4477, 4529 ms
+	// ITK (using readImage from iAToolsVTK): 5876 (ignore), 5877, 5760, 5746 ms
+	// -> VTK consistently faster!
 
 	auto ret = std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, img);
 	LOG(lvlInfo, QString("Elapsed: %1 ms.").arg(t.elapsed()));
@@ -482,9 +497,9 @@ QStringList iAAmiraVolumeFileIO::extensions() const
 
 #include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType, readableDataTypes, ...
 
-#define RAW_LOAD_WAY ITK
+#define RAW_LOAD_METHOD ITK
 
-#if RAW_LOAD_WAY == ITK
+#if RAW_LOAD_METHOD == ITK
 #include "iAConnector.h"
 #include "iARawFileParameters.h"
 #include "iATypedCallHelper.h"
@@ -492,6 +507,8 @@ QStringList iAAmiraVolumeFileIO::extensions() const
 #include <itkImage.h>
 #include <itkRawImageIO.h>
 #include <itkImageFileReader.h>
+
+#include <vtkImageData.h>
 #else // VTK
 #include <vtkImageReader2.h>
 #endif
@@ -514,7 +531,7 @@ iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::Volume)
 	addParameter("Byte Order", iAValueType::Categorical, byteOrders);
 }
 
-#if RAW_LOAD_WAY == ITK
+#if RAW_LOAD_METHOD == ITK
 template <class T>
 void read_raw_image_template(iARawFileParameters const& params, QString const& fileName, iAProgress* progress, iAConnector& image)
 {
@@ -573,7 +590,7 @@ std::shared_ptr<iADataSet> iARawFileIO::load(iAProgress* p, QMap<QString, QVaria
 	rawFileParams.m_scalarType = mapReadableDataTypeToVTKType(parameters["Data Type"].toString());
 	rawFileParams.m_byteOrder = mapReadableByteOrderToVTKType(parameters["Byte Order"].toString());
 
-#if RAW_LOAD_WAY == ITK
+#if RAW_LOAD_METHOD == ITK
 	VTK_TYPED_CALL(read_raw_image_template, rawFileParams.m_scalarType, rawFileParams, m_fileName, p, con);
 	// we need a deep copy here, this causes a crash further down the line:
 	// auto img = con.vtkImage();
