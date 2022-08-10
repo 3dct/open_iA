@@ -26,7 +26,7 @@ class iAExtractComponent : public iAFilter
 {
 public:
 	static QSharedPointer<iAExtractComponent> create();
-	void adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img) override;
+	void adaptParametersToInput(QMap<QString, QVariant>& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
 
 private:
 	void performWork(QMap<QString, QVariant> const& parameters) override;
@@ -37,7 +37,7 @@ class iASimpleResampleFilter : public iAFilter
 {
 public:
 	static QSharedPointer<iASimpleResampleFilter> create();
-	void adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img) override;
+	void adaptParametersToInput(QMap<QString, QVariant>& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
 private:
 	void performWork(QMap<QString, QVariant> const& parameters) override;
 	iASimpleResampleFilter();
@@ -47,7 +47,7 @@ class iAResampleFilter : public iAFilter
 {
 public:
 	static QSharedPointer<iAResampleFilter> create();
-	void adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img) override;
+	void adaptParametersToInput(QMap<QString, QVariant>& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
 private:
 	void performWork(QMap<QString, QVariant> const& parameters) override;
 	iAResampleFilter();
@@ -57,7 +57,7 @@ class iAExtractImageFilter : public iAFilter
 {
 public:
 	static QSharedPointer<iAExtractImageFilter> create();
-	void adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img) override;
+	void adaptParametersToInput(QMap<QString, QVariant>& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
 private:
 	void performWork(QMap<QString, QVariant> const& parameters) override;
 	iAExtractImageFilter();

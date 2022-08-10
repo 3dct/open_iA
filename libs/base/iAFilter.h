@@ -39,6 +39,7 @@
 #include <memory>
 
 class iAConnector;
+class iADataSet;
 class iALogger;
 class iAProgress;
 
@@ -104,7 +105,7 @@ public:
 	//! only used from GUI for the moment
 	//! if feature is implemented where parameters can be omitted (on command line),
 	//! this could later also be used to provide useful defaults for parameters that need to adapt to input image
-	virtual void adaptParametersToInput(QMap<QString, QVariant>& parameters, vtkSmartPointer<vtkImageData> img);
+	virtual void adaptParametersToInput(QMap<QString, QVariant>& parameters, std::vector<std::shared_ptr<iADataSet>> const & dataSets);
 	//! Check whether the filter can be run with the given parameters. If
 	//! you need to perform special checks on your parameters, override this
 	//! method. The standard implementation here just checks parameters with

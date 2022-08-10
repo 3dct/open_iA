@@ -324,6 +324,8 @@ public:
 
 	void set3DControlVisibility(bool visible) override;
 
+	std::vector<std::shared_ptr<iADataSet>> const & dataSets() const override;
+
 public slots:
 	void maximizeRC();
 	//! @{ @deprecated not required

@@ -22,6 +22,7 @@
 
 #include <defines.h>          // for DIM
 #include <iAConnector.h>
+#include <iADataSet.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
@@ -71,9 +72,10 @@ iAExtractComponent::iAExtractComponent() :
 	addParameter("Component to extract", iAValueType::Discrete, 1, 1, 1);
 }
 
-void iAExtractComponent::adaptParametersToInput(QMap<QString, QVariant>& /* params */, vtkSmartPointer<vtkImageData> img)
+void iAExtractComponent::adaptParametersToInput(QMap<QString, QVariant>& /* params */, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
 {
-	paramsWritable()[0]->adjustMinMax(img->GetNumberOfScalarComponents());
+	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
+	paramsWritable()[0]->adjustMinMax(dynamic_cast<iAImageData*>(dataSets[0].get())->image()->GetNumberOfScalarComponents());
 }
 
 
@@ -166,8 +168,10 @@ iASimpleResampleFilter::iASimpleResampleFilter() :
 	addParameter("Interpolator", iAValueType::Categorical, interpolators);
 }
 
-void iASimpleResampleFilter::adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img)
+void iASimpleResampleFilter::adaptParametersToInput(QMap<QString, QVariant>& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
 {
+	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
+	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->image();
 	params["Size X"] = img->GetDimensions()[0];
 	params["Size Y"] = img->GetDimensions()[1];
 	params["Size Z"] = img->GetDimensions()[2];
@@ -263,8 +267,10 @@ iAResampleFilter::iAResampleFilter() :
 	addParameter("Interpolator", iAValueType::Categorical, interpolators);
 }
 
-void iAResampleFilter::adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img)
+void iAResampleFilter::adaptParametersToInput(QMap<QString, QVariant>& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
 {
+	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
+	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->image();
 	params["Spacing X"] = img->GetSpacing()[0];
 	params["Spacing Y"] = img->GetSpacing()[1];
 	params["Spacing Z"] = img->GetSpacing()[2];
@@ -319,9 +325,10 @@ iAExtractImageFilter::iAExtractImageFilter() :
 	addParameter("Size Z", iAValueType::Discrete, 1, 1);
 }
 
-void iAExtractImageFilter::adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img)
+void iAExtractImageFilter::adaptParametersToInput(QMap<QString, QVariant>& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
 {
-	int const* dim = img->GetDimensions();
+	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
+	int const* dim = dynamic_cast<iAImageData*>(dataSets[0].get())->image()->GetDimensions();
 	if (params["Index X"].toUInt() >= static_cast<unsigned int>(dim[0]))
 	{
 		params["Index X"] = 0;

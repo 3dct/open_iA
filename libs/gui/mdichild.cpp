@@ -2842,6 +2842,11 @@ void MdiChild::set3DControlVisibility(bool visible)
 	m_dwRenderer->widget3D->setVisible(visible);
 }
 
+std::vector<std::shared_ptr<iADataSet>> const & MdiChild::dataSets() const
+{
+	return m_dataSets;
+}
+
 void MdiChild::displayHistogram(int modalityIdx)
 {
 	if (modalityIdx < 0 || modalityIdx >= modalities()->size())
@@ -3022,8 +3027,7 @@ void MdiChild::saveFinished()
 
 bool MdiChild::isFullyLoaded() const
 {
-	int const* dim = m_imageData->GetDimensions();
-	return dim[0] > 0 && dim[1] > 0 && dim[2] > 0;
+	return m_dataSets.size() > 0;
 }
 
 void MdiChild::styleChanged()

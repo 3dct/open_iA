@@ -228,10 +228,10 @@ bool iAFilter::run(QMap<QString, QVariant> const & parameters)
 	return true;
 }
 
-void iAFilter::adaptParametersToInput(QMap<QString, QVariant>& parameters, vtkSmartPointer<vtkImageData> img)
+void iAFilter::adaptParametersToInput(QMap<QString, QVariant>& parameters, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
 {
 	Q_UNUSED(parameters);
-	Q_UNUSED(img);
+	Q_UNUSED(dataSets);
 }
 
 bool iAFilter::checkParameters(QMap<QString, QVariant> const & parameters)
