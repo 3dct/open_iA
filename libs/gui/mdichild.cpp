@@ -244,8 +244,11 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	connect(m_dataSetListWidget, &iADataSetListWidget::set2DVisibility, this,
 		[this](int idx, int visibility)
 		{
-			m_sliceRenderers[idx]->setVisible(visibility);
-			updateSlicers();
+			if (m_sliceRenderers[idx])
+			{
+				m_sliceRenderers[idx]->setVisible(visibility);
+				updateSlicers();
+			}
 		});
 	connect(m_dataSetListWidget, &iADataSetListWidget::setPickable, this,
 		[this](int idx, int visibility)
