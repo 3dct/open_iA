@@ -203,7 +203,7 @@ public:
 	//! Retrieve the name of the input image with given index.
 	QString inputName(unsigned int i) const;
 	//! Retrieve the name of the output image with given index.
-	QString outputName(unsigned int i, QString defaultName=QString()) const;
+	QString outputName(unsigned int i) const;
 	//! Abort the filter.
 	void abort() override;
 	//! Whether the filter supports aborting

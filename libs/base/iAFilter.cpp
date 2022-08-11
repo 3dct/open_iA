@@ -406,23 +406,13 @@ void iAFilter::setInputName(unsigned int i, QString const & name)
 	m_inputNames.insert(i, name);
 }
 
-QString iAFilter::outputName(unsigned int i, QString defaultName) const
+QString iAFilter::outputName(unsigned int i) const
 {
-	if (m_outputNames.contains(i))
-	{
-		return m_outputNames[i];
-	}
-	else
-	{
-		if (!defaultName.isEmpty())
-		{
-			return defaultName;
-		}
-		else
-		{
-			return QString("Out %1").arg(i);
-		}
-	}
+	return m_outputNames.contains(i) ?
+		m_outputNames[i] :
+		QString("%1%2")
+		.arg(name())
+		.arg(m_outputCount > 1 ? QString("-Output%2").arg(i) : "");
 }
 
 void iAFilter::abort()

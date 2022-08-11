@@ -297,7 +297,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainW
 
 	QString oldTitle(sourceMdi ? sourceMdi->windowTitle() : "");
 	oldTitle = oldTitle.replace("[*]", "").trimmed();
-	QString newTitle(filter->outputName(0, filter->name()) + " " + oldTitle);
+	QString newTitle(filter->outputName(0) + " " + oldTitle);
 	auto const & dataSets = sourceMdi->dataSets();
 	m_sourceFileName = sourceMdi ? dataSets[0]->fileName() : "";
 
@@ -372,14 +372,10 @@ void iAFilterRunnerGUI::filterFinished()
 			// (disregarding that a smart pointer still points to it...)
 			// so let's copy it to be on the safe side!
 			img->DeepCopy(filter->output(p)->vtkImage());
-			QString outputName = filter->outputName(p, QString("Out%1").arg(p));
-			auto filterNameSaveForFilename = filter->name().replace(QRegularExpression("[\\\\/:*?\"<>| ]"), "_");
+			QString outputName = filter->outputName(p);
+			auto filterNameSaveForFilename = outputName.replace(QRegularExpression("[\\\\/:*?\"<>| ]"), "_");
 			QString suggestedFileName = sourceFI.absolutePath() + "/" + sourceFI.completeBaseName() + "-" +
 				filterNameSaveForFilename;
-			if (filter->finalOutputCount() > 1)
-			{
-				suggestedFileName += QString::number(p);
-			}
 			suggestedFileName += "." + sourceFI.suffix();
 			auto dataSet = std::make_shared<iAImageData>(outputName, suggestedFileName, img);
 			newChild->addDataSet(dataSet);
