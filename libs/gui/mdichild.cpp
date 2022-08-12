@@ -307,8 +307,8 @@ void MdiChild::slicerVisibilityChanged(int mode)
 	if (m_renderSettings.ShowSlicePlanes)
 	{
 		m_renderer->showSlicePlane(mode, m_slicerVisibility[mode]);
+		m_renderer->update();
 	}
-	m_renderer->update();
 }
 
 void MdiChild::connectSignalsToSlots()

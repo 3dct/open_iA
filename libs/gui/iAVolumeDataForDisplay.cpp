@@ -70,8 +70,6 @@ void iAVolumeDataForDisplay::show(iAMdiChild* child)
 	// show histogram
 	QString histoName = "Histogram " + dataSet()->name();
 	m_histogram = new iAChartWithFunctionsWidget(child, histoName, "Frequency");
-	QObject::connect(m_histogram, &iAChartWithFunctionsWidget::transferFunctionChanged,
-		child, &iAMdiChild::changeTransferFunction);
 
 	auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(
 		m_histogramData,
@@ -83,6 +81,9 @@ void iAVolumeDataForDisplay::show(iAMdiChild* child)
 	static int histoNum = -1;
 	m_histogramDW = std::make_shared<iADockWidgetWrapper>(m_histogram, histoName, QString("Histogram%1").arg(++histoNum));
 	child->splitDockWidget(child->renderDockWidget(), m_histogramDW.get(), Qt::Vertical);
+
+	QObject::connect(m_histogram, &iAChartWithFunctionsWidget::transferFunctionChanged,
+		child, &iAMdiChild::changeTransferFunction);
 }
 
 iAModalityTransfer* iAVolumeDataForDisplay::transfer()

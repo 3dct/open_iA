@@ -567,6 +567,7 @@ void iARendererImpl::update()
 {   // just to be on the safe side, we abort if widget is not fully initialized; calling below Render() methods
 	if (!m_initialized)    // before that leads to display problems for the whole application
 	{                      // (no more proper redrawing, whole application window turns black on resize)
+		LOG(lvlWarn, "Invalid call to update() on an uninitialized iARendererImpl");
 		return;
 	}
 	if (m_polyData)
@@ -960,7 +961,6 @@ void iARendererImpl::applySettings(iARenderSettings const & settings, bool slice
 	{
 		showSlicePlane(i, settings.ShowSlicePlanes && slicePlaneVisibility[i]);
 	}
-	//renWin->Render();
 }
 
 void iARendererImpl::setBackgroundColors(iARenderSettings const& settings)
