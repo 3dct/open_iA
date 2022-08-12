@@ -952,7 +952,7 @@ void iARendererImpl::applySettings(iARenderSettings const & settings, bool slice
 	m_ren->SetMaximumNumberOfPeels(settings.DepthPeels);
 	m_ren->SetOcclusionRatio(settings.OcclusionRatio);
 	m_ren->SetUseFXAA(settings.UseFXAA);
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 0, 0)
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
 	m_ren->SetUseSSAO(settings.UseSSAO);
 #endif
 	m_renWin->SetMultiSamples(settings.MultiSamples);
