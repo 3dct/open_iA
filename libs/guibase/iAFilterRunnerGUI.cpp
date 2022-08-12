@@ -373,9 +373,9 @@ void iAFilterRunnerGUI::filterFinished()
 			// so let's copy it to be on the safe side!
 			img->DeepCopy(filter->output(p)->vtkImage());
 			QString outputName = filter->outputName(p);
-			auto filterNameSaveForFilename = outputName.replace(QRegularExpression("[\\\\/:*?\"<>| ]"), "_");
+			auto outputNameSaveForFilename = outputName.replace(QRegularExpression("[\\\\/:*?\"<>| ]"), "_");
 			QString suggestedFileName = sourceFI.absolutePath() + "/" + sourceFI.completeBaseName() + "-" +
-				filterNameSaveForFilename;
+				outputNameSaveForFilename;
 			suggestedFileName += "." + sourceFI.suffix();
 			auto dataSet = std::make_shared<iAImageData>(outputName, suggestedFileName, img);
 			newChild->addDataSet(dataSet);

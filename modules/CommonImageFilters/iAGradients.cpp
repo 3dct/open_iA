@@ -60,7 +60,7 @@ iAGradientMagnitude::iAGradientMagnitude() :
 	iAFilter("Gradient Magnitude", "Gradient",
 		"Computes the gradient magnitude at each image element.<br/>"
 		"If <em>Use Image Spacing</em> is enabled, the gradient is calculated in the physical space; "
-		"if it not enabled, the gradient is calculated in pixel space.<br/>"
+		"if it is not enabled, the gradient is calculated in pixel space.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GradientMagnitudeImageFilter.html\">"
 		"Gradient Magnitude Filter</a> in the ITK documentation.")
