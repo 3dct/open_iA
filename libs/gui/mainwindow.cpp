@@ -553,21 +553,22 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 	}
 	, [this, d, p, child]()
 	{
-		
-		if (d->data)
+		if (!d->data)
 		{
-			iAMdiChild* targetChild = child;
-			if (!targetChild)
-			{
-				targetChild = createMdiChild(false);
-				// TODO: check if we need to apply preferences...
-				//dynamic_cast<MdiChild*>(targetChild)->applyPreferences(m_defaultPreferences);
-				targetChild->applyRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
-				targetChild->show();
-			}
-			setCurrentFile(d->data->fileName());
-			targetChild->addDataSet(d->data);
+			LOG(lvlError, QString("No data loaded, nothing to finish up."));
+			return;
 		}
+		iAMdiChild* targetChild = child;
+		if (!targetChild)
+		{
+			targetChild = createMdiChild(false);
+			// TODO: check if we need to apply preferences...
+			//dynamic_cast<MdiChild*>(targetChild)->applyPreferences(m_defaultPreferences);
+			targetChild->applyRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
+			targetChild->show();
+		}
+		setCurrentFile(d->data->fileName());
+		targetChild->addDataSet(d->data);
 	}
 	, this);
 	iAJobListView::get()->addJob(QString("Loading file '%1'").arg(fileName), p.get(), future);
