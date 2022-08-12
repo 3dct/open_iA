@@ -977,6 +977,7 @@ void iARendererImpl::setBackgroundColors(iARenderSettings const& settings)
 	}
 	m_ren->SetBackground2(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
 	m_ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
+	emit bgColorChanged(bgTop, bgBottom);
 }
 
 void iARendererImpl::emitSelectedCells(vtkUnstructuredGrid* selectedCells)

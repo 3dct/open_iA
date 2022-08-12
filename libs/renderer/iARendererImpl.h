@@ -31,6 +31,7 @@
 #include <vtkSmartPointer.h>
 
 #include <QObject>
+#include <QColor>    // for signal support of QColor (parameters to bgColorChanged)
 
 #include <vector>
 
@@ -174,6 +175,7 @@ signals:
 	void reInitialized();
 	void onSetupRenderer();
 	void onSetCamera();
+	void bgColorChanged(QColor bgTop, QColor bgBottom);
 
 public slots:
 	void mouseRightButtonReleasedSlot();

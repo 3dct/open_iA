@@ -178,6 +178,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_parametricSpline->SetPoints(m_worldSnakePoints);
 
 	m_renderer = new iARendererImpl(this, dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_dwRenderer->vtkWidgetRC->renderWindow()));
+	connect(m_renderer, &iARendererImpl::bgColorChanged, m_dwRenderer->vtkWidgetRC, &iAAbstractMagicLensWidget::setLensBackground);
 	m_renderer->setAxesTransform(m_axesTransform);
 
 	m_dwModalities = new dlg_modalities(m_dwRenderer->vtkWidgetRC, m_renderer->renderer(), this);

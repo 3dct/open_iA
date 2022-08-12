@@ -48,6 +48,8 @@ public:
 	void setViewMode( ViewMode mode );
 	bool isMagicLensEnabled() const;
 
+	void setLensBackground(QColor bgTop, QColor bgBottom);
+
 signals:
 	void mouseMoved();
 	void touchStart();
