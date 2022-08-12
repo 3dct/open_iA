@@ -46,13 +46,10 @@ iAFast3DMagicLensWidget::~iAFast3DMagicLensWidget()
 void iAFast3DMagicLensWidget::updateLens()
 {
 	iAAbstractMagicLensWidget::updateLens();
-	// preparations
-
 	if (renderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
 	{
 		return;
 	}
-
 	vtkCamera * mainCam = renderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
 	vtkCamera * magicLensCam = m_lensRen->GetActiveCamera();
 

@@ -175,6 +175,7 @@ enum iACameraPosition
 	Iso
 };
 
+//! set camera position to one of the predefined positions available in iACameraPosition
 iAbase_API void setCamPosition(vtkCamera* cam, iACameraPosition mode);
 
 // maybe better in iALUT (but that is in charts library -> move that to separate colors lib? to base?)

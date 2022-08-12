@@ -56,7 +56,8 @@ signals:
 	void touchScale(float relScale);
 
 protected:
-	void mouseMoveEvent( QMouseEvent * event ) override;
+	void mouseMoveEvent(QMouseEvent * event) override;
+	void wheelEvent(QWheelEvent* event) override;
 	bool event(QEvent* event) override;
 	virtual void updateLens( );
 	virtual void updateGUI( );

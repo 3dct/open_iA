@@ -115,13 +115,26 @@ void iAAbstractMagicLensWidget::setViewMode( ViewMode mode )
 
 void iAAbstractMagicLensWidget::mouseMoveEvent( QMouseEvent * event )
 {
-	iAVtkWidget::mouseMoveEvent( event );
-	int* pos = interactor()->GetEventPosition();
-	m_pos[0] = pos[0]; m_pos[1] = pos[1];
-	updateLens( );
-	updateGUI( );
+	iAVtkWidget::mouseMoveEvent(event);
+	if (m_magicLensEnabled)
+	{
+		int* pos = interactor()->GetEventPosition();
+		m_pos[0] = pos[0]; m_pos[1] = pos[1];
+		updateLens();
+		updateGUI();
+		renderWindow()->Render();
+	}
 	emit mouseMoved();
-	renderWindow()->Render();
+}
+
+void iAAbstractMagicLensWidget::wheelEvent(QWheelEvent* event)
+{
+	iAVtkWidget::wheelEvent(event);
+	if (m_magicLensEnabled)
+	{
+		updateLens();
+		renderWindow()->Render();
+	}
 }
 
 bool iAAbstractMagicLensWidget::event(QEvent* event)
