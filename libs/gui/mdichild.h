@@ -435,7 +435,6 @@ private:
 	void displayHistogram(int modalityIdx);
 	//! if available, show histogram (i.e. does not trigger computation, as displayHistogram does)
 	void showHistogram(int modalityIdx);
-	int  currentModality() const;
 	void initModalities();
 	void initVolumeRenderers();
 	void slicerVisibilityChanged(int mode);
@@ -524,9 +523,7 @@ private:
 	//! @deprecated should be referenced in wherever image is stored, e.g. in iAIO)
 	vtkSmartPointer<vtkImageData> m_tmpSaveImg;
 
-	int m_currentModality;
-	int m_currentComponent;
-	int m_currentHistogramModality;
+	int m_magicLensModality;
 	bool m_initVolumeRenderers;
 	int m_storedModalityNr;		                                     //!< modality nr being stored
 	QMap<QString, QSharedPointer<iAProjectBase>> m_projects;         //!< list of currently active "projects" (i.e. Tools)

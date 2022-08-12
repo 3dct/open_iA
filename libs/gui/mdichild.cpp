@@ -25,6 +25,7 @@
 #include "iADataForDisplay.h"
 #include "iAParametricSpline.h"
 #include "iAProfileProbe.h"
+#include "iAVolumeDataForDisplay.h"    // TODO: NewIO - move code using this somewhere else?
 #include "mainwindow.h"
 
 // renderer
@@ -141,9 +142,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_dwVolumePlayer(nullptr),
 	m_nextChannelID(0),
 	m_magicLensChannel(NotExistingChannel),
-	m_currentModality(0),
-	m_currentComponent(0),
-	m_currentHistogramModality(-1),
+	m_magicLensModality(0),
 	m_initVolumeRenderers(false),
 	m_interactionMode(imCamera)
 {
@@ -1557,12 +1556,12 @@ bool MdiChild::applyPreferences(iAPreferences const& prefs)
 	{
 		return true;
 	}
-	setHistogramModality(m_currentModality);	// to update Histogram bin count
+	setHistogramModality(m_magicLensModality);	// to update Histogram bin count
 	m_histogram->setYMappingMode(prefs.HistogramLogarithmicYAxis ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
 	applyViewerPreferences();
 	if (isMagicLens2DEnabled())
 	{
-		updateSlicers();
+		updateSlicers();  // for updating MagicLensSize, MagicLensFrameWidth
 	}
 	return true;
 }
@@ -1896,7 +1895,6 @@ bool MdiChild::isSliceProfileToggled(void) const
 void MdiChild::toggleMagicLens2D(bool isEnabled)
 {
 	m_isMagicLensEnabled = isEnabled;
-
 	if (isEnabled)
 	{
 		changeMagicLensModality(0);
@@ -2597,33 +2595,24 @@ bool MdiChild::isVolumeDataLoaded() const
 
 void MdiChild::changeMagicLensModality(int chg)
 {
-	if (!m_isMagicLensEnabled || modalities()->size() == 0)
+	// maybe move to slicer?
+	m_magicLensModality = (m_magicLensModality + chg + m_dataSets.size()) % m_dataSets.size();
+	if (!m_isMagicLensEnabled || m_dataSets.empty() || !dynamic_cast<iAImageData*>(m_dataSets[m_magicLensModality].get()))
 	{
 		return;
 	}
-	m_currentComponent = (m_currentComponent + chg);
-	if (m_currentComponent < 0 || static_cast<size_t>(m_currentComponent) >= modality(m_currentModality)->componentCount())
-	{
-		m_currentComponent = 0;
-		m_currentModality = (m_currentModality + chg + modalities()->size()) % (modalities()->size());
-	}
-	if (m_currentModality < 0 || m_currentModality >= modalities()->size())
-	{
-		LOG(lvlWarn, "Invalid modality index!");
-		m_currentModality = 0;
-		return;
-	}
+	// To check: support for multiple components in a vtk image? or separating those components?
+	auto imgData = dynamic_cast<iAImageData*>(m_dataSets[m_magicLensModality].get());
+	auto imgDisplayData = dynamic_cast<iAVolumeDataForDisplay*>(m_dataForDisplay[m_magicLensModality].get());
 	if (m_magicLensChannel == NotExistingChannel)
 	{
 		m_magicLensChannel = createChannel();
 	}
-	vtkSmartPointer<vtkImageData> img = modality(m_currentModality)->component(m_currentComponent);
 	channelData(m_magicLensChannel)->setOpacity(0.5);
-	QString name(modality(m_currentModality)->imageName(m_currentComponent));
+	QString name(imgData->name());
 	channelData(m_magicLensChannel)->setName(name);
-	updateChannel(m_magicLensChannel, img, m_dwModalities->colorTF(m_currentModality), m_dwModalities->opacityTF(m_currentModality), false);
+	updateChannel(m_magicLensChannel, imgData->image(), imgDisplayData->transfer()->colorTF(), imgDisplayData->transfer()->opacityTF(), false);
 	setMagicLensInput(m_magicLensChannel);
-	setHistogramModality(m_currentModality);	// TODO: don't change histogram, just read/create min/max and transfer function?
 }
 
 void MdiChild::changeMagicLensOpacity(int chg)
@@ -2655,19 +2644,13 @@ void MdiChild::changeMagicLensSize(int chg)
 	updateSlicers();
 }
 
-int MdiChild::currentModality() const
-{
-	return m_currentModality;
-}
-
 void MdiChild::showModality(int modIdx)
 {
-	if (m_currentModality == modIdx)
+	if (m_magicLensModality == modIdx)
 	{
 		return;
 	}
-	m_currentModality = modIdx;
-	m_currentComponent = 0;
+	m_magicLensModality = modIdx;
 	setHistogramModality(modIdx);
 }
 
@@ -2794,7 +2777,6 @@ void MdiChild::showHistogram(int modalityIdx)
 		return;
 	}
 	QString modalityName = modality(modalityIdx)->name();
-	m_currentHistogramModality = modalityIdx;
 	LOG(lvlDebug, QString("Displaying histogram for modality %1.").arg(modalityName));
 	m_histogram->removePlot(m_histogramPlot);
 	m_histogramPlot = QSharedPointer<iABarGraphPlot>::create(
