@@ -1564,8 +1564,6 @@ bool MdiChild::applyPreferences(iAPreferences const& prefs)
 	{
 		updateSlicers();
 	}
-	//emit preferencesChanged();
-
 	return true;
 }
 

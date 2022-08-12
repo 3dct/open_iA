@@ -319,8 +319,6 @@ public:
 	bool histogramComputed(size_t newBinCount, QSharedPointer<iAModality>) override;
 	void computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality>) override;
 	//! @}
-//signals:
-//	void preferencesChanged();
 
 	void set3DControlVisibility(bool visible) override;
 
