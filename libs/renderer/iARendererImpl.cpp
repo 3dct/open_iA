@@ -32,6 +32,7 @@
 #include "iARenderSettings.h"
 #include "iASlicerMode.h"
 #include "iAToolsVTK.h"    // for setCamPos
+#include "iAVtkVersion.h"
 
 #include <vtkActor.h>
 #include <vtkAnnotatedCubeActor.h>
@@ -949,9 +950,12 @@ void iARendererImpl::applySettings(iARenderSettings const & settings, bool slice
 	m_ren->SetUseDepthPeeling(settings.UseDepthPeeling);
 	m_ren->SetUseDepthPeelingForVolumes(settings.UseDepthPeeling);
 	m_ren->SetMaximumNumberOfPeels(settings.DepthPeels);
+	m_ren->SetOcclusionRatio(settings.OcclusionRatio);
 	m_ren->SetUseFXAA(settings.UseFXAA);
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 0, 0)
+	m_ren->SetUseSSAO(settings.UseSSAO);
+#endif
 	m_renWin->SetMultiSamples(settings.MultiSamples);
-	//m_ren->SetOcclusionRatio(0.0);
 	m_cam->SetParallelProjection(settings.ParallelProjection);
 	setSlicePlaneOpacity(settings.PlaneOpacity);
 	setBackgroundColors(settings);

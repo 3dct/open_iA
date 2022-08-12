@@ -963,6 +963,7 @@ void MainWindow::saveRenderSettings(iAXmlSettings &xml)
 	renderSettingsElement.setAttribute("multiSamples", m_defaultRenderSettings.MultiSamples);
 	renderSettingsElement.setAttribute("useDepthPeeling", m_defaultRenderSettings.UseDepthPeeling);
 	renderSettingsElement.setAttribute("depthPeels", m_defaultRenderSettings.DepthPeels);
+
 	renderSettingsElement.setAttribute("linearInterpolation", m_defaultVolumeSettings.LinearInterpolation);
 	renderSettingsElement.setAttribute("shading", m_defaultVolumeSettings.Shading);
 	renderSettingsElement.setAttribute("sampleDistance", m_defaultVolumeSettings.SampleDistance);
@@ -1257,6 +1258,7 @@ void MainWindow::renderSettings()
 	iAParameterDlg::ParamListT params;
 	addParameter(params, "Show slicers", iAValueType::Boolean, renderSettings.ShowSlicers);
 	addParameter(params, "Show slice planes", iAValueType::Boolean, renderSettings.ShowSlicePlanes);
+	addParameter(params, "Slice plane opacity", iAValueType::Continuous, renderSettings.PlaneOpacity, 0, 1);
 	addParameter(params, "Show helpers", iAValueType::Boolean, renderSettings.ShowHelpers);
 	addParameter(params, "Show position", iAValueType::Boolean, renderSettings.ShowRPosition);
 	addParameter(params, "Parallel projection", iAValueType::Boolean, renderSettings.ParallelProjection);
@@ -1266,7 +1268,10 @@ void MainWindow::renderSettings()
 	addParameter(params, "Use FXAA", iAValueType::Boolean, renderSettings.UseFXAA);
 	addParameter(params, "MultiSamples", iAValueType::Discrete, renderSettings.MultiSamples);
 	addParameter(params, "Use Depth Peeling", iAValueType::Boolean, renderSettings.UseDepthPeeling);
+	addParameter(params, "Occlusion Ratio", iAValueType::Continuous, renderSettings.OcclusionRatio);
+	addParameter(params, "Use Screen Space Ambient Occlusion", iAValueType::Boolean, renderSettings.UseSSAO);
 	addParameter(params, "Maximum Depth Peels", iAValueType::Discrete, renderSettings.DepthPeels);
+
 	addParameter(params, "Linear interpolation", iAValueType::Boolean, volumeSettings.LinearInterpolation);
 	addParameter(params, "Shading", iAValueType::Boolean, volumeSettings.Shading);
 	addParameter(params, "Sample distance", iAValueType::Continuous, volumeSettings.SampleDistance);
@@ -1275,7 +1280,6 @@ void MainWindow::renderSettings()
 	addParameter(params, "Specular lighting", iAValueType::Continuous, volumeSettings.SpecularLighting);
 	addParameter(params, "Specular power", iAValueType::Continuous, volumeSettings.SpecularPower);
 	addParameter(params, "Renderer type", iAValueType::Categorical, renderTypes);
-	addParameter(params, "Slice plane opacity", iAValueType::Continuous, renderSettings.PlaneOpacity, 0, 1);
 	iAParameterDlg dlg(this, dlgTitle, params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
@@ -1291,9 +1295,13 @@ void MainWindow::renderSettings()
 	m_defaultRenderSettings.BackgroundTop = values["Background top"].toString();
 	m_defaultRenderSettings.BackgroundBottom = values["Background bottom"].toString();
 	m_defaultRenderSettings.UseFXAA = values["Use FXAA"].toBool();
+	m_defaultRenderSettings.UseSSAO = values["Use Screen Space Ambient Occlusion"].toBool();
+	// available sub-options:
+	//      radius, bias, kernel size, blur
 	m_defaultRenderSettings.MultiSamples = values["MultiSamples"].toInt();
 	m_defaultRenderSettings.UseDepthPeeling = values["Use Depth Peeling"].toBool();
 	m_defaultRenderSettings.DepthPeels = values["Maximum Depth Peels"].toInt();
+	m_defaultRenderSettings.OcclusionRatio = values["Occlusion Ratio"].toDouble();
 
 	QColor bgTop(m_defaultRenderSettings.BackgroundTop);
 	QColor bgBottom(m_defaultRenderSettings.BackgroundBottom);
