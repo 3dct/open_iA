@@ -26,7 +26,6 @@
 #ifndef _NDEBUG
 #include "iAMathUtility.h"    // for dblApproxEqual
 #endif
-#include "iARenderer.h"
 
 #include "iAMainWindow.h"
 
@@ -45,7 +44,7 @@
 class iAOutlineImpl
 {
 public:
-	iAOutlineImpl(iAAABB const& box, iARenderer* renderer, QColor const & c): m_renderer(renderer)
+	iAOutlineImpl(iAAABB const& box, vtkRenderer* renderer, QColor const & c): m_renderer(renderer)
 	{
 		setBounds(box);
 		m_mapper->SetInputConnection(m_cubeSource->GetOutputPort());
@@ -59,17 +58,17 @@ public:
 		setColor(c);
 		m_actor->SetPickable(false);
 		m_actor->SetMapper(m_mapper);
-		renderer->renderer()->AddActor(m_actor);
+		renderer->AddActor(m_actor);
 	}
 	void setVisible(bool visible)
 	{
 		if (visible)
 		{
-			m_renderer->renderer()->AddActor(m_actor);
+			m_renderer->AddActor(m_actor);
 		}
 		else
 		{
-			m_renderer->renderer()->RemoveActor(m_actor);
+			m_renderer->RemoveActor(m_actor);
 		}
 	}
 	void setOrientationAndPosition(QVector<double> pos, QVector<double> ori)
@@ -101,7 +100,7 @@ private:
 	vtkNew<vtkCubeSource> m_cubeSource;
 	vtkNew<vtkPolyDataMapper> m_mapper;
 	vtkNew<vtkActor> m_actor;
-	iARenderer* m_renderer;
+	vtkRenderer* m_renderer;
 };
 
 namespace
@@ -113,7 +112,7 @@ namespace
 	const QColor OutlineDefaultColor(Qt::black);
 }
 
-iADataSetRenderer::iADataSetRenderer(iARenderer* renderer):
+iADataSetRenderer::iADataSetRenderer(vtkRenderer* renderer):
 	m_renderer(renderer),
 	m_visible(false)
 {
@@ -238,7 +237,7 @@ namespace
 class iAGraphRenderer : public iADataSetRenderer
 {
 public:
-	iAGraphRenderer(iARenderer* renderer, iAGraphData* data) :
+	iAGraphRenderer(vtkRenderer* renderer, iAGraphData* data) :
 		iADataSetRenderer(renderer),
 		m_lineActor(vtkSmartPointer<vtkActor>::New()),
 		m_pointActor(vtkSmartPointer<vtkActor>::New()),
@@ -286,13 +285,13 @@ public:
 	}
 	void showDataSet() override
 	{
-		m_renderer->renderer()->AddActor(m_lineActor);
-		m_renderer->renderer()->AddActor(m_pointActor);
+		m_renderer->AddActor(m_lineActor);
+		m_renderer->AddActor(m_pointActor);
 	}
 	void hideDataSet() override
 	{
-		m_renderer->renderer()->RemoveActor(m_pointActor);
-		m_renderer->renderer()->RemoveActor(m_lineActor);
+		m_renderer->RemoveActor(m_pointActor);
+		m_renderer->RemoveActor(m_lineActor);
 	}
 	void updatePointRendererPosOri()
 	{
@@ -358,7 +357,7 @@ namespace
 class iAMeshRenderer: public iADataSetRenderer
 {
 public:
-	iAMeshRenderer(iARenderer* renderer, iAPolyData * data):
+	iAMeshRenderer(vtkRenderer* renderer, iAPolyData * data):
 		iADataSetRenderer(renderer),
 		m_polyActor(vtkSmartPointer<vtkActor>::New()),
 		m_data(data)
@@ -385,11 +384,11 @@ public:
 	}
 	void showDataSet() override
 	{
-		m_renderer->renderer()->AddActor(m_polyActor);
+		m_renderer->AddActor(m_polyActor);
 	}
 	void hideDataSet() override
 	{
-		m_renderer->renderer()->RemoveActor(m_polyActor);
+		m_renderer->RemoveActor(m_polyActor);
 	}
 	void applyAttributes(QMap<QString, QVariant> const& values) override
 	{
@@ -461,7 +460,7 @@ namespace
 class iAVolRenderer: public iADataSetRenderer
 {
 public:
-	iAVolRenderer(iARenderer* renderer, iAImageData* data, iAVolumeDataForDisplay* volDataForDisplay) :
+	iAVolRenderer(vtkRenderer* renderer, iAImageData* data, iAVolumeDataForDisplay* volDataForDisplay) :
 		iADataSetRenderer(renderer),
 		m_volume(vtkSmartPointer<vtkVolume>::New()),
 		m_volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
@@ -534,11 +533,11 @@ public:
 	}
 	void showDataSet() override
 	{
-		m_renderer->renderer()->AddVolume(m_volume);
+		m_renderer->AddVolume(m_volume);
 	}
 	void hideDataSet() override
 	{
-		m_renderer->renderer()->RemoveVolume(m_volume);
+		m_renderer->RemoveVolume(m_volume);
 	}
 	void applyAttributes(QMap<QString, QVariant> const& values) override
 	{
@@ -617,7 +616,7 @@ private:
 
 // ---------- Factory method ----------
 
-std::shared_ptr<iADataSetRenderer> createDataRenderer(iADataSet* dataSet, iADataForDisplay* dataForDisplay, iARenderer* renderer)
+std::shared_ptr<iADataSetRenderer> createDataRenderer(iADataSet* dataSet, iADataForDisplay* dataForDisplay, vtkRenderer* renderer)
 {
 	auto img = dynamic_cast<iAImageData*>(dataSet);
 	if (img)

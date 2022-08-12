@@ -42,6 +42,7 @@ signals:
 	void set3DRendererVisibility(int idx, bool visibility);
 	void setBoundsVisibility(int idx, bool visibility);
 	void set2DVisibility(int idx, bool visibility);
+	void set3DMagicLensVisibility(int idx, bool visibility);
 	void setPickable(int idx, bool pickable);
 
 public slots:

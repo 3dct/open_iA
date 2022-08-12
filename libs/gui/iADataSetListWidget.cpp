@@ -53,7 +53,8 @@ namespace
 		View3D = ViewFirst,
 		View3DBox = 2,
 		View2D = 3,
-		Pickable = 4,
+		ViewLens3D = 4,
+		Pickable = 5,
 		ViewLast = Pickable  // index of last column with "checkbox" behavior
 	};
 	QStringList columnNames = QStringList() << "Name"
@@ -61,11 +62,12 @@ namespace
 		<< "3D"
 		<< "Box"
 		<< "2D"
+		<< "Lens3D"
 		<< "Pick"
 		//			<< "Histo"
 		;
 	std::vector<bool> DefaultChecked = {
-		true, false, true, true
+		true, false, true, false, true
 	};
 	QIcon iconForCol(int col, bool checked)
 	{
@@ -153,6 +155,9 @@ iADataSetListWidget::iADataSetListWidget()
 				break;
 			case View2D:
 				emit set2DVisibility(row, checked);
+				break;
+			case ViewLens3D:
+				emit set3DMagicLensVisibility(row, checked);
 				break;
 			default:
 				LOG(lvlWarn, QString("Unhandled itemChanged(colum = %1)").arg(col));

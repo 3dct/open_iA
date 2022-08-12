@@ -533,5 +533,6 @@ private:
 	std::vector<std::shared_ptr<iADataSet>> m_dataSets;              //!< list of all currently loaded datasets
 	std::map<size_t, std::shared_ptr<iADataForDisplay>> m_dataForDisplay; //!< optional additional data required for displaying a dataset
 	std::map<size_t, std::shared_ptr<iADataSetRenderer>> m_dataRenderers; //!< 3D renderers (one per dataset in m_datasets)
+	std::map<size_t, std::shared_ptr<iADataSetRenderer>> m_3dMagicLensRenderers; //!< 3D renderers for magic lens (one per dataset in m_datasets)
 	std::map<size_t, std::shared_ptr<iASliceRenderer>> m_sliceRenderers;  //!< slice renderers (one per dataset in m_datsets)
 };

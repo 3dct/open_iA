@@ -249,6 +249,20 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 				updateSlicers();
 			}
 		});
+	connect(m_dataSetListWidget, &iADataSetListWidget::set3DMagicLensVisibility, this,
+		[this](int idx, int visibility)
+		{
+			if (m_3dMagicLensRenderers.find(idx) == m_3dMagicLensRenderers.end())
+			{
+				auto magicLensRenderer = createDataRenderer(m_dataSets[idx].get(), m_dataForDisplay[idx].get(),
+					m_dwRenderer->vtkWidgetRC->getLensRenderer());
+				if (magicLensRenderer)
+				{
+					m_3dMagicLensRenderers[idx] = magicLensRenderer;
+				}
+			}
+			m_3dMagicLensRenderers[idx]->setVisible(visibility);
+		});
 	connect(m_dataSetListWidget, &iADataSetListWidget::setPickable, this,
 		[this](int idx, int visibility)
 		{
@@ -559,7 +573,7 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 		},
 		[this, dataSet, dataSetIdx]()
 		{
-			auto dataRenderer = createDataRenderer(dataSet.get(), m_dataForDisplay[dataSetIdx].get(), renderer());
+			auto dataRenderer = createDataRenderer(dataSet.get(), m_dataForDisplay[dataSetIdx].get(), renderer()->renderer());
 			if (dataRenderer)
 			{
 				dataRenderer->setVisible(true);

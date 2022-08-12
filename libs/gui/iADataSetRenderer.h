@@ -31,14 +31,14 @@ class iADataSet;
 class iADataForDisplay;
 class iAOutlineImpl;
 
-class iARenderer;
+class vtkRenderer;
 
 //! abstract interface for a class for 3D rendering of a dataset (in an iARenderer)
 class iAgui_API iADataSetRenderer
 {
 public:
 	//! Create a dataset renderer
-	iADataSetRenderer(iARenderer* renderer);
+	iADataSetRenderer(vtkRenderer* renderer);
 	//! called when dataset renderer is removed from display and destroyed
 	virtual ~iADataSetRenderer();
 	//! Set visibility of dataset
@@ -84,7 +84,7 @@ protected:
 	//! needs to be called by derived classes whenever the bounds of the dataset change (position, orientation, ...)
 	void updateOutlineTransform();
 
-	iARenderer* m_renderer;
+	vtkRenderer* m_renderer;
 	QMap<QString, QVariant> m_attribValues;
 
 private:
@@ -101,4 +101,4 @@ private:
 };
 
 //! Factory function to create a renderer for a given dataset
-iAgui_API std::shared_ptr<iADataSetRenderer> createDataRenderer(iADataSet* dataset, iADataForDisplay* dataForDisplay, iARenderer* renderer);
+iAgui_API std::shared_ptr<iADataSetRenderer> createDataRenderer(iADataSet* dataset, iADataForDisplay* dataForDisplay, vtkRenderer* renderer);
