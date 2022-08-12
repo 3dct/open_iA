@@ -183,6 +183,7 @@ public slots:
 
 private:
 
+	bool m_initialized;    //!< flag indicating whether initialization of widget has finished
 	iARenderObserver *m_renderObserver;
 	//! @{ things that are set from the outside
 	vtkPolyData* m_polyData;

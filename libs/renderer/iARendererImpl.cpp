@@ -230,6 +230,7 @@ void GetCellCenter(vtkUnstructuredGrid* data, const unsigned int cellId, double 
 }
 
 iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* renderWindow): iARenderer(parent),
+	m_initialized(false),
 	m_renderObserver(nullptr),
 	m_imageData(nullptr),
 	m_renWin(renderWindow),
@@ -317,7 +318,7 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 
 	m_labelRen->SetActiveCamera(m_cam);
 	m_ren->SetActiveCamera(m_cam);
-	setCamPosition(iACameraPosition::PZ);
+	::setCamPosition(m_cam, static_cast<iACameraPosition>(iACameraPosition::PZ));
 
 	// set up region of interest (ROI) cube marker:
 	m_roiMapper->SetInputConnection(m_roiCube->GetOutputPort());
@@ -446,6 +447,7 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_profileLineStartPointActor->GetProperty()->SetColor(ProfileStartColor.redF(), ProfileStartColor.greenF(), ProfileStartColor.blueF());
 	m_profileLineEndPointActor->GetProperty()->SetColor(ProfileEndColor.redF(), ProfileEndColor.greenF(), ProfileEndColor.blueF());
 	setProfileHandlesOn(false);
+	m_initialized = true;
 }
 
 iARendererImpl::~iARendererImpl(void)
@@ -562,7 +564,11 @@ void iARendererImpl::setDefaultInteractor()
 }
 
 void iARendererImpl::update()
-{
+{   // just to be on the safe side, we abort if widget is not fully initialized; calling below Render() methods
+	if (!m_initialized)    // before that leads to display problems for the whole application
+	{                      // (no more proper redrawing, whole application window turns black on resize)
+		return;
+	}
 	if (m_polyData)
 	{
 		m_polyMapper->Update();
