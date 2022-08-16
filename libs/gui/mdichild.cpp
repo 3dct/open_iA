@@ -230,6 +230,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 				m_dataSetListWidget->setName(idx, newName);
 			}
 			m_dataRenderers[idx]->setAttributes(dlg.parameterValues());
+			updateRenderer();    // currently, 3D renderer properties are changed only
 			/*
 			// TODO: reset camera in 3D renderer / slicer when the spacing of modality was changed
 			// TODO: maybe instead of reset, apply a zoom corresponding to the ratio of spacing change?

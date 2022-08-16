@@ -397,6 +397,7 @@ namespace
 {
 	const QString PolyColor = "Color";
 	const QString PolyOpacity = "Opacity";
+	const QString PolyWireframe = "Wireframe";
 }
 
 class iAPolyActorRenderer : public iADataSetRenderer
@@ -424,6 +425,7 @@ public:
 		addAttribute(Shading, iAValueType::Boolean, true);
 		addAttribute(PolyColor, iAValueType::Color, "#FFFFFF");
 		addAttribute(PolyOpacity, iAValueType::Continuous, 1.0, 0.0, 1.0);
+		addAttribute(PolyWireframe, iAValueType::Boolean, false);
 	}
 	void showDataSet() override
 	{
@@ -442,6 +444,14 @@ public:
 		double opacity = values[PolyOpacity].toDouble();
 		m_polyActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
 		m_polyActor->GetProperty()->SetOpacity(opacity);
+		if (values[PolyWireframe].toBool())
+		{
+			m_polyActor->GetProperty()->SetRepresentationToWireframe();
+		}
+		else
+		{
+			m_polyActor->GetProperty()->SetRepresentationToSurface();
+		}
 
 		QVector<double> pos = values[Position].value<QVector<double>>();
 		QVector<double> ori = values[Orientation].value<QVector<double>>();
