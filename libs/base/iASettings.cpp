@@ -31,3 +31,29 @@ iASettings mapFromQSettings(QSettings const & settings)
 	}
 	return result;
 }
+
+void storeSettings(QString const& group, iASettings const& values)
+{
+	QSettings settings;
+	settings.beginGroup(group);
+	for (QString key : values.keys())
+	{
+		settings.setValue(key, values[key]);
+	}
+}
+
+iASettings loadSettings(QString const& group)
+{
+	QSettings settings;
+	settings.beginGroup(group);
+	return mapFromQSettings(settings);
+}
+
+#include <QDataStream>    // required, otherwise "no operator>>" errors
+#include <QMetaType>      // for qRegisterMetaTypeStreamOperators
+
+void initializeSettingTypes()
+{
+	qRegisterMetaTypeStreamOperators<QVector<int>>("QVector<int>");
+	qRegisterMetaTypeStreamOperators<QVector<double>>("QVector<double>");
+}

@@ -35,3 +35,11 @@ typedef QMap<QString, QVariant> iASettings;
 //! @return a map containing key->value pairs for all settings currently in
 //!     (current group of) the given QSettings object
 iAbase_API iASettings mapFromQSettings(QSettings const& settings);
+
+//! Load settings in the given group from the platform-specific storage
+iAbase_API iASettings loadSettings(QString const& group);
+//! Save the given setting values to the platform-specific storage
+iAbase_API void storeSettings(QString const & group, iASettings const& values);
+//! Initialize Qt meta types / serialization operators required for
+//! storing and loading specific setting values
+iAbase_API void initializeSettingTypes();

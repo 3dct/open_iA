@@ -28,6 +28,7 @@
 #include "iALog.h"
 //#include "iALogger.h"
 #include "iAProgress.h"
+#include "iASettings.h"
 
 // guibase
 #include "iAConnector.h"
@@ -130,11 +131,11 @@ iAMdiChild* iAFilterRunnerGUIThread::sourceMDI()
 
 namespace
 {
-	QString SettingName(QSharedPointer<iAFilter> filter, QString paramName)
+	QString filterSettingGroup(QSharedPointer<iAFilter> filter)
 	{
 		QString filterNameShort(filter->name());
 		filterNameShort.replace(" ", "");
-		return QString("Filters/%1/%2/%3").arg(filter->category()).arg(filterNameShort).arg(paramName);
+		return QString("Filters/%1/%2").arg(filter->category()).arg(filterNameShort);
 	}
 }
 
@@ -152,12 +153,13 @@ QMap<QString, QVariant> iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilte
 	auto params = filter->parameters();
 	QMap<QString, QVariant> result;
 	QSettings settings;
+	settings.beginGroup(filterSettingGroup(filter));
 	for (auto param : params)
 	{
 		QVariant defaultValue = (param->valueType() == iAValueType::Categorical) ? "" : param->defaultValue();
 		QVariant value = (param->valueType() == iAValueType::FileNameSave && sourceMdi)
 			? pathFileBaseName(sourceMdi->fileInfo()) + param->defaultValue().toString()
-			: settings.value(SettingName(filter, param->name()), defaultValue);
+			: settings.value(param->name(), defaultValue);
 		result.insert(param->name(), value);
 	}
 	return result;
@@ -166,11 +168,7 @@ QMap<QString, QVariant> iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilte
 void iAFilterRunnerGUI::storeParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues)
 {
 	auto params = filter->parameters();
-	QSettings settings;
-	for (QString key : paramValues.keys())
-	{
-		settings.setValue(SettingName(filter, key), paramValues[key]);
-	}
+	storeSettings(filterSettingGroup(filter), paramValues);
 	// just some checking whether there are values for all parameters:
 	for (auto param : params)
 	{

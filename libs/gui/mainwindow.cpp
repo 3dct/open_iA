@@ -90,6 +90,7 @@
 #include <QTimer>
 #include <QtXml/QDomDocument>
 #include <QDesktopServices>
+#include <iASettings.h>
 
 const int MainWindow::MaxRecentFiles;
 
@@ -486,33 +487,41 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 	}
 }
 
-
-bool askForParameters(MainWindow* mainWnd, iAAttributes const& parameters, QMap<QString, QVariant>& values)
+namespace
 {
-	iAAttributes dlgParams;
-	for (auto param : parameters)
+	QString ioSettingsGroup(QString const & ioName)
 	{
-		QSharedPointer<iAAttributeDescriptor> p(param->clone());
-		if (p->valueType() == iAValueType::Categorical)
-		{
-			QStringList comboValues = p->defaultValue().toStringList();
-			QString storedValue = values[p->name()].toString();
-			selectOption(comboValues, storedValue);
-			p->setDefaultValue(comboValues);
-		}
-		else
-		{
-			p->setDefaultValue(values[p->name()]);
-		}
-		dlgParams.push_back(p);
+		QString ioNameShort(ioName);
+		ioNameShort.replace(" ", "");
+		return QString("FileIO/%1").arg(ioNameShort);
 	}
-	iAParameterDlg dlg(mainWnd, "Parameters", dlgParams);
-	if (dlg.exec() != QDialog::Accepted)
+	bool askForParameters(MainWindow* mainWnd, iAAttributes const& parameters, QMap<QString, QVariant>& values)
 	{
-		return false;
+		iAAttributes dlgParams;
+		for (auto param : parameters)
+		{
+			QSharedPointer<iAAttributeDescriptor> p(param->clone());
+			if (p->valueType() == iAValueType::Categorical)
+			{
+				QStringList comboValues = p->defaultValue().toStringList();
+				QString storedValue = values[p->name()].toString();
+				selectOption(comboValues, storedValue);
+				p->setDefaultValue(comboValues);
+			}
+			else
+			{
+				p->setDefaultValue(values[p->name()]);
+			}
+			dlgParams.push_back(p);
+		}
+		iAParameterDlg dlg(mainWnd, "Parameters", dlgParams);
+		if (dlg.exec() != QDialog::Accepted)
+		{
+			return false;
+		}
+		values = dlg.parameterValues();
+		return true;
 	}
-	values = dlg.parameterValues();
-	return true;
 }
 
 void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
@@ -527,7 +536,8 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 	{   // did not find an appropriate file IO; createIO already outputs a warning in that case
 		return;
 	}
-	QMap<QString, QVariant> paramValues;
+	auto settingsGroup = ioSettingsGroup(io->name());
+	QMap<QString, QVariant> paramValues = ::loadSettings(settingsGroup);
 	if (io->parameters().size() > 0)
 	{
 		if (!askForParameters(this, io->parameters(), paramValues))
@@ -535,6 +545,7 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 			return;
 		}
 	}
+	::storeSettings(settingsGroup, paramValues);
 	QString filePath(fileName);
 	filePath.truncate(filePath.lastIndexOf('/'));
 	m_path = filePath;
@@ -2910,7 +2921,9 @@ void MainWindow::initResources()
 int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString const & version,
 	QString const& buildInformation, QString const & splashPath, QString const & iconPath)
 {
+
 	iAFileTypeRegistry::setupDefaultIOFactories();
+	initializeSettingTypes();
 	QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
 	QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);
 #if defined(__APPLE__) && defined(__MACH__)

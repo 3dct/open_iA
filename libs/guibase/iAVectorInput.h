@@ -86,17 +86,27 @@ public:
 	}
 	void setValue(QVariant const& valueVariant)
 	{
-		QVector<double> values = valueVariant.value<QVector<double>>();
-		assert(values.size() <= m_inputs.size());
-		for (int i = 0; i < m_inputs.size() && i < values.size(); ++i)
+		for (int i = 0; i < m_inputs.size(); ++i)
 		{
 			if (m_valueType == iAValueType::Discrete)
 			{
+				QVector<int> values = valueVariant.value<QVector<int>>();
+				assert(values.size() <= m_inputs.size());
+				if (i >= values.size())
+				{
+					break;
+				}
 				qobject_cast<QSpinBox*>(m_inputs[i])->setValue(values[i]);
 			}
 			else
 			{
-				 qobject_cast<QDoubleSpinBox*>(m_inputs[i])->setValue(values[i]);
+				QVector<double> values = valueVariant.value<QVector<double>>();
+				assert(values.size() <= m_inputs.size());
+				if (i >= values.size())
+				{
+					break;
+				}
+				qobject_cast<QDoubleSpinBox*>(m_inputs[i])->setValue(values[i]);
 			}
 		}
 	}

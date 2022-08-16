@@ -259,6 +259,10 @@ void selectOption(QStringList& options, QString const& selected)
 {
 	for (int i = 0; i < options.size(); ++i)
 	{
+		if (options[i].startsWith("!"))  // optimization: check if option with ! removed equals selected
+		{                                   // then entry is already selected, we wouldn't need to remove and add again
+			options[i].remove(0, 1);
+		}
 		if (options[i].compare(selected, Qt::CaseInsensitive) == 0)
 		{
 			options[i] = "!" + options[i];
