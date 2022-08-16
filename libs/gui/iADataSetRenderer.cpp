@@ -103,6 +103,7 @@ private:
 	vtkRenderer* m_renderer;
 };
 
+
 namespace
 {
 	const QString Position("Position");
@@ -110,7 +111,25 @@ namespace
 	const QString OutlineColor("Box Color");
 	const QString Pickable("Pickable");
 	const QColor OutlineDefaultColor(Qt::black);
+	const QString Shading = "Shading";
+
+	const QString AmbientLighting = "Ambient lighting";
+	const QString DiffuseLighting = "Diffuse lighting";
+	const QString SpecularLighting = "Specular lighting";
+	const QString SpecularPower = "Specular power";
+
+	template <class T>
+	void applyLightingProperties(T* prop, QMap<QString, QVariant> const & values)
+	{
+		prop->SetAmbient(values[AmbientLighting].toDouble());
+		prop->SetDiffuse(values[DiffuseLighting].toDouble());
+		prop->SetSpecular(values[SpecularLighting].toDouble());
+		prop->SetSpecularPower(values[SpecularPower].toDouble());
+	}
 }
+
+
+#include "iAVolumeSettings.h"
 
 iADataSetRenderer::iADataSetRenderer(vtkRenderer* renderer):
 	m_renderer(renderer),
@@ -120,6 +139,12 @@ iADataSetRenderer::iADataSetRenderer(vtkRenderer* renderer):
 	addAttribute(Orientation, iAValueType::Vector3, QVariant::fromValue(QVector<double>({0, 0, 0})));
 	addAttribute(OutlineColor, iAValueType::Color, OutlineDefaultColor);
 	addAttribute(Pickable, iAValueType::Boolean, true);
+
+	auto volumeSettings = iAMainWindow::get()->defaultVolumeSettings();
+	addAttribute(AmbientLighting, iAValueType::Continuous, volumeSettings.AmbientLighting);
+	addAttribute(DiffuseLighting, iAValueType::Continuous, volumeSettings.DiffuseLighting);
+	addAttribute(SpecularLighting, iAValueType::Continuous, volumeSettings.SpecularLighting);
+	addAttribute(SpecularPower, iAValueType::Continuous, volumeSettings.SpecularPower);
 }
 
 iADataSetRenderer::~iADataSetRenderer()
@@ -396,6 +421,7 @@ public:
 		modifiedCallback->SetClientData(this);
 		m_polyActor->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
 
+		addAttribute(Shading, iAValueType::Boolean, true);
 		addAttribute(PolyColor, iAValueType::Color, "#FFFFFF");
 		addAttribute(PolyOpacity, iAValueType::Continuous, 1.0, 0.0, 1.0);
 	}
@@ -409,6 +435,9 @@ public:
 	}
 	void applyAttributes(QMap<QString, QVariant> const& values) override
 	{
+		applyLightingProperties(m_polyActor->GetProperty(), values);
+		m_polyActor->GetProperty()->SetShading(values[Shading].toBool());
+
 		QColor color(values[PolyColor].toString());
 		double opacity = values[PolyOpacity].toDouble();
 		m_polyActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
@@ -488,7 +517,6 @@ private:
 #include "iAModalityTransfer.h"
 #include "iAToolsVTK.h"
 #include "iAVolumeDataForDisplay.h"
-#include "iAVolumeSettings.h"
 
 #include <vtkImageData.h>
 #include <vtkVolume.h>
@@ -498,11 +526,6 @@ private:
 namespace
 {
 	const QString LinearInterpolation = "Linear interpolation";
-	const QString Shading = "Shading";
-	const QString AmbientLighting = "Ambient lighting";
-	const QString DiffuseLighting= "Diffuse lighting";
-	const QString SpecularLighting = "Specular lighting";
-	const QString SpecularPower = "Specular power";
 	const QString ScalarOpacityUnitDistance = "Scalar Opacity Unit Distance";
 	const QString RendererType = "Renderer type";
 	const QString Spacing = "Spacing";
@@ -546,15 +569,10 @@ public:
 		m_volProp->SetScalarOpacity(0, volDataForDisplay->transfer()->opacityTF());
 		m_volProp->Modified();
 
-		// volume properties:
-		
+		// properties specific to volumes:
 		auto volumeSettings = iAMainWindow::get()->defaultVolumeSettings();
 		addAttribute(LinearInterpolation, iAValueType::Boolean, volumeSettings.LinearInterpolation);
 		addAttribute(Shading, iAValueType::Boolean, volumeSettings.Shading);
-		addAttribute(AmbientLighting, iAValueType::Continuous, volumeSettings.AmbientLighting);
-		addAttribute(DiffuseLighting, iAValueType::Continuous, volumeSettings.DiffuseLighting);
-		addAttribute(SpecularLighting, iAValueType::Continuous, volumeSettings.SpecularLighting);
-		addAttribute(SpecularPower, iAValueType::Continuous, volumeSettings.SpecularPower);
 		addAttribute(ScalarOpacityUnitDistance, iAValueType::Continuous, volumeSettings.ScalarOpacityUnitDistance);
 
 		// mapper properties:
@@ -601,10 +619,7 @@ public:
 	}
 	void applyAttributes(QMap<QString, QVariant> const& values) override
 	{
-		m_volProp->SetAmbient(values[AmbientLighting].toDouble());
-		m_volProp->SetDiffuse(values[DiffuseLighting].toDouble());
-		m_volProp->SetSpecular(values[SpecularLighting].toDouble());
-		m_volProp->SetSpecularPower(values[SpecularPower].toDouble());
+		applyLightingProperties(m_volProp.Get(), values);
 		m_volProp->SetInterpolationType(values[LinearInterpolation].toInt());
 		m_volProp->SetShade(values[Shading].toBool());
 		if (values[ScalarOpacityUnitDistance].toDouble() > 0)
