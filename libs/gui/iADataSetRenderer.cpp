@@ -144,6 +144,11 @@ void iADataSetRenderer::setPickable(bool pickable)
 	applyAttributes(m_attribValues);
 }
 
+bool iADataSetRenderer::isPickable() const
+{
+	return m_attribValues[Pickable].toBool();
+}
+
 iAAttributes iADataSetRenderer::attributesWithValues() const
 {
 	iAAttributes result = combineAttributesWithValues(m_attributes, m_attribValues);
@@ -322,7 +327,6 @@ public:
 		//m_pointActor->SetPickable(values[Pickable].toBool()); // both move together same as bounds
 	}
 
-private:
 	iAAABB bounds() override
 	{
 		return iAAABB(m_data->poly()->GetBounds());
@@ -339,6 +343,22 @@ private:
 		assert(dblApproxEqual(p1[0], p2[0], 1e-6) && dblApproxEqual(p1[1], p2[1], 1e-6) && dblApproxEqual(p1[2], p2[2], 1e-6));
 		return m_lineActor->GetPosition();
 	}
+	void setPosition(double pos[3]) override
+	{
+		m_lineActor->SetPosition(pos);
+		m_pointActor->SetPosition(pos);
+	}
+	void setOrientation(double ori[3])
+	{
+		m_lineActor->SetOrientation(ori);
+		m_pointActor->SetOrientation(ori);
+	}
+	vtkProp3D* vtkProp() override
+	{
+		return m_lineActor;
+	}
+
+private:
 	vtkSmartPointer<vtkActor> m_lineActor, m_pointActor;
 	vtkSmartPointer<vtkSphereSource> m_sphereSource;
 	iAGraphData* m_data;
@@ -405,8 +425,6 @@ public:
 		m_polyActor->SetOrientation(ori.data());
 		m_polyActor->SetPickable(values[Pickable].toBool());
 	}
-
-private:
 	iAAABB bounds() override
 	{
 		return iAAABB(m_data->poly()->GetBounds());
@@ -419,6 +437,20 @@ private:
 	{
 		return m_polyActor->GetPosition();
 	}
+	void setPosition(double pos[3]) override
+	{
+		m_polyActor->SetPosition(pos);
+	}
+	void setOrientation(double ori[3])
+	{
+		m_polyActor->SetOrientation(ori);
+	}
+	vtkProp3D* vtkProp() override
+	{
+		return m_polyActor;
+	}
+
+private:
 	vtkSmartPointer<vtkActor> m_polyActor;
 	iAPolyData* m_data;
 };
@@ -591,8 +623,6 @@ public:
 	//{
 	//
 	//}
-
-private:
 	iAAABB bounds() override
 	{
 		return iAAABB(m_image->image()->GetBounds());
@@ -605,6 +635,20 @@ private:
 	{
 		return m_volume->GetPosition();
 	}
+	void setPosition(double pos[3]) override
+	{
+		m_volume->SetPosition(pos);
+	}
+	void setOrientation(double ori[3])
+	{
+		m_volume->SetOrientation(ori);
+	}
+	vtkProp3D* vtkProp() override
+	{
+		return m_volume;
+	}
+
+private:
 	//iAVolumeSettings m_volSettings;
 
 	vtkSmartPointer<vtkVolume> m_volume;

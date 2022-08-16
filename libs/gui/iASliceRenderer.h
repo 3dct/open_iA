@@ -37,6 +37,10 @@ public:
 	virtual ~iASliceRenderer();
 	//! called when the renderer is set (in)visible in slicer
 	virtual void setVisible(bool visible);
+	//! called when the renderer is set pickable (movable) in slicer
+	virtual void setPickable(bool pickable);
+	//! the ID of the slicer channel that this dataset uses for rendering
+	virtual unsigned int channelID() const;
 };
 
 iAgui_API std::shared_ptr<iASliceRenderer> createSliceRenderer(iADataSet* dataset, iADataForDisplay* dataForDisplay,

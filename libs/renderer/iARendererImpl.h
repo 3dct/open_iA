@@ -176,6 +176,8 @@ signals:
 	void onSetupRenderer();
 	void onSetCamera();
 	void bgColorChanged(QColor bgTop, QColor bgBottom);
+	//! called when user presses 'a'/'A' or 'c'/'C' key to change between modifying actors and camera
+	void interactionModeChanged(bool camera);
 
 public slots:
 	void mouseRightButtonReleasedSlot();

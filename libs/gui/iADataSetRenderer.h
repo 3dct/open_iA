@@ -31,6 +31,7 @@ class iADataSet;
 class iADataForDisplay;
 class iAOutlineImpl;
 
+class vtkProp3D;
 class vtkRenderer;
 
 //! abstract interface for a class for 3D rendering of a dataset (in an iARenderer)
@@ -51,18 +52,26 @@ public:
 	//! Call to change the attributes of this renderer
 	void setAttributes(QMap<QString, QVariant> const& values);
 
-	//! convenience method for setting the Pickable attribute
+	//! convenience method for setting the pickable attribute
 	void setPickable(bool pickable);
+	//! whether dataset is currently set to be pickable
+	bool isPickable() const;
 
 	//! Set the visibility of the axis-aligned bounding box:
 	void setBoundsVisible(bool visible);
 	//! The coordinates of the axis-aligned bounding box (of the dataset, untransformed to any current position/orientation changes)
 	virtual iAAABB bounds() = 0;
 
-	//! Get Position of this dataset in scene:
+	//! Get Position of this dataset in scene
 	virtual double const* position() const = 0;
-	//! Get Orientation of this dataset in scene:
+	//! Get Orientation of this dataset in scene
 	virtual double const* orientation() const =0;
+	//! Set position of this dataset in scene
+	virtual void setPosition(double pos[3]) = 0;
+	//! Set orientation of this dataset in scene
+	virtual void setOrientation(double ori[3]) = 0;
+
+	virtual vtkProp3D* vtkProp() = 0;
 
 	//! optional additional control widget needed for additional settings in the renderer
 	//virtual QWidget* controlWidget();

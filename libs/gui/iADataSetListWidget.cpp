@@ -140,8 +140,7 @@ iADataSetListWidget::iADataSetListWidget()
 			}
 			auto row = m_dataList->row(item);
 			auto checked = !item->data(Qt::UserRole).toBool();
-			item->setData(Qt::UserRole, checked);
-			item->setIcon(iconForCol(col, checked));
+			setChecked(item, checked);
 			switch (col)
 			{
 			case View3D:
@@ -203,7 +202,20 @@ void iADataSetListWidget::addDataSet(iADataSet* dataset)
 	m_dataList->resizeColumnsToContents();
 }
 
+void iADataSetListWidget::setPickableState(int idx, bool pickable)
+{
+	QSignalBlocker blockList(m_dataList);
+	auto item = m_dataList->item(idx, Pickable);
+	setChecked(item, pickable);
+}
+
 void iADataSetListWidget::enablePicking(bool enable)
 {
 	m_dataList->setColumnHidden(Pickable, !enable);
+}
+
+void iADataSetListWidget::setChecked(QTableWidgetItem * item, int checked)
+{
+	item->setData(Qt::UserRole, checked);
+	item->setIcon(iconForCol(item->column(), checked));
 }

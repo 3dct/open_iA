@@ -26,7 +26,7 @@
 #include <QObject>
 
 class iAChannelSlicerData;
-class iAVolumeRenderer;
+class iADataSetRenderer;
 
 class vtkImageData;
 class vtkImageReslice;
@@ -55,7 +55,7 @@ public:
 	void Spin() override;
 	//! @}
 
-	void initialize(vtkImageData* img, iAVolumeRenderer* volRend, iAChannelSlicerData* slicerChannel[4], int currentMode);
+	void initialize(vtkImageData* img, iADataSetRenderer* dataSetRenderer, iAChannelSlicerData* slicerChannel[4], int currentMode);
 
 signals:
 	void actorsUpdated();
@@ -69,7 +69,7 @@ private:
 	iAvtkInteractStyleActor(const iAvtkInteractStyleActor&) = delete;
 	//! @}
 
-	iAVolumeRenderer* m_volumeRenderer;
+	iADataSetRenderer* m_dataSetRenderer;
 	bool m_is3D;  //!< true if style assigned to 3D renderer, false if assigned to a slicer
 	vtkImageData* m_image;
 	iAChannelSlicerData* m_slicerChannel[3];

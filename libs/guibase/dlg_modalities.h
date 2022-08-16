@@ -28,7 +28,6 @@
 #include <QSharedPointer>
 #include <QVector>
 
-class iAvtkInteractStyleActor;
 class iAFast3DMagicLensWidget;
 class iAModality;
 class iAModalityList;
@@ -71,7 +70,6 @@ public:
 	void selectRow(int idx);
 	void enableUI();
 	void setFileName(int modality, QString const & fileName);
-	void setInteractionMode(bool manualRegistration);
 
 	void setChecked(QSharedPointer<iAModality>, Qt::CheckState checked);
 	void setAllChecked(Qt::CheckState checked);
@@ -90,21 +88,14 @@ private slots:
 	void addClicked();
 	void removeClicked();
 	void editClicked();
-
-	void rendererMouseMoved();
 	void enableButtons();
 
 	//! enable dragging / picking of clicked modality
 	void listClicked(QListWidgetItem* item);
 
-	//! enable/ picking dragging of selected modality
-	void setModalitySelectionMovable(int selectedRow);
-
 	void checkboxClicked(QListWidgetItem* item);
 
 private:
-	//! connects interactor styles  slicer to each other and with 3D renderer
-	void configureInterActorStyles(QSharedPointer<iAModality> editModality);
 	//! add a modality to the list
 	void addToList(QSharedPointer<iAModality> mod);
 
@@ -113,8 +104,6 @@ private:
 	iAFast3DMagicLensWidget* m_magicLensWidget;
 	vtkRenderer* m_mainRenderer;
 	iAMdiChild* m_mdiChild;
-
-	vtkSmartPointer<iAvtkInteractStyleActor> m_manualMoveStyle[4];
 
 	QSharedPointer<Ui_modalities> m_ui;
 

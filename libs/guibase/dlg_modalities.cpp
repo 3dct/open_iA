@@ -31,7 +31,6 @@
 #include "iARenderer.h"
 #include "iASlicer.h"
 #include "iAVolumeRenderer.h"
-#include "iAvtkInteractStyleActor.h"
 #include "io/iAIO.h"
 #include "io/iAIOProvider.h"
 #include "iAMdiChild.h"
@@ -58,11 +57,6 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	m_ui(new Ui_modalities())
 {
 	m_ui->setupUi(this);
-	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
-	{
-		m_manualMoveStyle[i] = vtkSmartPointer<iAvtkInteractStyleActor>::New();
-		connect(m_manualMoveStyle[i].Get(), &iAvtkInteractStyleActor::actorsUpdated, mdiChild, &iAMdiChild::updateViews);
-	}
 	connect(m_ui->pbAdd,    &QPushButton::clicked, this, &dlg_modalities::addClicked);
 	connect(m_ui->pbRemove, &QPushButton::clicked, this, &dlg_modalities::removeClicked);
 	connect(m_ui->pbEdit,   &QPushButton::clicked, this, &dlg_modalities::editClicked);
@@ -338,86 +332,6 @@ void dlg_modalities::enableButtons()
 	m_ui->pbRemove->setEnabled(enable);
 }
 
-void dlg_modalities::setInteractionMode(bool manualRegistration)
-{
-	try
-	{
-		int idx = m_ui->lwModalities->currentRow();
-		if (idx < 0 || idx >= m_modalities->size())
-		{
-			LOG(lvlError, QString("Index out of range (%1).").arg(idx));
-			return;
-		}
-		QSharedPointer<iAModality> editModality(m_modalities->get(idx));
-
-		setModalitySelectionMovable(idx);
-
-		if (!editModality->renderer())
-		{
-			LOG(lvlWarn, QString("Volume renderer not yet initialized, please wait..."));
-			return;
-		}
-
-		if (manualRegistration)
-		{
-			connect(m_magicLensWidget, &iAFast3DMagicLensWidget::mouseMoved, this, &dlg_modalities::rendererMouseMoved);
-			configureInterActorStyles(editModality);
-			m_mdiChild->renderer()->interactor()->SetInteractorStyle(m_manualMoveStyle[iASlicerMode::SlicerCount]);
-			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
-			{
-				m_mdiChild->slicer(i)->interactor()->SetInteractorStyle(m_manualMoveStyle[i]);
-			}
-		}
-		else
-		{
-			disconnect(m_magicLensWidget, &iAFast3DMagicLensWidget::mouseMoved, this, &dlg_modalities::rendererMouseMoved);
-			m_mdiChild->renderer()->setDefaultInteractor();
-			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
-			{
-				m_mdiChild->slicer(i)->setDefaultInteractor();
-			}
-		}
-	}
-	catch (std::invalid_argument &ivae)
-	{
-		LOG(lvlError, ivae.what());
-	}
-}
-
-void dlg_modalities::configureInterActorStyles(QSharedPointer<iAModality> editModality)
-{
-	auto img = editModality->image();
-	auto volRend = editModality->renderer().data();
-	//vtkProp3D *PropVol_3d = volRend->GetVolume().Get();
-	if (!img)
-	{
-		LOG(lvlError, "img is null!");
-		return;
-	}
-	uint chID = editModality->channelID();
-
-	//properties of slicer for channelID
-	iAChannelSlicerData * props[3];
-	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
-	{
-		if (!m_mdiChild->slicer(i)->hasChannel(chID))
-		{
-			LOG(lvlWarn, "This modality cannot be moved as it isn't active in slicer, please select another one!");
-			return;
-		}
-		else
-		{
-			props[i] = m_mdiChild->slicer(i)->channel(chID);
-		}
-	}
-
-	//intialize slicers and 3D interactor for registration
-	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
-	{
-		m_manualMoveStyle[i]->initialize(img, volRend, props, i);
-	}
-}
-
 void dlg_modalities::listClicked(QListWidgetItem* item)
 {
 	int selectedRow = m_ui->lwModalities->row(item);
@@ -425,39 +339,7 @@ void dlg_modalities::listClicked(QListWidgetItem* item)
 	{
 		return;
 	}
-	if (m_mdiChild->interactionMode() == iAMdiChild::imRegistration)
-	{
-		setModalitySelectionMovable(selectedRow);
-		configureInterActorStyles(m_modalities->get(selectedRow));
-	}
 	emit modalitySelected(selectedRow);
-}
-
-void dlg_modalities::setModalitySelectionMovable(int selectedRow)
-{
-	QSharedPointer<iAModality> currentData = m_modalities->get(selectedRow);
-	//QSharedPointer<iAModalityTransfer> modTransfer = currentData->transfer();
-	for (int i = 0; i < m_modalities->size(); ++i)
-	{
-		QSharedPointer<iAModality> mod = m_modalities->get(i);
-		if (!mod->renderer())
-		{
-			LOG(lvlWarn, QString("Renderer for modality %1 not yet created. Please try again later!").arg(i));
-			continue;
-		}
-
-		//enable / disable dragging
-		mod->renderer()->setMovable(mod == currentData);
-
-		for (int sl = 0; sl < iASlicerMode::SlicerCount; sl++)
-		{
-			if (mod->channelID() == NotExistingChannel)
-			{
-				continue;
-			}
-			m_mdiChild->slicer(sl)->channel(mod->channelID())->setMovable(currentData->channelID() == mod->channelID());
-		}
-	}
 }
 
 void dlg_modalities::checkboxClicked(QListWidgetItem* item) {
@@ -540,18 +422,6 @@ void dlg_modalities::changeRenderSettings(iAVolumeSettings const & rs, const boo
 		{
 			renderer->applySettings(rs);
 		}
-	}
-}
-
-void dlg_modalities::rendererMouseMoved()
-{
-	for (int i = 0; i < m_modalities->size(); ++i)
-	{
-		if (!m_modalities->get(i)->renderer())
-		{
-			return;
-		}
-		m_modalities->get(i)->renderer()->updateBoundingBox();
 	}
 }
 

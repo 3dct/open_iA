@@ -20,10 +20,11 @@
 * ************************************************************************************/
 #include "iAvtkInteractStyleActor.h"
 
+#include "iAAABB.h"
 #include "iAChannelSlicerData.h"
 #include "iALog.h"
 #include "iASlicerMode.h"
-#include "iAVolumeRenderer.h"
+#include "iADataSetRenderer.h"
 
 #include <vtkCamera.h>
 #include <vtkCellPicker.h>
@@ -39,7 +40,8 @@
 vtkStandardNewMacro(iAvtkInteractStyleActor);
 
 iAvtkInteractStyleActor::iAvtkInteractStyleActor() :
-	m_volumeRenderer(nullptr), m_is3D(false), m_rotationEnabled(false)
+	m_dataSetRenderer(nullptr),
+	m_is3D(false), m_rotationEnabled(false)
 {
 	m_transform3D = vtkSmartPointer<vtkTransform>::New();
 	for (int i = 0; i < 3; ++i)
@@ -145,7 +147,7 @@ void iAvtkInteractStyleActor::OnMouseMove()
 	}
 }
 
-void iAvtkInteractStyleActor::initialize(vtkImageData* img, iAVolumeRenderer* volRend,
+void iAvtkInteractStyleActor::initialize(vtkImageData* img, iADataSetRenderer* dataSetRenderer,
 	iAChannelSlicerData* slicerChannel[3], int currentMode)
 {
 	if (!img)
@@ -154,7 +156,7 @@ void iAvtkInteractStyleActor::initialize(vtkImageData* img, iAVolumeRenderer* vo
 	}
 
 	m_image = img;
-	m_volumeRenderer = volRend;
+	m_dataSetRenderer = dataSetRenderer;
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
 		m_slicerChannel[i] = slicerChannel[i];
@@ -176,7 +178,7 @@ void iAvtkInteractStyleActor::translate()
 
 	if (m_is3D)
 	{
-		double const* posVolNew = m_volumeRenderer->position();
+		double const* posVolNew = m_dataSetRenderer->position();
 		if (posVolNew[0] == 0 && posVolNew[1] == 0 && posVolNew[2] == 0)
 		{
 			return;
@@ -200,7 +202,6 @@ void iAvtkInteractStyleActor::translate()
 
 		//store current position of renderer
 		setPreviousVolActorPosition(posVolNew);
-		//m_volumeRenderer->updateBoundingBox();
 	}
 	else  //update 2d Slicer
 	{
@@ -211,9 +212,6 @@ void iAvtkInteractStyleActor::translate()
 		double sliceActorPos[3];
 		auto tmpslicepos = m_slicerChannel[m_currentSliceMode]->actorPosition();
 		std::copy(tmpslicepos, tmpslicepos + 3, sliceActorPos);
-		double spacing[3];
-		m_image->GetSpacing(spacing);
-
 		double absMovementXYZ[3] = {0, 0, 0};
 		prepareMovementCoords(absMovementXYZ, sliceActorPos, false);
 
@@ -230,14 +228,12 @@ void iAvtkInteractStyleActor::translate()
 			m_slicerChannel[i]->updateReslicer();
 		}
 	}
-
-	m_volumeRenderer->update();
 	emit actorsUpdated();
 }
 
 void iAvtkInteractStyleActor::set3DTranslation(double const* movementXYZ, double const* sliceActorPos)
 {
-	double const* volRendPos = m_volumeRenderer->volume()->GetPosition();
+	auto volRendPos = m_dataSetRenderer->position();
 
 	double slicerMoventXYZ[3];
 	for (int i = 0; i < 3; i++)
@@ -249,10 +245,8 @@ void iAvtkInteractStyleActor::set3DTranslation(double const* movementXYZ, double
 	m_transform3D->Translate(movementXYZ);
 	m_transform3D->Update();
 	m_transform3D->TransformPoint(volRendPos, OutPos);
-	m_volumeRenderer->volume()->SetPosition(m_transform3D->GetPosition());  //not via setting transform!
-	//m_volumeRenderer->updateBoundingBox();
-	double volRendPosafter[3] = {0, 0, 0};
-	m_volumeRenderer->volume()->GetPosition(volRendPosafter);
+	m_dataSetRenderer->setPosition(m_transform3D->GetPosition());  //not via setting transform!
+	auto volRendPosafter = m_dataSetRenderer->position();
 	setPreviousSlicesActorPosition(sliceActorPos);  //setting to original
 	setPreviousVolActorPosition(volRendPosafter);
 	m_slicerChannel[m_currentSliceMode]->setActorPosition(0, 0, 0);
@@ -350,9 +344,13 @@ void iAvtkInteractStyleActor::rotate2D()
 		set2DOrientation(m_reslicerTransform[i], m_slicerChannel[i]->reslicer(), rotationDir, imageCenter, relativeAngle,
 			m_image->GetSpacing());
 	}
-	set3DOrientation(m_transform3D, m_volumeRenderer->volume()->GetCenter(), relativeAngle,
-		m_volumeRenderer->volume(), m_currentSliceMode);
-	setPreviousVolActorPosition(m_volumeRenderer->volume()->GetPosition());
+	auto center = (m_dataSetRenderer->bounds().minCorner() + m_dataSetRenderer->bounds().maxCorner()) / 2;
+	set3DOrientation(m_transform3D,
+		center.data(),
+		relativeAngle,
+		m_dataSetRenderer->vtkProp(),
+		m_currentSliceMode);
+	setPreviousVolActorPosition(m_dataSetRenderer->position());
 	setPreviousSlicesActorPosition(m_slicerChannel[m_currentSliceMode]->actorPosition());
 
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
@@ -362,8 +360,6 @@ void iAvtkInteractStyleActor::rotate2D()
 			m_slicerChannel[i]->updateReslicer();
 		}
 	}
-
-	m_volumeRenderer->update();
 	emit actorsUpdated();
 }
 
@@ -374,7 +370,7 @@ void iAvtkInteractStyleActor::rotate3D()
 		return;
 	}
 
-	setRefOrientation(m_volumeRenderer->volume()->GetOrientation());
+	setRefOrientation(m_dataSetRenderer->orientation());
 	vtkRenderWindowInteractor* rwi = this->Interactor;
 
 	vtkCamera* cam = this->CurrentRenderer->GetActiveCamera();
@@ -446,7 +442,7 @@ void iAvtkInteractStyleActor::rotate3D()
 		//rotate 3d volume
 		this->Prop3DTransform(this->InteractionProp, obj_center, 2, rotate, scale);
 
-		double const* orientationAfter = m_volumeRenderer->volume()->GetOrientation();
+		double const* orientationAfter = m_dataSetRenderer->orientation();
 
 		//translate in XYZ
 		double relRotation[3] = {0, 0, 0};
@@ -461,7 +457,7 @@ void iAvtkInteractStyleActor::rotate3D()
 				resliceTransform(i), reslicer(i), relRotation, 2u, m_image->GetCenter(), m_imageSpacing);
 		}
 
-		double const* posVol = m_volumeRenderer->volume()->GetPosition();
+		double const* posVol = m_dataSetRenderer->position();
 		setPreviousVolActorPosition(posVol);
 
 		delete[] rotate[0];
@@ -477,8 +473,6 @@ void iAvtkInteractStyleActor::rotate3D()
 				m_slicerChannel[i]->updateReslicer();
 			}
 		}
-
-		m_volumeRenderer->update();
 		emit actorsUpdated();
 	}
 }

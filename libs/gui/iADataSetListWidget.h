@@ -27,6 +27,7 @@
 class iADataSet;
 
 class QTableWidget;
+class QTableWidgetItem;
 
 //! A list of datasets
 class iAgui_API iADataSetListWidget : public QWidget
@@ -35,6 +36,7 @@ class iAgui_API iADataSetListWidget : public QWidget
 public:
 	iADataSetListWidget();
 	void addDataSet(iADataSet* dataset);
+	void setPickableState(int idx, bool pickable);
 
 signals:
 	void editDataSet(int idx);
@@ -49,5 +51,7 @@ public slots:
 	void enablePicking(bool enable);
 
 private:
+	void setChecked(QTableWidgetItem * item, int checked);
+
 	QTableWidget* m_dataList;  //!< the actual table displaying datasets and controls for their visibility
 };

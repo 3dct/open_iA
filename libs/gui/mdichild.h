@@ -26,7 +26,7 @@
 #include "ui_Mdichild.h"
 #include "ui_renderer.h"
 
-// core
+// guibase
 #include "qthelper/iAQTtoUIConnector.h"
 #include "iAMdiChild.h"
 #include "iAPreferences.h"
@@ -68,6 +68,7 @@ class iADataSetRenderer;
 class iAParametricSpline;
 struct iAProfileProbe;
 class iASliceRenderer;
+class iAvtkInteractStyleActor;
 class MainWindow;
 
 // guibase
@@ -212,7 +213,6 @@ public:
 
 	int selectedFuncPoint();
 	int isFuncEndPoint(int index);
-	void setHistogramFocus();
 	bool isMaximized();
 
 	void updateROI(int const roi[6]) override;
@@ -393,7 +393,6 @@ private slots:
 	void saveFinished();
 	void modalityAdded(int modalityIdx);
 	void toggleFullScreen();
-	void rendererKeyPressed(int keyCode);
 	void styleChanged();
 
 private:
@@ -538,4 +537,7 @@ private:
 	std::map<size_t, std::shared_ptr<iADataSetRenderer>> m_dataRenderers; //!< 3D renderers (one per dataset in m_datasets)
 	std::map<size_t, std::shared_ptr<iADataSetRenderer>> m_3dMagicLensRenderers; //!< 3D renderers for magic lens (one per dataset in m_datasets)
 	std::map<size_t, std::shared_ptr<iASliceRenderer>> m_sliceRenderers;  //!< slice renderers (one per dataset in m_datsets)
+
+	void setDataSetMovable(int dataSetIdx);
+	vtkSmartPointer<iAvtkInteractStyleActor> m_manualMoveStyle[4];   // 
 };

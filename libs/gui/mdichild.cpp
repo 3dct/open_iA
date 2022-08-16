@@ -25,6 +25,7 @@
 #include "iADataForDisplay.h"
 #include "iAParametricSpline.h"
 #include "iAProfileProbe.h"
+#include "iAvtkInteractStyleActor.h"
 #include "iAVolumeDataForDisplay.h"    // TODO: NewIO - move code using this somewhere else?
 #include "mainwindow.h"
 
@@ -180,6 +181,9 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 
 	m_renderer = new iARendererImpl(this, dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_dwRenderer->vtkWidgetRC->renderWindow()));
 	connect(m_renderer, &iARendererImpl::bgColorChanged, m_dwRenderer->vtkWidgetRC, &iAAbstractMagicLensWidget::setLensBackground);
+	connect(m_renderer, &iARendererImpl::interactionModeChanged, this, [this](bool camera) {
+		setInteractionMode(camera ? imCamera : imRegistration);
+		});
 	m_renderer->setAxesTransform(m_axesTransform);
 
 	m_dwModalities = new dlg_modalities(m_dwRenderer->vtkWidgetRC, m_renderer->renderer(), this);
@@ -267,10 +271,23 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 			m_3dMagicLensRenderers[idx]->setVisible(visibility);
 		});
 	connect(m_dataSetListWidget, &iADataSetListWidget::setPickable, this,
-		[this](int idx, int visibility)
+		[this](int idx, int pickable)
 		{
-			m_dataRenderers[idx]->setPickable(visibility);
+			// always enable picking in 3D renderer?
+			//m_dataRenderers[idx]->setPickable(pickable);
+			// since only a single dataset is pickable at the moment
+			// for the moment, let's make only enabling work (disabling works by enabling another)
+			if (pickable)
+			{
+				setDataSetMovable(idx);
+			}
 		});
+
+	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
+	{
+		m_manualMoveStyle[i] = vtkSmartPointer<iAvtkInteractStyleActor>::New();
+		connect(m_manualMoveStyle[i].Get(), &iAvtkInteractStyleActor::actorsUpdated, this, &iAMdiChild::updateViews);
+	}
 }
 
 void MdiChild::initializeViews()
@@ -293,15 +310,6 @@ void MdiChild::toggleFullScreen()
 		mdiSubWin->setWindowFlags(windowFlags() & ~Qt::FramelessWindowHint);
 	}
 	mdiSubWin->show();
-}
-
-void MdiChild::rendererKeyPressed(int keyCode)
-{
-	if (keyCode == 'a' || keyCode == 'c')
-	{
-		iAInteractionMode mode = (keyCode == 'a') ? imCamera : imRegistration;
-		setInteractionMode(mode);
-	}
 }
 
 MdiChild::~MdiChild()
@@ -1959,7 +1967,6 @@ bool MdiChild::initView(QString const& title)
 	if (!m_raycasterInitialized)
 	{
 		m_renderer->initialize(m_imageData, m_polyData);
-		connect(m_renderer->getRenderObserver(), &iARenderObserver::keyPressed, this, &MdiChild::rendererKeyPressed);
 		m_raycasterInitialized = true;
 	}
 	if (modalities()->size() == 0 && isVolumeDataLoaded())
@@ -2995,7 +3002,90 @@ void MdiChild::setInteractionMode(iAInteractionMode mode)
 	m_interactionMode = mode;
 	m_mainWnd->updateInteractionModeControls(mode);
 	m_dataSetListWidget->enablePicking(mode == imRegistration);
-	m_dwModalities->setInteractionMode(mode == imRegistration);
+	try
+	{
+		if (m_interactionMode == imRegistration)
+		{
+			int idx = 0;
+			while (idx < m_dataSets.size() &&
+				(!dynamic_cast<iAImageData*>(m_dataSets[idx].get()) ||
+				m_dataRenderers.find(idx) == m_dataRenderers.end() ||
+				!m_dataRenderers[idx]->isPickable()))
+			{
+				++idx;
+			}
+			if (idx < 0 || idx >= m_dataSets.size())
+			{
+				LOG(lvlError, QString("No valid dataset loaded for moving (%1).").arg(idx));
+			}
+			else
+			{
+				auto editDataSet = m_dataSets[idx];
+				setDataSetMovable(idx);
+			}
+			renderer()->interactor()->SetInteractorStyle(m_manualMoveStyle[iASlicerMode::SlicerCount]);
+			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+			{
+				slicer(i)->interactor()->SetInteractorStyle(m_manualMoveStyle[i]);
+			}
+		}
+		else
+		{
+			renderer()->setDefaultInteractor();
+			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+			{
+				slicer(i)->setDefaultInteractor();
+			}
+		}
+	}
+	catch (std::invalid_argument& ivae)
+	{
+		LOG(lvlError, ivae.what());
+	}
+}
+
+void MdiChild::setDataSetMovable(int dataSetIdx)
+{
+	for (int i = 0; i < m_dataSets.size(); ++i)
+	{
+		bool pickable = (i == dataSetIdx);
+		m_dataSetListWidget->setPickableState(i, pickable);
+		if (m_dataRenderers.find(i) != m_dataRenderers.end())
+		{
+			m_dataRenderers[i]->setPickable(i == dataSetIdx);
+		}
+		if (m_sliceRenderers.find(i) != m_sliceRenderers.end())
+		{
+			m_sliceRenderers[i]->setPickable(i == dataSetIdx);
+		}
+	}
+
+	// below required for synchronized slicers
+	auto imgData = dynamic_cast<iAImageData*>(m_dataSets[dataSetIdx].get());
+	if (!imgData)
+	{
+		LOG(lvlError, "Selected dataset is not an image.");
+		return;
+	}
+	auto img = imgData->image();
+	uint chID = m_sliceRenderers[dataSetIdx]->channelID();
+	iAChannelSlicerData* props[3];
+	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+	{
+		if (!slicer(i)->hasChannel(chID))
+		{
+			LOG(lvlWarn, "This modality cannot be moved as it isn't active in slicer, please select another one!");
+			return;
+		}
+		else
+		{
+			props[i] = slicer(i)->channel(chID);
+		}
+	}
+	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
+	{
+		m_manualMoveStyle[i]->initialize(img, m_dataRenderers[dataSetIdx].get(), props, i);
+	}
 }
 
 bool MdiChild::meshDataMovable()

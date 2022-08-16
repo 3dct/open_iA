@@ -20,7 +20,9 @@
 * ************************************************************************************/
 #include "iASliceRenderer.h"
 
+#include "defines.h"    // for NotExistingChannel
 #include "iAChannelData.h"
+#include "iAChannelSlicerData.h"
 #include "iADataSet.h"
 #include "iAMdiChild.h"
 #include "iAModalityTransfer.h"
@@ -33,6 +35,16 @@ iASliceRenderer::~iASliceRenderer()
 void iASliceRenderer::setVisible(bool visible)
 {
 	Q_UNUSED(visible);
+}
+
+void iASliceRenderer::setPickable(bool pickable)
+{
+	Q_UNUSED(pickable);
+}
+
+unsigned int iASliceRenderer::channelID() const
+{
+	return NotExistingChannel;
 }
 
 class iAVolumeSliceRenderer : public iASliceRenderer
@@ -54,6 +66,21 @@ public:
 		{
 			m_slicer[s]->enableChannel(m_channelID, visible);
 		}
+	}
+	void setPickable(bool pickable) override
+	{
+		if (m_channelID == NotExistingChannel)
+		{
+			return;
+		}
+		for (int s = 0; s < 3; ++s)
+		{
+			m_slicer[s]->channel(m_channelID)->setMovable(pickable);
+		}
+	}
+	unsigned int channelID() const
+	{
+		return m_channelID;
 	}
 private:
 	uint m_channelID;

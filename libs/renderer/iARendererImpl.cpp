@@ -131,18 +131,6 @@ public:
 };
 vtkStandardNewMacro(iAMouseInteractorStyle);
 
-void KeyPressCallbackFunction(vtkObject* /*caller*/, long unsigned int /*eventId*/,
-	void* clientData, void* vtkNotUsed(callData))
-{
-	iARendererImpl *ren = static_cast<iARendererImpl*>(clientData);
-	if( ren->interactor()->GetKeyCode() == 's' ||
-		ren->interactor()->GetKeyCode() == 'S')
-	{
-		ren->txtActor()->SetVisibility(!ren->txtActor()->GetVisibility());
-		ren->update();
-	}
-}
-
 void PickCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
 	void* clientData, void* vtkNotUsed(callData))
 {
@@ -528,7 +516,21 @@ void iARendererImpl::setAreaPicker()
 	m_interactor->SetInteractorStyle(style);
 
 	auto keyPressCallback = vtkSmartPointer<vtkCallbackCommand>::New();
-	keyPressCallback->SetCallback(KeyPressCallbackFunction);
+	keyPressCallback->SetCallback([](vtkObject* /*caller*/, long unsigned int /*eventId*/,
+		void* clientData, void* vtkNotUsed(callData))
+		{
+			iARendererImpl* ren = static_cast<iARendererImpl*>(clientData);
+			auto keyCode = ren->interactor()->GetKeyCode();
+			if (keyCode == 's' || keyCode == 'S')
+			{
+				ren->txtActor()->SetVisibility(!ren->txtActor()->GetVisibility());
+				ren->update();
+			}
+			if (keyCode == 'a' || keyCode == 'A' || keyCode == 'c' || keyCode == 'C')
+			{
+				emit ren->interactionModeChanged(keyCode == 'c' || keyCode == 'C');
+			}
+		});
 	keyPressCallback->SetClientData(this);
 	m_interactor->AddObserver(vtkCommand::KeyReleaseEvent, keyPressCallback, 1.0);
 
