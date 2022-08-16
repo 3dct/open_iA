@@ -56,6 +56,11 @@ QString const& iADataSet::name() const
 	return m_name;
 }
 
+void iADataSet::setName(QString const& newName)
+{
+	m_name = newName;
+}
+
 QString const& iADataSet::fileName() const
 {
 	return m_fileName;

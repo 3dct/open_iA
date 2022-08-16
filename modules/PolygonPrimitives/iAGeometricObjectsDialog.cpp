@@ -40,18 +40,6 @@
 
 namespace
 {
-	/*
-	class iAPolyObject
-	{
-		vtkSmartPointer<vtkPolyDataAlgorithm> createObject()
-	};
-
-	iAPolyObject* createObject(int type)
-	{
-		switch (type)
-	}
-	*/
-
 	vtkSmartPointer<vtkPolyDataAlgorithm> createLine(iAVec3d & pt1, iAVec3d & pt2)
 	{
 		auto lineSource = vtkSmartPointer<vtkLineSource>::New();

@@ -202,6 +202,11 @@ void iADataSetListWidget::addDataSet(iADataSet* dataset)
 	m_dataList->resizeColumnsToContents();
 }
 
+void iADataSetListWidget::setName(int idx, QString newName)
+{
+	m_dataList->item(idx, 0)->setText(newName);
+}
+
 void iADataSetListWidget::setPickableState(int idx, bool pickable)
 {
 	QSignalBlocker blockList(m_dataList);

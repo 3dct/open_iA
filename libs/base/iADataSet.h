@@ -46,6 +46,8 @@ public:
 	
 	//! The name of the dataset (defaults to the "basename" of the file)
 	QString const& name() const;
+	//! change the name of the dataset to the given new name
+	void setName(QString const& newName);
 	//! The name of the file in which this dataset is stored
 	QString const& fileName() const;
 	//! a sensible unit distance for this dataset (e.g. the spacing of a single voxel, for volume datasets)

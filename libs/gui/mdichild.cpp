@@ -215,10 +215,19 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 				LOG(lvlWarn, QString("Invalid dataset index %1!").arg(idx));
 				return;
 			}
-			iAParameterDlg dlg(this, "Dataset parameters", m_dataRenderers[idx]->attributesWithValues());
+			auto params = m_dataRenderers[idx]->attributesWithValues();
+			params.prepend(iAAttributeDescriptor::createParam("Name", iAValueType::String, m_dataSets[idx]->name()));
+			iAParameterDlg dlg(this, "Dataset parameters", params);
 			if (dlg.exec() != QDialog::Accepted)
 			{
 				return;
+			}
+			auto newName = dlg.parameterValues()["Name"].toString();
+			if (m_dataSets[idx]->name() != newName)
+			{
+				m_dataSets[idx]->setName(newName);
+				updateDataSetInfo();
+				m_dataSetListWidget->setName(idx, newName);
 			}
 			m_dataRenderers[idx]->setAttributes(dlg.parameterValues());
 			/*

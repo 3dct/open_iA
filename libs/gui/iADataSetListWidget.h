@@ -36,6 +36,7 @@ class iAgui_API iADataSetListWidget : public QWidget
 public:
 	iADataSetListWidget();
 	void addDataSet(iADataSet* dataset);
+	void setName(int idx, QString newName);
 	void setPickableState(int idx, bool pickable);
 
 signals:
