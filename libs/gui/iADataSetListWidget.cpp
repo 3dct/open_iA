@@ -139,6 +139,10 @@ iADataSetListWidget::iADataSetListWidget()
 				return;
 			}
 			auto row = m_dataList->row(item);
+			if (!item->data(Qt::UserRole + 1).toBool())
+			{   // not checkable
+				return;
+			}
 			auto checked = !item->data(Qt::UserRole).toBool();
 			setChecked(item, checked);
 			switch (col)
@@ -184,7 +188,7 @@ iADataSetListWidget::iADataSetListWidget()
 	layout()->setSpacing(4);
 }
 
-void iADataSetListWidget::addDataSet(iADataSet* dataset)
+void iADataSetListWidget::addDataSet(iADataSet* dataset, bool render3D, bool render2D)
 {
 	QSignalBlocker blockList(m_dataList);
 	auto nameItem = new QTableWidgetItem(dataset->name());
@@ -195,8 +199,16 @@ void iADataSetListWidget::addDataSet(iADataSet* dataset)
 	for (int i = ViewFirst; i <= ViewLast; ++i)
 	{
 		auto checked = DefaultChecked[i - ViewFirst];
+		auto checkable = true;
+		if ((i == View3D && !render3D) || (i == View2D && !render2D))
+		{
+			checked = false;
+			checkable = false;
+		}
 		auto viewItem = new QTableWidgetItem(iconForCol(i, checked), "");
 		viewItem->setData(Qt::UserRole, checked ? 1 : 0);
+		viewItem->setData(Qt::UserRole+1, checkable);
+		viewItem->setToolTip(checkable ? QString("Enable/Disable rendering/picking") : QString("Disabled because no renderer available"));
 		m_dataList->setItem(row, i, viewItem);
 	}
 	m_dataList->resizeColumnsToContents();

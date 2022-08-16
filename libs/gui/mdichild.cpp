@@ -633,7 +633,7 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 			}
 
 			m_dwModalities->hide();
-			m_dataSetListWidget->addDataSet(dataSet.get());
+			m_dataSetListWidget->addDataSet(dataSet.get(), dataRenderer != nullptr, sliceRenderer != nullptr);
 			updateDataSetInfo();
 		},
 		this);
