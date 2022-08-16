@@ -50,7 +50,6 @@ public:
 private slots:
 	void createObject();
 	void updateControls();
-	void opacityChanged(int newValue);
 
 private:
 	vtkSmartPointer<vtkPolyDataAlgorithm> createLineSource ();

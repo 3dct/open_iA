@@ -374,22 +374,16 @@ namespace
 	const QString PolyOpacity = "Opacity";
 }
 
-class iAMeshRenderer: public iADataSetRenderer
+class iAPolyActorRenderer : public iADataSetRenderer
 {
 public:
-	iAMeshRenderer(vtkRenderer* renderer, iAPolyData * data):
+	iAPolyActorRenderer(vtkRenderer* renderer) :
 		iADataSetRenderer(renderer),
-		m_polyActor(vtkSmartPointer<vtkActor>::New()),
-		m_data(data)
+		m_polyActor(vtkSmartPointer<vtkActor>::New())
 	{
 		vtkNew<vtkPolyDataMapper> mapper;
-		mapper->SetInputData(data->poly());
-		//m_polyMapper->SelectColorArray("Colors");
 		mapper->SetScalarModeToUsePointFieldData();
 		m_polyActor->SetMapper(mapper);
-
-		addAttribute(PolyColor, iAValueType::Color, "#FFFFFF");
-		addAttribute(PolyOpacity, iAValueType::Continuous, 1.0, 0.0, 1.0);
 
 		// adapt bounding box to changes in position/orientation of volume:
 		vtkNew<vtkCallbackCommand> modifiedCallback;
@@ -397,10 +391,13 @@ public:
 			[](vtkObject* vtkNotUsed(caller), long unsigned int vtkNotUsed(eventId), void* clientData,
 				void* vtkNotUsed(callData))
 			{
-				reinterpret_cast<iAMeshRenderer*>(clientData)->updateOutlineTransform();
+				reinterpret_cast<iAPolyActorRenderer*>(clientData)->updateOutlineTransform();
 			});
 		modifiedCallback->SetClientData(this);
 		m_polyActor->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
+
+		addAttribute(PolyColor, iAValueType::Color, "#FFFFFF");
+		addAttribute(PolyOpacity, iAValueType::Continuous, 1.0, 0.0, 1.0);
 	}
 	void showDataSet() override
 	{
@@ -425,10 +422,6 @@ public:
 		m_polyActor->SetOrientation(ori.data());
 		m_polyActor->SetPickable(values[Pickable].toBool());
 	}
-	iAAABB bounds() override
-	{
-		return iAAABB(m_data->poly()->GetBounds());
-	}
 	double const* orientation() const override
 	{
 		return m_polyActor->GetOrientation();
@@ -450,9 +443,44 @@ public:
 		return m_polyActor;
 	}
 
-private:
+protected:
 	vtkSmartPointer<vtkActor> m_polyActor;
+};
+
+class iAPolyDataRenderer : public iAPolyActorRenderer
+{
+public:
+	iAPolyDataRenderer(vtkRenderer* renderer, iAPolyData * data):
+		iAPolyActorRenderer(renderer),
+		m_data(data)
+	{
+		dynamic_cast<vtkPolyDataMapper*>(m_polyActor->GetMapper())->SetInputData(data->poly());
+		//m_polyMapper->SelectColorArray("Colors");
+	}
+	iAAABB bounds() override
+	{
+		return iAAABB(m_data->poly()->GetBounds());
+	}
+private:
 	iAPolyData* m_data;
+};
+
+class iAGeometricObjectRenderer : public iAPolyActorRenderer
+{
+public:
+	iAGeometricObjectRenderer(vtkRenderer* renderer, iAGeometricObject* data) :
+		iAPolyActorRenderer(renderer),
+		m_data(data)
+	{
+		m_polyActor->GetMapper()->SetInputConnection(m_data->source()->GetOutputPort());
+		//m_polyMapper->SelectColorArray("Colors");
+	}
+	iAAABB bounds() override
+	{
+		return iAAABB(m_data->bounds());
+	}
+private:
+	iAGeometricObject* m_data;
 };
 
 // ---------- iAVolRenderer ----------
@@ -681,8 +709,14 @@ std::shared_ptr<iADataSetRenderer> createDataRenderer(iADataSet* dataSet, iAData
 	auto mesh = dynamic_cast<iAPolyData*>(dataSet);
 	if (mesh)
 	{
-		return std::make_shared<iAMeshRenderer>(renderer, mesh);
+		return std::make_shared<iAPolyDataRenderer>(renderer, mesh);
 	}
+	auto geometricObject = dynamic_cast<iAGeometricObject*>(dataSet);
+	if (geometricObject)
+	{
+		return std::make_shared<iAGeometricObjectRenderer>(renderer, geometricObject);
+	}
+
 	LOG(lvlWarn, QString("Requested renderer for unknown dataset type!"));
 	return {};
 }

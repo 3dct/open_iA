@@ -61,6 +61,7 @@ private:
 	QString m_fileName;
 };
 
+//! a polygon (surface) mesh
 class iAbase_API iAPolyData : public iADataSet
 {
 public:
@@ -73,6 +74,7 @@ private:
 	vtkSmartPointer<vtkPolyData> m_mesh;
 };
 
+//! a graph dataset
 class iAbase_API iAGraphData : public iADataSet
 {
 public:
@@ -84,6 +86,7 @@ private:
 	vtkSmartPointer<vtkPolyData> m_mesh;
 };
 
+//! an image (/volume) dataset
 class iAbase_API iAImageData : public iADataSet
 {
 public:
@@ -94,4 +97,20 @@ public:
 
 private:
 	vtkSmartPointer<vtkImageData> m_img;
+};
+
+class vtkPolyDataAlgorithm;
+
+//! a geometric object produced by some VTK algorithm such as the various sources
+class iAbase_API iAGeometricObject : public iADataSet
+{
+public:
+	iAGeometricObject(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyDataAlgorithm> source);
+	vtkSmartPointer<vtkPolyDataAlgorithm> source();
+	QString info() const override;
+	std::array<double, 3> unitDistance() const override;
+	double const* bounds() const;
+
+private:
+	vtkSmartPointer<vtkPolyDataAlgorithm> m_polySource;
 };

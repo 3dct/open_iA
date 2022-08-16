@@ -25,6 +25,8 @@
 #include <iAVec3.h>
 #include <iAMdiChild.h>
 
+#include "iADataSet.h"
+
 #include <vtkLineSource.h>
 #include <vtkSphereSource.h>
 #include <vtkCubeSource.h>
@@ -91,8 +93,6 @@ iAGeometricObjectsDialog::iAGeometricObjectsDialog(QWidget* parent, Qt::WindowFl
 	connect(rbSphere, &QRadioButton::toggled, this, &iAGeometricObjectsDialog::updateControls);
 	connect(rbLine, &QRadioButton::toggled, this, &iAGeometricObjectsDialog::updateControls);
 	connect(rbCube, &QRadioButton::toggled, this, &iAGeometricObjectsDialog::updateControls);
-	connect(cbWireframe, &QCheckBox::toggled, this, &iAGeometricObjectsDialog::updateControls);
-	connect(slOpacity, &QSlider::valueChanged, this, &iAGeometricObjectsDialog::opacityChanged);
 	connect(pbClose, &QPushButton::clicked, this, &iAGeometricObjectsDialog::accept);
 	updateControls();
 }
@@ -113,61 +113,32 @@ void iAGeometricObjectsDialog::createObject()
 	{
 		return;
 	}
-	auto renderer = m_child->renderer();
-	auto oglRenderer = renderer->renderer();
 	bool sphereChecked = rbSphere->isChecked();
 	bool lineChecked   = rbLine->isChecked();
 	bool cubeChecked   = rbCube->isChecked();
-
-	auto colorStr = cbColor->currentText();
-	QColor color(colorStr);
-	float lineWidth = 0;
-	if (cbWireframe->isChecked() || lineChecked)
-	{
-		bool check_width;
-		lineWidth = edLineWidth->text().toFloat(&check_width);
-		if (lineWidth <= 0)
-		{
-			QMessageBox::warning(this, "Object", "Line width must be bigger than 0!");
-			return;
-		}
-	}
-	double opacity = slOpacity->value() / 10.0;
 	vtkSmartPointer<vtkPolyDataAlgorithm> source;
+	QString name;
 	if (lineChecked)
 	{
+		name = "Line";
 		source = createLineSource();
 	}
 	else if (sphereChecked)
 	{
+		name = "Sphere";
 		source = createSphereSource();
 	}
 	else if (cubeChecked)
 	{
+		name = "Cube";
 		source = createCubeSource();
 	}
 	if (!source)
 	{
 		return;
 	}
-	auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	mapper->SetInputConnection(source->GetOutputPort());
-	auto actor = vtkSmartPointer<vtkActor>::New();
-	actor->SetDragable(false);
-	actor->SetPickable(false);
-	actor->SetOrigin(0, 0, 0);
-	actor->SetOrientation(0, 0, 0);
-	auto prop = actor->GetProperty();
-	if (cbWireframe->isChecked() || lineChecked)
-	{
-		prop->SetLineWidth(lineWidth);
-		prop->SetRepresentationToWireframe();
-	}
-	prop->SetColor(color.redF(), color.greenF(), color.blueF());
-	prop->SetOpacity(opacity);
-	actor->SetMapper(mapper);
-	oglRenderer->AddActor(actor);
-	renderer->update();
+	auto dataSet = std::make_shared<iAGeometricObject>(name, "", source);
+	m_child->addDataSet(dataSet);
 }
 
 void iAGeometricObjectsDialog::updateControls()
@@ -184,9 +155,6 @@ void iAGeometricObjectsDialog::updateControls()
 	edPt2x->setVisible(!sphereChecked);
 	edPt2y->setVisible(!sphereChecked);
 	edPt2z->setVisible(!sphereChecked);
-	cbWireframe->setVisible(!lineChecked);
-	edLineWidth->setVisible(lineChecked || cbWireframe->isChecked());
-	lbLineWidth->setVisible(lineChecked || cbWireframe->isChecked());
 	lbRadius->setVisible(sphereChecked);
 	edRadius->setVisible(sphereChecked);
 	if (sphereChecked)
@@ -203,11 +171,6 @@ void iAGeometricObjectsDialog::updateControls()
 		lbPt1->setText("Min");
 		lbPt2->setText("Max");
 	}
-}
-
-void iAGeometricObjectsDialog::opacityChanged(int newValue)
-{
-	lbOpacityValue->setText(QString("%1").arg(newValue/10.0, 0, 'f', 1) );
 }
 
 vtkSmartPointer<vtkPolyDataAlgorithm> iAGeometricObjectsDialog::createLineSource()
