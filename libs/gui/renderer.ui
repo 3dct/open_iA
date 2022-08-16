@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>845</width>
-    <height>240</height>
+    <width>684</width>
+    <height>767</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -23,6 +23,12 @@
    <string>3D Renderer</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <layout class="QGridLayout" name="gridLayout">
     <property name="leftMargin">
      <number>1</number>
@@ -525,7 +531,7 @@
       <item>
        <widget class="iAFast3DMagicLensWidget" name="vtkWidgetRC" native="true">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>

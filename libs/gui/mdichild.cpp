@@ -138,7 +138,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_dwProfile(nullptr),
 	m_dwInfo(new iADockWidgetWrapper(m_dataSetInfo, "Dataset Info", "DataInfo")),
 	m_dataSetListWidget(new iADataSetListWidget()),
-	m_dwDatasets(new iADockWidgetWrapper(m_dataSetListWidget, "Datasets", "DataSets")),
+	m_dwDataSets(new iADockWidgetWrapper(m_dataSetListWidget, "Datasets", "DataSets")),
 	m_dwVolumePlayer(nullptr),
 	m_nextChannelID(0),
 	m_magicLensChannel(NotExistingChannel),
@@ -146,14 +146,16 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_initVolumeRenderers(false),
 	m_interactionMode(imCamera)
 {
-	m_histogram->setYMappingMode(prefs.HistogramLogarithmicYAxis ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
 	std::fill(m_slicerVisibility, m_slicerVisibility + 3, false);
+	setAttribute(Qt::WA_DeleteOnClose);
 	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
 	setWindowModified(unsavedChanges);
 	setupUi(this);
 	//prepare window for handling dock widgets
 	setCentralWidget(nullptr);
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
+
+	m_histogram->setYMappingMode(prefs.HistogramLogarithmicYAxis ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
 
 	//insert default dock widgets and arrange them in a simple layout
 	m_dwRenderer = new dlg_renderer(this);
@@ -169,9 +171,8 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::XY], Qt::Horizontal);
 	splitDockWidget(m_dwSlicer[iASlicerMode::XY], m_dwSlicer[iASlicerMode::XZ], Qt::Vertical);
 	splitDockWidget(m_dwSlicer[iASlicerMode::XZ], m_dwSlicer[iASlicerMode::YZ], Qt::Vertical);
-	splitDockWidget(m_dwRenderer, m_dwInfo, Qt::Horizontal);
-
-	setAttribute(Qt::WA_DeleteOnClose);
+	splitDockWidget(m_dwRenderer, m_dwDataSets, Qt::Vertical);
+	splitDockWidget(m_dwDataSets, m_dwInfo, Qt::Horizontal);
 
 	m_visibility = MULTI;
 
@@ -185,6 +186,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
 	splitDockWidget(m_dwRenderer, m_dwModalities, Qt::Vertical);
 	setModalities(modList);
+
 	applyViewerPreferences();
 	connectSignalsToSlots();
 	connect(mainWnd, &MainWindow::fullScreenToggled, this, &MdiChild::toggleFullScreen);
@@ -269,7 +271,14 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 		{
 			m_dataRenderers[idx]->setPickable(visibility);
 		});
-	splitDockWidget(m_dwModalities, m_dwDatasets, Qt::Horizontal);
+}
+
+void MdiChild::initializeViews()
+{
+	// avoid 3D renderer being resized to very small (resulting from splitDockWidget)
+	float h = geometry().height();
+	resizeDocks(QList<QDockWidget*>{ m_dwRenderer, m_dwDataSets, m_dwInfo },
+		QList<int>{ static_cast<int>(0.7 * h), static_cast<int>(0.2 * h), static_cast<int>(0.2 * h) }, Qt::Vertical);
 }
 
 void MdiChild::toggleFullScreen()
@@ -604,6 +613,8 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 			{
 				m_dataForDisplay[dataSetIdx]->show(this);
 			}
+
+			m_dwModalities->hide();
 			m_dataSetListWidget->addDataSet(dataSet.get());
 			updateDataSetInfo();
 		},
@@ -1653,6 +1664,7 @@ void MdiChild::resetLayout()
 
 void MdiChild::setupSlicers(iASlicerSettings const& ss, bool init)
 {
+	// TODO: separate applying slicer setting from slicer set up
 	m_slicerSettings = ss;
 
 	if (m_snakeSlicer)

@@ -1945,7 +1945,11 @@ iAMdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	{
 		child->showMaximized();
 	}
-
+	else
+	{
+		child->show();
+	}
+	child->initializeViews();
 	child->setRenderSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
 	child->setupSlicers(m_defaultSlicerSettings, false);
 

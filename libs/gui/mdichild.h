@@ -104,6 +104,9 @@ public:
 	MdiChild(MainWindow* mainWnd, iAPreferences const& preferences, bool unsavedChanges);
 	~MdiChild();
 
+	//! performs initialization that needs to be done after the widget is being displayed
+	void initializeViews();
+
 	void showPoly();
 	bool loadFile(const QString& f, bool isStack) override;
 	void setSTLParameter();
@@ -501,7 +504,7 @@ private:
 	iADockWidgetWrapper* m_dwProfile;
 	iADockWidgetWrapper* m_dwInfo;
 	iADataSetListWidget* m_dataSetListWidget;                          //!< display widget for list of currently loaded datasets
-	iADockWidgetWrapper* m_dwDatasets;
+	iADockWidgetWrapper* m_dwDataSets;
 	dlg_volumePlayer * m_dwVolumePlayer;
 	dlg_slicer * m_dwSlicer[3];
 	dlg_modalities * m_dwModalities;
