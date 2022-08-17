@@ -21,7 +21,6 @@
 #include "iAGeometricObjectsDialog.h"
 
 #include <iALog.h>
-#include <iARenderer.h>
 #include <iAVec3.h>
 #include <iAMdiChild.h>
 
@@ -30,10 +29,6 @@
 #include <vtkLineSource.h>
 #include <vtkSphereSource.h>
 #include <vtkCubeSource.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkActor.h>
-#include <vtkOpenGLRenderer.h>
-#include <vtkProperty.h>
 
 #include <QColor>
 #include <QMessageBox>
