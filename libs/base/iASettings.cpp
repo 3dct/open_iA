@@ -49,11 +49,16 @@ iASettings loadSettings(QString const& group)
 	return mapFromQSettings(settings);
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
 #include <QDataStream>    // required, otherwise "no operator>>" errors
 #include <QMetaType>      // for qRegisterMetaTypeStreamOperators
+#include <QVector>
+#endif
 
 void initializeSettingTypes()
 {
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)    // stream operators automatically registered with Qt >= 6
 	qRegisterMetaTypeStreamOperators<QVector<int>>("QVector<int>");
 	qRegisterMetaTypeStreamOperators<QVector<double>>("QVector<double>");
+#endif
 }
