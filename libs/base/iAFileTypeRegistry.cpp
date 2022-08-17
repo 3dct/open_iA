@@ -592,9 +592,9 @@ std::shared_ptr<iADataSet> iARawFileIO::load(iAProgress* p, QMap<QString, QVaria
 
 #if RAW_LOAD_METHOD == ITK
 	VTK_TYPED_CALL(read_raw_image_template, rawFileParams.m_scalarType, rawFileParams, m_fileName, p, con);
-	// we need a deep copy here, this causes a crash further down the line:
+	// direct copying as in following line would cause a crash further down the line:
 	// auto img = con.vtkImage();
-	// instead:
+	// instead, we need to do a deep copy here:
 	auto img = vtkSmartPointer<vtkImageData>::New();
 	img->DeepCopy(con.vtkImage());
 #else // VTK
@@ -614,12 +614,14 @@ std::shared_ptr<iADataSet> iARawFileIO::load(iAProgress* p, QMap<QString, QVaria
 	auto img = reader->GetOutput();
 	// test dataset: 5.raw
 	// on WELPC040, Release build with VS 2022 building VS2019 iAnalyze with Qt 5.15.2, VTK 9.0.3:
-	// VTK: 1024, 1257, 1026, 1011 (1038), 1014 (1034) ms (check if that includes computing min/max!!!
+	// VTK: 1024, 1257, 1026 ms -> first suspected this might include computing min/max
+	//      1011 (1038), 1014 (1034) times in parenthesis indicate time after accessing min/max (see GetScalarRange code below)
 	// ITK: 173, 170, 163, 159, 160 ms
-	//      165 (181), 165 (182), 162 (179) ms
+	//      165 (181), 165 (182), 162 (179) ms (including min/max computation)
 	// Quick tests with CFK-Probe_Stahlstift_10xavg_freebeam_448proj.raw (~5GB):
 	// VTK:  6690 (6956) ms
 	// ITK: 51837 (52087) ms (erstes Lesen von Hard disk), 5463 (5721) ms (zweites lesen, nach VTK)
+	//      -> ITK consistently faster, and much faster for small datasets!
 #endif
 
 	auto ret = std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, img);
