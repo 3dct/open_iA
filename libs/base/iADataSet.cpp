@@ -26,15 +26,16 @@
 
 #include <array>
 
+QString boundsStr(double const* bds)
+{
+	return QString("Bounds: x=%1..%2, y=%3..%4, z=%5..%6")
+		.arg(bds[0]).arg(bds[1])
+		.arg(bds[2]).arg(bds[3])
+		.arg(bds[4]).arg(bds[5]);
+}
+
 namespace
 {
-	QString boundsStr(double const* bds)
-	{
-		return QString("Bounds: x=%1..%2, y=%3..%4, z=%5..%6")
-			.arg(bds[0]).arg(bds[1])
-			.arg(bds[2]).arg(bds[3])
-			.arg(bds[4]).arg(bds[5]);
-	}
 	QString meshInfo(vtkPolyData* mesh)
 	{
 		return QString("Points: %1; Lines: %2; Cells: %3\n")
@@ -180,45 +181,4 @@ std::array<double, 3> iAImageData::unitDistance() const
 {
 	auto const spc = m_img->GetSpacing();
 	return { spc[0],  spc[1], spc[2] };
-}
-
-// ---------- iAGeometricObject ----------
-
-#include <vtkPolyDataAlgorithm.h>
-
-iAGeometricObject::iAGeometricObject(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyDataAlgorithm> source):
-	iADataSet(name, fileName),
-	m_polySource(source)
-{}
-
-vtkSmartPointer<vtkPolyDataAlgorithm> iAGeometricObject::source()
-{
-	return m_polySource;
-}
-
-QString iAGeometricObject::info() const
-{
-	return QString("Geometric object: %1; %2")
-		.arg(name())
-		.arg(boundsStr(bounds()));
-}
-
-double const* iAGeometricObject::bounds() const
-{
-	auto out = m_polySource->GetOutput();
-	static double bds[6];
-	out->GetBounds(bds);
-	return bds;
-}
-
-std::array<double, 3> iAGeometricObject::unitDistance() const
-{
-	m_polySource->Update();
-	const double Divisor = 100;
-	return {
-		(bounds()[1] - bounds()[0]) / Divisor,
-		(bounds()[3] - bounds()[2]) / Divisor,
-		(bounds()[5] - bounds()[4]) / Divisor
-	};
-
 }

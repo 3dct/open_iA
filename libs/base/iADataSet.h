@@ -59,6 +59,8 @@ protected:
 	iADataSet(QString const& name, QString const& fileName);
 
 private:
+	iADataSet(iADataSet const& other) = delete;
+	iADataSet& operator=(iADataSet const& other) = delete;
 	QString m_name;
 	QString m_fileName;
 };
@@ -73,6 +75,8 @@ public:
 	std::array<double, 3> unitDistance() const override;
 
 private:
+	iAPolyData(iAPolyData const & other) = delete;
+	iAPolyData& operator=(iAPolyData const& other) = delete;
 	vtkSmartPointer<vtkPolyData> m_mesh;
 };
 
@@ -85,6 +89,8 @@ public:
 	QString info() const override;
 
 private:
+	iAGraphData(iAGraphData const& other) = delete;
+	iAGraphData& operator=(iAGraphData const& other) = delete;
 	vtkSmartPointer<vtkPolyData> m_mesh;
 };
 
@@ -98,21 +104,9 @@ public:
 	std::array<double, 3> unitDistance() const override;
 
 private:
+	iAImageData(iAImageData const& other) = delete;
+	iAImageData& operator=(iAImageData const& other) = delete;
 	vtkSmartPointer<vtkImageData> m_img;
 };
 
-class vtkPolyDataAlgorithm;
-
-//! a geometric object produced by some VTK algorithm such as the various sources
-class iAbase_API iAGeometricObject : public iADataSet
-{
-public:
-	iAGeometricObject(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyDataAlgorithm> source);
-	vtkSmartPointer<vtkPolyDataAlgorithm> source();
-	QString info() const override;
-	std::array<double, 3> unitDistance() const override;
-	double const* bounds() const;
-
-private:
-	vtkSmartPointer<vtkPolyDataAlgorithm> m_polySource;
-};
+iAbase_API QString boundsStr(double const* bds);

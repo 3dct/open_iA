@@ -25,6 +25,7 @@
 
 #include "dlg_datatypeconversion.h"
 #include "iACheckOpenGL.h"
+#include "iAFileParamDlg.h"
 #include "iAJobListView.h"
 #include "iALogWidget.h"
 #include "iAModuleDispatcher.h"
@@ -495,33 +496,6 @@ namespace
 		ioNameShort.replace(" ", "");
 		return QString("FileIO/%1").arg(ioNameShort);
 	}
-	bool askForParameters(MainWindow* mainWnd, iAAttributes const& parameters, QMap<QString, QVariant>& values)
-	{
-		iAAttributes dlgParams;
-		for (auto param : parameters)
-		{
-			QSharedPointer<iAAttributeDescriptor> p(param->clone());
-			if (p->valueType() == iAValueType::Categorical)
-			{
-				QStringList comboValues = p->defaultValue().toStringList();
-				QString storedValue = values[p->name()].toString();
-				selectOption(comboValues, storedValue);
-				p->setDefaultValue(comboValues);
-			}
-			else
-			{
-				p->setDefaultValue(values[p->name()]);
-			}
-			dlgParams.push_back(p);
-		}
-		iAParameterDlg dlg(mainWnd, "Parameters", dlgParams);
-		if (dlg.exec() != QDialog::Accepted)
-		{
-			return false;
-		}
-		values = dlg.parameterValues();
-		return true;
-	}
 }
 
 void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
@@ -540,7 +514,8 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 	QMap<QString, QVariant> paramValues = ::loadSettings(settingsGroup);
 	if (io->parameters().size() > 0)
 	{
-		if (!askForParameters(this, io->parameters(), paramValues))
+		auto paramDlg = iAFileParamDlg::get(io->name());
+		if (!paramDlg->askForParameters(this, io->parameters(), paramValues))
 		{
 			return;
 		}
@@ -2923,6 +2898,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 {
 
 	iAFileTypeRegistry::setupDefaultIOFactories();
+	iAFileParamDlg::setupDefaultFileParamDlgs();
 	initializeSettingTypes();
 	QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
 	QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);

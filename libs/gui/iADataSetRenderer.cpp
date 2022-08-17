@@ -504,6 +504,8 @@ private:
 	iAPolyData* m_data;
 };
 
+#include "iAGeometricObject.h"
+
 class iAGeometricObjectRenderer : public iAPolyActorRenderer
 {
 public:

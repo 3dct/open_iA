@@ -24,7 +24,7 @@
 #include <iAVec3.h>
 #include <iAMdiChild.h>
 
-#include "iADataSet.h"
+#include "iAGeometricObject.h"
 
 #include <vtkLineSource.h>
 #include <vtkSphereSource.h>
