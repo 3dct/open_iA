@@ -81,7 +81,7 @@ iAAttributes combineAttributesWithValues(iAAttributes const& attributes, QMap<QS
 	combined.reserve(attributes.size());
 	for (auto param : attributes)
 	{
-		QSharedPointer<iAAttributeDescriptor> p(param);
+		QSharedPointer<iAAttributeDescriptor> p(param->clone());
 		if (p->valueType() == iAValueType::Categorical)
 		{
 			QStringList comboValues = p->defaultValue().toStringList();
