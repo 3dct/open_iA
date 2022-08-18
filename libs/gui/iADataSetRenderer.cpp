@@ -23,7 +23,7 @@
 #include "iAAABB.h"
 #include "iADataSet.h"
 #include "iADataForDisplay.h"
-#ifndef _NDEBUG
+#ifndef NDEBUG
 #include "iAMathUtility.h"    // for dblApproxEqual
 #endif
 
@@ -219,7 +219,7 @@ void iADataSetRenderer::setBoundsVisible(bool visible)
 void iADataSetRenderer::addAttribute(
 	QString const& name, iAValueType valueType, QVariant defaultValue, double min, double max)
 {
-#ifndef _NDEBUG
+#ifndef NDEBUG
 	for (auto attr : m_attributes)
 	{
 		if (attr->name() == name)
@@ -358,7 +358,7 @@ public:
 	}
 	double const* orientation() const override
 	{
-#ifndef _NDEBUG
+#ifndef NDEBUG
 		auto o1 = m_pointActor->GetOrientation(), o2 = m_lineActor->GetOrientation();
 		assert(dblApproxEqual(o1[0], o2[0], 1e-6) && dblApproxEqual(o1[1], o2[1], 1e-6) && dblApproxEqual(o1[2], o2[2], 1e-6));
 #endif
@@ -366,7 +366,7 @@ public:
 	}
 	double const* position() const override
 	{
-#ifndef _NDEBUG
+#ifndef NDEBUG
 		auto p1 = m_pointActor->GetPosition(), p2 = m_lineActor->GetPosition();
 		assert(dblApproxEqual(p1[0], p2[0], 1e-6) && dblApproxEqual(p1[1], p2[1], 1e-6) && dblApproxEqual(p1[2], p2[2], 1e-6));
 #endif

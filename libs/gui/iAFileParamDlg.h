@@ -36,7 +36,7 @@ class QWidget;
 class iAFileParamDlg
 {
 public:
-
+	virtual ~iAFileParamDlg();
 	//! default implementation for asking file parameters
 	virtual bool askForParameters(QWidget* parent, iAAttributes const& parameters, QMap<QString, QVariant>& values, QString const & fileName) const;
 

@@ -27,7 +27,9 @@
 #include <iAParameterDlg.h>
 #include <iARawFileParamDlg.h>
 
-//! default method
+iAFileParamDlg::~iAFileParamDlg()
+{}
+
 bool iAFileParamDlg::askForParameters(QWidget* parent, iAAttributes const& parameters, QMap<QString, QVariant>& values, QString const& fileName) const
 {
 	Q_UNUSED(fileName);

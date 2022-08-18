@@ -3054,7 +3054,7 @@ void MdiChild::setInteractionMode(iAInteractionMode mode)
 	}
 }
 
-void MdiChild::setDataSetMovable(int dataSetIdx)
+void MdiChild::setDataSetMovable(size_t dataSetIdx)
 {
 	for (size_t i = 0; i < m_dataSets.size(); ++i)
 	{
