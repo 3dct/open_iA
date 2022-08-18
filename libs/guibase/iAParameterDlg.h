@@ -56,9 +56,9 @@ public:
 	void showROI();
 	int exec() override;
 	void setSourceMdi(iAMdiChild* child, iAMainWindow* mainWnd);
-	QVector<QWidget*> widgetList();
+	QWidget* paramWidget(QString const & key);
 	void setOKEnabled(bool enabled);
-	void setValue(QString const & key, QString const & value);
+	void setValue(QString const & key, QVariant const & value);
 
 private slots:
 	void updatedROI(int value);

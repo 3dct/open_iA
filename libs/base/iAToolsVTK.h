@@ -41,6 +41,9 @@ class vtkScalarsToColors;
 
 class QString;
 
+
+//  ----- Image helpers: simplify allocate, fill, add, multiply, read, store, ... -----
+
 //! Create a VTK image that has the same properties (type, size, spacing) as the given image.
 //! @param img image whose type, size and spacing will be used to create the result image;
 //!        its data will not be copied over to the new image
@@ -101,58 +104,74 @@ iAbase_API void readImage(QString const& filename, bool releaseFlag, vtkSmartPoi
 //! @param img the image to write; this already needs to be a 2D image (i.e., size in Z dimension = 1)
 iAbase_API void writeSingleSliceImage(QString const & filename, vtkImageData* img);
 
-//! Returns the size (in bytes) of the given VTK type.
-//! @param vtkType a VTK type identifier (VTK_INT, VTK_UNSIGNED_CHAR, ...)
-//! @return the size in bytes of the given type (VTK_SIGNED_CHAR/VTK_UNSIGNED_CHAR -> 1, ...),
-//!        or 0 if it's an unknown type
-iAbase_API size_t mapVTKTypeToSize(int vtkType);
-
 //! Check whether the given image holds integer numbers.
 //! @param img a VTK image
 //! @return true if the values in the given VTK image are integer numbers,
 //!        false if it holds floating point numbers
 iAbase_API bool isVtkIntegerImage(vtkImageData* img);
 
+
+// ----- Coordinate conversions (world <-> image/voxel coordinates) -----
+
 //! Translate from world coordinates to voxel coordinates for the given image
 //! @param img a VTK image
 //! @param worldCoord world (=scene) coordinates (3 components: x, y, z)
 //! @param voxelCoord place for storing 3 components of voxel coordinates in img for the given world coordinates (clamped)
 iAbase_API void mapWorldToVoxelCoords(vtkImageData* img, double const* worldCoord, double* voxelCoord);
-
 //! Translate from world coordinates to voxel indices for the given image
 //! @param img a VTK image
 //! @param worldCoord world (=scene) coordinates (3 components: x, y, z)
 //! @return voxel indices, the coordinates in img for the given world coordinates (clamped)
 iAbase_API iAVec3i mapWorldCoordsToIndex(vtkImageData* img, double const* worldCoord);
 
+
+// ----- Data types -----
+
+//! Returns the size (in bytes) of the given VTK type.
+//! @param vtkType a VTK type identifier (VTK_INT, VTK_UNSIGNED_CHAR, ...)
+//! @return the size in bytes of the given type (VTK_SIGNED_CHAR/VTK_UNSIGNED_CHAR -> 1, ...),
+//!        or 0 if it's an unknown type
+iAbase_API size_t mapVTKTypeToSize(int vtkType);
 //! Returns a human-readable list of available data types for a single pixel/voxel.
 //! @param withLongLongTypes
 iAbase_API QStringList const & readableDataTypeList(bool withLongLongTypes);
-
 //! Maps a given data type string to the corresponding VTK type identifier.
+//! Reverse of mapVTKTypeToReadableDataType
 //! @param dataTypeName an entry from the list of readable data types
 //!        (see readableDataTypeList())
 //! @return the VTK type identifier (VTK_INT, VTK_UNSIGNED_CHAR, ...)
 //!        for the given readable data type name, or -1 if the given name
 //!        is not on the list
 iAbase_API int mapReadableDataTypeToVTKType(QString const & dataTypeName);
-
 //! Maps a given VTK type to the corresponding readable data type.
+//! Reverse of mapReadableDataTypeToVTKType
 //! @param vtkType the VTK type identifier (VTK_INT, VTK_UNSIGNED_CHAR, ...)
 //! @return the name (in the list as returned by readableDataTypeList())
 //!        of the given VTK type identifier,
 //!        or -1 if the given VTK type identifier is unknown
 iAbase_API QString mapVTKTypeToReadableDataType(int vtkType);
 
+
+// ----- Byte Order -----
+
 //! Returns a human-readable list of available byte orders (little/big endian)
 iAbase_API QStringList const& readableByteOrderList();
+//! Maps a given readable string to the according VTK byte order type.
+//! Reverse to mapVTKByteOrderToReadable
+iAbase_API int mapReadableByteOrderToVTKType(QString const& name);
+//! Maps a given VTK byte order type to the according readable string.
+//! Reverse to mapReadableByteOrderToVTKType
+iAbase_API QString mapVTKByteOrderToReadable(int byteOrder);
 
-//! Maps a given readable string to the according VTK byte order type
-iAbase_API unsigned int mapReadableByteOrderToVTKType(QString const& name);
 
+// ----- Render Modes -----
+//! a map of available render modes in vtkSmartVolumeMapper to their names
 iAbase_API QMap<int, QString> const & RenderModeMap();
-
+//! map the given render mode name to the respective enum in the render mode map
 iAbase_API int mapRenderModeToEnum(QString const &);
+
+
+// ----- Image Iteration -----
 
 #define FOR_VTKIMG_PIXELS(img, x, y, z) \
 for (int z = 0; z < img->GetDimensions()[2]; ++z) \
@@ -162,8 +181,13 @@ for (int z = 0; z < img->GetDimensions()[2]; ++z) \
 #define FOR_VTKIMG_PIXELS_IDX(img, idx) \
 for (size_t idx = 0; idx < img->GetDimensions()[0]*img->GetDimensions()[1]*img->GetDimensions()[2]; ++idx)
 
-// analog to above macros to iterate over every pixel in a templated way with img->GetScalarPointer?
+// ToDo: analog to above macros to iterate over every pixel in a templated way with img->GetScalarPointer?
 
+
+// ----- Camera -----
+
+//! Predefined camera positions; view along every positive (P) and negative (M) axis (x, y, z),
+//! as well as an isometric perspective
 enum iACameraPosition
 {
 	PX,
@@ -174,9 +198,11 @@ enum iACameraPosition
 	MZ,
 	Iso
 };
-
-//! set camera position to one of the predefined positions available in iACameraPosition
+//! Set given camera position to one of the predefined positions available in iACameraPosition
 iAbase_API void setCamPosition(vtkCamera* cam, iACameraPosition mode);
+
+
+// ----- Lookup table / Color transfer function conversion -----
 
 // maybe better in iALUT (but that is in charts library -> move that to separate colors lib? to base?)
 iAbase_API void convertLUTToTF(vtkSmartPointer<vtkLookupTable> src, vtkSmartPointer<vtkColorTransferFunction> ctf,

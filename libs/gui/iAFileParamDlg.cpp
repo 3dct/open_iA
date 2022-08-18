@@ -20,7 +20,26 @@
 * ************************************************************************************/
 #include <iAFileParamDlg.h>
 
+#include <iARawFileIO.h>
+
+#include <iAMainWindow.h>
 #include <iAParameterDlg.h>
+#include <iARawFileParameters.h>
+#include <iARawFileParamDlg.h>
+
+//! default method
+bool iAFileParamDlg::askForParameters(QWidget* parent, iAAttributes const& parameters, QMap<QString, QVariant>& values, QString const& fileName) const
+{
+	Q_UNUSED(fileName);
+	auto dlgParams = combineAttributesWithValues(parameters, values);
+	iAParameterDlg dlg(parent, "Parameters", dlgParams);
+	if (dlg.exec() != QDialog::Accepted)
+	{
+		return false;
+	}
+	values = dlg.parameterValues();
+	return true;
+}
 
 iAFileParamDlg* iAFileParamDlg::get(QString const& ioName)
 {
@@ -38,38 +57,27 @@ void iAFileParamDlg::add(QString const& ioName, std::shared_ptr<iAFileParamDlg> 
 	m_dialogs.insert(ioName, dlg);
 }
 
+class iANewRawFileParamDlg : public iAFileParamDlg
+{
+public:
+	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QMap<QString, QVariant>& values, QString const& fileName) const override
+	{
+		//auto dlgParams = combineAttributesWithValues(parameters, values);
+		iAAttributes additionalParams;
+		iARawFileParameters rawFileParams;
+		iARawFileParamDlg dlg(fileName, parent, "Raw file parameters", additionalParams, rawFileParams, iAMainWindow::get()->brightMode());
+		if (!dlg.accepted())
+		{
+			return false;
+		}
+		values = dlg.parameterValues();
+		return true;
+	}
+};
+
 void iAFileParamDlg::setupDefaultFileParamDlgs()
 {
-
-}
-
-//! default method
-bool iAFileParamDlg::askForParameters(QWidget* parent, iAAttributes const& parameters, QMap<QString, QVariant>& values) const
-{
-	iAAttributes dlgParams;
-	for (auto param : parameters)
-	{
-		QSharedPointer<iAAttributeDescriptor> p(param->clone());
-		if (p->valueType() == iAValueType::Categorical)
-		{
-			QStringList comboValues = p->defaultValue().toStringList();
-			QString storedValue = values[p->name()].toString();
-			selectOption(comboValues, storedValue);
-			p->setDefaultValue(comboValues);
-		}
-		else
-		{
-			p->setDefaultValue(values[p->name()]);
-		}
-		dlgParams.push_back(p);
-	}
-	iAParameterDlg dlg(parent, "Parameters", dlgParams);
-	if (dlg.exec() != QDialog::Accepted)
-	{
-		return false;
-	}
-	values = dlg.parameterValues();
-	return true;
+	add(iARawFileIO::Name, std::make_shared<iANewRawFileParamDlg>());
 }
 
 QMap<QString, std::shared_ptr<iAFileParamDlg>> iAFileParamDlg::m_dialogs;

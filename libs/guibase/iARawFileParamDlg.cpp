@@ -60,15 +60,12 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
 	byteOrderStr[mapVTKByteOrderToIdx(rawFileParams.m_byteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(rawFileParams.m_byteOrder)];
 	iAParameterDlg::ParamListT params;
-	addParameter(params, "Size X", iAValueType::Discrete, rawFileParams.m_size[0], 1);
-	addParameter(params, "Size Y", iAValueType::Discrete, rawFileParams.m_size[1], 1);
-	addParameter(params, "Size Z", iAValueType::Discrete, rawFileParams.m_size[2], 1);
-	addParameter(params, "Spacing X", iAValueType::Continuous, rawFileParams.m_spacing[0]);
-	addParameter(params, "Spacing Y", iAValueType::Continuous, rawFileParams.m_spacing[1]);
-	addParameter(params, "Spacing Z", iAValueType::Continuous, rawFileParams.m_spacing[2]);
-	addParameter(params, "Origin X", iAValueType::Continuous, rawFileParams.m_origin[0]);
-	addParameter(params, "Origin Y", iAValueType::Continuous, rawFileParams.m_origin[1]);
-	addParameter(params, "Origin Z", iAValueType::Continuous, rawFileParams.m_origin[2]);
+	QVector<int> sizeVec{ static_cast<int>(rawFileParams.m_size[0]), static_cast<int>(rawFileParams.m_size[1]), static_cast<int>(rawFileParams.m_size[2])};
+	addParameter(params, "Size", iAValueType::Vector3i, QVariant::fromValue<QVector<int>>(sizeVec));
+	QVector<double> spcVec{ rawFileParams.m_spacing[0], rawFileParams.m_spacing[1], rawFileParams.m_spacing[2] };
+	addParameter(params, "Spacing", iAValueType::Vector3, QVariant::fromValue<QVector<double>>(spcVec));
+	QVector<double> oriVec{ rawFileParams.m_origin[0], rawFileParams.m_origin[1], rawFileParams.m_origin[2] };
+	addParameter(params, "Origin", iAValueType::Vector3, QVariant::fromValue<QVector<double>>(oriVec));
 	addParameter(params, "Headersize", iAValueType::Discrete, rawFileParams.m_headersize, 0);
 	addParameter(params, "Data Type", iAValueType::Categorical, datatype);
 	addParameter(params, "Byte Order", iAValueType::Categorical, byteOrderStr);
@@ -92,12 +89,9 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 	m_proposedSizeLabel->setAlignment(Qt::AlignRight);
 	m_inputDlg->layout()->addWidget(m_proposedSizeLabel);
 
-	// indices here refer to the order that the items are inserted in above!
-	connect(qobject_cast<QSpinBox*>(m_inputDlg->widgetList()[0]), QOverload<int>::of(&QSpinBox::valueChanged), this, &iARawFileParamDlg::checkFileSize);
-	connect(qobject_cast<QSpinBox*>(m_inputDlg->widgetList()[1]), QOverload<int>::of(&QSpinBox::valueChanged), this, &iARawFileParamDlg::checkFileSize);
-	connect(qobject_cast<QSpinBox*>(m_inputDlg->widgetList()[2]), QOverload<int>::of(&QSpinBox::valueChanged), this, &iARawFileParamDlg::checkFileSize);
-	connect(qobject_cast<QSpinBox*>(m_inputDlg->widgetList()[9]), QOverload<int>::of(&QSpinBox::valueChanged), this, &iARawFileParamDlg::checkFileSize);
-	connect(qobject_cast<QComboBox*>(m_inputDlg->widgetList()[10]), QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iARawFileParamDlg::checkFileSize);
+	connect(qobject_cast<QSpinBox*>(m_inputDlg->paramWidget("Size")), QOverload<int>::of(&QSpinBox::valueChanged), this, &iARawFileParamDlg::checkFileSize);
+	connect(qobject_cast<QSpinBox*>(m_inputDlg->paramWidget("Headersize")), QOverload<int>::of(&QSpinBox::valueChanged), this, &iARawFileParamDlg::checkFileSize);
+	connect(qobject_cast<QComboBox*>(m_inputDlg->paramWidget("Data Type")), QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iARawFileParamDlg::checkFileSize);
 
 	checkFileSize();
 
@@ -106,15 +100,15 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 		return;
 	}
 	auto values = m_inputDlg->parameterValues();
-	rawFileParams.m_size[0] = values["Size X"].toInt();
-	rawFileParams.m_size[1] = values["Size Y"].toInt();
-	rawFileParams.m_size[2] = values["Size Z"].toInt();
-	rawFileParams.m_spacing[0] = values["Spacing X"].toDouble();
-	rawFileParams.m_spacing[1] = values["Spacing Y"].toDouble();
-	rawFileParams.m_spacing[2] = values["Spacing Z"].toDouble();
-	rawFileParams.m_origin[0] = values["Origin X"].toDouble();
-	rawFileParams.m_origin[1] = values["Origin Y"].toDouble();
-	rawFileParams.m_origin[2] = values["Origin Z"].toDouble();
+	auto newSizeVec = values["Size"].value<QVector<int>>();
+	auto newSpcVec = values["Spacing"].value<QVector<double>>();
+	auto newOriVec = values["Origin"].value<QVector<double>>();
+	for (int i = 0; i < 3; ++i)
+	{
+		rawFileParams.m_size[i] = newSizeVec[i];
+		rawFileParams.m_spacing[i] = newSpcVec[i];
+		rawFileParams.m_origin[i] = newOriVec[i];
+	}
 	rawFileParams.m_headersize = values["Headersize"].toULongLong();
 	rawFileParams.m_scalarType = mapReadableDataTypeToVTKType(values["Data Type"].toString());
 	rawFileParams.m_byteOrder = mapReadableByteOrderToVTKType(values["Byte Order"].toString());
@@ -124,10 +118,11 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 void iARawFileParamDlg::checkFileSize()
 {
 	auto values = m_inputDlg->parameterValues();
+	auto sizeVec = values["Size"].value<QVector<int>>();
 	qint64
-		sizeX = values["Size X"].toLongLong(),
-		sizeY = values["Size Y"].toLongLong(),
-		sizeZ = values["Size Z"].toLongLong(),
+		sizeX = sizeVec[0],
+		sizeY = sizeVec[1],
+		sizeZ = sizeVec[2],
 		voxelSize = mapVTKTypeToSize(mapReadableDataTypeToVTKType(values["Data Type"].toString())),
 		headerSize = values["Headersize"].toLongLong();
 	qint64 proposedSize = sizeX * sizeY * sizeZ * voxelSize + headerSize;
@@ -149,18 +144,16 @@ void iARawFileParamDlg::guessParameters(QString fileName)
 	auto sizeMatch = sizeRegEx.match(fileName);
 	if (sizeMatch.hasMatch())
 	{
-		m_inputDlg->setValue("Size X", sizeMatch.captured(1));
-		m_inputDlg->setValue("Size Y", sizeMatch.captured(2));
-		m_inputDlg->setValue("Size Z", sizeMatch.captured(3));
+		QVector<int> sizeVec{ sizeMatch.captured(1).toInt(), sizeMatch.captured(2).toInt(), sizeMatch.captured(3).toInt()};
+		m_inputDlg->setValue("Size", QVariant::fromValue<QVector<int>>(sizeVec));
 	}
 	QString spcGrp("(\\d+(?:[.-]\\d+)?)(um|mm)");
 	QRegularExpression spcRegEx1(QString("%1x%2x%3").arg(spcGrp).arg(spcGrp).arg(spcGrp));
 	auto spc1Match = spcRegEx1.match(fileName);
 	if (spc1Match.hasMatch())
 	{
-		m_inputDlg->setValue("Spacing X", spc1Match.captured(1).replace("-", "."));
-		m_inputDlg->setValue("Spacing Y", spc1Match.captured(3).replace("-", "."));
-		m_inputDlg->setValue("Spacing Z", spc1Match.captured(5).replace("-", "."));
+		QVector<double> spcVec{ spc1Match.captured(1).replace("-", ".").toDouble(), spc1Match.captured(3).replace("-", ".").toDouble(),  spc1Match.captured(5).replace("-", ".").toDouble() };
+		m_inputDlg->setValue("Spacing", QVariant::fromValue<QVector<double>>(spcVec));
 	}
 	else
 	{

@@ -32,7 +32,6 @@
 #if RAW_LOAD_METHOD == ITK
 
 	#include "iAConnector.h"
-	#include "iARawFileParameters.h"
 	#include "iATypedCallHelper.h"
 
 	#include <itkImage.h>
@@ -50,6 +49,15 @@
 #include <QElapsedTimer>
 #include <QFileInfo>
 
+namespace
+{
+	const QString SizeStr("Size");
+	const QString SpacingStr("Spacing");
+	const QString OriginStr("Origin");
+	const QString HeadersizeStr("Headersize");
+	const QString DataTypeStr("Data Type");
+	const QString ByteOrderStr("Byte Order");
+}
 
 iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::Volume)
 {
@@ -59,29 +67,29 @@ iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::Volume)
 	auto byteOrders = readableByteOrderList();
 	auto defaultByteOrder = "Little Endian";
 	selectOption(byteOrders, defaultByteOrder);
-	addParameter("Size", iAValueType::Vector3i, QVariant::fromValue(QVector<int>{1, 1, 1}));
-	addParameter("Spacing", iAValueType::Vector3, QVariant::fromValue(QVector<double>{1.0, 1.0, 1.0}));
-	addParameter("Origin", iAValueType::Vector3, QVariant::fromValue(QVector<double>{0.0, 0.0, 0.0}));
-	addParameter("Headersize", iAValueType::Discrete, 0, 0);
-	addParameter("Data Type", iAValueType::Categorical, datatype);
-	addParameter("Byte Order", iAValueType::Categorical, byteOrders);
+	addParameter(SizeStr, iAValueType::Vector3i, QVariant::fromValue(QVector<int>{1, 1, 1}));
+	addParameter(SpacingStr, iAValueType::Vector3, QVariant::fromValue(QVector<double>{1.0, 1.0, 1.0}));
+	addParameter(OriginStr, iAValueType::Vector3, QVariant::fromValue(QVector<double>{0.0, 0.0, 0.0}));
+	addParameter(HeadersizeStr, iAValueType::Discrete, 0, 0);
+	addParameter(DataTypeStr, iAValueType::Categorical, datatype);
+	addParameter(ByteOrderStr, iAValueType::Categorical, byteOrders);
 }
 
 #if RAW_LOAD_METHOD == ITK
 template <class T>
-void read_raw_image_template(iARawFileParameters const& params, QString const& fileName, iAProgress* progress, iAConnector& image)
+void read_raw_image_template(QMap<QString, QVariant> const& params, QString const& fileName, iAProgress* progress, iAConnector& image)
 {
 	typedef itk::RawImageIO<T, DIM> RawImageIOType;
 	auto io = RawImageIOType::New();
 	io->SetFileName(getLocalEncodingFileName(fileName).c_str());
-	io->SetHeaderSize(params.m_headersize);
+	io->SetHeaderSize(params[HeadersizeStr].toInt());
 	for (int i = 0; i < DIM; i++)
 	{
-		io->SetDimensions(i, params.m_size[i]);
-		io->SetSpacing(i, params.m_spacing[i]);
-		io->SetOrigin(i, params.m_origin[i]);
+		io->SetDimensions(i, params[SizeStr].value<QVector<int>>()[i]);
+		io->SetSpacing(i, params[SpacingStr].value<QVector<double>>()[i]);
+		io->SetOrigin(i, params[OriginStr].value<QVector<double>>()[i]);
 	}
-	if (params.m_byteOrder == VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN)
+	if (params[ByteOrderStr].toInt() == VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN)
 	{
 		io->SetByteOrderToLittleEndian();
 	}
@@ -112,22 +120,10 @@ std::shared_ptr<iADataSet> iARawFileIO::load(iAProgress* p, QMap<QString, QVaria
 
 	// ITK way:
 	iAConnector con;
-	iARawFileParameters rawFileParams;
-	auto sizeVec = parameters["Size"].value<QVector<int>>();
-	auto spcVec = parameters["Spacing"].value<QVector<double>>();
-	auto oriVec = parameters["Origin"].value<QVector<double>>();
-	for (int c = 0; c < 3; ++c)
-	{
-		rawFileParams.m_size[c] = sizeVec[c];
-		rawFileParams.m_spacing[c] = spcVec[c];
-		rawFileParams.m_origin[c] = oriVec[c];
-	}
-	rawFileParams.m_headersize = parameters["Headersize"].toULongLong();
-	rawFileParams.m_scalarType = mapReadableDataTypeToVTKType(parameters["Data Type"].toString());
-	rawFileParams.m_byteOrder = mapReadableByteOrderToVTKType(parameters["Byte Order"].toString());
 
 #if RAW_LOAD_METHOD == ITK
-	VTK_TYPED_CALL(read_raw_image_template, rawFileParams.m_scalarType, rawFileParams, m_fileName, p, con);
+	auto scalarType = mapReadableDataTypeToVTKType(parameters["Data Type"].toString());
+	VTK_TYPED_CALL(read_raw_image_template, scalarType, parameters, m_fileName, p, con);
 	// direct copying as in following line would cause a crash further down the line:
 	// auto img = con.vtkImage();
 	// instead, we need to do a deep copy here:

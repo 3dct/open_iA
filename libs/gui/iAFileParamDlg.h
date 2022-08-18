@@ -37,16 +37,17 @@ class iAFileParamDlg
 {
 public:
 
+	//! default implementation for asking file parameters
+	virtual bool askForParameters(QWidget* parent, iAAttributes const& parameters, QMap<QString, QVariant>& values, QString const & fileName) const;
+
 	//! factory method, creating a parameter dialog for the given file I/O name:
 	static iAFileParamDlg* get(QString const & ioName);
 
 	//! register a dialog for a given I/O name:
 	static void add(QString const& ioName, std::shared_ptr<iAFileParamDlg> dlg);
 
+	//! set up a few custom file parameter dialogs
 	static void setupDefaultFileParamDlgs();
-
-	//! default method
-	virtual bool askForParameters(QWidget* parent, iAAttributes const& parameters, QMap<QString, QVariant>& values) const;
 
 private:
 	static QMap<QString, std::shared_ptr<iAFileParamDlg>> m_dialogs;

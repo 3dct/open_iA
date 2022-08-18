@@ -35,7 +35,7 @@ class iAVectorInput : public QWidget
 {
 	Q_OBJECT
 public:
-	iAVectorInput(QWidget* parent, iAValueType valueType, int vecLength, QVariant const & values) :
+	iAVectorInput(QWidget* parent, iAValueType valueType, int vecLength, QVariant const& values) :
 		QWidget(parent), m_inputs(vecLength), m_valueType(valueType)
 	{
 		setLayout(new QHBoxLayout);
@@ -61,6 +61,17 @@ public:
 			layout()->addWidget(m_inputs[i]);
 		}
 		setValue(values);
+		for (int i = 0; i < vecLength; ++i)
+		{
+			if (valueType == iAValueType::Discrete)
+			{
+				connect(qobject_cast<QSpinBox*>(m_inputs[i]), QOverload<int>::of(&QSpinBox::valueChanged), this, &iAVectorInput::valueChanged);
+			}
+			else
+			{
+				connect(qobject_cast<QDoubleSpinBox*>(m_inputs[i]), QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &iAVectorInput::valueChanged);
+			}
+		}
 	}
 	QVariant value() const
 	{
@@ -110,6 +121,8 @@ public:
 			}
 		}
 	}
+signals:
+	void valueChanged();
 
 private:
 	const QString ComponentNames[3] = {"x", "y", "z"};

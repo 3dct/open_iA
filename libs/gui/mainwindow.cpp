@@ -515,7 +515,7 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 	if (io->parameters().size() > 0)
 	{
 		auto paramDlg = iAFileParamDlg::get(io->name());
-		if (!paramDlg->askForParameters(this, io->parameters(), paramValues))
+		if (!paramDlg->askForParameters(this, io->parameters(), paramValues, fileName))
 		{
 			return;
 		}

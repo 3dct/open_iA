@@ -22,7 +22,7 @@
 
 #include "iAFileTypeRegistry.h"
 
-class iARawFileIO : public iAFileIO
+class iAbase_API iARawFileIO : public iAFileIO
 {
 public:
 	static QString Name;

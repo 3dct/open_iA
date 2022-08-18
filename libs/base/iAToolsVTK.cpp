@@ -334,22 +334,26 @@ QString mapVTKTypeToReadableDataType(int vtkType)
 	return readableDataTypeMap().value(vtkType, "");
 }
 
-iAbase_API QStringList const& readableByteOrderList()
+namespace
 {
-	static QStringList byteOrders = (QStringList() << "Big Endian" << "Little Endian");
+	const QString BigEndianStr("Big Endian");
+	const QString LittleEndianStr("Little Endian");
+}
+
+QStringList const& readableByteOrderList()
+{
+	static QStringList byteOrders = (QStringList() << BigEndianStr << LittleEndianStr);
 	return byteOrders;
 }
 
-unsigned int mapReadableByteOrderToVTKType(QString const& name)
+QString mapVTKByteOrderToReadable(int byteOrder)
 {
-	if (name == "Little Endian")
-	{
-		return VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN;
-	}
-	else  // if (name == "Big Endian")
-	{
-		return VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
-	}
+	return (byteOrder == VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN) ? LittleEndianStr : BigEndianStr;
+}
+
+int mapReadableByteOrderToVTKType(QString const& name)
+{
+	return (name == LittleEndianStr) ? VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN : VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
 }
 
 QMap<int, QString> const & RenderModeMap()
