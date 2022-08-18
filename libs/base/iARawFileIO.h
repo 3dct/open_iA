@@ -25,7 +25,13 @@
 class iAbase_API iARawFileIO : public iAFileIO
 {
 public:
-	static QString Name;
+	static const QString Name;
+	static const QString SizeStr;
+	static const QString SpacingStr;
+	static const QString OriginStr;
+	static const QString HeadersizeStr;
+	static const QString DataTypeStr;
+	static const QString ByteOrderStr;
 	iARawFileIO();
 	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
 	QString name() const override;

@@ -153,18 +153,23 @@ iAbase_API QString mapVTKTypeToReadableDataType(int vtkType);
 
 
 // ----- Byte Order -----
-
-//! Returns a human-readable list of available byte orders (little/big endian)
-iAbase_API QStringList const& readableByteOrderList();
-//! Maps a given readable string to the according VTK byte order type.
-//! Reverse to mapVTKByteOrderToReadable
-iAbase_API int mapReadableByteOrderToVTKType(QString const& name);
-//! Maps a given VTK byte order type to the according readable string.
-//! Reverse to mapReadableByteOrderToVTKType
-iAbase_API QString mapVTKByteOrderToReadable(int byteOrder);
+namespace ByteOrder
+{
+	extern const QString BigEndianStr;
+	extern const QString LittleEndianStr;
+	//! Returns a human-readable list of available byte orders (little/big endian)
+	iAbase_API QStringList const& stringList();
+	//! Maps a given readable string to the according VTK byte order type.
+	//! Reverse to mapVTKByteOrderToReadable
+	iAbase_API int mapStringToVTKType(QString const& name);
+	//! Maps a given VTK byte order type to the according readable string.
+	//! Reverse to mapReadableByteOrderToVTKType
+	iAbase_API QString mapVTKTypeToString(int byteOrder);
+}
 
 
 // ----- Render Modes -----
+
 //! a map of available render modes in vtkSmartVolumeMapper to their names
 iAbase_API QMap<int, QString> const & RenderModeMap();
 //! map the given render mode name to the respective enum in the render mode map

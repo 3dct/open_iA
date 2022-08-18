@@ -312,7 +312,7 @@ namespace
 }
 
 QStringList const & readableDataTypeList(bool withLongLongTypes)
-{
+{   // ToDo: sort data types, otherwise key valus have influence on ordering, which is not ideal (VTK_SIGNED_CHAR at end, not after VTK_UNSIGNED_CHAR)
 	static QStringList longlongDataTypeList(readableDataTypeMap().values());
 	// exclude all lines matching "long long" from the datatypeList
 	static QStringList datatypeList(longlongDataTypeList.filter(QRegularExpression("^((?!long long).)*$")));
@@ -334,26 +334,26 @@ QString mapVTKTypeToReadableDataType(int vtkType)
 	return readableDataTypeMap().value(vtkType, "");
 }
 
-namespace
+namespace ByteOrder
 {
 	const QString BigEndianStr("Big Endian");
 	const QString LittleEndianStr("Little Endian");
-}
 
-QStringList const& readableByteOrderList()
-{
-	static QStringList byteOrders = (QStringList() << BigEndianStr << LittleEndianStr);
-	return byteOrders;
-}
+	QStringList const& stringList()
+	{
+		static QStringList byteOrders = (QStringList() << BigEndianStr << LittleEndianStr);
+		return byteOrders;
+	}
 
-QString mapVTKByteOrderToReadable(int byteOrder)
-{
-	return (byteOrder == VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN) ? LittleEndianStr : BigEndianStr;
-}
+	QString mapVTKTypeToString(int byteOrder)
+	{
+		return (byteOrder == VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN) ? LittleEndianStr : BigEndianStr;
+	}
 
-int mapReadableByteOrderToVTKType(QString const& name)
-{
-	return (name == LittleEndianStr) ? VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN : VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
+	int mapStringToVTKType(QString const& name)
+	{
+		return (name == LittleEndianStr) ? VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN : VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
+	}
 }
 
 QMap<int, QString> const & RenderModeMap()

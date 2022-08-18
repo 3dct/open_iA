@@ -1505,12 +1505,14 @@ bool iAIO::setupVolumeStackReader(QString const & f)
 	m_extension = "." + QFileInfo(f).suffix();
 	iAParameterDlg::ParamListT params;
 	addSeriesParameters(params, m_fileNamesBase, m_extension, digitsInIndex, indexRange);
-	iARawFileParamDlg dlg(f, m_parent, "RAW file specs", params, m_rawFileParams, iAMainWindow::get()->brightMode());
+	auto map = m_rawFileParams.toMap();
+	iARawFileParamDlg dlg(f, m_parent, "RAW file specs", params, map, iAMainWindow::get()->brightMode());
 	if (!dlg.accepted())
 	{
 		return false;
 	}
 	auto values = dlg.parameterValues();
+	m_rawFileParams = iARawFileParameters::fromMap(dlg.parameterValues());
 	m_fileNamesBase = values[FileNameBase].toString();
 	m_extension = values[Extension].toString();
 	digitsInIndex = values[NumDigits].toInt();
@@ -1523,7 +1525,9 @@ bool iAIO::setupVolumeStackReader(QString const & f)
 bool iAIO::setupRAWReader( QString const & f )
 {
 	m_fileName = f;
-	iARawFileParamDlg dlg(f, m_parent, "RAW file specs", iAParameterDlg::ParamListT(), m_rawFileParams, iAMainWindow::get()->brightMode());
+	auto map = m_rawFileParams.toMap();
+	iARawFileParamDlg dlg(f, m_parent, "RAW file specs", iAParameterDlg::ParamListT(), map, iAMainWindow::get()->brightMode());
+	m_rawFileParams = iARawFileParameters::fromMap(dlg.parameterValues());
 	return dlg.accepted();
 }
 

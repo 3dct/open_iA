@@ -46,27 +46,23 @@
 
 #endif
 
-#include <QElapsedTimer>
 #include <QFileInfo>
 
-namespace
-{
-	const QString SizeStr("Size");
-	const QString SpacingStr("Spacing");
-	const QString OriginStr("Origin");
-	const QString HeadersizeStr("Headersize");
-	const QString DataTypeStr("Data Type");
-	const QString ByteOrderStr("Byte Order");
-}
+const QString iARawFileIO::Name("RAW files");
+const QString iARawFileIO::SizeStr("Size");
+const QString iARawFileIO::SpacingStr("Spacing");
+const QString iARawFileIO::OriginStr("Origin");
+const QString iARawFileIO::HeadersizeStr("Headersize");
+const QString iARawFileIO::DataTypeStr("Data Type");
+const QString iARawFileIO::ByteOrderStr("Byte Order");
 
 iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::Volume)
 {
 	auto datatype = readableDataTypeList(false);
 	QString selectedType = mapVTKTypeToReadableDataType(VTK_UNSIGNED_SHORT);
 	selectOption(datatype, selectedType);
-	auto byteOrders = readableByteOrderList();
-	auto defaultByteOrder = "Little Endian";
-	selectOption(byteOrders, defaultByteOrder);
+	auto byteOrders = ByteOrder::stringList();
+	selectOption(byteOrders, ByteOrder::LittleEndianStr);
 	addParameter(SizeStr, iAValueType::Vector3i, QVariant::fromValue(QVector<int>{1, 1, 1}));
 	addParameter(SpacingStr, iAValueType::Vector3, QVariant::fromValue(QVector<double>{1.0, 1.0, 1.0}));
 	addParameter(OriginStr, iAValueType::Vector3, QVariant::fromValue(QVector<double>{0.0, 0.0, 0.0}));
@@ -82,14 +78,14 @@ void read_raw_image_template(QMap<QString, QVariant> const& params, QString cons
 	typedef itk::RawImageIO<T, DIM> RawImageIOType;
 	auto io = RawImageIOType::New();
 	io->SetFileName(getLocalEncodingFileName(fileName).c_str());
-	io->SetHeaderSize(params[HeadersizeStr].toInt());
+	io->SetHeaderSize(params[iARawFileIO::HeadersizeStr].toInt());
 	for (int i = 0; i < DIM; i++)
 	{
-		io->SetDimensions(i, params[SizeStr].value<QVector<int>>()[i]);
-		io->SetSpacing(i, params[SpacingStr].value<QVector<double>>()[i]);
-		io->SetOrigin(i, params[OriginStr].value<QVector<double>>()[i]);
+		io->SetDimensions(i, params[iARawFileIO::SizeStr].value<QVector<int>>()[i]);
+		io->SetSpacing(i, params[iARawFileIO::SpacingStr].value<QVector<double>>()[i]);
+		io->SetOrigin(i, params[iARawFileIO::OriginStr].value<QVector<double>>()[i]);
 	}
-	if (params[ByteOrderStr].toInt() == VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN)
+	if (params[iARawFileIO::ByteOrderStr].toString() == ByteOrder::LittleEndianStr)
 	{
 		io->SetByteOrderToLittleEndian();
 	}
@@ -115,8 +111,6 @@ void read_raw_image_template(QMap<QString, QVariant> const& params, QString cons
 std::shared_ptr<iADataSet> iARawFileIO::load(iAProgress* p, QMap<QString, QVariant> const& parameters)
 {
 	Q_UNUSED(parameters);
-	QElapsedTimer t;
-	t.start();
 
 	// ITK way:
 	iAConnector con;
@@ -155,16 +149,11 @@ std::shared_ptr<iADataSet> iARawFileIO::load(iAProgress* p, QMap<QString, QVaria
 	// ITK: 51837 (52087) ms (erstes Lesen von Hard disk), 5463 (5721) ms (zweites lesen, nach VTK)
 	//      -> ITK consistently faster, and much faster for small datasets!
 #endif
-
 	auto ret = std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, img);
-	LOG(lvlInfo, QString("Elapsed: %1 ms.").arg(t.elapsed()));
 	// TODO: maybe compute range here as well?
-	//auto rng = img->GetScalarRange();
-	//LOG(lvlInfo, QString("After min/max: %1 ms.").arg(t.elapsed()));
+	//auto rng = img->GetScalarRange();   // see also comments above about performance measurements
 	return ret;
 }
-
-QString iARawFileIO::Name("RAW files");
 
 QString iARawFileIO::name() const
 {

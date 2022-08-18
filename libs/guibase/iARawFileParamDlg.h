@@ -26,8 +26,6 @@
 
 #include <QObject>
 
-struct iARawFileParameters;
-
 class QLabel;
 
 class iAguibase_API iARawFileParamDlg : public QObject
@@ -43,7 +41,7 @@ public:
 	//! @param [out] rawFileParams The parameters of the raw file that were set by the user.
 	//! @param brightTheme      whether the program currently uses a dark theme (affects green/red background in file size check)
 	iARawFileParamDlg(QString const& fileName, QWidget* parent, QString const& title,
-		iAParameterDlg::ParamListT const& additionalParams, iARawFileParameters& rawFileParams, bool brightTheme);
+		iAParameterDlg::ParamListT const& additionalParams, QMap<QString, QVariant> & paramValues, bool brightTheme);
 	~iARawFileParamDlg();
 	//! Checks whether or not the user has accepted the input dialog.
 	//! @return true if the user accepted (i.e. clicked "OK"), false if he cancelled.

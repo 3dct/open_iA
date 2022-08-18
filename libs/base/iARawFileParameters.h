@@ -23,7 +23,12 @@
 #include <vtkImageReader.h>  // for VTK_FILE_BYTE_ORDER_... constants
 #include <vtkType.h>         // For types, e.g. VTK_UNSIGNED_SHORT
 
+#include "iARawFileIO.h"     // for constants used in mapStructToMap
+#include "iAToolsVTK.h"      // for mapVTKTypeToReadableDataType
+
+
 //! Contains all metadata required to load a raw data file.
+//! @deprecated new developments should use iARawFileIO and its parameters instead
 struct iARawFileParameters
 {
 	iARawFileParameters():
@@ -50,4 +55,37 @@ struct iARawFileParameters
 	//! See VTK_FILE_BYTE_ORDER_ defines in include file <vtkImageReader.h>
 	//! this type is mapped to list index in raw file dialog in mapVTKByteOrderToIdx in iARawFileParamDlg
 	int m_byteOrder;
+
+	inline QVariantMap toMap() const
+	{
+		QMap<QString, QVariant> result;
+		QVector<int> sizeVec{ static_cast<int>(m_size[0]), static_cast<int>(m_size[1]), static_cast<int>(m_size[2]) };
+		result[iARawFileIO::SizeStr] = QVariant::fromValue<QVector<int>>(sizeVec);
+		QVector<double> spcVec{ m_spacing[0], m_spacing[1], m_spacing[2] };
+		result[iARawFileIO::SpacingStr] = QVariant::fromValue<QVector<double>>(spcVec);
+		QVector<double> oriVec{ m_origin[0], m_origin[1], m_origin[2] };
+		result[iARawFileIO::OriginStr] = QVariant::fromValue<QVector<double>>(oriVec);
+		result[iARawFileIO::HeadersizeStr] = m_headersize;
+		result[iARawFileIO::DataTypeStr] = mapVTKTypeToReadableDataType(m_scalarType);
+		result[iARawFileIO::ByteOrderStr] = ByteOrder::mapVTKTypeToString(m_byteOrder);
+		return result;
+	}
+
+	static inline iARawFileParameters fromMap(QVariantMap const& map)
+	{
+		iARawFileParameters result;
+		auto sizeVec = map["Size"].value<QVector<int>>();
+		auto spcVec = map["Spacing"].value<QVector<double>>();
+		auto oriVec = map["Origin"].value<QVector<double>>();
+		for (int c = 0; c < 3; ++c)
+		{
+			result.m_size[c] = sizeVec[c];
+			result.m_spacing[c] = spcVec[c];
+			result.m_origin[c] = oriVec[c];
+		}
+		result.m_headersize = map["Headersize"].toULongLong();
+		result.m_scalarType = mapReadableDataTypeToVTKType(map["Data Type"].toString());
+		result.m_byteOrder = ByteOrder::mapStringToVTKType(map["Byte Order"].toString());
+		return result;
+	}
 };

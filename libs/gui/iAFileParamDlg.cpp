@@ -24,7 +24,6 @@
 
 #include <iAMainWindow.h>
 #include <iAParameterDlg.h>
-#include <iARawFileParameters.h>
 #include <iARawFileParamDlg.h>
 
 //! default method
@@ -62,10 +61,9 @@ class iANewRawFileParamDlg : public iAFileParamDlg
 public:
 	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QMap<QString, QVariant>& values, QString const& fileName) const override
 	{
-		//auto dlgParams = combineAttributesWithValues(parameters, values);
+		Q_UNUSED(parameters);    // iARawFileParamDlg knows which parameters to get
 		iAAttributes additionalParams;
-		iARawFileParameters rawFileParams;
-		iARawFileParamDlg dlg(fileName, parent, "Raw file parameters", additionalParams, rawFileParams, iAMainWindow::get()->brightMode());
+		iARawFileParamDlg dlg(fileName, parent, "Raw file parameters", additionalParams, values, iAMainWindow::get()->brightMode());
 		if (!dlg.accepted())
 		{
 			return false;
