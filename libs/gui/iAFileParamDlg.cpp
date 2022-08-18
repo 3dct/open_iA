@@ -74,6 +74,8 @@ public:
 	}
 };
 
+#ifdef USE_HDF5
+
 #include <iAHDF5IO.h>
 
 #include <QFileInfo>
@@ -241,8 +243,6 @@ namespace
 	}
 
 }
-
-#ifdef USE_HDF5
 
 #include "qthelper/iAQTtoUIConnector.h"
 // TODO: remove guibase/OpenHDF5.ui!
