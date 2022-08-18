@@ -246,7 +246,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 			QString selectedFile = paramValues[QString("%1").arg(filter->inputName(i))].toString();
 			int const mdiIdx = mdiChildrenNames.indexOf(selectedFile);
 			auto const& dataSets = otherMdis[mdiIdx]->dataSets();
-			for (int m = 0; m < dataSets.size(); ++m)
+			for (size_t m = 0; m < dataSets.size(); ++m)
 			{
 				auto imgData = dynamic_cast<iAImageData*>(dataSets[m].get());
 				if (imgData)
@@ -309,7 +309,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainW
 	}
 	if (sourceMdi)
 	{
-		for (int m = 0; m < dataSets.size(); ++m)
+		for (size_t m = 0; m < dataSets.size(); ++m)
 		{
 			auto imgData = dynamic_cast<iAImageData*>(dataSets[m].get());
 			if (imgData)

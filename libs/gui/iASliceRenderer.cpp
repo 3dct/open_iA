@@ -78,7 +78,7 @@ public:
 			m_slicer[s]->channel(m_channelID)->setMovable(pickable);
 		}
 	}
-	unsigned int channelID() const
+	unsigned int channelID() const override
 	{
 		return m_channelID;
 	}

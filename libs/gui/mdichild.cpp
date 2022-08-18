@@ -3016,7 +3016,7 @@ void MdiChild::setInteractionMode(iAInteractionMode mode)
 	{
 		if (m_interactionMode == imRegistration)
 		{
-			int idx = 0;
+			size_t idx = 0;
 			while (idx < m_dataSets.size() &&
 				(!dynamic_cast<iAImageData*>(m_dataSets[idx].get()) ||
 				m_dataRenderers.find(idx) == m_dataRenderers.end() ||
@@ -3024,7 +3024,7 @@ void MdiChild::setInteractionMode(iAInteractionMode mode)
 			{
 				++idx;
 			}
-			if (idx < 0 || idx >= m_dataSets.size())
+			if (idx >= m_dataSets.size())
 			{
 				LOG(lvlError, QString("No valid dataset loaded for moving (%1).").arg(idx));
 			}
@@ -3056,7 +3056,7 @@ void MdiChild::setInteractionMode(iAInteractionMode mode)
 
 void MdiChild::setDataSetMovable(int dataSetIdx)
 {
-	for (int i = 0; i < m_dataSets.size(); ++i)
+	for (size_t i = 0; i < m_dataSets.size(); ++i)
 	{
 		bool pickable = (i == dataSetIdx);
 		m_dataSetListWidget->setPickableState(i, pickable);

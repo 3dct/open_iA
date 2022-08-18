@@ -358,14 +358,18 @@ public:
 	}
 	double const* orientation() const override
 	{
+#ifndef _NDEBUG
 		auto o1 = m_pointActor->GetOrientation(), o2 = m_lineActor->GetOrientation();
 		assert(dblApproxEqual(o1[0], o2[0], 1e-6) && dblApproxEqual(o1[1], o2[1], 1e-6) && dblApproxEqual(o1[2], o2[2], 1e-6));
+#endif
 		return m_pointActor->GetOrientation();
 	}
 	double const* position() const override
 	{
+#ifndef _NDEBUG
 		auto p1 = m_pointActor->GetPosition(), p2 = m_lineActor->GetPosition();
 		assert(dblApproxEqual(p1[0], p2[0], 1e-6) && dblApproxEqual(p1[1], p2[1], 1e-6) && dblApproxEqual(p1[2], p2[2], 1e-6));
+#endif
 		return m_lineActor->GetPosition();
 	}
 	void setPosition(double pos[3]) override
@@ -373,7 +377,7 @@ public:
 		m_lineActor->SetPosition(pos);
 		m_pointActor->SetPosition(pos);
 	}
-	void setOrientation(double ori[3])
+	void setOrientation(double ori[3]) override
 	{
 		m_lineActor->SetOrientation(ori);
 		m_pointActor->SetOrientation(ori);
@@ -473,7 +477,7 @@ public:
 	{
 		m_polyActor->SetPosition(pos);
 	}
-	void setOrientation(double ori[3])
+	void setOrientation(double ori[3]) override
 	{
 		m_polyActor->SetOrientation(ori);
 	}
@@ -694,7 +698,7 @@ public:
 	{
 		m_volume->SetPosition(pos);
 	}
-	void setOrientation(double ori[3])
+	void setOrientation(double ori[3]) override
 	{
 		m_volume->SetOrientation(ori);
 	}
