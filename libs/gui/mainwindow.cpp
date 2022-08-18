@@ -530,7 +530,9 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 	{
 		try
 		{
+			QElapsedTimer t; t.start();
 			d->data = io->load(p.get(), paramValues);
+			LOG(lvlInfo, QString("Loaded dataset %1 in %2 ms.").arg(fileName).arg(t.elapsed()));
 		}
 		catch (itk::ExceptionObject & e)
 		{

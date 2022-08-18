@@ -152,6 +152,7 @@ public:
 // ---------- iAFileTypeRegistry::setupDefaultIOFactories (needs to be after declaration of specific IO classes) ----------
 
 #include "iARawFileIO.h"
+#include "iAHDF5IO.h"
 
 void iAFileTypeRegistry::setupDefaultIOFactories()
 {
@@ -159,6 +160,9 @@ void iAFileTypeRegistry::setupDefaultIOFactories()
 	iAFileTypeRegistry::addFileType<iAVTIFileIO>();
 	iAFileTypeRegistry::addFileType<iAAmiraVolumeFileIO>();
 	iAFileTypeRegistry::addFileType<iARawFileIO>();
+#ifdef USE_HDF5
+	iAFileTypeRegistry::addFileType<iAHDF5IO>();
+#endif
 
 	iAFileTypeRegistry::addFileType<iAGraphFileIO>();
 
@@ -183,7 +187,6 @@ void iAFileTypeRegistry::setupDefaultIOFactories()
 #include "iAToolsVTK.h"
 #endif
 
-#include <QElapsedTimer>
 #include <QFileInfo>
 
 iAMetaFileIO::iAMetaFileIO() :
@@ -193,8 +196,6 @@ iAMetaFileIO::iAMetaFileIO() :
 std::shared_ptr<iADataSet> iAMetaFileIO::load(iAProgress* p, QMap<QString, QVariant> const& parameters)
 {
 	Q_UNUSED(parameters);
-	QElapsedTimer t;
-	t.start();
 
 #if META_LOAD_METHOD == VTK
 	vtkNew<vtkMetaImageReader> reader;
@@ -218,9 +219,7 @@ std::shared_ptr<iADataSet> iAMetaFileIO::load(iAProgress* p, QMap<QString, QVari
 	// ITK (using readImage from iAToolsVTK): 5876 (ignore), 5877, 5760, 5746 ms
 	// -> VTK consistently faster!
 
-	auto ret = std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, img);
-	LOG(lvlInfo, QString("Elapsed: %1 ms.").arg(t.elapsed()));
-	return ret;
+	return std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, img);
 }
 
 QString iAMetaFileIO::name() const
@@ -427,19 +426,13 @@ iAVTIFileIO::iAVTIFileIO() : iAFileIO(iADataSetType::Volume)
 std::shared_ptr<iADataSet> iAVTIFileIO::load(iAProgress* p, QMap<QString, QVariant> const& parameters)
 {
 	Q_UNUSED(parameters);
-	QElapsedTimer t;
-	t.start();
-
 	auto reader = vtkSmartPointer<vtkXMLImageDataReader>::New();
 	p->observe(reader);
 	reader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
 	reader->Update();
 	reader->ReleaseDataFlagOn();
 	auto img = reader->GetOutput();
-
-	auto ret = std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, img);
-	LOG(lvlInfo, QString("Elapsed: %1 ms.").arg(t.elapsed()));
-	return ret;
+	return std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, img);
 }
 
 QString iAVTIFileIO::name() const
@@ -465,14 +458,8 @@ std::shared_ptr<iADataSet> iAAmiraVolumeFileIO::load(iAProgress* p, QMap<QString
 {
 	Q_UNUSED(p);
 	Q_UNUSED(parameters);
-	QElapsedTimer t;
-	t.start();
-
 	auto img = iAAmiraMeshIO::Load(m_fileName);
-
-	auto ret = std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, img);
-	LOG(lvlInfo, QString("Elapsed: %1 ms.").arg(t.elapsed()));
-	return ret;
+	return std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, img);
 }
 
 QString iAAmiraVolumeFileIO::name() const

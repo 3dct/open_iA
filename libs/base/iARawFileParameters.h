@@ -60,11 +60,11 @@ struct iARawFileParameters
 	{
 		QMap<QString, QVariant> result;
 		QVector<int> sizeVec{ static_cast<int>(m_size[0]), static_cast<int>(m_size[1]), static_cast<int>(m_size[2]) };
-		result[iARawFileIO::SizeStr] = QVariant::fromValue<QVector<int>>(sizeVec);
+		result[iARawFileIO::SizeStr] = QVariant::fromValue(sizeVec);
 		QVector<double> spcVec{ m_spacing[0], m_spacing[1], m_spacing[2] };
-		result[iARawFileIO::SpacingStr] = QVariant::fromValue<QVector<double>>(spcVec);
+		result[iARawFileIO::SpacingStr] = QVariant::fromValue(spcVec);
 		QVector<double> oriVec{ m_origin[0], m_origin[1], m_origin[2] };
-		result[iARawFileIO::OriginStr] = QVariant::fromValue<QVector<double>>(oriVec);
+		result[iARawFileIO::OriginStr] = QVariant::fromValue(oriVec);
 		result[iARawFileIO::HeadersizeStr] = m_headersize;
 		result[iARawFileIO::DataTypeStr] = mapVTKTypeToReadableDataType(m_scalarType);
 		result[iARawFileIO::ByteOrderStr] = ByteOrder::mapVTKTypeToString(m_byteOrder);

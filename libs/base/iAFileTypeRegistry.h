@@ -21,7 +21,7 @@
 #pragma once
 
 #include "iAAttributes.h"
-#include "iADataSet.h"    // for iADataSetType...
+#include "iADataSet.h"
 #include "iALog.h"
 
 #include <QMap>

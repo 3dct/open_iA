@@ -1527,7 +1527,10 @@ bool iAIO::setupRAWReader( QString const & f )
 	m_fileName = f;
 	auto map = m_rawFileParams.toMap();
 	iARawFileParamDlg dlg(f, m_parent, "RAW file specs", iAParameterDlg::ParamListT(), map, iAMainWindow::get()->brightMode());
-	m_rawFileParams = iARawFileParameters::fromMap(dlg.parameterValues());
+	if (dlg.accepted())
+	{
+		m_rawFileParams = iARawFileParameters::fromMap(dlg.parameterValues());
+	}
 	return dlg.accepted();
 }
 

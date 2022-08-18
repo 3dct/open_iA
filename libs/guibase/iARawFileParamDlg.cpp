@@ -48,6 +48,7 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 	QStringList byteOrderList(ByteOrder::stringList());
 	selectOption(byteOrderList, paramValues[iARawFileIO::ByteOrderStr].toString());
 	iAParameterDlg::ParamListT params;
+	// duplication to iARawFileIO!
 	addParameter(params, iARawFileIO::SizeStr, iAValueType::Vector3i, paramValues[iARawFileIO::SizeStr]);
 	addParameter(params, iARawFileIO::SpacingStr, iAValueType::Vector3, paramValues[iARawFileIO::SpacingStr]);
 	addParameter(params, iARawFileIO::OriginStr, iAValueType::Vector3, paramValues[iARawFileIO::OriginStr]);
@@ -124,7 +125,7 @@ void iARawFileParamDlg::guessParameters(QString fileName)
 	if (sizeMatch.hasMatch())
 	{
 		QVector<int> sizeVec{ sizeMatch.captured(1).toInt(), sizeMatch.captured(2).toInt(), sizeMatch.captured(3).toInt()};
-		m_inputDlg->setValue(iARawFileIO::SizeStr, QVariant::fromValue<QVector<int>>(sizeVec));
+		m_inputDlg->setValue(iARawFileIO::SizeStr, QVariant::fromValue(sizeVec));
 	}
 	QString spcGrp("(\\d+(?:[.-]\\d+)?)(um|mm)");
 	QRegularExpression spcRegEx1(QString("%1x%2x%3").arg(spcGrp).arg(spcGrp).arg(spcGrp));
@@ -132,7 +133,7 @@ void iARawFileParamDlg::guessParameters(QString fileName)
 	if (spc1Match.hasMatch())
 	{
 		QVector<double> spcVec{ spc1Match.captured(1).replace("-", ".").toDouble(), spc1Match.captured(3).replace("-", ".").toDouble(), spc1Match.captured(5).replace("-", ".").toDouble() };
-		m_inputDlg->setValue(iARawFileIO::SpacingStr, QVariant::fromValue<QVector<double>>(spcVec));
+		m_inputDlg->setValue(iARawFileIO::SpacingStr, QVariant::fromValue(spcVec));
 	}
 	else
 	{
@@ -142,7 +143,7 @@ void iARawFileParamDlg::guessParameters(QString fileName)
 		{
 
 			QVector<double> spcVec{ spc2Match.captured(1).replace("-", ".").toDouble(), spc2Match.captured(1).replace("-", ".").toDouble(), spc2Match.captured(1).replace("-", ".").toDouble() };
-			m_inputDlg->setValue(iARawFileIO::SpacingStr, QVariant::fromValue<QVector<double>>(spcVec));
+			m_inputDlg->setValue(iARawFileIO::SpacingStr, QVariant::fromValue(spcVec));
 		}
 	}
 	QRegularExpression scalarTypeRegEx("(\\d+)bit");
