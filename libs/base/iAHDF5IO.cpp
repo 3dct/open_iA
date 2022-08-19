@@ -28,7 +28,6 @@
 #include <vtkImageImport.h>
 
 #include <QFileInfo>
-#include <QStack>
 
 namespace
 {
@@ -101,59 +100,43 @@ std::shared_ptr<iADataSet> iAHDF5IO::load(iAProgress* p, QMap<QString, QVariant>
 	Q_UNUSED(p);
 	auto hdf5PathStr = params[DataSetPathStr].toString();
 	auto hdf5Path = hdf5PathStr.split("/");
-	if (hdf5Path.size() < 2)
+	if (hdf5Path.size() < 1)
 	{
-		throw std::runtime_error("HDF5 file: Insufficient path length.");
+		throw std::runtime_error(QString("HDF5 file %1: At least one path element expected, 0 given.").arg(m_fileName).toStdString());
 	}
 	hid_t file = H5Fopen(getLocalEncodingFileName(m_fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
-	hdf5Path.removeLast();
 	hid_t loc_id = file;
-	QStack<hid_t> openGroups;
-	while (hdf5Path.size() > 1)
+	auto dataSetName = hdf5Path.takeLast();
+	if (!hdf5Path.isEmpty())
 	{
-		QString name = hdf5Path.last();
-		hdf5Path.removeLast();
-		loc_id = H5Gopen(file, name.toStdString().c_str(), H5P_DEFAULT);  // TODO: check which encoding HDF5 internal strings have!
-		openGroups.push(loc_id);
+		auto groupName = hdf5Path.join("/");
+		loc_id = H5Gopen(file, groupName.toStdString().c_str(), H5P_DEFAULT);  // TODO: check which encoding HDF5 internal strings have!
+		if (loc_id < 0)
+		{
+			throw std::runtime_error(QString("HDF5 file %1: Could not open group %2.").arg(m_fileName).arg(groupName).toStdString());
+		}
 	}
-
-	hid_t dataset_id = H5Dopen(loc_id, hdf5Path[0].toStdString().c_str(), H5P_DEFAULT);
+	hid_t dataset_id = H5Dopen(loc_id, dataSetName.toStdString().c_str(), H5P_DEFAULT);
 	hid_t space = H5Dget_space(dataset_id);
 	int rank = H5Sget_simple_extent_ndims(space);
+	if (rank < 0)
+	{
+		throw std::runtime_error(QString("HDF5 file %1: Retrieving rank of dataset %2 failed.").arg(m_fileName).arg(dataSetName).toStdString());
+	}
 	hsize_t* hdf5Dims = new hsize_t[rank];
 	hsize_t* maxdims = new hsize_t[rank];
 	int status = H5Sget_simple_extent_dims(space, hdf5Dims, maxdims);
-	//H5S_class_t hdf5Class = H5Sget_simple_extent_type(space);
 	hid_t type_id = H5Dget_type(dataset_id);
 	H5T_class_t hdf5Type = H5Tget_class(type_id);
 	size_t numBytes = H5Tget_size(type_id);
-	H5T_order_t order = H5Tget_order(type_id);
 	H5T_sign_t sign = H5Tget_sign(type_id);
 	int vtkType = GetNumericVTKTypeFromHDF5Type(hdf5Type, numBytes, sign);
-	H5Tclose(type_id);						// class=%2;
-	QString caption = QString("Dataset: %1; type=%2 (%3 bytes, order %4, %5); rank=%6; ")
-		.arg(hdf5PathStr)
-		//.arg(MapHDF5ClassToString(hdf5Class))
-		.arg(MapHDF5TypeToString(hdf5Type))
-		.arg(numBytes)
-		.arg((order == H5T_ORDER_LE) ? "LE" : "BE")
-		.arg((sign == H5T_SGN_NONE) ? "unsigned" : "signed")
-		.arg(rank);
-	for (int i = 0; i < rank; ++i)
-	{
-		caption += QString::number(hdf5Dims[i]);
-		if (i < rank - 1) caption += " x ";
-	}
-	//LOG(lvlInfo, caption);
+	H5Tclose(type_id);
 	status = H5Sclose(space);
 	if (vtkType == InvalidHDF5Type)
 	{
 		throw std::runtime_error("HDF5: Can't load a dataset of this data type!");
 	}
-
-	// actual reading of data:
-	//status = H5Dread(dset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, );
-
 	int dim[3];
 	for (int i = 0; i < 3; ++i)
 	{
@@ -167,13 +150,13 @@ std::shared_ptr<iADataSet> iAHDF5IO::load(iAProgress* p, QMap<QString, QVariant>
 		throw std::runtime_error("Reading dataset failed!");
 	}
 	H5Dclose(dataset_id);
-	while (openGroups.size() > 0)
+	if (!hdf5Path.isEmpty())
 	{
-		H5Gclose(openGroups.pop());
+		H5Gclose(loc_id);
 	}
 	H5Fclose(file);
 
-	vtkSmartPointer<vtkImageImport> imgImport = vtkSmartPointer<vtkImageImport>::New();
+	vtkNew<vtkImageImport> imgImport;
 	auto spc = params[SpacingStr].value<QVector<double>>();
 	imgImport->SetDataSpacing(spc[2], spc[1], spc[0]);
 	imgImport->SetDataOrigin(0, 0, 0);
@@ -183,7 +166,9 @@ std::shared_ptr<iADataSet> iAHDF5IO::load(iAProgress* p, QMap<QString, QVariant>
 	imgImport->SetNumberOfScalarComponents(1);
 	imgImport->SetImportVoidPointer(raw_data, 0);
 	imgImport->Update();
-	auto img = imgImport->GetOutput();
+	//auto img = imgImport->GetOutput();  // < does not work, as imgImport cleans up after himself, we need to deep-copy:
+	auto img = vtkSmartPointer<vtkImageData>::New();
+	img->DeepCopy(imgImport->GetOutput());
 	return std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, img);
 }
 

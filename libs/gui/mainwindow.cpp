@@ -536,7 +536,15 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 		}
 		catch (itk::ExceptionObject & e)
 		{
-			LOG(lvlError, QString("ERROR loading file %1: %2").arg(fileName).arg(e.GetDescription()));
+			LOG(lvlError, QString("Error loading file %1: %2").arg(fileName).arg(e.GetDescription()));
+		}
+		catch (std::exception& e)
+		{
+			LOG(lvlError, QString("Error loading file %1: %2").arg(fileName).arg(e.what()));
+		}
+		catch (...)
+		{
+			LOG(lvlError, QString("Unknown error while loading file %1!").arg(fileName));
 		}
 	}
 	, [this, d, p, child]()

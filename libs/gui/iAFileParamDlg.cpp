@@ -129,21 +129,19 @@ namespace
 			LOG(lvlWarn, QString("H5Oget_info_by_name failed with code %1!").arg(status));
 		}
 		QString caption;
-		//bool group = false;
 		int vtkType = -1;
 		int rank = 0;
 		switch (infobuf.type)
 		{
 		case H5O_TYPE_GROUP:
 			caption = QString("Group: %1").arg(name);
-			//group = true;
 			break;
 		case H5O_TYPE_DATASET:
 		{
 			hid_t dset = H5Dopen(loc_id, name, H5P_DEFAULT);
 			if (dset == -1)
 			{
-				caption = QString("Dataset %1; unable to determine size").arg(name);
+				caption = QString("Dataset %1; unable to open.").arg(name);
 				break;
 			}
 			hid_t space = H5Dget_space(dset);
@@ -151,7 +149,6 @@ namespace
 			hsize_t* dims = new hsize_t[rank];
 			hsize_t* maxdims = new hsize_t[rank];
 			status = H5Sget_simple_extent_dims(space, dims, maxdims);
-			//H5S_class_t hdf5Class = H5Sget_simple_extent_type(space);
 			hid_t type_id = H5Dget_type(dset);
 			H5T_class_t hdf5Type = H5Tget_class(type_id);
 			size_t numBytes = H5Tget_size(type_id);
@@ -161,7 +158,6 @@ namespace
 			H5Tclose(type_id);
 			caption = QString("Dataset: %1; type=%2 (%3 bytes, order %4, %5); rank=%6; ")
 				.arg(name)
-				//.arg(MapHDF5ClassToString(hdf5Class))
 				.arg(MapHDF5TypeToString(hdf5Type))
 				.arg(numBytes)
 				.arg((order == H5T_ORDER_LE) ? "LE" : "BE")
@@ -301,7 +297,9 @@ class iAHDF5FileParamDlg : public iAFileParamDlg
 			curItem = curItem->child(0);
 			assert(curItem);
 			if (curItem->data(Qt::UserRole + 1) == DATASET)
+			{
 				break;
+			}
 		}
 		QModelIndex idx;
 		QVector<double> hdf5Spacing{ 1.0, 1.0, 1.0 };
@@ -316,53 +314,60 @@ class iAHDF5FileParamDlg : public iAFileParamDlg
 			dlg.setWindowTitle(QString("Open HDF5").arg(fileName));
 			dlg.tree->setEditTriggers(QAbstractItemView::NoEditTriggers);
 			dlg.tree->setModel(model);
+			QObject::connect(dlg.buttonBox, &QDialogButtonBox::accepted, &dlg, [this, &dlg]()
+			{
+				QString msg;
+				auto idx = dlg.tree->currentIndex();
+				if (idx.data(Qt::UserRole + 1) != DATASET)
+				{
+					msg = "You have to select a dataset! ";
+				}
+				else if (idx.data(Qt::UserRole + 3).toInt() == -1)
+				{
+					msg = "Can't read datasets of this data type! ";
+				}
+				else if (idx.data(Qt::UserRole + 4).toInt() < 1 || idx.data(Qt::UserRole + 4).toInt() > 3)
+				{
+					msg += QString("The rank (number of dimensions) of the dataset must be between 1 and 3 (was %1). ").arg(idx.data(Qt::UserRole + 4).toInt());
+				}
+				bool okX, okY, okZ;
+				dlg.edSpacingX->text().toDouble(&okX);
+				dlg.edSpacingY->text().toDouble(&okY);
+				dlg.edSpacingZ->text().toDouble(&okZ);
+				if (!(okX && okY && okZ))
+				{
+					msg += "One of the spacing values is invalid (these have to be valid floating point numbers)!";
+					
+				}
+				if (msg.isEmpty())
+				{
+					dlg.accept();
+				}
+				else
+				{
+					LOG(lvlWarn, msg);
+					// ToDo: set red background, then animate back to transparent?
+					dlg.lbErrorMessage->setText(msg);
+				}
+			});
 			if (dlg.exec() != QDialog::Accepted)
 			{
 				LOG(lvlInfo, "Dataset selection aborted.");
 				return false;
 			}
 			idx = dlg.tree->currentIndex();
-			bool okX, okY, okZ;
-			hdf5Spacing[0] = dlg.edSpacingX->text().toDouble(&okX);
-			hdf5Spacing[1] = dlg.edSpacingY->text().toDouble(&okY);
-			hdf5Spacing[2] = dlg.edSpacingZ->text().toDouble(&okZ);
-			if (!(okX && okY && okZ))
-			{
-				LOG(lvlError, "Invalid spacing (has to be a valid floating point number)!");
-				return false;
-			}
-		}
-		if (idx.data(Qt::UserRole + 1) != DATASET)
-		{
-			LOG(lvlWarn, "You have to select a dataset!");
-			return false;
-		}
-		if (idx.data(Qt::UserRole + 3).toInt() == -1)
-		{
-			LOG(lvlWarn, "Can't read datasets of this data type!");
-			return false;
-		}
-		if (idx.data(Qt::UserRole + 4).toInt() < 1 || idx.data(Qt::UserRole + 4).toInt() > 3)
-		{
-			LOG(lvlWarn, QString("The rank (number of dimensions) of the dataset must be between 1 and 3 (was %1)").arg(idx.data(Qt::UserRole + 4).toInt()));
+			hdf5Spacing[0] = dlg.edSpacingX->text().toDouble();
+			hdf5Spacing[1] = dlg.edSpacingY->text().toDouble();
+			hdf5Spacing[2] = dlg.edSpacingZ->text().toDouble();
 		}
 		QStringList hdf5Path;
-		do
+		while (idx.parent() != QModelIndex())    // don't insert root element (filename)
 		{
-			hdf5Path.append(idx.data(Qt::UserRole + 2).toString());
+			hdf5Path.prepend(idx.data(Qt::UserRole + 2).toString());
 			idx = idx.parent();
-		} while (idx != QModelIndex());
+		}
 		auto fullPath = hdf5Path.join("/");
 		LOG(lvlInfo, QString("Selected path (length %1): %2").arg(hdf5Path.size()).arg(fullPath));
-		for (int i = 0; i < hdf5Path.size(); ++i)
-		{
-			LOG(lvlInfo, QString("    %1").arg(hdf5Path[i]));
-		}
-		if (hdf5Path.size() < 2)
-		{
-			LOG(lvlWarn, "Invalid selection!");
-			return false;
-		}
 		values[iAHDF5IO::DataSetPathStr] = fullPath;
 		values[iAHDF5IO::SpacingStr] = QVariant::fromValue(hdf5Spacing);
 		return true;
