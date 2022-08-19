@@ -215,6 +215,7 @@ public:
 	int isFuncEndPoint(int index);
 	bool isMaximized();
 
+	// TODO: use world coordinates here
 	void updateROI(int const roi[6]) override;
 	void setROIVisible(bool visible) override;
 

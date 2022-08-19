@@ -2073,9 +2073,11 @@ void MdiChild::updateROI(int const roi[6])
 	{
 		m_slicer[s]->updateROI(roi);
 	}
-
-	const double* spacing = modality(0)->spacing();
-	m_renderer->setSlicingBounds(roi, spacing);
+	if (m_dataSets.size() > 0 && dynamic_cast<iAImageData*>(m_dataSets[0].get()))
+	{
+		const double* spacing = dynamic_cast<iAImageData*>(m_dataSets[0].get())->image()->GetSpacing();
+		m_renderer->setSlicingBounds(roi, spacing);
+	}
 }
 
 void MdiChild::setROIVisible(bool visible)
