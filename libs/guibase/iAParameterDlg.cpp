@@ -166,7 +166,6 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT
 			int minValue = (p->min() < std::numeric_limits<int>::lowest()) ? std::numeric_limits<int>::lowest() : static_cast<int>(p->min());
 			int maxValue = (p->max() > std::numeric_limits<int>::max()) ? std::numeric_limits<int>::max() : static_cast<int>(p->max());
 			spinBox->setRange(minValue, maxValue);
-			spinBox->setObjectName(p->name());	// required for ROI (parses object name)
 			spinBox->setValue(p->defaultValue().toInt());
 			newWidget = spinBox;
 			break;
@@ -272,6 +271,7 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT
 			break;
 		}
 		}
+		newWidget->setObjectName(p->name());	// required for ROI (parses object name)
 		m_widgetList[i] = newWidget;
 		containerLayout->addWidget(newWidget, i, 1);
 	}
@@ -434,7 +434,6 @@ void iAParameterDlg::selectFilter()
 				default:
 					paramStr += quoteString(paramValues[param->name()].toString()); break;
 				}
-
 			}
 			QLineEdit* e = qobject_cast<QLineEdit*>(m_widgetList[idx + 1]);
 			if (e)
