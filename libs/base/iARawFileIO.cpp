@@ -24,6 +24,7 @@
 #include "iAFileUtils.h"   // for getLocalEncodingFileName
 #include "iAProgress.h"
 #include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType, readableDataTypes, ...
+#include "iAValueTypeVectorHelpers.h"
 
 
 // tested both loading files via ITK and VTK; ITK method is faster (see comments below)
@@ -63,9 +64,9 @@ iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::Volume)
 	selectOption(datatype, selectedType);
 	auto byteOrders = ByteOrder::stringList();
 	selectOption(byteOrders, ByteOrder::LittleEndianStr);
-	addParameter(SizeStr, iAValueType::Vector3i, QVariant::fromValue(QVector<int>{1, 1, 1}));
-	addParameter(SpacingStr, iAValueType::Vector3, QVariant::fromValue(QVector<double>{1.0, 1.0, 1.0}));
-	addParameter(OriginStr, iAValueType::Vector3, QVariant::fromValue(QVector<double>{0.0, 0.0, 0.0}));
+	addParameter(SizeStr, iAValueType::Vector3i, variantVector<int>({1, 1, 1}));
+	addParameter(SpacingStr, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
+	addParameter(OriginStr, iAValueType::Vector3, variantVector<double>({0.0, 0.0, 0.0}));
 	addParameter(HeadersizeStr, iAValueType::Discrete, 0, 0);
 	addParameter(DataTypeStr, iAValueType::Categorical, datatype);
 	addParameter(ByteOrderStr, iAValueType::Categorical, byteOrders);

@@ -20,15 +20,26 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAFilter.h>
+#include <QVariant>
+#include <QVector>
 
-class iASimilarity : public iAFilter
+//using iAVecType  = QVector<double>;
+//using iAVecIType = QVector<int>;
+
+//! Set any indexed type from a QVector stored in a QVariant (as in the QVariantMap used throughout open_iA)
+template <typename T, typename U>
+void setFromVectorVariant(U& dest, QVariant const& src)
 {
-public:
-	static QSharedPointer<iASimilarity> create();
-	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
+	auto vec = src.value<QVector<T>>();
+	for (int i = 0; i < vec.size(); ++i)
+	{
+		dest[i] = vec[i];
+	}
+}
 
-private:
-	void performWork(QVariantMap const& parameters) override;
-	iASimilarity();
-};
+//! Create a QVariant with a QVector<T> (first templated type) from an initializer list of the second type U
+template <typename T, typename U>
+QVariant variantVector(std::initializer_list<U> s)
+{
+	return QVariant::fromValue(QVector<T>(s));
+}

@@ -234,17 +234,19 @@ QStringList iAMetaFileIO::extensions() const
 
 // ---------- iAGraphFileIO ----------
 
-#include <QColor>
+#include "iAAABB.h"
+#include "iAValueTypeVectorHelpers.h"
 
 #include <vtkCellData.h>
 #include <vtkLine.h>
 #include <vtkPolyData.h>
 
-#include "iAAABB.h"
+#include <QColor>
+
 
 iAGraphFileIO::iAGraphFileIO() : iAFileIO(iADataSetType::Graph)
 {
-	addParameter("Spacing", iAValueType::Vector3, QVariant::fromValue(QVector<double>{1.0, 1.0, 1.0}));
+	addParameter("Spacing", iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
 }
 
 std::shared_ptr<iADataSet> iAGraphFileIO::load(iAProgress* p, QVariantMap const& params)

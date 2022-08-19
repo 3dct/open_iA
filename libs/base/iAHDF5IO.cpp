@@ -22,7 +22,8 @@
 
 #include "iAHDF5IO.h"
 
-#include <iAFileUtils.h>
+#include "iAFileUtils.h"
+#include "iAValueTypeVectorHelpers.h"
 
 #include <vtkImageData.h>
 #include <vtkImageImport.h>
@@ -92,7 +93,7 @@ const QString iAHDF5IO::SpacingStr("Spacing");
 iAHDF5IO::iAHDF5IO() : iAFileIO(iADataSetType::Volume)
 {
 	addParameter(DataSetPathStr, iAValueType::String, "");
-	addParameter(SpacingStr, iAValueType::Vector3, QVariant::fromValue(QVector<double>{1.0, 1.0, 1.0}));
+	addParameter(SpacingStr, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
 }
 
 std::shared_ptr<iADataSet> iAHDF5IO::load(iAProgress* p, QVariantMap const& params)

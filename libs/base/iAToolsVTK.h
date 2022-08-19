@@ -110,6 +110,12 @@ iAbase_API void writeSingleSliceImage(QString const & filename, vtkImageData* im
 //!        false if it holds floating point numbers
 iAbase_API bool isVtkIntegerImage(vtkImageData* img);
 
+//! Given index and size parameters in a QVariantMap, adjust these parameters
+//! so that they specify a region of interest that lies completely within the given image
+//! @param params map of parameters (which should contain values for "Index" and "Size", as iAValueType::Vector3i, i.e. QVector<int>
+//! @param
+iAbase_API void adjustIndexAndSizeToImage(QVariantMap& params, vtkImageData* img);
+
 
 // ----- Coordinate conversions (world <-> image/voxel coordinates) -----
 

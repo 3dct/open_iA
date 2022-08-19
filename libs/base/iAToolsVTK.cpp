@@ -27,6 +27,7 @@
 #include "iAMathUtility.h"      // for mapValue
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
+#include "iAValueTypeVectorHelpers.h"        // for variantVectorFrom
 #include "iAVtkDraw.h"
 #include "iAVtkVersion.h"
 
@@ -243,6 +244,24 @@ bool isVtkIntegerImage(vtkImageData* img)
 {
 	return img->GetScalarType() != VTK_FLOAT && img->GetScalarType() != VTK_DOUBLE;
 }
+
+void adjustIndexAndSizeToImage(QVariantMap& params, vtkImageData* img)
+{
+	auto idx = params["Index"].value<QVector<int>>();
+	auto size = params["Size"].value<QVector<int>>();
+	int const* dim = img->GetDimensions();
+	params["Index"] = variantVector<int>({
+		clamp(0, dim[0], idx[0]),
+		clamp(0, dim[1], idx[1]),
+		clamp(0, dim[2], idx[2])
+	});
+	params["Size"] = variantVector<int>({
+		std::min(size[0], dim[0] - idx[0]),
+		std::min(size[1], dim[1] - idx[1]),
+		std::min(size[2], dim[2] - idx[2])
+	});
+}
+
 
 void mapWorldToVoxelCoords(vtkImageData* img, double const* worldCoord, double* voxelCoord)
 {

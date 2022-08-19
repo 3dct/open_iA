@@ -122,7 +122,7 @@ public:
 		}
 	}
 signals:
-	void valueChanged();
+	void valueChanged(QVariant value);
 
 private:
 	const QString ComponentNames[3] = {"x", "y", "z"};

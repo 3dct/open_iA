@@ -26,6 +26,7 @@
 #ifndef NDEBUG
 #include "iAMathUtility.h"    // for dblApproxEqual
 #endif
+#include "iAValueTypeVectorHelpers.h"
 
 #include "iAMainWindow.h"
 
@@ -135,8 +136,8 @@ iADataSetRenderer::iADataSetRenderer(vtkRenderer* renderer):
 	m_renderer(renderer),
 	m_visible(false)
 {
-	addAttribute(Position, iAValueType::Vector3, QVariant::fromValue(QVector<double>({0, 0, 0})));
-	addAttribute(Orientation, iAValueType::Vector3, QVariant::fromValue(QVector<double>({0, 0, 0})));
+	addAttribute(Position, iAValueType::Vector3, variantVector<double>({0.0, 0.0, 0.0}));
+	addAttribute(Orientation, iAValueType::Vector3, variantVector<double>({0.0, 0.0, 0.0}));
 	addAttribute(OutlineColor, iAValueType::Color, OutlineDefaultColor);
 	addAttribute(Pickable, iAValueType::Boolean, true);
 
@@ -180,10 +181,10 @@ iAAttributes iADataSetRenderer::attributesWithValues() const
 	// set position and orientation from current values:
 	assert(result[0]->name() == Position);
 	auto pos = position();
-	result[0]->setDefaultValue(QVariant::fromValue(QVector<double>({pos[0], pos[1], pos[2]})));
+	result[0]->setDefaultValue(variantVector<double>({pos[0], pos[1], pos[2]}));
 	assert(result[1]->name() == Orientation);
 	auto ori = orientation();
-	result[1]->setDefaultValue(QVariant::fromValue(QVector<double>({ori[0], ori[1], ori[2]})));
+	result[1]->setDefaultValue(variantVector<double>({ori[0], ori[1], ori[2]}));
 	return result;
 }
 

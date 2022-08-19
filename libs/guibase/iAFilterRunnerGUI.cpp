@@ -187,7 +187,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QVaria
 	bool showROI = false;	// TODO: find better way to check this?
 	for (auto filterParam : filter->parameters())
 	{
-		if (filterParam->name() == "Index X")
+		if (filterParam->name() == "Index")
 		{
 			showROI = true;
 		}

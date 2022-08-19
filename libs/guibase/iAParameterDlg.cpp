@@ -465,10 +465,10 @@ void iAParameterDlg::showROI()
 	}
 	for (int i = 0; i < children.size(); ++i)
 	{
-		QSpinBox *input = dynamic_cast<QSpinBox*>(children.at(i));
+		auto input = dynamic_cast<iAVectorInput*>(children.at(i));
 		if (input && (input->objectName().contains("Index") || input->objectName().contains("Size")))
 		{
-			connect(input, QOverload<int>::of(&QSpinBox::valueChanged), this, &iAParameterDlg::updatedROI);
+			connect(input, &iAVectorInput::valueChanged, this, &iAParameterDlg::updatedROI);
 			updateROIPart(input->objectName(), input->value());
 		}
 	}
@@ -476,7 +476,7 @@ void iAParameterDlg::showROI()
 	m_sourceMdiChild->updateROI(m_roi);
 }
 
-void iAParameterDlg::updatedROI(int value)
+void iAParameterDlg::updatedROI(QVariant value)
 {
 	if (m_sourceMdiChildClosed)
 	{
@@ -487,32 +487,14 @@ void iAParameterDlg::updatedROI(int value)
 	m_sourceMdiChild->updateROI(m_roi);
 }
 
-void iAParameterDlg::updateROIPart(QString const & partName, int value)
+void iAParameterDlg::updateROIPart(QString const & partName, QVariant value)
 {
-	if (partName.contains("Index X"))
-	{
-		m_roi[0] = value;
-	}
-	else if (partName.contains("Index Y"))
-	{
-		m_roi[1] = value;
-	}
-	else if (partName.contains("Index Z"))
-	{
-		m_roi[2] = value;
-	}
-	else if (partName.contains("Size X"))
-	{
-		m_roi[3] = value > 0 ? value : 0;
-	}
-	else if (partName.contains("Size Y"))
-	{
-		m_roi[4] = value > 0 ? value : 0;
-	}
-	else if (partName.contains("Size Z"))
-	{
-		m_roi[5] = value > 0 ? value : 0;
-	}
+	auto vals = value.value<QVector<int>>();
+	size_t baseIdx = partName.contains("Index") ? 0 : 3;
+	const int MinVal = 0;
+	m_roi[baseIdx + 0] = vals[0] >= MinVal ? vals[0] : MinVal;
+	m_roi[baseIdx + 1] = vals[0] >= MinVal ? vals[1] : MinVal;
+	m_roi[baseIdx + 2] = vals[0] >= MinVal ? vals[2] : MinVal;
 }
 
 void iAParameterDlg::sourceChildClosed()

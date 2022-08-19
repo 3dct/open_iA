@@ -24,6 +24,7 @@
 #include <iAConnector.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
+#include <iAValueTypeVectorHelpers.h>
 
 #include <itkExtractImageFilter.h>
 #include <itkImageIOBase.h>
@@ -67,11 +68,11 @@ void freeBeamCalculation(QVariantMap const & params, iAFilter* filter )
 		typedef itk::ExtractImageFilter< InputImageType, InputImageType > EIFType;
 		typename EIFType::Pointer roiFilter = EIFType::New();
 		typename EIFType::InputImageRegionType::SizeType roiSize;
-		roiSize[0] = params["Size X"].toUInt();
-		roiSize[1] = params["Size Y"].toUInt();
+		setFromVectorVariant<int>(roiSize, params["Size"]);
 		roiSize[2] =  filter->input(0)->itkImage()->GetLargestPossibleRegion().GetSize()[2];
 		typename EIFType::InputImageRegionType::IndexType roiIndex;
-		roiIndex[0] = params["Index X"].toUInt(); roiIndex[1] = params["Index Y"].toUInt(); roiIndex[2] = 0;
+		setFromVectorVariant<int>(roiIndex, params["Index"]);
+		roiIndex[2] = 0;
 		typename EIFType::InputImageRegionType roiRegion; roiRegion.SetIndex(roiIndex); roiRegion.SetSize(roiSize);
 		roiFilter->SetInput(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
 		roiFilter->SetExtractionRegion(roiRegion);
@@ -193,9 +194,13 @@ template<class InPixelType>
 void freeBeamCalculation_OutType(QVariantMap const & parameters, iAFilter* filter)
 {
 	if (parameters["Float output"].toBool())
+	{
 		freeBeamCalculation<InPixelType, float>(parameters, filter);
+	}
 	else
+	{
 		freeBeamCalculation<InPixelType, double>(parameters, filter);
+	}
 }
 
 void iAFreeBeamCalculation::performWork(QVariantMap const & parameters)
@@ -218,10 +223,8 @@ iAFreeBeamCalculation::iAFreeBeamCalculation() :
 		"If <em>Float output</em> is enabled, then the output will be in float "
 		"datatype, otherwise double will be used.")
 {
-	addParameter("Index X", iAValueType::Discrete, 0);
-	addParameter("Index Y", iAValueType::Discrete, 0);
-	addParameter("Size X", iAValueType::Discrete, 1, 1);
-	addParameter("Size Y", iAValueType::Discrete, 1, 1);
+	addParameter("Index", iAValueType::Vector2i, variantVector<int>({0, 0}));
+	addParameter("Size", iAValueType::Vector2i, variantVector<int>({1, 1}));
 	addParameter("Set I0 manually", iAValueType::Boolean, false);
 	addParameter("Manual I0", iAValueType::Continuous, 0);
 	addParameter("Float output", iAValueType::Boolean, true);

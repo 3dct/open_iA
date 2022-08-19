@@ -23,9 +23,12 @@
 #include <defines.h>          // for DIM
 #include <iAConnector.h>
 #include <iADataSet.h>
+#include <iAMathUtility.h>
 #include <iAProgress.h>
-#include <iAToolsITK.h>
+#include <iAToolsITK.h>    // for setIndexOffsetToZero
+#include <iAToolsVTK.h>    // for adjustIndexAndSizeToImage
 #include <iATypedCallHelper.h>
+#include <iAValueTypeVectorHelpers.h>
 
 #include <itkBSplineInterpolateImageFunction.h>
 #include <itkConstantPadImageFilter.h>
@@ -96,14 +99,12 @@ template<typename T> void simpleResampler(iAFilter* filter, QVariantMap const & 
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
 	auto resampler = ResampleFilterType::New();
-	typename ResampleFilterType::SpacingType spacing;
-	spacing[0] = inImg->GetSpacing()[0] * (static_cast<double>(inSize[0]) / parameters["Size X"].toDouble() * VoxelScale);
-	spacing[1] = inImg->GetSpacing()[1] * (static_cast<double>(inSize[1]) / parameters["Size Y"].toDouble() * VoxelScale);
-	spacing[2] = inImg->GetSpacing()[2] * (static_cast<double>(inSize[2]) / parameters["Size Z"].toDouble() * VoxelScale);
 	typename ResampleFilterType::SizeType size;
-	size[0] = parameters["Size X"].toUInt();
-	size[1] = parameters["Size Y"].toUInt();
-	size[2] = parameters["Size Z"].toUInt();
+	setFromVectorVariant<int>(size, parameters["Size"]);
+	typename ResampleFilterType::SpacingType spacing;
+	spacing[0] = inImg->GetSpacing()[0] * (static_cast<double>(inSize[0]) / size[0] * VoxelScale);
+	spacing[1] = inImg->GetSpacing()[1] * (static_cast<double>(inSize[1]) / size[1] * VoxelScale);
+	spacing[2] = inImg->GetSpacing()[2] * (static_cast<double>(inSize[2]) / size[2] * VoxelScale);
 	QString interpolatorName = parameters["Interpolator"].toString();
 	if (interpolatorName == InterpLinear)
 	{
@@ -160,9 +161,7 @@ iASimpleResampleFilter::iASimpleResampleFilter() :
 		"<a href=\"https ://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html\">"
 		"Resample Filter</a> in the ITK documentation.")
 {
-	addParameter("Size X", iAValueType::Discrete, 1, 1);
-	addParameter("Size Y", iAValueType::Discrete, 1, 1);
-	addParameter("Size Z", iAValueType::Discrete, 1, 1);
+	addParameter("Size", iAValueType::Vector3i, variantVector<int>({1, 1, 1}));
 	QStringList interpolators;
 	interpolators << InterpLinear << InterpNearestNeighbour << InterpBSpline << InterpWindowedSinc;
 	addParameter("Interpolator", iAValueType::Categorical, interpolators);
@@ -172,9 +171,8 @@ void iASimpleResampleFilter::adaptParametersToInput(QVariantMap& params, std::ve
 {
 	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
 	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->image();
-	params["Size X"] = img->GetDimensions()[0];
-	params["Size Y"] = img->GetDimensions()[1];
-	params["Size Z"] = img->GetDimensions()[2];
+	auto dim = img->GetDimensions();
+	params["Size"] = variantVector<int>({dim[0], dim[1], dim[2]});
 }
 
 
@@ -185,18 +183,13 @@ void resampler(iAFilter* filter, QVariantMap const& parameters)
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
 	auto resampler = ResampleFilterType::New();
+
 	typename ResampleFilterType::OriginPointType origin;
-	origin[0] = parameters["Origin X"].toUInt();
-	origin[1] = parameters["Origin Y"].toUInt();
-	origin[2] = parameters["Origin Z"].toUInt();
+	setFromVectorVariant<int>(origin, parameters["Origin"]);
 	typename ResampleFilterType::SpacingType spacing;
-	spacing[0] = parameters["Spacing X"].toDouble();
-	spacing[1] = parameters["Spacing Y"].toDouble();
-	spacing[2] = parameters["Spacing Z"].toDouble();
+	setFromVectorVariant<int>(spacing, parameters["Spacing"]);
 	typename ResampleFilterType::SizeType size;
-	size[0] = parameters["Size X"].toUInt();
-	size[1] = parameters["Size Y"].toUInt();
-	size[2] = parameters["Size Z"].toUInt();
+	setFromVectorVariant<int>(size, parameters["Size"]);
 	QString interpolatorName = parameters["Interpolator"].toString();
 	if (interpolatorName == InterpLinear)
 	{
@@ -249,15 +242,9 @@ iAResampleFilter::iAResampleFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html\">"
 		"Resample Filter</a> in the ITK documentation.")
 {
-	addParameter("Origin X", iAValueType::Discrete, 0);
-	addParameter("Origin Y", iAValueType::Discrete, 0);
-	addParameter("Origin Z", iAValueType::Discrete, 0);
-	addParameter("Spacing X", iAValueType::Continuous, 0);
-	addParameter("Spacing Y", iAValueType::Continuous, 0);
-	addParameter("Spacing Z", iAValueType::Continuous, 0);
-	addParameter("Size X", iAValueType::Discrete, 1, 1);
-	addParameter("Size Y", iAValueType::Discrete, 1, 1);
-	addParameter("Size Z", iAValueType::Discrete, 1, 1);
+	addParameter("Origin", iAValueType::Vector3i, variantVector<int>({0, 0, 0}));
+	addParameter("Spacing", iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
+	addParameter("Size", iAValueType::Vector3i, variantVector<int>({1, 1, 1}));
 	QStringList interpolators;
 	interpolators
 		<< InterpLinear
@@ -271,12 +258,10 @@ void iAResampleFilter::adaptParametersToInput(QVariantMap& params, std::vector<s
 {
 	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
 	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->image();
-	params["Spacing X"] = img->GetSpacing()[0];
-	params["Spacing Y"] = img->GetSpacing()[1];
-	params["Spacing Z"] = img->GetSpacing()[2];
-	params["Size X"]    = img->GetDimensions()[0];
-	params["Size Y"]    = img->GetDimensions()[1];
-	params["Size Z"]    = img->GetDimensions()[2];
+	auto spc = img->GetSpacing();
+	params["Spacing"] = variantVector<double>({spc[0], spc[1], spc[2]});
+	auto dim     = img->GetDimensions();
+	params["Size"]    = variantVector<int>({dim[0], dim[1], dim[2]});
 }
 
 
@@ -288,9 +273,11 @@ void extractImage(iAFilter* filter, QVariantMap const & parameters)
 	typedef itk::ExtractImageFilter< InputImageType, OutputImageType > EIFType;
 
 	typename EIFType::InputImageRegionType::SizeType size;
-	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
+	setFromVectorVariant<int>(size, parameters["Size"]);
+
 	typename EIFType::InputImageRegionType::IndexType index;
-	index[0] = parameters["Index X"].toUInt(); index[1] = parameters["Index Y"].toUInt(); index[2] =	 parameters["Index Z"].toUInt();
+	setFromVectorVariant<int>(index, parameters["Index"]);
+
 	typename EIFType::InputImageRegionType region; region.SetIndex(index); region.SetSize(size);
 
 	auto extractFilter = EIFType::New();
@@ -317,33 +304,14 @@ iAExtractImageFilter::iAExtractImageFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ExtractImageFilter.html\">"
 		"Extract Image Filter</a> in the ITK documentation.")
 {
-	addParameter("Index X", iAValueType::Discrete, 0);
-	addParameter("Index Y", iAValueType::Discrete, 0);
-	addParameter("Index Z", iAValueType::Discrete, 0);
-	addParameter("Size X", iAValueType::Discrete, 1, 1);
-	addParameter("Size Y", iAValueType::Discrete, 1, 1);
-	addParameter("Size Z", iAValueType::Discrete, 1, 1);
+	addParameter("Index", iAValueType::Vector3i, variantVector<int>({0, 0, 0}));
+	addParameter("Size", iAValueType::Vector3i, variantVector<int>({1, 1, 1}));
 }
 
 void iAExtractImageFilter::adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
 {
 	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
-	int const* dim = dynamic_cast<iAImageData*>(dataSets[0].get())->image()->GetDimensions();
-	if (params["Index X"].toUInt() >= static_cast<unsigned int>(dim[0]))
-	{
-		params["Index X"] = 0;
-	}
-	if (params["Index Y"].toUInt() >= static_cast<unsigned int>(dim[1]))
-	{
-		params["Index Y"] = 0;
-	}
-	if (params["Index Z"].toUInt() >= static_cast<unsigned int>(dim[2]))
-	{
-		params["Index Z"] = 0;
-	}
-	params["Size X"] = std::min(params["Size X"].toUInt(), dim[0] - params["Index X"].toUInt());
-	params["Size Y"] = std::min(params["Size Y"].toUInt(), dim[1] - params["Index Y"].toUInt());
-	params["Size Z"] = std::min(params["Size Z"].toUInt(), dim[2] - params["Index Z"].toUInt());
+	adjustIndexAndSizeToImage(params, dynamic_cast<iAImageData*>(dataSets[0].get())->image());
 }
 
 

@@ -22,10 +22,13 @@
 
 #include <defines.h>          // for DIM
 #include <iAConnector.h>
+#include <iADataSet.h>        // for iAImageData
 #include <iAProgress.h>
 #include <iAToolsITK.h>
+#include <iAToolsVTK.h>       // for adjustIndexAndSizeToImage
 #include <iATypedCallHelper.h>
 #include <iAMdiChild.h>
+#include <iAValueTypeVectorHelpers.h>
 
 #include <itkCastImageFilter.h>
 #include <itkExtractImageFilter.h>
@@ -62,8 +65,8 @@ void similarity_metrics(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, DIM > ImageType;
 	size_t size[3], index[3];
-	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
-	index[0] = parameters["Index X"].toUInt(); index[1] = parameters["Index Y"].toUInt(); index[2] = parameters["Index Z"].toUInt();
+	setFromVectorVariant<int>(size, parameters["Size"]);
+	setFromVectorVariant<int>(index, parameters["Index"]);
 	auto activeExtract = extractImage(filter->input(0)->itkImage(), index, size);
 	auto nonActiveExtract = extractImage(filter->input(1)->itkImage(), index, size);
 	ImageType* img = dynamic_cast<ImageType*>(activeExtract.GetPointer());
@@ -291,12 +294,8 @@ iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
 	"<em>Equal pixel rate</em> computes the ratio between voxels with same value and the total voxel count.",
 	2, 0)
 {
-	addParameter("Index X", iAValueType::Discrete, 0);
-	addParameter("Index Y", iAValueType::Discrete, 0);
-	addParameter("Index Z", iAValueType::Discrete, 0);
-	addParameter("Size X", iAValueType::Discrete, 1);
-	addParameter("Size Y", iAValueType::Discrete, 1);
-	addParameter("Size Z", iAValueType::Discrete, 1);
+	addParameter("Index", iAValueType::Vector3i, variantVector<int>({ 0, 0, 0 }));
+	addParameter("Size", iAValueType::Vector3i, variantVector<int>({ 1, 1, 1 }));
 	addParameter("Mean Squared Error", iAValueType::Boolean, false);
 	addParameter("RMSE", iAValueType::Boolean, true);
 	addParameter("Normalized RMSE", iAValueType::Boolean, false);
@@ -318,23 +317,8 @@ void iASimilarity::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(similarity_metrics, inputPixelType(), this, parameters);
 }
 
-QSharedPointer<iAFilterRunnerGUI> iASimilarityFilterRunner::create()
+void iASimilarity::adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
 {
-	return QSharedPointer<iASimilarityFilterRunner>::create();
-}
-
-QVariantMap iASimilarityFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, iAMdiChild* sourceMdi)
-{
-	auto params = iAFilterRunnerGUI::loadParameters(filter, sourceMdi);
-	int const * dim = sourceMdi->imagePointer()->GetDimensions();
-	if (params["Index X"].toInt() >= dim[0])
-		params["Index X"] = 0;
-	if (params["Index Y"].toInt() >= dim[1])
-		params["Index Y"] = 0;
-	if (params["Index Z"].toInt() >= dim[2])
-		params["Index Z"] = 0;
-	params["Size X"] = std::min(params["Size X"].toUInt(), dim[0] - params["Index X"].toUInt());
-	params["Size Y"] = std::min(params["Size Y"].toUInt(), dim[1] - params["Index Y"].toUInt());
-	params["Size Z"] = std::min(params["Size Z"].toUInt(), dim[2] - params["Index Z"].toUInt());
-	return params;
+	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
+	adjustIndexAndSizeToImage(params, dynamic_cast<iAImageData*>(dataSets[0].get())->image());
 }

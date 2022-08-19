@@ -20,21 +20,28 @@
 * ************************************************************************************/
 #include "iAQMeasure.h"
 
-#include <iAChartWithFunctionsWidget.h>
-#include <iAHistogramData.h>
-#include <iAPlotTypes.h>
+// base
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
-#include <iAPreferences.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>
 #include <iAToolsVTK.h>
 #include <iATypedCallHelper.h>
-#include <iAMdiChild.h>
+#include <iAValueTypeVectorHelpers.h>
 
+// charts
+#include <iAChartWithFunctionsWidget.h>
+#include <iAHistogramData.h>
+#include <iAPlotTypes.h>
+
+// qthelper
 #include <iADockWidgetWrapper.h>
+
+// guibase
+#include <iAMdiChild.h>
+#include <iAPreferences.h>
 
 #include <itkImage.h>
 #include <itkImageToHistogramFilter.h>
@@ -384,12 +391,12 @@ void computeOrigQ(iAFilter* filter, iAConnector & con, QVariantMap const & param
 	}
 }
 
-
 void iAQMeasure::performWork(QVariantMap const & parameters)
 {
 	size_t size[3], index[3];
-	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
-	index[0] = parameters["Index X"].toUInt(); index[1] = parameters["Index Y"].toUInt(); index[2] = parameters["Index Z"].toUInt();
+	setFromVectorVariant<int>(size, parameters["Size"]);
+	setFromVectorVariant<int>(index, parameters["Index"]);
+
 	auto extractImg = extractImage(input(0)->itkImage(), index, size);
 	iAConnector extractCon;
 	extractCon.setImage(extractImg);
@@ -413,12 +420,8 @@ iAQMeasure::iAQMeasure() :
 	m_chart(nullptr),
 	m_mdiChild(nullptr)
 {
-	addParameter("Index X", iAValueType::Discrete, 0);
-	addParameter("Index Y", iAValueType::Discrete, 0);
-	addParameter("Index Z", iAValueType::Discrete, 0);
-	addParameter("Size X", iAValueType::Discrete, 1);
-	addParameter("Size Y", iAValueType::Discrete, 1);
-	addParameter("Size Z", iAValueType::Discrete, 1);
+	addParameter("Index", iAValueType::Vector3i, variantVector<int>({0, 0, 0}));
+	addParameter("Size", iAValueType::Vector3i, variantVector<int>({1, 1, 1}));
 	addParameter("Histogram-based SNR (highest non-air-peak)", iAValueType::Boolean, true);
 	addParameter("Q metric", iAValueType::Boolean, true);
 	addParameter("Number of peaks", iAValueType::Discrete, 2, 2);
@@ -462,20 +465,16 @@ iASNR::iASNR() :
 	iAFilter("Signal-to-Noise Ratio", "Metrics",
 		"Computes the Signal-to-noise ratio as (mean / stddev) of the given image region.<br/>", 1, 0)
 {
-	addParameter("Index X", iAValueType::Discrete, 0);
-	addParameter("Index Y", iAValueType::Discrete, 0);
-	addParameter("Index Z", iAValueType::Discrete, 0);
-	addParameter("Size X", iAValueType::Discrete, 1);
-	addParameter("Size Y", iAValueType::Discrete, 1);
-	addParameter("Size Z", iAValueType::Discrete, 1);
+	addParameter("Index", iAValueType::Vector3i, variantVector<int>({ 0, 0, 0 }));
+	addParameter("Size", iAValueType::Vector3i, variantVector<int>({ 1, 1, 1 }));
 	addOutputValue("Signal-to-Noise Ratio");
 }
 
 void iASNR::performWork(QVariantMap const & parameters)
 {
 	size_t size[3], index[3];
-	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
-	index[0] = parameters["Index X"].toUInt(); index[1] = parameters["Index Y"].toUInt(); index[2] = parameters["Index Z"].toUInt();
+	setFromVectorVariant<int>(size, parameters["Size"]);
+	setFromVectorVariant<int>(index, parameters["Index"]);
 	auto extractImg = extractImage(input(0)->itkImage(), index, size);
 	double mean, stddev;
 	getStatistics(extractImg, nullptr, nullptr, &mean, &stddev);
@@ -490,29 +489,21 @@ iACNR::iACNR() :
 		"Region 1 should typically contain a homogeneous area of surroundings (air), "
 		"while region 2 should typically contain a homogeneous region of material", 1, 0)
 {
-	addParameter("Region 1 Index X", iAValueType::Discrete, 0);
-	addParameter("Region 1 Index Y", iAValueType::Discrete, 0);
-	addParameter("Region 1 Index Z", iAValueType::Discrete, 0);
-	addParameter("Region 1 Size X" , iAValueType::Discrete, 1);
-	addParameter("Region 1 Size Y" , iAValueType::Discrete, 1);
-	addParameter("Region 1 Size Z" , iAValueType::Discrete, 1);
-	addParameter("Region 2 Index X", iAValueType::Discrete, 0);
-	addParameter("Region 2 Index Y", iAValueType::Discrete, 0);
-	addParameter("Region 2 Index Z", iAValueType::Discrete, 0);
-	addParameter("Region 2 Size X" , iAValueType::Discrete, 1);
-	addParameter("Region 2 Size Y" , iAValueType::Discrete, 1);
-	addParameter("Region 2 Size Z" , iAValueType::Discrete, 1);
+	addParameter("Region 1 Index", iAValueType::Vector3i, variantVector<int>({ 0, 0, 0 }));
+	addParameter("Region 1 Size", iAValueType::Vector3i, variantVector<int>({ 1, 1, 1 }));
+	addParameter("Region 2 Index", iAValueType::Vector3i, variantVector<int>({ 0, 0, 0 }));
+	addParameter("Region 2 Size", iAValueType::Vector3i, variantVector<int>({ 1, 1, 1 }));
 	addOutputValue("Contrast-to-Noise Ratio");
 }
 
 void iACNR::performWork(QVariantMap const & parameters)
 {
 	size_t size[3], index[3];
-	size[0] = parameters["Region 1 Size X"].toUInt(); size[1] = parameters["Region 1 Size Y"].toUInt(); size[2] = parameters["Region 1 Size Z"].toUInt();
-	index[0] = parameters["Region 1 Index X"].toUInt(); index[1] = parameters["Region 1 Index Y"].toUInt(); index[2] = parameters["Region 1 Index Z"].toUInt();
+	setFromVectorVariant<int>(size,  parameters["Region 1 Size"]);
+	setFromVectorVariant<int>(index, parameters["Region 1 Index"]);
 	auto extractImg1 = extractImage(input(0)->itkImage(), index, size);
-	size[0] = parameters["Region 2 Size X"].toUInt(); size[1] = parameters["Region 2 Size Y"].toUInt(); size[2] = parameters["Region 2 Size Z"].toUInt();
-	index[0] = parameters["Region 2 Index X"].toUInt(); index[1] = parameters["Region 2 Index Y"].toUInt(); index[2] = parameters["Region 2 Index Z"].toUInt();
+	setFromVectorVariant<int>(size,  parameters["Region 2 Size"]);
+	setFromVectorVariant<int>(index, parameters["Region 2 Index"]);
 	auto extractImg2 = extractImage(input(0)->itkImage(), index, size);
 	double mean1, mean2, stddev2;
 	getStatistics(extractImg1, nullptr, nullptr, &mean1, nullptr);

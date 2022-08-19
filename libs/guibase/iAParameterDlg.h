@@ -61,7 +61,7 @@ public:
 	void setValue(QString const & key, QVariant const & value);
 
 private slots:
-	void updatedROI(int value);
+	void updatedROI(QVariant value);
 	void sourceChildClosed();
 	void selectFilter();
 
@@ -76,7 +76,7 @@ private:
 	ParamListT m_parameters;
 	QDialogButtonBox* m_buttonBox;
 
-	void updateROIPart(QString const& partName, int value);
+	void updateROIPart(QString const& partName, QVariant value);
 };
 
 iAguibase_API void addParameter(iAParameterDlg::ParamListT& params, QString const& name, iAValueType valueType,
