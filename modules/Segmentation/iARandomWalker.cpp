@@ -253,7 +253,7 @@ iARandomWalker::iARandomWalker() :
 
 IAFILTER_CREATE(iARandomWalker)
 
-void iARandomWalker::performWork(QMap<QString, QVariant> const & parameters)
+void iARandomWalker::performWork(QVariantMap const & parameters)
 {
 	int const * dim = input(0)->vtkImage()->GetDimensions();
 	double const * spc = input(0)->vtkImage()->GetSpacing();
@@ -460,7 +460,7 @@ iAExtendedRandomWalker::iAExtendedRandomWalker() :
 
 IAFILTER_CREATE(iAExtendedRandomWalker)
 
-void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & parameters)
+void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 {
 	int const * dim = input(0)->vtkImage()->GetDimensions();
 	double const * spc = input(0)->vtkImage()->GetSpacing();
@@ -644,7 +644,7 @@ iAMaximumDecisionRule::iAMaximumDecisionRule() :
 
 IAFILTER_CREATE(iAMaximumDecisionRule)
 
-void iAMaximumDecisionRule::performWork(QMap<QString, QVariant> const & /*parameters*/)
+void iAMaximumDecisionRule::performWork(QVariantMap const & /*parameters*/)
 {
 	if (inputCount() <= 1)
 	{
@@ -677,7 +677,7 @@ iALabelImageToSeeds::iALabelImageToSeeds() :
 
 IAFILTER_CREATE(iALabelImageToSeeds)
 
-void iALabelImageToSeeds::performWork(QMap<QString, QVariant> const& parameters)
+void iALabelImageToSeeds::performWork(QVariantMap const& parameters)
 {
 	QString const& fileName = parameters["File name"].toString();
 	QFile f(fileName);

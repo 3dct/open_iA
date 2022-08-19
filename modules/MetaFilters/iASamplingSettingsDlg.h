@@ -23,7 +23,6 @@
 #include "MetaFilters_export.h"
 
 #include <iAAttributes.h>
-#include <iASettings.h>
 #include <qthelper/iAWidgetSettingsMapper.h>
 
 #include <QDialog>
@@ -45,8 +44,8 @@ public:
 	QSharedPointer<iAAttributeDescriptor> descriptor;
 	iAParameterInputs();
 	virtual ~iAParameterInputs();
-	virtual void retrieveInputValues(iASettings & values) =0;
-	virtual void changeInputValues(iASettings const & values) =0;
+	virtual void retrieveInputValues(QVariantMap& values) =0;
+	virtual void changeInputValues(QVariantMap const & values) =0;
 	virtual QSharedPointer<iAAttributeDescriptor> currentDescriptor() = 0;
 };
 
@@ -55,10 +54,10 @@ class MetaFilters_API iASamplingSettingsDlg : public QDialog
 	Q_OBJECT
 public:
 	iASamplingSettingsDlg(QWidget* parentWdgt, int inputImageCount,
-		iASettings const & values);
+		QVariantMap const & values);
 	QSharedPointer<iAAttributes> parameterRanges();
 	QSharedPointer<iAAttributes> parameterSpecs();
-	void getValues(iASettings & values) const;
+	void getValues(QVariantMap& values) const;
 private slots:
 	void chooseOutputFolder();
 	void chooseParameterDescriptor();
@@ -75,9 +74,9 @@ private slots:
 	void showAlgorithmInfo();
 	void showSamplingInfo();
 private:
-	void setInputsFromMap(iASettings const & values);
+	void setInputsFromMap(QVariantMap const & values);
 	void setParameters(QSharedPointer<iAAttributes> params);
-	void setParameterValues(iASettings const& values);
+	void setParameterValues(QVariantMap const& values);
 	void setParametersFromFilter(QString const& filterName);
 	void setParametersFromFile(QString const& fileName);
 

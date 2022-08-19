@@ -137,7 +137,7 @@ private:
 	iARawFileParameters m_rawFileParams;
 
 	//Generic Temp Parameter 
-	QMap<QString, QVariant> m_Parameter;
+	QVariantMap m_Parameter;
 
 	int m_ioID;
 	std::vector<vtkSmartPointer<vtkImageData> > * m_volumes;

@@ -415,7 +415,7 @@ void iAParameterDlg::selectFilter()
 			auto filter = iAFilterRegistry::filter(filterName);
 			int filterID = iAFilterRegistry::filterID(filterName);
 			auto runner = iAFilterRunnerRegistry::filterRunner(filterID)->create();
-			QMap<QString, QVariant> paramValues = runner->loadParameters(filter, m_sourceMdiChild);
+			auto paramValues = runner->loadParameters(filter, m_sourceMdiChild);
 			if (!runner->askForParameters(filter, paramValues, m_sourceMdiChild, m_mainWnd, false))
 			{
 				return;
@@ -520,9 +520,9 @@ void iAParameterDlg::sourceChildClosed()
 	m_sourceMdiChildClosed = true;
 }
 
-QMap<QString, QVariant> iAParameterDlg::parameterValues() const
+QVariantMap iAParameterDlg::parameterValues() const
 {
-	QMap<QString, QVariant> result;
+	QVariantMap result;
 	QString msg;
 	for (int i = 0; i < m_parameters.size(); ++i)
 	{

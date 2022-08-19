@@ -75,7 +75,7 @@ int countAttributes(iAAttributes const& attributes, iAAttributeDescriptor::iAAtt
 }
 
 
-iAAttributes combineAttributesWithValues(iAAttributes const& attributes, QMap<QString, QVariant> values)
+iAAttributes combineAttributesWithValues(iAAttributes const& attributes, QVariantMap values)
 {
 	iAAttributes combined;
 	combined.reserve(attributes.size());

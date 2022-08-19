@@ -108,7 +108,7 @@ class iAMetaFileIO : public iAFileIO
 {
 public:
 	iAMetaFileIO();
-	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
+	std::shared_ptr<iADataSet> load(iAProgress* p, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };
@@ -117,7 +117,7 @@ class iAVTIFileIO : public iAFileIO
 {
 public:
 	iAVTIFileIO();
-	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
+	std::shared_ptr<iADataSet> load(iAProgress* p, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };
@@ -126,7 +126,7 @@ class iAGraphFileIO : public iAFileIO
 {
 public:
 	iAGraphFileIO();
-	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
+	std::shared_ptr<iADataSet> load(iAProgress* p, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };
@@ -135,7 +135,7 @@ class iASTLFileIO : public iAFileIO
 {
 public:
 	iASTLFileIO();
-	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
+	std::shared_ptr<iADataSet> load(iAProgress* p, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };
@@ -144,7 +144,7 @@ class iAAmiraVolumeFileIO : public iAFileIO
 {
 public:
 	iAAmiraVolumeFileIO();
-	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
+	std::shared_ptr<iADataSet> load(iAProgress* p, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };
@@ -193,7 +193,7 @@ iAMetaFileIO::iAMetaFileIO() :
 	iAFileIO(iADataSetType::Volume)
 {}
 
-std::shared_ptr<iADataSet> iAMetaFileIO::load(iAProgress* p, QMap<QString, QVariant> const& parameters)
+std::shared_ptr<iADataSet> iAMetaFileIO::load(iAProgress* p, QVariantMap const& parameters)
 {
 	Q_UNUSED(parameters);
 
@@ -247,7 +247,7 @@ iAGraphFileIO::iAGraphFileIO() : iAFileIO(iADataSetType::Graph)
 	addParameter("Spacing", iAValueType::Vector3, QVariant::fromValue(QVector<double>{1.0, 1.0, 1.0}));
 }
 
-std::shared_ptr<iADataSet> iAGraphFileIO::load(iAProgress* p, QMap<QString, QVariant> const& params)
+std::shared_ptr<iADataSet> iAGraphFileIO::load(iAProgress* p, QVariantMap const& params)
 {
 	// maybe we could also use vtkPDBReader, but not sure that's the right "PDB" file type...
 	Q_UNUSED(p);
@@ -392,7 +392,7 @@ iASTLFileIO::iASTLFileIO() : iAFileIO(iADataSetType::Mesh)
 {
 }
 
-std::shared_ptr<iADataSet> iASTLFileIO::load(iAProgress* p, QMap<QString, QVariant> const& params)
+std::shared_ptr<iADataSet> iASTLFileIO::load(iAProgress* p, QVariantMap const& params)
 {
 	Q_UNUSED(params);
 	auto stlReader = vtkSmartPointer<vtkSTLReader>::New();
@@ -423,7 +423,7 @@ iAVTIFileIO::iAVTIFileIO() : iAFileIO(iADataSetType::Volume)
 {
 }
 
-std::shared_ptr<iADataSet> iAVTIFileIO::load(iAProgress* p, QMap<QString, QVariant> const& parameters)
+std::shared_ptr<iADataSet> iAVTIFileIO::load(iAProgress* p, QVariantMap const& parameters)
 {
 	Q_UNUSED(parameters);
 	auto reader = vtkSmartPointer<vtkXMLImageDataReader>::New();
@@ -454,7 +454,7 @@ iAAmiraVolumeFileIO::iAAmiraVolumeFileIO() : iAFileIO(iADataSetType::Volume)
 {
 }
 
-std::shared_ptr<iADataSet> iAAmiraVolumeFileIO::load(iAProgress* p, QMap<QString, QVariant> const& parameters)
+std::shared_ptr<iADataSet> iAAmiraVolumeFileIO::load(iAProgress* p, QVariantMap const& parameters)
 {
 	Q_UNUSED(p);
 	Q_UNUSED(parameters);

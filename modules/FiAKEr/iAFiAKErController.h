@@ -35,7 +35,6 @@
 #include <qthelper/iAWidgetSettingsMapper.h>
 
 // base
-#include <iASettings.h>
 
 #include <vtkSmartPointer.h>
 
@@ -106,11 +105,11 @@ public:
 	void toggleSettings();
 	//! Load given settings.
 	//! @param settings needs to be passed by value, as it's used in a lambda!
-	void loadSettings(iASettings settings);
+	void loadSettings(QVariantMap settings);
 	void saveSettings(QSettings & settings);
 	//! Load additional data/state - a potentially set reference or sensitivity data
 	//! @param settings needs to be passed by value, as it's used in a lambda!
-	void loadAdditionalData(iASettings settings, QString projectFileName);
+	void loadAdditionalData(QVariantMap settings, QString projectFileName);
 	void saveProject(QSettings& projectFile, QString  const& fileName);
 signals:
 	void setupFinished();
@@ -180,7 +179,7 @@ private slots:
 
 	void selectFibersFromSensitivity(SelectionType const& selection);
 private:
-	bool loadReferenceInternal(iASettings settings);
+	bool loadReferenceInternal(QVariantMap settings);
 	void changeDistributionSource(int index);
 	void updateHistogramColors();
 	QColor getResultColor(size_t resultID);

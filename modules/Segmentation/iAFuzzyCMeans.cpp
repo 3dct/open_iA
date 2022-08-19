@@ -107,7 +107,7 @@ namespace
 		return true;
 	}
 
-	bool checkFCMParameters(QMap<QString, QVariant> const & parameters)
+	bool checkFCMParameters(QVariantMap const & parameters)
 	{
 		unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
 		QVector<double> centroids;
@@ -119,7 +119,7 @@ namespace
 // FCM
 
 template <typename InputPixelType>
-void fcm(iAFilter* filter, QMap<QString, QVariant> const & params)
+void fcm(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::Image<InputPixelType, DIM> InputImageType;
 	typedef itk::FuzzyClassifierInitializationImageFilter<InputImageType> TFuzzyClassifier;
@@ -168,12 +168,12 @@ iAFCMFilter::iAFCMFilter() :
 	addFCMParameters(*this);
 }
 
-bool iAFCMFilter::checkParameters(QMap<QString, QVariant> const & parameters)
+bool iAFCMFilter::checkParameters(QVariantMap const & parameters)
 {
 	return iAFilter::checkParameters(parameters) && checkFCMParameters(parameters);
 }
 
-void iAFCMFilter::performWork(QMap<QString, QVariant> const & parameters)
+void iAFCMFilter::performWork(QVariantMap const & parameters)
 {
 	for (unsigned int i = 0; i < parameters["Number of Classes"].toUInt(); ++i)
 	{
@@ -197,13 +197,13 @@ iAKFCMFilter::iAKFCMFilter() :
 	addKFCMParameters(*this);
 }
 
-bool iAKFCMFilter::checkParameters(QMap<QString, QVariant> const & parameters)
+bool iAKFCMFilter::checkParameters(QVariantMap const & parameters)
 {
 	return iAFilter::checkParameters(parameters) && checkFCMParameters(parameters);
 }
 
 template <typename InputPixelType>
-void kfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void kfcm(iAFilter* filter, QVariantMap const & parameters)
 {
 	unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
 	QVector<double> centroids;
@@ -263,7 +263,7 @@ void kfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	setProbabilities(probs, filter);
 }
 
-void iAKFCMFilter::performWork(QMap<QString, QVariant> const & parameters)
+void iAKFCMFilter::performWork(QVariantMap const & parameters)
 {
 	for (unsigned int i = 0; i < parameters["Number of Classes"].toUInt(); ++i)
 	{
@@ -292,13 +292,13 @@ iAMSKFCMFilter::iAMSKFCMFilter() :
 	addParameter("Q", iAValueType::Continuous, 1);
 }
 
-bool iAMSKFCMFilter::checkParameters(QMap<QString, QVariant> const & parameters)
+bool iAMSKFCMFilter::checkParameters(QVariantMap const & parameters)
 {
 	return iAFilter::checkParameters(parameters) && checkFCMParameters(parameters);
 }
 
 template <typename InputPixelType>
-void mskfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void mskfcm(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image<InputPixelType, DIM> InputImageType;
 	typedef itk::FuzzyClassifierInitializationImageFilter<InputImageType> TFuzzyClassifier;
@@ -362,7 +362,7 @@ void mskfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	setProbabilities(probs, filter);
 }
 
-void iAMSKFCMFilter::performWork(QMap<QString, QVariant> const & parameters)
+void iAMSKFCMFilter::performWork(QVariantMap const & parameters)
 {
 	for (unsigned int i = 0; i < parameters["Number of Classes"].toUInt(); ++i)
 	{

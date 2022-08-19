@@ -55,7 +55,7 @@ iACSVtoMHD::iACSVtoMHD() : iAFilter("CSV to MHD", "Uncertainty",
 
 IAFILTER_CREATE(iACSVtoMHD)
 
-void iACSVtoMHD::performWork(QMap<QString, QVariant> const & parameters)
+void iACSVtoMHD::performWork(QVariantMap const & parameters)
 {
 	int dim[3];
 	dim[0] = parameters["Size X"].toUInt();

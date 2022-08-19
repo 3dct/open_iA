@@ -105,7 +105,7 @@ public:
 	//! only used from GUI for the moment
 	//! if feature is implemented where parameters can be omitted (on command line),
 	//! this could later also be used to provide useful defaults for parameters that need to adapt to input image
-	virtual void adaptParametersToInput(QMap<QString, QVariant>& parameters, std::vector<std::shared_ptr<iADataSet>> const & dataSets);
+	virtual void adaptParametersToInput(QVariantMap& parameters, std::vector<std::shared_ptr<iADataSet>> const & dataSets);
 	//! Check whether the filter can be run with the given parameters. If
 	//! you need to perform special checks on your parameters, override this
 	//! method. The standard implementation here just checks parameters with
@@ -114,7 +114,7 @@ public:
 	//!     be called with
 	//! @return true if the given parameters are acceptable for the filter, false
 	//!     otherwise
-	virtual bool checkParameters(QMap<QString, QVariant> const & parameters);
+	virtual bool checkParameters(QVariantMap const & parameters);
 	//! the default check for a single parameter descriptor & value combination
 	bool defaultParameterCheck(QSharedPointer<iAAttributeDescriptor> param, QVariant const& paramValue);
 	//! Clears the list of input images to this filter.
@@ -128,7 +128,7 @@ public:
 	//! @}
 	//! Initialize and run the filter.
 	//! @param parameters the map of parameters to use in this specific filter run
-	bool run(QMap<QString, QVariant> const & parameters);
+	bool run(QVariantMap const & parameters);
 	//! Adds the description of a parameter to the filter.
 	//! @param name the parameter's name
 	//! @param valueType the type of value this parameter can have
@@ -224,7 +224,7 @@ protected:
 private:
 	//! The actual implementation of the filter.
 	//! @param parameters the map of parameters to use in this specific filter run
-	virtual void performWork(QMap<QString, QVariant> const & parameters) = 0;
+	virtual void performWork(QVariantMap const & parameters) = 0;
 	//! Clears the output values.
 	void clearOutput();
 	//! internal helper for adding input
@@ -281,6 +281,6 @@ class FilterName : public iAFilter \
 public: \
 	static QSharedPointer<FilterName> create(); \
 private: \
-	void performWork(QMap<QString, QVariant> const & parameters) override; \
+	void performWork(QVariantMap const & parameters) override; \
 	FilterName(); \
 };

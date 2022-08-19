@@ -30,7 +30,7 @@
 #include <iATypedCallHelper.h>
 
 template<class T>
-void laplacianSegmentationLevelSet(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void laplacianSegmentationLevelSet(iAFilter* filter, QVariantMap const & parameters)
 {
 	using InputImageType = itk::Image<T, DIM>;
 	using FeatureImageType = itk::Image<T, DIM>;
@@ -72,7 +72,7 @@ iALaplacianSegmentationLevelSet::iALaplacianSegmentationLevelSet() :
 	addParameter("Reverse expansion direction", iAValueType::Boolean, false);
 }
 
-void iALaplacianSegmentationLevelSet::performWork(QMap<QString, QVariant> const & parameters)
+void iALaplacianSegmentationLevelSet::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(laplacianSegmentationLevelSet, inputPixelType(), this, parameters);
 }
@@ -80,7 +80,7 @@ void iALaplacianSegmentationLevelSet::performWork(QMap<QString, QVariant> const 
 
 
 template<class T>
-void cannySegmentationLevelSet(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void cannySegmentationLevelSet(iAFilter* filter, QVariantMap const & parameters)
 {
 	using InputImageType = itk::Image<T, DIM>;
 	using FeatureImageType = itk::Image<T, DIM>;
@@ -122,7 +122,7 @@ iACannySegmentationLevelSet::iACannySegmentationLevelSet() :
 	addParameter("Reverse expansion direction", iAValueType::Boolean, false);
 }
 
-void iACannySegmentationLevelSet::performWork(QMap<QString, QVariant> const & parameters)
+void iACannySegmentationLevelSet::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(cannySegmentationLevelSet, inputPixelType(), this, parameters);
 }
@@ -130,7 +130,7 @@ void iACannySegmentationLevelSet::performWork(QMap<QString, QVariant> const & pa
 
 
 template<class T>
-void zeroCrossing(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void zeroCrossing(iAFilter* filter, QVariantMap const & parameters)
 {
 	using InputImageType = itk::Image<T, DIM>;
 	using ZeroCrossingFilter = itk::ZeroCrossingImageFilter<InputImageType, InputImageType>;
@@ -157,7 +157,7 @@ iAZeroCrossing::iAZeroCrossing() :
 	addParameter("Foreground value", iAValueType::Continuous, 1);
 }
 
-void iAZeroCrossing::performWork(QMap<QString, QVariant> const & parameters)
+void iAZeroCrossing::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(zeroCrossing, inputPixelType(), this, parameters);
 }

@@ -30,7 +30,7 @@
 iAFileParamDlg::~iAFileParamDlg()
 {}
 
-bool iAFileParamDlg::askForParameters(QWidget* parent, iAAttributes const& parameters, QMap<QString, QVariant>& values, QString const& fileName) const
+bool iAFileParamDlg::askForParameters(QWidget* parent, iAAttributes const& parameters, QVariantMap& values, QString const& fileName) const
 {
 	Q_UNUSED(fileName);
 	auto dlgParams = combineAttributesWithValues(parameters, values);
@@ -62,7 +62,7 @@ void iAFileParamDlg::add(QString const& ioName, std::shared_ptr<iAFileParamDlg> 
 class iANewRawFileParamDlg : public iAFileParamDlg
 {
 public:
-	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QMap<QString, QVariant>& values, QString const& fileName) const override
+	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QVariantMap& values, QString const& fileName) const override
 	{
 		Q_UNUSED(parameters);    // iARawFileParamDlg knows which parameters to get
 		iAAttributes additionalParams;
@@ -249,7 +249,7 @@ typedef iAQTtoUIConnector<QDialog, Ui_dlgOpenHDF5> OpenHDF5Dlg;
 
 class iAHDF5FileParamDlg : public iAFileParamDlg
 {
-	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QMap<QString, QVariant>& values, QString const& fileName) const override
+	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QVariantMap& values, QString const& fileName) const override
 	{
 		Q_UNUSED(parameters); // we know which parameters we have
 		hid_t file_id = H5Fopen(getLocalEncodingFileName(fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);

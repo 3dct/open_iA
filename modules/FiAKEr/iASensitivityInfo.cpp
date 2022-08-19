@@ -246,7 +246,7 @@ void iASensitivityInfo::abort()
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW, int histogramBins, int skipColumns,
 	std::vector<iAFiberResultUIData> const& resultUIs, vtkRenderWindow* main3DWin, QString parameterSetFileName,
-	QVector<int> const & charSelected, QVector<int> const & charDiffMeasure, iASettings const & projectFile)
+	QVector<int> const & charSelected, QVector<int> const & charDiffMeasure, QVariantMap const & projectFile)
 {
 	if (parameterSetFileName.isEmpty())
 	{
@@ -552,7 +552,7 @@ public:
 		m_settingsWidgetMap.insert(ProjectHighlightSelected, cbHighlightSelected);
 		m_settingsWidgetMap.insert(ProjectMergeHighlight, cbMergeHighlights);
 	}
-	void loadSettings(iASettings const & s)
+	void loadSettings(QVariantMap const & s)
 	{
 		::loadSettings(s, m_settingsWidgetMap);
 	}
@@ -1052,14 +1052,14 @@ void iASensitivityInfo::saveProject(QSettings& projectFile, QString  const& file
 	//	[](std::pair<int, bool> const& a) {return QString::number(a.first)+":"+(a.second?"true":"false"); }));
 }
 
-bool iASensitivityInfo::hasData(iASettings const& settings)
+bool iASensitivityInfo::hasData(QVariantMap const& settings)
 {
 	return settings.contains(ProjectParameterFile);
 }
 
 
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::load(iAMdiChild* child,
-	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW, iASettings const& projectFile,
+	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW, QVariantMap const& projectFile,
 	QString const& projectFileName, std::vector<iAFiberResultUIData> const& resultUIs, vtkRenderWindow* main3DWin)
 {
 	QString parameterSetFileName = MakeAbsolute(QFileInfo(projectFileName).absolutePath(), projectFile.value(ProjectParameterFile).toString());

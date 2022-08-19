@@ -41,13 +41,13 @@ public:
 	//! @param [out] rawFileParams The parameters of the raw file that were set by the user.
 	//! @param brightTheme      whether the program currently uses a dark theme (affects green/red background in file size check)
 	iARawFileParamDlg(QString const& fileName, QWidget* parent, QString const& title,
-		iAParameterDlg::ParamListT const& additionalParams, QMap<QString, QVariant> & paramValues, bool brightTheme);
+		iAParameterDlg::ParamListT const& additionalParams, QVariantMap & paramValues, bool brightTheme);
 	~iARawFileParamDlg();
 	//! Checks whether or not the user has accepted the input dialog.
 	//! @return true if the user accepted (i.e. clicked "OK"), false if he cancelled.
 	bool accepted() const;
 	//! access to the values entered by user.
-	QMap<QString, QVariant> parameterValues() const;  // make const &, cache
+	QVariantMap parameterValues() const;  // make const &, cache
 
 private:
 	qint64 m_fileSize;

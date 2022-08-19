@@ -47,7 +47,7 @@
 
 // iAInvertIntensityFilter
 
-template<class T> void invert_intensity(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+template<class T> void invert_intensity(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, DIM > ImageType;
 	typedef itk::InvertIntensityImageFilter< ImageType, ImageType> InvertFilterType;
@@ -63,7 +63,7 @@ template<class T> void invert_intensity(iAFilter* filter, QMap<QString, QVariant
 	filter->addOutput(invFilter->GetOutput());
 }
 
-void iAInvertIntensityFilter::performWork(QMap<QString, QVariant> const & parameters)
+void iAInvertIntensityFilter::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(invert_intensity, inputPixelType(), this, parameters);
 }
@@ -99,7 +99,7 @@ template<class T> void normalize(iAFilter* filter)
 	filter->addOutput(normalizeFilter->GetOutput());
 }
 
-void iANormalizeIntensityFilter::performWork(QMap<QString, QVariant> const & /*parameters*/)
+void iANormalizeIntensityFilter::performWork(QVariantMap const & /*parameters*/)
 {
 	ITK_TYPED_CALL(normalize, inputPixelType(), this);
 }
@@ -122,7 +122,7 @@ iANormalizeIntensityFilter::iANormalizeIntensityFilter() :
 // iAIntensityWindowingFilter
 
 template<class T>
-void intensity_windowing(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void intensity_windowing(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, DIM > ImageType;
 	typedef itk::IntensityWindowingImageFilter <ImageType, ImageType> IntensityWindowingImageFilterType;
@@ -139,7 +139,7 @@ void intensity_windowing(iAFilter* filter, QMap<QString, QVariant> const & param
 	filter->addOutput(intensityWindowingFilter->GetOutput());
 }
 
-void iAIntensityWindowingFilter::performWork(QMap<QString, QVariant> const & parameters)
+void iAIntensityWindowingFilter::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(intensity_windowing, inputPixelType(), this, parameters);
 }
@@ -167,7 +167,7 @@ iAIntensityWindowingFilter::iAIntensityWindowingFilter() :
 
 // iAGeneralThreshold
 
-template<class T> void threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+template<class T> void threshold(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, 3 >   ImageType;
 	typedef itk::ThresholdImageFilter <ImageType> ThresholdFilterType;
@@ -181,7 +181,7 @@ template<class T> void threshold(iAFilter* filter, QMap<QString, QVariant> const
 	filter->addOutput(thresholdFilter->GetOutput());
 }
 
-void iAGeneralThreshold::performWork(QMap<QString, QVariant> const & parameters)
+void iAGeneralThreshold::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(threshold, inputPixelType(), this, parameters);
 }
@@ -204,7 +204,7 @@ iAGeneralThreshold::iAGeneralThreshold() :
 
 // iARescaleIntensityFilter
 
-template<class T> void rescaleImage(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+template<class T> void rescaleImage(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, DIM > InputImageType;
 	typedef itk::Image< T, DIM > OutputImageType;
@@ -219,7 +219,7 @@ template<class T> void rescaleImage(iAFilter* filter, QMap<QString, QVariant> co
 	filter->addOutput(rescaleFilter->GetOutput());
 }
 
-void iARescaleIntensityFilter::performWork(QMap<QString, QVariant> const & parameters)
+void iARescaleIntensityFilter::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(rescaleImage, inputPixelType(), this, parameters);
 }
@@ -250,7 +250,7 @@ iARescaleIntensityFilter::iARescaleIntensityFilter() :
 
 // iAShiftScaleIntensityFilter
 
-template<typename T> void shiftScale(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+template<typename T> void shiftScale(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, DIM > InputImageType;
 	typedef itk::Image< T, DIM > OutputImageType;
@@ -265,7 +265,7 @@ template<typename T> void shiftScale(iAFilter* filter, QMap<QString, QVariant> c
 	filter->addOutput(rescaleFilter->GetOutput());
 }
 
-void iAShiftScaleIntensityFilter::performWork(QMap<QString, QVariant> const & parameters)
+void iAShiftScaleIntensityFilter::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(shiftScale, inputPixelType(), this, parameters);
 }
@@ -287,7 +287,7 @@ iAShiftScaleIntensityFilter::iAShiftScaleIntensityFilter() :
 }
 
 
-template<class T> void adaptiveHistogramEqualization(iAFilter* filter, QMap<QString, QVariant> const & params)
+template<class T> void adaptiveHistogramEqualization(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef  itk::AdaptiveHistogramEqualizationImageFilter< InputImageType > AdaptHistoEqualFilterType;
@@ -303,7 +303,7 @@ template<class T> void adaptiveHistogramEqualization(iAFilter* filter, QMap<QStr
 
 IAFILTER_CREATE(iAAdaptiveHistogramEqualization)
 
-void iAAdaptiveHistogramEqualization::performWork(QMap<QString, QVariant> const & parameters)
+void iAAdaptiveHistogramEqualization::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(adaptiveHistogramEqualization, inputPixelType(), this, parameters);
 }
@@ -334,7 +334,7 @@ iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization() :
 // iAReplaceValueFilter
 
 template<class T> 
-void replaceAndShift(iAFilter* filter, QMap<QString, QVariant> const & params)
+void replaceAndShift(iAFilter* filter, QVariantMap const & params)
 {
 	using ImageType = itk::Image<T, DIM>;
 	typedef itk::ImageRegionIterator<ImageType> ImageIterator;
@@ -376,7 +376,7 @@ void replaceAndShift(iAFilter* filter, QMap<QString, QVariant> const & params)
 	filter->addOutput(imgOut);
 }
 
-void iAReplaceAndShiftFilter::performWork(QMap<QString, QVariant> const& parameters)
+void iAReplaceAndShiftFilter::performWork(QVariantMap const& parameters)
 {
 	if (input(0)->itkScalarPixelType() == itk::ImageIOBase::FLOAT ||
 		input(0)->itkScalarPixelType() == itk::ImageIOBase::DOUBLE)
@@ -423,7 +423,7 @@ template<class T> void addImages(iAFilter* filter)
 	filter->addOutput(fusion->GetOutput());
 }
 
-void iAAddFilter::performWork(QMap<QString, QVariant> const & /*parameters*/)
+void iAAddFilter::performWork(QVariantMap const & /*parameters*/)
 {
 	ITK_TYPED_CALL(addImages, inputPixelType(), this);
 }
@@ -459,7 +459,7 @@ void multiplyImages(iAFilter* filter)
 	filter->addOutput(mulFilter->GetOutput());
 }
 
-void iAMultiplyFilter::performWork(QMap<QString, QVariant> const& /*parameters*/)
+void iAMultiplyFilter::performWork(QVariantMap const& /*parameters*/)
 {
 	ITK_TYPED_CALL(multiplyImages, inputPixelType(), this);
 }
@@ -497,7 +497,7 @@ template<class T> void subtractImages(iAFilter* filter)
 	filter->addOutput(subFilter->GetOutput());
 }
 
-void iASubtractFilter::performWork(QMap<QString, QVariant> const & /*parameters*/)
+void iASubtractFilter::performWork(QVariantMap const & /*parameters*/)
 {
 	ITK_TYPED_CALL(subtractImages, inputPixelType(), this);
 }
@@ -518,7 +518,7 @@ iASubtractFilter::iASubtractFilter() :
 
 // iADifferenceFilter
 
-template<class T> void difference(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+template<class T> void difference(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, DIM > ImageType;
 	typedef itk::Testing::ComparisonImageFilter<ImageType, ImageType> FilterType;
@@ -534,7 +534,7 @@ template<class T> void difference(iAFilter* filter, QMap<QString, QVariant> cons
 	filter->addOutput(diffFilter->GetOutput());
 }
 
-void iADifferenceFilter::performWork(QMap<QString, QVariant> const & parameters)
+void iADifferenceFilter::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(difference, inputPixelType(), this, parameters);
 }
@@ -573,7 +573,7 @@ template<class T> void mask(iAFilter* filter)
 	filter->addOutput(maskFilter->GetOutput());
 }
 
-void iAMaskIntensityFilter::performWork(QMap<QString, QVariant> const & /*parameters*/)
+void iAMaskIntensityFilter::performWork(QVariantMap const & /*parameters*/)
 {
 	ITK_TYPED_CALL(mask, inputPixelType(), this);
 }
@@ -598,7 +598,7 @@ iAMaskIntensityFilter::iAMaskIntensityFilter() :
 // iAHistogramMatchingFilter
 
 template<class T>
-void histomatch(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void histomatch(iAFilter* filter, QVariantMap const & parameters)
 {
 	using MatchImageType = itk::Image<T, DIM>;
 	using HistoMatchFilterType = itk::HistogramMatchingImageFilter<MatchImageType, MatchImageType>;
@@ -624,7 +624,7 @@ void histomatch(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	filter->addOutput( matcher->GetOutput() );
 }
 
-void iAHistogramMatchingFilter::performWork(QMap<QString, QVariant> const & parameters)
+void iAHistogramMatchingFilter::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(histomatch, inputPixelType(), this, parameters);
 }
@@ -661,7 +661,7 @@ iAHistogramMatchingFilter::iAHistogramMatchingFilter() :
 
 
 template <class T>
-void fillHistogramm(iAFilter* filter, QMap<QString, QVariant> const& params)
+void fillHistogramm(iAFilter* filter, QVariantMap const& params)
 {
 	Q_UNUSED(params);
 	std::map<T, T> histogramm;
@@ -704,7 +704,7 @@ iAHistogramFill::iAHistogramFill() :
 
 IAFILTER_CREATE(iAHistogramFill)
 
-void iAHistogramFill::performWork(QMap<QString, QVariant> const& params)
+void iAHistogramFill::performWork(QVariantMap const& params)
 {
 	ITK_TYPED_CALL(fillHistogramm, inputPixelType(), this, params);
 }

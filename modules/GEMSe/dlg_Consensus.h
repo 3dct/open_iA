@@ -102,7 +102,7 @@ private:
 
 	// for hold-out validation:
 	QVector<QSharedPointer<iAImageSampler> > m_queuedSamplers;
-	QVector<QMap<QString, QVariant> > m_samplerParameters;
+	QVector<QVariantMap > m_samplerParameters;
 	QSharedPointer<iAImageSampler> m_currentSampler;
 	iAProgress m_progress;
 	QVector<QSharedPointer<iASamplingResults> > m_comparisonSamplingResults;

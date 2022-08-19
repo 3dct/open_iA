@@ -729,7 +729,7 @@ QStringList const& samplingMethodNames()
 	return result;
 }
 
-QSharedPointer<iASamplingMethod> createSamplingMethod(iASettings const& parameters)
+QSharedPointer<iASamplingMethod> createSamplingMethod(QVariantMap const& parameters)
 {
 	QString methodName = parameters[spnSamplingMethod].toString();
 	if (methodName == iASamplingMethodName::Random)
@@ -751,7 +751,7 @@ QSharedPointer<iASamplingMethod> createSamplingMethod(iASettings const& paramete
 	else if (methodName == iASamplingMethodName::GlobalSensitivity ||
 		methodName == iASamplingMethodName::GlobalSensitivitySmall)
 	{
-		iASettings newParams(parameters);
+		QVariantMap newParams(parameters);
 		newParams[spnSamplingMethod] = parameters[spnBaseSamplingMethod];
 		if (newParams[spnSamplingMethod] == iASamplingMethodName::GlobalSensitivity)
 		{

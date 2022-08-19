@@ -119,7 +119,7 @@ namespace
 	const QString SpecularPower = "Specular power";
 
 	template <class T>
-	void applyLightingProperties(T* prop, QMap<QString, QVariant> const & values)
+	void applyLightingProperties(T* prop, QVariantMap const & values)
 	{
 		prop->SetAmbient(values[AmbientLighting].toDouble());
 		prop->SetDiffuse(values[DiffuseLighting].toDouble());
@@ -150,7 +150,7 @@ iADataSetRenderer::iADataSetRenderer(vtkRenderer* renderer):
 iADataSetRenderer::~iADataSetRenderer()
 {}
 
-void iADataSetRenderer::setAttributes(QMap<QString, QVariant> const & values)
+void iADataSetRenderer::setAttributes(QVariantMap const & values)
 {
 	m_attribValues = values;
 	applyAttributes(values);
@@ -329,7 +329,7 @@ public:
 		m_pointActor->SetOrientation(m_lineActor->GetOrientation());
 	}
 
-	void applyAttributes(QMap<QString, QVariant> const& values) override
+	void applyAttributes(QVariantMap const& values) override
 	{
 		m_sphereSource->SetRadius(values[PointRadius].toDouble());
 		QColor pointColor(values[PointColor].toString());
@@ -439,7 +439,7 @@ public:
 	{
 		m_renderer->RemoveActor(m_polyActor);
 	}
-	void applyAttributes(QMap<QString, QVariant> const& values) override
+	void applyAttributes(QVariantMap const& values) override
 	{
 		applyLightingProperties(m_polyActor->GetProperty(), values);
 		m_polyActor->GetProperty()->SetShading(values[Shading].toBool());
@@ -633,7 +633,7 @@ public:
 	{
 		m_renderer->RemoveVolume(m_volume);
 	}
-	void applyAttributes(QMap<QString, QVariant> const& values) override
+	void applyAttributes(QVariantMap const& values) override
 	{
 		applyLightingProperties(m_volProp.Get(), values);
 		m_volProp->SetInterpolationType(values[LinearInterpolation].toInt());

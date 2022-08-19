@@ -48,7 +48,7 @@ public:
 	static QSharedPointer<iANonLocalMeans> create();
 	void abort() override;
 private:
-	void performWork(QMap<QString, QVariant> const& parameters) override;
+	void performWork(QVariantMap const& parameters) override;
 	iANonLocalMeans();
 	itk::ProcessObject * m_itkProcess;
 };

@@ -56,7 +56,7 @@ namespace
 	}
 }
 
-void iASVMImageFilter::performWork(QMap<QString, QVariant> const & parameters)
+void iASVMImageFilter::performWork(QVariantMap const & parameters)
 {
 	if (inputCount() == 0)
 	{
@@ -233,7 +233,7 @@ iASVMImageFilter::iASVMImageFilter() :
 
 
 
-template<class T> void kmeansclustering(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+template<class T> void kmeansclustering(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::Image<int, DIM> IntImageType;
@@ -252,7 +252,7 @@ template<class T> void kmeansclustering(iAFilter* filter, QMap<QString, QVariant
 	filter->addOutput(kmeansFilter->GetOutput());
 }
 
-void iAKMeans::performWork(QMap<QString, QVariant> const & parameters)
+void iAKMeans::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(kmeansclustering, inputPixelType(), this, parameters);
 }

@@ -40,6 +40,6 @@ class iAASTRAFilterRunner : public iAFilterRunnerGUI
 public:
 	static QSharedPointer<iAFilterRunnerGUI> create();
 	void run(QSharedPointer<iAFilter> filter, iAMainWindow* mainWnd) override;
-	bool askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
+	bool askForParameters(QSharedPointer<iAFilter> filter, QVariantMap & paramValues,
 		iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool askForAdditionalInput) override;
 };

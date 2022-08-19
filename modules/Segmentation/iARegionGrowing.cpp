@@ -79,7 +79,7 @@ void setSeeds(RegFilterT* filter, iAConnector::ImageBaseType* img)
 
 
 template<class T>
-void confidenceConnected(iAFilter* filter, QMap<QString, QVariant> const & params)
+void confidenceConnected(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	InputImageType * input = dynamic_cast<InputImageType *>(filter->input(0)->itkImage());
@@ -100,7 +100,7 @@ void confidenceConnected(iAFilter* filter, QMap<QString, QVariant> const & param
 
 IAFILTER_CREATE(iAConfidenceConnectedRegionGrow)
 
-void iAConfidenceConnectedRegionGrow::performWork(QMap<QString, QVariant> const & parameters)
+void iAConfidenceConnectedRegionGrow::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(confidenceConnected, inputPixelType(), this, parameters);
 }
@@ -122,7 +122,7 @@ iAConfidenceConnectedRegionGrow::iAConfidenceConnectedRegionGrow() :
 
 
 template<class T>
-void connectedThreshold(iAFilter* filter, QMap<QString, QVariant> const & params)
+void connectedThreshold(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	const InputImageType * input = dynamic_cast<InputImageType*>(filter->input(0)->itkImage());
@@ -141,7 +141,7 @@ void connectedThreshold(iAFilter* filter, QMap<QString, QVariant> const & params
 
 IAFILTER_CREATE(iAConnectedThresholdRegionGrow)
 
-void iAConnectedThresholdRegionGrow::performWork(QMap<QString, QVariant> const & parameters)
+void iAConnectedThresholdRegionGrow::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(connectedThreshold, inputPixelType(), this, parameters);
 }
@@ -162,7 +162,7 @@ iAConnectedThresholdRegionGrow::iAConnectedThresholdRegionGrow() :
 
 
 template<class T>
-void neighborhoodConnected(iAFilter* filter, QMap<QString, QVariant> const & params)
+void neighborhoodConnected(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	const InputImageType * input = dynamic_cast<InputImageType*>(filter->input(0)->itkImage());
@@ -187,7 +187,7 @@ void neighborhoodConnected(iAFilter* filter, QMap<QString, QVariant> const & par
 
 IAFILTER_CREATE(iANeighborhoodConnectedRegionGrow)
 
-void iANeighborhoodConnectedRegionGrow::performWork(QMap<QString, QVariant> const & parameters)
+void iANeighborhoodConnectedRegionGrow::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(neighborhoodConnected, inputPixelType(), this, parameters);
 }

@@ -67,7 +67,7 @@ namespace
 	}
 
 	template <typename T>
-	void patch(iAPatchFilter* patchFilter, QMap<QString, QVariant> const & parameters)
+	void patch(iAPatchFilter* patchFilter, QVariantMap const & parameters)
 	{
 		auto filter = iAFilterRegistry::filter(parameters[spnFilter].toString());
 		if (!filter)
@@ -89,7 +89,7 @@ namespace
 				.arg(filterParamStrs.size()));
 			return;
 		}
-		QMap<QString, QVariant> filterParams;
+		QVariantMap filterParams;
 		for (int i = 0; i < filterParamStrs.size(); ++i)
 		{
 			filterParams.insert(filter->parameters()[i]->name(), filterParamStrs[i]);
@@ -347,7 +347,7 @@ iAPatchFilter::iAPatchFilter():
 	addParameter(spnOverwriteOutput, iAValueType::Boolean, false);
 }
 
-void iAPatchFilter::performWork(QMap<QString, QVariant> const & parameters)
+void iAPatchFilter::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(patch, inputPixelType(), this, parameters);
 }

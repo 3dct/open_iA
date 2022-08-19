@@ -22,9 +22,9 @@
 
 #include <QSettings>
 
-iASettings mapFromQSettings(QSettings const & settings)
+QVariantMap mapFromQSettings(QSettings const & settings)
 {
-	iASettings result;
+	QVariantMap result;
 	for (QString key : settings.allKeys())
 	{
 		result[key] = settings.value(key);
@@ -32,7 +32,7 @@ iASettings mapFromQSettings(QSettings const & settings)
 	return result;
 }
 
-void storeSettings(QString const& group, iASettings const& values)
+void storeSettings(QString const& group, QVariantMap const& values)
 {
 	QSettings settings;
 	settings.beginGroup(group);
@@ -42,7 +42,7 @@ void storeSettings(QString const& group, iASettings const& values)
 	}
 }
 
-iASettings loadSettings(QString const& group)
+QVariantMap loadSettings(QString const& group)
 {
 	QSettings settings;
 	settings.beginGroup(group);

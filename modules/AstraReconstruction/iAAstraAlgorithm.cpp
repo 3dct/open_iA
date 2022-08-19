@@ -88,7 +88,7 @@ namespace
 		return result;
 	}
 
-	void createConeProjGeom(astra::Config & projectorConfig, QMap<QString, QVariant> const & parameters, size_t detRowCnt, size_t detColCnt, size_t projAngleCnt)
+	void createConeProjGeom(astra::Config & projectorConfig, QVariantMap const & parameters, size_t detRowCnt, size_t detColCnt, size_t projAngleCnt)
 	{
 		astra::XMLNode projGeomNode = projectorConfig.self.addChildNode("ProjectionGeometry");
 		projGeomNode.addAttribute("type", "cone");
@@ -105,7 +105,7 @@ namespace
 	}
 
 
-	void createConeVecProjGeom(astra::Config & projectorConfig, QMap<QString, QVariant> const & parameters, size_t detRowCnt, size_t detColCnt, size_t projAngleCnt)
+	void createConeVecProjGeom(astra::Config & projectorConfig, QVariantMap const & parameters, size_t detRowCnt, size_t detColCnt, size_t projAngleCnt)
 	{
 		QString vectors;
 		for (size_t i = 0; i<projAngleCnt; ++i)
@@ -310,7 +310,7 @@ public:
 	}
 };
 
-void iAASTRAForwardProject::performWork(QMap<QString, QVariant> const & parameters)
+void iAASTRAForwardProject::performWork(QVariantMap const & parameters)
 {
 	vtkSmartPointer<vtkImageData> volImg = input(0)->vtkImage();
 	int * volDim = volImg->GetDimensions();
@@ -439,7 +439,7 @@ void swapDimensions(vtkSmartPointer<vtkImageData> img, astra::float32* buf, int 
 }
 
 
-void iAASTRAReconstruct::performWork(QMap<QString, QVariant> const & parameters)
+void iAASTRAReconstruct::performWork(QVariantMap const & parameters)
 {
 	vtkSmartPointer<vtkImageData> projImg = input(0)->vtkImage();
 	int * projDim = projImg->GetDimensions();
@@ -599,7 +599,7 @@ void iAASTRAFilterRunner::run(QSharedPointer<iAFilter> filter, iAMainWindow* mai
 	iAFilterRunnerGUI::run(filter, mainWnd);
 }
 
-bool iAASTRAFilterRunner::askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & parameters,
+bool iAASTRAFilterRunner::askForParameters(QSharedPointer<iAFilter> filter, QVariantMap & parameters,
 	iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool /*askForAdditionalInput*/)
 {
 	dlg_ProjectionParameters dlg;

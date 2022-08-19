@@ -24,8 +24,6 @@
 
 #include "iASamplingMethod.h"
 
-#include <iASettings.h>
-
 //! Generate a given number of parameter sets, randomly distributed (uniform distribution).
 class iARandomSamplingMethod : public iASamplingMethod
 {
@@ -110,4 +108,4 @@ MetaFilters_API QStringList const & samplingMethodNames();
 //! Note that most strategies don't require any parameters,
 //! but to provide a generic interface for the construction
 //! of all strategies, the parameters are required.
-MetaFilters_API QSharedPointer<iASamplingMethod> createSamplingMethod(iASettings const & parameters);
+MetaFilters_API QSharedPointer<iASamplingMethod> createSamplingMethod(QVariantMap const & parameters);

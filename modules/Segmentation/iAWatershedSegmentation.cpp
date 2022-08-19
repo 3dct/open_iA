@@ -35,7 +35,7 @@
 // Watershed segmentation
 
 template<class T>
-void watershed(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void watershed(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef itk::WatershedImageFilter < InputImageType > WIFType;
@@ -69,7 +69,7 @@ iAWatershed::iAWatershed() :
 	addParameter("Threshold", iAValueType::Continuous, 0);
 }
 
-void iAWatershed::performWork(QMap<QString, QVariant> const & parameters)
+void iAWatershed::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(watershed, inputPixelType(), this, parameters);
 }
@@ -78,7 +78,7 @@ void iAWatershed::performWork(QMap<QString, QVariant> const & parameters)
 // Morphological Watershed
 
 template<class T>
-void morph_watershed(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void morph_watershed(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef itk::Image< unsigned long, DIM > OutputImageType;
@@ -109,7 +109,7 @@ iAMorphologicalWatershed::iAMorphologicalWatershed() :
 	addParameter("Fully Connected", iAValueType::Boolean, false);
 }
 
-void iAMorphologicalWatershed::performWork(QMap<QString, QVariant> const & parameters)
+void iAMorphologicalWatershed::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(morph_watershed, inputPixelType(), this, parameters);
 }

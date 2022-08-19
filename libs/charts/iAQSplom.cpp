@@ -30,6 +30,7 @@
 #include "iAPlotTypes.h"
 #include "iAQGLWidget.h"
 #include "iAScatterPlot.h"
+#include "iASettings.h"    // for mapFromQSettings
 #include "iASPLOMData.h"
 #include "iASPMSettings.h"
 #include "iAStringHelper.h"
@@ -1809,7 +1810,7 @@ void iAQSplom::saveSettings(QSettings & iniFile) const
 	}
 }
 
-void iAQSplom::loadSettings(iASettings const & config)
+void iAQSplom::loadSettings(QVariantMap const & config)
 {
 	bool ok;
 	double newPointRadius = config.value(CfgKeyPointRadius, settings.pointRadius).toDouble(&ok);

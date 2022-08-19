@@ -33,7 +33,7 @@
 #include <itkLaplacianImageFilter.h>
 #include <itkSymmetricEigenAnalysisImageFilter.h>
 
-template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+template<class T> void hessianEigenAnalysis(iAFilter* filter, QVariantMap const & parameters)
 {
 	//typedef itk::Vector<double, 3> VectorPixelType;
 	//VectorPixelType eigenTempVector;
@@ -135,7 +135,7 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVar
 */
 }
 
-void iAHessianEigenanalysis::performWork(QMap<QString, QVariant> const & parameters)
+void iAHessianEigenanalysis::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(hessianEigenAnalysis, inputPixelType(), this, parameters);
 }
@@ -159,7 +159,7 @@ iAHessianEigenanalysis::iAHessianEigenanalysis() :
 
 
 
-template<class T> void Laplacian(iAFilter* filter, QMap<QString, QVariant> const & params)
+template<class T> void Laplacian(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::Image< T, DIM > ImageType;
 	typedef itk::Image<float, DIM> OutputImageType;
@@ -172,7 +172,7 @@ template<class T> void Laplacian(iAFilter* filter, QMap<QString, QVariant> const
 	filter->addOutput(logFilter->GetOutput());
 }
 
-void iALaplacian::performWork(QMap<QString, QVariant> const & parameters)
+void iALaplacian::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(Laplacian, inputPixelType(), this, parameters);
 }

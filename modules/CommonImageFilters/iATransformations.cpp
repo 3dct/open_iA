@@ -78,7 +78,7 @@ template<class TPixelType> void flip(iAFilter* filter, QString const & axis)
 	filter->addOutput(outImage);
 }
 
-void iAFlipAxis::performWork(QMap<QString, QVariant> const & parameters)
+void iAFlipAxis::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(flip, inputPixelType(), this, parameters["Flip axis"].toString());
 }
@@ -141,7 +141,7 @@ void permute(iAFilter* filter, QString const& orderStr)
 	filter->addOutput(permFilter->GetOutput());
 }
 
-void iAPermuteAxes::performWork(QMap<QString, QVariant> const& parameters)
+void iAPermuteAxes::performWork(QVariantMap const& parameters)
 {
 	ITK_TYPED_CALL(permute, inputPixelType(), this, parameters["Order"].toString());
 }
@@ -169,7 +169,7 @@ iAPermuteAxes::iAPermuteAxes() :
 typedef double TPrecision;
 
 template<class TPixelType>
-static void rotate(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+static void rotate(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image<TPixelType, DIM> ImageType;
 	typedef itk::AffineTransform<TPrecision, DIM> TransformType;
@@ -212,7 +212,7 @@ static void rotate(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	affine<TPixelType, TPrecision>(filter, transform);
 }
 
-void iARotate::performWork(QMap<QString, QVariant> const & parameters)
+void iARotate::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(rotate, inputPixelType(), this, parameters);
 }
@@ -241,7 +241,7 @@ iARotate::iARotate() :
 
 
 template<class TPixelType>
-static void translate(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+static void translate(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::AffineTransform<TPrecision, DIM> TransformType;
 	auto transform = TransformType::New();
@@ -253,7 +253,7 @@ static void translate(iAFilter* filter, QMap<QString, QVariant> const & paramete
 	affine<TPixelType, TPrecision>(filter, transform);
 }
 
-void iATranslate::performWork(QMap<QString, QVariant> const & parameters)
+void iATranslate::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(translate, inputPixelType(), this, parameters);
 }

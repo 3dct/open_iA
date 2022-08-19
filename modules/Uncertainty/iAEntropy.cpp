@@ -49,7 +49,7 @@ IAFILTER_CREATE(iAEntropy)
 
 
 template <typename PixelType>
-void entropy(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void entropy(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image<PixelType, DIM> InputImageType;
 	typedef iAEntropyImageFilter<InputImageType, InputImageType> EntropyFilter;
@@ -64,7 +64,7 @@ void entropy(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 }
 
 
-void iAEntropy::performWork(QMap<QString, QVariant> const & parameters)
+void iAEntropy::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(entropy, inputPixelType(), this, parameters);
 }

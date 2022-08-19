@@ -34,6 +34,7 @@
 #include <iAParameterDlg.h>
 #include <iAProjectBase.h>
 #include <iAProjectRegistry.h>
+#include "iASettings.h"    // for mapFromQSettings
 
 #include <QAction>
 #include <QFileDialog>
@@ -278,7 +279,7 @@ void iAFiAKErModuleInterface::loadProject(iAMdiChild* mdiChild, QSettings const&
 	auto controller = attach->controller();
 	project->setController(controller);
 	m_mainWnd->setPath(m_lastPath);
-	iASettings projectSettings = mapFromQSettings(projectFile);
+	auto projectSettings = mapFromQSettings(projectFile);
 	connect(controller, &iAFiAKErController::setupFinished, [controller, projectSettings, fileName]
 		{
 			controller->loadAdditionalData(projectSettings, fileName);

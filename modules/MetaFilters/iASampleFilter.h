@@ -36,8 +36,8 @@ public:
 		QString const& derivedOutFile, int samplingID);
 	void abort() override;
 private:
-	void performWork(QMap<QString, QVariant> const& parameters) override;
-	bool checkParameters(QMap<QString, QVariant> const& parameters) override;
+	void performWork(QVariantMap const& parameters) override;
+	bool checkParameters(QVariantMap const& parameters) override;
 	iASampleFilter();
 	QSharedPointer<iAModalityList> m_input;
 	QSharedPointer<iAAttributes> m_parameterRanges, m_parameterSpecs;
@@ -52,6 +52,6 @@ class iASampleFilterRunnerGUI : public iAFilterRunnerGUI
 {
 public:
 	static QSharedPointer<iAFilterRunnerGUI> create();
-	bool askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant>& paramValues,
+	bool askForParameters(QSharedPointer<iAFilter> filter, QVariantMap& paramValues,
 		iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool askForAdditionalInput) override;
 };

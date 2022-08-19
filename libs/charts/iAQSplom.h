@@ -21,7 +21,6 @@
 #pragma once
 
 #include "iAScatterPlotViewData.h"
-#include "iASettings.h"
 
 #include "iAcharts_export.h"
 
@@ -151,7 +150,7 @@ public:
 	QSharedPointer<iALookupTable> lookupTable() const;               //!< get lookup table
 	ColorMode colorMode() const;                                     //!< get current coloring mode
 	void saveSettings(QSettings & iniFile) const;                    //!< store current settings into given object
-	void loadSettings(iASettings const & iniFile);                   //!< load settings from given object
+	void loadSettings(QVariantMap const & iniFile);                  //!< load settings from given object
 public slots:
 	void setHistogramVisible(bool visible);                          //!< set visibility of histograms
 	void setFlipAxes(bool flip);                                     //!< set whether to flip parameters in large scatterplot

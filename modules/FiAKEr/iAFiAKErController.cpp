@@ -2324,7 +2324,7 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 	m_refDistCompute->start();
 }
 
-bool iAFiAKErController::loadReferenceInternal(iASettings settings)
+bool iAFiAKErController::loadReferenceInternal(QVariantMap settings)
 {
 	QString refIDStr = settings.value(ProjectFileReference, "").toString();
 	if (refIDStr.isEmpty())
@@ -2364,7 +2364,7 @@ bool iAFiAKErController::loadReferenceInternal(iASettings settings)
 	return true;
 }
 
-void iAFiAKErController::loadAdditionalData(iASettings settings, QString projectFileName)
+void iAFiAKErController::loadAdditionalData(QVariantMap settings, QString projectFileName)
 {
 	bool directlyLoadSettings = true;
 	if (settings.contains(ProjectFileReference))
@@ -2390,7 +2390,7 @@ namespace
 {
 	typedef void (vtkCamera::*SetMethod)(double const[3]);
 
-	void setCameraParameter(iASettings const & settings, QString const & key, vtkCamera* cam, SetMethod method)
+	void setCameraParameter(QVariantMap const & settings, QString const & key, vtkCamera* cam, SetMethod method)
 	{
 		if (!settings.contains(key))
 		{
@@ -2410,7 +2410,7 @@ namespace
 	}
 }
 
-void iAFiAKErController::loadSettings(iASettings settings)
+void iAFiAKErController::loadSettings(QVariantMap settings)
 {
 	m_spm->loadSettings(settings);
 	::loadSettings(settings, m_settingsWidgetMap);

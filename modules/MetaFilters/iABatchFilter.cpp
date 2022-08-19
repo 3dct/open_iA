@@ -103,7 +103,7 @@ iABatchFilter::iABatchFilter():
 	addParameter("Output format", iAValueType::Categorical, outputFormat);
 }
 
-void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
+void iABatchFilter::performWork(QVariantMap const & parameters)
 {
 	auto filter = iAFilterRegistry::filter(parameters[spnFilter].toString());
 	if (!filter)
@@ -111,7 +111,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 		addMsg(QString("Batch: Cannot run filter '%1', it does not exist!").arg(parameters[spnFilter].toString()));
 		return;
 	}
-	QMap<QString, QVariant> filterParams;
+	QVariantMap filterParams;
 	QStringList filterParamStrs = splitPossiblyQuotedString(parameters["Parameters"].toString());
 	if (filter->parameters().size() != filterParamStrs.size())
 	{

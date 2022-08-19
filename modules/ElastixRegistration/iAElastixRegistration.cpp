@@ -196,7 +196,7 @@ void runTransformix(QString dirname, QString executablePath, int timeout = 30000
 }
 
 template<class T> 
-void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
+void derivative(iAFilter* filter, QVariantMap const & params)
 {
 
 	QString pathElastix = params["PathElastix"].toString();
@@ -263,7 +263,7 @@ void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 
 
 
-void iAElastixRegistration::performWork(QMap<QString, QVariant> const & parameters)
+void iAElastixRegistration::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(derivative, inputPixelType(), this, parameters);
 }

@@ -54,7 +54,7 @@
 
 IAFILTER_CREATE(iACopy)
 
-void iACopy::performWork(QMap<QString, QVariant> const & /*parameters*/)
+void iACopy::performWork(QVariantMap const & /*parameters*/)
 {
 	addOutput(input(0)->vtkImage());
 }
@@ -69,7 +69,7 @@ iACopy::iACopy() :
 // Binary Threshold
 
 template<class T>
-void binary_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void binary_threshold(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::Image< T, 3 >   OutputImageType;
@@ -87,7 +87,7 @@ void binary_threshold(iAFilter* filter, QMap<QString, QVariant> const & paramete
 
 IAFILTER_CREATE(iABinaryThreshold)
 
-void iABinaryThreshold::performWork(QMap<QString, QVariant> const & parameters)
+void iABinaryThreshold::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(binary_threshold, inputPixelType(), this, parameters);
 }
@@ -113,7 +113,7 @@ iABinaryThreshold::iABinaryThreshold() :
 // Multi Threshold
 
 template <class T>
-void multi_threshold(iAFilter* filter, QMap<QString, QVariant> const& parameters)
+void multi_threshold(iAFilter* filter, QVariantMap const& parameters)
 {
 
 	std::vector<T> thresholds;
@@ -142,7 +142,7 @@ void multi_threshold(iAFilter* filter, QMap<QString, QVariant> const& parameters
 
 IAFILTER_CREATE(iAMultiThreshold)
 
-void iAMultiThreshold::performWork(QMap<QString, QVariant> const& parameters)
+void iAMultiThreshold::performWork(QVariantMap const& parameters)
 {
 	ITK_TYPED_CALL(multi_threshold, inputPixelType(), this, parameters);
 }
@@ -164,7 +164,7 @@ iAMultiThreshold::iAMultiThreshold() :
 // Robust Automatic Threshold (RAT)
 
 template<class T>
-void rats_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void rats_threshold(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef typename itk::Image< T, 3 >   InputImageType;
 	typedef typename itk::Image< T, 3 >   OutputImageType;
@@ -189,7 +189,7 @@ void rats_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 
 IAFILTER_CREATE(iARatsThreshold)
 
-void iARatsThreshold::performWork(QMap<QString, QVariant> const & parameters)
+void iARatsThreshold::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(rats_threshold, inputPixelType(), this, parameters);
 }
@@ -218,7 +218,7 @@ namespace
 }
 
 template<class T>
-void otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void otsu_threshold(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef typename itk::Image<T, 3> InputImageType;
 	typedef typename itk::Image<T, 3> OutputImageType; // output is always binary, so using (unsigned) char might make sense;
@@ -268,7 +268,7 @@ void otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 
 IAFILTER_CREATE(iAOtsuThreshold)
 
-void iAOtsuThreshold::performWork(QMap<QString, QVariant> const & parameters)
+void iAOtsuThreshold::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(otsu_threshold, inputPixelType(), this, parameters);
 }
@@ -293,7 +293,7 @@ iAOtsuThreshold::iAOtsuThreshold() :
 // Adaptive Otsu
 
 template<class T>
-void adaptive_otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void adaptive_otsu_threshold(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::Image< T, 3 >   OutputImageType;
@@ -318,7 +318,7 @@ void adaptive_otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & p
 
 IAFILTER_CREATE(iAAdaptiveOtsuThreshold)
 
-void iAAdaptiveOtsuThreshold::performWork(QMap<QString, QVariant> const & parameters)
+void iAAdaptiveOtsuThreshold::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(adaptive_otsu_threshold, inputPixelType(), this, parameters);
 }
@@ -344,7 +344,7 @@ iAAdaptiveOtsuThreshold::iAAdaptiveOtsuThreshold() :
 // Otsu Multiple Threshold
 
 template<class T>
-void otsu_multiple_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void otsu_multiple_threshold(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef typename itk::Image< T, 3 >   InputImageType;
 	typedef typename itk::Image< T, 3 >   OutputImageType;
@@ -365,7 +365,7 @@ void otsu_multiple_threshold(iAFilter* filter, QMap<QString, QVariant> const & p
 
 IAFILTER_CREATE(iAOtsuMultipleThreshold)
 
-void iAOtsuMultipleThreshold::performWork(QMap<QString, QVariant> const & parameters)
+void iAOtsuMultipleThreshold::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(otsu_multiple_threshold, inputPixelType(), this, parameters);
 }
@@ -386,7 +386,7 @@ iAOtsuMultipleThreshold::iAOtsuMultipleThreshold() :
 // Maximum Distance Threshold
 
 template<class T>
-void maximum_distance(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void maximum_distance(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef iAMaximumDistanceFilter< InputImageType > MaximumDistanceType;
@@ -405,7 +405,7 @@ void maximum_distance(iAFilter* filter, QMap<QString, QVariant> const & paramete
 	filter->addOutputValue("Maximum distance high peak", maxFilter->GetHighIntensity());
 }
 
-void iAMaximumDistance::performWork(QMap<QString, QVariant> const & parameters)
+void iAMaximumDistance::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(maximum_distance, inputPixelType(), this, parameters);
 }
@@ -519,7 +519,7 @@ iAParameterlessThresholding::iAParameterlessThresholding() :
 }
 
 template <typename T>
-void parameterless(iAFilter* filter, QMap<QString, QVariant> const & params)
+void parameterless(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::Image<T, DIM> MaskImageType;
@@ -582,7 +582,7 @@ void parameterless(iAFilter* filter, QMap<QString, QVariant> const & params)
 	filter->addOutputValue("Threshold", static_cast<double>(plFilter->GetThreshold()));
 }
 
-void iAParameterlessThresholding::performWork(QMap<QString, QVariant> const & params)
+void iAParameterlessThresholding::performWork(QVariantMap const & params)
 {
 	ITK_TYPED_CALL(parameterless, inputPixelType(), this, params);
 }

@@ -42,7 +42,7 @@
 
 IAFILTER_CREATE(iAExtractComponent)
 
-void iAExtractComponent::performWork(QMap<QString, QVariant> const& parameters)
+void iAExtractComponent::performWork(QVariantMap const& parameters)
 {
 	int const componentNr = parameters["Component to extract"].toInt();
 	auto img = input(0)->vtkImage();
@@ -72,7 +72,7 @@ iAExtractComponent::iAExtractComponent() :
 	addParameter("Component to extract", iAValueType::Discrete, 1, 1, 1);
 }
 
-void iAExtractComponent::adaptParametersToInput(QMap<QString, QVariant>& /* params */, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
+void iAExtractComponent::adaptParametersToInput(QVariantMap& /* params */, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
 {
 	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
 	paramsWritable()[0]->adjustMinMax(dynamic_cast<iAImageData*>(dataSets[0].get())->image()->GetNumberOfScalarComponents());
@@ -87,7 +87,7 @@ namespace
 	const QString InterpWindowedSinc("Windowed Sinc");
 }
 
-template<typename T> void simpleResampler(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+template<typename T> void simpleResampler(iAFilter* filter, QVariantMap const & parameters)
 {
 	double VoxelScale = 0.999; //Used because otherwise is a one voxel border with 0
 	auto inImg = filter->input(0)->itkImage();
@@ -148,7 +148,7 @@ template<typename T> void simpleResampler(iAFilter* filter, QMap<QString, QVaria
 
 IAFILTER_CREATE(iASimpleResampleFilter)
 
-void iASimpleResampleFilter::performWork(QMap<QString, QVariant> const& parameters)
+void iASimpleResampleFilter::performWork(QVariantMap const& parameters)
 {
 	ITK_TYPED_CALL(simpleResampler, inputPixelType(), this, parameters);
 }
@@ -168,7 +168,7 @@ iASimpleResampleFilter::iASimpleResampleFilter() :
 	addParameter("Interpolator", iAValueType::Categorical, interpolators);
 }
 
-void iASimpleResampleFilter::adaptParametersToInput(QMap<QString, QVariant>& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
+void iASimpleResampleFilter::adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
 {
 	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
 	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->image();
@@ -180,7 +180,7 @@ void iASimpleResampleFilter::adaptParametersToInput(QMap<QString, QVariant>& par
 
 
 template <typename T>
-void resampler(iAFilter* filter, QMap<QString, QVariant> const& parameters)
+void resampler(iAFilter* filter, QVariantMap const& parameters)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
@@ -237,7 +237,7 @@ void resampler(iAFilter* filter, QMap<QString, QVariant> const& parameters)
 
 IAFILTER_CREATE(iAResampleFilter)
 
-void iAResampleFilter::performWork(QMap<QString, QVariant> const & parameters)
+void iAResampleFilter::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(resampler, inputPixelType(), this, parameters);
 }
@@ -267,7 +267,7 @@ iAResampleFilter::iAResampleFilter() :
 	addParameter("Interpolator", iAValueType::Categorical, interpolators);
 }
 
-void iAResampleFilter::adaptParametersToInput(QMap<QString, QVariant>& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
+void iAResampleFilter::adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
 {
 	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
 	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->image();
@@ -281,7 +281,7 @@ void iAResampleFilter::adaptParametersToInput(QMap<QString, QVariant>& params, s
 
 
 template<typename T>
-void extractImage(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void extractImage(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, DIM > InputImageType;
 	typedef itk::Image< T, DIM > OutputImageType;
@@ -304,7 +304,7 @@ void extractImage(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 IAFILTER_CREATE(iAExtractImageFilter)
 
-void iAExtractImageFilter::performWork(QMap<QString, QVariant> const & parameters)
+void iAExtractImageFilter::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(extractImage, inputPixelType(), this, parameters);
 }
@@ -325,7 +325,7 @@ iAExtractImageFilter::iAExtractImageFilter() :
 	addParameter("Size Z", iAValueType::Discrete, 1, 1);
 }
 
-void iAExtractImageFilter::adaptParametersToInput(QMap<QString, QVariant>& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
+void iAExtractImageFilter::adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
 {
 	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
 	int const* dim = dynamic_cast<iAImageData*>(dataSets[0].get())->image()->GetDimensions();
@@ -350,7 +350,7 @@ void iAExtractImageFilter::adaptParametersToInput(QMap<QString, QVariant>& param
 
 
 
-template<typename T> void padImage(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+template<typename T> void padImage(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, DIM > InputImageType;
 	typedef itk::ConstantPadImageFilter<InputImageType, InputImageType> PadType;
@@ -377,7 +377,7 @@ template<typename T> void padImage(iAFilter* filter, QMap<QString, QVariant> con
 
 IAFILTER_CREATE(iAPadImageFilter)
 
-void iAPadImageFilter::performWork(QMap<QString, QVariant> const & parameters)
+void iAPadImageFilter::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(padImage, inputPixelType(), this, parameters);
 }

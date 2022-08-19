@@ -30,7 +30,7 @@
 #include <itkShotNoiseImageFilter.h>
 #include <itkSpeckleNoiseImageFilter.h>
 
-template<class T> void additiveGaussianNoise(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+template<class T> void additiveGaussianNoise(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, DIM> InputImageType;
 	typedef itk::AdditiveGaussianNoiseImageFilter<InputImageType, InputImageType> NoiseFilterType;
@@ -43,7 +43,7 @@ template<class T> void additiveGaussianNoise(iAFilter* filter, QMap<QString, QVa
 	filter->addOutput(noiseFilter->GetOutput());
 }
 
-void iAAdditiveGaussianNoise::performWork(QMap<QString, QVariant> const & parameters)
+void iAAdditiveGaussianNoise::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(additiveGaussianNoise, inputPixelType(), this, parameters);
 }
@@ -65,7 +65,7 @@ iAAdditiveGaussianNoise::iAAdditiveGaussianNoise() :
 
 
 
-template<class T> void saltAndPepperNoise(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+template<class T> void saltAndPepperNoise(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, DIM> InputImageType;
 	typedef itk::SaltAndPepperNoiseImageFilter<InputImageType, InputImageType> NoiseFilterType;
@@ -77,7 +77,7 @@ template<class T> void saltAndPepperNoise(iAFilter* filter, QMap<QString, QVaria
 	filter->addOutput(noiseFilter->GetOutput());
 }
 
-void iASaltAndPepperNoise::performWork(QMap<QString, QVariant> const & parameters)
+void iASaltAndPepperNoise::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(saltAndPepperNoise, inputPixelType(), this, parameters);
 }
@@ -98,7 +98,7 @@ iASaltAndPepperNoise::iASaltAndPepperNoise() :
 
 
 
-template<class T> void shotNoise(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+template<class T> void shotNoise(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, DIM> InputImageType;
 	typedef itk::ShotNoiseImageFilter<InputImageType, InputImageType> NoiseFilterType;
@@ -110,7 +110,7 @@ template<class T> void shotNoise(iAFilter* filter, QMap<QString, QVariant> const
 	filter->addOutput(noiseFilter->GetOutput());
 }
 
-void iAShotNoise::performWork(QMap<QString, QVariant> const & parameters)
+void iAShotNoise::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(shotNoise, inputPixelType(), this, parameters);
 }
@@ -131,7 +131,7 @@ iAShotNoise::iAShotNoise() :
 
 
 
-template<class T> void speckleNoise(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+template<class T> void speckleNoise(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, DIM> InputImageType;
 	typedef itk::SpeckleNoiseImageFilter<InputImageType, InputImageType> NoiseFilterType;
@@ -143,7 +143,7 @@ template<class T> void speckleNoise(iAFilter* filter, QMap<QString, QVariant> co
 	filter->addOutput(noiseFilter->GetOutput());
 }
 
-void iASpeckleNoise::performWork(QMap<QString, QVariant> const & parameters)
+void iASpeckleNoise::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(speckleNoise, inputPixelType(), this, parameters);
 }

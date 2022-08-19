@@ -22,7 +22,7 @@
 #include "iALog.h"
 #include "iALoggerStdOut.h"
 #include "iASCIFIOCheck.h"
-#include "iASettings.h"
+#include "iASettings.h"    // for initializeSettingsTypes
 #include "version.h"
 
 #include <QFileInfo>

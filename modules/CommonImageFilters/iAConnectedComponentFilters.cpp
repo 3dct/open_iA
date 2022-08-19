@@ -33,7 +33,7 @@
 #include <itkRelabelComponentImageFilter.h>
 
 template<class T>
-void connectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void connectedComponentFilter(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::Image<long, DIM> OutputImageType;
@@ -51,7 +51,7 @@ void connectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & 
 	filter->addOutput(cast);
 }
 
-void iAConnectedComponents::performWork(QMap<QString, QVariant> const & parameters)
+void iAConnectedComponents::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(connectedComponentFilter, inputPixelType(), this, parameters);
 }
@@ -72,7 +72,7 @@ iAConnectedComponents::iAConnectedComponents() :
 
 
 template<class T>
-void scalarConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void scalarConnectedComponentFilter(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<long, DIM>   OutputImageType;
@@ -87,7 +87,7 @@ void scalarConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> co
 
 IAFILTER_CREATE(iAScalarConnectedComponents)
 
-void iAScalarConnectedComponents::performWork(QMap<QString, QVariant> const & parameters)
+void iAScalarConnectedComponents::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(scalarConnectedComponentFilter, inputPixelType(), this, parameters);
 }
@@ -105,7 +105,7 @@ iAScalarConnectedComponents::iAScalarConnectedComponents() :
 
 
 template<class T>
-void relabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void relabelComponentImageFilter(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<long, DIM>   OutputImageType;
@@ -133,7 +133,7 @@ void relabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const
 
 IAFILTER_CREATE(iARelabelComponents)
 
-void iARelabelComponents::performWork(QMap<QString, QVariant> const & parameters)
+void iARelabelComponents::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(relabelComponentImageFilter, inputPixelType(), this, parameters);
 }

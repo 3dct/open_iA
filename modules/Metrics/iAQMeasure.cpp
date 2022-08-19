@@ -106,7 +106,7 @@ template <typename T> void computeHistogram(iAFilter* filter, size_t binCount,
 	}
 }
 
-void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QString, QVariant> const & parameters)
+void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QVariantMap const & parameters)
 {
 	size_t numberOfPeaks = parameters["Number of peaks"].toULongLong();
 	double histogramBinFactor = parameters["Histogram bin factor"].toDouble();
@@ -325,7 +325,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 
 #include "ImageHistogram.h"
 
-void computeOrigQ(iAFilter* filter, iAConnector & con, QMap<QString, QVariant> const & params)
+void computeOrigQ(iAFilter* filter, iAConnector & con, QVariantMap const & params)
 {
 	// some "magic numbers"
 	unsigned int dgauss_size_BINscale = 24;
@@ -385,7 +385,7 @@ void computeOrigQ(iAFilter* filter, iAConnector & con, QMap<QString, QVariant> c
 }
 
 
-void iAQMeasure::performWork(QMap<QString, QVariant> const & parameters)
+void iAQMeasure::performWork(QVariantMap const & parameters)
 {
 	size_t size[3], index[3];
 	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
@@ -444,7 +444,7 @@ void iAQMeasure::setupDebugGUI(iAChartWidget* chart, iAMdiChild* mdiChild)
 IAFILTER_RUNNER_CREATE(iAQMeasureRunner);
 
 void iAQMeasureRunner::filterGUIPreparations(QSharedPointer<iAFilter> filter,
-	iAMdiChild* mdiChild, iAMainWindow* /*mainWnd*/, QMap<QString, QVariant> const& params)
+	iAMdiChild* mdiChild, iAMainWindow* /*mainWnd*/, QVariantMap const& params)
 {
 	if (params["Analyze Peaks"].toBool())
 	{
@@ -471,7 +471,7 @@ iASNR::iASNR() :
 	addOutputValue("Signal-to-Noise Ratio");
 }
 
-void iASNR::performWork(QMap<QString, QVariant> const & parameters)
+void iASNR::performWork(QVariantMap const & parameters)
 {
 	size_t size[3], index[3];
 	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
@@ -505,7 +505,7 @@ iACNR::iACNR() :
 	addOutputValue("Contrast-to-Noise Ratio");
 }
 
-void iACNR::performWork(QMap<QString, QVariant> const & parameters)
+void iACNR::performWork(QVariantMap const & parameters)
 {
 	size_t size[3], index[3];
 	size[0] = parameters["Region 1 Size X"].toUInt(); size[1] = parameters["Region 1 Size Y"].toUInt(); size[2] = parameters["Region 1 Size Z"].toUInt();

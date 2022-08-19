@@ -37,7 +37,7 @@ public:
 		QString const& filterName,
 		bool compressOutput,
 		bool overwriteOutput,
-		QMap<QString, QVariant> parameters,
+		QVariantMap parameters,
 		QVector<iAConnector*> input,
 		QVector<QString> inputfileNames,
 		QString const& outputFileName,
@@ -48,7 +48,7 @@ private:
 
 	QString m_filterName;
 	bool m_compressOutput, m_overwriteOutput;
-	QMap<QString, QVariant> m_parameters;
+	QVariantMap m_parameters;
 	QVector<iAConnector*> m_input;
 	QVector<QString> m_inputFileNames;
 	QString m_outputFileName;

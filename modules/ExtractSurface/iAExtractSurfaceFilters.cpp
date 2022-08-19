@@ -47,7 +47,7 @@
 
 namespace
 {
-	vtkSmartPointer<vtkPolyDataAlgorithm> createDecimation(QMap<QString, QVariant> const& parameters, vtkSmartPointer<vtkPolyDataAlgorithm> surfaceFilter,
+	vtkSmartPointer<vtkPolyDataAlgorithm> createDecimation(QVariantMap const& parameters, vtkSmartPointer<vtkPolyDataAlgorithm> surfaceFilter,
 		iAProgress* Progress)
 	{
 		if (!surfaceFilter)
@@ -102,7 +102,7 @@ namespace
 		return result;
 	}
 
-	vtkSmartPointer<vtkPolyDataAlgorithm> createSurfaceFilter(QMap<QString, QVariant> const& parameters, vtkSmartPointer<vtkImageData> imgData, iAProgress* Progress)
+	vtkSmartPointer<vtkPolyDataAlgorithm> createSurfaceFilter(QVariantMap const& parameters, vtkSmartPointer<vtkImageData> imgData, iAProgress* Progress)
 	{
 		if (!imgData)
 		{
@@ -136,7 +136,7 @@ namespace
 	}
 
 	vtkSmartPointer<vtkPolyDataAlgorithm> createTriangulation(
-		QMap<QString, QVariant> const& /*parameters*/, vtkSmartPointer<vtkCleanPolyData> aSurfaceFilter,
+		QVariantMap const& /*parameters*/, vtkSmartPointer<vtkCleanPolyData> aSurfaceFilter,
 		double alpha, double offset, double tolererance, iAProgress* progress)
 	{
 		if (!aSurfaceFilter)
@@ -194,7 +194,7 @@ namespace
 	}
 }
 
-void iAExtractSurface::performWork(QMap<QString, QVariant> const & parameters)
+void iAExtractSurface::performWork(QVariantMap const & parameters)
 {
 	auto surfaceFilter = createSurfaceFilter(parameters, input(0)->vtkImage(), progress());
 	if (!surfaceFilter)
@@ -271,7 +271,7 @@ iAExtractSurface::iAExtractSurface() :
 	addParameter("Normalize Coordinates", iAValueType::Boolean, true);
 }
 
-void iATriangulation::performWork(QMap<QString, QVariant> const& parameters) {
+void iATriangulation::performWork(QVariantMap const& parameters) {
 
 	auto surfaceFilter = createSurfaceFilter(parameters, input(0)->vtkImage(), progress());
 	if (!surfaceFilter)

@@ -36,7 +36,7 @@
 #include <QSpinBox>
 
 iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, QString const& title,
-	iAParameterDlg::ParamListT const& additionalParams, QMap<QString, QVariant> & paramValues, bool brightTheme) :
+	iAParameterDlg::ParamListT const& additionalParams, QVariantMap & paramValues, bool brightTheme) :
 	m_accepted(false),
 	m_brightTheme(brightTheme)
 {
@@ -173,7 +173,7 @@ bool iARawFileParamDlg::accepted() const
 	return m_accepted;
 }
 
-QMap<QString, QVariant> iARawFileParamDlg::parameterValues() const
+QVariantMap iARawFileParamDlg::parameterValues() const
 {
 	return m_inputDlg->parameterValues();
 }

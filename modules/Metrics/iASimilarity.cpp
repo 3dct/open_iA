@@ -58,7 +58,7 @@ double computeEqualPixelRate(typename ImageType::Pointer img, typename ImageType
 }
 
 template<class T>
-void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void similarity_metrics(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, DIM > ImageType;
 	size_t size[3], index[3];
@@ -313,7 +313,7 @@ iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
 
 IAFILTER_CREATE(iASimilarity)
 
-void iASimilarity::performWork(QMap<QString, QVariant> const & parameters)
+void iASimilarity::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(similarity_metrics, inputPixelType(), this, parameters);
 }
@@ -323,7 +323,7 @@ QSharedPointer<iAFilterRunnerGUI> iASimilarityFilterRunner::create()
 	return QSharedPointer<iASimilarityFilterRunner>::create();
 }
 
-QMap<QString, QVariant> iASimilarityFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, iAMdiChild* sourceMdi)
+QVariantMap iASimilarityFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, iAMdiChild* sourceMdi)
 {
 	auto params = iAFilterRunnerGUI::loadParameters(filter, sourceMdi);
 	int const * dim = sourceMdi->imagePointer()->GetDimensions();

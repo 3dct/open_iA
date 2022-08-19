@@ -100,7 +100,7 @@ void iAFoamCharacterizationItemBinarization::executeBinarization()
 	auto filter = iAFilterRegistry::filter("Binary Thresholding");
 	connect(filter->progress(), &iAProgress::progress, this, &iAFoamCharacterizationItemBinarization::slotObserver);
 	filter->addInput(m_pImageData, "");
-	QMap<QString, QVariant> parameters;
+	QVariantMap parameters;
 	parameters["Lower threshold"] = m_usLowerThreshold;
 	parameters["Upper threshold"] = m_usUpperThreshold;
 	parameters["Inside value"] = 0;
@@ -115,7 +115,7 @@ void iAFoamCharacterizationItemBinarization::executeOtzu()
 	auto filter = iAFilterRegistry::filter("Otsu Threshold");
 	connect(filter->progress(), &iAProgress::progress, this, &iAFoamCharacterizationItemBinarization::slotObserver);
 	filter->addInput(m_pImageData, "");
-	QMap<QString, QVariant> parameters;
+	QVariantMap parameters;
 	parameters["Remove peaks"] = false;
 	parameters["Number of histogram bins"] = m_uiOtzuHistogramBins;
 	parameters["Outside value"] = 1;

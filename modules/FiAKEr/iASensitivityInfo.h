@@ -24,7 +24,6 @@
 
 #include <iAAbortListener.h>
 #include <iAProgress.h>
-#include <iASettings.h>
 
 class iAMdiChild;
 
@@ -51,12 +50,12 @@ public:
 		QString parameterSetFileName = QString(),
 		QVector<int> const& charSelected = QVector<int>(),
 		QVector<int> const& charDiffMeasure = QVector<int>(),
-		iASettings const & projectFile = iASettings());
+		QVariantMap const & projectFile = QVariantMap());
 	static QSharedPointer<iASensitivityInfo> load(iAMdiChild* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-		iASettings const & projectFile, QString const& projectFileName,
+		QVariantMap const & projectFile, QString const& projectFileName,
 		std::vector<iAFiberResultUIData> const& resultUIs, vtkRenderWindow* main3DWin);
-	static bool hasData(iASettings const& settings);
+	static bool hasData(QVariantMap const& settings);
 
 	static const QString DefaultResultColorMap;
 
@@ -94,7 +93,7 @@ private:
 	// for computation:
 	bool m_aborted;
 	//! "temporary" copy of project to load:
-	iASettings m_projectToLoad;
+	QVariantMap m_projectToLoad;
 
 	QSharedPointer<iASensitivityData> m_data;
 signals:

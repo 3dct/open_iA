@@ -73,7 +73,7 @@ iASampleFilter::iASampleFilter() :
 	addParameter(spnStarStepNumber, iAValueType::Continuous, 0.1);
 }
 
-void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
+void iASampleFilter::performWork(QVariantMap const& parameters)
 {
 	// ITK_TYPED_CALL(sample, inputPixelType(), this, parameters);
 	auto samplingMethod = createSamplingMethod(parameters);
@@ -100,7 +100,7 @@ void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 	loop.exec();	     //< so wait for finished event
 }
 
-bool iASampleFilter::checkParameters(QMap<QString, QVariant> const& paramValues)
+bool iASampleFilter::checkParameters(QVariantMap const& paramValues)
 {
 	for (auto const & param : parameters())
 	{
@@ -144,7 +144,7 @@ void iASampleFilter::abort()
 
 IAFILTER_RUNNER_CREATE(iASampleFilterRunnerGUI);
 
-bool iASampleFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant>& parameters,
+bool iASampleFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QVariantMap& parameters,
 	iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool /*askForAdditionalInput*/)
 {
 	iASampleFilter* sampleFilter = dynamic_cast<iASampleFilter*>(filter.data());

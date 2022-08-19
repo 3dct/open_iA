@@ -85,7 +85,7 @@ iASegmentationMetrics::iASegmentationMetrics() :
 	addOutputValue("Volume Similarity");
 }
 
-void iASegmentationMetrics::performWork(QMap<QString, QVariant> const & /*parameters*/)
+void iASegmentationMetrics::performWork(QVariantMap const & /*parameters*/)
 {
 	switch (inputPixelType())
 	{	// only int types, so ITK_TYPED_CALL won't work

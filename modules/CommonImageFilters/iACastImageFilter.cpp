@@ -76,7 +76,7 @@ template<class T> void castImage(iAFilter* filter, int vtkType)
 }
 
 template <class InT, class OutT>
-void dataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void dataTypeConversion(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image<InT, DIM>   InputImageType;
 	typedef itk::Image<OutT, DIM> OutputImageType;
@@ -111,7 +111,7 @@ void dataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parame
 }
 
 template<class T>
-void dataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void dataTypeConversion(iAFilter* filter, QVariantMap const & parameters)
 {
 	int vtkDataType = mapReadableDataTypeToVTKType(parameters["Data Type"].toString());
 	switch (vtkDataType)
@@ -136,7 +136,7 @@ void dataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parame
 
 IAFILTER_CREATE(iACastImageFilter)
 
-void iACastImageFilter::performWork(QMap<QString, QVariant> const & parameters)
+void iACastImageFilter::performWork(QVariantMap const & parameters)
 {
 	if (parameters["Rescale Range"].toBool())
 	{
@@ -179,7 +179,7 @@ iACastImageFilter::iACastImageFilter() :
 
 
 template<class T>
-void convertToRGB(iAFilter * filter, QMap<QString, QVariant> const & params)
+void convertToRGB(iAFilter * filter, QVariantMap const & params)
 {
 	iAITKIO::ImagePointer input = filter->input(0)->itkImage();
 	if (filter->inputPixelType() != itk::ImageIOBase::ULONG)
@@ -273,7 +273,7 @@ iAConvertToRGBAFilter::iAConvertToRGBAFilter() :
 
 IAFILTER_CREATE(iAConvertToRGBAFilter)
 
-void iAConvertToRGBAFilter::performWork(QMap<QString, QVariant> const & params)
+void iAConvertToRGBAFilter::performWork(QVariantMap const & params)
 {
 	ITK_TYPED_CALL(convertToRGB, inputPixelType(), this, params);
 }

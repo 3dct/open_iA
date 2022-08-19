@@ -47,7 +47,7 @@ class iAguibase_API iAFilterRunnerGUIThread : public QThread, public iAAbortList
 {
 	Q_OBJECT
 public:
-	iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, iAMdiChild* sourceMDI);
+	iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter, QVariantMap paramValues, iAMdiChild* sourceMDI);
 	void run() override;
 	QSharedPointer<iAFilter> filter();
 	void addInput(vtkImageData* img, QString const& fileName);
@@ -57,7 +57,7 @@ public:
 
 private:
 	QSharedPointer<iAFilter> m_filter;
-	QMap<QString, QVariant> m_paramValues;
+	QVariantMap m_paramValues;
 	iAMdiChild* m_sourceMDI;
 	bool m_aborted;
 };
@@ -84,7 +84,7 @@ public:
 
 	//! do any potentially necessary GUI preparations (directly before the filter is run)
 	virtual void filterGUIPreparations(QSharedPointer<iAFilter> filter,
-		iAMdiChild* mdiChild, iAMainWindow* mainWnd, QMap<QString, QVariant> const& params);
+		iAMdiChild* mdiChild, iAMainWindow* mainWnd, QVariantMap const& params);
 
 	//! Main run method. Calls all the other (non-static) methods in this class.
 	//! Override only if you want to change the whole way the filter running works;
@@ -100,7 +100,7 @@ public:
 	//! @param mainWnd access to the main window (as parent for GUI windows)
 	//! @param askForAdditionalInput whether the parameter dialog should also ask for additional
 	//!     inputs if the filter requires more than 1
-	virtual bool askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
+	virtual bool askForParameters(QSharedPointer<iAFilter> filter, QVariantMap & paramValues,
 		iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool askForAdditionalInput);
 
 	//! Loads parameters from the platform-specific store.
@@ -110,14 +110,14 @@ public:
 	//!     properties of the input file, e.g. in the extract image filter it is used to get the size
 	//!     of the input image.
 	//! @return a map containing for each parameter name the stored value
-	virtual QMap<QString, QVariant> loadParameters(QSharedPointer<iAFilter> filter, iAMdiChild* sourceMdi);
+	virtual QVariantMap loadParameters(QSharedPointer<iAFilter> filter, iAMdiChild* sourceMdi);
 
 	//! Store parameters in the platform-specific store.
 	//! @param filter the filter for which to store the parameters
 	//! @param paramValues the parameters and their values
 	//! @return a map containing for each parameter name the stored value, as set
 	//!     by the user
-	virtual void storeParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues);
+	virtual void storeParameters(QSharedPointer<iAFilter> filter, QVariantMap & paramValues);
 
 private slots:
 	void filterFinished();

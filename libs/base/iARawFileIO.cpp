@@ -73,7 +73,7 @@ iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::Volume)
 
 #if RAW_LOAD_METHOD == ITK
 template <class T>
-void read_raw_image_template(QMap<QString, QVariant> const& params, QString const& fileName, iAProgress* progress, iAConnector& image)
+void read_raw_image_template(QVariantMap const& params, QString const& fileName, iAProgress* progress, iAConnector& image)
 {
 	typedef itk::RawImageIO<T, DIM> RawImageIOType;
 	auto io = RawImageIOType::New();
@@ -108,7 +108,7 @@ void read_raw_image_template(QMap<QString, QVariant> const& params, QString cons
 }
 #endif
 
-std::shared_ptr<iADataSet> iARawFileIO::load(iAProgress* p, QMap<QString, QVariant> const& parameters)
+std::shared_ptr<iADataSet> iARawFileIO::load(iAProgress* p, QVariantMap const& parameters)
 {
 	Q_UNUSED(parameters);
 

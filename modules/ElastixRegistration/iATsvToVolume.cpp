@@ -94,7 +94,7 @@ void createOutput(QList<QList<float>> data, QList<float> maxValues, float offset
 }
 
 template<class T>
-void runTransform(iAFilter* filter, QMap<QString, QVariant> const & params)
+void runTransform(iAFilter* filter, QVariantMap const & params)
 {
 	QFile file(params["File"].toString());
 	if (!file.open(QIODevice::ReadOnly))
@@ -131,7 +131,7 @@ void runTransform(iAFilter* filter, QMap<QString, QVariant> const & params)
 	createOutput(data, maxValues, offset, spacing, filter, 6);
 }
 
-void iATsvToVolume::performWork(QMap<QString, QVariant> const & parameters)
+void iATsvToVolume::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(runTransform, inputPixelType(), this, parameters);
 }

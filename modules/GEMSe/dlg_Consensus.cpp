@@ -983,7 +983,7 @@ void dlg_Consensus::LoadConfig()
 		QSharedPointer<iARerunSamplingMethod> generator(
 			new iARerunSamplingMethod(parameterSets,
 				QString("Holdout Comparison, Algorithm %1").arg(s)));
-		m_samplerParameters.push_back(QMap<QString, QVariant>());
+		m_samplerParameters.push_back(QVariantMap());
 		auto & params = m_samplerParameters[m_samplerParameters.size() - 1];
 		params.insert(spnNumberOfSamples, 0); // iARerunSamplingMethod doesn't need this parameter
 		params.insert(spnSamplingMethod, generator->name());

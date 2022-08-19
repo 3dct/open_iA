@@ -91,7 +91,7 @@ void iAImageProcessingHelper::prepareFilter(double greyThresholdLower, double gr
 		throw std::invalid_argument("Could not retrieve Binary Thresholding filter. Make sure Segmentation plugin was loaded correctly!");
 	}
 	filter->addInput(m_child->imagePointer(), m_child->currentFile());
-	QMap<QString, QVariant> parameters;
+	QVariantMap parameters;
 	parameters["Lower threshold"] = greyThresholdLower;
 	parameters["Upper threshold"] = greyThresholdUpper;
 	parameters["Inside value"] = 1;

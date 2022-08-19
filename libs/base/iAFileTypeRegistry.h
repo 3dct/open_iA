@@ -54,7 +54,7 @@ public:
 	//! The file extensions that this file IO should be used for
 	virtual QStringList extensions() const = 0;
 	//! Load the dataset
-	virtual std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& paramValues) = 0;
+	virtual std::shared_ptr<iADataSet> load(iAProgress* p, QVariantMap const& paramValues) = 0;
 	//! Required parameters for loading the file
 	//! Copied from iAFilter - maybe reuse? move to new common base class iAParameterizedSomething ...?
 	iAAttributes const& parameters() const;

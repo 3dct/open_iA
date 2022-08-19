@@ -36,7 +36,7 @@
 #include <QtMath>
 
 template<class InPixelType, class OutPixelType>
-void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filter )
+void freeBeamCalculation(QVariantMap const & params, iAFilter* filter )
 {
 	double I0 = params["Manual I0"].toDouble();
 	typedef itk::Image< InPixelType, DIM > InputImageType;
@@ -190,7 +190,7 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filte
 }
 
 template<class InPixelType>
-void freeBeamCalculation_OutType(QMap<QString, QVariant> const & parameters, iAFilter* filter)
+void freeBeamCalculation_OutType(QVariantMap const & parameters, iAFilter* filter)
 {
 	if (parameters["Float output"].toBool())
 		freeBeamCalculation<InPixelType, float>(parameters, filter);
@@ -198,7 +198,7 @@ void freeBeamCalculation_OutType(QMap<QString, QVariant> const & parameters, iAF
 		freeBeamCalculation<InPixelType, double>(parameters, filter);
 }
 
-void iAFreeBeamCalculation::performWork(QMap<QString, QVariant> const & parameters)
+void iAFreeBeamCalculation::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(freeBeamCalculation_OutType, inputPixelType(), parameters, this);
 }

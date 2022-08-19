@@ -62,6 +62,7 @@
 #include "iALogLevelMappings.h"
 #include "iALUT.h"
 #include "iAMathUtility.h"
+#include "iASettings.h"    // for loadSettings, storeSettings, initializeSettingTypes
 #include "iAToolsVTK.h"
 #include "iAXmlSettings.h"
 
@@ -91,7 +92,6 @@
 #include <QTimer>
 #include <QtXml/QDomDocument>
 #include <QDesktopServices>
-#include <iASettings.h>
 
 const int MainWindow::MaxRecentFiles;
 
@@ -511,7 +511,7 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 		return;
 	}
 	auto settingsGroup = ioSettingsGroup(io->name());
-	QMap<QString, QVariant> paramValues = ::loadSettings(settingsGroup);
+	auto paramValues = ::loadSettings(settingsGroup);
 	if (io->parameters().size() > 0)
 	{
 		auto paramDlg = iAFileParamDlg::get(io->name());

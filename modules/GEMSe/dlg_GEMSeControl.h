@@ -115,5 +115,5 @@ private:
 	QString m_outputFolder, m_cltFile, m_m_metaFileName;
 	QSharedPointer<iASimpleLabelInfo> m_simpleLabelInfo;
 	LabelImagePointer m_refImg;
-	QMap<QString, QVariant> m_samplingSettings;
+	QVariantMap m_samplingSettings;
 };

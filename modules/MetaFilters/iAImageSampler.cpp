@@ -51,7 +51,7 @@ iAPerformanceTimer m_computationTimer;
 
 iAImageSampler::iAImageSampler(
 		QSharedPointer<iAModalityList> dataset,
-		QMap<QString, QVariant> const & parameters,
+		QVariantMap const & parameters,
 		QSharedPointer<iAAttributes> parameterRanges,
 		QSharedPointer<iAAttributes> parameterSpecs,
 		QSharedPointer<iASamplingMethod> samplingMethod,
@@ -125,7 +125,7 @@ void iAImageSampler::newSamplingRun()
 
 	if (m_parameters[spnAlgorithmType].toString() == atBuiltIn)
 	{
-		QMap<QString, QVariant> singleRunParams;
+		QVariantMap singleRunParams;
 		for (int i = 0; i < m_parameterCount; ++i)
 		{
 			auto desc = m_parameterRanges->at(i);

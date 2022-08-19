@@ -51,7 +51,7 @@ public:
 	//! @param parameters list of parameters (name, type, value, range, ...)
 	//! @param descr an optional description text, displayed on top of the dialog
 	iAParameterDlg(QWidget* parent, QString const& title, ParamListT parameters, QString const& descr = QString());
-	QMap<QString, QVariant> parameterValues() const;  // make const &, cache
+	QVariantMap parameterValues() const;  // make const &, cache
 	//QVariant value(QString const& key) const;
 	void showROI();
 	int exec() override;

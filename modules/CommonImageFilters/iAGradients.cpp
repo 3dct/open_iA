@@ -36,7 +36,7 @@
 
 // iAGradientMagnitude
 
-template<class T> void gradientMagnitude(iAFilter* filter, QMap<QString, QVariant> const & params)
+template<class T> void gradientMagnitude(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::GradientMagnitudeImageFilter< InputImageType, InputImageType > GMFType;
@@ -49,7 +49,7 @@ template<class T> void gradientMagnitude(iAFilter* filter, QMap<QString, QVarian
 	filter->addOutput(gmFilter->GetOutput());
 }
 
-void iAGradientMagnitude::performWork(QMap<QString, QVariant> const & parameters)
+void iAGradientMagnitude::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(gradientMagnitude, inputPixelType(), this, parameters);
 }
@@ -70,7 +70,7 @@ iAGradientMagnitude::iAGradientMagnitude() :
 
 // iAGradientMagnitudeRecursiveGaussian
 
-template<class T> void gradientMagnitudeRecursiveGaussian(iAFilter* filter, QMap<QString, QVariant> const & params)
+template<class T> void gradientMagnitudeRecursiveGaussian(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::GradientMagnitudeRecursiveGaussianImageFilter< InputImageType, InputImageType > GMFType;
@@ -84,7 +84,7 @@ template<class T> void gradientMagnitudeRecursiveGaussian(iAFilter* filter, QMap
 	filter->addOutput(gmFilter->GetOutput());
 }
 
-void iAGradientMagnitudeRecursiveGaussian::performWork(QMap<QString, QVariant> const & parameters)
+void iAGradientMagnitudeRecursiveGaussian::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(gradientMagnitudeRecursiveGaussian, inputPixelType(), this, parameters);
 }
@@ -107,7 +107,7 @@ iAGradientMagnitudeRecursiveGaussian::iAGradientMagnitudeRecursiveGaussian() :
 // iADerivative:
 
 template<class T>
-void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
+void derivative(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::Image<float, DIM> RealImageType;
@@ -122,7 +122,7 @@ void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 	filter->addOutput(derFilter->GetOutput());
 }
 
-void iADerivative::performWork(QMap<QString, QVariant> const & parameters)
+void iADerivative::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(derivative, inputPixelType(), this, parameters);
 }
@@ -146,7 +146,7 @@ iADerivative::iADerivative() :
 // iAHigherOrderAccurateGradient
 
 template<class T>
-void hoaDerivative(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void hoaDerivative(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::Image<double, DIM> OutputImageType;
@@ -162,7 +162,7 @@ void hoaDerivative(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	filter->addOutput(hoaFilter->GetOutput());
 }
 
-void iAHigherOrderAccurateDerivative::performWork(QMap<QString, QVariant> const & parameters)
+void iAHigherOrderAccurateDerivative::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(hoaDerivative, inputPixelType(), this, parameters);
 }

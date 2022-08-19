@@ -50,7 +50,7 @@ public:
 	//! Retrieves the list of attributes, merged with their current values as default values:
 	iAAttributes attributesWithValues() const;
 	//! Call to change the attributes of this renderer
-	void setAttributes(QMap<QString, QVariant> const& values);
+	void setAttributes(QVariantMap const& values);
 
 	//! convenience method for setting the pickable attribute
 	void setPickable(bool pickable);
@@ -94,7 +94,7 @@ protected:
 	void updateOutlineTransform();
 
 	vtkRenderer* m_renderer;
-	QMap<QString, QVariant> m_attribValues;
+	QVariantMap m_attribValues;
 
 private:
 	//! @{ internal logic of showing/hiding dataset in renderer; called internally from setVisible; implement in derived classes
@@ -102,7 +102,7 @@ private:
 	virtual void hideDataSet() = 0;
 	//! @}
 	//! called when the attributes have changed; derive to apply such a change to renderer
-	virtual void applyAttributes(QMap<QString, QVariant> const& values) = 0;
+	virtual void applyAttributes(QVariantMap const& values) = 0;
 
 	iAAttributes m_attributes;
 	std::shared_ptr<iAOutlineImpl> m_outline;

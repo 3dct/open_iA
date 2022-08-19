@@ -61,7 +61,7 @@ namespace
 	const unsigned int PolyLines = 7; // default for polygon
 }
 
-template<class MorphOp, class T> void morphOp(iAFilter* filter, QMap<QString, QVariant> const & params)
+template<class MorphOp, class T> void morphOp(iAFilter* filter, QVariantMap const & params)
 {
 	QString strElemName = params[StructuringElementParamName].toString();
 	FlatElement<T> structuringElement;
@@ -93,13 +93,13 @@ template<class MorphOp, class T> void morphOp(iAFilter* filter, QMap<QString, QV
 }
 
 
-template<class T> void dilation(iAFilter* filter, QMap<QString, QVariant> const & params)
+template<class T> void dilation(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::GrayscaleDilateImageFilter<InputImage<T>, InputImage<T>, FlatElement<T>> MorphOpType;
 	morphOp<MorphOpType, T>(filter, params);
 }
 
-void iADilation::performWork(QMap<QString, QVariant> const & parameters)
+void iADilation::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(dilation, inputPixelType(), this, parameters);
 }
@@ -126,13 +126,13 @@ iADilation::iADilation() :
 
 
 
-template<class T> void erosion(iAFilter* filter, QMap<QString, QVariant> const & params)
+template<class T> void erosion(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::GrayscaleErodeImageFilter<InputImage<T>, InputImage<T>, FlatElement<T>> MorphOpType;
 	morphOp<MorphOpType, T>(filter, params);
 }
 
-void iAErosion::performWork(QMap<QString, QVariant> const & parameters)
+void iAErosion::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(erosion, inputPixelType(), this, parameters);
 }
@@ -159,13 +159,13 @@ iAErosion::iAErosion() :
 
 
 
-template<class T> void morphOpening(iAFilter* filter, QMap<QString, QVariant> const & params)
+template<class T> void morphOpening(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::GrayscaleMorphologicalOpeningImageFilter<InputImage<T>, InputImage<T>, FlatElement<T>> MorphOpType;
 	morphOp<MorphOpType, T>(filter, params);
 }
 
-void iAMorphOpening::performWork(QMap<QString, QVariant> const & parameters)
+void iAMorphOpening::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(morphOpening, inputPixelType(), this, parameters);
 }
@@ -192,13 +192,13 @@ iAMorphOpening::iAMorphOpening():
 
 
 
-template<class T> void morphClosing(iAFilter* filter, QMap<QString, QVariant> const & params)
+template<class T> void morphClosing(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::GrayscaleMorphologicalClosingImageFilter<InputImage<T>, InputImage<T>, FlatElement<T>> MorphOpType;
 	morphOp<MorphOpType, T>(filter, params);
 }
 
-void iAMorphClosing::performWork(QMap<QString, QVariant> const & parameters)
+void iAMorphClosing::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(morphClosing, inputPixelType(), this, parameters);
 }
@@ -225,13 +225,13 @@ iAMorphClosing::iAMorphClosing() :
 
 
 
-template<class T> void openingByReconstruction(iAFilter* filter, QMap<QString, QVariant> const& params)
+template<class T> void openingByReconstruction(iAFilter* filter, QVariantMap const& params)
 {
 	typedef itk::OpeningByReconstructionImageFilter<InputImage<T>, InputImage<T>, FlatElement<T>> MorphOpType;
 	morphOp<MorphOpType, T>(filter, params);
 }
 
-void iAOpeningByReconstruction::performWork(QMap<QString, QVariant> const& parameters)
+void iAOpeningByReconstruction::performWork(QVariantMap const& parameters)
 {
 	ITK_TYPED_CALL(openingByReconstruction, inputPixelType(), this, parameters);
 }
@@ -264,13 +264,13 @@ iAOpeningByReconstruction::iAOpeningByReconstruction() :
 
 
 
-template<class T> void closingByReconstruction(iAFilter* filter, QMap<QString, QVariant> const& params)
+template<class T> void closingByReconstruction(iAFilter* filter, QVariantMap const& params)
 {
 	typedef itk::ClosingByReconstructionImageFilter<InputImage<T>, InputImage<T>, FlatElement<T>> MorphOpType;
 	morphOp<MorphOpType, T>(filter, params);
 }
 
-void iAClosingByReconstruction::performWork(QMap<QString, QVariant> const& parameters)
+void iAClosingByReconstruction::performWork(QVariantMap const& parameters)
 {
 	ITK_TYPED_CALL(closingByReconstruction, inputPixelType(), this, parameters);
 }
@@ -303,7 +303,7 @@ iAClosingByReconstruction::iAClosingByReconstruction() :
 
 
 template <class T>
-void binaryThinning(iAFilter* filter, QMap<QString, QVariant> const& params)
+void binaryThinning(iAFilter* filter, QVariantMap const& params)
 {
 	Q_UNUSED(params);
 	typedef itk::BinaryThinningImageFilter<InputImage<T>, InputImage<T>> BinaryThinningFilterType;
@@ -314,7 +314,7 @@ void binaryThinning(iAFilter* filter, QMap<QString, QVariant> const& params)
 	filter->addOutput(thinningFilter->GetOutput());
 }
 
-void iABinaryThinning::performWork(QMap<QString, QVariant> const& parameters)
+void iABinaryThinning::performWork(QVariantMap const& parameters)
 {
 	ITK_TYPED_CALL(binaryThinning, inputPixelType(), this, parameters);
 }
@@ -337,7 +337,7 @@ iABinaryThinning::iABinaryThinning() :
 
 
 
-template<class T> void binaryFillHole(iAFilter* filter, QMap<QString, QVariant> const & params)
+template<class T> void binaryFillHole(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::BinaryFillholeImageFilter<InputImage<T>> FillHoleImageFilterType;
 	auto fillHoleFilter = FillHoleImageFilterType::New();
@@ -349,7 +349,7 @@ template<class T> void binaryFillHole(iAFilter* filter, QMap<QString, QVariant> 
 	filter->addOutput(fillHoleFilter->GetOutput());
 }
 
-void iABinaryFillHole::performWork(QMap<QString, QVariant> const & parameters)
+void iABinaryFillHole::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(binaryFillHole, inputPixelType(), this, parameters);
 }
@@ -370,7 +370,7 @@ iABinaryFillHole::iABinaryFillHole() :
 
 
 template <class T>
-void grayscaleFillHole(iAFilter* filter, QMap<QString, QVariant> const& params)
+void grayscaleFillHole(iAFilter* filter, QVariantMap const& params)
 {
 	typedef itk::GrayscaleFillholeImageFilter<InputImage<T>, InputImage<T>> FillHoleImageFilterType;
 	auto fillHoleFilter = FillHoleImageFilterType::New();
@@ -381,7 +381,7 @@ void grayscaleFillHole(iAFilter* filter, QMap<QString, QVariant> const& params)
 	filter->addOutput(fillHoleFilter->GetOutput());
 }
 
-void iAGrayscaleFillHole::performWork(QMap<QString, QVariant> const& parameters)
+void iAGrayscaleFillHole::performWork(QVariantMap const& parameters)
 {
 	ITK_TYPED_CALL(grayscaleFillHole, inputPixelType(), this, parameters);
 }
@@ -403,7 +403,7 @@ iAGrayscaleFillHole::iAGrayscaleFillHole() :
 
 
 
-template<class T> void vesselEnhancement(iAFilter* filter, QMap<QString, QVariant> const & params)
+template<class T> void vesselEnhancement(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::Hessian3DToVesselnessMeasureImageFilter<typename InputImage<T>::PixelType> EnhancementFilter;
 	typedef itk::HessianRecursiveGaussianImageFilter<InputImage<T>> HRGIFType;
@@ -418,7 +418,7 @@ template<class T> void vesselEnhancement(iAFilter* filter, QMap<QString, QVarian
 	filter->addOutput(vesselness->GetOutput());
 }
 
-void iAVesselEnhancement::performWork(QMap<QString, QVariant> const & parameters)
+void iAVesselEnhancement::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(vesselEnhancement, inputPixelType(), this, parameters);
 }

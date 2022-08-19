@@ -50,7 +50,7 @@
 typedef float RealType;
 typedef itk::Image<RealType, DIM> RealImageType;
 
-template<class T> void medianFilter(iAFilter* filter, QMap<QString, QVariant> const & params)
+template<class T> void medianFilter(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::MedianImageFilter<RealImageType, RealImageType > FilterType;
 	auto realImage = castImageTo<RealType>(filter->input(0)->itkImage());
@@ -70,7 +70,7 @@ template<class T> void medianFilter(iAFilter* filter, QMap<QString, QVariant> co
 
 }
 
-void iAMedianFilter::performWork(QMap<QString, QVariant> const & parameters)
+void iAMedianFilter::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(medianFilter, inputPixelType(), this, parameters);
 }
@@ -101,7 +101,7 @@ iAMedianFilter::iAMedianFilter() :
 
 
 template<class T>
-void recursiveGaussian(iAFilter* filter, QMap<QString, QVariant> const & params)
+void recursiveGaussian(iAFilter* filter, QVariantMap const & params)
 {
 	typedef typename itk::Image<T, DIM> InputImageType;
 	typedef itk::RecursiveGaussianImageFilter<InputImageType, RealImageType > RGSFXType;
@@ -134,7 +134,7 @@ void recursiveGaussian(iAFilter* filter, QMap<QString, QVariant> const & params)
 
 IAFILTER_CREATE(iARecursiveGaussian)
 
-void iARecursiveGaussian::performWork(QMap<QString, QVariant> const & parameters)
+void iARecursiveGaussian::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(recursiveGaussian, inputPixelType(), this, parameters);
 }
@@ -156,7 +156,7 @@ iARecursiveGaussian::iARecursiveGaussian() :
 
 
 template<class T>
-void discreteGaussian(iAFilter* filter, QMap<QString, QVariant> const & params)
+void discreteGaussian(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::DiscreteGaussianImageFilter<RealImageType, RealImageType > DGIFType;
@@ -179,7 +179,7 @@ void discreteGaussian(iAFilter* filter, QMap<QString, QVariant> const & params)
 
 IAFILTER_CREATE(iADiscreteGaussian)
 
-void iADiscreteGaussian::performWork(QMap<QString, QVariant> const & parameters)
+void iADiscreteGaussian::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(discreteGaussian, inputPixelType(), this, parameters);
 }
@@ -202,7 +202,7 @@ iADiscreteGaussian::iADiscreteGaussian() :
 
 
 template<class T>
-void patchBasedDenoising(iAFilter* filter, QMap<QString, QVariant> const & params, itk::ProcessObject* & itkProcess)
+void patchBasedDenoising(iAFilter* filter, QVariantMap const & params, itk::ProcessObject* & itkProcess)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::PatchBasedDenoisingImageFilter<ImageType, ImageType> NonLocalMeansFilter;
@@ -219,7 +219,7 @@ void patchBasedDenoising(iAFilter* filter, QMap<QString, QVariant> const & param
 
 IAFILTER_CREATE(iANonLocalMeans)
 
-void iANonLocalMeans::performWork(QMap<QString, QVariant> const & parameters)
+void iANonLocalMeans::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(patchBasedDenoising, inputPixelType(), this, parameters, m_itkProcess);
 }
@@ -269,7 +269,7 @@ iANonLocalMeans::iANonLocalMeans() :
 
 
 template<class T>
-void gradientAnisotropicDiffusion(iAFilter* filter, QMap<QString, QVariant> const & params)
+void gradientAnisotropicDiffusion(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::GradientAnisotropicDiffusionImageFilter<RealImageType, RealImageType> GADIFType;
@@ -293,7 +293,7 @@ void gradientAnisotropicDiffusion(iAFilter* filter, QMap<QString, QVariant> cons
 
 IAFILTER_CREATE(iAGradientAnisotropicDiffusion)
 
-void iAGradientAnisotropicDiffusion::performWork(QMap<QString, QVariant> const & parameters)
+void iAGradientAnisotropicDiffusion::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(gradientAnisotropicDiffusion, inputPixelType(), this, parameters);
 }
@@ -318,7 +318,7 @@ iAGradientAnisotropicDiffusion::iAGradientAnisotropicDiffusion() :
 #ifndef ITKNOGPU
 
 template<class T>
-void GPU_gradient_anisotropic_diffusion(iAFilter* filter, QMap<QString, QVariant> const & params)
+void GPU_gradient_anisotropic_diffusion(iAFilter* filter, QVariantMap const & params)
 {
 	// register object factory for GPU image and filter
 	itk::ObjectFactoryBase::RegisterFactory(itk::GPUImageFactory::New());
@@ -345,7 +345,7 @@ void GPU_gradient_anisotropic_diffusion(iAFilter* filter, QMap<QString, QVariant
 	}
 }
 
-void iAGPUEdgePreservingSmoothing::performWork(QMap<QString, QVariant> const & parameters)
+void iAGPUEdgePreservingSmoothing::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(GPU_gradient_anisotropic_diffusion, inputPixelType(), this, parameters);
 }
@@ -369,7 +369,7 @@ iAGPUEdgePreservingSmoothing::iAGPUEdgePreservingSmoothing() :
 
 
 template<class T>
-void curvatureAnisotropicDiffusion(iAFilter* filter, QMap<QString, QVariant> const& params)
+void curvatureAnisotropicDiffusion(iAFilter* filter, QVariantMap const& params)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::CurvatureAnisotropicDiffusionImageFilter<RealImageType, RealImageType > CADIFType;
@@ -393,7 +393,7 @@ void curvatureAnisotropicDiffusion(iAFilter* filter, QMap<QString, QVariant> con
 
 IAFILTER_CREATE(iACurvatureAnisotropicDiffusion)
 
-void iACurvatureAnisotropicDiffusion::performWork(QMap<QString, QVariant> const & parameters)
+void iACurvatureAnisotropicDiffusion::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(curvatureAnisotropicDiffusion, inputPixelType(), this, parameters);
 }
@@ -416,7 +416,7 @@ iACurvatureAnisotropicDiffusion::iACurvatureAnisotropicDiffusion() :
 
 
 template<class T>
-void curvatureFlow(iAFilter* filter, QMap<QString, QVariant> const & params)
+void curvatureFlow(iAFilter* filter, QVariantMap const & params)
 {
 	typedef typename itk::Image<T, DIM>   InputImageType;
 	typedef itk::CurvatureFlowImageFilter<InputImageType, RealImageType> CFFType;
@@ -438,7 +438,7 @@ void curvatureFlow(iAFilter* filter, QMap<QString, QVariant> const & params)
 
 IAFILTER_CREATE(iACurvatureFlow)
 
-void iACurvatureFlow::performWork(QMap<QString, QVariant> const & parameters)
+void iACurvatureFlow::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(curvatureFlow, inputPixelType(), this, parameters);
 }
@@ -460,7 +460,7 @@ iACurvatureFlow::iACurvatureFlow() :
 
 
 template<class T>
-void bilateralFilter(iAFilter* filter, QMap<QString, QVariant> const & params)
+void bilateralFilter(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef itk::BilateralImageFilter< InputImageType, RealImageType > BIFType;
@@ -482,7 +482,7 @@ void bilateralFilter(iAFilter* filter, QMap<QString, QVariant> const & params)
 
 IAFILTER_CREATE(iABilateral)
 
-void iABilateral::performWork(QMap<QString, QVariant> const & parameters)
+void iABilateral::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(bilateralFilter, inputPixelType(), this, parameters);
 }

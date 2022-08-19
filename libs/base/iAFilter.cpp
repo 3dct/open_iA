@@ -214,7 +214,7 @@ void iAFilter::setLogger(iALogger* log)
 	m_log = log;
 }
 
-bool iAFilter::run(QMap<QString, QVariant> const & parameters)
+bool iAFilter::run(QVariantMap const & parameters)
 {
 	if (m_input.size() < m_requiredInputs)
 	{
@@ -228,13 +228,13 @@ bool iAFilter::run(QMap<QString, QVariant> const & parameters)
 	return true;
 }
 
-void iAFilter::adaptParametersToInput(QMap<QString, QVariant>& parameters, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
+void iAFilter::adaptParametersToInput(QVariantMap& parameters, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
 {
 	Q_UNUSED(parameters);
 	Q_UNUSED(dataSets);
 }
 
-bool iAFilter::checkParameters(QMap<QString, QVariant> const & parameters)
+bool iAFilter::checkParameters(QVariantMap const & parameters)
 {
 	for (auto param: m_parameters)
 	{

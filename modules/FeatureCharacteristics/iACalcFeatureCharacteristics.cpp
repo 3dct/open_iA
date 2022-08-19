@@ -339,7 +339,7 @@ iACalcFeatureCharacteristics::iACalcFeatureCharacteristics():
 
 IAFILTER_CREATE(iACalcFeatureCharacteristics)
 
-void iACalcFeatureCharacteristics::performWork(QMap<QString, QVariant> const & parameters)
+void iACalcFeatureCharacteristics::performWork(QVariantMap const & parameters)
 {
 	QString pathCSV = parameters["Output CSV filename"].toString();
 	ITK_TYPED_CALL(calcFeatureCharacteristics_template, inputPixelType(), input(0), progress(), pathCSV,

@@ -49,7 +49,7 @@ class MetaFilters_API iAImageSampler: public QObject, public iADurationEstimator
 public:
 	iAImageSampler(
 		QSharedPointer<iAModalityList> datasets,
-		QMap<QString, QVariant> const & parameters,
+		QVariantMap const & parameters,
 		QSharedPointer<iAAttributes> parameterRanges,
 		QSharedPointer<iAAttributes> parameterSpecs,
 		QSharedPointer<iASamplingMethod> samplingMethod,
@@ -71,7 +71,7 @@ private:
 	//! @{
 	//! input
 	QSharedPointer<iAModalityList> m_datasets;
-	QMap<QString, QVariant> const& m_parameters;
+	QVariantMap const& m_parameters;
 	QSharedPointer<iAAttributes> m_parameterRanges;
 	QSharedPointer<iAAttributes> m_parameterSpecs;
 	QSharedPointer<iASamplingMethod> m_samplingMethod;

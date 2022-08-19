@@ -56,7 +56,7 @@ iADifferenceMarker::iADifferenceMarker():
 	setInputName(1u, "Difference to");
 }
 
-void iADifferenceMarker::performWork(QMap<QString, QVariant> const & params)
+void iADifferenceMarker::performWork(QVariantMap const & params)
 {
 	QVector<iAITKIO::ImagePointer> imgs;
 	imgs.push_back(input(0)->itkImage());

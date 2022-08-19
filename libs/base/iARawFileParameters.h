@@ -58,7 +58,7 @@ struct iARawFileParameters
 
 	inline QVariantMap toMap() const
 	{
-		QMap<QString, QVariant> result;
+		QVariantMap result;
 		QVector<int> sizeVec{ static_cast<int>(m_size[0]), static_cast<int>(m_size[1]), static_cast<int>(m_size[2]) };
 		result[iARawFileIO::SizeStr] = QVariant::fromValue(sizeVec);
 		QVector<double> spcVec{ m_spacing[0], m_spacing[1], m_spacing[2] };

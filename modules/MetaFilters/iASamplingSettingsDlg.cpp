@@ -56,8 +56,8 @@ public:
 	QCheckBox* logScale;
 	iANumberParameterInputs();
 	~iANumberParameterInputs();
-	void retrieveInputValues(iASettings& values) override;
-	void changeInputValues(iASettings const& values) override;
+	void retrieveInputValues(QVariantMap& values) override;
+	void changeInputValues(QVariantMap const& values) override;
 	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
 };
 
@@ -67,8 +67,8 @@ public:
 	QVector<QCheckBox*> m_features;
 	~iACategoryParameterInputs();
 	QString featureString();
-	void retrieveInputValues(iASettings& values) override;
-	void changeInputValues(iASettings const& values) override;
+	void retrieveInputValues(QVariantMap& values) override;
+	void changeInputValues(QVariantMap const& values) override;
 	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
 };
 
@@ -78,15 +78,15 @@ public:
 	QLineEdit* m_valueEdit;
 	iAOtherParameterInputs();
 	~iAOtherParameterInputs();
-	void retrieveInputValues(iASettings& values) override;
-	void changeInputValues(iASettings const& values) override;
+	void retrieveInputValues(QVariantMap& values) override;
+	void changeInputValues(QVariantMap const& values) override;
 	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
 };
 
 
 iASamplingSettingsDlg::iASamplingSettingsDlg(QWidget *parentWdgt,
 	int inputImageCount,
-	iASettings const & values):
+	QVariantMap const & values):
 	QDialog(parentWdgt),
 	m_inputImageCount(inputImageCount),
 	m_ui(new Ui_samplingSettings())
@@ -167,7 +167,7 @@ namespace
 {
 	int ContinuousPrecision = 6;
 	const QString SelectFilterDefaultText("Select Filter ...");
-	bool setTextValue(iASettings const& values, QString const& name, QLineEdit* edit)
+	bool setTextValue(QVariantMap const& values, QString const& name, QLineEdit* edit)
 	{
 		if (values.contains(name))
 		{
@@ -183,7 +183,7 @@ namespace
 		return false;
 	}
 
-	void setCheckValue(iASettings const& values, QString const& name, QCheckBox* checkBox)
+	void setCheckValue(QVariantMap const& values, QString const& name, QCheckBox* checkBox)
 	{
 		if (values.contains(name))
 		{
@@ -281,7 +281,7 @@ iANumberParameterInputs::~iANumberParameterInputs()
 	delete logScale;
 }
 
-void iANumberParameterInputs::retrieveInputValues(iASettings & values)
+void iANumberParameterInputs::retrieveInputValues(QVariantMap& values)
 {
 	QString name(label->text());
 	values.insert(QString("%1 From").arg(name), from->text());
@@ -292,7 +292,7 @@ void iANumberParameterInputs::retrieveInputValues(iASettings & values)
 	}
 }
 
-void iANumberParameterInputs::changeInputValues(iASettings const & values)
+void iANumberParameterInputs::changeInputValues(QVariantMap const & values)
 {
 	QString name(label->text());
 	setTextValue(values, QString("%1 From").arg(name), from);
@@ -365,13 +365,13 @@ QString iACategoryParameterInputs::featureString()
 	return result;
 }
 
-void iACategoryParameterInputs::retrieveInputValues(iASettings & values)
+void iACategoryParameterInputs::retrieveInputValues(QVariantMap& values)
 {
 	QString name(label->text());
 	values.insert(name, featureString());
 }
 
-void iACategoryParameterInputs::changeInputValues(iASettings const & values)
+void iACategoryParameterInputs::changeInputValues(QVariantMap const & values)
 {
 	QString name(label->text());
 	if (!values.contains(name))
@@ -424,13 +424,13 @@ iAOtherParameterInputs::~iAOtherParameterInputs()
 	delete m_valueEdit;
 }
 
-void iAOtherParameterInputs::retrieveInputValues(iASettings& values)
+void iAOtherParameterInputs::retrieveInputValues(QVariantMap& values)
 {
 	QString name(label->text());
 	values.insert(name, m_valueEdit->text());
 }
 
-void iAOtherParameterInputs::changeInputValues(iASettings const& values)
+void iAOtherParameterInputs::changeInputValues(QVariantMap const& values)
 {
 	QString name(label->text());
 	if (values.contains(name))
@@ -451,7 +451,7 @@ QSharedPointer<iAAttributeDescriptor> iAOtherParameterInputs::currentDescriptor(
 }
 
 
-void iASamplingSettingsDlg::setInputsFromMap(iASettings const & values)
+void iASamplingSettingsDlg::setInputsFromMap(QVariantMap const & values)
 {
 	::loadSettings(values, m_widgetMap);
 	algoTypeChanged();
@@ -484,7 +484,7 @@ void iASamplingSettingsDlg::algoTypeChanged()
 	m_ui->leAdditionalArguments->setEnabled(isExternal);
 }
 
-void iASamplingSettingsDlg::getValues(iASettings& values) const
+void iASamplingSettingsDlg::getValues(QVariantMap& values) const
 {
 	values.clear();
 	::saveSettings(values, m_widgetMap);
@@ -499,7 +499,7 @@ void iASamplingSettingsDlg::getValues(iASettings& values) const
 	}
 }
 
-void iASamplingSettingsDlg::setParameterValues(iASettings const& values)
+void iASamplingSettingsDlg::setParameterValues(QVariantMap const& values)
 {
 	for (int i = 0; i < m_paramInputs.size(); ++i)
 	{
@@ -518,8 +518,8 @@ void iASamplingSettingsDlg::saveSettings()
 	{
 		return;
 	}
-	// TODO: common iASettings storage framework?
-	iASettings settings;
+	// TODO: common settings storage framework?
+	QVariantMap settings;
 	getValues(settings);
 
 	// use QSettings?
@@ -547,7 +547,7 @@ void iASamplingSettingsDlg::loadSettings()
 	{
 		return;
 	}
-	iASettings settings;
+	QVariantMap settings;
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly))
 	{

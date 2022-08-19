@@ -39,7 +39,7 @@
 #include <QFileInfo>
 #include <QDir>
 
-void iAStackReaderFilter::performWork(QMap<QString, QVariant> const & parameters)
+void iAStackReaderFilter::performWork(QVariantMap const & parameters)
 {
 	QString fileName = parameters["File name"].toString();
 	QFileInfo fi(fileName);

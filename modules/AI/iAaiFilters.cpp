@@ -187,7 +187,7 @@ typename ImageType::Pointer createImage(int X, int Y, int Z)
 }
 
 template<class T>
-void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 
@@ -451,7 +451,7 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 IAFILTER_CREATE(iAai)
 
-void iAai::performWork(QMap<QString, QVariant> const & parameters)
+void iAai::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(executeDNN, input(0)->itkScalarPixelType(), this, parameters);
 }

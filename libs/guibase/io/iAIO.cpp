@@ -1321,7 +1321,7 @@ void iAIO::readNKC()
 	}
 
 	filter->addInput(getVtkImageData(), "");
-	QMap<QString, QVariant> parameters;
+	QVariantMap parameters;
 	parameters["Value To Replace"] = 65533;
 	parameters["Replacement"] = 0;
 	filter->run(parameters);
@@ -1336,7 +1336,7 @@ void iAIO::readNKC()
 	}
 
 	dataTypeConversion->addInput(filter->output(0)->itkImage(), "");
-	QMap<QString, QVariant> parametersConversion;
+	QVariantMap parametersConversion;
 	parametersConversion["Data Type"] = "32 bit floating point number (7 digits, float)";
 	parametersConversion["Rescale Range"] = false;
 	parametersConversion["Automatic Input Range"] = true;
@@ -1352,7 +1352,7 @@ void iAIO::readNKC()
 		return;
 	}
 	filterScale->addInput(dataTypeConversion->output(0)->itkImage(), "");
-	QMap<QString, QVariant> parametersScale;
+	QVariantMap parametersScale;
 	parametersScale["Shift"] = m_Parameter["Offset"].toInt();
 	parametersScale["Scale"] = m_Parameter["Scale"].toFloat();
 	filterScale->run(parametersScale);

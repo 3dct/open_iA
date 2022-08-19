@@ -35,7 +35,7 @@ namespace
 }
 
 template<class T>
-void canny_edge_detection(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void canny_edge_detection(iAFilter* filter, QVariantMap const & parameters)
 {
 	using EdgeDetectionType = itk::CannyEdgeDetectionImageFilter<RealImageType, RealImageType>;
 
@@ -53,7 +53,7 @@ void canny_edge_detection(iAFilter* filter, QMap<QString, QVariant> const & para
 
 IAFILTER_CREATE(iACannyEdgeDetection)
 
-void iACannyEdgeDetection::performWork(QMap<QString, QVariant> const & parameters)
+void iACannyEdgeDetection::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(canny_edge_detection, inputPixelType(), this, parameters);
 }
@@ -76,7 +76,7 @@ iACannyEdgeDetection::iACannyEdgeDetection() :
 
 
 template <class T>
-void sobel_edge_detection(iAFilter* filter, QMap<QString, QVariant> const& parameters)
+void sobel_edge_detection(iAFilter* filter, QVariantMap const& parameters)
 {
 	Q_UNUSED(parameters);
 	using EdgeDetectionType = itk::SobelEdgeDetectionImageFilter<RealImageType, RealImageType> ;
@@ -91,7 +91,7 @@ void sobel_edge_detection(iAFilter* filter, QMap<QString, QVariant> const& param
 
 IAFILTER_CREATE(iASobelEdgeDetection)
 
-void iASobelEdgeDetection::performWork(QMap<QString, QVariant> const& parameters)
+void iASobelEdgeDetection::performWork(QVariantMap const& parameters)
 {
 	ITK_TYPED_CALL(sobel_edge_detection, inputPixelType(), this, parameters);
 }

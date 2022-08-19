@@ -30,7 +30,7 @@ class iAQMeasure : public iAFilter
 {
 public:
 	static QSharedPointer<iAQMeasure> create();
-	void performWork(QMap<QString, QVariant> const & parameters) override;
+	void performWork(QVariantMap const & parameters) override;
 	void setupDebugGUI(iAChartWidget* chart, iAMdiChild* mdiChild);
 	iAChartWidget* m_chart;
 	iAMdiChild* m_mdiChild;
@@ -44,7 +44,7 @@ class iAQMeasureRunner : public iAFilterRunnerGUI
 public:
 	static QSharedPointer<iAFilterRunnerGUI> create();
 	void filterGUIPreparations(QSharedPointer<iAFilter> filter,
-		iAMdiChild* mdiChild, iAMainWindow* mainWnd, QMap<QString, QVariant> const& params) override;
+		iAMdiChild* mdiChild, iAMainWindow* mainWnd, QVariantMap const& params) override;
 };
 
 

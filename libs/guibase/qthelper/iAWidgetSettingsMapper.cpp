@@ -29,7 +29,7 @@
 #include <QSlider>
 #include <QSpinBox>
 
-void loadSettings(iASettings const& settings, iAWidgetMap const& settingsWidgetMap)
+void loadSettings(QVariantMap const& settings, iAWidgetMap const& settingsWidgetMap)
 {
 	for (QString key : settingsWidgetMap.keys())
 	{
@@ -194,7 +194,7 @@ private:
 class iASettingsWrapper : public iAInternalSettingsWrapper
 {
 public:
-	iASettingsWrapper(iASettings& s):
+	iASettingsWrapper(QVariantMap& s):
 		m_s(s)
 	{}
 	void setValue(QString const& key, QVariant const& value) override
@@ -202,7 +202,7 @@ public:
 		m_s[key] = value;
 	}
 private:
-	iASettings& m_s;
+	QVariantMap& m_s;
 };
 
 void internalSaveSettings(iAInternalSettingsWrapper& settings, iAWidgetMap const& settingsWidgetMap)
@@ -292,7 +292,7 @@ void saveSettings(QSettings& settings, iAWidgetMap const& settingsWidgetMap)
 	internalSaveSettings(settingsWrapper, settingsWidgetMap);
 }
 
-void saveSettings(iASettings& settings, iAWidgetMap const& settingsWidgetMap)
+void saveSettings(QVariantMap& settings, iAWidgetMap const& settingsWidgetMap)
 {
 	iASettingsWrapper settingsWrapper(settings);
 	internalSaveSettings(settingsWrapper, settingsWidgetMap);

@@ -283,7 +283,7 @@ namespace
 		}
 		QStringList inputFiles;
 		QStringList outputFiles;
-		QMap<QString, QVariant> parameters;
+		QVariantMap parameters;
 		bool quiet = false;
 		bool compress = false;
 		bool overwrite = false;
