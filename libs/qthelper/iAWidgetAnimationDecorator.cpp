@@ -18,25 +18,42 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAWidgetAnimationDecorator.h"
 
-#include "iAbase_export.h"
+#include <QPropertyAnimation>
 
-// TODO: replace with QHash?
-#include <QMap>
+iAWidgetAnimationDecorator::iAWidgetAnimationDecorator(QWidget* animatedWidget, int duration, QColor startValue, QColor endValue, QString animatedQssProperty) :
+	m_animation(QSharedPointer<QPropertyAnimation>::create(this, "color")),
+	m_animatedQssProperty(animatedQssProperty),
+	m_animatedWidget(animatedWidget)
+{
+	connect(m_animation.data(), &QPropertyAnimation::finished, this, &QObject::deleteLater);
+	connect(m_animatedWidget, &QWidget::destroyed, this, [this]
+	{
+		m_animation->stop();
+		//deleteLater();
+	});
+	m_animation->setDuration(duration);
+	m_animation->setStartValue(startValue);
+	m_animation->setEndValue(endValue);
+	m_animation->start();
+}
 
-class QSettings;
+void iAWidgetAnimationDecorator::animate(QWidget* animatedWidget, int duration, QColor startValue, QColor endValue, QString animatedQssProperty)
+{
+	new iAWidgetAnimationDecorator(animatedWidget, duration, startValue, endValue, animatedQssProperty);
+}
 
-//! Retrieve a map of all values in (the current group of) a given QSettings object.
-//! @param settings the QSettings object to load all settings from
-//! @return a map containing key->value pairs for all settings currently in
-//!     (current group of) the given QSettings object
-iAbase_API QVariantMap mapFromQSettings(QSettings const& settings);
+iAWidgetAnimationDecorator::~iAWidgetAnimationDecorator()
+{
+}
 
-//! Load settings in the given group from the platform-specific storage
-iAbase_API QVariantMap loadSettings(QString const& group);
-//! Save the given setting values to the platform-specific storage
-iAbase_API void storeSettings(QString const & group, QVariantMap const& values);
-//! Initialize Qt meta types / serialization operators required for
-//! storing and loading specific setting values
-iAbase_API void initializeSettingTypes();
+void iAWidgetAnimationDecorator::setColor(QColor color)
+{
+	m_animatedWidget->setStyleSheet(QString("%1: rgb(%2, %3, %4);").arg(m_animatedQssProperty).arg(color.red()).arg(color.green()).arg(color.blue()));
+}
+
+QColor iAWidgetAnimationDecorator::color() const
+{
+	return Qt::black; // getter is not really needed for now
+}

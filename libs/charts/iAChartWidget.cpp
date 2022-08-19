@@ -458,7 +458,7 @@ void iAChartWidget::drawLegend(QPainter& painter)
 		int top = upLeft.y() + LegendPadding + static_cast<int>(pi) * LineHeight;
 		QRect legendItemRect(LegendColorLeft, top + LegendItemSpacing, LegendItemWidth, LineHeight - LegendItemSpacing);
 		m_plots[pi]->drawLegendItem(painter, legendItemRect);
-		auto textColor = qApp->palette().color(QPalette::Text);
+		auto textColor = QApplication::palette().color(QPalette::Text);
 		if (!m_plots[pi]->visible())
 		{	// theme-agnostic way of making text appear less opaque:
 			textColor.setAlpha(92);

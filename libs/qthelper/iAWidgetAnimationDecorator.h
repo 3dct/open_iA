@@ -20,23 +20,32 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAbase_export.h"
+#include <iAqthelper_export.h>
 
-// TODO: replace with QHash?
-#include <QMap>
+#include <QApplication>
+#include <QWidget>
 
-class QSettings;
+class QPropertyAnimation;
 
-//! Retrieve a map of all values in (the current group of) a given QSettings object.
-//! @param settings the QSettings object to load all settings from
-//! @return a map containing key->value pairs for all settings currently in
-//!     (current group of) the given QSettings object
-iAbase_API QVariantMap mapFromQSettings(QSettings const& settings);
+// inspired from https://stackoverflow.com/a/34445886
 
-//! Load settings in the given group from the platform-specific storage
-iAbase_API QVariantMap loadSettings(QString const& group);
-//! Save the given setting values to the platform-specific storage
-iAbase_API void storeSettings(QString const & group, QVariantMap const& values);
-//! Initialize Qt meta types / serialization operators required for
-//! storing and loading specific setting values
-iAbase_API void initializeSettingTypes();
+class iAqthelper_API iAWidgetAnimationDecorator: public QObject
+{
+	Q_OBJECT
+	Q_PROPERTY(QColor color READ color WRITE setColor)
+public:
+	~iAWidgetAnimationDecorator();
+	void setColor(QColor color);
+	QColor color() const;
+	static void animate(QWidget* animatedWidget,
+		int duration = 2000,
+		QColor startValue = QColor(255, 0, 0),
+		QColor endValue = QApplication::palette().color(QPalette::Window),
+		QString animatedQssProperty = "background-color");
+private:
+	iAWidgetAnimationDecorator(QWidget* animatedWidget, int duration,
+		QColor startValue, QColor endValue, QString animatedQssProperty);
+	QSharedPointer<QPropertyAnimation> m_animation;
+	QString m_animatedQssProperty;
+	QWidget* m_animatedWidget;
+};

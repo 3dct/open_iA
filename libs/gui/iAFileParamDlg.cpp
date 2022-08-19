@@ -82,6 +82,7 @@ public:
 
 #include <QFileInfo>
 #include <QStandardItem>
+#include <iAWidgetAnimationDecorator.h>
 
 namespace
 {
@@ -346,8 +347,10 @@ class iAHDF5FileParamDlg : public iAFileParamDlg
 				else
 				{
 					LOG(lvlWarn, msg);
-					// ToDo: set red background, then animate back to transparent?
 					dlg.lbErrorMessage->setText(msg);
+					iAWidgetAnimationDecorator::animate(dlg.lbErrorMessage);
+					// two animations might overlap and cause "flickering" (since possibly existing animation is not stopped
+					// before a new one is started); but this doesn't seem to cause problems.
 				}
 			});
 			if (dlg.exec() != QDialog::Accepted)
