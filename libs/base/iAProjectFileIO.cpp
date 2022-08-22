@@ -92,22 +92,38 @@ std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::load(iAProgress* progre
 	while (currIdx < maxIdx)
 	{
 		settings.beginGroup(dataSetGroup(currIdx));
-		QString dataSetFileName = settings.value("File").toString();
-		auto io = iANewIO::createIO(dataSetFileName);
-		if (io)
+		QString dataSetFileName = MakeAbsolute(fi.absolutePath(), settings.value("File").toString());
+		try
 		{
-			iAProgress dummyProgress;
-			auto dataSetParameters = mapFromQSettings(settings);
-			auto currentLoadedDataSets = io->load(&dummyProgress, dataSetParameters);
-			for (auto dataSet : currentLoadedDataSets)
+			auto io = iANewIO::createIO(dataSetFileName);
+			if (io)
 			{
-				if (!settings.value("Name", "").toString().isEmpty())
-				{   // TODO: different name if there are multiple datasets stored under one entry?
-					dataSet->setName(settings.value("Name").toString());
+				iAProgress dummyProgress;
+				auto dataSetParameters = mapFromQSettings(settings);
+				auto currentLoadedDataSets = io->load(&dummyProgress, dataSetParameters);
+				for (auto dataSet : currentLoadedDataSets)
+				{
+					if (!settings.value("Name", "").toString().isEmpty())
+					{   // TODO: different name if there are multiple datasets stored under one entry?
+						dataSet->setName(settings.value("Name").toString());
+					}
+					dataSet->setParameters(dataSetParameters);
+					dataSets.push_back(dataSet);
 				}
-				dataSet->setParameters(dataSetParameters);
-				dataSets.push_back(dataSet);
 			}
+		}
+		// catch exceptions here to skip only the current dataset on error, don't abort loading the whole project
+		catch (itk::ExceptionObject& e)
+		{
+			LOG(lvlError, QString("Error (ITK) loading file %1: %2").arg(m_fileName).arg(e.GetDescription()));
+		}
+		catch (std::exception& e)
+		{
+			LOG(lvlError, QString("Error loading file %1: %2").arg(m_fileName).arg(e.what()));
+		}
+		catch (...)
+		{
+			LOG(lvlError, QString("Unknown error while loading file %1!").arg(m_fileName));
 		}
 		/*
 		int channel = settings.value(GetModalityKey(currIdx, "Channel"), -1).toInt();

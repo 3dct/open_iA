@@ -157,12 +157,13 @@ void iAFileTypeRegistry::setupDefaultIOFactories()
 #include "iAFileUtils.h"
 #include "iAProgress.h"
 
+#include <vtkImageData.h>
+
 #define VTK 0
 #define ITK 1
 
-#define META_LOAD_METHOD VTK
+#define META_LOAD_METHOD ITK
 #if META_LOAD_METHOD == VTK
-#include <vtkImageData.h>
 #include <vtkMetaImageReader.h>
 #else
 #include "iAToolsVTK.h"
@@ -182,6 +183,10 @@ std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::load(iAProgress* p, QVaria
 	//reader->SetFileName(m_fileName.toStdString().c_str());
 	reader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
 	reader->Update();
+	if (reader->GetErrorCode() != 0)   // doesn't seem to catch errors such as file not existing...?
+	{
+		LOG(lvlWarn, QString("While reading file %1, an error (code %2) occurred!").arg(m_fileName).arg(reader->GetErrorCode()));
+	}
 	reader->ReleaseDataFlagOn();
 	auto img = reader->GetOutput();
 	// duration: 362,362,368,368,383 ms
@@ -196,7 +201,7 @@ std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::load(iAProgress* p, QVaria
 	//
 	// VTK: 50571(ignore, caching...), 4484, 4477, 4529 ms
 	// ITK (using readImage from iAToolsVTK): 5876 (ignore), 5877, 5760, 5746 ms
-	// -> VTK consistently faster!
+	// -> VTK consistently faster; but doesn't produce an error if it doesn't find file for example (just returns a 1x1x1 image)!
 
 	return { std::make_shared<iAImageData>(m_fileName, img) };
 }

@@ -596,7 +596,6 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 	auto dataSetIdx = m_dataSets.size();
 	m_dataSets.push_back(dataSet);
 	setCurrentFile(dataSet->fileName());
-
 	auto p = std::make_shared<iAProgress>();
 	auto fw = runAsync([this, dataSet, dataSetIdx, p]()
 		{
