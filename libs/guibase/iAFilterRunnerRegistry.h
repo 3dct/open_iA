@@ -38,13 +38,13 @@ class iAguibase_API iAFilterRunnerRegistry
 public:
 	//! Retrieve the callback for a given factory (if the given factory does not
 	//! have a callback, nullptr is returned).
-	static QSharedPointer<iAIFilterRunnerGUIFactory> filterRunner(int filterID);
+	static std::shared_ptr<iAIFilterRunnerGUIFactory> filterRunner(int filterID);
 
-	static void addFilterFactory(QSharedPointer<iAIFilterFactory> factory, QSharedPointer<iAIFilterRunnerGUIFactory> runner);
+	static void addFilterFactory(std::shared_ptr<iAIFilterFactory> factory, std::shared_ptr<iAIFilterRunnerGUIFactory> runner);
 
 private:
 	iAFilterRunnerRegistry() =delete;  //!< iAFilterRunnerRegistry is meant to be used statically only, thus prevent creation of objects
-	static QMap<int, QSharedPointer<iAIFilterRunnerGUIFactory>> m_runner;
+	static QMap<int, std::shared_ptr<iAIFilterRunnerGUIFactory>> m_runner;
 };
 
 //! Macro to register a class derived from iAFilter in the iAFilterRegistry,
@@ -53,5 +53,5 @@ private:
 //! behavior of the filter when run from the GUI.
 //! See iAFilterRegistry for more details
 #define REGISTER_FILTER_WITH_RUNNER(FilterType, FilterRunnerType)                                           \
-	iAFilterRunnerRegistry::addFilterFactory(QSharedPointer<iAIFilterFactory>(new iAFilterFactory<FilterType>()), \
-		QSharedPointer<iAIFilterRunnerGUIFactory>(new iAFilterRunnerGUIFactory<FilterRunnerType>()));
+	iAFilterRunnerRegistry::addFilterFactory(std::make_shared<iAFilterFactory<FilterType>>(), \
+		std::make_shared<iAFilterRunnerGUIFactory<FilterRunnerType>>());

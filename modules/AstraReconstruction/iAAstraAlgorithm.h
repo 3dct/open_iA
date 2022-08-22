@@ -38,8 +38,8 @@ enum AstraReconstructionMethods
 class iAASTRAFilterRunner : public iAFilterRunnerGUI
 {
 public:
-	static QSharedPointer<iAFilterRunnerGUI> create();
-	void run(QSharedPointer<iAFilter> filter, iAMainWindow* mainWnd) override;
-	bool askForParameters(QSharedPointer<iAFilter> filter, QVariantMap & paramValues,
+	static std::shared_ptr<iAFilterRunnerGUI> create();
+	void run(std::shared_ptr<iAFilter> filter, iAMainWindow* mainWnd) override;
+	bool askForParameters(std::shared_ptr<iAFilter> filter, QVariantMap & paramValues,
 		iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool askForAdditionalInput) override;
 };

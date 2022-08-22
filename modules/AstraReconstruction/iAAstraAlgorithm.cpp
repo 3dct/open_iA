@@ -581,7 +581,7 @@ namespace
 	}
 }
 
-void iAASTRAFilterRunner::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainWnd)
+void iAASTRAFilterRunner::run(std::shared_ptr<iAFilter> filter, iAMainWindow* mainWnd)
 {
 	if (!isCUDAAvailable())
 	{
@@ -599,7 +599,7 @@ void iAASTRAFilterRunner::run(QSharedPointer<iAFilter> filter, iAMainWindow* mai
 	iAFilterRunnerGUI::run(filter, mainWnd);
 }
 
-bool iAASTRAFilterRunner::askForParameters(QSharedPointer<iAFilter> filter, QVariantMap & parameters,
+bool iAASTRAFilterRunner::askForParameters(std::shared_ptr<iAFilter> filter, QVariantMap & parameters,
 	iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool /*askForAdditionalInput*/)
 {
 	dlg_ProjectionParameters dlg;

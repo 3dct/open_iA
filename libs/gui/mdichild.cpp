@@ -3000,13 +3000,13 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 	return true;
 }
 
-void MdiChild::addProject(QString const& key, QSharedPointer<iAProjectBase> project)
+void MdiChild::addProject(QString const& key, std::shared_ptr<iAProjectBase> project)
 {
 	project->setChild(this);
 	m_projects.insert(key, project);
 }
 
-QMap<QString, QSharedPointer<iAProjectBase>> const& MdiChild::projects()
+QMap<QString, std::shared_ptr<iAProjectBase>> const& MdiChild::projects()
 {
 	return m_projects;
 }

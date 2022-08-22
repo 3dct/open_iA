@@ -54,7 +54,7 @@
 
 class iAFilter;
 
-iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter, QVariantMap paramValues, iAMdiChild* sourceMDI) :
+iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(std::shared_ptr<iAFilter> filter, QVariantMap paramValues, iAMdiChild* sourceMDI) :
 	m_filter(filter),
 	m_paramValues(paramValues),
 	m_sourceMDI(sourceMDI),
@@ -108,7 +108,7 @@ void iAFilterRunnerGUIThread::abort()
 	m_filter->abort();
 }
 
-QSharedPointer<iAFilter> iAFilterRunnerGUIThread::filter()
+std::shared_ptr<iAFilter> iAFilterRunnerGUIThread::filter()
 {
 	return m_filter;
 }
@@ -131,7 +131,7 @@ iAMdiChild* iAFilterRunnerGUIThread::sourceMDI()
 
 namespace
 {
-	QString filterSettingGroup(QSharedPointer<iAFilter> filter)
+	QString filterSettingGroup(std::shared_ptr<iAFilter> filter)
 	{
 		QString filterNameShort(filter->name());
 		filterNameShort.replace(" ", "");
@@ -143,12 +143,12 @@ namespace
 // iAFilterRunnerGUI
 
 
-QSharedPointer<iAFilterRunnerGUI> iAFilterRunnerGUI::create()
+std::shared_ptr<iAFilterRunnerGUI> iAFilterRunnerGUI::create()
 {
-	return QSharedPointer<iAFilterRunnerGUI>::create();
+	return std::make_shared<iAFilterRunnerGUI>();
 }
 
-QVariantMap iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilter> filter, iAMdiChild* sourceMdi)
+QVariantMap iAFilterRunnerGUI::loadParameters(std::shared_ptr<iAFilter> filter, iAMdiChild* sourceMdi)
 {
 	auto params = filter->parameters();
 	QVariantMap result;
@@ -165,7 +165,7 @@ QVariantMap iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilter> filter, i
 	return result;
 }
 
-void iAFilterRunnerGUI::storeParameters(QSharedPointer<iAFilter> filter, QVariantMap & paramValues)
+void iAFilterRunnerGUI::storeParameters(std::shared_ptr<iAFilter> filter, QVariantMap & paramValues)
 {
 	auto params = filter->parameters();
 	storeSettings(filterSettingGroup(filter), paramValues);
@@ -179,7 +179,7 @@ void iAFilterRunnerGUI::storeParameters(QSharedPointer<iAFilter> filter, QVarian
 	}
 }
 
-bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QVariantMap & paramValues,
+bool iAFilterRunnerGUI::askForParameters(std::shared_ptr<iAFilter> filter, QVariantMap & paramValues,
 	iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool askForAdditionalInput)
 {
 
@@ -260,12 +260,12 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QVaria
 	return true;
 }
 
-void iAFilterRunnerGUI::filterGUIPreparations(QSharedPointer<iAFilter> /*filter*/,
+void iAFilterRunnerGUI::filterGUIPreparations(std::shared_ptr<iAFilter> /*filter*/,
 	iAMdiChild* /*mdiChild*/, iAMainWindow* /*mainWnd*/, QVariantMap const & /*params*/)
 {
 }
 
-void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainWnd)
+void iAFilterRunnerGUI::run(std::shared_ptr<iAFilter> filter, iAMainWindow* mainWnd)
 {
 	iAMdiChild* sourceMdi = mainWnd->activeMdiChild();
 	if (filter->requiredInputs() > 0 && (!sourceMdi || !sourceMdi->isFullyLoaded()))

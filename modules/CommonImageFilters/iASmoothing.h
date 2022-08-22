@@ -45,11 +45,11 @@ IAFILTER_DEFAULT_CLASS(iAMedianFilter);
 class iANonLocalMeans : public iAFilter
 {
 public:
-	static QSharedPointer<iANonLocalMeans> create();
+	iANonLocalMeans();
+	static std::shared_ptr<iANonLocalMeans> create();
 	void abort() override;
 private:
 	void performWork(QVariantMap const& parameters) override;
-	iANonLocalMeans();
 	itk::ProcessObject * m_itkProcess;
 };
 

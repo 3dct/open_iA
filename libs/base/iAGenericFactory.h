@@ -20,24 +20,27 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QSharedPointer>
+#include <memory>
 
-//! Generic factory class.
+// (unique pointers -> trouble in static context?).
+// error C2280: "std::unique_ptr<iAIFileIOFactory,std::default_delete<iAIFileIOFactory>> &std::unique_ptr<iAIFileIOFactory,std::default_delete<iAIFileIOFactory>>::operator =(const std::unique_ptr<iAIFileIOFactory,std::default_delete<iAIFileIOFactory>> &)" : Es wurde versucht, auf eine gelöschte Funktion zu verweisen
+
+//! Generic factory class with shared pointers
 template <typename BaseType>
 class iAGenericFactory
 {
 public:
-    virtual QSharedPointer<BaseType> create() = 0;
-    virtual ~iAGenericFactory() {}
+	virtual std::shared_ptr<BaseType> create() = 0;
+	virtual ~iAGenericFactory() {}
 };
 
 //! Factory for a specific typed derived from BaseType.
 template <typename DerivedType, typename BaseType>
-class iASpecificFactory: public iAGenericFactory<BaseType>
+class iASpecificFactory : public iAGenericFactory<BaseType>
 {
 public:
-    QSharedPointer<BaseType> create() override
-    {
-        return DerivedType::create();
-    }
+	std::shared_ptr<BaseType> create() override
+	{
+		return std::make_shared<DerivedType>();
+	}
 };

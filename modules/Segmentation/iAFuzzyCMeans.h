@@ -29,31 +29,28 @@ typedef iAAttributeDescriptor ParamDesc;
 class iAFCMFilter : public iAFilter
 {
 public:
-	static QSharedPointer<iAFCMFilter> create();
+	iAFCMFilter();
+	static std::shared_ptr<iAFCMFilter> create();
 	bool checkParameters(QVariantMap const & parameters) override;
 	void performWork(QVariantMap const & parameters) override;
-private:
-	iAFCMFilter();
 };
 
 class iAKFCMFilter : public iAFilter
 {
 public:
-	static QSharedPointer<iAKFCMFilter> create();
+	iAKFCMFilter();
+	static std::shared_ptr<iAKFCMFilter> create();
 	bool checkParameters(QVariantMap const & parameters) override;
 	void performWork(QVariantMap const & parameters) override;
-private:
-	iAKFCMFilter();
 };
 
 #if ITK_VERSION_MAJOR < 5
 class iAMSKFCMFilter : public iAFilter
 {
 public:
-	static QSharedPointer<iAMSKFCMFilter> create();
+	iAMSKFCMFilter();
+	static std::shared_ptr<iAMSKFCMFilter> create();
 	bool checkParameters(QVariantMap const & parameters) override;
 	void performWork(QVariantMap const & parameters) override;
-private:
-	iAMSKFCMFilter();
 };
 #endif

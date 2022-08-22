@@ -446,7 +446,7 @@ void iAQMeasure::setupDebugGUI(iAChartWidget* chart, iAMdiChild* mdiChild)
 
 IAFILTER_RUNNER_CREATE(iAQMeasureRunner);
 
-void iAQMeasureRunner::filterGUIPreparations(QSharedPointer<iAFilter> filter,
+void iAQMeasureRunner::filterGUIPreparations(std::shared_ptr<iAFilter> filter,
 	iAMdiChild* mdiChild, iAMainWindow* /*mainWnd*/, QVariantMap const& params)
 {
 	if (params["Analyze Peaks"].toBool())
@@ -454,7 +454,7 @@ void iAQMeasureRunner::filterGUIPreparations(QSharedPointer<iAFilter> filter,
 		iAChartWidget* chart = new iAChartWidget(mdiChild, "Intensity", "Frequency");
 		iADockWidgetWrapper* wrapper = new iADockWidgetWrapper(chart, "TestHistogram", "TestHistogram");
 		mdiChild->splitDockWidget(mdiChild->renderDockWidget(), wrapper, Qt::Horizontal);
-		iAQMeasure* qfilter = dynamic_cast<iAQMeasure*>(filter.data());
+		iAQMeasure* qfilter = dynamic_cast<iAQMeasure*>(filter.get());
 		qfilter->setupDebugGUI(chart, mdiChild);
 	}
 }

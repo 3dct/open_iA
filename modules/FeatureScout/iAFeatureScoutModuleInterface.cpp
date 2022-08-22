@@ -302,7 +302,7 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 		setFeatureScoutRenderSettings();
 		LOG(lvlInfo, "The render settings of the current child window have been adapted for the volume visualization of FeatureScout!");
 	}
-	auto project = QSharedPointer<iAFeatureScoutProject>::create();
+	auto project = std::make_shared<iAFeatureScoutProject>();
 	project->setOptions(csvConfig);
 	m_mdiChild->addProject(iAFeatureScoutProject::ID, project);
 	return true;

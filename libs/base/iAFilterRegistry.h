@@ -22,11 +22,13 @@
 
 #include "iAbase_export.h"
 
-#include "iAGenericFactory.h"     // also includes QSharedPointer
+#include "iAGenericFactory.h"
 
-#include <QVector>
+#include <vector>
 
 class iAFilter;
+
+class QString;
 
 //! For internal use in iAFilterRegistry and iAFilterFactory only.
 //! There should be no need to use this class directly; use REGISTER_FILTER or
@@ -49,21 +51,21 @@ class iAbase_API iAFilterRegistry
 public:
 	//! Adds a given filter factory to the registry, which will be run with the default
 	//! GUI runner. REGISTER_FILTER provides simplified access to this method.
-	static void addFilterFactory(QSharedPointer<iAIFilterFactory> factory);
+	static void addFilterFactory(std::shared_ptr<iAIFilterFactory> factory);
 	//! Retrieve a list of all currently registered filter (factories)
-	static QVector<QSharedPointer<iAIFilterFactory>> const & filterFactories();
+	static std::vector<std::shared_ptr<iAIFilterFactory>> const & filterFactories();
 	//! Retrieve the filter with the given name.
 	//! If there is no such filter, a "null" shared pointer is returned
-	static QSharedPointer<iAFilter> filter(QString const & name);
+	static std::shared_ptr<iAFilter> filter(QString const & name);
 	//! Retrieve the ID of the filter with the given name
 	//! If there is no such filter, -1 is returned
 	static int filterID(QString const & name);
 private:
 	iAFilterRegistry() =delete;	//!< iAFilterRegistry is meant to be used statically only, thus prevent creation of objects
-	static QVector<QSharedPointer<iAIFilterFactory> > m_filters;
+	static std::vector<std::shared_ptr<iAIFilterFactory> > m_filters;
 };
 
 //! Macro to register a class derived from iAFilter in the iAFilterRegistry, with
 //! a default GUI runner. See iAFilterRegistry for more details
 #define REGISTER_FILTER(FilterType) \
-iAFilterRegistry::addFilterFactory(QSharedPointer<iAIFilterFactory>(new iAFilterFactory<FilterType>()));
+iAFilterRegistry::addFilterFactory(std::make_shared<iAFilterFactory<FilterType>>());

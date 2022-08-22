@@ -39,9 +39,9 @@ public:
 	//! Adds a given project type to the registry.
 	template <typename ProjectType> static void addProject(QString const & projectIdentifier);
 	static QList<QString> const projectKeys();
-	static QSharedPointer<iAProjectBase> createProject(QString const & projectIdentifier);
+	static std::shared_ptr<iAProjectBase> createProject(QString const & projectIdentifier);
 private:
-	static QMap<QString, QSharedPointer<iAIProjectFactory> > m_projectTypes;
+	static QMap<QString, std::shared_ptr<iAIProjectFactory> > m_projectTypes;
 	iAProjectRegistry() =delete;	//!< iAProjectRegistry is meant to be used statically only, thus prevent creation of objects
 };
 
@@ -54,5 +54,5 @@ void iAProjectRegistry::addProject(QString const & projectIdentifier)
 	{
 		LOG(lvlWarn, QString("Trying to add already registered project type %1 again!").arg(projectIdentifier));
 	}
-	m_projectTypes.insert(projectIdentifier, QSharedPointer<iAIProjectFactory>(new iAProjectFactory<ProjectType>()));
+	m_projectTypes.insert(projectIdentifier, std::shared_ptr<iAIProjectFactory>(new iAProjectFactory<ProjectType>()));
 }

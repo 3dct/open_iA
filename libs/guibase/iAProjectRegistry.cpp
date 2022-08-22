@@ -24,14 +24,14 @@
 
 #include <cassert>
 
-QMap<QString, QSharedPointer<iAIProjectFactory> > iAProjectRegistry::m_projectTypes;
+QMap<QString, std::shared_ptr<iAIProjectFactory>> iAProjectRegistry::m_projectTypes;
 
 QList<QString> const iAProjectRegistry::projectKeys()
 {
 	return m_projectTypes.keys();
 }
 
-QSharedPointer<iAProjectBase> iAProjectRegistry::createProject(QString const & projectIdentifier)
+std::shared_ptr<iAProjectBase> iAProjectRegistry::createProject(QString const & projectIdentifier)
 {
 	assert(m_projectTypes.contains(projectIdentifier));
 	return m_projectTypes[projectIdentifier]->create();

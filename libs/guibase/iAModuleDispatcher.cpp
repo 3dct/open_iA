@@ -289,7 +289,7 @@ void iAModuleDispatcher::runFilter(int filterID)
 	}
 	auto runner = iAFilterRunnerRegistry::filterRunner(filterID)->create();
 	m_runningFilters.push_back(runner);
-	connect(runner.data(), &iAFilterRunnerGUI::finished, this, &iAModuleDispatcher::removeFilter);
+	connect(runner.get(), &iAFilterRunnerGUI::finished, this, &iAModuleDispatcher::removeFilter);
 	runner->run(iAFilterRegistry::filterFactories()[filterID]->create(), m_mainWnd);
 }
 
@@ -298,7 +298,7 @@ void iAModuleDispatcher::removeFilter()
 	auto filterRunner = qobject_cast<iAFilterRunnerGUI*>(sender());
 	for (int i = 0; i < m_runningFilters.size(); ++i)
 	{
-		if (m_runningFilters[i].data() == filterRunner)
+		if (m_runningFilters[i].get() == filterRunner)
 		{
 			m_runningFilters.remove(i);
 			break;

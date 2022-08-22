@@ -29,21 +29,20 @@ class iAMdiChild;
 class iAQMeasure : public iAFilter
 {
 public:
-	static QSharedPointer<iAQMeasure> create();
+	iAQMeasure();
+	static std::shared_ptr<iAQMeasure> create();
 	void performWork(QVariantMap const & parameters) override;
 	void setupDebugGUI(iAChartWidget* chart, iAMdiChild* mdiChild);
 	iAChartWidget* m_chart;
 	iAMdiChild* m_mdiChild;
-private:
-	iAQMeasure();
 };
 
 
 class iAQMeasureRunner : public iAFilterRunnerGUI
 {
 public:
-	static QSharedPointer<iAFilterRunnerGUI> create();
-	void filterGUIPreparations(QSharedPointer<iAFilter> filter,
+	static std::shared_ptr<iAFilterRunnerGUI> create();
+	void filterGUIPreparations(std::shared_ptr<iAFilter> filter,
 		iAMdiChild* mdiChild, iAMainWindow* mainWnd, QVariantMap const& params) override;
 };
 

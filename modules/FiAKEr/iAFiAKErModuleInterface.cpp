@@ -239,7 +239,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	{
 		mdiChild->setWindowTitle(QString("FIAKER (%1)").arg(m_lastPath));
 	}
-	auto project = QSharedPointer<iAFIAKERProject>::create();
+	auto project = std::make_shared<iAFIAKERProject>();
 	project->setController(attach->controller());
 	mdiChild->addProject(iAFiAKErController::FIAKERProjectID, project);
 	attach->controller()->start(m_lastPath, getCsvConfig(m_lastFormat), m_lastTimeStepOffset,
@@ -261,10 +261,10 @@ void iAFiAKErModuleInterface::loadFiAKErProject()
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	projectFile.setIniCodec("UTF-8");
 #endif
-	auto project = QSharedPointer<iAFIAKERProject>::create();
+	auto project = std::make_shared<iAFIAKERProject>();
 	project->setMainWindow(m_mainWnd);
 	project->setChild(newChild);
-	loadProject(newChild, projectFile, fileName, project.data());
+	loadProject(newChild, projectFile, fileName, project.get());
 	newChild->addProject(iAFiAKErController::FIAKERProjectID, project);
 }
 

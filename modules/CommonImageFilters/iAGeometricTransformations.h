@@ -25,42 +25,42 @@
 class iAExtractComponent : public iAFilter
 {
 public:
-	static QSharedPointer<iAExtractComponent> create();
+	iAExtractComponent();
+	static std::shared_ptr<iAExtractComponent> create();
 	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
 
 private:
 	void performWork(QVariantMap const& parameters) override;
-	iAExtractComponent();
 };
 
 class iASimpleResampleFilter : public iAFilter
 {
 public:
-	static QSharedPointer<iASimpleResampleFilter> create();
+	iASimpleResampleFilter();
+	static std::shared_ptr<iASimpleResampleFilter> create();
 	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
 private:
 	void performWork(QVariantMap const& parameters) override;
-	iASimpleResampleFilter();
 };
 
 class iAResampleFilter : public iAFilter
 {
 public:
-	static QSharedPointer<iAResampleFilter> create();
+	iAResampleFilter();
+	static std::shared_ptr<iAResampleFilter> create();
 	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
 private:
 	void performWork(QVariantMap const& parameters) override;
-	iAResampleFilter();
 };
 
 class iAExtractImageFilter : public iAFilter
 {
 public:
-	static QSharedPointer<iAExtractImageFilter> create();
+	iAExtractImageFilter();
+	static std::shared_ptr<iAExtractImageFilter> create();
 	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
 private:
 	void performWork(QVariantMap const& parameters) override;
-	iAExtractImageFilter();
 };
 
 IAFILTER_DEFAULT_CLASS(iAPadImageFilter);

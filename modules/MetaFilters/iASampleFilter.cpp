@@ -144,10 +144,10 @@ void iASampleFilter::abort()
 
 IAFILTER_RUNNER_CREATE(iASampleFilterRunnerGUI);
 
-bool iASampleFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QVariantMap& parameters,
+bool iASampleFilterRunnerGUI::askForParameters(std::shared_ptr<iAFilter> filter, QVariantMap& parameters,
 	iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool /*askForAdditionalInput*/)
 {
-	iASampleFilter* sampleFilter = dynamic_cast<iASampleFilter*>(filter.data());
+	iASampleFilter* sampleFilter = dynamic_cast<iASampleFilter*>(filter.get());
 	if (!sampleFilter)
 	{
 		LOG(lvlError, "Invalid use of iASampleFilterRunnerGUI for a filter other than Sample Filter!");

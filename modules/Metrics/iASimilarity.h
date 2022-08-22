@@ -25,10 +25,10 @@
 class iASimilarity : public iAFilter
 {
 public:
-	static QSharedPointer<iASimilarity> create();
+	iASimilarity();
+	static std::shared_ptr<iASimilarity> create();
 	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
 
 private:
 	void performWork(QVariantMap const& parameters) override;
-	iASimilarity();
 };

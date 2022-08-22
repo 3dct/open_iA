@@ -39,7 +39,7 @@ iAGEMSeAttachment::iAGEMSeAttachment(iAMainWindow * mainWnd, iAMdiChild * child)
 	iAModuleAttachmentToChild(mainWnd, child),
 	m_dummyTitleWidget(new QWidget())
 {
-	auto project = QSharedPointer<iAGEMSeProject>::create();
+	auto project = std::make_shared<iAGEMSeProject>();
 	project->setMainWindow(mainWnd);
 	child->addProject(iAGEMSeProject::ID, project);
 }

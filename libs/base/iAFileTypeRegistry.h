@@ -23,43 +23,19 @@
 #include "iAbase_export.h"
 
 #include "iADataSetType.h"
+#include "iAGenericFactory.h"
 #include "iALog.h"
 
 #include <QMap>
 
-#include <memory>
 #include <vector>
 
 class QString;
 
-//! Generic factory class with shared pointers
-//! TODO: Replace iAGenericFactory with this one!
-// (unique pointers -> trouble in static context?).
-// error C2280: "std::unique_ptr<iAIFileIOFactory,std::default_delete<iAIFileIOFactory>> &std::unique_ptr<iAIFileIOFactory,std::default_delete<iAIFileIOFactory>>::operator =(const std::unique_ptr<iAIFileIOFactory,std::default_delete<iAIFileIOFactory>> &)" : Es wurde versucht, auf eine gelöschte Funktion zu verweisen
-template <typename BaseType>
-class iAUPFactory
-{
-public:
-	virtual std::shared_ptr<BaseType> create() = 0;
-	virtual ~iAUPFactory()
-	{
-	}
-};
-
-//! Factory for a specific typed derived from BaseType.
-template <typename DerivedType, typename BaseType>
-class iASpecUPFactory : public iAUPFactory<BaseType>
-{
-public:
-	std::shared_ptr<BaseType> create() override
-	{
-		return std::make_shared<DerivedType>();
-	}
-};
 
 class iAFileIO;
 
-using iAIFileIOFactory = iAUPFactory<iAFileIO>;
+using iAIFileIOFactory = iAGenericFactory<iAFileIO>;
 
 //! Registry for file types (of type iAFileIO).
 class iAbase_API iAFileTypeRegistry final
@@ -85,7 +61,7 @@ private:
 
 
 template <typename FileIOType>
-using iAFileIOFactory = iASpecUPFactory<FileIOType, iAFileIO>;
+using iAFileIOFactory = iASpecificFactory<FileIOType, iAFileIO>;
 
 template <typename FileIOType>
 void iAFileTypeRegistry::addFileType()

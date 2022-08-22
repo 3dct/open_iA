@@ -30,7 +30,8 @@ class iAModalityList;
 class iASampleFilter : public iAFilter
 {
 public:
-	static QSharedPointer<iASampleFilter> create();
+	iASampleFilter();
+	static std::shared_ptr<iASampleFilter> create();
 	void setParameters(QSharedPointer<iAModalityList> input, QSharedPointer<iAAttributes> parameterRanges,
 		QSharedPointer<iAAttributes> parameterSpecs, QString const& parameterRangeFile, QString const& parameterSetFile,
 		QString const& derivedOutFile, int samplingID);
@@ -38,7 +39,6 @@ public:
 private:
 	void performWork(QVariantMap const& parameters) override;
 	bool checkParameters(QVariantMap const& parameters) override;
-	iASampleFilter();
 	QSharedPointer<iAModalityList> m_input;
 	QSharedPointer<iAAttributes> m_parameterRanges, m_parameterSpecs;
 	QString m_parameterRangeFile,
@@ -51,7 +51,7 @@ private:
 class iASampleFilterRunnerGUI : public iAFilterRunnerGUI
 {
 public:
-	static QSharedPointer<iAFilterRunnerGUI> create();
-	bool askForParameters(QSharedPointer<iAFilter> filter, QVariantMap& paramValues,
+	static std::shared_ptr<iAFilterRunnerGUI> create();
+	bool askForParameters(std::shared_ptr<iAFilter> filter, QVariantMap& paramValues,
 		iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool askForAdditionalInput) override;
 };

@@ -24,14 +24,14 @@
 #include "iAFilterRunnerGUI.h"
 
 void iAFilterRunnerRegistry::addFilterFactory(
-	QSharedPointer<iAIFilterFactory> factory, QSharedPointer<iAIFilterRunnerGUIFactory> runner)
+	std::shared_ptr<iAIFilterFactory> factory, std::shared_ptr<iAIFilterRunnerGUIFactory> runner)
 {
 	iAFilterRegistry::addFilterFactory(factory);
 	int filterID = iAFilterRegistry::filterID(factory->create()->name());
 	m_runner.insert(filterID, runner);
 }
 
-QSharedPointer<iAIFilterRunnerGUIFactory> iAFilterRunnerRegistry::filterRunner(int filterID)
+std::shared_ptr<iAIFilterRunnerGUIFactory> iAFilterRunnerRegistry::filterRunner(int filterID)
 {
 	if (m_runner.contains(filterID))
 	{
@@ -39,8 +39,8 @@ QSharedPointer<iAIFilterRunnerGUIFactory> iAFilterRunnerRegistry::filterRunner(i
 	}
 	else
 	{
-		return QSharedPointer<iAIFilterRunnerGUIFactory>(new iAFilterRunnerGUIFactory<iAFilterRunnerGUI>());
+		return std::shared_ptr<iAIFilterRunnerGUIFactory>(new iAFilterRunnerGUIFactory<iAFilterRunnerGUI>());
 	}
 }
 
-QMap<int, QSharedPointer<iAIFilterRunnerGUIFactory>> iAFilterRunnerRegistry::m_runner;
+QMap<int, std::shared_ptr<iAIFilterRunnerGUIFactory>> iAFilterRunnerRegistry::m_runner;

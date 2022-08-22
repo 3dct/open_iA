@@ -23,20 +23,20 @@
 #include "iALog.h"
 #include "iAFilter.h"
 
-void iAFilterRegistry::addFilterFactory(QSharedPointer<iAIFilterFactory> factory)
+void iAFilterRegistry::addFilterFactory(std::shared_ptr<iAIFilterFactory> factory)
 {
 	m_filters.push_back(factory);
 }
 
-QVector<QSharedPointer<iAIFilterFactory>> const & iAFilterRegistry::filterFactories()
+std::vector<std::shared_ptr<iAIFilterFactory>> const & iAFilterRegistry::filterFactories()
 {
 	return m_filters;
 }
 
-QSharedPointer<iAFilter> iAFilterRegistry::filter(QString const & name)
+std::shared_ptr<iAFilter> iAFilterRegistry::filter(QString const & name)
 {
 	int id = filterID(name);
-	return id == -1 ? QSharedPointer<iAFilter>() : m_filters[id]->create();
+	return id == -1 ? std::shared_ptr<iAFilter>() : m_filters[id]->create();
 }
 
 int iAFilterRegistry::filterID(QString const & name)
@@ -55,4 +55,4 @@ int iAFilterRegistry::filterID(QString const & name)
 	return -1;
 }
 
-QVector<QSharedPointer<iAIFilterFactory> > iAFilterRegistry::m_filters;
+std::vector<std::shared_ptr<iAIFilterFactory>> iAFilterRegistry::m_filters;

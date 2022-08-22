@@ -297,8 +297,8 @@ public:
 	//! Retrieve data for modality with given index.
 	QSharedPointer<iAModality> modality(int idx) override;
 	//! add project
-	void addProject(QString const & key, QSharedPointer<iAProjectBase> project) override;
-	QMap<QString, QSharedPointer<iAProjectBase> > const & projects();
+	void addProject(QString const & key, std::shared_ptr<iAProjectBase> project) override;
+	QMap<QString, std::shared_ptr<iAProjectBase> > const & projects();
 
 	iAInteractionMode interactionMode() const override;
 	void setInteractionMode(iAInteractionMode mode);
@@ -529,7 +529,7 @@ private:
 	int m_magicLensModality;
 	bool m_initVolumeRenderers;
 	int m_storedModalityNr;		                                     //!< modality nr being stored
-	QMap<QString, QSharedPointer<iAProjectBase>> m_projects;         //!< list of currently active "projects" (i.e. Tools)
+	QMap<QString, std::shared_ptr<iAProjectBase>> m_projects;         //!< list of currently active "projects" (i.e. Tools)
 	iAInteractionMode m_interactionMode;                             //!< current interaction mode in slicers/renderer (see iAInteractionMode)
 	bool m_slicerVisibility[3];
 

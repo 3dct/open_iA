@@ -28,6 +28,7 @@
 #include <QSharedPointer>
 
 #include <functional>
+#include <memory>
 
 class dlg_modalities;
 class iAAlgorithm;
@@ -181,7 +182,7 @@ public:
 
 	// Projects:
 	//! add project
-	virtual void addProject(QString const& key, QSharedPointer<iAProjectBase> project) = 0;
+	virtual void addProject(QString const& key, std::shared_ptr<iAProjectBase> project) = 0;
 	//! save currently loaded files / tools in given project file
 	virtual void saveProject(QString const& fileName) = 0;
 
