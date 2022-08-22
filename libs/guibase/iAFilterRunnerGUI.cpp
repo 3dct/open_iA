@@ -371,15 +371,22 @@ void iAFilterRunnerGUI::filterFinished()
 			QString outputName = filter->outputName(p);
 			auto outputNameSaveForFilename = outputName.replace(QRegularExpression("[\\\\/:*?\"<>| ]"), "_");
 			QString suggestedFileName = sourceFI.absolutePath() + "/" + sourceFI.completeBaseName() + "-" +
-				outputNameSaveForFilename;
-			suggestedFileName += "." + sourceFI.suffix();
-			auto dataSet = std::make_shared<iAImageData>(outputName, suggestedFileName, img);
+				outputNameSaveForFilename + "." + sourceFI.suffix();
+			auto dataSet = std::make_shared<iAImageData>(suggestedFileName, img);
+			dataSet->setName(outputName);
 			newChild->addDataSet(dataSet);
 		}
 		// TODO: generic handling for filter output; make iAFilter directly produce iADataSet?
 		if (filter->polyOutput())
 		{
-			newChild->addDataSet(std::make_shared<iAPolyData>(filter->name() + "PolydataOutput", "", filter->polyOutput()));
+			QString outputName = filter->name();
+			auto outputNameSaveForFilename = outputName.replace(QRegularExpression("[\\\\/:*?\"<>| ]"), "_");
+			QString suggestedFileName = sourceFI.absolutePath() + "/" + sourceFI.completeBaseName() + "-" +
+				outputNameSaveForFilename + ".stl";
+			auto polyDataSet = std::make_shared<iAPolyData>(suggestedFileName, filter->polyOutput());
+			polyDataSet->setName(outputName);
+			newChild->addDataSet(polyDataSet);
+
 		}
 	}
 	for (auto outputValue : filter->outputValues())
