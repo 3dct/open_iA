@@ -65,11 +65,15 @@ public:
 		{
 			if (valueType == iAValueType::Discrete)
 			{
-				connect(qobject_cast<QSpinBox*>(m_inputs[i]), QOverload<int>::of(&QSpinBox::valueChanged), this, &iAVectorInput::valueChanged);
+				connect(qobject_cast<QSpinBox*>(m_inputs[i]), QOverload<int>::of(&QSpinBox::valueChanged), this, [this]() {
+					emit valueChanged(value());
+				});
 			}
 			else
 			{
-				connect(qobject_cast<QDoubleSpinBox*>(m_inputs[i]), QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &iAVectorInput::valueChanged);
+				connect(qobject_cast<QDoubleSpinBox*>(m_inputs[i]), QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this]() {
+					emit valueChanged(value());
+				});
 			}
 		}
 	}
