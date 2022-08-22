@@ -125,6 +125,7 @@ public:
 
 // ---------- iAFileTypeRegistry::setupDefaultIOFactories (needs to be after declaration of specific IO classes) ----------
 
+#include "iADCMFileIO.h"
 #include "iAHDF5IO.h"
 #include "iAProjectFileIO.h"
 #include "iARawFileIO.h"
@@ -133,9 +134,10 @@ public:
 void iAFileTypeRegistry::setupDefaultIOFactories()
 {
 	// volume file formats:
+	iAFileTypeRegistry::addFileType<iAAmiraVolumeFileIO>();
+	iAFileTypeRegistry::addFileType<iADCMFileIO>();
 	iAFileTypeRegistry::addFileType<iAMetaFileIO>();
 	iAFileTypeRegistry::addFileType<iAVTIFileIO>();
-	iAFileTypeRegistry::addFileType<iAAmiraVolumeFileIO>();
 	iAFileTypeRegistry::addFileType<iARawFileIO>();
 #ifdef USE_HDF5
 	iAFileTypeRegistry::addFileType<iAHDF5IO>();
