@@ -32,11 +32,16 @@
 
 class iAProgress;
 
+//! Base class for dataset readers within open_iA
+//! Derived classes can be registered via iAFileTypeRegistry
 class iAbase_API iAFileIO
 {
 public:
+	//! create a file I/O for the given dataset type
 	iAFileIO(iADataSetTypes type);
-	void setup(QString const& fileName);  // TODO: make possible to also use e.g. folder name or list of files
+	//! set up file I/O for the given file name
+	//! TODO: make possible to also use e.g. folder name or list of files
+	void setup(QString const& fileName);
 	virtual ~iAFileIO();
 	//! The name of the file type that this IO supports
 	virtual QString name() const = 0;

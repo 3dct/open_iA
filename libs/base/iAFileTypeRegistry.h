@@ -61,17 +61,20 @@ class iAFileIO;
 
 using iAIFileIOFactory = iAUPFactory<iAFileIO>;
 
+//! Registry for file types (of type iAFileIO).
 class iAbase_API iAFileTypeRegistry final
 {
 public:
 	//! Adds a given file type to the registry.
 	template <typename FileIOType> static void addFileType();
+
+	//! Create a file I/O for the given extension
 	static std::shared_ptr<iAFileIO> createIO(QString const& fileExtension);
 	
-	//! set up default IO factories included by default in open_iA
+	//! Set up default IO factories included by default in open_iA
 	static void setupDefaultIOFactories();
 
-	//! retrieve list of file types for file open dialog
+	//! Retrieve list of file types for file open dialog
 	static QString registeredFileTypes(iADataSetTypes allowedTypes = iADataSetType::All);
 
 private:
@@ -108,15 +111,3 @@ namespace iANewIO
 	//! get a I/O object for a file with the given filename
 	iAbase_API std::shared_ptr<iAFileIO> createIO(QString fileName);
 }
-
-/*
-std::unique_ptr<iAVolumeDataSet> loadVolumeFile(QString const& fileName)
-{
-	return loadFile(fileName, dstVolume);
-}
-
-std::unique_ptr<iAMeshDataSet> loadMeshFile(QString const& fileName)
-{
-	return loadFile(fileName, dstMesh);
-}
-*/

@@ -213,39 +213,9 @@ namespace
 		newItem->setData(rank, Qt::UserRole + 4);
 		return return_val;
 	}
-
-	/*
-	bool HDF5GroupExists(hid_t file_id, const char* name)
-	{
-		hid_t loc_id = H5Gopen(file_id, name, H5P_DEFAULT);
-		bool result = loc_id > 0;
-		if (result)
-		{
-			H5Gclose(loc_id);
-		}
-		return result;
-	}
-
-	bool HDF5DatasetExists(hid_t file_id, const char* name)
-	{
-		hid_t loc_id = H5Dopen(file_id, name, H5P_DEFAULT);
-		bool result = loc_id > 0;
-		if (result)
-		{
-			H5Dclose(loc_id);
-		}
-		return result;
-	}
-
-	bool IsHDF5ITKImage(hid_t file_id)
-	{
-		return HDF5GroupExists(file_id, "ITKImage") && HDF5DatasetExists(file_id, "ITKVersion");
-	}
-	*/
 }
 
 #include "qthelper/iAQTtoUIConnector.h"
-// TODO: remove guibase/OpenHDF5.ui!
 #include "ui_OpenHDF5.h"
 typedef iAQTtoUIConnector<QDialog, Ui_dlgOpenHDF5> OpenHDF5Dlg;
 
@@ -261,14 +231,6 @@ class iAHDF5FileParamDlg : public iAFileParamDlg
 			LOG(lvlError, "H5open returned value < 0!");
 			return false;
 		}
-		//bool isITKHDF5 = IsHDF5ITKImage(file_id);
-		/*
-		if (isITKHDF5)
-		{
-			H5Fclose(file_id);
-			return true;
-		}
-		*/
 
 		QStandardItemModel* model = new QStandardItemModel();
 		model->setHorizontalHeaderLabels(QStringList() << "HDF5 Structure");

@@ -58,7 +58,6 @@ namespace
 		}
 	}
 
-	// typedef herr_t(*H5E_walk2_t)(unsigned n, const H5E_error2_t *err_desc, void *client_data)
 	herr_t errorfunc(unsigned /*n*/, const H5E_error2_t* err, void* /*client_data*/)
 	{
 		/*
