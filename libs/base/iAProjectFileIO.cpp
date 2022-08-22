@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #include "iAProjectFileIO.h"
 
-#include "iAFileUtils.h"
 #include "iAFileTypeRegistry.h"
+#include "iAFileUtils.h"
 #include "iAProgress.h"
 #include "iASettings.h"    // for mapFromQSettings
 

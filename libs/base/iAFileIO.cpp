@@ -18,33 +18,30 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
-
-#ifdef USE_HDF5
-
-#include "iAbase_export.h"
-
 #include "iAFileIO.h"
 
-// for now, let's use HDF5 1.10 API:
-#define H5_USE_110_API
-#include <hdf5.h>
+iAFileIO::iAFileIO(iADataSetTypes types) : m_dataSetTypes(types)
+{}
 
-class iAbase_API iAHDF5IO : public iAFileIO
+void iAFileIO::setup(QString const& fileName)
 {
-public:
-	static const QString Name;
-	static const QString DataSetPathStr;
-	static const QString SpacingStr;
+	m_fileName = fileName;
+}
 
-	iAHDF5IO();
-	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* p, QVariantMap const& parameters) override;
-	QString name() const override;
-	QStringList extensions() const override;
-};
+iAFileIO::~iAFileIO()
+{}
 
-iAbase_API QString MapHDF5TypeToString(H5T_class_t hdf5Type);
-iAbase_API int GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign);
-iAbase_API void printHDF5ErrorsToConsole();
+void iAFileIO::addParameter(QString const& name, iAValueType valueType, QVariant defaultValue, double min, double max)
+{
+	m_parameters.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
+}
 
-#endif
+iAAttributes const& iAFileIO::parameters() const
+{
+	return m_parameters;
+}
+
+iADataSetTypes iAFileIO::supportedDataSetTypes() const
+{
+	return m_dataSetTypes;
+}

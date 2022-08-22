@@ -20,31 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
-#ifdef USE_HDF5
+#include <QFlags>
 
-#include "iAbase_export.h"
-
-#include "iAFileIO.h"
-
-// for now, let's use HDF5 1.10 API:
-#define H5_USE_110_API
-#include <hdf5.h>
-
-class iAbase_API iAHDF5IO : public iAFileIO
+//! Dataset type contained in files
+enum class iADataSetType
 {
-public:
-	static const QString Name;
-	static const QString DataSetPathStr;
-	static const QString SpacingStr;
-
-	iAHDF5IO();
-	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* p, QVariantMap const& parameters) override;
-	QString name() const override;
-	QStringList extensions() const override;
+	Volume = 0x1,
+	Mesh = 0x2,
+	Graph = 0x4,
+	All = Volume | Mesh | Graph
 };
-
-iAbase_API QString MapHDF5TypeToString(H5T_class_t hdf5Type);
-iAbase_API int GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign);
-iAbase_API void printHDF5ErrorsToConsole();
-
-#endif
+Q_DECLARE_FLAGS(iADataSetTypes, iADataSetType)
+Q_DECLARE_OPERATORS_FOR_FLAGS(iADataSetTypes)

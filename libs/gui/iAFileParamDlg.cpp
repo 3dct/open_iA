@@ -214,6 +214,7 @@ namespace
 		return return_val;
 	}
 
+	/*
 	bool HDF5GroupExists(hid_t file_id, const char* name)
 	{
 		hid_t loc_id = H5Gopen(file_id, name, H5P_DEFAULT);
@@ -240,7 +241,7 @@ namespace
 	{
 		return HDF5GroupExists(file_id, "ITKImage") && HDF5DatasetExists(file_id, "ITKVersion");
 	}
-
+	*/
 }
 
 #include "qthelper/iAQTtoUIConnector.h"
@@ -260,7 +261,7 @@ class iAHDF5FileParamDlg : public iAFileParamDlg
 			LOG(lvlError, "H5open returned value < 0!");
 			return false;
 		}
-		bool isITKHDF5 = IsHDF5ITKImage(file_id);
+		//bool isITKHDF5 = IsHDF5ITKImage(file_id);
 		/*
 		if (isITKHDF5)
 		{

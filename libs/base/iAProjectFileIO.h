@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFileTypeRegistry.h"
+#include "iAFileIO.h"
 
 class iAbase_API iAProjectFileIO : public iAFileIO
 {

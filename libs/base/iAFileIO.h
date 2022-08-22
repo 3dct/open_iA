@@ -20,31 +20,50 @@
 * ************************************************************************************/
 #pragma once
 
-#ifdef USE_HDF5
+#include "iAAttributes.h"
+#include "iADataSet.h"
+#include "iADataSetType.h"
 
-#include "iAbase_export.h"
+#include <QMap>
+#include <QString>
 
-#include "iAFileIO.h"
+#include <memory>
+#include <vector>
 
-// for now, let's use HDF5 1.10 API:
-#define H5_USE_110_API
-#include <hdf5.h>
+class iAProgress;
 
-class iAbase_API iAHDF5IO : public iAFileIO
+class iAbase_API iAFileIO
 {
 public:
-	static const QString Name;
-	static const QString DataSetPathStr;
-	static const QString SpacingStr;
+	iAFileIO(iADataSetTypes type);
+	void setup(QString const& fileName);  // TODO: make possible to also use e.g. folder name or list of files
+	virtual ~iAFileIO();
+	//! The name of the file type that this IO supports
+	virtual QString name() const = 0;
+	//! The file extensions that this file IO should be used for
+	virtual QStringList extensions() const = 0;
+	//! Load the (list of) dataset(s)
+	virtual std::vector<std::shared_ptr<iADataSet>> load(iAProgress* p, QVariantMap const& paramValues) = 0;
+	//! Required parameters for loading the file
+	//! Copied from iAFilter - maybe reuse? move to new common base class iAParameterizedSomething ...?
+	iAAttributes const& parameters() const;
+	//! Types of dataset that the the file format which this IO is for delivers
+	iADataSetTypes supportedDataSetTypes() const;
 
-	iAHDF5IO();
-	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* p, QVariantMap const& parameters) override;
-	QString name() const override;
-	QStringList extensions() const override;
+protected:
+	//! Adds the description of a parameter to the filter.
+	//! @param name the parameter's name
+	//! @param valueType the type of value this parameter can have
+	//! @param defaultValue the default value of the parameter; for Categorical
+	//!     valueTypes, this should be the list of possible values
+	//! @param min the minimum value this parameter can have (inclusive).
+	//! @param max the maximum value this parameter can have (inclusive)
+	void addParameter(QString const& name, iAValueType valueType, QVariant defaultValue = 0.0,
+		double min = std::numeric_limits<double>::lowest(), double max = std::numeric_limits<double>::max());
+
+	QString m_fileName;
+
+private:
+	iAAttributes m_parameters;
+	iADataSetTypes m_dataSetTypes;
 };
-
-iAbase_API QString MapHDF5TypeToString(H5T_class_t hdf5Type);
-iAbase_API int GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign);
-iAbase_API void printHDF5ErrorsToConsole();
-
-#endif

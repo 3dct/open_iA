@@ -20,39 +20,13 @@
 * ************************************************************************************/
 #include "iAFileTypeRegistry.h"
 
+#include "iAFileIO.h"
+
 #include <vtkPointData.h>
 #include <vtkSTLReader.h>
 #include <vtkUnsignedCharArray.h>
 
 #include <QTextStream>
-
-// ---------- iAFileIO ----------
-
-iAFileIO::iAFileIO(iADataSetTypes types): m_dataSetTypes(types)
-{}
-
-void iAFileIO::setup(QString const & fileName)
-{
-	m_fileName = fileName;
-}
-
-iAFileIO::~iAFileIO()
-{}
-
-void iAFileIO::addParameter(QString const& name, iAValueType valueType, QVariant defaultValue, double min, double max)
-{
-	m_parameters.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
-}
-
-iAAttributes const& iAFileIO::parameters() const
-{
-	return m_parameters;
-}
-
-iADataSetTypes iAFileIO::supportedDataSetTypes() const
-{
-	return m_dataSetTypes;
-}
 
 // ---------- iAFileTypeRegistry ----------
 
