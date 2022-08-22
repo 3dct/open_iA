@@ -70,12 +70,9 @@ iATFTableDlg::iATFTableDlg(QWidget* parent, iAChartFunction* func) :
 
 	QAction* removePnt = new QAction(tr("Remove Point"), this);
 	QAction* addPnt = new QAction(tr("add Point"), this);
-	QAction* updateHisto = new QAction(tr("Update Histogram"), this);
 	removePnt->setShortcut(Qt::Key_Delete);
 	addPnt->setShortcut(Qt::Key_Space);
-	updateHisto->setShortcut(Qt::Key_Enter);
 	addAction(addPnt);
-	addAction(updateHisto);
 	table->addAction(removePnt);
 	table->setColumnCount(columnNames.size());
 	table->setHorizontalHeaderLabels(columnNames);
@@ -89,8 +86,6 @@ iATFTableDlg::iATFTableDlg(QWidget* parent, iAChartFunction* func) :
 	connect(addPnt, &QAction::triggered, this, &iATFTableDlg::addPoint);
 	connect(tbRemovePoint, &QToolButton::clicked, this, &iATFTableDlg::removeSelectedPoint);
 	connect(removePnt, &QAction::triggered, this, &iATFTableDlg::removeSelectedPoint);
-	connect(tbUpdateHisto, &QToolButton::clicked, this, &iATFTableDlg::updateHistogram);
-	connect(updateHisto, &QAction::triggered, this, &iATFTableDlg::updateHistogram);
 	connect(table, &QTableWidget::itemClicked, this, &iATFTableDlg::itemClicked);
 	connect(table, &QTableWidget::cellChanged, this, &iATFTableDlg::cellValueChanged);
 
@@ -100,8 +95,8 @@ iATFTableDlg::iATFTableDlg(QWidget* parent, iAChartFunction* func) :
 
 void iATFTableDlg::updateTable()
 {
-	table->setRowCount(m_tf->opacityTF()->GetSize());
 	QSignalBlocker b(table);
+	table->setRowCount(m_tf->opacityTF()->GetSize());
 	for (int i = 0; i < m_tf->opacityTF()->GetSize(); ++i)
 	{
 		double pointValue[4], color[4];
@@ -137,6 +132,7 @@ void iATFTableDlg::changeColor()
 	QPixmap pxMap(23, 23);
 	pxMap.fill(m_newPointColor);
 	tbChangeColor->setIcon(pxMap);
+	updateTransferFunction();
 }
 
 void iATFTableDlg::addPoint()
@@ -159,6 +155,7 @@ void iATFTableDlg::addPoint()
 	table->setItem(table->rowCount() - 1, 2, newColorItem);
 	table->setSortingEnabled(true);
 	table->sortByColumn(0, Qt::AscendingOrder);
+	updateTransferFunction();
 }
 
 void iATFTableDlg::removeSelectedPoint()
@@ -182,9 +179,10 @@ void iATFTableDlg::removeSelectedPoint()
 	{
 		table->removeRow(row);
 	}
+	updateTransferFunction();
 }
 
-void iATFTableDlg::updateHistogram()
+void iATFTableDlg::updateTransferFunction()
 {
 	m_tf->opacityTF()->RemoveAllPoints();
 	m_tf->colorTF()->RemoveAllPoints();
@@ -208,6 +206,7 @@ void iATFTableDlg::itemClicked(QTableWidgetItem* item)
 		if (newItemColor.isValid())
 		{
 			item->setData(Qt::DisplayRole, newItemColor.name());
+			updateTransferFunction();
 		}
 	}
 	else
@@ -220,24 +219,16 @@ void iATFTableDlg::cellValueChanged(int changedRow, int changedColumn)
 {
 	double val = table->item(changedRow, changedColumn)->data(Qt::DisplayRole).toDouble();
 	QSignalBlocker b(table);
-	switch (changedColumn)
+	if ( (changedColumn == 0 && !isValueXValid(val, changedRow)) || 
+		 (changedColumn == 1 && (val < 0.0 || val > 1.0)) )
 	{
-	case 0:
-		if (!isValueXValid(val, changedRow))
-		{
-			table->item(changedRow, changedColumn)->setData(Qt::DisplayRole, QString::number(m_oldItemValue));
-		}
-		break;
-	case 1:
-		if (val < 0.0 || val > 1.0)
-		{
-			table->item(changedRow, changedColumn)->setData(Qt::DisplayRole, QString::number(m_oldItemValue));
-		}
-		break;
-	default:
-		break;
+		table->item(changedRow, changedColumn)->setData(Qt::DisplayRole, QString::number(m_oldItemValue));
 	}
-	table->sortByColumn(0, Qt::AscendingOrder);
+	else
+	{
+		table->sortByColumn(0, Qt::AscendingOrder);
+		updateTransferFunction();
+	}
 }
 
 bool iATFTableDlg::isValueXValid(double xVal, int row)

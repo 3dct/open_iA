@@ -34,19 +34,21 @@ public:
 	iATFTableDlg(QWidget* parent, iAChartFunction* func);
 
 public slots:
-	void changeColor();
-	void addPoint();
-	void removeSelectedPoint();
-	void updateHistogram();
-	void itemClicked(QTableWidgetItem*);
-	void cellValueChanged(int, int);
 	void updateTable();
 
 signals:
 	void transferFunctionChanged();
 
+private slots:
+	void changeColor();
+	void addPoint();
+	void removeSelectedPoint();
+	void itemClicked(QTableWidgetItem*);
+	void cellValueChanged(int, int);
+
 private:
 	bool isValueXValid(double xVal, int row = -1);
+	void updateTransferFunction();
 
 	iATransferFunction* m_tf;
 	QColor m_newPointColor;
