@@ -27,6 +27,7 @@
 #include <vtkSmartPointer.h>
 
 #include <QFlags>
+#include <QMap>
 #include <QString>
 
 class iAProgress;
@@ -54,6 +55,10 @@ public:
 	virtual std::array<double, 3> unitDistance() const;
 	//! should deliver information about the dataset interesting to users viewing it
 	virtual QString info() const;
+	//! set the (optional) additional parameters that come along with the dataset
+	void setParameters(QVariantMap const& parameters);
+	//! retrieve (optional) additional parameters for the dataset
+	QVariantMap const & parameters() const;
 
 protected:
 	//! derived classes need to construct the dataset by giving a (proposed) filename and an (optional) name
@@ -63,9 +68,10 @@ private:
 	//! @{ prevent copying
 	iADataSet(iADataSet const& other) = delete;
 	iADataSet& operator=(iADataSet const& other) = delete;
-	QString m_name;
-	QString m_fileName;
 	//! @}
+	QString m_fileName;        //!< the filename (from which the dataset was loaded / to which it was stored)
+	QString m_name;            //!< a (human readable) name for the dataset; by default, the "basename" of the loaded file
+	QVariantMap m_parameters;  //!< (optional) additional parameters that came along with the dataset
 };
 
 //! a polygon (surface) mesh

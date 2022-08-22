@@ -80,6 +80,16 @@ QString iADataSet::info() const
 	return "";
 }
 
+void iADataSet::setParameters(QVariantMap const& parameters)
+{
+	m_parameters = parameters;
+}
+
+QVariantMap const& iADataSet::parameters() const
+{
+	return m_parameters;
+}
+
 // ---------- iAPolyData ----------
 
 iAPolyData::iAPolyData(QString const& fileName, vtkSmartPointer<vtkPolyData> mesh) :
