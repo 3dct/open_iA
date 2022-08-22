@@ -107,7 +107,7 @@ void read_raw_image_template(QVariantMap const& params, QString const& fileName,
 }
 #endif
 
-std::vector<std::shared_ptr<iADataSet>> iARawFileIO::load(iAProgress* p, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iARawFileIO::load(iAProgress* progress, QVariantMap const& parameters)
 {
 	Q_UNUSED(parameters);
 
@@ -116,7 +116,7 @@ std::vector<std::shared_ptr<iADataSet>> iARawFileIO::load(iAProgress* p, QVarian
 
 #if RAW_LOAD_METHOD == ITK
 	auto scalarType = mapReadableDataTypeToVTKType(parameters["Data Type"].toString());
-	VTK_TYPED_CALL(read_raw_image_template, scalarType, parameters, m_fileName, p, con);
+	VTK_TYPED_CALL(read_raw_image_template, scalarType, parameters, m_fileName, progress, con);
 	// direct copying as in following line would cause a crash further down the line:
 	// auto img = con.vtkImage();
 	// instead, we need to do a deep copy here:

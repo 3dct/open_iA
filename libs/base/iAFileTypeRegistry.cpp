@@ -82,7 +82,7 @@ class iAMetaFileIO : public iAFileIO
 {
 public:
 	iAMetaFileIO();
-	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* p, QVariantMap const& parameters) override;
+	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* progress, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };
@@ -91,7 +91,7 @@ class iAVTIFileIO : public iAFileIO
 {
 public:
 	iAVTIFileIO();
-	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* p, QVariantMap const& parameters) override;
+	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* progress, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };
@@ -100,7 +100,7 @@ class iAGraphFileIO : public iAFileIO
 {
 public:
 	iAGraphFileIO();
-	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* p, QVariantMap const& parameters) override;
+	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* progress, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };
@@ -109,7 +109,7 @@ class iASTLFileIO : public iAFileIO
 {
 public:
 	iASTLFileIO();
-	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* p, QVariantMap const& parameters) override;
+	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* progress, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };
@@ -118,7 +118,7 @@ class iAAmiraVolumeFileIO : public iAFileIO
 {
 public:
 	iAAmiraVolumeFileIO();
-	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* p, QVariantMap const& parameters) override;
+	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* progress, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };
@@ -173,7 +173,7 @@ iAMetaFileIO::iAMetaFileIO() :
 	iAFileIO(iADataSetType::Volume)
 {}
 
-std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::load(iAProgress* p, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::load(iAProgress* progress, QVariantMap const& parameters)
 {
 	Q_UNUSED(parameters);
 
@@ -191,7 +191,7 @@ std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::load(iAProgress* p, QVaria
 	auto img = reader->GetOutput();
 	// duration: 362,362,368,368,383 ms
 #else
-	Q_UNUSED(p);
+	Q_UNUSED(progress);
 	auto img = vtkSmartPointer<vtkImageData>::New();
 	readImage(m_fileName, true, img);    //< using iAToolsVTK
 	// duration: ~400ms
@@ -233,10 +233,10 @@ iAGraphFileIO::iAGraphFileIO() : iAFileIO(iADataSetType::Graph)
 	addParameter("Spacing", iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAGraphFileIO::load(iAProgress* p, QVariantMap const& params)
+std::vector<std::shared_ptr<iADataSet>> iAGraphFileIO::load(iAProgress* progress, QVariantMap const& params)
 {
 	// maybe we could also use vtkPDBReader, but not sure that's the right "PDB" file type...
-	Q_UNUSED(p);
+	Q_UNUSED(progress);
 
 	auto spacing = params["Spacing"].value<QVector<double>>();
 
@@ -378,11 +378,11 @@ iASTLFileIO::iASTLFileIO() : iAFileIO(iADataSetType::Mesh)
 {
 }
 
-std::vector<std::shared_ptr<iADataSet>> iASTLFileIO::load(iAProgress* p, QVariantMap const& params)
+std::vector<std::shared_ptr<iADataSet>> iASTLFileIO::load(iAProgress* progress, QVariantMap const& params)
 {
 	Q_UNUSED(params);
 	auto stlReader = vtkSmartPointer<vtkSTLReader>::New();
-	p->observe(stlReader);
+	progress->observe(stlReader);
 	stlReader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
 	vtkNew<vtkPolyData> polyData;
 	stlReader->SetOutput(polyData);
@@ -409,11 +409,11 @@ iAVTIFileIO::iAVTIFileIO() : iAFileIO(iADataSetType::Volume)
 {
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAVTIFileIO::load(iAProgress* p, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iAVTIFileIO::load(iAProgress* progress, QVariantMap const& parameters)
 {
 	Q_UNUSED(parameters);
 	auto reader = vtkSmartPointer<vtkXMLImageDataReader>::New();
-	p->observe(reader);
+	progress->observe(reader);
 	reader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
 	reader->Update();
 	reader->ReleaseDataFlagOn();
@@ -440,9 +440,9 @@ iAAmiraVolumeFileIO::iAAmiraVolumeFileIO() : iAFileIO(iADataSetType::Volume)
 {
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAAmiraVolumeFileIO::load(iAProgress* p, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iAAmiraVolumeFileIO::load(iAProgress* progress, QVariantMap const& parameters)
 {
-	Q_UNUSED(p);
+	Q_UNUSED(progress);
 	Q_UNUSED(parameters);
 	auto img = iAAmiraMeshIO::Load(m_fileName);
 	return { std::make_shared<iAImageData>(m_fileName, img) };

@@ -33,7 +33,7 @@ public:
 	static const QString DataTypeStr;
 	static const QString ByteOrderStr;
 	iARawFileIO();
-	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* p, QVariantMap const& parameters) override;
+	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* progress, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };
