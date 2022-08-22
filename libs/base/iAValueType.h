@@ -47,6 +47,11 @@ enum class iAValueType
 
 class QString;
 
-// TODO: use something like magic enum (https://github.com/Neargye/magic_enum) instead to convert between enum/string
+// TODO: use something like magic enum (https://github.com/Neargye/magic_enum) instead to convert between enum/string?
 iAbase_API QString ValueType2Str(iAValueType type);
 iAValueType Str2ValueType(QString const & str);
+
+class QVariant;
+
+//! convert the QVariant of the given iAValueType to a string (describing its content, for human-readable output)
+iAbase_API QString variantValueToString(iAValueType valueType, QVariant value);

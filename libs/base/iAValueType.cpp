@@ -21,8 +21,10 @@
 #include "iAValueType.h"
 
 #include "iALog.h"
+#include "iAStringHelper.h"    // for joinNumbersAsString
 
 #include <QString>
+#include <QVariant>
 
 namespace
 {
@@ -151,5 +153,26 @@ QString ValueType2Str(iAValueType type)
 		return Vector3iStr;
 	default:
 		return UnknownStr;
+	}
+}
+
+QString variantValueToString(iAValueType valueType, QVariant value)
+{
+	switch (valueType)
+	{
+	case iAValueType::Boolean: return value.toBool() ? "yes" : "no";
+	case iAValueType::Vector2i:
+#if __cplusplus >= 201703L
+		[[fallthrough]];
+#endif
+		// fall through
+	case iAValueType::Vector3i: return joinNumbersAsString(value.value<QVector<int>>(), ", ");
+	case iAValueType::Vector2:
+#if __cplusplus >= 201703L
+		[[fallthrough]];
+#endif
+		// fall through
+	case iAValueType::Vector3: return joinNumbersAsString(value.value<QVector<double>>(), ", ");
+	default: return value.toString();
 	}
 }

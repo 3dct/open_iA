@@ -337,9 +337,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainW
 		{
 			auto paramDescriptor = filter->parameters()[p];
 			QString paramName = paramDescriptor->name();
-			QString paramValue = paramDescriptor->valueType() == iAValueType::Boolean ?
-				(paramValues[paramName].toBool() ? "yes" : "no")
-				: paramValues[paramName].toString();
+			QString paramValue = variantValueToString(paramDescriptor->valueType(), paramValues[paramName]);
 			LOG(lvlInfo, QString("    %1 = %2").arg(paramName).arg(paramValue));
 		}
 	}
