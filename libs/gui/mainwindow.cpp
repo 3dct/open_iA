@@ -547,7 +547,7 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 			LOG(lvlError, QString("Unknown error while loading file %1!").arg(fileName));
 		}
 	}
-	, [this, d, p, child]()
+	, [this, d, p, child, fileName]()
 	{
 		if (d->data.empty())
 		{
@@ -558,12 +558,13 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 		if (!targetChild)
 		{
 			targetChild = createMdiChild(false);
+			dynamic_cast<MdiChild*>(targetChild)->setCurrentFile(fileName);
 			// TODO: check if we need to apply preferences...
 			//dynamic_cast<MdiChild*>(targetChild)->applyPreferences(m_defaultPreferences);
 			targetChild->applyRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
 			targetChild->show();
 		}
-		setCurrentFile(d->data[0]->fileName());
+		setCurrentFile(fileName);
 		for (auto dataSet : d->data)
 		{
 			targetChild->addDataSet(dataSet);
