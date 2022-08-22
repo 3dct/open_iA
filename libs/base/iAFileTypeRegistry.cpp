@@ -35,9 +35,10 @@ QMap<QString, size_t> iAFileTypeRegistry::m_fileTypes;
 
 std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileExtension)
 {
-	if (m_fileTypes.contains(fileExtension))
+	auto ext = fileExtension.toLower();
+	if (m_fileTypes.contains(ext))
 	{
-		return m_fileIOs[m_fileTypes[fileExtension]]->create();
+		return m_fileIOs[m_fileTypes[ext]]->create();
 	}
 	else
 	{

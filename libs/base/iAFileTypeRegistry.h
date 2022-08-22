@@ -71,14 +71,15 @@ void iAFileTypeRegistry::addFileType()
 	auto io = ioFactory->create();
 	for (auto extension : io->extensions())
 	{
+		auto lowerExt = extension.toLower();
 		if (m_fileTypes.contains(extension))
 		{
 			LOG(lvlWarn, QString("File IO %1 tries to add a handler for file extension %2, already registered to file IO %3!")
 				.arg(io->name())
-				.arg(extension)
-				.arg(m_fileIOs[m_fileTypes[extension]]->create()->name()));
+				.arg(lowerExt)
+				.arg(m_fileIOs[m_fileTypes[lowerExt]]->create()->name()));
 		}
-		m_fileTypes.insert(extension, m_fileIOs.size() - 1);
+		m_fileTypes.insert(lowerExt, m_fileIOs.size() - 1);
 	}
 }
 
