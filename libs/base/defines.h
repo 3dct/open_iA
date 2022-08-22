@@ -52,9 +52,6 @@ enum iAIOType
 	DCM_READER,
 //	NRRD_READER,     // see iAIOProvider.cpp why this is commented out
 	OIF_READER,
-#ifdef USE_HDF5
-	HDF5_READER,
-#endif
 	PROJECT_READER,
 	NKC_READER,
 

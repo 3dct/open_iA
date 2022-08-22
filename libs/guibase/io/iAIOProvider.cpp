@@ -38,10 +38,8 @@ QString iAIOProvider::GetSupportedLoadFormats()
 {
 	return QString(
 		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pre *.pars *.dcm *.nia *.nii *.nii.gz *.hdr *.hdr.gz *.img *.img.gz *.oif *.am *.vtk *.nkc "
-#ifdef USE_HDF5
-		"*.hdf5 *.h5 *.he5 *.mat "
-#endif
 		"*.vti "+ImageFormatExtensions+" *"+ProjectFileExtension+" *"+NewProjectFileExtension+");;"
+
 		+ MetaImages + VTKFiles +
 		"STL files (*.stl);;"
 		"VG Studio Scenes (*.vgi);;"
@@ -52,17 +50,11 @@ QString iAIOProvider::GetSupportedLoadFormats()
 		"NIFTI Images (*.nia *.nii *.nii.gz *.hdr *.hdr.gz *.img *.img.gz);;"
 		"Olympus FluoView (*.oif);;"
 		"AmiraMesh (*.am);;"
-#ifdef USE_HDF5
-		"Hierarchical Data Format v5 (*.hdf5 *.h5 *.he5);;"
-		"Matlab data files v7.3 (*.mat);;"
-		"Network Common Data Format v4 (*.nc *.cdf);;"
-#endif
 		"Serial VTK image data (*.vti);;") +
 		GetSupportedImageFormats() +
 		ProjectFileTypeFilter +
 		NewProjectFileTypeFilter;
 }
-
 
 QString iAIOProvider::GetSupportedSaveFormats()
 {
