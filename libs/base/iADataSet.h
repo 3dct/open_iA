@@ -29,6 +29,7 @@
 #include <QFlags>
 #include <QMap>
 #include <QString>
+#include <QVariant>    // for QVariantMap (at least under Qt 5.15.2)
 
 class iAProgress;
 

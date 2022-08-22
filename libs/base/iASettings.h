@@ -24,6 +24,7 @@
 
 // TODO: replace with QHash?
 #include <QMap>
+#include <QVariant>    // for QVariantMap (at least under Qt 5.15.2)
 
 class QSettings;
 
