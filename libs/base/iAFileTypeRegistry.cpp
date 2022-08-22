@@ -152,10 +152,12 @@ public:
 // ---------- iAFileTypeRegistry::setupDefaultIOFactories (needs to be after declaration of specific IO classes) ----------
 
 #include "iAHDF5IO.h"
+#include "iAProjectFileIO.h"
 #include "iARawFileIO.h"
 
 void iAFileTypeRegistry::setupDefaultIOFactories()
 {
+	// volume file formats:
 	iAFileTypeRegistry::addFileType<iAMetaFileIO>();
 	iAFileTypeRegistry::addFileType<iAVTIFileIO>();
 	iAFileTypeRegistry::addFileType<iAAmiraVolumeFileIO>();
@@ -163,10 +165,15 @@ void iAFileTypeRegistry::setupDefaultIOFactories()
 #ifdef USE_HDF5
 	iAFileTypeRegistry::addFileType<iAHDF5IO>();
 #endif
-
-	iAFileTypeRegistry::addFileType<iAGraphFileIO>();
+	// mesh file formats:
 
 	iAFileTypeRegistry::addFileType<iASTLFileIO>();
+
+	// graph file formats:
+	iAFileTypeRegistry::addFileType<iAGraphFileIO>();
+	
+	// collection file formats:
+	iAFileTypeRegistry::addFileType<iAProjectFileIO>();
 }
 
 // ---------- iAMetaFileIO ----------
