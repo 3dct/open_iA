@@ -39,11 +39,11 @@ iAVTKFileIO::iAVTKFileIO() : iAFileIO(iADataSetType::All)
 
 std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::load(iAProgress* progress, QVariantMap const& parameters)
 {
-	Q_UNUSED(progress);
 	Q_UNUSED(parameters);
 	std::vector<std::shared_ptr<iADataSet>> result;
 	auto reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
 	reader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
+	progress->observe(reader);
 	reader->ReleaseDataFlagOff();
 	reader->Update();
 
@@ -81,6 +81,7 @@ std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::load(iAProgress* progress, 
 					.arg(numComp)
 					.arg(numValues)
 					.arg(extentSize));
+				return {};
 			}
 			if (numValues < 2)
 			{
@@ -100,6 +101,7 @@ std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::load(iAProgress* progress, 
 							.arg(spacing[i])
 							.arg(j)
 							.arg(actSpacing));
+						return {};
 					}
 				}
 			}
@@ -115,9 +117,9 @@ std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::load(iAProgress* progress, 
 			int dataType = arrayData->GetDataType();
 
 			int size[3] = {
-				extent[1] - extent[0] + 1,
-				extent[3] - extent[2] + 1,
-				extent[5] - extent[4] + 1,
+				extent[1] - extent[0],
+				extent[3] - extent[2],
+				extent[5] - extent[4],
 			};
 			auto img = allocateImage(dataType, size, spacing);
 			//arrayData->

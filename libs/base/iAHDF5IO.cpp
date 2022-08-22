@@ -163,8 +163,12 @@ std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::load(iAProgress* progress, QVa
 	imgImport->SetDataScalarType(vtkType);
 	imgImport->SetNumberOfScalarComponents(1);
 	imgImport->SetImportVoidPointer(raw_data, 0);
+	//imgImport->ReleaseDataFlagOff(); // doesn't change anything about below situation
 	imgImport->Update();
-	//auto img = imgImport->GetOutput();  // < does not work, as imgImport cleans up after himself, we need to deep-copy:
+	//auto img = imgImport->GetOutput();  // < does not work, as imgImport cleans up after himself
+	// according to https://vtk.org/Wiki/VTK/Tutorials/SmartPointers, one should be able to do:
+	//vtkSmartPointer<vtkImageData> img = imgImport->GetOutput();
+	// but it causes the same errors as the code above; so we need to deep-copy:
 	auto img = vtkSmartPointer<vtkImageData>::New();
 	img->DeepCopy(imgImport->GetOutput());
 	return { std::make_shared<iAImageData>(m_fileName, img) };
