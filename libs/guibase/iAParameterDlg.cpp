@@ -492,8 +492,8 @@ void iAParameterDlg::updateROIPart(QString const & partName, QVariant value)
 	size_t baseIdx = partName.contains("Index") ? 0 : 3;
 	const int MinVal = 0;
 	m_roi[baseIdx + 0] = vals[0] >= MinVal ? vals[0] : MinVal;
-	m_roi[baseIdx + 1] = vals[0] >= MinVal ? vals[1] : MinVal;
-	m_roi[baseIdx + 2] = vals[0] >= MinVal ? vals[2] : MinVal;
+	m_roi[baseIdx + 1] = vals[1] >= MinVal ? vals[1] : MinVal;
+	m_roi[baseIdx + 2] = vals[2] >= MinVal ? vals[2] : MinVal;
 }
 
 void iAParameterDlg::sourceChildClosed()
