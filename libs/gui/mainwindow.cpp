@@ -404,7 +404,7 @@ void MainWindow::loadFile(QString const & fileName)
 
 struct iALoadedData
 {
-	std::shared_ptr<iADataSet> data;
+	std::vector<std::shared_ptr<iADataSet>> data;
 };
 
 void MainWindow::loadFile(QString fileName, bool isStack)
@@ -549,7 +549,7 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 	}
 	, [this, d, p, child]()
 	{
-		if (!d->data)
+		if (d->data.empty())
 		{
 			LOG(lvlError, QString("No data loaded, nothing to finish up."));
 			return;
@@ -563,8 +563,11 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 			targetChild->applyRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
 			targetChild->show();
 		}
-		setCurrentFile(d->data->fileName());
-		targetChild->addDataSet(d->data);
+		setCurrentFile(d->data[0]->fileName());
+		for (auto dataSet : d->data)
+		{
+			targetChild->addDataSet(dataSet);
+		}
 	}
 	, this);
 	iAJobListView::get()->addJob(QString("Loading file '%1'").arg(fileName), p.get(), future);

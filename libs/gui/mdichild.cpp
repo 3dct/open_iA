@@ -204,6 +204,10 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 			updateRenderer();
 			m_dataRenderers.erase(idx);
 			m_dataForDisplay.erase(idx);
+			// ToDo: problematic: so far, idx used as "primary key" in m_dataRenderers/m_dataForDisplay/m_sliceRenderers
+			//     Options:
+			//         - use different primary key (e.g. an index increasing by 1 each time in addDataSet) and make m_dataSets a map as well -> preferred!
+			//         - or shift entries in those maps to new keys (lots of effort and prone to errors!)
 			m_dataSets.erase(m_dataSets.begin() + idx);
 			updateDataSetInfo();
 		});
@@ -596,7 +600,6 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 	auto p = std::make_shared<iAProgress>();
 	auto fw = runAsync([this, dataSet, dataSetIdx, p]()
 		{
-			assert(m_dataForDisplay.size() == dataSetIdx);
 			m_dataForDisplay[dataSetIdx] = createDataForDisplay(dataSet.get(), p.get(), m_preferences.HistogramBins);
 		},
 		[this, dataSet, dataSetIdx]()
@@ -2038,6 +2041,10 @@ void MdiChild::updateDataSetInfo()
 	m_dataSetInfo->clear();
 	for (size_t i = 0; i < m_dataSets.size(); ++i)
 	{
+		if (!m_dataForDisplay[i])    // probably not computed yet...
+		{
+			continue;
+		}
 		auto lines = m_dataForDisplay[i]->information().split("\n", Qt::SkipEmptyParts);
 		std::for_each(lines.begin(), lines.end(), [](QString& s) { s = "    " + s; });
 		m_dataSetInfo->addItem(m_dataSets[i]->name() + "\n" + lines.join("\n"));

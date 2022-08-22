@@ -56,20 +56,23 @@ public:
 	virtual QString info() const;
 
 protected:
-	iADataSet(QString const& name, QString const& fileName);
+	//! derived classes need to construct the dataset by giving a (proposed) filename and an (optional) name
+	iADataSet(QString const& fileName, QString const& name = QString());
 
 private:
+	//! @{ prevent copying
 	iADataSet(iADataSet const& other) = delete;
 	iADataSet& operator=(iADataSet const& other) = delete;
 	QString m_name;
 	QString m_fileName;
+	//! @}
 };
 
 //! a polygon (surface) mesh
 class iAbase_API iAPolyData : public iADataSet
 {
 public:
-	iAPolyData(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyData> mesh);
+	iAPolyData(QString const& fileName, vtkSmartPointer<vtkPolyData> mesh);
 	vtkSmartPointer<vtkPolyData> poly();
 	QString info() const override;
 	std::array<double, 3> unitDistance() const override;
@@ -84,7 +87,7 @@ private:
 class iAbase_API iAGraphData : public iADataSet
 {
 public:
-	iAGraphData(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyData> mesh);
+	iAGraphData(QString const& fileName, vtkSmartPointer<vtkPolyData> mesh);
 	vtkSmartPointer<vtkPolyData> poly();
 	QString info() const override;
 
@@ -98,7 +101,7 @@ private:
 class iAbase_API iAImageData : public iADataSet
 {
 public:
-	iAImageData(QString const& name, QString const& fileName, vtkSmartPointer<vtkImageData> img);
+	iAImageData(QString const& fileName, vtkSmartPointer<vtkImageData> img);
 	vtkSmartPointer<vtkImageData> image();
 	QString info() const override;
 	std::array<double, 3> unitDistance() const override;

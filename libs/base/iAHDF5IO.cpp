@@ -28,8 +28,6 @@
 #include <vtkImageData.h>
 #include <vtkImageImport.h>
 
-#include <QFileInfo>
-
 namespace
 {
 	const int InvalidHDF5Type = -1;
@@ -96,7 +94,7 @@ iAHDF5IO::iAHDF5IO() : iAFileIO(iADataSetType::Volume)
 	addParameter(SpacingStr, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
 }
 
-std::shared_ptr<iADataSet> iAHDF5IO::load(iAProgress* p, QVariantMap const& params)
+std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::load(iAProgress* p, QVariantMap const& params)
 {
 	Q_UNUSED(p);
 	auto hdf5PathStr = params[DataSetPathStr].toString();
@@ -170,7 +168,7 @@ std::shared_ptr<iADataSet> iAHDF5IO::load(iAProgress* p, QVariantMap const& para
 	//auto img = imgImport->GetOutput();  // < does not work, as imgImport cleans up after himself, we need to deep-copy:
 	auto img = vtkSmartPointer<vtkImageData>::New();
 	img->DeepCopy(imgImport->GetOutput());
-	return std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, img);
+	return { std::make_shared<iAImageData>(m_fileName, img) };
 }
 
 QString iAHDF5IO::name() const

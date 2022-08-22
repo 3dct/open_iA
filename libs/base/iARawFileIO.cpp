@@ -47,8 +47,6 @@
 
 #endif
 
-#include <QFileInfo>
-
 const QString iARawFileIO::Name("RAW files");
 const QString iARawFileIO::SizeStr("Size");
 const QString iARawFileIO::SpacingStr("Spacing");
@@ -109,7 +107,7 @@ void read_raw_image_template(QVariantMap const& params, QString const& fileName,
 }
 #endif
 
-std::shared_ptr<iADataSet> iARawFileIO::load(iAProgress* p, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iARawFileIO::load(iAProgress* p, QVariantMap const& parameters)
 {
 	Q_UNUSED(parameters);
 
@@ -150,10 +148,9 @@ std::shared_ptr<iADataSet> iARawFileIO::load(iAProgress* p, QVariantMap const& p
 	// ITK: 51837 (52087) ms (erstes Lesen von Hard disk), 5463 (5721) ms (zweites lesen, nach VTK)
 	//      -> ITK consistently faster, and much faster for small datasets!
 #endif
-	auto ret = std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, img);
+	return { std::make_shared<iAImageData>(m_fileName, img) };
 	// TODO: maybe compute range here as well?
 	//auto rng = img->GetScalarRange();   // see also comments above about performance measurements
-	return ret;
 }
 
 QString iARawFileIO::name() const
