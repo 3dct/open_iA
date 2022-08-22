@@ -128,6 +128,7 @@ public:
 #include "iAHDF5IO.h"
 #include "iAProjectFileIO.h"
 #include "iARawFileIO.h"
+#include "iAVTKFileIO.h"
 
 void iAFileTypeRegistry::setupDefaultIOFactories()
 {
@@ -139,12 +140,15 @@ void iAFileTypeRegistry::setupDefaultIOFactories()
 #ifdef USE_HDF5
 	iAFileTypeRegistry::addFileType<iAHDF5IO>();
 #endif
-	// mesh file formats:
 
+	// mesh file formats:
 	iAFileTypeRegistry::addFileType<iASTLFileIO>();
 
 	// graph file formats:
 	iAFileTypeRegistry::addFileType<iAGraphFileIO>();
+
+	// file formats which can contain different types of data:
+	iAFileTypeRegistry::addFileType<iAVTKFileIO>();
 	
 	// collection file formats:
 	iAFileTypeRegistry::addFileType<iAProjectFileIO>();
