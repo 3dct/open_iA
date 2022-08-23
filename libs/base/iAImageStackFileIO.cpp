@@ -52,19 +52,19 @@
 
 //#endif
 
-const QString iAImageStackFileIO::Name("Image (Stack)");
+QString const iAImageStackFileIO::LoadTypeStr("Loading Type");
+QString const iAImageStackFileIO::SingleImageOption("Single Image");
+QString const iAImageStackFileIO::ImageStackOption("Image Stack");
+QString const iAImageStackFileIO::Name("Image (Stack)");
+QString const iAImageStackFileIO::FileNameBase("File name base");
+QString const iAImageStackFileIO::Extension("Extension");
+QString const iAImageStackFileIO::NumDigits("Number of digits in index");
+QString const iAImageStackFileIO::MinimumIndex("Minimum index");
+QString const iAImageStackFileIO::MaximumIndex("Maximum index");
 
 namespace
 {
-	QString const LoadTypeStr("Loading Type");
-	QString const SingleImageOption("Single Image");
-	QString const ImageStackOption("Image Stack");
 	QString const SpacingStr("Spacing");
-	QString const FileNameBase("File name base");
-	QString const Extension("Extension");
-	QString const NumDigits("Number of digits in index");
-	QString const MinimumIndex("Minimum index");
-	QString const MaximumIndex("Maximum index");
 	QString const StepStr("Step");
 	QString const OriginStr("Origin");
 
@@ -86,21 +86,12 @@ iAImageStackFileIO::iAImageStackFileIO() : iAFileIO(iADataSetType::Volume)
 	addParameter(LoadTypeStr, iAValueType::Categorical, loadTypes);
 	addParameter(StepStr, iAValueType::Discrete, 1);
 	addParameter(SpacingStr, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
-	addParameter(OriginStr, iAValueType::Continuous, variantVector<double>({ 0.0, 0.0, 0.0 }));
-}
-
-void iAImageStackFileIO::setup(QString const& fileName)
-{
-	iAFileIO::setup(fileName);
-	QString base, suffix;
-	int range[2];
-	int digits;
-	determineStackParameters(fileName, base, suffix, range, digits);
-	addParameter(FileNameBase, iAValueType::String, base);
-	addParameter(Extension, iAValueType::String, suffix);
-	addParameter(NumDigits, iAValueType::Discrete, digits);
-	addParameter(MinimumIndex, iAValueType::Discrete, range[0]);
-	addParameter(MaximumIndex, iAValueType::Discrete, range[1]);
+	addParameter(OriginStr, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
+	addParameter(FileNameBase, iAValueType::String, "");
+	addParameter(Extension, iAValueType::String, "");
+	addParameter(NumDigits, iAValueType::Discrete, 0);
+	addParameter(MinimumIndex, iAValueType::Discrete, 0);
+	addParameter(MaximumIndex, iAValueType::Discrete, 0);
 }
 
 

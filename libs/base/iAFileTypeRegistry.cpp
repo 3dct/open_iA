@@ -138,6 +138,7 @@ void iAFileTypeRegistry::setupDefaultIOFactories()
 	// volume file formats:
 	iAFileTypeRegistry::addFileType<iAAmiraVolumeFileIO>();
 	iAFileTypeRegistry::addFileType<iADCMFileIO>();
+	iAFileTypeRegistry::addFileType<iAImageStackFileIO>();
 	iAFileTypeRegistry::addFileType<iAMetaFileIO>();
 	iAFileTypeRegistry::addFileType<iAVTIFileIO>();
 	iAFileTypeRegistry::addFileType<iARawFileIO>();

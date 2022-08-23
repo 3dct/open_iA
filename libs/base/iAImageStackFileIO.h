@@ -25,9 +25,16 @@
 class iAbase_API iAImageStackFileIO : public iAFileIO
 {
 public:
-	static const QString Name;
+	static QString const Name;
+	static QString const FileNameBase;
+	static QString const Extension;
+	static QString const NumDigits;
+	static QString const MinimumIndex;
+	static QString const MaximumIndex;
+	static QString const LoadTypeStr;
+	static QString const SingleImageOption;
+	static QString const ImageStackOption;
 	iAImageStackFileIO();
-	void setup(QString const& fileName) override;
 	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* progress, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
