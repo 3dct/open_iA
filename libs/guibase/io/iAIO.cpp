@@ -815,7 +815,7 @@ void iAIO::readNKC()
 	filter->run(parameters);
 
 	auto dataTypeConversion = iAFilterRegistry::filter("Datatype Conversion");
-	if (!filter)
+	if (!dataTypeConversion)
 	{
 		LOG(lvlError,
 			QString("Reading NKC file %1 requires 'Datatype Conversion' filter, but filter could not be found!")
@@ -832,7 +832,7 @@ void iAIO::readNKC()
 	dataTypeConversion->run(parametersConversion);
 
 	auto filterScale = iAFilterRegistry::filter("Shift and Scale");
-	if (!filter)
+	if (!filterScale)
 	{
 		LOG(lvlError,
 			QString("Reading NKC file %1 requires 'Shift and Scale' filter, but filter could not be found!")

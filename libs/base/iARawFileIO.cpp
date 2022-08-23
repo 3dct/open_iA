@@ -115,7 +115,7 @@ std::vector<std::shared_ptr<iADataSet>> iARawFileIO::load(iAProgress* progress, 
 	iAConnector con;
 
 #if RAW_LOAD_METHOD == ITK
-	auto scalarType = mapReadableDataTypeToVTKType(parameters["Data Type"].toString());
+	auto scalarType = mapReadableDataTypeToVTKType(parameters[DataTypeStr].toString());
 	VTK_TYPED_CALL(read_raw_image_template, scalarType, parameters, m_fileName, progress, con);
 	// direct copying as in following line would cause a crash further down the line:
 	// auto img = con.vtkImage();
@@ -125,15 +125,15 @@ std::vector<std::shared_ptr<iADataSet>> iARawFileIO::load(iAProgress* progress, 
 #else // VTK
 	vtkSmartPointer<vtkImageReader2> reader = vtkSmartPointer<vtkImageReader2>::New();
 	reader->SetFileName(m_fileName.toStdString().c_str());
-	auto size = parameters["Size"].value<QVector<int>>();
-	auto spacing = parameters["Spacing"].value<QVector<double>>();
-	auto origin = parameters["Origin"].value<QVector<double>>();
+	auto size = parameters[SizeStr].value<QVector<int>>();
+	auto spacing = parameters[SpacingStr].value<QVector<double>>();
+	auto origin = parameters[OriginStr].value<QVector<double>>();
 	reader->SetDataExtent(0, size[0] - 1, 0, size[1] - 1, 0, size[2] - 1);
 	reader->SetDataSpacing(spacing[0], spacing[1], spacing[2]);
 	reader->SetDataOrigin(origin[0], origin[1], origin[2]);
-	reader->SetHeaderSize(parameters["Headersize"].toUInt());
-	reader->SetDataScalarType(mapReadableDataTypeToVTKType(parameters["Data Type"].toString()));
-	reader->SetDataByteOrder(mapReadableByteOrderToVTKType(parameters["Byte Order"].toString()));
+	reader->SetHeaderSize(parameters[HeadersizeStr].toUInt());
+	reader->SetDataScalarType(mapReadableDataTypeToVTKType(parameters[DataTypeStr].toString()));
+	reader->SetDataByteOrder(mapReadableByteOrderToVTKType(parameters[ByteOrderStr].toString()));
 	p->observe(reader);
 	reader->UpdateWholeExtent();
 	auto img = reader->GetOutput();
