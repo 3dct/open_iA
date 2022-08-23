@@ -41,7 +41,7 @@ public:
 	iAFileIO(iADataSetTypes type);
 	//! set up file I/O for the given file name
 	//! TODO: make possible to also use e.g. folder name or list of files
-	void setup(QString const& fileName);
+	virtual void setup(QString const& fileName);
 	virtual ~iAFileIO();
 	//! The name of the file type that this IO supports
 	virtual QString name() const = 0;

@@ -128,6 +128,7 @@ public:
 
 #include "iADCMFileIO.h"
 #include "iAHDF5IO.h"
+#include "iAImageStackFileIO.h"
 #include "iAProjectFileIO.h"
 #include "iARawFileIO.h"
 #include "iAVTKFileIO.h"
