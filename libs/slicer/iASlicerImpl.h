@@ -53,7 +53,6 @@ class vtkScalarsToColors;
 class vtkDiskSource;
 class vtkGenericOpenGLRenderWindow;
 class vtkImageActor;
-class vtkImageData;
 class vtkImageMapToColors;
 class vtkImageReslice;
 class vtkInteractorStyle;

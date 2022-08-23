@@ -262,6 +262,14 @@ void adjustIndexAndSizeToImage(QVariantMap& params, vtkImageData* img)
 	});
 }
 
+bool isFlat(vtkImageData* img)
+{
+	int const* extent = img->GetExtent();
+	return extent[0] == extent[1] ||
+		extent[2] == extent[3] ||
+		extent[4] == extent[5];
+}
+
 
 void mapWorldToVoxelCoords(vtkImageData* img, double const* worldCoord, double* voxelCoord)
 {

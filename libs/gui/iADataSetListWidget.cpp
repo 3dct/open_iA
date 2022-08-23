@@ -188,7 +188,7 @@ iADataSetListWidget::iADataSetListWidget()
 	layout()->setSpacing(4);
 }
 
-void iADataSetListWidget::addDataSet(iADataSet* dataset, bool render3D, bool render2D)
+void iADataSetListWidget::addDataSet(iADataSet* dataset, bool render3DChecked, bool render3DCheckable, bool render2D)
 {
 	QSignalBlocker blockList(m_dataList);
 	auto nameItem = new QTableWidgetItem(dataset->name());
@@ -196,11 +196,13 @@ void iADataSetListWidget::addDataSet(iADataSet* dataset, bool render3D, bool ren
 	int row = m_dataList->rowCount();
 	m_dataList->insertRow(row);
 	m_dataList->setItem(row, 0, nameItem);
+	auto checkState(DefaultChecked);
+	checkState[View3D - ViewFirst] = render3DChecked;
 	for (int i = ViewFirst; i <= ViewLast; ++i)
 	{
-		auto checked = DefaultChecked[i - ViewFirst];
+		auto checked = checkState[i - ViewFirst];
 		auto checkable = true;
-		if ((i == View3D && !render3D) || (i == View2D && !render2D))
+		if ((i == View3D && !render3DCheckable) || (i == View2D && !render2D))
 		{
 			checked = false;
 			checkable = false;

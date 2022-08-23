@@ -117,6 +117,9 @@ iAbase_API bool isVtkIntegerImage(vtkImageData* img);
 //! @param
 iAbase_API void adjustIndexAndSizeToImage(QVariantMap& params, vtkImageData* img);
 
+//! Checks whether an image is flat (i.e. whether one side is only 1 pixel wide)
+iAbase_API bool isFlat(vtkImageData* img);
+
 
 // ----- Coordinate conversions (world <-> image/voxel coordinates) -----
 

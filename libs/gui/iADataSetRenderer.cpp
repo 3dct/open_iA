@@ -132,9 +132,9 @@ namespace
 
 #include "iAVolumeSettings.h"
 
-iADataSetRenderer::iADataSetRenderer(vtkRenderer* renderer):
+iADataSetRenderer::iADataSetRenderer(vtkRenderer* renderer, bool defaultVisibility):
 	m_renderer(renderer),
-	m_visible(false)
+	m_visible(defaultVisibility)
 {
 	addAttribute(Position, iAValueType::Vector3, variantVector<double>({0.0, 0.0, 0.0}));
 	addAttribute(Orientation, iAValueType::Vector3, variantVector<double>({0.0, 0.0, 0.0}));
@@ -269,7 +269,7 @@ class iAGraphRenderer : public iADataSetRenderer
 {
 public:
 	iAGraphRenderer(vtkRenderer* renderer, iAGraphData* data) :
-		iADataSetRenderer(renderer),
+		iADataSetRenderer(renderer, true),
 		m_lineActor(vtkSmartPointer<vtkActor>::New()),
 		m_pointActor(vtkSmartPointer<vtkActor>::New()),
 		m_data(data)
@@ -313,6 +313,7 @@ public:
 			});
 		modifiedCallback->SetClientData(this);
 		m_lineActor->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
+		iAGraphRenderer::showDataSet();
 	}
 	void showDataSet() override
 	{
@@ -409,7 +410,7 @@ class iAPolyActorRenderer : public iADataSetRenderer
 {
 public:
 	iAPolyActorRenderer(vtkRenderer* renderer) :
-		iADataSetRenderer(renderer),
+		iADataSetRenderer(renderer, true),
 		m_polyActor(vtkSmartPointer<vtkActor>::New())
 	{
 		vtkNew<vtkPolyDataMapper> mapper;
@@ -431,6 +432,7 @@ public:
 		addAttribute(PolyColor, iAValueType::Color, "#FFFFFF");
 		addAttribute(PolyOpacity, iAValueType::Continuous, 1.0, 0.0, 1.0);
 		addAttribute(PolyWireframe, iAValueType::Boolean, false);
+		iAPolyActorRenderer::showDataSet();
 	}
 	void showDataSet() override
 	{
@@ -557,16 +559,22 @@ namespace
 	//const QString VolumetricScatteringBlending = "VolumetricScatteringBlending";
 }
 
+bool isLarge(vtkImageData* img)
+{
+	int const* dim = img->GetDimensions();
+	int byteSize = mapVTKTypeToSize(img->GetScalarType());    // should be a setting
+	return (static_cast<size_t>(dim[0]) * dim[1] * dim[2] * byteSize) < 2'000'000'000;
+}
+
 class iAVolRenderer: public iADataSetRenderer
 {
 public:
 	iAVolRenderer(vtkRenderer* renderer, iAImageData* data, iAVolumeDataForDisplay* volDataForDisplay) :
-		iADataSetRenderer(renderer),
+		iADataSetRenderer(renderer, !isFlat(data->image()) && !isLarge(data->image()) ),
 		m_volume(vtkSmartPointer<vtkVolume>::New()),
 		m_volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
 		m_volMapper(vtkSmartPointer<vtkSmartVolumeMapper>::New()),
-		m_image(data)//,
-		//m_histogram(new iAChartWithFunctionsWidget(nullptr))
+		m_image(data)
 	{
 		assert(volDataForDisplay);
 		m_volMapper->SetBlendModeToComposite();
@@ -623,8 +631,10 @@ public:
 			});
 		modifiedCallback->SetClientData(this);
 		m_volume->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
-
-		//m_histogram->setTransferFunction(m_transfer.get());
+		if (isVisible())
+		{
+			iAVolRenderer::showDataSet();
+		}
 	}
 	void showDataSet() override
 	{

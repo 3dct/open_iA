@@ -618,10 +618,11 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 		},
 		[this, dataSet, dataSetIdx]()
 		{
+			bool render3D = false;
 			auto dataRenderer = createDataRenderer(dataSet.get(), m_dataForDisplay[dataSetIdx].get(), renderer()->renderer());
 			if (dataRenderer)
 			{
-				dataRenderer->setVisible(true);
+				render3D = dataRenderer->isVisible();   // 3D renderers determine default visibility themselves
 				m_dataRenderers[dataSetIdx] = dataRenderer;
 				if (dataSetIdx == 0)    // TODO: better recognition of whether first loaded dataset?
 				{
@@ -650,7 +651,7 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 			}
 
 			m_dwModalities->hide();
-			m_dataSetListWidget->addDataSet(dataSet.get(), dataRenderer != nullptr, sliceRenderer != nullptr);
+			m_dataSetListWidget->addDataSet(dataSet.get(), render3D, dataRenderer != nullptr, sliceRenderer != nullptr);
 			updateDataSetInfo();
 		},
 		this);

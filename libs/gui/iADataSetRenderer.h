@@ -39,7 +39,7 @@ class iAgui_API iADataSetRenderer
 {
 public:
 	//! Create a dataset renderer
-	iADataSetRenderer(vtkRenderer* renderer);
+	iADataSetRenderer(vtkRenderer* renderer, bool defaultVisibility);
 	//! called when dataset renderer is removed from display and destroyed
 	virtual ~iADataSetRenderer();
 	//! Set visibility of dataset

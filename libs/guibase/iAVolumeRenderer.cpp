@@ -21,19 +21,13 @@
 #include "iAVolumeRenderer.h"
 
 #include "iALog.h"
+#include "iAToolsVTK.h"    // for isFlat
 #include "iATransferFunction.h"
 #include "iAVolumeSettings.h"
 
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkProperty.h>
-
-bool IsFlat(int extent[6])
-{
-	return extent[0] == extent[1] ||
-		extent[2] == extent[3] ||
-		extent[4] == extent[5];
-}
 
 iAVolumeRenderer::iAVolumeRenderer(
 	iATransferFunction * transfer,
@@ -48,7 +42,7 @@ iAVolumeRenderer::iAVolumeRenderer(
 	m_outlineActor(vtkSmartPointer<vtkActor>::New()),
 	m_currentBoundingBoxRenderer(nullptr)
 {
-	m_isFlat = IsFlat(imgData->GetExtent());
+	m_isFlat = isFlat(imgData);
 	if (!m_isFlat)
 	{
 		m_volMapper->SetBlendModeToComposite();
@@ -67,7 +61,7 @@ iAVolumeRenderer::iAVolumeRenderer(
 
 void iAVolumeRenderer::setImage(iATransferFunction * transfer, vtkSmartPointer<vtkImageData> imgData)
 {
-	m_isFlat = IsFlat(imgData->GetExtent());
+	m_isFlat = isFlat(imgData);
 	if (m_isFlat)
 	{
 		return;
