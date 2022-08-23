@@ -20,16 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkSmartPointer.h>
+#include "iAFileIO.h"
 
-#include <vector>
-
-class iAConnector;
-
-class vtkImageData;
-
-class QString;
-
-//! Reads an .oif file
-void readOIF(QString const & filename, iAConnector* con, int channel,
-		std::vector<vtkSmartPointer<vtkImageData> > * volumes);
+class iAbase_API iAOIFFileIO : public iAFileIO
+{
+public:
+	static const QString Name;
+	iAOIFFileIO();
+	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* progress, QVariantMap const& parameters) override;
+	QString name() const override;
+	QStringList extensions() const override;
+};

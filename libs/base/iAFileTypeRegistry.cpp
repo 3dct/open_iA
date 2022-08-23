@@ -132,6 +132,7 @@ public:
 #include "iAImageStackFileIO.h"
 #include "iANKCFileIO.h"
 #include "iAProjectFileIO.h"
+#include "iAOIFFileIO.h"
 #include "iARawFileIO.h"
 #include "iAVTKFileIO.h"
 
@@ -143,6 +144,7 @@ void iAFileTypeRegistry::setupDefaultIOFactories()
 	iAFileTypeRegistry::addFileType<iAImageStackFileIO>();
 	iAFileTypeRegistry::addFileType<iAMetaFileIO>();
 	iAFileTypeRegistry::addFileType<iANKCFileIO>();
+	iAFileTypeRegistry::addFileType<iAOIFFileIO>();
 	iAFileTypeRegistry::addFileType<iAVTIFileIO>();
 	iAFileTypeRegistry::addFileType<iARawFileIO>();
 #ifdef USE_HDF5
