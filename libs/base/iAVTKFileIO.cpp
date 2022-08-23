@@ -21,6 +21,7 @@
 #include "iAVTKFileIO.h"
 
 #include "defines.h"       // for DIM
+#include "iAExceptionThrowingErrorObserver.h"
 #include "iAFileUtils.h"   // for getLocalEncodingFileName
 #include "iAProgress.h"
 #include "iAToolsVTK.h"
@@ -44,7 +45,7 @@ std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::load(iAProgress* progress, 
 	auto reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
 	reader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
 	progress->observe(reader);
-	reader->ReleaseDataFlagOff();
+	reader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 	reader->Update();
 
 	if (reader->IsFilePolyData())
@@ -56,7 +57,7 @@ std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::load(iAProgress* progress, 
 	else if (reader->IsFileRectilinearGrid())
 	{
 		LOG(lvlInfo, "File contains a reclinear grid");
-
+		// TODO: improve - probably using sampling, e.g. vtkProbeFilter
 		auto rectilinearGrid = reader->GetRectilinearGridOutput();
 		int* extent = rectilinearGrid->GetExtent();
 		vtkDataArray* coords[3] = {

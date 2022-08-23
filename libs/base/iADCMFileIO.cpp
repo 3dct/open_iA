@@ -50,6 +50,7 @@ std::vector<std::shared_ptr<iADataSet>> iADCMFileIO::load(iAProgress* progress, 
 	auto reader = itk::ImageSeriesReader<ImageType>::New();
 	auto dicomIO = itk::GDCMImageIO::New();
 	reader->SetImageIO(dicomIO);
+	progress->observe(reader);
 	auto nameGenerator = itk::GDCMSeriesFileNames::New();
 	nameGenerator->SetUseSeriesDetails(true);
 	nameGenerator->SetDirectory(getLocalEncodingFileName(QFileInfo(m_fileName).canonicalPath()));

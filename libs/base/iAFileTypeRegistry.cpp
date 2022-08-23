@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAFileTypeRegistry.h"
 
+#include "iAExceptionThrowingErrorObserver.h"
 #include "iAFileIO.h"
 
 #include <vtkPointData.h>
@@ -192,6 +193,7 @@ std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::load(iAProgress* progress,
 	vtkNew<vtkMetaImageReader> reader;
 	p->observe(reader);
 	//reader->SetFileName(m_fileName.toStdString().c_str());
+	imgReader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 	reader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
 	reader->Update();
 	if (reader->GetErrorCode() != 0)   // doesn't seem to catch errors such as file not existing...?
@@ -394,6 +396,7 @@ std::vector<std::shared_ptr<iADataSet>> iASTLFileIO::load(iAProgress* progress, 
 	Q_UNUSED(params);
 	auto stlReader = vtkSmartPointer<vtkSTLReader>::New();
 	progress->observe(stlReader);
+	stlReader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 	stlReader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
 	vtkNew<vtkPolyData> polyData;
 	stlReader->SetOutput(polyData);
