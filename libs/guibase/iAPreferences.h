@@ -31,7 +31,8 @@ public:
 		StatisticalExtent,
 		MagicLensSize,
 		MagicLensFrameWidth,
-		FontSize;
+		FontSize,
+		LimitForAuto3DRender;
 	bool Compression,
 		ResultInNewWindow,
 		PrintParameters,
@@ -43,6 +44,7 @@ public:
 		MagicLensSize(DefaultMagicLensSize),
 		MagicLensFrameWidth(3),
 		FontSize(8),
+		LimitForAuto3DRender(2'000),
 		Compression(true),
 		ResultInNewWindow(true),
 		PrintParameters(true),

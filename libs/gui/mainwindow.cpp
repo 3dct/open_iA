@@ -918,6 +918,7 @@ void MainWindow::savePreferences(iAXmlSettings &xml)
 	QDomElement preferencesElement = xml.createElement("preferences");
 	preferencesElement.setAttribute("histogramBins", tr("%1").arg(m_defaultPreferences.HistogramBins));
 	preferencesElement.setAttribute("histogramLogarithmicYAxis", tr("%1").arg(m_defaultPreferences.HistogramLogarithmicYAxis));
+	preferencesElement.setAttribute("limitForAuto3DRender", tr("%1").arg(m_defaultPreferences.LimitForAuto3DRender));
 	preferencesElement.setAttribute("statisticalExtent", tr("%1").arg(m_defaultPreferences.StatisticalExtent));
 	preferencesElement.setAttribute("compression", tr("%1").arg(m_defaultPreferences.Compression));
 	preferencesElement.setAttribute("printParameters", tr("%1").arg(m_defaultPreferences.PrintParameters));
@@ -933,6 +934,7 @@ void MainWindow::loadPreferences(QDomNode preferencesNode)
 	QDomNamedNodeMap attributes = preferencesNode.attributes();
 	m_defaultPreferences.HistogramBins = attributes.namedItem("histogramBins").nodeValue().toInt();
 	m_defaultPreferences.HistogramLogarithmicYAxis = attributes.namedItem("histogramLogarithmicYAxis").nodeValue().toInt();
+	m_defaultPreferences.LimitForAuto3DRender = attributes.namedItem("limitForAuto3DRender").nodeValue().toInt();
 	m_defaultPreferences.StatisticalExtent = attributes.namedItem("statisticalExtent").nodeValue().toDouble();
 	m_defaultPreferences.Compression = attributes.namedItem("compression").nodeValue() == "1";
 	m_defaultPreferences.PrintParameters = attributes.namedItem("printParameters").nodeValue() == "1";
@@ -1214,6 +1216,7 @@ void MainWindow::prefs()
 	addParameter(params, "Magic lens size", iAValueType::Discrete, p.MagicLensSize, MinimumMagicLensSize, MaximumMagicLensSize);
 	addParameter(params, "Magic lens frame width", iAValueType::Discrete, p.MagicLensFrameWidth, 0);
 	addParameter(params, "Logarithmic Histogram y axis", iAValueType::Boolean, p.HistogramLogarithmicYAxis);
+	addParameter(params, "Size limit for automatic 3D rendering (MB)", iAValueType::Discrete, p.LimitForAuto3DRender, 0);
 	iAParameterDlg dlg(this, "Preferences", params, descr);
 	if (dlg.exec() != QDialog::Accepted)
 	{
@@ -1242,6 +1245,7 @@ void MainWindow::prefs()
 	m_defaultPreferences.MagicLensSize = clamp(MinimumMagicLensSize, MaximumMagicLensSize, values["Magic lens size"].toInt());
 	m_defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(values["Magic lens frame width"].toInt()));
 	m_defaultPreferences.HistogramLogarithmicYAxis = values["Logarithmic Histogram y axis"].toBool();
+	m_defaultPreferences.LimitForAuto3DRender = values["Size limit for automatic 3D rendering (MB)"].toInt();
 	if (activeMdiChild())
 	{
 		activeMDI()->applyPreferences(m_defaultPreferences);
@@ -2100,6 +2104,7 @@ void MainWindow::readSettings()
 	m_defaultLayout = settings.value("Preferences/defaultLayout", "").toString();
 	m_defaultPreferences.HistogramBins = settings.value("Preferences/prefHistogramBins", defaultPrefs.HistogramBins).toInt();
 	m_defaultPreferences.HistogramLogarithmicYAxis = settings.value("Preferences/prefHistogramLogarithmicYAxis", defaultPrefs.HistogramLogarithmicYAxis).toBool();
+	m_defaultPreferences.LimitForAuto3DRender = settings.value("Preferences/prefLimitForAuto3DRender", defaultPrefs.LimitForAuto3DRender).toInt();
 	m_defaultPreferences.StatisticalExtent = settings.value("Preferences/prefStatExt", defaultPrefs.StatisticalExtent).toInt();
 	m_defaultPreferences.Compression = settings.value("Preferences/prefCompression", defaultPrefs.Compression).toBool();
 	m_defaultPreferences.PrintParameters = settings.value("Preferences/prefPrintParameters", defaultPrefs.PrintParameters).toBool();
@@ -2245,6 +2250,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Preferences/defaultLayout", m_layout->currentText());
 	settings.setValue("Preferences/prefHistogramBins", m_defaultPreferences.HistogramBins);
 	settings.setValue("Preferences/prefHistogramLogarithmicYAxis", m_defaultPreferences.HistogramLogarithmicYAxis);
+	settings.setValue("Preferences/prefLimitForAuto3DRender", m_defaultPreferences.LimitForAuto3DRender);
 	settings.setValue("Preferences/prefStatExt", m_defaultPreferences.StatisticalExtent);
 	settings.setValue("Preferences/prefCompression", m_defaultPreferences.Compression);
 	settings.setValue("Preferences/prefPrintParameters", m_defaultPreferences.PrintParameters);

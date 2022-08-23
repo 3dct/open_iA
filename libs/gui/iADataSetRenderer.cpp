@@ -534,6 +534,7 @@ private:
 // ---------- iAVolRenderer ----------
 //#include "iAChartWithFunctionsWidget.h"
 #include "iAModalityTransfer.h"
+#include "iAPreferences.h"
 #include "iAToolsVTK.h"
 #include "iAVolumeDataForDisplay.h"
 
@@ -562,8 +563,8 @@ namespace
 bool isLarge(vtkImageData* img)
 {
 	int const* dim = img->GetDimensions();
-	int byteSize = mapVTKTypeToSize(img->GetScalarType());    // should be a setting
-	return (static_cast<size_t>(dim[0]) * dim[1] * dim[2] * byteSize) < 2'000'000'000;
+	auto byteSize = mapVTKTypeToSize(img->GetScalarType());        // limit is in MB, hence the division
+	return (byteSize * dim[0] * dim[1] * dim[2] / 1048576.0) >= iAMainWindow::get()->defaultPreferences().LimitForAuto3DRender;
 }
 
 class iAVolRenderer: public iADataSetRenderer
