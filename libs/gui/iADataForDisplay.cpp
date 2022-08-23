@@ -47,6 +47,15 @@ iADataSet* iADataForDisplay::dataSet()
 	return m_dataSet;
 }
 
+void iADataForDisplay::applyPreferences(iAPreferences const& prefs)
+{
+	Q_UNUSED(prefs);
+}
+
+void iADataForDisplay::updatedPreferences()
+{
+}
+
 std::shared_ptr<iADataForDisplay> createDataForDisplay(iADataSet* dataSet, iAProgress* p, int numBins)
 {
 	auto volData = dynamic_cast<iAImageData*>(dataSet);

@@ -28,6 +28,7 @@
 
 class iADataSet;
 class iAMdiChild;
+class iAPreferences;
 class iAProgress;
 
 //! Base class for data linked to a dataset required for displaying it,
@@ -43,6 +44,10 @@ public:
 	virtual ~iADataForDisplay();
 	//! Get information to display about the dataset
 	virtual QString information() const;
+	//! Called when preferences have changed
+	virtual void applyPreferences(iAPreferences const& prefs);
+	//! Called after preferences have been applied, for potential required GUI updates
+	virtual void updatedPreferences();
 protected:
 	iADataSet* dataSet();
 private:

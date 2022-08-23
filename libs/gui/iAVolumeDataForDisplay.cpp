@@ -30,6 +30,7 @@
 #include "iAChartFunctionTransfer.h"
 #include "iAHistogramData.h"
 #include "iAPlotTypes.h"
+#include "iAPreferences.h"
 
 #include "iAMdiChild.h"
 
@@ -62,6 +63,29 @@ iAVolumeDataForDisplay::iAVolumeDataForDisplay(iAImageData* data, iAProgress* p,
 QString iAVolumeDataForDisplay::information() const
 {
 	return iADataForDisplay::information() + "\n" + QString("Statistics: %1").arg(m_imgStatistics);
+}
+
+void iAVolumeDataForDisplay::applyPreferences(iAPreferences const& prefs)
+{
+	auto img = dynamic_cast<iAImageData*>(dataSet())->image();
+	size_t newBinCount = iAHistogramData::finalNumBin(img, prefs.HistogramBins);
+	if (m_histogramData->valueCount() != newBinCount)
+	{
+		iAImageStatistics stats;
+		m_histogramData = iAHistogramData::create("Frequency", img, prefs.HistogramBins, &stats);
+	}
+}
+void iAVolumeDataForDisplay::updatedPreferences()
+{
+	if (m_histogramData.get() != m_histogram->plots()[0]->data().get())
+	{
+		m_histogram->clearPlots();
+		auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(
+			m_histogramData,
+			QApplication::palette().color(QPalette::Shadow));
+		m_histogram->addPlot(histogramPlot);
+		m_histogram->update();
+	}
 }
 
 void iAVolumeDataForDisplay::show(iAMdiChild* child)

@@ -31,6 +31,7 @@ class iADockWidgetWrapper;
 class iAImageData;
 class iAHistogramData;
 class iAModalityTransfer;
+class iAPreferences;
 class iAProgress;
 
 class iAgui_API iAVolumeDataForDisplay : public iADataForDisplay
@@ -39,6 +40,8 @@ public:
 	iAVolumeDataForDisplay(iAImageData* data, iAProgress* p, size_t binCount);
 	void show(iAMdiChild* child) override;
 	QString information() const override;
+	void applyPreferences(iAPreferences const& prefs) override;
+	void updatedPreferences() override;
 	iAModalityTransfer* transfer();
 	void update();
 private:

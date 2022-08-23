@@ -143,7 +143,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_dwVolumePlayer(nullptr),
 	m_nextChannelID(0),
 	m_magicLensChannel(NotExistingChannel),
-	m_magicLensModality(0),
+	m_magicLensDataSet(0),
 	m_initVolumeRenderers(false),
 	m_interactionMode(imCamera)
 {
@@ -441,9 +441,7 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_histogram, &iAChartWithFunctionsWidget::endPointSelected, this, &MdiChild::endPointSelected);
 	connect((iAChartTransferFunction*)(m_histogram->functions()[0]), &iAChartTransferFunction::changed, this, &MdiChild::changeTransferFunction);
 
-	//connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::updateDatasetInfo);
 	connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::updateViews);
-	connect(m_dwModalities, &dlg_modalities::modalitySelected , this, &MdiChild::showModality);
 }
 
 void MdiChild::connectThreadSignalsToChildSlots(iAAlgorithm* thread)
@@ -507,7 +505,6 @@ void MdiChild::enableRenderWindows()	// = image data available
 			m_slicer[s]->triggerSliceRangeChange();
 		}
 		updateViews();
-		//updateDatasetInfo();
 		if (modalities()->size() > 0 && modality(0)->image()->GetNumberOfScalarComponents() == 1)
 		{
 			setHistogramModality(0);
@@ -1618,8 +1615,18 @@ bool MdiChild::applyPreferences(iAPreferences const& prefs)
 	{
 		return true;
 	}
-	setHistogramModality(m_magicLensModality);	// to update Histogram bin count
+	setHistogramModality(m_magicLensDataSet);	// to update Histogram bin count
 	m_histogram->setYMappingMode(prefs.HistogramLogarithmicYAxis ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
+	for (auto dataForDisplay : m_dataForDisplay)
+	{
+		auto dfd = dataForDisplay.second;
+		auto fw = runAsync([this, prefs, dfd]() {
+			dfd->applyPreferences(prefs);
+		}, [dfd]() {
+			dfd->updatedPreferences();
+		}, this);
+		iAJobListView::get()->addJob(QString("Updating preferences for dataset %1").arg(m_dataSets[dataForDisplay.first]->name()), nullptr, fw);
+	}
 	applyViewerPreferences();
 	if (isMagicLens2DEnabled())
 	{
@@ -2664,14 +2671,14 @@ bool MdiChild::isVolumeDataLoaded() const
 void MdiChild::changeMagicLensModality(int chg)
 {
 	// maybe move to slicer?
-	m_magicLensModality = (m_magicLensModality + chg + m_dataSets.size()) % m_dataSets.size();
-	if (!m_isMagicLensEnabled || m_dataSets.empty() || !dynamic_cast<iAImageData*>(m_dataSets[m_magicLensModality].get()))
+	m_magicLensDataSet = (m_magicLensDataSet + chg + m_dataSets.size()) % m_dataSets.size();
+	if (!m_isMagicLensEnabled || m_dataSets.empty() || !dynamic_cast<iAImageData*>(m_dataSets[m_magicLensDataSet].get()))
 	{
 		return;
 	}
 	// To check: support for multiple components in a vtk image? or separating those components?
-	auto imgData = dynamic_cast<iAImageData*>(m_dataSets[m_magicLensModality].get());
-	auto imgDisplayData = dynamic_cast<iAVolumeDataForDisplay*>(m_dataForDisplay[m_magicLensModality].get());
+	auto imgData = dynamic_cast<iAImageData*>(m_dataSets[m_magicLensDataSet].get());
+	auto imgDisplayData = dynamic_cast<iAVolumeDataForDisplay*>(m_dataForDisplay[m_magicLensDataSet].get());
 	if (m_magicLensChannel == NotExistingChannel)
 	{
 		m_magicLensChannel = createChannel();
@@ -2710,16 +2717,6 @@ void MdiChild::changeMagicLensSize(int chg)
 	}
 	m_preferences.MagicLensSize = newSize;
 	updateSlicers();
-}
-
-void MdiChild::showModality(int modIdx)
-{
-	if (m_magicLensModality == modIdx)
-	{
-		return;
-	}
-	m_magicLensModality = modIdx;
-	setHistogramModality(modIdx);
 }
 
 void MdiChild::setModalities(QSharedPointer<iAModalityList> modList)
@@ -2859,7 +2856,6 @@ void MdiChild::showHistogram(int modalityIdx)
 void MdiChild::histogramDataAvailable(int modalityIdx)
 {
 	showHistogram(modalityIdx);
-	//updateDatasetInfo();	 // TODO: Datasets - provide histogram information in iAImageData::info?
 	if (!findChild<iADockWidgetWrapper*>("Histogram"))
 	{
 		splitDockWidget(m_dwRenderer, m_dwHistogram, Qt::Vertical);

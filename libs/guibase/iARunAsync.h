@@ -43,7 +43,7 @@
 template <typename RunnerT, typename FinishT>
 QFutureWatcher<void>* runAsync(RunnerT runner, FinishT finish, QObject* context)
 {
-	auto futureWatcher = new QFutureWatcher<void>(context); // shouldn' I use context as parent here?
+	auto futureWatcher = new QFutureWatcher<void>(context); // shouldn't I use context as parent here?
 	QObject::connect(futureWatcher, &QFutureWatcher<void>::finished, context, finish);
 	QObject::connect(futureWatcher, &QFutureWatcher<void>::finished, futureWatcher, &QFutureWatcher<void>::deleteLater);
 	auto future = QtConcurrent::run(runner);

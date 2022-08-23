@@ -390,7 +390,6 @@ private slots:
 	void changeMagicLensModality(int chg);
 	void changeMagicLensOpacity(int chg);
 	void changeMagicLensSize(int chg);
-	void showModality(int modIdx);
 	void saveFinished();
 	void modalityAdded(int modalityIdx);
 	void toggleFullScreen();
@@ -511,7 +510,7 @@ private:
 	dlg_renderer * m_dwRenderer;
 	//! @}
 
-	//! @deprecated use jobs instead (iARunAsync + iAJobListWidget)
+	//! @deprecated use jobs instead (iARunAsync + iAJobListView)
 	std::vector<iAAlgorithm*> m_workingAlgorithms;
 
 	QMap<uint, QSharedPointer<iAChannelData> > m_channels;
@@ -526,7 +525,7 @@ private:
 	//! @deprecated should be referenced in wherever image is stored, e.g. in iAIO)
 	vtkSmartPointer<vtkImageData> m_tmpSaveImg;
 
-	int m_magicLensModality;
+	int m_magicLensDataSet;
 	bool m_initVolumeRenderers;
 	int m_storedModalityNr;		                                     //!< modality nr being stored
 	QMap<QString, std::shared_ptr<iAProjectBase>> m_projects;         //!< list of currently active "projects" (i.e. Tools)
