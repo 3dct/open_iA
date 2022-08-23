@@ -391,15 +391,31 @@ void MdiChild::connectSignalsToSlots()
 		connect(m_slicer[s], &iASlicerImpl::sliceRotated, this, &MdiChild::slicerRotationChanged);
 		connect(m_slicer[s], &iASlicer::sliceNumberChanged, this, &MdiChild::setSlice);
 		connect(m_slicer[s], &iASlicer::mouseMoved, this, &MdiChild::updatePositionMarker);
-		connect(m_slicer[s], &iASlicerImpl::regionSelected, this, [this](int minVal, int maxVal)
+		connect(m_slicer[s], &iASlicerImpl::regionSelected, this, [this](int minVal, int maxVal, uint channelID)
 		{
 			if (minVal == maxVal)
 			{
 				return;
 			}
-			auto modTrans = modality(0)->transfer();	// TODO: check how/whether to adapt modality ID
+			//auto modTrans = modality(0)->transfer();	// TODO: check how/whether to adapt modality ID
+			// find id of dataset with given channel:
+			size_t dataSetID = 0;
+			while (dataSetID < m_dataSets.size() && (!m_sliceRenderers[dataSetID] || m_sliceRenderers[dataSetID]->channelID() != channelID) )
+			{
+				++dataSetID;
+			}
+			if (dataSetID >= m_dataSets.size())
+			{
+				return;
+			}
 			// create "windowed" transfer function,
 			// such that the full color and opacity contrast is available between minVal and maxVal
+			auto volData = dynamic_cast<iAVolumeDataForDisplay*>(m_dataForDisplay[dataSetID].get());
+			if (!volData)
+			{
+				return;
+			}
+			auto modTrans = volData->transfer();
 			auto ctf = modTrans->colorTF();
 			double range[2];
 			ctf->GetRange(range);
@@ -416,7 +432,7 @@ void MdiChild::connectSignalsToSlots()
 			otf->AddPoint(maxVal, 1.0);
 			otf->AddPoint(range[1], 1.0);
 			updateViews();
-			m_histogram->update();
+			volData->update();
 		});
 	}
 

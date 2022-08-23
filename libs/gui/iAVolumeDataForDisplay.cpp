@@ -90,3 +90,8 @@ iAModalityTransfer* iAVolumeDataForDisplay::transfer()
 {
 	return m_transfer.get();
 }
+
+void iAVolumeDataForDisplay::update()
+{
+	m_histogram->update();
+}

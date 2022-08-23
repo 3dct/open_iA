@@ -40,6 +40,7 @@ public:
 	void show(iAMdiChild* child) override;
 	QString information() const override;
 	iAModalityTransfer* transfer();
+	void update();
 private:
 	std::shared_ptr<iAModalityTransfer> m_transfer;
 	QSharedPointer<iAHistogramData> m_histogramData;

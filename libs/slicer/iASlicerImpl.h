@@ -271,7 +271,7 @@ signals:
 	void deletedSnakeLine();
 	void sliceRotated(); //!< triggered when slice was rotated
 	void sliceRangeChanged(int minIdx, int maxIdx);
-	void regionSelected(double minVal, double maxVal);
+	void regionSelected(double minVal, double maxVal, uint channelID);
 
 private:
 	QAction* m_actionLinearInterpolation, * m_actionFisheyeLens,

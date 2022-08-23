@@ -178,20 +178,28 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	connect(&m_interactorStyle->qtEventObject(), &iASlicerInteractionEvents::selection, this,
 		[this](int dragStart[2], int dragEnd[2])
 		{
-			if (m_channels.isEmpty())
+			uint channelID = NotExistingChannel;  // check "first" visible channel
+			for (auto key : m_channels.keys())
+			{
+				if (m_channels[key]->isEnabled())
+				{
+					channelID = key;
+					break;
+				}
+			}
+			if (channelID == NotExistingChannel)
 			{
 				return;
 			}
+			const int Component = 0;  // only check first component
 			// acquire coordinates of clicks and convert to slicer output coordinates:
 			double slicerPosStart[3], slicerPosEnd[3], globalPosStart[4], globalPosEnd[4];
 			screenPixelPosToImgPos(dragStart, slicerPosStart, globalPosStart);
 			screenPixelPosToImgPos(dragEnd, slicerPosEnd, globalPosEnd);
-			const int Component = 0;  // only check first component...
-			const int ChannelID = 0;  // ... of first channel
-			int const* slicerExtent = m_channels[ChannelID]->output()->GetExtent();
+			int const* slicerExtent = m_channels[channelID]->output()->GetExtent();
 			QPoint slicePixelPos[2] = {
-				slicerPosToImgPixelCoords(ChannelID, slicerPosStart),
-				slicerPosToImgPixelCoords(ChannelID, slicerPosEnd)
+				slicerPosToImgPixelCoords(channelID, slicerPosStart),
+				slicerPosToImgPixelCoords(channelID, slicerPosEnd)
 			};
 			// make sure the coordinates stay inside valid range for slicer pixel image coordinates
 			for (int i = 0; i < 2; ++i)
@@ -213,7 +221,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 			{
 				for (int y = startY; y <= endY; ++y)
 				{
-					double value = m_channels[ChannelID]->output()->GetScalarComponentAsDouble(x, y, 0, Component);
+					double value = m_channels[channelID]->output()->GetScalarComponentAsDouble(x, y, 0, Component);
 					if (value > maxVal)
 					{
 						maxVal = value;
@@ -224,7 +232,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 					}
 				}
 			}
-			emit regionSelected(minVal, maxVal);
+			emit regionSelected(minVal, maxVal, channelID);
 		});
 
 	iAObserverRedirect* redirect(new iAObserverRedirect(this));
