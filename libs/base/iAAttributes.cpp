@@ -97,3 +97,13 @@ iAAttributes combineAttributesWithValues(iAAttributes const& attributes, QVarian
 	}
 	return combined;
 }
+
+iAbase_API QVariantMap extractValues(iAAttributes const& attributes)
+{
+	QVariantMap result;
+	for (auto param : attributes)
+	{
+		result.insert(param->name(), param->defaultValue());
+	}
+	return result;
+}

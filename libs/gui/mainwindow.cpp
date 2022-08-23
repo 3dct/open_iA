@@ -511,7 +511,7 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 		return;
 	}
 	auto settingsGroup = ioSettingsGroup(io->name());
-	auto paramValues = ::loadSettings(settingsGroup);
+	auto paramValues = ::loadSettings(settingsGroup, extractValues(io->parameters()));
 	if (io->parameters().size() > 0)
 	{
 		auto paramDlg = iAFileParamDlg::get(io->name());

@@ -42,11 +42,19 @@ void storeSettings(QString const& group, QVariantMap const& values)
 	}
 }
 
-QVariantMap loadSettings(QString const& group)
+QVariantMap loadSettings(QString const& group, QVariantMap const& defaultValues)
 {
 	QSettings settings;
 	settings.beginGroup(group);
-	return mapFromQSettings(settings);
+	auto result = mapFromQSettings(settings);
+	for (auto key : defaultValues.keys())
+	{
+		if (!result.contains(key))
+		{
+			result[key] = defaultValues[key];
+		}
+	}
+	return result;
 }
 
 #if QT_VERSION < QT_VERSION_CHECK(6,0,0)
