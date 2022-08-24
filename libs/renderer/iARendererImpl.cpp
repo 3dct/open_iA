@@ -221,6 +221,7 @@ void GetCellCenter(vtkUnstructuredGrid* data, const unsigned int cellId, double 
 iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* renderWindow): iARenderer(parent),
 	m_initialized(false),
 	m_renderObserver(nullptr),
+	m_polyData(nullptr),
 	m_imageData(nullptr),
 	m_renWin(renderWindow),
 	m_interactor(renderWindow->GetInteractor()),
