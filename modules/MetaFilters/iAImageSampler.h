@@ -30,7 +30,6 @@
 #include <iAPerformanceHelper.h>
 
 #include <QMap>
-#include <QMutex>
 #include <QSharedPointer>
 #include <QThread>
 

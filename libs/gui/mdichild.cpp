@@ -145,7 +145,8 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_magicLensChannel(NotExistingChannel),
 	m_magicLensDataSet(0),
 	m_initVolumeRenderers(false),
-	m_interactionMode(imCamera)
+	m_interactionMode(imCamera),
+	m_nextDataSetID(0)
 {
 	std::fill(m_slicerVisibility, m_slicerVisibility + 3, false);
 	setAttribute(Qt::WA_DeleteOnClose);
@@ -204,11 +205,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 			updateRenderer();
 			m_dataRenderers.erase(idx);
 			m_dataForDisplay.erase(idx);
-			// ToDo: problematic: so far, idx used as "primary key" in m_dataRenderers/m_dataForDisplay/m_sliceRenderers
-			//     Options:
-			//         - use different primary key (e.g. an index increasing by 1 each time in addDataSet) and make m_dataSets a map as well -> preferred!
-			//         - or shift entries in those maps to new keys (lots of effort and prone to errors!)
-			m_dataSets.erase(m_dataSets.begin() + idx);
+			m_dataSets.erase(idx);
 			updateDataSetInfo();
 		});
 	connect(m_dataSetListWidget, &iADataSetListWidget::editDataSet, this,
@@ -606,8 +603,13 @@ void MdiChild::showPoly()
 
 void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 {
-	auto dataSetIdx = m_dataSets.size();
-	m_dataSets.push_back(dataSet);
+	size_t dataSetIdx;
+	{
+		QMutexLocker locker(&m_dataSetMutex);
+		dataSetIdx = m_nextDataSetID;
+		++m_nextDataSetID;
+	}
+	m_dataSets[dataSetIdx] = dataSet;
 	auto p = std::make_shared<iAProgress>();
 	auto fw = runAsync([this, dataSet, dataSetIdx, p]()
 		{
@@ -2889,9 +2891,11 @@ void MdiChild::set3DControlVisibility(bool visible)
 	m_dwRenderer->widget3D->setVisible(visible);
 }
 
-std::vector<std::shared_ptr<iADataSet>> const & MdiChild::dataSets() const
+std::vector<std::shared_ptr<iADataSet>> MdiChild::dataSets() const
 {
-	return m_dataSets;
+	std::vector<std::shared_ptr<iADataSet>> result;
+	std::transform(m_dataSets.begin(), m_dataSets.end(), std::back_inserter(result), [](auto const& p) { return p.second; });
+	return result;
 }
 
 void MdiChild::displayHistogram(int modalityIdx)

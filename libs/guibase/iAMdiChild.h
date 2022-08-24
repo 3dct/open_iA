@@ -270,7 +270,7 @@ public:
 	virtual void set3DControlVisibility(bool visible) = 0;
 
 	//! retrieve a list of all datasets loaded in this window
-	virtual std::vector<std::shared_ptr<iADataSet>> const & dataSets() const = 0;
+	virtual std::vector<std::shared_ptr<iADataSet>> dataSets() const = 0;
 
 signals:
 	void closed();

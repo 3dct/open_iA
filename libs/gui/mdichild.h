@@ -39,6 +39,7 @@
 
 #include <QFileInfo>
 #include <QMap>
+#include <QMutex>
 #include <QString>
 #include <QSharedPointer>
 
@@ -326,7 +327,7 @@ public:
 
 	void set3DControlVisibility(bool visible) override;
 
-	std::vector<std::shared_ptr<iADataSet>> const & dataSets() const override;
+	std::vector<std::shared_ptr<iADataSet>> dataSets() const override;
 
 public slots:
 	void maximizeRC();
@@ -532,7 +533,9 @@ private:
 	iAInteractionMode m_interactionMode;                             //!< current interaction mode in slicers/renderer (see iAInteractionMode)
 	bool m_slicerVisibility[3];
 
-	std::vector<std::shared_ptr<iADataSet>> m_dataSets;              //!< list of all currently loaded datasets
+	size_t m_nextDataSetID;                                               //!< holds ID for next dataSet (in order to provide a unique ID to each loaded dataset)
+	QMutex m_dataSetMutex;                                                //!< used to guarantee that m_nextDataSetID can only be read and modified together
+	std::map<size_t, std::shared_ptr<iADataSet>> m_dataSets;              //!< list of all currently loaded datasets.
 	std::map<size_t, std::shared_ptr<iADataForDisplay>> m_dataForDisplay; //!< optional additional data required for displaying a dataset
 	std::map<size_t, std::shared_ptr<iADataSetRenderer>> m_dataRenderers; //!< 3D renderers (one per dataset in m_datasets)
 	std::map<size_t, std::shared_ptr<iADataSetRenderer>> m_3dMagicLensRenderers; //!< 3D renderers for magic lens (one per dataset in m_datasets)
