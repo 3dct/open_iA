@@ -610,6 +610,10 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 		dataSetIdx = m_nextDataSetID;
 		++m_nextDataSetID;
 	}
+	if (m_curFile.isEmpty())
+	{
+		setCurrentFile(dataSet->fileName());
+	}
 	m_dataSets[dataSetIdx] = dataSet;
 	auto p = std::make_shared<iAProgress>();
 	auto fw = runAsync([this, dataSet, dataSetIdx, p]()
