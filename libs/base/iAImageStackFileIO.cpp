@@ -80,7 +80,7 @@ namespace
 	}
 }
 
-iAImageStackFileIO::iAImageStackFileIO() : iAFileIO(iADataSetType::Volume)
+iAImageStackFileIO::iAImageStackFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
 {
 	QStringList loadTypes = QStringList() << SingleImageOption << ImageStackOption;
 	addParameter(LoadTypeStr, iAValueType::Categorical, loadTypes);
@@ -95,13 +95,13 @@ iAImageStackFileIO::iAImageStackFileIO() : iAFileIO(iADataSetType::Volume)
 }
 
 
-std::vector<std::shared_ptr<iADataSet>> iAImageStackFileIO::load(iAProgress* progress, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iAImageStackFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
 {
 	Q_UNUSED(parameters);
 
 //#if RAW_LOAD_METHOD == ITK
 //#else
-	auto ext = QFileInfo(m_fileName).suffix().toLower();
+	auto ext = QFileInfo(fileName).suffix().toLower();
 
 	vtkSmartPointer<vtkImageReader2> imgReader;
 	if (ext.endsWith("jpg") || ext.endsWith("jpeg"))
@@ -130,7 +130,7 @@ std::vector<std::shared_ptr<iADataSet>> iAImageStackFileIO::load(iAProgress* pro
 
 	if (parameters[LoadTypeStr] == SingleImageOption)
 	{
-		imgReader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
+		imgReader->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	}
 	else
 	{
@@ -153,7 +153,7 @@ std::vector<std::shared_ptr<iADataSet>> iAImageStackFileIO::load(iAProgress* pro
 	auto img = vtkSmartPointer<vtkImageData>::New();
 	imgReader->SetOutput(img);
 	imgReader->Update();
-	return { std::make_shared<iAImageData>(m_fileName, img) };
+	return { std::make_shared<iAImageData>(fileName, img) };
 	// TODO: maybe compute range here as well?
 	//auto rng = img->GetScalarRange();   // see also comments above about performance measurements
 //#endif

@@ -34,15 +34,15 @@
 
 const QString iANKCFileIO::Name("NKC files");
 
-iANKCFileIO::iANKCFileIO() : iAFileIO(iADataSetType::Volume)
+iANKCFileIO::iANKCFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
 {
 }
 
-std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::load(iAProgress* progress, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
 {
 	Q_UNUSED(parameters);
 
-	QFile file(m_fileName);
+	QFile file(fileName);
 	file.open(QFile::ReadOnly | QFile::Text);
 	QTextStream in(&file);
 	auto text = in.readAll();
@@ -83,7 +83,6 @@ std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::load(iAProgress* progress, 
 	}
 
 	iARawFileIO io;
-	io.setup(m_fileName);
 	QVariantMap params;
 	params[iARawFileIO::SpacingStr] = variantVector<double>({ 1.0, 1.0, 1.0 });
 	params[iARawFileIO::OriginStr] = variantVector<double>({ 0.0, 0.0, 0.0 });
@@ -91,14 +90,14 @@ std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::load(iAProgress* progress, 
 	params[iARawFileIO::ByteOrderStr] = ByteOrder::BigEndianStr;
 	params[iARawFileIO::DataTypeStr] = mapVTKTypeToReadableDataType(VTK_TYPE_UINT16);
 	params[iARawFileIO::HeadersizeStr] = file.size() - (size[0] * size[1] * 2);
-	auto d = io.load(progress, params);
+	auto d = io.load(fileName, progress, params);
 
 	auto replaceAndShift = iAFilterRegistry::filter("Replace and Shift");
 	if (!replaceAndShift)
 	{
 		LOG(lvlError,
 			QString("Reading NKC file %1 requires 'Replace and Shift' filter, but filter could not be found!")
-			.arg(m_fileName));
+			.arg(fileName));
 		return {};
 	}
 	replaceAndShift->addInput(dynamic_cast<iAImageData*>(d[0].get())->image(), "");
@@ -112,7 +111,7 @@ std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::load(iAProgress* progress, 
 	{
 		LOG(lvlError,
 			QString("Reading NKC file %1 requires 'Datatype Conversion' filter, but filter could not be found!")
-			.arg(m_fileName));
+			.arg(fileName));
 		return {};
 	}
 
@@ -129,7 +128,7 @@ std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::load(iAProgress* progress, 
 	{
 		LOG(lvlError,
 			QString("Reading NKC file %1 requires 'Shift and Scale' filter, but filter could not be found!")
-			.arg(m_fileName));
+			.arg(fileName));
 		return {};
 	}
 	filterScale->addInput(dataTypeConversion->output(0)->itkImage(), "");
@@ -140,7 +139,7 @@ std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::load(iAProgress* progress, 
 
 	vtkNew<vtkImageData> img;
 	img->DeepCopy(filterScale->output(0)->vtkImage());
-	return { std::make_shared<iAImageData>(m_fileName, img) };
+	return { std::make_shared<iAImageData>(fileName, img) };
 }
 
 QString iANKCFileIO::name() const

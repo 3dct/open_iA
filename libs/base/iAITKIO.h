@@ -25,6 +25,8 @@
 #include <itkImageBase.h>
 #include <itkImageIOBase.h>
 
+class iAProgress;
+
 class QString;
 
 namespace iAITKIO
@@ -39,5 +41,5 @@ namespace iAITKIO
 
 	// TODO: unify with mdichild::loadfile / iAIO!
 	iAbase_API ImagePointer readFile(QString const& fileName, ScalarPixelType& pixelType, bool releaseFlag);
-	iAbase_API void writeFile(QString const& fileName, ImagePtr image, ScalarPixelType pixelType, bool useCompression = false);
+	iAbase_API void writeFile(QString const& fileName, ImagePtr image, ScalarPixelType pixelType, bool useCompression = false, iAProgress* progress = nullptr);
 } // namespace iAITKIO

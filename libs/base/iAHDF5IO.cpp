@@ -87,22 +87,22 @@ const QString iAHDF5IO::Name("HDF5 file");
 const QString iAHDF5IO::DataSetPathStr("Dataset path");
 const QString iAHDF5IO::SpacingStr("Spacing");
 
-iAHDF5IO::iAHDF5IO() : iAFileIO(iADataSetType::Volume)
+iAHDF5IO::iAHDF5IO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
 {
 	addParameter(DataSetPathStr, iAValueType::String, "");
 	addParameter(SpacingStr, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::load(iAProgress* progress, QVariantMap const& params)
+std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::load(QString const& fileName, iAProgress* progress, QVariantMap const& params)
 {
 	Q_UNUSED(progress);
 	auto hdf5PathStr = params[DataSetPathStr].toString();
 	auto hdf5Path = hdf5PathStr.split("/");
 	if (hdf5Path.size() < 1)
 	{
-		throw std::runtime_error(QString("HDF5 file %1: At least one path element expected, 0 given.").arg(m_fileName).toStdString());
+		throw std::runtime_error(QString("HDF5 file %1: At least one path element expected, 0 given.").arg(fileName).toStdString());
 	}
-	hid_t file = H5Fopen(getLocalEncodingFileName(m_fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+	hid_t file = H5Fopen(getLocalEncodingFileName(fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
 	hid_t loc_id = file;
 	auto dataSetName = hdf5Path.takeLast();
 	if (!hdf5Path.isEmpty())
@@ -111,7 +111,7 @@ std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::load(iAProgress* progress, QVa
 		loc_id = H5Gopen(file, groupName.toStdString().c_str(), H5P_DEFAULT);  // TODO: check which encoding HDF5 internal strings have!
 		if (loc_id < 0)
 		{
-			throw std::runtime_error(QString("HDF5 file %1: Could not open group %2.").arg(m_fileName).arg(groupName).toStdString());
+			throw std::runtime_error(QString("HDF5 file %1: Could not open group %2.").arg(fileName).arg(groupName).toStdString());
 		}
 	}
 	hid_t dataset_id = H5Dopen(loc_id, dataSetName.toStdString().c_str(), H5P_DEFAULT);
@@ -119,7 +119,7 @@ std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::load(iAProgress* progress, QVa
 	int rank = H5Sget_simple_extent_ndims(space);
 	if (rank < 0)
 	{
-		throw std::runtime_error(QString("HDF5 file %1: Retrieving rank of dataset %2 failed.").arg(m_fileName).arg(dataSetName).toStdString());
+		throw std::runtime_error(QString("HDF5 file %1: Retrieving rank of dataset %2 failed.").arg(fileName).arg(dataSetName).toStdString());
 	}
 	hsize_t* hdf5Dims = new hsize_t[rank];
 	hsize_t* maxdims = new hsize_t[rank];
@@ -171,7 +171,7 @@ std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::load(iAProgress* progress, QVa
 	// but it causes the same errors as the code above; so we need to deep-copy:
 	auto img = vtkSmartPointer<vtkImageData>::New();
 	img->DeepCopy(imgImport->GetOutput());
-	return { std::make_shared<iAImageData>(m_fileName, img) };
+	return { std::make_shared<iAImageData>(fileName, img) };
 }
 
 QString iAHDF5IO::name() const

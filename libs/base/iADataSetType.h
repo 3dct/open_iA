@@ -25,6 +25,7 @@
 //! Dataset type contained in files
 enum class iADataSetType
 {
+	None = 0,
 	Volume = 0x1,
 	Mesh = 0x2,
 	Graph = 0x4,

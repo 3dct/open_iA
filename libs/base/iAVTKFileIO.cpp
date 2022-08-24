@@ -34,16 +34,16 @@
 
 const QString iAVTKFileIO::Name("VTK files");
 
-iAVTKFileIO::iAVTKFileIO() : iAFileIO(iADataSetType::All)
+iAVTKFileIO::iAVTKFileIO() : iAFileIO(iADataSetType::All, iADataSetType::None)
 {
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::load(iAProgress* progress, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
 {
 	Q_UNUSED(parameters);
 	std::vector<std::shared_ptr<iADataSet>> result;
 	auto reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
-	reader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
+	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	progress->observe(reader);
 	reader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 	reader->Update();
@@ -52,7 +52,7 @@ std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::load(iAProgress* progress, 
 	{
 		LOG(lvlInfo, "File contains polydata");
 		vtkSmartPointer<vtkPolyData> polyData = reader->GetPolyDataOutput();
-		return { std::make_shared<iAPolyData>(m_fileName, polyData) };
+		return { std::make_shared<iAPolyData>(fileName, polyData) };
 	}
 	else if (reader->IsFileRectilinearGrid())
 	{
@@ -130,7 +130,7 @@ std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::load(iAProgress* progress, 
 			auto arrayPtr = arrayData->GetVoidPointer(0);
 			std::memcpy(img->GetScalarPointer(), arrayPtr, byteSize);
 
-			return { std::make_shared<iAImageData>(m_fileName, img) };
+			return { std::make_shared<iAImageData>(fileName, img) };
 		}
 		return {};
 	}

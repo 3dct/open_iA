@@ -38,7 +38,7 @@ namespace
 	const QString ChannelNumberStr("Channel number");
 }
 
-iAOIFFileIO::iAOIFFileIO() : iAFileIO(iADataSetType::Volume)
+iAOIFFileIO::iAOIFFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
 {
 	QStringList whatToLoad = QStringList() << SingleChannelStr << AllChannelsStr;
 	selectOption(whatToLoad, AllChannelsStr);
@@ -46,12 +46,12 @@ iAOIFFileIO::iAOIFFileIO() : iAFileIO(iADataSetType::Volume)
 	addParameter(ChannelNumberStr, iAValueType::Discrete, 0, 0);
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAOIFFileIO::load(iAProgress* progress, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iAOIFFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
 {
 	Q_UNUSED(progress);
 	//void readOIF(QString const& filename, iAConnector * con, int channel, std::vector<vtkSmartPointer<vtkImageData> > *volumes)
 	iAOIFReaderHelper reader;
-	auto wfn = m_fileName.toStdWString();
+	auto wfn = fileName.toStdWString();
 	reader.SetFile(wfn);
 	std::wstring timeId(L"_T");
 	reader.SetTimeId(timeId);
@@ -66,7 +66,7 @@ std::vector<std::shared_ptr<iADataSet>> iAOIFFileIO::load(iAProgress* progress, 
 			iAConnector con;
 			con.setImage(reader.GetResult(i));
 			img->DeepCopy(con.vtkImage());
-			result.push_back(std::make_shared<iAImageData>(m_fileName, img));
+			result.push_back(std::make_shared<iAImageData>(fileName, img));
 		}
 		return result;
 
@@ -81,12 +81,12 @@ std::vector<std::shared_ptr<iADataSet>> iAOIFFileIO::load(iAProgress* progress, 
 			iAConnector con;
 			con.setImage(reader.GetResult(channel));
 			img->DeepCopy(con.vtkImage());
-			return { std::make_shared<iAImageData>(m_fileName, img) };
+			return { std::make_shared<iAImageData>(fileName, img) };
 		}
 		else
 		{
 			LOG(lvlError, QString("OIF reader: Extracting single channel from file %1 failed: Given channel number %2 is outside of valid range (0..%3)!")
-				.arg(m_fileName).arg(channel).arg(reader.GetChanNum()));
+				.arg(fileName).arg(channel).arg(reader.GetChanNum()));
 			return {};
 		}
 	}

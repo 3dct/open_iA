@@ -55,7 +55,7 @@ const QString iARawFileIO::HeadersizeStr("Headersize");
 const QString iARawFileIO::DataTypeStr("Data Type");
 const QString iARawFileIO::ByteOrderStr("Byte Order");
 
-iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::Volume)
+iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
 {
 	auto datatype = readableDataTypeList(false);
 	QString selectedType = mapVTKTypeToReadableDataType(VTK_UNSIGNED_SHORT);
@@ -107,7 +107,7 @@ void read_raw_image_template(QVariantMap const& params, QString const& fileName,
 }
 #endif
 
-std::vector<std::shared_ptr<iADataSet>> iARawFileIO::load(iAProgress* progress, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iARawFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
 {
 	Q_UNUSED(parameters);
 
@@ -116,7 +116,7 @@ std::vector<std::shared_ptr<iADataSet>> iARawFileIO::load(iAProgress* progress, 
 
 #if RAW_LOAD_METHOD == ITK
 	auto scalarType = mapReadableDataTypeToVTKType(parameters[DataTypeStr].toString());
-	VTK_TYPED_CALL(read_raw_image_template, scalarType, parameters, m_fileName, progress, con);
+	VTK_TYPED_CALL(read_raw_image_template, scalarType, parameters, fileName, progress, con);
 	// direct copying as in following line would cause a crash further down the line:
 	// auto img = con.vtkImage();
 	// instead, we need to do a deep copy here:
@@ -148,7 +148,7 @@ std::vector<std::shared_ptr<iADataSet>> iARawFileIO::load(iAProgress* progress, 
 	// ITK: 51837 (52087) ms (erstes Lesen von Hard disk), 5463 (5721) ms (zweites lesen, nach VTK)
 	//      -> ITK consistently faster, and much faster for small datasets!
 #endif
-	return { std::make_shared<iAImageData>(m_fileName, img) };
+	return { std::make_shared<iAImageData>(fileName, img) };
 	// TODO: maybe compute range here as well?
 	//auto rng = img->GetScalarRange();   // see also comments above about performance measurements
 }

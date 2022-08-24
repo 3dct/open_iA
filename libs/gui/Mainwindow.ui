@@ -81,6 +81,7 @@
     <addaction name="actionOpenTLGICTData"/>
     <addaction name="separator"/>
     <addaction name="actionSave"/>
+    <addaction name="actionSave_New"/>
     <addaction name="actionSaveAs"/>
     <addaction name="actionSaveProject"/>
     <addaction name="separator"/>
@@ -1168,6 +1169,15 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+O</string>
+   </property>
+  </action>
+  <action name="actionSave_New">
+   <property name="icon">
+    <iconset resource="../guibase/guibase.qrc">
+     <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save (New)</string>
    </property>
   </action>
  </widget>

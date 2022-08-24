@@ -51,7 +51,10 @@ public:
 	static void setupDefaultIOFactories();
 
 	//! Retrieve list of file types for file open dialog
-	static QString registeredFileTypes(iADataSetTypes allowedTypes = iADataSetType::All);
+	static QString registeredLoadFileTypes(iADataSetTypes allowedTypes = iADataSetType::All);
+
+	//! Retrieve list of file types available for given dataset
+	static QString registeredSaveFileTypes(iADataSetType type);
 
 private:
 	static std::vector<std::shared_ptr<iAIFileIOFactory>> m_fileIOs;

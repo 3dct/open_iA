@@ -158,6 +158,7 @@ private slots:
 	void openWithDataTypeConversion();
 	void openTLGICTData();
 	void save();
+	void saveNew();
 	void saveAs();
 	void loadSettings();
 	void saveSettings();

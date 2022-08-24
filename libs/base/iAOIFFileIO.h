@@ -27,7 +27,7 @@ class iAbase_API iAOIFFileIO : public iAFileIO
 public:
 	static const QString Name;
 	iAOIFFileIO();
-	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* progress, QVariantMap const& parameters) override;
+	std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };

@@ -117,6 +117,7 @@ public:
 	void addDataSet(std::shared_ptr<iADataSet> dataSet) override;
 	void prepareForResult();
 	bool save();
+	void saveNew();
 	bool saveAs();
 	bool saveFile(const QString &f, int modalityNr, int componentNr);
 	void updateLayout() override;
@@ -273,6 +274,9 @@ public:
 	//! If given modality has more than one component, ask user to choose one of them.
 	//! (currently used for determining which modality to save)
 	int chooseComponentNr(int modalityNr);
+
+	//! If more than one dataset loaded, ask user to choose one of them (used for saving)
+	std::shared_ptr<iADataSet> chooseDataSet();
 
 	//! Checks whether the main image data is fully loaded.
 	bool isFullyLoaded() const override;

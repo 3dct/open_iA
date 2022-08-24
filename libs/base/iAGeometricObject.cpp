@@ -25,7 +25,7 @@
 #include <array>
 
 iAGeometricObject::iAGeometricObject(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyDataAlgorithm> source) :
-	iADataSet(name, fileName),
+	iADataSet(fileName, iADataSetType::Mesh, name),
 	m_polySource(source)
 {}
 

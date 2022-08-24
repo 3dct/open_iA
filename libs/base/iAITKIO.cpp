@@ -21,6 +21,7 @@
 #include "iAITKIO.h"
 
 #include "iAFileUtils.h"
+#include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
 #include <itkImageFileReader.h>
@@ -50,17 +51,20 @@ void read_image_template(QString const& f, ImagePointer& image, bool releaseFlag
 }
 
 template <class T>
-void write_image_template(bool comp, QString const& fileName, ImagePtr image)
+void write_image_template(bool comp, QString const& fileName, ImagePtr image, iAProgress* progress)
 {
-	typedef itk::Image<T, m_DIM> InputImageType;
-	typedef itk::ImageFileWriter<InputImageType> WriterType;
-	typename WriterType::Pointer writer = WriterType::New();
+	using InputImageType = itk::Image<T, m_DIM>;
+	auto writer = itk::ImageFileWriter<InputImageType>::New();
 
 	writer->ReleaseDataFlagOn();
 	std::string encodedFileName = getLocalEncodingFileName(fileName);
 	if (encodedFileName.empty())
 	{
 		return;
+	}
+	if (progress)
+	{
+		progress->observe(writer);
 	}
 	writer->SetFileName(encodedFileName.c_str());
 	writer->SetInput(dynamic_cast<InputImageType*>(image));
@@ -90,8 +94,8 @@ ImagePointer readFile(QString const& fileName, ScalarPixelType& pixelType, bool 
 	return image;
 }
 
-void writeFile(QString const& fileName, ImagePtr image, ScalarPixelType pixelType, bool useCompression)
+void writeFile(QString const& fileName, ImagePtr image, ScalarPixelType pixelType, bool useCompression, iAProgress* progress)
 {
-	ITK_TYPED_CALL(write_image_template, pixelType, useCompression, fileName, image);
+	ITK_TYPED_CALL(write_image_template, pixelType, useCompression, fileName, image, progress);
 }
 }  // namespace iAITKIO

@@ -20,12 +20,26 @@
 * ************************************************************************************/
 #include "iAFileIO.h"
 
-iAFileIO::iAFileIO(iADataSetTypes types) : m_dataSetTypes(types)
+const QString iAFileIO::CompressionStr("Compression");
+
+iAFileIO::iAFileIO(iADataSetTypes loadTypes, iADataSetTypes saveTypes) :
+	m_loadDataSetTypes(loadTypes), m_saveDataSetTypes(saveTypes)
 {}
 
-void iAFileIO::setup(QString const& fileName)
+std::vector<std::shared_ptr<iADataSet>> iAFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& paramValues)
 {
-	m_fileName = fileName;
+	Q_UNUSED(fileName);
+	Q_UNUSED(progress);
+	Q_UNUSED(paramValues);
+	return {};
+}
+
+void iAFileIO::save(QString const& fileName, iAProgress* progress, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues)
+{
+	Q_UNUSED(fileName);
+	Q_UNUSED(progress);
+	Q_UNUSED(dataSets);
+	Q_UNUSED(paramValues);
 }
 
 iAFileIO::~iAFileIO()
@@ -41,7 +55,12 @@ iAAttributes const& iAFileIO::parameters() const
 	return m_parameters;
 }
 
-iADataSetTypes iAFileIO::supportedDataSetTypes() const
+iADataSetTypes iAFileIO::supportedLoadDataSetTypes() const
 {
-	return m_dataSetTypes;
+	return m_loadDataSetTypes;
+}
+
+iADataSetTypes iAFileIO::supportedSaveDataSetTypes() const
+{
+	return m_saveDataSetTypes;
 }

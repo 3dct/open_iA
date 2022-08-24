@@ -22,6 +22,7 @@
 
 #include "iAbase_export.h"
 
+#include "iADataSetType.h"
 #include "iALog.h"
 
 #include <vtkSmartPointer.h>
@@ -60,10 +61,12 @@ public:
 	void setParameters(QVariantMap const& parameters);
 	//! retrieve (optional) additional parameters for the dataset
 	QVariantMap const & parameters() const;
+	//! get type of data stored in this dataset
+	iADataSetType type() const;
 
 protected:
 	//! derived classes need to construct the dataset by giving a (proposed) filename and an (optional) name
-	iADataSet(QString const& fileName, QString const& name = QString());
+	iADataSet(QString const& fileName, iADataSetType type, QString const& name = QString());
 
 private:
 	//! @{ prevent copying
@@ -72,6 +75,7 @@ private:
 	//! @}
 	QString m_fileName;        //!< the filename (from which the dataset was loaded / to which it was stored)
 	QString m_name;            //!< a (human readable) name for the dataset; by default, the "basename" of the loaded file
+	iADataSetType m_type;      //!< type of data in this dataset
 	QVariantMap m_parameters;  //!< (optional) additional parameters that came along with the dataset
 };
 

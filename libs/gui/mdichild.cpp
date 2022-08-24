@@ -71,6 +71,7 @@
 
 // base
 #include <iAFileUtils.h>    // for fileNameOnly
+#include <iAFileTypeRegistry.h>
 #include <iALog.h>
 #include <iAProgress.h>
 #include <iAStringHelper.h>
@@ -1096,6 +1097,35 @@ int MdiChild::chooseComponentNr(int modalityNr)
 	return components.indexOf(componentChoice.parameterValues()["Component"].toString());
 }
 
+std::shared_ptr<iADataSet> MdiChild::chooseDataSet()
+{
+	if (m_dataSets.size() == 1)
+	{
+		return m_dataSets.begin()->second;
+	}
+	iAParameterDlg::ParamListT params;
+	QStringList dataSetNames;
+	for (auto dataSet : dataSets())
+	{
+		dataSetNames << dataSet->name();
+	}
+	const QString DataSetStr("Dataset");
+	addParameter(params, DataSetStr, iAValueType::Categorical, dataSetNames);
+	iAParameterDlg dataSetChoice(this, "Choose dataset", params);
+	if (dataSetChoice.exec() == QDialog::Accepted)
+	{
+		auto dataSetName = dataSetChoice.parameterValues()[DataSetStr].toString();
+		for (auto dataSet : m_dataSets)
+		{
+			if (dataSet.second->name() == dataSetName)
+			{
+				return dataSet.second;
+			}
+		}
+	}
+	return nullptr;
+}
+
 bool MdiChild::save()
 {
 	if (m_isUntitled)
@@ -1122,6 +1152,31 @@ bool MdiChild::save()
 		}
 		return saveFile(modality(modalityNr)->fileName(), modalityNr, componentNr);
 	}
+}
+
+void MdiChild::saveNew()
+{
+	auto dataSet = chooseDataSet();
+	if (!dataSet)
+	{
+		return;
+	}
+	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), m_path,
+			iAFileTypeRegistry::registeredSaveFileTypes(dataSet->type()));
+
+	auto io = iANewIO::createIO(fileName);
+	auto p = std::make_shared<iAProgress>();
+	runAsync([fileName, p, io, dataSet, this]()
+	{
+		QVariantMap params;
+		params[iAFileIO::CompressionStr] = m_preferences.Compression;
+		io->save(fileName, p.get(), { dataSet }, params);
+	},
+	[fileName]()
+	{
+			LOG(lvlInfo, QString("Saved file %1").arg(fileName));
+	}, this);
+	
 }
 
 bool MdiChild::saveAs()

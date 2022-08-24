@@ -37,23 +37,26 @@ class iAProgress;
 class iAbase_API iAFileIO
 {
 public:
+	static const QString CompressionStr;
 	//! create a file I/O for the given dataset type
-	iAFileIO(iADataSetTypes type);
-	//! set up file I/O for the given file name
-	//! TODO: make possible to also use e.g. folder name or list of files
-	virtual void setup(QString const& fileName);
+	iAFileIO(iADataSetTypes readTypes, iADataSetTypes writeTypes);
+	//! virtual destructor for proper cleanup
 	virtual ~iAFileIO();
 	//! The name of the file type that this IO supports
 	virtual QString name() const = 0;
 	//! The file extensions that this file IO should be used for
 	virtual QStringList extensions() const = 0;
-	//! Load the (list of) dataset(s)
-	virtual std::vector<std::shared_ptr<iADataSet>> load(iAProgress* progress, QVariantMap const& paramValues) = 0;
+	//! Load the (list of) dataset(s). The default implementation assumes that reading is not implemented and does nothing.
+	virtual std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, iAProgress* progress, QVariantMap const& paramValues);
+	//! Save the (list of) dataset(s). The default implementation assumes that writing is not implemented and does nothing.
+	virtual void save(QString const& fileName, iAProgress* progress, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues);
 	//! Required parameters for loading the file
 	//! Copied from iAFilter - maybe reuse? move to new common base class iAParameterizedSomething ...?
 	iAAttributes const& parameters() const;
-	//! Types of dataset that the the file format which this IO is for delivers
-	iADataSetTypes supportedDataSetTypes() const;
+	//! Types of dataset contained in this file format, which this IO can read 
+	iADataSetTypes supportedLoadDataSetTypes() const;
+	//! Types of dataset contained in this file format, which this IO can write 
+	iADataSetTypes supportedSaveDataSetTypes() const;
 
 protected:
 	//! Adds the description of a parameter to the filter.
@@ -66,9 +69,8 @@ protected:
 	void addParameter(QString const& name, iAValueType valueType, QVariant defaultValue = 0.0,
 		double min = std::numeric_limits<double>::lowest(), double max = std::numeric_limits<double>::max());
 
-	QString m_fileName;
-
 private:
 	iAAttributes m_parameters;
-	iADataSetTypes m_dataSetTypes;
+	iADataSetTypes m_loadDataSetTypes;
+	iADataSetTypes m_saveDataSetTypes;
 };

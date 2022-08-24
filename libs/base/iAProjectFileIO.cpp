@@ -41,20 +41,20 @@ namespace
 
 const QString iAProjectFileIO::Name("Project files");
 
-iAProjectFileIO::iAProjectFileIO() : iAFileIO(iADataSetType::All)
+iAProjectFileIO::iAProjectFileIO() : iAFileIO(iADataSetType::All, iADataSetType::None) // writing to a project file is specific (since it doesn't write the dataset itself...)
 {
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::load(iAProgress* progress, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
 {
 	Q_UNUSED(parameters);
-	QFileInfo fi(m_fileName);
+	QFileInfo fi(fileName);
 	if (!fi.exists())
 	{
-		LOG(lvlError, QString("Given project file '%1' does not exist.").arg(m_fileName));
+		LOG(lvlError, QString("Given project file '%1' does not exist.").arg(fileName));
 		return {};
 	}
-	QSettings settings(m_fileName, QSettings::IniFormat);
+	QSettings settings(fileName, QSettings::IniFormat);
 	//iAVolumeSettings volSettings;
 
 	if (!settings.contains(ProjectFileVersionKey) ||
@@ -100,7 +100,7 @@ std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::load(iAProgress* progre
 			{
 				iAProgress dummyProgress;
 				auto dataSetParameters = mapFromQSettings(settings);
-				auto currentLoadedDataSets = io->load(&dummyProgress, dataSetParameters);
+				auto currentLoadedDataSets = io->load(dataSetFileName, &dummyProgress, dataSetParameters);
 				for (auto dataSet : currentLoadedDataSets)
 				{
 					if (!settings.value("Name", "").toString().isEmpty())
@@ -115,15 +115,15 @@ std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::load(iAProgress* progre
 		// catch exceptions here to skip only the current dataset on error, don't abort loading the whole project
 		catch (itk::ExceptionObject& e)
 		{
-			LOG(lvlError, QString("Error (ITK) loading file %1: %2").arg(m_fileName).arg(e.GetDescription()));
+			LOG(lvlError, QString("Error (ITK) loading file %1: %2").arg(fileName).arg(e.GetDescription()));
 		}
 		catch (std::exception& e)
 		{
-			LOG(lvlError, QString("Error loading file %1: %2").arg(m_fileName).arg(e.what()));
+			LOG(lvlError, QString("Error loading file %1: %2").arg(fileName).arg(e.what()));
 		}
 		catch (...)
 		{
-			LOG(lvlError, QString("Unknown error while loading file %1!").arg(m_fileName));
+			LOG(lvlError, QString("Unknown error while loading file %1!").arg(fileName));
 		}
 		/*
 		int channel = settings.value(GetModalityKey(currIdx, "Channel"), -1).toInt();

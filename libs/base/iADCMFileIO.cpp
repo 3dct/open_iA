@@ -38,11 +38,11 @@
 
 const QString iADCMFileIO::Name("DICOM files");
 
-iADCMFileIO::iADCMFileIO() : iAFileIO(iADataSetType::Volume)
+iADCMFileIO::iADCMFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
 {
 }
 
-std::vector<std::shared_ptr<iADataSet>> iADCMFileIO::load(iAProgress* progress, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iADCMFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
 {
 	Q_UNUSED(parameters);
 	using PixelType = signed short; // check why signed short
@@ -53,7 +53,7 @@ std::vector<std::shared_ptr<iADataSet>> iADCMFileIO::load(iAProgress* progress, 
 	progress->observe(reader);
 	auto nameGenerator = itk::GDCMSeriesFileNames::New();
 	nameGenerator->SetUseSeriesDetails(true);
-	nameGenerator->SetDirectory(getLocalEncodingFileName(QFileInfo(m_fileName).canonicalPath()));
+	nameGenerator->SetDirectory(getLocalEncodingFileName(QFileInfo(fileName).canonicalPath()));
 	auto const & seriesUID = nameGenerator->GetSeriesUIDs();
 	std::string seriesIdentifier = seriesUID.begin()->c_str();
 	auto fileNames = nameGenerator->GetFileNames(seriesIdentifier);
@@ -64,10 +64,9 @@ std::vector<std::shared_ptr<iADataSet>> iADCMFileIO::load(iAProgress* progress, 
 
 	iAConnector con;
 	con.setImage(reader->GetOutput());
-	con.modified();
 	auto img = vtkSmartPointer<vtkImageData>::New();
 	img->DeepCopy(con.vtkImage());
-	return { std::make_shared<iAImageData>(m_fileName, img) };
+	return { std::make_shared<iAImageData>(fileName, img) };
 }
 
 QString iADCMFileIO::name() const

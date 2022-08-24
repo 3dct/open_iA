@@ -47,7 +47,7 @@ std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileExtens
 	}
 }
 
-QString iAFileTypeRegistry::registeredFileTypes(iADataSetTypes allowedTypes)
+QString iAFileTypeRegistry::registeredLoadFileTypes(iADataSetTypes allowedTypes)
 {
 	QStringList allExtensions;
 	QString singleTypes;
@@ -55,9 +55,9 @@ QString iAFileTypeRegistry::registeredFileTypes(iADataSetTypes allowedTypes)
 	{
 		auto io = ioFactory->create();
 #if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-		if ( (io->supportedDataSetTypes() & allowedTypes) == 0 )
+		if ( (io->supportedReadDataSetTypes() & allowedTypes) == 0 )
 #else
-		if (!io->supportedDataSetTypes().testAnyFlags(allowedTypes))
+		if (!io->supportedLoadDataSetTypes().testAnyFlags(allowedTypes))
 #endif
 		{   // current I/O does not support any of the allowed types
 			continue;
@@ -78,13 +78,45 @@ QString iAFileTypeRegistry::registeredFileTypes(iADataSetTypes allowedTypes)
 	return QString("Any supported format (%1);;").arg(allExtensions.join(" ")) + singleTypes;
 }
 
+QString iAFileTypeRegistry::registeredSaveFileTypes(iADataSetType type)
+{
+	QStringList allExtensions;
+	QString singleTypes;
+	for (auto ioFactory : m_fileIOs)  // all registered file types
+	{
+		auto io = ioFactory->create();
+#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
+		if ((io->supportedSaveDataSetTypes() & allowedTypes) == 0)
+#else
+		if (!io->supportedSaveDataSetTypes().testFlag(type))
+#endif
+		{   // current I/O does not support any of the allowed types
+			continue;
+		}
+		auto extCpy = io->extensions();
+		for (auto& ext : extCpy)
+		{
+			ext = "*." + ext;
+		}
+		singleTypes += QString("%1 (%2);;").arg(io->name()).arg(extCpy.join(" "));
+		allExtensions.append(extCpy);
+	}
+	if (singleTypes.isEmpty())
+	{
+		LOG(lvlWarn, "No matching registered file types found!");
+		return ";;";
+	}
+	return QString("Any supported format (%1);;").arg(allExtensions.join(" ")) + singleTypes;
+}
+
 // ---------- specific File IO's ----------
 
 class iAMetaFileIO : public iAFileIO
 {
 public:
 	iAMetaFileIO();
-	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* progress, QVariantMap const& parameters) override;
+	std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters) override;
+	void save(QString const& fileName, iAProgress* progress, std::vector<std::shared_ptr<iADataSet>> const & dataSets, QVariantMap const& paramValues) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };
@@ -93,7 +125,7 @@ class iAVTIFileIO : public iAFileIO
 {
 public:
 	iAVTIFileIO();
-	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* progress, QVariantMap const& parameters) override;
+	std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };
@@ -102,7 +134,7 @@ class iAGraphFileIO : public iAFileIO
 {
 public:
 	iAGraphFileIO();
-	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* progress, QVariantMap const& parameters) override;
+	std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };
@@ -111,7 +143,7 @@ class iASTLFileIO : public iAFileIO
 {
 public:
 	iASTLFileIO();
-	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* progress, QVariantMap const& parameters) override;
+	std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };
@@ -120,7 +152,7 @@ class iAAmiraVolumeFileIO : public iAFileIO
 {
 public:
 	iAAmiraVolumeFileIO();
-	std::vector<std::shared_ptr<iADataSet>> load(iAProgress* progress, QVariantMap const& parameters) override;
+	std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };
@@ -171,6 +203,8 @@ void iAFileTypeRegistry::setupDefaultIOFactories()
 #include "iAFileUtils.h"
 #include "iAProgress.h"
 
+#include "iAConnector.h"  // for writing
+
 #include <vtkImageData.h>
 
 #define VTK 0
@@ -184,10 +218,10 @@ void iAFileTypeRegistry::setupDefaultIOFactories()
 #endif
 
 iAMetaFileIO::iAMetaFileIO() :
-	iAFileIO(iADataSetType::Volume)
+	iAFileIO(iADataSetType::Volume, iADataSetType::Volume)
 {}
 
-std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::load(iAProgress* progress, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
 {
 	Q_UNUSED(parameters);
 
@@ -208,7 +242,7 @@ std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::load(iAProgress* progress,
 #else
 	Q_UNUSED(progress);
 	auto img = vtkSmartPointer<vtkImageData>::New();
-	readImage(m_fileName, true, img);    //< using iAToolsVTK
+	readImage(fileName, true, img);    //< using iAToolsVTK
 	// duration: ~400ms
 #endif
 
@@ -218,7 +252,25 @@ std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::load(iAProgress* progress,
 	// ITK (using readImage from iAToolsVTK): 5876 (ignore), 5877, 5760, 5746 ms
 	// -> VTK consistently faster; but doesn't produce an error if it doesn't find file for example (just returns a 1x1x1 image)!
 
-	return { std::make_shared<iAImageData>(m_fileName, img) };
+	return { std::make_shared<iAImageData>(fileName, img) };
+}
+
+void iAMetaFileIO::save(QString const& fileName, iAProgress* progress, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues)
+{
+	iAConnector con;
+	if (dataSets.size() != 1)
+	{
+		LOG(lvlError, QString("Meta File IO only supports writing exactly 1 dataset, %1 given!").arg(dataSets.size()));
+		return;
+	}
+	auto imgData = dynamic_cast<iAImageData*>(dataSets[0].get());
+	if (!imgData)
+	{
+		LOG(lvlError, "Meta File IO expects image(/volume) data, but given dataset was of a different type!");
+		return;
+	}
+	storeImage(imgData->image(), fileName, paramValues[CompressionStr].toBool(), progress);
+	
 }
 
 QString iAMetaFileIO::name() const
@@ -243,12 +295,12 @@ QStringList iAMetaFileIO::extensions() const
 #include <QColor>
 #include <QFile>
 
-iAGraphFileIO::iAGraphFileIO() : iAFileIO(iADataSetType::Graph)
+iAGraphFileIO::iAGraphFileIO() : iAFileIO(iADataSetType::Graph, iADataSetType::None)
 {
 	addParameter("Spacing", iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAGraphFileIO::load(iAProgress* progress, QVariantMap const& params)
+std::vector<std::shared_ptr<iADataSet>> iAGraphFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& params)
 {
 	// maybe we could also use vtkPDBReader, but not sure that's the right "PDB" file type...
 	Q_UNUSED(progress);
@@ -257,13 +309,13 @@ std::vector<std::shared_ptr<iADataSet>> iAGraphFileIO::load(iAProgress* progress
 
 	vtkNew<vtkPolyData> myPolyData;
 
-	QFile file(m_fileName);
+	QFile file(fileName);
 	//const auto size = file.size();
 	if (!file.open(QIODevice::ReadOnly))
 	{
 		LOG(lvlError,
 			QString("Could not open file '%1' for reading! It probably does not exist!")
-				.arg(m_fileName));
+				.arg(fileName));
 		return {};
 	}
 	QStringList origCSVInfo;
@@ -372,7 +424,7 @@ std::vector<std::shared_ptr<iADataSet>> iAGraphFileIO::load(iAProgress* progress
 	myPolyData->SetLines(lines);
 	myPolyData->GetPointData()->AddArray(colors);
 
-	return { std::make_shared<iAGraphData>(m_fileName, myPolyData) };
+	return { std::make_shared<iAGraphData>(fileName, myPolyData) };
 }
 
 QString iAGraphFileIO::name() const
@@ -389,21 +441,21 @@ QStringList iAGraphFileIO::extensions() const
 
 #include <iAFileUtils.h>
 
-iASTLFileIO::iASTLFileIO() : iAFileIO(iADataSetType::Mesh)
+iASTLFileIO::iASTLFileIO() : iAFileIO(iADataSetType::Mesh, iADataSetType::None)
 {
 }
 
-std::vector<std::shared_ptr<iADataSet>> iASTLFileIO::load(iAProgress* progress, QVariantMap const& params)
+std::vector<std::shared_ptr<iADataSet>> iASTLFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& params)
 {
 	Q_UNUSED(params);
 	auto stlReader = vtkSmartPointer<vtkSTLReader>::New();
 	progress->observe(stlReader);
 	stlReader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
-	stlReader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
+	stlReader->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	vtkNew<vtkPolyData> polyData;
 	stlReader->SetOutput(polyData);
 	stlReader->Update();
-	return { std::make_shared<iAPolyData>(m_fileName, polyData) };
+	return { std::make_shared<iAPolyData>(fileName, polyData) };
 }
 
 QString iASTLFileIO::name() const
@@ -421,20 +473,20 @@ QStringList iASTLFileIO::extensions() const
 
 #include <vtkXMLImageDataReader.h>
 
-iAVTIFileIO::iAVTIFileIO() : iAFileIO(iADataSetType::Volume)
+iAVTIFileIO::iAVTIFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
 {
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAVTIFileIO::load(iAProgress* progress, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iAVTIFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
 {
 	Q_UNUSED(parameters);
 	auto reader = vtkSmartPointer<vtkXMLImageDataReader>::New();
 	progress->observe(reader);
-	reader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
+	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	reader->Update();
 	reader->ReleaseDataFlagOn();
 	auto img = reader->GetOutput();
-	return { std::make_shared<iAImageData>(m_fileName, img) };
+	return { std::make_shared<iAImageData>(fileName, img) };
 }
 
 QString iAVTIFileIO::name() const
@@ -452,16 +504,16 @@ QStringList iAVTIFileIO::extensions() const
 
 #include "iAAmiraMeshIO.h"
 
-iAAmiraVolumeFileIO::iAAmiraVolumeFileIO() : iAFileIO(iADataSetType::Volume)
+iAAmiraVolumeFileIO::iAAmiraVolumeFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
 {
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAAmiraVolumeFileIO::load(iAProgress* progress, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iAAmiraVolumeFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
 {
 	Q_UNUSED(progress);
 	Q_UNUSED(parameters);
-	auto img = iAAmiraMeshIO::Load(m_fileName);
-	return { std::make_shared<iAImageData>(m_fileName, img) };
+	auto img = iAAmiraMeshIO::Load(fileName);
+	return { std::make_shared<iAImageData>(fileName, img) };
 }
 
 QString iAAmiraVolumeFileIO::name() const
@@ -491,7 +543,6 @@ namespace iANewIO
 					.arg(fi.suffix()));
 			return {};
 		}
-		io->setup(fileName);
 		// for file formats that support multiple dataset types: check if an allowed type was loaded?
 		// BUT currently no such format supported
 		return io;

@@ -531,7 +531,7 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 		try
 		{
 			QElapsedTimer t; t.start();
-			d->data = io->load(p.get(), paramValues);
+			d->data = io->load(fileName, p.get(), paramValues);
 			LOG(lvlInfo, QString("Loaded dataset %1 in %2 ms.").arg(fileName).arg(t.elapsed()));
 		}
 		catch (itk::ExceptionObject & e)
@@ -587,6 +587,14 @@ void MainWindow::save()
 	if (activeMdiChild())
 	{
 		activeMDI()->save();
+	}
+}
+
+void MainWindow::saveNew()
+{
+	if (activeMdiChild())
+	{
+		activeMDI()->saveNew();
 	}
 }
 
@@ -1801,6 +1809,7 @@ void MainWindow::updateMenus()
 	bool hasMdiChild = activeMdiChild();
 
 	m_ui->actionSave->setEnabled(hasMdiChild);
+	m_ui->actionSave_New->setEnabled(hasMdiChild);
 	m_ui->actionSaveAs->setEnabled(hasMdiChild);
 	m_ui->actionSaveImageStack->setEnabled(hasMdiChild);
 	m_ui->actionSaveProject->setEnabled(activeChild<iASavableProject>());
@@ -1979,7 +1988,7 @@ void MainWindow::connectSignalsToSlots()
 	// "File menu entries:
 	connect(m_ui->actionOpen, &QAction::triggered, this, &MainWindow::open);
 	auto getOpenFileName = [this]() -> QString {
-		return QFileDialog::getOpenFileName(this, tr("Open Files (new)"), m_path, iAFileTypeRegistry::registeredFileTypes());
+		return QFileDialog::getOpenFileName(this, tr("Open Files (new)"), m_path, iAFileTypeRegistry::registeredLoadFileTypes());
 	};
 	connect(m_ui->actionOpenNew, &QAction::triggered, this, [this, getOpenFileName] { loadFileNew(getOpenFileName(), false); });
 	connect(m_ui->actionOpenInNewWindow, &QAction::triggered, this, [this, getOpenFileName] { loadFileNew(getOpenFileName(), true); });
@@ -1989,6 +1998,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionOpenWithDataTypeConversion, &QAction::triggered, this, &MainWindow::openWithDataTypeConversion);
 	connect(m_ui->actionOpenTLGICTData, &QAction::triggered, this, &MainWindow::openTLGICTData);
 	connect(m_ui->actionSave, &QAction::triggered, this, &MainWindow::save);
+	connect(m_ui->actionSave_New, &QAction::triggered, this, &MainWindow::saveNew);
 	connect(m_ui->actionSaveAs, &QAction::triggered, this, &MainWindow::saveAs);
 	connect(m_ui->actionSaveProject, &QAction::triggered, this, &MainWindow::saveProject);
 	connect(m_ui->actionLoadSettings, &QAction::triggered, this, &MainWindow::loadSettings);
