@@ -103,6 +103,8 @@ class iAgui_API MdiChild : public iAMdiChild, public Ui_Mdichild, public iASavab
 {
 	Q_OBJECT
 public:
+	static const size_t NoDataSet;
+
 	MdiChild(MainWindow* mainWnd, iAPreferences const& preferences, bool unsavedChanges);
 	~MdiChild();
 

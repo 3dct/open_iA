@@ -113,7 +113,8 @@ iADataSetListWidget::iADataSetListWidget()
 				return;
 			}
 			int row = rows[0].row();
-			emit editDataSet(row);
+			auto dataSetIdx = m_dataList->item(row, 0)->data(Qt::UserRole).toULongLong();
+			emit editDataSet(dataSetIdx);
 		});
 	connect(minusButton, &QToolButton::clicked, this,
 		[this]()
@@ -124,9 +125,10 @@ iADataSetListWidget::iADataSetListWidget()
 				LOG(lvlWarn, "Please select exactly one row for deleting!");
 				return;
 			}
-			auto idx = rows[0].row();
-			m_dataList->removeRow(idx);
-			emit removeDataSet(idx);
+			auto row = rows[0].row();
+			auto dataSetIdx = m_dataList->item(row, 0)->data(Qt::UserRole).toULongLong();
+			m_dataList->removeRow(row);
+			emit removeDataSet(dataSetIdx);
 		});
 	connect(m_dataList, &QTableWidget::itemClicked, this,
 		[this](QTableWidgetItem* item)
@@ -145,22 +147,23 @@ iADataSetListWidget::iADataSetListWidget()
 			}
 			auto checked = !item->data(Qt::UserRole).toBool();
 			setChecked(item, checked);
+			auto dataSetIdx = m_dataList->item(row, 0)->data(Qt::UserRole).toULongLong();
 			switch (col)
 			{
 			case View3D:
-				emit set3DRendererVisibility(row, checked);
+				emit set3DRendererVisibility(dataSetIdx, checked);
 				break;
 			case View3DBox:
-				emit setBoundsVisibility(row, checked);
+				emit setBoundsVisibility(dataSetIdx, checked);
 				break;
 			case Pickable:
-				emit setPickable(row, checked);
+				emit setPickable(dataSetIdx, checked);
 				break;
 			case View2D:
-				emit set2DVisibility(row, checked);
+				emit set2DVisibility(dataSetIdx, checked);
 				break;
 			case ViewLens3D:
-				emit set3DMagicLensVisibility(row, checked);
+				emit set3DMagicLensVisibility(dataSetIdx, checked);
 				break;
 			default:
 				LOG(lvlWarn, QString("Unhandled itemChanged(colum = %1)").arg(col));
@@ -188,11 +191,12 @@ iADataSetListWidget::iADataSetListWidget()
 	layout()->setSpacing(4);
 }
 
-void iADataSetListWidget::addDataSet(iADataSet* dataset, bool render3DChecked, bool render3DCheckable, bool render2D)
+void iADataSetListWidget::addDataSet(iADataSet* dataset, size_t dataSetID, bool render3DChecked, bool render3DCheckable, bool render2D)
 {
 	QSignalBlocker blockList(m_dataList);
 	auto nameItem = new QTableWidgetItem(dataset->name());
 	nameItem->setToolTip(dataset->info());
+	nameItem->setData(Qt::UserRole, dataSetID);
 	int row = m_dataList->rowCount();
 	m_dataList->insertRow(row);
 	m_dataList->setItem(row, 0, nameItem);
@@ -216,15 +220,19 @@ void iADataSetListWidget::addDataSet(iADataSet* dataset, bool render3DChecked, b
 	m_dataList->resizeColumnsToContents();
 }
 
-void iADataSetListWidget::setName(int idx, QString newName)
+void iADataSetListWidget::setName(size_t dataSetIdx, QString newName)
 {
-	m_dataList->item(idx, 0)->setText(newName);
+	int row = findDataSetIdx(dataSetIdx);
+	assert(row != -1);
+	m_dataList->item(row, 0)->setText(newName);
 }
 
-void iADataSetListWidget::setPickableState(int idx, bool pickable)
+void iADataSetListWidget::setPickableState(size_t dataSetIdx, bool pickable)
 {
 	QSignalBlocker blockList(m_dataList);
-	auto item = m_dataList->item(idx, Pickable);
+	int row = findDataSetIdx(dataSetIdx);
+	assert(row != -1);
+	auto item = m_dataList->item(row, Pickable);
 	setChecked(item, pickable);
 }
 
@@ -237,4 +245,16 @@ void iADataSetListWidget::setChecked(QTableWidgetItem * item, int checked)
 {
 	item->setData(Qt::UserRole, checked);
 	item->setIcon(iconForCol(item->column(), checked));
+}
+
+int iADataSetListWidget::findDataSetIdx(size_t dataSetIdx)
+{
+	for (int row=0; row < m_dataList->rowCount(); ++row)
+	{
+		if (m_dataList->item(row, 0)->data(Qt::UserRole).toULongLong() == dataSetIdx)
+		{
+			return row;
+		}
+	}
+	return -1;
 }

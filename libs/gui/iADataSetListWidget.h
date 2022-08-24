@@ -35,24 +35,25 @@ class iAgui_API iADataSetListWidget : public QWidget
 	Q_OBJECT
 public:
 	iADataSetListWidget();
-	void addDataSet(iADataSet* dataset, bool render3DChecked, bool render3DCheckable, bool render2D);
-	void setName(int idx, QString newName);
-	void setPickableState(int idx, bool pickable);
+	void addDataSet(iADataSet* dataset, size_t dataSetID, bool render3DChecked, bool render3DCheckable, bool render2D);
+	void setName(size_t dataSetIdx, QString newName);
+	void setPickableState(size_t dataSetIdx, bool pickable);
 
 signals:
-	void editDataSet(int idx);
-	void removeDataSet(int idx);
-	void set3DRendererVisibility(int idx, bool visibility);
-	void setBoundsVisibility(int idx, bool visibility);
-	void set2DVisibility(int idx, bool visibility);
-	void set3DMagicLensVisibility(int idx, bool visibility);
-	void setPickable(int idx, bool pickable);
+	void editDataSet(size_t dataSetIdx);
+	void removeDataSet(size_t dataSetIdx);
+	void set3DRendererVisibility(size_t dataSetIdx, bool visibility);
+	void setBoundsVisibility(size_t dataSetIdx, bool visibility);
+	void set2DVisibility(size_t dataSetIdx, bool visibility);
+	void set3DMagicLensVisibility(size_t dataSetIdx, bool visibility);
+	void setPickable(size_t dataSetIdx, bool pickable);
 
 public slots:
 	void enablePicking(bool enable);
 
 private:
 	void setChecked(QTableWidgetItem * item, int checked);
+	int findDataSetIdx(size_t idx);
 
 	QTableWidget* m_dataList;  //!< the actual table displaying datasets and controls for their visibility
 };

@@ -20,24 +20,26 @@
 * ************************************************************************************/
 #include "iAIO.h"
 
+// guibase
+#include "iAJobListView.h"
+#include "iAMainWindow.h"    // TODO: check if it can be avoided
+#include "iAModalityList.h"
+#include "iAParameterDlg.h"
+#include "iARawFileParamDlg.h"
+
+// base
 #include "defines.h"
 #include "iAConnector.h"
 #include "iALog.h"
 #include "iAExceptionThrowingErrorObserver.h"
 #include "iAExtendedTypedCallHelper.h"
 #include "iAFileUtils.h"
-#include "iAJobListView.h"
-#include "iAMainWindow.h"    // TODO: check if it can be avoided
-#include "iAModalityList.h"
-#include "iAOIFReader.h"
-#include "iAParameterDlg.h"
-#include "iAProgress.h"
-#include "iARawFileParamDlg.h"
-#include "iAToolsVTK.h"
-#include "iATypedCallHelper.h"
-
 #include "iAFilter.h"
 #include "iAFilterRegistry.h"
+#include "iAOIFReader.h"
+#include "iAProgress.h"
+#include "iAToolsVTK.h"
+#include "iATypedCallHelper.h"
 
 #include <itkBMPImageIO.h>
 #include <itkMacro.h>    // for itkExceptionObject, which (starting with ITK 5.1), may not be included directly

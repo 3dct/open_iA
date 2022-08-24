@@ -47,6 +47,9 @@ unsigned int iASliceRenderer::channelID() const
 	return NotExistingChannel;
 }
 
+void iASliceRenderer::remove()
+{}
+
 class iAVolumeSliceRenderer : public iASliceRenderer
 {
 public:
@@ -58,6 +61,13 @@ public:
 		{
 			slicer[s]->addChannel(m_channelID, iAChannelData(imgData->name(), imgData->image(), transfer->colorTF()), true);
 			slicer[s]->resetCamera();
+		}
+	}
+	void remove() override
+	{
+		for (int s = 0; s < 3; ++s)
+		{
+			m_slicer[s]->removeChannel(m_channelID);
 		}
 	}
 	void setVisible(bool visible) override

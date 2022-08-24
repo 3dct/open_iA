@@ -37,6 +37,8 @@ public:
 	virtual ~iASliceRenderer();
 	//! called when the renderer is set (in)visible in slicer
 	virtual void setVisible(bool visible);
+	//! remove from display
+	virtual void remove();
 	//! called when the renderer is set pickable (movable) in slicer
 	virtual void setPickable(bool pickable);
 	//! the ID of the slicer channel that this dataset uses for rendering

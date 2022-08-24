@@ -114,6 +114,8 @@
 #include <QtGlobal> // for QT_VERSION
 
 
+const size_t MdiChild::NoDataSet = std::numeric_limits<size_t>::max();
+
 MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsavedChanges) :
 	m_mainWnd(mainWnd),
 	m_preferences(prefs),
@@ -200,38 +202,48 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 
 	// Dataset list events:
 	connect(m_dataSetListWidget, &iADataSetListWidget::removeDataSet, this,
-		[this](int idx)
+		[this](size_t dataSetIdx)
 		{
-			m_dataRenderers[idx]->setVisible(false);
-			updateRenderer();
-			m_dataRenderers.erase(idx);
-			m_dataForDisplay.erase(idx);
-			m_dataSets.erase(idx);
+			if (m_dataRenderers.find(dataSetIdx) != m_dataRenderers.end())
+			{
+				m_dataRenderers[dataSetIdx]->setVisible(false);
+				m_dataRenderers.erase(dataSetIdx);
+				updateRenderer();
+			}
+			m_dataForDisplay.erase(dataSetIdx);
+			if (m_sliceRenderers.find(dataSetIdx) != m_sliceRenderers.end())
+			{
+				m_sliceRenderers[dataSetIdx]->remove();
+				m_sliceRenderers.erase(dataSetIdx);
+				updateSlicers();
+			}
+			m_dataSets.erase(dataSetIdx);
 			updateDataSetInfo();
 		});
 	connect(m_dataSetListWidget, &iADataSetListWidget::editDataSet, this,
-		[this](int idx)
+		[this](size_t dataSetIdx)
 		{
-			if (idx >= static_cast<int>(m_dataRenderers.size()))
+			if (m_dataSets.find(dataSetIdx) == m_dataSets.end() ||
+				m_dataRenderers.find(dataSetIdx) == m_dataRenderers.end())
 			{
-				LOG(lvlWarn, QString("Invalid dataset index %1!").arg(idx));
+				LOG(lvlWarn, QString("Invalid dataset index %1!").arg(dataSetIdx));
 				return;
 			}
-			auto params = m_dataRenderers[idx]->attributesWithValues();
-			params.prepend(iAAttributeDescriptor::createParam("Name", iAValueType::String, m_dataSets[idx]->name()));
+			auto params = m_dataRenderers[dataSetIdx]->attributesWithValues();
+			params.prepend(iAAttributeDescriptor::createParam("Name", iAValueType::String, m_dataSets[dataSetIdx]->name()));
 			iAParameterDlg dlg(this, "Dataset parameters", params);
 			if (dlg.exec() != QDialog::Accepted)
 			{
 				return;
 			}
 			auto newName = dlg.parameterValues()["Name"].toString();
-			if (m_dataSets[idx]->name() != newName)
+			if (m_dataSets[dataSetIdx]->name() != newName)
 			{
-				m_dataSets[idx]->setName(newName);
+				m_dataSets[dataSetIdx]->setName(newName);
 				updateDataSetInfo();
-				m_dataSetListWidget->setName(idx, newName);
+				m_dataSetListWidget->setName(dataSetIdx, newName);
 			}
-			m_dataRenderers[idx]->setAttributes(dlg.parameterValues());
+			m_dataRenderers[dataSetIdx]->setAttributes(dlg.parameterValues());
 			updateRenderer();    // currently, 3D renderer properties are changed only
 			/*
 			// TODO: reset camera in 3D renderer / slicer when the spacing of modality was changed
@@ -248,42 +260,64 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 			*/
 		});
 	connect(m_dataSetListWidget, &iADataSetListWidget::set3DRendererVisibility, this,
-		[this](int idx, int visibility)
+		[this](size_t dataSetIdx, int visibility)
 		{
-			m_dataRenderers[idx]->setVisible(visibility);
+			if (m_dataRenderers.find(dataSetIdx) == m_dataRenderers.end())
+			{
+				LOG(lvlWarn, QString("Invalid dataset index %1!").arg(dataSetIdx));
+				return;
+			}
+			m_dataRenderers[dataSetIdx]->setVisible(visibility);
 			updateRenderer();
 		});
 	connect(m_dataSetListWidget, &iADataSetListWidget::setBoundsVisibility, this,
-		[this](int idx, int visibility)
+		[this](size_t dataSetIdx, int visibility)
 		{
-			m_dataRenderers[idx]->setBoundsVisible(visibility);
+			if (m_dataRenderers.find(dataSetIdx) == m_dataRenderers.end())
+			{
+				LOG(lvlWarn, QString("Invalid dataset index %1!").arg(dataSetIdx));
+				return;
+			}
+			m_dataRenderers[dataSetIdx]->setBoundsVisible(visibility);
 			updateRenderer();
 		});
 	connect(m_dataSetListWidget, &iADataSetListWidget::set2DVisibility, this,
-		[this](int idx, int visibility)
+		[this](size_t dataSetIdx, int visibility)
 		{
-			if (m_sliceRenderers[idx])
+			if (m_sliceRenderers.find(dataSetIdx) == m_sliceRenderers.end())
 			{
-				m_sliceRenderers[idx]->setVisible(visibility);
-				updateSlicers();
+				LOG(lvlWarn, QString("Invalid dataset index %1!").arg(dataSetIdx));
+				return;
 			}
+			m_sliceRenderers[dataSetIdx]->setVisible(visibility);
+			updateSlicers();
 		});
 	connect(m_dataSetListWidget, &iADataSetListWidget::set3DMagicLensVisibility, this,
-		[this](int idx, int visibility)
+		[this](size_t dataSetIdx, int visibility)
 		{
-			if (m_3dMagicLensRenderers.find(idx) == m_3dMagicLensRenderers.end())
+			if (m_dataSets.find(dataSetIdx) == m_dataSets.end())
 			{
-				auto magicLensRenderer = createDataRenderer(m_dataSets[idx].get(), m_dataForDisplay[idx].get(),
+				LOG(lvlWarn, QString("Invalid dataset index %1!").arg(dataSetIdx));
+				return;
+			}
+			if (m_3dMagicLensRenderers.find(dataSetIdx) == m_3dMagicLensRenderers.end())
+			{
+				auto magicLensRenderer = createDataRenderer(m_dataSets[dataSetIdx].get(), m_dataForDisplay[dataSetIdx].get(),
 					m_dwRenderer->vtkWidgetRC->getLensRenderer());
 				if (magicLensRenderer)
 				{
-					m_3dMagicLensRenderers[idx] = magicLensRenderer;
+					m_3dMagicLensRenderers[dataSetIdx] = magicLensRenderer;
 				}
 			}
-			m_3dMagicLensRenderers[idx]->setVisible(visibility);
+			if (m_3dMagicLensRenderers.find(dataSetIdx) == m_3dMagicLensRenderers.end())
+			{
+				LOG(lvlWarn, "Magic lens: No 3D renderer available for dataset!");
+				return;
+			}
+			m_3dMagicLensRenderers[dataSetIdx]->setVisible(visibility);
 		});
 	connect(m_dataSetListWidget, &iADataSetListWidget::setPickable, this,
-		[this](int idx, int pickable)
+		[this](size_t dataSetIdx, int pickable)
 		{
 			// always enable picking in 3D renderer?
 			//m_dataRenderers[idx]->setPickable(pickable);
@@ -291,7 +325,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 			// for the moment, let's make only enabling work (disabling works by enabling another)
 			if (pickable)
 			{
-				setDataSetMovable(idx);
+				setDataSetMovable(dataSetIdx);
 			}
 		});
 
@@ -397,18 +431,21 @@ void MdiChild::connectSignalsToSlots()
 			}
 			//auto modTrans = modality(0)->transfer();	// TODO: check how/whether to adapt modality ID
 			// find id of dataset with given channel:
-			size_t dataSetID = 0;
-			while (dataSetID < m_dataSets.size() && (!m_sliceRenderers[dataSetID] || m_sliceRenderers[dataSetID]->channelID() != channelID) )
+			size_t dataSetIdx = NoDataSet;
+			for (auto sliceRenderer: m_sliceRenderers)
 			{
-				++dataSetID;
+				if (sliceRenderer.second->channelID() != channelID)
+				{
+					dataSetIdx = sliceRenderer.first;
+				}
 			}
-			if (dataSetID >= m_dataSets.size())
+			if (dataSetIdx == NoDataSet)
 			{
 				return;
 			}
 			// create "windowed" transfer function,
 			// such that the full color and opacity contrast is available between minVal and maxVal
-			auto volData = dynamic_cast<iAVolumeDataForDisplay*>(m_dataForDisplay[dataSetID].get());
+			auto volData = dynamic_cast<iAVolumeDataForDisplay*>(m_dataForDisplay[dataSetIdx].get());
 			if (!volData)
 			{
 				return;
@@ -634,10 +671,10 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 					m_renderer->renderer()->ResetCamera();
 				}
 				updatePositionMarkerSize();
-				iAAABB sceneBounds = m_dataRenderers[0]->bounds();
-				for (size_t d = 1; d < m_dataRenderers.size(); ++d)
+				iAAABB sceneBounds;
+				for (auto renderers: m_dataRenderers)
 				{
-					sceneBounds.merge(m_dataRenderers[d]->bounds());
+					sceneBounds.merge(renderers.second->bounds());
 				}
 				m_renderer->setSceneBounds(sceneBounds);
 				updateRenderer();
@@ -653,9 +690,8 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 			{
 				m_dataForDisplay[dataSetIdx]->show(this);
 			}
-
 			m_dwModalities->hide();
-			m_dataSetListWidget->addDataSet(dataSet.get(), render3D, dataRenderer != nullptr, sliceRenderer != nullptr);
+			m_dataSetListWidget->addDataSet(dataSet.get(), dataSetIdx, render3D, dataRenderer != nullptr, sliceRenderer != nullptr);
 			updateDataSetInfo();
 		},
 		this);
@@ -1712,9 +1748,9 @@ void MdiChild::updatePositionMarkerSize()
 {
 	const double MinSpacing = 0.00000001;
 	std::array<double, 3> maxSpacing{ MinSpacing, MinSpacing, MinSpacing };
-	for (size_t d = 0; d < m_dataSets.size(); ++d)
+	for (auto dataSet: m_dataSets)
 	{
-		auto unitDist = m_dataSets[d]->unitDistance();
+		auto unitDist = dataSet.second->unitDistance();
 		for (int c = 0; c < 3; ++c)
 		{
 			maxSpacing[c] = std::max(maxSpacing[c], unitDist[c] * m_preferences.StatisticalExtent);
@@ -2122,15 +2158,15 @@ bool MdiChild::initView(QString const& title)
 void MdiChild::updateDataSetInfo()
 {   // TODO: optimize - don't fully recreate each time, just do necessary adjustments?
 	m_dataSetInfo->clear();
-	for (size_t i = 0; i < m_dataSets.size(); ++i)
+	for (auto dataSet: m_dataSets)
 	{
-		if (!m_dataForDisplay[i])    // probably not computed yet...
+		if (!m_dataForDisplay[dataSet.first])    // probably not computed yet...
 		{
 			continue;
 		}
-		auto lines = m_dataForDisplay[i]->information().split("\n", Qt::SkipEmptyParts);
+		auto lines = m_dataForDisplay[dataSet.first]->information().split("\n", Qt::SkipEmptyParts);
 		std::for_each(lines.begin(), lines.end(), [](QString& s) { s = "    " + s; });
-		m_dataSetInfo->addItem(m_dataSets[i]->name() + "\n" + lines.join("\n"));
+		m_dataSetInfo->addItem(dataSet.second->name() + "\n" + lines.join("\n"));
 	}
 }
 
@@ -2163,11 +2199,20 @@ void MdiChild::updateROI(int const roi[6])
 	{
 		m_slicer[s]->updateROI(roi);
 	}
-	if (m_dataSets.size() > 0 && dynamic_cast<iAImageData*>(m_dataSets[0].get()))
+	size_t dataSetIdx = NoDataSet;
+	for (auto dataSet : m_dataSets)
 	{
-		const double* spacing = dynamic_cast<iAImageData*>(m_dataSets[0].get())->image()->GetSpacing();
-		m_renderer->setSlicingBounds(roi, spacing);
+		if (dynamic_cast<iAImageData*>(dataSet.second.get()))
+		{
+			dataSetIdx = dataSet.first;
+		}
 	}
+	if (dataSetIdx == NoDataSet)
+	{
+		return;
+	}
+	const double* spacing = dynamic_cast<iAImageData*>(m_dataSets[dataSetIdx].get())->image()->GetSpacing();
+	m_renderer->setSlicingBounds(roi, spacing);
 }
 
 void MdiChild::setROIVisible(bool visible)
@@ -2732,11 +2777,12 @@ bool MdiChild::isVolumeDataLoaded() const
 void MdiChild::changeMagicLensModality(int chg)
 {
 	// maybe move to slicer?
-	m_magicLensDataSet = (m_magicLensDataSet + chg + m_dataSets.size()) % m_dataSets.size();
-	if (!m_isMagicLensEnabled || m_dataSets.empty() || !dynamic_cast<iAImageData*>(m_dataSets[m_magicLensDataSet].get()))
+	auto newMagicLensDataSet = (m_magicLensDataSet + chg + m_dataSets.size()) % m_dataSets.size();
+	if (!m_isMagicLensEnabled || m_dataSets.empty() || !dynamic_cast<iAImageData*>(m_dataSets[newMagicLensDataSet].get()))
 	{
 		return;
 	}
+	m_magicLensDataSet = newMagicLensDataSet;
 	// To check: support for multiple components in a vtk image? or separating those components?
 	auto imgData = dynamic_cast<iAImageData*>(m_dataSets[m_magicLensDataSet].get());
 	auto imgDisplayData = dynamic_cast<iAVolumeDataForDisplay*>(m_dataForDisplay[m_magicLensDataSet].get());
@@ -3100,22 +3146,24 @@ void MdiChild::setInteractionMode(iAInteractionMode mode)
 	{
 		if (m_interactionMode == imRegistration)
 		{
-			size_t idx = 0;
-			while (idx < m_dataSets.size() &&
-				(!dynamic_cast<iAImageData*>(m_dataSets[idx].get()) ||
-				m_dataRenderers.find(idx) == m_dataRenderers.end() ||
-				!m_dataRenderers[idx]->isPickable()))
+			size_t dataSetIdx = NoDataSet;
+			for (auto dataSet: m_dataSets)
 			{
-				++idx;
+				if (dynamic_cast<iAImageData*>(dataSet.second.get()) &&
+					m_dataRenderers.find(dataSet.first) != m_dataRenderers.end() &&
+					m_dataRenderers[dataSet.first]->isPickable())
+				{
+					dataSetIdx = dataSet.first;
+				}
 			}
-			if (idx >= m_dataSets.size())
+			if (dataSetIdx == NoDataSet)
 			{
-				LOG(lvlError, QString("No valid dataset loaded for moving (%1).").arg(idx));
+				LOG(lvlError, QString("No valid dataset loaded for moving (%1).").arg(dataSetIdx));
 			}
 			else
 			{
-				auto editDataSet = m_dataSets[idx];
-				setDataSetMovable(idx);
+				auto editDataSet = m_dataSets[dataSetIdx];
+				setDataSetMovable(dataSetIdx);
 			}
 			renderer()->interactor()->SetInteractorStyle(m_manualMoveStyle[iASlicerMode::SlicerCount]);
 			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
@@ -3159,6 +3207,11 @@ void MdiChild::setDataSetMovable(size_t dataSetIdx)
 	if (!imgData)
 	{
 		LOG(lvlError, "Selected dataset is not an image.");
+		return;
+	}
+	if (m_sliceRenderers.find(dataSetIdx) == m_sliceRenderers.end())
+	{
+		LOG(lvlError, "Slice renderer not found!");
 		return;
 	}
 	auto img = imgData->image();
