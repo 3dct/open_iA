@@ -2894,6 +2894,7 @@ void MdiChild::set3DControlVisibility(bool visible)
 std::vector<std::shared_ptr<iADataSet>> MdiChild::dataSets() const
 {
 	std::vector<std::shared_ptr<iADataSet>> result;
+	result.reserve(m_dataSets.size());
 	std::transform(m_dataSets.begin(), m_dataSets.end(), std::back_inserter(result), [](auto const& p) { return p.second; });
 	return result;
 }
