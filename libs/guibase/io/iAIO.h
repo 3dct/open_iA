@@ -112,7 +112,6 @@ private:
 	void readDCM( );
 	//! Reads an NRRD image. See iAIOProvider.cpp why this is commented out
 	//void readNRRD( );
-	void readHDF5File();
 	void readProject();		// writing project: see iAMdiChild::saveProject / iAModalities::store
 
 	void writeMetaImage(vtkSmartPointer<vtkImageData> imgToWrite, QString fileName);

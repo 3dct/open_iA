@@ -46,15 +46,21 @@ public:
 	virtual QString name() const = 0;
 	//! The file extensions that this file IO should be used for
 	virtual QStringList extensions() const = 0;
+
 	//! Load the (list of) dataset(s). The default implementation assumes that reading is not implemented and does nothing.
 	virtual std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, iAProgress* progress, QVariantMap const& paramValues);
-	//! Save the (list of) dataset(s). The default implementation assumes that writing is not implemented and does nothing.
-	virtual void save(QString const& fileName, iAProgress* progress, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues);
 	//! Required parameters for loading the file
 	//! Copied from iAFilter - maybe reuse? move to new common base class iAParameterizedSomething ...?
 	iAAttributes const& parameters() const;
 	//! Types of dataset contained in this file format, which this IO can read 
 	iADataSetTypes supportedLoadDataSetTypes() const;
+
+	//! Whether this IO can be used for storing the given data set.
+	//! It could for example check whether the format supports the data types in the dataset
+	//! The default implementation here always returns true
+	virtual bool isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName) const;
+	//! Save the (list of) dataset(s). The default implementation assumes that writing is not implemented and does nothing.
+	virtual void save(QString const& fileName, iAProgress* progress, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues);
 	//! Types of dataset contained in this file format, which this IO can write 
 	iADataSetTypes supportedSaveDataSetTypes() const;
 

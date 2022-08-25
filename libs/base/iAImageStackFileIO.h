@@ -38,4 +38,6 @@ public:
 	std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
+	bool isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName) const override;
+	void save(QString const& fileName, iAProgress* progress, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues) override;
 };

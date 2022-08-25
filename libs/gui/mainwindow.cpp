@@ -534,6 +534,7 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 			d->data = io->load(fileName, p.get(), paramValues);
 			LOG(lvlInfo, QString("Loaded dataset %1 in %2 ms.").arg(fileName).arg(t.elapsed()));
 		}
+		// TODO: unify exception handling?
 		catch (itk::ExceptionObject & e)
 		{
 			LOG(lvlError, QString("Error loading file %1: %2").arg(fileName).arg(e.GetDescription()));

@@ -1183,12 +1183,33 @@ void MdiChild::saveNew()
 			iAFileTypeRegistry::registeredSaveFileTypes(dataSet->type()));
 
 	auto io = iANewIO::createIO(fileName);
+	if (!io || !io->isDataSetSupported(dataSet, fileName))
+	{
+		LOG(lvlError, "The chosen file format does not support this kind of dataset!");
+		return;
+	}
 	auto p = std::make_shared<iAProgress>();
 	runAsync([fileName, p, io, dataSet, this]()
 	{
 		QVariantMap params;
 		params[iAFileIO::CompressionStr] = m_preferences.Compression;
-		io->save(fileName, p.get(), { dataSet }, params);
+		try
+		{
+			io->save(fileName, p.get(), { dataSet }, params);
+		}
+		// TODO: unify exception handling?
+		catch (itk::ExceptionObject& e)
+		{
+			LOG(lvlError, QString("Error saving file %1: %2").arg(fileName).arg(e.GetDescription()));
+		}
+		catch (std::exception& e)
+		{
+			LOG(lvlError, QString("Error saving file %1: %2").arg(fileName).arg(e.what()));
+		}
+		catch (...)
+		{
+			LOG(lvlError, QString("Unknown error while saving file %1!").arg(fileName));
+		}
 	},
 	[fileName]()
 	{

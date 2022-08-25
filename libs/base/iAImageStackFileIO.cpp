@@ -80,7 +80,7 @@ namespace
 	}
 }
 
-iAImageStackFileIO::iAImageStackFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
+iAImageStackFileIO::iAImageStackFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volume)
 {
 	QStringList loadTypes = QStringList() << SingleImageOption << ImageStackOption;
 	addParameter(LoadTypeStr, iAValueType::Categorical, loadTypes);
@@ -167,4 +167,83 @@ QString iAImageStackFileIO::name() const
 QStringList iAImageStackFileIO::extensions() const
 {
 	return QStringList{ "bmp", "jpg", "jpeg", "png", "tif", "tiff" };
+}
+
+bool iAImageStackFileIO::isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName) const
+{
+	auto ext = QFileInfo(fileName).suffix().toLower();
+	auto imgData = dynamic_cast<iAImageData*>(dataSet.get());
+	assert(imgData);
+	auto type = imgData->image()->GetScalarType();
+	return type == VTK_UNSIGNED_CHAR || // supported by all file formats
+		((ext == "tif" || ext == "tiff") && (type == VTK_UNSIGNED_SHORT || type == VTK_FLOAT));
+}
+
+#include "iAConnector.h"
+#include "iAExtendedTypedCallHelper.h"
+
+#include <itkBMPImageIO.h>
+#include <itkJPEGImageIO.h>
+#include <itkPNGImageIO.h>
+#include <itkTIFFImageIO.h>
+#include <itkImage.h>
+#include <itkImageSeriesWriter.h>
+#include <itkNumericSeriesFileNames.h>
+
+template <typename T>
+void writeImageStack_template(QString const& fileName, iAProgress* p, iAConnector const & con, bool comp)
+{
+	using InputImageType = itk::Image<T, DIM>;
+	using OutputImageType = itk::Image<T, DIM - 1>;
+	auto writer = itk::ImageSeriesWriter<InputImageType, OutputImageType>::New();
+	auto itkImg = dynamic_cast<InputImageType*>(con.itkImage());
+	auto region = itkImg->GetLargestPossibleRegion();
+	auto start = region.GetIndex();
+	auto size = region.GetSize();
+	QFileInfo fi(fileName);
+	// set IO explicitly, to avoid SCIFIO claiming being able to write those image formats and then failing:
+	auto ext = fi.completeSuffix().toLower();
+	itk::ImageIOBase::Pointer imgIO;
+	if (ext == "bmp")
+	{
+		imgIO = itk::BMPImageIO::New();
+	}
+	else if (ext == "jpg" || ext == "jpeg")
+	{
+		imgIO = itk::JPEGImageIO::New();
+	}
+	else if (ext == "png")
+	{
+		imgIO = itk::PNGImageIO::New();
+	}
+	else if (ext == "tif" || ext == "tiff")
+	{
+		imgIO = itk::TIFFImageIO::New();
+	}
+	writer->SetImageIO(imgIO);
+	QString length = QString::number(size[2]);
+	QString format(fi.absolutePath() + "/" + fi.baseName() + "%0" + QString::number(length.size()) + "d." + fi.completeSuffix());
+	auto nameGenerator = itk::NumericSeriesFileNames::New();
+	nameGenerator->SetStartIndex(start[2]);
+	nameGenerator->SetEndIndex(start[2] + size[2] - 1);
+	nameGenerator->SetIncrementIndex(1);
+	nameGenerator->SetSeriesFormat(getLocalEncodingFileName(format).c_str());
+	writer->SetFileNames(nameGenerator->GetFileNames());
+	writer->SetInput(itkImg);
+	writer->SetUseCompression(comp);
+	p->observe(writer);
+	writer->Update();
+}
+
+void iAImageStackFileIO::save(QString const& fileName, iAProgress* progress, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues)
+{
+	Q_UNUSED(paramValues);
+	assert(dataSets.size() == 1);
+	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->image();
+	iAConnector con;
+	con.setImage(img);
+	auto pixelType = con.itkScalarPixelType();
+	auto imagePixelType = con.itkPixelType();
+	ITK_EXTENDED_TYPED_CALL(writeImageStack_template, pixelType, imagePixelType,
+		fileName, progress, con, /*paramValues[iAFileIO::CompressionStr].toBool()*/ false);
 }
