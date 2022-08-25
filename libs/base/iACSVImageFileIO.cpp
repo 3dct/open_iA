@@ -30,6 +30,7 @@
 
 iACSVImageFileIO::iACSVImageFileIO() : iAFileIO(iADataSetType::None, iADataSetType::Volume)
 {
+	addAttr(m_loadParams, "Coordinates", iAValueType::Boolean, false);
 }
 
 QString iACSVImageFileIO::name() const
@@ -51,8 +52,13 @@ void iACSVImageFileIO::save(QString const& fileName, iAProgress* progress, std::
 	std::ofstream out(getLocalEncodingFileName(fileName));
 	size_t voxelCount = imgData->voxelCount();
 	size_t curVoxel = 0;
+	bool coords = paramValues["Coordinates"].toBool();
 	FOR_VTKIMG_PIXELS(img, x, y, z)
 	{
+		if (coords)
+		{
+			out << x << "," << y << "," << z << ",";
+		}
 		for (int c = 0; c < numberOfComponents; ++c)
 		{
 			out << img->GetScalarComponentAsDouble(x, y, z, 0);
