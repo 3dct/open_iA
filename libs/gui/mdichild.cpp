@@ -1181,7 +1181,10 @@ void MdiChild::saveNew()
 	}
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), m_path,
 			iAFileTypeRegistry::registeredSaveFileTypes(dataSet->type()));
-
+	if (fileName.isEmpty())
+	{
+		return;
+	}
 	auto io = iANewIO::createIO(fileName);
 	if (!io || !io->isDataSetSupported(dataSet, fileName))
 	{

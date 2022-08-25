@@ -112,7 +112,6 @@ mapQString2int const & extensionToId()
 		m["JPEG"] = MHD_READER;
 		m["PNG"] = MHD_READER;
 		m["BMP"] = MHD_READER;
-		m["PNG"] = MHD_READER;
 		m["NIA"] = MHD_READER;
 		m["NII"] = MHD_READER;
 		m["GZ"] = MHD_READER;  // actually, only nii.gz and img.gz...
