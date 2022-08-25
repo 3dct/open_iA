@@ -159,6 +159,7 @@ public:
 
 // ---------- iAFileTypeRegistry::setupDefaultIOFactories (needs to be after declaration of specific IO classes) ----------
 
+#include "iACSVImageFileIO.h"
 #include "iADCMFileIO.h"
 #include "iAHDF5IO.h"
 #include "iAImageStackFileIO.h"
@@ -171,6 +172,7 @@ public:
 void iAFileTypeRegistry::setupDefaultIOFactories()
 {
 	// volume file formats:
+	iAFileTypeRegistry::addFileType<iACSVImageFileIO>();
 	iAFileTypeRegistry::addFileType<iAAmiraVolumeFileIO>();
 	iAFileTypeRegistry::addFileType<iADCMFileIO>();
 	iAFileTypeRegistry::addFileType<iAImageStackFileIO>();

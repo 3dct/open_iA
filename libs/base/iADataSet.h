@@ -116,6 +116,7 @@ public:
 	vtkSmartPointer<vtkImageData> image();
 	QString info() const override;
 	std::array<double, 3> unitDistance() const override;
+	unsigned long long voxelCount() const;
 
 private:
 	iAImageData(iAImageData const& other) = delete;

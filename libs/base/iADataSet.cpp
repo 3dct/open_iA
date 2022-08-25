@@ -155,18 +155,23 @@ vtkSmartPointer<vtkImageData> iAImageData::image()
 	return m_img;
 }
 
+unsigned long long iAImageData::voxelCount() const
+{
+	auto const ext = m_img->GetExtent();
+	return static_cast<unsigned long long>(ext[1] - ext[0] + 1) * (ext[3] - ext[2] + 1) * (ext[5] - ext[4] + 1);
+}
+
 QString iAImageData::info() const
 {
 	auto const ext = m_img->GetExtent();
 	auto const spc = m_img->GetSpacing();
 	auto const ori = m_img->GetOrigin();
-	auto voxelCount = (ext[1] - ext[0] + 1) * (ext[3] - ext[2] + 1) * (ext[5] - ext[4] + 1);
 	return
 		QString("Extent: x=%1..%2; y=%3..%4 z=%5..%6 (%7 voxels)\n")
 			.arg(ext[0]).arg(ext[1])
 			.arg(ext[2]).arg(ext[3])
 			.arg(ext[4]).arg(ext[5])
-			.arg(voxelCount) +
+			.arg(voxelCount()) +
 		QString("Origin: %1 %2 %3; Spacing: %4 %5 %6; Components: %7\n")
 			.arg(ori[0]).arg(ori[1]).arg(ori[2])
 			.arg(spc[0]).arg(spc[1]).arg(spc[2])
