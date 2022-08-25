@@ -220,7 +220,7 @@ bool iAFilterRunnerGUI::askForParameters(std::shared_ptr<iAFilter> filter, QVari
 		}
 		for (unsigned int i = 1; i < filter->requiredInputs(); ++i)
 		{
-			addParameter(dlgParams, QString("%1").arg(filter->inputName(i)), iAValueType::Categorical, mdiChildrenNames);
+			addAttr(dlgParams, QString("%1").arg(filter->inputName(i)), iAValueType::Categorical, mdiChildrenNames);
 		}
 	}
 	iAParameterDlg dlg(mainWnd, filter->name(), dlgParams, filter->description());

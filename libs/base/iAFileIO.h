@@ -50,8 +50,7 @@ public:
 	//! Load the (list of) dataset(s). The default implementation assumes that reading is not implemented and does nothing.
 	virtual std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, iAProgress* progress, QVariantMap const& paramValues);
 	//! Required parameters for loading the file
-	//! Copied from iAFilter - maybe reuse? move to new common base class iAParameterizedSomething ...?
-	iAAttributes const& parameters() const;
+	iAAttributes const& loadParameter() const;
 	//! Types of dataset contained in this file format, which this IO can read 
 	iADataSetTypes supportedLoadDataSetTypes() const;
 
@@ -61,22 +60,16 @@ public:
 	virtual bool isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName) const;
 	//! Save the (list of) dataset(s). The default implementation assumes that writing is not implemented and does nothing.
 	virtual void save(QString const& fileName, iAProgress* progress, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues);
+	//! Required parameters for saving the file
+	iAAttributes const& saveParameter() const;
 	//! Types of dataset contained in this file format, which this IO can write 
 	iADataSetTypes supportedSaveDataSetTypes() const;
 
 protected:
-	//! Adds the description of a parameter to the filter.
-	//! @param name the parameter's name
-	//! @param valueType the type of value this parameter can have
-	//! @param defaultValue the default value of the parameter; for Categorical
-	//!     valueTypes, this should be the list of possible values
-	//! @param min the minimum value this parameter can have (inclusive).
-	//! @param max the maximum value this parameter can have (inclusive)
-	void addParameter(QString const& name, iAValueType valueType, QVariant defaultValue = 0.0,
-		double min = std::numeric_limits<double>::lowest(), double max = std::numeric_limits<double>::max());
+	iAAttributes m_loadParams;
+	iAAttributes m_saveParams;
 
 private:
-	iAAttributes m_parameters;
 	iADataSetTypes m_loadDataSetTypes;
 	iADataSetTypes m_saveDataSetTypes;
 };

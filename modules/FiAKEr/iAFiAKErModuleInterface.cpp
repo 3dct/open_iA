@@ -189,13 +189,13 @@ void iAFiAKErModuleInterface::startFiAKEr()
 		formatEntries.append(iACsvConfig::FCVoidFormat);
 	}
 	selectOption(formatEntries, m_lastFormat);
-	iAParameterDlg::ParamListT params;
-	addParameter(params, "Result folder", iAValueType::Folder, m_lastPath);
-	addParameter(params, "CSV cormat", iAValueType::Categorical, formatEntries);
-	addParameter(params, "Step coordinate shift", iAValueType::Continuous, m_lastTimeStepOffset);
-	addParameter(params, "Use step data", iAValueType::Boolean, m_lastUseStepData);
-	addParameter(params, "Show mini previews in result list", iAValueType::Boolean, m_lastShowPreviews);
-	addParameter(params, "Show distribution charts in result list", iAValueType::Boolean, m_lastShowCharts);
+	iAAttributes params;
+	addAttr(params, "Result folder", iAValueType::Folder, m_lastPath);
+	addAttr(params, "CSV cormat", iAValueType::Categorical, formatEntries);
+	addAttr(params, "Step coordinate shift", iAValueType::Continuous, m_lastTimeStepOffset);
+	addAttr(params, "Use step data", iAValueType::Boolean, m_lastUseStepData);
+	addAttr(params, "Show mini previews in result list", iAValueType::Boolean, m_lastShowPreviews);
+	addAttr(params, "Show distribution charts in result list", iAValueType::Boolean, m_lastShowCharts);
 	QString descr("Starts FIAKER, a comparison tool for results from fiber reconstruction algorithms.<br/>"
 		"Choose a <em>Result folder</em> containing two or more fiber reconstruction results in .csv format. "
 		"Under <em>CSV format</em>, select the format in which data is stored in your .csv files. "

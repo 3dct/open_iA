@@ -75,13 +75,13 @@ bool iATLGICTLoader::setup(QString const& baseDirectory, QWidget* parent)
 	}
 	QSettings iniLog(logFiles[0].absoluteFilePath(), QSettings::IniFormat);
 	double pixelSize = iniLog.value("Reconstruction/Pixel Size (um)", 1000).toDouble() / 1000;
-	iAParameterDlg::ParamListT params;
-	addParameter(params, "Spacing X", iAValueType::Continuous, pixelSize);
-	addParameter(params, "Spacing Y", iAValueType::Continuous, pixelSize);
-	addParameter(params, "Spacing Z", iAValueType::Continuous, pixelSize);
-	addParameter(params, "Origin X", iAValueType::Continuous, 0);
-	addParameter(params, "Origin Y", iAValueType::Continuous, 0);
-	addParameter(params, "Origin Z", iAValueType::Continuous, 0);
+	iAAttributes params;
+	addAttr(params, "Spacing X", iAValueType::Continuous, pixelSize);
+	addAttr(params, "Spacing Y", iAValueType::Continuous, pixelSize);
+	addAttr(params, "Spacing Z", iAValueType::Continuous, pixelSize);
+	addAttr(params, "Origin X", iAValueType::Continuous, 0);
+	addAttr(params, "Origin Y", iAValueType::Continuous, 0);
+	addAttr(params, "Origin Z", iAValueType::Continuous, 0);
 	iAParameterDlg dlg(parent, "Set file parameters", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{

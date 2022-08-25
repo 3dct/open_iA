@@ -27,8 +27,7 @@
 #include <vtkSTLReader.h>
 
 iASTLFileIO::iASTLFileIO() : iAFileIO(iADataSetType::Mesh, iADataSetType::None)
-{
-}
+{}
 
 std::vector<std::shared_ptr<iADataSet>> iASTLFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& params)
 {

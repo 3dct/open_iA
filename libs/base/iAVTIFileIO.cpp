@@ -27,8 +27,7 @@
 #include <vtkXMLImageDataReader.h>
 
 iAVTIFileIO::iAVTIFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
-{
-}
+{}
 
 std::vector<std::shared_ptr<iADataSet>> iAVTIFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
 {

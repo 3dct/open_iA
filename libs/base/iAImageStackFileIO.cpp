@@ -83,15 +83,15 @@ namespace
 iAImageStackFileIO::iAImageStackFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volume)
 {
 	QStringList loadTypes = QStringList() << SingleImageOption << ImageStackOption;
-	addParameter(LoadTypeStr, iAValueType::Categorical, loadTypes);
-	addParameter(StepStr, iAValueType::Discrete, 1);
-	addParameter(SpacingStr, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
-	addParameter(OriginStr, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
-	addParameter(FileNameBase, iAValueType::String, "");
-	addParameter(Extension, iAValueType::String, "");
-	addParameter(NumDigits, iAValueType::Discrete, 0);
-	addParameter(MinimumIndex, iAValueType::Discrete, 0);
-	addParameter(MaximumIndex, iAValueType::Discrete, 0);
+	addAttr(m_loadParams, LoadTypeStr, iAValueType::Categorical, loadTypes);
+	addAttr(m_loadParams, StepStr, iAValueType::Discrete, 1);
+	addAttr(m_loadParams, SpacingStr, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
+	addAttr(m_loadParams, OriginStr, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
+	addAttr(m_loadParams, FileNameBase, iAValueType::String, "");
+	addAttr(m_loadParams, Extension, iAValueType::String, "");
+	addAttr(m_loadParams, NumDigits, iAValueType::Discrete, 0);
+	addAttr(m_loadParams, MinimumIndex, iAValueType::Discrete, 0);
+	addAttr(m_loadParams, MaximumIndex, iAValueType::Discrete, 0);
 }
 
 

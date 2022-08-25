@@ -42,8 +42,8 @@ iAOIFFileIO::iAOIFFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None
 {
 	QStringList whatToLoad = QStringList() << SingleChannelStr << AllChannelsStr;
 	selectOption(whatToLoad, AllChannelsStr);
-	addParameter(WhatToLoadStr, iAValueType::Categorical, whatToLoad);
-	addParameter(ChannelNumberStr, iAValueType::Discrete, 0, 0);
+	addAttr(m_loadParams, WhatToLoadStr, iAValueType::Categorical, whatToLoad);
+	addAttr(m_loadParams, ChannelNumberStr, iAValueType::Discrete, 0, 0);
 }
 
 std::vector<std::shared_ptr<iADataSet>> iAOIFFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)

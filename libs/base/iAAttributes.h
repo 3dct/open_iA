@@ -49,3 +49,9 @@ iAbase_API iAAttributes combineAttributesWithValues(iAAttributes const& attribut
 
 //! Extract just the values from the given descriptors into a map
 iAbase_API QVariantMap extractValues(iAAttributes const& attributes);
+
+iAbase_API void addAttr(iAAttributes& attributes,
+	QString const& name, iAValueType valueType,
+	QVariant defaultValue = 0.0,
+	double min = std::numeric_limits<double>::lowest(),
+	double max = std::numeric_limits<double>::max());

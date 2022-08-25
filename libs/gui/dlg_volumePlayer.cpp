@@ -222,8 +222,8 @@ void dlg_volumePlayer::updateView(int r, int /*c*/)
 
 void dlg_volumePlayer::editMaxSpeed()
 {
-	iAParameterDlg::ParamListT param;
-	addParameter(param, "Speed (one step/msec)", iAValueType::Continuous, QString::number(getCurrentSpeed(), 'f', 2), TIMER_MIN_SPEED, TIMER_MAX_SPEED);
+	iAAttributes param;
+	addAttr(param, "Speed (one step/msec)", iAValueType::Continuous, QString::number(getCurrentSpeed(), 'f', 2), TIMER_MIN_SPEED, TIMER_MAX_SPEED);
 	iAParameterDlg dlg(m_mdiChild, "Set speed", param, nullptr);
 	if (dlg.exec() == QDialog::Accepted)
 	{

@@ -236,8 +236,8 @@ void dlg_GEMSeControl::loadSamplingSlot()
 	int labelCount = m_simpleLabelInfo->count();
 	if (labelCount < 2)
 	{
-		iAParameterDlg::ParamListT param;
-		addParameter(param, "Label Count", iAValueType::Discrete, 2, 2);
+		iAAttributes param;
+		addAttr(param, "Label Count", iAValueType::Discrete, 2, 2);
 		iAParameterDlg dlg(this, "Label Count", param);
 		if (dlg.exec() != QDialog::Accepted)
 		{

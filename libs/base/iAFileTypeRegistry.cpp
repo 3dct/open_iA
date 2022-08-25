@@ -120,8 +120,8 @@ QString iAFileTypeRegistry::registeredSaveFileTypes(iADataSetType type)
 void iAFileTypeRegistry::setupDefaultIOFactories()
 {
 	// volume file formats:
-	iAFileTypeRegistry::addFileType<iACSVImageFileIO>();
 	iAFileTypeRegistry::addFileType<iAAmiraVolumeFileIO>();
+	iAFileTypeRegistry::addFileType<iACSVImageFileIO>();
 	iAFileTypeRegistry::addFileType<iADCMFileIO>();
 	iAFileTypeRegistry::addFileType<iAImageStackFileIO>();
 	iAFileTypeRegistry::addFileType<iAMetaFileIO>();

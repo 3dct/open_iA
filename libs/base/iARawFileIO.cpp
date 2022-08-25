@@ -62,12 +62,12 @@ iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None
 	selectOption(datatype, selectedType);
 	auto byteOrders = ByteOrder::stringList();
 	selectOption(byteOrders, ByteOrder::LittleEndianStr);
-	addParameter(SizeStr, iAValueType::Vector3i, variantVector<int>({1, 1, 1}));
-	addParameter(SpacingStr, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
-	addParameter(OriginStr, iAValueType::Vector3, variantVector<double>({0.0, 0.0, 0.0}));
-	addParameter(HeadersizeStr, iAValueType::Discrete, 0, 0);
-	addParameter(DataTypeStr, iAValueType::Categorical, datatype);
-	addParameter(ByteOrderStr, iAValueType::Categorical, byteOrders);
+	addAttr(m_loadParams, SizeStr, iAValueType::Vector3i, variantVector<int>({1, 1, 1}));
+	addAttr(m_loadParams, SpacingStr, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
+	addAttr(m_loadParams, OriginStr, iAValueType::Vector3, variantVector<double>({0.0, 0.0, 0.0}));
+	addAttr(m_loadParams, HeadersizeStr, iAValueType::Discrete, 0, 0);
+	addAttr(m_loadParams, DataTypeStr, iAValueType::Categorical, datatype);
+	addAttr(m_loadParams, ByteOrderStr, iAValueType::Categorical, byteOrders);
 }
 
 #if RAW_LOAD_METHOD == ITK

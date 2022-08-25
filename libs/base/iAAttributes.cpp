@@ -98,7 +98,7 @@ iAAttributes combineAttributesWithValues(iAAttributes const& attributes, QVarian
 	return combined;
 }
 
-iAbase_API QVariantMap extractValues(iAAttributes const& attributes)
+QVariantMap extractValues(iAAttributes const& attributes)
 {
 	QVariantMap result;
 	for (auto param : attributes)
@@ -106,4 +106,9 @@ iAbase_API QVariantMap extractValues(iAAttributes const& attributes)
 		result.insert(param->name(), param->defaultValue());
 	}
 	return result;
+}
+
+void addAttr(iAAttributes& attributes, QString const& name, iAValueType valueType, QVariant defaultValue, double min, double max)
+{
+	attributes.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
 }

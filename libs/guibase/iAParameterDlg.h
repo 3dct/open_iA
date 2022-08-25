@@ -22,6 +22,7 @@
 
 #include "iAguibase_export.h"
 
+#include "iAAttributes.h"
 #include "iAValueType.h"
 
 #include <QDialog>
@@ -44,13 +45,12 @@ class iAguibase_API iAParameterDlg : public QDialog
 {
 	Q_OBJECT
 public:
-	using ParamListT = QVector<QSharedPointer<iAAttributeDescriptor>>;
 	//! Create dialog with the given parameters.
 	//! @param parent the parent widget
 	//! @param title  the dialog title
 	//! @param parameters list of parameters (name, type, value, range, ...)
 	//! @param descr an optional description text, displayed on top of the dialog
-	iAParameterDlg(QWidget* parent, QString const& title, ParamListT parameters, QString const& descr = QString());
+	iAParameterDlg(QWidget* parent, QString const& title, iAAttributes const & parameters, QString const& descr = QString());
 	QVariantMap parameterValues() const;  // make const &, cache
 	//QVariant value(QString const& key) const;
 	void showROI();
@@ -73,12 +73,8 @@ private:
 	iAMainWindow * m_mainWnd;
 	bool m_sourceMdiChildClosed;
 	QVector<QWidget*> m_widgetList;
-	ParamListT m_parameters;
+	iAAttributes m_parameters;
 	QDialogButtonBox* m_buttonBox;
 
 	void updateROIPart(QString const& partName, QVariant value);
 };
-
-iAguibase_API void addParameter(iAParameterDlg::ParamListT& params, QString const& name, iAValueType valueType,
-	QVariant defaultValue = 0.0, double min = std::numeric_limits<double>::lowest(),
-	double max = std::numeric_limits<double>::max());

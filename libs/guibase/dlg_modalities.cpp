@@ -101,8 +101,8 @@ void dlg_modalities::addClicked()
 	bool split = false;
 	if (CanHaveMultipleChannels(fileName))
 	{
-		iAParameterDlg::ParamListT params;
-		addParameter(params, "Split Channels", iAValueType::Boolean, true);
+		iAAttributes params;
+		addAttr(params, "Split Channels", iAValueType::Boolean, true);
 		iAParameterDlg dlg(this, "Multi-channel input", params,
 			"Input file potentially has multiple channels. "
 			"Should they be split into separate datasets, "

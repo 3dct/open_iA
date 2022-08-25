@@ -853,9 +853,9 @@ bool MdiChild::loadFile(const QString& f, bool isStack)
 
 void MdiChild::setSTLParameter()
 {
-	iAParameterDlg::ParamListT params;
-	addParameter(params, "Transparency", iAValueType::Continuous, 1.0,0.0,1.0);
-	addParameter(params, "Color", iAValueType::Color, QColor("green"));
+	iAAttributes params;
+	addAttr(params, "Transparency", iAValueType::Continuous, 1.0,0.0,1.0);
+	addAttr(params, "Color", iAValueType::Color, QColor("green"));
 	iAParameterDlg componentChoice(this, "Setup STL Properties", params);
 
 	componentChoice.exec();
@@ -1078,8 +1078,8 @@ int MdiChild::chooseModalityNr(QString const& caption)
 	{
 		modalityNames << modality(i)->name();
 	}
-	iAParameterDlg::ParamListT params;
-	addParameter(params, "Channel", iAValueType::Categorical, modalityNames);
+	iAAttributes params;
+	addAttr(params, "Channel", iAValueType::Categorical, modalityNames);
 	iAParameterDlg modalityChoice(this, caption, params);
 	if (modalityChoice.exec() != QDialog::Accepted)
 	{
@@ -1105,8 +1105,8 @@ int MdiChild::chooseComponentNr(int modalityNr)
 		components << QString::number(i);
 	}
 	components << "All components";
-	iAParameterDlg::ParamListT params;
-	addParameter(params, "Component", iAValueType::Categorical, components);
+	iAAttributes params;
+	addAttr(params, "Component", iAValueType::Categorical, components);
 	iAParameterDlg componentChoice(this, "Choose Component", params);
 	if (componentChoice.exec() != QDialog::Accepted)
 	{
@@ -1121,14 +1121,14 @@ std::shared_ptr<iADataSet> MdiChild::chooseDataSet()
 	{
 		return m_dataSets.begin()->second;
 	}
-	iAParameterDlg::ParamListT params;
+	iAAttributes params;
 	QStringList dataSetNames;
 	for (auto dataSet : dataSets())
 	{
 		dataSetNames << dataSet->name();
 	}
 	const QString DataSetStr("Dataset");
-	addParameter(params, DataSetStr, iAValueType::Categorical, dataSetNames);
+	addAttr(params, DataSetStr, iAValueType::Categorical, dataSetNames);
 	iAParameterDlg dataSetChoice(this, "Choose dataset", params);
 	if (dataSetChoice.exec() == QDialog::Accepted)
 	{
@@ -1451,8 +1451,8 @@ void MdiChild::saveMovRC()
 	}
 
 	QStringList modes = (QStringList() << tr("Rotate Z") << tr("Rotate X") << tr("Rotate Y"));
-	iAParameterDlg::ParamListT params;
-	addParameter(params, "Rotation mode", iAValueType::Categorical, modes);
+	iAAttributes params;
+	addAttr(params, "Rotation mode", iAValueType::Categorical, modes);
 	iAParameterDlg dlg(this, "Save movie options", params,
 		"Creates a movie by rotating the object around a user-defined axis in the 3D renderer.");
 	if (dlg.exec() != QDialog::Accepted)

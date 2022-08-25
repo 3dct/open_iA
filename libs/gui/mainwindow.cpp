@@ -511,16 +511,17 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 		return;
 	}
 	auto settingsGroup = ioSettingsGroup(io->name());
-	auto paramValues = ::loadSettings(settingsGroup, extractValues(io->parameters()));
-	if (io->parameters().size() > 0)
+	QVariantMap paramValues;
+	if (!io->loadParameter().isEmpty())
 	{
+		paramValues = ::loadSettings(settingsGroup, extractValues(io->loadParameter()));
 		auto paramDlg = iAFileParamDlg::get(io->name());
-		if (!paramDlg->askForParameters(this, io->parameters(), paramValues, fileName))
+		if (!paramDlg->askForParameters(this, io->loadParameter(), paramValues, fileName))
 		{
 			return;
 		}
+		::storeSettings(settingsGroup, paramValues);
 	}
-	::storeSettings(settingsGroup, paramValues);
 	QString filePath(fileName);
 	filePath.truncate(filePath.lastIndexOf('/'));
 	m_path = filePath;
@@ -620,14 +621,14 @@ void MainWindow::saveSettings()
 	{
 		return;
 	}
-	iAParameterDlg::ParamListT params;
-	addParameter(params, "Camera", iAValueType::Boolean, m_spCamera);
-	addParameter(params, "Slice Views", iAValueType::Boolean, m_spSliceViews);
-	addParameter(params, "Transfer Function", iAValueType::Boolean, m_spTransferFunction);
-	addParameter(params, "Probability Functions", iAValueType::Boolean, m_spProbabilityFunctions);
-	addParameter(params, "Preferences", iAValueType::Boolean, m_spPreferences);
-	addParameter(params, "Render Settings", iAValueType::Boolean, m_spRenderSettings);
-	addParameter(params, "Slice Settings", iAValueType::Boolean, m_spSlicerSettings);
+	iAAttributes params;
+	addAttr(params, "Camera", iAValueType::Boolean, m_spCamera);
+	addAttr(params, "Slice Views", iAValueType::Boolean, m_spSliceViews);
+	addAttr(params, "Transfer Function", iAValueType::Boolean, m_spTransferFunction);
+	addAttr(params, "Probability Functions", iAValueType::Boolean, m_spProbabilityFunctions);
+	addAttr(params, "Preferences", iAValueType::Boolean, m_spPreferences);
+	addAttr(params, "Render Settings", iAValueType::Boolean, m_spRenderSettings);
+	addAttr(params, "Slice Settings", iAValueType::Boolean, m_spSlicerSettings);
 	iAParameterDlg dlg(this, "Save Settings", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
@@ -715,14 +716,14 @@ void MainWindow::loadSettings()
 		else if (nodeName == "renderSettings") renderSettings = true;
 		else if (nodeName == "slicerSettings") slicerSettings = true;
 	}
-	iAParameterDlg::ParamListT params;
-	if (camera)               { addParameter(params, "Camera", iAValueType::Boolean, m_lpCamera ); }
-	if (sliceViews)           { addParameter(params, "Slice Views", iAValueType::Boolean, m_lpSliceViews); }
-	if (transferFunction)     { addParameter(params, "Transfer Function", iAValueType::Boolean, m_lpTransferFunction); }
-	if (probabilityFunctions) { addParameter(params, "Probability Functions", iAValueType::Boolean, m_lpProbabilityFunctions); }
-	if (preferences)          { addParameter(params, "Preferences", iAValueType::Boolean, m_lpPreferences); }
-	if (renderSettings)       { addParameter(params, "Render Settings", iAValueType::Boolean, m_lpRenderSettings); }
-	if (slicerSettings)       { addParameter(params, "Slice Settings", iAValueType::Boolean, m_lpSlicerSettings); }
+	iAAttributes params;
+	if (camera)               { addAttr(params, "Camera", iAValueType::Boolean, m_lpCamera ); }
+	if (sliceViews)           { addAttr(params, "Slice Views", iAValueType::Boolean, m_lpSliceViews); }
+	if (transferFunction)     { addAttr(params, "Transfer Function", iAValueType::Boolean, m_lpTransferFunction); }
+	if (probabilityFunctions) { addAttr(params, "Probability Functions", iAValueType::Boolean, m_lpProbabilityFunctions); }
+	if (preferences)          { addAttr(params, "Preferences", iAValueType::Boolean, m_lpPreferences); }
+	if (renderSettings)       { addAttr(params, "Render Settings", iAValueType::Boolean, m_lpRenderSettings); }
+	if (slicerSettings)       { addAttr(params, "Slice Settings", iAValueType::Boolean, m_lpSlicerSettings); }
 	iAParameterDlg dlg(this, "Load Settings", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
@@ -1210,22 +1211,22 @@ void MainWindow::prefs()
 	QStringList logLevels(AvailableLogLevels()), fileLogLevels(AvailableLogLevels());
 	logLevels[iALogWidget::get()->logLevel()-1] = "!" + logLevels[iALogWidget::get()->logLevel()-1];
 	fileLogLevels[iALogWidget::get()->fileLogLevel() - 1] = "!" + fileLogLevels[iALogWidget::get()->fileLogLevel() - 1];
-	iAParameterDlg::ParamListT params;
-	addParameter(params, "Histogram Bins", iAValueType::Discrete, p.HistogramBins, 2);
-	addParameter(params, "Statistical extent", iAValueType::Discrete, p.StatisticalExtent, 1);
-	addParameter(params, "Use Compression when storing .mhd files", iAValueType::Boolean, p.Compression);
-	addParameter(params, "Print Parameters", iAValueType::Boolean, p.PrintParameters);
-	addParameter(params, "Results in new window", iAValueType::Boolean, p.ResultInNewWindow);
-	addParameter(params, "Log Level", iAValueType::Categorical, logLevels);
-	addParameter(params, "Log to file", iAValueType::Boolean, iALogWidget::get()->isLogToFileOn());
-	addParameter(params, "Log File Name", iAValueType::FileNameSave, iALogWidget::get()->logFileName());
-	addParameter(params, "File Log Level", iAValueType::Categorical, fileLogLevels);
-	addParameter(params, "Looks", iAValueType::Categorical, looks);
-	addParameter(params, "Font size", iAValueType::Discrete, QString::number(p.FontSize), 4, 120);
-	addParameter(params, "Magic lens size", iAValueType::Discrete, p.MagicLensSize, MinimumMagicLensSize, MaximumMagicLensSize);
-	addParameter(params, "Magic lens frame width", iAValueType::Discrete, p.MagicLensFrameWidth, 0);
-	addParameter(params, "Logarithmic Histogram y axis", iAValueType::Boolean, p.HistogramLogarithmicYAxis);
-	addParameter(params, "Size limit for automatic 3D rendering (MB)", iAValueType::Discrete, p.LimitForAuto3DRender, 0);
+	iAAttributes params;
+	addAttr(params, "Histogram Bins", iAValueType::Discrete, p.HistogramBins, 2);
+	addAttr(params, "Statistical extent", iAValueType::Discrete, p.StatisticalExtent, 1);
+	addAttr(params, "Use Compression when storing .mhd files", iAValueType::Boolean, p.Compression);
+	addAttr(params, "Print Parameters", iAValueType::Boolean, p.PrintParameters);
+	addAttr(params, "Results in new window", iAValueType::Boolean, p.ResultInNewWindow);
+	addAttr(params, "Log Level", iAValueType::Categorical, logLevels);
+	addAttr(params, "Log to file", iAValueType::Boolean, iALogWidget::get()->isLogToFileOn());
+	addAttr(params, "Log File Name", iAValueType::FileNameSave, iALogWidget::get()->logFileName());
+	addAttr(params, "File Log Level", iAValueType::Categorical, fileLogLevels);
+	addAttr(params, "Looks", iAValueType::Categorical, looks);
+	addAttr(params, "Font size", iAValueType::Discrete, QString::number(p.FontSize), 4, 120);
+	addAttr(params, "Magic lens size", iAValueType::Discrete, p.MagicLensSize, MinimumMagicLensSize, MaximumMagicLensSize);
+	addAttr(params, "Magic lens frame width", iAValueType::Discrete, p.MagicLensFrameWidth, 0);
+	addAttr(params, "Logarithmic Histogram y axis", iAValueType::Boolean, p.HistogramLogarithmicYAxis);
+	addAttr(params, "Size limit for automatic 3D rendering (MB)", iAValueType::Discrete, p.LimitForAuto3DRender, 0);
 	iAParameterDlg dlg(this, "Preferences", params, descr);
 	if (dlg.exec() != QDialog::Accepted)
 	{
@@ -1269,31 +1270,31 @@ void MainWindow::renderSettings()
 	iAVolumeSettings volumeSettings = activeMdiChild() ? activeMdiChild()->volumeSettings() : m_defaultVolumeSettings;
 	QStringList renderTypes = RenderModeMap().values();
 	selectOption(renderTypes, renderTypes[volumeSettings.RenderMode]);
-	iAParameterDlg::ParamListT params;
-	addParameter(params, "Show slicers", iAValueType::Boolean, renderSettings.ShowSlicers);
-	addParameter(params, "Show slice planes", iAValueType::Boolean, renderSettings.ShowSlicePlanes);
-	addParameter(params, "Slice plane opacity", iAValueType::Continuous, renderSettings.PlaneOpacity, 0, 1);
-	addParameter(params, "Show helpers", iAValueType::Boolean, renderSettings.ShowHelpers);
-	addParameter(params, "Show position", iAValueType::Boolean, renderSettings.ShowRPosition);
-	addParameter(params, "Parallel projection", iAValueType::Boolean, renderSettings.ParallelProjection);
-	addParameter(params, "Use style background color", iAValueType::Boolean, renderSettings.UseStyleBGColor);
-	addParameter(params, "Background top", iAValueType::Color, renderSettings.BackgroundTop);
-	addParameter(params, "Background bottom", iAValueType::Color, renderSettings.BackgroundBottom);
-	addParameter(params, "Use FXAA", iAValueType::Boolean, renderSettings.UseFXAA);
-	addParameter(params, "MultiSamples", iAValueType::Discrete, renderSettings.MultiSamples);
-	addParameter(params, "Use Depth Peeling", iAValueType::Boolean, renderSettings.UseDepthPeeling);
-	addParameter(params, "Occlusion Ratio", iAValueType::Continuous, renderSettings.OcclusionRatio);
-	addParameter(params, "Use Screen Space Ambient Occlusion", iAValueType::Boolean, renderSettings.UseSSAO);
-	addParameter(params, "Maximum Depth Peels", iAValueType::Discrete, renderSettings.DepthPeels);
+	iAAttributes params;
+	addAttr(params, "Show slicers", iAValueType::Boolean, renderSettings.ShowSlicers);
+	addAttr(params, "Show slice planes", iAValueType::Boolean, renderSettings.ShowSlicePlanes);
+	addAttr(params, "Slice plane opacity", iAValueType::Continuous, renderSettings.PlaneOpacity, 0, 1);
+	addAttr(params, "Show helpers", iAValueType::Boolean, renderSettings.ShowHelpers);
+	addAttr(params, "Show position", iAValueType::Boolean, renderSettings.ShowRPosition);
+	addAttr(params, "Parallel projection", iAValueType::Boolean, renderSettings.ParallelProjection);
+	addAttr(params, "Use style background color", iAValueType::Boolean, renderSettings.UseStyleBGColor);
+	addAttr(params, "Background top", iAValueType::Color, renderSettings.BackgroundTop);
+	addAttr(params, "Background bottom", iAValueType::Color, renderSettings.BackgroundBottom);
+	addAttr(params, "Use FXAA", iAValueType::Boolean, renderSettings.UseFXAA);
+	addAttr(params, "MultiSamples", iAValueType::Discrete, renderSettings.MultiSamples);
+	addAttr(params, "Use Depth Peeling", iAValueType::Boolean, renderSettings.UseDepthPeeling);
+	addAttr(params, "Occlusion Ratio", iAValueType::Continuous, renderSettings.OcclusionRatio);
+	addAttr(params, "Use Screen Space Ambient Occlusion", iAValueType::Boolean, renderSettings.UseSSAO);
+	addAttr(params, "Maximum Depth Peels", iAValueType::Discrete, renderSettings.DepthPeels);
 
-	addParameter(params, "Linear interpolation", iAValueType::Boolean, volumeSettings.LinearInterpolation);
-	addParameter(params, "Shading", iAValueType::Boolean, volumeSettings.Shading);
-	addParameter(params, "Sample distance", iAValueType::Continuous, volumeSettings.SampleDistance);
-	addParameter(params, "Ambient lighting", iAValueType::Continuous, volumeSettings.AmbientLighting);
-	addParameter(params, "Diffuse lighting", iAValueType::Continuous, volumeSettings.DiffuseLighting);
-	addParameter(params, "Specular lighting", iAValueType::Continuous, volumeSettings.SpecularLighting);
-	addParameter(params, "Specular power", iAValueType::Continuous, volumeSettings.SpecularPower);
-	addParameter(params, "Renderer type", iAValueType::Categorical, renderTypes);
+	addAttr(params, "Linear interpolation", iAValueType::Boolean, volumeSettings.LinearInterpolation);
+	addAttr(params, "Shading", iAValueType::Boolean, volumeSettings.Shading);
+	addAttr(params, "Sample distance", iAValueType::Continuous, volumeSettings.SampleDistance);
+	addAttr(params, "Ambient lighting", iAValueType::Continuous, volumeSettings.AmbientLighting);
+	addAttr(params, "Diffuse lighting", iAValueType::Continuous, volumeSettings.DiffuseLighting);
+	addAttr(params, "Specular lighting", iAValueType::Continuous, volumeSettings.SpecularLighting);
+	addAttr(params, "Specular power", iAValueType::Continuous, volumeSettings.SpecularPower);
+	addAttr(params, "Renderer type", iAValueType::Categorical, renderTypes);
 	iAParameterDlg dlg(this, dlgTitle, params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
@@ -1368,24 +1369,24 @@ void MainWindow::slicerSettings()
 	QString dlgTitle = activeMdiChild() ? (activeMdiChild()->windowTitle() + " - slicer setings") : "Default slicer settings";
 	iASlicerSettings const& slicerSettings = activeMDI() ? activeMDI()->slicerSettings() : m_defaultSlicerSettings;
 	selectOption(mouseCursorOptions, slicerSettings.SingleSlicer.CursorMode);
-	iAParameterDlg::ParamListT params;
-	addParameter(params, "Link Views", iAValueType::Boolean, slicerSettings.LinkViews);
-	addParameter(params, "Show Position", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowPosition);
-	addParameter(params, "Show Isolines", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowIsoLines);
-	addParameter(params, "Linear Interpolation", iAValueType::Boolean, slicerSettings.SingleSlicer.LinearInterpolation);
-	addParameter(params, "Adjust Window/Level via Mouse Click+Drag", iAValueType::Boolean, slicerSettings.SingleSlicer.AdjustWindowLevelEnabled);
-	addParameter(params, "Number of Isolines", iAValueType::Discrete, slicerSettings.SingleSlicer.NumberOfIsoLines);
-	addParameter(params, "Min Isovalue", iAValueType::Continuous, slicerSettings.SingleSlicer.MinIsoValue);
-	addParameter(params, "Max Isovalue", iAValueType::Continuous, slicerSettings.SingleSlicer.MaxIsoValue);
-	addParameter(params, "Snake Slices", iAValueType::Discrete, slicerSettings.SnakeSlices);
-	addParameter(params, "Link MDIs", iAValueType::Boolean, slicerSettings.LinkMDIs);
-	addParameter(params, "Mouse Cursor", iAValueType::Categorical, mouseCursorOptions);
-	addParameter(params, "Show Axes Caption", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowAxesCaption);
-	addParameter(params, "Tooltip Font Size (pt)", iAValueType::Discrete, slicerSettings.SingleSlicer.ToolTipFontSize);
-	addParameter(params, "Show Tooltip", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowTooltip);
+	iAAttributes params;
+	addAttr(params, "Link Views", iAValueType::Boolean, slicerSettings.LinkViews);
+	addAttr(params, "Show Position", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowPosition);
+	addAttr(params, "Show Isolines", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowIsoLines);
+	addAttr(params, "Linear Interpolation", iAValueType::Boolean, slicerSettings.SingleSlicer.LinearInterpolation);
+	addAttr(params, "Adjust Window/Level via Mouse Click+Drag", iAValueType::Boolean, slicerSettings.SingleSlicer.AdjustWindowLevelEnabled);
+	addAttr(params, "Number of Isolines", iAValueType::Discrete, slicerSettings.SingleSlicer.NumberOfIsoLines);
+	addAttr(params, "Min Isovalue", iAValueType::Continuous, slicerSettings.SingleSlicer.MinIsoValue);
+	addAttr(params, "Max Isovalue", iAValueType::Continuous, slicerSettings.SingleSlicer.MaxIsoValue);
+	addAttr(params, "Snake Slices", iAValueType::Discrete, slicerSettings.SnakeSlices);
+	addAttr(params, "Link MDIs", iAValueType::Boolean, slicerSettings.LinkMDIs);
+	addAttr(params, "Mouse Cursor", iAValueType::Categorical, mouseCursorOptions);
+	addAttr(params, "Show Axes Caption", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowAxesCaption);
+	addAttr(params, "Tooltip Font Size (pt)", iAValueType::Discrete, slicerSettings.SingleSlicer.ToolTipFontSize);
+	addAttr(params, "Show Tooltip", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowTooltip);
 	for (int s=0; s<iASlicerMode::SlicerCount; ++s)
 	{
-		addParameter(params, slicerBGColorSetting(s), iAValueType::Color, slicerSettings.BackgroundColor[s]);
+		addAttr(params, slicerBGColorSetting(s), iAValueType::Color, slicerSettings.BackgroundColor[s]);
 	}
 	iAParameterDlg dlg(this, dlgTitle, params);
 	if (dlg.exec() != QDialog::Accepted)
@@ -2558,8 +2559,8 @@ void MainWindow::saveLayout()
 	QByteArray state = child->saveState(0);
 	QSettings settings;
 	QString layoutName(m_layout->currentText());
-	iAParameterDlg::ParamListT params;
-	addParameter(params, "Layout Name:", iAValueType::String, layoutName);
+	iAAttributes params;
+	addAttr(params, "Layout Name:", iAValueType::String, layoutName);
 	iAParameterDlg dlg(this, "Layout Name", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
@@ -2823,8 +2824,8 @@ void MainWindow::openWithDataTypeConversion()
 	{
 		return;
 	}
-	iAParameterDlg::ParamListT params;
-	addParameter(params, "Slice sample rate", iAValueType::Discrete, m_owdtcs, 1);
+	iAAttributes params;
+	addAttr(params, "Slice sample rate", iAValueType::Discrete, m_owdtcs, 1);
 	auto map = m_rawFileParams.toMap();
 	iARawFileParamDlg dlg(fileName, this, "Open With DataType Conversion", params, map, brightMode());
 	if (!dlg.accepted())

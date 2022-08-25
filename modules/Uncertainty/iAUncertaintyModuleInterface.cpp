@@ -151,11 +151,11 @@ void iAUncertaintyModuleInterface::WriteFullDataFile()
 	{
 		return;
 	}
-	iAParameterDlg::ParamListT params;
-	addParameter(params, "Write original data values", iAValueType::Boolean, true);
-	addParameter(params, "Write Member Labels", iAValueType::Boolean, true);
-	addParameter(params, "Write Member Probabilities", iAValueType::Boolean, true);
-	addParameter(params, "Write Ensemble Uncertainties", iAValueType::Boolean, true);
+	iAAttributes params;
+	addAttr(params, "Write original data values", iAValueType::Boolean, true);
+	addAttr(params, "Write Member Labels", iAValueType::Boolean, true);
+	addAttr(params, "Write Member Probabilities", iAValueType::Boolean, true);
+	addAttr(params, "Write Ensemble Uncertainties", iAValueType::Boolean, true);
 	iAParameterDlg dlg(m_mainWnd, "Write parameters", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{

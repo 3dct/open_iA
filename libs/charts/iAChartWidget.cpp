@@ -1327,8 +1327,8 @@ void iAChartWidget::exportData()
 	{
 		LOG(lvlInfo, "More than one plot available, exporting only first!");
 		/*
-		iAParameterDlg::ParamListT params;
-		addParameter(params, "Plot index", iAValueType::Discrete, 0, 0, m_plots.size());
+		iAAttributes params;
+		addAttr(params, "Plot index", iAValueType::Discrete, 0, 0, m_plots.size());
 		iAParameterDlg dlg(this, "Choose plot", params, "More than one plot available - please choose which one you want to export!");
 		if (dlg.exec() != QDialog::Accepted)
 		{

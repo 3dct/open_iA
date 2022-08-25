@@ -36,7 +36,7 @@
 #include <QSpinBox>
 
 iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, QString const& title,
-	iAParameterDlg::ParamListT const& additionalParams, QVariantMap & paramValues, bool brightTheme) :
+	iAAttributes const& additionalParams, QVariantMap & paramValues, bool brightTheme) :
 	m_accepted(false),
 	m_brightTheme(brightTheme)
 {
@@ -47,14 +47,14 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 	selectOption(datatypeList, paramValues[iARawFileIO::DataTypeStr].toString());
 	QStringList byteOrderList(ByteOrder::stringList());
 	selectOption(byteOrderList, paramValues[iARawFileIO::ByteOrderStr].toString());
-	iAParameterDlg::ParamListT params;
+	iAAttributes params;
 	// duplication to iARawFileIO!
-	addParameter(params, iARawFileIO::SizeStr, iAValueType::Vector3i, paramValues[iARawFileIO::SizeStr]);
-	addParameter(params, iARawFileIO::SpacingStr, iAValueType::Vector3, paramValues[iARawFileIO::SpacingStr]);
-	addParameter(params, iARawFileIO::OriginStr, iAValueType::Vector3, paramValues[iARawFileIO::OriginStr]);
-	addParameter(params, iARawFileIO::HeadersizeStr, iAValueType::Discrete, paramValues[iARawFileIO::HeadersizeStr].toInt(), 0);
-	addParameter(params, iARawFileIO::DataTypeStr, iAValueType::Categorical, datatypeList);
-	addParameter(params, iARawFileIO::ByteOrderStr, iAValueType::Categorical, byteOrderList);
+	addAttr(params, iARawFileIO::SizeStr, iAValueType::Vector3i, paramValues[iARawFileIO::SizeStr]);
+	addAttr(params, iARawFileIO::SpacingStr, iAValueType::Vector3, paramValues[iARawFileIO::SpacingStr]);
+	addAttr(params, iARawFileIO::OriginStr, iAValueType::Vector3, paramValues[iARawFileIO::OriginStr]);
+	addAttr(params, iARawFileIO::HeadersizeStr, iAValueType::Discrete, paramValues[iARawFileIO::HeadersizeStr].toInt(), 0);
+	addAttr(params, iARawFileIO::DataTypeStr, iAValueType::Categorical, datatypeList);
+	addAttr(params, iARawFileIO::ByteOrderStr, iAValueType::Categorical, byteOrderList);
 	params.append(additionalParams);
 	m_inputDlg = new iAParameterDlg(parent, title, params);
 

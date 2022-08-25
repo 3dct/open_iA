@@ -971,9 +971,9 @@ void dlg_Consensus::LoadConfig()
 				parameterSets->push_back(singleParameterSet);
 			}
 		}
-		iAParameterDlg::ParamListT dlgParams;
-		addParameter(dlgParams, "Executable", iAValueType::String, samplingResults->executable());
-		addParameter(dlgParams, "Additional Parameters", iAValueType::String, samplingResults->additionalArguments());
+		iAAttributes dlgParams;
+		addAttr(dlgParams, "Executable", iAValueType::String, samplingResults->executable());
+		addAttr(dlgParams, "Additional Parameters", iAValueType::String, samplingResults->additionalArguments());
 		iAParameterDlg dlg(m_mdiChild, "Check/Correct Algorithm Parameters", dlgParams);
 		if (dlg.exec() != QDialog::Accepted)
 		{

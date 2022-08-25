@@ -76,7 +76,7 @@ namespace
 	}
 }
 
-iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT parameters, QString const& descr)
+iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttributes const & parameters, QString const& descr)
 	: QDialog(parent),
 	m_sourceMdiChild(nullptr),
 	m_sourceMdiChildClosed(false),
@@ -660,10 +660,4 @@ int iAParameterDlg::exec()
 void iAParameterDlg::setOKEnabled(bool enabled)
 {
 	m_buttonBox->button(QDialogButtonBox::Ok)->setEnabled(enabled);
-}
-
-void addParameter(iAParameterDlg::ParamListT & params, QString const& name, iAValueType valueType,
-	QVariant defaultValue, double min, double max)
-{
-	params.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
 }

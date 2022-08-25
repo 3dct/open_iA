@@ -1209,9 +1209,9 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	QList<ushort> characteristicsList;
 
 	
-	iAParameterDlg::ParamListT params;
-	addParameter(params, "Save file", iAValueType::Boolean, false);
-	addParameter(params, "Show histograms", iAValueType::Boolean, true);
+	iAAttributes params;
+	addAttr(params, "Save file", iAValueType::Boolean, false);
+	addAttr(params, "Show histograms", iAValueType::Boolean, true);
 	QStringList colNames;
 	for (int i = 0; i < indexes.count(); ++i)
 	{
@@ -1225,11 +1225,11 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		QString columnName(m_elementTable->GetColumn(0)->GetVariantValue(characteristicsList.at(i)).ToString().c_str());
 		columnName.remove("Â");
 		colNames.push_back(columnName);
-		addParameter(params, QString("HistoMin for %1").arg(columnName), iAValueType::Continuous,
+		addAttr(params, QString("HistoMin for %1").arg(columnName), iAValueType::Continuous,
 			m_elementTable->GetColumn(1)->GetVariantValue(characteristicsList.at(i)).ToFloat());
-		addParameter(params, QString("HistoMax for %1").arg(columnName), iAValueType::Continuous,
+		addAttr(params, QString("HistoMax for %1").arg(columnName), iAValueType::Continuous,
 			m_elementTable->GetColumn(2)->GetVariantValue(characteristicsList.at(i)).ToFloat());
-		addParameter(params, QString("HistoBinNbr for %1").arg(columnName), iAValueType::Discrete, 100, 2);
+		addAttr(params, QString("HistoBinNbr for %1").arg(columnName), iAValueType::Discrete, 100, 2);
 	}
 
 	if (characteristicsList.count() == 0)
@@ -1506,8 +1506,8 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector& con, const QString&
 	QString mode1 = "Export all classes";
 	QString mode2 = "Export single selected class";
 	QStringList modes = (QStringList() << mode1 << mode2);
-	iAParameterDlg::ParamListT params;
-	addParameter(params, "Classification", iAValueType::Categorical, modes);
+	iAAttributes params;
+	addAttr(params, "Classification", iAValueType::Categorical, modes);
 	iAParameterDlg dlg(this, "Save classification options", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
@@ -1888,11 +1888,11 @@ void dlg_FeatureScout::showScatterPlot()
 
 void dlg_FeatureScout::showPCSettings()
 {
-	iAParameterDlg::ParamListT params;
-	addParameter(params, "Line Width", iAValueType::Continuous, QString::number(m_pcLineWidth, 'f', 2), 0.001, 100000);
-	addParameter(params, "Opacity", iAValueType::Discrete, m_pcOpacity, 0, 255);
-	addParameter(params, "Tick Count", iAValueType::Discrete, m_pcTickCount, 0, 255);
-	addParameter(params, "Font Size", iAValueType::Discrete, m_pcFontSize, 0, 255);
+	iAAttributes params;
+	addAttr(params, "Line Width", iAValueType::Continuous, QString::number(m_pcLineWidth, 'f', 2), 0.001, 100000);
+	addAttr(params, "Opacity", iAValueType::Discrete, m_pcOpacity, 0, 255);
+	addAttr(params, "Tick Count", iAValueType::Discrete, m_pcTickCount, 0, 255);
+	addAttr(params, "Font Size", iAValueType::Discrete, m_pcFontSize, 0, 255);
 
 	iAParameterDlg pcSettingsDlg(this, "Parallel Coordinates Settings", params);
 	if (pcSettingsDlg.exec() != QDialog::Accepted)
@@ -2915,22 +2915,22 @@ bool dlg_FeatureScout::OpenBlobVisDialog()
 	{
 		blob = m_blobMap[m_activeClassItem->text()];
 	}
-	iAParameterDlg::ParamListT params;
-	addParameter(params, "Range:", iAValueType::Continuous, blob ? blob->GetRange() : m_blobManager->GetRange());
-	addParameter(params, "Blob body:", iAValueType::Boolean, blob ? blob->GetShowBlob() : m_blobManager->GetShowBlob());
-	addParameter(params, "Use Depth peeling:", iAValueType::Boolean, m_blobManager->GetUseDepthPeeling());
-	addParameter(params, "Blob opacity [0,1]:", iAValueType::Continuous, blob ? blob->GetBlobOpacity() : m_blobManager->GetBlobOpacity());
-	addParameter(params, "Silhouettes:", iAValueType::Boolean, blob ? blob->GetSilhouette() : m_blobManager->GetSilhouettes());
-	addParameter(params, "Silhouettes opacity [0,1]:", iAValueType::Continuous, blob ? blob->GetSilhouetteOpacity() : m_blobManager->GetSilhouetteOpacity());
-	addParameter(params, "3D labels:", iAValueType::Boolean, blob ? blob->GetLabel() : m_blobManager->GetLabeling());
-	addParameter(params, "Smart overlapping:", iAValueType::Boolean, m_blobManager->OverlappingIsEnabled());
-	addParameter(params, "Separation distance (if smart overlapping):", iAValueType::Continuous, m_blobManager->GetOverlapThreshold());
-	addParameter(params, "Smooth after smart overlapping:", iAValueType::Boolean, blob ? blob->GetSmoothing() : m_blobManager->GetSmoothing());
-	addParameter(params, "Gaussian blurring of the blob:", iAValueType::Boolean, m_blobManager->GetGaussianBlur());
-	addParameter(params, "Gaussian blur variance:", iAValueType::Continuous, blob ? blob->GetGaussianBlurVariance() : m_blobManager->GetGaussianBlurVariance());
-	addParameter(params, "Dimension X", iAValueType::Discrete, blob ? blob->GetDimensions()[0] : m_blobManager->GetDimensions()[0]);
-	addParameter(params, "Dimension Y", iAValueType::Discrete, blob ? blob->GetDimensions()[1] : m_blobManager->GetDimensions()[1]);
-	addParameter(params, "Dimension Z", iAValueType::Discrete, blob ? blob->GetDimensions()[2] : m_blobManager->GetDimensions()[2]);
+	iAAttributes params;
+	addAttr(params, "Range:", iAValueType::Continuous, blob ? blob->GetRange() : m_blobManager->GetRange());
+	addAttr(params, "Blob body:", iAValueType::Boolean, blob ? blob->GetShowBlob() : m_blobManager->GetShowBlob());
+	addAttr(params, "Use Depth peeling:", iAValueType::Boolean, m_blobManager->GetUseDepthPeeling());
+	addAttr(params, "Blob opacity [0,1]:", iAValueType::Continuous, blob ? blob->GetBlobOpacity() : m_blobManager->GetBlobOpacity());
+	addAttr(params, "Silhouettes:", iAValueType::Boolean, blob ? blob->GetSilhouette() : m_blobManager->GetSilhouettes());
+	addAttr(params, "Silhouettes opacity [0,1]:", iAValueType::Continuous, blob ? blob->GetSilhouetteOpacity() : m_blobManager->GetSilhouetteOpacity());
+	addAttr(params, "3D labels:", iAValueType::Boolean, blob ? blob->GetLabel() : m_blobManager->GetLabeling());
+	addAttr(params, "Smart overlapping:", iAValueType::Boolean, m_blobManager->OverlappingIsEnabled());
+	addAttr(params, "Separation distance (if smart overlapping):", iAValueType::Continuous, m_blobManager->GetOverlapThreshold());
+	addAttr(params, "Smooth after smart overlapping:", iAValueType::Boolean, blob ? blob->GetSmoothing() : m_blobManager->GetSmoothing());
+	addAttr(params, "Gaussian blurring of the blob:", iAValueType::Boolean, m_blobManager->GetGaussianBlur());
+	addAttr(params, "Gaussian blur variance:", iAValueType::Continuous, blob ? blob->GetGaussianBlurVariance() : m_blobManager->GetGaussianBlurVariance());
+	addAttr(params, "Dimension X", iAValueType::Discrete, blob ? blob->GetDimensions()[0] : m_blobManager->GetDimensions()[0]);
+	addAttr(params, "Dimension Y", iAValueType::Discrete, blob ? blob->GetDimensions()[1] : m_blobManager->GetDimensions()[1]);
+	addAttr(params, "Dimension Z", iAValueType::Discrete, blob ? blob->GetDimensions()[2] : m_blobManager->GetDimensions()[2]);
 	iAParameterDlg dlg(this, "Blob rendering preferences", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
@@ -2962,32 +2962,32 @@ void dlg_FeatureScout::SaveBlobMovie()
 		QMessageBox::information(this, "Movie Export", "Sorry, but movie export support is disabled.");
 		return;
 	}
-	iAParameterDlg::ParamListT params;
+	iAAttributes params;
 	QStringList modes = (QStringList() << tr("No rotation") << tr("Rotate Z") << tr("Rotate X") << tr("Rotate Y"));
-	addParameter(params, "Rotation mode", iAValueType::Categorical, modes);
-	addParameter(params, "Number of frames:", iAValueType::Discrete, 24, 1);
-	addParameter(params, "Range from:", iAValueType::Continuous, m_blobManager->GetRange());
-	addParameter(params, "Range to:", iAValueType::Continuous, m_blobManager->GetRange());
-	addParameter(params, "Blob body:", iAValueType::Boolean, m_blobManager->GetShowBlob());
-	addParameter(params, "Blob opacity from [0,1]:", iAValueType::Continuous, m_blobManager->GetBlobOpacity(), 0, 1);
-	addParameter(params, "Blob opacity to:", iAValueType::Continuous, m_blobManager->GetBlobOpacity(), 0, 1);
-	addParameter(params, "Silhouettes:", iAValueType::Boolean, m_blobManager->GetSilhouettes());
-	addParameter(params, "Silhouettes opacity from [0,1]:", iAValueType::Continuous, m_blobManager->GetSilhouetteOpacity());
-	addParameter(params, "Silhouettes opacity to:", iAValueType::Continuous, m_blobManager->GetSilhouetteOpacity());
-	addParameter(params, "3D labels:", iAValueType::Boolean, m_blobManager->GetLabeling());
-	addParameter(params, "Smart overlapping:", iAValueType::Boolean, m_blobManager->OverlappingIsEnabled());
-	addParameter(params, "Separation distance from (if smart overlapping):", iAValueType::Continuous, m_blobManager->GetOverlapThreshold());
-	addParameter(params, "Separation distance to:", iAValueType::Continuous, m_blobManager->GetOverlapThreshold());
-	addParameter(params, "Smooth after smart overlapping:", iAValueType::Boolean, m_blobManager->GetSmoothing());
-	addParameter(params, "Gaussian blurring of the blob:", iAValueType::Boolean, m_blobManager->GetGaussianBlur());
-	addParameter(params, "Gaussian blur variance from:", iAValueType::Continuous, m_blobManager->GetGaussianBlurVariance());
-	addParameter(params, "Gaussian blur variance to:", iAValueType::Continuous, m_blobManager->GetGaussianBlurVariance());
-	addParameter(params, "Dimension X from", iAValueType::Discrete, m_blobManager->GetDimensions()[0]);
-	addParameter(params, "Dimension X to:" , iAValueType::Discrete, m_blobManager->GetDimensions()[0]);
-	addParameter(params, "Dimension Y from", iAValueType::Discrete, m_blobManager->GetDimensions()[1]);
-	addParameter(params, "Dimension Y to:" , iAValueType::Discrete, m_blobManager->GetDimensions()[1]);
-	addParameter(params, "Dimension Z from", iAValueType::Discrete, m_blobManager->GetDimensions()[2]);
-	addParameter(params, "Dimension Z to:" , iAValueType::Discrete, m_blobManager->GetDimensions()[2]);
+	addAttr(params, "Rotation mode", iAValueType::Categorical, modes);
+	addAttr(params, "Number of frames:", iAValueType::Discrete, 24, 1);
+	addAttr(params, "Range from:", iAValueType::Continuous, m_blobManager->GetRange());
+	addAttr(params, "Range to:", iAValueType::Continuous, m_blobManager->GetRange());
+	addAttr(params, "Blob body:", iAValueType::Boolean, m_blobManager->GetShowBlob());
+	addAttr(params, "Blob opacity from [0,1]:", iAValueType::Continuous, m_blobManager->GetBlobOpacity(), 0, 1);
+	addAttr(params, "Blob opacity to:", iAValueType::Continuous, m_blobManager->GetBlobOpacity(), 0, 1);
+	addAttr(params, "Silhouettes:", iAValueType::Boolean, m_blobManager->GetSilhouettes());
+	addAttr(params, "Silhouettes opacity from [0,1]:", iAValueType::Continuous, m_blobManager->GetSilhouetteOpacity());
+	addAttr(params, "Silhouettes opacity to:", iAValueType::Continuous, m_blobManager->GetSilhouetteOpacity());
+	addAttr(params, "3D labels:", iAValueType::Boolean, m_blobManager->GetLabeling());
+	addAttr(params, "Smart overlapping:", iAValueType::Boolean, m_blobManager->OverlappingIsEnabled());
+	addAttr(params, "Separation distance from (if smart overlapping):", iAValueType::Continuous, m_blobManager->GetOverlapThreshold());
+	addAttr(params, "Separation distance to:", iAValueType::Continuous, m_blobManager->GetOverlapThreshold());
+	addAttr(params, "Smooth after smart overlapping:", iAValueType::Boolean, m_blobManager->GetSmoothing());
+	addAttr(params, "Gaussian blurring of the blob:", iAValueType::Boolean, m_blobManager->GetGaussianBlur());
+	addAttr(params, "Gaussian blur variance from:", iAValueType::Continuous, m_blobManager->GetGaussianBlurVariance());
+	addAttr(params, "Gaussian blur variance to:", iAValueType::Continuous, m_blobManager->GetGaussianBlurVariance());
+	addAttr(params, "Dimension X from", iAValueType::Discrete, m_blobManager->GetDimensions()[0]);
+	addAttr(params, "Dimension X to:" , iAValueType::Discrete, m_blobManager->GetDimensions()[0]);
+	addAttr(params, "Dimension Y from", iAValueType::Discrete, m_blobManager->GetDimensions()[1]);
+	addAttr(params, "Dimension Y to:" , iAValueType::Discrete, m_blobManager->GetDimensions()[1]);
+	addAttr(params, "Dimension Z from", iAValueType::Discrete, m_blobManager->GetDimensions()[2]);
+	addAttr(params, "Dimension Z to:" , iAValueType::Discrete, m_blobManager->GetDimensions()[2]);
 
 	iAParameterDlg dlg(this, "Blob movie rendering options", params);
 	if (dlg.exec() != QDialog::Accepted)

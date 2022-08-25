@@ -1028,9 +1028,9 @@ void iASlicerImpl::saveAsImage()
 	{
 		return;
 	}
-	iAParameterDlg::ParamListT params;
+	iAAttributes params;
 	QString const Channel("Channel (native only exports slice of what's selected here)");
-	addParameter(params, SaveNative, iAValueType::Boolean, true);
+	addAttr(params, SaveNative, iAValueType::Boolean, true);
 	bool moreThanOneChannel = m_channels.size() > 1;
 	QFileInfo fi(fileName);
 	if (moreThanOneChannel)
@@ -1040,12 +1040,12 @@ void iASlicerImpl::saveAsImage()
 		{
 			currentChannels << ch->name();
 		}
-		addParameter(params, Channel, iAValueType::Categorical, currentChannels);
+		addAttr(params, Channel, iAValueType::Categorical, currentChannels);
 	}
 	if ((QString::compare(fi.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
 		(QString::compare(fi.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
 	{
-		addParameter(params, Output16Bit, iAValueType::Boolean, false);
+		addAttr(params, Output16Bit, iAValueType::Boolean, false);
 	}
 
 	iAParameterDlg dlg(this, "Save options", params);
@@ -1121,14 +1121,14 @@ void iASlicerImpl::saveImageStack()
 	int const sliceZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
 	int const sliceMin = imgExtent[sliceZAxisIdx * 2];
 	int const sliceMax = imgExtent[sliceZAxisIdx * 2 + 1];
-	iAParameterDlg::ParamListT params;
-	addParameter(params, SaveNative, iAValueType::Boolean, true);
-	addParameter(params, "From Slice Number:", iAValueType::Discrete, sliceMin, sliceMin, sliceMax);
-	addParameter(params, "To Slice Number:", iAValueType::Discrete, sliceMax, sliceMin, sliceMax);
+	iAAttributes params;
+	addAttr(params, SaveNative, iAValueType::Boolean, true);
+	addAttr(params, "From Slice Number:", iAValueType::Discrete, sliceMin, sliceMin, sliceMax);
+	addAttr(params, "To Slice Number:", iAValueType::Discrete, sliceMax, sliceMin, sliceMax);
 	if ((QString::compare(fileInfo.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
 		(QString::compare(fileInfo.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
 	{
-		addParameter(params, Output16Bit, iAValueType::Boolean, false);
+		addAttr(params, Output16Bit, iAValueType::Boolean, false);
 	}
 	iAParameterDlg dlg(this, "Save options", params);
 	if (dlg.exec() != QDialog::Accepted)

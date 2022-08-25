@@ -844,8 +844,8 @@ void dlg_labels::storeLabels()
 		return;
 	}
 	QString paramName("Extended Format (also write pixel values, not only positions)");
-	iAParameterDlg::ParamListT param;
-	addParameter(param, paramName, iAValueType::Boolean, true);
+	iAAttributes param;
+	addAttr(param, paramName, iAValueType::Boolean, true);
 	iAParameterDlg dlg(this, "Seed File Format", param);
 	if (dlg.exec() != QDialog::Accepted)
 	{
@@ -921,11 +921,11 @@ void dlg_labels::sample()
 		}
 	}
 
-	iAParameterDlg::ParamListT params;
+	iAAttributes params;
 	QString const NumSeeds("Number of Seeds per Label");
 	QString const ReduceNum("Reduce seed number for all labels to size of smallest labeling");
-	addParameter(params, NumSeeds, iAValueType::Discrete, 50, 1);
-	addParameter(params, ReduceNum, iAValueType::Boolean, true);
+	addAttr(params, NumSeeds, iAValueType::Discrete, 50, 1);
+	addAttr(params, ReduceNum, iAValueType::Boolean, true);
 	iAParameterDlg dlg(this, "Sample Seeds", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{

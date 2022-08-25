@@ -271,13 +271,13 @@ namespace
 	QString const MinimumIndex("Minimum index");
 	QString const MaximumIndex("Maximum index");
 
-	void addSeriesParameters(iAParameterDlg::ParamListT& params, QString const& base, QString const& ext, int digits, int const * index)
+	void addSeriesParameters(iAAttributes& params, QString const& base, QString const& ext, int digits, int const * index)
 	{
-		addParameter(params, FileNameBase, iAValueType::String, base);
-		addParameter(params, Extension, iAValueType::String, ext);
-		addParameter(params, NumDigits, iAValueType::Discrete, digits);
-		addParameter(params, MinimumIndex, iAValueType::Discrete, index[0]);
-		addParameter(params, MaximumIndex, iAValueType::Discrete, index[1]);
+		addAttr(params, FileNameBase, iAValueType::String, base);
+		addAttr(params, Extension, iAValueType::String, ext);
+		addAttr(params, NumDigits, iAValueType::Discrete, digits);
+		addAttr(params, MinimumIndex, iAValueType::Discrete, index[0]);
+		addAttr(params, MaximumIndex, iAValueType::Discrete, index[1]);
 	}
 }
 
@@ -872,7 +872,7 @@ bool iAIO::setupVolumeStackMHDReader(QString const & f)
 	int digitsInIndex = 0;
 	m_fileNamesBase = f;
 	m_extension = "." + QFileInfo(f).suffix();
-	iAParameterDlg::ParamListT params;
+	iAAttributes params;
 	addSeriesParameters(params, m_fileNamesBase, m_extension, digitsInIndex, indexRange);
 	iAParameterDlg dlg(m_parent, "Set file parameters", params);
 	if (dlg.exec() != QDialog::Accepted)
@@ -992,7 +992,7 @@ bool iAIO::setupVolumeStackReader(QString const & f)
 	int digitsInIndex = 0;
 	m_fileNamesBase = f;
 	m_extension = "." + QFileInfo(f).suffix();
-	iAParameterDlg::ParamListT params;
+	iAAttributes params;
 	addSeriesParameters(params, m_fileNamesBase, m_extension, digitsInIndex, indexRange);
 	auto map = m_rawFileParams.toMap();
 	iARawFileParamDlg dlg(f, m_parent, "RAW file specs", params, map, iAMainWindow::get()->brightMode());
@@ -1015,7 +1015,7 @@ bool iAIO::setupRAWReader( QString const & f )
 {
 	m_fileName = f;
 	auto map = m_rawFileParams.toMap();
-	iARawFileParamDlg dlg(f, m_parent, "RAW file specs", iAParameterDlg::ParamListT(), map, iAMainWindow::get()->brightMode());
+	iARawFileParamDlg dlg(f, m_parent, "RAW file specs", iAAttributes(), map, iAMainWindow::get()->brightMode());
 	if (dlg.accepted())
 	{
 		m_rawFileParams = iARawFileParameters::fromMap(dlg.parameterValues());
@@ -1318,15 +1318,15 @@ bool iAIO::setupStackReader( QString const & f )
 	int indexRange[2];
 	int digits;
 	determineStackParameters(f, m_fileNamesBase, m_extension, indexRange, digits);
-	iAParameterDlg::ParamListT params;
+	iAAttributes params;
 	addSeriesParameters(params, m_fileNamesBase, m_extension, digits, indexRange);
-	addParameter(params, "Step", iAValueType::Discrete, 1);
-	addParameter(params, "Spacing X", iAValueType::Continuous, m_rawFileParams.m_spacing[0]);
-	addParameter(params, "Spacing Y", iAValueType::Continuous, m_rawFileParams.m_spacing[1]);
-	addParameter(params, "Spacing Z", iAValueType::Continuous, m_rawFileParams.m_spacing[2]);
-	addParameter(params, "Origin X", iAValueType::Continuous, m_rawFileParams.m_origin[0]);
-	addParameter(params, "Origin Y", iAValueType::Continuous, m_rawFileParams.m_origin[1]);
-	addParameter(params, "Origin Z", iAValueType::Continuous, m_rawFileParams.m_origin[2]);
+	addAttr(params, "Step", iAValueType::Discrete, 1);
+	addAttr(params, "Spacing X", iAValueType::Continuous, m_rawFileParams.m_spacing[0]);
+	addAttr(params, "Spacing Y", iAValueType::Continuous, m_rawFileParams.m_spacing[1]);
+	addAttr(params, "Spacing Z", iAValueType::Continuous, m_rawFileParams.m_spacing[2]);
+	addAttr(params, "Origin X", iAValueType::Continuous, m_rawFileParams.m_origin[0]);
+	addAttr(params, "Origin Y", iAValueType::Continuous, m_rawFileParams.m_origin[1]);
+	addAttr(params, "Origin Z", iAValueType::Continuous, m_rawFileParams.m_origin[2]);
 	iAParameterDlg dlg(m_parent, "Set file parameters", params, "Please check these automatically determined settings:");
 	if (dlg.exec() != QDialog::Accepted)
 	{
