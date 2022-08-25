@@ -1625,8 +1625,11 @@ iAMdiChild* MainWindow::resultChild(iAMdiChild* iaOldChild, QString const & titl
 		newChild->show();
 		if (oldChild)
 		{
-			vtkSmartPointer<vtkImageData> imageData = oldChild->imagePointer();
-			newChild->displayResult(title, imageData);
+			auto img = oldChild->firstImageData();
+			if (img)
+			{
+				newChild->displayResult(title, img);
+			}
 			copyFunctions(oldChild, newChild);
 		}
 		return newChild;

@@ -1487,8 +1487,12 @@ void dlg_FeatureScout::ExportClassButton()
 		return;
 	}
 	iAConnector con;
-	auto img_data = m_activeChild->imagePointer();
-	con.setImage(img_data);
+	auto img = m_activeChild->firstImageData();
+	if (!img)
+	{
+		return;
+	}
+	con.setImage(img);
 	ITK_TYPED_CALL(CreateLabelledOutputMask, con.itkScalarPixelType(), con, fileName);
 }
 

@@ -232,14 +232,6 @@ public:
 	//! @deprecated. Status bar will be removed soon in favor of the log window. Use iALog instead.
 	virtual void addStatusMsg(QString const& txt) = 0;
 
-	//! Access to the "main image"
-	//! @deprecated retrieve images via the modalities (modality(int) etc.) instead!
-	virtual vtkImageData* imageData() = 0;
-
-	//! Access to the "main image"
-	//! @deprecated retrieve images via the modalities (modality(int) etc.) instead!
-	virtual vtkSmartPointer<vtkImageData> imagePointer() = 0;
-
 	//! Access to "main" polydata object (if any)
 	//! @deprecated move out of mdi child, into something like an iAModality
 	virtual vtkPolyData* polyData() = 0;
@@ -271,6 +263,10 @@ public:
 
 	//! retrieve a list of all datasets loaded in this window
 	virtual std::vector<std::shared_ptr<iADataSet>> dataSets() const = 0;
+
+	//! Retrieve the first image dataset (if any loaded).
+	//! Will produce an error log entry if no image data is found so use with care
+	virtual vtkSmartPointer<vtkImageData> firstImageData() const = 0;
 
 signals:
 	void closed();

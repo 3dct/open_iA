@@ -105,6 +105,7 @@ public:
 	QMenu* helpMenu() override;
 	//! @{ Get access to result child with the given title.
 	//! (depending on preferences, this will either open a new mdi child window, or reuse the currently active one)
+	//! @deprecated
 	iAMdiChild * resultChild( QString const & title ) override;
 	iAMdiChild * resultChild( int childInd, QString const & title ) override;
 	iAMdiChild * resultChild( iAMdiChild* oldChild, QString const & title ) override;

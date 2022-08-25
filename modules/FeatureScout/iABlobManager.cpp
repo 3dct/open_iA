@@ -728,10 +728,15 @@ void iABlobManager::SaveMovie( QWidget *activeChild,
 		//cam->ApplyTransform(rot);
 
 		iAMdiChild * mdiChild = static_cast<iAMdiChild*>( activeChild );
+		auto img = mdiChild->firstImageData();
+		if (!img)
+		{
+			return;
+		}
 		//mdiChild->sXZ->spinBoxXZ->setValue( i );
 		//mdiChild->updateViews();
 
-		raycaster->plane2()->SetOrigin( 0, mdiChild->imagePointer()->GetSpacing()[0] * ( mdiChild->imagePointer()->GetDimensions()[1] - i ), 0 );
+		raycaster->plane2()->SetOrigin( 0, img->GetSpacing()[0] * ( img->GetDimensions()[1] - i ), 0 );
 		raycaster->update();
 		//mdiChild->updateViews();
 

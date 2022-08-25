@@ -50,10 +50,6 @@
 class QListWidget;
 
 class vtkAbstractTransform;
-class vtkActor;
-class vtkColorTransferFunction;
-class vtkCornerAnnotation;
-class vtkImageCast;
 class vtkImageData;
 class vtkPiecewiseFunction;
 class vtkPoints;
@@ -159,20 +155,8 @@ public:
 	void connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread);
 	//! @}
 
-	//! Access the opacity function of the "main image"
-	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...)
-	//vtkPiecewiseFunction * opacityTF();
-	//! Access the color transfer function of the "main image"
-	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...)
-	//vtkColorTransferFunction * colorTF();
-	//! Access to the "main image"
-	//! @deprecated retrieve images via the modalities (modality(int) etc.) instead!
-	vtkImageData* imageData() override;
-	//! Access to the "main image"
-	//! @deprecated retrieve images via the modalities (modality(int) etc.) instead!
-	vtkSmartPointer<vtkImageData> imagePointer() override;
-	//! Set "main image" - does not update views (see displayResult for a method that does)!
-	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...) or channels (createChannel/updateChannel)
+	//! Set "main image" - does not update views
+	//! @deprecated use addDataSet instead!
 	void setImageData(vtkImageData* iData) override;
 	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...) or channels (createChannel/updateChannel)
 	void setImageData(QString const & filename, vtkSmartPointer<vtkImageData> imgData);
@@ -229,7 +213,7 @@ public:
 	QFileInfo const & fileInfo() const override;
 	QString filePath() const override;
 
-	//! @{ Multi-Channel rendering
+	//! @{ Multi-Channel rendering - see if we still need it
 	//! Create a new channel, return its ID.
 	uint createChannel() override;
 	//! Update the data of the given channel ID.
@@ -334,6 +318,8 @@ public:
 	void set3DControlVisibility(bool visible) override;
 
 	std::vector<std::shared_ptr<iADataSet>> dataSets() const override;
+	
+	vtkSmartPointer<vtkImageData> firstImageData() const override;
 
 public slots:
 	void maximizeRC();
@@ -548,5 +534,5 @@ private:
 	std::map<size_t, std::shared_ptr<iASliceRenderer>> m_sliceRenderers;  //!< slice renderers (one per dataset in m_datsets)
 
 	void setDataSetMovable(size_t dataSetIdx);
-	vtkSmartPointer<iAvtkInteractStyleActor> m_manualMoveStyle[4];   // 
+	vtkSmartPointer<iAvtkInteractStyleActor> m_manualMoveStyle[4];        //!< for syncing the manual registration between views
 };

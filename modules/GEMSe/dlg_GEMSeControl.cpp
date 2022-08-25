@@ -315,7 +315,7 @@ bool dlg_GEMSeControl::loadClustering(QString const & fileName)
 		return false;
 	}
 	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
-	vtkSmartPointer<vtkImageData> originalImage = mdiChild->imagePointer();
+	auto originalImage = mdiChild->firstImageData();
 	QSharedPointer<iAImageTree> tree = iAImageTree::Create(
 		fileName,
 		m_dlgSamplings->GetSamplings(),
@@ -388,7 +388,7 @@ void dlg_GEMSeControl::calculateClustering()
 void dlg_GEMSeControl::clusteringFinished()
 {
 	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
-	vtkSmartPointer<vtkImageData> originalImage = mdiChild->imagePointer();
+	auto originalImage = mdiChild->firstImageData();
 
 	QSharedPointer<iAImageTree> tree = m_clusterer->GetResult();
 	assert(m_dlgGEMSe);

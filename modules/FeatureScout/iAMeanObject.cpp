@@ -139,17 +139,22 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 		typedef itk::Image<long, DIM> IType;
 		typedef itk::VTKImageToImageFilter<IType> VTKToITKConnector;
 		VTKToITKConnector::Pointer vtkToItkConverter = VTKToITKConnector::New();
-		if (m_activeChild->imagePointer()->GetScalarType() != 8)  // long type
+		auto img = m_activeChild->firstImageData();
+		if (!img)
+		{
+			return;
+		}
+		if (img->GetScalarType() != 8)  // long type
 		{
 			auto cast = vtkSmartPointer<vtkImageCast>::New();
-			cast->SetInputData(m_activeChild->imagePointer());
+			cast->SetInputData(img);
 			cast->SetOutputScalarTypeToLong();
 			cast->Update();
 			vtkToItkConverter->SetInput(cast->GetOutput());
 		}
 		else
 		{
-			vtkToItkConverter->SetInput(static_cast<iAMdiChild*>(m_activeChild)->imagePointer());
+			vtkToItkConverter->SetInput(img);
 		}
 		vtkToItkConverter->Update();
 

@@ -456,11 +456,16 @@ void iAParameterDlg::showROI()
 		LOG(lvlError, "You need to call setSourceMDI before show ROI!");
 		return;
 	}
+	auto img = m_sourceMdiChild->firstImageData();
+	if (!img)
+	{
+		return;
+	}
 	QObjectList children = m_container->children();
 	for (int i = 0; i < 3; ++i)
 	{
 		m_roi[i] = 0;
-		m_roi[i + 3] = m_sourceMdiChild->imagePointer()->GetDimensions()[i];
+		m_roi[i + 3] = img->GetDimensions()[i];
 	}
 	for (int i = 0; i < children.size(); ++i)
 	{

@@ -849,8 +849,6 @@ bool MdiChild::loadFile(const QString& f, bool isStack)
 
 void MdiChild::setSTLParameter()
 {
-	
-	
 	iAParameterDlg::ParamListT params;
 	addParameter(params, "Transparency", iAValueType::Continuous, 1.0,0.0,1.0);
 	addParameter(params, "Color", iAValueType::Color, QColor("green"));
@@ -863,9 +861,7 @@ void MdiChild::setSTLParameter()
 
 	this->renderer()->polyActor()->GetProperty()->SetOpacity(transparency);
 	this->renderer()->polyActor()->GetProperty()->SetColor(color.redF(),color.greenF(),color.blueF());
-
 }
-
 
 void MdiChild::setImageData(QString const& /*filename*/, vtkSmartPointer<vtkImageData> imgData)
 {
@@ -877,16 +873,6 @@ void MdiChild::setImageData(QString const& /*filename*/, vtkSmartPointer<vtkImag
 	m_mainWnd->setCurrentFile(modalities()->fileName());
 	setupView(false);
 	enableRenderWindows();
-}
-
-vtkImageData* MdiChild::imageData()
-{
-	return m_imageData;
-}
-
-vtkSmartPointer<vtkImageData> MdiChild::imagePointer()
-{
-	return m_imageData;
 }
 
 void MdiChild::setImageData(vtkImageData* iData)
@@ -2199,20 +2185,12 @@ void MdiChild::updateROI(int const roi[6])
 	{
 		m_slicer[s]->updateROI(roi);
 	}
-	size_t dataSetIdx = NoDataSet;
-	for (auto dataSet : m_dataSets)
-	{
-		if (dynamic_cast<iAImageData*>(dataSet.second.get()))
-		{
-			dataSetIdx = dataSet.first;
-		}
-	}
-	if (dataSetIdx == NoDataSet)
+	auto img = firstImageData();
+	if (!img)
 	{
 		return;
 	}
-	const double* spacing = dynamic_cast<iAImageData*>(m_dataSets[dataSetIdx].get())->image()->GetSpacing();
-	m_renderer->setSlicingBounds(roi, spacing);
+	m_renderer->setSlicingBounds(roi, img->GetSpacing());
 }
 
 void MdiChild::setROIVisible(bool visible)
@@ -3004,6 +2982,20 @@ std::vector<std::shared_ptr<iADataSet>> MdiChild::dataSets() const
 	return result;
 }
 
+vtkSmartPointer<vtkImageData> MdiChild::firstImageData() const
+{
+	for (auto dataSet : m_dataSets)
+	{
+		auto imgData = dynamic_cast<iAImageData*>(dataSet.second.get());
+		if (imgData)
+		{
+			return imgData->image();
+		}
+	}
+	LOG(lvlError, "No image/volume data loaded!");
+	return nullptr;
+}
+
 void MdiChild::displayHistogram(int modalityIdx)
 {
 	if (modalityIdx < 0 || modalityIdx >= modalities()->size())
@@ -3250,17 +3242,6 @@ iAMainWindow* MdiChild::mainWnd()
 {
 	return m_mainWnd;
 }
-/*
-vtkPiecewiseFunction* MdiChild::opacityTF()
-{
-	return modality(0)->transfer()->opacityTF();
-}
-
-vtkColorTransferFunction* MdiChild::colorTF()
-{
-	return modality(0)->transfer()->colorTF();
-}
-*/
 
 void MdiChild::saveFinished()
 {

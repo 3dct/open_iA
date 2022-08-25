@@ -604,7 +604,12 @@ bool iAASTRAFilterRunner::askForParameters(std::shared_ptr<iAFilter> filter, QVa
 {
 	dlg_ProjectionParameters dlg;
 	dlg.setWindowTitle(filter->name());
-	int const * inputDim = sourceMdi->imagePointer()->GetDimensions();
+	auto img = sourceMdi->firstImageData();
+	if (!img)
+	{
+		return false;
+	}
+	int const * inputDim = img->GetDimensions();
 	if (filter->name() == "ASTRA Forward Projection")
 	{
 		dlg.fillProjectionGeometryValues(

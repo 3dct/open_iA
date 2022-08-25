@@ -91,10 +91,13 @@ dlg_labels::dlg_labels(iAMdiChild* mdiChild, bool addMainSlicers /* = true*/) :
 	if (addMainSlicers)
 	{
 		uint channelId = m_mdiChild->createChannel();
-		auto ip = m_mdiChild->imagePointer();
-		int id = addSlicer(m_mdiChild->slicer(iASlicerMode::XY), "Main XY", ip->GetExtent(), ip->GetSpacing(), channelId);
-		addSlicer(m_mdiChild->slicer(iASlicerMode::XZ), id, channelId);
-		addSlicer(m_mdiChild->slicer(iASlicerMode::YZ), id, channelId);
+		auto img = m_mdiChild->firstImageData();
+		if (img)
+		{
+			int id = addSlicer(m_mdiChild->slicer(iASlicerMode::XY), "Main XY", img->GetExtent(), img->GetSpacing(), channelId);
+			addSlicer(m_mdiChild->slicer(iASlicerMode::XZ), id, channelId);
+			addSlicer(m_mdiChild->slicer(iASlicerMode::YZ), id, channelId);
+		}
 	}
 }
 

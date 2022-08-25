@@ -1460,12 +1460,11 @@ void iASlicerImpl::printVoxelInformation()
 		for (int i = 0; i < mdiwindows.size(); i++)
 		{
 			iAMdiChild *tmpChild = mdiwindows.at(i);
-			if (m_linkedMdiChild == tmpChild)
+			if (m_linkedMdiChild == tmpChild || !tmpChild->firstImageData())
 			{
 				continue;
 			}
-
-			double * const tmpSpacing = tmpChild->imagePointer()->GetSpacing();
+			double* const tmpSpacing = tmpChild->firstImageData()->GetSpacing();
 			int tmpCoord[3];
 			for (int c = 0; c < 3; ++c)
 			{

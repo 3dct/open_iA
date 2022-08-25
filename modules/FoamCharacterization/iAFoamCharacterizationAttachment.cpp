@@ -43,7 +43,7 @@
 
 iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 																			  : iAModuleAttachmentToChild(mainWnd, child)
-																			  , m_pImageData(child->imageData())
+																			  , m_pImageData(child->firstImageData())
 {
 	m_pImageRestore = vtkImageData::New();
 	m_pImageRestore->DeepCopy(m_pImageData);
