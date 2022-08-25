@@ -218,6 +218,10 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 				updateSlicers();
 			}
 			m_dataSets.erase(dataSetIdx);
+			if (m_isMagicLensEnabled && m_magicLensDataSet == dataSetIdx)
+			{
+				changeMagicLensDataSet(0);
+			}
 			updateDataSetInfo();
 		});
 	connect(m_dataSetListWidget, &iADataSetListWidget::editDataSet, this,
@@ -417,7 +421,7 @@ void MdiChild::connectSignalsToSlots()
 
 	for (int s = 0; s < 3; ++s)
 	{
-		connect(m_slicer[s], &iASlicer::shiftMouseWheel, this, &MdiChild::changeMagicLensModality);
+		connect(m_slicer[s], &iASlicer::shiftMouseWheel, this, &MdiChild::changeMagicLensDataSet);
 		connect(m_slicer[s], &iASlicer::altMouseWheel, this, &MdiChild::changeMagicLensOpacity);
 		connect(m_slicer[s], &iASlicer::ctrlMouseWheel, this, &MdiChild::changeMagicLensSize);
 		connect(m_slicer[s], &iASlicerImpl::sliceRotated, this, &MdiChild::slicerRotationChanged);
@@ -2038,7 +2042,7 @@ void MdiChild::toggleMagicLens2D(bool isEnabled)
 	m_isMagicLensEnabled = isEnabled;
 	if (isEnabled)
 	{
-		changeMagicLensModality(0);
+		changeMagicLensDataSet(0);
 	}
 	setMagicLensEnabled(isEnabled);
 	updateSlicers();
@@ -2740,15 +2744,48 @@ bool MdiChild::isVolumeDataLoaded() const
 		extent[1] >= 0 && extent[3] >= 0 && extent[5] >= 0;
 }
 
-void MdiChild::changeMagicLensModality(int chg)
+void MdiChild::changeMagicLensDataSet(int chg)
 {
 	// maybe move to slicer?
-	auto newMagicLensDataSet = (m_magicLensDataSet + chg + m_dataSets.size()) % m_dataSets.size();
-	if (!m_isMagicLensEnabled || m_dataSets.empty() || !dynamic_cast<iAImageData*>(m_dataSets[newMagicLensDataSet].get()))
+	if (!m_isMagicLensEnabled)
 	{
 		return;
 	}
-	m_magicLensDataSet = newMagicLensDataSet;
+	std::vector<size_t> imageDataSets;
+	for (auto dataSet : m_dataSets)
+	{
+		if (dataSet.second->type() == iADataSetType::Volume)
+		{
+			imageDataSets.push_back(dataSet.first);
+		}
+	}
+	if (imageDataSets.empty())
+	{
+		setMagicLensEnabled(false);
+		return;
+	}
+	if (chg == 0)   // initialization
+	{
+		m_magicLensDataSet = imageDataSets[0];
+	}
+	else            // we need to switch datasets
+	{
+		if (imageDataSets.size() <= 1)
+		{   // only 1 dataset, nothing to change
+			return;
+		}
+		auto it = std::find(imageDataSets.begin(), imageDataSets.end(), m_magicLensDataSet);
+		if (it == imageDataSets.end())
+		{
+			m_magicLensDataSet = imageDataSets[0];
+		}
+		else
+		{
+			auto idx = it - imageDataSets.begin();
+			auto newIdx = (idx + imageDataSets.size() + chg) % imageDataSets.size();
+			m_magicLensDataSet = imageDataSets[newIdx];
+		}
+	}
 	// To check: support for multiple components in a vtk image? or separating those components?
 	auto imgData = dynamic_cast<iAImageData*>(m_dataSets[m_magicLensDataSet].get());
 	auto imgDisplayData = dynamic_cast<iAVolumeDataForDisplay*>(m_dataForDisplay[m_magicLensDataSet].get());

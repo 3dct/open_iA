@@ -212,7 +212,7 @@ public:
 	QFileInfo const & fileInfo() const override;
 	QString filePath() const override;
 
-	//! @{ Multi-Channel rendering - see if we still need it
+	//! @{ Multi-Channel rendering - see if we still need it with dataSets
 	//! Create a new channel, return its ID.
 	uint createChannel() override;
 	//! Update the data of the given channel ID.
@@ -278,14 +278,6 @@ public:
 	void linkViews(bool l);
 	//! Enable or disable linked MDI windows for this MDI child.
 	void linkMDIs(bool lm);
-	//! Clear current histogram (i.e. don't show it anymore)
-	void clearHistogram() override;
-	//! Set the list of modalities for this window.
-	void setModalities(QSharedPointer<iAModalityList> modList) override;
-	//! Retrieve the list of all currently loaded modalities.
-	QSharedPointer<iAModalityList> modalities() override;
-	//! Retrieve data for modality with given index.
-	QSharedPointer<iAModality> modality(int idx) override;
 	//! add project
 	void addProject(QString const & key, std::shared_ptr<iAProjectBase> project) override;
 	QMap<QString, std::shared_ptr<iAProjectBase> > const & projects();
@@ -293,8 +285,6 @@ public:
 	iAInteractionMode interactionMode() const override;
 	void setInteractionMode(iAInteractionMode mode);
 
-	bool meshDataMovable();
-	void setMeshDataMovable(bool movable);
 	//! maximize slicer dockwidget with the given mode
 	void maximizeSlicer(int mode);
 
@@ -303,13 +293,23 @@ public:
 	//! whether this child has a profile plot (only has one if "normal" volume data loaded)
 	bool hasProfilePlot() const;
 	
-	//! @{ 
+	//! @{ deprecated
+	//! Clear current histogram (i.e. don't show it anymore)
+	void clearHistogram() override;
+	//! Set the list of modalities for this window.
+	void setModalities(QSharedPointer<iAModalityList> modList) override;
+	//! Retrieve the list of all currently loaded modalities.
+	QSharedPointer<iAModalityList> modalities() override;
+	//! Retrieve data for modality with given index.
+	QSharedPointer<iAModality> modality(int idx) override;
+	bool meshDataMovable();
+	void setMeshDataMovable(bool movable);
 	bool statisticsComputed(QSharedPointer<iAModality>);
 	bool statisticsComputable(QSharedPointer<iAModality>, int modalityIdx = -1);
 	void computeStatisticsAsync(std::function<void()> callbackSlot, QSharedPointer<iAModality> modality);
 	//! @}
 
-	//! @{
+	//! @{ deprecated
 	bool histogramComputed(size_t newBinCount, QSharedPointer<iAModality>) override;
 	void computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality>) override;
 	//! @}
@@ -317,15 +317,12 @@ public:
 	void set3DControlVisibility(bool visible) override;
 
 	std::vector<std::shared_ptr<iADataSet>> dataSets() const override;
-	
+	size_t firstImageDataSetIdx() const;
 	vtkSmartPointer<vtkImageData> firstImageData() const override;
 
 public slots:
 	void maximizeRC();
-	//! @{ @deprecated not required
-	void disableRenderWindows(int ch) override;
-	void enableRenderWindows() override;
-	//! @}
+
 	//! update a specific slicer (specified through slicer mode, @see iASlicerMode)
 	void updateSlicer(int index);
 	//! update all 3 axis-aligned slicer
@@ -341,6 +338,10 @@ public slots:
 	//! @deprecated use logging or global status bar (iAMainWindow::statusBar) instead
 	void addStatusMsg(QString const& txt) override;
 
+	//! @{ @deprecated not required
+	void disableRenderWindows(int ch) override;
+	void enableRenderWindows() override;
+	//! @}
 	//! @{ @deprecated will be removed soon, see addDataset instead
 	void setupView(bool active = false);
 	void setupStackView(bool active = false);
@@ -379,7 +380,7 @@ private slots:
 	void updateDataSetInfo();
 	void histogramDataAvailable(int modalityIdx);
 	void statisticsAvailable(int modalityIdx);
-	void changeMagicLensModality(int chg);
+	void changeMagicLensDataSet(int chg);
 	void changeMagicLensOpacity(int chg);
 	void changeMagicLensSize(int chg);
 	void saveFinished();
@@ -393,7 +394,6 @@ private:
 	void addProfile();
 	void updateProfile();
 	bool saveAs(int modalityNr);
-	bool initView(QString const & title);
 	void set3DSlicePlanePos(int mode, int slice);
 
 	//! Changes the display of views from full to multi screen or multi screen to fullscreen.
@@ -402,27 +402,25 @@ private:
 	int  visibility() const;
 	void hideVolumeWidgets();
 	void setVisibility(QList<QWidget*> widgets, bool show);
-	void cleanWorkingAlgorithms();
 	void maximizeDockWidget(QDockWidget * dw);
 	void demaximizeDockWidget(QDockWidget * dw);
 	void resizeDockWidget(QDockWidget * dw);
 
-	void connectSignalsToSlots();
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void snakeNormal(int index, double point[3], double normal[3]);
 
+	// DEPRECATED {
+
+	bool initView(QString const& title);
+
 	//! sets up the IO thread for saving the correct file type for the given filename.
 	//! @return	true if it succeeds, false if it fails.
-	bool setupSaveIO(QString const & f);
-
+	bool setupSaveIO(QString const& f);
 	//! sets up the IO thread for loading the correct file type according to the given filename.
 	//! @return	true if it succeeds, false if it fails.
-	bool setupLoadIO(QString const & f, bool isStack);
+	bool setupLoadIO(QString const& f, bool isStack);
 
-	//! adds an algorithm to the list of currently running jobs
-	void addAlgorithm(iAAlgorithm* thread);
-
-	void setupViewInternal(bool active);
+	void connectSignalsToSlots();
 
 	void setHistogramModality(int modalityIdx) override;
 	//! display histogram - if not computed yet, trigger computation
@@ -430,10 +428,16 @@ private:
 	//! if available, show histogram (i.e. does not trigger computation, as displayHistogram does)
 	void showHistogram(int modalityIdx);
 	
-	//! @deprecated
-	void initModalities();
+	//! adds an algorithm to the list of currently running jobs
+	void addAlgorithm(iAAlgorithm* thread);
+	void cleanWorkingAlgorithms();
 
+	void setupViewInternal(bool active);
+	void initModalities();
 	void initVolumeRenderers();
+
+	// DEPRECATED }
+
 	void slicerVisibilityChanged(int mode);
 	void updatePositionMarkerSize();
 
@@ -520,7 +524,7 @@ private:
 	//! @deprecated should be referenced in wherever image is stored, e.g. in iAIO)
 	vtkSmartPointer<vtkImageData> m_tmpSaveImg;
 
-	int m_magicLensDataSet;
+	size_t m_magicLensDataSet;
 	bool m_initVolumeRenderers;
 	int m_storedModalityNr;		                                     //!< modality nr being stored
 	QMap<QString, std::shared_ptr<iAProjectBase>> m_projects;         //!< list of currently active "projects" (i.e. Tools)
