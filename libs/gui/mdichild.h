@@ -158,8 +158,7 @@ public:
 	//! Set "main image" - does not update views
 	//! @deprecated use addDataSet instead!
 	void setImageData(vtkImageData* iData) override;
-	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...) or channels (createChannel/updateChannel)
-	void setImageData(QString const & filename, vtkSmartPointer<vtkImageData> imgData);
+
 	//! Access to "main" polydata object (if any)
 	//! @deprecated move out of mdi child, into something like an iAModality
 	vtkPolyData* polyData() override;
@@ -430,7 +429,10 @@ private:
 	void displayHistogram(int modalityIdx);
 	//! if available, show histogram (i.e. does not trigger computation, as displayHistogram does)
 	void showHistogram(int modalityIdx);
+	
+	//! @deprecated
 	void initModalities();
+
 	void initVolumeRenderers();
 	void slicerVisibilityChanged(int mode);
 	void updatePositionMarkerSize();

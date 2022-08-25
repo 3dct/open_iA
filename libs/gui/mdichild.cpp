@@ -863,18 +863,6 @@ void MdiChild::setSTLParameter()
 	this->renderer()->polyActor()->GetProperty()->SetColor(color.redF(),color.greenF(),color.blueF());
 }
 
-void MdiChild::setImageData(QString const& /*filename*/, vtkSmartPointer<vtkImageData> imgData)
-{
-	m_imageData = imgData;
-	if (modality(0)->image() != imgData)
-	{
-		modality(0)->setData(m_imageData);
-	}
-	m_mainWnd->setCurrentFile(modalities()->fileName());
-	setupView(false);
-	enableRenderWindows();
-}
-
 void MdiChild::setImageData(vtkImageData* iData)
 {
 	m_imageData = iData;		// potential for double free!
@@ -2838,10 +2826,10 @@ void MdiChild::initModalities()
 	}
 	// TODO: VOLUME: rework - workaround: "initializes" renderer and slicers with modality 0
 	m_initVolumeRenderers = true;
-	setImageData(
-		currentFile().isEmpty() ? modality(0)->fileName() : currentFile(),
-		modality(0)->image()
-	);
+	m_imageData = modality(0)->image();
+	m_mainWnd->setCurrentFile(modalities()->fileName());
+	setupView(false);
+	enableRenderWindows();
 	m_dwModalities->selectRow(0);
 }
 
