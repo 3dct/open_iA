@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #include "iAFileTypeRegistry.h"
 
-#include "iAFileIO.h"
-
 std::vector<std::shared_ptr<iAIFileIOFactory>> iAFileTypeRegistry::m_fileIOs;
 QMap<QString, size_t> iAFileTypeRegistry::m_fileTypes;
 
@@ -38,7 +36,7 @@ std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileExtens
 	}
 }
 
-QString iAFileTypeRegistry::registeredLoadFileTypes(iADataSetTypes allowedTypes)
+QString iAFileTypeRegistry::registeredFileTypes(iAFileIO::Operation op, iADataSetTypes allowedTypes)
 {
 	QStringList allExtensions;
 	QString singleTypes;
@@ -46,46 +44,15 @@ QString iAFileTypeRegistry::registeredLoadFileTypes(iADataSetTypes allowedTypes)
 	{
 		auto io = ioFactory->create();
 #if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-		if ( (io->supportedReadDataSetTypes() & allowedTypes) == 0 )
+		if ( (io->supportedDataSetTypes(op) & allowedTypes) == 0 )
 #else
-		if (!io->supportedLoadDataSetTypes().testAnyFlags(allowedTypes))
+		if (!io->supportedDataSetTypes(op).testAnyFlags(allowedTypes))
 #endif
 		{   // current I/O does not support any of the allowed types
 			continue;
 		}
 		auto extCpy = io->extensions();
 		for (auto & ext: extCpy)
-		{
-			ext = "*." + ext;
-		}
-		singleTypes += QString("%1 (%2);;").arg(io->name()).arg(extCpy.join(" "));
-		allExtensions.append(extCpy);
-	}
-	if (singleTypes.isEmpty())
-	{
-		LOG(lvlWarn, "No matching registered file types found!");
-		return ";;";
-	}
-	return QString("Any supported format (%1);;").arg(allExtensions.join(" ")) + singleTypes;
-}
-
-QString iAFileTypeRegistry::registeredSaveFileTypes(iADataSetType type)
-{
-	QStringList allExtensions;
-	QString singleTypes;
-	for (auto ioFactory : m_fileIOs)  // all registered file types
-	{
-		auto io = ioFactory->create();
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-		if ((io->supportedSaveDataSetTypes() & allowedTypes) == 0)
-#else
-		if (!io->supportedSaveDataSetTypes().testFlag(type))
-#endif
-		{   // current I/O does not support any of the allowed types
-			continue;
-		}
-		auto extCpy = io->extensions();
-		for (auto& ext : extCpy)
 		{
 			ext = "*." + ext;
 		}

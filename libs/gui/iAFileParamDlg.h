@@ -21,6 +21,7 @@
 #pragma once
 
 #include <iAAttributes.h>
+#include <iAFileIO.h>
 
 #include <QMap>
 #include <QString>
@@ -48,6 +49,9 @@ public:
 
 	//! set up a few custom file parameter dialogs
 	static void setupDefaultFileParamDlgs();
+
+	//! convenience function for retrieving parameters for loading/saving a file
+	static bool getParameters(QWidget* parent, iAFileIO const * io, iAFileIO::Operation op, QString const& fileName, QVariantMap& result);
 
 private:
 	static QMap<QString, std::shared_ptr<iAFileParamDlg>> m_dialogs;

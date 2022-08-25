@@ -41,7 +41,9 @@
 
 iAMetaFileIO::iAMetaFileIO() :
 	iAFileIO(iADataSetType::Volume, iADataSetType::Volume)
-{}
+{
+	addAttr(m_params[Save], CompressionStr, iAValueType::Boolean, false);
+}
 
 std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
 {

@@ -488,16 +488,6 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 	}
 }
 
-namespace
-{
-	QString ioSettingsGroup(QString const & ioName)
-	{
-		QString ioNameShort(ioName);
-		ioNameShort.replace(" ", "");
-		return QString("FileIO/%1").arg(ioNameShort);
-	}
-}
-
 void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 {
 	auto child = newWindow ? nullptr : activeMdiChild();
@@ -510,17 +500,10 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 	{   // did not find an appropriate file IO; createIO already outputs a warning in that case
 		return;
 	}
-	auto settingsGroup = ioSettingsGroup(io->name());
 	QVariantMap paramValues;
-	if (!io->loadParameter().isEmpty())
+	if (!iAFileParamDlg::getParameters(this, io.get(), iAFileIO::Load, fileName, paramValues))
 	{
-		paramValues = ::loadSettings(settingsGroup, extractValues(io->loadParameter()));
-		auto paramDlg = iAFileParamDlg::get(io->name());
-		if (!paramDlg->askForParameters(this, io->loadParameter(), paramValues, fileName))
-		{
-			return;
-		}
-		::storeSettings(settingsGroup, paramValues);
+		return;
 	}
 	QString filePath(fileName);
 	filePath.truncate(filePath.lastIndexOf('/'));
@@ -1993,7 +1976,7 @@ void MainWindow::connectSignalsToSlots()
 	// "File menu entries:
 	connect(m_ui->actionOpen, &QAction::triggered, this, &MainWindow::open);
 	auto getOpenFileName = [this]() -> QString {
-		return QFileDialog::getOpenFileName(this, tr("Open Files (new)"), m_path, iAFileTypeRegistry::registeredLoadFileTypes());
+		return QFileDialog::getOpenFileName(this, tr("Open Files (new)"), m_path, iAFileTypeRegistry::registeredFileTypes(iAFileIO::Load));
 	};
 	connect(m_ui->actionOpenNew, &QAction::triggered, this, [this, getOpenFileName] { loadFileNew(getOpenFileName(), false); });
 	connect(m_ui->actionOpenInNewWindow, &QAction::triggered, this, [this, getOpenFileName] { loadFileNew(getOpenFileName(), true); });

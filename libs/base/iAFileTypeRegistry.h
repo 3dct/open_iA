@@ -23,6 +23,7 @@
 #include "iAbase_export.h"
 
 #include "iADataSetType.h"
+#include "iAFileIO.h"
 #include "iAGenericFactory.h"
 #include "iALog.h"
 
@@ -31,9 +32,6 @@
 #include <vector>
 
 class QString;
-
-
-class iAFileIO;
 
 using iAIFileIOFactory = iAGenericFactory<iAFileIO>;
 
@@ -50,11 +48,8 @@ public:
 	//! Set up default IO factories included by default in open_iA
 	static void setupDefaultIOFactories();
 
-	//! Retrieve list of file types for file open dialog
-	static QString registeredLoadFileTypes(iADataSetTypes allowedTypes = iADataSetType::All);
-
-	//! Retrieve list of file types available for given dataset
-	static QString registeredSaveFileTypes(iADataSetType type);
+	//! Retrieve list of file types for file open/save dialog
+	static QString registeredFileTypes(iAFileIO::Operation op, iADataSetTypes allowedTypes = iADataSetType::All);
 
 private:
 	static std::vector<std::shared_ptr<iAIFileIOFactory>> m_fileIOs;

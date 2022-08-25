@@ -89,8 +89,8 @@ const QString iAHDF5IO::SpacingStr("Spacing");
 
 iAHDF5IO::iAHDF5IO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
 {
-	addAttr(m_loadParams, DataSetPathStr, iAValueType::String, "");
-	addAttr(m_loadParams, SpacingStr, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
+	addAttr(m_params[Load], DataSetPathStr, iAValueType::String, "");
+	addAttr(m_params[Load], SpacingStr, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
 }
 
 std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::load(QString const& fileName, iAProgress* progress, QVariantMap const& params)

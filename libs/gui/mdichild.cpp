@@ -23,6 +23,7 @@
 #include "dlg_slicer.h"
 #include "dlg_volumePlayer.h"
 #include "iADataForDisplay.h"
+#include "iAFileParamDlg.h"
 #include "iAParametricSpline.h"
 #include "iAProfileProbe.h"
 #include "iAvtkInteractStyleActor.h"
@@ -1180,7 +1181,7 @@ void MdiChild::saveNew()
 		return;
 	}
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), m_path,
-			iAFileTypeRegistry::registeredSaveFileTypes(dataSet->type()));
+			iAFileTypeRegistry::registeredFileTypes(iAFileIO::Save, dataSet->type()));
 	if (fileName.isEmpty())
 	{
 		return;
@@ -1191,14 +1192,17 @@ void MdiChild::saveNew()
 		LOG(lvlError, "The chosen file format does not support this kind of dataset!");
 		return;
 	}
-	auto p = std::make_shared<iAProgress>();
-	runAsync([fileName, p, io, dataSet, this]()
+	QVariantMap paramValues;
+	if (!iAFileParamDlg::getParameters(this, io.get(), iAFileIO::Save, fileName, paramValues))
 	{
-		QVariantMap params;
-		params[iAFileIO::CompressionStr] = m_preferences.Compression;
+		return;
+	}
+	auto p = std::make_shared<iAProgress>();
+	runAsync([fileName, p, io, dataSet, this, paramValues]()
+	{
 		try
 		{
-			io->save(fileName, p.get(), { dataSet }, params);
+			io->save(fileName, p.get(), { dataSet }, paramValues);
 		}
 		// TODO: unify exception handling?
 		catch (itk::ExceptionObject& e)

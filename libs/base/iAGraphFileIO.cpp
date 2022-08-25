@@ -34,7 +34,7 @@
 
 iAGraphFileIO::iAGraphFileIO() : iAFileIO(iADataSetType::Graph, iADataSetType::None)
 {
-	addAttr(m_loadParams, "Spacing", iAValueType::Vector3, variantVector<double>({ 1.0, 1.0, 1.0 }));
+	addAttr(m_params[Load], "Spacing", iAValueType::Vector3, variantVector<double>({ 1.0, 1.0, 1.0 }));
 }
 
 std::vector<std::shared_ptr<iADataSet>> iAGraphFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& params)

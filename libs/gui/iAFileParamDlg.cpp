@@ -23,10 +23,13 @@
 #include <iAFileUtils.h>
 #include <iAImageStackFileIO.h>
 #include <iARawFileIO.h>
+#include <iASettings.h>
 
 #include <iAMainWindow.h>
 #include <iAParameterDlg.h>
 #include <iARawFileParamDlg.h>
+
+#include <QRegularExpression>
 
 iAFileParamDlg::~iAFileParamDlg()
 {}
@@ -59,6 +62,25 @@ void iAFileParamDlg::add(QString const& ioName, std::shared_ptr<iAFileParamDlg> 
 {
 	m_dialogs.insert(ioName, dlg);
 }
+
+QMap<QString, std::shared_ptr<iAFileParamDlg>> iAFileParamDlg::m_dialogs;
+
+bool iAFileParamDlg::getParameters(QWidget* parent, iAFileIO const* io, iAFileIO::Operation op, QString const& fileName, QVariantMap & paramValues)
+{
+	if (!io->parameter(op).isEmpty())
+	{
+		auto settingPath = QString("File%1/%2").arg(op == iAFileIO::Load ? "Load" : "Save").arg(io->name().remove(QRegularExpression("[^a-zA-Z\\d]")));
+		paramValues = ::loadSettings(settingPath, extractValues(io->parameter(op)));
+		auto paramDlg = iAFileParamDlg::get(settingPath);
+		if (!paramDlg->askForParameters(parent, io->parameter(op), paramValues, fileName))
+		{
+			return false;
+		}
+		::storeSettings(settingPath, paramValues);
+	}
+	return true;
+}
+
 
 class iANewRawFileParamDlg : public iAFileParamDlg
 {
@@ -370,6 +392,3 @@ void iAFileParamDlg::setupDefaultFileParamDlgs()
 	add(iAHDF5IO::Name, std::make_shared<iAHDF5FileParamDlg>());
 #endif
 }
-
-QMap<QString, std::shared_ptr<iAFileParamDlg>> iAFileParamDlg::m_dialogs;
-

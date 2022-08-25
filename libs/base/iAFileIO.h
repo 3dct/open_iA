@@ -37,6 +37,11 @@ class iAProgress;
 class iAbase_API iAFileIO
 {
 public:
+	enum Operation
+	{
+		Load,
+		Save
+	};
 	static const QString CompressionStr;
 	//! create a file I/O for the given dataset type
 	iAFileIO(iADataSetTypes readTypes, iADataSetTypes writeTypes);
@@ -47,12 +52,13 @@ public:
 	//! The file extensions that this file IO should be used for
 	virtual QStringList extensions() const = 0;
 
+	//! Required parameters for loading/saving the file
+	iAAttributes const& parameter(Operation op) const;
+	//! Types of dataset contained in this file format, which this IO can load/save
+	iADataSetTypes supportedDataSetTypes(Operation op) const;
+
 	//! Load the (list of) dataset(s). The default implementation assumes that reading is not implemented and does nothing.
 	virtual std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, iAProgress* progress, QVariantMap const& paramValues);
-	//! Required parameters for loading the file
-	iAAttributes const& loadParameter() const;
-	//! Types of dataset contained in this file format, which this IO can read 
-	iADataSetTypes supportedLoadDataSetTypes() const;
 
 	//! Whether this IO can be used for storing the given data set.
 	//! It could for example check whether the format supports the data types in the dataset
@@ -60,16 +66,10 @@ public:
 	virtual bool isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName) const;
 	//! Save the (list of) dataset(s). The default implementation assumes that writing is not implemented and does nothing.
 	virtual void save(QString const& fileName, iAProgress* progress, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues);
-	//! Required parameters for saving the file
-	iAAttributes const& saveParameter() const;
-	//! Types of dataset contained in this file format, which this IO can write 
-	iADataSetTypes supportedSaveDataSetTypes() const;
 
 protected:
-	iAAttributes m_loadParams;
-	iAAttributes m_saveParams;
+	iAAttributes m_params[2];
 
 private:
-	iADataSetTypes m_loadDataSetTypes;
-	iADataSetTypes m_saveDataSetTypes;
+	iADataSetTypes m_dataSetTypes[2];
 };
