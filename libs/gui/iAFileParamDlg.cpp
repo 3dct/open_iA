@@ -31,6 +31,16 @@
 
 #include <QRegularExpression>
 
+namespace
+{
+	QString settingName(iAFileIO::Operation op, QString name)
+	{
+		return QString("File%1/%2")
+			.arg(op == iAFileIO::Load ? "Load" : "Save")
+			.arg(name.remove(QRegularExpression("[^a-zA-Z\\d]")));
+	}
+}
+
 iAFileParamDlg::~iAFileParamDlg()
 {}
 
@@ -69,7 +79,7 @@ bool iAFileParamDlg::getParameters(QWidget* parent, iAFileIO const* io, iAFileIO
 {
 	if (!io->parameter(op).isEmpty())
 	{
-		auto settingPath = QString("File%1/%2").arg(op == iAFileIO::Load ? "Load" : "Save").arg(io->name().remove(QRegularExpression("[^a-zA-Z\\d]")));
+		auto settingPath = settingName(op, io->name());
 		paramValues = ::loadSettings(settingPath, extractValues(io->parameter(op)));
 		auto paramDlg = iAFileParamDlg::get(settingPath);
 		if (!paramDlg->askForParameters(parent, io->parameter(op), paramValues, fileName))
@@ -386,9 +396,9 @@ class iAHDF5FileParamDlg : public iAFileParamDlg
 
 void iAFileParamDlg::setupDefaultFileParamDlgs()
 {
-	add(iARawFileIO::Name, std::make_shared<iANewRawFileParamDlg>());
-	add(iAImageStackFileIO::Name, std::make_shared<iAImageStackParamDlg>());
+	add(settingName(iAFileIO::Load, iARawFileIO::Name), std::make_shared<iANewRawFileParamDlg>());
+	add(settingName(iAFileIO::Load, iAImageStackFileIO::Name), std::make_shared<iAImageStackParamDlg>());
 #ifdef USE_HDF5
-	add(iAHDF5IO::Name, std::make_shared<iAHDF5FileParamDlg>());
+	add(settingName(iAFileIO::Load, iAHDF5IO::Name), std::make_shared<iAHDF5FileParamDlg>());
 #endif
 }

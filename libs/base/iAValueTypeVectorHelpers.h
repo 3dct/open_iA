@@ -37,9 +37,9 @@ void setFromVectorVariant(U& dest, QVariant const& src)
 	}
 }
 
-//! Create a QVariant with a QVector<T> (first templated type) from an initializer list of the second type U
-template <typename T, typename U>
-QVariant variantVector(std::initializer_list<U> s)
+//! Create a QVariant with a QVector<T> (first templated type) from an initializer list
+template <typename T>
+QVariant variantVector(std::initializer_list<T> s)
 {
 	return QVariant::fromValue(QVector<T>(s));
 }
