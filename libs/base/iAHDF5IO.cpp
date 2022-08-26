@@ -181,7 +181,7 @@ QString iAHDF5IO::name() const
 
 QStringList iAHDF5IO::extensions() const
 {
-	return QStringList{ "hdf5", "h5", "he5", "nc", "cdf", "mat" };
+	return QStringList{ "hdf", "hdf5", "h5", "he5", "nc", "cdf", "mat" };
 }
 
 

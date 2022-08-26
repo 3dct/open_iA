@@ -25,21 +25,45 @@
 #include "iAProgress.h"
 
 #include <vtkSTLReader.h>
+#include <vtkSTLWriter.h>
 
-iASTLFileIO::iASTLFileIO() : iAFileIO(iADataSetType::Mesh, iADataSetType::None)
-{}
+namespace
+{
+	QString const FormatParam = "Format";
+	QString const FmtBinary = "Binary";
+	QString const FmtASCII = "ASCII";
+}
+
+iASTLFileIO::iASTLFileIO() : iAFileIO(iADataSetType::Mesh, iADataSetType::Mesh)
+{
+	QStringList formatOptions = QStringList() << FmtBinary << FmtASCII;
+	addAttr(m_params[Save], FormatParam, iAValueType::Categorical, formatOptions);
+}
 
 std::vector<std::shared_ptr<iADataSet>> iASTLFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& params)
 {
 	Q_UNUSED(params);
-	auto stlReader = vtkSmartPointer<vtkSTLReader>::New();
-	progress->observe(stlReader);
-	stlReader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
-	stlReader->SetFileName(getLocalEncodingFileName(fileName).c_str());
+	vtkNew<vtkSTLReader> reader;
+	progress->observe(reader);
+	reader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
+	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	vtkNew<vtkPolyData> polyData;
-	stlReader->SetOutput(polyData);
-	stlReader->Update();
+	reader->SetOutput(polyData);
+	reader->Update();
 	return { std::make_shared<iAPolyData>(fileName, polyData) };
+}
+
+void iASTLFileIO::save(QString const& fileName, iAProgress* progress, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues)
+{
+	assert(dataSets.size() == 1 && dataSets[0]->type() == iADataSetType::Mesh);
+	Q_UNUSED(paramValues);
+	vtkNew<vtkSTLWriter> writer;
+	progress->observe(writer);
+	writer->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
+	writer->SetFileType(paramValues[FormatParam].toString() == FmtBinary ? VTK_BINARY : VTK_ASCII);
+	writer->SetFileName(getLocalEncodingFileName(fileName).c_str());
+	writer->SetInputData(dynamic_cast<iAPolyData*>(dataSets[0].get())->poly());
+	writer->Write();
 }
 
 QString iASTLFileIO::name() const
