@@ -31,6 +31,7 @@
 
 #include <QFile>
 #include <QRegularExpression>
+#include <QTextStream>
 
 const QString iANKCFileIO::Name("NKC files");
 

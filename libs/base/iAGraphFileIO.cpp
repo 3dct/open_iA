@@ -31,6 +31,7 @@
 
 #include <QColor>
 #include <QFile>
+#include <QTextStream>
 
 iAGraphFileIO::iAGraphFileIO() : iAFileIO(iADataSetType::Graph, iADataSetType::None)
 {

@@ -31,6 +31,7 @@
 
 #include <QFile>
 #include <QFileInfo>
+#include <QTextStream>
 
 iAVGIFileIO::iAVGIFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
 {}
