@@ -81,6 +81,7 @@ QString iAFileTypeRegistry::registeredFileTypes(iAFileIO::Operation op, iADataSe
 #include "iAOIFFileIO.h"
 #include "iARawFileIO.h"
 #include "iASTLFileIO.h"
+#include "iAVGIFileIO.h"
 #include "iAVTIFileIO.h"
 #include "iAVTKFileIO.h"
 
@@ -94,6 +95,7 @@ void iAFileTypeRegistry::setupDefaultIOFactories()
 	iAFileTypeRegistry::addFileType<iAMetaFileIO>();
 	iAFileTypeRegistry::addFileType<iANKCFileIO>();
 	iAFileTypeRegistry::addFileType<iAOIFFileIO>();
+	iAFileTypeRegistry::addFileType<iAVGIFileIO>();
 	iAFileTypeRegistry::addFileType<iAVTIFileIO>();
 	iAFileTypeRegistry::addFileType<iARawFileIO>();
 #ifdef USE_HDF5
