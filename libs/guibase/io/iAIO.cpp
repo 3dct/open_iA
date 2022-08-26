@@ -891,8 +891,10 @@ bool iAIO::setupVolumeStackMHDReader(QString const & f)
 
 QString getParameterValues(QString fileName, QString parameter, int index, QString section = "", QString sep = ":")
 {
-	if (index<0 || index>3)
+	if (index < 0 || index>3)
+	{
 		return 0;
+	}
 	QString values[4];
 	QFile file(fileName);
 

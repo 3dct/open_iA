@@ -94,7 +94,6 @@ void iAMetaFileIO::save(QString const& fileName, iAProgress* progress, std::vect
 		return;
 	}
 	storeImage(imgData->image(), fileName, paramValues[CompressionStr].toBool(), progress);
-
 }
 
 QString iAMetaFileIO::name() const

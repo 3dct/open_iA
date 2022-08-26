@@ -25,20 +25,32 @@
 
 #include <vtkImageData.h>
 #include <vtkXMLImageDataReader.h>
+#include <vtkXMLImageDataWriter.h>
 
-iAVTIFileIO::iAVTIFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
+iAVTIFileIO::iAVTIFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volume)
 {}
 
 std::vector<std::shared_ptr<iADataSet>> iAVTIFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
 {
 	Q_UNUSED(parameters);
-	auto reader = vtkSmartPointer<vtkXMLImageDataReader>::New();
+	vtkNew<vtkXMLImageDataReader> reader;
 	progress->observe(reader);
 	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	reader->Update();
-	reader->ReleaseDataFlagOn();
 	auto img = reader->GetOutput();
 	return { std::make_shared<iAImageData>(fileName, img) };
+}
+
+void  iAVTIFileIO::save(QString const& fileName, iAProgress* progress, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues)
+{
+	Q_UNUSED(paramValues);
+	vtkNew<vtkXMLImageDataWriter> writer;
+	progress->observe(writer);
+	writer->SetFileName(getLocalEncodingFileName(fileName).c_str());
+	assert(dataSets.size() == 1);
+	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->image();
+	writer->SetInputData(img);
+	writer->Write();
 }
 
 QString iAVTIFileIO::name() const
