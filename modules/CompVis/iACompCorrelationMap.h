@@ -35,6 +35,8 @@
 #include "vtkSmartPointer.h"
 #include "vtkCommand.h"
 
+#include <cmath>
+
 //CompVis
 class iAMainWindow;
 class iACorrelationCoefficient;
