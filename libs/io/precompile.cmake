@@ -1,4 +1,6 @@
-SET (OPENIA_PRECOMPILE_HEADERS
+set(OPENIA_PRECOMPILE_HEADERS
+<cstdio>
+<vector>
 <defines.h>
 <iAAmiraMeshIO.h>
 <iAAmiraVolumeFileIO.h>
@@ -7,13 +9,16 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <iADCMFileIO.h>
 <iAExceptionThrowingErrorObserver.h>
 <iAFileIO.h>
+<iAFileTypeRegistry.h>
 <iAFileUtils.h>
 <iAGraphFileIO.h>
 <iAHDF5IO.h>
 <iAImageStackFileIO.h>
+<iALog.h>
 <iAMetaFileIO.h>
 <iANKCFileIO.h>
 <iAOIFFileIO.h>
+<iAOIFReader.h>
 <iAProgress.h>
 <iAProjectFileIO.h>
 <iARawFileIO.h>
@@ -26,8 +31,10 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <itkImage.h>
 <QFile>
 <QFileInfo>
+<QString>
 <QTextStream>
 <vtkImageData.h>
 <vtkPointData.h>
 <vtkPolyData.h>
+<vtkSmartPointer.h>
 )
