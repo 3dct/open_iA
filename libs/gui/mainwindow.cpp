@@ -46,6 +46,7 @@
 // io:
 #include "iADataSet.h"
 #include "iAFileTypeRegistry.h"
+#include "iADefaultFileIOs.h"
 
 // qthelper
 #include "iADockWidgetWrapper.h"
@@ -2809,13 +2810,13 @@ void MainWindow::openWithDataTypeConversion()
 	}
 	iAAttributes params;
 	addAttr(params, "Slice sample rate", iAValueType::Discrete, m_owdtcs, 1);
-	auto map = m_rawFileParams.toMap();
+	auto map = rawParamsToMap(m_rawFileParams);
 	iARawFileParamDlg dlg(fileName, this, "Open With DataType Conversion", params, map, brightMode());
 	if (!dlg.accepted())
 	{
 		return;
 	}
-	m_rawFileParams = iARawFileParameters::fromMap(dlg.parameterValues());
+	m_rawFileParams = rawParamsFromMap(dlg.parameterValues());
 	m_owdtcs = clamp(1u, m_rawFileParams.m_size[2], static_cast<unsigned int>(dlg.parameterValues()["Slice sample rate"].toUInt()));
 
 	double convPara[11];
@@ -2916,8 +2917,7 @@ void MainWindow::initResources()
 int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString const & version,
 	QString const& buildInformation, QString const & splashPath, QString const & iconPath)
 {
-
-	iAFileTypeRegistry::setupDefaultIOFactories();
+	setupDefaultFileIOs();
 	iAFileParamDlg::setupDefaultFileParamDlgs();
 	initializeSettingTypes();
 	QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);

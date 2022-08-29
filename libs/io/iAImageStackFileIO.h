@@ -20,9 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAio_export.h"
+
 #include "iAFileIO.h"
 
-class iAbase_API iAImageStackFileIO : public iAFileIO
+class iAio_API iAImageStackFileIO : public iAFileIO
 {
 public:
 	static QString const Name;

@@ -162,20 +162,21 @@ iAbase_API int mapReadableDataTypeToVTKType(QString const & dataTypeName);
 iAbase_API QString mapVTKTypeToReadableDataType(int vtkType);
 
 
-// ----- Byte Order -----
-namespace ByteOrder
+// Byte Order handling - is a class mainly for simplifying exporting the two string constants
+class iAbase_API ByteOrder
 {
-	extern const QString BigEndianStr;
-	extern const QString LittleEndianStr;
+public:
+	static const QString BigEndianStr;
+	static const QString LittleEndianStr;
 	//! Returns a human-readable list of available byte orders (little/big endian)
-	iAbase_API QStringList const& stringList();
+	static QStringList const& stringList();
 	//! Maps a given readable string to the according VTK byte order type.
 	//! Reverse to mapVTKByteOrderToReadable
-	iAbase_API int mapStringToVTKType(QString const& name);
+	static int mapStringToVTKType(QString const& name);
 	//! Maps a given VTK byte order type to the according readable string.
 	//! Reverse to mapReadableByteOrderToVTKType
-	iAbase_API QString mapVTKTypeToString(int byteOrder);
-}
+	static QString mapVTKTypeToString(int byteOrder);
+};
 
 
 // ----- Render Modes -----

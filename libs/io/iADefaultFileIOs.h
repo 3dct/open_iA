@@ -20,13 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFileIO.h"
+#include "iAio_export.h"
 
-class iAbase_API iACSVImageFileIO : public iAFileIO
-{
-public:
-	iACSVImageFileIO();
-	void save(QString const& fileName, iAProgress* progress, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues) override;
-	QString name() const override;
-	QStringList extensions() const override;
-};
+//! Set up default IO factories included by default in open_iA
+iAio_API void setupDefaultFileIOs();

@@ -20,14 +20,31 @@
 * ************************************************************************************/
 #pragma once
 
+#ifdef USE_HDF5
+
+#include "iAio_export.h"
+
 #include "iAFileIO.h"
 
-class iAbase_API iANKCFileIO : public iAFileIO
+// for now, let's use HDF5 1.10 API:
+#define H5_USE_110_API
+#include <hdf5.h>
+
+class iAio_API iAHDF5IO : public iAFileIO
 {
 public:
 	static const QString Name;
-	iANKCFileIO();
+	static const QString DataSetPathStr;
+	static const QString SpacingStr;
+
+	iAHDF5IO();
 	std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };
+
+iAio_API QString MapHDF5TypeToString(H5T_class_t hdf5Type);
+iAio_API int GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign);
+iAio_API void printHDF5ErrorsToConsole();
+
+#endif

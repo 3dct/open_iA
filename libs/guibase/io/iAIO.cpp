@@ -21,6 +21,7 @@
 #include "iAIO.h"
 
 // guibase
+#include "iAIOProvider.h"
 #include "iAJobListView.h"
 #include "iAMainWindow.h"    // TODO: check if it can be avoided
 #include "iAModalityList.h"
@@ -996,14 +997,14 @@ bool iAIO::setupVolumeStackReader(QString const & f)
 	m_extension = "." + QFileInfo(f).suffix();
 	iAAttributes params;
 	addSeriesParameters(params, m_fileNamesBase, m_extension, digitsInIndex, indexRange);
-	auto map = m_rawFileParams.toMap();
+	auto map = rawParamsToMap(m_rawFileParams);
 	iARawFileParamDlg dlg(f, m_parent, "RAW file specs", params, map, iAMainWindow::get()->brightMode());
 	if (!dlg.accepted())
 	{
 		return false;
 	}
 	auto values = dlg.parameterValues();
-	m_rawFileParams = iARawFileParameters::fromMap(dlg.parameterValues());
+	m_rawFileParams = rawParamsFromMap(dlg.parameterValues());
 	m_fileNamesBase = values[FileNameBase].toString();
 	m_extension = values[Extension].toString();
 	digitsInIndex = values[NumDigits].toInt();
@@ -1016,11 +1017,11 @@ bool iAIO::setupVolumeStackReader(QString const & f)
 bool iAIO::setupRAWReader( QString const & f )
 {
 	m_fileName = f;
-	auto map = m_rawFileParams.toMap();
+	auto map = rawParamsToMap(m_rawFileParams);
 	iARawFileParamDlg dlg(f, m_parent, "RAW file specs", iAAttributes(), map, iAMainWindow::get()->brightMode());
 	if (dlg.accepted())
 	{
-		m_rawFileParams = iARawFileParameters::fromMap(dlg.parameterValues());
+		m_rawFileParams = rawParamsFromMap(dlg.parameterValues());
 	}
 	return dlg.accepted();
 }

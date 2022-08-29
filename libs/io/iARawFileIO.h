@@ -20,13 +20,21 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAio_export.h"
+
 #include "iAFileIO.h"
 
-class iAbase_API iADCMFileIO : public iAFileIO
+class iAio_API iARawFileIO : public iAFileIO
 {
 public:
 	static const QString Name;
-	iADCMFileIO();
+	static const QString SizeStr;
+	static const QString SpacingStr;
+	static const QString OriginStr;
+	static const QString HeadersizeStr;
+	static const QString DataTypeStr;
+	static const QString ByteOrderStr;
+	iARawFileIO();
 	std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;

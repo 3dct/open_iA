@@ -361,26 +361,23 @@ QString mapVTKTypeToReadableDataType(int vtkType)
 	return readableDataTypeMap().value(vtkType, "");
 }
 
-namespace ByteOrder
+const QString ByteOrder::BigEndianStr("Big Endian");
+const QString ByteOrder::LittleEndianStr("Little Endian");
+
+QStringList const& ByteOrder::stringList()
 {
-	const QString BigEndianStr("Big Endian");
-	const QString LittleEndianStr("Little Endian");
+	static QStringList byteOrders = (QStringList() << BigEndianStr << LittleEndianStr);
+	return byteOrders;
+}
 
-	QStringList const& stringList()
-	{
-		static QStringList byteOrders = (QStringList() << BigEndianStr << LittleEndianStr);
-		return byteOrders;
-	}
+QString ByteOrder::mapVTKTypeToString(int byteOrder)
+{
+	return (byteOrder == VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN) ? LittleEndianStr : BigEndianStr;
+}
 
-	QString mapVTKTypeToString(int byteOrder)
-	{
-		return (byteOrder == VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN) ? LittleEndianStr : BigEndianStr;
-	}
-
-	int mapStringToVTKType(QString const& name)
-	{
-		return (name == LittleEndianStr) ? VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN : VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
-	}
+int ByteOrder::mapStringToVTKType(QString const& name)
+{
+	return (name == LittleEndianStr) ? VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN : VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
 }
 
 QMap<int, QString> const & RenderModeMap()

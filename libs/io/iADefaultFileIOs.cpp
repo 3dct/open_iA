@@ -18,34 +18,52 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iADefaultFileIOs.h"
 
-#include "iAguibase_export.h"
+#include "iAFileTypeRegistry.h"
 
-#include <QMap>
-#include <QVariant>    // for QVariantMap (at least under Qt 5.15.2)
+#include "iAAmiraVolumeFileIO.h"
+#include "iACSVImageFileIO.h"
+#include "iADCMFileIO.h"
+#include "iAGraphFileIO.h"
+#include "iAHDF5IO.h"
+#include "iAImageStackFileIO.h"
+#include "iAMetaFileIO.h"
+#include "iANKCFileIO.h"
+#include "iAProjectFileIO.h"
+#include "iAOIFFileIO.h"
+#include "iARawFileIO.h"
+#include "iASTLFileIO.h"
+#include "iAVGIFileIO.h"
+#include "iAVTIFileIO.h"
+#include "iAVTKFileIO.h"
 
-class QString;
-struct iARawFileParameters;
-
-//! Class which provides helper methods around IO.
-class iAguibase_API iAIOProvider
+void setupDefaultFileIOs()
 {
-public:
-	static QString GetSupportedSaveFormats();
-	static QString GetSupportedLoadFormats();
-	static QString GetSupportedImageStackFormats();
-	static QString GetSupportedVolumeStackFormats();
-	static QString GetSupportedImageFormats();
+	// volume file formats:
+	iAFileTypeRegistry::addFileType<iAAmiraVolumeFileIO>();
+	iAFileTypeRegistry::addFileType<iACSVImageFileIO>();
+	iAFileTypeRegistry::addFileType<iADCMFileIO>();
+	iAFileTypeRegistry::addFileType<iAImageStackFileIO>();
+	iAFileTypeRegistry::addFileType<iAMetaFileIO>();
+	iAFileTypeRegistry::addFileType<iANKCFileIO>();
+	iAFileTypeRegistry::addFileType<iAOIFFileIO>();
+	iAFileTypeRegistry::addFileType<iAVGIFileIO>();
+	iAFileTypeRegistry::addFileType<iAVTIFileIO>();
+	iAFileTypeRegistry::addFileType<iARawFileIO>();
+#ifdef USE_HDF5
+	iAFileTypeRegistry::addFileType<iAHDF5IO>();
+#endif
 
+	// mesh file formats:
+	iAFileTypeRegistry::addFileType<iASTLFileIO>();
 
-	static const QString ProjectFileTypeFilter;
-	static const QString ProjectFileExtension;
-	static const QString NewProjectFileTypeFilter;
-	static const QString NewProjectFileExtension;
-	static const QString MetaImages;
-	static const QString VTKFiles;
-};
+	// graph file formats:
+	iAFileTypeRegistry::addFileType<iAGraphFileIO>();
 
-iAguibase_API QVariantMap rawParamsToMap(iARawFileParameters const& p);
-iAguibase_API iARawFileParameters rawParamsFromMap(QVariantMap const& map);
+	// file formats which can contain different types of data:
+	iAFileTypeRegistry::addFileType<iAVTKFileIO>();
+	
+	// collection file formats:
+	iAFileTypeRegistry::addFileType<iAProjectFileIO>();
+}

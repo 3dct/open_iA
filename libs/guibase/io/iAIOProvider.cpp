@@ -20,6 +20,10 @@
 * ************************************************************************************/
 #include "iAIOProvider.h"
 
+#include "iARawFileParameters.h"
+#include "iAValueTypeVectorHelpers.h"
+#include "iAToolsVTK.h"
+
 #include <QObject>
 
 const QString iAIOProvider::ProjectFileExtension(".mod");
@@ -90,4 +94,28 @@ QString iAIOProvider::GetSupportedImageFormats()
 		"PNG (*.png);;"
 		"TIFF (*.tif *.tiff);;"
 	);
+}
+
+QVariantMap rawParamsToMap(iARawFileParameters const& p)
+{
+	QVariantMap result;
+	result["Size"] = variantVector<int>({ static_cast<int>(p.m_size[0]), static_cast<int>(p.m_size[1]), static_cast<int>(p.m_size[2]) });
+	result["Spacing"] = variantVector<double>({ p.m_spacing[0], p.m_spacing[1], p.m_spacing[2] });
+	result["Origin"] = variantVector<double>({ p.m_origin[0], p.m_origin[1], p.m_origin[2] });
+	result["Headersize"] = p.m_headersize;
+	result["DataType"] = mapVTKTypeToReadableDataType(p.m_scalarType);
+	result["ByteOrder"] = ByteOrder::mapVTKTypeToString(p.m_byteOrder);
+	return result;
+}
+
+iARawFileParameters rawParamsFromMap(QVariantMap const& map)
+{
+	iARawFileParameters result;
+	setFromVectorVariant<int>(result.m_size, map["Size"]);
+	setFromVectorVariant<double>(result.m_spacing, map["Spacing"]);
+	setFromVectorVariant<double>(result.m_origin, map["Origin"]);
+	result.m_headersize = map["Headersize"].toULongLong();
+	result.m_scalarType = mapReadableDataTypeToVTKType(map["Data Type"].toString());
+	result.m_byteOrder = ByteOrder::mapStringToVTKType(map["Byte Order"].toString());
+	return result;
 }

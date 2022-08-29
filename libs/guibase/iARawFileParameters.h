@@ -23,7 +23,6 @@
 #include <vtkImageReader.h>  // for VTK_FILE_BYTE_ORDER_... constants
 #include <vtkType.h>         // For types, e.g. VTK_UNSIGNED_SHORT
 
-#include "iARawFileIO.h"     // for constants used in mapStructToMap
 #include "iAToolsVTK.h"      // for mapVTKTypeToReadableDataType
 #include "iAValueTypeVectorHelpers.h"
 
@@ -56,28 +55,4 @@ struct iARawFileParameters
 	//! See VTK_FILE_BYTE_ORDER_ defines in include file <vtkImageReader.h>
 	//! this type is mapped to list index in raw file dialog in mapVTKByteOrderToIdx in iARawFileParamDlg
 	int m_byteOrder;
-
-	inline QVariantMap toMap() const
-	{
-		QVariantMap result;
-		result[iARawFileIO::SizeStr] = variantVector<int>({ static_cast<int>(m_size[0]), static_cast<int>(m_size[1]), static_cast<int>(m_size[2]) });
-		result[iARawFileIO::SpacingStr] = variantVector<double>({ m_spacing[0], m_spacing[1], m_spacing[2] });
-		result[iARawFileIO::OriginStr] = variantVector<double>({ m_origin[0], m_origin[1], m_origin[2] });
-		result[iARawFileIO::HeadersizeStr] = m_headersize;
-		result[iARawFileIO::DataTypeStr] = mapVTKTypeToReadableDataType(m_scalarType);
-		result[iARawFileIO::ByteOrderStr] = ByteOrder::mapVTKTypeToString(m_byteOrder);
-		return result;
-	}
-
-	static inline iARawFileParameters fromMap(QVariantMap const& map)
-	{
-		iARawFileParameters result;
-		setFromVectorVariant<int>(result.m_size, map["Size"]);
-		setFromVectorVariant<double>(result.m_spacing, map["Spacing"]);
-		setFromVectorVariant<double>(result.m_origin, map["Origin"]);
-		result.m_headersize = map["Headersize"].toULongLong();
-		result.m_scalarType = mapReadableDataTypeToVTKType(map["Data Type"].toString());
-		result.m_byteOrder = ByteOrder::mapStringToVTKType(map["Byte Order"].toString());
-		return result;
-	}
 };

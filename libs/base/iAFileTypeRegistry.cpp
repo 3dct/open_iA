@@ -67,54 +67,6 @@ QString iAFileTypeRegistry::registeredFileTypes(iAFileIO::Operation op, iADataSe
 	return QString("Any supported format (%1);;").arg(allExtensions.join(" ")) + singleTypes;
 }
 
-// ---------- iAFileTypeRegistry::setupDefaultIOFactories (needs to be after declaration of specific IO classes) ----------
-
-#include "iAAmiraVolumeFileIO.h"
-#include "iACSVImageFileIO.h"
-#include "iADCMFileIO.h"
-#include "iAGraphFileIO.h"
-#include "iAHDF5IO.h"
-#include "iAImageStackFileIO.h"
-#include "iAMetaFileIO.h"
-#include "iANKCFileIO.h"
-#include "iAProjectFileIO.h"
-#include "iAOIFFileIO.h"
-#include "iARawFileIO.h"
-#include "iASTLFileIO.h"
-#include "iAVGIFileIO.h"
-#include "iAVTIFileIO.h"
-#include "iAVTKFileIO.h"
-
-void iAFileTypeRegistry::setupDefaultIOFactories()
-{
-	// volume file formats:
-	iAFileTypeRegistry::addFileType<iAAmiraVolumeFileIO>();
-	iAFileTypeRegistry::addFileType<iACSVImageFileIO>();
-	iAFileTypeRegistry::addFileType<iADCMFileIO>();
-	iAFileTypeRegistry::addFileType<iAImageStackFileIO>();
-	iAFileTypeRegistry::addFileType<iAMetaFileIO>();
-	iAFileTypeRegistry::addFileType<iANKCFileIO>();
-	iAFileTypeRegistry::addFileType<iAOIFFileIO>();
-	iAFileTypeRegistry::addFileType<iAVGIFileIO>();
-	iAFileTypeRegistry::addFileType<iAVTIFileIO>();
-	iAFileTypeRegistry::addFileType<iARawFileIO>();
-#ifdef USE_HDF5
-	iAFileTypeRegistry::addFileType<iAHDF5IO>();
-#endif
-
-	// mesh file formats:
-	iAFileTypeRegistry::addFileType<iASTLFileIO>();
-
-	// graph file formats:
-	iAFileTypeRegistry::addFileType<iAGraphFileIO>();
-
-	// file formats which can contain different types of data:
-	iAFileTypeRegistry::addFileType<iAVTKFileIO>();
-	
-	// collection file formats:
-	iAFileTypeRegistry::addFileType<iAProjectFileIO>();
-}
-
 #include <QFileInfo>
 
 namespace iANewIO

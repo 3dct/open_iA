@@ -22,17 +22,11 @@
 
 #include "iAFileIO.h"
 
-class iAbase_API iARawFileIO : public iAFileIO
+class iADCMFileIO : public iAFileIO
 {
 public:
 	static const QString Name;
-	static const QString SizeStr;
-	static const QString SpacingStr;
-	static const QString OriginStr;
-	static const QString HeadersizeStr;
-	static const QString DataTypeStr;
-	static const QString ByteOrderStr;
-	iARawFileIO();
+	iADCMFileIO();
 	std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters) override;
 	QString name() const override;
 	QStringList extensions() const override;
