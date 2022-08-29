@@ -41,7 +41,7 @@ public:
 		m_progress->emitProgress((dynamic_cast<vtkAlgorithm*>(caller))->GetProgress() * 100);
 	}
 private:
-	iAProgress* m_progress;
+	iAProgress* m_progress = nullptr;
 };
 
 void iAProgress::processEvent( itk::Object * caller, const itk::EventObject & event )
@@ -51,7 +51,7 @@ void iAProgress::processEvent( itk::Object * caller, const itk::EventObject & ev
 		return;
 	}
 	auto process = dynamic_cast<itk::ProcessObject *>(caller);
-	emitProgress(process->GetProgress() * 100);
+	emitProgress(process->GetProgress() * 100.0);
 }
 
 void iAProgress::constProcessEvent(const itk::Object * caller, const itk::EventObject & event)
@@ -61,7 +61,7 @@ void iAProgress::constProcessEvent(const itk::Object * caller, const itk::EventO
 		return;
 	}
 	auto process = dynamic_cast<const itk::ProcessObject *>(caller);
-	emitProgress(process->GetProgress() * 100);
+	emitProgress(process->GetProgress() * 10.0);
 }
 
 void iAProgress::observe( itk::Object *caller )
