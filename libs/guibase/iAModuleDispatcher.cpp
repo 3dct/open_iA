@@ -231,7 +231,7 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 		return;
 	}
 	auto filterFactories = iAFilterRegistry::filterFactories();
-	for (int i=0; i<filterFactories.size(); ++i)
+	for (size_t i=0; i<filterFactories.size(); ++i)
 	{
 		auto filterFactory = filterFactories[i];
 		auto filter = filterFactory->create();
@@ -250,7 +250,7 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 		{
 			m_mainWnd->makeActionChildDependent(filterAction);
 		}
-		filterAction->setData(i);
+		filterAction->setData(static_cast<qulonglong>(i));
 		connect(filterAction, &QAction::triggered, this, &iAModuleDispatcher::executeFilter);
 	}
 	// enable Tools and Filters only if any modules were loaded that put something into them:

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAbase_export.h"
+#include "iAio_export.h"
 
 #include <itkImage.h>
 
@@ -157,5 +157,5 @@ private:
 
 
 //! Reads an .oif file
-iAbase_API void readOIF(QString const & filename, iAConnector* con, int channel,
+iAio_API void readOIF(QString const & filename, iAConnector* con, int channel,
 		std::vector<vtkSmartPointer<vtkImageData> > * volumes);

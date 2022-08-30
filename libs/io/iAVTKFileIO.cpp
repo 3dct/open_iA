@@ -32,6 +32,8 @@
 #include <vtkPolyData.h>
 #include <vtkRectilinearGrid.h>
 
+#include <cstring>   // for memcpy -> ToDo: get rid of memcpy, use VTK dataset conversions instead!
+
 const QString iAVTKFileIO::Name("VTK files");
 
 iAVTKFileIO::iAVTKFileIO() : iAFileIO(iADataSetType::All, iADataSetType::None)

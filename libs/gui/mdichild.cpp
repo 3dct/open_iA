@@ -1198,7 +1198,7 @@ void MdiChild::saveNew()
 		return;
 	}
 	auto p = std::make_shared<iAProgress>();
-	runAsync([fileName, p, io, dataSet, this, paramValues]()
+	runAsync([fileName, p, io, dataSet, paramValues]()
 	{
 		try
 		{
@@ -1723,7 +1723,7 @@ bool MdiChild::applyPreferences(iAPreferences const& prefs)
 	for (auto dataForDisplay : m_dataForDisplay)
 	{
 		auto dfd = dataForDisplay.second;
-		auto fw = runAsync([this, prefs, dfd]() {
+		auto fw = runAsync([prefs, dfd]() {
 			dfd->applyPreferences(prefs);
 		}, [dfd]() {
 			dfd->updatedPreferences();

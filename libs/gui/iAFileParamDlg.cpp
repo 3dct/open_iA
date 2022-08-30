@@ -331,7 +331,7 @@ class iAHDF5FileParamDlg : public iAFileParamDlg
 			dlg.setWindowTitle(QString("Open HDF5").arg(fileName));
 			dlg.tree->setEditTriggers(QAbstractItemView::NoEditTriggers);
 			dlg.tree->setModel(model);
-			QObject::connect(dlg.buttonBox, &QDialogButtonBox::accepted, &dlg, [this, &dlg]()
+			QObject::connect(dlg.buttonBox, &QDialogButtonBox::accepted, &dlg, [&dlg]()
 			{
 				QString msg;
 				auto idx = dlg.tree->currentIndex();

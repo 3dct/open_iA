@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAAABB.h"
 
+#include <limits>
+
 iAAABB::iAAABB()
 {
 	box[0].fill(std::numeric_limits<double>::max());
