@@ -45,9 +45,8 @@ iAbase_API void FindFiles(QString const& directory, QStringList const& filters, 
 
 iAbase_API std::string getLocalEncodingFileName(QString const& fileName);
 
-iAbase_API QString fileNameOnly(QString const& fileName);
-
-//! returns the full path of the given file along with the file's basename.
+//! returns the full path of the given file along with the file's basename
+//! (i.e., the file name including path, but excluding extension).
 //! e.g. if the given QFileInfo points to C:/test/data.mhd, the function would return C:/test/data
 iAbase_API QString pathFileBaseName(QFileInfo const& fi);
 

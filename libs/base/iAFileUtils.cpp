@@ -84,11 +84,6 @@ std::string getLocalEncodingFileName(QString const & fileName)
 	return std::string(fileNameEncoded.constData());
 }
 
-QString fileNameOnly(QString const & f)
-{
-	return QFileInfo(f).fileName();
-}
-
 QString pathFileBaseName(QFileInfo const& fi)
 {
 	return fi.absolutePath() + "/" + fi.completeBaseName();

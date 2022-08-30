@@ -71,7 +71,6 @@
 #include <iAProfileWidget.h>
 
 // base
-#include <iAFileUtils.h>    // for fileNameOnly
 #include <iAFileTypeRegistry.h>
 #include <iALog.h>
 #include <iAProgress.h>
@@ -2192,11 +2191,6 @@ void MdiChild::setROIVisible(bool visible)
 	m_renderer->setROIVisible(visible);
 }
 
-QString MdiChild::userFriendlyCurrentFile() const
-{
-	return fileNameOnly(m_curFile);
-}
-
 QString MdiChild::currentFile() const
 {
 	return m_curFile;
@@ -2239,13 +2233,9 @@ void MdiChild::setCurrentFile(const QString& f)
 	m_fileInfo.setFile(f);
 	m_curFile = f;
 	m_path = m_fileInfo.canonicalPath();
-	if (isActiveWindow())
-	{
-		QDir::setCurrent(m_path);  // set current application working directory to the one where the file is in (as default directory, e.g. for file open)
-	}
 	m_isUntitled = f.isEmpty();
 	m_mainWnd->addRecentFile(f);
-	setWindowTitle(userFriendlyCurrentFile() + "[*]");
+	setWindowTitle(fileInfo().fileName() + "[*]");
 }
 
 // TODO: unify with setVisibility / check if one of the two calls redundant!

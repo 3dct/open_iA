@@ -206,7 +206,6 @@ public:
 	void setROIVisible(bool visible) override;
 
 	void setCurrentFile(const QString &f);
-	QString userFriendlyCurrentFile() const;
 	QString currentFile() const override;
 	QFileInfo const & fileInfo() const override;
 	QString filePath() const override;

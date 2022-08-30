@@ -59,7 +59,6 @@
 #include "iAChartWithFunctionsWidget.h"
 
 // base
-#include "iAFileUtils.h"    // for fileNameOnly
 #include "iALog.h"
 #include "iALogLevelMappings.h"
 #include "iALUT.h"
@@ -1885,22 +1884,12 @@ void MainWindow::updateMagicLens2DCheckState(bool enabled)
 
 void MainWindow::updateWindowMenu()
 {
-	QList<iAMdiChild *> windows = mdiChildList();
-
+	auto windows = mdiChildList();
 	for (int i = 0; i < windows.size(); ++i)
 	{
 		iAMdiChild *child = windows.at(i);
-		QString text;
-		if (i < 9)
-		{
-			text = tr("&%1 %2").arg(i + 1)
-				.arg(dynamic_cast<MdiChild*>(child)->userFriendlyCurrentFile());
-		}
-		else
-		{
-			text = tr("%1 %2").arg(i + 1)
-				.arg(dynamic_cast<MdiChild*>(child)->userFriendlyCurrentFile());
-		}
+		QString text = QString("%1%2 %3").arg(i < 9 ? "&" : "").arg(i + 1)
+				.arg(child->fileInfo().fileName());
 		QAction* action = m_ui->menuWindow->addAction(text);
 		action->setCheckable(true);
 		action->setChecked(child == activeMdiChild());
@@ -2329,11 +2318,10 @@ void MainWindow::addRecentFile(const QString &fileName)
 {
 	if (fileName.isEmpty())
 	{
-		LOG(lvlWarn, "Can't use empty filename as current!");
+		LOG(lvlWarn, "Can't add empty filename as recent!");
 		return;
 	}
-	m_path = QFileInfo(fileName).canonicalPath();
-	QDir::setCurrent(activeMDI()->filePath());
+	setPath(QFileInfo(fileName).canonicalPath());
 
 	QSettings settings;
 	QStringList files = settings.value("recentFileList").toStringList();
@@ -2352,6 +2340,7 @@ void MainWindow::addRecentFile(const QString &fileName)
 void MainWindow::setPath(QString const & p)
 {
 	m_path = p;
+	QDir::setCurrent(m_path);
 }
 
 QString const& MainWindow::path() const
@@ -2379,7 +2368,7 @@ void MainWindow::updateRecentFileActions()
 
 	for (int i = 0; i < numRecentFiles; ++i)
 	{
-		QString text = tr("&%1 %2").arg(i + 1).arg(fileNameOnly(files[i]));
+		QString text = tr("&%1 %2").arg(i + 1).arg(QFileInfo(files[i]).fileName());
 		m_recentFileActs[i]->setText(text);
 		m_recentFileActs[i]->setData(files[i]);
 		m_recentFileActs[i]->setVisible(true);
