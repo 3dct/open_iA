@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #pragma once
 #include "iAFileIO.h"
+#include "iAFileRegisterTemplate.h"
 
-class iAAmiraVolumeFileIO : public iAFileIO
+class iAAmiraVolumeFileIO : public iAFileIO, iAFileRegisterTemplate<iAAmiraVolumeFileIO>
 {
 public:
 	iAAmiraVolumeFileIO();

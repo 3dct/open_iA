@@ -21,8 +21,9 @@
 #pragma once
 
 #include "iAFileIO.h"
+#include "iAFileRegisterTemplate.h"
 
-class iAVTIFileIO : public iAFileIO
+class iAVTIFileIO : public iAFileIO, iAFileRegisterTemplate<iAVTIFileIO>
 {
 public:
 	iAVTIFileIO();

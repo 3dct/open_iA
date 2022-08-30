@@ -21,8 +21,10 @@
 #pragma once
 
 #include "iAFileIO.h"
+#include "iAFileRegisterTemplate.h"
 
-class iANKCFileIO : public iAFileIO
+
+class iANKCFileIO : public iAFileIO, iAFileRegisterTemplate<iANKCFileIO>
 {
 public:
 	static const QString Name;
@@ -30,4 +32,6 @@ public:
 	std::vector<std::shared_ptr<iADataSet>> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress) override;
 	QString name() const override;
 	QStringList extensions() const override;
+
 };
+

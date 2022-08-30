@@ -21,8 +21,9 @@
 #pragma once
 
 #include "iAFileIO.h"
+#include "iAFileRegisterTemplate.h"
 
-class iAOIFFileIO : public iAFileIO
+class iAOIFFileIO : public iAFileIO, iAFileRegisterTemplate<iAOIFFileIO>
 {
 public:
 	static const QString Name;

@@ -23,8 +23,9 @@
 #include "iAio_export.h"
 
 #include "iAFileIO.h"
+#include "iAFileRegisterTemplate.h"
 
-class iAio_API iARawFileIO : public iAFileIO
+class iAio_API iARawFileIO : public iAFileIO, iAFileRegisterTemplate<iARawFileIO>
 {
 public:
 	static const QString Name;

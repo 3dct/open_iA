@@ -21,8 +21,9 @@
 #pragma once
 
 #include "iAFileIO.h"
+#include "iAFileRegisterTemplate.h"
 
-class iAMetaFileIO : public iAFileIO
+class iAMetaFileIO : public iAFileIO, iAFileRegisterTemplate<iAMetaFileIO>
 {
 public:
 	iAMetaFileIO();
@@ -30,4 +31,5 @@ public:
 	void save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress) override;
 	QString name() const override;
 	QStringList extensions() const override;
+
 };

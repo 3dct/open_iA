@@ -46,7 +46,7 @@
 // io:
 #include "iADataSet.h"
 #include "iAFileTypeRegistry.h"
-#include "iADefaultFileIOs.h"
+
 
 // qthelper
 #include "iADockWidgetWrapper.h"
@@ -2917,7 +2917,6 @@ void MainWindow::initResources()
 int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString const & version,
 	QString const& buildInformation, QString const & splashPath, QString const & iconPath)
 {
-	setupDefaultFileIOs();
 	iAFileParamDlg::setupDefaultFileParamDlgs();
 	initializeSettingTypes();
 	QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);

@@ -25,12 +25,13 @@
 #include "iAio_export.h"
 
 #include "iAFileIO.h"
+#include "iAFileRegisterTemplate.h"
 
 // for now, let's use HDF5 1.10 API:
 #define H5_USE_110_API
 #include <hdf5.h>
 
-class iAio_API iAHDF5IO : public iAFileIO
+class iAio_API iAHDF5IO : public iAFileIO, iAFileRegisterTemplate<iAHDF5IO>
 {
 public:
 	static const QString Name;
