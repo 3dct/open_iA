@@ -34,6 +34,7 @@
 #include <QMdiArea>
 #include <QMdiSubWindow>
 
+#include <memory>
 #include <vector>
 
 class vtkPolyData;
@@ -52,6 +53,7 @@ class vtkImageData;
 
 class MdiChild;
 class iADockWidgetWrapper;
+class iAFileIO;
 class iAModalityList;
 class iAModuleDispatcher;
 class iATransferFunction;
@@ -81,7 +83,7 @@ public:
 	void loadFile(QString fileName, bool isStack) override;
 	void loadFiles(QStringList fileNames);
 
-	void loadFileNew(QString const& fileName, bool newWindow);
+	void loadFileNew(QString const& fileName, bool newWindow, std::shared_ptr<iAFileIO> io = nullptr);
 
 	void saveCamera(iAXmlSettings & xml);
 	bool loadCamera(iAXmlSettings & xml);

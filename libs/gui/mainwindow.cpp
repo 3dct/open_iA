@@ -45,8 +45,9 @@
 
 // io:
 #include "iADataSet.h"
-#include "iAFileTypeRegistry.h"
 #include "iADefaultFileIOs.h"
+#include "iAFileTypeRegistry.h"
+#include "iARawFileIO.h"
 
 // qthelper
 #include "iADockWidgetWrapper.h"
@@ -321,24 +322,7 @@ void MainWindow::openRaw()
 		m_path,
 		"Raw File (*)"
 	);
-
-	if (fileName.isEmpty())
-	{
-		return;
-	}
-
-	iAMdiChild *child = createMdiChild(false);
-	QString t(fileName); t.truncate(t.lastIndexOf('/'));
-	m_path = t;
-	if (dynamic_cast<MdiChild*>(child)->loadRaw(fileName))
-	{
-		child->show();
-	}
-	else
-	{
-		statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
-		child->close();
-	}
+	loadFileNew(fileName, true, std::make_shared<iARawFileIO>());
 }
 
 void MainWindow::openImageStack()
@@ -489,16 +473,19 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 	}
 }
 
-void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
+void MainWindow::loadFileNew(QString const& fileName, bool newWindow, std::shared_ptr<iAFileIO> io)
 {
 	auto child = newWindow ? nullptr : activeMdiChild();
 	if (fileName.isEmpty())
 	{
 		return;
 	}
-	auto io = iAFileTypeRegistry::createIO(fileName);
 	if (!io)
-	{   // did not find an appropriate file IO; createIO already outputs a warning in that case
+	{
+		io = iAFileTypeRegistry::createIO(fileName);
+	}
+	if (!io)
+	{   // did not find an appropriate file IO; createIO already outputs a warning in that case; maybe a QMessageBox?
 		return;
 	}
 	QVariantMap paramValues;

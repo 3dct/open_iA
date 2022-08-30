@@ -110,7 +110,6 @@ public:
 	void showPoly();
 	bool loadFile(const QString& f, bool isStack) override;
 	void setSTLParameter();
-	bool loadRaw(const QString &f);
 	bool displayResult(QString const & title, vtkImageData* image = nullptr, vtkPolyData* poly = nullptr) override;
 	void addDataSet(std::shared_ptr<iADataSet> dataSet) override;
 	void prepareForResult();

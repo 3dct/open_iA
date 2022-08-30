@@ -763,31 +763,6 @@ bool MdiChild::setupLoadIO(QString const& f, bool isStack)
 	return m_ioThread->setupIO(id, f);
 }
 
-bool MdiChild::loadRaw(const QString& f)
-{
-	if (!QFile::exists(f))
-	{
-		LOG(lvlWarn, QString("File '%1' does not exist!").arg(f));
-		return false;
-	}
-	LOG(lvlInfo, tr("Loading file '%1'.").arg(f));
-	setCurrentFile(f);
-	waitForPreviousIO();
-	m_ioThread = new iAIO(m_imageData, nullptr, iALog::get(), this);
-	connect(m_ioThread, &iAIO::done, this, &MdiChild::setupView);
-	connectIOThreadSignals(m_ioThread);
-	connect(m_ioThread, &iAIO::done, this, &MdiChild::enableRenderWindows);
-	m_polyData->ReleaseData();
-	//m_imageData->ReleaseData();
-	if (!m_ioThread->setupIO(RAW_READER, f))
-	{
-		ioFinished();
-		return false;
-	}
-	m_ioThread->start();
-	return true;
-}
-
 namespace
 {
 	bool Is2DImageFile(QString const& f)
