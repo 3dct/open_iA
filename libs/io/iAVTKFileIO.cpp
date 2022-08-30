@@ -40,7 +40,7 @@ iAVTKFileIO::iAVTKFileIO() : iAFileIO(iADataSetType::All, iADataSetType::None)
 {
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress)
 {
 	Q_UNUSED(parameters);
 	std::vector<std::shared_ptr<iADataSet>> result;

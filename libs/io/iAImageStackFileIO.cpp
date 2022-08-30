@@ -97,7 +97,7 @@ iAImageStackFileIO::iAImageStackFileIO() : iAFileIO(iADataSetType::Volume, iADat
 }
 
 
-std::vector<std::shared_ptr<iADataSet>> iAImageStackFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iAImageStackFileIO::load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress)
 {
 	Q_UNUSED(parameters);
 
@@ -193,7 +193,7 @@ bool iAImageStackFileIO::isDataSetSupported(std::shared_ptr<iADataSet> dataSet, 
 #include <itkNumericSeriesFileNames.h>
 
 template <typename T>
-void writeImageStack_template(QString const& fileName, iAProgress* p, iAConnector const & con, bool comp)
+void writeImageStack(QString const& fileName, iAConnector const & con, bool comp, iAProgress* p)
 {
 	using InputImageType = itk::Image<T, DIM>;
 	using OutputImageType = itk::Image<T, DIM - 1>;
@@ -237,7 +237,7 @@ void writeImageStack_template(QString const& fileName, iAProgress* p, iAConnecto
 	writer->Update();
 }
 
-void iAImageStackFileIO::save(QString const& fileName, iAProgress* progress, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues)
+void iAImageStackFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress)
 {
 	Q_UNUSED(paramValues);
 	assert(dataSets.size() == 1);
@@ -246,6 +246,6 @@ void iAImageStackFileIO::save(QString const& fileName, iAProgress* progress, std
 	con.setImage(img);
 	auto pixelType = con.itkScalarPixelType();
 	auto imagePixelType = con.itkPixelType();
-	ITK_EXTENDED_TYPED_CALL(writeImageStack_template, pixelType, imagePixelType,
-		fileName, progress, con, /*paramValues[iAFileIO::CompressionStr].toBool()*/ false);
+	ITK_EXTENDED_TYPED_CALL(writeImageStack, pixelType, imagePixelType,
+		fileName, con, paramValues[iAFileIO::CompressionStr].toBool(), progress);
 }

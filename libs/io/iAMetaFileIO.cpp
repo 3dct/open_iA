@@ -45,7 +45,7 @@ iAMetaFileIO::iAMetaFileIO() :
 	addAttr(m_params[Save], CompressionStr, iAValueType::Boolean, false);
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress)
 {
 	Q_UNUSED(parameters);
 
@@ -79,7 +79,7 @@ std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::load(QString const& fileNa
 	return { std::make_shared<iAImageData>(fileName, img) };
 }
 
-void iAMetaFileIO::save(QString const& fileName, iAProgress* progress, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues)
+void iAMetaFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress)
 {
 	iAConnector con;
 	if (dataSets.size() != 1)

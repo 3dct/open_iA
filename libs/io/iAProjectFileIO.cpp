@@ -45,7 +45,7 @@ iAProjectFileIO::iAProjectFileIO() : iAFileIO(iADataSetType::All, iADataSetType:
 {
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress)
 {
 	Q_UNUSED(parameters);
 	QFileInfo fi(fileName);
@@ -100,7 +100,7 @@ std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::load(QString const& fil
 			{
 				iAProgress dummyProgress;
 				auto dataSetParameters = mapFromQSettings(settings);
-				auto currentLoadedDataSets = io->load(dataSetFileName, &dummyProgress, dataSetParameters);
+				auto currentLoadedDataSets = io->load(dataSetFileName, dataSetParameters, &dummyProgress);
 				for (auto dataSet : currentLoadedDataSets)
 				{
 					if (!settings.value("Name", "").toString().isEmpty())

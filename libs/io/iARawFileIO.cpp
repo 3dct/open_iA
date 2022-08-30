@@ -72,10 +72,9 @@ iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None
 
 #if RAW_LOAD_METHOD == ITK
 template <class T>
-void read_raw_image_template(QVariantMap const& params, QString const& fileName, iAProgress* progress, iAConnector& image)
+void readRawImage(QVariantMap const& params, QString const& fileName, iAConnector& image, iAProgress* progress)
 {
-	typedef itk::RawImageIO<T, DIM> RawImageIOType;
-	auto io = RawImageIOType::New();
+	auto io = itk::RawImageIO<T, DIM>::New();
 	io->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	io->SetHeaderSize(params[iARawFileIO::HeadersizeStr].toInt());
 	for (int i = 0; i < DIM; i++)
@@ -92,10 +91,7 @@ void read_raw_image_template(QVariantMap const& params, QString const& fileName,
 	{
 		io->SetByteOrderToBigEndian();
 	}
-
-	typedef itk::Image<T, DIM> InputImageType;
-	typedef itk::ImageFileReader<InputImageType> ReaderType;
-	auto reader = ReaderType::New();
+	auto reader = itk::ImageFileReader<itk::Image<T, DIM>>::New();
 	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	reader->SetImageIO(io);
 	progress->observe(reader);
@@ -107,16 +103,14 @@ void read_raw_image_template(QVariantMap const& params, QString const& fileName,
 }
 #endif
 
-std::vector<std::shared_ptr<iADataSet>> iARawFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iARawFileIO::load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress)
 {
-	Q_UNUSED(parameters);
-
 	// ITK way:
 	iAConnector con;
 
 #if RAW_LOAD_METHOD == ITK
 	auto scalarType = mapReadableDataTypeToVTKType(parameters[DataTypeStr].toString());
-	VTK_TYPED_CALL(read_raw_image_template, scalarType, parameters, fileName, progress, con);
+	VTK_TYPED_CALL(readRawImage, scalarType, parameters, fileName, con, progress);
 	// direct copying as in following line would cause a crash further down the line:
 	// auto img = con.vtkImage();
 	// instead, we need to do a deep copy here:

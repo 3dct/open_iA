@@ -46,7 +46,7 @@ iAOIFFileIO::iAOIFFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None
 	addAttr(m_params[Load], ChannelNumberStr, iAValueType::Discrete, 0, 0);
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAOIFFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iAOIFFileIO::load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress)
 {
 	Q_UNUSED(progress);
 	//void readOIF(QString const& filename, iAConnector * con, int channel, std::vector<vtkSmartPointer<vtkImageData> > *volumes)

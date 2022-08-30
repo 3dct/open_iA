@@ -39,7 +39,7 @@ iANKCFileIO::iANKCFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None
 {
 }
 
-std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress)
 {
 	Q_UNUSED(parameters);
 
@@ -91,7 +91,7 @@ std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::load(QString const& fileNam
 	params[iARawFileIO::ByteOrderStr] = ByteOrder::BigEndianStr;
 	params[iARawFileIO::DataTypeStr] = mapVTKTypeToReadableDataType(VTK_TYPE_UINT16);
 	params[iARawFileIO::HeadersizeStr] = file.size() - (2ull * size[0] * size[1]);
-	auto d = io.load(fileName, progress, params);
+	auto d = io.load(fileName, params, progress);
 
 	auto replaceAndShift = iAFilterRegistry::filter("Replace and Shift");
 	if (!replaceAndShift)

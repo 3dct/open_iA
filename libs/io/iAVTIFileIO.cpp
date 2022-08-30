@@ -30,7 +30,7 @@
 iAVTIFileIO::iAVTIFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volume)
 {}
 
-std::vector<std::shared_ptr<iADataSet>> iAVTIFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iAVTIFileIO::load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress)
 {
 	Q_UNUSED(parameters);
 	vtkNew<vtkXMLImageDataReader> reader;
@@ -41,7 +41,7 @@ std::vector<std::shared_ptr<iADataSet>> iAVTIFileIO::load(QString const& fileNam
 	return { std::make_shared<iAImageData>(fileName, img) };
 }
 
-void  iAVTIFileIO::save(QString const& fileName, iAProgress* progress, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues)
+void  iAVTIFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress)
 {
 	Q_UNUSED(paramValues);
 	vtkNew<vtkXMLImageDataWriter> writer;

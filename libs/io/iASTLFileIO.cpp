@@ -40,7 +40,7 @@ iASTLFileIO::iASTLFileIO() : iAFileIO(iADataSetType::Mesh, iADataSetType::Mesh)
 	addAttr(m_params[Save], FormatParam, iAValueType::Categorical, formatOptions);
 }
 
-std::vector<std::shared_ptr<iADataSet>> iASTLFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& params)
+std::vector<std::shared_ptr<iADataSet>> iASTLFileIO::load(QString const& fileName, QVariantMap const& params, iAProgress* progress)
 {
 	Q_UNUSED(params);
 	vtkNew<vtkSTLReader> reader;
@@ -53,7 +53,7 @@ std::vector<std::shared_ptr<iADataSet>> iASTLFileIO::load(QString const& fileNam
 	return { std::make_shared<iAPolyData>(fileName, polyData) };
 }
 
-void iASTLFileIO::save(QString const& fileName, iAProgress* progress, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues)
+void iASTLFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress)
 {
 	assert(dataSets.size() == 1 && dataSets[0]->type() == iADataSetType::Mesh);
 	Q_UNUSED(paramValues);

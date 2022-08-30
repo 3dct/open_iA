@@ -26,7 +26,7 @@ class iACSVImageFileIO : public iAFileIO
 {
 public:
 	iACSVImageFileIO();
-	void save(QString const& fileName, iAProgress* progress, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues) override;
+	void save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };

@@ -26,8 +26,8 @@ class iAVTIFileIO : public iAFileIO
 {
 public:
 	iAVTIFileIO();
-	std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters) override;
-	void save(QString const& fileName, iAProgress* progress, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues) override;
+	std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress) override;
+	void save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };

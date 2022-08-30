@@ -1202,7 +1202,7 @@ void MdiChild::saveNew()
 	{
 		try
 		{
-			io->save(fileName, p.get(), { dataSet }, paramValues);
+			io->save(fileName, { dataSet }, paramValues, p.get());
 		}
 		// TODO: unify exception handling?
 		catch (itk::ExceptionObject& e)

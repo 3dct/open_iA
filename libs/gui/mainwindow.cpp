@@ -516,7 +516,7 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 		try
 		{
 			QElapsedTimer t; t.start();
-			d->data = io->load(fileName, p.get(), paramValues);
+			d->data = io->load(fileName, paramValues, p.get());
 			LOG(lvlInfo, QString("Loaded dataset %1 in %2 ms.").arg(fileName).arg(t.elapsed()));
 		}
 		// TODO: unify exception handling?

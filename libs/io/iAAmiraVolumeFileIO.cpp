@@ -26,7 +26,7 @@ iAAmiraVolumeFileIO::iAAmiraVolumeFileIO() : iAFileIO(iADataSetType::Volume, iAD
 {
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAAmiraVolumeFileIO::load(QString const& fileName, iAProgress* progress, QVariantMap const& parameters)
+std::vector<std::shared_ptr<iADataSet>> iAAmiraVolumeFileIO::load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress)
 {
 	Q_UNUSED(progress);
 	Q_UNUSED(parameters);
