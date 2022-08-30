@@ -75,9 +75,8 @@ public:
 
 	void setPath(QString const & p) override;
 	QString const & path() const override;
-	void setCurrentFile(const QString &fileName);
-	//! @deprecated. Use a specific mdichilds, or even better, an mdichilds dlg_modalities methods instead!
-	QString const & currentFile() const override;
+	//! add a file to the list of recently loaded/saved files
+	void addRecentFile(const QString &fileName);
 
 	void loadFile(QString const & fileName);
 	void loadFile(QString fileName, bool isStack) override;
@@ -264,7 +263,7 @@ private:
 	bool m_spCamera, m_spSliceViews, m_spTransferFunction, m_spProbabilityFunctions, m_spPreferences, m_spRenderSettings, m_spSlicerSettings;
 
 	QString m_defaultLayout;
-	QString m_curFile, m_path;
+	QString m_path;
 	QTimer *m_splashTimer, *m_quitTimer;
 	QComboBox * m_layout;
 	QScopedPointer<iAModuleDispatcher> m_moduleDispatcher;

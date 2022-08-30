@@ -951,7 +951,7 @@ void MdiChild::setupViewInternal(bool active)
 		initView(m_curFile.isEmpty() ? "Untitled" : "");
 	}
 
-	m_mainWnd->setCurrentFile(currentFile());	// TODO: VOLUME: should be done on the outside? or where setCurrentFile is done?
+	m_mainWnd->addRecentFile(currentFile());	// TODO: VOLUME: should be done on the outside? or where setCurrentFile is done?
 
 	if ((m_imageData->GetExtent()[1] < 3) || (m_imageData->GetExtent()[3]) < 3 || (m_imageData->GetExtent()[5] < 3))
 	{
@@ -1032,7 +1032,6 @@ void MdiChild::setupProject(bool /*active*/)
 	}
 	setModalities(m);
 	setCurrentFile(fileName);
-	m_mainWnd->setCurrentFile(fileName);
 	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension) && m->size() == 0)
 	{	// if no modalities loaded, continue immediately with loading the projects:
 		projectLoader();
@@ -1302,10 +1301,6 @@ bool MdiChild::setupSaveIO(QString const& f)
 					return false;
 				}
 				setCurrentFile(f);
-				m_mainWnd->setCurrentFile(f);	// TODO: VOLUME: do in setCurrentFile member method?
-				QString t; t = f;
-				t.truncate(t.lastIndexOf('/'));
-				m_mainWnd->setPath(t);
 			}
 			else
 			{
@@ -2249,6 +2244,7 @@ void MdiChild::setCurrentFile(const QString& f)
 		QDir::setCurrent(m_path);  // set current application working directory to the one where the file is in (as default directory, e.g. for file open)
 	}
 	m_isUntitled = f.isEmpty();
+	m_mainWnd->addRecentFile(f);
 	setWindowTitle(userFriendlyCurrentFile() + "[*]");
 }
 
@@ -2867,7 +2863,7 @@ void MdiChild::initModalities()
 	// TODO: VOLUME: rework - workaround: "initializes" renderer and slicers with modality 0
 	m_initVolumeRenderers = true;
 	m_imageData = modality(0)->image();
-	m_mainWnd->setCurrentFile(modalities()->fileName());
+	m_mainWnd->addRecentFile(modalities()->fileName());
 	setupView(false);
 	enableRenderWindows();
 	m_dwModalities->selectRow(0);
@@ -3277,7 +3273,7 @@ void MdiChild::saveFinished()
 	{
 		m_dwModalities->setFileName(m_storedModalityNr, m_ioThread->fileName());
 	}
-	m_mainWnd->setCurrentFile(m_ioThread->fileName());
+	m_mainWnd->addRecentFile(m_ioThread->fileName());
 	setWindowModified(modalities()->hasUnsavedModality());
 }
 
