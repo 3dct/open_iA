@@ -89,6 +89,7 @@ std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::loadData(QString const&
 
 	int currIdx = 0;
 	std::vector<std::shared_ptr<iADataSet>> dataSets;
+	dataSets.reserve(maxIdx - currIdx);
 	while (currIdx < maxIdx)
 	{
 		settings.beginGroup(dataSetGroup(currIdx));
@@ -99,14 +100,10 @@ std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::loadData(QString const&
 			if (io)
 			{
 				iAProgress dummyProgress;
-				auto dataSetParameters = mapFromQSettings(settings);
-				auto currentLoadedDataSets = io->load(dataSetFileName, dataSetParameters, &dummyProgress);
+				auto dataSetParamValues = mapFromQSettings(settings);
+				auto currentLoadedDataSets = io->load(dataSetFileName, dataSetParamValues, &dummyProgress);
 				for (auto dataSet : currentLoadedDataSets)
 				{
-					if (!settings.value(iADataSet::NameStr, "").toString().isEmpty())
-					{   // TODO: different name if there are multiple datasets stored under one entry?
-						dataSet->setMetaData(iADataSet::NameStr, settings.value("Name"));
-					}
 					dataSets.push_back(dataSet);
 				}
 			}
