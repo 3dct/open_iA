@@ -39,9 +39,9 @@ iANKCFileIO::iANKCFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None
 {
 }
 
-std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
-	Q_UNUSED(parameters);
+	Q_UNUSED(paramValues);
 
 	QFile file(fileName);
 	file.open(QFile::ReadOnly | QFile::Text);
@@ -84,14 +84,14 @@ std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::load(QString const& fileNam
 	}
 
 	iARawFileIO io;
-	QVariantMap params;
-	params[iARawFileIO::SpacingStr] = variantVector<double>({ 1.0, 1.0, 1.0 });
-	params[iARawFileIO::OriginStr] = variantVector<double>({ 0.0, 0.0, 0.0 });
-	params[iARawFileIO::SizeStr] = QVariant::fromValue(size);
-	params[iARawFileIO::ByteOrderStr] = ByteOrder::BigEndianStr;
-	params[iARawFileIO::DataTypeStr] = mapVTKTypeToReadableDataType(VTK_TYPE_UINT16);
-	params[iARawFileIO::HeadersizeStr] = file.size() - (2ull * size[0] * size[1]);
-	auto d = io.load(fileName, params, progress);
+	QVariantMap rawFileParamValues;
+	rawFileParamValues[iARawFileIO::SpacingStr] = variantVector<double>({ 1.0, 1.0, 1.0 });
+	rawFileParamValues[iARawFileIO::OriginStr] = variantVector<double>({ 0.0, 0.0, 0.0 });
+	rawFileParamValues[iARawFileIO::SizeStr] = QVariant::fromValue(size);
+	rawFileParamValues[iARawFileIO::ByteOrderStr] = ByteOrder::BigEndianStr;
+	rawFileParamValues[iARawFileIO::DataTypeStr] = mapVTKTypeToReadableDataType(VTK_TYPE_UINT16);
+	rawFileParamValues[iARawFileIO::HeadersizeStr] = file.size() - (2ull * size[0] * size[1]);
+	auto d = io.load(fileName, rawFileParamValues, progress);
 
 	auto replaceAndShift = iAFilterRegistry::filter("Replace and Shift");
 	if (!replaceAndShift)
@@ -102,10 +102,10 @@ std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::load(QString const& fileNam
 		return {};
 	}
 	replaceAndShift->addInput(dynamic_cast<iAImageData*>(d[0].get())->image(), "");
-	QVariantMap parametersReplaceAndShift;
-	parametersReplaceAndShift["Value To Replace"] = 65533;
-	parametersReplaceAndShift["Replacement"] = 0;
-	replaceAndShift->run(parametersReplaceAndShift);
+	QVariantMap paramValuesReplaceAndShift;
+	paramValuesReplaceAndShift["Value To Replace"] = 65533;
+	paramValuesReplaceAndShift["Replacement"] = 0;
+	replaceAndShift->run(paramValuesReplaceAndShift);
 
 	auto dataTypeConversion = iAFilterRegistry::filter("Datatype Conversion");
 	if (!dataTypeConversion)
@@ -117,12 +117,12 @@ std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::load(QString const& fileNam
 	}
 
 	dataTypeConversion->addInput(replaceAndShift->output(0)->itkImage(), "");
-	QVariantMap parametersConversion;
-	parametersConversion["Data Type"] = "32 bit floating point number (7 digits, float)";
-	parametersConversion["Rescale Range"] = false;
-	parametersConversion["Automatic Input Range"] = true;
-	parametersConversion["Use Full OutputRange"] = true;
-	dataTypeConversion->run(parametersConversion);
+	QVariantMap paramValuesConversion;
+	paramValuesConversion["Data Type"] = "32 bit floating point number (7 digits, float)";
+	paramValuesConversion["Rescale Range"] = false;
+	paramValuesConversion["Automatic Input Range"] = true;
+	paramValuesConversion["Use Full OutputRange"] = true;
+	dataTypeConversion->run(paramValuesConversion);
 
 	auto filterScale = iAFilterRegistry::filter("Shift and Scale");
 	if (!filterScale)
@@ -133,10 +133,10 @@ std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::load(QString const& fileNam
 		return {};
 	}
 	filterScale->addInput(dataTypeConversion->output(0)->itkImage(), "");
-	QVariantMap parametersScale;
-	parametersScale["Shift"] = offset;
-	parametersScale["Scale"] = scale;
-	filterScale->run(parametersScale);
+	QVariantMap paramValuesScale;
+	paramValuesScale["Shift"] = offset;
+	paramValuesScale["Scale"] = scale;
+	filterScale->run(paramValuesScale);
 
 	vtkNew<vtkImageData> img;
 	img->DeepCopy(filterScale->output(0)->vtkImage());

@@ -106,14 +106,14 @@ void readRawImage(QVariantMap const& params, QString const& fileName, iAConnecto
 }
 #endif
 
-std::vector<std::shared_ptr<iADataSet>> iARawFileIO::load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iARawFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
 	// ITK way:
 	iAConnector con;
 
 #if RAW_LOAD_METHOD == ITK
-	auto scalarType = mapReadableDataTypeToVTKType(parameters[DataTypeStr].toString());
-	VTK_TYPED_CALL(readRawImage, scalarType, parameters, fileName, con, progress);
+	auto scalarType = mapReadableDataTypeToVTKType(paramValues[DataTypeStr].toString());
+	VTK_TYPED_CALL(readRawImage, scalarType, paramValues, fileName, con, progress);
 	// direct copying as in following line would cause a crash further down the line:
 	// auto img = con.vtkImage();
 	// instead, we need to do a deep copy here:
@@ -122,15 +122,15 @@ std::vector<std::shared_ptr<iADataSet>> iARawFileIO::load(QString const& fileNam
 #else // VTK
 	vtkSmartPointer<vtkImageReader2> reader = vtkSmartPointer<vtkImageReader2>::New();
 	reader->SetFileName(m_fileName.toStdString().c_str());
-	auto size = parameters[SizeStr].value<QVector<int>>();
-	auto spacing = parameters[SpacingStr].value<QVector<double>>();
-	auto origin = parameters[OriginStr].value<QVector<double>>();
+	auto size = paramValues[SizeStr].value<QVector<int>>();
+	auto spacing = paramValues[SpacingStr].value<QVector<double>>();
+	auto origin = paramValues[OriginStr].value<QVector<double>>();
 	reader->SetDataExtent(0, size[0] - 1, 0, size[1] - 1, 0, size[2] - 1);
 	reader->SetDataSpacing(spacing[0], spacing[1], spacing[2]);
 	reader->SetDataOrigin(origin[0], origin[1], origin[2]);
-	reader->SetHeaderSize(parameters[HeadersizeStr].toUInt());
-	reader->SetDataScalarType(mapReadableDataTypeToVTKType(parameters[DataTypeStr].toString()));
-	reader->SetDataByteOrder(mapReadableByteOrderToVTKType(parameters[ByteOrderStr].toString()));
+	reader->SetHeaderSize(paramValues[HeadersizeStr].toUInt());
+	reader->SetDataScalarType(mapReadableDataTypeToVTKType(paramValues[DataTypeStr].toString()));
+	reader->SetDataByteOrder(mapReadableByteOrderToVTKType(paramValues[ByteOrderStr].toString()));
 	p->observe(reader);
 	reader->UpdateWholeExtent();
 	auto img = reader->GetOutput();
@@ -151,7 +151,7 @@ std::vector<std::shared_ptr<iADataSet>> iARawFileIO::load(QString const& fileNam
 }
 
 template<class T>
-void writeRawImage(QString const& fileName, vtkImageData* img, QVariantMap parameters, iAProgress* progress)
+void writeRawImage(QString const& fileName, vtkImageData* img, QVariantMap paramValues, iAProgress* progress)
 {
 	iAConnector con;
 	con.setImage(img);
@@ -166,7 +166,7 @@ void writeRawImage(QString const& fileName, vtkImageData* img, QVariantMap param
 	//	io->SetSpacing(i, img->GetSpacing()[i]);
 	//	io->SetOrigin(i, img->GetOrigin()[i]);
 	//}
-	if (parameters[iARawFileIO::ByteOrderStr].toString() == ByteOrder::LittleEndianStr)
+	if (paramValues[iARawFileIO::ByteOrderStr].toString() == ByteOrder::LittleEndianStr)
 	{
 		io->SetByteOrderToLittleEndian();
 	}
@@ -177,18 +177,18 @@ void writeRawImage(QString const& fileName, vtkImageData* img, QVariantMap param
 	writer->SetImageIO(io);
 	writer->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	writer->SetInput(dynamic_cast<InputImageType*>(con.itkImage()));
-	writer->SetUseCompression(parameters[iAFileIO::CompressionStr].toBool());
+	writer->SetUseCompression(paramValues[iAFileIO::CompressionStr].toBool());
 	progress->observe(writer);
 	writer->Update();
 }
 
-void iARawFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& parameters, iAProgress* progress)
+void iARawFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress)
 {
 	// ITK way:
 	assert(dataSets.size() == 1 && dynamic_cast<iAImageData*>(dataSets[0].get()));
 //#if RAW_LOAD_METHOD == ITK
-	auto scalarType = mapReadableDataTypeToVTKType(parameters[DataTypeStr].toString());
-	VTK_TYPED_CALL(writeRawImage, scalarType, fileName, dynamic_cast<iAImageData*>(dataSets[0].get())->image(), parameters, progress);
+	auto scalarType = mapReadableDataTypeToVTKType(paramValues[DataTypeStr].toString());
+	VTK_TYPED_CALL(writeRawImage, scalarType, fileName, dynamic_cast<iAImageData*>(dataSets[0].get())->image(), paramValues, progress);
 //# endif
 // VTK way currently not implemented
 }

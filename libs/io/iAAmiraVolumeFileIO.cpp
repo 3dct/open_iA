@@ -26,10 +26,10 @@ iAAmiraVolumeFileIO::iAAmiraVolumeFileIO() : iAFileIO(iADataSetType::Volume, iAD
 {
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAAmiraVolumeFileIO::load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iAAmiraVolumeFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
 	Q_UNUSED(progress);
-	Q_UNUSED(parameters);
+	Q_UNUSED(paramValues);
 	auto img = iAAmiraMeshIO::Load(fileName);
 	return { std::make_shared<iAImageData>(fileName, img) };
 }

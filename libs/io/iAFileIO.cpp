@@ -24,12 +24,28 @@ const QString iAFileIO::CompressionStr("Compression");
 
 iAFileIO::iAFileIO(iADataSetTypes loadTypes, iADataSetTypes saveTypes) :
 	m_dataSetTypes{ loadTypes, saveTypes }
-{}
+{
+	addAttr(m_params[Load], iADataSet::FileNameStr, iAValueType::FileNameOpen, "");
+}
 
 iAFileIO::~iAFileIO()
 {}
 
 std::vector<std::shared_ptr<iADataSet>> iAFileIO::load(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
+{
+	paramValues[iADataSet::FileNameStr] = fileName;
+	auto dataSets = loadData(fileName, paramValues, progress);
+	for (auto d : dataSets)
+	{
+		for (auto k : paramValues.keys())
+		{
+			d->setMetaData(k, paramValues[k]);
+		}
+	}
+	return dataSets;
+}
+
+std::vector<std::shared_ptr<iADataSet>> iAFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
 	Q_UNUSED(fileName);
 	Q_UNUSED(paramValues);

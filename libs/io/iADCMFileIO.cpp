@@ -42,9 +42,9 @@ iADCMFileIO::iADCMFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None
 {
 }
 
-std::vector<std::shared_ptr<iADataSet>> iADCMFileIO::load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iADCMFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
-	Q_UNUSED(parameters);
+	Q_UNUSED(paramValues);
 	using PixelType = signed short; // check why signed short
 	using ImageType =  itk::Image<PixelType, DIM>;
 	auto reader = itk::ImageSeriesReader<ImageType>::New();

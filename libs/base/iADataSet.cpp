@@ -28,6 +28,9 @@
 
 #include <array>
 
+const QString iADataSet::NameStr("Name");
+const QString iADataSet::FileNameStr("Filename");
+
 QString boundsStr(double const* bds)
 {
 	return QString("Bounds: x=%1..%2, y=%3..%4, z=%5..%6")
@@ -47,28 +50,18 @@ namespace
 	}}
 
 iADataSet::iADataSet(QString const& fileName, iADataSetType type, QString const& name) :
-	m_fileName(fileName),
-	m_name(name.isEmpty()? QFileInfo(fileName).baseName() : name),
 	m_type(type)
 {
+	m_metaData[FileNameStr] = fileName;
+	m_metaData[NameStr] = name.isEmpty() ? QFileInfo(fileName).baseName() : name;
 }
 
 iADataSet::~iADataSet()
 {}
 
-QString const& iADataSet::name() const
+QString iADataSet::name() const
 {
-	return m_name;
-}
-
-void iADataSet::setName(QString const& newName)
-{
-	m_name = newName;
-}
-
-QString const& iADataSet::fileName() const
-{
-	return m_fileName;
+	return metaData(iADataSet::NameStr).toString();
 }
 
 std::array<double, 3> iADataSet::unitDistance() const
@@ -81,14 +74,14 @@ QString iADataSet::info() const
 	return "";
 }
 
-void iADataSet::setParameters(QVariantMap const& parameters)
+void iADataSet::setMetaData(QString const& key, QVariant const& value)
 {
-	m_parameters = parameters;
+	m_metaData[key] = value;
 }
 
-QVariantMap const& iADataSet::parameters() const
+QVariant iADataSet::metaData(QString const& key) const
 {
-	return m_parameters;
+	return m_metaData[key];
 }
 
 iADataSetType iADataSet::type() const

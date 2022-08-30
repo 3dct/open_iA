@@ -97,10 +97,8 @@ iAImageStackFileIO::iAImageStackFileIO() : iAFileIO(iADataSetType::Volume, iADat
 }
 
 
-std::vector<std::shared_ptr<iADataSet>> iAImageStackFileIO::load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iAImageStackFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
-	Q_UNUSED(parameters);
-
 //#if RAW_LOAD_METHOD == ITK
 //#else
 	auto ext = QFileInfo(fileName).suffix().toLower();
@@ -130,7 +128,7 @@ std::vector<std::shared_ptr<iADataSet>> iAImageStackFileIO::load(QString const& 
 	progress->observe(imgReader);
 	imgReader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 
-	if (parameters[LoadTypeStr] == SingleImageOption)
+	if (paramValues[LoadTypeStr] == SingleImageOption)
 	{
 		imgReader->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	}
@@ -138,15 +136,15 @@ std::vector<std::shared_ptr<iADataSet>> iAImageStackFileIO::load(QString const& 
 	{
 		int indexRange[2];
 		int digits;
-		auto fileNameBase = parameters[FileNameBase].toString();
-		auto suffix = parameters[Extension].toString();
-		digits = parameters[NumDigits].toInt();
-		indexRange[0] = parameters[MinimumIndex].toInt();
-		indexRange[1] = parameters[MaximumIndex].toInt();
-		int stepSize = parameters[StepStr].toInt();
+		auto fileNameBase = paramValues[FileNameBase].toString();
+		auto suffix = paramValues[Extension].toString();
+		digits = paramValues[NumDigits].toInt();
+		indexRange[0] = paramValues[MinimumIndex].toInt();
+		indexRange[1] = paramValues[MaximumIndex].toInt();
+		int stepSize = paramValues[StepStr].toInt();
 		double spacing[3], origin[3];
-		setFromVectorVariant<double>(spacing, parameters[SpacingStr]);
-		setFromVectorVariant<double>(origin, parameters[OriginStr]);
+		setFromVectorVariant<double>(spacing, paramValues[SpacingStr]);
+		setFromVectorVariant<double>(origin, paramValues[OriginStr]);
 		auto fileNames = fileNameArray(fileNameBase, suffix, indexRange, digits, stepSize);
 		imgReader->SetFileNames(fileNames);
 		imgReader->SetDataOrigin(origin);

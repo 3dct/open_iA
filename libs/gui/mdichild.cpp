@@ -244,7 +244,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 			auto newName = dlg.parameterValues()["Name"].toString();
 			if (m_dataSets[dataSetIdx]->name() != newName)
 			{
-				m_dataSets[dataSetIdx]->setName(newName);
+				m_dataSets[dataSetIdx]->setMetaData(iADataSet::NameStr, newName);
 				updateDataSetInfo();
 				m_dataSetListWidget->setName(dataSetIdx, newName);
 			}
@@ -654,7 +654,7 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 	}
 	if (m_curFile.isEmpty())
 	{
-		setCurrentFile(dataSet->fileName());
+		setCurrentFile(dataSet->metaData(iADataSet::FileNameStr).toString());
 	}
 	m_dataSets[dataSetIdx] = dataSet;
 	auto p = std::make_shared<iAProgress>();

@@ -43,24 +43,19 @@ class iAbase_API iADataSet
 public:
 	//! called when the dataset is removed/unloaded and its related resources should be released
 	virtual ~iADataSet();
-	//iAVec3d bounds();
-	//virtual double const* bounds() const = 0;
-	//virtual QString information() const =0;
-	
-	//! The name of the dataset (defaults to the "basename" of the file)
-	QString const& name() const;
-	//! change the name of the dataset to the given new name
-	void setName(QString const& newName);
-	//! The name of the file in which this dataset is stored
-	QString const& fileName() const;
+
+	static const QString NameStr;         //!< metadata key for name of the dataset
+	static const QString FileNameStr;     //!< metadata key for filename of the dataset
+	//! convenience method for accessing value for NameStr in m_metaData
+	QString name() const;
 	//! a sensible unit distance for this dataset (e.g. the spacing of a single voxel, for volume datasets)
 	virtual std::array<double, 3> unitDistance() const;
 	//! should deliver information about the dataset interesting to users viewing it
 	virtual QString info() const;
-	//! set the (optional) additional parameters that come along with the dataset
-	void setParameters(QVariantMap const& parameters);
+	//! set an (optional) metadata key/value pair
+	void setMetaData(QString const & key, QVariant const& value);
 	//! retrieve (optional) additional parameters for the dataset
-	QVariantMap const & parameters() const;
+	QVariant metaData(QString const& key) const;
 	//! get type of data stored in this dataset
 	iADataSetType type() const;
 
@@ -76,7 +71,7 @@ private:
 	QString m_fileName;        //!< the filename (from which the dataset was loaded / to which it was stored)
 	QString m_name;            //!< a (human readable) name for the dataset; by default, the "basename" of the loaded file
 	iADataSetType m_type;      //!< type of data in this dataset
-	QVariantMap m_parameters;  //!< (optional) additional parameters that came along with the dataset
+	QVariantMap m_metaData;    //!< (optional) additional metadata that is required to load the file, or that came along with the dataset
 };
 
 //! a polygon (surface) mesh

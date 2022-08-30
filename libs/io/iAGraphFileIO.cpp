@@ -38,12 +38,12 @@ iAGraphFileIO::iAGraphFileIO() : iAFileIO(iADataSetType::Graph, iADataSetType::N
 	addAttr(m_params[Load], "Spacing", iAValueType::Vector3, variantVector<double>({ 1.0, 1.0, 1.0 }));
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAGraphFileIO::load(QString const& fileName, QVariantMap const& params, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iAGraphFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
 	// maybe we could also use vtkPDBReader, but not sure that's the right "PDB" file type...
 	Q_UNUSED(progress);
 
-	auto spacing = params["Spacing"].value<QVector<double>>();
+	auto spacing = paramValues["Spacing"].value<QVector<double>>();
 
 	vtkNew<vtkPolyData> myPolyData;
 

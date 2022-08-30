@@ -59,8 +59,8 @@ public:
 	//! Types of dataset contained in this file format, which this IO can load/save
 	iADataSetTypes supportedDataSetTypes(Operation op) const;
 
-	//! Load the (list of) dataset(s). The default implementation assumes that reading is not implemented and does nothing.
-	virtual std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress);
+	//! Load the (list of) dataset(s); store parameters in the resulting datasets
+	std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress);
 
 	//! Whether this IO can be used for storing the given data set.
 	//! It could for example check whether the format supports the data types in the dataset
@@ -71,6 +71,10 @@ public:
 
 protected:
 	iAAttributes m_params[2];
+
+	//! I/O for specific file formats should override this to load data from the given file name. default implementation does nothing
+	//! (instead of being pure virtual, to allow for I/O's that only save a dataset but don't load one)
+	virtual std::vector<std::shared_ptr<iADataSet>> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress);
 
 private:
 	iADataSetTypes m_dataSetTypes[2];

@@ -30,9 +30,9 @@
 iAVTIFileIO::iAVTIFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volume)
 {}
 
-std::vector<std::shared_ptr<iADataSet>> iAVTIFileIO::load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iAVTIFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
-	Q_UNUSED(parameters);
+	Q_UNUSED(paramValues);
 	vtkNew<vtkXMLImageDataReader> reader;
 	progress->observe(reader);
 	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());

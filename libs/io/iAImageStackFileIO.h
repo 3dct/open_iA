@@ -37,7 +37,7 @@ public:
 	static QString const SingleImageOption;
 	static QString const ImageStackOption;
 	iAImageStackFileIO();
-	std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress) override;
+	std::vector<std::shared_ptr<iADataSet>> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress) override;
 	QString name() const override;
 	QStringList extensions() const override;
 	bool isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName) const override;

@@ -40,9 +40,9 @@ iAVTKFileIO::iAVTKFileIO() : iAFileIO(iADataSetType::All, iADataSetType::None)
 {
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
-	Q_UNUSED(parameters);
+	Q_UNUSED(paramValues);
 	std::vector<std::shared_ptr<iADataSet>> result;
 	auto reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
 	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());

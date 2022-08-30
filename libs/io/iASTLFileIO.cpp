@@ -40,7 +40,7 @@ iASTLFileIO::iASTLFileIO() : iAFileIO(iADataSetType::Mesh, iADataSetType::Mesh)
 	addAttr(m_params[Save], FormatParam, iAValueType::Categorical, formatOptions);
 }
 
-std::vector<std::shared_ptr<iADataSet>> iASTLFileIO::load(QString const& fileName, QVariantMap const& params, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iASTLFileIO::loadData(QString const& fileName, QVariantMap const& params, iAProgress* progress)
 {
 	Q_UNUSED(params);
 	vtkNew<vtkSTLReader> reader;

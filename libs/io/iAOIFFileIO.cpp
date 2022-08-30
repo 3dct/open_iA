@@ -46,7 +46,7 @@ iAOIFFileIO::iAOIFFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None
 	addAttr(m_params[Load], ChannelNumberStr, iAValueType::Discrete, 0, 0);
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAOIFFileIO::load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iAOIFFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
 	Q_UNUSED(progress);
 	//void readOIF(QString const& filename, iAConnector * con, int channel, std::vector<vtkSmartPointer<vtkImageData> > *volumes)
@@ -57,7 +57,7 @@ std::vector<std::shared_ptr<iADataSet>> iAOIFFileIO::load(QString const& fileNam
 	reader.SetTimeId(timeId);
 	reader.Preprocess();
 	reader.Load();
-	if (parameters[WhatToLoadStr].toString() == AllChannelsStr)
+	if (paramValues[WhatToLoadStr].toString() == AllChannelsStr)
 	{
 		std::vector<std::shared_ptr<iADataSet>> result;
 		for (int i = 0; i < reader.GetChanNum(); ++i)
@@ -73,8 +73,8 @@ std::vector<std::shared_ptr<iADataSet>> iAOIFFileIO::load(QString const& fileNam
 	}
 	else
 	{
-		assert(parameters[WhatToLoadStr].toString() == SingleChannelStr);
-		auto channel = parameters[ChannelNumberStr].toInt();
+		assert(paramValues[WhatToLoadStr].toString() == SingleChannelStr);
+		auto channel = paramValues[ChannelNumberStr].toInt();
 		if (channel >= 0 && channel < reader.GetChanNum())
 		{
 			vtkSmartPointer<vtkImageData> img = vtkSmartPointer<vtkImageData>::New();

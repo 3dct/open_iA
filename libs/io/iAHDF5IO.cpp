@@ -93,7 +93,7 @@ iAHDF5IO::iAHDF5IO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
 	addAttr(m_params[Load], SpacingStr, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::load(QString const& fileName, QVariantMap const& params, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::loadData(QString const& fileName, QVariantMap const& params, iAProgress* progress)
 {
 	Q_UNUSED(progress);
 	auto hdf5PathStr = params[DataSetPathStr].toString();

@@ -252,7 +252,7 @@ bool iAFilterRunnerGUI::askForParameters(std::shared_ptr<iAFilter> filter, QVari
 				if (imgData)
 				{
 					m_additionalInput.push_back(imgData->image());
-					m_additionalFileNames.push_back(imgData->fileName());
+					m_additionalFileNames.push_back(imgData->metaData(iADataSet::FileNameStr).toString());
 				}
 			}
 		}
@@ -297,7 +297,7 @@ void iAFilterRunnerGUI::run(std::shared_ptr<iAFilter> filter, iAMainWindow* main
 	oldTitle = oldTitle.replace("[*]", "").trimmed();
 	QString newTitle(filter->outputName(0) + " " + oldTitle);
 	auto const & dataSets = sourceMdi->dataSets();
-	m_sourceFileName = sourceMdi ? dataSets[0]->fileName() : "";
+	m_sourceFileName = sourceMdi ? dataSets[0]->metaData(iADataSet::FileNameStr).toString() : "";
 
 	filterGUIPreparations(filter, sourceMdi, mainWnd, paramValues);
 	auto thread = new iAFilterRunnerGUIThread(filter, paramValues, sourceMdi);
@@ -314,7 +314,7 @@ void iAFilterRunnerGUI::run(std::shared_ptr<iAFilter> filter, iAMainWindow* main
 			auto imgData = dynamic_cast<iAImageData*>(dataSets[m].get());
 			if (imgData)
 			{
-				thread->addInput(imgData->image(), imgData->fileName());
+				thread->addInput(imgData->image(), imgData->metaData(iADataSet::FileNameStr).toString());
 			}
 		}
 		filter->setFirstInputChannels(dataSets.size());
@@ -373,7 +373,7 @@ void iAFilterRunnerGUI::filterFinished()
 			QString suggestedFileName = sourceFI.absolutePath() + "/" + sourceFI.completeBaseName() + "-" +
 				outputNameSaveForFilename + "." + sourceFI.suffix();
 			auto dataSet = std::make_shared<iAImageData>(suggestedFileName, img);
-			dataSet->setName(outputName);
+			dataSet->setMetaData(iADataSet::NameStr, outputName);
 			newChild->addDataSet(dataSet);
 		}
 		// TODO: generic handling for filter output; make iAFilter directly produce iADataSet?
@@ -384,7 +384,7 @@ void iAFilterRunnerGUI::filterFinished()
 			QString suggestedFileName = sourceFI.absolutePath() + "/" + sourceFI.completeBaseName() + "-" +
 				outputNameSaveForFilename + ".stl";
 			auto polyDataSet = std::make_shared<iAPolyData>(suggestedFileName, filter->polyOutput());
-			polyDataSet->setName(outputName);
+			polyDataSet->setMetaData(iADataSet::NameStr, outputName);
 			newChild->addDataSet(polyDataSet);
 
 		}

@@ -45,9 +45,9 @@ iAProjectFileIO::iAProjectFileIO() : iAFileIO(iADataSetType::All, iADataSetType:
 {
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
-	Q_UNUSED(parameters);
+	Q_UNUSED(paramValues);
 	QFileInfo fi(fileName);
 	if (!fi.exists())
 	{
@@ -103,11 +103,10 @@ std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::load(QString const& fil
 				auto currentLoadedDataSets = io->load(dataSetFileName, dataSetParameters, &dummyProgress);
 				for (auto dataSet : currentLoadedDataSets)
 				{
-					if (!settings.value("Name", "").toString().isEmpty())
+					if (!settings.value(iADataSet::NameStr, "").toString().isEmpty())
 					{   // TODO: different name if there are multiple datasets stored under one entry?
-						dataSet->setName(settings.value("Name").toString());
+						dataSet->setMetaData(iADataSet::NameStr, settings.value("Name"));
 					}
-					dataSet->setParameters(dataSetParameters);
 					dataSets.push_back(dataSet);
 				}
 			}

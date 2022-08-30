@@ -45,9 +45,9 @@ iAMetaFileIO::iAMetaFileIO() :
 	addAttr(m_params[Save], CompressionStr, iAValueType::Boolean, false);
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::load(QString const& fileName, QVariantMap const& parameters, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
-	Q_UNUSED(parameters);
+	Q_UNUSED(paramValues);
 
 #if META_LOAD_METHOD == VTK
 	vtkNew<vtkMetaImageReader> reader;
