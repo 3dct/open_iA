@@ -20,20 +20,30 @@
 * ************************************************************************************/
 #include "iAFileTypeRegistry.h"
 
+#include <QFileInfo>
+
 std::vector<std::shared_ptr<iAIFileIOFactory>> iAFileTypeRegistry::m_fileIOs;
 QMap<QString, size_t> iAFileTypeRegistry::m_fileTypes;
 
-std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileExtension)
+std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileName)
 {
-	auto ext = fileExtension.toLower();
+	QFileInfo fi(fileName);
+	// special handling for directory ? TLGICT-loader... -> fi.isDir();
+	auto ext = fi.suffix().toLower();
 	if (m_fileTypes.contains(ext))
 	{
 		return m_fileIOs[m_fileTypes[ext]]->create();
 	}
 	else
 	{
+		LOG(lvlWarn,
+			QString("Failed to load %1: There is no handler registered files with suffix '%2'")
+			.arg(fileName)
+			.arg(fi.suffix()));
 		return std::shared_ptr<iAFileIO>();
 	}
+	// for file formats that support multiple dataset types: check if an allowed type was loaded?
+	// BUT currently no such format supported
 }
 
 QString iAFileTypeRegistry::registeredFileTypes(iAFileIO::Operation op, iADataSetTypes allowedTypes)
@@ -67,24 +77,3 @@ QString iAFileTypeRegistry::registeredFileTypes(iAFileIO::Operation op, iADataSe
 	return QString("Any supported format (%1);;").arg(allExtensions.join(" ")) + singleTypes;
 }
 
-#include <QFileInfo>
-
-namespace iANewIO
-{
-	std::shared_ptr<iAFileIO> createIO(QString fileName)
-	{
-		QFileInfo fi(fileName);
-		// special handling for directory ? TLGICT-loader... -> fi.isDir();
-		auto io = iAFileTypeRegistry::createIO(fi.suffix());
-		if (!io)
-		{
-			LOG(lvlWarn,
-				QString("Failed to load %1: There is no handler registered files with suffix '%2'")
-					.arg(fileName)
-					.arg(fi.suffix()));
-		}
-		// for file formats that support multiple dataset types: check if an allowed type was loaded?
-		// BUT currently no such format supported
-		return io;
-	}
-}

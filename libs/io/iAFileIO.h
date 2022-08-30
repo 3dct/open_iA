@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAio_export.h"
+
 #include "iAAttributes.h"
 #include "iADataSet.h"
 #include "iADataSetType.h"
@@ -33,8 +35,8 @@
 class iAProgress;
 
 //! Base class for dataset readers within open_iA
-//! Derived classes can be registered via iAFileTypeRegistry
-class iAbase_API iAFileIO
+//! Derived classes loading specific file types can be registered via iAFileTypeRegistry
+class iAio_API iAFileIO
 {
 public:
 	enum Operation

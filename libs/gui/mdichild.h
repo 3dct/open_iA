@@ -149,7 +149,7 @@ public:
 	iAPreferences    const & preferences()    const override;
 	iAVolumeStack * volumeStack() override;
 	//! @{
-	//! @deprecated iAAlgorithm will be removed soon. use iAFilter / iANewIO instead
+	//! @deprecated iAAlgorithm/iAIO will be removed soon. use iAFilter / iAFileTypeRegistry instead
 	void connectThreadSignalsToChildSlots(iAAlgorithm* thread) override;
 	void connectIOThreadSignals(iAIO* thread) override;
 	void connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread);
@@ -488,7 +488,7 @@ private:
 	QSharedPointer<iAProfileProbe> m_profileProbe;
 	QScopedPointer<iAVolumeStack> m_volumeStack;
 	QList<int> m_checkedList;
-	iAIO* m_ioThread;
+	iAIO* m_ioThread;    //!< @deprecated use iAFileTypeRegistry / iAFileIO instead!
 
 	iAChartWithFunctionsWidget * m_histogram;
 	iAProfileWidget* m_profile;

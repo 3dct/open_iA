@@ -496,7 +496,7 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 	{
 		return;
 	}
-	auto io = iANewIO::createIO(fileName);
+	auto io = iAFileTypeRegistry::createIO(fileName);
 	if (!io)
 	{   // did not find an appropriate file IO; createIO already outputs a warning in that case
 		return;

@@ -1186,7 +1186,7 @@ void MdiChild::saveNew()
 	{
 		return;
 	}
-	auto io = iANewIO::createIO(fileName);
+	auto io = iAFileTypeRegistry::createIO(fileName);
 	if (!io || !io->isDataSetSupported(dataSet, fileName))
 	{
 		LOG(lvlError, "The chosen file format does not support this kind of dataset!");

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAbase_export.h"
+#include "iAio_export.h"
 
 #include "iADataSetType.h"
 #include "iAFileIO.h"
@@ -36,14 +36,14 @@ class QString;
 using iAIFileIOFactory = iAGenericFactory<iAFileIO>;
 
 //! Registry for file types (of type iAFileIO).
-class iAbase_API iAFileTypeRegistry final
+class iAio_API iAFileTypeRegistry final
 {
 public:
 	//! Adds a given file type to the registry.
 	template <typename FileIOType> static void addFileType();
 
 	//! Create a file I/O for the given extension
-	static std::shared_ptr<iAFileIO> createIO(QString const& fileExtension);
+	static std::shared_ptr<iAFileIO> createIO(QString const & fileName);
 
 	//! Retrieve list of file types for file open/save dialog
 	static QString registeredFileTypes(iAFileIO::Operation op, iADataSetTypes allowedTypes = iADataSetType::All);
@@ -76,10 +76,4 @@ void iAFileTypeRegistry::addFileType()
 		}
 		m_fileTypes.insert(lowerExt, m_fileIOs.size() - 1);
 	}
-}
-
-namespace iANewIO
-{
-	//! get a I/O object for a file with the given filename
-	iAbase_API std::shared_ptr<iAFileIO> createIO(QString fileName);
 }

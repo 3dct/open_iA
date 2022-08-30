@@ -95,7 +95,7 @@ std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::load(QString const& fil
 		QString dataSetFileName = MakeAbsolute(fi.absolutePath(), settings.value("File").toString());
 		try
 		{
-			auto io = iANewIO::createIO(dataSetFileName);
+			auto io = iAFileTypeRegistry::createIO(dataSetFileName);
 			if (io)
 			{
 				iAProgress dummyProgress;
