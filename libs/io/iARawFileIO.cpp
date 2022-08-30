@@ -38,6 +38,7 @@
 	#include <itkImage.h>
 	#include <itkRawImageIO.h>
 	#include <itkImageFileReader.h>
+	#include <itkImageFileWriter.h>
 
 	#include <vtkImageData.h>
 
@@ -55,7 +56,7 @@ const QString iARawFileIO::HeadersizeStr("Headersize");
 const QString iARawFileIO::DataTypeStr("Data Type");
 const QString iARawFileIO::ByteOrderStr("Byte Order");
 
-iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
+iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volume)
 {
 	auto datatype = readableDataTypeList(false);
 	QString selectedType = mapVTKTypeToReadableDataType(VTK_UNSIGNED_SHORT);
@@ -68,6 +69,8 @@ iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None
 	addAttr(m_params[Load], HeadersizeStr, iAValueType::Discrete, 0, 0);
 	addAttr(m_params[Load], DataTypeStr, iAValueType::Categorical, datatype);
 	addAttr(m_params[Load], ByteOrderStr, iAValueType::Categorical, byteOrders);
+
+	addAttr(m_params[Save], ByteOrderStr, iAValueType::Categorical, byteOrders);
 }
 
 #if RAW_LOAD_METHOD == ITK
@@ -145,6 +148,49 @@ std::vector<std::shared_ptr<iADataSet>> iARawFileIO::load(QString const& fileNam
 	return { std::make_shared<iAImageData>(fileName, img) };
 	// TODO: maybe compute range here as well?
 	//auto rng = img->GetScalarRange();   // see also comments above about performance measurements
+}
+
+template<class T>
+void writeRawImage(QString const& fileName, vtkImageData* img, QVariantMap parameters, iAProgress* progress)
+{
+	iAConnector con;
+	con.setImage(img);
+	using InputImageType = itk::Image<T, DIM>;
+	auto writer = itk::ImageFileWriter<InputImageType>::New();
+	auto io = itk::RawImageIO<T, DIM>::New();
+	io->SetFileName(getLocalEncodingFileName(fileName).c_str());
+	//io->SetHeaderSize(0);
+	//for (int i = 0; i < DIM; i++)
+	//{
+	//	io->SetDimensions(i, img->GetDimensions()[i]);
+	//	io->SetSpacing(i, img->GetSpacing()[i]);
+	//	io->SetOrigin(i, img->GetOrigin()[i]);
+	//}
+	if (parameters[iARawFileIO::ByteOrderStr].toString() == ByteOrder::LittleEndianStr)
+	{
+		io->SetByteOrderToLittleEndian();
+	}
+	else
+	{
+		io->SetByteOrderToBigEndian();
+	}
+	writer->SetImageIO(io);
+	writer->SetFileName(getLocalEncodingFileName(fileName).c_str());
+	writer->SetInput(dynamic_cast<InputImageType*>(con.itkImage()));
+	writer->SetUseCompression(parameters[iAFileIO::CompressionStr].toBool());
+	progress->observe(writer);
+	writer->Update();
+}
+
+void iARawFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& parameters, iAProgress* progress)
+{
+	// ITK way:
+	assert(dataSets.size() == 1 && dynamic_cast<iAImageData*>(dataSets[0].get()));
+//#if RAW_LOAD_METHOD == ITK
+	auto scalarType = mapReadableDataTypeToVTKType(parameters[DataTypeStr].toString());
+	VTK_TYPED_CALL(writeRawImage, scalarType, fileName, dynamic_cast<iAImageData*>(dataSets[0].get())->image(), parameters, progress);
+//# endif
+// VTK way currently not implemented
 }
 
 QString iARawFileIO::name() const
