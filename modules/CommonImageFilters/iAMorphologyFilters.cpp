@@ -21,7 +21,7 @@
 #include "iAMorphologyFilters.h"
 
 #include <defines.h>    // for DIM
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
@@ -85,7 +85,7 @@ template<class MorphOp, class T> void morphOp(iAFilter* filter, QVariantMap cons
 	}
 
 	auto morphOpFilter = MorphOp::New();
-	morphOpFilter->SetInput(dynamic_cast<InputImage<T> *>(filter->input(0)->itkImage()));
+	morphOpFilter->SetInput(dynamic_cast<InputImage<T> *>(filter->imageInput(0)->itkImage()));
 	morphOpFilter->SetKernel(structuringElement);
 	filter->progress()->observe(morphOpFilter);
 	morphOpFilter->Update();
@@ -308,7 +308,7 @@ void binaryThinning(iAFilter* filter, QVariantMap const& params)
 	Q_UNUSED(params);
 	typedef itk::BinaryThinningImageFilter<InputImage<T>, InputImage<T>> BinaryThinningFilterType;
 	auto thinningFilter = BinaryThinningFilterType::New();
-	thinningFilter->SetInput(dynamic_cast<InputImage<T>*>(filter->input(0)->itkImage()));
+	thinningFilter->SetInput(dynamic_cast<InputImage<T>*>(filter->imageInput(0)->itkImage()));
 	filter->progress()->observe(thinningFilter);
 	thinningFilter->Update();
 	filter->addOutput(thinningFilter->GetOutput());
@@ -341,7 +341,7 @@ template<class T> void binaryFillHole(iAFilter* filter, QVariantMap const & para
 {
 	typedef itk::BinaryFillholeImageFilter<InputImage<T>> FillHoleImageFilterType;
 	auto fillHoleFilter = FillHoleImageFilterType::New();
-	fillHoleFilter->SetInput(dynamic_cast<InputImage<T> *>(filter->input(0)->itkImage()));
+	fillHoleFilter->SetInput(dynamic_cast<InputImage<T> *>(filter->imageInput(0)->itkImage()));
 	fillHoleFilter->SetFullyConnected(params["Fully Connected"].toBool());
 	fillHoleFilter->SetForegroundValue(params["Foreground Value"].toDouble());
 	filter->progress()->observe(fillHoleFilter);
@@ -374,7 +374,7 @@ void grayscaleFillHole(iAFilter* filter, QVariantMap const& params)
 {
 	typedef itk::GrayscaleFillholeImageFilter<InputImage<T>, InputImage<T>> FillHoleImageFilterType;
 	auto fillHoleFilter = FillHoleImageFilterType::New();
-	fillHoleFilter->SetInput(dynamic_cast<InputImage<T>*>(filter->input(0)->itkImage()));
+	fillHoleFilter->SetInput(dynamic_cast<InputImage<T>*>(filter->imageInput(0)->itkImage()));
 	fillHoleFilter->SetFullyConnected(params["Fully Connected"].toBool());
 	filter->progress()->observe(fillHoleFilter);
 	fillHoleFilter->Update();
@@ -409,7 +409,7 @@ template<class T> void vesselEnhancement(iAFilter* filter, QVariantMap const & p
 	typedef itk::HessianRecursiveGaussianImageFilter<InputImage<T>> HRGIFType;
 
 	auto hessfilter = HRGIFType::New();
-	hessfilter->SetInput(dynamic_cast<InputImage<T> *>(filter->input(0)->itkImage()));
+	hessfilter->SetInput(dynamic_cast<InputImage<T> *>(filter->imageInput(0)->itkImage()));
 	hessfilter->SetSigma(params["Sigma"].toDouble());
 	hessfilter->Update();
 	auto vesselness = EnhancementFilter::New();

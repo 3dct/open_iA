@@ -24,7 +24,7 @@
 #include <iAProgress.h>
 
 // base
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iATypedCallHelper.h>
 #include <iAFileUtils.h>
 
@@ -34,13 +34,13 @@
 #include <vtkImageData.h>
 #include <vtkMath.h>
 
-template<class T> void calcFeatureCharacteristics_template(iAConnector const * image, iAProgress* progress,
+template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAProgress* progress,
 	QString pathCSV, bool feretDiameter, bool calculateAdvancedChars, bool calculateRoundness)
 {
 	// Cast image to type long
 	typedef itk::Image< T, DIM > InputImageType;
 	typename InputImageType::Pointer inputImage;
-	inputImage = dynamic_cast<InputImageType *>( image->itkImage() );
+	inputImage = dynamic_cast<InputImageType *>(itkImg);
 	typedef itk::Image<long, DIM> LongImageType;
 	typename LongImageType::Pointer longImage;
 	typedef itk::CastImageFilter<InputImageType, LongImageType> CIFType;
@@ -342,7 +342,7 @@ IAFILTER_CREATE(iACalcFeatureCharacteristics)
 void iACalcFeatureCharacteristics::performWork(QVariantMap const & parameters)
 {
 	QString pathCSV = parameters["Output CSV filename"].toString();
-	ITK_TYPED_CALL(calcFeatureCharacteristics_template, inputPixelType(), input(0), progress(), pathCSV,
+	ITK_TYPED_CALL(calcFeatureCharacteristics, inputPixelType(), imageInput(0)->itkImage(), progress(), pathCSV,
 		parameters["Calculate Feret Diameter"].toBool(), parameters["Calculate advanced void parameters"].toBool(), parameters["Calculate roundness"].toBool());
 	addMsg(QString("Feature csv file created in: %1").arg(pathCSV));
 }

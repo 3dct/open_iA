@@ -2785,7 +2785,7 @@ void MdiChild::changeMagicLensDataSet(int chg)
 	channelData(m_magicLensChannel)->setOpacity(0.5);
 	QString name(imgData->name());
 	channelData(m_magicLensChannel)->setName(name);
-	updateChannel(m_magicLensChannel, imgData->image(), imgDisplayData->transfer()->colorTF(), imgDisplayData->transfer()->opacityTF(), false);
+	updateChannel(m_magicLensChannel, imgData->vtkImage(), imgDisplayData->transfer()->colorTF(), imgDisplayData->transfer()->opacityTF(), false);
 	setMagicLensInput(m_magicLensChannel);
 }
 
@@ -2988,7 +2988,7 @@ void MdiChild::set3DControlVisibility(bool visible)
 	m_dwRenderer->widget3D->setVisible(visible);
 }
 
-std::vector<std::shared_ptr<iADataSet>> MdiChild::dataSets() const
+std::vector<std::shared_ptr<iADataSet>> const& MdiChild::dataSets() const
 {
 	std::vector<std::shared_ptr<iADataSet>> result;
 	result.reserve(m_dataSets.size());
@@ -3003,7 +3003,7 @@ vtkSmartPointer<vtkImageData> MdiChild::firstImageData() const
 		auto imgData = dynamic_cast<iAImageData*>(dataSet.second.get());
 		if (imgData)
 		{
-			return imgData->image();
+			return imgData->vtkImage();
 		}
 	}
 	LOG(lvlError, "No image/volume data loaded!");
@@ -3220,7 +3220,7 @@ void MdiChild::setDataSetMovable(size_t dataSetIdx)
 		LOG(lvlError, "Slice renderer not found!");
 		return;
 	}
-	auto img = imgData->image();
+	auto img = imgData->vtkImage();
 	uint chID = m_sliceRenderers[dataSetIdx]->channelID();
 	iAChannelSlicerData* props[3];
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)

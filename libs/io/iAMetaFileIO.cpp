@@ -93,7 +93,7 @@ void iAMetaFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iAD
 		LOG(lvlError, "Meta File IO expects image(/volume) data, but given dataset was of a different type!");
 		return;
 	}
-	storeImage(imgData->image(), fileName, paramValues[CompressionStr].toBool(), progress);
+	storeImage(imgData->vtkImage(), fileName, paramValues[CompressionStr].toBool(), progress);
 }
 
 QString iAMetaFileIO::name() const

@@ -21,7 +21,7 @@
 #include "iAHessianEigenanalysis.h"
 
 #include <defines.h>          // for DIM
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iAPixelAccessors.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
@@ -53,7 +53,7 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QVariantMap const 
 
 	// Compute Hessian
 	auto hessianFilter = HessianFilterType::New();
-	hessianFilter->SetInput( dynamic_cast< InputImageType * >( filter->input(0)->itkImage() ) );
+	hessianFilter->SetInput( dynamic_cast< InputImageType * >( filter->imageInput(0)->itkImage() ) );
 	hessianFilter->SetSigma(parameters["Sigma"].toDouble());
 	filter->progress()->observe(hessianFilter);
 	hessianFilter->Update();
@@ -166,7 +166,7 @@ template<class T> void Laplacian(iAFilter* filter, QVariantMap const & params)
 	typedef itk::LaplacianRecursiveGaussianImageFilter<ImageType, OutputImageType> LoGFilterType;
 
 	auto logFilter = LoGFilterType::New();
-	logFilter->SetInput(dynamic_cast< ImageType * >(filter->input(0)->itkImage()));
+	logFilter->SetInput(dynamic_cast< ImageType * >(filter->imageInput(0)->itkImage()));
 	logFilter->SetSigma(params["Sigma"].toDouble());
 	logFilter->Update();
 	filter->addOutput(logFilter->GetOutput());

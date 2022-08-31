@@ -30,12 +30,10 @@
 #include "iASamplingResults.h"
 
 #include <iAAttributeDescriptor.h>
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iAFileUtils.h>
 #include <iALog.h>
 #include <iAImageCoordinate.h>
-#include <iAModality.h>
-#include <iAModalityList.h>
 #include <iANameMapper.h>
 #include <iAProgress.h>
 #include <iAStringHelper.h>
@@ -50,7 +48,7 @@ const int CONCURRENT_COMPUTATION_RUNS = 1;
 iAPerformanceTimer m_computationTimer;
 
 iAImageSampler::iAImageSampler(
-		QSharedPointer<iAModalityList> dataset,
+		std::vector<std::shared_ptr<iADataSet>> dataset,
 		QVariantMap const & parameters,
 		QSharedPointer<iAAttributes> parameterRanges,
 		QSharedPointer<iAAttributes> parameterSpecs,
@@ -131,20 +129,11 @@ void iAImageSampler::newSamplingRun()
 			auto desc = m_parameterRanges->at(i);
 			singleRunParams.insert(desc->name(), paramSet.at(i));
 		}
-		QVector<iAConnector*> input; // TODO - pass in...?
-		QVector<QString> fileNames;
-		for (int m = 0; m < m_datasets->size(); ++m)
-		{
-			auto con = new iAConnector();
-			con->setImage(m_datasets->get(m)->image());
-			input.push_back(con);
-			fileNames.push_back(m_datasets->get(m)->fileName());
-		}
 		op = new iASampleBuiltInFilterOperation(
 			m_parameters[spnFilter].toString(),
 			m_parameters[spnCompressOutput].toBool(),
 			m_parameters[spnOverwriteOutput].toBool(),
-			singleRunParams, input, fileNames, outputFile, m_logger);
+			singleRunParams, m_datasets, outputFile, m_logger);
 	}
 	else if (m_parameters[spnAlgorithmType].toString() == atExternal)
 	{
@@ -152,9 +141,9 @@ void iAImageSampler::newSamplingRun()
 		argumentList << m_additionalArgumentList;
 		argumentList << outputFile;
 
-		for (int m = 0; m < m_datasets->size(); ++m)
+		for (int m = 0; m < m_datasets.size(); ++m)
 		{
-			argumentList << m_datasets->get(m)->fileName();
+			argumentList << m_datasets[m]->metaData(iADataSet::FileNameStr).toString();
 		}
 
 		for (int i = 0; i < m_parameterCount; ++i)
@@ -209,7 +198,7 @@ void iAImageSampler::start()
 		statusMsg(QString("Executable '%1' doesn't exist!").arg(m_parameters[spnExecutable].toString()));
 		return;
 	}
-	if (m_datasets->size() == 0)
+	if (m_datasets.size() == 0)
 	{
 		statusMsg("No input given!");
 		return;

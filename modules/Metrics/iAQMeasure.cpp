@@ -23,6 +23,7 @@
 // base
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
+#include <iADataSet.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
 #include <iAProgress.h>
@@ -92,7 +93,7 @@ template <typename T> void computeHistogram(iAFilter* filter, size_t binCount,
 	const int ChannelCount = 1;
 	auto histogramFilter = ImageHistogramFilterType::New();
 	histogramFilter->ReleaseDataFlagOff();
-	histogramFilter->SetInput(dynamic_cast<InputImageType*>(filter->input(0)->itkImage()));
+	histogramFilter->SetInput(dynamic_cast<InputImageType*>(filter->imageInput(0)->itkImage()));
 	typename ImageHistogramFilterType::HistogramType::MeasurementVectorType	binMin(ChannelCount);
 	binMin.Fill(minVal);
 	typename ImageHistogramFilterType::HistogramType::MeasurementVectorType	binMax(ChannelCount);
@@ -122,7 +123,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QVariantMap
 
 	double minVal = img->GetScalarRange()[0];
 	double maxVal = img->GetScalarRange()[1];
-	auto size =	filter->input(0)->itkImage()->GetLargestPossibleRegion().GetSize();
+	auto size =	filter->imageInput(0)->itkImage()->GetLargestPossibleRegion().GetSize();
 	size_t voxelCount = size[0] * size[1] * size[2];
 	size_t binCount = std::max(static_cast<size_t>(2), static_cast<size_t>(histogramBinFactor * std::sqrt(voxelCount)));
 	std::vector<double> vecHist;
@@ -397,7 +398,7 @@ void iAQMeasure::performWork(QVariantMap const & parameters)
 	setFromVectorVariant<int>(size, parameters["Size"]);
 	setFromVectorVariant<int>(index, parameters["Index"]);
 
-	auto extractImg = extractImage(input(0)->itkImage(), index, size);
+	auto extractImg = extractImage(imageInput(0)->itkImage(), index, size);
 	iAConnector extractCon;
 	extractCon.setImage(extractImg);
 	computeQ(this, extractCon.vtkImage(), parameters);
@@ -475,7 +476,7 @@ void iASNR::performWork(QVariantMap const & parameters)
 	size_t size[3], index[3];
 	setFromVectorVariant<int>(size, parameters["Size"]);
 	setFromVectorVariant<int>(index, parameters["Index"]);
-	auto extractImg = extractImage(input(0)->itkImage(), index, size);
+	auto extractImg = extractImage(imageInput(0)->itkImage(), index, size);
 	double mean, stddev;
 	getStatistics(extractImg, nullptr, nullptr, &mean, &stddev);
 	addOutputValue("Signal-to-Noise Ratio", mean / stddev);
@@ -501,10 +502,10 @@ void iACNR::performWork(QVariantMap const & parameters)
 	size_t size[3], index[3];
 	setFromVectorVariant<int>(size,  parameters["Region 1 Size"]);
 	setFromVectorVariant<int>(index, parameters["Region 1 Index"]);
-	auto extractImg1 = extractImage(input(0)->itkImage(), index, size);
+	auto extractImg1 = extractImage(imageInput(0)->itkImage(), index, size);
 	setFromVectorVariant<int>(size,  parameters["Region 2 Size"]);
 	setFromVectorVariant<int>(index, parameters["Region 2 Index"]);
-	auto extractImg2 = extractImage(input(0)->itkImage(), index, size);
+	auto extractImg2 = extractImage(imageInput(0)->itkImage(), index, size);
 	double mean1, mean2, stddev2;
 	getStatistics(extractImg1, nullptr, nullptr, &mean1, nullptr);
 	getStatistics(extractImg2, nullptr, nullptr, &mean2, &stddev2);

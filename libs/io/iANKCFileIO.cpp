@@ -101,7 +101,7 @@ std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::loadData(QString const& fil
 			.arg(fileName));
 		return {};
 	}
-	replaceAndShift->addInput(dynamic_cast<iAImageData*>(d[0].get())->image(), "");
+	replaceAndShift->addInput(d[0]);
 	QVariantMap paramValuesReplaceAndShift;
 	paramValuesReplaceAndShift["Value To Replace"] = 65533;
 	paramValuesReplaceAndShift["Replacement"] = 0;
@@ -116,7 +116,7 @@ std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::loadData(QString const& fil
 		return {};
 	}
 
-	dataTypeConversion->addInput(replaceAndShift->output(0)->itkImage(), "");
+	dataTypeConversion->addInput(replaceAndShift->output(0));
 	QVariantMap paramValuesConversion;
 	paramValuesConversion["Data Type"] = "32 bit floating point number (7 digits, float)";
 	paramValuesConversion["Rescale Range"] = false;
@@ -132,15 +132,13 @@ std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::loadData(QString const& fil
 			.arg(fileName));
 		return {};
 	}
-	filterScale->addInput(dataTypeConversion->output(0)->itkImage(), "");
+	filterScale->addInput(dataTypeConversion->output(0));
 	QVariantMap paramValuesScale;
 	paramValuesScale["Shift"] = offset;
 	paramValuesScale["Scale"] = scale;
 	filterScale->run(paramValuesScale);
 
-	vtkNew<vtkImageData> img;
-	img->DeepCopy(filterScale->output(0)->vtkImage());
-	return { std::make_shared<iAImageData>(fileName, img) };
+	return { filterScale->output(0) };
 }
 
 QString iANKCFileIO::name() const

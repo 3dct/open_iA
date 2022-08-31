@@ -314,7 +314,7 @@ public:
 
 	void set3DControlVisibility(bool visible) override;
 
-	std::vector<std::shared_ptr<iADataSet>> dataSets() const override;
+	std::vector<std::shared_ptr<iADataSet>> const & dataSets() const override;
 	size_t firstImageDataSetIdx() const;
 	vtkSmartPointer<vtkImageData> firstImageData() const override;
 

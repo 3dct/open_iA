@@ -22,9 +22,12 @@
 
 #include "iAParameterNames.h"
 
+#include <iAFileTypeRegistry.h>
+
 #include <defines.h>    // for DIM
 #include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
+#include <iADataSet.h>
 #include <iALog.h>
 #include <iAFilterRegistry.h>
 #include <iAProgress.h>
@@ -35,6 +38,8 @@
 #include <qthelper/iAQtEndl.h>
 
 #include <itkImage.h>
+
+#include <vtkImageData.h>
 
 #include <QFile>
 #include <QFileInfo>
@@ -77,9 +82,10 @@ namespace
 		}
 		typedef itk::Image<T, DIM> InputImageType;
 		typedef itk::Image<double, DIM> OutputImageType;
-		auto size = dynamic_cast<InputImageType*>(patchFilter->input(0)->itkImage())->GetLargestPossibleRegion().GetSize();
+		auto itkImg = dynamic_cast<InputImageType*>(patchFilter->imageInput(0)->itkImage());
+		auto size = itkImg->GetLargestPossibleRegion().GetSize();
 		//LOG(lvlInfo, QString("Size: (%1, %2, %3)").arg(size[0]).arg(size[1]).arg(size[2]));
-		auto inputSpacing = dynamic_cast<InputImageType*>(patchFilter->input(0)->itkImage())->GetSpacing();
+		auto inputSpacing = itkImg->GetSpacing();
 
 		QStringList filterParamStrs = splitPossiblyQuotedString(parameters["Parameters"].toString());
 		if (filter->parameters().size() != filterParamStrs.size())
@@ -95,24 +101,20 @@ namespace
 			filterParams.insert(filter->parameters()[i]->name(), filterParamStrs[i]);
 		}
 
-		QVector<iAConnector*> inputImages;
-		inputImages.push_back(new iAConnector);
-		inputImages[0]->setImage(patchFilter->input(0)->itkImage());
-		QVector<iAConnector*> smallImageInput;
-		smallImageInput.push_back(new iAConnector);
-		// TODO: read from con array?
+		std::vector<std::shared_ptr<iADataSet>> inputImages;
+		inputImages.push_back(patchFilter->input(0));
 		QStringList additionalInput = splitPossiblyQuotedString(parameters["Additional input"].toString());
 		for (QString fileName : additionalInput)
 		{
-			//fileName = MakeAbsolute(batchDir, fileName);
-			auto newCon = new iAConnector();
-			iAITKIO::ScalarPixelType pixelType;
-			iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
-			newCon->setImage(img);
-			inputImages.push_back(newCon);
-			smallImageInput.push_back(new iAConnector);
+			auto io = iAFileTypeRegistry::createIO(fileName);
+			QVariantMap dummyParams;    // TODO: CHECK whether I/O requires other parameters and error in that case!
+			iAProgress dummyProgress;
+			auto dataSets = io->load(fileName, dummyParams, &dummyProgress);
+			for (auto d : dataSets)
+			{
+				inputImages.push_back(d);
+			}
 		}
-
 		QStringList outputBuffer;
 
 		int curOp = 0;
@@ -188,19 +190,19 @@ namespace
 					}
 					try
 					{
-						// extract patch from all inputs:
+						// extract patch from all inputs and add to filter input:
+						filter->clearInput();
 						for (int i = 0; i < inputImages.size(); ++i)
 						{
-							auto itkExtractImg = extractImage(inputImages[i]->itkImage(), extractIndex, extractSize);
-							smallImageInput[i]->setImage(itkExtractImg);
+							auto itkExtractImg = extractImage(dynamic_cast<iAImageData*>(inputImages[i].get())->itkImage(), extractIndex, extractSize);
+							iAConnector con;
+							con.setImage(itkExtractImg);
+							vtkNew<vtkImageData> img;
+							img->DeepCopy(con.vtkImage());
+							// maybe modify original filename to reflect that only a patch of it is passed on?
+							filter->addInput(std::make_shared<iAImageData>("", img));
 						}
-
 						// run filter on inputs:
-						filter->clearInput();
-						for (int i = 0; i < smallImageInput.size(); ++i)
-						{  // maybe modify original filename to reflect that only a patch of it is passed on?
-							filter->addInput(smallImageInput[i]->itkImage(), patchFilter->fileNames()[i]);
-						}
 						filter->run(filterParams);
 
 						// get output images and values from filter:
@@ -226,7 +228,7 @@ namespace
 										.arg(spnContinueOnError).toStdString());
 								}
 							}
-							storeImage(filter->output(o)->itkImage(), outFileName, compress);
+							storeImage(filter->imageOutput(o)->itkImage(), outFileName, compress);
 						}
 						if (filter->outputValues().size() > 0)
 						{

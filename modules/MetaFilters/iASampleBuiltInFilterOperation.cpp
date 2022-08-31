@@ -20,12 +20,12 @@
 * ************************************************************************************/
 #include "iASampleBuiltInFilterOperation.h"
 
-#include <iAConnector.h>
+#include <iADataSet.h>
+#include <iAFileTypeRegistry.h>
 #include <iAFileUtils.h>    // for pathFileBaseName
 #include <iAFilter.h>
 #include <iAFilterRegistry.h>
 #include <iALog.h>
-#include <iAITKIO.h>
 #include <iAProgress.h>
 
 #include <QFileInfo>
@@ -35,8 +35,7 @@ iASampleBuiltInFilterOperation::iASampleBuiltInFilterOperation(
 	bool compressOutput,
 	bool overwriteOutput,
 	QVariantMap parameters,
-	QVector<iAConnector*> input,
-	QVector<QString> inputFileNames,
+	std::vector<std::shared_ptr<iADataSet>> input,
 	QString const& outputFileName,
 	iALogger* logger) :
 	m_filterName(filterName),
@@ -44,7 +43,6 @@ iASampleBuiltInFilterOperation::iASampleBuiltInFilterOperation(
 	m_overwriteOutput(overwriteOutput),
 	m_parameters(parameters),
 	m_input(input),
-	m_inputFileNames(inputFileNames),
 	m_outputFileName(outputFileName),
 	m_logger(logger)
 {
@@ -64,10 +62,9 @@ void iASampleBuiltInFilterOperation::performWork()
 		LOG(lvlError, msg);
 		return;
 	}
-	assert(m_input.size() == m_inputFileNames.size());
 	for (int i=0; i<m_input.size(); ++i)
 	{
-		filter->addInput(m_input[i]->vtkImage(), m_inputFileNames[i]);
+		filter->addInput(m_input[i]);
 	}
 	filter->setLogger(m_logger);
 	filter->run(m_parameters);
@@ -97,7 +94,12 @@ void iASampleBuiltInFilterOperation::performWork()
 				.arg(o)
 				.arg(outFileName)
 				.arg(m_compressOutput ? "on" : "off"));
-		iAITKIO::writeFile(outFileName, filter->output(o)->itkImage(), filter->output(o)->itkScalarPixelType(), m_compressOutput);
+
+		auto io = iAFileTypeRegistry::createIO(outFileName);
+		QVariantMap writeParamValues;    // TODO: CHECK whether I/O requires other parameters and error in that case!
+		iAProgress dummyProgress;
+		writeParamValues[iAFileIO::CompressionStr] = m_compressOutput;
+		io->save(outFileName, { filter->output(o) }, writeParamValues, &dummyProgress);
 	}
 	/*
 	// required options:

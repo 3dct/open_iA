@@ -26,7 +26,7 @@
 #include <QString>
 #include <QVector>
 
-class iAConnector;
+class iADataSet;
 class iALogger;
 
 class iASampleBuiltInFilterOperation : public iASampleOperation
@@ -38,8 +38,7 @@ public:
 		bool compressOutput,
 		bool overwriteOutput,
 		QVariantMap parameters,
-		QVector<iAConnector*> input,
-		QVector<QString> inputfileNames,
+		std::vector<std::shared_ptr<iADataSet>> input,
 		QString const& outputFileName,
 		iALogger * logger);
 	QString output() const override;
@@ -49,8 +48,7 @@ private:
 	QString m_filterName;
 	bool m_compressOutput, m_overwriteOutput;
 	QVariantMap m_parameters;
-	QVector<iAConnector*> m_input;
-	QVector<QString> m_inputFileNames;
+	std::vector<std::shared_ptr<iADataSet>> m_input;
 	QString m_outputFileName;
 	iALogger * m_logger;
 };

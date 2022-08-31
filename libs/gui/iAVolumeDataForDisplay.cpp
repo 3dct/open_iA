@@ -40,18 +40,18 @@
 
 iAVolumeDataForDisplay::iAVolumeDataForDisplay(iAImageData* data, iAProgress* p, size_t binCount) :
 	iADataForDisplay(data),
-	m_transfer(std::make_shared<iAModalityTransfer>(data->image()->GetScalarRange())),
+	m_transfer(std::make_shared<iAModalityTransfer>(data->vtkImage()->GetScalarRange())),
 	m_histogram(nullptr),
 	m_imgStatistics("Computing...")
 {
 	p->setStatus(QString("%1: Computing scalar range").arg(data->name()));
-	m_transfer->computeRange(data->image());
+	m_transfer->computeRange(data->vtkImage());
 	iAImageStatistics stats;
 	// TODO: handle multiple components; but for that, we need to extract the vtkImageAccumulate part,
 	//       as it computes the histograms for all components at once!
 	p->emitProgress(50);
 	p->setStatus(QString("%1: Computing histogram and statistics.").arg(data->name()));
-	m_histogramData = iAHistogramData::create("Frequency", data->image(), binCount, &stats);
+	m_histogramData = iAHistogramData::create("Frequency", data->vtkImage(), binCount, &stats);
 	p->emitProgress(100);
 	m_imgStatistics = QString("min=%1, max=%2, mean=%3, stddev=%4")
 		.arg(stats.minimum)
@@ -67,7 +67,7 @@ QString iAVolumeDataForDisplay::information() const
 
 void iAVolumeDataForDisplay::applyPreferences(iAPreferences const& prefs)
 {
-	auto img = dynamic_cast<iAImageData*>(dataSet())->image();
+	auto img = dynamic_cast<iAImageData*>(dataSet())->vtkImage();
 	size_t newBinCount = iAHistogramData::finalNumBin(img, prefs.HistogramBins);
 	if (m_histogramData->valueCount() != newBinCount)
 	{

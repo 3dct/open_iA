@@ -47,7 +47,7 @@ void iACSVImageFileIO::save(QString const& fileName, std::vector<std::shared_ptr
 {
 	assert(dataSets.size() == 1);
 	auto imgData = dynamic_cast<iAImageData*>(dataSets[0].get());
-	auto img = imgData->image();
+	auto img = imgData->vtkImage();
 	int numberOfComponents = img->GetNumberOfScalarComponents();
 	std::ofstream out(getLocalEncodingFileName(fileName));
 	size_t voxelCount = imgData->voxelCount();

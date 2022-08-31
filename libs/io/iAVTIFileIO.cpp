@@ -48,7 +48,7 @@ void  iAVTIFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iAD
 	progress->observe(writer);
 	writer->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	assert(dataSets.size() == 1);
-	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->image();
+	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage();
 	writer->SetInputData(img);
 	writer->Write();
 }

@@ -24,22 +24,22 @@
 #include "iAFilter.h"
 #include "iAFilterRunnerGUI.h"
 
+class iADataSet;
 class iAImageSampler;
-class iAModalityList;
 
 class iASampleFilter : public iAFilter
 {
 public:
 	iASampleFilter();
 	static std::shared_ptr<iASampleFilter> create();
-	void setParameters(QSharedPointer<iAModalityList> input, QSharedPointer<iAAttributes> parameterRanges,
+	void setParameters(std::vector<std::shared_ptr<iADataSet>> input, QSharedPointer<iAAttributes> parameterRanges,
 		QSharedPointer<iAAttributes> parameterSpecs, QString const& parameterRangeFile, QString const& parameterSetFile,
 		QString const& derivedOutFile, int samplingID);
 	void abort() override;
 private:
 	void performWork(QVariantMap const& parameters) override;
 	bool checkParameters(QVariantMap const& parameters) override;
-	QSharedPointer<iAModalityList> m_input;
+	std::vector<std::shared_ptr<iADataSet>> m_input;
 	QSharedPointer<iAAttributes> m_parameterRanges, m_parameterSpecs;
 	QString m_parameterRangeFile,
 		m_parameterSetFile,

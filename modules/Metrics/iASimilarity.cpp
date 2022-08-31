@@ -67,8 +67,8 @@ void similarity_metrics(iAFilter* filter, QVariantMap const & parameters)
 	size_t size[3], index[3];
 	setFromVectorVariant<int>(size, parameters["Size"]);
 	setFromVectorVariant<int>(index, parameters["Index"]);
-	auto activeExtract = extractImage(filter->input(0)->itkImage(), index, size);
-	auto nonActiveExtract = extractImage(filter->input(1)->itkImage(), index, size);
+	auto activeExtract = extractImage(filter->imageInput(0)->itkImage(), index, size);
+	auto nonActiveExtract = extractImage(filter->imageInput(1)->itkImage(), index, size);
 	ImageType* img = dynamic_cast<ImageType*>(activeExtract.GetPointer());
 	ImageType* ref = dynamic_cast<ImageType*>(nonActiveExtract.GetPointer());
 	typedef itk::TranslationTransform < double, DIM > TransformType;
@@ -320,5 +320,5 @@ void iASimilarity::performWork(QVariantMap const & parameters)
 void iASimilarity::adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
 {
 	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
-	adjustIndexAndSizeToImage(params, dynamic_cast<iAImageData*>(dataSets[0].get())->image());
+	adjustIndexAndSizeToImage(params, dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage());
 }

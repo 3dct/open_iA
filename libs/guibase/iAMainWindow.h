@@ -27,6 +27,7 @@
 class iAMdiChild;
 class iAModuleDispatcher;
 class iAPreferences;
+class iARenderSettings;
 class iAVolumeSettings;
 
 class QMdiSubWindow;
@@ -90,6 +91,9 @@ public:
 	// Various:
 	//! retrieve the default preferences.
 	virtual iAPreferences const& defaultPreferences() const = 0;
+
+	//! retrieve default renderer settings.
+	virtual iARenderSettings const& defaultRenderSettings() const = 0;
 
 	//! retrieve default volume rendering settings.
 	//! TODO: more generic interface, also suitable for other datasets (mesh, ...)

@@ -201,8 +201,9 @@ void dlg_GEMSeControl::startSampling()
 		{
 			return;
 		}
+		iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 		m_sampler = QSharedPointer<iAImageSampler>::create(
-			m_dlgModalities->modalities(),
+			mdiChild->dataSets(),
 			m_samplingSettings,
 			m_dlgSamplingSettings->parameterRanges(),
 			m_dlgSamplingSettings->parameterSpecs(),

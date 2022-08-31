@@ -571,7 +571,7 @@ class iAVolRenderer: public iADataSetRenderer
 {
 public:
 	iAVolRenderer(vtkRenderer* renderer, iAImageData* data, iAVolumeDataForDisplay* volDataForDisplay) :
-		iADataSetRenderer(renderer, !isFlat(data->image()) && !isLarge(data->image()) ),
+		iADataSetRenderer(renderer, !isFlat(data->vtkImage()) && !isLarge(data->vtkImage()) ),
 		m_volume(vtkSmartPointer<vtkVolume>::New()),
 		m_volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
 		m_volMapper(vtkSmartPointer<vtkSmartVolumeMapper>::New()),
@@ -582,8 +582,8 @@ public:
 		m_volume->SetMapper(m_volMapper);
 		m_volume->SetProperty(m_volProp);
 		m_volume->SetVisibility(true);
-		m_volMapper->SetInputData(data->image());
-		if (data->image()->GetNumberOfScalarComponents() > 1)
+		m_volMapper->SetInputData(data->vtkImage());
+		if (data->vtkImage()->GetNumberOfScalarComponents() > 1)
 		{
 			m_volMapper->SetBlendModeToComposite();
 			m_volProp->IndependentComponentsOff();
@@ -616,7 +616,7 @@ public:
 		//addAttribute(VolumetricScatteringBlending, iAValueType::Continuous, -1.0, 0.0, 2.0);
 
 		// volume properties:
-		auto spc = data->image()->GetSpacing();
+		auto spc = data->vtkImage()->GetSpacing();
 		QVector<double> spacing({spc[0], spc[1], spc[2]});
 		addAttribute(Spacing, iAValueType::Vector3, QVariant::fromValue(spacing));
 
@@ -681,7 +681,7 @@ public:
 		
 		QVector<double> spc = values[Spacing].value<QVector<double>>();
 		assert(spc.size() == 3);
-		m_image->image()->SetSpacing(spc.data());
+		m_image->vtkImage()->SetSpacing(spc.data());
 	}
 	/*
 	void setMovable(bool movable) override
@@ -696,7 +696,7 @@ public:
 	//}
 	iAAABB bounds() override
 	{
-		return iAAABB(m_image->image()->GetBounds());
+		return iAAABB(m_image->vtkImage()->GetBounds());
 	}
 	double const* orientation() const override
 	{

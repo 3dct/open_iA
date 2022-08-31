@@ -25,7 +25,7 @@
 #include "iARepresentative.h"
 #include "iASEAFile.h"
 
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iALog.h>
 #include <iAFilter.h>
 #include <iAFilterRegistry.h>
@@ -59,8 +59,8 @@ iADifferenceMarker::iADifferenceMarker():
 void iADifferenceMarker::performWork(QVariantMap const & params)
 {
 	QVector<iAITKIO::ImagePointer> imgs;
-	imgs.push_back(input(0)->itkImage());
-	imgs.push_back(input(1)->itkImage());
+	imgs.push_back(imageInput(0)->itkImage());
+	imgs.push_back(imageInput(1)->itkImage());
 	auto out = CalculateDifferenceMarkers(imgs, params["Difference marker value"].toDouble());
 	if (!out)
 	{

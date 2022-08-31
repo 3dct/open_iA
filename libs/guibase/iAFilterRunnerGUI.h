@@ -33,6 +33,7 @@
 
 #include <memory>
 
+class iADataSet;
 class iAFilter;
 class iAMainWindow;
 class iAMdiChild;
@@ -51,7 +52,7 @@ public:
 	iAFilterRunnerGUIThread(std::shared_ptr<iAFilter> filter, QVariantMap paramValues, iAMdiChild* sourceMDI);
 	void run() override;
 	std::shared_ptr<iAFilter> filter();
-	void addInput(vtkImageData* img, QString const& fileName);
+	void addInput(std::shared_ptr<iADataSet> dataSet);
 	size_t inputCount() const;
 	void abort() override;
 	iAMdiChild* sourceMDI();
@@ -127,8 +128,7 @@ signals:
 	//! to be emitted at the end of the filter thread run
 	void finished();
 private:
-	QVector<vtkSmartPointer<vtkImageData> > m_additionalInput;
-	QVector<QString> m_additionalFileNames;
+	std::vector<std::shared_ptr<iADataSet>> m_additionalInput;
 	QString m_sourceFileName;
 };
 

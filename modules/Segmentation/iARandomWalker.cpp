@@ -28,7 +28,7 @@
 #include "iAVectorDistanceImpl.h"
 
 #include <defines.h>     // for DIM
-#include <iAConnector.h>
+#include <iADataSet.h>
 #ifndef NDEBUG
 #include <iAMathUtility.h>    // for dblApproxEqual used in assert
 #endif
@@ -255,14 +255,14 @@ IAFILTER_CREATE(iARandomWalker)
 
 void iARandomWalker::performWork(QVariantMap const & parameters)
 {
-	int const * dim = input(0)->vtkImage()->GetDimensions();
-	double const * spc = input(0)->vtkImage()->GetSpacing();
+	int const * dim = imageInput(0)->vtkImage()->GetDimensions();
+	double const * spc = imageInput(0)->vtkImage()->GetSpacing();
 	QVector<iARWInputChannel> inputChannels;
 	iARWInputChannel inputChannel;
 	auto vtkPixelAccess = QSharedPointer<iAvtkPixelVectorArray>::create(dim);
 	for (size_t i = 0; i < inputCount(); ++i)
 	{
-		vtkPixelAccess->AddImage(input(i)->vtkImage());
+		vtkPixelAccess->AddImage(imageInput(i)->vtkImage());
 	}
 	inputChannel.image = vtkPixelAccess;
 	inputChannel.distanceFunc = GetDistanceMeasure(parameters["Distance Function"].toString());
@@ -416,12 +416,12 @@ void iARandomWalker::performWork(QVariantMap const & parameters)
 #endif
 		// put values into probability image
 		iAITKIO::ImagePointer pImg = allocateImage(dim, spc, itk::ImageIOBase::DOUBLE);
-		ITK_TYPED_CALL(SetIndexMapValues, input(0)->itkScalarPixelType(), pImg, x, unlabeledMap, imageGraph.converter());
-		ITK_TYPED_CALL(SetIndexMapValues, input(0)->itkScalarPixelType(), pImg, boundary, seedMap, imageGraph.converter());
+		ITK_TYPED_CALL(SetIndexMapValues, inputPixelType(), pImg, x, unlabeledMap, imageGraph.converter());
+		ITK_TYPED_CALL(SetIndexMapValues, inputPixelType(), pImg, boundary, seedMap, imageGraph.converter());
 		probImgs.push_back(pImg);
 	}
 	iAITKIO::ImagePointer labelImg;
-	ITK_TYPED_CALL(CreateLabelImage, input(0)->itkScalarPixelType(), dim, spc, probImgs, labelCount, labelImg );
+	ITK_TYPED_CALL(CreateLabelImage, inputPixelType(), dim, spc, probImgs, labelCount, labelImg );
 	addOutput(labelImg);
 	setOutputName(0u, "Label Image");
 	for (int i = 0; i < labelCount; ++i)
@@ -462,14 +462,14 @@ IAFILTER_CREATE(iAExtendedRandomWalker)
 
 void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 {
-	int const * dim = input(0)->vtkImage()->GetDimensions();
-	double const * spc = input(0)->vtkImage()->GetSpacing();
+	int const * dim = imageInput(0)->vtkImage()->GetDimensions();
+	double const * spc = imageInput(0)->vtkImage()->GetSpacing();
 	QVector<iARWInputChannel> inputChannels;
 	iARWInputChannel inputChannel;
 	auto vtkPixelAccess = QSharedPointer<iAvtkPixelVectorArray>::create(dim);
 	for (int i = 0; static_cast<unsigned int>(i) < firstInputChannels(); ++i)
 	{
-		vtkPixelAccess->AddImage(input(i)->vtkImage());
+		vtkPixelAccess->AddImage(imageInput(i)->vtkImage());
 	}
 	inputChannel.image = vtkPixelAccess;
 	inputChannel.distanceFunc = GetDistanceMeasure(parameters["Distance Function"].toString());
@@ -479,10 +479,10 @@ void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 	iAVertexIndexType vertexCount = static_cast<iAVertexIndexType>(dim[0]) * dim[1] * dim[2];
 	iAImageGraph imageGraph(dim[0], dim[1], dim[2], iAImageCoordinate::ColRowDepMajor);
 
-	QVector<iAConnector const*> priorModel;
+	std::vector<iAImageData const*> priorModel;
 	for (size_t p = firstInputChannels(); p < inputCount(); ++p)
 	{
-		priorModel.push_back(input(p));
+		priorModel.push_back(imageInput(p));
 	}
 
 	if (inputChannels.empty())
@@ -616,13 +616,13 @@ void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 #endif
 		// put values into probability image
 		iAITKIO::ImagePointer pImg = allocateImage(dim, spc, itk::ImageIOBase::DOUBLE);
-		ITK_TYPED_CALL(SetIndexMapValues, input(0)->itkScalarPixelType(), pImg, x, fullMap, imageGraph.converter());
+		ITK_TYPED_CALL(SetIndexMapValues, inputPixelType(), pImg, x, fullMap, imageGraph.converter());
 		probImgs.push_back(pImg);
 	}
 	// create labelled image (as value at k = arg l max(p_l^k) for each pixel k)
 
 	iAITKIO::ImagePointer labelImg;
-	ITK_TYPED_CALL(CreateLabelImage, input(0)->itkScalarPixelType(), dim, spc, probImgs, labelCount, labelImg);
+	ITK_TYPED_CALL(CreateLabelImage, inputPixelType(), dim, spc, probImgs, labelCount, labelImg);
 	addOutput(labelImg);
 	setOutputName(0u, "Label Image");
 	for (int i = 0; i < labelCount; ++i)
@@ -650,15 +650,15 @@ void iAMaximumDecisionRule::performWork(QVariantMap const & /*parameters*/)
 	{
 		throw std::invalid_argument("Input has to have at least two channels!");
 	}
-	int const * dim = input(0)->vtkImage()->GetDimensions();
-	double const * spc = input(0)->vtkImage()->GetSpacing();
+	int const * dim = imageInput(0)->vtkImage()->GetDimensions();
+	double const * spc = imageInput(0)->vtkImage()->GetSpacing();
 	QVector<iAITKIO::ImagePointer> probImgs;
 	for (size_t i = 0; i < inputCount(); ++i)
 	{
-		probImgs.push_back(input(i)->itkImage());
+		probImgs.push_back(imageInput(i)->itkImage());
 	}
 	iAITKIO::ImagePointer labelImg;
-	ITK_TYPED_CALL(CreateLabelImage, input(0)->itkScalarPixelType(), dim, spc, probImgs, inputCount(), labelImg);
+	ITK_TYPED_CALL(CreateLabelImage, inputPixelType(), dim, spc, probImgs, inputCount(), labelImg);
 	addOutput(labelImg);
 }
 
@@ -687,7 +687,7 @@ void iALabelImageToSeeds::performWork(QVariantMap const& parameters)
 		return;
 	}
 	QTextStream out(&f);
-	auto img = input(0)->vtkImage();
+	auto img = imageInput(0)->vtkImage();
 	FOR_VTKIMG_PIXELS(img, x, y, z)
 	{
 		auto pixelValue = img->GetScalarComponentAsDouble(x, y, z, 0);

@@ -1000,7 +1000,7 @@ void dlg_Consensus::LoadConfig()
 		params.insert(spnOverwriteOutput, true);
 		params.insert(spnCompressOutput, true);
 		auto sampler = QSharedPointer<iAImageSampler>::create(
-			m_mdiChild->modalities(),
+			m_mdiChild->dataSets(),
 			params,
 			samplingResults->attributes(),
 			samplingResults->attributes(), // TODO: check if this hack of using the same for ranges and spec works

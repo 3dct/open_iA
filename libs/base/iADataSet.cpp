@@ -97,7 +97,7 @@ iAPolyData::iAPolyData(QString const& fileName, vtkSmartPointer<vtkPolyData> mes
 {
 }
 
-vtkSmartPointer<vtkPolyData> iAPolyData::poly()
+vtkSmartPointer<vtkPolyData> iAPolyData::poly() const
 {
 	return m_mesh;
 }
@@ -125,7 +125,7 @@ iAGraphData::iAGraphData(QString const& fileName, vtkSmartPointer<vtkPolyData> m
 {
 }
 
-vtkSmartPointer<vtkPolyData> iAGraphData::poly()
+vtkSmartPointer<vtkPolyData> iAGraphData::poly() const
 {
 	return m_mesh;
 }
@@ -137,15 +137,33 @@ QString iAGraphData::info() const
 
 // ---------- iAImageData ----------
 
+#include "iAConnector.h"
+
 iAImageData::iAImageData(QString const& fileName, vtkSmartPointer<vtkImageData> img):
 	iADataSet(fileName, iADataSetType::Volume),
-	m_img(img)
+	m_img(img),
+	m_con(nullptr)
 {
 }
 
-vtkSmartPointer<vtkImageData> iAImageData::image()
+iAImageData::~iAImageData()
+{
+	delete m_con;
+}
+
+vtkSmartPointer<vtkImageData> iAImageData::vtkImage() const
 {
 	return m_img;
+}
+
+itk::ImageBase<3>* iAImageData::itkImage() const
+{
+	if (!m_con)
+	{
+		m_con = new iAConnector();
+	}
+	m_con->setImage(m_img);
+	return m_con->itkImage();
 }
 
 unsigned long long iAImageData::voxelCount() const

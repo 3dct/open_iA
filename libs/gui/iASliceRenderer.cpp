@@ -59,7 +59,7 @@ public:
 	{
 		for (int s = 0; s < 3; ++s)
 		{
-			slicer[s]->addChannel(m_channelID, iAChannelData(imgData->name(), imgData->image(), transfer->colorTF()), true);
+			slicer[s]->addChannel(m_channelID, iAChannelData(imgData->name(), imgData->vtkImage(), transfer->colorTF()), true);
 			slicer[s]->resetCamera();
 		}
 	}

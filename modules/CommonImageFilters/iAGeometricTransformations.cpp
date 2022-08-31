@@ -21,7 +21,6 @@
 #include "iAGeometricTransformations.h"
 
 #include <defines.h>          // for DIM
-#include <iAConnector.h>
 #include <iADataSet.h>
 #include <iAMathUtility.h>
 #include <iAProgress.h>
@@ -48,7 +47,7 @@ IAFILTER_CREATE(iAExtractComponent)
 void iAExtractComponent::performWork(QVariantMap const& parameters)
 {
 	int const componentNr = parameters["Component to extract"].toInt();
-	auto img = input(0)->vtkImage();
+	auto img = imageInput(0)->vtkImage();
 	if (componentNr > img->GetNumberOfScalarComponents())
 	{
 		LOG(lvlWarn,
@@ -78,7 +77,7 @@ iAExtractComponent::iAExtractComponent() :
 void iAExtractComponent::adaptParametersToInput(QVariantMap& /* params */, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
 {
 	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
-	paramsWritable()[0]->adjustMinMax(dynamic_cast<iAImageData*>(dataSets[0].get())->image()->GetNumberOfScalarComponents());
+	paramsWritable()[0]->adjustMinMax(dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage()->GetNumberOfScalarComponents());
 }
 
 
@@ -93,8 +92,8 @@ namespace
 template<typename T> void simpleResampler(iAFilter* filter, QVariantMap const & parameters)
 {
 	double VoxelScale = 0.999; //Used because otherwise is a one voxel border with 0
-	auto inImg = filter->input(0)->itkImage();
-	auto inSize = filter->input(0)->vtkImage()->GetDimensions();
+	auto inImg = filter->imageInput(0)->itkImage();
+	auto inSize = filter->imageInput(0)->vtkImage()->GetDimensions();
 
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
@@ -170,7 +169,7 @@ iASimpleResampleFilter::iASimpleResampleFilter() :
 void iASimpleResampleFilter::adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
 {
 	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
-	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->image();
+	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage();
 	auto dim = img->GetDimensions();
 	params["Size"] = variantVector<int>({dim[0], dim[1], dim[2]});
 }
@@ -218,7 +217,7 @@ void resampler(iAFilter* filter, QVariantMap const& parameters)
 		auto interpolator = InterpolatorType::New();
 		resampler->SetInterpolator(interpolator);
 	}
-	resampler->SetInput(dynamic_cast<InputImageType*>(filter->input(0)->itkImage()));
+	resampler->SetInput(dynamic_cast<InputImageType*>(filter->imageInput(0)->itkImage()));
 	resampler->SetOutputOrigin(origin);
 	resampler->SetOutputSpacing(spacing);
 	resampler->SetSize(size);
@@ -257,7 +256,7 @@ iAResampleFilter::iAResampleFilter() :
 void iAResampleFilter::adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
 {
 	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
-	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->image();
+	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage();
 	auto spc = img->GetSpacing();
 	params["Spacing"] = variantVector<double>({spc[0], spc[1], spc[2]});
 	auto dim     = img->GetDimensions();
@@ -281,7 +280,7 @@ void extractImage(iAFilter* filter, QVariantMap const & parameters)
 	typename EIFType::InputImageRegionType region; region.SetIndex(index); region.SetSize(size);
 
 	auto extractFilter = EIFType::New();
-	extractFilter->SetInput(dynamic_cast< InputImageType * >(filter->input(0)->itkImage()));
+	extractFilter->SetInput(dynamic_cast< InputImageType * >(filter->imageInput(0)->itkImage()));
 	extractFilter->SetExtractionRegion(region);
 	filter->progress()->observe(extractFilter);
 	extractFilter->Update();
@@ -311,7 +310,7 @@ iAExtractImageFilter::iAExtractImageFilter() :
 void iAExtractImageFilter::adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
 {
 	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
-	adjustIndexAndSizeToImage(params, dynamic_cast<iAImageData*>(dataSets[0].get())->image());
+	adjustIndexAndSizeToImage(params, dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage());
 }
 
 
@@ -333,7 +332,7 @@ template<typename T> void padImage(iAFilter* filter, QVariantMap const & paramet
 	upperPadSize[2] = parameters["Upper Z padding"].toUInt();
 
 	auto padFilter = PadType::New();
-	padFilter->SetInput(dynamic_cast< InputImageType * >(filter->input(0)->itkImage()));
+	padFilter->SetInput(dynamic_cast< InputImageType * >(filter->imageInput(0)->itkImage()));
 	padFilter->SetPadLowerBound(lowerPadSize);
 	padFilter->SetPadUpperBound(upperPadSize);
 	padFilter->SetConstant(parameters["Value"].toDouble());

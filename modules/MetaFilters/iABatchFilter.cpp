@@ -25,6 +25,9 @@
 #include <iAFilterRegistry.h>
 #include <iAProgress.h>
 
+// io
+#include <iAFileTypeRegistry.h>
+
 // base
 #include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
@@ -121,9 +124,8 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 		return;
 	}
 	QString batchDir = parameters["Image folder"].toString();
-	QVector<iAITKIO::ImagePointer> inputImages;
+	std::vector<std::shared_ptr<iADataSet>> inputImages;
 	QStringList additionalInput = splitPossiblyQuotedString(parameters["Additional Input"].toString());
-	QStringList additionalFileNames;
 	for (QString fileName : additionalInput)
 	{
 		if (isAborted())
@@ -131,10 +133,14 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 			break;
 		}
 		fileName = MakeAbsolute(batchDir, fileName);
-		additionalFileNames.push_back(fileName);
-		iAITKIO::ScalarPixelType pixelType;
-		iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
-		inputImages.push_back(img);
+		auto io = iAFileTypeRegistry::createIO(fileName);
+		QVariantMap dummyParams;    // TODO: CHECK whether I/O requires other parameters and error in that case!
+		iAProgress dummyProgress;
+		auto dataSets = io->load(fileName, dummyParams, &dummyProgress);
+		for (auto d : dataSets)
+		{
+			inputImages.push_back(d);
+		}
 	}
 
 	for (int i = 0; i < filterParamStrs.size(); ++i)
@@ -217,12 +223,17 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 			{
 				if (filter->requiredInputs() > 0)
 				{
-					iAITKIO::ScalarPixelType pixelType;
-					iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
-					filter->addInput(img, fileName);
+					auto io = iAFileTypeRegistry::createIO(fileName);
+					QVariantMap dummyParams;    // TODO: CHECK whether I/O requires other parameters and error in that case!
+					iAProgress dummyProgress;
+					auto dataSets = io->load(fileName, dummyParams, &dummyProgress);
+					for (auto d: dataSets)
+					{
+						filter->addInput(d);
+					}
 					for (int i = 0; i < inputImages.size(); ++i)
 					{
-						filter->addInput(inputImages[i], additionalFileNames[i]);
+						filter->addInput(inputImages[i]);
 					}
 				}
 				/*
@@ -312,8 +323,11 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 				}
 				else
 				{
-					iAITKIO::writeFile(outName, filter->output(o)->itkImage(),
-						filter->output(o)->itkScalarPixelType(), useCompression);
+					auto io = iAFileTypeRegistry::createIO(fileName);
+					QVariantMap writeParamValues;    // TODO: CHECK whether I/O requires other parameters and error in that case!
+					iAProgress dummyProgress;
+					writeParamValues[iAFileIO::CompressionStr] = useCompression;
+					io->save(outName, { filter->output(o) }, writeParamValues, &dummyProgress);
 				}
 			}
 		}

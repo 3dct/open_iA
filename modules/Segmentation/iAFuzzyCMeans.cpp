@@ -24,7 +24,7 @@
 #include <iAProgress.h>
 
 // base
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iALog.h>
 #include <iATypedCallHelper.h>
 #include <iAITKIO.h>
@@ -147,7 +147,7 @@ void fcm(iAFilter* filter, QVariantMap const & params)
 	classifier->SetCentroids(centroidsArray);
 	classifier->SetIgnoreBackgroundPixels(params["Ignore Background"].toBool());
 	classifier->SetBackgroundPixel(params["Background Value"].toDouble());
-	classifier->SetInput(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
+	classifier->SetInput(dynamic_cast<InputImageType *>(filter->imageInput(0)->itkImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
 	auto labelClass = TLabelClassifier::New();
@@ -253,7 +253,7 @@ void kfcm(iAFilter* filter, QVariantMap const & parameters)
 	classifier->SetStructuringElement(structuringElement);
 	classifier->SetIgnoreBackgroundPixels(parameters["Ignore Background"].toBool());
 	classifier->SetBackgroundPixel(parameters["Background Value"].toDouble());
-	classifier->SetInput(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
+	classifier->SetInput(dynamic_cast<InputImageType *>(filter->imageInput(0)->itkImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
 	TLabelClassifier::Pointer labelClass = TLabelClassifier::New();
@@ -352,7 +352,7 @@ void mskfcm(iAFilter* filter, QVariantMap const & parameters)
 	classifier->SetStructuringElement(structuringElement);
 	classifier->SetIgnoreBackgroundPixels(parameters["Ignore Background"].toBool());
 	classifier->SetBackgroundPixel(parameters["Background Value"].toDouble());
-	classifier->SetInput(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
+	classifier->SetInput(dynamic_cast<InputImageType *>(filter->imageInput(0)->itkImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
 	auto labelClass = TLabelClassifier::New();

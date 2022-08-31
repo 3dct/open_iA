@@ -21,7 +21,7 @@
 #include "iATransformations.h"
 
 #include <defines.h>    // for DIM
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
@@ -65,8 +65,8 @@ template<class TPixelType> void flip(iAFilter* filter, QString const & axis)
 	auto flipFilter = FilterType::New();
 	typename FilterType::FlipAxesArrayType flip;
 	typename ImageType::PointType origin;
-	center_image<ImageType>(dynamic_cast<ImageType *>(filter->input(0)->itkImage()), &origin);
-	flipFilter->SetInput(dynamic_cast<ImageType *>(filter->input(0)->itkImage()));
+	center_image<ImageType>(dynamic_cast<ImageType *>(filter->imageInput(0)->itkImage()), &origin);
+	flipFilter->SetInput(dynamic_cast<ImageType *>(filter->imageInput(0)->itkImage()));
 	flip[0] = (axis == "X");
 	flip[1] = (axis == "Y");
 	flip[2] = (axis == "Z");
@@ -104,7 +104,7 @@ static void affine(iAFilter* filter, itk::AffineTransform<TPrecision, DIM> * tra
 	typedef itk::Image<TPixelType, DIM>         			ImageType;
 	typedef itk::ResampleImageFilter<ImageType, ImageType, TPrecision>	FilterType;
 
-	ImageType * inpImage = dynamic_cast<ImageType *>(filter->input(0)->itkImage());
+	ImageType * inpImage = dynamic_cast<ImageType *>(filter->imageInput(0)->itkImage());
 	auto inpOrigin = inpImage->GetOrigin();
 	auto inpSize = inpImage->GetLargestPossibleRegion().GetSize();
 	auto inpSpacing = inpImage->GetSpacing();
@@ -129,7 +129,7 @@ void permute(iAFilter* filter, QString const& orderStr)
 
 	auto permFilter = FilterType::New();
 	typename FilterType::PermuteOrderArrayType order;
-	permFilter->SetInput(dynamic_cast<ImageType*>(filter->input(0)->itkImage()));
+	permFilter->SetInput(dynamic_cast<ImageType*>(filter->imageInput(0)->itkImage()));
 	for (int k = 0; k < 3; k++)
 	{
 		char axes = orderStr.at(k).toUpper().toLatin1();
@@ -186,7 +186,7 @@ static void rotate(iAFilter* filter, QVariantMap const & parameters)
 	rotationAxis[2] = parameters["Rotation axis"].toString() == "Rotation along Z" ? 1 : 0;
 
 	//get rotation center
-	ImageType * inpImage = dynamic_cast<ImageType *>(filter->input(0)->itkImage());
+	ImageType * inpImage = dynamic_cast<ImageType *>(filter->imageInput(0)->itkImage());
 	if (parameters["Rotation center"] == "Image center")
 	{
 		center = image_center(inpImage);

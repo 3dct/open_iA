@@ -24,7 +24,7 @@
 #include <iAEntropyImageFilter.h>
 
 #include <defines.h>    // for DIM
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iATypedCallHelper.h>
 
 iAEntropy::iAEntropy() :
@@ -56,7 +56,7 @@ void entropy(iAFilter* filter, QVariantMap const & parameters)
 	auto entropyFilter = EntropyFilter::New();
 	for (size_t i = 0; i < filter->inputCount(); ++i)
 	{
-		entropyFilter->SetInput(i, dynamic_cast<InputImageType*>(filter->input(i)->itkImage()));
+		entropyFilter->SetInput(i, dynamic_cast<InputImageType*>(filter->imageInput(i)->itkImage()));
 	}
 	entropyFilter->SetNormalize(parameters["Normalize"].toBool());
 	entropyFilter->Update();

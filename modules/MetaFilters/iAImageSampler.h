@@ -38,8 +38,8 @@ class iASampleOperation;
 class iASamplingResults;
 class iASingleResult;
 
+class iADataSet;
 class iALogger;
-class iAModalityList;
 class iAProgress;
 
 class MetaFilters_API iAImageSampler: public QObject, public iADurationEstimator, public iAAbortListener
@@ -47,7 +47,7 @@ class MetaFilters_API iAImageSampler: public QObject, public iADurationEstimator
 	Q_OBJECT
 public:
 	iAImageSampler(
-		QSharedPointer<iAModalityList> datasets,
+		std::vector<std::shared_ptr<iADataSet>> datasets,
 		QVariantMap const & parameters,
 		QSharedPointer<iAAttributes> parameterRanges,
 		QSharedPointer<iAAttributes> parameterSpecs,
@@ -69,7 +69,7 @@ signals:
 private:
 	//! @{
 	//! input
-	QSharedPointer<iAModalityList> m_datasets;
+	std::vector<std::shared_ptr<iADataSet>> m_datasets;
 	QVariantMap const& m_parameters;
 	QSharedPointer<iAAttributes> m_parameterRanges;
 	QSharedPointer<iAAttributes> m_parameterSpecs;

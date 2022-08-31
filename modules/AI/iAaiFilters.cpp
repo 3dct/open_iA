@@ -22,7 +22,7 @@
 
 #include "defines.h" // for DIM
 
-#include "iAConnector.h"
+#include "iADataSet.h"
 #include "iALog.h"
 #include "iAProgress.h"
 #include "iAStringHelper.h"    // for joinStdString
@@ -193,7 +193,7 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 
 	using FilterType = itk::CastImageFilter<InputImageType, ImageType>;
 	typename FilterType::Pointer castFilter = FilterType::New();
-	castFilter->SetInput(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
+	castFilter->SetInput(dynamic_cast<InputImageType *>(filter->imageInput(0)->itkImage()));
 	castFilter->Update();
 	auto itk_img = castFilter->GetOutput();
 
@@ -444,7 +444,7 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 	}
 	for (auto outputImage : outputs)
 	{
-		outputImage->SetSpacing(filter->input(0)->itkImage()->GetSpacing());
+		outputImage->SetSpacing(filter->imageInput(0)->itkImage()->GetSpacing());
 		filter->addOutput(outputImage);
 	}
 }
@@ -453,7 +453,7 @@ IAFILTER_CREATE(iAai)
 
 void iAai::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(executeDNN, input(0)->itkScalarPixelType(), this, parameters);
+	ITK_TYPED_CALL(executeDNN, inputPixelType(), this, parameters);
 }
 
 iAai::iAai() :

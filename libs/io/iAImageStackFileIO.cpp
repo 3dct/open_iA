@@ -174,7 +174,7 @@ bool iAImageStackFileIO::isDataSetSupported(std::shared_ptr<iADataSet> dataSet, 
 	auto ext = QFileInfo(fileName).suffix().toLower();
 	auto imgData = dynamic_cast<iAImageData*>(dataSet.get());
 	assert(imgData);
-	auto type = imgData->image()->GetScalarType();
+	auto type = imgData->vtkImage()->GetScalarType();
 	return type == VTK_UNSIGNED_CHAR || // supported by all file formats
 		((ext == "tif" || ext == "tiff") && (type == VTK_UNSIGNED_SHORT || type == VTK_FLOAT));
 }
@@ -239,7 +239,7 @@ void iAImageStackFileIO::save(QString const& fileName, std::vector<std::shared_p
 {
 	Q_UNUSED(paramValues);
 	assert(dataSets.size() == 1);
-	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->image();
+	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage();
 	iAConnector con;
 	con.setImage(img);
 	auto pixelType = con.itkScalarPixelType();

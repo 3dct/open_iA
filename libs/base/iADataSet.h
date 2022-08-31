@@ -32,6 +32,7 @@
 #include <QString>
 #include <QVariant>    // for QVariantMap (at least under Qt 5.15.2)
 
+class iAConnector;
 class iAProgress;
 
 class vtkPolyData;
@@ -79,7 +80,7 @@ class iAbase_API iAPolyData : public iADataSet
 {
 public:
 	iAPolyData(QString const& fileName, vtkSmartPointer<vtkPolyData> mesh);
-	vtkSmartPointer<vtkPolyData> poly();
+	vtkSmartPointer<vtkPolyData> poly() const;
 	QString info() const override;
 	std::array<double, 3> unitDistance() const override;
 
@@ -94,7 +95,7 @@ class iAbase_API iAGraphData : public iADataSet
 {
 public:
 	iAGraphData(QString const& fileName, vtkSmartPointer<vtkPolyData> mesh);
-	vtkSmartPointer<vtkPolyData> poly();
+	vtkSmartPointer<vtkPolyData> poly() const;
 	QString info() const override;
 
 private:
@@ -103,12 +104,16 @@ private:
 	vtkSmartPointer<vtkPolyData> m_mesh;
 };
 
+#include <itkImageBase.h>
+
 //! an image (/volume) dataset
 class iAbase_API iAImageData : public iADataSet
 {
 public:
 	iAImageData(QString const& fileName, vtkSmartPointer<vtkImageData> img);
-	vtkSmartPointer<vtkImageData> image();
+	~iAImageData();
+	vtkSmartPointer<vtkImageData> vtkImage() const;
+	itk::ImageBase<3>* itkImage() const;
 	QString info() const override;
 	std::array<double, 3> unitDistance() const override;
 	unsigned long long voxelCount() const;
@@ -117,6 +122,7 @@ private:
 	iAImageData(iAImageData const& other) = delete;
 	iAImageData& operator=(iAImageData const& other) = delete;
 	vtkSmartPointer<vtkImageData> m_img;
+	mutable iAConnector* m_con;
 };
 
 iAbase_API QString boundsStr(double const* bds);

@@ -23,7 +23,7 @@
 #include "svm.h"
 
 #include <defines.h>    // for DIM
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iALog.h>
 #include <iAImageCoordinate.h>
 #include <iAProgress.h>
@@ -74,7 +74,7 @@ void iASVMImageFilter::performWork(QVariantMap const & parameters)
 	param.coef0 = parameters["Coef0"].toDouble();
 	param.probability = 1;
 
-	int const * dim = input(0)->vtkImage()->GetDimensions();
+	int const * dim = imageInput(0)->vtkImage()->GetDimensions();
 	auto seeds = ExtractSeedVector(parameters["Seeds"].toString(), dim[0], dim[1], dim[2]);
 
 	// default parameters:
@@ -111,7 +111,7 @@ void iASVMImageFilter::performWork(QVariantMap const & parameters)
 		for (size_t m = 0; m < inputCount(); ++m)
 		{
 			x_space[curSpaceIdx].index = static_cast<int>(m);
-			x_space[curSpaceIdx].value = input(m)->vtkImage()
+			x_space[curSpaceIdx].value = imageInput(m)->vtkImage()
 				->GetScalarComponentAsDouble(seed.first.x, seed.first.y, seed.first.z, 0);
 				// TODO: potentially slow! use GetScalarPointer instead?
 			++curSpaceIdx;
@@ -145,7 +145,7 @@ void iASVMImageFilter::performWork(QVariantMap const & parameters)
 	QVector<vtkSmartPointer<vtkImageData> > probabilities(labelCount);
 	svm_node* node = new svm_node[inputCount() + 1];
 	node[inputCount()].index = -1;  // the termination marker
-	double const* spc = input(0)->vtkImage()->GetSpacing();
+	double const* spc = imageInput(0)->vtkImage()->GetSpacing();
 	double * prob_estimates = new double[labelCount];
 
 	for (int l = 0; l < labelCount; ++l)
@@ -155,12 +155,12 @@ void iASVMImageFilter::performWork(QVariantMap const & parameters)
 	}
 
 	// for each pixel, execute svm_predict :
-	FOR_VTKIMG_PIXELS(input(0)->vtkImage(), x, y, z)
+	FOR_VTKIMG_PIXELS(imageInput(0)->vtkImage(), x, y, z)
 	{
 		for (size_t m = 0; m < inputCount(); ++m)
 		{
 			node[m].index = m;
-			node[m].value = input(m)->vtkImage()->GetScalarComponentAsDouble(x, y, z, 0);
+			node[m].value = imageInput(m)->vtkImage()->GetScalarComponentAsDouble(x, y, z, 0);
 		}
 		/*double label =*/ svm_predict_probability(model, node, prob_estimates);
 		/*double label2 =*/ svm_predict(model, node);
@@ -240,7 +240,7 @@ template<class T> void kmeansclustering(iAFilter* filter, QVariantMap const & pa
 
 	typedef itk::ScalarImageKmeansImageFilter<ImageType, IntImageType> KMeansFilterType;
 	auto kmeansFilter = KMeansFilterType::New();
-	kmeansFilter->SetInput(dynamic_cast<ImageType*> (filter->input(0)->itkImage()));
+	kmeansFilter->SetInput(dynamic_cast<ImageType*> (filter->imageInput(0)->itkImage()));
 	kmeansFilter->SetUseNonContiguousLabels(parameters["Non-contiguous labels"].toBool());
 	QStringList means = parameters["Initial means"].toString().split(" ");
 	for (QString mean: means)

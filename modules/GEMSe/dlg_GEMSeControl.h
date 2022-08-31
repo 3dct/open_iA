@@ -58,6 +58,7 @@ public:
 		QWidget *parentWidget,
 		dlg_GEMSe* dlgGEMSe,
 		dlg_modalities* dlgModalities,
+		//std::vector<std::shared_ptr<iADataSet>> const & dataSets,
 		dlg_samplings* dlgSamplings,
 		iAColorTheme const * colorTheme
 	);

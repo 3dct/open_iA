@@ -2743,6 +2743,11 @@ iAPreferences const & MainWindow::defaultPreferences() const
 	return m_defaultPreferences;
 }
 
+iARenderSettings const& MainWindow::defaultRenderSettings() const
+{
+	return m_defaultRenderSettings;
+}
+
 iAVolumeSettings const& MainWindow::defaultVolumeSettings() const
 {
 	return m_defaultVolumeSettings;

@@ -90,7 +90,7 @@ void iAImageProcessingHelper::prepareFilter(double greyThresholdLower, double gr
 	{
 		throw std::invalid_argument("Could not retrieve Binary Thresholding filter. Make sure Segmentation plugin was loaded correctly!");
 	}
-	filter->addInput(m_child->firstImageData(), m_child->currentFile());
+	filter->addInput(m_child->dataSets()[0]);  // TODO: should take first image dataset!
 	QVariantMap parameters;
 	parameters["Lower threshold"] = greyThresholdLower;
 	parameters["Upper threshold"] = greyThresholdUpper;
@@ -99,9 +99,11 @@ void iAImageProcessingHelper::prepareFilter(double greyThresholdLower, double gr
 	filter->run(parameters);
 
 	iAMdiChild* newChild = m_child->mainWnd()->createMdiChild(true);
+	// TODO: check if we need to apply preferences...
+	//dynamic_cast<MdiChild*>(targetChild)->applyPreferences(m_defaultPreferences);
+	newChild->applyRendererSettings(m_child->mainWnd()->defaultRenderSettings(), m_child->mainWnd()->defaultVolumeSettings());
 	newChild->show();
-	newChild->displayResult("Adaptive Thresholding", filter->output(0)->vtkImage());
-	newChild->enableRenderWindows();
+	newChild->addDataSet(filter->output(0));
 }
 
 void iAImageProcessingHelper::imageToReslicer()

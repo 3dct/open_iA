@@ -21,7 +21,7 @@
 #include "iAIntensity.h"
 
 #include <defines.h>          // for DIM
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
@@ -53,7 +53,7 @@ template<class T> void invert_intensity(iAFilter* filter, QVariantMap const & pa
 	typedef itk::InvertIntensityImageFilter< ImageType, ImageType> InvertFilterType;
 
 	auto invFilter = InvertFilterType::New();
-	invFilter->SetInput(0, dynamic_cast< ImageType * >(filter->input(0)->itkImage()));
+	invFilter->SetInput(0, dynamic_cast< ImageType * >(filter->imageInput(0)->itkImage()));
 	if (parameters["Set Maximum"].toBool())
 	{
 		invFilter->SetMaximum(parameters["Maximum"].toDouble());
@@ -92,7 +92,7 @@ template<class T> void normalize(iAFilter* filter)
 	typedef itk::NormalizeImageFilter< ImageType, ImageType > NormalizeFilterType;
 
 	auto normalizeFilter = NormalizeFilterType::New();
-	normalizeFilter->SetInput(dynamic_cast< ImageType * >(filter->input(0)->itkImage()));
+	normalizeFilter->SetInput(dynamic_cast< ImageType * >(filter->imageInput(0)->itkImage()));
 	normalizeFilter->Update();
 	filter->progress()->observe(normalizeFilter);
 	normalizeFilter->Update();
@@ -128,7 +128,7 @@ void intensity_windowing(iAFilter* filter, QVariantMap const & parameters)
 	typedef itk::IntensityWindowingImageFilter <ImageType, ImageType> IntensityWindowingImageFilterType;
 
 	auto intensityWindowingFilter = IntensityWindowingImageFilterType::New();
-	intensityWindowingFilter->SetInput(dynamic_cast< ImageType * >(filter->input(0)->itkImage()));
+	intensityWindowingFilter->SetInput(dynamic_cast< ImageType * >(filter->imageInput(0)->itkImage()));
 	intensityWindowingFilter->SetWindowMinimum(parameters["Window Minimum"].toDouble());
 	intensityWindowingFilter->SetWindowMaximum(parameters["Window Maximum"].toDouble());
 	intensityWindowingFilter->SetOutputMinimum(parameters["Output Minimum"].toDouble());
@@ -175,7 +175,7 @@ template<class T> void threshold(iAFilter* filter, QVariantMap const & parameter
 	thresholdFilter->SetOutsideValue( parameters["Outside value"].toDouble() );
 	thresholdFilter->ThresholdOutside( parameters["Lower threshold"].toDouble(),
 			parameters["Upper threshold"].toDouble());
-	thresholdFilter->SetInput( dynamic_cast< ImageType * >( filter->input(0)->itkImage() ) );
+	thresholdFilter->SetInput( dynamic_cast< ImageType * >( filter->imageInput(0)->itkImage() ) );
 	filter->progress()->observe( thresholdFilter );
 	thresholdFilter->Update();
 	filter->addOutput(thresholdFilter->GetOutput());
@@ -211,7 +211,7 @@ template<class T> void rescaleImage(iAFilter* filter, QVariantMap const & parame
 	typedef itk::RescaleIntensityImageFilter< InputImageType, OutputImageType > RescalerType;
 
 	auto rescaleFilter = RescalerType::New();
-	rescaleFilter->SetInput(dynamic_cast< InputImageType * >(filter->input(0)->itkImage()));
+	rescaleFilter->SetInput(dynamic_cast< InputImageType * >(filter->imageInput(0)->itkImage()));
 	rescaleFilter->SetOutputMinimum(parameters["Output Minimum"].toDouble());
 	rescaleFilter->SetOutputMaximum(parameters["Output Maximum"].toDouble());
 	filter->progress()->observe(rescaleFilter);
@@ -257,7 +257,7 @@ template<typename T> void shiftScale(iAFilter* filter, QVariantMap const & param
 	typedef itk::ShiftScaleImageFilter< InputImageType, OutputImageType > RescalerType;
 
 	auto rescaleFilter = RescalerType::New();
-	rescaleFilter->SetInput(dynamic_cast< InputImageType * >(filter->input(0)->itkImage()));
+	rescaleFilter->SetInput(dynamic_cast< InputImageType * >(filter->imageInput(0)->itkImage()));
 	rescaleFilter->SetShift(parameters["Shift"].toDouble());
 	rescaleFilter->SetScale(parameters["Scale"].toDouble());
 	filter->progress()->observe(rescaleFilter);
@@ -292,7 +292,7 @@ template<class T> void adaptiveHistogramEqualization(iAFilter* filter, QVariantM
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef  itk::AdaptiveHistogramEqualizationImageFilter< InputImageType > AdaptHistoEqualFilterType;
 	auto adaptHistoEqualFilter = AdaptHistoEqualFilterType::New();
-	adaptHistoEqualFilter->SetInput(dynamic_cast< InputImageType * >(filter->input(0)->itkImage()));
+	adaptHistoEqualFilter->SetInput(dynamic_cast< InputImageType * >(filter->imageInput(0)->itkImage()));
 	adaptHistoEqualFilter->SetAlpha(params["Alpha"].toDouble());
 	adaptHistoEqualFilter->SetBeta(params["Beta"].toDouble());
 	adaptHistoEqualFilter->SetRadius(params["Radius"].toUInt());
@@ -338,7 +338,7 @@ void replaceAndShift(iAFilter* filter, QVariantMap const & params)
 {
 	using ImageType = itk::Image<T, DIM>;
 	typedef itk::ImageRegionIterator<ImageType> ImageIterator;
-	auto im = dynamic_cast<ImageType*>(filter->input(0)->itkImage());
+	auto im = dynamic_cast<ImageType*>(filter->imageInput(0)->itkImage());
 	typename ImageType::RegionType region = im->GetLargestPossibleRegion();
 	auto imgOut = ImageType::New();
 	imgOut->SetRegions(region);
@@ -378,14 +378,14 @@ void replaceAndShift(iAFilter* filter, QVariantMap const & params)
 
 void iAReplaceAndShiftFilter::performWork(QVariantMap const& parameters)
 {
-	if (input(0)->itkScalarPixelType() == itk::ImageIOBase::FLOAT ||
-		input(0)->itkScalarPixelType() == itk::ImageIOBase::DOUBLE)
+	if (inputPixelType() == itk::ImageIOBase::FLOAT ||
+		inputPixelType() == itk::ImageIOBase::DOUBLE)
 	{
 		LOG(lvlWarn, "Replace and shift is executed on a real-valued (float/double) input image. "
 			"This only makes sense if the input image only contains discrete values; "
 			"and even then, comparisons might fail. You have been warned!");
 	}
-	ITK_TYPED_CALL(replaceAndShift, input(0)->itkScalarPixelType(), this, parameters);
+	ITK_TYPED_CALL(replaceAndShift, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAReplaceAndShiftFilter)
@@ -415,8 +415,8 @@ template<class T> void addImages(iAFilter* filter)
 
 	auto fusion = AddImageFilter::New();
 	fusion->InPlaceOff();
-	fusion->SetInput1(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
-	auto img2 = castImageTo<T>(filter->input(1)->itkImage());
+	fusion->SetInput1(dynamic_cast<InputImageType *>(filter->imageInput(0)->itkImage()));
+	auto img2 = castImageTo<T>(filter->imageInput(1)->itkImage());
 	fusion->SetInput2(dynamic_cast<InputImageType *>(img2.GetPointer()));
 	filter->progress()->observe(fusion);
 	fusion->Update();
@@ -451,8 +451,8 @@ void multiplyImages(iAFilter* filter)
 	typedef itk::MultiplyImageFilter<InputImageType, InputImageType, OutputImageType> MultiplyFilterType;
 
 	auto mulFilter = MultiplyFilterType::New();
-	mulFilter->SetInput1(dynamic_cast<InputImageType*>(filter->input(0)->itkImage()));
-	auto img2 = castImageTo<T>(filter->input(1)->itkImage());
+	mulFilter->SetInput1(dynamic_cast<InputImageType*>(filter->imageInput(0)->itkImage()));
+	auto img2 = castImageTo<T>(filter->imageInput(1)->itkImage());
 	mulFilter->SetInput2(dynamic_cast<InputImageType*>(img2.GetPointer()));
 	filter->progress()->observe(mulFilter);
 	mulFilter->Update();
@@ -489,8 +489,8 @@ template<class T> void subtractImages(iAFilter* filter)
 	typedef itk::SubtractImageFilter<InputImageType, InputImageType, OutputImageType> SubtractFilterType;
 
 	auto subFilter = SubtractFilterType::New();
-	subFilter->SetInput1(dynamic_cast< InputImageType * >(filter->input(0)->itkImage()));
-	auto img2 = castImageTo<T>(filter->input(1)->itkImage());
+	subFilter->SetInput1(dynamic_cast< InputImageType * >(filter->imageInput(0)->itkImage()));
+	auto img2 = castImageTo<T>(filter->imageInput(1)->itkImage());
 	subFilter->SetInput2(dynamic_cast<InputImageType *>(img2.GetPointer()));
 	filter->progress()->observe(subFilter);
 	subFilter->Update();
@@ -526,8 +526,8 @@ template<class T> void difference(iAFilter* filter, QVariantMap const & paramete
 	auto diffFilter = FilterType::New();
 	diffFilter->SetDifferenceThreshold(parameters["Difference threshold"].toDouble());
 	diffFilter->SetToleranceRadius(parameters["Tolerance radius"].toDouble());
-	diffFilter->SetInput(dynamic_cast< ImageType * >(filter->input(0)->itkImage()));
-	auto img2 = castImageTo<T>(filter->input(1)->itkImage());
+	diffFilter->SetInput(dynamic_cast< ImageType * >(filter->imageInput(0)->itkImage()));
+	auto img2 = castImageTo<T>(filter->imageInput(1)->itkImage());
 	diffFilter->SetInput(1, dynamic_cast<ImageType *>(img2.GetPointer()));
 	filter->progress()->observe(diffFilter);
 	diffFilter->Update();
@@ -566,8 +566,8 @@ template<class T> void mask(iAFilter* filter)
 	typedef itk::MaskImageFilter< ImageType, ImageType > MaskFilterType;
 
 	auto maskFilter = MaskFilterType::New();
-	maskFilter->SetInput(dynamic_cast< ImageType * >(filter->input(0)->itkImage()));
-	maskFilter->SetMaskImage(dynamic_cast< ImageType * >(filter->input(1)->itkImage()));
+	maskFilter->SetInput(dynamic_cast< ImageType * >(filter->imageInput(0)->itkImage()));
+	maskFilter->SetMaskImage(dynamic_cast< ImageType * >(filter->imageInput(1)->itkImage()));
 	filter->progress()->observe(maskFilter);
 	maskFilter->Update();
 	filter->addOutput(maskFilter->GetOutput());
@@ -604,14 +604,14 @@ void histomatch(iAFilter* filter, QVariantMap const & parameters)
 	using HistoMatchFilterType = itk::HistogramMatchingImageFilter<MatchImageType, MatchImageType>;
 
 	auto matcher = HistoMatchFilterType::New();
-	if (itkScalarPixelType(filter->input(0)->itkImage()) != itkScalarPixelType(filter->input(1)->itkImage()))
+	if (itkScalarPixelType(filter->imageInput(0)->itkImage()) != itkScalarPixelType(filter->imageInput(1)->itkImage()))
 	{
 		LOG(lvlWarn, "Second image does not have the same pixel type as the first; I will try to typecast, "
 			"but the filter might not work properly if the data ranges are different.");
 	}
-	auto refImg = castImageTo<T>(filter->input(1)->itkImage());
+	auto refImg = castImageTo<T>(filter->imageInput(1)->itkImage());
 
-	matcher->SetInput(dynamic_cast<MatchImageType*>(filter->input(0)->itkImage()));
+	matcher->SetInput(dynamic_cast<MatchImageType*>(filter->imageInput(0)->itkImage()));
 	matcher->SetReferenceImage(dynamic_cast<MatchImageType*>(refImg.GetPointer()));
 	matcher->SetNumberOfHistogramLevels(parameters["Number of histogram levels"].toUInt() );
 	matcher->SetNumberOfMatchPoints(parameters["Number of match points"].toUInt());
@@ -666,7 +666,7 @@ void fillHistogramm(iAFilter* filter, QVariantMap const& params)
 	Q_UNUSED(params);
 	std::map<T, T> histogramm;
 	using ImageType = itk::Image<T, DIM>;
-	typename ImageType::Pointer im = dynamic_cast<ImageType*>(filter->input(0)->itkImage());
+	typename ImageType::Pointer im = dynamic_cast<ImageType*>(filter->imageInput(0)->itkImage());
 
 	using IteratorType = itk::ImageRegionIterator<ImageType>;
 	IteratorType it(im, im->GetRequestedRegion());

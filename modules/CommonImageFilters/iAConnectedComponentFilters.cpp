@@ -23,7 +23,7 @@
 #include <defines.h> // for DIM
 #include <iAProgress.h>
 
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iAFileUtils.h>
 #include <iATypedCallHelper.h>
 #include <iAToolsITK.h>
@@ -39,7 +39,7 @@ void connectedComponentFilter(iAFilter* filter, QVariantMap const & parameters)
 	typedef itk::Image<long, DIM> OutputImageType;
 	typedef itk::ConnectedComponentImageFilter< InputImageType, OutputImageType > CCIFType;
 	auto ccFilter = CCIFType::New();
-	ccFilter->SetInput( dynamic_cast< InputImageType * >(filter->input(0)->itkImage()) );
+	ccFilter->SetInput( dynamic_cast< InputImageType * >(filter->imageInput(0)->itkImage()) );
 	ccFilter->SetBackgroundValue(0);
 	ccFilter->SetFullyConnected(parameters["Fully Connected"].toBool());
 	filter->progress()->observe(ccFilter);
@@ -78,7 +78,7 @@ void scalarConnectedComponentFilter(iAFilter* filter, QVariantMap const & parame
 	typedef itk::Image<long, DIM>   OutputImageType;
 	typedef itk::ScalarConnectedComponentImageFilter< InputImageType, OutputImageType > SCCIFType;
 	typename SCCIFType::Pointer sccFilter = SCCIFType::New();
-	sccFilter->SetInput( dynamic_cast<InputImageType *>(filter->input(0)->itkImage()) );
+	sccFilter->SetInput( dynamic_cast<InputImageType *>(filter->imageInput(0)->itkImage()) );
 	sccFilter->SetDistanceThreshold(parameters["Distance Threshold"].toDouble());
 	filter->progress()->observe(sccFilter);
 	sccFilter->Update();
@@ -111,7 +111,7 @@ void relabelComponentImageFilter(iAFilter* filter, QVariantMap const & parameter
 	typedef itk::Image<long, DIM>   OutputImageType;
 	typedef itk::RelabelComponentImageFilter< InputImageType, OutputImageType > RCIFType;
 	typename RCIFType::Pointer rccFilter = RCIFType::New();
-	rccFilter->SetInput( dynamic_cast< InputImageType * >(filter->input(0)->itkImage()) );
+	rccFilter->SetInput( dynamic_cast< InputImageType * >(filter->imageInput(0)->itkImage()) );
 	rccFilter->SetMinimumObjectSize(parameters["Minimum object size"].toInt());
 	filter->progress()->observe(rccFilter);
 	rccFilter->Update();

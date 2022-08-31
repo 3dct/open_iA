@@ -22,6 +22,7 @@
 
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
+#include "iADataSet.h"
 #include "iALog.h"
 #include "iAProgress.h"
 #include "iAStringHelper.h"
@@ -33,18 +34,47 @@
 
 namespace
 {
-	// TODO: maybe move to iAConnector class itself!
-	std::shared_ptr<iAConnector> createConnector(itk::ImageBase<3>* itkImg)
+	std::shared_ptr<iADataSet> createDataSet(QString const& fileName, itk::ImageBase<3>* itkImg)
 	{
-		auto con = std::make_shared<iAConnector>();
-		con->setImage(itkImg);
-		return con;
+		iAConnector con;
+		con.setImage(itkImg);
+		vtkNew<vtkImageData> vtkImg;
+		vtkImg->DeepCopy(con.vtkImage());
+		return std::make_shared<iAImageData>(fileName, vtkImg);
 	}
-	std::shared_ptr<iAConnector> createConnector(vtkSmartPointer<vtkImageData> vtkImg)
+	std::shared_ptr<iADataSet> createDataSet(QString const & fileName, vtkSmartPointer<vtkImageData> img)
 	{
-		auto con = std::make_shared<iAConnector>();
-		con->setImage(vtkImg);
-		return con;
+		return std::make_shared<iAImageData>(fileName, img);
+	}
+
+	itk::ImageIOBase::IOComponentType mapVTKtoITKPixelType(int vtkType)
+	{
+		switch (vtkType)
+		{
+		default:
+			LOG(lvlError, QString("mapVTKtoITKPixelType: Invalid VTK type %1").arg(vtkType));
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+			// fall through
+		case VTK_CHAR:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+			// fall through
+		case VTK_SIGNED_CHAR       : return itk::ImageIOBase::IOComponentEnum::CHAR;
+		case VTK_UNSIGNED_CHAR     : return itk::ImageIOBase::IOComponentType::UCHAR;
+		case VTK_SHORT             : return itk::ImageIOBase::IOComponentEnum::SHORT;
+		case VTK_UNSIGNED_SHORT    : return itk::ImageIOBase::IOComponentEnum::USHORT;
+		case VTK_INT               : return itk::ImageIOBase::IOComponentEnum::INT;
+		case VTK_UNSIGNED_INT      : return itk::ImageIOBase::IOComponentEnum::UINT;
+		case VTK_LONG              : return itk::ImageIOBase::IOComponentEnum::LONG;
+		case VTK_UNSIGNED_LONG     : return itk::ImageIOBase::IOComponentEnum::ULONG;
+		case VTK_LONG_LONG         : return itk::ImageIOBase::IOComponentEnum::LONGLONG;
+		case VTK_UNSIGNED_LONG_LONG: return itk::ImageIOBase::IOComponentEnum::ULONGLONG;
+		case VTK_FLOAT             : return itk::ImageIOBase::IOComponentEnum::FLOAT;
+		case VTK_DOUBLE            : return itk::ImageIOBase::IOComponentEnum::DOUBLE;
+		}
 	}
 }
 
@@ -130,32 +160,37 @@ void iAFilter::clearOutput()
 
 void iAFilter::addOutput(itk::ImageBase<3>* itkImg)
 {
-	m_output.push_back(createConnector(itkImg));
+	m_output.push_back(createDataSet(outputName(m_output.size()), itkImg));
 }
 
 void iAFilter::addOutput(vtkSmartPointer<vtkImageData> vtkImg)
 {
-	m_output.push_back(createConnector(vtkImg));
+	m_output.push_back(createDataSet(outputName(m_output.size()), vtkImg));
 }
 
-void iAFilter::setPolyOutput(vtkSmartPointer<vtkPolyData> mesh)
+void iAFilter::addOutput(std::shared_ptr<iADataSet> dataSet)
 {
-	m_outputMesh = mesh;
+	m_output.push_back(dataSet);
 }
 
-vtkSmartPointer<vtkPolyData> iAFilter::polyOutput() const
+std::shared_ptr<iADataSet> iAFilter::output(size_t idx) const
 {
-	return m_outputMesh;
+	return m_output[idx];
 }
 
-iAConnector const * iAFilter::output(size_t idx) const
+iAImageData* iAFilter::imageOutput(size_t idx) const
 {
-	return m_output[idx].get();
+	return dynamic_cast<iAImageData*>(output(idx).get());
 }
 
 size_t iAFilter::finalOutputCount() const
 {
 	return m_output.size();
+}
+
+std::vector<std::shared_ptr<iADataSet>> iAFilter::outputs()
+{
+	return m_output;
 }
 
 unsigned int iAFilter::plannedOutputCount() const
@@ -166,32 +201,27 @@ unsigned int iAFilter::plannedOutputCount() const
 void iAFilter::clearInput()
 {
 	m_input.clear();
-	m_fileNames.clear();
 	m_isAborted = false;
 }
 
-// TODO: Allow to check type of input files
-// (e.g. to check if input images are of a specific type,
-// or all of the same type), e.g. in addInput or checkParameters.
-void iAFilter::addInput(itk::ImageBase<3>* itkImg, QString const& fileName)
+void iAFilter::addInput(std::shared_ptr<iADataSet> dataSet)
 {
-	addInput(createConnector(itkImg), fileName);
+	m_input.push_back(dataSet);
 }
 
-void iAFilter::addInput(vtkSmartPointer<vtkImageData> vtkImg, QString const& fileName)
+std::shared_ptr<iADataSet> iAFilter::input(size_t idx) const
 {
-	addInput(createConnector(vtkImg), fileName);
+	return m_input[idx];
 }
 
-void iAFilter::addInput(std::shared_ptr<iAConnector> con, QString const& fileName)
+iAImageData const* iAFilter::imageInput(size_t idx) const
 {
-	m_input.push_back(con);
-	m_fileNames.push_back(fileName);
-}
+	if (idx >= m_input.size() || !dynamic_cast<iAImageData*>(m_input[idx].get()))
+	{
+		LOG(lvlError, QString("Invalid imageInput access: idx=%1 outside of valid range, or not an image dataset!").arg(idx));
+	}
+	return dynamic_cast<iAImageData*>(m_input[idx].get());
 
-iAConnector const * iAFilter::input(size_t idx) const
-{
-	return m_input[idx].get();
 }
 
 size_t iAFilter::inputCount() const
@@ -199,14 +229,10 @@ size_t iAFilter::inputCount() const
 	return m_input.size();
 }
 
-QVector<QString> const& iAFilter::fileNames() const
-{
-	return m_fileNames;
-}
-
 itk::ImageIOBase::IOComponentType iAFilter::inputPixelType() const
 {
-	return m_input[0]->itkScalarPixelType();
+	return mapVTKtoITKPixelType(imageInput(0)->vtkImage()->GetScalarType());
+		//m_input[0]->itkScalarPixelType();
 }
 
 void iAFilter::setLogger(iALogger* log)

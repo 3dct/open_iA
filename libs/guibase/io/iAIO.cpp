@@ -31,6 +31,7 @@
 // base
 #include "defines.h"
 #include "iAConnector.h"
+#include "iADataSet.h"
 #include "iALog.h"
 #include "iAExceptionThrowingErrorObserver.h"
 #include "iAExtendedTypedCallHelper.h"
@@ -810,7 +811,7 @@ void iAIO::readNKC()
 		return;
 	}
 
-	filter->addInput(getVtkImageData(), "");
+	filter->addInput(std::make_shared<iAImageData>("", getVtkImageData()));
 	QVariantMap parameters;
 	parameters["Value To Replace"] = 65533;
 	parameters["Replacement"] = 0;
@@ -825,7 +826,7 @@ void iAIO::readNKC()
 		return;
 	}
 
-	dataTypeConversion->addInput(filter->output(0)->itkImage(), "");
+	dataTypeConversion->addInput(filter->output(0));
 	QVariantMap parametersConversion;
 	parametersConversion["Data Type"] = "32 bit floating point number (7 digits, float)";
 	parametersConversion["Rescale Range"] = false;
@@ -841,13 +842,13 @@ void iAIO::readNKC()
 				.arg(m_fileName));
 		return;
 	}
-	filterScale->addInput(dataTypeConversion->output(0)->itkImage(), "");
+	filterScale->addInput(dataTypeConversion->output(0));
 	QVariantMap parametersScale;
 	parametersScale["Shift"] = m_Parameter["Offset"].toInt();
 	parametersScale["Scale"] = m_Parameter["Scale"].toFloat();
 	filterScale->run(parametersScale);
 
-	getVtkImageData()->DeepCopy(filterScale->output(0)->vtkImage());
+	getVtkImageData()->DeepCopy(filterScale->imageOutput(0)->vtkImage());
 }
 
 void iAIO::readMetaImage( )

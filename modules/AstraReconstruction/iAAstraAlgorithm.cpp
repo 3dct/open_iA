@@ -22,7 +22,7 @@
 
 #include "dlg_ProjectionParameters.h"
 
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iALog.h>
 #include <iAToolsVTK.h>
 #include <iATypedCallHelper.h>
@@ -312,7 +312,7 @@ public:
 
 void iAASTRAForwardProject::performWork(QVariantMap const & parameters)
 {
-	vtkSmartPointer<vtkImageData> volImg = input(0)->vtkImage();
+	vtkSmartPointer<vtkImageData> volImg = imageInput(0)->vtkImage();
 	int * volDim = volImg->GetDimensions();
 	astra::Config projectorConfig;
 	projectorConfig.initialize("Projector3D");
@@ -441,7 +441,7 @@ void swapDimensions(vtkSmartPointer<vtkImageData> img, astra::float32* buf, int 
 
 void iAASTRAReconstruct::performWork(QVariantMap const & parameters)
 {
-	vtkSmartPointer<vtkImageData> projImg = input(0)->vtkImage();
+	vtkSmartPointer<vtkImageData> projImg = imageInput(0)->vtkImage();
 	int * projDim = projImg->GetDimensions();
 	if (projDim[0] == 0 || projDim[1] == 0 || projDim[2] == 0)
 	{

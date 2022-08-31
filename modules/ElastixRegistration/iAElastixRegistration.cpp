@@ -21,7 +21,7 @@
 #include "iAElastixRegistration.h"
 
 #include <defines.h>    // for DIM
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
@@ -222,11 +222,11 @@ void derivative(iAFilter* filter, QVariantMap const & params)
 	typedef  itk::ImageFileWriter< OutputImageType  > WriterType;
 	typename WriterType::Pointer fixedWriter = WriterType::New();
 	fixedWriter->SetFileName(fixedImagePath.toStdString());
-	fixedWriter->SetInput(dynamic_cast<OutputImageType *>(filter->input(0)->itkImage()));
+	fixedWriter->SetInput(dynamic_cast<OutputImageType *>(filter->imageInput(0)->itkImage()));
 
 	typename WriterType::Pointer movingWriter = WriterType::New();
 	movingWriter->SetFileName(movingImagePath.toStdString());
-	movingWriter->SetInput(dynamic_cast<OutputImageType *>(filter->input(1)->itkImage()));
+	movingWriter->SetInput(dynamic_cast<OutputImageType *>(filter->imageInput(1)->itkImage()));
 
 	try
 	{

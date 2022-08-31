@@ -21,7 +21,7 @@
 #include "iAPCA.h"
 
 #include <defines.h>    // for DIM
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iATypedCallHelper.h>
 
 #include <itkImage.h>
@@ -60,7 +60,7 @@ void pca(iAFilter* filter, QVariantMap const & parameters)
 	pcaFilter->SetNumberOfPrincipalComponentsRequired(parameters["Cutoff"].toUInt());
 	for (size_t k = 0; k < filter->inputCount(); k++)
 	{
-		pcaFilter->SetInput(static_cast<unsigned int>(k), dynamic_cast<ImageType*>(filter->input(k)->itkImage()));
+		pcaFilter->SetInput(static_cast<unsigned int>(k), dynamic_cast<ImageType*>(filter->imageInput(k)->itkImage()));
 	}
 	pcaFilter->Update();
 	auto scaler = ScaleType::New();

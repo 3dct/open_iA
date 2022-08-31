@@ -24,9 +24,10 @@
 #include "iAFilterRegistry.h"
 #include "iALoggerStdOut.h"
 
+// io
+#include "iAFileTypeRegistry.h"
+
 #include "iAAttributeDescriptor.h"
-#include "iAConnector.h"
-#include "iAITKIO.h"
 #include "iALogLevelMappings.h"
 #include "iAMathUtility.h"
 #include "iAModuleDispatcher.h"
@@ -431,11 +432,14 @@ namespace
 				{
 					std::cout << "Reading input file '" << inputFiles[i].toStdString() << "'" << std::endl;
 				}
-				iAITKIO::ScalarPixelType pixelType;
-				iAITKIO::ImagePointer img = iAITKIO::readFile(inputFiles[i], pixelType, false);
-				//iAConnector * con = new iAConnector();
-				//con->setImage(img);
-				filter->addInput(img, inputFiles[i]);
+				auto io = iAFileTypeRegistry::createIO(inputFiles[i]);
+				QVariantMap dummyParams;  // TODO: allow reading i/o parameters from cmd
+				iAProgress dummyProgress; // TODO: use progress indicator here
+				auto dataSets = io->load(inputFiles[i], dummyParams, &dummyProgress);
+				for (auto d : dataSets)
+				{
+					filter->addInput(d);
+				}
 			}
 
 			if (!quiet)
@@ -484,7 +488,12 @@ namespace
 						.arg(o).arg(outFileName).arg(compress ? "on" : "off").toStdString()
 						<< std::endl;
 				}
-				iAITKIO::writeFile(outFileName, filter->output(o)->itkImage(), filter->output(o)->itkScalarPixelType(), compress);
+
+				auto io = iAFileTypeRegistry::createIO(outFileName);
+				QVariantMap writeParamValues;
+				writeParamValues[iAFileIO::CompressionStr] = compress;
+				iAProgress dummyProgress; // TODO: use progress indicator here
+				io->save(outFileName, filter->outputs(), writeParamValues, &dummyProgress);
 			}
 			for (auto outputValue : filter->outputValues())
 			{

@@ -188,7 +188,7 @@ void iARawFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADa
 	assert(dataSets.size() == 1 && dynamic_cast<iAImageData*>(dataSets[0].get()));
 //#if RAW_LOAD_METHOD == ITK
 	auto scalarType = mapReadableDataTypeToVTKType(paramValues[DataTypeStr].toString());
-	VTK_TYPED_CALL(writeRawImage, scalarType, fileName, dynamic_cast<iAImageData*>(dataSets[0].get())->image(), paramValues, progress);
+	VTK_TYPED_CALL(writeRawImage, scalarType, fileName, dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage(), paramValues, progress);
 //# endif
 // VTK way currently not implemented
 }

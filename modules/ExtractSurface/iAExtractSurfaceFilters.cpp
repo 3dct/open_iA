@@ -20,13 +20,16 @@
 * ************************************************************************************/
 #include "iAExtractSurfaceFilters.h"
 
-// core
-#include <iAProgress.h>
+// io
+#include <iADataSet.h>
 
 // base
 #include <iAConnector.h>
 #include <iALog.h>
 #include <iAFileUtils.h>
+#include <iAProgress.h>
+
+
 
 //#include <vtkButterflySubdivisionFilter.h>
 #include <vtkCleanPolyData.h>
@@ -196,7 +199,7 @@ namespace
 
 void iAExtractSurface::performWork(QVariantMap const & parameters)
 {
-	auto surfaceFilter = createSurfaceFilter(parameters, input(0)->vtkImage(), progress());
+	auto surfaceFilter = createSurfaceFilter(parameters, imageInput(0)->vtkImage(), progress());
 	if (!surfaceFilter)
 	{
 		LOG(lvlError, "Generated surface filter is null");
@@ -210,14 +213,14 @@ void iAExtractSurface::performWork(QVariantMap const & parameters)
 	if (parameters["Simplification Algorithm"].toString() == "None")
 	{
 		surfaceFilter->Update();
-		setPolyOutput(surfaceFilter->GetOutput());
+		addOutput(std::make_shared<iAPolyData>("", surfaceFilter->GetOutput()));
 		stlWriter->SetInputConnection(surfaceFilter->GetOutputPort());
 	}
 	else
 	{
 		auto simplifyFilter = createDecimation(parameters, surfaceFilter, progress());
 		simplifyFilter->Update();
-		setPolyOutput(simplifyFilter->GetOutput());
+		addOutput(std::make_shared<iAPolyData>("", simplifyFilter->GetOutput()));
 		stlWriter->SetInputConnection(simplifyFilter->GetOutputPort());
 	}
 	stlWriter->Write();
@@ -273,7 +276,7 @@ iAExtractSurface::iAExtractSurface() :
 
 void iATriangulation::performWork(QVariantMap const& parameters) {
 
-	auto surfaceFilter = createSurfaceFilter(parameters, input(0)->vtkImage(), progress());
+	auto surfaceFilter = createSurfaceFilter(parameters, imageInput(0)->vtkImage(), progress());
 	if (!surfaceFilter)
 	{
 		LOG(lvlError, "Generated surface filter is null");
@@ -313,7 +316,7 @@ void iATriangulation::performWork(QVariantMap const& parameters) {
 	stlWriter->SetInputData(smoothing->GetOutput());
 	stlWriter->Write();
 
-	setPolyOutput(smoothing->GetOutput());
+	addOutput(std::make_shared<iAPolyData>("", smoothing->GetOutput()));
 }
 
 

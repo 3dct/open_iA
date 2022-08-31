@@ -38,8 +38,8 @@
 
 #include <memory>
 
-class iAConnector;
 class iADataSet;
+class iAImageData;
 class iALogger;
 class iAProgress;
 
@@ -65,7 +65,7 @@ public:
 	//!     parameters when storing them in the registry you can use the slash
 	//!     character ("/") to specify subcategories.
 	//!     A category of "Segmentation/Global Thresholding" for example would put
-	//      a filter in the "Global Thresholding" submenu of the "Segmentation"
+	//!     a filter in the "Global Thresholding" submenu of the "Segmentation"
 	//!     menu, which in turn is added as submenu to the Filter menu.
 	//!     When left empty, the filter will be added directly in the Filter menu
 	//! @param description An (optional) description of the filter algorithm, and
@@ -122,9 +122,8 @@ public:
 	//! and you want to call it with new input images
 	void clearInput();
 	//! @{
-	//! Adds an image as input.
-	void addInput(itk::ImageBase<3>* img, QString const& fileName);
-	void addInput(vtkSmartPointer<vtkImageData> img, QString const& fileName);
+	//! Adds a dataSet as input.
+	void addInput(std::shared_ptr<iADataSet> con);
 	//! @}
 	//! Initialize and run the filter.
 	//! @param parameters the map of parameters to use in this specific filter run
@@ -148,20 +147,25 @@ public:
 
 	//! Get input with the given index.
 	//! @see inputCount for the number of available inputs
-	iAConnector const * input(size_t idx) const;
+	std::shared_ptr<iADataSet> input(size_t idx) const;
+	//! convenience function returning input datasets converted to image data (with error checks)
+	iAImageData const* imageInput(size_t idx) const;
 	//! Get the number of available inputs (that were already added to the filter).
 	size_t inputCount() const;
 
 	//! get output with the given index.
 	//! @see outputCount for the number of available inputs
-	iAConnector const * output(size_t idx) const;
+	std::shared_ptr<iADataSet> output(size_t idx) const;
+	//! convenience function returning output datasets converted to image data (with error checks)
+	iAImageData* imageOutput(size_t idx) const;
 	//! Get the number of available outputs.
 	//! Only set after the filter has run and the outputs are actually produced!
 	//! see plannedOutputCount() for the number of probable outcomes before the filter has run!
 	size_t finalOutputCount() const;
-
-	QVector<QString> const & fileNames() const;
-
+	//! return the full list of outputs
+	std::vector<std::shared_ptr<iADataSet>> outputs();
+	//! return the ITK pixel type of the image in the first given input dataset
+	//! (no check is performed whether that dataset actually contains an image!)
 	itk::ImageIOBase::IOComponentType inputPixelType() const;
 	//! returns the number of input channels from the first input image.
 	unsigned int firstInputChannels() const;
@@ -183,13 +187,11 @@ public:
 	void addOutputValue(QString const & name, QVariant value);
 	//! @{ Adds an output image.
 	//! @param img output image from the filter
-	void addOutput(itk::ImageBase<3> * img);
+	void addOutput(itk::ImageBase<3>* img);
 	void addOutput(vtkSmartPointer<vtkImageData> img);
 	//! @}
-	//! Sets the mesh output of this filter.
-	void setPolyOutput(vtkSmartPointer<vtkPolyData> poly);
-	//! Retrieves output mesh if existing.
-	vtkSmartPointer<vtkPolyData> polyOutput() const;
+	//! adds an output dataset
+	void addOutput(std::shared_ptr<iADataSet> dataSet);
 	//! The planned number of outputs the filter will produce.
 	unsigned int plannedOutputCount() const;
 	//! Adds some message to the targeted output place for this filter.
@@ -227,16 +229,12 @@ private:
 	virtual void performWork(QVariantMap const & parameters) = 0;
 	//! Clears the output values.
 	void clearOutput();
-	//! internal helper for adding input
-	void addInput(std::shared_ptr<iAConnector> con, QString const& fileName);
 
 	//! input images.
-	std::vector<std::shared_ptr<iAConnector>> m_input;
-	//! file names of the input images.
-	QVector<QString> m_fileNames;
+	std::vector<std::shared_ptr<iADataSet>> m_input;
 	//! output images (if any).
 	// TODO: make unique_ptr: -> compile error: `attempting to reference deleted function` in iAFilterRegistry...
-	std::vector<std::shared_ptr<iAConnector>> m_output;
+	std::vector<std::shared_ptr<iADataSet>> m_output;
 	//! output mesh (if any).
 	vtkSmartPointer<vtkPolyData> m_outputMesh;
 	//! output values (if any).

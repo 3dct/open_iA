@@ -21,7 +21,7 @@
 #include "iAFreeBeamCalculation.h"
 
 #include <defines.h>        // for DIM
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 #include <iAValueTypeVectorHelpers.h>
@@ -40,12 +40,13 @@ template<class InPixelType, class OutPixelType>
 void freeBeamCalculation(QVariantMap const & params, iAFilter* filter )
 {
 	double I0 = params["Manual I0"].toDouble();
-	typedef itk::Image< InPixelType, DIM > InputImageType;
-	typedef itk::Image< OutPixelType, DIM > OutputImageType;
-	const typename OutputImageType::SpacingType& outputSpacing = dynamic_cast<InputImageType *>(filter->input(0)->itkImage())->GetSpacing();
-	const typename OutputImageType::PointType& outputOrigin = dynamic_cast<InputImageType *>(filter->input(0)->itkImage())->GetOrigin();
-	typename OutputImageType::RegionType outputRegion = dynamic_cast<InputImageType *>(filter->input(0)->itkImage())->GetLargestPossibleRegion();
-	typename OutputImageType::Pointer outputImage = OutputImageType::New();
+	using InputImageType = itk::Image<InPixelType, DIM>;
+	using OutputImageType = itk::Image<OutPixelType, DIM>;
+	auto itkImg = dynamic_cast<InputImageType*>(filter->imageInput(0)->itkImage());
+	auto outputSpacing = itkImg->GetSpacing();
+	auto outputOrigin = itkImg->GetOrigin();
+	auto outputRegion = itkImg->GetLargestPossibleRegion();
+	auto outputImage = OutputImageType::New();
 	outputImage->SetRegions(outputRegion);
 	outputImage->SetSpacing(outputSpacing);
 	outputImage->SetOrigin(outputOrigin);
@@ -65,45 +66,42 @@ void freeBeamCalculation(QVariantMap const & params, iAFilter* filter )
 			}
 		}
 
-		typedef itk::ExtractImageFilter< InputImageType, InputImageType > EIFType;
-		typename EIFType::Pointer roiFilter = EIFType::New();
+		using EIFType = itk::ExtractImageFilter<InputImageType, InputImageType>;
+		auto roiFilter = EIFType::New();
 		typename EIFType::InputImageRegionType::SizeType roiSize;
 		setFromVectorVariant<int>(roiSize, params["Size"]);
-		roiSize[2] =  filter->input(0)->itkImage()->GetLargestPossibleRegion().GetSize()[2];
+		roiSize[2] = outputRegion.GetSize()[2];
 		typename EIFType::InputImageRegionType::IndexType roiIndex;
 		setFromVectorVariant<int>(roiIndex, params["Index"]);
 		roiIndex[2] = 0;
 		typename EIFType::InputImageRegionType roiRegion; roiRegion.SetIndex(roiIndex); roiRegion.SetSize(roiSize);
-		roiFilter->SetInput(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
+		roiFilter->SetInput(itkImg);
 		roiFilter->SetExtractionRegion(roiRegion);
 		roiFilter->Update();
 
-		typedef itk::Image< InPixelType, 2 > ImageType2D;
+		using ImageType2D = itk::Image<InPixelType, 2>;
 		typename ImageType2D::RegionType roiSliceRegion;
 		typename ImageType2D::RegionType::SizeType roiSliceSize;
 		typename ImageType2D::RegionType::IndexType roiSliceIndex;
-		typename InputImageType::RegionType requestedROIRegion = roiFilter->GetOutput()->GetRequestedRegion();
+		auto requestedROIRegion = roiFilter->GetOutput()->GetRequestedRegion();
 		roiSliceIndex[direction[0]] = requestedROIRegion.GetIndex()[direction[0]];
 		roiSliceIndex[1 - direction[0]] = requestedROIRegion.GetIndex()[direction[1]];
 		roiSliceSize[direction[0]] = requestedROIRegion.GetSize()[direction[0]];
 		roiSliceSize[1 - direction[0]] = requestedROIRegion.GetSize()[direction[1]];
 		roiSliceRegion.SetSize(roiSliceSize);
 		roiSliceRegion.SetIndex(roiSliceIndex);
-		typename ImageType2D::Pointer outputROISliceImage = ImageType2D::New();
+		auto outputROISliceImage = ImageType2D::New();
 		outputROISliceImage->SetRegions(roiSliceRegion);
 		outputROISliceImage->Allocate();
 
-		typedef itk::ImageLinearIteratorWithIndex< ImageType2D > LinearIteratorType;
-		typedef itk::ImageSliceConstIteratorWithIndex< InputImageType > SliceConstIteratorType;
-		typedef itk::ImageSliceIteratorWithIndex< OutputImageType > SliceIteratorType;
+		using SliceConstIteratorType = itk::ImageSliceConstIteratorWithIndex<InputImageType>;
 		SliceConstIteratorType inputROIIt(roiFilter->GetOutput(), roiFilter->GetOutput()->GetRequestedRegion());
-		LinearIteratorType outputROISliceIt(outputROISliceImage, outputROISliceImage->GetRequestedRegion());
+		itk::ImageLinearIteratorWithIndex<ImageType2D> outputROISliceIt(outputROISliceImage, outputROISliceImage->GetRequestedRegion());
 		inputROIIt.SetFirstDirection(direction[1]);
 		inputROIIt.SetSecondDirection(direction[0]);
 		outputROISliceIt.SetDirection(1 - direction[0]);
-		SliceConstIteratorType inputIt(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()),
-			dynamic_cast<InputImageType *>(filter->input(0)->itkImage())->GetLargestPossibleRegion());
-		SliceIteratorType outputIt(outputImage, outputImage->GetLargestPossibleRegion());
+		SliceConstIteratorType inputIt(itkImg, itkImg->GetLargestPossibleRegion());
+		itk::ImageSliceIteratorWithIndex<OutputImageType> outputIt(outputImage, outputImage->GetLargestPossibleRegion());
 		inputIt.SetFirstDirection(direction[1]);
 		inputIt.SetSecondDirection(direction[0]);
 		outputIt.SetFirstDirection(direction[1]);
@@ -128,8 +126,7 @@ void freeBeamCalculation(QVariantMap const & params, iAFilter* filter )
 				inputROIIt.NextLine();
 			}
 
-			typedef itk::StatisticsImageFilter<ImageType2D> StatisticsImageFilterType;
-			typename StatisticsImageFilterType::Pointer statisticsImageFilter = StatisticsImageFilterType::New();
+			auto statisticsImageFilter = itk::StatisticsImageFilter<ImageType2D>::New();
 			statisticsImageFilter->SetInput(outputROISliceImage);
 			statisticsImageFilter->Update();
 			I0 = statisticsImageFilter->GetMean();
@@ -159,15 +156,12 @@ void freeBeamCalculation(QVariantMap const & params, iAFilter* filter )
 	}
 	else
 	{
-		auto img = dynamic_cast<InputImageType *>(filter->input(0)->itkImage());
-		typedef itk::ImageRegionConstIterator< InputImageType > InputIteratorType;
-		typedef itk::ImageRegionIterator< OutputImageType > OutputIteratorType;
-		InputIteratorType inputIt(img, img->GetLargestPossibleRegion());
-		OutputIteratorType outputIt(outputImage, outputRegion);
+		itk::ImageRegionConstIterator<InputImageType> inputIt(itkImg, itkImg->GetLargestPossibleRegion());
+		itk::ImageRegionIterator<OutputImageType> outputIt(outputImage, outputRegion);
 
 		inputIt.GoToBegin();
 		outputIt.GoToBegin();
-		auto size = img->GetLargestPossibleRegion().GetSize();
+		auto size = itkImg->GetLargestPossibleRegion().GetSize();
 		size_t voxelCount = size[0] * size[1] * size[2];
 		size_t progressVoxelDist = voxelCount / 100;
 		size_t curVoxel = 0;

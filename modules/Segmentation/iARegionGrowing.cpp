@@ -21,7 +21,7 @@
 #include "iARegionGrowing.h"
 
 #include <defines.h>          // for DIM
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iALog.h>
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
@@ -52,7 +52,7 @@ void addSeeds(RegFilterT* regionGrowingFilter, MaskImageT * seed)
 }
 
 template <typename RegFilterT>
-void setSeeds(RegFilterT* filter, iAConnector::ImageBaseType* img)
+void setSeeds(RegFilterT* filter, itk::ImageBase<3>* img)
 {
 	switch (itkScalarPixelType(img))
 	{
@@ -82,7 +82,7 @@ template<class T>
 void confidenceConnected(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
-	InputImageType * input = dynamic_cast<InputImageType *>(filter->input(0)->itkImage());
+	InputImageType * input = dynamic_cast<InputImageType *>(filter->imageInput(0)->itkImage());
 
 	typedef itk::ConfidenceConnectedImageFilter< InputImageType, InputImageType > ConfiConnFilterType;
 	auto confiConnFilter = ConfiConnFilterType::New();
@@ -91,7 +91,7 @@ void confidenceConnected(iAFilter* filter, QVariantMap const & params)
 	confiConnFilter->SetMultiplier(params["Multiplier"].toDouble());
 	confiConnFilter->SetNumberOfIterations(params["Number of iterations"].toUInt());
 	confiConnFilter->SetReplaceValue(params["Replace value"].toDouble());
-	setSeeds(confiConnFilter.GetPointer(), filter->input(1)->itkImage());
+	setSeeds(confiConnFilter.GetPointer(), filter->imageInput(1)->itkImage());
 
 	confiConnFilter->ReleaseDataFlagOn();
 	confiConnFilter->Update();
@@ -125,7 +125,7 @@ template<class T>
 void connectedThreshold(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
-	const InputImageType * input = dynamic_cast<InputImageType*>(filter->input(0)->itkImage());
+	const InputImageType * input = dynamic_cast<InputImageType*>(filter->imageInput(0)->itkImage());
 
 	typedef itk::ConnectedThresholdImageFilter< InputImageType, InputImageType > ConnThrFilterType;
 	auto connThrfilter = ConnThrFilterType::New();
@@ -133,7 +133,7 @@ void connectedThreshold(iAFilter* filter, QVariantMap const & params)
 	connThrfilter->SetLower(params["Lower connection threshold"].toDouble());
 	connThrfilter->SetUpper(params["Upper connection threshold"].toDouble());
 	connThrfilter->SetReplaceValue(params["Replace value"].toDouble());
-	setSeeds(connThrfilter.GetPointer(), filter->input(1)->itkImage());
+	setSeeds(connThrfilter.GetPointer(), filter->imageInput(1)->itkImage());
 	connThrfilter->ReleaseDataFlagOn();
 	connThrfilter->Update();
 	filter->addOutput(connThrfilter->GetOutput());
@@ -165,7 +165,7 @@ template<class T>
 void neighborhoodConnected(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
-	const InputImageType * input = dynamic_cast<InputImageType*>(filter->input(0)->itkImage());
+	const InputImageType * input = dynamic_cast<InputImageType*>(filter->imageInput(0)->itkImage());
 
 	typename InputImageType::SizeType	radius;
 	radius[0] = params["Neighborhood radius"].toUInt();
@@ -179,7 +179,7 @@ void neighborhoodConnected(iAFilter* filter, QVariantMap const & params)
 	neighbConnfilter->SetUpper(params["Upper connection threshold"].toDouble());
 	neighbConnfilter->SetRadius(radius);
 	neighbConnfilter->SetReplaceValue(params["Replace value"].toDouble());
-	setSeeds(neighbConnfilter.GetPointer(), filter->input(1)->itkImage());
+	setSeeds(neighbConnfilter.GetPointer(), filter->imageInput(1)->itkImage());
 	neighbConnfilter->ReleaseDataFlagOn();
 	neighbConnfilter->Update();
 	filter->addOutput(neighbConnfilter->GetOutput());
