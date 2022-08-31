@@ -77,7 +77,7 @@ QMap<QString, std::shared_ptr<iAFileParamDlg>> iAFileParamDlg::m_dialogs;
 
 bool iAFileParamDlg::getParameters(QWidget* parent, iAFileIO const* io, iAFileIO::Operation op, QString const& fileName, QVariantMap & paramValues)
 {
-	if (!io->parameter(op).isEmpty())
+	if (io->parameter(op).size() > 1 || (io->parameter(op).size() == 1 && io->parameter(op)[0]->name() != iADataSet::FileNameStr))
 	{
 		auto settingPath = settingName(op, io->name());
 		paramValues = ::loadSettings(settingPath, extractValues(io->parameter(op)));
