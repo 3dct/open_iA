@@ -2988,7 +2988,7 @@ void MdiChild::set3DControlVisibility(bool visible)
 	m_dwRenderer->widget3D->setVisible(visible);
 }
 
-std::vector<std::shared_ptr<iADataSet>> const& MdiChild::dataSets() const
+std::vector<std::shared_ptr<iADataSet>> MdiChild::dataSets() const
 {
 	std::vector<std::shared_ptr<iADataSet>> result;
 	result.reserve(m_dataSets.size());

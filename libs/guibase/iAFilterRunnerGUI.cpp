@@ -245,7 +245,7 @@ bool iAFilterRunnerGUI::askForParameters(std::shared_ptr<iAFilter> filter, QVari
 		{
 			QString selectedFile = paramValues[QString("%1").arg(filter->inputName(i))].toString();
 			int const mdiIdx = mdiChildrenNames.indexOf(selectedFile);
-			auto const& dataSets = otherMdis[mdiIdx]->dataSets();
+			auto dataSets = otherMdis[mdiIdx]->dataSets();
 			for (size_t m = 0; m < dataSets.size(); ++m)
 			{
 				// TODO: polydata input / ...
@@ -296,7 +296,7 @@ void iAFilterRunnerGUI::run(std::shared_ptr<iAFilter> filter, iAMainWindow* main
 	QString oldTitle(sourceMdi ? sourceMdi->windowTitle() : "");
 	oldTitle = oldTitle.replace("[*]", "").trimmed();
 	QString newTitle(filter->outputName(0) + " " + oldTitle);
-	auto const & dataSets = sourceMdi->dataSets();
+	auto dataSets = sourceMdi->dataSets();
 	m_sourceFileName = sourceMdi ? dataSets[0]->metaData(iADataSet::FileNameStr).toString() : "";
 
 	filterGUIPreparations(filter, sourceMdi, mainWnd, paramValues);
