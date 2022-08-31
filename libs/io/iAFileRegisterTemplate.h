@@ -8,7 +8,11 @@
 template <typename T>
 class iAFileRegisterTemplate
 {
-private:
+protected:
+	iAFileRegisterTemplate()
+	{
+		s_bRegistered; //Helper for self register otherwise it will note be done.
+	}
     static bool s_bRegistered;
 };
 
