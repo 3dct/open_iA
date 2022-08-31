@@ -46,6 +46,7 @@
 // io:
 #include "iADataSet.h"
 #include "iAFileTypeRegistry.h"
+#include "iARawFileIO.h"
 
 
 // qthelper
@@ -147,15 +148,12 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	QCoreApplication::setOrganizationDomain("3dct.at");
 	QCoreApplication::setApplicationName(appName);
 	setWindowTitle(appName + " " + m_gitVersion);
-	QSettings settings;
-	m_path = settings.value("Path").toString();
-	restoreGeometry(settings.value("geometry", saveGeometry()).toByteArray());
-	restoreState(settings.value("state", saveState()).toByteArray());
 
 	m_splashScreen = new QSplashScreen(m_logoImg);
 	m_splashScreen->setWindowFlags(m_splashScreen->windowFlags() | Qt::WindowStaysOnTopHint);
 	m_splashScreen->show();
 	m_splashScreen->showMessage("\n      Reading settings...", Qt::AlignTop, QColor(255, 255, 255));
+
 	readSettings();
 
 	m_splashTimer = new QTimer();
@@ -321,24 +319,7 @@ void MainWindow::openRaw()
 		m_path,
 		"Raw File (*)"
 	);
-
-	if (fileName.isEmpty())
-	{
-		return;
-	}
-
-	iAMdiChild *child = createMdiChild(false);
-	QString t(fileName); t.truncate(t.lastIndexOf('/'));
-	m_path = t;
-	if (dynamic_cast<MdiChild*>(child)->loadRaw(fileName))
-	{
-		child->show();
-	}
-	else
-	{
-		statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
-		child->close();
-	}
+	loadFileNew(fileName, true, std::make_shared<iARawFileIO>());
 }
 
 void MainWindow::openImageStack()
@@ -416,9 +397,6 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 		return;
 	}
 	statusBar()->showMessage(tr("Loading data..."), 5000);
-	QString t(fileName);
-	t.truncate(t.lastIndexOf('/'));
-	m_path = t;
 	if (QString::compare(QFileInfo(fileName).suffix(), "STL", Qt::CaseInsensitive) == 0)
 	{
 		if (activeMdiChild())
@@ -472,7 +450,7 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 					projectFile.endGroup();
 				}
 			}
-			setCurrentFile(fileName);
+			addRecentFile(fileName);
 			return;
 		}
 	}
@@ -489,16 +467,19 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 	}
 }
 
-void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
+void MainWindow::loadFileNew(QString const& fileName, bool newWindow, std::shared_ptr<iAFileIO> io)
 {
 	auto child = newWindow ? nullptr : activeMdiChild();
 	if (fileName.isEmpty())
 	{
 		return;
 	}
-	auto io = iAFileTypeRegistry::createIO(fileName);
 	if (!io)
-	{   // did not find an appropriate file IO; createIO already outputs a warning in that case
+	{
+		io = iAFileTypeRegistry::createIO(fileName);
+	}
+	if (!io)
+	{   // did not find an appropriate file IO; createIO already outputs a warning in that case; maybe a QMessageBox?
 		return;
 	}
 	QVariantMap paramValues;
@@ -506,9 +487,6 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 	{
 		return;
 	}
-	QString filePath(fileName);
-	filePath.truncate(filePath.lastIndexOf('/'));
-	m_path = filePath;
 	auto d = std::make_shared<iALoadedData>();
 	auto p = std::make_shared<iAProgress>();
 	auto future = runAsync([d, p, fileName, io, paramValues]()
@@ -550,7 +528,7 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow)
 			targetChild->applyRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
 			targetChild->show();
 		}
-		setCurrentFile(fileName);
+		addRecentFile(fileName);
 		for (auto dataSet : d->data)
 		{
 			targetChild->addDataSet(dataSet);
@@ -1888,12 +1866,6 @@ void MainWindow::updateMenus()
 			m_ui->actionDeletePoint->setEnabled(true);
 			m_ui->actionChangeColor->setEnabled(true);
 		}
-		// set current application working directory to the one where the file is in (as default directory, e.g. for file open)
-		// see also MdiChild::setCurrentFile
-		if (!activeMDI()->filePath().isEmpty())
-		{
-			QDir::setCurrent(activeMDI()->filePath());
-		}
 		//??if (activeMdiChild())
 		//	histogramToolbar->setEnabled(activeMdiChild()->getTabIndex() == 1 && !activeMdiChild()->isMaximized());
 	}
@@ -2095,9 +2067,11 @@ void MainWindow::connectSignalsToSlots()
 void MainWindow::readSettings()
 {
 	QSettings settings;
-	m_path = settings.value("Path").toString();
 
+	m_path = settings.value("Path").toString();
 	m_qssName = settings.value("qssName", ":/bright.qss").toString();
+	restoreGeometry(settings.value("geometry", saveGeometry()).toByteArray());
+	restoreState(settings.value("state", saveState()).toByteArray());
 
 	iAPreferences defaultPrefs;
 	m_defaultLayout = settings.value("Preferences/defaultLayout", "").toString();
@@ -2351,15 +2325,16 @@ void MainWindow::writeSettings()
 	settings.setValue("OpenWithDataTypeConversion/owdtczsize", m_owdtczsize);
 }
 
-// TODO: check iAMainWindow:: vs. iAMdiChild:: setCurrentFile
-void MainWindow::setCurrentFile(const QString &fileName)
+void MainWindow::addRecentFile(const QString &fileName)
 {
 	if (fileName.isEmpty())
 	{
 		LOG(lvlWarn, "Can't use empty filename as current!");
 		return;
 	}
-	m_curFile = fileName;
+	m_path = QFileInfo(fileName).canonicalPath();
+	QDir::setCurrent(activeMDI()->filePath());
+
 	QSettings settings;
 	QStringList files = settings.value("recentFileList").toStringList();
 	files.removeAll(fileName);
@@ -2372,11 +2347,6 @@ void MainWindow::setCurrentFile(const QString &fileName)
 	settings.setValue("recentFileList", files);
 
 	updateRecentFileActions();
-}
-
-QString const & MainWindow::currentFile() const
-{
-	return m_curFile;
 }
 
 void MainWindow::setPath(QString const & p)
@@ -2745,7 +2715,7 @@ void MainWindow::saveProject()
 	}
 	else
 	{
-		setCurrentFile(child->fileName());
+		addRecentFile(child->fileName());
 	}
 }
 

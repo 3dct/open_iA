@@ -110,8 +110,6 @@ public:
 	virtual QString const& path() const = 0;
 	//! Set current directory path (the "working folder")
 	virtual void setPath(QString const& p) = 0;
-	//! @deprecated. Use a specific mdichilds, or even better, an mdichilds dlg_modalities methods instead!
-	virtual QString const& currentFile() const = 0;
 
 	//! Access to the main window (more or less singleton); implementation currently in iAModuleDispatcher.cpp
 	static iAMainWindow* get();
