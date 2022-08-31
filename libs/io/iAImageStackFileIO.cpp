@@ -247,3 +247,5 @@ void iAImageStackFileIO::save(QString const& fileName, std::vector<std::shared_p
 	ITK_EXTENDED_TYPED_CALL(writeImageStack, pixelType, imagePixelType,
 		fileName, con, paramValues[iAFileIO::CompressionStr].toBool(), progress);
 }
+
+bool iAImageStackFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iAImageStackFileIO>();

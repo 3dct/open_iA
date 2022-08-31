@@ -21,13 +21,17 @@
 #pragma once
 
 #include "iAFileIO.h"
-#include "iAFileRegisterTemplate.h"
+#include "iAFileTypeRegistry.h"
 
-class iACSVImageFileIO : public iAFileIO, iAFileRegisterTemplate<iACSVImageFileIO>
+class iACSVImageFileIO : public iAFileIO
 {
 public:
 	iACSVImageFileIO();
 	void save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress) override;
 	QString name() const override;
 	QStringList extensions() const override;
+
+private:
+	static bool s_bRegistered;
 };
+

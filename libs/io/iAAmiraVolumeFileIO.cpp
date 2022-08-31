@@ -43,3 +43,5 @@ QStringList iAAmiraVolumeFileIO::extensions() const
 {
 	return QStringList{ "am" };
 }
+
+bool iAAmiraVolumeFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iAAmiraVolumeFileIO>();

@@ -184,6 +184,7 @@ QStringList iAHDF5IO::extensions() const
 	return QStringList{ "hdf", "hdf5", "h5", "he5", "nc", "cdf", "mat" };
 }
 
+bool iAHDF5IO::s_bRegistered = iAFileTypeRegistry::addFileType<iAHDF5IO>();
 
 
 QString MapHDF5TypeToString(H5T_class_t hdf5Type)

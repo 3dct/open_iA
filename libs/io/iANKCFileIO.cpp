@@ -165,3 +165,5 @@ QStringList iANKCFileIO::extensions() const
 {
 	return QStringList{"nkc"};
 }
+
+bool iANKCFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iANKCFileIO>();

@@ -21,9 +21,9 @@
 #pragma once
 
 #include "iAFileIO.h"
-#include "iAFileRegisterTemplate.h"
+#include "iAFileTypeRegistry.h"
 
-class iAMetaFileIO : public iAFileIO, iAFileRegisterTemplate<iAMetaFileIO>
+class iAMetaFileIO : public iAFileIO
 {
 public:
 	iAMetaFileIO();
@@ -32,4 +32,7 @@ public:
 	QString name() const override;
 	QStringList extensions() const override;
 
+private:
+	static bool s_bRegistered;
 };
+

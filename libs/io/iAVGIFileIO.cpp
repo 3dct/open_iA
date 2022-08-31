@@ -202,3 +202,5 @@ QStringList iAVGIFileIO::extensions() const
 {
 	return QStringList{ "vgi" };
 }
+
+bool iAVGIFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iAVGIFileIO>();
