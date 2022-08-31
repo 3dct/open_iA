@@ -38,6 +38,7 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAProgress.h>
 <iAProjectBase.h>
 <iAProjectRegistry.h>
+<iARawFileIO.h>
 <iARawFileParamDlg.h>
 <iARawFileParameters.h>
 <iARenderSettings.h>

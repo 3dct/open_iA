@@ -12,11 +12,8 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAAttributes.h>
 <iAConnector.h>
 <iADataSet.h>
-<iADataSetType.h>
-<iAFileIO.h>
 <iAFileUtils.h>
 <iAFilter.h>
-<iAGenericFactory.h>
 <iAITKIO.h>
 <iAItkVersion.h>
 <iALog.h>

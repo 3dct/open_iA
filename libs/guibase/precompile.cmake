@@ -11,6 +11,7 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAChannelData.h>
 <iAChannelSlicerData.h>
 <iAConnector.h>
+<iADataSet.h>
 <iAFast3DMagicLensWidget.h>
 <iAFileUtils.h>
 <iAFilter.h>
@@ -19,7 +20,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAFilterRunnerRegistry.h>
 <iAFilterSelectionDlg.h>
 <iAGUIModuleInterface.h>
-<iAIOProvider.h>
 <iAJobListView.h>
 <iALog.h>
 <iALogger.h>

@@ -1,11 +1,14 @@
 set(OPENIA_PRECOMPILE_HEADERS
 <cstdio>
+<cstring>
 <vector>
 <defines.h>
 <iAAmiraMeshIO.h>
 <iAAmiraVolumeFileIO.h>
 <iAConnector.h>
 <iACSVImageFileIO.h>
+<iADataSet.h>
+<iADataSetType.h>
 <iADCMFileIO.h>
 <iAExceptionThrowingErrorObserver.h>
 <iAFileIO.h>
@@ -31,6 +34,7 @@ set(OPENIA_PRECOMPILE_HEADERS
 <itkImage.h>
 <QFile>
 <QFileInfo>
+<QMap>
 <QString>
 <QTextStream>
 <vtkImageData.h>
