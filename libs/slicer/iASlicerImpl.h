@@ -408,6 +408,7 @@ private:
 
 	iAMdiChild* m_linkedMdiChild;  //! main window access for linked mdi childs feature - get rid of this somehow!
 
+	uint firstVisibleChannel() const;
 	QSharedPointer<iAChannelSlicerData> createChannel(uint id, iAChannelData const & chData);
 	void updatePositionMarkerExtent();
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);

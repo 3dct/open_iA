@@ -178,15 +178,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	connect(&m_interactorStyle->qtEventObject(), &iASlicerInteractionEvents::selection, this,
 		[this](int dragStart[2], int dragEnd[2])
 		{
-			uint channelID = NotExistingChannel;  // check "first" visible channel
-			for (auto key : m_channels.keys())
-			{
-				if (m_channels[key]->isEnabled())
-				{
-					channelID = key;
-					break;
-				}
-			}
+			uint channelID = firstVisibleChannel();
 			if (channelID == NotExistingChannel)
 			{
 				return;
@@ -542,7 +534,8 @@ void iASlicerImpl::setSliceNumber( int sliceNumber )
 	//       then we wouldn't need image spacing and origin below
 	//       (which don't make too much sense anyway, if it's not the same between loaded datasets)
 	// also, maybe clamp to boundaries of all currently loaded datasets?
-	if (!hasChannel(0))
+	auto channelID = firstVisibleChannel();
+	if (channelID == NotExistingChannel)
 	{
 		return;
 	}
@@ -553,8 +546,8 @@ void iASlicerImpl::setSliceNumber( int sliceNumber )
 	{
 		m_roiActor->SetVisibility(m_roiSlice[0] <= m_sliceNumber && m_sliceNumber < (m_roiSlice[1]));
 	}
-	double const * spacing = m_channels[0]->input()->GetSpacing();
-	double const * origin = m_channels[0]->input()->GetOrigin();
+	double const * spacing = m_channels[channelID]->input()->GetSpacing();
+	double const * origin = m_channels[channelID]->input()->GetOrigin();
 	for (auto ch : m_channels)
 	{
 		ch->setResliceAxesOrigin(origin[0] + xyz[0] * spacing[0], origin[1] + xyz[1] * spacing[1], origin[2] + xyz[2] * spacing[2]);
@@ -848,11 +841,12 @@ void iASlicerImpl::setROIVisible(bool visible)
 
 void iASlicerImpl::updateROI(int const roi[6])
 {
-	if (!m_decorations || !m_roiActive || !hasChannel(0))
+	auto channelID = firstVisibleChannel();
+	if (!m_decorations || !m_roiActive || channelID == NotExistingChannel)
 	{
 		return;
 	}
-	double const * spacing = m_channels[0]->output()->GetSpacing();
+	double const * spacing = m_channels[channelID]->output()->GetSpacing();
 	int sliceXAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::X);
 	int sliceYAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y);
 	int sliceZAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
@@ -884,14 +878,14 @@ void iASlicerImpl::setResliceAxesOrigin(double x, double y, double z)
 
 void iASlicerImpl::setPositionMarkerCenter(double x, double y, double z)
 {
-	if (!m_decorations)
+	uint channelID = firstVisibleChannel();
+	if (!m_decorations || channelID == NotExistingChannel)
 	{
 		return;
 	}
-
 	if (m_renWin->GetInteractor()->GetEnabled() && m_showPositionMarker)
 	{
-		double const* spacing = m_channels[0]->output()->GetSpacing();
+		double const* spacing = m_channels[channelID]->output()->GetSpacing();
 		int zIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
 		// we only want to show the position in a small slab around the current slice;
 		// but we also want to make the position marker easy to spot;
@@ -930,7 +924,8 @@ void iASlicerImpl::showPosition(bool s)
 void iASlicerImpl::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 {
 	// TODO: select channel / for all channels?
-	if (!hasChannel(0))
+	auto channelID = firstVisibleChannel();
+	if (channelID == NotExistingChannel)
 	{
 		return;
 	}
@@ -969,12 +964,12 @@ void iASlicerImpl::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 	movieWriter->SetInputConnection(windowToImage->GetOutputPort());
 	movieWriter->Start();
 
-	int const * imgExtent = m_channels[0]->input()->GetExtent();
-	double const * imgOrigin = m_channels[0]->input()->GetOrigin();
-	double const * imgSpacing = m_channels[0]->input()->GetSpacing();
+	int const * imgExtent = m_channels[channelID]->input()->GetExtent();
+	double const * imgOrigin = m_channels[channelID]->input()->GetOrigin();
+	double const * imgSpacing = m_channels[channelID]->input()->GetSpacing();
 
 	double oldResliceAxesOrigin[3];
-	m_channels[0]->resliceAxesOrigin(oldResliceAxesOrigin);
+	m_channels[channelID]->resliceAxesOrigin(oldResliceAxesOrigin);
 
 	double movingOrigin[3];
 	for (int i = 0; i < 3; ++i)
@@ -987,8 +982,8 @@ void iASlicerImpl::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 	for (int slice = sliceFrom; slice <= sliceTo && !aborter.isAborted(); slice++)
 	{
 		movingOrigin[sliceZAxisIdx] = imgOrigin[sliceZAxisIdx] + slice * imgSpacing[sliceZAxisIdx];
-		m_channels[0]->setResliceAxesOrigin(movingOrigin[0], movingOrigin[1], movingOrigin[2]);
-		m_channels[0]->updateReslicer();
+		m_channels[channelID]->setResliceAxesOrigin(movingOrigin[0], movingOrigin[1], movingOrigin[2]);
+		m_channels[channelID]->updateReslicer();
 		m_renWin->Render();
 		windowToImage->Modified();
 		windowToImage->Update();
@@ -1001,7 +996,7 @@ void iASlicerImpl::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 		p.emitProgress((slice - sliceFrom) * 100.0 / (sliceTo - sliceFrom));
 		QCoreApplication::processEvents();
 	}
-	m_channels[0]->setResliceAxesOrigin(oldResliceAxesOrigin[0], oldResliceAxesOrigin[1], oldResliceAxesOrigin[2]);
+	m_channels[channelID]->setResliceAxesOrigin(oldResliceAxesOrigin[0], oldResliceAxesOrigin[1], oldResliceAxesOrigin[2]);
 	update();
 	movieWriter->End();
 	m_renWin->GetInteractor()->Enable();
@@ -1099,11 +1094,12 @@ void iASlicerImpl::saveAsImage()
 void iASlicerImpl::saveImageStack()
 {
 	// TODO: allow selecting channel to export? export all channels?
-	if (!hasChannel(0))
+	auto channelID = firstVisibleChannel();
+	if (channelID == NotExistingChannel)
 	{
 		return;
 	}
-	auto imageData = m_channels[0]->input();
+	auto imageData = m_channels[channelID]->input();
 
 	QString file = QFileDialog::getSaveFileName(this, tr("Save Image Stack"),
 		"",  // TODO: get directory of file?
@@ -1154,12 +1150,12 @@ void iASlicerImpl::saveImageStack()
 	double movingOrigin[3];
 	imageData->GetOrigin(movingOrigin);
 	double const * imgOrigin = imageData->GetOrigin();
-	auto reslicer = m_channels[0]->reslicer();
+	auto reslicer = m_channels[channelID]->reslicer();
 	for (int slice = sliceFrom; slice <= sliceTo && !aborter.isAborted(); slice++)
 	{
 		movingOrigin[sliceZAxisIdx] = imgOrigin[sliceZAxisIdx] + slice * imgSpacing[sliceZAxisIdx];
 		setResliceAxesOrigin(movingOrigin[0], movingOrigin[1], movingOrigin[2]);
-		m_channels[0]->updateReslicer();
+		m_channels[channelID]->updateReslicer();
 
 		auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
 		iAConnector con;
@@ -1204,12 +1200,13 @@ void iASlicerImpl::saveImageStack()
 
 void iASlicerImpl::updatePositionMarkerExtent()
 {
-	if (m_channels.empty() || !m_positionMarkerSrc)
+	auto channelID = firstVisibleChannel();
+	if (channelID == NotExistingChannel || !m_positionMarkerSrc)
 	{
 		return;
 	}
 	// TODO: how to choose spacing? currently fixed from first image? export all channels?
-	auto imageData = m_channels[0]->input();
+	auto imageData = m_channels[channelID]->input();
 	m_positionMarkerSrc->SetXLength(m_ext * imageData->GetSpacing()[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)]);
 	m_positionMarkerSrc->SetYLength(m_ext * imageData->GetSpacing()[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
 	m_positionMarkerSrc->SetZLength(0);
@@ -1263,10 +1260,6 @@ bool operator!=(QCursor const & a, QCursor const & b)
 
 void iASlicerImpl::execute(vtkObject * /*caller*/, unsigned long eventId, void * /*callData*/)
 {
-	if (m_channels.empty())
-	{
-		return;
-	}
 	if (eventId == vtkCommand::LeftButtonPressEvent)
 	{
 		m_leftMouseDrag = true;
@@ -1327,7 +1320,6 @@ void iASlicerImpl::execute(vtkObject * /*caller*/, unsigned long eventId, void *
 	default:
 		break;
 	}
-
 	m_renWin->GetInteractor()->Render();
 }
 
@@ -1344,14 +1336,14 @@ void iASlicerImpl::screenPixelPosToImgPos(int const pos[2], double * slicerPos, 
 	m_pointPicker->GetPickPosition(slicerPos);     // get position in local slicer scene/world coordinates
 
 	// compute global point:
-	const int ChannelID = 0; //< TODO: avoid using specific channel here!
-	if (!hasChannel(ChannelID))
+	auto channelID = firstVisibleChannel();
+	if (channelID == NotExistingChannel)
 	{
 		std::fill(globalPos, globalPos + 3, 0);
 		return;
 	}
 	double point[4] = {slicerPos[0], slicerPos[1], slicerPos[2], 1};
-	auto reslicer = m_channels[ChannelID]->reslicer();
+	auto reslicer = m_channels[channelID]->reslicer();
 	vtkMatrix4x4 *resliceAxes = vtkMatrix4x4::New();
 	resliceAxes->DeepCopy(reslicer->GetResliceAxes());
 	resliceAxes->MultiplyPoint(point, globalPos);
@@ -1395,7 +1387,7 @@ namespace
 
 void iASlicerImpl::printVoxelInformation()
 {
-	if (!m_decorations || !m_settings.ShowTooltip)
+	if (!m_decorations || !m_settings.ShowTooltip || m_channels.isEmpty())
 	{
 		return;
 	}
@@ -1774,6 +1766,18 @@ void iASlicerImpl::setSlabCompositeMode(int slabCompositeMode)
 	update();
 }
 
+uint iASlicerImpl::firstVisibleChannel() const
+{
+	for (auto key : m_channels.keys())
+	{
+		if (m_channels[key]->isEnabled())
+		{
+			return key;
+		}
+	}
+	return NotExistingChannel;
+}
+
 QSharedPointer<iAChannelSlicerData> iASlicerImpl::createChannel(uint id, iAChannelData const & chData)
 {
 	if (m_channels.contains(id))
@@ -1843,7 +1847,8 @@ void iASlicerImpl::rotateSlice(double angle)
 {
 	m_angle[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z)] = angle;
 
-	if (!hasChannel(0))
+	auto channelID = firstVisibleChannel();
+	if (channelID == NotExistingChannel)
 	{
 		return;
 	}
@@ -1851,7 +1856,7 @@ void iASlicerImpl::rotateSlice(double angle)
 	double center[3];
 
 	// TODO: allow selecting center for rotation? current: always use first image!
-	auto imageData = m_channels[0]->input();
+	auto imageData = m_channels[channelID]->input();
 	double* spacing = imageData->GetSpacing();
 	int* ext = imageData->GetExtent();
 
