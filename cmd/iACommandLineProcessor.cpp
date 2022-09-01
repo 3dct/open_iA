@@ -433,6 +433,12 @@ namespace
 					std::cout << "Reading input file '" << inputFiles[i].toStdString() << "'" << std::endl;
 				}
 				auto io = iAFileTypeRegistry::createIO(inputFiles[i]);
+				if (!io)
+				{
+					std::cout << QString("Could not find a reader suitable for file name %1!")
+						.arg(inputFiles[i]).toStdString() << std::endl;
+					return 1;
+				}
 				QVariantMap dummyParams;  // TODO: allow reading i/o parameters from cmd
 				iAProgress dummyProgress; // TODO: use progress indicator here
 				auto dataSets = io->load(inputFiles[i], dummyParams, &dummyProgress);
