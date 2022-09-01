@@ -146,14 +146,9 @@ std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::loadData(QString const& fil
 	paramValuesScale["Scale"] = scale;
 	filterScale->run(paramValuesScale);
 
-	vtkNew<vtkImageData> img;
-	img->DeepCopy(filterScale->output(0)->vtkImage());
-
-	std::vector<std::shared_ptr<iADataSet>> returnData = {std::make_shared<iAImageData>(fileName, img)};
-
-	returnData[0]->setMetaData("PixelValueFormat", PixelValue);
-
-	return returnData;
+	auto dataSet = filterScale->output(0);
+	dataSet->setMetaData("PixelValueFormat", PixelValue);
+	return { dataSet };
 }
 
 QString iANKCFileIO::name() const
