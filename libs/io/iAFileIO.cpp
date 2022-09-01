@@ -33,10 +33,11 @@ iAFileIO::~iAFileIO()
 
 std::vector<std::shared_ptr<iADataSet>> iAFileIO::load(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
-	paramValues[iADataSet::FileNameStr] = fileName;
 	auto dataSets = loadData(fileName, paramValues, progress);
+
 	for (auto d : dataSets)
 	{
+		d->setMetaData(iADataSet::FileNameStr, fileName);
 		for (auto k : paramValues.keys())
 		{
 			d->setMetaData(k, paramValues[k]);

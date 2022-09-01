@@ -1704,6 +1704,7 @@ void MainWindow::about()
 	{
 		tableWidth += table->columnWidth(c);
 	}
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
 	auto screenHeightThird = screen()->geometry().height() / 3;
 	if (imgLabel->height() > screenHeightThird)
 	{
@@ -1719,6 +1720,7 @@ void MainWindow::about()
 	auto newTableHeight = std::max(MinTableHeight, std::min(tableHeight, screenHeightThird));
 	table->setMinimumWidth(tableWidth + 20); // + 20 for approximation of scrollbar width; verticalScrollBar()->height is wildly inaccurate before first show (100 or so)
 	table->setMinimumHeight(newTableHeight);
+#endif
 	//table->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	table->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	table->setAlternatingRowColors(true);

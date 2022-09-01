@@ -2152,7 +2152,11 @@ void MdiChild::updateDataSetInfo()
 		{
 			continue;
 		}
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
 		auto lines = m_dataForDisplay[dataSet.first]->information().split("\n", Qt::SkipEmptyParts);
+#else
+		auto lines = m_dataForDisplay[dataSet.first]->information().split("\n");
+#endif
 		std::for_each(lines.begin(), lines.end(), [](QString& s) { s = "    " + s; });
 		m_dataSetInfo->addItem(dataSet.second->name() + "\n" + lines.join("\n"));
 	}
