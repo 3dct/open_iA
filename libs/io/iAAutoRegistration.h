@@ -33,10 +33,10 @@ class iAAutoRegistration
 public:
 	iAAutoRegistration()
 	{
-#pragma GCC push
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-value"
 		s_bRegistered;    // required for self registration - otherwise it will not be done.
-#pragma GCC pop
+#pragma GCC diagnostic pop
 	}
 };
 
