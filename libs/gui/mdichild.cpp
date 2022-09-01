@@ -1204,9 +1204,20 @@ void MdiChild::saveNew()
 			LOG(lvlError, QString("Unknown error while saving file %1!").arg(fileName));
 		}
 	},
-	[fileName]()
+	[this, fileName]()
 	{
 			LOG(lvlInfo, QString("Saved file %1").arg(fileName));
+			bool unsavedData = false;
+			for (int i = 0; i < m_dataSets.size(); ++i)
+			{
+				QString fn = m_dataSets[i]->metaData(iADataSet::FileNameStr).toString();
+				if (fn.isEmpty() || !QFileInfo(fn).exists())
+				{
+					unsavedData = true;
+					break;
+				}
+			}
+			setWindowModified(unsavedData);
 	}, this);
 	
 }
