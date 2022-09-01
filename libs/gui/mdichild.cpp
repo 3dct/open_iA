@@ -705,9 +705,12 @@ void MdiChild::removeDataSet(size_t dataSetIdx)
 
 void MdiChild::clearDataSets()
 {
-	for (auto dataSet : m_dataSets)
+	std::vector<size_t> dataSetKeys;
+	dataSetKeys.reserve(m_dataSets.size());
+	std::transform(m_dataSets.begin(), m_dataSets.end(), std::back_inserter(dataSetKeys), [](auto const& p) { return p.first; });
+	for (auto dataSetIdx : dataSetKeys)
 	{
-		removeDataSet(dataSet.first);
+		removeDataSet(dataSetIdx);
 	}
 }
 
