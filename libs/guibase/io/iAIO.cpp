@@ -788,7 +788,6 @@ void iAIO::postImageReadActions()
 	getVtkImageData()->ReleaseData();
 	getVtkImageData()->Initialize();
 	getVtkImageData()->DeepCopy(getConnector()->vtkImage());
-	getVtkImageData()->CopyInformationFromPipeline(getConnector()->vtkImage()->GetInformation());
 	addMsg(tr("File loaded."));
 }
 

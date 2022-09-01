@@ -198,7 +198,6 @@ void iAAlgorithm::updateVtkImageData(int ch)
 	m_image->ReleaseData();
 	m_image->Initialize();
 	m_image->DeepCopy(m_connectors[ch]->vtkImage());
-	m_image->CopyInformationFromPipeline(m_connectors[ch]->vtkImage()->GetInformation());
 	m_image->Modified();
 }
 
