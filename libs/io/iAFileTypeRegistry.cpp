@@ -27,7 +27,7 @@
 #include <vector>
 
 namespace
-{// when the data structures here would be members of iAFileTypeRegistry, we would run into the "Static Initialization Order Fiasco"!
+{// if the data structures here would be members of iAFileTypeRegistry, we would run into the "Static Initialization Order Fiasco"!
 	std::vector<iAFileIOCreateFuncPtr> & fileIOs()
 	{
 		static std::vector<iAFileIOCreateFuncPtr> fileios;

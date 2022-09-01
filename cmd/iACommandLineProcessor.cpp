@@ -490,6 +490,12 @@ namespace
 				}
 
 				auto io = iAFileTypeRegistry::createIO(outFileName);
+				if (!io)
+				{
+					std::cout << QString("Could not find a writer suitable for file name %1!")
+						.arg(outFileName).toStdString() << std::endl;
+					return 1;
+				}
 				QVariantMap writeParamValues;
 				writeParamValues[iAFileIO::CompressionStr] = compress;
 				iAProgress dummyProgress; // TODO: use progress indicator here

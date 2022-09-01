@@ -24,7 +24,7 @@
 #include "iAFilter.h"
 
 namespace
-{
+{// if the data structures here would be members of iAFilterRegistry, we would run into the "Static Initialization Order Fiasco"!
 	std::vector<iAFilterCreateFuncPtr> & filters()
 	{
 		static std::vector<iAFilterCreateFuncPtr> filterList;

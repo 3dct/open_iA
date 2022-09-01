@@ -28,7 +28,7 @@
 #include <QMap>
 
 namespace
-{
+{// if the data structures here would be members of iAProjectRegistry, we would run into the "Static Initialization Order Fiasco"!
 	QMap<QString, iAProjectCreateFuncPtr>& projectTypes()
 	{
 		static QMap<QString, iAProjectCreateFuncPtr> s_projectTypes;
