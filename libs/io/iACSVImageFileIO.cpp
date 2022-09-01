@@ -43,7 +43,7 @@ QStringList iACSVImageFileIO::extensions() const
 	return QStringList{ "csv" };
 }
 
-void iACSVImageFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress)
+void iACSVImageFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	assert(dataSets.size() == 1);
 	auto imgData = dynamic_cast<iAImageData*>(dataSets[0].get());
@@ -67,7 +67,7 @@ void iACSVImageFileIO::save(QString const& fileName, std::vector<std::shared_ptr
 				out << ",";
 			}
 		}
-		progress->emitProgress( (100.0 * curVoxel) / voxelCount);
+		progress.emitProgress( (100.0 * curVoxel) / voxelCount);
 		++curVoxel;
 		out << std::endl;
 	}

@@ -94,7 +94,7 @@ namespace
 	}
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAVGIFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iAVGIFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
 

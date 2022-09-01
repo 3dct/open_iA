@@ -22,9 +22,10 @@
 
 #include "iAio_export.h"
 
-#include "iAAttributes.h"
-#include "iADataSet.h"
-#include "iADataSetType.h"
+#include <iAAttributes.h>
+#include <iADataSet.h>
+#include <iADataSetType.h>
+#include <iAProgress.h>
 
 #include <QMap>
 #include <QString>
@@ -32,7 +33,6 @@
 #include <memory>
 #include <vector>
 
-class iAProgress;
 
 //! Base class for dataset readers within open_iA
 //! Derived classes loading specific file types can be registered via iAFileTypeRegistry
@@ -60,21 +60,21 @@ public:
 	iADataSetTypes supportedDataSetTypes(Operation op) const;
 
 	//! Load the (list of) dataset(s); store parameters in the resulting datasets
-	std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress);
+	std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, QVariantMap const& paramValues, iAProgress const & progress = iAProgress());
 
 	//! Whether this IO can be used for storing the given data set.
 	//! It could for example check whether the format supports the data types in the dataset
 	//! The default implementation here always returns true
 	virtual bool isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName) const;
 	//! Save the (list of) dataset(s). The default implementation assumes that writing is not implemented and does nothing.
-	virtual void save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress);
+	virtual void save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress const& progress = iAProgress());
 
 protected:
 	iAAttributes m_params[2];
 
 	//! I/O for specific file formats should override this to load data from the given file name. default implementation does nothing
 	//! (instead of being pure virtual, to allow for I/O's that only save a dataset but don't load one)
-	virtual std::vector<std::shared_ptr<iADataSet>> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress);
+	virtual std::vector<std::shared_ptr<iADataSet>> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress);
 
 private:
 	iADataSetTypes m_dataSetTypes[2];

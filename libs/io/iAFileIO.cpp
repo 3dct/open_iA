@@ -31,7 +31,7 @@ iAFileIO::iAFileIO(iADataSetTypes loadTypes, iADataSetTypes saveTypes) :
 iAFileIO::~iAFileIO()
 {}
 
-std::vector<std::shared_ptr<iADataSet>> iAFileIO::load(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iAFileIO::load(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	auto dataSets = loadData(fileName, paramValues, progress);
 
@@ -48,7 +48,7 @@ std::vector<std::shared_ptr<iADataSet>> iAFileIO::load(QString const& fileName, 
 	return dataSets;
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iAFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(fileName);
 	Q_UNUSED(paramValues);
@@ -73,7 +73,7 @@ bool iAFileIO::isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString co
 	return true;
 }
 
-void iAFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress)
+void iAFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(fileName);
 	Q_UNUSED(dataSets);

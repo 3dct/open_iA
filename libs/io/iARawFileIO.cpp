@@ -75,7 +75,7 @@ iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volu
 
 #if RAW_LOAD_METHOD == ITK
 template <class T>
-void readRawImage(QVariantMap const& params, QString const& fileName, iAConnector& image, iAProgress* progress)
+void readRawImage(QVariantMap const& params, QString const& fileName, iAConnector& image, iAProgress const& progress)
 {
 	auto io = itk::RawImageIO<T, DIM>::New();
 	io->SetFileName(getLocalEncodingFileName(fileName).c_str());
@@ -97,7 +97,7 @@ void readRawImage(QVariantMap const& params, QString const& fileName, iAConnecto
 	auto reader = itk::ImageFileReader<itk::Image<T, DIM>>::New();
 	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	reader->SetImageIO(io);
-	progress->observe(reader);
+	progress.observe(reader);
 	reader->Modified();
 	reader->ReleaseDataFlagOn();
 	reader->Update();
@@ -106,7 +106,7 @@ void readRawImage(QVariantMap const& params, QString const& fileName, iAConnecto
 }
 #endif
 
-std::vector<std::shared_ptr<iADataSet>> iARawFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iARawFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	// ITK way:
 	iAConnector con;
@@ -151,7 +151,7 @@ std::vector<std::shared_ptr<iADataSet>> iARawFileIO::loadData(QString const& fil
 }
 
 template<class T>
-void writeRawImage(QString const& fileName, vtkImageData* img, QVariantMap paramValues, iAProgress* progress)
+void writeRawImage(QString const& fileName, vtkImageData* img, QVariantMap paramValues, iAProgress const& progress)
 {
 	iAConnector con;
 	con.setImage(img);
@@ -178,11 +178,11 @@ void writeRawImage(QString const& fileName, vtkImageData* img, QVariantMap param
 	writer->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	writer->SetInput(dynamic_cast<InputImageType*>(con.itkImage()));
 	writer->SetUseCompression(paramValues[iAFileIO::CompressionStr].toBool());
-	progress->observe(writer);
+	progress.observe(writer);
 	writer->Update();
 }
 
-void iARawFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress)
+void iARawFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	// ITK way:
 	assert(dataSets.size() == 1 && dynamic_cast<iAImageData*>(dataSets[0].get()));

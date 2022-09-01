@@ -23,10 +23,25 @@
 #include "iAbase_export.h"
 
 #include <itkCommand.h>
-
 #include <vtkSmartPointer.h>
 
 #include <QObject>
+
+class iAProgress;
+
+class iAitkCommand : public itk::Command
+{
+public:
+	using Self = iAitkCommand;
+	using Superclass = itk::Object;
+	using Pointer = itk::SmartPointer<Self>;
+	itkNewMacro(iAitkCommand);
+	void setProgress(iAProgress const* progress);
+	void Execute(itk::Object* caller, const itk::EventObject& event) override;
+	void Execute(const itk::Object* caller, const itk::EventObject& event) override;
+private:
+	iAProgress const* m_progress;
+};
 
 class iAvtkCommand;
 
@@ -39,35 +54,32 @@ class iAbase_API iAProgress : public QObject
 {
 	Q_OBJECT
 public:
-	typedef itk::MemberCommand< iAProgress >  CommandType;
-	//! @{
-	//! Event handlers for ITK progress events
-	void processEvent(itk::Object * caller, const itk::EventObject & event );
-	void constProcessEvent(const itk::Object * caller, const itk::EventObject & event );
-	//! @}
 	//! observe an ITK algorithm (and pass on its progress report)
 	//! @param caller the ITK algorithm to observe
-	void observe( itk::Object *caller );
+	void observe( itk::Object *caller ) const;
 	//! observe a VTK algorithm (and pass on its progress report)
 	//! @param caller the VTK algorithm to observe
-	void observe( vtkAlgorithm* caller );
+	void observe( vtkAlgorithm* caller ) const;
+
 public slots:
 	//! Trigger a progress event manually.
 	//! @param p the current percentage of progress (number between 0 and 100)
-	void emitProgress(double p);
+	void emitProgress(double p) const;
 	//! Set additional status information.
 	//! @param status the new status to report to the user
-	void setStatus(QString const & status);
+	void setStatus(QString const & status) const;
+
 signals:
 	//! Signal emitted whenever the progress has changed.
 	//! Connect this to a method that updates the indication of the current progression to the user.
 	//! @param p the current percentage of progress (number between 0 and 100)
-	void progress(double p);
+	void progress(double p) const;
 	//! Signal emitted whenever the status has changed.
 	//! Connect this to a method that updates the output of the status to the user.
 	//! @param status the new status.
-	void statusChanged(QString const & status);
+	void statusChanged(QString const & status) const;
+
 private:
-	CommandType::Pointer m_itkCommand;
-	vtkSmartPointer<iAvtkCommand> m_vtkCommand;
+	mutable itk::SmartPointer<iAitkCommand> m_itkCommand;
+	mutable vtkSmartPointer<iAvtkCommand> m_vtkCommand;
 };

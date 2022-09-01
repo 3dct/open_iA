@@ -51,7 +51,7 @@ void read_image_template(QString const& f, ImagePointer& image, bool releaseFlag
 }
 
 template <class T>
-void write_image_template(bool comp, QString const& fileName, ImagePtr image, iAProgress* progress)
+void write_image_template(bool comp, QString const& fileName, ImagePtr image, iAProgress const * progress)
 {
 	using InputImageType = itk::Image<T, m_DIM>;
 	auto writer = itk::ImageFileWriter<InputImageType>::New();
@@ -94,7 +94,7 @@ ImagePointer readFile(QString const& fileName, ScalarPixelType& pixelType, bool 
 	return image;
 }
 
-void writeFile(QString const& fileName, ImagePtr image, ScalarPixelType pixelType, bool useCompression, iAProgress* progress)
+void writeFile(QString const& fileName, ImagePtr image, ScalarPixelType pixelType, bool useCompression, iAProgress const * progress)
 {
 	ITK_TYPED_CALL(write_image_template, pixelType, useCompression, fileName, image, progress);
 }

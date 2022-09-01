@@ -97,9 +97,8 @@ void iASampleBuiltInFilterOperation::performWork()
 
 		auto io = iAFileTypeRegistry::createIO(outFileName);
 		QVariantMap writeParamValues;    // TODO: CHECK whether I/O requires other parameters and error in that case!
-		iAProgress dummyProgress;
 		writeParamValues[iAFileIO::CompressionStr] = m_compressOutput;
-		io->save(outFileName, { filter->output(o) }, writeParamValues, &dummyProgress);
+		io->save(outFileName, { filter->output(o) }, writeParamValues);
 	}
 	/*
 	// required options:

@@ -96,7 +96,7 @@ iAImageStackFileIO::iAImageStackFileIO() : iAFileIO(iADataSetType::Volume, iADat
 	addAttr(m_params[Save], CompressionStr, iAValueType::Boolean, false);
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAImageStackFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iAImageStackFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 //#if RAW_LOAD_METHOD == ITK
 //#else
@@ -124,7 +124,7 @@ std::vector<std::shared_ptr<iADataSet>> iAImageStackFileIO::loadData(QString con
 		throw std::runtime_error(QString("Unknown image extension '%1'!").arg(ext).toStdString());
 	}
 	imgReader->ReleaseDataFlagOn();
-	progress->observe(imgReader);
+	progress.observe(imgReader);
 	imgReader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 
 	if (paramValues[LoadTypeStr] == SingleImageOption)
@@ -190,7 +190,7 @@ bool iAImageStackFileIO::isDataSetSupported(std::shared_ptr<iADataSet> dataSet, 
 #include <itkNumericSeriesFileNames.h>
 
 template <typename T>
-void writeImageStack(QString const& fileName, iAConnector const & con, bool comp, iAProgress* p)
+void writeImageStack(QString const& fileName, iAConnector const & con, bool comp, iAProgress const& progress)
 {
 	using InputImageType = itk::Image<T, DIM>;
 	using OutputImageType = itk::Image<T, DIM - 1>;
@@ -230,11 +230,11 @@ void writeImageStack(QString const& fileName, iAConnector const & con, bool comp
 	writer->SetFileNames(nameGenerator->GetFileNames());
 	writer->SetInput(itkImg);
 	writer->SetUseCompression(comp);
-	p->observe(writer);
+	progress.observe(writer);
 	writer->Update();
 }
 
-void iAImageStackFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress)
+void iAImageStackFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
 	assert(dataSets.size() == 1);

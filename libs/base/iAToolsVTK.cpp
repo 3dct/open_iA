@@ -189,7 +189,7 @@ void addImages(vtkSmartPointer<vtkImageData> imgDst, vtkSmartPointer<vtkImageDat
 	processTwoImg(imgDst, imgToAdd, [](double x, double y) -> double { return x + y; }, p);
 }
 
-void storeImage(vtkSmartPointer<vtkImageData> img, QString const & filename, bool useCompression, iAProgress* progress)
+void storeImage(vtkSmartPointer<vtkImageData> img, QString const & filename, bool useCompression, iAProgress const* progress)
 {
 	iAConnector con;
 	con.setImage(img);

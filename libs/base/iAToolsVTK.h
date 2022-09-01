@@ -91,7 +91,7 @@ iAbase_API void addImages(vtkSmartPointer<vtkImageData> imgDst, vtkSmartPointer<
 //! @param img the image to store
 //! @param filename the name of the file to write to.
 //! @param useCompression whether the file should be compressed (.zraw) or not (.raw) in case we are storing .mhd files
-iAbase_API void storeImage(vtkSmartPointer<vtkImageData> img, QString const & filename, bool useCompression = true, iAProgress* progress = nullptr);
+iAbase_API void storeImage(vtkSmartPointer<vtkImageData> img, QString const & filename, bool useCompression = true, iAProgress const* progress = nullptr);
 
 //! Read an image from disk into a VTK image.
 //! @param filename the name of the file to read.

@@ -40,11 +40,11 @@ iASTLFileIO::iASTLFileIO() : iAFileIO(iADataSetType::Mesh, iADataSetType::Mesh)
 	addAttr(m_params[Save], FormatParam, iAValueType::Categorical, formatOptions);
 }
 
-std::vector<std::shared_ptr<iADataSet>> iASTLFileIO::loadData(QString const& fileName, QVariantMap const& params, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iASTLFileIO::loadData(QString const& fileName, QVariantMap const& params, iAProgress const& progress)
 {
 	Q_UNUSED(params);
 	vtkNew<vtkSTLReader> reader;
-	progress->observe(reader);
+	progress.observe(reader);
 	reader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	vtkNew<vtkPolyData> polyData;
@@ -53,12 +53,12 @@ std::vector<std::shared_ptr<iADataSet>> iASTLFileIO::loadData(QString const& fil
 	return { std::make_shared<iAPolyData>(fileName, polyData) };
 }
 
-void iASTLFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress)
+void iASTLFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	assert(dataSets.size() == 1 && dataSets[0]->type() == iADataSetType::Mesh);
 	Q_UNUSED(paramValues);
 	vtkNew<vtkSTLWriter> writer;
-	progress->observe(writer);
+	progress.observe(writer);
 	writer->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 	writer->SetFileType(paramValues[FormatParam].toString() == FmtBinary ? VTK_BINARY : VTK_ASCII);
 	writer->SetFileName(getLocalEncodingFileName(fileName).c_str());

@@ -30,22 +30,22 @@
 iAVTIFileIO::iAVTIFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volume)
 {}
 
-std::vector<std::shared_ptr<iADataSet>> iAVTIFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iAVTIFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
 	vtkNew<vtkXMLImageDataReader> reader;
-	progress->observe(reader);
+	progress.observe(reader);
 	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	reader->Update();
 	auto img = reader->GetOutput();
 	return { std::make_shared<iAImageData>(fileName, img) };
 }
 
-void  iAVTIFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress)
+void  iAVTIFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
 	vtkNew<vtkXMLImageDataWriter> writer;
-	progress->observe(writer);
+	progress.observe(writer);
 	writer->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	assert(dataSets.size() == 1);
 	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage();

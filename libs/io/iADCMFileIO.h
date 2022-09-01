@@ -29,7 +29,7 @@ class iADCMFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iADCMF
 public:
 	static const QString Name;
 	iADCMFileIO();
-	std::vector<std::shared_ptr<iADataSet>> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress) override;
+	std::vector<std::shared_ptr<iADataSet>> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };

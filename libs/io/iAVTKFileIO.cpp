@@ -39,13 +39,13 @@ const QString iAVTKFileIO::Name("VTK files");
 iAVTKFileIO::iAVTKFileIO() : iAFileIO(iADataSetType::All, iADataSetType::None)
 {}
 
-std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
 	std::vector<std::shared_ptr<iADataSet>> result;
 	auto reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
 	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
-	progress->observe(reader);
+	progress.observe(reader);
 	reader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 	reader->Update();
 

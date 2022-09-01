@@ -135,8 +135,7 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 		fileName = MakeAbsolute(batchDir, fileName);
 		auto io = iAFileTypeRegistry::createIO(fileName);
 		QVariantMap dummyParams;    // TODO: CHECK whether I/O requires other parameters and error in that case!
-		iAProgress dummyProgress;
-		auto dataSets = io->load(fileName, dummyParams, &dummyProgress);
+		auto dataSets = io->load(fileName, dummyParams);
 		for (auto d : dataSets)
 		{
 			inputImages.push_back(d);
@@ -225,8 +224,7 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 				{
 					auto io = iAFileTypeRegistry::createIO(fileName);
 					QVariantMap dummyParams;    // TODO: CHECK whether I/O requires other parameters and error in that case!
-					iAProgress dummyProgress;
-					auto dataSets = io->load(fileName, dummyParams, &dummyProgress);
+					auto dataSets = io->load(fileName, dummyParams);
 					for (auto d: dataSets)
 					{
 						filter->addInput(d);
@@ -325,9 +323,8 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 				{
 					auto io = iAFileTypeRegistry::createIO(fileName);
 					QVariantMap writeParamValues;    // TODO: CHECK whether I/O requires other parameters and error in that case!
-					iAProgress dummyProgress;
 					writeParamValues[iAFileIO::CompressionStr] = useCompression;
-					io->save(outName, { filter->output(o) }, writeParamValues, &dummyProgress);
+					io->save(outName, { filter->output(o) }, writeParamValues);
 				}
 			}
 		}

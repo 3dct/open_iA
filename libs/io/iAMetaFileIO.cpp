@@ -45,7 +45,7 @@ iAMetaFileIO::iAMetaFileIO() :
 	addAttr(m_params[Save], CompressionStr, iAValueType::Boolean, false);
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
 
@@ -79,7 +79,7 @@ std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::loadData(QString const& fi
 	return { std::make_shared<iAImageData>(fileName, img) };
 }
 
-void iAMetaFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress)
+void iAMetaFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	iAConnector con;
 	if (dataSets.size() != 1)
@@ -93,7 +93,7 @@ void iAMetaFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iAD
 		LOG(lvlError, "Meta File IO expects image(/volume) data, but given dataset was of a different type!");
 		return;
 	}
-	storeImage(imgData->vtkImage(), fileName, paramValues[CompressionStr].toBool(), progress);
+	storeImage(imgData->vtkImage(), fileName, paramValues[CompressionStr].toBool(), &progress);
 }
 
 QString iAMetaFileIO::name() const

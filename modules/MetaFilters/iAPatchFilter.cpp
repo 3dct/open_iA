@@ -108,8 +108,7 @@ namespace
 		{
 			auto io = iAFileTypeRegistry::createIO(fileName);
 			QVariantMap dummyParams;    // TODO: CHECK whether I/O requires other parameters and error in that case!
-			iAProgress dummyProgress;
-			auto dataSets = io->load(fileName, dummyParams, &dummyProgress);
+			auto dataSets = io->load(fileName, dummyParams);
 			for (auto d : dataSets)
 			{
 				inputImages.push_back(d);

@@ -44,7 +44,7 @@ const QString iAProjectFileIO::Name("Project files");
 iAProjectFileIO::iAProjectFileIO() : iAFileIO(iADataSetType::All, iADataSetType::None) // writing to a project file is specific (since it doesn't write the dataset itself...)
 {}
 
-std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
+std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
 	QFileInfo fi(fileName);
@@ -98,9 +98,8 @@ std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::loadData(QString const&
 			auto io = iAFileTypeRegistry::createIO(dataSetFileName);
 			if (io)
 			{
-				iAProgress dummyProgress;
 				auto dataSetParamValues = mapFromQSettings(settings);
-				auto currentLoadedDataSets = io->load(dataSetFileName, dataSetParamValues, &dummyProgress);
+				auto currentLoadedDataSets = io->load(dataSetFileName, dataSetParamValues);
 				for (auto dataSet : currentLoadedDataSets)
 				{
 					dataSets.push_back(dataSet);
@@ -173,7 +172,7 @@ std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::loadData(QString const&
 		*/
 		settings.endGroup();
 		++currIdx;
-		progress->emitProgress(100.0 * currIdx / maxIdx);
+		progress.emitProgress(100.0 * currIdx / maxIdx);
 	}
 	return dataSets;
 }
