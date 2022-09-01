@@ -23,12 +23,7 @@
 #include "iAio_export.h"
 
 #include "iADataSetType.h"
-#include "iAFileIO.h"
-#include "iALog.h"
-
-#include <QMap>
-
-#include <vector>
+#include "iAFileIO.h"    // for iAFileIO::Operation
 
 class QString;
 
@@ -48,7 +43,5 @@ public:
 	static QString registeredFileTypes(iAFileIO::Operation op, iADataSetTypes allowedTypes = iADataSetType::All);
 
 private:
-	static std::vector<iAFileIOCreateFuncPtr> m_fileIOs;
-	static QMap<QString, size_t> m_fileTypes;
 	iAFileTypeRegistry() = delete;  //!< class is meant to be used statically only, prevent creation of objects
 };

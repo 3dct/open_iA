@@ -22,17 +22,32 @@
 
 #include <QFileInfo>
 
-std::vector<iAFileIOCreateFuncPtr> iAFileTypeRegistry::m_fileIOs;
-QMap<QString, size_t> iAFileTypeRegistry::m_fileTypes;
+#include <QMap>
+
+#include <vector>
+
+namespace
+{// when the data structures here would be members of iAFileTypeRegistry, we would run into the "Static Initialization Order Fiasco"!
+	std::vector<iAFileIOCreateFuncPtr> & fileIOs()
+	{
+		static std::vector<iAFileIOCreateFuncPtr> fileios;
+		return fileios;
+	}
+	QMap<QString, size_t> & fileTypes()
+	{
+		static QMap<QString, size_t> filetypes;
+		return filetypes;
+	}
+}
 
 std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileName)
 {
 	QFileInfo fi(fileName);
 	// special handling for directory ? TLGICT-loader... -> fi.isDir();
 	auto ext = fi.suffix().toLower();
-	if (m_fileTypes.contains(ext))
+	if (fileTypes().contains(ext))
 	{
-		return m_fileIOs[m_fileTypes[ext]]();
+		return fileIOs()[fileTypes()[ext]]();
 	}
 	else
 	{
@@ -50,7 +65,7 @@ QString iAFileTypeRegistry::registeredFileTypes(iAFileIO::Operation op, iADataSe
 {
 	QStringList allExtensions;
 	QString singleTypes;
-	for (auto ioFactory : m_fileIOs)  // all registered file types
+	for (auto ioFactory : fileIOs())  // all registered file types
 	{
 		auto io = ioFactory();
 #if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
@@ -79,19 +94,19 @@ QString iAFileTypeRegistry::registeredFileTypes(iAFileIO::Operation op, iADataSe
 
 bool iAFileTypeRegistry::addFileType(iAFileIOCreateFuncPtr c)
 {
-	m_fileIOs.push_back(c);
+	fileIOs().push_back(c);
 	auto io = c();
 	for (auto extension : io->extensions())
 	{
 		auto lowerExt = extension.toLower();
-		if (m_fileTypes.contains(extension))
+		if (fileTypes().contains(extension))
 		{
 			LOG(lvlWarn, QString("File IO %1 tries to add a handler for file extension %2, already registered to file IO %3!")
 				.arg(io->name())
 				.arg(lowerExt)
-				.arg(m_fileIOs[m_fileTypes[lowerExt]]()->name()));
+				.arg(fileIOs()[fileTypes()[lowerExt]]()->name()));
 		}
-		m_fileTypes.insert(lowerExt, m_fileIOs.size() - 1);
+		fileTypes().insert(lowerExt, fileIOs().size() - 1);
 	}
 	return true;
 }
