@@ -45,7 +45,7 @@ void iAGEMSeProject::saveProject(QSettings & projectFile, QString const & fileNa
 	gemseModule->saveProject(projectFile, fileName);
 }
 
-QSharedPointer<iAProjectBase> iAGEMSeProject::create()
+std::shared_ptr<iAProjectBase> iAGEMSeProject::create()
 {
-	return QSharedPointer<iAGEMSeProject>::create();
+	return std::make_shared<iAGEMSeProject>();
 }

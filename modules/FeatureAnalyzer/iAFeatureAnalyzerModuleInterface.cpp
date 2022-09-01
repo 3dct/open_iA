@@ -40,7 +40,7 @@ void iAFeatureAnalyzerModuleInterface::Initialize()
 		return;
 	}
 	Q_INIT_RESOURCE(FeatureAnalyzer);
-	iAProjectRegistry::addProject<iAFeatureAnalyzerProject>(iAFeatureAnalyzerProject::ID);
+	iAProjectRegistry::addProject(iAFeatureAnalyzerProject::ID, iAFeatureAnalyzerProject::create);
 #if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
 	qsrand(QTime::currentTime().msec());
 #endif

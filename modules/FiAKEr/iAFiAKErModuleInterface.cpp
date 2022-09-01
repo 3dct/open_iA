@@ -79,9 +79,9 @@ public:
 	{
 		m_controller->saveProject(projectFile, fileName);
 	}
-	static QSharedPointer<iAProjectBase> create()
+	static std::shared_ptr<iAProjectBase> create()
 	{
-		return QSharedPointer<iAFIAKERProject>::create();
+		return std::make_shared<iAFIAKERProject>();
 	}
 	void setController(iAFiAKErController* controller)
 	{
@@ -107,7 +107,7 @@ void iAFiAKErModuleInterface::Initialize()
 	{
 		return;
 	}
-	iAProjectRegistry::addProject<iAFIAKERProject>(iAFiAKErController::FIAKERProjectID);
+	iAProjectRegistry::addProject(iAFiAKErController::FIAKERProjectID, iAFIAKERProject::create);
 
 	QAction * actionFiAKEr = new QAction(tr("Start FIAKER"), m_mainWnd);
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)

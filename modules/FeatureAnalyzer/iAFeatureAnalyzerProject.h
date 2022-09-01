@@ -30,7 +30,7 @@ class iAFeatureAnalyzerProject : public iAProjectBase
 public:
 	static QString const ID;
 	void setOptions(QString const& resultsFolder, QString const& datasetsFolder);
-	static QSharedPointer<iAProjectBase> create();
+	static std::shared_ptr<iAProjectBase> create();
 	void loadProject(QSettings& projectFile, QString const& fileName) override;
 	void saveProject(QSettings& projectFile, QString const& fileName) override;
 private:

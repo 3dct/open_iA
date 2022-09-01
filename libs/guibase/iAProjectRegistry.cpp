@@ -20,22 +20,42 @@
 * ************************************************************************************/
 #include "iAProjectRegistry.h"
 
+#include "iALog.h"
 #include "iAProjectBase.h"
 
 #include <cassert>
 
-QMap<QString, std::shared_ptr<iAIProjectFactory>> iAProjectRegistry::m_projectTypes;
+#include <QMap>
+
+namespace
+{
+	QMap<QString, iAProjectCreateFuncPtr>& projectTypes()
+	{
+		static QMap<QString, iAProjectCreateFuncPtr> s_projectTypes;
+		return s_projectTypes;
+	}
+}
+
+void iAProjectRegistry::addProject(QString const& projectIdentifier, iAProjectCreateFuncPtr projectCreateFunc)
+{
+	if (projectTypes().contains(projectIdentifier))
+	{
+		LOG(lvlWarn, QString("Trying to add already registered project type %1 again!").arg(projectIdentifier));
+	}
+	projectTypes().insert(projectIdentifier, projectCreateFunc);
+}
 
 QList<QString> const iAProjectRegistry::projectKeys()
 {
-	return m_projectTypes.keys();
+	return projectTypes().keys();
 }
 
 std::shared_ptr<iAProjectBase> iAProjectRegistry::createProject(QString const & projectIdentifier)
 {
-	assert(m_projectTypes.contains(projectIdentifier));
-	return m_projectTypes[projectIdentifier]->create();
+	assert(projectTypes().contains(projectIdentifier));
+	return projectTypes()[projectIdentifier]();
 }
+
 
 
 iAProjectBase::iAProjectBase():

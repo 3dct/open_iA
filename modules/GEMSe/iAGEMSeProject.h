@@ -35,5 +35,5 @@ public:
 	virtual ~iAGEMSeProject() override;
 	void loadProject(QSettings & projectFile, QString const & fileName) override;
 	void saveProject(QSettings & projectFile, QString const & fileName) override;
-	static QSharedPointer<iAProjectBase> create();
+	static std::shared_ptr<iAProjectBase> create();
 };

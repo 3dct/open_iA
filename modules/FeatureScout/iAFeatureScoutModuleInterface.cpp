@@ -60,9 +60,9 @@ public:
 	{}
 	void loadProject(QSettings & projectFile, QString const & fileName) override;
 	void saveProject(QSettings & projectFile, QString const & fileName) override;
-	static QSharedPointer<iAProjectBase> create()
+	static std::shared_ptr<iAProjectBase> create()
 	{
-		return QSharedPointer<iAFeatureScoutProject>::create();
+		return std::make_shared<iAFeatureScoutProject>();
 	}
 	void setOptions(iACsvConfig config)
 	{
@@ -148,7 +148,7 @@ void iAFeatureScoutModuleInterface::Initialize()
 	}
 	Q_INIT_RESOURCE(FeatureScout);
 
-	iAProjectRegistry::addProject<iAFeatureScoutProject>(iAFeatureScoutProject::ID);
+	iAProjectRegistry::addProject(iAFeatureScoutProject::ID, iAFeatureScoutProject::create);
 	QAction * actionFibreScout = new QAction(tr("FeatureScout"), m_mainWnd);
 	connect(actionFibreScout, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout);
 	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Feature Analysis"), true);

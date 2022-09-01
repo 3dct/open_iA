@@ -81,7 +81,7 @@ void iAGEMSeModuleInterface::Initialize()
 	}
 	Q_INIT_RESOURCE(GEMSe);
 
-	iAProjectRegistry::addProject<iAGEMSeProject>(iAGEMSeProject::ID);
+	iAProjectRegistry::addProject(iAGEMSeProject::ID, iAGEMSeProject::create);
 
 	QAction * actionGEMSe = new QAction(tr("GEMSe"), m_mainWnd);
 	m_mainWnd->makeActionChildDependent(actionGEMSe);

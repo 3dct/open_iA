@@ -33,9 +33,9 @@ void iAFeatureAnalyzerProject::setOptions(QString const& resultsFolder, QString 
 	m_datasetsFolder = datasetsFolder;
 }
 
-QSharedPointer<iAProjectBase> iAFeatureAnalyzerProject::create()
+std::shared_ptr<iAProjectBase> iAFeatureAnalyzerProject::create()
 {
-	return QSharedPointer<iAFeatureAnalyzerProject>::create();
+	return std::make_shared<iAFeatureAnalyzerProject>();
 }
 
 void iAFeatureAnalyzerProject::loadProject(QSettings& projectFile, QString const& /*fileName*/)

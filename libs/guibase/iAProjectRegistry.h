@@ -22,37 +22,23 @@
 
 #include "iAguibase_export.h"
 
-#include "iALog.h"
-#include "iAGenericFactory.h"
+#include <QList>
 
-#include <QMap>
+#include <memory>
 
 class iAProjectBase;
 
-//! For internal use in iAProjectRegistry only.
-//! There should be no need to use this class directly; use REGISTER_PROJECT below!
-using iAIProjectFactory = iAGenericFactory<iAProjectBase>;
+class QString;
+
+using iAProjectCreateFuncPtr = std::shared_ptr<iAProjectBase>(*)();
 
 class iAguibase_API iAProjectRegistry
 {
 public:
 	//! Adds a given project type to the registry.
-	template <typename ProjectType> static void addProject(QString const & projectIdentifier);
+	static void addProject(QString const & projectIdentifier, iAProjectCreateFuncPtr projectCreateFunc);
 	static QList<QString> const projectKeys();
 	static std::shared_ptr<iAProjectBase> createProject(QString const & projectIdentifier);
 private:
-	static QMap<QString, std::shared_ptr<iAIProjectFactory> > m_projectTypes;
 	iAProjectRegistry() =delete;	//!< iAProjectRegistry is meant to be used statically only, thus prevent creation of objects
 };
-
-template <typename ProjectType> using iAProjectFactory = iASpecificFactory<ProjectType, iAProjectBase>;
-
-template <typename ProjectType>
-void iAProjectRegistry::addProject(QString const & projectIdentifier)
-{
-	if (m_projectTypes.contains(projectIdentifier))
-	{
-		LOG(lvlWarn, QString("Trying to add already registered project type %1 again!").arg(projectIdentifier));
-	}
-	m_projectTypes.insert(projectIdentifier, std::shared_ptr<iAIProjectFactory>(new iAProjectFactory<ProjectType>()));
-}
