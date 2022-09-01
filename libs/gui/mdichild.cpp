@@ -201,29 +201,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	connect(mainWnd, &MainWindow::styleChanged, this, &MdiChild::styleChanged);
 
 	// Dataset list events:
-	connect(m_dataSetListWidget, &iADataSetListWidget::removeDataSet, this,
-		[this](size_t dataSetIdx)
-		{
-			if (m_dataRenderers.find(dataSetIdx) != m_dataRenderers.end())
-			{
-				m_dataRenderers[dataSetIdx]->setVisible(false);
-				m_dataRenderers.erase(dataSetIdx);
-				updateRenderer();
-			}
-			m_dataForDisplay.erase(dataSetIdx);
-			if (m_sliceRenderers.find(dataSetIdx) != m_sliceRenderers.end())
-			{
-				m_sliceRenderers[dataSetIdx]->remove();
-				m_sliceRenderers.erase(dataSetIdx);
-				updateSlicers();
-			}
-			m_dataSets.erase(dataSetIdx);
-			if (m_isMagicLensEnabled && m_magicLensDataSet == dataSetIdx)
-			{
-				changeMagicLensDataSet(0);
-			}
-			updateDataSetInfo();
-		});
+	connect(m_dataSetListWidget, &iADataSetListWidget::removeDataSet, this, &iAMdiChild::removeDataSet);
 	connect(m_dataSetListWidget, &iADataSetListWidget::editDataSet, this,
 		[this](size_t dataSetIdx)
 		{
@@ -701,6 +679,38 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 		this);
 	iAJobListView::get()->addJob(QString("Computing display data for %1").arg(dataSet->name()), p.get(), fw);
 }
+
+void MdiChild::removeDataSet(size_t dataSetIdx)
+{
+	if (m_dataRenderers.find(dataSetIdx) != m_dataRenderers.end())
+	{
+		m_dataRenderers[dataSetIdx]->setVisible(false);
+		m_dataRenderers.erase(dataSetIdx);
+		updateRenderer();
+	}
+	m_dataForDisplay.erase(dataSetIdx);
+	if (m_sliceRenderers.find(dataSetIdx) != m_sliceRenderers.end())
+	{
+		m_sliceRenderers[dataSetIdx]->remove();
+		m_sliceRenderers.erase(dataSetIdx);
+		updateSlicers();
+	}
+	m_dataSets.erase(dataSetIdx);
+	if (m_isMagicLensEnabled && m_magicLensDataSet == dataSetIdx)
+	{
+		changeMagicLensDataSet(0);
+	}
+	updateDataSetInfo();
+}
+
+void MdiChild::clearDataSets()
+{
+	for (auto dataSet : m_dataSets)
+	{
+		removeDataSet(dataSet.first);
+	}
+}
+
 
 bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyData* poly)	// = opening new window
 {

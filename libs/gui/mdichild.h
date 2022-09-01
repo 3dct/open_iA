@@ -112,6 +112,8 @@ public:
 	void setSTLParameter();
 	bool displayResult(QString const & title, vtkImageData* image = nullptr, vtkPolyData* poly = nullptr) override;
 	void addDataSet(std::shared_ptr<iADataSet> dataSet) override;
+	void removeDataSet(size_t dataSetIdx) override;
+	void clearDataSets() override;
 	void prepareForResult();
 	bool save();
 	void saveNew();

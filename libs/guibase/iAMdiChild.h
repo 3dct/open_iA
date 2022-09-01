@@ -210,6 +210,10 @@ public:
 
 	//! add a dataset
 	virtual void addDataSet(std::shared_ptr<iADataSet> dataSet) = 0;
+	//! remove dataset with given ID
+	virtual void removeDataSet(size_t dataSetIdx) = 0;
+	//! clear (remove) all datasets
+	virtual void clearDataSets() = 0;
 
 	//! display an image or a mesh
 	//! @deprecated use addDataset instead
