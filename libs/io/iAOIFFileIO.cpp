@@ -62,11 +62,7 @@ std::vector<std::shared_ptr<iADataSet>> iAOIFFileIO::loadData(QString const& fil
 		std::vector<std::shared_ptr<iADataSet>> result;
 		for (int i = 0; i < reader.GetChanNum(); ++i)
 		{
-			vtkSmartPointer<vtkImageData> img = vtkSmartPointer<vtkImageData>::New();
-			iAConnector con;
-			con.setImage(reader.GetResult(i));
-			img->DeepCopy(con.vtkImage());
-			result.push_back(std::make_shared<iAImageData>(fileName, img));
+			result.push_back(iAImageData::create(reader.GetResult(i), fileName));
 		}
 		return result;
 
@@ -77,11 +73,7 @@ std::vector<std::shared_ptr<iADataSet>> iAOIFFileIO::loadData(QString const& fil
 		auto channel = paramValues[ChannelNumberStr].toInt();
 		if (channel >= 0 && channel < reader.GetChanNum())
 		{
-			vtkSmartPointer<vtkImageData> img = vtkSmartPointer<vtkImageData>::New();
-			iAConnector con;
-			con.setImage(reader.GetResult(channel));
-			img->DeepCopy(con.vtkImage());
-			return { std::make_shared<iAImageData>(fileName, img) };
+			return { iAImageData::create(reader.GetResult(channel), fileName) };
 		}
 		else
 		{

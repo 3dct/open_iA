@@ -21,10 +21,8 @@
 #include "iADCMFileIO.h"
 
 #include "defines.h"       // for DIM
-#include "iAConnector.h"
 #include "iAFileUtils.h"   // for getLocalEncodingFileName
 #include "iAProgress.h"
-//#include "iAToolsVTK.h"
 
 #include <itkImage.h>
 #include <itkImageSeriesReader.h>
@@ -62,11 +60,7 @@ std::vector<std::shared_ptr<iADataSet>> iADCMFileIO::loadData(QString const& fil
 	reader->Modified();
 	reader->Update();
 
-	iAConnector con;
-	con.setImage(reader->GetOutput());
-	auto img = vtkSmartPointer<vtkImageData>::New();
-	img->DeepCopy(con.vtkImage());
-	return { std::make_shared<iAImageData>(fileName, img) };
+	return { iAImageData::create(reader->GetOutput(), fileName) };
 }
 
 QString iADCMFileIO::name() const

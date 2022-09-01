@@ -166,6 +166,15 @@ itk::ImageBase<3>* iAImageData::itkImage() const
 	return m_con->itkImage();
 }
 
+std::shared_ptr<iAImageData> iAImageData::create(itk::ImageBase<3>* itkImg, QString const & fileName)
+{
+	iAConnector con;
+	con.setImage(itkImg);
+	vtkNew<vtkImageData> vtkImg;
+	vtkImg->DeepCopy(con.vtkImage());
+	return std::make_shared<iAImageData>(fileName, vtkImg);
+}
+
 unsigned long long iAImageData::voxelCount() const
 {
 	auto const ext = m_img->GetExtent();

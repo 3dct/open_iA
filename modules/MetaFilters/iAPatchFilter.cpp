@@ -195,12 +195,8 @@ namespace
 						for (int i = 0; i < inputImages.size(); ++i)
 						{
 							auto itkExtractImg = extractImage(dynamic_cast<iAImageData*>(inputImages[i].get())->itkImage(), extractIndex, extractSize);
-							iAConnector con;
-							con.setImage(itkExtractImg);
-							vtkNew<vtkImageData> img;
-							img->DeepCopy(con.vtkImage());
 							// maybe modify original filename to reflect that only a patch of it is passed on?
-							filter->addInput(std::make_shared<iAImageData>("", img));
+							filter->addInput(iAImageData::create("", itkExtractImg));
 						}
 						// run filter on inputs:
 						filter->run(filterParams);

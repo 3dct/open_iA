@@ -34,18 +34,6 @@
 
 namespace
 {
-	std::shared_ptr<iADataSet> createDataSet(QString const& fileName, itk::ImageBase<3>* itkImg)
-	{
-		iAConnector con;
-		con.setImage(itkImg);
-		vtkNew<vtkImageData> vtkImg;
-		vtkImg->DeepCopy(con.vtkImage());
-		return std::make_shared<iAImageData>(fileName, vtkImg);
-	}
-	std::shared_ptr<iADataSet> createDataSet(QString const & fileName, vtkSmartPointer<vtkImageData> img)
-	{
-		return std::make_shared<iAImageData>(fileName, img);
-	}
 
 	itk::ImageIOBase::IOComponentType mapVTKtoITKPixelType(int vtkType)
 	{
@@ -160,12 +148,12 @@ void iAFilter::clearOutput()
 
 void iAFilter::addOutput(itk::ImageBase<3>* itkImg)
 {
-	m_output.push_back(createDataSet(outputName(m_output.size()), itkImg));
+	m_output.push_back(iAImageData::create(itkImg, outputName(m_output.size())));
 }
 
 void iAFilter::addOutput(vtkSmartPointer<vtkImageData> vtkImg)
 {
-	m_output.push_back(createDataSet(outputName(m_output.size()), vtkImg));
+	m_output.push_back(std::make_shared<iAImageData>(outputName(m_output.size()), vtkImg));
 }
 
 void iAFilter::addOutput(std::shared_ptr<iADataSet> dataSet)

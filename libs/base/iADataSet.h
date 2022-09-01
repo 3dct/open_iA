@@ -111,6 +111,7 @@ class iAbase_API iAImageData : public iADataSet
 {
 public:
 	iAImageData(QString const& fileName, vtkSmartPointer<vtkImageData> img);
+	static std::shared_ptr<iAImageData> create(itk::ImageBase<3>* itkImg, QString const& fileName = "");
 	~iAImageData();
 	vtkSmartPointer<vtkImageData> vtkImage() const;
 	itk::ImageBase<3>* itkImage() const;
