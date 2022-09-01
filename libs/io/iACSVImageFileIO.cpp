@@ -33,11 +33,6 @@ iACSVImageFileIO::iACSVImageFileIO() : iAFileIO(iADataSetType::None, iADataSetTy
 	addAttr(m_params[Load], "Coordinates", iAValueType::Boolean, false);
 }
 
-std::shared_ptr<iAFileIO> iACSVImageFileIO::create()
-{
-	return std::make_shared<iACSVImageFileIO>();
-}
-
 QString iACSVImageFileIO::name() const
 {
 	return "CSV file";
@@ -78,5 +73,3 @@ void iACSVImageFileIO::save(QString const& fileName, std::vector<std::shared_ptr
 	}
 	out.close();
 }
-
-bool iACSVImageFileIO::s_bRegistered = iAFileTypeRegistry::addFileType(iACSVImageFileIO::create);

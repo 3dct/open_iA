@@ -73,11 +73,6 @@ iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volu
 	addAttr(m_params[Save], ByteOrderStr, iAValueType::Categorical, byteOrders);
 }
 
-std::shared_ptr<iAFileIO> iARawFileIO::create()
-{
-	return std::make_shared<iARawFileIO>();
-}
-
 #if RAW_LOAD_METHOD == ITK
 template <class T>
 void readRawImage(QVariantMap const& params, QString const& fileName, iAConnector& image, iAProgress* progress)
@@ -207,5 +202,3 @@ QStringList iARawFileIO::extensions() const
 {
 	return QStringList{ "raw", "vol", "rec", "pro" };
 }
-
-bool iARawFileIO::s_bRegistered = iAFileTypeRegistry::addFileType(iARawFileIO::create);

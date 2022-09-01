@@ -92,7 +92,7 @@ QString iAFileTypeRegistry::registeredFileTypes(iAFileIO::Operation op, iADataSe
 	return QString("Any supported format (%1);;").arg(allExtensions.join(" ")) + singleTypes;
 }
 
-bool iAFileTypeRegistry::addFileType(iAFileIOCreateFuncPtr c)
+bool iAFileTypeRegistry::add(iAFileIOCreateFuncPtr c)
 {
 	fileIOs().push_back(c);
 	auto io = c();

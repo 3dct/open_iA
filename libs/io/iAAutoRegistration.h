@@ -20,16 +20,25 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAutoRegistration.h"
-#include "iAFileIO.h"
-#include "iAFileTypeRegistry.h"
+#include <memory>
 
-class iAMetaFileIO : public iAFileIO, iAAutoRegistration<iAFileIO, iAMetaFileIO, iAFileTypeRegistry>
+template <class Base, class Class, class Registry>
+class iAAutoRegistration
 {
+	static bool s_bRegistered;
+	static std::shared_ptr<Base> create()
+	{
+		return std::make_shared<Class>();
+	}
 public:
-	iAMetaFileIO();
-	std::vector<std::shared_ptr<iADataSet>> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress) override;
-	void save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress) override;
-	QString name() const override;
-	QStringList extensions() const override;
+	iAAutoRegistration()
+	{
+#pragma GCC push
+#pragma GCC diagnostic ignored "-Wunused-value"
+		s_bRegistered;    // required for self registration - otherwise it will not be done.
+#pragma GCC pop
+	}
 };
+
+template <class Base, class Class, class Registry>
+bool iAAutoRegistration<Base, Class, Registry>::s_bRegistered = Registry::add(create);

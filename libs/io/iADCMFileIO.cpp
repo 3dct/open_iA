@@ -39,11 +39,6 @@ const QString iADCMFileIO::Name("DICOM files");
 iADCMFileIO::iADCMFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
 {}
 
-std::shared_ptr<iAFileIO> iADCMFileIO::create()
-{
-	return std::make_shared<iADCMFileIO>();
-}
-
 std::vector<std::shared_ptr<iADataSet>> iADCMFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
 	Q_UNUSED(paramValues);
@@ -76,5 +71,3 @@ QStringList iADCMFileIO::extensions() const
 {
 	return QStringList{ "dcm" };
 }
-
-bool iADCMFileIO::s_bRegistered = iAFileTypeRegistry::addFileType(iADCMFileIO::create);

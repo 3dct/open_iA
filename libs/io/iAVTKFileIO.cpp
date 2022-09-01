@@ -39,11 +39,6 @@ const QString iAVTKFileIO::Name("VTK files");
 iAVTKFileIO::iAVTKFileIO() : iAFileIO(iADataSetType::All, iADataSetType::None)
 {}
 
-std::shared_ptr<iAFileIO> iAVTKFileIO::create()
-{
-	return std::make_shared<iAVTKFileIO>();
-}
-
 std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
 	Q_UNUSED(paramValues);
@@ -156,5 +151,3 @@ QStringList iAVTKFileIO::extensions() const
 {
 	return QStringList{ "vtk" };
 }
-
-bool iAVTKFileIO::s_bRegistered = iAFileTypeRegistry::addFileType(iAVTKFileIO::create);

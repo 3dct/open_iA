@@ -38,11 +38,6 @@ const QString iANKCFileIO::Name("NKC files");
 iANKCFileIO::iANKCFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
 {}
 
-std::shared_ptr<iAFileIO> iANKCFileIO::create()
-{
-	return std::make_shared<iANKCFileIO>();
-}
-
 std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
 	Q_UNUSED(paramValues);
@@ -164,5 +159,3 @@ QStringList iANKCFileIO::extensions() const
 {
 	return QStringList{"nkc"};
 }
-
-bool iANKCFileIO::s_bRegistered = iAFileTypeRegistry::addFileType(iANKCFileIO::create);

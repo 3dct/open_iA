@@ -30,11 +30,6 @@
 iAVTIFileIO::iAVTIFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volume)
 {}
 
-std::shared_ptr<iAFileIO> iAVTIFileIO::create()
-{
-	return std::make_shared<iAVTIFileIO>();
-}
-
 std::vector<std::shared_ptr<iADataSet>> iAVTIFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
 	Q_UNUSED(paramValues);
@@ -67,5 +62,3 @@ QStringList iAVTIFileIO::extensions() const
 {
 	return QStringList{ "vti" };
 }
-
-bool iAVTIFileIO::s_bRegistered = iAFileTypeRegistry::addFileType(iAVTIFileIO::create);

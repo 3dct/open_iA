@@ -22,10 +22,11 @@
 
 #include "iAio_export.h"
 
+#include "iAAutoRegistration.h"
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
-class iAio_API iAImageStackFileIO : public iAFileIO
+class iAio_API iAImageStackFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAImageStackFileIO, iAFileTypeRegistry>
 {
 public:
 	static QString const Name;
@@ -43,9 +44,4 @@ public:
 	QStringList extensions() const override;
 	bool isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName) const override;
 	void save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress) override;
-
-private:
-	static std::shared_ptr<iAFileIO> create();
-	static bool s_bRegistered;
 };
-

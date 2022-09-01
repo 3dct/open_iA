@@ -19,19 +19,17 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
+
+#include "iAAutoRegistration.h"
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
-class iAAmiraVolumeFileIO : public iAFileIO
+class iAAmiraVolumeFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAAmiraVolumeFileIO, iAFileTypeRegistry>
 {
 public:
 	iAAmiraVolumeFileIO();
 	std::vector<std::shared_ptr<iADataSet>> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress) override;
 	QString name() const override;
 	QStringList extensions() const override;
-
-private:
-	static std::shared_ptr<iAFileIO> create();
-	static bool s_bRegistered;
 };
 

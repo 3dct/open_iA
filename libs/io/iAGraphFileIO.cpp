@@ -38,11 +38,6 @@ iAGraphFileIO::iAGraphFileIO() : iAFileIO(iADataSetType::Graph, iADataSetType::N
 	addAttr(m_params[Load], "Spacing", iAValueType::Vector3, variantVector<double>({ 1.0, 1.0, 1.0 }));
 }
 
-std::shared_ptr<iAFileIO> iAGraphFileIO::create()
-{
-	return std::make_shared<iAGraphFileIO>();
-}
-
 std::vector<std::shared_ptr<iADataSet>> iAGraphFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
 	// maybe we could also use vtkPDBReader, but not sure that's the right "PDB" file type...
@@ -179,5 +174,3 @@ QStringList iAGraphFileIO::extensions() const
 {                             // pdb as in Brookhaven "Protein Data Bank" format (?)
 	return QStringList{ "txt", "pdb" };
 }
-
-bool iAGraphFileIO::s_bRegistered = iAFileTypeRegistry::addFileType(iAGraphFileIO::create);

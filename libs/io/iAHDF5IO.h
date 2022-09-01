@@ -24,6 +24,7 @@
 
 #include "iAio_export.h"
 
+#include "iAAutoRegistration.h"
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
@@ -31,7 +32,7 @@
 #define H5_USE_110_API
 #include <hdf5.h>
 
-class iAio_API iAHDF5IO : public iAFileIO
+class iAio_API iAHDF5IO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAHDF5IO, iAFileTypeRegistry>
 {
 public:
 	static const QString Name;
@@ -42,12 +43,7 @@ public:
 	std::vector<std::shared_ptr<iADataSet>> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress) override;
 	QString name() const override;
 	QStringList extensions() const override;
-
-private:
-	static std::shared_ptr<iAFileIO> create();
-	static bool s_bRegistered;
 };
-
 
 iAio_API QString MapHDF5TypeToString(H5T_class_t hdf5Type);
 iAio_API int GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign);

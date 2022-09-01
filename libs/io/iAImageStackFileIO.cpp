@@ -96,11 +96,6 @@ iAImageStackFileIO::iAImageStackFileIO() : iAFileIO(iADataSetType::Volume, iADat
 	addAttr(m_params[Save], CompressionStr, iAValueType::Boolean, false);
 }
 
-std::shared_ptr<iAFileIO> iAImageStackFileIO::create()
-{
-	return std::make_shared<iAImageStackFileIO>();
-}
-
 std::vector<std::shared_ptr<iADataSet>> iAImageStackFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
 //#if RAW_LOAD_METHOD == ITK
@@ -251,5 +246,3 @@ void iAImageStackFileIO::save(QString const& fileName, std::vector<std::shared_p
 	ITK_EXTENDED_TYPED_CALL(writeImageStack, pixelType, imagePixelType,
 		fileName, con, paramValues[iAFileIO::CompressionStr].toBool(), progress);
 }
-
-bool iAImageStackFileIO::s_bRegistered = iAFileTypeRegistry::addFileType(iAImageStackFileIO::create);

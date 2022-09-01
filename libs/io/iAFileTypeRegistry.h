@@ -34,7 +34,7 @@ class iAio_API iAFileTypeRegistry final
 {
 public:
 	//! Adds a given file type to the registry.
-	static bool addFileType(iAFileIOCreateFuncPtr c);
+	static bool add(iAFileIOCreateFuncPtr c);
 
 	//! Create a file I/O for the given extension
 	static std::shared_ptr<iAFileIO> createIO(QString const & fileName);

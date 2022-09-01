@@ -20,18 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAAutoRegistration.h"
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
-class iAVGIFileIO : public iAFileIO
+class iAVGIFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAVGIFileIO, iAFileTypeRegistry>
 {
 public:
 	iAVGIFileIO();
 	std::vector<std::shared_ptr<iADataSet>> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress) override;
 	QString name() const override;
 	QStringList extensions() const override;
-
-private:
-	static std::shared_ptr<iAFileIO> create();
-	static bool s_bRegistered;
 };
