@@ -43,6 +43,8 @@ std::vector<std::shared_ptr<iADataSet>> iAFileIO::load(QString const& fileName, 
 			d->setMetaData(k, paramValues[k]);
 		}
 	}
+	// for file formats that support multiple dataset types: check if an allowed type was loaded?
+	// BUT currently no such format supported
 	return dataSets;
 }
 

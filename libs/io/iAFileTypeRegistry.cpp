@@ -33,32 +33,30 @@ namespace
 		static std::vector<iAFileIOCreateFuncPtr> fileios;
 		return fileios;
 	}
-	QMap<QString, size_t> & fileTypes()
-	{
-		static QMap<QString, size_t> filetypes;
-		return filetypes;
-	}
 }
 
 std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileName)
 {
 	QFileInfo fi(fileName);
 	// special handling for directory ? TLGICT-loader... -> fi.isDir();
-	auto ext = fi.suffix().toLower();
-	if (fileTypes().contains(ext))
+	auto fileExt = fi.suffix().toLower();
+
+	for (auto c : fileIOs())
 	{
-		return fileIOs()[fileTypes()[ext]]();
+		auto io = c();
+		for (auto ioExt : io->extensions())
+		{
+			if (fileExt == ioExt)
+			{
+				return io;
+			}
+		}
 	}
-	else
-	{
-		LOG(lvlWarn,
-			QString("Failed to load %1: There is no handler registered files with suffix '%2'")
-			.arg(fileName)
-			.arg(fi.suffix()));
-		return std::shared_ptr<iAFileIO>();
-	}
-	// for file formats that support multiple dataset types: check if an allowed type was loaded?
-	// BUT currently no such format supported
+	LOG(lvlWarn,
+		QString("Failed to load %1: There is no handler registered files with suffix '%2'")
+		.arg(fileName)
+		.arg(fi.suffix()));
+	return std::shared_ptr<iAFileIO>();
 }
 
 QString iAFileTypeRegistry::registeredFileTypes(iAFileIO::Operation op, iADataSetTypes allowedTypes)
@@ -95,18 +93,5 @@ QString iAFileTypeRegistry::registeredFileTypes(iAFileIO::Operation op, iADataSe
 bool iAFileTypeRegistry::add(iAFileIOCreateFuncPtr c)
 {
 	fileIOs().push_back(c);
-	auto io = c();
-	for (auto extension : io->extensions())
-	{
-		auto lowerExt = extension.toLower();
-		if (fileTypes().contains(extension))
-		{
-			LOG(lvlWarn, QString("File IO %1 tries to add a handler for file extension %2, already registered to file IO %3!")
-				.arg(io->name())
-				.arg(lowerExt)
-				.arg(fileIOs()[fileTypes()[lowerExt]]()->name()));
-		}
-		fileTypes().insert(lowerExt, fileIOs().size() - 1);
-	}
 	return true;
 }
