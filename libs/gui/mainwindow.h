@@ -234,6 +234,7 @@ private:
 	void saveCamera(QDomElement &cameraElement, vtkCamera* camera);
 	void copyFunctions(MdiChild* oldChild, MdiChild* newChild);
 	void loadTLGICTData(QString const & baseDirectory);
+	void loadFileAskNewWindow(QString const& fileName);
 	bool keepOpen();
 
 	static const int MaxRecentFiles = 8;

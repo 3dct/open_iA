@@ -71,17 +71,17 @@
     <property name="toolTipsVisible">
      <bool>true</bool>
     </property>
-    <addaction name="actionOpen"/>
-    <addaction name="actionOpenNew"/>
     <addaction name="actionOpenInNewWindow"/>
+    <addaction name="actionOpenNew"/>
     <addaction name="actionOpenRaw"/>
+    <addaction name="actionOpen"/>
     <addaction name="actionOpenImageStack"/>
     <addaction name="actionOpenVolumeStack"/>
     <addaction name="actionOpenWithDataTypeConversion"/>
     <addaction name="actionOpenTLGICTData"/>
     <addaction name="separator"/>
-    <addaction name="actionSave"/>
     <addaction name="actionSave_New"/>
+    <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
     <addaction name="actionSaveProject"/>
     <addaction name="separator"/>
@@ -380,7 +380,7 @@
      <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Open...</string>
+    <string>OLD Open...</string>
    </property>
    <property name="toolTip">
     <string>Open an existing file</string>
@@ -392,7 +392,7 @@
      <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Save</string>
+    <string>OLD Save</string>
    </property>
    <property name="toolTip">
     <string>Save the document to disk</string>
@@ -681,7 +681,7 @@
      <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
    </property>
    <property name="text">
-    <string>Open Image Stack...</string>
+    <string>OLD Open Image Stack...</string>
    </property>
   </action>
   <action name="actionEnableInteraction">
@@ -952,6 +952,10 @@
    </property>
   </action>
   <action name="actionOpenRaw">
+   <property name="icon">
+    <iconset resource="../guibase/guibase.qrc">
+     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
+   </property>
    <property name="text">
     <string>Open Raw...</string>
    </property>
@@ -1156,16 +1160,24 @@
    </property>
   </action>
   <action name="actionOpenNew">
+   <property name="icon">
+    <iconset resource="../guibase/guibase.qrc">
+     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
+   </property>
    <property name="text">
-    <string>Open (new) ...</string>
+    <string>Open in existing window ...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
    </property>
   </action>
   <action name="actionOpenInNewWindow">
+   <property name="icon">
+    <iconset resource="../guibase/guibase.qrc">
+     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
+   </property>
    <property name="text">
-    <string>Open in new window...</string>
+    <string>&amp;Open in new window...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+O</string>
@@ -1177,7 +1189,7 @@
      <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
    </property>
    <property name="text">
-    <string>Save (New)</string>
+    <string>&amp;Save (New)</string>
    </property>
   </action>
  </widget>

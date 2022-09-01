@@ -285,8 +285,7 @@ void MainWindow::dropEvent(QDropEvent *e)
 {
 	for(const QUrl &url: e->mimeData()->urls())
 	{
-		QString fileName = url.toLocalFile();
-		loadFile(fileName);
+		loadFileAskNewWindow(url.toLocalFile());
 	}
 }
 
@@ -347,12 +346,17 @@ void MainWindow::openVolumeStack()
 
 void MainWindow::openRecentFile()
 {
-	auto action = qobject_cast<QAction *>(sender());
+	auto action = qobject_cast<QAction*>(sender());
 	if (!action)
 	{
 		return;
 	}
 	QString fileName = action->data().toString();
+	loadFileAskNewWindow(fileName);
+}
+
+void MainWindow::loadFileAskNewWindow(QString const & fileName)
+{
 	bool loadInNewWindow = true;
 	if (activeMdiChild())
 	{
