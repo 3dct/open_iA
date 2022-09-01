@@ -405,8 +405,6 @@ void iAQMeasure::performWork(QVariantMap const & parameters)
 	computeOrigQ(this, extractCon, parameters);
 }
 
-IAFILTER_CREATE(iAQMeasure)
-
 iAQMeasure::iAQMeasure() :
 	iAFilter("Image Quality", "Metrics",
 		"Computes the Q metric, as well as optionally a histogram-based Signal-to-noise ratio.<br/>"
@@ -460,8 +458,6 @@ void iAQMeasureRunner::filterGUIPreparations(std::shared_ptr<iAFilter> filter,
 	}
 }
 
-IAFILTER_CREATE(iASNR)
-
 iASNR::iASNR() :
 	iAFilter("Signal-to-Noise Ratio", "Metrics",
 		"Computes the Signal-to-noise ratio as (mean / stddev) of the given image region.<br/>", 1, 0)
@@ -481,8 +477,6 @@ void iASNR::performWork(QVariantMap const & parameters)
 	getStatistics(extractImg, nullptr, nullptr, &mean, &stddev);
 	addOutputValue("Signal-to-Noise Ratio", mean / stddev);
 }
-
-IAFILTER_CREATE(iACNR)
 
 iACNR::iACNR() :
 	iAFilter("Contrast-to-Noise Ratio", "Metrics",

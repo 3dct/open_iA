@@ -226,8 +226,6 @@ void iAExtractSurface::performWork(QVariantMap const & parameters)
 	stlWriter->Write();
 }
 
-IAFILTER_CREATE(iAExtractSurface)
-
 iAExtractSurface::iAExtractSurface() :
 	iAFilter("Extract Surface", "Extract Surface",
 		"Extracts a surface along the specified iso value.<br/>"
@@ -319,8 +317,6 @@ void iATriangulation::performWork(QVariantMap const& parameters) {
 	addOutput(std::make_shared<iAPolyData>("", smoothing->GetOutput()));
 }
 
-
-IAFILTER_CREATE(iATriangulation);
 
 iATriangulation::iATriangulation() :
 	iAFilter("Surface triangulation", "Extract Surface",

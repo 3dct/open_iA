@@ -156,8 +156,6 @@ void fcm(iAFilter* filter, QVariantMap const & params)
 	setProbabilities(probs, filter);
 }
 
-IAFILTER_CREATE(iAFCMFilter)
-
 iAFCMFilter::iAFCMFilter() :
 	iAFilter("FCM", "Segmentation/Fuzzy C-Means",
 		"Pixel Classification based on Fuzzy C-Means (FCM). <br/>"
@@ -184,8 +182,6 @@ void iAFCMFilter::performWork(QVariantMap const & parameters)
 
 
 // KFCM
-
-IAFILTER_CREATE(iAKFCMFilter)
 
 iAKFCMFilter::iAKFCMFilter() :
 	iAFilter("Kernelized FCM", "Segmentation/Fuzzy C-Means",
@@ -276,8 +272,6 @@ void iAKFCMFilter::performWork(QVariantMap const & parameters)
 // MSKFCM
 
 #if ITK_VERSION_MAJOR < 5
-IAFILTER_CREATE(iAMSKFCMFilter)
-
 iAMSKFCMFilter::iAMSKFCMFilter() :
 	iAFilter("MSKFCM", "Segmentation/Fuzzy C-Means",
 		"Modified Spatial Kernelized Fuzzy C-Means. <br/>"

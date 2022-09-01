@@ -203,8 +203,6 @@ void iASVMImageFilter::performWork(QVariantMap const & parameters)
 }
 
 
-IAFILTER_CREATE(iASVMImageFilter)
-
 iASVMImageFilter::iASVMImageFilter() :
 	iAFilter("Probabilistic SVM", "Segmentation/Pixelwise Classification",
 		"Classify pixels with Support Vector Machines (SVM).<br/>"
@@ -256,8 +254,6 @@ void iAKMeans::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(kmeansclustering, inputPixelType(), this, parameters);
 }
-
-IAFILTER_CREATE(iAKMeans)
 
 iAKMeans::iAKMeans() :
 	iAFilter("K-Means", "Segmentation/Pixelwise Classification",

@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 
-class iAMetricsModuleInterface : public iAModuleInterface
+class iAMetricsModuleInterface : public iAGUIModuleInterface
 {
 public:
 	void Initialize() override;

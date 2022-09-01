@@ -284,8 +284,6 @@ namespace
 }
 
 
-IAFILTER_CREATE(iAASTRAForwardProject)
-
 
 iAASTRAForwardProject::iAASTRAForwardProject() :
 	iAFilter("ASTRA Forward Projection", "Reconstruction/ASTRA Toolbox",
@@ -380,8 +378,6 @@ void iAASTRAForwardProject::performWork(QVariantMap const & parameters)
 }
 
 
-
-IAFILTER_CREATE(iAASTRAReconstruct)
 
 
 iAASTRAReconstruct::iAASTRAReconstruct() :

@@ -33,4 +33,3 @@ public:
 	QString name() const override;
 	QStringList extensions() const override;
 };
-

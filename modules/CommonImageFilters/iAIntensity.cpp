@@ -68,8 +68,6 @@ void iAInvertIntensityFilter::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(invert_intensity, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iAInvertIntensityFilter)
-
 iAInvertIntensityFilter::iAInvertIntensityFilter() :
 	iAFilter("Invert", "Intensity",
 		"Inverts all intensity values in the image, by subtracting each voxel value from a maximum.<br/>"
@@ -103,8 +101,6 @@ void iANormalizeIntensityFilter::performWork(QVariantMap const & /*parameters*/)
 {
 	ITK_TYPED_CALL(normalize, inputPixelType(), this);
 }
-
-IAFILTER_CREATE(iANormalizeIntensityFilter)
 
 iANormalizeIntensityFilter::iANormalizeIntensityFilter() :
 	iAFilter("Normalize Image", "Intensity",
@@ -143,8 +139,6 @@ void iAIntensityWindowingFilter::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(intensity_windowing, inputPixelType(), this, parameters);
 }
-
-IAFILTER_CREATE(iAIntensityWindowingFilter)
 
 iAIntensityWindowingFilter::iAIntensityWindowingFilter() :
 	iAFilter("Intensity Windowing", "Intensity",
@@ -186,8 +180,6 @@ void iAGeneralThreshold::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(threshold, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iAGeneralThreshold)
-
 iAGeneralThreshold::iAGeneralThreshold() :
 	iAFilter("General threshold filter", "Intensity",
 		"Set image values to <em>Outside value</em> if they are outside of the given interval.<br/>"
@@ -223,8 +215,6 @@ void iARescaleIntensityFilter::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(rescaleImage, inputPixelType(), this, parameters);
 }
-
-IAFILTER_CREATE(iARescaleIntensityFilter)
 
 iARescaleIntensityFilter::iARescaleIntensityFilter() :
 	iAFilter("Rescale Intensities", "Intensity",
@@ -270,8 +260,6 @@ void iAShiftScaleIntensityFilter::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(shiftScale, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iAShiftScaleIntensityFilter)
-
 iAShiftScaleIntensityFilter::iAShiftScaleIntensityFilter() :
 	iAFilter("Shift and Scale", "Intensity",
 		"Shift and scale the pixels in an image.<br/>"
@@ -300,8 +288,6 @@ template<class T> void adaptiveHistogramEqualization(iAFilter* filter, QVariantM
 	adaptHistoEqualFilter->Update();
 	filter->addOutput(adaptHistoEqualFilter->GetOutput());
 }
-
-IAFILTER_CREATE(iAAdaptiveHistogramEqualization)
 
 void iAAdaptiveHistogramEqualization::performWork(QVariantMap const & parameters)
 {
@@ -388,8 +374,6 @@ void iAReplaceAndShiftFilter::performWork(QVariantMap const& parameters)
 	ITK_TYPED_CALL(replaceAndShift, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iAReplaceAndShiftFilter)
-
 iAReplaceAndShiftFilter::iAReplaceAndShiftFilter() :
 	iAFilter("Replace and Shift", "Intensity",
 		"Replace one intensity value by another, and shift values in between accordingly.<br/>"
@@ -428,8 +412,6 @@ void iAAddFilter::performWork(QVariantMap const & /*parameters*/)
 	ITK_TYPED_CALL(addImages, inputPixelType(), this);
 }
 
-IAFILTER_CREATE(iAAddFilter)
-
 iAAddFilter::iAAddFilter() :
 	iAFilter("Add Images", "Intensity",
 		"Adds the intensities at each element of the two given images.<br/>"
@@ -463,8 +445,6 @@ void iAMultiplyFilter::performWork(QVariantMap const& /*parameters*/)
 {
 	ITK_TYPED_CALL(multiplyImages, inputPixelType(), this);
 }
-
-IAFILTER_CREATE(iAMultiplyFilter)
 
 iAMultiplyFilter::iAMultiplyFilter() :
 	iAFilter("Multiply Images", "Intensity",
@@ -502,8 +482,6 @@ void iASubtractFilter::performWork(QVariantMap const & /*parameters*/)
 	ITK_TYPED_CALL(subtractImages, inputPixelType(), this);
 }
 
-IAFILTER_CREATE(iASubtractFilter)
-
 iASubtractFilter::iASubtractFilter() :
 	iAFilter("Subtract Images", "Intensity",
 		"Subtracts the intensities of the selected <em>Additional Image</em> from the intensities of the active window.<br/>"
@@ -538,8 +516,6 @@ void iADifferenceFilter::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(difference, inputPixelType(), this, parameters);
 }
-
-IAFILTER_CREATE(iADifferenceFilter)
 
 iADifferenceFilter::iADifferenceFilter() :
 	iAFilter("Difference", "Intensity",
@@ -577,8 +553,6 @@ void iAMaskIntensityFilter::performWork(QVariantMap const & /*parameters*/)
 {
 	ITK_TYPED_CALL(mask, inputPixelType(), this);
 }
-
-IAFILTER_CREATE(iAMaskIntensityFilter)
 
 iAMaskIntensityFilter::iAMaskIntensityFilter() :
 	iAFilter("Mask Image", "Intensity",
@@ -628,8 +602,6 @@ void iAHistogramMatchingFilter::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(histomatch, inputPixelType(), this, parameters);
 }
-
-IAFILTER_CREATE(iAHistogramMatchingFilter)
 
 iAHistogramMatchingFilter::iAHistogramMatchingFilter() :
 	iAFilter("Histogram Match", "Intensity",
@@ -701,8 +673,6 @@ iAHistogramFill::iAHistogramFill() :
 		"2, 5, 6 and 8, these would be translated to 0, 1, 2 and 3 respectively (2 -> 0, 5 -> 1, 6 -> 2, 8 -> 3).")
 {
 }
-
-IAFILTER_CREATE(iAHistogramFill)
 
 void iAHistogramFill::performWork(QVariantMap const& params)
 {

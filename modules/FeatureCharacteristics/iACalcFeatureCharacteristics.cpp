@@ -337,8 +337,6 @@ iACalcFeatureCharacteristics::iACalcFeatureCharacteristics():
 	addParameter("Calculate advanced void parameters", iAValueType::Boolean, false);
 }
 
-IAFILTER_CREATE(iACalcFeatureCharacteristics)
-
 void iACalcFeatureCharacteristics::performWork(QVariantMap const & parameters)
 {
 	QString pathCSV = parameters["Output CSV filename"].toString();

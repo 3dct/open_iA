@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include <iAFilterDefault.h>
 #include "iAFilterRunnerGUI.h"
 
 IAFILTER_DEFAULT_CLASS(iAASTRAForwardProject);

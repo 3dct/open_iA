@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 
-class iAMetaFiltersModuleInterface : public iAModuleInterface
+class iAMetaFiltersModuleInterface : public iAGUIModuleInterface
 {
 public:
 	void Initialize() override;

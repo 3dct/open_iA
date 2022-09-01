@@ -21,6 +21,7 @@
 #include "iAModuleDispatcher.h"
 
 #include "iAFilter.h"
+#include "iAFilterRegistry.h"
 #include "iAFilterRunnerRegistry.h"
 #include "iAFilterRunnerGUI.h"
 #include "iAFilterSelectionDlg.h"
@@ -234,7 +235,7 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 	for (size_t i=0; i<filterFactories.size(); ++i)
 	{
 		auto filterFactory = filterFactories[i];
-		auto filter = filterFactory->create();
+		auto filter = filterFactory();
 		QMenu * filterMenu = m_mainWnd->filtersMenu();
 		QStringList categories = filter->fullCategory().split("/");
 		for (auto cat : categories)
@@ -287,10 +288,10 @@ void iAModuleDispatcher::runFilter(int filterID)
 	{
 		return;
 	}
-	auto runner = iAFilterRunnerRegistry::filterRunner(filterID)->create();
+	auto runner = iAFilterRunnerRegistry::filterRunner(filterID);
 	m_runningFilters.push_back(runner);
 	connect(runner.get(), &iAFilterRunnerGUI::finished, this, &iAModuleDispatcher::removeFilter);
-	runner->run(iAFilterRegistry::filterFactories()[filterID]->create(), m_mainWnd);
+	runner->run(iAFilterRegistry::filterFactories()[filterID](), m_mainWnd);
 }
 
 void iAModuleDispatcher::removeFilter()

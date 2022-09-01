@@ -48,8 +48,6 @@ void iAAdditiveGaussianNoise::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(additiveGaussianNoise, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iAAdditiveGaussianNoise)
-
 iAAdditiveGaussianNoise::iAAdditiveGaussianNoise() :
 	iAFilter("Additive Gaussian", "Noise",
 		"Adds additive gaussian white noise to an image.<br/>"
@@ -82,8 +80,6 @@ void iASaltAndPepperNoise::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(saltAndPepperNoise, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iASaltAndPepperNoise)
-
 iASaltAndPepperNoise::iASaltAndPepperNoise() :
 	iAFilter("Salt and Pepper", "Noise",
 		"Alter an image with fixed value impulse noise.<br/>"
@@ -115,8 +111,6 @@ void iAShotNoise::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(shotNoise, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iAShotNoise)
-
 iAShotNoise::iAShotNoise() :
 	iAFilter("Shot", "Noise",
 		"Alter an image with shot noise.<br/>"
@@ -147,8 +141,6 @@ void iASpeckleNoise::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(speckleNoise, inputPixelType(), this, parameters);
 }
-
-IAFILTER_CREATE(iASpeckleNoise)
 
 iASpeckleNoise::iASpeckleNoise() :
 	iAFilter("Speckle", "Noise",

@@ -20,44 +20,39 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAFilter.h>
+#include <iAFilterDefault.h>
 
-class iAExtractComponent : public iAFilter
+class iAExtractComponent : public iAFilter, private iAAutoRegistration<iAFilter, iAExtractComponent, iAFilterRegistry>
 {
 public:
 	iAExtractComponent();
-	static std::shared_ptr<iAExtractComponent> create();
 	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
-
 private:
 	void performWork(QVariantMap const& parameters) override;
 };
 
-class iASimpleResampleFilter : public iAFilter
+class iASimpleResampleFilter : public iAFilter, private iAAutoRegistration<iAFilter, iASimpleResampleFilter, iAFilterRegistry>
 {
 public:
 	iASimpleResampleFilter();
-	static std::shared_ptr<iASimpleResampleFilter> create();
 	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
 private:
 	void performWork(QVariantMap const& parameters) override;
 };
 
-class iAResampleFilter : public iAFilter
+class iAResampleFilter : public iAFilter, private iAAutoRegistration<iAFilter, iAResampleFilter, iAFilterRegistry>
 {
 public:
 	iAResampleFilter();
-	static std::shared_ptr<iAResampleFilter> create();
 	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
 private:
 	void performWork(QVariantMap const& parameters) override;
 };
 
-class iAExtractImageFilter : public iAFilter
+class iAExtractImageFilter : public iAFilter, private iAAutoRegistration<iAFilter, iAExtractImageFilter, iAFilterRegistry>
 {
 public:
 	iAExtractImageFilter();
-	static std::shared_ptr<iAExtractImageFilter> create();
 	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
 private:
 	void performWork(QVariantMap const& parameters) override;

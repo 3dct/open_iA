@@ -21,13 +21,15 @@
 #include "iAAstraReconstructionModuleInterface.h"
 
 #include "iAAstraAlgorithm.h"
-#include "iAFreeBeamCalculation.h"
 
 #include "iAFilterRunnerRegistry.h"
 
 void iAAstraReconstructionModuleInterface::Initialize( )
 {
-	REGISTER_FILTER_WITH_RUNNER(iAASTRAForwardProject, iAASTRAFilterRunner);
-	REGISTER_FILTER_WITH_RUNNER(iAASTRAReconstruct, iAASTRAFilterRunner);
-	REGISTER_FILTER(iAFreeBeamCalculation);
+	if (!m_mainWnd)
+	{
+		return;
+	}
+	iAFilterRunnerRegistry::add(iAFilterRegistry::filterID(iAASTRAForwardProject().name()), iAASTRAFilterRunner::create);
+	iAFilterRunnerRegistry::add(iAFilterRegistry::filterID(iAASTRAReconstruct().name()), iAASTRAFilterRunner::create);
 }

@@ -68,8 +68,6 @@ void CalculateSegmentationMetrics(iAFilter* filter)
 		//filter->addOutputValue(QString("Label %1 False positives").arg(label), diceFilter->GetFalsePositiveError(label));
 	}
 }
-IAFILTER_CREATE(iASegmentationMetrics)
-
 iASegmentationMetrics::iASegmentationMetrics() :
 	iAFilter("Segmentation Quality", "Metrics",
 		"Computes metrics for the quality of a segmentation as compared to a reference image.<br/>"

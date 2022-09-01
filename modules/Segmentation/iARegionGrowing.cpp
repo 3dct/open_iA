@@ -98,8 +98,6 @@ void confidenceConnected(iAFilter* filter, QVariantMap const & params)
 	filter->addOutput(confiConnFilter->GetOutput());
 }
 
-IAFILTER_CREATE(iAConfidenceConnectedRegionGrow)
-
 void iAConfidenceConnectedRegionGrow::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(confidenceConnected, inputPixelType(), this, parameters);
@@ -138,8 +136,6 @@ void connectedThreshold(iAFilter* filter, QVariantMap const & params)
 	connThrfilter->Update();
 	filter->addOutput(connThrfilter->GetOutput());
 }
-
-IAFILTER_CREATE(iAConnectedThresholdRegionGrow)
 
 void iAConnectedThresholdRegionGrow::performWork(QVariantMap const & parameters)
 {
@@ -184,8 +180,6 @@ void neighborhoodConnected(iAFilter* filter, QVariantMap const & params)
 	neighbConnfilter->Update();
 	filter->addOutput(neighbConnfilter->GetOutput());
 }
-
-IAFILTER_CREATE(iANeighborhoodConnectedRegionGrow)
 
 void iANeighborhoodConnectedRegionGrow::performWork(QVariantMap const & parameters)
 {

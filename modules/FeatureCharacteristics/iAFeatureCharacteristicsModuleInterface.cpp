@@ -20,11 +20,6 @@
 * ************************************************************************************/
 #include "iAFeatureCharacteristicsModuleInterface.h"
 
-#include "iACalcFeatureCharacteristics.h"
-
-#include <iAFilterRegistry.h>
-
 void iAFeatureCharacteristicsModuleInterface::Initialize()
 {
-	REGISTER_FILTER(iACalcFeatureCharacteristics);
 }

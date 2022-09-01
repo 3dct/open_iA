@@ -136,8 +136,6 @@ void iATsvToVolume::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(runTransform, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iATsvToVolume)
-
 iATsvToVolume::iATsvToVolume() :
 	iAFilter("TSV reader", "Input",
 		"Creates from a TSV file a volume.")

@@ -20,13 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
+#include <iAAutoRegistration.h>
 #include <iAFilter.h>
+#include <iAFilterRegistry.h>
 
-class iASimilarity : public iAFilter
+class iASimilarity : public iAFilter, private iAAutoRegistration<iAFilter, iASimilarity, iAFilterRegistry>
 {
 public:
 	iASimilarity();
-	static std::shared_ptr<iASimilarity> create();
 	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
 
 private:

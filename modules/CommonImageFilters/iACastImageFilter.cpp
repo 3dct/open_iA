@@ -134,8 +134,6 @@ void dataTypeConversion(iAFilter* filter, QVariantMap const & parameters)
 	}
 }
 
-IAFILTER_CREATE(iACastImageFilter)
-
 void iACastImageFilter::performWork(QVariantMap const & parameters)
 {
 	if (parameters["Rescale Range"].toBool())
@@ -270,8 +268,6 @@ iAConvertToRGBAFilter::iAConvertToRGBAFilter() :
 	addParameter("Object opacity", iAValueType::Discrete, 255, 0, 255);
 	addParameter("Color scheme", iAValueType::Categorical, colorSchemes);
 }
-
-IAFILTER_CREATE(iAConvertToRGBAFilter)
 
 void iAConvertToRGBAFilter::performWork(QVariantMap const & params)
 {

@@ -56,8 +56,6 @@ void iAConnectedComponents::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(connectedComponentFilter, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iAConnectedComponents)
-
 iAConnectedComponents::iAConnectedComponents() :
 	iAFilter("Connected Component", "Connected Components",
 		"Assigns each distinct object in a binary image a unique label.<br/>"
@@ -84,8 +82,6 @@ void scalarConnectedComponentFilter(iAFilter* filter, QVariantMap const & parame
 	sccFilter->Update();
 	filter->addOutput(sccFilter->GetOutput());
 }
-
-IAFILTER_CREATE(iAScalarConnectedComponents)
 
 void iAScalarConnectedComponents::performWork(QVariantMap const & parameters)
 {
@@ -130,8 +126,6 @@ void relabelComponentImageFilter(iAFilter* filter, QVariantMap const & parameter
 	}
 	filter->addOutput(rccFilter->GetOutput());
 }
-
-IAFILTER_CREATE(iARelabelComponents)
 
 void iARelabelComponents::performWork(QVariantMap const & parameters)
 {

@@ -20,12 +20,6 @@
 * ************************************************************************************/
 #include "iAExtractSurfaceModuleInterface.h"
 
-#include "iAExtractSurfaceFilters.h"
-
-#include <iAFilterRegistry.h>
-
 void iAExtractSurfaceModuleInterface::Initialize()
 {
-	REGISTER_FILTER(iAExtractSurface);
-	REGISTER_FILTER(iATriangulation);
 }

@@ -45,8 +45,6 @@ iAPCA::iAPCA() :
 	addParameter("Cutoff", iAValueType::Discrete, 1);
 }
 
-IAFILTER_CREATE(iAPCA)
-
 
 template <typename PixelType>
 void pca(iAFilter* filter, QVariantMap const & parameters)

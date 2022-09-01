@@ -27,8 +27,7 @@
 
 #include <iADataSet.h>
 #include <iALog.h>
-#include <iAFilter.h>
-#include <iAFilterRegistry.h>
+#include <iAFilterDefault.h>
 #include <iAModality.h>
 #include <iAProjectRegistry.h>
 #include <iAMainWindow.h>
@@ -41,8 +40,6 @@
 #include <cassert>
 
 IAFILTER_DEFAULT_CLASS(iADifferenceMarker);
-
-IAFILTER_CREATE(iADifferenceMarker);
 
 iADifferenceMarker::iADifferenceMarker():
 	iAFilter("Difference marker", "Intensity", "Computes an image where differences are marked with the given marker value.<br/>"
@@ -78,8 +75,6 @@ iAGEMSeModuleInterface::iAGEMSeModuleInterface():
 
 void iAGEMSeModuleInterface::Initialize()
 {
-	REGISTER_FILTER(iADifferenceMarker);
-
 	if (!m_mainWnd)
 	{
 		return;

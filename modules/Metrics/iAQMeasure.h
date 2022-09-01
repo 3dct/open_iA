@@ -20,17 +20,18 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAFilter.h>
+#include <iAAutoRegistration.h>
+#include <iAFilterDefault.h>
 #include <iAFilterRunnerGUI.h>
+#include <iAFilterRunnerRegistry.h>
 
 class iAChartWidget;
 class iAMdiChild;
 
-class iAQMeasure : public iAFilter
+class iAQMeasure : public iAFilter, iAAutoRegistration<iAFilter, iAQMeasure, iAFilterRegistry>
 {
 public:
 	iAQMeasure();
-	static std::shared_ptr<iAQMeasure> create();
 	void performWork(QVariantMap const & parameters) override;
 	void setupDebugGUI(iAChartWidget* chart, iAMdiChild* mdiChild);
 	iAChartWidget* m_chart;

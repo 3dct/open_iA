@@ -20,17 +20,13 @@
 * ************************************************************************************/
 #include "iAMetricsModuleInterface.h"
 
-#include "iASimilarity.h"
 #include "iAQMeasure.h"
-#include "iASegmentationMetrics.h"
-
-#include <iAFilterRunnerRegistry.h>
 
 void iAMetricsModuleInterface::Initialize()
 {
-	REGISTER_FILTER_WITH_RUNNER(iAQMeasure, iAQMeasureRunner);
-	REGISTER_FILTER(iACNR);
-	REGISTER_FILTER(iASNR);
-	REGISTER_FILTER(iASimilarity);
-	REGISTER_FILTER(iASegmentationMetrics);
+	if (!m_mainWnd)
+	{
+		return;
+	}
+	iAFilterRunnerRegistry::add(iAFilterRegistry::filterID(iAQMeasure().name()), iAQMeasureRunner::create);
 }

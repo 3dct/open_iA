@@ -449,8 +449,6 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 	}
 }
 
-IAFILTER_CREATE(iAai)
-
 void iAai::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(executeDNN, inputPixelType(), this, parameters);

@@ -349,5 +349,3 @@ void iAPatchFilter::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(patch, inputPixelType(), this, parameters);
 }
-
-IAFILTER_CREATE(iAPatchFilter);

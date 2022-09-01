@@ -20,36 +20,35 @@
 * ************************************************************************************/
 #pragma once
 
+#include <iAAutoRegistration.h>
 #include <iAFilter.h>
+#include <iAFilterRegistry.h>
 
 #include <itkConfigure.h>    // for ITK_VERSION_MAJOR
 
 typedef iAAttributeDescriptor ParamDesc;
 
-class iAFCMFilter : public iAFilter
+class iAFCMFilter : public iAFilter, private iAAutoRegistration<iAFilter, iAFCMFilter, iAFilterRegistry>
 {
 public:
 	iAFCMFilter();
-	static std::shared_ptr<iAFCMFilter> create();
 	bool checkParameters(QVariantMap const & parameters) override;
 	void performWork(QVariantMap const & parameters) override;
 };
 
-class iAKFCMFilter : public iAFilter
+class iAKFCMFilter : public iAFilter, private iAAutoRegistration<iAFilter, iAKFCMFilter, iAFilterRegistry>
 {
 public:
 	iAKFCMFilter();
-	static std::shared_ptr<iAKFCMFilter> create();
 	bool checkParameters(QVariantMap const & parameters) override;
 	void performWork(QVariantMap const & parameters) override;
 };
 
 #if ITK_VERSION_MAJOR < 5
-class iAMSKFCMFilter : public iAFilter
+class iAMSKFCMFilter : public iAFilter, private iAAutoRegistration<iAFilter, iAMSKFCMFilter, iAFilterRegistry>
 {
 public:
 	iAMSKFCMFilter();
-	static std::shared_ptr<iAMSKFCMFilter> create();
 	bool checkParameters(QVariantMap const & parameters) override;
 	void performWork(QVariantMap const & parameters) override;
 };

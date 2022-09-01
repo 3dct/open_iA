@@ -22,36 +22,20 @@
 
 #include "iAguibase_export.h"
 
-#include "iAFilterRegistry.h"
-
-#include <QMap>
+#include <memory>
 
 class iAFilterRunnerGUI;
-//! For internal use in iAFilterRegistry and iAFilterFactory only.
-//! There should be no need to use this class directly; use REGISTER_FILTER or
-//! REGISTER_FILTER_WITH_RUNNER macros below instead!
-using iAIFilterRunnerGUIFactory = iAGenericFactory<iAFilterRunnerGUI>;
-template <typename FilterRunnerGUIType> using iAFilterRunnerGUIFactory = iASpecificFactory<FilterRunnerGUIType, iAFilterRunnerGUI>;
+using iAFilterRunnerGUICreateFuncPtr = std::shared_ptr<iAFilterRunnerGUI>(*)();
 
 class iAguibase_API iAFilterRunnerRegistry
 {
 public:
 	//! Retrieve the callback for a given factory (if the given factory does not
 	//! have a callback, nullptr is returned).
-	static std::shared_ptr<iAIFilterRunnerGUIFactory> filterRunner(int filterID);
+	static std::shared_ptr<iAFilterRunnerGUI> filterRunner(int filterID);
 
-	static void addFilterFactory(std::shared_ptr<iAIFilterFactory> factory, std::shared_ptr<iAIFilterRunnerGUIFactory> runner);
+	static void add(int filterID, iAFilterRunnerGUICreateFuncPtr runnerCreateFunc);
 
 private:
 	iAFilterRunnerRegistry() =delete;  //!< iAFilterRunnerRegistry is meant to be used statically only, thus prevent creation of objects
-	static QMap<int, std::shared_ptr<iAIFilterRunnerGUIFactory>> m_runner;
 };
-
-//! Macro to register a class derived from iAFilter in the iAFilterRegistry,
-//! along with a runner. In comparison to the macro REGISTER_FILTER, you can provide your
-//! own runner class here (derived from iAFilterRunnerGUI to extend or modify the
-//! behavior of the filter when run from the GUI.
-//! See iAFilterRegistry for more details
-#define REGISTER_FILTER_WITH_RUNNER(FilterType, FilterRunnerType)                                           \
-	iAFilterRunnerRegistry::addFilterFactory(std::make_shared<iAFilterFactory<FilterType>>(), \
-		std::make_shared<iAFilterRunnerGUIFactory<FilterRunnerType>>());

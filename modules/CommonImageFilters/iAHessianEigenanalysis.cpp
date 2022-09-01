@@ -140,8 +140,6 @@ void iAHessianEigenanalysis::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(hessianEigenAnalysis, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iAHessianEigenanalysis)
-
 iAHessianEigenanalysis::iAHessianEigenanalysis() :
 	iAFilter("Eigen analysis of Hessian", "Gradient",
 		"Computes the Eigen analysis of the Hessian of an image.<br/>"
@@ -176,8 +174,6 @@ void iALaplacian::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(Laplacian, inputPixelType(), this, parameters);
 }
-
-IAFILTER_CREATE(iALaplacian)
 
 iALaplacian::iALaplacian() :
 	iAFilter("Laplacian of Gaussian", "Gradient",

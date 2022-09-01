@@ -38,7 +38,7 @@ iAFilterSelectionDlg::iAFilterSelectionDlg(QWidget * parent, QString const & pre
 	m_ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 	for (auto filterFactory : iAFilterRegistry::filterFactories())
 	{
-		m_ui->lwFilterList->addItem(filterFactory->create()->name());
+		m_ui->lwFilterList->addItem(filterFactory()->name());
 	}
 	if (!preselectedFilter.isEmpty())
 	{

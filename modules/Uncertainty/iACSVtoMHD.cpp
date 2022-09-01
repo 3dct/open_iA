@@ -53,8 +53,6 @@ iACSVtoMHD::iACSVtoMHD() : iAFilter("CSV to MHD", "Uncertainty",
 	addParameter("Coordinate Order", iAValueType::Categorical, coordOrders);
 }
 
-IAFILTER_CREATE(iACSVtoMHD)
-
 void iACSVtoMHD::performWork(QVariantMap const & parameters)
 {
 	int dim[3];

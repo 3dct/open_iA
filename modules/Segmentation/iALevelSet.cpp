@@ -51,8 +51,6 @@ void laplacianSegmentationLevelSet(iAFilter* filter, QVariantMap const & paramet
 	filter->addOutput(laplacianSegmentation->GetOutput());
 }
 
-IAFILTER_CREATE(iALaplacianSegmentationLevelSet)
-
 iALaplacianSegmentationLevelSet::iALaplacianSegmentationLevelSet() :
 	iAFilter("Laplacian Segmentation", "Segmentation/Level Set",
 		"Segments structures in images based on a second derivative image features.<br/>"
@@ -101,8 +99,6 @@ void cannySegmentationLevelSet(iAFilter* filter, QVariantMap const & parameters)
 	filter->addOutput(cannySegmentation->GetOutput());
 }
 
-IAFILTER_CREATE(iACannySegmentationLevelSet)
-
 iACannySegmentationLevelSet::iACannySegmentationLevelSet() :
 	iAFilter("Canny Segmentation", "Segmentation/Level Set",
 		"Segments structures in images based on image features derived from pseudo-canny-edges.<br/>"
@@ -142,8 +138,6 @@ void zeroCrossing(iAFilter* filter, QVariantMap const & parameters)
 	zeroCrossingFilter->Update();
 	filter->addOutput(zeroCrossingFilter->GetOutput());
 }
-
-IAFILTER_CREATE(iAZeroCrossing)
 
 iAZeroCrossing::iAZeroCrossing() :
 	iAFilter("Zero Crossing", "Segmentation/Level Set",

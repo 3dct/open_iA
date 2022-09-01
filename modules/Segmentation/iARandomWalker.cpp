@@ -251,8 +251,6 @@ iARandomWalker::iARandomWalker() :
 	addParameter("Seeds", iAValueType::Text, "");
 }
 
-IAFILTER_CREATE(iARandomWalker)
-
 void iARandomWalker::performWork(QVariantMap const & parameters)
 {
 	int const * dim = imageInput(0)->vtkImage()->GetDimensions();
@@ -458,8 +456,6 @@ iAExtendedRandomWalker::iAExtendedRandomWalker() :
 	addParameter("Gamma", iAValueType::Continuous, 1);
 }
 
-IAFILTER_CREATE(iAExtendedRandomWalker)
-
 void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 {
 	int const * dim = imageInput(0)->vtkImage()->GetDimensions();
@@ -642,8 +638,6 @@ iAMaximumDecisionRule::iAMaximumDecisionRule() :
 {
 }
 
-IAFILTER_CREATE(iAMaximumDecisionRule)
-
 void iAMaximumDecisionRule::performWork(QVariantMap const & /*parameters*/)
 {
 	if (inputCount() <= 1)
@@ -674,8 +668,6 @@ iALabelImageToSeeds::iALabelImageToSeeds() :
 {
 	addParameter("File name", iAValueType::FileNameSave, ".txt");
 }
-
-IAFILTER_CREATE(iALabelImageToSeeds)
 
 void iALabelImageToSeeds::performWork(QVariantMap const& parameters)
 {

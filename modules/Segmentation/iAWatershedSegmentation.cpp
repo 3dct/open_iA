@@ -49,8 +49,6 @@ void watershed(iAFilter* filter, QVariantMap const & parameters)
 	filter->addOutput( castImageTo<unsigned long>(wsFilter->GetOutput()) );
 }
 
-IAFILTER_CREATE(iAWatershed)
-
 iAWatershed::iAWatershed() :
 	iAFilter("Watershed", "Segmentation/Based on Watershed",
 		"Computes a watershed segmentation the input image.<br/>"
@@ -92,8 +90,6 @@ void morph_watershed(iAFilter* filter, QVariantMap const & parameters)
 	mWSFilter->Update();
 	filter->addOutput( mWSFilter->GetOutput() );
 }
-
-IAFILTER_CREATE(iAMorphologicalWatershed)
 
 iAMorphologicalWatershed::iAMorphologicalWatershed() :
 	iAFilter("Morphological Watershed", "Segmentation/Based on Watershed",

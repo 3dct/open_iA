@@ -310,8 +310,6 @@ iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
 	addParameter("Equal pixel rate", iAValueType::Boolean, false);
 }
 
-IAFILTER_CREATE(iASimilarity)
-
 void iASimilarity::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(similarity_metrics, inputPixelType(), this, parameters);

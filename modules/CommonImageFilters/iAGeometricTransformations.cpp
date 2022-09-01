@@ -42,8 +42,6 @@
 
 #include <QtConcurrent/qtconcurrentfilter.h>
 
-IAFILTER_CREATE(iAExtractComponent)
-
 void iAExtractComponent::performWork(QVariantMap const& parameters)
 {
 	int const componentNr = parameters["Component to extract"].toInt();
@@ -146,8 +144,6 @@ template<typename T> void simpleResampler(iAFilter* filter, QVariantMap const & 
 }
 
 
-IAFILTER_CREATE(iASimpleResampleFilter)
-
 void iASimpleResampleFilter::performWork(QVariantMap const& parameters)
 {
 	ITK_TYPED_CALL(simpleResampler, inputPixelType(), this, parameters);
@@ -227,8 +223,6 @@ void resampler(iAFilter* filter, QVariantMap const& parameters)
 	filter->addOutput(resampler->GetOutput());
 }
 
-IAFILTER_CREATE(iAResampleFilter)
-
 void iAResampleFilter::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(resampler, inputPixelType(), this, parameters);
@@ -288,8 +282,6 @@ void extractImage(iAFilter* filter, QVariantMap const & parameters)
 	filter->addOutput(setIndexOffsetToZero<T>(extractFilter->GetOutput()));
 }
 
-IAFILTER_CREATE(iAExtractImageFilter)
-
 void iAExtractImageFilter::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(extractImage, inputPixelType(), this, parameters);
@@ -341,8 +333,6 @@ template<typename T> void padImage(iAFilter* filter, QVariantMap const & paramet
 
 	filter->addOutput(setIndexOffsetToZero<T>(padFilter->GetOutput()));
 }
-
-IAFILTER_CREATE(iAPadImageFilter)
 
 void iAPadImageFilter::performWork(QVariantMap const & parameters)
 {

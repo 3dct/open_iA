@@ -20,7 +20,22 @@
 * ************************************************************************************/
 #pragma once
 
+#include <iAAutoRegistration.h>
 #include <iAFilter.h>
+#include <iAFilterRegistry.h>
 
-IAFILTER_DEFAULT_CLASS(iAExtractSurface);
-IAFILTER_DEFAULT_CLASS(iATriangulation);
+class iAExtractSurface : public iAFilter, private iAAutoRegistration<iAFilter, iAExtractSurface, iAFilterRegistry>
+{
+public:
+	iAExtractSurface();
+private:
+	void performWork(QVariantMap const& parameters) override;
+};
+
+class iATriangulation : public iAFilter, private iAAutoRegistration<iAFilter, iATriangulation, iAFilterRegistry>
+{
+public:
+	iATriangulation();
+private:
+	void performWork(QVariantMap const& parameters) override;
+};

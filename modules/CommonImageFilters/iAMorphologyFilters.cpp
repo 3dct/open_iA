@@ -104,8 +104,6 @@ void iADilation::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(dilation, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iADilation)
-
 iADilation::iADilation() :
 	iAFilter("Dilation", "Morphology",
 		"Dilate an image using grayscale morphology.<br/>"
@@ -136,8 +134,6 @@ void iAErosion::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(erosion, inputPixelType(), this, parameters);
 }
-
-IAFILTER_CREATE(iAErosion)
 
 iAErosion::iAErosion() :
 	iAFilter("Erosion", "Morphology",
@@ -170,8 +166,6 @@ void iAMorphOpening::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(morphOpening, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iAMorphOpening)
-
 iAMorphOpening::iAMorphOpening():
 	iAFilter("Opening", "Morphology",
 		"The morphological opening of an image 'f' is defined as: Opening(f) = Dilatation(Erosion(f)).<br/>"
@@ -203,8 +197,6 @@ void iAMorphClosing::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(morphClosing, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iAMorphClosing)
-
 iAMorphClosing::iAMorphClosing() :
 	iAFilter("Closing", "Morphology",
 		"The morphological closing of an image 'f' is defined as: Closing(f) = Erosion(Dilation(f)).<br/>"
@@ -235,8 +227,6 @@ void iAOpeningByReconstruction::performWork(QVariantMap const& parameters)
 {
 	ITK_TYPED_CALL(openingByReconstruction, inputPixelType(), this, parameters);
 }
-
-IAFILTER_CREATE(iAOpeningByReconstruction)
 
 iAOpeningByReconstruction::iAOpeningByReconstruction() :
 	iAFilter("Opening by Reconstruction", "Morphology",
@@ -274,8 +264,6 @@ void iAClosingByReconstruction::performWork(QVariantMap const& parameters)
 {
 	ITK_TYPED_CALL(closingByReconstruction, inputPixelType(), this, parameters);
 }
-
-IAFILTER_CREATE(iAClosingByReconstruction)
 
 iAClosingByReconstruction::iAClosingByReconstruction() :
 	iAFilter("Closing by Reconstruction", "Morphology",
@@ -319,8 +307,6 @@ void iABinaryThinning::performWork(QVariantMap const& parameters)
 	ITK_TYPED_CALL(binaryThinning, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iABinaryThinning)
-
 iABinaryThinning::iABinaryThinning() :
 	iAFilter("Binary thinning", "Morphology",
 		"Computes one-pixel-wide edges of the input image.<br/>"
@@ -354,8 +340,6 @@ void iABinaryFillHole::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(binaryFillHole, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iABinaryFillHole)
-
 iABinaryFillHole::iABinaryFillHole() :
 	iAFilter("Fill Hole (binary)", "Morphology",
 		"Remove holes not connected to the boundary of the image.<br/>"
@@ -385,8 +369,6 @@ void iAGrayscaleFillHole::performWork(QVariantMap const& parameters)
 {
 	ITK_TYPED_CALL(grayscaleFillHole, inputPixelType(), this, parameters);
 }
-
-IAFILTER_CREATE(iAGrayscaleFillHole)
 
 iAGrayscaleFillHole::iAGrayscaleFillHole() :
 	iAFilter("Fill Hole (grayscale)", "Morphology",
@@ -422,8 +404,6 @@ void iAVesselEnhancement::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(vesselEnhancement, inputPixelType(), this, parameters);
 }
-
-IAFILTER_CREATE(iAVesselEnhancement)
 
 iAVesselEnhancement::iAVesselEnhancement() :
 	iAFilter("Vessel Enhancement", "Morphology",

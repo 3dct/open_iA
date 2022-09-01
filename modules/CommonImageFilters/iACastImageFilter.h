@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAFilter.h>
+#include <iAFilterDefault.h>
 
 IAFILTER_DEFAULT_CLASS(iACastImageFilter);
 IAFILTER_DEFAULT_CLASS(iAConvertToRGBAFilter);

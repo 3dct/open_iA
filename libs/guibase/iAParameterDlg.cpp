@@ -25,6 +25,7 @@
 #include "iAFilterSelectionDlg.h"
 #include "iALog.h"
 #include "iAFilter.h"
+#include "iAFilterRegistry.h"
 #include "iAFilterRunnerRegistry.h"
 #include "iAFilterRunnerGUI.h"
 #include "iAStringHelper.h"

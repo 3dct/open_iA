@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAFilter.h>
+#include <iAFilterDefault.h>
 
 #include <iAItkVersion.h>
 
@@ -42,11 +42,11 @@ namespace itk
 IAFILTER_DEFAULT_CLASS(iADiscreteGaussian);
 IAFILTER_DEFAULT_CLASS(iARecursiveGaussian);
 IAFILTER_DEFAULT_CLASS(iAMedianFilter);
-class iANonLocalMeans : public iAFilter
+
+class iANonLocalMeans : public iAFilter, private iAAutoRegistration<iAFilter, iANonLocalMeans, iAFilterRegistry>
 {
 public:
 	iANonLocalMeans();
-	static std::shared_ptr<iANonLocalMeans> create();
 	void abort() override;
 private:
 	void performWork(QVariantMap const& parameters) override;

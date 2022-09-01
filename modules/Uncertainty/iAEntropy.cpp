@@ -45,8 +45,6 @@ iAEntropy::iAEntropy() :
 	addParameter("Normalize", iAValueType::Boolean, true);
 }
 
-IAFILTER_CREATE(iAEntropy)
-
 
 template <typename PixelType>
 void entropy(iAFilter* filter, QVariantMap const & parameters)

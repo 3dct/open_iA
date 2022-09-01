@@ -202,8 +202,6 @@ void iAFreeBeamCalculation::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(freeBeamCalculation_OutType, inputPixelType(), parameters, this);
 }
 
-IAFILTER_CREATE(iAFreeBeamCalculation)
-
 iAFreeBeamCalculation::iAFreeBeamCalculation() :
 	iAFilter("Free Beam Intensity", "Reconstruction",
 		"Convert the intensity values to attenuation values via free beam intensity transform.<br/>"

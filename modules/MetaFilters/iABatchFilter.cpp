@@ -360,5 +360,3 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 		}
 	}
 }
-
-IAFILTER_CREATE(iABatchFilter);

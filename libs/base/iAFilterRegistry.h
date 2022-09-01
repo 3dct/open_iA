@@ -22,23 +22,18 @@
 
 #include "iAbase_export.h"
 
-#include "iAGenericFactory.h"
-
+#include <memory>
 #include <vector>
 
 class iAFilter;
 
 class QString;
 
-//! For internal use in iAFilterRegistry and iAFilterFactory only.
-//! There should be no need to use this class directly; use REGISTER_FILTER or
-//! REGISTER_FILTER_WITH_RUNNER macros below instead!
-using iAIFilterFactory = iAGenericFactory<iAFilter>;
-template <typename iAFilterDerived> using iAFilterFactory = iASpecificFactory<iAFilterDerived, iAFilter>;
+using iAFilterCreateFuncPtr = std::shared_ptr<iAFilter>(*)();
 
 //! Registry for image filters.
-//! Use REGISTER_FILTER and REGISTER_FILTER_WITH_RUNNER macros add a filter
-//! to the list of filters in this class.
+//! Deriving a filter from iAAutoRegistration automatically registers the filter
+//! with this registry.
 //! All filters registered with these macros will be added to the Filter menu
 //! (in a submenu according to their Category(), the menu entry will have the
 //! filter name; the menu entry will be disabled until a dataset is loaded.
@@ -50,10 +45,11 @@ class iAbase_API iAFilterRegistry
 {
 public:
 	//! Adds a given filter factory to the registry, which will be run with the default
-	//! GUI runner. REGISTER_FILTER provides simplified access to this method.
-	static void addFilterFactory(std::shared_ptr<iAIFilterFactory> factory);
+	//! GUI runner. Filters that derive from iAAutoRegistration for automatic registration
+	//! do not need to explicitly call this function
+	static bool add(iAFilterCreateFuncPtr filterCreateFunc);
 	//! Retrieve a list of all currently registered filter (factories)
-	static std::vector<std::shared_ptr<iAIFilterFactory>> const & filterFactories();
+	static std::vector<iAFilterCreateFuncPtr> const & filterFactories();
 	//! Retrieve the filter with the given name.
 	//! If there is no such filter, a "null" shared pointer is returned
 	static std::shared_ptr<iAFilter> filter(QString const & name);
@@ -62,10 +58,5 @@ public:
 	static int filterID(QString const & name);
 private:
 	iAFilterRegistry() =delete;	//!< iAFilterRegistry is meant to be used statically only, thus prevent creation of objects
-	static std::vector<std::shared_ptr<iAIFilterFactory> > m_filters;
 };
 
-//! Macro to register a class derived from iAFilter in the iAFilterRegistry, with
-//! a default GUI runner. See iAFilterRegistry for more details
-#define REGISTER_FILTER(FilterType) \
-iAFilterRegistry::addFilterFactory(std::make_shared<iAFilterFactory<FilterType>>());

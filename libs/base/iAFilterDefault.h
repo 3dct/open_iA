@@ -20,22 +20,17 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAFilterDefault.h>
+#include "iAAutoRegistration.h"
+#include "iAFilter.h"
+#include "iAFilterRegistry.h"
 
-// Filters requiring 1 input image:
-IAFILTER_DEFAULT_CLASS(iAAdaptiveHistogramEqualization);
-IAFILTER_DEFAULT_CLASS(iAGeneralThreshold);
-IAFILTER_DEFAULT_CLASS(iAIntensityWindowingFilter);
-IAFILTER_DEFAULT_CLASS(iAInvertIntensityFilter);
-IAFILTER_DEFAULT_CLASS(iAMaskIntensityFilter);
-IAFILTER_DEFAULT_CLASS(iANormalizeIntensityFilter);
-IAFILTER_DEFAULT_CLASS(iARescaleIntensityFilter);
-IAFILTER_DEFAULT_CLASS(iAShiftScaleIntensityFilter);
-IAFILTER_DEFAULT_CLASS(iAHistogramFill);
-IAFILTER_DEFAULT_CLASS(iAReplaceAndShiftFilter);
-// Filters requiring 2 input images:
-IAFILTER_DEFAULT_CLASS(iAAddFilter);
-IAFILTER_DEFAULT_CLASS(iADifferenceFilter);
-IAFILTER_DEFAULT_CLASS(iAMultiplyFilter);
-IAFILTER_DEFAULT_CLASS(iASubtractFilter);
-IAFILTER_DEFAULT_CLASS(iAHistogramMatchingFilter);
+// Convenience macro for creating the declaration of an iAFilter, including auto-registration
+#define IAFILTER_DEFAULT_CLASS(FilterName) \
+class FilterName : public iAFilter, private iAAutoRegistration<iAFilter, FilterName, iAFilterRegistry> \
+{ \
+public: \
+	FilterName(); \
+	static std::shared_ptr<FilterName> create(); \
+private: \
+	void performWork(QVariantMap const & parameters) override; \
+};

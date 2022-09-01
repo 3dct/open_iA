@@ -64,8 +64,6 @@ void iAConvolution::performWork(QVariantMap const & /*parameters*/)
 	ITK_TYPED_CALL(convolution, inputPixelType(), this);
 }
 
-IAFILTER_CREATE(iAConvolution)
-
 iAConvolution::iAConvolution() :
 	iAFilter("Convolution", "Convolution",
 		"Convolve a given image with an arbitrary (float) image kernel.<br/>"
@@ -103,8 +101,6 @@ void iAFFTConvolution::performWork(QVariantMap const & /*parameters*/)
 {
 	ITK_TYPED_CALL(fft_convolution, inputPixelType(), this);
 }
-
-IAFILTER_CREATE(iAFFTConvolution)
 
 iAFFTConvolution::iAFFTConvolution() :
 	iAFilter("FFT Convolution", "Convolution",
@@ -154,8 +150,6 @@ void iACorrelation::performWork(QVariantMap const & /*parameters*/)
 	ITK_TYPED_CALL(correlation, inputPixelType(), this);
 }
 
-IAFILTER_CREATE(iACorrelation)
-
 iACorrelation::iACorrelation() :
 	iAFilter("Correlation", "Convolution",
 		"Computes the normalized correlation of an image and a template.<br/>"
@@ -196,8 +190,6 @@ void iAFFTCorrelation::performWork(QVariantMap const & /*parameters*/)
 {
 	ITK_TYPED_CALL(fft_correlation, inputPixelType(), this);
 }
-
-IAFILTER_CREATE(iAFFTCorrelation)
 
 iAFFTCorrelation::iAFFTCorrelation() :
 	iAFilter("FFT Correlation", "Convolution",
@@ -250,8 +242,6 @@ void iAStreamedFFTCorrelation::performWork(QVariantMap const & /*parameters*/)
 {
 	ITK_TYPED_CALL(streamed_fft_correlation, inputPixelType(), this);
 }
-
-IAFILTER_CREATE(iAStreamedFFTCorrelation)
 
 iAStreamedFFTCorrelation::iAStreamedFFTCorrelation() :
 	iAFilter("Streaming FFT Correlation", "Convolution",

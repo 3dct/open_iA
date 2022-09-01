@@ -65,8 +65,6 @@ void iASignedMaurerDistanceMap::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(signed_maurer_distancemap, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iASignedMaurerDistanceMap)
-
 iASignedMaurerDistanceMap::iASignedMaurerDistanceMap() :
 	iAFilter("Signed Maurer Distance Map", "Distance Map",
 		"This filter calculates the Euclidean distance transform of a binary "
@@ -119,8 +117,6 @@ void iADanielssonDistanceMap::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(danielsson_distancemap, inputPixelType(), this, parameters);
 }
-
-IAFILTER_CREATE(iADanielssonDistanceMap)
 
 iADanielssonDistanceMap::iADanielssonDistanceMap() :
 	iAFilter("Danielsson Distance Map", "Distance Map",

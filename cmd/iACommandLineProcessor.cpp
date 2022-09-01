@@ -89,7 +89,7 @@ namespace
 		bool sortByCat = sortBy == "category" || sortBy == "fullCategory";
 		for (auto factory : filterFactories)
 		{
-			auto filter = factory->create();
+			auto filter = factory();
 			std::string category = (sortBy == "category") ? filter->category().toStdString() :
 				((sortBy == "fullCategory") ? filter->fullCategory().toStdString() : "");
 			filterMap[category].insert(std::make_pair(

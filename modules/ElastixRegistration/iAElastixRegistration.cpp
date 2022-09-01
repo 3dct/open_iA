@@ -268,8 +268,6 @@ void iAElastixRegistration::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(derivative, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iAElastixRegistration)
-
 iAElastixRegistration::iAElastixRegistration() :
 	iAFilter("Elastix Registration", "Registration",
 		"Makes a registration of two images and computes the deformation matrix and the spatial jacobion using elastix<br/>"

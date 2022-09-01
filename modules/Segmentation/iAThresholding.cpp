@@ -52,8 +52,6 @@
 
 #include <vtkImageData.h>
 
-IAFILTER_CREATE(iACopy)
-
 void iACopy::performWork(QVariantMap const & /*parameters*/)
 {
 	vtkNew<vtkImageData> copiedImg;
@@ -86,8 +84,6 @@ void binary_threshold(iAFilter* filter, QVariantMap const & parameters)
 	binThreshFilter->Update();
 	filter->addOutput(binThreshFilter->GetOutput());
 }
-
-IAFILTER_CREATE(iABinaryThreshold)
 
 void iABinaryThreshold::performWork(QVariantMap const & parameters)
 {
@@ -142,8 +138,6 @@ void multi_threshold(iAFilter* filter, QVariantMap const& parameters)
 	filter->addOutput(multiThreshFilter->GetOutput());
 }
 
-IAFILTER_CREATE(iAMultiThreshold)
-
 void iAMultiThreshold::performWork(QVariantMap const& parameters)
 {
 	ITK_TYPED_CALL(multi_threshold, inputPixelType(), this, parameters);
@@ -188,8 +182,6 @@ void rats_threshold(iAFilter* filter, QVariantMap const & parameters)
 	filter->addOutputValue("Threshold", (double)ratsFilter->GetThreshold());
 	filter->addOutput(ratsFilter->GetOutput());
 }
-
-IAFILTER_CREATE(iARatsThreshold)
 
 void iARatsThreshold::performWork(QVariantMap const & parameters)
 {
@@ -268,8 +260,6 @@ void otsu_threshold(iAFilter* filter, QVariantMap const & parameters)
 	}
 }
 
-IAFILTER_CREATE(iAOtsuThreshold)
-
 void iAOtsuThreshold::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(otsu_threshold, inputPixelType(), this, parameters);
@@ -318,8 +308,6 @@ void adaptive_otsu_threshold(iAFilter* filter, QVariantMap const & parameters)
 	filter->addOutput(adotFilter->GetOutput());
 }
 
-IAFILTER_CREATE(iAAdaptiveOtsuThreshold)
-
 void iAAdaptiveOtsuThreshold::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(adaptive_otsu_threshold, inputPixelType(), this, parameters);
@@ -365,8 +353,6 @@ void otsu_multiple_threshold(iAFilter* filter, QVariantMap const & parameters)
 	filter->addOutput(otsumultiFilter->GetOutput());
 }
 
-IAFILTER_CREATE(iAOtsuMultipleThreshold)
-
 void iAOtsuMultipleThreshold::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(otsu_multiple_threshold, inputPixelType(), this, parameters);
@@ -411,8 +397,6 @@ void iAMaximumDistance::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(maximum_distance, inputPixelType(), this, parameters);
 }
-
-IAFILTER_CREATE(iAMaximumDistance)
 
 iAMaximumDistance::iAMaximumDistance() :
 	iAFilter("Maximum Distance", "Segmentation/Global Thresholding",
@@ -476,8 +460,6 @@ namespace
 		return GetParameterlessThresholdingNames().indexOf(name);
 	}
 }
-
-IAFILTER_CREATE(iAParameterlessThresholding)
 
 iAParameterlessThresholding::iAParameterlessThresholding() :
 	iAFilter("Parameterless Thresholding", "Segmentation/Global Thresholding",

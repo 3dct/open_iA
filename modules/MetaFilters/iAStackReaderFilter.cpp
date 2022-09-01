@@ -91,8 +91,6 @@ void iAStackReaderFilter::performWork(QVariantMap const & parameters)
 	addOutput(imgReader->GetOutput());
 }
 
-IAFILTER_CREATE(iAStackReaderFilter)
-
 iAStackReaderFilter::iAStackReaderFilter() :
 	iAFilter("Image Stack Reader", "Input",
 		"Read an image stack.<br/>"

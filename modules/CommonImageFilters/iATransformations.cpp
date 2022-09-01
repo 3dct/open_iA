@@ -83,8 +83,6 @@ void iAFlipAxis::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(flip, inputPixelType(), this, parameters["Flip axis"].toString());
 }
 
-IAFILTER_CREATE(iAFlipAxis)
-
 iAFlipAxis::iAFlipAxis() :
 	iAFilter("Flip Axis", "Geometric Transformations",
 		"Flip the image across one of the three coordinate axes.<br/>"
@@ -145,8 +143,6 @@ void iAPermuteAxes::performWork(QVariantMap const& parameters)
 {
 	ITK_TYPED_CALL(permute, inputPixelType(), this, parameters["Order"].toString());
 }
-
-IAFILTER_CREATE(iAPermuteAxes)
 
 iAPermuteAxes::iAPermuteAxes() :
 	iAFilter("Permute Axes", "Geometric Transformations",
@@ -217,8 +213,6 @@ void iARotate::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(rotate, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iARotate)
-
 iARotate::iARotate() :
 	iAFilter("Rotate", "Geometric Transformations",
 		"Rotate the image around one of the three coordinate axes.<br/>"
@@ -257,8 +251,6 @@ void iATranslate::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(translate, inputPixelType(), this, parameters);
 }
-
-IAFILTER_CREATE(iATranslate)
 
 iATranslate::iATranslate() :
 	iAFilter("Translate", "Geometric Transformations",

@@ -36,8 +36,6 @@
 #include <QEventLoop>
 
 
-IAFILTER_CREATE(iASampleFilter)
-
 iASampleFilter::iASampleFilter() :
 	iAFilter("Sample Filter", "Image Ensembles",
 		SampleFilterDescription,

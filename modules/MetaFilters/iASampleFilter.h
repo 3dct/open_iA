@@ -20,18 +20,19 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAttributes.h"
-#include "iAFilter.h"
-#include "iAFilterRunnerGUI.h"
+#include <iAAttributes.h>
+#include <iAAutoRegistration.h>
+#include <iAFilter.h>
+#include <iAFilterRegistry.h>
+#include <iAFilterRunnerGUI.h>
 
 class iADataSet;
 class iAImageSampler;
 
-class iASampleFilter : public iAFilter
+class iASampleFilter : public iAFilter, private iAAutoRegistration<iAFilter, iASampleFilter, iAFilterRegistry>
 {
 public:
 	iASampleFilter();
-	static std::shared_ptr<iASampleFilter> create();
 	void setParameters(std::vector<std::shared_ptr<iADataSet>> input, QSharedPointer<iAAttributes> parameterRanges,
 		QSharedPointer<iAAttributes> parameterSpecs, QString const& parameterRangeFile, QString const& parameterSetFile,
 		QString const& derivedOutFile, int samplingID);

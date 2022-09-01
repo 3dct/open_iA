@@ -20,27 +20,32 @@
 * ************************************************************************************/
 #include "iAFilterRunnerRegistry.h"
 
-#include "iAFilter.h"
 #include "iAFilterRunnerGUI.h"
 
-void iAFilterRunnerRegistry::addFilterFactory(
-	std::shared_ptr<iAIFilterFactory> factory, std::shared_ptr<iAIFilterRunnerGUIFactory> runner)
+#include <QMap>
+
+namespace
 {
-	iAFilterRegistry::addFilterFactory(factory);
-	int filterID = iAFilterRegistry::filterID(factory->create()->name());
-	m_runner.insert(filterID, runner);
+	QMap<int, iAFilterRunnerGUICreateFuncPtr> & runners()
+	{
+		static QMap<int, iAFilterRunnerGUICreateFuncPtr> s_runner;
+		return s_runner;
+	}
 }
 
-std::shared_ptr<iAIFilterRunnerGUIFactory> iAFilterRunnerRegistry::filterRunner(int filterID)
+void iAFilterRunnerRegistry::add(int filterID, iAFilterRunnerGUICreateFuncPtr runnerCreateFunc)
 {
-	if (m_runner.contains(filterID))
+	runners().insert(filterID, runnerCreateFunc);
+}
+
+std::shared_ptr<iAFilterRunnerGUI> iAFilterRunnerRegistry::filterRunner(int filterID)
+{
+	if (runners().contains(filterID))
 	{
-		return m_runner[filterID];
+		return runners()[filterID]();
 	}
 	else
 	{
-		return std::shared_ptr<iAIFilterRunnerGUIFactory>(new iAFilterRunnerGUIFactory<iAFilterRunnerGUI>());
+		return std::make_shared<iAFilterRunnerGUI>();
 	}
 }
-
-QMap<int, std::shared_ptr<iAIFilterRunnerGUIFactory>> iAFilterRunnerRegistry::m_runner;

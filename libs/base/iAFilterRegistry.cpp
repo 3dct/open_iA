@@ -23,28 +23,38 @@
 #include "iALog.h"
 #include "iAFilter.h"
 
-void iAFilterRegistry::addFilterFactory(std::shared_ptr<iAIFilterFactory> factory)
+namespace
 {
-	m_filters.push_back(factory);
+	std::vector<iAFilterCreateFuncPtr> & filters()
+	{
+		static std::vector<iAFilterCreateFuncPtr> filterList;
+		return filterList;
+	}
 }
 
-std::vector<std::shared_ptr<iAIFilterFactory>> const & iAFilterRegistry::filterFactories()
+bool iAFilterRegistry::add(iAFilterCreateFuncPtr filterCreateFunc)
 {
-	return m_filters;
+	filters().push_back(filterCreateFunc);
+	return true;
+}
+
+std::vector<iAFilterCreateFuncPtr> const & iAFilterRegistry::filterFactories()
+{
+	return filters();
 }
 
 std::shared_ptr<iAFilter> iAFilterRegistry::filter(QString const & name)
 {
 	int id = filterID(name);
-	return id == -1 ? std::shared_ptr<iAFilter>() : m_filters[id]->create();
+	return id == -1 ? std::shared_ptr<iAFilter>() : filters()[id]();
 }
 
 int iAFilterRegistry::filterID(QString const & name)
 {
 	int cur = 0;
-	for (auto filterFactory : m_filters)
+	for (auto filterCreateFunc : filters())
 	{
-		auto filter = filterFactory->create();
+		auto filter = filterCreateFunc();
 		if (filter->name() == name)
 		{
 			return cur;
@@ -54,5 +64,3 @@ int iAFilterRegistry::filterID(QString const & name)
 	LOG(lvlError, QString("Filter '%1' not found!").arg(name));
 	return -1;
 }
-
-std::vector<std::shared_ptr<iAIFilterFactory>> iAFilterRegistry::m_filters;

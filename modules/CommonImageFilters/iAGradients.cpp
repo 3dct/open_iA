@@ -54,8 +54,6 @@ void iAGradientMagnitude::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(gradientMagnitude, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iAGradientMagnitude)
-
 iAGradientMagnitude::iAGradientMagnitude() :
 	iAFilter("Gradient Magnitude", "Gradient",
 		"Computes the gradient magnitude at each image element.<br/>"
@@ -88,8 +86,6 @@ void iAGradientMagnitudeRecursiveGaussian::performWork(QVariantMap const & param
 {
 	ITK_TYPED_CALL(gradientMagnitudeRecursiveGaussian, inputPixelType(), this, parameters);
 }
-
-IAFILTER_CREATE(iAGradientMagnitudeRecursiveGaussian)
 
 iAGradientMagnitudeRecursiveGaussian::iAGradientMagnitudeRecursiveGaussian() :
 	iAFilter("Gradient Magnitude RecursiveGaussian", "Gradient",
@@ -126,8 +122,6 @@ void iADerivative::performWork(QVariantMap const & parameters)
 {
 	ITK_TYPED_CALL(derivative, inputPixelType(), this, parameters);
 }
-
-IAFILTER_CREATE(iADerivative)
 
 iADerivative::iADerivative() :
 	iAFilter("Derivative", "Gradient",
@@ -166,8 +160,6 @@ void iAHigherOrderAccurateDerivative::performWork(QVariantMap const & parameters
 {
 	ITK_TYPED_CALL(hoaDerivative, inputPixelType(), this, parameters);
 }
-
-IAFILTER_CREATE(iAHigherOrderAccurateDerivative)
 
 iAHigherOrderAccurateDerivative::iAHigherOrderAccurateDerivative() :
 	iAFilter("Higher Order Accurate Derivative", "Gradient",

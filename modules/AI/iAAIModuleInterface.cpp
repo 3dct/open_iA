@@ -20,11 +20,6 @@
 * ************************************************************************************/
 #include "iAAIModuleInterface.h"
 
-#include "iAaiFilters.h"
-
-#include <iAFilterRegistry.h>
-
 void iAAIModuleInterface::Initialize()
 {
-	REGISTER_FILTER(iAai);
 }

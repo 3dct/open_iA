@@ -265,20 +265,3 @@ private:
 	//! flag storing whether the filter was aborted by the user
 	bool m_isAborted = false;
 };
-
-//! Convenience Macro for creating the static create method for your filter
-#define IAFILTER_CREATE(FilterName) \
-std::shared_ptr<FilterName> FilterName::create() \
-{ \
-	return std::make_shared<FilterName>(); \
-}
-
-#define IAFILTER_DEFAULT_CLASS(FilterName) \
-class FilterName : public iAFilter \
-{ \
-public: \
-	FilterName(); \
-	static std::shared_ptr<FilterName> create(); \
-private: \
-	void performWork(QVariantMap const & parameters) override; \
-};

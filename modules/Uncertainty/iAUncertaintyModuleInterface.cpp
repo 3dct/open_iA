@@ -20,12 +20,9 @@
 * ************************************************************************************/
 #include "iAUncertaintyModuleInterface.h"
 
-#include "iAEntropy.h"
-#include "iACSVtoMHD.h"
 #include "iAUncertaintyAttachment.h"
 
 #include <iALog.h>
-#include <iAFilterRegistry.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
 #include <iAParameterDlg.h>
@@ -35,8 +32,6 @@
 
 void iAUncertaintyModuleInterface::Initialize()
 {
-	REGISTER_FILTER(iAEntropy);
-	REGISTER_FILTER(iACSVtoMHD);
 	if (!m_mainWnd)
 	{
 		return;
