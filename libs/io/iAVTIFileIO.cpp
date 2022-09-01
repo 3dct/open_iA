@@ -62,3 +62,5 @@ QStringList iAVTIFileIO::extensions() const
 {
 	return QStringList{ "vti" };
 }
+
+bool iAVTIFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iAVTIFileIO>();

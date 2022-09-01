@@ -72,3 +72,5 @@ QStringList iADCMFileIO::extensions() const
 {
 	return QStringList{ "dcm" };
 }
+
+bool iADCMFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iADCMFileIO>();

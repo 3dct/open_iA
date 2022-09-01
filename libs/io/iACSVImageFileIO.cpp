@@ -73,3 +73,5 @@ void iACSVImageFileIO::save(QString const& fileName, std::vector<std::shared_ptr
 	}
 	out.close();
 }
+
+bool iACSVImageFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iACSVImageFileIO>();

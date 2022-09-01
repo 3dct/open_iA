@@ -174,3 +174,5 @@ QStringList iAGraphFileIO::extensions() const
 {                             // pdb as in Brookhaven "Protein Data Bank" format (?)
 	return QStringList{ "txt", "pdb" };
 }
+
+bool iAGraphFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iAGraphFileIO>();

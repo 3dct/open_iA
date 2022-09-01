@@ -93,3 +93,5 @@ QStringList iAOIFFileIO::extensions() const
 {
 	return QStringList{ "oif" };
 }
+
+bool iAOIFFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iAOIFFileIO>();

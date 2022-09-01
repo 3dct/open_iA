@@ -25,6 +25,7 @@
 #include "iAio_export.h"
 
 #include "iAFileIO.h"
+#include "iAFileTypeRegistry.h"
 
 // for now, let's use HDF5 1.10 API:
 #define H5_USE_110_API
@@ -41,7 +42,11 @@ public:
 	std::vector<std::shared_ptr<iADataSet>> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress) override;
 	QString name() const override;
 	QStringList extensions() const override;
+
+private:
+	static bool s_bRegistered;
 };
+
 
 iAio_API QString MapHDF5TypeToString(H5T_class_t hdf5Type);
 iAio_API int GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign);

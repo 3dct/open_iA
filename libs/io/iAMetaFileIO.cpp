@@ -105,3 +105,5 @@ QStringList iAMetaFileIO::extensions() const
 {
 	return QStringList{ "mhd", "mha" };
 }
+
+bool iAMetaFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iAMetaFileIO>();

@@ -152,3 +152,5 @@ QStringList iAVTKFileIO::extensions() const
 {
 	return QStringList{ "vtk" };
 }
+
+bool iAVTKFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iAVTKFileIO>();

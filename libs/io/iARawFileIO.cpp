@@ -202,3 +202,5 @@ QStringList iARawFileIO::extensions() const
 {
 	return QStringList{ "raw", "vol", "rec", "pro" };
 }
+
+bool iARawFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iARawFileIO>();

@@ -83,6 +83,14 @@ std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::loadData(QString const& fil
 		scale = scaleStr.toFloat();
 	}
 
+	QString PixelValue = "";
+	QRegularExpression regexPixelValuee("c-scan unit : (dB|%)\\D");
+	QRegularExpressionMatch matchPixelValue = regexPixelValuee.match(text);
+	if (matchScale.hasMatch())
+	{
+		PixelValue = matchPixelValue.captured(1);
+	}
+
 	iARawFileIO io;
 	QVariantMap rawFileParamValues;
 	rawFileParamValues[iARawFileIO::SpacingStr] = variantVector<double>({ 1.0, 1.0, 1.0 });
@@ -138,7 +146,14 @@ std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::loadData(QString const& fil
 	paramValuesScale["Scale"] = scale;
 	filterScale->run(paramValuesScale);
 
-	return { filterScale->output(0) };
+	vtkNew<vtkImageData> img;
+	img->DeepCopy(filterScale->output(0)->vtkImage());
+
+	std::vector<std::shared_ptr<iADataSet>> returnData = {std::make_shared<iAImageData>(fileName, img)};
+
+	returnData[0]->setMetaData("PixelValueFormat", PixelValue);
+
+	return returnData;
 }
 
 QString iANKCFileIO::name() const
@@ -148,5 +163,7 @@ QString iANKCFileIO::name() const
 
 QStringList iANKCFileIO::extensions() const
 {
-	return QStringList{ "nkc" };
+	return QStringList{"nkc"};
 }
+
+bool iANKCFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iANKCFileIO>();

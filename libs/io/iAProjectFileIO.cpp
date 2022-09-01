@@ -188,3 +188,6 @@ QStringList iAProjectFileIO::extensions() const
 {
 	return QStringList{ "iaproj", "mod" };
 }
+
+
+bool iAProjectFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iAProjectFileIO>();

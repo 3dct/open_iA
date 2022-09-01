@@ -40,7 +40,7 @@ class iAio_API iAFileTypeRegistry final
 {
 public:
 	//! Adds a given file type to the registry.
-	template <typename FileIOType> static void addFileType();
+	template <typename FileIOType> static bool addFileType();
 
 	//! Create a file I/O for the given extension
 	static std::shared_ptr<iAFileIO> createIO(QString const & fileName);
@@ -59,7 +59,7 @@ template <typename FileIOType>
 using iAFileIOFactory = iASpecificFactory<FileIOType, iAFileIO>;
 
 template <typename FileIOType>
-void iAFileTypeRegistry::addFileType()
+bool iAFileTypeRegistry::addFileType()
 {
 	auto ioFactory = std::make_shared<iAFileIOFactory<FileIOType>>();
 	m_fileIOs.push_back(ioFactory);
@@ -76,4 +76,6 @@ void iAFileTypeRegistry::addFileType()
 		}
 		m_fileTypes.insert(lowerExt, m_fileIOs.size() - 1);
 	}
+	
+	return true;
 }

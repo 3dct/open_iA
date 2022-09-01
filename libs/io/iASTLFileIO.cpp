@@ -75,3 +75,6 @@ QStringList iASTLFileIO::extensions() const
 {
 	return QStringList{ "stl" };
 }
+
+
+bool iASTLFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iASTLFileIO>();
