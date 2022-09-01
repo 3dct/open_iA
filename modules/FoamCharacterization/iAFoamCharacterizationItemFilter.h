@@ -93,7 +93,7 @@ public:
 	enum EItemFilterType { iftAnisotropic, iftGauss, iftMedian, iftNonLocalMeans };
 
 public:
-	explicit iAFoamCharacterizationItemFilter(iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData);
+	explicit iAFoamCharacterizationItemFilter(iAFoamCharacterizationTable* _pTable);
 	explicit iAFoamCharacterizationItemFilter(iAFoamCharacterizationItemFilter* _pFilter);
 
 	double anisotropicConductance() const;
@@ -125,10 +125,10 @@ public:
 	void setNonLocalMeansIteration(const unsigned int& _uiNonLocalMeansIteration);
 	void setNonLocalMeansRadius(const unsigned int& _uiNonLocalMeansRadius);
 
-	virtual void dialog() override;
-	virtual void execute() override;
-	virtual void open(QFile* _pFileOpen) override;
-	virtual void save(QFile* _pFileSave) override;
+	void dialog() override;
+	std::shared_ptr<iADataSet> execute(std::shared_ptr<iADataSet> dataSet) override;
+	void open(QFile* _pFileOpen) override;
+	void save(QFile* _pFileSave) override;
 
 private:
 	bool m_bGaussianImageSpacing = true;
@@ -148,10 +148,10 @@ private:
 	unsigned int m_uiNonLocalMeansIteration = 1;
 	unsigned int m_uiNonLocalMeansRadius = 2;
 
-	void executeAnisotropic();
-	void executeGaussian();
-	void executeMedian();
-	void executeMedianFX();
+	std::shared_ptr<iADataSet> executeAnisotropic(std::shared_ptr<iADataSet> dataSet);
+	std::shared_ptr<iADataSet> executeGaussian(std::shared_ptr<iADataSet> dataSet);
+	std::shared_ptr<iADataSet> executeMedian(std::shared_ptr<iADataSet> dataSet);
+	std::shared_ptr<iADataSet> executeMedianFX(std::shared_ptr<iADataSet> dataSet);
 
 	void executeMedianFX1(unsigned short* _pDataRead, unsigned short* _pDataWrite
 		, const unsigned int& _uiNi, const unsigned int& _uiNj, const unsigned int& _uiNk
@@ -174,7 +174,7 @@ private:
 		, const unsigned int& _uiBoxSize
 	);
 
-	void executeNonLocalMeans();
+	std::shared_ptr<iADataSet> executeNonLocalMeans(std::shared_ptr<iADataSet> dataSet);
 
 	QString itemFilterTypeString() const;
 

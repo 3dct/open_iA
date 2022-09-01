@@ -23,8 +23,9 @@
 #include "iAFoamCharacterizationDialogFilter.h"
 #include "iAFoamCharacterizationTable.h"
 
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iAProgress.h>
+#include <iAToolsVTK.h>
 
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkGradientAnisotropicDiffusionImageFilter.h>
@@ -39,15 +40,13 @@
 #include <QThreadPool>
 #include <QtMath>
 
-iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter
-																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)
-										  : iAFoamCharacterizationItem(_pTable, _pImageData, iAFoamCharacterizationItem::itFilter)
+iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter(iAFoamCharacterizationTable* _pTable) :
+	iAFoamCharacterizationItem(_pTable, iAFoamCharacterizationItem::itFilter)
 {
-
 }
 
-iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter(iAFoamCharacterizationItemFilter* _pFilter)
-																							: iAFoamCharacterizationItem(_pFilter)
+iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter(iAFoamCharacterizationItemFilter* _pFilter) :
+	iAFoamCharacterizationItem(_pFilter)
 {
 	m_eItemFilterType = _pFilter->itemFilterType();
 
@@ -85,45 +84,49 @@ void iAFoamCharacterizationItemFilter::dialog()
 	pDialog->exec();
 }
 
-void iAFoamCharacterizationItemFilter::execute()
+std::shared_ptr<iADataSet> iAFoamCharacterizationItemFilter::execute(std::shared_ptr<iADataSet> dataSet)
 {
 	setExecuting(true);
 
 	QElapsedTimer t;
 	t.start();
 
+	std::shared_ptr<iADataSet> result;
 	switch (m_eItemFilterType)
 	{
 		case iftAnisotropic:
-		executeAnisotropic();
+			result = executeAnisotropic(dataSet);
 		break;
 
 		case iftGauss:
-		executeGaussian();
+			result = executeGaussian(dataSet);
 		break;
 
 		case iftMedian:
-		executeMedian();
+			result = executeMedian(dataSet);
 		break;
 
 		default:
-		executeNonLocalMeans();
+			result = executeNonLocalMeans(dataSet);
 		break;
 	}
 
 	m_dExecuteTime = 0.001 * (double) t.elapsed();
 
 	setExecuting(false);
+	return result;
 }
 
-void iAFoamCharacterizationItemFilter::executeAnisotropic()
+itk::Image<unsigned short, 3>* getItkImage(std::shared_ptr<iADataSet> dataSet)
 {
-	QScopedPointer<iAConnector> pConnector(new iAConnector());
-	pConnector->setImage(m_pImageData);
+	return dynamic_cast<itk::Image<unsigned short, 3>*>(dynamic_cast<iAImageData*>(dataSet.get())->itkImage());
+}
 
+std::shared_ptr<iADataSet> iAFoamCharacterizationItemFilter::executeAnisotropic(std::shared_ptr<iADataSet> dataSet)
+{
 	typedef itk::GradientAnisotropicDiffusionImageFilter<itk::Image<unsigned short, 3>, itk::Image<float, 3>> itkFilter;
 	itkFilter::Pointer pFilter(itkFilter::New());
-	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->itkImage()));
+	pFilter->SetInput(getItkImage(dataSet));
 	pFilter->SetConductanceParameter(m_dAnisotropicConductance);
 	pFilter->SetNumberOfIterations(m_uiAnisotropicIteration);
 	pFilter->SetTimeStep(m_dAnisotropicTimeStep);
@@ -139,20 +142,14 @@ void iAFoamCharacterizationItemFilter::executeAnisotropic()
 	itkCaster::Pointer pCaster(itkCaster::New());
 	pCaster->SetInput(0, pFilter->GetOutput());
 
-	pConnector->setImage(pCaster->GetOutput());
-
-	m_pImageData->DeepCopy(pConnector->vtkImage());
-	m_pImageData->CopyInformationFromPipeline(pConnector->vtkImage()->GetInformation());
+	return iAImageData::create(pCaster->GetOutput());
 }
 
-void iAFoamCharacterizationItemFilter::executeGaussian()
+std::shared_ptr<iADataSet> iAFoamCharacterizationItemFilter::executeGaussian(std::shared_ptr<iADataSet> dataSet)
 {
-	QScopedPointer<iAConnector> pConnector(new iAConnector());
-	pConnector->setImage(m_pImageData);
-
 	typedef itk::DiscreteGaussianImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
 	itkFilter::Pointer pFilter(itkFilter::New());
-	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->itkImage()));
+	pFilter->SetInput(getItkImage(dataSet));
 	pFilter->SetVariance(m_dGaussianVariance);
 	pFilter->SetUseImageSpacing(m_bGaussianImageSpacing);
 
@@ -162,44 +159,36 @@ void iAFoamCharacterizationItemFilter::executeGaussian()
 
 	pFilter->Update();
 
-	pConnector->setImage(pFilter->GetOutput());
-
-	m_pImageData->DeepCopy(pConnector->vtkImage());
-	m_pImageData->CopyInformationFromPipeline(pConnector->vtkImage()->GetInformation());
+	return iAImageData::create(pFilter->GetOutput());
 }
 
-void iAFoamCharacterizationItemFilter::executeMedian()
+std::shared_ptr<iADataSet> iAFoamCharacterizationItemFilter::executeMedian(std::shared_ptr<iADataSet> dataSet)
 {
-	QScopedPointer<iAConnector> pConnector(new iAConnector());
-	pConnector->setImage(m_pImageData);
-
 	typedef itk::MedianImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
 	auto pFilter = itkFilter::New();
 	itkFilter::InputSizeType radius;
 	radius.Fill(m_uiMedianRadius);
 	pFilter->SetRadius(radius);
-	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->itkImage()));
+	pFilter->SetInput(getItkImage(dataSet));
 
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	pObserver->observe(pFilter);
 	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemFilter::slotObserver);
 
 	pFilter->Update();
-
-	pConnector->setImage(pFilter->GetOutput());
-
-	m_pImageData->DeepCopy(pConnector->vtkImage());
-	m_pImageData->CopyInformationFromPipeline(pConnector->vtkImage()->GetInformation());
+	return iAImageData::create(pFilter->GetOutput());
 }
 
-void iAFoamCharacterizationItemFilter::executeMedianFX()
+std::shared_ptr<iADataSet> iAFoamCharacterizationItemFilter::executeMedianFX(std::shared_ptr<iADataSet> dataSet)
 {
 	m_uiMedianFXSlice = 0;
 
 	vtkSmartPointer<vtkImageData> pImageDataRead(vtkImageData::New());
-	pImageDataRead->DeepCopy(m_pImageData);
+	pImageDataRead->DeepCopy(dynamic_cast<iAImageData*>(dataSet.get())->vtkImage());
 
-	const int* pDim(m_pImageData->GetDimensions());
+	auto output = allocateImage(pImageDataRead);
+
+	const int* pDim(pImageDataRead->GetDimensions());
 
 	const unsigned int ni((unsigned int) pDim[0]);
 	const unsigned int nj((unsigned int) pDim[1]);
@@ -216,7 +205,7 @@ void iAFoamCharacterizationItemFilter::executeMedianFX()
 	QVector<QSharedPointer<QtRunnableMedian>> vRunnableMedian (uiThread);
 
 	unsigned short* pDataRead ((unsigned short*) pImageDataRead->GetScalarPointer());
-	unsigned short* pDataWrite ((unsigned short*) m_pImageData->GetScalarPointer());
+	unsigned short* pDataWrite ((unsigned short*)output->GetScalarPointer());
 
 	for (unsigned int ui(0), uii(1); ui < uiThread_1; ++ui, ++uii)
 	{
@@ -233,7 +222,7 @@ void iAFoamCharacterizationItemFilter::executeMedianFX()
 
 	pThreadPool->waitForDone();
 
-	m_pImageData->Modified();
+	return std::make_shared<iAImageData>("", output);
 }
 
 void iAFoamCharacterizationItemFilter::executeMedianFX(unsigned short* _pDataRead, unsigned short* _pDataWrite
@@ -434,14 +423,10 @@ unsigned short iAFoamCharacterizationItemFilter::executeMedianFXValue	( unsigned
 	return vValue[uiBoxSize2];
 }
 
-void iAFoamCharacterizationItemFilter::executeNonLocalMeans()
+std::shared_ptr<iADataSet> iAFoamCharacterizationItemFilter::executeNonLocalMeans(std::shared_ptr<iADataSet> dataSet)
 {
-	QScopedPointer<iAConnector> pConnector(new iAConnector());
-	pConnector->setImage(m_pImageData);
-
-	typedef itk::PatchBasedDenoisingImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
-	itkFilter::Pointer pFilter(itkFilter::New());
-	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->itkImage()));
+	auto pFilter = itk::PatchBasedDenoisingImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>>::New();
+	pFilter->SetInput(getItkImage(dataSet));
 	pFilter->SetNumberOfIterations(m_uiNonLocalMeansIteration);
 	pFilter->SetKernelBandwidthEstimation(false);
 	pFilter->SetPatchRadius(m_uiNonLocalMeansRadius);
@@ -451,11 +436,7 @@ void iAFoamCharacterizationItemFilter::executeNonLocalMeans()
 	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemFilter::slotObserver);
 
 	pFilter->Update();
-
-	pConnector->setImage(pFilter->GetOutput());
-
-	m_pImageData->DeepCopy(pConnector->vtkImage());
-	m_pImageData->CopyInformationFromPipeline(pConnector->vtkImage()->GetInformation());
+	return iAImageData::create(pFilter->GetOutput());
 }
 
 bool iAFoamCharacterizationItemFilter::gaussianImageSpacing() const

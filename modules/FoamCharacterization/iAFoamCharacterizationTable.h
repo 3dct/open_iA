@@ -25,7 +25,7 @@
 #include <QItemDelegate>
 #include <QTableWidget>
 
-class vtkImageData;
+class iAMdiChild;
 
 class QDropEvent;
 class QPainter;
@@ -47,7 +47,7 @@ class iAFoamCharacterizationTable : public QTableWidget
 	};
 
 public:
-	explicit iAFoamCharacterizationTable(vtkImageData* _pImageData, QWidget* _pParent = nullptr);
+	explicit iAFoamCharacterizationTable(iAMdiChild* child, QWidget* _pParent = nullptr);
 
 	void addBinarization();
 	void addDistanceTransform();
@@ -69,7 +69,7 @@ private:
 	int m_iCountFilter = 0;
 	int m_iCountWatershed = 0;
 
-	vtkImageData* m_pImageData = nullptr;
+	iAMdiChild* m_child;
 
 protected:
 	void dropEvent(QDropEvent* e) override;

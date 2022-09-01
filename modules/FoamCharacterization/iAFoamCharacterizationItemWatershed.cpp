@@ -22,8 +22,9 @@
 
 #include "iAFoamCharacterizationDialogWatershed.h"
 
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iAProgress.h>
+#include <iAToolsITK.h>    // for itkScalarPixelType
 
 #include <itkCastImageFilter.h>
 #include <itkGradientMagnitudeImageFilter.h>
@@ -36,15 +37,14 @@
 #include <QElapsedTimer>
 #include <QFile>
 
-iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed
-																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)
-	                                   : iAFoamCharacterizationItem(_pTable, _pImageData, iAFoamCharacterizationItem::itWatershed)
+iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed(iAFoamCharacterizationTable* _pTable) :
+	iAFoamCharacterizationItem(_pTable, iAFoamCharacterizationItem::itWatershed)
 {
-
 }
 
-iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed(iAFoamCharacterizationItemWatershed* _pWatershed)
-	                                                                                     : iAFoamCharacterizationItem(_pWatershed)
+iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed(
+	iAFoamCharacterizationItemWatershed* _pWatershed) :
+	iAFoamCharacterizationItem(_pWatershed)
 {
 	setName(_pWatershed->name());
 
@@ -56,29 +56,20 @@ iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed(iAFoamC
 
 void iAFoamCharacterizationItemWatershed::dialog()
 {
-	QScopedPointer<iAFoamCharacterizationDialogWatershed> pDialog
-	                                                      (new iAFoamCharacterizationDialogWatershed(this, QApplication::focusWidget()));
+	QScopedPointer<iAFoamCharacterizationDialogWatershed> pDialog(
+		new iAFoamCharacterizationDialogWatershed(this, QApplication::focusWidget()));
 	pDialog->exec();
 }
 
-void iAFoamCharacterizationItemWatershed::execute()
+std::shared_ptr<iADataSet> iAFoamCharacterizationItemWatershed::execute(std::shared_ptr<iADataSet> dataSet)
 {
 	setExecuting(true);
 
 	QElapsedTimer t;
 	t.start();
-
-	QScopedPointer<iAConnector> pConnector(new iAConnector());
-	pConnector->setImage(m_pImageData);
-
-	if (pConnector->itkScalarPixelType() == itk::ImageIOBase::FLOAT)
-	{
-		executeFloat(pConnector.data());
-	}
-	else
-	{
-		executeUnsignedShort(pConnector.data());
-	}
+	auto itkImg = dynamic_cast<iAImageData*>(dataSet.get())->itkImage();
+	auto result = (itkScalarPixelType(itkImg)  == itk::ImageIOBase::FLOAT) ?
+		executeFloat(itkImg) : executeUnsignedShort(itkImg);
 
 	if (m_iItemMask > -1)
 	{
@@ -87,20 +78,17 @@ void iAFoamCharacterizationItemWatershed::execute()
 
 		}
 	}
-
-	m_pImageData->DeepCopy(pConnector->vtkImage());
-	m_pImageData->CopyInformationFromPipeline(pConnector->vtkImage()->GetInformation());
-
 	m_dExecuteTime = 0.001 * (double) t.elapsed();
 
 	setExecuting(false);
+	return result;
 }
 
-void iAFoamCharacterizationItemWatershed::executeFloat(iAConnector* _pConnector)
+std::shared_ptr<iADataSet> iAFoamCharacterizationItemWatershed::executeFloat(itk::ImageBase<3>* img)
 {
 	typedef itk::WatershedImageFilter<itk::Image<float, 3>> itkWatershed;
 	itkWatershed::Pointer pFilter(itkWatershed::New());
-	pFilter->SetInput(dynamic_cast<itk::Image<float, 3>*> (_pConnector->itkImage()));
+	pFilter->SetInput(dynamic_cast<itk::Image<float, 3>*>(img));
 	pFilter->SetLevel(m_dLevel);
 	pFilter->SetThreshold(m_dThreshold);
 
@@ -115,14 +103,14 @@ void iAFoamCharacterizationItemWatershed::executeFloat(iAConnector* _pConnector)
 	itkCaster::Pointer pCaster(itkCaster::New());
 	pCaster->SetInput(0, pFilter->GetOutput());
 
-	_pConnector->setImage(pCaster->GetOutput());
+	return iAImageData::create(pCaster->GetOutput());
 }
 
-void iAFoamCharacterizationItemWatershed::executeUnsignedShort(iAConnector* _pConnector)
+std::shared_ptr<iADataSet> iAFoamCharacterizationItemWatershed::executeUnsignedShort(itk::ImageBase<3>* img)
 {
 	typedef itk::WatershedImageFilter<itk::Image<unsigned short, 3>> itkWatershed;
 	itkWatershed::Pointer pFilter(itkWatershed::New());
-	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (_pConnector->itkImage()));
+	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (img));
 	pFilter->SetLevel(m_dLevel);
 	pFilter->SetThreshold(m_dThreshold);
 
@@ -132,7 +120,7 @@ void iAFoamCharacterizationItemWatershed::executeUnsignedShort(iAConnector* _pCo
 
 	pFilter->Update();
 
-	_pConnector->setImage(pFilter->GetOutput());
+	return iAImageData::create(pFilter->GetOutput());
 }
 
 int iAFoamCharacterizationItemWatershed::itemMask() const

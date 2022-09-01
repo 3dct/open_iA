@@ -26,43 +26,35 @@
 #include <vtkImageData.h>
 
 #include <QApplication>
-#include <QPainter>
 #include <QFile>
+#include <QPainter>
 #include <QTextStream>
 
-iAFoamCharacterizationItem::iAFoamCharacterizationItem ( iAFoamCharacterizationTable* _pTable
-													   , vtkImageData* _pImageData, const EItemType& _eItemType
-													   ) : QObject(_pTable)
-														 , QTableWidgetItem()
-	                                                     , m_pTable (_pTable)
-														 , m_eItemType(_eItemType)
-														 , m_pImageData(_pImageData)
+iAFoamCharacterizationItem::iAFoamCharacterizationItem(
+	iAFoamCharacterizationTable* _pTable, const EItemType& _eItemType) :
+	QObject(_pTable), QTableWidgetItem(), m_pTable(_pTable), m_eItemType(_eItemType)
 {
 	QFont f(font());
 	f.setBold(true);
 
 	setFont(f);
-
-	setItemIconColor();
 	setItemIcon();
 
 	setName(itemTypeStr());
 }
 
-iAFoamCharacterizationItem::iAFoamCharacterizationItem(iAFoamCharacterizationItem* _pItem) : QObject(_pItem->table())
-																						, QTableWidgetItem()
-																						, m_bModified(_pItem->modified())
-																						, m_dExecuteTime(_pItem->executeTime())
-																						, m_pTable(_pItem->table())
-																						, m_eItemType(_pItem->itemType())
-																						, m_pImageData(_pItem->imageData())
+iAFoamCharacterizationItem::iAFoamCharacterizationItem(iAFoamCharacterizationItem* _pItem) :
+	QObject(_pItem->table()),
+	QTableWidgetItem(),
+	m_bModified(_pItem->modified()),
+	m_dExecuteTime(_pItem->executeTime()),
+	m_pTable(_pItem->table()),
+	m_eItemType(_pItem->itemType())
 {
 	QFont f(font());
 	f.setBold(true);
 
 	setFont(f);
-
-	setItemIconColor();
 	setItemIcon();
 
 	setItemEnabled(_pItem->itemEnabled());
@@ -70,7 +62,6 @@ iAFoamCharacterizationItem::iAFoamCharacterizationItem(iAFoamCharacterizationIte
 
 iAFoamCharacterizationItem::~iAFoamCharacterizationItem()
 {
-
 }
 
 double iAFoamCharacterizationItem::executeTime() const
@@ -91,7 +82,7 @@ QString iAFoamCharacterizationItem::executeTimeString() const
 
 		const unsigned int iH(iSecond / 3600);
 		const unsigned int iM(iSecond / 60 - 60 * iH);
-		const double dS(m_dExecuteTime - (double) (3600 * iH + 60 * iM));
+		const double dS(m_dExecuteTime - (double)(3600 * iH + 60 * iM));
 
 		if (iH)
 		{
@@ -131,12 +122,18 @@ void iAFoamCharacterizationItem::fileWrite(QFile* _pFileSave, const QString& _sT
 	_pFileSave->write((char*)_sText.toStdString().c_str(), iText);
 }
 
-vtkImageData* iAFoamCharacterizationItem::imageData() const
+QColor iAFoamCharacterizationItem::itemIconColor(EItemType eItemType)
 {
-	return m_pImageData;
+	switch (eItemType)
+	{
+	case itBinarization:      return Qt::green;
+	case itDistanceTransform: return Qt::cyan;
+	case itFilter:            return Qt::red;
+	default:                  return Qt::blue;
+	}
 }
 
-QIcon iAFoamCharacterizationItem::itemButtonIcon() const
+QIcon iAFoamCharacterizationItem::itemButtonIcon(EItemType eItemType)
 {
 	QScopedPointer<QImage> pImage(new QImage(1, 1, QImage::Format_ARGB32));
 
@@ -152,7 +149,7 @@ QIcon iAFoamCharacterizationItem::itemButtonIcon() const
 
 	QScopedPointer<QPainter> pPainter(new QPainter(pImage.data()));
 	pPainter->setBrush(Qt::NoBrush);
-	pPainter->setPen(m_cItemIcon);
+	pPainter->setPen(itemIconColor(eItemType));
 	pPainter->drawEllipse(pImage->rect().adjusted(0, 0, -1, -1));
 	pPainter->drawLine(2, iImageLengthY2, iImageLengthX - 3, iImageLengthY2);
 	pPainter->drawLine(iImageLengthX2, 2, iImageLengthX2, iImageLengthY - 3);
@@ -165,11 +162,6 @@ bool iAFoamCharacterizationItem::itemEnabled() const
 	return m_bItemEnabled;
 }
 
-QColor iAFoamCharacterizationItem::itemIconColor() const
-{
-	return m_cItemIcon;
-}
-
 iAFoamCharacterizationItem::EItemType iAFoamCharacterizationItem::itemType() const
 {
 	return m_eItemType;
@@ -179,19 +171,19 @@ QString iAFoamCharacterizationItem::itemTypeStr() const
 {
 	switch (m_eItemType)
 	{
-		case itBinarization:
+	case itBinarization:
 		return "Binarization";
 		break;
 
-		case itDistanceTransform:
+	case itDistanceTransform:
 		return "Distance transform";
 		break;
 
-		case itFilter:
+	case itFilter:
 		return "Filter";
 		break;
 
-		default:
+	default:
 		return "Watershed";
 		break;
 	}
@@ -211,7 +203,7 @@ void iAFoamCharacterizationItem::open(QFile* _pFileOpen)
 {
 	m_sName = fileRead(_pFileOpen);
 
-	_pFileOpen->read((char*) &m_bItemEnabled, sizeof(m_bItemEnabled));
+	_pFileOpen->read((char*)&m_bItemEnabled, sizeof(m_bItemEnabled));
 
 	setItemIcon();
 }
@@ -255,33 +247,11 @@ void iAFoamCharacterizationItem::setItemIcon()
 	pImage->fill(0);
 
 	QScopedPointer<QPainter> pPainter(new QPainter(pImage.data()));
-	pPainter->setBrush((m_bItemEnabled) ? QBrush(m_cItemIcon) : Qt::NoBrush);
-	pPainter->setPen(m_cItemIcon);
+	pPainter->setBrush((m_bItemEnabled) ? QBrush(itemIconColor(m_eItemType)) : Qt::NoBrush);
+	pPainter->setPen(itemIconColor(m_eItemType));
 	pPainter->drawEllipse(pImage->rect().adjusted(0, 0, -1, -1));
 
 	setIcon(QIcon(QPixmap::fromImage(*pImage.data())));
-}
-
-void iAFoamCharacterizationItem::setItemIconColor()
-{
-	switch (m_eItemType)
-	{
-		case itBinarization:
-		m_cItemIcon = Qt::green;
-		break;
-
-		case itDistanceTransform:
-		m_cItemIcon = Qt::cyan;
-		break;
-
-		case itFilter:
-		m_cItemIcon = Qt::red;
-		break;
-
-		default:
-		m_cItemIcon = Qt::blue;
-		break;
-	}
 }
 
 void iAFoamCharacterizationItem::setItemEnabled(const bool& _bItemEnabled)

@@ -27,7 +27,7 @@
 class QPushButton;
 
 class iAFoamCharacterizationTable;
-class vtkImageData;
+class iADataSet;
 
 class iAFoamCharacterizationAttachment : public iAModuleAttachmentToChild
 {
@@ -37,9 +37,7 @@ public:
 	iAFoamCharacterizationAttachment(iAMainWindow* mainWnd, iAMdiChild * child);
 
 private:
-	vtkImageData* m_pImageData = nullptr;
-	vtkSmartPointer<vtkImageData> m_pImageRestore;
-
+	std::shared_ptr<iADataSet> m_origDataSet;
 	iAFoamCharacterizationTable* m_pTable = nullptr;
 
 	QPushButton* m_pPushButtonAnalysis = nullptr;

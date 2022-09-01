@@ -25,6 +25,8 @@
 #include "iAFoamCharacterizationItemFilter.h"
 #include "iAFoamCharacterizationItemWatershed.h"
 
+#include <iAMdiChild.h>
+
 #include <vtkImageData.h>
 
 #include <QDropEvent>
@@ -103,7 +105,7 @@ void iAFoamCharacterizationTable::iAFoamCharacterizationTableDelegate::paint(QPa
 
 			QLinearGradient lg(rBar.topLeft(), rBar.topRight());
 			lg.setColorAt(0.0, Qt::black);
-			lg.setColorAt(1.0, pItem->itemIconColor());
+			lg.setColorAt(1.0, pItem->itemIconColor(pItem->itemType()));
 
 			_pPainter->fillRect(rBar, QBrush(lg));
 		}
@@ -132,8 +134,9 @@ void iAFoamCharacterizationTable::iAFoamCharacterizationTableDelegate::drawItemR
 
 
 
-iAFoamCharacterizationTable::iAFoamCharacterizationTable(vtkImageData* _pImageData, QWidget* _pParent)
-																			  : QTableWidget(_pParent), m_pImageData (_pImageData)
+iAFoamCharacterizationTable::iAFoamCharacterizationTable(iAMdiChild* child, QWidget* _pParent):
+	QTableWidget(_pParent),
+	m_child(child)
 {
 	setAutoFillBackground(false);
 	setCursor(Qt::PointingHandCursor);
@@ -164,7 +167,7 @@ void iAFoamCharacterizationTable::addBinarization()
 
 	++m_iCountBinarization;
 
-	iAFoamCharacterizationItemBinarization* pItem(new iAFoamCharacterizationItemBinarization(this, m_pImageData));
+	iAFoamCharacterizationItemBinarization* pItem(new iAFoamCharacterizationItemBinarization(this));
 	pItem->setName(pItem->text() + QString(" %1").arg(m_iCountBinarization));
 	setItem(n, 0, pItem);
 }
@@ -177,7 +180,7 @@ void iAFoamCharacterizationTable::addDistanceTransform()
 
 	++m_iCountDistanceTransform;
 
-	iAFoamCharacterizationItemDistanceTransform* pItem(new iAFoamCharacterizationItemDistanceTransform(this, m_pImageData));
+	iAFoamCharacterizationItemDistanceTransform* pItem(new iAFoamCharacterizationItemDistanceTransform(this));
 	pItem->setName(pItem->text() + QString(" %1").arg(m_iCountDistanceTransform));
 	setItem(n, 0, pItem);
 }
@@ -190,7 +193,7 @@ void iAFoamCharacterizationTable::addFilter()
 
 	++m_iCountFilter;
 
-	iAFoamCharacterizationItemFilter* pItem(new iAFoamCharacterizationItemFilter(this, m_pImageData));
+	iAFoamCharacterizationItemFilter* pItem(new iAFoamCharacterizationItemFilter(this));
 	pItem->setName(pItem->text() + QString(" %1").arg(m_iCountFilter));
 	setItem(n, 0, pItem);
 }
@@ -203,7 +206,7 @@ void iAFoamCharacterizationTable::addWatershed()
 
 	++m_iCountWatershed;
 
-	iAFoamCharacterizationItemWatershed* pItem(new iAFoamCharacterizationItemWatershed(this, m_pImageData));
+	iAFoamCharacterizationItemWatershed* pItem(new iAFoamCharacterizationItemWatershed(this));
 	pItem->setName(pItem->text() + QString(" %1").arg(m_iCountWatershed));
 	setItem(n, 0, pItem);
 }
@@ -314,11 +317,11 @@ void iAFoamCharacterizationTable::dropEvent(QDropEvent* e)
 void iAFoamCharacterizationTable::execute()
 {
 	reset();
-
 	setFocus();
 
 	const int n(rowCount());
 
+	std::shared_ptr<iADataSet> dataSet = m_child->dataSets()[0];
 	for (int i (0) ; i < n ; ++i)
 	{
 		selectRow(i);
@@ -328,10 +331,11 @@ void iAFoamCharacterizationTable::execute()
 
 		if (pItem->itemEnabled())
 		{
-			pItem->execute();
+			dataSet = pItem->execute(dataSet);
 		}
 	}
-
+	m_child->clearDataSets();
+	m_child->addDataSet(dataSet);
 	viewport()->repaint();
 }
 

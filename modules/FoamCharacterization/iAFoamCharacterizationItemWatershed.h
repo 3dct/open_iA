@@ -22,22 +22,20 @@
 
 #include "iAFoamCharacterizationItem.h"
 
+#include <itkImage.h>
+
 class QFile;
-
-class iAConnector;
-
-class iAFoamCharacterizationItemBinarization;
 
 class iAFoamCharacterizationItemWatershed : public iAFoamCharacterizationItem
 {
 	Q_OBJECT
 
 public:
-	explicit iAFoamCharacterizationItemWatershed(iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData);
+	explicit iAFoamCharacterizationItemWatershed(iAFoamCharacterizationTable* _pTable);
 	explicit iAFoamCharacterizationItemWatershed(iAFoamCharacterizationItemWatershed* _pWatershed);
 
-	void executeFloat(iAConnector* _pConnector);
-	void executeUnsignedShort(iAConnector* _pConnector);
+	std::shared_ptr<iADataSet> executeFloat(itk::ImageBase<3>* img);
+	std::shared_ptr<iADataSet> executeUnsignedShort(itk::ImageBase<3>* img);
 
 	int itemMask() const;
 
@@ -48,10 +46,10 @@ public:
 	void setLevel(const double& _dLevel);
 	void setThreshold(const double& _dThreshold);
 
-	virtual void dialog() override;
-	virtual void execute() override;
-	virtual void open(QFile* _pFileOpen) override;
-	virtual void save(QFile* _pFileSave) override;
+	void dialog() override;
+	std::shared_ptr<iADataSet> execute(std::shared_ptr<iADataSet> dataSet) override;
+	void open(QFile* _pFileOpen) override;
+	void save(QFile* _pFileSave) override;
 
 private:
 	double m_dLevel = 0.4;

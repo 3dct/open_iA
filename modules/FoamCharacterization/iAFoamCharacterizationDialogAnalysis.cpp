@@ -22,14 +22,12 @@
 
 #include "iAFoamCharacterizationTableAnalysis.h"
 
-#include <iAConnector.h>
+#include <iADataSet.h>
 
 #include <itkLabelMap.h>
 #include <itkLabelGeometryImageFilter.h>
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkShapeLabelObject.h>
-
-#include <vtkImageData.h>
 
 #include <QApplication>
 #include <QGridLayout>
@@ -38,44 +36,39 @@
 #include <QStandardItemModel>
 #include <QtMath>
 
-iAFoamCharacterizationDialogAnalysis::iAFoamCharacterizationDialogAnalysis(vtkImageData* _pImageData, QWidget* _pParent)
-																									  : QDialog(_pParent)
-																									  , m_pImageData (_pImageData)
+iAFoamCharacterizationDialogAnalysis::iAFoamCharacterizationDialogAnalysis(iAImageData const* dataSet, QWidget* _pParent) : QDialog(_pParent)
 {
 	setAttribute(Qt::WA_DeleteOnClose);
-	setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint | Qt::WindowMaximizeButtonHint) );
+	setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint | Qt::WindowMaximizeButtonHint));
 	setWindowTitle("Analysis");
 
 	m_pTable = new iAFoamCharacterizationTableAnalysis(this);
 
-	analyse();
+	analyse(dataSet);
 
 	QGridLayout* pGridLayout(new QGridLayout(this));
 	pGridLayout->addWidget(m_pTable);
 }
 
-void iAFoamCharacterizationDialogAnalysis::analyse()
+void iAFoamCharacterizationDialogAnalysis::analyse(iAImageData const* dataSet)
 {
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 	QApplication::processEvents();
 
-	QScopedPointer<iAConnector> pConnector(new iAConnector());
-	pConnector->setImage(m_pImageData);
-
 	typedef itk::LabelGeometryImageFilter<itk::Image<unsigned short, 3>> itkLabelGeometryImageFilterType;
 	itkLabelGeometryImageFilterType::Pointer pLabelGeometryImageFilter(itkLabelGeometryImageFilterType::New());
-	pLabelGeometryImageFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->itkImage()));
+	pLabelGeometryImageFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (dataSet->itkImage()));
 	pLabelGeometryImageFilter->Update();
 
 	const int iLabels(pLabelGeometryImageFilter->GetNumberOfLabels());
 
 	m_pTable->setRowCount(iLabels - 1);
 
-	itkLabelGeometryImageFilterType::LabelsType ltLabels (pLabelGeometryImageFilter->GetLabels());
+	auto ltLabels = pLabelGeometryImageFilter->GetLabels();
 
 	int i (0);
 
-	for ( itkLabelGeometryImageFilterType::LabelsType::iterator ltLabelsIt (ltLabels.begin())
+	for (auto ltLabelsIt (ltLabels.begin())
 		; ltLabelsIt != ltLabels.end() ; ++ltLabelsIt
 		)
 	{
@@ -83,14 +76,13 @@ void iAFoamCharacterizationDialogAnalysis::analyse()
 
 		if (ltLabel > 1)
 		{
-			const itkLabelGeometryImageFilterType::LabelPointType lptCenter(pLabelGeometryImageFilter->GetCentroid(ltLabel));
+			auto lptCenter(pLabelGeometryImageFilter->GetCentroid(ltLabel));
 			const double* pCenter((double*)lptCenter.GetDataPointer());
 
 			const double dVolume ((double)pLabelGeometryImageFilter->GetVolume(ltLabel));
 			const double dDiameter (2.0 * qPow(3.0 * dVolume / M_PI / 4.0, 1.0 / 3.0));
 
-			const itk::FixedArray<itk::Index<3>::IndexValueType, 6> pBoundingBox
-																			 (pLabelGeometryImageFilter->GetBoundingBox(ltLabel));
+			const auto pBoundingBox(pLabelGeometryImageFilter->GetBoundingBox(ltLabel));
 			m_pTable->setRow ( i++
 				             , ltLabel
 				             , pCenter[0], pCenter[1], pCenter[2]

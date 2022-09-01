@@ -29,18 +29,23 @@ class vtkImageData;
 
 class iAFoamCharacterizationTable;
 
+class iADataSet;
+
 class iAFoamCharacterizationItem : public QObject, public QTableWidgetItem
 {
 	Q_OBJECT
 
 public:
-	enum EItemType { itBinarization, itDistanceTransform, itFilter, itWatershed};
+	enum EItemType
+	{
+		itBinarization,
+		itDistanceTransform,
+		itFilter,
+		itWatershed
+	};
 
 public:
-	explicit iAFoamCharacterizationItem ( iAFoamCharacterizationTable* _pTable
-										, vtkImageData* _pImageData, const EItemType& _eItemType
-										);
-
+	explicit iAFoamCharacterizationItem(iAFoamCharacterizationTable* _pTable, const EItemType& _eItemType);
 	explicit iAFoamCharacterizationItem(iAFoamCharacterizationItem* _pItem);
 	virtual ~iAFoamCharacterizationItem();
 
@@ -49,13 +54,10 @@ public:
 
 	QString executeTimeString() const;
 
-	vtkImageData* imageData() const;
-
-	QIcon itemButtonIcon() const;
+	static QColor itemIconColor(EItemType eItemType);
+	static QIcon itemButtonIcon(EItemType eItemType);
 
 	bool itemEnabled() const;
-
-	QColor itemIconColor() const;
 
 	EItemType itemType() const;
 	QString itemTypeStr() const;
@@ -74,19 +76,16 @@ public:
 	iAFoamCharacterizationTable* table();
 
 	virtual void dialog() = 0;
-	virtual void execute() = 0;
+	virtual std::shared_ptr<iADataSet> execute(std::shared_ptr<iADataSet> input) = 0;
 	virtual void open(QFile* _pFileOpen) = 0;
 	virtual void save(QFile* _pFileSave) = 0;
 
 private:
 	bool m_bExecuting = false;
 
-	QColor m_cItemIcon = Qt::black;
-
 	int m_iProgress = 0;
 
 	void setItemIcon();
-	void setItemIconColor();
 
 protected:
 	bool m_bItemEnabled = true;
@@ -99,8 +98,6 @@ protected:
 	EItemType m_eItemType = itFilter;
 
 	QString m_sName;
-
-	vtkImageData* m_pImageData = nullptr;
 
 	QString fileRead(QFile* _pFileOpen);
 	void fileWrite(QFile* _pFileSave, const QString& _sText);

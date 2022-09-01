@@ -24,22 +24,20 @@
 
 class QLabel;
 
-class vtkImageData;
-
 class iAFoamCharacterizationTableAnalysis;
+class iAImageData;
 
 class iAFoamCharacterizationDialogAnalysis : public QDialog
 {
 	Q_OBJECT
 
 public:
-	explicit iAFoamCharacterizationDialogAnalysis(vtkImageData* _pImageData, QWidget* _pParent = nullptr);
+	explicit iAFoamCharacterizationDialogAnalysis(iAImageData const * dataSet, QWidget* _pParent = nullptr);
 
 private:
-	vtkImageData* m_pImageData = nullptr;
 	QLabel* m_pLabel12 = nullptr;
 	iAFoamCharacterizationTableAnalysis* m_pTable = nullptr;
-	void analyse();
+	void analyse(iAImageData const* dataSet);
 
 private slots:
 	void slotPushButtonOk();

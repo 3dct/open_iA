@@ -32,7 +32,7 @@
 
 #include <iADockWidgetWrapper.h>
 
-#include <vtkImageData.h>
+#include <iADataSet.h>
 
 #include <QApplication>
 #include <QFileDialog>
@@ -43,11 +43,8 @@
 
 iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 																			  : iAModuleAttachmentToChild(mainWnd, child)
-																			  , m_pImageData(child->firstImageData())
+																			  , m_origDataSet(child->dataSets()[0])
 {
-	m_pImageRestore = vtkImageData::New();
-	m_pImageRestore->DeepCopy(m_pImageData);
-
 	QWidget* pWidget(new QWidget());
 
 	QGroupBox* pGroupBox1(new QGroupBox("Foam characterization", pWidget));
@@ -65,26 +62,22 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(iAMainWindow*
 	connect(pPushButtonClear, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonClear);
 
 	QPushButton* pPushButtonFilter(new QPushButton("Add filter", pWidget));
-	iAFoamCharacterizationItemFilter itemFilter(0, m_pImageData);
-	pPushButtonFilter->setIcon(itemFilter.itemButtonIcon());
+	pPushButtonFilter->setIcon(iAFoamCharacterizationItemFilter::itemButtonIcon(iAFoamCharacterizationItem::itFilter));
 	connect(pPushButtonFilter, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonFilter);
 
 	QPushButton* pPushButtonBinarization(new QPushButton("Add binarization", pWidget));
-	iAFoamCharacterizationItemBinarization itemBinarization(0, m_pImageData);
-	pPushButtonBinarization->setIcon(itemBinarization.itemButtonIcon());
+	pPushButtonBinarization->setIcon(iAFoamCharacterizationItemBinarization::itemButtonIcon(iAFoamCharacterizationItem::itBinarization));
 	connect(pPushButtonBinarization, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonBinarization);
 
 	QPushButton* pPushButtonDistanceTransform(new QPushButton("Add distance transform", pWidget));
-	iAFoamCharacterizationItemDistanceTransform itemDistanceTransform(0, m_pImageData);
-	pPushButtonDistanceTransform->setIcon(itemDistanceTransform.itemButtonIcon());
+	pPushButtonDistanceTransform->setIcon(iAFoamCharacterizationItemDistanceTransform::itemButtonIcon(iAFoamCharacterizationItem::itDistanceTransform));
 	connect(pPushButtonDistanceTransform, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonDistanceTransform);
 
 	QPushButton* pPushButtonWatershed(new QPushButton("Add watershed", pWidget));
-	iAFoamCharacterizationItemWatershed itemWatershed(0, m_pImageData);
-	pPushButtonWatershed->setIcon(itemWatershed.itemButtonIcon());
+	pPushButtonWatershed->setIcon(iAFoamCharacterizationItemWatershed::itemButtonIcon(iAFoamCharacterizationItem::itWatershed));
 	connect(pPushButtonWatershed, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonWatershed);
 
-	m_pTable = new iAFoamCharacterizationTable(m_pImageData, pWidget);
+	m_pTable = new iAFoamCharacterizationTable(child, pWidget);
 
 	QPushButton* pPushButtonExecute(new QPushButton("Execute", pWidget));
 	pPushButtonExecute->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogApplyButton));
@@ -121,7 +114,7 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(iAMainWindow*
 
 void iAFoamCharacterizationAttachment::slotPushButtonAnalysis()
 {
-	iAFoamCharacterizationDialogAnalysis* pDialogAnalysis (new iAFoamCharacterizationDialogAnalysis(m_pImageData, m_mainWnd));
+	auto pDialogAnalysis = new iAFoamCharacterizationDialogAnalysis(dynamic_cast<iAImageData*>(m_child->dataSets()[0].get()), m_mainWnd);
 	pDialogAnalysis->show();
 }
 
@@ -195,7 +188,8 @@ void iAFoamCharacterizationAttachment::slotPushButtonRestore()
 	{
 		QApplication::setOverrideCursor(Qt::WaitCursor);
 		QApplication::processEvents();
-		m_pImageData->DeepCopy(m_pImageRestore);
+		m_child->clearDataSets();
+		m_child->addDataSet(m_origDataSet);
 		m_pTable->reset();
 		m_child->enableRenderWindows();
 		QApplication::restoreOverrideCursor();

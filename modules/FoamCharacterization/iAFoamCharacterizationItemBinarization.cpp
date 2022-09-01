@@ -22,7 +22,7 @@
 
 #include "iAFoamCharacterizationDialogBinarization.h"
 
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iAFilter.h>
 #include <iAFilterRegistry.h>
 #include <iAProgress.h>
@@ -34,10 +34,9 @@
 #include <QFile>
 
 iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization
-	(iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)
-	: iAFoamCharacterizationItem(_pTable, _pImageData, iAFoamCharacterizationItem::itBinarization)
+	(iAFoamCharacterizationTable* _pTable)
+	: iAFoamCharacterizationItem(_pTable, iAFoamCharacterizationItem::itBinarization)
 {
-	m_pImageDataMask = vtkSmartPointer<vtkImageData>::New();
 }
 
 iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization
@@ -54,9 +53,7 @@ iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization
 
 	m_bIsMask = _pBinarization->isMask();
 
-	m_pImageDataMask = vtkSmartPointer<vtkImageData>::New();
-	m_pImageDataMask->DeepCopy(_pBinarization->imageDataMask());
-	m_pImageDataMask->CopyInformationFromPipeline(_pBinarization->imageDataMask()->GetInformation());
+	m_mask = _pBinarization->m_mask;
 }
 
 void iAFoamCharacterizationItemBinarization::dialog()
@@ -66,63 +63,54 @@ void iAFoamCharacterizationItemBinarization::dialog()
 	pDialog->exec();
 }
 
-void iAFoamCharacterizationItemBinarization::execute()
+std::shared_ptr<iADataSet> iAFoamCharacterizationItemBinarization::execute(std::shared_ptr<iADataSet> dataSet)
 {
 	setExecuting(true);
 
 	QElapsedTimer t;
 	t.start();
 
-	switch (m_eItemFilterType)
-	{
-		case iftBinarization:
-		executeBinarization();
-		break;
-
-		default:
-		executeOtzu();
-		break;
-	}
-
+	auto result = (m_eItemFilterType == iftBinarization) ?
+		executeBinarization(dataSet):
+		executeOtzu(dataSet);
 	if (m_bIsMask)
 	{
-		m_pImageDataMask->DeepCopy(m_pImageData);
-		m_pImageDataMask->CopyInformationFromPipeline(m_pImageData->GetInformation());
+		m_mask = result;;
 	}
 
 	m_dExecuteTime = 0.001 * (double)t.elapsed();
 
 	setExecuting(false);
+
+	return result;
 }
 
-void iAFoamCharacterizationItemBinarization::executeBinarization()
+std::shared_ptr<iADataSet> iAFoamCharacterizationItemBinarization::executeBinarization(std::shared_ptr<iADataSet> dataSet)
 {
 	auto filter = iAFilterRegistry::filter("Binary Thresholding");
 	connect(filter->progress(), &iAProgress::progress, this, &iAFoamCharacterizationItemBinarization::slotObserver);
-	filter->addInput(m_pImageData, "");
+	filter->addInput(dataSet);
 	QVariantMap parameters;
 	parameters["Lower threshold"] = m_usLowerThreshold;
 	parameters["Upper threshold"] = m_usUpperThreshold;
 	parameters["Inside value"] = 0;
 	parameters["Outside value"] = 1;
 	filter->run(parameters);
-	m_pImageData->DeepCopy(filter->output(0)->vtkImage());
-	m_pImageData->CopyInformationFromPipeline(filter->output(0)->vtkImage()->GetInformation());
+	return filter->output(0);
 }
 
-void iAFoamCharacterizationItemBinarization::executeOtzu()
+std::shared_ptr<iADataSet> iAFoamCharacterizationItemBinarization::executeOtzu(std::shared_ptr<iADataSet> dataSet)
 {
 	auto filter = iAFilterRegistry::filter("Otsu Threshold");
 	connect(filter->progress(), &iAProgress::progress, this, &iAFoamCharacterizationItemBinarization::slotObserver);
-	filter->addInput(m_pImageData, "");
+	filter->addInput(dataSet);
 	QVariantMap parameters;
 	parameters["Remove peaks"] = false;
 	parameters["Number of histogram bins"] = m_uiOtzuHistogramBins;
 	parameters["Outside value"] = 1;
 	parameters["Inside value"] = 0;
 	filter->run(parameters);
-	m_pImageData->DeepCopy(filter->output(0)->vtkImage());
-	m_pImageData->CopyInformationFromPipeline(filter->output(0)->vtkImage()->GetInformation());
+	return filter->output(0);
 }
 
 iAFoamCharacterizationItemBinarization::EItemFilterType iAFoamCharacterizationItemBinarization::itemFilterType() const
@@ -132,21 +120,12 @@ iAFoamCharacterizationItemBinarization::EItemFilterType iAFoamCharacterizationIt
 
 QString iAFoamCharacterizationItemBinarization::itemFilterTypeString() const
 {
-	switch (m_eItemFilterType)
-	{
-		case iftBinarization:
-		return "B";
-		break;
-
-		default:
-		return "O";
-		break;
-	}
+	return (m_eItemFilterType == iftBinarization) ? "B": "O";
 }
 
-vtkImageData* iAFoamCharacterizationItemBinarization::imageDataMask()
+std::shared_ptr<iADataSet> iAFoamCharacterizationItemBinarization::imageDataMask()
 {
-	return m_pImageDataMask.Get();
+	return m_mask;
 }
 
 bool iAFoamCharacterizationItemBinarization::isMask() const

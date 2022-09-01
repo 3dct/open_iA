@@ -31,7 +31,7 @@ class iAFoamCharacterizationItemDistanceTransform : public iAFoamCharacterizatio
 	Q_OBJECT
 
 public:
-	explicit iAFoamCharacterizationItemDistanceTransform(iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData);
+	explicit iAFoamCharacterizationItemDistanceTransform(iAFoamCharacterizationTable* _pTable);
 	explicit iAFoamCharacterizationItemDistanceTransform(iAFoamCharacterizationItemDistanceTransform* _pDistanceTransform);
 
 	int itemMask() const;
@@ -41,10 +41,10 @@ public:
 
 	bool useImageSpacing() const;
 
-	virtual void dialog() override;
-	virtual void execute() override;
-	virtual void open(QFile* _pFileOpen) override;
-	virtual void save(QFile* _pFileSave) override;
+	void dialog() override;
+	std::shared_ptr<iADataSet> execute(std::shared_ptr<iADataSet>) override;
+	void open(QFile* _pFileOpen) override;
+	void save(QFile* _pFileSave) override;
 
 private:
 	bool m_bImageSpacing = true;

@@ -23,7 +23,7 @@
 #include "iAFoamCharacterizationItemBinarization.h"
 #include "iAFoamCharacterizationDialogDistanceTransform.h"
 
-#include <iAConnector.h>
+#include <iADataSet.h>
 #include <iAProgress.h>
 
 #include <itkDanielssonDistanceMapImageFilter.h>
@@ -36,16 +36,15 @@
 #include <QElapsedTimer>
 #include <QFile>
 
-iAFoamCharacterizationItemDistanceTransform::iAFoamCharacterizationItemDistanceTransform
-																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)
-							   : iAFoamCharacterizationItem(_pTable ,_pImageData, iAFoamCharacterizationItem::itDistanceTransform)
+iAFoamCharacterizationItemDistanceTransform::iAFoamCharacterizationItemDistanceTransform(
+	iAFoamCharacterizationTable* _pTable) :
+	iAFoamCharacterizationItem(_pTable, iAFoamCharacterizationItem::itDistanceTransform)
 {
-
 }
 
-iAFoamCharacterizationItemDistanceTransform::iAFoamCharacterizationItemDistanceTransform
-																(iAFoamCharacterizationItemDistanceTransform* _pDistanceTransform)
-																: iAFoamCharacterizationItem(_pDistanceTransform)
+iAFoamCharacterizationItemDistanceTransform::iAFoamCharacterizationItemDistanceTransform(
+	iAFoamCharacterizationItemDistanceTransform* _pDistanceTransform) :
+	iAFoamCharacterizationItem(_pDistanceTransform)
 {
 	setName(_pDistanceTransform->name());
 
@@ -61,19 +60,16 @@ void iAFoamCharacterizationItemDistanceTransform::dialog()
 	pDialog->exec();
 }
 
-void iAFoamCharacterizationItemDistanceTransform::execute()
+std::shared_ptr<iADataSet> iAFoamCharacterizationItemDistanceTransform::execute(std::shared_ptr<iADataSet> dataSet)
 {
 	setExecuting(true);
 
 	QElapsedTimer t;
 	t.start();
 
-	QScopedPointer<iAConnector> pConnector(new iAConnector());
-	pConnector->setImage(m_pImageData);
-
 	typedef itk::DanielssonDistanceMapImageFilter<itk::Image<unsigned short, 3>, itk::Image<float, 3>> itkFilter;
 	itkFilter::Pointer pFilter(itkFilter::New());
-	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->itkImage()));
+	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*>(dynamic_cast<iAImageData*>(dataSet.get())->itkImage()));
 	pFilter->SetUseImageSpacing(m_bImageSpacing);
 	pFilter->InputIsBinaryOn();
 
@@ -94,8 +90,6 @@ void iAFoamCharacterizationItemDistanceTransform::execute()
 	pInvert->SetMaximum(pCalculator->GetMaximum());
 	pInvert->Update();
 
-	pConnector->setImage(pInvert->GetOutput());
-
 	if (m_iItemMask > -1)
 	{
 		//if (m_pItemMask->isMask())
@@ -104,12 +98,10 @@ void iAFoamCharacterizationItemDistanceTransform::execute()
 		}
 	}
 
-	m_pImageData->DeepCopy(pConnector->vtkImage());
-	m_pImageData->CopyInformationFromPipeline(pConnector->vtkImage()->GetInformation());
-
 	m_dExecuteTime = 0.001 * (double) t.elapsed();
 
 	setExecuting(false);
+	return iAImageData::create(pInvert->GetOutput());
 }
 
 int iAFoamCharacterizationItemDistanceTransform::itemMask() const

@@ -34,10 +34,10 @@ public:
 	enum EItemFilterType { iftBinarization, iftOtzu};
 
 public:
-	explicit iAFoamCharacterizationItemBinarization(iAFoamCharacterizationTable* _pTable , vtkImageData* _pImageData);
+	explicit iAFoamCharacterizationItemBinarization(iAFoamCharacterizationTable* _pTable);
 	explicit iAFoamCharacterizationItemBinarization(iAFoamCharacterizationItemBinarization* _pBinarization);
 
-	vtkImageData* imageDataMask();
+	std::shared_ptr<iADataSet> imageDataMask();
 
 	EItemFilterType itemFilterType() const;
 
@@ -56,13 +56,14 @@ public:
 
 	void setItemFilterType(const EItemFilterType& _eItemFilterType);
 
-	virtual void dialog() override;
-	virtual void execute() override;
-	virtual void open(QFile* _pFileOpen) override;
-	virtual void save(QFile* _pFileSave) override;
+	void dialog() override;
+	std::shared_ptr<iADataSet> execute(std::shared_ptr<iADataSet> input) override;
+	void open(QFile* _pFileOpen) override;
+	void save(QFile* _pFileSave) override;
 
 private:
 	bool m_bIsMask = false;
+	std::shared_ptr<iADataSet> m_mask;
 
 	EItemFilterType m_eItemFilterType = iftOtzu;
 
@@ -70,10 +71,8 @@ private:
 	unsigned short m_usUpperThreshold = 65535;
 	unsigned int m_uiOtzuHistogramBins = 500;
 
-	vtkSmartPointer<vtkImageData> m_pImageDataMask;
-
-	void executeBinarization();
-	void executeOtzu();
+	std::shared_ptr<iADataSet> executeBinarization(std::shared_ptr<iADataSet> dataSet);
+	std::shared_ptr<iADataSet> executeOtzu(std::shared_ptr<iADataSet> dataSet);
 
 	QString itemFilterTypeString() const;
 
