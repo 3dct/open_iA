@@ -196,7 +196,7 @@ namespace
 						{
 							auto itkExtractImg = extractImage(dynamic_cast<iAImageData*>(inputImages[i].get())->itkImage(), extractIndex, extractSize);
 							// maybe modify original filename to reflect that only a patch of it is passed on?
-							filter->addInput(iAImageData::create("", itkExtractImg));
+							filter->addInput(iAImageData::create(itkExtractImg, ""));
 						}
 						// run filter on inputs:
 						filter->run(filterParams);
