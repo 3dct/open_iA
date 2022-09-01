@@ -93,6 +93,11 @@ iAHDF5IO::iAHDF5IO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
 	addAttr(m_params[Load], SpacingStr, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
 }
 
+std::shared_ptr<iAFileIO> iAHDF5IO::create()
+{
+	return std::make_shared<iAHDF5IO>();
+}
+
 std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::loadData(QString const& fileName, QVariantMap const& params, iAProgress* progress)
 {
 	Q_UNUSED(progress);
@@ -184,7 +189,7 @@ QStringList iAHDF5IO::extensions() const
 	return QStringList{ "hdf", "hdf5", "h5", "he5", "nc", "cdf", "mat" };
 }
 
-bool iAHDF5IO::s_bRegistered = iAFileTypeRegistry::addFileType<iAHDF5IO>();
+bool iAHDF5IO::s_bRegistered = iAFileTypeRegistry::addFileType(iAHDF5IO::create);
 
 
 QString MapHDF5TypeToString(H5T_class_t hdf5Type)

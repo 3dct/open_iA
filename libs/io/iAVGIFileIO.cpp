@@ -36,6 +36,11 @@
 iAVGIFileIO::iAVGIFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
 {}
 
+std::shared_ptr<iAFileIO> iAVGIFileIO::create()
+{
+	return std::make_shared<iAVGIFileIO>();
+}
+
 namespace
 {
 	// TODO: rewrite to read file only once, return vector for multi-entry types (size, spacing, ...)
@@ -203,4 +208,4 @@ QStringList iAVGIFileIO::extensions() const
 	return QStringList{ "vgi" };
 }
 
-bool iAVGIFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iAVGIFileIO>();
+bool iAVGIFileIO::s_bRegistered = iAFileTypeRegistry::addFileType(iAVGIFileIO::create);

@@ -22,7 +22,7 @@
 
 #include <QFileInfo>
 
-std::vector<std::shared_ptr<iAIFileIOFactory>> iAFileTypeRegistry::m_fileIOs;
+std::vector<iAFileIOCreateFuncPtr> iAFileTypeRegistry::m_fileIOs;
 QMap<QString, size_t> iAFileTypeRegistry::m_fileTypes;
 
 std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileName)
@@ -32,7 +32,7 @@ std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileName)
 	auto ext = fi.suffix().toLower();
 	if (m_fileTypes.contains(ext))
 	{
-		return m_fileIOs[m_fileTypes[ext]]->create();
+		return m_fileIOs[m_fileTypes[ext]]();
 	}
 	else
 	{
@@ -52,7 +52,7 @@ QString iAFileTypeRegistry::registeredFileTypes(iAFileIO::Operation op, iADataSe
 	QString singleTypes;
 	for (auto ioFactory : m_fileIOs)  // all registered file types
 	{
-		auto io = ioFactory->create();
+		auto io = ioFactory();
 #if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
 		if ( (io->supportedDataSetTypes(op) & allowedTypes) == 0 )
 #else
@@ -77,3 +77,21 @@ QString iAFileTypeRegistry::registeredFileTypes(iAFileIO::Operation op, iADataSe
 	return QString("Any supported format (%1);;").arg(allExtensions.join(" ")) + singleTypes;
 }
 
+bool iAFileTypeRegistry::addFileType(iAFileIOCreateFuncPtr c)
+{
+	m_fileIOs.push_back(c);
+	auto io = c();
+	for (auto extension : io->extensions())
+	{
+		auto lowerExt = extension.toLower();
+		if (m_fileTypes.contains(extension))
+		{
+			LOG(lvlWarn, QString("File IO %1 tries to add a handler for file extension %2, already registered to file IO %3!")
+				.arg(io->name())
+				.arg(lowerExt)
+				.arg(m_fileIOs[m_fileTypes[lowerExt]]()->name()));
+		}
+		m_fileTypes.insert(lowerExt, m_fileIOs.size() - 1);
+	}
+	return true;
+}

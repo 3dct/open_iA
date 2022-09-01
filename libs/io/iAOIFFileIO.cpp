@@ -46,6 +46,11 @@ iAOIFFileIO::iAOIFFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None
 	addAttr(m_params[Load], ChannelNumberStr, iAValueType::Discrete, 0, 0);
 }
 
+std::shared_ptr<iAFileIO> iAOIFFileIO::create()
+{
+	return std::make_shared<iAOIFFileIO>();
+}
+
 std::vector<std::shared_ptr<iADataSet>> iAOIFFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
 	Q_UNUSED(progress);
@@ -94,4 +99,4 @@ QStringList iAOIFFileIO::extensions() const
 	return QStringList{ "oif" };
 }
 
-bool iAOIFFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iAOIFFileIO>();
+bool iAOIFFileIO::s_bRegistered = iAFileTypeRegistry::addFileType(iAOIFFileIO::create);

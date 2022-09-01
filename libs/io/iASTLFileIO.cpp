@@ -40,6 +40,11 @@ iASTLFileIO::iASTLFileIO() : iAFileIO(iADataSetType::Mesh, iADataSetType::Mesh)
 	addAttr(m_params[Save], FormatParam, iAValueType::Categorical, formatOptions);
 }
 
+std::shared_ptr<iAFileIO> iASTLFileIO::create()
+{
+	return std::make_shared<iASTLFileIO>();
+}
+
 std::vector<std::shared_ptr<iADataSet>> iASTLFileIO::loadData(QString const& fileName, QVariantMap const& params, iAProgress* progress)
 {
 	Q_UNUSED(params);
@@ -77,4 +82,4 @@ QStringList iASTLFileIO::extensions() const
 }
 
 
-bool iASTLFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iASTLFileIO>();
+bool iASTLFileIO::s_bRegistered = iAFileTypeRegistry::addFileType(iASTLFileIO::create);

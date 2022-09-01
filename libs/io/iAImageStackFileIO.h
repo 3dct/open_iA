@@ -45,6 +45,7 @@ public:
 	void save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress* progress) override;
 
 private:
+	static std::shared_ptr<iAFileIO> create();
 	static bool s_bRegistered;
 };
 

@@ -42,7 +42,11 @@ namespace
 const QString iAProjectFileIO::Name("Project files");
 
 iAProjectFileIO::iAProjectFileIO() : iAFileIO(iADataSetType::All, iADataSetType::None) // writing to a project file is specific (since it doesn't write the dataset itself...)
+{}
+
+std::shared_ptr<iAFileIO> iAProjectFileIO::create()
 {
+	return std::make_shared<iAProjectFileIO>();
 }
 
 std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
@@ -190,4 +194,4 @@ QStringList iAProjectFileIO::extensions() const
 }
 
 
-bool iAProjectFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iAProjectFileIO>();
+bool iAProjectFileIO::s_bRegistered = iAFileTypeRegistry::addFileType(iAProjectFileIO::create);

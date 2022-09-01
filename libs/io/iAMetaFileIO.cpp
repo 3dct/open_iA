@@ -45,6 +45,11 @@ iAMetaFileIO::iAMetaFileIO() :
 	addAttr(m_params[Save], CompressionStr, iAValueType::Boolean, false);
 }
 
+std::shared_ptr<iAFileIO> iAMetaFileIO::create()
+{
+	return std::make_shared<iAMetaFileIO>();
+}
+
 std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
 {
 	Q_UNUSED(paramValues);
@@ -106,4 +111,4 @@ QStringList iAMetaFileIO::extensions() const
 	return QStringList{ "mhd", "mha" };
 }
 
-bool iAMetaFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iAMetaFileIO>();
+bool iAMetaFileIO::s_bRegistered = iAFileTypeRegistry::addFileType(iAMetaFileIO::create);

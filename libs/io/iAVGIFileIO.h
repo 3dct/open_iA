@@ -32,5 +32,6 @@ public:
 	QStringList extensions() const override;
 
 private:
+	static std::shared_ptr<iAFileIO> create();
 	static bool s_bRegistered;
 };

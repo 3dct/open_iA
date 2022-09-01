@@ -23,7 +23,11 @@
 #include "iAAmiraMeshIO.h"
 
 iAAmiraVolumeFileIO::iAAmiraVolumeFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
+{}
+
+std::shared_ptr<iAFileIO> iAAmiraVolumeFileIO::create()
 {
+	return std::make_shared<iAAmiraVolumeFileIO>();
 }
 
 std::vector<std::shared_ptr<iADataSet>> iAAmiraVolumeFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress* progress)
@@ -44,4 +48,4 @@ QStringList iAAmiraVolumeFileIO::extensions() const
 	return QStringList{ "am" };
 }
 
-bool iAAmiraVolumeFileIO::s_bRegistered = iAFileTypeRegistry::addFileType<iAAmiraVolumeFileIO>();
+bool iAAmiraVolumeFileIO::s_bRegistered = iAFileTypeRegistry::addFileType(iAAmiraVolumeFileIO::create);

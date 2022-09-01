@@ -24,7 +24,6 @@
 
 #include "iADataSetType.h"
 #include "iAFileIO.h"
-#include "iAGenericFactory.h"
 #include "iALog.h"
 
 #include <QMap>
@@ -33,14 +32,14 @@
 
 class QString;
 
-using iAIFileIOFactory = iAGenericFactory<iAFileIO>;
+using iAFileIOCreateFuncPtr = std::shared_ptr<iAFileIO>(*)();
 
 //! Registry for file types (of type iAFileIO).
 class iAio_API iAFileTypeRegistry final
 {
 public:
 	//! Adds a given file type to the registry.
-	template <typename FileIOType> static bool addFileType();
+	static bool addFileType(iAFileIOCreateFuncPtr c);
 
 	//! Create a file I/O for the given extension
 	static std::shared_ptr<iAFileIO> createIO(QString const & fileName);
@@ -49,33 +48,7 @@ public:
 	static QString registeredFileTypes(iAFileIO::Operation op, iADataSetTypes allowedTypes = iADataSetType::All);
 
 private:
-	static std::vector<std::shared_ptr<iAIFileIOFactory>> m_fileIOs;
+	static std::vector<iAFileIOCreateFuncPtr> m_fileIOs;
 	static QMap<QString, size_t> m_fileTypes;
 	iAFileTypeRegistry() = delete;  //!< class is meant to be used statically only, prevent creation of objects
 };
-
-
-template <typename FileIOType>
-using iAFileIOFactory = iASpecificFactory<FileIOType, iAFileIO>;
-
-template <typename FileIOType>
-bool iAFileTypeRegistry::addFileType()
-{
-	auto ioFactory = std::make_shared<iAFileIOFactory<FileIOType>>();
-	m_fileIOs.push_back(ioFactory);
-	auto io = ioFactory->create();
-	for (auto extension : io->extensions())
-	{
-		auto lowerExt = extension.toLower();
-		if (m_fileTypes.contains(extension))
-		{
-			LOG(lvlWarn, QString("File IO %1 tries to add a handler for file extension %2, already registered to file IO %3!")
-				.arg(io->name())
-				.arg(lowerExt)
-				.arg(m_fileIOs[m_fileTypes[lowerExt]]->create()->name()));
-		}
-		m_fileTypes.insert(lowerExt, m_fileIOs.size() - 1);
-	}
-	
-	return true;
-}
