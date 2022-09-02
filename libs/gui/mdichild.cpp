@@ -24,6 +24,7 @@
 #include "dlg_volumePlayer.h"
 #include "iADataForDisplay.h"
 #include "iAFileParamDlg.h"
+#include "iAFileUtils.h"    // for safeFileName
 #include "iAParametricSpline.h"
 #include "iAProfileProbe.h"
 #include "iAvtkInteractStyleActor.h"
@@ -1170,8 +1171,9 @@ void MdiChild::saveNew()
 	{
 		return;
 	}
-	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), m_path,
-			iAFileTypeRegistry::registeredFileTypes(iAFileIO::Save, dataSet->type()));
+	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
+		m_path + "/" + safeFileName(dataSet->name()),
+		iAFileTypeRegistry::registeredFileTypes(iAFileIO::Save, dataSet->type()));
 	if (fileName.isEmpty())
 	{
 		return;
@@ -2259,6 +2261,7 @@ void MdiChild::closeEvent(QCloseEvent* event)
 
 void MdiChild::setWindowTitleAndFile(const QString& f)
 {
+	QString title = f;
 	if (QFile::exists(f))
 	{
 		m_fileInfo.setFile(f);
@@ -2266,8 +2269,9 @@ void MdiChild::setWindowTitleAndFile(const QString& f)
 		m_path = m_fileInfo.canonicalPath();
 		m_isUntitled = f.isEmpty();
 		m_mainWnd->addRecentFile(f);
+		title = m_fileInfo.fileName();
 	}
-	setWindowTitle(fileInfo().fileName() + "[*]");
+	setWindowTitle(title + "[*]");
 	setWindowModified(hasUnsavedData());
 }
 

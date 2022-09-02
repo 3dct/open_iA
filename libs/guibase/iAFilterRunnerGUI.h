@@ -129,7 +129,6 @@ signals:
 	void finished();
 private:
 	std::vector<std::shared_ptr<iADataSet>> m_additionalInput;
-	QString m_sourceFileName;
 };
 
 #define IAFILTER_RUNNER_CREATE(FilterRunnerName) \

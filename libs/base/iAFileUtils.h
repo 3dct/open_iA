@@ -71,3 +71,6 @@ iAbase_API QString pathFileBaseName(QFileInfo const& fi);
 //!     (typically padded by zeros)
 iAbase_API void determineStackParameters(QString const & fullFileName,
 	QString & prefix, QString & suffix, int range[2], int & digits);
+
+//! from the given string, filter all potentially unsafe/disallowed characters to return a valid filename
+iAbase_API QString safeFileName(QString str);

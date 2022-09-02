@@ -25,6 +25,7 @@
 
 #include <QCollator>
 #include <QDirIterator>
+#include <QRegularExpression>
 #include <QString>
 
 QString MakeAbsolute(QString const & baseDir, QString const & fileName)
@@ -179,4 +180,9 @@ void determineStackParameters(QString const& fullFileName,
 			}
 		}
 	}
+}
+
+QString safeFileName(QString str)
+{
+	return str.replace(QRegularExpression("[\\\\/:;*?!\"'`<>{}|#%&$@+= ]"), "_");
 }
