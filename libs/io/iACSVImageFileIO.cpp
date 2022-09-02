@@ -30,7 +30,7 @@
 
 iACSVImageFileIO::iACSVImageFileIO() : iAFileIO(iADataSetType::None, iADataSetType::Volume)
 {
-	addAttr(m_params[Load], "Coordinates", iAValueType::Boolean, false);
+	addAttr(m_params[Save], "Coordinates", iAValueType::Boolean, false);
 }
 
 QString iACSVImageFileIO::name() const

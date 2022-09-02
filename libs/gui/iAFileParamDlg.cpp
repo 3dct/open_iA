@@ -48,6 +48,8 @@ bool iAFileParamDlg::askForParameters(QWidget* parent, iAAttributes const& param
 {
 	Q_UNUSED(fileName);
 	auto dlgParams = combineAttributesWithValues(parameters, values);
+	auto it = std::find_if(dlgParams.begin(), dlgParams.end(), [](auto a) { return a->name() == iADataSet::FileNameKey; });
+	dlgParams.erase(it);
 	iAParameterDlg dlg(parent, "Parameters", dlgParams);
 	if (dlg.exec() != QDialog::Accepted)
 	{
