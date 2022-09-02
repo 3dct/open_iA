@@ -1184,42 +1184,50 @@ void MdiChild::saveNew()
 		return;
 	}
 	auto p = std::make_shared<iAProgress>();
-	runAsync([fileName, p, io, dataSet, paramValues]()
-	{
-		try
+	auto futureWatcher = new QFutureWatcher<bool>(this);
+	QObject::connect(futureWatcher, &QFutureWatcher<bool>::finished, this, [this, dataSet, fileName, futureWatcher]()
 		{
-			io->save(fileName, { dataSet }, paramValues, *p.get());
-		}
-		// TODO: unify exception handling?
-		catch (itk::ExceptionObject& e)
-		{
-			LOG(lvlError, QString("Error saving file %1: %2").arg(fileName).arg(e.GetDescription()));
-		}
-		catch (std::exception& e)
-		{
-			LOG(lvlError, QString("Error saving file %1: %2").arg(fileName).arg(e.what()));
-		}
-		catch (...)
-		{
-			LOG(lvlError, QString("Unknown error while saving file %1!").arg(fileName));
-		}
-	},
-	[this, fileName]()
-	{
-			LOG(lvlInfo, QString("Saved file %1").arg(fileName));
-			bool unsavedData = false;
-			for (int i = 0; i < m_dataSets.size(); ++i)
+			if (futureWatcher->result())
 			{
-				QString fn = m_dataSets[i]->metaData(iADataSet::FileNameKey).toString();
-				if (fn.isEmpty() || !QFileInfo(fn).exists())
+				LOG(lvlInfo, QString("Saved file %1").arg(fileName));
+				dataSet->setMetaData(iADataSet::FileNameKey, fileName);
+				// TODO: move to function (hasUnsavedData)
+				bool unsavedData = false;
+				for (int i = 0; i < m_dataSets.size(); ++i)
 				{
-					unsavedData = true;
-					break;
+					QString fn = m_dataSets[i]->metaData(iADataSet::FileNameStr).toString();
+					if (fn.isEmpty() || !QFileInfo(fn).exists())
+					{
+						unsavedData = true;
+						break;
+					}
 				}
+				setWindowModified(unsavedData);
 			}
-			setWindowModified(unsavedData);
-	}, this);
-	
+		});
+	auto future = QtConcurrent::run([fileName, p, io, dataSet, paramValues]()
+		{
+			try
+			{
+				io->save(fileName, { dataSet }, paramValues, *p.get());
+				return true;
+			}
+			// TODO: unify exception handling?
+			catch (itk::ExceptionObject& e)
+			{
+				LOG(lvlError, QString("Error saving file %1: %2").arg(fileName).arg(e.GetDescription()));
+			}
+			catch (std::exception& e)
+			{
+				LOG(lvlError, QString("Error saving file %1: %2").arg(fileName).arg(e.what()));
+			}
+			catch (...)
+			{
+				LOG(lvlError, QString("Unknown error while saving file %1!").arg(fileName));
+			}
+			return false;
+		});
+	futureWatcher->setFuture(future);
 }
 
 bool MdiChild::saveAs()

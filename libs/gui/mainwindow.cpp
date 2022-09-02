@@ -492,7 +492,7 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow, std::share
 	}
 	auto d = std::make_shared<iALoadedData>();
 	auto p = std::make_shared<iAProgress>();
-	auto future = runAsync([d, p, fileName, io, paramValues]()
+	auto fw = runAsync([d, p, fileName, io, paramValues]()
 	{
 		try
 		{
@@ -538,7 +538,7 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow, std::share
 		}
 	}
 	, this);
-	iAJobListView::get()->addJob(QString("Loading file '%1'").arg(fileName), p.get(), future);
+	iAJobListView::get()->addJob(QString("Loading file '%1'").arg(fileName), p.get(), fw);
 }
 
 void MainWindow::loadFiles(QStringList fileNames)
