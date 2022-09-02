@@ -431,7 +431,7 @@ QString iAFilter::outputName(unsigned int i) const
 
 void iAFilter::abort()
 {
-	m_isAborted = false;
+	m_isAborted = true;
 }
 
 bool iAFilter::canAbort() const
