@@ -50,10 +50,10 @@ std::vector<std::shared_ptr<iADataSet>> iASTLFileIO::loadData(QString const& fil
 	vtkNew<vtkPolyData> polyData;
 	reader->SetOutput(polyData);
 	reader->Update();
-	return { std::make_shared<iAPolyData>(fileName, polyData) };
+	return { std::make_shared<iAPolyData>(polyData) };
 }
 
-void iASTLFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
+void iASTLFileIO::saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	assert(dataSets.size() == 1 && dataSets[0]->type() == iADataSetType::Mesh);
 	Q_UNUSED(paramValues);

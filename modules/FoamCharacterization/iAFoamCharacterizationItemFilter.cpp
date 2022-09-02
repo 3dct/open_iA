@@ -142,7 +142,7 @@ std::shared_ptr<iADataSet> iAFoamCharacterizationItemFilter::executeAnisotropic(
 	itkCaster::Pointer pCaster(itkCaster::New());
 	pCaster->SetInput(0, pFilter->GetOutput());
 
-	return iAImageData::create(pCaster->GetOutput());
+	return std::make_shared<iAImageData>(pCaster->GetOutput());
 }
 
 std::shared_ptr<iADataSet> iAFoamCharacterizationItemFilter::executeGaussian(std::shared_ptr<iADataSet> dataSet)
@@ -159,7 +159,7 @@ std::shared_ptr<iADataSet> iAFoamCharacterizationItemFilter::executeGaussian(std
 
 	pFilter->Update();
 
-	return iAImageData::create(pFilter->GetOutput());
+	return std::make_shared<iAImageData>(pFilter->GetOutput());
 }
 
 std::shared_ptr<iADataSet> iAFoamCharacterizationItemFilter::executeMedian(std::shared_ptr<iADataSet> dataSet)
@@ -176,7 +176,7 @@ std::shared_ptr<iADataSet> iAFoamCharacterizationItemFilter::executeMedian(std::
 	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemFilter::slotObserver);
 
 	pFilter->Update();
-	return iAImageData::create(pFilter->GetOutput());
+	return std::make_shared<iAImageData>(pFilter->GetOutput());
 }
 
 std::shared_ptr<iADataSet> iAFoamCharacterizationItemFilter::executeMedianFX(std::shared_ptr<iADataSet> dataSet)
@@ -222,7 +222,7 @@ std::shared_ptr<iADataSet> iAFoamCharacterizationItemFilter::executeMedianFX(std
 
 	pThreadPool->waitForDone();
 
-	return std::make_shared<iAImageData>("", output);
+	return std::make_shared<iAImageData>(output);
 }
 
 void iAFoamCharacterizationItemFilter::executeMedianFX(unsigned short* _pDataRead, unsigned short* _pDataWrite
@@ -436,7 +436,7 @@ std::shared_ptr<iADataSet> iAFoamCharacterizationItemFilter::executeNonLocalMean
 	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemFilter::slotObserver);
 
 	pFilter->Update();
-	return iAImageData::create(pFilter->GetOutput());
+	return std::make_shared<iAImageData>(pFilter->GetOutput());
 }
 
 bool iAFoamCharacterizationItemFilter::gaussianImageSpacing() const

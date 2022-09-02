@@ -59,7 +59,7 @@ std::vector<std::shared_ptr<iADataSet>> iADCMFileIO::loadData(QString const& fil
 	reader->Modified();
 	reader->Update();
 
-	return { iAImageData::create(reader->GetOutput(), fileName) };
+	return { std::make_shared<iAImageData>(reader->GetOutput()) };
 }
 
 QString iADCMFileIO::name() const

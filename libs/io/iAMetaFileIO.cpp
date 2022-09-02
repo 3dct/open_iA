@@ -76,10 +76,10 @@ std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::loadData(QString const& fi
 	// ITK (using readImage from iAToolsVTK): 5876 (ignore), 5877, 5760, 5746 ms
 	// -> VTK consistently faster; but doesn't produce an error if it doesn't find file for example (just returns a 1x1x1 image)!
 
-	return { std::make_shared<iAImageData>(fileName, img) };
+	return { std::make_shared<iAImageData>(img) };
 }
 
-void iAMetaFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
+void iAMetaFileIO::saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	iAConnector con;
 	if (dataSets.size() != 1)

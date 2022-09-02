@@ -148,16 +148,17 @@ void iAFilter::clearOutput()
 
 void iAFilter::addOutput(itk::ImageBase<3>* itkImg)
 {
-	m_output.push_back(iAImageData::create(itkImg, outputName(m_output.size())));
+	addOutput(std::make_shared<iAImageData>(itkImg));
 }
 
 void iAFilter::addOutput(vtkSmartPointer<vtkImageData> vtkImg)
 {
-	m_output.push_back(std::make_shared<iAImageData>(outputName(m_output.size()), vtkImg));
+	addOutput(std::make_shared<iAImageData>(vtkImg));
 }
 
 void iAFilter::addOutput(std::shared_ptr<iADataSet> dataSet)
 {
+	dataSet->setMetaData(iADataSet::NameKey, outputName(m_output.size()));
 	m_output.push_back(dataSet);
 }
 

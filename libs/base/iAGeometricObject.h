@@ -30,7 +30,7 @@ class vtkPolyDataAlgorithm;
 class iAbase_API iAGeometricObject : public iADataSet
 {
 public:
-	iAGeometricObject(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyDataAlgorithm> source);
+	iAGeometricObject(QString const& name, vtkSmartPointer<vtkPolyDataAlgorithm> source);
 	vtkSmartPointer<vtkPolyDataAlgorithm> source();
 	QString info() const override;
 	std::array<double, 3> unitDistance() const override;

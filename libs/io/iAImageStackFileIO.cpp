@@ -152,7 +152,7 @@ std::vector<std::shared_ptr<iADataSet>> iAImageStackFileIO::loadData(QString con
 	auto img = vtkSmartPointer<vtkImageData>::New();
 	imgReader->SetOutput(img);
 	imgReader->Update();
-	return { std::make_shared<iAImageData>(fileName, img) };
+	return { std::make_shared<iAImageData>(img) };
 	// TODO: maybe compute range here as well?
 	//auto rng = img->GetScalarRange();   // see also comments above about performance measurements
 //#endif
@@ -178,8 +178,8 @@ bool iAImageStackFileIO::isDataSetSupported(std::shared_ptr<iADataSet> dataSet, 
 		((ext == "tif" || ext == "tiff") && (type == VTK_UNSIGNED_SHORT || type == VTK_FLOAT));
 }
 
-#include "iAConnector.h"
 #include "iAExtendedTypedCallHelper.h"
+#include "iAToolsITK.h"
 
 #include <itkBMPImageIO.h>
 #include <itkJPEGImageIO.h>
@@ -190,18 +190,15 @@ bool iAImageStackFileIO::isDataSetSupported(std::shared_ptr<iADataSet> dataSet, 
 #include <itkNumericSeriesFileNames.h>
 
 template <typename T>
-void writeImageStack(QString const& fileName, iAConnector const & con, bool comp, iAProgress const& progress)
+void writeImageStack(itk::ImageBase<3>* img,
+	QString const & base, QString const & suffix, int numDigits, int minIdx, int maxIdx, bool comp,
+	iAProgress const& progress)
 {
 	using InputImageType = itk::Image<T, DIM>;
 	using OutputImageType = itk::Image<T, DIM - 1>;
 	auto writer = itk::ImageSeriesWriter<InputImageType, OutputImageType>::New();
-	auto itkImg = dynamic_cast<InputImageType*>(con.itkImage());
-	auto region = itkImg->GetLargestPossibleRegion();
-	auto start = region.GetIndex();
-	auto size = region.GetSize();
-	QFileInfo fi(fileName);
 	// set IO explicitly, to avoid SCIFIO claiming being able to write those image formats and then failing:
-	auto ext = fi.completeSuffix().toLower();
+	auto ext = suffix.toLower();
 	itk::ImageIOBase::Pointer imgIO;
 	if (ext == "bmp")
 	{
@@ -219,30 +216,53 @@ void writeImageStack(QString const& fileName, iAConnector const & con, bool comp
 	{
 		imgIO = itk::TIFFImageIO::New();
 	}
+	else
+	{
+		throw std::runtime_error(QString("Unknown IO extension %1 in image stack writer!").arg(ext).toStdString());
+	}
 	writer->SetImageIO(imgIO);
-	QString length = QString::number(size[2]);
-	QString format(fi.absolutePath() + "/" + fi.baseName() + "%0" + QString::number(length.size()) + "d." + fi.completeSuffix());
+	QString format(base + "%0" + QString::number(numDigits) + "d." + suffix);
 	auto nameGenerator = itk::NumericSeriesFileNames::New();
-	nameGenerator->SetStartIndex(start[2]);
-	nameGenerator->SetEndIndex(start[2] + size[2] - 1);
+	nameGenerator->SetStartIndex(minIdx);
+	nameGenerator->SetEndIndex(maxIdx);
 	nameGenerator->SetIncrementIndex(1);
 	nameGenerator->SetSeriesFormat(getLocalEncodingFileName(format).c_str());
 	writer->SetFileNames(nameGenerator->GetFileNames());
-	writer->SetInput(itkImg);
+	writer->SetInput(dynamic_cast<InputImageType*>(img));
 	writer->SetUseCompression(comp);
 	progress.observe(writer);
 	writer->Update();
 }
 
-void iAImageStackFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
+void iAImageStackFileIO::saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
 	assert(dataSets.size() == 1);
-	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage();
-	iAConnector con;
-	con.setImage(img);
-	auto pixelType = con.itkScalarPixelType();
-	auto imagePixelType = con.itkPixelType();
+
+	QFileInfo fi(fileName);
+	QString base = fi.absolutePath() + "/" + fi.baseName();
+	QString suffix = fi.completeSuffix();
+	auto imgData = dynamic_cast<iAImageData*>(dataSets[0].get());
+	auto itkImg = imgData->itkImage();
+	auto region = itkImg->GetLargestPossibleRegion();
+	auto start = region.GetIndex();
+	auto size = region.GetSize();
+	int numDigits = QString::number(size[2]).size();  // number of digits in z size number string
+	int minIdx = start[2];
+	int maxIdx = start[2] + size[2] - 1;
+	auto pixelType = ::itkScalarPixelType(itkImg);
+	auto imagePixelType = ::itkPixelType(itkImg);
 	ITK_EXTENDED_TYPED_CALL(writeImageStack, pixelType, imagePixelType,
-		fileName, con, paramValues[iAFileIO::CompressionStr].toBool(), progress);
+		itkImg, base, suffix, numDigits, minIdx, maxIdx,
+		paramValues[iAFileIO::CompressionStr].toBool(), progress);
+
+	dataSets[0]->setMetaData(LoadTypeStr, ImageStackOption);
+	dataSets[0]->setMetaData(StepStr, 1);
+	dataSets[0]->setMetaData(SpacingStr, variantVector(imgData->vtkImage()->GetSpacing(), 3));
+	dataSets[0]->setMetaData(OriginStr, variantVector(imgData->vtkImage()->GetOrigin(), 3));
+	dataSets[0]->setMetaData(FileNameBase, base);
+	dataSets[0]->setMetaData(Extension, suffix);
+	dataSets[0]->setMetaData(NumDigits, numDigits);
+	dataSets[0]->setMetaData(MinimumIndex, minIdx);
+	dataSets[0]->setMetaData(MaximumIndex, maxIdx);
 }

@@ -29,8 +29,7 @@ std::vector<std::shared_ptr<iADataSet>> iAAmiraVolumeFileIO::loadData(QString co
 {
 	Q_UNUSED(progress);
 	Q_UNUSED(paramValues);
-	auto img = iAAmiraMeshIO::Load(fileName);
-	return { std::make_shared<iAImageData>(fileName, img) };
+	return { std::make_shared<iAImageData>(iAAmiraMeshIO::Load(fileName)) };
 }
 
 QString iAAmiraVolumeFileIO::name() const

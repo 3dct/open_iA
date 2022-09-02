@@ -145,7 +145,7 @@ std::vector<std::shared_ptr<iADataSet>> iARawFileIO::loadData(QString const& fil
 	// ITK: 51837 (52087) ms (erstes Lesen von Hard disk), 5463 (5721) ms (zweites lesen, nach VTK)
 	//      -> ITK consistently faster, and much faster for small datasets!
 #endif
-	return { std::make_shared<iAImageData>(fileName, img) };
+	return { std::make_shared<iAImageData>(img) };
 	// TODO: maybe compute range here as well?
 	//auto rng = img->GetScalarRange();   // see also comments above about performance measurements
 }
@@ -182,13 +182,18 @@ void writeRawImage(QString const& fileName, vtkImageData* img, QVariantMap param
 	writer->Update();
 }
 
-void iARawFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
+void iARawFileIO::saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> & dataSets, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	// ITK way:
 	assert(dataSets.size() == 1 && dynamic_cast<iAImageData*>(dataSets[0].get()));
 //#if RAW_LOAD_METHOD == ITK
-	auto scalarType = mapReadableDataTypeToVTKType(paramValues[DataTypeStr].toString());
-	VTK_TYPED_CALL(writeRawImage, scalarType, fileName, dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage(), paramValues, progress);
+	auto vtkImg = dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage();
+	VTK_TYPED_CALL(writeRawImage, vtkImg->GetScalarType(), fileName, vtkImg, paramValues, progress);
+	dataSets[0]->setMetaData(SizeStr, variantVector(vtkImg->GetDimensions(), 3));
+	dataSets[0]->setMetaData(SpacingStr, variantVector(vtkImg->GetSpacing(), 3));
+	dataSets[0]->setMetaData(OriginStr, variantVector(vtkImg->GetOrigin(), 3));
+	dataSets[0]->setMetaData(HeadersizeStr, 0);
+	dataSets[0]->setMetaData(DataTypeStr, mapVTKTypeToReadableDataType(vtkImg->GetScalarType()));
 //# endif
 // VTK way currently not implemented
 }

@@ -324,7 +324,8 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 					auto io = iAFileTypeRegistry::createIO(fileName);
 					QVariantMap writeParamValues;    // TODO: CHECK whether I/O requires other parameters and error in that case!
 					writeParamValues[iAFileIO::CompressionStr] = useCompression;
-					io->save(outName, { filter->output(o) }, writeParamValues);
+					std::vector<std::shared_ptr<iADataSet>> dataSets{ filter->output(o) };
+					io->save(outName, dataSets, writeParamValues);
 				}
 			}
 		}

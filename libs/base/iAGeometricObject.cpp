@@ -24,10 +24,12 @@
 
 #include <array>
 
-iAGeometricObject::iAGeometricObject(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyDataAlgorithm> source) :
-	iADataSet(fileName, iADataSetType::Mesh, name),
+iAGeometricObject::iAGeometricObject(QString const& name, vtkSmartPointer<vtkPolyDataAlgorithm> source) :
+	iADataSet(iADataSetType::Mesh),
 	m_polySource(source)
-{}
+{
+	setMetaData(NameKey, name);
+}
 
 vtkSmartPointer<vtkPolyDataAlgorithm> iAGeometricObject::source()
 {

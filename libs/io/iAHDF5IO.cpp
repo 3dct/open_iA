@@ -171,7 +171,7 @@ std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::loadData(QString const& fileNa
 	// but it causes the same errors as the code above; so we need to deep-copy:
 	auto img = vtkSmartPointer<vtkImageData>::New();
 	img->DeepCopy(imgImport->GetOutput());
-	return { std::make_shared<iAImageData>(fileName, img) };
+	return { std::make_shared<iAImageData>(img) };
 }
 
 QString iAHDF5IO::name() const

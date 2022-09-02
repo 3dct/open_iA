@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAFileIO.h"
 
+#include <QFileInfo>
+
 const QString iAFileIO::CompressionStr("Compression");
 
 iAFileIO::iAFileIO(iADataSetTypes loadTypes, iADataSetTypes saveTypes) :
@@ -38,6 +40,7 @@ std::vector<std::shared_ptr<iADataSet>> iAFileIO::load(QString const& fileName, 
 	for (auto d : dataSets)
 	{
 		d->setMetaData(iADataSet::FileNameKey, fileName);
+		d->setMetaData(iADataSet::NameKey, QFileInfo(fileName).baseName());
 		for (auto k : paramValues.keys())
 		{
 			d->setMetaData(k, paramValues[k]);
@@ -54,6 +57,14 @@ std::vector<std::shared_ptr<iADataSet>> iAFileIO::loadData(QString const& fileNa
 	Q_UNUSED(paramValues);
 	Q_UNUSED(progress);
 	return {};
+}
+
+void iAFileIO::saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
+{
+	Q_UNUSED(fileName);
+	Q_UNUSED(dataSets);
+	Q_UNUSED(paramValues);
+	Q_UNUSED(progress);
 }
 
 iAAttributes const& iAFileIO::parameter(Operation op) const
@@ -73,10 +84,11 @@ bool iAFileIO::isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString co
 	return true;
 }
 
-void iAFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
+void iAFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> & dataSets, QVariantMap const& paramValues, iAProgress const& progress)
 {
-	Q_UNUSED(fileName);
-	Q_UNUSED(dataSets);
-	Q_UNUSED(paramValues);
-	Q_UNUSED(progress);
+	saveData(fileName, dataSets, paramValues, progress);
+	for (auto d : dataSets)
+	{
+		d->setMetaData(iADataSet::FileNameKey, fileName);
+	}
 }

@@ -53,7 +53,7 @@ std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::loadData(QString const& fil
 	{
 		LOG(lvlInfo, "File contains polydata");
 		vtkSmartPointer<vtkPolyData> polyData = reader->GetPolyDataOutput();
-		return { std::make_shared<iAPolyData>(fileName, polyData) };
+		return { std::make_shared<iAPolyData>(polyData) };
 	}
 	else if (reader->IsFileRectilinearGrid())
 	{
@@ -131,7 +131,7 @@ std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::loadData(QString const& fil
 			auto arrayPtr = arrayData->GetVoidPointer(0);
 			std::memcpy(img->GetScalarPointer(), arrayPtr, byteSize);
 
-			return { std::make_shared<iAImageData>(fileName, img) };
+			return { std::make_shared<iAImageData>(img) };
 		}
 		return {};
 	}

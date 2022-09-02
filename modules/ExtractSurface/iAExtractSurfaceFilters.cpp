@@ -213,14 +213,14 @@ void iAExtractSurface::performWork(QVariantMap const & parameters)
 	if (parameters["Simplification Algorithm"].toString() == "None")
 	{
 		surfaceFilter->Update();
-		addOutput(std::make_shared<iAPolyData>("", surfaceFilter->GetOutput()));
+		addOutput(std::make_shared<iAPolyData>(surfaceFilter->GetOutput()));
 		stlWriter->SetInputConnection(surfaceFilter->GetOutputPort());
 	}
 	else
 	{
 		auto simplifyFilter = createDecimation(parameters, surfaceFilter, progress());
 		simplifyFilter->Update();
-		addOutput(std::make_shared<iAPolyData>("", simplifyFilter->GetOutput()));
+		addOutput(std::make_shared<iAPolyData>(simplifyFilter->GetOutput()));
 		stlWriter->SetInputConnection(simplifyFilter->GetOutputPort());
 	}
 	stlWriter->Write();
@@ -314,7 +314,7 @@ void iATriangulation::performWork(QVariantMap const& parameters) {
 	stlWriter->SetInputData(smoothing->GetOutput());
 	stlWriter->Write();
 
-	addOutput(std::make_shared<iAPolyData>("", smoothing->GetOutput()));
+	addOutput(std::make_shared<iAPolyData>(smoothing->GetOutput()));
 }
 
 

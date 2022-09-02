@@ -103,7 +103,7 @@ std::shared_ptr<iADataSet> iAFoamCharacterizationItemWatershed::executeFloat(itk
 	itkCaster::Pointer pCaster(itkCaster::New());
 	pCaster->SetInput(0, pFilter->GetOutput());
 
-	return iAImageData::create(pCaster->GetOutput());
+	return std::make_shared<iAImageData>(pCaster->GetOutput());
 }
 
 std::shared_ptr<iADataSet> iAFoamCharacterizationItemWatershed::executeUnsignedShort(itk::ImageBase<3>* img)
@@ -120,7 +120,7 @@ std::shared_ptr<iADataSet> iAFoamCharacterizationItemWatershed::executeUnsignedS
 
 	pFilter->Update();
 
-	return iAImageData::create(pFilter->GetOutput());
+	return std::make_shared<iAImageData>(pFilter->GetOutput());
 }
 
 int iAFoamCharacterizationItemWatershed::itemMask() const

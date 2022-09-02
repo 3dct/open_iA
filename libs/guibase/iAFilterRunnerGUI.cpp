@@ -361,12 +361,8 @@ void iAFilterRunnerGUI::filterFinished()
 		for (size_t o = 0; o < filter->finalOutputCount(); ++o)
 		{
 			QString outputName = filter->outputName(o);
-			auto outputNameSaveForFilename = outputName.replace(QRegularExpression("[\\\\/:*?\"<>| ]"), "_");
-			QString suggestedFileName = sourceFI.absolutePath() + "/" + sourceFI.completeBaseName() + "-" +
-				outputNameSaveForFilename + "." + sourceFI.suffix();
 			auto dataSet = filter->output(o);
 			dataSet->setMetaData(iADataSet::NameKey, outputName);
-			dataSet->setMetaData(iADataSet::FileNameKey, suggestedFileName);
 			newChild->addDataSet(dataSet);
 		}
 	}

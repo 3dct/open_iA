@@ -617,8 +617,7 @@ public:
 
 		// volume properties:
 		auto spc = data->vtkImage()->GetSpacing();
-		QVector<double> spacing({spc[0], spc[1], spc[2]});
-		addAttribute(Spacing, iAValueType::Vector3, QVariant::fromValue(spacing));
+		addAttribute(Spacing, iAValueType::Vector3, variantVector<double>({ spc[0], spc[1], spc[2] }));
 
 		applyAttributes(m_attribValues);  // addAttribute adds default values; apply them now!
 

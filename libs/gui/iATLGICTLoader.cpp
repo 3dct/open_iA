@@ -252,7 +252,7 @@ void iATLGICTLoader::run()
 
 void iATLGICTLoader::finishUp()
 {
-	m_child->setCurrentFile(m_baseDirectory);
+	m_child->setWindowTitleAndFile(m_baseDirectory);
 	m_child->setModalities(m_modList);
 	LOG(lvlInfo, tr("Loading sequence completed; directory: %1.").arg(m_baseDirectory));
 	delete this;

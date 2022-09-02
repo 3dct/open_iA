@@ -49,12 +49,9 @@ namespace
 			.arg(mesh->GetNumberOfPolys()).arg(mesh->GetNumberOfStrips()).arg(mesh->GetNumberOfPieces()).arg(boundsStr(mesh->GetBounds()));
 	}}
 
-iADataSet::iADataSet(QString const& fileName, iADataSetType type, QString const& name) :
+iADataSet::iADataSet(iADataSetType type) :
 	m_type(type)
-{
-	m_metaData[FileNameKey] = fileName;
-	m_metaData[NameKey] = name.isEmpty() ? QFileInfo(fileName).baseName() : name;
-}
+{}
 
 iADataSet::~iADataSet()
 {}
@@ -84,6 +81,11 @@ QVariant iADataSet::metaData(QString const& key) const
 	return m_metaData[key];
 }
 
+bool iADataSet::hasMetaData(QString const& key) const
+{
+	return m_metaData.contains(key);
+}
+
 iADataSetType iADataSet::type() const
 {
 	return m_type;
@@ -91,8 +93,8 @@ iADataSetType iADataSet::type() const
 
 // ---------- iAPolyData ----------
 
-iAPolyData::iAPolyData(QString const& fileName, vtkSmartPointer<vtkPolyData> mesh) :
-	iADataSet(fileName, iADataSetType::Mesh),
+iAPolyData::iAPolyData(vtkSmartPointer<vtkPolyData> mesh) :
+	iADataSet(iADataSetType::Mesh),
 	m_mesh(mesh)
 {
 }
@@ -120,8 +122,8 @@ std::array<double, 3> iAPolyData::unitDistance() const
 
 // ---------- iAGraphData ----------
 
-iAGraphData::iAGraphData(QString const& fileName, vtkSmartPointer<vtkPolyData> mesh) :
-	iADataSet(fileName, iADataSetType::Graph), m_mesh(mesh)
+iAGraphData::iAGraphData(vtkSmartPointer<vtkPolyData> mesh) :
+	iADataSet(iADataSetType::Graph), m_mesh(mesh)
 {
 }
 
@@ -139,11 +141,20 @@ QString iAGraphData::info() const
 
 #include "iAConnector.h"
 
-iAImageData::iAImageData(QString const& fileName, vtkSmartPointer<vtkImageData> img):
-	iADataSet(fileName, iADataSetType::Volume),
+iAImageData::iAImageData(vtkSmartPointer<vtkImageData> img):
+	iADataSet(iADataSetType::Volume),
 	m_img(img),
 	m_con(nullptr)
+{}
+
+iAImageData::iAImageData(itk::ImageBase<3>* itkImg):
+	iADataSet(iADataSetType::Volume),
+	m_img(vtkSmartPointer<vtkImageData>::New()),
+	m_con(nullptr)
 {
+	iAConnector con;
+	con.setImage(itkImg);
+	m_img->DeepCopy(con.vtkImage());
 }
 
 iAImageData::~iAImageData()
@@ -164,15 +175,6 @@ itk::ImageBase<3>* iAImageData::itkImage() const
 	}
 	m_con->setImage(m_img);
 	return m_con->itkImage();
-}
-
-std::shared_ptr<iAImageData> iAImageData::create(itk::ImageBase<3>* itkImg, QString const & fileName)
-{
-	iAConnector con;
-	con.setImage(itkImg);
-	vtkNew<vtkImageData> vtkImg;
-	vtkImg->DeepCopy(con.vtkImage());
-	return std::make_shared<iAImageData>(fileName, vtkImg);
 }
 
 unsigned long long iAImageData::voxelCount() const

@@ -120,7 +120,7 @@ void iAGeometricObjectsDialog::createObject()
 	{
 		return;
 	}
-	auto dataSet = std::make_shared<iAGeometricObject>(name, "", source);
+	auto dataSet = std::make_shared<iAGeometricObject>(name, source);
 	m_child->addDataSet(dataSet);
 }
 

@@ -43,3 +43,14 @@ QVariant variantVector(std::initializer_list<T> s)
 {
 	return QVariant::fromValue(QVector<T>(s));
 }
+
+template <typename T>
+QVariant variantVector(T const* d, int n)
+{
+	QVector<T> vec(n);
+	for (int i = 0; i < n; ++i)
+	{
+		vec[i] = d[i];
+	}
+	return QVariant::fromValue(vec);
+}

@@ -62,7 +62,7 @@ std::vector<std::shared_ptr<iADataSet>> iAOIFFileIO::loadData(QString const& fil
 		std::vector<std::shared_ptr<iADataSet>> result;
 		for (int i = 0; i < reader.GetChanNum(); ++i)
 		{
-			result.push_back(iAImageData::create(reader.GetResult(i), fileName));
+			result.push_back(std::make_shared<iAImageData>(reader.GetResult(i)));
 		}
 		return result;
 
@@ -73,7 +73,7 @@ std::vector<std::shared_ptr<iADataSet>> iAOIFFileIO::loadData(QString const& fil
 		auto channel = paramValues[ChannelNumberStr].toInt();
 		if (channel >= 0 && channel < reader.GetChanNum())
 		{
-			return { iAImageData::create(reader.GetResult(channel), fileName) };
+			return { std::make_shared<iAImageData>(reader.GetResult(channel)) };
 		}
 		else
 		{

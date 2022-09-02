@@ -504,7 +504,8 @@ namespace
 				QVariantMap writeParamValues;
 				writeParamValues[iAFileIO::CompressionStr] = compress;
 				// TODO: use progress indicator here
-				io->save(outFileName, filter->outputs(), writeParamValues);
+				auto dataSets = filter->outputs();
+				io->save(outFileName, dataSets, writeParamValues);
 			}
 			for (auto outputValue : filter->outputValues())
 			{

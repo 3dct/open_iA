@@ -207,7 +207,7 @@ public:
 	void updateROI(int const roi[6]) override;
 	void setROIVisible(bool visible) override;
 
-	void setCurrentFile(const QString &f);
+	void setWindowTitleAndFile(const QString &f);
 	QString currentFile() const override;
 	QFileInfo const & fileInfo() const override;
 	QString filePath() const override;
@@ -319,6 +319,7 @@ public:
 	std::vector<std::shared_ptr<iADataSet>> dataSets() const override;
 	size_t firstImageDataSetIdx() const;
 	vtkSmartPointer<vtkImageData> firstImageData() const override;
+	bool hasUnsavedData() const;
 
 public slots:
 	void maximizeRC();

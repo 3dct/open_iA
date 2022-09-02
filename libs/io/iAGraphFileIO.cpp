@@ -162,7 +162,7 @@ std::vector<std::shared_ptr<iADataSet>> iAGraphFileIO::loadData(QString const& f
 	myPolyData->SetLines(lines);
 	myPolyData->GetPointData()->AddArray(colors);
 
-	return { std::make_shared<iAGraphData>(fileName, myPolyData) };
+	return { std::make_shared<iAGraphData>(myPolyData) };
 }
 
 QString iAGraphFileIO::name() const

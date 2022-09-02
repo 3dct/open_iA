@@ -810,7 +810,7 @@ void iAIO::readNKC()
 		return;
 	}
 
-	filter->addInput(std::make_shared<iAImageData>("", getVtkImageData()));
+	filter->addInput(std::make_shared<iAImageData>(getVtkImageData()));
 	QVariantMap parameters;
 	parameters["Value To Replace"] = 65533;
 	parameters["Replacement"] = 0;

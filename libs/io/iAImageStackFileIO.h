@@ -43,5 +43,5 @@ public:
 	QString name() const override;
 	QStringList extensions() const override;
 	bool isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName) const override;
-	void save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress const& progress) override;
+	void saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> & dataSets, QVariantMap const& paramValues, iAProgress const& progress) override;
 };

@@ -525,7 +525,7 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow, std::share
 		if (!targetChild)
 		{
 			targetChild = createMdiChild(false);
-			dynamic_cast<MdiChild*>(targetChild)->setCurrentFile(fileName);
+			dynamic_cast<MdiChild*>(targetChild)->setWindowTitleAndFile(fileName);
 			// TODO: check if we need to apply preferences...
 			//dynamic_cast<MdiChild*>(targetChild)->applyPreferences(m_defaultPreferences);
 			targetChild->applyRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);

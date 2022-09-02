@@ -38,10 +38,10 @@ std::vector<std::shared_ptr<iADataSet>> iAVTIFileIO::loadData(QString const& fil
 	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	reader->Update();
 	auto img = reader->GetOutput();
-	return { std::make_shared<iAImageData>(fileName, img) };
+	return { std::make_shared<iAImageData>(img) };
 }
 
-void  iAVTIFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
+void  iAVTIFileIO::saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
 	vtkNew<vtkXMLImageDataWriter> writer;

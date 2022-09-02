@@ -631,7 +631,11 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 	}
 	if (m_curFile.isEmpty())
 	{
-		setCurrentFile(dataSet->metaData(iADataSet::FileNameKey).toString());
+		LOG(lvlDebug, "Developer Warning - consider calling setWindowTitleAndFile directly where you first call addDataSet");
+		setWindowTitleAndFile(
+			dataSet->hasMetaData(iADataSet::FileNameKey)?
+			dataSet->metaData(iADataSet::FileNameKey).toString() :
+			dataSet->name());
 	}
 	m_dataSets[dataSetIdx] = dataSet;
 	auto p = std::make_shared<iAProgress>();
@@ -797,7 +801,7 @@ bool MdiChild::loadFile(const QString& f, bool isStack)
 	}
 
 	LOG(lvlInfo, tr("Loading file '%1', please wait...").arg(f));
-	setCurrentFile(f);
+	setWindowTitleAndFile(f);
 
 	waitForPreviousIO();
 
@@ -963,7 +967,7 @@ void MdiChild::setupViewInternal(bool active)
 		initView(m_curFile.isEmpty() ? "Untitled" : "");
 	}
 
-	m_mainWnd->addRecentFile(currentFile());	// TODO: VOLUME: should be done on the outside? or where setCurrentFile is done?
+	m_mainWnd->addRecentFile(currentFile());	// TODO: VOLUME: should be done on the outside? or where setWindowTitleAndFile is done?
 
 	if ((m_imageData->GetExtent()[1] < 3) || (m_imageData->GetExtent()[3]) < 3 || (m_imageData->GetExtent()[5] < 3))
 	{
@@ -1043,7 +1047,7 @@ void MdiChild::setupProject(bool /*active*/)
 		connect(this, &iAMdiChild::histogramAvailable, this, projectLoader);
 	}
 	setModalities(m);
-	setCurrentFile(fileName);
+	setWindowTitleAndFile(fileName);
 	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension) && m->size() == 0)
 	{	// if no modalities loaded, continue immediately with loading the projects:
 		projectLoader();
@@ -1191,25 +1195,15 @@ void MdiChild::saveNew()
 			{
 				LOG(lvlInfo, QString("Saved file %1").arg(fileName));
 				dataSet->setMetaData(iADataSet::FileNameKey, fileName);
-				// TODO: move to function (hasUnsavedData)
-				bool unsavedData = false;
-				for (int i = 0; i < m_dataSets.size(); ++i)
-				{
-					QString fn = m_dataSets[i]->metaData(iADataSet::FileNameStr).toString();
-					if (fn.isEmpty() || !QFileInfo(fn).exists())
-					{
-						unsavedData = true;
-						break;
-					}
-				}
-				setWindowModified(unsavedData);
+				setWindowModified(hasUnsavedData());
 			}
 		});
 	auto future = QtConcurrent::run([fileName, p, io, dataSet, paramValues]()
 		{
 			try
 			{
-				io->save(fileName, { dataSet }, paramValues, *p.get());
+				std::vector<std::shared_ptr<iADataSet>> dataSets{ dataSet };
+				io->save(fileName, dataSets, paramValues, *p.get());
 				return true;
 			}
 			// TODO: unify exception handling?
@@ -1331,7 +1325,7 @@ bool MdiChild::setupSaveIO(QString const& f)
 				{
 					return false;
 				}
-				setCurrentFile(f);
+				setWindowTitleAndFile(f);
 			}
 			else
 			{
@@ -2263,15 +2257,18 @@ void MdiChild::closeEvent(QCloseEvent* event)
 	}
 }
 
-// TODO: check iAMainWindow:: vs. iAMdiChild:: setCurrentFile
-void MdiChild::setCurrentFile(const QString& f)
+void MdiChild::setWindowTitleAndFile(const QString& f)
 {
-	m_fileInfo.setFile(f);
-	m_curFile = f;
-	m_path = m_fileInfo.canonicalPath();
-	m_isUntitled = f.isEmpty();
-	m_mainWnd->addRecentFile(f);
+	if (QFile::exists(f))
+	{
+		m_fileInfo.setFile(f);
+		m_curFile = f;
+		m_path = m_fileInfo.canonicalPath();
+		m_isUntitled = f.isEmpty();
+		m_mainWnd->addRecentFile(f);
+	}
 	setWindowTitle(fileInfo().fileName() + "[*]");
+	setWindowModified(hasUnsavedData());
 }
 
 // TODO: unify with setVisibility / check if one of the two calls redundant!
@@ -3046,6 +3043,19 @@ vtkSmartPointer<vtkImageData> MdiChild::firstImageData() const
 	return nullptr;
 }
 
+bool MdiChild::hasUnsavedData() const
+{
+	for (auto dataSet: m_dataSets)
+	{
+		QString fn = dataSet.second->metaData(iADataSet::FileNameKey).toString();
+		if (fn.isEmpty() || !QFileInfo(fn).exists())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 void MdiChild::displayHistogram(int modalityIdx)
 {
 	if (modalityIdx < 0 || modalityIdx >= modalities()->size())
@@ -3113,7 +3123,7 @@ void MdiChild::saveProject(QString const& fileName)
 	QFileInfo fileInfo(fileName);
 	if (modalities()->store(fileInfo.absoluteFilePath(), m_renderer->renderer()->GetActiveCamera()))
 	{
-		setCurrentFile(fileName);
+		setWindowTitleAndFile(fileName);
 	}
 }
 

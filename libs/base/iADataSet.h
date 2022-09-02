@@ -47,30 +47,32 @@ public:
 
 	static const QString NameKey;         //!< metadata key for name of the dataset
 	static const QString FileNameKey;     //!< metadata key for filename of the dataset
-	//! convenience method for accessing value for NameStr in m_metaData
+	//! convenience method for accessing value for NameKey in m_metaData
 	QString name() const;
 	//! a sensible unit distance for this dataset (e.g. the spacing of a single voxel, for volume datasets)
 	virtual std::array<double, 3> unitDistance() const;
 	//! should deliver information about the dataset interesting to users viewing it
 	virtual QString info() const;
+
 	//! set an (optional) metadata key/value pair
 	void setMetaData(QString const & key, QVariant const& value);
 	//! retrieve (optional) additional parameters for the dataset
 	QVariant metaData(QString const& key) const;
+	//! true if the dataset has metadata with the given key set, false otherwise
+	bool hasMetaData(QString const& key) const;
+
 	//! get type of data stored in this dataset
 	iADataSetType type() const;
 
 protected:
 	//! derived classes need to construct the dataset by giving a (proposed) filename and an (optional) name
-	iADataSet(QString const& fileName, iADataSetType type, QString const& name = QString());
+	iADataSet(iADataSetType type);
 
 private:
 	//! @{ prevent copying
 	iADataSet(iADataSet const& other) = delete;
 	iADataSet& operator=(iADataSet const& other) = delete;
 	//! @}
-	QString m_fileName;        //!< the filename (from which the dataset was loaded / to which it was stored)
-	QString m_name;            //!< a (human readable) name for the dataset; by default, the "basename" of the loaded file
 	iADataSetType m_type;      //!< type of data in this dataset
 	QVariantMap m_metaData;    //!< (optional) additional metadata that is required to load the file, or that came along with the dataset
 };
@@ -79,7 +81,7 @@ private:
 class iAbase_API iAPolyData : public iADataSet
 {
 public:
-	iAPolyData(QString const& fileName, vtkSmartPointer<vtkPolyData> mesh);
+	iAPolyData(vtkSmartPointer<vtkPolyData> mesh);
 	vtkSmartPointer<vtkPolyData> poly() const;
 	QString info() const override;
 	std::array<double, 3> unitDistance() const override;
@@ -94,7 +96,7 @@ private:
 class iAbase_API iAGraphData : public iADataSet
 {
 public:
-	iAGraphData(QString const& fileName, vtkSmartPointer<vtkPolyData> mesh);
+	iAGraphData(vtkSmartPointer<vtkPolyData> mesh);
 	vtkSmartPointer<vtkPolyData> poly() const;
 	QString info() const override;
 
@@ -110,8 +112,8 @@ private:
 class iAbase_API iAImageData : public iADataSet
 {
 public:
-	iAImageData(QString const& fileName, vtkSmartPointer<vtkImageData> img);
-	static std::shared_ptr<iAImageData> create(itk::ImageBase<3>* itkImg, QString const& fileName = "");
+	iAImageData(vtkSmartPointer<vtkImageData> img);
+	iAImageData(itk::ImageBase<3>* itkImg);
 	~iAImageData();
 	vtkSmartPointer<vtkImageData> vtkImage() const;
 	itk::ImageBase<3>* itkImage() const;

@@ -101,7 +101,7 @@ std::shared_ptr<iADataSet> iAFoamCharacterizationItemDistanceTransform::execute(
 	m_dExecuteTime = 0.001 * (double) t.elapsed();
 
 	setExecuting(false);
-	return iAImageData::create(pInvert->GetOutput());
+	return std::make_shared<iAImageData>(pInvert->GetOutput());
 }
 
 int iAFoamCharacterizationItemDistanceTransform::itemMask() const

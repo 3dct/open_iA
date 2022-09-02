@@ -66,15 +66,20 @@ public:
 	//! It could for example check whether the format supports the data types in the dataset
 	//! The default implementation here always returns true
 	virtual bool isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName) const;
-	//! Save the (list of) dataset(s). The default implementation assumes that writing is not implemented and does nothing.
-	virtual void save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress const& progress = iAProgress());
+	//! Save the (list of) dataset(s); modify input datasets to reflect the new file name this data is now stored under
+	void save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> & dataSets, QVariantMap const& paramValues, iAProgress const& progress = iAProgress());
 
 protected:
 	iAAttributes m_params[2];
 
-	//! I/O for specific file formats should override this to load data from the given file name. default implementation does nothing
+	//! I/O for specific file formats should override this to load data from the file with given name. default implementation does nothing
 	//! (instead of being pure virtual, to allow for I/O's that only save a dataset but don't load one)
 	virtual std::vector<std::shared_ptr<iADataSet>> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress);
+	//! I/O for specific file formats should override this to save data to the file with given name. default implementation does nothing
+	//! (instead of being pure virtual, to allow for I/O's that only load a dataset but don't save one).
+	//! The file name and all Save parameter values (m_params[Save]) will be set in save()
+	//! Derived classes must add any potentially necessary metadata in the dataSets so that there is all information in there to load the dataSet again from the given fileName
+	virtual void saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> & dataSets, QVariantMap const& paramValues, iAProgress const& progress);
 
 private:
 	iADataSetTypes m_dataSetTypes[2];

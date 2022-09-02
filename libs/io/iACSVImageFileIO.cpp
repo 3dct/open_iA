@@ -43,7 +43,7 @@ QStringList iACSVImageFileIO::extensions() const
 	return QStringList{ "csv" };
 }
 
-void iACSVImageFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> const& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
+void iACSVImageFileIO::saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	assert(dataSets.size() == 1);
 	auto imgData = dynamic_cast<iAImageData*>(dataSets[0].get());
