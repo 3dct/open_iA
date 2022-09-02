@@ -221,7 +221,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 			auto newName = dlg.parameterValues()["Name"].toString();
 			if (m_dataSets[dataSetIdx]->name() != newName)
 			{
-				m_dataSets[dataSetIdx]->setMetaData(iADataSet::NameStr, newName);
+				m_dataSets[dataSetIdx]->setMetaData(iADataSet::NameKey, newName);
 				updateDataSetInfo();
 				m_dataSetListWidget->setName(dataSetIdx, newName);
 			}
@@ -631,7 +631,7 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 	}
 	if (m_curFile.isEmpty())
 	{
-		setCurrentFile(dataSet->metaData(iADataSet::FileNameStr).toString());
+		setCurrentFile(dataSet->metaData(iADataSet::FileNameKey).toString());
 	}
 	m_dataSets[dataSetIdx] = dataSet;
 	auto p = std::make_shared<iAProgress>();
@@ -1210,7 +1210,7 @@ void MdiChild::saveNew()
 			bool unsavedData = false;
 			for (int i = 0; i < m_dataSets.size(); ++i)
 			{
-				QString fn = m_dataSets[i]->metaData(iADataSet::FileNameStr).toString();
+				QString fn = m_dataSets[i]->metaData(iADataSet::FileNameKey).toString();
 				if (fn.isEmpty() || !QFileInfo(fn).exists())
 				{
 					unsavedData = true;

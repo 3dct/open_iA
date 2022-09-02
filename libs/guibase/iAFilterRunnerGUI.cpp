@@ -297,7 +297,7 @@ void iAFilterRunnerGUI::run(std::shared_ptr<iAFilter> filter, iAMainWindow* main
 	oldTitle = oldTitle.replace("[*]", "").trimmed();
 	QString newTitle(filter->outputName(0) + " " + oldTitle);
 	auto dataSets = sourceMdi->dataSets();
-	m_sourceFileName = sourceMdi ? dataSets[0]->metaData(iADataSet::FileNameStr).toString() : "";
+	m_sourceFileName = sourceMdi ? dataSets[0]->metaData(iADataSet::FileNameKey).toString() : "";
 
 	filterGUIPreparations(filter, sourceMdi, mainWnd, paramValues);
 	auto thread = new iAFilterRunnerGUIThread(filter, paramValues, sourceMdi);
@@ -365,8 +365,8 @@ void iAFilterRunnerGUI::filterFinished()
 			QString suggestedFileName = sourceFI.absolutePath() + "/" + sourceFI.completeBaseName() + "-" +
 				outputNameSaveForFilename + "." + sourceFI.suffix();
 			auto dataSet = filter->output(o);
-			dataSet->setMetaData(iADataSet::NameStr, outputName);
-			dataSet->setMetaData(iADataSet::FileNameStr, suggestedFileName);
+			dataSet->setMetaData(iADataSet::NameKey, outputName);
+			dataSet->setMetaData(iADataSet::FileNameKey, suggestedFileName);
 			newChild->addDataSet(dataSet);
 		}
 	}

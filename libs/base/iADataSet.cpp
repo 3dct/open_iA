@@ -28,8 +28,8 @@
 
 #include <array>
 
-const QString iADataSet::NameStr("Name");
-const QString iADataSet::FileNameStr("Filename");
+const QString iADataSet::NameKey("Name");
+const QString iADataSet::FileNameKey("Filename");
 
 QString boundsStr(double const* bds)
 {
@@ -52,8 +52,8 @@ namespace
 iADataSet::iADataSet(QString const& fileName, iADataSetType type, QString const& name) :
 	m_type(type)
 {
-	m_metaData[FileNameStr] = fileName;
-	m_metaData[NameStr] = name.isEmpty() ? QFileInfo(fileName).baseName() : name;
+	m_metaData[FileNameKey] = fileName;
+	m_metaData[NameKey] = name.isEmpty() ? QFileInfo(fileName).baseName() : name;
 }
 
 iADataSet::~iADataSet()
@@ -61,7 +61,7 @@ iADataSet::~iADataSet()
 
 QString iADataSet::name() const
 {
-	return metaData(iADataSet::NameStr).toString();
+	return metaData(iADataSet::NameKey).toString();
 }
 
 std::array<double, 3> iADataSet::unitDistance() const

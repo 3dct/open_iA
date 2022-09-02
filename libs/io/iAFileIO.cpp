@@ -25,7 +25,7 @@ const QString iAFileIO::CompressionStr("Compression");
 iAFileIO::iAFileIO(iADataSetTypes loadTypes, iADataSetTypes saveTypes) :
 	m_dataSetTypes{ loadTypes, saveTypes }
 {
-	addAttr(m_params[Load], iADataSet::FileNameStr, iAValueType::FileNameOpen, "");
+	addAttr(m_params[Load], iADataSet::FileNameKey, iAValueType::FileNameOpen, "");
 }
 
 iAFileIO::~iAFileIO()
@@ -37,7 +37,7 @@ std::vector<std::shared_ptr<iADataSet>> iAFileIO::load(QString const& fileName, 
 
 	for (auto d : dataSets)
 	{
-		d->setMetaData(iADataSet::FileNameStr, fileName);
+		d->setMetaData(iADataSet::FileNameKey, fileName);
 		for (auto k : paramValues.keys())
 		{
 			d->setMetaData(k, paramValues[k]);

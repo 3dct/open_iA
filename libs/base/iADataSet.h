@@ -45,8 +45,8 @@ public:
 	//! called when the dataset is removed/unloaded and its related resources should be released
 	virtual ~iADataSet();
 
-	static const QString NameStr;         //!< metadata key for name of the dataset
-	static const QString FileNameStr;     //!< metadata key for filename of the dataset
+	static const QString NameKey;         //!< metadata key for name of the dataset
+	static const QString FileNameKey;     //!< metadata key for filename of the dataset
 	//! convenience method for accessing value for NameStr in m_metaData
 	QString name() const;
 	//! a sensible unit distance for this dataset (e.g. the spacing of a single voxel, for volume datasets)

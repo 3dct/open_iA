@@ -143,7 +143,7 @@ void iAImageSampler::newSamplingRun()
 
 		for (int m = 0; m < m_datasets.size(); ++m)
 		{
-			argumentList << m_datasets[m]->metaData(iADataSet::FileNameStr).toString();
+			argumentList << m_datasets[m]->metaData(iADataSet::FileNameKey).toString();
 		}
 
 		for (int i = 0; i < m_parameterCount; ++i)
