@@ -630,15 +630,15 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 		dataSetIdx = m_nextDataSetID;
 		++m_nextDataSetID;
 	}
+	m_dataSets[dataSetIdx] = dataSet;
 	if (m_curFile.isEmpty())
 	{
 		LOG(lvlDebug, "Developer Warning - consider calling setWindowTitleAndFile directly where you first call addDataSet");
 		setWindowTitleAndFile(
-			dataSet->hasMetaData(iADataSet::FileNameKey)?
+			dataSet->hasMetaData(iADataSet::FileNameKey) ?
 			dataSet->metaData(iADataSet::FileNameKey).toString() :
 			dataSet->name());
 	}
-	m_dataSets[dataSetIdx] = dataSet;
 	auto p = std::make_shared<iAProgress>();
 	auto fw = runAsync([this, dataSet, dataSetIdx, p]()
 		{
