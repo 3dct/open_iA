@@ -536,7 +536,7 @@ private:
 #include "iAModalityTransfer.h"
 #include "iAPreferences.h"
 #include "iAToolsVTK.h"
-#include "iAVolumeDataForDisplay.h"
+#include "iAImageDataForDisplay.h"
 
 #include <vtkImageData.h>
 #include <vtkVolume.h>
@@ -570,7 +570,7 @@ bool isLarge(vtkImageData* img)
 class iAVolRenderer: public iADataSetRenderer
 {
 public:
-	iAVolRenderer(vtkRenderer* renderer, iAImageData* data, iAVolumeDataForDisplay* volDataForDisplay) :
+	iAVolRenderer(vtkRenderer* renderer, iAImageData* data, iAImageDataForDisplay* volDataForDisplay) :
 		iADataSetRenderer(renderer, !isFlat(data->vtkImage()) && !isLarge(data->vtkImage()) ),
 		m_volume(vtkSmartPointer<vtkVolume>::New()),
 		m_volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
@@ -735,7 +735,7 @@ std::shared_ptr<iADataSetRenderer> createDataRenderer(iADataSet* dataSet, iAData
 	auto img = dynamic_cast<iAImageData*>(dataSet);
 	if (img)
 	{
-		auto volDataForDisplay = dynamic_cast<iAVolumeDataForDisplay*>(dataForDisplay);
+		auto volDataForDisplay = dynamic_cast<iAImageDataForDisplay*>(dataForDisplay);
 		if (!volDataForDisplay)
 		{
 			LOG(lvlWarn, QString("Required additional data for displaying volume couldn't be created!"));

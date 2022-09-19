@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAVolumeDataForDisplay.h"
+#include "iAImageDataForDisplay.h"
 
 #include "iADataSet.h"
 #include "iAProgress.h"
@@ -26,10 +26,12 @@
 #include "iADockWidgetWrapper.h"
 
 #include "iAModalityTransfer.h"
+
 #include "iAChartWithFunctionsWidget.h"
 #include "iAChartFunctionTransfer.h"
 #include "iAHistogramData.h"
 #include "iAPlotTypes.h"
+
 #include "iAPreferences.h"
 
 #include "iAMdiChild.h"
@@ -38,7 +40,7 @@
 
 #include <QApplication>
 
-iAVolumeDataForDisplay::iAVolumeDataForDisplay(iAImageData* data, iAProgress* p, size_t binCount) :
+iAImageDataForDisplay::iAImageDataForDisplay(iAImageData* data, iAProgress* p, size_t binCount) :
 	iADataForDisplay(data),
 	m_transfer(std::make_shared<iAModalityTransfer>(data->vtkImage()->GetScalarRange())),
 	m_histogram(nullptr),
@@ -60,12 +62,12 @@ iAVolumeDataForDisplay::iAVolumeDataForDisplay(iAImageData* data, iAProgress* p,
 		.arg(stats.standardDeviation);
 }
 
-QString iAVolumeDataForDisplay::information() const
+QString iAImageDataForDisplay::information() const
 {
 	return iADataForDisplay::information() + "\n" + QString("Statistics: %1").arg(m_imgStatistics);
 }
 
-void iAVolumeDataForDisplay::applyPreferences(iAPreferences const& prefs)
+void iAImageDataForDisplay::applyPreferences(iAPreferences const& prefs)
 {
 	auto img = dynamic_cast<iAImageData*>(dataSet())->vtkImage();
 	size_t newBinCount = iAHistogramData::finalNumBin(img, prefs.HistogramBins);
@@ -75,7 +77,7 @@ void iAVolumeDataForDisplay::applyPreferences(iAPreferences const& prefs)
 		m_histogramData = iAHistogramData::create("Frequency", img, prefs.HistogramBins, &stats);
 	}
 }
-void iAVolumeDataForDisplay::updatedPreferences()
+void iAImageDataForDisplay::updatedPreferences()
 {
 	if (m_histogramData.get() != m_histogram->plots()[0]->data().get())
 	{
@@ -88,7 +90,7 @@ void iAVolumeDataForDisplay::updatedPreferences()
 	}
 }
 
-void iAVolumeDataForDisplay::show(iAMdiChild* child)
+void iAImageDataForDisplay::show(iAMdiChild* child)
 {
 	Q_UNUSED(child);
 	// show histogram
@@ -110,12 +112,12 @@ void iAVolumeDataForDisplay::show(iAMdiChild* child)
 		child, &iAMdiChild::changeTransferFunction);
 }
 
-iAModalityTransfer* iAVolumeDataForDisplay::transfer()
+iAModalityTransfer* iAImageDataForDisplay::transfer()
 {
 	return m_transfer.get();
 }
 
-void iAVolumeDataForDisplay::update()
+void iAImageDataForDisplay::update()
 {
 	m_histogram->update();
 }

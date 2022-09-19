@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iADataForDisplay.h"
 
-#include "iAVolumeDataForDisplay.h"
+#include "iAImageDataForDisplay.h"
 
 #include "iADataSet.h"
 
@@ -61,7 +61,7 @@ std::shared_ptr<iADataForDisplay> createDataForDisplay(iADataSet* dataSet, iAPro
 	auto volData = dynamic_cast<iAImageData*>(dataSet);
 	if (volData)
 	{
-		return std::make_shared<iAVolumeDataForDisplay>(volData, p, numBins);
+		return std::make_shared<iAImageDataForDisplay>(volData, p, numBins);
 	}
 	return std::make_shared<iADataForDisplay>(dataSet);
 }

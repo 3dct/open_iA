@@ -34,10 +34,10 @@ class iAModalityTransfer;
 class iAPreferences;
 class iAProgress;
 
-class iAgui_API iAVolumeDataForDisplay : public iADataForDisplay
+class iAgui_API iAImageDataForDisplay : public iADataForDisplay
 {
 public:
-	iAVolumeDataForDisplay(iAImageData* data, iAProgress* p, size_t binCount);
+	iAImageDataForDisplay(iAImageData* data, iAProgress* p, size_t binCount);
 	void show(iAMdiChild* child) override;
 	QString information() const override;
 	void applyPreferences(iAPreferences const& prefs) override;

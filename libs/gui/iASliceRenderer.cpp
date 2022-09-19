@@ -27,7 +27,7 @@
 #include "iAMdiChild.h"
 #include "iAModalityTransfer.h"
 #include "iASlicerImpl.h"
-#include "iAVolumeDataForDisplay.h"
+#include "iAImageDataForDisplay.h"
 
 iASliceRenderer::~iASliceRenderer()
 {}
@@ -103,7 +103,7 @@ std::shared_ptr<iASliceRenderer> createSliceRenderer(iADataSet* dataSet, iADataF
 	if (imgData)
 	{
 		auto channelID = child->createChannel();
-		return std::make_shared<iAVolumeSliceRenderer>(imgData, dynamic_cast<iAVolumeDataForDisplay*>(dataForDisplay)->transfer(), slicer, channelID);
+		return std::make_shared<iAVolumeSliceRenderer>(imgData, dynamic_cast<iAImageDataForDisplay*>(dataForDisplay)->transfer(), slicer, channelID);
 	}
 	return std::shared_ptr<iASliceRenderer>();
 }

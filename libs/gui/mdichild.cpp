@@ -28,7 +28,7 @@
 #include "iAParametricSpline.h"
 #include "iAProfileProbe.h"
 #include "iAvtkInteractStyleActor.h"
-#include "iAVolumeDataForDisplay.h"    // TODO: NewIO - move code using this somewhere else?
+#include "iAImageDataForDisplay.h"    // TODO: NewIO - move code using this somewhere else?
 #include "mainwindow.h"
 
 // renderer
@@ -428,7 +428,7 @@ void MdiChild::connectSignalsToSlots()
 			}
 			// create "windowed" transfer function,
 			// such that the full color and opacity contrast is available between minVal and maxVal
-			auto volData = dynamic_cast<iAVolumeDataForDisplay*>(m_dataForDisplay[dataSetIdx].get());
+			auto volData = dynamic_cast<iAImageDataForDisplay*>(m_dataForDisplay[dataSetIdx].get());
 			if (!volData)
 			{
 				return;
@@ -2814,7 +2814,7 @@ void MdiChild::changeMagicLensDataSet(int chg)
 	}
 	// To check: support for multiple components in a vtk image? or separating those components?
 	auto imgData = dynamic_cast<iAImageData*>(m_dataSets[m_magicLensDataSet].get());
-	auto imgDisplayData = dynamic_cast<iAVolumeDataForDisplay*>(m_dataForDisplay[m_magicLensDataSet].get());
+	auto imgDisplayData = dynamic_cast<iAImageDataForDisplay*>(m_dataForDisplay[m_magicLensDataSet].get());
 	if (m_magicLensChannel == NotExistingChannel)
 	{
 		m_magicLensChannel = createChannel();
