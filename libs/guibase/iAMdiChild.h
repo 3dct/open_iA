@@ -215,6 +215,8 @@ public:
 	virtual void removeDataSet(size_t dataSetIdx) = 0;
 	//! clear (remove) all datasets
 	virtual void clearDataSets() = 0;
+	//! set window title, and if a file name is given, set it as window file and add it to recent files
+	virtual void setWindowTitleAndFile(QString const& f) = 0;
 
 	//! display an image or a mesh
 	//! @deprecated use addDataset instead

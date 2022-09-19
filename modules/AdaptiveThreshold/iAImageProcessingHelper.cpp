@@ -101,7 +101,6 @@ void iAImageProcessingHelper::prepareFilter(double greyThresholdLower, double gr
 	iAMdiChild* newChild = m_child->mainWnd()->createMdiChild(true);
 	// TODO: check if we need to apply preferences...
 	//dynamic_cast<MdiChild*>(targetChild)->applyPreferences(m_defaultPreferences);
-	newChild->applyRendererSettings(m_child->mainWnd()->defaultRenderSettings(), m_child->mainWnd()->defaultVolumeSettings());
 	newChild->show();
 	newChild->addDataSet(filter->output(0));
 }

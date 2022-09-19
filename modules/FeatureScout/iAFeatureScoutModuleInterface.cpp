@@ -198,7 +198,6 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 		{
 			createdMdi = true;
 			m_mdiChild = m_mainWnd->createMdiChild(false);
-			m_mdiChild->show();
 		}
 	}
 	else

@@ -2757,7 +2757,7 @@ iAVolumeStack* MdiChild::volumeStack()
 
 bool MdiChild::isVolumeDataLoaded() const
 {
-	return firstImageData();
+	return firstImageDataSetIdx() != NoDataSet;
 }
 
 void MdiChild::changeMagicLensDataSet(int chg)

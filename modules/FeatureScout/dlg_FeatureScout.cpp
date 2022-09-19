@@ -243,8 +243,8 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 
 	if (visType != iACsvConfig::UseVolume && m_activeChild->dataSets().empty())
 	{
-		parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
-			.arg(MapObjectTypeToString(m_filterID)), nullptr, nullptr);
+		parent->setWindowTitleAndFile(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
+			.arg(MapObjectTypeToString(m_filterID)));
 	}
 	if (visType == iACsvConfig::UseVolume)
 	{

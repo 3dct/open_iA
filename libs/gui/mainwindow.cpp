@@ -418,11 +418,7 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 			else if (ret == QMessageBox::No)
 			{
 				iAMdiChild* child = createMdiChild(false);
-				if (child->loadFile(fileName, false))
-				{
-					child->show();
-				}
-				else
+				if (!child->loadFile(fileName, false))
 				{
 					statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
 					child->close();
@@ -459,11 +455,7 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 	}
 	// Todo: hook for plugins?
 	iAMdiChild* child = createMdiChild(false);
-	if (child->loadFile(fileName, isStack))
-	{
-		child->show();
-	}
-	else
+	if (!child->loadFile(fileName, isStack))
 	{
 		statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
 		child->close();
@@ -526,10 +518,6 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow, std::share
 		{
 			targetChild = createMdiChild(false);
 			dynamic_cast<MdiChild*>(targetChild)->setWindowTitleAndFile(fileName);
-			// TODO: check if we need to apply preferences...
-			//dynamic_cast<MdiChild*>(targetChild)->applyPreferences(m_defaultPreferences);
-			targetChild->applyRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
-			targetChild->show();
 		}
 		addRecentFile(fileName);
 		for (auto dataSet : d->data)
@@ -1589,7 +1577,6 @@ iAMdiChild* MainWindow::resultChild(iAMdiChild* iaOldChild, QString const & titl
 		// or nothing at all until new image available!
 		// Note that filters currently get their input from this child already!
 		MdiChild* newChild = dynamic_cast<MdiChild*>(createMdiChild(true));
-		newChild->show();
 		if (oldChild)
 		{
 			auto img = oldChild->firstImageData();
@@ -1919,7 +1906,7 @@ iAMdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 		child->show();
 	}
 	child->initializeViews();
-	child->setRenderSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
+	child->applyRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
 	child->setupSlicers(m_defaultSlicerSettings, false);
 
 	connect(child, &MdiChild::pointSelected, this, &MainWindow::pointSelected);
