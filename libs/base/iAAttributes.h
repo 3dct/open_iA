@@ -47,6 +47,9 @@ iAbase_API int countAttributes(iAAttributes const& attributes, iAAttributeDescri
 //! Merge the given values into the descriptors (returns new descriptors with the given values as default values)
 iAbase_API iAAttributes combineAttributesWithValues(iAAttributes const& attributes, QVariantMap values);
 
+//! Merge the values from newValues into baseValues
+iAbase_API QVariantMap joinValues(QVariantMap const & baseValues, QVariantMap const & newValues);
+
 //! Extract just the values from the given descriptors into a map
 iAbase_API QVariantMap extractValues(iAAttributes const& attributes);
 

@@ -40,7 +40,7 @@ QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, vtkTable* tab
 	case iACsvConfig::UseVolume:
 		if (!ctf || !otf || !bounds)
 		{
-			LOG(lvlWarn, "Labelled Volume visualization requested, but no transfer functions or bounds specified. Disabling 3D visualization!");
+			LOG(lvlWarn, "Labelled Volume visualization requested, but transfer functions or bounds missing. Disabling 3D visualization!");
 			return QSharedPointer<iA3DNoVis>::create();
 		}
 		return QSharedPointer<iA3DLabelledVolumeVis>::create(ctf, otf, table, columnMapping, bounds);

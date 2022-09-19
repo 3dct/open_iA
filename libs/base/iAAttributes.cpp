@@ -98,6 +98,13 @@ iAAttributes combineAttributesWithValues(iAAttributes const& attributes, QVarian
 	return combined;
 }
 
+QVariantMap joinValues(QVariantMap const& baseValues, QVariantMap const& newValues)
+{
+	QVariantMap result(baseValues);
+	result.insert(newValues);
+	return result;
+}
+
 QVariantMap extractValues(iAAttributes const& attributes)
 {
 	QVariantMap result;

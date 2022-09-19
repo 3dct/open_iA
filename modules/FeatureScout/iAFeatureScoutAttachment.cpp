@@ -25,14 +25,18 @@
 #include <iA3DObjectFactory.h>
 #include <iACsvConfig.h>
 
-#include <iAModality.h>
-#include <iAModalityTransfer.h>
 #include <iAMdiChild.h>
+#include <iAModalityTransfer.h>
 
+#include <iADataSet.h>
+#include <iALog.h>
+
+#include <vtkImageData.h>
 #include <vtkTable.h>
 
 iAFeatureScoutAttachment::iAFeatureScoutAttachment(iAMainWindow* mainWnd, iAMdiChild * child) :
-	iAModuleAttachmentToChild(mainWnd, child)
+	iAModuleAttachmentToChild(mainWnd, child),
+	m_featureScout(nullptr)
 {
 }
 
@@ -45,11 +49,25 @@ void iAFeatureScoutAttachment::init(int filterID, QString const & fileName, vtkS
 	int visType, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
 	std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip)
 {
+	vtkColorTransferFunction* ctf = nullptr;
+	vtkPiecewiseFunction* otf = nullptr;
+	double* bounds = nullptr;
+	if (visType == iACsvConfig::UseVolume)
+	{
+		auto idx = m_child->firstImageDataSetIdx();
+		if (idx == iAMdiChild::NoDataSet)
+		{
+			LOG(lvlError, "No image data set loaded!");
+			return;
+		}
+		auto transfer =m_child->dataSetTransfer(idx);
+		ctf = transfer->colorTF();
+		otf = transfer->opacityTF();
+		bounds = dynamic_cast<iAImageData*>(m_child->dataSets()[idx].get())->vtkImage()->GetBounds();
+	}
 	auto objvis = create3DObjectVis(visType, csvtbl, columnMapping,
 		QColor(dlg_FeatureScout::UnclassifiedColorName), curvedFiberInfo, cylinderQuality, segmentSkip,
-		visType == iACsvConfig::UseVolume ? m_child->modality(0)->transfer()->colorTF() : nullptr,
-		visType == iACsvConfig::UseVolume ? m_child->modality(0)->transfer()->opacityTF() : nullptr,
-		visType == iACsvConfig::UseVolume ? m_child->modality(0)->image()->GetBounds() : nullptr);
+		ctf, otf, bounds);
 	m_featureScout = new dlg_FeatureScout(
 		m_child, static_cast<iAObjectType>(filterID),
 		fileName, csvtbl, visType, columnMapping, objvis);

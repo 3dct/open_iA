@@ -3029,6 +3029,11 @@ iAModalityTransfer* MdiChild::dataSetTransfer(size_t idx) const
 	return volData ? volData->transfer() : nullptr;
 }
 
+void MdiChild::applyRenderSettings(size_t dataSetIdx, QVariantMap const& renderSettings)
+{
+	m_dataRenderers[dataSetIdx]->setAttributes(joinValues(extractValues(m_dataRenderers[dataSetIdx]->attributesWithValues()), renderSettings));
+}
+
 size_t MdiChild::firstImageDataSetIdx() const
 {
 	for (auto dataSet : m_dataSets)

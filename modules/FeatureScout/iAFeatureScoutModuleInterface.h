@@ -39,6 +39,5 @@ private slots:
 private:
 	iAObjectType guessFeatureType(QString const & csvFileName);
 	iAModuleAttachmentToChild * CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child) override;
-	void setFeatureScoutRenderSettings();
 	bool startFeatureScout(iACsvConfig const & csvConfig);  //!< entry point for FeatureScout
 };

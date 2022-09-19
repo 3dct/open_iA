@@ -241,7 +241,7 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	setupModel();
 	setupConnections();
 
-	if (visType != iACsvConfig::UseVolume && m_activeChild->modalities()->size() == 0)
+	if (visType != iACsvConfig::UseVolume && m_activeChild->dataSets().empty())
 	{
 		parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
 			.arg(MapObjectTypeToString(m_filterID)), nullptr, nullptr);
@@ -1463,7 +1463,7 @@ void dlg_FeatureScout::ExportClassButton()
 	// if no volume loaded, then exit
 	if (m_visualization != iACsvConfig::UseVolume)
 	{
-		if (m_activeChild->modalities()->size() == 0)
+		if (m_activeChild->firstImageData() == nullptr)
 		{
 			QMessageBox::information(this, "FeatureScout", "Feature only available if labeled volume is loaded!");
 			return;

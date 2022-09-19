@@ -316,9 +316,12 @@ public:
 	void set3DControlVisibility(bool visible) override;
 
 	std::vector<std::shared_ptr<iADataSet>> dataSets() const override;
-	iAModalityTransfer* dataSetTransfer(size_t idx) const override;
+
 	size_t firstImageDataSetIdx() const override;
 	vtkSmartPointer<vtkImageData> firstImageData() const override;
+	iAModalityTransfer* dataSetTransfer(size_t idx) const override;
+	void applyRenderSettings(size_t dataSetIdx, QVariantMap const& renderSettings) override;
+
 	bool hasUnsavedData() const;
 
 public slots:

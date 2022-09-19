@@ -269,16 +269,22 @@ public:
 
 	//! Retrieve a list of all datasets loaded in this window
 	virtual std::vector<std::shared_ptr<iADataSet>> dataSets() const = 0;
-	//! Retrieve the transfer function for an (image) dataset with given index
-	//! @return transfer function of dataset, nullptr if dataset with given index is not an image dataset
-	virtual	iAModalityTransfer* dataSetTransfer(size_t idx) const = 0;
+	//! Constant indicating an invalid dataset index
+	static const size_t NoDataSet = std::numeric_limits<size_t>::max();
+
+	// Methods currently required by some modules for specific dataset access
+	// ToDo: There's potential for better encapsulation / better API here!
+
 	//! Retrieve the first image dataset (if any loaded).
 	//! Will produce an error log entry if no image data is found so use with care
 	virtual vtkSmartPointer<vtkImageData> firstImageData() const = 0;
 	//! Retrieve the index of the first image data set (if any loaded), or NoDataSet if none loaded.
 	virtual size_t firstImageDataSetIdx() const = 0;
-	//! Constant indicating an invalid dataset index
-	static const size_t NoDataSet = std::numeric_limits<size_t>::max();
+	//! Retrieve the transfer function for an (image) dataset with given index
+	//! @return transfer function of dataset, nullptr if dataset with given index is not an image dataset
+	virtual	iAModalityTransfer* dataSetTransfer(size_t idx) const = 0;
+	//! Apply settings to the 3D renderer of the dataset with given index (the given map can also contain a subset of the list of available render parameters, the rest will be left at default)
+	virtual void applyRenderSettings(size_t dataSetIdx, QVariantMap const & renderSettings) = 0;
 
 signals:
 	void closed();

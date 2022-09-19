@@ -38,6 +38,7 @@
 #include <iAMdiChild.h>
 #include <iARenderSettings.h>
 #include <iAVolumeSettings.h>
+#include <iAToolsVTK.h>
 
 #include <vtkTable.h>
 #include <vtkSmartVolumeMapper.h>
@@ -159,8 +160,7 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 {
 	//auto project = QSharedPointer<iAFeatureScoutProject>::create(m_mainWnd);
 	bool volumeDataAvailable = m_mainWnd->activeMdiChild() &&
-		m_mainWnd->activeMdiChild()->modalities()->size() > 0 &&
-		m_mainWnd->activeMdiChild()->isVolumeDataLoaded();
+		m_mainWnd->activeMdiChild()->firstImageData() != nullptr;
 	dlg_CSVInput dlg(volumeDataAvailable);
 	if (m_mainWnd->activeMdiChild())
 	{
@@ -249,22 +249,6 @@ void iAFeatureScoutModuleInterface::LoadFeatureScoutWithParams(QString const & c
 	startFeatureScout(csvConfig);
 }
 
-void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
-{
-	iARenderSettings FS_RenderSettings = m_mdiChild->renderSettings();
-	iAVolumeSettings FS_VolumeSettings = m_mdiChild->volumeSettings();
-	FS_RenderSettings.ParallelProjection = true;
-	FS_RenderSettings.ShowHelpers = true;
-	FS_RenderSettings.ShowRPosition = true;
-	FS_RenderSettings.ShowSlicers = true;
-	FS_VolumeSettings.LinearInterpolation = false;
-	FS_VolumeSettings.DiffuseLighting = 1.6;
-	FS_VolumeSettings.Shading = true;
-	FS_VolumeSettings.SpecularLighting = 0.0;
-	FS_VolumeSettings.RenderMode = vtkSmartVolumeMapper::RayCastRenderMode;
-	m_mdiChild->applyRendererSettings(FS_RenderSettings, FS_VolumeSettings);
-}
-
 void iAFeatureScoutModuleInterface::LoadFeatureScout(iACsvConfig const & csvConfig, iAMdiChild * mdiChild)
 {
 	m_mdiChild = mdiChild;
@@ -299,8 +283,15 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 	LOG(lvlInfo, QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
 	if (csvConfig.visType == iACsvConfig::UseVolume)
 	{
-		setFeatureScoutRenderSettings();
-		LOG(lvlInfo, "The render settings of the current child window have been adapted for the volume visualization of FeatureScout!");
+		QVariantMap renderSettings;
+		// ToDo: Remove duplication with string constants from iADataSetRenderer!
+		renderSettings["Shading"] = true;
+		renderSettings["Linear interpolation"] = false;
+		renderSettings["Diffuse lighting"] = 1.6;
+		renderSettings["Specular lighting"] = 0.0;
+		renderSettings["Renderer type"] = RenderModeMap()[vtkSmartVolumeMapper::RayCastRenderMode];
+
+		m_mdiChild->applyRenderSettings(m_mdiChild->firstImageDataSetIdx(), renderSettings);
 	}
 	auto project = std::make_shared<iAFeatureScoutProject>();
 	project->setOptions(csvConfig);
