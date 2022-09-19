@@ -115,8 +115,6 @@
 #include <QtGlobal> // for QT_VERSION
 
 
-const size_t MdiChild::NoDataSet = std::numeric_limits<size_t>::max();
-
 MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsavedChanges) :
 	m_mainWnd(mainWnd),
 	m_preferences(prefs),
@@ -2759,15 +2757,7 @@ iAVolumeStack* MdiChild::volumeStack()
 
 bool MdiChild::isVolumeDataLoaded() const
 {
-	QString suffix = fileInfo().suffix();
-	int* extent = m_imageData->GetExtent();
-	return QString::compare(suffix, "STL", Qt::CaseInsensitive) != 0 &&
-		// need better way to check that! at this point, modalities not set up yet,
-		// but .vtk files can contain both polydata and volumes!
-		// Maybe extent check is enough?
-		// QString::compare(suffix, "VTK", Qt::CaseInsensitive) != 0 &&
-		QString::compare(suffix, "FEM", Qt::CaseInsensitive) != 0 &&
-		extent[1] >= 0 && extent[3] >= 0 && extent[5] >= 0;
+	return firstImageData();
 }
 
 void MdiChild::changeMagicLensDataSet(int chg)
@@ -3031,6 +3021,25 @@ std::vector<std::shared_ptr<iADataSet>> MdiChild::dataSets() const
 	result.reserve(m_dataSets.size());
 	std::transform(m_dataSets.begin(), m_dataSets.end(), std::back_inserter(result), [](auto const& p) { return p.second; });
 	return result;
+}
+
+iAModalityTransfer* MdiChild::dataSetTransfer(size_t idx) const
+{
+	auto volData = dynamic_cast<iAImageDataForDisplay*>(m_dataForDisplay.at(idx).get());
+	return volData ? volData->transfer() : nullptr;
+}
+
+size_t MdiChild::firstImageDataSetIdx() const
+{
+	for (auto dataSet : m_dataSets)
+	{
+		auto imgData = dynamic_cast<iAImageData*>(dataSet.second.get());
+		if (imgData)
+		{
+			return dataSet.first;
+		}
+	}
+	return NoDataSet;
 }
 
 vtkSmartPointer<vtkImageData> MdiChild::firstImageData() const

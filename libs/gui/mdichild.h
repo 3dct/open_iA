@@ -99,7 +99,6 @@ class iAgui_API MdiChild : public iAMdiChild, public Ui_Mdichild, public iASavab
 {
 	Q_OBJECT
 public:
-	static const size_t NoDataSet;
 
 	MdiChild(MainWindow* mainWnd, iAPreferences const& preferences, bool unsavedChanges);
 	~MdiChild();
@@ -317,7 +316,8 @@ public:
 	void set3DControlVisibility(bool visible) override;
 
 	std::vector<std::shared_ptr<iADataSet>> dataSets() const override;
-	size_t firstImageDataSetIdx() const;
+	iAModalityTransfer* dataSetTransfer(size_t idx) const override;
+	size_t firstImageDataSetIdx() const override;
 	vtkSmartPointer<vtkImageData> firstImageData() const override;
 	bool hasUnsavedData() const;
 

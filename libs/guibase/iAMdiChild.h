@@ -39,6 +39,7 @@ class iAIO;
 class iAMainWindow;
 class iAModality;
 class iAModalityList;
+class iAModalityTransfer;
 class iAPreferences;
 class iAProjectBase;
 class iARenderSettings;
@@ -259,18 +260,25 @@ public:
 	virtual void setReInitializeRenderWindows(bool reInit) = 0;
 
 	//! @{ for recomputing histogram. should probably be made private somehow; or members of modality, or triggered automatically on modality creation...
+	//! @deprecated
 	virtual bool histogramComputed(size_t newBinCount, QSharedPointer<iAModality>) = 0;
 	virtual void computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality>) = 0;
 	virtual void setHistogramModality(int modalityIdx) = 0;
 	//! @}
 	virtual void set3DControlVisibility(bool visible) = 0;
 
-	//! retrieve a list of all datasets loaded in this window
+	//! Retrieve a list of all datasets loaded in this window
 	virtual std::vector<std::shared_ptr<iADataSet>> dataSets() const = 0;
-
+	//! Retrieve the transfer function for an (image) dataset with given index
+	//! @return transfer function of dataset, nullptr if dataset with given index is not an image dataset
+	virtual	iAModalityTransfer* dataSetTransfer(size_t idx) const = 0;
 	//! Retrieve the first image dataset (if any loaded).
 	//! Will produce an error log entry if no image data is found so use with care
 	virtual vtkSmartPointer<vtkImageData> firstImageData() const = 0;
+	//! Retrieve the index of the first image data set (if any loaded), or NoDataSet if none loaded.
+	virtual size_t firstImageDataSetIdx() const = 0;
+	//! Constant indicating an invalid dataset index
+	static const size_t NoDataSet = std::numeric_limits<size_t>::max();
 
 signals:
 	void closed();
@@ -282,6 +290,7 @@ signals:
 	void fileLoaded();
 
 	//! emitted when a file is fully loaded and its statistics and histogram are available.
+	//! @deprecated use dataset functionality instead;
 	void histogramAvailable(int modalityIdx);
 
 	//! emitted when the renderer settings have changed
