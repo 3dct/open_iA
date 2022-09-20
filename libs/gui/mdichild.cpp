@@ -647,7 +647,10 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 			{
 				m_dataForDisplay[dataSetIdx] = std::make_shared<iAImageDataForDisplay>(volData, p.get(), m_preferences.HistogramBins);
 			}
-			m_dataForDisplay[dataSetIdx] = std::make_shared<iADataForDisplay>(dataSet.get());
+			else
+			{
+				m_dataForDisplay[dataSetIdx] = std::make_shared<iADataForDisplay>(dataSet.get());
+			}
 			emit dataForDisplayCreated(dataSetIdx);
 		},
 		[this, dataSet, dataSetIdx]()

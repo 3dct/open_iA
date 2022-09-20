@@ -68,8 +68,11 @@ public:
 	virtual bool isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName) const;
 	//! Save the (list of) dataset(s); modify input datasets to reflect the new file name this data is now stored under
 	void save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> & dataSets, QVariantMap const& paramValues, iAProgress const& progress = iAProgress());
+	//! Check whether the given values contain all required parameters; set to default if not
+	bool checkParams(QVariantMap & paramValues, Operation op, QString const& fileName);
 
 protected:
+
 	iAAttributes m_params[2];
 
 	//! I/O for specific file formats should override this to load data from the file with given name. default implementation does nothing

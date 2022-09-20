@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAFileIO.h"
 
+#include "iALog.h"
+
 #include <QFileInfo>
 
 const QString iAFileIO::CompressionStr("Compression");
@@ -35,15 +37,17 @@ iAFileIO::~iAFileIO()
 
 std::vector<std::shared_ptr<iADataSet>> iAFileIO::load(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
-	auto dataSets = loadData(fileName, paramValues, progress);
+	QVariantMap checkedValues(paramValues);
+	checkParams(checkedValues, Load, fileName);
+	auto dataSets = loadData(fileName, checkedValues, progress);
 
 	for (auto d : dataSets)
 	{
 		d->setMetaData(iADataSet::FileNameKey, fileName);
 		d->setMetaData(iADataSet::NameKey, QFileInfo(fileName).baseName());
-		for (auto k : paramValues.keys())
+		for (auto k : checkedValues.keys())
 		{
-			d->setMetaData(k, paramValues[k]);
+			d->setMetaData(k, checkedValues[k]);
 		}
 	}
 	// for file formats that support multiple dataset types: check if an allowed type was loaded?
@@ -86,9 +90,30 @@ bool iAFileIO::isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString co
 
 void iAFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> & dataSets, QVariantMap const& paramValues, iAProgress const& progress)
 {
-	saveData(fileName, dataSets, paramValues, progress);
+	QVariantMap checkedValues(paramValues);
+	checkParams(checkedValues, Save, fileName);
+	saveData(fileName, dataSets, checkedValues, progress);
 	for (auto d : dataSets)
 	{
 		d->setMetaData(iADataSet::FileNameKey, fileName);
 	}
+}
+
+bool iAFileIO::checkParams(QVariantMap & paramValues, Operation op, QString const& fileName)
+{
+	bool result = true;
+	paramValues[iADataSet::FileNameKey] = fileName;
+	for (auto p : m_params[op])
+	{
+		// ToDo: maybe also check whether the values fulfill the conditions in the iAAttributeDescriptor? see iAFilter::checkParameters
+		if (!paramValues.contains(p->name()))
+		{
+			LOG(lvlWarn, QString("Missing parameter %1 when %2 file %3; setting to default %4!")
+				.arg(p->name()).arg(op == Save ? "saving" : "loading").arg(fileName)
+				.arg(p->defaultValue().toString())
+			);
+			result = false;
+		}
+	}
+	return result;
 }
