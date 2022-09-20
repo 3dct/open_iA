@@ -22,9 +22,10 @@
 
 #include "iAValueType.h"
 
-#include <QDoubleSpinBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
+#include <QSpinBox>
 #include <QVector>
 #include <QWidget>
 
@@ -53,9 +54,7 @@ public:
 			}
 			else
 			{
-				auto in = new QDoubleSpinBox(this);
-				in->setRange(-9999999999, 9999999999);  // To Do: pass in as parameters?
-				in->setDecimals(2);
+				auto in = new QLineEdit(this);
 				m_inputs[i] = in;
 			}
 			layout()->addWidget(m_inputs[i]);
@@ -71,7 +70,7 @@ public:
 			}
 			else
 			{
-				connect(qobject_cast<QDoubleSpinBox*>(m_inputs[i]), QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this]() {
+				connect(qobject_cast<QLineEdit*>(m_inputs[i]), &QLineEdit::textChanged, this, [this]() {
 					emit valueChanged(value());
 				});
 			}
@@ -94,7 +93,13 @@ public:
 			QVector<double> values(m_inputs.size());
 			for (int i = 0; i < m_inputs.size(); ++i)
 			{
-				values[i] = qobject_cast<QDoubleSpinBox*>(m_inputs[i])->value();
+				bool ok;
+				auto text = qobject_cast<QLineEdit*>(m_inputs[i])->text();
+				values[i] = text.toDouble(&ok);
+				if (!ok)
+				{
+					LOG(lvlWarn, QString("Value %1 at position %2 in vector input is not a valid floating point number!").arg(text).arg(i));
+				}
 			}
 			return QVariant::fromValue(values);
 		}
@@ -121,7 +126,7 @@ public:
 				{
 					break;
 				}
-				qobject_cast<QDoubleSpinBox*>(m_inputs[i])->setValue(values[i]);
+				qobject_cast<QLineEdit*>(m_inputs[i])->setText(QString::number(values[i]));
 			}
 		}
 	}
@@ -130,6 +135,6 @@ signals:
 
 private:
 	const QString ComponentNames[3] = {"x", "y", "z"};
-	QVector<QAbstractSpinBox*> m_inputs;
+	QVector<QWidget*> m_inputs;
 	iAValueType m_valueType;
 };
