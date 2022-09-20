@@ -90,6 +90,13 @@ void iAImageDataForDisplay::updatedPreferences()
 	}
 }
 
+void iAImageDataForDisplay::dataSetChanged()
+{
+	auto title = "Histogram " + dataSet()->name();
+	m_histogram->setXCaption(title);
+	m_histogramDW->setWindowTitle(title);
+}
+
 void iAImageDataForDisplay::show(iAMdiChild* child)
 {
 	Q_UNUSED(child);

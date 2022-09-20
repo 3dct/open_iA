@@ -48,6 +48,8 @@ public:
 	virtual void applyPreferences(iAPreferences const& prefs);
 	//! Called after preferences have been applied, for potential required GUI updates
 	virtual void updatedPreferences();
+	//! Called after dataset properties have changed, for potential required GUI updates
+	virtual void dataSetChanged();
 protected:
 	iADataSet* dataSet();
 private:

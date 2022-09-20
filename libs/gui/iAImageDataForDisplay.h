@@ -42,6 +42,7 @@ public:
 	QString information() const override;
 	void applyPreferences(iAPreferences const& prefs) override;
 	void updatedPreferences() override;
+	void dataSetChanged() override;
 	iAModalityTransfer* transfer();
 	void update();
 private:

@@ -53,8 +53,10 @@ void iADataForDisplay::applyPreferences(iAPreferences const& prefs)
 }
 
 void iADataForDisplay::updatedPreferences()
-{
-}
+{}
+
+void iADataForDisplay::dataSetChanged()
+{}
 
 std::shared_ptr<iADataForDisplay> createDataForDisplay(iADataSet* dataSet, iAProgress* p, int numBins)
 {

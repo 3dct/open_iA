@@ -225,6 +225,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 				m_dataSetListWidget->setName(dataSetIdx, newName);
 			}
 			m_dataRenderers[dataSetIdx]->setAttributes(dlg.parameterValues());
+			m_dataForDisplay[dataSetIdx]->dataSetChanged();
 			updateRenderer();    // currently, 3D renderer properties are changed only
 			/*
 			// TODO: reset camera in 3D renderer / slicer when the spacing of modality was changed
