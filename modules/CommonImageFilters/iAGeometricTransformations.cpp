@@ -85,59 +85,72 @@ namespace
 	const QString InterpNearestNeighbour("Nearest Neighbour");
 	const QString InterpBSpline("BSpline");
 	const QString InterpWindowedSinc("Windowed Sinc");
+
+	QStringList interpolators()
+	{
+		QStringList result;
+		result << InterpLinear << InterpNearestNeighbour << InterpBSpline << InterpWindowedSinc;
+		return result;
+	}
+
+	template <typename InputImageType>
+	void setInterpolator(typename itk::ResampleImageFilter<InputImageType, InputImageType>::Pointer resampler,
+		QString const & interpolatorName)
+	{
+		if (interpolatorName == InterpLinear)
+		{
+			resampler->SetInterpolator(itk::LinearInterpolateImageFunction<InputImageType, double>::New());
+		}
+		else if (interpolatorName == InterpNearestNeighbour)
+		{
+			resampler->SetInterpolator(itk::NearestNeighborInterpolateImageFunction<InputImageType, double>::New());
+		}
+		else if (interpolatorName == InterpBSpline)
+		{
+			resampler->SetInterpolator(itk::BSplineInterpolateImageFunction<InputImageType, double>::New());
+		}
+		else if (interpolatorName == InterpWindowedSinc)
+		{
+			typedef itk::Function::HammingWindowFunction<3> WindowFunctionType;
+			typedef itk::ZeroFluxNeumannBoundaryCondition<InputImageType> ConditionType;
+			typedef itk::WindowedSincInterpolateImageFunction<
+				InputImageType, 3,
+				WindowFunctionType,
+				ConditionType,
+				double> InterpolatorType;
+			auto interpolator = InterpolatorType::New();
+			resampler->SetInterpolator(interpolator);
+		}
+	}
 }
 
 template<typename T> void simpleResampler(iAFilter* filter, QVariantMap const & parameters)
 {
-	double VoxelScale = 0.999; //Used because otherwise is a one voxel border with 0
 	auto inImg = filter->imageInput(0)->itkImage();
 	auto inSize = filter->imageInput(0)->vtkImage()->GetDimensions();
 
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
 	auto resampler = ResampleFilterType::New();
-	typename ResampleFilterType::SizeType size;
-	setFromVectorVariant<int>(size, parameters["Size"]);
-	typename ResampleFilterType::SpacingType spacing;
-	spacing[0] = inImg->GetSpacing()[0] * (static_cast<double>(inSize[0]) / size[0] * VoxelScale);
-	spacing[1] = inImg->GetSpacing()[1] * (static_cast<double>(inSize[1]) / size[1] * VoxelScale);
-	spacing[2] = inImg->GetSpacing()[2] * (static_cast<double>(inSize[2]) / size[2] * VoxelScale);
+	typename ResampleFilterType::SizeType outSize;
+	setFromVectorVariant<int>(outSize, parameters["Size"]);
+	auto inSpc = inImg->GetSpacing();
 	QString interpolatorName = parameters["Interpolator"].toString();
-	if (interpolatorName == InterpLinear)
-	{
-		typedef itk::LinearInterpolateImageFunction<InputImageType, double> InterpolatorType;
-		auto interpolator = InterpolatorType::New();
-		resampler->SetInterpolator(interpolator);
-	}
-	else if (interpolatorName == InterpNearestNeighbour)
-	{
-		typedef itk::NearestNeighborInterpolateImageFunction<InputImageType, double> InterpolatorType;
-		auto interpolator = InterpolatorType::New();
-		resampler->SetInterpolator(interpolator);
-	}
-	else if (interpolatorName == InterpBSpline)
-	{
-		typedef itk::BSplineInterpolateImageFunction<InputImageType, double> InterpolatorType;
-		auto interpolator = InterpolatorType::New();
-		resampler->SetInterpolator(interpolator);
-	}
-	else if (interpolatorName == InterpWindowedSinc)
-	{
-		typedef itk::Function::HammingWindowFunction<3> WindowFunctionType;
-		typedef itk::ZeroFluxNeumannBoundaryCondition<InputImageType> ConditionType;
-		typedef itk::WindowedSincInterpolateImageFunction<
-			InputImageType, 3,
-			WindowFunctionType,
-			ConditionType,
-			double> InterpolatorType;
-		auto interpolator = InterpolatorType::New();
-		resampler->SetInterpolator(interpolator);
-	}
+	setInterpolator<InputImageType>(resampler, interpolatorName);
 	resampler->SetInput(dynamic_cast<InputImageType*>(inImg));
-	resampler->SetOutputOrigin(inImg->GetOrigin());
-	resampler->SetOutputSpacing( spacing );
-	resampler->SetSize( size );
-	resampler->SetDefaultPixelValue( 0 );
+	auto inOri = inImg->GetOrigin();
+	typename ResampleFilterType::SpacingType outSpc;
+	itk::Point<double, 3> outOri;
+	bool adjust = parameters["Adjust origin"].toBool();
+	for (int i = 0; i < 3; ++i)
+	{
+		outSpc[i] = inSpc[i] * (static_cast<double>(inSize[i]) / outSize[i]);
+		outOri[i] = inOri[i] + (adjust ? (outSpc[i] / 2 - inSpc[i] / 2) : 0);
+	}
+	resampler->SetOutputOrigin(outOri);
+	resampler->SetOutputSpacing(outSpc);
+	resampler->SetSize(outSize);
+	resampler->SetDefaultPixelValue(0);
 	filter->progress()->observe( resampler );
 	resampler->Update( );
 	filter->addOutput( resampler->GetOutput() );
@@ -157,9 +170,8 @@ iASimpleResampleFilter::iASimpleResampleFilter() :
 		"Resample Filter</a> in the ITK documentation.")
 {
 	addParameter("Size", iAValueType::Vector3i, variantVector<int>({1, 1, 1}));
-	QStringList interpolators;
-	interpolators << InterpLinear << InterpNearestNeighbour << InterpBSpline << InterpWindowedSinc;
-	addParameter("Interpolator", iAValueType::Categorical, interpolators);
+	addParameter("Interpolator", iAValueType::Categorical, interpolators());
+	addParameter("Adjust origin", iAValueType::Boolean, true);
 }
 
 void iASimpleResampleFilter::adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
@@ -186,33 +198,7 @@ void resampler(iAFilter* filter, QVariantMap const& parameters)
 	typename ResampleFilterType::SizeType size;
 	setFromVectorVariant<int>(size, parameters["Size"]);
 	QString interpolatorName = parameters["Interpolator"].toString();
-	if (interpolatorName == InterpLinear)
-	{
-		typedef itk::LinearInterpolateImageFunction<InputImageType, double> InterpolatorType;
-		auto interpolator = InterpolatorType::New();
-		resampler->SetInterpolator(interpolator);
-	}
-	else if (interpolatorName == InterpNearestNeighbour)
-	{
-		typedef itk::NearestNeighborInterpolateImageFunction<InputImageType, double> InterpolatorType;
-		auto interpolator = InterpolatorType::New();
-		resampler->SetInterpolator(interpolator);
-	}
-	else if (interpolatorName == InterpBSpline)
-	{
-		typedef itk::BSplineInterpolateImageFunction<InputImageType, double> InterpolatorType;
-		auto interpolator = InterpolatorType::New();
-		resampler->SetInterpolator(interpolator);
-	}
-	else if (interpolatorName == InterpWindowedSinc)
-	{
-		typedef itk::Function::HammingWindowFunction<3> WindowFunctionType;
-		typedef itk::ZeroFluxNeumannBoundaryCondition<InputImageType> ConditionType;
-		typedef itk::WindowedSincInterpolateImageFunction<InputImageType, 3, WindowFunctionType, ConditionType, double>
-			InterpolatorType;
-		auto interpolator = InterpolatorType::New();
-		resampler->SetInterpolator(interpolator);
-	}
+	setInterpolator<InputImageType>(resampler, interpolatorName);
 	resampler->SetInput(dynamic_cast<InputImageType*>(filter->imageInput(0)->itkImage()));
 	resampler->SetOutputOrigin(origin);
 	resampler->SetOutputSpacing(spacing);
@@ -238,13 +224,7 @@ iAResampleFilter::iAResampleFilter() :
 	addParameter("Origin", iAValueType::Vector3i, variantVector<int>({0, 0, 0}));
 	addParameter("Spacing", iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
 	addParameter("Size", iAValueType::Vector3i, variantVector<int>({1, 1, 1}));
-	QStringList interpolators;
-	interpolators
-		<< InterpLinear
-		<< InterpNearestNeighbour
-		<< InterpBSpline
-		<< InterpWindowedSinc;
-	addParameter("Interpolator", iAValueType::Categorical, interpolators);
+	addParameter("Interpolator", iAValueType::Categorical, interpolators());
 }
 
 void iAResampleFilter::adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
