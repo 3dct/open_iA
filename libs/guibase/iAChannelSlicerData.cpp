@@ -74,9 +74,7 @@ void iAChannelSlicerData::setResliceAxesOrigin(double x, double y, double z)
 		m_reslicer->Update();
 		m_colormapper->Update();
 	}
-	auto img = m_colormapper->GetOutput();
-	m_imageActor->SetInputData(img);
-	m_imageActor->SetPosition(img->GetOrigin());    // workaround: vtkImageActor apparently does not consider the origin?
+	m_imageActor->SetInputData(m_colormapper->GetOutput());
 }
 
 void iAChannelSlicerData::resliceAxesOrigin(double* origin)
@@ -118,9 +116,7 @@ void iAChannelSlicerData::setupOutput(vtkScalarsToColors* ctf, vtkPiecewiseFunct
 	}
 	m_colormapper->SetInputConnection(m_reslicer->GetOutputPort());
 	m_colormapper->Update();
-	auto img = m_colormapper->GetOutput();
-	m_imageActor->SetInputData(img);
-	m_imageActor->SetPosition(img->GetOrigin());    // workaround: vtkImageActor apparently does not consider the origin?
+	m_imageActor->SetInputData(m_colormapper->GetOutput());
 }
 
 void iAChannelSlicerData::updateLUT()
