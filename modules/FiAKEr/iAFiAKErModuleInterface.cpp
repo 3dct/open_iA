@@ -169,7 +169,6 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	{
 		createdMdi = true;
 		mdiChild = m_mainWnd->createMdiChild(false);
-		mdiChild->show();
 	}
 	QStringList formatEntries = iACsvConfig::getListFromRegistry();
 	if (!formatEntries.contains(iAFiberResultsCollection::SimpleFormat))

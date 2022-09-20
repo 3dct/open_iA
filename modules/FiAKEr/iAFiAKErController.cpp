@@ -117,8 +117,6 @@
 #include <QTimer>
 #include <QTreeView>
 
-#include <QtGlobal> // for QT_VERSION
-
 #include <array>
 #include <utility>    // for pair
 
