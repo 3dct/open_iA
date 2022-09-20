@@ -18,54 +18,40 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAAABB.h"
+#include "iADataForDisplay.h"
 
-#include <limits>
+#include "iADataSet.h"
 
-iAAABB::iAAABB()
-{
-	box[0].fill(std::numeric_limits<double>::max());
-	box[1].fill(std::numeric_limits<double>::lowest());
-}
-
-iAAABB::iAAABB(double const* b) : box{ iAVec3d(b[0], b[2], b[4]), iAVec3d(b[1], b[3], b[5]) }
+iADataForDisplay::iADataForDisplay(iADataSet* dataSet):
+	m_dataSet(dataSet)
 {
 }
 
-void iAAABB::addPointToBox(iAVec3d const& pt)
-{
-	for (int i = 0; i < 3; ++i)
-	{
-		box[0][i] = std::min(box[0][i], pt[i]);
-		box[1][i] = std::max(box[1][i], pt[i]);
-	}
+iADataForDisplay::~iADataForDisplay()
+{}
+
+void iADataForDisplay::show(iAMdiChild* child)
+{	// by default, nothing to do
+	Q_UNUSED(child);
 }
 
-void iAAABB::merge(iAAABB const& other)
+QString iADataForDisplay::information() const
 {
-	addPointToBox(other.minCorner());
-	addPointToBox(other.maxCorner());
+	return m_dataSet->info();
 }
 
-bool iAAABB::intersects(iAAABB const& other) const
+iADataSet* iADataForDisplay::dataSet()
 {
-	return
-		maxCorner().x() > other.minCorner().x() && other.maxCorner().x() > minCorner().x() &&
-		maxCorner().y() > other.minCorner().y() && other.maxCorner().y() > minCorner().y() &&
-		maxCorner().z() > other.minCorner().z() && other.maxCorner().z() > minCorner().z();
+	return m_dataSet;
 }
 
-iAVec3d const& iAAABB::minCorner() const
+void iADataForDisplay::applyPreferences(iAPreferences const& prefs)
 {
-	return box[0];
+	Q_UNUSED(prefs);
 }
 
-iAVec3d const& iAAABB::maxCorner() const
-{
-	return box[1];
-}
+void iADataForDisplay::updatedPreferences()
+{}
 
-QString toStr(iAAABB const& box)
-{
-	return QString("%1, %2; %3, %4").arg(box.minCorner().x()).arg(box.minCorner().y()).arg(box.maxCorner().x()).arg(box.maxCorner().y());
-}
+void iADataForDisplay::dataSetChanged()
+{}

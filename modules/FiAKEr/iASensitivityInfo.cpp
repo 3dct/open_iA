@@ -20,33 +20,31 @@
 * ************************************************************************************/
 #include "iASensitivityInfo.h"
 
+// base:
+#include <iAFileUtils.h>
+#include <iAColorTheme.h>
+#include <iADataSet.h>
+#include <iALog.h>
+#include <iALUT.h>
+#include <iAMathUtility.h>
+#include <iAStringHelper.h>
+#include <iAToolsVTK.h>
+#include <iAVec3.h>
+
 // charts
 #include <iAChartWithFunctionsWidget.h>	// only for calling update() on mdichild's histogram() !
 #include <iASPLOMData.h>
 #include <iAScatterPlotWidget.h>
 #include <iAScatterPlotViewData.h>
 
-// base:
-#include <iAFileUtils.h>
-#include <iAColorTheme.h>
-#include <iAJobListView.h>
-#include <iALog.h>
-#include <iALUT.h>
-#include <iAMathUtility.h>
-#include <iAQVTKWidget.h>
-#include <iARunAsync.h>
-#include <iAStackedBarChart.h>    // for add HeaderLabel
-#include <iAStringHelper.h>
-#include <iAToolsVTK.h>
-#include <iAVec3.h>
-
 // guibase:
-#include <dlg_modalities.h> // for modalityVisibilityChanged
+#include <iADataSetRenderer.h>
+#include <iAJobListView.h>
 #include <iAMdiChild.h>
-#include <iAModality.h>
-#include <iAModalityList.h>
 #include <iAModalityTransfer.h>
+#include <iAQVTKWidget.h>
 #include <iARenderer.h>
+#include <iARunAsync.h>
 #include <iAVolumeRenderer.h>
 #include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iAWidgetSettingsMapper.h>
@@ -62,13 +60,14 @@
 
 // FIAKER
 #include "iAAlgorithmInfo.h"
+#include "iACharacteristicsMeasureDlg.h"
 #include "iAFiberResult.h"
 #include "iAFiberResultUIData.h"
 #include "iAFiberData.h"
 #include "iAMeasureSelectionDlg.h"
 #include "iAMultidimensionalScaling.h"
 #include "iAParameterInfluenceView.h"
-#include "iACharacteristicsMeasureDlg.h"
+#include "iAStackedBarChart.h"    // for add HeaderLabel
 #include "ui_DissimilarityMatrix.h"
 #include "ui_SensitivitySettings.h"
 
@@ -1299,32 +1298,27 @@ void iASensitivityInfo::showSpatialOverview()
 	{
 		return;
 	}
-	// show image
-	QSharedPointer<iAModalityList> mods(new iAModalityList());
+	connect(m_child, &iAMdiChild::dataForDisplayCreated, this, &iASensitivityInfo::setSpatialOverviewTF);
+	connect(m_child, &iAMdiChild::dataSetRendered, this, &iASensitivityInfo::spatialOverviewVisibilityChanged);
 	if (m_data->m_spatialOverview)
 	{
-		mods->add(QSharedPointer<iAModality>::create("Avg unique fiber/voxel", data().spatialOverviewCacheFileName(),
-			1, m_data->m_spatialOverview, iAModality::MainRenderer));
+		auto spatialOverviewDataSet = std::make_shared<iAImageData>(m_data->m_spatialOverview);
+		spatialOverviewDataSet->setMetaData(iADataSet::NameKey, "Avg unique fiber/voxel");
+		spatialOverviewDataSet->setMetaData(iADataSet::FileNameKey, data().spatialOverviewCacheFileName());
+		m_child->addDataSet(spatialOverviewDataSet);
 	}
 	if (m_data->m_averageFiberVoxel)
 	{
-		mods->add(QSharedPointer<iAModality>::create("Mean objects (fibers/voxel)",
-			data().averageFiberVoxelCacheFileName(), 1, m_data->m_averageFiberVoxel, iAModality::MainRenderer));
-	}
-
-	m_child->setModalities(mods);
-	connect(m_child, &iAMdiChild::histogramAvailable, this, &iASensitivityInfo::setSpatialOverviewTF);
-	connect(m_child->dataDockWidget(), &dlg_modalities::modalityVisibilityChanged, this,
-		&iASensitivityInfo::spatialOverviewVisibilityChanged);
-	for (int m = 0; m < mods->size(); ++m)
-	{
-		m_child->setHistogramModality(m);
+		auto averageFiberVoxelDataSet = std::make_shared<iAImageData>(m_data->m_averageFiberVoxel);
+		averageFiberVoxelDataSet->setMetaData(iADataSet::NameKey, "Mean objects (fibers/voxel)");
+		averageFiberVoxelDataSet->setMetaData(iADataSet::FileNameKey, data().averageFiberVoxelCacheFileName());
+		m_child->addDataSet(averageFiberVoxelDataSet);
 	}
 }
 
-void iASensitivityInfo::setSpatialOverviewTF(int modalityIdx)
+void iASensitivityInfo::setSpatialOverviewTF(int dataSetIdx)
 {
-	auto mod = m_child->modality(modalityIdx);
+	//auto mod = m_child->modality(modalityIdx);
 	double range[2];
 	if (m_gui->m_settings->cbLimitSpatialOverviewRange->isChecked())
 	{  // for "mean objects", fix range to 0..1
@@ -1333,12 +1327,19 @@ void iASensitivityInfo::setSpatialOverviewTF(int modalityIdx)
 	}
 	else
 	{
-		mod->image()->GetScalarRange(range);
+		auto imgData = dynamic_cast<iAImageData*>(m_child->dataSet(dataSetIdx).get());
+		if (!imgData)
+		{
+			LOG(lvlWarn, "Non-image data in setSpatialOverviewTF!");
+			return;
+		}
+		imgData->vtkImage()->GetScalarRange(range);
 	}
 	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
 	iALUT::BuildLUT(lut, range, m_gui->m_settings->cmbboxSpatialOverviewColorMap->currentText(), 5, true);
-	auto ctf = mod->transfer()->colorTF();
-	auto otf = mod->transfer()->opacityTF();
+	auto tf = m_child->dataSetTransfer(dataSetIdx);
+	auto ctf = tf->colorTF();
+	auto otf = tf->opacityTF();
 	const double AlphaOverride = 0.2;
 	const double MinPoint = 0.001;
 	convertLUTToTF(lut, ctf, otf, AlphaOverride);
@@ -1348,7 +1349,7 @@ void iASensitivityInfo::setSpatialOverviewTF(int modalityIdx)
 	ctf->AddRGBPoint(MinPoint, rgb0[0], rgb0[1], rgb0[2]);
 	otf->AddPoint(0.0, 0.0);
 	otf->AddPoint(MinPoint, AlphaOverride);
-	mod->updateRenderer();
+	m_child->updateRenderer();
 	// show scalar bar widget if not shown yet:
 
 	if (!m_gui->m_scalarBarWidget)
@@ -1419,9 +1420,9 @@ void iASensitivityInfo::spatialOverviewVisibilityChanged(bool visible)
 		m_child->updateRenderer();
 		return;
 	}
-	for (int m=0; m<m_child->modalities()->size(); ++m)
+	for (auto idx : m_child->dataSetIndices())
 	{
-		if (m_child->modality(m)->renderer()->isVisible())
+		if (m_child->dataSetRenderer(idx)->isVisible())
 		{	// ..or any other modality is visible  -> Nothing to do
 			return;
 		}
@@ -1436,9 +1437,9 @@ void iASensitivityInfo::spatialOverviewVisibilityChanged(bool visible)
 
 void iASensitivityInfo::updateSpatialOverviewColors()
 {
-	for (int m = 0; m < m_child->modalities()->size(); ++m)
+	for (auto idx : m_child->dataSetIndices())
 	{
-		setSpatialOverviewTF(m);
+		setSpatialOverviewTF(idx);
 	}
 	m_child->histogram()->update();
 }
@@ -1674,11 +1675,11 @@ void iASensitivityInfo::spHighlightChanged()
 	// show/hide spatial overview(s) depending on whether any results are highlighted
 	bool newVis = m_gui->m_paramSP->viewData()->highlightedPoints().empty();
 	//bool anyChange = false;
-	for (int m = 0; m < m_child->modalities()->size(); ++m)
+	for (auto idx: m_child->dataSetIndices())
 	{
-		if (newVis != m_child->modalities()->get(m)->renderer()->isVisible())
+		if (newVis != m_child->dataSetRenderer(idx)->isVisible())
 		{
-			m_child->modalities()->get(m)->renderer()->showVolume(newVis);
+			m_child->dataSetRenderer(idx)->setVisible(newVis);
 			//anyChange = true;
 		}
 	}

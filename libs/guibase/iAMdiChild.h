@@ -35,6 +35,7 @@ class iAAlgorithm;
 class iAChannelData;
 class iAChartWithFunctionsWidget;
 class iADataSet;
+class iADataSetRenderer;
 class iAIO;
 class iAMainWindow;
 class iAModality;
@@ -210,14 +211,18 @@ public:
 	virtual bool applyRendererSettings(iARenderSettings const& rs, iAVolumeSettings const& vs) = 0;
 
 	//! add a dataset
-	virtual void addDataSet(std::shared_ptr<iADataSet> dataSet) = 0;
+	virtual size_t addDataSet(std::shared_ptr<iADataSet> dataSet) = 0;
 	//! remove dataset with given ID
 	virtual void removeDataSet(size_t dataSetIdx) = 0;
 	//! clear (remove) all datasets
 	virtual void clearDataSets() = 0;
 
-	//! Retrieve a list of all datasets loaded in this window
+	//! Retrieve a list of all datasets loaded in this window. NOTE: The index in this data structure does not reflect the index! TODO: maybe remove this to avoid confusion because of the indexing differences!
 	virtual std::vector<std::shared_ptr<iADataSet>> dataSets() const = 0;
+	//! Retrieve a dataset by its index
+	virtual std::shared_ptr<iADataSet> dataSet(size_t dataSetIdx) const = 0;
+	//! Retrieve a list of the indices of all datasets loaded in this window
+	virtual std::vector<size_t> dataSetIndices() const = 0;
 	//! Constant indicating an invalid dataset index
 	static const size_t NoDataSet = std::numeric_limits<size_t>::max();
 
@@ -232,6 +237,9 @@ public:
 	//! Retrieve the transfer function for an (image) dataset with given index
 	//! @return transfer function of dataset, nullptr if dataset with given index is not an image dataset
 	virtual	iAModalityTransfer* dataSetTransfer(size_t idx) const = 0;
+	//! Retrieve the 3D renderer for dataSet with given index
+	//! @return the renderer or nullptr if dataset with given index does not exist or has no renderer
+	virtual iADataSetRenderer* dataSetRenderer(size_t idx) const = 0;
 	//! Apply settings to the 3D renderer of the dataset with given index (the given map can also contain a subset of the list of available render parameters, the rest will be left at default)
 	virtual void applyRenderSettings(size_t dataSetIdx, QVariantMap const& renderSettings) = 0;
 
@@ -299,7 +307,7 @@ signals:
 	void fileLoaded();
 
 	//! emitted when a file is fully loaded and its statistics and histogram are available.
-	//! @deprecated use dataset functionality instead;
+	//! @deprecated use dataset functionality instead -> dataForDisplayCreated, dataSetRendered
 	void histogramAvailable(int modalityIdx);
 
 	//! emitted when the renderer settings have changed
@@ -323,6 +331,11 @@ signals:
 
 	//! emitted whenever the magic lens has been toggled on or off
 	void magicLensToggled(bool isToggled);
+
+	//! emitted when the data for displaying a dataset has been computed
+	void dataForDisplayCreated(size_t dataSetIdx);
+	//! emitted when the renderer for a dataset has been added to the display
+	void dataSetRendered(size_t dataSetIdx);
 
 public slots:
 	//! Updates all views (slicers, renderers)

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAgui_export.h>
+#include <iAguibase_export.h>
 
 #include "iAAttributes.h"
 
@@ -35,9 +35,19 @@ class vtkProp3D;
 class vtkRenderer;
 
 //! abstract interface for a class for 3D rendering of a dataset (in an iARenderer)
-class iAgui_API iADataSetRenderer
+class iAguibase_API iADataSetRenderer
 {
 public:
+	static const QString Position;
+	static const QString Orientation;
+	static const QString OutlineColor;
+	static const QString Pickable;
+	static const QString Shading;
+	static const QString AmbientLighting;
+	static const QString DiffuseLighting;
+	static const QString SpecularLighting;
+	static const QString SpecularPower;
+
 	//! Create a dataset renderer
 	iADataSetRenderer(vtkRenderer* renderer, bool defaultVisibility);
 	//! called when dataset renderer is removed from display and destroyed
@@ -109,5 +119,3 @@ private:
 	bool m_visible;
 };
 
-//! Factory function to create a renderer for a given dataset
-iAgui_API std::shared_ptr<iADataSetRenderer> createDataRenderer(iADataSet* dataset, iADataForDisplay* dataForDisplay, vtkRenderer* renderer);

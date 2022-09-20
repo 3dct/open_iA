@@ -20,40 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAgui_export.h"
+class iADataForDisplay;
+class iADataSet;
+class iADataSetRenderer;
 
-#include <QString>
+class vtkRenderer;
 
 #include <memory>
 
-class iADataSet;
-class iAMdiChild;
-class iAPreferences;
-class iAProgress;
-
-//! Base class for data linked to a dataset required for displaying it,
-//! in addition to the dataset itself (e.g., the histogram for a volume dataset)
-//! TODO: Find a better name!
-class iAgui_API iADataForDisplay
-{
-public:
-	iADataForDisplay(iADataSet* dataSet);
-	//! called from GUI thread when the data computation (via createDataForDisplay method below) is complete
-	virtual void show(iAMdiChild* child);
-	//! called when the dataset is removed and its related controls should close down
-	virtual ~iADataForDisplay();
-	//! Get information to display about the dataset
-	virtual QString information() const;
-	//! Called when preferences have changed
-	virtual void applyPreferences(iAPreferences const& prefs);
-	//! Called after preferences have been applied, for potential required GUI updates
-	virtual void updatedPreferences();
-	//! Called after dataset properties have changed, for potential required GUI updates
-	virtual void dataSetChanged();
-protected:
-	iADataSet* dataSet();
-private:
-	iADataSet* m_dataSet;
-};
-
-std::shared_ptr<iADataForDisplay> createDataForDisplay(iADataSet* dataSet, iAProgress* p, int numBins);
+//! Factory function to create a renderer for a given dataset
+std::shared_ptr<iADataSetRenderer> createDataRenderer(iADataSet* dataset, iADataForDisplay* dataForDisplay, vtkRenderer* renderer);

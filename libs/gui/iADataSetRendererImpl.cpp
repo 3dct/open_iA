@@ -18,244 +18,31 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#include "iADataSetRendererImpl.h"
+
+#include "iADataSet.h"
 #include "iADataSetRenderer.h"
+#include "iAMainWindow.h"
+#include "iAVolumeSettings.h"
 
 #include "iAAABB.h"
-#include "iADataSet.h"
-#include "iADataForDisplay.h"
 #ifndef NDEBUG
 #include "iAMathUtility.h"    // for dblApproxEqual
 #endif
 #include "iAValueTypeVectorHelpers.h"
 
-#include "iAMainWindow.h"
+// ---------- iAGraphRenderer ----------
 
 #include <vtkActor.h>
 #include <vtkCallbackCommand.h>
-#include <vtkCommand.h>
-#include <vtkCubeSource.h>
-#include <vtkOpenGLRenderer.h>
-#include <vtkOutlineFilter.h>
+#include <vtkGlyph3DMapper.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
+#include <vtkRenderer.h>
 #include <vtkSphereSource.h>
 
 #include <QColor>
-
-class iAOutlineImpl
-{
-public:
-	iAOutlineImpl(iAAABB const& box, vtkRenderer* renderer, QColor const & c): m_renderer(renderer)
-	{
-		setBounds(box);
-		m_mapper->SetInputConnection(m_cubeSource->GetOutputPort());
-		m_actor->GetProperty()->SetRepresentationToWireframe();
-		m_actor->GetProperty()->SetShading(false);
-		m_actor->GetProperty()->SetOpacity(1);
-		//m_actor->GetProperty()->SetLineWidth(2);
-		m_actor->GetProperty()->SetAmbient(1.0);
-		m_actor->GetProperty()->SetDiffuse(0.0);
-		m_actor->GetProperty()->SetSpecular(0.0);
-		setColor(c);
-		m_actor->SetPickable(false);
-		m_actor->SetMapper(m_mapper);
-		renderer->AddActor(m_actor);
-	}
-	void setVisible(bool visible)
-	{
-		if (visible)
-		{
-			m_renderer->AddActor(m_actor);
-		}
-		else
-		{
-			m_renderer->RemoveActor(m_actor);
-		}
-	}
-	void setOrientationAndPosition(QVector<double> pos, QVector<double> ori)
-	{
-		assert(pos.size() == 3);
-		assert(ori.size() == 3);
-		m_actor->SetPosition(pos.data());
-		m_actor->SetOrientation(ori.data());
-	}
-	void setBounds(iAAABB const& box)
-	{
-		m_cubeSource->SetBounds(
-			box.minCorner().x(), box.maxCorner().x(),
-			box.minCorner().y(), box.maxCorner().y(),
-			box.minCorner().z(), box.maxCorner().z()
-		);
-	}
-	void setColor(QColor const& c)
-	{
-		m_actor->GetProperty()->SetColor(c.redF(), c.greenF(), c.blueF());
-	}
-	QColor color() const
-	{
-		auto rgb = m_actor->GetProperty()->GetColor();
-		return QColor(rgb[0], rgb[1], rgb[2]);
-	}
-
-private:
-	vtkNew<vtkCubeSource> m_cubeSource;
-	vtkNew<vtkPolyDataMapper> m_mapper;
-	vtkNew<vtkActor> m_actor;
-	vtkRenderer* m_renderer;
-};
-
-
-namespace
-{
-	const QString Position("Position");
-	const QString Orientation("Orientation");
-	const QString OutlineColor("Box Color");
-	const QString Pickable("Pickable");
-	const QColor OutlineDefaultColor(Qt::black);
-	const QString Shading = "Shading";
-
-	const QString AmbientLighting = "Ambient lighting";
-	const QString DiffuseLighting = "Diffuse lighting";
-	const QString SpecularLighting = "Specular lighting";
-	const QString SpecularPower = "Specular power";
-
-	template <class T>
-	void applyLightingProperties(T* prop, QVariantMap const & values)
-	{
-		prop->SetAmbient(values[AmbientLighting].toDouble());
-		prop->SetDiffuse(values[DiffuseLighting].toDouble());
-		prop->SetSpecular(values[SpecularLighting].toDouble());
-		prop->SetSpecularPower(values[SpecularPower].toDouble());
-	}
-}
-
-
-#include "iAVolumeSettings.h"
-
-iADataSetRenderer::iADataSetRenderer(vtkRenderer* renderer, bool defaultVisibility):
-	m_renderer(renderer),
-	m_visible(defaultVisibility)
-{
-	addAttribute(Position, iAValueType::Vector3, variantVector<double>({0.0, 0.0, 0.0}));
-	addAttribute(Orientation, iAValueType::Vector3, variantVector<double>({0.0, 0.0, 0.0}));
-	addAttribute(OutlineColor, iAValueType::Color, OutlineDefaultColor);
-	addAttribute(Pickable, iAValueType::Boolean, true);
-
-	auto volumeSettings = iAMainWindow::get()->defaultVolumeSettings();
-	addAttribute(AmbientLighting, iAValueType::Continuous, volumeSettings.AmbientLighting);
-	addAttribute(DiffuseLighting, iAValueType::Continuous, volumeSettings.DiffuseLighting);
-	addAttribute(SpecularLighting, iAValueType::Continuous, volumeSettings.SpecularLighting);
-	addAttribute(SpecularPower, iAValueType::Continuous, volumeSettings.SpecularPower);
-}
-
-iADataSetRenderer::~iADataSetRenderer()
-{}
-
-void iADataSetRenderer::setAttributes(QVariantMap const & values)
-{
-	m_attribValues = values;
-	applyAttributes(values);
-	if (m_outline)
-	{
-		m_outline->setBounds(bounds());	// only potentially changes for volume currently; maybe use signals instead?
-		m_outline->setColor(m_attribValues[OutlineColor].value<QColor>());
-		updateOutlineTransform();
-	}
-}
-
-void iADataSetRenderer::setPickable(bool pickable)
-{
-	m_attribValues[Pickable] = pickable;
-	// TODO: maybe only apply pickable?
-	applyAttributes(m_attribValues);
-}
-
-bool iADataSetRenderer::isPickable() const
-{
-	return m_attribValues[Pickable].toBool();
-}
-
-iAAttributes iADataSetRenderer::attributesWithValues() const
-{
-	iAAttributes result = combineAttributesWithValues(m_attributes, m_attribValues);
-	// set position and orientation from current values:
-	assert(result[0]->name() == Position);
-	auto pos = position();
-	result[0]->setDefaultValue(variantVector<double>({pos[0], pos[1], pos[2]}));
-	assert(result[1]->name() == Orientation);
-	auto ori = orientation();
-	result[1]->setDefaultValue(variantVector<double>({ori[0], ori[1], ori[2]}));
-	return result;
-}
-
-void iADataSetRenderer::setVisible(bool visible)
-{
-	m_visible = visible;
-	if (m_visible)
-	{
-		showDataSet();
-	}
-	else
-	{
-		hideDataSet();
-	}
-}
-
-bool iADataSetRenderer::isVisible() const
-{
-	return m_visible;
-}
-
-void iADataSetRenderer::setBoundsVisible(bool visible)
-{
-	if (!m_outline)
-	{
-		m_outline = std::make_shared<iAOutlineImpl>(bounds(), m_renderer,
-			m_attribValues.contains(OutlineColor) ? m_attribValues[OutlineColor].value<QColor>() : OutlineDefaultColor);
-		updateOutlineTransform();
-	}
-	m_outline->setVisible(visible);
-}
-
-void iADataSetRenderer::addAttribute(
-	QString const& name, iAValueType valueType, QVariant defaultValue, double min, double max)
-{
-#ifndef NDEBUG
-	for (auto attr : m_attributes)
-	{
-		if (attr->name() == name)
-		{
-			LOG(lvlWarn, QString("iADataSetRenderer::addAttribute: Attribute with name %1 already exists!").arg(name));
-		}
-	}
-#endif
-	m_attributes.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
-	m_attribValues[name] = defaultValue;
-}
-
-void iADataSetRenderer::updateOutlineTransform()
-{
-	if (!m_outline)
-	{
-		return;
-	}
-	QVector<double> pos(3), ori(3);
-	for (int i = 0; i < 3; ++i)
-	{
-		pos[i] = position()[i];
-		ori[i] = orientation()[i];
-	}
-	m_outline->setOrientationAndPosition(pos, ori);
-}
-
-//QWidget* iADataSetRenderer::controlWidget()
-//{
-//	return nullptr;
-//}
-
-// ---------- iAGraphRenderer ----------
-
-#include <vtkGlyph3DMapper.h>
+#include <QVector>
 
 namespace
 {
@@ -263,6 +50,15 @@ namespace
 	const QString PointColor = "Point Color";
 	const QString LineColor = "Line Color";
 	const QString LineWidth = "Line Width";
+
+	template <class T>
+	void applyLightingProperties(T* prop, QVariantMap const& values)
+	{
+		prop->SetAmbient(values[iADataSetRenderer::AmbientLighting].toDouble());
+		prop->SetDiffuse(values[iADataSetRenderer::DiffuseLighting].toDouble());
+		prop->SetSpecular(values[iADataSetRenderer::SpecularLighting].toDouble());
+		prop->SetSpecularPower(values[iADataSetRenderer::SpecularPower].toDouble());
+	}
 }
 
 class iAGraphRenderer : public iADataSetRenderer
@@ -496,7 +292,7 @@ protected:
 class iAPolyDataRenderer : public iAPolyActorRenderer
 {
 public:
-	iAPolyDataRenderer(vtkRenderer* renderer, iAPolyData * data):
+	iAPolyDataRenderer(vtkRenderer* renderer, iAPolyData* data) :
 		iAPolyActorRenderer(renderer),
 		m_data(data)
 	{
@@ -567,11 +363,11 @@ bool isLarge(vtkImageData* img)
 	return (byteSize * dim[0] * dim[1] * dim[2] / 1048576.0) >= iAMainWindow::get()->defaultPreferences().LimitForAuto3DRender;
 }
 
-class iAVolRenderer: public iADataSetRenderer
+class iAVolRenderer : public iADataSetRenderer
 {
 public:
 	iAVolRenderer(vtkRenderer* renderer, iAImageData* data, iAImageDataForDisplay* volDataForDisplay) :
-		iADataSetRenderer(renderer, !isFlat(data->vtkImage()) && !isLarge(data->vtkImage()) ),
+		iADataSetRenderer(renderer, !isFlat(data->vtkImage()) && !isLarge(data->vtkImage())),
 		m_volume(vtkSmartPointer<vtkVolume>::New()),
 		m_volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
 		m_volMapper(vtkSmartPointer<vtkSmartVolumeMapper>::New()),
@@ -677,7 +473,7 @@ public:
 		m_volume->SetPosition(pos.data());
 		m_volume->SetOrientation(ori.data());
 		m_volume->SetPickable(values[Pickable].toBool());
-		
+
 		QVector<double> spc = values[Spacing].value<QVector<double>>();
 		assert(spc.size() == 3);
 		m_image->vtkImage()->SetSpacing(spc.data());

@@ -22,6 +22,7 @@
 
 #include "iACsvConfig.h"
 
+#include <iAAABB.h>
 #include <iAAbortListener.h>
 #include <iAProgress.h>
 #include <iAVec3.h>
@@ -80,8 +81,6 @@ public:
 
 QDataStream &operator<<(QDataStream &out, const iARefDiffFiberData &s);
 QDataStream &operator>>(QDataStream &in, iARefDiffFiberData &s);
-
-using iAAABB = std::array<iAVec3f, 2>;
 
 //! Data for the result of a single run of a fiber reconstructcion algorithm.
 class iAFiberResult

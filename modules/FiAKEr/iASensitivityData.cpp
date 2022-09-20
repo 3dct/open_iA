@@ -87,20 +87,13 @@ namespace
 			return 0;
 		}
 	}
-	inline bool boundingBoxesIntersect(iAAABB const& bb1, iAAABB const& bb2)
-	{
-		const int MinIdx = 0, MaxIdx = 1;
-		return bb1[MaxIdx].x() > bb2[MinIdx].x() && bb2[MaxIdx].x() > bb1[MinIdx].x() &&
-			bb1[MaxIdx].y() > bb2[MinIdx].y() && bb2[MaxIdx].y() > bb1[MinIdx].y() &&
-			bb1[MaxIdx].z() > bb2[MinIdx].z() && bb2[MaxIdx].z() > bb1[MinIdx].z();
-	}
 
 	std::vector<size_t> intersectingBoundingBox(iAAABB const& fixedFiberBB, std::vector<iAAABB> const& otherFiberBBs)
 	{
 		std::vector<size_t> fiberIDs;
 		for (size_t f = 0; f < otherFiberBBs.size(); ++f)
 		{
-			if (boundingBoxesIntersect(fixedFiberBB, otherFiberBBs[f]))
+			if (fixedFiberBB.intersects(otherFiberBBs[f]))
 			{
 				fiberIDs.push_back(f);
 			}
@@ -223,7 +216,7 @@ namespace
 		//     take AABB for fiber
 		//     compute index range for AABB
 		// only iterate over this range
-		iAVec3i minC = (bb[0] - origin) / spacing, maxC = (bb[1] - origin) / spacing;
+		iAVec3i minC = (bb.minCorner() - origin) / spacing, maxC = (bb.maxCorner() - origin) / spacing;
 		for (int i = 0; i < 3; ++i)
 		{
 			if (minC[i] < 0 || minC[i] > size[i] || maxC[i] < 0 || maxC[i] > size[i])
@@ -1240,22 +1233,22 @@ void iASensitivityData::computeSpatialOverview(iAProgress* progress)
 	mergeBoundingBoxes(overallBB, resultBBs);
 
 	// create volume V of dimensionality XxYxZ
-	iAVec3d const spacing = (overallBB[1] - overallBB[0]) / volSize;
+	iAVec3d const spacing = (overallBB.maxCorner() - overallBB.minCorner()) / volSize;
 	LOG(lvlDebug,
 		QString("Overview volume: box (tl=%1, %2, %3; br=%4, %5, %6), spacing (%7, %8, %9)")
-			.arg(overallBB[0][0])
-			.arg(overallBB[0][1])
-			.arg(overallBB[0][2])
-			.arg(overallBB[1][0])
-			.arg(overallBB[1][1])
-			.arg(overallBB[1][2])
+			.arg(overallBB.minCorner()[0])
+			.arg(overallBB.minCorner()[1])
+			.arg(overallBB.minCorner()[2])
+			.arg(overallBB.maxCorner()[0])
+			.arg(overallBB.maxCorner()[1])
+			.arg(overallBB.maxCorner()[2])
 			.arg(spacing[0])
 			.arg(spacing[1])
 			.arg(spacing[2]));
 
 	progress->setStatus("Computing fiber volume percentage.");
 	progress->emitProgress(0);
-	iAVec3d origin = overallBB[0];
+	iAVec3d origin = overallBB.minCorner();
 
 	QFile volPercentOutFile(volumePercentageCacheFileName());
 	if (volPercentOutFile.exists() && QFile::exists(averageFiberVoxelCacheFileName()))

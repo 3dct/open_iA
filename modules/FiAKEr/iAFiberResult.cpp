@@ -136,17 +136,12 @@ namespace
 
 	iAAABB computeFiberBBox(std::vector<iAVec3f> const& points, float radius)
 	{
-		std::array<iAVec3f, 2> result;
-		result[0].fill(std::numeric_limits<float>::max());
-		result[1].fill(std::numeric_limits<float>::lowest());
+		iAAABB result;
 		for (size_t p = 0; p < points.size(); ++p)
 		{
-			auto const& pt = points[p].data();
-			for (int i = 0; i < 3; ++i)
-			{
-				result[0][i] = std::min(result[0][i], pt[i] - radius);
-				result[1][i] = std::max(result[1][i], pt[i] + radius);
-			}
+			auto const& pt = points[p];
+			result.addPointToBox(pt - radius);
+			result.addPointToBox(pt + radius);
 		}
 		return result;
 	}
@@ -232,17 +227,7 @@ void mergeBoundingBoxes(iAAABB& bbox, std::vector<iAAABB> const& fiberBBs)
 	bbox = fiberBBs[0];
 	for (size_t bbID = 1; bbID < fiberBBs.size(); ++bbID)
 	{
-		for (int c = 0; c < 3; ++c)
-		{
-			if (fiberBBs[bbID][0][c] < bbox[0][c])
-			{
-				bbox[0][c] = fiberBBs[bbID][0][c];
-			}
-			if (fiberBBs[bbID][1][c] > bbox[1][c])
-			{
-				bbox[1][c] = fiberBBs[bbID][1][c];
-			}
-		}
+		bbox.merge(fiberBBs[bbID]);
 	}
 }
 

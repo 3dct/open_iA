@@ -34,8 +34,12 @@ class iAbase_API iAAABB
 public:
 	iAAABB();
 	iAAABB(double const* b);
+	//! add a point that should fit into the bounding box; if the current box does not contain this point, it is enlarged
 	void addPointToBox(iAVec3d const& pt);
+	//! merge another bounding box to this one, enlarging it if necessary
 	void merge(iAAABB const& other);
+	//! return true if the given other bounding box has intersecting space with this
+	bool intersects(iAAABB const& other) const;
 	iAVec3d const& minCorner() const;
 	iAVec3d const& maxCorner() const;
 

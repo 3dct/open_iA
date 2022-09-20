@@ -29,7 +29,6 @@
 #include <iAFileUtils.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
-#include <iAModalityList.h> // only required for initializing mdichild if no volume dataset loaded; should not be needed
 #include <iAModuleDispatcher.h>
 #include <iAParameterDlg.h>
 #include <iAProjectBase.h>
@@ -269,10 +268,6 @@ void iAFiAKErModuleInterface::loadFiAKErProject()
 
 void iAFiAKErModuleInterface::loadProject(iAMdiChild* mdiChild, QSettings const& projectFile, QString const& fileName, iAFIAKERProject* project)
 {
-	if (mdiChild->modalities()->size() == 0)
-	{ // if no other data loaded yet, we need to make suare mdichild is initialized:
-		mdiChild->displayResult(mdiChild->windowTitle(), nullptr, nullptr);
-	}
 	AttachToMdiChild(mdiChild);
 	iAFiAKErAttachment* attach = attachment<iAFiAKErAttachment>(mdiChild);
 	auto controller = attach->controller();

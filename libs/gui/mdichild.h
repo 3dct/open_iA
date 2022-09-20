@@ -61,7 +61,6 @@ class vtkTransform;
 class dlg_volumePlayer;
 class iADataForDisplay;
 class iADataSetListWidget;
-class iADataSetRenderer;
 class iAParametricSpline;
 struct iAProfileProbe;
 class iASliceRenderer;
@@ -110,9 +109,6 @@ public:
 	bool loadFile(const QString& f, bool isStack) override;
 	void setSTLParameter();
 	bool displayResult(QString const & title, vtkImageData* image = nullptr, vtkPolyData* poly = nullptr) override;
-	void addDataSet(std::shared_ptr<iADataSet> dataSet) override;
-	void removeDataSet(size_t dataSetIdx) override;
-	void clearDataSets() override;
 	void prepareForResult();
 	bool save();
 	void saveNew();
@@ -315,11 +311,17 @@ public:
 
 	void set3DControlVisibility(bool visible) override;
 
+	size_t addDataSet(std::shared_ptr<iADataSet> dataSet) override;
+	void removeDataSet(size_t dataSetIdx) override;
+	void clearDataSets() override;
+	std::shared_ptr<iADataSet> dataSet(size_t dataSetIdx) const override;
 	std::vector<std::shared_ptr<iADataSet>> dataSets() const override;
+	std::vector<size_t> dataSetIndices() const override;
 
 	size_t firstImageDataSetIdx() const override;
 	vtkSmartPointer<vtkImageData> firstImageData() const override;
 	iAModalityTransfer* dataSetTransfer(size_t idx) const override;
+	iADataSetRenderer* dataSetRenderer(size_t idx) const override;
 	void applyRenderSettings(size_t dataSetIdx, QVariantMap const& renderSettings) override;
 
 	bool hasUnsavedData() const;

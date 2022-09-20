@@ -23,12 +23,13 @@
 #include "dlg_slicer.h"
 #include "dlg_volumePlayer.h"
 #include "iADataForDisplay.h"
+#include "iADataSetRendererImpl.h"
 #include "iAFileParamDlg.h"
 #include "iAFileUtils.h"    // for safeFileName
+#include "iAImageDataForDisplay.h"
 #include "iAParametricSpline.h"
 #include "iAProfileProbe.h"
 #include "iAvtkInteractStyleActor.h"
-#include "iAImageDataForDisplay.h"    // TODO: NewIO - move code using this somewhere else?
 #include "mainwindow.h"
 
 // renderer
@@ -621,7 +622,7 @@ void MdiChild::showPoly()
 	changeVisibility(m_visibility);
 }
 
-void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
+size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 {
 	size_t dataSetIdx;
 	{
@@ -641,7 +642,13 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 	auto p = std::make_shared<iAProgress>();
 	auto fw = runAsync([this, dataSet, dataSetIdx, p]()
 		{
-			m_dataForDisplay[dataSetIdx] = createDataForDisplay(dataSet.get(), p.get(), m_preferences.HistogramBins);
+			auto volData = dynamic_cast<iAImageData*>(dataSet.get());
+			if (volData)
+			{
+				m_dataForDisplay[dataSetIdx] = std::make_shared<iAImageDataForDisplay>(volData, p.get(), m_preferences.HistogramBins);
+			}
+			m_dataForDisplay[dataSetIdx] = std::make_shared<iADataForDisplay>(dataSet.get());
+			emit dataForDisplayCreated(dataSetIdx);
 		},
 		[this, dataSet, dataSetIdx]()
 		{
@@ -679,9 +686,11 @@ void MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 			m_dwModalities->hide();
 			m_dataSetListWidget->addDataSet(dataSet.get(), dataSetIdx, render3D, dataRenderer != nullptr, sliceRenderer != nullptr);
 			updateDataSetInfo();
+			emit dataSetRendered(dataSetIdx);
 		},
 		this);
 	iAJobListView::get()->addJob(QString("Computing display data for %1").arg(dataSet->name()), p.get(), fw);
+	return dataSetIdx;
 }
 
 void MdiChild::removeDataSet(size_t dataSetIdx)
@@ -3016,6 +3025,15 @@ void MdiChild::set3DControlVisibility(bool visible)
 	m_dwRenderer->widget3D->setVisible(visible);
 }
 
+std::shared_ptr<iADataSet> MdiChild::dataSet(size_t dataSetIdx) const
+{
+	if (m_dataSets.find(dataSetIdx) != m_dataSets.end())
+	{
+		return m_dataSets.at(dataSetIdx);
+	}
+	return {};
+}
+
 std::vector<std::shared_ptr<iADataSet>> MdiChild::dataSets() const
 {
 	std::vector<std::shared_ptr<iADataSet>> result;
@@ -3024,10 +3042,27 @@ std::vector<std::shared_ptr<iADataSet>> MdiChild::dataSets() const
 	return result;
 }
 
+std::vector<size_t> MdiChild::dataSetIndices() const
+{
+	std::vector<size_t> result;
+	result.reserve(m_dataSets.size());
+	std::transform(m_dataSets.begin(), m_dataSets.end(), std::back_inserter(result), [](auto const& p) { return p.first; });
+	return result;
+}
+
 iAModalityTransfer* MdiChild::dataSetTransfer(size_t idx) const
 {
 	auto volData = dynamic_cast<iAImageDataForDisplay*>(m_dataForDisplay.at(idx).get());
 	return volData ? volData->transfer() : nullptr;
+}
+
+iADataSetRenderer* MdiChild::dataSetRenderer(size_t idx) const
+{
+	if (m_dataRenderers.find(idx) != m_dataRenderers.end())
+	{
+		return m_dataRenderers.at(idx).get();
+	}
+	return nullptr;
 }
 
 void MdiChild::applyRenderSettings(size_t dataSetIdx, QVariantMap const& renderSettings)
