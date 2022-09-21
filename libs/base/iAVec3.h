@@ -23,6 +23,8 @@
 #include <algorithm>  // for std::fill (in Linux)
 #include <cmath>      // for std::acos
 
+#include <QString>
+
 //!	Class representing a 3-dimensional vector.
 template <typename T>
 class iAVec3T
@@ -88,6 +90,8 @@ public:
 	template <typename ParamType> iAVec3T<T>& operator*= (ParamType f);
 	//! divide all components of this vector by the respective components of another vector
 	template <typename ParamType> iAVec3T<T>& operator/= (const iAVec3T<ParamType>& v);
+
+	QString toString() const;
 
 private:
 	//! array holding the vector components
@@ -287,6 +291,12 @@ iAVec3T<T>& iAVec3T<T>::operator/= (const iAVec3T<ParamType>& v)
 		values[i] /= static_cast<T>(v.values[i]);
 	}
 	return *this;
+}
+
+template <typename T>
+QString iAVec3T<T>::toString() const
+{
+	return QString("%1, %2, %3").arg(x()).arg(y()).arg(z());
 }
 
 template <typename T>

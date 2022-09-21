@@ -47,6 +47,14 @@ void iAAABB::merge(iAAABB const& other)
 	addPointToBox(other.maxCorner());
 }
 
+bool iAAABB::contains(iAVec3d const& pt) const
+{
+	return
+		minCorner().x() <= pt.x() && pt.x() <= maxCorner().x() &&
+		minCorner().y() <= pt.y() && pt.y() <= maxCorner().y() &&
+		minCorner().z() <= pt.z() && pt.z() <= maxCorner().z();
+}
+
 bool iAAABB::intersects(iAAABB const& other) const
 {
 	return
