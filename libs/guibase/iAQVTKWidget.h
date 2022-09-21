@@ -22,15 +22,9 @@
 
 #include "iAguibase_export.h"
 
-#include <iAVtkVersion.h>    // required for VTK < 9.0
+#include <QVTKOpenGLNativeWidget.h>
 
-#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0))
-	#include <QVTKOpenGLNativeWidget.h>
-	using iAVtkWidget = QVTKOpenGLNativeWidget;
-#else
-	#include <QVTKOpenGLWidget.h>
-	using iAVtkWidget = QVTKOpenGLWidget;
-#endif
+using iAVtkWidget = QVTKOpenGLNativeWidget;
 
 //! Unified interface to a Qt widget with VTK content, providing consistent usage for VTK versions 8 to 9.
 class iAguibase_API iAQVTKWidget: public iAVtkWidget
@@ -38,11 +32,5 @@ class iAguibase_API iAQVTKWidget: public iAVtkWidget
 public:
 	//! Creates the widget; makes sure its inner vtk render window is set, and sets an appropriate surface format
 	iAQVTKWidget(QWidget* parent = nullptr);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	//! access to VTK render window (compatibility method to VTK 9 for VTK 8)
-	vtkRenderWindow* renderWindow();
-	//! access to VTK interactor (compatibility method to provide same interface as VTK 9, when using VTK 8)
-	QVTKInteractor* interactor();
-#endif
 	void updateAll();
 };

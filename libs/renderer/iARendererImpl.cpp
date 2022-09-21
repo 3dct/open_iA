@@ -32,7 +32,6 @@
 #include "iARenderSettings.h"
 #include "iASlicerMode.h"
 #include "iAToolsVTK.h"    // for setCamPos
-#include "iAVtkVersion.h"
 
 #include <vtkActor.h>
 #include <vtkAnnotatedCubeActor.h>
@@ -68,6 +67,7 @@
 #include <vtkTextProperty.h>
 #include <vtkTransform.h>
 #include <vtkUnstructuredGrid.h>
+#include <vtkVersion.h>
 #include <vtkWindowToImageFilter.h>
 
 #include <QApplication>

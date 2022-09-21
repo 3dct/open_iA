@@ -22,57 +22,48 @@
 
 //compVis
 #include "iACoefficientOfVariation.h"
-#include "iAVtkVersion.h"
 #include "iACompVisOptions.h"
-
 
 // core
 #include "iAMainWindow.h"
-#include "iAVtkVersion.h"
 #include "iAQVTKWidget.h"
 
 //vtk
+#include <vtkAbstractContextItem.h>
+#include <vtkActor.h>
+#include <vtkAxis.h>
+#include <vtkBoundingBox.h>
+#include <vtkBrush.h>
+#include <vtkCellData.h>
+#include <vtkCellPicker.h>
+#include <vtkContextArea.h>
+#include <vtkContextScene.h>
+#include <vtkContextView.h>
+#include <vtkCoordinate.h>
+#include <vtkCubeSource.h>
+#include <vtkDoubleArray.h>
+#include <vtkFloatArray.h>
+#include <vtkGlyph3DMapper.h>
+#include <vtkIntArray.h>
+#include <vtkLookupTable.h>
 #include <vtkObjectFactory.h> //for macro!
-#include "vtkDoubleArray.h"
-#include "vtkStringArray.h"
-#include "vtkIntArray.h"
-
-#include "vtkRenderer.h"
-#include <vtkRenderWindow.h>
-#include "vtkContextView.h"
-#include "vtkContextScene.h"
-
-#include "vtkTable.h"
-#include "vtkPlotBar.h"
-#include "vtkAxis.h"
-#include "vtkTextProperty.h"
-
-#include "vtkPolygon.h"
-#include "vtkPolyDataMapper.h"
-#include "vtkActor.h"
-#include "vtkProperty.h"
-#include "vtkRenderer.h"
-#include "vtkPolyDataItem.h"
-#include <vtkPropItem.h>
-#include "vtkContextArea.h"
-#include "vtkAbstractContextItem.h"
-#include "vtkBoundingBox.h"
-#include "vtkCubeSource.h"
-#include "vtkCellData.h"
-#include "vtkLookupTable.h"
-#include "vtkPlaneSource.h"
-#include "vtkGlyph3DMapper.h"
-#include "vtkFloatArray.h"
-#include "vtkPen.h"
-#include "vtkBrush.h"
-
-#include "vtkTooltipItem.h"
+#include <vtkPen.h>
+#include <vtkPlaneSource.h>
+#include <vtkPlotBar.h>
+#include <vtkPointData.h>
+#include <vtkPointLocator.h>
 #include <vtkPointPicker.h>
-#include "vtkCellPicker.h"
-#include "vtkPointLocator.h"
-#include "vtkCoordinate.h"
-#include "vtkPen.h"
-#include "vtkPointData.h"
+#include <vtkPolyDataItem.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkPolygon.h>
+#include <vtkProperty.h>
+#include <vtkPropItem.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
+#include <vtkStringArray.h>
+#include <vtkTable.h>
+#include <vtkTextProperty.h>
+#include <vtkTooltipItem.h>
 
 #include <vector>
 #include <algorithm>
@@ -273,9 +264,7 @@ void iACompBarChart::initializeAxes(std::vector<double>* orderedPos)
 	m_area->GetAxis(vtkAxis::TOP)->SetAxisVisible(false);
 	m_area->GetAxis(vtkAxis::TOP)->SetTicksVisible(false);
 	m_area->GetAxis(vtkAxis::TOP)->SetLabelsVisible(false);
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8,2,0)
 	m_area->GetAxis(vtkAxis::TOP)->SetTitleVisible(true);
-#endif
 	vtkAxis *axisTop = m_area->GetAxis(vtkAxis::TOP);
 	axisTop->SetTitle("Coefficient of Variation");
 	axisTop->GetTitleProperties()->BoldOn();

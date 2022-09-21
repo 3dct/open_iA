@@ -41,8 +41,6 @@
 #include "iAVisModuleItem.h"
 #include "iA4DCTRegionMarkerModule.h"
 
- #include <iAVtkVersion.h>    // required for VTK < 9.0
-
 #include <QSettings>
 #include <QString>
 #include <QVector>
@@ -189,11 +187,7 @@ void iA4DCTVisWin::setNumberOfStages( int number )
 
 void iA4DCTVisWin::updateRenderWindow( )
 {
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	qvtkWidget->GetRenderWindow( )->Render( );
-#else
 	qvtkWidget->renderWindow()->Render();
-#endif
 }
 
 // show dialog to select an image file
@@ -483,11 +477,7 @@ void iA4DCTVisWin::enableMagicLens( bool enable )
 void iA4DCTVisWin::resetCamera( )
 {
 	m_mainRen->ResetCamera( );
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	qvtkWidget->GetRenderWindow( )->Render( );
-#else
 	qvtkWidget->renderWindow()->Render();
-#endif
 }
 
 void iA4DCTVisWin::setXYView( )
@@ -570,11 +560,7 @@ void iA4DCTVisWin::changeBackground( QColor col )
 
 void iA4DCTVisWin::enableSideBySideView( bool enabled )
 {
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	qvtkWidget->GetRenderWindow( )->GetRenderers( )->RemoveAllItems( );
-#else
 	qvtkWidget->renderWindow()->GetRenderers()->RemoveAllItems();
-#endif
 
 	if( enabled )
 	{
@@ -582,11 +568,7 @@ void iA4DCTVisWin::enableSideBySideView( bool enabled )
 		double start = 0.;
 
 		vtkSmartPointer<vtkRenderer> screenRen = vtkSmartPointer<vtkRenderer>::New( );
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		qvtkWidget->GetRenderWindow( )->AddRenderer( screenRen );
-#else
 		qvtkWidget->renderWindow()->AddRenderer(screenRen);
-#endif
 
 		vtkSmartPointer<vtkCamera> cam = vtkSmartPointer<vtkCamera>::New( );
 		cam->ShallowCopy( m_mainRen->GetActiveCamera( ) );
@@ -600,11 +582,7 @@ void iA4DCTVisWin::enableSideBySideView( bool enabled )
 
 			//ren->SetActiveCamera( m_mainRen->GetActiveCamera( ) );
 			ren->SetActiveCamera( cam );
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-			qvtkWidget->GetRenderWindow( )->AddRenderer( ren );
-#else
 			qvtkWidget->renderWindow()->AddRenderer(ren);
-#endif
 		}
 
 		QList<iAVisModuleItem *> modules = m_visModules.getModules( );
@@ -621,11 +599,7 @@ void iA4DCTVisWin::enableSideBySideView( bool enabled )
 	}
 	else
 	{
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		qvtkWidget->GetRenderWindow( )->AddRenderer( m_mainRen );
-#else
 		qvtkWidget->renderWindow()->AddRenderer(m_mainRen);
-#endif
 		QList<iAVisModuleItem *> modules = m_visModules.getModules( );
 		for( auto m : modules ) {
 			m->module->disable( );

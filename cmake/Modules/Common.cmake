@@ -204,53 +204,35 @@ set(BUILD_INFO "${BUILD_INFO}    \"ITK	${ITK_VERSION} (GPU: ${ITK_GPU_INFO}, SCI
 # VTK
 find_package(VTK REQUIRED)
 message(STATUS "VTK: ${VTK_VERSION} in ${VTK_DIR}")
-if (VTK_VERSION VERSION_LESS "8.0.0")
-	message(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 8.0")
-endif()
-if (VTK_VERSION VERSION_LESS "8.2.0" AND "${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL")
-	message(FATAL_ERROR "VTK was built with the old OpenGL backend; please switch to VTK_RENDERING_BACKEND=OpenGL2, or use a newer VTK version (VTK >= 8.2.0)!")
+if (VTK_VERSION VERSION_LESS "9.0.0")
+	message(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 9.0")
 endif()
 set(VTK_LIB_PREFIX "VTK::")
-if (VTK_VERSION VERSION_LESS "9.0.0")
-	set(VTK_COMP_PREFIX "vtk")
-	set(VTK_BASE_LIB_LIST kwiml)
-	set(VTK_LIB_PREFIX "vtk")
-else()
-	set(VTK_COMP_PREFIX "")
-endif()
 set(VTK_COMPONENTS
-	${VTK_COMP_PREFIX}FiltersModeling         # for vtkRotationalExtrusionFilter, vtkOutlineFilter
-	${VTK_COMP_PREFIX}InteractionImage        # for vtkImageViewer2
-	${VTK_COMP_PREFIX}InteractionWidgets      # for vtkScalarBarWidget/Representation
-	${VTK_COMP_PREFIX}ImagingStatistics       # for vtkImageAccumulate
-	${VTK_COMP_PREFIX}IOGeometry              # for vtkSTLReader/Writer
-	${VTK_COMP_PREFIX}IOMovie                 # for vtkGenericMovieWriter
-	${VTK_COMP_PREFIX}RenderingAnnotation     # for vtkAnnotatedCubeActor, vtkCaptionActor, vtkScalarBarActor
-	${VTK_COMP_PREFIX}RenderingContextOpenGL2 # required, otherwise 3D renderer CRASHES somewhere with a nullptr access in vtkContextActor::GetDevice !!!
-	${VTK_COMP_PREFIX}RenderingImage          # for vtkImageResliceMapper
-	${VTK_COMP_PREFIX}RenderingVolumeOpenGL2  # for volume rendering
-	${VTK_COMP_PREFIX}RenderingQt             # for vtkQImageToImageSource, also pulls in vtkGUISupportQt (for QVTKWidgetOpenGL)
-	${VTK_COMP_PREFIX}ViewsContext2D          # for vtkContextView, vtkContextInteractorStyle
-	${VTK_COMP_PREFIX}ViewsInfovis)           # for vtkGraphItem
-if (VTK_MAJOR_VERSION GREATER_EQUAL 9)
-	list(APPEND VTK_COMPONENTS          # components not pulled in automatically anymore in VTK >= 9:
-		ChartsCore                  # for vtkAxis, vtkChart, vtkChartParallelCoordinates, used in FeatureScout, FuzzyFeatureTracking, GEMSE, PorosityAnalyzer
-		CommonColor                 # for vtkNamedColors, vtkColorSeries, used in CompVis
-		CommonComputationalGeometry # for vtkParametricSpline, used in core - iASpline/iAParametricSpline
-		FiltersExtraction           # for vtkExtractGeometry, used in FIAKER - iASelectionInteractorStyle
-		FiltersGeometry             # for vtkImageDataGeometryFilter used in iALabel3D and vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
-		FiltersHybrid               # for vtkDepthSortPolyData used in 4DCT, DreamCaster, FeatureScout, vtkPolyDataSilhouette used in FeatureScout
-		FiltersStatistics           # for vtkDataSetSurfaceFilter used in BoneThickness - iABoneThickness
-		GUISupportQt                # for QVTKOpenGLNativeWidget
-		ImagingHybrid               # for vtkSampleFunction.h used in FeatureScout - iABlobCluster
-		InfovisLayout               # for vtkGraphLayoutStrategy used in CompVis
-		IOXML                       # for vtkXMLImageDataReader used in iAIO
-	)
-else()
-	list(APPEND VTK_COMPONENTS
-		vtkFiltersPoints            # for vtkExtractSurface in FiAKEr
-		vtkFiltersProgrammable)     # for vtkProgrammableGlyphFilter in CompVis
-endif()
+	ChartsCore                  # for vtkAxis, vtkChart, vtkChartParallelCoordinates, used in FeatureScout, FuzzyFeatureTracking, GEMSE, PorosityAnalyzer
+	CommonColor                 # for vtkNamedColors, vtkColorSeries, used in CompVis
+	CommonComputationalGeometry # for vtkParametricSpline, used in core - iASpline/iAParametricSpline
+	FiltersExtraction           # for vtkExtractGeometry, used in FIAKER - iASelectionInteractorStyle
+	FiltersGeometry             # for vtkImageDataGeometryFilter used in iALabel3D and vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
+	FiltersHybrid               # for vtkDepthSortPolyData used in 4DCT, DreamCaster, FeatureScout, vtkPolyDataSilhouette used in FeatureScout
+	FiltersModeling             # for vtkRotationalExtrusionFilter, vtkOutlineFilter
+	FiltersStatistics           # for vtkDataSetSurfaceFilter used in BoneThickness - iABoneThickness
+	GUISupportQt                # for QVTKOpenGLNativeWidget
+	ImagingHybrid               # for vtkSampleFunction.h used in FeatureScout - iABlobCluster
+	InfovisLayout               # for vtkGraphLayoutStrategy used in CompVis
+	InteractionImage            # for vtkImageViewer2
+	InteractionWidgets          # for vtkScalarBarWidget/Representation
+	ImagingStatistics           # for vtkImageAccumulate
+	IOGeometry                  # for vtkSTLReader/Writer
+	IOMovie                     # for vtkGenericMovieWriter
+	IOXML                       # for vtkXMLImageDataReader used in iAIO
+	RenderingAnnotation         # for vtkAnnotatedCubeActor, vtkCaptionActor, vtkScalarBarActor
+	RenderingContextOpenGL2     # required, otherwise 3D renderer CRASHES somewhere with a nullptr access in vtkContextActor::GetDevice !!!
+	RenderingImage              # for vtkImageResliceMapper
+	RenderingVolumeOpenGL2      # for volume rendering
+	RenderingQt                 # for vtkQImageToImageSource, also pulls in vtkGUISupportQt (for QVTKWidgetOpenGL)
+	ViewsContext2D              # for vtkContextView, vtkContextInteractorStyle
+	ViewsInfovis)               # for vtkGraphItem
 if ("${vtkRenderingOSPRay_LOADED}")
 	add_compile_definitions(VTK_OSPRAY_AVAILABLE)
 endif()
@@ -267,7 +249,7 @@ endfunction()
 
 if (vtkRenderingOpenVR_LOADED OR TARGET VTK::RenderingOpenVR)
 	set(BUILD_INFO_VTK_VR_SUPPORT "on")
-	list(APPEND VTK_COMPONENTS ${VTK_COMP_PREFIX}RenderingOpenVR)
+	list(APPEND VTK_COMPONENTS RenderingOpenVR)
 	if (VTK_MAJOR_VERSION LESS 9)
 		string(FIND "${vtkRenderingOpenVR_INCLUDE_DIRS}" ";" semicolonpos REVERSE)
 		math(EXPR aftersemicolon "${semicolonpos}+1")
@@ -795,10 +777,5 @@ function (ADD_IMPORTEDTARGET_LIBRARIES libname libprefix pubpriv liblist)
 endfunction()
 
 function (ADD_VTK_LIBRARIES libname pubpriv liblist)
-	if (VTK_VERSION VERSION_LESS "9.0.0")
-		#list(APPEND liblist ${VTK_BASE_LIB_LIST})
-		#ADD_LEGACY_LIBRARIES(${libname} ${VTK_LIB_PREFIX} ${pubpriv} "${liblist}")
-	else()
-		ADD_IMPORTEDTARGET_LIBRARIES(${libname} ${VTK_LIB_PREFIX} ${pubpriv} "${liblist}")
-	endif()
+	ADD_IMPORTEDTARGET_LIBRARIES(${libname} ${VTK_LIB_PREFIX} ${pubpriv} "${liblist}")
 endfunction()

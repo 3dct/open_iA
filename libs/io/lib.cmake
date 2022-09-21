@@ -1,19 +1,15 @@
 target_link_libraries(${libname} PUBLIC
 	iA::base
 )
-if (VTK_VERSION VERSION_LESS "9.0.0")
-	target_link_libraries(${libname} PUBLIC ${VTK_LIBRARIES})
-else()
-	set(VTK_REQUIRED_LIBS_PUBLIC
-		# move to separate IO library?
-		IOImage               # for volume loading; move to a new "io" library?
-		IOGeometry            # for vtkSTLReader/Writer; move to a new "io" library?
-		IOXML                   # VTK9, for vtkXMLImageDataReader used in iAIO
-	)
-	if (TARGET VTK::RenderingOpenVR)
-		list(APPEND VTK_REQUIRED_LIBS_PUBLIC
-			RenderingOpenVR)       # implements VTK::RenderingCore
-	endif()
+set(VTK_REQUIRED_LIBS_PUBLIC
+	# move to separate IO library?
+	IOImage               # for volume loading; move to a new "io" library?
+	IOGeometry            # for vtkSTLReader/Writer; move to a new "io" library?
+	IOXML                   # VTK9, for vtkXMLImageDataReader used in iAIO
+)
+if (TARGET VTK::RenderingOpenVR)
+	list(APPEND VTK_REQUIRED_LIBS_PUBLIC
+		RenderingOpenVR)       # implements VTK::RenderingCore
 endif()
 
 if (HDF5_FOUND)

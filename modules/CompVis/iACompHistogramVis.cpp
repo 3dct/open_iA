@@ -13,17 +13,16 @@
 //iA
 #include "iAMainWindow.h"
 #include "iAQVTKWidget.h"
-#include "iAVtkVersion.h"
 
 //Qt
 #include <QBoxLayout>
 
 //vtk
-#include "vtkRenderer.h"
-#include "vtkRenderWindow.h"
-#include "vtkInteractorObserver.h"
-#include "vtkRendererCollection.h"
-#include "vtkCamera.h"
+#include <vtkCamera.h>
+#include <vtkInteractorObserver.h>
+#include <vtkRenderer.h>
+#include <vtkRendererCollection.h>
+#include <vtkRenderWindow.h>
 
 iACompHistogramVis::iACompHistogramVis(
 	iACompHistogramTable* table, iAMainWindow* parent, int amountDatasets, bool MDSComputedFlag) :
@@ -299,47 +298,31 @@ void iACompHistogramVis::showWhiteCurve()
 
 void iACompHistogramVis::addRendererToWidget(vtkSmartPointer<vtkRenderer> renderer)
 {
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetRenderWindow()->AddRenderer(renderer);
-	#else
-		m_qvtkWidget->renderWindow()->AddRenderer(renderer);
-	#endif
+	m_qvtkWidget->renderWindow()->AddRenderer(renderer);
 }
 
 void iACompHistogramVis::renderWidget()
 {
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
-	#else
-		//m_qvtkWidget->renderWindow()->GetInteractor()->Render();
+	//m_qvtkWidget->renderWindow()->GetInteractor()->Render();
 	m_qvtkWidget->renderWindow()->Render(); ////////////////////////////////
-	#endif
 }
 
 void iACompHistogramVis::setInteractorStyleToWidget(vtkSmartPointer<vtkInteractorObserver> style)
 {
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetInteractor()->SetInteractorStyle(style);
-	#else
-		m_qvtkWidget->interactor()->SetInteractorStyle(style);
-	#endif
+	m_qvtkWidget->interactor()->SetInteractorStyle(style);
 }
 
 void iACompHistogramVis::removeAllRendererFromWidget()
 {
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		
-	#else
-		vtkRendererCollection* rendererList = m_qvtkWidget->renderWindow()->GetRenderers();
+	vtkRendererCollection* rendererList = m_qvtkWidget->renderWindow()->GetRenderers();
 
-		vtkCollectionSimpleIterator sit;
-		rendererList->InitTraversal(sit);
-		for (int i = 0; i < rendererList->GetNumberOfItems(); i++)
-		{
-			vtkRenderer* currRend = rendererList->GetNextRenderer(sit);
-			m_qvtkWidget->renderWindow()->RemoveRenderer(currRend);
-		}
-	#endif
+	vtkCollectionSimpleIterator sit;
+	rendererList->InitTraversal(sit);
+	for (int i = 0; i < rendererList->GetNumberOfItems(); i++)
+	{
+		vtkRenderer* currRend = rendererList->GetNextRenderer(sit);
+		m_qvtkWidget->renderWindow()->RemoveRenderer(currRend);
+	}
 }
 
 /****************************************** Getter & Setter **********************************************/

@@ -79,7 +79,6 @@
 #include <iAStringHelper.h>
 #include <iAToolsVTK.h>
 #include <iATransferFunction.h>
-#include <iAVtkVersion.h>    // required for VTK < 9.0
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>

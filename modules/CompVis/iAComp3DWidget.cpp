@@ -66,36 +66,21 @@ void iAComp3DWidget::showEvent(QShowEvent* event)
 
 void iAComp3DWidget::renderWidget()
 {
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
-#else
 	m_qvtkWidget->renderWindow()->GetInteractor()->Render();
-#endif
 }
 
 void iAComp3DWidget::addRendererToWidget(vtkSmartPointer<vtkRenderer> renderer)
 {
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_qvtkWidget->GetRenderWindow()->AddRenderer(renderer);
-#else
 	m_qvtkWidget->renderWindow()->AddRenderer(renderer);
-#endif
 }
 
 void iAComp3DWidget::setInteractorStyleToWidget(vtkSmartPointer<vtkInteractorObserver> style)
 {
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_qvtkWidget->GetInteractor()->SetInteractorStyle(style);
-#else
 	m_qvtkWidget->interactor()->SetInteractorStyle(style);
-#endif
 }
 
 void iAComp3DWidget::removeAllRendererFromWidget()
 {
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-
-#else
 	vtkRendererCollection* rendererList = m_qvtkWidget->renderWindow()->GetRenderers();
 
 	vtkCollectionSimpleIterator sit;
@@ -105,7 +90,6 @@ void iAComp3DWidget::removeAllRendererFromWidget()
 		vtkRenderer* currRend = rendererList->GetNextRenderer(sit);
 		m_qvtkWidget->renderWindow()->RemoveRenderer(currRend);
 	}
-#endif
 }
 
 /*************** Initialization ****************************/

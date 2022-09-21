@@ -38,7 +38,6 @@
 #include <iAStringHelper.h>
 #include <iAToolsITK.h>
 #include <iAToolsVTK.h>
-#include <iAVtkVersion.h>    // required for VTK < 9.0
 #include <io/iAIOProvider.h>
 
 // slicer
@@ -161,11 +160,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_renWin->PointSmoothingOn();
 	// Turned off, because of gray strokes e.g., on scalarBarActors. Only on NVIDIA graphic cards:
 	m_renWin->PolygonSmoothingOff();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	SetRenderWindow(m_renWin);
-#else
 	setRenderWindow(m_renWin);
-#endif
 	setDefaultInteractor();
 
 	m_renWin->AddRenderer(m_ren);
@@ -2221,12 +2216,7 @@ void iASlicerImpl::addPoint(double xPos, double yPos, double zPos)
 	//add point to the snake slicer spline
 	m_snakeSpline->addPoint(x, y);
 
-	// render slice view
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	GetRenderWindow()->GetInteractor()->Render();
-#else
 	renderWindow()->GetInteractor()->Render();
-#endif
 }
 
 void iASlicerImpl::updateRawProfile(double posY)
@@ -2241,12 +2231,7 @@ void iASlicerImpl::updateRawProfile(double posY)
 	{
 		return;
 	}
-	// render slice view
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	GetRenderWindow()->GetInteractor()->Render();
-#else
 	renderWindow()->GetInteractor()->Render();
-#endif
 }
 
 bool iASlicerImpl::setProfilePoint(int pointInd, double* Pos)
@@ -2277,11 +2262,7 @@ bool iASlicerImpl::setProfilePointWithClamp(int pointInd, double * Pos, bool doC
 	{
 		return false;
 	}
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	GetRenderWindow()->GetInteractor()->Render();
-#else
 	renderWindow()->GetInteractor()->Render();
-#endif
 	return true;
 }
 
@@ -2301,12 +2282,7 @@ void iASlicerImpl::movePoint(size_t selectedPointIndex, double xPos, double yPos
 		// move only if a point is selected
 		m_snakeSpline->movePoint(selectedPointIndex, x, y);
 
-		// render slice view
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		GetRenderWindow()->GetInteractor()->Render();
-#else
 		renderWindow()->GetInteractor()->Render();
-#endif
 	}
 }
 
@@ -2342,11 +2318,7 @@ void iASlicerImpl::setProfileHandlesOn(bool isOn)
 	}
 	m_profileHandlesEnabled = isOn;
 	m_profileHandles->setVisibility(m_profileHandlesEnabled);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	GetRenderWindow()->GetInteractor()->Render();
-#else
 	renderWindow()->GetInteractor()->Render();
-#endif
 }
 
 void iASlicerImpl::setLinkedMdiChild(iAMdiChild* mdiChild)
@@ -2490,11 +2462,7 @@ void iASlicerImpl::fisheyeLensToggled(bool enabled)
 
 void iASlicerImpl::initializeFisheyeLens(vtkImageReslice* reslicer)
 {
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
-#else
 	vtkRenderer * ren = renderWindow()->GetRenderers()->GetFirstRenderer();
-#endif
 
 	m_fisheyeTransform = vtkSmartPointer<vtkThinPlateSplineTransform>::New();
 	m_fisheyeTransform->SetBasisToR2LogR();

@@ -20,13 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAImNDTMain.h"
+
 #include <vtkEventData.h>
 #include <vtkOpenVRInteractorStyle.h>
 #include <vtkSmartPointer.h>
-
-#include "iAVtkVersion.h"
-
-#include "iAImNDTMain.h"
+#include <vtkVersion.h>
 
 #define NUMBER_OF_DEVICES static_cast<int>(vtkEventDataDevice::NumberOfDevices)
 #define NUMBER_OF_INPUTS static_cast<int>(vtkEventDataDeviceInput::NumberOfInputs)

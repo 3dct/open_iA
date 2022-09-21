@@ -29,7 +29,6 @@
 #include "iATypedCallHelper.h"
 #include "iAValueTypeVectorHelpers.h"        // for variantVectorFrom
 #include "iAVtkDraw.h"
-#include "iAVtkVersion.h"
 
 #include <vtkBMPWriter.h>
 #include <vtkCamera.h>
@@ -449,15 +448,8 @@ void convertTFToLUT(vtkSmartPointer<vtkLookupTable> lut, vtkSmartPointer<vtkScal
 	double rgb[3];
 	double const* inRange = ctf->GetRange();
 	double const* outRange = lutRange ? lutRange : inRange;
-#if VTK_VERSION_NUMBER <= VTK_VERSION_CHECK(8, 0, 0)
-	double rangeNonConst[2];
-	std::copy(outRange, outRange + 2, rangeNonConst);
-	lut->SetRange(rangeNonConst);
-	lut->SetTableRange(rangeNonConst);
-#else
 	lut->SetRange(outRange);
 	lut->SetTableRange(outRange);
-#endif
 	lut->SetNumberOfTableValues(numCols);
 	for (long long i = 0; i < numCols; ++i)
 	{

@@ -27,7 +27,6 @@
 #include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
 #include <iAVolumeStack.h>
-#include <iAVtkVersion.h>
 #include <iAMdiChild.h>
 
 #include <iARendererImpl.h>

@@ -25,7 +25,6 @@
 #include "iALog.h"
 #include "iALookupTable.h"
 #include "iAToolsVTK.h"      // for convertTFToLUT
-#include "iAVtkVersion.h"    // required for VTK < 9.0
 
 #include <QColor>
 #include <QDirIterator>

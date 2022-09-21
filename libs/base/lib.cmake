@@ -5,48 +5,31 @@ target_link_libraries(${libname} PUBLIC
 	Qt${QT_VERSION_MAJOR}::Gui
 	# ::Widgets # seems to be pulled in by vtk's GUISupportQt automatically
 )
-if (VTK_VERSION VERSION_LESS "9.0.0")
-	target_link_libraries(${libname} PUBLIC ${VTK_LIBRARIES})
-else()
-	set(VTK_REQUIRED_LIBS_PUBLIC
-		CommonCore
-		CommonDataModel
-		CommonExecutionModel
-		# move to separate IO library?
-		IOImage               # for volume loading; move to a new "io" library?
-		IOGeometry            # for vtkSTLReader/Writer; move to a new "io" library?
-		IOXML                   # VTK9, for vtkXMLImageDataReader used in iAIO
-		# ideally, base would not reference any VTK libraries;
-		# at least the following GUI/Rendering library references should be removed:
-		GUISupportQt
-		ImagingCore
-		RenderingCore
-		RenderingOpenGL2
-		RenderingVolumeOpenGL2
-		InteractionStyle      # implements VTK::RenderingCore
-		RenderingFreeType     # implements VTK::RenderingCore
-		RenderingGL2PSOpenGL2 # implements VTK::RenderingOpenGL2
-		RenderingUI           # implements VTK::RenderingCore
-	)
-	# for VTK < 9 we have to use VTK_USE_FILE anyway for module autoinitialization
-	#	LIST(APPEND VTK_REQUIRED_LIBS_PUBLIC
-	#		CommonMath          # for vtkTuple.h, required by Common/DataModel/vtkVector.h
-	#		FiltersCore         # for vtkFiltersCoreModule.h, required by vtkRenderingCoreModule.h
-	#		GUISupportQtOpenGL  # for QVTKWidget2.h
-	#		RenderingVolume     # for vtkRenderingVolumeModule.h, required by vtkRenderingVolumeOpenGLModule.h
-	#	)
-
-	if (TARGET VTK::RenderingOpenVR)
-		list(APPEND VTK_REQUIRED_LIBS_PUBLIC
-			RenderingOpenVR)       # implements VTK::RenderingCore
-	endif()
+set(VTK_REQUIRED_LIBS_PUBLIC
+	CommonCore
+	CommonDataModel
+	CommonExecutionModel
+	# move to separate IO library?
+	IOImage               # for volume loading; move to a new "io" library?
+	IOGeometry            # for vtkSTLReader/Writer; move to a new "io" library?
+	IOXML                   # VTK9, for vtkXMLImageDataReader used in iAIO
+	# ideally, base would not reference any VTK libraries;
+	# at least the following GUI/Rendering library references should be removed:
+	GUISupportQt
+	ImagingCore
+	RenderingCore
+	RenderingOpenGL2
+	RenderingVolumeOpenGL2
+	InteractionStyle      # implements VTK::RenderingCore
+	RenderingFreeType     # implements VTK::RenderingCore
+	RenderingGL2PSOpenGL2 # implements VTK::RenderingOpenGL2
+	RenderingUI           # implements VTK::RenderingCore
+)
+if (TARGET VTK::RenderingOpenVR)
+	list(APPEND VTK_REQUIRED_LIBS_PUBLIC
+		RenderingOpenVR)       # implements VTK::RenderingCore
 endif()
-# VTK_REQUIRED_LIBS_PUBLIC above only used anyway on VTK >= 9, which only supports OpenGL2 backend...
-#	list(APPEND VTK_REQUIRED_LIBS_PUBLIC
-#		RenderingGL2PSOpenGL2 # implements VTK::RenderingOpenGL2
-#	)
 
-#	
 # instead of linking all ITK_LIBRARIES:
 	# regarding ITKIO... dependencies to these are pulled in automatically by IO factories somehow:
 #set(ITK_REQUIRED_LIBS_PUBLIC

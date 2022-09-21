@@ -28,7 +28,6 @@
 #include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
 #include <iAVolumeSettings.h>
-#include <iAVtkVersion.h>
 
 #include <iARendererImpl.h>
 #include <iARendererViewSync.h>

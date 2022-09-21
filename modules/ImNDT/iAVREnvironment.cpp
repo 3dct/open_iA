@@ -21,16 +21,16 @@
 #include "iAVREnvironment.h"
 
 #include <iALog.h>
-#include <iAVtkVersion.h>
 
-#include <vtkOpenVRRenderer.h>
-#include <vtkOpenVRRenderWindow.h>
-#include <vtkOpenVRCamera.h>
-#include <vtkPNGReader.h>
 #include <vtkImageFlip.h>
 #include <vtkLight.h>
 #include <vtkLightKit.h>
+#include <vtkOpenVRRenderer.h>
+#include <vtkOpenVRRenderWindow.h>
+#include <vtkOpenVRCamera.h>
 #include <vtkPickingManager.h>
+#include <vtkPNGReader.h>
+#include <vtkVersion.h>
 
 #include <QCoreApplication>
 #include <QDir>

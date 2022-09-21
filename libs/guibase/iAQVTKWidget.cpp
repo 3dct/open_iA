@@ -23,25 +23,9 @@
 #include <vtkGenericOpenGLRenderWindow.h>
 
 iAQVTKWidget::iAQVTKWidget(QWidget* parent) : iAVtkWidget(parent)
-{  // before version 9, VTK did not set a default render window, let's do this...
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	SetRenderWindow(renWin);
-#endif
+{
 	setFormat(iAVtkWidget::defaultFormat());
 }
-
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-// There also were no Qt-style methods to retrieve render window and interactor, let's provide them:
-vtkRenderWindow* iAQVTKWidget::renderWindow()
-{
-	return GetRenderWindow();
-}
-QVTKInteractor* iAQVTKWidget::interactor()
-{
-	return GetInteractor();
-}
-#endif
 
 void iAQVTKWidget::updateAll()
 {

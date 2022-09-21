@@ -146,14 +146,7 @@ void iASPMView::updateLUT()
 	}
 	double rgba[4];
 	vtkIdType lutColCnt = m_lut->GetNumberOfTableValues();
-#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 1, 0))
 	m_lut->SetRange(m_splom->lookupTable()->getRange());
-#else
-	double range[2];
-	range[0] = m_splom->lookupTable()->getRange()[0];
-	range[1] = m_splom->lookupTable()->getRange()[1];
-	m_lut->SetRange(range);
-#endif
 	for( vtkIdType i = 0; i < lutColCnt; i++ )
 	{
 		m_splom->lookupTable()->getTableValue(i, rgba);
