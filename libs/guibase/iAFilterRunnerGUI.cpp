@@ -296,7 +296,6 @@ void iAFilterRunnerGUI::run(std::shared_ptr<iAFilter> filter, iAMainWindow* main
 	QString oldTitle(sourceMdi ? sourceMdi->windowTitle() : "");
 	oldTitle = oldTitle.replace("[*]", "").trimmed();
 	QString newTitle(filter->outputName(0) + " " + oldTitle);
-	auto dataSets = sourceMdi->dataSets();
 	filterGUIPreparations(filter, sourceMdi, mainWnd, paramValues);
 	auto thread = new iAFilterRunnerGUIThread(filter, paramValues, sourceMdi);
 	if (!thread)
@@ -307,9 +306,9 @@ void iAFilterRunnerGUI::run(std::shared_ptr<iAFilter> filter, iAMainWindow* main
 	}
 	if (sourceMdi)
 	{
+		auto dataSets = sourceMdi->dataSets();
 		for (size_t m = 0; m < dataSets.size(); ++m)
-		{
-			// check which datasets filter expects, and only add these!
+		{	// check which (type of) datasets the filter expects, and only add these!
 			thread->addInput(dataSets[m]);
 		}
 		filter->setFirstInputChannels(dataSets.size());
