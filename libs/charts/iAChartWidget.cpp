@@ -409,11 +409,7 @@ namespace
 		int width = 0;
 		for (auto str : strings)
 		{
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 			width = std::max(width, fm.horizontalAdvance(str));
-#else
-			width = std::max(width, fm.width(str));
-#endif
 		}
 		return width;
 	}
@@ -529,17 +525,10 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 				}
 				QString text = xAxisTickMarkLabel(value, stepWidth);
 				int markerX = markerPos(static_cast<int>(xMapper().srcToDst(value)), i, stepCount);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 				int textX = textPos(markerX, i, stepCount, fm.horizontalAdvance(text));
 				int nextMarkerX = markerPos(static_cast<int>(xMapper().srcToDst(nextValue)), i + 1, stepCount);
 				int nextTextX = textPos(nextMarkerX, i + 1, stepCount, fm.horizontalAdvance(text));
 				int textWidth = fm.horizontalAdvance(text+"M");
-#else
-				int textX = textPos(markerX, i, stepCount, fm.width(text));
-				int nextMarkerX = markerPos(xMapper().srcToDst(nextValue), i + 1, stepCount);
-				int nextTextX = textPos(nextMarkerX, i + 1, stepCount, fm.width(text));
-				int textWidth = fm.width(text + "M");
-#endif
 				overlap = (textX + textWidth) >= nextTextX;
 			}
 			if (overlap)
@@ -575,11 +564,7 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 			// + 1 is required - apparently width of QRect passed to drawRect below
 			// needs to be larger than that width the text actually requires.
 			// Without it, we often get text output like "0." where e.g. "0.623" would be the actual text
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 			fm.horizontalAdvance(text);
-#else
-			fm.width(text);
-#endif
 		int textX = textPos(markerX, i, stepCount, textWidth);
 		int textY = TickWidth;
 		painter.drawText(QRect(textX, textY, textWidth, m_fontHeight), text);
@@ -630,11 +615,7 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 		double yValue = yMapper().dstToSrc(-y-1);
 		QString text = dblToStringWithUnits(yValue, 10);
 		painter.drawLine(static_cast<int>(-TickWidth), y, 0, y);	// indicator line
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		painter.drawText( - ( fm.horizontalAdvance(text) + TickWidth),
-#else
-		painter.drawText( - ( fm.width(text) + TickWidth),
-#endif
 			(i == stepNumber) ? y + static_cast<int>(0.75*m_fontHeight) // write the text top aligned to the indicator line
 			: y + static_cast<int>(0.25*m_fontHeight)                   // write the text centered to the indicator line
 			, text);
@@ -644,11 +625,7 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 	painter.save();
 	painter.rotate(-90);
 	QPointF textPos(
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		aheight*0.5 - 0.5*fm.horizontalAdvance(m_yCaption),
-#else
-		aheight*0.5 - 0.5*fm.width(m_yCaption),
-#endif
 		-leftMargin() + m_fontHeight - 5);
 	painter.drawText(textPos, m_yCaption);
 	painter.restore();
@@ -1237,11 +1214,7 @@ void iAChartWidget::drawAll(QPainter & painter)
 	}
 	QFontMetrics fm = painter.fontMetrics();
 	m_fontHeight = fm.height();
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 	m_yMaxTickLabelWidth = fm.horizontalAdvance("4.44M");
-#else
-	m_yMaxTickLabelWidth = fm.width("4.44M");
-#endif
 	if (!m_xMapper || !m_yMapper)
 	{
 		createMappers();

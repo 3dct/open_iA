@@ -660,11 +660,7 @@ private:
 		QPainter p(this);
 		QString minStr = dblToStringWithUnits(m_lut->getRange()[0], 9);
 		QString maxStr = dblToStringWithUnits(m_lut->getRange()[1], 9);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		int textWidth = std::max(p.fontMetrics().horizontalAdvance(minStr), p.fontMetrics().horizontalAdvance(maxStr));
-#else
-		int textWidth = std::max(p.fontMetrics().width(minStr), p.fontMetrics().width(maxStr));
-#endif
 		int scalarBarWidth = geometry().width() - 2 * ScalarBarPadding - textWidth;
 		// Draw scalar bar (duplicated from iAQSplom!)
 		QPoint topLeft(ScalarBarPadding+textWidth, ScalarBarPadding);

@@ -218,11 +218,7 @@ void iAEnergySpectrumWidget::drawAfterPlots(QPainter& painter)
 				QRect captionBoundingBox(
 					static_cast<int>(pos+5),
 					- (10 + (fm.height()+2) * (drawnLines+1)*2),
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 					std::max(fm.horizontalAdvance(element->symbol), fm.horizontalAdvance(QString::fromUtf8(EnergyLineNames[j]))),
-#else
-					std::max(fm.width(element->symbol), fm.width(QString::fromUtf8(EnergyLineNames[j]))),
-#endif
 					fm.height()*2
 				);
 				drawnLines++;

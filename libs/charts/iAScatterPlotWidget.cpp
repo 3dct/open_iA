@@ -286,18 +286,11 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
 	}
 
 	QFontMetrics fm = painter.fontMetrics();
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 	if (m_fontHeight != fm.height() || m_maxTickLabelWidth != fm.horizontalAdvance("-0.999"))
 	{
 		m_fontHeight = fm.height();
 		m_maxTickLabelWidth = fm.horizontalAdvance("-0.999");
 		adjustScatterPlotSize();
-#else
-	if (m_fontHeight != fm.height() || m_maxTickLabelWidth != fm.width("-0.999"))
-	{
-		m_fontHeight = fm.height();
-		m_maxTickLabelWidth = fm.width("-0.999");
-#endif
 	}
 	painter.setRenderHint(QPainter::Antialiasing);
 	QColor fg(QApplication::palette().color(QPalette::Text));

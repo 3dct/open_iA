@@ -1066,11 +1066,7 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 	painter.drawRect(colorBarRect);
 	QString minStr = dblToStringWithUnits(minVal);
 	QString maxStr = dblToStringWithUnits(maxVal);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 	int textWidth = std::max(fm.horizontalAdvance(minStr), fm.horizontalAdvance(maxStr));
-#else
-	int textWidth = std::max(fm.width(minStr), fm.width(maxStr));
-#endif
 	// Draw color bar / name of parameter used for coloring
 	int colorBarTextX = topLeft.x() - (textWidth + settings.plotsSpacing);
 	if (settings.colorMode != cmAllPointsSame)
@@ -1489,11 +1485,7 @@ int iAQSplom::getMaxTickLabelWidth(QList<QString> const & textX, QFontMetrics & 
 	int maxLength = 0;
 	for (long i = 0; i < textX.size(); ++i)
 	{
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		maxLength = std::max(fm.horizontalAdvance(textX[i]), maxLength);
-#else
-		maxLength = std::max(fm.width(textX[i]), maxLength);
-#endif
 	}
 	return maxLength+2*TextPadding + fm.height() ;
 }

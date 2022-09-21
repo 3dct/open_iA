@@ -41,9 +41,6 @@ void iAFeatureAnalyzerModuleInterface::Initialize()
 	}
 	Q_INIT_RESOURCE(FeatureAnalyzer);
 	iAProjectRegistry::addProject(iAFeatureAnalyzerProject::ID, iAFeatureAnalyzerProject::create);
-#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
-	qsrand(QTime::currentTime().msec());
-#endif
 
 	QAction * actionRunPA = new QAction(tr("Start FeatureAnalyzer"), m_mainWnd);
 	connect(actionRunPA, &QAction::triggered, this, &iAFeatureAnalyzerModuleInterface::launchFeatureAnalyzer);

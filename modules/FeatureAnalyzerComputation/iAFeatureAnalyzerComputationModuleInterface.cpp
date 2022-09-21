@@ -53,9 +53,6 @@ void iAFeatureAnalyzerComputationModuleInterface::Initialize()
 		return;
 	}
 	Q_INIT_RESOURCE(FeatureAnalyzerComputation);
-#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
-	qsrand(QTime::currentTime().msec());
-#endif
 
 	QAction * actionComputeSegmentations = new QAction(tr("Compute Segmentations (for Feature Analyzer)"), m_mainWnd);
 	connect(actionComputeSegmentations, &QAction::triggered, this, &iAFeatureAnalyzerComputationModuleInterface::computeParameterSpace);

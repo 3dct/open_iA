@@ -98,7 +98,6 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QString>
-#include <QtGlobal> // for QT_VERSION
 
 #include <cassert>
 
@@ -1234,24 +1233,6 @@ void iASlicerImpl::setBackground(QColor color)
 	m_backgroundColor = color;
 	updateBackground();
 }
-
-// Qt versions before 5.10 don't have these operators yet:
-#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
-bool operator==(QCursor const & a, QCursor const & b)
-{
-	if (a.shape() != Qt::BitmapCursor)
-	{
-		return a.shape() == b.shape();
-	}
-	return b.shape() == Qt::BitmapCursor &&
-		a.hotSpot() == b.hotSpot() &&
-		(a.pixmap() == b.pixmap() || (a.bitmap() == b.bitmap() && a.mask() == b.mask()));
-}
-bool operator!=(QCursor const & a, QCursor const & b)
-{
-	return !operator==(a, b);
-}
-#endif
 
 void iASlicerImpl::execute(vtkObject * /*caller*/, unsigned long eventId, void * /*callData*/)
 {

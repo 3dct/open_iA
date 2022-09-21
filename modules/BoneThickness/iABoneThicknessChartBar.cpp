@@ -73,11 +73,7 @@ void iABoneThicknessChartBar::draw()
 	int iAxisW(0);
 	for (auto& pAxisYString : vAxisYString)
 	{
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		iAxisW = qMax(iAxisW, fomAxis.horizontalAdvance(pAxisYString));
-#else
-		iAxisW = qMax(iAxisW, fomAxis.width(pAxisYString));
-#endif
 	}
 
 	const QFontMetrics fomTitle(m_foTitle);

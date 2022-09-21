@@ -138,11 +138,7 @@ private:
 
 		QString minStr = dblToStringWithUnits(m_range[0]);
 		QString maxStr = dblToStringWithUnits(m_range[1]);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		int textWidth = std::max(fm.horizontalAdvance(minStr), fm.horizontalAdvance(maxStr));
-#else
-		int textWidth = std::max(fm.width(minStr), fm.width(maxStr));
-#endif
 		int textHeight = fm.height();
 		int fullScalarBarWidth = m_showScalarBar ? (3 * scalarBarPadding + scalarBarWidth + textWidth) : 0;
 		int axisSize = m_showAxes ? (textHeight + innerAxisPadding + outerAxisPadding + axisTickHeight) : 0;

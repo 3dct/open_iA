@@ -656,19 +656,11 @@ void iANModalIterativeDilationPlot::paintEvent(QPaintEvent* event)
 		int barTop = bottom - barHeight;
 
 		QString vs = QString::number(v);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		int vWidth = fm.horizontalAdvance(vs);
-#else
-		int vWidth = fm.width(vs);
-#endif
 		int vLeft = barLeft + (int)((float)(barWidth - vWidth) / 2.0f);
 
 		QString ids = QString::number(i);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		int idWidth = fm.horizontalAdvance(ids);
-#else
-		int idWidth = fm.width(ids);
-#endif
 		int idLeft = barLeft + (int)((float)(barWidth - idWidth) / 2.0f);
 
 		p.fillRect(barLeft, barTop, barWidth, barHeight, QColor::fromRgb(0, 114, 189));
@@ -682,19 +674,11 @@ void iANModalIterativeDilationPlot::paintEvent(QPaintEvent* event)
 	//int centery = top + (int)((float)hAvailable / 2.0f);
 
 	QString xlabel = "# dilations";
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 	int xlabelwidth = fm.horizontalAdvance(xlabel);
-#else
-	int xlabelwidth = fm.width(xlabel);
-#endif
 	p.drawText(centerx - (int)((float)xlabelwidth / 2.0f), bottom + (2 * (textSep + textHeight)), xlabel);
 
 	QString ylabel = "# background regions";
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 	int ylabelwidth = fm.horizontalAdvance(ylabel);
-#else
-	int ylabelwidth = fm.width(ylabel);
-#endif
 	p.translate(mar, top + (int)(((float)hAvailable + (float)ylabelwidth) / 2.0f));
 	p.rotate(-90);
 	p.drawText(0, 0, ylabel);

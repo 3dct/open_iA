@@ -505,11 +505,7 @@ QPixmap iADragFilterWidget::mergeOnTop( const QPixmap& pix, QString txt )
 	txt.truncate( 7 );
 	txt.append( "..." );
 	QPainter p;
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 	int strWidth = p.fontMetrics().horizontalAdvance( txt );
-#else
-	int strWidth = p.fontMetrics().width( txt );
-#endif
 	int strHeight = p.fontMetrics().height();
 	QPixmap res( pix.width(), pix.height() );
 	p.begin( &res );

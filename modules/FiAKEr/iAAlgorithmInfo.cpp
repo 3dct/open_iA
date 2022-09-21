@@ -197,11 +197,7 @@ int iAAlgorithmInfo::connectorWidth(QFontMetrics fm, QStringList const& strings)
 	int width = 0;
 	for (auto str : strings)
 	{
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		width = std::max(width, fm.horizontalAdvance(str));
-#else
-		width = std::max(width, fm.width(str));
-#endif
 	}
 	return width;
 }
@@ -226,11 +222,7 @@ void iAAlgorithmInfo::drawConnectors(QPainter& p, int left, int width, QStringLi
 		posOut.push_back(QPoint(left + (isLeft ? width : 0), baseTop + idx * oneHeight));
 		int top = baseTop + idx * oneHeight;
 		int right = left + width;
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		int textWidth = p.fontMetrics().horizontalAdvance(name);
-#else
-		int textWidth = p.fontMetrics().width(name);
-#endif
 		int boxHeight = p.fontMetrics().height() +  2 * (TextVPadding+RoundedCornerRadius);
 		QRect textRect(left + ArrowTextLeft, top - ArrowTextDistance - boxHeight,
 			std::min(textWidth + 2 * TextHPadding, width - ArrowTextLeft - (m_showArrows ? ArrowHeadSize : 0) ),
@@ -285,12 +277,7 @@ void iAAlgorithmInfo::drawLegend(QPainter& p, int leftWidth, bool top)
 	double const LegendBottom = top ? LegendHeight + fm.height() + LegendSpacing : height() - LegendMargin;
 	p.setPen(QApplication::palette().color(QWidget::foregroundRole()));
 	p.drawText(LegendMargin, LegendBottom - LegendHeight - LegendSpacing, LegendCaption);
-	m_legendWidth = LegendMargin +
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
-		fm.horizontalAdvance(LegendCaption);
-#else
-		fm.width(LegendCaption);
-#endif
+	m_legendWidth = LegendMargin + fm.horizontalAdvance(LegendCaption);
 	for (int i = 0; i < LegendNumEntries; ++i)
 	{
 		double normVal = static_cast<double>(i) / (LegendNumEntries - 1);
@@ -338,26 +325,14 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 
 	m_inWidth = connectorWidth(p.fontMetrics(), m_inNames) + 2 * ArrowTextLeft + 2 * RoundedCornerRadius;
 	// to make sure there's space for the legend:
-	m_inWidth = std::max(m_inWidth,
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
-		p.fontMetrics().horizontalAdvance(LegendCaption)
-#else
-		p.fontMetrics().width(LegendCaption)
-#endif
-		+ 2 * LegendMargin
-	);
+	m_inWidth = std::max(m_inWidth, p.fontMetrics().horizontalAdvance(LegendCaption) + 2 * LegendMargin);
 
 	m_outWidth = connectorWidth(p.fontMetrics(), m_outNames) + 2 * ArrowTextLeft + 2 * RoundedCornerRadius;
 	//if (leftConnectorW + rightConnectorW > width())
 	//{
 	// reduce?
 	//}
-	m_boxMinWidth =
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
-		p.fontMetrics().horizontalAdvance(m_name);
-#else
-		p.fontMetrics().width(m_name);
-#endif
+	m_boxMinWidth = p.fontMetrics().horizontalAdvance(m_name);
 
 	if (m_displayMode == Box)
 	{
