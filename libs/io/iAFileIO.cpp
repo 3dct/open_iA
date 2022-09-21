@@ -44,7 +44,7 @@ std::vector<std::shared_ptr<iADataSet>> iAFileIO::load(QString const& fileName, 
 	for (auto d : dataSets)
 	{
 		d->setMetaData(iADataSet::FileNameKey, fileName);
-		d->setMetaData(iADataSet::NameKey, QFileInfo(fileName).baseName());
+		d->setMetaData(iADataSet::NameKey, QFileInfo(fileName).completeBaseName());
 		for (auto k : checkedValues.keys())
 		{
 			d->setMetaData(k, checkedValues[k]);
