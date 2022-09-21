@@ -1207,7 +1207,15 @@ void MdiChild::saveNew()
 			{
 				LOG(lvlInfo, QString("Saved file %1").arg(fileName));
 				dataSet->setMetaData(iADataSet::FileNameKey, fileName);
-				setWindowModified(hasUnsavedData());
+				if (m_dataSets.size() == 1)
+				{
+					setWindowTitleAndFile(fileName);
+				}
+				else
+				{
+					m_mainWnd->addRecentFile(fileName);
+					setWindowModified(hasUnsavedData());
+				}
 			}
 		});
 	auto future = QtConcurrent::run([fileName, p, io, dataSet, paramValues]()
