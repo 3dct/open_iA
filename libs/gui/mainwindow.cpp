@@ -35,7 +35,6 @@
 #include "iAQMenuHelper.h"
 #include "iARawFileParamDlg.h"
 #include "iARenderer.h"
-#include "iARunAsync.h"
 #include "iASavableProject.h"
 #include "iASlicerImpl.h"    // for slicerModeToString
 #include "io/iAIOProvider.h"
@@ -89,6 +88,7 @@
 #include <QSpacerItem>
 #include <QSplashScreen>
 #include <QTableWidget>
+#include <QtConcurrent>
 #include <QTextStream>
 #include <QTimer>
 #include <QtXml/QDomDocument>
@@ -387,11 +387,6 @@ void MainWindow::loadFile(QString const & fileName)
 	}
 }
 
-struct iALoadedData
-{
-	std::vector<std::shared_ptr<iADataSet>> data;
-};
-
 void MainWindow::loadFile(QString fileName, bool isStack)
 {
 	Q_UNUSED(isStack);
@@ -482,51 +477,35 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow, std::share
 	{
 		return;
 	}
-	auto d = std::make_shared<iALoadedData>();
 	auto p = std::make_shared<iAProgress>();
-	auto fw = runAsync([d, p, fileName, io, paramValues]()
-	{
-		try
+	using FutureWatcherType = QFutureWatcher<std::vector<std::shared_ptr<iADataSet>>>;
+	auto futureWatcher = new FutureWatcherType(this);
+	QObject::connect(futureWatcher, &FutureWatcherType::finished, this,
+		[this, child, fileName]()
 		{
-			QElapsedTimer t; t.start();
-			d->data = io->load(fileName, paramValues, *p.get());
-			LOG(lvlInfo, QString("Loaded dataset %1 in %2 ms.").arg(fileName).arg(t.elapsed()));
-		}
-		// TODO: unify exception handling?
-		catch (itk::ExceptionObject & e)
-		{
-			LOG(lvlError, QString("Error loading file %1: %2").arg(fileName).arg(e.GetDescription()));
-		}
-		catch (std::exception& e)
-		{
-			LOG(lvlError, QString("Error loading file %1: %2").arg(fileName).arg(e.what()));
-		}
-		catch (...)
-		{
-			LOG(lvlError, QString("Unknown error while loading file %1!").arg(fileName));
-		}
-	}
-	, [this, d, p, child, fileName]()
-	{
-		if (d->data.empty())
-		{
-			LOG(lvlError, QString("No data loaded, nothing to finish up."));
-			return;
-		}
-		iAMdiChild* targetChild = child;
-		if (!targetChild)
-		{
-			targetChild = createMdiChild(false);
-			dynamic_cast<MdiChild*>(targetChild)->setWindowTitleAndFile(fileName);
-		}
-		addRecentFile(fileName);
-		for (auto dataSet : d->data)
-		{
-			targetChild->addDataSet(dataSet);
-		}
-	}
-	, this);
-	iAJobListView::get()->addJob(QString("Loading file '%1'").arg(fileName), p.get(), fw);
+			auto watcher = dynamic_cast<FutureWatcherType*>(sender());
+			auto d = watcher->result();
+			if (d.empty())
+			{
+				LOG(lvlError, QString("No data loaded, nothing to finish up."));
+				return;
+			}
+			iAMdiChild* targetChild = child;
+			if (!targetChild)
+			{
+				targetChild = createMdiChild(false);
+				dynamic_cast<MdiChild*>(targetChild)->setWindowTitleAndFile(fileName);
+			}
+			addRecentFile(fileName);
+			for (auto dataSet : d)
+			{
+				targetChild->addDataSet(dataSet);
+			}
+		});
+	QObject::connect(futureWatcher, &FutureWatcherType::finished, futureWatcher, &FutureWatcherType::deleteLater);
+	auto future = QtConcurrent::run( [p, fileName, io, paramValues]() { return io->load(fileName, paramValues, *p.get()); });
+	futureWatcher->setFuture(future);
+	iAJobListView::get()->addJob(QString("Loading file '%1'").arg(fileName), p.get(), futureWatcher);
 }
 
 void MainWindow::loadFiles(QStringList fileNames)

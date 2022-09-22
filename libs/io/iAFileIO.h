@@ -73,7 +73,7 @@ public:
 
 protected:
 
-	iAAttributes m_params[2];
+	std::array<iAAttributes, 2> m_params;
 
 	//! I/O for specific file formats should override this to load data from the file with given name. default implementation does nothing
 	//! (instead of being pure virtual, to allow for I/O's that only save a dataset but don't load one)
@@ -85,5 +85,5 @@ protected:
 	virtual void saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> & dataSets, QVariantMap const& paramValues, iAProgress const& progress);
 
 private:
-	iADataSetTypes m_dataSetTypes[2];
+	std::array<iADataSetTypes, 2> m_dataSetTypes;
 };

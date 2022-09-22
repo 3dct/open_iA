@@ -22,6 +22,7 @@
 
 #include "iALog.h"
 
+#include <QElapsedTimer>
 #include <QFileInfo>
 
 const QString iAFileIO::CompressionStr("Compression");
@@ -32,27 +33,46 @@ iAFileIO::iAFileIO(iADataSetTypes loadTypes, iADataSetTypes saveTypes) :
 	addAttr(m_params[Load], iADataSet::FileNameKey, iAValueType::FileNameOpen, "");
 }
 
-iAFileIO::~iAFileIO()
-{}
+iAFileIO::~iAFileIO() = default;
 
 std::vector<std::shared_ptr<iADataSet>> iAFileIO::load(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
-	QVariantMap checkedValues(paramValues);
-	checkParams(checkedValues, Load, fileName);
-	auto dataSets = loadData(fileName, checkedValues, progress);
-
-	for (auto d : dataSets)
+	try
 	{
-		d->setMetaData(iADataSet::FileNameKey, fileName);
-		d->setMetaData(iADataSet::NameKey, QFileInfo(fileName).completeBaseName());
-		for (auto k : checkedValues.keys())
+		QElapsedTimer t;
+		t.start();
+		QVariantMap checkedValues(paramValues);
+		checkParams(checkedValues, Operation::Load, fileName);
+		auto dataSets = loadData(fileName, checkedValues, progress);
+
+		for (auto d : dataSets)
 		{
-			d->setMetaData(k, checkedValues[k]);
+			d->setMetaData(iADataSet::FileNameKey, fileName);
+			d->setMetaData(iADataSet::NameKey, QFileInfo(fileName).completeBaseName());
+			for (auto k : checkedValues.keys())
+			{
+				d->setMetaData(k, checkedValues[k]);
+			}
 		}
+		// for file formats that support multiple dataset types: check if an allowed type was loaded?
+		// BUT currently no such format supported
+		LOG(lvlInfo, QString("Loaded dataset %1 in %2 ms.").arg(fileName).arg(t.elapsed()));
+		return dataSets;
 	}
-	// for file formats that support multiple dataset types: check if an allowed type was loaded?
-	// BUT currently no such format supported
-	return dataSets;
+	// TODO: unify exception handling?
+	catch (itk::ExceptionObject& e)
+	{
+		LOG(lvlError, QString("Error loading file %1: %2").arg(fileName).arg(e.GetDescription()));
+	}
+	catch (std::exception& e)
+	{
+		LOG(lvlError, QString("Error loading file %1: %2").arg(fileName).arg(e.what()));
+	}
+	catch (...)
+	{
+		LOG(lvlError, QString("Unknown error while loading file %1!").arg(fileName));
+	}
+	return std::vector<std::shared_ptr<iADataSet>>();
 }
 
 std::vector<std::shared_ptr<iADataSet>> iAFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
