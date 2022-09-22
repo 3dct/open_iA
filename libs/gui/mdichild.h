@@ -249,15 +249,12 @@ public:
 	//! Loads the layout with the given name from the settings store, and tries to restore the according dockwidgets configuration
 	void loadLayout(QString const & layout) override;
 
-	//! If more than one modality loaded, ask user to choose one of them.
-	//! (currently used for determining which modality to save)
 	int chooseModalityNr(QString const & caption = "Choose Channel") override;
 	//! If given modality has more than one component, ask user to choose one of them.
 	//! (currently used for determining which modality to save)
 	int chooseComponentNr(int modalityNr);
 
-	//! If more than one dataset loaded, ask user to choose one of them (used for saving)
-	std::shared_ptr<iADataSet> chooseDataSet();
+	std::shared_ptr<iADataSet> chooseDataSet(QString const& title = "Choose dataset") override;
 
 	//! Checks whether the main image data is fully loaded.
 	bool isFullyLoaded() const override;

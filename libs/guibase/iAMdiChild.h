@@ -165,6 +165,9 @@ public:
 	//! (currently used for determining which modality to save)
 	virtual int chooseModalityNr(QString const& caption) = 0;
 
+	//! If more than one dataset loaded, ask user to choose one of them (used for saving)
+	virtual std::shared_ptr<iADataSet> chooseDataSet(QString const& title = "Choose dataset") = 0;
+
 	//! @{
 	//! Retrieve data for a given channel ID
 	virtual iAChannelData* channelData(uint id) = 0;

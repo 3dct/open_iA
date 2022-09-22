@@ -46,6 +46,9 @@ class vtkLookupTable;
 class vtkObject;
 class vtkPiecewiseFunction;
 
+struct iAOverlayImage;
+struct iAOverlaySlicerData;
+
 class Labelling_API dlg_labels : public QDockWidget
 {
 	Q_OBJECT
@@ -63,11 +66,8 @@ public:
 
 	int labelCount();
 	int overlayImageIdBySlicer(iASlicer*);
-
+	//! Sets whether added seed points should be tracked as children of the label ist
 	void setSeedsTracking(bool enabled);
-
-	// TEMPORARY
-	QStandardItemModel* m_itemModel;  // TODO: make private
 
 signals:
 	void seedsAdded(const QList<iASeed>&);
@@ -78,10 +78,6 @@ signals:
 	void labelsColorChanged(const QList<iALabel>&);
 
 public slots:
-	void rendererClicked(int, int, int, iASlicer*);
-	void slicerClicked(int, int, int, iASlicer*);
-	void slicerDragged(int, int, int, iASlicer*);
-	void slicerRightClicked(int, int, int, iASlicer*);
 	void add();
 	void remove();
 	void storeLabels();
@@ -94,9 +90,10 @@ public slots:
 	void opacityChanged(int newValue);
 
 private:
-	void addSeed(int, int, int, iASlicer*);
-	void removeSeed(int, int, int, iASlicer*);
+	void addSeed(double, double, double, iASlicer*);
+	void removeSeed(double, double, double, iASlicer*);
 	void removeSeed(QStandardItem*);
+	void removeSeed(int x, int y, int z, int id, int label, int seedItemRow);
 	QStandardItem* addSeedItem(int label, int x, int y, int z, int imageId);
 	int addLabelItem(QString const& labelText);
 	void appendSeeds(int label, QList<QStandardItem*> const& items);
@@ -106,6 +103,7 @@ private:
 	void updateChannels(int imageId);
 	void updateChannel(iASlicer*);
 
+	//! whether seeds are also tracked as entries in the label list
 	bool m_trackingSeeds;
 
 	int chooseOverlayImage(QString title);
@@ -118,34 +116,13 @@ private:
 
 	int m_nextId = 0;
 	int getNextId();
-	struct OverlayImage
-	{
-		OverlayImage(int _id, QString _name, vtkSmartPointer<iAvtkImageData> _image) :
-			id(_id), name(_name), image(_image)
-		{
-		}
-		int id;
-		QString name;
-		vtkSmartPointer<iAvtkImageData> image;  // label overlay image
-		QList<iASlicer*> slicers;
-	};
-	QMap<int, QSharedPointer<OverlayImage>> m_mapId2image;
-
-	struct SlicerData
-	{
-		SlicerData(iAChannelData _channelData, uint _channelId, QList<QMetaObject::Connection> c, int id) :
-			channelData(_channelData), overlayImageId(id), channelId(_channelId), connections(c)
-		{
-		}
-		iAChannelData channelData;
-		int overlayImageId;
-		uint channelId;
-		QList<QMetaObject::Connection> connections;
-	};
-	QMap<iASlicer*, QSharedPointer<SlicerData>> m_mapSlicer2data;
+	QMap<int, QSharedPointer<iAOverlayImage>> m_mapId2image;
+	QMap<iASlicer*, QSharedPointer<iAOverlaySlicerData>> m_mapSlicer2data;
 
 	vtkSmartPointer<vtkLookupTable> m_labelColorTF;
 	vtkSmartPointer<vtkPiecewiseFunction> m_labelOpacityTF;
 	iAMdiChild* m_mdiChild;
 	QSharedPointer<Ui_labels> m_ui;
+
+	QStandardItemModel* m_itemModel;  // TODO: make private
 };

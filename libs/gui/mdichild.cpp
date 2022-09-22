@@ -1116,7 +1116,7 @@ int MdiChild::chooseComponentNr(int modalityNr)
 	return components.indexOf(componentChoice.parameterValues()["Component"].toString());
 }
 
-std::shared_ptr<iADataSet> MdiChild::chooseDataSet()
+std::shared_ptr<iADataSet> MdiChild::chooseDataSet(QString const & title)
 {
 	if (m_dataSets.size() == 1)
 	{
@@ -1130,7 +1130,7 @@ std::shared_ptr<iADataSet> MdiChild::chooseDataSet()
 	}
 	const QString DataSetStr("Dataset");
 	addAttr(params, DataSetStr, iAValueType::Categorical, dataSetNames);
-	iAParameterDlg dataSetChoice(this, "Choose dataset", params);
+	iAParameterDlg dataSetChoice(this, title, params);
 	if (dataSetChoice.exec() == QDialog::Accepted)
 	{
 		auto dataSetName = dataSetChoice.parameterValues()[DataSetStr].toString();

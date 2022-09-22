@@ -81,7 +81,6 @@ iANModalController::iANModalController(iAMdiChild* mdiChild) : m_mdiChild(mdiChi
 		m_dlg_labels = new dlg_labels(mdiChild, false);
 		mdiChild->splitDockWidget(mdiChild->renderDockWidget(), m_dlg_labels, Qt::Vertical);
 	}
-	m_dlg_labels->setSeedsTracking(true);
 }
 
 void iANModalController::initialize()
