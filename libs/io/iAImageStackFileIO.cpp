@@ -92,6 +92,12 @@ iAImageStackFileIO::iAImageStackFileIO() : iAFileIO(iADataSetType::Volume, iADat
 	addAttr(m_params[Load], NumDigits, iAValueType::Discrete, 0);
 	addAttr(m_params[Load], MinimumIndex, iAValueType::Discrete, 0);
 	addAttr(m_params[Load], MaximumIndex, iAValueType::Discrete, 0);
+	// no file name parameter in image stack:
+	auto it = std::find_if(m_params[Load].begin(), m_params[Load].end(), [](auto a) { return a->name() == iADataSet::FileNameKey; });
+	if (it != m_params[Load].end())
+	{
+		m_params[Load].erase(it);
+	}
 
 	addAttr(m_params[Save], CompressionStr, iAValueType::Boolean, false);
 }

@@ -44,16 +44,17 @@ namespace
 iAFileParamDlg::~iAFileParamDlg()
 {}
 
-bool iAFileParamDlg::askForParameters(QWidget* parent, iAAttributes const& parameters, QVariantMap& values, QString const& fileName) const
+bool iAFileParamDlg::askForParameters(QWidget* parent, iAAttributes const& parameters, QString const & ioName, QVariantMap& values, QString const& fileName) const
 {
 	Q_UNUSED(fileName);
 	auto dlgParams = combineAttributesWithValues(parameters, values);
 	auto it = std::find_if(dlgParams.begin(), dlgParams.end(), [](auto a) { return a->name() == iADataSet::FileNameKey; });
 	if (it != dlgParams.end())
 	{
-		dlgParams.erase(it);
+		it->get()->setDefaultValue(fileName);
 	}
-	iAParameterDlg dlg(parent, "Parameters", dlgParams);
+
+	iAParameterDlg dlg(parent, QString("%1 parameters").arg(ioName), dlgParams);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return false;
@@ -72,7 +73,6 @@ iAFileParamDlg* iAFileParamDlg::get(QString const& ioName)
 	return defaultDialog.get();
 }
 
-//! register a dialog for a given I/O name:
 void iAFileParamDlg::add(QString const& ioName, std::shared_ptr<iAFileParamDlg> dlg)
 {
 	m_dialogs.insert(ioName, dlg);
@@ -87,7 +87,7 @@ bool iAFileParamDlg::getParameters(QWidget* parent, iAFileIO const* io, iAFileIO
 		auto settingPath = settingName(op, io->name());
 		paramValues = ::loadSettings(settingPath, extractValues(io->parameter(op)));
 		auto paramDlg = iAFileParamDlg::get(settingPath);
-		if (!paramDlg->askForParameters(parent, io->parameter(op), paramValues, fileName))
+		if (!paramDlg->askForParameters(parent, io->parameter(op), io->name(), paramValues, fileName))
 		{
 			return false;
 		}
@@ -100,9 +100,10 @@ bool iAFileParamDlg::getParameters(QWidget* parent, iAFileIO const* io, iAFileIO
 class iANewRawFileParamDlg : public iAFileParamDlg
 {
 public:
-	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QVariantMap& values, QString const& fileName) const override
+	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QString const& ioName, QVariantMap& values, QString const& fileName) const override
 	{
 		Q_UNUSED(parameters);    // iARawFileParamDlg knows which parameters to get
+		Q_UNUSED(ioName);
 		iAAttributes additionalParams;
 		iARawFileParamDlg dlg(fileName, parent, "Raw file parameters", additionalParams, values, iAMainWindow::get()->brightMode());
 		if (!dlg.accepted())
@@ -118,7 +119,7 @@ class iAImageStackParamDlg: public iAFileParamDlg
 {
 
 public:
-	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QVariantMap& values, QString const& fileName) const override
+	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QString const & ioName, QVariantMap& values, QString const& fileName) const override
 	{
 		QString base, suffix;
 		int range[2];
@@ -130,7 +131,7 @@ public:
 		values[iAImageStackFileIO::NumDigits] = digits;
 		values[iAImageStackFileIO::MinimumIndex] = range[0];
 		values[iAImageStackFileIO::MaximumIndex] = range[1];
-		return iAFileParamDlg::askForParameters(parent, parameters, values, fileName);
+		return iAFileParamDlg::askForParameters(parent, parameters, ioName, values, fileName);
 	}
 };
 
@@ -279,9 +280,10 @@ typedef iAQTtoUIConnector<QDialog, Ui_dlgOpenHDF5> OpenHDF5Dlg;
 
 class iAHDF5FileParamDlg : public iAFileParamDlg
 {
-	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QVariantMap& values, QString const& fileName) const override
+	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QString const& ioName, QVariantMap& values, QString const& fileName) const override
 	{
 		Q_UNUSED(parameters); // we know which parameters we have
+		Q_UNUSED(ioName);
 		hid_t file_id = H5Fopen(getLocalEncodingFileName(fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
 		if (file_id < 0)
 		{
