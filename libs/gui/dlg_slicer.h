@@ -41,7 +41,7 @@ private slots:
 	void setSlabMode(bool slabMode);
 	void updateSlabThickness(int thickness);
 	void updateSlabCompositeMode(int compositeMode);
-	void updateSliceControls(int minIdx, int maxIdx);
+	void updateSliceControls(int minIdx, int maxIdx, int val);
 private:
 	static const int BorderWidth;
 	static QColor slicerColor(iASlicerMode mode);

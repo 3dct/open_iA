@@ -214,7 +214,7 @@ public:
 	//! in case the "linked mdi" feature is used, use this to set the mdi child this slicer is linked to.
 	void setLinkedMdiChild(iAMdiChild* mdiChild) override;
 	//! call if the dimension of the input in direction of the slice axis has changed.
-	void triggerSliceRangeChange();
+	void setSlicerRange(uint channelID);
 public slots:
 	//! Save an image of the image viewer native resolution or the current view.
 	void saveAsImage() override;
@@ -268,8 +268,10 @@ signals:
 	void deselectedPoint();
 	void switchedMode(int mode);
 	void deletedSnakeLine();
-	void sliceRotated(); //!< triggered when slice was rotated
-	void sliceRangeChanged(int minIdx, int maxIdx);
+	//! triggered when slice was rotated
+	void sliceRotated();
+	//! triggered when the slice number range has changed; parameters are new minimum, maximum and current index
+	void sliceRangeChanged(int minIdx, int maxIdx, int val);
 	void regionSelected(double minVal, double maxVal, uint channelID);
 
 private:
@@ -405,8 +407,9 @@ private:
 
 	QCursor m_mouseCursor;
 	bool m_cursorSet;
+	uint m_sliceNumberChannel;     //!< the image of this channel is used for determining slice range
 
-	iAMdiChild* m_linkedMdiChild;  //! main window access for linked mdi childs feature - get rid of this somehow!
+	iAMdiChild* m_linkedMdiChild;  //!< access to child for "linked mdi childs feature - get rid of this somehow!
 
 	uint firstVisibleChannel() const;
 	QSharedPointer<iAChannelSlicerData> createChannel(uint id, iAChannelData const & chData);

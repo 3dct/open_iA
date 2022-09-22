@@ -148,6 +148,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_roiActive(false),
 	m_sliceNumber(0),
 	m_cursorSet(false),
+	m_sliceNumberChannel(NotExistingChannel),
 	m_linkedMdiChild(nullptr)
 {
 	std::fill(m_angle, m_angle + 3, 0);
@@ -524,15 +525,14 @@ void iASlicerImpl::saveMovie()
 
 void iASlicerImpl::setSliceNumber( int sliceNumber )
 {
+	if (m_sliceNumberChannel == NotExistingChannel)
+	{
+		return;
+	}
 	// TODO: set slice position (in scene coordinates) instead of number
 	//       then we wouldn't need image spacing and origin below
 	//       (which don't make too much sense anyway, if it's not the same between loaded datasets)
 	// also, maybe clamp to boundaries of all currently loaded datasets?
-	auto channelID = firstVisibleChannel();
-	if (channelID == NotExistingChannel)
-	{
-		return;
-	}
 	m_sliceNumber = sliceNumber;
 	double xyz[3] = { 0.0, 0.0, 0.0 };
 	xyz[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z)] = sliceNumber;
@@ -540,8 +540,8 @@ void iASlicerImpl::setSliceNumber( int sliceNumber )
 	{
 		m_roiActor->SetVisibility(m_roiSlice[0] <= m_sliceNumber && m_sliceNumber < (m_roiSlice[1]));
 	}
-	double const * spacing = m_channels[channelID]->input()->GetSpacing();
-	double const * origin = m_channels[channelID]->input()->GetOrigin();
+	double const * spacing = m_channels[m_sliceNumberChannel]->input()->GetSpacing();
+	double const * origin = m_channels[m_sliceNumberChannel]->input()->GetOrigin();
 	for (auto ch : m_channels)
 	{
 		ch->setResliceAxesOrigin(origin[0] + xyz[0] * spacing[0], origin[1] + xyz[1] * spacing[1], origin[2] + xyz[2] * spacing[2]);
@@ -719,30 +719,32 @@ vtkRenderWindowInteractor * iASlicerImpl::interactor()
 void iASlicerImpl::addChannel(uint id, iAChannelData const & chData, bool enable)
 {
 	assert(!m_channels.contains(id));
-	bool updateSpacing = m_channels.empty();
 	auto chSlicerData = createChannel(id, chData);
 	auto image = chData.image();
 	double const * imgSpc = image->GetSpacing();
-	if (updateSpacing && m_decorations)
+	if (m_channels.size() == 1)
 	{
-		setScalarBarTF(chData.colorTF());
-		updatePositionMarkerExtent();
-		// TODO: update required for new channels other than to export? export all channels?
-		double unitSpacing = std::max(std::max(imgSpc[0], imgSpc[1]), imgSpc[2]);
-		double const * spc = m_channels[id]->output()->GetSpacing();
-		int    const * dim = m_channels[id]->output()->GetDimensions();
-		for (int i = 0; i < 2; ++i)
-		{	// scaling required to shrink the text to required size (because of large font size, see initialize method)
-			m_axisTransform[i]->Scale(unitSpacing / 10, unitSpacing / 10, unitSpacing / 10);
+		setSlicerRange(id);
+		if (m_decorations)
+		{
+			setScalarBarTF(chData.colorTF());
+			updatePositionMarkerExtent();
+			// TODO: update required for new channels other than to export? export all channels?
+			double unitSpacing = std::max(std::max(imgSpc[0], imgSpc[1]), imgSpc[2]);
+			double const* spc = m_channels[id]->output()->GetSpacing();
+			int    const* dim = m_channels[id]->output()->GetDimensions();
+			for (int i = 0; i < 2; ++i)
+			{	// scaling required to shrink the text to required size (because of large font size, see initialize method)
+				m_axisTransform[i]->Scale(unitSpacing / 10, unitSpacing / 10, unitSpacing / 10);
+			}
+			double xHalf = (dim[0] - 1) * spc[0] / 2.0;
+			double yHalf = (dim[1] - 1) * spc[1] / 2.0;
+			// "* 10 / unitSpacing" adjusts for scaling (see above)
+			m_axisTextActor[0]->SetPosition(xHalf * 10 / unitSpacing, -20.0, 0);
+			m_axisTextActor[1]->SetPosition(-20.0, yHalf * 10 / unitSpacing, 0);
+			// TODO: fix snake spline with non-fixed slicer images
+			m_snakeSpline->initialize(m_ren, image->GetSpacing()[0]);
 		}
-		double xHalf = (dim[0] - 1) * spc[0] / 2.0;
-		double yHalf = (dim[1] - 1) * spc[1] / 2.0;
-		// "* 10 / unitSpacing" adjusts for scaling (see above)
-		m_axisTextActor[0]->SetPosition(xHalf * 10 / unitSpacing, -20.0, 0);
-		m_axisTextActor[1]->SetPosition(-20.0, yHalf * 10 / unitSpacing, 0);
-		// TODO: fix snake spline with non-fixed slicer images
-		m_snakeSpline->initialize(m_ren, image->GetSpacing()[0]);
-		triggerSliceRangeChange();
 	}
 	double origin[3];
 	image->GetOrigin(origin);
@@ -755,11 +757,15 @@ void iASlicerImpl::addChannel(uint id, iAChannelData const & chData, bool enable
 	}
 }
 
-void iASlicerImpl::triggerSliceRangeChange()
+void iASlicerImpl::setSlicerRange(uint channelID)
 {
+	m_sliceNumberChannel = channelID;
 	int axis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
-	int const * ext = channel(0)->input()->GetExtent();
-	emit sliceRangeChanged(ext[axis * 2], ext[axis * 2 + 1]);
+	auto ext = channel(m_sliceNumberChannel)->input()->GetExtent();
+	int minIdx = ext[axis * 2];
+	int maxIdx = ext[axis * 2 + 1];
+	setSliceNumber((maxIdx - minIdx) / 2 + minIdx);
+	emit sliceRangeChanged(minIdx, maxIdx, m_sliceNumber);
 }
 
 void iASlicerImpl::updateMagicLensColors()
@@ -1787,6 +1793,14 @@ void iASlicerImpl::removeChannel(uint id)
 		enableChannel(id, false);
 	}
 	m_channels.remove(id);
+	if (m_sliceNumberChannel == id)
+	{
+		m_sliceNumberChannel = NotExistingChannel;
+		if (!m_channels.isEmpty())
+		{
+			setSlicerRange(m_channels.keys()[0]);
+		}
+	}
 }
 
 bool iASlicerImpl::hasChannel(uint id) const

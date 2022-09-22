@@ -519,7 +519,6 @@ void MdiChild::enableRenderWindows()	// = image data available
 		for (int s = 0; s < 3; ++s)
 		{
 			m_slicer[s]->enableInteractor();
-			m_slicer[s]->triggerSliceRangeChange();
 		}
 		updateViews();
 		if (modalities()->size() > 0 && modality(0)->image()->GetNumberOfScalarComponents() == 1)

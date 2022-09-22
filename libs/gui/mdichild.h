@@ -207,7 +207,8 @@ public:
 	QFileInfo const & fileInfo() const override;
 	QString filePath() const override;
 
-	//! @{ Multi-Channel rendering - see if we still need it with dataSets
+	//! @{ Multi-Channel rendering
+	//! TODO: check if we still need it with dataSets!
 	//! Create a new channel, return its ID.
 	uint createChannel() override;
 	//! Update the data of the given channel ID.

@@ -102,12 +102,12 @@ void dlg_slicer::updateSlabCompositeMode(int mode)
 	m_slicer->setSlabCompositeMode(mode);
 }
 
-void dlg_slicer::updateSliceControls(int minIdx, int maxIdx)
+void dlg_slicer::updateSliceControls(int minIdx, int maxIdx, int val)
 {
-	int val = (maxIdx - minIdx) / 2 + minIdx;
+	QSignalBlocker spinboxBlock(sbSlice);
+	QSignalBlocker scrollBlock(verticalScrollBar);
 	sbSlice->setRange(minIdx, maxIdx);
+	sbSlice->setValue(val);
 	verticalScrollBar->setRange(minIdx, maxIdx);
-	sbSlice->setValue(val);  // updates the slicer as well via sbSlice's valueChanged signal
-	QSignalBlocker block(verticalScrollBar);
 	verticalScrollBar->setValue(val);
 }
