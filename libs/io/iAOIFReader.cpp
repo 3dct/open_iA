@@ -22,7 +22,6 @@
 
 #include "iAConnector.h"
 #include "iALog.h"
-#include "iAItkVersion.h"
 #include "iAFileUtils.h"
 
 #include <itkImage.h>
@@ -811,10 +810,8 @@ iAOIFReaderHelper::TiffImgPtr iAOIFReaderHelper::ReadTiffImage(QString const & f
 		case itk::ImageIOBase::INT:		return read_image_template(file_name, static_cast<int>(0));  break;
 		case itk::ImageIOBase::ULONG:	return read_image_template(file_name, static_cast<unsigned long>(0));  break;
 		case itk::ImageIOBase::LONG:	return read_image_template(file_name, static_cast<long>(0));  break;
-#if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(4, 13, 0)
 		case itk::ImageIOBase::ULONGLONG:return read_image_template(file_name, static_cast<unsigned long long>(0));  break;
 		case itk::ImageIOBase::LONGLONG:return read_image_template(file_name, static_cast<long long>(0));  break;
-#endif
 		case itk::ImageIOBase::FLOAT:	return read_image_template(file_name, static_cast<float>(0));  break;
 		case itk::ImageIOBase::DOUBLE:	return read_image_template(file_name, static_cast<double>(0));  break;
 		case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:

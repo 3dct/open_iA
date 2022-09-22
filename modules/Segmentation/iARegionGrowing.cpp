@@ -64,10 +64,8 @@ void setSeeds(RegFilterT* filter, itk::ImageBase<3>* img)
 		case itk::ImageIOBase::UINT:   addSeeds(filter, dynamic_cast<itk::Image<  unsigned int, DIM>*>(img)); break;
 		case itk::ImageIOBase::LONG:   addSeeds(filter, dynamic_cast<itk::Image<          long, DIM>*>(img)); break;
 		case itk::ImageIOBase::ULONG:  addSeeds(filter, dynamic_cast<itk::Image< unsigned long, DIM>*>(img)); break;
-#if ITK_VERSION_MAJOR > 4 || (ITK_VERSION_MAJOR == 4 && ITK_VERSION_MINOR > 12)
 		case itk::ImageIOBase::LONGLONG:  addSeeds(filter, dynamic_cast<itk::Image<  long long, DIM>*>(img)); break;
 		case itk::ImageIOBase::ULONGLONG: addSeeds(filter, dynamic_cast<itk::Image<unsigned long long, DIM>*>(img)); break;
-#endif
 		case itk::ImageIOBase::FLOAT:  addSeeds(filter, dynamic_cast<itk::Image<         float, DIM>*>(img)); break;
 		case itk::ImageIOBase::DOUBLE: addSeeds(filter, dynamic_cast<itk::Image<        double, DIM>*>(img)); break;
 		default:

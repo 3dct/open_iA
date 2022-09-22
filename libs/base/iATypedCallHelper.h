@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAItkVersion.h"
-
 #include <stdexcept>
 
 // Requirements:
@@ -46,7 +44,6 @@
 //   xxx_TYPED_CALL(foo, type, );
 //
 
-#if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(4, 13, 0)
 #define ITK_TYPED_CALL(function, itk_scalar_type, ...)      \
 {                                                           \
 	switch (itk_scalar_type)                                \
@@ -95,51 +92,6 @@
 		break;                                              \
 	}                                                       \
 }
-#else
-// Since we cannot have an #if inside the macro definition,
-// we need to specify the macro two times, one time with the
-// long long types, one time without...
-#define ITK_TYPED_CALL(function, itk_scalar_type, ...)      \
-{                                                           \
-	switch (itk_scalar_type)                                \
-	{                                                       \
-	case itk::ImageIOBase::UCHAR:                           \
-		function<unsigned char>(__VA_ARGS__);               \
-		break;                                              \
-	case itk::ImageIOBase::CHAR:                            \
-		function<char>(__VA_ARGS__);                        \
-		break;                                              \
-	case itk::ImageIOBase::SHORT:                           \
-		function<short>(__VA_ARGS__);                       \
-		break;                                              \
-	case itk::ImageIOBase::USHORT:                          \
-		function<unsigned short>(__VA_ARGS__);              \
-		break;                                              \
-	case itk::ImageIOBase::INT:                             \
-		function<int>(__VA_ARGS__);                         \
-		break;                                              \
-	case itk::ImageIOBase::UINT:                            \
-		function<unsigned int>(__VA_ARGS__);                \
-		break;                                              \
-	case itk::ImageIOBase::LONG:                            \
-		function<long>(__VA_ARGS__);                        \
-		break;                                              \
-	case itk::ImageIOBase::ULONG:                           \
-		function<unsigned long>(__VA_ARGS__);               \
-		break;                                              \
-	case itk::ImageIOBase::FLOAT:                           \
-		function<float>(__VA_ARGS__);                       \
-		break;                                              \
-	case itk::ImageIOBase::DOUBLE:                          \
-		function<double>(__VA_ARGS__);                      \
-		break;                                              \
-	default:                                                \
-		throw itk::ExceptionObject(__FILE__, __LINE__,      \
-			QString("Typed Call: Unknown component type (%1).").arg(itk_scalar_type).toStdString().c_str());\
-		break;                                              \
-	}                                                       \
-}
-#endif
 
 #define VTK_TYPED_CALL(function, vtk_scalar_type, ...)      \
 {                                                           \

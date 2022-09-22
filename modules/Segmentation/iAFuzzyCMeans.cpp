@@ -133,11 +133,7 @@ void fcm(iAFilter* filter, QVariantMap const & params)
 	classifier->SetMaximumNumberOfIterations(params["Maximum Iterations"].toUInt());
 	classifier->SetMaximumError(params["Maximum Error"].toDouble());
 	classifier->SetM(params["M"].toDouble());
-#if ITK_VERSION_MAJOR < 5
-	classifier->SetNumberOfThreads(params["Number of Threads"].toUInt());
-#else
 	classifier->SetNumberOfWorkUnits(params["Number of Threads"].toUInt());
-#endif
 	classifier->SetNumberOfClasses(numberOfClasses);
 	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
 	for (int i = 0; static_cast<unsigned int>(i) < numberOfClasses; i++)
@@ -223,11 +219,7 @@ void kfcm(iAFilter* filter, QVariantMap const & parameters)
 	classifier->SetMaximumError(parameters["Maximum Error"].toDouble());
 	classifier->SetM(parameters["M"].toDouble());
 	classifier->SetAlpha(parameters["Alpha"].toDouble());
-#if ITK_VERSION_MAJOR < 5
-	classifier->SetNumberOfThreads(parameters["Number of Threads"].toUInt());
-#else
 	classifier->SetNumberOfWorkUnits(parameters["Number of Threads"].toUInt());
-#endif
 	classifier->SetNumberOfClasses(numberOfClasses);
 	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
 	for (int i = 0; static_cast<unsigned int>(i) < numberOfClasses; i++)
@@ -315,11 +307,7 @@ void mskfcm(iAFilter* filter, QVariantMap const & parameters)
 	//classifier->SetAlpha(parameters["Alpha"].toDouble());
 	classifier->SetP(parameters["P"].toDouble());
 	classifier->SetQ(parameters["Q"].toDouble());
-#if ITK_VERSION_MAJOR < 5
-	classifier->SetNumberOfThreads(parameters["Number of Threads"].toUInt());
-#else
 	classifier->SetNumberOfWorkUnits(parameters["Number of Threads"].toUInt());
-#endif
 	classifier->SetNumberOfClasses(numberOfClasses);
 	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
 	for (unsigned int i = 0; i < numberOfClasses; i++)

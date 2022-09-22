@@ -22,7 +22,6 @@
 
 #include "iAFileUtils.h"    // getLocalEncodingFileName
 #include "iALog.h"
-#include "iAItkVersion.h"
 #include "iAITKIO.h"
 
 #include "iAbase_export.h"
@@ -182,10 +181,8 @@ template<> struct iAITKTypeMapper<unsigned int>        { static const itk::Image
 template<> struct iAITKTypeMapper<int>                 { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::INT; };
 template<> struct iAITKTypeMapper<unsigned long>       { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::ULONG; };
 template<> struct iAITKTypeMapper<long>                { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::LONG; };
-#if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(4, 13, 0)
 template<> struct iAITKTypeMapper <unsigned long long> { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::ULONGLONG; };
 template<> struct iAITKTypeMapper <long long>          { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::LONGLONG; };
-#endif
 template<> struct iAITKTypeMapper<float>               { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::FLOAT; };
 template<> struct iAITKTypeMapper<double>              { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::DOUBLE; };
 
@@ -218,12 +215,10 @@ iAITKIO::ImagePointer castImageTo(iAITKIO::ImagePointer img)
 			return internalCastImageTo<itk::Image<long, 3>, itk::Image<ResultPixelType, 3> >(img);
 		case itk::ImageIOBase::ULONG:
 			return internalCastImageTo<itk::Image<unsigned long, 3>, itk::Image<ResultPixelType, 3> >(img);
-#if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(4, 13, 0)
 		case itk::ImageIOBase::LONGLONG:
 			return internalCastImageTo<itk::Image<long long, 3>, itk::Image<ResultPixelType, 3> >(img);
 		case itk::ImageIOBase::ULONGLONG:
 			return internalCastImageTo<itk::Image<unsigned long long, 3>, itk::Image<ResultPixelType, 3> >(img);
-#endif
 		case itk::ImageIOBase::FLOAT:
 			return internalCastImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img);
 		default:
@@ -271,12 +266,10 @@ iAITKIO::ImagePointer rescaleImageTo(iAITKIO::ImagePointer img, double min, doub
 		return internalRescaleImageTo<itk::Image<long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	case itk::ImageIOBase::ULONG:
 		return internalRescaleImageTo<itk::Image<unsigned long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
-#if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(4, 13, 0)
 	case itk::ImageIOBase::LONGLONG:
 		return internalRescaleImageTo<itk::Image<long long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	case itk::ImageIOBase::ULONGLONG:
 		return internalRescaleImageTo<itk::Image<unsigned long long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
-#endif
 	case itk::ImageIOBase::FLOAT:
 		return internalRescaleImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	default:

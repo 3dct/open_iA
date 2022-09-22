@@ -220,13 +220,11 @@ void convertToRGB(iAFilter * filter, QVariantMap const & params)
 	rgbaImage->Allocate();
 
 	auto rgbImage = labelToRGBFilter->GetOutput();
-#if ITK_VERSION_MAJOR >= 5
 	itk::MultiThreaderBase::Pointer mt = itk::MultiThreaderBase::New();
 	mt->ParallelizeImageRegion<3>(
 		rgbImage->GetBufferedRegion(),
 		[rgbImage, rgbaImage, &params](const RGBImageType::RegionType & region)
 	{
-#endif
 		itk::ImageRegionConstIterator<RGBImageType> iIt(rgbImage,  region);
 		itk::ImageRegionIterator<RGBAImageType>     oIt(rgbaImage, region);
 		for (; !iIt.IsAtEnd(); ++iIt, ++oIt)
@@ -238,9 +236,7 @@ void convertToRGB(iAFilter * filter, QVariantMap const & params)
 				params["Background opacity"].toUInt() : params["Object opacity"].toUInt();
 			oIt.Value().SetAlpha(alpha);
 		}
-#if ITK_VERSION_MAJOR >= 5
 	}, nullptr);
-#endif
 	filter->addOutput(rgbaImage);
 }
 

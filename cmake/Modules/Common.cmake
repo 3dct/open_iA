@@ -114,8 +114,8 @@ set(FPHSA_NAME_MISMATCHED 1)
 set(SAVED_CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}")
 find_package(ITK REQUIRED)
 message(STATUS "ITK: ${ITK_VERSION} in ${ITK_DIR}")
-if (ITK_VERSION VERSION_LESS "4.10.0")
-	message(FATAL_ERROR "Your ITK version is too old. Please use ITK >= 4.10")
+if (ITK_VERSION VERSION_LESS "5.0.0")
+	message(FATAL_ERROR "Your ITK version is too old. Please use ITK >= 5.0")
 endif()
 set(ITK_COMPONENTS
 	ITKConvolution
@@ -124,23 +124,15 @@ set(ITK_COMPONENTS
 	ITKGPUAnisotropicSmoothing
 	ITKImageFeature
 	ITKImageFusion
+	ITKImageIO
 	ITKImageNoise
+	ITKIORAW        # apparently not included in ITKImageIO
 	ITKLabelMap
 	ITKMesh
 	ITKReview       # for LabelGeometryImageFilter
 	ITKTestKernel   # for PipelineMonitorImageFilter
 	ITKVtkGlue
 	ITKWatersheds)
-if (ITK_VERSION VERSION_GREATER "4.12.99") # libraries split up in ITK 4.13:
-	list(APPEND ITK_COMPONENTS ITKImageIO)
-	list(APPEND ITK_COMPONENTS ITKIORAW)  # apparently not included in ITKImageIO
-else()
-	foreach (mod IN LISTS ITK_MODULES_ENABLED)
-		if (${mod} MATCHES "IO")
-			list(APPEND ITK_COMPONENTS ${mod})
-		endif()
-	endforeach()
-endif()
 set(ITK_HGrad_INFO "off")
 if (HigherOrderAccurateGradient_LOADED)
 	message(STATUS "    HigherOrderAccurateGradient (HOAG) available as ITK module")
@@ -573,12 +565,7 @@ endif()
 set(BUILD_INFO "${BUILD_INFO}    \"Advanced Vector Extensions	${openiA_AVX_SUPPORT}\\n\"\n")
 
 if (${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-	# Qt 6 requires C++ 17, but causes problems with ITK 4.12.2 (throw clauses -> "ISO c++1z does not allow dynamic exception specifications")
-	if (ITK_VERSION VERSION_LESS "5.0.0")
-		MESSAGE(SEND_ERROR "You have chosen Qt >= 6.0 in combination with ITK <= 5.0. "
-			"Qt >= 6 requires to use the C++17 standard, but ITK <= 5 does not work with C++17. "
-			"Please either choose a Qt version < 6.0 or an ITK version >= 5.0!")
-	endif()
+	# Qt >= 6 requires to use the C++17 standard
 	set(CMAKE_CXX_STANDARD 17)
 else()
 	set(CMAKE_CXX_STANDARD 14)
