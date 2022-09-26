@@ -154,11 +154,7 @@ void iAChartWidget::wheelEvent(QWheelEvent *event)
 	}
 	else
 	{
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
 		zoomAlongX(event->angleDelta().y(), event->position().x(), true);
-#else
-		zoomAlongX(event->angleDelta().y(), event->x(), true);
-#endif
 	}
 	event->accept();
 	update();

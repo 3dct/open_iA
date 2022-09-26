@@ -437,11 +437,7 @@ void iANModalController::updateLabel(const iANModalLabel& label)
 
 void iANModalController::updateLabels(const QList<iANModalLabel>& labelsList)
 {
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-	std::vector<iANModalLabel> labels = labelsList.toVector().toStdVector();
-#else
 	std::vector<iANModalLabel> labels(labelsList.begin(), labelsList.end());
-#endif
 	for (auto tf : m_tfs)
 	{
 		tf->updateLabels(labels);

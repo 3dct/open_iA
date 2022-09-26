@@ -34,7 +34,6 @@
 #include <iAPerformanceHelper.h>
 #include <iAProgress.h>
 #include <iAToolsVTK.h>
-#include <qthelper/iAQtEndl.h>
 
 #include <vtkImageData.h>
 #include <vtkTable.h>
@@ -1272,7 +1271,7 @@ void iASensitivityData::computeSpatialOverview(iAProgress* progress)
 		size_t overallVoxels = volSize * volSize * volSize;
 		if (volPercentOutFile.size() == 0)		// to support resuming
 		{
-			volPercentOut << "ResultID,Percentage,FiberVoxel(overall=" << overallVoxels << ")" << QTENDL;
+			volPercentOut << "ResultID,Percentage,FiberVoxel(overall=" << overallVoxels << ")" << Qt::endl;
 		}
 		for (size_t r = 0; r < resultCount && !m_aborted; ++r)
 		{
@@ -1311,7 +1310,7 @@ void iASensitivityData::computeSpatialOverview(iAProgress* progress)
 					break;
 				}
 				double volPercent = (100.0 * fiberVoxels) / overallVoxels;
-				volPercentOut << r << "," << volPercent << "," << fiberVoxels << QTENDL;
+				volPercentOut << r << "," << volPercent << "," << fiberVoxels << Qt::endl;
 				LOG(lvlInfo,
 					QString("Result %1: Fibers take up ~ %2 % of the volume (%3 of %4 voxels).")
 						.arg(r)

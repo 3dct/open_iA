@@ -1378,11 +1378,7 @@ void iAQSplom::resetTransform()
 
 void iAQSplom::wheelEvent( QWheelEvent * event)
 {
-#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
-	iAScatterPlot * s = getScatterplotAt( event->pos() );
-#else
 	iAScatterPlot* s = getScatterplotAt(event->position().toPoint());
-#endif
 	if( s )
 	{
 		s->SPLOMWheelEvent( event );

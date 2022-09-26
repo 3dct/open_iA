@@ -29,11 +29,7 @@
 
 QSharedPointer<iASeedVector> ExtractSeedVector(QString const & seedString, int width, int height, int depth)
 {
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	QStringList lines = seedString.split(QRegularExpression("[\r\n]"),QString::SkipEmptyParts);
-#else
 	QStringList lines = seedString.split(QRegularExpression("[\r\n]"), Qt::SkipEmptyParts);
-#endif
 	auto result = QSharedPointer<iASeedVector>::create();
 	QString parseErrors;
 	bool numberOK;

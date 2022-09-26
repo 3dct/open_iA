@@ -35,7 +35,6 @@
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
 #include <iAITKIO.h>
-#include <qthelper/iAQtEndl.h>
 
 #include <itkImage.h>
 
@@ -290,7 +289,7 @@ namespace
 			QTextStream textStream(&file);
 			for (QString line : outputBuffer)
 			{
-				textStream << line << QTENDL;
+				textStream << line << Qt::endl;
 			}
 			file.close();
 		}

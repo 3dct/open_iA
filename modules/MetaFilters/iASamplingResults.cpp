@@ -27,7 +27,6 @@
 #include <iALog.h>
 #include <iAFileUtils.h>
 #include <iAStringHelper.h>
-#include <qthelper/iAQtEndl.h>
 
 #include <QFile>
 #include <QTextStream>
@@ -166,13 +165,13 @@ bool iASamplingResults::store(QString const & rangeFileName,
 	out.setEncoding(QStringConverter::Utf8);
 #endif
 	QFileInfo fi(paramRangeFile);
-	out << SMPFileFormatVersion << QTENDL;
-	out << "Name" << Output::NameSeparator << m_name << QTENDL;
-	out << "ParameterSet" << Output::NameSeparator << MakeRelative(fi.absolutePath(), parameterSetFileName) << QTENDL;
-	out << "DerivedOutput" << Output::NameSeparator << MakeRelative(fi.absolutePath(), derivedOutputFileName) << QTENDL;
-	out << "SamplingMethod" << Output::NameSeparator << m_samplingMethod << QTENDL;
-	out << "Executable" << Output::NameSeparator << m_executable << QTENDL;
-	out << "AdditionalArguments" << Output::NameSeparator << m_additionalArguments << QTENDL;
+	out << SMPFileFormatVersion << Qt::endl;
+	out << "Name" << Output::NameSeparator << m_name << Qt::endl;
+	out << "ParameterSet" << Output::NameSeparator << MakeRelative(fi.absolutePath(), parameterSetFileName) << Qt::endl;
+	out << "DerivedOutput" << Output::NameSeparator << MakeRelative(fi.absolutePath(), derivedOutputFileName) << Qt::endl;
+	out << "SamplingMethod" << Output::NameSeparator << m_samplingMethod << Qt::endl;
+	out << "Executable" << Output::NameSeparator << m_executable << Qt::endl;
+	out << "AdditionalArguments" << Output::NameSeparator << m_additionalArguments << Qt::endl;
 	::storeAttributes(out, *m_attributes.data());
 	paramRangeFile.close();
 
@@ -206,7 +205,7 @@ bool iASamplingResults::storeAttributes(int type, QString const & fileName, bool
 	{
 		outParamSet << iASingleResult::ValueSplitString << "Filename";
 	}
-	outParamSet << QTENDL;
+	outParamSet << Qt::endl;
 	// values:
 	for (int i = 0; i<m_results.size(); ++i)
 	{
@@ -214,7 +213,7 @@ bool iASamplingResults::storeAttributes(int type, QString const & fileName, bool
 		{
 			outParamSet << m_results[i]->id() << iASingleResult::ValueSplitString;
 		}
-		outParamSet << m_results[i]->toString(m_attributes, type) << QTENDL;
+		outParamSet << m_results[i]->toString(m_attributes, type) << Qt::endl;
 	}
 	paramSetFile.close();
 	return true;

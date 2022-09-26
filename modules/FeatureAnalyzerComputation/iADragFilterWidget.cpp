@@ -23,7 +23,6 @@
 #include "FeatureAnalyzerHelpers.h"
 
 #include <QStringList>
-#include <QtGlobal> // for QT_VERSION
 #include <QtWidgets>
 
 const QStringList customMimeType = QStringList()\
@@ -528,7 +527,9 @@ void iADragFilterWidget::dragEnterEvent( QDragEnterEvent *event )
 			event->acceptProposedAction();
 	}
 	else
+	{
 		event->ignore();
+	}
 }
 
 void iADragFilterWidget::dragMoveEvent( QDragMoveEvent *event )
@@ -544,7 +545,9 @@ void iADragFilterWidget::dragMoveEvent( QDragMoveEvent *event )
 			event->acceptProposedAction();
 	}
 	else
+	{
 		event->ignore();
+	}
 }
 
 void iADragFilterWidget::dropEvent( QDropEvent *event )
@@ -560,24 +563,23 @@ void iADragFilterWidget::dropEvent( QDropEvent *event )
 			event->acceptProposedAction();
 	}
 	else
+	{
 		event->ignore();
+	}
 }
 
 void iADragFilterWidget::mousePressEvent( QMouseEvent *event )
 {
 	QLabel *child = static_cast<QLabel*>( childAt( event->pos() ) );
-	if ( !child )
+	if (!child)
+	{
 		return;
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+	}
 	if (child->pixmap(Qt::ReturnByValue).isNull())
+	{
 		return;
+	}
 	QPixmap pixmap = child->pixmap(Qt::ReturnByValue);
-#else
-	if ( !child->pixmap() )
-		return;
-	QPixmap pixmap = *child->pixmap();
-#endif
 	QString filtername = child->objectName();
 	QString description = child->toolTip();
 	QByteArray itemData;
@@ -600,8 +602,10 @@ void iADragFilterWidget::mousePressEvent( QMouseEvent *event )
 
 	child->setPixmap( tempPixmap );
 
-	if ( drag->exec( Qt::CopyAction | Qt::MoveAction, Qt::CopyAction ) == Qt::MoveAction )
+	if (drag->exec(Qt::CopyAction | Qt::MoveAction, Qt::CopyAction) == Qt::MoveAction)
+	{
 		child->close();
+	}
 	else
 	{
 		child->show();

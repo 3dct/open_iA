@@ -246,30 +246,18 @@ void iARangeSliderDiagramView::loadSelectionToSPMView()
 		{
 			if ( rsdSelection.count() )
 			{
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
 				auto l = m_widgetList[i]->getSelectedRawTableRows();
 				rsdSelection.intersect(QSet<int>(l.begin(), l.end()));
-#else
-				rsdSelection.intersect( m_widgetList[i]->getSelectedRawTableRows().toSet() );
-#endif
 			}
 			else
 			{
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
 				auto l = m_widgetList[i]->getSelectedRawTableRows();
 				rsdSelection.unite(QSet<int>(l.begin(), l.end()));
-#else
-				rsdSelection.unite( m_widgetList[i]->getSelectedRawTableRows().toSet() );
-#endif
 			}
 		}
 	}
 
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
 	QList<int> rsdSelectionList(rsdSelection.values());
-#else
-	QList<int> rsdSelectionList = rsdSelection.toList();
-#endif
 	std::sort( rsdSelectionList.begin(), rsdSelectionList.end() );
 
 	vtkIdTypeArray *rdsIds = vtkIdTypeArray::New();

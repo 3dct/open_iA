@@ -116,11 +116,7 @@ QLayoutItem *iAQFlowLayout::takeAt(int index)
 
 Qt::Orientations iAQFlowLayout::expandingDirections() const
 {
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	return 0;
-#else
 	return Qt::Orientations();
-#endif
 }
 
 bool iAQFlowLayout::hasHeightForWidth() const

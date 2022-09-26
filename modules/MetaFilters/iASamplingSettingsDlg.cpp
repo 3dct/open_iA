@@ -36,7 +36,6 @@
 #include <iAStringHelper.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
-#include <qthelper/iAQtEndl.h>
 
 #include <iAQFlowLayout.h>
 
@@ -532,7 +531,7 @@ void iASamplingSettingsDlg::saveSettings()
 	QTextStream stream(&file);
 	for (QString key : settings.keys())
 	{
-		stream << key << KeyValueSeparator << settings[key].toString() << QTENDL;
+		stream << key << KeyValueSeparator << settings[key].toString() << Qt::endl;
 	}
 }
 

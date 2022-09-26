@@ -30,11 +30,7 @@ class iAPreviewSPLOM : public QOpenGLWidget, public QOpenGLFunctions
 	Q_OBJECT
 
 public:
-#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
-	iAPreviewSPLOM(QWidget * parent = nullptr, Qt::WindowFlags f = 0);
-#else
 	iAPreviewSPLOM(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
-#endif
 	~iAPreviewSPLOM();
 	void SetPixmap( QPixmap * pxmp );
 	void SetMask( const QPixmap * mask );

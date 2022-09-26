@@ -26,11 +26,7 @@ class iADataFolderDialog : public QDialog, public Ui_dataFolderDialog
 {
 	Q_OBJECT
 public:
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	iADataFolderDialog( QWidget * parent = nullptr, Qt::WindowFlags f = 0 );
-#else
 	iADataFolderDialog(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
-#endif
 	~iADataFolderDialog();
 	QString ResultsFolderName();
 	QString DatasetsFolderName();

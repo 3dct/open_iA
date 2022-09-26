@@ -26,7 +26,6 @@
 #include "iASingleResult.h"
 
 #include <iALog.h>
-#include <qthelper/iAQtEndl.h>
 
 #include <QDir>
 #include <QFile>
@@ -65,7 +64,7 @@ void iAImageTree::WriteNode(QTextStream & out, QSharedPointer<iAImageTreeNode > 
 	{
 		out << MergeMarker << " " << QString::number(node->GetDistance());
 	}
-	out << QTENDL;
+	out << Qt::endl;
 	for (int c=0; c<node->GetChildCount(); ++c)
 	{
 		WriteNode(out, node->GetChild(c), level+1);

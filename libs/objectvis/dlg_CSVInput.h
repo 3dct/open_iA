@@ -39,11 +39,7 @@ class iAobjectvis_API dlg_CSVInput : public QDialog
 Q_OBJECT
 public:
 	//! Create a new dialog, all parameters are optional
-#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
-	dlg_CSVInput(bool volumeDataAvailable, QWidget * parent = nullptr, Qt::WindowFlags f = 0);
-#else
 	dlg_CSVInput(bool volumeDataAvailable, QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
-#endif
 	//! Set the internal path (used when choosing a csv file) to the one given as parameter
 	void setPath(QString const & path);
 	//! Set the file name input to the one given as parameter

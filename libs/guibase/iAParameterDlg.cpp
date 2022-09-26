@@ -279,7 +279,6 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 
 	// Try to resize dialog so that all controls are visible without scrolling; but use at most 2/3 of screen width and height
 	m_container->setLayout(containerLayout);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
 	int maxWidth = 2 * screen()->geometry().width() / 3;
 	int maxHeight = 2 * screen()->geometry().height() / 3;
 	const int ScrollBarSize = 20;
@@ -287,7 +286,6 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 	int desiredHeight = containerLayout->minimumSize().height() + ScrollBarSize;
 	scrollArea->setMinimumWidth(std::min(desiredWidth, maxWidth));
 	scrollArea->setMinimumHeight(std::min(desiredHeight, maxHeight));
-#endif
 	scrollArea->setWidget(m_container);
 	scrollArea->setWidgetResizable(true);
 

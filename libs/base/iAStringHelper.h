@@ -146,11 +146,7 @@ QString arrayToString(T const * arr, size_t size, QString const & sep = " ")
 template <typename T, typename TVal, int Nval>
 void valuesFromString(T& val, QString const & str, QString const & sep = " ")
 {
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	QStringList list = str.split(sep, QString::SkipEmptyParts);
-#else
 	QStringList list = str.split(sep, Qt::SkipEmptyParts);
-#endif
 	if (list.size() >= Nval)
 	{
 		for (int j = 0; j < Nval; j++)

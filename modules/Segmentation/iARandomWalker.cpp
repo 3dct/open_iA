@@ -35,7 +35,6 @@
 #include <iAToolsVTK.h>
 #include <iATypedCallHelper.h>
 #include <iAToolsITK.h>
-#include <qthelper/iAQtEndl.h>
 
 #include <vtkImageData.h>
 
@@ -685,7 +684,7 @@ void iALabelImageToSeeds::performWork(QVariantMap const& parameters)
 		auto pixelValue = img->GetScalarComponentAsDouble(x, y, z, 0);
 		if (pixelValue != 0)
 		{
-			out << x << " " << y << " " << z << " " << pixelValue << QTENDL;
+			out << x << " " << y << " " << z << " " << pixelValue << Qt::endl;
 		}
 	}
 	f.close();

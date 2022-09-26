@@ -41,11 +41,7 @@ class dlg_tf_3mod : public QDockWidget
 	Q_OBJECT
 
 public:
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	dlg_tf_3mod(iAMdiChild* parent, Qt::WindowFlags f = 0);
-#else
 	dlg_tf_3mod(iAMdiChild* parent, Qt::WindowFlags f = Qt::WindowFlags());
-#endif
 
 private:
 	iATripleModalityWidget *m_tripleModalityWidget;

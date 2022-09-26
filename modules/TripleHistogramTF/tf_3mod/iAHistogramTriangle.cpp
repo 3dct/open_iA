@@ -215,23 +215,13 @@ void iAHistogramTriangle::forwardMouseEvent(QMouseEvent *event, MouseEventType e
 void iAHistogramTriangle::forwardWheelEvent(QWheelEvent *e)
 {
 	QPoint transformed;
-#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
-	iASlicer * target = onSlicer(e->pos(), transformed);
-#else
 	iASlicer* target = onSlicer(e->position().toPoint(), transformed);
-#endif
 	if (!target)
 	{
 		return;
 	}
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	QWheelEvent *newE = new QWheelEvent(transformed, e->globalPosF(), e->pixelDelta(), e->angleDelta(),
-		e->delta(), e->orientation(), e->buttons(),
-		e->modifiers(), e->phase(), e->source(), e->inverted());
-#else
 	QWheelEvent* newE = new QWheelEvent(transformed, e->globalPosition(), e->pixelDelta(), e->angleDelta(),
 		e->buttons(), e->modifiers(), e->phase(), e->inverted(), e->source());
-#endif
 	QApplication::sendEvent(target, newE);
 	m_fRenderSlicer[m_lastIndex] = true;
 	update();

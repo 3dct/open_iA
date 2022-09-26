@@ -65,11 +65,7 @@ QVector<QPointF> intersectLineWithRange(QLineF const& line, const threshold_defs
 	{
 		QPointF pt_Intersect;
 
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
 		auto interSectFlag = line.intersects(otherLine, &pt_Intersect);
-#else
-		auto interSectFlag = line.intersect(otherLine, &pt_Intersect);
-#endif
 		if ((!pt_Intersect.isNull()) && (!(interSectFlag == QLineF::UnboundedIntersection)))
 		{
 			intersectPoints.push_back(pt_Intersect);

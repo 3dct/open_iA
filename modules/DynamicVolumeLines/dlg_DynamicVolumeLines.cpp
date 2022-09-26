@@ -40,7 +40,6 @@
 #include <iAChartWithFunctionsWidget.h>
 
 #include <iAColorTheme.h>
-#include <qthelper/iAQtEndl.h>
 #include <iATransferFunction.h>
 #include <iATypedCallHelper.h>
 
@@ -575,7 +574,7 @@ void dlg_DynamicVolumeLines::exportCSV(QString path)
 			for (auto value : dataPair.second)
 			{
 				QTextStream stream(&file);
-				stream << value.intensity << QTENDL;
+				stream << value.intensity << Qt::endl;
 			}
 		}
 	}
