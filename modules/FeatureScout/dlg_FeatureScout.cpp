@@ -107,6 +107,7 @@
 #include <vtkTable.h>
 #include <vtkTextProperty.h>
 #include <vtkVariantArray.h>
+#include <vtkVersion.h>
 
 #include <QFileDialog>
 #include <QFileInfo>
