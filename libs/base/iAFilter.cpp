@@ -50,18 +50,18 @@ namespace
 			[[fallthrough]];
 #endif
 			// fall through
-		case VTK_SIGNED_CHAR       : return itk::ImageIOBase::IOComponentEnum::CHAR;
-		case VTK_UNSIGNED_CHAR     : return itk::ImageIOBase::IOComponentType::UCHAR;
-		case VTK_SHORT             : return itk::ImageIOBase::IOComponentEnum::SHORT;
-		case VTK_UNSIGNED_SHORT    : return itk::ImageIOBase::IOComponentEnum::USHORT;
-		case VTK_INT               : return itk::ImageIOBase::IOComponentEnum::INT;
-		case VTK_UNSIGNED_INT      : return itk::ImageIOBase::IOComponentEnum::UINT;
-		case VTK_LONG              : return itk::ImageIOBase::IOComponentEnum::LONG;
-		case VTK_UNSIGNED_LONG     : return itk::ImageIOBase::IOComponentEnum::ULONG;
-		case VTK_LONG_LONG         : return itk::ImageIOBase::IOComponentEnum::LONGLONG;
-		case VTK_UNSIGNED_LONG_LONG: return itk::ImageIOBase::IOComponentEnum::ULONGLONG;
-		case VTK_FLOAT             : return itk::ImageIOBase::IOComponentEnum::FLOAT;
-		case VTK_DOUBLE            : return itk::ImageIOBase::IOComponentEnum::DOUBLE;
+		case VTK_SIGNED_CHAR       : return itk::ImageIOBase::CHAR;
+		case VTK_UNSIGNED_CHAR     : return itk::ImageIOBase::UCHAR;
+		case VTK_SHORT             : return itk::ImageIOBase::SHORT;
+		case VTK_UNSIGNED_SHORT    : return itk::ImageIOBase::USHORT;
+		case VTK_INT               : return itk::ImageIOBase::INT;
+		case VTK_UNSIGNED_INT      : return itk::ImageIOBase::UINT;
+		case VTK_LONG              : return itk::ImageIOBase::LONG;
+		case VTK_UNSIGNED_LONG     : return itk::ImageIOBase::ULONG;
+		case VTK_LONG_LONG         : return itk::ImageIOBase::LONGLONG;
+		case VTK_UNSIGNED_LONG_LONG: return itk::ImageIOBase::ULONGLONG;
+		case VTK_FLOAT             : return itk::ImageIOBase::FLOAT;
+		case VTK_DOUBLE            : return itk::ImageIOBase::DOUBLE;
 		}
 	}
 }
