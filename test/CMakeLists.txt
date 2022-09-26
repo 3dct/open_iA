@@ -1,7 +1,7 @@
 # CMAKE_CURRENT_BINARY_DIR/base include required for open_iA_Core_export.h
 
 # StringHelperTest
-add_executable(StringHelperTest iAStringHelperTest.cpp ../libs/base/iAStringHelper.cpp)
+add_executable(StringHelperTest iAStringHelperTest.cpp ../libs/base/iAStringHelper.cpp)      # for iAbase_export.h
 target_include_directories(StringHelperTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base ${CMAKE_CURRENT_BINARY_DIR}/../libs)
 target_link_libraries(StringHelperTest PRIVATE Qt${QT_VERSION_MAJOR}::Core)
 target_compile_definitions(StringHelperTest PRIVATE NO_DLL_LINKAGE)
@@ -17,12 +17,13 @@ endif()
 
 # Vec3Test
 add_executable(Vec3Test iAVec3Test.cpp)
-target_include_directories(Vec3Test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base ${CMAKE_CURRENT_SOURCE_DIR}/../libs/core)
+target_include_directories(Vec3Test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base)
 target_compile_definitions(Vec3Test PRIVATE NO_DLL_LINKAGE)
+target_link_libraries(Vec3Test PRIVATE Qt${QT_VERSION_MAJOR}::Core)
 add_test(NAME Vec3Test COMMAND Vec3Test)
 
 # MathUtilTest
-add_executable(MathUtilTest iAMathUtilityTest.cpp ../libs/base/iAMathUtility.cpp)
+add_executable(MathUtilTest iAMathUtilityTest.cpp ../libs/base/iAMathUtility.cpp)        # for iAbase_export.h
 target_include_directories(MathUtilTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base ${CMAKE_CURRENT_BINARY_DIR}/../libs)
 target_link_libraries(MathUtilTest PRIVATE Qt${QT_VERSION_MAJOR}::Core)
 if (openiA_DEPENDENCY_INFO)
