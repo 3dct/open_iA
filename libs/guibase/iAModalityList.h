@@ -22,6 +22,7 @@
 
 #include "iAguibase_export.h"
 
+#include <QObject>
 #include <QSharedPointer>
 #include <QVector>
 
