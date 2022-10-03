@@ -30,6 +30,8 @@
 #include <functional>
 #include <memory>
 
+
+
 class dlg_modalities;
 class iAAlgorithm;
 class iAChannelData;
@@ -69,6 +71,8 @@ public:
 		imCamera,
 		imRegistration
 	};
+
+
 	//! Retrieve the current interaction mode (whether camera is changed,
 	//! or manual registration is active, see iAInteractionMode)
 	virtual iAInteractionMode interactionMode() const = 0;
@@ -357,4 +361,8 @@ public slots:
 	virtual void enableRenderWindows() = 0;
 	//! @deprecated. will be removed soon, no direct replacement
 	virtual void disableRenderWindows(int ch) = 0;
+
+
 };
+
+

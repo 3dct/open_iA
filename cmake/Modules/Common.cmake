@@ -337,7 +337,7 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets OpenGLWidgets REQUIRED)
 #	set(Qt${QT_VERSION_MAJOR}GuiTools_DIR ${QT_DIR}GuiTools CACHE PATH "" FORCE)
 #	set(Qt${QT_VERSION_MAJOR}WidgetsTools_DIR ${QT_DIR}WidgetsTools CACHE PATH "" FORCE)
 #endif
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Concurrent Gui OpenGL Svg Widgets Xml REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Concurrent Gui OpenGL Svg WebSockets Widgets Xml REQUIRED)
 message(STATUS "Qt: ${QT_VERSION} in ${Qt${QT_VERSION_MAJOR}_DIR}")
 set(BUILD_INFO "${BUILD_INFO}    \"Qt	${QT_VERSION}\\n\"\n")
 if (QT_VERSION VERSION_LESS "5.15.0")
@@ -736,6 +736,8 @@ if (UNIX)
 	#    set(CMAKE_BUILD_RPATH_USE_ORIGIN ON)
 endif()
 
+
+set(openiA_DEPENDENCY_INFO 1)
 
 # Helper functions for adding libraries
 

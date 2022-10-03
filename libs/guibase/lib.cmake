@@ -1,6 +1,7 @@
 target_link_libraries(${libname} PUBLIC
 	iA::base
 	iA::io  # for iAOIFReader in iAIO - can be removed once iAIO isn't there anymore
+	iA::remote
 	Qt${QT_VERSION_MAJOR}::Concurrent
 )
 set(VTK_REQUIRED_LIBS_PUBLIC
