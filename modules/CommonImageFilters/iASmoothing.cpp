@@ -322,17 +322,18 @@ void GPU_gradient_anisotropic_diffusion(iAFilter* filter, QMap<QString, QVariant
 {
 	// register object factory for GPU image and filter
 	itk::ObjectFactoryBase::RegisterFactory(itk::GPUImageFactory::New());
-	itk::ObjectFactoryBase::RegisterFactory(itk::GPUGradientAnisotropicDiffusionImageFilterFactory::New());
+
 
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef itk::Image< float, DIM >   RealImageType;
-	typedef itk::GPUGradientAnisotropicDiffusionImageFilter< InputImageType, RealImageType > GGADIFType;
 
-	auto gadFilter = GGADIFType::New();
+	typedef itk::GPUGradientAnisotropicDiffusionImageFilter<RealImageType, RealImageType> GADIFType;
+	auto realImage = castImageTo<RealType>(dynamic_cast<InputImageType*>(filter->input(0)->itkImage()));
+	auto gadFilter = GADIFType::New();
 	gadFilter->SetNumberOfIterations(params["Number of iterations"].toUInt());
-	gadFilter->SetTimeStep(params["Time Step"].toDouble());
+	gadFilter->SetTimeStep(params["Time step"].toDouble());
 	gadFilter->SetConductanceParameter(params["Conductance"].toDouble());
-	gadFilter->SetInput(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
+	gadFilter->SetInput(dynamic_cast<RealImageType*>(realImage.GetPointer()));
 	filter->progress()->observe(gadFilter);
 	gadFilter->Update();
 	if (params["Convert back to input type"].toBool())
