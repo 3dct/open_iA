@@ -736,9 +736,6 @@ if (UNIX)
 	#    set(CMAKE_BUILD_RPATH_USE_ORIGIN ON)
 endif()
 
-
-set(openiA_DEPENDENCY_INFO 1)
-
 # Helper functions for adding libraries
 
 # "old style" libraries (e.g. ITK or VTK < 9, with no imported targets)
