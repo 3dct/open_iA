@@ -44,7 +44,9 @@ if (HDF5_FOUND)
 	# to gui and cmd also requiring linking to it separately, it's easier to link PUBLIC here:
 	target_link_libraries(${libname} PUBLIC ${HDF5_LIBRARY})
 	# make sure HDF5 is included before itk (which brings its own hdf5 libraries in a different version):
-	target_include_directories(${libname} BEFORE PRIVATE ${HDF5_INCLUDE_DIR})
+	if (HDF5_VERSION VERSION_LESS "1.13.0")
+		target_include_directories(${libname} BEFORE PRIVATE ${HDF5_INCLUDE_DIR})
+	endif()
 	target_compile_definitions(${libname} PUBLIC USE_HDF5)	# must be public because used in header defines.h
 endif()
 if (SCIFIO_LOADED)
