@@ -27,6 +27,8 @@
 
 #include "iAWebsocketAPI.h"
 
+#include <QAction>
+
 #ifdef QT_HTTPSERVER
 
 #include <QCoreApplication>
