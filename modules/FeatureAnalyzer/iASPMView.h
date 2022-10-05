@@ -35,7 +35,6 @@ class QTableWidget;
 class QVBoxLayout;
 
 class vtkColorTransferFunction;
-class vtkCommand;
 class vtkContextView;
 class vtkIdTypeArray;
 class vtkLookupTable;

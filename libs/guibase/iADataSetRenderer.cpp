@@ -29,7 +29,6 @@
 #include <iAVolumeSettings.h>
 
 #include <vtkActor.h>
-#include <vtkCommand.h>
 #include <vtkCubeSource.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkOutlineFilter.h>
