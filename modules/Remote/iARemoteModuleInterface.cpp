@@ -27,16 +27,65 @@
 
 #include "iAWebsocketAPI.h"
 
+#ifdef QT_HTTPSERVER
+
+#include <QCoreApplication>
+#include <QFile>
+#include <QHttpServer>
+#include <QTextStream>
+
+void addFileToServe(QString path, QString query, QString fileName, QHttpServer* server)
+{
+	auto routeCreated = server->route(query, [path, fileName]() -> QString  {
+		QFile fileToServe(path + "/" + fileName);
+		if (!fileToServe.open(QFile::ReadOnly | QFile::Text))
+		{
+			LOG(lvlError, QString("Could not open file to server (%1) in given path (%2).").arg(fileName).arg(path));
+			return "Error";
+		}
+		QTextStream in(&fileToServe);
+		auto value = in.readAll();
+		return value;
+	});
+	if (!routeCreated)
+	{
+		LOG(lvlError, QString("Error creating server route for file %1").arg(fileName));
+	}
+}
+
+#endif
+
 class iARemoteAttachment: public iAModuleAttachmentToChild
 {
 public:
 	iARemoteAttachment(iAMainWindow* mainWnd, iAMdiChild* child):
 		iAModuleAttachmentToChild(mainWnd, child),
 		m_wsAPI(std::make_unique<iAWebsocketAPI>(1234))
+#ifdef QT_HTTPSERVER
+		, m_httpServer(std::make_unique<QHttpServer>())
+#endif
 	{
+#ifdef QT_HTTPSERVER
+		QString path = QCoreApplication::applicationDirPath() + "/RemoteClient";
+		addFileToServe(path, "/", "index.html", m_httpServer.get());
+		addFileToServe(path, "/main.js", "main.js", m_httpServer.get());
+		auto port = m_httpServer->listen(QHostAddress::Any, 8080);
+		if (port == 0)
+		{
+			LOG(lvlError, "Could not bind server!");
+		}
+		auto ports = m_httpServer->serverPorts();
+		if (ports.size() != 1)
+		{
+			LOG(lvlError, "Invalid number of server ports!");
+		}
+#endif
 	}
 private:
 	std::unique_ptr<iAWebsocketAPI> m_wsAPI;
+#ifdef QT_HTTPSERVER
+	std::unique_ptr<QHttpServer> m_httpServer;
+#endif
 };
 
 void iARemoteModuleInterface::Initialize()
