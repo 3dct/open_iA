@@ -20,7 +20,47 @@
 * ************************************************************************************/
 #include "iARemoteModuleInterface.h"
 
+// iAguibase
+#include "iAMainWindow.h"
+#include "iAMdiChild.h"
+#include "iAModuleAttachmentToChild.h"
+
+#include "iAWebsocketAPI.h"
+
+class iARemoteAttachment: public iAModuleAttachmentToChild
+{
+public:
+	iARemoteAttachment(iAMainWindow* mainWnd, iAMdiChild* child):
+		iAModuleAttachmentToChild(mainWnd, child),
+		m_wsAPI(std::make_unique<iAWebsocketAPI>(1234))
+	{
+	}
+private:
+	std::unique_ptr<iAWebsocketAPI> m_wsAPI;
+};
 
 void iARemoteModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+	{
+		return;
+	}
+	QAction* actionRemote = new QAction(tr("Remote Render Server"), m_mainWnd);
+	connect(actionRemote, &QAction::triggered, this, &iARemoteModuleInterface::addRemoteServer);
+	m_mainWnd->makeActionChildDependent(actionRemote);
+	addToMenuSorted(m_mainWnd->toolsMenu(), actionRemote);
+}
+
+iAModuleAttachmentToChild* iARemoteModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child)
+{
+	return new iARemoteAttachment(mainWnd, child);
+}
+
+void iARemoteModuleInterface::addRemoteServer()
+{
+	if (!m_mainWnd->activeMdiChild())
+	{
+		return;
+	}
+	AttachToMdiChild(m_mainWnd->activeMdiChild());
 }
