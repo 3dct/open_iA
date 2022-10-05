@@ -28,7 +28,7 @@
 #include <QJsonArray>
 #include <QFile>
 #include <QImage>
-#include <iALog.cpp>
+#include <iALog.h>
 
 
 iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :
@@ -69,6 +69,35 @@ void iAWebsocketAPI::processTextMessage(QString message)
 	auto Request = QJsonDocument::fromJson(message.toLatin1());
 
 
+	if (Request["method"].toString() == "wslink.hello")
+	{ 
+
+	}
+	else if (Request["method"].toString() == "viewport.image.push.observer.add")
+	{
+		
+	}
+	else if (Request["method"].toString() == "viewport.image.push")
+	{
+		
+	}
+	else if (Request["method"].toString() == "viewport.image.push.original.size")
+	{
+
+	}
+	else if (Request["method"].toString() == "viewport.image.push.invalidate.cache")
+	{
+
+	}
+	else if (Request["method"].toString() == "viewport.image.push.quality")
+	{
+	}
+	else if (Request["method"].toString() == "viewport.mouse.interaction")
+	{
+
+	}
+
+
 	if (pClient && Request["method"].toString() == "wslink.hello")
 	{
 		const auto ClientID = QJsonObject{{"clientID", "123456789"}};
@@ -95,7 +124,7 @@ void iAWebsocketAPI::processTextMessage(QString message)
 		if (Request["method"].toString() == "viewport.image.push.observer.add")
 		{
 
-			const auto viewIDResponse = QJsonObject{{"result", "success"}, {"viewId", viewIDString}};
+			const auto viewIDResponse = QJsonObject{{"result", "success"}, {"viewId", "3D"}};
 			ResponseArray["result"] = viewIDResponse;
 		}
 		else
@@ -152,7 +181,7 @@ void iAWebsocketAPI::sendImage(QWebSocket* pClient)
 	auto imageSize = ba.size();
 
 	const auto resultArray2 = QJsonArray{img.size().width(), img.size().height()};
-	const auto result = QJsonObject{{"format", "jpeg"}, {"global_id", 1}, {"global_id", "1"}, {"id", "1"},
+	const auto result = QJsonObject{{"format", "jpeg"}, {"global_id", 1}, {"global_id", "1"}, {"id", "3D"},
 		{"image", imageString}, {"localTime", 0}, {"memsize", imageSize}, {"mtime", 2125+m_count*5}, {"size", resultArray2},
 		{"stale", m_count%2==0}, {"workTime", 77}};
 	

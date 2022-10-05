@@ -41,7 +41,7 @@ clientToConnect.onConnectionClose((httpReq) => {
 // (it will be provided by the launcher)
 const config = {
   application: 'cone',
-  sessionURL: 'ws://10.52.1.201:1234/ws',
+  sessionURL: 'ws://'+location.hostname+':1234/ws',
 };
 
 // Connect
@@ -50,7 +50,7 @@ clientToConnect
   .then((validClient) => {
     const viewStream = clientToConnect
       .getImageStream()
-      .createViewStream('-1');
+      .createViewStream('3D');
 
     const view = vtkRemoteView.newInstance({
       rpcWheelEvent: 'viewport.mouse.zoom.wheel',
