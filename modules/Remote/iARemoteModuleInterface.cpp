@@ -79,6 +79,11 @@ public:
 		{
 			LOG(lvlError, "Invalid number of server ports!");
 		}
+		if (port == 8080)
+		{
+			LOG(lvlImportant, QString("You can reach the webserver under http:\\\\localhost:%1").arg(port));
+		}
+
 #endif
 	}
 private:

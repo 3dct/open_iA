@@ -28,17 +28,16 @@
 #include <QJsonArray>
 #include <QFile>
 #include <QImage>
+#include <iALog.cpp>
 
 
 iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :
 	QObject(parent),
-	m_pWebSocketServer(new QWebSocketServer(QStringLiteral("Echo Server"), QWebSocketServer::NonSecureMode, this)),
+	m_pWebSocketServer(new QWebSocketServer(QStringLiteral("Remote Server"), QWebSocketServer::NonSecureMode, this)),
 	m_debug(debug)
 {
 	if (m_pWebSocketServer->listen(QHostAddress::Any, port))
 	{
-		if (m_debug)
-			qDebug() << "Echoserver listening on port" << port;
 		connect(m_pWebSocketServer, &QWebSocketServer::newConnection, this, &iAWebsocketAPI::onNewConnection);
 		connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &iAWebsocketAPI::closed);
 	}
@@ -90,13 +89,14 @@ void iAWebsocketAPI::processTextMessage(QString message)
 		QJsonObject ResponseArray;
 
 		ResponseArray["wslink"] = "1.0";
-		ResponseArray["id"] = Request["id"].toString();
+		QString viewIDString = Request["View"].toString();
 		
 		const auto success = QJsonObject{{"result", "success"}};
 		if (Request["method"].toString() == "viewport.image.push.observer.add")
 		{
-			const auto viewID = QJsonObject{{"result", "success"} ,{"viewId", "1"}};
-			ResponseArray["result"] = viewID;
+
+			const auto viewIDResponse = QJsonObject{{"result", "success"}, {"viewId", viewIDString}};
+			ResponseArray["result"] = viewIDResponse;
 		}
 		else
 		{
@@ -134,14 +134,14 @@ void iAWebsocketAPI::sendImage(QWebSocket* pClient)
 	pClient->sendTextMessage(Response.toJson());
 
 
-	QImage img("C:\\Users\\p41143\\Pictures\\cat.jpg");
+	QImage img("C:\\Users\\p41877\\Pictures\\cat.jpg");
 	//QImage img2 = img.scaled(1920, 872);
 
 	//img2.save("C:\\Users\\P41877\\Downloads\\catImage2.jpg");
 
 	QByteArray ba;
 
-	QFile file("C:\\Users\\p41143\\Pictures\\cat.jpg");
+	QFile file("C:\\Users\\p41877\\Pictures\\cat.jpg");
 	QDataStream in(&file);
 	file.open(QIODevice::ReadOnly);
 

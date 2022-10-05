@@ -21,6 +21,8 @@
 #pragma once
 
 #include "iAWebsocketAPI.h"
+#include "qmap"
+#include "qlist"
 
 #include <vtkRenderWindow.h>
 
@@ -31,5 +33,15 @@ public:
 	iARemoteRenderer(vtkRenderWindow* child);
 
 	iAWebsocketAPI* m_websocket;
+
+	void addRenderWindow(vtkRenderWindow* window, QString viewID);
+
+	void removeRenderWindow(QString viewID);
+
+
+private:
+	QMap<QString, QList<vtkRenderWindow*>> m_renderWindows;
+
+
 };
 

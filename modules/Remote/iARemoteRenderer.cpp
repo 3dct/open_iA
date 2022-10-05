@@ -29,3 +29,11 @@ iARemoteRenderer::iARemoteRenderer(vtkRenderWindow* child)
 	m_websocket = new iAWebsocketAPI(1234);
 
 }
+
+void iARemoteRenderer::addRenderWindow(vtkRenderWindow* window, QString viewID)
+{
+}
+
+void iARemoteRenderer::removeRenderWindow(QString viewID)
+{
+}
