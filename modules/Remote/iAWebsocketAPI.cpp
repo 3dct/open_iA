@@ -30,7 +30,7 @@
 #include <QJsonArray>
 #include <QFile>
 #include <QImage>
-#include <iALog.h>
+
 
 
 iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :
@@ -73,23 +73,23 @@ void iAWebsocketAPI::processTextMessage(QString message)
 
 	if (Request["method"].toString() == "wslink.hello")
 	{ 
-
+		ComandWslinkHello(Request, pClient);
 	}
 	else if (Request["method"].toString() == "viewport.image.push.observer.add")
 	{
-		
+		ComandAdObserver(Request, pClient);
 	}
 	else if (Request["method"].toString() == "viewport.image.push")
 	{
-		
+		ComandImagePush(Request, pClient);
 	}
 	else if (Request["method"].toString() == "viewport.image.push.original.size")
 	{
-
+		ComandImagePushSize(Request, pClient);
 	}
 	else if (Request["method"].toString() == "viewport.image.push.invalidate.cache")
 	{
-
+		ComandImagePushInvalidateCache(Request, pClient);
 	}
 	else if (Request["method"].toString() == "viewport.image.push.quality")
 	{
@@ -102,18 +102,7 @@ void iAWebsocketAPI::processTextMessage(QString message)
 
 	if (pClient && Request["method"].toString() == "wslink.hello")
 	{
-		const auto ClientID = QJsonObject{{"clientID", "123456789"}};
-		const auto resultArray = QJsonArray{ClientID};
 
-		QJsonObject ResponseArray;
-
-		ResponseArray["wslink"] = "1.0";
-		ResponseArray["id"] = Request["id"].toString();
-		ResponseArray["result"] = ClientID;
-
-		const QJsonDocument Response{ResponseArray};
-
-		pClient->sendTextMessage(Response.toJson());
 	}
 	else
 	{
@@ -122,37 +111,96 @@ void iAWebsocketAPI::processTextMessage(QString message)
 		ResponseArray["wslink"] = "1.0";
 		QString viewIDString = Request["View"].toString();
 		
-		const auto success = QJsonObject{{"result", "success"}};
-		if (Request["method"].toString() == "viewport.image.push.observer.add")
-		{
-
-			const auto viewIDResponse = QJsonObject{{"result", "success"}, {"viewId", "3D"}};
-			ResponseArray["result"] = viewIDResponse;
-		}
-		else
-		{
-			ResponseArray["result"] = success;
-		}
-
-		const QJsonDocument Response{ResponseArray};
-
-		pClient->sendTextMessage(Response.toJson());
 
 		if (Request["method"].toString() == "viewport.image.push")
 		{
-			sendImage(pClient);
+			
 		}
 	}
 }
 
-void iAWebsocketAPI::sendImage(QWebSocket* pClient)
+void iAWebsocketAPI::ComandWslinkHello(QJsonDocument Request, QWebSocket* pClient)
+{
+	const auto ClientID = QJsonObject{{"clientID", QUuid::createUuid().toString()}};
+	const auto resultArray = QJsonArray{ClientID};
+
+	QJsonObject ResponseArray;
+
+	ResponseArray["wslink"] = "1.0";
+	ResponseArray["id"] = Request["id"].toString();
+	ResponseArray["result"] = ClientID;
+
+	const QJsonDocument Response{ResponseArray};
+
+	pClient->sendTextMessage(Response.toJson());
+}
+
+void iAWebsocketAPI::ComandAdObserver(QJsonDocument Request, QWebSocket* pClient)
+{
+	QJsonObject ResponseArray;
+
+	ResponseArray["wslink"] = "1.0";
+	QString viewIDString = Request["View"].toString();
+	const auto viewIDResponse = QJsonObject{{"result", "success"}, {"viewId", "3D"}};
+	ResponseArray["result"] = viewIDResponse;
+	const QJsonDocument Response{ResponseArray};
+
+	pClient->sendTextMessage(Response.toJson());
+}
+
+
+void iAWebsocketAPI::ComandImagePush(QJsonDocument Request, QWebSocket* pClient)
+{
+	ComandImagePushSize(Request, pClient);
+	sendImage(pClient);
+
+}
+
+void iAWebsocketAPI::ComandImagePushSize(QJsonDocument Request, QWebSocket* pClient)
+{
+	sendSuccess(Request, pClient);
+
+}
+
+void iAWebsocketAPI::ComandImagePushInvalidateCache(QJsonDocument Request, QWebSocket* pClient)
+{
+	sendSuccess(Request, pClient);
+}
+
+void iAWebsocketAPI::ComandImagePushQuality(QJsonDocument Request, QWebSocket* pClient)
+{
+	sendSuccess(Request, pClient);
+}
+
+void iAWebsocketAPI::sendSuccess(QJsonDocument Request, QWebSocket* pClient)
+{
+	QJsonObject ResponseArray;
+	const auto success = QJsonObject{{"result", "success"}};
+	ResponseArray["wslink"] = "1.0";
+	ResponseArray["result"] = success;
+	const QJsonDocument Response{ResponseArray};
+
+	pClient->sendTextMessage(Response.toJson());
+}
+
+void iAWebsocketAPI::ComandControls(QJsonDocument Request, QWebSocket* pClient)
+{
+	QJsonObject ResponseArray;
+	const auto success = QJsonObject{{"result", "success"}};
+	ResponseArray["wslink"] = "1.0";
+	ResponseArray["result"] = success;
+	const QJsonDocument Response{ResponseArray};
+
+	pClient->sendTextMessage(Response.toJson());
+}
+
+void iAWebsocketAPI::sendImage(QWebSocket* pClient)  // use in future 
 {
 	QString imageString("wslink_bin");
 	
 	imageString.append(QString::number(m_count));
 
 	const auto resultArray1 = QJsonArray{imageString};
-	//const auto resultArray = QJsonArray{ClientID};
 
 	QJsonObject ResponseArray;
 
@@ -164,26 +212,36 @@ void iAWebsocketAPI::sendImage(QWebSocket* pClient)
 
 	pClient->sendTextMessage(Response.toJson());
 
-
-	QImage img("C:\\Users\\p41877\\Pictures\\cat.jpg");
-	//QImage img2 = img.scaled(1920, 872);
-
-	//img2.save("C:\\Users\\P41877\\Downloads\\catImage2.jpg");
-
 	QByteArray ba;
 
-	QFile file("C:\\Users\\p41877\\Pictures\\cat.jpg");
-	QDataStream in(&file);
-	file.open(QIODevice::ReadOnly);
+	int width=0, height=0;
+	QByteArray binaryImage = NULL;
+	auto viewID = "3D";
+	if (binaryImage.isNull())
+	{
+		QImage img("C:\\Users\\p41877\\Pictures\\cat.jpg");
 
-	ba.resize(file.size());
-	in.readRawData(ba.data(), file.size());
-	pClient->sendBinaryMessage(ba);
+		QFile file("C:\\Users\\p41877\\Pictures\\cat.jpg");
+		QDataStream in(&file);
+		file.open(QIODevice::ReadOnly);
+
+		ba.resize(file.size());
+		in.readRawData(ba.data(), file.size());
+		pClient->sendBinaryMessage(ba);
+
+		width = img.size().width();
+		height = img.size().height();
+		
+	}
+	else
+	{
+		ba = binaryImage;
+	}
 
 	auto imageSize = ba.size();
 
-	const auto resultArray2 = QJsonArray{img.size().width(), img.size().height()};
-	const auto result = QJsonObject{{"format", "jpeg"}, {"global_id", 1}, {"global_id", "1"}, {"id", "3D"},
+	const auto resultArray2 = QJsonArray{width, height};
+	const auto result = QJsonObject{{"format", "jpeg"}, {"global_id", 1}, {"global_id", "1"}, {"id", viewID},
 		{"image", imageString}, {"localTime", 0}, {"memsize", imageSize}, {"mtime", 2125+m_count*5}, {"size", resultArray2},
 		{"stale", m_count%2==0}, {"workTime", 77}};
 	

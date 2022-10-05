@@ -40,7 +40,6 @@ Q_SIGNALS:
 private Q_SLOTS:
 	void onNewConnection();
 	void processTextMessage(QString message);
-	void sendImage(QWebSocket* pClient);
 	void processBinaryMessage(QByteArray message);
 	void socketDisconnected();
 
@@ -49,4 +48,16 @@ private:
 	QList<QWebSocket*> m_clients;
 	bool m_debug;
 	int m_count;
+
+	void ComandWslinkHello(QJsonDocument Request, QWebSocket* pClient);
+	void ComandAdObserver(QJsonDocument Request, QWebSocket* pClient);
+	void ComandImagePush(QJsonDocument Request, QWebSocket* pClient);
+	void ComandImagePushSize(QJsonDocument Request, QWebSocket* pClient);
+	void ComandImagePushInvalidateCache(QJsonDocument Request, QWebSocket* pClient);
+	void ComandImagePushQuality(QJsonDocument Request, QWebSocket* pClient);
+	void sendSuccess(QJsonDocument Request, QWebSocket* pClient);
+	void ComandControls(QJsonDocument Request, QWebSocket* pClient);  
+
+	void sendImage(QWebSocket* pClient);
+
 };
