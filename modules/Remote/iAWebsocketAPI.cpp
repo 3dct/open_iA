@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAWebsocketAPI.h"
 
+#include <iALog.h>
+
 #include <QWebSocketServer>
 #include <QWebSocket>
 #include <QDebug>
