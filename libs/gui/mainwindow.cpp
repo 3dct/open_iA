@@ -129,8 +129,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_buildInformation(buildInformation),
 	m_ui(new Ui_MainWindow()),
 	m_dwJobs(dwJobs),
-	m_openJobListOnNewJob(false),
-	test(new iARemoteRenderer(NULL))
+	m_openJobListOnNewJob(false)
 {
 	assert(!m_mainWnd);
 	m_mainWnd = this;

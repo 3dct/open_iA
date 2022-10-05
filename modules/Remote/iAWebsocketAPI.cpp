@@ -1,18 +1,36 @@
-#include "WebsocketAPI.h"
+/*************************************  open_iA  ************************************ *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
+* *********************************************************************************** *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
+* *********************************************************************************** *
+* This program is free software: you can redistribute it and/or modify it under the   *
+* terms of the GNU General Public License as published by the Free Software           *
+* Foundation, either version 3 of the License, or (at your option) any later version. *
+*                                                                                     *
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY     *
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A     *
+* PARTICULAR PURPOSE.  See the GNU General Public License for more details.           *
+*                                                                                     *
+* You should have received a copy of the GNU General Public License along with this   *
+* program.  If not, see http://www.gnu.org/licenses/                                  *
+* *********************************************************************************** *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* ************************************************************************************/
+#include "iAWebsocketAPI.h"
 
-#include "QtWebSockets/qwebsocketserver.h"
-#include "QtWebSockets/qwebsocket.h"
-#include <QtCore/QDebug>
-#include <qjsondocument.h>
-#include <qjsonobject.h>
-#include <qjsonarray.h>
-#include <qfile.h>
-#include <qimage.h>
+#include <QWebSocketServer>
+#include <QWebSocket>
+#include <QDebug>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QFile>
+#include <QImage>
 
-QT_USE_NAMESPACE
 
-//! [constructor]
-WebsocketAPI::WebsocketAPI(quint16 port, bool debug, QObject* parent) :
+iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :
 	QObject(parent),
 	m_pWebSocketServer(new QWebSocketServer(QStringLiteral("Echo Server"), QWebSocketServer::NonSecureMode, this)),
 	m_debug(debug)
@@ -21,38 +39,31 @@ WebsocketAPI::WebsocketAPI(quint16 port, bool debug, QObject* parent) :
 	{
 		if (m_debug)
 			qDebug() << "Echoserver listening on port" << port;
-		connect(m_pWebSocketServer, &QWebSocketServer::newConnection, this, &WebsocketAPI::onNewConnection);
-		connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &WebsocketAPI::closed);
+		connect(m_pWebSocketServer, &QWebSocketServer::newConnection, this, &iAWebsocketAPI::onNewConnection);
+		connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &iAWebsocketAPI::closed);
 	}
 }
-//! [constructor]
 
-
-
-
-WebsocketAPI::~WebsocketAPI()
+iAWebsocketAPI::~iAWebsocketAPI()
 {
 	m_pWebSocketServer->close();
 	qDeleteAll(m_clients.begin(), m_clients.end());
 }
 
-//! [onNewConnection]
-void WebsocketAPI::onNewConnection()
+void iAWebsocketAPI::onNewConnection()
 {
 
 	m_count = 0;
 	QWebSocket* pSocket = m_pWebSocketServer->nextPendingConnection();
 
-	connect(pSocket, &QWebSocket::textMessageReceived, this, &WebsocketAPI::processTextMessage);
-	connect(pSocket, &QWebSocket::binaryMessageReceived, this, &WebsocketAPI::processBinaryMessage);
-	connect(pSocket, &QWebSocket::disconnected, this, &WebsocketAPI::socketDisconnected);
+	connect(pSocket, &QWebSocket::textMessageReceived, this, &iAWebsocketAPI::processTextMessage);
+	connect(pSocket, &QWebSocket::binaryMessageReceived, this, &iAWebsocketAPI::processBinaryMessage);
+	connect(pSocket, &QWebSocket::disconnected, this, &iAWebsocketAPI::socketDisconnected);
 
 	m_clients << pSocket;
 }
-//! [onNewConnection]
 
-//! [processTextMessage]
-void WebsocketAPI::processTextMessage(QString message)
+void iAWebsocketAPI::processTextMessage(QString message)
 {
 	QWebSocket* pClient = qobject_cast<QWebSocket*>(sender());
 
@@ -61,10 +72,8 @@ void WebsocketAPI::processTextMessage(QString message)
 
 	if (pClient && Request["method"].toString() == "wslink.hello")
 	{
-
 		const auto ClientID = QJsonObject{{"clientID", "123456789"}};
 		const auto resultArray = QJsonArray{ClientID};
-
 
 		QJsonObject ResponseArray;
 
@@ -74,17 +83,10 @@ void WebsocketAPI::processTextMessage(QString message)
 
 		const QJsonDocument Response{ResponseArray};
 
-
-
-
 		pClient->sendTextMessage(Response.toJson());
 	}
 	else
 	{
-		
-
-
-
 		QJsonObject ResponseArray;
 
 		ResponseArray["wslink"] = "1.0";
@@ -109,15 +111,11 @@ void WebsocketAPI::processTextMessage(QString message)
 		{
 			sendImage(pClient);
 		}
-
 	}
-
-
 }
 
-void WebsocketAPI::sendImage(QWebSocket* pClient)
+void iAWebsocketAPI::sendImage(QWebSocket* pClient)
 {
-
 	QString imageString("wslink_bin");
 	
 	imageString.append(QString::number(m_count));
@@ -136,14 +134,14 @@ void WebsocketAPI::sendImage(QWebSocket* pClient)
 	pClient->sendTextMessage(Response.toJson());
 
 
-	QImage img("C:\\Users\\P41877\\Downloads\\catImage.jpg");
+	QImage img("C:\\Users\\p41143\\Pictures\\cat.jpg");
 	//QImage img2 = img.scaled(1920, 872);
 
 	//img2.save("C:\\Users\\P41877\\Downloads\\catImage2.jpg");
 
 	QByteArray ba;
 
-	QFile file("C:\\Users\\P41877\\Downloads\\catImage.jpg");
+	QFile file("C:\\Users\\p41143\\Pictures\\cat.jpg");
 	QDataStream in(&file);
 	file.open(QIODevice::ReadOnly);
 
@@ -173,33 +171,29 @@ void WebsocketAPI::sendImage(QWebSocket* pClient)
 
 }
 
-
-
-//! [processTextMessage]
-
-//! [processBinaryMessage]
-void WebsocketAPI::processBinaryMessage(QByteArray message)
+void iAWebsocketAPI::processBinaryMessage(QByteArray message)
 {
 	QWebSocket* pClient = qobject_cast<QWebSocket*>(sender());
 	if (m_debug)
+	{
 		qDebug() << "Binary Message received:" << message;
+	}
 	if (pClient)
 	{
 		pClient->sendBinaryMessage(message);
 	}
 }
-//! [processBinaryMessage]
 
-//! [socketDisconnected]
-void WebsocketAPI::socketDisconnected()
+void iAWebsocketAPI::socketDisconnected()
 {
 	QWebSocket* pClient = qobject_cast<QWebSocket*>(sender());
 	if (m_debug)
+	{
 		qDebug() << "socketDisconnected:" << pClient;
+	}
 	if (pClient)
 	{
 		m_clients.removeAll(pClient);
 		pClient->deleteLater();
 	}
 }
-//! [socketDisconnected]

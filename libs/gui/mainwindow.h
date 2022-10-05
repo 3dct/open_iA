@@ -36,7 +36,6 @@
 
 #include <memory>
 #include <vector>
-#include <iARemoteRenderer.h>
 
 class vtkPolyData;
 class QAction;
@@ -281,6 +280,4 @@ private:
 	iADockWidgetWrapper* m_dwJobs;
 	//! whether the job list should be automatically shown when a new job is added to the list:
 	bool m_openJobListOnNewJob;
-
-	iARemoteRenderer* test;
 };
