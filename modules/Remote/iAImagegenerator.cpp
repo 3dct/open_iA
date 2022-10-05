@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #include "iAImagegenerator.h"
 
-#include <vtkUnsignedCharArray.h>
 #include <vtkJPEGWriter.h>
+#include <vtkUnsignedCharArray.h>
 #include <vtkWindowToImageFilter.h>
 
 vtkUnsignedCharArray* iAImagegenerator::createImage(vtkRenderWindow* window, int quality)

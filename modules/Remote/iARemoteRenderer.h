@@ -21,8 +21,9 @@
 #pragma once
 
 #include "iAWebsocketAPI.h"
-#include "qmap"
-#include "qlist"
+
+#include <QMap>
+#include <QList>
 
 #include <vtkRenderWindow.h>
 

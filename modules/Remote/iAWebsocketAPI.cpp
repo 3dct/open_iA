@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAWebsocketAPI.h"
 
+#include <iALog.h>
+
 #include <QWebSocketServer>
 #include <QWebSocket>
 #include <QDebug>
@@ -28,7 +30,6 @@
 #include <QJsonArray>
 #include <QFile>
 #include <QImage>
-#include <iALog.cpp>
 
 
 iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :

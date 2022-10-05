@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QObject>
-#include <QList>
 #include <QByteArray>
+#include <QList>
+#include <QObject>
 
 QT_FORWARD_DECLARE_CLASS(QWebSocketServer)
 QT_FORWARD_DECLARE_CLASS(QWebSocket)
