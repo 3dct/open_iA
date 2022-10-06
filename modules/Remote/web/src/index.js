@@ -10,12 +10,22 @@ document.body.style.padding = '0';
 document.body.style.margin = '0';
 
 const divRenderer = document.createElement('div');
-document.body.appendChild(divRenderer);
+const divRenderer2 = document.createElement('div');
+const divRenderer3 = document.createElement('div');
+const divRenderer4 = document.createElement('div');
+
+
+
+document.getElementById("1").appendChild(divRenderer);
+document.getElementById("2").appendChild(divRenderer2);
+document.getElementById("3").appendChild(divRenderer3);
+document.getElementById("4").appendChild(divRenderer4);
 
 divRenderer.style.position = 'relative';
-divRenderer.style.width = '100vw';
-divRenderer.style.height = '100vh';
-divRenderer.style.overflow = 'hidden';
+divRenderer2.style.position = 'relative';
+divRenderer3.style.position = 'relative';
+divRenderer4.style.position = 'relative';
+
 
 const clientToConnect = vtkWSLinkClient.newInstance();
 
@@ -53,17 +63,92 @@ clientToConnect
       .createViewStream('3D');
 
     const view = vtkRemoteView.newInstance({
-      rpcWheelEvent: 'viewport.mouse.zoom.wheel',
+      //rpcWheelEvent: 'viewport.mouse.zoom.wheel',
       viewStream,
     });
     const session = validClient.getConnection().getSession();
     view.setSession(session);
     view.setContainer(divRenderer);
-    view.setInteractiveRatio(0.25); // the scaled image compared to the clients view resolution
-    view.setInteractiveQuality(40); // jpeg quality
+    view.setInteractiveRatio(0.7); // the scaled image compared to the clients view resolution
+    view.setInteractiveQuality(50); // jpeg quality
 
     window.addEventListener('resize', view.resize);
   })
   .catch((error) => {
     console.error(error);
   });
+
+
+  // Connect
+clientToConnect
+.connect(config)
+.then((validClient) => {
+  const viewStream = clientToConnect
+    .getImageStream()
+    .createViewStream('XY');
+
+  const view = vtkRemoteView.newInstance({
+    rpcWheelEvent: 'viewport.mouse.zoom.wheel',
+    viewStream,
+  });
+  const session = validClient.getConnection().getSession();
+  view.setSession(session);
+  view.setContainer(divRenderer2);
+  view.setInteractiveRatio(0.7); // the scaled image compared to the clients view resolution
+  view.setInteractiveQuality(50); // jpeg quality
+
+  window.addEventListener('resize', view.resize);
+})
+.catch((error) => {
+  console.error(error);
+});
+
+// Connect
+clientToConnect
+  .connect(config)
+  .then((validClient) => {
+    const viewStream = clientToConnect
+      .getImageStream()
+      .createViewStream('XZ');
+
+    const view = vtkRemoteView.newInstance({
+      rpcWheelEvent: 'viewport.mouse.zoom.wheel',
+      viewStream,
+    });
+    const session = validClient.getConnection().getSession();
+    view.setSession(session);
+    view.setContainer(divRenderer3);
+    view.setInteractiveRatio(0.7); // the scaled image compared to the clients view resolution
+    view.setInteractiveQuality(50); // jpeg quality
+
+    window.addEventListener('resize', view.resize);
+  })
+  .catch((error) => {
+    console.error(error);
+  });
+
+
+  // Connect
+clientToConnect
+.connect(config)
+.then((validClient) => {
+  const viewStream = clientToConnect
+    .getImageStream()
+    .createViewStream('YZ');
+
+  const view = vtkRemoteView.newInstance({
+    rpcWheelEvent: 'viewport.mouse.zoom.wheel',
+    viewStream,
+  });
+  const session = validClient.getConnection().getSession();
+  view.setSession(session);
+  view.setContainer(divRenderer4);
+  view.setInteractiveRatio(0.7); // the scaled image compared to the clients view resolution
+  view.setInteractiveQuality(50); // jpeg quality
+  
+
+  window.addEventListener('resize', view.resize);
+})
+.catch((error) => {
+  console.error(error);
+});

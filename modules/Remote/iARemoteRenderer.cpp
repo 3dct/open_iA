@@ -31,9 +31,7 @@ iARemoteRenderer::iARemoteRenderer(int port)
 
 	m_websocket = new iAWebsocketAPI(port);
 	connect(this, &iARemoteRenderer::imageHasChanged, m_websocket, &iAWebsocketAPI::sendViewIDUpdate);
-	timer = new QTimer(this);
-	timer->setSingleShot(true);
-	connect(timer, &QTimer::timeout, [=]() -> void { createImage("3D",100); });
+
 
 }
 
@@ -44,29 +42,17 @@ void iARemoteRenderer::addRenderWindow(vtkRenderWindow* window, QString viewID)
 	QByteArray img((char*)data->Begin(), static_cast<qsizetype>(data->GetSize()));
 	m_websocket->setRenderedImage(img, viewID);
 
-	
+	auto view = new viewHandler();
+	view->id = viewID;
 
+	connect(view, &viewHandler::createImage, this, &iARemoteRenderer::createImage);
+
+	views.insert(viewID,view);
 	auto renderer = window->GetRenderers()->GetFirstRenderer();
-	renderer->AddObserver(vtkCommand::EndEvent, this, &iARemoteRenderer::vtkCallbackFunc);
+	renderer->AddObserver(vtkCommand::EndEvent, view, &viewHandler::vtkCallbackFunc);
+
 
 }
-
-void iARemoteRenderer::vtkCallbackFunc(vtkObject* caller, long unsigned int evId, void* /*callData*/){
-	auto now = QDateTime::currentMSecsSinceEpoch();
-	if ((now - Lastrendered) > 50)
-	{
-		if (now - Lastrendered < 250)
-		{
-			timer->stop();
-			timer->start(250);
-		}
-		createImage("3D",45);
-		Lastrendered = QDateTime::currentMSecsSinceEpoch();
-		timeRendering = Lastrendered - now;
-
-	}
-	
-};
 
 
 

@@ -25,6 +25,7 @@
 #include "iAMdiChild.h"
 #include "iAModuleAttachmentToChild.h"
 #include "iARenderer.h"
+#include "iASlicer.h"
 
 #include "iARemoteRenderer.h"
 
@@ -70,6 +71,9 @@ public:
 	{
 
 		m_wsAPI->addRenderWindow(child->renderer()->renderWindow(), "3D");
+		m_wsAPI->addRenderWindow(child->slicer(iASlicerMode::XY)->GetRenderWindow(), "XY");
+		m_wsAPI->addRenderWindow(child->slicer(iASlicerMode::XZ)->GetRenderWindow(), "XZ");
+		m_wsAPI->addRenderWindow(child->slicer(iASlicerMode::YZ)->GetRenderWindow(), "YZ");
 
 #ifdef QT_HTTPSERVER
 		QString path = QCoreApplication::applicationDirPath() + "/RemoteClient";

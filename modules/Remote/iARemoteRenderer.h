@@ -28,6 +28,7 @@
 #include <QTimer>
 
 #include <vtkRenderWindow.h>
+#include <viewHandler.h>
 
 
 class iARemoteRenderer: public QObject
@@ -42,7 +43,6 @@ public:
 
 	void addRenderWindow(vtkRenderWindow* window, QString viewID);
 
-	void vtkCallbackFunc(vtkObject* caller, long unsigned int evId, void*);
 
 	void removeRenderWindow(QString viewID);
 
@@ -57,9 +57,10 @@ private:
 	long long Lastrendered=0;
 	int timeRendering;
 	QTimer* timer;
+	QMap<QString, viewHandler*> views;
 
 public Q_SLOTS: 
-	void createImage(QString ViewID, int Quality = 50);
+	void createImage(QString ViewID, int Quality );
 
 Q_SIGNALS:
 	void imageHasChanged(QByteArray Image, QString ViewID);

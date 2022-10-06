@@ -129,7 +129,7 @@ void iAWebsocketAPI::ComandAdObserver(QJsonDocument Request, QWebSocket* pClient
 
 	ResponseArray["wslink"] = "1.0";
 	QString viewIDString = Request["args"][0].toString();
-	const auto viewIDResponse = QJsonObject{{"result", "success"}, {"viewId", "3D"}};
+	const auto viewIDResponse = QJsonObject{{"result", "success"}, {"viewId", viewIDString}};
 	ResponseArray["result"] = viewIDResponse;
 	const QJsonDocument Response{ResponseArray};
 
@@ -149,8 +149,9 @@ void iAWebsocketAPI::ComandAdObserver(QJsonDocument Request, QWebSocket* pClient
 
 void iAWebsocketAPI::ComandImagePush(QJsonDocument Request, QWebSocket* pClient)
 {
+	QString viewIDString = Request["args"][0]["view"].toString();
 	ComandImagePushSize(Request, pClient);
-	sendImage(pClient, "3D");
+	sendImage(pClient, viewIDString);
 
 }
 
