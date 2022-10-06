@@ -9,6 +9,7 @@ if (Qt${QT_VERSION_MAJOR}HttpServer_FOUND)
 	set(HTTP_DST_SUBDIR "RemoteClient")
 	# workaround: under windows, running the single steps directly causes the custom commands afterwards not to be called anymore
 	# no exact idea why yet, because 'call' should only be required for .bat files?
+	# watch https://discourse.cmake.org/t/add-custom-command-with-multiple-commands-on-windows/6604 for updates
 	set(MULTI_RUNNER "")
 	if (WIN32)
 		set(MULTI_RUNNER "call")
