@@ -23,6 +23,7 @@
 #include <QByteArray>
 #include <QList>
 #include <QObject>
+#include <QMap>
 
 QT_FORWARD_DECLARE_CLASS(QWebSocketServer)
 QT_FORWARD_DECLARE_CLASS(QWebSocket)
@@ -32,6 +33,7 @@ class iAWebsocketAPI : public QObject
 	Q_OBJECT
 public:
 	iAWebsocketAPI(quint16 port, bool debug = false, QObject* parent = nullptr);
+	void setRenderedImage(QByteArray img, QString id);
 	~iAWebsocketAPI();
 
 Q_SIGNALS:
@@ -42,12 +44,18 @@ private Q_SLOTS:
 	void processTextMessage(QString message);
 	void processBinaryMessage(QByteArray message);
 	void socketDisconnected();
+public Q_SLOTS:
+	void sendViewIDUpdate(QByteArray img, QString ViewID);
+
 
 private:
 	QWebSocketServer* m_pWebSocketServer;
 	QList<QWebSocket*> m_clients;
 	bool m_debug;
 	int m_count;
+	QMap<QString, QByteArray> images;
+
+	QMap<QString, QList<QWebSocket*>> subscriptions;
 
 	void ComandWslinkHello(QJsonDocument Request, QWebSocket* pClient);
 	void ComandAdObserver(QJsonDocument Request, QWebSocket* pClient);
@@ -58,6 +66,9 @@ private:
 	void sendSuccess(QJsonDocument Request, QWebSocket* pClient);
 	void ComandControls(QJsonDocument Request, QWebSocket* pClient);  
 
-	void sendImage(QWebSocket* pClient);
+	void sendImage(QWebSocket* pClient, QString viewID);
+
+	
+	
 
 };

@@ -24,8 +24,9 @@
 #include "iAMainWindow.h"
 #include "iAMdiChild.h"
 #include "iAModuleAttachmentToChild.h"
+#include "iARenderer.h"
 
-#include "iAWebsocketAPI.h"
+#include "iARemoteRenderer.h"
 
 #include <QAction>
 
@@ -62,11 +63,14 @@ class iARemoteAttachment: public iAModuleAttachmentToChild
 public:
 	iARemoteAttachment(iAMainWindow* mainWnd, iAMdiChild* child):
 		iAModuleAttachmentToChild(mainWnd, child),
-		m_wsAPI(std::make_unique<iAWebsocketAPI>(1234))
+		m_wsAPI(std::make_unique<iARemoteRenderer>(1234))
 #ifdef QT_HTTPSERVER
 		, m_httpServer(std::make_unique<QHttpServer>())
 #endif
 	{
+
+		m_wsAPI->addRenderWindow(child->renderer()->renderWindow(), "3D");
+
 #ifdef QT_HTTPSERVER
 		QString path = QCoreApplication::applicationDirPath() + "/RemoteClient";
 		addFileToServe(path, "/", "index.html", m_httpServer.get());
@@ -89,7 +93,7 @@ public:
 #endif
 	}
 private:
-	std::unique_ptr<iAWebsocketAPI> m_wsAPI;
+	std::unique_ptr<iARemoteRenderer> m_wsAPI;
 #ifdef QT_HTTPSERVER
 	std::unique_ptr<QHttpServer> m_httpServer;
 #endif

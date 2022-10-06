@@ -45,6 +45,11 @@ iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :
 	}
 }
 
+void iAWebsocketAPI::setRenderedImage(QByteArray img, QString id)
+{
+	images.insert(id,img);
+}
+
 iAWebsocketAPI::~iAWebsocketAPI()
 {
 	m_pWebSocketServer->close();
@@ -93,30 +98,13 @@ void iAWebsocketAPI::processTextMessage(QString message)
 	}
 	else if (Request["method"].toString() == "viewport.image.push.quality")
 	{
+		ComandImagePushQuality(Request, pClient);
 	}
 	else if (Request["method"].toString() == "viewport.mouse.interaction")
 	{
-
+		ComandControls(Request, pClient);
 	}
 
-
-	if (pClient && Request["method"].toString() == "wslink.hello")
-	{
-
-	}
-	else
-	{
-		QJsonObject ResponseArray;
-
-		ResponseArray["wslink"] = "1.0";
-		QString viewIDString = Request["View"].toString();
-		
-
-		if (Request["method"].toString() == "viewport.image.push")
-		{
-			
-		}
-	}
 }
 
 void iAWebsocketAPI::ComandWslinkHello(QJsonDocument Request, QWebSocket* pClient)
@@ -140,11 +128,21 @@ void iAWebsocketAPI::ComandAdObserver(QJsonDocument Request, QWebSocket* pClient
 	QJsonObject ResponseArray;
 
 	ResponseArray["wslink"] = "1.0";
-	QString viewIDString = Request["View"].toString();
+	QString viewIDString = Request["args"][0].toString();
 	const auto viewIDResponse = QJsonObject{{"result", "success"}, {"viewId", "3D"}};
 	ResponseArray["result"] = viewIDResponse;
 	const QJsonDocument Response{ResponseArray};
 
+	if (subscriptions.contains(viewIDString))
+	{
+		subscriptions[viewIDString].append(pClient);
+	}
+	else
+	{
+		subscriptions.insert(viewIDString,  QList<QWebSocket*>());
+		subscriptions[viewIDString].append(pClient);
+	}
+	
 	pClient->sendTextMessage(Response.toJson());
 }
 
@@ -152,7 +150,7 @@ void iAWebsocketAPI::ComandAdObserver(QJsonDocument Request, QWebSocket* pClient
 void iAWebsocketAPI::ComandImagePush(QJsonDocument Request, QWebSocket* pClient)
 {
 	ComandImagePushSize(Request, pClient);
-	sendImage(pClient);
+	sendImage(pClient, "3D");
 
 }
 
@@ -185,16 +183,11 @@ void iAWebsocketAPI::sendSuccess(QJsonDocument Request, QWebSocket* pClient)
 
 void iAWebsocketAPI::ComandControls(QJsonDocument Request, QWebSocket* pClient)
 {
-	QJsonObject ResponseArray;
-	const auto success = QJsonObject{{"result", "success"}};
-	ResponseArray["wslink"] = "1.0";
-	ResponseArray["result"] = success;
-	const QJsonDocument Response{ResponseArray};
-
-	pClient->sendTextMessage(Response.toJson());
+	sendSuccess(Request, pClient);
 }
 
-void iAWebsocketAPI::sendImage(QWebSocket* pClient)  // use in future 
+
+void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)  // use in future
 {
 	QString imageString("wslink_bin");
 	
@@ -212,31 +205,17 @@ void iAWebsocketAPI::sendImage(QWebSocket* pClient)  // use in future
 
 	pClient->sendTextMessage(Response.toJson());
 
-	QByteArray ba;
+	
 
 	int width=0, height=0;
-	QByteArray binaryImage = NULL;
-	auto viewID = "3D";
-	if (binaryImage.isNull())
-	{
-		QImage img("C:\\Users\\p41877\\Pictures\\cat.jpg");
 
-		QFile file("C:\\Users\\p41877\\Pictures\\cat.jpg");
-		QDataStream in(&file);
-		file.open(QIODevice::ReadOnly);
-
-		ba.resize(file.size());
-		in.readRawData(ba.data(), file.size());
-		pClient->sendBinaryMessage(ba);
-
-		width = img.size().width();
-		height = img.size().height();
-		
-	}
-	else
-	{
-		ba = binaryImage;
-	}
+	
+	QByteArray ba = images[viewID];
+	QImage img;
+	img.loadFromData(ba);
+	width = img.size().width();
+	height = img.size().height();
+	pClient->sendBinaryMessage(ba);
 
 	auto imageSize = ba.size();
 
@@ -258,6 +237,20 @@ void iAWebsocketAPI::sendImage(QWebSocket* pClient)  // use in future
 
 	m_count++;
 
+}
+
+void iAWebsocketAPI::sendViewIDUpdate(QByteArray img, QString ViewID)
+{
+
+	setRenderedImage(img, ViewID);
+
+	if (subscriptions.contains(ViewID))
+	{
+		for (auto client : subscriptions[ViewID])
+		{
+			sendImage(client, ViewID);
+		}
+	}
 }
 
 void iAWebsocketAPI::processBinaryMessage(QByteArray message)
@@ -282,6 +275,12 @@ void iAWebsocketAPI::socketDisconnected()
 	}
 	if (pClient)
 	{
+
+		for (auto &x : subscriptions)
+		{
+			x.removeAll(pClient);
+		}
+
 		m_clients.removeAll(pClient);
 		pClient->deleteLater();
 	}

@@ -19,21 +19,67 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iARemoteRenderer.h"
+#include "iAImagegenerator.h"
+#include "iALog.h"
+#include "vtkUnsignedCharArray.h"
 
-iARemoteRenderer::iARemoteRenderer(vtkRenderWindow* child)
+#include <vtkRendererCollection.h>
+#include <vtkCallbackCommand.h>
+
+iARemoteRenderer::iARemoteRenderer(int port)
 {
-	Q_UNUSED(child);
-	//child->renderer();
-	//child->slicer(0);
 
-	m_websocket = new iAWebsocketAPI(1234);
+	m_websocket = new iAWebsocketAPI(port);
+	connect(this, &iARemoteRenderer::imageHasChanged, m_websocket, &iAWebsocketAPI::sendViewIDUpdate);
+	timer = new QTimer(this);
+	timer->setSingleShot(true);
+	connect(timer, &QTimer::timeout, [=]() -> void { createImage("3D",100); });
 
 }
 
 void iARemoteRenderer::addRenderWindow(vtkRenderWindow* window, QString viewID)
 {
+	m_renderWindows.insert(viewID, window);
+	auto data = iAImagegenerator::createImage(window,100);
+	QByteArray img((char*)data->Begin(), static_cast<qsizetype>(data->GetSize()));
+	m_websocket->setRenderedImage(img, viewID);
+
+	
+
+	auto renderer = window->GetRenderers()->GetFirstRenderer();
+	renderer->AddObserver(vtkCommand::EndEvent, this, &iARemoteRenderer::vtkCallbackFunc);
+
 }
+
+void iARemoteRenderer::vtkCallbackFunc(vtkObject* caller, long unsigned int evId, void* /*callData*/){
+	auto now = QDateTime::currentMSecsSinceEpoch();
+	if ((now - Lastrendered) > 50)
+	{
+		if (now - Lastrendered < 250)
+		{
+			timer->stop();
+			timer->start(250);
+		}
+		createImage("3D",45);
+		Lastrendered = QDateTime::currentMSecsSinceEpoch();
+		timeRendering = Lastrendered - now;
+
+	}
+	
+};
+
+
 
 void iARemoteRenderer::removeRenderWindow(QString viewID)
 {
+	m_renderWindows.remove(viewID);
 }
+
+void iARemoteRenderer::createImage(QString ViewID, int Quality)
+{
+	auto data = iAImagegenerator::createImage(m_renderWindows[ViewID],Quality);
+	QByteArray img((char*)data->Begin(), static_cast<qsizetype>(data->GetSize()));
+
+	imageHasChanged(img, ViewID);
+}
+

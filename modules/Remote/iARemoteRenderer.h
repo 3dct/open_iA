@@ -24,25 +24,45 @@
 
 #include <QMap>
 #include <QList>
+#include <QTime>
+#include <QTimer>
 
 #include <vtkRenderWindow.h>
 
 
-class iARemoteRenderer
+class iARemoteRenderer: public QObject
 {
+
+Q_OBJECT
+
 public:
-	iARemoteRenderer(vtkRenderWindow* child);
+	iARemoteRenderer(int port);
 
 	iAWebsocketAPI* m_websocket;
 
 	void addRenderWindow(vtkRenderWindow* window, QString viewID);
 
+	void vtkCallbackFunc(vtkObject* caller, long unsigned int evId, void*);
+
 	void removeRenderWindow(QString viewID);
+
+	
+
+	
+
 
 
 private:
-	QMap<QString, QList<vtkRenderWindow*>> m_renderWindows;
+	QMap<QString, vtkRenderWindow*> m_renderWindows;
+	long long Lastrendered=0;
+	int timeRendering;
+	QTimer* timer;
 
+public Q_SLOTS: 
+	void createImage(QString ViewID, int Quality = 50);
+
+Q_SIGNALS:
+	void imageHasChanged(QByteArray Image, QString ViewID);
 
 };
 

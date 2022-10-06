@@ -29,6 +29,6 @@ class iAImagegenerator: QObject
 	Q_OBJECT
 
 public: 
-	static vtkUnsignedCharArray* createImage(vtkRenderWindow* window, int quality);
+	static vtkSmartPointer<vtkUnsignedCharArray> createImage(vtkRenderWindow* window, int quality);
 };
 

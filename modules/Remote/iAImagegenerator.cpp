@@ -24,16 +24,17 @@
 #include <vtkUnsignedCharArray.h>
 #include <vtkWindowToImageFilter.h>
 
-vtkUnsignedCharArray* iAImagegenerator::createImage(vtkRenderWindow* window, int quality)
+vtkSmartPointer<vtkUnsignedCharArray> iAImagegenerator::createImage(vtkRenderWindow* window, int quality)
 {
 	vtkNew<vtkWindowToImageFilter> w2if;
 	w2if->SetInput(window);
 	w2if->Update();
 
 	vtkNew<vtkJPEGWriter> writer;
-	//writer->SetFileName("TestEarthSource->png");
 	writer->SetInputConnection(w2if->GetOutputPort());
 	writer->SetQuality(quality);
 	writer->WriteToMemoryOn();
-	return writer->GetResult();
+	writer->Write();
+	vtkSmartPointer<vtkUnsignedCharArray> img = writer->GetResult();
+	return img;
 }
