@@ -1216,6 +1216,7 @@ void MdiChild::saveNew()
 					setWindowModified(hasUnsavedData());
 				}
 			}
+			delete futureWatcher;
 		});
 	auto future = QtConcurrent::run([fileName, p, io, dataSet, paramValues]()
 		{
@@ -1241,6 +1242,7 @@ void MdiChild::saveNew()
 			return false;
 		});
 	futureWatcher->setFuture(future);
+	iAJobListView::get()->addJob("Save File", p.get(), futureWatcher);
 }
 
 bool MdiChild::saveAs()
