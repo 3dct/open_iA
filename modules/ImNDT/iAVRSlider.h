@@ -25,8 +25,6 @@
 #include <vtkSliderWidget.h>
 #include <vtkSliderRepresentation3D.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkCommand.h>
-#include <vtkCallbackCommand.h>
 #include <vtkProp3D.h>
 
 #include <iALog.h>

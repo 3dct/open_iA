@@ -22,7 +22,9 @@
 
 #include "iAAmiraMeshIO.h"
 
-iAAmiraVolumeFileIO::iAAmiraVolumeFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
+#include <vtkImageData.h>
+
+iAAmiraVolumeFileIO::iAAmiraVolumeFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volume)
 {}
 
 std::vector<std::shared_ptr<iADataSet>> iAAmiraVolumeFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
@@ -30,6 +32,21 @@ std::vector<std::shared_ptr<iADataSet>> iAAmiraVolumeFileIO::loadData(QString co
 	Q_UNUSED(progress);
 	Q_UNUSED(paramValues);
 	return { std::make_shared<iAImageData>(iAAmiraMeshIO::Load(fileName)) };
+}
+
+void iAAmiraVolumeFileIO::saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
+{
+	Q_UNUSED(progress);
+	Q_UNUSED(paramValues);
+	if (dataSets.size() != 1)
+	{
+		throw std::runtime_error("Amira Volume export: Only exactly one dataset supported!");
+	}
+	if (!dynamic_cast<iAImageData*>(dataSets[0].get()))
+	{
+		throw std::runtime_error("Amira Volume export: Given dataset is not an image!");
+	}
+	iAAmiraMeshIO::Write(fileName, dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage().Get());
 }
 
 QString iAAmiraVolumeFileIO::name() const

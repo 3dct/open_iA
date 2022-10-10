@@ -25,7 +25,6 @@
 #include <vtkCamera.h>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
-#include <vtkCommand.h>
 #include <vtkCoordinate.h>
 #include <vtkMath.h>
 #include <vtkObjectFactory.h>

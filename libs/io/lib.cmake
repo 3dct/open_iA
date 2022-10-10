@@ -5,7 +5,7 @@ set(VTK_REQUIRED_LIBS_PUBLIC
 	# move to separate IO library?
 	IOImage               # for volume loading; move to a new "io" library?
 	IOGeometry            # for vtkSTLReader/Writer; move to a new "io" library?
-	IOXML                   # VTK9, for vtkXMLImageDataReader used in iAIO
+	IOXML                 # for vtkXMLImageDataReader
 )
 if (TARGET VTK::RenderingOpenVR)
 	list(APPEND VTK_REQUIRED_LIBS_PUBLIC
