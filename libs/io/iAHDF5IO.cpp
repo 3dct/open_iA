@@ -23,6 +23,7 @@
 #include "iAHDF5IO.h"
 
 #include "iAFileUtils.h"
+#include "iAITKIO.h"
 #include "iAValueTypeVectorHelpers.h"
 
 #include <vtkImageData.h>
@@ -81,6 +82,28 @@ namespace
 			.arg(err->desc));
 		return 0;
 	}
+
+	bool hdf5GroupExists(hid_t file_id, const char* name)
+	{
+		hid_t loc_id = H5Gopen(file_id, name, H5P_DEFAULT);
+		bool result = loc_id > 0;
+		if (result)
+		{
+			H5Gclose(loc_id);
+		}
+		return result;
+	}
+
+	bool hdf5DatasetExists(hid_t file_id, const char* name)
+	{
+		hid_t loc_id = H5Dopen(file_id, name, H5P_DEFAULT);
+		bool result = loc_id > 0;
+		if (result)
+		{
+			H5Dclose(loc_id);
+		}
+		return result;
+	}
 }
 
 const QString iAHDF5IO::Name("HDF5 file");
@@ -98,17 +121,25 @@ std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::loadData(QString const& fileNa
 	Q_UNUSED(progress);
 	auto hdf5PathStr = params[DataSetPathStr].toString();
 	auto hdf5Path = hdf5PathStr.split("/");
+	hid_t file_id = H5Fopen(getLocalEncodingFileName(fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+	if (hdf5IsITKImage(file_id))
+	{
+		H5Fclose(file_id);
+		iAITKIO::PixelType pixelType;
+		iAITKIO::ScalarType scalarType;
+		auto img = iAITKIO::readFile(fileName, pixelType, scalarType, true);
+		return { std::make_shared<iAImageData>(img) };
+	}
 	if (hdf5Path.size() < 1)
 	{
 		throw std::runtime_error(QString("HDF5 file %1: At least one path element expected, 0 given.").arg(fileName).toStdString());
 	}
-	hid_t file = H5Fopen(getLocalEncodingFileName(fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
-	hid_t loc_id = file;
+	hid_t loc_id = file_id;
 	auto dataSetName = hdf5Path.takeLast();
 	if (!hdf5Path.isEmpty())
 	{
 		auto groupName = hdf5Path.join("/");
-		loc_id = H5Gopen(file, groupName.toStdString().c_str(), H5P_DEFAULT);  // TODO: check which encoding HDF5 internal strings have!
+		loc_id = H5Gopen(file_id, groupName.toStdString().c_str(), H5P_DEFAULT);  // TODO: check which encoding HDF5 internal strings have!
 		if (loc_id < 0)
 		{
 			throw std::runtime_error(QString("HDF5 file %1: Could not open group %2.").arg(fileName).arg(groupName).toStdString());
@@ -128,7 +159,7 @@ std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::loadData(QString const& fileNa
 	H5T_class_t hdf5Type = H5Tget_class(type_id);
 	size_t numBytes = H5Tget_size(type_id);
 	H5T_sign_t sign = H5Tget_sign(type_id);
-	int vtkType = GetNumericVTKTypeFromHDF5Type(hdf5Type, numBytes, sign);
+	int vtkType = hdf5GetNumericVTKTypeFromHDF5Type(hdf5Type, numBytes, sign);
 	H5Tclose(type_id);
 	status = H5Sclose(space);
 	if (vtkType == InvalidHDF5Type)
@@ -144,7 +175,7 @@ std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::loadData(QString const& fileNa
 	status = H5Dread(dataset_id, GetHDF5ReadType(hdf5Type, numBytes, sign), H5S_ALL, H5S_ALL, H5P_DEFAULT, raw_data);
 	if (status < 0)
 	{
-		printHDF5ErrorsToConsole();
+		hdf5PrintErrorsToConsole();
 		throw std::runtime_error("Reading dataset failed!");
 	}
 	H5Dclose(dataset_id);
@@ -152,7 +183,7 @@ std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::loadData(QString const& fileNa
 	{
 		H5Gclose(loc_id);
 	}
-	H5Fclose(file);
+	H5Fclose(file_id);
 
 	vtkNew<vtkImageImport> imgImport;
 	auto spc = params[SpacingStr].value<QVector<double>>();
@@ -185,7 +216,7 @@ QStringList iAHDF5IO::extensions() const
 }
 
 
-QString MapHDF5TypeToString(H5T_class_t hdf5Type)
+QString hdf5MapTypeToString(H5T_class_t hdf5Type)
 {
 	switch (hdf5Type)
 	{
@@ -205,7 +236,7 @@ QString MapHDF5TypeToString(H5T_class_t hdf5Type)
 	}
 }
 
-int GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign)
+int hdf5GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign)
 {
 	switch (hdf5Type)
 	{
@@ -231,10 +262,15 @@ int GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sig
 	}
 }
 
-void printHDF5ErrorsToConsole()
+void hdf5PrintErrorsToConsole()
 {
 	hid_t err_stack = H5Eget_current_stack();
 	/*herr_t walkresult = */ H5Ewalk(err_stack, H5E_WALK_UPWARD, errorfunc, nullptr);
+}
+
+bool hdf5IsITKImage(hid_t file_id)
+{
+	return hdf5GroupExists(file_id, "ITKImage") && hdf5DatasetExists(file_id, "ITKVersion");
 }
 
 #endif
