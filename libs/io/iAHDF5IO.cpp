@@ -23,7 +23,7 @@
 #include "iAHDF5IO.h"
 
 #include "iAFileUtils.h"
-#include "iAITKIO.h"
+#include "iAToolsITK.h"    // for storeImage, pulls in iAITKIO
 #include "iAValueTypeVectorHelpers.h"
 
 #include <vtkImageData.h>
@@ -110,7 +110,7 @@ const QString iAHDF5IO::Name("HDF5 file");
 const QString iAHDF5IO::DataSetPathStr("Dataset path");
 const QString iAHDF5IO::SpacingStr("Spacing");
 
-iAHDF5IO::iAHDF5IO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
+iAHDF5IO::iAHDF5IO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volume)
 {
 	addAttr(m_params[Load], DataSetPathStr, iAValueType::String, "");
 	addAttr(m_params[Load], SpacingStr, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
@@ -203,6 +203,14 @@ std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::loadData(QString const& fileNa
 	auto img = vtkSmartPointer<vtkImageData>::New();
 	img->DeepCopy(imgImport->GetOutput());
 	return { std::make_shared<iAImageData>(img) };
+}
+
+void iAHDF5IO::saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
+{
+	Q_UNUSED(paramValues);
+	Q_UNUSED(progress);
+	// trust ITK default logic to find usable IO:
+	storeImage(dynamic_cast<iAImageData*>(dataSets[0].get())->itkImage(), fileName, false);
 }
 
 QString iAHDF5IO::name() const
