@@ -32,7 +32,6 @@
 #endif
 #include <itkGradientMagnitudeImageFilter.h>
 #include <itkGradientMagnitudeRecursiveGaussianImageFilter.h>
-#include <itkImageIOBase.h>
 
 // iAGradientMagnitude
 

@@ -23,7 +23,6 @@
 #include "iACSVToQTableWidgetConverter.h"
 #include "iAFeatureAnalyzerComputationModuleInterface.h"
 
-#include <defines.h>
 #include <iAFileUtils.h>
 #include <iAITKIO.h>
 #include <iATypedCallHelper.h>
@@ -141,8 +140,8 @@ struct RunInfo
 
 	QString startTime;
 	long elapsedTime;
-	ImagePointer maskImage;
-	ImagePointer surroundingMaskImage;
+	iAITKIO::ImagePointer maskImage;
+	iAITKIO::ImagePointer surroundingMaskImage;
 	float porosity;
 	int threshold;
 	long surroundingVoxels;
@@ -191,9 +190,9 @@ static float calcPorosity( const MaskImageType::Pointer image, int surroundingVo
 }
 
 template<class T>
-void computeBinaryThreshold( ImagePointer & image, RunInfo & results, float upThr, bool releaseData = false )
+void computeBinaryThreshold( iAITKIO::ImagePointer & image, RunInfo & results, float upThr, bool releaseData = false )
 {
-	typedef itk::Image< T, DIM >   InputImageType;
+	typedef itk::Image<T, iAITKIO::Dim>   InputImageType;
 	typedef itk::BinaryThresholdImageFilter <InputImageType, MaskImageType> BinaryThresholdImageFilterType;
 	typename BinaryThresholdImageFilterType::Pointer binaryThresholdFilter = BinaryThresholdImageFilterType::New();
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
@@ -218,9 +217,9 @@ void computeBinaryThreshold( ImagePointer & image, RunInfo & results, float upTh
 }
 
 template<class T>
-void computeGeneralThreshold(ImagePointer & image, RunInfo & results, float lwThr, float upThr, bool releaseData = false)
+void computeGeneralThreshold(iAITKIO::ImagePointer & image, RunInfo & results, float lwThr, float upThr, bool releaseData = false)
 {
-	typedef itk::Image< T, DIM >   InputImageType;
+	typedef itk::Image<T, iAITKIO::Dim>   InputImageType;
 	typedef itk::BinaryThresholdImageFilter <InputImageType, MaskImageType> BinaryThresholdImageFilterType;
 	typename BinaryThresholdImageFilterType::Pointer binaryThresholdFilter = BinaryThresholdImageFilterType::New();
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
@@ -245,10 +244,10 @@ void computeGeneralThreshold(ImagePointer & image, RunInfo & results, float lwTh
 }
 
 template<class T>
-void computeRatsThreshold( ImagePointer & image, RunInfo & results, float ratsThr, bool releaseData = false )
+void computeRatsThreshold(iAITKIO::ImagePointer & image, RunInfo & results, float ratsThr, bool releaseData = false )
 {
-	typedef typename itk::Image< T, DIM >   InputImageType;
-	typedef typename itk::Image< float, DIM >   GradientImageType;
+	typedef typename itk::Image< T, iAITKIO::Dim >   InputImageType;
+	typedef typename itk::Image< float, iAITKIO::Dim >   GradientImageType;
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
 
 	//Use duplicator filter because thresholding is in-place
@@ -280,10 +279,10 @@ void computeRatsThreshold( ImagePointer & image, RunInfo & results, float ratsTh
 }
 
 template<class T>
-void computeMorphWatershed( ImagePointer & image, RunInfo & results, float level, int fullyConnected, bool meyer, bool releaseData = false )
+void computeMorphWatershed(iAITKIO::ImagePointer & image, RunInfo & results, float level, int fullyConnected, bool meyer, bool releaseData = false )
 {
-	typedef itk::Image< T, DIM >   InputImageType;
-	typedef typename itk::Image< float, DIM >   GradientImageType;
+	typedef itk::Image< T, iAITKIO::Dim >   InputImageType;
+	typedef typename itk::Image< float, iAITKIO::Dim >   GradientImageType;
 	typedef itk::Image<unsigned long, 3>   LabelImageType;
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
 
@@ -339,9 +338,9 @@ void computeMorphWatershed( ImagePointer & image, RunInfo & results, float level
 }
 
 template<class T>
-void computeParamFree( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, bool releaseData = false )
+void computeParamFree(iAITKIO::ImagePointer & image, PorosityFilterID filterId, RunInfo & results, bool releaseData = false )
 {
-	typedef itk::Image< T, DIM >   InputImageType;
+	typedef itk::Image< T, iAITKIO::Dim >   InputImageType;
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
 
 	//Use duplicator filter because thresholding is in-place
@@ -451,9 +450,9 @@ void computeParamFree( ImagePointer & image, PorosityFilterID filterId, RunInfo 
 }
 
 template<class T>
-void computeConnThr( ImagePointer & inputImage, ImagePointer & seedImage, RunInfo & results, int loConnThr, int upConnThr, bool releaseData = false )
+void computeConnThr(iAITKIO::ImagePointer & inputImage, iAITKIO::ImagePointer & seedImage, RunInfo & results, int loConnThr, int upConnThr, bool releaseData = false )
 {
-	typedef itk::Image< T, DIM >   InputImageType;
+	typedef itk::Image< T, iAITKIO::Dim >   InputImageType;
 	const InputImageType * input = dynamic_cast<InputImageType*>(inputImage.GetPointer());
 
 	//we need duplicator because stupid filter utilizes in-place thresholding in its guts
@@ -487,9 +486,9 @@ void computeConnThr( ImagePointer & inputImage, ImagePointer & seedImage, RunInf
 }
 
 template<class T>
-void computeConfiConn( ImagePointer & inputImage, ImagePointer & seedImage, RunInfo & results, int initNeighbRadius, float multip, int numbIter, bool releaseData = false )
+void computeConfiConn(iAITKIO::ImagePointer & inputImage, iAITKIO::ImagePointer & seedImage, RunInfo & results, int initNeighbRadius, float multip, int numbIter, bool releaseData = false )
 {
-	typedef itk::Image< T, DIM >   InputImageType;
+	typedef itk::Image< T, iAITKIO::Dim >   InputImageType;
 	InputImageType * input = dynamic_cast<InputImageType*>(inputImage.GetPointer());
 
 	//Use duplicator filter because thresholding is in-place
@@ -524,9 +523,9 @@ void computeConfiConn( ImagePointer & inputImage, ImagePointer & seedImage, RunI
 }
 
 template<class T>
-void computeNeighbConn( ImagePointer & inputImage, ImagePointer & seedImage, RunInfo & results, int loConnThr, int upConnThr, int neighbRadius, bool releaseData = false )
+void computeNeighbConn(iAITKIO::ImagePointer & inputImage, iAITKIO::ImagePointer & seedImage, RunInfo & results, int loConnThr, int upConnThr, int neighbRadius, bool releaseData = false )
 {
-	typedef itk::Image< T, DIM >   InputImageType;
+	typedef itk::Image< T, iAITKIO::Dim >   InputImageType;
 	InputImageType * input = dynamic_cast<InputImageType*>(inputImage.GetPointer());
 
 	// Use duplicator filter because thresholding is in-place
@@ -566,9 +565,9 @@ void computeNeighbConn( ImagePointer & inputImage, ImagePointer & seedImage, Run
 }
 
 template<class T>
-void computeMultiOtsu( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int NbOfThr, int ValleyEmphasis, bool releaseData = false )
+void computeMultiOtsu(iAITKIO::ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int NbOfThr, int ValleyEmphasis, bool releaseData = false )
 {
-	typedef itk::Image< T, DIM >   InputImageType;
+	typedef itk::Image< T, iAITKIO::Dim >   InputImageType;
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
 
 	// Use duplicator filter because thresholding is in-place
@@ -605,10 +604,10 @@ void computeMultiOtsu( ImagePointer & image, PorosityFilterID /*filterId*/, RunI
 }
 
 template<class T>
-void computeCreateSurrounding( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, float upSurrThr, bool releaseData = false )
+void computeCreateSurrounding(iAITKIO::ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, float upSurrThr, bool releaseData = false )
 {
 	// Use this filter together with computeRemoveSurrounding
-	typedef itk::Image< T, DIM >   InputImageType;
+	typedef itk::Image< T, iAITKIO::Dim >   InputImageType;
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 
 	// We need duplicator because stupid filter utilizes in-place thresholding in its guts
@@ -627,9 +626,11 @@ void computeCreateSurrounding( ImagePointer & image, PorosityFilterID /*filterId
 	dummyImage->SetRegions( region );
 	const MaskImageType::SpacingType& out_spacing = input->GetSpacing();
 	const MaskImageType::PointType& inputOrigin = input->GetOrigin();
-	double outputOrigin[DIM];
-	for ( unsigned int i = 0; i < DIM; i++ )
+	double outputOrigin[iAITKIO::Dim];
+	for (unsigned int i = 0; i < iAITKIO::Dim; i++)
+	{
 		outputOrigin[i] = inputOrigin[i];
+	}
 	dummyImage->SetSpacing( out_spacing );
 	dummyImage->SetOrigin( outputOrigin );
 	dummyImage->Allocate();
@@ -690,7 +691,7 @@ void computeCreateSurrounding( ImagePointer & image, PorosityFilterID /*filterId
 }
 
 template<class T>
-void computeRemoveSurrounding( ImagePointer & /*image*/, PorosityFilterID /*filterId*/, RunInfo & results, bool releaseData = false )
+void computeRemoveSurrounding(iAITKIO::ImagePointer & /*image*/, PorosityFilterID /*filterId*/, RunInfo & results, bool releaseData = false )
 {
 	// Use this filter together with computeCreateSurrounding
 	MaskImageType * surMask = dynamic_cast<MaskImageType*>( results.surroundingMaskImage.GetPointer() );
@@ -724,10 +725,10 @@ void computeRemoveSurrounding( ImagePointer & /*image*/, PorosityFilterID /*filt
 }
 
 template<class T>
-void computeGradAnisoDiffSmooth( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int nbOfIt, float timeStep, float condParam, bool releaseData = false )
+void computeGradAnisoDiffSmooth(iAITKIO::ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int nbOfIt, float timeStep, float condParam, bool releaseData = false )
 {
-	typedef typename itk::Image< T, DIM >   InputImageType;
-	typedef typename itk::Image< float, DIM >   GADSFImageType;
+	typedef typename itk::Image< T, iAITKIO::Dim >   InputImageType;
+	typedef typename itk::Image< float, iAITKIO::Dim >   GADSFImageType;
 
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 
@@ -760,10 +761,10 @@ void computeGradAnisoDiffSmooth( ImagePointer & image, PorosityFilterID /*filter
 }
 
 template<class T>
-void computeCurvAnisoDiffSmooth( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int nbOfIt, float timeStep, float condParam, bool releaseData = false )
+void computeCurvAnisoDiffSmooth(iAITKIO::ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int nbOfIt, float timeStep, float condParam, bool releaseData = false )
 {
-	typedef typename itk::Image< T, DIM >   InputImageType;
-	typedef typename itk::Image< float, DIM >   CADSFImageType;
+	typedef typename itk::Image< T, iAITKIO::Dim >   InputImageType;
+	typedef typename itk::Image< float, iAITKIO::Dim >   CADSFImageType;
 
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 
@@ -796,10 +797,10 @@ void computeCurvAnisoDiffSmooth( ImagePointer & image, PorosityFilterID /*filter
 }
 
 template<class T>
-void computeRecursiveGaussSmooth( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, float sigma, bool releaseData = false )
+void computeRecursiveGaussSmooth(iAITKIO::ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, float sigma, bool releaseData = false )
 {
-	typedef typename itk::Image< T, DIM >   InputImageType;
-	typedef typename itk::Image< float, DIM >   RGSFImageType;
+	typedef typename itk::Image< T, iAITKIO::Dim >   InputImageType;
+	typedef typename itk::Image< float, iAITKIO::Dim >   RGSFImageType;
 
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 
@@ -848,10 +849,10 @@ void computeRecursiveGaussSmooth( ImagePointer & image, PorosityFilterID /*filte
 }
 
 template<class T>
-void computeBilateralSmooth( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, float domainSigma, float rangeSigma, bool releaseData = false )
+void computeBilateralSmooth(iAITKIO::ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, float domainSigma, float rangeSigma, bool releaseData = false )
 {
-	typedef typename itk::Image< T, DIM >   InputImageType;
-	typedef typename itk::Image< float, DIM >   BSFImageType;
+	typedef typename itk::Image< T, iAITKIO::Dim >   InputImageType;
+	typedef typename itk::Image< float, iAITKIO::Dim >   BSFImageType;
 
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 
@@ -864,8 +865,8 @@ void computeBilateralSmooth( ImagePointer & image, PorosityFilterID /*filterId*/
 	typename BSFType::Pointer bsfilter = BSFType::New();
 	bsfilter->SetInput( duplicator->GetOutput() );
 
-	double domainSigmas[DIM];
-	for ( unsigned int i = 0; i < DIM; i++ )
+	double domainSigmas[iAITKIO::Dim];
+	for ( unsigned int i = 0; i < iAITKIO::Dim; i++ )
 		domainSigmas[i] = domainSigma;
 
 	bsfilter->SetDomainSigma( domainSigmas );
@@ -888,10 +889,10 @@ void computeBilateralSmooth( ImagePointer & image, PorosityFilterID /*filterId*/
 }
 
 template<class T>
-void computeCurvFlowSmooth( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int nbOfIt, float timeStep, bool releaseData = false )
+void computeCurvFlowSmooth(iAITKIO::ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int nbOfIt, float timeStep, bool releaseData = false )
 {
-	typedef typename itk::Image< T, DIM >   InputImageType;
-	typedef typename itk::Image< float, DIM >   CFSFImageType;
+	typedef typename itk::Image< T, iAITKIO::Dim >   InputImageType;
+	typedef typename itk::Image< float, iAITKIO::Dim >   CFSFImageType;
 
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 
@@ -923,10 +924,10 @@ void computeCurvFlowSmooth( ImagePointer & image, PorosityFilterID /*filterId*/,
 }
 
 template<class T>
-void computeMedianSmooth( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int radius, bool releaseData = false )
+void computeMedianSmooth(iAITKIO::ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int radius, bool releaseData = false )
 {
-	typedef typename itk::Image< T, DIM >   InputImageType;
-	typedef typename itk::Image< float, DIM >   MSFImageType;
+	typedef typename itk::Image< T, iAITKIO::Dim >   InputImageType;
+	typedef typename itk::Image< float, iAITKIO::Dim >   MSFImageType;
 
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 
@@ -961,9 +962,9 @@ void computeMedianSmooth( ImagePointer & image, PorosityFilterID /*filterId*/, R
 }
 
 template<class T>
-void computeIsoXThreshold( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int isoX, bool releaseData = false )
+void computeIsoXThreshold(iAITKIO::ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int isoX, bool releaseData = false )
 {
-	typedef itk::Image< T, DIM >   InputImageType;
+	typedef itk::Image< T, iAITKIO::Dim >   InputImageType;
 	typedef itk::BinaryThresholdImageFilter <InputImageType, MaskImageType> BinaryThresholdImageFilterType;
 	typename BinaryThresholdImageFilterType::Pointer binaryThresholdFilter = BinaryThresholdImageFilterType::New();
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
@@ -989,10 +990,10 @@ void computeIsoXThreshold( ImagePointer & image, PorosityFilterID /*filterId*/, 
 }
 
 template<class T>
-void computeFhwThreshold( ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int airporeGV, int fhwWeight, bool releaseData = false )
+void computeFhwThreshold(iAITKIO::ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int airporeGV, int fhwWeight, bool releaseData = false )
 {
 	int mdThr, omThr, fhwThr;
-	typedef itk::Image< T, DIM >   InputImageType;
+	typedef itk::Image< T, iAITKIO::Dim >   InputImageType;
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 
 	// Use duplicator filter (in-place)
@@ -1043,9 +1044,9 @@ void computeFhwThreshold( ImagePointer & image, PorosityFilterID /*filterId*/, R
 }
 
 template<class T>
-void runBatch( const QList<PorosityFilterID> & filterIds, ImagePointer & image, RunInfo & results, const QList<IParameterInfo*> & params )
+void runBatch( const QList<PorosityFilterID> & filterIds, iAITKIO::ImagePointer & image, RunInfo & results, const QList<IParameterInfo*> & params )
 {
-	ImagePointer curImage = image;
+	iAITKIO::ImagePointer curImage = image;
 	results.startTime = QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat );
 	int pind = 0;
 	for (PorosityFilterID fid: filterIds)
@@ -1335,10 +1336,10 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 	// inintialize input datset
 	iAITKIO::ScalarType scalarType;
 	iAITKIO::PixelType pixelType;
-	ImagePointer image = iAITKIO::readFile( datasetName, pixelType, scalarType, true);
+	auto image = iAITKIO::readFile( datasetName, pixelType, scalarType, true);
 	assert(pixelType == iAITKIO::PixelType::SCALAR);
 	//GT image (make sure it is the same likne MaskImageType (CHAR))
-	ImagePointer gtMask;
+	iAITKIO::ImagePointer gtMask;
 	QString dsFN = QFileInfo( datasetName ).fileName();
 	QString dsPath = QFileInfo( datasetName ).absolutePath();
 	if( m_datasetGTs[dsFN] != "" )
@@ -1594,9 +1595,9 @@ void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMas
 	MaskImageType * mask = dynamic_cast<MaskImageType*>(results.maskImage.GetPointer());
 
 	// Label image
-	typedef itk::Image<long, DIM>  LabeledImageType;
+	typedef itk::Image<long, iAITKIO::Dim>  LabeledImageType;
 	typedef itk::ConnectedComponentImageFilter<MaskImageType, LabeledImageType> ConnectedComponentImageFilterType;
-	ConnectedComponentImageFilterType::Pointer connectedComponents = ConnectedComponentImageFilterType::New();
+	auto connectedComponents = ConnectedComponentImageFilterType::New();
 	connectedComponents->SetInput(mask);
 	connectedComponents->FullyConnectedOn();
 	connectedComponents->Update();
@@ -1656,7 +1657,7 @@ void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMas
 
 	// Initalisation of itk::LabelImageToShapeLabelMapFilter for calculating other pore parameters
 	typedef unsigned long LabelType;
-	typedef itk::ShapeLabelObject<LabelType, DIM>	ShapeLabelObjectType;
+	typedef itk::ShapeLabelObject<LabelType, iAITKIO::Dim>	ShapeLabelObjectType;
 	typedef itk::LabelMap<ShapeLabelObjectType>	LabelMapType;
 	typedef itk::LabelImageToShapeLabelMapFilter<LabeledImageType, LabelMapType> I2LType;
 	I2LType::Pointer i2l = I2LType::New();

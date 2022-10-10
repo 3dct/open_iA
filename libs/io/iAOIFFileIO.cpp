@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iAOIFFileIO.h"
 
-#include "defines.h"       // for DIM
 #include "iAConnector.h"
 #include "iAFileUtils.h"   // for getLocalEncodingFileName
 #include "iAProgress.h"

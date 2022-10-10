@@ -27,7 +27,6 @@
 #include <iAValueTypeVectorHelpers.h>
 
 #include <itkExtractImageFilter.h>
-#include <itkImageIOBase.h>
 #include <itkImageLinearIteratorWithIndex.h>
 #include <itkImageRegionIterator.h>
 #include <itkImageSliceConstIteratorWithIndex.h>

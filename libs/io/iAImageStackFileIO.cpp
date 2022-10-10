@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iAImageStackFileIO.h"
 
-#include "defines.h"         // for DIM
 #include "iAExceptionThrowingErrorObserver.h"
 #include "iAFileUtils.h"     // for getLocalEncodingFileName
 #include "iAProgress.h"

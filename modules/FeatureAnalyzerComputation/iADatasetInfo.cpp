@@ -46,8 +46,8 @@ iADatasetInfo::iADatasetInfo(iAFeatureAnalyzerComputationModuleInterface* pmi, Q
 {}
 
 template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString datasetName,
-												   ImagePointer & image, iAFeatureAnalyzerComputationModuleInterface * pmi,
-												   int totalFInfoNbToCreate, int currentFInfoNb )
+	iAITKIO::ImagePointer & image, iAFeatureAnalyzerComputationModuleInterface * pmi,
+	int totalFInfoNbToCreate, int currentFInfoNb )
 {
 	typedef itk::Image<T, DIM>  InputImageType;
 	typedef itk::Image<unsigned char, DIM>  uCharInputImageType;
@@ -206,7 +206,7 @@ void iADatasetInfo::calculateInfo()
 		// inintialize input datset
 		iAITKIO::ScalarType scalarType;
 		iAITKIO::PixelType pixelType;
-		ImagePointer image = iAITKIO::readFile( datasetPath + "/" + datasetName, pixelType, scalarType, true);
+		auto image = iAITKIO::readFile( datasetPath + "/" + datasetName, pixelType, scalarType, true);
 		assert(pixelType == iAITKIO::PixelType::SCALAR);
 		try
 		{

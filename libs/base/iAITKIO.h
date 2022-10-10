@@ -33,7 +33,6 @@ class QString;
 
 namespace iAITKIO
 {
-	// type definitions - unify with iAITKIO definitions, and with defines.h DIM!
 	static const int Dim = 3;
 	using ImageBaseType = itk::ImageBase<Dim>;
 	using ImagePointer = ImageBaseType::Pointer;

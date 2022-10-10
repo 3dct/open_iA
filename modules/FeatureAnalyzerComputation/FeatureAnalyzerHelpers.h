@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAITKIO.h"
+
 #include <itkImage.h>
-#include <itkImageBase.h>
-#include <itkImageIOBase.h>
 
 #include <vtkDoubleArray.h>
 #include <vtkFloatArray.h>
@@ -43,11 +43,8 @@
 
 #include <numeric>
 
-const int imgDim = 3;
-typedef itk::ImageBase< imgDim > PAImageBaseType;
-typedef PAImageBaseType::Pointer ImagePointer;
-typedef itk::Image< char, imgDim >   MaskImageType;
-typedef MaskImageType::Pointer   MaskImagePointer;
+using MaskImageType = itk::Image<char, iAITKIO::Dim>;
+using MaskImagePointer = MaskImageType::Pointer;
 
 const int algNameColInd = 2;
 const int datasetColInd = 3;

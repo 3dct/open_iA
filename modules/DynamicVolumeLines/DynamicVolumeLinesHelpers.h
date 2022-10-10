@@ -26,7 +26,6 @@
 
 #include <itkImageBase.h>
 #include <itkImage.h>
-#include <itkImageIOBase.h>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -34,9 +33,6 @@
 #include <QToolButton>
 
 #include <cassert>
-
-typedef itk::ImageBase< DIM > ImageBaseType;
-typedef ImageBaseType::Pointer ImagePointer;
 
 template <typename ArgType, typename ValType>
 class iAFunctionalBoxplot;

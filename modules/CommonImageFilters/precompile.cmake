@@ -22,7 +22,6 @@ set(CommonImageFilters_PRECOMPILE_INCLUDES
 <iATypedCallHelper.h>
 <itkCastImageFilter.h>
 <itkHessianRecursiveGaussianImageFilter.h>
-<itkImageIOBase.h>
 <itkImageRegionIterator.h>
 <itkResampleImageFilter.h>
 <itkRescaleIntensityImageFilter.h>

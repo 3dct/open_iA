@@ -243,13 +243,13 @@ void iASSSlicer::initBPDChans( QString const & minFile, QString const & medFile,
 void iASSSlicer::computeAggregatedImageData( const QStringList & filesList )
 {
 	vtkSmartPointer<vtkImageData> imgData = masksChan->imgData;
-	typedef itk::Image< unsigned char, imgDim >   SumImageType;
+	typedef itk::Image< unsigned char, iAITKIO::Dim>   SumImageType;
 	//first use itk filters to compute aggregated image
 	typedef itk::AddImageFilter<SumImageType, MaskImageType, SumImageType> AddImageFilter;
 
 	iAITKIO::PixelType pixelType;
 	iAITKIO::ScalarType scalarType;
-	ImagePointer lastOutput = iAITKIO::readFile( filesList.first(), pixelType, scalarType, true);
+	auto lastOutput = iAITKIO::readFile( filesList.first(), pixelType, scalarType, true);
 	assert(pixelType == iAITKIO::PixelType::SCALAR);
 	{
 		MaskImageType * castInput = dynamic_cast<MaskImageType*>(lastOutput.GetPointer());
@@ -261,7 +261,7 @@ void iASSSlicer::computeAggregatedImageData( const QStringList & filesList )
 	}
 	for( int i = 1; i < filesList.size(); ++i )
 	{
-		ImagePointer input = iAITKIO::readFile( filesList[i], pixelType, scalarType, true);
+		auto input = iAITKIO::readFile( filesList[i], pixelType, scalarType, true);
 		assert(pixelType == iAITKIO::PixelType::SCALAR);
 		AddImageFilter::Pointer add = AddImageFilter::New();
 		SumImageType * input1 = dynamic_cast<SumImageType*>(lastOutput.GetPointer());

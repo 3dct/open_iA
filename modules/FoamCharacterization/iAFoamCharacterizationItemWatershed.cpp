@@ -28,7 +28,6 @@
 
 #include <itkCastImageFilter.h>
 #include <itkGradientMagnitudeImageFilter.h>
-#include <itkImageIOBase.h>
 #include <itkWatershedImageFilter.h>
 
 #include <vtkImageData.h>

@@ -31,7 +31,7 @@
 #include <QDir>
 
 template<class T>
-void getIntensities(iAProgress &imp, PathID m_pathID, ImagePointer &image, QList<icData> &intensityList,
+void getIntensities(iAProgress &imp, PathID m_pathID, iAITKIO::ImagePointer &image, QList<icData> &intensityList,
 	QList<vtkSmartPointer<vtkImageData>> &m_imgDataList, QList<double> &minEnsembleIntensityList,
 	QList<double> &maxEnsembleIntensityList, QList<QVector<unsigned int>> &coordList)
 {
@@ -146,7 +146,7 @@ void iAIntensityMapper::process()
 
 		iAITKIO::ScalarType scalarType;
 		iAITKIO::PixelType pixelType;
-		ImagePointer image = iAITKIO::readFile(dataset, pixelType, scalarType, true);
+		auto image = iAITKIO::readFile(dataset, pixelType, scalarType, true);
 		assert(pixelType == iAITKIO::PixelType::SCALAR);
 		ITK_TYPED_CALL(getIntensities, scalarType,  m_iMProgress, m_pathID, image, intensityList,
 			m_imgDataList, minEnsembleIntensityList, maxEnsembleIntensityList, coordList);

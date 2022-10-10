@@ -193,7 +193,7 @@ bool iASingleResult::loadLabelImage()
 	iAITKIO::PixelType pixelType;
 	iAITKIO::ScalarType scalarType;
 	m_labelImg = iAITKIO::readFile(labelPath(), pixelType, scalarType, false);
-	assert(pixelType == iAITKIO::PixelType::SCALAR)
+	assert(pixelType == iAITKIO::PixelType::SCALAR);
 	if (scalarType != iAITKIO::ScalarType::INT)
 	{
 		m_labelImg = castImageTo<int>(m_labelImg);

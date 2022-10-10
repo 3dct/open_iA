@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #include "iADCMFileIO.h"
 
-#include "defines.h"       // for DIM
 #include "iAFileUtils.h"   // for getLocalEncodingFileName
+#include "iAITKIO.h"       // for iAITKIO::Dim
 #include "iAProgress.h"
 
 #include <itkImage.h>
@@ -43,7 +43,7 @@ std::vector<std::shared_ptr<iADataSet>> iADCMFileIO::loadData(QString const& fil
 {
 	Q_UNUSED(paramValues);
 	using PixelType = signed short; // check why signed short
-	using ImageType =  itk::Image<PixelType, DIM>;
+	using ImageType =  itk::Image<PixelType, iAITKIO::Dim>;
 	auto reader = itk::ImageSeriesReader<ImageType>::New();
 	auto dicomIO = itk::GDCMImageIO::New();
 	reader->SetImageIO(dicomIO);

@@ -31,7 +31,6 @@
 
 #include <itkBSplineInterpolateImageFunction.h>
 #include <itkConstantPadImageFilter.h>
-#include <itkImageIOBase.h>
 #include <itkNearestNeighborInterpolateImageFunction.h>
 #include <itkResampleImageFilter.h>
 #include <itkExtractImageFilter.h>
