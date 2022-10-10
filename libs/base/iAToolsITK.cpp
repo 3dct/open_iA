@@ -236,9 +236,9 @@ iAITKIO::ImagePointer allocateImage(int const size[iAITKIO::Dim], double const s
 	return result;
 }
 
-void storeImage(iAITKIO::ImagePtr image, QString const & filename, bool useCompression)
+void storeImage(iAITKIO::ImagePtr image, QString const & filename, bool useCompression, iAProgress const * p)
 {
-	iAITKIO::writeFile(filename, image, itkScalarType(image), useCompression);
+	iAITKIO::writeFile(filename, image, itkScalarType(image), useCompression, p);
 }
 
 void mapWorldToVoxelCoords(iAITKIO::ImagePointer img, double const* worldCoord, double * voxelCoord)

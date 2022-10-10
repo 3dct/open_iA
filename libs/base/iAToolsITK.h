@@ -45,7 +45,7 @@ iAbase_API iAITKIO::ScalarType itkScalarType(iAITKIO::ImagePointer image);
 iAbase_API iAITKIO::PixelType itkPixelType( iAITKIO::ImagePointer image );
 iAbase_API iAITKIO::ImagePointer allocateImage(iAITKIO::ImagePointer img);
 iAbase_API iAITKIO::ImagePointer allocateImage(int const size[iAITKIO::Dim], double const spacing[iAITKIO::Dim], iAITKIO::ScalarType scalarType);
-iAbase_API void storeImage(iAITKIO::ImagePtr image, QString const & filename, bool useCompression);
+iAbase_API void storeImage(iAITKIO::ImagePtr image, QString const & filename, bool useCompression, iAProgress const* p = nullptr);
 
 //! Translate from world coordinates to voxel coordinates for the given image
 //! @param img a VTK image

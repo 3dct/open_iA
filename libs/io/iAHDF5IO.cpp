@@ -119,8 +119,6 @@ iAHDF5IO::iAHDF5IO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volume)
 std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::loadData(QString const& fileName, QVariantMap const& params, iAProgress const& progress)
 {
 	Q_UNUSED(progress);
-	auto hdf5PathStr = params[DataSetPathStr].toString();
-	auto hdf5Path = hdf5PathStr.split("/");
 	hid_t file_id = H5Fopen(getLocalEncodingFileName(fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
 	if (hdf5IsITKImage(file_id))
 	{
@@ -130,6 +128,8 @@ std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::loadData(QString const& fileNa
 		auto img = iAITKIO::readFile(fileName, pixelType, scalarType, true);
 		return { std::make_shared<iAImageData>(img) };
 	}
+	auto hdf5PathStr = params[DataSetPathStr].toString();
+	auto hdf5Path = hdf5PathStr.split("/");
 	if (hdf5Path.size() < 1)
 	{
 		throw std::runtime_error(QString("HDF5 file %1: At least one path element expected, 0 given.").arg(fileName).toStdString());
@@ -208,9 +208,8 @@ std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::loadData(QString const& fileNa
 void iAHDF5IO::saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
-	Q_UNUSED(progress);
 	// trust ITK default logic to find usable IO:
-	storeImage(dynamic_cast<iAImageData*>(dataSets[0].get())->itkImage(), fileName, false);
+	storeImage(dynamic_cast<iAImageData*>(dataSets[0].get())->itkImage(), fileName, false, &progress);
 }
 
 QString iAHDF5IO::name() const
