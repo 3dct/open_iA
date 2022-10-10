@@ -72,7 +72,7 @@ iASampleFilter::iASampleFilter() :
 
 void iASampleFilter::performWork(QVariantMap const& parameters)
 {
-	// ITK_TYPED_CALL(sample, inputPixelType(), this, parameters);
+	// ITK_TYPED_CALL(sample, inputScalarType(), this, parameters);
 	auto samplingMethod = createSamplingMethod(parameters);
 	if (!samplingMethod)
 	{

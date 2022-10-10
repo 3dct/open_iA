@@ -28,7 +28,7 @@
 template <class T>
 void diff_marker_tmpl(QVector<iAITKIO::ImagePointer> imgsBase, double differenceMarkerValue, iAITKIO::ImagePointer & result)
 {
-	typedef itk::Image<T, iAITKIO::m_DIM > ImgType;
+	typedef itk::Image<T, iAITKIO::Dim > ImgType;
 	QVector<ImgType*> imgs;
 	for (int i = 0; i < imgsBase.size(); ++i)
 	{
@@ -76,6 +76,6 @@ iAITKIO::ImagePointer CalculateDifferenceMarkers(QVector<iAITKIO::ImagePointer> 
 		return imgs[0];
 	}
 	iAITKIO::ImagePointer result;
-	ITK_TYPED_CALL(diff_marker_tmpl, itkScalarPixelType(imgs[0]), imgs, differenceMarkerValue, result);
+	ITK_TYPED_CALL(diff_marker_tmpl, itkScalarType(imgs[0]), imgs, differenceMarkerValue, result);
 	return result;
 }

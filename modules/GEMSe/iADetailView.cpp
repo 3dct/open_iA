@@ -421,11 +421,11 @@ void iADetailView::SetCompareNode(iAImageTreeNode const * node)
 	{
 		return;
 	}
-	auto pixelType = itkScalarPixelType(img);
+	auto pixelType = itkScalarType(img);
 	m_compareWidget->setImage(img ?
 		img : m_nullImage,
 		!img,
-		(pixelType != itk::ImageIOBase::FLOAT && pixelType != itk::ImageIOBase::DOUBLE));
+		(pixelType != iAITKIO::ScalarType::FLOAT && pixelType != iAITKIO::ScalarType::DOUBLE));
 
 	iAConnector con;
 	con.setImage(img);

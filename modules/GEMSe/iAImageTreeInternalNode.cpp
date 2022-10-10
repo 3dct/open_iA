@@ -291,8 +291,10 @@ ClusterImageType const iAImageTreeInternalNode::GetRepresentativeImage(int type,
 		}
 		else
 		{
-			iAITKIO::ScalarPixelType pixelType;
-			m_representative[type] = iAITKIO::readFile(GetCachedFileName(type), pixelType, false);
+			iAITKIO::PixelType pixelType;
+			iAITKIO::ScalarType scalarType;
+			m_representative[type] = iAITKIO::readFile(GetCachedFileName(type), pixelType, scalarType, false);
+			assert(pixelType == iAITKIO::PixelType::SCALAR);
 		}
 	}
 	if (!m_representative[type])

@@ -45,7 +45,7 @@ template<class T> void additiveGaussianNoise(iAFilter* filter, QVariantMap const
 
 void iAAdditiveGaussianNoise::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(additiveGaussianNoise, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(additiveGaussianNoise, inputScalarType(), this, parameters);
 }
 
 iAAdditiveGaussianNoise::iAAdditiveGaussianNoise() :
@@ -77,7 +77,7 @@ template<class T> void saltAndPepperNoise(iAFilter* filter, QVariantMap const & 
 
 void iASaltAndPepperNoise::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(saltAndPepperNoise, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(saltAndPepperNoise, inputScalarType(), this, parameters);
 }
 
 iASaltAndPepperNoise::iASaltAndPepperNoise() :
@@ -108,7 +108,7 @@ template<class T> void shotNoise(iAFilter* filter, QVariantMap const & parameter
 
 void iAShotNoise::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(shotNoise, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(shotNoise, inputScalarType(), this, parameters);
 }
 
 iAShotNoise::iAShotNoise() :
@@ -139,7 +139,7 @@ template<class T> void speckleNoise(iAFilter* filter, QVariantMap const & parame
 
 void iASpeckleNoise::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(speckleNoise, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(speckleNoise, inputScalarType(), this, parameters);
 }
 
 iASpeckleNoise::iASpeckleNoise() :

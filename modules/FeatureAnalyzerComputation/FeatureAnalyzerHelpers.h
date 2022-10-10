@@ -48,7 +48,6 @@ typedef itk::ImageBase< imgDim > PAImageBaseType;
 typedef PAImageBaseType::Pointer ImagePointer;
 typedef itk::Image< char, imgDim >   MaskImageType;
 typedef MaskImageType::Pointer   MaskImagePointer;
-typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
 
 const int algNameColInd = 2;
 const int datasetColInd = 3;

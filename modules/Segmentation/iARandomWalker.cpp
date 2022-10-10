@@ -80,7 +80,7 @@ namespace
 	{
 		typedef itk::Image<T, DIM> ProbImageType;
 		// create labelled image (as value at k = arg l max(p_l^k) for each pixel k)
-		labelImgP = allocateImage(dim, spacing, itk::ImageIOBase::UCHAR);
+		labelImgP = allocateImage(dim, spacing, iAITKIO::ScalarType::UCHAR);
 		LabelImageType* labelImg = dynamic_cast<LabelImageType*>(labelImgP.GetPointer());
 		QVector<ProbImageType*> probImgs;
 		for (int i = 0; i < labelCount; ++i)
@@ -412,13 +412,13 @@ void iARandomWalker::performWork(QVariantMap const & parameters)
 		linear_solver.solve(b, &x);
 #endif
 		// put values into probability image
-		iAITKIO::ImagePointer pImg = allocateImage(dim, spc, itk::ImageIOBase::DOUBLE);
-		ITK_TYPED_CALL(SetIndexMapValues, inputPixelType(), pImg, x, unlabeledMap, imageGraph.converter());
-		ITK_TYPED_CALL(SetIndexMapValues, inputPixelType(), pImg, boundary, seedMap, imageGraph.converter());
+		iAITKIO::ImagePointer pImg = allocateImage(dim, spc, iAITKIO::ScalarType::DOUBLE);
+		ITK_TYPED_CALL(SetIndexMapValues, inputScalarType(), pImg, x, unlabeledMap, imageGraph.converter());
+		ITK_TYPED_CALL(SetIndexMapValues, inputScalarType(), pImg, boundary, seedMap, imageGraph.converter());
 		probImgs.push_back(pImg);
 	}
 	iAITKIO::ImagePointer labelImg;
-	ITK_TYPED_CALL(CreateLabelImage, inputPixelType(), dim, spc, probImgs, labelCount, labelImg );
+	ITK_TYPED_CALL(CreateLabelImage, inputScalarType(), dim, spc, probImgs, labelCount, labelImg );
 	addOutput(labelImg);
 	setOutputName(0u, "Label Image");
 	for (int i = 0; i < labelCount; ++i)
@@ -610,14 +610,14 @@ void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 		//linear_solver.solve(priorForLabel, &x);
 #endif
 		// put values into probability image
-		iAITKIO::ImagePointer pImg = allocateImage(dim, spc, itk::ImageIOBase::DOUBLE);
-		ITK_TYPED_CALL(SetIndexMapValues, inputPixelType(), pImg, x, fullMap, imageGraph.converter());
+		iAITKIO::ImagePointer pImg = allocateImage(dim, spc, iAITKIO::ScalarType::DOUBLE);
+		ITK_TYPED_CALL(SetIndexMapValues, inputScalarType(), pImg, x, fullMap, imageGraph.converter());
 		probImgs.push_back(pImg);
 	}
 	// create labelled image (as value at k = arg l max(p_l^k) for each pixel k)
 
 	iAITKIO::ImagePointer labelImg;
-	ITK_TYPED_CALL(CreateLabelImage, inputPixelType(), dim, spc, probImgs, labelCount, labelImg);
+	ITK_TYPED_CALL(CreateLabelImage, inputScalarType(), dim, spc, probImgs, labelCount, labelImg);
 	addOutput(labelImg);
 	setOutputName(0u, "Label Image");
 	for (int i = 0; i < labelCount; ++i)
@@ -651,7 +651,7 @@ void iAMaximumDecisionRule::performWork(QVariantMap const & /*parameters*/)
 		probImgs.push_back(imageInput(i)->itkImage());
 	}
 	iAITKIO::ImagePointer labelImg;
-	ITK_TYPED_CALL(CreateLabelImage, inputPixelType(), dim, spc, probImgs, inputCount(), labelImg);
+	ITK_TYPED_CALL(CreateLabelImage, inputScalarType(), dim, spc, probImgs, inputCount(), labelImg);
 	addOutput(labelImg);
 }
 

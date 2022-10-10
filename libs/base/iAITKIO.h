@@ -22,6 +22,8 @@
 
 #include "iAbase_export.h"
 
+#include "iAItkVersion.h"
+
 #include <itkImageBase.h>
 #include <itkImageIOBase.h>
 
@@ -32,14 +34,19 @@ class QString;
 namespace iAITKIO
 {
 	// type definitions - unify with iAITKIO definitions, and with defines.h DIM!
-	static const int m_DIM = 3;
-	typedef itk::ImageBase< m_DIM > ImageBaseType;
-	typedef ImageBaseType::Pointer ImagePointer;
-	typedef ImageBaseType* ImagePtr;
-	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
-
+	static const int Dim = 3;
+	using ImageBaseType = itk::ImageBase<Dim>;
+	using ImagePointer = ImageBaseType::Pointer;
+	using ImagePtr = ImageBaseType*;
+#if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(5, 1, 0)
+	using PixelType = itk::CommonEnums::IOPixel;
+	using ScalarType = itk::CommonEnums::IOComponent;
+#else
+	using PixelType = itk::ImageIOBase::IOPixelType;
+	using ScalarType = itk::ImageIOBase::IOComponentType;
+#endif
 
 	// TODO: unify with mdichild::loadfile / iAIO!
-	iAbase_API ImagePointer readFile(QString const& fileName, ScalarPixelType& pixelType, bool releaseFlag);
-	iAbase_API void writeFile(QString const& fileName, ImagePtr image, ScalarPixelType pixelType, bool useCompression = false, iAProgress const * progress = nullptr);
+	iAbase_API ImagePointer readFile(QString const& fileName, PixelType& pixelType, ScalarType& scalarType, bool releaseFlag);
+	iAbase_API void writeFile(QString const& fileName, ImagePtr image, ScalarType scalarType, bool useCompression = false, iAProgress const * progress = nullptr);
 } // namespace iAITKIO

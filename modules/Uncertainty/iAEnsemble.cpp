@@ -65,8 +65,10 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 	result->CreateUncertaintyImages();
 	if (!ensembleFile->ReferenceImage().isEmpty())
 	{
-		iAITKIO::ScalarPixelType pixelType;
-		auto itkImg = iAITKIO::readFile(ensembleFile->ReferenceImage(), pixelType, false);
+		iAITKIO::PixelType pixelType;
+		iAITKIO::ScalarType scalarType;
+		auto itkImg = iAITKIO::readFile(ensembleFile->ReferenceImage(), pixelType, scalarType, false);
+		assert(pixelType == iAITKIO::PixelType::SCALAR);
 		result->m_referenceImage = dynamic_cast<IntImage*>(itkImg.GetPointer());
 	}
 	// load sub ensembles:
@@ -187,8 +189,10 @@ namespace
 		{
 			return false;
 		}
-		iAITKIO::ScalarPixelType pixelType;
-		iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
+		iAITKIO::PixelType pixelType;
+		iAITKIO::ScalarType scalarType;
+		iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, scalarType, false);
+		assert(pixelType == iAITKIO::PixelType::SCALAR);
 		imgPointer = dynamic_cast<TImage*>(img.GetPointer()); // check pixelType?
 		if (!imgPointer)
 		{
@@ -471,14 +475,14 @@ void iAEnsemble::CreateUncertaintyImages()
 			for (int i = 0; i < m_labelCount; ++i)
 			{
 				iAITKIO::writeFile(m_cachePath + "/labelDistribution" +QString::number(i)+".mhd",
-					m_labelDistr[i].GetPointer(), itk::ImageIOBase::INT, true);
+					m_labelDistr[i].GetPointer(), iAITKIO::ScalarType::INT, true);
 			}
 		}
 
 		if (!LoadCachedImage<DoubleImage>(m_labelDistrEntropy, m_cachePath + "/labelDistributionEntropy.mhd", "label distribution entropy"))
 		{
 			m_labelDistrEntropy = CalculateEntropyImage<IntImage>(m_labelDistr, true, factor);
-			iAITKIO::writeFile(m_cachePath + "/labelDistributionEntropy.mhd", m_labelDistrEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
+			iAITKIO::writeFile(m_cachePath + "/labelDistributionEntropy.mhd", m_labelDistrEntropy.GetPointer(), iAITKIO::ScalarType::DOUBLE, true);
 		}
 
 		if (!LoadCachedImage<DoubleImage>(m_entropyAvgEntropy, m_cachePath + "/avgAlgEntropyAvgEntropy.mhd", "average algorithm entropy (from algorithm entropy average)")
@@ -515,7 +519,7 @@ void iAEnsemble::CreateUncertaintyImages()
 						++m_entropyHistogram[binIdx];
 						++it;
 					}
-					//iAITKIO::writeFile(cachePath + "/algorithmEntropy"+QString::number(memberIdx)+".mhd", m_entropyAvgEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
+					//iAITKIO::writeFile(cachePath + "/algorithmEntropy"+QString::number(memberIdx)+".mhd", m_entropyAvgEntropy.GetPointer(), iAITKIO::ScalarType::DOUBLE, true);
 					double entropyVar = diffsum / numberOfPixels;
 					m_memberEntropyAvg.push_back(entropyAvg);
 					m_memberEntropyVar.push_back(entropyVar);
@@ -527,7 +531,7 @@ void iAEnsemble::CreateUncertaintyImages()
 			StoreValues(m_cachePath + "/algorithmEntropyMean.csv", m_memberEntropyAvg);
 			StoreValues(m_cachePath + "/algorithmEntropyVar.csv", m_memberEntropyVar);
 			MultiplyImageInPlace(m_entropyAvgEntropy, factor);
-			iAITKIO::writeFile(m_cachePath + "/avgAlgEntropyAvgEntropy.mhd", m_entropyAvgEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
+			iAITKIO::writeFile(m_cachePath + "/avgAlgEntropyAvgEntropy.mhd", m_entropyAvgEntropy.GetPointer(), iAITKIO::ScalarType::DOUBLE, true);
 		}
 
 		if (!LoadCachedImage<DoubleImage>(m_neighbourhoodAvgEntropy3x3, m_cachePath + "/entropyNeighbourhood3x3.mhd", "neighbourhood entropy (3x3)"))
@@ -544,7 +548,7 @@ void iAEnsemble::CreateUncertaintyImages()
 				}
 			}
 			MultiplyImageInPlace(m_neighbourhoodAvgEntropy3x3, factor);
-			iAITKIO::writeFile(m_cachePath + "/entropyNeighbourhood3x3.mhd", m_neighbourhoodAvgEntropy3x3.GetPointer(), itk::ImageIOBase::DOUBLE, true);
+			iAITKIO::writeFile(m_cachePath + "/entropyNeighbourhood3x3.mhd", m_neighbourhoodAvgEntropy3x3.GetPointer(), iAITKIO::ScalarType::DOUBLE, true);
 		}
 
 		m_entropy.resize(SourceCount);

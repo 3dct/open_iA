@@ -37,7 +37,6 @@
 
 typedef itk::ImageBase< DIM > ImageBaseType;
 typedef ImageBaseType::Pointer ImagePointer;
-typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
 
 template <typename ArgType, typename ValType>
 class iAFunctionalBoxplot;

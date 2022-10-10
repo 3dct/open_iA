@@ -247,8 +247,10 @@ void iASSSlicer::computeAggregatedImageData( const QStringList & filesList )
 	//first use itk filters to compute aggregated image
 	typedef itk::AddImageFilter<SumImageType, MaskImageType, SumImageType> AddImageFilter;
 
-	ScalarPixelType pixelType;
-	ImagePointer lastOutput = iAITKIO::readFile( filesList.first(), pixelType, true);
+	iAITKIO::PixelType pixelType;
+	iAITKIO::ScalarType scalarType;
+	ImagePointer lastOutput = iAITKIO::readFile( filesList.first(), pixelType, scalarType, true);
+	assert(pixelType == iAITKIO::PixelType::SCALAR);
 	{
 		MaskImageType * castInput = dynamic_cast<MaskImageType*>(lastOutput.GetPointer());
 		typedef itk::CastImageFilter< MaskImageType, SumImageType> CastToIntFilterType;
@@ -259,7 +261,8 @@ void iASSSlicer::computeAggregatedImageData( const QStringList & filesList )
 	}
 	for( int i = 1; i < filesList.size(); ++i )
 	{
-		ImagePointer input = iAITKIO::readFile( filesList[i], pixelType, true);
+		ImagePointer input = iAITKIO::readFile( filesList[i], pixelType, scalarType, true);
+		assert(pixelType == iAITKIO::PixelType::SCALAR);
 		AddImageFilter::Pointer add = AddImageFilter::New();
 		SumImageType * input1 = dynamic_cast<SumImageType*>(lastOutput.GetPointer());
 		MaskImageType * input2 = dynamic_cast<MaskImageType*>(input.GetPointer());

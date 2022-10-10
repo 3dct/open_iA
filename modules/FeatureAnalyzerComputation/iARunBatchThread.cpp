@@ -1241,7 +1241,7 @@ void iARunBatchThread::saveResultsToRunsCSV( RunInfo & results, QString masksDir
 	for ( int i = 0; i < results.parameters.size(); ++i )
 		runsCSV.setItem( lastRow, col++, new QTableWidgetItem( results.parameters[i] ) );
 
-	iAITKIO::writeFile( maskFilename, results.maskImage, itk::ImageIOBase::CHAR, true );
+	iAITKIO::writeFile( maskFilename, results.maskImage, iAITKIO::ScalarType::CHAR, true );
 
 	//Write mask image preview (png)
 	try
@@ -1333,18 +1333,21 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 	m_runsCSV.clear();
 	initRunsCSVFile( m_runsCSV, batchDir, paramsNameType );
 	// inintialize input datset
-	ScalarPixelType pixelType;
-	ImagePointer image = iAITKIO::readFile( datasetName, pixelType, true);
-
+	iAITKIO::ScalarType scalarType;
+	iAITKIO::PixelType pixelType;
+	ImagePointer image = iAITKIO::readFile( datasetName, pixelType, scalarType, true);
+	assert(pixelType == iAITKIO::PixelType::SCALAR);
 	//GT image (make sure it is the same likne MaskImageType (CHAR))
 	ImagePointer gtMask;
 	QString dsFN = QFileInfo( datasetName ).fileName();
 	QString dsPath = QFileInfo( datasetName ).absolutePath();
 	if( m_datasetGTs[dsFN] != "" )
 	{
-		ScalarPixelType maskPixType;
+		iAITKIO::ScalarType maskScalarType;
+		iAITKIO::PixelType  maskPixelType;
 		QString gtMaskFile = dsPath + "/" + m_datasetGTs[dsFN];
-		gtMask = iAITKIO::readFile( gtMaskFile, maskPixType, true);
+		gtMask = iAITKIO::readFile( gtMaskFile, maskPixelType, maskScalarType, true);
+		assert(maskPixelType == iAITKIO::PixelType::SCALAR);
 	}
 	emit batchProgress( 0 );
 
@@ -1368,7 +1371,7 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 
 		try
 		{
-			ITK_TYPED_CALL(runBatch, pixelType, filterIds, image, results, params);
+			ITK_TYPED_CALL(runBatch, scalarType, filterIds, image, results, params);
 			//calculate porosity
 			MaskImageType * mask = dynamic_cast<MaskImageType*>(results.maskImage.GetPointer());
 			MaskImageType * gtImage = dynamic_cast<MaskImageType*>(gtMask.GetPointer());
@@ -1601,7 +1604,7 @@ void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMas
 	// Save labeled image
 	QString labeledMaskName = currMaskFilePath;
 	labeledMaskName.insert(currMaskFilePath.lastIndexOf("."), "_labeled");
-	iAITKIO::writeFile(labeledMaskName, connectedComponents->GetOutput(), itk::ImageIOBase::LONG, true);
+	iAITKIO::writeFile(labeledMaskName, connectedComponents->GetOutput(), iAITKIO::ScalarType::LONG, true);
 
 	// Save features characteristics in csv file
 	double spacing = mask->GetSpacing()[0];

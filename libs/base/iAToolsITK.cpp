@@ -26,153 +26,153 @@
 #include <itkExtractImageFilter.h>
 #include <itkStatisticsImageFilter.h>
 
-itk::ImageIOBase::IOComponentType itkScalarPixelType(iAITKIO::ImagePointer image)
+iAITKIO::ScalarType itkScalarType(iAITKIO::ImagePointer image)
 {
-	itk::ImageIOBase::IOComponentType result = itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+	auto result = iAITKIO::ScalarType::UNKNOWNCOMPONENTTYPE;
 	iAITKIO::ImageBaseType * imagePtr = image.GetPointer();
 
-	if (dynamic_cast<itk::Image< unsigned char, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::UCHAR;
-	else if (dynamic_cast<itk::Image< char, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::CHAR;
-	else if (dynamic_cast<itk::Image< short, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::SHORT;
-	else if (dynamic_cast<itk::Image< unsigned short, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::USHORT;
-	else if (dynamic_cast<itk::Image< int, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::INT;
-	else if (dynamic_cast<itk::Image< unsigned int, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::UINT;
-	else if (dynamic_cast<itk::Image< long, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::LONG;
-	else if (dynamic_cast<itk::Image< unsigned long, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::ULONG;
-	else if (dynamic_cast<itk::Image< long long, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::LONGLONG;
-	else if (dynamic_cast<itk::Image< unsigned long long, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::ULONGLONG;
-	else if (dynamic_cast<itk::Image< float, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::FLOAT;
-	else if (dynamic_cast<itk::Image< double, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::DOUBLE;
-	else if ( dynamic_cast<itk::Image<itk::RGBAPixel< unsigned char >, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::UCHAR;
-	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< char >, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::CHAR;
-	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< short >, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::SHORT;
-	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< unsigned short >, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::USHORT;
-	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< int >, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::INT;
-	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< unsigned int >, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::UINT;
-	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< long >, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::LONG;
-	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< unsigned long >, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::ULONG;
-	else if (dynamic_cast<itk::Image< itk::RGBAPixel< long long >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::LONGLONG;
-	else if (dynamic_cast<itk::Image< itk::RGBAPixel< unsigned long long >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::ULONGLONG;
-	else if (dynamic_cast<itk::Image< itk::RGBAPixel< float >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::FLOAT;
-	else if ( dynamic_cast<itk::Image<itk::RGBAPixel< double >, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::DOUBLE;
-	else if (dynamic_cast<itk::Image<itk::RGBPixel< unsigned char >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::UCHAR;
-	else if (dynamic_cast<itk::Image< itk::RGBPixel< char >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::CHAR;
-	else if (dynamic_cast<itk::Image< itk::RGBPixel< short >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::SHORT;
-	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned short >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::USHORT;
-	else if (dynamic_cast<itk::Image< itk::RGBPixel< int >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::INT;
-	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned int >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::UINT;
-	else if (dynamic_cast<itk::Image< itk::RGBPixel< long >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::LONG;
-	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned long >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::ULONG;
-	else if (dynamic_cast<itk::Image< itk::RGBPixel< long long >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::LONGLONG;
-	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned long long >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::ULONGLONG;
-	else if (dynamic_cast<itk::Image< itk::RGBPixel< float >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::FLOAT;
-	else if (dynamic_cast<itk::Image<itk::RGBPixel< double >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::DOUBLE;
+	if (dynamic_cast<itk::Image< unsigned char, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::UCHAR;
+	else if (dynamic_cast<itk::Image< char, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::CHAR;
+	else if (dynamic_cast<itk::Image< short, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::SHORT;
+	else if (dynamic_cast<itk::Image< unsigned short, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::USHORT;
+	else if (dynamic_cast<itk::Image< int, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::INT;
+	else if (dynamic_cast<itk::Image< unsigned int, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::UINT;
+	else if (dynamic_cast<itk::Image< long, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::LONG;
+	else if (dynamic_cast<itk::Image< unsigned long, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::ULONG;
+	else if (dynamic_cast<itk::Image< long long, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::LONGLONG;
+	else if (dynamic_cast<itk::Image< unsigned long long, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::ULONGLONG;
+	else if (dynamic_cast<itk::Image< float, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::FLOAT;
+	else if (dynamic_cast<itk::Image< double, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::DOUBLE;
+	else if ( dynamic_cast<itk::Image<itk::RGBAPixel< unsigned char >, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::ScalarType::UCHAR;
+	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< char >, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::ScalarType::CHAR;
+	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< short >, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::ScalarType::SHORT;
+	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< unsigned short >, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::ScalarType::USHORT;
+	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< int >, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::ScalarType::INT;
+	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< unsigned int >, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::ScalarType::UINT;
+	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< long >, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::ScalarType::LONG;
+	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< unsigned long >, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::ScalarType::ULONG;
+	else if (dynamic_cast<itk::Image< itk::RGBAPixel< long long >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::LONGLONG;
+	else if (dynamic_cast<itk::Image< itk::RGBAPixel< unsigned long long >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::ULONGLONG;
+	else if (dynamic_cast<itk::Image< itk::RGBAPixel< float >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::FLOAT;
+	else if ( dynamic_cast<itk::Image<itk::RGBAPixel< double >, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::ScalarType::DOUBLE;
+	else if (dynamic_cast<itk::Image<itk::RGBPixel< unsigned char >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::UCHAR;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< char >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::CHAR;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< short >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::SHORT;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned short >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::USHORT;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< int >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::INT;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned int >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::UINT;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< long >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::LONG;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned long >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::ULONG;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< long long >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::LONGLONG;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned long long >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::ULONGLONG;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< float >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::FLOAT;
+	else if (dynamic_cast<itk::Image<itk::RGBPixel< double >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::ScalarType::DOUBLE;
 
 	return result;
 }
 
 
-itk::ImageIOBase::IOPixelType itkPixelType( iAITKIO::ImagePointer image )
+iAITKIO::PixelType itkPixelType( iAITKIO::ImagePointer image )
 {
-	itk::ImageIOBase::IOPixelType result = itk::ImageIOBase::UNKNOWNPIXELTYPE;
+	auto result = iAITKIO::PixelType::UNKNOWNPIXELTYPE;
 	iAITKIO::ImageBaseType * imagePtr = image.GetPointer();
 
-	if ( dynamic_cast<itk::Image< unsigned char, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::SCALAR;
-	else if ( dynamic_cast<itk::Image< char, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::SCALAR;
-	else if ( dynamic_cast<itk::Image< short, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::SCALAR;
-	else if ( dynamic_cast<itk::Image< unsigned short, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::SCALAR;
-	else if ( dynamic_cast<itk::Image< int, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::SCALAR;
-	else if ( dynamic_cast<itk::Image< unsigned int, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::SCALAR;
-	else if ( dynamic_cast<itk::Image< long, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::SCALAR;
-	else if ( dynamic_cast<itk::Image< unsigned long, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::SCALAR;
-	else if ( dynamic_cast<itk::Image< float, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::SCALAR;
-	else if ( dynamic_cast<itk::Image< double, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::SCALAR;
-	else if ( dynamic_cast<itk::Image<itk::RGBAPixel< unsigned char >, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::RGBA;
-	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< char >, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::RGBA;
-	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< short >, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::RGBA;
-	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< unsigned short >, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::RGBA;
-	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< int >, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::RGBA;
-	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< unsigned int >, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::RGBA;
-	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< long >, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::RGBA;
-	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< unsigned long >, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::RGBA;
-	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< float >, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::RGBA;
-	else if ( dynamic_cast<itk::Image<itk::RGBAPixel< double >, iAITKIO::m_DIM> *>( imagePtr ) )
-		result = itk::ImageIOBase::RGBA;
-	else if (dynamic_cast<itk::Image<itk::RGBPixel< unsigned char >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::RGB;
-	else if (dynamic_cast<itk::Image< itk::RGBPixel< char >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::RGB;
-	else if (dynamic_cast<itk::Image< itk::RGBPixel< short >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::RGB;
-	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned short >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::RGB;
-	else if (dynamic_cast<itk::Image< itk::RGBPixel< int >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::RGB;
-	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned int >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::RGB;
-	else if (dynamic_cast<itk::Image< itk::RGBPixel< long >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::RGB;
-	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned long >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::RGB;
-	else if (dynamic_cast<itk::Image< itk::RGBPixel< float >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::RGB;
-	else if (dynamic_cast<itk::Image<itk::RGBPixel< double >, iAITKIO::m_DIM> *>(imagePtr))
-		result = itk::ImageIOBase::RGB;
+	if ( dynamic_cast<itk::Image< unsigned char, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::SCALAR;
+	else if ( dynamic_cast<itk::Image< char, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::SCALAR;
+	else if ( dynamic_cast<itk::Image< short, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::SCALAR;
+	else if ( dynamic_cast<itk::Image< unsigned short, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::SCALAR;
+	else if ( dynamic_cast<itk::Image< int, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::SCALAR;
+	else if ( dynamic_cast<itk::Image< unsigned int, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::SCALAR;
+	else if ( dynamic_cast<itk::Image< long, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::SCALAR;
+	else if ( dynamic_cast<itk::Image< unsigned long, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::SCALAR;
+	else if ( dynamic_cast<itk::Image< float, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::SCALAR;
+	else if ( dynamic_cast<itk::Image< double, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::SCALAR;
+	else if ( dynamic_cast<itk::Image<itk::RGBAPixel< unsigned char >, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::RGBA;
+	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< char >, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::RGBA;
+	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< short >, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::RGBA;
+	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< unsigned short >, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::RGBA;
+	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< int >, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::RGBA;
+	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< unsigned int >, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::RGBA;
+	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< long >, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::RGBA;
+	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< unsigned long >, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::RGBA;
+	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< float >, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::RGBA;
+	else if ( dynamic_cast<itk::Image<itk::RGBAPixel< double >, iAITKIO::Dim> *>( imagePtr ) )
+		result = iAITKIO::PixelType::RGBA;
+	else if (dynamic_cast<itk::Image<itk::RGBPixel< unsigned char >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::PixelType::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< char >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::PixelType::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< short >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::PixelType::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned short >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::PixelType::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< int >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::PixelType::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned int >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::PixelType::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< long >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::PixelType::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned long >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::PixelType::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< float >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::PixelType::RGB;
+	else if (dynamic_cast<itk::Image<itk::RGBPixel< double >, iAITKIO::Dim> *>(imagePtr))
+		result = iAITKIO::PixelType::RGB;
 
 	return result;
 }
@@ -181,7 +181,7 @@ itk::ImageIOBase::IOPixelType itkPixelType( iAITKIO::ImagePointer image )
 template <class T>
 void alloc_image_tmpl(iAITKIO::ImagePointer otherImg, iAITKIO::ImagePointer & result)
 {
-	typedef itk::Image<T, iAITKIO::m_DIM > ImageType;
+	typedef itk::Image<T, iAITKIO::Dim > ImageType;
 	typedef typename ImageType::Pointer ImagePointer;
 
 	ImagePointer image = ImageType::New();
@@ -200,14 +200,14 @@ void alloc_image_tmpl(iAITKIO::ImagePointer otherImg, iAITKIO::ImagePointer & re
 iAITKIO::ImagePointer allocateImage(iAITKIO::ImagePointer img)
 {
 	iAITKIO::ImagePointer result;
-	ITK_TYPED_CALL(alloc_image_tmpl, itkScalarPixelType(img), img, result);
+	ITK_TYPED_CALL(alloc_image_tmpl, itkScalarType(img), img, result);
 	return result;
 }
 
 template <class T>
-void alloc_image_tmpl2(int const size[iAITKIO::m_DIM], double const spacing[iAITKIO::m_DIM], iAITKIO::ImagePointer & result)
+void alloc_image_tmpl2(int const size[iAITKIO::Dim], double const spacing[iAITKIO::Dim], iAITKIO::ImagePointer & result)
 {
-	typedef itk::Image<T, iAITKIO::m_DIM > ImageType;
+	typedef itk::Image<T, iAITKIO::Dim > ImageType;
 	typedef typename ImageType::Pointer ImagePointer;
 
 	ImagePointer image = ImageType::New();
@@ -229,7 +229,7 @@ void alloc_image_tmpl2(int const size[iAITKIO::m_DIM], double const spacing[iAIT
 }
 
 
-iAITKIO::ImagePointer allocateImage(int const size[iAITKIO::m_DIM], double const spacing[iAITKIO::m_DIM], itk::ImageIOBase::IOComponentType type)
+iAITKIO::ImagePointer allocateImage(int const size[iAITKIO::Dim], double const spacing[iAITKIO::Dim], iAITKIO::ScalarType type)
 {
 	iAITKIO::ImagePointer result;
 	ITK_TYPED_CALL(alloc_image_tmpl2, type, size, spacing, result);
@@ -238,7 +238,7 @@ iAITKIO::ImagePointer allocateImage(int const size[iAITKIO::m_DIM], double const
 
 void storeImage(iAITKIO::ImagePtr image, QString const & filename, bool useCompression)
 {
-	iAITKIO::writeFile(filename, image, itkScalarPixelType(image), useCompression);
+	iAITKIO::writeFile(filename, image, itkScalarType(image), useCompression);
 }
 
 void mapWorldToVoxelCoords(iAITKIO::ImagePointer img, double const* worldCoord, double * voxelCoord)
@@ -277,7 +277,7 @@ void itkPixel2(double & result, TImage* image, typename TImage::IndexType idx)
 template <class T>
 void itkPixel(double & result, iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx)
 {
-	typedef itk::Image<T, iAITKIO::m_DIM > ImageType;
+	typedef itk::Image<T, iAITKIO::Dim > ImageType;
 	itkPixel2(result, dynamic_cast<ImageType*>(img.GetPointer()), idx);
 }
 
@@ -285,7 +285,7 @@ void itkPixel(double & result, iAITKIO::ImagePointer img, iAITKIO::ImageBaseType
 double itkPixel(iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx)
 {
 	double result;
-	ITK_TYPED_CALL(itkPixel, itkScalarPixelType(img), result, img,  idx);
+	ITK_TYPED_CALL(itkPixel, itkScalarType(img), result, img,  idx);
 	return result;
 }
 
@@ -298,27 +298,27 @@ void setITKPixel2(double value, TImage* image, typename TImage::IndexType idx)
 template <class T>
 void setITKPixel(double value, iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx)
 {
-	typedef itk::Image<T, iAITKIO::m_DIM > ImageType;
+	typedef itk::Image<T, iAITKIO::Dim > ImageType;
 	setITKPixel2(value, dynamic_cast<ImageType*>(img.GetPointer()), idx);
 }
 
 
 void setITKPixel(iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx, double value)
 {
-	ITK_TYPED_CALL(setITKPixel, itkScalarPixelType(img), value, img, idx);
+	ITK_TYPED_CALL(setITKPixel, itkScalarType(img), value, img, idx);
 }
 
 
 template <typename T>
-void internalExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::m_DIM], size_t const sizeArr[iAITKIO::m_DIM], iAITKIO::ImagePointer & outImg)
+void internalExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::Dim], size_t const sizeArr[iAITKIO::Dim], iAITKIO::ImagePointer & outImg)
 {
-	typedef itk::Image< T, iAITKIO::m_DIM > ImageType;
+	typedef itk::Image< T, iAITKIO::Dim > ImageType;
 	auto typedImg = dynamic_cast<ImageType *>(inImg.GetPointer());
 	typedef itk::ExtractImageFilter< ImageType, ImageType > ExtractType;
 	auto extractor = ExtractType::New();
 	auto size = typedImg->GetLargestPossibleRegion().GetSize();
 	typename ExtractType::InputImageRegionType::IndexType index;
-	for (int i = 0; i < iAITKIO::m_DIM; ++i)
+	for (int i = 0; i < iAITKIO::Dim; ++i)
 	{
 		index[i] = clamp(static_cast<size_t>(0), size[i], indexArr[i]);
 		size[i] = clamp(static_cast<size_t>(0), size[i] - index[i], sizeArr[i]);
@@ -332,17 +332,17 @@ void internalExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAI
 	outImg = setIndexOffsetToZero<T>(extractor->GetOutput());
 }
 
-iAITKIO::ImagePointer extractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::m_DIM], size_t const sizeArr[iAITKIO::m_DIM])
+iAITKIO::ImagePointer extractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::Dim], size_t const sizeArr[iAITKIO::Dim])
 {
 	iAITKIO::ImagePointer outImg;
-	ITK_TYPED_CALL(internalExtractImage, itkScalarPixelType(inImg), inImg, indexArr, sizeArr, outImg);
+	ITK_TYPED_CALL(internalExtractImage, itkScalarType(inImg), inImg, indexArr, sizeArr, outImg);
 	return outImg;
 }
 
 template <typename T>
 void internalGetStatistics(iAITKIO::ImagePointer img, double* min, double* max, double* mean, double* stddev, double* vari, double* sum)
 {
-	typedef itk::Image< T, iAITKIO::m_DIM > ImageType;
+	typedef itk::Image< T, iAITKIO::Dim > ImageType;
 	auto statisticsImageFilter = itk::StatisticsImageFilter<ImageType>::New();
 	statisticsImageFilter->SetInput(dynamic_cast<ImageType*>(img.GetPointer()));
 	statisticsImageFilter->Update();
@@ -356,5 +356,5 @@ void internalGetStatistics(iAITKIO::ImagePointer img, double* min, double* max, 
 
 void getStatistics(iAITKIO::ImagePointer img, double* min, double* max, double* mean, double* stddev, double* variance, double * sum)
 {
-	ITK_TYPED_CALL(internalGetStatistics, itkScalarPixelType(img), img, min, max, mean, stddev, variance, sum);
+	ITK_TYPED_CALL(internalGetStatistics, itkScalarType(img), img, min, max, mean, stddev, variance, sum);
 }

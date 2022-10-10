@@ -87,7 +87,7 @@ void binary_threshold(iAFilter* filter, QVariantMap const & parameters)
 
 void iABinaryThreshold::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(binary_threshold, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(binary_threshold, inputScalarType(), this, parameters);
 }
 
 iABinaryThreshold::iABinaryThreshold() :
@@ -140,7 +140,7 @@ void multi_threshold(iAFilter* filter, QVariantMap const& parameters)
 
 void iAMultiThreshold::performWork(QVariantMap const& parameters)
 {
-	ITK_TYPED_CALL(multi_threshold, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(multi_threshold, inputScalarType(), this, parameters);
 }
 
 iAMultiThreshold::iAMultiThreshold() :
@@ -185,7 +185,7 @@ void rats_threshold(iAFilter* filter, QVariantMap const & parameters)
 
 void iARatsThreshold::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(rats_threshold, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(rats_threshold, inputScalarType(), this, parameters);
 }
 
 iARatsThreshold::iARatsThreshold() :
@@ -262,7 +262,7 @@ void otsu_threshold(iAFilter* filter, QVariantMap const & parameters)
 
 void iAOtsuThreshold::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(otsu_threshold, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(otsu_threshold, inputScalarType(), this, parameters);
 }
 
 iAOtsuThreshold::iAOtsuThreshold() :
@@ -310,7 +310,7 @@ void adaptive_otsu_threshold(iAFilter* filter, QVariantMap const & parameters)
 
 void iAAdaptiveOtsuThreshold::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(adaptive_otsu_threshold, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(adaptive_otsu_threshold, inputScalarType(), this, parameters);
 }
 
 iAAdaptiveOtsuThreshold::iAAdaptiveOtsuThreshold() :
@@ -355,7 +355,7 @@ void otsu_multiple_threshold(iAFilter* filter, QVariantMap const & parameters)
 
 void iAOtsuMultipleThreshold::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(otsu_multiple_threshold, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(otsu_multiple_threshold, inputScalarType(), this, parameters);
 }
 
 iAOtsuMultipleThreshold::iAOtsuMultipleThreshold() :
@@ -395,7 +395,7 @@ void maximum_distance(iAFilter* filter, QVariantMap const & parameters)
 
 void iAMaximumDistance::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(maximum_distance, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(maximum_distance, inputScalarType(), this, parameters);
 }
 
 iAMaximumDistance::iAMaximumDistance() :
@@ -505,8 +505,8 @@ iAParameterlessThresholding::iAParameterlessThresholding() :
 template <typename T>
 void parameterless(iAFilter* filter, QVariantMap const & params)
 {
-	typedef itk::Image<T, DIM> InputImageType;
-	typedef itk::Image<T, DIM> MaskImageType;
+	typedef itk::Image<T, iAITKIO::Dim> InputImageType;
+	typedef itk::Image<T, iAITKIO::Dim> MaskImageType;
 	typedef itk::HistogramThresholdImageFilter<InputImageType, MaskImageType> parameterFreeThrFilterType;
 	typename parameterFreeThrFilterType::Pointer plFilter;
 	switch (MapMethodNameToID(params["Method"].toString()))
@@ -568,5 +568,5 @@ void parameterless(iAFilter* filter, QVariantMap const & params)
 
 void iAParameterlessThresholding::performWork(QVariantMap const & params)
 {
-	ITK_TYPED_CALL(parameterless, inputPixelType(), this, params);
+	ITK_TYPED_CALL(parameterless, inputScalarType(), this, params);
 }

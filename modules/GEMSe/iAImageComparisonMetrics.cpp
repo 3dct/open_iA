@@ -21,14 +21,14 @@
 #include "iAImageComparisonMetrics.h"
 
 #include "iATypedCallHelper.h"
-#include "iAToolsITK.h" // for itkScalarPixelType
+#include "iAToolsITK.h" // for itkScalarType
 
 
 // TODO: check why this function is delivering bogus results for larger images!
 template <typename T>
 void compareImg_tmpl(iAITKIO::ImagePointer imgB, iAITKIO::ImagePointer refB, iAImageComparisonResult & result)
 {
-	typedef itk::Image<T, iAITKIO::m_DIM > ImgType;
+	typedef itk::Image<T, iAITKIO::Dim > ImgType;
 	ImgType * img = dynamic_cast<ImgType*>(imgB.GetPointer());
 	ImgType * ref = dynamic_cast<ImgType*>(refB.GetPointer());
 	if (!img || !ref)
@@ -54,6 +54,6 @@ void compareImg_tmpl(iAITKIO::ImagePointer imgB, iAITKIO::ImagePointer refB, iAI
 iAImageComparisonResult CompareImages(iAITKIO::ImagePointer img, iAITKIO::ImagePointer reference)
 {
 	iAImageComparisonResult result;
-	ITK_TYPED_CALL(compareImg_tmpl, itkScalarPixelType(img), img, reference, result);
+	ITK_TYPED_CALL(compareImg_tmpl, itkScalarType(img), img, reference, result);
 	return result;
 }

@@ -184,15 +184,17 @@ iAITKIO::ImagePointer const iASingleResult::labelImage()
 
 bool iASingleResult::loadLabelImage()
 {
-	iAITKIO::ScalarPixelType pixelType;
 	QFileInfo f(labelPath());
 	if (!f.exists() || f.isDir())
 	{
 		LOG(lvlError, QString("Label Image %1 does not exist, or is not a file!").arg(labelPath()));
 		return false;
 	}
-	m_labelImg = iAITKIO::readFile(labelPath(), pixelType, false);
-	if (pixelType != itk::ImageIOBase::INT)
+	iAITKIO::PixelType pixelType;
+	iAITKIO::ScalarType scalarType;
+	m_labelImg = iAITKIO::readFile(labelPath(), pixelType, scalarType, false);
+	assert(pixelType == iAITKIO::PixelType::SCALAR)
+	if (scalarType != iAITKIO::ScalarType::INT)
 	{
 		m_labelImg = castImageTo<int>(m_labelImg);
 	}
@@ -240,8 +242,10 @@ iAITKIO::ImagePointer iASingleResult::probabilityImg(int label)
 		{
 			throw std::runtime_error(QString("File %1 does not exist!").arg(probFile).toStdString().c_str());
 		}
-		iAITKIO::ScalarPixelType pixelType;
-		m_probabilityImg[label] = iAITKIO::readFile(probFile, pixelType, false);
+		iAITKIO::PixelType pixelType;
+		iAITKIO::ScalarType scalarType;
+		m_probabilityImg[label] = iAITKIO::readFile(probFile, pixelType, scalarType, false);
+		assert(pixelType == iAITKIO::PixelType::SCALAR);
 	}
 	return m_probabilityImg[label];
 }
@@ -256,8 +260,10 @@ QVector<ProbabilityImagePointer> iASingleResult::probabilityImgs(int labelCount)
 		{
 			throw std::runtime_error(QString("File %1 does not exist!").arg(probFile).toStdString().c_str());
 		}
-		iAITKIO::ScalarPixelType pixelType;
-		probabilityImg[l] = dynamic_cast<ProbabilityImageType*>(iAITKIO::readFile(probFile, pixelType, false).GetPointer());
+		iAITKIO::PixelType pixelType;
+		iAITKIO::ScalarType scalarType;
+		probabilityImg[l] = dynamic_cast<ProbabilityImageType*>(iAITKIO::readFile(probFile, pixelType, scalarType, false).GetPointer());
+		assert(pixelType == iAITKIO::PixelType::SCALAR);
 	}
 	return probabilityImg;
 }

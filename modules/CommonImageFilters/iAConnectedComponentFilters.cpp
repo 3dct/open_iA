@@ -53,7 +53,7 @@ void connectedComponentFilter(iAFilter* filter, QVariantMap const & parameters)
 
 void iAConnectedComponents::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(connectedComponentFilter, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(connectedComponentFilter, inputScalarType(), this, parameters);
 }
 
 iAConnectedComponents::iAConnectedComponents() :
@@ -85,7 +85,7 @@ void scalarConnectedComponentFilter(iAFilter* filter, QVariantMap const & parame
 
 void iAScalarConnectedComponents::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(scalarConnectedComponentFilter, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(scalarConnectedComponentFilter, inputScalarType(), this, parameters);
 }
 
 iAScalarConnectedComponents::iAScalarConnectedComponents() :
@@ -129,7 +129,7 @@ void relabelComponentImageFilter(iAFilter* filter, QVariantMap const & parameter
 
 void iARelabelComponents::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(relabelComponentImageFilter, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(relabelComponentImageFilter, inputScalarType(), this, parameters);
 }
 
 iARelabelComponents::iARelabelComponents() :

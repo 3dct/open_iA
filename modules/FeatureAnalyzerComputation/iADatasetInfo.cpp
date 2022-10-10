@@ -198,45 +198,49 @@ void iADatasetInfo::calculateInfo()
 	{
 		QString datasetName = dl[i];
 		QFile datasetInfoFile( datasetPath + "/" + datasetName + ".info" );
-		if( datasetInfoFile.exists() )
+		if (datasetInfoFile.exists())
+		{
 			continue;
+		}
 
 		// inintialize input datset
-		ScalarPixelType pixelType;
-		ImagePointer image = iAITKIO::readFile( datasetPath + "/" + datasetName, pixelType, true);
+		iAITKIO::ScalarType scalarType;
+		iAITKIO::PixelType pixelType;
+		ImagePointer image = iAITKIO::readFile( datasetPath + "/" + datasetName, pixelType, scalarType, true);
+		assert(pixelType == iAITKIO::PixelType::SCALAR);
 		try
 		{
-			switch ( pixelType )
+			switch ( scalarType )
 			{
-				case itk::ImageIOBase::UCHAR:
+				case iAITKIO::ScalarType::UCHAR:
 					generateInfo<unsigned char>( datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb ); break;
-				case itk::ImageIOBase::CHAR:
+				case iAITKIO::ScalarType::CHAR:
 					generateInfo<char>( datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb ); break;
-				case itk::ImageIOBase::USHORT:
+				case iAITKIO::ScalarType::USHORT:
 					generateInfo<unsigned short>( datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb ); break;
-				case itk::ImageIOBase::SHORT:
+				case iAITKIO::ScalarType::SHORT:
 					generateInfo<short>( datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb ); break;
-				case itk::ImageIOBase::UINT:
+				case iAITKIO::ScalarType::UINT:
 					generateInfo<unsigned int>( datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb ); break;
-				case itk::ImageIOBase::INT:
+				case iAITKIO::ScalarType::INT:
 					generateInfo<int>( datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb ); break;
-				case itk::ImageIOBase::ULONG:
+				case iAITKIO::ScalarType::ULONG:
 					generateInfo<unsigned long>( datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb ); break;
-				case itk::ImageIOBase::LONG:
+				case iAITKIO::ScalarType::LONG:
 					generateInfo<long>( datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb ); break;
-				case itk::ImageIOBase::FLOAT:
+				case iAITKIO::ScalarType::FLOAT:
 					generateInfo<float>( datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb ); break;
-				case itk::ImageIOBase::DOUBLE:
+				case iAITKIO::ScalarType::DOUBLE:
 					generateInfo<double>( datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb ); break;
-				case itk::ImageIOBase::LONGLONG:
+				case iAITKIO::ScalarType::LONGLONG:
 					generateInfo<long long>(datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb); break;
-				case itk::ImageIOBase::ULONGLONG:
+				case iAITKIO::ScalarType::ULONGLONG:
 					generateInfo<unsigned long long>(datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb); break;
 #if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(5, 1, 0)
-				case itk::IOComponentEnum::LDOUBLE:
+				case iAITKIO::ScalarType::LDOUBLE:
 					throw std::runtime_error("Invalid component type (LDOUBLE)"); break;
 #endif
-				case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
+				case iAITKIO::ScalarType::UNKNOWNCOMPONENTTYPE:
 					//
 					break;
 			}

@@ -200,8 +200,8 @@ void writeImageStack(itk::ImageBase<3>* img,
 	QString const & base, QString const & suffix, int numDigits, int minIdx, int maxIdx, bool comp,
 	iAProgress const& progress)
 {
-	using InputImageType = itk::Image<T, DIM>;
-	using OutputImageType = itk::Image<T, DIM - 1>;
+	using InputImageType = itk::Image<T, iAITKIO::Dim>;
+	using OutputImageType = itk::Image<T, iAITKIO::Dim - 1>;
 	auto writer = itk::ImageSeriesWriter<InputImageType, OutputImageType>::New();
 	// set IO explicitly, to avoid SCIFIO claiming being able to write those image formats and then failing:
 	auto ext = suffix.toLower();
@@ -256,9 +256,9 @@ void iAImageStackFileIO::saveData(QString const& fileName, std::vector<std::shar
 	int numDigits = QString::number(size[2]).size();  // number of digits in z size number string
 	int minIdx = start[2];
 	int maxIdx = start[2] + size[2] - 1;
-	auto pixelType = ::itkScalarPixelType(itkImg);
-	auto imagePixelType = ::itkPixelType(itkImg);
-	ITK_EXTENDED_TYPED_CALL(writeImageStack, pixelType, imagePixelType,
+	auto scalarType = ::itkScalarType(itkImg);
+	auto pixelType = ::itkPixelType(itkImg);
+	ITK_EXTENDED_TYPED_CALL(writeImageStack, scalarType, pixelType,
 		itkImg, base, suffix, numDigits, minIdx, maxIdx,
 		paramValues[iAFileIO::CompressionStr].toBool(), progress);
 

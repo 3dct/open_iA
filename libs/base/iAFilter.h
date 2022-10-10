@@ -24,9 +24,7 @@
 
 #include "iAAbortListener.h"
 #include "iAAttributes.h"
-
-#include <itkImageBase.h>
-#include <itkImageIOBase.h>
+#include "iAITKIO.h"
 
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
@@ -166,7 +164,7 @@ public:
 	std::vector<std::shared_ptr<iADataSet>> outputs();
 	//! return the ITK pixel type of the image in the first given input dataset
 	//! (no check is performed whether that dataset actually contains an image!)
-	itk::ImageIOBase::IOComponentType inputPixelType() const;
+	iAITKIO::ScalarType inputScalarType() const;
 	//! returns the number of input channels from the first input image.
 	unsigned int firstInputChannels() const;
 	//! sets the first input channels.

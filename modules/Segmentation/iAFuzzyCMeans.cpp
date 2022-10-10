@@ -173,7 +173,7 @@ void iAFCMFilter::performWork(QVariantMap const & parameters)
 	{
 		setOutputName(i + 1, QString("Probability image label %1").arg(i));
 	}
-	ITK_TYPED_CALL(fcm, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(fcm, inputScalarType(), this, parameters);
 }
 
 
@@ -257,7 +257,7 @@ void iAKFCMFilter::performWork(QVariantMap const & parameters)
 	{
 		setOutputName(i + 1, QString("Probability image label %1").arg(i));
 	}
-	ITK_TYPED_CALL(kfcm, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(kfcm, inputScalarType(), this, parameters);
 }
 
 
@@ -350,6 +350,6 @@ void iAMSKFCMFilter::performWork(QVariantMap const & parameters)
 	{
 		setOutputName(i + 1, QString("Probability image label %1").arg(i));
 	}
-	ITK_TYPED_CALL(mskfcm, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(mskfcm, inputScalarType(), this, parameters);
 }
 #endif

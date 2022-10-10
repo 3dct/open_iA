@@ -53,7 +53,7 @@ void canny_edge_detection(iAFilter* filter, QVariantMap const & parameters)
 
 void iACannyEdgeDetection::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(canny_edge_detection, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(canny_edge_detection, inputScalarType(), this, parameters);
 }
 
 iACannyEdgeDetection::iACannyEdgeDetection() :
@@ -89,7 +89,7 @@ void sobel_edge_detection(iAFilter* filter, QVariantMap const& parameters)
 
 void iASobelEdgeDetection::performWork(QVariantMap const& parameters)
 {
-	ITK_TYPED_CALL(sobel_edge_detection, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(sobel_edge_detection, inputScalarType(), this, parameters);
 }
 
 iASobelEdgeDetection::iASobelEdgeDetection() :

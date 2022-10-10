@@ -1494,7 +1494,7 @@ void dlg_FeatureScout::ExportClassButton()
 		return;
 	}
 	con.setImage(img);
-	ITK_TYPED_CALL(CreateLabelledOutputMask, con.itkScalarPixelType(), con, fileName);
+	ITK_TYPED_CALL(CreateLabelledOutputMask, con.itkScalarType(), con, fileName);
 }
 
 template <class T>

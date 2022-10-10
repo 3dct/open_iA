@@ -69,7 +69,7 @@ iAWatershed::iAWatershed() :
 
 void iAWatershed::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(watershed, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(watershed, inputScalarType(), this, parameters);
 }
 
 
@@ -107,5 +107,5 @@ iAMorphologicalWatershed::iAMorphologicalWatershed() :
 
 void iAMorphologicalWatershed::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(morph_watershed, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(morph_watershed, inputScalarType(), this, parameters);
 }

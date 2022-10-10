@@ -451,7 +451,7 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 
 void iAai::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(executeDNN, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(executeDNN, inputScalarType(), this, parameters);
 }
 
 iAai::iAai() :

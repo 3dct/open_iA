@@ -143,9 +143,12 @@ void iAIntensityMapper::process()
 	{
 		QList<icData> intensityList;
 		QString dataset = m_datasetsDir.filePath(datasetsList.at(i));
-		ScalarPixelType pixelType;
-		ImagePointer image = iAITKIO::readFile(dataset, pixelType, true);
-		ITK_TYPED_CALL(getIntensities, pixelType, m_iMProgress, m_pathID, image, intensityList,
+
+		iAITKIO::ScalarType scalarType;
+		iAITKIO::PixelType pixelType;
+		ImagePointer image = iAITKIO::readFile(dataset, pixelType, scalarType, true);
+		assert(pixelType == iAITKIO::PixelType::SCALAR);
+		ITK_TYPED_CALL(getIntensities, scalarType,  m_iMProgress, m_pathID, image, intensityList,
 			m_imgDataList, minEnsembleIntensityList, maxEnsembleIntensityList, coordList);
 		m_DatasetIntensityMap.push_back(qMakePair(datasetsList.at(i), intensityList));
 	}

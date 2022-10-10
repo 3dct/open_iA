@@ -199,7 +199,7 @@ void freeBeamCalculation_OutType(QVariantMap const & parameters, iAFilter* filte
 
 void iAFreeBeamCalculation::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(freeBeamCalculation_OutType, inputPixelType(), parameters, this);
+	ITK_TYPED_CALL(freeBeamCalculation_OutType, inputScalarType(), parameters, this);
 }
 
 iAFreeBeamCalculation::iAFreeBeamCalculation() :
