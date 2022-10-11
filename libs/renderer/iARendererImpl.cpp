@@ -168,7 +168,7 @@ void PickCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventI
 		newfinalSel->SetPoints(ren->finalSelection()->GetPoints());
 		auto currSel = vtkSmartPointer<vtkUnstructuredGrid>::New();
 		currSel->ShallowCopy(extractSelection->GetOutput());
-		double f_Cell[DIM] = { 0,0,0 }, c_Cell[DIM] = { 0,0,0 };
+		double f_Cell[] = { 0,0,0 }, c_Cell[] = { 0,0,0 };
 		double* spacing = ren->getRenderObserver()->GetImageData()->GetSpacing();
 
 		for (vtkIdType i = 0; i < ren->finalSelection()->GetNumberOfCells(); ++i)
@@ -206,7 +206,7 @@ void PickCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventI
 
 void GetCellCenter(vtkUnstructuredGrid* data, const unsigned int cellId, double center[DIM], double spacing[DIM])
 {
-	double pcoords[DIM] = { 0,0,0 };
+	double pcoords[] = { 0,0,0 };
 	double *weights = new double[data->GetMaxCellSize()];
 	vtkCell* cell = data->GetCell(cellId);
 	int subId = cell->GetParametricCenter(pcoords);
@@ -984,7 +984,7 @@ void iARendererImpl::setBackgroundColors(iARenderSettings const& settings)
 
 void iARendererImpl::emitSelectedCells(vtkUnstructuredGrid* selectedCells)
 {
-	double cell[DIM] = { 0,0,0 };
+	double cell[] = { 0,0,0 };
 	double* spacing = getRenderObserver()->GetImageData()->GetSpacing();
 	auto selCellPoints = vtkSmartPointer<vtkPoints>::New();
 	for (vtkIdType i = 0; i < selectedCells->GetNumberOfCells(); ++i)
