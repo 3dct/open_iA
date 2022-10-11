@@ -262,12 +262,12 @@ iANModalBackgroundRemover::Mask iANModalDilationBackgroundRemover::removeBackgro
 	conn.setImage(m_itkTempImg);
 	//ImagePointer itkImgPtr = conn.itkImage();
 
-	if (conn.itkPixelType() == itk::ImageIOBase::SCALAR)
+	if (conn.itkPixelType() == iAITKIO::PixelType::SCALAR)
 	{
 		// TODO
 	}
 	else
-	{  // example if == itk::ImageIOBase::RGBA
+	{  // example if == iAITKIO::PixelType::RGBA
 		return {nullptr, INVALID};
 	}
 
@@ -400,7 +400,7 @@ void iANModalDilationBackgroundRemover::updateThreshold()
 
 	iAConnector conn;
 	conn.setImage(modality->image());
-	ITK_TYPED_CALL(itkBinaryThreshold, conn.itkScalarPixelType(), conn, 0, threshold);
+	ITK_TYPED_CALL(itkBinaryThreshold, conn.itkScalarType(), conn, 0, threshold);
 	auto mask = conn.vtkImage();
 
 	auto channelData = iAChannelData("Threshold mask", mask, m_colorTf);

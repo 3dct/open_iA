@@ -54,20 +54,20 @@ void addSeeds(RegFilterT* regionGrowingFilter, MaskImageT * seed)
 template <typename RegFilterT>
 void setSeeds(RegFilterT* filter, itk::ImageBase<3>* img)
 {
-	switch (itkScalarPixelType(img))
+	switch (itkScalarType(img))
 	{
-		case itk::ImageIOBase::CHAR:   addSeeds(filter, dynamic_cast<itk::Image<          char, DIM>*>(img)); break;
-		case itk::ImageIOBase::UCHAR:  addSeeds(filter, dynamic_cast<itk::Image< unsigned char, DIM>*>(img)); break;
-		case itk::ImageIOBase::SHORT:  addSeeds(filter, dynamic_cast<itk::Image<         short, DIM>*>(img)); break;
-		case itk::ImageIOBase::USHORT: addSeeds(filter, dynamic_cast<itk::Image<unsigned short, DIM>*>(img)); break;
-		case itk::ImageIOBase::INT:    addSeeds(filter, dynamic_cast<itk::Image<           int, DIM>*>(img)); break;
-		case itk::ImageIOBase::UINT:   addSeeds(filter, dynamic_cast<itk::Image<  unsigned int, DIM>*>(img)); break;
-		case itk::ImageIOBase::LONG:   addSeeds(filter, dynamic_cast<itk::Image<          long, DIM>*>(img)); break;
-		case itk::ImageIOBase::ULONG:  addSeeds(filter, dynamic_cast<itk::Image< unsigned long, DIM>*>(img)); break;
-		case itk::ImageIOBase::LONGLONG:  addSeeds(filter, dynamic_cast<itk::Image<  long long, DIM>*>(img)); break;
-		case itk::ImageIOBase::ULONGLONG: addSeeds(filter, dynamic_cast<itk::Image<unsigned long long, DIM>*>(img)); break;
-		case itk::ImageIOBase::FLOAT:  addSeeds(filter, dynamic_cast<itk::Image<         float, DIM>*>(img)); break;
-		case itk::ImageIOBase::DOUBLE: addSeeds(filter, dynamic_cast<itk::Image<        double, DIM>*>(img)); break;
+		case iAITKIO::ScalarType::CHAR:   addSeeds(filter, dynamic_cast<itk::Image<          char, iAITKIO::Dim>*>(img)); break;
+		case iAITKIO::ScalarType::UCHAR:  addSeeds(filter, dynamic_cast<itk::Image< unsigned char, iAITKIO::Dim>*>(img)); break;
+		case iAITKIO::ScalarType::SHORT:  addSeeds(filter, dynamic_cast<itk::Image<         short, iAITKIO::Dim>*>(img)); break;
+		case iAITKIO::ScalarType::USHORT: addSeeds(filter, dynamic_cast<itk::Image<unsigned short, iAITKIO::Dim>*>(img)); break;
+		case iAITKIO::ScalarType::INT:    addSeeds(filter, dynamic_cast<itk::Image<           int, iAITKIO::Dim>*>(img)); break;
+		case iAITKIO::ScalarType::UINT:   addSeeds(filter, dynamic_cast<itk::Image<  unsigned int, iAITKIO::Dim>*>(img)); break;
+		case iAITKIO::ScalarType::LONG:   addSeeds(filter, dynamic_cast<itk::Image<          long, iAITKIO::Dim>*>(img)); break;
+		case iAITKIO::ScalarType::ULONG:  addSeeds(filter, dynamic_cast<itk::Image< unsigned long, iAITKIO::Dim>*>(img)); break;
+		case iAITKIO::ScalarType::LONGLONG:  addSeeds(filter, dynamic_cast<itk::Image<  long long, iAITKIO::Dim>*>(img)); break;
+		case iAITKIO::ScalarType::ULONGLONG: addSeeds(filter, dynamic_cast<itk::Image<unsigned long long, iAITKIO::Dim>*>(img)); break;
+		case iAITKIO::ScalarType::FLOAT:  addSeeds(filter, dynamic_cast<itk::Image<         float, iAITKIO::Dim>*>(img)); break;
+		case iAITKIO::ScalarType::DOUBLE: addSeeds(filter, dynamic_cast<itk::Image<        double, iAITKIO::Dim>*>(img)); break;
 		default:
 			LOG(lvlError, "Invalid/Unknown itk pixel datatype in setSeeds!"); break;
 	}
@@ -98,7 +98,7 @@ void confidenceConnected(iAFilter* filter, QVariantMap const & params)
 
 void iAConfidenceConnectedRegionGrow::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(confidenceConnected, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(confidenceConnected, inputScalarType(), this, parameters);
 }
 
 iAConfidenceConnectedRegionGrow::iAConfidenceConnectedRegionGrow() :
@@ -137,7 +137,7 @@ void connectedThreshold(iAFilter* filter, QVariantMap const & params)
 
 void iAConnectedThresholdRegionGrow::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(connectedThreshold, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(connectedThreshold, inputScalarType(), this, parameters);
 }
 
 iAConnectedThresholdRegionGrow::iAConnectedThresholdRegionGrow() :
@@ -158,7 +158,7 @@ iAConnectedThresholdRegionGrow::iAConnectedThresholdRegionGrow() :
 template<class T>
 void neighborhoodConnected(iAFilter* filter, QVariantMap const & params)
 {
-	typedef itk::Image< T, DIM >   InputImageType;
+	typedef itk::Image< T, iAITKIO::Dim>   InputImageType;
 	const InputImageType * input = dynamic_cast<InputImageType*>(filter->imageInput(0)->itkImage());
 
 	typename InputImageType::SizeType	radius;
@@ -181,7 +181,7 @@ void neighborhoodConnected(iAFilter* filter, QVariantMap const & params)
 
 void iANeighborhoodConnectedRegionGrow::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(neighborhoodConnected, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(neighborhoodConnected, inputScalarType(), this, parameters);
 }
 
 iANeighborhoodConnectedRegionGrow::iANeighborhoodConnectedRegionGrow() :

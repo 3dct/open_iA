@@ -580,16 +580,16 @@ void iAIO::readDCM()
 
 void iAIO::loadMetaImageFile(QString const & fileName)
 {
-	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
-	typedef itk::ImageIOBase::IOPixelType PixelType;
 	auto imageIO = itk::ImageIOFactory::CreateImageIO(getLocalEncodingFileName(fileName).c_str(), itk::ImageIOFactory::ReadMode);
 	if (!imageIO)
+	{
 		throw std::invalid_argument("Could not find a reader that could handle the format of the specified file!");
+	}
 	imageIO->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	imageIO->ReadImageInformation();
-	const ScalarPixelType pixelType = imageIO->GetComponentType();
-	const PixelType imagePixelType = imageIO->GetPixelType();
-	ITK_EXTENDED_TYPED_CALL(read_image_template, pixelType, imagePixelType,
+	auto scalarType = imageIO->GetComponentType();
+	auto pixelType = imageIO->GetPixelType();
+	ITK_EXTENDED_TYPED_CALL(read_image_template, scalarType, pixelType,
 		fileName, ProgressObserver(), getConnector());
 }
 
@@ -1208,10 +1208,12 @@ bool iAIO::setupNKCReader(QString const& f)
 
 void iAIO::writeMetaImage( vtkSmartPointer<vtkImageData> imgToWrite, QString fileName )
 {
-	iAConnector con; con.setImage(imgToWrite); con.modified();
-	iAConnector::ITKScalarPixelType itkType = con.itkScalarPixelType();
-	iAConnector::ITKPixelType itkPixelType = con.itkPixelType();
-	ITK_EXTENDED_TYPED_CALL(write_image_template, itkType, itkPixelType,
+	iAConnector con;
+	con.setImage(imgToWrite);
+	con.modified();
+	auto scalarType = con.itkScalarType();
+	auto pixelType = con.itkPixelType();
+	ITK_EXTENDED_TYPED_CALL(write_image_template, scalarType, pixelType,
 		m_compression, fileName, ProgressObserver(), &con);
 	addMsg(tr("Saved as file '%1'.").arg(fileName));
 }
@@ -1298,12 +1300,10 @@ void writeImageStack_template(QString const & fileName, iAProgress* p, iAConnect
 
 void iAIO::writeImageStack( )
 {
-	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
-	typedef itk::ImageIOBase::IOPixelType PixelType;
 	getConnector()->setImage(getVtkImageData());
-	const ScalarPixelType pixelType = getConnector()->itkScalarPixelType();
-	const PixelType imagePixelType = getConnector()->itkPixelType();
-	ITK_EXTENDED_TYPED_CALL(writeImageStack_template, pixelType, imagePixelType,
+	auto scalarType = getConnector()->itkScalarType();
+	auto pixelType = getConnector()->itkPixelType();
+	ITK_EXTENDED_TYPED_CALL(writeImageStack_template, scalarType, pixelType,
 		m_fileName, ProgressObserver(), getConnector(), false);  //compression Hard coded to false, because the used m_compression was used for stl
 	addMsg(tr("%1 Image Stack saved; base file name: %2")
 		.arg(QFileInfo(m_fileName).completeSuffix().toUpper())

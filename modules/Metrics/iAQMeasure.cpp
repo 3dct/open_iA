@@ -128,7 +128,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QVariantMap
 	size_t binCount = std::max(static_cast<size_t>(2), static_cast<size_t>(histogramBinFactor * std::sqrt(voxelCount)));
 	std::vector<double> vecHist;
 
-	ITK_TYPED_CALL(computeHistogram, filter->inputPixelType(), filter, binCount, minVal, maxVal, vecHist);
+	ITK_TYPED_CALL(computeHistogram, filter->inputScalarType(), filter, binCount, minVal, maxVal, vecHist);
 
 	if (filter->m_chart)
 	{
@@ -342,7 +342,7 @@ void computeOrigQ(iAFilter* filter, iAConnector & con, QVariantMap const & param
 	double threshold_y = 2;						// one single voxel is no valid class
 
 	iAConnector floatImage;
-	if (filter->inputPixelType() == itk::ImageIOBase::FLOAT)
+	if (filter->inputScalarType() == iAITKIO::ScalarType::FLOAT)
 	{
 		floatImage = con;
 	}

@@ -65,7 +65,7 @@ template<class T> void invert_intensity(iAFilter* filter, QVariantMap const & pa
 
 void iAInvertIntensityFilter::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(invert_intensity, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(invert_intensity, inputScalarType(), this, parameters);
 }
 
 iAInvertIntensityFilter::iAInvertIntensityFilter() :
@@ -99,7 +99,7 @@ template<class T> void normalize(iAFilter* filter)
 
 void iANormalizeIntensityFilter::performWork(QVariantMap const & /*parameters*/)
 {
-	ITK_TYPED_CALL(normalize, inputPixelType(), this);
+	ITK_TYPED_CALL(normalize, inputScalarType(), this);
 }
 
 iANormalizeIntensityFilter::iANormalizeIntensityFilter() :
@@ -137,7 +137,7 @@ void intensity_windowing(iAFilter* filter, QVariantMap const & parameters)
 
 void iAIntensityWindowingFilter::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(intensity_windowing, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(intensity_windowing, inputScalarType(), this, parameters);
 }
 
 iAIntensityWindowingFilter::iAIntensityWindowingFilter() :
@@ -177,7 +177,7 @@ template<class T> void threshold(iAFilter* filter, QVariantMap const & parameter
 
 void iAGeneralThreshold::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(threshold, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(threshold, inputScalarType(), this, parameters);
 }
 
 iAGeneralThreshold::iAGeneralThreshold() :
@@ -213,7 +213,7 @@ template<class T> void rescaleImage(iAFilter* filter, QVariantMap const & parame
 
 void iARescaleIntensityFilter::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(rescaleImage, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(rescaleImage, inputScalarType(), this, parameters);
 }
 
 iARescaleIntensityFilter::iARescaleIntensityFilter() :
@@ -257,7 +257,7 @@ template<typename T> void shiftScale(iAFilter* filter, QVariantMap const & param
 
 void iAShiftScaleIntensityFilter::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(shiftScale, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(shiftScale, inputScalarType(), this, parameters);
 }
 
 iAShiftScaleIntensityFilter::iAShiftScaleIntensityFilter() :
@@ -291,7 +291,7 @@ template<class T> void adaptiveHistogramEqualization(iAFilter* filter, QVariantM
 
 void iAAdaptiveHistogramEqualization::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(adaptiveHistogramEqualization, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(adaptiveHistogramEqualization, inputScalarType(), this, parameters);
 }
 
 iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization() :
@@ -364,14 +364,14 @@ void replaceAndShift(iAFilter* filter, QVariantMap const & params)
 
 void iAReplaceAndShiftFilter::performWork(QVariantMap const& parameters)
 {
-	if (inputPixelType() == itk::ImageIOBase::FLOAT ||
-		inputPixelType() == itk::ImageIOBase::DOUBLE)
+	if (inputScalarType() == iAITKIO::ScalarType::FLOAT ||
+		inputScalarType() == iAITKIO::ScalarType::DOUBLE)
 	{
 		LOG(lvlWarn, "Replace and shift is executed on a real-valued (float/double) input image. "
 			"This only makes sense if the input image only contains discrete values; "
 			"and even then, comparisons might fail. You have been warned!");
 	}
-	ITK_TYPED_CALL(replaceAndShift, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(replaceAndShift, inputScalarType(), this, parameters);
 }
 
 iAReplaceAndShiftFilter::iAReplaceAndShiftFilter() :
@@ -409,7 +409,7 @@ template<class T> void addImages(iAFilter* filter)
 
 void iAAddFilter::performWork(QVariantMap const & /*parameters*/)
 {
-	ITK_TYPED_CALL(addImages, inputPixelType(), this);
+	ITK_TYPED_CALL(addImages, inputScalarType(), this);
 }
 
 iAAddFilter::iAAddFilter() :
@@ -443,7 +443,7 @@ void multiplyImages(iAFilter* filter)
 
 void iAMultiplyFilter::performWork(QVariantMap const& /*parameters*/)
 {
-	ITK_TYPED_CALL(multiplyImages, inputPixelType(), this);
+	ITK_TYPED_CALL(multiplyImages, inputScalarType(), this);
 }
 
 iAMultiplyFilter::iAMultiplyFilter() :
@@ -479,7 +479,7 @@ template<class T> void subtractImages(iAFilter* filter)
 
 void iASubtractFilter::performWork(QVariantMap const & /*parameters*/)
 {
-	ITK_TYPED_CALL(subtractImages, inputPixelType(), this);
+	ITK_TYPED_CALL(subtractImages, inputScalarType(), this);
 }
 
 iASubtractFilter::iASubtractFilter() :
@@ -514,7 +514,7 @@ template<class T> void difference(iAFilter* filter, QVariantMap const & paramete
 
 void iADifferenceFilter::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(difference, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(difference, inputScalarType(), this, parameters);
 }
 
 iADifferenceFilter::iADifferenceFilter() :
@@ -551,7 +551,7 @@ template<class T> void mask(iAFilter* filter)
 
 void iAMaskIntensityFilter::performWork(QVariantMap const & /*parameters*/)
 {
-	ITK_TYPED_CALL(mask, inputPixelType(), this);
+	ITK_TYPED_CALL(mask, inputScalarType(), this);
 }
 
 iAMaskIntensityFilter::iAMaskIntensityFilter() :
@@ -578,7 +578,7 @@ void histomatch(iAFilter* filter, QVariantMap const & parameters)
 	using HistoMatchFilterType = itk::HistogramMatchingImageFilter<MatchImageType, MatchImageType>;
 
 	auto matcher = HistoMatchFilterType::New();
-	if (itkScalarPixelType(filter->imageInput(0)->itkImage()) != itkScalarPixelType(filter->imageInput(1)->itkImage()))
+	if (itkScalarType(filter->imageInput(0)->itkImage()) != itkScalarType(filter->imageInput(1)->itkImage()))
 	{
 		LOG(lvlWarn, "Second image does not have the same pixel type as the first; I will try to typecast, "
 			"but the filter might not work properly if the data ranges are different.");
@@ -600,7 +600,7 @@ void histomatch(iAFilter* filter, QVariantMap const & parameters)
 
 void iAHistogramMatchingFilter::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(histomatch, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(histomatch, inputScalarType(), this, parameters);
 }
 
 iAHistogramMatchingFilter::iAHistogramMatchingFilter() :
@@ -676,5 +676,5 @@ iAHistogramFill::iAHistogramFill() :
 
 void iAHistogramFill::performWork(QVariantMap const& params)
 {
-	ITK_TYPED_CALL(fillHistogramm, inputPixelType(), this, params);
+	ITK_TYPED_CALL(fillHistogramm, inputScalarType(), this, params);
 }

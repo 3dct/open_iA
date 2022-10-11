@@ -101,7 +101,7 @@ template<class T> void dilation(iAFilter* filter, QVariantMap const & params)
 
 void iADilation::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(dilation, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(dilation, inputScalarType(), this, parameters);
 }
 
 iADilation::iADilation() :
@@ -132,7 +132,7 @@ template<class T> void erosion(iAFilter* filter, QVariantMap const & params)
 
 void iAErosion::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(erosion, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(erosion, inputScalarType(), this, parameters);
 }
 
 iAErosion::iAErosion() :
@@ -163,7 +163,7 @@ template<class T> void morphOpening(iAFilter* filter, QVariantMap const & params
 
 void iAMorphOpening::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(morphOpening, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(morphOpening, inputScalarType(), this, parameters);
 }
 
 iAMorphOpening::iAMorphOpening():
@@ -194,7 +194,7 @@ template<class T> void morphClosing(iAFilter* filter, QVariantMap const & params
 
 void iAMorphClosing::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(morphClosing, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(morphClosing, inputScalarType(), this, parameters);
 }
 
 iAMorphClosing::iAMorphClosing() :
@@ -225,7 +225,7 @@ template<class T> void openingByReconstruction(iAFilter* filter, QVariantMap con
 
 void iAOpeningByReconstruction::performWork(QVariantMap const& parameters)
 {
-	ITK_TYPED_CALL(openingByReconstruction, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(openingByReconstruction, inputScalarType(), this, parameters);
 }
 
 iAOpeningByReconstruction::iAOpeningByReconstruction() :
@@ -262,7 +262,7 @@ template<class T> void closingByReconstruction(iAFilter* filter, QVariantMap con
 
 void iAClosingByReconstruction::performWork(QVariantMap const& parameters)
 {
-	ITK_TYPED_CALL(closingByReconstruction, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(closingByReconstruction, inputScalarType(), this, parameters);
 }
 
 iAClosingByReconstruction::iAClosingByReconstruction() :
@@ -304,7 +304,7 @@ void binaryThinning(iAFilter* filter, QVariantMap const& params)
 
 void iABinaryThinning::performWork(QVariantMap const& parameters)
 {
-	ITK_TYPED_CALL(binaryThinning, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(binaryThinning, inputScalarType(), this, parameters);
 }
 
 iABinaryThinning::iABinaryThinning() :
@@ -337,7 +337,7 @@ template<class T> void binaryFillHole(iAFilter* filter, QVariantMap const & para
 
 void iABinaryFillHole::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(binaryFillHole, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(binaryFillHole, inputScalarType(), this, parameters);
 }
 
 iABinaryFillHole::iABinaryFillHole() :
@@ -367,7 +367,7 @@ void grayscaleFillHole(iAFilter* filter, QVariantMap const& params)
 
 void iAGrayscaleFillHole::performWork(QVariantMap const& parameters)
 {
-	ITK_TYPED_CALL(grayscaleFillHole, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(grayscaleFillHole, inputScalarType(), this, parameters);
 }
 
 iAGrayscaleFillHole::iAGrayscaleFillHole() :
@@ -402,7 +402,7 @@ template<class T> void vesselEnhancement(iAFilter* filter, QVariantMap const & p
 
 void iAVesselEnhancement::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(vesselEnhancement, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(vesselEnhancement, inputScalarType(), this, parameters);
 }
 
 iAVesselEnhancement::iAVesselEnhancement() :

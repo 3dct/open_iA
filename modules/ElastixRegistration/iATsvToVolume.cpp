@@ -133,7 +133,7 @@ void runTransform(iAFilter* filter, QVariantMap const & params)
 
 void iATsvToVolume::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(runTransform, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(runTransform, inputScalarType(), this, parameters);
 }
 
 iATsvToVolume::iATsvToVolume() :

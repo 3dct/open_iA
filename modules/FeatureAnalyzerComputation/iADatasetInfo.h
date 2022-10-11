@@ -45,8 +45,8 @@ signals:
 
 private:
 	template<class T> void generateInfo( QString datasetPath, QString datasetName,
-										ImagePointer & image, iAFeatureAnalyzerComputationModuleInterface * pmi,
-										int filesInfoNbToCreate, int currentFInfoNb );
+		iAITKIO::ImagePointer & image, iAFeatureAnalyzerComputationModuleInterface * pmi,
+		int filesInfoNbToCreate, int currentFInfoNb );
 
 	QStringList m_newGeneratedInfoFilesList;
 };

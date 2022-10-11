@@ -192,16 +192,17 @@ void storeImage(vtkSmartPointer<vtkImageData> img, QString const & filename, boo
 {
 	iAConnector con;
 	con.setImage(img);
-	iAITKIO::ScalarPixelType pixelType = con.itkScalarPixelType();
-	iAITKIO::writeFile(filename, con.itkImage(), pixelType, useCompression, progress);
+	iAITKIO::writeFile(filename, con.itkImage(), con.itkScalarType(), useCompression, progress);
 }
 
 void readImage(QString const & filename, bool releaseFlag, vtkSmartPointer<vtkImageData>& ptr)
 {
 	ptr = vtkSmartPointer<vtkImageData>::New();
 	iAConnector con;
-	iAITKIO::ScalarPixelType pixelType;
-	iAITKIO::ImagePointer img = iAITKIO::readFile(filename, pixelType, releaseFlag);
+	iAITKIO::PixelType pixelType;
+	iAITKIO::ScalarType scalarType;
+	iAITKIO::ImagePointer img = iAITKIO::readFile(filename, pixelType, scalarType, releaseFlag);
+	assert(pixelType == iAITKIO::PixelType::SCALAR);
 	con.setImage(img);
 	// only works with deep copy, not with returning vtkImage
 	// assumption: ITK smart pointer goes out of scope, deletes image, and

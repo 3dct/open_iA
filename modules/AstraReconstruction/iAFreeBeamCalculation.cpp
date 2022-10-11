@@ -27,7 +27,6 @@
 #include <iAValueTypeVectorHelpers.h>
 
 #include <itkExtractImageFilter.h>
-#include <itkImageIOBase.h>
 #include <itkImageLinearIteratorWithIndex.h>
 #include <itkImageRegionIterator.h>
 #include <itkImageSliceConstIteratorWithIndex.h>
@@ -199,7 +198,7 @@ void freeBeamCalculation_OutType(QVariantMap const & parameters, iAFilter* filte
 
 void iAFreeBeamCalculation::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(freeBeamCalculation_OutType, inputPixelType(), parameters, this);
+	ITK_TYPED_CALL(freeBeamCalculation_OutType, inputScalarType(), parameters, this);
 }
 
 iAFreeBeamCalculation::iAFreeBeamCalculation() :

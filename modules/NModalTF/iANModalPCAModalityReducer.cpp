@@ -54,8 +54,8 @@ QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(
 	}
 
 	// Go!
-	//ITK_TYPED_CALL(itkPCA, connectors[0].itkScalarPixelType(), connectors);
-	ITK_TYPED_CALL(ownPCA, connectors[0].itkScalarPixelType(), connectors);
+	//ITK_TYPED_CALL(itkPCA, connectors[0].itkScalarType(), connectors);
+	ITK_TYPED_CALL(ownPCA, connectors[0].itkScalarType(), connectors);
 
 	// Set up output list
 	auto modalities = QList<QSharedPointer<iAModality>>();

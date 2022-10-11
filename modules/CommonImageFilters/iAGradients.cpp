@@ -32,7 +32,6 @@
 #endif
 #include <itkGradientMagnitudeImageFilter.h>
 #include <itkGradientMagnitudeRecursiveGaussianImageFilter.h>
-#include <itkImageIOBase.h>
 
 // iAGradientMagnitude
 
@@ -51,7 +50,7 @@ template<class T> void gradientMagnitude(iAFilter* filter, QVariantMap const & p
 
 void iAGradientMagnitude::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(gradientMagnitude, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(gradientMagnitude, inputScalarType(), this, parameters);
 }
 
 iAGradientMagnitude::iAGradientMagnitude() :
@@ -84,7 +83,7 @@ template<class T> void gradientMagnitudeRecursiveGaussian(iAFilter* filter, QVar
 
 void iAGradientMagnitudeRecursiveGaussian::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(gradientMagnitudeRecursiveGaussian, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(gradientMagnitudeRecursiveGaussian, inputScalarType(), this, parameters);
 }
 
 iAGradientMagnitudeRecursiveGaussian::iAGradientMagnitudeRecursiveGaussian() :
@@ -120,7 +119,7 @@ void derivative(iAFilter* filter, QVariantMap const & params)
 
 void iADerivative::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(derivative, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(derivative, inputScalarType(), this, parameters);
 }
 
 iADerivative::iADerivative() :
@@ -158,7 +157,7 @@ void hoaDerivative(iAFilter* filter, QVariantMap const & parameters)
 
 void iAHigherOrderAccurateDerivative::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(hoaDerivative, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(hoaDerivative, inputScalarType(), this, parameters);
 }
 
 iAHigherOrderAccurateDerivative::iAHigherOrderAccurateDerivative() :

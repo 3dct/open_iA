@@ -707,7 +707,7 @@ void dlg_Consensus::StoreResult()
 		LOG(lvlError, "You need to perform Voting at least once, before last Consensus result can be stored!");
 		return;
 	}
-	iAITKIO::ScalarPixelType pixelType = itk::ImageIOBase::INT;
+	iAITKIO::ScalarType pixelType = iAITKIO::ScalarType::INT;
 	QString fileName = QFileDialog::getSaveFileName(this,
 		tr("Store Last Voting Result"),
 		m_folder,

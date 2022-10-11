@@ -312,7 +312,7 @@ iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
 
 void iASimilarity::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(similarity_metrics, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(similarity_metrics, inputScalarType(), this, parameters);
 }
 
 void iASimilarity::adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)

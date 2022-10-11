@@ -64,5 +64,5 @@ void entropy(iAFilter* filter, QVariantMap const & parameters)
 
 void iAEntropy::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(entropy, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(entropy, inputScalarType(), this, parameters);
 }

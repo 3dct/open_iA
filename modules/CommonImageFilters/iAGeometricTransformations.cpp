@@ -31,7 +31,6 @@
 
 #include <itkBSplineInterpolateImageFunction.h>
 #include <itkConstantPadImageFilter.h>
-#include <itkImageIOBase.h>
 #include <itkNearestNeighborInterpolateImageFunction.h>
 #include <itkResampleImageFilter.h>
 #include <itkExtractImageFilter.h>
@@ -159,7 +158,7 @@ template<typename T> void simpleResampler(iAFilter* filter, QVariantMap const & 
 
 void iASimpleResampleFilter::performWork(QVariantMap const& parameters)
 {
-	ITK_TYPED_CALL(simpleResampler, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(simpleResampler, inputScalarType(), this, parameters);
 }
 
 iASimpleResampleFilter::iASimpleResampleFilter() :
@@ -211,7 +210,7 @@ void resampler(iAFilter* filter, QVariantMap const& parameters)
 
 void iAResampleFilter::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(resampler, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(resampler, inputScalarType(), this, parameters);
 }
 
 iAResampleFilter::iAResampleFilter() :
@@ -264,7 +263,7 @@ void extractImage(iAFilter* filter, QVariantMap const & parameters)
 
 void iAExtractImageFilter::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(extractImage, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(extractImage, inputScalarType(), this, parameters);
 }
 
 iAExtractImageFilter::iAExtractImageFilter() :
@@ -316,7 +315,7 @@ template<typename T> void padImage(iAFilter* filter, QVariantMap const & paramet
 
 void iAPadImageFilter::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(padImage, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(padImage, inputScalarType(), this, parameters);
 }
 
 iAPadImageFilter::iAPadImageFilter() :

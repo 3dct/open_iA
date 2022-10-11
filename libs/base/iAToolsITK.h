@@ -41,11 +41,11 @@
 
 // TODO: unify with iAITKIO !
 
-iAbase_API itk::ImageIOBase::IOComponentType itkScalarPixelType(iAITKIO::ImagePointer image);
-iAbase_API itk::ImageIOBase::IOPixelType itkPixelType( iAITKIO::ImagePointer image );
+iAbase_API iAITKIO::ScalarType itkScalarType(iAITKIO::ImagePointer image);
+iAbase_API iAITKIO::PixelType itkPixelType( iAITKIO::ImagePointer image );
 iAbase_API iAITKIO::ImagePointer allocateImage(iAITKIO::ImagePointer img);
-iAbase_API iAITKIO::ImagePointer allocateImage(int const size[iAITKIO::m_DIM], double const spacing[iAITKIO::m_DIM], itk::ImageIOBase::IOComponentType type);
-iAbase_API void storeImage(iAITKIO::ImagePtr image, QString const & filename, bool useCompression);
+iAbase_API iAITKIO::ImagePointer allocateImage(int const size[iAITKIO::Dim], double const spacing[iAITKIO::Dim], iAITKIO::ScalarType scalarType);
+iAbase_API void storeImage(iAITKIO::ImagePtr image, QString const & filename, bool useCompression, iAProgress const* p = nullptr);
 
 //! Translate from world coordinates to voxel coordinates for the given image
 //! @param img a VTK image
@@ -63,15 +63,15 @@ iAbase_API void setITKPixel(iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::I
 //! @}
 
 //! extract part of an image as a new file
-iAbase_API iAITKIO::ImagePointer extractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::m_DIM], size_t const sizeArr[iAITKIO::m_DIM]);
+iAbase_API iAITKIO::ImagePointer extractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::Dim], size_t const sizeArr[iAITKIO::Dim]);
 
 //! set index offset of an image to (0,0,0)
 //iAbase_API iAITKIO::ImagePointer setIndexOffsetToZero(iAITKIO::ImagePointer inImg);
 template <typename T>
-typename itk::Image<T, iAITKIO::m_DIM>::Pointer setIndexOffsetToZero(typename itk::Image<T, iAITKIO::m_DIM>::Pointer inImg)
+typename itk::Image<T, iAITKIO::Dim>::Pointer setIndexOffsetToZero(typename itk::Image<T, iAITKIO::Dim>::Pointer inImg)
 {
 	// change output image index offset to zero
-	typedef itk::Image<T, iAITKIO::m_DIM> ImageType;
+	typedef itk::Image<T, iAITKIO::Dim> ImageType;
 	typename ImageType::IndexType idx; idx.Fill(0);
 	typename ImageType::PointType origin; origin.Fill(0);
 	typename ImageType::RegionType outreg;
@@ -171,20 +171,20 @@ iAITKIO::ImagePointer internalCastImageTo(iAITKIO::ImagePointer img)
 }
 
 // mapping from pixel type to itk component type ID:
-template<typename T> struct iAITKTypeMapper { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::UNKNOWNCOMPONENTTYPE; };
+template<typename T> struct iAITKTypeMapper { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::UNKNOWNCOMPONENTTYPE; };
 //template <>                   class iAITKTypeMapper { int ID; };
-template<> struct iAITKTypeMapper<unsigned char>       { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::UCHAR; };
-template<> struct iAITKTypeMapper<char>                { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::CHAR; };
-template<> struct iAITKTypeMapper<unsigned short>      { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::USHORT; };
-template<> struct iAITKTypeMapper<short>               { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::SHORT; };
-template<> struct iAITKTypeMapper<unsigned int>        { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::UINT; };
-template<> struct iAITKTypeMapper<int>                 { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::INT; };
-template<> struct iAITKTypeMapper<unsigned long>       { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::ULONG; };
-template<> struct iAITKTypeMapper<long>                { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::LONG; };
-template<> struct iAITKTypeMapper <unsigned long long> { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::ULONGLONG; };
-template<> struct iAITKTypeMapper <long long>          { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::LONGLONG; };
-template<> struct iAITKTypeMapper<float>               { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::FLOAT; };
-template<> struct iAITKTypeMapper<double>              { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::DOUBLE; };
+template<> struct iAITKTypeMapper<unsigned char>       { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::UCHAR; };
+template<> struct iAITKTypeMapper<char>                { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::CHAR; };
+template<> struct iAITKTypeMapper<unsigned short>      { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::USHORT; };
+template<> struct iAITKTypeMapper<short>               { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::SHORT; };
+template<> struct iAITKTypeMapper<unsigned int>        { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::UINT; };
+template<> struct iAITKTypeMapper<int>                 { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::INT; };
+template<> struct iAITKTypeMapper<unsigned long>       { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::ULONG; };
+template<> struct iAITKTypeMapper<long>                { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::LONG; };
+template<> struct iAITKTypeMapper <unsigned long long> { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::ULONGLONG; };
+template<> struct iAITKTypeMapper <long long>          { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::LONGLONG; };
+template<> struct iAITKTypeMapper<float>               { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::FLOAT; };
+template<> struct iAITKTypeMapper<double>              { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::DOUBLE; };
 
 //! Cast pixel type of image to given ResultPixelType.
 //! If input image already has that pixel type, the given input image is returned.
@@ -192,34 +192,34 @@ template<typename ResultPixelType>
 iAITKIO::ImagePointer castImageTo(iAITKIO::ImagePointer img)
 {
 	// optimization: don't cast if already in desired type:
-	if (itkScalarPixelType(img) == iAITKTypeMapper<ResultPixelType>::ID)
+	if (itkScalarType(img) == iAITKTypeMapper<ResultPixelType>::ID)
 	{
 		return img;
 	}
 	// can I retrieve number of dimensions somehow? otherwise assume 3 fixed?
-	switch (itkScalarPixelType(img))
+	switch (itkScalarType(img))
 	{
-		case itk::ImageIOBase::UCHAR:
+		case iAITKIO::ScalarType::UCHAR:
 			return internalCastImageTo<itk::Image<unsigned char, 3>, itk::Image<ResultPixelType, 3> >(img);
-		case itk::ImageIOBase::CHAR:
+		case iAITKIO::ScalarType::CHAR:
 			return internalCastImageTo<itk::Image<char, 3>, itk::Image<ResultPixelType, 3> >(img);
-		case itk::ImageIOBase::SHORT:
+		case iAITKIO::ScalarType::SHORT:
 			return internalCastImageTo<itk::Image<short, 3>, itk::Image<ResultPixelType, 3> >(img);
-		case itk::ImageIOBase::USHORT:
+		case iAITKIO::ScalarType::USHORT:
 			return internalCastImageTo<itk::Image<unsigned short, 3>, itk::Image<ResultPixelType, 3> >(img);
-		case itk::ImageIOBase::INT:
+		case iAITKIO::ScalarType::INT:
 			return internalCastImageTo<itk::Image<int, 3>, itk::Image<ResultPixelType, 3> >(img);
-		case itk::ImageIOBase::UINT:
+		case iAITKIO::ScalarType::UINT:
 			return internalCastImageTo<itk::Image<unsigned int, 3>, itk::Image<ResultPixelType, 3> >(img);
-		case itk::ImageIOBase::LONG:
+		case iAITKIO::ScalarType::LONG:
 			return internalCastImageTo<itk::Image<long, 3>, itk::Image<ResultPixelType, 3> >(img);
-		case itk::ImageIOBase::ULONG:
+		case iAITKIO::ScalarType::ULONG:
 			return internalCastImageTo<itk::Image<unsigned long, 3>, itk::Image<ResultPixelType, 3> >(img);
-		case itk::ImageIOBase::LONGLONG:
+		case iAITKIO::ScalarType::LONGLONG:
 			return internalCastImageTo<itk::Image<long long, 3>, itk::Image<ResultPixelType, 3> >(img);
-		case itk::ImageIOBase::ULONGLONG:
+		case iAITKIO::ScalarType::ULONGLONG:
 			return internalCastImageTo<itk::Image<unsigned long long, 3>, itk::Image<ResultPixelType, 3> >(img);
-		case itk::ImageIOBase::FLOAT:
+		case iAITKIO::ScalarType::FLOAT:
 			return internalCastImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img);
 		default:
 			LOG(lvlError, "Invalid/Unknown itk pixel datatype in rescale!");
@@ -227,7 +227,7 @@ iAITKIO::ImagePointer castImageTo(iAITKIO::ImagePointer img)
 			[[fallthrough]];
 #endif
 			// fall through
-		case itk::ImageIOBase::DOUBLE:
+		case iAITKIO::ScalarType::DOUBLE:
 			return internalCastImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img);
 	}
 }
@@ -248,29 +248,29 @@ template<typename ResultPixelType>
 iAITKIO::ImagePointer rescaleImageTo(iAITKIO::ImagePointer img, double min, double max)
 {
 	// can I retrieve number of dimensions somehow? otherwise assume 3 fixed?
-	switch (itkScalarPixelType(img))
+	switch (itkScalarType(img))
 	{
-	case itk::ImageIOBase::UCHAR:
+	case iAITKIO::ScalarType::UCHAR:
 		return internalRescaleImageTo<itk::Image<unsigned char, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
-	case itk::ImageIOBase::CHAR:
+	case iAITKIO::ScalarType::CHAR:
 		return internalRescaleImageTo<itk::Image<char, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
-	case itk::ImageIOBase::SHORT:
+	case iAITKIO::ScalarType::SHORT:
 		return internalRescaleImageTo<itk::Image<short, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
-	case itk::ImageIOBase::USHORT:
+	case iAITKIO::ScalarType::USHORT:
 		return internalRescaleImageTo<itk::Image<unsigned short, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
-	case itk::ImageIOBase::INT:
+	case iAITKIO::ScalarType::INT:
 		return internalRescaleImageTo<itk::Image<int, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
-	case itk::ImageIOBase::UINT:
+	case iAITKIO::ScalarType::UINT:
 		return internalRescaleImageTo<itk::Image<unsigned int, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
-	case itk::ImageIOBase::LONG:
+	case iAITKIO::ScalarType::LONG:
 		return internalRescaleImageTo<itk::Image<long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
-	case itk::ImageIOBase::ULONG:
+	case iAITKIO::ScalarType::ULONG:
 		return internalRescaleImageTo<itk::Image<unsigned long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
-	case itk::ImageIOBase::LONGLONG:
+	case iAITKIO::ScalarType::LONGLONG:
 		return internalRescaleImageTo<itk::Image<long long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
-	case itk::ImageIOBase::ULONGLONG:
+	case iAITKIO::ScalarType::ULONGLONG:
 		return internalRescaleImageTo<itk::Image<unsigned long long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
-	case itk::ImageIOBase::FLOAT:
+	case iAITKIO::ScalarType::FLOAT:
 		return internalRescaleImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	default:
 		LOG(lvlError, "Invalid/Unknown itk pixel datatype in rescale!");
@@ -278,7 +278,7 @@ iAITKIO::ImagePointer rescaleImageTo(iAITKIO::ImagePointer img, double min, doub
 		[[fallthrough]];
 #endif
 		// fall through
-	case itk::ImageIOBase::DOUBLE:
+	case iAITKIO::ScalarType::DOUBLE:
 		return internalRescaleImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	}
 }

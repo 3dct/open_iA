@@ -625,7 +625,7 @@ QString writeScaledImage(QString const& filename, QString const & suffix,
 	outputFileName.append(suffix);
 	iAConnector outCon;
 	outCon.setImage(outImg);
-	iAITKIO::writeFile(outputFileName, outCon.itkImage(), outCon.itkScalarPixelType());
+	iAITKIO::writeFile(outputFileName, outCon.itkImage(), outCon.itkScalarType());
 	return outputFileName;
 }
 
@@ -633,8 +633,10 @@ QString dlg_datatypeconversion::convert( QString const & filename,
 	int outdatatype, double minrange,
 	double maxrange, double minout, double maxout)
 {
-	iAITKIO::ScalarPixelType pixType;
-	auto inImg = iAITKIO::readFile(filename, pixType, true);
+	iAITKIO::PixelType pixelType;
+	iAITKIO::ScalarType scalarType;
+	auto inImg = iAITKIO::readFile(filename, pixelType, scalarType, true);
+	assert(pixelType == iAITKIO::PixelType::SCALAR);
 	iAConnector con;
 	con.setImage(inImg);
 	return writeScaledImage(filename, "-DT.mhd", con.vtkImage(), outdatatype, minrange, maxrange, minout, maxout);

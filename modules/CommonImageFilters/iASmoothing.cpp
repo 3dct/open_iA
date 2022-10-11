@@ -72,7 +72,7 @@ template<class T> void medianFilter(iAFilter* filter, QVariantMap const & params
 
 void iAMedianFilter::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(medianFilter, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(medianFilter, inputScalarType(), this, parameters);
 }
 
 iAMedianFilter::iAMedianFilter() :
@@ -132,7 +132,7 @@ void recursiveGaussian(iAFilter* filter, QVariantMap const & params)
 
 void iARecursiveGaussian::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(recursiveGaussian, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(recursiveGaussian, inputScalarType(), this, parameters);
 }
 
 iARecursiveGaussian::iARecursiveGaussian() :
@@ -175,7 +175,7 @@ void discreteGaussian(iAFilter* filter, QVariantMap const & params)
 
 void iADiscreteGaussian::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(discreteGaussian, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(discreteGaussian, inputScalarType(), this, parameters);
 }
 
 iADiscreteGaussian::iADiscreteGaussian() :
@@ -213,7 +213,7 @@ void patchBasedDenoising(iAFilter* filter, QVariantMap const & params, itk::Proc
 
 void iANonLocalMeans::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(patchBasedDenoising, inputPixelType(), this, parameters, m_itkProcess);
+	ITK_TYPED_CALL(patchBasedDenoising, inputScalarType(), this, parameters, m_itkProcess);
 }
 
 void iANonLocalMeans::abort()
@@ -285,7 +285,7 @@ void gradientAnisotropicDiffusion(iAFilter* filter, QVariantMap const & params)
 
 void iAGradientAnisotropicDiffusion::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(gradientAnisotropicDiffusion, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(gradientAnisotropicDiffusion, inputScalarType(), this, parameters);
 }
 
 iAGradientAnisotropicDiffusion::iAGradientAnisotropicDiffusion() :
@@ -338,7 +338,7 @@ void GPU_gradient_anisotropic_diffusion(iAFilter* filter, QVariantMap const & pa
 
 void iAGPUEdgePreservingSmoothing::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(GPU_gradient_anisotropic_diffusion, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(GPU_gradient_anisotropic_diffusion, inputScalarType(), this, parameters);
 }
 
 iAGPUEdgePreservingSmoothing::iAGPUEdgePreservingSmoothing() :
@@ -382,7 +382,7 @@ void curvatureAnisotropicDiffusion(iAFilter* filter, QVariantMap const& params)
 
 void iACurvatureAnisotropicDiffusion::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(curvatureAnisotropicDiffusion, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(curvatureAnisotropicDiffusion, inputScalarType(), this, parameters);
 }
 
 iACurvatureAnisotropicDiffusion::iACurvatureAnisotropicDiffusion() :
@@ -425,7 +425,7 @@ void curvatureFlow(iAFilter* filter, QVariantMap const & params)
 
 void iACurvatureFlow::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(curvatureFlow, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(curvatureFlow, inputScalarType(), this, parameters);
 }
 
 iACurvatureFlow::iACurvatureFlow() :
@@ -467,7 +467,7 @@ void bilateralFilter(iAFilter* filter, QVariantMap const & params)
 
 void iABilateral::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(bilateralFilter, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(bilateralFilter, inputScalarType(), this, parameters);
 }
 
 iABilateral::iABilateral() :

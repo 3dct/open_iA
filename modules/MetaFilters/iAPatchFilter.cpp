@@ -147,7 +147,7 @@ namespace
 		{
 			while (outputImages.size() < filter->outputValueNames().size())
 			{
-				outputImages.push_back(allocateImage(blockCount, outputSpacing, itk::ImageIOBase::DOUBLE));
+				outputImages.push_back(allocateImage(blockCount, outputSpacing, iAITKIO::ScalarType::DOUBLE));
 				outputNames << filter->outputValueNames()[outputImages.size() - 1];
 			}
 		}
@@ -345,5 +345,5 @@ iAPatchFilter::iAPatchFilter():
 
 void iAPatchFilter::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(patch, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(patch, inputScalarType(), this, parameters);
 }

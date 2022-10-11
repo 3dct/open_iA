@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #include "iARawFileIO.h"
 
-#include "defines.h"       // for DIM
 #include "iAFileUtils.h"   // for getLocalEncodingFileName
+#include "iAITKIO.h"       // for iAITKIO::Dim
 #include "iAProgress.h"
 #include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType, readableDataTypes, ...
 #include "iAValueTypeVectorHelpers.h"
@@ -77,10 +77,10 @@ iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volu
 template <class T>
 void readRawImage(QVariantMap const& params, QString const& fileName, iAConnector& image, iAProgress const& progress)
 {
-	auto io = itk::RawImageIO<T, DIM>::New();
+	auto io = itk::RawImageIO<T, iAITKIO::Dim>::New();
 	io->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	io->SetHeaderSize(params[iARawFileIO::HeadersizeStr].toInt());
-	for (int i = 0; i < DIM; i++)
+	for (int i = 0; i < iAITKIO::Dim; i++)
 	{
 		io->SetDimensions(i, params[iARawFileIO::SizeStr].value<QVector<int>>()[i]);
 		io->SetSpacing(i, params[iARawFileIO::SpacingStr].value<QVector<double>>()[i]);
@@ -94,7 +94,7 @@ void readRawImage(QVariantMap const& params, QString const& fileName, iAConnecto
 	{
 		io->SetByteOrderToBigEndian();
 	}
-	auto reader = itk::ImageFileReader<itk::Image<T, DIM>>::New();
+	auto reader = itk::ImageFileReader<itk::Image<T, iAITKIO::Dim>>::New();
 	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	reader->SetImageIO(io);
 	progress.observe(reader);
@@ -155,9 +155,9 @@ void writeRawImage(QString const& fileName, vtkImageData* img, QVariantMap param
 {
 	iAConnector con;
 	con.setImage(img);
-	using InputImageType = itk::Image<T, DIM>;
+	using InputImageType = itk::Image<T, iAITKIO::Dim>;
 	auto writer = itk::ImageFileWriter<InputImageType>::New();
-	auto io = itk::RawImageIO<T, DIM>::New();
+	auto io = itk::RawImageIO<T, iAITKIO::Dim>::New();
 	io->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	//io->SetHeaderSize(0);
 	//for (int i = 0; i < DIM; i++)

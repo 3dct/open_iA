@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iAMetaFileIO.h"
 
-#include "defines.h"
 #include "iADataSet.h"
 #include "iAFileUtils.h"
 #include "iAProgress.h"

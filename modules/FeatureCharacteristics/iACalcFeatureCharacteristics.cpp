@@ -340,7 +340,7 @@ iACalcFeatureCharacteristics::iACalcFeatureCharacteristics():
 void iACalcFeatureCharacteristics::performWork(QVariantMap const & parameters)
 {
 	QString pathCSV = parameters["Output CSV filename"].toString();
-	ITK_TYPED_CALL(calcFeatureCharacteristics, inputPixelType(), imageInput(0)->itkImage(), progress(), pathCSV,
+	ITK_TYPED_CALL(calcFeatureCharacteristics, inputScalarType(), imageInput(0)->itkImage(), progress(), pathCSV,
 		parameters["Calculate Feret Diameter"].toBool(), parameters["Calculate advanced void parameters"].toBool(), parameters["Calculate roundness"].toBool());
 	addMsg(QString("Feature csv file created in: %1").arg(pathCSV));
 }

@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #include "iAPreviewMaker.h"
 
-#include <iALog.h>
 #include <iAFileUtils.h>
+#include <iALog.h>
+#include <iAITKIO.h>
 
 #include <itkImage.h>
 #include <itkImageFileReader.h>
@@ -31,8 +32,6 @@
 
 void iAPreviewMaker::makeUsingType( QString fileName, QString thumbFileName )
 {
-	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
-
 	itk::ImageIOBase::Pointer imageIO;
 	imageIO = itk::ImageIOFactory::CreateImageIO( getLocalEncodingFileName(fileName).c_str( ), itk::ImageIOFactory::ReadMode );
 	if( !imageIO )
@@ -43,16 +42,16 @@ void iAPreviewMaker::makeUsingType( QString fileName, QString thumbFileName )
 	imageIO->SetFileName( getLocalEncodingFileName(fileName) );
 	imageIO->ReadImageInformation( );
 
-	const ScalarPixelType pixelType = imageIO->GetComponentType( );
+	auto pixelType = imageIO->GetComponentType( );
 	switch( pixelType )
 	{
-	case itk::ImageIOBase::USHORT:
+	case iAITKIO::ScalarType::USHORT:
 	{
 		typedef unsigned short PixelType;
 		makeUsingType<PixelType>( fileName, thumbFileName );
 		break;
 	}
-	case itk::ImageIOBase::ULONG:
+	case iAITKIO::ScalarType::ULONG:
 	{
 		typedef unsigned long int PixelType;
 		makeUsingType<PixelType>( fileName, thumbFileName );

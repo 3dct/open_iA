@@ -24,11 +24,10 @@
 
 #include <iADataSet.h>
 #include <iAProgress.h>
-#include <iAToolsITK.h>    // for itkScalarPixelType
+#include <iAToolsITK.h>    // for itkScalarType
 
 #include <itkCastImageFilter.h>
 #include <itkGradientMagnitudeImageFilter.h>
-#include <itkImageIOBase.h>
 #include <itkWatershedImageFilter.h>
 
 #include <vtkImageData.h>
@@ -68,7 +67,7 @@ std::shared_ptr<iADataSet> iAFoamCharacterizationItemWatershed::execute(std::sha
 	QElapsedTimer t;
 	t.start();
 	auto itkImg = dynamic_cast<iAImageData*>(dataSet.get())->itkImage();
-	auto result = (itkScalarPixelType(itkImg)  == itk::ImageIOBase::FLOAT) ?
+	auto result = (itkScalarType(itkImg)  == iAITKIO::ScalarType::FLOAT) ?
 		executeFloat(itkImg) : executeUnsignedShort(itkImg);
 
 	if (m_iItemMask > -1)

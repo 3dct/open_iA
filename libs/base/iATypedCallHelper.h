@@ -48,40 +48,40 @@
 {                                                           \
 	switch (itk_scalar_type)                                \
 	{                                                       \
-	case itk::ImageIOBase::UCHAR:                           \
+	case iAITKIO::ScalarType::UCHAR:                           \
 		function<unsigned char>(__VA_ARGS__);               \
 		break;                                              \
-	case itk::ImageIOBase::CHAR:                            \
+	case iAITKIO::ScalarType::CHAR:                            \
 		function<char>(__VA_ARGS__);                        \
 		break;                                              \
-	case itk::ImageIOBase::SHORT:                           \
+	case iAITKIO::ScalarType::SHORT:                           \
 		function<short>(__VA_ARGS__);                       \
 		break;                                              \
-	case itk::ImageIOBase::USHORT:                          \
+	case iAITKIO::ScalarType::USHORT:                          \
 		function<unsigned short>(__VA_ARGS__);              \
 		break;                                              \
-	case itk::ImageIOBase::INT:                             \
+	case iAITKIO::ScalarType::INT:                             \
 		function<int>(__VA_ARGS__);                         \
 		break;                                              \
-	case itk::ImageIOBase::UINT:                            \
+	case iAITKIO::ScalarType::UINT:                            \
 		function<unsigned int>(__VA_ARGS__);                \
 		break;                                              \
-	case itk::ImageIOBase::LONG:                            \
+	case iAITKIO::ScalarType::LONG:                            \
 		function<long>(__VA_ARGS__);                        \
 		break;                                              \
-	case itk::ImageIOBase::ULONG:                           \
+	case iAITKIO::ScalarType::ULONG:                           \
 		function<unsigned long>(__VA_ARGS__);               \
 		break;                                              \
-	case itk::ImageIOBase::LONGLONG:                        \
+	case iAITKIO::ScalarType::LONGLONG:                        \
 		function<long long>(__VA_ARGS__);                   \
 		break;                                              \
-	case itk::ImageIOBase::ULONGLONG:                       \
+	case iAITKIO::ScalarType::ULONGLONG:                       \
 		function<unsigned long long>(__VA_ARGS__);          \
 		break;                                              \
-	case itk::ImageIOBase::FLOAT:                           \
+	case iAITKIO::ScalarType::FLOAT:                           \
 		function<float>(__VA_ARGS__);                       \
 		break;                                              \
-	case itk::ImageIOBase::DOUBLE:                          \
+	case iAITKIO::ScalarType::DOUBLE:                          \
 		function<double>(__VA_ARGS__);                      \
 		break;                                              \
 	default:                                                \

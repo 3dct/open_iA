@@ -85,16 +85,16 @@ iASegmentationMetrics::iASegmentationMetrics() :
 
 void iASegmentationMetrics::performWork(QVariantMap const & /*parameters*/)
 {
-	switch (inputPixelType())
+	switch (inputScalarType())
 	{	// only int types, so ITK_TYPED_CALL won't work
-	case itk::ImageIOBase::UCHAR: CalculateSegmentationMetrics<unsigned char> (this); break;
-	case itk::ImageIOBase::CHAR:  CalculateSegmentationMetrics<char>          (this); break;
-	case itk::ImageIOBase::SHORT: CalculateSegmentationMetrics<short>         (this); break;
-	case itk::ImageIOBase::USHORT:CalculateSegmentationMetrics<unsigned short>(this); break;
-	case itk::ImageIOBase::INT:   CalculateSegmentationMetrics<int>           (this); break;
-	case itk::ImageIOBase::UINT:  CalculateSegmentationMetrics<unsigned int>  (this); break;
-	case itk::ImageIOBase::LONG:  CalculateSegmentationMetrics<long>          (this); break;
-	case itk::ImageIOBase::ULONG: CalculateSegmentationMetrics<unsigned long> (this); break;
+	case iAITKIO::ScalarType::UCHAR: CalculateSegmentationMetrics<unsigned char> (this); break;
+	case iAITKIO::ScalarType::CHAR:  CalculateSegmentationMetrics<char>          (this); break;
+	case iAITKIO::ScalarType::SHORT: CalculateSegmentationMetrics<short>         (this); break;
+	case iAITKIO::ScalarType::USHORT:CalculateSegmentationMetrics<unsigned short>(this); break;
+	case iAITKIO::ScalarType::INT:   CalculateSegmentationMetrics<int>           (this); break;
+	case iAITKIO::ScalarType::UINT:  CalculateSegmentationMetrics<unsigned int>  (this); break;
+	case iAITKIO::ScalarType::LONG:  CalculateSegmentationMetrics<long>          (this); break;
+	case iAITKIO::ScalarType::ULONG: CalculateSegmentationMetrics<unsigned long> (this); break;
 	default:
 		throw itk::ExceptionObject(__FILE__, __LINE__,
 			"Segmentation Metrics: Only Integer image types are allowed as input!");

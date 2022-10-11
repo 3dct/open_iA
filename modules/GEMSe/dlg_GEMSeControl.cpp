@@ -605,9 +605,11 @@ bool dlg_GEMSeControl::loadRefImg(QString const & refImgName)
 {
 	try
 	{
-		iAITKIO::ScalarPixelType pixelType;
-		auto img = iAITKIO::readFile(refImgName, pixelType, false);
-		if (pixelType != itk::ImageIOBase::INT)
+		iAITKIO::PixelType pixelType;
+		iAITKIO::ScalarType scalarType;
+		auto img = iAITKIO::readFile(refImgName, pixelType, scalarType, false);
+		assert(pixelType == iAITKIO::PixelType::SCALAR);
+		if (scalarType != iAITKIO::ScalarType::INT)
 		{
 			img = castImageTo<int>(img);
 		}

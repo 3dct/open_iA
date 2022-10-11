@@ -233,8 +233,8 @@ iASVMImageFilter::iASVMImageFilter() :
 
 template<class T> void kmeansclustering(iAFilter* filter, QVariantMap const & parameters)
 {
-	typedef itk::Image<T, DIM> ImageType;
-	typedef itk::Image<int, DIM> IntImageType;
+	typedef itk::Image<T, iAITKIO::Dim> ImageType;
+	typedef itk::Image<int, iAITKIO::Dim> IntImageType;
 
 	typedef itk::ScalarImageKmeansImageFilter<ImageType, IntImageType> KMeansFilterType;
 	auto kmeansFilter = KMeansFilterType::New();
@@ -252,7 +252,7 @@ template<class T> void kmeansclustering(iAFilter* filter, QVariantMap const & pa
 
 void iAKMeans::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(kmeansclustering, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(kmeansclustering, inputScalarType(), this, parameters);
 }
 
 iAKMeans::iAKMeans() :

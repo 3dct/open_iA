@@ -214,11 +214,11 @@ namespace
 			size_t numBytes = H5Tget_size(type_id);
 			H5T_order_t order = H5Tget_order(type_id);
 			H5T_sign_t sign = H5Tget_sign(type_id);
-			vtkType = GetNumericVTKTypeFromHDF5Type(hdf5Type, numBytes, sign);
+			vtkType = hdf5GetNumericVTKTypeFromHDF5Type(hdf5Type, numBytes, sign);
 			H5Tclose(type_id);
 			caption = QString("Dataset: %1; type=%2 (%3 bytes, order %4, %5); rank=%6; ")
 				.arg(name)
-				.arg(MapHDF5TypeToString(hdf5Type))
+				.arg(hdf5MapTypeToString(hdf5Type))
 				.arg(numBytes)
 				.arg((order == H5T_ORDER_LE) ? "LE" : "BE")
 				.arg((sign == H5T_SGN_NONE) ? "unsigned" : "signed")
@@ -287,9 +287,14 @@ class iAHDF5FileParamDlg : public iAFileParamDlg
 		hid_t file_id = H5Fopen(getLocalEncodingFileName(fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
 		if (file_id < 0)
 		{
-			printHDF5ErrorsToConsole();
+			hdf5PrintErrorsToConsole();
 			LOG(lvlError, "H5open returned value < 0!");
 			return false;
+		}
+		if (hdf5IsITKImage(file_id))
+		{
+			H5Fclose(file_id);
+			return true;
 		}
 
 		QStandardItemModel* model = new QStandardItemModel();

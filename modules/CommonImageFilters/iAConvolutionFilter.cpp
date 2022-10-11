@@ -46,7 +46,7 @@ template<class T> void convolution(iAFilter* filter)
 	using ImageType = itk::Image<T, DIM>;
 	using ConvFilterType = itk::ConvolutionImageFilter<ImageType, FloatImageType, FloatImageType>;
 
-	if (itkScalarPixelType(filter->imageInput(1)->itkImage()) != itk::ImageIOBase::FLOAT)
+	if (itkScalarType(filter->imageInput(1)->itkImage()) != iAITKIO::ScalarType::FLOAT)
 	{
 		LOG(lvlWarn, "Kernel Image should be of float type; it will be typecast!");
 	}
@@ -61,7 +61,7 @@ template<class T> void convolution(iAFilter* filter)
 
 void iAConvolution::performWork(QVariantMap const & /*parameters*/)
 {
-	ITK_TYPED_CALL(convolution, inputPixelType(), this);
+	ITK_TYPED_CALL(convolution, inputScalarType(), this);
 }
 
 iAConvolution::iAConvolution() :
@@ -83,7 +83,7 @@ template<class T> void fft_convolution(iAFilter* filter)
 {
 	using ImageType = itk::Image<T, DIM>;
 	using ConvFilterType = itk::FFTConvolutionImageFilter<ImageType, FloatImageType, FloatImageType>;
-	if (itkScalarPixelType(filter->imageInput(1)->itkImage()) != itk::ImageIOBase::FLOAT)
+	if (itkScalarType(filter->imageInput(1)->itkImage()) != iAITKIO::ScalarType::FLOAT)
 	{
 		LOG(lvlWarn, "Kernel Image should be of float type; it will be typecast!");
 	}
@@ -99,7 +99,7 @@ template<class T> void fft_convolution(iAFilter* filter)
 
 void iAFFTConvolution::performWork(QVariantMap const & /*parameters*/)
 {
-	ITK_TYPED_CALL(fft_convolution, inputPixelType(), this);
+	ITK_TYPED_CALL(fft_convolution, inputScalarType(), this);
 }
 
 iAFFTConvolution::iAFFTConvolution() :
@@ -121,7 +121,7 @@ template<class T> void correlation(iAFilter* filter)
 	using ImageType = itk::Image<T, DIM>;
 	using CorrelationFilterType = itk::NormalizedCorrelationImageFilter<ImageType, FloatImageType, FloatImageType>;
 
-	if (itkScalarPixelType(filter->imageInput(1)->itkImage()) != itk::ImageIOBase::FLOAT)
+	if (itkScalarType(filter->imageInput(1)->itkImage()) != iAITKIO::ScalarType::FLOAT)
 	{
 		LOG(lvlWarn, "Kernel Image should be of float type; it will be typecast!");
 	}
@@ -147,7 +147,7 @@ template<class T> void correlation(iAFilter* filter)
 
 void iACorrelation::performWork(QVariantMap const & /*parameters*/)
 {
-	ITK_TYPED_CALL(correlation, inputPixelType(), this);
+	ITK_TYPED_CALL(correlation, inputScalarType(), this);
 }
 
 iACorrelation::iACorrelation() :
@@ -170,7 +170,7 @@ template<class T> void fft_correlation(iAFilter* filter)
 	using CorrelationFilterType = itk::FFTNormalizedCorrelationImageFilter<FloatImageType, FloatImageType>;
 
 	auto inImg = castImageTo<float>(filter->imageInput(0)->itkImage());
-	if (itkScalarPixelType(filter->imageInput(1)->itkImage()) != itk::ImageIOBase::FLOAT)
+	if (itkScalarType(filter->imageInput(1)->itkImage()) != iAITKIO::ScalarType::FLOAT)
 	{
 		LOG(lvlWarn, "Template Image should be of float type; it will be typecast!");
 	}
@@ -188,7 +188,7 @@ template<class T> void fft_correlation(iAFilter* filter)
 
 void iAFFTCorrelation::performWork(QVariantMap const & /*parameters*/)
 {
-	ITK_TYPED_CALL(fft_correlation, inputPixelType(), this);
+	ITK_TYPED_CALL(fft_correlation, inputScalarType(), this);
 }
 
 iAFFTCorrelation::iAFFTCorrelation() :
@@ -212,7 +212,7 @@ template<class T> void streamed_fft_correlation(iAFilter* filter)
 	using CorrelationFilterType = itk::FFTNormalizedCorrelationImageFilter<FloatImageType, FloatImageType>;
 	//using CorrelationFilterType = itk::NormalizedCorrelationImageFilter<FloatImageType, FloatImageType, FloatImageType>;
 
-	if (itkScalarPixelType(filter->imageInput(1)->itkImage()) != itk::ImageIOBase::FLOAT)
+	if (itkScalarType(filter->imageInput(1)->itkImage()) != iAITKIO::ScalarType::FLOAT)
 	{
 		LOG(lvlWarn, "Template Image should be of float type; it will be typecast!");
 	}
@@ -240,7 +240,7 @@ template<class T> void streamed_fft_correlation(iAFilter* filter)
 
 void iAStreamedFFTCorrelation::performWork(QVariantMap const & /*parameters*/)
 {
-	ITK_TYPED_CALL(streamed_fft_correlation, inputPixelType(), this);
+	ITK_TYPED_CALL(streamed_fft_correlation, inputScalarType(), this);
 }
 
 iAStreamedFFTCorrelation::iAStreamedFFTCorrelation() :

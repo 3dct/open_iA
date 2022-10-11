@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #include "iAPCA.h"
 
-#include <defines.h>    // for DIM
 #include <iADataSet.h>
+#include <iAITKIO.h>
 #include <iATypedCallHelper.h>
 
 #include <itkImage.h>
@@ -49,7 +49,7 @@ iAPCA::iAPCA() :
 template <typename PixelType>
 void pca(iAFilter* filter, QVariantMap const & parameters)
 {
-	typedef itk::Image<PixelType, DIM> ImageType;
+	typedef itk::Image<PixelType, iAITKIO::Dim> ImageType;
 	typedef itk::MultiplyImageFilter<ImageType, ImageType, ImageType> ScaleType;
 	typedef itk::ImagePCAShapeModelEstimator<ImageType, ImageType>  EstimatorType;
 
@@ -77,5 +77,5 @@ void pca(iAFilter* filter, QVariantMap const & parameters)
 
 void iAPCA::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(pca, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(pca, inputScalarType(), this, parameters);
 }

@@ -41,12 +41,14 @@ public:
 
 	iAHDF5IO();
 	std::vector<std::shared_ptr<iADataSet>> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress) override;
+	void saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets, QVariantMap const& paramValues, iAProgress const& progress) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };
 
-iAio_API QString MapHDF5TypeToString(H5T_class_t hdf5Type);
-iAio_API int GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign);
-iAio_API void printHDF5ErrorsToConsole();
+iAio_API QString hdf5MapTypeToString(H5T_class_t hdf5Type);
+iAio_API int hdf5GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign);
+iAio_API void hdf5PrintErrorsToConsole();
+iAio_API bool hdf5IsITKImage(hid_t file_id);
 
 #endif

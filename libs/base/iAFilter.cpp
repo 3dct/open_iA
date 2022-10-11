@@ -35,7 +35,7 @@
 namespace
 {
 
-	itk::ImageIOBase::IOComponentType mapVTKtoITKPixelType(int vtkType)
+	iAITKIO::ScalarType mapVTKtoITKPixelType(int vtkType)
 	{
 		switch (vtkType)
 		{
@@ -50,18 +50,18 @@ namespace
 			[[fallthrough]];
 #endif
 			// fall through
-		case VTK_SIGNED_CHAR       : return itk::ImageIOBase::CHAR;
-		case VTK_UNSIGNED_CHAR     : return itk::ImageIOBase::UCHAR;
-		case VTK_SHORT             : return itk::ImageIOBase::SHORT;
-		case VTK_UNSIGNED_SHORT    : return itk::ImageIOBase::USHORT;
-		case VTK_INT               : return itk::ImageIOBase::INT;
-		case VTK_UNSIGNED_INT      : return itk::ImageIOBase::UINT;
-		case VTK_LONG              : return itk::ImageIOBase::LONG;
-		case VTK_UNSIGNED_LONG     : return itk::ImageIOBase::ULONG;
-		case VTK_LONG_LONG         : return itk::ImageIOBase::LONGLONG;
-		case VTK_UNSIGNED_LONG_LONG: return itk::ImageIOBase::ULONGLONG;
-		case VTK_FLOAT             : return itk::ImageIOBase::FLOAT;
-		case VTK_DOUBLE            : return itk::ImageIOBase::DOUBLE;
+		case VTK_SIGNED_CHAR       : return iAITKIO::ScalarType::CHAR;
+		case VTK_UNSIGNED_CHAR     : return iAITKIO::ScalarType::UCHAR;
+		case VTK_SHORT             : return iAITKIO::ScalarType::SHORT;
+		case VTK_UNSIGNED_SHORT    : return iAITKIO::ScalarType::USHORT;
+		case VTK_INT               : return iAITKIO::ScalarType::INT;
+		case VTK_UNSIGNED_INT      : return iAITKIO::ScalarType::UINT;
+		case VTK_LONG              : return iAITKIO::ScalarType::LONG;
+		case VTK_UNSIGNED_LONG     : return iAITKIO::ScalarType::ULONG;
+		case VTK_LONG_LONG         : return iAITKIO::ScalarType::LONGLONG;
+		case VTK_UNSIGNED_LONG_LONG: return iAITKIO::ScalarType::ULONGLONG;
+		case VTK_FLOAT             : return iAITKIO::ScalarType::FLOAT;
+		case VTK_DOUBLE            : return iAITKIO::ScalarType::DOUBLE;
 		}
 	}
 }
@@ -218,10 +218,9 @@ size_t iAFilter::inputCount() const
 	return m_input.size();
 }
 
-itk::ImageIOBase::IOComponentType iAFilter::inputPixelType() const
+iAITKIO::ScalarType iAFilter::inputScalarType() const
 {
 	return mapVTKtoITKPixelType(imageInput(0)->vtkImage()->GetScalarType());
-		//m_input[0]->itkScalarPixelType();
 }
 
 void iAFilter::setLogger(iALogger* log)

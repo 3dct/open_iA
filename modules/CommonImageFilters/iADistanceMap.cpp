@@ -62,7 +62,7 @@ void signed_maurer_distancemap(iAFilter* filter, QVariantMap const & parameters)
 
 void iASignedMaurerDistanceMap::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(signed_maurer_distancemap, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(signed_maurer_distancemap, inputScalarType(), this, parameters);
 }
 
 iASignedMaurerDistanceMap::iASignedMaurerDistanceMap() :
@@ -115,7 +115,7 @@ void danielsson_distancemap(iAFilter* filter, QVariantMap const & parameters)
 
 void iADanielssonDistanceMap::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(danielsson_distancemap, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(danielsson_distancemap, inputScalarType(), this, parameters);
 }
 
 iADanielssonDistanceMap::iADanielssonDistanceMap() :

@@ -33,7 +33,6 @@
 #include "vtkRenderedGraphRepresentation.h"
 #include "vtkGraphLayoutStrategy.h"
 #include "vtkSmartPointer.h"
-#include "vtkCommand.h"
 
 #include <cmath>
 

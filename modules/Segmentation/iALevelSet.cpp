@@ -72,7 +72,7 @@ iALaplacianSegmentationLevelSet::iALaplacianSegmentationLevelSet() :
 
 void iALaplacianSegmentationLevelSet::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(laplacianSegmentationLevelSet, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(laplacianSegmentationLevelSet, inputScalarType(), this, parameters);
 }
 
 
@@ -120,7 +120,7 @@ iACannySegmentationLevelSet::iACannySegmentationLevelSet() :
 
 void iACannySegmentationLevelSet::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(cannySegmentationLevelSet, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(cannySegmentationLevelSet, inputScalarType(), this, parameters);
 }
 
 
@@ -153,5 +153,5 @@ iAZeroCrossing::iAZeroCrossing() :
 
 void iAZeroCrossing::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(zeroCrossing, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(zeroCrossing, inputScalarType(), this, parameters);
 }

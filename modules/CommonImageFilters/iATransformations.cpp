@@ -80,7 +80,7 @@ template<class TPixelType> void flip(iAFilter* filter, QString const & axis)
 
 void iAFlipAxis::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(flip, inputPixelType(), this, parameters["Flip axis"].toString());
+	ITK_TYPED_CALL(flip, inputScalarType(), this, parameters["Flip axis"].toString());
 }
 
 iAFlipAxis::iAFlipAxis() :
@@ -141,7 +141,7 @@ void permute(iAFilter* filter, QString const& orderStr)
 
 void iAPermuteAxes::performWork(QVariantMap const& parameters)
 {
-	ITK_TYPED_CALL(permute, inputPixelType(), this, parameters["Order"].toString());
+	ITK_TYPED_CALL(permute, inputScalarType(), this, parameters["Order"].toString());
 }
 
 iAPermuteAxes::iAPermuteAxes() :
@@ -210,7 +210,7 @@ static void rotate(iAFilter* filter, QVariantMap const & parameters)
 
 void iARotate::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(rotate, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(rotate, inputScalarType(), this, parameters);
 }
 
 iARotate::iARotate() :
@@ -249,7 +249,7 @@ static void translate(iAFilter* filter, QVariantMap const & parameters)
 
 void iATranslate::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(translate, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(translate, inputScalarType(), this, parameters);
 }
 
 iATranslate::iATranslate() :

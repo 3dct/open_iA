@@ -138,11 +138,11 @@ void iACastImageFilter::performWork(QVariantMap const & parameters)
 {
 	if (parameters["Rescale Range"].toBool())
 	{
-		ITK_TYPED_CALL(dataTypeConversion, inputPixelType(), this, parameters);
+		ITK_TYPED_CALL(dataTypeConversion, inputScalarType(), this, parameters);
 	}
 	else
 	{
-		ITK_TYPED_CALL(castImage, inputPixelType(), this,
+		ITK_TYPED_CALL(castImage, inputScalarType(), this,
 			mapReadableDataTypeToVTKType(parameters["Data Type"].toString()));
 	}
 }
@@ -180,8 +180,10 @@ template<class T>
 void convertToRGB(iAFilter * filter, QVariantMap const & params)
 {
 	iAITKIO::ImagePointer input = filter->imageInput(0)->itkImage();
-	if (filter->inputPixelType() != itk::ImageIOBase::ULONG)
+	if (filter->inputScalarType() != iAITKIO::ScalarType::ULONG)
+	{
 		input = castImageTo<unsigned long>(input);
+	}
 
 	typedef itk::Image< unsigned long, DIM > LongImageType;
 	typedef itk::RGBPixel< unsigned char > RGBPixelType;
@@ -267,5 +269,5 @@ iAConvertToRGBAFilter::iAConvertToRGBAFilter() :
 
 void iAConvertToRGBAFilter::performWork(QVariantMap const & params)
 {
-	ITK_TYPED_CALL(convertToRGB, inputPixelType(), this, params);
+	ITK_TYPED_CALL(convertToRGB, inputScalarType(), this, params);
 }

@@ -22,8 +22,7 @@
 
 #include "iAbase_export.h"
 
-#include <itkImageBase.h>
-#include <itkImageIOBase.h>
+#include "iAITKIO.h"
 
 #include <vtkImageExport.h>
 #include <vtkImageImport.h>
@@ -35,11 +34,6 @@ class vtkImageData;
 class iAbase_API iAConnector
 {
 public:
-	// Type definitions - unify with iAITKIO definitions, and with defines.h DIM!
-	typedef itk::ImageBase< 3 >					ImageBaseType;
-	typedef ImageBaseType::Pointer				ImagePointer;
-	typedef itk::ImageIOBase::IOComponentType	ITKScalarPixelType;
-	typedef itk::ImageIOBase::IOPixelType		ITKPixelType;
 	typedef itk::ProcessObject::Pointer			ProcessObjectPointer;
 
 	iAConnector();
@@ -47,19 +41,19 @@ public:
 	//! Set the VTK image and make it available as ITK image
 	void setImage(vtkSmartPointer<vtkImageData> image);
 	//! Sets the ITK image and make it available as VTK image
-	void setImage(ImageBaseType* image);
+	void setImage(iAITKIO::ImagePtr image);
 	//! Set the linked ITK/VTK images as modified
 	void modified();
 
 	//! Get the VTK image
 	vtkSmartPointer<vtkImageData> vtkImage() const;
 	//! Get the ITK image
-	ImageBaseType* itkImage() const;
+	iAITKIO::ImagePtr itkImage() const;
 
 	//! Get the data type of a single scalar (double, float, int, ...)
-	ITKScalarPixelType itkScalarPixelType() const;
+	iAITKIO::ScalarType itkScalarType() const;
 	//! Get the type of the pixel (SCALAR or RGBA)
-	ITKPixelType itkPixelType() const;
+	iAITKIO::PixelType itkPixelType() const;
 
 private:
 	//! @{ Update one image using the respective other
@@ -69,11 +63,11 @@ private:
 	void updateScalarType() const;
 	void updatePixelType() const;
 
-	mutable ImagePointer m_ITKImage;                   //!< The pointer for the ITK image
+	mutable iAITKIO::ImagePointer m_ITKImage;          //!< The pointer for the ITK image
 	mutable vtkSmartPointer<vtkImageData> m_VTKImage;  //!< The pointer for the VTK image
-	mutable ITKScalarPixelType m_itkScalarType;//!< cached ITK scalar type
+	mutable iAITKIO::ScalarType m_itkScalarType;//!< cached ITK scalar type
 	mutable bool m_isTypeInitialized;          //!< indication whether cached scalar type (m_itkScalarType) is already initialized
-	mutable ITKPixelType m_itkPixelType;       //!< ITK pixel type (possible values: SCALAR or RGBA)
+	mutable iAITKIO::PixelType m_itkPixelType; //!< ITK pixel type (possible values: SCALAR or RGBA)
 	mutable bool m_isPixelTypeInitialized;     //!< indication whether cached pixel type (m_itkPixelType) is already initialized
 
 	//! @{ ITK/VTK export/import filters:

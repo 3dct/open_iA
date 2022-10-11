@@ -265,7 +265,7 @@ void derivative(iAFilter* filter, QVariantMap const & params)
 
 void iAElastixRegistration::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(derivative, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(derivative, inputScalarType(), this, parameters);
 }
 
 iAElastixRegistration::iAElastixRegistration() :

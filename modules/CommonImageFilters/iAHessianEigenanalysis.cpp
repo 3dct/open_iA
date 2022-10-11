@@ -137,7 +137,7 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QVariantMap const 
 
 void iAHessianEigenanalysis::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(hessianEigenAnalysis, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(hessianEigenAnalysis, inputScalarType(), this, parameters);
 }
 
 iAHessianEigenanalysis::iAHessianEigenanalysis() :
@@ -172,7 +172,7 @@ template<class T> void Laplacian(iAFilter* filter, QVariantMap const & params)
 
 void iALaplacian::performWork(QVariantMap const & parameters)
 {
-	ITK_TYPED_CALL(Laplacian, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(Laplacian, inputScalarType(), this, parameters);
 }
 
 iALaplacian::iALaplacian() :
