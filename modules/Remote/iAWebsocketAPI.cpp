@@ -185,33 +185,33 @@ void iAWebsocketAPI::sendSuccess(QJsonDocument Request, QWebSocket* pClient)
 
 void iAWebsocketAPI::ComandControls(QJsonDocument Request, QWebSocket* pClient)
 {
-	RemoteAction action2;
+	RemoteAction webAction;
 	auto argList = Request["args"];
 
 	if (argList["action"] == "down")
 	{
-		action2.action = RemoteAction::down;
+		webAction.action = RemoteAction::down;
 	}
 	else
 	{
-		action2.action = RemoteAction::up;
+		webAction.action = RemoteAction::up;
 	}
 
-	action2.altKey = argList["altKey"].toBool();
-	action2.buttonLeft = argList["buttonLeft"].toBool();
-	action2.buttonRight = argList["buttonRight"].toBool();
-	action2.buttonMiddle = argList["buttonMiddle"].toBool();
-	action2.ctrlKey = argList["ctrlKey"].toBool();
-	action2.metaKey = argList["metaKey"].toBool();
-	action2.shiftKey = argList["shiftKey"].toBool();
-	action2.metaKey = argList["metaKey"].toBool();
+	webAction.altKey = argList["altKey"].toBool();
+	webAction.buttonLeft = argList["buttonLeft"].toBool();
+	webAction.buttonRight = argList["buttonRight"].toBool();
+	webAction.buttonMiddle = argList["buttonMiddle"].toBool();
+	webAction.ctrlKey = argList["ctrlKey"].toBool();
+	webAction.metaKey = argList["metaKey"].toBool();
+	webAction.shiftKey = argList["shiftKey"].toBool();
+	webAction.metaKey = argList["metaKey"].toBool();
 
-	action2.viewID = argList["view"].toString();
+	webAction.viewID = argList["view"].toString();
 
-	action2.x = argList["x"].toDouble();
-	action2.y = argList["y"].toDouble();
+	webAction.x = argList["x"].toDouble();
+	webAction.y = argList["y"].toDouble();
 
-	emit controlComand(action2);
+	emit controlComand(webAction);
 
 	sendSuccess(Request, pClient);
 }
