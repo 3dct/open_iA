@@ -11,10 +11,10 @@ void viewHandler::vtkCallbackFunc(vtkObject* caller, long unsigned int evId, voi
 	auto now = QDateTime::currentMSecsSinceEpoch();
 	if ((now - Lastrendered) > 50)
 	{
-		if (now - Lastrendered < 500)
+		if (now - Lastrendered < 250)
 		{
 			timer->stop();
-			timer->start(500);
+			timer->start(250);
 		}
 		createImage(id, quality);
 		Lastrendered = QDateTime::currentMSecsSinceEpoch();

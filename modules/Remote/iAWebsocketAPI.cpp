@@ -21,6 +21,7 @@
 #include "iAWebsocketAPI.h"
 
 #include <iALog.h>
+#include "RemoteAction.h"
 
 #include <QWebSocketServer>
 #include <QWebSocket>
@@ -184,6 +185,34 @@ void iAWebsocketAPI::sendSuccess(QJsonDocument Request, QWebSocket* pClient)
 
 void iAWebsocketAPI::ComandControls(QJsonDocument Request, QWebSocket* pClient)
 {
+	RemoteAction action2;
+	auto argList = Request["args"];
+
+	if (argList["action"] == "down")
+	{
+		action2.action = RemoteAction::down;
+	}
+	else
+	{
+		action2.action = RemoteAction::up;
+	}
+
+	action2.altKey = argList["altKey"].toBool();
+	action2.buttonLeft = argList["buttonLeft"].toBool();
+	action2.buttonRight = argList["buttonRight"].toBool();
+	action2.buttonMiddle = argList["buttonMiddle"].toBool();
+	action2.ctrlKey = argList["ctrlKey"].toBool();
+	action2.metaKey = argList["metaKey"].toBool();
+	action2.shiftKey = argList["shiftKey"].toBool();
+	action2.metaKey = argList["metaKey"].toBool();
+
+	action2.viewID = argList["view"].toString();
+
+	action2.x = argList["x"].toDouble();
+	action2.y = argList["y"].toDouble();
+
+	emit controlComand(action2);
+
 	sendSuccess(Request, pClient);
 }
 

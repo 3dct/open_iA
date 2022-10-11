@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "RemoteAction.h"
+
 #include <QByteArray>
 #include <QList>
 #include <QObject>
@@ -38,6 +40,7 @@ public:
 
 Q_SIGNALS:
 	void closed();
+	void controlComand(RemoteAction const & action);
 
 private Q_SLOTS:
 	void onNewConnection();
