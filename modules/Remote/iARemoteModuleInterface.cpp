@@ -35,12 +35,15 @@
 
 #include <QCoreApplication>
 #include <QFile>
+#include <QString>
 #include <QHttpServer>
 #include <QTextStream>
 
-void addFileToServe(QString path, QString query, QString fileName, QHttpServer* server)
+void addFileToServe(QString path, QString query, QString fileName, QHttpServer* server, QString mimeType)
 {
-	auto routeCreated = server->route(query, [path, fileName]() -> QString  {
+	auto routeCreated = server->route(query,
+		[path, fileName, mimeType](QHttpServerResponder&& responder) -> QString
+		{
 		QFile fileToServe(path + "/" + fileName);
 		if (!fileToServe.open(QFile::ReadOnly | QFile::Text))
 		{
@@ -49,13 +52,21 @@ void addFileToServe(QString path, QString query, QString fileName, QHttpServer* 
 		}
 		QTextStream in(&fileToServe);
 		auto value = in.readAll();
+
+		responder.write(value.toUtf8(), mimeType.toUtf8());
+
+
 		return value;
 	});
+
 	if (!routeCreated)
 	{
 		LOG(lvlError, QString("Error creating server route for file %1").arg(fileName));
 	}
+
 }
+
+
 
 #endif
 
@@ -77,8 +88,12 @@ public:
 
 #ifdef QT_HTTPSERVER
 		QString path = QCoreApplication::applicationDirPath() + "/RemoteClient";
-		addFileToServe(path, "/", "index.html", m_httpServer.get());
-		addFileToServe(path, "/main.js", "main.js", m_httpServer.get());
+		addFileToServe(path, "/", "index.html", m_httpServer.get(), "text/html");
+		addFileToServe(path, "/main.js", "main.js", m_httpServer.get(), "application/javascript");
+		addFileToServe(path, "/bootstrap.min.css", "bootstrap.min.css", m_httpServer.get(), "text/css");
+		addFileToServe(path, "/bootstrap.min.css.map", "bootstrap.min.css.map", m_httpServer.get(), "text/css");
+
+
 		auto port = m_httpServer->listen(QHostAddress::Any, 8080);
 		if (port == 0)
 		{
