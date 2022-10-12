@@ -28,6 +28,7 @@
 vtkSmartPointer<vtkUnsignedCharArray> iAImagegenerator::createImage(vtkRenderWindow* window, int quality)
 {
 	vtkNew<vtkWindowToImageFilter> w2if;
+	w2if->ShouldRerenderOff();
 	w2if->SetInput(window);
 	w2if->Update();
 
