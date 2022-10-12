@@ -108,6 +108,9 @@ public:
 	//! Access slicer for given mode (use iASlicerMode enum for mode values)
 	virtual iASlicer* slicer(int mode) = 0;
 
+	//! Access to 3D renderer widget
+	virtual QWidget* rendererWidget() = 0;
+
 	// Access to some slicer GUI internals (used only in NModalTF at the moment):
 	//! Access to the scroll bar next to a slicer
 	virtual QSlider* slicerScrollBar(int mode) = 0;
