@@ -34,6 +34,7 @@
 #ifdef QT_HTTPSERVER
 
 #include <QCoreApplication>
+#include <QDir>
 #include <QFile>
 #include <QString>
 #include <QHttpServer>
@@ -66,6 +67,46 @@ void addFileToServe(QString path, QString query, QString fileName, QHttpServer* 
 
 }
 
+void addDirectorytoServer(QString path, QHttpServer* server)
+{
+	//assume the directory exists and contains some files and you want all jpg and JPG files
+	QDir directory(path);
+	QStringList files = directory.entryList(QDir::Files);
+	for (QString filename : files)
+	{
+
+
+		auto directoryPath = path;
+		
+
+		if (filename.contains("index.html"))
+		{
+			addFileToServe(directoryPath, "/", filename, server, "text/html");
+			addFileToServe(directoryPath, "/" + filename, filename, server, "text/html");
+		}
+
+		else if (filename.endsWith("css", Qt::CaseInsensitive))
+		{
+			addFileToServe(directoryPath, "/" + filename, filename, server, "text/css");
+		}
+		else if (filename.endsWith("html", Qt::CaseInsensitive))
+		{
+			addFileToServe(directoryPath, "/" + filename, filename, server, "text/html");
+		}
+		else if (filename.endsWith("js", Qt::CaseInsensitive))
+		{
+			addFileToServe(directoryPath, "/" + filename, filename, server, "application/javascript");
+		}
+		else
+		{
+			addFileToServe(directoryPath, "/" + filename, filename, server, "text/plain");
+		}
+
+
+
+		
+	}
+}
 
 
 #endif
@@ -88,11 +129,8 @@ public:
 
 #ifdef QT_HTTPSERVER
 		QString path = QCoreApplication::applicationDirPath() + "/RemoteClient";
-		addFileToServe(path, "/", "index.html", m_httpServer.get(), "text/html");
-		addFileToServe(path, "/main.js", "main.js", m_httpServer.get(), "application/javascript");
-		addFileToServe(path, "/bootstrap.min.css", "bootstrap.min.css", m_httpServer.get(), "text/css");
-		addFileToServe(path, "/bootstrap.min.css.map", "bootstrap.min.css.map", m_httpServer.get(), "text/css");
 
+		addDirectorytoServer(path, m_httpServer.get());
 
 		auto port = m_httpServer->listen(QHostAddress::Any, 8080);
 		if (port == 0)
