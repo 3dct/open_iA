@@ -18,24 +18,27 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAImagegenerator.h"
+#include "iAViewHandler.h"
 
-#include <vtkJPEGWriter.h>
-#include <vtkRenderWindow.h>
-#include <vtkUnsignedCharArray.h>
-#include <vtkWindowToImageFilter.h>
 
-vtkSmartPointer<vtkUnsignedCharArray> iAImagegenerator::createImage(vtkRenderWindow* window, int quality)
-{
-	vtkNew<vtkWindowToImageFilter> w2if;
-	w2if->SetInput(window);
-	w2if->Update();
-
-	vtkNew<vtkJPEGWriter> writer;
-	writer->SetInputConnection(w2if->GetOutputPort());
-	writer->SetQuality(quality);
-	writer->WriteToMemoryOn();
-	writer->Write();
-	vtkSmartPointer<vtkUnsignedCharArray> img = writer->GetResult();
-	return img;
+iAViewHandler::iAViewHandler() {
+	timer = new QTimer(this);
+	timer->setSingleShot(true);
+	connect(timer, &QTimer::timeout, [=]() -> void { createImage(id, 100); });
 }
+
+void iAViewHandler::vtkCallbackFunc(vtkObject* caller, long unsigned int evId, void* /*callData*/) {
+	auto now = QDateTime::currentMSecsSinceEpoch();
+	if ((now - Lastrendered) > 50)
+	{
+		if (now - Lastrendered < 250)
+		{
+			timer->stop();
+			timer->start(250);
+		}
+		createImage(id, quality);
+		Lastrendered = QDateTime::currentMSecsSinceEpoch();
+		timeRendering = Lastrendered - now;
+	}
+
+};

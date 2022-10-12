@@ -18,24 +18,33 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAImagegenerator.h"
+#pragma once
 
-#include <vtkJPEGWriter.h>
-#include <vtkRenderWindow.h>
-#include <vtkUnsignedCharArray.h>
-#include <vtkWindowToImageFilter.h>
+#include <vtkRendererCollection.h>
+#include <vtkCallbackCommand.h>
 
-vtkSmartPointer<vtkUnsignedCharArray> iAImagegenerator::createImage(vtkRenderWindow* window, int quality)
+#include <QObject>
+#include <QDateTime>
+#include <QTimer>
+
+
+class iAViewHandler: public QObject
 {
-	vtkNew<vtkWindowToImageFilter> w2if;
-	w2if->SetInput(window);
-	w2if->Update();
 
-	vtkNew<vtkJPEGWriter> writer;
-	writer->SetInputConnection(w2if->GetOutputPort());
-	writer->SetQuality(quality);
-	writer->WriteToMemoryOn();
-	writer->Write();
-	vtkSmartPointer<vtkUnsignedCharArray> img = writer->GetResult();
-	return img;
-}
+	Q_OBJECT
+public:
+	iAViewHandler();
+	void vtkCallbackFunc(vtkObject* caller, long unsigned int evId, void* /*callData*/);
+
+	QString id;
+	int quality = 45;
+
+private: 
+	long long Lastrendered =0;
+	int timeRendering =0;
+	QTimer* timer;
+
+Q_SIGNALS:
+	void createImage(QString id, int Quality);
+};
+

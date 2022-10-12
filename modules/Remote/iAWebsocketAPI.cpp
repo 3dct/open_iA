@@ -21,7 +21,8 @@
 #include "iAWebsocketAPI.h"
 
 #include <iALog.h>
-#include "RemoteAction.h"
+
+#include "iARemoteAction.h"
 
 #include <QWebSocketServer>
 #include <QWebSocket>
@@ -79,36 +80,36 @@ void iAWebsocketAPI::processTextMessage(QString message)
 
 	if (Request["method"].toString() == "wslink.hello")
 	{ 
-		ComandWslinkHello(Request, pClient);
+		commandWslinkHello(Request, pClient);
 	}
 	else if (Request["method"].toString() == "viewport.image.push.observer.add")
 	{
-		ComandAdObserver(Request, pClient);
+		commandAdObserver(Request, pClient);
 	}
 	else if (Request["method"].toString() == "viewport.image.push")
 	{
-		ComandImagePush(Request, pClient);
+		commandImagePush(Request, pClient);
 	}
 	else if (Request["method"].toString() == "viewport.image.push.original.size")
 	{
-		ComandImagePushSize(Request, pClient);
+		commandImagePushSize(Request, pClient);
 	}
 	else if (Request["method"].toString() == "viewport.image.push.invalidate.cache")
 	{
-		ComandImagePushInvalidateCache(Request, pClient);
+		commandImagePushInvalidateCache(Request, pClient);
 	}
 	else if (Request["method"].toString() == "viewport.image.push.quality")
 	{
-		ComandImagePushQuality(Request, pClient);
+		commandImagePushQuality(Request, pClient);
 	}
 	else if (Request["method"].toString() == "viewport.mouse.interaction")
 	{
-		ComandControls(Request, pClient);
+		commandControls(Request, pClient);
 	}
 
 }
 
-void iAWebsocketAPI::ComandWslinkHello(QJsonDocument Request, QWebSocket* pClient)
+void iAWebsocketAPI::commandWslinkHello(QJsonDocument Request, QWebSocket* pClient)
 {
 	const auto ClientID = QJsonObject{{"clientID", QUuid::createUuid().toString()}};
 	const auto resultArray = QJsonArray{ClientID};
@@ -124,7 +125,7 @@ void iAWebsocketAPI::ComandWslinkHello(QJsonDocument Request, QWebSocket* pClien
 	pClient->sendTextMessage(Response.toJson());
 }
 
-void iAWebsocketAPI::ComandAdObserver(QJsonDocument Request, QWebSocket* pClient)
+void iAWebsocketAPI::commandAdObserver(QJsonDocument Request, QWebSocket* pClient)
 {
 	QJsonObject ResponseArray;
 
@@ -148,26 +149,26 @@ void iAWebsocketAPI::ComandAdObserver(QJsonDocument Request, QWebSocket* pClient
 }
 
 
-void iAWebsocketAPI::ComandImagePush(QJsonDocument Request, QWebSocket* pClient)
+void iAWebsocketAPI::commandImagePush(QJsonDocument Request, QWebSocket* pClient)
 {
 	QString viewIDString = Request["args"][0]["view"].toString();
-	ComandImagePushSize(Request, pClient);
+	commandImagePushSize(Request, pClient);
 	sendImage(pClient, viewIDString);
 
 }
 
-void iAWebsocketAPI::ComandImagePushSize(QJsonDocument Request, QWebSocket* pClient)
+void iAWebsocketAPI::commandImagePushSize(QJsonDocument Request, QWebSocket* pClient)
 {
 	sendSuccess(Request, pClient);
 
 }
 
-void iAWebsocketAPI::ComandImagePushInvalidateCache(QJsonDocument Request, QWebSocket* pClient)
+void iAWebsocketAPI::commandImagePushInvalidateCache(QJsonDocument Request, QWebSocket* pClient)
 {
 	sendSuccess(Request, pClient);
 }
 
-void iAWebsocketAPI::ComandImagePushQuality(QJsonDocument Request, QWebSocket* pClient)
+void iAWebsocketAPI::commandImagePushQuality(QJsonDocument Request, QWebSocket* pClient)
 {
 	sendSuccess(Request, pClient);
 }
@@ -183,18 +184,18 @@ void iAWebsocketAPI::sendSuccess(QJsonDocument Request, QWebSocket* pClient)
 	pClient->sendTextMessage(Response.toJson());
 }
 
-void iAWebsocketAPI::ComandControls(QJsonDocument Request, QWebSocket* pClient)
+void iAWebsocketAPI::commandControls(QJsonDocument Request, QWebSocket* pClient)
 {
-	RemoteAction webAction;
+	iARemoteAction webAction;
 	auto argList = Request["args"];
 
 	if (argList["action"] == "down")
 	{
-		webAction.action = RemoteAction::down;
+		webAction.action = iARemoteAction::down;
 	}
 	else
 	{
-		webAction.action = RemoteAction::up;
+		webAction.action = iARemoteAction::up;
 	}
 
 	webAction.altKey = argList["altKey"].toBool();
@@ -211,7 +212,7 @@ void iAWebsocketAPI::ComandControls(QJsonDocument Request, QWebSocket* pClient)
 	webAction.x = argList["x"].toDouble();
 	webAction.y = argList["y"].toDouble();
 
-	emit controlComand(webAction);
+	emit controlCommand(webAction);
 
 	sendSuccess(Request, pClient);
 }

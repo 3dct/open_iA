@@ -27,9 +27,13 @@
 #include "iARenderer.h"
 #include "iASlicer.h"
 
+#include "iARemoteAction.h"
 #include "iARemoteRenderer.h"
+#include "iAWebsocketAPI.h"
 
 #include <QAction>
+
+#include <vtkGenericOpenGLRenderWindow.h>
 
 #ifdef QT_HTTPSERVER
 
@@ -43,28 +47,22 @@
 void addFileToServe(QString path, QString query, QString fileName, QHttpServer* server, QString mimeType)
 {
 	auto routeCreated = server->route(query,
-		[path, fileName, mimeType](QHttpServerResponder&& responder) -> QString
-		{
+		[path, fileName, mimeType](QHttpServerResponder&& responder)
+	{
 		QFile fileToServe(path + "/" + fileName);
 		if (!fileToServe.open(QFile::ReadOnly | QFile::Text))
 		{
 			LOG(lvlError, QString("Could not open file to server (%1) in given path (%2).").arg(fileName).arg(path));
-			return "Error";
 		}
 		QTextStream in(&fileToServe);
 		auto value = in.readAll();
-
 		responder.write(value.toUtf8(), mimeType.toUtf8());
-
-
-		return value;
 	});
 
 	if (!routeCreated)
 	{
 		LOG(lvlError, QString("Error creating server route for file %1").arg(fileName));
 	}
-
 }
 
 void addDirectorytoServer(QString path, QHttpServer* server)
@@ -74,37 +72,27 @@ void addDirectorytoServer(QString path, QHttpServer* server)
 	QStringList files = directory.entryList(QDir::Files);
 	for (QString filename : files)
 	{
-
-
-		auto directoryPath = path;
-		
-
 		if (filename.contains("index.html"))
 		{
-			addFileToServe(directoryPath, "/", filename, server, "text/html");
-			addFileToServe(directoryPath, "/" + filename, filename, server, "text/html");
+			addFileToServe(path, "/", filename, server, "text/html");
+			addFileToServe(path, "/" + filename, filename, server, "text/html");
 		}
-
 		else if (filename.endsWith("css", Qt::CaseInsensitive))
 		{
-			addFileToServe(directoryPath, "/" + filename, filename, server, "text/css");
+			addFileToServe(path, "/" + filename, filename, server, "text/css");
 		}
 		else if (filename.endsWith("html", Qt::CaseInsensitive))
 		{
-			addFileToServe(directoryPath, "/" + filename, filename, server, "text/html");
+			addFileToServe(path, "/" + filename, filename, server, "text/html");
 		}
 		else if (filename.endsWith("js", Qt::CaseInsensitive))
 		{
-			addFileToServe(directoryPath, "/" + filename, filename, server, "application/javascript");
+			addFileToServe(path, "/" + filename, filename, server, "application/javascript");
 		}
 		else
 		{
-			addFileToServe(directoryPath, "/" + filename, filename, server, "text/plain");
+			addFileToServe(path, "/" + filename, filename, server, "text/plain");
 		}
-
-
-
-		
 	}
 }
 
@@ -121,11 +109,10 @@ public:
 		, m_httpServer(std::make_unique<QHttpServer>())
 #endif
 	{
-
 		m_wsAPI->addRenderWindow(child->renderer()->renderWindow(), "3D");
-		m_wsAPI->addRenderWindow(child->slicer(iASlicerMode::XY)->GetRenderWindow(), "XY");
-		m_wsAPI->addRenderWindow(child->slicer(iASlicerMode::XZ)->GetRenderWindow(), "XZ");
-		m_wsAPI->addRenderWindow(child->slicer(iASlicerMode::YZ)->GetRenderWindow(), "YZ");
+		m_wsAPI->addRenderWindow(child->slicer(iASlicerMode::XY)->renderWindow(), "XY");
+		m_wsAPI->addRenderWindow(child->slicer(iASlicerMode::XZ)->renderWindow(), "XZ");
+		m_wsAPI->addRenderWindow(child->slicer(iASlicerMode::YZ)->renderWindow(), "YZ");
 
 #ifdef QT_HTTPSERVER
 		QString path = QCoreApplication::applicationDirPath() + "/RemoteClient";

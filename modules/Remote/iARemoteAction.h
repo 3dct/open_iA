@@ -3,7 +3,7 @@
 #include <QObject>
 
 
-class RemoteAction:public QObject
+class iARemoteAction: public QObject
 {
 
 Q_OBJECT

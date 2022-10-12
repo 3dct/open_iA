@@ -19,20 +19,20 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iARemoteRenderer.h"
+
 #include "iAImagegenerator.h"
-#include "iALog.h"
-#include "vtkUnsignedCharArray.h"
+#include "iAViewHandler.h"
+#include "iAWebsocketAPI.h"
 
-#include <vtkRendererCollection.h>
 #include <vtkCallbackCommand.h>
+#include <vtkRenderWindow.h>
+#include <vtkRendererCollection.h>
+#include <vtkUnsignedCharArray.h>
 
-iARemoteRenderer::iARemoteRenderer(int port)
+iARemoteRenderer::iARemoteRenderer(int port):
+	m_websocket(std::make_unique<iAWebsocketAPI>(port))
 {
-
-	m_websocket = new iAWebsocketAPI(port);
-	connect(this, &iARemoteRenderer::imageHasChanged, m_websocket, &iAWebsocketAPI::sendViewIDUpdate);
-
-
+	connect(this, &iARemoteRenderer::imageHasChanged, m_websocket.get(), &iAWebsocketAPI::sendViewIDUpdate);
 }
 
 void iARemoteRenderer::addRenderWindow(vtkRenderWindow* window, QString viewID)
@@ -42,19 +42,15 @@ void iARemoteRenderer::addRenderWindow(vtkRenderWindow* window, QString viewID)
 	QByteArray img((char*)data->Begin(), static_cast<qsizetype>(data->GetSize()));
 	m_websocket->setRenderedImage(img, viewID);
 
-	auto view = new viewHandler();
+	auto view = new iAViewHandler();
 	view->id = viewID;
 
-	connect(view, &viewHandler::createImage, this, &iARemoteRenderer::createImage);
+	connect(view, &iAViewHandler::createImage, this, &iARemoteRenderer::createImage);
 
 	views.insert(viewID,view);
 	auto renderer = window->GetRenderers()->GetFirstRenderer();
-	renderer->AddObserver(vtkCommand::EndEvent, view, &viewHandler::vtkCallbackFunc);
-
-
+	renderer->AddObserver(vtkCommand::EndEvent, view, &iAViewHandler::vtkCallbackFunc);
 }
-
-
 
 void iARemoteRenderer::removeRenderWindow(QString viewID)
 {
@@ -68,4 +64,3 @@ void iARemoteRenderer::createImage(QString ViewID, int Quality)
 
 	imageHasChanged(img, ViewID);
 }
-

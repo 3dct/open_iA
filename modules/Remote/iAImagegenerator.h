@@ -20,9 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkRenderWindow.h>
+#include <vtkSmartPointer.h>
 
 #include <QObject>
+
+class vtkUnsignedCharArray;
+class vtkRenderWindow;
 
 class iAImagegenerator: QObject
 {

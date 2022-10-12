@@ -20,50 +20,36 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAWebsocketAPI.h"
-
 #include <QMap>
-#include <QList>
-#include <QTime>
-#include <QTimer>
+#include <QObject>
 
-#include <vtkRenderWindow.h>
-#include <viewHandler.h>
+class iAViewHandler;
+class iAWebsocketAPI;
 
+class vtkRenderWindow;
 
 class iARemoteRenderer: public QObject
 {
-
 Q_OBJECT
 
 public:
 	iARemoteRenderer(int port);
 
-	iAWebsocketAPI* m_websocket;
-
 	void addRenderWindow(vtkRenderWindow* window, QString viewID);
-
-
 	void removeRenderWindow(QString viewID);
 
-	
-
-	
-
-
+	std::unique_ptr<iAWebsocketAPI> m_websocket;
 
 private:
 	QMap<QString, vtkRenderWindow*> m_renderWindows;
 	long long Lastrendered=0;
 	int timeRendering;
-	QTimer* timer;
-	QMap<QString, viewHandler*> views;
+	QMap<QString, iAViewHandler*> views;
 
 public Q_SLOTS: 
 	void createImage(QString ViewID, int Quality );
 
 Q_SIGNALS:
 	void imageHasChanged(QByteArray Image, QString ViewID);
-
 };
 
