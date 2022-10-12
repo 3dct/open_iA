@@ -34,6 +34,8 @@
 #include <QAction>
 
 #include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkInteractorStyle.h>
+#include <vtkRenderWindowInteractor.h>
 
 #ifdef QT_HTTPSERVER
 
@@ -113,6 +115,54 @@ public:
 		m_wsAPI->addRenderWindow(child->slicer(iASlicerMode::XY)->renderWindow(), "XY");
 		m_wsAPI->addRenderWindow(child->slicer(iASlicerMode::XZ)->renderWindow(), "XZ");
 		m_wsAPI->addRenderWindow(child->slicer(iASlicerMode::YZ)->renderWindow(), "YZ");
+		m_viewWidgets.insert("3D", child->rendererWidget());
+		m_viewWidgets.insert("XY", child->slicer(iASlicerMode::XY));
+		m_viewWidgets.insert("XZ", child->slicer(iASlicerMode::XZ));
+		m_viewWidgets.insert("YZ", child->slicer(iASlicerMode::YZ));
+
+		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::controlCommand, this, [this](iARemoteAction const & action) {
+			static bool lastDown = false;
+			static qint64 lastInput = 0;
+			//LOG(lvlDebug, QString("client control: action: %1; position: %2, %3")
+			//	.arg((action.action == iARemoteAction::up)?"up":"down")
+			//	.arg(action.x)
+			//	.arg(action.y)
+			//	);
+			auto now = QDateTime::currentMSecsSinceEpoch();
+			bool curDown = (action.action == iARemoteAction::down);
+			if (lastDown != curDown || (now - lastInput) > 50)
+			{
+				lastInput = QDateTime::currentMSecsSinceEpoch();
+			}
+			else
+			{
+				return;
+			}
+			int eventID = vtkCommand::MouseMoveEvent;
+			if (lastDown != curDown)
+			{
+				lastDown = curDown;
+				eventID = curDown ? vtkCommand::LeftButtonPressEvent : vtkCommand::LeftButtonReleaseEvent;
+			}
+			auto renWin = m_wsAPI->renderWindow(action.viewID);
+			auto interactor = renWin->GetInteractor();
+			interactor->SetControlKey(action.ctrlKey);
+			interactor->SetShiftKey(action.shiftKey);
+			interactor->SetAltKey(action.altKey);
+			int const* size = renWin->GetSize();
+			int pos[] = { static_cast<int>(size[0] * action.x), static_cast<int>(size[1] * action.y) };
+			//LOG(lvlDebug, QString("event id: %1; x: %2, y: %3").arg(eventID).arg(pos[0]).arg(pos[1]));
+			interactor->SetEventPosition(pos);
+			//interactor->SetKeyCode(static_cast<char>(action.keyCode));
+			//interactor->SetRepeatCount(repeatCount);
+			//interactor->SetKeySym(keySym);
+
+			interactor->InvokeEvent(eventID, nullptr);
+			renWin->Render();
+			//interactor()->Modified();
+			//interactor()->Render();
+			m_viewWidgets[action.viewID]->update();
+		});
 
 #ifdef QT_HTTPSERVER
 		QString path = QCoreApplication::applicationDirPath() + "/RemoteClient";
@@ -138,6 +188,7 @@ public:
 	}
 private:
 	std::unique_ptr<iARemoteRenderer> m_wsAPI;
+	QMap<QString, QWidget*> m_viewWidgets;
 #ifdef QT_HTTPSERVER
 	std::unique_ptr<QHttpServer> m_httpServer;
 #endif

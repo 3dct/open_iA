@@ -35,8 +35,9 @@ Q_OBJECT
 public:
 	iARemoteRenderer(int port);
 
-	void addRenderWindow(vtkRenderWindow* window, QString viewID);
-	void removeRenderWindow(QString viewID);
+	void addRenderWindow(vtkRenderWindow* window, QString const& viewID);
+	void removeRenderWindow(QString const& viewID);
+	vtkRenderWindow* renderWindow(QString const& viewID);
 
 	std::unique_ptr<iAWebsocketAPI> m_websocket;
 
@@ -47,7 +48,7 @@ private:
 	QMap<QString, iAViewHandler*> views;
 
 public Q_SLOTS: 
-	void createImage(QString ViewID, int Quality );
+	void createImage(QString const& ViewID, int Quality );
 
 Q_SIGNALS:
 	void imageHasChanged(QByteArray Image, QString ViewID);

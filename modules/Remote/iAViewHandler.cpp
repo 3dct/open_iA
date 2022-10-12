@@ -20,11 +20,14 @@
 * ************************************************************************************/
 #include "iAViewHandler.h"
 
+#include <iALog.h>
 
 iAViewHandler::iAViewHandler() {
 	timer = new QTimer(this);
 	timer->setSingleShot(true);
-	connect(timer, &QTimer::timeout, [=]() -> void { createImage(id, 100); });
+	connect(timer, &QTimer::timeout, [=]() -> void {
+		//LOG(lvlDebug, "TIMER");
+		createImage(id, 100); });
 }
 
 void iAViewHandler::vtkCallbackFunc(vtkObject* caller, long unsigned int evId, void* /*callData*/) {
@@ -39,6 +42,7 @@ void iAViewHandler::vtkCallbackFunc(vtkObject* caller, long unsigned int evId, v
 		createImage(id, quality);
 		Lastrendered = QDateTime::currentMSecsSinceEpoch();
 		timeRendering = Lastrendered - now;
+		//LOG(lvlDebug, QString("DIRECT, time %1").arg(timeRendering));
 	}
 
 };

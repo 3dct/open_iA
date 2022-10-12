@@ -54,8 +54,8 @@ void iAWebsocketAPI::setRenderedImage(QByteArray img, QString id)
 
 iAWebsocketAPI::~iAWebsocketAPI()
 {
+	//qDeleteAll(m_clients);	// memory leak? but with it, we crash with access violation!
 	m_pWebSocketServer->close();
-	qDeleteAll(m_clients.begin(), m_clients.end());
 }
 
 void iAWebsocketAPI::onNewConnection()
@@ -187,7 +187,7 @@ void iAWebsocketAPI::sendSuccess(QJsonDocument Request, QWebSocket* pClient)
 void iAWebsocketAPI::commandControls(QJsonDocument Request, QWebSocket* pClient)
 {
 	iARemoteAction webAction;
-	auto argList = Request["args"];
+	auto argList = Request["args"][0];
 
 	if (argList["action"] == "down")
 	{
