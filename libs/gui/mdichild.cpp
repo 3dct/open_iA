@@ -1180,8 +1180,9 @@ void MdiChild::saveNew()
 	{
 		return;
 	}
+	QString path = m_path.isEmpty() ? m_mainWnd->path() : m_path;
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
-		m_path + "/" + safeFileName(dataSet->name()),
+		path + "/" + safeFileName(dataSet->name()),
 		iAFileTypeRegistry::registeredFileTypes(iAFileIO::Save, dataSet->type()));
 	if (fileName.isEmpty())
 	{
