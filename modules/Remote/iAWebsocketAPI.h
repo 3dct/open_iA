@@ -20,15 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
-#include "RemoteAction.h"
-
 #include <QByteArray>
 #include <QList>
 #include <QObject>
 #include <QMap>
 
-QT_FORWARD_DECLARE_CLASS(QWebSocketServer)
-QT_FORWARD_DECLARE_CLASS(QWebSocket)
+class iARemoteAction;
+
+class QWebSocket;
+class QWebSocketServer;
 
 class iAWebsocketAPI : public QObject
 {
@@ -40,7 +40,7 @@ public:
 
 Q_SIGNALS:
 	void closed();
-	void controlComand(RemoteAction const & action);
+	void controlCommand(iARemoteAction const & action);
 
 private Q_SLOTS:
 	void onNewConnection();
@@ -49,7 +49,6 @@ private Q_SLOTS:
 	void socketDisconnected();
 public Q_SLOTS:
 	void sendViewIDUpdate(QByteArray img, QString ViewID);
-
 
 private:
 	QWebSocketServer* m_pWebSocketServer;
@@ -60,18 +59,15 @@ private:
 
 	QMap<QString, QList<QWebSocket*>> subscriptions;
 
-	void ComandWslinkHello(QJsonDocument Request, QWebSocket* pClient);
-	void ComandAdObserver(QJsonDocument Request, QWebSocket* pClient);
-	void ComandImagePush(QJsonDocument Request, QWebSocket* pClient);
-	void ComandImagePushSize(QJsonDocument Request, QWebSocket* pClient);
-	void ComandImagePushInvalidateCache(QJsonDocument Request, QWebSocket* pClient);
-	void ComandImagePushQuality(QJsonDocument Request, QWebSocket* pClient);
+	void commandWslinkHello(QJsonDocument Request, QWebSocket* pClient);
+	void commandAdObserver(QJsonDocument Request, QWebSocket* pClient);
+	void commandImagePush(QJsonDocument Request, QWebSocket* pClient);
+	void commandImagePushSize(QJsonDocument Request, QWebSocket* pClient);
+	void commandImagePushInvalidateCache(QJsonDocument Request, QWebSocket* pClient);
+	void commandImagePushQuality(QJsonDocument Request, QWebSocket* pClient);
+	void commandControls(QJsonDocument Request, QWebSocket* pClient);
+
 	void sendSuccess(QJsonDocument Request, QWebSocket* pClient);
-	void ComandControls(QJsonDocument Request, QWebSocket* pClient);  
-
 	void sendImage(QWebSocket* pClient, QString viewID);
-
-	
-	
 
 };

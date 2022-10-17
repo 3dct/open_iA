@@ -18,39 +18,31 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAViewHandler.h"
 
-#include <QMap>
-#include <QObject>
+#include <iALog.h>
 
-class iAViewHandler;
-class iAWebsocketAPI;
+iAViewHandler::iAViewHandler() {
+	timer = new QTimer(this);
+	timer->setSingleShot(true);
+	connect(timer, &QTimer::timeout, [=]() -> void {
+		//LOG(lvlDebug, "TIMER");
+		createImage(id, 100); });
+}
 
-class vtkRenderWindow;
+void iAViewHandler::vtkCallbackFunc(vtkObject* caller, long unsigned int evId, void* /*callData*/) {
+	auto now = QDateTime::currentMSecsSinceEpoch();
+	if ((now - Lastrendered) > 50)
+	{
+		if (now - Lastrendered < 250)
+		{
+			timer->stop();
+			timer->start(250);
+		}
+		createImage(id, quality);
+		Lastrendered = QDateTime::currentMSecsSinceEpoch();
+		timeRendering = Lastrendered - now;
+		//LOG(lvlDebug, QString("DIRECT, time %1").arg(timeRendering));
+	}
 
-class iARemoteRenderer: public QObject
-{
-Q_OBJECT
-
-public:
-	iARemoteRenderer(int port);
-
-	void addRenderWindow(vtkRenderWindow* window, QString const& viewID);
-	void removeRenderWindow(QString const& viewID);
-	vtkRenderWindow* renderWindow(QString const& viewID);
-
-	std::unique_ptr<iAWebsocketAPI> m_websocket;
-
-private:
-	QMap<QString, vtkRenderWindow*> m_renderWindows;
-	long long Lastrendered=0;
-	int timeRendering;
-	QMap<QString, iAViewHandler*> views;
-
-public Q_SLOTS: 
-	void createImage(QString const& ViewID, int Quality );
-
-Q_SIGNALS:
-	void imageHasChanged(QByteArray Image, QString ViewID);
 };
-

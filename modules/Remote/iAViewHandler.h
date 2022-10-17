@@ -20,37 +20,31 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QMap>
+#include <vtkRendererCollection.h>
+#include <vtkCallbackCommand.h>
+
 #include <QObject>
+#include <QDateTime>
+#include <QTimer>
 
-class iAViewHandler;
-class iAWebsocketAPI;
 
-class vtkRenderWindow;
-
-class iARemoteRenderer: public QObject
+class iAViewHandler: public QObject
 {
-Q_OBJECT
 
+	Q_OBJECT
 public:
-	iARemoteRenderer(int port);
+	iAViewHandler();
+	void vtkCallbackFunc(vtkObject* caller, long unsigned int evId, void* /*callData*/);
 
-	void addRenderWindow(vtkRenderWindow* window, QString const& viewID);
-	void removeRenderWindow(QString const& viewID);
-	vtkRenderWindow* renderWindow(QString const& viewID);
+	QString id;
+	int quality = 45;
 
-	std::unique_ptr<iAWebsocketAPI> m_websocket;
-
-private:
-	QMap<QString, vtkRenderWindow*> m_renderWindows;
-	long long Lastrendered=0;
-	int timeRendering;
-	QMap<QString, iAViewHandler*> views;
-
-public Q_SLOTS: 
-	void createImage(QString const& ViewID, int Quality );
+private: 
+	long long Lastrendered =0;
+	int timeRendering =0;
+	QTimer* timer;
 
 Q_SIGNALS:
-	void imageHasChanged(QByteArray Image, QString ViewID);
+	void createImage(QString id, int Quality);
 };
 

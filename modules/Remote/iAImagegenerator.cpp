@@ -21,12 +21,14 @@
 #include "iAImagegenerator.h"
 
 #include <vtkJPEGWriter.h>
+#include <vtkRenderWindow.h>
 #include <vtkUnsignedCharArray.h>
 #include <vtkWindowToImageFilter.h>
 
 vtkSmartPointer<vtkUnsignedCharArray> iAImagegenerator::createImage(vtkRenderWindow* window, int quality)
 {
 	vtkNew<vtkWindowToImageFilter> w2if;
+	w2if->ShouldRerenderOff();
 	w2if->SetInput(window);
 	w2if->Update();
 

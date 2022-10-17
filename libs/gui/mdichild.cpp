@@ -2621,6 +2621,11 @@ iASlicer* MdiChild::slicer(int mode)
 	return m_slicer[mode];
 }
 
+QWidget* MdiChild::rendererWidget()
+{
+	return m_dwRenderer->vtkWidgetRC;
+}
+
 QSlider* MdiChild::slicerScrollBar(int mode)
 {
 	return m_dwSlicer[mode]->verticalScrollBar;

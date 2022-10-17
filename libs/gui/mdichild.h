@@ -163,6 +163,8 @@ public:
 	iARenderer* renderer() override;
 	//! Access slicer for given mode (use iASlicerMode enum for mode values)
 	iASlicer* slicer(int mode) override;
+	//! Access to 3D renderer widget
+	QWidget* rendererWidget() override;
 	//! Access to the scroll bar next to a slicer
 	QSlider* slicerScrollBar(int mode) override;
 	//! Access to the layout in the slicer dockwidget containing the actual iASlicer

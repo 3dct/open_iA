@@ -19,53 +19,54 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iARemoteRenderer.h"
+
 #include "iAImagegenerator.h"
-#include "iALog.h"
-#include "vtkUnsignedCharArray.h"
+#include "iAViewHandler.h"
+#include "iAWebsocketAPI.h"
 
-#include <vtkRendererCollection.h>
 #include <vtkCallbackCommand.h>
+#include <vtkRenderWindow.h>
+#include <vtkRendererCollection.h>
+#include <vtkUnsignedCharArray.h>
 
-iARemoteRenderer::iARemoteRenderer(int port)
+iARemoteRenderer::iARemoteRenderer(int port):
+	m_websocket(std::make_unique<iAWebsocketAPI>(port))
 {
-
-	m_websocket = new iAWebsocketAPI(port);
-	connect(this, &iARemoteRenderer::imageHasChanged, m_websocket, &iAWebsocketAPI::sendViewIDUpdate);
-
-
+	connect(this, &iARemoteRenderer::imageHasChanged, m_websocket.get(), &iAWebsocketAPI::sendViewIDUpdate);
 }
 
-void iARemoteRenderer::addRenderWindow(vtkRenderWindow* window, QString viewID)
+void iARemoteRenderer::addRenderWindow(vtkRenderWindow* window, QString const& viewID)
 {
 	m_renderWindows.insert(viewID, window);
 	auto data = iAImagegenerator::createImage(window,100);
 	QByteArray img((char*)data->Begin(), static_cast<qsizetype>(data->GetSize()));
 	m_websocket->setRenderedImage(img, viewID);
 
-	auto view = new viewHandler();
+	auto view = new iAViewHandler();
 	view->id = viewID;
 
-	connect(view, &viewHandler::createImage, this, &iARemoteRenderer::createImage);
+	connect(view, &iAViewHandler::createImage, this, &iARemoteRenderer::createImage);
 
 	views.insert(viewID,view);
 	auto renderer = window->GetRenderers()->GetFirstRenderer();
-	renderer->AddObserver(vtkCommand::EndEvent, view, &viewHandler::vtkCallbackFunc);
-
-
+	renderer->AddObserver(vtkCommand::EndEvent, view, &iAViewHandler::vtkCallbackFunc);
 }
 
-
-
-void iARemoteRenderer::removeRenderWindow(QString viewID)
+void iARemoteRenderer::removeRenderWindow(QString const &viewID)
 {
 	m_renderWindows.remove(viewID);
 }
 
-void iARemoteRenderer::createImage(QString ViewID, int Quality)
+vtkRenderWindow* iARemoteRenderer::renderWindow(QString const& viewID)
 {
+	return m_renderWindows[viewID];
+}
+
+void iARemoteRenderer::createImage(QString const& ViewID, int Quality)
+{
+	QSignalBlocker block(views[ViewID]);
 	auto data = iAImagegenerator::createImage(m_renderWindows[ViewID],Quality);
 	QByteArray img((char*)data->Begin(), static_cast<qsizetype>(data->GetSize()));
 
 	imageHasChanged(img, ViewID);
 }
-
