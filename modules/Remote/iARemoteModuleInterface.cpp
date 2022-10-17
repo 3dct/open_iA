@@ -69,7 +69,7 @@ void addFileToServe(QString path, QString query, QString fileName, QHttpServer* 
 
 void addDirectorytoServer(QString path, QHttpServer* server)
 {
-	//assume the directory exists and contains some files and you want all jpg and JPG files
+
 	QDir directory(path);
 	QStringList files = directory.entryList(QDir::Files);
 	for (QString filename : files)
