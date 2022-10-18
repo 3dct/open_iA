@@ -194,7 +194,7 @@ public:
 	//! @}
 
 	//! Enable/disable the tooltip text
-	void setShowText(bool isVisible) override;
+	void setShowTooltip(bool isVisible) override;
 	void setMouseCursor(QString const & s);
 
 	void showPosition(bool s);

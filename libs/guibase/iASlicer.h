@@ -132,7 +132,7 @@ public:
 	//! @}
 
 	//! Enable/disable the tooltip text
-	virtual void setShowText(bool isVisible) = 0;
+	virtual void setShowTooltip(bool isVisible) = 0;
 
 	virtual void execute(vtkObject* caller, unsigned long eventId, void* callData) = 0;
 

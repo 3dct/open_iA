@@ -605,7 +605,10 @@ void iASlicerImpl::setup( iASingleSlicerSettings const & settings )
 	{
 		updateMagicLens();
 	}
-	m_renWin->Render();
+	else
+	{   // updateMagicLens updates the render window
+		m_renWin->Render();
+	}
 }
 
 void iASlicerImpl::setMagicLensEnabled( bool isEnabled )
@@ -616,7 +619,10 @@ void iASlicerImpl::setMagicLensEnabled( bool isEnabled )
 		return;
 	}
 	setCursor  (isEnabled ? Qt::BlankCursor : mouseCursor());
-	setShowText(isEnabled ? false : m_settings.ShowTooltip);
+	if (isEnabled)
+	{
+		m_textInfo->show(false);
+	}
 	m_magicLens->setEnabled(isEnabled);
 	m_interactorStyle->setRightButtonDragZoomEnabled(!isEnabled);
 	updateMagicLens();
@@ -1315,7 +1321,6 @@ void iASlicerImpl::execute(vtkObject * /*caller*/, unsigned long eventId, void *
 	default:
 		break;
 	}
-	m_renWin->GetInteractor()->Render();
 }
 
 void iASlicerImpl::updatePosition()
@@ -1382,7 +1387,7 @@ namespace
 
 void iASlicerImpl::printVoxelInformation()
 {
-	if (!m_decorations || !m_settings.ShowTooltip || m_channels.isEmpty())
+	if (!m_decorations || !m_settings.ShowTooltip || m_channels.isEmpty() || m_magicLens->isEnabled())
 	{
 		return;
 	}
@@ -1490,7 +1495,15 @@ void iASlicerImpl::printVoxelInformation()
 		m_textInfo->setText(strDetails.toStdString().c_str());
 		m_positionMarkerMapper->Update();
 	}
-	m_textInfo->show(infoAvailable && !m_magicLens->isEnabled());
+	bool visibilityChange = infoAvailable != m_textInfo->isShown();
+	if (visibilityChange)
+	{
+		m_textInfo->show(infoAvailable);
+	}
+	if (infoAvailable || visibilityChange)
+	{
+		m_renWin->GetInteractor()->Render();
+	}
 }
 
 void iASlicerImpl::executeKeyPressEvent()
@@ -1712,12 +1725,9 @@ void iASlicerImpl::snapToHighGradient(double &x, double &y)
 }
 */
 
-void iASlicerImpl::setShowText(bool isVisible)
+void iASlicerImpl::setShowTooltip(bool isVisible)
 {
-	if (!m_decorations)
-	{
-		return;
-	}
+	m_settings.ShowTooltip = isVisible;
 	m_textInfo->show(isVisible);
 }
 
@@ -2403,8 +2413,7 @@ void iASlicerImpl::toggleInteractionMode(QAction * )
 
 void iASlicerImpl::toggleShowTooltip()
 {
-	m_settings.ShowTooltip = !m_settings.ShowTooltip;
-	m_textInfo->show(m_settings.ShowTooltip);
+	setShowTooltip(!m_settings.ShowTooltip);
 }
 
 void iASlicerImpl::fisheyeLensToggled(bool enabled)
@@ -2714,6 +2723,7 @@ void iASlicerImpl::updateMagicLens()
 	int const mousePos[2] = { static_cast<int>(dpos[0]), static_cast<int>(dpos[1]) };
 	double const * worldP = ren->GetWorldPoint();
 	m_magicLens->updatePosition(ren->GetActiveCamera(), worldP, mousePos);
+	m_renWin->GetInteractor()->Render();
 }
 
 
