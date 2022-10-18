@@ -15,12 +15,15 @@ public:
 	enum mouseAction
 	{
 		down,
-		up
+		up,
+		MouseWheel,
+		EndMouseWheel
 	};
 
 	mouseAction action;
 	float x;
 	float y;
+	float spinY;
 	bool altKey;
 	bool buttonLeft;
 	bool buttonRight;

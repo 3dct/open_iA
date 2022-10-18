@@ -112,6 +112,10 @@ void iAWebsocketAPI::processTextMessage(QString message)
 	{
 		commandControls(Request, pClient);
 	}
+	else if (Request["method"].toString() == "viewport.mouse.zoom.wheel")
+	{
+		commandControls(Request, pClient);
+	}
 
 }
 
@@ -199,30 +203,40 @@ void iAWebsocketAPI::commandControls(QJsonDocument Request, QWebSocket* pClient)
 	{
 		webAction.action = iARemoteAction::down;
 	}
-	else
+	else if (argList["action"] == "up")
 	{
 		webAction.action = iARemoteAction::up;
 	}
+	else if (argList["type"] == "MouseWheel")
+	{
+		webAction.action = iARemoteAction::MouseWheel;
+	}
+	else if (argList["type"] == "EndMouseWheel")
+	{
+		webAction.action = iARemoteAction::EndMouseWheel;
+	}
 
-	webAction.altKey = argList["altKey"].toBool();
-	webAction.buttonLeft = argList["buttonLeft"].toBool();
-	webAction.buttonRight = argList["buttonRight"].toBool();
-	webAction.buttonMiddle = argList["buttonMiddle"].toBool();
-	webAction.ctrlKey = argList["ctrlKey"].toBool();
-	webAction.metaKey = argList["metaKey"].toBool();
-	webAction.shiftKey = argList["shiftKey"].toBool();
-	webAction.metaKey = argList["metaKey"].toBool();
+	webAction.altKey = argList["altKey"].toInt();
+	webAction.buttonLeft = argList["buttonLeft"].toInt();
+	webAction.buttonRight = argList["buttonRight"].toInt();
+	webAction.buttonMiddle = argList["buttonMiddle"].toInt();
+	webAction.ctrlKey = argList["controlKey"].toBool() || argList["ctrlKey"].toInt();
+	webAction.metaKey = argList["metaKey"].toInt();
+	webAction.shiftKey = argList["shiftKey"].toInt();
+	webAction.metaKey = argList["metaKey"].toInt();
 
 	webAction.viewID = argList["view"].toString();
 
 	webAction.x = argList["x"].toDouble();
 	webAction.y = argList["y"].toDouble();
+	webAction.spinY = argList["spinY"].toDouble();
 
 
 	emit controlCommand(webAction);
 
 	sendSuccess(Request, pClient);
 }
+
 
 
 void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)  // use in future
