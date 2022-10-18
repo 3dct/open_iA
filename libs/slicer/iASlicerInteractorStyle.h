@@ -40,9 +40,11 @@ class iASlicerInteractionEvents: public QObject
 	friend class iASlicerInteractorStyle;
 signals:
 	void selection(int dragStart[2], int dragEnd[2]) const;
+	void sliceChange(int direction) const;
 
 private:
 	void triggerSelection(int dragStart[2], int dragEnd[2]);
+	void triggerSliceChange(int direction);
 };
 
 //! Custom interactor style for slicers, disabling some interactions from vtkInteractorStyleImage

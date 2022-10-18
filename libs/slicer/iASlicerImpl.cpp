@@ -221,6 +221,11 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 			}
 			emit regionSelected(minVal, maxVal, channelID);
 		});
+	connect(&m_interactorStyle->qtEventObject(), &iASlicerInteractionEvents::sliceChange, this,
+		[this](int direction)
+		{
+			setSliceNumber(sliceNumber() + direction);
+		});
 
 	iAObserverRedirect* redirect(new iAObserverRedirect(this));
 	m_renWin->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, redirect);
@@ -533,9 +538,17 @@ void iASlicerImpl::setSliceNumber( int sliceNumber )
 	//       then we wouldn't need image spacing and origin below
 	//       (which don't make too much sense anyway, if it's not the same between loaded datasets)
 	// also, maybe clamp to boundaries of all currently loaded datasets?
+
+	int sliceAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+	int maxSliceNr = m_channels[m_sliceNumberChannel]->input()->GetDimensions()[sliceAxis];
+	sliceNumber = clamp(0, maxSliceNr, sliceNumber);
+	if (sliceNumber == m_sliceNumber)
+	{
+		return;
+	}
 	m_sliceNumber = sliceNumber;
 	double xyz[3] = { 0.0, 0.0, 0.0 };
-	xyz[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z)] = sliceNumber;
+	xyz[sliceAxis] = sliceNumber;
 	if (m_roiActive)
 	{
 		m_roiActor->SetVisibility(m_roiSlice[0] <= m_sliceNumber && m_sliceNumber < (m_roiSlice[1]));
@@ -2330,11 +2343,7 @@ void iASlicerImpl::resizeEvent(QResizeEvent * event)
 void iASlicerImpl::wheelEvent(QWheelEvent* event)
 {
 	event->accept();
-	if (event->modifiers().testFlag(Qt::ControlModifier) && event->modifiers().testFlag(Qt::ShiftModifier) && receivers(SIGNAL(altMouseWheel(int))) > 0)
-	{
-		this->setSliceNumber(event->angleDelta().y() / 120.0 + this->sliceNumber());
-	}
-	else if (event->modifiers().testFlag(Qt::ControlModifier) && receivers(SIGNAL(ctrlMouseWheel(int))) > 0)
+	if (event->modifiers().testFlag(Qt::ControlModifier) && receivers(SIGNAL(ctrlMouseWheel(int))) > 0)
 	{
 		emit ctrlMouseWheel(event->angleDelta().y() / 120.0);
 	}

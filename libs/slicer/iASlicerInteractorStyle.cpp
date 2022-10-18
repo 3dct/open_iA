@@ -43,6 +43,11 @@ void iASlicerInteractionEvents::triggerSelection(int dragStart[2], int dragEnd[2
 	emit selection(dragStart, dragEnd);
 }
 
+void iASlicerInteractionEvents::triggerSliceChange(int direction)
+{
+	emit sliceChange(direction);
+}
+
 vtkStandardNewMacro(iASlicerInteractorStyle);
 
 iASlicerInteractorStyle::iASlicerInteractorStyle() :
@@ -184,6 +189,10 @@ void iASlicerInteractorStyle::OnLeftButtonUp()
 
 void iASlicerInteractorStyle::OnMouseWheelForward()
 {
+	if (this->Interactor->GetControlKey() && this->Interactor->GetShiftKey())
+	{
+		emit m_events.triggerSliceChange(1);
+	}
 	if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
 	{
 		return;
@@ -193,6 +202,10 @@ void iASlicerInteractorStyle::OnMouseWheelForward()
 
 void iASlicerInteractorStyle::OnMouseWheelBackward()
 {
+	if (this->Interactor->GetControlKey() && this->Interactor->GetShiftKey())
+	{
+		emit m_events.triggerSliceChange(-1);
+	}
 	if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
 	{
 		return;
