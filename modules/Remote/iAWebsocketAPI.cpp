@@ -42,6 +42,7 @@ iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :
 	m_ServerThread(QThread(this))
 {
 	m_pWebSocketServer->moveToThread(&m_ServerThread);
+	m_ServerThread.start();
 
 	if (m_pWebSocketServer->listen(QHostAddress::Any, port))
 	{
@@ -67,14 +68,11 @@ void iAWebsocketAPI::onNewConnection()
 	m_count = 0;
 	QWebSocket* pSocket = m_pWebSocketServer->nextPendingConnection();
 
-	QThread* thread = new QThread;
-
 	connect(pSocket, &QWebSocket::textMessageReceived, this, &iAWebsocketAPI::processTextMessage);
 	connect(pSocket, &QWebSocket::binaryMessageReceived, this, &iAWebsocketAPI::processBinaryMessage);
 	connect(pSocket, &QWebSocket::disconnected, this, &iAWebsocketAPI::socketDisconnected);
 
-	pSocket->moveToThread(thread);
-	thread->start();
+
 
 	m_clients << pSocket;
 }

@@ -63,7 +63,7 @@ clientToConnect
       .createViewStream('3D');
 
     const view = vtkRemoteView.newInstance({
-      //rpcWheelEvent: 'viewport.mouse.zoom.wheel',
+      rpcWheelEvent: 'viewport.mouse.zoom.wheel',
       viewStream,
     });
     const session = validClient.getConnection().getSession();
@@ -113,6 +113,7 @@ clientToConnect
 
     const view = vtkRemoteView.newInstance({
       rpcWheelEvent: 'viewport.mouse.zoom.wheel',
+	  rpcGestureEvent:'viewport.gesture',
       viewStream,
     });
     const session = validClient.getConnection().getSession();
