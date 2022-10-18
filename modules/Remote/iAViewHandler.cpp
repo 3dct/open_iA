@@ -28,21 +28,23 @@ iAViewHandler::iAViewHandler() {
 	connect(timer, &QTimer::timeout, [=]() -> void {
 		//LOG(lvlDebug, "TIMER");
 		createImage(id, 100); });
+
+	m_StoppWatch.start();
+
+
 }
 
 void iAViewHandler::vtkCallbackFunc(vtkObject* caller, long unsigned int evId, void* /*callData*/) {
-	auto now = QDateTime::currentMSecsSinceEpoch();
-	if ((now - Lastrendered) > 50)
+
+	if ((m_StoppWatch.elapsed()) > 50)
 	{
-		if (now - Lastrendered < 250)
-		{
-			timer->stop();
-			timer->start(250);
-		}
+		m_StoppWatch.restart();
+		timer->stop();
+		timer->start(250);
+
 		createImage(id, quality);
-		Lastrendered = QDateTime::currentMSecsSinceEpoch();
-		timeRendering = Lastrendered - now;
-		//LOG(lvlDebug, QString("DIRECT, time %1").arg(timeRendering));
+		timeRendering = m_StoppWatch.elapsed();
+		LOG(lvlDebug, QString("DIRECT, time %1").arg(timeRendering));
 	}
 
 };

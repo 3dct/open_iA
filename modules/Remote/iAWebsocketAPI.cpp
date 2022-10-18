@@ -38,8 +38,11 @@
 iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :
 	QObject(parent),
 	m_pWebSocketServer(new QWebSocketServer(QStringLiteral("Remote Server"), QWebSocketServer::NonSecureMode, this)),
-	m_debug(debug)
+	m_debug(debug),
+	m_ServerThread(QThread(this))
 {
+	m_pWebSocketServer->moveToThread(&m_ServerThread);
+
 	if (m_pWebSocketServer->listen(QHostAddress::Any, port))
 	{
 		connect(m_pWebSocketServer, &QWebSocketServer::newConnection, this, &iAWebsocketAPI::onNewConnection);
@@ -64,9 +67,14 @@ void iAWebsocketAPI::onNewConnection()
 	m_count = 0;
 	QWebSocket* pSocket = m_pWebSocketServer->nextPendingConnection();
 
+	QThread* thread = new QThread;
+
 	connect(pSocket, &QWebSocket::textMessageReceived, this, &iAWebsocketAPI::processTextMessage);
 	connect(pSocket, &QWebSocket::binaryMessageReceived, this, &iAWebsocketAPI::processBinaryMessage);
 	connect(pSocket, &QWebSocket::disconnected, this, &iAWebsocketAPI::socketDisconnected);
+
+	pSocket->moveToThread(thread);
+	thread->start();
 
 	m_clients << pSocket;
 }
@@ -186,7 +194,7 @@ void iAWebsocketAPI::sendSuccess(QJsonDocument Request, QWebSocket* pClient)
 
 void iAWebsocketAPI::commandControls(QJsonDocument Request, QWebSocket* pClient)
 {
-	iARemoteAction webAction;
+	iARemoteAction webAction ;
 	auto argList = Request["args"][0];
 
 	if (argList["action"] == "down")
@@ -211,6 +219,7 @@ void iAWebsocketAPI::commandControls(QJsonDocument Request, QWebSocket* pClient)
 
 	webAction.x = argList["x"].toDouble();
 	webAction.y = argList["y"].toDouble();
+
 
 	emit controlCommand(webAction);
 
@@ -265,6 +274,8 @@ void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)  // use in f
 	const QJsonDocument Response2{ResponseArray2};
 
 	pClient->sendTextMessage(Response2.toJson());
+
+	pClient->flush();
 
 	m_count++;
 

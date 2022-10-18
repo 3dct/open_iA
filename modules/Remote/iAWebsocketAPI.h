@@ -24,6 +24,7 @@
 #include <QList>
 #include <QObject>
 #include <QMap>
+#include <QThread>
 
 class iARemoteAction;
 
@@ -56,6 +57,8 @@ private:
 	bool m_debug;
 	int m_count;
 	QMap<QString, QByteArray> images;
+
+	QThread m_ServerThread;
 
 	QMap<QString, QList<QWebSocket*>> subscriptions;
 

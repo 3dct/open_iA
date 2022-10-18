@@ -24,7 +24,7 @@
 #include <vtkCallbackCommand.h>
 
 #include <QObject>
-#include <QDateTime>
+#include <QElapsedTimer>
 #include <QTimer>
 
 
@@ -43,6 +43,7 @@ private:
 	long long Lastrendered =0;
 	int timeRendering =0;
 	QTimer* timer;
+	QElapsedTimer m_StoppWatch;
 
 Q_SIGNALS:
 	void createImage(QString id, int Quality);

@@ -111,6 +111,8 @@ public:
 		, m_httpServer(std::make_unique<QHttpServer>())
 #endif
 	{
+
+
 		m_wsAPI->addRenderWindow(child->renderer()->renderWindow(), "3D");
 		m_wsAPI->addRenderWindow(child->slicer(iASlicerMode::XY)->renderWindow(), "XY");
 		m_wsAPI->addRenderWindow(child->slicer(iASlicerMode::XZ)->renderWindow(), "XZ");
@@ -130,7 +132,10 @@ public:
 			//	);
 			auto now = QDateTime::currentMSecsSinceEpoch();
 			bool curDown = (action.action == iARemoteAction::down);
-			if (lastDown != curDown || (now - lastInput) > 50)
+
+			auto millisecondsSinceLastInput = now - lastInput;
+
+			if (lastDown != curDown || millisecondsSinceLastInput > 50)
 			{
 				lastInput = QDateTime::currentMSecsSinceEpoch();
 			}
@@ -150,7 +155,7 @@ public:
 			interactor->SetShiftKey(action.shiftKey);
 			interactor->SetAltKey(action.altKey);
 			int const* size = renWin->GetSize();
-			int pos[] = { static_cast<int>(size[0] * action.x), static_cast<int>(size[1] * action.y) };
+			int pos[] = {static_cast<int>(size[0] * action.x), static_cast<int>(size[1] * action.y)};
 			//LOG(lvlDebug, QString("event id: %1; x: %2, y: %3").arg(eventID).arg(pos[0]).arg(pos[1]));
 			interactor->SetEventPosition(pos);
 			//interactor->SetKeyCode(static_cast<char>(action.keyCode));
@@ -158,13 +163,17 @@ public:
 			//interactor->SetKeySym(keySym);
 
 			interactor->InvokeEvent(eventID, nullptr);
+
 			renWin->Render();
+			m_viewWidgets[action.viewID]->update();
+
 			//interactor()->Modified();
 			//interactor()->Render();
-			m_viewWidgets[action.viewID]->update();
+			
 		});
 
 #ifdef QT_HTTPSERVER
+
 		QString path = QCoreApplication::applicationDirPath() + "/RemoteClient";
 
 		addDirectorytoServer(path, m_httpServer.get());

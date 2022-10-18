@@ -1,12 +1,14 @@
 #pragma once
 
 #include <QObject>
+#include <QMetaType>
 
 
 class iARemoteAction: public QObject
 {
 
 Q_OBJECT
+
 
 public:
 
@@ -28,4 +30,4 @@ public:
 	bool metaKey;
 	QString viewID;
 };
-
+Q_DECLARE_METATYPE(iARemoteAction*);
