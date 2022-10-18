@@ -42,12 +42,12 @@ class vtkRenderWindowInteractor;
 class vtkScalarsToColors;
 
 //! vtk-based slicer widget. "Channels" (i.e. image layers) are inserted via the addChannel method
-class iAguibase_API iASlicer : public iAVtkWidget
+class iAguibase_API iASlicer : public iAQVTKWidget
 {
 	Q_OBJECT
 public:
 	iASlicer(QWidget* parent):
-		iAVtkWidget(parent)
+		iAQVTKWidget(parent)
 	{}
 	//! Sets up the slicer with the given settings.
 	virtual void setup(iASingleSlicerSettings const & settings) = 0;
