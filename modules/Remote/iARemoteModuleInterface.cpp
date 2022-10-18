@@ -157,9 +157,9 @@ public:
 			int const* size = renWin->GetSize();
 			int pos[] = {static_cast<int>(size[0] * action.x), static_cast<int>(size[1] * action.y)};
 			
-			if (action.action == iARemoteAction::MouseWheel)
+			if (action.action == iARemoteAction::MouseWheel || action.action == iARemoteAction::StartMouseWheel)
 			{
-				if (action.spinY > 0)
+				if (action.spinY < 0)
 				{
 					interactor->MouseWheelForwardEvent();
 				}

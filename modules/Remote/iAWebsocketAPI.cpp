@@ -215,15 +215,22 @@ void iAWebsocketAPI::commandControls(QJsonDocument Request, QWebSocket* pClient)
 	{
 		webAction.action = iARemoteAction::EndMouseWheel;
 	}
+	else if (argList["type"] == "StartMouseWheel")
+	{
+		webAction.action = iARemoteAction::StartMouseWheel;
+	}
+	else
+	{
+		webAction.action = iARemoteAction::Unknown;
+	}
 
-	webAction.altKey = argList["altKey"].toInt();
 	webAction.buttonLeft = argList["buttonLeft"].toInt();
 	webAction.buttonRight = argList["buttonRight"].toInt();
 	webAction.buttonMiddle = argList["buttonMiddle"].toInt();
+	webAction.altKey = argList["altKey"].toInt();
 	webAction.ctrlKey = argList["controlKey"].toBool() || argList["ctrlKey"].toInt();
 	webAction.metaKey = argList["metaKey"].toInt();
-	webAction.shiftKey = argList["shiftKey"].toInt();
-	webAction.metaKey = argList["metaKey"].toInt();
+	webAction.shiftKey = argList["shiftKey"].toInt() || argList["shiftKey"].toBool();
 
 	webAction.viewID = argList["view"].toString();
 

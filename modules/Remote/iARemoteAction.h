@@ -16,8 +16,10 @@ public:
 	{
 		down,
 		up,
+		StartMouseWheel,
 		MouseWheel,
-		EndMouseWheel
+		EndMouseWheel,
+		Unknown
 	};
 
 	mouseAction action;
