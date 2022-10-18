@@ -44,7 +44,7 @@ void iAViewHandler::vtkCallbackFunc(vtkObject* caller, long unsigned int evId, v
 
 		createImage(id, quality);
 		timeRendering = m_StoppWatch.elapsed();
-		LOG(lvlDebug, QString("DIRECT, time %1").arg(timeRendering));
+		LOG(lvlDebug, QString("DIRECT %1, time %2").arg(id).arg(timeRendering));
 	}
 
 };

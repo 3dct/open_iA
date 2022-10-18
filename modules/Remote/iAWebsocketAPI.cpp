@@ -39,7 +39,7 @@ iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :
 	QObject(parent),
 	m_pWebSocketServer(new QWebSocketServer(QStringLiteral("Remote Server"), QWebSocketServer::NonSecureMode, this)),
 	m_debug(debug),
-	m_ServerThread(QThread(this))
+	m_ServerThread(QThread())
 {
 	m_pWebSocketServer->moveToThread(&m_ServerThread);
 	m_ServerThread.start();
@@ -58,6 +58,8 @@ void iAWebsocketAPI::setRenderedImage(QByteArray img, QString id)
 
 iAWebsocketAPI::~iAWebsocketAPI()
 {
+	m_ServerThread.quit();
+	m_ServerThread.wait();
 	//qDeleteAll(m_clients);	// memory leak? but with it, we crash with access violation!
 	m_pWebSocketServer->close();
 }
@@ -201,11 +203,11 @@ void iAWebsocketAPI::commandControls(QJsonDocument Request, QWebSocket* pClient)
 
 	if (argList["action"] == "down")
 	{
-		webAction.action = iARemoteAction::down;
+		webAction.action = iARemoteAction::ButtonDown;
 	}
 	else if (argList["action"] == "up")
 	{
-		webAction.action = iARemoteAction::up;
+		webAction.action = iARemoteAction::ButtonUp;
 	}
 	else if (argList["type"] == "MouseWheel")
 	{

@@ -14,8 +14,8 @@ public:
 
 	enum mouseAction
 	{
-		down,
-		up,
+		ButtonDown,
+		ButtonUp,
 		StartMouseWheel,
 		MouseWheel,
 		EndMouseWheel,

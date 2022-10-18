@@ -9,6 +9,7 @@ find_package(Qt${QT_VERSION_MAJOR}HttpServer)
 
 set(DEPENDENCIES_LIBRARIES
 	iA::guibase
+	iA::slicer
 	Qt${QT_VERSION_MAJOR}::WebSockets
 )
 if (Qt${QT_VERSION_MAJOR}HttpServer_FOUND)

@@ -25,7 +25,8 @@
 #include "iAMdiChild.h"
 #include "iAModuleAttachmentToChild.h"
 #include "iARenderer.h"
-#include "iASlicer.h"
+#include "iASlicerImpl.h"
+#include "iASlicerMode.h"
 
 #include "iARemoteAction.h"
 #include "iARemoteRenderer.h"
@@ -111,27 +112,24 @@ public:
 		, m_httpServer(std::make_unique<QHttpServer>())
 #endif
 	{
-
-
 		m_wsAPI->addRenderWindow(child->renderer()->renderWindow(), "3D");
-		m_wsAPI->addRenderWindow(child->slicer(iASlicerMode::XY)->renderWindow(), "XY");
-		m_wsAPI->addRenderWindow(child->slicer(iASlicerMode::XZ)->renderWindow(), "XZ");
-		m_wsAPI->addRenderWindow(child->slicer(iASlicerMode::YZ)->renderWindow(), "YZ");
 		m_viewWidgets.insert("3D", child->rendererWidget());
-		m_viewWidgets.insert("XY", child->slicer(iASlicerMode::XY));
-		m_viewWidgets.insert("XZ", child->slicer(iASlicerMode::XZ));
-		m_viewWidgets.insert("YZ", child->slicer(iASlicerMode::YZ));
-
+		for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+		{
+			m_wsAPI->addRenderWindow(child->slicer(i)->renderWindow(), slicerModeString(i));
+			child->slicer(i)->setShowTooltip(false);
+			m_viewWidgets.insert(slicerModeString(i), child->slicer(i));
+		}
 		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::controlCommand, this, [this](iARemoteAction const & action) {
 			static bool lastDown = false;
 			static qint64 lastInput = 0;
 			//LOG(lvlDebug, QString("client control: action: %1; position: %2, %3")
-			//	.arg((action.action == iARemoteAction::up)?"up":"down")
+			//	.arg((action.action == iARemoteAction::ButtonUp)?"up":"down")
 			//	.arg(action.x)
 			//	.arg(action.y)
 			//	);
 			auto now = QDateTime::currentMSecsSinceEpoch();
-			bool curDown = (action.action == iARemoteAction::down);
+			bool curDown = (action.action == iARemoteAction::ButtonDown);
 
 			auto millisecondsSinceLastInput = now - lastInput;
 
