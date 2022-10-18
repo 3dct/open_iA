@@ -94,8 +94,6 @@ void iARenderObserver::Execute(vtkObject * caller,
 	unsigned long eid,
 	void *  callData)
 {
-	char keyCode = m_pIren->GetKeyCode();
-	char* keySym = m_pIren->GetKeySym();
 	switch (eid)
 	{
 		/*
@@ -115,6 +113,8 @@ void iARenderObserver::Execute(vtkObject * caller,
 		*/
 		case vtkCommand::KeyPressEvent:
 		{
+			char keyCode = m_pIren->GetKeyCode();
+			char* keySym = m_pIren->GetKeySym();
 			emit keyPressed(keyCode);
 			if (keyCode == '\t') {
 				mode++; if (mode > 1) mode = 0;
