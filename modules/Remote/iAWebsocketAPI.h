@@ -58,6 +58,8 @@ private:
 	int m_count;
 	QMap<QString, QByteArray> images;
 
+	QElapsedTimer m_StoppWatch;
+
 	QThread m_ServerThread;
 
 	QMap<QString, QList<QWebSocket*>> subscriptions;

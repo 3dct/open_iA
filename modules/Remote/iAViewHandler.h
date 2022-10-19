@@ -42,6 +42,7 @@ public:
 private: 
 	long long Lastrendered =0;
 	int timeRendering =0;
+	int waitTimeRendering = 50;
 	QTimer* timer;
 	QElapsedTimer m_StoppWatch;
 

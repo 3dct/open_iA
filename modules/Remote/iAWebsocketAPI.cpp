@@ -81,6 +81,10 @@ void iAWebsocketAPI::onNewConnection()
 
 void iAWebsocketAPI::processTextMessage(QString message)
 {
+
+	LOG(lvlDebug, QString("Websocket time %1").arg(m_StoppWatch.elapsed()));
+	m_StoppWatch.restart();
+
 	QWebSocket* pClient = qobject_cast<QWebSocket*>(sender());
 
 	auto Request = QJsonDocument::fromJson(message.toLatin1());

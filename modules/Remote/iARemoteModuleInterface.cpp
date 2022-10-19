@@ -177,7 +177,7 @@ public:
 
 			interactor->InvokeEvent(eventID, nullptr);
 
-			renWin->Render();
+			//renWin->Render();
 			m_viewWidgets[action.viewID]->update();
 
 			//interactor()->Modified();
