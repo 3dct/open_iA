@@ -33,4 +33,5 @@ public:
 	//! Creates the widget; makes sure its inner vtk render window is set, and sets an appropriate surface format
 	iAQVTKWidget(QWidget* parent = nullptr);
 	void updateAll();
+	bool event(QEvent* evt) override;
 };

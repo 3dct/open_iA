@@ -187,7 +187,7 @@ bool iAAbstractMagicLensWidget::event(QEvent* event)
 #endif
 		// fall through
 	default:
-		return iAVtkWidget::event(event);
+		return iAQVTKWidget::event(event);
 	}
 }
 
