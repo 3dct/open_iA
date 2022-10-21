@@ -25,3 +25,8 @@ if (Qt${QT_VERSION_MAJOR}HttpServer_FOUND)
 else()
 	message(WARNING "Qt HttpServer is not available! You can still run the Remote Render Server, but you will have to serve the 'RemoteClient' folder separately, e.g. via webpack!")
 endif()
+
+
+if (CUDAToolkit_FOUND)
+	target_compile_definitions(Remote PRIVATE USE_CUDA)
+endif()

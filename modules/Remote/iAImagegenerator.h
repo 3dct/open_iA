@@ -20,18 +20,16 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkSmartPointer.h>
-
 #include <QObject>
 
-class vtkUnsignedCharArray;
 class vtkRenderWindow;
+
+class QByteArray;
 
 class iAImagegenerator: QObject
 {
 	Q_OBJECT
-
-public: 
-	static vtkSmartPointer<vtkUnsignedCharArray> createImage(vtkRenderWindow* window, int quality);
+public:
+	static QByteArray createImage(vtkRenderWindow* window, int quality);
 };
 

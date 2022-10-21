@@ -17,6 +17,10 @@ if (Qt${QT_VERSION_MAJOR}HttpServer_FOUND)
 	set(Qt${QT_VERSION_MAJOR}HttpServer_FOUND 1 PARENT_SCOPE) # required to have it available in enabled.cmake!
 endif()
 
+if (CUDAToolkit_FOUND)
+	list(APPEND DEPENDENCIES_LIBRARIES CUDA::cudart CUDA::nvjpeg)
+endif()
+
 #set(VTK_REQUIRED_LIBS_PUBLIC
 #	IOImage               # for image writing
 #	RenderingCore
