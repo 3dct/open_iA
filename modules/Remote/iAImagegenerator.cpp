@@ -28,6 +28,8 @@
 #include <vtkWindowToImageFilter.h>
 
 #ifdef USE_CUDA
+#include <vtkImageFlip.h>
+
 #include <nvjpeg.h>
 
 #include <QElapsedTimer>
@@ -120,18 +122,30 @@ public:
 
 QByteArray iAImagegenerator::createImage(vtkRenderWindow* window, int quality)
 {
+	QElapsedTimer t1; t1.start();
 	static iACudaImageGen cudaImageGen;
 	vtkNew<vtkWindowToImageFilter> w2if;
 	w2if->ShouldRerenderOff();
 	w2if->SetInput(window);
 	w2if->Update();
-	auto vtkImg = w2if->GetOutput();
+	LOG(lvlDebug, QString("grab: %1 ms").arg(t1.elapsed()));
+
+	QElapsedTimer t2; t2.start();
+	// nvidia expects image flipped around y axis in comparison to VTK!
+	vtkNew<vtkImageFlip> flipYFilter;
+	flipYFilter->SetFilteredAxis(1); // flip y axis
+	flipYFilter->SetInputConnection(w2if->GetOutputPort());
+	flipYFilter->Update();
+
+	auto vtkImg = flipYFilter->GetOutput();
 	auto const dim = vtkImg->GetDimensions();
 	unsigned char * buffer = static_cast<unsigned char*>(vtkImg->GetScalarPointer());
 	assert(dim[2] == 1);
-	QElapsedTimer t; t.start();
+	LOG(lvlDebug, QString("grab: %1 ms").arg(t2.elapsed()));
+
+	QElapsedTimer t3; t3.start();
 	auto data = cudaImageGen.BitmapToJpegCUDA(dim[0], dim[1], buffer, quality);
-	LOG(lvlDebug, QString("nvJPEG: %1 ms").arg(t.elapsed()));
+	LOG(lvlDebug, QString("nvJPEG: %1 ms").arg(t3.elapsed()));
 	return QByteArray(reinterpret_cast<char*>(data.data()), data.size());
 }
 
