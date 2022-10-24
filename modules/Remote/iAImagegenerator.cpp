@@ -33,6 +33,7 @@
 #include <nvjpeg.h>
 
 #include <QElapsedTimer>
+#include <vtkImageCast.h>
 
 namespace
 {
@@ -128,13 +129,14 @@ QByteArray iAImagegenerator::createImage(vtkRenderWindow* window, int quality)
 	w2if->ShouldRerenderOff();
 	w2if->SetInput(window);
 	w2if->Update();
-	LOG(lvlDebug, QString("grab: %1 ms").arg(t1.elapsed()));
 
 	QElapsedTimer t2; t2.start();
 	// nvidia expects image flipped around y axis in comparison to VTK!
+
+	auto image = w2if->GetOutput();
 	vtkNew<vtkImageFlip> flipYFilter;
 	flipYFilter->SetFilteredAxis(1); // flip y axis
-	flipYFilter->SetInputConnection(w2if->GetOutputPort());
+	flipYFilter->SetInputData(image);
 	flipYFilter->Update();
 
 	auto vtkImg = flipYFilter->GetOutput();
