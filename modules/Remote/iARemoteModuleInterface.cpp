@@ -33,6 +33,7 @@
 #include "iAWebsocketAPI.h"
 
 #include <QAction>
+#include <QDateTime>
 
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkInteractorStyle.h>

@@ -38,8 +38,7 @@
 iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :
 	QObject(parent),
 	m_pWebSocketServer(new QWebSocketServer(QStringLiteral("Remote Server"), QWebSocketServer::NonSecureMode, this)),
-	m_debug(debug),
-	m_ServerThread(QThread())
+	m_debug(debug)
 {
 	m_pWebSocketServer->moveToThread(&m_ServerThread);
 	m_ServerThread.start();

@@ -23,6 +23,8 @@
 #include <QMap>
 #include <QObject>
 
+#include <memory>
+
 class iAViewHandler;
 class iAWebsocketAPI;
 
