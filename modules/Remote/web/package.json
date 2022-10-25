@@ -12,7 +12,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@kitware/vtk.js": "^24.19.0"
+    "@kitware/vtk.js": "^24.19.0",
+    "webpack": "^5.74.0",
+    "wslink": "^1.9.0"
   },
   "devDependencies": {
     "webpack-cli": "^4.10.0",
