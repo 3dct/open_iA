@@ -5,6 +5,9 @@ target_link_libraries(${libname} PUBLIC
 	Qt${QT_VERSION_MAJOR}::Gui
 	# ::Widgets # seems to be pulled in by vtk's GUISupportQt automatically
 )
+if (CUDAToolkit_FOUND)
+	target_link_libraries(${libname} PRIVATE CUDA::cudart)
+endif()
 set(VTK_REQUIRED_LIBS_PUBLIC
 	CommonCore
 	CommonDataModel

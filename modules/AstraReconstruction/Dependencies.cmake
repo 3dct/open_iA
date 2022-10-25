@@ -1,5 +1,4 @@
 set(DEPENDENCIES_LIBRARIES
-	CUDA::cudart
 	iA::guibase
 )
 set(DEPENDENCIES_CMAKE

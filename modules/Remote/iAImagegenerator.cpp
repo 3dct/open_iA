@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAImagegenerator.h"
 
+#include <iACudaHelper.h>
 #include <iALog.h>
 
 #include <vtkJPEGWriter.h>
@@ -27,13 +28,13 @@
 #include <vtkUnsignedCharArray.h>
 #include <vtkWindowToImageFilter.h>
 
-#ifdef USE_CUDA
+#include <QElapsedTimer>
+
+#ifdef CUDA_AVAILABLE
+
 #include <vtkImageFlip.h>
 
 #include <nvjpeg.h>
-
-#include <QElapsedTimer>
-#include <vtkImageCast.h>
 
 namespace
 {
@@ -121,7 +122,7 @@ public:
 };
 
 
-QByteArray iAImagegenerator::createImage(vtkRenderWindow* window, int quality)
+QByteArray nvJPEGCreateImage(vtkRenderWindow* window, int quality)
 {
 	QElapsedTimer t1; t1.start();
 	static iACudaImageGen cudaImageGen;
@@ -150,26 +151,39 @@ QByteArray iAImagegenerator::createImage(vtkRenderWindow* window, int quality)
 	LOG(lvlDebug, QString("nvJPEG: %1 ms").arg(t3.elapsed()));
 	return QByteArray(reinterpret_cast<char*>(data.data()), data.size());
 }
+#endif
 
-#else
+namespace
+{
+	QByteArray vtkTurboJPEGCreateImage(vtkRenderWindow* window, int quality)
+	{
+		vtkNew<vtkWindowToImageFilter> w2if;
+		w2if->ShouldRerenderOff();
+		w2if->SetInput(window);
+		w2if->Update();
+
+		QElapsedTimer t; t.start();
+		vtkNew<vtkJPEGWriter> writer;
+		writer->SetInputConnection(w2if->GetOutputPort());
+		writer->SetQuality(quality);
+		writer->WriteToMemoryOn();
+		writer->Write();
+		vtkSmartPointer<vtkUnsignedCharArray> imgData = writer->GetResult();
+		QByteArray result((char*)imgData->Begin(), static_cast<qsizetype>(imgData->GetSize()));
+		LOG(lvlDebug, QString("turboJPEG: %1 ms").arg(t.elapsed()));
+		return result;
+	}
+}
+
 
 QByteArray iAImagegenerator::createImage(vtkRenderWindow* window, int quality)
 {
-	vtkNew<vtkWindowToImageFilter> w2if;
-	w2if->ShouldRerenderOff();
-	w2if->SetInput(window);
-	w2if->Update();
-
-	QElapsedTimer t; t.start();
-	vtkNew<vtkJPEGWriter> writer;
-	writer->SetInputConnection(w2if->GetOutputPort());
-	writer->SetQuality(quality);
-	writer->WriteToMemoryOn();
-	writer->Write();
-	vtkSmartPointer<vtkUnsignedCharArray> img = writer->GetResult();
-	QByteArray result((char*)data->Begin(), static_cast<qsizetype>(data->GetSize()));
-	LOG(lvlDebug, QString("turboJPEG: %1 ms").arg(t.elapsed()));
-	return result;
+#if CUDA_AVAILABLE
+	if (isCUDAAvailable())
+	{
+		return nvJPEGCreateImage(window, quality);
+	}
+#endif
+	return vtkTurboJPEGCreateImage(window, quality);
 }
 
-#endif

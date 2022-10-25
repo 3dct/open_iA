@@ -28,5 +28,5 @@ endif()
 
 
 if (CUDAToolkit_FOUND)
-	target_compile_definitions(Remote PRIVATE USE_CUDA)
+	target_compile_definitions(Remote PRIVATE CUDA_AVAILABLE)
 endif()
