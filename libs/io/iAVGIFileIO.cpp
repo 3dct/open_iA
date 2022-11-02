@@ -22,8 +22,9 @@
 
 #include "iAFileUtils.h"
 #include "iAProgress.h"
-#include "iAValueTypeVectorHelpers.h"
+#include "iAStringHelper.h"
 #include "iAToolsVTK.h"
+#include "iAValueTypeVectorHelpers.h"
 
 #include "iARawFileIO.h"
 
@@ -31,111 +32,51 @@
 
 #include <QFile>
 #include <QFileInfo>
+#include <QSettings>
 #include <QTextStream>
 
 iAVGIFileIO::iAVGIFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
 {}
 
-namespace
-{
-	// TODO: rewrite to read file only once, return vector for multi-entry types (size, spacing, ...)
-	QString getParameterValues(QString fileName, QString parameter, int index, QString section = "", QString sep = ":", bool caseSensitive = true)
-	{
-		if (index < 0 || index>3)
-		{
-			return 0;
-		}
-		QString values[4];
-		QFile file(fileName);
-
-		if (file.open(QIODevice::ReadOnly))
-		{
-			QTextStream textStream(&file);
-			QString currentLine, currentSection;
-			while (!textStream.atEnd())
-			{
-				currentLine = textStream.readLine();
-				if (!currentLine.isEmpty())
-				{
-					QString currentParameter;
-					if ((currentLine.indexOf("[") == 0) && (currentLine.indexOf("[") < currentLine.indexOf("]")))
-						currentSection = currentLine.section(" ", 0, 0);
-					else
-						currentParameter = currentLine.section(" ", 0, 0);
-
-					if ((section != "") && (!currentSection.startsWith(section))) continue;
-					else
-					{
-						if (currentParameter.startsWith(parameter, caseSensitive ? Qt::CaseSensitive: Qt::CaseInsensitive))
-						{
-							QString temp = currentLine.remove(0, currentLine.indexOf(sep) + 1);
-							temp = temp.simplified();
-							if (currentParameter == "name")
-							{
-								values[index] = temp;
-								return values[index];
-							}
-
-							values[0] = temp.section(" ", 0, 0).trimmed();
-							values[1] = temp.section(" ", 1, 1).trimmed();
-							values[2] = temp.section(" ", 2, 2).trimmed();
-
-							if (currentLine.indexOf("%") >= 0)
-								values[3] = temp.section("%", 1, 1);
-						}
-					}
-				}
-			}
-			file.close();
-		}
-		else return "";
-
-		return values[index];
-	}
-}
-
 std::vector<std::shared_ptr<iADataSet>> iAVGIFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
-
+	//static auto VGIFileFormat = QSettings::registerFormat("vgi", )
 	// TODO: rewrite to read file only once!
 	QVariantMap rawFileParams;
-	int sizeX = getParameterValues(fileName, "size", 0, "[file1]", "=", false).toInt();
-	int sizeY = getParameterValues(fileName, "size", 1, "[file1]", "=", false).toInt();
-	int sizeZ = getParameterValues(fileName, "size", 2, "[file1]", "=", false).toInt();
-	if (sizeX == 0 || sizeY == 0 || sizeZ == 0)
+	QSettings vgiFileSettings(fileName, QSettings::IniFormat);
+	auto size = stringToVector<QVector<int>, int>(vgiFileSettings.value("file1/size").toString(), " ");
+	size.resize(3);
+	if (size[0] == 0 || size[1] == 0 || size[2] == 0)
 	{
-		LOG(lvlError, QString("VGI reader: One of the 3 dimensions has size 0 (determined values: %1x%2x%3)!").arg(sizeX).arg(sizeY).arg(sizeZ));
+		LOG(lvlError, QString("VGI reader: One of the 3 dimensions has size 0 (determined values: %1x%2x%3)!").arg(size[0]).arg(size[1]).arg(size[2]));
 		return {};
 	}
-	rawFileParams[iARawFileIO::SizeStr] = variantVector<int>({ sizeX, sizeY, sizeZ });
-	double spacingX = getParameterValues(fileName, "resolution", 0, "[geometry]", "=", false).toDouble();
-	double spacingY = getParameterValues(fileName, "resolution", 1, "[geometry]", "=", false).toDouble();
-	double spacingZ = getParameterValues(fileName, "resolution", 2, "[geometry]", "=", false).toDouble();
-	if (spacingY == 0 && spacingZ == 0)
+	rawFileParams[iARawFileIO::SizeStr] = QVariant::fromValue(size);
+	auto spacing = stringToVector<QVector<double>, double>(vgiFileSettings.value("geometry/resolution").toString(), " ");
+	spacing.resize(3);
+	if (spacing[1] == 0 && spacing[2] == 0)
 	{
-		spacingY = spacingX;
-		spacingZ = spacingX;
+		spacing[1] = spacing[0];
+		spacing[2] = spacing[0];
 	}
-	if (spacingX == 0 || spacingY == 0 || spacingZ == 0)
+	if (spacing[0] == 0 || spacing[1] == 0 || spacing[2] == 0)
 	{
-		spacingX = 1;
-		spacingY = 1;
-		spacingZ = 1;
+		spacing[0] = 1;
+		spacing[1] = 1;
+		spacing[2] = 1;
 	}
-	rawFileParams[iARawFileIO::SpacingStr] = variantVector<double>({ spacingX, spacingY, spacingZ });
-	double originX = getParameterValues(fileName, "position", 0, "[geometry]", "=", false).toDouble();
-	double originY = getParameterValues(fileName, "position", 1, "[geometry]", "=", false).toDouble();
-	double originZ = getParameterValues(fileName, "position", 2, "[geometry]", "=", false).toDouble();
-	if (originX == 0 || originY == 0 || originZ == 0)
+	rawFileParams[iARawFileIO::SpacingStr] = QVariant::fromValue(spacing);
+	auto origin = stringToVector<QVector<double>, double>(vgiFileSettings.value("geometry/position").toString(), " ");
+	origin.resize(3);
+	if (origin[0] == 0 || origin[1] == 0 || origin[2] == 0)
 	{
-		originX = 1;
-		originY = 1;
-		originZ = 1;
+		origin[0] = 1;
+		origin[1] = 1;
+		origin[2] = 1;
 	}
-	rawFileParams[iARawFileIO::OriginStr] = variantVector<double>({ originX, originY, originZ });
-
-	int	elementSize = getParameterValues(fileName, "BitsPerElement", 0, "[file1]", "=", false).toInt();
+	rawFileParams[iARawFileIO::OriginStr] = QVariant::fromValue(origin);
+	int	elementSize = vgiFileSettings.value("file1/BitsPerElement", 0).toInt();
 	if (elementSize == 0)
 	{
 		LOG(lvlError, "VGI reader: BitsPerElement is 0 / not set!");
@@ -159,10 +100,10 @@ std::vector<std::shared_ptr<iADataSet>> iAVGIFileIO::loadData(QString const& fil
 		return {};
 	}
 
-	rawFileParams[iARawFileIO::HeadersizeStr] = getParameterValues(fileName, "SkipHeader", 0, "[file1]", "=", false).toInt();
+	rawFileParams[iARawFileIO::HeadersizeStr] = vgiFileSettings.value("file1/SkipHeader").toInt();
 	rawFileParams[iARawFileIO::ByteOrderStr] = ByteOrder::LittleEndianStr;
 
-	auto rawFileName = getParameterValues(fileName, "Name", 0, "[file1]", "=", false);
+	auto rawFileName = vgiFileSettings.value("file1/Name").toString();
 	if (rawFileName.isEmpty())
 	{
 		LOG(lvlError, "VGI reader: Data file path is empty!");
