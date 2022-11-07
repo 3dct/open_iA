@@ -22,7 +22,6 @@
 
 #include "iAFileTypeRegistry.h"
 #include "iAFileUtils.h"
-#include "iAMultiStepProgress.h"
 #include "iAProgress.h"
 #include "iASettings.h"    // for mapFromQSettings
 
@@ -137,6 +136,7 @@ std::vector<std::shared_ptr<iADataSet>> iAVolStackFileIO::loadData(QString const
 
 void iAVolStackFileIO::saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
 {
+	Q_UNUSED(paramValues);
 	// write .volstack file:
 	QFile volstackFile(fileName);
 	QFileInfo fi(fileName);
