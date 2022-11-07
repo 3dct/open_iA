@@ -1553,8 +1553,12 @@ void MdiChild::set3DSlicePlanePos(int mode, int slice)
 	int sliceAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::Z);
 	double plane[3];
 	std::fill(plane, plane + 3, 0);
+	auto const spacing =
+		firstImageData() ?
+		firstImageData()->GetSpacing()
+		: m_imageData->GetSpacing();
 	// + 0.5 to place slice plane in the middle of the sliced voxel:
-	plane[sliceAxis] = (slice + 0.5) * m_imageData->GetSpacing()[sliceAxis];
+	plane[sliceAxis] = (slice + 0.5) * spacing[sliceAxis];
 	m_renderer->setSlicePlanePos(sliceAxis, plane[0], plane[1], plane[2]);
 }
 
@@ -1795,6 +1799,17 @@ void MdiChild::applyVolumeSettings(const bool loadSavedVolumeSettings)
 		m_dwSlicer[i]->showBorder(m_renderSettings.ShowSlicePlanes);
 	}
 	m_dwModalities->showSlicers(m_renderSettings.ShowSlicers && !m_snakeSlicer, m_renderer->plane1(), m_renderer->plane2(), m_renderer->plane3());
+	for (auto r : m_dataRenderers)
+	{
+		if (m_renderSettings.ShowSlicers && !m_snakeSlicer)
+		{
+			r.second->setCuttingPlanes(m_renderer->plane1(), m_renderer->plane2(), m_renderer->plane3());
+		}
+		else
+		{
+			r.second->removeCuttingPlanes();
+		}
+	}
 	m_dwModalities->changeRenderSettings(m_volumeSettings, loadSavedVolumeSettings);
 }
 
@@ -1980,6 +1995,10 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 		if (m_renderSettings.ShowSlicers)
 		{
 			m_dwModalities->showSlicers(false, nullptr, nullptr, nullptr);
+			for (auto r : m_dataRenderers)
+			{
+				r.second->removeCuttingPlanes();
+			}
 		}
 
 		// save the slicer transforms
@@ -2019,6 +2038,10 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 		if (m_renderSettings.ShowSlicers)
 		{
 			m_dwModalities->showSlicers(true, m_renderer->plane1(), m_renderer->plane2(), m_renderer->plane3());
+			for (auto r: m_dataRenderers)
+			{
+				r.second->setCuttingPlanes(m_renderer->plane1(), m_renderer->plane2(), m_renderer->plane3());
+			}
 		}
 	}
 }

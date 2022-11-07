@@ -514,6 +514,18 @@ public:
 		return m_volume;
 	}
 
+	void setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3) override
+	{
+		m_volMapper->AddClippingPlane(p1);
+		m_volMapper->AddClippingPlane(p2);
+		m_volMapper->AddClippingPlane(p3);
+	}
+
+	void removeCuttingPlanes() override
+	{
+		m_volMapper->RemoveAllClippingPlanes();
+	}
+
 private:
 	//iAVolumeSettings m_volSettings;
 
