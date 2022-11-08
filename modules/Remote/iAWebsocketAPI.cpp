@@ -122,6 +122,25 @@ void iAWebsocketAPI::processTextMessage(QString message)
 		commandControls(Request, pClient);
 	}
 
+	//Captions API 
+	else if (Request["method"].toString() == "request.captions")
+	{
+		commandControls(Request, pClient);
+	}
+	else if (Request["method"].toString() == "select.caption")
+	{
+		commandControls(Request, pClient);
+	}
+	else if (Request["method"].toString() == "remove.caption")
+	{
+		commandControls(Request, pClient);
+	}
+	else if (Request["method"].toString() == "addMode.caption")
+	{
+		commandControls(Request, pClient);
+	}
+
+
 }
 
 void iAWebsocketAPI::commandWslinkHello(QJsonDocument Request, QWebSocket* pClient)
@@ -350,4 +369,31 @@ void iAWebsocketAPI::socketDisconnected()
 		m_clients.removeAll(pClient);
 		pClient->deleteLater();
 	}
+}
+
+void iAWebsocketAPI::updateCaptionList(QList<iACaptionItem> captions)
+{
+
+	QJsonArray captionList;
+
+	for (auto caption : captions)
+	{
+		QJsonObject captionObject;
+		captionObject["Title"] = caption.Title;
+		captionObject["Text"] = caption.Text;
+		captionObject["x"] = caption.x;
+		captionObject["y"] = caption.y;
+		captionObject["z"] = caption.z;
+
+		captionList.append(captionObject);
+
+	}
+
+	QJsonObject response;
+	response["id"] = "caption.response";
+	response["captionList"] = captionList;
+	const QJsonDocument Response2{response};
+
+
+
 }

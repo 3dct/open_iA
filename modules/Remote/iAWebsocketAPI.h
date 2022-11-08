@@ -25,6 +25,7 @@
 #include <QObject>
 #include <QMap>
 #include <QThread>
+#include <iACaptionItem.h>
 
 class iARemoteAction;
 
@@ -42,12 +43,19 @@ public:
 Q_SIGNALS:
 	void closed();
 	void controlCommand(iARemoteAction const & action);
+	void removeCaption(int id);
+	void addMode(bool active);
+	void selectCaption(int id);
+	void changeCaptionTitle(int id, QString title);
 
 private Q_SLOTS:
 	void onNewConnection();
 	void processTextMessage(QString message);
 	void processBinaryMessage(QByteArray message);
 	void socketDisconnected();
+
+	void updateCaptionList(QList<iACaptionItem> captions); 
+
 public Q_SLOTS:
 	void sendViewIDUpdate(QByteArray img, QString ViewID);
 
