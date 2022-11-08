@@ -43,9 +43,10 @@
 #include "ui_Mainwindow.h"
 
 // io:
-#include "iADataSet.h"
-#include "iAFileTypeRegistry.h"
-#include "iARawFileIO.h"
+#include <iADataSet.h>
+#include <iAFileStackParams.h>
+#include <iAFileTypeRegistry.h>
+#include <iARawFileIO.h>
 
 
 // qthelper
@@ -466,7 +467,7 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow, std::share
 	}
 	if (!io)
 	{
-		io = iAFileTypeRegistry::createIO(fileName);
+		io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Load);
 	}
 	if (!io)
 	{   // did not find an appropriate file IO; createIO already outputs a warning in that case; maybe a QMessageBox?
@@ -1743,17 +1744,24 @@ void MainWindow::createRecentFileActions()
 void MainWindow::updateMenus()
 {
 	bool hasMdiChild = activeMdiChild();
-
+	
+	// File Menu:
+	// old
 	m_ui->actionSave->setEnabled(hasMdiChild);
-	m_ui->actionSave_New->setEnabled(hasMdiChild);
 	m_ui->actionSaveAs->setEnabled(hasMdiChild);
-	m_ui->actionSaveImageStack->setEnabled(hasMdiChild);
 	m_ui->actionSaveProject->setEnabled(activeChild<iASavableProject>());
+
+	// new:
+	m_ui->actionSaveDataSet->setEnabled(hasMdiChild);
+	m_ui->actionSaveProject_New->setEnabled(hasMdiChild);
+	m_ui->actionSaveVolumeStack->setEnabled(hasMdiChild);
+
 	m_ui->actionLoadSettings->setEnabled(hasMdiChild);
 	m_ui->actionSaveSettings->setEnabled(hasMdiChild);
 	m_ui->actionClose->setEnabled(hasMdiChild);
 	m_ui->actionCloseAll->setEnabled(hasMdiChild);
 
+	// Window Menu:
 	m_ui->actionTile->setEnabled(hasMdiChild && m_ui->actionSubWindows->isChecked());
 	m_ui->actionCascade->setEnabled(hasMdiChild && m_ui->actionSubWindows->isChecked());
 	m_ui->actionNextWindow->setEnabled(hasMdiChild);
@@ -1918,9 +1926,10 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionOpenWithDataTypeConversion, &QAction::triggered, this, &MainWindow::openWithDataTypeConversion);
 	connect(m_ui->actionOpenTLGICTData, &QAction::triggered, this, &MainWindow::openTLGICTData);
 	connect(m_ui->actionSave, &QAction::triggered, this, &MainWindow::save);
-	connect(m_ui->actionSave_New, &QAction::triggered, this, &MainWindow::saveNew);
+	connect(m_ui->actionSaveDataSet, &QAction::triggered, this, &MainWindow::saveNew);
 	connect(m_ui->actionSaveAs, &QAction::triggered, this, &MainWindow::saveAs);
 	connect(m_ui->actionSaveProject, &QAction::triggered, this, &MainWindow::saveProject);
+	connect(m_ui->actionSaveVolumeStack, &QAction::triggered, this, &MainWindow::saveVolumeStack);
 	connect(m_ui->actionLoadSettings, &QAction::triggered, this, &MainWindow::loadSettings);
 	connect(m_ui->actionSaveSettings, &QAction::triggered, this, &MainWindow::saveSettings);
 	connect(m_ui->actionExit, &QAction::triggered, qApp, &QApplication::closeAllWindows);
@@ -2674,6 +2683,15 @@ void MainWindow::saveProject()
 	{
 		addRecentFile(child->fileName());
 	}
+}
+
+void MainWindow::saveVolumeStack()
+{
+	if (!activeMDI())
+	{
+		return;
+	}
+	activeMDI()->saveVolumeStack();
 }
 
 void MainWindow::loadArguments(int argc, char** argv)

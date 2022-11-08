@@ -18,61 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAFileStackParams.h"
 
-#include <limits>
-
-#include <QString>
-
-#include "iAbase_export.h"
-
-#define DIM 3
-
-iAbase_API extern const QString organisationName;
-iAbase_API extern const QString applicationName;
-
-enum iAIOType
-{
-	UNKNOWN_READER,
-	MHD_READER,
-	STL_READER,
-	RAW_READER,
-	PARS_READER,
-	VGI_READER,
-	TIF_STACK_READER,
-	JPG_STACK_READER,
-	PNG_STACK_READER,
-	BMP_STACK_READER,
-	CSV_READER,
-	XML_READER,
-	VOLUME_STACK_READER,
-	VOLUME_STACK_MHD_READER,
-	VOLUME_STACK_VOLSTACK_READER,
-	VTK_READER,  //new for VTK Input
-	DCM_READER,
-//	NRRD_READER,     // see iAIOProvider.cpp why this is commented out
-	OIF_READER,
-	PROJECT_READER,
-	NKC_READER,
-
-	MHD_WRITER,
-	STL_WRITER,
-	TIF_STACK_WRITER,
-	JPG_STACK_WRITER,
-	PNG_STACK_WRITER,
-	BMP_STACK_WRITER,
-	MPEG_WRITER,
-	OGV_WRITER,
-	AVI_WRITER,
-	XML_WRITER,
-	DCM_WRITER,
-	AM_WRITER,
-	CSV_WRITER,
-	HDF5_WRITER
-};
-
-const int DefaultMagicLensSize = 120;
-const int MinimumMagicLensSize = 40;
-const int MaximumMagicLensSize = 8192;
-
-const uint NotExistingChannel = std::numeric_limits<uint>::max();
+QString const iAFileStackParams::FileNameBase("File name base");
+QString const iAFileStackParams::Extension("Extension");
+QString const iAFileStackParams::NumDigits("Number of digits in index");
+QString const iAFileStackParams::MinimumIndex("Minimum index");
+QString const iAFileStackParams::MaximumIndex("Maximum index");

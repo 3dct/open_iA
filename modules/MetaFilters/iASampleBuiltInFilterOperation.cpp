@@ -95,7 +95,7 @@ void iASampleBuiltInFilterOperation::performWork()
 				.arg(outFileName)
 				.arg(m_compressOutput ? "on" : "off"));
 
-		auto io = iAFileTypeRegistry::createIO(outFileName);
+		auto io = iAFileTypeRegistry::createIO(outFileName, iAFileIO::Save);
 		QVariantMap writeParamValues;    // TODO: CHECK whether I/O requires other parameters and error in that case!
 		writeParamValues[iAFileIO::CompressionStr] = m_compressOutput;
 		std::vector<std::shared_ptr<iADataSet>> dataSets{ filter->output(o) };

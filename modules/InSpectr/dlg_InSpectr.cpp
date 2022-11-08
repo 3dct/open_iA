@@ -49,6 +49,8 @@
 
 #include <iADockWidgetWrapper.h>
 
+#include <iAVolStackFileIO.h>
+
 #include <iAChartFunctionTransfer.h>
 #include <iAHistogramData.h>
 #include <iAPlotTypes.h>
@@ -756,15 +758,16 @@ void dlg_InSpectr::storeDecomposition()
 			elementInfo.append(",");
 		}
 	}
-
-	iAIO io(iALog::get(), dynamic_cast<iAMdiChild*>(parent()),
-		m_elementConcentrations->getImageListPtr());
-
-	io.setupIO(VOLUME_STACK_VOLSTACK_WRITER, fileName);
-	io.setAdditionalInfo(elementInfo);
-
-	io.start();
-	io.wait();
+	iAVolStackFileIO io;
+	auto imgs = m_elementConcentrations->getImageListPtr();
+	std::vector<std::shared_ptr<iADataSet>> volumes;
+	for (auto img : *imgs)
+	{
+		volumes.push_back(std::make_shared<iAImageData>(img));
+	}
+	QVariantMap paramValues;
+	paramValues[iAVolStackFileIO::AdditionalInfo] = elementInfo;
+	io.save(fileName, volumes, paramValues);
 }
 
 void dlg_InSpectr::combinedElementMaps(int show)

@@ -20,10 +20,12 @@
 * ************************************************************************************/
 #include <iAFileParamDlg.h>
 
+#include <iAFileStackParams.h>
 #include <iAFileUtils.h>
 #include <iAImageStackFileIO.h>
 #include <iARawFileIO.h>
 #include <iASettings.h>
+#include <iAVolStackFileIO.h>
 
 #include <iAMainWindow.h>
 #include <iAParameterDlg.h>
@@ -97,7 +99,7 @@ bool iAFileParamDlg::getParameters(QWidget* parent, iAFileIO const* io, iAFileIO
 }
 
 
-class iANewRawFileParamDlg : public iAFileParamDlg
+class iANewRawFileLoadParamDlg : public iAFileParamDlg
 {
 public:
 	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QString const& ioName, QVariantMap& values, QString const& fileName) const override
@@ -115,7 +117,7 @@ public:
 	}
 };
 
-class iAImageStackParamDlg: public iAFileParamDlg
+class iAImageStackLoadParamDlg: public iAFileParamDlg
 {
 
 public:
@@ -126,11 +128,11 @@ public:
 		int digits;
 		determineStackParameters(fileName, base, suffix, range, digits);
 		values[iAImageStackFileIO::LoadTypeStr] = (digits == 0) ? iAImageStackFileIO::SingleImageOption : iAImageStackFileIO::ImageStackOption;
-		values[iAImageStackFileIO::FileNameBase] = base;
-		values[iAImageStackFileIO::Extension] = suffix;
-		values[iAImageStackFileIO::NumDigits] = digits;
-		values[iAImageStackFileIO::MinimumIndex] = range[0];
-		values[iAImageStackFileIO::MaximumIndex] = range[1];
+		values[iAFileStackParams::FileNameBase] = base;
+		values[iAFileStackParams::Extension] = suffix;
+		values[iAFileStackParams::NumDigits] = digits;
+		values[iAFileStackParams::MinimumIndex] = range[0];
+		values[iAFileStackParams::MaximumIndex] = range[1];
 		return iAFileParamDlg::askForParameters(parent, parameters, ioName, values, fileName);
 	}
 };
@@ -278,7 +280,7 @@ namespace
 #include "ui_OpenHDF5.h"
 typedef iAQTtoUIConnector<QDialog, Ui_dlgOpenHDF5> OpenHDF5Dlg;
 
-class iAHDF5FileParamDlg : public iAFileParamDlg
+class iAHDF5FileLoadParamDlg: public iAFileParamDlg
 {
 	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QString const& ioName, QVariantMap& values, QString const& fileName) const override
 	{
@@ -408,9 +410,9 @@ class iAHDF5FileParamDlg : public iAFileParamDlg
 
 void iAFileParamDlg::setupDefaultFileParamDlgs()
 {
-	add(settingName(iAFileIO::Load, iARawFileIO::Name), std::make_shared<iANewRawFileParamDlg>());
-	add(settingName(iAFileIO::Load, iAImageStackFileIO::Name), std::make_shared<iAImageStackParamDlg>());
+	add(settingName(iAFileIO::Load, iARawFileIO::Name), std::make_shared<iANewRawFileLoadParamDlg>());
+	add(settingName(iAFileIO::Load, iAImageStackFileIO::Name), std::make_shared<iAImageStackLoadParamDlg>());
 #ifdef USE_HDF5
-	add(settingName(iAFileIO::Load, iAHDF5IO::Name), std::make_shared<iAHDF5FileParamDlg>());
+	add(settingName(iAFileIO::Load, iAHDF5IO::Name), std::make_shared<iAHDF5FileLoadParamDlg>());
 #endif
 }

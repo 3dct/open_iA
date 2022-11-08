@@ -94,7 +94,6 @@ private:
 	bool setupVolumeStackReader(QString const & f);
 	bool setupVolumeStackMHDReader(QString const & f);
 	bool setupVolumeStackVolstackReader(QString const & f);
-	bool setupVolumeStackVolStackWriter(QString const & f);
 	void fillFileNameArray(int * indexRange, int digitsInIndex, int stepSize = 1);
 
 	void readImageStack();
@@ -115,7 +114,6 @@ private:
 	void readProject();		// writing project: see iAMdiChild::saveProject / iAModalities::store
 
 	void writeMetaImage(vtkSmartPointer<vtkImageData> imgToWrite, QString fileName);
-	void writeVolumeStack();
 	void writeSTL( );
 	void writeImageStack( );
 
