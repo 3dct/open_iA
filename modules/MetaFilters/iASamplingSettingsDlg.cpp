@@ -54,6 +54,7 @@ public:
 	QLineEdit* from;
 	QLineEdit* to;
 	QCheckBox* logScale;
+	QSpinBox* numSamples;
 	iANumberParameterInputs();
 	~iANumberParameterInputs();
 	void retrieveInputValues(iASettings& values) override;
@@ -196,7 +197,8 @@ namespace
 		QString const& pName,
 		QSharedPointer<iAAttributeDescriptor> descriptor,
 		QGridLayout* gridLay,
-		int curGridLine)
+		int curGridLine, 
+		iASamplingSettingsDlg* eventHandler)
 	{
 		QSharedPointer<iAParameterInputs> result;
 		// merge with common input / iAParameter dlg ?
@@ -216,6 +218,7 @@ namespace
 				QCheckBox* checkBox = new QCheckBox(title);
 				categoryInputs->m_features.push_back(checkBox);
 				checkLay->addWidget(checkBox);
+				QObject::connect(checkBox, &QCheckBox::toggled, eventHandler, &iASamplingSettingsDlg::updateNumSamples);
 			}
 			w->setLayout(checkLay);
 			gridLay->addWidget(w, curGridLine, 1, 1, 3);
@@ -232,11 +235,17 @@ namespace
 				descriptor->max() == std::numeric_limits<double>::max() ? 0 : descriptor->max(),
 				descriptor->valueType() != iAValueType::Continuous ? 'd' : 'g',
 				descriptor->valueType() != iAValueType::Continuous ? 0 : ContinuousPrecision));
+			numberInputs->numSamples = new QSpinBox();
+			numberInputs->numSamples->setMinimum(1);
+			numberInputs->numSamples->setMaximum(9999);
+			numberInputs->numSamples->setVisible(false);
 			gridLay->addWidget(numberInputs->from, curGridLine, 1);
 			gridLay->addWidget(numberInputs->to, curGridLine, 2);
 			numberInputs->logScale = new QCheckBox("Log Scale");
 			numberInputs->logScale->setChecked(descriptor->isLogScale());
 			gridLay->addWidget(numberInputs->logScale, curGridLine, 3);
+			gridLay->addWidget(numberInputs->numSamples, curGridLine, 4);
+			QObject::connect(numberInputs->numSamples, QOverload<int>::of(&QSpinBox::valueChanged), eventHandler, &iASamplingSettingsDlg::updateNumSamples);
 			result = QSharedPointer<iAParameterInputs>(numberInputs);
 		}
 		else
@@ -250,6 +259,7 @@ namespace
 			// LOG(lvlWarn, QString("Don't know how to handle parameters with type %1").arg(descriptor->valueType()));
 		}
 		result->label = new QLabel(pName);
+		result->label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 		gridLay->addWidget(result->label, curGridLine, 0);
 		result->descriptor = descriptor;
 		return result;
@@ -271,7 +281,8 @@ iANumberParameterInputs::iANumberParameterInputs() :
 	iAParameterInputs(),
 	from(nullptr),
 	to(nullptr),
-	logScale(nullptr)
+	logScale(nullptr),
+	numSamples(nullptr)
 {}
 
 iANumberParameterInputs::~iANumberParameterInputs()
@@ -482,6 +493,9 @@ void iASamplingSettingsDlg::algoTypeChanged()
 	m_ui->leParamDescriptor->setEnabled(isExternal);
 	m_ui->tbChooseParameterDescriptor->setEnabled(isExternal);
 	m_ui->leAdditionalArguments->setEnabled(isExternal);
+	m_ui->lbExternalExecutable->setEnabled(isExternal);
+	m_ui->lbExternalParameterDescriptor->setEnabled(isExternal);
+	m_ui->lbExternalAdditionalArguments->setEnabled(isExternal);
 }
 
 void iASamplingSettingsDlg::getValues(iASettings& values) const
@@ -497,6 +511,40 @@ void iASamplingSettingsDlg::getValues(iASettings& values) const
 	{
 		m_paramInputs[i]->retrieveInputValues(values);
 	}
+}
+
+std::vector<int> iASamplingSettingsDlg::numOfSamplesPerParameter() const
+{
+	std::vector<int> result(m_paramInputs.size(), 1);
+	iASettings s;
+	getValues(s);
+	for (int l = 0; l < m_paramInputs.size(); ++l)
+	{
+		auto desc = m_paramInputs[l]->currentDescriptor();
+		if (desc->valueType() == iAValueType::Categorical || desc->valueType() == iAValueType::Boolean)
+		{
+			result[l] = s[desc->name()].toString().split(",").size();
+		}
+		else if (desc->valueType() == iAValueType::Continuous || desc->valueType() == iAValueType::Discrete)
+		{
+			result[l]  = dynamic_cast<iANumberParameterInputs*>(m_paramInputs[l].data())->numSamples->value();
+		}
+	}
+	return result;
+}
+
+void iASamplingSettingsDlg::updateNumSamples()
+{
+	iASettings s;
+	getValues(s);
+	auto samplingMethod = createSamplingMethod(s);
+	if (!samplingMethod->supportsSamplesPerParameter())
+	{
+		return;
+	}
+	auto samplesPerParam = numOfSamplesPerParameter();
+	int numSamples = std::accumulate(samplesPerParam.begin(), samplesPerParam.end(), 1, std::multiplies<int>{});
+	m_ui->sbNumberOfSamples->setValue(numSamples);
 }
 
 void iASamplingSettingsDlg::setParameterValues(iASettings const& values)
@@ -608,17 +656,31 @@ void iASamplingSettingsDlg::outputBaseChanged()
 
 void iASamplingSettingsDlg::samplingMethodChanged()
 {
-	QString samplingMethod = m_ui->cbSamplingMethod->currentText();
-	m_ui->gbSamplingMethodDetails->setVisible(samplingMethod == iASamplingMethodName::GlobalSensitivity ||
-		samplingMethod == iASamplingMethodName::GlobalSensitivitySmall ||
-		samplingMethod == iASamplingMethodName::RerunSampling);
-	m_ui->lbNumberOfSamples->setVisible(samplingMethod != iASamplingMethodName::RerunSampling);
-	m_ui->sbNumberOfSamples->setVisible(samplingMethod != iASamplingMethodName::RerunSampling);
-	m_ui->widgetSensitivitySamplingParameters->setVisible(samplingMethod == iASamplingMethodName::GlobalSensitivity ||
-		samplingMethod == iASamplingMethodName::GlobalSensitivitySmall);
-	m_ui->lbStarStepNumber->setVisible(samplingMethod == iASamplingMethodName::GlobalSensitivitySmall);
-	m_ui->sbStarStepNumber->setVisible(samplingMethod == iASamplingMethodName::GlobalSensitivitySmall);
-	m_ui->widgetRerunSamplingParameters->setVisible(samplingMethod == iASamplingMethodName::RerunSampling);
+	QString samplingMethodName = m_ui->cbSamplingMethod->currentText();
+	m_ui->gbSamplingMethodDetails->setVisible(samplingMethodName == iASamplingMethodName::GlobalSensitivity ||
+		samplingMethodName == iASamplingMethodName::GlobalSensitivitySmall ||
+		samplingMethodName == iASamplingMethodName::RerunSampling);
+	m_ui->lbNumberOfSamples->setVisible(samplingMethodName != iASamplingMethodName::RerunSampling);
+	m_ui->sbNumberOfSamples->setVisible(samplingMethodName != iASamplingMethodName::RerunSampling);
+	m_ui->widgetSensitivitySamplingParameters->setVisible(samplingMethodName == iASamplingMethodName::GlobalSensitivity ||
+		samplingMethodName == iASamplingMethodName::GlobalSensitivitySmall);
+	m_ui->lbStarStepNumber->setVisible(samplingMethodName == iASamplingMethodName::GlobalSensitivitySmall);
+	m_ui->sbStarStepNumber->setVisible(samplingMethodName == iASamplingMethodName::GlobalSensitivitySmall);
+	m_ui->widgetRerunSamplingParameters->setVisible(samplingMethodName == iASamplingMethodName::RerunSampling);
+
+	iASettings s;
+	getValues(s);
+	auto samplingMethod = createSamplingMethod(s);
+	for (int p = 0; p < m_paramSpecs->size(); ++p)
+	{
+		auto t = m_paramSpecs->at(p)->valueType();
+		if (t == iAValueType::Discrete || t == iAValueType::Continuous)
+		{
+			auto inputs = dynamic_cast<iANumberParameterInputs*>(m_paramInputs[p].data());
+			inputs->numSamples->setVisible(samplingMethod->supportsSamplesPerParameter());
+		}
+	}
+	m_ui->lbNumSamplesPerParam->setVisible(samplingMethod->supportsSamplesPerParameter());
 }
 
 void iASamplingSettingsDlg::showAlgorithmInfo()
@@ -718,7 +780,7 @@ void iASamplingSettingsDlg::setParameters(QSharedPointer<iAAttributes> params)
 					pName.right(pName.length() - 4),
 					p,
 					m_ui->parameterLayout,
-					curGridLine);
+					curGridLine, this);
 				++curGridLine;
 				m_paramInputs.push_back(pInput);
 			}
@@ -729,7 +791,7 @@ void iASamplingSettingsDlg::setParameters(QSharedPointer<iAAttributes> params)
 				pName,
 				p,
 				m_ui->parameterLayout,
-				curGridLine);
+				curGridLine, this);
 			curGridLine++;
 			m_paramInputs.push_back(pInput);
 		}

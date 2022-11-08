@@ -59,6 +59,9 @@ public:
 	QSharedPointer<iAAttributes> parameterRanges();
 	QSharedPointer<iAAttributes> parameterSpecs();
 	void getValues(iASettings & values) const;
+	std::vector<int> numOfSamplesPerParameter() const;
+public slots:
+	void updateNumSamples();
 private slots:
 	void chooseOutputFolder();
 	void chooseParameterDescriptor();

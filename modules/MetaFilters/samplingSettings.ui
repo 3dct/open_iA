@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>570</width>
-    <height>638</height>
+    <width>848</width>
+    <height>779</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -104,12 +104,15 @@
                <property name="text">
                 <string>Built-in</string>
                </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item row="2" column="1" colspan="2">
               <widget class="QPushButton" name="pbFilterSelect">
                <property name="enabled">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
                <property name="toolTip">
                 <string>The built-in filter for which the parameter space should be sampled</string>
@@ -121,6 +124,9 @@
              </item>
              <item row="4" column="2">
               <widget class="QLineEdit" name="leParamDescriptor">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="toolTip">
                 <string>A descriptor of all parameters that the executable accepts. The file specified here should contain a single line per parameter, in the same format as the open_iA_cmd.exe tool prints when called with -p &quot;some filter name&quot; parameters.</string>
                </property>
@@ -130,7 +136,10 @@
               </widget>
              </item>
              <item row="4" column="1">
-              <widget class="QLabel" name="label_2">
+              <widget class="QLabel" name="lbExternalParameterDescriptor">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Parameter descriptor: </string>
                </property>
@@ -142,12 +151,15 @@
                 <string>External</string>
                </property>
                <property name="checked">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
              <item row="5" column="1">
-              <widget class="QLabel" name="label_7">
+              <widget class="QLabel" name="lbExternalAdditionalArguments">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Additional arguments: </string>
                </property>
@@ -171,6 +183,9 @@
              </item>
              <item row="3" column="2">
               <widget class="QLineEdit" name="leExecutable">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="toolTip">
                 <string>The external executable that is called once per parameter set</string>
                </property>
@@ -196,7 +211,10 @@
               </spacer>
              </item>
              <item row="3" column="1">
-              <widget class="QLabel" name="label">
+              <widget class="QLabel" name="lbExternalExecutable">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>Executable: </string>
                </property>
@@ -205,12 +223,15 @@
              <item row="1" column="0" colspan="2">
               <widget class="QLabel" name="label_14">
                <property name="text">
-                <string>Pipeline Name: </string>
+                <string>Sampling/Pipeline Name: </string>
                </property>
               </widget>
              </item>
              <item row="3" column="3">
               <widget class="QToolButton" name="tbChooseExecutable">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>...</string>
                </property>
@@ -219,7 +240,7 @@
              <item row="2" column="3">
               <widget class="QToolButton" name="tbAlgorithmInfo">
                <property name="enabled">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
                <property name="text">
                 <string/>
@@ -235,6 +256,9 @@
              </item>
              <item row="4" column="3">
               <widget class="QToolButton" name="tbChooseParameterDescriptor">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>...</string>
                </property>
@@ -252,6 +276,9 @@
              </item>
              <item row="5" column="2" colspan="2">
               <widget class="QLineEdit" name="leAdditionalArguments">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="acceptDrops">
                 <bool>true</bool>
                </property>
@@ -271,7 +298,7 @@
             <property name="title">
              <string>Sampling</string>
             </property>
-            <layout class="QGridLayout" name="samplingMethodLayout" columnstretch="1,0">
+            <layout class="QGridLayout" name="samplingMethodLayout" columnstretch="1,0,0,0">
              <property name="leftMargin">
               <number>4</number>
              </property>
@@ -300,7 +327,60 @@
                </property>
               </widget>
              </item>
-             <item row="2" column="1">
+             <item row="3" column="0">
+              <widget class="QCheckBox" name="checkBox">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="text">
+                <string>Fixed Seed</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="lbSamplingMethod">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Method</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QLineEdit" name="lineEdit">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0" colspan="3">
+              <widget class="QCheckBox" name="cbContinueOnError">
+               <property name="toolTip">
+                <string>If checked, sampling will continue in the case that an error occurs while producing a single sample. If unchecked, the whole sampling will be aborted when an error occurs.</string>
+               </property>
+               <property name="text">
+                <string>Continue sampling on error</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="2">
+              <widget class="QLabel" name="label">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="text">
+                <string>(same seed reproduces the same sampling)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1" colspan="2">
               <widget class="QSpinBox" name="sbNumberOfSamples">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -325,20 +405,7 @@
                </property>
               </widget>
              </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="lbSamplingMethod">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>Method</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
+             <item row="0" column="1" colspan="2">
               <widget class="QComboBox" name="cbSamplingMethod">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -354,19 +421,6 @@
                </property>
                <property name="currentIndex">
                 <number>-1</number>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0" colspan="2">
-              <widget class="QCheckBox" name="cbContinueOnError">
-               <property name="toolTip">
-                <string>If checked, sampling will continue in the case that an error occurs while producing a single sample. If unchecked, the whole sampling will be aborted when an error occurs.</string>
-               </property>
-               <property name="text">
-                <string>Continue sampling on error</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -429,6 +483,9 @@
                 </property>
                 <property name="rightMargin">
                  <number>4</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
                 </property>
                 <property name="spacing">
                  <number>4</number>
@@ -758,8 +815,43 @@
           <property name="spacing">
            <number>4</number>
           </property>
+          <item row="1" column="3">
+           <widget class="QLabel" name="lbParameterScale">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Scale</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="5">
+           <widget class="QTextBrowser" name="textAlgorithmDescription"/>
+          </item>
+          <item row="1" column="2">
+           <widget class="QLabel" name="lbParameterTo">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>To</string>
+            </property>
+           </widget>
+          </item>
           <item row="1" column="0">
            <widget class="QLabel" name="lbParameterName">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Parameter&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
@@ -770,27 +862,42 @@
           </item>
           <item row="1" column="1">
            <widget class="QLabel" name="lbParameterFrom">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>From</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
-           <widget class="QLabel" name="lbParameterTo">
+          <item row="1" column="4">
+           <widget class="QLabel" name="lbNumSamplesPerParam">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
-             <string>To</string>
+             <string># Samples</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="3">
-           <widget class="QLabel" name="lbParameterScale">
-            <property name="text">
-             <string>Scale</string>
+          <item row="2" column="0" colspan="5">
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
             </property>
-           </widget>
-          </item>
-          <item row="0" column="0" colspan="4">
-           <widget class="QTextBrowser" name="textAlgorithmDescription"/>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
           </item>
          </layout>
         </widget>
