@@ -217,7 +217,6 @@ void iAImageSampler::start()
 	statusMsg("");
 	statusMsg("---------- SAMPLING STARTED ----------");
 	statusMsg("Generating sampling parameter sets...");
-	m_samplingMethod->setSampleCount(m_parameters[spnNumberOfSamples].toInt(), m_parameterRanges);
 	m_parameterSets = m_samplingMethod->parameterSets(m_parameterRanges);
 	if (!m_parameterSets)
 	{

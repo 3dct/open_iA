@@ -122,7 +122,7 @@ iASamplingSettingsDlg::iASamplingSettingsDlg(QWidget *parentWdgt,
 
 	m_widgetMap.insert(spnParameterSetFile, m_ui->leParameterSetFile);
 
-	m_startLine = m_ui->parameterLayout->rowCount();
+	m_startLine = m_ui->parameterLayout->rowCount()-1;
 
 	QStringList methods(samplingMethodNames());
 	m_ui->cbSamplingMethod->addItems(methods);
@@ -151,7 +151,7 @@ iASamplingSettingsDlg::iASamplingSettingsDlg(QWidget *parentWdgt,
 	connect(m_ui->leOutputFolder, &QLineEdit::editingFinished, this, &iASamplingSettingsDlg::outputBaseChanged);
 	connect(m_ui->leBaseName, &QLineEdit::editingFinished, this, &iASamplingSettingsDlg::outputBaseChanged);
 	connect(m_ui->cbSeparateFolder, &QCheckBox::toggled, this, &iASamplingSettingsDlg::outputBaseChanged);
-	connect(m_ui->sbNumberOfSamples, QOverload<int>::of(&QSpinBox::valueChanged), this, &iASamplingSettingsDlg::outputBaseChanged);
+	connect(m_ui->sbNumberOfSamples, QOverload<int>::of(&QSpinBox::valueChanged), this, &iASamplingSettingsDlg::numberOfSamplesChanged);
 	connect(m_ui->cbSamplingMethod, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iASamplingSettingsDlg::samplingMethodChanged);
 	connect(m_ui->tbAlgorithmInfo, &QToolButton::toggled, this, &iASamplingSettingsDlg::showAlgorithmInfo);
 	connect(m_ui->tbSamplingInfo, &QToolButton::toggled, this, &iASamplingSettingsDlg::showSamplingInfo);
@@ -290,6 +290,7 @@ iANumberParameterInputs::~iANumberParameterInputs()
 	delete from;
 	delete to;
 	delete logScale;
+	delete numSamples;
 }
 
 void iANumberParameterInputs::retrieveInputValues(iASettings & values)
@@ -544,7 +545,7 @@ void iASamplingSettingsDlg::updateNumSamples()
 	}
 	auto samplesPerParam = numOfSamplesPerParameter();
 	int numSamples = std::accumulate(samplesPerParam.begin(), samplesPerParam.end(), 1, std::multiplies<int>{});
-	m_ui->sbNumberOfSamples->setValue(numSamples);
+	m_ui->lbNumberOfSamplesActual->setText(QString("actual: %1").arg(numSamples));
 }
 
 void iASamplingSettingsDlg::setParameterValues(iASettings const& values)
@@ -653,6 +654,23 @@ void iASamplingSettingsDlg::outputBaseChanged()
 		}
 	}
 }
+void iASamplingSettingsDlg::updateActualNumSamples()
+{
+	iASettings s;
+	getValues(s);
+	auto samplingMethod = createSamplingMethod(s);
+	if (samplingMethod->supportsSamplesPerParameter())
+	{
+		samplingMethod->setSampleCount(m_ui->sbNumberOfSamples->value(), m_paramSpecs);
+		m_ui->lbNumberOfSamplesActual->setText(QString("actual: %1").arg(samplingMethod->sampleCount()));
+	}
+}
+
+void iASamplingSettingsDlg::numberOfSamplesChanged()
+{
+	updateActualNumSamples();
+	outputBaseChanged();
+}
 
 void iASamplingSettingsDlg::samplingMethodChanged()
 {
@@ -681,6 +699,8 @@ void iASamplingSettingsDlg::samplingMethodChanged()
 		}
 	}
 	m_ui->lbNumSamplesPerParam->setVisible(samplingMethod->supportsSamplesPerParameter());
+	m_ui->lbNumberOfSamplesActual->setVisible(samplingMethod->supportsSamplesPerParameter());
+	updateActualNumSamples();
 }
 
 void iASamplingSettingsDlg::showAlgorithmInfo()
@@ -769,6 +789,7 @@ void iASamplingSettingsDlg::setParameters(QSharedPointer<iAAttributes> params)
 	m_paramSpecs = params;
 	m_paramInputs.clear();
 	int curGridLine = m_startLine;
+	m_ui->parameterLayout->removeItem(m_ui->vspaceParamBottom);
 	for (auto p: *params.data())
 	{
 		QString pName(p->name());
@@ -792,10 +813,11 @@ void iASamplingSettingsDlg::setParameters(QSharedPointer<iAAttributes> params)
 				p,
 				m_ui->parameterLayout,
 				curGridLine, this);
-			curGridLine++;
+			++curGridLine;
 			m_paramInputs.push_back(pInput);
 		}
 	}
+	m_ui->parameterLayout->addItem(m_ui->vspaceParamBottom, curGridLine, 1);
 }
 
 QSharedPointer<iAAttributes> iASamplingSettingsDlg::parameterRanges()

@@ -74,6 +74,7 @@ private slots:
 	void selectFilter();
 	void runClicked();
 	void outputBaseChanged();
+	void numberOfSamplesChanged();
 	void samplingMethodChanged();
 	void showAlgorithmInfo();
 	void showSamplingInfo();
@@ -83,6 +84,7 @@ private:
 	void setParameterValues(iASettings const& values);
 	void setParametersFromFilter(QString const& filterName);
 	void setParametersFromFile(QString const& fileName);
+	void updateActualNumSamples();
 
 	int m_startLine;
 	int m_inputImageCount;

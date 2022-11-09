@@ -201,6 +201,7 @@ void dlg_GEMSeControl::startSampling()
 		{
 			return;
 		}
+		samplingMethod->setSampleCount(m_samplingSettings[spnNumberOfSamples].toInt(), m_dlgSamplingSettings->parameterRanges());
 		m_sampler = QSharedPointer<iAImageSampler>::create(
 			m_dlgModalities->modalities(),
 			m_samplingSettings,

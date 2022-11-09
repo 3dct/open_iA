@@ -40,7 +40,7 @@ class iACartesianGridSamplingMethod : public iASamplingMethod
 {
 public:
 	QString name() const override;
-	void setSampleCount(int sampleCount, QSharedPointer<iAAttributes> parameters) override;
+	void setSampleCount(int sampleCount, QSharedPointer<iAAttributes> params) override;
 	bool supportsSamplesPerParameter() const override;
 	void setSamplesPerParameter(std::vector<int> samplesPerParameter) override;
 	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter) override;

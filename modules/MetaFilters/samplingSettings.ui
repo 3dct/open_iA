@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>848</width>
+    <width>842</width>
     <height>779</height>
    </rect>
   </property>
@@ -242,6 +242,9 @@
                <property name="enabled">
                 <bool>true</bool>
                </property>
+               <property name="toolTip">
+                <string>Show information on the currently selected filter and its parameters</string>
+               </property>
                <property name="text">
                 <string/>
                </property>
@@ -298,7 +301,7 @@
             <property name="title">
              <string>Sampling</string>
             </property>
-            <layout class="QGridLayout" name="samplingMethodLayout" columnstretch="1,0,0,0">
+            <layout class="QGridLayout" name="samplingMethodLayout" columnstretch="1,0,0">
              <property name="leftMargin">
               <number>4</number>
              </property>
@@ -314,73 +317,14 @@
              <property name="spacing">
               <number>4</number>
              </property>
-             <item row="2" column="0">
-              <widget class="QLabel" name="lbNumberOfSamples">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
+             <item row="2" column="2">
+              <widget class="QLabel" name="lbNumberOfSamplesActual">
                <property name="text">
-                <string># of samples</string>
+                <string/>
                </property>
               </widget>
              </item>
-             <item row="3" column="0">
-              <widget class="QCheckBox" name="checkBox">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="text">
-                <string>Fixed Seed</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="lbSamplingMethod">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>Method</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="1">
-              <widget class="QLineEdit" name="lineEdit">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0" colspan="3">
-              <widget class="QCheckBox" name="cbContinueOnError">
-               <property name="toolTip">
-                <string>If checked, sampling will continue in the case that an error occurs while producing a single sample. If unchecked, the whole sampling will be aborted when an error occurs.</string>
-               </property>
-               <property name="text">
-                <string>Continue sampling on error</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="2">
-              <widget class="QLabel" name="label">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="text">
-                <string>(same seed reproduces the same sampling)</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1" colspan="2">
+             <item row="2" column="1">
               <widget class="QSpinBox" name="sbNumberOfSamples">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -421,6 +365,45 @@
                </property>
                <property name="currentIndex">
                 <number>-1</number>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0" colspan="3">
+              <widget class="QCheckBox" name="cbContinueOnError">
+               <property name="toolTip">
+                <string>If checked, sampling will continue in the case that an error occurs while producing a single sample. If unchecked, the whole sampling will be aborted when an error occurs.</string>
+               </property>
+               <property name="text">
+                <string>Continue sampling on error</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="lbNumberOfSamples">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Target # of samples</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="lbSamplingMethod">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Method</string>
                </property>
               </widget>
              </item>
@@ -886,8 +869,8 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0" colspan="5">
-           <spacer name="verticalSpacer">
+          <item row="2" column="0">
+           <spacer name="vspaceParamBottom">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
@@ -932,6 +915,9 @@
       </property>
       <item>
        <widget class="QToolButton" name="tbSaveSettings">
+        <property name="toolTip">
+         <string>Save current sampling configuration to disk</string>
+        </property>
         <property name="text">
          <string>Save Settings...</string>
         </property>
@@ -949,6 +935,9 @@
       </item>
       <item>
        <widget class="QToolButton" name="tbLoadSettings">
+        <property name="toolTip">
+         <string>Load sampling configuration from disk</string>
+        </property>
         <property name="text">
          <string>Load Settings...</string>
         </property>
@@ -963,6 +952,9 @@
       </item>
       <item>
        <widget class="QToolButton" name="tbSamplingInfo">
+        <property name="toolTip">
+         <string>Show description of sampling filter and its parameters</string>
+        </property>
         <property name="text">
          <string/>
         </property>

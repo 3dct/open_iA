@@ -33,7 +33,7 @@ public:
 	static QSharedPointer<iASampleFilter> create();
 	void setParameters(QSharedPointer<iAModalityList> input, QSharedPointer<iAAttributes> parameterRanges,
 		QSharedPointer<iAAttributes> parameterSpecs, QString const& parameterRangeFile, QString const& parameterSetFile,
-		QString const& derivedOutFile, int samplingID);
+		QString const& derivedOutFile, int samplingID, std::vector<int> numOfSamplesPerParameter);
 	void abort() override;
 private:
 	void performWork(QMap<QString, QVariant> const& parameters) override;
@@ -45,6 +45,7 @@ private:
 		m_parameterSetFile,
 		m_derivedOutFile;
 	int m_samplingID;
+	std::vector<int> m_numOfSamplesPerParameter;
 	iAImageSampler * m_sampler;
 };
 

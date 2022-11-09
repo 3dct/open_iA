@@ -53,7 +53,6 @@ bool iASamplingMethod::supportsSamplesPerParameter() const
 
 void iASamplingMethod::setSamplesPerParameter(std::vector<int> samplesPerParameter)
 {
-	assert(false);    // method should not be called, only on subclasses that override it
 	Q_UNUSED(samplesPerParameter);
 }
 
@@ -427,7 +426,7 @@ void iACartesianGridSamplingMethod::setSampleCount(int targetedSampleCount, QSha
 	int samplesPerParameter = static_cast<int>(std::pow(10, std::log10(sampleCountRemaining) / normalVariedParamCount));
 	int samplesPerParameter2 = static_cast<int>(std::pow(sampleCountRemaining, 1.0 / normalVariedParamCount));
 	assert(samplesPerParameter == samplesPerParameter2);
-	samplesPerParameter = std::max(2, samplesPerParameter); // at least 2 sample values per parameter
+	samplesPerParameter = std::max(1, samplesPerParameter);
 	for (int pIdx = 0; pIdx < parameters->size(); ++pIdx)
 	{
 		auto p = parameters->at(pIdx);
