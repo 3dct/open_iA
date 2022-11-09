@@ -301,6 +301,13 @@ void iAGradientAnisotropicDiffusion::performWork(QMap<QString, QVariant> const &
 iAGradientAnisotropicDiffusion::iAGradientAnisotropicDiffusion() :
 	iAFilter("Gradient Anisotropic Diffusion", "Smoothing/Edge preserving smoothing",
 		"Performs a gradient anisotropic diffusion.<br/>"
+		"<em>Number of iterations</em> determines how many steps of diffusion are performed; "
+		"the appropriate number depends on the application and the image; as a general rule, the "
+		"more iterations are performed, the more diffused the image will be. <br/>"
+		"<em>Time step</em> sets the time step to be used for each iteration (update). The time "
+		"step is constrained at run-time to keep the solution stable. In general, the time step "
+		"should be at or below PixelSpacing / 2^(N+1), where N is the dimensionality of the image.<br/>"
+		"<em>Conductance</em> governs the sensitivity of the conductance equation."
 		"If <em>convert back to input type</em> is enabled, the resulting image "
 		"will have the same type as the input image; if it is not enabled, the result "
 		"will be a single precision floating point image.<br/>"
@@ -356,6 +363,13 @@ IAFILTER_CREATE(iAGPUEdgePreservingSmoothing)
 iAGPUEdgePreservingSmoothing::iAGPUEdgePreservingSmoothing() :
 	iAFilter("Gradient Anisotropic Diffusion (GPU)", "Smoothing/Edge preserving smoothing",
 		"Performs GPU-accelerated gradient anisotropic diffusion.<br/>"
+		"<em>Number of iterations</em> determines how many steps of diffusion are performed; "
+		"the appropriate number depends on the application and the image; as a general rule, the "
+		"more iterations are performed, the more diffused the image will be. <br/>"
+		"<em>Time step</em> sets the time step to be used for each iteration (update). The time "
+		"step is constrained at run-time to keep the solution stable. In general, the time step "
+		"should be at or below PixelSpacing / 2^(N+1), where N is the dimensionality of the image.<br/>"
+		"<em>Conductance</em> governs the sensitivity of the conductance equation."
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GPUGradientAnisotropicDiffusionImageFilter.html\">"
 		"GPU Gradient Anisotropic Diffusion Filter</a> in the ITK documentation.")
@@ -402,6 +416,13 @@ void iACurvatureAnisotropicDiffusion::performWork(QMap<QString, QVariant> const 
 iACurvatureAnisotropicDiffusion::iACurvatureAnisotropicDiffusion() :
 	iAFilter("Curvature Anisotropic Diffusion", "Smoothing/Edge preserving smoothing",
 		"Performs an anisotropic diffusion using a modified curvature diffusion equation (MCDE).<br/>"
+		"<em>Number of iterations</em> determines how many steps of diffusion are performed; "
+		"the appropriate number depends on the application and the image; as a general rule, the "
+		"more iterations are performed, the more diffused the image will be. <br/>"
+		"<em>Time step</em> sets the time step to be used for each iteration (update). The time "
+		"step is constrained at run-time to keep the solution stable. In general, the time step "
+		"should be at or below PixelSpacing / 2^(N+1), where N is the dimensionality of the image.<br/>"
+		"<em>Conductance</em> governs the sensitivity of the conductance equation."
 		"If <em>convert back to input type</em> is enabled, the resulting image "
 		"will have the same type as the input image; if it is not enabled, the result "
 		"will be a single precision floating point image.<br/>"
