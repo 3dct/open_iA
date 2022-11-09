@@ -47,27 +47,20 @@
 #endif
 
 
-typedef float RealType;
-typedef itk::Image<RealType, DIM> RealImageType;
-
 template<class T> void medianFilter(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
-	typedef itk::MedianImageFilter<RealImageType, RealImageType > FilterType;
-	auto realImage = castImageTo<RealType>(filter->input(0)->itkImage());
+	typedef typename itk::Image<T, DIM> InputImageType;
+	typedef itk::MedianImageFilter<InputImageType, InputImageType> FilterType;
 	auto medianFilter = FilterType::New();
 	typename FilterType::InputSizeType indexRadius;
 	indexRadius[0] = params["Kernel radius X"].toDouble();
 	indexRadius[1] = params["Kernel radius Y"].toDouble();
 	indexRadius[2] = params["Kernel radius Z"].toDouble();
 	medianFilter->SetRadius(indexRadius);
-	medianFilter->SetInput(dynamic_cast<RealImageType*>(realImage.GetPointer()));
+	medianFilter->SetInput(dynamic_cast<InputImageType*>(filter->input(0)->itkImage()));
 	filter->progress()->observe( medianFilter );
 	medianFilter->Update();
-	if (params["Convert back to input type"].toBool())
-		filter->addOutput(castImageTo<T>(medianFilter->GetOutput()));
-	else
-		filter->addOutput(medianFilter->GetOutput());
-
+	filter->addOutput(medianFilter->GetOutput());
 }
 
 void iAMedianFilter::performWork(QMap<QString, QVariant> const & parameters)
@@ -84,10 +77,10 @@ iAMedianFilter::iAMedianFilter() :
 		"in a neighborhood around the input voxel at that position. The median filter belongs "
 		"to the family of nonlinear filters. It is used to smooth an image without being "
 		"biased by outliers or shot noise.<br/>"
-		"The <em>Kernel radius</em> parameters define the radius of the kernel in x, y and z direction.<br/>"
-		"If <em>convert back to input type</em> is enabled, the resulting image "
-		"will have the same type as the input image; if it is not enabled, the result "
-		"will be a single precision floating point image.<br/>"
+		"The <em>Kernel radius</em> parameters define the radius of the kernel in x, y and z direction. "
+		"This radius defines the size of the neighborhood in pixels/voxels in each direction; that is, a "
+		"radius of 1 leads to a kernel size of 3 (1 in both directions plus the center pixel), a radius of 2 to "
+		"a kernel size of 5, and so on.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1MedianImageFilter.html\">"
 		"Median Image Filter</a> in the ITK documentation.")
@@ -95,9 +88,11 @@ iAMedianFilter::iAMedianFilter() :
 	addParameter("Kernel radius X", iAValueType::Discrete, 1, 1);
 	addParameter("Kernel radius Y", iAValueType::Discrete, 1, 1);
 	addParameter("Kernel radius Z", iAValueType::Discrete, 1, 1);
-	addParameter("Convert back to input type", iAValueType::Boolean, false);
 }
 
+
+typedef float RealType;
+typedef itk::Image<RealType, DIM> RealImageType;
 
 
 template<class T>
