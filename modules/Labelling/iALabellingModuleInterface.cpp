@@ -34,10 +34,15 @@ void iALabellingModuleInterface::Initialize()
 	{
 		return;
 	}
-	QMenu* menuEnsembles = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Image Ensembles"), false);
-	QAction* actionLabelling = new QAction(tr("Labelling"), m_mainWnd);
-	menuEnsembles->addAction(actionLabelling);
+	auto actionLabelling = new QAction(tr("Labelling"), m_mainWnd);
 	connect(actionLabelling, &QAction::triggered, this, &iALabellingModuleInterface::startLabelling);
+
+	auto actionAnnotation = new QAction(tr("Annotations"), m_mainWnd);
+	connect(actionLabelling, &QAction::triggered, this, &iALabellingModuleInterface::startAnnotations);
+
+	auto menuEnsembles = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr(""), false);
+	menuEnsembles->addAction(actionLabelling);
+	menuEnsembles->addAction(actionAnnotation);
 }
 
 void iALabellingModuleInterface::startLabelling()
@@ -47,6 +52,16 @@ void iALabellingModuleInterface::startLabelling()
 		return;
 	}
 	AttachToMdiChild(m_mainWnd->activeMdiChild());
+}
+
+void iALabellingModuleInterface::startAnnotations()
+{
+	if (!m_mainWnd->activeMdiChild())
+	{
+		return;
+	}
+	m_mainWnd->activeMdiChild();
+	//AttachToMdiChild(m_mainWnd->activeMdiChild());
 }
 
 iAModuleAttachmentToChild* iALabellingModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child)

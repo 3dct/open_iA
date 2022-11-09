@@ -30,6 +30,6 @@ public:
 protected:
 	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
 private slots:
-	//! Menu entries:
 	void startLabelling();
+	void startAnnotations();
 };
