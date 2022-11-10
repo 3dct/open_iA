@@ -23,7 +23,7 @@
 #include "dlg_GEMSeControl.h"
 #include "dlg_GEMSe.h"
 #include "dlg_samplings.h"
-#include "iAGEMSeProject.h"
+#include "iAGEMSeTool.h"
 
 #include <dlg_modalities.h>
 #include <iALog.h>
@@ -39,9 +39,9 @@ iAGEMSeAttachment::iAGEMSeAttachment(iAMainWindow * mainWnd, iAMdiChild * child)
 	iAModuleAttachmentToChild(mainWnd, child),
 	m_dummyTitleWidget(new QWidget())
 {
-	auto project = std::make_shared<iAGEMSeProject>();
-	project->setMainWindow(mainWnd);
-	child->addProject(iAGEMSeProject::ID, project);
+	auto tool = std::make_shared<iAGEMSeTool>();
+	tool->setMainWindow(mainWnd);
+	child->addTool(iAGEMSeTool::ID, tool);
 }
 
 iAGEMSeAttachment* iAGEMSeAttachment::create(iAMainWindow * mainWnd, iAMdiChild * child)

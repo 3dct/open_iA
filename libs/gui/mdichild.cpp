@@ -53,8 +53,8 @@
 #include <iAMovieHelper.h>
 #include <iAParameterDlg.h>
 #include <iAPreferences.h>
-#include <iAProjectBase.h>
-#include <iAProjectRegistry.h>
+#include <iATool.h>
+#include <iAToolRegistry.h>
 #include <iARenderSettings.h>
 #include <iARunAsync.h>
 #include <iASliceRenderer.h>
@@ -1036,19 +1036,19 @@ void MdiChild::setupProject(bool /*active*/)
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		projectFile.setIniCodec("UTF-8");
 #endif
-		auto registeredProjects = iAProjectRegistry::projectKeys();
+		auto registeredTools = iAToolRegistry::toolKeys();
 		auto projectFileGroups = projectFile.childGroups();
-		for (auto projectKey : registeredProjects)
+		for (auto toolKey : registeredTools)
 		{
-			if (projectFileGroups.contains(projectKey))
+			if (projectFileGroups.contains(toolKey))
 			{
-				auto project = iAProjectRegistry::createProject(projectKey);
-				project->setMainWindow(m_mainWnd);
-				project->setChild(this);
-				projectFile.beginGroup(projectKey);
-				project->loadProject(projectFile, fileName);
+				auto tool = iAToolRegistry::createTool(toolKey);
+				tool->setMainWindow(m_mainWnd);
+				tool->setChild(this);
+				projectFile.beginGroup(toolKey);
+				tool->loadState(projectFile, fileName);
 				projectFile.endGroup();
-				addProject(projectKey, project);
+				addTool(toolKey, tool);
 			}
 		}
 	};
@@ -3230,25 +3230,25 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 		projectFile.setIniCodec("UTF-8");
 #endif
 		projectFile.setValue("UseMdiChild", true);
-		for (auto projectKey : m_projects.keys())
+		for (auto toolKey : m_tools.keys())
 		{
-			projectFile.beginGroup(projectKey);
-			m_projects[projectKey]->saveProject(projectFile, projectFileName);
+			projectFile.beginGroup(toolKey);
+			m_tools[toolKey]->saveState(projectFile, projectFileName);
 			projectFile.endGroup();
 		}
 	}
 	return true;
 }
 
-void MdiChild::addProject(QString const& key, std::shared_ptr<iAProjectBase> project)
+void MdiChild::addTool(QString const& key, std::shared_ptr<iATool> tool)
 {
-	project->setChild(this);
-	m_projects.insert(key, project);
+	tool->setChild(this);
+	m_tools.insert(key, tool);
 }
 
-QMap<QString, std::shared_ptr<iAProjectBase>> const& MdiChild::projects()
+QMap<QString, std::shared_ptr<iATool>> const& MdiChild::tools()
 {
-	return m_projects;
+	return m_tools;
 }
 
 MdiChild::iAInteractionMode MdiChild::interactionMode() const

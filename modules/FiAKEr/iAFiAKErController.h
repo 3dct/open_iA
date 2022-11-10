@@ -94,7 +94,7 @@ class iAFiAKErController: public QObject, public iASelectionProvider
 public:
 	typedef iAQTtoUIConnector<QWidget, Ui_FIAKERSettings> iAFIAKERSettingsWidget;
 	typedef std::vector<std::vector<size_t>> SelectionType;
-	static const QString FIAKERProjectID;
+	static const QString FIAKERToolID;
 
 	iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChild);
 

@@ -20,20 +20,20 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAProjectBase.h>
+#include <iATool.h>
 
 #include <QSharedPointer>
 
 class QSettings;
 class QString;
 
-class iAGEMSeProject : public iAProjectBase
+class iAGEMSeTool : public iATool
 {
 public:
-	iAGEMSeProject();
+	iAGEMSeTool();
 	static const QString ID;
-	virtual ~iAGEMSeProject() override;
-	void loadProject(QSettings & projectFile, QString const & fileName) override;
-	void saveProject(QSettings & projectFile, QString const & fileName) override;
-	static std::shared_ptr<iAProjectBase> create();
+	virtual ~iAGEMSeTool() override;
+	void loadState(QSettings & projectFile, QString const & fileName) override;
+	void saveState(QSettings & projectFile, QString const & fileName) override;
+	static std::shared_ptr<iATool> create();
 };

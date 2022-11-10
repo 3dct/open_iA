@@ -21,11 +21,11 @@
 #include "iAFeatureAnalyzerModuleInterface.h"
 
 #include "iADataFolderDialog.h"
-#include "iAFeatureAnalyzerProject.h"
+#include "iAFeatureAnalyzerTool.h"
 #include "iAFeatureAnalyzer.h"
 
 //#include <defines.h>
-#include <iAProjectRegistry.h>
+#include <iAToolRegistry.h>
 #include <iAMainWindow.h>
 
 #include <QAction>
@@ -40,7 +40,7 @@ void iAFeatureAnalyzerModuleInterface::Initialize()
 		return;
 	}
 	Q_INIT_RESOURCE(FeatureAnalyzer);
-	iAProjectRegistry::addProject(iAFeatureAnalyzerProject::ID, iAFeatureAnalyzerProject::create);
+	iAToolRegistry::addTool(iAFeatureAnalyzerTool::ID, iAFeatureAnalyzerTool::create);
 
 	QAction * actionRunPA = new QAction(tr("Start FeatureAnalyzer"), m_mainWnd);
 	connect(actionRunPA, &QAction::triggered, this, &iAFeatureAnalyzerModuleInterface::launchFeatureAnalyzer);

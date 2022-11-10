@@ -18,27 +18,34 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAGEMSeTool.h"
 
-#include "iAguibase_export.h"
+#include "iAGEMSeModuleInterface.h"
 
-class iAMainWindow;
-class iAMdiChild;
+#include <iAModuleDispatcher.h> // TODO: Refactor; it shouldn't be required to go via iAModuleDispatcher to retrieve one's own module
+#include <iAMainWindow.h>
 
-class QSettings;
-class QString;
+const QString iAGEMSeTool::ID("GEMSe");
 
-class iAguibase_API iAProjectBase
+iAGEMSeTool::iAGEMSeTool()
+{}
+
+iAGEMSeTool::~iAGEMSeTool()
+{}
+
+void iAGEMSeTool::loadState(QSettings & projectFile, QString const & fileName)
 {
-public:
-	//! implementation (empty) in iAProjectRegistry.cpp
-	iAProjectBase();
-	virtual ~iAProjectBase();
-	virtual void loadProject(QSettings & projectFile, QString const & fileName) =0;
-	virtual void saveProject(QSettings & projectFile, QString const & fileName) =0;
-	void setMainWindow(iAMainWindow* mainWindow);
-	void setChild(iAMdiChild* mdiChild);
-protected:
-	iAMdiChild* m_mdiChild;
-	iAMainWindow* m_mainWindow;
-};
+	iAGEMSeModuleInterface * gemseModule = m_mainWindow->moduleDispatcher().module<iAGEMSeModuleInterface>();
+	gemseModule->loadProject(m_mdiChild, projectFile, fileName);
+}
+
+void iAGEMSeTool::saveState(QSettings & projectFile, QString const & fileName)
+{
+	iAGEMSeModuleInterface * gemseModule = m_mainWindow->moduleDispatcher().module<iAGEMSeModuleInterface>();
+	gemseModule->saveProject(projectFile, fileName);
+}
+
+std::shared_ptr<iATool> iAGEMSeTool::create()
+{
+	return std::make_shared<iAGEMSeTool>();
+}

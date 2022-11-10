@@ -18,34 +18,40 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAGEMSeProject.h"
+#include "iAFeatureAnalyzerTool.h"
 
-#include "iAGEMSeModuleInterface.h"
+#include "iAFeatureAnalyzerModuleInterface.h"
 
-#include <iAModuleDispatcher.h> // TODO: Refactor; it shouldn't be required to go via iAModuleDispatcher to retrieve one's own module
+#include <iAModuleDispatcher.h>
 #include <iAMainWindow.h>
 
-const QString iAGEMSeProject::ID("GEMSe");
+#include <QSettings>
 
-iAGEMSeProject::iAGEMSeProject()
-{}
-
-iAGEMSeProject::~iAGEMSeProject()
-{}
-
-void iAGEMSeProject::loadProject(QSettings & projectFile, QString const & fileName)
+void iAFeatureAnalyzerTool::setOptions(QString const& resultsFolder, QString const& datasetsFolder)
 {
-	iAGEMSeModuleInterface * gemseModule = m_mainWindow->moduleDispatcher().module<iAGEMSeModuleInterface>();
-	gemseModule->loadProject(m_mdiChild, projectFile, fileName);
+	m_resultsFolder = resultsFolder;
+	m_datasetsFolder = datasetsFolder;
 }
 
-void iAGEMSeProject::saveProject(QSettings & projectFile, QString const & fileName)
+std::shared_ptr<iATool> iAFeatureAnalyzerTool::create()
 {
-	iAGEMSeModuleInterface * gemseModule = m_mainWindow->moduleDispatcher().module<iAGEMSeModuleInterface>();
-	gemseModule->saveProject(projectFile, fileName);
+	return std::make_shared<iAFeatureAnalyzerTool>();
 }
 
-std::shared_ptr<iAProjectBase> iAGEMSeProject::create()
+void iAFeatureAnalyzerTool::loadState(QSettings& projectFile, QString const& /*fileName*/)
 {
-	return std::make_shared<iAGEMSeProject>();
+	m_resultsFolder = projectFile.value(ResultsFolderKey).toString();
+	m_datasetsFolder = projectFile.value(DatasetFolderKey).toString();
+	iAFeatureAnalyzerModuleInterface* featureAnalyzer = m_mainWindow->moduleDispatcher().module<iAFeatureAnalyzerModuleInterface>();
+	featureAnalyzer->startFeatureAnalyzer(m_resultsFolder, m_datasetsFolder);
 }
+
+void iAFeatureAnalyzerTool::saveState(QSettings& projectFile, QString const& /*fileName*/)
+{
+	projectFile.setValue(ResultsFolderKey, m_resultsFolder);
+	projectFile.setValue(DatasetFolderKey, m_datasetsFolder);
+}
+
+QString const iAFeatureAnalyzerTool::ID("FeatureAnalyzer");
+QString const iAFeatureAnalyzerTool::ResultsFolderKey("ResultsFolder");
+QString const iAFeatureAnalyzerTool::DatasetFolderKey("DatasetFolder");

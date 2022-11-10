@@ -21,7 +21,7 @@
 #include "iAGEMSeModuleInterface.h"
 
 #include "iAGEMSeAttachment.h"
-#include "iAGEMSeProject.h"
+#include "iAGEMSeTool.h"
 #include "iARepresentative.h"
 #include "iASEAFile.h"
 
@@ -29,7 +29,7 @@
 #include <iALog.h>
 #include <iAFilterDefault.h>
 #include <iAModality.h>
-#include <iAProjectRegistry.h>
+#include <iAToolRegistry.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
 
@@ -81,7 +81,7 @@ void iAGEMSeModuleInterface::Initialize()
 	}
 	Q_INIT_RESOURCE(GEMSe);
 
-	iAProjectRegistry::addProject(iAGEMSeProject::ID, iAGEMSeProject::create);
+	iAToolRegistry::addTool(iAGEMSeTool::ID, iAGEMSeTool::create);
 
 	QAction * actionGEMSe = new QAction(tr("GEMSe"), m_mainWnd);
 	m_mainWnd->makeActionChildDependent(actionGEMSe);

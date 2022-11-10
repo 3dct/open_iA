@@ -44,7 +44,7 @@ class iAModality;
 class iAModalityList;
 class iAModalityTransfer;
 class iAPreferences;
-class iAProjectBase;
+class iATool;
 class iARenderSettings;
 class iASlicer;
 class iASlicerSettings;
@@ -192,9 +192,9 @@ public:
 	virtual void multiview() = 0;
 
 
-	// Projects:
-	//! add project
-	virtual void addProject(QString const& key, std::shared_ptr<iAProjectBase> project) = 0;
+	// Tools:
+	//! add tool
+	virtual void addTool(QString const& key, std::shared_ptr<iATool> tool) = 0;
 	//! save currently loaded files / tools in given project file
 	virtual void saveProject(QString const& fileName) = 0;
 
@@ -365,7 +365,4 @@ public slots:
 	//! @deprecated. will be removed soon, no direct replacement
 	virtual void disableRenderWindows(int ch) = 0;
 
-
 };
-
-

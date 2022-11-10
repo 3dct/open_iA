@@ -18,40 +18,71 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFeatureAnalyzerProject.h"
+#include "iAToolRegistry.h"
 
-#include "iAFeatureAnalyzerModuleInterface.h"
+#include "iALog.h"
+#include "iATool.h"
 
-#include <iAModuleDispatcher.h>
-#include <iAMainWindow.h>
+#include <cassert>
 
-#include <QSettings>
+#include <QMap>
 
-void iAFeatureAnalyzerProject::setOptions(QString const& resultsFolder, QString const& datasetsFolder)
-{
-	m_resultsFolder = resultsFolder;
-	m_datasetsFolder = datasetsFolder;
+namespace
+{// if the data structures here would be members of iAToolRegistry, we would run into the "Static Initialization Order Fiasco"!
+	QMap<QString, iAToolCreateFuncPtr>& toolTypes()
+	{
+		static QMap<QString, iAToolCreateFuncPtr> s_toolTypes;
+		return s_toolTypes;
+	}
 }
 
-std::shared_ptr<iAProjectBase> iAFeatureAnalyzerProject::create()
+void iAToolRegistry::addTool(QString const& toolIdentifier, iAToolCreateFuncPtr toolCreateFunc)
 {
-	return std::make_shared<iAFeatureAnalyzerProject>();
+	if (toolTypes().contains(toolIdentifier))
+	{
+		LOG(lvlWarn, QString("Trying to add already registered project type %1 again!").arg(toolIdentifier));
+	}
+	toolTypes().insert(toolIdentifier, toolCreateFunc);
 }
 
-void iAFeatureAnalyzerProject::loadProject(QSettings& projectFile, QString const& /*fileName*/)
+QList<QString> const iAToolRegistry::toolKeys()
 {
-	m_resultsFolder = projectFile.value(ResultsFolderKey).toString();
-	m_datasetsFolder = projectFile.value(DatasetFolderKey).toString();
-	iAFeatureAnalyzerModuleInterface* featureAnalyzer = m_mainWindow->moduleDispatcher().module<iAFeatureAnalyzerModuleInterface>();
-	featureAnalyzer->startFeatureAnalyzer(m_resultsFolder, m_datasetsFolder);
+	return toolTypes().keys();
 }
 
-void iAFeatureAnalyzerProject::saveProject(QSettings& projectFile, QString const& /*fileName*/)
+std::shared_ptr<iATool> iAToolRegistry::createTool(QString const & toolIdentifier)
 {
-	projectFile.setValue(ResultsFolderKey, m_resultsFolder);
-	projectFile.setValue(DatasetFolderKey, m_datasetsFolder);
+	assert(toolTypes().contains(toolIdentifier));
+	return toolTypes()[toolIdentifier]();
 }
 
-QString const iAFeatureAnalyzerProject::ID("FeatureAnalyzer");
-QString const iAFeatureAnalyzerProject::ResultsFolderKey("ResultsFolder");
-QString const iAFeatureAnalyzerProject::DatasetFolderKey("DatasetFolder");
+
+
+iATool::iATool():
+	m_mdiChild(nullptr),
+	m_mainWindow(nullptr)
+{}
+
+iATool::~iATool()
+{}
+
+void iATool::loadState(QSettings& projectFile, QString const& fileName)
+{
+	Q_UNUSED(projectFile);
+	Q_UNUSED(fileName);
+}
+void iATool::saveState(QSettings& projectFile, QString const& fileName)
+{
+	Q_UNUSED(projectFile);
+	Q_UNUSED(fileName);
+}
+
+void iATool::setChild(iAMdiChild* child)
+{
+	m_mdiChild = child;
+}
+
+void iATool::setMainWindow(iAMainWindow* mainWindow)
+{
+	m_mainWindow = mainWindow;
+}

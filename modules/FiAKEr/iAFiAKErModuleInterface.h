@@ -25,7 +25,7 @@
 #include "iAGUIModuleInterface.h"
 #include "qthelper/iAQTtoUIConnector.h"
 
-class iAFIAKERProject;
+class iAFIAKERTool;
 
 class QSettings;
 
@@ -39,7 +39,7 @@ public:
 	void SaveSettings() const override;
 
 	void setupToolBar();
-	void loadProject(iAMdiChild* mdiChild, QSettings const& projectFile, QString const& fileName, iAFIAKERProject* project);
+	void loadProject(iAMdiChild* mdiChild, QSettings const& projectFile, QString const& fileName, iAFIAKERTool* project);
 protected:
 	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
 private slots:
