@@ -7,7 +7,7 @@
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
 * Foundation, either version 3 of the License, or (at your option) any later version. *
-*                                                                                     *
+*                                                                                     *O
 * This program is distributed in the hope that it will be useful, but WITHOUT ANY     *
 * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A     *
 * PARTICULAR PURPOSE.  See the GNU General Public License for more details.           *
@@ -18,59 +18,49 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iALabellingModuleInterface.h"
+#pragma once
 
-#include "iAAnnotationTool.h"
-#include "iALabellingAttachment.h"
+#include <iATool.h>
+#include <iAVec3.h>
 
-#include <iAMainWindow.h>
-#include <iAMdiChild.h>
-#include <iAModuleDispatcher.h>
-#include <iAToolRegistry.h>
+#include <QColor>
+#include <QObject>
+#include <QString>
 
-#include <QAction>
-#include <QMenu>
+#include <memory>
 
-void iALabellingModuleInterface::Initialize()
+class iAAnnotationToolUI;
+
+class iAMainWindow;
+class iAMdiChild;
+
+struct iAAnnotation
 {
-	if (!m_mainWnd)
-	{
-		return;
-	}
-	auto actionLabelling = new QAction(tr("Labelling"), m_mainWnd);
-	connect(actionLabelling, &QAction::triggered, this, &iALabellingModuleInterface::startLabelling);
+	iAAnnotation(size_t id, iAVec3d coord, QString const& name, QColor color);
+	size_t m_id;
+	iAVec3d const& m_coord;
+	QString m_name;
+	QColor m_color;
+};
 
-	auto actionAnnotation = new QAction(tr("Annotations"), m_mainWnd);
-	connect(actionLabelling, &QAction::triggered, this, &iALabellingModuleInterface::startAnnotations);
-
-	auto menuEnsembles = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr(""), false);
-	menuEnsembles->addAction(actionLabelling);
-	menuEnsembles->addAction(actionAnnotation);
-
-	//iAToolRegistry::addTool(iAAnnotationTool::Name, iAAnnotationTool::create)
-}
-
-void iALabellingModuleInterface::startLabelling()
+class iAAnnotationTool : public QObject, public iATool
 {
-	if (!m_mainWnd->activeMdiChild())
-	{
-		return;
-	}
-	AttachToMdiChild(m_mainWnd->activeMdiChild());
-}
+	Q_OBJECT
+public:
+	static const QString Name;
+	iAAnnotationTool(iAMainWindow* mainWin, iAMdiChild* child);
+	size_t addAnnotation(iAVec3d const & coord);
+	void renameAnnotation(size_t id, QString const& newName);
+	void removeAnnotation(size_t id);
+	std::vector<iAAnnotation> const & annotations() const;
+	
+	//static std::shared_ptr<iAAnnotationTool> create();
+public slots:
+	void startAddMode();
 
-void iALabellingModuleInterface::startAnnotations()
-{
-	if (!m_mainWnd->activeMdiChild())
-	{
-		return;
-	}
-	auto child = m_mainWnd->activeMdiChild();
-	auto tool = std::make_shared<iAAnnotationTool>(m_mainWnd, child);
-	child->addTool(iAAnnotationTool::Name, tool);
-}
+private slots:
+	void slicerPointClicked(double x, double y, double z);
 
-iAModuleAttachmentToChild* iALabellingModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child)
-{
-	return iALabellingAttachment::create(mainWnd, child);
-}
+private:
+	std::shared_ptr<iAAnnotationToolUI> m_ui;
+};
