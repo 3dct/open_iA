@@ -40,7 +40,6 @@
 #include <vtkRenderWindowInteractor.h>
 
 
-
 #ifdef QT_HTTPSERVER
 
 #include <QCoreApplication>
@@ -49,17 +48,6 @@
 #include <QString>
 #include <QHttpServer>
 #include <QTextStream>
-
-#include <vtkCaptionActor2D.h>
-#include <vtkCaptionWidget.h>
-#include <vtkCaptionRepresentation.h>
-#include <vtkActor.h>
-#include <vtkTextActor.h>
-#include <vtkTextProperty.h>
-#include <vtkRendererCollection.h>
-#include <vtkArrowSource.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkProperty2D.h>
 
 namespace
 {
@@ -213,50 +201,9 @@ public:
 		{
 			LOG(lvlImportant, QString("You can reach the webserver under http:\\\\localhost:%1").arg(port));
 		}
-
 #endif
-
-	// Create a text actor.
-		vtkNew<vtkCaptionActor2D> txt;
-		txt->SetCaption("(newROI.ID).toStdString().c_str()");
-		auto pro = txt->GetProperty();
-		pro->SetColor(1, 0, 0);
-
-		vtkNew<vtkArrowSource> arrowSource;
-		//arrowSource->SetShaftRadius(10.0);
-		//arrowSource->SetTipLength(10.0);
-		arrowSource->Update();
-
-
-		//txt->SetLeaderGlyphData(arrowSource->GetOutput());
-		//txt->SetLeaderGlyphSize(10);
-		txt->SetMaximumLeaderGlyphSize(10);
-		txt->SetAttachmentPoint(50, 50, 0);
-		txt->SetDisplayPosition(100, 100);
-		//
-		txt->GetCaptionTextProperty()->SetFontFamily(VTK_ARIAL);
-		txt->GetTextActor()->SetTextScaleModeToNone();
-
-		txt->BorderOff();
-		txt->PickableOn();
-		txt->DragableOn();
-
-		//txt->GetCaptionTextProperty()->BoldOff();
-		txt->GetCaptionTextProperty()->ItalicOff();
-		txt->GetCaptionTextProperty()->ShadowOff();
-		txt->GetCaptionTextProperty()->SetBackgroundColor(0.0, 0.0, 0.0);
-		txt->GetCaptionTextProperty()->SetBackgroundOpacity(0.3);
-		txt->GetCaptionTextProperty()->SetColor(1.0, 0.0, 0.0);
-		txt->GetCaptionTextProperty()->SetFontSize(16);
-		txt->GetCaptionTextProperty()->FrameOff();
-		txt->GetCaptionTextProperty()->UseTightBoundingBoxOn();
-
-		child->slicer(0)->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(txt);
-		child->slicer(1)->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(txt);
-		child->slicer(2)->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(txt);
-
-		child->renderer()->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(txt);
 	}
+
 private:
 	std::unique_ptr<iARemoteRenderer> m_wsAPI;
 	QMap<QString, QWidget*> m_viewWidgets;
@@ -264,6 +211,7 @@ private:
 	std::unique_ptr<QHttpServer> m_httpServer;
 #endif
 };
+
 
 void iARemoteModuleInterface::Initialize()
 {
@@ -275,13 +223,6 @@ void iARemoteModuleInterface::Initialize()
 	connect(actionRemote, &QAction::triggered, this, &iARemoteModuleInterface::addRemoteServer);
 	m_mainWnd->makeActionChildDependent(actionRemote);
 	addToMenuSorted(m_mainWnd->toolsMenu(), actionRemote);
-
-
-
-
-
-
-
 }
 
 iAModuleAttachmentToChild* iARemoteModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child)
