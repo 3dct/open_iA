@@ -41,9 +41,9 @@ void iALabellingModuleInterface::Initialize()
 	connect(actionLabelling, &QAction::triggered, this, &iALabellingModuleInterface::startLabelling);
 
 	auto actionAnnotation = new QAction(tr("Annotations"), m_mainWnd);
-	connect(actionLabelling, &QAction::triggered, this, &iALabellingModuleInterface::startAnnotations);
+	connect(actionAnnotation, &QAction::triggered, this, &iALabellingModuleInterface::startAnnotations);
 
-	auto menuEnsembles = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr(""), false);
+	auto menuEnsembles = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Labelling"), false);
 	menuEnsembles->addAction(actionLabelling);
 	menuEnsembles->addAction(actionAnnotation);
 

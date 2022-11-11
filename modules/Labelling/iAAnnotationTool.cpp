@@ -28,6 +28,7 @@
 #include <iAMdiChild.h>
 #include <iASlicer.h>
 
+#include <QHeaderView>
 #include <QStandardItemModel>
 #include <QTableWidget>
 #include <QToolButton>
@@ -43,20 +44,27 @@ const QString iAAnnotationTool::Name = "Annotation";
 class iAAnnotationToolUI
 {
 public:
-	iAAnnotationToolUI(iAMdiChild* child, iAAnnotationTool* tool):
-		m_annotationList(&m_container),
-		m_dockWidget(&m_container, "Annotations", "dwAnnotations")
+	iAAnnotationToolUI(iAAnnotationTool* tool):
+		m_container(new QWidget),
+		m_table(new QTableWidget(m_container)),
+		m_dockWidget(new iADockWidgetWrapper(m_container, "Annotations", "dwAnnotations")),
+		m_addButton(new QToolButton())
 	{
-		m_annotationList.setModel(&m_items);
+		QStringList columnNames = QStringList() << "" << "Name" << "Coordinates";
+		m_table->setColumnCount(columnNames.size());
+		m_table->setHorizontalHeaderLabels(columnNames);
+		m_table->verticalHeader()->hide();
+		m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
+		m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 		
 		auto buttons = new QWidget();
 		buttons->setLayout(new QVBoxLayout);
 		buttons->layout()->setContentsMargins(0, 0, 0, 0);
 		buttons->layout()->setSpacing(4);
 
-		m_addButton.setObjectName("tbAdd");
-		m_addButton.setToolTip(QObject::tr("Add a new annotation"));
-		buttons->layout()->addWidget(&m_addButton);
+		m_addButton->setObjectName("tbAdd");
+		m_addButton->setToolTip(QObject::tr("Add a new annotation"));
+		buttons->layout()->addWidget(m_addButton);
 
 		auto editButton = new QToolButton();
 		editButton->setObjectName("tbEdit");
@@ -71,13 +79,13 @@ public:
 		auto spacer = new QSpacerItem(10, 0, QSizePolicy::Fixed, QSizePolicy::Expanding);
 		buttons->layout()->addItem(spacer);
 
-		m_container.setLayout(new QHBoxLayout);
-		m_container.layout()->addWidget(&m_annotationList);
-		m_container.layout()->addWidget(buttons);
-		m_container.layout()->setContentsMargins(1, 0, 0, 0);
-		m_container.layout()->setSpacing(4);
+		m_container->setLayout(new QHBoxLayout);
+		m_container->layout()->addWidget(m_table);
+		m_container->layout()->addWidget(buttons);
+		m_container->layout()->setContentsMargins(1, 0, 0, 0);
+		m_container->layout()->setSpacing(4);
 
-		QObject::connect(&m_addButton, &QToolButton::clicked, tool,
+		QObject::connect(m_addButton, &QToolButton::clicked, tool,
 			[tool, this]()
 			{
 				tool->startAddMode();
@@ -86,30 +94,30 @@ public:
 		QObject::connect(removeButton, &QToolButton::clicked, tool,
 			[tool, this]()
 			{
-				auto rows = m_annotationList.selectionModel()->selectedRows();
+				auto rows = m_table->selectionModel()->selectedRows();
 				if (rows.size() != 1)
 				{
 					LOG(lvlWarn, "Please select exactly one row for editing!");
 					return;
 				}
 				int row = rows[0].row();
-				auto id = m_items.item(row, 0)->data(Qt::UserRole).toULongLong();
+				auto id = m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
 				tool->removeAnnotation(id);
 			});
 	}
-	QWidget m_container;
-	QTableView m_annotationList;
-	QStandardItemModel m_items;
-	iADockWidgetWrapper m_dockWidget;
+	QWidget* m_container;
+	QTableWidget* m_table;
+	iADockWidgetWrapper* m_dockWidget;
 	std::vector<iAAnnotation> m_annotations;
-	QToolButton m_addButton;
+	QToolButton* m_addButton;
 };
 
 iAAnnotationTool::iAAnnotationTool(iAMainWindow* mainWin, iAMdiChild* child):
-	m_ui(std::make_shared<iAAnnotationToolUI>(child))
+	m_ui(std::make_shared<iAAnnotationToolUI>(this))
 {
 	setMainWindow(mainWin);
 	setChild(child);
+	child->splitDockWidget(child->renderDockWidget(), m_ui->m_dockWidget, Qt::Vertical);
 }
 
 size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
@@ -117,14 +125,17 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 	static size_t id = 0;
 	QString name = QString("Annotation %1").arg(id + 1);
 	QColor col = iAColorThemeManager::instance().theme("Brewer Set3 (max. 12)")->color(id);
-	m_ui->m_annotations.push_back(iAAnnotation(id++, coord, name, col));
-	QList<QStandardItem*> rowItems = {
-		new QStandardItem(),
-		new QStandardItem(name),
-	};
-	rowItems[0]->setData(col, Qt::DecorationRole);
-	rowItems[0]->setData(id, Qt::UserRole);
-	m_ui->m_items.appendRow(rowItems);
+	m_ui->m_annotations.push_back(iAAnnotation(id, coord, name, col));
+	++id;
+	int row = m_ui->m_table->rowCount();
+	m_ui->m_table->insertRow(row);
+	auto colorItem = new QTableWidgetItem();
+	colorItem->setData(Qt::DecorationRole, col);
+	colorItem->setData(Qt::UserRole, id);
+	m_ui->m_table->setItem(row, 0, colorItem);
+	m_ui->m_table->setItem(row, 1, new QTableWidgetItem(name));
+	m_ui->m_table->setItem(row, 2, new QTableWidgetItem(coord.toString()));
+	return id;
 }
 
 void iAAnnotationTool::renameAnnotation(size_t id, QString const& newName)
@@ -136,11 +147,11 @@ void iAAnnotationTool::renameAnnotation(size_t id, QString const& newName)
 			a.m_name = newName;
 		}
 	}
-	for (auto row = 0; row < m_ui->m_items.rowCount(); ++row)
+	for (auto row = 0; row < m_ui->m_table->rowCount(); ++row)
 	{
-		if (m_ui->m_items.item(row, 0)->data(Qt::UserRole) == id)
+		if (m_ui->m_table->item(row, 0)->data(Qt::UserRole) == id)
 		{
-			m_ui->m_items.item(row, 1)->setText(newName);
+			m_ui->m_table->item(row, 1)->setText(newName);
 		}
 	}
 }
@@ -155,11 +166,11 @@ void iAAnnotationTool::removeAnnotation(size_t id)
 			break;
 		}
 	}
-	for (auto row = 0; row < m_ui->m_items.rowCount(); ++row)
+	for (auto row = 0; row < m_ui->m_table->rowCount(); ++row)
 	{
-		if (m_ui->m_items.item(row, 0)->data(Qt::UserRole) == id)
+		if (m_ui->m_table->item(row, 0)->data(Qt::UserRole) == id)
 		{
-			m_ui->m_items.removeRow(row);
+			m_ui->m_table->removeRow(row);
 		}
 	}
 }
@@ -172,7 +183,7 @@ std::vector<iAAnnotation> const& iAAnnotationTool::annotations() const
 
 void iAAnnotationTool::startAddMode()
 {
-	m_ui->m_addButton.setDown(true);
+	m_ui->m_addButton->setDown(true);
 	for (int i = 0; i < 3; ++i)
 	{
 		connect(m_mdiChild->slicer(i), &iASlicer::leftClicked, this, &iAAnnotationTool::slicerPointClicked);
@@ -181,7 +192,7 @@ void iAAnnotationTool::startAddMode()
 
 void iAAnnotationTool::slicerPointClicked(double x, double y, double z)
 {
-	m_ui->m_addButton.setDown(false);
+	m_ui->m_addButton->setDown(false);
 	LOG(lvlInfo, QString("%1, %2, %3").arg(x).arg(y).arg(z));
 	addAnnotation(iAVec3d(x, y, z));
 	for (int i = 0; i < 3; ++i)

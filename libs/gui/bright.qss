@@ -245,9 +245,9 @@ QPushButton
 		border: 1px outset rgba(165, 165, 165, 255);
 	}
 	/*****************************************************************************/
-	/* QPushButton icons:                                                        */
-	/*   - Data dialog (images in guibase):                                      */
+	/* Button icons (data dialog, FeatureScout class list, annotations list)     */
 	QToolButton[objectName="add_class"],
+	QToolButton[objectName="tbAdd"],
 	QPushButton[objectName="pbAdd"]    { qproperty-icon: url(:/images/plus.svg);  }
 	QToolButton[objectName="delete_class"],
 	QToolButton[objectName="tbRemove"],

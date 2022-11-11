@@ -270,9 +270,9 @@ QPushButton
 		background-color: rgba(0, 0, 0, 255);
 	}
 	/*****************************************************************************/
-	/* QPushButton icons:                                                        */
-	/*   - Data dialog (images in guibase):                                      */
+	/* Button icons (data dialog, FeatureScout class list, annotations list)     */
 	QToolButton[objectName="add_class"],
+	QToolButton[objectName="tbAdd"],
 	QPushButton[objectName="pbAdd"]    { qproperty-icon: url(:/images/plus-dark.svg);  }
 	QToolButton[objectName="delete_class"],
 	QToolButton[objectName="tbRemove"],
