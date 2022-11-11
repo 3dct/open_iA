@@ -20,22 +20,25 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAProjectBase.h"
+#include "iAguibase_export.h"
 
-#include <QSharedPointer>
-#include <QString>
+class iAMainWindow;
+class iAMdiChild;
 
-class iAFeatureAnalyzerProject : public iAProjectBase
+class QSettings;
+class QString;
+
+class iAguibase_API iATool
 {
 public:
-	static QString const ID;
-	void setOptions(QString const& resultsFolder, QString const& datasetsFolder);
-	static std::shared_ptr<iAProjectBase> create();
-	void loadProject(QSettings& projectFile, QString const& fileName) override;
-	void saveProject(QSettings& projectFile, QString const& fileName) override;
-private:
-	static QString const ResultsFolderKey;
-	static QString const DatasetFolderKey;
-
-	QString m_resultsFolder, m_datasetsFolder;
+	//! implementation (empty) in iAToolRegistry.cpp
+	iATool();
+	virtual ~iATool();
+	virtual void loadState(QSettings & projectFile, QString const & fileName);
+	virtual void saveState(QSettings & projectFile, QString const & fileName);
+	void setMainWindow(iAMainWindow* mainWindow);
+	void setChild(iAMdiChild* mdiChild);
+protected:
+	iAMdiChild* m_mdiChild;
+	iAMainWindow* m_mainWindow;
 };

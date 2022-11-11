@@ -208,7 +208,7 @@ iAResultPairInfo::iAResultPairInfo(int measureCount) :
 	avgDissim(measureCount)
 {}
 
-const QString iAFiAKErController::FIAKERProjectID("FIAKER");
+const QString iAFiAKErController::FIAKERToolID("FIAKER");
 
 iAFiAKErController::iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChild) :
 	m_renderManager(new iARendererViewSync()),
@@ -1263,7 +1263,7 @@ void iAFiAKErController::exportDissimilarities()
 		LOG(lvlWarn, "No reference set, therefore there are no dissimilarities to export!");
 		return;
 	}
-	QString fileName = QFileDialog::getSaveFileName(m_mainWnd, iAFiAKErController::FIAKERProjectID, m_data->folder, "Comma-Separated Values (*.csv);;All files (*)");
+	QString fileName = QFileDialog::getSaveFileName(m_mainWnd, iAFiAKErController::FIAKERToolID, m_data->folder, "Comma-Separated Values (*.csv);;All files (*)");
 	if (fileName.isEmpty())
 	{
 		return;

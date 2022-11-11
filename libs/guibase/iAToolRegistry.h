@@ -26,19 +26,19 @@
 
 #include <memory>
 
-class iAProjectBase;
+class iATool;
 
 class QString;
 
-using iAProjectCreateFuncPtr = std::shared_ptr<iAProjectBase>(*)();
+using iAToolCreateFuncPtr = std::shared_ptr<iATool>(*)();
 
-class iAguibase_API iAProjectRegistry
+class iAguibase_API iAToolRegistry
 {
 public:
-	//! Adds a given project type to the registry.
-	static void addProject(QString const & projectIdentifier, iAProjectCreateFuncPtr projectCreateFunc);
-	static QList<QString> const projectKeys();
-	static std::shared_ptr<iAProjectBase> createProject(QString const & projectIdentifier);
+	//! Adds a given tool type to the registry.
+	static void addTool(QString const & toolIdentifier, iAToolCreateFuncPtr toolCreateFunc);
+	static QList<QString> const toolKeys();
+	static std::shared_ptr<iATool> createTool(QString const & toolIdentifier);
 private:
-	iAProjectRegistry() =delete;	//!< iAProjectRegistry is meant to be used statically only, thus prevent creation of objects
+	iAToolRegistry() =delete;	//!< iAToolRegistry is meant to be used statically only, thus prevent creation of objects
 };

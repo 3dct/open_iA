@@ -20,25 +20,20 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAguibase_export.h"
+#include <iATool.h>
 
-class iAMainWindow;
-class iAMdiChild;
+#include <QSharedPointer>
 
 class QSettings;
 class QString;
 
-class iAguibase_API iAProjectBase
+class iAGEMSeTool : public iATool
 {
 public:
-	//! implementation (empty) in iAProjectRegistry.cpp
-	iAProjectBase();
-	virtual ~iAProjectBase();
-	virtual void loadProject(QSettings & projectFile, QString const & fileName) =0;
-	virtual void saveProject(QSettings & projectFile, QString const & fileName) =0;
-	void setMainWindow(iAMainWindow* mainWindow);
-	void setChild(iAMdiChild* mdiChild);
-protected:
-	iAMdiChild* m_mdiChild;
-	iAMainWindow* m_mainWindow;
+	iAGEMSeTool();
+	static const QString ID;
+	virtual ~iAGEMSeTool() override;
+	void loadState(QSettings & projectFile, QString const & fileName) override;
+	void saveState(QSettings & projectFile, QString const & fileName) override;
+	static std::shared_ptr<iATool> create();
 };

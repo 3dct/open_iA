@@ -31,8 +31,8 @@
 #include <iAMdiChild.h>
 #include <iAModuleDispatcher.h>
 #include <iAParameterDlg.h>
-#include <iAProjectBase.h>
-#include <iAProjectRegistry.h>
+#include <iATool.h>
+#include <iAToolRegistry.h>
 #include "iASettings.h"    // for mapFromQSettings
 
 #include <QAction>
@@ -42,15 +42,15 @@
 #include <QMessageBox>
 #include <QSettings>
 
-class iAFIAKERProject : public iAProjectBase
+class iAFIAKERTool : public iATool
 {
 public:
-	iAFIAKERProject():
+	iAFIAKERTool():
 		m_controller(nullptr)
 	{}
-	virtual ~iAFIAKERProject() override
+	~iAFIAKERTool() override
 	{}
-	void loadProject(QSettings & projectFile, QString const & fileName) override
+	void loadState(QSettings & projectFile, QString const & fileName) override
 	{
 		/*
 		// Remove UseMdiChild setting altogether, always open iAMdiChild?
@@ -74,13 +74,13 @@ public:
 		fiaker->setupToolBar();
 		fiaker->loadProject(m_mdiChild, projectFile, fileName, this);
 	}
-	void saveProject(QSettings & projectFile, QString const & fileName) override
+	void saveState(QSettings & projectFile, QString const & fileName) override
 	{
 		m_controller->saveProject(projectFile, fileName);
 	}
-	static std::shared_ptr<iAProjectBase> create()
+	static std::shared_ptr<iATool> create()
 	{
-		return std::make_shared<iAFIAKERProject>();
+		return std::make_shared<iAFIAKERTool>();
 	}
 	void setController(iAFiAKErController* controller)
 	{
@@ -106,7 +106,7 @@ void iAFiAKErModuleInterface::Initialize()
 	{
 		return;
 	}
-	iAProjectRegistry::addProject(iAFiAKErController::FIAKERProjectID, iAFIAKERProject::create);
+	iAToolRegistry::addTool(iAFiAKErController::FIAKERToolID, iAFIAKERTool::create);
 
 	QAction * actionFiAKEr = new QAction(tr("Start FIAKER"), m_mainWnd);
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
@@ -237,9 +237,9 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	{
 		mdiChild->setWindowTitle(QString("FIAKER (%1)").arg(m_lastPath));
 	}
-	auto project = std::make_shared<iAFIAKERProject>();
-	project->setController(attach->controller());
-	mdiChild->addProject(iAFiAKErController::FIAKERProjectID, project);
+	auto tool = std::make_shared<iAFIAKERTool>();
+	tool->setController(attach->controller());
+	mdiChild->addTool(iAFiAKErController::FIAKERToolID, tool);
 	attach->controller()->start(m_lastPath, getCsvConfig(m_lastFormat), m_lastTimeStepOffset,
 		m_lastUseStepData, m_lastShowPreviews, m_lastShowCharts);
 }
@@ -248,7 +248,7 @@ void iAFiAKErModuleInterface::loadFiAKErProject()
 {
 	setupToolBar();
 	QString fileName = QFileDialog::getOpenFileName(m_mainWnd,
-		iAFiAKErController::FIAKERProjectID, m_mainWnd->path(), "FIAKER Project file (*.fpf);;All files (*)");
+		iAFiAKErController::FIAKERToolID, m_mainWnd->path(), "FIAKER Project file (*.fpf);;All files (*)");
 	if (fileName.isEmpty())
 	{
 		return;
@@ -259,14 +259,14 @@ void iAFiAKErModuleInterface::loadFiAKErProject()
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	projectFile.setIniCodec("UTF-8");
 #endif
-	auto project = std::make_shared<iAFIAKERProject>();
-	project->setMainWindow(m_mainWnd);
-	project->setChild(newChild);
-	loadProject(newChild, projectFile, fileName, project.get());
-	newChild->addProject(iAFiAKErController::FIAKERProjectID, project);
+	auto tool = std::make_shared<iAFIAKERTool>();
+	tool->setMainWindow(m_mainWnd);
+	tool->setChild(newChild);
+	loadProject(newChild, projectFile, fileName, tool.get());
+	newChild->addTool(iAFiAKErController::FIAKERToolID, tool);
 }
 
-void iAFiAKErModuleInterface::loadProject(iAMdiChild* mdiChild, QSettings const& projectFile, QString const& fileName, iAFIAKERProject* project)
+void iAFiAKErModuleInterface::loadProject(iAMdiChild* mdiChild, QSettings const& projectFile, QString const& fileName, iAFIAKERTool* project)
 {
 	AttachToMdiChild(mdiChild);
 	iAFiAKErAttachment* attach = attachment<iAFiAKErAttachment>(mdiChild);

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAFeatureAnalyzer.h"
 
-#include "iAFeatureAnalyzerProject.h"
+#include "iAFeatureAnalyzerTool.h"
 #include "iAPDMView.h"
 #include "iAPreviewSPLOMView.h"
 #include "iARangeSliderDiagramView.h"
@@ -410,8 +410,8 @@ void iAFeatureAnalyzer::message( QString text )
 
 bool iAFeatureAnalyzer::doSaveProject(QString const& projectFileName)
 {
-	iAFeatureAnalyzerProject project;
-	project.setOptions(m_dataDir, m_datasetsDir);
+	iAFeatureAnalyzerTool tool;
+	tool.setOptions(m_dataDir, m_datasetsDir);
 	
 	if (!projectFileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
 	{
@@ -424,8 +424,8 @@ bool iAFeatureAnalyzer::doSaveProject(QString const& projectFileName)
 	projectFile.setIniCodec("UTF-8");
 #endif
 	projectFile.setValue("UseMdiChild", false);
-	projectFile.beginGroup(iAFeatureAnalyzerProject::ID);
-	project.saveProject(projectFile, projectFileName);
+	projectFile.beginGroup(iAFeatureAnalyzerTool::ID);
+	tool.saveState(projectFile, projectFileName);
 	projectFile.endGroup();
 	return true;
 }

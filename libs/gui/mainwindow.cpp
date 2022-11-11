@@ -30,8 +30,8 @@
 #include "iALogWidget.h"
 #include "iAModuleDispatcher.h"
 #include "iAParameterDlg.h"
-#include "iAProjectBase.h"
-#include "iAProjectRegistry.h"
+#include "iATool.h"
+#include "iAToolRegistry.h"
 #include "iAQMenuHelper.h"
 #include "iARawFileParamDlg.h"
 #include "iARenderer.h"
@@ -431,16 +431,16 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 		// TODO: asynchronous loading, merge with mdichild: loadFile project init parts
 		if (projectFile.contains("UseMdiChild") && !projectFile.value("UseMdiChild", false).toBool())
 		{
-			auto registeredProjects = iAProjectRegistry::projectKeys();
+			auto registeredTools = iAToolRegistry::toolKeys();
 			auto projectFileGroups = projectFile.childGroups();
-			for (auto projectKey : registeredProjects)
+			for (auto toolKey : registeredTools)
 			{
-				if (projectFileGroups.contains(projectKey))
+				if (projectFileGroups.contains(toolKey))
 				{
-					auto project = iAProjectRegistry::createProject(projectKey);
-					project->setMainWindow(this);
-					projectFile.beginGroup(projectKey);
-					project->loadProject(projectFile, fileName);
+					auto tool = iAToolRegistry::createTool(toolKey);
+					tool->setMainWindow(this);
+					projectFile.beginGroup(toolKey);
+					tool->loadState(projectFile, fileName);
 					projectFile.endGroup();
 				}
 			}

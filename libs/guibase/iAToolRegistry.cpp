@@ -18,22 +18,71 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAToolRegistry.h"
 
-#include <iAProjectBase.h>
+#include "iALog.h"
+#include "iATool.h"
 
-#include <QSharedPointer>
+#include <cassert>
 
-class QSettings;
-class QString;
+#include <QMap>
 
-class iAGEMSeProject : public iAProjectBase
+namespace
+{// if the data structures here would be members of iAToolRegistry, we would run into the "Static Initialization Order Fiasco"!
+	QMap<QString, iAToolCreateFuncPtr>& toolTypes()
+	{
+		static QMap<QString, iAToolCreateFuncPtr> s_toolTypes;
+		return s_toolTypes;
+	}
+}
+
+void iAToolRegistry::addTool(QString const& toolIdentifier, iAToolCreateFuncPtr toolCreateFunc)
 {
-public:
-	iAGEMSeProject();
-	static const QString ID;
-	virtual ~iAGEMSeProject() override;
-	void loadProject(QSettings & projectFile, QString const & fileName) override;
-	void saveProject(QSettings & projectFile, QString const & fileName) override;
-	static std::shared_ptr<iAProjectBase> create();
-};
+	if (toolTypes().contains(toolIdentifier))
+	{
+		LOG(lvlWarn, QString("Trying to add already registered project type %1 again!").arg(toolIdentifier));
+	}
+	toolTypes().insert(toolIdentifier, toolCreateFunc);
+}
+
+QList<QString> const iAToolRegistry::toolKeys()
+{
+	return toolTypes().keys();
+}
+
+std::shared_ptr<iATool> iAToolRegistry::createTool(QString const & toolIdentifier)
+{
+	assert(toolTypes().contains(toolIdentifier));
+	return toolTypes()[toolIdentifier]();
+}
+
+
+
+iATool::iATool():
+	m_mdiChild(nullptr),
+	m_mainWindow(nullptr)
+{}
+
+iATool::~iATool()
+{}
+
+void iATool::loadState(QSettings& projectFile, QString const& fileName)
+{
+	Q_UNUSED(projectFile);
+	Q_UNUSED(fileName);
+}
+void iATool::saveState(QSettings& projectFile, QString const& fileName)
+{
+	Q_UNUSED(projectFile);
+	Q_UNUSED(fileName);
+}
+
+void iATool::setChild(iAMdiChild* child)
+{
+	m_mdiChild = child;
+}
+
+void iATool::setMainWindow(iAMainWindow* mainWindow)
+{
+	m_mainWindow = mainWindow;
+}

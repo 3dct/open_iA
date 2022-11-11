@@ -31,8 +31,8 @@
 #include <iALog.h>
 #include <iAModalityList.h>
 #include <iAModuleDispatcher.h> // TODO: Refactor; it shouldn't be required to go via iAModuleDispatcher to retrieve one's own module
-#include <iAProjectBase.h>
-#include <iAProjectRegistry.h>
+#include <iATool.h>
+#include <iAToolRegistry.h>
 #include <iAFileUtils.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
@@ -51,19 +51,19 @@
 #include <QStatusBar>
 #include <QTextStream>
 
-class iAFeatureScoutProject: public iAProjectBase
+class iAFeatureScoutTool: public iATool
 {
 public:
 	static const QString ID;
-	iAFeatureScoutProject()
+	iAFeatureScoutTool()
 	{}
-	virtual ~iAFeatureScoutProject() override
+	virtual ~iAFeatureScoutTool() override
 	{}
-	void loadProject(QSettings & projectFile, QString const & fileName) override;
-	void saveProject(QSettings & projectFile, QString const & fileName) override;
-	static std::shared_ptr<iAProjectBase> create()
+	void loadState(QSettings & projectFile, QString const & fileName) override;
+	void saveState(QSettings & projectFile, QString const & fileName) override;
+	static std::shared_ptr<iATool> create()
 	{
-		return std::make_shared<iAFeatureScoutProject>();
+		return std::make_shared<iAFeatureScoutTool>();
 	}
 	void setOptions(iACsvConfig config)
 	{
@@ -73,10 +73,10 @@ private:
 	iACsvConfig m_config;
 };
 
-const QString iAFeatureScoutProject::ID("FeatureScout");
+const QString iAFeatureScoutTool::ID("FeatureScout");
 
 
-void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const & fileName)
+void iAFeatureScoutTool::loadState(QSettings & projectFile, QString const & fileName)
 {
 	if (!m_mdiChild)
 	{
@@ -115,7 +115,7 @@ void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const &
 	attach->loadProject(projectFile);
 }
 
-void iAFeatureScoutProject::saveProject(QSettings & projectFile, QString const & fileName)
+void iAFeatureScoutTool::saveState(QSettings & projectFile, QString const & fileName)
 {
 	m_config.save(projectFile, "CSVFormat");
 	QString path(QFileInfo(fileName).absolutePath());
@@ -149,7 +149,7 @@ void iAFeatureScoutModuleInterface::Initialize()
 	}
 	Q_INIT_RESOURCE(FeatureScout);
 
-	iAProjectRegistry::addProject(iAFeatureScoutProject::ID, iAFeatureScoutProject::create);
+	iAToolRegistry::addTool(iAFeatureScoutTool::ID, iAFeatureScoutTool::create);
 	QAction * actionFibreScout = new QAction(tr("FeatureScout"), m_mainWnd);
 	connect(actionFibreScout, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout);
 	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Feature Analysis"), true);
@@ -158,7 +158,6 @@ void iAFeatureScoutModuleInterface::Initialize()
 
 void iAFeatureScoutModuleInterface::FeatureScout()
 {
-	//auto project = QSharedPointer<iAFeatureScoutProject>::create(m_mainWnd);
 	bool volumeDataAvailable = m_mainWnd->activeMdiChild() &&
 		m_mainWnd->activeMdiChild()->firstImageData() != nullptr;
 	dlg_CSVInput dlg(volumeDataAvailable);
@@ -292,9 +291,9 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 
 		m_mdiChild->applyRenderSettings(m_mdiChild->firstImageDataSetIdx(), renderSettings);
 	}
-	auto project = std::make_shared<iAFeatureScoutProject>();
-	project->setOptions(csvConfig);
-	m_mdiChild->addProject(iAFeatureScoutProject::ID, project);
+	auto tool = std::make_shared<iAFeatureScoutTool>();
+	tool->setOptions(csvConfig);
+	m_mdiChild->addTool(iAFeatureScoutTool::ID, tool);
 	return true;
 }
 

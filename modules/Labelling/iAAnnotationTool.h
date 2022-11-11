@@ -7,7 +7,7 @@
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
 * Foundation, either version 3 of the License, or (at your option) any later version. *
-*                                                                                     *
+*                                                                                     *O
 * This program is distributed in the hope that it will be useful, but WITHOUT ANY     *
 * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A     *
 * PARTICULAR PURPOSE.  See the GNU General Public License for more details.           *
@@ -18,40 +18,50 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFeatureAnalyzerProject.h"
+#pragma once
 
-#include "iAFeatureAnalyzerModuleInterface.h"
+#include <iATool.h>
+#include <iAVec3.h>
 
-#include <iAModuleDispatcher.h>
-#include <iAMainWindow.h>
+#include <QColor>
+#include <QObject>
+#include <QString>
 
-#include <QSettings>
+#include <memory>
 
-void iAFeatureAnalyzerProject::setOptions(QString const& resultsFolder, QString const& datasetsFolder)
+class iAAnnotationToolUI;
+
+class iAMainWindow;
+class iAMdiChild;
+
+struct iAAnnotation
 {
-	m_resultsFolder = resultsFolder;
-	m_datasetsFolder = datasetsFolder;
-}
+	iAAnnotation(size_t id, iAVec3d coord, QString const& name, QColor color);
+	iAAnnotation(iAAnnotation const& a) = default;
+	size_t m_id;
+	iAVec3d m_coord;
+	QString m_name;
+	QColor m_color;
+};
 
-std::shared_ptr<iAProjectBase> iAFeatureAnalyzerProject::create()
+class iAAnnotationTool : public QObject, public iATool
 {
-	return std::make_shared<iAFeatureAnalyzerProject>();
-}
+	Q_OBJECT
+public:
+	static const QString Name;
+	iAAnnotationTool(iAMainWindow* mainWin, iAMdiChild* child);
+	size_t addAnnotation(iAVec3d const & coord);
+	void renameAnnotation(size_t id, QString const& newName);
+	void removeAnnotation(size_t id);
+	std::vector<iAAnnotation> const & annotations() const;
+	
+	//static std::shared_ptr<iAAnnotationTool> create();
+public slots:
+	void startAddMode();
 
-void iAFeatureAnalyzerProject::loadProject(QSettings& projectFile, QString const& /*fileName*/)
-{
-	m_resultsFolder = projectFile.value(ResultsFolderKey).toString();
-	m_datasetsFolder = projectFile.value(DatasetFolderKey).toString();
-	iAFeatureAnalyzerModuleInterface* featureAnalyzer = m_mainWindow->moduleDispatcher().module<iAFeatureAnalyzerModuleInterface>();
-	featureAnalyzer->startFeatureAnalyzer(m_resultsFolder, m_datasetsFolder);
-}
+private slots:
+	void slicerPointClicked(double x, double y, double z);
 
-void iAFeatureAnalyzerProject::saveProject(QSettings& projectFile, QString const& /*fileName*/)
-{
-	projectFile.setValue(ResultsFolderKey, m_resultsFolder);
-	projectFile.setValue(DatasetFolderKey, m_datasetsFolder);
-}
-
-QString const iAFeatureAnalyzerProject::ID("FeatureAnalyzer");
-QString const iAFeatureAnalyzerProject::ResultsFolderKey("ResultsFolder");
-QString const iAFeatureAnalyzerProject::DatasetFolderKey("DatasetFolder");
+private:
+	std::shared_ptr<iAAnnotationToolUI> m_ui;
+};

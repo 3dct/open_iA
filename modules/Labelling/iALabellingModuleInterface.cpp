@@ -20,10 +20,13 @@
 * ************************************************************************************/
 #include "iALabellingModuleInterface.h"
 
+#include "iAAnnotationTool.h"
 #include "iALabellingAttachment.h"
 
 #include <iAMainWindow.h>
+#include <iAMdiChild.h>
 #include <iAModuleDispatcher.h>
+#include <iAToolRegistry.h>
 
 #include <QAction>
 #include <QMenu>
@@ -34,10 +37,17 @@ void iALabellingModuleInterface::Initialize()
 	{
 		return;
 	}
-	QMenu* menuEnsembles = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Image Ensembles"), false);
-	QAction* actionLabelling = new QAction(tr("Labelling"), m_mainWnd);
-	menuEnsembles->addAction(actionLabelling);
+	auto actionLabelling = new QAction(tr("Labelling"), m_mainWnd);
 	connect(actionLabelling, &QAction::triggered, this, &iALabellingModuleInterface::startLabelling);
+
+	auto actionAnnotation = new QAction(tr("Annotations"), m_mainWnd);
+	connect(actionAnnotation, &QAction::triggered, this, &iALabellingModuleInterface::startAnnotations);
+
+	auto menuEnsembles = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Labelling"), false);
+	menuEnsembles->addAction(actionLabelling);
+	menuEnsembles->addAction(actionAnnotation);
+
+	//iAToolRegistry::addTool(iAAnnotationTool::Name, iAAnnotationTool::create)
 }
 
 void iALabellingModuleInterface::startLabelling()
@@ -47,6 +57,17 @@ void iALabellingModuleInterface::startLabelling()
 		return;
 	}
 	AttachToMdiChild(m_mainWnd->activeMdiChild());
+}
+
+void iALabellingModuleInterface::startAnnotations()
+{
+	if (!m_mainWnd->activeMdiChild())
+	{
+		return;
+	}
+	auto child = m_mainWnd->activeMdiChild();
+	auto tool = std::make_shared<iAAnnotationTool>(m_mainWnd, child);
+	child->addTool(iAAnnotationTool::Name, tool);
 }
 
 iAModuleAttachmentToChild* iALabellingModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child)

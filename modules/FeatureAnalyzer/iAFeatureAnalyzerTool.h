@@ -18,61 +18,24 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAProjectRegistry.h"
+#pragma once
 
-#include "iALog.h"
-#include "iAProjectBase.h"
+#include "iATool.h"
 
-#include <cassert>
+#include <QSharedPointer>
+#include <QString>
 
-#include <QMap>
-
-namespace
-{// if the data structures here would be members of iAProjectRegistry, we would run into the "Static Initialization Order Fiasco"!
-	QMap<QString, iAProjectCreateFuncPtr>& projectTypes()
-	{
-		static QMap<QString, iAProjectCreateFuncPtr> s_projectTypes;
-		return s_projectTypes;
-	}
-}
-
-void iAProjectRegistry::addProject(QString const& projectIdentifier, iAProjectCreateFuncPtr projectCreateFunc)
+class iAFeatureAnalyzerTool : public iATool
 {
-	if (projectTypes().contains(projectIdentifier))
-	{
-		LOG(lvlWarn, QString("Trying to add already registered project type %1 again!").arg(projectIdentifier));
-	}
-	projectTypes().insert(projectIdentifier, projectCreateFunc);
-}
+public:
+	static QString const ID;
+	void setOptions(QString const& resultsFolder, QString const& datasetsFolder);
+	static std::shared_ptr<iATool> create();
+	void loadState(QSettings& projectFile, QString const& fileName) override;
+	void saveState(QSettings& projectFile, QString const& fileName) override;
+private:
+	static QString const ResultsFolderKey;
+	static QString const DatasetFolderKey;
 
-QList<QString> const iAProjectRegistry::projectKeys()
-{
-	return projectTypes().keys();
-}
-
-std::shared_ptr<iAProjectBase> iAProjectRegistry::createProject(QString const & projectIdentifier)
-{
-	assert(projectTypes().contains(projectIdentifier));
-	return projectTypes()[projectIdentifier]();
-}
-
-
-
-iAProjectBase::iAProjectBase():
-	m_mdiChild(nullptr),
-	m_mainWindow(nullptr)
-{}
-
-iAProjectBase::~iAProjectBase()
-{}
-
-
-void iAProjectBase::setChild(iAMdiChild* child)
-{
-	m_mdiChild = child;
-}
-
-void iAProjectBase::setMainWindow(iAMainWindow* mainWindow)
-{
-	m_mainWindow = mainWindow;
-}
+	QString m_resultsFolder, m_datasetsFolder;
+};

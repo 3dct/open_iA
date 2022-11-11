@@ -74,7 +74,7 @@ class iAChannelData;
 class iAIO;
 class iAModality;
 class iAModalityList;
-class iAProjectBase;
+class iATool;
 class iAVolumeStack;
 
 // slicer / renderer
@@ -273,9 +273,9 @@ public:
 	void linkViews(bool l);
 	//! Enable or disable linked MDI windows for this MDI child.
 	void linkMDIs(bool lm);
-	//! add project
-	void addProject(QString const & key, std::shared_ptr<iAProjectBase> project) override;
-	QMap<QString, std::shared_ptr<iAProjectBase> > const & projects();
+	//! add a tool to this child (a collection of UI elements with their own behavior and state)
+	void addTool(QString const & key, std::shared_ptr<iATool> tool) override;
+	QMap<QString, std::shared_ptr<iATool> > const & tools();
 
 	iAInteractionMode interactionMode() const override;
 	void setInteractionMode(iAInteractionMode mode);
@@ -532,9 +532,9 @@ private:
 
 	size_t m_magicLensDataSet;
 	bool m_initVolumeRenderers;
-	int m_storedModalityNr;		                                     //!< modality nr being stored
-	QMap<QString, std::shared_ptr<iAProjectBase>> m_projects;         //!< list of currently active "projects" (i.e. Tools)
-	iAInteractionMode m_interactionMode;                             //!< current interaction mode in slicers/renderer (see iAInteractionMode)
+	int m_storedModalityNr;		                                          //!< modality nr being stored
+	QMap<QString, std::shared_ptr<iATool>> m_tools;                       //!< list of currently active tools
+	iAInteractionMode m_interactionMode;                                  //!< current interaction mode in slicers/renderer (see iAInteractionMode)
 	bool m_slicerVisibility[3];
 
 	size_t m_nextDataSetID;                                               //!< holds ID for next dataSet (in order to provide a unique ID to each loaded dataset)

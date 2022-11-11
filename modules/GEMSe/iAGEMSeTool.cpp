@@ -18,42 +18,34 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAGEMSeTool.h"
 
-#include "ui_FiAKErToolBar.h"
+#include "iAGEMSeModuleInterface.h"
 
-#include "iAGUIModuleInterface.h"
-#include "qthelper/iAQTtoUIConnector.h"
+#include <iAModuleDispatcher.h> // TODO: Refactor; it shouldn't be required to go via iAModuleDispatcher to retrieve one's own module
+#include <iAMainWindow.h>
 
-class iAFIAKERTool;
+const QString iAGEMSeTool::ID("GEMSe");
 
-class QSettings;
+iAGEMSeTool::iAGEMSeTool()
+{}
 
-typedef iAQTtoUIConnector<QToolBar, Ui_FiAKErToolBar> iAFiAKErToolBar;
+iAGEMSeTool::~iAGEMSeTool()
+{}
 
-class iAFiAKErModuleInterface : public iAGUIModuleInterface
+void iAGEMSeTool::loadState(QSettings & projectFile, QString const & fileName)
 {
-	Q_OBJECT
-public:
-	void Initialize() override;
-	void SaveSettings() const override;
+	iAGEMSeModuleInterface * gemseModule = m_mainWindow->moduleDispatcher().module<iAGEMSeModuleInterface>();
+	gemseModule->loadProject(m_mdiChild, projectFile, fileName);
+}
 
-	void setupToolBar();
-	void loadProject(iAMdiChild* mdiChild, QSettings const& projectFile, QString const& fileName, iAFIAKERTool* project);
-protected:
-	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
-private slots:
-	void startFiAKEr();
+void iAGEMSeTool::saveState(QSettings & projectFile, QString const & fileName)
+{
+	iAGEMSeModuleInterface * gemseModule = m_mainWindow->moduleDispatcher().module<iAGEMSeModuleInterface>();
+	gemseModule->saveProject(projectFile, fileName);
+}
 
-	//! Method to load fiaker project (called on Tools->FIAKER->Load project)
-	//! Deprecated, use open_iA project feature instead!
-	void loadFiAKErProject();
-
-	void toggleDockWidgetTitleBars();
-	void toggleSettings();
-private:
-	iAFiAKErToolBar* m_toolbar = nullptr;
-	QString m_lastPath, m_lastFormat;
-	double m_lastTimeStepOffset;
-	bool m_lastUseStepData, m_lastShowPreviews, m_lastShowCharts;
-};
+std::shared_ptr<iATool> iAGEMSeTool::create()
+{
+	return std::make_shared<iAGEMSeTool>();
+}

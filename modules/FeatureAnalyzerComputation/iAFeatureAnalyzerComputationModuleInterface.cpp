@@ -28,7 +28,7 @@
 #include <defines.h>    // for organisationName / applicationName
 #include <iACPUID.h>
 #include <iACSVToQTableWidgetConverter.h>
-#include <iAProjectRegistry.h>
+#include <iAToolRegistry.h>
 #include <iAMainWindow.h>
 
 #include <QAction>
