@@ -26,7 +26,10 @@
 #include <iADockWidgetWrapper.h>
 
 #include <iAMdiChild.h>
+#include <iAParameterDlg.h>
+#include <iARenderer.h>
 #include <iASlicer.h>
+#include <iASlicerImpl.h>    // for mapSliceToGlobalAxis
 
 #include <QHeaderView>
 #include <QStandardItemModel>
@@ -34,12 +37,29 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include <vtkActor.h>
+#include <vtkArrowSource.h>
+#include <vtkCaptionActor2D.h>
+#include <vtkCaptionWidget.h>
+#include <vtkCaptionRepresentation.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty2D.h>
+#include <vtkRendererCollection.h>
+#include <vtkTextActor.h>
+#include <vtkTextProperty.h>
+
 
 iAAnnotation::iAAnnotation(size_t id, iAVec3d coord, QString const& name, QColor color):
 	m_id(id), m_coord(coord), m_name(name), m_color(color)
 {}
 
 const QString iAAnnotationTool::Name = "Annotation";
+
+struct iAVtkAnnotationData
+{
+	std::array<vtkSmartPointer<vtkCaptionActor2D>, 4> m_txtActor;
+};
 
 class iAAnnotationToolUI
 {
@@ -89,7 +109,27 @@ public:
 			[tool, this]()
 			{
 				tool->startAddMode();
-				//tool->addAnnotation(iAVec3d());
+			});
+		QObject::connect(editButton, &QToolButton::clicked, tool,
+			[tool, this]()
+			{
+				auto rows = m_table->selectionModel()->selectedRows();
+				if (rows.size() != 1)
+				{
+					LOG(lvlWarn, "Please select exactly one row for editing!");
+					return;
+				}
+				int row = rows[0].row();
+				auto id = m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
+
+				iAAttributes params;
+				addAttr(params, "Name", iAValueType::String, m_table->item(row, 1)->text());
+				// would like to pass in tool as parent, but cannot, as it is const...
+				iAParameterDlg dlg(nullptr, "Annotation", params);
+				if (dlg.exec() == QDialog::Accepted)
+				{
+					tool->renameAnnotation(id, dlg.parameterValues()["Name"].toString());
+				}
 			});
 		QObject::connect(removeButton, &QToolButton::clicked, tool,
 			[tool, this]()
@@ -109,6 +149,7 @@ public:
 	QTableWidget* m_table;
 	iADockWidgetWrapper* m_dockWidget;
 	std::vector<iAAnnotation> m_annotations;
+	std::map<size_t, iAVtkAnnotationData> m_vtkAnnotateData;
 	QToolButton* m_addButton;
 };
 
@@ -124,7 +165,7 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 {
 	static size_t id = 0;
 	QString name = QString("Annotation %1").arg(id + 1);
-	QColor col = iAColorThemeManager::instance().theme("Brewer Set3 (max. 12)")->color(id);
+	QColor col = iAColorThemeManager::instance().theme("Brewer Dark2 (max. 8)")->color(id);
 	m_ui->m_annotations.push_back(iAAnnotation(id, coord, name, col));
 	++id;
 	int row = m_ui->m_table->rowCount();
@@ -135,6 +176,62 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 	m_ui->m_table->setItem(row, 0, colorItem);
 	m_ui->m_table->setItem(row, 1, new QTableWidgetItem(name));
 	m_ui->m_table->setItem(row, 2, new QTableWidgetItem(coord.toString()));
+	m_ui->m_table->resizeColumnsToContents();
+
+	// Create a text actor.
+	iAVtkAnnotationData vtkAnnot;
+	for (int i = 0; i < 4; ++i)
+	{
+		auto txt = vtkSmartPointer<vtkCaptionActor2D>::New();
+		txt->SetCaption(name.toStdString().c_str());
+		auto prop = txt->GetProperty();
+		prop->SetColor(col.redF(), col.greenF(), col.blueF());
+		prop->SetLineWidth(1000.0); // does not work, tried 1, 10, 100
+
+		// Does not work; there seems to be a slight thickening of the tip at the moment, but no real arrow visible:
+		//vtkNew<vtkArrowSource> arrowSource;
+		//arrowSource->SetShaftRadius(10.0);
+		//arrowSource->SetTipLength(10.0);
+		//arrowSource->Update();
+		//txt->SetLeaderGlyphConnection(arrowSource->GetOutputPort());
+		//txt->SetLeaderGlyphSize(10);
+		//txt->SetMaximumLeaderGlyphSize(10);
+		
+		double pt[3] = {
+			coord[i < 3 ? mapSliceToGlobalAxis(static_cast<iASlicerMode>(i), 0) : 0],
+			coord[i < 3 ? mapSliceToGlobalAxis(static_cast<iASlicerMode>(i), 1) : 1],
+			i < 3 ? 0: coord[2],
+		};
+		txt->SetAttachmentPoint(pt);
+		txt->SetDisplayPosition(100, 100);    // position relative to attachment point
+		// todo: placement outside of object
+
+		txt->BorderOff();
+		txt->PickableOn();
+		txt->DragableOn();
+
+		txt->GetTextActor()->SetTextScaleModeToNone();
+		txt->GetCaptionTextProperty()->SetFontFamily(VTK_ARIAL);
+		//txt->GetCaptionTextProperty()->BoldOff();
+		txt->GetCaptionTextProperty()->ItalicOff();
+		txt->GetCaptionTextProperty()->ShadowOff();
+		txt->GetCaptionTextProperty()->SetBackgroundColor(0.0, 0.0, 0.0);
+		txt->GetCaptionTextProperty()->SetBackgroundOpacity(0.2);
+		txt->GetCaptionTextProperty()->SetColor(col.redF(), col.greenF(), col.blueF());
+		txt->GetCaptionTextProperty()->SetFontSize(16);
+		txt->GetCaptionTextProperty()->SetFrameWidth(2);
+		txt->GetCaptionTextProperty()->SetFrameColor(col.redF(), col.greenF(), col.blueF());
+		txt->GetCaptionTextProperty()->FrameOn();
+		//txt->GetCaptionTextProperty()->UseTightBoundingBoxOn();
+		
+		vtkAnnot.m_txtActor[i] = txt;
+		auto renWin = (i < 3) ?
+			m_mdiChild->slicer(i)->renderWindow() :
+			m_mdiChild->renderer()->renderWindow();
+		renWin->GetRenderers()->GetFirstRenderer()->AddActor(txt);
+	}
+	m_ui->m_vtkAnnotateData[id] = vtkAnnot;
+	m_mdiChild->updateViews();
 	return id;
 }
 
@@ -154,6 +251,11 @@ void iAAnnotationTool::renameAnnotation(size_t id, QString const& newName)
 			m_ui->m_table->item(row, 1)->setText(newName);
 		}
 	}
+	for (int i = 0; i < 4; ++i)
+	{
+		m_ui->m_vtkAnnotateData[id].m_txtActor[i]->SetCaption(newName.toStdString().c_str());
+	}
+	m_mdiChild->updateViews();
 }
 
 void iAAnnotationTool::removeAnnotation(size_t id)
@@ -173,6 +275,13 @@ void iAAnnotationTool::removeAnnotation(size_t id)
 			m_ui->m_table->removeRow(row);
 		}
 	}
+	for (int j=0; j<3; ++j)
+	{
+		m_mdiChild->slicer(j)->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_ui->m_vtkAnnotateData[id].m_txtActor[j]);
+	}
+	m_mdiChild->renderer()->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_ui->m_vtkAnnotateData[id].m_txtActor[3]);
+	m_ui->m_vtkAnnotateData.erase(id);
+	m_mdiChild->updateViews();
 }
 
 std::vector<iAAnnotation> const& iAAnnotationTool::annotations() const
