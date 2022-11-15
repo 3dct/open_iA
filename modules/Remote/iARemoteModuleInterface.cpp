@@ -164,6 +164,10 @@ public:
 				}
 			}
 			auto renWin = m_wsAPI->renderWindow(action.viewID);
+			if (!renWin)
+			{
+				return;
+			}
 			auto interactor = renWin->GetInteractor();
 			interactor->SetControlKey(action.ctrlKey);
 			interactor->SetShiftKey(action.shiftKey);
@@ -204,7 +208,7 @@ public:
 		}
 		if (port == 8080)
 		{
-			LOG(lvlImportant, QString("You can reach the webserver under http:\\\\localhost:%1").arg(port));
+			LOG(lvlImportant, QString("You can reach the webserver under http://localhost:%1").arg(port));
 		}
 #endif
 	}
