@@ -26,7 +26,6 @@ class iARemoteModuleInterface : public iAGUIModuleInterface
 {
 public:
 	void Initialize() override;
-	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child);
 
 public slots:
 	void addRemoteServer();

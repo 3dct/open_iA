@@ -21,7 +21,7 @@
 #include "iALabellingModuleInterface.h"
 
 #include "iAAnnotationTool.h"
-#include "iALabellingAttachment.h"
+#include "iALabellingTool.h"
 
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
@@ -56,7 +56,8 @@ void iALabellingModuleInterface::startLabelling()
 	{
 		return;
 	}
-	AttachToMdiChild(m_mainWnd->activeMdiChild());
+	auto child = m_mainWnd->activeMdiChild();
+	child->addTool(iALabellingTool::Name, std::make_shared<iALabellingTool>(m_mainWnd));
 }
 
 void iALabellingModuleInterface::startAnnotations()
@@ -66,11 +67,5 @@ void iALabellingModuleInterface::startAnnotations()
 		return;
 	}
 	auto child = m_mainWnd->activeMdiChild();
-	auto tool = std::make_shared<iAAnnotationTool>(m_mainWnd, child);
-	child->addTool(iAAnnotationTool::Name, tool);
-}
-
-iAModuleAttachmentToChild* iALabellingModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child)
-{
-	return iALabellingAttachment::create(mainWnd, child);
+	child->addTool(iAAnnotationTool::Name, std::make_shared<iAAnnotationTool>(m_mainWnd));
 }

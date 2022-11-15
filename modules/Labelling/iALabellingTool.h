@@ -22,18 +22,21 @@
 
 #include "Labelling_export.h"
 
-#include <iAModuleAttachmentToChild.h>
+#include <iATool.h>
+
+#include <QObject>
 
 class dlg_labels;
 
-class iALabellingAttachment : public iAModuleAttachmentToChild
+class iALabellingTool : public QObject, public iATool
 {
 	Q_OBJECT
 public:
-	static iALabellingAttachment* create(iAMainWindow* mainWnd, iAMdiChild* child);
+	iALabellingTool(iAMainWindow* mainWnd);
+	static const QString Name;
 	dlg_labels* labelsDlg();
+	void setChild(iAMdiChild* child) override;
 
 private:
-	iALabellingAttachment(iAMainWindow* mainWnd, iAMdiChild* child);
 	dlg_labels* m_dlgLabels;
 };

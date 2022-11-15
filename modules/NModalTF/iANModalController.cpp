@@ -25,7 +25,7 @@
 
 #include "dlg_labels.h"
 #include "dlg_modalities.h"
-#include "iALabellingAttachment.h"
+#include "iALabellingTool.h"
 
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>

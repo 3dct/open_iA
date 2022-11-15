@@ -18,26 +18,28 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iALabellingAttachment.h"
+#include "iALabellingTool.h"
 
 #include "dlg_labels.h"
 
 #include <iAMdiChild.h>
 
-iALabellingAttachment::iALabellingAttachment(iAMainWindow* mainWnd, iAMdiChild* child) :
-	iAModuleAttachmentToChild(mainWnd, child)
+const QString iALabellingTool::Name("Labelling");
+
+iALabellingTool::iALabellingTool(iAMainWindow* mainWnd):
+	m_dlgLabels(nullptr)
 {
+	setMainWindow(mainWnd);
 }
 
-iALabellingAttachment* iALabellingAttachment::create(iAMainWindow* mainWnd, iAMdiChild* child)
+void iALabellingTool::setChild(iAMdiChild* child)
 {
-	iALabellingAttachment* newAttachment = new iALabellingAttachment(mainWnd, child);
-	newAttachment->m_dlgLabels = new dlg_labels(child);
-	child->splitDockWidget(child->renderDockWidget(), newAttachment->m_dlgLabels, Qt::Vertical);
-	return newAttachment;
+	iATool::setChild(child);
+	m_dlgLabels = new dlg_labels(child);
+	child->splitDockWidget(child->renderDockWidget(), m_dlgLabels, Qt::Vertical);
 }
 
-dlg_labels* iALabellingAttachment::labelsDlg()
+dlg_labels* iALabellingTool::labelsDlg()
 {
 	return m_dlgLabels;
 }

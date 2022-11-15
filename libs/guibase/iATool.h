@@ -37,7 +37,7 @@ public:
 	virtual void loadState(QSettings & projectFile, QString const & fileName);
 	virtual void saveState(QSettings & projectFile, QString const & fileName);
 	void setMainWindow(iAMainWindow* mainWindow);
-	void setChild(iAMdiChild* mdiChild);
+	virtual void setChild(iAMdiChild* mdiChild);
 protected:
 	iAMdiChild* m_mdiChild;
 	iAMainWindow* m_mainWindow;
