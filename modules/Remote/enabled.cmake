@@ -5,7 +5,7 @@ if (Qt${QT_VERSION_MAJOR}HttpServer_FOUND)
 		message(SEND_ERROR "NPM not found; required for building client part of Remote module! Please install node.js and/or add it to the path")
 	endif()
 	target_compile_definitions(Remote PRIVATE QT_HTTPSERVER)
-	set(HTTP_INSTALL_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Remote/web/dist")
+	set(HTTP_INSTALL_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Remote/web/dist_angular")
 	set(HTTP_DST_SUBDIR "RemoteClient")
 	# workaround: under windows, running the single steps directly causes the custom commands afterwards not to be called anymore
 	# no exact idea why yet, because 'call' should only be required for .bat files?
