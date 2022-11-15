@@ -1,14 +1,20 @@
+<div class="example-button-container">
+  <button mat-mini-fab [color]="!this.addMode ? 'primary': 'warn'" aria-label="Example icon button with a menu icon" (click)="addModeToggle()" >
+    <mat-icon>add</mat-icon>
+  </button>
+</div>
+
 <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 demo-table">
   <!-- Position Column -->
   <ng-container matColumnDef="position">
     <th mat-header-cell *matHeaderCellDef>No.</th>
-    <td mat-cell *matCellDef="let element">{{element.position}}</td>
+    <td mat-cell *matCellDef="let element">{{element.id}}</td>
   </ng-container>
 
   <!-- Name Column -->
   <ng-container matColumnDef="name">
     <th mat-header-cell *matHeaderCellDef>Description</th>
-    <td mat-cell *matCellDef="let element">{{element.name}}</td>
+    <td mat-cell *matCellDef="let element">{{element.Title}}</td>
   </ng-container>
 
   <!-- Weight Column -->
@@ -16,7 +22,7 @@
     <th mat-header-cell *matHeaderCellDef>Delete</th>
     <td mat-cell *matCellDef="let element">        
       <div class="example-button-container">
-        <button mat-mini-fab color="primary" aria-label="Example icon button with a menu icon">
+        <button mat-mini-fab color="primary" aria-label="Example icon button with a menu icon" (click)="sendDelete(element.id)">
           <mat-icon>delete</mat-icon>
         </button>
       </div>
@@ -27,8 +33,8 @@
     <th mat-header-cell *matHeaderCellDef>Jump</th>
     <td mat-cell *matCellDef="let element">        
       <div class="example-button-container">
-        <button mat-mini-fab color="primary" aria-label="Example icon button with a menu icon">
-          <mat-icon>add</mat-icon>
+        <button mat-mini-fab color="primary" aria-label="Example icon button with a menu icon" (click)="sendSelect(element.id)">
+          <mat-icon>home</mat-icon>
         </button>
       </div>
   </ng-container>
@@ -36,27 +42,12 @@
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
   <tr
       mat-row
-      (click)="clickedRows.add(row)"
-      [class.demo-row-is-clicked]="clickedRows.has(row)"
+      [class.demo-row-is-clicked]="selectedID == row.id"
       *matRowDef="let row; columns: displayedColumns;"
   ></tr>
 </table>
 
-<div>
-  <h3>
-    Click Log
-  </h3>
-</div>
 
-<div *ngIf="!clickedRows.size">
-  Clicked rows will be logged here
-</div>
-
-<ul>
-  <li *ngFor="let clickedRow of clickedRows">
-    Clicked on {{clickedRow.name}}
-  </li>
-</ul>
 
 
 <!-- Copyright 2022 Google LLC. All Rights Reserved.

@@ -7,6 +7,8 @@ import {TableRowBindingExample} from './table-row-binding-example';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {MatNativeDateModule} from '@angular/material/core';
 import {HttpClientModule} from '@angular/common/http';
+import { RouterModule, Routes } from '@angular/router';
+
 
 @NgModule({
   declarations: [TableRowBindingExample],
