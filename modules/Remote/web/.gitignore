@@ -1,3 +1,5 @@
-dist/main.js
+.angular/
+dist/
+dist_angular/
 node_modules/
 package-lock.json
