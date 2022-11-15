@@ -49,6 +49,8 @@
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h>
 
+#include <array>
+
 
 iAAnnotation::iAAnnotation(size_t id, iAVec3d coord, QString const& name, QColor color):
 	m_id(id), m_coord(coord), m_name(name), m_color(color)
