@@ -49,7 +49,8 @@ class iAAnnotationTool : public QObject, public iATool
 	Q_OBJECT
 public:
 	static const QString Name;
-	iAAnnotationTool(iAMainWindow* mainWin, iAMdiChild* child);
+	iAAnnotationTool(iAMainWindow* mainWin);
+	void setChild(iAMdiChild* child) override;
 	size_t addAnnotation(iAVec3d const & coord);
 	void renameAnnotation(size_t id, QString const& newName);
 	void removeAnnotation(size_t id);

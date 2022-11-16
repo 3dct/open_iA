@@ -23,7 +23,7 @@
 // iAguibase
 #include "iAMainWindow.h"
 #include "iAMdiChild.h"
-#include "iAModuleAttachmentToChild.h"
+#include "iATool.h"
 #include "iARenderer.h"
 #include "iASlicerImpl.h"
 #include "iASlicerMode.h"
@@ -106,16 +106,22 @@ namespace
 }
 #endif
 
-class iARemoteAttachment: public iAModuleAttachmentToChild
+class iARemoteTool: public QObject, public iATool
 {
 public:
-	iARemoteAttachment(iAMainWindow* mainWnd, iAMdiChild* child):
-		iAModuleAttachmentToChild(mainWnd, child),
+	static const QString Name;
+	iARemoteTool(iAMainWindow* mainWnd) :
 		m_wsAPI(std::make_unique<iARemoteRenderer>(1234))
 #ifdef QT_HTTPSERVER
-		, m_httpServer(std::make_unique<QHttpServer>())
+		,
+		m_httpServer(std::make_unique<QHttpServer>())
 #endif
 	{
+		setMainWindow(mainWnd);
+	}
+	void setChild(iAMdiChild* child) override
+	{
+		iATool::setChild(child);
 		m_wsAPI->addRenderWindow(child->renderer()->renderWindow(), "3D");
 		m_viewWidgets.insert("3D", child->rendererWidget());
 		for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
@@ -158,6 +164,10 @@ public:
 				}
 			}
 			auto renWin = m_wsAPI->renderWindow(action.viewID);
+			if (!renWin)
+			{
+				return;
+			}
 			auto interactor = renWin->GetInteractor();
 			interactor->SetControlKey(action.ctrlKey);
 			interactor->SetShiftKey(action.shiftKey);
@@ -178,7 +188,6 @@ public:
 
 			//interactor()->Modified();
 			//interactor()->Render();
-			
 		});
 
 #ifdef QT_HTTPSERVER
@@ -199,7 +208,7 @@ public:
 		}
 		if (port == 8080)
 		{
-			LOG(lvlImportant, QString("You can reach the webserver under http:\\\\localhost:%1").arg(port));
+			LOG(lvlImportant, QString("You can reach the webserver under http://localhost:%1").arg(port));
 		}
 #endif
 	}
@@ -212,6 +221,7 @@ private:
 #endif
 };
 
+const QString iARemoteTool::Name("NDTflix");
 
 void iARemoteModuleInterface::Initialize()
 {
@@ -225,16 +235,11 @@ void iARemoteModuleInterface::Initialize()
 	addToMenuSorted(m_mainWnd->toolsMenu(), actionRemote);
 }
 
-iAModuleAttachmentToChild* iARemoteModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child)
-{
-	return new iARemoteAttachment(mainWnd, child);
-}
-
 void iARemoteModuleInterface::addRemoteServer()
 {
 	if (!m_mainWnd->activeMdiChild())
 	{
 		return;
 	}
-	AttachToMdiChild(m_mainWnd->activeMdiChild());
+	m_mainWnd->activeMdiChild()->addTool(iARemoteTool::Name, std::make_shared<iARemoteTool>(m_mainWnd));
 }

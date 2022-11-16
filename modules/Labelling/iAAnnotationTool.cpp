@@ -49,6 +49,8 @@
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h>
 
+#include <array>
+
 
 iAAnnotation::iAAnnotation(size_t id, iAVec3d coord, QString const& name, QColor color):
 	m_id(id), m_coord(coord), m_name(name), m_color(color)
@@ -153,11 +155,15 @@ public:
 	QToolButton* m_addButton;
 };
 
-iAAnnotationTool::iAAnnotationTool(iAMainWindow* mainWin, iAMdiChild* child):
+iAAnnotationTool::iAAnnotationTool(iAMainWindow* mainWin):
 	m_ui(std::make_shared<iAAnnotationToolUI>(this))
 {
 	setMainWindow(mainWin);
-	setChild(child);
+}
+
+void iAAnnotationTool::setChild(iAMdiChild* child)
+{
+	iATool::setChild(child);
 	child->splitDockWidget(child->renderDockWidget(), m_ui->m_dockWidget, Qt::Vertical);
 }
 
