@@ -26,6 +26,7 @@
 class iACaptionItem 
 {
 public:
+	int id;
 	QString Title;
 	QString Text;
 	int x, y, z;

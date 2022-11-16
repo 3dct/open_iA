@@ -123,21 +123,21 @@ void iAWebsocketAPI::processTextMessage(QString message)
 	}
 
 	//Captions API 
-	else if (Request["method"].toString() == "request.captions")
+	else if (Request["method"].toString() == "subscribe.captions")
 	{
-		commandControls(Request, pClient);
+		captionSubscribe(pClient);
 	}
 	else if (Request["method"].toString() == "select.caption")
 	{
-		commandControls(Request, pClient);
+		emit selectCaption(Request["id"].toInt());
 	}
 	else if (Request["method"].toString() == "remove.caption")
 	{
-		commandControls(Request, pClient);
+		emit removeCaption(Request["id"].toInt());
 	}
 	else if (Request["method"].toString() == "addMode.caption")
 	{
-		commandControls(Request, pClient);
+		emit addMode(Request["addMode"].toBool());
 	}
 
 
@@ -379,6 +379,7 @@ void iAWebsocketAPI::updateCaptionList(QList<iACaptionItem> captions)
 	for (auto caption : captions)
 	{
 		QJsonObject captionObject;
+		captionObject["id"] = caption.id;
 		captionObject["Title"] = caption.Title;
 		captionObject["Text"] = caption.Text;
 		captionObject["x"] = caption.x;
@@ -394,6 +395,50 @@ void iAWebsocketAPI::updateCaptionList(QList<iACaptionItem> captions)
 	response["captionList"] = captionList;
 	const QJsonDocument Response2{response};
 
+	m_captionUpdate = Response2;
+
+	sendCaptionUpdate();
+
+}
+
+void iAWebsocketAPI::captionSubscribe(QWebSocket* pClient)
+{
+	QList<iACaptionItem> captions;
+	iACaptionItem test;
+	test.Title = "Test";
+	captions.append(test);
+	iACaptionItem test2;
+	test2.Title = "Test2";
+	test2.id = 1;
+	captions.append(test2);
+	iACaptionItem test3;
+	test3.Title = "Test3";
+	test3.id = 2;
+	captions.append(test3);
+	updateCaptionList(captions);
+
+	if (subscriptions.contains(cptionKey))
+	{
+		subscriptions[cptionKey].append(pClient);
+	}
+	else
+	{
+		subscriptions.insert(cptionKey, QList<QWebSocket*>());
+		subscriptions[cptionKey].append(pClient);
+	}
+	sendCaptionUpdate();
+}
 
 
+void iAWebsocketAPI::sendCaptionUpdate()
+{
+
+
+	if (subscriptions.contains(cptionKey))
+	{
+		for (auto client : subscriptions[cptionKey])
+		{
+			client->sendTextMessage(m_captionUpdate.toJson());
+		}
+	}
 }

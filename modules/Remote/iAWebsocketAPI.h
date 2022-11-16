@@ -26,6 +26,7 @@
 #include <QMap>
 #include <QThread>
 #include <iACaptionItem.h>
+#include <QJsonDocument>
 
 class iARemoteAction;
 
@@ -33,28 +34,32 @@ class QWebSocket;
 class QWebSocketServer;
 
 class iAWebsocketAPI : public QObject
-{
+{ 
 	Q_OBJECT
 public:
 	iAWebsocketAPI(quint16 port, bool debug = false, QObject* parent = nullptr);
 	void setRenderedImage(QByteArray img, QString id);
 	~iAWebsocketAPI();
-
+	 
 Q_SIGNALS:
 	void closed();
 	void controlCommand(iARemoteAction const & action);
 	void removeCaption(int id);
 	void addMode(bool active);
 	void selectCaption(int id);
-	void changeCaptionTitle(int id, QString title);
-
+	void changeCaptionTitle(int id, QString title); 
+	
 private Q_SLOTS:
 	void onNewConnection();
 	void processTextMessage(QString message);
 	void processBinaryMessage(QByteArray message);
 	void socketDisconnected();
 
-	void updateCaptionList(QList<iACaptionItem> captions); 
+	void updateCaptionList(QList<iACaptionItem> captions);
+	void captionSubscribe(QWebSocket* pClient);
+
+	void sendCaptionUpdate();
+ 
 
 public Q_SLOTS:
 	void sendViewIDUpdate(QByteArray img, QString ViewID);
@@ -65,6 +70,8 @@ private:
 	bool m_debug;
 	int m_count;
 	QMap<QString, QByteArray> images;
+	QJsonDocument m_captionUpdate;
+	const QString cptionKey = "caption";
 
 	QElapsedTimer m_StoppWatch;
 
