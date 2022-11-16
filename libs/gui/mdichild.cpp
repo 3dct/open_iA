@@ -1042,9 +1042,7 @@ void MdiChild::setupProject(bool /*active*/)
 		{
 			if (projectFileGroups.contains(toolKey))
 			{
-				auto tool = iAToolRegistry::createTool(toolKey);
-				tool->setMainWindow(m_mainWnd);
-				tool->setChild(this);
+				auto tool = iAToolRegistry::createTool(toolKey, m_mainWnd, this);
 				projectFile.beginGroup(toolKey);
 				tool->loadState(projectFile, fileName);
 				projectFile.endGroup();
@@ -3242,7 +3240,6 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 
 void MdiChild::addTool(QString const& key, std::shared_ptr<iATool> tool)
 {
-	tool->setChild(this);
 	m_tools.insert(key, tool);
 }
 

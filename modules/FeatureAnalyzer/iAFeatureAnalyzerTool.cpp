@@ -33,9 +33,14 @@ void iAFeatureAnalyzerTool::setOptions(QString const& resultsFolder, QString con
 	m_datasetsFolder = datasetsFolder;
 }
 
-std::shared_ptr<iATool> iAFeatureAnalyzerTool::create()
+std::shared_ptr<iATool> iAFeatureAnalyzerTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
 {
-	return std::make_shared<iAFeatureAnalyzerTool>();
+	return std::make_shared<iAFeatureAnalyzerTool>(mainWnd, child);
+}
+
+iAFeatureAnalyzerTool::iAFeatureAnalyzerTool(iAMainWindow* mainWnd, iAMdiChild* child) :
+	iATool(mainWnd, child)
+{
 }
 
 void iAFeatureAnalyzerTool::loadState(QSettings& projectFile, QString const& /*fileName*/)

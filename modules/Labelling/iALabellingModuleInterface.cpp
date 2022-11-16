@@ -38,34 +38,20 @@ void iALabellingModuleInterface::Initialize()
 		return;
 	}
 	auto actionLabelling = new QAction(tr("Labelling"), m_mainWnd);
-	connect(actionLabelling, &QAction::triggered, this, &iALabellingModuleInterface::startLabelling);
+	connect(actionLabelling, &QAction::triggered, this, [this]()
+		{
+			addToolToActiveMdiChild<iALabellingTool>(iALabellingTool::Name, m_mainWnd);
+		});
 
 	auto actionAnnotation = new QAction(tr("Annotations"), m_mainWnd);
-	connect(actionAnnotation, &QAction::triggered, this, &iALabellingModuleInterface::startAnnotations);
+	connect(actionAnnotation, &QAction::triggered, this, [this]()
+		{
+			addToolToActiveMdiChild<iAAnnotationTool>(iAAnnotationTool::Name, m_mainWnd);
+		});
 
 	auto menuEnsembles = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Labelling"), false);
 	menuEnsembles->addAction(actionLabelling);
 	menuEnsembles->addAction(actionAnnotation);
 
 	//iAToolRegistry::addTool(iAAnnotationTool::Name, iAAnnotationTool::create)
-}
-
-void iALabellingModuleInterface::startLabelling()
-{
-	if (!m_mainWnd->activeMdiChild())
-	{
-		return;
-	}
-	auto child = m_mainWnd->activeMdiChild();
-	child->addTool(iALabellingTool::Name, std::make_shared<iALabellingTool>(m_mainWnd));
-}
-
-void iALabellingModuleInterface::startAnnotations()
-{
-	if (!m_mainWnd->activeMdiChild())
-	{
-		return;
-	}
-	auto child = m_mainWnd->activeMdiChild();
-	child->addTool(iAAnnotationTool::Name, std::make_shared<iAAnnotationTool>(m_mainWnd));
 }

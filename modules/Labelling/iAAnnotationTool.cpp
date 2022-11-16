@@ -155,15 +155,10 @@ public:
 	QToolButton* m_addButton;
 };
 
-iAAnnotationTool::iAAnnotationTool(iAMainWindow* mainWin):
+iAAnnotationTool::iAAnnotationTool(iAMainWindow* mainWnd, iAMdiChild* child):
+	iATool(mainWnd,child),
 	m_ui(std::make_shared<iAAnnotationToolUI>(this))
 {
-	setMainWindow(mainWin);
-}
-
-void iAAnnotationTool::setChild(iAMdiChild* child)
-{
-	iATool::setChild(child);
 	child->splitDockWidget(child->renderDockWidget(), m_ui->m_dockWidget, Qt::Vertical);
 }
 
@@ -232,12 +227,12 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 		
 		vtkAnnot.m_txtActor[i] = txt;
 		auto renWin = (i < 3) ?
-			m_mdiChild->slicer(i)->renderWindow() :
-			m_mdiChild->renderer()->renderWindow();
+			m_child->slicer(i)->renderWindow() :
+			m_child->renderer()->renderWindow();
 		renWin->GetRenderers()->GetFirstRenderer()->AddActor(txt);
 	}
 	m_ui->m_vtkAnnotateData[id] = vtkAnnot;
-	m_mdiChild->updateViews();
+	m_child->updateViews();
 	return id;
 }
 
@@ -261,7 +256,7 @@ void iAAnnotationTool::renameAnnotation(size_t id, QString const& newName)
 	{
 		m_ui->m_vtkAnnotateData[id].m_txtActor[i]->SetCaption(newName.toStdString().c_str());
 	}
-	m_mdiChild->updateViews();
+	m_child->updateViews();
 }
 
 void iAAnnotationTool::removeAnnotation(size_t id)
@@ -283,11 +278,11 @@ void iAAnnotationTool::removeAnnotation(size_t id)
 	}
 	for (int j=0; j<3; ++j)
 	{
-		m_mdiChild->slicer(j)->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_ui->m_vtkAnnotateData[id].m_txtActor[j]);
+		m_child->slicer(j)->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_ui->m_vtkAnnotateData[id].m_txtActor[j]);
 	}
-	m_mdiChild->renderer()->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_ui->m_vtkAnnotateData[id].m_txtActor[3]);
+	m_child->renderer()->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_ui->m_vtkAnnotateData[id].m_txtActor[3]);
 	m_ui->m_vtkAnnotateData.erase(id);
-	m_mdiChild->updateViews();
+	m_child->updateViews();
 }
 
 std::vector<iAAnnotation> const& iAAnnotationTool::annotations() const
@@ -301,7 +296,7 @@ void iAAnnotationTool::startAddMode()
 	m_ui->m_addButton->setDown(true);
 	for (int i = 0; i < 3; ++i)
 	{
-		connect(m_mdiChild->slicer(i), &iASlicer::leftClicked, this, &iAAnnotationTool::slicerPointClicked);
+		connect(m_child->slicer(i), &iASlicer::leftClicked, this, &iAAnnotationTool::slicerPointClicked);
 	}
 }
 
@@ -312,7 +307,7 @@ void iAAnnotationTool::slicerPointClicked(double x, double y, double z)
 	addAnnotation(iAVec3d(x, y, z));
 	for (int i = 0; i < 3; ++i)
 	{
-		disconnect(m_mdiChild->slicer(i), &iASlicer::leftClicked, this, &iAAnnotationTool::slicerPointClicked);
+		disconnect(m_child->slicer(i), &iASlicer::leftClicked, this, &iAAnnotationTool::slicerPointClicked);
 	}
 }
 

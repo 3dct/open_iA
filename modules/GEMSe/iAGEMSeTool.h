@@ -30,10 +30,10 @@ class QString;
 class iAGEMSeTool : public iATool
 {
 public:
-	iAGEMSeTool();
+	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child);
+	iAGEMSeTool(iAMainWindow* mainWnd, iAMdiChild* child);
 	static const QString ID;
 	virtual ~iAGEMSeTool() override;
 	void loadState(QSettings & projectFile, QString const & fileName) override;
 	void saveState(QSettings & projectFile, QString const & fileName) override;
-	static std::shared_ptr<iATool> create();
 };

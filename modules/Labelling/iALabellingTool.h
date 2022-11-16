@@ -32,10 +32,9 @@ class iALabellingTool : public QObject, public iATool
 {
 	Q_OBJECT
 public:
-	iALabellingTool(iAMainWindow* mainWnd);
+	iALabellingTool(iAMainWindow* mainWnd, iAMdiChild* child);
 	static const QString Name;
 	dlg_labels* labelsDlg();
-	void setChild(iAMdiChild* child) override;
 
 private:
 	dlg_labels* m_dlgLabels;

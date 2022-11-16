@@ -437,8 +437,7 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 			{
 				if (projectFileGroups.contains(toolKey))
 				{
-					auto tool = iAToolRegistry::createTool(toolKey);
-					tool->setMainWindow(this);
+					auto tool = iAToolRegistry::createTool(toolKey, this, nullptr);
 					projectFile.beginGroup(toolKey);
 					tool->loadState(projectFile, fileName);
 					projectFile.endGroup();

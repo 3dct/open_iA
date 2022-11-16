@@ -39,8 +39,7 @@ iAGEMSeAttachment::iAGEMSeAttachment(iAMainWindow * mainWnd, iAMdiChild * child)
 	iAModuleAttachmentToChild(mainWnd, child),
 	m_dummyTitleWidget(new QWidget())
 {
-	auto tool = std::make_shared<iAGEMSeTool>();
-	tool->setMainWindow(mainWnd);
+	auto tool = std::make_shared<iAGEMSeTool>(mainWnd, child);
 	child->addTool(iAGEMSeTool::ID, tool);
 }
 

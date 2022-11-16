@@ -27,8 +27,4 @@ class iALabellingModuleInterface : public iAGUIModuleInterface
 	Q_OBJECT
 public:
 	void Initialize() override;
-
-private slots:
-	void startLabelling();
-	void startAnnotations();
 };
