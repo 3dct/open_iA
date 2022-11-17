@@ -26,16 +26,10 @@
 
 const QString iALabellingTool::Name("Labelling");
 
-iALabellingTool::iALabellingTool(iAMainWindow* mainWnd):
-	m_dlgLabels(nullptr)
+iALabellingTool::iALabellingTool(iAMainWindow* mainWnd, iAMdiChild* child) :
+	iATool(mainWnd, child),
+	m_dlgLabels(new dlg_labels(child))
 {
-	setMainWindow(mainWnd);
-}
-
-void iALabellingTool::setChild(iAMdiChild* child)
-{
-	iATool::setChild(child);
-	m_dlgLabels = new dlg_labels(child);
 	child->splitDockWidget(child->renderDockWidget(), m_dlgLabels, Qt::Vertical);
 }
 

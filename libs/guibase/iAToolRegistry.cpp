@@ -50,17 +50,16 @@ QList<QString> const iAToolRegistry::toolKeys()
 	return toolTypes().keys();
 }
 
-std::shared_ptr<iATool> iAToolRegistry::createTool(QString const & toolIdentifier)
+std::shared_ptr<iATool> iAToolRegistry::createTool(QString const & toolIdentifier, iAMainWindow* mainWnd, iAMdiChild* child)
 {
 	assert(toolTypes().contains(toolIdentifier));
-	return toolTypes()[toolIdentifier]();
+	return toolTypes()[toolIdentifier](mainWnd, child);
 }
 
 
 
-iATool::iATool():
-	m_mdiChild(nullptr),
-	m_mainWindow(nullptr)
+iATool::iATool(iAMainWindow* mainWnd, iAMdiChild* child):
+	m_child(child), m_mainWindow(mainWnd)
 {}
 
 iATool::~iATool()
@@ -71,18 +70,9 @@ void iATool::loadState(QSettings& projectFile, QString const& fileName)
 	Q_UNUSED(projectFile);
 	Q_UNUSED(fileName);
 }
+
 void iATool::saveState(QSettings& projectFile, QString const& fileName)
 {
 	Q_UNUSED(projectFile);
 	Q_UNUSED(fileName);
-}
-
-void iATool::setChild(iAMdiChild* child)
-{
-	m_mdiChild = child;
-}
-
-void iATool::setMainWindow(iAMainWindow* mainWindow)
-{
-	m_mainWindow = mainWindow;
 }

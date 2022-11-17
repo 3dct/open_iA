@@ -366,3 +366,15 @@ public slots:
 	virtual void disableRenderWindows(int ch) = 0;
 
 };
+
+template <typename T>
+void addToolToActiveMdiChild(QString const & name, iAMainWindow* mainWnd)
+{
+	auto child = mainWnd->activeMdiChild();
+	if (!child)
+	{
+		LOG(lvlWarn, "addTool: child not set!");
+		return;
+	}
+	child->addTool(name, std::make_shared<T>(mainWnd, child));
+}

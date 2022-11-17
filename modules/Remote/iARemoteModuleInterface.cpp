@@ -110,18 +110,14 @@ class iARemoteTool: public QObject, public iATool
 {
 public:
 	static const QString Name;
-	iARemoteTool(iAMainWindow* mainWnd) :
+	iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
+		iATool(mainWnd, child),
 		m_wsAPI(std::make_unique<iARemoteRenderer>(1234))
 #ifdef QT_HTTPSERVER
 		,
 		m_httpServer(std::make_unique<QHttpServer>())
 #endif
 	{
-		setMainWindow(mainWnd);
-	}
-	void setChild(iAMdiChild* child) override
-	{
-		iATool::setChild(child);
 		m_wsAPI->addRenderWindow(child->renderer()->renderWindow(), "3D");
 		m_viewWidgets.insert("3D", child->rendererWidget());
 		for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
@@ -230,16 +226,11 @@ void iARemoteModuleInterface::Initialize()
 		return;
 	}
 	QAction* actionRemote = new QAction(tr("Remote Render Server"), m_mainWnd);
-	connect(actionRemote, &QAction::triggered, this, &iARemoteModuleInterface::addRemoteServer);
+	connect(actionRemote, &QAction::triggered, this,[this]()
+		{
+			addToolToActiveMdiChild<iARemoteTool>(iARemoteTool::Name, m_mainWnd);
+		});
 	m_mainWnd->makeActionChildDependent(actionRemote);
 	addToMenuSorted(m_mainWnd->toolsMenu(), actionRemote);
 }
 
-void iARemoteModuleInterface::addRemoteServer()
-{
-	if (!m_mainWnd->activeMdiChild())
-	{
-		return;
-	}
-	m_mainWnd->activeMdiChild()->addTool(iARemoteTool::Name, std::make_shared<iARemoteTool>(m_mainWnd));
-}

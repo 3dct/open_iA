@@ -45,7 +45,8 @@
 class iAFIAKERTool : public iATool
 {
 public:
-	iAFIAKERTool():
+	iAFIAKERTool(iAMainWindow* mainWnd, iAMdiChild* child):
+		iATool(mainWnd, child),
 		m_controller(nullptr)
 	{}
 	~iAFIAKERTool() override
@@ -63,7 +64,7 @@ public:
 			return;
 		}
 		*/
-		if (!m_mdiChild)
+		if (!m_child)
 		{
 			LOG(lvlError, QString("Invalid FIAKER project file '%1': FIAKER requires a child window, "
 				"but UseMdiChild was apparently not specified in this project, as no child window available! "
@@ -72,15 +73,15 @@ public:
 		}
 		iAFiAKErModuleInterface * fiaker = m_mainWindow->moduleDispatcher().module<iAFiAKErModuleInterface>();
 		fiaker->setupToolBar();
-		fiaker->loadProject(m_mdiChild, projectFile, fileName, this);
+		fiaker->loadProject(m_child, projectFile, fileName, this);
 	}
 	void saveState(QSettings & projectFile, QString const & fileName) override
 	{
 		m_controller->saveProject(projectFile, fileName);
 	}
-	static std::shared_ptr<iATool> create()
+	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child)
 	{
-		return std::make_shared<iAFIAKERTool>();
+		return std::make_shared<iAFIAKERTool>(mainWnd, child);
 	}
 	void setController(iAFiAKErController* controller)
 	{
@@ -237,7 +238,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	{
 		mdiChild->setWindowTitle(QString("FIAKER (%1)").arg(m_lastPath));
 	}
-	auto tool = std::make_shared<iAFIAKERTool>();
+	auto tool = std::make_shared<iAFIAKERTool>(m_mainWnd, mdiChild);
 	tool->setController(attach->controller());
 	mdiChild->addTool(iAFiAKErController::FIAKERToolID, tool);
 	attach->controller()->start(m_lastPath, getCsvConfig(m_lastFormat), m_lastTimeStepOffset,
@@ -259,9 +260,7 @@ void iAFiAKErModuleInterface::loadFiAKErProject()
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	projectFile.setIniCodec("UTF-8");
 #endif
-	auto tool = std::make_shared<iAFIAKERTool>();
-	tool->setMainWindow(m_mainWnd);
-	tool->setChild(newChild);
+	auto tool = std::make_shared<iAFIAKERTool>(m_mainWnd, newChild);
 	loadProject(newChild, projectFile, fileName, tool.get());
 	newChild->addTool(iAFiAKErController::FIAKERToolID, tool);
 }

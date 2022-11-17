@@ -27,7 +27,7 @@
 
 const QString iAGEMSeTool::ID("GEMSe");
 
-iAGEMSeTool::iAGEMSeTool()
+iAGEMSeTool::iAGEMSeTool(iAMainWindow* mainWnd, iAMdiChild* child): iATool(mainWnd, child)
 {}
 
 iAGEMSeTool::~iAGEMSeTool()
@@ -36,7 +36,7 @@ iAGEMSeTool::~iAGEMSeTool()
 void iAGEMSeTool::loadState(QSettings & projectFile, QString const & fileName)
 {
 	iAGEMSeModuleInterface * gemseModule = m_mainWindow->moduleDispatcher().module<iAGEMSeModuleInterface>();
-	gemseModule->loadProject(m_mdiChild, projectFile, fileName);
+	gemseModule->loadProject(m_child, projectFile, fileName);
 }
 
 void iAGEMSeTool::saveState(QSettings & projectFile, QString const & fileName)
@@ -45,7 +45,7 @@ void iAGEMSeTool::saveState(QSettings & projectFile, QString const & fileName)
 	gemseModule->saveProject(projectFile, fileName);
 }
 
-std::shared_ptr<iATool> iAGEMSeTool::create()
+std::shared_ptr<iATool> iAGEMSeTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
 {
-	return std::make_shared<iAGEMSeTool>();
+	return std::make_shared<iAGEMSeTool>(mainWnd, child);
 }

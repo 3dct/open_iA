@@ -410,7 +410,7 @@ void iAFeatureAnalyzer::message( QString text )
 
 bool iAFeatureAnalyzer::doSaveProject(QString const& projectFileName)
 {
-	iAFeatureAnalyzerTool tool;
+	iAFeatureAnalyzerTool tool(nullptr, nullptr);
 	tool.setOptions(m_dataDir, m_datasetsDir);
 	
 	if (!projectFileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))

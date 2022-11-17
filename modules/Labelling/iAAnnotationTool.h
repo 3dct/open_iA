@@ -49,14 +49,12 @@ class iAAnnotationTool : public QObject, public iATool
 	Q_OBJECT
 public:
 	static const QString Name;
-	iAAnnotationTool(iAMainWindow* mainWin);
-	void setChild(iAMdiChild* child) override;
+	iAAnnotationTool(iAMainWindow* mainWin, iAMdiChild* child);
 	size_t addAnnotation(iAVec3d const & coord);
 	void renameAnnotation(size_t id, QString const& newName);
 	void removeAnnotation(size_t id);
 	std::vector<iAAnnotation> const & annotations() const;
-	
-	//static std::shared_ptr<iAAnnotationTool> create();
+
 public slots:
 	void startAddMode();
 

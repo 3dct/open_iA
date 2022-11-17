@@ -55,16 +55,16 @@ class iAFeatureScoutTool: public iATool
 {
 public:
 	static const QString ID;
-	iAFeatureScoutTool()
+	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child)
+	{
+		return std::make_shared<iAFeatureScoutTool>(mainWnd, child);
+	}
+	iAFeatureScoutTool(iAMainWindow* mainWnd, iAMdiChild* child): iATool(mainWnd, child)
 	{}
 	virtual ~iAFeatureScoutTool() override
 	{}
 	void loadState(QSettings & projectFile, QString const & fileName) override;
 	void saveState(QSettings & projectFile, QString const & fileName) override;
-	static std::shared_ptr<iATool> create()
-	{
-		return std::make_shared<iAFeatureScoutTool>();
-	}
 	void setOptions(iACsvConfig config)
 	{
 		m_config = config;
@@ -78,7 +78,7 @@ const QString iAFeatureScoutTool::ID("FeatureScout");
 
 void iAFeatureScoutTool::loadState(QSettings & projectFile, QString const & fileName)
 {
-	if (!m_mdiChild)
+	if (!m_child)
 	{
 		LOG(lvlError, QString("Invalid FeatureScout project file '%1': FeatureScout requires a child window, "
 			"but UseMdiChild was apparently not specified in this project, as no child window available! "
@@ -100,13 +100,13 @@ void iAFeatureScoutTool::loadState(QSettings & projectFile, QString const & file
 		m_config.curvedFiberFileName = MakeAbsolute(path, projectFile.value("CurvedFileName").toString());
 	}
 	iAFeatureScoutModuleInterface * featureScout = m_mainWindow->moduleDispatcher().module<iAFeatureScoutModuleInterface>();
-	featureScout->LoadFeatureScout(m_config, m_mdiChild);
+	featureScout->LoadFeatureScout(m_config, m_child);
 	QString layoutName = projectFile.value("Layout").toString();
 	if (!layoutName.isEmpty())
 	{
-		m_mdiChild->loadLayout(layoutName);
+		m_child->loadLayout(layoutName);
 	}
-	iAFeatureScoutAttachment* attach = featureScout->attachment<iAFeatureScoutAttachment>(m_mdiChild);
+	iAFeatureScoutAttachment* attach = featureScout->attachment<iAFeatureScoutAttachment>(m_child);
 	if (!attach)
 	{
 		LOG(lvlError, "Error while attaching FeatureScout to mdi child window!");
@@ -124,13 +124,13 @@ void iAFeatureScoutTool::saveState(QSettings & projectFile, QString const & file
 	{
 		projectFile.setValue("CurvedFileName", MakeRelative(path, m_config.curvedFiberFileName));
 	}
-	if (m_mdiChild)
+	if (m_child)
 	{
-		projectFile.setValue("Layout", m_mdiChild->layoutName());
+		projectFile.setValue("Layout", m_child->layoutName());
 	}
 
 	iAFeatureScoutModuleInterface* featureScout = m_mainWindow->moduleDispatcher().module<iAFeatureScoutModuleInterface>();
-	iAFeatureScoutAttachment* attach = featureScout->attachment<iAFeatureScoutAttachment>(m_mdiChild);
+	iAFeatureScoutAttachment* attach = featureScout->attachment<iAFeatureScoutAttachment>(m_child);
 	if (attach)
 	{
 		attach->saveProject(projectFile);
@@ -291,7 +291,7 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 
 		m_mdiChild->applyRenderSettings(m_mdiChild->firstImageDataSetIdx(), renderSettings);
 	}
-	auto tool = std::make_shared<iAFeatureScoutTool>();
+	auto tool = std::make_shared<iAFeatureScoutTool>(m_mainWnd, m_mdiChild);
 	tool->setOptions(csvConfig);
 	m_mdiChild->addTool(iAFeatureScoutTool::ID, tool);
 	return true;

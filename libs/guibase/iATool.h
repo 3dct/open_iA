@@ -32,13 +32,11 @@ class iAguibase_API iATool
 {
 public:
 	//! implementation (empty) in iAToolRegistry.cpp
-	iATool();
+	iATool(iAMainWindow* mainWnd, iAMdiChild* child);
 	virtual ~iATool();
 	virtual void loadState(QSettings & projectFile, QString const & fileName);
 	virtual void saveState(QSettings & projectFile, QString const & fileName);
-	void setMainWindow(iAMainWindow* mainWindow);
-	virtual void setChild(iAMdiChild* mdiChild);
 protected:
-	iAMdiChild* m_mdiChild;
+	iAMdiChild* m_child;
 	iAMainWindow* m_mainWindow;
 };
