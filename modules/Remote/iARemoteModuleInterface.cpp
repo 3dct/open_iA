@@ -112,7 +112,8 @@ public:
 	static const QString Name;
 	iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 		iATool(mainWnd, child),
-		m_wsAPI(std::make_unique<iARemoteRenderer>(1234))
+		m_wsAPI(std::make_unique<iARemoteRenderer>(1234)),
+		m_annotation(std::make_unique<iAAnnotationTool>(mainWnd, child))
 #ifdef QT_HTTPSERVER
 		,
 		m_httpServer(std::make_unique<QHttpServer>())
@@ -207,10 +208,18 @@ public:
 			LOG(lvlImportant, QString("You can reach the webserver under http://localhost:%1").arg(port));
 		}
 #endif
+
+		connect(m_annotation.get(), &iAAnnotationTool::annotationsUpdated, m_wsAPI->m_websocket.get(),&iAWebsocketAPI::updateCaptionList);
+		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::changeCaptionTitle, m_annotation.get(),
+			&iAAnnotationTool::renameAnnotation);
+		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::removeCaption, m_annotation.get(),
+			&iAAnnotationTool::removeAnnotation);
+		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::addMode, m_annotation.get(), &iAAnnotationTool::startAddMode);
 	}
 
 private:
 	std::unique_ptr<iARemoteRenderer> m_wsAPI;
+	std::unique_ptr<iAAnnotationTool> m_annotation;
 	QMap<QString, QWidget*> m_viewWidgets;
 #ifdef QT_HTTPSERVER
 	std::unique_ptr<QHttpServer> m_httpServer;

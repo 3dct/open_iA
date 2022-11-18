@@ -168,7 +168,6 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 	QString name = QString("Annotation %1").arg(id + 1);
 	QColor col = iAColorThemeManager::instance().theme("Brewer Dark2 (max. 8)")->color(id);
 	m_ui->m_annotations.push_back(iAAnnotation(id, coord, name, col));
-	++id;
 	int row = m_ui->m_table->rowCount();
 	m_ui->m_table->insertRow(row);
 	auto colorItem = new QTableWidgetItem();
@@ -233,12 +232,15 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 	}
 	m_ui->m_vtkAnnotateData[id] = vtkAnnot;
 	m_child->updateViews();
-	return id;
+	emit annotationsUpdated(m_ui->m_annotations);
+
+	++id;
+	return id-1;
 }
 
 void iAAnnotationTool::renameAnnotation(size_t id, QString const& newName)
 {
-	for (auto a: m_ui->m_annotations)
+	for (auto &a: m_ui->m_annotations)
 	{
 		if (a.m_id == id)
 		{
@@ -257,6 +259,7 @@ void iAAnnotationTool::renameAnnotation(size_t id, QString const& newName)
 		m_ui->m_vtkAnnotateData[id].m_txtActor[i]->SetCaption(newName.toStdString().c_str());
 	}
 	m_child->updateViews();
+	emit annotationsUpdated(m_ui->m_annotations);
 }
 
 void iAAnnotationTool::removeAnnotation(size_t id)
@@ -283,6 +286,7 @@ void iAAnnotationTool::removeAnnotation(size_t id)
 	m_child->renderer()->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_ui->m_vtkAnnotateData[id].m_txtActor[3]);
 	m_ui->m_vtkAnnotateData.erase(id);
 	m_child->updateViews();
+	emit annotationsUpdated(m_ui->m_annotations);
 }
 
 std::vector<iAAnnotation> const& iAAnnotationTool::annotations() const

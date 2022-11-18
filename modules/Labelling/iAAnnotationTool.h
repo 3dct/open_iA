@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include <Labelling_export.h>
+
 #include <iATool.h>
 #include <iAVec3.h>
 
@@ -44,19 +46,26 @@ struct iAAnnotation
 	QColor m_color;
 };
 
-class iAAnnotationTool : public QObject, public iATool
+class Labelling_API iAAnnotationTool : public QObject, public iATool
 {
 	Q_OBJECT
 public:
 	static const QString Name;
 	iAAnnotationTool(iAMainWindow* mainWin, iAMdiChild* child);
 	size_t addAnnotation(iAVec3d const & coord);
-	void renameAnnotation(size_t id, QString const& newName);
-	void removeAnnotation(size_t id);
 	std::vector<iAAnnotation> const & annotations() const;
 
 public slots:
 	void startAddMode();
+	void renameAnnotation(size_t id, QString const& newName);
+	void removeAnnotation(size_t id);
+
+
+signals:
+	void annotationsUpdated(std::vector<iAAnnotation>);
+	void annotionMode(bool activated);
+
+
 
 private slots:
 	void slicerPointClicked(double x, double y, double z);

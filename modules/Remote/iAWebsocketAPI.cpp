@@ -35,6 +35,7 @@
 
 
 
+
 iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :
 	QObject(parent),
 	m_pWebSocketServer(new QWebSocketServer(QStringLiteral("Remote Server"), QWebSocketServer::NonSecureMode, this)),
@@ -48,6 +49,10 @@ iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :
 		connect(m_pWebSocketServer, &QWebSocketServer::newConnection, this, &iAWebsocketAPI::onNewConnection);
 		connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &iAWebsocketAPI::closed);
 	}
+
+	std::vector<iAAnnotation> captions;
+	updateCaptionList(captions);
+
 }
 
 void iAWebsocketAPI::setRenderedImage(QByteArray img, QString id)
@@ -137,7 +142,11 @@ void iAWebsocketAPI::processTextMessage(QString message)
 	}
 	else if (Request["method"].toString() == "addMode.caption")
 	{
-		emit addMode(Request["addMode"].toBool());
+		emit addMode();
+	}
+	else if (Request["method"].toString() == "nameChanged.caption")
+	{
+		emit changeCaptionTitle(Request["id"].toInt(), Request["title"].toString());
 	}
 
 
@@ -371,7 +380,7 @@ void iAWebsocketAPI::socketDisconnected()
 	}
 }
 
-void iAWebsocketAPI::updateCaptionList(QList<iACaptionItem> captions)
+void iAWebsocketAPI::updateCaptionList(std::vector<iAAnnotation> captions)
 {
 
 	QJsonArray captionList;
@@ -379,12 +388,11 @@ void iAWebsocketAPI::updateCaptionList(QList<iACaptionItem> captions)
 	for (auto caption : captions)
 	{
 		QJsonObject captionObject;
-		captionObject["id"] = caption.id;
-		captionObject["Title"] = caption.Title;
-		captionObject["Text"] = caption.Text;
-		captionObject["x"] = caption.x;
-		captionObject["y"] = caption.y;
-		captionObject["z"] = caption.z;
+		captionObject["id"] = (int)caption.m_id;
+		captionObject["Title"] = caption.m_name;
+		captionObject["x"] = caption.m_coord[0];
+		captionObject["y"] = caption.m_coord[1];
+		captionObject["z"] = caption.m_coord[2];
 
 		captionList.append(captionObject);
 
@@ -403,19 +411,7 @@ void iAWebsocketAPI::updateCaptionList(QList<iACaptionItem> captions)
 
 void iAWebsocketAPI::captionSubscribe(QWebSocket* pClient)
 {
-	QList<iACaptionItem> captions;
-	iACaptionItem test;
-	test.Title = "Test";
-	captions.append(test);
-	iACaptionItem test2;
-	test2.Title = "Test2";
-	test2.id = 1;
-	captions.append(test2);
-	iACaptionItem test3;
-	test3.Title = "Test3";
-	test3.id = 2;
-	captions.append(test3);
-	updateCaptionList(captions);
+
 
 	if (subscriptions.contains(cptionKey))
 	{

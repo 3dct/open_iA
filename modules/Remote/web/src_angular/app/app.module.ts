@@ -8,10 +8,11 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {MatNativeDateModule} from '@angular/material/core';
 import {HttpClientModule} from '@angular/common/http';
 import { RouterModule, Routes } from '@angular/router';
+import { DialogComponent } from './dialog/dialog.component';
 
 
 @NgModule({
-  declarations: [TableRowBindingExample],
+  declarations: [TableRowBindingExample, DialogComponent],
   imports: [
     BrowserAnimationsModule,
     BrowserModule,

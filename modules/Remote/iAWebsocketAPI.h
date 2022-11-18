@@ -28,6 +28,8 @@
 #include <iACaptionItem.h>
 #include <QJsonDocument>
 
+#include <iAAnnotationTool.h>
+
 class iARemoteAction;
 
 class QWebSocket;
@@ -45,7 +47,7 @@ Q_SIGNALS:
 	void closed();
 	void controlCommand(iARemoteAction const & action);
 	void removeCaption(int id);
-	void addMode(bool active);
+	void addMode();
 	void selectCaption(int id);
 	void changeCaptionTitle(int id, QString title); 
 	
@@ -54,15 +56,17 @@ private Q_SLOTS:
 	void processTextMessage(QString message);
 	void processBinaryMessage(QByteArray message);
 	void socketDisconnected();
-
-	void updateCaptionList(QList<iACaptionItem> captions);
 	void captionSubscribe(QWebSocket* pClient);
 
 	void sendCaptionUpdate();
- 
+
+
 
 public Q_SLOTS:
 	void sendViewIDUpdate(QByteArray img, QString ViewID);
+	void updateCaptionList(std::vector<iAAnnotation> captions);
+
+ 
 
 private:
 	QWebSocketServer* m_pWebSocketServer;
