@@ -148,6 +148,10 @@ void iAWebsocketAPI::processTextMessage(QString message)
 	{
 		emit changeCaptionTitle(Request["id"].toInt(), Request["title"].toString());
 	}
+	else if (Request["method"].toString() == "hideAnnotation.caption")
+	{
+		emit hideAnnotation(Request["id"].toInt());
+	}
 
 
 }
@@ -393,6 +397,7 @@ void iAWebsocketAPI::updateCaptionList(std::vector<iAAnnotation> captions)
 		captionObject["x"] = caption.m_coord[0];
 		captionObject["y"] = caption.m_coord[1];
 		captionObject["z"] = caption.m_coord[2];
+		captionObject["hide"] = caption.m_hide;
 
 		captionList.append(captionObject);
 
@@ -435,6 +440,23 @@ void iAWebsocketAPI::sendCaptionUpdate()
 		for (auto client : subscriptions[cptionKey])
 		{
 			client->sendTextMessage(m_captionUpdate.toJson());
+		}
+	}
+}
+
+void iAWebsocketAPI::sendInteractionUpdate( size_t focusedId)
+{
+
+	QJsonObject response;
+	response["id"] = "caption.interactionUpdate";
+	response["focusedId"] = (int)focusedId;
+	const QJsonDocument JsonResponse{response};
+
+	if (subscriptions.contains(cptionKey))
+	{
+		for (auto client : subscriptions[cptionKey])
+		{
+			client->sendTextMessage(JsonResponse.toJson());
 		}
 	}
 }

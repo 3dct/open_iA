@@ -53,7 +53,7 @@
 
 
 iAAnnotation::iAAnnotation(size_t id, iAVec3d coord, QString const& name, QColor color):
-	m_id(id), m_coord(coord), m_name(name), m_color(color)
+	m_id(id), m_coord(coord), m_name(name), m_color(color), m_hide(false)
 {}
 
 const QString iAAnnotationTool::Name = "Annotation";
@@ -98,6 +98,11 @@ public:
 		removeButton->setToolTip(QObject::tr("Remove annotation"));
 		buttons->layout()->addWidget(removeButton);
 
+		auto hideButton = new QToolButton();
+		hideButton->setObjectName("tbHide");
+		hideButton->setToolTip(QObject::tr("Hide annotation"));
+		buttons->layout()->addWidget(hideButton);
+
 		auto spacer = new QSpacerItem(10, 0, QSizePolicy::Fixed, QSizePolicy::Expanding);
 		buttons->layout()->addItem(spacer);
 
@@ -106,6 +111,16 @@ public:
 		m_container->layout()->addWidget(buttons);
 		m_container->layout()->setContentsMargins(1, 0, 0, 0);
 		m_container->layout()->setSpacing(4);
+
+
+		
+		QObject::connect(m_table, &QTableWidget::cellClicked, tool, 
+			[tool, this](int row,int cell) 
+			{ 
+				auto id = m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
+				emit tool->focusedToAnnotation(id);
+				tool->focusToAnnotation(id);
+			});
 
 		QObject::connect(m_addButton, &QToolButton::clicked, tool,
 			[tool, this]()
@@ -145,6 +160,20 @@ public:
 				int row = rows[0].row();
 				auto id = m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
 				tool->removeAnnotation(id);
+			});
+
+			QObject::connect(hideButton, &QToolButton::clicked, tool,
+			[tool, this]()
+			{
+				auto rows = m_table->selectionModel()->selectedRows();
+				if (rows.size() != 1)
+				{
+					LOG(lvlWarn, "Please select exactly one row for editing!");
+					return;
+				}
+				int row = rows[0].row();
+				auto id = m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
+				tool->hideAnnotation(id);
 			});
 	}
 	QWidget* m_container;
@@ -289,6 +318,62 @@ void iAAnnotationTool::removeAnnotation(size_t id)
 	emit annotationsUpdated(m_ui->m_annotations);
 }
 
+
+void iAAnnotationTool::hideAnnotation(size_t id)
+{
+	for (size_t i = 0; i < m_ui->m_annotations.size(); ++i)
+	{
+		if (m_ui->m_annotations[i].m_id == id)
+		{
+			m_ui->m_annotations[i].m_hide = !m_ui->m_annotations[i].m_hide;
+			break;
+		}
+	}
+
+	bool hideOn = false; 
+
+	for (auto row = 0; row < m_ui->m_table->rowCount(); ++row)
+	{
+		if (m_ui->m_table->item(row, 0)->data(Qt::UserRole) == id)
+		{
+			hideOn = m_ui->m_table->item(row, 1)->foreground().color() == QColorConstants::Gray;
+
+			auto color = hideOn ? QColorConstants::Black : QColorConstants::Gray;
+
+			m_ui->m_table->item(row, 1)->setForeground(color);
+			m_ui->m_table->item(row, 2)->setForeground(color);
+
+
+		}
+	}
+	for (int j = 0; j < 3; ++j)
+	{
+		if (!hideOn)
+		{
+			m_child->slicer(j)->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(
+				m_ui->m_vtkAnnotateData[id].m_txtActor[j]);
+		}
+		else
+		{
+			m_child->slicer(j)->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(
+				m_ui->m_vtkAnnotateData[id].m_txtActor[j]);
+		}
+	}
+	if (!hideOn)
+	{
+		m_child->renderer()->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(
+			m_ui->m_vtkAnnotateData[id].m_txtActor[3]);
+	}
+	else
+	{
+		m_child->renderer()->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(
+			m_ui->m_vtkAnnotateData[id].m_txtActor[3]);
+	}
+	//m_ui->m_vtkAnnotateData.erase(id);
+	m_child->updateViews();
+	emit annotationsUpdated(m_ui->m_annotations);
+}
+
 std::vector<iAAnnotation> const& iAAnnotationTool::annotations() const
 {
 	return m_ui->m_annotations;
@@ -312,6 +397,21 @@ void iAAnnotationTool::slicerPointClicked(double x, double y, double z)
 	for (int i = 0; i < 3; ++i)
 	{
 		disconnect(m_child->slicer(i), &iASlicer::leftClicked, this, &iAAnnotationTool::slicerPointClicked);
+	}
+}
+
+void iAAnnotationTool::focusToAnnotation(size_t id)
+{
+	for (auto annotation : m_ui->m_annotations)
+	{
+		if (annotation.m_id == id)
+		{
+			for (int i = 0; i < 3; ++i)
+			{
+				m_child->slicer(i)->setSliceNumber(annotation.m_coord[i]);
+			}
+
+		}
 	}
 }
 

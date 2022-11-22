@@ -50,6 +50,7 @@ Q_SIGNALS:
 	void addMode();
 	void selectCaption(int id);
 	void changeCaptionTitle(int id, QString title); 
+	void hideAnnotation(int id);
 	
 private Q_SLOTS:
 	void onNewConnection();
@@ -59,13 +60,15 @@ private Q_SLOTS:
 	void captionSubscribe(QWebSocket* pClient);
 
 	void sendCaptionUpdate();
+	
 
 
 
 public Q_SLOTS:
 	void sendViewIDUpdate(QByteArray img, QString ViewID);
 	void updateCaptionList(std::vector<iAAnnotation> captions);
-
+	void sendInteractionUpdate( size_t focusedId);
+	
  
 
 private:

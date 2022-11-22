@@ -12,6 +12,7 @@ export interface caption {
   x: int;
   y: int;
   z: int;
+  hide:Boolean;
 }
 
 const ELEMENT_DATA: caption[] = [
@@ -27,7 +28,7 @@ const ELEMENT_DATA: caption[] = [
   templateUrl: 'table-row-binding-example.html',
 })
 export class TableRowBindingExample {
-  displayedColumns: string[] = ['position', 'name', 'weight', 'symbol', 'edit'];
+  displayedColumns: string[] = ['id', 'Title', 'jump', 'delete', 'edit', 'hide'];
   dataSource = ELEMENT_DATA;
   clickedRows = new Set<caption>();
   href: string = "asdf";
@@ -44,10 +45,13 @@ export class TableRowBindingExample {
     console.log("this.router.url");
     this.WebSocket = webSocket('ws://localhost:1234');
     this.WebSocket. subscribe(messages => {
-		if(messages){
+		if(messages.id ==="caption.response"){
 			this.dataSource=messages.captionList;
 			this.addMode=false;
-		}			
+		}
+		if(messages.id ==="caption.interactionUpdate"){
+			this.selectedID=messages.focusedId;
+		}
 	});
     let  methode:String = "subscribe.captions";
     this.WebSocket.next({method: methode } );
@@ -71,6 +75,11 @@ addModeToggle(){
   this.WebSocket.next({method: methode, addMode:this.addMode } );
 }
 
+
+hideAnnotation(id: int){
+  let  methode:String = "hideAnnotation.caption";
+  this.WebSocket.next({method: methode, id:id } );
+}
 
 openDialog(id:int): void {
 

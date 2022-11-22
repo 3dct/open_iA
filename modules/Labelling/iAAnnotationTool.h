@@ -44,6 +44,7 @@ struct iAAnnotation
 	iAVec3d m_coord;
 	QString m_name;
 	QColor m_color;
+	bool m_hide;
 };
 
 class Labelling_API iAAnnotationTool : public QObject, public iATool
@@ -59,11 +60,14 @@ public slots:
 	void startAddMode();
 	void renameAnnotation(size_t id, QString const& newName);
 	void removeAnnotation(size_t id);
+	void focusToAnnotation(size_t id);
+	void hideAnnotation(size_t id);
 
 
 signals:
 	void annotationsUpdated(std::vector<iAAnnotation>);
 	void annotionMode(bool activated);
+	void focusedToAnnotation(size_t id);
 
 
 

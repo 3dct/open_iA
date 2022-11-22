@@ -25,7 +25,6 @@
           "options": {
 			"deleteOutputPath": false,
             "outputPath": "dist_angular",
-            "index": "src/index.html",
             "main": "src_angular/main.ts",
             "polyfills": "src_angular/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
@@ -41,7 +40,11 @@
             "stylePreprocessorOptions": {
               "includePaths": ["node_modules/"]
             },
-            "scripts": [ "dist/main.js"]
+            "scripts": [ "dist/main.js"],
+			"index": {
+				"input": "src/index.html",
+				"output": "dist_angular/index.html"
+			}
           },
           "configurations": {
             "production": {

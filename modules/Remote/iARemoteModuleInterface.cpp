@@ -215,6 +215,12 @@ public:
 		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::removeCaption, m_annotation.get(),
 			&iAAnnotationTool::removeAnnotation);
 		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::addMode, m_annotation.get(), &iAAnnotationTool::startAddMode);
+		connect(
+			m_wsAPI->m_websocket.get(), &iAWebsocketAPI::selectCaption, m_annotation.get(), &iAAnnotationTool::focusToAnnotation);
+		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::hideAnnotation, m_annotation.get(),
+			&iAAnnotationTool::hideAnnotation);
+		connect(m_annotation.get(), &iAAnnotationTool::focusedToAnnotation, m_wsAPI->m_websocket.get(),
+				&iAWebsocketAPI::sendInteractionUpdate);
 	}
 
 private:

@@ -6,51 +6,60 @@
 
 <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 demo-table">
   <!-- Position Column -->
-  <ng-container matColumnDef="position">
+  <ng-container matColumnDef="id">
     <th mat-header-cell *matHeaderCellDef>No.</th>
     <td mat-cell *matCellDef="let element">{{element.id}}</td>
   </ng-container>
 
   <!-- Name Column -->
-  <ng-container matColumnDef="name">
+  <ng-container matColumnDef="Title">
     <th mat-header-cell *matHeaderCellDef>Description</th>
     <td mat-cell *matCellDef="let element">{{element.Title}}</td>
   </ng-container>
 
   <!-- Weight Column -->
-  <ng-container matColumnDef="weight">
+  <ng-container matColumnDef="delete">
     <th mat-header-cell *matHeaderCellDef>Delete</th>
     <td mat-cell *matCellDef="let element">        
       <div class="example-button-container">
-        <button mat-mini-fab color="primary" aria-label="Example icon button with a menu icon" (click)="sendDelete(element.id)">
+        <button mat-mini-fab [color]="!element.hide ? 'primary': 'basic'" aria-label="Example icon button with a menu icon" (click)="sendDelete(element.id)">
           <mat-icon>delete</mat-icon>
         </button>
       </div>
   </ng-container>
 
   <!-- Symbol Column -->
-  <ng-container matColumnDef="symbol">
+  <ng-container matColumnDef="jump">
     <th mat-header-cell *matHeaderCellDef>Jump</th>
     <td mat-cell *matCellDef="let element">        
       <div class="example-button-container">
-        <button mat-mini-fab color="primary" aria-label="Example icon button with a menu icon" (click)="sendSelect(element.id)">
+        <button mat-mini-fab [color]="!element.hide ? 'primary': 'basic'" aria-label="Example icon button with a menu icon" (click)="sendSelect(element.id)">
           <mat-icon>home</mat-icon>
         </button>
       </div>
   </ng-container>
 
-  <!-- Symbol Column -->
+  <!-- Symbol Column --> 
   <ng-container matColumnDef="edit">
     <th mat-header-cell *matHeaderCellDef>Edit</th>
     <td mat-cell *matCellDef="let element">        
       <div class="example-button-container">
-        <button mat-mini-fab color="primary" aria-label="Example icon button with a menu icon" (click)="openDialog(element.id)">
+        <button mat-mini-fab [color]="!element.hide ? 'primary': 'basic'" aria-label="Example icon button with a menu icon" (click)="openDialog(element.id)">
           <mat-icon>edit</mat-icon>
         </button>
       </div>
   </ng-container>
 
-
+  <!-- Symbol Column -->
+  <ng-container matColumnDef="hide">
+    <th mat-header-cell *matHeaderCellDef>Hidden</th>
+    <td mat-cell *matCellDef="let element">        
+      <div class="example-button-container">
+        <button mat-mini-fab [color]="!element.hide ? 'primary': 'basic'" aria-label="Example icon button with a menu icon" (click)="hideAnnotation(element.id)">
+          <mat-icon>{{!element.hide ? 'check_box_outline_blank': 'check_box'}}</mat-icon>
+        </button>
+      </div>
+  </ng-container>
 
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
   <tr
