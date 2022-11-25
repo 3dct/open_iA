@@ -31,6 +31,7 @@
 #include <iASlicer.h>
 #include <iASlicerImpl.h>    // for mapSliceToGlobalAxis
 
+#include <QCheckbox>
 #include <QHeaderView>
 #include <QStandardItemModel>
 #include <QTableWidget>
@@ -72,7 +73,10 @@ public:
 		m_dockWidget(new iADockWidgetWrapper(m_container, "Annotations", "dwAnnotations")),
 		m_addButton(new QToolButton())
 	{
-		QStringList columnNames = QStringList() << "" << "Name" << "Coordinates";
+		QStringList columnNames = QStringList() << ""
+												<< "Name"
+												<< "Coordinates"
+												<< "Show";
 		m_table->setColumnCount(columnNames.size());
 		m_table->setHorizontalHeaderLabels(columnNames);
 		m_table->verticalHeader()->hide();
@@ -97,11 +101,6 @@ public:
 		removeButton->setObjectName("tbRemove");
 		removeButton->setToolTip(QObject::tr("Remove annotation"));
 		buttons->layout()->addWidget(removeButton);
-
-		auto hideButton = new QToolButton();
-		hideButton->setObjectName("tbHide");
-		hideButton->setToolTip(QObject::tr("Hide annotation"));
-		buttons->layout()->addWidget(hideButton);
 
 		auto spacer = new QSpacerItem(10, 0, QSizePolicy::Fixed, QSizePolicy::Expanding);
 		buttons->layout()->addItem(spacer);
@@ -162,19 +161,7 @@ public:
 				tool->removeAnnotation(id);
 			});
 
-			QObject::connect(hideButton, &QToolButton::clicked, tool,
-			[tool, this]()
-			{
-				auto rows = m_table->selectionModel()->selectedRows();
-				if (rows.size() != 1)
-				{
-					LOG(lvlWarn, "Please select exactly one row for editing!");
-					return;
-				}
-				int row = rows[0].row();
-				auto id = m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
-				tool->hideAnnotation(id);
-			});
+
 	}
 	QWidget* m_container;
 	QTableWidget* m_table;
@@ -205,7 +192,26 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 	m_ui->m_table->setItem(row, 0, colorItem);
 	m_ui->m_table->setItem(row, 1, new QTableWidgetItem(name));
 	m_ui->m_table->setItem(row, 2, new QTableWidgetItem(coord.toString()));
+
+	auto show = new QCheckBox();
+	show->setChecked(TRUE); 
+	show->setStyleSheet("text-align: center; margin-left:50%; margin-right:50%; unchecked{ color: red; }; checked{ color: red; } ");
+	m_ui->m_table->setCellWidget(row, 3, show);
 	m_ui->m_table->resizeColumnsToContents();
+
+	QObject::connect(show, &QCheckBox::clicked, this,
+		[ this]()
+		{
+			auto rows = m_ui->m_table->selectionModel()->selectedRows();
+			if (rows.size() != 1)
+			{
+				LOG(lvlWarn, "Please select exactly one row for editing!");
+				return;
+			}
+			int row = rows[0].row();
+			auto id = m_ui->m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
+			hideAnnotation(id);
+		});
 
 	// Create a text actor.
 	iAVtkAnnotationData vtkAnnot;
@@ -215,7 +221,8 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 		txt->SetCaption(name.toStdString().c_str());
 		auto prop = txt->GetProperty();
 		prop->SetColor(col.redF(), col.greenF(), col.blueF());
-		prop->SetLineWidth(1000.0); // does not work, tried 1, 10, 100
+		prop->SetLineWidth(10.0); // does not work, tried 1, 10, 100
+		
 
 		// Does not work; there seems to be a slight thickening of the tip at the moment, but no real arrow visible:
 		//vtkNew<vtkArrowSource> arrowSource;
@@ -343,6 +350,8 @@ void iAAnnotationTool::hideAnnotation(size_t id)
 			m_ui->m_table->item(row, 1)->setForeground(color);
 			m_ui->m_table->item(row, 2)->setForeground(color);
 
+			QCheckBox* show = (QCheckBox*)m_ui->m_table->cellWidget(row, 3);
+			show->setChecked(hideOn);
 
 		}
 	}
@@ -371,6 +380,7 @@ void iAAnnotationTool::hideAnnotation(size_t id)
 	}
 	//m_ui->m_vtkAnnotateData.erase(id);
 	m_child->updateViews();
+	
 	emit annotationsUpdated(m_ui->m_annotations);
 }
 
@@ -402,12 +412,17 @@ void iAAnnotationTool::slicerPointClicked(double x, double y, double z)
 
 void iAAnnotationTool::focusToAnnotation(size_t id)
 {
+
+	
 	for (auto annotation : m_ui->m_annotations)
 	{
 		if (annotation.m_id == id)
 		{
 			for (int i = 0; i < 3; ++i)
 			{
+				auto test = m_child->slicer(i)->sizeIncrement();
+
+				auto intTest = test.height();
 				m_child->slicer(i)->setSliceNumber(annotation.m_coord[i]);
 			}
 
