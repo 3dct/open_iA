@@ -43,7 +43,7 @@ export class TableRowBindingExample {
   ngOnInit() {
     //this.href = this.router.url;
     console.log("this.router.url");
-    this.WebSocket = webSocket('ws://localhost:1234');
+    this.WebSocket = webSocket('ws://'+location.hostname+':1234');
     this.WebSocket. subscribe(messages => {
 		if(messages.id ==="caption.response"){
 			this.dataSource=messages.captionList;

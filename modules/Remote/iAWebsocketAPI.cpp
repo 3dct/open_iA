@@ -168,14 +168,14 @@ void iAWebsocketAPI::commandWslinkHello(QJsonDocument Request, QWebSocket* pClie
 	ResponseArray["result"] = ClientID;
 
 	const QJsonDocument Response{ResponseArray};
-
+	 
 	pClient->sendTextMessage(Response.toJson());
 }
 
 void iAWebsocketAPI::commandAdObserver(QJsonDocument Request, QWebSocket* pClient)
 {
 	QJsonObject ResponseArray;
-
+	 
 	ResponseArray["wslink"] = "1.0";
 	QString viewIDString = Request["args"][0].toString();
 	const auto viewIDResponse = QJsonObject{{"result", "success"}, {"viewId", viewIDString}};

@@ -43,7 +43,7 @@
             "scripts": [ "dist/main.js"],
 			"index": {
 				"input": "src/index.html",
-				"output": "dist_angular/index.html"
+				"output": "index.html"
 			}
           },
           "configurations": {

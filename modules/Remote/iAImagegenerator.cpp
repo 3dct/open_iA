@@ -27,7 +27,7 @@
 #include <vtkUnsignedCharArray.h>
 #include <vtkWindowToImageFilter.h>
 
-#include <QElapsedTimer>
+#include <QElapsedTimer> 
 
 #ifdef CUDA_AVAILABLE
 #include <iACudaHelper.h>
