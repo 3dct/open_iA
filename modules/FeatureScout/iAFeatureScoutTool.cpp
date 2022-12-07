@@ -18,34 +18,104 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFeatureScoutAttachment.h"
+#include "iAFeatureScoutTool.h"
 
 #include "dlg_FeatureScout.h"
+#include "iAFeatureScoutModuleInterface.h"
 
 #include <iA3DObjectFactory.h>
 #include <iACsvConfig.h>
 
+#include <iAMainWindow.h>
 #include <iAMdiChild.h>
 #include <iAModalityTransfer.h>
+#include <iAModuleDispatcher.h>
 
 #include <iADataSet.h>
+#include <iAFileUtils.h>
 #include <iALog.h>
 
 #include <vtkImageData.h>
 #include <vtkTable.h>
 
-iAFeatureScoutAttachment::iAFeatureScoutAttachment(iAMainWindow* mainWnd, iAMdiChild * child) :
-	iAModuleAttachmentToChild(mainWnd, child),
+#include <QFileInfo>
+#include <QSettings>
+
+iAFeatureScoutTool::iAFeatureScoutTool(iAMainWindow* mainWnd, iAMdiChild* child) :
+	iATool(mainWnd, child),
 	m_featureScout(nullptr)
 {
 }
 
-iAFeatureScoutAttachment::~iAFeatureScoutAttachment()
+iAFeatureScoutTool::~iAFeatureScoutTool()
 {
 	delete m_featureScout;
 }
 
-void iAFeatureScoutAttachment::init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl,
+const QString iAFeatureScoutTool::ID("FeatureScout");
+
+void iAFeatureScoutTool::loadState(QSettings& projectFile, QString const& fileName)
+{
+	if (!m_child)
+	{
+		LOG(lvlError,
+			QString("Invalid FeatureScout project file '%1': FeatureScout requires a child window, "
+					"but UseMdiChild was apparently not specified in this project, as no child window available! "
+					"Please report this error, along with the project file, to the open_iA developers!")
+				.arg(fileName));
+		return;
+	}
+	m_config.load(projectFile, "CSVFormat");
+
+	QString path(QFileInfo(fileName).absolutePath());
+	QString csvFileName = projectFile.value("CSVFileName").toString();
+	if (csvFileName.isEmpty())
+	{
+		LOG(lvlError, QString("Invalid FeatureScout project file '%1': Empty or missing 'CSVFileName'!").arg(fileName));
+		return;
+	}
+	m_config.fileName = MakeAbsolute(path, csvFileName);
+	if (projectFile.contains("CurvedFileName") && !projectFile.value("CurvedFileName").toString().isEmpty())
+	{
+		m_config.curvedFiberFileName = MakeAbsolute(path, projectFile.value("CurvedFileName").toString());
+	}
+
+	// startup code.... factor out of iAFeatureScoutModuleInterface!
+	iAFeatureScoutModuleInterface* featureScout =
+		m_mainWindow->moduleDispatcher().module<iAFeatureScoutModuleInterface>();
+	featureScout->startFeatureScout(m_child, m_config);
+	QString layoutName = projectFile.value("Layout").toString();
+	if (!layoutName.isEmpty())
+	{
+		m_child->loadLayout(layoutName);
+	}
+	auto tool = childTool<iAFeatureScoutTool>(m_child);
+	if (!tool)
+	{
+		LOG(lvlError, "Error while attaching FeatureScout to mdi child window!");
+		return;
+	}
+
+	m_featureScout->loadProject(projectFile);
+}
+
+void iAFeatureScoutTool::saveState(QSettings& projectFile, QString const& fileName)
+{
+	m_config.save(projectFile, "CSVFormat");
+	QString path(QFileInfo(fileName).absolutePath());
+	projectFile.setValue("CSVFileName", MakeRelative(path, m_config.fileName));
+	if (!m_config.curvedFiberFileName.isEmpty())
+	{
+		projectFile.setValue("CurvedFileName", MakeRelative(path, m_config.curvedFiberFileName));
+	}
+	if (m_child)
+	{
+		projectFile.setValue("Layout", m_child->layoutName());
+	}
+	m_featureScout->saveProject(projectFile);
+}
+
+void iAFeatureScoutTool::init(int filterID, QString const& fileName, vtkSmartPointer<vtkTable> csvtbl,
 	int visType, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
 	std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip)
 {
@@ -73,12 +143,7 @@ void iAFeatureScoutAttachment::init(int filterID, QString const & fileName, vtkS
 		fileName, csvtbl, visType, columnMapping, objvis);
 }
 
-void iAFeatureScoutAttachment::saveProject(QSettings& projectFile)
+void iAFeatureScoutTool::setOptions(iACsvConfig const& config)
 {
-	m_featureScout->saveProject(projectFile);
-}
-
-void iAFeatureScoutAttachment::loadProject(QSettings& projectFile)
-{
-	m_featureScout->loadProject(projectFile);
+	m_config = config;
 }

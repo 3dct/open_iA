@@ -20,10 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleAttachmentToChild.h>
+#include <iATool.h>
 #include <iAVec3.h>
 
+#include <iACsvConfig.h>
+
 #include <vtkSmartPointer.h>
+
+#include <QObject>
+#include <QSharedPointer>
 
 #include <map>
 #include <vector>
@@ -34,21 +39,28 @@ class vtkTable;
 
 class QSettings;
 
-class iAFeatureScoutAttachment : public iAModuleAttachmentToChild
+class iAFeatureScoutTool : public QObject, public iATool
 {
 	Q_OBJECT
 public:
-	iAFeatureScoutAttachment(iAMainWindow* mainWnd, iAMdiChild * child);
+	static const QString ID;
+	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child)
+	{
+		return std::make_shared<iAFeatureScoutTool>(mainWnd, child);
+	}
+	iAFeatureScoutTool(iAMainWindow* mainWnd, iAMdiChild* child);
+	virtual ~iAFeatureScoutTool();
 	void init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, int visType,
 		QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
 		std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip);
 	//! to ensure correct "order" of deletion (that for example object vis registered with renderer
 	//! can de-register itself, before renderer gets destroyed - if destroyed through MdiChild's
 	//! destructing its child widgets, then this happens after renderer is destroyed!
-	~iAFeatureScoutAttachment();
-	void saveProject(QSettings& projectFile);
-	void loadProject(QSettings& projectFile);
+	void saveState(QSettings& projectFile, QString const& fileName) override;
+	void loadState(QSettings& projectFile, QString const& fileName) override;
 
+	void setOptions(iACsvConfig const& config);
 private:
+	iACsvConfig m_config;
 	dlg_FeatureScout * m_featureScout;
 };

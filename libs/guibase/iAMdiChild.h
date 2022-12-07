@@ -193,8 +193,10 @@ public:
 
 
 	// Tools:
-	//! add tool
+	//! add a tool to this child (a collection of UI elements with their own behavior and state)
 	virtual void addTool(QString const& key, std::shared_ptr<iATool> tool) = 0;
+	//! retrieve all tools attached to this child
+	virtual QMap<QString, std::shared_ptr<iATool>> const& tools() = 0;
 	//! save currently loaded files / tools in given project file
 	virtual void saveProject(QString const& fileName) = 0;
 
@@ -366,6 +368,22 @@ public slots:
 	virtual void disableRenderWindows(int ch) = 0;
 
 };
+
+
+//! return the first tool that matches the given type for the current child
+template <typename T>
+T * childTool(iAMdiChild* child)
+{
+	for (auto t : child->tools())
+	{
+		auto r = dynamic_cast<T*>(t.get());
+		if (r)
+		{
+			return r;
+		}
+	}
+	return {};
+}
 
 template <typename T>
 void addToolToActiveMdiChild(QString const & name, iAMainWindow* mainWnd)

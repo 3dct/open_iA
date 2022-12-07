@@ -447,7 +447,7 @@ void iAFAQSplom::startFeatureScout()
 	{
 		return;
 	}
-	featureScout->LoadFeatureScoutWithParams(m_csvName, m_mdiChild);
+	featureScout->startFeatureScoutWithParams(m_mdiChild, m_csvName);
 	disconnect(m_mdiChild, &iAMdiChild::histogramAvailable, this, &iAFAQSplom::startFeatureScout);
 }
 
