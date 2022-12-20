@@ -22,7 +22,7 @@
 
 #include "FeatureAnalyzerHelpers.h"
 
-#include "iAFeatureScoutModuleInterface.h"
+#include "iAFeatureScoutTool.h"
 
 #include <iASPLOMData.h>
 #include <iAScatterPlot.h>
@@ -442,12 +442,7 @@ void iAFAQSplom::getFilesLabeledFromPoint(QString &fileName, QString &mhdName)
 
 void iAFAQSplom::startFeatureScout()
 {
-	iAFeatureScoutModuleInterface * featureScout = m_mainWnd->moduleDispatcher().module<iAFeatureScoutModuleInterface>();
-	if (!featureScout)
-	{
-		return;
-	}
-	featureScout->startFeatureScoutWithParams(m_mdiChild, m_csvName);
+	iAFeatureScoutTool::addToChild(m_mdiChild, m_csvName);
 	disconnect(m_mdiChild, &iAMdiChild::histogramAvailable, this, &iAFAQSplom::startFeatureScout);
 }
 

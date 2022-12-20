@@ -27,7 +27,7 @@
 #include "iARefDistCompute.h"
 #include "iASensitivityInfo.h"
 #include "iAStackedBarChart.h"
-//#include "iAFeatureScoutModuleInterface.h"
+//#include "iAFeatureScoutTool.h"
 
 // charts
 #include <iAChartWidget.h>
@@ -1956,8 +1956,7 @@ void iAFiAKErController::startFeatureScout(int resultID, iAMdiChild* newChild)
 	// fails if config.visType is labelled volume
 	config.fileName = m_data->result[resultID].fileName;
 	config.curvedFiberFileName = m_data->result[resultID].curvedFileName;
-	iAFeatureScoutModuleInterface * featureScout = m_mainWnd->moduleDispatcher().module<iAFeatureScoutModuleInterface>();
-	featureScout->LoadFeatureScout(config, newChild);
+	iAFeatureScoutTool::addToChild(newChild, config);
 	//newChild->loadLayout("FeatureScout");
 }
 */

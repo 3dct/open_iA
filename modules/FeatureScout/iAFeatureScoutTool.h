@@ -19,11 +19,12 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
+#include "FeatureScout_export.h"
+
+#include <iACsvConfig.h>
 
 #include <iATool.h>
 #include <iAVec3.h>
-
-#include <iACsvConfig.h>
 
 #include <vtkSmartPointer.h>
 
@@ -39,20 +40,26 @@ class vtkTable;
 
 class QSettings;
 
-class iAFeatureScoutTool : public QObject, public iATool
+//! Main entry point class for Feature Scout.
+//! Three ways exist of starting feature scout:
+//!     - the two addToChild method variants:
+//!         - one expecting just a csv file name, it guesses the format from it
+//!         - one expecting a full csv config object
+//!     - creating an object, e.g. via the create method, and then calling loadState
+class FeatureScout_API iAFeatureScoutTool : public QObject, public iATool
 {
 	Q_OBJECT
 public:
 	static const QString ID;
-	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child)
-	{
-		return std::make_shared<iAFeatureScoutTool>(mainWnd, child);
-	}
+	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child);
+	//! add FeatureScout to the given child window, guessing config parameters from the given csv file naem
+	static bool addToChild(iAMdiChild* child, const QString& csvFileName);
+	//! add FeatureScout to the given child window, using the given configuration to set up
+	static bool addToChild(iAMdiChild* child, iACsvConfig const& csvConfig);
+
 	iAFeatureScoutTool(iAMainWindow* mainWnd, iAMdiChild* child);
 	virtual ~iAFeatureScoutTool();
-	void init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, int visType,
-		QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
-		std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip);
+
 	//! to ensure correct "order" of deletion (that for example object vis registered with renderer
 	//! can de-register itself, before renderer gets destroyed - if destroyed through MdiChild's
 	//! destructing its child widgets, then this happens after renderer is destroyed!
@@ -60,7 +67,14 @@ public:
 	void loadState(QSettings& projectFile, QString const& fileName) override;
 
 	void setOptions(iACsvConfig const& config);
+
+	static iAObjectType guessFeatureType(QString const& csvFileName);
+
 private:
+	bool initFromConfig(iAMdiChild* child, iACsvConfig const& csvConfig);
+	void init(int filterID, QString const& fileName, vtkSmartPointer<vtkTable> csvtbl, int visType,
+		QSharedPointer<QMap<uint, uint>> columnMapping, std::map<size_t, std::vector<iAVec3f>>& curvedFiberInfo,
+		int cylinderQuality, size_t segmentSkip);
 	iACsvConfig m_config;
 	dlg_FeatureScout * m_featureScout;
 };

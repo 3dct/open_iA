@@ -32,8 +32,6 @@ class FeatureScout_API iAFeatureScoutModuleInterface : public iAGUIModuleInterfa
 	Q_OBJECT
 public:
 	void Initialize() override;
-	void startFeatureScoutWithParams(iAMdiChild* child, const QString& csvFileName);
-	bool startFeatureScout(iAMdiChild* child, iACsvConfig const& csvConfig);  //!< entry point for FeatureScout
 private slots:
 	void featureScout();
 };

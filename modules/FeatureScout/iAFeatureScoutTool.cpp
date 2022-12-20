@@ -21,10 +21,12 @@
 #include "iAFeatureScoutTool.h"
 
 #include "dlg_FeatureScout.h"
-#include "iAFeatureScoutModuleInterface.h"
+#include "iAFeatureScoutToolbar.h"
 
 #include <iA3DObjectFactory.h>
 #include <iACsvConfig.h>
+#include <iACsvIO.h>
+#include <iACsvVtkTableCreator.h>
 
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
@@ -34,12 +36,19 @@
 #include <iADataSet.h>
 #include <iAFileUtils.h>
 #include <iALog.h>
+#include <iAToolsVTK.h>    // for RenderModeMap
 
 #include <vtkImageData.h>
+#include <vtkSmartVolumeMapper.h>
 #include <vtkTable.h>
 
 #include <QFileInfo>
 #include <QSettings>
+
+std::shared_ptr<iATool> iAFeatureScoutTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
+{
+	return std::make_shared<iAFeatureScoutTool>(mainWnd, child);
+}
 
 iAFeatureScoutTool::iAFeatureScoutTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iATool(mainWnd, child),
@@ -50,6 +59,34 @@ iAFeatureScoutTool::iAFeatureScoutTool(iAMainWindow* mainWnd, iAMdiChild* child)
 iAFeatureScoutTool::~iAFeatureScoutTool()
 {
 	delete m_featureScout;
+}
+
+bool iAFeatureScoutTool::addToChild(iAMdiChild* child, const QString& csvFileName)
+{
+	if (csvFileName.isEmpty())
+	{
+		return false;
+	}
+	auto type = guessFeatureType(csvFileName);
+	if (type == InvalidObjectType)
+	{
+		LOG(lvlError, "CSV-file could not be opened or not a valid FeatureScout file!");
+		return false;
+	}
+	iACsvConfig csvConfig = (type != Voids) ? iACsvConfig::getFCPFiberFormat(csvFileName)
+											: iACsvConfig::getFCVoidFormat(csvFileName);
+	return addToChild(child, csvConfig);
+}
+
+bool iAFeatureScoutTool::addToChild(iAMdiChild* child, iACsvConfig const& csvConfig)
+{
+	auto tool = std::make_shared<iAFeatureScoutTool>(iAMainWindow::get(), child);
+	auto result = tool->initFromConfig(child, csvConfig);
+	if (result)
+	{
+		child->addTool(iAFeatureScoutTool::ID, tool);
+	}
+	return result;
 }
 
 const QString iAFeatureScoutTool::ID("FeatureScout");
@@ -79,23 +116,16 @@ void iAFeatureScoutTool::loadState(QSettings& projectFile, QString const& fileNa
 	{
 		m_config.curvedFiberFileName = MakeAbsolute(path, projectFile.value("CurvedFileName").toString());
 	}
-
-	// startup code.... factor out of iAFeatureScoutModuleInterface!
-	iAFeatureScoutModuleInterface* featureScout =
-		m_mainWindow->moduleDispatcher().module<iAFeatureScoutModuleInterface>();
-	featureScout->startFeatureScout(m_child, m_config);
+	if (!initFromConfig(m_child, m_config))
+	{
+		LOG(lvlError, "Error while initializing FeatureScout!");
+		return;
+	}
 	QString layoutName = projectFile.value("Layout").toString();
 	if (!layoutName.isEmpty())
 	{
 		m_child->loadLayout(layoutName);
 	}
-	auto tool = childTool<iAFeatureScoutTool>(m_child);
-	if (!tool)
-	{
-		LOG(lvlError, "Error while attaching FeatureScout to mdi child window!");
-		return;
-	}
-
 	m_featureScout->loadProject(projectFile);
 }
 
@@ -113,6 +143,41 @@ void iAFeatureScoutTool::saveState(QSettings& projectFile, QString const& fileNa
 		projectFile.setValue("Layout", m_child->layoutName());
 	}
 	m_featureScout->saveProject(projectFile);
+}
+
+bool iAFeatureScoutTool::initFromConfig(iAMdiChild* child, iACsvConfig const& csvConfig)
+{
+	iACsvVtkTableCreator creator;
+	iACsvIO io;
+	if (!io.loadCSV(creator, csvConfig))
+	{
+		return false;
+	}
+	std::map<size_t, std::vector<iAVec3f>> curvedFiberInfo;
+	if (!csvConfig.curvedFiberFileName.isEmpty())
+	{
+		readCurvedFiberInfo(csvConfig.curvedFiberFileName, curvedFiberInfo);
+	}
+	init(csvConfig.objectType, csvConfig.fileName, creator.table(), csvConfig.visType, io.getOutputMapping(),
+		curvedFiberInfo, csvConfig.cylinderQuality, csvConfig.segmentSkip);
+
+	iAFeatureScoutToolbar::addForChild(m_mainWindow, child);
+	child->addStatusMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
+	LOG(lvlInfo, QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
+	if (csvConfig.visType == iACsvConfig::UseVolume)
+	{
+		QVariantMap renderSettings;
+		// ToDo: Remove duplication with string constants from iADataSetRenderer!
+		renderSettings["Shading"] = true;
+		renderSettings["Linear interpolation"] = false;
+		renderSettings["Diffuse lighting"] = 1.6;
+		renderSettings["Specular lighting"] = 0.0;
+		renderSettings["Renderer type"] = RenderModeMap()[vtkSmartVolumeMapper::RayCastRenderMode];
+
+		child->applyRenderSettings(child->firstImageDataSetIdx(), renderSettings);
+	}
+	setOptions(csvConfig);
+	return true;
 }
 
 void iAFeatureScoutTool::init(int filterID, QString const& fileName, vtkSmartPointer<vtkTable> csvtbl,
@@ -146,4 +211,19 @@ void iAFeatureScoutTool::init(int filterID, QString const& fileName, vtkSmartPoi
 void iAFeatureScoutTool::setOptions(iACsvConfig const& config)
 {
 	m_config = config;
+}
+
+iAObjectType iAFeatureScoutTool::guessFeatureType(QString const& csvFileName)
+{
+	QFile file(csvFileName);
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+	{
+		return InvalidObjectType;
+	}
+	// Automatic csv file detection - 2nd line of pore csv file have this line; fibers csvs not yet
+	QTextStream in(&file);
+	in.readLine();
+	QString item = in.readLine();
+	file.close();
+	return (item == "Voids") ? Voids : Fibers;
 }
