@@ -23,7 +23,7 @@
 #include "iACsvConfig.h"
 #include "iAFiberResult.h"
 #include "iAFiAKErController.h"
-#include "iAFiAKErAttachment.h"
+#include "iAFiAKErTool.h"
 
 #include <iAAttributeDescriptor.h>    // for selectOption
 #include <iAFileUtils.h>
@@ -33,7 +33,6 @@
 #include <iAParameterDlg.h>
 #include <iATool.h>
 #include <iAToolRegistry.h>
-#include "iASettings.h"    // for mapFromQSettings
 
 #include <QAction>
 #include <QFileDialog>
@@ -41,55 +40,6 @@
 #include <QMdiSubWindow>
 #include <QMessageBox>
 #include <QSettings>
-
-class iAFIAKERTool : public iATool
-{
-public:
-	iAFIAKERTool(iAMainWindow* mainWnd, iAMdiChild* child):
-		iATool(mainWnd, child),
-		m_controller(nullptr)
-	{}
-	~iAFIAKERTool() override
-	{}
-	void loadState(QSettings & projectFile, QString const & fileName) override
-	{
-		/*
-		// Remove UseMdiChild setting altogether, always open iAMdiChild?
-		if (projectFile.contains("UseMdiChild") && projectFile.value("UseMdiChild").toBool() == false)
-		{
-
-			QMessageBox::warning(nullptr, "FiAKEr", "Old project file detected (%1). "
-				"Due to an implementation change, this file cannot be loaded directly; "
-				"please open it in a text editor and remove the ")
-			return;
-		}
-		*/
-		if (!m_child)
-		{
-			LOG(lvlError, QString("Invalid FIAKER project file '%1': FIAKER requires a child window, "
-				"but UseMdiChild was apparently not specified in this project, as no child window available! "
-				"Please report this error, along with the project file, to the open_iA developers!").arg(fileName));
-			return;
-		}
-		iAFiAKErModuleInterface * fiaker = m_mainWindow->moduleDispatcher().module<iAFiAKErModuleInterface>();
-		fiaker->setupToolBar();
-		fiaker->loadProject(m_child, projectFile, fileName, this);
-	}
-	void saveState(QSettings & projectFile, QString const & fileName) override
-	{
-		m_controller->saveProject(projectFile, fileName);
-	}
-	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child)
-	{
-		return std::make_shared<iAFIAKERTool>(mainWnd, child);
-	}
-	void setController(iAFiAKErController* controller)
-	{
-		m_controller = controller;
-	}
-private:
-	iAFiAKErController* m_controller;
-};
 
 namespace
 {
@@ -107,7 +57,7 @@ void iAFiAKErModuleInterface::Initialize()
 	{
 		return;
 	}
-	iAToolRegistry::addTool(iAFiAKErController::FIAKERToolID, iAFIAKERTool::create);
+	iAToolRegistry::addTool(iAFiAKErController::FIAKERToolID, iAFiAKErTool::create);
 
 	QAction * actionFiAKEr = new QAction(tr("Start FIAKER"), m_mainWnd);
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
@@ -231,23 +181,19 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	m_lastShowPreviews = values["Show mini previews in result list"].toBool();
 	m_lastShowCharts = values["Show distribution charts in result list"].toBool();
 
-	AttachToMdiChild(mdiChild);
-	iAFiAKErAttachment* attach = attachment<iAFiAKErAttachment>(mdiChild);
 	m_mainWnd->setPath(m_lastPath);
 	if (createdMdi)
 	{
 		mdiChild->setWindowTitle(QString("FIAKER (%1)").arg(m_lastPath));
 	}
-	auto tool = std::make_shared<iAFIAKERTool>(m_mainWnd, mdiChild);
-	tool->setController(attach->controller());
+	auto tool = iAFiAKErTool::create(m_mainWnd, mdiChild);
 	mdiChild->addTool(iAFiAKErController::FIAKERToolID, tool);
-	attach->controller()->start(m_lastPath, getCsvConfig(m_lastFormat), m_lastTimeStepOffset,
+	dynamic_cast<iAFiAKErTool*>(tool.get())->controller()->start(m_lastPath, getCsvConfig(m_lastFormat), m_lastTimeStepOffset,
 		m_lastUseStepData, m_lastShowPreviews, m_lastShowCharts);
 }
 
 void iAFiAKErModuleInterface::loadFiAKErProject()
 {
-	setupToolBar();
 	QString fileName = QFileDialog::getOpenFileName(m_mainWnd,
 		iAFiAKErController::FIAKERToolID, m_mainWnd->path(), "FIAKER Project file (*.fpf);;All files (*)");
 	if (fileName.isEmpty())
@@ -260,29 +206,9 @@ void iAFiAKErModuleInterface::loadFiAKErProject()
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	projectFile.setIniCodec("UTF-8");
 #endif
-	auto tool = std::make_shared<iAFIAKERTool>(m_mainWnd, newChild);
-	loadProject(newChild, projectFile, fileName, tool.get());
+	auto tool = iAFiAKErTool::create(m_mainWnd, newChild);
 	newChild->addTool(iAFiAKErController::FIAKERToolID, tool);
-}
-
-void iAFiAKErModuleInterface::loadProject(iAMdiChild* mdiChild, QSettings const& projectFile, QString const& fileName, iAFIAKERTool* project)
-{
-	AttachToMdiChild(mdiChild);
-	iAFiAKErAttachment* attach = attachment<iAFiAKErAttachment>(mdiChild);
-	auto controller = attach->controller();
-	project->setController(controller);
-	m_mainWnd->setPath(m_lastPath);
-	auto projectSettings = mapFromQSettings(projectFile);
-	connect(controller, &iAFiAKErController::setupFinished, [controller, projectSettings, fileName]
-		{
-			controller->loadAdditionalData(projectSettings, fileName);
-		});
-	controller->loadProject(projectFile, fileName);
-}
-
-iAModuleAttachmentToChild* iAFiAKErModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child)
-{
-	return new iAFiAKErAttachment(mainWnd, child);
+	tool->loadState(projectFile, fileName);
 }
 
 void iAFiAKErModuleInterface::setupToolBar()
@@ -299,20 +225,20 @@ void iAFiAKErModuleInterface::setupToolBar()
 
 void iAFiAKErModuleInterface::toggleDockWidgetTitleBars()
 {
-	iAFiAKErAttachment* attach = attachment<iAFiAKErAttachment>(m_mainWnd->activeMdiChild());
-	if (!attach)
+	iAFiAKErTool* tool = getTool<iAFiAKErTool>(m_mainWnd->activeMdiChild());
+	if (!tool)
 	{
 		return;
 	}
-	attach->controller()->toggleDockWidgetTitleBars();
+	tool->controller()->toggleDockWidgetTitleBars();
 }
 
 void iAFiAKErModuleInterface::toggleSettings()
 {
-	iAFiAKErAttachment* attach = attachment<iAFiAKErAttachment>(m_mainWnd->activeMdiChild());
-	if (!attach)
+	iAFiAKErTool* tool = getTool<iAFiAKErTool>(m_mainWnd->activeMdiChild());
+	if (!tool)
 	{
 		return;
 	}
-	attach->controller()->toggleSettings();
+	tool->controller()->toggleSettings();
 }

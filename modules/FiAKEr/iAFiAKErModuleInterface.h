@@ -25,7 +25,7 @@
 #include "iAGUIModuleInterface.h"
 #include "qthelper/iAQTtoUIConnector.h"
 
-class iAFIAKERTool;
+class iAFiAKErTool;
 
 class QSettings;
 
@@ -38,15 +38,13 @@ public:
 	void Initialize() override;
 	void SaveSettings() const override;
 
-	void setupToolBar();
-	void loadProject(iAMdiChild* mdiChild, QSettings const& projectFile, QString const& fileName, iAFIAKERTool* project);
-protected:
-	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
+	void setupToolBar();  // TODO: move to separate class, like iAFeatureScoutToolBar (maybe a reusable functionality?)
+
 private slots:
 	void startFiAKEr();
 
 	//! Method to load fiaker project (called on Tools->FIAKER->Load project)
-	//! Deprecated, use open_iA project feature instead!
+	//! @deprecated use open_iA project feature instead!
 	void loadFiAKErProject();
 
 	void toggleDockWidgetTitleBars();

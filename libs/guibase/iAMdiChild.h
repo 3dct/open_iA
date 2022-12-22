@@ -382,9 +382,10 @@ void addToolToActiveMdiChild(QString const & name, iAMainWindow* mainWnd)
 }
 
 //! return the first tool that matches the given type for the current child
-template <typename T> // TODO: concepts to make sure T is derived from iATool
+template <typename T>
 T* getTool(iAMdiChild* child)
 {
+	static_assert(std::is_base_of<iATool, T>::value, "getTool: given type must inherit from iATool!");
 	for (auto t : child->tools())
 	{
 		auto dt = dynamic_cast<T*>(t.get());

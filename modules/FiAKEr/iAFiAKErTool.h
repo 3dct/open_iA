@@ -20,17 +20,22 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleAttachmentToChild.h>
+#include <iATool.h>
+
+#include <memory>
 
 class iAFiAKErController;
 
-class iAFiAKErAttachment : public iAModuleAttachmentToChild
+class iAFiAKErTool : public iATool
 {
-	Q_OBJECT
 public:
-	iAFiAKErAttachment(iAMainWindow* mainWnd, iAMdiChild* child);
-	virtual ~iAFiAKErAttachment();
+	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child);
+	iAFiAKErTool(iAMainWindow* mainWnd, iAMdiChild* child);
+	virtual ~iAFiAKErTool();
+	void loadState(QSettings& projectFile, QString const& fileName) override;
+	void saveState(QSettings& projectFile, QString const& fileName) override;
 	iAFiAKErController* controller();
+
 private:
 	iAFiAKErController* m_controller;
 };
