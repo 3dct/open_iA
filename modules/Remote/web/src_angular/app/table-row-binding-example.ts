@@ -2,27 +2,21 @@ import {Component, OnInit} from '@angular/core';
 import {webSocket, WebSocketSubject} from 'rxjs/webSocket';
 import { Router } from '@angular/router';
 import { int } from '@kitware/vtk.js/types';
+import {MatDialog} from '@angular/material/dialog';
+import {DialogComponent} from './dialog/dialog.component'
 
 
-export interface PeriodicElement {
+export interface caption {
   id:int;
   Title: string;
   x: int;
   y: int;
   z: int;
+  hide:Boolean;
 }
 
-const ELEMENT_DATA: PeriodicElement[] = [
-  {id: 1, Title: 'Hydrogen', x: 1.0079, y: 1.0079, z: 1.0079},
-  {id: 2, Title: 'Helium', x: 1.0079, y: 1.0079, z: 1.0079},
-  {id: 3, Title: 'Lithium', x: 1.0079, y: 1.0079, z: 1.0079},
-  {id: 4, Title: 'Beryllium', x: 1.0079, y: 1.0079, z: 1.0079},
-  {id: 5, Title: 'Boron', x: 1.0079, y: 1.0079, z: 1.0079},
-  {id: 6, Title: 'Carbon', x: 1.0079, y: 1.0079, z: 1.0079},
-  {id: 7, Title: 'Nitrogen', x: 1.0079, y: 1.0079, z: 1.0079},
-  {id: 8, Title: 'Oxygen', x: 1.0079, y: 1.0079, z: 1.0079},
-  {id: 9, Title: 'Fluorine', x: 1.0079, y: 1.0079, z: 1.0079},
-  {id: 10, Title: 'Neon', x: 1.0079, y: 1.0079, z: 1.0079},
+const ELEMENT_DATA: caption[] = [
+
 ];
 
 /**
@@ -34,9 +28,9 @@ const ELEMENT_DATA: PeriodicElement[] = [
   templateUrl: 'table-row-binding-example.html',
 })
 export class TableRowBindingExample {
-  displayedColumns: string[] = ['position', 'name', 'weight', 'symbol'];
+  displayedColumns: string[] = ['id', 'Title', 'jump', 'delete', 'edit', 'hide'];
   dataSource = ELEMENT_DATA;
-  clickedRows = new Set<PeriodicElement>();
+  clickedRows = new Set<caption>();
   href: string = "asdf";
   WebSocket: WebSocketSubject<any>;
   addMode: Boolean = false;
@@ -44,13 +38,21 @@ export class TableRowBindingExample {
 
   buttonColor:string ='primary';
 
-  constructor() {}
+  constructor(public dialog: MatDialog) {}
 
   ngOnInit() {
     //this.href = this.router.url;
     console.log("this.router.url");
-    this.WebSocket = webSocket('ws://localhost:1234');
-    this.WebSocket. subscribe(messages => this.dataSource=messages.captionList );
+    this.WebSocket = webSocket('ws://'+location.hostname+':1234');
+    this.WebSocket. subscribe(messages => {
+		if(messages.id ==="caption.response"){
+			this.dataSource=messages.captionList;
+			this.addMode=false;
+		}
+		if(messages.id ==="caption.interactionUpdate"){
+			this.selectedID=messages.focusedId;
+		}
+	});
     let  methode:String = "subscribe.captions";
     this.WebSocket.next({method: methode } );
 
@@ -68,11 +70,41 @@ sendSelect(id: int){
 }
 
 addModeToggle(){
+	this.addMode=true;
   let  methode:String = "addMode.caption";
-  this.addMode = !this.addMode;
   this.WebSocket.next({method: methode, addMode:this.addMode } );
 }
 
+
+hideAnnotation(id: int){
+  let  methode:String = "hideAnnotation.caption";
+  this.WebSocket.next({method: methode, id:id } );
+}
+
+openDialog(id:int): void {
+
+  let title = "";
+
+  for(var element of this.dataSource){
+    if(element.id == id){
+      title = element.Title;
+    }
+  }
+
+  const dialogRef = this.dialog.open(DialogComponent, {
+    width: '250px',
+    data: {title: title},
+  });
+
+  dialogRef.afterClosed().subscribe(result => {
+
+    if(result){
+      let  methode:String = "nameChanged.caption";
+      this.WebSocket.next({method: methode, id:id , title:result} );
+    }
+
+  });
+}
 
 
 }

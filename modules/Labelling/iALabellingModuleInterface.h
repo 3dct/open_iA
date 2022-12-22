@@ -22,7 +22,7 @@
 
 #include <iAGUIModuleInterface.h>
 
-class iALabellingModuleInterface : public iAGUIModuleInterface
+class  iALabellingModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:

@@ -31,6 +31,7 @@
 #include <iASlicer.h>
 #include <iASlicerImpl.h>    // for mapSliceToGlobalAxis
 
+#include <QCheckbox>
 #include <QHeaderView>
 #include <QStandardItemModel>
 #include <QTableWidget>
@@ -53,7 +54,7 @@
 
 
 iAAnnotation::iAAnnotation(size_t id, iAVec3d coord, QString const& name, QColor color):
-	m_id(id), m_coord(coord), m_name(name), m_color(color)
+	m_id(id), m_coord(coord), m_name(name), m_color(color), m_hide(false)
 {}
 
 const QString iAAnnotationTool::Name = "Annotation";
@@ -72,7 +73,10 @@ public:
 		m_dockWidget(new iADockWidgetWrapper(m_container, "Annotations", "dwAnnotations")),
 		m_addButton(new QToolButton())
 	{
-		QStringList columnNames = QStringList() << "" << "Name" << "Coordinates";
+		QStringList columnNames = QStringList() << ""
+												<< "Name"
+												<< "Coordinates"
+												<< "Show";
 		m_table->setColumnCount(columnNames.size());
 		m_table->setHorizontalHeaderLabels(columnNames);
 		m_table->verticalHeader()->hide();
@@ -106,6 +110,16 @@ public:
 		m_container->layout()->addWidget(buttons);
 		m_container->layout()->setContentsMargins(1, 0, 0, 0);
 		m_container->layout()->setSpacing(4);
+
+
+		
+		QObject::connect(m_table, &QTableWidget::cellClicked, tool, 
+			[tool, this](int row,int /*cell*/)
+			{
+				auto id = m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
+				emit tool->focusedToAnnotation(id);
+				tool->focusToAnnotation(id);
+			});
 
 		QObject::connect(m_addButton, &QToolButton::clicked, tool,
 			[tool, this]()
@@ -146,6 +160,8 @@ public:
 				auto id = m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
 				tool->removeAnnotation(id);
 			});
+
+
 	}
 	QWidget* m_container;
 	QTableWidget* m_table;
@@ -168,7 +184,6 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 	QString name = QString("Annotation %1").arg(id + 1);
 	QColor col = iAColorThemeManager::instance().theme("Brewer Dark2 (max. 8)")->color(id);
 	m_ui->m_annotations.push_back(iAAnnotation(id, coord, name, col));
-	++id;
 	int row = m_ui->m_table->rowCount();
 	m_ui->m_table->insertRow(row);
 	auto colorItem = new QTableWidgetItem();
@@ -177,7 +192,26 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 	m_ui->m_table->setItem(row, 0, colorItem);
 	m_ui->m_table->setItem(row, 1, new QTableWidgetItem(name));
 	m_ui->m_table->setItem(row, 2, new QTableWidgetItem(coord.toString()));
+
+	auto show = new QCheckBox();
+	show->setChecked(TRUE); 
+	show->setStyleSheet("text-align: center; margin-left:50%; margin-right:50%; unchecked{ color: red; }; checked{ color: red; } ");
+	m_ui->m_table->setCellWidget(row, 3, show);
 	m_ui->m_table->resizeColumnsToContents();
+
+	QObject::connect(show, &QCheckBox::clicked, this,
+		[ this]()
+		{
+			auto rows = m_ui->m_table->selectionModel()->selectedRows();
+			if (rows.size() != 1)
+			{
+				LOG(lvlWarn, "Please select exactly one row for editing!");
+				return;
+			}
+			int row = rows[0].row();
+			auto annotation_id = m_ui->m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
+			hideAnnotation(annotation_id);
+		});
 
 	// Create a text actor.
 	iAVtkAnnotationData vtkAnnot;
@@ -187,7 +221,8 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 		txt->SetCaption(name.toStdString().c_str());
 		auto prop = txt->GetProperty();
 		prop->SetColor(col.redF(), col.greenF(), col.blueF());
-		prop->SetLineWidth(1000.0); // does not work, tried 1, 10, 100
+		prop->SetLineWidth(10.0); // does not work, tried 1, 10, 100
+		
 
 		// Does not work; there seems to be a slight thickening of the tip at the moment, but no real arrow visible:
 		//vtkNew<vtkArrowSource> arrowSource;
@@ -233,12 +268,15 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 	}
 	m_ui->m_vtkAnnotateData[id] = vtkAnnot;
 	m_child->updateViews();
-	return id;
+	emit annotationsUpdated(m_ui->m_annotations);
+
+	++id;
+	return id-1;
 }
 
 void iAAnnotationTool::renameAnnotation(size_t id, QString const& newName)
 {
-	for (auto a: m_ui->m_annotations)
+	for (auto &a: m_ui->m_annotations)
 	{
 		if (a.m_id == id)
 		{
@@ -257,6 +295,7 @@ void iAAnnotationTool::renameAnnotation(size_t id, QString const& newName)
 		m_ui->m_vtkAnnotateData[id].m_txtActor[i]->SetCaption(newName.toStdString().c_str());
 	}
 	m_child->updateViews();
+	emit annotationsUpdated(m_ui->m_annotations);
 }
 
 void iAAnnotationTool::removeAnnotation(size_t id)
@@ -283,6 +322,66 @@ void iAAnnotationTool::removeAnnotation(size_t id)
 	m_child->renderer()->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_ui->m_vtkAnnotateData[id].m_txtActor[3]);
 	m_ui->m_vtkAnnotateData.erase(id);
 	m_child->updateViews();
+	emit annotationsUpdated(m_ui->m_annotations);
+}
+
+
+void iAAnnotationTool::hideAnnotation(size_t id)
+{
+	for (size_t i = 0; i < m_ui->m_annotations.size(); ++i)
+	{
+		if (m_ui->m_annotations[i].m_id == id)
+		{
+			m_ui->m_annotations[i].m_hide = !m_ui->m_annotations[i].m_hide;
+			break;
+		}
+	}
+
+	bool hideOn = false; 
+
+	for (auto row = 0; row < m_ui->m_table->rowCount(); ++row)
+	{
+		if (m_ui->m_table->item(row, 0)->data(Qt::UserRole) == id)
+		{
+			hideOn = m_ui->m_table->item(row, 1)->foreground().color() == QColorConstants::Gray;
+
+			auto color = hideOn ? QColorConstants::Black : QColorConstants::Gray;
+
+			m_ui->m_table->item(row, 1)->setForeground(color);
+			m_ui->m_table->item(row, 2)->setForeground(color);
+
+			QCheckBox* show = (QCheckBox*)m_ui->m_table->cellWidget(row, 3);
+			show->setChecked(hideOn);
+
+		}
+	}
+	for (int j = 0; j < 3; ++j)
+	{
+		if (!hideOn)
+		{
+			m_child->slicer(j)->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(
+				m_ui->m_vtkAnnotateData[id].m_txtActor[j]);
+		}
+		else
+		{
+			m_child->slicer(j)->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(
+				m_ui->m_vtkAnnotateData[id].m_txtActor[j]);
+		}
+	}
+	if (!hideOn)
+	{
+		m_child->renderer()->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(
+			m_ui->m_vtkAnnotateData[id].m_txtActor[3]);
+	}
+	else
+	{
+		m_child->renderer()->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(
+			m_ui->m_vtkAnnotateData[id].m_txtActor[3]);
+	}
+	//m_ui->m_vtkAnnotateData.erase(id);
+	m_child->updateViews();
+	
+	emit annotationsUpdated(m_ui->m_annotations);
 }
 
 std::vector<iAAnnotation> const& iAAnnotationTool::annotations() const
@@ -308,6 +407,23 @@ void iAAnnotationTool::slicerPointClicked(double x, double y, double z)
 	for (int i = 0; i < 3; ++i)
 	{
 		disconnect(m_child->slicer(i), &iASlicer::leftClicked, this, &iAAnnotationTool::slicerPointClicked);
+	}
+}
+
+void iAAnnotationTool::focusToAnnotation(size_t id)
+{
+	for (auto annotation : m_ui->m_annotations)
+	{
+		if (annotation.m_id == id)
+		{
+			for (int i = 0; i < 3; ++i)
+			{
+				//auto test = m_child->slicer(i)->sizeIncrement();
+				//auto intTest = test.height();
+				m_child->slicer(i)->setSliceNumber(annotation.m_coord[i]);
+			}
+
+		}
 	}
 }
 

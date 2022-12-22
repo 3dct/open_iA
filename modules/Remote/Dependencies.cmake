@@ -12,6 +12,11 @@ set(DEPENDENCIES_LIBRARIES
 	iA::slicer
 	Qt${QT_VERSION_MAJOR}::WebSockets
 )
+
+set(DEPENDENCIES_MODULES
+	Labelling
+)
+
 if (Qt${QT_VERSION_MAJOR}HttpServer_FOUND)
 	list(APPEND DEPENDENCIES_LIBRARIES Qt${QT_VERSION_MAJOR}::HttpServer)
 	set(Qt${QT_VERSION_MAJOR}HttpServer_FOUND 1 PARENT_SCOPE) # required to have it available in enabled.cmake!

@@ -26,6 +26,9 @@
 #include <QMap>
 #include <QThread>
 #include <iACaptionItem.h>
+#include <QJsonDocument>
+
+#include <iAAnnotationTool.h>
 
 class iARemoteAction;
 
@@ -33,31 +36,40 @@ class QWebSocket;
 class QWebSocketServer;
 
 class iAWebsocketAPI : public QObject
-{
+{ 
 	Q_OBJECT
 public:
 	iAWebsocketAPI(quint16 port, bool debug = false, QObject* parent = nullptr);
 	void setRenderedImage(QByteArray img, QString id);
 	~iAWebsocketAPI();
-
+	 
 Q_SIGNALS:
 	void closed();
 	void controlCommand(iARemoteAction const & action);
 	void removeCaption(int id);
-	void addMode(bool active);
+	void addMode();
 	void selectCaption(int id);
-	void changeCaptionTitle(int id, QString title);
-
+	void changeCaptionTitle(int id, QString title); 
+	void hideAnnotation(int id);
+	
 private Q_SLOTS:
 	void onNewConnection();
 	void processTextMessage(QString message);
 	void processBinaryMessage(QByteArray message);
 	void socketDisconnected();
+	void captionSubscribe(QWebSocket* pClient);
 
-	void updateCaptionList(QList<iACaptionItem> captions); 
+	void sendCaptionUpdate();
+	
+
+
 
 public Q_SLOTS:
 	void sendViewIDUpdate(QByteArray img, QString ViewID);
+	void updateCaptionList(std::vector<iAAnnotation> captions);
+	void sendInteractionUpdate( size_t focusedId);
+	
+ 
 
 private:
 	QWebSocketServer* m_pWebSocketServer;
@@ -65,6 +77,8 @@ private:
 	bool m_debug;
 	int m_count;
 	QMap<QString, QByteArray> images;
+	QJsonDocument m_captionUpdate;
+	const QString cptionKey = "caption";
 
 	QElapsedTimer m_StoppWatch;
 

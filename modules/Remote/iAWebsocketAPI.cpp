@@ -35,6 +35,7 @@
 
 
 
+
 iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :
 	QObject(parent),
 	m_pWebSocketServer(new QWebSocketServer(QStringLiteral("Remote Server"), QWebSocketServer::NonSecureMode, this)),
@@ -48,6 +49,10 @@ iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :
 		connect(m_pWebSocketServer, &QWebSocketServer::newConnection, this, &iAWebsocketAPI::onNewConnection);
 		connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &iAWebsocketAPI::closed);
 	}
+
+	std::vector<iAAnnotation> captions;
+	updateCaptionList(captions);
+
 }
 
 void iAWebsocketAPI::setRenderedImage(QByteArray img, QString id)
@@ -123,21 +128,29 @@ void iAWebsocketAPI::processTextMessage(QString message)
 	}
 
 	//Captions API 
-	else if (Request["method"].toString() == "request.captions")
+	else if (Request["method"].toString() == "subscribe.captions")
 	{
-		commandControls(Request, pClient);
+		captionSubscribe(pClient);
 	}
 	else if (Request["method"].toString() == "select.caption")
 	{
-		commandControls(Request, pClient);
+		emit selectCaption(Request["id"].toInt());
 	}
 	else if (Request["method"].toString() == "remove.caption")
 	{
-		commandControls(Request, pClient);
+		emit removeCaption(Request["id"].toInt());
 	}
 	else if (Request["method"].toString() == "addMode.caption")
 	{
-		commandControls(Request, pClient);
+		emit addMode();
+	}
+	else if (Request["method"].toString() == "nameChanged.caption")
+	{
+		emit changeCaptionTitle(Request["id"].toInt(), Request["title"].toString());
+	}
+	else if (Request["method"].toString() == "hideAnnotation.caption")
+	{
+		emit hideAnnotation(Request["id"].toInt());
 	}
 
 
@@ -155,14 +168,14 @@ void iAWebsocketAPI::commandWslinkHello(QJsonDocument Request, QWebSocket* pClie
 	ResponseArray["result"] = ClientID;
 
 	const QJsonDocument Response{ResponseArray};
-
+	 
 	pClient->sendTextMessage(Response.toJson());
 }
 
 void iAWebsocketAPI::commandAdObserver(QJsonDocument Request, QWebSocket* pClient)
 {
 	QJsonObject ResponseArray;
-
+	 
 	ResponseArray["wslink"] = "1.0";
 	QString viewIDString = Request["args"][0].toString();
 	const auto viewIDResponse = QJsonObject{{"result", "success"}, {"viewId", viewIDString}};
@@ -371,7 +384,7 @@ void iAWebsocketAPI::socketDisconnected()
 	}
 }
 
-void iAWebsocketAPI::updateCaptionList(QList<iACaptionItem> captions)
+void iAWebsocketAPI::updateCaptionList(std::vector<iAAnnotation> captions)
 {
 
 	QJsonArray captionList;
@@ -379,11 +392,12 @@ void iAWebsocketAPI::updateCaptionList(QList<iACaptionItem> captions)
 	for (auto caption : captions)
 	{
 		QJsonObject captionObject;
-		captionObject["Title"] = caption.Title;
-		captionObject["Text"] = caption.Text;
-		captionObject["x"] = caption.x;
-		captionObject["y"] = caption.y;
-		captionObject["z"] = caption.z;
+		captionObject["id"] = (int)caption.m_id;
+		captionObject["Title"] = caption.m_name;
+		captionObject["x"] = caption.m_coord[0];
+		captionObject["y"] = caption.m_coord[1];
+		captionObject["z"] = caption.m_coord[2];
+		captionObject["hide"] = caption.m_hide;
 
 		captionList.append(captionObject);
 
@@ -394,6 +408,55 @@ void iAWebsocketAPI::updateCaptionList(QList<iACaptionItem> captions)
 	response["captionList"] = captionList;
 	const QJsonDocument Response2{response};
 
+	m_captionUpdate = Response2;
+
+	sendCaptionUpdate();
+
+}
+
+void iAWebsocketAPI::captionSubscribe(QWebSocket* pClient)
+{
 
 
+	if (subscriptions.contains(cptionKey))
+	{
+		subscriptions[cptionKey].append(pClient);
+	}
+	else
+	{
+		subscriptions.insert(cptionKey, QList<QWebSocket*>());
+		subscriptions[cptionKey].append(pClient);
+	}
+	sendCaptionUpdate();
+}
+
+
+void iAWebsocketAPI::sendCaptionUpdate()
+{
+
+
+	if (subscriptions.contains(cptionKey))
+	{
+		for (auto client : subscriptions[cptionKey])
+		{
+			client->sendTextMessage(m_captionUpdate.toJson());
+		}
+	}
+}
+
+void iAWebsocketAPI::sendInteractionUpdate( size_t focusedId)
+{
+
+	QJsonObject response;
+	response["id"] = "caption.interactionUpdate";
+	response["focusedId"] = (int)focusedId;
+	const QJsonDocument JsonResponse{response};
+
+	if (subscriptions.contains(cptionKey))
+	{
+		for (auto client : subscriptions[cptionKey])
+		{
+			client->sendTextMessage(JsonResponse.toJson());
+		}
+	}
 }

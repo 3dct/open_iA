@@ -114,10 +114,16 @@ public:
 		iATool(mainWnd, child),
 		m_wsAPI(std::make_unique<iARemoteRenderer>(1234))
 #ifdef QT_HTTPSERVER
-		,
-		m_httpServer(std::make_unique<QHttpServer>())
+		, m_httpServer(std::make_unique<QHttpServer>())
 #endif
 	{
+		auto annotTool = getTool<iAAnnotationTool>(child);
+		if (!annotTool)
+		{
+			auto newTool = std::make_shared<iAAnnotationTool>(mainWnd, child);
+			child->addTool(iAAnnotationTool::Name, newTool);
+			annotTool = newTool.get();
+		}
 		m_wsAPI->addRenderWindow(child->renderer()->renderWindow(), "3D");
 		m_viewWidgets.insert("3D", child->rendererWidget());
 		for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
@@ -207,6 +213,19 @@ public:
 			LOG(lvlImportant, QString("You can reach the webserver under http://localhost:%1").arg(port));
 		}
 #endif
+
+		connect(annotTool, &iAAnnotationTool::annotationsUpdated, m_wsAPI->m_websocket.get(),&iAWebsocketAPI::updateCaptionList);
+		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::changeCaptionTitle, annotTool,
+			&iAAnnotationTool::renameAnnotation);
+		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::removeCaption, annotTool,
+			&iAAnnotationTool::removeAnnotation);
+		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::addMode, annotTool, &iAAnnotationTool::startAddMode);
+		connect(
+			m_wsAPI->m_websocket.get(), &iAWebsocketAPI::selectCaption, annotTool, &iAAnnotationTool::focusToAnnotation);
+		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::hideAnnotation, annotTool,
+			&iAAnnotationTool::hideAnnotation);
+		connect(annotTool, &iAAnnotationTool::focusedToAnnotation, m_wsAPI->m_websocket.get(),
+				&iAWebsocketAPI::sendInteractionUpdate);
 	}
 
 private:
