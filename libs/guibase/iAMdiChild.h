@@ -197,6 +197,8 @@ public:
 	virtual void addTool(QString const& key, std::shared_ptr<iATool> tool) = 0;
 	//! save currently loaded files / tools in given project file
 	virtual void saveProject(QString const& fileName) = 0;
+	//! retrieve list of tools attached to this child
+	virtual QMap<QString, std::shared_ptr<iATool> > const& tools() =0;
 
 
 	// Magic Lens:
@@ -377,4 +379,18 @@ void addToolToActiveMdiChild(QString const & name, iAMainWindow* mainWnd)
 		return;
 	}
 	child->addTool(name, std::make_shared<T>(mainWnd, child));
+}
+
+template <typename T> // concepts
+T* getTool(iAMdiChild* child)
+{
+	for (auto t : child->tools())
+	{
+		auto dt = dynamic_cast<T*>(t.get());
+		if (dt)
+		{
+			return dt;
+		}
+	}
+	return nullptr;
 }

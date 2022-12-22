@@ -114,8 +114,8 @@ public:
 
 		
 		QObject::connect(m_table, &QTableWidget::cellClicked, tool, 
-			[tool, this](int row,int cell) 
-			{ 
+			[tool, this](int row,int /*cell*/)
+			{
 				auto id = m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
 				emit tool->focusedToAnnotation(id);
 				tool->focusToAnnotation(id);
@@ -209,8 +209,8 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 				return;
 			}
 			int row = rows[0].row();
-			auto id = m_ui->m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
-			hideAnnotation(id);
+			auto annotation_id = m_ui->m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
+			hideAnnotation(annotation_id);
 		});
 
 	// Create a text actor.
@@ -412,17 +412,14 @@ void iAAnnotationTool::slicerPointClicked(double x, double y, double z)
 
 void iAAnnotationTool::focusToAnnotation(size_t id)
 {
-
-	
 	for (auto annotation : m_ui->m_annotations)
 	{
 		if (annotation.m_id == id)
 		{
 			for (int i = 0; i < 3; ++i)
 			{
-				auto test = m_child->slicer(i)->sizeIncrement();
-
-				auto intTest = test.height();
+				//auto test = m_child->slicer(i)->sizeIncrement();
+				//auto intTest = test.height();
 				m_child->slicer(i)->setSliceNumber(annotation.m_coord[i]);
 			}
 

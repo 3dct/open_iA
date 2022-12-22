@@ -63,13 +63,10 @@ public slots:
 	void focusToAnnotation(size_t id);
 	void hideAnnotation(size_t id);
 
-
 signals:
 	void annotationsUpdated(std::vector<iAAnnotation>);
 	void annotionMode(bool activated);
 	void focusedToAnnotation(size_t id);
-
-
 
 private slots:
 	void slicerPointClicked(double x, double y, double z);

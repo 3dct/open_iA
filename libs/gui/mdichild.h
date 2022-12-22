@@ -275,7 +275,7 @@ public:
 	void linkMDIs(bool lm);
 	//! add a tool to this child (a collection of UI elements with their own behavior and state)
 	void addTool(QString const & key, std::shared_ptr<iATool> tool) override;
-	QMap<QString, std::shared_ptr<iATool> > const & tools();
+	QMap<QString, std::shared_ptr<iATool> > const & tools() override;
 
 	iAInteractionMode interactionMode() const override;
 	void setInteractionMode(iAInteractionMode mode);

@@ -112,13 +112,18 @@ public:
 	static const QString Name;
 	iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 		iATool(mainWnd, child),
-		m_wsAPI(std::make_unique<iARemoteRenderer>(1234)),
-		m_annotation(std::make_unique<iAAnnotationTool>(mainWnd, child))
+		m_wsAPI(std::make_unique<iARemoteRenderer>(1234))
 #ifdef QT_HTTPSERVER
-		,
-		m_httpServer(std::make_unique<QHttpServer>())
+		, m_httpServer(std::make_unique<QHttpServer>())
 #endif
 	{
+		auto annotTool = getTool<iAAnnotationTool>(child);
+		if (!annotTool)
+		{
+			auto newTool = std::make_shared<iAAnnotationTool>(mainWnd, child);
+			child->addTool(iAAnnotationTool::Name, newTool);
+			annotTool = newTool.get();
+		}
 		m_wsAPI->addRenderWindow(child->renderer()->renderWindow(), "3D");
 		m_viewWidgets.insert("3D", child->rendererWidget());
 		for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
@@ -209,23 +214,22 @@ public:
 		}
 #endif
 
-		connect(m_annotation.get(), &iAAnnotationTool::annotationsUpdated, m_wsAPI->m_websocket.get(),&iAWebsocketAPI::updateCaptionList);
-		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::changeCaptionTitle, m_annotation.get(),
+		connect(annotTool, &iAAnnotationTool::annotationsUpdated, m_wsAPI->m_websocket.get(),&iAWebsocketAPI::updateCaptionList);
+		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::changeCaptionTitle, annotTool,
 			&iAAnnotationTool::renameAnnotation);
-		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::removeCaption, m_annotation.get(),
+		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::removeCaption, annotTool,
 			&iAAnnotationTool::removeAnnotation);
-		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::addMode, m_annotation.get(), &iAAnnotationTool::startAddMode);
+		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::addMode, annotTool, &iAAnnotationTool::startAddMode);
 		connect(
-			m_wsAPI->m_websocket.get(), &iAWebsocketAPI::selectCaption, m_annotation.get(), &iAAnnotationTool::focusToAnnotation);
-		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::hideAnnotation, m_annotation.get(),
+			m_wsAPI->m_websocket.get(), &iAWebsocketAPI::selectCaption, annotTool, &iAAnnotationTool::focusToAnnotation);
+		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::hideAnnotation, annotTool,
 			&iAAnnotationTool::hideAnnotation);
-		connect(m_annotation.get(), &iAAnnotationTool::focusedToAnnotation, m_wsAPI->m_websocket.get(),
+		connect(annotTool, &iAAnnotationTool::focusedToAnnotation, m_wsAPI->m_websocket.get(),
 				&iAWebsocketAPI::sendInteractionUpdate);
 	}
 
 private:
 	std::unique_ptr<iARemoteRenderer> m_wsAPI;
-	std::unique_ptr<iAAnnotationTool> m_annotation;
 	QMap<QString, QWidget*> m_viewWidgets;
 #ifdef QT_HTTPSERVER
 	std::unique_ptr<QHttpServer> m_httpServer;
