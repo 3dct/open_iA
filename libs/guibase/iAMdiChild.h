@@ -199,9 +199,6 @@ public:
 	virtual QMap<QString, std::shared_ptr<iATool>> const& tools() = 0;
 	//! save currently loaded files / tools in given project file
 	virtual void saveProject(QString const& fileName) = 0;
-	//! retrieve list of tools attached to this child
-	virtual QMap<QString, std::shared_ptr<iATool> > const& tools() =0;
-
 
 	// Magic Lens:
 	//! Set the ID of the channel which should be the input to the 2D magic lens in slicer
@@ -371,22 +368,7 @@ public slots:
 
 };
 
-
-//! return the first tool that matches the given type for the current child
-template <typename T>
-T * childTool(iAMdiChild* child)
-{
-	for (auto t : child->tools())
-	{
-		auto r = dynamic_cast<T*>(t.get());
-		if (r)
-		{
-			return r;
-		}
-	}
-	return {};
-}
-
+//! helper function to add a tool to the current mdi child (if it exists)
 template <typename T>
 void addToolToActiveMdiChild(QString const & name, iAMainWindow* mainWnd)
 {
@@ -399,7 +381,8 @@ void addToolToActiveMdiChild(QString const & name, iAMainWindow* mainWnd)
 	child->addTool(name, std::make_shared<T>(mainWnd, child));
 }
 
-template <typename T> // concepts
+//! return the first tool that matches the given type for the current child
+template <typename T> // TODO: concepts to make sure T is derived from iATool
 T* getTool(iAMdiChild* child)
 {
 	for (auto t : child->tools())
