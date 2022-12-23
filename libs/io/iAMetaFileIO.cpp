@@ -44,7 +44,7 @@ iAMetaFileIO::iAMetaFileIO() :
 	addAttr(m_params[Save], CompressionStr, iAValueType::Boolean, false);
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
+std::shared_ptr<iADataSet> iAMetaFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
 
@@ -75,18 +75,13 @@ std::vector<std::shared_ptr<iADataSet>> iAMetaFileIO::loadData(QString const& fi
 	// ITK (using readImage from iAToolsVTK): 5876 (ignore), 5877, 5760, 5746 ms
 	// -> VTK consistently faster; but doesn't produce an error if it doesn't find file for example (just returns a 1x1x1 image)!
 
-	return { std::make_shared<iAImageData>(img) };
+	return std::make_shared<iAImageData>(img);
 }
 
-void iAMetaFileIO::saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
+void iAMetaFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	iAConnector con;
-	if (dataSets.size() != 1)
-	{
-		LOG(lvlError, QString("Meta File IO only supports writing exactly 1 dataset, %1 given!").arg(dataSets.size()));
-		return;
-	}
-	auto imgData = dynamic_cast<iAImageData*>(dataSets[0].get());
+	auto imgData = dynamic_cast<iAImageData*>(dataSet.get());
 	if (!imgData)
 	{
 		LOG(lvlError, "Meta File IO expects image(/volume) data, but given dataset was of a different type!");

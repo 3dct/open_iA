@@ -38,7 +38,7 @@ const QString iANKCFileIO::Name("NKC files");
 iANKCFileIO::iANKCFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
 {}
 
-std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
+std::shared_ptr<iADataSet> iANKCFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
 
@@ -108,7 +108,7 @@ std::vector<std::shared_ptr<iADataSet>> iANKCFileIO::loadData(QString const& fil
 			.arg(fileName));
 		return {};
 	}
-	replaceAndShift->addInput(d[0]);
+	replaceAndShift->addInput(d);
 	QVariantMap paramValuesReplaceAndShift;
 	paramValuesReplaceAndShift["Value To Replace"] = 65533;
 	paramValuesReplaceAndShift["Replacement"] = 0;

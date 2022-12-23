@@ -106,7 +106,7 @@ void readRawImage(QVariantMap const& params, QString const& fileName, iAConnecto
 }
 #endif
 
-std::vector<std::shared_ptr<iADataSet>> iARawFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
+std::shared_ptr<iADataSet> iARawFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	// ITK way:
 	iAConnector con;
@@ -182,18 +182,19 @@ void writeRawImage(QString const& fileName, vtkImageData* img, QVariantMap param
 	writer->Update();
 }
 
-void iARawFileIO::saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> & dataSets, QVariantMap const& paramValues, iAProgress const& progress)
+void iARawFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	// ITK way:
-	assert(dataSets.size() == 1 && dynamic_cast<iAImageData*>(dataSets[0].get()));
+	assert(dynamic_cast<iAImageData*>(dataSet.get()));
 //#if RAW_LOAD_METHOD == ITK
-	auto vtkImg = dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage();
+	auto vtkImg = dynamic_cast<iAImageData*>(dataSet.get())->vtkImage();
 	VTK_TYPED_CALL(writeRawImage, vtkImg->GetScalarType(), fileName, vtkImg, paramValues, progress);
-	dataSets[0]->setMetaData(SizeStr, variantVector(vtkImg->GetDimensions(), 3));
-	dataSets[0]->setMetaData(SpacingStr, variantVector(vtkImg->GetSpacing(), 3));
-	dataSets[0]->setMetaData(OriginStr, variantVector(vtkImg->GetOrigin(), 3));
-	dataSets[0]->setMetaData(HeadersizeStr, 0);
-	dataSets[0]->setMetaData(DataTypeStr, mapVTKTypeToReadableDataType(vtkImg->GetScalarType()));
+	// set raw file parameters here so that they are available if file gets stored in a project file!
+	dataSet->setMetaData(SizeStr, variantVector(vtkImg->GetDimensions(), 3));
+	dataSet->setMetaData(SpacingStr, variantVector(vtkImg->GetSpacing(), 3));
+	dataSet->setMetaData(OriginStr, variantVector(vtkImg->GetOrigin(), 3));
+	dataSet->setMetaData(HeadersizeStr, 0);
+	dataSet->setMetaData(DataTypeStr, mapVTKTypeToReadableDataType(vtkImg->GetScalarType()));
 //# endif
 // VTK way currently not implemented
 }

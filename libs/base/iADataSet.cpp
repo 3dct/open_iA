@@ -76,6 +76,11 @@ void iADataSet::setMetaData(QString const& key, QVariant const& value)
 	m_metaData[key] = value;
 }
 
+void iADataSet::setMetaData(QVariantMap const& other)
+{
+	m_metaData.insert(other);
+}
+
 QVariant iADataSet::metaData(QString const& key) const
 {
 	return m_metaData[key];
@@ -227,4 +232,21 @@ std::array<double, 3> iAImageData::unitDistance() const
 {
 	auto const spc = m_img->GetSpacing();
 	return { spc[0],  spc[1], spc[2] };
+}
+
+
+iADataCollection::iADataCollection(size_t capacity):
+	iADataSet(iADataSetType::Collection)
+{
+	m_dataSets.reserve(capacity);
+}
+
+std::vector<std::shared_ptr<iADataSet>> & iADataCollection::dataSets()
+{
+	return m_dataSets;
+}
+
+QString iADataCollection::info() const
+{
+	return QString("Number of datasets: %1").arg(m_dataSets.size());
 }

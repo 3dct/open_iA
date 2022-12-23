@@ -35,7 +35,7 @@ iAFileIO::iAFileIO(iADataSetTypes loadTypes, iADataSetTypes saveTypes) :
 
 iAFileIO::~iAFileIO() = default;
 
-std::vector<std::shared_ptr<iADataSet>> iAFileIO::load(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
+std::shared_ptr<iADataSet> iAFileIO::load(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	try
 	{
@@ -43,21 +43,17 @@ std::vector<std::shared_ptr<iADataSet>> iAFileIO::load(QString const& fileName, 
 		t.start();
 		QVariantMap checkedValues(paramValues);
 		checkParams(checkedValues, Operation::Load, fileName);
-		auto dataSets = loadData(fileName, checkedValues, progress);
-
-		for (auto d : dataSets)
+		auto dataSet = loadData(fileName, checkedValues, progress);
+		dataSet->setMetaData(iADataSet::FileNameKey, fileName);
+		dataSet->setMetaData(iADataSet::NameKey, QFileInfo(fileName).completeBaseName());
+		for (auto k : checkedValues.keys())
 		{
-			d->setMetaData(iADataSet::FileNameKey, fileName);
-			d->setMetaData(iADataSet::NameKey, QFileInfo(fileName).completeBaseName());
-			for (auto k : checkedValues.keys())
-			{
-				d->setMetaData(k, checkedValues[k]);
-			}
+			dataSet->setMetaData(k, checkedValues[k]);
 		}
 		// for file formats that support multiple dataset types: check if an allowed type was loaded?
 		// BUT currently no such format supported
 		LOG(lvlInfo, QString("Loaded dataset %1 in %2 ms.").arg(fileName).arg(t.elapsed()));
-		return dataSets;
+		return dataSet;
 	}
 	// TODO: unify exception handling?
 	catch (itk::ExceptionObject& e)
@@ -72,10 +68,10 @@ std::vector<std::shared_ptr<iADataSet>> iAFileIO::load(QString const& fileName, 
 	{
 		LOG(lvlError, QString("Unknown error while loading file %1!").arg(fileName));
 	}
-	return std::vector<std::shared_ptr<iADataSet>>();
+	return {};
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
+std::shared_ptr<iADataSet> iAFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(fileName);
 	Q_UNUSED(paramValues);
@@ -83,10 +79,10 @@ std::vector<std::shared_ptr<iADataSet>> iAFileIO::loadData(QString const& fileNa
 	return {};
 }
 
-void iAFileIO::saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
+void iAFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(fileName);
-	Q_UNUSED(dataSets);
+	Q_UNUSED(dataSet);
 	Q_UNUSED(paramValues);
 	Q_UNUSED(progress);
 }
@@ -108,15 +104,12 @@ bool iAFileIO::isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString co
 	return true;
 }
 
-void iAFileIO::save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> & dataSets, QVariantMap const& paramValues, iAProgress const& progress)
+void iAFileIO::save(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	QVariantMap checkedValues(paramValues);
 	checkParams(checkedValues, Save, fileName);
-	saveData(fileName, dataSets, checkedValues, progress);
-	for (auto d : dataSets)
-	{
-		d->setMetaData(iADataSet::FileNameKey, fileName);
-	}
+	saveData(fileName, dataSet, checkedValues, progress);
+	dataSet->setMetaData(iADataSet::FileNameKey, fileName);
 }
 
 bool iAFileIO::checkParams(QVariantMap & paramValues, Operation op, QString const& fileName)

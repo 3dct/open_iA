@@ -435,11 +435,8 @@ namespace
 					return 1;
 				}
 				QVariantMap dummyParams;  // TODO: allow reading i/o parameters from cmd, use progress indicator
-				auto dataSets = io->load(inputFiles[i], dummyParams);
-				for (auto d : dataSets)
-				{
-					filter->addInput(d);
-				}
+				auto dataSet = io->load(inputFiles[i], dummyParams);
+				filter->addInput(dataSet);
 			}
 
 			if (!quiet)
@@ -499,8 +496,7 @@ namespace
 				QVariantMap writeParamValues;
 				writeParamValues[iAFileIO::CompressionStr] = compress;
 				// TODO: use progress indicator here
-				auto dataSets = filter->outputs();
-				io->save(outFileName, dataSets, writeParamValues);
+				io->save(outFileName, filter->outputs()[o], writeParamValues);
 			}
 			for (auto outputValue : filter->outputValues())
 			{

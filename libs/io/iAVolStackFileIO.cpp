@@ -100,7 +100,7 @@ iAVolStackFileIO::iAVolStackFileIO() : iAFileIO(iADataSetType::All, iADataSetTyp
 	//addAttr(m_params[Save], iAFileStackParams::MaximumIndex, iAValueType::Discrete, 0);    // not needed, follows from min idx and num of datasets
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAVolStackFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
+std::shared_ptr<iADataSet> iAVolStackFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
 
@@ -126,7 +126,7 @@ std::vector<std::shared_ptr<iADataSet>> iAVolStackFileIO::loadData(QString const
 	// TODO: make single dataset and append additional entries to dataset!
 	// "elementNames" "energy_range" ...
 	
-	std::vector<std::shared_ptr<iADataSet>> result;
+	auto result = std::make_shared<iADataCollection>(maxIdx - minIdx +1 );
 	// use iAMultiStepProgress?
 	for (int i = minIdx; i <= maxIdx; ++i)
 	{
@@ -143,18 +143,19 @@ std::vector<std::shared_ptr<iADataSet>> iAVolStackFileIO::loadData(QString const
 		iAProgress dummyProgress;
 		QVariantMap curParamValues;
 		auto dataSet = io->load(curFileName, curParamValues, dummyProgress);
-		if (dataSet.size() != 1)
-		{
-			throw std::runtime_error(QString("VolStack I/O: Sub-reader unexpectedly returned more or less than 1 dataset (%1)").arg(dataSet.size()).toStdString());
-		}
-		result.push_back(dataSet[0]);
+		result->dataSets().push_back(dataSet);
 		progress.emitProgress(100 * (i - minIdx) / (maxIdx - minIdx + 1));
 	}
 	return result;
 }
 
-void iAVolStackFileIO::saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
+void iAVolStackFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress)
 {
+	auto collection = dynamic_cast<iADataCollection*>(dataSet.get());
+	if (!collection)
+	{
+		LOG(lvlError, "VolStack I/O save called with dataset which is not a collection of datasets!");
+	}
 	Q_UNUSED(paramValues);
 	QFile volstackFile(fileName);
 	auto fileNameBase = paramValues[iAFileStackParams::FileNameBase].toString();
@@ -180,14 +181,14 @@ void iAVolStackFileIO::saveData(QString const& fileName, std::vector<std::shared
 			<< FileKeyExtension << ": " << extension << "\n"
 			<< FileKeyNumOfDigits << ": " << numOfDigits << "\n"
 			<< FileKeyMinIdx << ": " << minIdx << "\n"
-			<< FileKeyMaxIdx << ": " << (minIdx + dataSets.size() - 1) << "\n";
+			<< FileKeyMaxIdx << ": " << (minIdx + collection->dataSets().size() - 1) << "\n";
 		if (!paramValues[AdditionalInfo].toString().isEmpty())
 		{
 			out << paramValues[AdditionalInfo].toString() << "\n";
 		}
 	}
 	//// write mhd images:
-	for (int m = 0; m < dataSets.size(); m++)
+	for (int m = 0; m < collection->dataSets().size(); m++)
 	{
 		QString curFileName = fi.absolutePath() + "/" + fileNameBase + QString("%1").arg(minIdx + m, numOfDigits, 10, QChar('0')) + extension;
 		auto io = iAFileTypeRegistry::createIO(curFileName, iAFileIO::Save);
@@ -196,13 +197,11 @@ void iAVolStackFileIO::saveData(QString const& fileName, std::vector<std::shared
 			LOG(lvlError, QString("Could not find a writer suitable for file name %1!").arg(curFileName));
 			return;
 		}
-		std::vector<std::shared_ptr<iADataSet>> ds;
-		ds.push_back(dataSets[m]);
 		iAProgress dummyProgress;
 		QVariantMap curParamValues;
 		curParamValues[iAFileIO::CompressionStr] = paramValues[iAFileIO::CompressionStr];
-		io->save(curFileName, ds, curParamValues, dummyProgress);
-		progress.emitProgress(m * 100.0 / dataSets.size());
+		io->save(curFileName, collection->dataSets()[m], curParamValues, dummyProgress);
+		progress.emitProgress(m * 100.0 / collection->dataSets().size());
 	}
 }
 

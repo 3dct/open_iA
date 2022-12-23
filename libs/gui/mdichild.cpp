@@ -1188,8 +1188,8 @@ void MdiChild::saveVolumeStack()
 		return;
 	}
 	auto allDataSets = dataSets();
-	auto imgDataSets = std::make_shared<std::vector<std::shared_ptr<iADataSet>>>();
-	std::copy_if(allDataSets.begin(), allDataSets.end(), std::back_inserter(*imgDataSets.get()),
+	auto imgDataSets = std::make_shared<iADataCollection>(allDataSets.size());
+	std::copy_if(allDataSets.begin(), allDataSets.end(), std::back_inserter(imgDataSets->dataSets()),
 		[](std::shared_ptr<iADataSet> data) {
 			return dynamic_cast<iAImageData*>(data.get());
 		});
@@ -1198,7 +1198,7 @@ void MdiChild::saveVolumeStack()
 	QVariantMap paramValues;
 	paramValues[iAFileStackParams::FileNameBase] = fi.completeBaseName();
 	paramValues[iAFileStackParams::Extension] = ".mhd";
-	paramValues[iAFileStackParams::NumDigits] = static_cast<int>(std::log10(static_cast<double>(imgDataSets->size())) + 1);
+	paramValues[iAFileStackParams::NumDigits] = static_cast<int>(std::log10(static_cast<double>(imgDataSets->dataSets().size())) + 1);
 	paramValues[iAFileStackParams::MinimumIndex] = 0;
 	//paramValues[iAFileStackParams::MaximumIndex] = imgDataSets->size() - 1;
 
@@ -1211,7 +1211,7 @@ void MdiChild::saveVolumeStack()
 	auto p = std::make_shared<iAProgress>();
 	auto fw = runAsync([=]()
 		{
-			io->save(fileName, *imgDataSets.get(), paramValues, *p.get());
+			io->save(fileName,imgDataSets, paramValues, *p.get());
 		},
 		[]() {},
 		this);
@@ -1268,8 +1268,7 @@ void MdiChild::saveNew()
 		{
 			try
 			{
-				std::vector<std::shared_ptr<iADataSet>> dataSets{ dataSet };
-				io->save(fileName, dataSets, paramValues, *p.get());
+				io->save(fileName, dataSet, paramValues, *p.get());
 				return true;
 			}
 			// TODO: unify exception handling?

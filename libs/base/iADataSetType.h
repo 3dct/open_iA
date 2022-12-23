@@ -29,7 +29,9 @@ enum class iADataSetType
 	Volume = 0x1,
 	Mesh = 0x2,
 	Graph = 0x4,
-	All = Volume | Mesh | Graph
+	Collection = 0x8,
+	SingleDataSets = Volume | Mesh | Graph,
+	All = Volume | Mesh | Graph | Collection
 };
 Q_DECLARE_FLAGS(iADataSetTypes, iADataSetType)
 Q_DECLARE_OPERATORS_FOR_FLAGS(iADataSetTypes)

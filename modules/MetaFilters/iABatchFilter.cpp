@@ -135,10 +135,7 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 		auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Load);
 		QVariantMap dummyParams;    // TODO: CHECK whether I/O requires other parameters and error in that case!
 		auto dataSets = io->load(fileName, dummyParams);
-		for (auto d : dataSets)
-		{
-			inputImages.push_back(d);
-		}
+		inputImages.push_back(dataSets);
 	}
 
 	for (int i = 0; i < filterParamStrs.size(); ++i)
@@ -223,11 +220,8 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 				{
 					auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Load);
 					QVariantMap dummyParams;    // TODO: CHECK whether I/O requires other parameters and error in that case!
-					auto dataSets = io->load(fileName, dummyParams);
-					for (auto d: dataSets)
-					{
-						filter->addInput(d);
-					}
+					auto dataSet = io->load(fileName, dummyParams);
+					filter->addInput(dataSet);
 					for (int i = 0; i < inputImages.size(); ++i)
 					{
 						filter->addInput(inputImages[i]);
@@ -323,8 +317,7 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 					auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Save);
 					QVariantMap writeParamValues;    // TODO: CHECK whether I/O requires other parameters and error in that case!
 					writeParamValues[iAFileIO::CompressionStr] = useCompression;
-					std::vector<std::shared_ptr<iADataSet>> dataSets{ filter->output(o) };
-					io->save(outName, dataSets, writeParamValues);
+					io->save(outName, filter->output(o), writeParamValues);
 				}
 			}
 		}

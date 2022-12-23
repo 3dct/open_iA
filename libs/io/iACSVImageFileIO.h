@@ -28,7 +28,7 @@ class iACSVImageFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, i
 {
 public:
 	iACSVImageFileIO();
-	void saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> & dataSets, QVariantMap const& paramValues, iAProgress const& progress) override;
+	void saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };

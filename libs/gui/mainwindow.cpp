@@ -478,14 +478,14 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow, std::share
 		return;
 	}
 	auto p = std::make_shared<iAProgress>();
-	using FutureWatcherType = QFutureWatcher<std::vector<std::shared_ptr<iADataSet>>>;
+	using FutureWatcherType = QFutureWatcher<std::shared_ptr<iADataSet>>;
 	auto futureWatcher = new FutureWatcherType(this);
 	QObject::connect(futureWatcher, &FutureWatcherType::finished, this,
 		[this, child, fileName]()
 		{
 			auto watcher = dynamic_cast<FutureWatcherType*>(sender());
-			auto d = watcher->result();
-			if (d.empty())
+			auto dataSet = watcher->result();
+			if (!dataSet)
 			{
 				LOG(lvlError, QString("No data loaded, nothing to finish up."));
 				return;
@@ -497,10 +497,7 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow, std::share
 				dynamic_cast<MdiChild*>(targetChild)->setWindowTitleAndFile(fileName);
 			}
 			addRecentFile(fileName);
-			for (auto dataSet : d)
-			{
-				targetChild->addDataSet(dataSet);
-			}
+			targetChild->addDataSet(dataSet);
 		});
 	QObject::connect(futureWatcher, &FutureWatcherType::finished, futureWatcher, &FutureWatcherType::deleteLater);
 	auto future = QtConcurrent::run( [p, fileName, io, paramValues]() { return io->load(fileName, paramValues, *p.get()); });

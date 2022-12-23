@@ -31,7 +31,6 @@
 #include <QString>
 
 #include <memory>
-#include <vector>
 
 
 //! Base class for dataset readers within open_iA
@@ -60,14 +59,14 @@ public:
 	iADataSetTypes supportedDataSetTypes(Operation op) const;
 
 	//! Load the (list of) dataset(s); store parameters in the resulting datasets
-	std::vector<std::shared_ptr<iADataSet>> load(QString const& fileName, QVariantMap const& paramValues, iAProgress const & progress = iAProgress());
+	std::shared_ptr<iADataSet> load(QString const& fileName, QVariantMap const& paramValues, iAProgress const & progress = iAProgress());
 
 	//! Whether this IO can be used for storing the given data set.
 	//! It could for example check whether the format supports the data types in the dataset
 	//! The default implementation here always returns true
 	virtual bool isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName) const;
 	//! Save the (list of) dataset(s); modify input datasets to reflect the new file name this data is now stored under
-	void save(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> & dataSets, QVariantMap const& paramValues, iAProgress const& progress = iAProgress());
+	void save(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress = iAProgress());
 	//! Check whether the given values contain all required parameters; set to default if not
 	bool checkParams(QVariantMap & paramValues, Operation op, QString const& fileName);
 
@@ -77,12 +76,12 @@ protected:
 
 	//! I/O for specific file formats should override this to load data from the file with given name. default implementation does nothing
 	//! (instead of being pure virtual, to allow for I/O's that only save a dataset but don't load one)
-	virtual std::vector<std::shared_ptr<iADataSet>> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress);
+	virtual std::shared_ptr<iADataSet> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress);
 	//! I/O for specific file formats should override this to save data to the file with given name. default implementation does nothing
 	//! (instead of being pure virtual, to allow for I/O's that only load a dataset but don't save one).
 	//! The file name and all Save parameter values (m_params[Save]) will be set in save()
 	//! Derived classes must add any potentially necessary metadata in the dataSets so that there is all information in there to load the dataSet again from the given fileName
-	virtual void saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>> & dataSets, QVariantMap const& paramValues, iAProgress const& progress);
+	virtual void saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress);
 
 private:
 	std::array<iADataSetTypes, 2> m_dataSetTypes;

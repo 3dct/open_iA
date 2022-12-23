@@ -97,7 +97,7 @@ iAImageStackFileIO::iAImageStackFileIO() : iAFileIO(iADataSetType::Volume, iADat
 	addAttr(m_params[Save], CompressionStr, iAValueType::Boolean, false);
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAImageStackFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
+std::shared_ptr<iADataSet> iAImageStackFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 //#if RAW_LOAD_METHOD == ITK
 //#else
@@ -153,7 +153,7 @@ std::vector<std::shared_ptr<iADataSet>> iAImageStackFileIO::loadData(QString con
 	auto img = vtkSmartPointer<vtkImageData>::New();
 	imgReader->SetOutput(img);
 	imgReader->Update();
-	return { std::make_shared<iAImageData>(img) };
+	return std::make_shared<iAImageData>(img);
 	// TODO: maybe compute range here as well?
 	//auto rng = img->GetScalarRange();   // see also comments above about performance measurements
 //#endif
@@ -235,15 +235,14 @@ void writeImageStack(itk::ImageBase<3>* img,
 	writer->Update();
 }
 
-void iAImageStackFileIO::saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
+void iAImageStackFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
-	assert(dataSets.size() == 1);
 
 	QFileInfo fi(fileName);
 	QString base = fi.absolutePath() + "/" + fi.baseName();
 	QString suffix = fi.completeSuffix();
-	auto imgData = dynamic_cast<iAImageData*>(dataSets[0].get());
+	auto imgData = dynamic_cast<iAImageData*>(dataSet.get());
 	auto itkImg = imgData->itkImage();
 	auto region = itkImg->GetLargestPossibleRegion();
 	auto start = region.GetIndex();
@@ -257,13 +256,13 @@ void iAImageStackFileIO::saveData(QString const& fileName, std::vector<std::shar
 		itkImg, base, suffix, numDigits, minIdx, maxIdx,
 		paramValues[iAFileIO::CompressionStr].toBool(), progress);
 
-	dataSets[0]->setMetaData(LoadTypeStr, ImageStackOption);
-	dataSets[0]->setMetaData(StepStr, 1);
-	dataSets[0]->setMetaData(SpacingStr, variantVector(imgData->vtkImage()->GetSpacing(), 3));
-	dataSets[0]->setMetaData(OriginStr, variantVector(imgData->vtkImage()->GetOrigin(), 3));
-	dataSets[0]->setMetaData(iAFileStackParams::FileNameBase, base);
-	dataSets[0]->setMetaData(iAFileStackParams::Extension, suffix);
-	dataSets[0]->setMetaData(iAFileStackParams::NumDigits, numDigits);
-	dataSets[0]->setMetaData(iAFileStackParams::MinimumIndex, minIdx);
-	dataSets[0]->setMetaData(iAFileStackParams::MaximumIndex, maxIdx);
+	dataSet->setMetaData(LoadTypeStr, ImageStackOption);
+	dataSet->setMetaData(StepStr, 1);
+	dataSet->setMetaData(SpacingStr, variantVector(imgData->vtkImage()->GetSpacing(), 3));
+	dataSet->setMetaData(OriginStr, variantVector(imgData->vtkImage()->GetOrigin(), 3));
+	dataSet->setMetaData(iAFileStackParams::FileNameBase, base);
+	dataSet->setMetaData(iAFileStackParams::Extension, suffix);
+	dataSet->setMetaData(iAFileStackParams::NumDigits, numDigits);
+	dataSet->setMetaData(iAFileStackParams::MinimumIndex, minIdx);
+	dataSet->setMetaData(iAFileStackParams::MaximumIndex, maxIdx);
 }

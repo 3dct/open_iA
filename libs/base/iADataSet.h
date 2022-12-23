@@ -56,6 +56,8 @@ public:
 
 	//! set an (optional) metadata key/value pair
 	void setMetaData(QString const & key, QVariant const& value);
+	//! set bulk metadata from another key/value map
+	void setMetaData(QVariantMap const& other);
 	//! retrieve (optional) additional parameters for the dataset
 	QVariant metaData(QString const& key) const;
 	//! true if the dataset has metadata with the given key set, false otherwise
@@ -126,6 +128,21 @@ private:
 	iAImageData& operator=(iAImageData const& other) = delete;
 	vtkSmartPointer<vtkImageData> m_img;
 	mutable iAConnector* m_con;
+};
+
+//! a collection of datasets
+class iAbase_API iADataCollection : public iADataSet
+{
+public:
+	iADataCollection(size_t capacity);
+	std::vector<std::shared_ptr<iADataSet>>& dataSets();
+	QString info() const override;
+
+private:
+	iADataCollection(iADataCollection const& other) = delete;
+	iADataCollection& operator=(iADataCollection const& other) = delete;
+	std::vector<std::shared_ptr<iADataSet>> m_dataSets;
+	
 };
 
 iAbase_API QString boundsStr(double const* bds);

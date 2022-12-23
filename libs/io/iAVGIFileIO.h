@@ -28,7 +28,7 @@ class iAVGIFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAVGIF
 {
 public:
 	iAVGIFileIO();
-	std::vector<std::shared_ptr<iADataSet>> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress) override;
+	std::shared_ptr<iADataSet> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };

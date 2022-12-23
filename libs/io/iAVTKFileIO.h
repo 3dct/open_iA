@@ -29,7 +29,7 @@ class iAVTKFileIO : public iAFileIO , private iAAutoRegistration<iAFileIO, iAVTK
 public:
 	static const QString Name;
 	iAVTKFileIO();
-	std::vector<std::shared_ptr<iADataSet>> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress) override;
+	std::shared_ptr<iADataSet> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };

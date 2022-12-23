@@ -30,7 +30,7 @@
 iAVTIFileIO::iAVTIFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volume)
 {}
 
-std::vector<std::shared_ptr<iADataSet>> iAVTIFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
+std::shared_ptr<iADataSet> iAVTIFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
 	vtkNew<vtkXMLImageDataReader> reader;
@@ -41,14 +41,17 @@ std::vector<std::shared_ptr<iADataSet>> iAVTIFileIO::loadData(QString const& fil
 	return { std::make_shared<iAImageData>(img) };
 }
 
-void  iAVTIFileIO::saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
+void  iAVTIFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
 	vtkNew<vtkXMLImageDataWriter> writer;
 	progress.observe(writer);
 	writer->SetFileName(getLocalEncodingFileName(fileName).c_str());
-	assert(dataSets.size() == 1);
-	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage();
+	if (!dynamic_cast<iAImageData*>(dataSet.get()))
+	{
+		throw std::runtime_error("VTI volume export: Given dataset is not an image!");
+	}
+	auto img = dynamic_cast<iAImageData*>(dataSet.get())->vtkImage();
 	writer->SetInputData(img);
 	writer->Write();
 }

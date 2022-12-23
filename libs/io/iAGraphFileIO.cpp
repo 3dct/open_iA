@@ -38,7 +38,7 @@ iAGraphFileIO::iAGraphFileIO() : iAFileIO(iADataSetType::Graph, iADataSetType::N
 	addAttr(m_params[Load], "Spacing", iAValueType::Vector3, variantVector<double>({ 1.0, 1.0, 1.0 }));
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAGraphFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
+std::shared_ptr<iADataSet> iAGraphFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	// maybe we could also use vtkPDBReader, but not sure that's the right "PDB" file type...
 	Q_UNUSED(progress);
@@ -162,7 +162,7 @@ std::vector<std::shared_ptr<iADataSet>> iAGraphFileIO::loadData(QString const& f
 	myPolyData->SetLines(lines);
 	myPolyData->GetPointData()->AddArray(colors);
 
-	return { std::make_shared<iAGraphData>(myPolyData) };
+	return std::make_shared<iAGraphData>(myPolyData);
 }
 
 QString iAGraphFileIO::name() const

@@ -38,10 +38,9 @@ const QString iAVTKFileIO::Name("VTK files");
 iAVTKFileIO::iAVTKFileIO() : iAFileIO(iADataSetType::All, iADataSetType::None)
 {}
 
-std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
+std::shared_ptr<iADataSet> iAVTKFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
-	std::vector<std::shared_ptr<iADataSet>> result;
 	auto reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
 	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	progress.observe(reader);
@@ -130,7 +129,7 @@ std::vector<std::shared_ptr<iADataSet>> iAVTKFileIO::loadData(QString const& fil
 			auto arrayPtr = arrayData->GetVoidPointer(0);
 			std::memcpy(img->GetScalarPointer(), arrayPtr, byteSize);
 
-			return { std::make_shared<iAImageData>(img) };
+			return std::make_shared<iAImageData>(img);
 		}
 		return {};
 	}

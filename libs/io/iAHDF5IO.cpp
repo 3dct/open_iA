@@ -116,7 +116,7 @@ iAHDF5IO::iAHDF5IO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volume)
 	addAttr(m_params[Load], SpacingStr, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::loadData(QString const& fileName, QVariantMap const& params, iAProgress const& progress)
+std::shared_ptr<iADataSet> iAHDF5IO::loadData(QString const& fileName, QVariantMap const& params, iAProgress const& progress)
 {
 	Q_UNUSED(progress);
 	hid_t file_id = H5Fopen(getLocalEncodingFileName(fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -202,14 +202,14 @@ std::vector<std::shared_ptr<iADataSet>> iAHDF5IO::loadData(QString const& fileNa
 	// but it causes the same errors as the code above; so we need to deep-copy:
 	auto img = vtkSmartPointer<vtkImageData>::New();
 	img->DeepCopy(imgImport->GetOutput());
-	return { std::make_shared<iAImageData>(img) };
+	return std::make_shared<iAImageData>(img);
 }
 
-void iAHDF5IO::saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets, QVariantMap const& paramValues, iAProgress const& progress)
+void iAHDF5IO::saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
 	// trust ITK default logic to find usable IO:
-	storeImage(dynamic_cast<iAImageData*>(dataSets[0].get())->itkImage(), fileName, false, &progress);
+	storeImage(dynamic_cast<iAImageData*>(dataSet.get())->itkImage(), fileName, false, &progress);
 }
 
 QString iAHDF5IO::name() const

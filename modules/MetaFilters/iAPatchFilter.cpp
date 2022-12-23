@@ -107,10 +107,18 @@ namespace
 		{
 			auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Load);
 			QVariantMap dummyParams;    // TODO: CHECK whether I/O requires other parameters and error in that case!
-			auto dataSets = io->load(fileName, dummyParams);
-			for (auto d : dataSets)
+			auto dataSet = io->load(fileName, dummyParams);
+			if (dataSet->type() == iADataSetType::Collection)
 			{
-				inputImages.push_back(d);
+				auto c = dynamic_cast<iADataCollection*>(dataSet.get());
+				for (auto d: c->dataSets())
+				{
+					inputImages.push_back(d);
+				}
+			}
+			else
+			{
+				inputImages.push_back(dataSet);
 			}
 		}
 		QStringList outputBuffer;

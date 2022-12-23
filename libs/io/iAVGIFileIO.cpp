@@ -38,7 +38,7 @@
 iAVGIFileIO::iAVGIFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None)
 {}
 
-std::vector<std::shared_ptr<iADataSet>> iAVGIFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
+std::shared_ptr<iADataSet> iAVGIFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
 	//static auto VGIFileFormat = QSettings::registerFormat("vgi", )

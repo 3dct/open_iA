@@ -45,7 +45,7 @@ iAOIFFileIO::iAOIFFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None
 	addAttr(m_params[Load], ChannelNumberStr, iAValueType::Discrete, 0, 0);
 }
 
-std::vector<std::shared_ptr<iADataSet>> iAOIFFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
+std::shared_ptr<iADataSet> iAOIFFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(progress);
 	//void readOIF(QString const& filename, iAConnector * con, int channel, std::vector<vtkSmartPointer<vtkImageData> > *volumes)
@@ -58,10 +58,10 @@ std::vector<std::shared_ptr<iADataSet>> iAOIFFileIO::loadData(QString const& fil
 	reader.Load();
 	if (paramValues[WhatToLoadStr].toString() == AllChannelsStr)
 	{
-		std::vector<std::shared_ptr<iADataSet>> result;
+		auto result = std::make_shared<iADataCollection>(reader.GetChanNum());
 		for (int i = 0; i < reader.GetChanNum(); ++i)
 		{
-			result.push_back(std::make_shared<iAImageData>(reader.GetResult(i)));
+			result->dataSets().push_back(std::make_shared<iAImageData>(reader.GetResult(i)));
 		}
 		return result;
 
@@ -72,7 +72,7 @@ std::vector<std::shared_ptr<iADataSet>> iAOIFFileIO::loadData(QString const& fil
 		auto channel = paramValues[ChannelNumberStr].toInt();
 		if (channel >= 0 && channel < reader.GetChanNum())
 		{
-			return { std::make_shared<iAImageData>(reader.GetResult(channel)) };
+			return std::make_shared<iAImageData>(reader.GetResult(channel));
 		}
 		else
 		{

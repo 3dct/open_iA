@@ -43,7 +43,7 @@ const QString iADCMFileIO::Name("DICOM files");
 iADCMFileIO::iADCMFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volume)
 {}
 
-std::vector<std::shared_ptr<iADataSet>> iADCMFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
+std::shared_ptr<iADataSet> iADCMFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
 	using PixelType = signed short; // check why signed short
@@ -63,7 +63,7 @@ std::vector<std::shared_ptr<iADataSet>> iADCMFileIO::loadData(QString const& fil
 	reader->Modified();
 	reader->Update();
 
-	return { std::make_shared<iAImageData>(reader->GetOutput()) };
+	return std::make_shared<iAImageData>(reader->GetOutput());
 }
 
 template <typename T>
@@ -114,10 +114,10 @@ void writeDCM_template(QString const& fileName, iAProgress const & p, iAITKIO::I
 	writer->Update();
 }
 
-void iADCMFileIO::saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets,
+void iADCMFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet,
 	QVariantMap const& paramValues, iAProgress const& progress)
 {
-	auto imgData = dynamic_cast<iAImageData*>(dataSets[0].get());
+	auto imgData = dynamic_cast<iAImageData*>(dataSet.get());
 	auto itkImgBase = imgData->itkImage();
 	auto scalarType = ::itkScalarType(itkImgBase);
 	ITK_TYPED_CALL(writeDCM_template, scalarType, fileName, progress, itkImgBase,
