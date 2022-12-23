@@ -234,6 +234,12 @@ void iADataSetRenderer::updateOutlineTransform()
 	m_outline->setOrientationAndPosition(pos, ori);
 }
 
+void iADataSetRenderer::setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3)
+{}
+
+void iADataSetRenderer::removeCuttingPlanes()
+{}
+
 //QWidget* iADataSetRenderer::controlWidget()
 //{
 //	return nullptr;

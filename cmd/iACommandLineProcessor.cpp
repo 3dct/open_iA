@@ -427,7 +427,7 @@ namespace
 				{
 					std::cout << "Reading input file '" << inputFiles[i].toStdString() << "'" << std::endl;
 				}
-				auto io = iAFileTypeRegistry::createIO(inputFiles[i]);
+				auto io = iAFileTypeRegistry::createIO(inputFiles[i], iAFileIO::Load);
 				if (!io)
 				{
 					std::cout << QString("Could not find a reader suitable for file name %1!")
@@ -489,7 +489,7 @@ namespace
 						<< std::endl;
 				}
 
-				auto io = iAFileTypeRegistry::createIO(outFileName);
+				auto io = iAFileTypeRegistry::createIO(outFileName, iAFileIO::Save);
 				if (!io)
 				{
 					std::cout << QString("Could not find a writer suitable for file name %1!")

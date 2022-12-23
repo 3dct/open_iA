@@ -95,7 +95,7 @@ std::vector<std::shared_ptr<iADataSet>> iAProjectFileIO::loadData(QString const&
 		QString dataSetFileName = MakeAbsolute(fi.absolutePath(), settings.value("File").toString());
 		try
 		{
-			auto io = iAFileTypeRegistry::createIO(dataSetFileName);
+			auto io = iAFileTypeRegistry::createIO(dataSetFileName, iAFileIO::Load);
 			if (io)
 			{
 				auto dataSetParamValues = mapFromQSettings(settings);

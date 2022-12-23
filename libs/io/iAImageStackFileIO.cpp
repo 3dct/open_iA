@@ -21,6 +21,7 @@
 #include "iAImageStackFileIO.h"
 
 #include "iAExceptionThrowingErrorObserver.h"
+#include "iAFileStackParams.h"
 #include "iAFileUtils.h"     // for getLocalEncodingFileName
 #include "iAProgress.h"
 #include "iAStringHelper.h"  // for greatestCommonPrefix
@@ -55,11 +56,6 @@ QString const iAImageStackFileIO::LoadTypeStr("Loading Type");
 QString const iAImageStackFileIO::SingleImageOption("Single Image");
 QString const iAImageStackFileIO::ImageStackOption("Image Stack");
 QString const iAImageStackFileIO::Name("Image (Stack)");
-QString const iAImageStackFileIO::FileNameBase("File name base");
-QString const iAImageStackFileIO::Extension("Extension");
-QString const iAImageStackFileIO::NumDigits("Number of digits in index");
-QString const iAImageStackFileIO::MinimumIndex("Minimum index");
-QString const iAImageStackFileIO::MaximumIndex("Maximum index");
 
 namespace
 {
@@ -86,11 +82,11 @@ iAImageStackFileIO::iAImageStackFileIO() : iAFileIO(iADataSetType::Volume, iADat
 	addAttr(m_params[Load], StepStr, iAValueType::Discrete, 1);
 	addAttr(m_params[Load], SpacingStr, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
 	addAttr(m_params[Load], OriginStr, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
-	addAttr(m_params[Load], FileNameBase, iAValueType::String, "");
-	addAttr(m_params[Load], Extension, iAValueType::String, "");
-	addAttr(m_params[Load], NumDigits, iAValueType::Discrete, 0);
-	addAttr(m_params[Load], MinimumIndex, iAValueType::Discrete, 0);
-	addAttr(m_params[Load], MaximumIndex, iAValueType::Discrete, 0);
+	addAttr(m_params[Load], iAFileStackParams::FileNameBase, iAValueType::String, "");
+	addAttr(m_params[Load], iAFileStackParams::Extension, iAValueType::String, "");
+	addAttr(m_params[Load], iAFileStackParams::NumDigits, iAValueType::Discrete, 0);
+	addAttr(m_params[Load], iAFileStackParams::MinimumIndex, iAValueType::Discrete, 0);
+	addAttr(m_params[Load], iAFileStackParams::MaximumIndex, iAValueType::Discrete, 0);
 	// no file name parameter in image stack:
 	auto it = std::find_if(m_params[Load].begin(), m_params[Load].end(), [](auto a) { return a->name() == iADataSet::FileNameKey; });
 	if (it != m_params[Load].end())
@@ -140,11 +136,11 @@ std::vector<std::shared_ptr<iADataSet>> iAImageStackFileIO::loadData(QString con
 	{
 		int indexRange[2];
 		int digits;
-		auto fileNameBase = paramValues[FileNameBase].toString();
-		auto suffix = paramValues[Extension].toString();
-		digits = paramValues[NumDigits].toInt();
-		indexRange[0] = paramValues[MinimumIndex].toInt();
-		indexRange[1] = paramValues[MaximumIndex].toInt();
+		auto fileNameBase = paramValues[iAFileStackParams::FileNameBase].toString();
+		auto suffix = paramValues[iAFileStackParams::Extension].toString();
+		digits = paramValues[iAFileStackParams::NumDigits].toInt();
+		indexRange[0] = paramValues[iAFileStackParams::MinimumIndex].toInt();
+		indexRange[1] = paramValues[iAFileStackParams::MaximumIndex].toInt();
 		int stepSize = paramValues[StepStr].toInt();
 		double spacing[3], origin[3];
 		setFromVectorVariant<double>(spacing, paramValues[SpacingStr]);
@@ -265,9 +261,9 @@ void iAImageStackFileIO::saveData(QString const& fileName, std::vector<std::shar
 	dataSets[0]->setMetaData(StepStr, 1);
 	dataSets[0]->setMetaData(SpacingStr, variantVector(imgData->vtkImage()->GetSpacing(), 3));
 	dataSets[0]->setMetaData(OriginStr, variantVector(imgData->vtkImage()->GetOrigin(), 3));
-	dataSets[0]->setMetaData(FileNameBase, base);
-	dataSets[0]->setMetaData(Extension, suffix);
-	dataSets[0]->setMetaData(NumDigits, numDigits);
-	dataSets[0]->setMetaData(MinimumIndex, minIdx);
-	dataSets[0]->setMetaData(MaximumIndex, maxIdx);
+	dataSets[0]->setMetaData(iAFileStackParams::FileNameBase, base);
+	dataSets[0]->setMetaData(iAFileStackParams::Extension, suffix);
+	dataSets[0]->setMetaData(iAFileStackParams::NumDigits, numDigits);
+	dataSets[0]->setMetaData(iAFileStackParams::MinimumIndex, minIdx);
+	dataSets[0]->setMetaData(iAFileStackParams::MaximumIndex, maxIdx);
 }

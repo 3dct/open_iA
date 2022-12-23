@@ -31,6 +31,7 @@ class iADataSet;
 class iADataForDisplay;
 class iAOutlineImpl;
 
+class vtkPlane;
 class vtkProp3D;
 class vtkRenderer;
 
@@ -91,10 +92,10 @@ public:
 	
 	// interactions:
 	virtual void setMovable(bool movable);
-
-	void setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3);
-	void removeCuttingPlanes();
 	*/
+
+	virtual void setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3);
+	virtual void removeCuttingPlanes();
 
 protected:
 	void addAttribute(QString const& name, iAValueType valueType, QVariant defaultValue = 0.0,

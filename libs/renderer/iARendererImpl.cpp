@@ -487,8 +487,8 @@ void iARendererImpl::setSceneBounds(iAAABB aabb)
 	const double IndicatorsSizeDivisor = 10; // maybe make configurable?
 	auto indicatorsSize = size / IndicatorsSizeDivisor;
 
-	m_axesActor->SetTotalLength(indicatorsSize[0], indicatorsSize[1], indicatorsSize[2]);
-	m_moveableAxesActor->SetTotalLength(indicatorsSize[0], indicatorsSize[1], indicatorsSize[2]);
+	m_axesActor->SetTotalLength(indicatorsSize[0], indicatorsSize[0], indicatorsSize[0]);
+	m_moveableAxesActor->SetTotalLength(indicatorsSize[0], indicatorsSize[0], indicatorsSize[0]);
 
 	m_profileLineStartPointSource->SetRadius(indicatorsSize[0]);
 	m_profileLineEndPointSource->SetRadius(indicatorsSize[0]);

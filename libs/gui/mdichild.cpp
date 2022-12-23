@@ -72,6 +72,10 @@
 #include <iAPlotTypes.h>
 #include <iAProfileWidget.h>
 
+// io
+#include <iAFileStackParams.h>
+#include <iAVolStackFileIO.h>
+
 // base
 #include <iAFileTypeRegistry.h>
 #include <iALog.h>
@@ -1171,6 +1175,49 @@ bool MdiChild::save()
 	}
 }
 
+void MdiChild::saveVolumeStack()
+{
+	QString fileName = QFileDialog::getSaveFileName(
+		QApplication::activeWindow(),
+		tr("Save File"),
+		QDir::currentPath(),
+		tr("Volstack files (*.volstack);;All files (*)")
+	);
+	if (fileName.isEmpty())
+	{
+		return;
+	}
+	auto allDataSets = dataSets();
+	auto imgDataSets = std::make_shared<std::vector<std::shared_ptr<iADataSet>>>();
+	std::copy_if(allDataSets.begin(), allDataSets.end(), std::back_inserter(*imgDataSets.get()),
+		[](std::shared_ptr<iADataSet> data) {
+			return dynamic_cast<iAImageData*>(data.get());
+		});
+
+	QFileInfo fi(fileName);
+	QVariantMap paramValues;
+	paramValues[iAFileStackParams::FileNameBase] = fi.completeBaseName();
+	paramValues[iAFileStackParams::Extension] = ".mhd";
+	paramValues[iAFileStackParams::NumDigits] = static_cast<int>(std::log10(static_cast<double>(imgDataSets->size())) + 1);
+	paramValues[iAFileStackParams::MinimumIndex] = 0;
+	//paramValues[iAFileStackParams::MaximumIndex] = imgDataSets->size() - 1;
+
+	auto io = std::make_shared<iAVolStackFileIO>();
+	iAFileParamDlg dlg;
+	if (!dlg.askForParameters(this, io->parameter(iAFileIO::Save), io->name(), paramValues, fileName))
+	{
+		return;
+	}
+	auto p = std::make_shared<iAProgress>();
+	auto fw = runAsync([=]()
+		{
+			io->save(fileName, *imgDataSets.get(), paramValues, *p.get());
+		},
+		[]() {},
+		this);
+	iAJobListView::get()->addJob(QString("Saving volume stack %1").arg(fileName), p.get(), fw);
+}
+
 void MdiChild::saveNew()
 {
 	auto dataSet = chooseDataSet();
@@ -1178,14 +1225,15 @@ void MdiChild::saveNew()
 	{
 		return;
 	}
+	QString path = m_path.isEmpty() ? m_mainWnd->path() : m_path;
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
-		m_path + "/" + safeFileName(dataSet->name()),
+		path + "/" + safeFileName(dataSet->name()),
 		iAFileTypeRegistry::registeredFileTypes(iAFileIO::Save, dataSet->type()));
 	if (fileName.isEmpty())
 	{
 		return;
 	}
-	auto io = iAFileTypeRegistry::createIO(fileName);
+	auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Save);
 	if (!io || !io->isDataSetSupported(dataSet, fileName))
 	{
 		LOG(lvlError, "The chosen file format does not support this kind of dataset!");
@@ -1550,8 +1598,12 @@ void MdiChild::set3DSlicePlanePos(int mode, int slice)
 	int sliceAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::Z);
 	double plane[3];
 	std::fill(plane, plane + 3, 0);
+	auto const spacing =
+		firstImageData() ?
+		firstImageData()->GetSpacing()
+		: m_imageData->GetSpacing();
 	// + 0.5 to place slice plane in the middle of the sliced voxel:
-	plane[sliceAxis] = (slice + 0.5) * m_imageData->GetSpacing()[sliceAxis];
+	plane[sliceAxis] = (slice + 0.5) * spacing[sliceAxis];
 	m_renderer->setSlicePlanePos(sliceAxis, plane[0], plane[1], plane[2]);
 }
 
@@ -1792,6 +1844,17 @@ void MdiChild::applyVolumeSettings(const bool loadSavedVolumeSettings)
 		m_dwSlicer[i]->showBorder(m_renderSettings.ShowSlicePlanes);
 	}
 	m_dwModalities->showSlicers(m_renderSettings.ShowSlicers && !m_snakeSlicer, m_renderer->plane1(), m_renderer->plane2(), m_renderer->plane3());
+	for (auto r : m_dataRenderers)
+	{
+		if (m_renderSettings.ShowSlicers && !m_snakeSlicer)
+		{
+			r.second->setCuttingPlanes(m_renderer->plane1(), m_renderer->plane2(), m_renderer->plane3());
+		}
+		else
+		{
+			r.second->removeCuttingPlanes();
+		}
+	}
 	m_dwModalities->changeRenderSettings(m_volumeSettings, loadSavedVolumeSettings);
 }
 
@@ -1977,6 +2040,10 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 		if (m_renderSettings.ShowSlicers)
 		{
 			m_dwModalities->showSlicers(false, nullptr, nullptr, nullptr);
+			for (auto r : m_dataRenderers)
+			{
+				r.second->removeCuttingPlanes();
+			}
 		}
 
 		// save the slicer transforms
@@ -2016,6 +2083,10 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 		if (m_renderSettings.ShowSlicers)
 		{
 			m_dwModalities->showSlicers(true, m_renderer->plane1(), m_renderer->plane2(), m_renderer->plane3());
+			for (auto r: m_dataRenderers)
+			{
+				r.second->setCuttingPlanes(m_renderer->plane1(), m_renderer->plane2(), m_renderer->plane3());
+			}
 		}
 	}
 }

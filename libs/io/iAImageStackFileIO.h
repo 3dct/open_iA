@@ -30,11 +30,6 @@ class iAio_API iAImageStackFileIO : public iAFileIO, private iAAutoRegistration<
 {
 public:
 	static QString const Name;
-	static QString const FileNameBase;
-	static QString const Extension;
-	static QString const NumDigits;
-	static QString const MinimumIndex;
-	static QString const MaximumIndex;
 	static QString const LoadTypeStr;
 	static QString const SingleImageOption;
 	static QString const ImageStackOption;
