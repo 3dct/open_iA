@@ -166,6 +166,7 @@ private slots:
 	void loadSettings();
 	void saveSettings();
 	void saveProject();
+	void saveVolumeStack();
 	void maxXY();
 	void maxXZ();
 	void maxYZ();

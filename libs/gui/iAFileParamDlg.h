@@ -39,6 +39,8 @@ class iAFileParamDlg
 public:
 	virtual ~iAFileParamDlg();
 	//! default implementation for asking file parameters
+	//! The value contained in the values argument will be used as default values for the parameter,
+	//! overwriting the default values provided in the parameters argument
 	virtual bool askForParameters(QWidget* parent, iAAttributes const& parameters, QString const& ioName, QVariantMap& values, QString const & fileName) const;
 
 	//! factory method, creating a parameter dialog for the given file I/O name:
@@ -50,7 +52,8 @@ public:
 	//! set up a few custom file parameter dialogs
 	static void setupDefaultFileParamDlgs();
 
-	//! convenience function for retrieving parameters for loading/saving a file
+	//! Convenience function for retrieving parameters for loading/saving a file.
+	//! Note: in contrast to askForParameters, result is an out parameter only; the values in there will not be used as default
 	static bool getParameters(QWidget* parent, iAFileIO const * io, iAFileIO::Operation op, QString const& fileName, QVariantMap& result);
 
 private:

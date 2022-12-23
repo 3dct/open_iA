@@ -20,20 +20,20 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAio_export.h"
+
 #include "iAAutoRegistration.h"
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
-class iADCMFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iADCMFileIO, iAFileTypeRegistry>
+class iAio_API iAVolStackFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAVolStackFileIO, iAFileTypeRegistry>
 {
 public:
 	static const QString Name;
-	iADCMFileIO();
-	std::vector<std::shared_ptr<iADataSet>> loadData(
-		QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress) override;
-	void saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets,
-		QVariantMap const& paramValues, iAProgress const& progress) override;
+	static const QString AdditionalInfo;
+	iAVolStackFileIO();
+	std::vector<std::shared_ptr<iADataSet>> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress) override;
+	void saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets, QVariantMap const& paramValues, iAProgress const& progress) override;
 	QString name() const override;
 	QStringList extensions() const override;
 };
-

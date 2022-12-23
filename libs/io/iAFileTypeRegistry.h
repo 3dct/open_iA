@@ -37,7 +37,7 @@ public:
 	static bool add(iAFileIOCreateFuncPtr c);
 
 	//! Create a file I/O for the given extension
-	static std::shared_ptr<iAFileIO> createIO(QString const & fileName);
+	static std::shared_ptr<iAFileIO> createIO(QString const & fileName, iAFileIO::Operation op);
 
 	//! Retrieve list of file types for file open/save dialog
 	static QString registeredFileTypes(iAFileIO::Operation op, iADataSetTypes allowedTypes = iADataSetType::All);

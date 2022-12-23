@@ -24,6 +24,8 @@
 
 #include <vtkSmartPointer.h>
 
+#include <memory>
+
 class QPushButton;
 
 class iAFoamCharacterizationTable;

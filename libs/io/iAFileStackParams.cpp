@@ -18,22 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAFileStackParams.h"
 
-#include "iAAutoRegistration.h"
-#include "iAFileIO.h"
-#include "iAFileTypeRegistry.h"
-
-class iADCMFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iADCMFileIO, iAFileTypeRegistry>
-{
-public:
-	static const QString Name;
-	iADCMFileIO();
-	std::vector<std::shared_ptr<iADataSet>> loadData(
-		QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress) override;
-	void saveData(QString const& fileName, std::vector<std::shared_ptr<iADataSet>>& dataSets,
-		QVariantMap const& paramValues, iAProgress const& progress) override;
-	QString name() const override;
-	QStringList extensions() const override;
-};
-
+QString const iAFileStackParams::FileNameBase("File name base");
+QString const iAFileStackParams::Extension("Extension");
+QString const iAFileStackParams::NumDigits("Number of digits in index");
+QString const iAFileStackParams::MinimumIndex("Minimum index");
+QString const iAFileStackParams::MaximumIndex("Maximum index");

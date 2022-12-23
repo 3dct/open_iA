@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1130</width>
+    <width>1128</width>
     <height>600</height>
    </rect>
   </property>
@@ -54,7 +54,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1130</width>
+     <width>1128</width>
      <height>22</height>
     </rect>
    </property>
@@ -74,16 +74,17 @@
     <addaction name="actionOpenInNewWindow"/>
     <addaction name="actionOpenNew"/>
     <addaction name="actionOpenRaw"/>
+    <addaction name="actionOpenVolumeStack"/>
     <addaction name="actionOpen"/>
     <addaction name="actionOpenImageStack"/>
-    <addaction name="actionOpenVolumeStack"/>
     <addaction name="actionOpenWithDataTypeConversion"/>
     <addaction name="actionOpenTLGICTData"/>
     <addaction name="separator"/>
-    <addaction name="actionSave_New"/>
+    <addaction name="actionSaveDataSet"/>
+    <addaction name="actionSaveVolumeStack"/>
+    <addaction name="actionSaveProject"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
-    <addaction name="actionSaveProject"/>
     <addaction name="separator"/>
     <addaction name="actionLoadSettings"/>
     <addaction name="actionSaveSettings"/>
@@ -407,7 +408,7 @@
      <normaloff>:/images/saveas.png</normaloff>:/images/saveas.png</iconset>
    </property>
    <property name="text">
-    <string>Save &amp;As...</string>
+    <string>OLD Save &amp;As...</string>
    </property>
    <property name="toolTip">
     <string>Save the document under a new name</string>
@@ -794,15 +795,6 @@
     <string>Switch to isometric view in 3D renderer</string>
    </property>
   </action>
-  <action name="actionSaveImageStack">
-   <property name="icon">
-    <iconset resource="../guibase/guibase.qrc">
-     <normaloff>:/images/savestack.png</normaloff>:/images/savestack.png</iconset>
-   </property>
-   <property name="text">
-    <string>Save Image Stack...</string>
-   </property>
-  </action>
   <action name="actionRawProfile">
    <property name="checkable">
     <bool>true</bool>
@@ -819,11 +811,19 @@
    </property>
   </action>
   <action name="actionOpenWithDataTypeConversion">
+   <property name="icon">
+    <iconset resource="../guibase/guibase.qrc">
+     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
+   </property>
    <property name="text">
     <string>Open with Datatype Conversion...</string>
    </property>
   </action>
   <action name="actionOpenVolumeStack">
+   <property name="icon">
+    <iconset resource="../guibase/guibase.qrc">
+     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
+   </property>
    <property name="text">
     <string>Open Volume Stack...</string>
    </property>
@@ -942,13 +942,24 @@
    </property>
   </action>
   <action name="actionOpenTLGICTData">
+   <property name="icon">
+    <iconset resource="../guibase/guibase.qrc">
+     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
+   </property>
    <property name="text">
     <string>Open TLGI-CT Data...</string>
    </property>
   </action>
   <action name="actionSaveProject">
+   <property name="icon">
+    <iconset resource="../guibase/guibase.qrc">
+     <normaloff>:/images/savestack.png</normaloff>:/images/savestack.png</iconset>
+   </property>
    <property name="text">
     <string>Save Project...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save the state of the current window in a project file</string>
    </property>
   </action>
   <action name="actionOpenRaw">
@@ -958,6 +969,9 @@
    </property>
    <property name="text">
     <string>Open Raw...</string>
+   </property>
+   <property name="toolTip">
+    <string>Open a file with any extension as raw data file</string>
    </property>
   </action>
   <action name="actionShowToolbar">
@@ -1165,7 +1179,10 @@
      <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
    </property>
    <property name="text">
-    <string>Open in existing window ...</string>
+    <string>Open dataset...</string>
+   </property>
+   <property name="toolTip">
+    <string>Open dataset into existing window</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -1179,17 +1196,40 @@
    <property name="text">
     <string>&amp;Open in new window...</string>
    </property>
+   <property name="toolTip">
+    <string>Open a dataset or project in a new window</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+Shift+O</string>
    </property>
   </action>
-  <action name="actionSave_New">
+  <action name="actionSaveDataSet">
    <property name="icon">
     <iconset resource="../guibase/guibase.qrc">
      <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Save (New)</string>
+    <string>&amp;Save Dataset...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save one dataset to disk</string>
+   </property>
+  </action>
+  <action name="actionSaveProject_New">
+   <property name="text">
+    <string>Save Project</string>
+   </property>
+  </action>
+  <action name="actionSaveVolumeStack">
+   <property name="icon">
+    <iconset resource="../guibase/guibase.qrc">
+     <normaloff>:/images/savestack.png</normaloff>:/images/savestack.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save Volume Stack...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save the currently loaded volume datasets as a stack of sequentially numbered files</string>
    </property>
   </action>
  </widget>

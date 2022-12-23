@@ -114,6 +114,7 @@ public:
 	void saveNew();
 	bool saveAs();
 	bool saveFile(const QString &f, int modalityNr, int componentNr);
+	void saveVolumeStack();
 	void updateLayout() override;
 
 	//! waits for the IO thread to finish in case any I/O operation is running; otherwise it will immediately exit

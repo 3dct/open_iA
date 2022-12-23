@@ -28,6 +28,9 @@
 #include "iAParameterDlg.h"
 #include "iARawFileParamDlg.h"
 
+// io
+#include <iAFileStackParams.h>
+
 // base
 #include "defines.h"
 #include "iAConnector.h"
@@ -267,19 +270,13 @@ iAIO::~iAIO()
 
 namespace
 {
-	QString const FileNameBase("File name base");
-	QString const Extension   ("Extension");
-	QString const NumDigits   ("Number of digits in index");
-	QString const MinimumIndex("Minimum index");
-	QString const MaximumIndex("Maximum index");
-
 	void addSeriesParameters(iAAttributes& params, QString const& base, QString const& ext, int digits, int const * index)
 	{
-		addAttr(params, FileNameBase, iAValueType::String, base);
-		addAttr(params, Extension, iAValueType::String, ext);
-		addAttr(params, NumDigits, iAValueType::Discrete, digits);
-		addAttr(params, MinimumIndex, iAValueType::Discrete, index[0]);
-		addAttr(params, MaximumIndex, iAValueType::Discrete, index[1]);
+		addAttr(params, iAFileStackParams::FileNameBase, iAValueType::String, base);
+		addAttr(params, iAFileStackParams::Extension, iAValueType::String, ext);
+		addAttr(params, iAFileStackParams::NumDigits, iAValueType::Discrete, digits);
+		addAttr(params, iAFileStackParams::MinimumIndex, iAValueType::Discrete, index[0]);
+		addAttr(params, iAFileStackParams::MaximumIndex, iAValueType::Discrete, index[1]);
 	}
 }
 
@@ -298,8 +295,6 @@ void iAIO::run()
 		{
 			case MHD_WRITER:
 				writeMetaImage(getVtkImageData(), m_fileName); break;
-			case VOLUME_STACK_VOLSTACK_WRITER:
-				writeVolumeStack(); break;
 			case STL_WRITER:
 				writeSTL(); break;
 			case TIF_STACK_WRITER:
@@ -454,8 +449,6 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel, bool addJob)
 			return setupVolumeStackMHDReader(f);
 		case VOLUME_STACK_VOLSTACK_READER:
 			return setupVolumeStackVolstackReader(f);
-		case VOLUME_STACK_VOLSTACK_WRITER:
-			return setupVolumeStackVolStackWriter(f);
 
 		case PROJECT_READER:
 #if __cplusplus >= 201703L
@@ -748,34 +741,6 @@ void iAIO::readVolumeStack()
 	storeIOSettings();
 }
 
-void iAIO::writeVolumeStack()
-{
-	// write .volstack file:
-	QFile volstackFile(m_fileName);
-	QFileInfo fi(m_fileName);
-	size_t numOfVolumes = m_volumes->size();
-	int numOfDigits = static_cast<int>(std::log10(static_cast<double>(m_volumes->size())) + 1);
-	if(volstackFile.open(QIODevice::WriteOnly | QIODevice::Text))
-	{
-		QTextStream out(&volstackFile);
-		out << "file_names_base: " << fi.completeBaseName()	<< "\n"
-			<< "extension: .mhd"							<< "\n"
-			<< "number_of_digits_in_index: " << numOfDigits	<< "\n"
-			<< "minimum_index: 0"							<< "\n"
-			<< "maximum_index: " << numOfVolumes-1			<< "\n";
-		if (!m_additionalInfo.isEmpty())
-		{
-			out << m_additionalInfo << "\n";
-		}
-	}
-	// write mhd images:
-	for (int m=0; m <= m_fileNameArray->GetMaxId(); m++)
-	{
-		writeMetaImage(m_volumes->at(m).GetPointer(), m_fileNameArray->GetValue(m).c_str());
-		ProgressObserver()->emitProgress(m * 100.0 / m_fileNameArray->GetMaxId());
-	}
-}
-
 void iAIO::readRawImage(bool reportProgress)
 {
 	iAProgress dummyProgress;
@@ -881,11 +846,11 @@ bool iAIO::setupVolumeStackMHDReader(QString const & f)
 		return false;
 	}
 	auto values = dlg.parameterValues();
-	m_fileNamesBase = values[FileNameBase].toString();
-	m_extension = values[Extension].toString();
-	digitsInIndex = values[NumDigits].toInt();
-	indexRange[0] = values[MinimumIndex].toInt();
-	indexRange[1] = values[MaximumIndex].toInt();
+	m_fileNamesBase = values[iAFileStackParams::FileNameBase].toString();
+	m_extension = values[iAFileStackParams::Extension].toString();
+	digitsInIndex = values[iAFileStackParams::NumDigits].toInt();
+	indexRange[0] = values[iAFileStackParams::MinimumIndex].toInt();
+	indexRange[1] = values[iAFileStackParams::MaximumIndex].toInt();
 	fillFileNameArray(indexRange, digitsInIndex);
 	return true;
 }
@@ -963,23 +928,6 @@ bool iAIO::setupVolumeStackVolstackReader( QString const & f )
 	return true;
 }
 
-bool iAIO::setupVolumeStackVolStackWriter(QString const & f)
-{
-	int numOfDigits = static_cast<int>(std::floor(std::log10(static_cast<double>(m_volumes->size()))) + 1);
-	int indexRange[2];
-	indexRange[0] = 0;
-	indexRange[1] = m_volumes->size()-1;
-	m_fileName = f;
-	if (!m_fileName.endsWith(VolstackExtension))
-	{
-		m_fileName.append(VolstackExtension);
-	}												// remove .volstack
-	m_fileNamesBase = m_fileName.left(m_fileName.length()-VolstackExtension.length());
-	m_extension = ".mhd";
-	fillFileNameArray(indexRange, numOfDigits);
-	return true;
-}
-
 void iAIO::fillFileNameArray(int * indexRange, int digitsInIndex, int stepSize)
 {
 	for (int i=indexRange[0]; i<=indexRange[1]; i += stepSize)
@@ -1005,11 +953,11 @@ bool iAIO::setupVolumeStackReader(QString const & f)
 	}
 	auto values = dlg.parameterValues();
 	m_rawFileParams = rawParamsFromMap(dlg.parameterValues());
-	m_fileNamesBase = values[FileNameBase].toString();
-	m_extension = values[Extension].toString();
-	digitsInIndex = values[NumDigits].toInt();
-	indexRange[0] = values[MinimumIndex].toInt();
-	indexRange[1] = values[MaximumIndex].toInt();
+	m_fileNamesBase = values[iAFileStackParams::FileNameBase].toString();
+	m_extension = values[iAFileStackParams::Extension].toString();
+	digitsInIndex = values[iAFileStackParams::NumDigits].toInt();
+	indexRange[0] = values[iAFileStackParams::MinimumIndex].toInt();
+	indexRange[1] = values[iAFileStackParams::MaximumIndex].toInt();
 	fillFileNameArray(indexRange, digitsInIndex);
 	return true;
 }
@@ -1336,11 +1284,11 @@ bool iAIO::setupStackReader( QString const & f )
 		return false;
 	}
 	auto values = dlg.parameterValues();
-	m_fileNamesBase = values[FileNameBase].toString();
-	m_extension = values[Extension].toString();
-	digits = values[NumDigits].toInt();
-	indexRange[0] = values[MinimumIndex].toInt();
-	indexRange[1] = values[MaximumIndex].toInt();
+	m_fileNamesBase = values[iAFileStackParams::FileNameBase].toString();
+	m_extension = values[iAFileStackParams::Extension].toString();
+	digits = values[iAFileStackParams::NumDigits].toInt();
+	indexRange[0] = values[iAFileStackParams::MinimumIndex].toInt();
+	indexRange[1] = values[iAFileStackParams::MaximumIndex].toInt();
 	int stepSize = values["Step"].toInt();
 	m_rawFileParams.m_spacing[0] = values["Spacing X"].toDouble();
 	m_rawFileParams.m_spacing[1] = values["Spacing Y"].toDouble();

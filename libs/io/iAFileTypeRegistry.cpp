@@ -35,7 +35,7 @@ namespace
 	}
 }
 
-std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileName)
+std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileName, iAFileIO::Operation op)
 {
 	QFileInfo fi(fileName);
 	// special handling for directory ? TLGICT-loader... -> fi.isDir();
@@ -46,7 +46,7 @@ std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileName)
 		auto io = c();
 		for (auto ioExt : io->extensions())
 		{
-			if (fileExt == ioExt)
+			if (fileExt == ioExt && io->supportedDataSetTypes(op) != iADataSetType::None)
 			{
 				return io;
 			}

@@ -105,7 +105,7 @@ namespace
 		QStringList additionalInput = splitPossiblyQuotedString(parameters["Additional input"].toString());
 		for (QString fileName : additionalInput)
 		{
-			auto io = iAFileTypeRegistry::createIO(fileName);
+			auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Load);
 			QVariantMap dummyParams;    // TODO: CHECK whether I/O requires other parameters and error in that case!
 			auto dataSets = io->load(fileName, dummyParams);
 			for (auto d : dataSets)
