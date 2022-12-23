@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "MetaFilters_export.h"
+
 #include <iAAttributes.h>
 
 #include <QSharedPointer>
@@ -29,10 +31,16 @@ typedef QVector<QVariant> iAParameterSet;
 typedef QVector<iAParameterSet> iAParameterSets;
 typedef QSharedPointer<iAParameterSets> iAParameterSetsPointer;
 
-class iASamplingMethod
+class MetaFilters_API iASamplingMethod
 {
 public:
 	virtual ~iASamplingMethod();
 	virtual QString name() const =0;
-	virtual iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameters, int sampleCount) =0;
+	virtual bool supportsSamplesPerParameter() const;
+	virtual void setSamplesPerParameter(std::vector<int> samplesPerParameter);
+	virtual int sampleCount() const;
+	virtual void setSampleCount(int sampleCount, QSharedPointer<iAAttributes> parameters);
+	virtual iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameters) =0;
+private:
+	int m_sampleCount;
 };

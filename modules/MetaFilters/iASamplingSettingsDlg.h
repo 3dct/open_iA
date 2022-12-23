@@ -58,6 +58,9 @@ public:
 	QSharedPointer<iAAttributes> parameterRanges();
 	QSharedPointer<iAAttributes> parameterSpecs();
 	void getValues(QVariantMap& values) const;
+	std::vector<int> numOfSamplesPerParameter() const;
+public slots:
+	void updateNumSamples();
 private slots:
 	void chooseOutputFolder();
 	void chooseParameterDescriptor();
@@ -70,6 +73,7 @@ private slots:
 	void selectFilter();
 	void runClicked();
 	void outputBaseChanged();
+	void numberOfSamplesChanged();
 	void samplingMethodChanged();
 	void showAlgorithmInfo();
 	void showSamplingInfo();
@@ -79,6 +83,7 @@ private:
 	void setParameterValues(QVariantMap const& values);
 	void setParametersFromFilter(QString const& filterName);
 	void setParametersFromFile(QString const& fileName);
+	void updateActualNumSamples();
 
 	int m_startLine;
 	int m_inputImageCount;

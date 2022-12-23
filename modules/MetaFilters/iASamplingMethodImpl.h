@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "MetaFilters_export.h"
-
 #include "iASamplingMethod.h"
 
 //! Generate a given number of parameter sets, randomly distributed (uniform distribution).
@@ -29,7 +27,7 @@ class iARandomSamplingMethod : public iASamplingMethod
 {
 public:
 	QString name() const override;
-	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
+	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter) override;
 };
 
 //! Uniform / Cartesian grid sampling.
@@ -40,7 +38,12 @@ class iACartesianGridSamplingMethod : public iASamplingMethod
 {
 public:
 	QString name() const override;
-	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
+	void setSampleCount(int sampleCount, QSharedPointer<iAAttributes> params) override;
+	bool supportsSamplesPerParameter() const override;
+	void setSamplesPerParameter(std::vector<int> samplesPerParameter) override;
+	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter) override;
+private:
+	std::vector<int> m_samplesPerParameter;
 };
 
 //! Use latin hypercube sampling to generate the parameter sets.
@@ -49,7 +52,7 @@ class iALatinHypercubeSamplingMethod : public iASamplingMethod
 {
 public:
 	QString name() const override;
-	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
+	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter) override;
 };
 
 //! Generates parameters around middle of given range for each parameter - "One at a time" sensitivity sampling.
@@ -59,7 +62,7 @@ class iALocalSensitivitySamplingMethod : public iASamplingMethod
 {
 public:
 	QString name() const override;
-	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
+	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter) override;
 };
 
 //! Generates a global sensitivity sampling by generating additional parameter sets
@@ -69,7 +72,7 @@ class MetaFilters_API iAGlobalSensitivitySamplingMethod : public iASamplingMetho
 public:
 	iAGlobalSensitivitySamplingMethod(QSharedPointer<iASamplingMethod> otherGenerator, double delta);
 	QString name() const override;
-	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
+	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter) override;
 private:
 	QSharedPointer<iASamplingMethod> m_baseGenerator;
 	double m_delta;
@@ -81,7 +84,7 @@ public:
 	iAGlobalSensitivitySmallStarSamplingMethod(QSharedPointer<iASamplingMethod> otherGenerator,
 		double delta, int numSteps);
 	QString name() const override;
-	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
+	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter) override;
 
 private:
 	QSharedPointer<iASamplingMethod> m_baseGenerator;
@@ -94,8 +97,8 @@ class MetaFilters_API iARerunSamplingMethod : public iASamplingMethod
 public:
 	iARerunSamplingMethod(QString const& fileName);
 	iARerunSamplingMethod(iAParameterSetsPointer parameterSets, QString const& name);
-	virtual QString name() const;
-	virtual iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount);
+	QString name() const override;
+	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter) override;
 private:
 	QString m_name;
 	iAParameterSetsPointer m_parameterSets;
