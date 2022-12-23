@@ -201,6 +201,7 @@ void dlg_GEMSeControl::startSampling()
 		{
 			return;
 		}
+		samplingMethod->setSampleCount(m_samplingSettings[spnNumberOfSamples].toInt(), m_dlgSamplingSettings->parameterRanges());
 		iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 		m_sampler = QSharedPointer<iAImageSampler>::create(
 			mdiChild->dataSets(),

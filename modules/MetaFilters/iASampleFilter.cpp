@@ -78,6 +78,14 @@ void iASampleFilter::performWork(QVariantMap const& parameters)
 	{
 		return;
 	}
+	if (samplingMethod->supportsSamplesPerParameter())
+	{
+		samplingMethod->setSamplesPerParameter(m_numOfSamplesPerParameter);
+	}
+	else
+	{
+		samplingMethod->setSampleCount(parameters[spnNumberOfSamples].toInt(), m_parameterRanges);
+	}
 	m_sampler = new iAImageSampler(
 		m_input,
 		parameters,
@@ -117,7 +125,8 @@ bool iASampleFilter::checkParameters(QVariantMap const& paramValues)
 
 void iASampleFilter::setParameters(std::vector<std::shared_ptr<iADataSet>> input, QSharedPointer<iAAttributes> parameterRanges,
 	QSharedPointer<iAAttributes> parameterSpecs,
-	QString const& parameterRangeFile, QString const& parameterSetFile, QString const& derivedOutFile, int samplingID)
+	QString const& parameterRangeFile, QString const& parameterSetFile, QString const& derivedOutFile, int samplingID,
+	std::vector<int> numOfSamplesPerParameter)
 {
 	// TODO: get parameter ranges and filenames in cmd/gui-agnostical way?
 	m_input = input;
@@ -127,6 +136,7 @@ void iASampleFilter::setParameters(std::vector<std::shared_ptr<iADataSet>> input
 	m_parameterSetFile = parameterSetFile;
 	m_derivedOutFile = derivedOutFile;
 	m_samplingID = samplingID;
+	m_numOfSamplesPerParameter = numOfSamplesPerParameter;
 }
 
 void iASampleFilter::abort()
@@ -172,6 +182,6 @@ bool iASampleFilterRunnerGUI::askForParameters(std::shared_ptr<iAFilter> filter,
 
 	int SamplingID = 0;
 	sampleFilter->setParameters(sourceMdi->dataSets(), dlg.parameterRanges(), dlg.parameterSpecs(),
-		parameterRangeFile, parameterSetFile, derivedOutputFile, SamplingID);
+		parameterRangeFile, parameterSetFile, derivedOutputFile, SamplingID, dlg.numOfSamplesPerParameter());
 	return true;
 }
