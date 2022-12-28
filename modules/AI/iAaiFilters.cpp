@@ -38,11 +38,7 @@
 
 #include "onnxruntime_cxx_api.h"
 
-#ifdef ONNX_CUDA
-	#ifndef ONNX_CUDA_NEW
-		#include "cuda_provider_factory.h"
-	#endif
-#else
+#ifndef ONNX_CUDA
 	#include "dml_provider_factory.h"
 #endif
 
@@ -212,12 +208,8 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 	if (parameters["use GPU"].toBool())
 	{
 #ifdef ONNX_CUDA
-		#ifdef ONNX_CUDA_NEW
-			OrtCUDAProviderOptions options;
-			session_options.AppendExecutionProvider_CUDA(options);
-		#else
-			Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_CUDA(session_options, 0));
-		#endif
+		OrtCUDAProviderOptions options;
+		session_options.AppendExecutionProvider_CUDA(options);
 #else
 		//session_options.DisableMemPattern();
 		//session_options.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
@@ -253,6 +245,9 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 
 	// print number of model input nodes
 	size_t num_input_nodes = session.GetInputCount();
+#ifdef ONNX_NEWNAMEFUNCTIONS
+	std::vector<Ort::AllocatedStringPtr> input_node_names_smartptrs;
+#endif
 	std::vector<const char*> input_node_names(num_input_nodes);
 	std::vector<int64_t> input_node_dims;  // simplify... this model has only 1 input node {1, 3, 224, 224}.
 										   // Otherwise need vector<vector<>>
@@ -263,7 +258,12 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 	for (size_t i = 0; i < num_input_nodes; i++)
 	{
 		// print input node names
+#ifdef ONNX_NEWNAMEFUNCTIONS
+		input_node_names_smartptrs.emplace_back(session.GetInputNameAllocated(i, allocator));
+		auto input_name = input_node_names_smartptrs[i].get();
+#else
 		char* input_name = session.GetInputName(i, allocator);
+#endif
 		LOG(lvlInfo, QString("Input %1 : name=%2").arg(i).arg(input_name));
 		input_node_names[i] = input_name;
 
@@ -289,6 +289,9 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 
 	// print number of model input nodes
 	size_t num_output_nodes = session.GetOutputCount();
+#if ONNX_NEWNAMEFUNCTIONS
+	std::vector<Ort::AllocatedStringPtr> output_node_names_smartptrs;
+#endif
 	std::vector<const char*> output_node_names(num_output_nodes);
 	std::vector<int64_t> output_node_dims;  // simplify... this model has only 1 input node {1, 3, 224, 224}.
 										   // Otherwise need vector<vector<>>
@@ -299,7 +302,12 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 	for (size_t i = 0; i < num_output_nodes; i++)
 	{
 		// print input node names
+#if ONNX_NEWNAMEFUNCTIONS
+		output_node_names_smartptrs.emplace_back(session.GetOutputNameAllocated(i, allocator));
+		auto output_name = output_node_names_smartptrs[i].get();
+#else
 		char* output_name = session.GetOutputName(i, allocator);
+#endif
 		LOG(lvlInfo, QString("Output %1 : name=%2").arg(i).arg(output_name));
 		output_node_names[i] = output_name;
 
