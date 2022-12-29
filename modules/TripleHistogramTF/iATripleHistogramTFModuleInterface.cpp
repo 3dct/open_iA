@@ -20,10 +20,11 @@
 * ************************************************************************************/
 
 #include "iATripleHistogramTFModuleInterface.h"
-#include "iATripleHistogramTFAttachment.h"
+#include "iATripleHistogramTFTool.h"
 
 #include <iALog.h>
 #include <iAMainWindow.h>
+#include <iAMdiChild.h>    // for addToolToActiveMdiChild
 
 #include <QAction>
 #include <QMenu>
@@ -48,41 +49,35 @@ void iATripleHistogramTFModuleInterface::Initialize()
 	submenu->addAction(action_3mod);
 }
 
-iAModuleAttachmentToChild* iATripleHistogramTFModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child)
-{
-	return iATripleHistogramTFAttachment::create(mainWnd, child);
-}
-
-iATripleHistogramTFAttachment* iATripleHistogramTFModuleInterface::getOrCreateAttachment()
+iATripleHistogramTFTool* iATripleHistogramTFModuleInterface::getOrCreateTool()
 {
 	auto child = m_mainWnd->activeMdiChild();
-	auto attach = attachment<iATripleHistogramTFAttachment>(child);
-	if (!attach)
+	auto tool = getTool<iATripleHistogramTFTool>(child);
+	if (!tool)
 	{
-		AttachToMdiChild(child);
-		attach = attachment<iATripleHistogramTFAttachment>(child);
-		if (!attach)
+		tool = addToolToActiveMdiChild<iATripleHistogramTFTool>("TripleHistogramTF", m_mainWnd);
+		if (!tool)
 		{
-			LOG(lvlError, "Attaching failed!");
+			LOG(lvlError, "Creating tool failed!");
 		}
 	}
-	return attach;
+	return tool;
 }
 
 void iATripleHistogramTFModuleInterface::menuItemSelected_2mod()
 {
-	auto attach = getOrCreateAttachment();
-	if (attach)
+	auto tool = getOrCreateTool();
+	if (tool)
 	{
-		attach->start2TF();
+		tool->start2TF();
 	}
 }
 
 void iATripleHistogramTFModuleInterface::menuItemSelected_3mod()
 {
-	auto attach = getOrCreateAttachment();
-	if (attach)
+	auto tool = getOrCreateTool();
+	if (tool)
 	{
-		attach->start3TF();
+		tool->start3TF();
 	}
 }

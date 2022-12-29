@@ -48,25 +48,19 @@ void iANModalTFModuleInterface::Initialize()
 	addToMenuSorted(submenu, actionModalitySPLOM);
 }
 
-iAModuleAttachmentToChild* iANModalTFModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* childData)
-{
-	return iANModalAttachment::create(mainWnd, childData);
-}
-
 void iANModalTFModuleInterface::nModalTF()
 {
-	auto attach = attachment<iANModalAttachment>(m_mainWnd->activeMdiChild());
-	if (!attach)
+	auto tool = getTool<iANModalTFTool>(m_mainWnd->activeMdiChild());
+	if (!tool)
 	{
-		AttachToMdiChild(m_mainWnd->activeMdiChild());
-		attach = attachment<iANModalAttachment>(m_mainWnd->activeMdiChild());
-		if (!attach)
+		tool = addToolToActiveMdiChild<iANModalTFTool>("NModalTF", m_mainWnd);
+		if (!tool)
 		{
-			LOG(lvlError, "Attaching failed!");
+			LOG(lvlError, "Creating tool failed!");
 			return;
 		}
 	}
-	attach->start();
+	tool->start();
 }
 
 void iANModalTFModuleInterface::modalitySPLOM()

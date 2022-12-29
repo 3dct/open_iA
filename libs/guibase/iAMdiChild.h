@@ -195,6 +195,8 @@ public:
 	// Tools:
 	//! add a tool to this child (a collection of UI elements with their own behavior and state)
 	virtual void addTool(QString const& key, std::shared_ptr<iATool> tool) = 0;
+	//! removes the given tool from this child
+	virtual void removeTool(QString const& key) = 0;
 	//! retrieve all tools attached to this child
 	virtual QMap<QString, std::shared_ptr<iATool>> const& tools() = 0;
 	//! save currently loaded files / tools in given project file
@@ -370,15 +372,17 @@ public slots:
 
 //! helper function to add a tool to the current mdi child (if it exists)
 template <typename T>
-void addToolToActiveMdiChild(QString const & name, iAMainWindow* mainWnd)
+T* addToolToActiveMdiChild(QString const & name, iAMainWindow* mainWnd)
 {
 	auto child = mainWnd->activeMdiChild();
 	if (!child)
 	{
 		LOG(lvlWarn, "addTool: child not set!");
-		return;
+		return nullptr;
 	}
-	child->addTool(name, std::make_shared<T>(mainWnd, child));
+	auto t = std::make_shared<T>(mainWnd, child);
+	child->addTool(name, t);
+	return t.get();
 }
 
 //! return the first tool that matches the given type for the current child

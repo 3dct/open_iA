@@ -18,43 +18,34 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iATripleHistogramTFAttachment.h"
+#pragma once
 
-#include "tf_2mod/dlg_tf_2mod.h"
-#include "tf_3mod/dlg_tf_3mod.h"
+#include <iATool.h>
 
-#include <iAMdiChild.h>
+#include <QObject>
 
-iATripleHistogramTFAttachment::iATripleHistogramTFAttachment(iAMainWindow * mainWnd, iAMdiChild* child) :
-	iAModuleAttachmentToChild(mainWnd, child),
-	m_tf_2mod(nullptr),
-	m_tf_3mod(nullptr)
-{}
+class dlg_trackingGraph;
+class dlg_dataView4DCT;
+class dlg_trackingGraph;
+class dlg_eventExplorer;
+class iAVolumeStack;
 
-iATripleHistogramTFAttachment* iATripleHistogramTFAttachment::create(iAMainWindow * mainWnd, iAMdiChild* child)
+class iAFuzzyFeatureTrackingTool: public QObject, public iATool
 {
-	auto newAttachment = new iATripleHistogramTFAttachment(mainWnd, child);
-	return newAttachment;
-}
+public:
+	iAFuzzyFeatureTrackingTool(iAMainWindow* mainWnd, iAMdiChild* child);
+	~iAFuzzyFeatureTrackingTool();
 
-void iATripleHistogramTFAttachment::start2TF()
-{
-	if (!m_tf_2mod)
-	{
-		m_tf_2mod = new dlg_tf_2mod(m_child);
-		m_child->tabifyDockWidget(m_child->renderDockWidget(), m_tf_2mod);
-	}
-	m_tf_2mod->show();
-	m_tf_2mod->raise();
-}
+private slots:
+	void updateViews();
 
-void iATripleHistogramTFAttachment::start3TF()
-{
-	if (!m_tf_3mod)
-	{
-		m_tf_3mod = new dlg_tf_3mod(m_child);
-		m_child->tabifyDockWidget(m_child->renderDockWidget(), m_tf_3mod);
-	}
-	m_tf_3mod->show();
-	m_tf_3mod->raise();
-}
+protected:
+	bool create4DCTDataViewWidget();
+	bool create4DCTTrackingGraphWidget();
+	bool create4DCTEventExplorerWidget();
+
+	dlg_dataView4DCT * m_dlgDataView4DCT;
+	dlg_trackingGraph * m_dlgTrackingGraph;
+	dlg_eventExplorer * m_dlgEventExplorer;
+	iAVolumeStack * m_volumeStack;
+};

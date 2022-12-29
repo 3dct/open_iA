@@ -20,46 +20,18 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iABoneThickness.h"
+#include "iATool.h"
 
-#include <iAModuleAttachmentToChild.h>
+class dlg_tf_2mod;
+class dlg_tf_3mod;
 
-#include <QDoubleSpinBox>
-#include <QScopedPointer>
-#include <QLabel>
-
-class iABoneThicknessChartBar;
-class iABoneThicknessTable;
-
-class iABoneThicknessAttachment : public iAModuleAttachmentToChild
+class iATripleHistogramTFTool : public iATool
 {
-	Q_OBJECT
-
-	public:
-		iABoneThicknessAttachment(iAMainWindow* mainWnd, iAMdiChild * child);
-		void setStatistics();
-
-	private:
-		iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
-		iABoneThicknessChartBar* m_pBoneThicknessChartBar = nullptr;
-
-		QDoubleSpinBox* m_pDoubleSpinBoxSphereRadius = nullptr;
-		QDoubleSpinBox* m_pDoubleSpinBoxThicknessMaximum = nullptr;
-		QDoubleSpinBox* m_pDoubleSpinBoxSurfaceDistanceMaximum = nullptr;
-
-		QLabel* pLabelMeanTh = nullptr;
-		QLabel* pLabelStdTh = nullptr;
-		QLabel* pLabelMeanSDi = nullptr;
-		QLabel* pLabelStdSDi = nullptr;
-
-		QScopedPointer<iABoneThickness> m_pBoneThickness;
-
-	private slots:
-	    void slotDoubleSpinBoxSphereRadius();
-		void slotDoubleSpinBoxThicknessMaximum();
-		void slotDoubleSpinBoxSurfaceDistanceMaximum();
-		void slotPushButtonOpen();
-		void slotPushButtonSave();
-		void slotCheckBoxShowThickness(const bool& _bChecked);
-		void slotCheckBoxTransparency(const bool& _bChecked);
+public:
+	iATripleHistogramTFTool(iAMainWindow* mainWnd, iAMdiChild* child);
+	void start2TF();
+	void start3TF();
+private:
+	dlg_tf_2mod *m_tf_2mod;
+	dlg_tf_3mod *m_tf_3mod;
 };

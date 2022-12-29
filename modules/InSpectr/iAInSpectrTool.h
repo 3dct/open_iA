@@ -20,39 +20,58 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleAttachmentToChild.h>
+#include <iATool.h>
 
 #include <vtkSmartPointer.h>
 
-#include <memory>
+#include <QString>
+#include <QObject>
 
-class QPushButton;
+class dlg_RefSpectra;
+class dlg_SimilarityMap;
+class dlg_InSpectr;
 
-class iAFoamCharacterizationTable;
-class iADataSet;
+class iADockWidgetWrapper;
+class iAIO;
+class iAMainWindow;
+class iASlicer;
 
-class iAFoamCharacterizationAttachment : public iAModuleAttachmentToChild
+class vtkPiecewiseFunction;
+
+class QThread;
+
+class iAInSpectrTool : public QObject, public iATool
 {
 	Q_OBJECT
 
 public:
-	iAFoamCharacterizationAttachment(iAMainWindow* mainWnd, iAMdiChild * child);
-
-private:
-	std::shared_ptr<iADataSet> m_origDataSet;
-	iAFoamCharacterizationTable* m_pTable = nullptr;
-
-	QPushButton* m_pPushButtonAnalysis = nullptr;
+	static const QString Name;
+	iAInSpectrTool( iAMainWindow * mainWnd, iAMdiChild * child );
 
 private slots:
-	void slotPushButtonAnalysis();
-	void slotPushButtonBinarization();
-	void slotPushButtonClear();
-	void slotPushButtonDistanceTransform();
-	void slotPushButtonExecute();
-	void slotPushButtonFilter();
-	void slotPushButtonOpen();
-	void slotPushButtonRestore();
-	void slotPushButtonSave();
-	void slotPushButtonWatershed();
+	void visualizeXRF( int isOn );
+	void updateXRFOpacity( int value );
+	void updateXRF();
+	void updateXRFVoxelEnergy(double x, double y, double z, int mode );
+	void xrfLoadingDone();
+	void xrfLoadingFailed();
+	void reInitXRF();
+	void initXRF();
+	void deinitXRF();
+	void initXRF( bool enableChannel );
+	bool filter_SimilarityMap();
+	void magicLensToggled( bool isOn );
+	void ioFinished();
+
+private:
+	void updateSlicerXRFOpacity();
+	QThread* recalculateXRF();
+	void initSlicerXRF( bool enableChannel );
+
+	iADockWidgetWrapper* dlgPeriodicTable;
+	dlg_RefSpectra* dlgRefSpectra;
+	dlg_SimilarityMap * dlgSimilarityMap;
+	dlg_InSpectr * dlgXRF;
+	iAIO * ioThread;
+	uint m_xrfChannelID;
 };

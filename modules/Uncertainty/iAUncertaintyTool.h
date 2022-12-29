@@ -20,13 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleAttachmentToChild.h"
+#include <iATool.h>
 
 #include <iAITKIO.h>
 
 #include <vtkSmartPointer.h>
 
 #include <QSharedPointer>
+#include <QObject>
 #include <QVector>
 
 class iADockWidgetWrapper;
@@ -40,22 +41,21 @@ class iASpatialView;
 
 class vtkLookupTable;
 
-class iAUncertaintyAttachment : public iAModuleAttachmentToChild
+class iAUncertaintyTool: public QObject, public iATool
 {
 	Q_OBJECT
 public:
-	static iAUncertaintyAttachment* Create(iAMainWindow * mainWnd, iAMdiChild * child);
-	void ToggleDockWidgetTitleBars();
-	void ToggleSettings();
-	void CalculateNewSubEnsemble();
-	bool LoadEnsemble(QString const & fileName);
-	void WriteFullDataFile(QString const & fileName, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties);
+	iAUncertaintyTool(iAMainWindow* mainWnd, iAMdiChild* child);
+	void toggleDockWidgetTitleBars();
+	void toggleSettings();
+	void calculateNewSubEnsemble();
+	bool loadEnsemble(QString const & fileName);
+	void writeFullDataFile(QString const & fileName, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties);
 private slots:
-	void MemberSelected(int memberIdx);
-	void EnsembleSelected(QSharedPointer<iAEnsemble> ensemble);
-	void ContinueEnsembleLoading();
+	void memberSelected(int memberIdx);
+	void ensembleSelected(QSharedPointer<iAEnsemble> ensemble);
+	void continueEnsembleLoading();
 private:
-	iAUncertaintyAttachment(iAMainWindow * mainWnd, iAMdiChild * child);
 	iAHistogramView * m_labelDistributionView, * m_uncertaintyDistributionView;
 	iAMemberView* m_memberView;
 	iAScatterPlotView* m_scatterplotView;

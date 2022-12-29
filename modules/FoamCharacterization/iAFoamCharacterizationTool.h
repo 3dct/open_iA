@@ -20,19 +20,38 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleAttachmentToChild.h"
+#include <iATool.h>
 
-class dlg_tf_2mod;
-class dlg_tf_3mod;
+#include <vtkSmartPointer.h>
 
-class iATripleHistogramTFAttachment : public iAModuleAttachmentToChild
+#include <QObject>
+
+#include <memory>
+
+class QPushButton;
+
+class iAFoamCharacterizationTable;
+class iADataSet;
+
+class iAFoamCharacterizationTool : public QObject, public iATool
 {
 public:
-	static iATripleHistogramTFAttachment* create(iAMainWindow * mainWnd, iAMdiChild* child);
-	void start2TF();
-	void start3TF();
+	iAFoamCharacterizationTool(iAMainWindow* mainWnd, iAMdiChild * child);
+
 private:
-	iATripleHistogramTFAttachment(iAMainWindow * mainWnd, iAMdiChild* child);
-	dlg_tf_2mod *m_tf_2mod;
-	dlg_tf_3mod *m_tf_3mod;
+	std::shared_ptr<iADataSet> m_origDataSet;
+	iAFoamCharacterizationTable* m_pTable = nullptr;
+	QPushButton* m_pPushButtonAnalysis = nullptr;
+
+private slots:
+	void slotPushButtonAnalysis();
+	void slotPushButtonBinarization();
+	void slotPushButtonClear();
+	void slotPushButtonDistanceTransform();
+	void slotPushButtonExecute();
+	void slotPushButtonFilter();
+	void slotPushButtonOpen();
+	void slotPushButtonRestore();
+	void slotPushButtonSave();
+	void slotPushButtonWatershed();
 };

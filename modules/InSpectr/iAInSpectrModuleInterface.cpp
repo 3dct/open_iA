@@ -20,9 +20,10 @@
 * ************************************************************************************/
 #include "iAInSpectrModuleInterface.h"
 
-#include "iAInSpectrAttachment.h"
+#include "iAInSpectrTool.h"
 
 #include <iAMainWindow.h>
+#include <iAMdiChild.h>    // for addToolToActiveMdiChild
 
 #include <QAction>
 #include <QMenu>
@@ -41,10 +42,5 @@ void iAInSpectrModuleInterface::Initialize()
 
 void iAInSpectrModuleInterface::startInSpectr()
 {
-	AttachToMdiChild(m_mainWnd->activeMdiChild());
-}
-
-iAModuleAttachmentToChild * iAInSpectrModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
-{
-	return new iAInSpectrAttachment( mainWnd, child );
+	addToolToActiveMdiChild<iAInSpectrTool>(iAInSpectrTool::Name, m_mainWnd);
 }

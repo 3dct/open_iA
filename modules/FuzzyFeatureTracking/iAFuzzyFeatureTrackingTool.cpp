@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFuzzyFeatureTrackingAttachment.h"
+#include "iAFuzzyFeatureTrackingTool.h"
 
 #include "dlg_dataView4DCT.h"
 #include "dlg_eventExplorer.h"
@@ -35,14 +35,14 @@
 
 const int FOURDCT_MIN_NUMBER_OF_VOLUMES = 2;
 
-iAFuzzyFeatureTrackingAttachment::iAFuzzyFeatureTrackingAttachment( iAMainWindow * mainWnd, iAMdiChild * child ):
-	iAModuleAttachmentToChild( mainWnd, child ),
+iAFuzzyFeatureTrackingTool::iAFuzzyFeatureTrackingTool( iAMainWindow * mainWnd, iAMdiChild * child ):
+	iATool( mainWnd, child ),
 	m_dlgDataView4DCT(nullptr),
 	m_dlgTrackingGraph(nullptr),
 	m_dlgEventExplorer(nullptr),
 	m_volumeStack(child->volumeStack())
 {
-	connect( child, &iAMdiChild::viewsUpdated, this, &iAFuzzyFeatureTrackingAttachment::updateViews);
+	connect( child, &iAMdiChild::viewsUpdated, this, &iAFuzzyFeatureTrackingTool::updateViews);
 
 	if (!create4DCTDataViewWidget())
 	{
@@ -58,7 +58,7 @@ iAFuzzyFeatureTrackingAttachment::iAFuzzyFeatureTrackingAttachment( iAMainWindow
 	}
 }
 
-bool iAFuzzyFeatureTrackingAttachment::create4DCTDataViewWidget()
+bool iAFuzzyFeatureTrackingTool::create4DCTDataViewWidget()
 {
 	if (m_dlgDataView4DCT)
 	{
@@ -83,7 +83,7 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTDataViewWidget()
 	return true;
 }
 
-bool iAFuzzyFeatureTrackingAttachment::create4DCTTrackingGraphWidget()
+bool iAFuzzyFeatureTrackingTool::create4DCTTrackingGraphWidget()
 {
 	if (m_dlgTrackingGraph)
 	{
@@ -99,7 +99,7 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTTrackingGraphWidget()
 	return true;
 }
 
-bool iAFuzzyFeatureTrackingAttachment::create4DCTEventExplorerWidget()
+bool iAFuzzyFeatureTrackingTool::create4DCTEventExplorerWidget()
 {
 	if (m_dlgEventExplorer)
 	{
@@ -179,12 +179,12 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTEventExplorerWidget()
 	return true;
 }
 
-iAFuzzyFeatureTrackingAttachment::~iAFuzzyFeatureTrackingAttachment()
+iAFuzzyFeatureTrackingTool::~iAFuzzyFeatureTrackingTool()
 {
 	delete m_dlgDataView4DCT;
 }
 
-void iAFuzzyFeatureTrackingAttachment::updateViews()
+void iAFuzzyFeatureTrackingTool::updateViews()
 {
 	if (m_dlgDataView4DCT)
 	{

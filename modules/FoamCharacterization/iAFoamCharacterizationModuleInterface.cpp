@@ -20,9 +20,10 @@
 * ************************************************************************************/
 #include "iAFoamCharacterizationModuleInterface.h"
 
-#include "iAFoamCharacterizationAttachment.h"
+#include "iAFoamCharacterizationTool.h"
 
 #include <iAMainWindow.h>
+#include <iAMdiChild.h>    // for addToolToActiveMdiChild
 
 #include <QAction>
 
@@ -40,15 +41,5 @@ void iAFoamCharacterizationModuleInterface::Initialize( )
 
 void iAFoamCharacterizationModuleInterface::slotFoamCharacterization()
 {
-	PrepareActiveChild();
-
-	if (m_mdiChild)
-	{
-		AttachToMdiChild(m_mdiChild);
-	}
-}
-
-iAModuleAttachmentToChild* iAFoamCharacterizationModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
-{
-	return new iAFoamCharacterizationAttachment(mainWnd, child);
+	addToolToActiveMdiChild<iAFoamCharacterizationTool>("FoamCharacterization", m_mainWnd);
 }

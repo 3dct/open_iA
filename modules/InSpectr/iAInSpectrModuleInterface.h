@@ -29,5 +29,4 @@ public:
 	void Initialize() override;
 private:
 	void startInSpectr();
-	iAModuleAttachmentToChild * CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child) override;
 };

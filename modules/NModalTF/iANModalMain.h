@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleAttachmentToChild.h"
+#include <iATool.h>
 
 #include <QDockWidget>
 
@@ -41,14 +41,12 @@ private:
 	iANModalWidget* m_nModalWidget;
 };
 
-class iANModalAttachment : public iAModuleAttachmentToChild
+class iANModalTFTool : public iATool
 {
-	Q_OBJECT
 public:
-	static iANModalAttachment* create(iAMainWindow* mainWnd, iAMdiChild* child);
+	iANModalTFTool(iAMainWindow* mainWnd, iAMdiChild* child);
 	void start();
 
 private:
-	iANModalAttachment(iAMainWindow* mainWnd, iAMdiChild* child);
 	iANModalMain* m_nModalMain;
 };

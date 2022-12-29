@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAInSpectrAttachment.h"
+#include "iAInSpectrTool.h"
 
 #include "dlg_RefSpectra.h"
 #include "dlg_SimilarityMap.h"
@@ -47,17 +47,19 @@
 #include <QFileDialog>
 #include <QtMath>
 
-iAInSpectrAttachment::iAInSpectrAttachment( iAMainWindow * mainWnd, iAMdiChild * child ) : iAModuleAttachmentToChild( mainWnd, child ),
+const QString iAInSpectrTool::Name("InSpectr");
+
+iAInSpectrTool::iAInSpectrTool( iAMainWindow * mainWnd, iAMdiChild * child ) : iATool( mainWnd, child ),
 	dlgPeriodicTable(nullptr),
 	dlgSimilarityMap(nullptr),
 	dlgXRF(nullptr),
 	ioThread(nullptr),
 	m_xrfChannelID(NotExistingChannel)
 {
-	connect(m_child, &iAMdiChild::magicLensToggled, this, &iAInSpectrAttachment::magicLensToggled);
+	connect(m_child, &iAMdiChild::magicLensToggled, this, &iAInSpectrTool::magicLensToggled);
 	for (int i = 0; i < 3; ++i)
 	{
-		connect(m_child->slicer(i), &iASlicer::mouseMoved, this, &iAInSpectrAttachment::updateXRFVoxelEnergy);
+		connect(m_child->slicer(i), &iASlicer::mouseMoved, this, &iAInSpectrTool::updateXRFVoxelEnergy);
 	}
 	//TODO: move
 	if (!filter_SimilarityMap())
@@ -90,9 +92,9 @@ iAInSpectrAttachment::iAInSpectrAttachment( iAMainWindow * mainWnd, iAMdiChild *
 	ioThread = new iAIO(iALog::get(), m_child, dlgXRF->GetXRFData()->GetDataPtr() );
 	m_child->setReInitializeRenderWindows( false );
 	m_child->connectIOThreadSignals( ioThread );
-	connect( ioThread, &iAIO::done, this, &iAInSpectrAttachment::xrfLoadingDone);
-	connect( ioThread, &iAIO::failed, this, &iAInSpectrAttachment::xrfLoadingFailed);
-	connect( ioThread, &iAIO::finished, this, &iAInSpectrAttachment::ioFinished);
+	connect( ioThread, &iAIO::done, this, &iAInSpectrTool::xrfLoadingDone);
+	connect( ioThread, &iAIO::failed, this, &iAInSpectrTool::xrfLoadingFailed);
+	connect( ioThread, &iAIO::finished, this, &iAInSpectrTool::ioFinished);
 
 	QString extension = QFileInfo( f ).suffix();
 	extension = extension.toUpper();
@@ -110,12 +112,7 @@ iAInSpectrAttachment::iAInSpectrAttachment( iAMainWindow * mainWnd, iAMdiChild *
 	ioThread->start();
 }
 
-
-iAInSpectrAttachment::~iAInSpectrAttachment()
-{}
-
-
-void iAInSpectrAttachment::reInitXRF()
+void iAInSpectrTool::reInitXRF()
 {
 	vtkSmartPointer<vtkImageData> img = dlgXRF->GetCombinedVolume();
 	if (m_child->isMagicLens2DEnabled())
@@ -128,17 +125,17 @@ void iAInSpectrAttachment::reInitXRF()
 	}
 }
 
-void iAInSpectrAttachment::initXRF()
+void iAInSpectrTool::initXRF()
 {
 	initXRF( true );
 }
 
-void iAInSpectrAttachment::deinitXRF()
+void iAInSpectrTool::deinitXRF()
 {
 	initXRF( false );
 }
 
-void iAInSpectrAttachment::initXRF( bool enableChannel )
+void iAInSpectrTool::initXRF( bool enableChannel )
 {
 	if (m_xrfChannelID == NotExistingChannel)
 	{
@@ -164,7 +161,7 @@ void iAInSpectrAttachment::initXRF( bool enableChannel )
 	LOG(lvlInfo, tr("Spectral color image initialized."));
 }
 
-QThread* iAInSpectrAttachment::recalculateXRF()
+QThread* iAInSpectrTool::recalculateXRF()
 {
 	if( !dlgXRF )
 	{
@@ -173,7 +170,7 @@ QThread* iAInSpectrAttachment::recalculateXRF()
 	return dlgXRF->UpdateForVisualization();
 }
 
-void iAInSpectrAttachment::updateXRFVoxelEnergy( double x, double y, double z, int /*mode*/ )
+void iAInSpectrTool::updateXRFVoxelEnergy( double x, double y, double z, int /*mode*/ )
 {
 	if (!dlgXRF || !dlgXRF->cb_spectrumProbing->isChecked())
 	{
@@ -197,7 +194,7 @@ void iAInSpectrAttachment::updateXRFVoxelEnergy( double x, double y, double z, i
 	}
 }
 
-void iAInSpectrAttachment::xrfLoadingDone()
+void iAInSpectrTool::xrfLoadingDone()
 {
 	double minEnergy = 0;
 	double maxEnergy = dlgXRF->GetXRFData()->size();
@@ -214,15 +211,15 @@ void iAInSpectrAttachment::xrfLoadingDone()
 		}
 	}
 	dlgXRF->init(minEnergy, maxEnergy, haveEnergyLevels, m_child);
-	connect( dlgXRF->cb_spectralColorImage, &QCheckBox::stateChanged, this, &iAInSpectrAttachment::visualizeXRF);
-	connect( dlgXRF->sl_peakOpacity, &QSlider::valueChanged, this, &iAInSpectrAttachment::updateXRFOpacity);
-	connect( dlgXRF->pb_compute, &QPushButton::clicked, this, &iAInSpectrAttachment::updateXRF);
+	connect( dlgXRF->cb_spectralColorImage, &QCheckBox::stateChanged, this, &iAInSpectrTool::visualizeXRF);
+	connect( dlgXRF->sl_peakOpacity, &QSlider::valueChanged, this, &iAInSpectrTool::updateXRFOpacity);
+	connect( dlgXRF->pb_compute, &QPushButton::clicked, this, &iAInSpectrTool::updateXRF);
 	m_child->splitDockWidget(dlgRefSpectra, dlgXRF, Qt::Horizontal);
 	dlgSimilarityMap->connectToXRF( dlgXRF );
 	m_child->updateLayout();
 }
 
-void iAInSpectrAttachment::xrfLoadingFailed()
+void iAInSpectrTool::xrfLoadingFailed()
 {
 	LOG(lvlError, tr("XRF data loading has failed!"));
 	delete dlgXRF;
@@ -233,16 +230,16 @@ void iAInSpectrAttachment::xrfLoadingFailed()
 	dlgPeriodicTable = nullptr;
 	dlgRefSpectra = nullptr;
 	dlgSimilarityMap = nullptr;
-	emit detach();
+	m_child->removeTool(Name);
 }
 
-void iAInSpectrAttachment::updateSlicerXRFOpacity()
+void iAInSpectrTool::updateSlicerXRFOpacity()
 {
 	double opacity = (double)dlgXRF->sl_peakOpacity->value() / dlgXRF->sl_peakOpacity->maximum();
 	m_child->updateChannelOpacity(m_xrfChannelID, opacity );
 }
 
-void iAInSpectrAttachment::updateXRFOpacity( int /*value*/ )
+void iAInSpectrTool::updateXRFOpacity( int /*value*/ )
 {
 	iAChannelData * data = m_child->channelData(m_xrfChannelID);
 	if (data && data->isEnabled())
@@ -252,7 +249,7 @@ void iAInSpectrAttachment::updateXRFOpacity( int /*value*/ )
 	}
 }
 
-bool iAInSpectrAttachment::filter_SimilarityMap()
+bool iAInSpectrTool::filter_SimilarityMap()
 {
 	dlgSimilarityMap = new dlg_SimilarityMap( m_child );
 	m_child->tabifyDockWidget( m_child->renderDockWidget(), dlgSimilarityMap );
@@ -260,22 +257,22 @@ bool iAInSpectrAttachment::filter_SimilarityMap()
 	return true;
 }
 
-void iAInSpectrAttachment::initSlicerXRF( bool enableChannel )
+void iAInSpectrTool::initSlicerXRF( bool enableChannel )
 {
 	assert( !m_child->channelData(m_xrfChannelID) );
 	LOG(lvlInfo, tr("Initializing Spectral Color Image. This may take a while..."));
 	auto calcThread = recalculateXRF();
 	if (enableChannel)
 	{
-		QObject::connect(calcThread, &QThread::finished, this, QOverload<>::of(&iAInSpectrAttachment::initXRF));
+		QObject::connect(calcThread, &QThread::finished, this, QOverload<>::of(&iAInSpectrTool::initXRF));
 	}
 	else
 	{
-		QObject::connect(calcThread, &QThread::finished, this, &iAInSpectrAttachment::deinitXRF);
+		QObject::connect(calcThread, &QThread::finished, this, &iAInSpectrTool::deinitXRF);
 	}
 }
 
-void iAInSpectrAttachment::visualizeXRF( int isOn )
+void iAInSpectrTool::visualizeXRF( int isOn )
 {
 	bool enabled = (isOn != 0);
 	iAChannelData * chData = m_child->channelData(m_xrfChannelID);
@@ -291,7 +288,7 @@ void iAInSpectrAttachment::visualizeXRF( int isOn )
 	}
 }
 
-void iAInSpectrAttachment::updateXRF()
+void iAInSpectrTool::updateXRF()
 {
 	iAChannelData * chData = m_child->channelData(m_xrfChannelID);
 	bool isMagicLensEnabled = m_child->isMagicLens2DEnabled();
@@ -304,11 +301,11 @@ void iAInSpectrAttachment::updateXRF()
 	{
 		return;
 	}
-	connect( calcThread, &QThread::finished, this, &iAInSpectrAttachment::reInitXRF);
+	connect( calcThread, &QThread::finished, this, &iAInSpectrTool::reInitXRF);
 	connect( calcThread, &QThread::finished, calcThread, &QThread::deleteLater);
 }
 
-void iAInSpectrAttachment::magicLensToggled( bool /*isOn*/ )
+void iAInSpectrTool::magicLensToggled( bool /*isOn*/ )
 {
 	if (dlgXRF && !m_child->channelData(m_xrfChannelID))
 	{
@@ -317,7 +314,7 @@ void iAInSpectrAttachment::magicLensToggled( bool /*isOn*/ )
 	}
 }
 
-void iAInSpectrAttachment::ioFinished()
+void iAInSpectrTool::ioFinished()
 {
 	ioThread = nullptr;
 }

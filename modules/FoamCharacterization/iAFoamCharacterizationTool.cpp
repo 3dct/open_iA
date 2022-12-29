@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFoamCharacterizationAttachment.h"
+#include "iAFoamCharacterizationTool.h"
 
 #include "iAFoamCharacterizationDialogAnalysis.h"
 #include "iAFoamCharacterizationItemBinarization.h"
@@ -41,8 +41,8 @@
 #include <QMessageBox>
 #include <QPushButton>
 
-iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
-																			  : iAModuleAttachmentToChild(mainWnd, child)
+iAFoamCharacterizationTool::iAFoamCharacterizationTool(iAMainWindow* mainWnd, iAMdiChild * child)
+																			  : iATool(mainWnd, child)
 																			  , m_origDataSet(child->dataSets()[0])
 {
 	QWidget* pWidget(new QWidget());
@@ -51,46 +51,46 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(iAMainWindow*
 
 	QPushButton* pPushButtonOpen(new QPushButton("Open table...", pWidget));
 	pPushButtonOpen->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
-	connect(pPushButtonOpen, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonOpen);
+	connect(pPushButtonOpen, &QPushButton::clicked, this, &iAFoamCharacterizationTool::slotPushButtonOpen);
 
 	QPushButton* pPushButtonSave(new QPushButton("Save table...", pWidget));
 	pPushButtonSave->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
-	connect(pPushButtonSave, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonSave);
+	connect(pPushButtonSave, &QPushButton::clicked, this, &iAFoamCharacterizationTool::slotPushButtonSave);
 
 	QPushButton* pPushButtonClear(new QPushButton("Clear table...", pWidget));
 	pPushButtonClear->setIcon(QApplication::style()->standardIcon(QStyle::SP_FileIcon));
-	connect(pPushButtonClear, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonClear);
+	connect(pPushButtonClear, &QPushButton::clicked, this, &iAFoamCharacterizationTool::slotPushButtonClear);
 
 	QPushButton* pPushButtonFilter(new QPushButton("Add filter", pWidget));
 	pPushButtonFilter->setIcon(iAFoamCharacterizationItemFilter::itemButtonIcon(iAFoamCharacterizationItem::itFilter));
-	connect(pPushButtonFilter, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonFilter);
+	connect(pPushButtonFilter, &QPushButton::clicked, this, &iAFoamCharacterizationTool::slotPushButtonFilter);
 
 	QPushButton* pPushButtonBinarization(new QPushButton("Add binarization", pWidget));
 	pPushButtonBinarization->setIcon(iAFoamCharacterizationItemBinarization::itemButtonIcon(iAFoamCharacterizationItem::itBinarization));
-	connect(pPushButtonBinarization, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonBinarization);
+	connect(pPushButtonBinarization, &QPushButton::clicked, this, &iAFoamCharacterizationTool::slotPushButtonBinarization);
 
 	QPushButton* pPushButtonDistanceTransform(new QPushButton("Add distance transform", pWidget));
 	pPushButtonDistanceTransform->setIcon(iAFoamCharacterizationItemDistanceTransform::itemButtonIcon(iAFoamCharacterizationItem::itDistanceTransform));
-	connect(pPushButtonDistanceTransform, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonDistanceTransform);
+	connect(pPushButtonDistanceTransform, &QPushButton::clicked, this, &iAFoamCharacterizationTool::slotPushButtonDistanceTransform);
 
 	QPushButton* pPushButtonWatershed(new QPushButton("Add watershed", pWidget));
 	pPushButtonWatershed->setIcon(iAFoamCharacterizationItemWatershed::itemButtonIcon(iAFoamCharacterizationItem::itWatershed));
-	connect(pPushButtonWatershed, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonWatershed);
+	connect(pPushButtonWatershed, &QPushButton::clicked, this, &iAFoamCharacterizationTool::slotPushButtonWatershed);
 
 	m_pTable = new iAFoamCharacterizationTable(child, pWidget);
 
 	QPushButton* pPushButtonExecute(new QPushButton("Execute", pWidget));
 	pPushButtonExecute->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogApplyButton));
-	connect(pPushButtonExecute, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonExecute);
+	connect(pPushButtonExecute, &QPushButton::clicked, this, &iAFoamCharacterizationTool::slotPushButtonExecute);
 
 	m_pPushButtonAnalysis = new QPushButton("Analysis", pWidget);
 	m_pPushButtonAnalysis->setIcon(QApplication::style()->standardIcon(QStyle::SP_FileDialogStart));
 	m_pPushButtonAnalysis->setEnabled(false);
-	connect(m_pPushButtonAnalysis, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonAnalysis);
+	connect(m_pPushButtonAnalysis, &QPushButton::clicked, this, &iAFoamCharacterizationTool::slotPushButtonAnalysis);
 
 	QPushButton* pPushButtonRestore(new QPushButton("Restore image", pWidget));
 	pPushButtonRestore->setIcon(QApplication::style()->standardIcon(QStyle::SP_DriveHDIcon));
-	connect(pPushButtonRestore, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonRestore);
+	connect(pPushButtonRestore, &QPushButton::clicked, this, &iAFoamCharacterizationTool::slotPushButtonRestore);
 
 	QGridLayout* pGridLayout1(new QGridLayout(pGroupBox1));
 	pGridLayout1->addWidget(pPushButtonOpen, 0, 0);
@@ -112,18 +112,18 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(iAMainWindow*
 	child->tabifyDockWidget(child->renderDockWidget(), pDockWidgetWrapper);
 }
 
-void iAFoamCharacterizationAttachment::slotPushButtonAnalysis()
+void iAFoamCharacterizationTool::slotPushButtonAnalysis()
 {
-	auto pDialogAnalysis = new iAFoamCharacterizationDialogAnalysis(dynamic_cast<iAImageData*>(m_child->dataSets()[0].get()), m_mainWnd);
+	auto pDialogAnalysis = new iAFoamCharacterizationDialogAnalysis(dynamic_cast<iAImageData*>(m_child->dataSets()[0].get()), m_mainWindow);
 	pDialogAnalysis->show();
 }
 
-void iAFoamCharacterizationAttachment::slotPushButtonBinarization()
+void iAFoamCharacterizationTool::slotPushButtonBinarization()
 {
 	m_pTable->addBinarization();
 }
 
-void iAFoamCharacterizationAttachment::slotPushButtonClear()
+void iAFoamCharacterizationTool::slotPushButtonClear()
 {
 	if ( QMessageBox::question ( m_child, "Question", "Clear table? All items will be removed."
 							   , QMessageBox::Yes, QMessageBox::No
@@ -134,12 +134,12 @@ void iAFoamCharacterizationAttachment::slotPushButtonClear()
 	}
 }
 
-void iAFoamCharacterizationAttachment::slotPushButtonDistanceTransform()
+void iAFoamCharacterizationTool::slotPushButtonDistanceTransform()
 {
 	m_pTable->addDistanceTransform();
 }
 
-void iAFoamCharacterizationAttachment::slotPushButtonExecute()
+void iAFoamCharacterizationTool::slotPushButtonExecute()
 {
 	if ( QMessageBox::question(m_child, "Question", "Execute foam characterization pipeline?", QMessageBox::Yes, QMessageBox::No)
 	     == QMessageBox::Yes
@@ -155,12 +155,12 @@ void iAFoamCharacterizationAttachment::slotPushButtonExecute()
 	}
 }
 
-void iAFoamCharacterizationAttachment::slotPushButtonFilter()
+void iAFoamCharacterizationTool::slotPushButtonFilter()
 {
 	m_pTable->addFilter();
 }
 
-void iAFoamCharacterizationAttachment::slotPushButtonOpen()
+void iAFoamCharacterizationTool::slotPushButtonOpen()
 {
 	QPushButton* pPushButtonOpen((QPushButton*)sender());
 
@@ -180,7 +180,7 @@ void iAFoamCharacterizationAttachment::slotPushButtonOpen()
 	}
 }
 
-void iAFoamCharacterizationAttachment::slotPushButtonRestore()
+void iAFoamCharacterizationTool::slotPushButtonRestore()
 {
 	if ( QMessageBox::question(m_child, "Question", "Restore original image?", QMessageBox::Yes, QMessageBox::No)
 		 == QMessageBox::Yes
@@ -196,7 +196,7 @@ void iAFoamCharacterizationAttachment::slotPushButtonRestore()
 	}
 }
 
-void iAFoamCharacterizationAttachment::slotPushButtonSave()
+void iAFoamCharacterizationTool::slotPushButtonSave()
 {
 	QPushButton* pPushButtonSave((QPushButton*)sender());
 
@@ -215,7 +215,7 @@ void iAFoamCharacterizationAttachment::slotPushButtonSave()
 	}
 }
 
-void iAFoamCharacterizationAttachment::slotPushButtonWatershed()
+void iAFoamCharacterizationTool::slotPushButtonWatershed()
 {
 	m_pTable->addWatershed();
 }

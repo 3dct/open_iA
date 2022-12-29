@@ -3313,6 +3313,11 @@ void MdiChild::addTool(QString const& key, std::shared_ptr<iATool> tool)
 	m_tools.insert(key, tool);
 }
 
+void MdiChild::removeTool(QString const& key)
+{
+	m_tools.remove(key);
+}
+
 QMap<QString, std::shared_ptr<iATool>> const& MdiChild::tools()
 {
 	return m_tools;

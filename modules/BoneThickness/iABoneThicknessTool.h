@@ -20,32 +20,43 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleAttachmentToChild.h>
+#include "iABoneThickness.h"
 
-class dlg_trackingGraph;
-class dlg_dataView4DCT;
-class dlg_trackingGraph;
-class dlg_eventExplorer;
-class iAVolumeStack;
+#include <iATool.h>
 
-class iAFuzzyFeatureTrackingAttachment : public iAModuleAttachmentToChild
+#include <QDoubleSpinBox>
+#include <QScopedPointer>
+#include <QLabel>
+
+class iABoneThicknessChartBar;
+class iABoneThicknessTable;
+
+class iABoneThicknessTool : public QObject, public iATool
 {
 	Q_OBJECT
 
 public:
-	iAFuzzyFeatureTrackingAttachment( iAMainWindow * mainWnd, iAMdiChild * child );
-	~iAFuzzyFeatureTrackingAttachment();
+	iABoneThicknessTool(iAMainWindow* mainWnd, iAMdiChild* child);
+	void setStatistics();
 
-protected:
-	bool create4DCTDataViewWidget();
-	bool create4DCTTrackingGraphWidget();
-	bool create4DCTEventExplorerWidget();
+private:
+	iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
+	iABoneThicknessChartBar* m_pBoneThicknessChartBar = nullptr;
+	QDoubleSpinBox* m_pDoubleSpinBoxSphereRadius = nullptr;
+	QDoubleSpinBox* m_pDoubleSpinBoxThicknessMaximum = nullptr;
+	QDoubleSpinBox* m_pDoubleSpinBoxSurfaceDistanceMaximum = nullptr;
+	QLabel* pLabelMeanTh = nullptr;
+	QLabel* pLabelStdTh = nullptr;
+	QLabel* pLabelMeanSDi = nullptr;
+	QLabel* pLabelStdSDi = nullptr;
+	QScopedPointer<iABoneThickness> m_pBoneThickness;
 
-protected slots:
-	void updateViews();
-protected:
-	dlg_dataView4DCT * m_dlgDataView4DCT;
-	dlg_trackingGraph * m_dlgTrackingGraph;
-	dlg_eventExplorer * m_dlgEventExplorer;
-	iAVolumeStack * m_volumeStack;
+private slots:
+	void slotDoubleSpinBoxSphereRadius();
+	void slotDoubleSpinBoxThicknessMaximum();
+	void slotDoubleSpinBoxSurfaceDistanceMaximum();
+	void slotPushButtonOpen();
+	void slotPushButtonSave();
+	void slotCheckBoxShowThickness(const bool& _bChecked);
+	void slotCheckBoxTransparency(const bool& _bChecked);
 };

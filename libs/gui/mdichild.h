@@ -276,6 +276,7 @@ public:
 	void linkMDIs(bool lm);
 
 	void addTool(QString const & key, std::shared_ptr<iATool> tool) override;
+	void removeTool(QString const& key) override;
 	QMap<QString, std::shared_ptr<iATool> > const & tools() override;
 
 	iAInteractionMode interactionMode() const override;

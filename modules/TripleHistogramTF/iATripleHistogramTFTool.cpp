@@ -18,59 +18,37 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iATripleHistogramTFTool.h"
 
-#include <iAModuleInterface.h>
-#include <iAModuleAttachmentToChild.h>
+#include "tf_2mod/dlg_tf_2mod.h"
+#include "tf_3mod/dlg_tf_3mod.h"
 
-#include <vtkSmartPointer.h>
+#include <iAMdiChild.h>
 
-class dlg_RefSpectra;
-class dlg_SimilarityMap;
-class dlg_InSpectr;
+iATripleHistogramTFTool::iATripleHistogramTFTool(iAMainWindow* mainWnd, iAMdiChild* child) :
+	iATool(mainWnd, child),
+	m_tf_2mod(nullptr),
+	m_tf_3mod(nullptr)
+{}
 
-class iADockWidgetWrapper;
-class iAIO;
-class iAMainWindow;
-class iASlicer;
-
-class vtkPiecewiseFunction;
-
-class QThread;
-
-class iAInSpectrAttachment : public iAModuleAttachmentToChild
+void iATripleHistogramTFTool::start2TF()
 {
-	Q_OBJECT
+	if (!m_tf_2mod)
+	{
+		m_tf_2mod = new dlg_tf_2mod(m_child);
+		m_child->tabifyDockWidget(m_child->renderDockWidget(), m_tf_2mod);
+	}
+	m_tf_2mod->show();
+	m_tf_2mod->raise();
+}
 
-public:
-	iAInSpectrAttachment( iAMainWindow * mainWnd, iAMdiChild * child );
-	~iAInSpectrAttachment();
-
-private slots:
-	void visualizeXRF( int isOn );
-	void updateXRFOpacity( int value );
-	void updateXRF();
-	void updateXRFVoxelEnergy(double x, double y, double z, int mode );
-	void xrfLoadingDone();
-	void xrfLoadingFailed();
-	void reInitXRF();
-	void initXRF();
-	void deinitXRF();
-	void initXRF( bool enableChannel );
-	bool filter_SimilarityMap();
-	void magicLensToggled( bool isOn );
-	void ioFinished();
-
-protected:
-	void updateSlicerXRFOpacity();
-	QThread* recalculateXRF();
-	void initSlicerXRF( bool enableChannel );
-
-protected:
-	iADockWidgetWrapper* dlgPeriodicTable;
-	dlg_RefSpectra* dlgRefSpectra;
-	dlg_SimilarityMap * dlgSimilarityMap;
-	dlg_InSpectr * dlgXRF;
-	iAIO * ioThread;
-	uint m_xrfChannelID;
-};
+void iATripleHistogramTFTool::start3TF()
+{
+	if (!m_tf_3mod)
+	{
+		m_tf_3mod = new dlg_tf_3mod(m_child);
+		m_child->tabifyDockWidget(m_child->renderDockWidget(), m_tf_3mod);
+	}
+	m_tf_3mod->show();
+	m_tf_3mod->raise();
+}

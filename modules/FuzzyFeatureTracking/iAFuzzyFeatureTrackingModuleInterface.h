@@ -24,13 +24,8 @@
 
 class iAFuzzyFeatureTrackingModuleInterface : public iAGUIModuleInterface
 {
-	Q_OBJECT
-
 public:
-	iAFuzzyFeatureTrackingModuleInterface();
 	void Initialize() override;
-
 private:
 	void fuzzyFeatureTracking();
-	iAModuleAttachmentToChild * CreateAttachment( iAMainWindow* mainWnd, iAMdiChild * child ) override;
 };

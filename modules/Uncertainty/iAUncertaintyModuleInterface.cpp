@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAUncertaintyModuleInterface.h"
 
-#include "iAUncertaintyAttachment.h"
+#include "iAUncertaintyTool.h"
 
 #include <iALog.h>
 #include <iAMainWindow.h>
@@ -37,21 +37,13 @@ void iAUncertaintyModuleInterface::Initialize()
 		return;
 	}
 	QAction * actionUncertainty = new QAction(tr("Uncertainty Exploration"), m_mainWnd);
-	connect(actionUncertainty, &QAction::triggered, this, &iAUncertaintyModuleInterface::UncertaintyExploration);
+	connect(actionUncertainty, &QAction::triggered, this, &iAUncertaintyModuleInterface::uncertaintyExploration);
 
 	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Image Ensembles"), true);
 	submenu->addAction(actionUncertainty);
 }
 
-
-iAModuleAttachmentToChild* iAUncertaintyModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
-{
-	iAUncertaintyAttachment* result = iAUncertaintyAttachment::Create( mainWnd, child);
-	return result;
-}
-
-
-void iAUncertaintyModuleInterface::UncertaintyExploration()
+void iAUncertaintyModuleInterface::uncertaintyExploration()
 {
 	QString fileName = QFileDialog::getOpenFileName(m_mainWnd,
 		tr("Load Ensemble"),
@@ -59,81 +51,76 @@ void iAUncertaintyModuleInterface::UncertaintyExploration()
 		tr("Image Analysis Ensemble (*.iae );;All files (*)") );
 	if (!fileName.isEmpty())
 	{
-		LoadEnsemble(fileName);
+		loadEnsemble(fileName);
 	}
 }
 
-void iAUncertaintyModuleInterface::LoadEnsemble(QString const & fileName)
+void iAUncertaintyModuleInterface::loadEnsemble(QString const & fileName)
 {
-	SetupToolBar();
+	setupToolBar();
 	auto child = m_mainWnd->createMdiChild(false);
-	bool result = AttachToMdiChild(child);
-	iAUncertaintyAttachment* attach = attachment<iAUncertaintyAttachment>(child);
-	if (!result || !attach)
-	{
-		LOG(lvlError, "Uncertainty exploration could not be initialized!");
-		return;
-	}
+	auto tool = std::make_shared<iAUncertaintyTool>(m_mainWnd, child);
+	child->addTool("Uncertainty", tool);
 	child->show();
-	if (!attach->LoadEnsemble(fileName))
+	if (!tool->loadEnsemble(fileName))
 	{
 		return;
 	}
 }
 
-void iAUncertaintyModuleInterface::SetupToolBar()
+void iAUncertaintyModuleInterface::setupToolBar()
 {
 	if (m_toolbar)
 	{
 		return;
 	}
 	m_toolbar = new iAUncertaintyToolbar("Uncertainty Exploration Toolbar");
-	connect(m_toolbar->action_ToggleTitleBar, &QAction::triggered, this, &iAUncertaintyModuleInterface::ToggleDockWidgetTitleBars);
+	connect(m_toolbar->action_ToggleTitleBar, &QAction::triggered, this, &iAUncertaintyModuleInterface::toggleDockWidgetTitleBars);
 	m_toolbar->action_ToggleSettings->setCheckable(true);
 	m_toolbar->action_ToggleSettings->setChecked(true);
-	connect(m_toolbar->action_ToggleSettings, &QAction::triggered, this, &iAUncertaintyModuleInterface::ToggleSettings);
-	connect(m_toolbar->action_CalculateNewSubEnsemble, &QAction::triggered, this, &iAUncertaintyModuleInterface::CalculateNewSubEnsemble);
-	connect(m_toolbar->action_WriteFullDataFile, &QAction::triggered, this, &iAUncertaintyModuleInterface::WriteFullDataFile);
+	connect(m_toolbar->action_ToggleSettings, &QAction::triggered, this, &iAUncertaintyModuleInterface::toggleSettings);
+	connect(m_toolbar->action_CalculateNewSubEnsemble, &QAction::triggered, this, &iAUncertaintyModuleInterface::calculateNewSubEnsemble);
+	connect(m_toolbar->action_WriteFullDataFile, &QAction::triggered, this, &iAUncertaintyModuleInterface::writeFullDataFile);
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
 }
 
-void iAUncertaintyModuleInterface::ToggleDockWidgetTitleBars()
+void iAUncertaintyModuleInterface::toggleDockWidgetTitleBars()
 {
-	iAUncertaintyAttachment* attach = attachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
-	if (!attach)
+	auto tool = getTool<iAUncertaintyTool>(m_mainWnd->activeMdiChild());
+	if (!tool)
 	{
 		LOG(lvlError, "Uncertainty exploration was not loaded properly!");
 		return;
 	}
-	attach->ToggleDockWidgetTitleBars();
+	tool->toggleDockWidgetTitleBars();
 }
 
-void iAUncertaintyModuleInterface::ToggleSettings()
+void iAUncertaintyModuleInterface::toggleSettings()
 {
-	iAUncertaintyAttachment* attach = attachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
-	if (!attach)
+	auto tool = getTool<iAUncertaintyTool>(m_mainWnd->activeMdiChild());
+	if (!tool)
 	{
 		LOG(lvlError, "Uncertainty exploration was not loaded properly!");
 		return;
 	}
-	attach->ToggleSettings();
+	tool->toggleSettings();
 }
 
-void iAUncertaintyModuleInterface::CalculateNewSubEnsemble()
+void iAUncertaintyModuleInterface::calculateNewSubEnsemble()
 {
-	iAUncertaintyAttachment* attach = attachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
-	if (!attach)
+	auto tool = getTool<iAUncertaintyTool>(m_mainWnd->activeMdiChild());
+	if (!tool)
 	{
 		LOG(lvlError, "Uncertainty exploration was not loaded properly!");
 		return;
 	}
-	attach->CalculateNewSubEnsemble();
+	tool->calculateNewSubEnsemble();
 }
 
-void iAUncertaintyModuleInterface::WriteFullDataFile()
+void iAUncertaintyModuleInterface::writeFullDataFile()
 {
-	iAUncertaintyAttachment* attach = attachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
-	if (!attach)
+	auto tool = getTool<iAUncertaintyTool>(m_mainWnd->activeMdiChild());
+	if (!tool)
 	{
 		LOG(lvlError, "Uncertainty exploration was not loaded properly!");
 		return;
@@ -157,6 +144,6 @@ void iAUncertaintyModuleInterface::WriteFullDataFile()
 		return;
 	}
 	auto val = dlg.parameterValues();
-	attach->WriteFullDataFile(fileName, val["Write original data values"].toBool(), val["Write Member Labels"].toBool(),
+	tool->writeFullDataFile(fileName, val["Write original data values"].toBool(), val["Write Member Labels"].toBool(),
 		val["Write Member Probabilities"].toBool(), val["Write Ensemble Uncertainties"].toBool());
 }

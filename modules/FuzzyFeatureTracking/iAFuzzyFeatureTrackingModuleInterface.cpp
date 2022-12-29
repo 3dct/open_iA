@@ -20,15 +20,13 @@
 * ************************************************************************************/
 #include "iAFuzzyFeatureTrackingModuleInterface.h"
 
-#include "iAFuzzyFeatureTrackingAttachment.h"
+#include "iAFuzzyFeatureTrackingTool.h"
 
 #include <iAMainWindow.h>
-#include <iAMdiChild.h>
+#include <iAMdiChild.h>    // for addToolToActiveMdiChild
 
 #include <QAction>
 #include <QMenu>
-
-iAFuzzyFeatureTrackingModuleInterface::iAFuzzyFeatureTrackingModuleInterface() {}
 
 void iAFuzzyFeatureTrackingModuleInterface::Initialize()
 {
@@ -45,10 +43,5 @@ void iAFuzzyFeatureTrackingModuleInterface::Initialize()
 
 void iAFuzzyFeatureTrackingModuleInterface::fuzzyFeatureTracking()
 {
-	AttachToMdiChild(m_mainWnd->activeMdiChild());
-}
-
-iAModuleAttachmentToChild * iAFuzzyFeatureTrackingModuleInterface::CreateAttachment( iAMainWindow* mainWnd, iAMdiChild * child )
-{
-	return new iAFuzzyFeatureTrackingAttachment( mainWnd, child );
+	addToolToActiveMdiChild<iAFuzzyFeatureTrackingTool>("FuzzyFeatureTracking", m_mainWnd);
 }

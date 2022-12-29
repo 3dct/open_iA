@@ -120,7 +120,9 @@ void iAGEMSeModuleInterface::loadPreCalculatedData()
 		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->filePath() : QString(),
 		tr("GEMSe project (*.sea );;All files (*)") );
 	if (fileName.isEmpty())
+	{
 		return;
+	}
 	loadOldGEMSeProject(fileName);
 }
 

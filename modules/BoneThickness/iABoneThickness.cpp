@@ -23,7 +23,6 @@
 #include "iABoneThicknessChartBar.h"
 #include "iABoneThicknessTable.h"
 #include "iABoneThicknessMouseInteractor.h"
-#include "iABoneThicknessAttachment.h"
 
 #include <iARenderer.h>
 

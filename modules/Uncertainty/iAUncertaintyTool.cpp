@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAUncertaintyAttachment.h"
+#include "iAUncertaintyTool.h"
 
 #include "iAEnsembleDescriptorFile.h"
 #include "iAEnsemble.h"
@@ -50,8 +50,8 @@
 
 const int EntropyBinCount = 100;
 
-iAUncertaintyAttachment::iAUncertaintyAttachment(iAMainWindow * mainWnd, iAMdiChild * child):
-	iAModuleAttachmentToChild(mainWnd, child),
+iAUncertaintyTool::iAUncertaintyTool(iAMainWindow * mainWnd, iAMdiChild * child):
+	iATool(mainWnd, child),
 	m_labelLut(vtkSmartPointer<vtkLookupTable>::New()),
 	m_newSubEnsembleID(1)
 {
@@ -70,19 +70,11 @@ iAUncertaintyAttachment::iAUncertaintyAttachment(iAMainWindow * mainWnd, iAMdiCh
 	connect(mainWnd, &iAMainWindow::styleChanged, m_spatialView, &iASpatialView::StyleChanged);
 	connect(mainWnd, &iAMainWindow::styleChanged, m_memberView, &iAMemberView::StyleChanged);
 	connect(m_scatterplotView, &iAScatterPlotView::SelectionChanged, m_spatialView, &iASpatialView::UpdateSelection);
-	connect(m_memberView, &iAMemberView::MemberSelected, this, &iAUncertaintyAttachment::MemberSelected);
-	connect(m_ensembleView, &iAEnsembleView::EnsembleSelected, this, &iAUncertaintyAttachment::EnsembleSelected);
+	connect(m_memberView, &iAMemberView::MemberSelected, this, &iAUncertaintyTool::memberSelected);
+	connect(m_ensembleView, &iAEnsembleView::EnsembleSelected, this, &iAUncertaintyTool::ensembleSelected);
 }
 
-
-iAUncertaintyAttachment* iAUncertaintyAttachment::Create(iAMainWindow * mainWnd, iAMdiChild * child)
-{
-	iAUncertaintyAttachment * newAttachment = new iAUncertaintyAttachment(mainWnd, child);
-	return newAttachment;
-}
-
-
-void iAUncertaintyAttachment::ToggleDockWidgetTitleBars()
+void iAUncertaintyTool::toggleDockWidgetTitleBars()
 {
 	for (int i = 0; i < m_dockWidgets.size(); ++i)
 	{
@@ -90,15 +82,13 @@ void iAUncertaintyAttachment::ToggleDockWidgetTitleBars()
 	}
 }
 
-
-void iAUncertaintyAttachment::ToggleSettings()
+void iAUncertaintyTool::toggleSettings()
 {
 	m_spatialView->ToggleSettings();
 	m_scatterplotView->ToggleSettings();
 }
 
-
-bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
+bool iAUncertaintyTool::loadEnsemble(QString const & fileName)
 {
 	m_ensembleFile = QSharedPointer<iAEnsembleDescriptorFile>::create(fileName);
 	if (!m_ensembleFile->good())
@@ -106,7 +96,7 @@ bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 		LOG(lvlError, "Ensemble: Given data file could not be read.");
 		return false;
 	}
-	connect(m_child, &iAMdiChild::fileLoaded, this, &iAUncertaintyAttachment::ContinueEnsembleLoading);
+	connect(m_child, &iAMdiChild::fileLoaded, this, &iAUncertaintyTool::continueEnsembleLoading);
 	if (!m_child->loadFile(m_ensembleFile->ModalityFileName(), false))
 	{
 		LOG(lvlError, QString("Failed to load project '%1'").arg(m_ensembleFile->ModalityFileName()));
@@ -115,7 +105,7 @@ bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 	return true;
 }
 
-void iAUncertaintyAttachment::ContinueEnsembleLoading()
+void iAUncertaintyTool::continueEnsembleLoading()
 {
 	auto ensemble = iAEnsemble::Create(EntropyBinCount, m_ensembleFile);
 	if (ensemble)
@@ -127,10 +117,10 @@ void iAUncertaintyAttachment::ContinueEnsembleLoading()
 				m_newSubEnsembleID = subEnsemble->ID();
 			m_ensembleView->AddEnsemble(QString("SubEnsemble %1").arg(subEnsemble->ID()), subEnsemble);
 		}
-		EnsembleSelected(ensemble);
+		ensembleSelected(ensemble);
 		m_spatialView->SetupSelection(m_scatterplotView->GetSelectionImage());
 	}
-	m_mainWnd->showMaximized();
+	m_mainWindow->showMaximized();
 	m_child->showMaximized();
 	m_child->splitDockWidget(m_child->slicerDockWidget(iASlicerMode::XY), m_dockWidgets[0], Qt::Horizontal);	// Spatial View
 	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Horizontal);	// ScatterPlot View
@@ -146,14 +136,12 @@ void iAUncertaintyAttachment::ContinueEnsembleLoading()
 	}
 }
 
-
-void iAUncertaintyAttachment::WriteFullDataFile(QString const & fileName, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties)
+void iAUncertaintyTool::writeFullDataFile(QString const & fileName, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties)
 {
 	m_currentEnsemble->WriteFullDataFile(fileName, writeIntensities, writeMemberLabels, writeMemberProbabilities, writeEnsembleUncertainties, m_child->modalities());
 }
 
-
-void iAUncertaintyAttachment::CalculateNewSubEnsemble()
+void iAUncertaintyTool::calculateNewSubEnsemble()
 {
 	auto memberIDs = m_memberView->SelectedMemberIDs();
 	if (memberIDs.empty())
@@ -177,7 +165,7 @@ void iAUncertaintyAttachment::CalculateNewSubEnsemble()
 }
 
 
-void iAUncertaintyAttachment::MemberSelected(int memberIdx)
+void iAUncertaintyTool::memberSelected(int memberIdx)
 {
 	iAITKIO::ImagePointer itkImg = m_currentEnsemble->Member(memberIdx)->labelImage();
 	iAConnector con;
@@ -192,7 +180,7 @@ void iAUncertaintyAttachment::MemberSelected(int memberIdx)
 }
 
 
-void iAUncertaintyAttachment::EnsembleSelected(QSharedPointer<iAEnsemble> ensemble)
+void iAUncertaintyTool::ensembleSelected(QSharedPointer<iAEnsemble> ensemble)
 {
 	m_currentEnsemble = ensemble;
 	m_scatterplotView->SetDatasets(ensemble);

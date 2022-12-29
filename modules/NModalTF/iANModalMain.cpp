@@ -25,19 +25,12 @@
 
 // Module interface and Attachment --------------------------------------------------------
 
-iANModalAttachment::iANModalAttachment(iAMainWindow* mainWnd, iAMdiChild* child) :
-	iAModuleAttachmentToChild(mainWnd, child), m_nModalMain(nullptr)
+iANModalTFTool::iANModalTFTool(iAMainWindow* mainWnd, iAMdiChild* child) :
+	iATool(mainWnd, child), m_nModalMain(nullptr)
 {
-	// Do nothing
 }
 
-iANModalAttachment* iANModalAttachment::create(iAMainWindow* mainWnd, iAMdiChild* child)
-{
-	auto newAttachment = new iANModalAttachment(mainWnd, child);
-	return newAttachment;
-}
-
-void iANModalAttachment::start()
+void iANModalTFTool::start()
 {
 	if (!m_nModalMain)
 	{

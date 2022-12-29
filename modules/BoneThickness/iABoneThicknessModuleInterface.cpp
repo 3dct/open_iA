@@ -20,9 +20,10 @@
 * ************************************************************************************/
 #include "iABoneThicknessModuleInterface.h"
 
-#include "iABoneThicknessAttachment.h"
+#include "iABoneThicknessTool.h"
 
 #include <iAMainWindow.h>
+#include <iAMdiChild.h>    // for addToolToActiveMdiChild
 
 #include <QAction>
 
@@ -32,7 +33,7 @@ void iABoneThicknessModuleInterface::Initialize( )
 	{
 		return;
 	}
-	QAction* actionBoneThickness = new QAction(tr("Bone thickness"), m_mainWnd);
+	auto actionBoneThickness = new QAction(tr("Bone thickness"), m_mainWnd);
 	connect(actionBoneThickness, &QAction::triggered, this, &iABoneThicknessModuleInterface::slotBoneThickness);
 	m_mainWnd->makeActionChildDependent(actionBoneThickness);
 	addToMenuSorted(m_mainWnd->toolsMenu(), actionBoneThickness);
@@ -40,15 +41,5 @@ void iABoneThicknessModuleInterface::Initialize( )
 
 void iABoneThicknessModuleInterface::slotBoneThickness()
 {
-	PrepareActiveChild();
-
-	if (m_mdiChild)
-	{
-		AttachToMdiChild(m_mdiChild);
-	}
-}
-
-iAModuleAttachmentToChild* iABoneThicknessModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
-{
-	return new iABoneThicknessAttachment(mainWnd, child);
+	addToolToActiveMdiChild<iABoneThicknessTool>("BoneThickness", m_mainWnd);
 }

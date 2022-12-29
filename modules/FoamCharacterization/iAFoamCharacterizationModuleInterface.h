@@ -24,11 +24,8 @@
 
 class iAFoamCharacterizationModuleInterface : public iAGUIModuleInterface
 {
-	Q_OBJECT
 public:
 	void Initialize() override;
-protected:
-	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child) override;
 private slots:
 	void slotFoamCharacterization();
 };
