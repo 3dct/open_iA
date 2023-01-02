@@ -21,14 +21,14 @@
 #include "iAGUIModuleInterface.h"
 
 #include "iALog.h"
-#include "iAModuleAttachmentToChild.h"
 #include "iAMainWindow.h"
 #include "iAMdiChild.h"
 
-#include <itkMacro.h>    // for itk::ExceptionObject
-
 #include <QStatusBar>
 #include <QString>
+
+iAGUIModuleInterface::~iAGUIModuleInterface()
+{}
 
 void iAGUIModuleInterface::PrepareResultChild( QString const & title )
 {
@@ -71,89 +71,3 @@ void iAGUIModuleInterface::PrepareActiveChild()
 }
 
 void iAGUIModuleInterface::SaveSettings() const {}
-
-iAGUIModuleInterface::~iAGUIModuleInterface()
-{
-	for( int i = 0; i < m_attachments.size(); ++i )
-	{
-		if( m_attachments[i] )
-			delete m_attachments[i];	// should probably be deleted in module dll as its created there?
-	}
-}
-
-void iAGUIModuleInterface::detachChild(iAMdiChild* child)
-{
-	if( !child )
-		return;
-	for( int i = 0; i < m_attachments.size(); ++i )
-	{
-		if( m_attachments[i]->getMdiChild() == child )
-		{
-			delete m_attachments[i];	// should probably be deleted in module dll as its created there?
-			m_attachments.remove( i );
-		}
-	}
-}
-
-void iAGUIModuleInterface::attachedChildClosed()
-{
-	iAMdiChild * sender = dynamic_cast<iAMdiChild*> (QObject::sender());
-	detachChild(sender);
-}
-
-void iAGUIModuleInterface::detach()
-{
-	iAModuleAttachmentToChild * attachment= dynamic_cast<iAModuleAttachmentToChild*> (QObject::sender());
-	detachChild(attachment->getMdiChild());
-}
-
-bool iAGUIModuleInterface::isAttached()
-{
-	//check if already attached
-	for( int i = 0; i < m_attachments.size(); ++i )
-	{
-		if (m_attachments[i]->getMdiChild() == m_mdiChild)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-iAModuleAttachmentToChild * iAGUIModuleInterface::CreateAttachment( iAMainWindow * /*mainWnd*/, iAMdiChild * /*child*/ )
-{
-	return nullptr;
-}
-
-bool iAGUIModuleInterface::AttachToMdiChild( iAMdiChild * child )
-{
-	//check if already attached
-	m_mdiChild = child;
-	if (isAttached())
-	{
-		return false;
-	}
-	//create attachment
-	try
-	{
-		iAModuleAttachmentToChild * attachment = CreateAttachment( m_mainWnd, child );
-		if (!attachment)
-		{
-			return false;
-		}
-		//add an attachment
-		m_attachments.push_back( attachment );
-		connect(child, &iAMdiChild::closed, this, &iAGUIModuleInterface::attachedChildClosed);
-		connect(attachment, &iAModuleAttachmentToChild::detach, this, &iAGUIModuleInterface::detach);
-	}
-	catch( itk::ExceptionObject &excep )
-	{	// check why we catch an ITK exception here! in the attachment initialization, no ITK filters should be called...
-		// assumption: as e.g. used in FuzzyFeatureTracking, this is just to be able to use
-		// the file/line information that the itk exception object holds
-		LOG(lvlError, tr("%1 in File %2, Line %3").arg( excep.GetDescription() )
-			.arg( excep.GetFile() )
-			.arg( excep.GetLine() ) );
-		return false;
-	}
-	return true;
-}

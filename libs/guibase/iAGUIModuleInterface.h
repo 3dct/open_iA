@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleAttachmentToChild.h"
 #include "iAguibase_export.h"
 
 #include "iALog.h"
@@ -49,14 +48,8 @@ public:
 	virtual void Initialize() = 0;		// TODO: split up into GUI part and other?
 	//! Override to store custom settings of this module; called when program is shut down.
 	virtual void SaveSettings() const;
-	//! Get an attachment of an mdi child; the type of attachment is given by the templated type.
-	//! Call by explicitly specifying a type, e.g. `auto attach = GetAttachment<iAMyModuleAttachment>();`
-	//!     @param child the child window to check for attachments
-	template <class T>
-	T* attachment(iAMdiChild* child);
 
 protected:
-
 	//! Create a new result child, with a title made from the given title + the previous title of the active child.
 	//! @deprecated. Use methods from iAMainWindow directly
 	void PrepareResultChild( QString const & title);
@@ -66,48 +59,9 @@ protected:
 	//! Set the currently active child as "current".
 	//! @deprecated. Don't use m_mdichild mechanism, use activeMdiChild from iAMainWindow directly.
 	void PrepareActiveChild();
-	//! Return true if attached to current mdi child.
-	//! @note: current mdi child is determined through m_mdiChild member
-	//!       which is _not_ automatically updated to the active mdi child!
-	bool isAttached();
-	//! Create a new attachment for the given child.
-	virtual iAModuleAttachmentToChild * CreateAttachment( iAMainWindow* mainWnd, iAMdiChild * child );
-	//! Sets up a new attachment for the given iAMdiChild via CreateAttachment and links the two.
-	bool AttachToMdiChild( iAMdiChild * child );
 
 	iAMainWindow * m_mainWnd;            //!< access to the main window
 	//! "current" mdi child
 	//! @deprecated use direct access via iAMainWindow methods
 	iAMdiChild * m_mdiChild;
-	//! attachments of this module
-	QVector<iAModuleAttachmentToChild*> m_attachments;
-
-private:
-	//! called when an iAMdiChild is closing
-	void detachChild(iAMdiChild* child);
-
-protected slots:
-	void attachedChildClosed();
-	void detach();
 };
-
-template <class T>
-T* iAGUIModuleInterface::attachment(iAMdiChild* child)
-{
-	static_assert(std::is_base_of<iAModuleAttachmentToChild, T>::value,
-		"GetAttachment: given type must inherit from iAModuleAttachmentToChild!");
-	if (!child)
-	{
-		LOG(lvlError, "GetAttachment: child parameter is null!");
-		return nullptr;
-	}
-	for (int i = 0; i < m_attachments.size(); ++i)
-	{
-		if (m_attachments[i]->getMdiChild() == child &&
-			dynamic_cast<T*>(m_attachments[i]) != nullptr)
-		{
-			return dynamic_cast<T*>(m_attachments[i]);
-		}
-	}
-	return nullptr;
-}
