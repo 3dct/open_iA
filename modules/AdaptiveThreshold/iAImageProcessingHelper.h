@@ -22,17 +22,4 @@
 
 class iAMdiChild;
 
-class iAImageProcessingHelper
-{
-public:
-	iAImageProcessingHelper(iAMdiChild* child);
-	void performSegmentation(double greyThresholdMin, double greyThreshold);
-	void prepareFilter(double greyThresholdLower, double greyThresholdUpper);
-private:
-	void imageToReslicer();
-
-	iAImageProcessingHelper(const iAImageProcessingHelper& other) = delete;
-	iAImageProcessingHelper() = delete;
-	iAMdiChild* m_child = nullptr;
-};
-
+void performSegmentation(iAMdiChild* child, double greyThresholdLower, double greyThresholdUpper);

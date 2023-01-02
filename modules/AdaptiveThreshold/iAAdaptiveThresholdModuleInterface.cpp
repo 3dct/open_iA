@@ -91,11 +91,7 @@ void iAAdaptiveThresholdModuleInterface::determineThreshold()
 		{
 			return;
 		}
-
-		iAImageProcessingHelper imgSegmenter(m_mainWnd->activeMdiChild());
-		// resulting threshold: lower and upper limit to obtain for segmentation
-
-		imgSegmenter.performSegmentation(dlg_thres.segmentationStartValue(), dlg_thres.resultingThreshold());
+		performSegmentation(m_mainWnd->activeMdiChild(), dlg_thres.segmentationStartValue(), dlg_thres.resultingThreshold());
 	}
 	catch (std::exception& ex)
 	{
