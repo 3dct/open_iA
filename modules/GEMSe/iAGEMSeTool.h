@@ -29,6 +29,8 @@ class dlg_GEMSeControl;
 class dlg_priors;
 class dlg_samplings;
 
+class iASEAFile;
+
 class QSettings;
 class QString;
 class QWidget;
@@ -47,7 +49,6 @@ public:
 	bool loadRefImg(QString const& refImgName);
 	void setSerializedHiddenCharts(QString const& hiddenCharts);
 	void setLabelInfo(QString const& colorTheme, QString const& labelNames);
-	void saveProject(QSettings& metaFile, QString const& fileName);
 
 	void resetFilter();
 	void toggleAutoShrink();

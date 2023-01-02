@@ -53,7 +53,8 @@ std::shared_ptr<iADataSet> iAProjectFileIO::loadData(QString const& fileName, QV
 		LOG(lvlError, QString("Given project file '%1' does not exist.").arg(fileName));
 		return {};
 	}
-	QSettings settings(fileName, QSettings::IniFormat);
+	auto s = std::make_shared<QSettings>(fileName, QSettings::IniFormat);
+	auto &settings = *s.get();
 	//iAVolumeSettings volSettings;
 
 	if (!settings.contains(ProjectFileVersionKey) ||
@@ -87,7 +88,7 @@ std::shared_ptr<iADataSet> iAProjectFileIO::loadData(QString const& fileName, QV
 	}
 
 	int currIdx = 0;
-	auto result = std::make_shared<iADataCollection>(maxIdx - currIdx);
+	auto result = std::make_shared<iADataCollection>(maxIdx - currIdx, s);
 	result->setMetaData(mapFromQSettings(settings));
 	while (currIdx < maxIdx)
 	{
@@ -100,7 +101,7 @@ std::shared_ptr<iADataSet> iAProjectFileIO::loadData(QString const& fileName, QV
 			{
 				auto dataSetParamValues = mapFromQSettings(settings);
 				auto currentDataSet = io->load(dataSetFileName, dataSetParamValues);
-				result->dataSets().push_back(currentDataSet);
+				result->addDataSet(currentDataSet);
 			}
 		}
 		// catch exceptions here to skip only the current dataset on error, don't abort loading the whole project

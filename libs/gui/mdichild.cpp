@@ -77,6 +77,7 @@
 #include <iAVolStackFileIO.h>
 
 // base
+#include <iADataSet.h>
 #include <iAFileTypeRegistry.h>
 #include <iALog.h>
 #include <iAProgress.h>
@@ -103,8 +104,6 @@
 #include <vtkTransform.h>
 
 // TODO: VOLUME: check all places using modality(0)->transfer() !
-
-#include "iADataSet.h"
 
 #include <QByteArray>
 #include <QCloseEvent>
@@ -632,7 +631,10 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 		dataSetIdx = m_nextDataSetID;
 		++m_nextDataSetID;
 	}
-	m_dataSets[dataSetIdx] = dataSet;
+	//if (dataSet->type() != iADataSetType::Collection)
+	//{  // we should probably store the dataset while it's loading, but might be able to discard later? CHECK NEWIO!
+		m_dataSets[dataSetIdx] = dataSet;
+	//}
 	if (m_curFile.isEmpty())
 	{
 		LOG(lvlDebug, "Developer Warning - consider calling setWindowTitleAndFile directly where you first call addDataSet");
@@ -642,6 +644,13 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 			dataSet->name());
 	}
 	auto p = std::make_shared<iAProgress>();
+	if (dataSet->type() == iADataSetType::Collection)
+	{
+		auto viewer = createDataSetViewer(dataSet.get());
+		viewer->prepare(m_preferences);
+		viewer->createGUI(this);
+		return NoDataSet;
+	}
 	auto fw = runAsync([this, dataSet, dataSetIdx, p]()
 		{
 			auto volData = dynamic_cast<iAImageData*>(dataSet.get());
@@ -1188,11 +1197,14 @@ void MdiChild::saveVolumeStack()
 		return;
 	}
 	auto allDataSets = dataSets();
-	auto imgDataSets = std::make_shared<iADataCollection>(allDataSets.size());
-	std::copy_if(allDataSets.begin(), allDataSets.end(), std::back_inserter(imgDataSets->dataSets()),
-		[](std::shared_ptr<iADataSet> data) {
-			return dynamic_cast<iAImageData*>(data.get());
-		});
+	auto imgDataSets = std::make_shared<iADataCollection>(allDataSets.size(), std::make_shared<QSettings>());
+	for(auto d: allDataSets)
+	{
+		if (dynamic_cast<iAImageData*>(d.get()))
+		{
+			imgDataSets->addDataSet(d);
+		}
+	}
 
 	QFileInfo fi(fileName);
 	QVariantMap paramValues;

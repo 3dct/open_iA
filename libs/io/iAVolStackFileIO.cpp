@@ -126,7 +126,7 @@ std::shared_ptr<iADataSet> iAVolStackFileIO::loadData(QString const& fileName, Q
 	// TODO: make single dataset and append additional entries to dataset!
 	// "elementNames" "energy_range" ...
 	
-	auto result = std::make_shared<iADataCollection>(maxIdx - minIdx +1 );
+	auto result = std::make_shared<iADataCollection>(maxIdx - minIdx + 1, std::make_shared<QSettings>());
 	// use iAMultiStepProgress?
 	for (int i = minIdx; i <= maxIdx; ++i)
 	{
@@ -143,7 +143,7 @@ std::shared_ptr<iADataSet> iAVolStackFileIO::loadData(QString const& fileName, Q
 		iAProgress dummyProgress;
 		QVariantMap curParamValues;
 		auto dataSet = io->load(curFileName, curParamValues, dummyProgress);
-		result->dataSets().push_back(dataSet);
+		result->addDataSet(dataSet);
 		progress.emitProgress(100 * (i - minIdx) / (maxIdx - minIdx + 1));
 	}
 	return result;

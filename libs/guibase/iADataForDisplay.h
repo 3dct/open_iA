@@ -38,7 +38,7 @@ class iAguibase_API iADataForDisplay
 {
 public:
 	iADataForDisplay(iADataSet* dataSet);
-	//! called from GUI thread when the data computation (via createDataForDisplay method below) is complete
+	//! called from GUI thread when the data computation is complete
 	virtual void show(iAMdiChild* child);
 	//! called when the dataset is removed and its related controls should close down
 	virtual ~iADataForDisplay();
@@ -56,4 +56,50 @@ private:
 	iADataSet* m_dataSet;
 };
 
-std::shared_ptr<iADataForDisplay> createDataForDisplay(iADataSet* dataSet, iAProgress* p, int numBins);
+//! base class for handling the viewing of an iADataSet in the GUI
+class iAguibase_API iADataSetViewer
+{
+public:
+	//! called directly after the dataset is loaded, should do anything that needs to be computed in the background
+	virtual void prepare(iAPreferences const & pref);
+	//! all things that need to be done in the GUI thread for viewing the dataset
+	virtual void createGUI(iAMdiChild* child) = 0;
+	// //! indicate whether it is necessary to keep this class after 
+	// bool keepAround() const;
+protected:
+	iADataSetViewer(iADataSet const * dataSet);
+	virtual ~iADataSetViewer();
+	iADataSet const* m_dataSet;
+};
+
+class iAguibase_API iAVolumeViewer: public iADataSetViewer
+{
+public:
+	iAVolumeViewer(iADataSet const * dataSet);
+	void prepare(iAPreferences const& pref) override;
+	void createGUI(iAMdiChild* child) override;
+};
+
+class iAguibase_API iAMeshViewer : public iADataSetViewer
+{
+public:
+	iAMeshViewer(iADataSet const * dataSet);
+	void prepare(iAPreferences const& pref) override;
+	void createGUI(iAMdiChild* child) override;
+};
+
+#include <QObject>
+
+class iAguibase_API iAProjectViewer : public QObject, public iADataSetViewer
+{
+public:
+	iAProjectViewer(iADataSet const * dataSet);
+	void createGUI(iAMdiChild* child) override;
+private:
+	//! IDs of the loaded datasets, to check against the list of datasets rendered
+	std::vector<size_t> m_loadedDataSets;
+	//! number of datasets to load in total
+	size_t m_numOfDataSets;
+};
+
+iAguibase_API std::shared_ptr<iADataSetViewer> createDataSetViewer(iADataSet const* dataSet);

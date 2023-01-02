@@ -22,7 +22,6 @@
 
 #include "iAGEMSeTool.h"
 #include "iARepresentative.h"
-#include "iASEAFile.h"
 
 #include <iADataSet.h>
 #include <iALog.h>
@@ -90,113 +89,8 @@ void iAGEMSeModuleInterface::Initialize()
 			setupToolbar();
 		});
 
-	QAction * actionPreCalculated = new QAction(tr("GEMSe - Load Ensemble (old)"), m_mainWnd);
-	connect(actionPreCalculated, &QAction::triggered, this, [this]()
-		{
-			QString fileName = QFileDialog::getOpenFileName(m_mainWnd,
-				tr("Load Precalculated Sampling & Clustering Data"),
-				m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->filePath() : QString(),
-				tr("GEMSe project (*.sea );;All files (*)"));
-			if (fileName.isEmpty())
-			{
-				return;
-			}
-			loadOldGEMSeProject(fileName);
-		});
-
 	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Image Ensembles"), true);
 	submenu->addAction(actionGEMSe);
-	submenu->addAction(actionPreCalculated);
-}
-
-void iAGEMSeModuleInterface::loadOldGEMSeProject(QString const & fileName)
-{
-	if (m_seaFile)
-	{
-		LOG(lvlWarn, "A loading procedure is currently in progress. Please let this finish first.");
-		return;
-	}
-	m_seaFile = QSharedPointer<iASEAFile>::create(fileName);
-	if (!m_seaFile->good())
-	{
-		LOG(lvlError, QString("GEMSe data %1 file could not be read.").arg(m_seaFile->fileName()));
-		m_seaFile.clear();
-		return;
-	}
-	m_mdiChild = m_mainWnd->createMdiChild(false);
-	connect(m_mdiChild, &iAMdiChild::fileLoaded, this, &iAGEMSeModuleInterface::loadGEMSe);
-	if (!m_mdiChild->loadFile(m_seaFile->modalityFileName(), false))
-	{
-		LOG(lvlError, QString("Failed to load project '%1' referenced from precalculated GEMSe data file %2.")
-			.arg(m_seaFile->modalityFileName())
-			.arg(m_seaFile->fileName()));
-		m_seaFile.clear();
-		return;
-	}
-}
-
-void iAGEMSeModuleInterface::loadProject(iAMdiChild* mdiChild, QSettings const & metaFile, QString const & fileName)
-{
-	m_mdiChild = mdiChild;
-	m_seaFile = QSharedPointer<iASEAFile>::create(metaFile, fileName);
-	loadGEMSe();
-}
-
-void iAGEMSeModuleInterface::saveProject(QSettings & metaFile, QString const & fileName)
-{
-	auto t = getTool<iAGEMSeTool>(m_mdiChild);
-	if (!t)
-	{
-		LOG(lvlError, "Could not store project - no GEMSE tool attached to current child!");
-		return;
-	}
-	t->saveProject(metaFile, fileName);
-}
-
-void iAGEMSeModuleInterface::loadGEMSe()
-{
-	if (!m_seaFile->good())
-	{
-		LOG(lvlError, QString("GEMSe data in file '%1' could not be read.").arg(m_seaFile->fileName()));
-		m_seaFile.clear();
-		return;
-	}
-	// load segmentation explorer:
-	auto t = addToolToActiveMdiChild<iAGEMSeTool>("GEMSe", m_mainWnd);
-	setupToolbar();
-	if (!t)
-	{
-		LOG(lvlError, "GEMSE tool could not be created!");
-		m_seaFile.clear();
-		return;
-	}
-	// load sampling data:
-	bool result = true;
-	QMap<int, QString> const & samplings = m_seaFile->samplings();
-	for (int key : samplings.keys())
-	{
-		result &= t->loadSampling(samplings[key], m_seaFile->labelCount(), key);
-		if (!result)
-			break;
-	}
-	if (!result || !t->loadClustering(m_seaFile->clusteringFileName()))
-	{
-		LOG(lvlError, QString("Loading precomputed GEMSe data from file %1 failed!").arg(m_seaFile->fileName()));
-	}
-	if (m_seaFile->layoutName() != "")
-	{
-		m_mdiChild->loadLayout(m_seaFile->layoutName());
-	}
-	if (m_seaFile->referenceImage() != "")
-	{
-		t->loadRefImg(m_seaFile->referenceImage());
-	}
-	if (m_seaFile->hiddenCharts() != "")
-	{
-		t->setSerializedHiddenCharts(m_seaFile->hiddenCharts());
-	}
-	t->setLabelInfo(m_seaFile->colorTheme(), m_seaFile->labelNames());
-	m_seaFile.clear();
 }
 
 void iAGEMSeModuleInterface::setupToolbar()

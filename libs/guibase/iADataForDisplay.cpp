@@ -21,6 +21,9 @@
 #include "iADataForDisplay.h"
 
 #include "iADataSet.h"
+#include "iAMdiChild.h"
+
+#include "iAToolRegistry.h"
 
 iADataForDisplay::iADataForDisplay(iADataSet* dataSet):
 	m_dataSet(dataSet)
@@ -55,3 +58,124 @@ void iADataForDisplay::updatedPreferences()
 
 void iADataForDisplay::dataSetChanged()
 {}
+
+
+
+iADataSetViewer::iADataSetViewer(iADataSet const * dataSet) : m_dataSet(dataSet) {}
+
+iADataSetViewer::~iADataSetViewer() {}
+
+void iADataSetViewer::prepare(iAPreferences const& pref) {
+	Q_UNUSED(pref);
+}
+
+
+
+iAVolumeViewer::iAVolumeViewer(iADataSet const * dataSet) : iADataSetViewer(dataSet)
+{
+}
+
+void iAVolumeViewer::prepare(iAPreferences const& pref)
+{
+	Q_UNUSED(pref);
+	//auto volData = dynamic_cast<iAImageData const*>(m_dataSet);
+	//if (volData)
+	//{
+	//p.get(), m_preferences.HistogramBins);
+}
+
+void iAVolumeViewer::createGUI(iAMdiChild* child)
+{
+	Q_UNUSED(child);
+}
+
+
+
+iAMeshViewer::iAMeshViewer(iADataSet const * dataSet) : iADataSetViewer(dataSet)
+{
+}
+
+void iAMeshViewer::prepare(iAPreferences const& pref)
+{
+	Q_UNUSED(pref);
+}
+
+void iAMeshViewer::createGUI(iAMdiChild* child)
+{
+	Q_UNUSED(child);
+}
+
+
+
+iAProjectViewer::iAProjectViewer(iADataSet const * dataSet) : iADataSetViewer(dataSet)
+{
+
+}
+
+
+#include "iATool.h"
+
+#include <iAMainWindow.h>
+
+#include <QSettings>
+
+void iAProjectViewer::createGUI(iAMdiChild* child)
+{
+	auto collection = dynamic_cast<iADataCollection const*>(m_dataSet);
+	auto fileName = m_dataSet->metaData(iADataSet::FileNameKey).toString();
+	QObject::connect(child, &iAMdiChild::dataSetRendered, this,
+		[this, child, collection, fileName](size_t dataSetIdx)
+		{
+			static std::set<size_t> renDS;
+	renDS.insert(dataSetIdx);
+			if (m_loadedDataSets.size() < m_numOfDataSets)
+			{
+				return;
+			}
+			for (auto l: m_loadedDataSets)
+			{
+				if (renDS.find(l) == renDS.end())
+				{
+					return;
+				}
+			}
+			// all datasets loaded, continue with loading projects!
+			auto tools = iAToolRegistry::toolKeys();
+			auto registeredTools = iAToolRegistry::toolKeys();
+			auto& projectFile = collection->settings();
+			auto projectFileGroups = projectFile.childGroups();
+			// TODO: wait for dataset to finish loading; here, only process states that are independent of dataset loading
+			for (auto toolKey : registeredTools)
+			{
+				if (projectFileGroups.contains(toolKey))
+				{
+					auto tool = iAToolRegistry::createTool(toolKey, iAMainWindow::get(), child);
+					projectFile.beginGroup(toolKey);
+					child->addTool(toolKey, tool);
+					tool->loadState(projectFile, fileName);
+					projectFile.endGroup();
+					child->addTool(toolKey, tool);
+				}
+			}
+		});
+	for (auto d : collection->dataSets())
+	{
+		auto dataSetIdx = child->addDataSet(d);
+		m_loadedDataSets.push_back(dataSetIdx);
+		// put dataSetIdx into list of dataset to finish loading
+	}
+}
+
+
+
+std::shared_ptr<iADataSetViewer> createDataSetViewer(iADataSet const* dataSet)
+{
+	switch (dataSet->type())
+	{
+	case iADataSetType::Volume: return std::make_shared<iAVolumeViewer>(dataSet);
+	case iADataSetType::Mesh: [[fallthrough]];
+	case iADataSetType::Graph:  return std::make_shared<iAMeshViewer>(dataSet);
+	case iADataSetType::Collection: return std::make_shared<iAProjectViewer>(dataSet);
+	default: return std::shared_ptr<iADataSetViewer>();
+	}
+}

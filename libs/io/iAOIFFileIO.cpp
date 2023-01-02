@@ -27,6 +27,8 @@
 
 #include <vtkImageData.h>
 
+#include <QSettings>
+
 const QString iAOIFFileIO::Name("Olympus FluoView");
 
 namespace
@@ -58,10 +60,10 @@ std::shared_ptr<iADataSet> iAOIFFileIO::loadData(QString const& fileName, QVaria
 	reader.Load();
 	if (paramValues[WhatToLoadStr].toString() == AllChannelsStr)
 	{
-		auto result = std::make_shared<iADataCollection>(reader.GetChanNum());
+		auto result = std::make_shared<iADataCollection>(reader.GetChanNum(), std::make_shared<QSettings>());
 		for (int i = 0; i < reader.GetChanNum(); ++i)
 		{
-			result->dataSets().push_back(std::make_shared<iAImageData>(reader.GetResult(i)));
+			result->addDataSet(std::make_shared<iAImageData>(reader.GetResult(i)));
 		}
 		return result;
 

@@ -27,10 +27,6 @@
 
 #include <QToolBar>
 
-class iASEAFile;
-
-class QSettings;
-
 typedef iAQTtoUIConnector<QToolBar, Ui_GEMSeToolBar> iAGEMSeToolbar;
 
 class iAGEMSeModuleInterface : public iAGUIModuleInterface
@@ -39,16 +35,7 @@ class iAGEMSeModuleInterface : public iAGUIModuleInterface
 public:
 	iAGEMSeModuleInterface();
 	void Initialize() override;
-	void loadProject(iAMdiChild* mdiChild, QSettings const & metaFile, QString const & fileName);
-	void saveProject(QSettings & metaFile, QString const & fileName);
-
-private slots:
-	void loadGEMSe();
-
-private:
-	void loadOldGEMSeProject(QString const & fileName);
 	void setupToolbar();
-
+private:
 	iAGEMSeToolbar* m_toolbar;
-	QSharedPointer<iASEAFile> m_seaFile;    //!< cache for precalculated data loading
 };

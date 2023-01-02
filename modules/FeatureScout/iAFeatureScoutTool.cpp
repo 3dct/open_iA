@@ -91,7 +91,7 @@ bool iAFeatureScoutTool::addToChild(iAMdiChild* child, iACsvConfig const& csvCon
 
 const QString iAFeatureScoutTool::ID("FeatureScout");
 
-void iAFeatureScoutTool::loadState(QSettings& projectFile, QString const& fileName)
+void iAFeatureScoutTool::loadState(QSettings & projectFile, QString const& fileName)
 {
 	if (!m_child)
 	{

@@ -25,17 +25,14 @@
 #include "dlg_samplings.h"
 #include "iAGEMSeModuleInterface.h"
 #include "iAGEMSeTool.h"
+#include "iASEAFile.h"
 
 #include <dlg_modalities.h>
 #include <iAColorTheme.h>
 #include <iALog.h>
-//#include <iALogger.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
-//#include <iAModality.h>
 #include <iAModuleDispatcher.h> // TODO: Refactor; it shouldn't be required to go via iAModuleDispatcher to retrieve one's own module
-//#include <iARenderer.h>
-//#include <iASlicer.h>
 
 const QString iAGEMSeTool::ID("GEMSe");
 
@@ -48,13 +45,48 @@ iAGEMSeTool::iAGEMSeTool(iAMainWindow* mainWnd, iAMdiChild* child):
 void iAGEMSeTool::loadState(QSettings & projectFile, QString const & fileName)
 {
 	iAGEMSeModuleInterface * gemseModule = m_mainWindow->moduleDispatcher().module<iAGEMSeModuleInterface>();
-	gemseModule->loadProject(m_child, projectFile, fileName);
+	gemseModule->setupToolbar();
+		
+	auto seaFile = QSharedPointer<iASEAFile>::create(projectFile, fileName);
+
+
+	if (!seaFile->good())
+	{
+		LOG(lvlError, QString("GEMSe data in file '%1' could not be read.").arg(seaFile->fileName()));
+		seaFile.clear();
+		return;
+	}
+	// load sampling data:
+	bool result = true;
+	QMap<int, QString> const& samplings = seaFile->samplings();
+	for (int key : samplings.keys())
+	{
+		result &= loadSampling(samplings[key], seaFile->labelCount(), key);
+		if (!result)
+			break;
+	}
+	if (!result || !loadClustering(seaFile->clusteringFileName()))
+	{
+		LOG(lvlError, QString("Loading precomputed GEMSe data from file %1 failed!").arg(seaFile->fileName()));
+	}
+	if (seaFile->layoutName() != "")
+	{
+		m_child->loadLayout(seaFile->layoutName());
+	}
+	if (seaFile->referenceImage() != "")
+	{
+		loadRefImg(seaFile->referenceImage());
+	}
+	if (seaFile->hiddenCharts() != "")
+	{
+		setSerializedHiddenCharts(seaFile->hiddenCharts());
+	}
+	setLabelInfo(seaFile->colorTheme(), seaFile->labelNames());
 }
 
 void iAGEMSeTool::saveState(QSettings & projectFile, QString const & fileName)
 {
-	iAGEMSeModuleInterface * gemseModule = m_mainWindow->moduleDispatcher().module<iAGEMSeModuleInterface>();
-	gemseModule->saveProject(projectFile, fileName);
+	m_dlgGEMSeControl->saveProject(projectFile, fileName);
 }
 
 std::shared_ptr<iATool> iAGEMSeTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
@@ -144,9 +176,4 @@ void iAGEMSeTool::importRankings()
 void iAGEMSeTool::setLabelInfo(QString const& colorTheme, QString const& labelNames)
 {
 	m_dlgGEMSeControl->setLabelInfo(colorTheme, labelNames);
-}
-
-void iAGEMSeTool::saveProject(QSettings& metaFile, QString const& fileName)
-{
-	m_dlgGEMSeControl->saveProject(metaFile, fileName);
 }

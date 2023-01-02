@@ -3079,7 +3079,7 @@ void dlg_FeatureScout::saveProject(QSettings& projectFile)
 	projectFile.setValue(ClassesProjectFile, outXML);
 }
 
-void dlg_FeatureScout::loadProject(QSettings& projectFile)
+void dlg_FeatureScout::loadProject(QSettings const & projectFile)
 {
 	if (!projectFile.contains(ClassesProjectFile))
 	{

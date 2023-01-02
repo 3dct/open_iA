@@ -760,10 +760,10 @@ void dlg_InSpectr::storeDecomposition()
 	}
 	iAVolStackFileIO io;
 	auto imgs = m_elementConcentrations->getImageListPtr();
-	auto volumes = std::make_shared<iADataCollection>(imgs->size());
+	auto volumes = std::make_shared<iADataCollection>(imgs->size(),  std::make_shared<QSettings>());
 	for (auto img : *imgs)
 	{
-		volumes->dataSets().push_back(std::make_shared<iAImageData>(img));
+		volumes->addDataSet(std::make_shared<iAImageData>(img));
 	}
 	QVariantMap paramValues;
 	paramValues[iAVolStackFileIO::AdditionalInfo] = elementInfo;

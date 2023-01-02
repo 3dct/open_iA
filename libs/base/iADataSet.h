@@ -130,19 +130,25 @@ private:
 	mutable iAConnector* m_con;
 };
 
+class QSettings;
+
 //! a collection of datasets
 class iAbase_API iADataCollection : public iADataSet
 {
 public:
-	iADataCollection(size_t capacity);
-	std::vector<std::shared_ptr<iADataSet>>& dataSets();
+	iADataCollection(size_t capacity, std::shared_ptr<QSettings> settings);
+	std::vector<std::shared_ptr<iADataSet>> const & dataSets() const;
+	void addDataSet(std::shared_ptr<iADataSet> dataSet);
 	QString info() const override;
 
+	QSettings & settings() const;   // TODO: maybe replace with QVariantMap?
+
 private:
+
 	iADataCollection(iADataCollection const& other) = delete;
 	iADataCollection& operator=(iADataCollection const& other) = delete;
 	std::vector<std::shared_ptr<iADataSet>> m_dataSets;
-	
+	std::shared_ptr<QSettings> m_settings;// TODO: maybe replace with QVariantMap?
 };
 
 iAbase_API QString boundsStr(double const* bds);

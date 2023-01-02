@@ -65,7 +65,7 @@ iATool::iATool(iAMainWindow* mainWnd, iAMdiChild* child):
 iATool::~iATool()
 {}
 
-void iATool::loadState(QSettings& projectFile, QString const& fileName)
+void iATool::loadState(QSettings & projectFile, QString const& fileName)
 {
 	Q_UNUSED(projectFile);
 	Q_UNUSED(fileName);
@@ -76,3 +76,10 @@ void iATool::saveState(QSettings& projectFile, QString const& fileName)
 	Q_UNUSED(projectFile);
 	Q_UNUSED(fileName);
 }
+
+/*
+bool  iATool::waitForRendering() const
+{
+	return true;
+}
+*/

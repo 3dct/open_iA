@@ -106,7 +106,7 @@ public:
 	void renderOrientation();         //!< color all objects according to their orientation
 
 	void saveProject(QSettings& projectFile);
-	void loadProject(QSettings& projectFile);
+	void loadProject(QSettings const & projectFile);
 
 public slots:
 	void selectionChanged3D();

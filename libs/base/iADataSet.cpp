@@ -235,18 +235,30 @@ std::array<double, 3> iAImageData::unitDistance() const
 }
 
 
-iADataCollection::iADataCollection(size_t capacity):
-	iADataSet(iADataSetType::Collection)
+iADataCollection::iADataCollection(size_t capacity, std::shared_ptr<QSettings> settings):
+	iADataSet(iADataSetType::Collection),
+	m_settings(settings)
 {
+	assert(settings);
 	m_dataSets.reserve(capacity);
 }
 
-std::vector<std::shared_ptr<iADataSet>> & iADataCollection::dataSets()
+std::vector<std::shared_ptr<iADataSet>> const & iADataCollection::dataSets() const
 {
 	return m_dataSets;
+}
+
+void iADataCollection::addDataSet(std::shared_ptr<iADataSet> dataSet)
+{
+	m_dataSets.push_back(dataSet);
 }
 
 QString iADataCollection::info() const
 {
 	return QString("Number of datasets: %1").arg(m_dataSets.size());
+}
+
+QSettings& iADataCollection::settings() const
+{
+	return *m_settings.get();
 }

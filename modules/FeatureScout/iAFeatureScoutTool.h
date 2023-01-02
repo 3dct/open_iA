@@ -63,8 +63,8 @@ public:
 	//! to ensure correct "order" of deletion (that for example object vis registered with renderer
 	//! can de-register itself, before renderer gets destroyed - if destroyed through MdiChild's
 	//! destructing its child widgets, then this happens after renderer is destroyed!
-	void saveState(QSettings& projectFile, QString const& fileName) override;
-	void loadState(QSettings& projectFile, QString const& fileName) override;
+	void saveState(QSettings & state, QString const& fileName) override;
+	void loadState(QSettings & state, QString const& fileName) override;
 
 	void setOptions(iACsvConfig const& config);
 
