@@ -22,10 +22,16 @@
 
 #include <iATool.h>
 
-#include <QSharedPointer>
+#include <memory>
+
+class dlg_GEMSe;
+class dlg_GEMSeControl;
+class dlg_priors;
+class dlg_samplings;
 
 class QSettings;
 class QString;
+class QWidget;
 
 class iAGEMSeTool : public iATool
 {
@@ -33,7 +39,27 @@ public:
 	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child);
 	iAGEMSeTool(iAMainWindow* mainWnd, iAMdiChild* child);
 	static const QString ID;
-	virtual ~iAGEMSeTool() override;
 	void loadState(QSettings & projectFile, QString const & fileName) override;
 	void saveState(QSettings & projectFile, QString const & fileName) override;
+
+	bool loadSampling(QString const& smpFileName, int labelCount, int datasetID);
+	bool loadClustering(QString const& fileName);
+	bool loadRefImg(QString const& refImgName);
+	void setSerializedHiddenCharts(QString const& hiddenCharts);
+	void setLabelInfo(QString const& colorTheme, QString const& labelNames);
+	void saveProject(QSettings& metaFile, QString const& fileName);
+
+	void resetFilter();
+	void toggleAutoShrink();
+	void toggleDockWidgetTitleBar();
+	void exportClusterIDs();
+	void exportAttributeRangeRanking();
+	void exportRankings();
+	void importRankings();
+private:
+	dlg_priors* m_dlgPriors;
+	dlg_GEMSeControl* m_dlgGEMSeControl;
+	QWidget* m_dummyTitleWidget;
+	dlg_GEMSe* m_dlgGEMSe;
+	dlg_samplings* m_dlgSamplings;
 };

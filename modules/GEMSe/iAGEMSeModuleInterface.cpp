@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iAGEMSeModuleInterface.h"
 
-#include "iAGEMSeAttachment.h"
 #include "iAGEMSeTool.h"
 #include "iARepresentative.h"
 #include "iASEAFile.h"
@@ -85,45 +84,29 @@ void iAGEMSeModuleInterface::Initialize()
 
 	QAction * actionGEMSe = new QAction(tr("GEMSe"), m_mainWnd);
 	m_mainWnd->makeActionChildDependent(actionGEMSe);
-	connect(actionGEMSe, &QAction::triggered, this, &iAGEMSeModuleInterface::startGEMSe);
+	connect(actionGEMSe, &QAction::triggered, this, [this]()
+		{
+			addToolToActiveMdiChild<iAGEMSeTool>("GEMSe", m_mainWnd);
+			setupToolbar();
+		});
 
 	QAction * actionPreCalculated = new QAction(tr("GEMSe - Load Ensemble (old)"), m_mainWnd);
-	connect(actionPreCalculated, &QAction::triggered, this, &iAGEMSeModuleInterface::loadPreCalculatedData);
+	connect(actionPreCalculated, &QAction::triggered, this, [this]()
+		{
+			QString fileName = QFileDialog::getOpenFileName(m_mainWnd,
+				tr("Load Precalculated Sampling & Clustering Data"),
+				m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->filePath() : QString(),
+				tr("GEMSe project (*.sea );;All files (*)"));
+			if (fileName.isEmpty())
+			{
+				return;
+			}
+			loadOldGEMSeProject(fileName);
+		});
 
 	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Image Ensembles"), true);
 	submenu->addAction(actionGEMSe);
 	submenu->addAction(actionPreCalculated);
-}
-
-void iAGEMSeModuleInterface::startGEMSe()
-{
-	PrepareActiveChild();
-	if (!m_mdiChild)
-		return;
-	AttachToMdiChild(m_mdiChild);
-}
-
-iAModuleAttachmentToChild* iAGEMSeModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
-{
-	auto result = iAGEMSeAttachment::create( mainWnd, child);
-	if (result)
-	{
-		setupToolbar();
-	}
-	return result;
-}
-
-void iAGEMSeModuleInterface::loadPreCalculatedData()
-{
-	QString fileName = QFileDialog::getOpenFileName(m_mainWnd,
-		tr("Load Precalculated Sampling & Clustering Data"),
-		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->filePath() : QString(),
-		tr("GEMSe project (*.sea );;All files (*)") );
-	if (fileName.isEmpty())
-	{
-		return;
-	}
-	loadOldGEMSeProject(fileName);
 }
 
 void iAGEMSeModuleInterface::loadOldGEMSeProject(QString const & fileName)
@@ -161,13 +144,13 @@ void iAGEMSeModuleInterface::loadProject(iAMdiChild* mdiChild, QSettings const &
 
 void iAGEMSeModuleInterface::saveProject(QSettings & metaFile, QString const & fileName)
 {
-	iAGEMSeAttachment* gemseAttach = attachment<iAGEMSeAttachment>(m_mdiChild);
-	if (!gemseAttach)
+	auto t = getTool<iAGEMSeTool>(m_mdiChild);
+	if (!t)
 	{
-		LOG(lvlError, "Could not store project - no GEMSE module attached to current child!");
+		LOG(lvlError, "Could not store project - no GEMSE tool attached to current child!");
 		return;
 	}
-	gemseAttach->saveProject(metaFile, fileName);
+	t->saveProject(metaFile, fileName);
 }
 
 void iAGEMSeModuleInterface::loadGEMSe()
@@ -179,23 +162,24 @@ void iAGEMSeModuleInterface::loadGEMSe()
 		return;
 	}
 	// load segmentation explorer:
-	bool result = AttachToMdiChild( m_mdiChild );
-	iAGEMSeAttachment* gemseAttach = attachment<iAGEMSeAttachment>(m_mdiChild);
-	if (!result || !gemseAttach)
+	auto t = addToolToActiveMdiChild<iAGEMSeTool>("GEMSe", m_mainWnd);
+	setupToolbar();
+	if (!t)
 	{
-		LOG(lvlError, "GEMSE attachment could not be created!");
+		LOG(lvlError, "GEMSE tool could not be created!");
 		m_seaFile.clear();
 		return;
 	}
 	// load sampling data:
+	bool result = true;
 	QMap<int, QString> const & samplings = m_seaFile->samplings();
 	for (int key : samplings.keys())
 	{
-		result &= gemseAttach->loadSampling(samplings[key], m_seaFile->labelCount(), key);
+		result &= t->loadSampling(samplings[key], m_seaFile->labelCount(), key);
 		if (!result)
 			break;
 	}
-	if (!result || !gemseAttach->loadClustering(m_seaFile->clusteringFileName()))
+	if (!result || !t->loadClustering(m_seaFile->clusteringFileName()))
 	{
 		LOG(lvlError, QString("Loading precomputed GEMSe data from file %1 failed!").arg(m_seaFile->fileName()));
 	}
@@ -205,13 +189,13 @@ void iAGEMSeModuleInterface::loadGEMSe()
 	}
 	if (m_seaFile->referenceImage() != "")
 	{
-		gemseAttach->loadRefImg(m_seaFile->referenceImage());
+		t->loadRefImg(m_seaFile->referenceImage());
 	}
 	if (m_seaFile->hiddenCharts() != "")
 	{
-		gemseAttach->setSerializedHiddenCharts(m_seaFile->hiddenCharts());
+		t->setSerializedHiddenCharts(m_seaFile->hiddenCharts());
 	}
-	gemseAttach->setLabelInfo(m_seaFile->colorTheme(), m_seaFile->labelNames());
+	t->setLabelInfo(m_seaFile->colorTheme(), m_seaFile->labelNames());
 	m_seaFile.clear();
 }
 
@@ -224,90 +208,35 @@ void iAGEMSeModuleInterface::setupToolbar()
 	m_toolbar = new iAGEMSeToolbar("GEMSe ToolBar", m_mainWnd);
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
 
-	connect(m_toolbar->action_ResetFilter, &QAction::triggered, this, &iAGEMSeModuleInterface::resetFilter);
-	connect(m_toolbar->action_ToggleAutoShrink, &QAction::triggered, this, &iAGEMSeModuleInterface::toggleAutoShrink);
-	connect(m_toolbar->action_ToggleTitleBar, &QAction::triggered, this, &iAGEMSeModuleInterface::toggleDockWidgetTitleBar);
-	connect(m_toolbar->action_ExportIDs, &QAction::triggered, this, &iAGEMSeModuleInterface::exportClusterIDs);
-	connect(m_toolbar->action_ExportAttributeRangeRanking, &QAction::triggered, this, &iAGEMSeModuleInterface::exportAttributeRangeRanking);
-	connect(m_toolbar->action_ExportRanking, &QAction::triggered, this, &iAGEMSeModuleInterface::exportRankings);
-	connect(m_toolbar->action_ImportRanking, &QAction::triggered, this, &iAGEMSeModuleInterface::importRankings);
-}
+	auto toolbarCallback = [this](auto thisfunc) {
+		auto t = getTool<iAGEMSeTool>(m_mdiChild);
+		if (!t)
+		{
+			LOG(lvlError, "ERROR: GEMSE tool is not available!");
+			return;
+		}
+		std::invoke(thisfunc, t);
+	};
 
-void iAGEMSeModuleInterface::resetFilter()
-{
-	iAGEMSeAttachment* gemseAttach = attachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
-	if (!gemseAttach)
-	{
-		LOG(lvlError, "GEMSE module is not attached!");
-		return;
-	}
-	gemseAttach->resetFilter();
-}
-
-void iAGEMSeModuleInterface::toggleAutoShrink()
-{
-	iAGEMSeAttachment* gemseAttach = attachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
-	if (!gemseAttach)
-	{
-		LOG(lvlError, "GEMSE module is not attached!");
-		return;
-	}
-	gemseAttach->toggleAutoShrink();
-}
-
-void iAGEMSeModuleInterface::toggleDockWidgetTitleBar()
-{
-	iAGEMSeAttachment* gemseAttach = attachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
-	if (!gemseAttach)
-	{
-		LOG(lvlError, "GEMSE module is not attached!");
-		return;
-	}
-	gemseAttach->toggleDockWidgetTitleBar();
-}
-
-void iAGEMSeModuleInterface::exportClusterIDs()
-{
-	iAGEMSeAttachment* gemseAttach = attachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
-	if (!gemseAttach)
-	{
-		LOG(lvlError, "GEMSE module is not attached!");
-		return;
-	}
-	gemseAttach->exportClusterIDs();
-}
-
-void iAGEMSeModuleInterface::exportAttributeRangeRanking()
-{
-	iAGEMSeAttachment* gemseAttach = attachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
-	if (!gemseAttach)
-	{
-		LOG(lvlError, "GEMSE module is not attached!");
-		return;
-	}
-	gemseAttach->exportAttributeRangeRanking();
-}
-
-
-void iAGEMSeModuleInterface::exportRankings()
-{
-	iAGEMSeAttachment* gemseAttach = attachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
-	if (!gemseAttach)
-	{
-		LOG(lvlError, "GEMSE module is not attached!");
-		return;
-	}
-	gemseAttach->exportRankings();
-}
-
-
-void iAGEMSeModuleInterface::importRankings()
-{
-	iAGEMSeAttachment* gemseAttach = attachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
-	if (!gemseAttach)
-	{
-		LOG(lvlError, "GEMSE module is not attached!");
-		return;
-	}
-	gemseAttach->importRankings();
+	connect(m_toolbar->action_ResetFilter, &QAction::triggered, this, [this, toolbarCallback]() {
+		toolbarCallback(&iAGEMSeTool::resetFilter);
+	});
+	connect(m_toolbar->action_ToggleAutoShrink, &QAction::triggered, this,[this, toolbarCallback]() {
+		toolbarCallback(&iAGEMSeTool::toggleAutoShrink);
+	});
+	connect(m_toolbar->action_ToggleTitleBar, &QAction::triggered, this, [this, toolbarCallback]() {
+		toolbarCallback(&iAGEMSeTool::toggleDockWidgetTitleBar);
+	});
+	connect(m_toolbar->action_ExportIDs, &QAction::triggered, this, [this, toolbarCallback]() {
+		toolbarCallback(&iAGEMSeTool::exportClusterIDs);
+	});
+	connect(m_toolbar->action_ExportAttributeRangeRanking, &QAction::triggered, this, [this, toolbarCallback]() {
+		toolbarCallback(&iAGEMSeTool::exportAttributeRangeRanking);
+	});
+	connect(m_toolbar->action_ExportRanking, &QAction::triggered, this, [this, toolbarCallback]() {
+		toolbarCallback(&iAGEMSeTool::exportRankings);
+	});
+	connect(m_toolbar->action_ImportRanking, &QAction::triggered, this, [this, toolbarCallback]() {
+		toolbarCallback(&iAGEMSeTool::importRankings);
+	});
 }

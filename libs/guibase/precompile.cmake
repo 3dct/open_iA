@@ -29,7 +29,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAModality.h>
 <iAModalityList.h>
 <iAModalityTransfer.h>
-<iAModuleAttachmentToChild.h>
 <iAParameterDlg.h>
 <iAPerformanceHelper.h>
 <iAProgress.h>

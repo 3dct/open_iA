@@ -41,29 +41,14 @@ public:
 	void Initialize() override;
 	void loadProject(iAMdiChild* mdiChild, QSettings const & metaFile, QString const & fileName);
 	void saveProject(QSettings & metaFile, QString const & fileName);
-protected:
-	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child) override;
+
 private slots:
-	//! @{ Menu entries:
-	void startGEMSe();
-	void loadPreCalculatedData();
-	//! @}
-	//! @{ Toolbar actions:
-	void resetFilter();
-	void toggleAutoShrink();
-	void toggleDockWidgetTitleBar();
-	void exportClusterIDs();
-	void exportAttributeRangeRanking();
-	void exportRankings();
-	void importRankings();
-	//! @}
 	void loadGEMSe();
+
 private:
 	void loadOldGEMSeProject(QString const & fileName);
 	void setupToolbar();
 
 	iAGEMSeToolbar* m_toolbar;
-
-	//! cache for precalculated data loading
-	QSharedPointer<iASEAFile> m_seaFile;
+	QSharedPointer<iASEAFile> m_seaFile;    //!< cache for precalculated data loading
 };
