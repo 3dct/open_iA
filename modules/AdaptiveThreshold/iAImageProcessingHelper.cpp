@@ -25,15 +25,12 @@
 #include <iAFilter.h>
 #include <iALog.h>
 #include <iAModalityTransfer.h>
-//#include <iAProgress.h>
 #include <iAMdiChild.h>
 #include <iAMainWindow.h>
 
 #include <QString>
 
-//#include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
-//#include <vtkScalarsToColors.h>
 
 void performSegmentation(iAMdiChild* child, double greyThresholdLower, double greyThresholdUpper)
 {
@@ -62,7 +59,6 @@ void performSegmentation(iAMdiChild* child, double greyThresholdLower, double gr
 			throw std::invalid_argument("Change order of values");
 		}
 		auto filter = iAFilterRegistry::filter("Binary Thresholding");
-		//connect(filter->progress(), &iAProgress::pprogress, this, &iAImageProcessingHelper::slotObserver);
 		if (!filter)
 		{
 			throw std::invalid_argument("Could not retrieve Binary Thresholding filter. Make sure Segmentation plugin was loaded correctly!");
@@ -86,5 +82,4 @@ void performSegmentation(iAMdiChild* child, double greyThresholdLower, double gr
 	{
 		LOG(lvlError, iav.what());
 	}
-	//TODO show result in new window
 }
