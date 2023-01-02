@@ -25,7 +25,7 @@
 #include <QString>
 
 //! Interface for anything that can be saved as a project.
-//! Necessary since not all current tools employ mdichild as container for their widgets.
+//! Necessary since not all current tools employ iAMdiChild as container for their widgets.
 //! So every such container needs to implement this class and its doLoadProject method,
 //! in order to be called when the user selects to "Save Project".
 //!

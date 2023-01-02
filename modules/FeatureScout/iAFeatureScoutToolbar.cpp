@@ -69,13 +69,28 @@ iAFeatureScoutToolbar::iAFeatureScoutToolbar(iAMainWindow* mainWnd) :
 	m_mainWnd(mainWnd)
 {
 	m_ui->setupUi(this);
+	auto toolbarCallback = [this](auto thisfunc) {
+		auto fs = getFSFromChild(m_mainWnd->activeMdiChild());
+		if (!fs)
+		{
+			LOG(lvlInfo, "No FeatureScout tool open in current iAMdiChild!");
+			return;
+		}
+		std::invoke(thisfunc, fs);
+	};
 	connect(m_mainWnd, &iAMainWindow::childChanged, this, &iAFeatureScoutToolbar::childChanged);
-	connect(m_ui->actionLength_Distribution, &QAction::triggered, this, &iAFeatureScoutToolbar::buttonClicked);
-	connect(m_ui->actionMeanObject, &QAction::triggered, this, &iAFeatureScoutToolbar::buttonClicked);
-	connect(m_ui->actionMultiRendering, &QAction::triggered, this, &iAFeatureScoutToolbar::buttonClicked);
-	connect(m_ui->actionOrientation_Rendering, &QAction::triggered, this, &iAFeatureScoutToolbar::buttonClicked);
-	connect(m_ui->actionActivate_SPM, &QAction::triggered, this, &iAFeatureScoutToolbar::buttonClicked);
-	connect(m_ui->actionSettingsPC, &QAction::triggered, this, &iAFeatureScoutToolbar::buttonClicked);
+	connect(m_ui->actionLength_Distribution, &QAction::triggered, this,
+		[toolbarCallback]() { toolbarCallback(&dlg_FeatureScout::renderLengthDistribution); });
+	connect(m_ui->actionMeanObject, &QAction::triggered, this,
+		[toolbarCallback]() { toolbarCallback(&dlg_FeatureScout::renderMeanObject); });
+	connect(m_ui->actionMultiRendering, &QAction::triggered, this,
+		[toolbarCallback]() { toolbarCallback(&dlg_FeatureScout::multiClassRendering); });
+	connect(m_ui->actionOrientation_Rendering, &QAction::triggered, this,
+		[toolbarCallback]() { toolbarCallback(&dlg_FeatureScout::renderOrientation); });
+	connect(m_ui->actionActivate_SPM, &QAction::triggered, this,
+		[toolbarCallback]() { toolbarCallback(&dlg_FeatureScout::showScatterPlot); });
+	connect(m_ui->actionSettingsPC, &QAction::triggered, this,
+		[toolbarCallback]() { toolbarCallback(&dlg_FeatureScout::showPCSettings); });
 }
 
 iAFeatureScoutToolbar::~iAFeatureScoutToolbar() = default;
@@ -97,21 +112,4 @@ void iAFeatureScoutToolbar::childClosed()
 void iAFeatureScoutToolbar::childChanged()
 {
 	setEnabled(getFSFromChild(m_mainWnd->activeMdiChild()));
-}
-
-void iAFeatureScoutToolbar::buttonClicked()
-{
-	auto fs = getFSFromChild(m_mainWnd->activeMdiChild());
-	if (!fs)
-	{
-		LOG(lvlInfo, "No FeatureScout attachment in current iAMdiChild!");
-		return;
-	}
-	QString actionText = qobject_cast<QAction*>(sender())->text();
-	if      (actionText.toStdString() == "Multi Rendering")       { fs->multiClassRendering();      }
-	else if (actionText.toStdString() == "Mean Object")           { fs->renderMeanObject();         }
-	else if (actionText.toStdString() == "Orientation Rendering") { fs->renderOrientation();        }
-	else if (actionText.toStdString() == "Activate SPM")          {	fs->showScatterPlot();          }
-	else if (actionText.toStdString() == "Length Distribution")   { fs->renderLengthDistribution(); }
-	else if (actionText.toStdString() == "PC settings")           { fs->showPCSettings();           }
 }

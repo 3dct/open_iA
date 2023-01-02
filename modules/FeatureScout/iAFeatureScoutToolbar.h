@@ -42,7 +42,6 @@ public:
 	iAFeatureScoutToolbar(const iAFeatureScoutToolbar&) = delete;
 	//! @}
 private slots:
-	void buttonClicked();
 	void childClosed();
 	void childChanged();
 private:
