@@ -46,7 +46,7 @@ public:
 	static const QString CompressionStr;
 	//! create a file I/O for the given dataset type
 	iAFileIO(iADataSetTypes readTypes, iADataSetTypes writeTypes);
-	//! virtual destructor for proper cleanup
+	//! virtual destructor, to enable proper destruction in derived classes and to avoid warnings
 	virtual ~iAFileIO();
 	//! The name of the file type that this IO supports
 	virtual QString name() const = 0;

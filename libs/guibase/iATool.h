@@ -33,6 +33,7 @@ class iAguibase_API iATool
 public:
 	//! implementation (empty) in iAToolRegistry.cpp
 	iATool(iAMainWindow* mainWnd, iAMdiChild* child);
+	//! virtual destructor, to enable proper destruction in derived classes and to avoid warnings
 	virtual ~iATool();
 	//! load the state of the tool from the  given settings
 	virtual void loadState(QSettings & projectFile, QString const & fileName); // TODO: replace QSettings with QVariantMap? or at least make const (can't currently because of beginGroup/endGroup

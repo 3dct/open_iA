@@ -84,7 +84,7 @@ public:
 	//!     can implement custom abort listeners through overriding the abort() function
 	iAFilter(QString const & name, QString const & category, QString const & description = "",
 		unsigned int requiredInputs = 1, unsigned int outputCount = 1, bool supportsAbort = false);
-	//! Virtual destructor because of inheritance (mostly to avoid warnings about missing virtual destructor).
+	//! virtual destructor, to enable proper destruction in derived classes and to avoid warnings
 	virtual ~iAFilter();
 	//! Retrieve the filter name.
 	QString name() const;
