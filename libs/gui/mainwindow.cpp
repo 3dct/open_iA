@@ -758,15 +758,12 @@ void MainWindow::loadCamera(QDomNode const & node, vtkCamera* camera)
 	position[0] = attributes.namedItem("positionX").nodeValue().toDouble();
 	position[1] = attributes.namedItem("positionY").nodeValue().toDouble();
 	position[2] = attributes.namedItem("positionZ").nodeValue().toDouble();
-	position[3] = attributes.namedItem("positionW").nodeValue().toDouble();
 	focalPoint[0] = attributes.namedItem("focalPointX").nodeValue().toDouble();
 	focalPoint[1] = attributes.namedItem("focalPointY").nodeValue().toDouble();
 	focalPoint[2] = attributes.namedItem("focalPointZ").nodeValue().toDouble();
-	focalPoint[3] = attributes.namedItem("focalPointW").nodeValue().toDouble();
 	viewUp[0] = attributes.namedItem("viewUpX").nodeValue().toDouble();
 	viewUp[1] = attributes.namedItem("viewUpY").nodeValue().toDouble();
 	viewUp[2] = attributes.namedItem("viewUpZ").nodeValue().toDouble();
-	viewUp[3] = attributes.namedItem("viewUpW").nodeValue().toDouble();
 
 	camera->SetPosition(position);
 	camera->SetFocalPoint(focalPoint);
@@ -789,15 +786,12 @@ void MainWindow::saveCamera(QDomElement &cameraElement, vtkCamera* camera)
 	cameraElement.setAttribute("positionX", tr("%1").arg(position[0]));
 	cameraElement.setAttribute("positionY", tr("%1").arg(position[1]));
 	cameraElement.setAttribute("positionZ", tr("%1").arg(position[2]));
-	cameraElement.setAttribute("positionW", tr("%1").arg(position[3]));
 	cameraElement.setAttribute("focalPointX", tr("%1").arg(focalPoint[0]));
 	cameraElement.setAttribute("focalPointY", tr("%1").arg(focalPoint[1]));
 	cameraElement.setAttribute("focalPointZ", tr("%1").arg(focalPoint[2]));
-	cameraElement.setAttribute("focalPointW", tr("%1").arg(focalPoint[3]));
 	cameraElement.setAttribute("viewUpX", tr("%1").arg(viewUp[0]));
 	cameraElement.setAttribute("viewUpY", tr("%1").arg(viewUp[1]));
 	cameraElement.setAttribute("viewUpZ", tr("%1").arg(viewUp[2]));
-	cameraElement.setAttribute("viewUpW", tr("%1").arg(viewUp[3]));
 
 	if (camera->GetParallelProjection())
 	{
@@ -1488,28 +1482,28 @@ void MainWindow::rendererCamPosition()
 	}
 }
 
-void MainWindow::raycasterAssignIso()
+void MainWindow::rendererSyncCamera()
 {
 	QList<iAMdiChild *> mdiwindows = mdiChildList();
 	int sizeMdi = mdiwindows.size();
-	if (sizeMdi > 1)
+	if (sizeMdi <= 1)
 	{
-		double camOptions[10] = {0};
-		if (activeMdiChild())
+		return;
+	}
+	double camOptions[10] = {0};
+	activeMDI()->camPosition(camOptions);
+	for (int i = 0; i < sizeMdi; i++)
+	{
+		MdiChild *tmpChild = dynamic_cast<MdiChild*>(mdiwindows.at(i));
+		if (tmpChild == activeMDI())
 		{
-			activeMDI()->camPosition(camOptions);
+			continue;
 		}
-		for (int i = 0; i < sizeMdi; i++)
-		{
-			MdiChild *tmpChild = dynamic_cast<MdiChild*>(mdiwindows.at(i));
-
-			// check dimension and spacing here, if not the same with active mdichild, skip.
-			tmpChild->setCamPosition(camOptions, m_defaultRenderSettings.ParallelProjection);
-		}
+		tmpChild->setCamPosition(camOptions, m_defaultRenderSettings.ParallelProjection);
 	}
 }
 
-void MainWindow::raycasterSaveCameraSettings()
+void MainWindow::rendererSaveCameraSettings()
 {
 	QString filePath = activeMdiChild()->currentFile();
 	filePath.truncate(filePath.lastIndexOf('/'));
@@ -1523,9 +1517,8 @@ void MainWindow::raycasterSaveCameraSettings()
 	xml.save(fileName);
 }
 
-void MainWindow::raycasterLoadCameraSettings()
+void MainWindow::rendererLoadCameraSettings()
 {
-	// load camera settings
 	QString filePath = activeMdiChild()->currentFile();
 	filePath.truncate(filePath.lastIndexOf('/'));
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath, tr("XML (*.xml)"));
@@ -1539,9 +1532,8 @@ void MainWindow::raycasterLoadCameraSettings()
 	{
 		return;
 	}
-
 	// apply this camera settings to all the MdiChild.
-	raycasterAssignIso();
+	rendererSyncCamera();
 }
 
 iAMdiChild* MainWindow::resultChild(iAMdiChild* iaOldChild, QString const & title)
@@ -2007,9 +1999,9 @@ void MainWindow::connectSignalsToSlots()
 	m_ui->actionIsometricViewInRaycaster->setProperty("camPosition", iACameraPosition::Iso);
 
 	// Camera toolbar:
-	connect(m_ui->actionAssignView,   &QAction::triggered, this, &MainWindow::raycasterAssignIso);
-	connect(m_ui->actionSaveCameraSettings, &QAction::triggered, this, &MainWindow::raycasterSaveCameraSettings);
-	connect(m_ui->actionLoadCameraSettings, &QAction::triggered, this, &MainWindow::raycasterLoadCameraSettings);
+	connect(m_ui->actionAssignView,   &QAction::triggered, this, &MainWindow::rendererSyncCamera);
+	connect(m_ui->actionSaveCameraSettings, &QAction::triggered, this, &MainWindow::rendererSaveCameraSettings);
+	connect(m_ui->actionLoadCameraSettings, &QAction::triggered, this, &MainWindow::rendererLoadCameraSettings);
 
 	// Snake slicer toolbar
 	connect(m_ui->actionSnakeSlicer,  &QAction::toggled, this, &MainWindow::toggleSnakeSlicer);

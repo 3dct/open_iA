@@ -708,7 +708,7 @@
     <string>3D renderer +X</string>
    </property>
    <property name="toolTip">
-    <string>View +X direction in 3D renderer</string>
+    <string>Set camera to +X direction in 3D renderer</string>
    </property>
   </action>
   <action name="actionViewYDirectionInRaycaster">
@@ -720,7 +720,7 @@
     <string>3D renderer +Y</string>
    </property>
    <property name="toolTip">
-    <string>View +Y direction in 3D renderer</string>
+    <string>Set camera to +Y direction in 3D renderer</string>
    </property>
   </action>
   <action name="actionViewZDirectionInRaycaster">
@@ -732,7 +732,7 @@
     <string>3D renderer +Z</string>
    </property>
    <property name="toolTip">
-    <string>View +Z direction in 3D renderer</string>
+    <string>Set camera to +Z direction in 3D renderer</string>
    </property>
   </action>
   <action name="actionViewmXDirectionInRaycaster">
@@ -744,7 +744,7 @@
     <string>3D renderer -X</string>
    </property>
    <property name="toolTip">
-    <string>View -X direction in 3D renderer</string>
+    <string>Set camera to -X direction in 3D renderer</string>
    </property>
   </action>
   <action name="actionViewmYDirectionInRaycaster">
@@ -756,7 +756,7 @@
     <string>3D renderer -Y</string>
    </property>
    <property name="toolTip">
-    <string>View -Y direction in 3D renderer</string>
+    <string>Set camera to -Y direction in 3D renderer</string>
    </property>
   </action>
   <action name="actionViewmZDirectionInRaycaster">
@@ -768,7 +768,7 @@
     <string>3D renderer -Z</string>
    </property>
    <property name="toolTip">
-    <string>View -Z direction in 3D renderer</string>
+    <string>Set camera to -Z direction in 3D renderer</string>
    </property>
   </action>
   <action name="actionAssignView">
@@ -777,10 +777,10 @@
      <normaloff>:/images/update.png</normaloff>:/images/update.png</iconset>
    </property>
    <property name="text">
-    <string>Assign camera view</string>
+    <string>Synchronize cameras</string>
    </property>
    <property name="toolTip">
-    <string>Assign camera view</string>
+    <string>Synchronize camera from 3D renderer of active window to all other open windows</string>
    </property>
   </action>
   <action name="actionIsometricViewInRaycaster">
@@ -789,10 +789,10 @@
      <normaloff>:/images/iso.png</normaloff>:/images/iso.png</iconset>
    </property>
    <property name="text">
-    <string>3D renderer: Isometric view</string>
+    <string>Isometric view</string>
    </property>
    <property name="toolTip">
-    <string>Switch to isometric view in 3D renderer</string>
+    <string>Switch camera to isometric view in 3D renderer</string>
    </property>
   </action>
   <action name="actionRawProfile">

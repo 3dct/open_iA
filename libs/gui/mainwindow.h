@@ -192,9 +192,9 @@ private slots:
 	void toggleMagicLens(bool isChecked);
 	void toggleMagicLens3D(bool isChecked);
 	void rendererCamPosition();
-	void raycasterAssignIso();
-	void raycasterSaveCameraSettings();
-	void raycasterLoadCameraSettings();
+	void rendererSyncCamera();
+	void rendererSaveCameraSettings();
+	void rendererLoadCameraSettings();
 	void openRecentFile();
 	void childClosed();
 	void listDockWidgetsInMenu();

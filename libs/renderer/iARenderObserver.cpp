@@ -33,6 +33,8 @@
 #include <vtkTransform.h>
 #include <vtkWorldPointPicker.h>
 
+#include <iAToolsVTK.h>    // for setCamPosition
+
 iARenderObserver::iARenderObserver(vtkRenderer* pRen, vtkRenderer* pLabelRen, vtkRenderWindowInteractor* pIren,
 	vtkPicker* pPicker, vtkTransform* pTrans, vtkImageData* pImageData, vtkPlane* plane1, vtkPlane* plane2,
 	vtkPlane* plane3, vtkCellLocator* cellLocator)
@@ -141,12 +143,7 @@ void iARenderObserver::Execute(vtkObject * caller,
 						m_pPlane1->SetNormal(1, 0, 0);
 						m_pPlane2->SetNormal(0, 1, 0);
 						m_pPlane3->SetNormal(0, 0, 1);
-
-						// TODO: avoid duplication with iARenderer setCamPosition!
-						vtkCamera* cam = m_pRen->GetActiveCamera();
-						cam->SetViewUp(0, 0, 1);
-						cam->SetPosition(1, 1, 1);
-						cam->SetFocalPoint(0, 0, 0);
+						setCamPosition(m_pRen->GetActiveCamera(), iACameraPosition::PZ);
 						m_pRen->ResetCamera();
 						break;
 					}
