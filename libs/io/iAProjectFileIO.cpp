@@ -66,21 +66,6 @@ std::shared_ptr<iADataSet> iAProjectFileIO::loadData(QString const& fileName, QV
 		return {};
 	}
 
-	// Global settings ...?
-	//    - separate type of dataset? / special handling?
-	/*
-	if (!stringToArray<double>(settings.value(CameraPositionKey).toString(), m_camPosition, 3) ||
-		!stringToArray<double>(settings.value(CameraFocalPointKey).toString(), m_camFocalPoint, 3) ||
-		!stringToArray<double>(settings.value(CameraViewUpKey).toString(), m_camViewUp, 3))
-	{
-		//LOG(lvlWarn, QString("Invalid or missing camera information."));
-	}
-	else
-	{
-		m_camSettingsAvailable = true;
-	}
-	*/
-
 	int maxIdx = 0;
 	while (settings.contains(dataSetGroup(maxIdx) + "/File"))
 	{

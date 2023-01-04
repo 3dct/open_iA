@@ -60,6 +60,7 @@ class vtkTransform;
 
 class QFileInfo;
 class QHBoxLayout;
+class QSettings;
 class QSlider;
 
 class iAguibase_API iAMdiChild : public QMainWindow
@@ -222,6 +223,8 @@ public:
 
 	//! apply the given (3D) renderer settings
 	virtual bool applyRendererSettings(iARenderSettings const& rs, iAVolumeSettings const& vs) = 0;
+	//! Apply settings to the 3D renderer of the dataset with given index (the given map can also contain a subset of the list of available render parameters, the rest will be left at default)
+	virtual void applyRenderSettings(size_t dataSetIdx, QVariantMap const& renderSettings) = 0;
 
 	//! add a dataset
 	virtual size_t addDataSet(std::shared_ptr<iADataSet> dataSet) = 0;
@@ -229,7 +232,6 @@ public:
 	virtual void removeDataSet(size_t dataSetIdx) = 0;
 	//! clear (remove) all datasets
 	virtual void clearDataSets() = 0;
-
 	//! Retrieve a list of all datasets loaded in this window. NOTE: The index in this data structure does not reflect the index! TODO: maybe remove this to avoid confusion because of the indexing differences!
 	virtual std::vector<std::shared_ptr<iADataSet>> dataSets() const = 0;
 	//! Retrieve a dataset by its index
@@ -240,8 +242,8 @@ public:
 	static const size_t NoDataSet = std::numeric_limits<size_t>::max();
 
 	// Methods currently required by some modules for specific dataset access
+	// {
 	// ToDo: There's potential for better encapsulation / better API here!
-
 	//! Retrieve the first image dataset (if any loaded).
 	//! Will produce an error log entry if no image data is found so use with care
 	virtual vtkSmartPointer<vtkImageData> firstImageData() const = 0;
@@ -253,8 +255,7 @@ public:
 	//! Retrieve the 3D renderer for dataSet with given index
 	//! @return the renderer or nullptr if dataset with given index does not exist or has no renderer
 	virtual iADataSetRenderer* dataSetRenderer(size_t idx) const = 0;
-	//! Apply settings to the 3D renderer of the dataset with given index (the given map can also contain a subset of the list of available render parameters, the rest will be left at default)
-	virtual void applyRenderSettings(size_t dataSetIdx, QVariantMap const& renderSettings) = 0;
+	// }
 
 	//! set window title, and if a file name is given, set it as window file and add it to recent files
 	virtual void setWindowTitleAndFile(QString const& f) = 0;
@@ -309,6 +310,11 @@ public:
 	virtual void setHistogramModality(int modalityIdx) = 0;
 	//! @}
 	virtual void set3DControlVisibility(bool visible) = 0;
+
+	//! save state, for example camera position
+	virtual void saveSettings(QSettings& settings) = 0;
+	//! load state (saved via saveState)
+	virtual void loadSettings(QSettings const& settings) = 0;
 
 signals:
 	void closed();

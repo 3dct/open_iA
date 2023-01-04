@@ -814,6 +814,12 @@ namespace
 			f.endsWith("tif", Qt::CaseInsensitive) ||
 			f.endsWith("tiff", Qt::CaseInsensitive);
 	}
+
+	const QString CameraPositionKey("CameraPosition");
+	const QString CameraFocalPointKey("CameraFocalPoint");
+	const QString CameraViewUpKey("CameraViewUp");
+	const QString CameraParallelProjection("CameraParallelProjection");
+	const QString CameraParallelScale("CameraParallelScale");
 }
 
 bool MdiChild::loadFile(const QString& f, bool isStack)
@@ -3202,6 +3208,42 @@ bool MdiChild::hasUnsavedData() const
 		}
 	}
 	return false;
+}
+
+void MdiChild::saveSettings(QSettings& settings)
+{
+	// move to iARenderer, create saveSettings method there?
+	// {
+	auto cam = renderer()->renderer()->GetActiveCamera();
+	settings.setValue(CameraPositionKey, arrayToString(cam->GetPosition(), 3));
+	settings.setValue(CameraFocalPointKey, arrayToString(cam->GetFocalPoint(), 3));
+	settings.setValue(CameraViewUpKey, arrayToString(cam->GetViewUp(), 3));
+	settings.setValue(CameraParallelScale, cam->GetParallelScale());
+	settings.setValue(CameraParallelProjection, cam->GetParallelProjection());
+	// }
+}
+
+void MdiChild::loadSettings(QSettings const& settings)
+{
+	// move to iARenderer, create loadSettings method there?
+	// {
+	double camPos[3], camFocalPt[3], camViewUp[3];
+	if (!stringToArray<double>(settings.value(CameraPositionKey).toString(), camPos, 3) ||
+		!stringToArray<double>(settings.value(CameraFocalPointKey).toString(), camFocalPt, 3) ||
+		!stringToArray<double>(settings.value(CameraViewUpKey).toString(), camViewUp, 3))
+	{
+		LOG(lvlWarn, QString("Invalid or missing camera information."));
+		return;
+	}
+	auto cam = renderer()->renderer()->GetActiveCamera();
+	bool parProj = settings.value(CameraParallelProjection, cam->GetParallelProjection()).toBool();
+	double parScale = settings.value(CameraParallelScale, cam->GetParallelScale()).toDouble();
+	cam->SetPosition(camPos);
+	cam->SetViewUp(camViewUp);
+	cam->SetPosition(camPos);
+	cam->SetParallelProjection(parProj);
+	cam->SetParallelScale(parScale);
+	// }
 }
 
 void MdiChild::displayHistogram(int modalityIdx)

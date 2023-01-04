@@ -329,6 +329,9 @@ public:
 
 	bool hasUnsavedData() const;
 
+	void saveSettings(QSettings& settings) override;
+	void loadSettings(QSettings const& settings) override;
+
 public slots:
 	void maximizeRC();
 

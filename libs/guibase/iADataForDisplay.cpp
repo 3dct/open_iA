@@ -116,8 +116,9 @@ iAProjectViewer::iAProjectViewer(iADataSet const* dataSet) :
 	m_numOfDataSets = collection->dataSets().size();
 }
 
-#include "iATool.h"
+#include <iAStringHelper.h>
 
+#include <iATool.h>
 #include <iAMainWindow.h>
 
 #include <QSettings>
@@ -128,6 +129,10 @@ void iAProjectViewer::createGUI(iAMdiChild* child)
 	auto fileName = m_dataSet->metaData(iADataSet::FileNameKey).toString();
 	auto afterRenderCallback = [this, child, collection, fileName]() {
 		// all datasets loaded, continue with loading projects!
+
+		auto const & settings = collection->settings();
+		child->loadSettings(settings);
+
 		auto tools = iAToolRegistry::toolKeys();
 		auto registeredTools = iAToolRegistry::toolKeys();
 		auto& projectFile = collection->settings();
@@ -143,7 +148,7 @@ void iAProjectViewer::createGUI(iAMdiChild* child)
 				projectFile.endGroup();
 			}
 		}
-		// CHECK NEWIO we could remove the viewer here from the mdi child (no API
+		// CHECK NEWIO: we could remove the viewer here from the mdi child (no API for that though - yet)
 	};
 	// if no datasets available, directly load tools...
 	if (collection->dataSets().empty())
