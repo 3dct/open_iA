@@ -84,7 +84,7 @@ private:
 	vtkLookupTable *m_lookupTable;
 	vtkScalarBarActor *m_scalarBarActor;
 	vtkScalarBarWidget *m_scalarBarWidget;
-	vtkDepthSortPolyData *m_depthSort;
+	//vtkDepthSortPolyData *m_depthSort;
 	vtkPointPicker *m_picker;
 	vtkCubeAxesActor2D *m_cubeAxes;;
 	vtkPolyDataMapper *m_pickedMapper;

@@ -487,10 +487,13 @@ private:
 	//! @}
 
 	//! smart pointer to first image data shown in mdiChild.
-	//! @deprecated use modality data instead, will be removed
+	//! @deprecated use dataSets instead, will be removed soon
+	//! @{
 	vtkSmartPointer<vtkImageData> m_imageData;
 	vtkPolyData * m_polyData;
 	vtkTransform * m_axesTransform;
+	//! @}
+
 	vtkTransform * m_slicerTransform;
 	iARendererImpl * m_renderer;
 	std::array<iASlicerImpl*, 3> m_slicer;
@@ -549,7 +552,7 @@ private:
 	std::map<size_t, std::shared_ptr<iADataSetRenderer>> m_dataRenderers; //!< 3D renderers (one per dataset in m_datasets)
 	std::map<size_t, std::shared_ptr<iADataSetRenderer>> m_3dMagicLensRenderers; //!< 3D renderers for magic lens (one per dataset in m_datasets)
 	std::map<size_t, std::shared_ptr<iASliceRenderer>> m_sliceRenderers;  //!< slice renderers (one per dataset in m_datsets)
-
+	// should become the replacement for the four maps above
 	std::map<size_t, std::shared_ptr<iADataSetViewer>> m_dataSetViewers;
 
 	void setDataSetMovable(size_t dataSetIdx);

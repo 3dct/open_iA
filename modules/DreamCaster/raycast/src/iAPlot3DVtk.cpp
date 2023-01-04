@@ -20,32 +20,28 @@
 * ************************************************************************************/
 #include "../include/iAPlot3DVtk.h"
 #include "../include/iADreamCasterCommon.h"
-//VTK
-#include <vtkObject.h>
-#include <vtkCamera.h>
-#include <vtkRenderer.h>
-#include <vtkPolyData.h>
-#include <vtkProperty.h>
-#include <vtkIntArray.h>
-#include <vtkFloatArray.h>
-#include <vtkCellData.h>
-#include <vtkPolyDataMapper.h>
+
 #include <vtkActor.h>
+#include <vtkAxisActor2D.h>
+#include <vtkCellArray.h>
+#include <vtkCellData.h>
+#include <vtkConeSource.h>
+#include <vtkCubeAxesActor2D.h>
+//#include <vtkDepthSortPolyData.h>
+#include <vtkFloatArray.h>
+#include <vtkIntArray.h>
 #include <vtkLookupTable.h>
+#include <vtkPointData.h>
+#include <vtkPointPicker.h>
+#include <vtkPoints.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
+#include <vtkProperty2D.h>
+#include <vtkQuad.h>
+#include <vtkRenderer.h>
 #include <vtkScalarBarActor.h>
 #include <vtkScalarBarWidget.h>
-#include <vtkVoxel.h>
-#include <vtkCellArray.h>
-#include <vtkPoints.h>
-#include <vtkDepthSortPolyData.h>
-#include <vtkPointPicker.h>
-#include <vtkQuad.h>
-#include <vtkAxes.h>
-#include <vtkProperty2D.h>
-#include <vtkAxisActor2D.h>
-#include <vtkCubeAxesActor2D.h>
-#include <vtkPointData.h>
-#include <vtkConeSource.h>
 
 iAPlot3DVtk::iAPlot3DVtk():
 					m_correctTransparency(0),
@@ -53,7 +49,7 @@ iAPlot3DVtk::iAPlot3DVtk():
 {
 	m_points = 0;
 	m_cellScalars = 0;
-	m_depthSort = 0;
+	//m_depthSort = 0;
 	m_renderer = vtkRenderer::New();
 	m_grid = vtkPolyData::New();
 
@@ -145,7 +141,7 @@ iAPlot3DVtk::~iAPlot3DVtk()
 	if (m_lookupTable!=0) m_lookupTable->Delete();
 	if (m_scalarBarActor!=0) m_scalarBarActor->Delete();
 	if (m_scalarBarWidget!=0) m_scalarBarWidget->Delete();
-	if (m_depthSort!=0) m_depthSort->Delete();
+	//if (m_depthSort!=0) m_depthSort->Delete();
 	if (m_renderer!=0) m_renderer->Delete();
 	if (m_picker!=0) m_picker->Delete();
 	if (m_cubeAxes!=0) m_cubeAxes->Delete();
@@ -342,7 +338,7 @@ void iAPlot3DVtk::SetAxesParams( int showaxes, int showlabels, double color[3], 
 
 void iAPlot3DVtk::HighlightPickedPoint()
 {
-	vtkConeSource * src = vtkConeSource::New();
+	vtkNew<vtkConeSource> src;
 	src->SetRadius(0.025);
 	src->SetHeight(0.1);
 	src->SetResolution(12);
@@ -350,7 +346,6 @@ void iAPlot3DVtk::HighlightPickedPoint()
 	src->SetCenter(pickData.pos[0], pickData.pos[1]+0.5*src->GetHeight(), pickData.pos[2]);
 	m_pickedMapper->SetInputConnection(src->GetOutputPort());
 	m_pickedActor->SetMapper(m_pickedMapper);
-	src->Delete();
 	Update();
 }
 
@@ -362,8 +357,8 @@ void iAPlot3DVtk::loadFromData( double * plotData, double * scalars, int cntX, i
 	float clenX = 2.0f/(float)(cntX-1);
 	float clenZ = 2.0f/(float)(cntZ-1);
 	m_cubeAxes->SetRanges(0, maxDim, 0, maxDim, 0, maxDim);
-	vtkQuad *GridQuad=vtkQuad::New();
-	vtkCellArray *gridCells=vtkCellArray::New();
+	vtkNew<vtkQuad> GridQuad;
+	vtkNew<vtkCellArray> gridCells;
 	m_sizeX = cntX; m_sizeZ = cntZ;
 	if (m_points!=0) m_points->Delete();
 	m_points = vtkPoints::New();
@@ -411,8 +406,6 @@ void iAPlot3DVtk::loadFromData( double * plotData, double * scalars, int cntX, i
 	m_grid->SetPoints(m_points);
 	m_grid->SetPolys(gridCells);
 	m_grid->GetPointData()->SetScalars(m_cellScalars);
-	gridCells->Delete();
-	GridQuad->Delete();
 	Update();
 }
 

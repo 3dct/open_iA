@@ -85,7 +85,6 @@ public:
 	void disableInteractor();
 	void enableInteractor();
 	void setAxesTransform(vtkTransform* transform) override;
-	//vtkTransform* axesTransform(void) override;
 
 	void setPlaneNormals( vtkTransform *tr ) ;
 	//! Set the position of the position marker to the given world coordinates
@@ -116,7 +115,6 @@ public:
 	void setSlicePlaneOpacity(float opc);
 
 	void setAreaPicker() override;
-	void setPointPicker();
 
 	void update() override;
 	void showHelpers(bool show);
@@ -228,7 +226,9 @@ private:
 	vtkSmartPointer<vtkOrientationMarkerWidget> m_orientationMarkerWidget;
 	//! @}
 
+	//! cutting planes:
 	vtkSmartPointer<vtkPlane> m_plane1, m_plane2, m_plane3;
+
 	vtkSmartPointer<vtkPicker> m_pointPicker;
 
 	//! @{ movable axes

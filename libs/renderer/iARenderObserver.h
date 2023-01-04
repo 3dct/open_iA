@@ -46,42 +46,18 @@ class iArenderer_API iARenderObserver : public QObject, public vtkCommand
 	enum Axis { X_AXIS = 1, Y_AXIS, Z_AXIS };
 
 public:
-	iARenderObserver(vtkRenderer* pRen,
-						 vtkRenderer* pLabelRen,
-						 vtkRenderWindowInteractor* pIren,
-						 vtkPicker* pPicker,
-						 vtkTransform* pTrans,
-						 vtkImageData* pImageData,
-						 vtkPlane* plane1,
-						 vtkPlane* plane2,
-						 vtkPlane* plane3,
-						 vtkCellLocator * cellLocator
-						 );
+	iARenderObserver(vtkRenderer* pRen, vtkRenderer* pLabelRen, vtkRenderWindowInteractor* pIren, vtkPicker* pPicker,
+		vtkTransform* pTrans, vtkImageData* pImageData, vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3,
+		vtkCellLocator* cellLocator);
 	~iARenderObserver();
-
-	static iARenderObserver *New(vtkRenderer* pRen,
-									 vtkRenderer* pLabelRen,
-									 vtkRenderWindowInteractor* pIren,
-									 vtkPicker* pPicker,
-									 vtkTransform* pTrans,
-									 vtkImageData* pImageData,
-									 vtkPlane* plane1,
-									 vtkPlane* plane2,
-									 vtkPlane* plane3,
-									 vtkCellLocator *cellLocator);
-	void ReInitialize( vtkRenderer* pRen,
-		vtkRenderer* pLabelRen,
-		vtkRenderWindowInteractor* pIren,
-		vtkPicker* pPicker,
-		vtkTransform* pTrans,
-		vtkImageData* pImageData,
-		vtkPlane* plane1,
-		vtkPlane* plane2,
-		vtkPlane* plane3,
-		vtkCellLocator *cellLocator );
+	static iARenderObserver* New(vtkRenderer* pRen, vtkRenderer* pLabelRen, vtkRenderWindowInteractor* pIren,
+		vtkPicker* pPicker, vtkTransform* pTrans, vtkImageData* pImageData, vtkPlane* plane1, vtkPlane* plane2,
+		vtkPlane* plane3, vtkCellLocator* cellLocator);
+	void ReInitialize(vtkRenderer* pRen, vtkRenderer* pLabelRen, vtkRenderWindowInteractor* pIren, vtkPicker* pPicker,
+		vtkTransform* pTrans, vtkImageData* pImageData, vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3,
+		vtkCellLocator* cellLocator);
 
 	void AddListener(vtkCommand* listener);
-
 	int GetMode();
 	vtkCellLocator * GetCellLocator();
 	vtkRenderWindowInteractor* GetInteractor();
@@ -90,6 +66,7 @@ public:
 	vtkPicker* GetPicker();
 	vtkWorldPointPicker* GetWorldPicker();
 	void PickWithWorldPicker();
+
 protected:
 	vtkRenderer* m_pRen, *m_pLabelRen;
 	vtkRenderWindowInteractor* m_pIren;
@@ -101,14 +78,12 @@ protected:
 	vtkLineSource* m_pLine;
 	vtkProbeFilter* m_pProbe;
 
-	vtkPlane* m_pPlane1;
-	vtkPlane* m_pPlane2;
-	vtkPlane* m_pPlane3;
-
 	vtkCellLocator * m_pcellLocator;
 
 private:
-	bool rotate;
+	vtkPlane* m_pPlane1;
+	vtkPlane* m_pPlane2;
+	vtkPlane* m_pPlane3;
 	int mode, pos[3];
 	double speed;
 	double scale;

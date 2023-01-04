@@ -33,18 +33,9 @@
 #include <vtkTransform.h>
 #include <vtkWorldPointPicker.h>
 
-#include <QTextStream>
-
-iARenderObserver::iARenderObserver(vtkRenderer* pRen,
-	vtkRenderer* pLabelRen,
-	vtkRenderWindowInteractor* pIren,
-	vtkPicker* pPicker,
-	vtkTransform* pTrans,
-	vtkImageData* pImageData,
-	vtkPlane* plane1,
-	vtkPlane* plane2,
-	vtkPlane* plane3,
-	vtkCellLocator * cellLocator )
+iARenderObserver::iARenderObserver(vtkRenderer* pRen, vtkRenderer* pLabelRen, vtkRenderWindowInteractor* pIren,
+	vtkPicker* pPicker, vtkTransform* pTrans, vtkImageData* pImageData, vtkPlane* plane1, vtkPlane* plane2,
+	vtkPlane* plane3, vtkCellLocator* cellLocator)
 {
 	m_pRen = pRen;
 	m_pLabelRen = pLabelRen;
@@ -60,7 +51,6 @@ iARenderObserver::iARenderObserver(vtkRenderer* pRen,
 	m_pLine = vtkLineSource::New();
 	m_pProbe = vtkProbeFilter::New();
 
-	rotate = false;
 	mode = 0; pos[0] = 0; pos[1] = 0; pos[2] = 0;
 	speed = 1.0;
 	scale = 1.0;
@@ -68,7 +58,9 @@ iARenderObserver::iARenderObserver(vtkRenderer* pRen,
 	m_pWorldPicker = vtkWorldPointPicker::New();
 }
 
-void iARenderObserver::ReInitialize( vtkRenderer* pRen, vtkRenderer* pLabelRen, vtkRenderWindowInteractor* pIren, vtkPicker* pPicker, vtkTransform* pTrans, vtkImageData* pImageData, vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3, vtkCellLocator *cellLocator )
+void iARenderObserver::ReInitialize(vtkRenderer* pRen, vtkRenderer* pLabelRen, vtkRenderWindowInteractor* pIren,
+	vtkPicker* pPicker, vtkTransform* pTrans, vtkImageData* pImageData, vtkPlane* plane1, vtkPlane* plane2,
+	vtkPlane* plane3, vtkCellLocator* cellLocator)
 {
 	m_pRen = pRen;
 	m_pLabelRen = pLabelRen;
@@ -82,6 +74,13 @@ void iARenderObserver::ReInitialize( vtkRenderer* pRen, vtkRenderer* pLabelRen, 
 	m_pcellLocator = cellLocator;
 }
 
+iARenderObserver* iARenderObserver::New(vtkRenderer* pRen, vtkRenderer* pLabelRen, vtkRenderWindowInteractor* pIren,
+	vtkPicker* pPicker, vtkTransform* pTrans, vtkImageData* pImageData, vtkPlane* plane1, vtkPlane* plane2,
+	vtkPlane* plane3, vtkCellLocator* cellLocator)
+{
+	return new iARenderObserver(
+		pRen, pLabelRen, pIren, pPicker, pTrans, pImageData, plane1, plane2, plane3, cellLocator);
+}
 
 iARenderObserver::~iARenderObserver()
 {
@@ -114,145 +113,125 @@ void iARenderObserver::Execute(vtkObject * caller,
 		case vtkCommand::KeyPressEvent:
 		{
 			char keyCode = m_pIren->GetKeyCode();
-			char* keySym = m_pIren->GetKeySym();
 			emit keyPressed(keyCode);
 			if (keyCode == '\t') {
-				mode++; if (mode > 1) mode = 0;
+				mode = (mode + 1) % 2;
 			}
 
 			if (mode == 0)
 			{
-				if (!keySym || strlen(keySym) == 0)
-					return;
-				keyCode = keySym[0];
 				switch (keyCode)
 				{
-				case 'x':
-				{
-					m_pPlane1->SetNormal(-m_pPlane1->GetNormal()[0], -m_pPlane1->GetNormal()[1], -m_pPlane1->GetNormal()[2]);
-				}
-				break;
-				case 'y':
-				{
-					m_pPlane2->SetNormal(-m_pPlane2->GetNormal()[0], -m_pPlane2->GetNormal()[1], -m_pPlane2->GetNormal()[2]);
-				}
-				break;
-				case 'z':
-				{
-					m_pPlane3->SetNormal(-m_pPlane3->GetNormal()[0], -m_pPlane3->GetNormal()[1], -m_pPlane3->GetNormal()[2]);
-				}
-				break;
-				case 'r':
-				{
-					pos[0] = 0; pos[1] = 0; pos[2] = 0; CheckPos(2);
+					case 'x':
+						m_pPlane1->SetNormal(-m_pPlane1->GetNormal()[0], -m_pPlane1->GetNormal()[1], -m_pPlane1->GetNormal()[2]);
+						break;
+					case 'y':
+						m_pPlane2->SetNormal(-m_pPlane2->GetNormal()[0], -m_pPlane2->GetNormal()[1], -m_pPlane2->GetNormal()[2]);
+						break;
+					case 'z':
+						m_pPlane3->SetNormal(-m_pPlane3->GetNormal()[0], -m_pPlane3->GetNormal()[1], -m_pPlane3->GetNormal()[2]);
+						break;
+					case 'r':
+					{
+						pos[0] = 0; pos[1] = 0; pos[2] = 0; CheckPos(2);
 
-					m_pPlane1->SetOrigin(0, 0, 0);
-					m_pPlane2->SetOrigin(0, 0, 0);
-					m_pPlane3->SetOrigin(0, 0, 0);
-					m_pPlane1->SetNormal(1, 0, 0);
-					m_pPlane2->SetNormal(0, 1, 0);
-					m_pPlane3->SetNormal(0, 0, 1);
+						m_pPlane1->SetOrigin(0, 0, 0);
+						m_pPlane2->SetOrigin(0, 0, 0);
+						m_pPlane3->SetOrigin(0, 0, 0);
+						m_pPlane1->SetNormal(1, 0, 0);
+						m_pPlane2->SetNormal(0, 1, 0);
+						m_pPlane3->SetNormal(0, 0, 1);
 
-					// TODO: avoid duplication with iARenderer setCamPosition!
-					vtkCamera* cam = m_pRen->GetActiveCamera();
-					cam->SetViewUp(0, 0, 1);
-					cam->SetPosition(1, 1, 1);
-					cam->SetFocalPoint(0, 0, 0);
-					m_pRen->ResetCamera();
-				}
-				break;
+						// TODO: avoid duplication with iARenderer setCamPosition!
+						vtkCamera* cam = m_pRen->GetActiveCamera();
+						cam->SetViewUp(0, 0, 1);
+						cam->SetPosition(1, 1, 1);
+						cam->SetFocalPoint(0, 0, 0);
+						m_pRen->ResetCamera();
+						break;
+					}
 				}
 				m_pIren->Render();
 			}
 			// ability to move second coordinate axis; required for registration
 			else if (mode == 1)
 			{
-				if (m_pIren->GetControlKey())
-					rotate = !rotate;
-
-				// TODO: check: double-use of code '\t' (also used for mode switching, see above)
-				if (keyCode == '\t')
-				{
-					if (speed == 10.0) speed = 1.0;
-					else speed = 10.0;
-				}
-
-				if (!keySym || strlen(keySym) == 0)
-					return;
-				keyCode = keySym[0];
 				switch (keyCode)
 				{
-				case '0':
-				{
-					double origin[3];
-					PickVolume(origin);
-
-					vtkNew<vtkMatrix4x4> matrix;
-					matrix->DeepCopy(m_pTrans->GetMatrix());
-					matrix->SetElement(0, 3, origin[0]);
-					matrix->SetElement(1, 3, origin[1]);
-					matrix->SetElement(2, 3, origin[2]);
-					m_pTrans->SetMatrix(matrix.GetPointer());
-				}
-				break;
-				case '1':
-				{
-					double pickedAxis[3];
-					PickVolume(pickedAxis);
-
-					SetAxis(X_AXIS, pickedAxis);
-				}
-				break;
-				case '2':
-				{
-					double pickedAxis[3];
-					PickVolume(pickedAxis);
-
-					SetAxis(Y_AXIS, pickedAxis);
-				}
-				break;
-				case '3':
-				{
-					double pickedAxis[3];
-					PickVolume(pickedAxis);
-
-					SetAxis(Z_AXIS, pickedAxis);
-				}
-				break;
-				case '4':
-					scale *= 0.8;
-					m_pTrans->Scale(0.8, 0.8, 0.8);
-					break;
-				case '5':
-					scale *= 1.2;
-					m_pTrans->Scale(1.2, 1.2, 1.2);
-					break;
-				}
-
-				if (rotate)
-				{
-					switch (keyCode)
+					case 's':
 					{
-					case 'x': m_pTrans->RotateWXYZ(speed, 1.0, 0.0, 0.0); break;
-					case 'X': m_pTrans->RotateWXYZ(-speed, 1.0, 0.0, 0.0); break;
-					case 'y': m_pTrans->RotateWXYZ(speed, 0.0, 1.0, 0.0); break;
-					case 'Y': m_pTrans->RotateWXYZ(-speed, 0.0, 1.0, 0.0); break;
-					case 'z': m_pTrans->RotateWXYZ(speed, 0.0, 0.0, 1.0); break;
-					case 'Z': m_pTrans->RotateWXYZ(-speed, 0.0, 0.0, 1.0); break;
+						if (speed == 10.0) speed = 1.0;
+						else speed = 10.0;
+						break;
 					}
-				}
-				else
-				{
-					switch (keyCode)
+					case '0':
 					{
-					case 'x': m_pTrans->Translate(speed, 0.0, 0.0); break;
-					case 'X': m_pTrans->Translate(-speed, 0.0, 0.0); break;
-					case 'y': m_pTrans->Translate(0.0, speed, 0.0); break;
-					case 'Y': m_pTrans->Translate(0.0, -speed, 0.0); break;
-					case 'z': m_pTrans->Translate(0.0, 0.0, speed); break;
-					case 'Z': m_pTrans->Translate(0.0, 0.0, -speed); break;
+						double origin[3];
+						PickVolume(origin);
+
+						vtkNew<vtkMatrix4x4> matrix;
+						matrix->DeepCopy(m_pTrans->GetMatrix());
+						matrix->SetElement(0, 3, origin[0]);
+						matrix->SetElement(1, 3, origin[1]);
+						matrix->SetElement(2, 3, origin[2]);
+						m_pTrans->SetMatrix(matrix.GetPointer());
+						break;
 					}
-				}
+					case '1':
+					{
+						double pickedAxis[3];
+						PickVolume(pickedAxis);
+						SetAxis(X_AXIS, pickedAxis);
+						break;
+					}
+					case '2':
+					{
+						double pickedAxis[3];
+						PickVolume(pickedAxis);
+						SetAxis(Y_AXIS, pickedAxis);
+						break;
+					}
+					case '3':
+					{
+						double pickedAxis[3];
+						PickVolume(pickedAxis);
+						SetAxis(Z_AXIS, pickedAxis);
+						break;
+					}
+					case '4':
+						scale *= 0.8;
+						m_pTrans->Scale(0.8, 0.8, 0.8);
+						break;
+					case '5':
+						scale *= 1.2;
+						m_pTrans->Scale(1.2, 1.2, 1.2);
+						break;
+					}
+					bool rotate = m_pIren->GetControlKey();
+					if (rotate)
+					{
+						switch (keyCode)
+						{
+						case 'x': m_pTrans->RotateWXYZ(speed, 1.0, 0.0, 0.0); break;
+						case 'X': m_pTrans->RotateWXYZ(-speed, 1.0, 0.0, 0.0); break;
+						case 'y': m_pTrans->RotateWXYZ(speed, 0.0, 1.0, 0.0); break;
+						case 'Y': m_pTrans->RotateWXYZ(-speed, 0.0, 1.0, 0.0); break;
+						case 'z': m_pTrans->RotateWXYZ(speed, 0.0, 0.0, 1.0); break;
+						case 'Z': m_pTrans->RotateWXYZ(-speed, 0.0, 0.0, 1.0); break;
+						}
+					}
+					else
+					{
+						switch (keyCode)
+						{
+						case 'x': m_pTrans->Translate(speed, 0.0, 0.0); break;
+						case 'X': m_pTrans->Translate(-speed, 0.0, 0.0); break;
+						case 'y': m_pTrans->Translate(0.0, speed, 0.0); break;
+						case 'Y': m_pTrans->Translate(0.0, -speed, 0.0); break;
+						case 'z': m_pTrans->Translate(0.0, 0.0, speed); break;
+						case 'Z': m_pTrans->Translate(0.0, 0.0, -speed); break;
+						}
+					}
 			}
 			break;
 		}
@@ -262,7 +241,6 @@ void iARenderObserver::Execute(vtkObject * caller,
 		listener->Execute(caller, eid, callData);
 	}
 }
-
 
 void iARenderObserver::PickVolume(double point[3])
 {
@@ -378,7 +356,6 @@ void iARenderObserver::PickVolume(double point[3])
 	}
 }
 
-
 void iARenderObserver::SetAxis(Axis axis, double pickedAxis[3])
 {
 	double trans[3] = {
@@ -422,7 +399,6 @@ void iARenderObserver::SetAxis(Axis axis, double pickedAxis[3])
 	m_pTrans->GetMatrix()->SetElement(2, axis%3, thirdAxis[2]);
 }
 
-
 void iARenderObserver::CheckPos(int dim)
 {
 	if (!m_pImageData)
@@ -444,7 +420,6 @@ void iARenderObserver::CheckPos(int dim)
 	}
 }
 
-
 void iARenderObserver::PickWithWorldPicker()
 {
 	m_pRen->Render();
@@ -455,32 +430,10 @@ void iARenderObserver::PickWithWorldPicker()
 		m_pRen);
 }
 
-
-iARenderObserver * iARenderObserver::New( vtkRenderer* pRen,
-	vtkRenderer* pLabelRen,
-	vtkRenderWindowInteractor* pIren,
-	vtkPicker* pPicker,
-	vtkTransform* pTrans,
-	vtkImageData* pImageData,
-	vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3,
-	vtkCellLocator *cellLocator )
-{
-	return new iARenderObserver(pRen,
-		pLabelRen,
-		pIren,
-		pPicker,
-		pTrans,
-		pImageData,
-		plane1,	plane2,	plane3,
-		cellLocator);
-}
-
-
 void iARenderObserver::AddListener(vtkCommand* listener)
 {
 	m_listener.push_back(listener);
 }
-
 
 int iARenderObserver::GetMode()
 {
@@ -491,6 +444,7 @@ vtkCellLocator * iARenderObserver::GetCellLocator()
 {
 	return m_pcellLocator;
 }
+
 vtkRenderWindowInteractor* iARenderObserver::GetInteractor()
 {
 	return m_pIren;
@@ -505,10 +459,12 @@ vtkRenderer* iARenderObserver::GetLabelRenderer()
 {
 	return m_pLabelRen;
 }
+
 vtkPicker* iARenderObserver::GetPicker()
 {
 	return m_pPicker;
 }
+
 vtkWorldPointPicker* iARenderObserver::GetWorldPicker()
 {
 	return m_pWorldPicker;

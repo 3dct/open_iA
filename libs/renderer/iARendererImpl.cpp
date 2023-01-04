@@ -243,6 +243,7 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_plane1(vtkSmartPointer<vtkPlane>::New()),
 	m_plane2(vtkSmartPointer<vtkPlane>::New()),
 	m_plane3(vtkSmartPointer<vtkPlane>::New()),
+	m_pointPicker(vtkSmartPointer<vtkPicker>::New()),
 	m_moveableAxesActor(vtkSmartPointer<vtkAxesActor>::New()),
 	m_profileLineStartPointSource(vtkSmartPointer<vtkSphereSource>::New()),
 	m_profileLineStartPointMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
@@ -412,7 +413,9 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_interactor->AddObserver(vtkCommand::RightButtonPressEvent, m_renderObserver);
 	m_interactor->AddObserver(vtkCommand::RightButtonReleaseEvent, m_renderObserver);
 
-	setPointPicker();
+	m_pointPicker->SetTolerance(0.00005);//spacing[0]/150);
+	m_interactor->SetPicker(m_pointPicker);
+	setDefaultInteractor();
 
 	for (int i = 0; i < NumOfProfileLines; ++i)
 	{
@@ -551,14 +554,6 @@ void iARendererImpl::setAreaPicker()
 	m_selectedActor->GetProperty()->EdgeVisibilityOn();
 	m_selectedActor->GetProperty()->SetEdgeColor(c.redF(), c.greenF(), c.blueF());
 	m_selectedActor->GetProperty()->SetLineWidth(3);
-}
-
-void iARendererImpl::setPointPicker()
-{
-	m_pointPicker = vtkSmartPointer<vtkPicker>::New();
-	m_pointPicker->SetTolerance(0.00005);//spacing[0]/150);
-	m_interactor->SetPicker(m_pointPicker);
-	setDefaultInteractor();
 }
 
 void iARendererImpl::setDefaultInteractor()
@@ -909,8 +904,7 @@ vtkActor* iARendererImpl::selectedActor() { return m_selectedActor; }
 vtkUnstructuredGrid* iARendererImpl::finalSelection() { return m_finalSelection; }
 vtkDataSetMapper* iARendererImpl::selectedMapper() { return m_selectedMapper; }
 vtkTransform* iARendererImpl::coordinateSystemTransform() { m_moveableAxesTransform->Update(); return m_moveableAxesTransform; }
-void iARendererImpl::setAxesTransform(vtkTransform *transform) { m_moveableAxesTransform = transform; }
-//vtkTransform * iARendererImpl::axesTransform(void) { return m_moveableAxesTransform; }
+void iARendererImpl::setAxesTransform(vtkTransform* transform) { m_moveableAxesTransform = transform; }
 iARenderObserver * iARendererImpl::getRenderObserver() { return m_renderObserver; }
 
 void iARendererImpl::setSlicingBounds(const int roi[6], const double * spacing)
