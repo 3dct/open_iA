@@ -107,11 +107,14 @@ void iAMeshViewer::createGUI(iAMdiChild* child)
 
 
 
-iAProjectViewer::iAProjectViewer(iADataSet const * dataSet) : iADataSetViewer(dataSet)
+iAProjectViewer::iAProjectViewer(iADataSet const* dataSet) :
+	iADataSetViewer(dataSet),
+	m_numOfDataSets(0)
 {
-
+	auto collection = dynamic_cast<iADataCollection const*>(m_dataSet);
+	assert(collection);
+	m_numOfDataSets = collection->dataSets().size();
 }
-
 
 #include "iATool.h"
 
@@ -123,47 +126,57 @@ void iAProjectViewer::createGUI(iAMdiChild* child)
 {
 	auto collection = dynamic_cast<iADataCollection const*>(m_dataSet);
 	auto fileName = m_dataSet->metaData(iADataSet::FileNameKey).toString();
+	auto afterRenderCallback = [this, child, collection, fileName]() {
+		// all datasets loaded, continue with loading projects!
+		auto tools = iAToolRegistry::toolKeys();
+		auto registeredTools = iAToolRegistry::toolKeys();
+		auto& projectFile = collection->settings();
+		auto projectFileGroups = projectFile.childGroups();
+		for (auto toolKey : registeredTools)
+		{
+			if (projectFileGroups.contains(toolKey))
+			{
+				auto tool = iAToolRegistry::createTool(toolKey, iAMainWindow::get(), child);
+				projectFile.beginGroup(toolKey);
+				child->addTool(toolKey, tool);
+				tool->loadState(projectFile, fileName);
+				projectFile.endGroup();
+			}
+		}
+		// CHECK NEWIO we could remove the viewer here from the mdi child (no API
+	};
+	// if no datasets available, directly load tools...
+	if (collection->dataSets().empty())
+	{
+		afterRenderCallback();
+		return;
+	}
+	// ...otherwise load datasets first...
 	QObject::connect(child, &iAMdiChild::dataSetRendered, this,
-		[this, child, collection, fileName](size_t dataSetIdx)
+		[this, child, collection, fileName, afterRenderCallback](size_t dataSetIdx)
 		{
 			static std::set<size_t> renDS;
-	renDS.insert(dataSetIdx);
+			renDS.insert(dataSetIdx);
 			if (m_loadedDataSets.size() < m_numOfDataSets)
 			{
 				return;
 			}
-			for (auto l: m_loadedDataSets)
+			for (auto l : m_loadedDataSets)
 			{
 				if (renDS.find(l) == renDS.end())
 				{
 					return;
 				}
 			}
-			// all datasets loaded, continue with loading projects!
-			auto tools = iAToolRegistry::toolKeys();
-			auto registeredTools = iAToolRegistry::toolKeys();
-			auto& projectFile = collection->settings();
-			auto projectFileGroups = projectFile.childGroups();
-			// TODO: wait for dataset to finish loading; here, only process states that are independent of dataset loading
-			for (auto toolKey : registeredTools)
-			{
-				if (projectFileGroups.contains(toolKey))
-				{
-					auto tool = iAToolRegistry::createTool(toolKey, iAMainWindow::get(), child);
-					projectFile.beginGroup(toolKey);
-					child->addTool(toolKey, tool);
-					tool->loadState(projectFile, fileName);
-					projectFile.endGroup();
-					child->addTool(toolKey, tool);
-				}
-			}
+			// ... and continue with loading tools once all datasets have been rendered
+			afterRenderCallback();
 		});
 	for (auto d : collection->dataSets())
 	{
 		auto dataSetIdx = child->addDataSet(d);
 		m_loadedDataSets.push_back(dataSetIdx);
-		// put dataSetIdx into list of dataset to finish loading
 	}
+	// TODO: provide option to immediately load tools without waiting for dataset to finish loading/rendering?
 }
 
 

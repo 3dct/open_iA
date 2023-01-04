@@ -61,6 +61,7 @@ class vtkTransform;
 class dlg_volumePlayer;
 class iADataForDisplay;
 class iADataSetListWidget;
+class iADataSetViewer;
 class iAParametricSpline;
 struct iAProfileProbe;
 class iASliceRenderer;
@@ -548,6 +549,8 @@ private:
 	std::map<size_t, std::shared_ptr<iADataSetRenderer>> m_dataRenderers; //!< 3D renderers (one per dataset in m_datasets)
 	std::map<size_t, std::shared_ptr<iADataSetRenderer>> m_3dMagicLensRenderers; //!< 3D renderers for magic lens (one per dataset in m_datasets)
 	std::map<size_t, std::shared_ptr<iASliceRenderer>> m_sliceRenderers;  //!< slice renderers (one per dataset in m_datsets)
+
+	std::map<size_t, std::shared_ptr<iADataSetViewer>> m_dataSetViewers;
 
 	void setDataSetMovable(size_t dataSetIdx);
 	vtkSmartPointer<iAvtkInteractStyleActor> m_manualMoveStyle[4];        //!< for syncing the manual registration between views
