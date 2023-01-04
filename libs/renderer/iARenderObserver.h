@@ -95,6 +95,7 @@ private:
 	void CheckPos(int dim);
 
 signals:
-	void clicked(int x, int y, int z);
+	// currently not emitted since we do not need it anywhere, and it would need to be rebuilt to emit world/scene coordinates instead of pixel ones
+	//void clicked(int x, int y, int z);
 	void keyPressed(int keyCode);
 };
