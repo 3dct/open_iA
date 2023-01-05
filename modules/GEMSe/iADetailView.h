@@ -41,12 +41,13 @@ class QTextEdit;
 class iAChannelData;
 class iAChartAttributeMapper;
 class iAColorTheme;
+class iADataSet;
 class iAImageCoordinate;
 class iAImageTreeNode;
 class iAImagePreviewWidget;
 class iALabelInfo;
-class iAModalityList;
 class iATimedEvent;
+class iATransferFunction;
 class iAvtkImageData;
 
 class vtkColorTransferFunction;
@@ -63,7 +64,8 @@ public:
 	iADetailView(iAImagePreviewWidget* prevWdgt,
 		iAImagePreviewWidget* compareWdgt,
 		ClusterImageType nullImage,
-		QSharedPointer<iAModalityList> modalities,
+		std::vector<std::shared_ptr<iADataSet>> const & dataSets,
+		std::vector<iATransferFunction*> const & transfer,
 		iALabelInfo const & labelInfo,
 		iAColorTheme const * colorTheme,
 		int representativeType,
@@ -71,7 +73,6 @@ public:
 	void SetNode(iAImageTreeNode const * node,
 		QSharedPointer<iAAttributes> allAttributes,
 		iAChartAttributeMapper const & mapper);
-
 	void SetCompareNode(iAImageTreeNode const * node);
 	int sliceNumber() const;
 	void UpdateLikeHate(bool isLike, bool isHate);
@@ -87,6 +88,7 @@ public:
 	iAResultFilter const & GetResultFilter() const;
 	void SetRefImg(LabelImagePointer refImg);
 	void SetCorrectnessUncertaintyOverlay(bool enabled);
+
 signals:
 	void Like();
 	void Hate();
@@ -94,8 +96,7 @@ signals:
 	void ViewUpdated();
 	void SlicerHover(double x, double y, double z, int);
 	void ResultFilterUpdate();
-protected:
-	virtual void paintEvent(QPaintEvent * );
+
 private slots:
 	void dblClicked();
 	void changeModality(int);
@@ -105,7 +106,9 @@ private slots:
 	void SlicerReleased(double x, double y, double z);
 	void TriggerResultFilterUpdate();
 	void ResetResultFilter();
+
 private:
+	void paintEvent(QPaintEvent * ) override;
 	void setImage();
 	void AddResultFilterPixel(double x, double y, double z);
 	void AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf, QString const & name);
@@ -123,13 +126,13 @@ private:
 	QLabel* m_cmpDetailsLabel;
 	QStandardItemModel* m_labelItemModel;
 	bool m_showingClusterRepresentative;
+	std::vector<std::shared_ptr<iADataSet>> m_dataSets;
+	std::vector<iATransferFunction*> m_transfer;
 	ClusterImageType m_nullImage;
-	QSharedPointer<iAModalityList> m_modalities;
 	int m_representativeType;
 	LabelImagePointer m_refImg;
 
-	int m_magicLensCurrentModality;
-	int m_magicLensCurrentComponent;
+	int m_magicLensDataSetIdx;
 	bool m_magicLensEnabled;
 	int m_magicLensCount;
 	iAColorTheme const * m_colorTheme;

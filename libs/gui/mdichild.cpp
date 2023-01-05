@@ -314,6 +314,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 				setDataSetMovable(dataSetIdx);
 			}
 		});
+	connect(m_dataSetListWidget, &iADataSetListWidget::dataSetSelected, this, &iAMdiChild::dataSetSelected);
 
 	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
 	{

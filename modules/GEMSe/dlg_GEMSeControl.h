@@ -37,7 +37,6 @@ class iAImageSampler;
 
 class dlg_GEMSe;
 class dlg_Consensus;
-class dlg_modalities;
 class dlg_samplings;
 class iASamplingSettingsDlg;
 class iAColorTheme;
@@ -57,7 +56,6 @@ public:
 	dlg_GEMSeControl(
 		QWidget *parentWidget,
 		dlg_GEMSe* dlgGEMSe,
-		dlg_modalities* dlgModalities,
 		//std::vector<std::shared_ptr<iADataSet>> const & dataSets,
 		dlg_samplings* dlgSamplings,
 		iAColorTheme const * colorTheme
@@ -84,7 +82,7 @@ private slots:
 	void saveClustering();
 	void saveDerivedOutputSlot();
 	void dataAvailable();
-	void modalitySelected(int modalityIdx);
+	void dataSetSelected(size_t dataSetIdx);
 	void SetIconSize(int newSize);
 	void setColorTheme(int index);
 	void setRepresentative(int index);
@@ -103,7 +101,6 @@ private:
 		QString const & attributeDescriptorOutputFileName,
 		QSharedPointer<iASamplingResults> results);
 
-	dlg_modalities* m_dlgModalities;
 	iASamplingSettingsDlg* m_dlgSamplingSettings;
 	dlg_GEMSe* m_dlgGEMSe;
 	dlg_samplings* m_dlgSamplings;

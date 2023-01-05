@@ -37,6 +37,7 @@
 
 class iACameraWidget;
 class iAColorTheme;
+class iADataSet;
 class iADetailView;
 class iAFakeTreeNode;
 class iAFavoriteWidget;
@@ -48,11 +49,11 @@ class iAImageTreeView;
 class iAExampleImageWidget;
 class iALabelInfo;
 class iALogger;
-class iAModalityList;
 class iAPreviewWidgetPool;
 class iAProbingWidget;
 class iASamplingResults;
 class iASingleResult;
+class iATransferFunction;
 
 class vtkImageData;
 
@@ -65,7 +66,8 @@ public:
 	dlg_GEMSe(QWidget *parent, iALogger * logger, iAColorTheme const * colorTheme);
 	void SetTree(QSharedPointer<iAImageTree> imageTree,
 		vtkSmartPointer<vtkImageData> originalImage,
-		QSharedPointer<iAModalityList> modalities,
+		std::vector<std::shared_ptr<iADataSet>> const& dataSets,
+		std::vector<iATransferFunction*> const& transfer,
 		iALabelInfo const * labelInfo,
 		QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > samplings);
 	void StoreClustering(QString const & fileName);

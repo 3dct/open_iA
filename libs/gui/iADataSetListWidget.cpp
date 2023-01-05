@@ -166,7 +166,8 @@ iADataSetListWidget::iADataSetListWidget()
 				emit set3DMagicLensVisibility(dataSetIdx, checked);
 				break;
 			default:
-				LOG(lvlWarn, QString("Unhandled itemChanged(colum = %1)").arg(col));
+				emit dataSetSelected(dataSetIdx);
+				//LOG(lvlWarn, QString("Unhandled itemChanged(colum = %1)").arg(col));
 				break;
 			}
 		});

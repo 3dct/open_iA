@@ -77,7 +77,8 @@ dlg_GEMSe::dlg_GEMSe(
 void dlg_GEMSe::SetTree(
 	QSharedPointer<iAImageTree > imageTree,
 	vtkSmartPointer<vtkImageData> originalImage,
-	QSharedPointer<iAModalityList> modalities,
+	std::vector<std::shared_ptr<iADataSet>> const& dataSets,
+	std::vector<iATransferFunction*> const& transfer,
 	iALabelInfo const * labelInfo,
 	QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > samplings)
 {
@@ -117,7 +118,7 @@ void dlg_GEMSe::SetTree(
 
 	m_detailView = new iADetailView(m_previewWidgetPool->getWidget(this, true),
 		m_previewWidgetPool->getWidget(this, false),
-		m_nullImage, modalities, *labelInfo,
+		m_nullImage, dataSets, transfer, *labelInfo,
 		m_colorTheme, m_representativeType,
 		wdDetails);
 	m_detailView->SetNode(m_selectedCluster.data(), m_chartAttributes, m_chartAttributeMapper);

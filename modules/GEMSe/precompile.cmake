@@ -1,7 +1,6 @@
 set(GEMSe_PRECOMPILE_INCLUDES
 <iAPlotTypes.h>
 <dlg_GEMSe.h>
-<dlg_modalities.h>
 <dlg_samplings.h>
 <iAAttitudes.h>
 <iAAttributeDescriptor.h>
@@ -26,8 +25,6 @@ set(GEMSe_PRECOMPILE_INCLUDES
 <iALog.h>
 <iAMathUtility.h>
 <iAMeasures.h>
-<iAModality.h>
-<iAModalityList.h>
 <iAParamHistogramData.h>
 <iAPreviewWidgetPool.h>
 <iAQtCaptionWidget.h>

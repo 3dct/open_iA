@@ -47,6 +47,7 @@ signals:
 	void set2DVisibility(size_t dataSetIdx, bool visibility);
 	void set3DMagicLensVisibility(size_t dataSetIdx, bool visibility);
 	void setPickable(size_t dataSetIdx, bool pickable);
+	void dataSetSelected(size_t dataSetIdx);
 
 public slots:
 	void enablePicking(bool enable);

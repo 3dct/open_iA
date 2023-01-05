@@ -100,7 +100,6 @@ std::shared_ptr<iATool> iAGEMSeTool::create(iAMainWindow* mainWnd, iAMdiChild* c
 	t->m_dlgGEMSeControl = new dlg_GEMSeControl(
 		child,
 		t->m_dlgGEMSe,
-		child->dataDockWidget(),
 		t->m_dlgSamplings,
 		colorTheme
 	);

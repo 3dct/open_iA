@@ -37,18 +37,16 @@
 #include <iAParameterNames.h>
 #include <iASamplingSettingsDlg.h>
 
-// core
-#include <dlg_modalities.h>
+// libs
 #include <iAAttributes.h>
 #include <iAAttributeDescriptor.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
+#include <iADataSet.h>
 #include <iAFileUtils.h>    // for getLocalEncodingFileName
 #include <iAJobListView.h>
 #include <iALog.h>
 #include <iAMdiChild.h>
-#include <iAModality.h>
-#include <iAModalityList.h>
 #include <iAParameterDlg.h>
 #include <iAToolsITK.h>
 #include <io/iAIOProvider.h>
@@ -124,12 +122,10 @@ public:
 dlg_GEMSeControl::dlg_GEMSeControl(
 	QWidget *parentWidget,
 	dlg_GEMSe* dlgGEMSe,
-	dlg_modalities* dlgModalities,
 	dlg_samplings* dlgSamplings,
 	iAColorTheme const * colorTheme
 ):
 	dlg_GEMSeControlUI(parentWidget),
-	m_dlgModalities(dlgModalities),
 	m_dlgSamplingSettings(nullptr),
 	m_dlgGEMSe(dlgGEMSe),
 	m_dlgSamplings(dlgSamplings),
@@ -152,9 +148,6 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(pbStoreDerivedOutput, &QPushButton::clicked, this, &dlg_GEMSeControl::saveDerivedOutputSlot);
 	connect(pbFreeMemory, &QPushButton::clicked, this, &dlg_GEMSeControl::freeMemory);
 
-	connect(m_dlgModalities, &dlg_modalities::modalityAvailable, this, &dlg_GEMSeControl::dataAvailable);
-	connect(m_dlgModalities, &dlg_modalities::modalitySelected, this, &dlg_GEMSeControl::modalitySelected);
-
 	connect(sbClusterViewPreviewSize, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_GEMSeControl::SetIconSize);
 	connect(sbMagicLensCount, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_GEMSeControl::setMagicLensCount);
 	connect(cbColorThemes, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_GEMSeControl::setColorTheme);
@@ -164,13 +157,17 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 
 	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 	connect(mdiChild, &iAMdiChild::transferFunctionChanged, this, &dlg_GEMSeControl::dataTFChanged);
+	connect(mdiChild, &iAMdiChild::dataSetRendered, this, &dlg_GEMSeControl::dataAvailable);
+	connect(mdiChild, &iAMdiChild::dataSetSelected, this, &dlg_GEMSeControl::dataSetSelected);
 
 	dataAvailable();
 }
 
 void dlg_GEMSeControl::startSampling()
 {
-	if (!m_dlgModalities->modalities()->size())
+	iAMdiChild* child = dynamic_cast<iAMdiChild*>(parent());
+	auto numDataSets = child->dataSets().size();
+	if (numDataSets == 0)
 	{
 		LOG(lvlError, "No data available.");
 		return;
@@ -181,7 +178,7 @@ void dlg_GEMSeControl::startSampling()
 		QMessageBox::warning(this, "GEMSe", "Another sampler still running / dialog is still open...");
 		return;
 	}
-	m_dlgSamplingSettings = new iASamplingSettingsDlg(this, m_dlgModalities->modalities()->size(), m_samplingSettings);
+	m_dlgSamplingSettings = new iASamplingSettingsDlg(this, numDataSets, m_samplingSettings);
 	if (m_dlgSamplingSettings->exec() == QDialog::Accepted)
 	{
 		m_dlgSamplingSettings->getValues(m_samplingSettings);
@@ -338,10 +335,20 @@ bool dlg_GEMSeControl::loadClustering(QString const & fileName)
 	{
 		LOG(lvlError, "Spacing of original images and of result images does not match!");
 	}
+	std::vector<std::shared_ptr<iADataSet>> imgDataSets;
+	std::vector<iATransferFunction*> transfer;
+	for (auto d: mdiChild->dataSetMap())
+	{
+		if (d.second->type() == iADataSetType::Volume)
+		{
+			imgDataSets.push_back(d.second);
+			transfer.push_back(mdiChild->dataSetTransfer(d.first));
+		}
+	}
 	m_dlgGEMSe->SetTree(
 		tree,
 		originalImage,
-		m_dlgModalities->modalities(),
+		imgDataSets, transfer,
 		m_simpleLabelInfo.data(),
 		m_dlgSamplings->GetSamplings()
 	);
@@ -417,10 +424,20 @@ void dlg_GEMSeControl::clusteringFinished()
 		*/
 		saveGEMSeProject(m_outputFolder + "/sampling.sea", "");
 	}
+	std::vector<std::shared_ptr<iADataSet>> imgDataSets;
+	std::vector<iATransferFunction*> transfer;
+	for (auto d : mdiChild->dataSetMap())
+	{
+		if (d.second->type() == iADataSetType::Volume)
+		{
+			imgDataSets.push_back(d.second);
+			transfer.push_back(mdiChild->dataSetTransfer(d.first));
+		}
+	}
 	m_dlgGEMSe->SetTree(
 		m_clusterer->GetResult(),
 		originalImage,
-		m_dlgModalities->modalities(),
+		imgDataSets, transfer,
 		m_simpleLabelInfo.data(),
 		m_dlgSamplings->GetSamplings()
 	);
@@ -441,8 +458,9 @@ void dlg_GEMSeControl::saveClustering()
 
 void dlg_GEMSeControl::dataAvailable()
 {
-	pbSample->setEnabled(m_dlgModalities->modalities()->size() > 0);
-	pbSamplingLoad->setEnabled(m_dlgModalities->modalities()->size() > 0);
+	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
+	pbSample->setEnabled(mdiChild->firstImageData());
+	pbSamplingLoad->setEnabled(mdiChild->firstImageData());
 }
 
 void dlg_GEMSeControl::saveAll()
@@ -466,7 +484,7 @@ void dlg_GEMSeControl::saveGEMSeProject(QString const & fileName, QString const 
 	}
 	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 	iASEAFile seaFile(
-		m_dlgModalities->modalities()->fileName(),
+		mdiChild->fileInfo().fileName(),    // TODO NEWIO: provide project file name? need to store before ...?
 		m_simpleLabelInfo->count(),
 		samplingFilenames,
 		m_cltFile,
@@ -528,9 +546,10 @@ void dlg_GEMSeControl::EnableSamplingDependantUI()
 	pbStoreDerivedOutput->setEnabled(true);
 }
 
-void dlg_GEMSeControl::modalitySelected(int modalityIdx)
+void dlg_GEMSeControl::dataSetSelected(size_t dataSetIdx)
 {
-	vtkSmartPointer<vtkImageData> imgData = m_dlgModalities->modalities()->get(modalityIdx)->image();
+	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
+	auto imgData = dynamic_cast<iAImageData*>(mdiChild->dataSetMap().at(dataSetIdx).get())->vtkImage();
 	m_dlgGEMSe->ShowImage(imgData);
 }
 

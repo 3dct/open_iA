@@ -353,6 +353,8 @@ signals:
 	void dataForDisplayCreated(size_t dataSetIdx);
 	//! emitted when the renderer for a dataset has been added to the display
 	void dataSetRendered(size_t dataSetIdx);
+	//! emitted when a dataset has been selected in the data list
+	void dataSetSelected(size_t dataSetIdx);
 
 public slots:
 	//! Updates all views (slicers, renderers)

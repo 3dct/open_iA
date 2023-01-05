@@ -23,8 +23,6 @@
 #include "dlg_GEMSe.h"
 #include "dlg_samplings.h"
 #include "iAImageTreeNode.h"
-#include "iAModality.h"
-#include "iAModalityList.h"
 #include "iASamplingResults.h"
 #include "iASingleResult.h"
 

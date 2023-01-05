@@ -32,10 +32,9 @@
 #include <iAAttributeDescriptor.h>
 #include <iAChannelData.h>
 #include <iAConnector.h>
+#include <iADataSet.h>
 #include <iALog.h>
 #include <iALUT.h>
-#include <iAModality.h>
-#include <iAModalityList.h>
 #include <iATransferFunctionOwner.h>
 #include <iANameMapper.h>
 #include <iAVtkDraw.h>
@@ -60,15 +59,10 @@
 #include <QTextEdit>
 #include <QThread>
 
-iADetailView::iADetailView(
-		iAImagePreviewWidget* prevWdgt,
-		iAImagePreviewWidget* compareWdgt,
-		ClusterImageType nullImage,
-		QSharedPointer<iAModalityList> modalities,
-		iALabelInfo const & labelInfo,
-		iAColorTheme const * colorTheme,
-		int representativeType,
-		QWidget* comparisonDetailsWidget) :
+iADetailView::iADetailView(iAImagePreviewWidget* prevWdgt, iAImagePreviewWidget* compareWdgt,
+	ClusterImageType nullImage, std::vector<std::shared_ptr<iADataSet>> const & dataSets,
+	std::vector<iATransferFunction*> const& transfer, iALabelInfo const& labelInfo, iAColorTheme const* colorTheme,
+	int representativeType, QWidget* comparisonDetailsWidget) :
 	m_node(nullptr),
 	m_compareNode(nullptr),
 	m_previewWidget(prevWdgt),
@@ -82,11 +76,11 @@ iADetailView::iADetailView(
 	m_cmpDetailsLabel(new QLabel()),
 	m_labelItemModel(new QStandardItemModel()),
 	m_showingClusterRepresentative(true),
+	m_dataSets(dataSets),
+	m_transfer(transfer),
 	m_nullImage(nullImage),
-	m_modalities(modalities),
 	m_representativeType(representativeType),
-	m_magicLensCurrentModality(0),
-	m_magicLensCurrentComponent(0),
+	m_magicLensDataSetIdx(0),
 	m_magicLensEnabled(false),
 	m_magicLensCount(1),
 	m_colorTheme(nullptr),
@@ -255,21 +249,16 @@ void iADetailView::dblClicked()
 void iADetailView::changeModality(int offset)
 {
 	// TOOD: refactor to remove duplication between here and iAMdiChild::changeModality!
-	m_magicLensCurrentComponent = (m_magicLensCurrentComponent + offset);
-	if (m_magicLensCurrentComponent < 0 || static_cast<size_t>(m_magicLensCurrentComponent) >= m_modalities->get(m_magicLensCurrentModality)->componentCount())
-	{
-		m_magicLensCurrentComponent = 0;
-		m_magicLensCurrentModality = (m_magicLensCurrentModality + offset + m_modalities->size()) % m_modalities->size();
-	}
-	QSharedPointer<iAModality> mod = m_modalities->get(m_magicLensCurrentModality);
-	vtkSmartPointer<vtkImageData> imageData = mod->component(m_magicLensCurrentComponent);
-	vtkColorTransferFunction* ctf = (mod->name() == "Ground Truth") ?
+	m_magicLensDataSetIdx = (m_magicLensDataSetIdx + offset + m_dataSets.size()) % m_dataSets.size();
+	auto ds = m_dataSets[m_magicLensDataSetIdx];
+	auto imageData = dynamic_cast<iAImageData*>(ds.get())->vtkImage();
+	vtkColorTransferFunction* ctf = (ds->name() == "Ground Truth") ?
 		m_previewWidget->colorTF().GetPointer() :
-		mod->transfer()->colorTF();
-	vtkPiecewiseFunction* otf = (mod->name() == "Ground Truth") ?
+		m_transfer[m_magicLensDataSetIdx]->colorTF();
+	vtkPiecewiseFunction* otf = (ds->name() == "Ground Truth") ?
 		GetDefaultOTF(imageData).GetPointer() :
-		mod->transfer()->opacityTF();
-	QString name(mod->imageName(m_magicLensCurrentComponent));
+		m_transfer[m_magicLensDataSetIdx]->opacityTF();
+	QString name(ds->name());
 	AddMagicLensInput(imageData, ctf, otf, name);
 }
 
