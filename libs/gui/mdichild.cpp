@@ -3158,7 +3158,7 @@ std::map<size_t, std::shared_ptr<iADataSet>> const& MdiChild::dataSetMap() const
 	return m_dataSets;
 }
 
-iAModalityTransfer* MdiChild::dataSetTransfer(size_t idx) const
+iATransferFunction* MdiChild::dataSetTransfer(size_t idx) const
 {
 	auto volData = dynamic_cast<iAImageDataForDisplay*>(m_dataForDisplay.at(idx).get());
 	return volData ? volData->transfer() : nullptr;

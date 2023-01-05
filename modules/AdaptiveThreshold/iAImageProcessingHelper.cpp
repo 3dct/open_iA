@@ -24,7 +24,6 @@
 #include <iAFilterRegistry.h>
 #include <iAFilter.h>
 #include <iALog.h>
-#include <iAModalityTransfer.h>
 #include <iAMdiChild.h>
 #include <iAMainWindow.h>
 

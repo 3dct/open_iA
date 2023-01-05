@@ -35,11 +35,7 @@
 #include "iACsvIO.h"
 #include "iAObjectType.h"
 
-#include <dlg_modalities.h>
 #include <iAMovieHelper.h>
-#include <iAModality.h>
-#include <iAModalityTransfer.h>
-#include <iAModalityList.h>
 #include <iAMdiChild.h>
 #include <iAParameterDlg.h>
 #include <iAPreferences.h>
@@ -79,6 +75,7 @@
 #include <vtkEventQtSlotConnect.h>
 #include <vtkFloatArray.h>
 #include <vtkIdTypeArray.h>
+#include <vtkImageData.h>
 #include <vtkIntArray.h>
 #include <vtkLookupTable.h>
 #include <vtkMath.h>
@@ -3053,18 +3050,6 @@ void dlg_FeatureScout::initFeatureScoutUI()
 		m_dwPP->hide();
 	}
 	connect(m_dwPP->orientationColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_FeatureScout::renderOrientation);
-
-	if (m_visualization == iACsvConfig::UseVolume)
-	{
-		m_activeChild->dataInfoDockWidget()->hide();
-	}
-	m_activeChild->histogramDockWidget()->hide();
-	m_activeChild->renderDockWidget()->hide();
-	for (int i = 0; i < 3; ++i)
-	{
-		m_activeChild->slicerDockWidget(i)->hide();
-	}
-	m_activeChild->dataDockWidget()->hide();
 }
 
 void dlg_FeatureScout::saveProject(QSettings& projectFile)

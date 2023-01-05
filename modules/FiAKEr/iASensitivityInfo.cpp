@@ -29,6 +29,7 @@
 #include <iAMathUtility.h>
 #include <iAStringHelper.h>
 #include <iAToolsVTK.h>
+#include <iATransferFunction.h>
 #include <iAVec3.h>
 
 // charts
@@ -41,7 +42,6 @@
 #include <iADataSetRenderer.h>
 #include <iAJobListView.h>
 #include <iAMdiChild.h>
-#include <iAModalityTransfer.h>
 #include <iAQVTKWidget.h>
 #include <iARenderer.h>
 #include <iARunAsync.h>
@@ -71,12 +71,14 @@
 #include "ui_DissimilarityMatrix.h"
 #include "ui_SensitivitySettings.h"
 
+#include <vtkColorTransferFunction.h>
 #include <vtkExtractSurface.h>
 #include <vtkImageData.h>
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkLookupTable.h>
 #include <vtkNew.h>
 #include <vtkPCANormalEstimation.h>
+#include <vtkPiecewiseFunction.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkRenderWindow.h>

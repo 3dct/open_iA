@@ -28,8 +28,6 @@
 #include "iACsvConfig.h"
 #include "iACsvVtkTableCreator.h"
 
-#include <iAModality.h>
-#include <iAModalityTransfer.h>
 #include <iAVolumeRenderer.h>
 
 #include <iALog.h>
@@ -296,7 +294,7 @@ void iAImNDTModuleInterface::renderVolume()
 	});
 	m_actionVRVolumeRender->setText("Stop Volume Rendering");
 	auto child = m_mainWnd->activeMdiChild();
-	m_volumeRenderer = std::make_shared<iAVolumeRenderer>(child->modality(0)->transfer().data(), child->modality(0)->image());
+	m_volumeRenderer = std::make_shared<iAVolumeRenderer>(child->dataSetTransfer(child->firstImageDataSetIdx()), child->firstImageData());
 	m_volumeRenderer->applySettings(child->volumeSettings());
 	m_volumeRenderer->addTo(m_vrEnv->renderer());
 	m_volumeRenderer->addBoundingBoxTo(m_vrEnv->renderer());

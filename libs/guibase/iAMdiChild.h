@@ -42,13 +42,13 @@ class iAIO;
 class iAMainWindow;
 class iAModality;
 class iAModalityList;
-class iAModalityTransfer;
 class iAPreferences;
-class iATool;
+class iARenderer;
 class iARenderSettings;
 class iASlicer;
 class iASlicerSettings;
-class iARenderer;
+class iATool;
+class iATransferFunction;
 class iAVolumeSettings;
 class iAVolumeStack;
 
@@ -249,7 +249,7 @@ public:
 	virtual size_t firstImageDataSetIdx() const = 0;
 	//! Retrieve the transfer function for an (image) dataset with given index
 	//! @return transfer function of dataset, nullptr if dataset with given index is not an image dataset
-	virtual	iAModalityTransfer* dataSetTransfer(size_t idx) const = 0;
+	virtual	iATransferFunction* dataSetTransfer(size_t idx) const = 0;
 	//! Retrieve the 3D renderer for dataSet with given index
 	//! @return the renderer or nullptr if dataset with given index does not exist or has no renderer
 	virtual iADataSetRenderer* dataSetRenderer(size_t idx) const = 0;

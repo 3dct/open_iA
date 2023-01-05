@@ -30,13 +30,13 @@
 
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
-#include <iAModalityTransfer.h>
 #include <iAModuleDispatcher.h>
 
 #include <iADataSet.h>
 #include <iAFileUtils.h>
 #include <iALog.h>
 #include <iAToolsVTK.h>    // for RenderModeMap
+#include <iATransferFunction.h>
 
 #include <vtkImageData.h>
 #include <vtkSmartVolumeMapper.h>
@@ -195,7 +195,7 @@ void iAFeatureScoutTool::init(int filterID, QString const& fileName, vtkSmartPoi
 			LOG(lvlError, "No image data set loaded!");
 			return;
 		}
-		auto transfer =m_child->dataSetTransfer(idx);
+		auto transfer = m_child->dataSetTransfer(idx);
 		ctf = transfer->colorTF();
 		otf = transfer->opacityTF();
 		bounds = dynamic_cast<iAImageData*>(m_child->dataSets()[idx].get())->vtkImage()->GetBounds();

@@ -321,7 +321,7 @@ public:
 
 	size_t firstImageDataSetIdx() const override;
 	vtkSmartPointer<vtkImageData> firstImageData() const override;
-	iAModalityTransfer* dataSetTransfer(size_t idx) const override;
+	iATransferFunction* dataSetTransfer(size_t idx) const override;
 	iADataSetRenderer* dataSetRenderer(size_t idx) const override;
 	void applyRenderSettings(size_t dataSetIdx, QVariantMap const& renderSettings) override;
 

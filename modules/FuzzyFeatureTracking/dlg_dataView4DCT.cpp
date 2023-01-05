@@ -23,7 +23,6 @@
 #include "ui_DataView4DCT.h"
 #include "iAFuzzyVTKWidget.h"
 
-#include <iAModalityTransfer.h>
 #include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
 #include <iAVolumeStack.h>

@@ -41,7 +41,6 @@ class iAPolarPlotWidget;
 class Ui_FeatureScoutCE;
 
 class iADockWidgetWrapper;
-class iAModalityTransfer;
 class iAQSplom;
 class iARenderer;
 class iAMdiChild;

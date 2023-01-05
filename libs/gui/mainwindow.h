@@ -54,7 +54,6 @@ class vtkImageData;
 class MdiChild;
 class iADockWidgetWrapper;
 class iAFileIO;
-class iAModalityList;
 class iAModuleDispatcher;
 class iATransferFunction;
 class iAXmlSettings;
