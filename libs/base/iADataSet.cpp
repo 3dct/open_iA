@@ -263,7 +263,7 @@ QString iADataCollection::info() const
 	return QString("Number of datasets: %1").arg(m_dataSets.size());
 }
 
-QSettings& iADataCollection::settings() const
+std::shared_ptr<QSettings> iADataCollection::settings() const
 {
-	return *m_settings.get();
+	return m_settings;
 }

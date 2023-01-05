@@ -43,10 +43,10 @@ namespace
 	static const QString FileKeyMinIdx("minimum_index");
 	static const QString FileKeyMaxIdx("maximum_index");
 
-	QString dataSetGroup(int idx)
-	{   // for backwardss compatibility, let's keep "Modality" as identifier for now
-		return QString("Modality") + QString::number(idx);
-	}
+	// TODO NEWIO: currently only used here, with same separator, check if it can be reused somewhere
+	// similar function (getParameterValues) was used in iAIO for other uses too:
+	//     - PARS reader (not in new framework yet)
+	//     - VGI reader (now using QSettings instead)
 
 	QMap<QString, QString> readSettingsFile(QString const& fileName, QString const & keyValueSeparator = ":")
 	{
@@ -73,13 +73,15 @@ namespace
 			}
 			else
 			{
-				auto keyValSepPos = currentLine.indexOf(keyValueSeparator);
-				if (keyValSepPos == -1)
+				auto tokens = currentLine.split(keyValueSeparator);
+				if (tokens.size() != 2)
 				{
-					throw std::runtime_error(QString("Key/Value line (#%1) without separator: %2").arg(lineNr).arg(currentLine).toStdString());
+					throw std::runtime_error(QString("Invalid key/value line (#%1: %2) - could not split at separator %3")
+						.arg(lineNr).arg(currentLine).arg(keyValueSeparator).toStdString());
 				}
-				auto key = (currentSection.isEmpty() ? "" : currentSection + "/") + currentLine.left(keyValSepPos-1).trimmed();
-				result[key] = currentLine.right(keyValSepPos + 1);
+				auto key = (currentSection.isEmpty() ? "" : currentSection + "/") + tokens[0].trimmed();
+				auto value = tokens[1].trimmed();
+				result[key] = value;
 			}
 		}
 		// file closed automatically by ~QFile

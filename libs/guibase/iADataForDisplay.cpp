@@ -183,21 +183,24 @@ void iAProjectViewer::createGUI(iAMdiChild* child)
 		*/
 
 		// all datasets loaded, continue with loading projects!
-		auto const & settings = collection->settings();
+		if (!collection->settings())    // not all collections come with additional settings...
+		{
+			return;
+		}
+		auto& settings = *collection->settings().get();
 		child->loadSettings(settings);
 		auto tools = iAToolRegistry::toolKeys();
 		auto registeredTools = iAToolRegistry::toolKeys();
-		auto& projectFile = collection->settings();
-		auto projectFileGroups = projectFile.childGroups();
+		auto projectFileGroups = settings.childGroups();
 		for (auto toolKey : registeredTools)
 		{
 			if (projectFileGroups.contains(toolKey))
 			{
 				auto tool = iAToolRegistry::createTool(toolKey, iAMainWindow::get(), child);
-				projectFile.beginGroup(toolKey);
+				settings.beginGroup(toolKey);
 				child->addTool(toolKey, tool);
-				tool->loadState(projectFile, fileName);
-				projectFile.endGroup();
+				tool->loadState(settings, fileName);
+				settings.endGroup();
 			}
 		}
 		// TODO NEWIO: we could remove the viewer here from the mdi child (no API for that though - yet)

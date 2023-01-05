@@ -116,16 +116,16 @@ void iAProjectFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSe
 {
 	Q_UNUSED(paramValues);
 	auto collection = dynamic_cast<iADataCollection*>(dataSet.get());
-	assert(collection->settings().fileName() == fileName);
+	assert(collection->settings()->fileName() == fileName);
 	for (size_t d = 0; d < collection->dataSets().size(); ++d)
 	{
-		collection->settings().beginGroup(dataSetGroup(d, false));
+		collection->settings()->beginGroup(dataSetGroup(d, false));
 		auto ds = collection->dataSets()[d];
 		for (auto key : ds->allMetaData().keys())
 		{
-			collection->settings().setValue(key, ds->metaData(key));
+			collection->settings()->setValue(key, ds->metaData(key));
 		}
-		collection->settings().endGroup();
+		collection->settings()->endGroup();
 		progress.emitProgress(100.0 * d / collection->dataSets().size());
 	}
 }

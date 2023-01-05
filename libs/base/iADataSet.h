@@ -143,7 +143,7 @@ public:
 	void addDataSet(std::shared_ptr<iADataSet> dataSet);
 	QString info() const override;
 
-	QSettings & settings() const;   // TODO: maybe replace with QVariantMap?
+	std::shared_ptr<QSettings> settings() const;   // TODO: maybe replace with QVariantMap?
 
 private:
 
