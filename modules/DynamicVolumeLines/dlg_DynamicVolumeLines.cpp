@@ -31,7 +31,6 @@
 #include <iALUT.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
-#include <iAModality.h>
 #include <iATransferFunctionOwner.h>
 #include <iATransferFunctionPtrs.h>
 #include <iAQVTKWidget.h>
@@ -1662,14 +1661,14 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 			visSelGraphList[i]->pen().color().blueF());
 
 		vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
-		cTF->ShallowCopy(m_mdiChild->modality(0)->transfer()->colorTF());
+		cTF->ShallowCopy(m_mdiChild->dataSetTransfer(m_mdiChild->firstImageDataSetIdx())->colorTF());
 		int index = cTF->GetSize() - 1;
 		double val[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 		cTF->GetNodeValue(index, val);
 		val[1] = 1.0;	val[2] = 0.0;	val[3] = 0.0;
 		cTF->SetNodeValue(index, val);
 		vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
-		oTF->ShallowCopy(m_mdiChild->modality(0)->transfer()->opacityTF());
+		oTF->ShallowCopy(m_mdiChild->dataSetTransfer(m_mdiChild->firstImageDataSetIdx())->opacityTF());
 
 		iATransferFunctionPtrs tf(cTF, oTF);
 		//iATransferFunctionPtrs tf(m_mdiChild->colorTF(), m_mdiChild->opacityTF());
