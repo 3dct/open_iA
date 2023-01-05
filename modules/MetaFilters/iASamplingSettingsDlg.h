@@ -29,7 +29,6 @@
 #include <QMap>
 
 class iAAttributeDescriptor;
-class iAModalityList;
 class iASamplingMethod;
 class Ui_samplingSettings;
 
