@@ -75,6 +75,7 @@
 // io
 #include <iAFileStackParams.h>
 #include <iAVolStackFileIO.h>
+#include <iAProjectFileIO.h>
 
 // base
 #include <iADataSet.h>
@@ -410,11 +411,11 @@ void MdiChild::connectSignalsToSlots()
 		connect(m_slicer[s], &iASlicer::mouseMoved, this, &MdiChild::updatePositionMarker);
 		connect(m_slicer[s], &iASlicerImpl::regionSelected, this, [this](int minVal, int maxVal, uint channelID)
 		{
+			// TODO NEWIO: move to better place, e.g. dataset viewer for image data? slicer?
 			if (minVal == maxVal)
 			{
 				return;
 			}
-			//auto modTrans = modality(0)->transfer();	// TODO: check how/whether to adapt modality ID
 			// find id of dataset with given channel:
 			size_t dataSetIdx = NoDataSet;
 			for (auto sliceRenderer: m_sliceRenderers)
@@ -632,7 +633,7 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 		++m_nextDataSetID;
 	}
 	//if (dataSet->type() != iADataSetType::Collection)
-	//{  // we should probably store the dataset while it's loading, but might be able to discard later? CHECK NEWIO!
+	//{  // TODO NEWIO: we should store collection type datasets here while loading, but might be able to discard them later?
 		m_dataSets[dataSetIdx] = dataSet;
 	//}
 	if (m_curFile.isEmpty())
@@ -680,6 +681,7 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 					sceneBounds.merge(renderers.second->bounds());
 				}
 				m_renderer->setSceneBounds(sceneBounds);
+				// only reset camera if loaded dataset does not fit into the current scene? only reset scale, not viewing direction/angle?
 				m_renderer->renderer()->ResetCamera();
 				updateRenderer();
 			}
@@ -1233,31 +1235,42 @@ void MdiChild::saveVolumeStack()
 	iAJobListView::get()->addJob(QString("Saving volume stack %1").arg(fileName), p.get(), fw);
 }
 
-void MdiChild::saveNew()
+bool MdiChild::saveNew()
 {
-	auto dataSet = chooseDataSet();
+	return saveNew(chooseDataSet());
+}
+
+bool MdiChild::saveNew(std::shared_ptr<iADataSet> dataSet)
+{
 	if (!dataSet)
 	{
-		return;
+		return false;
 	}
 	QString path = m_path.isEmpty() ? m_mainWnd->path() : m_path;
+	QString defaultFilter = iAFileTypeRegistry::defaultExtFilterString(dataSet->type());
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
 		path + "/" + safeFileName(dataSet->name()),
-		iAFileTypeRegistry::registeredFileTypes(iAFileIO::Save, dataSet->type()));
+		iAFileTypeRegistry::registeredFileTypes(iAFileIO::Save, dataSet->type()),
+		 &defaultFilter);
+	return saveNew(dataSet, fileName);
+}
+
+bool MdiChild::saveNew(std::shared_ptr<iADataSet> dataSet, QString const& fileName)
+{
 	if (fileName.isEmpty())
 	{
-		return;
+		return false;
 	}
 	auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Save);
 	if (!io || !io->isDataSetSupported(dataSet, fileName))
 	{
 		LOG(lvlError, "The chosen file format does not support this kind of dataset!");
-		return;
+		return false;
 	}
 	QVariantMap paramValues;
 	if (!iAFileParamDlg::getParameters(this, io.get(), iAFileIO::Save, fileName, paramValues))
 	{
-		return;
+		return false;
 	}
 	auto p = std::make_shared<iAProgress>();
 	auto futureWatcher = new QFutureWatcher<bool>(this);
@@ -1303,6 +1316,7 @@ void MdiChild::saveNew()
 		});
 	futureWatcher->setFuture(future);
 	iAJobListView::get()->addJob("Save File", p.get(), futureWatcher);
+	return true;
 }
 
 bool MdiChild::saveAs()
@@ -3303,58 +3317,72 @@ void MdiChild::initVolumeRenderers()
 	m_renderer->renderer()->ResetCamera();
 }
 
-void MdiChild::saveProject(QString const& fileName)
-{
-	LOG(lvlInfo, tr("Saving file '%1'.").arg(fileName));
-	QFileInfo fileInfo(fileName);
-	if (modalities()->store(fileInfo.absoluteFilePath(), m_renderer->renderer()->GetActiveCamera()))
-	{
-		setWindowTitleAndFile(fileName);
-	}
-}
-
 bool MdiChild::doSaveProject(QString const & projectFileName)
 {
-	QVector<int> unsavedModalities;
-	for (int i = 0; i < modalities()->size(); ++i)
+	QVector<size_t> unsavedDataSets;
+	for (auto d: m_dataSets)
 	{
-		if (modality(i)->fileName().isEmpty())
+		if (!d.second->hasMetaData(iADataSet::FileNameKey))
 		{
-			unsavedModalities.push_back(i);
+			unsavedDataSets.push_back(d.first);
 		}
 	}
-	if (unsavedModalities.size() > 0)
+	if (!unsavedDataSets.isEmpty())
 	{
-		if (QMessageBox::question(m_mainWnd, "Unsaved modalities",
-			"This window has some unsaved modalities, you need to save them before you can store the project. Save them now?",
-			QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) != QMessageBox::Yes)
+		auto result = QMessageBox::question(m_mainWnd, "Unsaved datasets",
+			"Before saving as a project, some unsaved datasets need to be saved first. Should I choose a filename automatically (in same folder as project file)?",
+			QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes);
+		if (result == QMessageBox::Cancel)
 		{
 			return false;
 		}
-		for (int modNr : unsavedModalities)
+		QFileInfo fi(projectFileName);
+		for (size_t dataSetIdx : unsavedDataSets)
 		{
-			if (!saveAs(modNr))
+			bool saveSuccess = true;
+			bool saved = false;
+			if (result == QMessageBox::Yes)
+			{
+				// try auto-creating; but if file exists, let user choose!
+				QString fileName = fi.absoluteFilePath() + QString("dataSet%1.%2").arg(dataSetIdx).arg(iAFileTypeRegistry::defaultExtension(m_dataSets[dataSetIdx]->type()));
+				if (!QFileInfo::exists(fileName))
+				{
+					saveSuccess = saveNew(m_dataSets[dataSetIdx], fileName);
+					saved = true;
+				}
+			}
+			if (!saved)
+			{
+				saveSuccess = saveNew(m_dataSets[dataSetIdx]);
+			}
+			if (!saveSuccess)
 			{
 				return false;
 			}
 		}
 	}
-	// TODO:
-	//   - work in background
-	saveProject(projectFileName);
-	if (projectFileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
-	{
-		QSettings projectFile(projectFileName, QSettings::IniFormat);
+	auto s = std::make_shared<QSettings>(projectFileName, QSettings::IniFormat);
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-		projectFile.setIniCodec("UTF-8");
+	s.setIniCodec("UTF-8");
 #endif
-		projectFile.setValue("UseMdiChild", true);
-		for (auto toolKey : m_tools.keys())
-		{
-			projectFile.beginGroup(toolKey);
-			m_tools[toolKey]->saveState(projectFile, projectFileName);
-			projectFile.endGroup();
-		}
+	s->setValue("UseMdiChild", true);
+	saveSettings(*s.get());
+	iAProjectFileIO io;
+	auto dataSets = std::make_shared<iADataCollection>(m_dataSets.size(), s);
+	for (auto d : m_dataSets)
+	{
+		dataSets->addDataSet(d.second);
+	}
+	io.save(projectFileName, dataSets, QVariantMap());
+	setWindowTitleAndFile(projectFileName);
+	// TODO NEWIO: store viewer settings with datasets!
+
+	// store settings of any open tool:
+	for (auto toolKey : m_tools.keys())
+	{
+		s->beginGroup(toolKey);
+		m_tools[toolKey]->saveState(*s.get(), projectFileName);
+		s->endGroup();
 	}
 	return true;
 }

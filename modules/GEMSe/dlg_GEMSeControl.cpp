@@ -408,11 +408,13 @@ void dlg_GEMSeControl::clusteringFinished()
 	{
 		m_cltFile = m_outputFolder + "/" + iASEAFile::DefaultCLTFileName;
 		m_clusterer->GetResult()->Store(m_cltFile);
-
+		/*
+		// TODO NEWIO
 		if (m_dlgModalities->modalities()->fileName().isEmpty())
 		{
 			mdiChild->saveProject(m_outputFolder + "/" + iASEAFile::DefaultModalityFileName);
 		}
+		*/
 		saveGEMSeProject(m_outputFolder + "/sampling.sea", "");
 	}
 	m_dlgGEMSe->SetTree(

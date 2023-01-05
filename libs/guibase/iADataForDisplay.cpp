@@ -129,6 +129,59 @@ void iAProjectViewer::createGUI(iAMdiChild* child)
 	auto fileName = m_dataSet->metaData(iADataSet::FileNameKey).toString();
 	auto afterRenderCallback = [this, child, collection, fileName]()
 	{
+		// TODO NEWIO - also load viewer settings; this should happen in the creation of the viewers - consider metadata if available!
+				/*
+		int channel = settings.value(GetModalityKey(currIdx, "Channel"), -1).toInt();
+		QString modalityRenderFlags = settings.value(GetModalityKey(currIdx, "RenderFlags")).toString();
+		modalityFile = MakeAbsolute(fi.absolutePath(), modalityFile);
+		QString orientationSettings = settings.value(GetModalityKey(currIdx, "Orientation")).toString();
+		QString positionSettings = settings.value(GetModalityKey(currIdx, "Position")).toString();
+		QString tfFileName = settings.value(GetModalityKey(currIdx, "TransferFunction")).toString();
+
+		//loading volume settings
+		iAVolumeSettings defaultSettings;
+		QString Shading = settings.value(GetModalityKey(currIdx, "Shading"), defaultSettings.Shading).toString();
+		QString LinearInterpolation = settings.value(GetModalityKey(currIdx, "LinearInterpolation"), defaultSettings.LinearInterpolation).toString();
+		QString SampleDistance = settings.value(GetModalityKey(currIdx, "SampleDistance"), defaultSettings.SampleDistance).toString();
+		QString AmbientLighting = settings.value(GetModalityKey(currIdx, "AmbientLighting"), defaultSettings.AmbientLighting).toString();
+		QString DiffuseLighting = settings.value(GetModalityKey(currIdx, "DiffuseLighting"), defaultSettings.DiffuseLighting).toString();
+		QString SpecularLighting = settings.value(GetModalityKey(currIdx, "SpecularLighting"), defaultSettings.SpecularLighting).toString();
+		QString SpecularPower = settings.value(GetModalityKey(currIdx, "SpecularPower"), defaultSettings.SpecularPower).toString();
+		QString ScalarOpacityUnitDistance = settings.value(GetModalityKey(currIdx, "ScalarOpacityUnitDistance"), defaultSettings.ScalarOpacityUnitDistance).toString();
+		volSettings.RenderMode = mapRenderModeToEnum(settings.value(GetModalityKey(currIdx, "RenderMode")).toString());
+
+		//check if vol settings are ok / otherwise use default values
+		checkandSetVolumeSettings(volSettings, Shading, LinearInterpolation, SampleDistance, AmbientLighting,
+			DiffuseLighting, SpecularLighting, SpecularPower, ScalarOpacityUnitDistance);
+
+		if (!tfFileName.isEmpty())
+		{
+			tfFileName = MakeAbsolute(fi.absolutePath(), tfFileName);
+		}
+		if (modalityExists(modalityFile, channel))
+		{
+			LOG(lvlWarn, QString("Modality (name=%1, filename=%2, channel=%3) already exists!").arg(modalityName).arg(modalityFile).arg(channel));
+		}
+		else
+		{
+			int renderFlags = (modalityRenderFlags.contains("R") ? iAModality::MainRenderer : 0) |
+				(modalityRenderFlags.contains("L") ? iAModality::MagicLens : 0) |
+				(modalityRenderFlags.contains("B") ? iAModality::BoundingBox : 0) |
+				(modalityRenderFlags.contains("S") ? iAModality::Slicer : 0);
+
+			ModalityCollection mod = iAModalityList::load(modalityFile, modalityName, channel, false, renderFlags);
+			if (mod.size() != 1) // we expect to load exactly one modality
+			{
+				LOG(lvlWarn, QString("Invalid state: More or less than one modality loaded from file '%1'").arg(modalityFile));
+				return false;
+			}
+			mod[0]->setStringSettings(positionSettings, orientationSettings, tfFileName);
+			mod[0]->setVolSettings(volSettings);
+			m_modalities.push_back(mod[0]);
+			emit added(mod[0]);
+		}
+		*/
+
 		// all datasets loaded, continue with loading projects!
 		auto const & settings = collection->settings();
 		child->loadSettings(settings);
@@ -147,7 +200,7 @@ void iAProjectViewer::createGUI(iAMdiChild* child)
 				projectFile.endGroup();
 			}
 		}
-		// CHECK NEWIO: we could remove the viewer here from the mdi child (no API for that though - yet)
+		// TODO NEWIO: we could remove the viewer here from the mdi child (no API for that though - yet)
 	};
 	// if no datasets available, directly load tools...
 	if (collection->dataSets().empty())

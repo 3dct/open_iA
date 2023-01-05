@@ -32,16 +32,19 @@ namespace
 {
 	static const QString ProjectFileVersionKey("FileVersion");
 	static const QString ProjectFileVersionValue("1.0");
+	// for backwards compatibility, we'll also check "Modality" when loading
+	static const QString ProjectFileDataSetOLD("Modality");
+	static const QString ProjectFileDataSet("DataSet");
 
-	QString dataSetGroup(int idx)
-	{   // for backwardss compatibility, let's keep "Modality" as identifier for now
-		return QString("Modality") + QString::number(idx);
+	QString dataSetGroup(int idx, bool old)
+	{
+		return (old ? ProjectFileDataSetOLD : ProjectFileDataSet) + QString::number(idx);
 	}
 }
 
 const QString iAProjectFileIO::Name("Project files");
 
-iAProjectFileIO::iAProjectFileIO() : iAFileIO(iADataSetType::All, iADataSetType::None) // writing to a project file is specific (since it doesn't write the dataset itself...)
+iAProjectFileIO::iAProjectFileIO() : iAFileIO(iADataSetType::Collection, iADataSetType::Collection)
 {}
 
 std::shared_ptr<iADataSet> iAProjectFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
@@ -55,7 +58,6 @@ std::shared_ptr<iADataSet> iAProjectFileIO::loadData(QString const& fileName, QV
 	}
 	auto s = std::make_shared<QSettings>(fileName, QSettings::IniFormat);
 	auto &settings = *s.get();
-	//iAVolumeSettings volSettings;
 
 	if (!settings.contains(ProjectFileVersionKey) ||
 		settings.value(ProjectFileVersionKey).toString() != ProjectFileVersionValue)
@@ -67,7 +69,7 @@ std::shared_ptr<iADataSet> iAProjectFileIO::loadData(QString const& fileName, QV
 	}
 
 	int maxIdx = 0;
-	while (settings.contains(dataSetGroup(maxIdx) + "/File"))
+	while (settings.contains(dataSetGroup(maxIdx, true) + "/File") || settings.contains(dataSetGroup(maxIdx, false) + "/File"))
 	{
 		++maxIdx;
 	}
@@ -77,7 +79,7 @@ std::shared_ptr<iADataSet> iAProjectFileIO::loadData(QString const& fileName, QV
 	result->setMetaData(mapFromQSettings(settings));
 	while (currIdx < maxIdx)
 	{
-		settings.beginGroup(dataSetGroup(currIdx));
+		settings.beginGroup(dataSetGroup(currIdx, settings.contains(dataSetGroup(maxIdx, true)) ? true: false));
 		QString dataSetFileName = MakeAbsolute(fi.absolutePath(), settings.value("File").toString());
 		try
 		{
@@ -102,62 +104,30 @@ std::shared_ptr<iADataSet> iAProjectFileIO::loadData(QString const& fileName, QV
 		{
 			LOG(lvlError, QString("Unknown error while loading file %1!").arg(fileName));
 		}
-		/*
-		int channel = settings.value(GetModalityKey(currIdx, "Channel"), -1).toInt();
-		QString modalityRenderFlags = settings.value(GetModalityKey(currIdx, "RenderFlags")).toString();
-		modalityFile = MakeAbsolute(fi.absolutePath(), modalityFile);
-		QString orientationSettings = settings.value(GetModalityKey(currIdx, "Orientation")).toString();
-		QString positionSettings = settings.value(GetModalityKey(currIdx, "Position")).toString();
-		QString tfFileName = settings.value(GetModalityKey(currIdx, "TransferFunction")).toString();
-
-		//loading volume settings
-		iAVolumeSettings defaultSettings;
-		QString Shading = settings.value(GetModalityKey(currIdx, "Shading"), defaultSettings.Shading).toString();
-		QString LinearInterpolation = settings.value(GetModalityKey(currIdx, "LinearInterpolation"), defaultSettings.LinearInterpolation).toString();
-		QString SampleDistance = settings.value(GetModalityKey(currIdx, "SampleDistance"), defaultSettings.SampleDistance).toString();
-		QString AmbientLighting = settings.value(GetModalityKey(currIdx, "AmbientLighting"), defaultSettings.AmbientLighting).toString();
-		QString DiffuseLighting = settings.value(GetModalityKey(currIdx, "DiffuseLighting"), defaultSettings.DiffuseLighting).toString();
-		QString SpecularLighting = settings.value(GetModalityKey(currIdx, "SpecularLighting"), defaultSettings.SpecularLighting).toString();
-		QString SpecularPower = settings.value(GetModalityKey(currIdx, "SpecularPower"), defaultSettings.SpecularPower).toString();
-		QString ScalarOpacityUnitDistance = settings.value(GetModalityKey(currIdx, "ScalarOpacityUnitDistance"), defaultSettings.ScalarOpacityUnitDistance).toString();
-		volSettings.RenderMode = mapRenderModeToEnum(settings.value(GetModalityKey(currIdx, "RenderMode")).toString());
-
-		//check if vol settings are ok / otherwise use default values
-		checkandSetVolumeSettings(volSettings, Shading, LinearInterpolation, SampleDistance, AmbientLighting,
-			DiffuseLighting, SpecularLighting, SpecularPower, ScalarOpacityUnitDistance);
-
-		if (!tfFileName.isEmpty())
-		{
-			tfFileName = MakeAbsolute(fi.absolutePath(), tfFileName);
-		}
-		if (modalityExists(modalityFile, channel))
-		{
-			LOG(lvlWarn, QString("Modality (name=%1, filename=%2, channel=%3) already exists!").arg(modalityName).arg(modalityFile).arg(channel));
-		}
-		else
-		{
-			int renderFlags = (modalityRenderFlags.contains("R") ? iAModality::MainRenderer : 0) |
-				(modalityRenderFlags.contains("L") ? iAModality::MagicLens : 0) |
-				(modalityRenderFlags.contains("B") ? iAModality::BoundingBox : 0) |
-				(modalityRenderFlags.contains("S") ? iAModality::Slicer : 0);
-
-			ModalityCollection mod = iAModalityList::load(modalityFile, modalityName, channel, false, renderFlags);
-			if (mod.size() != 1) // we expect to load exactly one modality
-			{
-				LOG(lvlWarn, QString("Invalid state: More or less than one modality loaded from file '%1'").arg(modalityFile));
-				return false;
-			}
-			mod[0]->setStringSettings(positionSettings, orientationSettings, tfFileName);
-			mod[0]->setVolSettings(volSettings);
-			m_modalities.push_back(mod[0]);
-			emit added(mod[0]);
-		}
-		*/
 		settings.endGroup();
 		++currIdx;
 		progress.emitProgress(100.0 * currIdx / maxIdx);
 	}
 	return result;
+}
+
+
+void iAProjectFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress)
+{
+	Q_UNUSED(paramValues);
+	auto collection = dynamic_cast<iADataCollection*>(dataSet.get());
+	assert(collection->settings().fileName() == fileName);
+	for (size_t d = 0; d < collection->dataSets().size(); ++d)
+	{
+		collection->settings().beginGroup(dataSetGroup(d, false));
+		auto ds = collection->dataSets()[d];
+		for (auto key : ds->allMetaData().keys())
+		{
+			collection->settings().setValue(key, ds->metaData(key));
+		}
+		collection->settings().endGroup();
+		progress.emitProgress(100.0 * d / collection->dataSets().size());
+	}
 }
 
 QString iAProjectFileIO::name() const

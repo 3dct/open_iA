@@ -33,6 +33,24 @@ namespace
 		static std::vector<iAFileIOCreateFuncPtr> fileios;
 		return fileios;
 	}
+	QMap<iADataSetType, QString>& defaultExtensions()
+	{
+		static QMap<iADataSetType, QString> defaultExts;
+		return defaultExts;
+	}
+	QStringList ioExtensionList(iAFileIO const* io)
+	{
+		auto extCpy = io->extensions();
+		for (auto& ext : extCpy)
+		{
+			ext = "*." + ext;
+		}
+		return extCpy;
+	}
+	QString ioFilterString(iAFileIO const* io)
+	{
+		return QString("%1 (%2)").arg(io->name()).arg(ioExtensionList(io).join(" "));
+	}
 }
 
 std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileName, iAFileIO::Operation op)
@@ -74,13 +92,8 @@ QString iAFileTypeRegistry::registeredFileTypes(iAFileIO::Operation op, iADataSe
 		{   // current I/O does not support any of the allowed types
 			continue;
 		}
-		auto extCpy = io->extensions();
-		for (auto & ext: extCpy)
-		{
-			ext = "*." + ext;
-		}
-		singleTypes += QString("%1 (%2);;").arg(io->name()).arg(extCpy.join(" "));
-		allExtensions.append(extCpy);
+		singleTypes += ioFilterString(io.get()) + ";;";
+		allExtensions.append(ioExtensionList(io.get()));
 	}
 	if (singleTypes.isEmpty())
 	{
@@ -94,4 +107,47 @@ bool iAFileTypeRegistry::add(iAFileIOCreateFuncPtr c)
 {
 	fileIOs().push_back(c);
 	return true;
+}
+
+void iAFileTypeRegistry::addDefaultExtension(iADataSetType type, QString ext)
+{
+	if (defaultExtensions().contains(type))
+	{
+		LOG(lvlWarn, QString("For type %1, when trying to register extension %2 as default:"
+			" There is already a default extension registered (%3)!").arg(static_cast<int>(type))
+			.arg(ext)
+			.arg(defaultExtensions()[type]));
+	}
+	defaultExtensions().insert(type, ext);
+
+}
+
+QString iAFileTypeRegistry::defaultExtension(iADataSetType type)
+{
+	if (!defaultExtensions().contains(type))
+	{
+		LOG(lvlError, QString("No default extension registered for dataset type %1!").arg(static_cast<int>(type)));
+		return {};
+	}
+	return defaultExtensions()[type];
+}
+
+QString iAFileTypeRegistry::defaultExtFilterString(iADataSetType type)
+{
+	if (!defaultExtensions().contains(type))
+	{
+		LOG(lvlError, QString("No default extension registered for dataset type %1!").arg(static_cast<int>(type)));
+		return {};
+	}
+	auto ext = defaultExtensions()[type];
+	for (auto ioFactory : fileIOs())  // all registered file types
+	{
+		auto io = ioFactory();
+		if (io->extensions().contains(ext))
+		{
+			return ioFilterString(io.get());
+		}
+	}
+	LOG(lvlError, QString("No File I/O registered for default extension '%1'!").arg(ext));
+	return {};
 }

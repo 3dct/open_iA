@@ -110,7 +110,9 @@ void iAImageDataForDisplay::show(iAMdiChild* child)
 	m_histogram->addPlot(histogramPlot);
 	m_histogram->setTransferFunction(m_transfer.get());
 	m_histogram->update();
-	// TODO: better unique widget name!
+	// TODO NEWIO:
+	//     - better unique widget name!
+	//     - option to put combine histograms of multiple datasets into one view
 	static int histoNum = -1;
 	m_histogramDW = std::make_shared<iADockWidgetWrapper>(m_histogram, histoName, QString("Histogram%1").arg(++histoNum));
 	child->splitDockWidget(child->renderDockWidget(), m_histogramDW.get(), Qt::Vertical);

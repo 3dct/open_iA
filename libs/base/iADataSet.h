@@ -62,6 +62,8 @@ public:
 	QVariant metaData(QString const& key) const;
 	//! true if the dataset has metadata with the given key set, false otherwise
 	bool hasMetaData(QString const& key) const;
+	//! return the key, value map of all metadata items associated with the dataset
+	QVariantMap const& allMetaData() const;
 
 	//! get type of data stored in this dataset
 	iADataSetType type() const;

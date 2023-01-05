@@ -42,6 +42,15 @@ public:
 	//! Retrieve list of file types for file open/save dialog
 	static QString registeredFileTypes(iAFileIO::Operation op, iADataSetTypes allowedTypes = iADataSetType::All);
 
+	//! Adds a default extension for a given file type
+	static void addDefaultExtension(iADataSetType type, QString ext);
+
+	//! Get the default extension for datasets of the given type
+	static QString defaultExtension(iADataSetType type);
+
+	//! Get the filter string for the default extension for a given dataset type.
+	//! To be used in file open dialog, same string returned for that filetype as part of the result of registeredFileTypes
+	static QString defaultExtFilterString(iADataSetType type);
 private:
 	iAFileTypeRegistry() = delete;  //!< class is meant to be used statically only, prevent creation of objects
 };

@@ -200,8 +200,6 @@ public:
 	virtual void removeTool(QString const& key) = 0;
 	//! retrieve all tools attached to this child
 	virtual QMap<QString, std::shared_ptr<iATool>> const& tools() = 0;
-	//! save currently loaded files / tools in given project file
-	virtual void saveProject(QString const& fileName) = 0;
 
 	// Magic Lens:
 	//! Set the ID of the channel which should be the input to the 2D magic lens in slicer

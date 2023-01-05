@@ -2859,6 +2859,10 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	initializeSettingTypes();
 	QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
 	QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);
+	iAFileTypeRegistry::addDefaultExtension(iADataSetType::Volume, "mhd");
+	iAFileTypeRegistry::addDefaultExtension(iADataSetType::Mesh, "stl");
+	//iAFileTypeRegistry::addDefaultExtension(iADataSetType::Graph, ".txt");  -> graph storing not yet implemented!
+	//iAFileTypeRegistry::addDefaultExtension(iADataSetType::Collection, ".iaproj");  // -> this shouldn't be used yet anywhere
 #if defined(__APPLE__) && defined(__MACH__)
 	QSurfaceFormat::setDefaultFormat(iAVtkWidget::defaultFormat());
 #endif

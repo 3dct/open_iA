@@ -91,6 +91,11 @@ bool iADataSet::hasMetaData(QString const& key) const
 	return m_metaData.contains(key);
 }
 
+QVariantMap const& iADataSet::allMetaData() const
+{
+	return m_metaData;
+}
+
 iADataSetType iADataSet::type() const
 {
 	return m_type;

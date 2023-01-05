@@ -39,8 +39,8 @@ public:
 	virtual void loadState(QSettings & projectFile, QString const & fileName); // TODO: replace QSettings with QVariantMap? or at least make const (can't currently because of beginGroup/endGroup
 	//! save the current state of the tool, so that the current window can be restored from the stored data via the loadState method
 	virtual void saveState(QSettings & projectFile, QString const & fileName);
-	//CHECK NEWIO: maybe introduce 
-	//! indicate whether this tool should be loaded only once the rendering of datasets has been fully initialized
+	//TODO NEWIO: maybe introduce the following functionality/flag:
+	//! indicate whether this tool should be loaded only once the rendering of datasets has been fully initialized (true) or if it can be loaded once the child window is created (false)
 	// virtual bool waitForRendering() const;
 protected:
 	iAMdiChild* m_child;

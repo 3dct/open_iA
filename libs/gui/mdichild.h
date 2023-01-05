@@ -112,7 +112,7 @@ public:
 	bool displayResult(QString const & title, vtkImageData* image = nullptr, vtkPolyData* poly = nullptr) override;
 	void prepareForResult();
 	bool save();
-	void saveNew();
+	bool saveNew();
 	bool saveAs();
 	bool saveFile(const QString &f, int modalityNr, int componentNr);
 	void saveVolumeStack();
@@ -267,8 +267,6 @@ public:
 	//!    - configuration of opened tools (which support it), when new project file (.iaproj) is chosen
 	//!      (to be extended to modalities and TFs soon)
 	bool doSaveProject(QString const& projectFileName) override;
-	//! Save all currently loaded files into a project with the given file name.
-	void saveProject(QString const & fileName) override;
 	//! Whether volume data is loaded (only checks filename and volume dimensions).
 	bool isVolumeDataLoaded() const override;
 	//! Enable or disable linked slicers and 3D renderer.
@@ -406,6 +404,8 @@ private:
 	void addProfile();
 	void updateProfile();
 	bool saveAs(int modalityNr);
+	bool saveNew(std::shared_ptr<iADataSet> dataSet);
+	bool saveNew(std::shared_ptr<iADataSet> dataSet, QString const & fileName);
 	void set3DSlicePlanePos(int mode, int slice);
 
 	//! Changes the display of views from full to multi screen or multi screen to fullscreen.
