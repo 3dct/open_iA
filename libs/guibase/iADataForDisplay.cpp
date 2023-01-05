@@ -127,12 +127,11 @@ void iAProjectViewer::createGUI(iAMdiChild* child)
 {
 	auto collection = dynamic_cast<iADataCollection const*>(m_dataSet);
 	auto fileName = m_dataSet->metaData(iADataSet::FileNameKey).toString();
-	auto afterRenderCallback = [this, child, collection, fileName]() {
+	auto afterRenderCallback = [this, child, collection, fileName]()
+	{
 		// all datasets loaded, continue with loading projects!
-
 		auto const & settings = collection->settings();
 		child->loadSettings(settings);
-
 		auto tools = iAToolRegistry::toolKeys();
 		auto registeredTools = iAToolRegistry::toolKeys();
 		auto& projectFile = collection->settings();

@@ -673,11 +673,6 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 			{
 				render3D = dataRenderer->isVisible();   // 3D renderers determine default visibility themselves
 				m_dataRenderers[dataSetIdx] = dataRenderer;
-				if (dataSetIdx == 0)    // TODO: better recognition of whether first loaded dataset?
-				{
-					// ToDo: use MdiChild::resetCamera instead?
-					m_renderer->renderer()->ResetCamera();
-				}
 				updatePositionMarkerSize();
 				iAAABB sceneBounds;
 				for (auto renderers: m_dataRenderers)
@@ -685,6 +680,7 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 					sceneBounds.merge(renderers.second->bounds());
 				}
 				m_renderer->setSceneBounds(sceneBounds);
+				m_renderer->renderer()->ResetCamera();
 				updateRenderer();
 			}
 			auto sliceRenderer = createSliceRenderer(dataSet.get(), m_dataForDisplay[dataSetIdx].get(), m_slicer, this);
