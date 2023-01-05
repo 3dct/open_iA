@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1128</width>
+    <width>1362</width>
     <height>600</height>
    </rect>
   </property>
@@ -54,7 +54,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1128</width>
+     <width>1362</width>
      <height>22</height>
     </rect>
    </property>
@@ -75,21 +75,15 @@
     <addaction name="actionOpenNew"/>
     <addaction name="actionOpenRaw"/>
     <addaction name="actionOpenVolumeStack"/>
-    <addaction name="actionOpen"/>
-    <addaction name="actionOpenImageStack"/>
     <addaction name="actionOpenWithDataTypeConversion"/>
     <addaction name="actionOpenTLGICTData"/>
     <addaction name="separator"/>
     <addaction name="actionSaveDataSet"/>
     <addaction name="actionSaveVolumeStack"/>
     <addaction name="actionSaveProject"/>
-    <addaction name="actionSave"/>
-    <addaction name="actionSaveAs"/>
     <addaction name="separator"/>
     <addaction name="actionLoadSettings"/>
     <addaction name="actionSaveSettings"/>
-    <addaction name="actionLoadCameraSettings"/>
-    <addaction name="actionSaveCameraSettings"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -169,6 +163,33 @@
      <addaction name="action3D"/>
      <addaction name="actionMultiViews"/>
     </widget>
+    <widget class="QMenu" name="menu3D_Renderer">
+     <property name="title">
+      <string>3D Renderer</string>
+     </property>
+     <addaction name="actionMagicLens3D"/>
+     <addaction name="actionSyncCamera"/>
+     <addaction name="separator"/>
+     <addaction name="actionViewXDirectionInRaycaster"/>
+     <addaction name="actionViewmXDirectionInRaycaster"/>
+     <addaction name="actionViewYDirectionInRaycaster"/>
+     <addaction name="actionViewmYDirectionInRaycaster"/>
+     <addaction name="actionViewZDirectionInRaycaster"/>
+     <addaction name="actionViewmZDirectionInRaycaster"/>
+     <addaction name="actionIsometricViewInRaycaster"/>
+     <addaction name="separator"/>
+     <addaction name="actionSaveCameraSettings"/>
+     <addaction name="actionLoadCameraSettings"/>
+    </widget>
+    <widget class="QMenu" name="menuSlicer">
+     <property name="title">
+      <string>Slicer</string>
+     </property>
+     <addaction name="actionRawProfile"/>
+     <addaction name="actionEditProfilePoints"/>
+     <addaction name="actionMagicLens2D"/>
+     <addaction name="actionSnakeSlicer"/>
+    </widget>
     <addaction name="menuDockWidgets"/>
     <addaction name="menuMaximize_View"/>
     <addaction name="menuLayout"/>
@@ -177,11 +198,8 @@
     <addaction name="actionLinkMdis"/>
     <addaction name="actionEnableInteraction"/>
     <addaction name="separator"/>
-    <addaction name="actionMagicLens2D"/>
-    <addaction name="actionMagicLens3D"/>
-    <addaction name="actionEditProfilePoints"/>
-    <addaction name="actionRawProfile"/>
-    <addaction name="actionSnakeSlicer"/>
+    <addaction name="menuSlicer"/>
+    <addaction name="menu3D_Renderer"/>
     <addaction name="separator"/>
     <addaction name="actionShowToolbar"/>
     <addaction name="actionFullScreenMode"/>
@@ -252,9 +270,9 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionOpen"/>
-   <addaction name="actionSave"/>
-   <addaction name="actionSaveAs"/>
+   <addaction name="actionOpenInNewWindow"/>
+   <addaction name="actionSaveDataSet"/>
+   <addaction name="actionSaveProject"/>
    <addaction name="actionPreferences"/>
    <addaction name="actionRendererSettings"/>
    <addaction name="actionSlicerSettings"/>
@@ -301,16 +319,12 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionMagicLens2D"/>
    <addaction name="actionEditProfilePoints"/>
    <addaction name="actionRawProfile"/>
-   <addaction name="actionMagicLens2D"/>
-   <addaction name="actionMagicLens3D"/>
    <addaction name="actionSnakeSlicer"/>
-   <addaction name="separator"/>
-   <addaction name="actionInteractionModeCamera"/>
-   <addaction name="actionInteractionModeRegistration"/>
   </widget>
-  <widget class="QToolBar" name="raycasterToolbar">
+  <widget class="QToolBar" name="rendererToolbar">
    <property name="windowTitle">
     <string>RayCaster</string>
    </property>
@@ -326,6 +340,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionMagicLens3D"/>
    <addaction name="actionViewXDirectionInRaycaster"/>
    <addaction name="actionViewmXDirectionInRaycaster"/>
    <addaction name="actionViewYDirectionInRaycaster"/>
@@ -333,26 +348,10 @@
    <addaction name="actionViewZDirectionInRaycaster"/>
    <addaction name="actionViewmZDirectionInRaycaster"/>
    <addaction name="actionIsometricViewInRaycaster"/>
-  </widget>
-  <widget class="QToolBar" name="cameraToolbar">
-   <property name="windowTitle">
-    <string>Camera</string>
-   </property>
-   <property name="iconSize">
-    <size>
-     <width>32</width>
-     <height>32</height>
-    </size>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>BottomToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
+   <addaction name="separator"/>
    <addaction name="actionSaveCameraSettings"/>
    <addaction name="actionLoadCameraSettings"/>
-   <addaction name="actionAssignView"/>
+   <addaction name="actionSyncCamera"/>
   </widget>
   <widget class="QToolBar" name="layoutToolbar">
    <property name="windowTitle">
@@ -375,48 +374,19 @@
    <addaction name="actionDeleteLayout"/>
    <addaction name="actionResetLayout"/>
   </widget>
-  <action name="actionOpen">
-   <property name="icon">
-    <iconset resource="../guibase/guibase.qrc">
-     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
+  <widget class="QToolBar" name="interactionToolbar">
+   <property name="windowTitle">
+    <string>toolBar</string>
    </property>
-   <property name="text">
-    <string>OLD Open...</string>
-   </property>
-   <property name="toolTip">
-    <string>Open an existing file</string>
-   </property>
-  </action>
-  <action name="actionSave">
-   <property name="icon">
-    <iconset resource="../guibase/guibase.qrc">
-     <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
-   </property>
-   <property name="text">
-    <string>OLD Save</string>
-   </property>
-   <property name="toolTip">
-    <string>Save the document to disk</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+S</string>
-   </property>
-  </action>
-  <action name="actionSaveAs">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/saveas.png</normaloff>:/images/saveas.png</iconset>
-   </property>
-   <property name="text">
-    <string>OLD Save &amp;As...</string>
-   </property>
-   <property name="toolTip">
-    <string>Save the document under a new name</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+S</string>
-   </property>
-  </action>
+   <attribute name="toolBarArea">
+    <enum>BottomToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionInteractionModeCamera"/>
+   <addaction name="actionInteractionModeRegistration"/>
+  </widget>
   <action name="actionExit">
    <property name="text">
     <string>E&amp;xit</string>
@@ -676,15 +646,6 @@
     <string>Snake Slicer</string>
    </property>
   </action>
-  <action name="actionOpenImageStack">
-   <property name="icon">
-    <iconset resource="../guibase/guibase.qrc">
-     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
-   </property>
-   <property name="text">
-    <string>OLD Open Image Stack...</string>
-   </property>
-  </action>
   <action name="actionEnableInteraction">
    <property name="checkable">
     <bool>true</bool>
@@ -705,7 +666,7 @@
      <normaloff>:/images/px.png</normaloff>:/images/px.png</iconset>
    </property>
    <property name="text">
-    <string>3D renderer +X</string>
+    <string>View +X direction</string>
    </property>
    <property name="toolTip">
     <string>Set camera to +X direction in 3D renderer</string>
@@ -717,7 +678,7 @@
      <normaloff>:/images/py.png</normaloff>:/images/py.png</iconset>
    </property>
    <property name="text">
-    <string>3D renderer +Y</string>
+    <string>View +Y direction</string>
    </property>
    <property name="toolTip">
     <string>Set camera to +Y direction in 3D renderer</string>
@@ -729,7 +690,7 @@
      <normaloff>:/images/pz.png</normaloff>:/images/pz.png</iconset>
    </property>
    <property name="text">
-    <string>3D renderer +Z</string>
+    <string>View +Z direction</string>
    </property>
    <property name="toolTip">
     <string>Set camera to +Z direction in 3D renderer</string>
@@ -741,7 +702,7 @@
      <normaloff>:/images/mx.png</normaloff>:/images/mx.png</iconset>
    </property>
    <property name="text">
-    <string>3D renderer -X</string>
+    <string>View -X direction</string>
    </property>
    <property name="toolTip">
     <string>Set camera to -X direction in 3D renderer</string>
@@ -753,7 +714,7 @@
      <normaloff>:/images/my.png</normaloff>:/images/my.png</iconset>
    </property>
    <property name="text">
-    <string>3D renderer -Y</string>
+    <string>View -Y direction</string>
    </property>
    <property name="toolTip">
     <string>Set camera to -Y direction in 3D renderer</string>
@@ -765,13 +726,13 @@
      <normaloff>:/images/mz.png</normaloff>:/images/mz.png</iconset>
    </property>
    <property name="text">
-    <string>3D renderer -Z</string>
+    <string>View -Z direction</string>
    </property>
    <property name="toolTip">
     <string>Set camera to -Z direction in 3D renderer</string>
    </property>
   </action>
-  <action name="actionAssignView">
+  <action name="actionSyncCamera">
    <property name="icon">
     <iconset resource="../guibase/guibase.qrc">
      <normaloff>:/images/update.png</normaloff>:/images/update.png</iconset>
@@ -894,7 +855,7 @@
      <normaloff>:/images/magicLens.png</normaloff>:/images/magicLens.png</iconset>
    </property>
    <property name="text">
-    <string>Magic Lens 2D</string>
+    <string>2D Magic Lens</string>
    </property>
    <property name="toolTip">
     <string>Enable/Disable 2D Magic Lens</string>
@@ -1079,7 +1040,7 @@
      <normaloff>:/images/magicLens3D.png</normaloff>:/images/magicLens3D.png</iconset>
    </property>
    <property name="text">
-    <string>Enable/Disable 3D Magic Lens</string>
+    <string>3D Magic Lens</string>
    </property>
   </action>
   <action name="actionInteractionModeCamera">
@@ -1213,11 +1174,6 @@
    </property>
    <property name="toolTip">
     <string>Save one dataset to disk</string>
-   </property>
-  </action>
-  <action name="actionSaveProject_New">
-   <property name="text">
-    <string>Save Project</string>
    </property>
   </action>
   <action name="actionSaveVolumeStack">

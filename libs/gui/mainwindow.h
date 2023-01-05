@@ -154,9 +154,7 @@ signals:
 private slots:
 	void quitTimerSlot();
 	void hideSplashSlot();
-	void open();
 	void openRaw();
-	void openImageStack();
 	void openVolumeStack();
 	void openWithDataTypeConversion();
 	void openTLGICTData();

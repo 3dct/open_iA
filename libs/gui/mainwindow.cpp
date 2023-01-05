@@ -298,18 +298,6 @@ void MainWindow::closeAllSubWindows()
 	}
 }
 
-void MainWindow::open()
-{
-	loadFiles(
-		QFileDialog::getOpenFileNames(
-			this,
-			tr("Open Files"),
-			m_path,
-			iAIOProvider::GetSupportedLoadFormats()
-		)
-	);
-}
-
 void MainWindow::openRaw()
 {
 	QString fileName = QFileDialog::getOpenFileName(
@@ -319,18 +307,6 @@ void MainWindow::openRaw()
 		"Raw File (*)"
 	);
 	loadFileNew(fileName, true, std::make_shared<iARawFileIO>());
-}
-
-void MainWindow::openImageStack()
-{
-	loadFile(
-		QFileDialog::getOpenFileName(
-			this,
-			tr("Open File"),
-			m_path,
-			iAIOProvider::GetSupportedImageStackFormats()
-		), true
-	);
 }
 
 void MainWindow::openVolumeStack()
@@ -1734,14 +1710,10 @@ void MainWindow::updateMenus()
 	bool hasMdiChild = activeMdiChild();
 	
 	// File Menu:
-	// old
-	m_ui->actionSave->setEnabled(hasMdiChild);
-	m_ui->actionSaveAs->setEnabled(hasMdiChild);
-	m_ui->actionSaveProject->setEnabled(activeChild<iASavableProject>());
 
 	// new:
 	m_ui->actionSaveDataSet->setEnabled(hasMdiChild);
-	m_ui->actionSaveProject_New->setEnabled(hasMdiChild);
+	m_ui->actionSaveProject->setEnabled(activeChild<iASavableProject>());
 	m_ui->actionSaveVolumeStack->setEnabled(hasMdiChild);
 
 	m_ui->actionLoadSettings->setEnabled(hasMdiChild);
@@ -1780,7 +1752,7 @@ void MainWindow::updateMenus()
 	m_ui->actionViewZDirectionInRaycaster->setEnabled(hasMdiChild);
 	m_ui->actionViewmZDirectionInRaycaster->setEnabled(hasMdiChild);
 	m_ui->actionIsometricViewInRaycaster->setEnabled(hasMdiChild);
-	m_ui->actionAssignView->setEnabled(hasMdiChild);
+	m_ui->actionSyncCamera->setEnabled(hasMdiChild);
 	m_ui->actionLoadCameraSettings->setEnabled(hasMdiChild);
 	m_ui->actionSaveCameraSettings->setEnabled(hasMdiChild);
 	m_ui->actionResetView->setEnabled(hasMdiChild);
@@ -1901,21 +1873,17 @@ void MainWindow::closeMdiChild(iAMdiChild* child)
 
 void MainWindow::connectSignalsToSlots()
 {
-	// "File menu entries:
-	connect(m_ui->actionOpen, &QAction::triggered, this, &MainWindow::open);
+	// "File" menu entries:
 	auto getOpenFileName = [this]() -> QString {
 		return QFileDialog::getOpenFileName(this, tr("Open Files (new)"), m_path, iAFileTypeRegistry::registeredFileTypes(iAFileIO::Load));
 	};
 	connect(m_ui->actionOpenNew, &QAction::triggered, this, [this, getOpenFileName] { loadFileNew(getOpenFileName(), false); });
 	connect(m_ui->actionOpenInNewWindow, &QAction::triggered, this, [this, getOpenFileName] { loadFileNew(getOpenFileName(), true); });
 	connect(m_ui->actionOpenRaw, &QAction::triggered, this, &MainWindow::openRaw);
-	connect(m_ui->actionOpenImageStack, &QAction::triggered, this, &MainWindow::openImageStack);
 	connect(m_ui->actionOpenVolumeStack, &QAction::triggered, this, &MainWindow::openVolumeStack);
 	connect(m_ui->actionOpenWithDataTypeConversion, &QAction::triggered, this, &MainWindow::openWithDataTypeConversion);
 	connect(m_ui->actionOpenTLGICTData, &QAction::triggered, this, &MainWindow::openTLGICTData);
-	connect(m_ui->actionSave, &QAction::triggered, this, &MainWindow::save);
 	connect(m_ui->actionSaveDataSet, &QAction::triggered, this, &MainWindow::saveNew);
-	connect(m_ui->actionSaveAs, &QAction::triggered, this, &MainWindow::saveAs);
 	connect(m_ui->actionSaveProject, &QAction::triggered, this, &MainWindow::saveProject);
 	connect(m_ui->actionSaveVolumeStack, &QAction::triggered, this, &MainWindow::saveVolumeStack);
 	connect(m_ui->actionLoadSettings, &QAction::triggered, this, &MainWindow::loadSettings);
@@ -1999,7 +1967,7 @@ void MainWindow::connectSignalsToSlots()
 	m_ui->actionIsometricViewInRaycaster->setProperty("camPosition", iACameraPosition::Iso);
 
 	// Camera toolbar:
-	connect(m_ui->actionAssignView,   &QAction::triggered, this, &MainWindow::rendererSyncCamera);
+	connect(m_ui->actionSyncCamera,   &QAction::triggered, this, &MainWindow::rendererSyncCamera);
 	connect(m_ui->actionSaveCameraSettings, &QAction::triggered, this, &MainWindow::rendererSaveCameraSettings);
 	connect(m_ui->actionLoadCameraSettings, &QAction::triggered, this, &MainWindow::rendererLoadCameraSettings);
 
