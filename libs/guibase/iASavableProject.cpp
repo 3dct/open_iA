@@ -21,17 +21,20 @@
 #include "iASavableProject.h"
 
 #include <io/iAIOProvider.h>
+#include <iAFileTypeRegistry.h>
 
 #include <QApplication>
 #include <QFileDialog>
 
 bool iASavableProject::saveProject(QString const & basePath)
 {
+	QString defaultFilter(iAFileTypeRegistry::defaultExtFilterString(iADataSetType::Collection));
 	QString projectFileName = QFileDialog::getSaveFileName(
 		QApplication::activeWindow(),
 		QCoreApplication::translate("iAMainWindow", "Select Output File"),
 		basePath,
-		iAIOProvider::NewProjectFileTypeFilter + iAIOProvider::ProjectFileTypeFilter);
+		iAFileTypeRegistry::registeredFileTypes(iAFileIO::Save, iADataSetType::Collection),
+		&defaultFilter);
 	if (projectFileName.isEmpty())
 	{
 		return false;
