@@ -203,7 +203,14 @@ void iAProjectViewer::createGUI(iAMdiChild* child)
 				settings.endGroup();
 			}
 		}
-		// TODO NEWIO: we could remove the viewer here from the mdi child (no API for that though - yet)
+		for (auto ds : child->dataSetMap())
+		{
+			if (ds.second.get() == m_dataSet)
+			{
+				child->removeDataSet(ds.first);
+				break;    // CHECK NEWIO: also this viewer is deleted on removing the dataset, so here the object could already be deleted!
+			}
+		}
 	};
 	// if no datasets available, directly load tools...
 	if (collection->dataSets().empty())

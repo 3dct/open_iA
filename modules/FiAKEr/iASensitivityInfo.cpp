@@ -1416,9 +1416,9 @@ void iASensitivityInfo::spatialOverviewVisibilityChanged(bool visible)
 		m_child->updateRenderer();
 		return;
 	}
-	for (auto idx : m_child->dataSetIndices())
+	for (auto ds : m_child->dataSetMap())
 	{
-		if (m_child->dataSetRenderer(idx)->isVisible())
+		if (m_child->dataSetRenderer(ds.first)->isVisible())
 		{	// ..or any other modality is visible  -> Nothing to do
 			return;
 		}
@@ -1433,9 +1433,9 @@ void iASensitivityInfo::spatialOverviewVisibilityChanged(bool visible)
 
 void iASensitivityInfo::updateSpatialOverviewColors()
 {
-	for (auto idx : m_child->dataSetIndices())
+	for (auto ds : m_child->dataSetMap())
 	{
-		setSpatialOverviewTF(idx);
+		setSpatialOverviewTF(ds.first);
 	}
 	m_child->histogram()->update();
 }
@@ -1671,11 +1671,11 @@ void iASensitivityInfo::spHighlightChanged()
 	// show/hide spatial overview(s) depending on whether any results are highlighted
 	bool newVis = m_gui->m_paramSP->viewData()->highlightedPoints().empty();
 	//bool anyChange = false;
-	for (auto idx: m_child->dataSetIndices())
+	for (auto ds: m_child->dataSetMap())
 	{
-		if (newVis != m_child->dataSetRenderer(idx)->isVisible())
+		if (newVis != m_child->dataSetRenderer(ds.first)->isVisible())
 		{
-			m_child->dataSetRenderer(idx)->setVisible(newVis);
+			m_child->dataSetRenderer(ds.first)->setVisible(newVis);
 			//anyChange = true;
 		}
 	}

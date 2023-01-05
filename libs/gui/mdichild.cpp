@@ -726,6 +726,7 @@ void MdiChild::removeDataSet(size_t dataSetIdx)
 	{
 		changeMagicLensDataSet(0);
 	}
+	m_dataSetViewers.erase(dataSetIdx);
 	updateDataSetInfo();
 }
 
@@ -3152,12 +3153,9 @@ std::vector<std::shared_ptr<iADataSet>> MdiChild::dataSets() const
 	return result;
 }
 
-std::vector<size_t> MdiChild::dataSetIndices() const
+std::map<size_t, std::shared_ptr<iADataSet>> const& MdiChild::dataSetMap() const
 {
-	std::vector<size_t> result;
-	result.reserve(m_dataSets.size());
-	std::transform(m_dataSets.begin(), m_dataSets.end(), std::back_inserter(result), [](auto const& p) { return p.first; });
-	return result;
+	return m_dataSets;
 }
 
 iAModalityTransfer* MdiChild::dataSetTransfer(size_t idx) const

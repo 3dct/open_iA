@@ -317,7 +317,7 @@ public:
 	void clearDataSets() override;
 	std::shared_ptr<iADataSet> dataSet(size_t dataSetIdx) const override;
 	std::vector<std::shared_ptr<iADataSet>> dataSets() const override;
-	std::vector<size_t> dataSetIndices() const override;
+	std::map<size_t, std::shared_ptr<iADataSet>> const& dataSetMap() const override;
 
 	size_t firstImageDataSetIdx() const override;
 	vtkSmartPointer<vtkImageData> firstImageData() const override;

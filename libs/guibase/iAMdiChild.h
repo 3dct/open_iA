@@ -235,7 +235,7 @@ public:
 	//! Retrieve a dataset by its index
 	virtual std::shared_ptr<iADataSet> dataSet(size_t dataSetIdx) const = 0;
 	//! Retrieve a list of the indices of all datasets loaded in this window
-	virtual std::vector<size_t> dataSetIndices() const = 0;
+	virtual std::map<size_t, std::shared_ptr<iADataSet>> const & dataSetMap() const = 0;
 	//! Constant indicating an invalid dataset index
 	static const size_t NoDataSet = std::numeric_limits<size_t>::max();
 

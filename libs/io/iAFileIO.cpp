@@ -39,23 +39,24 @@ std::shared_ptr<iADataSet> iAFileIO::load(QString const& fileName, QVariantMap c
 {
 	try
 	{
-		QElapsedTimer t;
-		t.start();
+		QElapsedTimer t; t.start();
 		QVariantMap checkedValues(paramValues);
 		checkParams(checkedValues, Operation::Load, fileName);
 		auto dataSet = loadData(fileName, checkedValues, progress);
+		if (!dataSet)
+		{
+			return {};
+		}
 		dataSet->setMetaData(iADataSet::FileNameKey, fileName);
 		dataSet->setMetaData(iADataSet::NameKey, QFileInfo(fileName).completeBaseName());
 		for (auto k : checkedValues.keys())
 		{
 			dataSet->setMetaData(k, checkedValues[k]);
 		}
-		// for file formats that support multiple dataset types: check if an allowed type was loaded?
-		// BUT currently no such format supported
 		LOG(lvlInfo, QString("Loaded dataset %1 in %2 ms.").arg(fileName).arg(t.elapsed()));
 		return dataSet;
 	}
-	// TODO: unify exception handling?
+	// TODO NEWIO: unify exception handling? maybe move somewhere else?
 	catch (itk::ExceptionObject& e)
 	{
 		LOG(lvlError, QString("Error loading file %1: %2").arg(fileName).arg(e.GetDescription()));
@@ -106,10 +107,12 @@ bool iAFileIO::isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString co
 
 void iAFileIO::save(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress)
 {
+	QElapsedTimer t; t.start();
 	QVariantMap checkedValues(paramValues);
 	checkParams(checkedValues, Save, fileName);
 	saveData(fileName, dataSet, checkedValues, progress);
 	dataSet->setMetaData(iADataSet::FileNameKey, fileName);
+	LOG(lvlInfo, QString("Saved %1 in %2 ms.").arg(fileName).arg(t.elapsed()));
 }
 
 bool iAFileIO::checkParams(QVariantMap & paramValues, Operation op, QString const& fileName)
@@ -118,7 +121,7 @@ bool iAFileIO::checkParams(QVariantMap & paramValues, Operation op, QString cons
 	paramValues[iADataSet::FileNameKey] = fileName;
 	for (auto p : m_params[op])
 	{
-		// ToDo: maybe also check whether the values fulfill the conditions in the iAAttributeDescriptor? see iAFilter::checkParameters
+		// TODO NEWIO: maybe also check whether the values fulfill the conditions in the iAAttributeDescriptor? see iAFilter::checkParameters
 		if (!paramValues.contains(p->name()))
 		{
 			LOG(lvlWarn, QString("Missing parameter %1 when %2 file %3; setting to default %4!")
