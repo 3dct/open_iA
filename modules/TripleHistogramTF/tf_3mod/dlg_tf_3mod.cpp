@@ -28,7 +28,7 @@
 
 #include <iAModality.h>
 #include <iAModalityList.h>
-#include <iAModalityTransfer.h>
+#include <iATransferFunctionOwner.h>
 #include <iARenderer.h>
 #include <iAVolumeRenderer.h>
 #include <iAMdiChild.h>

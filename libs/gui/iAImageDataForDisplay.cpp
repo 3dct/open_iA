@@ -25,7 +25,7 @@
 
 #include "iADockWidgetWrapper.h"
 
-#include "iAModalityTransfer.h"
+#include "iATransferFunctionOwner.h"
 
 #include "iAChartWithFunctionsWidget.h"
 #include "iAChartFunctionTransfer.h"
@@ -42,7 +42,7 @@
 
 iAImageDataForDisplay::iAImageDataForDisplay(iAImageData* data, iAProgress* p, size_t binCount) :
 	iADataForDisplay(data),
-	m_transfer(std::make_shared<iAModalityTransfer>(data->vtkImage()->GetScalarRange())),
+	m_transfer(std::make_shared<iATransferFunctionOwner>(data->vtkImage()->GetScalarRange())),
 	m_histogram(nullptr),
 	m_imgStatistics("Computing...")
 {
@@ -121,7 +121,7 @@ void iAImageDataForDisplay::show(iAMdiChild* child)
 		child, &iAMdiChild::changeTransferFunction);
 }
 
-iAModalityTransfer* iAImageDataForDisplay::transfer()
+iATransferFunction* iAImageDataForDisplay::transfer()
 {
 	return m_transfer.get();
 }

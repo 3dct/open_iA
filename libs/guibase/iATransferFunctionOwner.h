@@ -20,45 +20,35 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAChartWithFunctionsWidget.h>
+#include "iAguibase_export.h"
 
-#include <QMap>
+#include "iATransferFunction.h"
 
-class iAAccumulatedXRFData;
-struct iACharacteristicEnergy;
-class iATransferFunctionPtrs;
-class iASpectrumFilterListener;
+#include <vtkColorTransferFunction.h>
+#include <vtkPiecewiseFunction.h>
 
-class vtkColorTransferFunction;
-class vtkPiecewiseFunction;
+class vtkImageData;
 
-class QRubberBand;
+class QString;
 
-class iAEnergySpectrumWidget: public iAChartWithFunctionsWidget
+//! Implements iATransferFunction and owns both color and opacity transfer function
+class iAguibase_API iATransferFunctionOwner : public iATransferFunction
 {
 public:
-	iAEnergySpectrumWidget(QWidget *parent,
-		QSharedPointer<iAAccumulatedXRFData> data,
-		vtkPiecewiseFunction* oTF,
-		vtkColorTransferFunction* cTF,
-		iASpectrumFilterListener* filterListener,
-		QString const & xLabel);
-	void AddElementLines(iACharacteristicEnergy* element, QColor const & color);
-	void RemoveElementLines(iACharacteristicEnergy* element);
-protected:
-	void mousePressEvent(QMouseEvent *event) override;
-	void mouseReleaseEvent(QMouseEvent *event) override;
-	void mouseMoveEvent(QMouseEvent *event) override;
-	void drawAfterPlots(QPainter& painter) override;
+	iATransferFunctionOwner(double const range[2]);
+	void computeRange(vtkSmartPointer<vtkImageData> img);
+	bool isRangeComputed() const;
+
+	//! @{ functions overridden from iATransferFunction:
+	vtkPiecewiseFunction* opacityTF() override;
+	vtkColorTransferFunction* colorTF() override;
+	void resetFunctions();
+	//! @}
+
 private:
-	void NotifySelectionUpdateListener();
-
-	QSharedPointer<iAAccumulatedXRFData>	m_data;
-
-	QPoint selectionOrigin;
-	QRubberBand* selectionRubberBand;
-	QVector<QRect> selectionRects;
-	iASpectrumFilterListener* filterListener;
-	QMap<iACharacteristicEnergy*, QColor> m_elementEnergies;
-	QSharedPointer<iATransferFunctionPtrs> m_tf;
+	vtkSmartPointer<vtkColorTransferFunction> m_ctf;
+	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
+	bool m_rangeComputed;
+	bool m_opacityRamp;  //! whether to use a varying opacity in default TF
+	double m_range[2];
 };

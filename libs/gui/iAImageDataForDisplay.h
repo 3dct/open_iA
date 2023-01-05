@@ -30,7 +30,8 @@ class iAChartWithFunctionsWidget;
 class iADockWidgetWrapper;
 class iAImageData;
 class iAHistogramData;
-class iAModalityTransfer;
+class iATransferFunction;
+class iATransferFunctionOwner;
 class iAPreferences;
 class iAProgress;
 
@@ -43,10 +44,10 @@ public:
 	void applyPreferences(iAPreferences const& prefs) override;
 	void updatedPreferences() override;
 	void dataSetChanged() override;
-	iAModalityTransfer* transfer();
+	iATransferFunction* transfer();
 	void update();
 private:
-	std::shared_ptr<iAModalityTransfer> m_transfer;
+	std::shared_ptr<iATransferFunctionOwner> m_transfer;
 	QSharedPointer<iAHistogramData> m_histogramData;
 	iAChartWithFunctionsWidget* m_histogram;
 	std::shared_ptr<iADockWidgetWrapper> m_histogramDW;

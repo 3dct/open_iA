@@ -26,7 +26,7 @@
 #include "iAFast3DMagicLensWidget.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
-#include "iAModalityTransfer.h"
+#include "iATransferFunctionOwner.h"
 #include "iAParameterDlg.h"
 #include "iARenderer.h"
 #include "iASlicer.h"

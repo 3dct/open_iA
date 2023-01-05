@@ -36,7 +36,7 @@
 
 // guibase
 #include <iAJobListView.h>
-#include <iAModalityTransfer.h>
+#include <iATransferFunctionOwner.h>
 #include <iAMultiStepProgressObserver.h>
 #include <iAQVTKWidget.h>
 #include <iARunAsync.h>
@@ -90,7 +90,7 @@ public:
 class iAMeanObjectData
 {
 public:
-	QList<iAModalityTransfer*> moHistogramList;
+	QList<iATransferFunctionOwner*> moHistogramList;
 	QList<vtkSmartPointer<vtkVolume>> moVolumesList;
 	QList<vtkSmartPointer<vtkRenderer>> moRendererList;
 	QList<vtkSmartPointer<vtkFixedPointVolumeRayCastMapper>> moVolumeMapperList;
@@ -317,8 +317,8 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 			// Create histogram and TFs for each MObject
 			QString moHistName = classNames[currClass];
 			moHistName.append(QString(" %1 Mean Object").arg(MapObjectTypeToString(filterID)));
-			iAModalityTransfer* moHistogram =
-				new iAModalityTransfer(m_MOData->moImageDataList[currClass - 1]->GetScalarRange());
+			iATransferFunctionOwner* moHistogram =
+				new iATransferFunctionOwner(m_MOData->moImageDataList[currClass - 1]->GetScalarRange());
 			m_MOData->moHistogramList.append(moHistogram);
 
 			// Create MObject default Transfer Tunctions

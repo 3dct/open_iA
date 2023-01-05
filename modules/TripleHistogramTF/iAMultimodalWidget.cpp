@@ -38,7 +38,8 @@
 #include <iAMdiChild.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
-#include <iAModalityTransfer.h>
+#include <iATransferFunctionOwner.h>
+#include <iATransferFunctionPtrs.h>
 //#include <iAPerformanceHelper.h>
 #include <iAPreferences.h>
 #include <iARenderer.h>
@@ -565,7 +566,7 @@ QSharedPointer<iATransferFunction> iAMultimodalWidget::createCopyTf(int index, v
 {
 	colorTf->DeepCopy(m_modalitiesActive[index]->transfer()->colorTF());
 	opacityFunction->DeepCopy(m_modalitiesActive[index]->transfer()->opacityTF());
-	return QSharedPointer<iASimpleTransferFunction>::create(colorTf, opacityFunction);
+	return QSharedPointer<iATransferFunctionPtrs>::create(colorTf, opacityFunction);
 }
 
 void iAMultimodalWidget::alertWeightIsZero(QSharedPointer<iAModality> modality)
@@ -615,7 +616,7 @@ void iAMultimodalWidget::updateCopyTransferFunction(int index)
 	}
 
 	// newly set transfer function (set via the histogram)
-	QSharedPointer<iAModalityTransfer> effective = getModality(index)->transfer();
+	QSharedPointer<iATransferFunctionOwner> effective = getModality(index)->transfer();
 
 	// copy of previous transfer function, to be updated in this method
 	QSharedPointer<iATransferFunction> copy = m_copyTFs[index];
@@ -652,7 +653,7 @@ void iAMultimodalWidget::updateOriginalTransferFunction(int index)
 	double weight = getWeight(index);
 
 	// newly set transfer function (set via the histogram)
-	QSharedPointer<iAModalityTransfer> effective = m_modalitiesActive[index]->transfer();
+	QSharedPointer<iATransferFunctionOwner> effective = m_modalitiesActive[index]->transfer();
 
 	// copy of previous transfer function, to be updated in this method
 	QSharedPointer<iATransferFunction> copy = m_copyTFs[index];

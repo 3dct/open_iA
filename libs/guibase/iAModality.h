@@ -33,7 +33,7 @@
 
 class iAHistogramData;
 class iAImageCoordConverter;
-class iAModalityTransfer;
+class iATransferFunctionOwner;
 class iAVolumeRenderer;
 
 //! class holding the data of a single image channel
@@ -109,7 +109,7 @@ public:
 	int renderFlags() const;
 
 	void loadTransferFunction();
-	QSharedPointer<iAModalityTransfer> transfer();
+	QSharedPointer<iATransferFunctionOwner> transfer();
 	void setRenderer(QSharedPointer<iAVolumeRenderer> renderer);
 	QSharedPointer<iAVolumeRenderer> renderer();
 	void updateRenderer();
@@ -155,7 +155,7 @@ private:
 	uint m_channelID;  //!< channel in mdi child
 	double m_slicerOpacity;  //!< overall opacity in the slicers
 	QSharedPointer<iAImageCoordConverter> m_converter;
-	QSharedPointer<iAModalityTransfer> m_transfer;
+	QSharedPointer<iATransferFunctionOwner> m_transfer;
 	QSharedPointer<iAVolumeRenderer> m_renderer;
 	std::vector<vtkSmartPointer<vtkImageData>> m_imgs;  // TODO: implement lazy loading
 	vtkSmartPointer<vtkImageData> m_imgData;

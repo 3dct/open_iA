@@ -49,7 +49,7 @@
 #include <iAJobListView.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
-#include <iAModalityTransfer.h>
+#include <iATransferFunctionOwner.h>
 #include <iAMovieHelper.h>
 #include <iAParameterDlg.h>
 #include <iAPreferences.h>

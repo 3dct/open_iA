@@ -30,26 +30,6 @@
 iATransferFunction::~iATransferFunction()
 {}
 
-iASimpleTransferFunction::iASimpleTransferFunction(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf) :
-	m_ctf(ctf),
-	m_otf(otf)
-{}
-
-vtkColorTransferFunction * iASimpleTransferFunction::colorTF()
-{
-	return m_ctf;
-}
-
-vtkPiecewiseFunction * iASimpleTransferFunction::opacityTF()
-{
-	return m_otf;
-}
-
-void iASimpleTransferFunction::resetFunctions()
-{
-	LOG(lvlWarn, "iASimpleTransferFunction::resetFunctions called!");
-}
-
 void defaultColorTF(vtkSmartPointer<vtkColorTransferFunction> cTF, double const range[2])
 {
 	cTF->RemoveAllPoints();

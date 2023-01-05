@@ -23,7 +23,7 @@
 #include "iALog.h"
 #include "iAMathUtility.h"
 #include "iAModality.h"
-#include "iAModalityTransfer.h"
+#include "iATransferFunctionOwner.h"
 #include "iAProgress.h"
 #include "iAXmlSettings.h"
 #include "iAStringHelper.h"

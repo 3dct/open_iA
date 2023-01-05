@@ -33,7 +33,7 @@ class iAModality;
 class iAModalityList;
 class iAVolumeRenderer;
 class iAVolumeSettings;
-class iAModalityTransfer;
+class iATransferFunctionOwner;
 class iAMdiChild;
 
 class Ui_modalities;

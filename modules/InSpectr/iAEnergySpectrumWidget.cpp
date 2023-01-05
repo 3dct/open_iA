@@ -26,7 +26,7 @@
 
 #include <iAPlotTypes.h>
 #include <iAMapper.h>
-#include <iATransferFunction.h>
+#include <iATransferFunctionPtrs.h>
 
 #include <QFontMetrics>
 #include <QMap>
@@ -58,7 +58,7 @@ iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent,
 	m_data(data),
 	selectionRubberBand(new QRubberBand(QRubberBand::Rectangle, this)),
 	filterListener(filterListener),
-	m_tf(new iASimpleTransferFunction(cTF, oTF))
+	m_tf(new iATransferFunctionPtrs(cTF, oTF))
 {
 	setTransferFunction(m_tf.data());
 	addPlot(QSharedPointer<iAStepFunctionPlot>::create(m_data, QColor(70, 70, 70, 255)));

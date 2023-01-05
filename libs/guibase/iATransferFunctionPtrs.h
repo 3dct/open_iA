@@ -20,36 +20,19 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iATransferFunction.h"
 #include "iAguibase_export.h"
 
-#include <vtkColorTransferFunction.h>
-#include <vtkPiecewiseFunction.h>
-#include <vtkSmartPointer.h>
+#include "iATransferFunction.h"
 
-class vtkImageData;
-
-class QString;
-
-//! Unite a color transfer function, an opacity transfer function
-//! and GUI classes used for viewing a histogram of the data and for editing the transfer functions.
-class iAguibase_API iAModalityTransfer : public iATransferFunction
+//! An non-owning implementation of iATransferFunction (that is, a container for color- and opacity transfer functions stored elsewhere)
+class iAguibase_API iATransferFunctionPtrs : public iATransferFunction
 {
 public:
-	iAModalityTransfer(double const range[2]);
-	void computeRange(vtkSmartPointer<vtkImageData> img);
-	bool isRangeComputed() const;
-
-	//! @{ functions overridden from iATransferFunction:
-	vtkPiecewiseFunction* opacityTF() override;
+	iATransferFunctionPtrs(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf);
 	vtkColorTransferFunction* colorTF() override;
+	vtkPiecewiseFunction* opacityTF() override;
 	void resetFunctions() override;
-	//! @}
-
 private:
-	vtkSmartPointer<vtkColorTransferFunction> m_ctf;
-	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
-	bool m_rangeComputed;
-	bool m_opacityRamp;  //! whether to use a varying opacity in default TF
-	double m_range[2];
+	vtkColorTransferFunction* m_ctf;
+	vtkPiecewiseFunction* m_otf;
 };

@@ -22,7 +22,7 @@
 #include "iANModalTFManager.h"
 
 #include <iAModality.h>
-#include <iAModalityTransfer.h>
+#include <iATransferFunctionOwner.h>
 #include <iAPerformanceHelper.h>
 
 #include <vtkImageData.h>

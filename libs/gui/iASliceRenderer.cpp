@@ -25,7 +25,7 @@
 #include "iAChannelSlicerData.h"
 #include "iADataSet.h"
 #include "iAMdiChild.h"
-#include "iAModalityTransfer.h"
+#include "iATransferFunctionOwner.h"
 #include "iASlicerImpl.h"
 #include "iAImageDataForDisplay.h"
 
@@ -53,7 +53,7 @@ void iASliceRenderer::remove()
 class iAVolumeSliceRenderer : public iASliceRenderer
 {
 public:
-	iAVolumeSliceRenderer(iAImageData* imgData, iAModalityTransfer* transfer, std::array<iASlicerImpl*, 3> slicer, uint channelID):
+	iAVolumeSliceRenderer(iAImageData* imgData, iATransferFunction* transfer, std::array<iASlicerImpl*, 3> slicer, uint channelID):
 		m_channelID(channelID),
 		m_slicer(slicer)
 	{

@@ -18,47 +18,26 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iATransferFunctionPtrs.h"
 
-#include <iAChartWithFunctionsWidget.h>
+#include <iALog.h>
 
-#include <QMap>
+iATransferFunctionPtrs::iATransferFunctionPtrs(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf) :
+	m_ctf(ctf),
+	m_otf(otf)
+{}
 
-class iAAccumulatedXRFData;
-struct iACharacteristicEnergy;
-class iATransferFunctionPtrs;
-class iASpectrumFilterListener;
-
-class vtkColorTransferFunction;
-class vtkPiecewiseFunction;
-
-class QRubberBand;
-
-class iAEnergySpectrumWidget: public iAChartWithFunctionsWidget
+vtkColorTransferFunction* iATransferFunctionPtrs::colorTF()
 {
-public:
-	iAEnergySpectrumWidget(QWidget *parent,
-		QSharedPointer<iAAccumulatedXRFData> data,
-		vtkPiecewiseFunction* oTF,
-		vtkColorTransferFunction* cTF,
-		iASpectrumFilterListener* filterListener,
-		QString const & xLabel);
-	void AddElementLines(iACharacteristicEnergy* element, QColor const & color);
-	void RemoveElementLines(iACharacteristicEnergy* element);
-protected:
-	void mousePressEvent(QMouseEvent *event) override;
-	void mouseReleaseEvent(QMouseEvent *event) override;
-	void mouseMoveEvent(QMouseEvent *event) override;
-	void drawAfterPlots(QPainter& painter) override;
-private:
-	void NotifySelectionUpdateListener();
+	return m_ctf;
+}
 
-	QSharedPointer<iAAccumulatedXRFData>	m_data;
+vtkPiecewiseFunction* iATransferFunctionPtrs::opacityTF()
+{
+	return m_otf;
+}
 
-	QPoint selectionOrigin;
-	QRubberBand* selectionRubberBand;
-	QVector<QRect> selectionRects;
-	iASpectrumFilterListener* filterListener;
-	QMap<iACharacteristicEnergy*, QColor> m_elementEnergies;
-	QSharedPointer<iATransferFunctionPtrs> m_tf;
-};
+void iATransferFunctionPtrs::resetFunctions()
+{
+	LOG(lvlWarn, "iATransferFunctionPtrs::resetFunctions called!");
+}

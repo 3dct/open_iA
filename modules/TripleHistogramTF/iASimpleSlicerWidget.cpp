@@ -22,7 +22,7 @@
 
 #include <iAChannelData.h>
 #include <iAModality.h>
-#include <iAModalityTransfer.h>
+#include <iATransferFunctionOwner.h>
 #include <iASlicerImpl.h>
 
 #include <vtkCamera.h>

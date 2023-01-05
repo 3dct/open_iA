@@ -27,7 +27,7 @@ class vtkPiecewiseFunction;
 
 #include "iAbase_export.h"
 
-//! base class for anything providing a full transfer function (opacity + color)
+//! Base class for anything providing a full transfer function (opacity + color)
 class iAbase_API iATransferFunction
 {
 public:
@@ -36,21 +36,6 @@ public:
 	virtual vtkPiecewiseFunction* opacityTF() =0;
 	virtual vtkColorTransferFunction* colorTF() = 0;
 	virtual void resetFunctions() = 0;
-};
-
-//! simplest possible transfer function: just a container for ctf and otf
-//! (no management of these contained classes!)
-//! TODO: get rid in favor of something with smart pointers!
-class iAbase_API iASimpleTransferFunction : public iATransferFunction
-{
-public:
-	iASimpleTransferFunction(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf);
-	vtkColorTransferFunction * colorTF() override;
-	vtkPiecewiseFunction * opacityTF() override;
-	void resetFunctions() override;
-private:
-	vtkColorTransferFunction * m_ctf;
-	vtkPiecewiseFunction * m_otf;
 };
 
 // double range? pass in vtk variables?

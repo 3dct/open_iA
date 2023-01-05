@@ -23,7 +23,7 @@
 #include "ui_DataView4DCT.h"
 #include "iAFuzzyVTKWidget.h"
 
-#include <iATransferFunction.h>
+#include <iATransferFunctionPtrs.h>
 #include <iAVolumeRenderer.h>
 #include <iAVolumeStack.h>
 #include <iAMdiChild.h>
@@ -57,7 +57,7 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget* parent, iAVolumeStack* volumeStack):
 		m_vtkWidgets[i] = new iAFuzzyVTKWidget(this);
 		m_renderers[i] = new iARendererImpl(this, dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_vtkWidgets[i]->renderWindow()));
 		// TODO: VOLUME: check if this is working!
-		iASimpleTransferFunction transferFunction(
+		iATransferFunctionPtrs transferFunction(
 			m_volumeStack->colorTF(i),
 			m_volumeStack->opacityTF(i)
 		);

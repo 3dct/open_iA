@@ -21,7 +21,7 @@
 #include "dlg_elementRenderer.h"
 
 #include <iARendererImpl.h>
-#include <iATransferFunction.h>
+#include <iATransferFunctionPtrs.h>
 #include <iAVolumeRenderer.h>
 
 #include <vtkColorTransferFunction.h>
@@ -47,7 +47,7 @@ dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 
 void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyData * polyData, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf )
 {
-	iASimpleTransferFunction transferFunction(ctf, otf);
+	iATransferFunctionPtrs transferFunction(ctf, otf);
 	if(!m_rendInitialized)
 	{
 		m_renderer->initialize(imgData, polyData);

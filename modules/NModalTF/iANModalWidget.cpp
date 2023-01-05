@@ -31,7 +31,7 @@
 #include <iAMdiChild.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
-#include <iAModalityTransfer.h>
+#include <iATransferFunctionOwner.h>
 #include <iASlicer.h>
 #include <iASlicerMode.h>
 

@@ -32,7 +32,8 @@
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
 #include <iAModality.h>
-#include <iAModalityTransfer.h>
+#include <iATransferFunctionOwner.h>
+#include <iATransferFunctionPtrs.h>
 #include <iAQVTKWidget.h>
 #include <iARenderer.h>
 #include <iAVolumeRenderer.h>
@@ -1670,8 +1671,8 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 		vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 		oTF->ShallowCopy(m_mdiChild->modality(0)->transfer()->opacityTF());
 
-		iASimpleTransferFunction tf(cTF, oTF);
-		//iASimpleTransferFunction tf(m_mdiChild->colorTF(), m_mdiChild->opacityTF());
+		iATransferFunctionPtrs tf(cTF, oTF);
+		//iATransferFunctionPtrs tf(m_mdiChild->colorTF(), m_mdiChild->opacityTF());
 		auto ren = vtkSmartPointer<vtkRenderer>::New();
 		ren->SetLayer(1);
 		ren->SetActiveCamera(m_mdiChild->renderer()->camera());

@@ -36,7 +36,7 @@
 #include <iALUT.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
-#include <iAModalityTransfer.h>
+#include <iATransferFunctionOwner.h>
 #include <iANameMapper.h>
 #include <iAVtkDraw.h>
 #include <iAToolsITK.h>

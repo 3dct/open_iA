@@ -18,13 +18,13 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAModalityTransfer.h"
+#include "iATransferFunctionOwner.h"
 
 #include <vtkImageData.h>
 
 #include <cassert>
 
-iAModalityTransfer::iAModalityTransfer(double const range[2]):
+iATransferFunctionOwner::iATransferFunctionOwner(double const range[2]):
 	m_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
 	m_otf(vtkSmartPointer<vtkPiecewiseFunction>::New()),
 	m_rangeComputed(false),
@@ -35,7 +35,7 @@ iAModalityTransfer::iAModalityTransfer(double const range[2]):
 	resetFunctions();
 }
 
-void iAModalityTransfer::computeRange(vtkSmartPointer<vtkImageData> img)
+void iATransferFunctionOwner::computeRange(vtkSmartPointer<vtkImageData> img)
 {
 	if (m_rangeComputed)  // already calculated
 	{
@@ -48,25 +48,25 @@ void iAModalityTransfer::computeRange(vtkSmartPointer<vtkImageData> img)
 	m_rangeComputed = true;
 }
 
-void iAModalityTransfer::resetFunctions()
+void iATransferFunctionOwner::resetFunctions()
 {
 	defaultColorTF(m_ctf, m_range);
 	defaultOpacityTF(m_otf, m_range, m_opacityRamp);
 }
 
-vtkPiecewiseFunction* iAModalityTransfer::opacityTF()
+vtkPiecewiseFunction* iATransferFunctionOwner::opacityTF()
 {
 	assert(m_otf);
 	return m_otf;
 }
 
-vtkColorTransferFunction* iAModalityTransfer::colorTF()
+vtkColorTransferFunction* iATransferFunctionOwner::colorTF()
 {
 	assert(m_ctf);
 	return m_ctf;
 }
 
-bool iAModalityTransfer::isRangeComputed() const
+bool iATransferFunctionOwner::isRangeComputed() const
 {
 	return m_rangeComputed;
 }

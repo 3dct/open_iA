@@ -23,7 +23,7 @@
 #include "defines.h"  // for NotExistingChannel
 #include "iALog.h"
 #include "iAImageCoordinate.h"
-#include "iAModalityTransfer.h"
+#include "iATransferFunctionOwner.h"
 #include "iAXmlSettings.h"
 #include "iAStringHelper.h"   // for arrayToString, stringToArray
 #include "iATypedCallHelper.h"
@@ -183,7 +183,7 @@ void iAModality::loadTransferFunction()
 	s.loadTransferFunction(transfer().data());
 }
 
-QSharedPointer<iAModalityTransfer> iAModality::transfer()
+QSharedPointer<iATransferFunctionOwner> iAModality::transfer()
 {
 	assert(m_transfer);
 	return m_transfer;
@@ -234,7 +234,7 @@ void iAModality::setData(vtkSmartPointer<vtkImageData> imgData)
 		extent[1] - extent[0] + 1, extent[3] - extent[2] + 1, extent[5] - extent[4] + 1);
 	double maxRange[2];
 	VTK_TYPED_CALL(getTypeMinMaxRange, imgData->GetScalarType(), maxRange[0], maxRange[1])
-	m_transfer = QSharedPointer<iAModalityTransfer>::create(maxRange);
+	m_transfer = QSharedPointer<iATransferFunctionOwner>::create(maxRange);
 }
 
 void iAModality::setStringSettings(QString const & pos, QString const & ori, QString const & tfFile)

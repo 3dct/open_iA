@@ -33,7 +33,7 @@
 #include <iAMdiChild.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
-#include <iAModalityTransfer.h>
+#include <iATransferFunctionOwner.h>
 #include <iAPreferences.h>
 #include <iARenderSettings.h>
 #include <iARenderer.h>

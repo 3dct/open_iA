@@ -25,7 +25,7 @@
 #include <iACSVToQTableWidgetConverter.h>
 #include <iAMapper.h>
 #include <iAMathUtility.h>
-#include <iATransferFunction.h>
+#include <iATransferFunctionPtrs.h>
 
 #include <QToolTip>
 
@@ -58,7 +58,7 @@ iARangeSliderDiagramWidget::iARangeSliderDiagramWidget(QWidget* parent, vtkPiece
 	m_lastSelectedBin(-1),
 	m_histogramMap(histogramMap),
 	m_rawTable(rawTable),
-	m_tf(new iASimpleTransferFunction(cTF, oTF))
+	m_tf(new iATransferFunctionPtrs(cTF, oTF))
 {
 	setTransferFunction(m_tf.data());
 	addPlot(QSharedPointer<iABarGraphPlot>::create(m_data, QColor(70, 70, 70, 255)));

@@ -329,7 +329,7 @@ private:
 
 // ---------- iAVolRenderer ----------
 //#include "iAChartWithFunctionsWidget.h"
-#include "iAModalityTransfer.h"
+#include "iATransferFunctionOwner.h"
 #include "iAPreferences.h"
 #include "iAToolsVTK.h"
 #include "iAImageDataForDisplay.h"

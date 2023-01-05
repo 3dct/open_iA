@@ -25,7 +25,7 @@
 #include <iAFast3DMagicLensWidget.h>
 #include <iALUT.h>
 #include <iARenderSettings.h>
-#include <iATransferFunction.h>
+#include <iATransferFunctionPtrs.h>
 #include <iAVolumeRenderer.h>
 #include <iAVolumeSettings.h>
 
@@ -254,7 +254,7 @@ void iASegm3DViewData::SetDataToVisualize( vtkImageData * imgData, vtkPolyData *
 		LOG(lvlError, "Image data is nullptr!");
 		return;
 	}
-	iASimpleTransferFunction tf(ctf, otf);
+	iATransferFunctionPtrs tf(ctf, otf);
 	if( !m_rendInitialized )
 	{
 		m_renderer->initialize( imgData, polyData );
