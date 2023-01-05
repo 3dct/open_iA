@@ -22,8 +22,7 @@
 
 #include "iAJobListView.h"
 #include "iALog.h"
-#include "iAModality.h"
-#include "iAModalityList.h"
+#include "iADataSet.h"
 #include "iAMultiStepProgressObserver.h"
 #include "iAParameterDlg.h"
 #include "iAStringHelper.h"
@@ -115,7 +114,7 @@ iATLGICTLoader::~iATLGICTLoader()
 
 void iATLGICTLoader::run()
 {
-	m_modList = QSharedPointer<iAModalityList>::create();
+	m_result = std::make_shared<iADataCollection>(m_subDirs.size(), std::shared_ptr<QSettings>());
 	QStringList imgFilter;
 	imgFilter << "*.tif" << "*.bmp" << "*.jpg" << "*.png";
 	int completedDirs = 0;
@@ -238,14 +237,17 @@ void iATLGICTLoader::run()
 		vtkSmartPointer<vtkImageData> img = reader->GetOutput();
 
 		// add modality
-		QString modName = subDirFileInfo.baseName();
-		modName = modName.left(modName.length() - 4); // 4 => length of "_rec"
-		m_modList->add(QSharedPointer<iAModality>::create(modName, subDirFileInfo.absoluteFilePath(), -1, img, 0));
+		QString dataSetName = subDirFileInfo.baseName();
+		dataSetName = dataSetName.left(dataSetName.length() - 4); // 4 => length of "_rec"
+
+		auto imgData = std::make_shared<iAImageData>(img);
+		imgData->setMetaData(iADataSet::NameKey, dataSetName);
+		m_result->addDataSet(imgData);
 		m_multiStepObserver->setCompletedSteps(++completedDirs);
 	}
-	if (m_modList->size() == 0)
+	if (m_result->dataSets().empty())
 	{
-		LOG(lvlError, "No modalities loaded!");
+		LOG(lvlError, "No datasets loaded!");
 		return;
 	}
 }
@@ -253,7 +255,7 @@ void iATLGICTLoader::run()
 void iATLGICTLoader::finishUp()
 {
 	m_child->setWindowTitleAndFile(m_baseDirectory);
-	m_child->setModalities(m_modList);
+	m_child->addDataSet(m_result);
 	LOG(lvlInfo, tr("Loading sequence completed; directory: %1.").arg(m_baseDirectory));
 	delete this;
 }

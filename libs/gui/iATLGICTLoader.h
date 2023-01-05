@@ -24,7 +24,9 @@
 #include <QSharedPointer>
 #include <QThread>
 
-class iAModalityList;
+#include <memory>
+
+class iADataCollection;
 class iAMultiStepProgressObserver;
 class MdiChild;
 
@@ -42,8 +44,8 @@ private:
 
 	QString m_baseDirectory;
 	MdiChild* m_child;
-
-	QSharedPointer<iAModalityList> m_modList;
+	
+	std::shared_ptr<iADataCollection> m_result;
 	double m_spacing[3];
 	double m_origin[3];
 	QFileInfoList m_subDirs;
