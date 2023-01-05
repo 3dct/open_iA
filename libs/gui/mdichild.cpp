@@ -1202,7 +1202,7 @@ void MdiChild::saveVolumeStack()
 		return;
 	}
 	auto allDataSets = dataSets();
-	auto imgDataSets = std::make_shared<iADataCollection>(allDataSets.size(), std::make_shared<QSettings>());
+	auto imgDataSets = std::make_shared<iADataCollection>(allDataSets.size(), std::shared_ptr<QSettings>());
 	for(auto d: allDataSets)
 	{
 		if (dynamic_cast<iAImageData*>(d.get()))

@@ -142,15 +142,13 @@ public:
 	std::vector<std::shared_ptr<iADataSet>> const & dataSets() const;
 	void addDataSet(std::shared_ptr<iADataSet> dataSet);
 	QString info() const override;
-
-	std::shared_ptr<QSettings> settings() const;   // TODO: maybe replace with QVariantMap?
+	std::shared_ptr<QSettings> settings() const;
 
 private:
-
 	iADataCollection(iADataCollection const& other) = delete;
 	iADataCollection& operator=(iADataCollection const& other) = delete;
 	std::vector<std::shared_ptr<iADataSet>> m_dataSets;
-	std::shared_ptr<QSettings> m_settings;// TODO: maybe replace with QVariantMap?
+	std::shared_ptr<QSettings> m_settings;    //< TODO NEWIO: maybe replace with QVariantMap? re-use metadata? move somewhere else?
 };
 
 iAbase_API QString boundsStr(double const* bds);

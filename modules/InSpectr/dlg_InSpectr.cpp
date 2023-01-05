@@ -760,7 +760,7 @@ void dlg_InSpectr::storeDecomposition()
 	}
 	iAVolStackFileIO io;
 	auto imgs = m_elementConcentrations->getImageListPtr();
-	auto volumes = std::make_shared<iADataCollection>(imgs->size(),  std::make_shared<QSettings>());
+	auto volumes = std::make_shared<iADataCollection>(imgs->size(),  std::shared_ptr<QSettings>());
 	for (auto img : *imgs)
 	{
 		volumes->addDataSet(std::make_shared<iAImageData>(img));

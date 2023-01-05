@@ -244,7 +244,6 @@ iADataCollection::iADataCollection(size_t capacity, std::shared_ptr<QSettings> s
 	iADataSet(iADataSetType::Collection),
 	m_settings(settings)
 {
-	assert(settings);
 	m_dataSets.reserve(capacity);
 }
 

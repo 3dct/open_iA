@@ -60,7 +60,7 @@ std::shared_ptr<iADataSet> iAOIFFileIO::loadData(QString const& fileName, QVaria
 	reader.Load();
 	if (paramValues[WhatToLoadStr].toString() == AllChannelsStr)
 	{
-		auto result = std::make_shared<iADataCollection>(reader.GetChanNum(), std::make_shared<QSettings>());
+		auto result = std::make_shared<iADataCollection>(reader.GetChanNum(), std::shared_ptr<QSettings>());
 		for (int i = 0; i < reader.GetChanNum(); ++i)
 		{
 			result->addDataSet(std::make_shared<iAImageData>(reader.GetResult(i)));
