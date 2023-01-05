@@ -31,12 +31,12 @@
 namespace
 {
 	static const QString ProjectFileVersionKey("FileVersion");
-	static const QString ProjectFileVersionValue("1.0");
+	static const int ProjectFileVersion = 2;
 	// for backwards compatibility, we'll also check "Modality" when loading
 	static const QString ProjectFileDataSetOLD("Modality");
 	static const QString ProjectFileDataSet("DataSet");
 
-	QString dataSetGroup(int idx, bool old)
+	QString dataSetGroup(size_t idx, bool old)
 	{
 		return (old ? ProjectFileDataSetOLD : ProjectFileDataSet) + QString::number(idx);
 	}
@@ -53,33 +53,37 @@ std::shared_ptr<iADataSet> iAProjectFileIO::loadData(QString const& fileName, QV
 	QFileInfo fi(fileName);
 	if (!fi.exists())
 	{
-		LOG(lvlError, QString("Given project file '%1' does not exist.").arg(fileName));
-		return {};
+		throw std::runtime_error(QString("Given project file '%1' does not exist.").arg(fileName).toStdString());
 	}
 	auto s = std::make_shared<QSettings>(fileName, QSettings::IniFormat);
 	auto &settings = *s.get();
 
-	if (!settings.contains(ProjectFileVersionKey) ||
-		settings.value(ProjectFileVersionKey).toString() != ProjectFileVersionValue)
+	if (!settings.contains(ProjectFileVersionKey))
 	{
-		LOG(lvlError, QString("Invalid project file version (was %1, expected %2)! Trying to parse anyway, but expect failures.")
-			.arg(settings.contains(ProjectFileVersionKey) ? settings.value(ProjectFileVersionKey).toString() : "not set")
-			.arg(ProjectFileVersionValue));
-		return {};
+		throw std::runtime_error(QString("Project file %1 does not contain the required %2 key!")
+			.arg(fileName).arg(ProjectFileVersionKey).toStdString());
 	}
-
-	int maxIdx = 0;
-	while (settings.contains(dataSetGroup(maxIdx, true) + "/File") || settings.contains(dataSetGroup(maxIdx, false) + "/File"))
+	bool ok;
+	double fileVersion = settings.value(ProjectFileVersionKey).toDouble(&ok);
+	if (!ok || fileVersion > ProjectFileVersion)
 	{
-		++maxIdx;
+		throw std::runtime_error(QString("Invalid value for project file version (was %1, expected %2 or smaller)!")
+			.arg(settings.value(ProjectFileVersionKey).toString())
+			.arg(ProjectFileVersion).toStdString());
 	}
-
-	int currIdx = 0;
-	auto result = std::make_shared<iADataCollection>(maxIdx - currIdx, s);
+	size_t numDataSets = 0;
+	while (settings.contains(dataSetGroup(numDataSets, true)  + "/" + iADataSet::FileNameKey) ||
+		   settings.contains(dataSetGroup(numDataSets, false) + "/" + iADataSet::FileNameKey))
+	{
+		++numDataSets;
+	}
+	progress.emitProgress(0);
+	int idx = 0;
+	auto result = std::make_shared<iADataCollection>(numDataSets, s);
 	result->setMetaData(mapFromQSettings(settings));
-	while (currIdx < maxIdx)
+	while (idx < numDataSets)
 	{
-		settings.beginGroup(dataSetGroup(currIdx, settings.contains(dataSetGroup(maxIdx, true)) ? true: false));
+		settings.beginGroup(dataSetGroup(idx, settings.contains(dataSetGroup(idx, true)) ? true: false));
 		QString dataSetFileName = MakeAbsolute(fi.absolutePath(), settings.value("File").toString());
 		try
 		{
@@ -105,8 +109,8 @@ std::shared_ptr<iADataSet> iAProjectFileIO::loadData(QString const& fileName, QV
 			LOG(lvlError, QString("Unknown error while loading file %1!").arg(fileName));
 		}
 		settings.endGroup();
-		++currIdx;
-		progress.emitProgress(100.0 * currIdx / maxIdx);
+		++idx;
+		progress.emitProgress(100.0 * idx / numDataSets);
 	}
 	return result;
 }
@@ -116,11 +120,17 @@ void iAProjectFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSe
 {
 	Q_UNUSED(paramValues);
 	auto collection = dynamic_cast<iADataCollection*>(dataSet.get());
+	collection->settings()->setValue(ProjectFileVersionKey, ProjectFileVersion);
 	assert(collection->settings()->fileName() == fileName);
 	for (size_t d = 0; d < collection->dataSets().size(); ++d)
 	{
 		collection->settings()->beginGroup(dataSetGroup(d, false));
 		auto ds = collection->dataSets()[d];
+		if (ds->type() == iADataSetType::Collection)
+		{
+			LOG(lvlWarn, QString("Will not store collection dataset(% 1)!").arg(ds->name()) );
+			continue;
+		}
 		for (auto key : ds->allMetaData().keys())
 		{
 			collection->settings()->setValue(key, ds->metaData(key));

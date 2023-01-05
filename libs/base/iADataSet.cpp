@@ -29,7 +29,7 @@
 #include <array>
 
 const QString iADataSet::NameKey("Name");
-const QString iADataSet::FileNameKey("Filename");
+const QString iADataSet::FileNameKey("File");
 
 QString boundsStr(double const* bds)
 {

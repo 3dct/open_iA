@@ -487,7 +487,7 @@ void MainWindow::loadFileNew(QString const& fileName, bool newWindow, std::share
 			auto dataSet = watcher->result();
 			if (!dataSet)
 			{
-				LOG(lvlError, QString("No data loaded, nothing to finish up."));
+				LOG(lvlError, QString("No data loaded!"));
 				return;
 			}
 			iAMdiChild* targetChild = child;
