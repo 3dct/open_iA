@@ -33,7 +33,6 @@
 
 class iAColorTheme;
 class iAImageCoordinate;
-class iAModality;
 class iASlicer;
 class iAvtkImageData;
 class iAMdiChild;
@@ -49,12 +48,12 @@ class vtkPiecewiseFunction;
 struct iAOverlayImage;
 struct iAOverlaySlicerData;
 
-class Labelling_API dlg_labels : public QDockWidget
+class Labelling_API iALabelsDlg : public QDockWidget
 {
 	Q_OBJECT
 
 public:
-	dlg_labels(iAMdiChild* mdiChild, bool addMainSlicer = true);
+	iALabelsDlg(iAMdiChild* mdiChild, bool addMainSlicer = true);
 	int curLabelRow() const;
 	int seedCount(int labelIdx) const;
 	bool load(QString const& filename);

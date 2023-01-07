@@ -20,20 +20,19 @@
 * ************************************************************************************/
 #include "iALabellingTool.h"
 
-#include "dlg_labels.h"
+#include "iALabelsDlg.h"
 
 #include <iAMdiChild.h>
 
 const QString iALabellingTool::Name("Labelling");
 
 iALabellingTool::iALabellingTool(iAMainWindow* mainWnd, iAMdiChild* child) :
-	iATool(mainWnd, child),
-	m_dlgLabels(new dlg_labels(child))
+	iATool(mainWnd, child), m_dlgLabels(new iALabelsDlg(child))
 {
 	child->splitDockWidget(child->renderDockWidget(), m_dlgLabels, Qt::Vertical);
 }
 
-dlg_labels* iALabellingTool::labelsDlg()
+iALabelsDlg* iALabellingTool::labelsDlg()
 {
 	return m_dlgLabels;
 }

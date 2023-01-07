@@ -35,7 +35,7 @@
 
 #include <unordered_set>
 
-class dlg_labels;
+class iALabelsDlg;
 
 class iANModalTFManager;
 
@@ -126,7 +126,7 @@ private:
 	// Seed tracker (visualization next to the main slicers's sliders)
 	iANModalSeedTracker m_tracker;
 
-	dlg_labels* m_dlg_labels;
+	iALabelsDlg* m_dlg_labels;
 
 signals:
 	void allSlicersInitialized();

@@ -26,7 +26,7 @@
 
 #include <QObject>
 
-class dlg_labels;
+class iALabelsDlg;
 
 class iALabellingTool : public QObject, public iATool
 {
@@ -34,8 +34,8 @@ class iALabellingTool : public QObject, public iATool
 public:
 	iALabellingTool(iAMainWindow* mainWnd, iAMdiChild* child);
 	static const QString Name;
-	dlg_labels* labelsDlg();
+	iALabelsDlg* labelsDlg();
 
 private:
-	dlg_labels* m_dlgLabels;
+	iALabelsDlg* m_dlgLabels;
 };

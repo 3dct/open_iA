@@ -507,7 +507,7 @@ void dlg_GEMSeControl::saveProject(QSettings & metaFile, QString const & fileNam
 	}
 	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 	iASEAFile seaFile(
-		"", // don't store modalities here!
+		"", // don't store datasets here!
 		m_simpleLabelInfo->count(),
 		samplingFilenames,
 		m_cltFile,

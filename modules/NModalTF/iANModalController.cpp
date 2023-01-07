@@ -23,7 +23,7 @@
 #include "iANModalBackgroundRemover.h"  // for BACKGROUND and FOREGROUND values
 #include "iANModalTFManager.h"
 
-#include "dlg_labels.h"
+#include "iALabelsDlg.h"
 #include "dlg_modalities.h"
 #include "iALabellingTool.h"
 
@@ -71,14 +71,14 @@ iANModalController::iANModalController(iAMdiChild* mdiChild) : m_mdiChild(mdiChi
 	QObject* obj = m_mdiChild->findChild<QObject*>("labels");
 	if (obj)
 	{
-		m_dlg_labels = static_cast<dlg_labels*>(obj);
+		m_dlg_labels = static_cast<iALabelsDlg*>(obj);
 		m_dlg_labels->removeSlicer(m_mdiChild->slicer(iASlicerMode::XY));
 		m_dlg_labels->removeSlicer(m_mdiChild->slicer(iASlicerMode::XZ));
 		m_dlg_labels->removeSlicer(m_mdiChild->slicer(iASlicerMode::YZ));
 	}
 	else
 	{
-		m_dlg_labels = new dlg_labels(mdiChild, false);
+		m_dlg_labels = new iALabelsDlg(mdiChild, false);
 		mdiChild->splitDockWidget(mdiChild->renderDockWidget(), m_dlg_labels, Qt::Vertical);
 	}
 }

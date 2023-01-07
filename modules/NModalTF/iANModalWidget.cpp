@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iANModalWidget.h"
 
-#include "dlg_labels.h"
+#include "iALabelsDlg.h"
 #include "iALabellingObjects.h"
 #include "iANModalController.h"
 #include "iANModalLabelsWidget.h"
@@ -76,12 +76,12 @@ iANModalWidget::iANModalWidget(iAMdiChild* mdiChild)
 
 	//connect(m_mdiChild->dataDockWidget(), &dlg_modalities::modalitiesChanged, this, &iANModalWidget::onModalitiesChanged);
 
-	connect(m_c->m_dlg_labels, &dlg_labels::seedsAdded, this, &iANModalWidget::onSeedsAdded);
-	connect(m_c->m_dlg_labels, &dlg_labels::seedsRemoved, this, &iANModalWidget::onSeedsRemoved);
-	connect(m_c->m_dlg_labels, &dlg_labels::allSeedsRemoved, this, &iANModalWidget::onAllSeedsRemoved);
-	connect(m_c->m_dlg_labels, &dlg_labels::labelAdded, this, &iANModalWidget::onLabelAdded);
-	connect(m_c->m_dlg_labels, &dlg_labels::labelRemoved, this, &iANModalWidget::onLabelRemoved);
-	connect(m_c->m_dlg_labels, &dlg_labels::labelsColorChanged, this, &iANModalWidget::onLabelsColorChanged);
+	connect(m_c->m_dlg_labels, &iALabelsDlg::seedsAdded, this, &iANModalWidget::onSeedsAdded);
+	connect(m_c->m_dlg_labels, &iALabelsDlg::seedsRemoved, this, &iANModalWidget::onSeedsRemoved);
+	connect(m_c->m_dlg_labels, &iALabelsDlg::allSeedsRemoved, this, &iANModalWidget::onAllSeedsRemoved);
+	connect(m_c->m_dlg_labels, &iALabelsDlg::labelAdded, this, &iANModalWidget::onLabelAdded);
+	connect(m_c->m_dlg_labels, &iALabelsDlg::labelRemoved, this, &iANModalWidget::onLabelRemoved);
+	connect(m_c->m_dlg_labels, &iALabelsDlg::labelsColorChanged, this, &iANModalWidget::onLabelsColorChanged);
 
 	auto list = m_mdiChild->modalities();
 	QList<QSharedPointer<iAModality>> modalities;

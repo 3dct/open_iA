@@ -27,7 +27,6 @@
 #include "iAGEMSeTool.h"
 #include "iASEAFile.h"
 
-#include <dlg_modalities.h>
 #include <iAColorTheme.h>
 #include <iALog.h>
 #include <iAMainWindow.h>
