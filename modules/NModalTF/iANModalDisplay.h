@@ -28,7 +28,7 @@
 #include <QSharedPointer>
 #include <QWidget>
 
-class iAModality;
+class iAImageData;
 class iASlicer;
 class iAMdiChild;
 
@@ -42,21 +42,21 @@ class iANModalDisplay : public QWidget
 
 public:
 	// numOfRows must be at least 1; smaller values will be clamped
-	// maxSelection: how many modalities can be selected at maximum. <= 0 means there is no limit
-	// minSelection: how many modalities can be selected at minimum. <= 0 means it acceptable to make no selections
-	iANModalDisplay(QWidget* parent, iAMdiChild* mdiChild, const QList<QSharedPointer<iAModality>>& modalities,
+	// maxSelection: how many datasets can be selected at maximum. <= 0 means there is no limit
+	// minSelection: how many datasets can be selected at minimum. <= 0 means it acceptable to make no selections
+	iANModalDisplay(QWidget* parent, iAMdiChild* mdiChild, const QList<std::shared_ptr<iAImageData>>& dataSets,
 		int maxSelection = 0, int minSelection = 1, int numOfRows = 1);
 
-	QList<QSharedPointer<iAModality>> modalities()
+	QList<std::shared_ptr<iAImageData>> dataSets()
 	{
-		return m_modalities;
+		return m_dataSets;
 	}
 
-	QList<QSharedPointer<iAModality>> selection()
+	QList<std::shared_ptr<iAImageData>> selection()
 	{
-		return m_selectedModalities;
+		return m_selectedDataSets;
 	};
-	QSharedPointer<iAModality> singleSelection()
+	std::shared_ptr<iAImageData> singleSelection()
 	{
 		return selection()[0];
 	}
@@ -66,20 +66,20 @@ public:
 		return m_minSelection == 1 && m_maxSelection == 1;
 	}
 
-	iASlicer* createSlicer(QSharedPointer<iAModality> modality);
+	iASlicer* createSlicer(std::shared_ptr<iAImageData> dataset);
 
 	uint createChannel();
 	void setChannelData(uint channelId, iAChannelData channelData);
 	static const uint MAIN_CHANNEL_ID = 0;
 
 	// Result can be null! That means that the selection was cancelled
-	static QList<QSharedPointer<iAModality>> selectModalities(
+	static QList<std::shared_ptr<iAImageData>> selectDataSets(
 		iANModalDisplay* display, QWidget* footer = nullptr, QWidget* dialogParent = nullptr);
 
-	static QSharedPointer<iAModality> selectModality(
+	static std::shared_ptr<iAImageData> selectDataSet(
 		iANModalDisplay* display, QWidget* footer = nullptr, QWidget* dialogParent = nullptr)
 	{
-		return selectModalities(display, footer, dialogParent)[0];
+		return selectDataSets(display, footer, dialogParent)[0];
 	};
 
 	class Footer : public QWidget
@@ -102,8 +102,8 @@ public:
 	static Footer* createFooter(QDialog* dialog, const QList<QString>& acceptTexts, const QList<QString>& rejectTexts);
 
 private:
-	QList<QSharedPointer<iAModality>> m_modalities;
-	QList<QSharedPointer<iAModality>> m_selectedModalities;
+	QList<std::shared_ptr<iAImageData>> m_dataSets;
+	QList<std::shared_ptr<iAImageData>> m_selectedDataSets;
 	QList<iASlicer*> m_slicers;
 
 	int m_maxSelection;
@@ -113,9 +113,9 @@ private:
 	iAMdiChild* m_mdiChild;
 
 	QWidget* createSlicerContainer(
-		iASlicer* slicer, QSharedPointer<iAModality> mod, QButtonGroup* group /*, bool checked*/);
+		iASlicer* slicer, std::shared_ptr<iAImageData> mod, QButtonGroup* group /*, bool checked*/);
 
-	void setModalitySelected(QSharedPointer<iAModality> mod, QAbstractButton* button);
+	void setModalitySelected(std::shared_ptr<iAImageData> mod, QAbstractButton* button);
 	bool isSelectionValid();
 	bool validateSelection();
 

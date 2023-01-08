@@ -18,17 +18,17 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "dlg_modalitySPLOM.h"
+#include "iAModalitySPLOM.h"
 
-#include <iAQSplom.h>
 #include <iAChannelData.h>
-#include <iAModality.h>
-#include <iAModalityList.h>
 #include <iAPerformanceHelper.h>
-#include <iASPLOMData.h>
 #include <iAMdiChild.h>
 
-#include "defines.h"    // for NotExistingChannel
+#include <iAQSplom.h>
+#include <iASPLOMData.h>
+
+#include <defines.h>    // for NotExistingChannel
+#include <iADataSet.h>
 #include <iALog.h>
 
 #include <vtkColorTransferFunction.h>
@@ -40,7 +40,7 @@
 
 #include <functional>
 
-dlg_modalitySPLOM::dlg_modalitySPLOM():
+iAModalitySPLOM::iAModalitySPLOM():
 	m_splom(new iAQSplom(this)),
 	m_data(new iASPLOMData()),
 	m_selection_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
@@ -63,10 +63,10 @@ dlg_modalitySPLOM::dlg_modalitySPLOM():
 	content->setLayout(lay);
 	setWidget(content);
 
-	connect(m_splom, &iAQSplom::selectionModified, this, &dlg_modalitySPLOM::SplomSelection);
+	connect(m_splom, &iAQSplom::selectionModified, this, &iAModalitySPLOM::splomSelection);
 }
 
-void dlg_modalitySPLOM::SplomSelection(std::vector<size_t> const & selInds)
+void iAModalitySPLOM::splomSelection(std::vector<size_t> const & selInds)
 {
 	vtkSmartPointer<vtkImageData> result = vtkSmartPointer<vtkImageData>::New();
 	result->SetExtent(m_extent);
@@ -115,7 +115,8 @@ void dlg_modalitySPLOM::SplomSelection(std::vector<size_t> const & selInds)
 
 typedef unsigned short VoxelValueType;
 
-void IteratePixels(vtkSmartPointer<vtkImageData> img, const int step[3], std::function<void (int[3], VoxelValueType)> pixelVisitor)
+// TODO NEWIO: extract to iAToolsVTK?
+void iteratePixels(vtkSmartPointer<vtkImageData> img, const int step[3], std::function<void (int[3], VoxelValueType)> pixelVisitor)
 {
 	int extent[6];
 	img->GetExtent(extent);
@@ -135,12 +136,12 @@ void IteratePixels(vtkSmartPointer<vtkImageData> img, const int step[3], std::fu
 	}
 }
 
-void dlg_modalitySPLOM::SetData(QSharedPointer<iAModalityList> modalities)
+void iAModalitySPLOM::setData(std::vector<iAImageData*> dataSets)
 {
 	iATimeGuard timer("Fill iASPLOMData", false);
-	modalities->get(0)->image()->GetExtent(m_extent);
-	modalities->get(0)->image()->GetSpacing(m_spacing);
-	modalities->get(0)->image()->GetOrigin(m_origin);
+	dataSets[0]->vtkImage()->GetExtent(m_extent);
+	dataSets[0]->vtkImage()->GetSpacing(m_spacing);
+	dataSets[0]->vtkImage()->GetOrigin(m_origin);
 
 	// TODO: improve this very crude regular sampling. maybe random sampling is better?
 	const int maxNumSteps = 50;
@@ -154,23 +155,23 @@ void dlg_modalitySPLOM::SetData(QSharedPointer<iAModalityList> modalities)
 	paramNames.push_back("x"); paramVisibility.push_back(false);
 	paramNames.push_back("y"); paramVisibility.push_back(false);
 	paramNames.push_back("z"); paramVisibility.push_back(false);
-	for (int imgIdx = 0; imgIdx < modalities->size(); ++imgIdx)
+	for (int imgIdx = 0; imgIdx < dataSets.size(); ++imgIdx)
 	{
-		if (modalities->get(imgIdx)->image()->GetScalarType() != VTK_UNSIGNED_SHORT)
+		if (dataSets[imgIdx]->vtkImage()->GetScalarType() != VTK_UNSIGNED_SHORT)
 		{
 			LOG(lvlError, QString("Modality %1 is not of type unsigned short (which is "
 				"currently the only supported type for Modality SPLOM)!")
-				.arg(modalities->get(imgIdx)->name()));
+				.arg(dataSets[imgIdx]->name()));
 			return;
 		}
-		paramNames.push_back(modalities->get(imgIdx)->name());
+		paramNames.push_back(dataSets[imgIdx]->name());
 		paramVisibility.push_back(true);
 	}
 	m_data->setParameterNames(paramNames);
 
-	for (int imgIdx = 0; imgIdx < modalities->size(); ++imgIdx)
+	for (int imgIdx = 0; imgIdx < dataSets.size(); ++imgIdx)
 	{
-		vtkSmartPointer<vtkImageData> img = modalities->get(imgIdx)->image();
+		vtkSmartPointer<vtkImageData> img = dataSets[imgIdx]->vtkImage();
 		std::function<void (int[3], VoxelValueType)> pixelVisitor = [this, &imgIdx](int coord[3], VoxelValueType modalityValue)
 		{
 			if (imgIdx == 0)
@@ -181,7 +182,7 @@ void dlg_modalitySPLOM::SetData(QSharedPointer<iAModalityList> modalities)
 			}
 			m_data->data()[3+imgIdx].push_back(modalityValue);
 		};
-		IteratePixels(img, step, pixelVisitor);
+		iteratePixels(img, step, pixelVisitor);
 	}
 	m_data->updateRanges();
 	m_splom->setData(m_data, paramVisibility);

@@ -27,7 +27,7 @@
 
 class vtkImageData;
 
-class iAModality;
+class iAImageData;
 
 class iANModalBackgroundRemover
 {
@@ -51,5 +51,5 @@ public:
 	};
 	virtual ~iANModalBackgroundRemover(){};
 	virtual Mask removeBackground(
-		const QList<QSharedPointer<iAModality>>&) = 0;  // TODO: make input std::vector<vtkSmartPointer<vtkImageData>>
+		const QList<std::shared_ptr<iAImageData>>&) = 0;  // TODO: make input std::vector<vtkSmartPointer<vtkImageData>>
 };

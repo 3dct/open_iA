@@ -20,21 +20,22 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAMdiChild.h>
-
 #include <vtkSmartPointer.h>
 
 #include <QList>
 #include <QMap>
 #include <QSharedPointer>
 
-class iAModality;
 class iANModalModalityReducer;
 class iANModalBackgroundRemover;
+
+class iAMdiChild;
+class iAImageData;
 
 class vtkImageData;
 
 class QComboBox;
+class QDialog;
 class QLabel;
 class QTextEdit;
 
@@ -57,21 +58,21 @@ public:
 		Output(bool valid) : valid(valid)
 		{
 		}
-		QList<QSharedPointer<iAModality>> modalities;
+		QList<std::shared_ptr<iAImageData>> dataSets;
 		//bool hasMask = false;
 		vtkSmartPointer<vtkImageData> mask;
 		MaskMode maskMode;
 		bool valid = true;
 	};
 
-	Output preprocess(const QList<QSharedPointer<iAModality>>&);
+	Output preprocess(const QList<iAImageData*>&);
 
 private:
 	iAMdiChild* m_mdiChild;
 
-	struct ModalitiesGroup
+	struct DataSetGroup
 	{
-		QList<QSharedPointer<iAModality>> modalities;
+		QList<iAImageData*> dataSets;
 		int dimx, dimy, dimz;
 	};
 
@@ -88,12 +89,11 @@ private:
 	QSharedPointer<iANModalModalityReducer> chooseModalityReducer();
 	QSharedPointer<iANModalBackgroundRemover> chooseBackgroundRemover();
 
-	//bool areModalitiesCompatible(QSharedPointer<iAModality>, QSharedPointer <iAModality>);
-	void groupModalities(const QList<QSharedPointer<iAModality>>&, QList<ModalitiesGroup>& output);
-	QList<QSharedPointer<iAModality>> chooseGroup(const QList<ModalitiesGroup>&);
+	void groupDataSets(const QList<iAImageData*>&, QList<DataSetGroup>& output);
+	QList<iAImageData*> chooseGroup(const QList<DataSetGroup>&);
 
-	QList<QSharedPointer<iAModality>> extractNewModalities(const QList<QSharedPointer<iAModality>>&);
-	void addModalitiesToMdiChild(const QList<QSharedPointer<iAModality>>&);
+	QList<std::shared_ptr<iAImageData>> extractNewModalities(const QList<std::shared_ptr<iAImageData>>&);
+	void addModalitiesToMdiChild(const QList<std::shared_ptr<iAImageData>>&);
 };
 
 class iANModalPreprocessorSelector : public QObject

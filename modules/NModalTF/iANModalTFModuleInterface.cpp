@@ -21,11 +21,13 @@
 #include "iANModalTFModuleInterface.h"
 
 #include "iANModalMain.h"
-#include "dlg_modalitySPLOM.h"
+#include "iAModalitySPLOM.h"
 
-#include <iALog.h>
+#include <iADataSet.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
+
+#include <iALog.h>
 
 #include <QAction>
 #include <QMenu>
@@ -66,7 +68,17 @@ void iANModalTFModuleInterface::nModalTF()
 void iANModalTFModuleInterface::modalitySPLOM()
 {
 	auto child = m_mainWnd->activeMdiChild();
-	auto dlgModalitySPLOM = new dlg_modalitySPLOM();
-	dlgModalitySPLOM->SetData(child->modalities());
-	child->tabifyDockWidget(child->renderDockWidget(), dlgModalitySPLOM);
+	auto modalitySPLOM = new iAModalitySPLOM();
+	std::vector<iAImageData*> dataSets;
+	for (auto ds: child->dataSets())
+	{
+		auto imgDS = dynamic_cast<iAImageData*>(ds.get());
+		if (imgDS) 
+		{
+			dataSets.push_back(imgDS);
+		}
+	}
+	modalitySPLOM->setData(dataSets);
+	child->tabifyDockWidget(child->renderDockWidget(), modalitySPLOM);
+	// TODO NEWIO: add as tool?
 }

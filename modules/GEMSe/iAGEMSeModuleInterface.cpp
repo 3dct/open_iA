@@ -26,7 +26,6 @@
 #include <iADataSet.h>
 #include <iALog.h>
 #include <iAFilterDefault.h>
-#include <iAModality.h>
 #include <iAToolRegistry.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>

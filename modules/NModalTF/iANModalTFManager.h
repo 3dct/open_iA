@@ -28,7 +28,7 @@
 
 #include <vector>
 
-class iAModality;
+class iATransferFunction;
 
 class vtkColorTransferFunction;
 class vtkPiecewiseFunction;
@@ -36,7 +36,7 @@ class vtkPiecewiseFunction;
 class iANModalTFManager
 {
 public:
-	iANModalTFManager(QSharedPointer<iAModality> modality);
+	iANModalTFManager(iATransferFunction* transfer);
 
 	void addControlPoint(unsigned int x, const iANModalLabel& label);
 	void addControlPoint(unsigned int x, const double (&rgba)[4]);
@@ -92,8 +92,8 @@ private:
 		}
 	};
 
-	vtkSmartPointer<vtkColorTransferFunction> m_colorTf;
-	vtkSmartPointer<vtkPiecewiseFunction> m_opacityTf;
+	vtkColorTransferFunction* m_colorTf;
+	vtkPiecewiseFunction* m_opacityTf;
 	std::vector<CP> m_cps;
 
 	inline void addControlPointToTfs(const CP& cp);

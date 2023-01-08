@@ -31,7 +31,7 @@ class vtkImageData;
 class iANModalPCAModalityReducer : public iANModalModalityReducer
 {
 public:
-	QList<QSharedPointer<iAModality>> reduce(const QList<QSharedPointer<iAModality>>&) override;
+	QList<std::shared_ptr<iAImageData>> reduce(const QList<std::shared_ptr<iAImageData>>&) override;
 
 private:
 	template <class T>

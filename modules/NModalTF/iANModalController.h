@@ -39,10 +39,10 @@ class iALabelsDlg;
 
 class iANModalTFManager;
 
-class iAModality;
-class iASlicer;
+class iAImageData;
 class iAMdiChild;
 class iAChartWithFunctionsWidget;
+class iASlicer;
 
 class vtkVolume;
 class vtkRenderer;
@@ -71,11 +71,11 @@ public:
 	iANModalController(iAMdiChild* mdiChild);
 	void initialize();
 
-	int countModalities();
-	void setModalities(const QList<QSharedPointer<iAModality>>& modalities);
+	int countDataSets();
+	void setDataSets(const QList<std::shared_ptr<iAImageData>>& dataSets);
 	void setMask(vtkSmartPointer<vtkImageData> mask);
-	void resetTf(QSharedPointer<iAModality> modality);
-	void resetTf(const QList<QSharedPointer<iAModality>>& modalities);
+	void resetTf(std::shared_ptr<iAImageData> dataSet);
+	void resetTf(const QList<std::shared_ptr<iAImageData>>& dataSets);
 
 	void reinitialize();
 
@@ -89,20 +89,19 @@ private:
 	iAMdiChild* m_mdiChild;
 
 	void privateInitialize();
-	iASlicer* initializeSlicer(QSharedPointer<iAModality>);
-	void initializeHistogram(QSharedPointer<iAModality> modality, int index);
+	iASlicer* initializeSlicer(std::shared_ptr<iAImageData>);
+	void initializeHistogram(std::shared_ptr<iAImageData> dataSet, int index);
 	void initializeCombinedVol();
 	void initializeMainSlicers();
-	bool checkModalities(const QList<QSharedPointer<iAModality>>& modalities);
-	//bool _matchModalities(QSharedPointer<iAModality> m1, QSharedPointer<iAModality> m2);
+	bool checkDataSets(const QList<std::shared_ptr<iAImageData>>& dataSets);
 	void updateHistograms();
 	template <typename PixelType>
 	void updateMainSlicers();
 
-	QList<QSharedPointer<iAModality>> m_modalities;
+	QList<std::shared_ptr<iAImageData>> m_dataSets;
 	QList<QSharedPointer<iANModalTFManager>> m_tfs;
 	vtkSmartPointer<vtkImageData> m_mask;
-	QMap<int, QSharedPointer<iAModality>> m_mapOverlayImageId2modality;
+	QMap<int, std::shared_ptr<iAImageData>> m_mapOverlayImageId2dataSet;
 	QList<uint> m_channelIds;
 	vtkSmartPointer<vtkVolume> m_combinedVol;
 	vtkSmartPointer<iANModalSmartVolumeMapper> m_combinedVolMapper;
@@ -114,7 +113,6 @@ private:
 	uint m_slicerChannel_label = 1;
 	uint m_mainSlicerChannel_nModal;
 
-	//std::unordered_set<iANModalSeed, iANModalSeed::Hasher, iANModalSeed::Comparator> m_seeds;
 	int m_maxLabelId = -1;
 
 	void applyVolumeSettings();

@@ -22,18 +22,19 @@
 #include "iANModalTFManager.h"
 
 #include <iAModality.h>
-#include <iATransferFunctionOwner.h>
+#include <iATransferFunction.h>
 #include <iAPerformanceHelper.h>
 
-#include <vtkImageData.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkPiecewiseFunction.h>
 #include <vtkSmartPointer.h>
 
 #include <assert.h>
 
-iANModalTFManager::iANModalTFManager(QSharedPointer<iAModality> modality) :
-	m_colorTf(modality->transfer()->colorTF()), m_opacityTf(modality->transfer()->opacityTF())
+iANModalTFManager::iANModalTFManager(iATransferFunction* tf) :
+	m_colorTf(tf->colorTF()), m_opacityTf(tf->opacityTF())
 {
-	double* range = modality->image()->GetScalarRange();
+	double* range = tf->colorTF()->GetRange();
 	double rangeMax = range[1];
 	assert(rangeMax < 65536);
 

@@ -25,7 +25,7 @@
 #include "iANModalProgressWidget.h"
 
 #include <iAConnector.h>
-#include <iAModality.h>
+#include <iADataSet.h>
 #include <iAProgress.h>
 #include <iASlicer.h>
 #include <iAToolsITK.h>
@@ -207,15 +207,15 @@ void iANModalIterativeDilationThread::itkErodeAndInvert(ImagePointer itkImgPtr, 
 }
 
 #ifndef NDEBUG
-void iANModalDilationBackgroundRemover::showMask(QSharedPointer<iAModality> mod, vtkSmartPointer<vtkImageData> mask)
+void iANModalDilationBackgroundRemover::showMask(std::shared_ptr<iAImageData> mod, vtkSmartPointer<vtkImageData> mask)
 {
-	QList<QSharedPointer<iAModality>> mods;
+	QList<std::shared_ptr<iAImageData>> mods;
 	mods.append(mod);
 	auto display = new iANModalDisplay(new QWidget(), m_mdiChild, mods);
 	uint cid = display->createChannel();
 	auto cd = iAChannelData("Binary mask for " + mod->name(), mask, m_colorTf, m_opacityTf);
 	display->setChannelData(cid, cd);
-	iANModalDisplay::selectModalities(display);
+	iANModalDisplay::selectDataSets(display);
 }
 void iANModalDilationBackgroundRemover::showMask(ImagePointer itkImgPtr)
 {
@@ -223,12 +223,14 @@ void iANModalDilationBackgroundRemover::showMask(ImagePointer itkImgPtr)
 	c.setImage(itkImgPtr);
 	auto vtkImg = c.vtkImage();
 
-	QList<QSharedPointer<iAModality>> mods;
-	mods.append(QSharedPointer<iAModality>(new iAModality("Binary mask", "", -1, vtkImg, iAModality::NoRenderer)));
-	auto display = new iANModalDisplay(new QWidget(), m_mdiChild, mods);
+	QList<std::shared_ptr<iAImageData>> dataSets;
+	auto dataSet = std::make_shared<iAImageData>(vtkImg);
+	dataSet->setMetaData(iADataSet::NameKey, "Binary mask");
+	dataSets.append(dataSet);
+	auto display = new iANModalDisplay(new QWidget(), m_mdiChild, dataSets);
 	auto cd = iAChannelData("temp", vtkImg, m_colorTf, m_opacityTf);
 	display->setChannelData(iANModalDisplay::MAIN_CHANNEL_ID, cd);
-	iANModalDisplay::selectModalities(display);
+	iANModalDisplay::selectDataSets(display);
 }
 #endif
 
@@ -243,15 +245,15 @@ iANModalDilationBackgroundRemover::iANModalDilationBackgroundRemover(iAMdiChild*
 }
 
 iANModalBackgroundRemover::Mask iANModalDilationBackgroundRemover::removeBackground(
-	const QList<QSharedPointer<iAModality>>& modalities)
+	const QList<std::shared_ptr<iAImageData>>& modalities)
 {
-	QSharedPointer<iAModality> selectedMod;
+	std::shared_ptr<iAImageData> selectedMod;
 	iANModalBackgroundRemover::MaskMode maskMode;
 	int upThresh;
 	//int loThresh = 0;
 	int regionCountGoal = 1;
 
-	bool skipped = !selectModalityAndThreshold(nullptr, modalities, upThresh, selectedMod, maskMode);
+	bool skipped = !selectDataSetAndThreshold(nullptr, modalities, upThresh, selectedMod, maskMode);
 	if (skipped)
 	{
 		return {nullptr, INVALID};
@@ -293,8 +295,9 @@ iANModalBackgroundRemover::Mask iANModalDilationBackgroundRemover::removeBackgro
 
 // return - true if a modality and a threshold were successfully chosen
 //        - false otherwise
-bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget* parent,
-	const QList<QSharedPointer<iAModality>>& modalities, int& out_threshold, QSharedPointer<iAModality>& out_modality,
+bool iANModalDilationBackgroundRemover::selectDataSetAndThreshold(QWidget* parent,
+	const QList<std::shared_ptr<iAImageData>>& dataSets, int& out_threshold,
+	std::shared_ptr<iAImageData>& out_dataSet,
 	iANModalBackgroundRemover::MaskMode& out_maskMode)
 {
 	QDialog* dialog = new QDialog(parent);
@@ -309,11 +312,11 @@ bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget* pare
 		auto displayLabel = new QLabel(
 			"Select modality for the thresholding step of the dilation-based background removal", displayWidget);
 
-		m_display = new iANModalDisplay(displayWidget, m_mdiChild, modalities, 1, 1);
+		m_display = new iANModalDisplay(displayWidget, m_mdiChild, dataSets, 1, 1);
 		m_threholdingMaskChannelId = m_display->createChannel();
 		//connect(m_display, SIGNAL(selectionChanged()), this, SLOT(updateThreshold()));
 		connect(m_display, &iANModalDisplay::selectionChanged, this,
-			&iANModalDilationBackgroundRemover::updateModalitySelected);
+			&iANModalDilationBackgroundRemover::updateDataSetSelected);
 
 		displayLayout->addWidget(displayLabel);
 		displayLayout->addWidget(m_display);
@@ -366,20 +369,20 @@ bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget* pare
 	LOG(lvlDebug, QString("Option chosen: ") + t + QString("\n"));
 
 	out_threshold = m_threshold->threshold();
-	out_modality = m_display->singleSelection();
+	out_dataSet = m_display->singleSelection();
 
 	return true;
 }
 
-void iANModalDilationBackgroundRemover::updateModalitySelected()
+void iANModalDilationBackgroundRemover::updateDataSetSelected()
 {
-	setModalitySelected(m_display->singleSelection());
+	setDataSetSelected(m_display->singleSelection());
 }
 
-void iANModalDilationBackgroundRemover::setModalitySelected(QSharedPointer<iAModality> modality)
+void iANModalDilationBackgroundRemover::setDataSetSelected(std::shared_ptr<iAImageData> dataSet)
 {
 	double range[2];
-	modality->image()->GetScalarRange(range);
+	dataSet->vtkImage()->GetScalarRange(range);
 	double min = range[0];
 	double max = range[1];
 	int value = std::round(max - min) / 2 + min;
@@ -395,11 +398,11 @@ void iANModalDilationBackgroundRemover::setModalitySelected(QSharedPointer<iAMod
 
 void iANModalDilationBackgroundRemover::updateThreshold()
 {
-	auto modality = m_display->singleSelection();
+	auto dataSet = m_display->singleSelection();
 	int threshold = m_threshold->threshold();
 
 	iAConnector conn;
-	conn.setImage(modality->image());
+	conn.setImage(dataSet->vtkImage());
 	ITK_TYPED_CALL(itkBinaryThreshold, conn.itkScalarType(), conn, 0, threshold);
 	auto mask = conn.vtkImage();
 

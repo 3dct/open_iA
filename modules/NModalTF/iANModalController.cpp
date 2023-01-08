@@ -24,15 +24,13 @@
 #include "iANModalTFManager.h"
 
 #include "iALabelsDlg.h"
-#include "dlg_modalities.h"
 #include "iALabellingTool.h"
 
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
+#include <iADataSet.h>
 #include <iALog.h>
 #include <iAMdiChild.h>
-#include <iAModality.h>
-#include <iAModalityList.h>
 #include <iATransferFunctionOwner.h>
 #include <iAPreferences.h>
 #include <iARenderSettings.h>
@@ -99,7 +97,7 @@ void iANModalController::reinitialize()
 
 void iANModalController::privateInitialize()
 {
-	assert(countModalities() <= 4);  // VTK limit. TODO: don't hard-code
+	assert(countDataSets() <= 4);  // VTK limit. TODO: don't hard-code
 
 	for (auto slicer : m_slicers)
 	{
@@ -107,36 +105,37 @@ void iANModalController::privateInitialize()
 	}
 
 	m_slicers.clear();
-	m_slicers.resize(m_modalities.size());
+	m_slicers.resize(m_dataSets.size());
 
-	m_mapOverlayImageId2modality.clear();
+	m_mapOverlayImageId2dataSet.clear();
 
 	m_histograms.clear();
-	m_histograms.resize(m_modalities.size());
+	m_histograms.resize(m_dataSets.size());
 
-	for (int i = 0; i < m_modalities.size(); i++)
+	for (int i = 0; i < m_dataSets.size(); i++)
 	{
-		auto modality = m_modalities[i];
+		auto dataSet = m_dataSets[i];
 
-		auto slicer = initializeSlicer(modality);
-		int id = m_dlg_labels->addSlicer(slicer, modality->name(), modality->image()->GetExtent(),
-			modality->image()->GetSpacing(), m_slicerChannel_label);
+		auto slicer = initializeSlicer(dataSet);
+		int id = m_dlg_labels->addSlicer(slicer, dataSet->name(), dataSet->vtkImage()->GetExtent(),
+			dataSet->vtkImage()->GetSpacing(), m_slicerChannel_label);
 		m_slicers[i] = slicer;
-		m_mapOverlayImageId2modality.insert(id, modality);
+		m_mapOverlayImageId2dataSet.insert(id, dataSet);
 
-		auto histogramNewBinCount = iAHistogramData::finalNumBin(modality->image(), m_mdiChild->preferences().HistogramBins);
-		if (m_mdiChild->histogramComputed(histogramNewBinCount, modality))
+		auto histogramNewBinCount = iAHistogramData::finalNumBin(dataSet->vtkImage(), m_mdiChild->preferences().HistogramBins);
+		// TODO NEWIO
+		if (m_mdiChild->histogramComputed(histogramNewBinCount, dataSet))
 		{
-			initializeHistogram(modality, i);
+			initializeHistogram(dataSet, i);
 		}
 		else
 		{
-			auto callback = [this, modality, i]() { initializeHistogram(modality, i); };
-			m_mdiChild->computeHistogramAsync(callback, histogramNewBinCount, modality);
+			auto callback = [this, dataSet, i]() { initializeHistogram(dataSet, i); };
+			m_mdiChild->computeHistogramAsync(callback, histogramNewBinCount, dataSet);
 		}
 	}
 
-	if (countModalities() > 0)
+	if (countDataSets() > 0)
 	{
 		initializeMainSlicers();
 		initializeCombinedVol();
@@ -148,7 +147,7 @@ void iANModalController::privateInitialize()
 	m_initialized = true;
 }
 
-void iANModalController::initializeHistogram(QSharedPointer<iAModality> modality, int index)
+void iANModalController::initializeHistogram(std::shared_ptr<iAImageData> modality, int index)
 {
 	QSharedPointer<iAPlot> histogramPlot =
 		QSharedPointer<iAPlot>(new iABarGraphPlot(modality->histogramData(), QColor(70, 70, 70, 255)));
@@ -162,7 +161,7 @@ void iANModalController::initializeHistogram(QSharedPointer<iAModality> modality
 	emit histogramInitialized(index);
 }
 
-inline iASlicer* iANModalController::initializeSlicer(QSharedPointer<iAModality> modality)
+inline iASlicer* iANModalController::initializeSlicer(std::shared_ptr<iAImageData> modality)
 {
 	auto slicerMode = iASlicerMode::XY;
 	int sliceNumber = m_mdiChild->slicer(slicerMode)->sliceNumber();
@@ -171,7 +170,7 @@ inline iASlicer* iANModalController::initializeSlicer(QSharedPointer<iAModality>
 	slicer->setup(m_mdiChild->slicerSettings().SingleSlicer);
 	slicer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
-	auto image = modality->image();
+	auto image = modality->vtkImage();
 
 	vtkColorTransferFunction* colorTf = vtkColorTransferFunction::New();
 	double range[2];
@@ -215,15 +214,15 @@ inline void iANModalController::initializeMainSlicers()
 	}
 	m_channelIds.clear();
 
-	for (int modalityIndex = 0; modalityIndex < countModalities(); modalityIndex++)
+	for (int modalityIndex = 0; modalityIndex < countDataSets(); modalityIndex++)
 	{
 		uint channelId = m_mdiChild->createChannel();
 		m_channelIds.append(channelId);
 
-		auto modality = m_modalities[modalityIndex];
+		auto modality = m_dataSets[modalityIndex];
 
 		auto chData = m_mdiChild->channelData(channelId);
-		vtkImageData* imageData = modality->image();
+		vtkImageData* imageData = modality->vtkImage();
 		vtkColorTransferFunction* ctf = modality->transfer()->colorTF();
 		vtkPiecewiseFunction* otf = modality->transfer()->opacityTF();
 		chData->setData(imageData, ctf, otf);
@@ -256,19 +255,19 @@ inline void iANModalController::initializeMainSlicers()
 inline void iANModalController::initializeCombinedVol()
 {
 	auto appendFilter = vtkSmartPointer<vtkImageAppendComponents>::New();
-	appendFilter->SetInputData(m_modalities[0]->image());
-	for (int i = 1; i < countModalities(); i++)
+	appendFilter->SetInputData(m_dataSets[0]->vtkImage());
+	for (int i = 1; i < countDataSets(); i++)
 	{
-		appendFilter->AddInputData(m_modalities[i]->image());
+		appendFilter->AddInputData(m_dataSets[i]->vtkImage());
 	}
 	appendFilter->Update();
 
 	m_combinedVol = vtkSmartPointer<vtkVolume>::New();
 	auto combinedVolProp = vtkSmartPointer<vtkVolumeProperty>::New();
 
-	for (int i = 0; i < countModalities(); i++)
+	for (int i = 0; i < countDataSets(); i++)
 	{
-		auto transfer = m_modalities[i]->transfer();
+		auto transfer = m_dataSets[i]->transfer();
 		combinedVolProp->SetColor(i, transfer->colorTF());
 		combinedVolProp->SetScalarOpacity(i, transfer->opacityTF());
 	}
@@ -290,15 +289,16 @@ inline void iANModalController::initializeCombinedVol()
 	m_combinedVolRenderer->AddVolume(m_combinedVol);
 	//m_combinedVolRenderer->ResetCamera();
 
-	for (int i = 0; i < countModalities(); ++i)
+	for (int i = 0; i < countDataSets(); ++i)
 	{
-		QSharedPointer<iAVolumeRenderer> renderer = m_modalities[i]->renderer();
+		QSharedPointer<iAVolumeRenderer> renderer = m_dataSets[i]->renderer();
 		if (renderer && renderer->isRendered())
 			renderer->remove();
 	}
 	m_mdiChild->renderer()->addRenderer(m_combinedVolRenderer);
 
-	m_mdiChild->dataDockWidget()->setAllChecked(Qt::Unchecked);
+	//m_mdiChild->dataDockWidget()->setAllChecked(Qt::Unchecked);
+	// TODO NEWIO: hide all 3D renderers!
 }
 
 inline void iANModalController::applyVolumeSettings()
@@ -327,15 +327,15 @@ inline void iANModalController::applyVolumeSettings()
 	m_combinedVolMapper->InteractiveAdjustSampleDistancesOff();
 }
 
-int iANModalController::countModalities()
+int iANModalController::countDataSets()
 {
 	// Cannot be larger than 4 because of VTK limit
-	int numModalities = m_modalities.size();
+	int numModalities = m_dataSets.size();
 	assert(numModalities <= 4);  // Bad: '4' is hard-coded. TODO: improve
 	return numModalities;
 }
 
-bool iANModalController::checkModalities(const QList<QSharedPointer<iAModality>>& modalities)
+bool iANModalController::checkDataSets(const QList<std::shared_ptr<iAImageData>>& modalities)
 {
 	if (modalities.size() < 1 || modalities.size() > 4)
 	{  // Bad: '4' is hard-coded. TODO: improve
@@ -352,7 +352,7 @@ bool iANModalController::checkModalities(const QList<QSharedPointer<iAModality>>
 }
 
 /*
-bool iANModalController::_matchModalities(QSharedPointer<iAModality> m1, QSharedPointer<iAModality> m2) {
+bool iANModalController::_matchModalities(std::shared_ptr<iAImageData> m1, std::shared_ptr<iAImageData> m2) {
 	auto image1 = m1->image();
 	const int *extent1 = image1->GetExtent();
 	const double *spacing1 = image1->GetSpacing();
@@ -367,21 +367,21 @@ bool iANModalController::_matchModalities(QSharedPointer<iAModality> m1, QShared
 }
 */
 
-void iANModalController::setModalities(const QList<QSharedPointer<iAModality>>& modalities)
+void iANModalController::setDataSets(const QList<std::shared_ptr<iAImageData>>& dataSets)
 {
-	if (!checkModalities(modalities))
+	if (!checkDataSets(dataSets))
 	{
 		return;
 	}
-	m_modalities = modalities;
+	m_dataSets = dataSets;
 
 	m_tfs.clear();
-	for (auto mod : modalities)
+	for (auto mod : dataSets)
 	{
 		m_tfs.append(QSharedPointer<iANModalTFManager>(new iANModalTFManager(mod)));
 	}
 
-	resetTf(modalities);
+	resetTf(dataSets);
 }
 
 void iANModalController::setMask(vtkSmartPointer<vtkImageData> mask)
@@ -404,13 +404,13 @@ void iANModalController::setMask(vtkSmartPointer<vtkImageData> mask)
 	gpuMapper->SetMaskInput(mask);
 }
 
-void iANModalController::resetTf(QSharedPointer<iAModality> modality)
+void iANModalController::resetTf(std::shared_ptr<iAImageData> modality)
 {
 	auto transfer = modality->transfer();
 	transfer->opacityTF()->RemoveAllPoints();
 	transfer->colorTF()->RemoveAllPoints();
 
-	int i = m_modalities.lastIndexOf(modality);
+	int i = m_dataSets.lastIndexOf(modality);
 	auto tf = m_tfs[i];
 
 	tf->removeAllControlPoints();
@@ -420,7 +420,7 @@ void iANModalController::resetTf(QSharedPointer<iAModality> modality)
 	tf->update();
 }
 
-void iANModalController::resetTf(const QList<QSharedPointer<iAModality>>& modalities)
+void iANModalController::resetTf(const QList<std::shared_ptr<iAImageData>>& modalities)
 {
 	for (auto modality : modalities)
 	{
@@ -449,9 +449,9 @@ void iANModalController::addSeeds(const QList<iANModalSeed>& seeds, const iANMod
 {
 	for (const auto& seed : seeds)
 	{
-		auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
-		unsigned int x = modality->image()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
-		int i = m_modalities.lastIndexOf(modality);
+		auto modality = m_mapOverlayImageId2dataSet.value(seed.overlayImageId);
+		unsigned int x = modality->vtkImage()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
+		int i = m_dataSets.lastIndexOf(modality);
 
 		assert(m_tfs.size() > 0);
 
@@ -471,9 +471,9 @@ void iANModalController::removeSeeds(const QList<iANModalSeed>& seeds)
 {
 	for (const auto& seed : seeds)
 	{
-		auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
-		unsigned int x = modality->image()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
-		int i = m_modalities.lastIndexOf(modality);
+		auto dataSet = m_mapOverlayImageId2dataSet.value(seed.overlayImageId);
+		unsigned int x = dataSet->vtkImage()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
+		int i = m_dataSets.lastIndexOf(dataSet);
 		auto tf = m_tfs[i];
 		tf->removeControlPoint(x);
 	}
@@ -626,7 +626,7 @@ void iANModalController::updateMainSlicers()
 	iATimeAdder ta_color;
 	iATimeAdder ta_opacity;
 
-	const auto numModalities = countModalities();
+	const auto numModalities = countDataSets();
 
 	iATimeGuard testAll("Process (2D) slice images");
 
@@ -646,7 +646,7 @@ void iANModalController::updateMainSlicers()
 		std::vector<vtkScalarsToColors*> sliceColorTf(numModalities);
 		std::vector<vtkPiecewiseFunction*> sliceOpacityTf(numModalities);
 
-		for (int modalityIndex = 0; modalityIndex < countModalities(); ++modalityIndex)
+		for (int modalityIndex = 0; modalityIndex < countDataSets(); ++modalityIndex)
 		{
 			// Get channel for modality
 			// ...this will allow us to get the 2D slice image and the transfer functions

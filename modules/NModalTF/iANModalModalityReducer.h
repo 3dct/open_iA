@@ -23,14 +23,14 @@
 #include <QList>
 #include <QSharedPointer>
 
-class iAModality;
+class iAImageData;
 
 class iANModalModalityReducer
 {
 public:
 	virtual ~iANModalModalityReducer(){};
-	virtual QList<QSharedPointer<iAModality>> reduce(const QList<
-		QSharedPointer<iAModality>>&) = 0;  // TODO: make input and output std::vector<vtkSmartPointer<vtkImageData>>
+	virtual QList<std::shared_ptr<iAImageData>> reduce(const QList<
+		std::shared_ptr<iAImageData>>&) = 0;  // TODO: make input and output std::vector<vtkSmartPointer<vtkImageData>>
 	virtual int maxOutputLength() final
 	{
 		return 4;

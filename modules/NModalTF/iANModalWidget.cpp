@@ -26,14 +26,12 @@
 #include "iANModalLabelsWidget.h"
 #include "iANModalPreprocessor.h"
 
-#include <dlg_modalities.h>
 #include <iAChartWithFunctionsWidget.h>
+#include <iADataSet.h>
 #include <iAMdiChild.h>
-#include <iAModality.h>
-#include <iAModalityList.h>
-#include <iATransferFunctionOwner.h>
 #include <iASlicer.h>
 #include <iASlicerMode.h>
+#include <iATransferFunctionOwner.h>
 
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>
@@ -83,22 +81,23 @@ iANModalWidget::iANModalWidget(iAMdiChild* mdiChild)
 	connect(m_c->m_dlg_labels, &iALabelsDlg::labelRemoved, this, &iANModalWidget::onLabelRemoved);
 	connect(m_c->m_dlg_labels, &iALabelsDlg::labelsColorChanged, this, &iANModalWidget::onLabelsColorChanged);
 
-	auto list = m_mdiChild->modalities();
-	QList<QSharedPointer<iAModality>> modalities;
-	for (int i = 0; i < list->size(); i++)
+	auto list = m_mdiChild->dataSets();
+	QList<iAImageData*> dataSets;
+	for (int i = 0; i < list.size(); i++)
 	{
-		modalities.append(list->get(i));
+		auto imgDS = dynamic_cast<iAImageData*>(list[i].get());
+		dataSets.append(imgDS);
 	}
 
 	m_preprocessor = QSharedPointer<iANModalPreprocessor>(new iANModalPreprocessor(mdiChild));
-	auto output = m_preprocessor->preprocess(modalities);
+	auto output = m_preprocessor->preprocess(dataSets);
 
 	if (!output.valid)
 	{
 		// TODO do not proceed
 	}
 
-	m_c->setModalities(output.modalities);
+	m_c->setDataSets(output.modalities);
 
 	m_c->initialize();
 

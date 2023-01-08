@@ -27,7 +27,7 @@
 
 #include <vector>
 
-class iAModalityList;
+class iAImageData;
 class iAQSplom;
 class iASPLOMData;
 
@@ -36,14 +36,14 @@ class vtkImageData;
 class vtkLookupTable;
 class vtkPiecewiseFunction;
 
-class dlg_modalitySPLOM: public QDockWidget
+class iAModalitySPLOM: public QDockWidget
 {
 	Q_OBJECT
 public:
-	dlg_modalitySPLOM();
-	void SetData(QSharedPointer<iAModalityList> img);
+	iAModalitySPLOM();
+	void setData(std::vector<iAImageData*> dataSets);
 private slots:
-	void SplomSelection(std::vector<size_t> const &);
+	void splomSelection(std::vector<size_t> const &);
 private:
 	iAQSplom* m_splom;
 	QSharedPointer<iASPLOMData> m_data;

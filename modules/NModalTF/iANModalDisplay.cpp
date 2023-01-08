@@ -22,8 +22,8 @@
 #include "iANModalDisplay.h"
 
 #include <iAChannelData.h>
+#include <iADataSet.h>
 #include <iAMdiChild.h>
-#include <iAModality.h>
 #include <iASlicerImpl.h>
 #include <iASlicerMode.h>
 
@@ -42,15 +42,15 @@
 #include <QVBoxLayout>
 
 iANModalDisplay::iANModalDisplay(QWidget* parent, iAMdiChild* mdiChild,
-	const QList<QSharedPointer<iAModality>>& modalities, int maxSelection, int minSelection, int numOfRows) :
-	m_modalities(modalities), m_maxSelection(maxSelection), m_minSelection(minSelection), m_mdiChild(mdiChild)
+	const QList<std::shared_ptr<iAImageData>>& dataSets, int maxSelection, int minSelection, int numOfRows) :
+	m_dataSets(dataSets), m_maxSelection(maxSelection), m_minSelection(minSelection), m_mdiChild(mdiChild)
 {
 	setParent(parent);
 
-	assert(modalities.size() >= 0);
+	assert(dataSets.size() >= 0);
 
 	numOfRows = numOfRows < 1 ? 1 : numOfRows;
-	int numOfCols = std::ceil((float)modalities.size() / (float)numOfRows);
+	int numOfCols = std::ceil((float)dataSets.size() / (float)numOfRows);
 
 	auto layoutMain = new QVBoxLayout(this);
 
@@ -61,21 +61,21 @@ iANModalDisplay::iANModalDisplay(QWidget* parent, iAMdiChild* mdiChild,
 	group->setExclusive(isSingleSelection());
 
 	m_slicerMode = iASlicerMode::XY;
-	for (int i = 0; i < modalities.size(); i++)
+	for (int i = 0; i < dataSets.size(); i++)
 	{
-		auto mod = modalities[i];
-		auto slicer = createSlicer(mod);
+		auto ds = dataSets[i];
+		auto slicer = createSlicer(ds);
 		m_slicers.append(slicer);
 
 		int col = i % numOfCols;
 		int row = std::floor(i / numOfCols);
-		layoutGrid->addWidget(createSlicerContainer(slicer, mod, group /*, isSingleSelection() && i == 0*/), row, col);
+		layoutGrid->addWidget(createSlicerContainer(slicer, ds, group /*, isSingleSelection() && i == 0*/), row, col);
 	}
 
 	layoutMain->addWidget(widgetGrid);
 }
 
-iASlicer* iANModalDisplay::createSlicer(QSharedPointer<iAModality> mod)
+iASlicer* iANModalDisplay::createSlicer(std::shared_ptr<iAImageData> dataSet)
 {
 	int sliceNumber = m_mdiChild->slicer(m_slicerMode)->sliceNumber();
 	// Hide everything except the slice itself
@@ -83,7 +83,7 @@ iASlicer* iANModalDisplay::createSlicer(QSharedPointer<iAModality> mod)
 	slicer->setup(m_mdiChild->slicerSettings().SingleSlicer);
 	slicer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
-	auto image = mod->image();
+	auto image = dataSet->vtkImage();
 
 	vtkColorTransferFunction* colorTf = vtkColorTransferFunction::New();
 	double range[2];
@@ -92,7 +92,7 @@ iASlicer* iANModalDisplay::createSlicer(QSharedPointer<iAModality> mod)
 	double max = range[1];
 	colorTf->AddRGBPoint(min, 0.0, 0.0, 0.0);
 	colorTf->AddRGBPoint(max, 1.0, 1.0, 1.0);
-	auto channelData = iAChannelData(mod->name(), image, colorTf);
+	auto channelData = iAChannelData(dataSet->name(), image, colorTf);
 	slicer->addChannel(MAIN_CHANNEL_ID, channelData, true);
 
 	double* origin = image->GetOrigin();
@@ -116,7 +116,7 @@ iASlicer* iANModalDisplay::createSlicer(QSharedPointer<iAModality> mod)
 }
 
 inline QWidget* iANModalDisplay::createSlicerContainer(
-	iASlicer* slicer, QSharedPointer<iAModality> mod, QButtonGroup* group /*, bool checked*/)
+	iASlicer* slicer, std::shared_ptr<iAImageData> mod, QButtonGroup* group /*, bool checked*/)
 {
 	//Q_UNUSED(checked);
 	QWidget* widget = new QWidget(this);
@@ -151,7 +151,7 @@ inline QWidget* iANModalDisplay::createSlicerContainer(
 	return widget;
 }
 
-QList<QSharedPointer<iAModality>> iANModalDisplay::selectModalities(
+QList<std::shared_ptr<iAImageData>> iANModalDisplay::selectDataSets(
 	iANModalDisplay* display, QWidget* footer, QWidget* dialogParent)
 {
 	// Set up dialog
@@ -173,7 +173,7 @@ QList<QSharedPointer<iAModality>> iANModalDisplay::selectModalities(
 	auto dialogCode = dialog->exec();
 	if (dialogCode == QDialog::Rejected)
 	{
-		return QList<QSharedPointer<iAModality>>();
+		return QList<std::shared_ptr<iAImageData>>();
 	}
 	return display->selection();
 }
@@ -214,22 +214,22 @@ iANModalDisplay::Footer* iANModalDisplay::createFooter(
 	return footerWigdet;
 }
 
-void iANModalDisplay::setModalitySelected(QSharedPointer<iAModality> mod, QAbstractButton* button)
+void iANModalDisplay::setModalitySelected(std::shared_ptr<iAImageData> ds, QAbstractButton* button)
 {
 	if (isSingleSelection())
 	{
-		m_selectedModalities.clear();
-		m_selectedModalities.append(mod);
+		m_selectedDataSets.clear();
+		m_selectedDataSets.append(ds);
 	}
 	else
 	{
 		if (button->isDown())
 		{
-			m_selectedModalities.append(mod);
+			m_selectedDataSets.append(ds);
 		}
 		else
 		{
-			m_selectedModalities.removeOne(mod);
+			m_selectedDataSets.removeOne(ds);
 		}
 	}
 

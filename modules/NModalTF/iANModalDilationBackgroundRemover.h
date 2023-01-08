@@ -32,8 +32,9 @@
 #include <QWidget>
 
 
-class iAMdiChild;
 class iAConnector;
+class iAImageData;
+class iAMdiChild;
 class iANModalDisplay;
 class iAProgress;
 
@@ -68,7 +69,7 @@ class iANModalDilationBackgroundRemover : public QObject, public iANModalBackgro
 
 public:
 	iANModalDilationBackgroundRemover(iAMdiChild* mdiChild);
-	Mask removeBackground(const QList<QSharedPointer<iAModality>>&) override;
+	Mask removeBackground(const QList<std::shared_ptr<iAImageData>>&) override;
 
 private:
 	using ImagePointer = itk::ImageBase<DIM>::Pointer;
@@ -80,10 +81,10 @@ private:
 
 	iAMdiChild* m_mdiChild;
 
-	// return - true if a modality and a threshold were successfully chosen
+	// return - true if a dataset and a threshold were successfully chosen
 	//        - false otherwise
-	bool selectModalityAndThreshold(QWidget* parent, const QList<QSharedPointer<iAModality>>& modalities,
-		int& out_threshold, QSharedPointer<iAModality>& out_modality,
+	bool selectDataSetAndThreshold(QWidget* parent, const QList<std::shared_ptr<iAImageData>>& modalities,
+		int& out_threshold, std::shared_ptr<iAImageData>& out_dataSet,
 		iANModalBackgroundRemover::MaskMode& out_maskMode);
 
 	// TODO describe
@@ -101,13 +102,13 @@ private:
 
 #ifndef NDEBUG
 	// Note: currently not called from anywhere:
-	void showMask(QSharedPointer<iAModality> mod, vtkSmartPointer<vtkImageData> mask);
+	void showMask(std::shared_ptr<iAImageData> mod, vtkSmartPointer<vtkImageData> mask);
 	void showMask(ImagePointer itkImgPtr);
 #endif
 
 public slots:
-	void setModalitySelected(QSharedPointer<iAModality>);
-	void updateModalitySelected();
+	void setDataSetSelected(std::shared_ptr<iAImageData>);
+	void updateDataSetSelected();
 	void updateThreshold();
 };
 

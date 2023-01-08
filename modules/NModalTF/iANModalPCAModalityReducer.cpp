@@ -21,7 +21,7 @@
 
 #include "iANModalPCAModalityReducer.h"
 
-#include <iAModality.h>
+#include <iADataSet.h>
 #include <iAPerformanceHelper.h>
 #include <iATypedCallHelper.h>
 
@@ -40,8 +40,8 @@
 #include <vtkImageData.h>
 
 // Input modalities (volumes) must have the exact same dimensions
-QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(
-	const QList<QSharedPointer<iAModality>>& modalities_in)
+QList<std::shared_ptr<iAImageData>> iANModalPCAModalityReducer::reduce(
+	const QList<std::shared_ptr<iAImageData>>& modalities_in)
 {
 	// TODO: assert if all modalities have the same dimensions
 
@@ -50,7 +50,7 @@ QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(
 	for (int i = 0; i < modalities_in.size(); i++)
 	{
 		connectors[i] = iAConnector();
-		connectors[i].setImage(modalities_in[i]->image());
+		connectors[i].setImage(modalities_in[i]->vtkImage());
 	}
 
 	// Go!
@@ -58,7 +58,7 @@ QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(
 	ITK_TYPED_CALL(ownPCA, connectors[0].itkScalarType(), connectors);
 
 	// Set up output list
-	auto modalities = QList<QSharedPointer<iAModality>>();
+	auto modalities = QList<std::shared_ptr<iAImageData>>();
 	for (size_t i = 0; i < connectors.size(); i++)
 	{
 		auto name = "Principal Component " + QString::number(i);
@@ -66,7 +66,8 @@ QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(
 		auto imageData = vtkSmartPointer<vtkImageData>::New();
 		imageData->DeepCopy(connectors[i].vtkImage());
 
-		auto mod = new iAModality(name, "", -1, imageData, iAModality::NoRenderer);
+		auto dataSet = std::make_shared<iAImageData>(imageData);
+		dataSet->setMetaData(iADataSet::NameKey, name);
 
 #ifndef NDEBUG
 		//storeImage(connectors[i].itkImage(), "pca_output_" + QString::number(i) + ".mhd", true);
@@ -77,7 +78,7 @@ QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(
 
 		//m_mdiChild->dataDockWidget()->addModality(...);
 
-		modalities.append(QSharedPointer<iAModality>(mod));
+		modalities.append(dataSet);
 	}
 
 	// Ready to output :)
