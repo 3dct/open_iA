@@ -138,7 +138,7 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(const QList<iAImag
 		}
 	}
 
-	output.modalities = dataSets;
+	output.dataSets = dataSets;
 	output.mask = mask.mask;
 
 	auto newModalities = extractNewModalities(modalities);
