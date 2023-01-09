@@ -1,9 +1,11 @@
-set(FuzzyFeatureTracking_PRECOMPILE_INCLUDES <dlg_trackingGraph.h>
+set(FuzzyFeatureTracking_PRECOMPILE_INCLUDES
+<dlg_trackingGraph.h>
 <iAFeatureTracking.h>
 <iAGraph.h>
-<iAVolumeStack.h>
-<map>
+<iALog.h>
 <iAMdiChild.h>
+<iAQVTKWidget.h>
+<iAVolumeStack.h>
 <vector>
 <vtkContextScene.h>
 <vtkDataSetAttributes.h>

@@ -1,4 +1,5 @@
-set(InSpectr_PRECOMPILE_INCLUDES <algorithm>
+set(InSpectr_PRECOMPILE_INCLUDES
+<algorithm>
 <cassert>
 <dlg_InSpectr.h>
 <iAAccumulatedXRFData.h>
@@ -10,10 +11,11 @@ set(InSpectr_PRECOMPILE_INCLUDES <algorithm>
 <iAEnergySpectrum.h>
 <iAFunctionalBoxplot.h>
 <iAMathUtility.h>
+<iAMdiChild.h>
+<iAPeriodicTableWidget.h>
 <iASpectrumFilter.h>
 <iATypedCallHelper.h>
 <iAXRFData.h>
-<iAMdiChild.h>
 <QFileDialog>
 <QImage>
 <QMap>
