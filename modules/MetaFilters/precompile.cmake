@@ -6,8 +6,6 @@ set(MetaFilters_PRECOMPILE_INCLUDES
 <iAFilter.h>
 <iAFilterRegistry.h>
 <iALog.h>
-<iAModality.h>
-<iAModalityList.h>
 <iANameMapper.h>
 <iAParameterNames.h>
 <iAProgress.h>

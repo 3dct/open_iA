@@ -3,7 +3,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <chrono>
 <cmath>
 <defines.h>
-<dlg_modalityProperties.h>
 <iAAbortListener.h>
 <iAAbstractMagicLensWidget.h>
 <iAAlgorithm.h>
@@ -26,9 +25,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAMainWindow.h>
 <iAMathUtility.h>
 <iAMdiChild.h>
-<iAModality.h>
-<iAModalityList.h>
-<iAModalityTransfer.h>
 <iAParameterDlg.h>
 <iAPerformanceHelper.h>
 <iAProgress.h>

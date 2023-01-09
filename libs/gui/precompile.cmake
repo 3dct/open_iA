@@ -29,9 +29,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAMainWindow.h>
 <iAMathUtility.h>
 <iAMdiChild.h>
-<iAModality.h>
-<iAModalityList.h>
-<iAModalityTransfer.h>
 <iAParameterDlg.h>
 <iAPlotTypes.h>
 <iAPreferences.h>

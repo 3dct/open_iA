@@ -17,8 +17,6 @@ set(FeatureScout_PRECOMPILE_INCLUDES
 <iALookupTable.h>
 <iAMdiChild.h>
 <iAMeanObject.h>
-<iAModalityList.h>
-<iAModalityTransfer.h>
 <iAMovieHelper.h>
 <iAObjectType.h>
 <iAQVTKWidget.h>
