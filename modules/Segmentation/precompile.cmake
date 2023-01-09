@@ -1,11 +1,13 @@
-set(Segmentation_PRECOMPILE_INCLUDES <cmath>
+set(Segmentation_PRECOMPILE_INCLUDES
+<cmath>
 <defines.h>
-<iAConnector.h>
-<iAFilter.h>
+<iADataSet.h>
+<iAFilterDefault.h>
 <iAImageCoordinate.h>
 <iAImageGraph.h>
 <iALog.h>
 <iAProgress.h>
+<iASeedType.h>
 <iAToolsITK.h>
 <iATypedCallHelper.h>
 <iAVectorArray.h>
@@ -13,5 +15,7 @@ set(Segmentation_PRECOMPILE_INCLUDES <cmath>
 <iAVectorType.h>
 <iAVectorTypeImpl.h>
 <QSharedPointer>
+<QString>
 <QVector>
+<utility>
 <vtkImageData.h>)

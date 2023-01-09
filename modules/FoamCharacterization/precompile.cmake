@@ -1,4 +1,5 @@
-set(FoamCharacterization_PRECOMPILE_INCLUDES <iAConnector.h>
+set(FoamCharacterization_PRECOMPILE_INCLUDES
+<iADataSet.h>
 <iAFoamCharacterizationDialog.h>
 <iAFoamCharacterizationItem.h>
 <iAFoamCharacterizationItemBinarization.h>
@@ -6,6 +7,7 @@ set(FoamCharacterization_PRECOMPILE_INCLUDES <iAConnector.h>
 <iAFoamCharacterizationItemFilter.h>
 <iAFoamCharacterizationItemWatershed.h>
 <iAFoamCharacterizationTable.h>
+<iAMdiChild.h>
 <iAProgress.h>
 <QApplication>
 <QCheckBox>
