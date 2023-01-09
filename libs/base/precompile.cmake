@@ -12,10 +12,11 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAAttributes.h>
 <iAConnector.h>
 <iADataSet.h>
+<iAExtendedTypedCallHelper.h>
 <iAFileUtils.h>
 <iAFilter.h>
+<iAFilterRegistry.h>
 <iAITKIO.h>
-<iAItkVersion.h>
 <iALog.h>
 <iAMathUtility.h>
 <iAProgress.h>
@@ -26,10 +27,10 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iATypedCallHelper.h>
 <iAValueType.h>
 <iAVec3.h>
+<iostream>
 <itkImageBase.h>
 <itkImageFileReader.h>
 <itkImageFileWriter.h>
-<itkImageIOBase.h>
 <QColor>
 <QFileInfo>
 <QFlags>

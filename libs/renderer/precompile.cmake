@@ -3,6 +3,7 @@ set(OPENIA_PRECOMPILE_HEADERS
 <vector>
 <iALog.h>
 <iARenderObserver.h>
+<iAToolsVTK.h>
 <QColor>
 <QObject>
 <vtkCamera.h>

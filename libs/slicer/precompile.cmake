@@ -13,13 +13,11 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iASlicerProfileHandles.h>
 <iASlicerSettings.h>
 <iAVtkText.h>
-<iAVtkVersion.h>
 <vtkActor.h>
 <vtkActor2D.h>
 <vtkCamera.h>
 <vtkCellArray.h>
 <vtkCellData.h>
-<vtkCommand.h>
 <vtkConeSource.h>
 <vtkCoordinate.h>
 <vtkDiskSource.h>
