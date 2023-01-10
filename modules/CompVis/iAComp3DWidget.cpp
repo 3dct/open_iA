@@ -33,7 +33,7 @@
 
 
 iAComp3DWidget::iAComp3DWidget(
-	iAMainWindow* parent, vtkSmartPointer<vtkTable> objectTable, iACsvIO* io, const iACsvConfig* csvConfig) :
+	iAMainWindow* parent, vtkSmartPointer<vtkTable> objectTable, QSharedPointer<QMap<uint, uint>> columnMapping, const iACsvConfig& csvConfig) :
 	QDockWidget(parent),
 	m_objectColor(QColor(140, 140, 140, 255)),
 	m_interactionStyle(vtkSmartPointer<iAComp3DWidgetInteractionStyle>::New())
@@ -53,7 +53,7 @@ iAComp3DWidget::iAComp3DWidget(
 	initializeInteraction();
 
 	//rendering
-	create3DVis(objectTable, io, csvConfig);
+	create3DVis(objectTable, columnMapping, csvConfig);
 }
 
 /*************** Rendering ****************************/
@@ -93,14 +93,12 @@ void iAComp3DWidget::removeAllRendererFromWidget()
 }
 
 /*************** Initialization ****************************/
-void iAComp3DWidget::create3DVis(vtkSmartPointer<vtkTable> objectTable, iACsvIO* io, const iACsvConfig* csvConfig)
+void iAComp3DWidget::create3DVis(vtkSmartPointer<vtkTable> objectTable, QSharedPointer<QMap<uint, uint>> columnMapping, const iACsvConfig& csvConfig)
 {
-	QSharedPointer<QMap<uint, uint>> columnMapping = io->getOutputMapping();
-
-	if (csvConfig->visType == iACsvConfig::Cylinders)
+	if (csvConfig.visType == iACsvConfig::Cylinders)
 	{
-		int cylinderQuality = csvConfig->cylinderQuality;
-		size_t segmentSkip = csvConfig->segmentSkip;
+		int cylinderQuality = csvConfig.cylinderQuality;
+		size_t segmentSkip = csvConfig.segmentSkip;
 		m_3dvisData = std::make_shared<iA3DCylinderObjectVis>(
 			objectTable,
 			columnMapping,
@@ -109,7 +107,7 @@ void iAComp3DWidget::create3DVis(vtkSmartPointer<vtkTable> objectTable, iACsvIO*
 			cylinderQuality,
 			segmentSkip);
 	}
-	else if (csvConfig->visType == iACsvConfig::Ellipses)
+	else if (csvConfig.visType == iACsvConfig::Ellipses)
 	{
 		m_3dvisData = std::make_shared<iA3DEllipseObjectVis>(
 			objectTable,

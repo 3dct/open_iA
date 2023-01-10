@@ -63,7 +63,10 @@ public:
 	const QStringList & getFileHeaders() const;
 	//! get list of all headers in result table (including computed columns)
 	const QStringList & getOutputHeaders() const;
-	//! get mapping in which fields the important values are stored
+	//! get mapping in which fields the important values are stored.
+	//! This is basically the column mapping of the iACsvConfig used to load the dataset,
+	//! but adapted / extended to match the created output: When an auto-id is inserted as first column,
+	//! all indices shift by one to the back; also for computed columns, mappings are inserted.
 	QSharedPointer<QMap<uint, uint>> getOutputMapping() const;
 private:
 	QStringList m_fileHeaders;          //!< list of column header names in file

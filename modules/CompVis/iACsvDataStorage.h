@@ -24,6 +24,7 @@
 #include <iALog.h>
 
 //QT
+#include <QSharedPointer>
 #include <QString>
 
 #include <vector>
@@ -117,9 +118,9 @@ class iACsvDataStorage
 	void setMDSData(csvDataType::ArrayType* mdsData);
 
 	/*** 3D Rendering ***/
-	std::vector<vtkSmartPointer<vtkTable>>* getObjectTables();
-	std::vector<iACsvIO*>* getIOs();
-	std::vector<const iACsvConfig*>* getCsvConfigs();
+	std::vector<vtkSmartPointer<vtkTable>> const & getObjectTables();
+	std::vector<QSharedPointer<QMap<uint, uint>>> const & getOutputMappings();
+	std::vector<iACsvConfig> const & getCsvConfigs();
 
    private:
 	//fill a list with the attribute names
@@ -147,10 +148,9 @@ class iACsvDataStorage
 	csvDataType::ArrayType* m_MDSData;
 
 	/*** Initialization for Rendering with iAobjectvis***/
-	std::vector<vtkSmartPointer<vtkTable>>* m_objectTables;
-	std::vector<iACsvIO*>* m_ios;
-	std::vector<const iACsvConfig*>* m_csvConfigs;
-	std::vector<dlg_CSVInput*>* m_dlgs;
+	std::vector<vtkSmartPointer<vtkTable>> m_objectTables;
+	std::vector<QSharedPointer<QMap<uint, uint>>> m_outputMappings;
+	std::vector<iACsvConfig> m_csvConfigs;
 
 	//minimum value of all distributions/csv files
 	double m_minVal;
