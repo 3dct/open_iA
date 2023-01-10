@@ -24,11 +24,10 @@
 #include "iACompVisOptions.h"
 
 //iAobjectvis
-#include "iACsvIO.h"
 #include "dlg_CSVInput.h"
 #include "iACsvConfig.h"
+#include "iACsvIO.h"
 #include "iACsvVtkTableCreator.h"
-#include "dlg_CSVInput.h"
 
 //QT
 #include <QMessageBox>
@@ -42,14 +41,10 @@
 #include <cstdlib>
 
 iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles, int headerLineNumber) :
-	m_filenames(csvFiles), 
+	m_filenames(csvFiles),
 	m_data(new QList<csvFileData>()),
 	m_totalNumberOfObjects(0),
 	m_MDSData(nullptr),
-	m_objectTables(new std::vector<vtkSmartPointer<vtkTable>>()),
-	m_ios(new std::vector<iACsvIO*>()),
-	m_csvConfigs(new std::vector<const iACsvConfig*>()),
-	m_dlgs(new std::vector<dlg_CSVInput*>()),
 	m_minVal(0.0),
 	m_maxVal(0.0)
 {
@@ -94,20 +89,19 @@ void iACsvDataStorage::initializeObjectTableFor3DRendering()
 		return;
 	}
 	
-	const iACsvConfig* csvConfig = &dlg->getConfig();
+	iACsvConfig csvConfig = dlg->getConfig();
 	iACsvVtkTableCreator creator;
 	iACsvIO* io = new iACsvIO();
 	
-	if (!io->loadCSV(creator, *csvConfig))
+	if (!io->loadCSV(creator, csvConfig))
 	{
 		return;
 	}
 
 	vtkSmartPointer<vtkTable> objectTable = creator.table();
-	m_objectTables->push_back(objectTable);
-	m_ios->push_back(io);
-	m_csvConfigs->push_back(csvConfig);
-	m_dlgs->push_back(dlg);
+	m_objectTables.push_back(objectTable);
+	m_outputMappings.push_back(io->getOutputMapping());
+	m_csvConfigs.push_back(csvConfig);
 }
 
 QList<QStringList>* iACsvDataStorage::readCSV(QString csvFile)
@@ -277,17 +271,17 @@ void iACsvDataStorage::setMaxVal(double maxVal)
 }
 
 /*********************** 3D Rendering ******************************************/
-std::vector<vtkSmartPointer<vtkTable>>* iACsvDataStorage::getObjectTables()
+std::vector<vtkSmartPointer<vtkTable>> const & iACsvDataStorage::getObjectTables()
 {
 	return m_objectTables;
 }
 
-std::vector<iACsvIO*>* iACsvDataStorage::getIOs()
+std::vector<QSharedPointer<QMap<uint, uint>>> const & iACsvDataStorage::getOutputMappings()
 {
-	return m_ios;
+	return m_outputMappings;
 }
 
-std::vector<const iACsvConfig*>* iACsvDataStorage::getCsvConfigs()
+std::vector<iACsvConfig> const & iACsvDataStorage::getCsvConfigs()
 {
 	return m_csvConfigs;
 }

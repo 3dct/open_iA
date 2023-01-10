@@ -20,13 +20,13 @@ iAComp3DView::iAComp3DView(iAMainWindow* parent, iACsvDataStorage* dataStorage) 
 	m_dataStorage(dataStorage), 
 	m_dockWidgets(new std::vector<iAComp3DWidget*>())
 {
-	std::vector<vtkSmartPointer<vtkTable>>* objectTables = m_dataStorage->getObjectTables();
-	std::vector<iACsvIO*>* ios = m_dataStorage->getIOs();
-	std::vector<const iACsvConfig*>* csvConfigs = m_dataStorage->getCsvConfigs();
+	auto const & objectTables = m_dataStorage->getObjectTables();
+	auto const & outputMappings = m_dataStorage->getOutputMappings();
+	auto const & csvConfigs = m_dataStorage->getCsvConfigs();
 
-	for (int i = 0; i < static_cast<int>(ios->size()); i++)
+	for (int i = 0; i < static_cast<int>(outputMappings.size()); i++)
 	{
-		iAComp3DWidget* widget = new iAComp3DWidget(parent, objectTables->at(i), ios->at(i), csvConfigs->at(i));
+		iAComp3DWidget* widget = new iAComp3DWidget(parent, objectTables[i], outputMappings[i], csvConfigs[i]);
 		widget->setWindowTitle(iACompVisOptions::getLabel(m_dataStorage->getDatasetNames()->at(i)));
 		m_dockWidgets->push_back(widget);
 	}
