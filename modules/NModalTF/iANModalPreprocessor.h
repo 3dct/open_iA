@@ -22,11 +22,12 @@
 
 #include <vtkSmartPointer.h>
 
+#include <QObject>
 #include <QList>
 #include <QMap>
 #include <QSharedPointer>
 
-class iANModalModalityReducer;
+class iANModalDataSetReducer;
 class iANModalBackgroundRemover;
 
 class iAMdiChild;
@@ -65,14 +66,14 @@ public:
 		bool valid = true;
 	};
 
-	Output preprocess(const QList<iAImageData*>&);
+	Output preprocess(const QList<std::shared_ptr<iAImageData>>&);
 
 private:
 	iAMdiChild* m_mdiChild;
 
 	struct DataSetGroup
 	{
-		QList<iAImageData*> dataSets;
+		QList<std::shared_ptr<iAImageData>> dataSets;
 		int dimx, dimy, dimz;
 	};
 
@@ -86,14 +87,14 @@ private:
 	};
 
 	Pipeline choosePipeline();
-	QSharedPointer<iANModalModalityReducer> chooseModalityReducer();
+	QSharedPointer<iANModalDataSetReducer> chooseDataSetReducer();
 	QSharedPointer<iANModalBackgroundRemover> chooseBackgroundRemover();
 
-	void groupDataSets(const QList<iAImageData*>&, QList<DataSetGroup>& output);
-	QList<iAImageData*> chooseGroup(const QList<DataSetGroup>&);
+	void groupDataSets(const QList<std::shared_ptr<iAImageData>>&, QList<DataSetGroup>& output);
+	QList<std::shared_ptr<iAImageData>> chooseGroup(const QList<DataSetGroup>&);
 
-	QList<std::shared_ptr<iAImageData>> extractNewModalities(const QList<std::shared_ptr<iAImageData>>&);
-	void addModalitiesToMdiChild(const QList<std::shared_ptr<iAImageData>>&);
+	QList<std::shared_ptr<iAImageData>> extractNewDataSets(const QList<std::shared_ptr<iAImageData>>&);
+	void addDataSetsToMdiChild(const QList<std::shared_ptr<iAImageData>>&);
 };
 
 class iANModalPreprocessorSelector : public QObject

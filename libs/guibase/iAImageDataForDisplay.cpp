@@ -121,6 +121,11 @@ void iAImageDataForDisplay::show(iAMdiChild* child)
 		child, &iAMdiChild::changeTransferFunction);
 }
 
+QSharedPointer<iAHistogramData> iAImageDataForDisplay::histogramData() const
+{
+	return m_histogramData;
+}
+
 iATransferFunction* iAImageDataForDisplay::transfer()
 {
 	return m_transfer.get();

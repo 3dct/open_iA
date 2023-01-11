@@ -57,6 +57,10 @@ public:
 	{
 		return static_cast<unsigned int>(m_cps.size() - 1);
 	}
+	iATransferFunction* tf()
+	{
+		return m_tf;
+	}
 
 private:
 	struct CP
@@ -92,8 +96,7 @@ private:
 		}
 	};
 
-	vtkColorTransferFunction* m_colorTf;
-	vtkPiecewiseFunction* m_opacityTf;
+	iATransferFunction* m_tf;
 	std::vector<CP> m_cps;
 
 	inline void addControlPointToTfs(const CP& cp);

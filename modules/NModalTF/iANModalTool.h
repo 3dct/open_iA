@@ -22,31 +22,14 @@
 
 #include <iATool.h>
 
-#include <QDockWidget>
-
-class iANModalWidget;
+class iADockWidgetWrapper;
 class iAMdiChild;
-
-class QLabel;
-
-class iANModalMain : public QDockWidget
-{
-	Q_OBJECT
-
-public:
-	iANModalMain(iAMdiChild* mdiChild);
-	iANModalWidget* nModalWidget();
-
-private:
-	iANModalWidget* m_nModalWidget;
-};
 
 class iANModalTFTool : public iATool
 {
 public:
 	iANModalTFTool(iAMainWindow* mainWnd, iAMdiChild* child);
-	void start();
 
 private:
-	iANModalMain* m_nModalMain;
+	iADockWidgetWrapper* m_nModalDockWidget;
 };

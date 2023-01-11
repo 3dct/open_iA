@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iANModalModalityReducer.h"
+#include "iANModalDataSetReducer.h"
 
 #include <iAConnector.h>
 
@@ -28,7 +28,7 @@
 
 class vtkImageData;
 
-class iANModalPCAModalityReducer : public iANModalModalityReducer
+class iANModalPCADataSetReducer : public iANModalDataSetReducer
 {
 public:
 	QList<std::shared_ptr<iAImageData>> reduce(const QList<std::shared_ptr<iAImageData>>&) override;

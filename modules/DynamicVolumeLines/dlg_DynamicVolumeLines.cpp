@@ -27,12 +27,12 @@
 
 #include <iAFunction.h>
 #include <iAFunctionalBoxplot.h>
+#include <iAImageDataForDisplay.h>
 #include <iAJobListView.h>
 #include <iALUT.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
-#include <iATransferFunctionOwner.h>
-#include <iATransferFunctionPtrs.h>
+#include <iATransferFunction.h>
 #include <iAQVTKWidget.h>
 #include <iARenderer.h>
 #include <iAVolumeRenderer.h>
@@ -1661,17 +1661,16 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 			visSelGraphList[i]->pen().color().blueF());
 
 		vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
-		cTF->ShallowCopy(m_mdiChild->dataSetTransfer(m_mdiChild->firstImageDataSetIdx())->colorTF());
+		auto tf = dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(m_mdiChild->firstImageDataSetIdx()))->transfer();
+		cTF->ShallowCopy(tf->colorTF());
 		int index = cTF->GetSize() - 1;
 		double val[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 		cTF->GetNodeValue(index, val);
 		val[1] = 1.0;	val[2] = 0.0;	val[3] = 0.0;
 		cTF->SetNodeValue(index, val);
 		vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
-		oTF->ShallowCopy(m_mdiChild->dataSetTransfer(m_mdiChild->firstImageDataSetIdx())->opacityTF());
+		oTF->ShallowCopy(tf->opacityTF());
 
-		iATransferFunctionPtrs tf(cTF, oTF);
-		//iATransferFunctionPtrs tf(m_mdiChild->colorTF(), m_mdiChild->opacityTF());
 		auto ren = vtkSmartPointer<vtkRenderer>::New();
 		ren->SetLayer(1);
 		ren->SetActiveCamera(m_mdiChild->renderer()->camera());
@@ -1682,7 +1681,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 			1 - (std::ceil((i + 1.0) / viewportCols) / viewportRows) + fieldLengthY);
 		ren->AddViewProp(cornerAnnotation);
 		ren->ResetCamera();
-		m_volRen = QSharedPointer<iAVolumeRenderer>::create(&tf, m_imgDataList[datasetIdx]);
+		m_volRen = QSharedPointer<iAVolumeRenderer>::create(tf, m_imgDataList[datasetIdx]);
 		m_volRen->applySettings(m_mdiChild->volumeSettings());
 		m_volRen->addTo(ren);
 		m_volRen->addBoundingBoxTo(ren);

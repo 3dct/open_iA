@@ -32,7 +32,7 @@
 #include <assert.h>
 
 iANModalTFManager::iANModalTFManager(iATransferFunction* tf) :
-	m_colorTf(tf->colorTF()), m_opacityTf(tf->opacityTF())
+	m_tf(tf)
 {
 	double* range = tf->colorTF()->GetRange();
 	double rangeMax = range[1];
@@ -61,26 +61,26 @@ void iANModalTFManager::removeControlPoint(unsigned int x)
 
 void iANModalTFManager::update()
 {
-	assert(m_colorTf->GetSize() == m_opacityTf->GetSize());
+	assert(m_tf->colorTF()->GetSize() == m_tf->opacityTF()->GetSize());
 
 	std::vector<CP> unmanaged_cps;
 	double c[6], o[4];
-	for (int i = 0; i < m_colorTf->GetSize(); ++i)
+	for (int i = 0; i < m_tf->colorTF()->GetSize(); ++i)
 	{
-		m_opacityTf->GetNodeValue(i, o);
+		m_tf->opacityTF()->GetNodeValue(i, o);
 		unsigned int x = o[0];
 		if (m_cps[x].null())
 		{
-			m_colorTf->GetNodeValue(i, c);
+			m_tf->colorTF()->GetNodeValue(i, c);
 			assert(o[0] == c[0]);
 			unmanaged_cps.push_back(CP(x, c[1], c[2], c[3], o[1]));
 		}
 	}
 	unmanaged_cps.shrink_to_fit();
-	m_colorTf->RemoveAllPoints();
-	m_opacityTf->RemoveAllPoints();
+	m_tf->colorTF()->RemoveAllPoints();
+	m_tf->opacityTF()->RemoveAllPoints();
 
-	assert(m_colorTf->GetSize() == m_opacityTf->GetSize());
+	assert(m_tf->colorTF()->GetSize() == m_tf->opacityTF()->GetSize());
 
 	// Naive parallelization of this loop here.
 	// Because of that, the result may contain more than two adjacent control points with the same color/opacity.
@@ -125,14 +125,14 @@ void iANModalTFManager::update()
 	}  // end of parallel block
 	delete tg;
 
-	assert(m_colorTf->GetSize() == m_opacityTf->GetSize());
+	assert(m_tf->colorTF()->GetSize() == m_tf->opacityTF()->GetSize());
 
 	for (size_t i = 0; i < unmanaged_cps.size(); ++i)
 	{
 		addControlPointToTfs(unmanaged_cps[i]);
 	}
 
-	assert(m_colorTf->GetSize() == m_opacityTf->GetSize());
+	assert(m_tf->colorTF()->GetSize() == m_tf->opacityTF()->GetSize());
 }
 
 void iANModalTFManager::updateLabels(const std::vector<iANModalLabel>& labels)
@@ -178,14 +178,14 @@ void iANModalTFManager::updateLabels(const std::vector<iANModalLabel>& labels)
 
 void iANModalTFManager::removeControlPoints(int labelId)
 {
-	assert(m_colorTf->GetSize() == m_opacityTf->GetSize());
+	assert(m_tf->colorTF()->GetSize() == m_tf->opacityTF()->GetSize());
 
 	// Remove control points from TF first
 	std::vector<unsigned int> to_be_removed;
 	double o[4];
-	for (int i = 0; i < m_opacityTf->GetSize(); ++i)
+	for (int i = 0; i < m_tf->opacityTF()->GetSize(); ++i)
 	{
-		m_opacityTf->GetNodeValue(i, o);
+		m_tf->opacityTF()->GetNodeValue(i, o);
 		unsigned int x = o[0];
 		if (m_cps[x].labelId == labelId)
 		{
@@ -200,12 +200,12 @@ void iANModalTFManager::removeControlPoints(int labelId)
 #pragma omp section
 			for (unsigned int x : to_be_removed)
 			{
-				m_colorTf->RemovePoint(x);
+				m_tf->colorTF()->RemovePoint(x);
 			}
 #pragma omp section
 			for (unsigned int x : to_be_removed)
 			{
-				m_opacityTf->RemovePoint(x);
+				m_tf->opacityTF()->RemovePoint(x);
 			}
 		}
 
@@ -234,7 +234,7 @@ void iANModalTFManager::removeAllControlPoints()
 			{
 				if (!ptr[i].null())
 				{
-					m_colorTf->RemovePoint(i);
+					m_tf->colorTF()->RemovePoint(i);
 				}
 			}
 #pragma omp section
@@ -242,7 +242,7 @@ void iANModalTFManager::removeAllControlPoints()
 			{
 				if (!ptr[i].null())
 				{
-					m_opacityTf->RemovePoint(i);
+					m_tf->opacityTF()->RemovePoint(i);
 				}
 			}
 		}  // end of sections
@@ -258,12 +258,12 @@ void iANModalTFManager::removeAllControlPoints()
 inline void iANModalTFManager::addControlPointToTfs(const CP& cp)
 {
 	double mul = cp.a == 0 ? 0 : 1;
-	m_colorTf->AddRGBPoint(cp.x, cp.r * mul, cp.g * mul, cp.b * mul);
-	m_opacityTf->AddPoint(cp.x, cp.a);
+	m_tf->colorTF()->AddRGBPoint(cp.x, cp.r * mul, cp.g * mul, cp.b * mul);
+	m_tf->opacityTF()->AddPoint(cp.x, cp.a);
 }
 
 inline void iANModalTFManager::removeControlPointFromTfs(unsigned int x)
 {
-	m_colorTf->RemovePoint(x);
-	m_opacityTf->RemovePoint(x);
+	m_tf->colorTF()->RemovePoint(x);
+	m_tf->opacityTF()->RemovePoint(x);
 }

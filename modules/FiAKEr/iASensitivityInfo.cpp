@@ -40,6 +40,7 @@
 
 // guibase:
 #include <iADataSetRenderer.h>
+#include <iAImageDataForDisplay.h>
 #include <iAJobListView.h>
 #include <iAMdiChild.h>
 #include <iAQVTKWidget.h>
@@ -1335,7 +1336,7 @@ void iASensitivityInfo::setSpatialOverviewTF(int dataSetIdx)
 	}
 	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
 	iALUT::BuildLUT(lut, range, m_gui->m_settings->cmbboxSpatialOverviewColorMap->currentText(), 5, true);
-	auto tf = m_child->dataSetTransfer(dataSetIdx);
+	auto tf = dynamic_cast<iAImageDataForDisplay*>(m_child->dataSetViewer(dataSetIdx))->transfer();
 	auto ctf = tf->colorTF();
 	auto otf = tf->opacityTF();
 	const double AlphaOverride = 0.2;

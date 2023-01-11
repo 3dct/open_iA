@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iANModalTFModuleInterface.h"
 
-#include "iANModalMain.h"
+#include "iANModalTool.h"
 #include "iAModalitySPLOM.h"
 
 #include <iADataSet.h>
@@ -62,7 +62,6 @@ void iANModalTFModuleInterface::nModalTF()
 			return;
 		}
 	}
-	tool->start();
 }
 
 void iANModalTFModuleInterface::modalitySPLOM()

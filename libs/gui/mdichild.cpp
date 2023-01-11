@@ -3146,6 +3146,16 @@ std::shared_ptr<iADataSet> MdiChild::dataSet(size_t dataSetIdx) const
 	return {};
 }
 
+size_t MdiChild::dataSetIndex(iADataSet const* dataSet) const
+{
+	auto it = std::find_if(m_dataSets.begin(), m_dataSets.end(), [dataSet](auto const & ds) { return ds.second.get() == dataSet; });
+	if (it != m_dataSets.end())
+	{
+		return it->first;
+	}
+	return NoDataSet;
+}
+
 std::vector<std::shared_ptr<iADataSet>> MdiChild::dataSets() const
 {
 	std::vector<std::shared_ptr<iADataSet>> result;
@@ -3157,12 +3167,6 @@ std::vector<std::shared_ptr<iADataSet>> MdiChild::dataSets() const
 std::map<size_t, std::shared_ptr<iADataSet>> const& MdiChild::dataSetMap() const
 {
 	return m_dataSets;
-}
-
-iATransferFunction* MdiChild::dataSetTransfer(size_t idx) const
-{
-	auto volData = dynamic_cast<iAImageDataForDisplay*>(m_dataForDisplay.at(idx).get());
-	return volData ? volData->transfer() : nullptr;
 }
 
 iADataSetRenderer* MdiChild::dataSetRenderer(size_t idx) const
@@ -3204,6 +3208,11 @@ vtkSmartPointer<vtkImageData> MdiChild::firstImageData() const
 	}
 	LOG(lvlError, "No image/volume data loaded!");
 	return nullptr;
+}
+
+iADataForDisplay* MdiChild::dataSetViewer(size_t idx) const
+{
+	return m_dataForDisplay.at(idx).get();
 }
 
 bool MdiChild::hasUnsavedData() const

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAgui_export.h"
+#include "iAguibase_export.h"
 
 #include "iADataForDisplay.h"
 
@@ -35,7 +35,7 @@ class iATransferFunctionOwner;
 class iAPreferences;
 class iAProgress;
 
-class iAgui_API iAImageDataForDisplay : public iADataForDisplay
+class iAguibase_API iAImageDataForDisplay : public iADataForDisplay
 {
 public:
 	iAImageDataForDisplay(iAImageData* data, iAProgress* p, size_t binCount);
@@ -44,6 +44,7 @@ public:
 	void applyPreferences(iAPreferences const& prefs) override;
 	void updatedPreferences() override;
 	void dataSetChanged() override;
+	QSharedPointer<iAHistogramData> histogramData() const;
 	iATransferFunction* transfer();
 	void update();
 private:

@@ -74,7 +74,7 @@ public:
 	int countDataSets();
 	void setDataSets(const QList<std::shared_ptr<iAImageData>>& dataSets);
 	void setMask(vtkSmartPointer<vtkImageData> mask);
-	void resetTf(std::shared_ptr<iAImageData> dataSet);
+	void resetTf(size_t dataSetIdx);
 	void resetTf(const QList<std::shared_ptr<iAImageData>>& dataSets);
 
 	void reinitialize();
@@ -85,12 +85,13 @@ public:
 	void removeSeeds(const QList<iANModalSeed>&);
 	void removeAllSeeds();
 
+private slots:
+	void initializeHistogram(size_t dataSetIdx);
+
 private:
-	iAMdiChild* m_mdiChild;
 
 	void privateInitialize();
 	iASlicer* initializeSlicer(std::shared_ptr<iAImageData>);
-	void initializeHistogram(std::shared_ptr<iAImageData> dataSet, int index);
 	void initializeCombinedVol();
 	void initializeMainSlicers();
 	bool checkDataSets(const QList<std::shared_ptr<iAImageData>>& dataSets);
@@ -98,10 +99,12 @@ private:
 	template <typename PixelType>
 	void updateMainSlicers();
 
+	iAMdiChild* m_mdiChild;
 	QList<std::shared_ptr<iAImageData>> m_dataSets;
 	QList<QSharedPointer<iANModalTFManager>> m_tfs;
 	vtkSmartPointer<vtkImageData> m_mask;
 	QMap<int, std::shared_ptr<iAImageData>> m_mapOverlayImageId2dataSet;
+	QMap<size_t, int> m_dataSetIdx2HistIdx;
 	QList<uint> m_channelIds;
 	vtkSmartPointer<vtkVolume> m_combinedVol;
 	vtkSmartPointer<iANModalSmartVolumeMapper> m_combinedVolMapper;

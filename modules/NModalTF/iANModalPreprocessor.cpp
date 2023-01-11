@@ -24,8 +24,8 @@
 #include "iANModalBackgroundRemover.h"
 #include "iANModalDilationBackgroundRemover.h"
 #include "iANModalDisplay.h"
-#include "iANModalModalityReducer.h"
-#include "iANModalPCAModalityReducer.h"
+#include "iANModalDataSetReducer.h"
+#include "iANModalPCADataSetReducer.h"
 
 #include <iADataSet.h>
 #include <iAMdiChild.h>
@@ -42,7 +42,7 @@
 namespace
 {
 	iANModalBackgroundRemover::Mask MASK_NONE = {nullptr, iANModalBackgroundRemover::MaskMode::NONE};
-	class PassthroughReducer : public iANModalModalityReducer
+	class PassthroughReducer : public iANModalDataSetReducer
 	{
 		QList<std::shared_ptr<iAImageData>> reduce(const QList<std::shared_ptr<iAImageData>>& inputModalities)
 		{
@@ -65,7 +65,7 @@ iANModalPreprocessor::iANModalPreprocessor(iAMdiChild* mdiChild) : m_mdiChild(md
 inline QList<std::shared_ptr<iAImageData>> applyMask(
 	const vtkSmartPointer<vtkImageData>& mask, const QList<std::shared_ptr<iAImageData>>& dataSets);
 
-iANModalPreprocessor::Output iANModalPreprocessor::preprocess(const QList<iAImageData*>& dataSets_in)
+iANModalPreprocessor::Output iANModalPreprocessor::preprocess(const QList<std::shared_ptr<iAImageData>>& dataSets_in)
 {
 	Output output;
 
@@ -78,7 +78,7 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(const QList<iAImag
 	if (pipeline == MR_BGR || pipeline == MR)
 	{
 		// Dimensionality reduction
-		dataSets = chooseModalityReducer()->reduce(dataSets);
+		dataSets = chooseDataSetReducer()->reduce(dataSets);
 		if (dataSets.empty())
 		{
 			// TODO
@@ -124,7 +124,7 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(const QList<iAImag
 	if (pipeline == BGR_MR)
 	{
 		// Dimensionality reduction
-		dataSets = chooseModalityReducer()->reduce(dataSets);
+		dataSets = chooseDataSetReducer()->reduce(dataSets);
 		if (dataSets.empty())
 		{
 			// TODO
@@ -141,8 +141,8 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(const QList<iAImag
 	output.dataSets = dataSets;
 	output.mask = mask.mask;
 
-	auto newModalities = extractNewModalities(modalities);
-	addModalitiesToMdiChild(newModalities);
+	auto newDataSets = extractNewDataSets(dataSets);
+	addDataSetsToMdiChild(newDataSets);
 
 	return output;
 }
@@ -184,7 +184,7 @@ iANModalPreprocessor::Pipeline iANModalPreprocessor::choosePipeline()
 	return map.value(selection);
 }
 
-QSharedPointer<iANModalModalityReducer> iANModalPreprocessor::chooseModalityReducer()
+QSharedPointer<iANModalDataSetReducer> iANModalPreprocessor::chooseDataSetReducer()
 {
 	const QString PCA = "PCA";
 	const QString NONE = "Skip";
@@ -204,7 +204,7 @@ QSharedPointer<iANModalModalityReducer> iANModalPreprocessor::chooseModalityRedu
 	}
 	else if (selection == PCA)
 	{
-		return QSharedPointer<iANModalModalityReducer>(new iANModalPCAModalityReducer());
+		return QSharedPointer<iANModalDataSetReducer>(new iANModalPCADataSetReducer());
 	}
 	else
 	{
@@ -252,7 +252,7 @@ bool iANModalPreprocessor::areModalitiesCompatible(std::shared_ptr<iAImageData> 
 */
 
 void iANModalPreprocessor::groupDataSets(
-	const QList<iAImageData*>& dataSetsToGroup, QList<DataSetGroup>& output)
+	const QList<std::shared_ptr<iAImageData>>& dataSetsToGroup, QList<DataSetGroup>& output)
 {
 	// TODO
 	// Currently returning same list as in input
@@ -265,40 +265,38 @@ void iANModalPreprocessor::groupDataSets(
 	output.append(group);
 }
 
-QList<iAImageData*> iANModalPreprocessor::chooseGroup(const QList<DataSetGroup>& groups)
+QList<std::shared_ptr<iAImageData>> iANModalPreprocessor::chooseGroup(const QList<DataSetGroup>& groups)
 {
 	// TODO
 	return groups[0].dataSets;
 }
 
-QList<std::shared_ptr<iAImageData>> iANModalPreprocessor::extractNewModalities(
-	const QList<std::shared_ptr<iAImageData>>& modalities)
+QList<std::shared_ptr<iAImageData>> iANModalPreprocessor::extractNewDataSets(
+	const QList<std::shared_ptr<iAImageData>>& dataSets)
 {
 	auto list = m_mdiChild->dataSets();
-	auto currentDataSets = QList<iAImageData*>();
+	QList<std::shared_ptr<iAImageData>> currentDataSets;
 	for (int i = 0; i < list.size(); ++i)
 	{
-		auto imgDS = dynamic_cast<iAImageData*>(list[i].get());
+		auto imgDS = std::dynamic_pointer_cast<iAImageData>(list[i]);
 		if (!imgDS)
 		{
 			continue;
 		}
 		currentDataSets.append(imgDS);
 	}
-
-	auto newModalities = QList<std::shared_ptr<iAImageData>>();
-	for (auto potentiallyNewModality : modalities)
+	QList<std::shared_ptr<iAImageData>> newModalities;
+	for (auto potentiallyNewModality: dataSets)
 	{
 		if (!currentDataSets.contains(potentiallyNewModality))
 		{
 			newModalities.append(potentiallyNewModality);
 		}
 	}
-
 	return newModalities;
 }
 
-void iANModalPreprocessor::addModalitiesToMdiChild(const QList<std::shared_ptr<iAImageData>>& dataSets)
+void iANModalPreprocessor::addDataSetsToMdiChild(const QList<std::shared_ptr<iAImageData>>& dataSets)
 {
 	for (auto ds : dataSets)
 	{
@@ -327,7 +325,7 @@ inline QList<std::shared_ptr<iAImageData>> applyMask(
 	//storeImage(mask, "mask.mhd", true);
 #endif
 
-	auto newDataSets = QList<std::shared_ptr<iAImageData>>();
+	QList<std::shared_ptr<iAImageData>> newDataSets;
 
 	QString nameSuffix = "_noBackground";
 

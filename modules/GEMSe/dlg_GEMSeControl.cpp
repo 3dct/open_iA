@@ -44,6 +44,7 @@
 #include <iAConnector.h>
 #include <iADataSet.h>
 #include <iAFileUtils.h>    // for getLocalEncodingFileName
+#include <iAImageDataForDisplay.h>
 #include <iAJobListView.h>
 #include <iALog.h>
 #include <iAMdiChild.h>
@@ -342,7 +343,7 @@ bool dlg_GEMSeControl::loadClustering(QString const & fileName)
 		if (d.second->type() == iADataSetType::Volume)
 		{
 			imgDataSets.push_back(d.second);
-			transfer.push_back(mdiChild->dataSetTransfer(d.first));
+			transfer.push_back(dynamic_cast<iAImageDataForDisplay*>(mdiChild->dataSetViewer(d.first))->transfer());
 		}
 	}
 	m_dlgGEMSe->SetTree(
@@ -431,7 +432,7 @@ void dlg_GEMSeControl::clusteringFinished()
 		if (d.second->type() == iADataSetType::Volume)
 		{
 			imgDataSets.push_back(d.second);
-			transfer.push_back(mdiChild->dataSetTransfer(d.first));
+			transfer.push_back(dynamic_cast<iAImageDataForDisplay*>(mdiChild->dataSetViewer(d.first))->transfer());
 		}
 	}
 	m_dlgGEMSe->SetTree(

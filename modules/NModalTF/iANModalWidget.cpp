@@ -82,14 +82,14 @@ iANModalWidget::iANModalWidget(iAMdiChild* mdiChild)
 	connect(m_c->m_dlg_labels, &iALabelsDlg::labelsColorChanged, this, &iANModalWidget::onLabelsColorChanged);
 
 	auto list = m_mdiChild->dataSets();
-	QList<iAImageData*> dataSets;
+	QList<std::shared_ptr<iAImageData>> dataSets;
 	for (int i = 0; i < list.size(); i++)
 	{
-		auto imgDS = dynamic_cast<iAImageData*>(list[i].get());
+		auto imgDS = std::dynamic_pointer_cast<iAImageData>(list[i]);
 		dataSets.append(imgDS);
 	}
 
-	m_preprocessor = QSharedPointer<iANModalPreprocessor>(new iANModalPreprocessor(mdiChild));
+	m_preprocessor = QSharedPointer<iANModalPreprocessor>::create(mdiChild);
 	auto output = m_preprocessor->preprocess(dataSets);
 
 	if (!output.valid)
@@ -97,7 +97,7 @@ iANModalWidget::iANModalWidget(iAMdiChild* mdiChild)
 		// TODO do not proceed
 	}
 
-	m_c->setDataSets(output.modalities);
+	m_c->setDataSets(output.dataSets);
 
 	m_c->initialize();
 
@@ -112,7 +112,7 @@ void iANModalWidget::onAllSlicersInitialized()
 	for (int i = 0; i < m_c->m_slicers.size(); i++)
 	{
 		auto slicer = m_c->m_slicers[i];
-		auto modality = m_c->m_modalities[i];
+		auto dataSet = m_c->m_dataSets[i];
 
 		int column = i;
 

@@ -19,7 +19,7 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
-#include "iANModalPCAModalityReducer.h"
+#include "iANModalPCADataSetReducer.h"
 
 #include <iADataSet.h>
 #include <iAPerformanceHelper.h>
@@ -40,7 +40,7 @@
 #include <vtkImageData.h>
 
 // Input modalities (volumes) must have the exact same dimensions
-QList<std::shared_ptr<iAImageData>> iANModalPCAModalityReducer::reduce(
+QList<std::shared_ptr<iAImageData>> iANModalPCADataSetReducer::reduce(
 	const QList<std::shared_ptr<iAImageData>>& modalities_in)
 {
 	// TODO: assert if all modalities have the same dimensions
@@ -89,7 +89,7 @@ QList<std::shared_ptr<iAImageData>> iANModalPCAModalityReducer::reduce(
 }
 
 template <class T>
-void iANModalPCAModalityReducer::itkPCA(std::vector<iAConnector>& c)
+void iANModalPCADataSetReducer::itkPCA(std::vector<iAConnector>& c)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::ImagePCAShapeModelEstimator<ImageType, ImageType> PCASMEType;
@@ -167,7 +167,7 @@ void iANModalPCAModalityReducer::itkPCA(std::vector<iAConnector>& c)
 #endif
 
 template <class T>
-void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector>& c)
+void iANModalPCADataSetReducer::ownPCA(std::vector<iAConnector>& c)
 {
 	typedef itk::Image<T, DIM> ImageType;
 

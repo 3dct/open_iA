@@ -316,12 +316,13 @@ public:
 	void removeDataSet(size_t dataSetIdx) override;
 	void clearDataSets() override;
 	std::shared_ptr<iADataSet> dataSet(size_t dataSetIdx) const override;
+	size_t dataSetIndex(iADataSet const* dataSet) const override;
 	std::vector<std::shared_ptr<iADataSet>> dataSets() const override;
 	std::map<size_t, std::shared_ptr<iADataSet>> const& dataSetMap() const override;
 
 	size_t firstImageDataSetIdx() const override;
 	vtkSmartPointer<vtkImageData> firstImageData() const override;
-	iATransferFunction* dataSetTransfer(size_t idx) const override;
+	iADataForDisplay* dataSetViewer(size_t idx) const override;
 	iADataSetRenderer* dataSetRenderer(size_t idx) const override;
 	void applyRenderSettings(size_t dataSetIdx, QVariantMap const& renderSettings) override;
 

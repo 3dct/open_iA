@@ -30,6 +30,7 @@
 
 #include <iAVolumeRenderer.h>
 
+#include <iAImageDataForDisplay.h>
 #include <iALog.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
@@ -294,7 +295,8 @@ void iAImNDTModuleInterface::renderVolume()
 	});
 	m_actionVRVolumeRender->setText("Stop Volume Rendering");
 	auto child = m_mainWnd->activeMdiChild();
-	m_volumeRenderer = std::make_shared<iAVolumeRenderer>(child->dataSetTransfer(child->firstImageDataSetIdx()), child->firstImageData());
+	m_volumeRenderer = std::make_shared<iAVolumeRenderer>(
+		dynamic_cast<iAImageDataForDisplay*>(child->dataSetViewer(child->firstImageDataSetIdx()))->transfer(), child->firstImageData());
 	m_volumeRenderer->applySettings(child->volumeSettings());
 	m_volumeRenderer->addTo(m_vrEnv->renderer());
 	m_volumeRenderer->addBoundingBoxTo(m_vrEnv->renderer());

@@ -38,6 +38,7 @@ class iAChannelData;
 class iAChartWithFunctionsWidget;
 class iADataSet;
 class iADataSetRenderer;
+class iADataForDisplay; // TODO NEWIO: -> iADataViewer!
 class iAIO;
 class iAMainWindow;
 class iAModality;
@@ -234,6 +235,8 @@ public:
 	virtual std::vector<std::shared_ptr<iADataSet>> dataSets() const = 0;
 	//! Retrieve a dataset by its index
 	virtual std::shared_ptr<iADataSet> dataSet(size_t dataSetIdx) const = 0;
+	//! Retrieve the index of a dataset
+	virtual size_t dataSetIndex(iADataSet const* dataSet) const = 0;
 	//! Retrieve a list of the indices of all datasets loaded in this window
 	virtual std::map<size_t, std::shared_ptr<iADataSet>> const & dataSetMap() const = 0;
 	//! Constant indicating an invalid dataset index
@@ -247,9 +250,9 @@ public:
 	virtual vtkSmartPointer<vtkImageData> firstImageData() const = 0;
 	//! Retrieve the index of the first image data set (if any loaded), or NoDataSet if none loaded.
 	virtual size_t firstImageDataSetIdx() const = 0;
-	//! Retrieve the transfer function for an (image) dataset with given index
-	//! @return transfer function of dataset, nullptr if dataset with given index is not an image dataset
-	virtual	iATransferFunction* dataSetTransfer(size_t idx) const = 0;
+	//! Retrieve the viewer for the dataset with given index
+	//! @return viewer for the given dataset index, nullptr if there is no dataset with given index or if there is no viewer available
+	virtual iADataForDisplay* dataSetViewer(size_t idx) const =0;
 	//! Retrieve the 3D renderer for dataSet with given index
 	//! @return the renderer or nullptr if dataset with given index does not exist or has no renderer
 	virtual iADataSetRenderer* dataSetRenderer(size_t idx) const = 0;

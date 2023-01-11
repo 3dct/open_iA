@@ -18,41 +18,17 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iANModalMain.h"
-
-#include <iALog.h>
-#include <iAMdiChild.h>
-
-// Module interface and Attachment --------------------------------------------------------
-
-iANModalTFTool::iANModalTFTool(iAMainWindow* mainWnd, iAMdiChild* child) :
-	iATool(mainWnd, child), m_nModalMain(nullptr)
-{
-}
-
-void iANModalTFTool::start()
-{
-	if (!m_nModalMain)
-	{
-		m_nModalMain = new iANModalMain(m_child);
-		m_child->tabifyDockWidget(m_child->renderDockWidget(), m_nModalMain);
-	}
-	m_nModalMain->show();
-	m_nModalMain->raise();
-}
-
-// n-Modal Widget -------------------------------------------------------------------------
+#include "iANModalTool.h"
 
 #include "iANModalWidget.h"
 
-iANModalMain::iANModalMain(iAMdiChild* mdiChild) : QDockWidget("n-Modal Transfer Function", mdiChild)
+#include <iADockWidgetWrapper.h>
+#include <iALog.h>
+#include <iAMdiChild.h>
+
+iANModalTFTool::iANModalTFTool(iAMainWindow* mainWnd, iAMdiChild* child) :
+	iATool(mainWnd, child),
+	m_nModalDockWidget(new iADockWidgetWrapper(new iANModalWidget(child), "n-Modal Transfer Function", "nModalTF"))
 {
-	setFeatures(
-		QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetVerticalTitleBar);
-	m_nModalWidget = new iANModalWidget(mdiChild);
-	setWidget(m_nModalWidget);
-}
-iANModalWidget* iANModalMain::nModalWidget()
-{
-	return m_nModalWidget;
+	m_child->tabifyDockWidget(m_child->renderDockWidget(), m_nModalDockWidget);
 }
