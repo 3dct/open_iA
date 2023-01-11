@@ -115,7 +115,7 @@ void iAModalitySPLOM::splomSelection(std::vector<size_t> const & selInds)
 
 typedef unsigned short VoxelValueType;
 
-// TODO NEWIO: extract to iAToolsVTK?
+// TODO: extract to iAToolsVTK?
 void iteratePixels(vtkSmartPointer<vtkImageData> img, const int step[3], std::function<void (int[3], VoxelValueType)> pixelVisitor)
 {
 	int extent[6];

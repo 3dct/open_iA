@@ -71,7 +71,6 @@ vtkStandardNewMacro(iANModalSmartVolumeMapper);
 
 iANModalController::iANModalController(iAMdiChild* mdiChild) : m_mdiChild(mdiChild)
 {
-	// TODO NewIO:: use iATool!
 	QObject* obj = m_mdiChild->findChild<QObject*>("labels");
 	if (obj)
 	{
@@ -104,7 +103,7 @@ void iANModalController::reinitialize()
 
 void iANModalController::privateInitialize()
 {
-	assert(countDataSets() <= 4);  // VTK limit. TODO: don't hard-code
+	assert(m_dataSets.size() <= 4);  // VTK limit. TODO: don't hard-code
 
 	for (auto slicer : m_slicers)
 	{
@@ -147,7 +146,7 @@ void iANModalController::privateInitialize()
 		}  // no else required - histograms are automatically computed now, and connection to dataSetRendered should take care of it!
 	}
 
-	if (countDataSets() > 0)
+	if (m_dataSets.size() > 0)
 	{
 		initializeMainSlicers();
 		initializeCombinedVol();
@@ -239,7 +238,7 @@ inline void iANModalController::initializeMainSlicers()
 	}
 	m_channelIds.clear();
 
-	for (int dataSetIndex = 0; dataSetIndex < countDataSets(); dataSetIndex++)
+	for (int dataSetIndex = 0; dataSetIndex < m_dataSets.size(); dataSetIndex++)
 	{
 		uint channelId = m_mdiChild->createChannel();
 		m_channelIds.append(channelId);
@@ -292,7 +291,7 @@ inline void iANModalController::initializeCombinedVol()
 {
 	auto appendFilter = vtkSmartPointer<vtkImageAppendComponents>::New();
 	appendFilter->SetInputData(m_dataSets[0]->vtkImage());
-	for (int i = 1; i < countDataSets(); i++)
+	for (int i = 1; i < m_dataSets.size(); i++)
 	{
 		appendFilter->AddInputData(m_dataSets[i]->vtkImage());
 	}
@@ -301,7 +300,7 @@ inline void iANModalController::initializeCombinedVol()
 	m_combinedVol = vtkSmartPointer<vtkVolume>::New();
 	auto combinedVolProp = vtkSmartPointer<vtkVolumeProperty>::New();
 
-	for (int i = 0; i < countDataSets(); i++)
+	for (int i = 0; i < m_dataSets.size(); i++)
 	{
 		auto dataSetIdx = m_mdiChild->dataSetIndex(m_dataSets[i].get());
 		if (dataSetIdx == iAMdiChild::NoDataSet)
@@ -337,7 +336,7 @@ inline void iANModalController::initializeCombinedVol()
 	m_combinedVolRenderer->AddVolume(m_combinedVol);
 	//m_combinedVolRenderer->ResetCamera();
 
-	for (int i = 0; i < countDataSets(); ++i)
+	for (int i = 0; i < m_dataSets.size(); ++i)
 	{
 		auto dataSetIdx = m_mdiChild->dataSetIndex(m_dataSets[i].get());
 		if (dataSetIdx == iAMdiChild::NoDataSet)
@@ -348,13 +347,11 @@ inline void iANModalController::initializeCombinedVol()
 		auto renderer = m_mdiChild->dataSetRenderer(dataSetIdx);
 		if (renderer && renderer->isVisible())
 		{
+			// TODO NEWIO: set dataset 3D checkboxes to unchecked
 			renderer->setVisible(false);
 		}
 	}
 	m_mdiChild->renderer()->addRenderer(m_combinedVolRenderer);
-
-	//m_mdiChild->dataDockWidget()->setAllChecked(Qt::Unchecked);
-	// TODO NEWIO: hide all 3D renderers!
 }
 
 inline void iANModalController::applyVolumeSettings()
@@ -381,14 +378,6 @@ inline void iANModalController::applyVolumeSettings()
 	}
 	m_combinedVolMapper->SetSampleDistance(vs.SampleDistance);
 	m_combinedVolMapper->InteractiveAdjustSampleDistancesOff();
-}
-
-int iANModalController::countDataSets()
-{
-	// Cannot be larger than 4 because of VTK limit
-	int numModalities = m_dataSets.size();
-	assert(numModalities <= 4);  // Bad: '4' is hard-coded. TODO: improve
-	return numModalities;
 }
 
 bool iANModalController::checkDataSets(const QList<std::shared_ptr<iAImageData>>& dataSets)
@@ -503,9 +492,9 @@ void iANModalController::addSeeds(const QList<iANModalSeed>& seeds, const iANMod
 {
 	for (const auto& seed : seeds)
 	{
-		auto modality = m_mapOverlayImageId2dataSet.value(seed.overlayImageId);
-		unsigned int x = modality->vtkImage()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
-		int i = m_dataSets.lastIndexOf(modality);
+		auto dataSet = m_mapOverlayImageId2dataSet.value(seed.overlayImageId);
+		unsigned int x = dataSet->vtkImage()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
+		int i = m_dataSets.lastIndexOf(dataSet);
 
 		assert(m_tfs.size() > 0);
 
@@ -667,20 +656,14 @@ void iANModalController::updateHistograms()
 	}
 }
 
-// Assume that all modalities have the same pixel type
-// TODO: Don't...
+// TODO: Assumes that all modalities have the same pixel type - don't...
 template <typename PixelType>
 void iANModalController::updateMainSlicers()
 {
-	/*for (int i = 0; i < NUM_SLICERS; ++i) {
-		m_mdiChild->slicer(i)->update();
-	}
-	return;*/
-
 	iATimeAdder ta_color;
 	iATimeAdder ta_opacity;
 
-	const auto numDataSets = countDataSets();
+	const auto numDataSets = m_dataSets.size();
 
 	iATimeGuard testAll("Process (2D) slice images");
 
@@ -700,7 +683,7 @@ void iANModalController::updateMainSlicers()
 		std::vector<vtkScalarsToColors*> sliceColorTf(numDataSets);
 		std::vector<vtkPiecewiseFunction*> sliceOpacityTf(numDataSets);
 
-		for (int dataSetIndex = 0; dataSetIndex < countDataSets(); ++dataSetIndex)
+		for (int dataSetIndex = 0; dataSetIndex < m_dataSets.size(); ++dataSetIndex)
 		{
 			// Get channel for modality
 			// ...this will allow us to get the 2D slice image and the transfer functions

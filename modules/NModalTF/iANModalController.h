@@ -71,7 +71,6 @@ public:
 	iANModalController(iAMdiChild* mdiChild);
 	void initialize();
 
-	int countDataSets();
 	void setDataSets(const QList<std::shared_ptr<iAImageData>>& dataSets);
 	void setMask(vtkSmartPointer<vtkImageData> mask);
 	void resetTf(size_t dataSetIdx);
