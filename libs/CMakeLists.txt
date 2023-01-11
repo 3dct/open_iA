@@ -47,10 +47,7 @@ foreach(libdir ${children})
 		#endif()
 
 		MODULE_GENERATE_EXPORT_HEADER ( ${libname} )
-
-		if (VTK_MAJOR_VERSION GREATER 8)
-			vtk_module_autoinit(TARGETS ${libname} MODULES ${VTK_LIBRARIES})
-		endif()
+		vtk_module_autoinit(TARGETS ${libname} MODULES ${VTK_LIBRARIES})
 
 		if (openiA_PRECOMPILE)
 			if (CMAKE_MAJOR_VERSION GREATER 4 OR

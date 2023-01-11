@@ -87,9 +87,7 @@ foreach (indx RANGE ${len} )
 	if(MSVC)
 		set_target_properties(${module_name} PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
 	endif()
-	if (VTK_MAJOR_VERSION GREATER 8)
-		vtk_module_autoinit(TARGETS ${module_name} MODULES ${VTK_LIBRARIES})
-	endif()
+	vtk_module_autoinit(TARGETS ${module_name} MODULES ${VTK_LIBRARIES})
 	target_include_directories(${module_name} PUBLIC ${module_full_path} )      # public so depending modules only need to link to the target
 	target_include_directories(${module_name} PRIVATE ${OpeniABinDir}/modules ) # _export files
 
