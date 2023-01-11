@@ -29,12 +29,16 @@ target_link_libraries(MathUtilTest PRIVATE Qt${QT_VERSION_MAJOR}::Core)
 if (openiA_DEPENDENCY_INFO)
 	message(STATUS "MathUtilTest dependencies")
 endif()
-ADD_VTK_LIBRARIES(MathUtilTest PRIVATE CommonCore)
+ADD_VTK_LIBRARIES(MathUtilTest PRIVATE CommonCore)    # for vtkMath
 target_compile_definitions(MathUtilTest PRIVATE NO_DLL_LINKAGE)
 add_test(NAME MathUtilTest COMMAND MathUtilTest)
 if (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	target_compile_options(MathUtilTest PRIVATE -fPIC)
 	target_compile_definitions(MathUtilTest PRIVATE QT_NO_VERSION_TAGGING) # see https://stackoverflow.com/a/46522599
+endif()
+if (MSVC)
+	set_tests_properties(MathUtilTest PROPERTIES ENVIRONMENT "PATH=${WinDLLPaths};$ENV{PATH}")
+	set_target_properties(MathUtilTest PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${WinDLLPaths};$ENV{PATH}")
 endif()
 
 # FunctionalBoxplotTest
