@@ -447,9 +447,8 @@ void iANModalController::setDataSets(const QList<std::shared_ptr<iAImageData>>& 
 			continue;
 		}
 		m_tfs.append(QSharedPointer<iANModalTFManager>::create(viewer->transfer()));
+		resetTf(dataSetIdx);
 	}
-
-	resetTf(dataSets);
 }
 
 void iANModalController::setMask(vtkSmartPointer<vtkImageData> mask)
@@ -481,20 +480,6 @@ void iANModalController::resetTf(size_t dataSetIdx)
 	tf->addControlPoint(tf->minx(), {0, 0, 0, 0});
 	tf->addControlPoint(tf->maxx(), {0, 0, 0, 0});
 	tf->update();
-}
-
-void iANModalController::resetTf(const QList<std::shared_ptr<iAImageData>>& dataSets)
-{
-	for (auto dataSet : dataSets)
-	{
-		auto dataSetIdx = m_mdiChild->dataSetIndex(dataSet.get());
-		if (dataSetIdx == iAMdiChild::NoDataSet)
-		{
-			LOG(lvlWarn, QString("Dataset %1 not found in child!").arg(dataSet->name()));
-			continue;
-		}
-		resetTf(dataSetIdx);
-	}
 }
 
 void iANModalController::updateLabel(const iANModalLabel& label)
