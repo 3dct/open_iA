@@ -93,10 +93,12 @@ iADataSetListWidget::iADataSetListWidget()
 	buttons->layout()->setContentsMargins(0, 0, 0, 0);
 	buttons->layout()->setSpacing(4);
 	auto editButton = new QToolButton();
+	editButton->setEnabled(false);
 	editButton->setObjectName("tbEdit");
 	editButton->setToolTip(tr("Edit dataset and display properties"));
 	buttons->layout()->addWidget(editButton);
 	auto minusButton = new QToolButton();
+	minusButton->setEnabled(false);
 	minusButton->setObjectName("tbRemove");
 	minusButton->setToolTip(tr("Remove dataset from display, unload from memory"));
 	buttons->layout()->addWidget(minusButton);
@@ -170,6 +172,13 @@ iADataSetListWidget::iADataSetListWidget()
 				//LOG(lvlWarn, QString("Unhandled itemChanged(colum = %1)").arg(col));
 				break;
 			}
+		});
+	connect(m_dataList, &QTableWidget::itemSelectionChanged, this,
+		[this, editButton, minusButton]()
+		{
+			bool itemSelected = !m_dataList->selectedItems().isEmpty();
+			editButton->setEnabled(itemSelected);
+			minusButton->setEnabled(itemSelected);
 		});
 	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this,
 		[this]()
