@@ -41,11 +41,13 @@
 #include <iAConnector.h>
 #include <iALog.h>
 #include <iALookupTable.h>
+#include <iAParameterDlg.h>
 #include <iAStringHelper.h>
 
 #include <vtkLookupTable.h>
 
 #include <QDir>
+#include <QFileDialog>
 #include <QGuiApplication>
 
 const int EntropyBinCount = 100;
@@ -72,6 +74,22 @@ iAUncertaintyTool::iAUncertaintyTool(iAMainWindow * mainWnd, iAMdiChild * child)
 	connect(m_scatterplotView, &iAScatterPlotView::SelectionChanged, m_spatialView, &iASpatialView::UpdateSelection);
 	connect(m_memberView, &iAMemberView::MemberSelected, this, &iAUncertaintyTool::memberSelected);
 	connect(m_ensembleView, &iAEnsembleView::EnsembleSelected, this, &iAUncertaintyTool::ensembleSelected);
+
+	m_mainWindow->showMaximized();
+	m_child->showMaximized();
+	m_child->splitDockWidget(m_child->slicerDockWidget(iASlicerMode::XY), m_dockWidgets[0], Qt::Horizontal);	// Spatial View
+	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Horizontal);	// ScatterPlot View
+	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[5], Qt::Vertical);	// Ensemble View
+	m_child->splitDockWidget(m_dockWidgets[2], m_dockWidgets[3], Qt::Vertical);	// Label Distribution View
+	m_child->splitDockWidget(m_dockWidgets[3], m_dockWidgets[4], Qt::Vertical);	// Uncertainty Distribution View
+	m_child->splitDockWidget(m_dockWidgets[5], m_dockWidgets[1], Qt::Horizontal);	// Member View
+	m_child->slicerDockWidget(iASlicerMode::XY)->hide();
+	m_child->dataInfoDockWidget()->hide();
+}
+
+std::shared_ptr<iATool> iAUncertaintyTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
+{
+	return std::make_shared<iAUncertaintyTool>(mainWnd, child);
 }
 
 void iAUncertaintyTool::toggleDockWidgetTitleBars()
@@ -88,25 +106,14 @@ void iAUncertaintyTool::toggleSettings()
 	m_scatterplotView->ToggleSettings();
 }
 
-bool iAUncertaintyTool::loadEnsemble(QString const & fileName)
+void iAUncertaintyTool::loadState(QSettings& projectFile, QString const& fileName)
 {
-	m_ensembleFile = QSharedPointer<iAEnsembleDescriptorFile>::create(fileName);
+	m_ensembleFile = QSharedPointer<iAEnsembleDescriptorFile>::create(projectFile, fileName);
 	if (!m_ensembleFile->good())
 	{
 		LOG(lvlError, "Ensemble: Given data file could not be read.");
-		return false;
+		return;
 	}
-	connect(m_child, &iAMdiChild::fileLoaded, this, &iAUncertaintyTool::continueEnsembleLoading);
-	if (!m_child->loadFile(m_ensembleFile->ModalityFileName(), false))
-	{
-		LOG(lvlError, QString("Failed to load project '%1'").arg(m_ensembleFile->ModalityFileName()));
-		return false;
-	}
-	return true;
-}
-
-void iAUncertaintyTool::continueEnsembleLoading()
-{
 	auto ensemble = iAEnsemble::Create(EntropyBinCount, m_ensembleFile);
 	if (ensemble)
 	{
@@ -120,25 +127,40 @@ void iAUncertaintyTool::continueEnsembleLoading()
 		ensembleSelected(ensemble);
 		m_spatialView->SetupSelection(m_scatterplotView->GetSelectionImage());
 	}
-	m_mainWindow->showMaximized();
-	m_child->showMaximized();
-	m_child->splitDockWidget(m_child->slicerDockWidget(iASlicerMode::XY), m_dockWidgets[0], Qt::Horizontal);	// Spatial View
-	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Horizontal);	// ScatterPlot View
-	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[5], Qt::Vertical);	// Ensemble View
-	m_child->splitDockWidget(m_dockWidgets[2], m_dockWidgets[3], Qt::Vertical);	// Label Distribution View
-	m_child->splitDockWidget(m_dockWidgets[3], m_dockWidgets[4], Qt::Vertical);	// Uncertainty Distribution View
-	m_child->splitDockWidget(m_dockWidgets[5], m_dockWidgets[1], Qt::Horizontal);	// Member View
-	m_child->slicerDockWidget(iASlicerMode::XY)->hide();
-	m_child->dataInfoDockWidget()->hide();
-	if (!m_ensembleFile->LayoutName().isEmpty())
+	if (!m_ensembleFile->layoutName().isEmpty())
 	{
-		m_child->loadLayout(m_ensembleFile->LayoutName());
+		m_child->loadLayout(m_ensembleFile->layoutName());
 	}
 }
 
-void iAUncertaintyTool::writeFullDataFile(QString const & fileName, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties)
+void iAUncertaintyTool::writeFullDataFile()
 {
-	m_currentEnsemble->WriteFullDataFile(fileName, writeIntensities, writeMemberLabels, writeMemberProbabilities, writeEnsembleUncertainties, m_child->modalities());
+	QString fileName = QFileDialog::getSaveFileName(m_mainWindow,
+		tr("Save Full Data file"),
+		m_mainWindow->activeMdiChild() ? m_child->filePath() : QString(),
+		tr("SVM file format (*.svm);;All files (*)"));
+	if (fileName.isEmpty())
+	{
+		return;
+	}
+	iAAttributes params;
+	addAttr(params, "Write original data values", iAValueType::Boolean, true);
+	addAttr(params, "Write Member Labels", iAValueType::Boolean, true);
+	addAttr(params, "Write Member Probabilities", iAValueType::Boolean, true);
+	addAttr(params, "Write Ensemble Uncertainties", iAValueType::Boolean, true);
+	iAParameterDlg dlg(m_mainWindow, "Write parameters", params);
+	if (dlg.exec() != QDialog::Accepted)
+	{
+		return;
+	}
+	auto val = dlg.parameterValues();
+	m_currentEnsemble->writeFullDataFile(fileName, val["Write original data values"].toBool(), val["Write Member Labels"].toBool(),
+		val["Write Member Probabilities"].toBool(), val["Write Ensemble Uncertainties"].toBool(), m_child->dataSets());
+}
+
+void iAUncertaintyTool::saveState(QSettings& projectFile, QString const& fileName)
+{
+	m_ensembleFile->store(projectFile, fileName);
 }
 
 void iAUncertaintyTool::calculateNewSubEnsemble()
@@ -159,11 +181,9 @@ void iAUncertaintyTool::calculateNewSubEnsemble()
 		++m_newSubEnsembleID;
 	} while (QDir(cachePath).exists());
 	QSharedPointer<iAEnsemble> newEnsemble = mainEnsemble->AddSubEnsemble(memberIDs, subEnsembleID);
-	mainEnsemble->EnsembleFile()->AddSubEnsemble(subEnsembleID, memberIDs);
+	mainEnsemble->EnsembleFile()->addSubEnsemble(subEnsembleID, memberIDs);
 	m_ensembleView->AddEnsemble(QString("Subset: Members %1").arg(joinNumbersAsString(memberIDs, ",")), newEnsemble);
-	mainEnsemble->Store();
 }
-
 
 void iAUncertaintyTool::memberSelected(int memberIdx)
 {

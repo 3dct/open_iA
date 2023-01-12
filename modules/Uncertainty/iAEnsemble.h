@@ -28,9 +28,9 @@
 #include <QString>
 #include <QVector>
 
+class iADataSet;
 class iAEnsembleDescriptorFile;
 class iASingleResult;
-class iAModalityList;
 class iASamplingResults;
 
 class iAEnsemble: public iAUncertaintyImages
@@ -65,9 +65,8 @@ public:
 	QSharedPointer<iAEnsemble> AddSubEnsemble(QVector<int> memberIDs, int newEnsembleID);
 	QVector<QSharedPointer<iAEnsemble> > SubEnsembles() const;
 	int ID() const;
-	void Store();
 	QSharedPointer<iAEnsembleDescriptorFile> EnsembleFile();
-	void WriteFullDataFile(QString const & filename, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties, QSharedPointer<iAModalityList> modalities);
+	void writeFullDataFile(QString const & filename, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties, std::vector<std::shared_ptr<iADataSet>> dataSets);
 private:
 	bool LoadSampling(QString const & fileName, int id);
 	void CreateUncertaintyImages();

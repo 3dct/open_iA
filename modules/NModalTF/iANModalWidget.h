@@ -31,7 +31,6 @@ class iANModalController;
 class iANModalPreprocessor;
 class iANModalLabelsWidget;
 class iASlicer;
-class iAModality;
 class iAMdiChild;
 
 class QLabel;

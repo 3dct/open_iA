@@ -31,14 +31,9 @@
 const QString iAEnsembleDescriptorFile::DefaultSMPFileName("sampling.smp");
 const QString iAEnsembleDescriptorFile::DefaultSPSFileName("sampling.sps");
 const QString iAEnsembleDescriptorFile::DefaultCHRFileName("characteristics.chr");
-const QString iAEnsembleDescriptorFile::DefaultModalityFileName("modalities.mod");
 
 namespace
 {
-	const QString FileVersionKey   = "FileVersion";
-	const QString FileVersionValue = "1.6.1";
-
-	const QString ModalitiesKey = "Modalities";
 	const QString LabelCountKey = "LabelCount";
 	const QString SamplingDataKey = "SamplingData";
 	const QString LayoutKey = "Layout";
@@ -48,7 +43,7 @@ namespace
 	const QString LabelNamesKey = "LabelNames";
 	const QString SubEnsembleKey = "SubEnsemble";
 
-	void AppendToString(QString & result, QString const & append)
+	void appendToString(QString & result, QString const & append)
 	{
 		if (!result.isEmpty())
 		{
@@ -57,61 +52,40 @@ namespace
 		result.append(append);
 	}
 
-	bool AddIfMissing(QSettings const & settings, QString & result, QString const & key)
+	bool addIfMissing(QSettings const & settings, QString & result, QString const & key)
 	{
 		if (!settings.contains(key))
 		{
-			AppendToString(result, key);
+			appendToString(result, key);
 			return true;
 		}
 		return false;
 	}
-	bool AddIfEmpty(QStringList const & stringlist, QString & result, QString const & key)
+	bool addIfEmpty(QStringList const & stringlist, QString & result, QString const & key)
 	{
 		if (stringlist.isEmpty())
 		{
-			AppendToString(result, key);
+			appendToString(result, key);
 			return true;
 		}
 		return false;
 	}
 }
 
-iAEnsembleDescriptorFile::iAEnsembleDescriptorFile(QString const & fileName):
+iAEnsembleDescriptorFile::iAEnsembleDescriptorFile(QSettings const & metaFile, QString const& fileName) :
 	m_good(false)
 {
-	QFile file(fileName);
-	if (!file.exists())
-	{
-		LOG(lvlError, QString("Ensemble loading: File '%1' doesn't exist!").arg(fileName));
-		return;
-	}
-	QSettings metaFile(fileName, QSettings::IniFormat );
-	if (metaFile.status() != QSettings::NoError)
-	{
-		LOG(lvlError, QString("Ensemble loading: Reading file '%1' failed!").arg(fileName));
-		return;
-	}
-	if (!metaFile.contains(FileVersionKey) || metaFile.value(FileVersionKey).toString() != FileVersionValue)
-	{
-		LOG(lvlError, QString("Ensemble loading: Ensemble file: Invalid or missing version descriptor ('%1' expected, '%2' found)!")
-			.arg(FileVersionValue)
-			.arg((metaFile.contains(FileVersionKey) ? "'"+metaFile.value(FileVersionKey).toString()+"'" : "none")) );
-		return;
-	}
 	QStringList datasetKeys(metaFile.allKeys().filter(SamplingDataKey));
 	QString missingKeys;
-	if (AddIfMissing(metaFile, missingKeys, ModalitiesKey) ||
-		AddIfMissing(metaFile, missingKeys, LabelCountKey) ||
-		AddIfMissing(metaFile, missingKeys, LayoutKey) ||
-		AddIfEmpty(datasetKeys, missingKeys, SamplingDataKey))
+	if (addIfMissing(metaFile, missingKeys, LabelCountKey) ||
+		addIfMissing(metaFile, missingKeys, LayoutKey) ||
+		addIfEmpty(datasetKeys, missingKeys, SamplingDataKey))
 	{
 		LOG(lvlError, QString("Ensemble loading: Required setting(s) %1 missing in ensemble description file.").arg(missingKeys));
 		return;
 	}
 	m_fileName = fileName;
 	QFileInfo fi(fileName);
-	m_ModalityFileName   = MakeAbsolute(fi.absolutePath(), metaFile.value(ModalitiesKey).toString());
 	bool labelCountOK;
 	m_LabelCount		 = metaFile.value(LabelCountKey).toString().toInt(&labelCountOK);
 	if (!labelCountOK)
@@ -182,15 +156,14 @@ iAEnsembleDescriptorFile::iAEnsembleDescriptorFile(QString const & fileName):
 			}
 			memberIDs.push_back(val);
 		}
-		AddSubEnsemble(key, memberIDs);
+		addSubEnsemble(key, memberIDs);
 	}
 
 	m_good = true;
 }
 
-
+/*
 iAEnsembleDescriptorFile::iAEnsembleDescriptorFile(
-		QString const & modalityFile,
 		int labelCount,
 		QMap<int, QString> const & samplings,
 		QString const & layout,
@@ -198,7 +171,6 @@ iAEnsembleDescriptorFile::iAEnsembleDescriptorFile(
 		QString const & hiddenCharts,
 		QString const & colorTheme,
 		QString const & labelNames):
-	m_ModalityFileName(modalityFile),
 	m_LabelCount(labelCount),
 	m_Samplings(samplings),
 	m_LayoutName(layout),
@@ -209,16 +181,13 @@ iAEnsembleDescriptorFile::iAEnsembleDescriptorFile(
 	m_good(true)
 {
 }
+*/
 
-void iAEnsembleDescriptorFile::Store(QString const & fileName)
+void iAEnsembleDescriptorFile::store(QSettings & metaFile, QString const & fileName)
 {
-	QSettings metaFile(fileName, QSettings::IniFormat);
-	metaFile.setValue(FileVersionKey, FileVersionValue);
-
 	m_fileName = fileName;
 	QFileInfo fi(fileName);
 	QString path(fi.absolutePath());
-	metaFile.setValue(ModalitiesKey    , MakeRelative(path, m_ModalityFileName));
 	metaFile.setValue(LabelCountKey    , m_LabelCount);
 	for (int key : m_Samplings.keys())
 	{
@@ -247,12 +216,6 @@ void iAEnsembleDescriptorFile::Store(QString const & fileName)
 		metaFile.setValue(SubEnsembleKey + QString::number(m_subEnsembleID[i]),
 			joinNumbersAsString(m_subEnsembles[i], ","));
 	}
-
-	metaFile.sync();
-	if (metaFile.status() != QSettings::NoError)
-	{
-		LOG(lvlError, QString("Ensemble storing: File '%1' couldn't be written.").arg(fileName));
-	}
 }
 
 bool iAEnsembleDescriptorFile::good() const
@@ -260,47 +223,42 @@ bool iAEnsembleDescriptorFile::good() const
 	return m_good;
 }
 
-QString const & iAEnsembleDescriptorFile::FileName() const
+QString const & iAEnsembleDescriptorFile::fileName() const
 {
 	return m_fileName;
 }
 
-QString const & iAEnsembleDescriptorFile::ModalityFileName() const
-{
-	return m_ModalityFileName;
-}
-
-int iAEnsembleDescriptorFile::LabelCount() const
+int iAEnsembleDescriptorFile::labelCount() const
 {
 	return m_LabelCount;
 }
 
-QMap<int, QString> const & iAEnsembleDescriptorFile::Samplings() const
+QMap<int, QString> const & iAEnsembleDescriptorFile::samplings() const
 {
 	return m_Samplings;
 }
 
-QString const & iAEnsembleDescriptorFile::LayoutName() const
+QString const & iAEnsembleDescriptorFile::layoutName() const
 {
 	return m_LayoutName;
 }
 
-QString const & iAEnsembleDescriptorFile::ReferenceImage() const
+QString const & iAEnsembleDescriptorFile::referenceImage() const
 {
 	return m_RefImg;
 }
 
-QString const & iAEnsembleDescriptorFile::HiddenCharts() const
+QString const & iAEnsembleDescriptorFile::hiddenCharts() const
 {
 	return m_HiddenCharts;
 }
 
-QString const & iAEnsembleDescriptorFile::LabelNames() const
+QString const & iAEnsembleDescriptorFile::labelNames() const
 {
 	return m_LabelNames;
 }
 
-QString const & iAEnsembleDescriptorFile::ColorTheme() const
+QString const & iAEnsembleDescriptorFile::colorTheme() const
 {
 	return m_ColorTheme;
 }
@@ -320,7 +278,7 @@ int iAEnsembleDescriptorFile::subEnsembleID(int idx) const
 	return m_subEnsembleID[idx];
 }
 
-void iAEnsembleDescriptorFile::AddSubEnsemble(int id, QVector<int> const & members)
+void iAEnsembleDescriptorFile::addSubEnsemble(int id, QVector<int> const & members)
 {
 	m_subEnsembleID.push_back(id);
 	m_subEnsembles.push_back(members);

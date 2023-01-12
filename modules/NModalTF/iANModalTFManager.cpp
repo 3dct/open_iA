@@ -21,7 +21,6 @@
 
 #include "iANModalTFManager.h"
 
-#include <iAModality.h>
 #include <iATransferFunction.h>
 #include <iAPerformanceHelper.h>
 

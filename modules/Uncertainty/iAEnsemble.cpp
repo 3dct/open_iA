@@ -25,10 +25,9 @@
 #include "iASingleResult.h"
 
 #include <iAConnector.h>
+#include <iADataSet.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
-#include <iAModality.h>
-#include <iAModalityList.h>
 #include <iAToolsITK.h>
 
 #include <itkConstNeighborhoodIterator.h>
@@ -50,7 +49,7 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 	QSharedPointer<iAEnsembleDescriptorFile> ensembleFile)
 {
 	auto result = QSharedPointer<iAEnsemble>(new iAEnsemble(entropyBinCount));
-	QMap<int, QString> const & samplings = ensembleFile->Samplings();
+	QMap<int, QString> const & samplings = ensembleFile->samplings();
 	for (int key : samplings.keys())
 	{
 		if (!result->LoadSampling(samplings[key], key))
@@ -60,14 +59,14 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 		}
 	}
 	result->m_ensembleFile = ensembleFile;
-	result->m_labelCount = ensembleFile->LabelCount();
-	result->m_cachePath = QFileInfo(ensembleFile->FileName()).absolutePath() + "/cache";
+	result->m_labelCount = ensembleFile->labelCount();
+	result->m_cachePath = QFileInfo(ensembleFile->fileName()).absolutePath() + "/cache";
 	result->CreateUncertaintyImages();
-	if (!ensembleFile->ReferenceImage().isEmpty())
+	if (!ensembleFile->referenceImage().isEmpty())
 	{
 		iAITKIO::PixelType pixelType;
 		iAITKIO::ScalarType scalarType;
-		auto itkImg = iAITKIO::readFile(ensembleFile->ReferenceImage(), pixelType, scalarType, false);
+		auto itkImg = iAITKIO::readFile(ensembleFile->referenceImage(), pixelType, scalarType, false);
 		assert(pixelType == iAITKIO::PixelType::SCALAR);
 		result->m_referenceImage = dynamic_cast<IntImage*>(itkImg.GetPointer());
 	}
@@ -562,8 +561,7 @@ void iAEnsemble::CreateUncertaintyImages()
 	}
 }
 
-void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties,
-	QSharedPointer<iAModalityList> modalities)
+void iAEnsemble::writeFullDataFile(QString const & filename, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties, std::vector<std::shared_ptr<iADataSet>> dataSets)
 {
 	QFile allDataFile(filename);
 	if (!allDataFile.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -609,13 +607,13 @@ void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensiti
 
 				if (writeIntensities)
 				{
-					for (int m = 0; m < modalities->size(); ++m)
+					for (int m = 0; m < dataSets.size(); ++m)
 					{
-						for (size_t c = 0; c < modalities->get(m)->componentCount(); ++c)
-						{
-							auto img = modalities->get(m)->component(c);
-							line += QString::number(++curFeature) + ":" + QString::number(img->GetScalarComponentAsDouble(idx[0], idx[1], idx[2], 0)) + " ";
-						}
+						//for (size_t c = 0; c < dataSets[m]->componentCount(); ++c)
+						//{
+						auto img = dynamic_cast<iAImageData*>(dataSets[m].get())->vtkImage();;
+						line += QString::number(++curFeature) + ":" + QString::number(img->GetScalarComponentAsDouble(idx[0], idx[1], idx[2], 0)) + " ";
+						//}
 					}
 				}
 
@@ -783,11 +781,6 @@ QSharedPointer<iAEnsemble> iAEnsemble::AddSubEnsemble(QVector<int> memberIDs, in
 	auto newEnsemble = iAEnsemble::Create(EntropyBinCount(), members, Sampling(0), LabelCount(), cachePath, newEnsembleID, m_referenceImage);
 	m_subEnsembles.push_back(newEnsemble);
 	return newEnsemble;
-}
-
-void iAEnsemble::Store()
-{
-	m_ensembleFile->Store(m_ensembleFile->FileName());
 }
 
 QVector<QSharedPointer<iAEnsemble> > iAEnsemble::SubEnsembles() const

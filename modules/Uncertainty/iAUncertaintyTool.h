@@ -46,15 +46,16 @@ class iAUncertaintyTool: public QObject, public iATool
 	Q_OBJECT
 public:
 	iAUncertaintyTool(iAMainWindow* mainWnd, iAMdiChild* child);
+	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child);
 	void toggleDockWidgetTitleBars();
 	void toggleSettings();
 	void calculateNewSubEnsemble();
-	bool loadEnsemble(QString const & fileName);
-	void writeFullDataFile(QString const & fileName, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties);
+	void loadState(QSettings & projectFile, QString const& fileName) override;
+	void saveState(QSettings & projectFile, QString const& fileName) override;
+	void writeFullDataFile();
 private slots:
 	void memberSelected(int memberIdx);
 	void ensembleSelected(QSharedPointer<iAEnsemble> ensemble);
-	void continueEnsembleLoading();
 private:
 	iAHistogramView * m_labelDistributionView, * m_uncertaintyDistributionView;
 	iAMemberView* m_memberView;

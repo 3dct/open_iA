@@ -24,6 +24,8 @@
 #include <QString>
 #include <QVector>
 
+class QSettings;
+
 class iAEnsembleDescriptorFile
 {
 public:
@@ -31,11 +33,10 @@ public:
 	static const QString DefaultSMPFileName;
 	static const QString DefaultSPSFileName;
 	static const QString DefaultCHRFileName;
-	static const QString DefaultModalityFileName;
 
-	iAEnsembleDescriptorFile(QString const & ensembleFileName);
+	iAEnsembleDescriptorFile(QSettings const& metaFile, QString const & ensembleFileName);
+	/*
 	iAEnsembleDescriptorFile(
-		QString const & modFileName,
 		int labelCount,
 		QMap<int, QString> const & samplings,
 		QString const & layoutName,
@@ -44,26 +45,25 @@ public:
 		QString const & colorThemeName,
 		QString const & labelNames
 	);
-	void Store(QString const & ensembleFileName);
-	QString const & FileName() const;
-	QString const & ModalityFileName() const;
-	int LabelCount() const;
-	QMap<int, QString> const & Samplings() const;
-	QString const & LayoutName() const;
-	QString const & ReferenceImage() const;
-	QString const & HiddenCharts() const;
-	QString const & LabelNames() const;
-	QString const & ColorTheme() const;
+	*/
+	void store(QSettings& metaFile, QString const & ensembleFileName);
+	QString const & fileName() const;
+	int labelCount() const;
+	QMap<int, QString> const & samplings() const;
+	QString const & layoutName() const;
+	QString const & referenceImage() const;
+	QString const & hiddenCharts() const;
+	QString const & labelNames() const;
+	QString const & colorTheme() const;
 
 	int subEnsembleCount() const;
 	QVector<int> subEnsemble(int idx) const;
 	int subEnsembleID(int idx) const;
 
-	void AddSubEnsemble(int id, QVector<int> const & members);
+	void addSubEnsemble(int id, QVector<int> const & members);
 
 	bool good() const;
 private:
-	QString m_ModalityFileName;
 	int m_LabelCount;
 	QMap<int, QString> m_Samplings;
 	QString m_LayoutName;

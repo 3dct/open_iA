@@ -37,14 +37,8 @@ class iAUncertaintyModuleInterface : public iAGUIModuleInterface
 	Q_OBJECT
 public:
 	void Initialize() override;
-private slots:
-	void uncertaintyExploration();
-	void toggleDockWidgetTitleBars();
-	void toggleSettings();
-	void calculateNewSubEnsemble();
-	void writeFullDataFile();
+
 private:
-	void loadEnsemble(QString const & ensembleFileName);
 	void setupToolBar();
 	iAUncertaintyToolbar * m_toolbar = nullptr;
 };
