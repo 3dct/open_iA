@@ -83,7 +83,7 @@ std::shared_ptr<iADataSet> iAProjectFileIO::loadData(QString const& fileName, QV
 	result->setMetaData(mapFromQSettings(settings));
 	while (idx < numDataSets)
 	{
-		settings.beginGroup(dataSetGroup(idx, settings.contains(dataSetGroup(idx, true)) ? true: false));
+		settings.beginGroup(dataSetGroup(idx, settings.contains(dataSetGroup(idx, true) + "/" + iADataSet::FileNameKey) ? true: false));
 		QString dataSetFileName = MakeAbsolute(fi.absolutePath(), settings.value("File").toString());
 		try
 		{
