@@ -216,7 +216,12 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 			}
 			auto params = m_dataRenderers[dataSetIdx]->attributesWithValues();
 			params.prepend(iAAttributeDescriptor::createParam("Name", iAValueType::String, m_dataSets[dataSetIdx]->name()));
-			iAParameterDlg dlg(this, "Dataset parameters", params);
+			QString description;
+			if (m_dataSets[dataSetIdx]->hasMetaData(iADataSet::FileNameKey))
+			{
+				description = iADataSet::FileNameKey + ": " + m_dataSets[dataSetIdx]->metaData(iADataSet::FileNameKey).toString();
+			}
+			iAParameterDlg dlg(this, "Dataset parameters", params, description);
 			if (dlg.exec() != QDialog::Accepted)
 			{
 				return;
@@ -2286,6 +2291,10 @@ void MdiChild::updateDataSetInfo()
 			continue;
 		}
 		auto lines = m_dataForDisplay[dataSet.first]->information().split("\n", Qt::SkipEmptyParts);
+		if (dataSet.second->hasMetaData(iADataSet::FileNameKey))
+		{
+			lines.prepend(iADataSet::FileNameKey + ": " + dataSet.second->metaData(iADataSet::FileNameKey).toString());
+		}
 		std::for_each(lines.begin(), lines.end(), [](QString& s) { s = "    " + s; });
 		m_dataSetInfo->addItem(dataSet.second->name() + "\n" + lines.join("\n"));
 	}
