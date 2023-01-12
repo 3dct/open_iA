@@ -249,6 +249,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 				slicer(s)->update();
 			}
 			*/
+			emit dataSetChanged(dataSetIdx);
 		});
 	connect(m_dataSetListWidget, &iADataSetListWidget::set3DRendererVisibility, this,
 		[this](size_t dataSetIdx, int visibility)

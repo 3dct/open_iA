@@ -73,33 +73,33 @@ public:
 		imCamera,
 		imRegistration
 	};
-
-
 	//! Retrieve the current interaction mode (whether camera is changed,
 	//! or manual registration is active, see iAInteractionMode)
 	virtual iAInteractionMode interactionMode() const = 0;
 
 	//! Retrieve the list of all currently loaded modalities.
+	//! @deprecated use dataset API instead!
 	virtual QSharedPointer<iAModalityList> modalities() = 0;
-
 	//! Retrieve data for modality with given index.
+	//! @deprecated use dataset API instead!
 	virtual QSharedPointer<iAModality> modality(int idx) = 0;
-
 	//! Set list of modalities.
+	//! @deprecated use dataset API instead!
 	virtual void setModalities(QSharedPointer<iAModalityList> modList) =0;
+	//! Access to modalities dock widget
+	//! @deprecated use dataset API instead!
+	virtual dlg_modalities* dataDockWidget() = 0;
+	//! If more than one modality loaded, ask user to choose one of them.
+	//! (currently used for determining which modality to save)
+	//! @deprecated
+	virtual int chooseModalityNr(QString const& caption) = 0;
 
 	virtual void setROIVisible(bool isVisible) = 0;
 	virtual void updateROI(int const roi[6]) = 0;
 
-	//! Access to modalities dock widget
-	//! (TODO: separate dock widget from rest of functionality)
-	virtual dlg_modalities* dataDockWidget() = 0;
-
 	//! Access to slicer dock widget for the given mode
 	//! @param mode slicer to access - use constants from iASlicerMode enum
-	//! (TODO: separate dock widget from rest of functionality)
 	virtual QDockWidget* slicerDockWidget(int mode) = 0;
-	
 	//! Access to 3D renderer dock widget
 	virtual QDockWidget* renderDockWidget() = 0;
 	//! Access to dataset information dock widget
@@ -109,33 +109,26 @@ public:
 
 	//! Access slicer for given mode (use iASlicerMode enum for mode values)
 	virtual iASlicer* slicer(int mode) = 0;
-
-	//! Access to 3D renderer widget
-	virtual QWidget* rendererWidget() = 0;
-
 	// Access to some slicer GUI internals (used only in NModalTF at the moment):
 	//! Access to the scroll bar next to a slicer
 	virtual QSlider* slicerScrollBar(int mode) = 0;
 	//! Access to the layout in the slicer dockwidget containing the actual iASlicer
 	virtual QHBoxLayout* slicerContainerLayout(int mode) = 0;
 
+	//! Access to widget containing the 3D renderer
+	virtual QWidget* rendererWidget() = 0;
 	//! Access to the 3D renderer widget
 	virtual iARenderer* renderer() = 0;
 
+	//! Access to the histogram widget
 	virtual iAChartWithFunctionsWidget* histogram() = 0;
-	
 	//! Clear current histogram (i.e. don't show it anymore)
 	virtual void clearHistogram() = 0;
-
 
 	// Layout:
 	//! Loads the layout with the given name from the settings store, and tries to restore the according dockwidgets configuration
 	virtual void loadLayout(QString const& layout) = 0;
 	
-	//! whether the current qss theme is bright mode (true) or dark mode (false)
-	//virtual bool brightMode() const = 0;
-
-
 	// Settings:
 	virtual iARenderSettings const& renderSettings() const = 0;
 	virtual iAVolumeSettings const& volumeSettings() const = 0;
@@ -153,7 +146,6 @@ public:
 	// path of current file (just path, without filename)
 	virtual QString filePath() const = 0;
 
-
 	// Multi-Channel Rendering:
 
 	//! Create a new channel, return its ID.
@@ -169,20 +161,11 @@ public:
 	virtual void updateChannelOpacity(uint id, double opacity) = 0;
 	//! Remove channel in all slicers.
 	virtual void removeChannel(uint id) = 0;
-
-	//! If more than one modality loaded, ask user to choose one of them.
-	//! (currently used for determining which modality to save)
-	virtual int chooseModalityNr(QString const& caption) = 0;
-
-	//! If more than one dataset loaded, ask user to choose one of them (used for saving)
-	virtual std::shared_ptr<iADataSet> chooseDataSet(QString const& title = "Choose dataset") = 0;
-
 	//! @{
 	//! Retrieve data for a given channel ID
 	virtual iAChannelData* channelData(uint id) = 0;
 	virtual iAChannelData const* channelData(uint id) const = 0;
 	//! @}
-
 
 	// Layouts:
 	//! Returns the name of the layout currently applied to this child window.
@@ -225,6 +208,8 @@ public:
 	//! Apply settings to the 3D renderer of the dataset with given index (the given map can also contain a subset of the list of available render parameters, the rest will be left at default)
 	virtual void applyRenderSettings(size_t dataSetIdx, QVariantMap const& renderSettings) = 0;
 
+	// Datasets:
+	// TODO NEWIO: There's potential for better encapsulation / better API here! Maybe extract to separate dataset container?
 	//! add a dataset
 	virtual size_t addDataSet(std::shared_ptr<iADataSet> dataSet) = 0;
 	//! remove dataset with given ID
@@ -239,12 +224,14 @@ public:
 	virtual size_t dataSetIndex(iADataSet const* dataSet) const = 0;
 	//! Retrieve a list of the indices of all datasets loaded in this window
 	virtual std::map<size_t, std::shared_ptr<iADataSet>> const & dataSetMap() const = 0;
+	//! If more than one dataset loaded, ask user to choose one of them (used for saving)
+	virtual std::shared_ptr<iADataSet> chooseDataSet(QString const& title = "Choose dataset") = 0;
 	//! Constant indicating an invalid dataset index
 	static const size_t NoDataSet = std::numeric_limits<size_t>::max();
 
 	// Methods currently required by some modules for specific dataset access
 	// {
-	// ToDo: There's potential for better encapsulation / better API here!
+	// TODO NEWIO: There's potential for better encapsulation / better API here! Maybe extract to separate dataset container?
 	//! Retrieve the first image dataset (if any loaded).
 	//! Will produce an error log entry if no image data is found so use with care
 	virtual vtkSmartPointer<vtkImageData> firstImageData() const = 0;
@@ -263,7 +250,7 @@ public:
 
 	//! display an image or a mesh
 	//! @deprecated use addDataset instead
-	//! Use modality methods instead - though probably still required for first dataset at the moment.
+	//! Use dataset methods instead - though probably still required for first dataset at the moment.
 	virtual bool displayResult(QString const& title, vtkImageData* image = nullptr, vtkPolyData* poly = nullptr) = 0;
 
 	// Deprecated:
@@ -298,7 +285,7 @@ public:
 	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...) or channels (createChannel/updateChannel)
 	virtual void setImageData(vtkImageData* iData) = 0;
 	
-	//! @deprecated. Access slicers directly?
+	//! @deprected access transform used in slicer. should be removed from here; no replacement in place yet
 	virtual vtkTransform* slicerTransform() = 0;
 
 	//! @deprecated. can be removed together with enableRenderWindow/disableRenderWindow
@@ -340,9 +327,11 @@ signals:
 	void viewsUpdated();
 
 	//! emitted when a transfer function changed
+	//! @deprecated listen to changes of the transfer function of a specific dataset instead!
 	void transferFunctionChanged();
 
 	//! @{
+	//! @deprecated listen to changes of the transfer function of a specific dataset instead!
 	//! emitted when transfer function is edited
 	void pointSelected();
 	void noPointSelected();
@@ -352,12 +341,15 @@ signals:
 	//! emitted whenever the magic lens has been toggled on or off
 	void magicLensToggled(bool isToggled);
 
+	// TODO NEWIO: move to some separate dataset list manager class?
 	//! emitted when the data for displaying a dataset has been computed
 	void dataForDisplayCreated(size_t dataSetIdx);
 	//! emitted when the renderer for a dataset has been added to the display
 	void dataSetRendered(size_t dataSetIdx);
 	//! emitted when a dataset has been selected in the data list
 	void dataSetSelected(size_t dataSetIdx);
+	//! emitted when properties of a dataset have been changed
+	void dataSetChanged(size_t dataSetIdx);
 
 public slots:
 	//! Updates all views (slicers, renderers)
