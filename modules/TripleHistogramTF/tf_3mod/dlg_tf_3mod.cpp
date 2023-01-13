@@ -26,8 +26,6 @@
 #include "iAHistogramStack.h"
 #include "iAHistogramTriangle.h"
 
-#include <iAModality.h>
-#include <iAModalityList.h>
 #include <iATransferFunctionOwner.h>
 #include <iARenderer.h>
 #include <iAVolumeRenderer.h>

@@ -24,6 +24,11 @@
 
 #include <cassert>
 
+iATransferFunctionOwner::iATransferFunctionOwner():
+m_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
+m_otf(vtkSmartPointer<vtkPiecewiseFunction>::New())
+{}
+
 iATransferFunctionOwner::iATransferFunctionOwner(double const range[2]):
 	m_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
 	m_otf(vtkSmartPointer<vtkPiecewiseFunction>::New()),

@@ -33,9 +33,9 @@ enum iAHistogramAbstractType
 class iAHistogramAbstract : public QWidget
 {
 public:
-	virtual void initialize(QString const names[3]) = 0;
+	virtual void initialize(std::array<QString, 3> names) = 0;
 	virtual bool isSlicerInteractionEnabled() = 0;
-	virtual void updateModalityNames(QString const names[3]);
+	virtual void updateDataSetNames(std::array<QString, 3> names);
 
 	static iAHistogramAbstract* buildHistogramAbstract(iAHistogramAbstractType type, iATripleModalityWidget *tmw);
 };

@@ -31,15 +31,14 @@
 #include <iAPlotTypes.h>
 #include <iAProfileWidget.h>
 
-#include <dlg_modalities.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
+#include <iADataSet.h>
+#include <iADataSetRenderer.h>
+#include <iAImageDataForDisplay.h>
 #include <iALog.h>
 #include <iAMdiChild.h>
-#include <iAModality.h>
-#include <iAModalityList.h>
 #include <iATransferFunctionOwner.h>
-#include <iATransferFunctionPtrs.h>
 //#include <iAPerformanceHelper.h>
 #include <iAPreferences.h>
 #include <iARenderer.h>
@@ -85,9 +84,15 @@ iAMultimodalWidget::iAMultimodalWidget(iAMdiChild* mdiChild, NumOfMod num):
 	m_mdiChild(mdiChild),
 	m_timer_updateVisualizations(new QTimer()),
 	m_slicerMode(iASlicerMode::XY),
-	m_numOfMod(num),
+	m_numOfDS(num),
 	m_mainSlicersInitialized(false),
-	m_minimumWeight(0.01)
+	m_minimumWeight(0.01),
+	m_histograms(num, {}),
+	m_slicerWidgets(num, {}),
+	m_dataSetsActive(num, iAMdiChild::NoDataSet),
+	m_dataSetHistogramAvailable(num, false),
+	m_copyTFs(num, {})
+
 {
 	m_stackedLayout = new QStackedLayout(this);
 	m_stackedLayout->setStackingMode(QStackedLayout::StackOne);
@@ -117,15 +122,6 @@ iAMultimodalWidget::iAMultimodalWidget(iAMdiChild* mdiChild, NumOfMod num):
 	m_timer_updateVisualizations->setSingleShot(true);
 	m_timerWait_updateVisualizations = TIMER_UPDATE_VISUALIZATIONS_WAIT_MS;
 
-	for (int i = 0; i < m_numOfMod; i++)
-	{
-		m_histograms.push_back(nullptr);
-		m_slicerWidgets.push_back(nullptr);
-		m_modalitiesActive.push_back(nullptr);
-		m_modalitiesHistogramAvailable.push_back(false);
-		m_copyTFs.push_back(nullptr);
-	}
-
 	connect(m_checkBox_weightByOpacity, &QCheckBox::stateChanged, this, &iAMultimodalWidget::checkBoxWeightByOpacityChanged);
 	connect(m_checkBox_syncedCamera,    &QCheckBox::stateChanged, this, &iAMultimodalWidget::checkBoxSyncedCameraChanged);
 
@@ -134,11 +130,10 @@ iAMultimodalWidget::iAMultimodalWidget(iAMdiChild* mdiChild, NumOfMod num):
 		connect(mdiChild->slicer(i), &iASlicer::sliceNumberChanged, this, &iAMultimodalWidget::onMainSliceNumberChanged);
 	}
 
-	connect(mdiChild, &iAMdiChild::histogramAvailable, this, &iAMultimodalWidget::histogramAvailable);
+	connect(mdiChild, &iAMdiChild::dataSetRendered, this, &iAMultimodalWidget::dataSetAvailable);
 	connect(mdiChild, &iAMdiChild::renderSettingsChanged, this, &iAMultimodalWidget::applyVolumeSettings);
 	connect(mdiChild, &iAMdiChild::slicerSettingsChanged, this, &iAMultimodalWidget::applySlicerSettings);
-
-	connect(m_mdiChild->dataDockWidget(), &dlg_modalities::modalitiesChanged, this, &iAMultimodalWidget::modalitiesChangedSlot);
+	connect(mdiChild, &iAMdiChild::dataSetChanged, this, &iAMultimodalWidget::dataSetsChangedSlot);
 
 	connect(m_timer_updateVisualizations, &QTimer::timeout, this, &iAMultimodalWidget::onUpdateVisualizationsTimeout);
 
@@ -157,7 +152,7 @@ void iAMultimodalWidget::setSlicerMode(iASlicerMode slicerMode)
 	}
 	disconnectMainSlicer();
 	m_slicerMode = slicerMode;
-	for (int i = 0; i < m_numOfMod; i++)
+	for (int i = 0; i < m_numOfDS; i++)
 	{
 		w_slicer(i)->setSlicerMode(slicerMode);
 		w_slicer(i)->setSliceNumber(sliceNumber());
@@ -171,7 +166,7 @@ void iAMultimodalWidget::setSlicerMode(iASlicerMode slicerMode)
 
 void iAMultimodalWidget::setSliceNumber(int sliceNumber)
 {
-	for (int i = 0; i < m_numOfMod; i++)
+	for (int i = 0; i < m_numOfDS; i++)
 	{
 		w_slicer(i)->setSliceNumber(sliceNumber);
 	}
@@ -212,7 +207,7 @@ void iAMultimodalWidget::updateVisualizationsNow()
 		return;
 	}
 
-	assert(m_numOfMod != UNDEFINED);
+	assert(m_numOfDS != UNDEFINED);
 
 	//iATimeGuard test("updateMainSlicers");
 
@@ -230,7 +225,7 @@ void iAMultimodalWidget::updateVisualizationsNow()
 		vtkSmartPointer<vtkImageData> slicersColored[3];
 		vtkSmartPointer<vtkImageData> slicerInput[3];
 		vtkPiecewiseFunction* slicerOpacity[3];
-		for (int modalityIndex = 0; modalityIndex < m_numOfMod; modalityIndex++)
+		for (int modalityIndex = 0; modalityIndex < m_numOfDS; modalityIndex++)
 		{
 			auto channel = slicer->channel(m_channelID[modalityIndex]);
 			slicer->setChannelOpacity(m_channelID[modalityIndex], 0);
@@ -258,7 +253,7 @@ void iAMultimodalWidget::updateVisualizationsNow()
 			float modRGB[3][3];
 			float weight[3];
 			float weightSum = 0;
-			for (int mod = 0; mod < m_numOfMod; ++mod)
+			for (int mod = 0; mod < m_numOfDS; ++mod)
 			{
 				// compute weight for this modality:
 				weight[mod] = w[mod];
@@ -273,21 +268,21 @@ void iAMultimodalWidget::updateVisualizationsNow()
 				// get color of this modality:
 				for (int component = 0; component < 3; ++component)
 				{
-					modRGB[mod][component] = (mod >= m_numOfMod) ? 0
+					modRGB[mod][component] = (mod >= m_numOfDS) ? 0
 						: slicersColored[mod]->GetScalarComponentAsFloat(x, y, z, component);
 					}
 			}
 			// "normalize" weights (i.e., make their sum equal to 1):
 			if (weightSum == 0)
 			{
-				for (int mod = 0; mod < m_numOfMod; ++mod)
+				for (int mod = 0; mod < m_numOfDS; ++mod)
 				{
-					weight[mod] = 1 / m_numOfMod;
+					weight[mod] = 1 / m_numOfDS;
 				}
 			}
 			else
 			{
-				for (int mod = 0; mod < m_numOfMod; ++mod)
+				for (int mod = 0; mod < m_numOfDS; ++mod)
 				{
 					weight[mod] /= weightSum;
 				}
@@ -296,7 +291,7 @@ void iAMultimodalWidget::updateVisualizationsNow()
 			for (int component = 0; component < 3; ++component)
 			{
 				float value = 0;
-				for (int mod = 0; mod < m_numOfMod; ++mod)
+				for (int mod = 0; mod < m_numOfDS; ++mod)
 				{
 					value += modRGB[mod][component] * weight[mod];
 				}
@@ -327,12 +322,12 @@ void iAMultimodalWidget::updateTransferFunction(int index)
 }
 
 // ----------------------------------------------------------------------------------
-// Modalities management
+// Dataset management
 // ----------------------------------------------------------------------------------
 
-void iAMultimodalWidget::histogramAvailable()
+void iAMultimodalWidget::dataSetAvailable()
 {
-	updateModalities();
+	updateDataSets();
 
 	if (!isReady())
 	{
@@ -344,19 +339,19 @@ void iAMultimodalWidget::histogramAvailable()
 	m_stackedLayout->setCurrentIndex(0);
 
 	auto appendFilter = vtkSmartPointer<vtkImageAppendComponents>::New();
-	appendFilter->SetInputData(getModality(0)->image());
-	for (int i = 1; i < m_numOfMod; i++)
+	appendFilter->SetInputData(dataSetImage(0));
+	for (int i = 1; i < m_numOfDS; i++)
 	{
-		appendFilter->AddInputData(getModality(i)->image());
+		appendFilter->AddInputData(dataSetImage(i));
 	}
 	appendFilter->Update();
 
 	m_combinedVol = vtkSmartPointer<vtkVolume>::New();
 	auto combinedVolProp = vtkSmartPointer<vtkVolumeProperty>::New();
 
-	for (int i = 0; i < m_numOfMod; i++)
+	for (int i = 0; i < m_numOfDS; i++)
 	{
-		auto transfer = getModality(i)->transfer();
+		auto transfer = dataSetTransfer(i);
 		combinedVolProp->SetColor(i, transfer->colorTF());
 		combinedVolProp->SetScalarOpacity(i, transfer->opacityTF());
 	}
@@ -378,12 +373,12 @@ void iAMultimodalWidget::histogramAvailable()
 	m_combinedVolRenderer->AddVolume(m_combinedVol);
 	//m_combinedVolRenderer->ResetCamera();
 
-	for (int i = 0; i < m_numOfMod; ++i)
+	for (int i = 0; i < m_numOfDS; ++i)
 	{
-		QSharedPointer<iAVolumeRenderer> renderer = getModality(i)->renderer();
-		if (renderer->isRendered())
+		auto renderer = dataSetRenderer(i);
+		if (renderer->isVisible())
 		{
-			renderer->remove();
+			renderer->setVisible(false);
 		}
 	}
 	m_mdiChild->renderer()->addRenderer(m_combinedVolRenderer);
@@ -450,21 +445,21 @@ void iAMultimodalWidget::applyVolumeSettings()
 
 void iAMultimodalWidget::applySlicerSettings()
 {
-	for (int i = 0; i < m_numOfMod; ++i)
+	for (int i = 0; i < m_numOfDS; ++i)
 	{
 		m_slicerWidgets[i]->applySettings(m_mdiChild->slicerSettings().SingleSlicer);
 	}
 }
 
 // When new modalities are added/removed
-void iAMultimodalWidget::updateModalities()
+void iAMultimodalWidget::updateDataSets()
 {
-	if (m_mdiChild->modalities()->size() >= m_numOfMod)
+	if (m_mdiChild->dataSets().size() >= m_numOfDS)
 	{
 		bool allModalitiesAreHere = true;
-		for (int i = 0; i < m_numOfMod; i++)
+		for (int i = 0; i < m_numOfDS; i++)
 		{
-			if (/*NOT*/ ! containsModality(m_mdiChild->modality(i)))
+			if (m_dataSetsActive[i] == iAMdiChild::NoDataSet)
 			{
 				allModalitiesAreHere = false;
 				break;
@@ -478,45 +473,48 @@ void iAMultimodalWidget::updateModalities()
 	}
 	else
 	{
-		int i = 0;
-		for (; i < m_numOfMod && i < m_mdiChild->modalities()->size(); ++i)
+		int curNumDS = 0;
+		for (auto ds : m_mdiChild->dataSetMap())
 		{
-			m_modalitiesActive[i] = m_mdiChild->modality(i);
+			auto imgDS = dynamic_cast<iAImageData*>(ds.second.get());
+			if (!imgDS)
+			{
+				continue;
+			}
+			m_dataSetsActive[curNumDS] = ds.first;
+			++curNumDS;
 		}
-		for (; i < m_numOfMod; i++)
+		for (int i = curNumDS; i < m_numOfDS; i++)
 		{
-			m_modalitiesActive[i] = nullptr;
+			m_dataSetsActive[i] = iAMdiChild::NoDataSet;
 		}
 		return;
 	}
 
 	m_channelID.clear();
 	// Initialize modalities being added
-	for (int i = 0; i < m_numOfMod; ++i)
+	for (int i = 0; i < m_numOfDS; ++i)
 	{
-		m_modalitiesActive[i] = m_mdiChild->modality(i);
-
+		//m_dataSetsActive[i] = m_mdiChild->modality(i);
 		// TODO: Don't duplicate code from mdichild, call it instead!
 		// Histogram {
-		size_t newHistBins = m_mdiChild->preferences().HistogramBins;
-		if (!m_modalitiesActive[i]->histogramData() ||
-			m_modalitiesActive[i]->histogramData()->valueCount() != newHistBins)
-		{
-			m_modalitiesActive[i]->computeImageStatistics();
-			auto histData = iAHistogramData::create(
-				"Frequency", m_modalitiesActive[i]->image(), newHistBins);
-			m_modalitiesActive[i]->setHistogramData(histData);
-		}
-		m_modalitiesHistogramAvailable[i] = true;
+		//size_t newHistBins = m_mdiChild->preferences().HistogramBins;
+		//if (!m_dataSetsActive[i]->histogramData() ||
+		//	m_dataSetsActive[i]->histogramData()->valueCount() != newHistBins)
+		//{
+		//	m_dataSetsActive[i]->computeImageStatistics();
+		//	auto histData = iAHistogramData::create(
+		//		"Frequency", dataSetImage(i), newHistBins);
+		//	m_dataSetsActive[i]->setHistogramData(histData);
+		//}
+		//m_dataSetHistogramAvailable[i] = true;
+		auto histData = dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(m_dataSetsActive[i]))->histogramData();
+		m_copyTFs[i] = createCopyTF(i);
 
-		vtkColorTransferFunction *colorFuncCopy = vtkColorTransferFunction::New();
-		vtkPiecewiseFunction *opFuncCopy = vtkPiecewiseFunction::New();
-		m_copyTFs[i] = createCopyTf(i, colorFuncCopy, opFuncCopy);
-
-		m_histograms[i] = QSharedPointer<iAChartWithFunctionsWidget>::create(nullptr, m_modalitiesActive[i]->name()+" gray value", "Frequency");
-		auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(m_modalitiesActive[i]->histogramData(), QColor(70, 70, 70, 255));
+		m_histograms[i] = QSharedPointer<iAChartWithFunctionsWidget>::create(nullptr, dataSetName(i) + " gray value", "Frequency");
+		auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(histData, QColor(70, 70, 70, 255));
 		m_histograms[i]->addPlot(histogramPlot);
-		m_histograms[i]->setTransferFunction(m_copyTFs[i].data());
+		m_histograms[i]->setTransferFunction(&m_copyTFs[i]);
 		m_histograms[i]->update();
 		// }
 
@@ -526,16 +524,16 @@ void iAMultimodalWidget::updateModalities()
 
 		m_channelID.push_back(m_mdiChild->createChannel());
 		auto chData = m_mdiChild->channelData(m_channelID[i]);
-		vtkImageData* imageData = m_modalitiesActive[i]->image();
-		vtkColorTransferFunction* ctf = m_modalitiesActive[i]->transfer()->colorTF();
-		vtkPiecewiseFunction* otf = m_modalitiesActive[i]->transfer()->opacityTF();
+		vtkImageData* imageData = dataSetImage(i);
+		vtkColorTransferFunction* ctf = dataSetTransfer(i)->colorTF();
+		vtkPiecewiseFunction* otf = dataSetTransfer(i)->opacityTF();
 		chData->setData(imageData, ctf, otf);
 		m_mdiChild->initChannelRenderer(m_channelID[i], false, true);
 	}
 
 	connect((iAChartTransferFunction*)(m_histograms[0]->functions()[0]), &iAChartTransferFunction::changed, this, &iAMultimodalWidget::updateTransferFunction1);
 	connect((iAChartTransferFunction*)(m_histograms[1]->functions()[0]), &iAChartTransferFunction::changed, this, &iAMultimodalWidget::updateTransferFunction2);
-	if (m_numOfMod >= THREE)
+	if (m_numOfDS >= THREE)
 	{
 		connect((iAChartTransferFunction*)(m_histograms[2]->functions()[0]), &iAChartTransferFunction::changed, this, &iAMultimodalWidget::updateTransferFunction3);
 	}
@@ -543,7 +541,7 @@ void iAMultimodalWidget::updateModalities()
 	applyWeights();
 	connect((iAChartTransferFunction*)(m_mdiChild->histogram()->functions()[0]), &iAChartTransferFunction::changed, this, &iAMultimodalWidget::originalHistogramChanged);
 
-	emit(modalitiesLoaded_beforeUpdate());
+	emit(dataSetsLoaded_beforeUpdate());
 
 	update();
 }
@@ -556,26 +554,27 @@ void iAMultimodalWidget::resetSlicer(int i)
 	m_slicerWidgets[i] = QSharedPointer<iASimpleSlicerWidget>::create(nullptr, true);
 	m_slicerWidgets[i]->applySettings(m_mdiChild->slicerSettings().SingleSlicer);
 	m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-	if (m_modalitiesActive[i])
+	if (m_dataSetsActive[i] != iAMdiChild::NoDataSet)
 	{
-		m_slicerWidgets[i]->changeModality(m_modalitiesActive[i]);
+		m_slicerWidgets[i]->changeData(dataSetImage(i), dataSetTransfer(i), dataSetName(i));
 	}
 }
 
-QSharedPointer<iATransferFunction> iAMultimodalWidget::createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacityFunction)
+iATransferFunctionOwner iAMultimodalWidget::createCopyTF(int index)
 {
-	colorTf->DeepCopy(m_modalitiesActive[index]->transfer()->colorTF());
-	opacityFunction->DeepCopy(m_modalitiesActive[index]->transfer()->opacityTF());
-	return QSharedPointer<iATransferFunctionPtrs>::create(colorTf, opacityFunction);
+	iATransferFunctionOwner result;
+	result.colorTF()->DeepCopy(dataSetTransfer(index)->colorTF());
+	result.opacityTF()->DeepCopy(dataSetTransfer(index)->opacityTF());
+	return result;
 }
 
-void iAMultimodalWidget::alertWeightIsZero(QSharedPointer<iAModality> modality)
+/*
+void iAMultimodalWidget::alertWeightIsZero(QString const & name)
 {
-	QString name = modality->fileName();
 	QString text =
 		"The main transfer function of a modality cannot be changed "
 		"while the weight of that modality is zero.\n"
-		"Modality:\n" + name +
+		"Dataset:\n" + name +
 		"\n\n"
 		"To change the transfer function, use an n-modal widget instead "
 		"(Double/Triple Histogram Transfer Function).";
@@ -584,13 +583,15 @@ void iAMultimodalWidget::alertWeightIsZero(QSharedPointer<iAModality> modality)
 	msg.setText(text);
 	msg.exec();
 }
+*/
 
 void iAMultimodalWidget::originalHistogramChanged()
 {
-	QSharedPointer<iAModality> selected = m_mdiChild->modality(m_mdiChild->dataDockWidget()->selected());
-	for (int i = 0; i < m_numOfMod; i++)
+	//QSharedPointer<iAModality> selected = m_mdiChild->modality(m_mdiChild->dataDockWidget()->selected());
+	size_t selectedDataSet; //= m_mdiChild->selectedDataSet();
+	for (int i = 0; i < m_numOfDS; i++)
 	{
-		if (selected == getModality(i))
+		if (selectedDataSet == m_dataSetsActive[i])
 		{
 			updateCopyTransferFunction(i);
 			updateTransferFunction(i);
@@ -616,14 +617,14 @@ void iAMultimodalWidget::updateCopyTransferFunction(int index)
 	}
 
 	// newly set transfer function (set via the histogram)
-	QSharedPointer<iATransferFunctionOwner> effective = getModality(index)->transfer();
+	auto* effective = dataSetTransfer( index);
 
 	// copy of previous transfer function, to be updated in this method
-	QSharedPointer<iATransferFunction> copy = m_copyTFs[index];
+	auto & copy = m_copyTFs[index];
 
 	double valCol[6], valOp[4];
-	copy->colorTF()->RemoveAllPoints();
-	copy->opacityTF()->RemoveAllPoints();
+	copy.colorTF()->RemoveAllPoints();
+	copy.opacityTF()->RemoveAllPoints();
 
 	for (int j = 0; j < effective->colorTF()->GetSize(); ++j)
 	{
@@ -638,8 +639,8 @@ void iAMultimodalWidget::updateCopyTransferFunction(int index)
 
 		effective->opacityTF()->SetNodeValue(j, valOp);
 
-		copy->colorTF()->AddRGBPoint(valCol[0], valCol[1], valCol[2], valCol[3], valCol[4], valCol[5]);
-		copy->opacityTF()->AddPoint(valOp[0], copyOp, valOp[2], valOp[3]);
+		copy.colorTF()->AddRGBPoint(valCol[0], valCol[1], valCol[2], valCol[3], valCol[4], valCol[5]);
+		copy.opacityTF()->AddPoint(valOp[0], copyOp, valOp[2], valOp[3]);
 	}
 }
 
@@ -653,19 +654,19 @@ void iAMultimodalWidget::updateOriginalTransferFunction(int index)
 	double weight = getWeight(index);
 
 	// newly set transfer function (set via the histogram)
-	QSharedPointer<iATransferFunctionOwner> effective = m_modalitiesActive[index]->transfer();
+	auto effective = dataSetTransfer(index);
 
 	// copy of previous transfer function, to be updated in this method
-	QSharedPointer<iATransferFunction> copy = m_copyTFs[index];
+	auto & copy = m_copyTFs[index];
 
 	double valCol[6], valOp[4];
 	effective->colorTF()->RemoveAllPoints();
 	effective->opacityTF()->RemoveAllPoints();
 
-	for (int j = 0; j < copy->colorTF()->GetSize(); ++j)
+	for (int j = 0; j < copy.colorTF()->GetSize(); ++j)
 	{
-		copy->colorTF()->GetNodeValue(j, valCol);
-		copy->opacityTF()->GetNodeValue(j, valOp);
+		copy.colorTF()->GetNodeValue(j, valCol);
+		copy.opacityTF()->GetNodeValue(j, valOp);
 
 		valOp[1] = valOp[1] * weight; // index 1 means opacity
 
@@ -680,10 +681,10 @@ void iAMultimodalWidget::applyWeights()
 	{
 		return;
 	}
-	for (int i = 0; i < m_numOfMod; i++)
+	for (int i = 0; i < m_numOfDS; i++)
 	{
-		vtkPiecewiseFunction *effective = m_modalitiesActive[i]->transfer()->opacityTF();
-		vtkPiecewiseFunction *copy = m_copyTFs[i]->opacityTF();
+		vtkPiecewiseFunction *effective = dataSetTransfer(i)->opacityTF();
+		vtkPiecewiseFunction *copy = m_copyTFs[i].opacityTF();
 
 		double pntVal[4];
 		for (int j = 0; j < copy->GetSize(); ++j)
@@ -703,7 +704,7 @@ void iAMultimodalWidget::setMainSlicerCamera()
 		return;
 	}
 	vtkCamera * mainCamera = m_mdiChild->slicer(m_slicerMode)->camera();
-	for (int i = 0; i < m_numOfMod; ++i)
+	for (int i = 0; i < m_numOfDS; ++i)
 	{
 		w_slicer(i)->setCamera(mainCamera);
 		w_slicer(i)->update();
@@ -714,7 +715,7 @@ void iAMultimodalWidget::setMainSlicerCamera()
 void iAMultimodalWidget::resetSlicerCamera()
 {
 	disconnectMainSlicer();
-	for (int i = 0; i < m_numOfMod; i++)
+	for (int i = 0; i < m_numOfDS; i++)
 	{
 		auto cam = vtkSmartPointer<vtkCamera>::New();
 		w_slicer(i)->setCamera(cam);
@@ -730,7 +731,7 @@ void iAMultimodalWidget::connectMainSlicer()
 		return;
 	}
 	iASlicer* slicer = m_mdiChild->slicer(m_slicerMode);
-	for (int i = 0; i < m_numOfMod; ++i)
+	for (int i = 0; i < m_numOfDS; ++i)
 	{
 		connect(slicer, &iASlicer::userInteraction, w_slicer(i).data(), &iASimpleSlicerWidget::update);
 		connect(w_slicer(i)->getSlicer(), &iASlicer::userInteraction, slicer, &iASlicer::update);
@@ -740,7 +741,7 @@ void iAMultimodalWidget::connectMainSlicer()
 void iAMultimodalWidget::disconnectMainSlicer()
 {
 	iASlicer* slicer = m_mdiChild->slicer(m_slicerMode);
-	for (int i = 0; i < m_numOfMod; ++i)
+	for (int i = 0; i < m_numOfDS; ++i)
 	{
 		disconnect(slicer, &iASlicer::userInteraction, w_slicer(i).data(), &iASimpleSlicerWidget::update);
 		disconnect(w_slicer(i)->getSlicer(), &iASlicer::userInteraction, slicer, &iASlicer::update);
@@ -749,9 +750,9 @@ void iAMultimodalWidget::disconnectMainSlicer()
 
 void iAMultimodalWidget::connectAcrossSlicers()
 {
-	for (int i = 0; i < m_numOfMod; ++i)
+	for (int i = 0; i < m_numOfDS; ++i)
 	{
-		for (int j = 0; j < m_numOfMod; ++j)
+		for (int j = 0; j < m_numOfDS; ++j)
 		{
 			if (i != j)
 			{
@@ -763,9 +764,9 @@ void iAMultimodalWidget::connectAcrossSlicers()
 
 void iAMultimodalWidget::disconnectAcrossSlicers()
 {
-	for (int i = 0; i < m_numOfMod; ++i)
+	for (int i = 0; i < m_numOfDS; ++i)
 	{
-		for (int j = 0; j < m_numOfMod; ++j)
+		for (int j = 0; j < m_numOfDS; ++j)
 		{
 			if (i != j)
 			{
@@ -825,14 +826,24 @@ void iAMultimodalWidget::onMainSliceNumberChanged(int mode, int sliceNumber)
 	setSliceNumber(sliceNumber);
 }
 
-QSharedPointer<iAModality> iAMultimodalWidget::getModality(int index)
+vtkSmartPointer<vtkImageData> iAMultimodalWidget::dataSetImage(int index)
 {
-	return m_modalitiesActive[index];
+	return dynamic_cast<iAImageData*>(m_mdiChild->dataSet(m_dataSetsActive[index]).get())->vtkImage();
 }
 
-vtkSmartPointer<vtkImageData> iAMultimodalWidget::getModalityImage(int index)
+QString iAMultimodalWidget::dataSetName(int index)
 {
-	return getModality(index)->image();
+	return m_mdiChild->dataSet(m_dataSetsActive[index])->name();
+}
+
+iATransferFunction* iAMultimodalWidget::dataSetTransfer(int index)
+{
+	return dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(m_dataSetsActive[index]))->transfer();
+}
+
+iADataSetRenderer* iAMultimodalWidget::dataSetRenderer(int index)
+{
+	return m_mdiChild->dataSetRenderer(m_dataSetsActive[index]);
 }
 
 iABCoord iAMultimodalWidget::getWeights()
@@ -847,12 +858,12 @@ double iAMultimodalWidget::getWeight(int i)
 
 bool iAMultimodalWidget::isReady()
 {
-	for (int i = 0; i < m_numOfMod; i++)
+	for (int i = 0; i < m_numOfDS; i++)
 	{
-		if (!m_modalitiesActive[i] ||
-			!m_modalitiesHistogramAvailable[i])
+		if (m_dataSetsActive[i] == iAMdiChild::NoDataSet ||
+			!m_dataSetHistogramAvailable[i])
 		{
-			int missing = m_numOfMod - 1 - i;
+			int missing = m_numOfDS - 1 - i;
 			QString modalit_y_ies_is_are = missing == 1 ? "modality is" : "modalities are";
 			m_disabledReason = QString::number(missing) + " " + modalit_y_ies_is_are + " missing.";
 			LOG(lvlInfo, m_disabledReason);
@@ -860,8 +871,8 @@ bool iAMultimodalWidget::isReady()
 		}
 		if (i > 0)
 		{
-			int const* dim0 = m_modalitiesActive[0]->image()->GetDimensions();
-			int const* dimi = m_modalitiesActive[i]->image()->GetDimensions();
+			int const* dim0 = dataSetImage(0)->GetDimensions();
+			int const* dimi = dataSetImage(i)->GetDimensions();
 			if (dim0[0] != dimi[0] || dim0[1] != dimi[1] || dim0[2] != dimi[2])
 			{
 				m_disabledReason = "Dimensions of loaded images are not the same; but the "
@@ -874,23 +885,16 @@ bool iAMultimodalWidget::isReady()
 	return true;
 }
 
-bool iAMultimodalWidget::containsModality(QSharedPointer<iAModality> modality)
+bool iAMultimodalWidget::containsDataSet(size_t dataSetIdx)
 {
-	for (auto mod : m_modalitiesActive)
-	{
-		if (mod == modality)
-		{
-			return true;
-		}
-	}
-	return false;
+	return m_dataSetsActive.contains(dataSetIdx);
 }
 
-int iAMultimodalWidget::getModalitiesCount()
+int iAMultimodalWidget::getDataSetCount()
 {
-	for (int i = m_numOfMod - 1; i >= 0; i--)
+	for (int i = m_numOfDS - 1; i >= 0; i--)
 	{
-		if (m_modalitiesActive[i])
+		if (m_dataSetsActive[i] != iAMdiChild::NoDataSet)
 		{
 			return i + 1;
 		}
@@ -898,15 +902,15 @@ int iAMultimodalWidget::getModalitiesCount()
 	return 0;
 }
 
-void iAMultimodalWidget::modalitiesChangedSlot(bool, double const *)
+void iAMultimodalWidget::dataSetsChangedSlot(bool, double const *)
 {
-	if (getModalitiesCount() < m_numOfMod)
+	if (getDataSetCount() < m_numOfDS)
 	{
 		return;
 	}
 	for (int m = 0; m < m_histograms.size(); ++m)
 	{
-		m_histograms[m]->setXCaption(m_modalitiesActive[m]->name() + " gray value");
+		m_histograms[m]->setXCaption(m_mdiChild->dataSet(m_dataSetsActive[m])->name() + " gray value");
 	}
-	modalitiesChanged();
+	dataSetsChanged();
 }

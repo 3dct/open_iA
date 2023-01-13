@@ -56,8 +56,8 @@ public:
 	void setWeight(iABCoord newWeight);
 
 	void setTriangleRenderer(iABarycentricContextRenderer *triangleRenderer);
-	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3);
-	void updateModalityNames(QString const name[3]);
+	void setData(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3);
+	void updateDataSetNames(std::array<QString, 3> names);
 
 	iABarycentricTriangle getTriangle() { return m_triangle; }
 

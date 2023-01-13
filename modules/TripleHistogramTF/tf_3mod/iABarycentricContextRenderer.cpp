@@ -42,7 +42,7 @@ iABarycentricContextRenderer::iABarycentricContextRenderer() :
 	connect(m_timer_heatmap, &QTimer::timeout, this, &iABarycentricContextRenderer::onHeatmapTimeout);
 }
 
-void iABarycentricContextRenderer::setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, iABarycentricTriangle triangle)
+void iABarycentricContextRenderer::setData(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, iABarycentricTriangle triangle)
 {
 	calculateCoordinates(d1, d2, d3);
 	updateTriangle(triangle);

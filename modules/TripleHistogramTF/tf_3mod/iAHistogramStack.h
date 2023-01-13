@@ -39,9 +39,9 @@ public:
 	iAHistogramStack(iATripleModalityWidget *tripleModalityWidget);
 
 	// OVERRIDES
-	void initialize(QString const names[3]) override;
+	void initialize(std::array<QString, 3> names) override;
 	bool isSlicerInteractionEnabled() override { return true; }
-	void updateModalityNames(QString const names[3]) override;
+	void updateDataSetNames(std::array<QString, 3> names) override;
 
 private:
 	QSplitter *m_splitter;

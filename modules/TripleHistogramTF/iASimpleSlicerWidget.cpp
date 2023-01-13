@@ -21,7 +21,6 @@
 #include "iASimpleSlicerWidget.h"
 
 #include <iAChannelData.h>
-#include <iAModality.h>
 #include <iATransferFunctionOwner.h>
 #include <iASlicerImpl.h>
 
@@ -94,12 +93,10 @@ void iASimpleSlicerWidget::update()
 	m_slicer->update();
 }
 
-void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
+void iASimpleSlicerWidget::changeData(vtkImageData* imageData, iATransferFunction* tf, QString const & name)
 {
-	vtkImageData *imageData = modality->image().GetPointer();
-
-	vtkColorTransferFunction* colorFunction = modality->transfer()->colorTF();
-	m_slicer->addChannel(0, iAChannelData(modality->name(), imageData, colorFunction), true);
+	vtkColorTransferFunction* colorFunction = tf->colorTF();
+	m_slicer->addChannel(0, iAChannelData(name, imageData, colorFunction), true);
 	m_slicer->disableInteractor();
 
 	if (!m_enableInteraction)

@@ -29,6 +29,8 @@
 
 #include <vtkSmartPointer.h>
 
+#include <array>
+
 class iABarycentricTriangleWidget;
 class iABarycentricContextRenderer;
 
@@ -70,10 +72,10 @@ private slots:
 	void layoutComboBoxIndexChanged(int newIndex);
 	void triangleWeightChanged(iABCoord newWeights);
 	void weightsChangedSlot(iABCoord newWeights);
-	void modalitiesLoaded_beforeUpdateSlot();
+	void dataSetsLoaded_beforeUpdateSlot();
 
 private:
-	void modalitiesChanged() override;
+	void dataSetsChanged() override;
 	QComboBox *m_layoutComboBox;
 	void setLayoutTypePrivate(iAHistogramAbstractType type);
 
@@ -83,5 +85,6 @@ private:
 	iAHistogramAbstract *m_histogramAbstract = nullptr;
 	iAHistogramAbstractType m_histogramAbstractType;
 
-	void updateModalities();
+	void updateDataSets();
+	std::array<QString, 3> dataSetNames();
 };

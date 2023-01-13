@@ -24,14 +24,14 @@
 
 #include <vtkTransform.h>
 
-#include <QSharedPointer>
 #include <QWidget>
 
-class iAModality;
 class iASingleSlicerSettings;
 class iASlicer;
+class iATransferFunction;
 
 class vtkCamera;
+class vtkImageData;
 
 class iASimpleSlicerWidget : public QWidget
 {
@@ -51,7 +51,7 @@ public:
 	int heightForWidth(int width) const override;
 
 	void applySettings(iASingleSlicerSettings const & settings);
-	void changeModality(QSharedPointer<iAModality> modality);
+	void changeData(vtkImageData* imageData, iATransferFunction* tf, QString const& name);
 
 	void setCamera(vtkCamera* camera);
 

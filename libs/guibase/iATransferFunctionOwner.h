@@ -35,8 +35,11 @@ class QString;
 class iAguibase_API iATransferFunctionOwner : public iATransferFunction
 {
 public:
+	iATransferFunctionOwner();
 	iATransferFunctionOwner(double const range[2]);
+	//! @deprecated
 	void computeRange(vtkSmartPointer<vtkImageData> img);
+	//! @deprecated
 	bool isRangeComputed() const;
 
 	//! @{ functions overridden from iATransferFunction:
@@ -48,7 +51,11 @@ public:
 private:
 	vtkSmartPointer<vtkColorTransferFunction> m_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
+
+	//! @deprecated
 	bool m_rangeComputed;
-	bool m_opacityRamp;  //! whether to use a varying opacity in default TF
+	//! @deprecated
 	double m_range[2];
+
+	bool m_opacityRamp;  //! whether to use a varying opacity in default TF
 };

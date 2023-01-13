@@ -46,7 +46,7 @@ iAHistogramStack::iAHistogramStack(iATripleModalityWidget* tripleModalityWidget)
 {
 }
 
-void iAHistogramStack::initialize(QString const names[3])
+void iAHistogramStack::initialize(std::array<QString, 3> const names)
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -99,7 +99,7 @@ void iAHistogramStack::initialize(QString const names[3])
 	m_grid->adjustStretch();
 }
 
-void iAHistogramStack::updateModalityNames(QString const names[3])
+void iAHistogramStack::updateDataSetNames(std::array<QString, 3> names)
 {
 	for (int i = 0; i < m_labels.size(); i++)
 	{

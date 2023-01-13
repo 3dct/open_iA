@@ -38,10 +38,10 @@ public:
 private:
 	iAInterpolationSliderWidget *m_slider;
 	QVector<QLabel*> m_labels;
-	void modalitiesChanged() override;
+	void dataSetsChanged() override;
 
 private slots:
-	void modalitiesLoaded_beforeUpdateSlot();
+	void dataSetsLoaded_beforeUpdateSlot();
 	void tChanged(double t);
 
 };

@@ -28,7 +28,8 @@
 #include "iARightBorderLayout.h"
 
 #include <iAChartWithFunctionsWidget.h>
-#include <iAModality.h>
+
+#include <iADataSet.h>
 
 #include <QComboBox>
 #include <QCheckBox>
@@ -53,11 +54,11 @@ iATripleModalityWidget::iATripleModalityWidget(iAMdiChild *mdiChild) :
 	connect(m_triangleWidget, &iABarycentricTriangleWidget::weightsChanged, this, &iATripleModalityWidget::triangleWeightChanged);
 	connect(m_triangleWidget, &iABarycentricTriangleWidget::weightsChanged, this, &iATripleModalityWidget::weightsChangedSlot);
 
-	connect(this, &iATripleModalityWidget::modalitiesLoaded_beforeUpdate, this, &iATripleModalityWidget::modalitiesLoaded_beforeUpdateSlot);
+	connect(this, &iATripleModalityWidget::dataSetsLoaded_beforeUpdate, this, &iATripleModalityWidget::dataSetsLoaded_beforeUpdateSlot);
 
 	if (isReady())
 	{
-		updateModalities();
+		updateDataSets();
 	}
 }
 
@@ -76,27 +77,18 @@ iAHistogramAbstractType iATripleModalityWidget::getLayoutTypeAt(int comboBoxInde
 	return (iAHistogramAbstractType)m_layoutComboBox->itemData(comboBoxIndex).toInt();
 }
 
-void iATripleModalityWidget::updateModalities()
+void iATripleModalityWidget::updateDataSets()
 {
-	QString names[3];
-	for (int i = 0; i < 3; ++i)
-	{
-		names[i] = getModality(i)->name();
-	}
-	m_triangleWidget->setModalities(getModality(0)->image(), getModality(1)->image(), getModality(2)->image());
-	m_triangleWidget->updateModalityNames(names);
+	m_triangleWidget->setData(dataSetImage(0), dataSetImage(1), dataSetImage(2));
+	m_triangleWidget->updateDataSetNames({dataSetName(0), dataSetName(1), dataSetName(2)});
 	m_triangleWidget->update();
 }
 
-void iATripleModalityWidget::modalitiesChanged()
+void iATripleModalityWidget::dataSetsChanged()
 {
-	QString names[3];
-	for (int i = 0; i < 3; ++i)
-	{
-		names[i] = getModality(i)->name();
-	}
-	m_triangleWidget->updateModalityNames(names);
-	m_histogramAbstract->updateModalityNames(names);
+	auto names = dataSetNames();
+	m_triangleWidget->updateDataSetNames(names);
+	m_histogramAbstract->updateDataSetNames(names);
 }
 
 void iATripleModalityWidget::triangleWeightChanged(iABCoord newWeight)
@@ -112,15 +104,10 @@ void iATripleModalityWidget::weightsChangedSlot(iABCoord bCoord)
 	}
 }
 
-void iATripleModalityWidget::modalitiesLoaded_beforeUpdateSlot()
+void iATripleModalityWidget::dataSetsLoaded_beforeUpdateSlot()
 {
-	updateModalities();
-	QString names[3];
-	for (int i = 0; i < 3; ++i)
-	{
-		names[i] = getModality(i)->name();
-	}
-	m_histogramAbstract->initialize(names);
+	updateDataSets();
+	m_histogramAbstract->initialize({ dataSetName(0), dataSetName(1), dataSetName(2) });
 }
 
 void iATripleModalityWidget::setHistogramAbstractType(iAHistogramAbstractType type)
@@ -166,11 +153,6 @@ void iATripleModalityWidget::setLayoutTypePrivate(iAHistogramAbstractType type)
 
 	if (isReady())
 	{
-		QString names[3];
-		for (int i = 0; i < 3; ++i)
-		{
-			names[i] = getModality(i)->name();
-		}
-		m_histogramAbstract->initialize(names);
+		m_histogramAbstract->initialize({ dataSetName(0), dataSetName(1), dataSetName(2) });
 	}
 }

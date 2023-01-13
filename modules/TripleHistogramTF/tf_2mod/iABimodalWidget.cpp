@@ -21,8 +21,6 @@
 
 #include "iABimodalWidget.h"
 
-#include <iAModality.h>
-#include <iAModalityList.h>
 #include <iAMdiChild.h>
 
 #include "iAInterpolationSliderWidget.h"
@@ -35,14 +33,14 @@
 iABimodalWidget::iABimodalWidget(iAMdiChild *mdiChild):
 	iAMultimodalWidget(mdiChild, TWO)
 {
-	connect(this, &iABimodalWidget::modalitiesLoaded_beforeUpdate, this, &iABimodalWidget::modalitiesLoaded_beforeUpdateSlot);
+	connect(this, &iABimodalWidget::dataSetsLoaded_beforeUpdate, this, &iABimodalWidget::dataSetsLoaded_beforeUpdateSlot);
 	if (isReady())
 	{
 		initialize();
 	}
 }
 
-void iABimodalWidget::modalitiesLoaded_beforeUpdateSlot()
+void iABimodalWidget::dataSetsLoaded_beforeUpdateSlot()
 {
 	initialize();
 }
@@ -103,7 +101,7 @@ void iABimodalWidget::initialize()
 	connect(m_slider, &iAInterpolationSliderWidget::tChanged, this, &iABimodalWidget::tChanged);
 	tChanged(m_slider->getT());
 
-	m_slider->changeModalities(getModalityImage(0), getModalityImage(1));
+	m_slider->changeModalities(dataSetImage(0), dataSetImage(1));
 }
 
 void iABimodalWidget::tChanged(double t)
@@ -111,10 +109,10 @@ void iABimodalWidget::tChanged(double t)
 	setWeightsProtected(t);
 }
 
-void iABimodalWidget::modalitiesChanged()
+void iABimodalWidget::dataSetsChanged()
 {
-	for (int i = 0; i < m_mdiChild->modalities()->size(); i++)
+	for (int i = 0; i < 2; i++)
 	{
-		m_labels[i]->setText(m_mdiChild->modality(i)->name());
+		m_labels[i]->setText(dataSetName(i));
 	}
 }

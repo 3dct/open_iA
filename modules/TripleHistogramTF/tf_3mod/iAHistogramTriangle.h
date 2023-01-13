@@ -52,7 +52,7 @@ private:
 public:
 	iAHistogramTriangle(iATripleModalityWidget* tripleModalityWidget);
 
-	void initialize(QString const names[3]) override;
+	void initialize(std::array<QString, 3> names) override;
 	bool isSlicerInteractionEnabled() override { return true; }
 
 	void paintHistograms(QPainter &p);

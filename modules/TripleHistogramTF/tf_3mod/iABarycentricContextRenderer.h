@@ -37,7 +37,7 @@ class iABarycentricContextRenderer : public QWidget
 
 public:
 	iABarycentricContextRenderer();
-	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, iABarycentricTriangle triangle);
+	void setData(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, iABarycentricTriangle triangle);
 	void setTriangle(iABarycentricTriangle triangle);
 	QImage* getImage();
 	QRect getImageRect();

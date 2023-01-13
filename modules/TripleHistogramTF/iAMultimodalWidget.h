@@ -34,7 +34,10 @@
 #include <QVector>
 #include <QSharedPointer>
 
+class iADataSetRenderer;
+class iAImageData;
 class iAMdiChild;
+class iATransferFunctionOwner;
 
 class vtkCamera;
 class vtkColorTransferFunction;
@@ -120,11 +123,14 @@ public:
 	void setSliceNumber(int sliceNumber);
 	int sliceNumber() const;
 
-	QSharedPointer<iAModality> getModality(int index);
-	vtkSmartPointer<vtkImageData> getModalityImage(int index);
-	int getModalitiesCount();
-	bool containsModality(QSharedPointer<iAModality> modality);
-	void updateModalities();
+	iATransferFunction* dataSetTransfer(int index);
+	iADataSetRenderer* dataSetRenderer(int index);
+	vtkSmartPointer<vtkImageData> dataSetImage(int index);
+	QString dataSetName(int index);
+
+	int getDataSetCount();
+	bool containsDataSet(size_t dataSetIdx);
+	void updateDataSets();
 
 	bool isReady();
 
@@ -159,7 +165,7 @@ private:
 	QString m_disabledReason;
 	QCheckBox *m_checkBox_syncedCamera;
 	// }
-	virtual void modalitiesChanged() =0;
+	virtual void dataSetChanged() =0;
 
 	QTimer *m_timer_updateVisualizations;
 	int m_timerWait_updateVisualizations;
@@ -200,9 +206,9 @@ private:
 	//vtkSmartPointer<vtkImageData> m_slicerInputs[3][3];
 	vtkSmartPointer<vtkImageData> m_slicerImages[3];
 
-	NumOfMod m_numOfMod = UNDEFINED;
-	QVector<QSharedPointer<iAModality>> m_modalitiesActive;
-	QVector<bool> m_modalitiesHistogramAvailable;
+	NumOfMod m_numOfDS = UNDEFINED;
+	QVector<size_t> m_dataSetsActive;
+	QVector<bool> m_dataSetHistogramAvailable;
 
 	vtkSmartPointer<vtkSmartVolumeMapper> m_combinedVolMapper;
 	vtkSmartPointer<vtkRenderer> m_combinedVolRenderer;
@@ -212,9 +218,9 @@ private:
 	double m_minimumWeight;
 
 	// Background stuff
-	void alertWeightIsZero(QSharedPointer<iAModality> modality);
-	QVector<QSharedPointer<iATransferFunction>> m_copyTFs;
-	QSharedPointer<iATransferFunction> createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacity);
+	//void alertWeightIsZero(QString const & name);
+	QVector<iATransferFunctionOwner> m_copyTFs;
+	iATransferFunctionOwner createCopyTF(int index);
 
 signals:
 	void weightsChanged3(iABCoord weights);
@@ -223,7 +229,7 @@ signals:
 	void slicerModeChangedExternally(iASlicerMode slicerMode);
 	void sliceNumberChangedExternally(int sliceNumber);
 
-	void modalitiesLoaded_beforeUpdate();
+	void dataSetsLoaded_beforeUpdate();
 
 private slots:
 	void updateTransferFunction1() { updateTransferFunction(0); }
@@ -235,12 +241,12 @@ private slots:
 	void checkBoxWeightByOpacityChanged();
 	void checkBoxSyncedCameraChanged();
 
-	void modalitiesChangedSlot(bool, double const *);
+	void dataSetsChangedSlot(bool, double const *);
 
 	void onMainSliceNumberChanged(int mode, int sliceNumber);
 
-	//void modalitiesChanged();
-	void histogramAvailable();
+	virtual void dataSetsChanged();
+	void dataSetAvailable();
 	void applyVolumeSettings();
 	void applySlicerSettings();
 

@@ -311,9 +311,9 @@ inline QList<std::shared_ptr<iAImageData>> applyMask(
 	/* TODO (28th July 2020)
 	As of now, the way the mask works does not support dynamic addition of dataSets.
 
-	If setModalities() is called with modality A
+	If setDataSets() is called with modality A
 	Then applyMask() is called (=> modality A is changed to reserve 0)
-	Then setModalities() is called again with modality A
+	Then setDataSets() is called again with modality A
 
 	That will result in modality A being changed again.
 
