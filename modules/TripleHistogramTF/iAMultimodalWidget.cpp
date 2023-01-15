@@ -137,7 +137,7 @@ iAMultimodalWidget::iAMultimodalWidget(iAMdiChild* mdiChild, NumOfMod num):
 
 	connect(m_timer_updateVisualizations, &QTimer::timeout, this, &iAMultimodalWidget::onUpdateVisualizationsTimeout);
 
-	histogramAvailable();
+	dataSetAvailable();
 }
 
 // ----------------------------------------------------------------------------------
@@ -509,7 +509,8 @@ void iAMultimodalWidget::updateDataSets()
 		//}
 		//m_dataSetHistogramAvailable[i] = true;
 		auto histData = dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(m_dataSetsActive[i]))->histogramData();
-		m_copyTFs[i] = createCopyTF(i);
+		m_copyTFs[i].colorTF()->DeepCopy(dataSetTransfer(i)->colorTF());
+		m_copyTFs[i].opacityTF()->DeepCopy(dataSetTransfer(i)->opacityTF());
 
 		m_histograms[i] = QSharedPointer<iAChartWithFunctionsWidget>::create(nullptr, dataSetName(i) + " gray value", "Frequency");
 		auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(histData, QColor(70, 70, 70, 255));
@@ -558,14 +559,6 @@ void iAMultimodalWidget::resetSlicer(int i)
 	{
 		m_slicerWidgets[i]->changeData(dataSetImage(i), dataSetTransfer(i), dataSetName(i));
 	}
-}
-
-iATransferFunctionOwner iAMultimodalWidget::createCopyTF(int index)
-{
-	iATransferFunctionOwner result;
-	result.colorTF()->DeepCopy(dataSetTransfer(index)->colorTF());
-	result.opacityTF()->DeepCopy(dataSetTransfer(index)->opacityTF());
-	return result;
 }
 
 /*
@@ -902,7 +895,7 @@ int iAMultimodalWidget::getDataSetCount()
 	return 0;
 }
 
-void iAMultimodalWidget::dataSetsChangedSlot(bool, double const *)
+void iAMultimodalWidget::dataSetsChangedSlot()
 {
 	if (getDataSetCount() < m_numOfDS)
 	{

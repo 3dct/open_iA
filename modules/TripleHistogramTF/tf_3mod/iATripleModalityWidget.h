@@ -86,5 +86,4 @@ private:
 	iAHistogramAbstractType m_histogramAbstractType;
 
 	void updateDataSets();
-	std::array<QString, 3> dataSetNames();
 };

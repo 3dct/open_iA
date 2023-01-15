@@ -86,7 +86,7 @@ void iATripleModalityWidget::updateDataSets()
 
 void iATripleModalityWidget::dataSetsChanged()
 {
-	auto names = dataSetNames();
+	std::array<QString, 3> names{dataSetName(0), dataSetName(1), dataSetName(2)};
 	m_triangleWidget->updateDataSetNames(names);
 	m_histogramAbstract->updateDataSetNames(names);
 }

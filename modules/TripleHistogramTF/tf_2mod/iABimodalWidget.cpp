@@ -53,7 +53,7 @@ void iABimodalWidget::initialize()
 
 	for (int i = 0; i < 2; i++)
 	{
-		QLabel *l = new QLabel(m_mdiChild->modality(i)->name());
+		QLabel *l = new QLabel(dataSetName(i));
 		l->setStyleSheet("font-weight: bold");
 		l->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 

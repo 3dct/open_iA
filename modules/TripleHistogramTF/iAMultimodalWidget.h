@@ -25,7 +25,7 @@
 #include "iASimpleSlicerWidget.h"
 
 #include <iAChartWithFunctionsWidget.h>
-#include <iATransferFunction.h>
+#include <iATransferFunctionOwner.h>
 
 #include <vtkSmartPointer.h>
 
@@ -34,10 +34,11 @@
 #include <QVector>
 #include <QSharedPointer>
 
+#include <memory>
+
 class iADataSetRenderer;
 class iAImageData;
 class iAMdiChild;
-class iATransferFunctionOwner;
 
 class vtkCamera;
 class vtkColorTransferFunction;
@@ -72,7 +73,7 @@ private:
 	{
 		return iABCoord(1-t, t);
 	}
-	void setWeights(iABCoord bCoord, double t);
+	//void setWeights(iABCoord bCoord, double t);
 
 public:
 	iAMultimodalWidget(iAMdiChild* mdiChild, NumOfMod num);
@@ -107,14 +108,14 @@ public:
 		return m_sliceNumberLabel;
 	}
 
-	void setWeights(iABCoord bCoord)
-	{
-		setWeights(bCoord, bCoord_to_t(bCoord));
-	}
-	void setWeights(double t)
-	{
-		setWeights(t_to_bCoord(t), t);
-	}
+	//void setWeights(iABCoord bCoord)
+	//{
+	//	setWeights(bCoord, bCoord_to_t(bCoord));
+	//}
+	//void setWeights(double t)
+	//{
+	//	setWeights(t_to_bCoord(t), t);
+	//}
 	iABCoord getWeights();
 	double getWeight(int i);
 
@@ -165,7 +166,7 @@ private:
 	QString m_disabledReason;
 	QCheckBox *m_checkBox_syncedCamera;
 	// }
-	virtual void dataSetChanged() =0;
+	virtual void dataSetsChanged() =0;
 
 	QTimer *m_timer_updateVisualizations;
 	int m_timerWait_updateVisualizations;
@@ -220,7 +221,6 @@ private:
 	// Background stuff
 	//void alertWeightIsZero(QString const & name);
 	QVector<iATransferFunctionOwner> m_copyTFs;
-	iATransferFunctionOwner createCopyTF(int index);
 
 signals:
 	void weightsChanged3(iABCoord weights);
@@ -241,11 +241,10 @@ private slots:
 	void checkBoxWeightByOpacityChanged();
 	void checkBoxSyncedCameraChanged();
 
-	void dataSetsChangedSlot(bool, double const *);
+	void dataSetsChangedSlot();
 
 	void onMainSliceNumberChanged(int mode, int sliceNumber);
 
-	virtual void dataSetsChanged();
 	void dataSetAvailable();
 	void applyVolumeSettings();
 	void applySlicerSettings();
