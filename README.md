@@ -37,4 +37,4 @@ If you want to refer to the software directly, you can use the zenodo DOI; use [
 
 ## Contact
 
-**Contact:** bernhard.froehler@fh-wels.at
+bernhard.froehler@fh-wels.at / Christoph.Heinzl@uni-passau.de
