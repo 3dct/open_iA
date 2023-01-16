@@ -75,7 +75,7 @@ private slots:
 	void dataSetsLoaded_beforeUpdateSlot();
 
 private:
-	void dataSetsChanged() override;
+	void dataSetChanged(size_t dataSetIdx) override;
 	QComboBox *m_layoutComboBox;
 	void setLayoutTypePrivate(iAHistogramAbstractType type);
 

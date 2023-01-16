@@ -130,14 +130,13 @@ iAMultimodalWidget::iAMultimodalWidget(iAMdiChild* mdiChild, NumOfMod num):
 		connect(mdiChild->slicer(i), &iASlicer::sliceNumberChanged, this, &iAMultimodalWidget::onMainSliceNumberChanged);
 	}
 
-	connect(mdiChild, &iAMdiChild::dataSetRendered, this, &iAMultimodalWidget::dataSetAvailable);
+	connect(mdiChild, &iAMdiChild::dataSetRendered, this, &iAMultimodalWidget::dataSetAdded);
+	connect(mdiChild, &iAMdiChild::dataSetRemoved, this, &iAMultimodalWidget::dataSetRemoved);
 	connect(mdiChild, &iAMdiChild::renderSettingsChanged, this, &iAMultimodalWidget::applyVolumeSettings);
 	connect(mdiChild, &iAMdiChild::slicerSettingsChanged, this, &iAMultimodalWidget::applySlicerSettings);
-	connect(mdiChild, &iAMdiChild::dataSetChanged, this, &iAMultimodalWidget::dataSetsChangedSlot);
+	connect(mdiChild, &iAMdiChild::dataSetChanged, this, &iAMultimodalWidget::dataSetChangedSlot);
 
 	connect(m_timer_updateVisualizations, &QTimer::timeout, this, &iAMultimodalWidget::onUpdateVisualizationsTimeout);
-
-	dataSetAvailable();
 }
 
 // ----------------------------------------------------------------------------------
@@ -225,15 +224,15 @@ void iAMultimodalWidget::updateVisualizationsNow()
 		vtkSmartPointer<vtkImageData> slicersColored[3];
 		vtkSmartPointer<vtkImageData> slicerInput[3];
 		vtkPiecewiseFunction* slicerOpacity[3];
-		for (int modalityIndex = 0; modalityIndex < m_numOfDS; modalityIndex++)
+		for (int dataSetIdx = 0; dataSetIdx < m_numOfDS; dataSetIdx++)
 		{
-			auto channel = slicer->channel(m_channelID[modalityIndex]);
-			slicer->setChannelOpacity(m_channelID[modalityIndex], 0);
+			auto channel = slicer->channel(m_channelID[dataSetIdx]);
+			slicer->setChannelOpacity(m_channelID[dataSetIdx], 0);
 
 			// This changes everytime the TF changes!
 			auto imgMod = channel->reslicer()->GetOutput();
-			slicerInput[modalityIndex] = imgMod;
-			slicerOpacity[modalityIndex] = channel->opacityTF();
+			slicerInput[dataSetIdx] = imgMod;
+			slicerOpacity[dataSetIdx] = channel->opacityTF();
 
 			// Source: https://vtk.org/Wiki/VTK/Examples/Cxx/Images/ImageMapToColors
 			// This changes everytime the TF changes!
@@ -242,7 +241,7 @@ void iAMultimodalWidget::updateVisualizationsNow()
 			scalarValuesToColors->SetLookupTable(channel->colorTF());
 			scalarValuesToColors->SetInputData(imgMod);
 			scalarValuesToColors->Update();
-			slicersColored[modalityIndex] = scalarValuesToColors->GetOutput();
+			slicersColored[dataSetIdx] = scalarValuesToColors->GetOutput();
 		}
 		auto imgOut = m_slicerImages[mainSlicerIndex];
 
@@ -250,50 +249,50 @@ void iAMultimodalWidget::updateVisualizationsNow()
 		auto w = getWeights();
 		FOR_VTKIMG_PIXELS(imgOut, x, y, z)
 		{
-			float modRGB[3][3];
+			float dsRGB[3][3];
 			float weight[3];
 			float weightSum = 0;
-			for (int mod = 0; mod < m_numOfDS; ++mod)
+			for (int ds = 0; ds < m_numOfDS; ++ds)
 			{
 				// compute weight for this modality:
-				weight[mod] = w[mod];
+				weight[ds] = w[ds];
 				if (m_checkBox_weightByOpacity->isChecked())
 				{
-					float intensity = slicerInput[mod]->GetScalarComponentAsFloat(x, y, z, 0);
-					double opacity = slicerOpacity[mod]->GetValue(intensity);
-					weight[mod] *= std::max(m_minimumWeight, opacity);
+					float intensity = slicerInput[ds]->GetScalarComponentAsFloat(x, y, z, 0);
+					double opacity = slicerOpacity[ds]->GetValue(intensity);
+					weight[ds] *= std::max(m_minimumWeight, opacity);
 
 				}
-				weightSum += weight[mod];
+				weightSum += weight[ds];
 				// get color of this modality:
 				for (int component = 0; component < 3; ++component)
 				{
-					modRGB[mod][component] = (mod >= m_numOfDS) ? 0
-						: slicersColored[mod]->GetScalarComponentAsFloat(x, y, z, component);
-					}
+					dsRGB[ds][component] = (ds >= m_numOfDS) ? 0
+						: slicersColored[ds]->GetScalarComponentAsFloat(x, y, z, component);
+				}
 			}
 			// "normalize" weights (i.e., make their sum equal to 1):
 			if (weightSum == 0)
 			{
-				for (int mod = 0; mod < m_numOfDS; ++mod)
+				for (int ds = 0; ds < m_numOfDS; ++ds)
 				{
-					weight[mod] = 1 / m_numOfDS;
+					weight[ds] = 1 / m_numOfDS;
 				}
 			}
 			else
 			{
-				for (int mod = 0; mod < m_numOfDS; ++mod)
+				for (int ds = 0; ds < m_numOfDS; ++ds)
 				{
-					weight[mod] /= weightSum;
+					weight[ds] /= weightSum;
 				}
 			}
 			// compute and set final color values:
 			for (int component = 0; component < 3; ++component)
 			{
 				float value = 0;
-				for (int mod = 0; mod < m_numOfDS; ++mod)
+				for (int ds = 0; ds < m_numOfDS; ++ds)
 				{
-					value += modRGB[mod][component] * weight[mod];
+					value += dsRGB[ds][component] * weight[ds];
 				}
 				imgOut->SetScalarComponentFromFloat(x, y, z, component, value);
 			}
@@ -325,7 +324,7 @@ void iAMultimodalWidget::updateTransferFunction(int index)
 // Dataset management
 // ----------------------------------------------------------------------------------
 
-void iAMultimodalWidget::dataSetAvailable()
+void iAMultimodalWidget::dataSetAdded(size_t dataSetIdx)
 {
 	updateDataSets();
 
@@ -451,9 +450,10 @@ void iAMultimodalWidget::applySlicerSettings()
 	}
 }
 
-// When new modalities are added/removed
 void iAMultimodalWidget::updateDataSets()
 {
+	/*
+	
 	if (m_mdiChild->dataSets().size() >= m_numOfDS)
 	{
 		bool allModalitiesAreHere = true;
@@ -490,7 +490,8 @@ void iAMultimodalWidget::updateDataSets()
 		}
 		return;
 	}
-
+	
+	*/
 	m_channelID.clear();
 	// Initialize modalities being added
 	for (int i = 0; i < m_numOfDS; ++i)
@@ -532,11 +533,11 @@ void iAMultimodalWidget::updateDataSets()
 		m_mdiChild->initChannelRenderer(m_channelID[i], false, true);
 	}
 
-	connect((iAChartTransferFunction*)(m_histograms[0]->functions()[0]), &iAChartTransferFunction::changed, this, &iAMultimodalWidget::updateTransferFunction1);
-	connect((iAChartTransferFunction*)(m_histograms[1]->functions()[0]), &iAChartTransferFunction::changed, this, &iAMultimodalWidget::updateTransferFunction2);
+	connect((iAChartTransferFunction*)(m_histograms[0]->functions()[0]), &iAChartTransferFunction::changed, this, [this]() { updateTransferFunction(0); });
+	connect((iAChartTransferFunction*)(m_histograms[1]->functions()[0]), &iAChartTransferFunction::changed, this, [this]() { updateTransferFunction(1); });
 	if (m_numOfDS >= THREE)
 	{
-		connect((iAChartTransferFunction*)(m_histograms[2]->functions()[0]), &iAChartTransferFunction::changed, this, &iAMultimodalWidget::updateTransferFunction3);
+		connect((iAChartTransferFunction*)(m_histograms[2]->functions()[0]), &iAChartTransferFunction::changed, this, [this]() { updateTransferFunction(2); });
 	}
 
 	applyWeights();
@@ -851,13 +852,17 @@ double iAMultimodalWidget::getWeight(int i)
 
 bool iAMultimodalWidget::isReady()
 {
+	if (m_dataSetsActive.size() < m_numOfDS)
+	{
+		LOG(lvlInfo, QString("Only %1 out of %2 required datasets loaded!").arg(m_dataSetsActive.size()).arg(m_numOfDS));
+	}
 	for (int i = 0; i < m_numOfDS; i++)
 	{
 		if (m_dataSetsActive[i] == iAMdiChild::NoDataSet ||
 			!m_dataSetHistogramAvailable[i])
 		{
 			int missing = m_numOfDS - 1 - i;
-			QString modalit_y_ies_is_are = missing == 1 ? "modality is" : "modalities are";
+			QString modalit_y_ies_is_are = missing == 1 ? "dataset is" : "datasets are";
 			m_disabledReason = QString::number(missing) + " " + modalit_y_ies_is_are + " missing.";
 			LOG(lvlInfo, m_disabledReason);
 			return false;
@@ -869,7 +874,7 @@ bool iAMultimodalWidget::isReady()
 			if (dim0[0] != dimi[0] || dim0[1] != dimi[1] || dim0[2] != dimi[2])
 			{
 				m_disabledReason = "Dimensions of loaded images are not the same; but the "
-					"double/triple modality transfer function widget requires them to be the same!";
+					"transfer function widget requires them to be the same!";
 				LOG(lvlInfo, m_disabledReason);
 				return false;
 			}
@@ -895,7 +900,7 @@ int iAMultimodalWidget::getDataSetCount()
 	return 0;
 }
 
-void iAMultimodalWidget::dataSetsChangedSlot()
+void iAMultimodalWidget::dataSetChangedSlot(size_t dataSetIdx)
 {
 	if (getDataSetCount() < m_numOfDS)
 	{
@@ -905,5 +910,5 @@ void iAMultimodalWidget::dataSetsChangedSlot()
 	{
 		m_histograms[m]->setXCaption(m_mdiChild->dataSet(m_dataSetsActive[m])->name() + " gray value");
 	}
-	dataSetsChanged();
+	dataSetChanged(dataSetIdx);
 }

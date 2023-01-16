@@ -84,7 +84,7 @@ void iATripleModalityWidget::updateDataSets()
 	m_triangleWidget->update();
 }
 
-void iATripleModalityWidget::dataSetsChanged()
+void iATripleModalityWidget::dataSetChanged(size_t dataSetIdx)
 {
 	std::array<QString, 3> names{dataSetName(0), dataSetName(1), dataSetName(2)};
 	m_triangleWidget->updateDataSetNames(names);

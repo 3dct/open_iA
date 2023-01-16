@@ -194,7 +194,7 @@ public:
 	virtual bool isMagicLens2DEnabled() const = 0;
 	//! Reinitialize magic lens channel?
 	//! @deprecated, use channel mechanisms / setMagicLensInput instead!
-	virtual void reInitMagicLens(uint id, QString const& name, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf) = 0;
+	//virtual void reInitMagicLens(uint id, QString const& name, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf) = 0;
 
 	
 	//! Access the "volume stack" if a stack of volumes is loaded
@@ -350,6 +350,8 @@ signals:
 	void dataSetSelected(size_t dataSetIdx);
 	//! emitted when properties of a dataset have been changed
 	void dataSetChanged(size_t dataSetIdx);
+	//! emitted when a dataset has been removed
+	void dataSetRemoved(size_t dataSetIdx);
 
 public slots:
 	//! Updates all views (slicers, renderers)

@@ -735,6 +735,7 @@ void MdiChild::removeDataSet(size_t dataSetIdx)
 	}
 	m_dataSetViewers.erase(dataSetIdx);
 	updateDataSetInfo();
+	emit dataSetRemoved(dataSetIdx);
 }
 
 void MdiChild::clearDataSets()
@@ -2851,7 +2852,7 @@ void MdiChild::updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtk
 		}
 	}
 }
-
+/*
 void MdiChild::reInitMagicLens(uint id, QString const& name, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf)
 {
 	if (!m_isMagicLensEnabled)
@@ -2866,6 +2867,7 @@ void MdiChild::reInitMagicLens(uint id, QString const& name, vtkSmartPointer<vtk
 	setMagicLensInput(id);
 	updateSlicers();
 }
+*/
 
 int MdiChild::magicLensSize() const
 {

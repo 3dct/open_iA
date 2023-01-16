@@ -115,13 +115,22 @@ iAInSpectrTool::iAInSpectrTool( iAMainWindow * mainWnd, iAMdiChild * child ) : i
 void iAInSpectrTool::reInitXRF()
 {
 	vtkSmartPointer<vtkImageData> img = dlgXRF->GetCombinedVolume();
-	if (m_child->isMagicLens2DEnabled())
-	{
-		m_child->reInitMagicLens(m_xrfChannelID, "Spectral Color Image", img, dlgXRF->GetColorTransferFunction());
-	}
+	//if (m_child->isMagicLens2DEnabled())
+	//{
+	//	for (int s = 0; s < 3; ++s)
+	//	{
+	//		m_child->slicer(s)->updateChannel(m_xrfChannelID, iAChannelData("Spectral Color Image", img, dlgXRF->GetColorTransferFunction()));
+	//	}
+	//	m_child->setMagicLensInput(m_xrfChannelID);
+	//}
 	if (m_child->channelData(m_xrfChannelID) && m_child->channelData(m_xrfChannelID)->isEnabled())
 	{
 		m_child->updateChannel(m_xrfChannelID, img, dlgXRF->GetColorTransferFunction(), nullptr, false);
+	}
+	// TODO: NewIO Test!
+	if (m_child->isMagicLens2DEnabled())
+	{
+		m_child->setMagicLensInput(m_xrfChannelID);
 	}
 }
 

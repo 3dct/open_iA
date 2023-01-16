@@ -166,7 +166,7 @@ private:
 	QString m_disabledReason;
 	QCheckBox *m_checkBox_syncedCamera;
 	// }
-	virtual void dataSetsChanged() =0;
+	virtual void dataSetChanged(size_t dataSetIdx) =0;
 
 	QTimer *m_timer_updateVisualizations;
 	int m_timerWait_updateVisualizations;
@@ -232,20 +232,17 @@ signals:
 	void dataSetsLoaded_beforeUpdate();
 
 private slots:
-	void updateTransferFunction1() { updateTransferFunction(0); }
-	void updateTransferFunction2() { updateTransferFunction(1); }
-	void updateTransferFunction3() { updateTransferFunction(2); }
 
 	void originalHistogramChanged();
 
 	void checkBoxWeightByOpacityChanged();
 	void checkBoxSyncedCameraChanged();
 
-	void dataSetsChangedSlot();
-
 	void onMainSliceNumberChanged(int mode, int sliceNumber);
 
-	void dataSetAvailable();
+	void dataSetAdded(size_t dataSetIdx);
+	void dataSetRemoved(size_t dataSetIdx);
+	void dataSetChangedSlot(size_t dataSetIdx);
 	void applyVolumeSettings();
 	void applySlicerSettings();
 

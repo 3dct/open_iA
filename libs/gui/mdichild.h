@@ -240,7 +240,7 @@ public:
 	bool isMagicLens3DEnabled() const;
 	void setMagicLensInput(uint id) override;
 	void setMagicLensEnabled(bool isOn) override;
-	void reInitMagicLens(uint id, QString const & name, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf) override;
+	//void reInitMagicLens(uint id, QString const & name, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf) override;
 	int  magicLensSize() const;
 	int  magicLensFrameWidth() const;
 	//! @}
