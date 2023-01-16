@@ -50,22 +50,6 @@
 #include <itkTriangleThresholdImageFilter.h>
 #include <itkYenThresholdImageFilter.h>
 
-#include <vtkImageData.h>
-
-void iACopy::performWork(QVariantMap const & /*parameters*/)
-{
-	vtkNew<vtkImageData> copiedImg;
-	copiedImg->DeepCopy(imageInput(0)->vtkImage());
-	addOutput(copiedImg);
-}
-
-iACopy::iACopy() :
-	iAFilter("Copy", "",
-		"Copy the input image to output."
-		"That is, this filter simply directly returns a copy of the input, without any modifications.")
-{
-}
-
 // Binary Threshold
 
 template<class T>

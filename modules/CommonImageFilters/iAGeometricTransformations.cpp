@@ -41,6 +41,22 @@
 
 #include <QtConcurrent/qtconcurrentfilter.h>
 
+
+void iACopy::performWork(QVariantMap const& /*parameters*/)
+{
+	vtkNew<vtkImageData> copiedImg;
+	copiedImg->DeepCopy(imageInput(0)->vtkImage());
+	addOutput(copiedImg);
+}
+
+iACopy::iACopy() :
+	iAFilter("Copy", "",
+		"Copy the input image to output."
+		"That is, this filter simply directly returns a copy of the input, without any modifications.")
+{
+}
+
+
 void iAExtractComponent::performWork(QVariantMap const& parameters)
 {
 	int const componentNr = parameters["Component to extract"].toInt();

@@ -22,6 +22,8 @@
 
 #include <iAFilterDefault.h>
 
+IAFILTER_DEFAULT_CLASS(iACopy)
+
 class iAExtractComponent : public iAFilter, private iAAutoRegistration<iAFilter, iAExtractComponent, iAFilterRegistry>
 {
 public:
