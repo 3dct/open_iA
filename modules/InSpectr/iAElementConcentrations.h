@@ -46,7 +46,7 @@ public:
 	iAElementConcentrations();
 	~iAElementConcentrations();
 
-	ImageListType * getImageListPtr();
+	ImageListType& getImageList();
 
 	ImagePointerType getImage(int idx);
 

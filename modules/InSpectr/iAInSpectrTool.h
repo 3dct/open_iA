@@ -32,7 +32,6 @@ class dlg_SimilarityMap;
 class dlg_InSpectr;
 
 class iADockWidgetWrapper;
-class iAIO;
 class iAMainWindow;
 class iASlicer;
 
@@ -53,15 +52,12 @@ private slots:
 	void updateXRFOpacity( int value );
 	void updateXRF();
 	void updateXRFVoxelEnergy(double x, double y, double z, int mode );
-	void xrfLoadingDone();
-	void xrfLoadingFailed();
 	void reInitXRF();
 	void initXRF();
 	void deinitXRF();
 	void initXRF( bool enableChannel );
 	bool filter_SimilarityMap();
 	void magicLensToggled( bool isOn );
-	void ioFinished();
 
 private:
 	void updateSlicerXRFOpacity();
@@ -72,6 +68,5 @@ private:
 	dlg_RefSpectra* dlgRefSpectra;
 	dlg_SimilarityMap * dlgSimilarityMap;
 	dlg_InSpectr * dlgXRF;
-	iAIO * ioThread;
 	uint m_xrfChannelID;
 };

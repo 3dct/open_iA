@@ -29,14 +29,16 @@
 
 #include <iAChannelData.h>
 #include <iADockWidgetWrapper.h>
-#include <iALog.h>
-#include <iAMainWindow.h>
+//#include <iAMainWindow.h>
 #include <iAMdiChild.h>
+#include <iARunAsync.h>
 #include <iASlicer.h>
 #include <iAToolsVTK.h>
-#include <io/iAIO.h>
 
-#include "defines.h"    // for NotExistingChannel
+#include <iAFileTypeRegistry.h>
+
+#include <iALog.h>
+#include <defines.h>    // for NotExistingChannel
 
 #include <itkMacro.h>    // for itk::ExceptionObject
 
@@ -45,6 +47,7 @@
 #include <vtkPiecewiseFunction.h>
 
 #include <QFileDialog>
+#include <QThread>
 #include <QtMath>
 
 const QString iAInSpectrTool::Name("InSpectr");
@@ -53,7 +56,6 @@ iAInSpectrTool::iAInSpectrTool( iAMainWindow * mainWnd, iAMdiChild * child ) : i
 	dlgPeriodicTable(nullptr),
 	dlgSimilarityMap(nullptr),
 	dlgXRF(nullptr),
-	ioThread(nullptr),
 	m_xrfChannelID(NotExistingChannel)
 {
 	connect(m_child, &iAMdiChild::magicLensToggled, this, &iAInSpectrTool::magicLensToggled);
@@ -69,17 +71,17 @@ iAInSpectrTool::iAInSpectrTool( iAMainWindow * mainWnd, iAMdiChild * child ) : i
 	QString filtername = tr( "XRF" );
 	m_child->addStatusMsg( filtername );
 
-	QString f = QFileDialog::getOpenFileName(
+	QString fileName = QFileDialog::getOpenFileName(
 		QApplication::activeWindow(),
 		tr( "Open File" ),
 		m_child->filePath(),
 		tr( "All supported types (*.mhd *.raw *.volstack);;MetaImages (*.mhd *.mha);;RAW files (*.raw);;Volume Stack (*.volstack)" ) );
-	if (!QFile::exists(f))
+	if (!QFile::exists(fileName))
 	{
 		throw itk::ExceptionObject(__FILE__, __LINE__, "File does not exist");
 	}
 
-	LOG(lvlInfo, tr("Loading file '%1', please wait...").arg(f));
+	LOG(lvlInfo, tr("Loading file '%1', please wait...").arg(fileName));
 
 	auto periodicTable = new iAPeriodicTableWidget(m_child);
 	dlgPeriodicTable = new iADockWidgetWrapper(periodicTable, "Periodic Table of Elements", "PeriodicTable");
@@ -89,27 +91,69 @@ iAInSpectrTool::iAInSpectrTool( iAMainWindow * mainWnd, iAMdiChild * child ) : i
 
 	dlgXRF = new dlg_InSpectr(m_child, periodicTable, dlgRefSpectra);
 
-	ioThread = new iAIO(iALog::get(), m_child, dlgXRF->GetXRFData()->GetDataPtr() );
 	m_child->setReInitializeRenderWindows( false );
-	m_child->connectIOThreadSignals( ioThread );
-	connect( ioThread, &iAIO::done, this, &iAInSpectrTool::xrfLoadingDone);
-	connect( ioThread, &iAIO::failed, this, &iAInSpectrTool::xrfLoadingFailed);
-	connect( ioThread, &iAIO::finished, this, &iAInSpectrTool::ioFinished);
 
-	QString extension = QFileInfo( f ).suffix();
-	extension = extension.toUpper();
-	if (extensionToIdStack().find(extension) == extensionToIdStack().end())
+	auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Load);
+	if (!io)
 	{
 		throw itk::ExceptionObject(__FILE__, __LINE__, "Unsupported extension");
 	}
 
-	iAIOType id = extensionToIdStack().find(extension).value();
-	if( !ioThread->setupIO( id, f ) )
-	{
-		xrfLoadingFailed();
-		throw itk::ExceptionObject(__FILE__, __LINE__, "XRF loading failed");
-	}
-	ioThread->start();
+	auto energyRangeStr = std::make_shared<QString>();
+	runAsync(
+		[this, io, fileName, energyRangeStr]()
+		{
+			auto collection = std::dynamic_pointer_cast<iADataCollection>(io->load(fileName, QVariantMap()));
+			if (!collection)
+			{
+				return;
+			}
+			for (auto ds : collection->dataSets())
+			{
+				auto imgDS = dynamic_cast<iAImageData*>(ds.get());
+				dlgXRF->GetXRFData()->GetDataContainer().push_back(imgDS->vtkImage());
+			}
+			*energyRangeStr = collection->metaData("energy_range").toString();
+		},
+		[this, energyRangeStr]() {
+			/* xrfLoadingDone() */
+			if (dlgXRF->GetXRFData()->GetDataContainer().empty())
+			{
+				LOG(lvlError, tr("XRF data loading has failed!"));
+				delete dlgXRF;
+				delete dlgPeriodicTable;
+				delete dlgRefSpectra;
+				delete dlgSimilarityMap;
+				dlgXRF = nullptr;
+				dlgPeriodicTable = nullptr;
+				dlgRefSpectra = nullptr;
+				dlgSimilarityMap = nullptr;
+				m_child->removeTool(Name);
+			} else {
+				double minEnergy = 0;
+				double maxEnergy = dlgXRF->GetXRFData()->size();
+				bool haveEnergyLevels = false;
+				QString energyRange = *energyRangeStr;
+				if (!energyRange.isEmpty())
+				{
+					QStringList energies = energyRange.split(":");
+					if (energies.size() == 2)
+					{
+						minEnergy = energies[0].toDouble();
+						maxEnergy = energies[1].toDouble();
+						haveEnergyLevels = true;
+					}
+				}
+				dlgXRF->init(minEnergy, maxEnergy, haveEnergyLevels, m_child);
+				connect(dlgXRF->cb_spectralColorImage, &QCheckBox::stateChanged, this, &iAInSpectrTool::visualizeXRF);
+				connect(dlgXRF->sl_peakOpacity, &QSlider::valueChanged, this, &iAInSpectrTool::updateXRFOpacity);
+				connect(dlgXRF->pb_compute, &QPushButton::clicked, this, &iAInSpectrTool::updateXRF);
+				m_child->splitDockWidget(dlgRefSpectra, dlgXRF, Qt::Horizontal);
+				dlgSimilarityMap->connectToXRF(dlgXRF);
+				m_child->updateLayout();
+			}
+		}, this
+	);
 }
 
 void iAInSpectrTool::reInitXRF()
@@ -194,45 +238,6 @@ void iAInSpectrTool::updateXRFVoxelEnergy( double x, double y, double z, int /*m
 	}
 }
 
-void iAInSpectrTool::xrfLoadingDone()
-{
-	double minEnergy = 0;
-	double maxEnergy = dlgXRF->GetXRFData()->size();
-	bool haveEnergyLevels = false;
-	QString energyRange = ioThread->additionalInfo();
-	if (!energyRange.isEmpty())
-	{
-		QStringList energies = energyRange.split( ":" );
-		if (energies.size() == 2)
-		{
-			minEnergy = energies[0].toDouble();
-			maxEnergy = energies[1].toDouble();
-			haveEnergyLevels = true;
-		}
-	}
-	dlgXRF->init(minEnergy, maxEnergy, haveEnergyLevels, m_child);
-	connect( dlgXRF->cb_spectralColorImage, &QCheckBox::stateChanged, this, &iAInSpectrTool::visualizeXRF);
-	connect( dlgXRF->sl_peakOpacity, &QSlider::valueChanged, this, &iAInSpectrTool::updateXRFOpacity);
-	connect( dlgXRF->pb_compute, &QPushButton::clicked, this, &iAInSpectrTool::updateXRF);
-	m_child->splitDockWidget(dlgRefSpectra, dlgXRF, Qt::Horizontal);
-	dlgSimilarityMap->connectToXRF( dlgXRF );
-	m_child->updateLayout();
-}
-
-void iAInSpectrTool::xrfLoadingFailed()
-{
-	LOG(lvlError, tr("XRF data loading has failed!"));
-	delete dlgXRF;
-	delete dlgPeriodicTable;
-	delete dlgRefSpectra;
-	delete dlgSimilarityMap;
-	dlgXRF = nullptr;
-	dlgPeriodicTable = nullptr;
-	dlgRefSpectra = nullptr;
-	dlgSimilarityMap = nullptr;
-	m_child->removeTool(Name);
-}
-
 void iAInSpectrTool::updateSlicerXRFOpacity()
 {
 	double opacity = (double)dlgXRF->sl_peakOpacity->value() / dlgXRF->sl_peakOpacity->maximum();
@@ -312,9 +317,4 @@ void iAInSpectrTool::magicLensToggled( bool /*isOn*/ )
 		initSlicerXRF( false );
 		return;
 	}
-}
-
-void iAInSpectrTool::ioFinished()
-{
-	ioThread = nullptr;
 }

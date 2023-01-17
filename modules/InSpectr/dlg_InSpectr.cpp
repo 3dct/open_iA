@@ -45,7 +45,6 @@
 #include <iARenderer.h>
 #include <iARunAsync.h>
 #include <iASlicer.h>
-#include <io/iAIO.h>
 
 #include <iADockWidgetWrapper.h>
 
@@ -374,6 +373,8 @@ void updateSpectrumData(QSharedPointer<iAHistogramData> histData, QSharedPointer
 		++idx;
 	}
 }
+
+QString const ElementNamesKey("elementNames");
 }
 
 void dlg_InSpectr::UpdateVoxelSpectrum(int x, int y, int z)
@@ -695,11 +696,12 @@ void dlg_InSpectr::loadDecomposition()
 		LOG(lvlWarn, tr("Reference spectra have to be loaded!"));
 		return;
 	}
+	iAVolStackFileIO io;
 	QString fileName = QFileDialog::getOpenFileName(
 		QApplication::activeWindow(),
 		tr("Load File"),
 		(dynamic_cast<iAMdiChild*>(parent()))->filePath(),
-		tr("Volstack files (*.volstack);;All files (*)")
+		io.filterString()
 	);
 	if (fileName.isEmpty())
 	{
@@ -713,15 +715,20 @@ void dlg_InSpectr::loadDecomposition()
 	{
 		m_elementConcentrations->clear();
 	}
-
-	iAIO io(iALog::get(), dynamic_cast<iAMdiChild*>(parent()),
-		m_elementConcentrations->getImageListPtr()
-	);
-	io.setupIO(VOLUME_STACK_VOLSTACK_READER, fileName);
-	io.start();
-	io.wait();
-
-	QString elementNames = io.additionalInfo();
+	QVariantMap params;
+	auto collection = std::dynamic_pointer_cast<iADataCollection>(io.load(fileName, params));
+	if (!collection)
+	{
+		LOG(lvlError, tr("Invalid loading: No dataset collection returned!"));
+	}
+	auto & list = m_elementConcentrations->getImageList();
+	for (auto ds: collection->dataSets())
+	{
+		auto imgDS = dynamic_cast<iAImageData*>(ds.get());
+		list.push_back(imgDS->vtkImage());
+	}
+	
+	QString elementNames = collection->metaData(ElementNamesKey).toString();
 	QStringList elements = elementNames.split(",");
 
 	elements.replaceInStrings(QRegularExpression("^\\s+"), ""); // trim whitespaces
@@ -748,8 +755,7 @@ void dlg_InSpectr::storeDecomposition()
 	{
 		return;
 	}
-
-	QString elementInfo("elementNames: ");
+	QString elementInfo;
 	for (int i=0;i<m_decomposeSelectedElements.size(); ++i)
 	{
 		elementInfo.append(m_refSpectraLib->spectra[m_decomposeSelectedElements[i]].name());
@@ -759,15 +765,14 @@ void dlg_InSpectr::storeDecomposition()
 		}
 	}
 	iAVolStackFileIO io;
-	auto imgs = m_elementConcentrations->getImageListPtr();
-	auto volumes = std::make_shared<iADataCollection>(imgs->size(),  std::shared_ptr<QSettings>());
-	for (auto img : *imgs)
+	auto const & imgs = m_elementConcentrations->getImageList();
+	auto volumes = std::make_shared<iADataCollection>(imgs.size(),  std::shared_ptr<QSettings>());
+	for (auto img : imgs)
 	{
 		volumes->addDataSet(std::make_shared<iAImageData>(img));
 	}
-	QVariantMap paramValues;
-	paramValues[iAVolStackFileIO::AdditionalInfo] = elementInfo;
-	io.save(fileName, volumes, paramValues);
+	volumes->setMetaData(ElementNamesKey, elementInfo);
+	io.save(fileName, volumes, QVariantMap());
 }
 
 void dlg_InSpectr::combinedElementMaps(int show)
@@ -1125,7 +1130,7 @@ void dlg_InSpectr::computeSimilarityMap()
 		ImageType3D** images = new ImageType3D*[numEBins];
 		for (int i = 0; i < numEBins; ++i)
 		{
-			connectors[i].setImage((*m_xrfData->GetDataPtr())[i]);
+			connectors[i].setImage((m_xrfData->GetDataContainer())[i]);
 			connectors[i].modified();
 			images[i] = dynamic_cast<ImageType3D*>(connectors[i].itkImage());
 		}
