@@ -74,7 +74,6 @@ void write_image_template(bool comp, QString const& fileName, ImagePtr image, iA
 	writer->Update();
 }
 
-// TODO: unify with mdichild::loadfile / iAIO!
 ImagePointer readFile(QString const& fileName, PixelType& pixelType, ScalarType& scalarType,  bool releaseFlag)
 {
 	auto imageIO = itk::ImageIOFactory::CreateImageIO(getLocalEncodingFileName(fileName).c_str(), itk::ImageIOFactory::ReadMode);

@@ -205,7 +205,7 @@ void iATLGICTLoader::run()
 			fileNames->InsertNextValue(getLocalEncodingFileName(temp));
 		}
 
-		// load image stack // TODO: put to common location and use from iAIO!
+		// load image stack // TODO: maybe reuse iAImageStackFileIO here?
 		ext = ext.toLower();
 		vtkSmartPointer<vtkImageReader2> reader;
 		if (ext == "jpg" || ext == "jpeg")
