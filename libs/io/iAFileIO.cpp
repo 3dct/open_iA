@@ -72,6 +72,21 @@ std::shared_ptr<iADataSet> iAFileIO::load(QString const& fileName, QVariantMap c
 	return {};
 }
 
+QStringList iAFileIO::filterExtensions()
+{
+	auto extCpy = extensions();
+	for (auto& ext : extCpy)
+	{
+		ext = "*." + ext;
+	}
+	return extCpy;
+}
+
+QString iAFileIO::filterString()
+{
+	return QString("%1 (%2)").arg(name()).arg(filterExtensions().join(" "));
+}
+
 std::shared_ptr<iADataSet> iAFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(fileName);

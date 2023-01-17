@@ -30,7 +30,6 @@ class iAio_API iAVolStackFileIO : public iAFileIO, private iAAutoRegistration<iA
 {
 public:
 	static const QString Name;
-	static const QString AdditionalInfo;
 	iAVolStackFileIO();
 	std::shared_ptr<iADataSet> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress) override;
 	void saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress) override;

@@ -90,7 +90,6 @@ namespace
 }
 
 const QString iAVolStackFileIO::Name("Volume Stack descriptor");
-const QString iAVolStackFileIO::AdditionalInfo("AdditionalInfo");
 
 iAVolStackFileIO::iAVolStackFileIO() : iAFileIO(iADataSetType::All, iADataSetType::None)
 {
@@ -125,10 +124,12 @@ std::shared_ptr<iADataSet> iAVolStackFileIO::loadData(QString const& fileName, Q
 		throw std::runtime_error(QString("VolStack I/O: Invalid index range %1 - %2 (invalid numbers or min >= max).")
 			.arg(volStackSettings[FileKeyMinIdx]).arg(volStackSettings[FileKeyMaxIdx]).toStdString());
 	}
-	// TODO: make single dataset and append additional entries to dataset!
-	// "elementNames" "energy_range" ...
-	
 	auto result = std::make_shared<iADataCollection>(maxIdx - minIdx + 1, std::shared_ptr<QSettings>());
+	for (auto const & key : volStackSettings.keys())
+	{
+		result->setMetaData(key, volStackSettings[key]);
+	}
+
 	// use iAMultiStepProgress?
 	for (int i = minIdx; i <= maxIdx; ++i)
 	{
@@ -166,6 +167,7 @@ void iAVolStackFileIO::saveData(QString const& fileName, std::shared_ptr<iADataS
 	{
 		LOG(lvlWarn, QString("Empty %1, setting to %2").arg(iAFileStackParams::FileNameBase).arg(fi.completeBaseName()));
 		fileNameBase = fi.completeBaseName();
+		paramValues[iAFileStackParams::FileNameBase] = fileNameBase;
 	}
 	auto extension = paramValues[iAFileStackParams::Extension].toString();
 	if (extension.isEmpty())
@@ -173,20 +175,24 @@ void iAVolStackFileIO::saveData(QString const& fileName, std::shared_ptr<iADataS
 		const QString DefaultExtension = ".mhd";
 		LOG(lvlWarn, QString("Empty %1, setting to %2").arg(iAFileStackParams::Extension).arg(DefaultExtension));
 		extension = DefaultExtension;
+		paramValues[iAFileStackParams::Extension] = extension;
 	}
 	int numOfDigits = paramValues[iAFileStackParams::NumDigits].toInt();
 	int minIdx = paramValues[iAFileStackParams::MinimumIndex].toInt();
+	int maxIdx = paramValues[iAFileStackParams::MaximumIndex].toInt();
+	int expectedMaxIdx = (minIdx + collection->dataSets().size() - 1);
+	if (maxIdx != expectedMaxIdx)
+	{
+		LOG(lvlWarn, QString("Invalid value for %1; expected %2 (number of datasets given), but was %3").arg(iAFileStackParams::MaximumIndex).arg(expectedMaxIdx).arg(maxIdx));
+		maxIdx = expectedMaxIdx;
+		paramValues[iAFileStackParams::MaximumIndex] = maxIdx;
+	}
 	if (volstackFile.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
 		QTextStream out(&volstackFile);
-		out << FileKeyFileNameBase << ": " << fileNameBase << "\n"
-			<< FileKeyExtension << ": " << extension << "\n"
-			<< FileKeyNumOfDigits << ": " << numOfDigits << "\n"
-			<< FileKeyMinIdx << ": " << minIdx << "\n"
-			<< FileKeyMaxIdx << ": " << (minIdx + collection->dataSets().size() - 1) << "\n";
-		if (!paramValues[AdditionalInfo].toString().isEmpty())
+		for (auto const & key : paramValues.keys())
 		{
-			out << paramValues[AdditionalInfo].toString() << "\n";
+			out << key << ": " << paramValues[key].toString() << "\n";
 		}
 	}
 	//// write mhd images:

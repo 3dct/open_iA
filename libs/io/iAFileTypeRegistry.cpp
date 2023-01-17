@@ -38,19 +38,6 @@ namespace
 		static QMap<iADataSetType, QString> defaultExts;
 		return defaultExts;
 	}
-	QStringList ioExtensionList(iAFileIO const* io)
-	{
-		auto extCpy = io->extensions();
-		for (auto& ext : extCpy)
-		{
-			ext = "*." + ext;
-		}
-		return extCpy;
-	}
-	QString ioFilterString(iAFileIO const* io)
-	{
-		return QString("%1 (%2)").arg(io->name()).arg(ioExtensionList(io).join(" "));
-	}
 }
 
 std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileName, iAFileIO::Operation op)
@@ -92,8 +79,8 @@ QString iAFileTypeRegistry::registeredFileTypes(iAFileIO::Operation op, iADataSe
 		{   // current I/O does not support any of the allowed types
 			continue;
 		}
-		singleTypes += ioFilterString(io.get()) + ";;";
-		allExtensions.append(ioExtensionList(io.get()));
+		singleTypes += io->filterString() + ";;";
+		allExtensions.append(io->filterExtensions());
 	}
 	if (singleTypes.isEmpty())
 	{
@@ -145,7 +132,7 @@ QString iAFileTypeRegistry::defaultExtFilterString(iADataSetType type)
 		auto io = ioFactory();
 		if (io->extensions().contains(ext))
 		{
-			return ioFilterString(io.get());
+			return io->filterString();
 		}
 	}
 	LOG(lvlError, QString("No File I/O registered for default extension '%1'!").arg(ext));
