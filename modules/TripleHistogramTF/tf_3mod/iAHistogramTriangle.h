@@ -86,7 +86,7 @@ private:
 	void forwardMouseEvent(QMouseEvent *event, MouseEventType type);
 	void forwardWheelEvent(QWheelEvent *event);
 	void forwardContextMenuEvent(QContextMenuEvent *event);
-	QSharedPointer<iAChartWithFunctionsWidget> onHistogram(QPoint p, QPoint &transformed);
+	iAChartWithFunctionsWidget* onHistogram(QPoint p, QPoint &transformed);
 	bool onTriangle(QPoint p);
 	iASlicer* onSlicer(QPoint p, QPoint &transformed);
 

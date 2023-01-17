@@ -78,14 +78,14 @@ private:
 public:
 	iAMultimodalWidget(iAMdiChild* mdiChild, NumOfMod num);
 
-	QSharedPointer<iAChartWithFunctionsWidget> w_histogram(int i)
+	iAChartWithFunctionsWidget* w_histogram(int i)
 	{
-		return m_histograms[i];
+		return m_histograms[i].data();
 	}
 
-	QSharedPointer<iASimpleSlicerWidget> w_slicer(int i)
+	iASimpleSlicerWidget* w_slicer(int i)
 	{
-		return m_slicerWidgets[i];
+		return m_slicerWidgets[i].data();
 	}
 
 	QCheckBox* w_checkBox_weightByOpacity()

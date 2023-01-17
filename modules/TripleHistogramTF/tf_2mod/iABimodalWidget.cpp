@@ -58,8 +58,8 @@ void iABimodalWidget::initialize()
 		l->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
 		m_labels.push_back(l);
-		histograms.push_back(w_histogram(i).data());
-		slicers.push_back(w_slicer(i).data());
+		histograms.push_back(w_histogram(i));
+		slicers.push_back(w_slicer(i));
 	}
 
 	QWidget *optionsContainer = new QWidget();

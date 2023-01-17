@@ -90,7 +90,6 @@ iAMultimodalWidget::iAMultimodalWidget(iAMdiChild* mdiChild, NumOfMod num):
 	m_histograms(num, {}),
 	m_slicerWidgets(num, {}),
 	m_copyTFs(num, {})
-
 {
 	m_stackedLayout = new QStackedLayout(this);
 	m_stackedLayout->setStackingMode(QStackedLayout::StackOne);
@@ -212,17 +211,9 @@ void iAMultimodalWidget::updateVisualizationsNow()
 	assert(m_numOfDS != UNDEFINED);
 
 	//iATimeGuard test("updateMainSlicers");
-
-	iASlicer* slicerArray[] =
+	for (auto s = 0; s < iASlicerMode::SlicerCount; ++s)
 	{
-		m_mdiChild->slicer(iASlicerMode::YZ),
-		m_mdiChild->slicer(iASlicerMode::XY),
-		m_mdiChild->slicer(iASlicerMode::XZ)
-	};
-
-	for (int mainSlicerIndex = 0; mainSlicerIndex < 3; mainSlicerIndex++)
-	{
-		auto slicer = slicerArray[mainSlicerIndex];
+		auto slicer = m_mdiChild->slicer(s);
 
 		vtkSmartPointer<vtkImageData> slicersColored[3];
 		vtkSmartPointer<vtkImageData> slicerInput[3];
@@ -246,7 +237,7 @@ void iAMultimodalWidget::updateVisualizationsNow()
 			scalarValuesToColors->Update();
 			slicersColored[dataSetIdx] = scalarValuesToColors->GetOutput();
 		}
-		auto imgOut = m_slicerImages[mainSlicerIndex];
+		auto imgOut = m_slicerImages[s];
 
 		// if you want to try out alternative using buffers below, start commenting out here
 		auto w = getWeights();
@@ -462,20 +453,12 @@ void iAMultimodalWidget::initGUI()
 	}
 	m_mdiChild->renderer()->addRenderer(m_combinedVolRenderer);
 
-	// The next code section sets up the main slicers
-
-	iASlicer* slicerArray[] =
+	// Set up the main slicers
+	for (auto s=0; s< iASlicerMode::SlicerCount; ++s)
 	{
-		m_mdiChild->slicer(iASlicerMode::YZ),
-		m_mdiChild->slicer(iASlicerMode::XY),
-		m_mdiChild->slicer(iASlicerMode::XZ)
-	};
-
-	for (int mainSlicerIndex = 0; mainSlicerIndex < 3; mainSlicerIndex++)
-	{
-		int const *dims = slicerArray[mainSlicerIndex]->channel(m_channelID[0])->reslicer()->GetOutput()->GetDimensions();
+		int const *dims = m_mdiChild->slicer(s)->channel(m_channelID[0])->reslicer()->GetOutput()->GetDimensions();
 		// should be double const once VTK supports it:
-		double * spc = slicerArray[mainSlicerIndex]->channel(m_channelID[0])->reslicer()->GetOutput()->GetSpacing();
+		double * spc = m_mdiChild->slicer(s)->channel(m_channelID[0])->reslicer()->GetOutput()->GetSpacing();
 
 		//data->GetImageActor()->SetOpacity(0.0);
 		//data->SetManualBackground(1.0, 1.0, 1.0);
@@ -485,7 +468,7 @@ void iAMultimodalWidget::initGUI()
 		imgOut->SetDimensions(dims);
 		imgOut->SetSpacing(spc);
 		imgOut->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
-		m_slicerImages[mainSlicerIndex] = imgOut;
+		m_slicerImages[s] = imgOut;
 	}
 	connectAcrossSlicers();
 	setMainSlicerCamera();
@@ -696,7 +679,7 @@ void iAMultimodalWidget::connectMainSlicer()
 	iASlicer* slicer = m_mdiChild->slicer(m_slicerMode);
 	for (int i = 0; i < m_numOfDS; ++i)
 	{
-		connect(slicer, &iASlicer::userInteraction, w_slicer(i).data(), &iASimpleSlicerWidget::update);
+		connect(slicer, &iASlicer::userInteraction, w_slicer(i), &iASimpleSlicerWidget::update);
 		connect(w_slicer(i)->getSlicer(), &iASlicer::userInteraction, slicer, &iASlicer::update);
 	}
 }
@@ -706,7 +689,7 @@ void iAMultimodalWidget::disconnectMainSlicer()
 	iASlicer* slicer = m_mdiChild->slicer(m_slicerMode);
 	for (int i = 0; i < m_numOfDS; ++i)
 	{
-		disconnect(slicer, &iASlicer::userInteraction, w_slicer(i).data(), &iASimpleSlicerWidget::update);
+		disconnect(slicer, &iASlicer::userInteraction, w_slicer(i), &iASimpleSlicerWidget::update);
 		disconnect(w_slicer(i)->getSlicer(), &iASlicer::userInteraction, slicer, &iASlicer::update);
 	}
 }
@@ -719,7 +702,7 @@ void iAMultimodalWidget::connectAcrossSlicers()
 		{
 			if (i != j)
 			{
-				connect(w_slicer(i)->getSlicer(), &iASlicer::userInteraction, w_slicer(j).data(), &iASimpleSlicerWidget::update);
+				connect(w_slicer(i)->getSlicer(), &iASlicer::userInteraction, w_slicer(j), &iASimpleSlicerWidget::update);
 			}
 		}
 	}
@@ -733,7 +716,7 @@ void iAMultimodalWidget::disconnectAcrossSlicers()
 		{
 			if (i != j)
 			{
-				disconnect(w_slicer(i)->getSlicer(), &iASlicer::userInteraction, w_slicer(j).data(), &iASimpleSlicerWidget::update);
+				disconnect(w_slicer(i)->getSlicer(), &iASlicer::userInteraction, w_slicer(j), &iASimpleSlicerWidget::update);
 			}
 		}
 	}

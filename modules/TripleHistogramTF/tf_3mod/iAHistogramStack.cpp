@@ -57,14 +57,12 @@ void iAHistogramStack::initialize(std::array<QString, 3> const names)
 	}
 
 	QVector<iAChartWithFunctionsWidget*> histograms;
-	histograms.push_back(m_tmw->w_histogram(0).data());
-	histograms.push_back(m_tmw->w_histogram(1).data());
-	histograms.push_back(m_tmw->w_histogram(2).data());
-
 	QVector<iASimpleSlicerWidget*> slicers;
-	slicers.push_back(m_tmw->w_slicer(0).data());
-	slicers.push_back(m_tmw->w_slicer(1).data());
-	slicers.push_back(m_tmw->w_slicer(2).data());
+	for (int i = 0; i < 3; ++i)
+	{
+		histograms.push_back(m_tmw->w_histogram(i));
+		slicers.push_back(m_tmw->w_slicer(i));
+	}
 
 	m_tmw->w_triangle()->recalculatePositions();
 

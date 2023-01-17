@@ -142,6 +142,9 @@ void iAHistogramTriangle::forwardMouseEvent(QMouseEvent *event, MouseEventType e
 	WidgetType widgetType = NONE;
 	QPoint transformed = QPoint();
 	QWidget *target = nullptr;
+	
+	// TODO NEWIO: create copy of event with adapted pos
+	//QMouseEvent* newEvent = new QMouseEvent(event->type(), event->localPos(), event->button(), event->buttons(), event->modifiers(), event->source());
 	if (m_draggedType == HISTOGRAM)
 	{
 		transformed = m_transformHistograms[m_lastIndex].inverted().map(event->pos());
@@ -158,7 +161,7 @@ void iAHistogramTriangle::forwardMouseEvent(QMouseEvent *event, MouseEventType e
 		target = m_tmw->w_triangle();
 	}
 
-	else if (m_draggedType == HISTOGRAM || (m_draggedType == NONE && (target = onHistogram(event->pos(), transformed).data())))
+	else if (m_draggedType == HISTOGRAM || (m_draggedType == NONE && (target = onHistogram(event->pos(), transformed))))
 	{
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		event->setLocalPos(transformed);
@@ -230,7 +233,7 @@ void iAHistogramTriangle::forwardWheelEvent(QWheelEvent *e)
 void iAHistogramTriangle::forwardContextMenuEvent(QContextMenuEvent *e)
 {
 	QPoint transformed;
-	iAChartWithFunctionsWidget *target = onHistogram(e->pos(), transformed).data();
+	iAChartWithFunctionsWidget *target = onHistogram(e->pos(), transformed);
 	if (!target)
 	{
 		return;
@@ -241,7 +244,7 @@ void iAHistogramTriangle::forwardContextMenuEvent(QContextMenuEvent *e)
 	//update();
 }
 
-QSharedPointer<iAChartWithFunctionsWidget> iAHistogramTriangle::onHistogram(QPoint p, QPoint &transformed)
+iAChartWithFunctionsWidget* iAHistogramTriangle::onHistogram(QPoint p, QPoint &transformed)
 {
 	for (int i = 0; i < 3; i++)
 	{
