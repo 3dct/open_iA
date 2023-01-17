@@ -35,7 +35,8 @@
 #include <iALog.h>
 #include <iACSVToQTableWidgetConverter.h>
 #include <iAITKIO.h>
-#include <io/iAIOProvider.h>
+
+#include <iAProjectFileIO.h>
 
 #include <vtkIdTypeArray.h>
 
@@ -412,10 +413,10 @@ bool iAFeatureAnalyzer::doSaveProject(QString const& projectFileName)
 {
 	iAFeatureAnalyzerTool tool(nullptr, nullptr);
 	tool.setOptions(m_dataDir, m_datasetsDir);
-	
-	if (!projectFileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
+	iAProjectFileIO io;
+	if (!projectFileName.toLower().endsWith(io.extensions()[0]))
 	{
-		LOG(lvlError, QString("Only extension %1 is supported!").arg(iAIOProvider::NewProjectFileExtension));
+		LOG(lvlError, QString("Only extension %1 is supported!").arg(io.extensions()[0]));
 		return false;
 	}
 	// TODO: Unify with iAMdiChild::doSaveProject

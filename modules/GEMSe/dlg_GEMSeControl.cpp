@@ -48,9 +48,9 @@
 #include <iAJobListView.h>
 #include <iALog.h>
 #include <iAMdiChild.h>
+#include <iAMetaFileIO.h>
 #include <iAParameterDlg.h>
 #include <iAToolsITK.h>
-#include <io/iAIOProvider.h>
 
 #include <vtkImageData.h>
 
@@ -227,7 +227,7 @@ void dlg_GEMSeControl::startSampling()
 void dlg_GEMSeControl::loadSamplingSlot()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Sampling"),
-		QString(), // TODO get directory of current file
+		dynamic_cast<iAMdiChild*>(parent())->filePath(),
 		tr("Attribute Descriptor file (*.smp );;All files (*)" ) );
 	if (fileName.isEmpty())
 	{
@@ -292,7 +292,7 @@ void dlg_GEMSeControl::samplingFinished()
 void dlg_GEMSeControl::loadClusteringSlot()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load"),
-		QString(), // TODO get directory of current file
+		dynamic_cast<iAMdiChild*>(parent())->filePath(),
 		tr("Clustering filt(*.clt );;All files (*)" ) );
 	if (!fileName.isEmpty())
 	{
@@ -449,7 +449,7 @@ void dlg_GEMSeControl::clusteringFinished()
 void dlg_GEMSeControl::saveClustering()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save clustering"),
-		QString(), // TODO get directory of current file
+		dynamic_cast<iAMdiChild*>(parent())->filePath(),
 		tr("Clustering file (*.clt );;All files (*)" ) );
 	if (!fileName.isEmpty())
 	{
@@ -467,7 +467,7 @@ void dlg_GEMSeControl::dataAvailable()
 void dlg_GEMSeControl::saveAll()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save all"),
-		QString(), // TODO get directory of current file
+		dynamic_cast<iAMdiChild*>(parent())->filePath(),
 		tr("GEMSe project (*.sea );;All files (*)") );
 	if (fileName.isEmpty())
 	{
@@ -566,7 +566,7 @@ void ExportClusterIDs(QSharedPointer<iAImageTreeNode> node, std::ostream & out)
 void dlg_GEMSeControl::exportIDs()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Export cluster IDs"),
-		QString(), // TODO get directory of current file
+		dynamic_cast<iAMdiChild*>(parent())->filePath(),
 		tr("Comma-separated values (*.csv);;All files (*)"));
 	if (fileName.isEmpty())
 	{
@@ -611,11 +611,12 @@ void dlg_GEMSeControl::setRepresentative(int index)
 
 void dlg_GEMSeControl::loadRefImgSlot()
 {
+	iAMetaFileIO io;
 	QString refFileName = QFileDialog::getOpenFileName(
 		this,
 		tr("Open Files"),
-		"",
-		iAIOProvider::MetaImages
+		dynamic_cast<iAMdiChild*>(parent())->filePath(),
+		io.filterString()
 	);
 	if (refFileName.isEmpty())
 	{
@@ -656,10 +657,10 @@ void dlg_GEMSeControl::saveDerivedOutputSlot()
 	for (int i = 0; i < samplings->size(); ++i)
 	{
 		QString derivedOutputFileName = QFileDialog::getSaveFileName(this, tr("Save Derived Output"),
-			QString(), // TODO get directory of current file
+			dynamic_cast<iAMdiChild*>(parent())->filePath(),
 			tr("Derived Output (*.chr );;All files (*)"));
 		QString attributeDescriptorOutputFileName = QFileDialog::getSaveFileName(this, tr("Save Attribute Descriptor"),
-			QString(), // TODO get directory of current file
+			dynamic_cast<iAMdiChild*>(parent())->filePath(),
 			tr("Attribute Descriptor file (*.smp );;All files (*)")
 		);
 		if (derivedOutputFileName.isEmpty() || attributeDescriptorOutputFileName.isEmpty())
@@ -694,7 +695,7 @@ void dlg_GEMSeControl::saveDerivedOutput(
 void dlg_GEMSeControl::exportAttributeRangeRanking()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Store Attribute Range Rankings"),
-		QString(), // TODO get directory of current file
+		dynamic_cast<iAMdiChild*>(parent())->filePath(),
 		tr("Comma separated file (*.csv);;All files (*)"));
 	if (!fileName.isEmpty())
 	{
@@ -705,7 +706,7 @@ void dlg_GEMSeControl::exportAttributeRangeRanking()
 void dlg_GEMSeControl::exportRankings()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Store Rankings"),
-		QString(), // TODO get directory of current file
+		dynamic_cast<iAMdiChild*>(parent())->filePath(),
 		tr("Comma separated file (*.csv);;All files (*)"));
 	if (!fileName.isEmpty())
 	{
@@ -716,7 +717,7 @@ void dlg_GEMSeControl::exportRankings()
 void dlg_GEMSeControl::importRankings()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Rankings"),
-		QString(), // TODO get directory of current file
+		dynamic_cast<iAMdiChild*>(parent())->filePath(),
 		tr("Comma separated file (*.csv);;All files (*)"));
 	if (!fileName.isEmpty())
 	{

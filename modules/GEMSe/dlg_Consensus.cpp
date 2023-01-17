@@ -40,9 +40,12 @@
 #include <iAMdiChild.h>
 #include <iAParameterDlg.h>
 #include <iAParameterNames.h>
+#include <iAProgress.h>
 #include <iAQVTKWidget.h>
+#include <iARunAsync.h>
 #include <iAToolsITK.h>
-#include <io/iAIOProvider.h>
+
+#include <iAFileTypeRegistry.h>
 
 #include <iADockWidgetWrapper.h>
 
@@ -705,17 +708,23 @@ void dlg_Consensus::StoreResult()
 		LOG(lvlError, "You need to perform Voting at least once, before last Consensus result can be stored!");
 		return;
 	}
-	iAITKIO::ScalarType pixelType = iAITKIO::ScalarType::INT;
 	QString fileName = QFileDialog::getSaveFileName(this,
 		tr("Store Last Voting Result"),
 		m_folder,
-		iAIOProvider::GetSupportedSaveFormats()
+		iAFileTypeRegistry::registeredFileTypes(iAFileIO::Save, iADataSetType::Volume)
 	);
 	if (fileName.isEmpty())
 	{
 		return;
 	}
-	iAITKIO::writeFile(fileName, m_lastMVResult, pixelType);
+	auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Save);
+	auto p = std::make_shared<iAProgress>();
+	QVariantMap params; // TODO NEWIO: read params (?)!
+	auto fw = runAsync([this, io, p, fileName, params]() {
+		auto ds = std::make_shared<iAImageData>(m_lastMVResult);
+		io->save(fileName, ds, params, *p.get());
+	}, []{}, this);
+	iAJobListView::get()->addJob("Store last voting result", p.get(), fw);
 }
 
 namespace
