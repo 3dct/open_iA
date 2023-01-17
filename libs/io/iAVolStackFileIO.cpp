@@ -20,13 +20,14 @@
 * ************************************************************************************/
 #include "iAVolStackFileIO.h"
 
-#include <iAProgress.h>
-#include <iASettings.h>    // for mapFromQSettings
-
 #include "iAFileStackParams.h"
 #include "iAFileTypeRegistry.h"
-#include "iAFileUtils.h"
-#include "iAValueTypeVectorHelpers.h"
+#include "iASettingsFileHelper.h"    // for readSettingsFile
+
+#include <iAFileUtils.h>
+#include <iAProgress.h>
+#include <iASettings.h>    // for mapFromQSettings
+#include <iAValueTypeVectorHelpers.h>
 
 #include <QFileInfo>
 #include <QSettings>
@@ -42,51 +43,6 @@ namespace
 	static const QString FileKeyNumOfDigits("number_of_digits_in_index");
 	static const QString FileKeyMinIdx("minimum_index");
 	static const QString FileKeyMaxIdx("maximum_index");
-
-	// TODO NEWIO: currently only used here, with same separator, check if it can be reused somewhere
-	// similar function (getParameterValues) was used in iAIO for other uses too:
-	//     - PARS reader (not in new framework yet)
-	//     - VGI reader (now using QSettings instead)
-
-	QMap<QString, QString> readSettingsFile(QString const& fileName, QString const & keyValueSeparator = ":")
-	{
-		QFile file(fileName);
-		if (!file.open(QIODevice::ReadOnly))
-		{
-			throw std::runtime_error(QString("Could not open file %1").arg(fileName).toStdString());
-		}
-		QTextStream textStream(&file);
-		QString currentSection;
-		QMap<QString, QString> result;
-		int lineNr = 0;
-		while (!textStream.atEnd())
-		{
-			++lineNr;
-			QString currentLine = textStream.readLine();
-			if (currentLine.trimmed().isEmpty())
-			{
-				continue;
-			}
-			if (currentLine.indexOf("[") == 0 && currentLine.indexOf("]") > 0)
-			{
-				currentSection = currentLine.mid(1, currentLine.indexOf("]")-2);
-			}
-			else
-			{
-				auto tokens = currentLine.split(keyValueSeparator);
-				if (tokens.size() != 2)
-				{
-					throw std::runtime_error(QString("Invalid key/value line (#%1: %2) - could not split at separator %3")
-						.arg(lineNr).arg(currentLine).arg(keyValueSeparator).toStdString());
-				}
-				auto key = (currentSection.isEmpty() ? "" : currentSection + "/") + tokens[0].trimmed();
-				auto value = tokens[1].trimmed();
-				result[key] = value;
-			}
-		}
-		// file closed automatically by ~QFile
-		return result;
-	}
 }
 
 const QString iAVolStackFileIO::Name("Volume Stack descriptor");
