@@ -384,33 +384,30 @@ bool iANModalController::checkDataSets(const QList<std::shared_ptr<iAImageData>>
 {
 	if (dataSets.size() < 1 || dataSets.size() > 4)
 	{  // Bad: '4' is hard-coded. TODO: improve
+		LOG(lvlInfo, QString("Current number of datasets(% 1) not in valid range 1..4").arg(dataSets.size()));
 		return false;
 	}
-	/*
-	for (int i = 1; i < modalities.size(); i++) {
-		if (!matchModalities(modalities[0], modalities[i])) {
+	for (int i = 1; i < dataSets.size(); i++) {
+		auto image1 = dataSets[0]->vtkImage();
+		const int *extent1 = image1->GetExtent();
+		const double *spacing1 = image1->GetSpacing();
+		const double *origin1 = image1->GetOrigin();
+
+		auto image2 = dataSets[i]->vtkImage();
+		const int *extent2 = image2->GetExtent();
+		const double *spacing2 = image2->GetSpacing();
+		const double *origin2 = image2->GetOrigin();
+
+		if (extent1[0]  != extent2[0]  || extent1[1]  != extent2[1]  || extent1[2]  != extent2[2] ||
+			spacing1[0] != spacing2[0] || spacing1[1] != spacing2[1] || spacing1[2] != spacing2[2] ||
+			origin1[0]  != origin2[0]  || origin1[1]  != origin2[1]  || origin1[2]  != origin2[2])
+		{
+			LOG(lvlInfo, "Image dimensions, spacing or origin doesn't match!");
 			return false;
 		}
 	}
-*/
 	return true;
 }
-
-/*
-bool iANModalController::_matchModalities(std::shared_ptr<iAImageData> m1, std::shared_ptr<iAImageData> m2) {
-	auto image1 = m1->image();
-	const int *extent1 = image1->GetExtent();
-	const double *spacing1 = image1->GetSpacing();
-	const double *origin1 = image1->GetOrigin();
-
-	auto image2 = m2->image();
-	const int *extent2 = image2->GetExtent();
-	const double *spacing2 = image2->GetSpacing();
-	const double *origin2 = image2->GetOrigin();
-
-	return true;
-}
-*/
 
 void iANModalController::setDataSets(const QList<std::shared_ptr<iAImageData>>& dataSets)
 {

@@ -131,8 +131,6 @@ public:
 
 	int getDataSetCount();
 	bool containsDataSet(size_t dataSetIdx);
-	void updateDataSets();
-
 	bool isReady();
 
 	void updateTransferFunction(int index);
@@ -167,6 +165,7 @@ private:
 	QCheckBox *m_checkBox_syncedCamera;
 	// }
 	virtual void dataSetChanged(size_t dataSetIdx) =0;
+	void initGUI();
 
 	QTimer *m_timer_updateVisualizations;
 	int m_timerWait_updateVisualizations;
@@ -181,6 +180,8 @@ private:
 	//! ADD NODES TO THE EFFECTIVE ONLY (clear and repopulate with adjusted effective values)
 	//! => copy * weight ~= effective
 	void updateOriginalTransferFunction(int index);
+
+	void originalHistogramChanged(int index);
 
 	//! Resets the values of all nodes in the effective transfer function using the values present in the
 	//! copy of the transfer function, using m_weightCur for the adjustment
@@ -209,7 +210,6 @@ private:
 
 	NumOfMod m_numOfDS = UNDEFINED;
 	QVector<size_t> m_dataSetsActive;
-	QVector<bool> m_dataSetHistogramAvailable;
 
 	vtkSmartPointer<vtkSmartVolumeMapper> m_combinedVolMapper;
 	vtkSmartPointer<vtkRenderer> m_combinedVolRenderer;
@@ -233,7 +233,6 @@ signals:
 
 private slots:
 
-	void originalHistogramChanged();
 
 	void checkBoxWeightByOpacityChanged();
 	void checkBoxSyncedCameraChanged();

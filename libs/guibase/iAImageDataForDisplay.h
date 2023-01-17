@@ -44,6 +44,7 @@ public:
 	void applyPreferences(iAPreferences const& prefs) override;
 	void updatedPreferences() override;
 	void dataSetChanged() override;
+	iAChartWithFunctionsWidget* histogram();
 	QSharedPointer<iAHistogramData> histogramData() const;
 	iATransferFunction* transfer();
 	void update();

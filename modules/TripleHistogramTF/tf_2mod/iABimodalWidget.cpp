@@ -109,7 +109,7 @@ void iABimodalWidget::tChanged(double t)
 	setWeightsProtected(t);
 }
 
-void iABimodalWidget::dataSetsChanged()
+void iABimodalWidget::dataSetChanged(size_t dataSetIdx)
 {
 	for (int i = 0; i < 2; i++)
 	{

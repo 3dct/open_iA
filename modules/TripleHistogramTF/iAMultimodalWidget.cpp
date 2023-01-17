@@ -89,8 +89,6 @@ iAMultimodalWidget::iAMultimodalWidget(iAMdiChild* mdiChild, NumOfMod num):
 	m_minimumWeight(0.01),
 	m_histograms(num, {}),
 	m_slicerWidgets(num, {}),
-	m_dataSetsActive(num, iAMdiChild::NoDataSet),
-	m_dataSetHistogramAvailable(num, false),
 	m_copyTFs(num, {})
 
 {
@@ -137,6 +135,11 @@ iAMultimodalWidget::iAMultimodalWidget(iAMdiChild* mdiChild, NumOfMod num):
 	connect(mdiChild, &iAMdiChild::dataSetChanged, this, &iAMultimodalWidget::dataSetChangedSlot);
 
 	connect(m_timer_updateVisualizations, &QTimer::timeout, this, &iAMultimodalWidget::onUpdateVisualizationsTimeout);
+
+	for (auto d : m_mdiChild->dataSetMap())
+	{
+		dataSetAdded(d.first);
+	}
 }
 
 // ----------------------------------------------------------------------------------
@@ -326,7 +329,84 @@ void iAMultimodalWidget::updateTransferFunction(int index)
 
 void iAMultimodalWidget::dataSetAdded(size_t dataSetIdx)
 {
-	updateDataSets();
+	if (m_dataSetsActive.size() == m_numOfDS)
+	{
+		return;
+	}
+	/*
+	// redundant to below check for iAImageDataForDisplay:
+	auto imgData = dynamic_cast<iAImageData*>(m_mdiChild->dataSet(dataSetIdx).get());
+	if (!imgData)
+	{
+		return;
+	}
+	*/
+	auto viewer = dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(dataSetIdx));
+	if (!viewer || !viewer->histogramData())
+	{
+		return;
+	}
+	m_dataSetsActive.push_back(dataSetIdx);
+	if (m_dataSetsActive.size() == m_numOfDS)
+	{
+		initGUI();
+	}
+}
+
+void iAMultimodalWidget::dataSetRemoved(size_t dataSetIdx)
+{
+	auto idx = m_dataSetsActive.indexOf(dataSetIdx);
+	if (idx == -1)
+	{
+		return;
+	}
+	m_dataSetsActive.remove(idx, 1);
+}
+
+void iAMultimodalWidget::initGUI()
+{
+	if (m_dataSetsActive.size() < m_numOfDS)
+	{
+		return;
+	}
+	m_channelID.clear();
+	for (int ds = 0; ds < m_numOfDS; ++ds)
+	{
+		auto histData = dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(m_dataSetsActive[ds]))->histogramData();
+		m_copyTFs[ds].colorTF()->DeepCopy(dataSetTransfer(ds)->colorTF());
+		m_copyTFs[ds].opacityTF()->DeepCopy(dataSetTransfer(ds)->opacityTF());
+
+		m_histograms[ds] = QSharedPointer<iAChartWithFunctionsWidget>::create(nullptr, dataSetName(ds) + " gray value", "Frequency");
+		auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(histData, QColor(70, 70, 70, 255));
+		m_histograms[ds]->addPlot(histogramPlot);
+		m_histograms[ds]->setTransferFunction(&m_copyTFs[ds]);
+		m_histograms[ds]->update();
+
+		resetSlicer(ds);
+
+		m_channelID.push_back(m_mdiChild->createChannel());
+		auto chData = m_mdiChild->channelData(m_channelID[ds]);
+		vtkImageData* imageData = dataSetImage(ds);
+		vtkColorTransferFunction* ctf = dataSetTransfer(ds)->colorTF();
+		vtkPiecewiseFunction* otf = dataSetTransfer(ds)->opacityTF();
+		chData->setData(imageData, ctf, otf);
+		m_mdiChild->initChannelRenderer(m_channelID[ds], false, true);
+
+		connect((iAChartTransferFunction*)(m_histograms[ds]->functions()[0]), &iAChartTransferFunction::changed, this, [this, ds]() { updateTransferFunction(ds); });
+		auto viewer = dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(m_dataSetsActive[ds]));
+		if (!viewer || !viewer->histogramData())
+		{
+			LOG(lvlError, QString("DataSet %1: no viewer!").arg(ds));
+			continue;
+		}
+		connect((iAChartTransferFunction*)(viewer->histogram()->functions()[0]), &iAChartTransferFunction::changed, this, [this, ds]() { originalHistogramChanged(ds); });
+	}
+
+	applyWeights();
+
+	emit(dataSetsLoaded_beforeUpdate());
+
+	update();
 
 	if (!isReady())
 	{
@@ -450,104 +530,6 @@ void iAMultimodalWidget::applySlicerSettings()
 	}
 }
 
-void iAMultimodalWidget::updateDataSets()
-{
-	/*
-	
-	if (m_mdiChild->dataSets().size() >= m_numOfDS)
-	{
-		bool allModalitiesAreHere = true;
-		for (int i = 0; i < m_numOfDS; i++)
-		{
-			if (m_dataSetsActive[i] == iAMdiChild::NoDataSet)
-			{
-				allModalitiesAreHere = false;
-				break;
-			}
-		}
-		if (allModalitiesAreHere)
-		{
-			return; // No need to update modalities if all of them are already here!
-		}
-
-	}
-	else
-	{
-		int curNumDS = 0;
-		for (auto ds : m_mdiChild->dataSetMap())
-		{
-			auto imgDS = dynamic_cast<iAImageData*>(ds.second.get());
-			if (!imgDS)
-			{
-				continue;
-			}
-			m_dataSetsActive[curNumDS] = ds.first;
-			++curNumDS;
-		}
-		for (int i = curNumDS; i < m_numOfDS; i++)
-		{
-			m_dataSetsActive[i] = iAMdiChild::NoDataSet;
-		}
-		return;
-	}
-	
-	*/
-	m_channelID.clear();
-	// Initialize modalities being added
-	for (int i = 0; i < m_numOfDS; ++i)
-	{
-		//m_dataSetsActive[i] = m_mdiChild->modality(i);
-		// TODO: Don't duplicate code from mdichild, call it instead!
-		// Histogram {
-		//size_t newHistBins = m_mdiChild->preferences().HistogramBins;
-		//if (!m_dataSetsActive[i]->histogramData() ||
-		//	m_dataSetsActive[i]->histogramData()->valueCount() != newHistBins)
-		//{
-		//	m_dataSetsActive[i]->computeImageStatistics();
-		//	auto histData = iAHistogramData::create(
-		//		"Frequency", dataSetImage(i), newHistBins);
-		//	m_dataSetsActive[i]->setHistogramData(histData);
-		//}
-		//m_dataSetHistogramAvailable[i] = true;
-		auto histData = dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(m_dataSetsActive[i]))->histogramData();
-		m_copyTFs[i].colorTF()->DeepCopy(dataSetTransfer(i)->colorTF());
-		m_copyTFs[i].opacityTF()->DeepCopy(dataSetTransfer(i)->opacityTF());
-
-		m_histograms[i] = QSharedPointer<iAChartWithFunctionsWidget>::create(nullptr, dataSetName(i) + " gray value", "Frequency");
-		auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(histData, QColor(70, 70, 70, 255));
-		m_histograms[i]->addPlot(histogramPlot);
-		m_histograms[i]->setTransferFunction(&m_copyTFs[i]);
-		m_histograms[i]->update();
-		// }
-
-		// Slicer {
-		resetSlicer(i);
-		// }
-
-		m_channelID.push_back(m_mdiChild->createChannel());
-		auto chData = m_mdiChild->channelData(m_channelID[i]);
-		vtkImageData* imageData = dataSetImage(i);
-		vtkColorTransferFunction* ctf = dataSetTransfer(i)->colorTF();
-		vtkPiecewiseFunction* otf = dataSetTransfer(i)->opacityTF();
-		chData->setData(imageData, ctf, otf);
-		m_mdiChild->initChannelRenderer(m_channelID[i], false, true);
-	}
-
-	connect((iAChartTransferFunction*)(m_histograms[0]->functions()[0]), &iAChartTransferFunction::changed, this, [this]() { updateTransferFunction(0); });
-	connect((iAChartTransferFunction*)(m_histograms[1]->functions()[0]), &iAChartTransferFunction::changed, this, [this]() { updateTransferFunction(1); });
-	if (m_numOfDS >= THREE)
-	{
-		connect((iAChartTransferFunction*)(m_histograms[2]->functions()[0]), &iAChartTransferFunction::changed, this, [this]() { updateTransferFunction(2); });
-	}
-
-	applyWeights();
-	connect((iAChartTransferFunction*)(m_mdiChild->histogram()->functions()[0]), &iAChartTransferFunction::changed, this, &iAMultimodalWidget::originalHistogramChanged);
-
-	emit(dataSetsLoaded_beforeUpdate());
-
-	update();
-}
-
 void iAMultimodalWidget::resetSlicer(int i)
 {
 	// Slicer is replaced here.
@@ -556,7 +538,7 @@ void iAMultimodalWidget::resetSlicer(int i)
 	m_slicerWidgets[i] = QSharedPointer<iASimpleSlicerWidget>::create(nullptr, true);
 	m_slicerWidgets[i]->applySettings(m_mdiChild->slicerSettings().SingleSlicer);
 	m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-	if (m_dataSetsActive[i] != iAMdiChild::NoDataSet)
+	if (i < m_dataSetsActive.size())
 	{
 		m_slicerWidgets[i]->changeData(dataSetImage(i), dataSetTransfer(i), dataSetName(i));
 	}
@@ -579,20 +561,11 @@ void iAMultimodalWidget::alertWeightIsZero(QString const & name)
 }
 */
 
-void iAMultimodalWidget::originalHistogramChanged()
+void iAMultimodalWidget::originalHistogramChanged(int index)
 {
-	//QSharedPointer<iAModality> selected = m_mdiChild->modality(m_mdiChild->dataDockWidget()->selected());
-	size_t selectedDataSet; //= m_mdiChild->selectedDataSet();
-	for (int i = 0; i < m_numOfDS; i++)
-	{
-		if (selectedDataSet == m_dataSetsActive[i])
-		{
-			updateCopyTransferFunction(i);
-			updateTransferFunction(i);
-			updateVisualizationsLater();
-			return;
-		}
-	}
+	updateCopyTransferFunction(index);
+	updateTransferFunction(index);
+	updateVisualizationsLater();
 }
 
 void iAMultimodalWidget::updateCopyTransferFunction(int index)
@@ -646,11 +619,7 @@ void iAMultimodalWidget::updateOriginalTransferFunction(int index)
 	}
 
 	double weight = getWeight(index);
-
-	// newly set transfer function (set via the histogram)
 	auto effective = dataSetTransfer(index);
-
-	// copy of previous transfer function, to be updated in this method
 	auto & copy = m_copyTFs[index];
 
 	double valCol[6], valOp[4];
@@ -854,30 +823,20 @@ bool iAMultimodalWidget::isReady()
 {
 	if (m_dataSetsActive.size() < m_numOfDS)
 	{
-		LOG(lvlInfo, QString("Only %1 out of %2 required datasets loaded!").arg(m_dataSetsActive.size()).arg(m_numOfDS));
+		m_disabledReason = QString("Only %1 out of %2 required datasets loaded!").arg(m_dataSetsActive.size()).arg(m_numOfDS);
+		LOG(lvlInfo, m_disabledReason);
+		return false;
 	}
-	for (int i = 0; i < m_numOfDS; i++)
+	for (int i = 1; i < m_numOfDS; i++)
 	{
-		if (m_dataSetsActive[i] == iAMdiChild::NoDataSet ||
-			!m_dataSetHistogramAvailable[i])
+		int const* dim0 = dataSetImage(0)->GetDimensions();
+		int const* dimi = dataSetImage(i)->GetDimensions();
+		if (dim0[0] != dimi[0] || dim0[1] != dimi[1] || dim0[2] != dimi[2])
 		{
-			int missing = m_numOfDS - 1 - i;
-			QString modalit_y_ies_is_are = missing == 1 ? "dataset is" : "datasets are";
-			m_disabledReason = QString::number(missing) + " " + modalit_y_ies_is_are + " missing.";
+			m_disabledReason = "Dimensions of loaded images are not the same; but the "
+				"transfer function widget requires them to be the same!";
 			LOG(lvlInfo, m_disabledReason);
 			return false;
-		}
-		if (i > 0)
-		{
-			int const* dim0 = dataSetImage(0)->GetDimensions();
-			int const* dimi = dataSetImage(i)->GetDimensions();
-			if (dim0[0] != dimi[0] || dim0[1] != dimi[1] || dim0[2] != dimi[2])
-			{
-				m_disabledReason = "Dimensions of loaded images are not the same; but the "
-					"transfer function widget requires them to be the same!";
-				LOG(lvlInfo, m_disabledReason);
-				return false;
-			}
 		}
 	}
 	return true;

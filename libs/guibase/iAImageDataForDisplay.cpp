@@ -126,6 +126,11 @@ QSharedPointer<iAHistogramData> iAImageDataForDisplay::histogramData() const
 	return m_histogramData;
 }
 
+iAChartWithFunctionsWidget* iAImageDataForDisplay::histogram()
+{
+	return m_histogram;
+}
+
 iATransferFunction* iAImageDataForDisplay::transfer()
 {
 	return m_transfer.get();
