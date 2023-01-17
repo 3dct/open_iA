@@ -44,9 +44,9 @@ namespace
 	iANModalBackgroundRemover::Mask MASK_NONE = {nullptr, iANModalBackgroundRemover::MaskMode::NONE};
 	class PassthroughReducer : public iANModalDataSetReducer
 	{
-		QList<std::shared_ptr<iAImageData>> reduce(const QList<std::shared_ptr<iAImageData>>& inputModalities)
+		QList<std::shared_ptr<iAImageData>> reduce(const QList<std::shared_ptr<iAImageData>>& inputDataSets)
 		{
-			return inputModalities;
+			return inputDataSets;
 		}
 	};
 	class PassthroughBackgroundRemover : public iANModalBackgroundRemover
@@ -75,7 +75,7 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(const QList<std::s
 
 	Pipeline pipeline = choosePipeline();
 
-	if (pipeline == MR_BGR || pipeline == MR)
+	if (pipeline == DR_BGR || pipeline == DR)
 	{
 		// Dimensionality reduction
 		dataSets = chooseDataSetReducer()->reduce(dataSets);
@@ -88,7 +88,7 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(const QList<std::s
 
 	// Extract mask for background removal
 	iANModalBackgroundRemover::Mask mask;
-	if (pipeline == BGR || pipeline == BGR_MR || pipeline == MR_BGR)
+	if (pipeline == BGR || pipeline == BGR_DR || pipeline == DR_BGR)
 	{
 		mask = chooseBackgroundRemover()->removeBackground(dataSets);
 		if (mask.maskMode == iANModalBackgroundRemover::MaskMode::INVALID)
@@ -101,7 +101,7 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(const QList<std::s
 			output.maskMode = IGNORE_MASK;
 
 			// Perform background removal
-			if (pipeline != BGR_MR)
+			if (pipeline != BGR_DR)
 			{
 				dataSets = applyMask(mask.mask, dataSets);
 			}
@@ -121,7 +121,7 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(const QList<std::s
 		output.maskMode = IGNORE_MASK;
 	}
 
-	if (pipeline == BGR_MR)
+	if (pipeline == BGR_DR)
 	{
 		// Dimensionality reduction
 		dataSets = chooseDataSetReducer()->reduce(dataSets);
@@ -151,33 +151,32 @@ iANModalPreprocessor::Pipeline iANModalPreprocessor::choosePipeline()
 {
 	const QString NONE = "Passthrough";
 	const QString BGR = "Background Removal (BGR)";
-	const QString MR = "Modality Reducion (MR)";
-	const QString BGR_MR = "Get BGR mask, perform MR, apply BGR mask";
-	const QString MR_BGR = "MR then BGR";
+	const QString DR = "Dataset Reducion (DR)";
+	const QString BGR_DR = "Get BGR mask, perform DR, apply BGR mask";
+	const QString DR_BGR = "DR then BGR";
 
 	QMap<QString, Pipeline> map;
 	map.insert(NONE, Pipeline::NONE);
 	map.insert(BGR, Pipeline::BGR);
-	map.insert(MR, Pipeline::MR);
-	map.insert(BGR_MR, Pipeline::BGR_MR);
-	map.insert(MR_BGR, Pipeline::MR_BGR);
+	map.insert(DR, Pipeline::DR);
+	map.insert(BGR_DR, Pipeline::BGR_DR);
+	map.insert(DR_BGR, Pipeline::DR_BGR);
 
 	auto sel = new iANModalPreprocessorSelector("n-Modal Transfer Function preprocessing: choose steps");
-	sel->addOption(NONE, {NONE, "Do not perform any preprocessing: use modalities as-is"});
+	sel->addOption(NONE, {NONE, "Do not perform any preprocessing: use datasets as-is"});
 	sel->addOption(BGR, {BGR, "Perform background removal.\n\nYou will be able to choose a method later"});
-	sel->addOption(MR, {MR, "Perform modality reduction.\n\nYou will be able to choose a method later"});
-	sel->addOption(BGR_MR,
-		{BGR_MR,
+	sel->addOption(DR, {DR, "Perform dataset reduction.\n\nYou will be able to choose a method later"});
+	sel->addOption(BGR_DR,
+		{BGR_DR,
 			"The following steps will be performed:\n"
-			"1) Calculate a binary mask for background removal from the input modalities;\n"
-			"2) Perform modality reduction;\n"
-			"3) Apply the binary mask from step (1) onto the reduced modalities.\n\n"
-			"You will be able to choose the background removal and modality reduction methods later"});
-	sel->addOption(MR_BGR,
-		{MR_BGR,
-			"Perform modality reduction on the input modalities, then perform background removal on the reduced "
-			"modalities\n\n"
-			"You will be able to choose the background removal and modality reduction methods later"});
+			"1) Calculate a binary mask for background removal from the input dataset;\n"
+			"2) Perform dataset reduction;\n"
+			"3) Apply the binary mask from step (1) onto the reduced dataset.\n\n"
+			"You will be able to choose the background removal and dataset reduction methods later"});
+	sel->addOption(DR_BGR,
+		{DR_BGR,
+			"Perform dataset reduction on the input dataset, then perform background removal on the reduced dataset\n\n"
+			"You will be able to choose the background removal and dataset reduction methods later"});
 	QString selection = sel->exec();
 	sel->deleteLater();
 
@@ -189,12 +188,12 @@ QSharedPointer<iANModalDataSetReducer> iANModalPreprocessor::chooseDataSetReduce
 	const QString PCA = "PCA";
 	const QString NONE = "Skip";
 
-	auto sel = new iANModalPreprocessorSelector("n-Modal Transfer Function preprocessing: choose Modality Reducer");
+	auto sel = new iANModalPreprocessorSelector("n-Modal Transfer Function preprocessing: choose Dataset Reducer");
 	sel->addOption(PCA,
 		{PCA,
-			"Perform Principal Component Analysis on the input modalities and use the principal components with "
+			"Perform Principal Component Analysis on the input datasets and use the principal components with "
 			"largest variance"});
-	sel->addOption(NONE, {NONE, "Skip modality reduction and use any four modalities"});
+	sel->addOption(NONE, {NONE, "Skip dataset reduction and use any four dataset"});
 	QString selection = sel->exec();
 	sel->deleteLater();
 
@@ -285,15 +284,15 @@ QList<std::shared_ptr<iAImageData>> iANModalPreprocessor::extractNewDataSets(
 		}
 		currentDataSets.append(imgDS);
 	}
-	QList<std::shared_ptr<iAImageData>> newModalities;
-	for (auto potentiallyNewModality: dataSets)
+	QList<std::shared_ptr<iAImageData>> newDataSets;
+	for (auto potentiallyNewDataSet: dataSets)
 	{
-		if (!currentDataSets.contains(potentiallyNewModality))
+		if (!currentDataSets.contains(potentiallyNewDataSet))
 		{
-			newModalities.append(potentiallyNewModality);
+			newDataSets.append(potentiallyNewDataSet);
 		}
 	}
-	return newModalities;
+	return newDataSets;
 }
 
 void iANModalPreprocessor::addDataSetsToMdiChild(const QList<std::shared_ptr<iAImageData>>& dataSets)
@@ -311,11 +310,11 @@ inline QList<std::shared_ptr<iAImageData>> applyMask(
 	/* TODO (28th July 2020)
 	As of now, the way the mask works does not support dynamic addition of dataSets.
 
-	If setDataSets() is called with modality A
-	Then applyMask() is called (=> modality A is changed to reserve 0)
-	Then setDataSets() is called again with modality A
+	If setDataSets() is called with dataset A
+	Then applyMask() is called (=> dataset A is changed to reserve 0)
+	Then setDataSets() is called again with dataset A
 
-	That will result in modality A being changed again.
+	That will result in dataset A being changed again.
 
 	That's ok for now. In the future, if dynamic addition of dataSets is to be supported, this must be fixed!
 	*/

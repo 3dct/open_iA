@@ -39,18 +39,18 @@
 
 #include <vtkImageData.h>
 
-// Input modalities (volumes) must have the exact same dimensions
+// Input datasets must have the exact same dimensions
 QList<std::shared_ptr<iAImageData>> iANModalPCADataSetReducer::reduce(
-	const QList<std::shared_ptr<iAImageData>>& modalities_in)
+	const QList<std::shared_ptr<iAImageData>>& dataSets_in)
 {
-	// TODO: assert if all modalities have the same dimensions
+	// TODO: assert if all datasets have the same dimensions
 
 	// Set up connectors
-	std::vector<iAConnector> connectors(modalities_in.size());
-	for (int i = 0; i < modalities_in.size(); i++)
+	std::vector<iAConnector> connectors(dataSets_in.size());
+	for (int i = 0; i < dataSets_in.size(); i++)
 	{
 		connectors[i] = iAConnector();
-		connectors[i].setImage(modalities_in[i]->vtkImage());
+		connectors[i].setImage(dataSets_in[i]->vtkImage());
 	}
 
 	// Go!
@@ -58,7 +58,7 @@ QList<std::shared_ptr<iAImageData>> iANModalPCADataSetReducer::reduce(
 	ITK_TYPED_CALL(ownPCA, connectors[0].itkScalarType(), connectors);
 
 	// Set up output list
-	auto modalities = QList<std::shared_ptr<iAImageData>>();
+	auto dataSets_out = QList<std::shared_ptr<iAImageData>>();
 	for (size_t i = 0; i < connectors.size(); i++)
 	{
 		auto name = "Principal Component " + QString::number(i);
@@ -78,14 +78,10 @@ QList<std::shared_ptr<iAImageData>> iANModalPCADataSetReducer::reduce(
 
 		//m_mdiChild->dataDockWidget()->addModality(...);
 
-		modalities.append(dataSet);
+		dataSets_out.append(dataSet);
 	}
-
-	// Ready to output :)
-	// - length of output list <= maxOutputLength()
-	auto output = modalities;
-	assert(output.size() <= maxOutputLength());
-	return output;
+	assert(dataSets_out.size() <= maxOutputLength());
+	return dataSets_out;
 }
 
 template <class T>

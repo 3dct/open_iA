@@ -99,7 +99,7 @@ signals:
 
 private slots:
 	void dblClicked();
-	void changeModality(int);
+	void changeDataSet(int);
 	void changeMagicLensOpacity(int);
 	void SlicerClicked(double x, double y, double z);
 	void SlicerMouseMove(double x, double y, double z, int c);

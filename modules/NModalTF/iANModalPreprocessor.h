@@ -81,9 +81,9 @@ private:
 	{
 		NONE,
 		BGR,  // Background removal
-		MR,   // Modality reduction
-		BGR_MR,
-		MR_BGR
+		DR,   // Dataset reduction
+		BGR_DR,
+		DR_BGR
 	};
 
 	Pipeline choosePipeline();

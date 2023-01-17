@@ -204,7 +204,7 @@ iADetailView::iADetailView(iAImagePreviewWidget* prevWdgt, iAImagePreviewWidget*
 	connect(m_previewWidget, &iAImagePreviewWidget::updated, this, &iADetailView::ViewUpdated);
 
 	connect(m_previewWidget->slicer(), &iASlicer::dblClicked, this, &iADetailView::dblClicked);
-	connect(m_previewWidget->slicer(), &iASlicer::shiftMouseWheel, this, &iADetailView::changeModality);
+	connect(m_previewWidget->slicer(), &iASlicer::shiftMouseWheel, this, &iADetailView::changeDataSet);
 	connect(m_previewWidget->slicer(), &iASlicer::altMouseWheel, this, &iADetailView::changeMagicLensOpacity);
 	connect(m_previewWidget->slicer(), &iASlicer::mouseMoved, this, &iADetailView::SlicerHover);
 	connect(m_previewWidget->slicer(), &iASlicer::mouseMoved, this, &iADetailView::SlicerMouseMove);
@@ -239,14 +239,14 @@ void iADetailView::dblClicked()
 	m_magicLensEnabled = !m_magicLensEnabled;
 	if (m_magicLensEnabled)
 	{
-		changeModality(0);
+		changeDataSet(0);
 	}
 	iASlicer* slicer = m_previewWidget->slicer();
 	slicer->setMagicLensEnabled(m_magicLensEnabled);
 }
 
 
-void iADetailView::changeModality(int offset)
+void iADetailView::changeDataSet(int offset)
 {
 	// TOOD: refactor to remove duplication between here and iAMdiChild::changeModality!
 	m_magicLensDataSetIdx = (m_magicLensDataSetIdx + offset + m_dataSets.size()) % m_dataSets.size();

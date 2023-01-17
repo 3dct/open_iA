@@ -72,8 +72,6 @@ iANModalWidget::iANModalWidget(iAMdiChild* mdiChild)
 	connect(m_c, &iANModalController::allSlicersReinitialized, this, &iANModalWidget::onAllSlicersReinitialized);
 	connect(m_c, &iANModalController::histogramInitialized, this, &iANModalWidget::onHistogramInitialized);
 
-	//connect(m_mdiChild->dataDockWidget(), &dlg_modalities::modalitiesChanged, this, &iANModalWidget::onModalitiesChanged);
-
 	connect(m_c->m_dlg_labels, &iALabelsDlg::seedsAdded, this, &iANModalWidget::onSeedsAdded);
 	connect(m_c->m_dlg_labels, &iALabelsDlg::seedsRemoved, this, &iANModalWidget::onSeedsRemoved);
 	connect(m_c->m_dlg_labels, &iALabelsDlg::allSeedsRemoved, this, &iANModalWidget::onAllSeedsRemoved);

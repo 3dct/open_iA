@@ -1517,7 +1517,7 @@ iAMdiChild* MainWindow::resultChild(iAMdiChild* iaOldChild, QString const & titl
 	auto oldChild = dynamic_cast<MdiChild*>(iaOldChild);
 	if (!oldChild || oldChild->resultInNewWindow())
 	{
-		// TODO: copy all modality images, or don't copy anything here and use image from old child directly,
+		// TODO: copy all dataset images, or don't copy anything here and use image from old child directly,
 		// or nothing at all until new image available!
 		// Note that filters currently get their input from this child already!
 		MdiChild* newChild = dynamic_cast<MdiChild*>(createMdiChild(true));

@@ -685,11 +685,11 @@ void iANModalController::updateMainSlicers()
 
 		for (int dataSetIndex = 0; dataSetIndex < m_dataSets.size(); ++dataSetIndex)
 		{
-			// Get channel for modality
+			// Get channel for dataset
 			// ...this will allow us to get the 2D slice image and the transfer functions
 			auto channel = slicer->channel(m_channelIds[dataSetIndex]);
 
-			// Make modality transparent
+			// Make dataset transparent
 			// TODO: find a better way... this shouldn't be necessary
 			slicer->setChannelOpacity(m_channelIds[dataSetIndex], 0);
 
@@ -772,7 +772,7 @@ void iANModalController::updateMainSlicers()
 			Alphas opacities(numDataSets);
 			float opacitySum = 0;
 
-			// Gather the colors and opacities for this voxel xyz (for each modality)
+			// Gather the colors and opacities for this voxel xyz (for each dataset)
 			for (int ds_i = 0; ds_i < numDataSets; ++ds_i)
 			{
 #ifdef iANModal_USE_GETSCALARPOINTER

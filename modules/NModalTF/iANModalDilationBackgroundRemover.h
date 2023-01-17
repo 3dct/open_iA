@@ -83,7 +83,7 @@ private:
 
 	// return - true if a dataset and a threshold were successfully chosen
 	//        - false otherwise
-	bool selectDataSetAndThreshold(QWidget* parent, const QList<std::shared_ptr<iAImageData>>& modalities,
+	bool selectDataSetAndThreshold(QWidget* parent, const QList<std::shared_ptr<iAImageData>>& dataSets,
 		int& out_threshold, std::shared_ptr<iAImageData>& out_dataSet,
 		iANModalBackgroundRemover::MaskMode& out_maskMode);
 

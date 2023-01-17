@@ -235,7 +235,11 @@ void iADataSetRenderer::updateOutlineTransform()
 }
 
 void iADataSetRenderer::setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3)
-{}
+{
+	Q_UNUSED(p1);
+	Q_UNUSED(p2);
+	Q_UNUSED(p3);
+}
 
 void iADataSetRenderer::removeCuttingPlanes()
 {}

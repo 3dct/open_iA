@@ -60,8 +60,6 @@ private slots:
 	void onAllSlicersReinitialized();
 	void onHistogramInitialized(int index);
 
-	//void onModalitiesChanged();
-
 	void onSeedsAdded(const QList<iASeed>&);
 	void onSeedsRemoved(const QList<iASeed>&);
 	void onAllSeedsRemoved();

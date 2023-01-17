@@ -209,28 +209,6 @@ QString iAImageData::info() const
 			.arg(spc[0]).arg(spc[1]).arg(spc[2])
 			.arg(m_img->GetNumberOfScalarComponents()) +
 		QString("Data type: %1\n").arg(mapVTKTypeToReadableDataType(m_img->GetScalarType()));
-	/*
-	if (m_img->GetNumberOfScalarComponents() == 1)  //No histogram statistics for rgb, rgba or vector pixel type images
-	{
-		if (info.isComputing())
-		{
-			lWidget->addItem("    Statistics are currently computing...");
-		}
-		else if (info.voxelCount() == 0)
-		{
-			lWidget->addItem("    Statistics not computed yet. Activate modality (by clicking on it) to do so.");
-		}
-		else
-		{
-			lWidget->addItem(tr("    VoxelCount: %1;  Min: %2;  Max: %3;  Mean: %4;  StdDev: %5;")
-								 .arg(info.voxelCount())
-								 .arg(info.min())
-								 .arg(info.max())
-								 .arg(info.mean())
-								 .arg(info.standardDeviation()));
-		}
-	}
-	*/
 }
 
 std::array<double, 3> iAImageData::unitDistance() const

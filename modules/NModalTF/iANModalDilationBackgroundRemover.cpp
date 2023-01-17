@@ -245,7 +245,7 @@ iANModalDilationBackgroundRemover::iANModalDilationBackgroundRemover(iAMdiChild*
 }
 
 iANModalBackgroundRemover::Mask iANModalDilationBackgroundRemover::removeBackground(
-	const QList<std::shared_ptr<iAImageData>>& modalities)
+	const QList<std::shared_ptr<iAImageData>>& dataSets)
 {
 	std::shared_ptr<iAImageData> selectedMod;
 	iANModalBackgroundRemover::MaskMode maskMode;
@@ -253,7 +253,7 @@ iANModalBackgroundRemover::Mask iANModalDilationBackgroundRemover::removeBackgro
 	//int loThresh = 0;
 	int regionCountGoal = 1;
 
-	bool skipped = !selectDataSetAndThreshold(nullptr, modalities, upThresh, selectedMod, maskMode);
+	bool skipped = !selectDataSetAndThreshold(nullptr, dataSets, upThresh, selectedMod, maskMode);
 	if (skipped)
 	{
 		return {nullptr, INVALID};
@@ -293,7 +293,7 @@ iANModalBackgroundRemover::Mask iANModalDilationBackgroundRemover::removeBackgro
 	}
 }
 
-// return - true if a modality and a threshold were successfully chosen
+// return - true if a dataset and a threshold were successfully chosen
 //        - false otherwise
 bool iANModalDilationBackgroundRemover::selectDataSetAndThreshold(QWidget* parent,
 	const QList<std::shared_ptr<iAImageData>>& dataSets, int& out_threshold,
@@ -310,7 +310,7 @@ bool iANModalDilationBackgroundRemover::selectDataSetAndThreshold(QWidget* paren
 	auto displayLayout = new QVBoxLayout(displayWidget);
 	{
 		auto displayLabel = new QLabel(
-			"Select modality for the thresholding step of the dilation-based background removal", displayWidget);
+			"Select dataset for the thresholding step of the dilation-based background removal", displayWidget);
 
 		m_display = new iANModalDisplay(displayWidget, m_mdiChild, dataSets, 1, 1);
 		m_threholdingMaskChannelId = m_display->createChannel();

@@ -1317,7 +1317,6 @@ void iASensitivityInfo::showSpatialOverview()
 
 void iASensitivityInfo::setSpatialOverviewTF(int dataSetIdx)
 {
-	//auto mod = m_child->modality(modalityIdx);
 	double range[2];
 	if (m_gui->m_settings->cbLimitSpatialOverviewRange->isChecked())
 	{  // for "mean objects", fix range to 0..1
@@ -1411,7 +1410,7 @@ void iASensitivityInfo::setSpatialOverviewTF(int dataSetIdx)
 void iASensitivityInfo::spatialOverviewVisibilityChanged(bool visible)
 {
 	if (visible)
-	{	// if current modality was made visible -> make sure scalar bar widget is shown
+	{	// if current dataset was made visible -> make sure scalar bar widget is shown
 		m_gui->m_scalarBarWidget->On();
 		m_gui->m_scalarBarMinText->On();
 		m_gui->m_scalarBarMaxText->On();
@@ -1422,7 +1421,7 @@ void iASensitivityInfo::spatialOverviewVisibilityChanged(bool visible)
 	for (auto ds : m_child->dataSetMap())
 	{
 		if (m_child->dataSetRenderer(ds.first)->isVisible())
-		{	// ..or any other modality is visible  -> Nothing to do
+		{	// ..or any other dataset is visible  -> Nothing to do
 			return;
 		}
 	}

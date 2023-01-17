@@ -236,7 +236,6 @@ void iATLGICTLoader::run()
 		reader->Update();
 		vtkSmartPointer<vtkImageData> img = reader->GetOutput();
 
-		// add modality
 		QString dataSetName = subDirFileInfo.baseName();
 		dataSetName = dataSetName.left(dataSetName.length() - 4); // 4 => length of "_rec"
 
