@@ -27,6 +27,7 @@ QMap<QString, QString> readSettingsFile(QString const& fileName)
 {
 	QFile file(fileName);
 	QString const& KeyValueSeparator = ":";
+	QString const& CommentSeparator = "%";
 	if (!file.open(QIODevice::ReadOnly))
 	{
 		throw std::runtime_error(QString("Could not open file %1").arg(fileName).toStdString());
@@ -42,14 +43,15 @@ QMap<QString, QString> readSettingsFile(QString const& fileName)
 		{
 			continue;
 		}
-		auto tokens = currentLine.split(KeyValueSeparator);
-		if (tokens.size() != 2)
+		auto tokensComment = currentLine.split(CommentSeparator); // throw away everything after first comment separator character
+		auto firstSep = tokensComment[0].indexOf(KeyValueSeparator);
+		if (firstSep == -1)
 		{
 			throw std::runtime_error(QString("Invalid key/value line (#%1: %2) - could not split at separator %3")
 				.arg(lineNr).arg(currentLine).arg(KeyValueSeparator).toStdString());
 		}
-		auto key = tokens[0].trimmed();
-		auto value = tokens[1].trimmed();
+		auto key = tokensComment[0].first(firstSep).trimmed();     // everything up until the separator
+		auto value = tokensComment[0].sliced(firstSep+1).trimmed();  // everything after key value separator
 		result[key] = value;
 	}
 	// file closed automatically by ~QFile

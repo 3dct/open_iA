@@ -74,3 +74,11 @@ iAbase_API void determineStackParameters(QString const & fullFileName,
 
 //! from the given string, filter all potentially unsafe/disallowed characters to return a valid filename
 iAbase_API QString safeFileName(QString str);
+
+//! For a given filename, test if it exists; if it does not exist,
+//! try correcting the filename by using the given base path as file path instead of the one specified in the filename itself (if any)
+//! @param fileName the file name to check for existence; can both be an absolute or a relative file name
+//! @param basePath the folder to use as basis for checking where the file could be
+//! @return the fileName parameter if the file that references exists, or a modified version using basePath as path if that exists
+//! @throw std::runtime_error if the file could not be found even when trying correcting
+iAbase_API QString tryFixFileName(QString const& fileName, QString const& basePath);

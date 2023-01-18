@@ -103,33 +103,7 @@ std::shared_ptr<iADataSet> iAVGIFileIO::loadData(QString const& fileName, QVaria
 	rawFileParams[iARawFileIO::HeadersizeStr] = vgiFileSettings.value("file1/SkipHeader").toInt();
 	rawFileParams[iARawFileIO::ByteOrderStr] = ByteOrder::LittleEndianStr;
 
-	auto rawFileName = vgiFileSettings.value("file1/Name").toString();
-	if (rawFileName.isEmpty())
-	{
-		LOG(lvlError, "VGI reader: Data file path is empty!");
-		return {};
-	}
-	QFileInfo fi(fileName);
-	if (!QFile::exists(rawFileName))
-	{
-		if ((rawFileName.lastIndexOf("\\") == -1) && (rawFileName.lastIndexOf("/") == -1))
-		{
-			rawFileName = fi.canonicalPath() + "/" + rawFileName;
-		}
-		else if (rawFileName.lastIndexOf("\\") > 0)
-		{
-			rawFileName = fi.canonicalPath() + "/" + rawFileName.section('\\', -1);
-		}
-		else if (rawFileName.lastIndexOf("/") > 0)
-		{
-			rawFileName = fi.canonicalPath() + "/" + rawFileName.section('/', -1);
-		}
-	}
-	if (!QFile::exists(rawFileName))
-	{
-		LOG(lvlError, QString("VGI reader: Data file path in VGI points to a non-existing file %1").arg(rawFileName));
-		return {};
-	}
+	auto rawFileName = tryFixFileName(vgiFileSettings.value("file1/Name").toString(), QFileInfo(fileName).canonicalPath());
 	iARawFileIO io;
 	return io.load(rawFileName, rawFileParams, progress);
 }

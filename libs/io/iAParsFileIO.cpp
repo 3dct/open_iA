@@ -20,19 +20,14 @@
 * ************************************************************************************/
 #include "iAParsFileIO.h"
 
-//#include "iAFileUtils.h"
-//#include "iAProgress.h"
-//#include "iAStringHelper.h"
-#include "iAToolsVTK.h"  // for ByteOrder
-//#include "iAValueTypeVectorHelpers.h"
+#include "iAFileUtils.h"    // for tryFixFileName
+#include "iAToolsVTK.h"     // for ByteOrder
 
 #include "iARawFileIO.h"
-#include "iASettingsFileHelper.h"    // for readSettingsFile
+#include "iASettingsFileHelper.h"  // for readSettingsFile
 
 #include <iALog.h>
 #include <iAStringHelper.h>
-
-//#include <vtkImageData.h>
 
 #include <QFile>
 #include <QFileInfo>
@@ -41,38 +36,27 @@
 
 namespace
 {
-	// remove comments, trim
-	QString cleanSettingsValue(QString const& val)
-	{
-		QString result = val;
-		if (result.contains("%"))
-		{
-			result = result.split("%")[0];
-		}
-		return result.trimmed();
-	}
 	// split string value into a given generic type of number of numeric values (throwing exception on any error)
 	template <typename T>
 	QVector<T> getNumFromSettings(QMap<QString, QString> const& settings, QString const & key, int numVals)
 	{
-		auto cleanVal = cleanSettingsValue(settings[key]);
-		auto valList = cleanVal.split(" ");
+		auto valList = settings[key].split(" ");
 		if (valList.size() != numVals)
 		{
 			throw std::runtime_error(
 				QString("Pars file: Invalid value for key '%1': should have %2 numbers but has %3 (value: %4)")
-				.arg(key).arg(numVals).arg(valList.size()).arg(cleanVal).toStdString());
+				.arg(key).arg(numVals).arg(valList.size()).arg(settings[key]).toStdString());
 		}
 		QVector<T> result;
 		for (auto s: valList)
 		{
 			bool ok;
-			iAConverter<T>::toT(s, &ok);
+			result.push_back(iAConverter<T>::toT(s, &ok));
 			if (!ok)
 			{
 				throw std::runtime_error(
 					QString("Pars file: Invalid value for key '%1'; should have contained numbers but part '%2' contains something invalid (value: %3)!")
-					.arg(key).arg(s).arg(cleanVal).toStdString());
+					.arg(key).arg(s).arg(settings[key]).toStdString());
 			}
 		}
 		return result;
@@ -99,36 +83,16 @@ std::shared_ptr<iADataSet> iAParsFileIO::loadData(QString const& fileName, QVari
 	spacing.push_back(std::min(spacing[0], spacing[1]));
 	rawFileParams[iARawFileIO::SpacingStr] = QVariant::fromValue(spacing);
 
-	auto proj_datatype = cleanSettingsValue(fileSettings["proj_datatype"]);
-	rawFileParams[iARawFileIO::DataTypeStr] = proj_datatype == "intensity" ? VTK_UNSIGNED_SHORT : VTK_FLOAT;
+	auto proj_datatype = fileSettings["proj_datatype"];
+	rawFileParams[iARawFileIO::DataTypeStr] = mapVTKTypeToReadableDataType(
+		proj_datatype == "intensity" ? VTK_UNSIGNED_SHORT : VTK_FLOAT);
 
 	// default values for things not configurable in pars file:
 	rawFileParams[iARawFileIO::HeadersizeStr] = 0;
 	rawFileParams[iARawFileIO::ByteOrderStr] = ByteOrder::LittleEndianStr;
 	rawFileParams[iARawFileIO::OriginStr] = QVariant::fromValue(QVector<double>{0.0, 0.0, 0.0});
 
-	auto rawFileNameOrig = cleanSettingsValue(fileSettings["proj_filename_template_1"]);
-	auto rawFileName = rawFileNameOrig;
-	QFileInfo fileInfo(rawFileName);
-	if (!QFile::exists(rawFileName))
-	{
-		if ((rawFileName.lastIndexOf("\\") == -1) && (rawFileName.lastIndexOf("/") == -1))
-		{
-			rawFileName = fileInfo.canonicalPath() + "/" + rawFileName;
-		}
-		else if (rawFileName.lastIndexOf("\\") > 0)
-		{
-			rawFileName = fileInfo.canonicalPath() + "/" + rawFileName.section('\\', -1);
-		}
-		else if (rawFileName.lastIndexOf("/") > 0)
-		{
-			rawFileName = fileInfo.canonicalPath() + "/" + rawFileName.section('/', -1);
-		}
-	}
-	if (!QFile::exists(rawFileName))
-	{
-		throw std::runtime_error(QString("File path in PARS is wrong, file (%1) does not exist").arg(rawFileNameOrig).toStdString());
-	}
+	auto rawFileName = tryFixFileName(fileSettings["proj_filename_template_1"], QFileInfo(fileName).canonicalPath());
 	iARawFileIO io;
 	return io.load(rawFileName, rawFileParams, progress);
 }

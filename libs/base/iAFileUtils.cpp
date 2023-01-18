@@ -186,3 +186,28 @@ QString safeFileName(QString str)
 {
 	return str.replace(QRegularExpression("[\\\\/:;*?!\"'`<>{}|#%&$@+= ]"), "_");
 }
+
+QString tryFixFileName(QString const& fileName, QString const& basePath)
+{
+	auto rawFileName = fileName;
+	if (!QFile::exists(rawFileName))
+	{
+		if ((rawFileName.lastIndexOf("\\") == -1) && (rawFileName.lastIndexOf("/") == -1))
+		{
+			rawFileName = basePath + "/" + rawFileName;
+		}
+		else if (rawFileName.lastIndexOf("\\") > 0)
+		{
+			rawFileName = basePath + "/" + rawFileName.section('\\', -1);
+		}
+		else if (rawFileName.lastIndexOf("/") > 0)
+		{
+			rawFileName = basePath + "/" + rawFileName.section('/', -1);
+		}
+	}
+	if (!QFile::exists(rawFileName))
+	{
+		throw std::runtime_error(QString("Raw file name is wrong, file (%1) does not exist").arg(fileName).toStdString());
+	}
+	return rawFileName;
+}
