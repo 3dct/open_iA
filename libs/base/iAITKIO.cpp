@@ -36,15 +36,18 @@ namespace iAITKIO
 {
 
 template <class T>
-void read_image_template(QString const& f, ImagePointer& image, bool releaseFlag)
+void read_image_template(QString const& f, ImagePointer& image, bool releaseFlag, iAProgress const * progress)
 {
 	typedef itk::Image<T, Dim> InputImageType;
 	typedef itk::ImageFileReader<InputImageType> ReaderType;
 	typename ReaderType::Pointer reader = ReaderType::New();
-
 	if (releaseFlag)
 	{
 		reader->ReleaseDataFlagOn();
+	}
+	if (progress)
+	{
+		progress->observe(reader);
 	}
 	reader->SetFileName(getLocalEncodingFileName(f));
 	reader->Update();
@@ -74,7 +77,7 @@ void write_image_template(bool comp, QString const& fileName, ImagePtr image, iA
 	writer->Update();
 }
 
-ImagePointer readFile(QString const& fileName, PixelType& pixelType, ScalarType& scalarType,  bool releaseFlag)
+ImagePointer readFile(QString const& fileName, PixelType& pixelType, ScalarType& scalarType, bool releaseFlag, iAProgress const * progress)
 {
 	auto imageIO = itk::ImageIOFactory::CreateImageIO(getLocalEncodingFileName(fileName).c_str(), itk::ImageIOFactory::ReadMode);
 
@@ -89,7 +92,7 @@ ImagePointer readFile(QString const& fileName, PixelType& pixelType, ScalarType&
 	scalarType = imageIO->GetComponentType();
 	pixelType  = imageIO->GetPixelType();
 	ImagePointer image;
-	ITK_EXTENDED_TYPED_CALL(read_image_template, scalarType, pixelType, fileName, image, releaseFlag);
+	ITK_EXTENDED_TYPED_CALL(read_image_template, scalarType, pixelType, fileName, image, releaseFlag, progress);
 
 	return image;
 }

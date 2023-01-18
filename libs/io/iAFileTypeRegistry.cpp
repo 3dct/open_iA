@@ -45,13 +45,22 @@ std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileName, 
 	QFileInfo fi(fileName);
 	// special handling for directory ? TLGICT-loader... -> fi.isDir();
 	auto fileExt = fi.suffix().toLower();
+	// check for whether we have a two-parts suffix (such as .nii.gz or the like)
+	// we need to find the second to last "." and extract the extension from its position
+	auto fileExtFull = fileExt;
+	auto secondLastDotPos = fi.fileName().lastIndexOf(".", -(fileExt.size() + 2));
+	if (secondLastDotPos != -1)
+	{
+		fileExtFull = fi.fileName().right(fi.fileName().size() - (secondLastDotPos+1));
+	}
 
 	for (auto c : fileIOs())
 	{
 		auto io = c();
 		for (auto ioExt : io->extensions())
 		{
-			if (fileExt == ioExt && io->supportedDataSetTypes(op) != iADataSetType::None)
+			if ( (fileExt == ioExt || fileExtFull == ioExt) &&
+				io->supportedDataSetTypes(op) != iADataSetType::None)
 			{
 				return io;
 			}
