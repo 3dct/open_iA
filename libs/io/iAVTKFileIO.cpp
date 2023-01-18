@@ -135,7 +135,7 @@ std::shared_ptr<iADataSet> iAVTKFileIO::loadData(QString const& fileName, QVaria
 	}
 	else
 	{
-		LOG(lvlWarn, "This type of vtk format is currently not supported");
+		LOG(lvlWarn, "This type of dataset within a vtk format is currently not supported");
 		return {};
 	}
 }

@@ -131,5 +131,5 @@ QString iADCMFileIO::name() const
 
 QStringList iADCMFileIO::extensions() const
 {
-	return QStringList{ "dcm" };
+	return QStringList{ "dcm", "dicom" };
 }

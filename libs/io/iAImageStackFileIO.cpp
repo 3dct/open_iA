@@ -100,6 +100,7 @@ iAImageStackFileIO::iAImageStackFileIO() : iAFileIO(iADataSetType::Volume, iADat
 std::shared_ptr<iADataSet> iAImageStackFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
 //#if RAW_LOAD_METHOD == ITK
+// 	   test itkImageSeriesReader ?
 //#else
 	auto ext = QFileInfo(fileName).suffix().toLower();
 
@@ -166,7 +167,7 @@ QString iAImageStackFileIO::name() const
 
 QStringList iAImageStackFileIO::extensions() const
 {
-	return QStringList{ "bmp", "jpg", "jpeg", "png", "tif", "tiff" };
+	return QStringList{ "bmp", "jpg", "jpeg", "png", "tif", "tiff" }; //TODO NEWIO: check jpeg2000 support
 }
 
 bool iAImageStackFileIO::isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName) const
