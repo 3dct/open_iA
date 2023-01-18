@@ -32,6 +32,7 @@ class vtkColorTransferFunction;
 class vtkImageData;
 class vtkPiecewiseFunction;
 
+// replace through view on a collection of image dataset viewers
 class iAguibase_API iAVolumeStack
 {
 	public:

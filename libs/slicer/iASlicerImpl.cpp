@@ -1449,7 +1449,7 @@ void iASlicerImpl::printVoxelInformation()
 	}
 	if (m_linkedMdiChild)
 	{
-		QList<iAMdiChild*> mdiwindows = m_linkedMdiChild->mainWnd()->mdiChildList();
+		QList<iAMdiChild*> mdiwindows = iAMainWindow::get()->mdiChildList();
 		for (int i = 0; i < mdiwindows.size(); i++)
 		{
 			iAMdiChild *tmpChild = mdiwindows.at(i);

@@ -315,11 +315,6 @@ void iAModuleDispatcher::SaveModulesSettings() const
 	}
 }
 
-iAMainWindow * iAModuleDispatcher::mainWnd() const
-{
-	return m_mainWnd;
-}
-
 iAMainWindow* iAMainWindow::m_mainWnd = nullptr;
 
 iAMainWindow* iAMainWindow::get()

@@ -72,9 +72,6 @@ class MainWindow;
 class dlg_modalities;
 class iAAlgorithm;
 class iAChannelData;
-class iAIO;
-class iAModality;
-class iAModalityList;
 class iATool;
 class iAVolumeStack;
 
@@ -109,7 +106,6 @@ public:
 	//! @{ @deprecated
 	void showPoly();
 	bool displayResult(QString const & title, vtkImageData* image = nullptr, vtkPolyData* poly = nullptr) override;
-	void prepareForResult();
 	//! @}
 	bool saveNew();
 	void saveVolumeStack();
@@ -141,13 +137,13 @@ public:
 	iAPreferences    const & preferences()    const override;
 	iAVolumeStack * volumeStack() override;
 	//! @{
-	//! @deprecated iAAlgorithm/iAIO will be removed soon. use iAFilter / iAFileTypeRegistry instead
+	//! @deprecated iAAlgorithm will be removed soon. use iAFilter / iAFileTypeRegistry instead
 	void connectThreadSignalsToChildSlots(iAAlgorithm* thread) override;
 	void connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread);
 	//! @}
 
 	//! Access to "main" polydata object (if any)
-	//! @deprecated move out of mdi child, into something like an iAModality
+	//! @deprecated use dataSet infrastructure instead
 	vtkPolyData* polyData() override;
 
 	//! Access to the 3D renderer widget
@@ -171,8 +167,6 @@ public:
 	QDockWidget* dataInfoDockWidget() override;
 	//! Access to histogram dock widget
 	QDockWidget* histogramDockWidget() override;
-	//! Access to modalities dock widget
-	dlg_modalities* dataDockWidget() override;
 
 	void setReInitializeRenderWindows(bool reInit) override;
 	vtkTransform* slicerTransform() override;
@@ -234,18 +228,16 @@ public:
 	int  magicLensFrameWidth() const;
 	//! @}
 
-	iAMainWindow* mainWnd() override;
-	//! Apply current volume settings to all modalities in the current list in dlg_modalities.
+	//! Apply the given volume settings to all datasets
 	void applyVolumeSettings(const bool loadSavedVolumeSettings);
 	//! Returns the name of the layout currently applied to this child window.
 	QString layoutName() const override;
 	//! Loads the layout with the given name from the settings store, and tries to restore the according dockwidgets configuration
 	void loadLayout(QString const & layout) override;
 
-	int chooseModalityNr(QString const & caption = "Choose Channel") override;
 	//! If given modality has more than one component, ask user to choose one of them.
 	//! (currently used for determining which modality to save)
-	int chooseComponentNr(int modalityNr);
+	//int chooseComponentNr(int modalityNr);
 
 	std::shared_ptr<iADataSet> chooseDataSet(QString const& title = "Choose dataset") override;
 
@@ -275,27 +267,6 @@ public:
 	bool profileHandlesEnabled() const;
 	//! whether this child has a profile plot (only has one if "normal" volume data loaded)
 	bool hasProfilePlot() const;
-	
-	//! @{ deprecated
-	//! Clear current histogram (i.e. don't show it anymore)
-	void clearHistogram() override;
-	//! Set the list of modalities for this window.
-	void setModalities(QSharedPointer<iAModalityList> modList) override;
-	//! Retrieve the list of all currently loaded modalities.
-	QSharedPointer<iAModalityList> modalities() override;
-	//! Retrieve data for modality with given index.
-	QSharedPointer<iAModality> modality(int idx) override;
-	bool meshDataMovable();
-	void setMeshDataMovable(bool movable);
-	bool statisticsComputed(QSharedPointer<iAModality>);
-	bool statisticsComputable(QSharedPointer<iAModality>, int modalityIdx = -1);
-	void computeStatisticsAsync(std::function<void()> callbackSlot, QSharedPointer<iAModality> modality);
-	//! @}
-
-	//! @{ deprecated
-	bool histogramComputed(size_t newBinCount, QSharedPointer<iAModality>) override;
-	void computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality>) override;
-	//! @}
 
 	void set3DControlVisibility(bool visible) override;
 
@@ -346,7 +317,7 @@ public slots:
 	void removeFinishedAlgorithms();
 	//! @}
 
-	bool updateVolumePlayerView(int updateIndex, bool isApplyForAll);
+	void updateVolumePlayerView(int updateIndex, bool isApplyForAll);
 
 	//! Calls the camPosition function of iARenderer (described there in more detail).
 	//! @param camOptions All informations of the camera stored in a double array
@@ -374,12 +345,9 @@ private slots:
 	void updateRenderWindows(int channels);
 	void updatePositionMarker(double x, double y, double z, int mode);
 	void updateDataSetInfo();
-	void histogramDataAvailable(int modalityIdx);
-	void statisticsAvailable(int modalityIdx);
 	void changeMagicLensDataSet(int chg);
 	void changeMagicLensOpacity(int chg);
 	void changeMagicLensSize(int chg);
-	void modalityAdded(int modalityIdx);
 	void toggleFullScreen();
 	void styleChanged();
 
@@ -388,7 +356,6 @@ private:
 	bool addVolumePlayer();
 	void addProfile();
 	void updateProfile();
-	bool saveAs(int modalityNr);
 	bool saveNew(std::shared_ptr<iADataSet> dataSet);
 	bool saveNew(std::shared_ptr<iADataSet> dataSet, QString const & fileName);
 	void set3DSlicePlanePos(int mode, int slice);
@@ -408,20 +375,12 @@ private:
 
 	//! @{ @deprecated
 	bool initView(QString const& title);
+	void setupViewInternal(bool active);
 	void connectSignalsToSlots();
-	void setHistogramModality(int modalityIdx) override;
-	//! display histogram - if not computed yet, trigger computation
-	void displayHistogram(int modalityIdx);
-	//! if available, show histogram (i.e. does not trigger computation, as displayHistogram does)
-	void showHistogram(int modalityIdx);
 	
 	//! adds an algorithm to the list of currently running jobs
 	void addAlgorithm(iAAlgorithm* thread);
 	void cleanWorkingAlgorithms();
-
-	void setupViewInternal(bool active);
-	void initModalities();
-	void initVolumeRenderers();
 	//! @}
 
 	void slicerVisibilityChanged(int mode);
@@ -493,7 +452,6 @@ private:
 	iADockWidgetWrapper* m_dwDataSets;
 	dlg_volumePlayer * m_dwVolumePlayer;
 	dlg_slicer * m_dwSlicer[3];
-	dlg_modalities * m_dwModalities;
 	dlg_renderer * m_dwRenderer;
 	//! @}
 
@@ -504,7 +462,7 @@ private:
 	uint m_nextChannelID;
 	uint m_magicLensChannel;
 
-	int m_previousIndexOfVolume;
+	//int m_previousIndexOfVolume;
 	
 	QByteArray m_initialLayoutState;
 	QString m_layout;

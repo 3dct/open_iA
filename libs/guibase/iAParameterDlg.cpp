@@ -22,16 +22,16 @@
 
 #include "iAAttributeDescriptor.h"
 #include "iAColorInput.h"
-#include "iAFilterSelectionDlg.h"
-#include "iALog.h"
+#include "iAFileChooserWidget.h"
 #include "iAFilter.h"
 #include "iAFilterRegistry.h"
 #include "iAFilterRunnerRegistry.h"
 #include "iAFilterRunnerGUI.h"
+#include "iAFilterSelectionDlg.h"
+#include "iALog.h"
+#include "iAMdiChild.h"
 #include "iAStringHelper.h"
 #include "iAVectorInput.h"
-#include "io/iAFileChooserWidget.h"
-#include "iAMdiChild.h"
 
 #include <vtkImageData.h>
 

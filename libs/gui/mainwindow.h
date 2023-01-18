@@ -104,7 +104,7 @@ public:
 	QMenu* helpMenu() override;
 	//! @{ Get access to result child with the given title.
 	//! (depending on preferences, this will either open a new mdi child window, or reuse the currently active one)
-	//! @deprecated
+	//! @deprecated either use loadFileNew to load a file into a new or existing window, or createChild to create a new window
 	iAMdiChild * resultChild( QString const & title ) override;
 	iAMdiChild * resultChild( int childInd, QString const & title ) override;
 	iAMdiChild * resultChild( iAMdiChild* oldChild, QString const & title ) override;
@@ -180,7 +180,6 @@ private slots:
 	void resetView();
 	void resetTrf();
 	void changeInteractionMode(bool isChecked);
-	void meshDataMovable(bool isChecked);
 	void toggleSnakeSlicer(bool isChecked);
 	void toggleMagicLens(bool isChecked);
 	void toggleMagicLens3D(bool isChecked);

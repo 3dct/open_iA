@@ -37,7 +37,6 @@
 #include "iARenderer.h"
 #include "iASavableProject.h"
 #include "iASlicerImpl.h"    // for slicerModeToString
-#include "io/iAIOProvider.h"    // for rawParamsToMap
 #include "iATLGICTLoader.h"
 #include "mdichild.h"
 #include "ui_Mainwindow.h"
@@ -1291,14 +1290,6 @@ void MainWindow::updateInteractionModeControls(int mode)
 	m_ui->actionInteractionModeRegistration->setChecked(mode == MdiChild::imRegistration);
 }
 
-void MainWindow::meshDataMovable(bool isChecked)
-{
-	if (activeMdiChild())
-	{
-		activeMDI()->setMeshDataMovable(isChecked);
-	}
-}
-
 void MainWindow::toggleSnakeSlicer(bool isChecked)
 {
 	if (activeMdiChild())
@@ -1422,7 +1413,7 @@ iAMdiChild* MainWindow::resultChild(iAMdiChild* iaOldChild, QString const & titl
 		}
 		return newChild;
 	}
-	oldChild->prepareForResult();
+	oldChild->setWindowModified(true);
 	return oldChild;
 }
 
@@ -1631,7 +1622,6 @@ void MainWindow::updateMenus()
 	m_ui->actionMagicLens2D->setEnabled(hasMdiChild);
 	m_ui->actionMagicLens3D->setEnabled(hasMdiChild);
 
-	m_ui->actionMeshDataMovable->setEnabled(hasMdiChild);
 	m_ui->actionInteractionModeCamera->setEnabled(hasMdiChild);
 	m_ui->actionInteractionModeRegistration->setEnabled(hasMdiChild);
 
@@ -1657,8 +1647,6 @@ void MainWindow::updateMenus()
 
 	// Update checked states of actions:
 	auto child = activeMDI();
-	QSignalBlocker movableBlock(m_ui->actionMeshDataMovable);
-	m_ui->actionMeshDataMovable->setChecked(hasMdiChild && child->meshDataMovable());
 	QSignalBlocker interactionModeCameraBlock(m_ui->actionInteractionModeCamera);
 	m_ui->actionInteractionModeCamera->setChecked(hasMdiChild && child->interactionMode() == MdiChild::imCamera);
 	QSignalBlocker interactionModeRegistrationBlock(m_ui->actionInteractionModeRegistration);
@@ -1767,7 +1755,7 @@ void MainWindow::connectSignalsToSlots()
 	auto getOpenFileName = [this]() -> QString {
 		return QFileDialog::getOpenFileName(this, tr("Open Files (new)"), m_path, iAFileTypeRegistry::registeredFileTypes(iAFileIO::Load));
 	};
-	connect(m_ui->actionOpenNew, &QAction::triggered, this, [this, getOpenFileName] { loadFileNew(getOpenFileName(), activeMdiChild()); });
+	connect(m_ui->actionOpenDataSet, &QAction::triggered, this, [this, getOpenFileName] { loadFileNew(getOpenFileName(), activeMdiChild()); });
 	connect(m_ui->actionOpenInNewWindow, &QAction::triggered, this, [this, getOpenFileName] { loadFileNew(getOpenFileName(), nullptr); });
 	connect(m_ui->actionOpenRaw, &QAction::triggered, this, &MainWindow::openRaw);
 	connect(m_ui->actionOpenWithDataTypeConversion, &QAction::triggered, this, &MainWindow::openWithDataTypeConversion);
@@ -1795,7 +1783,6 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionResetFunction, &QAction::triggered, this, &MainWindow::resetTrf);
 	connect(m_ui->actionInteractionModeRegistration, &QAction::triggered, this, &MainWindow::changeInteractionMode);
 	connect(m_ui->actionInteractionModeCamera, &QAction::triggered, this, &MainWindow::changeInteractionMode);
-	connect(m_ui->actionMeshDataMovable, &QAction::triggered, this, &MainWindow::meshDataMovable);
 
 	// "Views" menu entries:
 	connect(m_ui->actionXY, &QAction::triggered, this, &MainWindow::maxXY);
