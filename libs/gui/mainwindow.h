@@ -77,11 +77,10 @@ public:
 	//! add a file to the list of recently loaded/saved files
 	void addRecentFile(const QString &fileName);
 
-	void loadFile(QString const & fileName);
-	void loadFile(QString fileName, bool isStack) override;
 	void loadFiles(QStringList fileNames);
 
-	void loadFileNew(QString const& fileName, bool newWindow, std::shared_ptr<iAFileIO> io = nullptr);
+	//! TODO NEWIO: create signal triggered on new child (fully) created
+	void loadFileNew(QString const& fileName, iAMdiChild* child = nullptr, std::shared_ptr<iAFileIO> io = nullptr) override;
 
 	void saveCamera(iAXmlSettings & xml);
 	bool loadCamera(iAXmlSettings & xml);
@@ -154,12 +153,9 @@ private slots:
 	void quitTimerSlot();
 	void hideSplashSlot();
 	void openRaw();
-	void openVolumeStack();
 	void openWithDataTypeConversion();
 	void openTLGICTData();
-	void save();
 	void saveNew();
-	void saveAs();
 	void loadSettings();
 	void saveSettings();
 	void saveProject();

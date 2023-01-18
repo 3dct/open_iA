@@ -25,7 +25,6 @@
 #include <iAImageStackFileIO.h>
 #include <iARawFileIO.h>
 #include <iASettings.h>
-#include <iAVolStackFileIO.h>
 
 #include <iAMainWindow.h>
 #include <iAParameterDlg.h>

@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iASavableProject.h"
 
-#include <io/iAIOProvider.h>
 #include <iAFileTypeRegistry.h>
 
 #include <QApplication>

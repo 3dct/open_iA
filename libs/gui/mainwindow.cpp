@@ -37,7 +37,7 @@
 #include "iARenderer.h"
 #include "iASavableProject.h"
 #include "iASlicerImpl.h"    // for slicerModeToString
-#include "io/iAIOProvider.h"
+#include "io/iAIOProvider.h"    // for rawParamsToMap
 #include "iATLGICTLoader.h"
 #include "mdichild.h"
 #include "ui_Mainwindow.h"
@@ -306,19 +306,8 @@ void MainWindow::openRaw()
 		m_path,
 		"Raw File (*)"
 	);
-	loadFileNew(fileName, true, std::make_shared<iARawFileIO>());
-}
-
-void MainWindow::openVolumeStack()
-{
-	loadFile(
-		QFileDialog::getOpenFileName(
-			this,
-			tr("Open File"),
-			m_path,
-			iAIOProvider::GetSupportedVolumeStackFormats()
-		), true
-	);
+	// TODO NEWIO: ask for whether to load in new window here?
+	loadFileNew(fileName, nullptr, std::make_shared<iARawFileIO>());
 }
 
 void MainWindow::openRecentFile()
@@ -334,8 +323,8 @@ void MainWindow::openRecentFile()
 
 void MainWindow::loadFileAskNewWindow(QString const & fileName)
 {
-	bool loadInNewWindow = true;
-	if (activeMdiChild())
+	auto child = activeMdiChild();
+	if (child)
 	{
 		auto result = QMessageBox::question(
 			this, "", "Load data into the active window?", QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
@@ -345,97 +334,14 @@ void MainWindow::loadFileAskNewWindow(QString const & fileName)
 		}
 		if (result == QMessageBox::Yes)
 		{
-			loadInNewWindow = false;
+			child = nullptr;
 		}
 	}
-	loadFileNew(fileName, loadInNewWindow);
+	loadFileNew(fileName, child);
 }
 
-void MainWindow::loadFile(QString const & fileName)
+void MainWindow::loadFileNew(QString const& fileName, iAMdiChild* child, std::shared_ptr<iAFileIO> io)
 {
-	QFileInfo fi(fileName);
-	if (fi.isDir())
-	{
-		loadTLGICTData(fileName);
-	}
-	else
-	{
-		loadFile(fileName, fileName.toLower().endsWith(".volstack"));
-	}
-}
-
-void MainWindow::loadFile(QString fileName, bool isStack)
-{
-	Q_UNUSED(isStack);
-	if (fileName.isEmpty())
-	{
-		return;
-	}
-	statusBar()->showMessage(tr("Loading data..."), 5000);
-	if (QString::compare(QFileInfo(fileName).suffix(), "STL", Qt::CaseInsensitive) == 0)
-	{
-		if (activeMdiChild())
-		{
-			QMessageBox msgBox;
-			msgBox.setText("Active window detected.");
-			msgBox.setInformativeText("Load polydata in the active window?");
-			msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-			msgBox.setDefaultButton(QMessageBox::Yes);
-
-			int ret = msgBox.exec();
-			if (ret == QMessageBox::Yes)
-			{
-				activeMDI()->loadFile(fileName, false);
-			}
-			else if (ret == QMessageBox::No)
-			{
-				iAMdiChild* child = createMdiChild(false);
-				if (!child->loadFile(fileName, false))
-				{
-					statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
-					child->close();
-				}
-			}
-			return;
-		}
-	}
-	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
-	{
-		QSettings projectFile(fileName, QSettings::IniFormat);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-		projectFile.setIniCodec("UTF-8");
-#endif
-		// TODO: asynchronous loading, merge with mdichild: loadFile project init parts
-		if (projectFile.contains("UseMdiChild") && !projectFile.value("UseMdiChild", false).toBool())
-		{
-			auto registeredTools = iAToolRegistry::toolKeys();
-			auto projectFileGroups = projectFile.childGroups();
-			for (auto toolKey : registeredTools)
-			{
-				if (projectFileGroups.contains(toolKey))
-				{
-					auto tool = iAToolRegistry::createTool(toolKey, this, nullptr);
-					projectFile.beginGroup(toolKey);
-					tool->loadState(projectFile, fileName);
-					projectFile.endGroup();
-				}
-			}
-			addRecentFile(fileName);
-			return;
-		}
-	}
-	// Todo: hook for plugins?
-	iAMdiChild* child = createMdiChild(false);
-	if (!child->loadFile(fileName, isStack))
-	{
-		statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
-		child->close();
-	}
-}
-
-void MainWindow::loadFileNew(QString const& fileName, bool newWindow, std::shared_ptr<iAFileIO> io)
-{
-	auto child = newWindow ? nullptr : activeMdiChild();
 	if (fileName.isEmpty())
 	{
 		return;
@@ -485,15 +391,7 @@ void MainWindow::loadFiles(QStringList fileNames)
 {
 	for (int i = 0; i < fileNames.length(); i++)
 	{
-		loadFile(fileNames[i]);
-	}
-}
-
-void MainWindow::save()
-{
-	if (activeMdiChild())
-	{
-		activeMDI()->save();
+		loadFileNew(fileNames[i], activeMdiChild());
 	}
 }
 
@@ -502,14 +400,6 @@ void MainWindow::saveNew()
 	if (activeMdiChild())
 	{
 		activeMDI()->saveNew();
-	}
-}
-
-void MainWindow::saveAs()
-{
-	if (activeMdiChild())
-	{
-		activeMDI()->saveAs();
 	}
 }
 
@@ -1877,10 +1767,9 @@ void MainWindow::connectSignalsToSlots()
 	auto getOpenFileName = [this]() -> QString {
 		return QFileDialog::getOpenFileName(this, tr("Open Files (new)"), m_path, iAFileTypeRegistry::registeredFileTypes(iAFileIO::Load));
 	};
-	connect(m_ui->actionOpenNew, &QAction::triggered, this, [this, getOpenFileName] { loadFileNew(getOpenFileName(), false); });
-	connect(m_ui->actionOpenInNewWindow, &QAction::triggered, this, [this, getOpenFileName] { loadFileNew(getOpenFileName(), true); });
+	connect(m_ui->actionOpenNew, &QAction::triggered, this, [this, getOpenFileName] { loadFileNew(getOpenFileName(), activeMdiChild()); });
+	connect(m_ui->actionOpenInNewWindow, &QAction::triggered, this, [this, getOpenFileName] { loadFileNew(getOpenFileName(), nullptr); });
 	connect(m_ui->actionOpenRaw, &QAction::triggered, this, &MainWindow::openRaw);
-	connect(m_ui->actionOpenVolumeStack, &QAction::triggered, this, &MainWindow::openVolumeStack);
 	connect(m_ui->actionOpenWithDataTypeConversion, &QAction::triggered, this, &MainWindow::openWithDataTypeConversion);
 	connect(m_ui->actionOpenTLGICTData, &QAction::triggered, this, &MainWindow::openTLGICTData);
 	connect(m_ui->actionSaveDataSet, &QAction::triggered, this, &MainWindow::saveNew);
@@ -2705,10 +2594,11 @@ iAModuleDispatcher & MainWindow::moduleDispatcher() const
 
 void MainWindow::openWithDataTypeConversion()
 {
+	iARawFileIO io;
 	QString fileName = QFileDialog::getOpenFileName(this,
 		tr("Open File"),
 		m_path,
-		iAIOProvider::GetSupportedLoadFormats()
+		io.filterString()
 	);
 	if (fileName.isEmpty())
 	{
@@ -2763,7 +2653,7 @@ void MainWindow::openWithDataTypeConversion()
 				mapReadableDataTypeToVTKType(outDataType),
 				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax, roi);
 		}
-		loadFile(finalfilename, false);
+		loadFileAskNewWindow(finalfilename);
 	}
 	catch (std::exception & e)
 	{

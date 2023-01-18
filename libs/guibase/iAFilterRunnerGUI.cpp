@@ -268,7 +268,7 @@ void iAFilterRunnerGUI::filterGUIPreparations(std::shared_ptr<iAFilter> /*filter
 void iAFilterRunnerGUI::run(std::shared_ptr<iAFilter> filter, iAMainWindow* mainWnd)
 {
 	iAMdiChild* sourceMdi = mainWnd->activeMdiChild();
-	if (filter->requiredInputs() > 0 && (!sourceMdi || !sourceMdi->isFullyLoaded()))
+	if (filter->requiredInputs() > 0 && (!sourceMdi || sourceMdi->dataSetMap().empty()))
 	{
 		LOG(lvlWarn,QString("Filter requires %1 input(s), but %2!")
 			.arg(filter->requiredInputs())

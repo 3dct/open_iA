@@ -106,20 +106,14 @@ public:
 	//! performs initialization that needs to be done after the widget is being displayed
 	void initializeViews();
 
+	//! @{ @deprecated
 	void showPoly();
-	bool loadFile(const QString& f, bool isStack) override;
-	void setSTLParameter();
 	bool displayResult(QString const & title, vtkImageData* image = nullptr, vtkPolyData* poly = nullptr) override;
 	void prepareForResult();
-	bool save();
+	//! @}
 	bool saveNew();
-	bool saveAs();
-	bool saveFile(const QString &f, int modalityNr, int componentNr);
 	void saveVolumeStack();
 	void updateLayout() override;
-
-	//! waits for the IO thread to finish in case any I/O operation is running; otherwise it will immediately exit
-	void waitForPreviousIO();
 
 	void multiview() override;
 	bool applyPreferences(iAPreferences const & p);
@@ -149,13 +143,8 @@ public:
 	//! @{
 	//! @deprecated iAAlgorithm/iAIO will be removed soon. use iAFilter / iAFileTypeRegistry instead
 	void connectThreadSignalsToChildSlots(iAAlgorithm* thread) override;
-	void connectIOThreadSignals(iAIO* thread) override;
 	void connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread);
 	//! @}
-
-	//! Set "main image" - does not update views
-	//! @deprecated use addDataSet instead!
-	void setImageData(vtkImageData* iData) override;
 
 	//! Access to "main" polydata object (if any)
 	//! @deprecated move out of mdi child, into something like an iAModality
@@ -260,8 +249,6 @@ public:
 
 	std::shared_ptr<iADataSet> chooseDataSet(QString const& title = "Choose dataset") override;
 
-	//! Checks whether the main image data is fully loaded.
-	bool isFullyLoaded() const override;
 	//! Store current situation in the given project file:
 	//!    - loaded files and their transfer functions, when old project file (.mod) is chosen
 	//!    - configuration of opened tools (which support it), when new project file (.iaproj) is chosen
@@ -356,7 +343,6 @@ public slots:
 	//! @{ @deprecated will be removed soon, see addDataset instead
 	void setupView(bool active = false);
 	void setupStackView(bool active = false);
-	void setupProject(bool active = false);
 	void removeFinishedAlgorithms();
 	//! @}
 
@@ -387,14 +373,12 @@ private slots:
 	void setChannel(int ch);
 	void updateRenderWindows(int channels);
 	void updatePositionMarker(double x, double y, double z, int mode);
-	void ioFinished();
 	void updateDataSetInfo();
 	void histogramDataAvailable(int modalityIdx);
 	void statisticsAvailable(int modalityIdx);
 	void changeMagicLensDataSet(int chg);
 	void changeMagicLensOpacity(int chg);
 	void changeMagicLensSize(int chg);
-	void saveFinished();
 	void modalityAdded(int modalityIdx);
 	void toggleFullScreen();
 	void styleChanged();
@@ -422,19 +406,9 @@ private:
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void snakeNormal(int index, double point[3], double normal[3]);
 
-	// DEPRECATED {
-
+	//! @{ @deprecated
 	bool initView(QString const& title);
-
-	//! sets up the IO thread for saving the correct file type for the given filename.
-	//! @return	true if it succeeds, false if it fails.
-	bool setupSaveIO(QString const& f);
-	//! sets up the IO thread for loading the correct file type according to the given filename.
-	//! @return	true if it succeeds, false if it fails.
-	bool setupLoadIO(QString const& f, bool isStack);
-
 	void connectSignalsToSlots();
-
 	void setHistogramModality(int modalityIdx) override;
 	//! display histogram - if not computed yet, trigger computation
 	void displayHistogram(int modalityIdx);
@@ -448,8 +422,7 @@ private:
 	void setupViewInternal(bool active);
 	void initModalities();
 	void initVolumeRenderers();
-
-	// DEPRECATED }
+	//! @}
 
 	void slicerVisibilityChanged(int mode);
 	void updatePositionMarkerSize();
@@ -504,7 +477,6 @@ private:
 	QSharedPointer<iAProfileProbe> m_profileProbe;
 	QScopedPointer<iAVolumeStack> m_volumeStack;
 	QList<int> m_checkedList;
-	iAIO* m_ioThread;    //!< @deprecated use iAFileTypeRegistry / iAFileIO instead!
 
 	iAChartWithFunctionsWidget * m_histogram;
 	iAProfileWidget* m_profile;

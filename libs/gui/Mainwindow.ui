@@ -74,7 +74,6 @@
     <addaction name="actionOpenInNewWindow"/>
     <addaction name="actionOpenNew"/>
     <addaction name="actionOpenRaw"/>
-    <addaction name="actionOpenVolumeStack"/>
     <addaction name="actionOpenWithDataTypeConversion"/>
     <addaction name="actionOpenTLGICTData"/>
     <addaction name="separator"/>

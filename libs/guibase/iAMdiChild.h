@@ -39,7 +39,6 @@ class iAChartWithFunctionsWidget;
 class iADataSet;
 class iADataSetRenderer;
 class iADataForDisplay; // TODO NEWIO: -> iADataViewer!
-class iAIO;
 class iAMainWindow;
 class iAModality;
 class iAModalityList;
@@ -136,9 +135,6 @@ public:
 	virtual iAPreferences const& preferences() const = 0;
 	//! Whether this child has the linked views feature enabled
 	virtual bool linkedViews() const = 0;
-
-	//! Checks whether the main image data is fully loaded.
-	virtual bool isFullyLoaded() const = 0;
 
 	//! Name of the currently open file (project file / first modality file / ...)
 	//! If possible, use something more specific (e.g. file name from specific modality)
@@ -258,9 +254,6 @@ public:
 	//!    also, don't use iAAlgorithm anymore!
 	virtual void connectThreadSignalsToChildSlots(iAAlgorithm* thread) = 0;
 
-	//! @deprecated. Use iARunASync / new IO mechanism (io library - iAFileIO)
-	virtual void connectIOThreadSignals(iAIO* thread) = 0;
-
 	//! Access to main window.
 	//! @deprecated should not be available here
 	virtual iAMainWindow* mainWnd() = 0;
@@ -276,14 +269,6 @@ public:
 	//! Access to file info of "current" file
 	//! @deprecated. Use access via modalities instead
 	virtual QFileInfo const & fileInfo() const = 0;
-
-	//! Load a file
-	//! @deprecated. Use modality methods / new IO structure (to be defined)
-	virtual bool loadFile(const QString& f, bool isStack) = 0;
-
-	//! Set "main image" - does not update views (see displayResult for a method that does)!
-	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...) or channels (createChannel/updateChannel)
-	virtual void setImageData(vtkImageData* iData) = 0;
 	
 	//! @deprected access transform used in slicer. should be removed from here; no replacement in place yet
 	virtual vtkTransform* slicerTransform() = 0;
