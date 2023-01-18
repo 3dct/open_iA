@@ -206,5 +206,5 @@ QString iARawFileIO::name() const
 
 QStringList iARawFileIO::extensions() const
 {
-	return QStringList{ "raw", "vol", "rec", "pro" };
+	return QStringList{ "raw", "vol", "rec", "pro", "pre" };
 }
