@@ -177,7 +177,7 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 	{
 		filesFolders |= Folders;
 	}
-	FindFiles(batchDir, filters, parameters["Recursive"].toBool(), files, filesFolders);
+	findFiles(batchDir, filters, parameters["Recursive"].toBool(), files, filesFolders);
 	QString outDir(parameters[spnOutputFolder].toString());
 	if (!outDir.isEmpty())
 	{

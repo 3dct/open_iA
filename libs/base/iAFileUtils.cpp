@@ -49,12 +49,14 @@ QString MakeRelative(QString const & baseDir, QString const & fileName)
 	return dir.relativeFilePath(fileName);
 }
 
-void FindFiles(QString const & directory, QStringList const & nameFilters, bool recurse,
+void findFiles(QString const & directory, QStringList const & nameFilters, bool recurse,
 	QStringList & filesOut, QFlags<FilesFolders> filesFolders)
 {
 	QDir::Filters filters = QDir::Files;
 	if (recurse || filesFolders.testFlag(Folders))
+	{
 		filters = QDir::Files | QDir::AllDirs;
+	}
 	QDirIterator::IteratorFlags flags = (recurse) ? QDirIterator::Subdirectories : QDirIterator::NoIteratorFlags;
 	QDirIterator it(directory, nameFilters, filters, flags);
 	// TODO:

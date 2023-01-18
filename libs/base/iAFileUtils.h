@@ -30,19 +30,32 @@
 class QFileInfo;
 class QString;
 
-enum FilesFolders
-{
-	Files,
-	Folders,
-	FilesAndFolders
-};
-
+//! Given a base directory and a filename, return the complete, absolute filename
+//! (basically, add the given baseDir as prefix, unless the given filename is an
+//! a filename including a full path already)
 iAbase_API QString MakeAbsolute(QString const & baseDir, QString const & fileName);
+//! Given a base directory and a full filename (that is, including a path), make
+//! that filename relativ to the base directory
 iAbase_API QString MakeRelative(QString const & baseDir, QString const & fileName);
 
-iAbase_API void FindFiles(QString const& directory, QStringList const& filters, bool recurse,
+//! enum for filters to findFiles
+enum FilesFolders
+{
+	Files = 0x1,
+	Folders = 0x2
+};
+
+//! List files and/or folders inside of a given directory
+//! @param directory the folder in which to search for files
+//! @param filters a list of filters to apply (see QDirIterator nameFilters)
+//! @param recurse whether to also search in sub-folders
+//! @param filesOut reference to the container for the found filenames
+//! @param filesFolders flags indicating whether to search for files, folders or both
+iAbase_API void findFiles(QString const& directory, QStringList const& filters, bool recurse,
 	QStringList & filesOut, QFlags<FilesFolders> filesFolders);
 
+//! convert a given (utf-8 encoded) fileName in QString type to the (closest possible)
+//! string representation in local encoding used for file names)
 iAbase_API std::string getLocalEncodingFileName(QString const& fileName);
 
 //! returns the full path of the given file along with the file's basename
