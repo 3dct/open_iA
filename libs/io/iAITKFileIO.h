@@ -20,29 +20,20 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAVolumeSettings.h"
+#include "iAAutoRegistration.h"
+#include "iAFileIO.h"
+#include "iAFileTypeRegistry.h"
 
-#include <QSharedPointer>
-
-#include "ui_modalityProperties.h"
-#include "qthelper/iAQTtoUIConnector.h"
-typedef iAQTtoUIConnector<QDialog, Ui_modalityProperties> dlg_modalityPropertiesUI;
-
-class iAModality;
-class vtkRenderer;
-
-class dlg_modalityProperties : public dlg_modalityPropertiesUI
+class iAITKFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAITKFileIO, iAFileTypeRegistry>
 {
-	Q_OBJECT
 public:
-	dlg_modalityProperties(QWidget * parent, QSharedPointer<iAModality> modality);
-	bool spacingChanged();
-	double const * newSpacing();
-public slots:
-	void OKButtonClicked();
-private:
-	QSharedPointer<iAModality> m_modality;
-	iAVolumeSettings m_volumeSettings;
-	bool m_spacingChanged;
-	double const * m_currentSpacing;
+	static const QString Name;
+	iAITKFileIO();
+	std::shared_ptr<iADataSet> loadData(
+		QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress) override;
+	void saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet,
+		QVariantMap const& paramValues, iAProgress const& progress) override;
+	QString name() const override;
+	QStringList extensions() const override;
 };
+

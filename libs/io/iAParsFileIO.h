@@ -20,32 +20,17 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAguibase_export.h"
+#include "iAio_export.h"
 
-#include <QMap>
-#include <QVariant>    // for QVariantMap (at least under Qt 5.15.2)
+#include "iAAutoRegistration.h"
+#include "iAFileIO.h"
+#include "iAFileTypeRegistry.h"
 
-class QString;
-struct iARawFileParameters;
-
-//! Class which provides helper methods around IO.
-class iAguibase_API iAIOProvider
+class iAio_API iAParsFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAParsFileIO, iAFileTypeRegistry>
 {
 public:
-	static QString GetSupportedSaveFormats();
-	static QString GetSupportedLoadFormats();
-	static QString GetSupportedImageStackFormats();
-	static QString GetSupportedVolumeStackFormats();
-	static QString GetSupportedImageFormats();
-
-
-	static const QString ProjectFileTypeFilter;
-	static const QString ProjectFileExtension;
-	static const QString NewProjectFileTypeFilter;
-	static const QString NewProjectFileExtension;
-	static const QString MetaImages;
-	static const QString VTKFiles;
+	iAParsFileIO();
+	std::shared_ptr<iADataSet> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress) override;
+	QString name() const override;
+	QStringList extensions() const override;
 };
-
-iAguibase_API QVariantMap rawParamsToMap(iARawFileParameters const& p);
-iAguibase_API iARawFileParameters rawParamsFromMap(QVariantMap const& map);

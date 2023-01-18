@@ -18,83 +18,20 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAIOProvider.h"
+#pragma once
 
 #include "iARawFileParameters.h"
-#include "iAValueTypeVectorHelpers.h"
-#include "iAToolsVTK.h"
 
-#include <QObject>
-
-const QString iAIOProvider::ProjectFileExtension(".mod");
-const QString iAIOProvider::ProjectFileTypeFilter("open_iA modality file (*"+ProjectFileExtension+");;");
-const QString iAIOProvider::NewProjectFileExtension(".iaproj");
-const QString iAIOProvider::NewProjectFileTypeFilter("open_iA project file (*"+NewProjectFileExtension+");;");
-const QString iAIOProvider::MetaImages("Meta Images (*.mhd *.mha);;");
-const QString iAIOProvider::VTKFiles("VTK Files (*.vtk);;");
-
-namespace
+iARawFileParameters::iARawFileParameters():
+	m_headersize(0),
+	m_scalarType(VTK_UNSIGNED_SHORT),
+	m_byteOrder(VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN)
 {
-	const QString ImageFormatExtensions("*.bmp *.jpg *.jpeg *.png *.tif *.tiff");
+	std::fill(m_size, m_size+3, 1);
+	std::fill(m_spacing, m_spacing+3, 1.0);
+	std::fill(m_origin, m_origin+3, 0.0);
 }
 
-QString iAIOProvider::GetSupportedLoadFormats()
-{
-	return QString(
-		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pre *.pars *.dcm *.nia *.nii *.nii.gz *.hdr *.hdr.gz *.img *.img.gz *.oif *.am *.vtk *.nkc "
-		"*.vti "+ImageFormatExtensions+" *"+ProjectFileExtension+" *"+NewProjectFileExtension+");;"
-
-		+ MetaImages + VTKFiles +
-		"STL files (*.stl);;"
-		"VG Studio Scenes (*.vgi);;"
-		"RAW files (*.raw *.rec *.vol *.pro *.pre);;"
-		"PARS files (*.pars);;"
-		"Dicom Series (*.dcm);;"
-//		"NRRD files (*.nrrd *.nhdr);;"	// currently not supported as it reads as a itk::VectorImage, which we cannot convert to vtkImageData at the moment
-		"NIFTI Images (*.nia *.nii *.nii.gz *.hdr *.hdr.gz *.img *.img.gz);;"
-		"Olympus FluoView (*.oif);;"
-		"AmiraMesh (*.am);;"
-		"Serial VTK image data (*.vti);;") +
-		GetSupportedImageFormats() +
-		ProjectFileTypeFilter +
-		NewProjectFileTypeFilter;
-}
-
-QString iAIOProvider::GetSupportedSaveFormats()
-{
-	return
-		MetaImages +
-		"STL files (*.stl);;"
-		"AmiraMesh (*.am);;"
-		"ITK HDF5 (*.hdf5);;"
-		"Comma-Separated Values (*.csv)";
-}
-
-QString iAIOProvider::GetSupportedImageStackFormats()
-{
-	return QString("All supported types (*.mhd *.mha " + ImageFormatExtensions + ");;"
-		) + MetaImages +
-		GetSupportedImageFormats();
-}
-
-QString iAIOProvider::GetSupportedVolumeStackFormats()
-{
-	return
-		"All supported types (*.mhd *.raw *.volstack);;"
-		+ MetaImages +
-		"RAW files (*.raw);;"
-		"Volume Stack (*.volstack);;";
-}
-
-QString iAIOProvider::GetSupportedImageFormats()
-{
-	return QObject::tr(
-		"BMP (*.bmp);;"
-		"JPEG (*.jpg *.jpeg);;"
-		"PNG (*.png);;"
-		"TIFF (*.tif *.tiff);;"
-	);
-}
 
 QVariantMap rawParamsToMap(iARawFileParameters const& p)
 {

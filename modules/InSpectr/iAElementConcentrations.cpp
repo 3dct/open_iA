@@ -70,9 +70,9 @@ bool iAElementConcentrations::hasAvgConcentration() const
 }
 
 
-iAElementConcentrations::ImageListType * iAElementConcentrations::getImageListPtr()
+iAElementConcentrations::ImageListType& iAElementConcentrations::getImageList()
 {
-	return &m_ElementConcentration;
+	return m_ElementConcentration;
 }
 
 

@@ -18,34 +18,42 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iASavableProject.h"
+#include "iASettingsFileHelper.h"
 
-#include <iAFileTypeRegistry.h>
+#include <QFile>
+#include <QTextStream>
 
-#include <QApplication>
-#include <QFileDialog>
-
-bool iASavableProject::saveProject(QString const & basePath)
+QMap<QString, QString> readSettingsFile(QString const& fileName)
 {
-	QString defaultFilter(iAFileTypeRegistry::defaultExtFilterString(iADataSetType::Collection));
-	QString projectFileName = QFileDialog::getSaveFileName(
-		QApplication::activeWindow(),
-		QCoreApplication::translate("iAMainWindow", "Select Output File"),
-		basePath,
-		iAFileTypeRegistry::registeredFileTypes(iAFileIO::Save, iADataSetType::Collection),
-		&defaultFilter);
-	if (projectFileName.isEmpty())
+	QFile file(fileName);
+	QString const& KeyValueSeparator = ":";
+	QString const& CommentSeparator = "%";
+	if (!file.open(QIODevice::ReadOnly))
 	{
-		return false;
+		throw std::runtime_error(QString("Could not open file %1").arg(fileName).toStdString());
 	}
-	m_fileName = projectFileName;
-	return doSaveProject(projectFileName);
+	QTextStream textStream(&file);
+	QMap<QString, QString> result;
+	int lineNr = 0;
+	while (!textStream.atEnd())
+	{
+		++lineNr;
+		QString currentLine = textStream.readLine();
+		if (currentLine.trimmed().isEmpty())
+		{
+			continue;
+		}
+		auto tokensComment = currentLine.split(CommentSeparator); // throw away everything after first comment separator character
+		auto firstSep = tokensComment[0].indexOf(KeyValueSeparator);
+		if (firstSep == -1)
+		{
+			throw std::runtime_error(QString("Invalid key/value line (#%1: %2) - could not split at separator %3")
+				.arg(lineNr).arg(currentLine).arg(KeyValueSeparator).toStdString());
+		}
+		auto key = tokensComment[0].first(firstSep).trimmed();     // everything up until the separator
+		auto value = tokensComment[0].sliced(firstSep+1).trimmed();  // everything after key value separator
+		result[key] = value;
+	}
+	// file closed automatically by ~QFile
+	return result;
 }
-
-QString const& iASavableProject::fileName() const
-{
-	return m_fileName;
-}
-
-iASavableProject::~iASavableProject()
-{}

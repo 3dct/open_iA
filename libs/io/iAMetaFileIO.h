@@ -20,11 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAio_export.h"
+
 #include "iAAutoRegistration.h"
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
-class iAMetaFileIO : public iAFileIO, iAAutoRegistration<iAFileIO, iAMetaFileIO, iAFileTypeRegistry>
+class iAio_API iAMetaFileIO : public iAFileIO, iAAutoRegistration<iAFileIO, iAMetaFileIO, iAFileTypeRegistry>
 {
 public:
 	iAMetaFileIO();

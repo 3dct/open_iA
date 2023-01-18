@@ -25,6 +25,7 @@
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iAConnector.h>
+#include <iAImageStackFileIO.h>
 #include <iAJobListView.h>
 #include <iALog.h>
 #include <iAMagicLens.h>
@@ -38,7 +39,6 @@
 #include <iAStringHelper.h>
 #include <iAToolsITK.h>
 #include <iAToolsVTK.h>
-#include <io/iAIOProvider.h>
 
 // slicer
 #include "iASlicerInteractorStyle.h"
@@ -1035,9 +1035,10 @@ void iASlicerImpl::saveAsImage()
 	{
 		return;
 	}
+	iAImageStackFileIO io;
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save Image"),
 		"", // TODO: get directory of file?
-		iAIOProvider::GetSupportedImageFormats());
+		io.filterString());
 	if (fileName.isEmpty())
 	{
 		return;
@@ -1119,10 +1120,10 @@ void iASlicerImpl::saveImageStack()
 		return;
 	}
 	auto imageData = m_channels[channelID]->input();
-
+	iAImageStackFileIO io;
 	QString file = QFileDialog::getSaveFileName(this, tr("Save Image Stack"),
 		"",  // TODO: get directory of file?
-		iAIOProvider::GetSupportedImageFormats());
+		io.filterString());
 	if (file.isEmpty())
 	{
 		return;
@@ -1448,7 +1449,7 @@ void iASlicerImpl::printVoxelInformation()
 	}
 	if (m_linkedMdiChild)
 	{
-		QList<iAMdiChild*> mdiwindows = m_linkedMdiChild->mainWnd()->mdiChildList();
+		QList<iAMdiChild*> mdiwindows = iAMainWindow::get()->mdiChildList();
 		for (int i = 0; i < mdiwindows.size(); i++)
 		{
 			iAMdiChild *tmpChild = mdiwindows.at(i);

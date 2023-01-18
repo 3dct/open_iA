@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #include "iAWidgetSettingsMapper.h"
 
+#include <iAFileChooserWidget.h>
 #include <iALog.h>
-#include <io/iAFileChooserWidget.h>
 
 #include <QComboBox>
 #include <QDoubleSpinBox>

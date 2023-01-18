@@ -40,15 +40,12 @@
 #include <iASlicerImpl.h>
 
 // guibase
-#include <dlg_modalities.h>
 #include <iAAlgorithm.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iADataSetListWidget.h>
 #include <iADataSetRenderer.h>
 #include <iAJobListView.h>
-#include <iAModality.h>
-#include <iAModalityList.h>
 #include <iATransferFunctionOwner.h>
 #include <iAMovieHelper.h>
 #include <iAParameterDlg.h>
@@ -59,8 +56,6 @@
 #include <iARunAsync.h>
 #include <iASliceRenderer.h>
 #include <iAVolumeStack.h>
-#include <io/iAIO.h>
-#include <io/iAIOProvider.h>
 
 // qthelper
 #include <iADockWidgetWrapper.h>
@@ -74,8 +69,9 @@
 
 // io
 #include <iAFileStackParams.h>
-#include <iAVolStackFileIO.h>
+#include <iAImageStackFileIO.h>
 #include <iAProjectFileIO.h>
+#include <iAVolStackFileIO.h>
 
 // base
 #include <iADataSet.h>
@@ -103,8 +99,6 @@
 
 // TODO: refactor methods using the following out of mdichild!
 #include <vtkTransform.h>
-
-// TODO: VOLUME: check all places using modality(0)->transfer() !
 
 #include <QByteArray>
 #include <QCloseEvent>
@@ -137,7 +131,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_axesTransform(vtkTransform::New()),
 	m_slicerTransform(vtkTransform::New()),
 	m_volumeStack(new iAVolumeStack),
-	m_ioThread(nullptr),
 	m_histogram(new iAChartWithFunctionsWidget(nullptr, " Histogram", "Frequency")),
 	m_profile(nullptr),
 	m_dataSetInfo(new QListWidget(this)),
@@ -192,11 +185,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 		setInteractionMode(camera ? imCamera : imRegistration);
 		});
 	m_renderer->setAxesTransform(m_axesTransform);
-
-	m_dwModalities = new dlg_modalities(m_dwRenderer->vtkWidgetRC, m_renderer->renderer(), this);
-	QSharedPointer<iAModalityList> modList(new iAModalityList);
-	splitDockWidget(m_dwRenderer, m_dwModalities, Qt::Vertical);
-	setModalities(modList);
 
 	applyViewerPreferences();
 	connectSignalsToSlots();
@@ -468,8 +456,6 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_histogram, &iAChartWithFunctionsWidget::noPointSelected, this, &MdiChild::noPointSelected);
 	connect(m_histogram, &iAChartWithFunctionsWidget::endPointSelected, this, &MdiChild::endPointSelected);
 	connect((iAChartTransferFunction*)(m_histogram->functions()[0]), &iAChartTransferFunction::changed, this, &MdiChild::changeTransferFunction);
-
-	connect(m_dwModalities, &dlg_modalities::modalitiesChanged, this, &MdiChild::updateViews);
 }
 
 void MdiChild::connectThreadSignalsToChildSlots(iAAlgorithm* thread)
@@ -477,12 +463,6 @@ void MdiChild::connectThreadSignalsToChildSlots(iAAlgorithm* thread)
 	connect(thread, &iAAlgorithm::startUpdate, this, &MdiChild::updateRenderWindows);
 	connect(thread, &iAAlgorithm::finished, this, &MdiChild::enableRenderWindows);
 	connectAlgorithmSignalsToChildSlots(thread);
-}
-
-void MdiChild::connectIOThreadSignals(iAIO* thread)
-{
-	connectAlgorithmSignalsToChildSlots(thread);
-	connect(thread, &iAIO::finished, this, &MdiChild::ioFinished);
 }
 
 void MdiChild::connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread)
@@ -522,6 +502,7 @@ void MdiChild::disableRenderWindows(int ch)
 	emit rendererDeactivated(ch);
 }
 
+// TODO NEWIO: remove this method
 void MdiChild::enableRenderWindows()	// = image data available
 {
 	if (isVolumeDataLoaded() && m_reInitializeRenderWindows)
@@ -532,6 +513,7 @@ void MdiChild::enableRenderWindows()	// = image data available
 			m_slicer[s]->enableInteractor();
 		}
 		updateViews();
+		/*
 		if (modalities()->size() > 0 && modality(0)->image()->GetNumberOfScalarComponents() == 1)
 		{
 			setHistogramModality(0);
@@ -541,12 +523,13 @@ void MdiChild::enableRenderWindows()	// = image data available
 		{     // which means the present values are directly used for color anyway,
 			initVolumeRenderers();    // so initialize volume rendering
 		}     // (slicers already initialized before)
+		*/
 	}
 	// set to true for next time, in case it is false now (i.e. default to always reinitialize,
 	// unless explicitly set otherwise)
 	m_reInitializeRenderWindows = true;
 
-	m_renderer->reInitialize(modalities()->size() > 0 ? modality(0)->image() : nullptr, m_polyData);
+	//m_renderer->reInitialize(modalities()->size() > 0 ? modality(0)->image() : nullptr, m_polyData);
 
 	if (!isVolumeDataLoaded())
 	{
@@ -554,7 +537,7 @@ void MdiChild::enableRenderWindows()	// = image data available
 	}
 	setCamPosition(iACameraPosition::Iso);
 	vtkCamera* cam = m_renderer->camera();
-	modalities()->applyCameraSettings(cam);
+	//modalities()->applyCameraSettings(cam);
 
 	for (auto channelID : m_channels.keys())
 	{
@@ -573,7 +556,6 @@ void MdiChild::enableRenderWindows()	// = image data available
 			}
 		}
 	}
-	m_dwModalities->enableUI();
 }
 
 void MdiChild::changeTransferFunction()
@@ -703,8 +685,8 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 			{
 				m_dataForDisplay[dataSetIdx]->show(this);
 			}
-			m_dwModalities->hide();
 			m_dataSetListWidget->addDataSet(dataSet.get(), dataSetIdx, render3D, dataRenderer != nullptr, sliceRenderer != nullptr);
+			setWindowModified(hasUnsavedData());
 			updateDataSetInfo();
 			emit dataSetRendered(dataSetIdx);
 		},
@@ -787,118 +769,13 @@ bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyD
 	return true;
 }
 
-void MdiChild::prepareForResult()
-{
-	setWindowModified(true);
-	modality(0)->transfer()->resetFunctions();
-}
-
-bool MdiChild::setupLoadIO(QString const& f, bool isStack)
-{
-	m_polyData->ReleaseData();
-	// TODO: insert plugin mechanism.
-	// - iterate over file plugins; if one returns a match, use it
-	QString extension = m_fileInfo.suffix();
-	extension = extension.toUpper();
-	mapQString2int const& ext2id = isStack ? extensionToIdStack() : extensionToId();
-	if (ext2id.find(extension) == ext2id.end())
-	{
-		LOG(lvlError, QString("Could not find loader for extension '%1' of file '%2'!").arg(extension).arg(f));
-		return false;
-	}
-	iAIOType id = ext2id.find(extension).value();
-	return m_ioThread->setupIO(id, f);
-}
-
 namespace
 {
-	bool Is2DImageFile(QString const& f)
-	{
-		return f.endsWith("bmp", Qt::CaseInsensitive) ||
-			f.endsWith("jpg", Qt::CaseInsensitive) ||
-			f.endsWith("jpeg", Qt::CaseInsensitive) ||
-			f.endsWith("png", Qt::CaseInsensitive) ||
-			f.endsWith("tif", Qt::CaseInsensitive) ||
-			f.endsWith("tiff", Qt::CaseInsensitive);
-	}
-
 	const QString CameraPositionKey("CameraPosition");
 	const QString CameraFocalPointKey("CameraFocalPoint");
 	const QString CameraViewUpKey("CameraViewUp");
 	const QString CameraParallelProjection("CameraParallelProjection");
 	const QString CameraParallelScale("CameraParallelScale");
-}
-
-bool MdiChild::loadFile(const QString& f, bool isStack)
-{
-	if (!QFile::exists(f))
-	{
-		LOG(lvlError, QString("File '%1' does not exist!").arg(f));
-		return false;
-	}
-
-	LOG(lvlInfo, tr("Loading file '%1', please wait...").arg(f));
-	setWindowTitleAndFile(f);
-
-	waitForPreviousIO();
-
-	m_ioThread = new iAIO(m_imageData, m_polyData, iALog::get(), this, m_volumeStack->volumes(), m_volumeStack->fileNames());
-	if (f.endsWith(iAIOProvider::ProjectFileExtension) ||
-		f.endsWith(iAIOProvider::NewProjectFileExtension))
-	{
-		connect(m_ioThread, &iAIO::done, this, &MdiChild::setupProject);
-	}
-	else
-	{
-		if (!isStack || Is2DImageFile(f))
-		{
-			connect(m_ioThread, &iAIO::done, this, &MdiChild::setupView);
-		}
-		else
-		{
-			connect(m_ioThread, &iAIO::done, this, &MdiChild::setupStackView);
-		}
-		connect(m_ioThread, &iAIO::done, this, &MdiChild::enableRenderWindows);
-	}
-	connectIOThreadSignals(m_ioThread);
-	connect(m_dwModalities, &dlg_modalities::modalityAvailable, this, &MdiChild::modalityAdded);
-	connect(m_ioThread, &iAIO::done, this, &MdiChild::fileLoaded);
-
-	if (f.toLower().endsWith(".stl"))
-	{
-		connect(m_ioThread, &iAIO::done, this, &MdiChild::setSTLParameter);
-	}
-
-	m_polyData->ReleaseData();
-
-	if (!setupLoadIO(f, isStack))
-	{
-		ioFinished();
-		return false;
-	}
-	m_ioThread->start();
-	return true;
-}
-
-void MdiChild::setSTLParameter()
-{
-	iAAttributes params;
-	addAttr(params, "Transparency", iAValueType::Continuous, 1.0,0.0,1.0);
-	addAttr(params, "Color", iAValueType::Color, QColor("green"));
-	iAParameterDlg componentChoice(this, "Setup STL Properties", params);
-
-	componentChoice.exec();
-
-	QColor color(componentChoice.parameterValues()["Color"].toString());
-	float transparency = componentChoice.parameterValues()["Transparency"].toFloat();
-
-	this->renderer()->polyActor()->GetProperty()->SetOpacity(transparency);
-	this->renderer()->polyActor()->GetProperty()->SetColor(color.redF(),color.greenF(),color.blueF());
-}
-
-void MdiChild::setImageData(vtkImageData* iData)
-{
-	m_imageData = iData;		// potential for double free!
 }
 
 vtkPolyData* MdiChild::polyData()
@@ -911,10 +788,13 @@ iARenderer* MdiChild::renderer()
 	return m_renderer;
 }
 
-bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
+void MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
 {
+	// TODO NEWIO: REDO by simply showing the new dataset and hiding the old one; MOVE to volume stack widget
+	
 	// TODO: VOLUME: Test!!! copy from currently selected instead of fixed 0 index?
 	// This function probbl never called, update(int, bool) signal doesn't seem to be emitted anywhere?
+	/*
 	vtkColorTransferFunction* colorTransferFunction = modality(0)->transfer()->colorTF();
 	vtkPiecewiseFunction* piecewiseFunction = modality(0)->transfer()->opacityTF();
 	m_volumeStack->colorTF(m_previousIndexOfVolume)->DeepCopy(colorTransferFunction);
@@ -938,7 +818,7 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
 	colorTransferFunction->DeepCopy(m_volumeStack->colorTF(updateIndex));
 	piecewiseFunction->DeepCopy(m_volumeStack->opacityTF(updateIndex));
 
-	setHistogramModality(0);
+	//setHistogramModality(0);
 
 	m_renderer->reInitialize(m_imageData, m_polyData);
 	for (int s = 0; s < 3; ++s)
@@ -954,13 +834,16 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
 	}
 
 	return true;
+	*/
 }
 
 void MdiChild::setupStackView(bool active)
 {
-	// TODO: check!
-	m_previousIndexOfVolume = 0;
+	addVolumePlayer();
+	// TODO NEWIO: check / REWRITE
 
+	/*
+	m_previousIndexOfVolume = 0;
 	if (m_volumeStack->numberOfVolumes() == 0)
 	{
 		LOG(lvlError, "Invalid call to setupStackView: No Volumes loaded!");
@@ -968,7 +851,6 @@ void MdiChild::setupStackView(bool active)
 	}
 
 	int currentIndexOfVolume = 0;
-
 	m_imageData->DeepCopy(m_volumeStack->volume(currentIndexOfVolume));
 	setupViewInternal(active);
 	for (size_t i = 0; i < m_volumeStack->numberOfVolumes(); ++i)
@@ -978,18 +860,16 @@ void MdiChild::setupStackView(bool active)
 		m_volumeStack->addColorTransferFunction(cTF);
 		m_volumeStack->addPiecewiseFunction(pWF);
 	}
-
 	auto modTrans = modality(0)->transfer();
 	modTrans->colorTF()->DeepCopy(m_volumeStack->colorTF(0));
 	modTrans->opacityTF()->DeepCopy(m_volumeStack->opacityTF(0));
-	addVolumePlayer();
-
 	m_renderer->reInitialize(m_imageData, m_polyData);
 	for (int s = 0; s < 3; ++s)
 	{
 		m_slicer[s]->updateChannel(0, iAChannelData(modality(0)->name(), m_imageData, modTrans->colorTF()));
 	}
 	updateViews();
+	*/
 }
 
 void MdiChild::setupViewInternal(bool active)
@@ -1054,66 +934,7 @@ void MdiChild::setupView(bool active)
 	check2DMode();
 }
 
-void MdiChild::setupProject(bool /*active*/)
-{
-	QString fileName = m_ioThread->fileName();
-	QSharedPointer<iAModalityList> m = m_ioThread->modalities();
-	auto projectLoader = [this, fileName]()	{
-		QSettings projectFile(fileName, QSettings::IniFormat);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-		projectFile.setIniCodec("UTF-8");
-#endif
-		auto registeredTools = iAToolRegistry::toolKeys();
-		auto projectFileGroups = projectFile.childGroups();
-		for (auto toolKey : registeredTools)
-		{
-			if (projectFileGroups.contains(toolKey))
-			{
-				auto tool = iAToolRegistry::createTool(toolKey, m_mainWnd, this);
-				projectFile.beginGroup(toolKey);
-				tool->loadState(projectFile, fileName);
-				projectFile.endGroup();
-				addTool(toolKey, tool);
-			}
-		}
-	};
-	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension) && m->size() > 0)
-	{	// if volume data available, wait for it to fully load before loading the projects:
-		connect(this, &iAMdiChild::histogramAvailable, this, projectLoader);
-	}
-	setModalities(m);
-	setWindowTitleAndFile(fileName);
-	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension) && m->size() == 0)
-	{	// if no modalities loaded, continue immediately with loading the projects:
-		projectLoader();
-	}
-}
-
-int MdiChild::chooseModalityNr(QString const& caption)
-{
-	if (!isVolumeDataLoaded())
-	{
-		return -1;
-	}
-	if (modalities()->size() == 1)
-	{
-		return 0;
-	}
-	QStringList modalityNames;
-	for (int i = 0; i < modalities()->size(); ++i)
-	{
-		modalityNames << modality(i)->name();
-	}
-	iAAttributes params;
-	addAttr(params, "Channel", iAValueType::Categorical, modalityNames);
-	iAParameterDlg modalityChoice(this, caption, params);
-	if (modalityChoice.exec() != QDialog::Accepted)
-	{
-		return -1;
-	}
-	return modalityNames.indexOf(modalityChoice.parameterValues()["Channel"].toString());
-}
-
+/*
 int MdiChild::chooseComponentNr(int modalityNr)
 {
 	if (!isVolumeDataLoaded())
@@ -1140,6 +961,7 @@ int MdiChild::chooseComponentNr(int modalityNr)
 	}
 	return components.indexOf(componentChoice.parameterValues()["Component"].toString());
 }
+*/
 
 std::shared_ptr<iADataSet> MdiChild::chooseDataSet(QString const & title)
 {
@@ -1168,34 +990,6 @@ std::shared_ptr<iADataSet> MdiChild::chooseDataSet(QString const & title)
 		}
 	}
 	return nullptr;
-}
-
-bool MdiChild::save()
-{
-	if (m_isUntitled)
-	{
-		return saveAs();
-	}
-	else
-	{
-		int modalityNr = chooseModalityNr();
-		if (modalityNr == -1)
-		{
-			return false;
-		}
-		/*
-		// choice: save single modality, or modality stack!
-		if (modality(modalityNr)->ComponentCount() > 1)
-		{                         // should be ChannelCount()
-		}
-		*/
-		int componentNr = chooseComponentNr(modalityNr);
-		if (componentNr == -1)
-		{
-			return false;
-		}
-		return saveFile(modality(modalityNr)->fileName(), modalityNr, componentNr);
-	}
 }
 
 void MdiChild::saveVolumeStack()
@@ -1255,6 +1049,24 @@ bool MdiChild::saveNew(std::shared_ptr<iADataSet> dataSet)
 	{
 		return false;
 	}
+	// TODO NEWIO: provide option to only store single component, in case dataSet is an image data and contains multiple components!
+	// below the code from previous iAModality-based parts:
+	/*
+		int componentNr = chooseComponentNr(modalityNr);
+		if (componentNr == -1)
+		{
+			return false;
+		}
+		if (m_tmpSaveImg->GetNumberOfScalarComponents() > 1 &&
+			componentNr != m_tmpSaveImg->GetNumberOfScalarComponents())
+		{
+			auto imgExtract = vtkSmartPointer<vtkImageExtractComponents>::New();
+			imgExtract->SetInputData(m_tmpSaveImg);
+			imgExtract->SetComponents(componentNr);
+			imgExtract->Update();
+			m_tmpSaveImg = imgExtract->GetOutput();
+		}
+	*/
 	QString path = m_path.isEmpty() ? m_mainWnd->path() : m_path;
 	QString defaultFilter = iAFileTypeRegistry::defaultExtFilterString(dataSet->type());
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
@@ -1328,182 +1140,6 @@ bool MdiChild::saveNew(std::shared_ptr<iADataSet> dataSet, QString const& fileNa
 	return true;
 }
 
-bool MdiChild::saveAs()
-{
-	// TODO: unify with saveFile second part
-	int modalityNr = chooseModalityNr();
-	if (modalityNr == -1)
-	{
-		return false;
-	}
-	return saveAs(modalityNr);
-}
-
-bool MdiChild::saveAs(int modalityNr)
-{
-	int componentNr = chooseComponentNr(modalityNr);
-	if (componentNr == -1)
-	{
-		return false;
-	}
-	// TODO: ask for filename first, then for modality (if only one modality can be saved in chosen format)
-	QString filePath = (modalities()->size() > 0) ?
-		QFileInfo(modality(modalityNr)->fileName()).absoluteFilePath()
-		: m_path;
-	QString f = QFileDialog::getSaveFileName(
-		this,
-		tr("Save As"),
-		filePath,
-		iAIOProvider::GetSupportedSaveFormats() +
-		tr(";;TIFF stack (*.tif);; PNG stack (*.png);; BMP stack (*.bmp);; JPEG stack (*.jpg);; DICOM serie (*.dcm)"));
-	if (f.isEmpty())
-	{
-		return false;
-	}
-	return saveFile(f, modalityNr, componentNr);
-}
-
-void MdiChild::waitForPreviousIO()
-{
-	if (m_ioThread)
-	{
-		LOG(lvlInfo, tr("Waiting for I/O operation to complete..."));
-		m_ioThread->wait();
-		m_ioThread = nullptr;
-	}
-}
-
-QString GetSupportedPixelTypeString(QVector<int> const& types)
-{
-	QString result;
-	for (int i = 0; i < types.size(); ++i)
-	{
-		switch (types[i])
-		{
-		case VTK_UNSIGNED_CHAR: result += "unsigned char"; break;
-		case VTK_UNSIGNED_SHORT: result += "unsigned short"; break;
-		case VTK_FLOAT: result += "float"; break;
-		}
-		if (i < types.size() - 2)
-		{
-			result += ", ";
-		}
-		else if (i < types.size() - 1)
-		{
-			result += " and ";
-		}
-	}
-	return result;
-}
-
-bool MdiChild::setupSaveIO(QString const& f)
-{
-	QFileInfo fileInfo(f);
-	if (QString::compare(fileInfo.suffix(), "STL", Qt::CaseInsensitive) == 0)
-	{
-		if (m_polyData->GetNumberOfPoints() <= 1)
-		{
-			QMessageBox::warning(this, tr("Save File"), tr("Model contains no data. Saving aborted."));
-			return false;
-		}
-		else
-		{
-			if (!m_ioThread->setupIO(STL_WRITER, fileInfo.absoluteFilePath()))
-			{
-				return false;
-			}
-		}
-	}
-	else
-	{
-		if (!isVolumeDataLoaded())
-		{
-			QMessageBox::warning(this, tr("Save File"), tr("Image contains no data. Saving aborted.")); return false;
-		}
-		else
-		{
-			if ((QString::compare(fileInfo.suffix(), "MHD", Qt::CaseInsensitive) == 0) ||
-				(QString::compare(fileInfo.suffix(), "MHA", Qt::CaseInsensitive) == 0))
-			{
-				if (!m_ioThread->setupIO(MHD_WRITER, fileInfo.absoluteFilePath(), m_preferences.Compression))
-				{
-					return false;
-				}
-				setWindowTitleAndFile(f);
-			}
-			else
-			{
-				QMap<iAIOType, QVector<int> > supportedPixelTypes;
-				QVector<int> tiffSupported;
-				tiffSupported.push_back(VTK_UNSIGNED_CHAR);
-				tiffSupported.push_back(VTK_UNSIGNED_SHORT);
-				tiffSupported.push_back(VTK_FLOAT);
-				supportedPixelTypes.insert(TIF_STACK_WRITER, tiffSupported);
-				QVector<int> pngJpgBmpSupported;
-				pngJpgBmpSupported.push_back(VTK_UNSIGNED_CHAR);
-				supportedPixelTypes.insert(BMP_STACK_WRITER, pngJpgBmpSupported);
-				supportedPixelTypes.insert(PNG_STACK_WRITER, pngJpgBmpSupported);
-				supportedPixelTypes.insert(JPG_STACK_WRITER, pngJpgBmpSupported);
-
-				QString suffix = fileInfo.suffix().toUpper();
-				if (!extensionToSaveId().contains(suffix))
-				{
-					return false;
-				}
-				iAIOType ioID = extensionToSaveId()[suffix];
-				if (supportedPixelTypes.contains(ioID) &&
-					!supportedPixelTypes[ioID].contains(m_imageData->GetScalarType()))
-				{
-					LOG(lvlWarn, QString("Writer for %1 only supports %2 input!")
-						.arg(suffix)
-						.arg(GetSupportedPixelTypeString(supportedPixelTypes[ioID])));
-					return false;
-				}
-				if (!m_ioThread->setupIO(ioID, fileInfo.absoluteFilePath()))
-				{
-					return false;
-				}
-
-			}
-		}
-	}
-	return true;
-}
-
-bool MdiChild::saveFile(const QString& f, int modalityNr, int componentNr)
-{
-	waitForPreviousIO();
-
-	if (isVolumeDataLoaded())
-	{
-		m_tmpSaveImg = modality(modalityNr)->image();
-		if (m_tmpSaveImg->GetNumberOfScalarComponents() > 1 &&
-			componentNr != m_tmpSaveImg->GetNumberOfScalarComponents())
-		{
-			auto imgExtract = vtkSmartPointer<vtkImageExtractComponents>::New();
-			imgExtract->SetInputData(m_tmpSaveImg);
-			imgExtract->SetComponents(componentNr);
-			imgExtract->Update();
-			m_tmpSaveImg = imgExtract->GetOutput();
-		}
-	}
-
-	m_ioThread = new iAIO(m_tmpSaveImg, m_polyData, iALog::get(), this);
-	connectIOThreadSignals(m_ioThread);
-	connect(m_ioThread, &iAIO::done, this, &MdiChild::saveFinished);
-	m_storedModalityNr = modalityNr;
-	if (!setupSaveIO(f))
-	{
-		ioFinished();
-		return false;
-	}
-
-	LOG(lvlInfo, tr("Saving file '%1'.").arg(f));
-	m_ioThread->start();
-
-	return true;
-}
-
 void MdiChild::updateViews()
 {
 	updateSlicers();
@@ -1529,9 +1165,10 @@ void MdiChild::maximizeRC()
 
 void MdiChild::saveRC()
 {
+	iAImageStackFileIO io;
 	QString file = QFileDialog::getSaveFileName(this, tr("Save Image"),
 		"",
-		iAIOProvider::GetSupportedImageFormats());
+		io.filterString());
 	if (file.isEmpty())
 	{
 		return;
@@ -1817,11 +1454,7 @@ void MdiChild::enableInteraction(bool b)
 bool MdiChild::applyPreferences(iAPreferences const& prefs)
 {
 	m_preferences = prefs;
-	if (m_ioThread)	// don't do any updates if image still loading
-	{
-		return true;
-	}
-	setHistogramModality(m_magicLensDataSet);	// to update Histogram bin count
+	//setHistogramModality(m_magicLensDataSet);	// to update Histogram bin count
 	m_histogram->setYMappingMode(prefs.HistogramLogarithmicYAxis ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
 	for (auto dataForDisplay : m_dataForDisplay)
 	{
@@ -1870,17 +1503,18 @@ void MdiChild::updatePositionMarkerSize()
 
 void MdiChild::setRenderSettings(iARenderSettings const& rs, iAVolumeSettings const& vs)
 {
+	// TODO NEWIO: there are now settings of the individual viewers -> REMOVE?
 	m_renderSettings = rs;
 	m_volumeSettings = vs;
 }
 
 void MdiChild::applyVolumeSettings(const bool loadSavedVolumeSettings)
 {
+	// TODO NEWIO: there are now settings of the individual viewers -> REMOVE?
 	for (int i = 0; i < 3; ++i)
 	{
 		m_dwSlicer[i]->showBorder(m_renderSettings.ShowSlicePlanes);
 	}
-	m_dwModalities->showSlicers(m_renderSettings.ShowSlicers && !m_snakeSlicer, m_renderer->plane1(), m_renderer->plane2(), m_renderer->plane3());
 	for (auto r : m_dataRenderers)
 	{
 		if (m_renderSettings.ShowSlicers && !m_snakeSlicer)
@@ -1892,7 +1526,6 @@ void MdiChild::applyVolumeSettings(const bool loadSavedVolumeSettings)
 			r.second->removeCuttingPlanes();
 		}
 	}
-	m_dwModalities->changeRenderSettings(m_volumeSettings, loadSavedVolumeSettings);
 }
 
 QString MdiChild::layoutName() const
@@ -2076,7 +1709,6 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 	{
 		if (m_renderSettings.ShowSlicers)
 		{
-			m_dwModalities->showSlicers(false, nullptr, nullptr, nullptr);
 			for (auto r : m_dataRenderers)
 			{
 				r.second->removeCuttingPlanes();
@@ -2119,7 +1751,6 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 		}
 		if (m_renderSettings.ShowSlicers)
 		{
-			m_dwModalities->showSlicers(true, m_renderer->plane1(), m_renderer->plane2(), m_renderer->plane3());
 			for (auto r: m_dataRenderers)
 			{
 				r.second->setCuttingPlanes(m_renderer->plane1(), m_renderer->plane2(), m_renderer->plane3());
@@ -2229,6 +1860,7 @@ bool MdiChild::initView(QString const& title)
 		m_renderer->initialize(m_imageData, m_polyData);
 		m_raycasterInitialized = true;
 	}
+	/*
 	if (modalities()->size() == 0 && isVolumeDataLoaded())
 	{
 		// TODO: VOLUME: resolve duplication between here (called on loadFile) and adding modalities
@@ -2263,20 +1895,22 @@ bool MdiChild::initView(QString const& title)
 		}
 		m_initVolumeRenderers = true;
 	}
+	*/
 	m_dwRenderer->stackedWidgetRC->setCurrentIndex(0);
 
 	if (isVolumeDataLoaded())
 	{
 		if (m_imageData->GetNumberOfScalarComponents() == 1)
 		{   // No histogram/profile for rgb, rgba or vector pixel type images
-			splitDockWidget(m_dwModalities, m_dwHistogram, Qt::Vertical);
+			// TODO NEWIO: do we need histogram still (/currently)?
+			//splitDockWidget(m_dwModalities, m_dwHistogram, Qt::Vertical);
 			addProfile();
 		}
 	}
 	else
 	{	//Polygonal mesh is loaded
 		showPoly();
-		m_dwHistogram->hide();
+		//m_dwHistogram->hide();
 	}
 	updateLayout();
 
@@ -2305,7 +1939,7 @@ void MdiChild::updateDataSetInfo()
 bool MdiChild::addVolumePlayer()
 {
 	m_dwVolumePlayer = new dlg_volumePlayer(this, m_volumeStack.data());
-	splitDockWidget(m_dwModalities, m_dwVolumePlayer, Qt::Horizontal);
+	splitDockWidget(m_dwDataSets, m_dwVolumePlayer, Qt::Horizontal);
 	for (size_t id = 0; id < m_volumeStack->numberOfVolumes(); ++id)
 	{
 		m_checkedList.append(0);
@@ -2361,28 +1995,30 @@ QFileInfo const & MdiChild::fileInfo() const
 
 void MdiChild::closeEvent(QCloseEvent* event)
 {
-	if (m_ioThread)
+	// TODO NEWIO: Check whether it's still required to check whether currently an I/O operation is in progress
+	/*
 	{
 		LOG(lvlWarn, "Cannot close window while I/O operation is in progress!");
 		addStatusMsg("Cannot close window while I/O operation is in progress!");
 		event->ignore();
+		return;
 	}
 	else
 	{
-		if (isWindowModified())
+	*/
+	if (isWindowModified())
+	{
+		auto reply = QMessageBox::question(this, "Unsaved changes",
+			"You have unsaved changes. Are you sure you want to close this window?",
+			QMessageBox::Yes | QMessageBox::No);
+		if (reply != QMessageBox::Yes)
 		{
-			auto reply = QMessageBox::question(this, "Unsaved changes",
-				"You have unsaved changes. Are you sure you want to close this window?",
-				QMessageBox::Yes | QMessageBox::No);
-			if (reply != QMessageBox::Yes)
-			{
-				event->ignore();
-				return;
-			}
+			event->ignore();
+			return;
 		}
-		emit closed();
-		event->accept();
 	}
+	emit closed();
+	event->accept();
 }
 
 void MdiChild::setWindowTitleAndFile(const QString& f)
@@ -2719,12 +2355,6 @@ void MdiChild::resizeDockWidget(QDockWidget* dw)
 	}
 }
 
-void MdiChild::ioFinished()
-{
-	m_ioThread = nullptr;
-	m_tmpSaveImg = nullptr;
-}
-
 iASlicer* MdiChild::slicer(int mode)
 {
 	assert(0 <= mode && mode < iASlicerMode::SlicerCount);
@@ -2794,13 +2424,15 @@ bool MdiChild::linkedViews() const
 
 void MdiChild::check2DMode()
 {
-	if (modalities()->size() == 0)
+	// TODO NEWIO:
+	//     - check over all datasets?
+	//     - move out of this class?
+	auto ds = firstImageData();
+	if (!ds)
 	{
 		return;
 	}
-	// TODO: check over all modalities?
-	int dim[3];
-	modality(0)->image()->GetDimensions(dim);
+	const int* dim = ds->GetDimensions();
 
 	if (dim[0] == 1 && dim[1] > 1 && dim[2] > 1)
 	{
@@ -2979,171 +2611,6 @@ void MdiChild::changeMagicLensSize(int chg)
 	updateSlicers();
 }
 
-void MdiChild::setModalities(QSharedPointer<iAModalityList> modList)
-{
-	bool noDataLoaded = modalities()->size() == 0;
-	m_dwModalities->setModalities(modList);
-
-	if (noDataLoaded && modalities()->size() > 0)
-	{
-		initModalities();
-	}
-}
-
-dlg_modalities* MdiChild::dataDockWidget()
-{
-	return m_dwModalities;
-}
-
-QSharedPointer<iAModalityList> MdiChild::modalities()
-{
-	return m_dwModalities->modalities();
-}
-
-QSharedPointer<iAModality> MdiChild::modality(int idx)
-{
-	return modalities()->get(idx);
-}
-
-void MdiChild::initModalities()
-{
-	for (int i = 0; i < modalities()->size(); ++i)
-	{
-		m_dwModalities->addListItem(modality(i));
-	}
-	// TODO: VOLUME: rework - workaround: "initializes" renderer and slicers with modality 0
-	m_initVolumeRenderers = true;
-	m_imageData = modality(0)->image();
-	m_mainWnd->addRecentFile(modalities()->fileName());
-	setupView(false);
-	enableRenderWindows();
-	m_dwModalities->selectRow(0);
-}
-
-bool MdiChild::statisticsComputed(QSharedPointer<iAModality> modality)
-{
-	return modality->transfer()->isRangeComputed();
-}
-
-bool MdiChild::statisticsComputable(QSharedPointer<iAModality> modality, int modalityIdx /* = -1 */)
-//bool MdiChild::histogramComputedOrComputing(QSharedPointer<iAModality> modality, int modalityIdx /* = -1 */) {
-{
-	// If modality index is provided
-	if (modalityIdx != -1)
-	{
-		// If histogram can't be computed
-		if (modalities()->size() < modalityIdx ||
-			!m_histogram || modality->image()->GetNumberOfScalarComponents() != 1)
-		{
-			return false;
-		}
-	}
-
-	return true;
-}
-
-void MdiChild::computeStatisticsAsync(std::function<void()> callbackSlot, QSharedPointer<iAModality> mod)
-{
-	if (!statisticsComputable(mod))
-	{
-		return;
-	}
-	auto compute = [mod] { mod->computeImageStatistics(); };
-	auto fw = runAsync(compute, callbackSlot, this);
-	iAJobListView::get()->addJob(QString("Computing statistics for modality %1")
-		.arg(mod->name()), nullptr, fw);
-}
-
-void MdiChild::setHistogramModality(int modalityIdx)
-{
-	if (modalityIdx < 0 || modalityIdx >= modalities()->size())
-	{
-		return;
-	}
-	auto mod = modality(modalityIdx);
-
-	if (statisticsComputed(mod))
-	{
-		displayHistogram(modalityIdx);
-		return;
-	}
-
-	if (!statisticsComputable(mod, modalityIdx))
-	{
-		// Here, we also return if the histogram is currently being computed
-		// However, it is possible that an external class requested the computation of the histogram
-		// In that case, the function MdiChild::statisticsAvailable may never be called
-		// TODO: fix that
-		return;
-	}
-
-	auto callbackSlot = [this, modalityIdx](){ statisticsAvailable(modalityIdx); };
-	computeStatisticsAsync(callbackSlot, mod);
-}
-
-void MdiChild::modalityAdded(int modalityIdx)
-{
-	if (modality(modalityIdx)->image()->GetNumberOfScalarComponents() == 1) //No histogram/profile for rgb, rgba or vector pixel type images
-	{
-		setHistogramModality(modalityIdx);
-	}
-	else
-	{
-		m_dwModalities->initDisplay(modality(modalityIdx));
-		applyVolumeSettings(false);
-	}
-}
-
-void MdiChild::showHistogram(int modalityIdx)
-{
-	if (modalityIdx < 0 || modalityIdx >= modalities()->size())
-	{
-		LOG(lvlWarn, QString("showHistogram: Modality %1 not available!").arg(modalityIdx));
-		return;
-	}
-	QString modalityName = modality(modalityIdx)->name();
-	LOG(lvlDebug, QString("Displaying histogram for modality %1.").arg(modalityName));
-	m_histogram->removePlot(m_histogramPlot);
-	m_histogramPlot = QSharedPointer<iABarGraphPlot>::create(
-		modality(modalityIdx)->histogramData(),
-		QApplication::palette().color(QPalette::Shadow));
-	m_histogram->addPlot(m_histogramPlot);
-	m_histogram->setXCaption("Histogram " + modalityName);
-	m_histogram->setTransferFunction(modality(modalityIdx)->transfer().data());
-	m_histogram->update();
-}
-
-void MdiChild::histogramDataAvailable(int modalityIdx)
-{
-	showHistogram(modalityIdx);
-	if (!findChild<iADockWidgetWrapper*>("Histogram"))
-	{
-		splitDockWidget(m_dwRenderer, m_dwHistogram, Qt::Vertical);
-		addProfile();
-	}
-	emit histogramAvailable(modalityIdx);
-}
-
-bool MdiChild::histogramComputed(size_t newBinCount, QSharedPointer<iAModality> mod)
-{
-	auto histData = mod->histogramData();
-	return (histData && histData->valueCount() == newBinCount);
-}
-
-void MdiChild::computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality> mod)
-{
-	auto fw = runAsync([newBinCount, mod]
-		{   // run computation of histogram...
-			auto histData = iAHistogramData::create("Frequency", mod->image(), newBinCount);
-			mod->setHistogramData(histData);
-		},
-		callbackSlot,
-		this);
-		// TODO: find way of terminating computation in case modality is deleted/application closed!
-	iAJobListView::get()->addJob(QString("Computing histogram for modality %1")
-		.arg(mod->name()), nullptr, fw);
-}
-
 void MdiChild::set3DControlVisibility(bool visible)
 {
 	m_dwRenderer->widget3D->setVisible(visible);
@@ -3274,67 +2741,6 @@ void MdiChild::loadSettings(QSettings const& settings)
 	cam->SetParallelProjection(parProj);
 	cam->SetParallelScale(parScale);
 	// }
-}
-
-void MdiChild::displayHistogram(int modalityIdx)
-{
-	if (modalityIdx < 0 || modalityIdx >= modalities()->size())
-	{
-		LOG(lvlWarn, QString("displayHistogram: Modality %1 not available!").arg(modalityIdx));
-		return;
-	}
-	auto mod = modality(modalityIdx);
-	size_t newBinCount = iAHistogramData::finalNumBin(mod->image(), m_preferences.HistogramBins);
-	if (histogramComputed(newBinCount, mod))
-	{
-		showHistogram(modalityIdx);
-		return;
-	}
-
-	std::function<void()> callbackSlot = [this, modalityIdx](){ histogramDataAvailable(modalityIdx); };
-	computeHistogramAsync(callbackSlot, newBinCount, mod);
-}
-
-void MdiChild::clearHistogram()
-{
-	m_histogram->removePlot(m_histogramPlot);
-	m_histogramPlot = nullptr;
-	m_histogram->setTransferFunction(nullptr);
-	m_histogram->update();
-}
-
-void MdiChild::statisticsAvailable(int modalityIdx)
-{
-	if (modalityIdx < 0 || modalityIdx >= modalities()->size())
-	{
-		LOG(lvlWarn, QString("statisticsAvailable: Modality %1 not available!").arg(modalityIdx));
-		return;
-	}
-	displayHistogram(modalityIdx);
-	// TODO: only initialize volume renderer of modalityIdx modality here!
-	initVolumeRenderers();
-	changeTransferFunction();
-	updateViews();
-}
-
-void MdiChild::initVolumeRenderers()
-{
-	if (!m_initVolumeRenderers)
-	{
-		for (int i = 0; i < modalities()->size(); ++i)
-		{
-			modality(i)->updateRenderer();
-		}
-		return;
-	}
-	m_initVolumeRenderers = false;
-	for (int i = 0; i < modalities()->size(); ++i)
-	{
-		m_dwModalities->initDisplay(modality(i));
-	}
-	applyVolumeSettings(true);
-	connect(modalities().data(), &iAModalityList::added, m_dwModalities, &dlg_modalities::modalityAdded);
-	m_renderer->renderer()->ResetCamera();
 }
 
 bool MdiChild::doSaveProject(QString const & projectFileName)
@@ -3523,37 +2929,6 @@ void MdiChild::setDataSetMovable(size_t dataSetIdx)
 	{
 		m_manualMoveStyle[i]->initialize(img, m_dataRenderers[dataSetIdx].get(), props, i);
 	}
-}
-
-bool MdiChild::meshDataMovable()
-{
-	return renderer()->polyActor()->GetDragable();
-}
-
-void MdiChild::setMeshDataMovable(bool movable)
-{
-	renderer()->polyActor()->SetPickable(movable);
-	renderer()->polyActor()->SetDragable(movable);
-}
-
-iAMainWindow* MdiChild::mainWnd()
-{
-	return m_mainWnd;
-}
-
-void MdiChild::saveFinished()
-{
-	if (m_storedModalityNr < modalities()->size() && m_ioThread->ioID() != STL_WRITER)
-	{
-		m_dwModalities->setFileName(m_storedModalityNr, m_ioThread->fileName());
-	}
-	m_mainWnd->addRecentFile(m_ioThread->fileName());
-	setWindowModified(modalities()->hasUnsavedModality());
-}
-
-bool MdiChild::isFullyLoaded() const
-{
-	return m_dataSets.size() > 0;
 }
 
 void MdiChild::styleChanged()

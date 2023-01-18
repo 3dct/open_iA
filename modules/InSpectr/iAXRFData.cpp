@@ -48,9 +48,9 @@ size_t iAXRFData::size() const
 	return m_data.size();
 }
 
-iAXRFData::Container * iAXRFData::GetDataPtr()
+iAXRFData::Container & iAXRFData::GetDataContainer()
 {
-	return &m_data;
+	return m_data;
 }
 
 vtkSmartPointer<vtkImageData> const & iAXRFData::image(size_t idx) const

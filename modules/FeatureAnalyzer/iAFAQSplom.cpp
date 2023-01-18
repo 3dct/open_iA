@@ -414,19 +414,15 @@ void iAFAQSplom::sendToFeatureScout()
 	QString fileName = "";
 	QString mhdName = "";
 	getFilesLabeledFromPoint(fileName, mhdName);
-	this->m_mdiChild = m_mainWnd->createMdiChild(false);
-	if (!this->m_mdiChild)
+
+	m_mdiChild = m_mainWnd->createMdiChild(false);
+	if (!m_mdiChild)
 	{
 		return;
 	}
-	this->m_mdiChild->show();
-	connect(m_mdiChild, &iAMdiChild::histogramAvailable, this, &iAFAQSplom::startFeatureScout);
-	if (!m_mdiChild->loadFile(mhdName, false))
-	{
-		LOG(lvlError, QString("File '%1' could not be loaded!").arg(mhdName));
-		m_mdiChild->close();
-		return;
-	}
+	m_mdiChild->show();
+	connect(m_mdiChild, &iAMdiChild::dataSetRendered, this, &iAFAQSplom::startFeatureScout);
+	m_mainWnd->loadFileNew(mhdName, m_mdiChild);
 }
 
 void iAFAQSplom::getFilesLabeledFromPoint(QString &fileName, QString &mhdName)

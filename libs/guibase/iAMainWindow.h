@@ -24,6 +24,7 @@
 
 #include <QMainWindow>
 
+class iAFileIO;
 class iAMdiChild;
 class iAModuleDispatcher;
 class iAPreferences;
@@ -72,8 +73,12 @@ public:
 	//!     provided in iAFilter (via the requiredInputs parameter to the constructor) to specify multiple inputs
 	virtual iAMdiChild* secondNonActiveChild() = 0;
 
-	//! load the file under the given filename in a new child window
-	virtual void loadFile(QString fileName, bool isStack) = 0;
+	//! Load a file, either into an existing child window or creating a new one
+	//! @param fileName the name of the file (project or dataset) to load
+	//! @param child the child window to load the data into. If left at default value nullptr, a new child will be created
+	//! @param io the file io to be used when loading the file. If left at default value nullptr,
+	//!     the iAFileTypeRegistry will be consulted to create an io fitting for the given filename
+	virtual void loadFileNew(QString const& fileName, iAMdiChild* child = nullptr, std::shared_ptr<iAFileIO> io = nullptr) = 0;
 
 
 	// Access to menus:

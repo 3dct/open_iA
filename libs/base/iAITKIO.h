@@ -45,7 +45,9 @@ namespace iAITKIO
 	using ScalarType = itk::ImageIOBase::IOComponentType;
 #endif
 
-	// TODO: unify with mdichild::loadfile / iAIO!
-	iAbase_API ImagePointer readFile(QString const& fileName, PixelType& pixelType, ScalarType& scalarType, bool releaseFlag);
+	// TODO:
+	//     - check usage - replace with iAFileTypeRegistry::createIO where it makes sense to support broader range of file types
+	//     - check iAToolsITK
+	iAbase_API ImagePointer readFile(QString const& fileName, PixelType& pixelType, ScalarType& scalarType, bool releaseFlag, iAProgress const * progress = nullptr);
 	iAbase_API void writeFile(QString const& fileName, ImagePtr image, ScalarType scalarType, bool useCompression = false, iAProgress const * progress = nullptr);
 } // namespace iAITKIO

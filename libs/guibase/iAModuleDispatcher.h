@@ -70,7 +70,6 @@ public:
 	~iAModuleDispatcher();
 	void InitializeModules(iALogger* logger);
 	void SaveModulesSettings() const;
-	iAMainWindow * mainWnd() const;
 	template <typename T> T* module();
 private slots:
 	void executeFilter();

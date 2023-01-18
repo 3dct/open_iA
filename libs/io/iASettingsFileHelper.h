@@ -20,45 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAguibase_export.h"
+#include <QMap>
+#include <QString>
 
-#include <QObject>
-#include <QSharedPointer>
-#include <QVector>
-
-class iAModality;
-class iAProgress;
-class iAVolumeSettings;
-
-class vtkCamera;
-
-typedef QVector<QSharedPointer<iAModality> > ModalityCollection;
-
-//! Holds a list of datasets, and provides methods to save and load such lists.
-class iAguibase_API iAModalityList : public QObject
-{
-	Q_OBJECT
-public:
-	iAModalityList();
-	bool store(QString const & filename, vtkCamera* cam);
-	bool load(QString const & filename, iAProgress& progress);
-	void applyCameraSettings(vtkCamera* cam);
-
-	int size() const;
-	QSharedPointer<iAModality> get(int idx);
-	QSharedPointer<iAModality const> get(int idx) const;
-	void add(QSharedPointer<iAModality> mod);
-	void remove(int idx);
-	QString const & fileName() const;
-	static ModalityCollection load(QString const & filename, QString const & name, int channel, bool split, int renderFlags);
-	bool hasUnsavedModality() const;
-signals:
-	void added(QSharedPointer<iAModality> mod);
-private:
-	bool modalityExists(QString const & filename, int channel) const;
-	ModalityCollection m_modalities;
-	QString m_fileName;
-	bool m_camSettingsAvailable;
-	double m_camPosition[3], m_camFocalPoint[3], m_camViewUp[3];
-};
-
+//! Reads a file containing key-value pairs, separated by colon (:);
+//! with one pair per line, and optional end-line comments (everything after the first '%' character in the line is ignored).
+//! Keys and values are trimmed (i.e. leading and trailing whitespace is removed)
+//! @param fileName the name of the file to read
+//! @return a map of key-value pairs
+QMap<QString, QString> readSettingsFile(QString const& fileName);

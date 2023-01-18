@@ -70,6 +70,11 @@ public:
 	//! Check whether the given values contain all required parameters; set to default if not
 	bool checkParams(QVariantMap & paramValues, Operation op, QString const& fileName);
 
+	//! list of extensions as required by Qt's open/save file dialogs
+	QStringList filterExtensions();
+	//! a filter string for the type of files supported by the I/O class
+	QString filterString();
+
 protected:
 
 	std::array<iAAttributes, 2> m_params;

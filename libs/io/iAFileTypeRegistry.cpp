@@ -38,19 +38,6 @@ namespace
 		static QMap<iADataSetType, QString> defaultExts;
 		return defaultExts;
 	}
-	QStringList ioExtensionList(iAFileIO const* io)
-	{
-		auto extCpy = io->extensions();
-		for (auto& ext : extCpy)
-		{
-			ext = "*." + ext;
-		}
-		return extCpy;
-	}
-	QString ioFilterString(iAFileIO const* io)
-	{
-		return QString("%1 (%2)").arg(io->name()).arg(ioExtensionList(io).join(" "));
-	}
 }
 
 std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileName, iAFileIO::Operation op)
@@ -58,13 +45,22 @@ std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileName, 
 	QFileInfo fi(fileName);
 	// special handling for directory ? TLGICT-loader... -> fi.isDir();
 	auto fileExt = fi.suffix().toLower();
+	// check for whether we have a two-parts suffix (such as .nii.gz or the like)
+	// we need to find the second to last "." and extract the extension from its position
+	auto fileExtFull = fileExt;
+	auto secondLastDotPos = fi.fileName().lastIndexOf(".", -(fileExt.size() + 2));
+	if (secondLastDotPos != -1)
+	{
+		fileExtFull = fi.fileName().right(fi.fileName().size() - (secondLastDotPos+1));
+	}
 
 	for (auto c : fileIOs())
 	{
 		auto io = c();
 		for (auto ioExt : io->extensions())
 		{
-			if (fileExt == ioExt && io->supportedDataSetTypes(op) != iADataSetType::None)
+			if ( (fileExt == ioExt || fileExtFull == ioExt) &&
+				io->supportedDataSetTypes(op) != iADataSetType::None)
 			{
 				return io;
 			}
@@ -92,8 +88,8 @@ QString iAFileTypeRegistry::registeredFileTypes(iAFileIO::Operation op, iADataSe
 		{   // current I/O does not support any of the allowed types
 			continue;
 		}
-		singleTypes += ioFilterString(io.get()) + ";;";
-		allExtensions.append(ioExtensionList(io.get()));
+		singleTypes += io->filterString() + ";;";
+		allExtensions.append(io->filterExtensions());
 	}
 	if (singleTypes.isEmpty())
 	{
@@ -145,7 +141,7 @@ QString iAFileTypeRegistry::defaultExtFilterString(iADataSetType type)
 		auto io = ioFactory();
 		if (io->extensions().contains(ext))
 		{
-			return ioFilterString(io.get());
+			return io->filterString();
 		}
 	}
 	LOG(lvlError, QString("No File I/O registered for default extension '%1'!").arg(ext));

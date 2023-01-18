@@ -31,18 +31,13 @@
 #include <memory>
 
 
-
-class dlg_modalities;
 class iAAlgorithm;
 class iAChannelData;
 class iAChartWithFunctionsWidget;
 class iADataSet;
 class iADataSetRenderer;
 class iADataForDisplay; // TODO NEWIO: -> iADataViewer!
-class iAIO;
 class iAMainWindow;
-class iAModality;
-class iAModalityList;
 class iAPreferences;
 class iARenderer;
 class iARenderSettings;
@@ -77,23 +72,6 @@ public:
 	//! or manual registration is active, see iAInteractionMode)
 	virtual iAInteractionMode interactionMode() const = 0;
 
-	//! Retrieve the list of all currently loaded modalities.
-	//! @deprecated use dataset API instead!
-	virtual QSharedPointer<iAModalityList> modalities() = 0;
-	//! Retrieve data for modality with given index.
-	//! @deprecated use dataset API instead!
-	virtual QSharedPointer<iAModality> modality(int idx) = 0;
-	//! Set list of modalities.
-	//! @deprecated use dataset API instead!
-	virtual void setModalities(QSharedPointer<iAModalityList> modList) =0;
-	//! Access to modalities dock widget
-	//! @deprecated use dataset API instead!
-	virtual dlg_modalities* dataDockWidget() = 0;
-	//! If more than one modality loaded, ask user to choose one of them.
-	//! (currently used for determining which modality to save)
-	//! @deprecated
-	virtual int chooseModalityNr(QString const& caption) = 0;
-
 	virtual void setROIVisible(bool isVisible) = 0;
 	virtual void updateROI(int const roi[6]) = 0;
 
@@ -122,8 +100,6 @@ public:
 
 	//! Access to the histogram widget
 	virtual iAChartWithFunctionsWidget* histogram() = 0;
-	//! Clear current histogram (i.e. don't show it anymore)
-	virtual void clearHistogram() = 0;
 
 	// Layout:
 	//! Loads the layout with the given name from the settings store, and tries to restore the according dockwidgets configuration
@@ -136,9 +112,6 @@ public:
 	virtual iAPreferences const& preferences() const = 0;
 	//! Whether this child has the linked views feature enabled
 	virtual bool linkedViews() const = 0;
-
-	//! Checks whether the main image data is fully loaded.
-	virtual bool isFullyLoaded() const = 0;
 
 	//! Name of the currently open file (project file / first modality file / ...)
 	//! If possible, use something more specific (e.g. file name from specific modality)
@@ -258,13 +231,6 @@ public:
 	//!    also, don't use iAAlgorithm anymore!
 	virtual void connectThreadSignalsToChildSlots(iAAlgorithm* thread) = 0;
 
-	//! @deprecated. Use iARunASync / new IO mechanism (io library - iAFileIO)
-	virtual void connectIOThreadSignals(iAIO* thread) = 0;
-
-	//! Access to main window.
-	//! @deprecated should not be available here
-	virtual iAMainWindow* mainWnd() = 0;
-
 	//! Adds a message to the status bar.
 	//! @deprecated. Status bar will be removed soon in favor of the log window. Use iALog instead.
 	virtual void addStatusMsg(QString const& txt) = 0;
@@ -276,14 +242,6 @@ public:
 	//! Access to file info of "current" file
 	//! @deprecated. Use access via modalities instead
 	virtual QFileInfo const & fileInfo() const = 0;
-
-	//! Load a file
-	//! @deprecated. Use modality methods / new IO structure (to be defined)
-	virtual bool loadFile(const QString& f, bool isStack) = 0;
-
-	//! Set "main image" - does not update views (see displayResult for a method that does)!
-	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...) or channels (createChannel/updateChannel)
-	virtual void setImageData(vtkImageData* iData) = 0;
 	
 	//! @deprected access transform used in slicer. should be removed from here; no replacement in place yet
 	virtual vtkTransform* slicerTransform() = 0;
@@ -291,12 +249,6 @@ public:
 	//! @deprecated. can be removed together with enableRenderWindow/disableRenderWindow
 	virtual void setReInitializeRenderWindows(bool reInit) = 0;
 
-	//! @{ for recomputing histogram. should probably be made private somehow; or members of modality, or triggered automatically on modality creation...
-	//! @deprecated
-	virtual bool histogramComputed(size_t newBinCount, QSharedPointer<iAModality>) = 0;
-	virtual void computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality>) = 0;
-	virtual void setHistogramModality(int modalityIdx) = 0;
-	//! @}
 	virtual void set3DControlVisibility(bool visible) = 0;
 
 	//! save state, for example camera position

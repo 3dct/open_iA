@@ -251,7 +251,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 	filters << "*.csv";
 	QStringList csvFileNames;
 
-	FindFiles(path, filters, false, csvFileNames, Files);
+	findFiles(path, filters, false, csvFileNames, Files);
 
 	const int MaxDatasetCount = 1000;
 	if (csvFileNames.size() > MaxDatasetCount)

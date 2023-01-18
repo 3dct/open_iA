@@ -43,7 +43,6 @@
 #include <iARenderSettings.h>
 #include <iARenderer.h>
 #include <iAVolumeRenderer.h>
-#include <io/iAIOProvider.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
 

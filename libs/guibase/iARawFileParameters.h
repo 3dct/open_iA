@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAguibase_export.h"
+
 #include <vtkImageReader.h>  // for VTK_FILE_BYTE_ORDER_... constants
 #include <vtkType.h>         // For types, e.g. VTK_UNSIGNED_SHORT
 
@@ -28,18 +30,10 @@
 
 
 //! Contains all metadata required to load a raw data file.
-//! @deprecated new developments should use iARawFileIO and its parameters instead
-struct iARawFileParameters
+//! @deprecated new developments should use iARawFileIO and its parameters() instead
+struct iAguibase_API iARawFileParameters
 {
-	iARawFileParameters():
-		m_headersize(0),
-		m_scalarType(VTK_UNSIGNED_SHORT),
-		m_byteOrder(VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN)
-	{
-		std::fill(m_size, m_size+3, 1);
-		std::fill(m_spacing, m_spacing+3, 1.0);
-		std::fill(m_origin, m_origin+3, 0.0);
-	}
+	iARawFileParameters();
 	//! Size of the dataset in voxels in all 3 dimensions.
 	unsigned int m_size[3];
 	//! Voxel spacing of the dataset (dimension of a single voxel in  given unit).
@@ -56,3 +50,6 @@ struct iARawFileParameters
 	//! this type is mapped to list index in raw file dialog in mapVTKByteOrderToIdx in iARawFileParamDlg
 	int m_byteOrder;
 };
+
+iAguibase_API QVariantMap rawParamsToMap(iARawFileParameters const& p);
+iAguibase_API iARawFileParameters rawParamsFromMap(QVariantMap const& map);

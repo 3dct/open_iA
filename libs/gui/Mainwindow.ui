@@ -72,9 +72,8 @@
      <bool>true</bool>
     </property>
     <addaction name="actionOpenInNewWindow"/>
-    <addaction name="actionOpenNew"/>
+    <addaction name="actionOpenDataSet"/>
     <addaction name="actionOpenRaw"/>
-    <addaction name="actionOpenVolumeStack"/>
     <addaction name="actionOpenWithDataTypeConversion"/>
     <addaction name="actionOpenTLGICTData"/>
     <addaction name="separator"/>
@@ -101,7 +100,6 @@
      <addaction name="actionInteractionModeCamera"/>
      <addaction name="actionInteractionModeRegistration"/>
      <addaction name="separator"/>
-     <addaction name="actionMeshDataMovable"/>
     </widget>
     <addaction name="actionPreferences"/>
     <addaction name="actionRendererSettings"/>
@@ -1070,17 +1068,6 @@
     <string>Manual registration</string>
    </property>
   </action>
-  <action name="actionMeshDataMovable">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Mesh data movable</string>
-   </property>
-  </action>
   <action name="actionOpenLogOnNewMessage">
    <property name="checkable">
     <bool>true</bool>
@@ -1134,7 +1121,7 @@
     <string>Show job list only while job is running</string>
    </property>
   </action>
-  <action name="actionOpenNew">
+  <action name="actionOpenDataSet">
    <property name="icon">
     <iconset resource="../guibase/guibase.qrc">
      <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>

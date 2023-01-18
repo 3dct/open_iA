@@ -77,11 +77,10 @@ public:
 	//! add a file to the list of recently loaded/saved files
 	void addRecentFile(const QString &fileName);
 
-	void loadFile(QString const & fileName);
-	void loadFile(QString fileName, bool isStack) override;
 	void loadFiles(QStringList fileNames);
 
-	void loadFileNew(QString const& fileName, bool newWindow, std::shared_ptr<iAFileIO> io = nullptr);
+	//! TODO NEWIO: create signal triggered on new child (fully) created
+	void loadFileNew(QString const& fileName, iAMdiChild* child = nullptr, std::shared_ptr<iAFileIO> io = nullptr) override;
 
 	void saveCamera(iAXmlSettings & xml);
 	bool loadCamera(iAXmlSettings & xml);
@@ -105,7 +104,7 @@ public:
 	QMenu* helpMenu() override;
 	//! @{ Get access to result child with the given title.
 	//! (depending on preferences, this will either open a new mdi child window, or reuse the currently active one)
-	//! @deprecated
+	//! @deprecated either use loadFileNew to load a file into a new or existing window, or createChild to create a new window
 	iAMdiChild * resultChild( QString const & title ) override;
 	iAMdiChild * resultChild( int childInd, QString const & title ) override;
 	iAMdiChild * resultChild( iAMdiChild* oldChild, QString const & title ) override;
@@ -154,12 +153,9 @@ private slots:
 	void quitTimerSlot();
 	void hideSplashSlot();
 	void openRaw();
-	void openVolumeStack();
 	void openWithDataTypeConversion();
 	void openTLGICTData();
-	void save();
 	void saveNew();
-	void saveAs();
 	void loadSettings();
 	void saveSettings();
 	void saveProject();
@@ -184,7 +180,6 @@ private slots:
 	void resetView();
 	void resetTrf();
 	void changeInteractionMode(bool isChecked);
-	void meshDataMovable(bool isChecked);
 	void toggleSnakeSlicer(bool isChecked);
 	void toggleMagicLens(bool isChecked);
 	void toggleMagicLens3D(bool isChecked);

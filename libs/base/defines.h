@@ -31,46 +31,6 @@
 iAbase_API extern const QString organisationName;
 iAbase_API extern const QString applicationName;
 
-enum iAIOType
-{
-	UNKNOWN_READER,
-	MHD_READER,
-	STL_READER,
-	RAW_READER,
-	PARS_READER,
-	VGI_READER,
-	TIF_STACK_READER,
-	JPG_STACK_READER,
-	PNG_STACK_READER,
-	BMP_STACK_READER,
-	CSV_READER,
-	XML_READER,
-	VOLUME_STACK_READER,
-	VOLUME_STACK_MHD_READER,
-	VOLUME_STACK_VOLSTACK_READER,
-	VTK_READER,  //new for VTK Input
-	DCM_READER,
-//	NRRD_READER,     // see iAIOProvider.cpp why this is commented out
-	OIF_READER,
-	PROJECT_READER,
-	NKC_READER,
-
-	MHD_WRITER,
-	STL_WRITER,
-	TIF_STACK_WRITER,
-	JPG_STACK_WRITER,
-	PNG_STACK_WRITER,
-	BMP_STACK_WRITER,
-	MPEG_WRITER,
-	OGV_WRITER,
-	AVI_WRITER,
-	XML_WRITER,
-	DCM_WRITER,
-	AM_WRITER,
-	CSV_WRITER,
-	HDF5_WRITER
-};
-
 const int DefaultMagicLensSize = 120;
 const int MinimumMagicLensSize = 40;
 const int MaximumMagicLensSize = 8192;

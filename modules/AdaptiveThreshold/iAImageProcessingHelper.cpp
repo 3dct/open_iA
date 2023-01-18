@@ -70,7 +70,7 @@ void performSegmentation(iAMdiChild* child, double greyThresholdLower, double gr
 		parameters["Outside value"] = 0;
 		filter->run(parameters);
 
-		auto newChild = child->mainWnd()->createMdiChild(true);
+		auto newChild = iAMainWindow::get()->createMdiChild(true);
 		// TODO: check if we need to apply preferences...
 		//dynamic_cast<MdiChild*>(targetChild)->applyPreferences(m_defaultPreferences);
 		newChild->show();

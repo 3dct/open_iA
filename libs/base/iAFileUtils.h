@@ -30,19 +30,32 @@
 class QFileInfo;
 class QString;
 
-enum FilesFolders
-{
-	Files,
-	Folders,
-	FilesAndFolders
-};
-
+//! Given a base directory and a filename, return the complete, absolute filename
+//! (basically, add the given baseDir as prefix, unless the given filename is an
+//! a filename including a full path already)
 iAbase_API QString MakeAbsolute(QString const & baseDir, QString const & fileName);
+//! Given a base directory and a full filename (that is, including a path), make
+//! that filename relativ to the base directory
 iAbase_API QString MakeRelative(QString const & baseDir, QString const & fileName);
 
-iAbase_API void FindFiles(QString const& directory, QStringList const& filters, bool recurse,
+//! enum for filters to findFiles
+enum FilesFolders
+{
+	Files = 0x1,
+	Folders = 0x2
+};
+
+//! List files and/or folders inside of a given directory
+//! @param directory the folder in which to search for files
+//! @param filters a list of filters to apply (see QDirIterator nameFilters)
+//! @param recurse whether to also search in sub-folders
+//! @param filesOut reference to the container for the found filenames
+//! @param filesFolders flags indicating whether to search for files, folders or both
+iAbase_API void findFiles(QString const& directory, QStringList const& filters, bool recurse,
 	QStringList & filesOut, QFlags<FilesFolders> filesFolders);
 
+//! convert a given (utf-8 encoded) fileName in QString type to the (closest possible)
+//! string representation in local encoding used for file names)
 iAbase_API std::string getLocalEncodingFileName(QString const& fileName);
 
 //! returns the full path of the given file along with the file's basename
@@ -74,3 +87,11 @@ iAbase_API void determineStackParameters(QString const & fullFileName,
 
 //! from the given string, filter all potentially unsafe/disallowed characters to return a valid filename
 iAbase_API QString safeFileName(QString str);
+
+//! For a given filename, test if it exists; if it does not exist,
+//! try correcting the filename by using the given base path as file path instead of the one specified in the filename itself (if any)
+//! @param fileName the file name to check for existence; can both be an absolute or a relative file name
+//! @param basePath the folder to use as basis for checking where the file could be
+//! @return the fileName parameter if the file that references exists, or a modified version using basePath as path if that exists
+//! @throw std::runtime_error if the file could not be found even when trying correcting
+iAbase_API QString tryFixFileName(QString const& fileName, QString const& basePath);
