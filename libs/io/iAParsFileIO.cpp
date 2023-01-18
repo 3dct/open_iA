@@ -73,7 +73,7 @@ std::shared_ptr<iADataSet> iAParsFileIO::loadData(QString const& fileName, QVari
 	auto fileSettings = readSettingsFile(fileName);
 	auto detsize = getNumFromSettings<int>(fileSettings, "det_size", 2);
 	auto reco_n_proj = getNumFromSettings<int>(fileSettings, "reco_n_proj", 1);
-	rawFileParams[iARawFileIO::SizeStr] = QVariant::fromValue(QVector<int>{ detsize[0]-1, detsize[1]-1, reco_n_proj[0]-1 });
+	rawFileParams[iARawFileIO::SizeStr] = QVariant::fromValue(QVector<int>{ detsize[0], detsize[1], reco_n_proj[0] });
 	auto detpitch = getNumFromSettings<double>(fileSettings, "det_pitch", 2);
 	auto SD = getNumFromSettings<double>(fileSettings, "geo_SD", 1)[0];
 	auto SO = getNumFromSettings<double>(fileSettings, "geo_SO", 1)[0];
