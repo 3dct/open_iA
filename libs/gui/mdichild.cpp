@@ -886,6 +886,7 @@ void MdiChild::setupViewInternal(bool active)
 		changeVisibility(m_visibility);
 	}
 
+	// TODO NEWIO: check this logic!
 	if (m_imageData->GetNumberOfScalarComponents() > 1 &&
 		m_imageData->GetNumberOfScalarComponents() < 4)
 	{
@@ -1242,13 +1243,14 @@ void MdiChild::setSlice(int mode, int s)
 
 void MdiChild::set3DSlicePlanePos(int mode, int slice)
 {
+	if (!firstImageData())
+	{
+		return;
+	}
 	int sliceAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::Z);
 	double plane[3];
 	std::fill(plane, plane + 3, 0);
-	auto const spacing =
-		firstImageData() ?
-		firstImageData()->GetSpacing()
-		: m_imageData->GetSpacing();
+	auto const spacing = firstImageData()->GetSpacing();
 	// + 0.5 to place slice plane in the middle of the sliced voxel:
 	plane[sliceAxis] = (slice + 0.5) * spacing[sliceAxis];
 	m_renderer->setSlicePlanePos(sliceAxis, plane[0], plane[1], plane[2]);
@@ -1256,8 +1258,12 @@ void MdiChild::set3DSlicePlanePos(int mode, int slice)
 
 void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s)
 {
+	if (!firstImageData())
+	{
+		return;
+	}
 	double spacing[3];
-	m_imageData->GetSpacing(spacing);
+	firstImageData()->GetSpacing(spacing);
 
 	double splinelength = (int)m_parametricSpline->GetLength();
 	double length_percent = 100 / splinelength;
@@ -1621,6 +1627,10 @@ bool MdiChild::editSlicerSettings(iASlicerSettings const& slicerSettings)
 
 void MdiChild::toggleSnakeSlicer(bool isChecked)
 {
+	if (!firstImageData())
+	{
+		return;
+	}
 	m_snakeSlicer = isChecked;
 
 	if (m_snakeSlicer)
@@ -1660,7 +1670,7 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 
 		for (int s = 0; s < 3; ++s)
 		{
-			m_dwSlicer[s]->sbSlice->setValue(m_imageData->GetDimensions()[mapSliceToGlobalAxis(s, iAAxisIndex::Z)] >> 1);
+			m_dwSlicer[s]->sbSlice->setValue(firstImageData()->GetDimensions()[mapSliceToGlobalAxis(s, iAAxisIndex::Z)] >> 1);
 			m_slicer[s]->channel(0)->reslicer()->SetResliceTransform(m_savedSlicerTransform[s]);
 			m_slicer[s]->channel(0)->reslicer()->SetOutputExtentToDefault();
 			m_slicer[s]->resetCamera();
@@ -1679,6 +1689,10 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 
 void MdiChild::snakeNormal(int index, double point[3], double normal[3])
 {
+	if (!firstImageData())
+	{
+		return;
+	}
 	int i1 = index;
 	int i2 = index + 1;
 
