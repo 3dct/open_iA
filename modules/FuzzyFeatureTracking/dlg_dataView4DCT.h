@@ -20,14 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_DataView4DCT.h"
-
 #include <iARendererViewSync.h>
-#include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_DataView4DCT>	dlg_dataView4DCTContainer;
+#include <QWidget>
 
 class iAFuzzyVTKWidget;
 
@@ -41,7 +38,7 @@ class vtkCamera;
 class vtkPolyData;
 class vtkTransform;
 
-class dlg_dataView4DCT : public dlg_dataView4DCTContainer
+class dlg_dataView4DCT : public QWidget
 {
 	Q_OBJECT
 public:

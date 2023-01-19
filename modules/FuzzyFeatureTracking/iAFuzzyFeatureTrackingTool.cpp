@@ -25,6 +25,7 @@
 #include "dlg_trackingGraph.h"
 #include "iAFeatureTracking.h"
 
+#include <iADockWidgetWrapper.h>
 #include <iALog.h>
 #include <iAVolumeStack.h>
 #include <iAMdiChild.h>
@@ -75,7 +76,7 @@ bool iAFuzzyFeatureTrackingTool::create4DCTDataViewWidget()
 	}
 
 	m_dlgDataView4DCT = new dlg_dataView4DCT( m_child, m_volumeStack );
-	m_child->tabifyDockWidget( m_child->renderDockWidget(), m_dlgDataView4DCT );
+	m_child->tabifyDockWidget( m_child->renderDockWidget(), new iADockWidgetWrapper(m_dlgDataView4DCT, "4DCT Data View", "DataView4DCT") );
 	// test m_renderer->reInitialize (m_volumeStack->volume(1), polyData, m_volumeStack->opacityTF(1),m_volumeStack->colorTF(1));
 
 	LOG(lvlInfo, tr( "The 4DCT Data View widget was successfully created" ) );

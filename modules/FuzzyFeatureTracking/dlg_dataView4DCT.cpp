@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "dlg_dataView4DCT.h"
 
-#include "ui_DataView4DCT.h"
 #include "iAFuzzyVTKWidget.h"
 
 #include <iATransferFunctionPtrs.h>
@@ -34,12 +33,14 @@
 #include <vtkOpenGLRenderer.h>
 #include <vtkTransform.h>
 
+#include <QHBoxLayout>
+
 const double	FOURDCT_BACGROUND[3]	= {1, 1, 1};
 const double	FOURDCT_BACGROUND2[3]	= {1, 1, 1};
 const bool		SHOW_HELPERS			= false;
 
 dlg_dataView4DCT::dlg_dataView4DCT(QWidget* parent, iAVolumeStack* volumeStack):
-	dlg_dataView4DCTContainer(parent),
+	QWidget(parent),
 	m_axesTransform(vtkSmartPointer<vtkTransform>::New())
 {
 	m_mdiChild = dynamic_cast<iAMdiChild*>(parent);
@@ -75,8 +76,8 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget* parent, iAVolumeStack* volumeStack):
 		m_renderers[i]->renderer()->SetBackground2(FOURDCT_BACGROUND2[0], FOURDCT_BACGROUND2[1], FOURDCT_BACGROUND2[2]);
 
 		m_rendererManager.addToBundle(m_renderers[i]->renderer());
-
-		this->dockWidgetContents->layout()->addWidget(m_vtkWidgets[i]);
+		setLayout(new QHBoxLayout());
+		layout()->addWidget(m_vtkWidgets[i]);
 	}
 }
 
