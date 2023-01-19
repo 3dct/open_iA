@@ -22,7 +22,7 @@
 
 #include "iAgui_export.h"
 
-// get rid of ui_ includes (use ui internally only, see )
+// TODO: get rid of ui_ includes (use ui internally only, see MainWindow::m_ui)
 #include "ui_Mdichild.h"
 #include "ui_renderer.h"
 
@@ -73,6 +73,7 @@ class dlg_modalities;
 class iAAlgorithm;
 class iAChannelData;
 class iATool;
+// TODO NEWIO: move to new tool
 class iAVolumeStack;
 
 // slicer / renderer
@@ -116,13 +117,7 @@ public:
 	void applyViewerPreferences();
 	bool applyRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs) override;
 	bool editSlicerSettings(iASlicerSettings const & slicerSettings);
-	bool loadTransferFunction();
-	bool saveTransferFunction();
 
-	int  deletePoint();
-	void changeColor();
-	void resetView();
-	void resetTrf();
 	void toggleSnakeSlicer(bool isEnabled);
 	bool isSnakeSlicerToggled() const;
 	void toggleSliceProfile(bool isEnabled);
@@ -135,6 +130,7 @@ public:
 	iAVolumeSettings const & volumeSettings() const override;
 	iASlicerSettings const & slicerSettings() const override;
 	iAPreferences    const & preferences()    const override;
+	//! @deprecated TODO NEWIO: move to separate tool
 	iAVolumeStack * volumeStack() override;
 	//! @{
 	//! @deprecated iAAlgorithm will be removed soon. use iAFilter / iAFileTypeRegistry instead
@@ -165,8 +161,6 @@ public:
 	QDockWidget* renderDockWidget() override;
 	//! Access to dataset information dock widget
 	QDockWidget* dataInfoDockWidget() override;
-	//! Access to histogram dock widget
-	QDockWidget* histogramDockWidget() override;
 
 	void setReInitializeRenderWindows(bool reInit) override;
 	vtkTransform* slicerTransform() override;
@@ -177,13 +171,6 @@ public:
 	bool linkedMDIs() const;
 	//! Whether this child has the linked views feature enabled
 	bool linkedViews() const override;
-
-	//! Access the histogram widget
-	iAChartWithFunctionsWidget* histogram() override;
-
-	int selectedFuncPoint();
-	int isFuncEndPoint(int index);
-	bool isMaximized();
 
 	// TODO: use world coordinates here
 	void updateROI(int const roi[6]) override;
@@ -301,9 +288,6 @@ public slots:
 	//! update all dataset views (3D renderer + all 3 axis-aligned slicers)
 	void updateViews() override;
 
-	//! called whenever the transfer function is changed and the views using it need updating
-	void changeTransferFunction() override;
-
 	//! @deprecated use logging or global status bar (iAMainWindow::statusBar) instead
 	void addStatusMsg(QString const& txt) override;
 
@@ -313,6 +297,7 @@ public slots:
 	//! @}
 	//! @{ @deprecated will be removed soon, see addDataset instead
 	void setupView(bool active = false);
+	// TODO NEWIO: move volume stack to new tool
 	void setupStackView(bool active = false);
 	void removeFinishedAlgorithms();
 	//! @}
@@ -390,8 +375,7 @@ private:
 	static const unsigned char XY = 0x02;
 	static const unsigned char YZ = 0x04;
 	static const unsigned char XZ = 0x08;
-	static const unsigned char TAB = 0x10;
-	static const unsigned char MULTI = 0x1F;
+	static const unsigned char MULTI = RC | XY | YZ | XZ;
 
 	MainWindow * m_mainWnd;
 	QFileInfo m_fileInfo;
@@ -434,23 +418,21 @@ private:
 	iARendererImpl * m_renderer;
 	std::array<iASlicerImpl*, 3> m_slicer;
 	QSharedPointer<iAProfileProbe> m_profileProbe;
+
+	// TODO NEWIO: move volume stack functionality to separate tool
 	QScopedPointer<iAVolumeStack> m_volumeStack;
 	QList<int> m_checkedList;
+	//int m_previousIndexOfVolume;
 
-	iAChartWithFunctionsWidget * m_histogram;
+	// TODO NEWIO: move to dataset viewer
 	iAProfileWidget* m_profile;
-	QSharedPointer<iAPlot> m_histogramPlot;
 
-	//! dataset info:
-	QListWidget* m_dataSetInfo;
+	QListWidget* m_dataSetInfo;                                         //!< widget showing information on datasets
+	iADataSetListWidget* m_dataSetListWidget;                           //!< widget showing list of currently loaded datasets
 
 	//! @{ dock widgets
-	iADockWidgetWrapper* m_dwHistogram;
-	iADockWidgetWrapper* m_dwProfile;
-	iADockWidgetWrapper* m_dwInfo;
-	iADataSetListWidget* m_dataSetListWidget;                          //!< display widget for list of currently loaded datasets
-	iADockWidgetWrapper* m_dwDataSets;
-	dlg_volumePlayer * m_dwVolumePlayer;
+	iADockWidgetWrapper * m_dwProfile, * m_dwInfo, * m_dwDataSets;      //!< dock widgets for profile, dataset info and dataset list widgets
+	dlg_volumePlayer * m_dwVolumePlayer;                                //!< TODO NEWIO move to separate tool
 	dlg_slicer * m_dwSlicer[3];
 	dlg_renderer * m_dwRenderer;
 	//! @}
@@ -461,34 +443,28 @@ private:
 	QMap<uint, QSharedPointer<iAChannelData> > m_channels;
 	uint m_nextChannelID;
 	uint m_magicLensChannel;
-
-	//int m_previousIndexOfVolume;
 	
 	QByteArray m_initialLayoutState;
 	QString m_layout;
-	//! temporary smart pointer to image currently being saved
-	//! @deprecated should be referenced in wherever image is stored, e.g. in iAIO)
-	vtkSmartPointer<vtkImageData> m_tmpSaveImg;
 
-	size_t m_magicLensDataSet;
-	bool m_initVolumeRenderers;
-	int m_storedModalityNr;		                                          //!< modality nr being stored
-	QMap<QString, std::shared_ptr<iATool>> m_tools;                       //!< list of currently active tools
-	iAInteractionMode m_interactionMode;                                  //!< current interaction mode in slicers/renderer (see iAInteractionMode)
-	bool m_slicerVisibility[3];
+	size_t m_magicLensDataSet;                                          //!< index of dataset shown in magic lens
+	bool m_initVolumeRenderers;                                         //!< @deprecated TODO NEWIO remove
+	QMap<QString, std::shared_ptr<iATool>> m_tools;                     //!< list of currently active tools
+	iAInteractionMode m_interactionMode;                                //!< current interaction mode in slicers/renderer (see iAInteractionMode)
+	bool m_slicerVisibility[3];                                         //!< visibility status of slicers; for forwarding it to the display of slice planes in 3D renderer
 
-	size_t m_nextDataSetID;                                               //!< holds ID for next dataSet (in order to provide a unique ID to each loaded dataset)
-	QMutex m_dataSetMutex;                                                //!< used to guarantee that m_nextDataSetID can only be read and modified together
-	std::map<size_t, std::shared_ptr<iADataSet>> m_dataSets;              //!< list of all currently loaded datasets.
+	size_t m_nextDataSetID;                                             //!< holds ID for next dataSet (in order to provide a unique ID to each loaded dataset)
+	QMutex m_dataSetMutex;                                              //!< used to guarantee that m_nextDataSetID can only be read and modified together
+	std::map<size_t, std::shared_ptr<iADataSet>> m_dataSets;            //!< list of all currently loaded datasets.
 
 	// todo: find better way to handle this
-	std::map<size_t, std::shared_ptr<iADataForDisplay>> m_dataForDisplay; //!< optional additional data required for displaying a dataset
-	std::map<size_t, std::shared_ptr<iADataSetRenderer>> m_dataRenderers; //!< 3D renderers (one per dataset in m_datasets)
-	std::map<size_t, std::shared_ptr<iADataSetRenderer>> m_3dMagicLensRenderers; //!< 3D renderers for magic lens (one per dataset in m_datasets)
-	std::map<size_t, std::shared_ptr<iASliceRenderer>> m_sliceRenderers;  //!< slice renderers (one per dataset in m_datsets)
+	std::map<size_t, std::shared_ptr<iADataForDisplay>> m_dataForDisplay;//!< optional additional data required for displaying a dataset
+	std::map<size_t, std::shared_ptr<iADataSetRenderer>> m_dataRenderers;//!< 3D renderers (one per dataset in m_datasets)
+	std::map<size_t, std::shared_ptr<iADataSetRenderer>> m_3dMagicLensRenderers;//!< 3D renderers for magic lens (one per dataset in m_datasets)
+	std::map<size_t, std::shared_ptr<iASliceRenderer>> m_sliceRenderers;//!< slice renderers (one per dataset in m_datsets)
 	// should become the replacement for the four maps above
 	std::map<size_t, std::shared_ptr<iADataSetViewer>> m_dataSetViewers;
 
 	void setDataSetMovable(size_t dataSetIdx);
-	vtkSmartPointer<iAvtkInteractStyleActor> m_manualMoveStyle[4];        //!< for syncing the manual registration between views
+	vtkSmartPointer<iAvtkInteractStyleActor> m_manualMoveStyle[4];      //!< for syncing the manual registration between views
 };

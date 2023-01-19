@@ -47,15 +47,11 @@
 #include <iAFileTypeRegistry.h>
 #include <iARawFileIO.h>
 
+// charts:
+#include <iAChartWidget.h>
 
 // qthelper
 #include "iADockWidgetWrapper.h"
-
-// charts
-#include "iAChartFunctionBezier.h"
-#include "iAChartFunctionGaussian.h"
-#include "iAChartFunctionTransfer.h"
-#include "iAChartWithFunctionsWidget.h"
 
 // base
 #include "iALog.h"
@@ -174,8 +170,6 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_slicerToolsGroup->addAction(m_ui->actionRawProfile);
 	m_slicerToolsGroup->addAction(m_ui->actionEditProfilePoints);
 
-	m_ui->actionDeletePoint->setEnabled(false);
-	m_ui->actionChangeColor->setEnabled(false);
 	m_ui->menuWindow->insertAction(m_ui->actionOpenLogOnNewMessage, iALogWidget::get()->toggleViewAction());
 	m_ui->menuWindow->insertAction(m_ui->actionOpenListOnAddedJob, m_dwJobs->toggleViewAction());
 
@@ -402,6 +396,9 @@ void MainWindow::saveNew()
 	}
 }
 
+// TODO NEWIO: separate program settings from current view state
+//     - view state -> project file
+//     - settings -> keep here
 void MainWindow::saveSettings()
 {
 	if (!activeMdiChild())
@@ -418,8 +415,6 @@ void MainWindow::saveSettings()
 	iAAttributes params;
 	addAttr(params, "Camera", iAValueType::Boolean, m_spCamera);
 	addAttr(params, "Slice Views", iAValueType::Boolean, m_spSliceViews);
-	addAttr(params, "Transfer Function", iAValueType::Boolean, m_spTransferFunction);
-	addAttr(params, "Probability Functions", iAValueType::Boolean, m_spProbabilityFunctions);
 	addAttr(params, "Preferences", iAValueType::Boolean, m_spPreferences);
 	addAttr(params, "Render Settings", iAValueType::Boolean, m_spRenderSettings);
 	addAttr(params, "Slice Settings", iAValueType::Boolean, m_spSlicerSettings);
@@ -431,15 +426,11 @@ void MainWindow::saveSettings()
 	auto values = dlg.parameterValues();
 	m_spCamera = values["Camera"].toBool();
 	m_spSliceViews = values["Slice Views"].toBool();
-	m_spTransferFunction = values["Transfer Function"].toBool();
-	m_spProbabilityFunctions = values["Probability Functions"].toBool();
 	m_spPreferences = values["Preferences"].toBool();
 	m_spRenderSettings = values["Render Settings"].toBool();
 	m_spSlicerSettings = values["Slice Settings"].toBool();
 
 	iAXmlSettings xml;
-	auto histogram = activeMDI()->histogram();
-
 	if (m_spCamera)
 	{
 		saveCamera(xml);
@@ -447,14 +438,6 @@ void MainWindow::saveSettings()
 	if (m_spSliceViews)
 	{
 		saveSliceViews(xml);
-	}
-	if (m_spTransferFunction && histogram)
-	{
-		xml.saveTransferFunction(dynamic_cast<iAChartTransferFunction*>(histogram->functions()[0])->tf());
-	}
-	if (m_spProbabilityFunctions && histogram)
-	{
-		histogram->saveProbabilityFunctions(xml);
 	}
 	if (m_spPreferences)
 	{
@@ -490,8 +473,7 @@ void MainWindow::loadSettings()
 		QMessageBox::warning(this, "Loading settings", "An error occurred during xml parsing!");
 		return;
 	}
-	bool camera = false, sliceViews = false, transferFunction = false, probabilityFunctions = false;
-	bool preferences = false, renderSettings = false, slicerSettings = false;
+	bool camera = false, sliceViews = false, preferences = false, renderSettings = false, slicerSettings = false;
 
 	QDomElement root = xml.documentElement();
 	QDomNodeList list = root.childNodes();
@@ -503,8 +485,10 @@ void MainWindow::loadSettings()
 		else if (nodeName == "sliceViews") sliceViews = true;
 		else if (nodeName == "functions")
 		{
-			if (node.namedItem("transfer").isElement()) transferFunction = true;
-			if (node.namedItem("bezier").isElement() || node.namedItem("gaussian").isElement())	probabilityFunctions = true;
+			LOG(lvlWarn, "This file contains (transfer or probability) functions. "
+				"Note that saving and loading such functions through the settings has been discontinued, "
+				"since we can load multiple datasets now and wouldn't know for which dataset these functions should apply. "
+				"You can still load the functions in the histogram of a specific volume dataset!");
 		}
 		else if (nodeName == "preferences") preferences = true;
 		else if (nodeName == "renderSettings") renderSettings = true;
@@ -513,8 +497,6 @@ void MainWindow::loadSettings()
 	iAAttributes params;
 	if (camera)               { addAttr(params, "Camera", iAValueType::Boolean, m_lpCamera ); }
 	if (sliceViews)           { addAttr(params, "Slice Views", iAValueType::Boolean, m_lpSliceViews); }
-	if (transferFunction)     { addAttr(params, "Transfer Function", iAValueType::Boolean, m_lpTransferFunction); }
-	if (probabilityFunctions) { addAttr(params, "Probability Functions", iAValueType::Boolean, m_lpProbabilityFunctions); }
 	if (preferences)          { addAttr(params, "Preferences", iAValueType::Boolean, m_lpPreferences); }
 	if (renderSettings)       { addAttr(params, "Render Settings", iAValueType::Boolean, m_lpRenderSettings); }
 	if (slicerSettings)       { addAttr(params, "Slice Settings", iAValueType::Boolean, m_lpSlicerSettings); }
@@ -526,8 +508,6 @@ void MainWindow::loadSettings()
 	auto values = dlg.parameterValues();
 	if (camera)               { m_lpCamera               = values["Camera"].toBool(); }
 	if (sliceViews)           { m_lpSliceViews           = values["Slice Views"].toBool(); }
-	if (transferFunction)     { m_lpTransferFunction     = values["Transfer Function"].toBool(); }
-	if (probabilityFunctions) { m_lpProbabilityFunctions = values["Probability Functions"].toBool(); }
 	if (preferences)          { m_lpPreferences          = values["Preferences"].toBool(); }
 	if (renderSettings)       { m_lpRenderSettings       = values["Render Settings"].toBool(); }
 	if (slicerSettings)       { m_lpSlicerSettings       = values["Slice Settings"].toBool(); }
@@ -539,27 +519,6 @@ void MainWindow::loadSettings()
 	if (m_lpSliceViews && xml.hasElement("sliceViews"))
 	{
 		loadSliceViews(xml.node("sliceViews"));
-	}
-	if (activeMDI()->histogram())
-	{
-		if (m_lpProbabilityFunctions)
-		{
-			std::vector<iAChartFunction*>& functions = activeMDI()->histogram()->functions();
-			for (unsigned int i = 1; i < functions.size(); i++)
-			{
-				delete functions.back();
-				functions.pop_back();
-			}
-		}
-		if (m_lpTransferFunction)
-		{
-			activeMDI()->histogram()->loadTransferFunction(xml.documentElement().namedItem("functions"));
-		}
-		if (m_lpProbabilityFunctions)
-		{
-			activeMDI()->histogram()->loadProbabilityFunctions(xml);
-		}
-		activeMDI()->histogram()->update();
 	}
 	if (m_lpPreferences && xml.hasElement("preferences"))
 	{
@@ -677,38 +636,6 @@ void MainWindow::loadSliceViews(QDomNode sliceViewsNode)
 		else                              camera = activeMdiChild()->slicer(iASlicerMode::XZ)->camera();
 		loadCamera(node, camera);
 	}
-}
-
-void MainWindow::saveTransferFunction(QDomDocument &doc, iATransferFunction* tf)
-{
-	// does functions node exist
-	QDomNode functionsNode = doc.documentElement().namedItem("functions");
-	if (!functionsNode.isElement())
-	{
-		functionsNode = doc.createElement("functions");
-		doc.documentElement().appendChild(functionsNode);
-	}
-
-	// add new function node
-	QDomElement transferElement = doc.createElement("transfer");
-
-	for (int i = 0; i < tf->opacityTF()->GetSize(); i++)
-	{
-		double opacityTFValue[4];
-		double colorTFValue[6];
-		tf->opacityTF()->GetNodeValue(i, opacityTFValue);
-		tf->colorTF()->GetNodeValue(i, colorTFValue);
-
-		QDomElement nodeElement = doc.createElement("node");
-		nodeElement.setAttribute("value",   tr("%1").arg(opacityTFValue[0]));
-		nodeElement.setAttribute("opacity", tr("%1").arg(opacityTFValue[1]));
-		nodeElement.setAttribute("red",     tr("%1").arg(colorTFValue[1]));
-		nodeElement.setAttribute("green",   tr("%1").arg(colorTFValue[2]));
-		nodeElement.setAttribute("blue",    tr("%1").arg(colorTFValue[3]));
-		transferElement.appendChild(nodeElement);
-	}
-
-	functionsNode.appendChild(transferElement);
 }
 
 void MainWindow::savePreferences(iAXmlSettings &xml)
@@ -1208,69 +1135,6 @@ void MainWindow::slicerSettings()
 	statusBar()->showMessage(tr("Changed slicer settings"), 5000);
 }
 
-void MainWindow::loadTransferFunction()
-{
-	if (activeMdiChild())
-	{
-		if (activeMDI()->loadTransferFunction())
-		{
-			statusBar()->showMessage(tr("Loaded transfer function successfully"), 5000);
-		}
-		else
-		{
-			statusBar()->showMessage(tr("Loading transfer function failed"), 5000);
-		}
-	}
-}
-
-void MainWindow::saveTransferFunctionSlot()
-{
-	if (activeMdiChild())
-	{
-		if (activeMDI()->saveTransferFunction())
-		{
-			statusBar()->showMessage(tr("Saved transfer function successfully"), 5000);
-		}
-		else
-		{
-			statusBar()->showMessage(tr("Saving transfer function failed"), 5000);
-		}
-	}
-}
-
-void MainWindow::deletePoint()
-{
-	if (activeMdiChild())
-	{
-		int point = activeMDI()->deletePoint();
-		statusBar()->showMessage(tr("Deleted point %1").arg(point), 5000);
-	}
-}
-
-void MainWindow::changeColor()
-{
-	if (activeMdiChild())
-	{
-		activeMDI()->changeColor();
-	}
-}
-
-void MainWindow::resetView()
-{
-	if (activeMdiChild())
-	{
-		activeMDI()->resetView();
-	}
-}
-
-void MainWindow::resetTrf()
-{
-	if (activeMdiChild())
-	{
-		activeMDI()->resetTrf();
-	}
-}
-
 void MainWindow::changeInteractionMode(bool isChecked)
 {
 	if (activeMdiChild())
@@ -1427,34 +1291,35 @@ iAMdiChild * MainWindow::resultChild(int childInd, QString const & f)
 	return resultChild(mdiChildList().at(childInd), f);
 }
 
+// TODO NEWIO: probably has outlived its usefulness, but check!
 void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
 {
-	std::vector<iAChartFunction*> const & oldChildFunctions = oldChild->histogram()->functions();
-	for (unsigned int i = 1; i < oldChildFunctions.size(); ++i)
-	{
-		// TODO: implement a "clone" function to avoid dynamic_cast here?
-		iAChartFunction *curFunc = oldChildFunctions[i];
-		if (dynamic_cast<iAChartFunctionGaussian*>(curFunc))
-		{
-			auto oldGaussian = dynamic_cast<iAChartFunctionGaussian*>(curFunc);
-			auto newGaussian = new iAChartFunctionGaussian(newChild->histogram(), FunctionColors()[i % 7]);
-			newGaussian->setMean(oldGaussian->getMean());
-			newGaussian->setMultiplier(oldGaussian->getMultiplier());
-			newGaussian->setSigma(oldGaussian->getSigma());
-			newChild->histogram()->functions().push_back(newGaussian);
-		}
-		else if (dynamic_cast<iAChartFunctionBezier*>(curFunc))
-		{
-			auto oldBezier = dynamic_cast<iAChartFunctionBezier*>(curFunc);
-			auto newBezier = new iAChartFunctionBezier(newChild->histogram(), FunctionColors()[i % 7]);
-			for (unsigned int j = 0; j < oldBezier->getPoints().size(); ++j)
-			{
-				newBezier->addPoint(oldBezier->getPoints()[j].x(), oldBezier->getPoints()[j].y());
-			}
-			newChild->histogram()->functions().push_back(newBezier);
-		}
-		// otherwise: unknown function type, do nothing
-	}
+	//std::vector<iAChartFunction*> const & oldChildFunctions = oldChild->histogram()->functions();
+	//for (unsigned int i = 1; i < oldChildFunctions.size(); ++i)
+	//{
+	//	// TODO: implement a "clone" function to avoid dynamic_cast here?
+	//	iAChartFunction *curFunc = oldChildFunctions[i];
+	//	if (dynamic_cast<iAChartFunctionGaussian*>(curFunc))
+	//	{
+	//		auto oldGaussian = dynamic_cast<iAChartFunctionGaussian*>(curFunc);
+	//		auto newGaussian = new iAChartFunctionGaussian(newChild->histogram(), FunctionColors()[i % 7]);
+	//		newGaussian->setMean(oldGaussian->getMean());
+	//		newGaussian->setMultiplier(oldGaussian->getMultiplier());
+	//		newGaussian->setSigma(oldGaussian->getSigma());
+	//		newChild->histogram()->functions().push_back(newGaussian);
+	//	}
+	//	else if (dynamic_cast<iAChartFunctionBezier*>(curFunc))
+	//	{
+	//		auto oldBezier = dynamic_cast<iAChartFunctionBezier*>(curFunc);
+	//		auto newBezier = new iAChartFunctionBezier(newChild->histogram(), FunctionColors()[i % 7]);
+	//		for (unsigned int j = 0; j < oldBezier->getPoints().size(); ++j)
+	//		{
+	//			newBezier->addPoint(oldBezier->getPoints()[j].x(), oldBezier->getPoints()[j].y());
+	//		}
+	//		newChild->histogram()->functions().push_back(newBezier);
+	//	}
+	//	// otherwise: unknown function type, do nothing
+	//}
 }
 
 void MainWindow::about()
@@ -1591,8 +1456,6 @@ void MainWindow::updateMenus()
 	bool hasMdiChild = activeMdiChild();
 	
 	// File Menu:
-
-	// new:
 	m_ui->actionSaveDataSet->setEnabled(hasMdiChild);
 	m_ui->actionSaveProject->setEnabled(activeChild<iASavableProject>());
 	m_ui->actionSaveVolumeStack->setEnabled(hasMdiChild);
@@ -1616,8 +1479,6 @@ void MainWindow::updateMenus()
 	m_ui->actionLinkViews->setEnabled(hasMdiChild);
 	m_ui->actionLinkMdis->setEnabled(hasMdiChild);
 	m_ui->actionEnableInteraction->setEnabled(hasMdiChild);
-	m_ui->actionLoadTransferFunction->setEnabled(hasMdiChild);
-	m_ui->actionSaveTransferFunction->setEnabled(hasMdiChild);
 	m_ui->actionSnakeSlicer->setEnabled(hasMdiChild);
 	m_ui->actionMagicLens2D->setEnabled(hasMdiChild);
 	m_ui->actionMagicLens3D->setEnabled(hasMdiChild);
@@ -1635,8 +1496,6 @@ void MainWindow::updateMenus()
 	m_ui->actionSyncCamera->setEnabled(hasMdiChild);
 	m_ui->actionLoadCameraSettings->setEnabled(hasMdiChild);
 	m_ui->actionSaveCameraSettings->setEnabled(hasMdiChild);
-	m_ui->actionResetView->setEnabled(hasMdiChild);
-	m_ui->actionResetFunction->setEnabled(hasMdiChild);
 	m_ui->actionRawProfile->setEnabled(hasMdiChild);
 	m_ui->actionEditProfilePoints->setEnabled(hasMdiChild);
 	m_ui->actionLoadLayout->setEnabled(hasMdiChild);
@@ -1663,32 +1522,6 @@ void MainWindow::updateMenus()
 
 	updateRecentFileActions();
 
-	if (activeMdiChild())
-	{
-		int selectedFuncPoint = activeMDI()->selectedFuncPoint();
-		if (selectedFuncPoint == -1)
-		{
-			m_ui->actionDeletePoint->setEnabled(false);
-			m_ui->actionChangeColor->setEnabled(false);
-		}
-		else if (activeMDI()->isFuncEndPoint(selectedFuncPoint))
-		{
-			m_ui->actionDeletePoint->setEnabled(false);
-			m_ui->actionChangeColor->setEnabled(true);
-		}
-		else
-		{
-			m_ui->actionDeletePoint->setEnabled(true);
-			m_ui->actionChangeColor->setEnabled(true);
-		}
-		//??if (activeMdiChild())
-		//	histogramToolbar->setEnabled(activeMdiChild()->getTabIndex() == 1 && !activeMdiChild()->isMaximized());
-	}
-	else
-	{
-		m_ui->actionDeletePoint->setEnabled(false);
-		m_ui->actionChangeColor->setEnabled(false);
-	}
 	setModuleActionsEnabled(hasMdiChild);
 }
 
@@ -1731,10 +1564,6 @@ iAMdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	child->initializeViews();
 	child->applyRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
 	child->setupSlicers(m_defaultSlicerSettings, false);
-
-	connect(child, &MdiChild::pointSelected, this, &MainWindow::pointSelected);
-	connect(child, &MdiChild::noPointSelected, this, &MainWindow::noPointSelected);
-	connect(child, &MdiChild::endPointSelected, this, &MainWindow::endPointSelected);
 	connect(child, &MdiChild::closed, this, &MainWindow::childClosed);
 	return child;
 }
@@ -1775,12 +1604,6 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionPreferences, &QAction::triggered, this, &MainWindow::prefs);
 	connect(m_ui->actionRendererSettings, &QAction::triggered, this, &MainWindow::renderSettings);
 	connect(m_ui->actionSlicerSettings, &QAction::triggered, this, &MainWindow::slicerSettings);
-	connect(m_ui->actionLoadTransferFunction, &QAction::triggered, this, &MainWindow::loadTransferFunction);
-	connect(m_ui->actionSaveTransferFunction, &QAction::triggered, this, &MainWindow::saveTransferFunctionSlot);
-	connect(m_ui->actionChangeColor, &QAction::triggered, this, &MainWindow::changeColor);
-	connect(m_ui->actionDeletePoint, &QAction::triggered, this, &MainWindow::deletePoint);
-	connect(m_ui->actionResetView, &QAction::triggered, this, &MainWindow::resetView);
-	connect(m_ui->actionResetFunction, &QAction::triggered, this, &MainWindow::resetTrf);
 	connect(m_ui->actionInteractionModeRegistration, &QAction::triggered, this, &MainWindow::changeInteractionMode);
 	connect(m_ui->actionInteractionModeCamera, &QAction::triggered, this, &MainWindow::changeInteractionMode);
 
@@ -1943,16 +1766,12 @@ void MainWindow::readSettings()
 
 	m_lpCamera = settings.value("Parameters/lpCamera").toBool();
 	m_lpSliceViews = settings.value("Parameters/lpSliceViews").toBool();
-	m_lpTransferFunction = settings.value("Parameters/lpTransferFunction").toBool();
-	m_lpProbabilityFunctions = settings.value("Parameters/lpProbabilityFunctions").toBool();
 	m_lpPreferences = settings.value("Parameters/lpPreferences").toBool();
 	m_lpRenderSettings = settings.value("Parameters/lpRenderSettings").toBool();
 	m_lpSlicerSettings = settings.value("Parameters/lpSlicerSettings").toBool();
 
 	m_spCamera = settings.value("Parameters/spCamera").toBool();
 	m_spSliceViews = settings.value("Parameters/spSliceViews").toBool();
-	m_spTransferFunction = settings.value("Parameters/spTransferFunction").toBool();
-	m_spProbabilityFunctions = settings.value("Parameters/spProbabilityFunctions").toBool();
 	m_spPreferences = settings.value("Parameters/spPreferences").toBool();
 	m_spRenderSettings = settings.value("Parameters/spRenderSettings").toBool();
 	m_spSlicerSettings = settings.value("Parameters/spSlicerSettings").toBool();
@@ -2083,16 +1902,12 @@ void MainWindow::writeSettings()
 
 	settings.setValue("Parameters/lpCamera", m_lpCamera);
 	settings.setValue("Parameters/lpSliceViews", m_lpSliceViews);
-	settings.setValue("Parameters/lpTransferFunction", m_lpTransferFunction);
-	settings.setValue("Parameters/lpProbabilityFunctions", m_lpProbabilityFunctions);
 	settings.setValue("Parameters/lpPreferences", m_lpPreferences);
 	settings.setValue("Parameters/lpRenderSettings", m_lpRenderSettings);
 	settings.setValue("Parameters/lpSlicerSettings", m_lpSlicerSettings);
 
 	settings.setValue("Parameters/spCamera", m_spCamera);
 	settings.setValue("Parameters/spSliceViews", m_spSliceViews);
-	settings.setValue("Parameters/spTransferFunction", m_spTransferFunction);
-	settings.setValue("Parameters/spProbabilityFunctions", m_spProbabilityFunctions);
 	settings.setValue("Parameters/spPreferences", m_spPreferences);
 	settings.setValue("Parameters/spRenderSettings", m_spRenderSettings);
 	settings.setValue("Parameters/spSlicerSettings", m_spSlicerSettings);
@@ -2229,24 +2044,6 @@ void MainWindow::setActiveSubWindow(QWidget *window)
 		return;
 	}
 	m_ui->mdiArea->setActiveSubWindow(qobject_cast<QMdiSubWindow*>(window));
-}
-
-void MainWindow::pointSelected()
-{
-	m_ui->actionChangeColor->setEnabled(true);
-	m_ui->actionDeletePoint->setEnabled(true);
-}
-
-void MainWindow::noPointSelected()
-{
-	m_ui->actionChangeColor->setEnabled(false);
-	m_ui->actionDeletePoint->setEnabled(false);
-}
-
-void MainWindow::endPointSelected()
-{
-	m_ui->actionChangeColor->setEnabled(true);
-	m_ui->actionDeletePoint->setEnabled(false);
 }
 
 void MainWindow::toggleMdiViewMode()

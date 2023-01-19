@@ -1600,6 +1600,7 @@ void setVoxelIntensity(
 void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGraphList)
 {
 	auto datasetsList = m_datasetsDir.entryList();
+	auto histoXBounds = dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(m_mdiChild->firstImageDataSetIdx()))->histogram()->xBounds();
 	for (int i = 0; i < visSelGraphList.size(); ++i)
 	{
 		int datasetIdx = datasetsList.indexOf(visSelGraphList[i]->name());
@@ -1619,7 +1620,6 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 		}
 		else
 		{
-			double const *r = m_mdiChild->histogram()->xBounds();
 			for (int hIdx = 0; hIdx < pathSteps; ++hIdx)
 			{
 				bool showVoxel = false;
@@ -1637,7 +1637,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 				if (!showVoxel)
 				{
 					VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_imgDataList[datasetIdx],
-						pathData[hIdx].x, pathData[hIdx].y, pathData[hIdx].z, r[0]);
+						pathData[hIdx].x, pathData[hIdx].y, pathData[hIdx].z, histoXBounds[0]);
 				}
 			}
 		}

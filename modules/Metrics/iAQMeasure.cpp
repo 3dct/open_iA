@@ -244,14 +244,15 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QVariantMap
 	getMeanVariance(vecHist, minVal, maxVal, thresholdIndices[numberOfPeaks - 1], thresholdIndices[numberOfPeaks], mean[numberOfPeaks - 1], variance[numberOfPeaks - 1]);
 	//for (int p = 0; p < numberOfPeaks; ++p)
 	//	LOG(lvlInfo, QString("Peak %1: mean=%2, variance=%3, stddev=%4").arg(p).arg(mean[p]).arg(variance[p]).arg(std::sqrt(variance[p])));
-	if (filter->m_mdiChild)
+	if (filter->m_chart)
 	{
 		for (size_t p = 0; p < numberOfPeaks; ++p)
 		{
 			double sigma = std::sqrt(variance[p]);
-			double binDifferenceFactor = static_cast<double>(binCount) / filter->m_mdiChild->preferences().HistogramBins;
+			// TODO NEWIO: test
+			double binDifferenceFactor = 1;// static_cast<double>(binCount) / filter->m_mdiChild->preferences().HistogramBins;
 			double multiplier = binDifferenceFactor * vecHist[peaks[p].first] * sigma * std::sqrt(2 * vtkMath::Pi());
-			filter->m_mdiChild->histogram()->addGaussianFunction(mean[p], sigma, multiplier);
+			filter->m_chart->addGaussianFunction(mean[p], sigma, multiplier);
 		}
 	}
 
@@ -416,8 +417,7 @@ iAQMeasure::iAQMeasure() :
 		"J. Kastner, M. Erler, S. Kasperl: Evaluation of a histogram based image quality measure for X-ray "
 		"computed tomography. Proceedings of Conference on Industrial Computed Tomography (iCT2014), Wels, "
 		"Österreich, 2014.</a>", 1, 0),
-	m_chart(nullptr),
-	m_mdiChild(nullptr)
+	m_chart(nullptr)
 {
 	addParameter("Index", iAValueType::Vector3i, variantVector<int>({0, 0, 0}));
 	addParameter("Size", iAValueType::Vector3i, variantVector<int>({1, 1, 1}));
@@ -436,10 +436,9 @@ iAQMeasure::iAQMeasure() :
 	addOutputValue("Q (orig, equ 1)");
 }
 
-void iAQMeasure::setupDebugGUI(iAChartWidget* chart, iAMdiChild* mdiChild)
+void iAQMeasure::setupDebugGUI(iAChartWithFunctionsWidget* chart)
 {
 	m_chart = chart;
-	m_mdiChild = mdiChild;
 }
 
 
@@ -450,11 +449,12 @@ void iAQMeasureRunner::filterGUIPreparations(std::shared_ptr<iAFilter> filter,
 {
 	if (params["Analyze Peaks"].toBool())
 	{
-		iAChartWidget* chart = new iAChartWidget(mdiChild, "Intensity", "Frequency");
-		iADockWidgetWrapper* wrapper = new iADockWidgetWrapper(chart, "TestHistogram", "TestHistogram");
+		auto chart = new iAChartWithFunctionsWidget(mdiChild, "Intensity", "Frequency");
+		// TODO: check if exists before recreating?
+		iADockWidgetWrapper* wrapper = new iADockWidgetWrapper(chart, "Q Measure Peak Analysis", "QPeakAnalysis");
 		mdiChild->splitDockWidget(mdiChild->renderDockWidget(), wrapper, Qt::Horizontal);
 		iAQMeasure* qfilter = dynamic_cast<iAQMeasure*>(filter.get());
-		qfilter->setupDebugGUI(chart, mdiChild);
+		qfilter->setupDebugGUI(chart);
 	}
 }
 

@@ -24,6 +24,7 @@
 
 #include "iADataForDisplay.h"
 
+#include <QObject>
 #include <QSharedPointer>
 
 class iAChartWithFunctionsWidget;
@@ -35,7 +36,7 @@ class iATransferFunctionOwner;
 class iAPreferences;
 class iAProgress;
 
-class iAguibase_API iAImageDataForDisplay : public iADataForDisplay
+class iAguibase_API iAImageDataForDisplay : public QObject, public iADataForDisplay
 {
 public:
 	iAImageDataForDisplay(iAImageData* data, iAProgress* p, size_t binCount);

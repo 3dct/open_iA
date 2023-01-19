@@ -322,8 +322,6 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 		contextMenu->addAction(QIcon(":/images/TFTableView.png"), tr("Transfer Function Table View"), this, &iAChartWithFunctionsWidget::showTFTable);
 		contextMenu->addAction(QIcon(":/images/loadtrf.png"), tr("Load transfer function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::loadTransferFunction));
 		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Save transfer function"), this, &iAChartWithFunctionsWidget::saveTransferFunction);
-		// only relevant for volume stack:
-		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Apply transfer function for all"), this, &iAChartWithFunctionsWidget::applyTransferFunctionForAll);
 		if (m_allowTrfReset)
 		{
 			contextMenu->addAction(QIcon(":/images/resetTrf.png"), tr("Reset transfer function"), this, &iAChartWithFunctionsWidget::resetTrf);
@@ -516,11 +514,6 @@ void iAChartWithFunctionsWidget::saveTransferFunction()
 		s.saveTransferFunction(tf);
 		s.save(fileName);
 	}
-}
-
-void iAChartWithFunctionsWidget::applyTransferFunctionForAll()
-{
-	emit applyTFForAll();
 }
 
 void iAChartWithFunctionsWidget::addBezierFunction()

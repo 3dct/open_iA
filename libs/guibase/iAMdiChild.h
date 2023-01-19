@@ -82,8 +82,6 @@ public:
 	virtual QDockWidget* renderDockWidget() = 0;
 	//! Access to dataset information dock widget
 	virtual QDockWidget* dataInfoDockWidget() = 0;
-	//! Access to histogram dock widget
-	virtual QDockWidget* histogramDockWidget() = 0;
 
 	//! Access slicer for given mode (use iASlicerMode enum for mode values)
 	virtual iASlicer* slicer(int mode) = 0;
@@ -97,9 +95,6 @@ public:
 	virtual QWidget* rendererWidget() = 0;
 	//! Access to the 3D renderer widget
 	virtual iARenderer* renderer() = 0;
-
-	//! Access to the histogram widget
-	virtual iAChartWithFunctionsWidget* histogram() = 0;
 
 	// Layout:
 	//! Loads the layout with the given name from the settings store, and tries to restore the according dockwidgets configuration
@@ -262,12 +257,8 @@ signals:
 	void rendererDeactivated(int c);
 
 	//! emitted when the file data is loaded; the initialization operations are not fully
-	//! done yet then - use histogramAvailable instead if you require the file to be fully loaded!
+	//! done yet then - use dataSetRendered instead if you require the file to be fully loaded!
 	void fileLoaded();
-
-	//! emitted when a file is fully loaded and its statistics and histogram are available.
-	//! @deprecated use dataset functionality instead -> dataForDisplayCreated, dataSetRendered
-	void histogramAvailable(int modalityIdx);
 
 	//! emitted when the renderer settings have changed
 	void renderSettingsChanged();
@@ -277,18 +268,6 @@ signals:
 
 	//! emitted when the slicer/renderer views have been updated, and when their camera has been reset
 	void viewsUpdated();
-
-	//! emitted when a transfer function changed
-	//! @deprecated listen to changes of the transfer function of a specific dataset instead!
-	void transferFunctionChanged();
-
-	//! @{
-	//! @deprecated listen to changes of the transfer function of a specific dataset instead!
-	//! emitted when transfer function is edited
-	void pointSelected();
-	void noPointSelected();
-	void endPointSelected();
-	//! @}
 
 	//! emitted whenever the magic lens has been toggled on or off
 	void magicLensToggled(bool isToggled);
@@ -312,9 +291,6 @@ public slots:
 	virtual void updateSlicers() = 0;
 	//! Update 3D renderer
 	virtual void updateRenderer() = 0;
-
-	//! transfer function was changed.
-	virtual void changeTransferFunction() = 0;
 
 	//! method "enabling render windows", basically called when dataset is ready to be shown
 	//! but quite convoluted and confusing, so:

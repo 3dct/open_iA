@@ -439,7 +439,7 @@ void iAFAQSplom::getFilesLabeledFromPoint(QString &fileName, QString &mhdName)
 void iAFAQSplom::startFeatureScout()
 {
 	iAFeatureScoutTool::addToChild(m_mdiChild, m_csvName);
-	disconnect(m_mdiChild, &iAMdiChild::histogramAvailable, this, &iAFAQSplom::startFeatureScout);
+	disconnect(m_mdiChild, &iAMdiChild::dataSetRendered, this, &iAFAQSplom::startFeatureScout);
 }
 
 void iAFAQSplom::removeFixedPoint()

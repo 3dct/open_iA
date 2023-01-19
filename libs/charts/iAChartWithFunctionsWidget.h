@@ -115,7 +115,6 @@ public slots:
 	void loadTransferFunction();
 	void loadTransferFunction(QDomNode functionsNode);
 	void saveTransferFunction();
-	void applyTransferFunctionForAll();
 	void addBezierFunction();
 	void addGaussianFunction();
 	void loadFunctions();

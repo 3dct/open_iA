@@ -23,12 +23,14 @@
 #include "iAAdaptiveThresholdDlg.h"
 #include "iAImageProcessingHelper.h"
 
-#include <iAChartWithFunctionsWidget.h>
-#include <iAPlot.h>
-#include <iAPlotData.h>
+#include <iAImageDataForDisplay.h>
 #include <iALog.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
+
+#include <iAChartWithFunctionsWidget.h>
+#include <iAPlot.h>
+#include <iAHistogramData.h>
 
 #include <vtkImageData.h>
 
@@ -61,23 +63,29 @@ https://doi.org/10.1016/j.compositesa.2019.04.029
 
 void iAAdaptiveThresholdModuleInterface::determineThreshold()
 {
-	if (!m_mainWnd->activeMdiChild())
+	auto child = m_mainWnd->activeMdiChild();
+	if (!child)
 	{
 		LOG(lvlInfo, "No dataset avaiable, please load a dataset before.");
 		return;
 	}
-
-	auto hist = m_mainWnd->activeMdiChild()->histogram();
-	if (!hist || hist->plots().empty())
+	auto dsIdx = child->firstImageDataSetIdx();
+	if (dsIdx == iAMdiChild::NoDataSet)
 	{
-		LOG(lvlInfo, "Current data does not have a histogram or histogram not ready");
+		LOG(lvlInfo, "No image data loaded!");
+		return;
+	}
+	auto viewer = dynamic_cast<iAImageDataForDisplay*>(child->dataSetViewer(dsIdx));
+	if (!viewer || !viewer->histogramData())
+	{
+		LOG(lvlInfo, "No histogram available!");
 		return;
 	}
 	try
 	{
 
 		iAAdaptiveThresholdDlg dlg_thres;
-		auto data = hist->plots()[0]->data();
+		auto data = viewer->histogramData();
 		dlg_thres.setHistData(data);
 
 		/*

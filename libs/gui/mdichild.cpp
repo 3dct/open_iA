@@ -60,9 +60,6 @@
 #include <iADockWidgetWrapper.h>
 
 // charts
-#include <iAHistogramData.h>
-#include <iAChartFunctionTransfer.h>
-#include <iAChartWithFunctionsWidget.h>
 #include <iAPlotTypes.h>
 #include <iAProfileWidget.h>
 
@@ -130,10 +127,8 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_axesTransform(vtkTransform::New()),
 	m_slicerTransform(vtkTransform::New()),
 	m_volumeStack(new iAVolumeStack),
-	m_histogram(new iAChartWithFunctionsWidget(nullptr, " Histogram", "Frequency")),
 	m_profile(nullptr),
 	m_dataSetInfo(new QListWidget(this)),
-	m_dwHistogram(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
 	m_dwProfile(nullptr),
 	m_dwInfo(new iADockWidgetWrapper(m_dataSetInfo, "Dataset Info", "DataInfo")),
 	m_dataSetListWidget(new iADataSetListWidget()),
@@ -154,8 +149,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	//prepare window for handling dock widgets
 	setCentralWidget(nullptr);
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
-
-	m_histogram->setYMappingMode(prefs.HistogramLogarithmicYAxis ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
 
 	//insert default dock widgets and arrange them in a simple layout
 	m_dwRenderer = new dlg_renderer(this);
@@ -450,11 +443,6 @@ void MdiChild::connectSignalsToSlots()
 			volData->update();
 		});
 	}
-
-	connect(m_histogram, &iAChartWithFunctionsWidget::pointSelected, this, &MdiChild::pointSelected);
-	connect(m_histogram, &iAChartWithFunctionsWidget::noPointSelected, this, &MdiChild::noPointSelected);
-	connect(m_histogram, &iAChartWithFunctionsWidget::endPointSelected, this, &MdiChild::endPointSelected);
-	connect((iAChartTransferFunction*)(m_histogram->functions()[0]), &iAChartTransferFunction::changed, this, &MdiChild::changeTransferFunction);
 }
 
 void MdiChild::connectThreadSignalsToChildSlots(iAAlgorithm* thread)
@@ -535,9 +523,6 @@ void MdiChild::enableRenderWindows()	// = image data available
 		return;
 	}
 	setCamPosition(iACameraPosition::Iso);
-	vtkCamera* cam = m_renderer->camera();
-	//modalities()->applyCameraSettings(cam);
-
 	for (auto channelID : m_channels.keys())
 	{
 		iAChannelData* chData = m_channels.value(channelID).data();
@@ -555,17 +540,6 @@ void MdiChild::enableRenderWindows()	// = image data available
 			}
 		}
 	}
-}
-
-void MdiChild::changeTransferFunction()
-{
-	for (int s = 0; s < 3; ++s)
-	{
-		m_slicer[s]->updateChannelMappers();
-		m_slicer[s]->updateMagicLensColors();
-	}
-	updateViews();
-	emit transferFunctionChanged();
 }
 
 void MdiChild::updatePositionMarker(double x, double y, double z, int mode)
@@ -608,7 +582,7 @@ void MdiChild::showPoly()
 	m_dwRenderer->vtkWidgetRC->setMaximumSize(QSize(16777215, 16777215));
 	m_dwRenderer->vtkWidgetRC->adjustSize();
 	m_dwRenderer->show();
-	m_visibility &= (RC | TAB);
+	m_visibility &= RC;
 	changeVisibility(m_visibility);
 }
 
@@ -754,15 +728,15 @@ bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyD
 
 	if (m_imageData->GetExtent()[1] <= 1)
 	{
-		m_visibility &= (YZ | TAB);
+		m_visibility &= YZ;
 	}
 	else if (m_imageData->GetExtent()[3] <= 1)
 	{
-		m_visibility &= (XZ | TAB);
+		m_visibility &= XZ;
 	}
 	else if (m_imageData->GetExtent()[5] <= 1)
 	{
-		m_visibility &= (XY | TAB);
+		m_visibility &= XY;
 	}
 	changeVisibility(m_visibility);
 	return true;
@@ -896,15 +870,15 @@ void MdiChild::setupViewInternal(bool active)
 
 	if (m_imageData->GetExtent()[1] <= 1)
 	{
-		m_visibility &= (YZ | TAB);
+		m_visibility &= YZ;
 	}
 	else if (m_imageData->GetExtent()[3] <= 1)
 	{
-		m_visibility &= (XZ | TAB);
+		m_visibility &= XZ;
 	}
 	else if (m_imageData->GetExtent()[5] <= 1)
 	{
-		m_visibility &= (XY | TAB);
+		m_visibility &= XY;
 	}
 
 	if (active)
@@ -1453,8 +1427,6 @@ void MdiChild::enableInteraction(bool b)
 bool MdiChild::applyPreferences(iAPreferences const& prefs)
 {
 	m_preferences = prefs;
-	//setHistogramModality(m_magicLensDataSet);	// to update Histogram bin count
-	m_histogram->setYMappingMode(prefs.HistogramLogarithmicYAxis ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
 	for (auto dataForDisplay : m_dataForDisplay)
 	{
 		auto dfd = dataForDisplay.second;
@@ -1647,59 +1619,6 @@ bool MdiChild::editSlicerSettings(iASlicerSettings const& slicerSettings)
 	return true;
 }
 
-// Just proxies for histogram functions:
-// {
-
-bool MdiChild::loadTransferFunction()
-{
-	m_histogram->loadTransferFunction();
-	return true;
-}
-
-bool MdiChild::saveTransferFunction()
-{
-	m_histogram->saveTransferFunction();
-	return true;
-}
-
-int MdiChild::deletePoint()
-{
-	return m_histogram->deletePoint();
-}
-
-void MdiChild::resetView()
-{
-	m_histogram->resetView();
-}
-
-void MdiChild::changeColor()
-{
-	m_histogram->changeColor();
-}
-
-int MdiChild::selectedFuncPoint()
-{
-	return m_histogram->selectedFuncPoint();
-}
-
-int MdiChild::isFuncEndPoint(int index)
-{
-	return m_histogram->isFuncEndPoint(index);
-}
-
-void MdiChild::resetTrf()
-{
-	m_histogram->resetTrf();
-	LOG(lvlInfo, tr("Resetting Transfer Functions."));
-}
-
-iAChartWithFunctionsWidget* MdiChild::histogram()
-{
-	return m_histogram;
-}
-
-// }
-
 void MdiChild::toggleSnakeSlicer(bool isChecked)
 {
 	m_snakeSlicer = isChecked;
@@ -1859,57 +1778,18 @@ bool MdiChild::initView(QString const& title)
 		m_renderer->initialize(m_imageData, m_polyData);
 		m_raycasterInitialized = true;
 	}
-	/*
-	if (modalities()->size() == 0 && isVolumeDataLoaded())
-	{
-		// TODO: VOLUME: resolve duplication between here (called on loadFile) and adding modalities
-		QString name;
-		if (!m_curFile.isEmpty())
-		{
-			QFileInfo i(m_curFile);
-			name = i.completeBaseName();
-		}
-		else
-		{
-			name = title;
-		}
-		// TODO: VOLUME: resolve indirect dependence of this call on the m_renderer->initialize method
-		// before, which adds the renderers which this call will use
-		QSharedPointer<iAModality> mod(new iAModality(name,
-			currentFile(), -1, m_imageData, iAModality::MainRenderer + iAModality::Slicer));
-		modalities()->add(mod);
-		m_dwModalities->addListItem(mod);
-	}
-	if (m_channels.empty() && modalities()->size() > 0)
-	{
-		auto modTrans = modality(0)->transfer();
-		uint channelID = createChannel();
-		assert(channelID == 0); // first modality we create, there shouldn't be another channel yet!
-		modality(0)->setChannelID(channelID);
-		modality(0)->setRenderFlag(modality(0)->renderFlags() | iAModality::RenderFlag::Slicer);
-		for (int s = 0; s < 3; ++s)
-		{
-			m_slicer[s]->addChannel(channelID, iAChannelData(modality(0)->name(), modality(0)->image(), modTrans->colorTF()), true);
-			m_slicer[s]->resetCamera();
-		}
-		m_initVolumeRenderers = true;
-	}
-	*/
 	m_dwRenderer->stackedWidgetRC->setCurrentIndex(0);
 
 	if (isVolumeDataLoaded())
 	{
 		if (m_imageData->GetNumberOfScalarComponents() == 1)
-		{   // No histogram/profile for rgb, rgba or vector pixel type images
-			// TODO NEWIO: do we need histogram still (/currently)?
-			//splitDockWidget(m_dwModalities, m_dwHistogram, Qt::Vertical);
+		{
 			addProfile();
 		}
 	}
 	else
 	{	//Polygonal mesh is loaded
 		showPoly();
-		//m_dwHistogram->hide();
 	}
 	updateLayout();
 
@@ -1943,19 +1823,12 @@ bool MdiChild::addVolumePlayer()
 	{
 		m_checkedList.append(0);
 	}
-	connect(m_histogram, &iAChartWithFunctionsWidget::applyTFForAll, m_dwVolumePlayer, &dlg_volumePlayer::applyForAll);
-
 	return true;
 }
 
 void MdiChild::addStatusMsg(QString const & txt)
 {
 	m_mainWnd->statusBar()->showMessage(txt, 10000);
-}
-
-bool MdiChild::isMaximized()
-{
-	return m_visibility != MULTI;
 }
 
 void MdiChild::updateROI(int const roi[6])
@@ -2040,21 +1913,10 @@ void MdiChild::setWindowTitleAndFile(const QString& f)
 void MdiChild::changeVisibility(unsigned char mode)
 {
 	m_visibility = mode;
-
-	bool  rc = (mode & RC) == RC;
-	bool  xy = (mode & XY) == XY;
-	bool  yz = (mode & YZ) == YZ;
-	bool  xz = (mode & XZ) == XZ;
-	bool tab = (mode & TAB) == TAB;
-	m_dwRenderer->setVisible(rc);
-	m_dwSlicer[iASlicerMode::XY]->setVisible(xy);
-	m_dwSlicer[iASlicerMode::YZ]->setVisible(yz);
-	m_dwSlicer[iASlicerMode::XZ]->setVisible(xz);
-
-	if (isVolumeDataLoaded())
-	{	// TODO: check redundancy with hideHistogram calls?
-		m_dwHistogram->setVisible(tab);
-	}
+	m_dwRenderer->setVisible((mode & RC) == RC);
+	m_dwSlicer[iASlicerMode::XY]->setVisible((mode & XY) == XY);
+	m_dwSlicer[iASlicerMode::YZ]->setVisible((mode & YZ) == YZ);
+	m_dwSlicer[iASlicerMode::XZ]->setVisible((mode & XZ) == XZ);
 }
 
 void MdiChild::multiview()
@@ -2261,7 +2123,7 @@ void MdiChild::addProfile()
 
 	m_profile = new iAProfileWidget(nullptr, m_profileProbe->m_profileData, m_profileProbe->rayLength(), "Greyvalue", "Distance");
 	m_dwProfile = new iADockWidgetWrapper(m_profile, "Profile Plot", "Profile");
-	splitDockWidget(m_dwHistogram, m_dwProfile, Qt::Horizontal);
+	splitDockWidget(m_dwRenderer, m_dwProfile, Qt::Horizontal);
 }
 
 void MdiChild::toggleProfileHandles(bool isChecked)
@@ -2389,11 +2251,6 @@ QDockWidget* MdiChild::renderDockWidget()
 QDockWidget* MdiChild::dataInfoDockWidget()
 {
 	return m_dwInfo;
-}
-
-QDockWidget* MdiChild::histogramDockWidget()
-{
-	return m_dwHistogram;
 }
 
 void MdiChild::setReInitializeRenderWindows(bool reInit)
@@ -2932,10 +2789,6 @@ void MdiChild::setDataSetMovable(size_t dataSetIdx)
 
 void MdiChild::styleChanged()
 {
-	if (m_histogramPlot)
-	{
-		m_histogramPlot->setColor(QApplication::palette().color(QPalette::Shadow));
-	}
 	if (renderSettings().UseStyleBGColor)
 	{
 		m_renderer->setBackgroundColors(m_renderSettings);

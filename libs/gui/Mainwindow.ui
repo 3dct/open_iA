@@ -106,13 +106,6 @@
     <addaction name="actionSlicerSettings"/>
     <addaction name="separator"/>
     <addaction name="menuInteractionMode"/>
-    <addaction name="separator"/>
-    <addaction name="actionLoadTransferFunction"/>
-    <addaction name="actionSaveTransferFunction"/>
-    <addaction name="actionChangeColor"/>
-    <addaction name="actionDeletePoint"/>
-    <addaction name="actionResetView"/>
-    <addaction name="actionResetFunction"/>
    </widget>
    <widget class="QMenu" name="menuFilters">
     <property name="title">
@@ -274,29 +267,6 @@
    <addaction name="actionPreferences"/>
    <addaction name="actionRendererSettings"/>
    <addaction name="actionSlicerSettings"/>
-  </widget>
-  <widget class="QToolBar" name="histogramToolbar">
-   <property name="windowTitle">
-    <string>Histogram Toolbar</string>
-   </property>
-   <property name="iconSize">
-    <size>
-     <width>32</width>
-     <height>32</height>
-    </size>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>BottomToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-   <addaction name="actionLoadTransferFunction"/>
-   <addaction name="actionSaveTransferFunction"/>
-   <addaction name="actionDeletePoint"/>
-   <addaction name="actionChangeColor"/>
-   <addaction name="actionResetView"/>
-   <addaction name="actionResetFunction"/>
   </widget>
   <widget class="QToolBar" name="slicerToolbar">
    <property name="enabled">
@@ -560,66 +530,6 @@
    </property>
    <property name="text">
     <string>Link MDIs</string>
-   </property>
-  </action>
-  <action name="actionDeletePoint">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/deletePoint.png</normaloff>:/images/deletePoint.png</iconset>
-   </property>
-   <property name="text">
-    <string>Delete point</string>
-   </property>
-   <property name="toolTip">
-    <string>Delete selected point</string>
-   </property>
-  </action>
-  <action name="actionChangeColor">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/changeColor.png</normaloff>:/images/changeColor.png</iconset>
-   </property>
-   <property name="text">
-    <string>Change color</string>
-   </property>
-   <property name="toolTip">
-    <string>Change color of selected point </string>
-   </property>
-  </action>
-  <action name="actionLoadTransferFunction">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/loadtrf.png</normaloff>:/images/loadtrf.png</iconset>
-   </property>
-   <property name="text">
-    <string>Load transfer function</string>
-   </property>
-  </action>
-  <action name="actionSaveTransferFunction">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/savetrf.png</normaloff>:/images/savetrf.png</iconset>
-   </property>
-   <property name="text">
-    <string>Save transfer function</string>
-   </property>
-  </action>
-  <action name="actionResetView">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/resetView.png</normaloff>:/images/resetView.png</iconset>
-   </property>
-   <property name="text">
-    <string>Reset view</string>
-   </property>
-  </action>
-  <action name="actionResetFunction">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/resetTrf.png</normaloff>:/images/resetTrf.png</iconset>
-   </property>
-   <property name="text">
-    <string>Reset function</string>
    </property>
   </action>
   <action name="actionLoadSettings">

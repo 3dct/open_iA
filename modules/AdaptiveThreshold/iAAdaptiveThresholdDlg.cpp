@@ -130,7 +130,7 @@ void iAAdaptiveThresholdDlg::setInputData(const std::vector<double> &thres_binIn
 	m_frequencies = freqValsInY;
 }
 
-void iAAdaptiveThresholdDlg::setHistData (QSharedPointer<iAPlotData> &newData)
+void iAAdaptiveThresholdDlg::setHistData (QSharedPointer<iAPlotData> newData)
 {
 	if (!newData)
 	{

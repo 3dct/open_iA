@@ -198,8 +198,8 @@ void iAMultimodalWidget::updateVisualizationsLater()
 void iAMultimodalWidget::updateVisualizationsNow()
 {
 	m_timer_updateVisualizations->stop();
-
-	m_mdiChild->histogram()->update();
+	// TODO NEWIO: test
+	//m_mdiChild->histogram()->update();
 	m_mdiChild->renderer()->update();
 
 	if (!m_mainSlicersInitialized)
@@ -567,11 +567,7 @@ void iAMultimodalWidget::updateCopyTransferFunction(int index)
 		// For now, just return silently. TODO: show alert?
 		return;
 	}
-
-	// newly set transfer function (set via the histogram)
 	auto* effective = dataSetTransfer( index);
-
-	// copy of previous transfer function, to be updated in this method
 	auto & copy = m_copyTFs[index];
 
 	double valCol[6], valOp[4];

@@ -87,13 +87,13 @@ public:
 	void saveSliceViews(iAXmlSettings & xml);
 	void saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkCamera *ren, QString const & elemStr);
 	void loadSliceViews(QDomNode sliceViewsNode);
-	void saveTransferFunction(QDomDocument& doc, iATransferFunction* transferFunction);
 	void savePreferences(iAXmlSettings &xml);
 	void loadPreferences(QDomNode preferencesNode);
 	void saveRenderSettings(iAXmlSettings &xml);
 	void loadRenderSettings(QDomNode renderSettingsNode);
 	void saveSlicerSettings(iAXmlSettings &xml);
 	void loadSlicerSettings(QDomNode slicerSettingsNode);
+
 	//! Get the File menu (can be used by modules to append entries to it).
 	QMenu * fileMenu() override;
 	//! Get the Filters menu (can be used by modules to append entries to it).
@@ -173,12 +173,6 @@ private slots:
 	void toggleMenu();
 	void renderSettings();
 	void slicerSettings();
-	void loadTransferFunction();
-	void saveTransferFunctionSlot();
-	void deletePoint();
-	void changeColor();
-	void resetView();
-	void resetTrf();
 	void changeInteractionMode(bool isChecked);
 	void toggleSnakeSlicer(bool isChecked);
 	void toggleMagicLens(bool isChecked);
@@ -205,9 +199,6 @@ private slots:
 	void updateMenus();
 	void updateWindowMenu();
 	void setActiveSubWindow(QWidget *window);
-	void pointSelected();
-	void noPointSelected();
-	void endPointSelected();
 	void toggleMdiViewMode();
 
 private:
@@ -253,9 +244,9 @@ private:
 	//! @}
 
 	//! which settings to load from an XML settings file:
-	bool m_lpCamera, m_lpSliceViews, m_lpTransferFunction, m_lpProbabilityFunctions, m_lpPreferences, m_lpRenderSettings, m_lpSlicerSettings;
+	bool m_lpCamera, m_lpSliceViews, m_lpPreferences, m_lpRenderSettings, m_lpSlicerSettings;
 	//! which settings to save to an XML settings file:
-	bool m_spCamera, m_spSliceViews, m_spTransferFunction, m_spProbabilityFunctions, m_spPreferences, m_spRenderSettings, m_spSlicerSettings;
+	bool m_spCamera, m_spSliceViews, m_spPreferences, m_spRenderSettings, m_spSlicerSettings;
 
 	QString m_defaultLayout;
 	QString m_path;

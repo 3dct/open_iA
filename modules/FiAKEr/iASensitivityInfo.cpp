@@ -1439,7 +1439,8 @@ void iASensitivityInfo::updateSpatialOverviewColors()
 	{
 		setSpatialOverviewTF(ds.first);
 	}
-	m_child->histogram()->update();
+	// TODO NEWIO: update?
+	//m_child->histogram()->update();
 }
 
 void iASensitivityInfo::updateSPSpacing(int value)

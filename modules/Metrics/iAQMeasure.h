@@ -25,7 +25,7 @@
 #include <iAFilterRunnerGUI.h>
 #include <iAFilterRunnerRegistry.h>
 
-class iAChartWidget;
+class iAChartWithFunctionsWidget;
 class iAMdiChild;
 
 class iAQMeasure : public iAFilter, iAAutoRegistration<iAFilter, iAQMeasure, iAFilterRegistry>
@@ -33,9 +33,8 @@ class iAQMeasure : public iAFilter, iAAutoRegistration<iAFilter, iAQMeasure, iAF
 public:
 	iAQMeasure();
 	void performWork(QVariantMap const & parameters) override;
-	void setupDebugGUI(iAChartWidget* chart, iAMdiChild* mdiChild);
-	iAChartWidget* m_chart;
-	iAMdiChild* m_mdiChild;
+	void setupDebugGUI(iAChartWithFunctionsWidget* chart);
+	iAChartWithFunctionsWidget* m_chart;
 };
 
 

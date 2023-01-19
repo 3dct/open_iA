@@ -24,7 +24,9 @@
 #include "iAProgress.h"
 
 #include "iADockWidgetWrapper.h"
-
+#include "iAMainWindow.h"
+#include "iAMdiChild.h"
+#include "iAPreferences.h"
 #include "iATransferFunctionOwner.h"
 
 #include "iAChartWithFunctionsWidget.h"
@@ -32,9 +34,6 @@
 #include "iAHistogramData.h"
 #include "iAPlotTypes.h"
 
-#include "iAPreferences.h"
-
-#include "iAMdiChild.h"
 
 #include <vtkImageData.h>
 
@@ -76,7 +75,9 @@ void iAImageDataForDisplay::applyPreferences(iAPreferences const& prefs)
 		iAImageStatistics stats;
 		m_histogramData = iAHistogramData::create("Frequency", img, prefs.HistogramBins, &stats);
 	}
+	m_histogram->setYMappingMode(prefs.HistogramLogarithmicYAxis ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
 }
+
 void iAImageDataForDisplay::updatedPreferences()
 {
 	if (m_histogramData.get() != m_histogram->plots()[0]->data().get())
@@ -99,8 +100,6 @@ void iAImageDataForDisplay::dataSetChanged()
 
 void iAImageDataForDisplay::show(iAMdiChild* child)
 {
-	Q_UNUSED(child);
-	// show histogram
 	QString histoName = "Histogram " + dataSet()->name();
 	m_histogram = new iAChartWithFunctionsWidget(child, histoName, "Frequency");
 
@@ -112,13 +111,17 @@ void iAImageDataForDisplay::show(iAMdiChild* child)
 	m_histogram->update();
 	// TODO NEWIO:
 	//     - better unique widget name!
-	//     - option to put combine histograms of multiple datasets into one view
+	//     - option to put combined histograms of multiple datasets into one view / hide histograms by default
 	static int histoNum = -1;
 	m_histogramDW = std::make_shared<iADockWidgetWrapper>(m_histogram, histoName, QString("Histogram%1").arg(++histoNum));
 	child->splitDockWidget(child->renderDockWidget(), m_histogramDW.get(), Qt::Vertical);
-
-	QObject::connect(m_histogram, &iAChartWithFunctionsWidget::transferFunctionChanged,
-		child, &iAMdiChild::changeTransferFunction);
+	m_histogramDW->hide();
+	QObject::connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this, [this]() {
+		m_histogram->plots()[0]->setColor(QApplication::palette().color(QPalette::Shadow));
+	});
+	// TODO NEWIO: do we need to call what previously was iAMdiChild::changeTransferFunction ?
+	//QObject::connect(m_histogram, &iAChartWithFunctionsWidget::transferFunctionChanged,
+	//	child, &iAMdiChild::changeTransferFunction);
 }
 
 QSharedPointer<iAHistogramData> iAImageDataForDisplay::histogramData() const
