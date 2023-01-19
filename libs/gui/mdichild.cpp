@@ -1697,7 +1697,7 @@ void MdiChild::snakeNormal(int index, double point[3], double normal[3])
 	int i2 = index + 1;
 
 	double spacing[3];
-	m_imageData->GetSpacing(spacing);
+	firstImageData()->GetSpacing(spacing);
 
 	int snakeSlices = m_slicerSettings.SnakeSlices;
 	if (index == (snakeSlices - 1))
