@@ -329,9 +329,9 @@ private:
 
 // ---------- iAVolRenderer ----------
 //#include "iAChartWithFunctionsWidget.h"
-#include "iATransferFunctionOwner.h"
 #include "iAPreferences.h"
 #include "iAToolsVTK.h"
+#include "iATransferFunction.h"
 #include "iAImageDataForDisplay.h"
 
 #include <vtkImageData.h>

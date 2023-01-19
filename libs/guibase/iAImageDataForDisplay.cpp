@@ -42,18 +42,18 @@
 
 iAImageDataForDisplay::iAImageDataForDisplay(iAImageData* data, iAProgress* p, size_t binCount) :
 	iADataForDisplay(data),
-	m_transfer(std::make_shared<iATransferFunctionOwner>(data->vtkImage()->GetScalarRange())),
 	m_histogram(nullptr),
 	m_imgStatistics("Computing...")
 {
 	p->setStatus(QString("%1: Computing scalar range").arg(data->name()));
-	m_transfer->computeRange(data->vtkImage());
+	auto img = data->vtkImage();
+	m_transfer = std::make_shared<iATransferFunctionOwner>(img->GetScalarRange(), img->GetNumberOfScalarComponents() == 1);
 	iAImageStatistics stats;
 	// TODO: handle multiple components; but for that, we need to extract the vtkImageAccumulate part,
 	//       as it computes the histograms for all components at once!
 	p->emitProgress(50);
 	p->setStatus(QString("%1: Computing histogram and statistics.").arg(data->name()));
-	m_histogramData = iAHistogramData::create("Frequency", data->vtkImage(), binCount, &stats);
+	m_histogramData = iAHistogramData::create("Frequency", img, binCount, &stats);
 	p->emitProgress(100);
 	m_imgStatistics = QString("min=%1, max=%2, mean=%3, stddev=%4")
 		.arg(stats.minimum)

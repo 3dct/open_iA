@@ -21,7 +21,7 @@
 #include "iASimpleSlicerWidget.h"
 
 #include <iAChannelData.h>
-#include <iATransferFunctionOwner.h>
+#include <iATransferFunction.h>
 #include <iASlicerImpl.h>
 
 #include <vtkCamera.h>

@@ -55,6 +55,7 @@
 // VTK
 #include <vtkActor.h>
 #include <vtkCamera.h>
+#include <vtkColorTransferFunction.h>
 #include <vtkCornerAnnotation.h>
 #include <vtkCubeAxesActor.h>
 #include <vtkFixedPointVolumeRayCastMapper.h>
@@ -62,6 +63,7 @@
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkMarchingCubes.h>
 #include <vtkOutlineFilter.h>
+#include <vtkPiecewiseFunction.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>

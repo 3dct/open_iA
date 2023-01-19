@@ -46,7 +46,6 @@
 #include <iADataSetListWidget.h>
 #include <iADataSetRenderer.h>
 #include <iAJobListView.h>
-#include <iATransferFunctionOwner.h>
 #include <iAMovieHelper.h>
 #include <iAParameterDlg.h>
 #include <iAPreferences.h>

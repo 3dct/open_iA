@@ -25,7 +25,6 @@
 #include "iASimpleSlicerWidget.h"
 
 #include <iAChartWithFunctionsWidget.h>
-#include <iATransferFunctionOwner.h>
 
 #include <vtkSmartPointer.h>
 
@@ -39,6 +38,7 @@
 class iADataSetRenderer;
 class iAImageData;
 class iAMdiChild;
+class iATransferFunctionOwner;
 
 class vtkCamera;
 class vtkColorTransferFunction;
@@ -220,7 +220,7 @@ private:
 
 	// Background stuff
 	//void alertWeightIsZero(QString const & name);
-	QVector<iATransferFunctionOwner> m_copyTFs;
+	QVector<std::shared_ptr<iATransferFunctionOwner>> m_copyTFs;
 
 signals:
 	void weightsChanged3(iABCoord weights);

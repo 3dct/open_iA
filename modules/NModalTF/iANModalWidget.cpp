@@ -31,7 +31,6 @@
 #include <iAMdiChild.h>
 #include <iASlicer.h>
 #include <iASlicerMode.h>
-#include <iATransferFunctionOwner.h>
 
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>

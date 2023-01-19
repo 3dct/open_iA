@@ -35,7 +35,7 @@
 #include <iADataSet.h>
 #include <iALog.h>
 #include <iALUT.h>
-#include <iATransferFunctionOwner.h>
+#include <iATransferFunction.h>
 #include <iANameMapper.h>
 #include <iAVtkDraw.h>
 #include <iAToolsITK.h>

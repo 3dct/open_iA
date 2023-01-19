@@ -20,43 +20,30 @@
 * ************************************************************************************/
 #include "iATransferFunctionOwner.h"
 
-#include <vtkImageData.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkPiecewiseFunction.h>
+
+#include <iALog.h>
 
 #include <cassert>
 
-iATransferFunctionOwner::iATransferFunctionOwner():
-m_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
-m_otf(vtkSmartPointer<vtkPiecewiseFunction>::New())
+iATransferFunctionOwner::iATransferFunctionOwner(vtkSmartPointer<vtkColorTransferFunction> ctf, vtkSmartPointer<vtkPiecewiseFunction> otf, bool opacityRamp):
+	m_ctf(ctf),
+	m_otf(otf),
+	m_opacityRamp(opacityRamp)
 {}
 
-iATransferFunctionOwner::iATransferFunctionOwner(double const range[2]):
+iATransferFunctionOwner::iATransferFunctionOwner(double const range[2], bool opacityRamp):
 	m_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
 	m_otf(vtkSmartPointer<vtkPiecewiseFunction>::New()),
-	m_rangeComputed(false),
-	m_opacityRamp(true)
+	m_opacityRamp(opacityRamp)
 {
-	m_range[0] = range[0];
-	m_range[1] = range[1];
-	resetFunctions();
-}
-
-void iATransferFunctionOwner::computeRange(vtkSmartPointer<vtkImageData> img)
-{
-	if (m_rangeComputed)  // already calculated
-	{
-		return;
-	}
-	// Set rgb, rgba or vector pixel type images to fully opaque
-	m_opacityRamp = img->GetNumberOfScalarComponents() == 1;
-	img->GetScalarRange(m_range);
-	resetFunctions();
-	m_rangeComputed = true;
+	resetFunctions(range);
 }
 
 void iATransferFunctionOwner::resetFunctions()
 {
-	defaultColorTF(m_ctf, m_range);
-	defaultOpacityTF(m_otf, m_range, m_opacityRamp);
+	resetFunctions(m_ctf->GetRange());
 }
 
 vtkPiecewiseFunction* iATransferFunctionOwner::opacityTF()
@@ -71,7 +58,8 @@ vtkColorTransferFunction* iATransferFunctionOwner::colorTF()
 	return m_ctf;
 }
 
-bool iATransferFunctionOwner::isRangeComputed() const
+void iATransferFunctionOwner::resetFunctions(double const range[2])
 {
-	return m_rangeComputed;
+	defaultColorTF(m_ctf, range);
+	defaultOpacityTF(m_otf, range, m_opacityRamp);
 }

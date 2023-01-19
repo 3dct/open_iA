@@ -25,9 +25,11 @@
 #include "iAChannelSlicerData.h"
 #include "iADataSet.h"
 #include "iAMdiChild.h"
-#include "iATransferFunctionOwner.h"
+#include "iATransferFunction.h"
 #include "iASlicerImpl.h"
 #include "iAImageDataForDisplay.h"
+
+#include <vtkColorTransferFunction.h>
 
 iASliceRenderer::~iASliceRenderer()
 {}

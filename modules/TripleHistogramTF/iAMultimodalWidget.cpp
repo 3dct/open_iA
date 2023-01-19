@@ -38,7 +38,6 @@
 #include <iAImageDataForDisplay.h>
 #include <iALog.h>
 #include <iAMdiChild.h>
-#include <iATransferFunctionOwner.h>
 //#include <iAPerformanceHelper.h>
 #include <iAPreferences.h>
 #include <iARenderer.h>
@@ -47,7 +46,7 @@
 #include <iASlicerMode.h>
 #include <iASlicerSettings.h>
 #include <iAToolsVTK.h>
-#include <iATransferFunction.h>
+#include <iATransferFunctionOwner.h>
 #include <iAVolumeRenderer.h>
 
 #include <vtkCamera.h>
@@ -364,13 +363,16 @@ void iAMultimodalWidget::initGUI()
 	for (int ds = 0; ds < m_numOfDS; ++ds)
 	{
 		auto histData = dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(m_dataSetsActive[ds]))->histogramData();
-		m_copyTFs[ds].colorTF()->DeepCopy(dataSetTransfer(ds)->colorTF());
-		m_copyTFs[ds].opacityTF()->DeepCopy(dataSetTransfer(ds)->opacityTF());
+		auto colorTF = vtkSmartPointer<vtkColorTransferFunction>::New();
+		auto opacityTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
+		colorTF->DeepCopy(dataSetTransfer(ds)->colorTF());
+		opacityTF->DeepCopy(dataSetTransfer(ds)->opacityTF());
+		m_copyTFs[ds] = std::make_shared<iATransferFunctionOwner>(colorTF, opacityTF);
 
 		m_histograms[ds] = QSharedPointer<iAChartWithFunctionsWidget>::create(nullptr, dataSetName(ds) + " gray value", "Frequency");
 		auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(histData, QColor(70, 70, 70, 255));
 		m_histograms[ds]->addPlot(histogramPlot);
-		m_histograms[ds]->setTransferFunction(&m_copyTFs[ds]);
+		m_histograms[ds]->setTransferFunction(m_copyTFs[ds].get());
 		m_histograms[ds]->update();
 
 		resetSlicer(ds);
@@ -573,8 +575,8 @@ void iAMultimodalWidget::updateCopyTransferFunction(int index)
 	auto & copy = m_copyTFs[index];
 
 	double valCol[6], valOp[4];
-	copy.colorTF()->RemoveAllPoints();
-	copy.opacityTF()->RemoveAllPoints();
+	copy->colorTF()->RemoveAllPoints();
+	copy->opacityTF()->RemoveAllPoints();
 
 	for (int j = 0; j < effective->colorTF()->GetSize(); ++j)
 	{
@@ -589,8 +591,8 @@ void iAMultimodalWidget::updateCopyTransferFunction(int index)
 
 		effective->opacityTF()->SetNodeValue(j, valOp);
 
-		copy.colorTF()->AddRGBPoint(valCol[0], valCol[1], valCol[2], valCol[3], valCol[4], valCol[5]);
-		copy.opacityTF()->AddPoint(valOp[0], copyOp, valOp[2], valOp[3]);
+		copy->colorTF()->AddRGBPoint(valCol[0], valCol[1], valCol[2], valCol[3], valCol[4], valCol[5]);
+		copy->opacityTF()->AddPoint(valOp[0], copyOp, valOp[2], valOp[3]);
 	}
 }
 
@@ -603,16 +605,16 @@ void iAMultimodalWidget::updateOriginalTransferFunction(int index)
 
 	double weight = getWeight(index);
 	auto effective = dataSetTransfer(index);
-	auto & copy = m_copyTFs[index];
+	auto copy = m_copyTFs[index];
 
 	double valCol[6], valOp[4];
 	effective->colorTF()->RemoveAllPoints();
 	effective->opacityTF()->RemoveAllPoints();
 
-	for (int j = 0; j < copy.colorTF()->GetSize(); ++j)
+	for (int j = 0; j < copy->colorTF()->GetSize(); ++j)
 	{
-		copy.colorTF()->GetNodeValue(j, valCol);
-		copy.opacityTF()->GetNodeValue(j, valOp);
+		copy->colorTF()->GetNodeValue(j, valCol);
+		copy->opacityTF()->GetNodeValue(j, valOp);
 
 		valOp[1] = valOp[1] * weight; // index 1 means opacity
 
@@ -630,7 +632,7 @@ void iAMultimodalWidget::applyWeights()
 	for (int i = 0; i < m_numOfDS; i++)
 	{
 		vtkPiecewiseFunction *effective = dataSetTransfer(i)->opacityTF();
-		vtkPiecewiseFunction *copy = m_copyTFs[i].opacityTF();
+		vtkPiecewiseFunction *copy = m_copyTFs[i]->opacityTF();
 
 		double pntVal[4];
 		for (int j = 0; j < copy->GetSize(); ++j)
