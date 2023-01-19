@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iACudaHelper.h"
 
+#if CUDA_AVAILABLE
+
 #include <cuda_runtime_api.h>
 
 bool isCUDAAvailable()
@@ -60,3 +62,12 @@ bool isCUDAAvailable()
 	*/
 	return true;
 }
+
+#else
+
+bool isCUDAAvailable()
+{
+	return false;
+}
+
+#endif

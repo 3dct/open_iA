@@ -7,6 +7,7 @@ target_link_libraries(${libname} PUBLIC
 )
 if (CUDAToolkit_FOUND)
 	target_link_libraries(${libname} PRIVATE CUDA::cudart)
+	target_compile_definitions(${libname} PRIVATE CUDA_AVAILABLE)
 endif()
 set(VTK_REQUIRED_LIBS_PUBLIC
 	CommonCore
