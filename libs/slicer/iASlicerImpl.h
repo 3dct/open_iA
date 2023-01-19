@@ -57,13 +57,10 @@ class vtkImageMapToColors;
 class vtkImageReslice;
 class vtkInteractorStyle;
 class vtkLineSource;
-class vtkLogoWidget;
-class vtkLogoRepresentation;
 class vtkMarchingContourFilter;
 class vtkObject;
 class vtkCubeSource;
 class vtkPoints;
-class vtkQImageToImageSource;
 class vtkPolyDataMapper;
 class vtkRegularPolygonSource;
 class vtkRenderer;
@@ -93,7 +90,7 @@ public:
 	//! Creates a new slicer widget.
 	//! @param parent the parent widget; can be nullptr for no current parent.
 	//! @param mode determines which axis-aligned slice-plane is used for slicing.
-	//! @param decorations whether to show the scalar bar widget, the measure bar, the logo and the tooltip.
+	//! @param decorations whether to show the scalar bar widget, the measure bar and the tooltip.
 	//! @param magicLensAvailable whether a magic lens should be available.
 	//! @param transform the basic transform the reslicers inside the channels of this slicer (should probably be removed here).
 	//! @param snakeSlicerPoints the array of points in the snake slicer (leave at default nullptr if you don't require snake slicer).
@@ -359,11 +356,6 @@ private:
 	QMap<uint, QSharedPointer<iAChannelSlicerData> > m_channels;
 	vtkSmartPointer<vtkScalarBarWidget> m_scalarBarWidget;
 	vtkSmartPointer<vtkTextProperty> m_textProperty;
-
-	// TODO: extract/ unify with iARenderer
-	vtkSmartPointer<vtkLogoWidget> m_logoWidget;
-	vtkSmartPointer<vtkLogoRepresentation> m_logoRep;
-	vtkSmartPointer<vtkQImageToImageSource> m_logoImage;
 
 	vtkSmartPointer<iAVtkText> m_textInfo;
 	vtkSmartPointer<iARulerWidget> m_rulerWidget;

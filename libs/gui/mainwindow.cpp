@@ -119,7 +119,7 @@ T* MainWindow::activeChild()
 }
 
 MainWindow::MainWindow(QString const & appName, QString const & version, QString const & buildInformation, QString const & splashImage, iADockWidgetWrapper* dwJobs) :
-	m_logoImg(splashImage),
+	m_splashScreenImg(splashImage),
 	m_moduleDispatcher( new iAModuleDispatcher( this ) ),
 	m_gitVersion(version),
 	m_buildInformation(buildInformation),
@@ -144,7 +144,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	QCoreApplication::setApplicationName(appName);
 	setWindowTitle(appName + " " + m_gitVersion);
 
-	m_splashScreen = new QSplashScreen(m_logoImg);
+	m_splashScreen = new QSplashScreen(m_splashScreenImg);
 	m_splashScreen->setWindowFlags(m_splashScreen->windowFlags() | Qt::WindowStaysOnTopHint);
 	m_splashScreen->show();
 	m_splashScreen->showMessage("\n      Reading settings...", Qt::AlignTop, QColor(255, 255, 255));
@@ -1329,7 +1329,7 @@ void MainWindow::about()
 	dlg.setLayout(new QVBoxLayout());
 	
 	auto imgLabel = new QLabel();
-	imgLabel->setPixmap(m_logoImg);
+	imgLabel->setPixmap(m_splashScreenImg);
 	// to center image:
 	auto imgWidget = new QWidget();
 	imgWidget->setLayout(new QHBoxLayout());
@@ -2542,7 +2542,6 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	dwJobs->setFeatures(dwJobs->features() & ~QDockWidget::DockWidgetVerticalTitleBar);
 	CheckSCIFIO(QCoreApplication::applicationDirPath());
 	mainWin.loadArguments(argc, argv);
-	// TODO: unify with logo in slicer/renderer!
 	app.setWindowIcon(QIcon(QPixmap(iconPath)));
 	QApplication::setStyle(new iAProxyStyle(QApplication::style()));
 	mainWin.setWindowIcon(QIcon(QPixmap(iconPath)));

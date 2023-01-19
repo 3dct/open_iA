@@ -50,8 +50,6 @@ class vtkDataSetMapper;
 class vtkImageData;
 class vtkInteractorStyleSwitch;
 class vtkLineSource;
-class vtkLogoRepresentation;
-class vtkLogoWidget;
 class vtkOpenGLRenderer;
 class vtkOrientationMarkerWidget;
 class vtkPicker;
@@ -59,7 +57,6 @@ class vtkPlane;
 class vtkPoints;
 class vtkPolyData;
 class vtkPolyDataMapper;
-class vtkQImageToImageSource;
 class vtkRenderer;
 class vtkRenderWindowInteractor;
 class vtkSphereSource;
@@ -203,12 +200,6 @@ private:
 	vtkSmartPointer<vtkCellLocator> m_cellLocator;
 	vtkSmartPointer<vtkPolyDataMapper> m_polyMapper;
 	vtkSmartPointer<vtkActor> m_polyActor;
-
-	//! @{ Logo
-	vtkSmartPointer<vtkLogoRepresentation> m_logoRep;
-	vtkSmartPointer<vtkLogoWidget> m_logoWidget;
-	vtkSmartPointer<vtkQImageToImageSource> m_logoImage;
-	//! @}
 
 	//! @{ Text actor, e.g., to show the selection mode
 	vtkSmartPointer<vtkTextActor> m_txtActor;

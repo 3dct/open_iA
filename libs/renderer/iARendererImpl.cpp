@@ -49,8 +49,6 @@
 #include <vtkImageData.h>
 #include <vtkInteractorStyleRubberBandPick.h>
 #include <vtkInteractorStyleSwitch.h>
-#include <vtkLogoRepresentation.h>
-#include <vtkLogoWidget.h>
 #include <vtkObjectFactory.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkOrientationMarkerWidget.h>
@@ -59,7 +57,6 @@
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
-#include <vtkQImageToImageSource.h>
 #include <vtkRendererCollection.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSphereSource.h>
@@ -230,9 +227,6 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_cellLocator(vtkSmartPointer<vtkCellLocator>::New()),
 	m_polyMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_polyActor(vtkSmartPointer<vtkActor>::New()),
-	m_logoRep(vtkSmartPointer<vtkLogoRepresentation>::New()),
-	m_logoWidget(vtkSmartPointer<vtkLogoWidget>::New()),
-	m_logoImage(vtkSmartPointer<vtkQImageToImageSource>::New()),
 	m_txtActor(vtkSmartPointer<vtkTextActor>::New()),
 	m_cSource(vtkSmartPointer<vtkCubeSource>::New()),
 	m_cMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
@@ -384,18 +378,6 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_ren->AddActor(m_profileLineStartPointActor);
 	m_ren->AddActor(m_profileLineEndPointActor);
 	m_ren->AddActor(m_roiActor);
-
-	// set up logo:
-	QImage img;
-	img.load(":/images/fhlogo.png");
-	m_logoImage->SetQImage(&img);
-	m_logoImage->Update();
-	m_logoRep->SetImage(m_logoImage->GetOutput());
-	m_logoWidget->SetInteractor(m_interactor);
-	m_logoWidget->SetRepresentation(m_logoRep);
-	m_logoWidget->SetResizable(false);
-	m_logoWidget->SetSelectable(true);
-	m_logoWidget->On();
 
 	// Set up orientation marker widget:
 	m_orientationMarkerWidget->SetOrientationMarker(m_annotatedCubeActor);
@@ -582,7 +564,6 @@ void iARendererImpl::showHelpers(bool show)
 	m_orientationMarkerWidget->SetEnabled(show);
 	m_axesActor->SetVisibility(show);
 	m_moveableAxesActor->SetVisibility(show);
-	m_logoWidget->SetEnabled(show);
 }
 
 void iARendererImpl::showRPosition(bool s)

@@ -65,15 +65,12 @@
 #include <vtkImageProperty.h>
 #include <vtkImageReslice.h>
 #include <vtkLineSource.h>
-#include <vtkLogoRepresentation.h>
-#include <vtkLogoWidget.h>
 #include <vtkLookupTable.h>
 #include <vtkMath.h>
 #include <vtkMatrix4x4.h>
 #include <vtkPoints.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
-#include <vtkQImageToImageSource.h>
 #include <vtkRegularPolygonSource.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
@@ -302,9 +299,6 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 
 		m_scalarBarWidget = vtkSmartPointer<vtkScalarBarWidget>::New();
 		m_textProperty = vtkSmartPointer<vtkTextProperty>::New();
-		m_logoWidget = vtkSmartPointer<vtkLogoWidget>::New();
-		m_logoRep = vtkSmartPointer<vtkLogoRepresentation>::New();
-		m_logoImage = vtkSmartPointer<vtkQImageToImageSource>::New();
 
 		m_positionMarkerSrc = vtkSmartPointer<vtkCubeSource>::New();
 		m_positionMarkerMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -327,17 +321,6 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 			m_axisTextActor[i] = vtkSmartPointer<vtkTextActor3D>::New();
 		}
 		m_rulerWidget = vtkSmartPointer<iARulerWidget>::New();
-
-		QImage img;
-		img.load(":/images/fhlogo.png");
-		m_logoImage->SetQImage(&img);
-		m_logoImage->Update();
-		m_logoRep->SetImage(m_logoImage->GetOutput());
-		m_logoWidget->SetInteractor(m_renWin->GetInteractor());
-		m_logoWidget->SetRepresentation(m_logoRep);
-		m_logoWidget->SetResizable(false);
-		m_logoWidget->SetSelectable(true);
-		m_logoWidget->On();
 
 		m_textProperty->SetBold(1);
 		m_textProperty->SetItalic(1);
