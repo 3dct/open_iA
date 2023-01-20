@@ -93,6 +93,26 @@ struct iAConverter<double>
 	}
 };
 
+template <>
+struct iAConverter<bool>
+{
+	static bool toT(QString str, bool * ok)
+	{
+		auto ls = str.toLower();
+		if (ok)
+		{
+			*ok =
+				ls == "on" || ls == "off" ||
+				ls == "true" || ls == "false";
+		}
+		bool result = (ls == "on" || ls == "true");
+	}
+	static QString toString(bool b)
+	{
+		return b ? "on" : "off";
+	}
+};
+
 
 
 //! split a string at the space characters, while correctly treating quoted elements
