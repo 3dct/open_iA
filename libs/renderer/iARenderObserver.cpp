@@ -53,7 +53,7 @@ iARenderObserver::iARenderObserver(vtkRenderer* pRen, vtkRenderer* pLabelRen, vt
 	m_pLine = vtkLineSource::New();
 	m_pProbe = vtkProbeFilter::New();
 
-	mode = 0; pos[0] = 0; pos[1] = 0; pos[2] = 0;
+	mode = 0;
 	speed = 1.0;
 	scale = 1.0;
 
@@ -135,8 +135,6 @@ void iARenderObserver::Execute(vtkObject * caller,
 						break;
 					case 'r':
 					{
-						pos[0] = 0; pos[1] = 0; pos[2] = 0; CheckPos(2);
-
 						m_pPlane1->SetOrigin(0, 0, 0);
 						m_pPlane2->SetOrigin(0, 0, 0);
 						m_pPlane3->SetOrigin(0, 0, 0);
@@ -157,8 +155,7 @@ void iARenderObserver::Execute(vtkObject * caller,
 				{
 					case 's':
 					{
-						if (speed == 10.0) speed = 1.0;
-						else speed = 10.0;
+						speed = (speed == 10.0) ? 1.0 : 10.0;
 						break;
 					}
 					case '0':
@@ -394,27 +391,6 @@ void iARenderObserver::SetAxis(Axis axis, double pickedAxis[3])
 	m_pTrans->GetMatrix()->SetElement(0, axis%3, thirdAxis[0]);
 	m_pTrans->GetMatrix()->SetElement(1, axis%3, thirdAxis[1]);
 	m_pTrans->GetMatrix()->SetElement(2, axis%3, thirdAxis[2]);
-}
-
-void iARenderObserver::CheckPos(int dim)
-{
-	if (!m_pImageData)
-	{
-		return;
-	}
-	int dims[3];
-	m_pImageData->GetDimensions(dims);
-
-	if (dim == 0){
-		if ( pos[0] < 0 ) pos[0] = dims[0]-1;
-		if ( pos[0] > dims[0]-1 ) pos[0] = 0;
-	} else if (dim == 1) {
-		if ( pos[1] < 0 ) pos[1] = dims[1]-1;
-		if ( pos[1] > dims[1]-1 ) pos[1] = 0;
-	} else {
-		if ( pos[2] < 0 ) pos[2] = dims[2]-1;
-		if ( pos[2] > dims[2]-1 ) pos[2] = 0;
-	}
 }
 
 void iARenderObserver::PickWithWorldPicker()

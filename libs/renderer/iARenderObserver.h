@@ -77,14 +77,13 @@ protected:
 
 	vtkLineSource* m_pLine;
 	vtkProbeFilter* m_pProbe;
-
 	vtkCellLocator * m_pcellLocator;
 
 private:
 	vtkPlane* m_pPlane1;
 	vtkPlane* m_pPlane2;
 	vtkPlane* m_pPlane3;
-	int mode, pos[3];
+	int mode;
 	double speed;
 	double scale;
 	std::vector<vtkCommand*> m_listener;
@@ -92,7 +91,6 @@ private:
 	void Execute(vtkObject *caller, unsigned long, void*) override;
 	void PickVolume(double point[3]);
 	void SetAxis(Axis axis, double point[3]);
-	void CheckPos(int dim);
 
 signals:
 	// currently not emitted since we do not need it anywhere, and it would need to be rebuilt to emit world/scene coordinates instead of pixel ones
