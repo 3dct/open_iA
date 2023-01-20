@@ -99,6 +99,12 @@ public:
 	// Layout:
 	//! Loads the layout with the given name from the settings store, and tries to restore the according dockwidgets configuration
 	virtual void loadLayout(QString const& layout) = 0;
+	//! Returns the name of the layout currently applied to this child window.
+	virtual QString layoutName() const = 0;
+	//! Apply the layout currently selected in the layout combobox in the main window.
+	virtual void updateLayout() = 0;
+	//! Apply the "multiview" layout (i.e. where not only one dock widget but multiple are shown)
+	virtual void multiview() = 0;
 	
 	// Settings:
 	virtual iARenderSettings const& renderSettings() const = 0;
@@ -134,16 +140,6 @@ public:
 	virtual iAChannelData* channelData(uint id) = 0;
 	virtual iAChannelData const* channelData(uint id) const = 0;
 	//! @}
-
-	// Layouts:
-	//! Returns the name of the layout currently applied to this child window.
-	virtual QString layoutName() const = 0;
-	//! Apply the layout currently selected in the layout combobox in the main window.
-	virtual void updateLayout() = 0;
-	//! Apply the "multiview" layout (i.e. where not only one dock widget but multiple are shown)
-	//! Should probably not be used anymore, might be deprecated soon
-	virtual void multiview() = 0;
-
 
 	// Tools:
 	//! add a tool to this child (a collection of UI elements with their own behavior and state)
@@ -216,11 +212,6 @@ public:
 	//! set window title, and if a file name is given, set it as window file and add it to recent files
 	virtual void setWindowTitleAndFile(QString const& f) = 0;
 
-	//! display an image or a mesh
-	//! @deprecated use addDataset instead
-	//! Use dataset methods instead - though probably still required for first dataset at the moment.
-	virtual bool displayResult(QString const& title, vtkImageData* image = nullptr, vtkPolyData* poly = nullptr) = 0;
-
 	// Deprecated:
 	//! @deprecated. Use iARunAsync / iAJobListView directly
 	//!    also, don't use iAAlgorithm anymore!
@@ -240,9 +231,6 @@ public:
 	
 	//! @deprected access transform used in slicer. should be removed from here; no replacement in place yet
 	virtual vtkTransform* slicerTransform() = 0;
-
-	//! @deprecated. can be removed together with enableRenderWindow/disableRenderWindow
-	virtual void setReInitializeRenderWindows(bool reInit) = 0;
 
 	virtual void set3DControlVisibility(bool visible) = 0;
 
@@ -291,14 +279,6 @@ public slots:
 	virtual void updateSlicers() = 0;
 	//! Update 3D renderer
 	virtual void updateRenderer() = 0;
-
-	//! method "enabling render windows", basically called when dataset is ready to be shown
-	//! but quite convoluted and confusing, so:
-	//! @deprecated. will be removed soon, no direct replacement
-	virtual void enableRenderWindows() = 0;
-	//! @deprecated. will be removed soon, no direct replacement
-	virtual void disableRenderWindows(int ch) = 0;
-
 };
 
 //! helper function to add a tool to the current mdi child (if it exists)

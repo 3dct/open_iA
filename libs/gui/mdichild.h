@@ -48,6 +48,7 @@
 #include <vector>
 
 class QListWidget;
+class QSpinBox;
 
 class vtkAbstractTransform;
 class vtkImageData;
@@ -63,7 +64,6 @@ class iADataForDisplay;
 class iADataSetListWidget;
 class iADataSetViewer;
 class iAParametricSpline;
-struct iAProfileProbe;
 class iASliceRenderer;
 class iAvtkInteractStyleActor;
 class MainWindow;
@@ -80,11 +80,6 @@ class iAVolumeStack;
 class dlg_slicer;
 class iARendererImpl;
 class iASlicerImpl;
-
-// charts
-class iAChartWithFunctionsWidget;
-class iAPlot;
-class iAProfileWidget;
 
 // base
 class iADockWidgetWrapper;
@@ -104,15 +99,9 @@ public:
 	//! performs initialization that needs to be done after the widget is being displayed
 	void initializeViews();
 
-	//! @{ @deprecated
-	void showPoly();
-	bool displayResult(QString const & title, vtkImageData* image = nullptr, vtkPolyData* poly = nullptr) override;
-	//! @}
 	bool saveNew();
 	void saveVolumeStack();
-	void updateLayout() override;
 
-	void multiview() override;
 	bool applyPreferences(iAPreferences const & p);
 	void applyViewerPreferences();
 	bool applyRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs) override;
@@ -121,11 +110,11 @@ public:
 	void toggleSnakeSlicer(bool isEnabled);
 	bool isSnakeSlicerToggled() const;
 	void toggleSliceProfile(bool isEnabled);
-	bool isSliceProfileToggled(void) const;
-	void enableInteraction(bool b);
+	bool isSliceProfileEnabled() const;
+	void enableSlicerInteraction(bool b);
 	void setRenderSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
 	void setupSlicers(iASlicerSettings const & ss, bool init);
-	void check2DMode();
+	void adapt3DViewDisplay();
 	iARenderSettings const & renderSettings() const override;
 	iAVolumeSettings const & volumeSettings() const override;
 	iASlicerSettings const & slicerSettings() const override;
@@ -162,7 +151,6 @@ public:
 	//! Access to dataset information dock widget
 	QDockWidget* dataInfoDockWidget() override;
 
-	void setReInitializeRenderWindows(bool reInit) override;
 	vtkTransform* slicerTransform() override;
 
 	//! Whether results should be opened in a new window; if false, they replace the content of the current window instead
@@ -182,7 +170,7 @@ public:
 	QString filePath() const override;
 
 	//! @{ Multi-Channel rendering
-	//! TODO: check if we still need it with dataSets!
+	//! TODO NEWIO: check if we still need it with dataSets!
 	//! Create a new channel, return its ID.
 	uint createChannel() override;
 	//! Update the data of the given channel ID.
@@ -215,12 +203,13 @@ public:
 	int  magicLensFrameWidth() const;
 	//! @}
 
-	//! Apply the given volume settings to all datasets
 	void applyVolumeSettings(const bool loadSavedVolumeSettings);
-	//! Returns the name of the layout currently applied to this child window.
 	QString layoutName() const override;
-	//! Loads the layout with the given name from the settings store, and tries to restore the according dockwidgets configuration
 	void loadLayout(QString const & layout) override;
+	void updateLayout() override;
+	void multiview() override;
+	//! reset the layout to the way it was directly after setting up this child
+	void resetLayout();
 
 	//! If given modality has more than one component, ask user to choose one of them.
 	//! (currently used for determining which modality to save)
@@ -249,11 +238,8 @@ public:
 
 	//! maximize slicer dockwidget with the given mode
 	void maximizeSlicer(int mode);
-
 	//! whether profile handles are currently shown (i.e. "Edit profile points" mode is enabled)
 	bool profileHandlesEnabled() const;
-	//! whether this child has a profile plot (only has one if "normal" volume data loaded)
-	bool hasProfilePlot() const;
 
 	void set3DControlVisibility(bool visible) override;
 
@@ -291,12 +277,7 @@ public slots:
 	//! @deprecated use logging or global status bar (iAMainWindow::statusBar) instead
 	void addStatusMsg(QString const& txt) override;
 
-	//! @{ @deprecated not required
-	void disableRenderWindows(int ch) override;
-	void enableRenderWindows() override;
-	//! @}
 	//! @{ @deprecated will be removed soon, see addDataset instead
-	void setupView(bool active = false);
 	// TODO NEWIO: move volume stack to new tool
 	void setupStackView(bool active = false);
 	void removeFinishedAlgorithms();
@@ -314,8 +295,7 @@ public slots:
 	//! @param camOptions All informations of the camera stored in a double array
 	//! @param rsParallelProjection boolean variable to determine if parallel projection option on.
 	void setCamPosition(double * camOptions, bool rsParallelProjection);
-	void updateProbe(int ptIndex, double * newPos);
-	void resetLayout();
+
 	//! called when the user wants to display the profile handles inside the views
 	//! showing the dataset (3D renderer and slicers)
 	void toggleProfileHandles(bool isChecked);
@@ -326,8 +306,6 @@ private slots:
 	void triggerInteractionRaycaster();
 	void setSlice(int mode, int s);
 	void slicerRotationChanged();
-	void setChannel(int ch);
-	void updateRenderWindows(int channels);
 	void updatePositionMarker(double x, double y, double z, int mode);
 	void updateDataSetInfo();
 	void changeMagicLensDataSet(int chg);
@@ -339,18 +317,10 @@ private slots:
 private:
 	void closeEvent(QCloseEvent *event) override;
 	bool addVolumePlayer();
-	void addProfile();
-	void updateProfile();
 	bool saveNew(std::shared_ptr<iADataSet> dataSet);
 	bool saveNew(std::shared_ptr<iADataSet> dataSet, QString const & fileName);
 	void set3DSlicePlanePos(int mode, int slice);
 
-	//! Changes the display of views from full to multi screen or multi screen to fullscreen.
-	//! @param mode how the views should be arranged.
-	void changeVisibility(unsigned char mode);
-	int  visibility() const;
-	void hideVolumeWidgets();
-	void setVisibility(QList<QWidget*> widgets, bool show);
 	void maximizeDockWidget(QDockWidget * dw);
 	void demaximizeDockWidget(QDockWidget * dw);
 	void resizeDockWidget(QDockWidget * dw);
@@ -359,8 +329,6 @@ private:
 	void snakeNormal(int index, double point[3], double normal[3]);
 
 	//! @{ @deprecated
-	bool initView(QString const& title);
-	void setupViewInternal(bool active);
 	void connectSignalsToSlots();
 	
 	//! adds an algorithm to the list of currently running jobs
@@ -389,15 +357,11 @@ private:
 	iASlicerSettings m_slicerSettings;
 	iAPreferences m_preferences;
 
-	unsigned char m_visibility;
-
 	bool m_isSmthMaximized;       //!< whether a single dock widget is currently maximized
 	bool m_isUntitled;            //!< whether current content is saved as a file already
 	bool m_isSliceProfileEnabled; //!< whether slice profile, shown in slices, is enabled
 	bool m_profileHandlesEnabled; //!< whether profile handles (profile points) in renderer/slicer are enabled
 	bool m_isMagicLensEnabled;    //!< whether magic lens in slicers is enabled
-	bool m_reInitializeRenderWindows; //! whether render windows need to be reinitialized
-	bool m_raycasterInitialized;  //!< whether renderer is already initialized
 
 	//! @{ snake slicer related:
 	bool m_snakeSlicer;           //!< whether snake slicer is enabled
@@ -409,7 +373,6 @@ private:
 	//! smart pointer to first image data shown in mdiChild.
 	//! @deprecated use dataSets instead, will be removed soon
 	//! @{
-	vtkSmartPointer<vtkImageData> m_imageData;
 	vtkPolyData * m_polyData;
 	vtkTransform * m_axesTransform;
 	//! @}
@@ -417,21 +380,17 @@ private:
 	vtkTransform * m_slicerTransform;
 	iARendererImpl * m_renderer;
 	std::array<iASlicerImpl*, 3> m_slicer;
-	QSharedPointer<iAProfileProbe> m_profileProbe;
 
 	// TODO NEWIO: move volume stack functionality to separate tool
 	QScopedPointer<iAVolumeStack> m_volumeStack;
 	QList<int> m_checkedList;
 	//int m_previousIndexOfVolume;
 
-	// TODO NEWIO: move to dataset viewer
-	iAProfileWidget* m_profile;
-
 	QListWidget* m_dataSetInfo;                                         //!< widget showing information on datasets
 	iADataSetListWidget* m_dataSetListWidget;                           //!< widget showing list of currently loaded datasets
 
 	//! @{ dock widgets
-	iADockWidgetWrapper * m_dwProfile, * m_dwInfo, * m_dwDataSets;      //!< dock widgets for profile, dataset info and dataset list widgets
+	iADockWidgetWrapper * m_dwInfo, * m_dwDataSets;                     //!< dock widgets for dataset info and dataset list widgets
 	dlg_volumePlayer * m_dwVolumePlayer;                                //!< TODO NEWIO move to separate tool
 	dlg_slicer * m_dwSlicer[3];
 	dlg_renderer * m_dwRenderer;

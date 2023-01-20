@@ -105,6 +105,7 @@ public:
 	//! @{ Get access to result child with the given title.
 	//! (depending on preferences, this will either open a new mdi child window, or reuse the currently active one)
 	//! @deprecated either use loadFileNew to load a file into a new or existing window, or createChild to create a new window
+	//! TODO NEWIO: remove/replace!
 	iAMdiChild * resultChild( QString const & title ) override;
 	iAMdiChild * resultChild( int childInd, QString const & title ) override;
 	iAMdiChild * resultChild( iAMdiChild* oldChild, QString const & title ) override;
@@ -168,7 +169,7 @@ private slots:
 	void prefs();
 	void linkViews();
 	void linkMDIs();
-	void enableInteraction();
+	void toggleSlicerInteraction();
 	void toggleFullScreen();
 	void toggleMenu();
 	void renderSettings();

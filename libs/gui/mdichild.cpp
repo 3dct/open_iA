@@ -117,19 +117,14 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_isSliceProfileEnabled(false),
 	m_profileHandlesEnabled(false),
 	m_isMagicLensEnabled(false),
-	m_reInitializeRenderWindows(true),
-	m_raycasterInitialized(false),
 	m_snakeSlicer(false),
 	m_worldSnakePoints(vtkSmartPointer<vtkPoints>::New()),
 	m_parametricSpline(vtkSmartPointer<iAParametricSpline>::New()),
-	m_imageData(vtkSmartPointer<vtkImageData>::New()),
 	m_polyData(vtkPolyData::New()),
 	m_axesTransform(vtkTransform::New()),
 	m_slicerTransform(vtkTransform::New()),
 	m_volumeStack(new iAVolumeStack),
-	m_profile(nullptr),
 	m_dataSetInfo(new QListWidget(this)),
-	m_dwProfile(nullptr),
 	m_dwInfo(new iADockWidgetWrapper(m_dataSetInfo, "Dataset Info", "DataInfo")),
 	m_dataSetListWidget(new iADataSetListWidget()),
 	m_dwDataSets(new iADockWidgetWrapper(m_dataSetListWidget, "Datasets", "DataSets")),
@@ -166,8 +161,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	splitDockWidget(m_dwSlicer[iASlicerMode::XZ], m_dwSlicer[iASlicerMode::YZ], Qt::Vertical);
 	splitDockWidget(m_dwRenderer, m_dwDataSets, Qt::Vertical);
 	splitDockWidget(m_dwDataSets, m_dwInfo, Qt::Horizontal);
-
-	m_visibility = MULTI;
 
 	m_parametricSpline->SetPoints(m_worldSnakePoints);
 
@@ -382,11 +375,11 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_dwRenderer->pushSaveRC, &QPushButton::clicked, this, &MdiChild::saveRC);
 	connect(m_dwRenderer->pushMovRC, &QPushButton::clicked, this, &MdiChild::saveMovRC);
 
+	// TODO: move to renderer library?
 	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARendererImpl::mouseRightButtonReleasedSlot);
 	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARendererImpl::mouseLeftButtonReleasedSlot);
 	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::touchStart, m_renderer, &iARendererImpl::touchStart);
 	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::touchScale, m_renderer, &iARendererImpl::touchScaleSlot);
-	connect(m_dwRenderer->spinBoxRC, QOverload<int>::of(&QSpinBox::valueChanged), this, &MdiChild::setChannel);
 
 	for (int s = 0; s < 3; ++s)
 	{
@@ -447,8 +440,9 @@ void MdiChild::connectSignalsToSlots()
 
 void MdiChild::connectThreadSignalsToChildSlots(iAAlgorithm* thread)
 {
-	connect(thread, &iAAlgorithm::startUpdate, this, &MdiChild::updateRenderWindows);
-	connect(thread, &iAAlgorithm::finished, this, &MdiChild::enableRenderWindows);
+	// TODO NEWIO: update mechanism to bring in output of "old style" algorithm results
+	//connect(thread, &iAAlgorithm::startUpdate, this, &MdiChild::updateRenderWindows);
+	//connect(thread, &iAAlgorithm::finished, this, &MdiChild::enableRenderWindows);
 	connectAlgorithmSignalsToChildSlots(thread);
 }
 
@@ -461,85 +455,6 @@ void MdiChild::addAlgorithm(iAAlgorithm* thread)
 {
 	m_workingAlgorithms.push_back(thread);
 	connect(thread, &iAAlgorithm::finished, this, &MdiChild::removeFinishedAlgorithms);
-}
-
-void MdiChild::updateRenderWindows(int channels)
-{
-	if (channels > 1)
-	{
-		m_dwRenderer->spinBoxRC->setRange(0, channels - 1);
-		m_dwRenderer->stackedWidgetRC->setCurrentIndex(1);
-		m_dwRenderer->channelLabelRC->setEnabled(true);
-	}
-	else
-	{
-		m_dwRenderer->stackedWidgetRC->setCurrentIndex(0);
-		m_dwRenderer->channelLabelRC->setEnabled(false);
-	}
-	disableRenderWindows(0);
-}
-
-void MdiChild::disableRenderWindows(int ch)
-{
-	for (int s = 0; s < 3; ++s)
-	{
-		m_slicer[s]->disableInteractor();
-	}
-	m_renderer->disableInteractor();
-	emit rendererDeactivated(ch);
-}
-
-// TODO NEWIO: remove this method
-void MdiChild::enableRenderWindows()	// = image data available
-{
-	if (isVolumeDataLoaded() && m_reInitializeRenderWindows)
-	{
-		m_renderer->enableInteractor();
-		for (int s = 0; s < 3; ++s)
-		{
-			m_slicer[s]->enableInteractor();
-		}
-		updateViews();
-		/*
-		if (modalities()->size() > 0 && modality(0)->image()->GetNumberOfScalarComponents() == 1)
-		{
-			setHistogramModality(0);
-			updateProfile();
-		}
-		else  // No histogram/profile for rgb, rgba or vector pixel type images,
-		{     // which means the present values are directly used for color anyway,
-			initVolumeRenderers();    // so initialize volume rendering
-		}     // (slicers already initialized before)
-		*/
-	}
-	// set to true for next time, in case it is false now (i.e. default to always reinitialize,
-	// unless explicitly set otherwise)
-	m_reInitializeRenderWindows = true;
-
-	//m_renderer->reInitialize(modalities()->size() > 0 ? modality(0)->image() : nullptr, m_polyData);
-
-	if (!isVolumeDataLoaded())
-	{
-		return;
-	}
-	setCamPosition(iACameraPosition::Iso);
-	for (auto channelID : m_channels.keys())
-	{
-		iAChannelData* chData = m_channels.value(channelID).data();
-		if (chData->isEnabled()
-			|| (m_isMagicLensEnabled && (
-				channelID == m_slicer[iASlicerMode::XY]->magicLensInput() ||
-				channelID == m_slicer[iASlicerMode::XZ]->magicLensInput() ||
-				channelID == m_slicer[iASlicerMode::YZ]->magicLensInput()
-				))
-			)
-		{
-			for (int s = 0; s < 3; ++s)
-			{
-				m_slicer[s]->updateChannel(channelID, *chData);
-			}
-		}
-	}
 }
 
 void MdiChild::updatePositionMarker(double x, double y, double z, int mode)
@@ -571,19 +486,6 @@ void MdiChild::updatePositionMarker(double x, double y, double z, int mode)
 				pos[slicerZAxisIdx]);
 		}
 	}
-}
-
-void MdiChild::showPoly()
-{
-	hideVolumeWidgets();
-	setVisibility(QList<QWidget*>() << m_dwRenderer->stackedWidgetRC << m_dwRenderer->pushSaveRC << m_dwRenderer->pushMaxRC << m_dwRenderer->pushStopRC, true);
-
-	m_dwRenderer->vtkWidgetRC->setGeometry(0, 0, 300, 200);
-	m_dwRenderer->vtkWidgetRC->setMaximumSize(QSize(16777215, 16777215));
-	m_dwRenderer->vtkWidgetRC->adjustSize();
-	m_dwRenderer->show();
-	m_visibility &= RC;
-	changeVisibility(m_visibility);
 }
 
 size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
@@ -652,8 +554,14 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 			{
 				sliceRenderer->setVisible(true);
 				m_sliceRenderers[dataSetIdx] = sliceRenderer;
+				adapt3DViewDisplay();
 				updateSlicers();
 			}
+			// TODO NEWIO:
+			//for (int i = 0; i < 3; ++i)
+			//{
+			//	connect(m_slicer[i], &iASlicerImpl::profilePointChanged, viewer, profilePointChanged);
+			//}
 			if (m_dataForDisplay[dataSetIdx])
 			{
 				m_dataForDisplay[dataSetIdx]->show(this);
@@ -702,44 +610,6 @@ void MdiChild::clearDataSets()
 	{
 		removeDataSet(dataSetIdx);
 	}
-}
-
-
-bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyData* poly)	// = opening new window
-{
-	// TODO: image is actually not the final imagedata here (or at least not always)
-	//    -> maybe skip all image-related initializations?
-	if (poly)
-	{
-		m_polyData->ReleaseData();
-		m_polyData->DeepCopy(poly);
-	}
-
-	if (image)
-	{
-		m_imageData->ReleaseData();
-		m_imageData->DeepCopy(image);
-	}
-
-	initView(title);
-	setWindowTitle(title);
-	m_renderer->applySettings(m_renderSettings, m_slicerVisibility);
-	setupSlicers(m_slicerSettings, true);
-
-	if (m_imageData->GetExtent()[1] <= 1)
-	{
-		m_visibility &= YZ;
-	}
-	else if (m_imageData->GetExtent()[3] <= 1)
-	{
-		m_visibility &= XZ;
-	}
-	else if (m_imageData->GetExtent()[5] <= 1)
-	{
-		m_visibility &= XY;
-	}
-	changeVisibility(m_visibility);
-	return true;
 }
 
 namespace
@@ -843,69 +713,6 @@ void MdiChild::setupStackView(bool active)
 	}
 	updateViews();
 	*/
-}
-
-void MdiChild::setupViewInternal(bool active)
-{
-	if (!m_imageData)
-	{
-		LOG(lvlError, "Image Data is not set!");
-		return;
-	}
-	if (!active)
-	{
-		initView(m_curFile.isEmpty() ? "Untitled" : "");
-	}
-
-	m_mainWnd->addRecentFile(currentFile());	// TODO: VOLUME: should be done on the outside? or where setWindowTitleAndFile is done?
-
-	if ((m_imageData->GetExtent()[1] < 3) || (m_imageData->GetExtent()[3]) < 3 || (m_imageData->GetExtent()[5] < 3))
-	{
-		m_volumeSettings.Shading = false;
-	}
-
-	m_volumeSettings.SampleDistance = m_imageData->GetSpacing()[0];
-	m_renderer->applySettings(m_renderSettings, m_slicerVisibility);
-	setupSlicers(m_slicerSettings, true);
-
-	if (m_imageData->GetExtent()[1] <= 1)
-	{
-		m_visibility &= YZ;
-	}
-	else if (m_imageData->GetExtent()[3] <= 1)
-	{
-		m_visibility &= XZ;
-	}
-	else if (m_imageData->GetExtent()[5] <= 1)
-	{
-		m_visibility &= XY;
-	}
-
-	if (active)
-	{
-		changeVisibility(m_visibility);
-	}
-
-	// TODO NEWIO: check this logic!
-	if (m_imageData->GetNumberOfScalarComponents() > 1 &&
-		m_imageData->GetNumberOfScalarComponents() < 4)
-	{
-		m_dwRenderer->spinBoxRC->setRange(0, m_imageData->GetNumberOfScalarComponents() - 1);
-		m_dwRenderer->stackedWidgetRC->setCurrentIndex(1);
-		m_dwRenderer->channelLabelRC->setEnabled(true);
-	}
-	else
-	{
-		m_dwRenderer->stackedWidgetRC->setCurrentIndex(0);
-		m_dwRenderer->channelLabelRC->setEnabled(false);
-	}
-}
-
-void MdiChild::setupView(bool active)
-{
-	setupViewInternal(active);
-	m_renderer->update();
-	check2DMode();
 }
 
 /*
@@ -1119,12 +926,6 @@ void MdiChild::updateViews()
 	updateSlicers();
 	updateRenderer();
 	emit viewsUpdated();
-}
-
-int MdiChild::visibility() const
-{
-	int vis = RC | YZ | XZ | XY;
-	return vis;
 }
 
 void MdiChild::maximizeSlicer(int mode)
@@ -1390,12 +1191,6 @@ void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptInde
 	slicer->setSliceNumber(point1[ptIndex]);
 }
 
-void MdiChild::setChannel(int c)
-{
-	disableRenderWindows(c);
-	enableRenderWindows();
-}
-
 void MdiChild::slicerRotationChanged()
 {
 	m_renderer->setPlaneNormals(m_slicerTransform);
@@ -1415,7 +1210,7 @@ void MdiChild::linkMDIs(bool lm)
 	}
 }
 
-void MdiChild::enableInteraction(bool b)
+void MdiChild::enableSlicerInteraction(bool b)
 {
 	for (int s = 0; s < 3; ++s)
 	{
@@ -1564,7 +1359,6 @@ void MdiChild::setupSlicers(iASlicerSettings const& ss, bool init)
 		// connect signals for making slicers update other views in snake slicers mode:
 		for (int i = 0; i < 3; ++i)
 		{
-			connect(m_slicer[i], &iASlicerImpl::profilePointChanged, this, &MdiChild::updateProbe);
 			connect(m_slicer[i], &iASlicerImpl::profilePointChanged, m_renderer, &iARendererImpl::setProfilePoint);
 			connect(m_slicer[i], &iASlicer::magicLensToggled, this, &MdiChild::toggleMagicLens2D);
 			for (int j = 0; j < 3; ++j)
@@ -1745,7 +1539,7 @@ void MdiChild::toggleSliceProfile(bool isChecked)
 	}
 }
 
-bool MdiChild::isSliceProfileToggled(void) const
+bool MdiChild::isSliceProfileEnabled() const
 {
 	return m_isSliceProfileEnabled;
 }
@@ -1783,31 +1577,6 @@ bool MdiChild::isMagicLens2DEnabled() const
 bool MdiChild::isMagicLens3DEnabled() const
 {
 	return m_dwRenderer->vtkWidgetRC->isMagicLensEnabled();
-}
-
-bool MdiChild::initView(QString const& title)
-{
-	if (!m_raycasterInitialized)
-	{
-		m_renderer->initialize(m_imageData, m_polyData);
-		m_raycasterInitialized = true;
-	}
-	m_dwRenderer->stackedWidgetRC->setCurrentIndex(0);
-
-	if (isVolumeDataLoaded())
-	{
-		if (m_imageData->GetNumberOfScalarComponents() == 1)
-		{
-			addProfile();
-		}
-	}
-	else
-	{	//Polygonal mesh is loaded
-		showPoly();
-	}
-	updateLayout();
-
-	return true;
 }
 
 void MdiChild::updateDataSetInfo()
@@ -1923,33 +1692,12 @@ void MdiChild::setWindowTitleAndFile(const QString& f)
 	setWindowModified(hasUnsavedData());
 }
 
-// TODO: unify with setVisibility / check if one of the two calls redundant!
-void MdiChild::changeVisibility(unsigned char mode)
-{
-	m_visibility = mode;
-	m_dwRenderer->setVisible((mode & RC) == RC);
-	m_dwSlicer[iASlicerMode::XY]->setVisible((mode & XY) == XY);
-	m_dwSlicer[iASlicerMode::YZ]->setVisible((mode & YZ) == YZ);
-	m_dwSlicer[iASlicerMode::XZ]->setVisible((mode & XZ) == XZ);
-}
-
 void MdiChild::multiview()
 {
-	changeVisibility(MULTI);
-}
-
-void MdiChild::hideVolumeWidgets()
-{
-	setVisibility(QList<QWidget*>() << m_dwSlicer[iASlicerMode::XY] << m_dwSlicer[iASlicerMode::XZ] << m_dwSlicer[iASlicerMode::YZ] << m_dwRenderer, false);
-	update();
-}
-
-void MdiChild::setVisibility(QList<QWidget*> widgets, bool show)
-{
-	for (int i = 0; i < widgets.size(); ++i)
-	{
-		show ? widgets[i]->show() : widgets[i]->hide();
-	}
+	m_dwRenderer->setVisible(true);
+	m_dwSlicer[iASlicerMode::XY]->setVisible(true);
+	m_dwSlicer[iASlicerMode::YZ]->setVisible(true);
+	m_dwSlicer[iASlicerMode::XZ]->setVisible(true);
 }
 
 void MdiChild::updateSlicer(int index)
@@ -2112,41 +1860,9 @@ void MdiChild::cleanWorkingAlgorithms()
 	m_workingAlgorithms.clear();
 }
 
-void MdiChild::addProfile()
-{
-	m_profileProbe = QSharedPointer<iAProfileProbe>::create(m_imageData);
-	double start[3];
-	m_imageData->GetOrigin(start);
-	int const* const dim = m_imageData->GetDimensions();
-	double const* const spacing = m_imageData->GetSpacing();
-	double end[3];
-	for (int i = 0; i < 3; ++i)
-	{
-		end[i] = start[i] + (dim[i] - 1) * spacing[i];
-	}
-	for (int s = 0; s < 3; ++s)
-	{
-		m_slicer[s]->setProfilePoint(0, start);
-		m_slicer[s]->setProfilePoint(1, end);
-	}
-	m_renderer->setProfilePoint(0, start);
-	m_renderer->setProfilePoint(1, end);
-	m_profileProbe->updateProbe(0, start);
-	m_profileProbe->updateProbe(1, end);
-	m_profileProbe->updateData();
-
-	m_profile = new iAProfileWidget(nullptr, m_profileProbe->m_profileData, m_profileProbe->rayLength(), "Greyvalue", "Distance");
-	m_dwProfile = new iADockWidgetWrapper(m_profile, "Profile Plot", "Profile");
-	splitDockWidget(m_dwRenderer, m_dwProfile, Qt::Horizontal);
-}
-
 void MdiChild::toggleProfileHandles(bool isChecked)
 {
-	if (!m_dwProfile)
-	{
-		return;
-	}
-	m_profileHandlesEnabled = (bool)isChecked;
+	m_profileHandlesEnabled = isChecked;
 	for (int s = 0; s < 3; ++s)
 	{
 		m_slicer[s]->setProfileHandlesOn(m_profileHandlesEnabled);
@@ -2160,28 +1876,6 @@ bool MdiChild::profileHandlesEnabled() const
 	return m_profileHandlesEnabled;
 }
 
-bool MdiChild::hasProfilePlot() const
-{
-	return m_dwProfile;
-}
-
-void MdiChild::updateProbe(int ptIndex, double* newPos)
-{
-	if (m_imageData->GetNumberOfScalarComponents() != 1) //No profile for rgb, rgba or vector pixel type images
-	{
-		return;
-	}
-	m_profileProbe->updateProbe(ptIndex, newPos);
-	updateProfile();
-}
-
-void MdiChild::updateProfile()
-{
-	m_profileProbe->updateData();
-	m_profile->initialize(m_profileProbe->m_profileData, m_profileProbe->rayLength());
-	m_profile->update();
-}
-
 int MdiChild::sliceNumber(int mode) const
 {
 	assert(0 <= mode && mode < iASlicerMode::SlicerCount);
@@ -2190,6 +1884,7 @@ int MdiChild::sliceNumber(int mode) const
 
 void MdiChild::maximizeDockWidget(QDockWidget* dw)
 {
+	// TODO: not ideal - user could have changed something in layout since last maximization -> confusion!
 	m_beforeMaximizeState = saveState();
 	QList<QDockWidget*> dockWidgets = findChildren<QDockWidget*>();
 	for (int i = 0; i < dockWidgets.size(); ++i)
@@ -2267,11 +1962,6 @@ QDockWidget* MdiChild::dataInfoDockWidget()
 	return m_dwInfo;
 }
 
-void MdiChild::setReInitializeRenderWindows(bool reInit)
-{
-	m_reInitializeRenderWindows = reInit;
-}
-
 vtkTransform* MdiChild::slicerTransform()
 {
 	return m_slicerTransform;
@@ -2292,29 +1982,32 @@ bool MdiChild::linkedViews() const
 	return m_slicerSettings.LinkViews;
 }
 
-void MdiChild::check2DMode()
+void MdiChild::adapt3DViewDisplay()
 {
 	// TODO NEWIO:
-	//     - check over all datasets?
-	//     - move out of this class?
-	auto ds = firstImageData();
-	if (!ds)
+	//     - move (part of functionality) into dataset viewers (the check for whether specific slicer required)
+	int slicerToMaximize = -1;
+	std::array<bool, 3> slicerVisibility = { false, false, false };
+	bool rendererVisibility = false;
+	for (auto ds : m_dataSets)
 	{
-		return;
+		auto imgDS = dynamic_cast<iAImageData*>(ds.second.get());
+		if (!imgDS)
+		{
+			rendererVisibility = true;  // all non-image datasets currently have a 3D representation!
+			continue;
+		}
+		const int* dim = imgDS->vtkImage()->GetDimensions();
+		rendererVisibility |= dim[0] > 1 && dim[1] > 1 && dim[2] > 1;
+		for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
+		{
+			slicerVisibility[s] |= dim[mapSliceToGlobalAxis(s, 0)] > 1 && dim[mapSliceToGlobalAxis(s, 1)] > 1;
+		}
 	}
-	const int* dim = ds->GetDimensions();
-
-	if (dim[0] == 1 && dim[1] > 1 && dim[2] > 1)
+	m_dwRenderer->setVisible(rendererVisibility);
+	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
 	{
-		maximizeSlicer(iASlicerMode::YZ);
-	}
-	else if (dim[0] > 1 && dim[1] == 1 && dim[2] > 1)
-	{
-		maximizeSlicer(iASlicerMode::XZ);
-	}
-	else if (dim[0] > 1 && dim[1] > 1 && dim[2] == 1)
-	{
-		maximizeSlicer(iASlicerMode::XY);
+		m_dwSlicer[s]->setVisible(slicerVisibility[s]);
 	}
 }
 

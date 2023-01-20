@@ -91,8 +91,6 @@ iAInSpectrTool::iAInSpectrTool( iAMainWindow * mainWnd, iAMdiChild * child ) : i
 
 	dlgXRF = new dlg_InSpectr(m_child, periodicTable, dlgRefSpectra);
 
-	m_child->setReInitializeRenderWindows( false );
-
 	auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Load);
 	if (!io)
 	{

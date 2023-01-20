@@ -148,9 +148,9 @@ void iAFoamCharacterizationTool::slotPushButtonExecute()
 		QApplication::setOverrideCursor(Qt::WaitCursor);
 		QApplication::processEvents();
 		m_pTable->execute();
-		m_child->enableRenderWindows();
+		// TODO NEWIO
+		// some update? used to be m_child->enableRenderWindows();
 		QApplication::restoreOverrideCursor();
-
 		m_pPushButtonAnalysis->setEnabled(true);
 	}
 }
@@ -190,8 +190,9 @@ void iAFoamCharacterizationTool::slotPushButtonRestore()
 		QApplication::processEvents();
 		m_child->clearDataSets();
 		m_child->addDataSet(m_origDataSet);
+		// TODO NEWIO
+		// some update? used to be m_child->enableRenderWindows();
 		m_pTable->reset();
-		m_child->enableRenderWindows();
 		QApplication::restoreOverrideCursor();
 	}
 }

@@ -857,14 +857,15 @@ void MainWindow::linkMDIs()
 	}
 }
 
-void MainWindow::enableInteraction()
+void MainWindow::toggleSlicerInteraction()
 {
-	if (activeMdiChild())
+	if (!activeMdiChild())
 	{
-		m_defaultSlicerSettings.InteractorsEnabled = m_ui->actionEnableInteraction->isChecked();
-		activeMDI()->enableInteraction(m_defaultSlicerSettings.InteractorsEnabled);
-		statusBar()->showMessage(tr("Interaction %1").arg(m_defaultSlicerSettings.InteractorsEnabled?"Enabled":"Disabled"), 5000);
+		return;
 	}
+	m_defaultSlicerSettings.InteractorsEnabled = m_ui->actionToggleSlicerInteraction->isChecked();
+	activeMDI()->enableSlicerInteraction(m_defaultSlicerSettings.InteractorsEnabled);
+	statusBar()->showMessage(tr("Interaction %1").arg(m_defaultSlicerSettings.InteractorsEnabled ? "Enabled" : "Disabled"), 5000);
 }
 
 void MainWindow::toggleFullScreen()
@@ -1268,11 +1269,11 @@ iAMdiChild* MainWindow::resultChild(iAMdiChild* iaOldChild, QString const & titl
 		MdiChild* newChild = dynamic_cast<MdiChild*>(createMdiChild(true));
 		if (oldChild)
 		{
-			auto img = oldChild->firstImageData();
-			if (img)
-			{
-				newChild->displayResult(title, img);
-			}
+			//auto img = oldChild->firstImageData();
+			//if (img)
+			//{
+			//	newChild->displayResult(title, img);
+			//}
 			copyFunctions(oldChild, newChild);
 		}
 		return newChild;
@@ -1478,7 +1479,7 @@ void MainWindow::updateMenus()
 	m_ui->actionMultiViews->setEnabled(hasMdiChild);
 	m_ui->actionLinkViews->setEnabled(hasMdiChild);
 	m_ui->actionLinkMdis->setEnabled(hasMdiChild);
-	m_ui->actionEnableInteraction->setEnabled(hasMdiChild);
+	m_ui->actionToggleSlicerInteraction->setEnabled(hasMdiChild);
 	m_ui->actionSnakeSlicer->setEnabled(hasMdiChild);
 	m_ui->actionMagicLens2D->setEnabled(hasMdiChild);
 	m_ui->actionMagicLens3D->setEnabled(hasMdiChild);
@@ -1511,7 +1512,7 @@ void MainWindow::updateMenus()
 	QSignalBlocker interactionModeRegistrationBlock(m_ui->actionInteractionModeRegistration);
 	m_ui->actionInteractionModeRegistration->setChecked(hasMdiChild && child->interactionMode() == MdiChild::imRegistration);
 	QSignalBlocker blockSliceProfile(m_ui->actionRawProfile);
-	m_ui->actionRawProfile->setChecked(hasMdiChild && child->isSliceProfileToggled());
+	m_ui->actionRawProfile->setChecked(hasMdiChild && child->isSliceProfileEnabled());
 	QSignalBlocker blockEditProfile(m_ui->actionEditProfilePoints);
 	m_ui->actionEditProfilePoints->setChecked(hasMdiChild && child->profileHandlesEnabled());
 	QSignalBlocker blockSnakeSlicer(m_ui->actionSnakeSlicer);
@@ -1615,7 +1616,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionMultiViews, &QAction::triggered, this, &MainWindow::multi);
 	connect(m_ui->actionLinkViews, &QAction::triggered, this, &MainWindow::linkViews);
 	connect(m_ui->actionLinkMdis, &QAction::triggered, this, &MainWindow::linkMDIs);
-	connect(m_ui->actionEnableInteraction, &QAction::triggered, this, &MainWindow::enableInteraction);
+	connect(m_ui->actionToggleSlicerInteraction, &QAction::triggered, this, &MainWindow::toggleSlicerInteraction);
 	connect(m_ui->actionFullScreenMode, &QAction::triggered, this, &MainWindow::toggleFullScreen);
 	connect(m_ui->actionShowMenu, &QAction::triggered, this, &MainWindow::toggleMenu);
 	connect(m_ui->actionShowToolbar, &QAction::triggered, this, &MainWindow::toggleToolbar);
