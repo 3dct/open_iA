@@ -22,11 +22,9 @@
 
 #include "dlg_slicer.h"
 #include "dlg_volumePlayer.h"
-#include "iADataForDisplay.h"
-#include "iADataSetRendererImpl.h"
+#include "iADataSetViewer.h"
 #include "iAFileParamDlg.h"
 #include "iAFileUtils.h"    // for safeFileName
-#include "iAImageDataForDisplay.h"
 #include "iAParametricSpline.h"
 #include "iAProfileProbe.h"
 #include "iAvtkInteractStyleActor.h"
@@ -44,7 +42,6 @@
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iADataSetListWidget.h>
-#include <iADataSetRenderer.h>
 #include <iAJobListView.h>
 #include <iAMovieHelper.h>
 #include <iAParameterDlg.h>
@@ -53,7 +50,6 @@
 #include <iAToolRegistry.h>
 #include <iARenderSettings.h>
 #include <iARunAsync.h>
-#include <iASliceRenderer.h>
 #include <iAVolumeStack.h>
 
 // qthelper
@@ -181,12 +177,12 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 		[this](size_t dataSetIdx)
 		{
 			if (m_dataSets.find(dataSetIdx) == m_dataSets.end() ||
-				m_dataRenderers.find(dataSetIdx) == m_dataRenderers.end())
+				m_dataSetViewers.find(dataSetIdx) == m_dataSetViewers.end())
 			{
 				LOG(lvlWarn, QString("Invalid dataset index %1!").arg(dataSetIdx));
 				return;
 			}
-			auto params = m_dataRenderers[dataSetIdx]->attributesWithValues();
+			auto params = m_dataSetViewers[dataSetIdx]->attributesWithValues();
 			params.prepend(iAAttributeDescriptor::createParam("Name", iAValueType::String, m_dataSets[dataSetIdx]->name()));
 			QString description;
 			if (m_dataSets[dataSetIdx]->hasMetaData(iADataSet::FileNameKey))
@@ -495,10 +491,7 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 		dataSetIdx = m_nextDataSetID;
 		++m_nextDataSetID;
 	}
-	//if (dataSet->type() != iADataSetType::Collection)
-	//{  // TODO NEWIO: we should store collection type datasets here while loading, but might be able to discard them later?
-		m_dataSets[dataSetIdx] = dataSet;
-	//}
+	m_dataSets[dataSetIdx] = dataSet;
 	if (m_curFile.isEmpty())
 	{
 		LOG(lvlDebug, "Developer Warning - consider calling setWindowTitleAndFile directly where you first call addDataSet");
@@ -508,66 +501,17 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 			dataSet->name());
 	}
 	auto p = std::make_shared<iAProgress>();
-	if (dataSet->type() == iADataSetType::Collection)
-	{
-		auto viewer = createDataSetViewer(dataSet.get());
-		viewer->prepare(m_preferences);
-		viewer->createGUI(this);
-		m_dataSetViewers[dataSetIdx] = viewer;    // keep viewer alive
-		return dataSetIdx;
-	}
-	auto fw = runAsync([this, dataSet, dataSetIdx, p]()
+	auto viewer = createDataSetViewer(dataSet.get());
+	m_dataSetViewers[dataSetIdx] = viewer;
+	auto fw = runAsync(
+		[this, viewer, dataSetIdx]()
 		{
-			auto volData = dynamic_cast<iAImageData*>(dataSet.get());
-			if (volData)
-			{
-				m_dataForDisplay[dataSetIdx] = std::make_shared<iAImageDataForDisplay>(volData, p.get(), m_preferences.HistogramBins);
-			}
-			else
-			{
-				m_dataForDisplay[dataSetIdx] = std::make_shared<iADataForDisplay>(dataSet.get());
-			}
-			emit dataForDisplayCreated(dataSetIdx);
+			viewer->prepare(m_preferences);
+			emit dataSetPrepared(dataSetIdx);
 		},
-		[this, dataSet, dataSetIdx]()
+		[this, viewer, dataSetIdx]
 		{
-			bool render3D = false;
-			auto dataRenderer = createDataRenderer(dataSet.get(), m_dataForDisplay[dataSetIdx].get(), renderer()->renderer());
-			if (dataRenderer)
-			{
-				render3D = dataRenderer->isVisible();   // 3D renderers determine default visibility themselves
-				m_dataRenderers[dataSetIdx] = dataRenderer;
-				updatePositionMarkerSize();
-				iAAABB sceneBounds;
-				for (auto renderers: m_dataRenderers)
-				{
-					sceneBounds.merge(renderers.second->bounds());
-				}
-				m_renderer->setSceneBounds(sceneBounds);
-				// only reset camera if loaded dataset does not fit into the current scene? only reset scale, not viewing direction/angle?
-				m_renderer->renderer()->ResetCamera();
-				updateRenderer();
-			}
-			auto sliceRenderer = createSliceRenderer(dataSet.get(), m_dataForDisplay[dataSetIdx].get(), m_slicer, this);
-			if (sliceRenderer)
-			{
-				sliceRenderer->setVisible(true);
-				m_sliceRenderers[dataSetIdx] = sliceRenderer;
-				adapt3DViewDisplay();
-				updateSlicers();
-			}
-			// TODO NEWIO:
-			//for (int i = 0; i < 3; ++i)
-			//{
-			//	connect(m_slicer[i], &iASlicerImpl::profilePointChanged, viewer, profilePointChanged);
-			//}
-			if (m_dataForDisplay[dataSetIdx])
-			{
-				m_dataForDisplay[dataSetIdx]->show(this);
-			}
-			m_dataSetListWidget->addDataSet(dataSet.get(), dataSetIdx, render3D, dataRenderer != nullptr, sliceRenderer != nullptr);
-			setWindowModified(hasUnsavedData());
-			updateDataSetInfo();
+			viewer->createGUI(this);
 			emit dataSetRendered(dataSetIdx);
 		},
 		this);
@@ -1227,16 +1171,6 @@ void MdiChild::enableSlicerInteraction(bool b)
 bool MdiChild::applyPreferences(iAPreferences const& prefs)
 {
 	m_preferences = prefs;
-	for (auto dataForDisplay : m_dataForDisplay)
-	{
-		auto dfd = dataForDisplay.second;
-		auto fw = runAsync([prefs, dfd]() {
-			dfd->applyPreferences(prefs);
-		}, [dfd]() {
-			dfd->updatedPreferences();
-		}, this);
-		iAJobListView::get()->addJob(QString("Updating preferences for dataset %1").arg(m_dataSets[dataForDisplay.first]->name()), nullptr, fw);
-	}
 	applyViewerPreferences();
 	if (isMagicLens2DEnabled())
 	{
@@ -1255,6 +1189,7 @@ void MdiChild::applyViewerPreferences()
 	}
 	m_dwRenderer->vtkWidgetRC->setLensSize(m_preferences.MagicLensSize, m_preferences.MagicLensSize);
 	updatePositionMarkerSize();
+	emit preferencesChanged();
 }
 
 void MdiChild::updatePositionMarkerSize()

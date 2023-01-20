@@ -20,30 +20,50 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAgui_export.h>
+#include "iAguibase_export.h"
 
-#include <array>
-#include <memory>
+#include "iADataSetViewer.h"
 
-class iADataSet;
-class iADataForDisplay;
-class iAMdiChild;
-class iASlicerImpl;
+#include <QObject>
+#include <QSharedPointer>
 
-class iAgui_API iASliceRenderer
+class iAChartWithFunctionsWidget;
+class iADockWidgetWrapper;
+class iAImageData;
+class iAHistogramData;
+class iAPreferences;
+class iAProgress;
+class iASlicer;
+class iATransferFunction;
+class iATransferFunctionOwner;
+
+class vtkSmartVolumeMapper;
+class vtkVolume;
+class vtkVolumeProperty;
+
+class iAguibase_API iAVolumeViewer : public QObject, public iADataSetViewer
 {
 public:
-	//! called when the slice renderer is removed and its resources should be released
-	virtual ~iASliceRenderer();
-	//! called when the renderer is set (in)visible in slicer
-	virtual void setVisible(bool visible);
-	//! remove from display
-	virtual void remove();
-	//! called when the renderer is set pickable (movable) in slicer
-	virtual void setPickable(bool pickable);
-	//! the ID of the slicer channel that this dataset uses for rendering
-	virtual unsigned int channelID() const;
-};
+	iAVolumeViewer(iADataSet const* dataSet);
+	~iAVolumeViewer();
+	void prepare(iAPreferences const& pref, iAProgress* p) override;
+	void createGUI(iAMdiChild* child) override;
+	QString information() const override;
+	void dataSetChanged() override;
+	iAChartWithFunctionsWidget* histogram();
+	iAHistogramData* histogramData() const;
+	iATransferFunction* transfer();
+	void removeFromSlicer();
+private:
+	std::shared_ptr<iATransferFunctionOwner> m_transfer;
+	QSharedPointer<iAHistogramData> m_histogramData;
+	iAChartWithFunctionsWidget* m_histogram;
+	std::shared_ptr<iADockWidgetWrapper> m_histogramDW;
+	QString m_imgStatistics;
+	uint m_slicerChannelID;
+	std::array<iASlicer*, 3> m_slicer;
 
-iAgui_API std::shared_ptr<iASliceRenderer> createSliceRenderer(iADataSet* dataset, iADataForDisplay* dataForDisplay,
-	std::array<iASlicerImpl*, 3> slicer, iAMdiChild* child);
+	vtkSmartPointer<vtkVolume> m_volume;
+	vtkSmartPointer<vtkVolumeProperty> m_volProp;
+	vtkSmartPointer<vtkSmartVolumeMapper> m_volMapper;
+};

@@ -18,84 +18,272 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iADataForDisplay.h"
+#include "iADataSetViewer.h"
 
+#include "iAAABB.h"
 #include "iADataSet.h"
 #include "iAMdiChild.h"
+#include "iARenderer.h"
+#include "iAValueTypeVectorHelpers.h"
 
-#include "iAToolRegistry.h"
+#include <iALog.h>
+#include <iAMainWindow.h>
+#include <iAVolumeSettings.h>
 
-iADataForDisplay::iADataForDisplay(iADataSet* dataSet):
-	m_dataSet(dataSet)
+#include <vtkActor.h>
+#include <vtkCubeSource.h>
+#include <vtkOpenGLRenderer.h>
+#include <vtkOutlineFilter.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
+
+#include <QColor>
+
+class iAOutlineImpl
 {
+public:
+	iAOutlineImpl(iAAABB const& box, vtkRenderer* renderer, QColor const& c) : m_renderer(renderer)
+	{
+		setBounds(box);
+		m_mapper->SetInputConnection(m_cubeSource->GetOutputPort());
+		m_actor->GetProperty()->SetRepresentationToWireframe();
+		m_actor->GetProperty()->SetShading(false);
+		m_actor->GetProperty()->SetOpacity(1);
+		//m_actor->GetProperty()->SetLineWidth(2);
+		m_actor->GetProperty()->SetAmbient(1.0);
+		m_actor->GetProperty()->SetDiffuse(0.0);
+		m_actor->GetProperty()->SetSpecular(0.0);
+		setColor(c);
+		m_actor->SetPickable(false);
+		m_actor->SetMapper(m_mapper);
+		renderer->AddActor(m_actor);
+	}
+	void setVisible(bool visible)
+	{
+		if (visible)
+		{
+			m_renderer->AddActor(m_actor);
+		}
+		else
+		{
+			m_renderer->RemoveActor(m_actor);
+		}
+	}
+	void setOrientationAndPosition(QVector<double> pos, QVector<double> ori)
+	{
+		assert(pos.size() == 3);
+		assert(ori.size() == 3);
+		m_actor->SetPosition(pos.data());
+		m_actor->SetOrientation(ori.data());
+	}
+	void setBounds(iAAABB const& box)
+	{
+		m_cubeSource->SetBounds(
+			box.minCorner().x(), box.maxCorner().x(),
+			box.minCorner().y(), box.maxCorner().y(),
+			box.minCorner().z(), box.maxCorner().z()
+		);
+	}
+	void setColor(QColor const& c)
+	{
+		m_actor->GetProperty()->SetColor(c.redF(), c.greenF(), c.blueF());
+	}
+	QColor color() const
+	{
+		auto rgb = m_actor->GetProperty()->GetColor();
+		return QColor(rgb[0], rgb[1], rgb[2]);
+	}
+
+private:
+	vtkNew<vtkCubeSource> m_cubeSource;
+	vtkNew<vtkPolyDataMapper> m_mapper;
+	vtkNew<vtkActor> m_actor;
+	vtkRenderer* m_renderer;
+};
+
+const QString iADataSetViewer::Position("Position");
+const QString iADataSetViewer::Orientation("Orientation");
+const QString iADataSetViewer::OutlineColor("Box Color");
+const QString iADataSetViewer::Pickable("Pickable");
+const QString iADataSetViewer::Shading("Shading");
+const QString iADataSetViewer::AmbientLighting("Ambient lighting");
+const QString iADataSetViewer::DiffuseLighting("Diffuse lighting");
+const QString iADataSetViewer::SpecularLighting("Specular lighting");
+const QString iADataSetViewer::SpecularPower("Specular power");
+
+namespace
+{
+	const QColor OutlineDefaultColor(Qt::black);
 }
 
-iADataForDisplay::~iADataForDisplay()
+
+iADataSetViewer::iADataSetViewer(iADataSet const * dataSet):
+	m_dataSet(dataSet)
+{
+	addAttribute(Position, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
+	addAttribute(Orientation, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
+	addAttribute(OutlineColor, iAValueType::Color, OutlineDefaultColor);
+	addAttribute(Pickable, iAValueType::Boolean, true);
+
+	auto volumeSettings = iAMainWindow::get()->defaultVolumeSettings();
+	addAttribute(AmbientLighting, iAValueType::Continuous, volumeSettings.AmbientLighting);
+	addAttribute(DiffuseLighting, iAValueType::Continuous, volumeSettings.DiffuseLighting);
+	addAttribute(SpecularLighting, iAValueType::Continuous, volumeSettings.SpecularLighting);
+	addAttribute(SpecularPower, iAValueType::Continuous, volumeSettings.SpecularPower);
+}
+
+iADataSetViewer::~iADataSetViewer()
 {}
 
-void iADataForDisplay::show(iAMdiChild* child)
+void iADataSetViewer::prepare(iAPreferences const& pref, iAProgress* p)
+{
+	Q_UNUSED(pref);
+	Q_UNUSED(p);
+}
+
+void iADataSetViewer::createGUI(iAMdiChild* child)
 {	// by default, nothing to do
 	Q_UNUSED(child);
 }
 
-QString iADataForDisplay::information() const
+QString iADataSetViewer::information() const
 {
 	return m_dataSet->info();
 }
 
-iADataSet* iADataForDisplay::dataSet()
+/*
+iADataSet* iADataSetViewer::dataSet()
 {
 	return m_dataSet;
 }
+*/
 
-void iADataForDisplay::applyPreferences(iAPreferences const& prefs)
-{
-	Q_UNUSED(prefs);
-}
-
-void iADataForDisplay::updatedPreferences()
+void iADataSetViewer::dataSetChanged()
 {}
 
-void iADataForDisplay::dataSetChanged()
+iAAttributes iADataSetViewer::attributesWithValues() const
+{
+	iAAttributes result = combineAttributesWithValues(m_attributes, m_attribValues);
+	// set position and orientation from current values:
+	assert(result[0]->name() == Position);
+	auto pos = position();
+	result[0]->setDefaultValue(variantVector<double>({ pos[0], pos[1], pos[2] }));
+	assert(result[1]->name() == Orientation);
+	auto ori = orientation();
+	result[1]->setDefaultValue(variantVector<double>({ ori[0], ori[1], ori[2] }));
+	return result;
+}
+
+void iADataSetViewer::addAttribute(
+	QString const& name, iAValueType valueType, QVariant defaultValue, double min, double max)
+{
+#ifndef NDEBUG
+	for (auto attr : m_attributes)
+	{
+		if (attr->name() == name)
+		{
+			LOG(lvlWarn, QString("iADataSetRenderer::addAttribute: Attribute with name %1 already exists!").arg(name));
+		}
+	}
+#endif
+	m_attributes.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
+	m_attribValues[name] = defaultValue;
+}
+
+void iADataSetViewer::setAttributes(QVariantMap const& values)
+{
+	m_attribValues = values;
+	applyAttributes(values);
+	if (m_outline)
+	{
+		m_outline->setBounds(bounds());	// only potentially changes for volume currently; maybe use signals instead?
+		m_outline->setColor(m_attribValues[OutlineColor].value<QColor>());
+		updateOutlineTransform();
+	}
+}
+
+void iADataSetViewer::setPickable(bool pickable)
+{
+	m_attribValues[Pickable] = pickable;
+	// TODO: maybe only apply pickable?
+	applyAttributes(m_attribValues);
+}
+
+bool iADataSetViewer::isPickable() const
+{
+	return m_attribValues[Pickable].toBool();
+}
+
+void iADataSetViewer::setVisible(bool visible)
+{
+	m_visible = visible;
+	if (m_visible)
+	{
+		showDataSet();
+	}
+	else
+	{
+		hideDataSet();
+	}
+}
+
+bool iADataSetViewer::isVisible() const
+{
+	return m_visible;
+}
+
+void iADataSetViewer::setBoundsVisible(bool visible)
+{
+	if (!m_outline)
+	{
+		m_outline = std::make_shared<iAOutlineImpl>(bounds(), m_renderer,
+			m_attribValues.contains(OutlineColor) ? m_attribValues[OutlineColor].value<QColor>() : OutlineDefaultColor);
+		updateOutlineTransform();
+	}
+	m_outline->setVisible(visible);
+}
+
+void iADataSetViewer::updateOutlineTransform()
+{
+	if (!m_outline)
+	{
+		return;
+	}
+	QVector<double> pos(3), ori(3);
+	for (int i = 0; i < 3; ++i)
+	{
+		pos[i] = position()[i];
+		ori[i] = orientation()[i];
+	}
+	m_outline->setOrientationAndPosition(pos, ori);
+}
+
+void iADataSetViewer::setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3)
+{
+	Q_UNUSED(p1);
+	Q_UNUSED(p2);
+	Q_UNUSED(p3);
+}
+
+void iADataSetViewer::removeCuttingPlanes()
 {}
 
-
-
-iADataSetViewer::iADataSetViewer(iADataSet const * dataSet) : m_dataSet(dataSet) {}
-
-iADataSetViewer::~iADataSetViewer() {}
-
-void iADataSetViewer::prepare(iAPreferences const& pref) {
-	Q_UNUSED(pref);
-}
+//QWidget* iADataSetRenderer::controlWidget()
+//{
+//	return nullptr;
+//}
 
 
 
-iAVolumeViewer::iAVolumeViewer(iADataSet const * dataSet) : iADataSetViewer(dataSet)
-{
-}
-
-void iAVolumeViewer::prepare(iAPreferences const& pref)
-{
-	Q_UNUSED(pref);
-	//auto volData = dynamic_cast<iAImageData const*>(m_dataSet);
-	//if (volData)
-	//{
-	//p.get(), m_preferences.HistogramBins);
-}
-
-void iAVolumeViewer::createGUI(iAMdiChild* child)
-{
-	Q_UNUSED(child);
-}
 
 
+// iAMeshViewer
 
 iAMeshViewer::iAMeshViewer(iADataSet const * dataSet) : iADataSetViewer(dataSet)
 {
 }
 
-void iAMeshViewer::prepare(iAPreferences const& pref)
+void iAMeshViewer::prepare(iAPreferences const& pref, iAProgress* p)
 {
 	Q_UNUSED(pref);
 }
@@ -106,6 +294,9 @@ void iAMeshViewer::createGUI(iAMdiChild* child)
 }
 
 
+
+
+// iAProjectViewer
 
 iAProjectViewer::iAProjectViewer(iADataSet const* dataSet) :
 	iADataSetViewer(dataSet),
@@ -119,6 +310,7 @@ iAProjectViewer::iAProjectViewer(iADataSet const* dataSet) :
 #include <iAStringHelper.h>
 
 #include <iATool.h>
+#include "iAToolRegistry.h"
 #include <iAMainWindow.h>
 
 #include <QSettings>
@@ -247,6 +439,7 @@ void iAProjectViewer::createGUI(iAMdiChild* child)
 }
 
 
+#include "iAVolumeViewer.h"
 
 std::shared_ptr<iADataSetViewer> createDataSetViewer(iADataSet const* dataSet)
 {

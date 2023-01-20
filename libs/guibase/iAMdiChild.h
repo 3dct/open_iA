@@ -35,8 +35,7 @@ class iAAlgorithm;
 class iAChannelData;
 class iAChartWithFunctionsWidget;
 class iADataSet;
-class iADataSetRenderer;
-class iADataForDisplay; // TODO NEWIO: -> iADataViewer!
+class iADataSetViewer;
 class iAMainWindow;
 class iAPreferences;
 class iARenderer;
@@ -203,11 +202,7 @@ public:
 	virtual size_t firstImageDataSetIdx() const = 0;
 	//! Retrieve the viewer for the dataset with given index
 	//! @return viewer for the given dataset index, nullptr if there is no dataset with given index or if there is no viewer available
-	virtual iADataForDisplay* dataSetViewer(size_t idx) const =0;
-	//! Retrieve the 3D renderer for dataSet with given index
-	//! @return the renderer or nullptr if dataset with given index does not exist or has no renderer
-	virtual iADataSetRenderer* dataSetRenderer(size_t idx) const = 0;
-	// }
+	virtual iADataSetViewer* dataSetViewer(size_t idx) const =0;
 
 	//! set window title, and if a file name is given, set it as window file and add it to recent files
 	virtual void setWindowTitleAndFile(QString const& f) = 0;
@@ -244,6 +239,9 @@ signals:
 	//! done yet then - use dataSetRendered instead if you require the file to be fully loaded!
 	void fileLoaded();
 
+	//! emitted when the preferences have changed
+	void preferencesChanged();
+
 	//! emitted when the renderer settings have changed
 	void renderSettingsChanged();
 
@@ -256,10 +254,11 @@ signals:
 	//! emitted whenever the magic lens has been toggled on or off
 	void magicLensToggled(bool isToggled);
 
+	// {
 	// TODO NEWIO: move to some separate dataset list manager class?
-	//! emitted when the data for displaying a dataset has been computed
-	void dataForDisplayCreated(size_t dataSetIdx);
-	//! emitted when the renderer for a dataset has been added to the display
+	//! emitted when all data for displaying a dataset has been prepared
+	void dataSetPrepared(size_t dataSetIdx);
+	//! emitted when the dataset has been added to all relevant views
 	void dataSetRendered(size_t dataSetIdx);
 	//! emitted when a dataset has been selected in the data list
 	void dataSetSelected(size_t dataSetIdx);
@@ -267,6 +266,7 @@ signals:
 	void dataSetChanged(size_t dataSetIdx);
 	//! emitted when a dataset has been removed
 	void dataSetRemoved(size_t dataSetIdx);
+	// }
 
 public slots:
 	//! Updates all views (slicers, renderers)

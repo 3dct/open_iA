@@ -60,11 +60,9 @@ class vtkTransform;
 
 // gui
 class dlg_volumePlayer;
-class iADataForDisplay;
 class iADataSetListWidget;
 class iADataSetViewer;
 class iAParametricSpline;
-class iASliceRenderer;
 class iAvtkInteractStyleActor;
 class MainWindow;
 
@@ -253,8 +251,7 @@ public:
 
 	size_t firstImageDataSetIdx() const override;
 	vtkSmartPointer<vtkImageData> firstImageData() const override;
-	iADataForDisplay* dataSetViewer(size_t idx) const override;
-	iADataSetRenderer* dataSetRenderer(size_t idx) const override;
+	iADataSetViewer* dataSetViewer(size_t idx) const override;
 	void applyRenderSettings(size_t dataSetIdx, QVariantMap const& renderSettings) override;
 
 	bool hasUnsavedData() const;
@@ -327,8 +324,6 @@ private:
 
 	//! @{ @deprecated
 	void connectSignalsToSlots();
-	
-	//! adds an algorithm to the list of currently running jobs
 	void addAlgorithm(iAAlgorithm* thread);
 	void cleanWorkingAlgorithms();
 	//! @}
@@ -412,14 +407,7 @@ private:
 	size_t m_nextDataSetID;                                             //!< holds ID for next dataSet (in order to provide a unique ID to each loaded dataset)
 	QMutex m_dataSetMutex;                                              //!< used to guarantee that m_nextDataSetID can only be read and modified together
 	std::map<size_t, std::shared_ptr<iADataSet>> m_dataSets;            //!< list of all currently loaded datasets.
-
-	// todo: find better way to handle this
-	std::map<size_t, std::shared_ptr<iADataForDisplay>> m_dataForDisplay;//!< optional additional data required for displaying a dataset
-	std::map<size_t, std::shared_ptr<iADataSetRenderer>> m_dataRenderers;//!< 3D renderers (one per dataset in m_datasets)
-	std::map<size_t, std::shared_ptr<iADataSetRenderer>> m_3dMagicLensRenderers;//!< 3D renderers for magic lens (one per dataset in m_datasets)
-	std::map<size_t, std::shared_ptr<iASliceRenderer>> m_sliceRenderers;//!< slice renderers (one per dataset in m_datsets)
-	// should become the replacement for the four maps above
-	std::map<size_t, std::shared_ptr<iADataSetViewer>> m_dataSetViewers;
+	std::map<size_t, std::shared_ptr<iADataSetViewer>> m_dataSetViewers;//!< viewer for a currently loaded dataset; manages all aspects of showing the dataset, e.g. in 3D renderer, slicer, etc.
 
 	void setDataSetMovable(size_t dataSetIdx);
 	vtkSmartPointer<iAvtkInteractStyleActor> m_manualMoveStyle[4];      //!< for syncing the manual registration between views
