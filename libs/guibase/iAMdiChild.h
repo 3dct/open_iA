@@ -217,10 +217,6 @@ public:
 	//!    also, don't use iAAlgorithm anymore!
 	virtual void connectThreadSignalsToChildSlots(iAAlgorithm* thread) = 0;
 
-	//! Adds a message to the status bar.
-	//! @deprecated. Status bar will be removed soon in favor of the log window. Use iALog instead.
-	virtual void addStatusMsg(QString const& txt) = 0;
-
 	//! Access to "main" polydata object (if any)
 	//! @deprecated move out of mdi child, into something like an iAModality
 	virtual vtkPolyData* polyData() = 0;

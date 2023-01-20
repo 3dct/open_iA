@@ -36,7 +36,8 @@
 #include "iARawFileParamDlg.h"
 #include "iARenderer.h"
 #include "iASavableProject.h"
-#include "iASlicerImpl.h"    // for slicerModeToString
+#include "iASlicerImpl.h"      // for slicerModeToString
+#include "iAStringHelper.h"    // for iAConverter
 #include "iATLGICTLoader.h"
 #include "mdichild.h"
 #include "ui_Mainwindow.h"
@@ -191,7 +192,6 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 
 	m_moduleDispatcher->InitializeModules(iALogWidget::get());
 	updateMenus();
-	statusBar()->showMessage(tr("Ready"));
 }
 
 MainWindow::~MainWindow()
@@ -835,11 +835,7 @@ void MainWindow::linkViews()
 	{
 		m_defaultSlicerSettings.LinkViews = m_ui->actionLinkViews->isChecked();
 		activeMDI()->linkViews(m_defaultSlicerSettings.LinkViews);
-
-		if (m_defaultSlicerSettings.LinkViews)
-		{
-			statusBar()->showMessage(tr("Link Views"), 5000);
-		}
+		LOG(lvlInfo, QString("Link Views: ").arg(iAConverter<bool>::toString(m_defaultSlicerSettings.LinkViews)));
 	}
 }
 
@@ -849,11 +845,7 @@ void MainWindow::linkMDIs()
 	{
 		m_defaultSlicerSettings.LinkMDIs = m_ui->actionLinkMdis->isChecked();
 		activeMDI()->linkMDIs(m_defaultSlicerSettings.LinkMDIs);
-
-		if (m_defaultSlicerSettings.LinkViews)
-		{
-			statusBar()->showMessage(tr("Link MDIs"), 5000);
-		}
+		LOG(lvlInfo, QString("Link MDIs: ").arg(iAConverter<bool>::toString(m_defaultSlicerSettings.LinkMDIs)));
 	}
 }
 
@@ -865,7 +857,7 @@ void MainWindow::toggleSlicerInteraction()
 	}
 	m_defaultSlicerSettings.InteractorsEnabled = m_ui->actionToggleSlicerInteraction->isChecked();
 	activeMDI()->enableSlicerInteraction(m_defaultSlicerSettings.InteractorsEnabled);
-	statusBar()->showMessage(tr("Interaction %1").arg(m_defaultSlicerSettings.InteractorsEnabled ? "Enabled" : "Disabled"), 5000);
+	LOG(lvlInfo, QString("Slicer interaction %1").arg(iAConverter<bool>::toString(m_defaultSlicerSettings.InteractorsEnabled)));
 }
 
 void MainWindow::toggleFullScreen()
@@ -1062,7 +1054,7 @@ void MainWindow::renderSettings()
 	{
 		activeMDI()->applyRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
 	}
-	statusBar()->showMessage(tr("Changed renderer settings"), 5000);
+	LOG(lvlInfo, "Changed renderer settings");
 }
 
 namespace
@@ -1133,7 +1125,7 @@ void MainWindow::slicerSettings()
 	{
 		activeMDI()->editSlicerSettings(m_defaultSlicerSettings);
 	}
-	statusBar()->showMessage(tr("Changed slicer settings"), 5000);
+	LOG(lvlInfo, "Changed slicer settings");
 }
 
 void MainWindow::changeInteractionMode(bool isChecked)
@@ -1503,7 +1495,6 @@ void MainWindow::updateMenus()
 	m_ui->actionSaveLayout->setEnabled(hasMdiChild);
 	m_ui->actionResetLayout->setEnabled(hasMdiChild);
 	m_ui->actionDeleteLayout->setEnabled(hasMdiChild);
-	m_ui->actionChildStatusBar->setEnabled(hasMdiChild);
 
 	// Update checked states of actions:
 	auto child = activeMDI();
@@ -1620,13 +1611,11 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionFullScreenMode, &QAction::triggered, this, &MainWindow::toggleFullScreen);
 	connect(m_ui->actionShowMenu, &QAction::triggered, this, &MainWindow::toggleMenu);
 	connect(m_ui->actionShowToolbar, &QAction::triggered, this, &MainWindow::toggleToolbar);
-	connect(m_ui->actionMainWindowStatusBar, &QAction::triggered, this, &MainWindow::toggleMainWindowStatusBar);
 	connect(m_ui->menuDockWidgets, &QMenu::aboutToShow, this, &MainWindow::listDockWidgetsInMenu);
 	// Enable these actions also when menu not visible:
 	addAction(m_ui->actionFullScreenMode);
 	addAction(m_ui->actionShowMenu);
 	addAction(m_ui->actionShowToolbar);
-	addAction(m_ui->actionMainWindowStatusBar);
 
 	// "Window" menu entries:
 	connect(m_ui->actionClose, &QAction::triggered, m_ui->mdiArea, &QMdiArea::closeActiveSubWindow);
@@ -1635,7 +1624,6 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionCascade, &QAction::triggered, m_ui->mdiArea, &QMdiArea::cascadeSubWindows);
 	connect(m_ui->actionNextWindow, &QAction::triggered, m_ui->mdiArea, &QMdiArea::activateNextSubWindow);
 	connect(m_ui->actionPrevWindow, &QAction::triggered, m_ui->mdiArea, &QMdiArea::activatePreviousSubWindow);
-	connect(m_ui->actionChildStatusBar, &QAction::triggered, this, &MainWindow::toggleChildStatusBar);
 	connect(m_ui->actionOpenLogOnNewMessage, &QAction::triggered, this, &MainWindow::toggleOpenLogOnNewMessage);
 	connect(m_ui->actionOpenListOnAddedJob, &QAction::triggered, this, &MainWindow::toggleOpenListOnAddedJob);
 
@@ -1789,8 +1777,6 @@ void MainWindow::readSettings()
 	toggleOpenListOnAddedJob();
 	m_ui->actionShowToolbar->setChecked(settings.value("Parameters/ShowToolbar", true).toBool());
 	toggleToolbar();
-	m_ui->actionMainWindowStatusBar->setChecked(settings.value("Parameters/ShowMainStatusBar", true).toBool());
-	toggleMainWindowStatusBar();
 	auto viewMode = static_cast<QMdiArea::ViewMode>(settings.value("Parameters/ViewMode", QMdiArea::SubWindowView).toInt());
 	m_ui->mdiArea->setViewMode(viewMode);
 	if (viewMode == QMdiArea::SubWindowView)
@@ -1917,7 +1903,6 @@ void MainWindow::writeSettings()
 	settings.setValue("Parameters/ShowJobs", m_dwJobs->toggleViewAction()->isChecked());
 	settings.setValue("Parameters/ViewMode", m_ui->mdiArea->viewMode());
 	settings.setValue("Parameters/ShowToolbar", m_ui->actionShowToolbar->isChecked());
-	settings.setValue("Parameters/ShowMainStatusBar", m_ui->actionMainWindowStatusBar->isChecked());
 	settings.setValue("Parameters/OpenLogOnNewMessages", m_ui->actionOpenLogOnNewMessage->isChecked());
 	settings.setValue("Parameters/OpenListOnAddedJob", m_ui->actionOpenListOnAddedJob->isChecked());
 
@@ -2186,11 +2171,6 @@ QMenu * MainWindow::helpMenu()
 	return m_ui->menuHelp;
 }
 
-void MainWindow::toggleMainWindowStatusBar()
-{
-	statusBar()->setVisible(m_ui->actionMainWindowStatusBar->isChecked());
-}
-
 void MainWindow::toggleOpenLogOnNewMessage()
 {
 	iALogWidget::get()->setOpenOnNewMessage(m_ui->actionOpenLogOnNewMessage->isChecked());
@@ -2234,15 +2214,6 @@ void MainWindow::toggleToolbar()
 	{
 		toolbar->setVisible(visible);
 	}
-}
-
-void MainWindow::toggleChildStatusBar()
-{
-	if (!activeMdiChild())
-	{
-		return;
-	}
-	activeMdiChild()->statusBar()->setVisible(m_ui->actionChildStatusBar->isChecked());
 }
 
 QMdiSubWindow* MainWindow::activeChild()

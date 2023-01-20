@@ -274,9 +274,6 @@ public slots:
 	//! update all dataset views (3D renderer + all 3 axis-aligned slicers)
 	void updateViews() override;
 
-	//! @deprecated use logging or global status bar (iAMainWindow::statusBar) instead
-	void addStatusMsg(QString const& txt) override;
-
 	//! @{ @deprecated will be removed soon, see addDataset instead
 	// TODO NEWIO: move volume stack to new tool
 	void setupStackView(bool active = false);
@@ -303,7 +300,7 @@ public slots:
 private slots:
 	void saveRC();
 	void saveMovRC();
-	void triggerInteractionRaycaster();
+	void toggleRendererInteraction();
 	void setSlice(int mode, int s);
 	void slicerRotationChanged();
 	void updatePositionMarker(double x, double y, double z, int mode);

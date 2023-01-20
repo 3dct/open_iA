@@ -195,7 +195,6 @@
     <addaction name="actionShowToolbar"/>
     <addaction name="actionFullScreenMode"/>
     <addaction name="actionShowMenu"/>
-    <addaction name="actionChildStatusBar"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="title">
@@ -220,7 +219,6 @@
     <addaction name="separator"/>
     <addaction name="actionOpenListOnAddedJob"/>
     <addaction name="separator"/>
-    <addaction name="actionMainWindowStatusBar"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -244,7 +242,6 @@
    <addaction name="menuWindow"/>
    <addaction name="menuHelp"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="fileToolbar">
    <property name="windowTitle">
     <string>Main Toolbar</string>
@@ -780,34 +777,6 @@
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resets the Layout of the current mdichild&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-  </action>
-  <action name="actionChildStatusBar">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Status Bar</string>
-   </property>
-  </action>
-  <action name="actionMainWindowStatusBar">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Main Window Status Bar</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Alt+S</string>
-   </property>
-   <property name="shortcutContext">
-    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="actionOpenTLGICTData">

@@ -1166,8 +1166,6 @@ void dlg_InSpectr::computeSimilarityMap()
 		double numIterations = numEBins * numEBins * 0.5;
 		double curIteration = 0.0;
 		int percentage = 0;
-		mdiChild->addStatusMsg("Computing Similarity Map");
-
 		int errorCount = 0;
 		QStringList errDescr;
 

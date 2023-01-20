@@ -105,7 +105,6 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QSpinBox>
-#include <QStatusBar>
 #include <QtGlobal> // for QT_VERSION
 
 
@@ -363,7 +362,7 @@ void MdiChild::connectSignalsToSlots()
 	}
 
 	connect(m_dwRenderer->pushMaxRC, &QPushButton::clicked, this, &MdiChild::maximizeRC);
-	connect(m_dwRenderer->pushStopRC, &QPushButton::clicked, this, &MdiChild::triggerInteractionRaycaster);
+	connect(m_dwRenderer->pushStopRC, &QPushButton::clicked, this, &MdiChild::toggleRendererInteraction);
 
 	connect(m_dwRenderer->pushPX,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::PX); });
 	connect(m_dwRenderer->pushPY,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::PY); });
@@ -1000,7 +999,7 @@ void MdiChild::setCamPosition(double* camOptions, bool rsParallelProjection)
 	m_renderer->setCamPosition(camOptions, rsParallelProjection);
 }
 
-void MdiChild::triggerInteractionRaycaster()
+void MdiChild::toggleRendererInteraction()
 {
 	if (m_renderer->interactor()->GetEnabled())
 	{
@@ -1609,11 +1608,6 @@ bool MdiChild::addVolumePlayer()
 	return true;
 }
 
-void MdiChild::addStatusMsg(QString const & txt)
-{
-	m_mainWnd->statusBar()->showMessage(txt, 10000);
-}
-
 void MdiChild::updateROI(int const roi[6])
 {
 	for (int s = 0; s < 3; ++s)
@@ -1654,7 +1648,6 @@ void MdiChild::closeEvent(QCloseEvent* event)
 	/*
 	{
 		LOG(lvlWarn, "Cannot close window while I/O operation is in progress!");
-		addStatusMsg("Cannot close window while I/O operation is in progress!");
 		event->ignore();
 		return;
 	}
@@ -1986,7 +1979,6 @@ void MdiChild::adapt3DViewDisplay()
 {
 	// TODO NEWIO:
 	//     - move (part of functionality) into dataset viewers (the check for whether specific slicer required)
-	int slicerToMaximize = -1;
 	std::array<bool, 3> slicerVisibility = { false, false, false };
 	bool rendererVisibility = false;
 	for (auto ds : m_dataSets)

@@ -185,10 +185,8 @@ private slots:
 	void openRecentFile();
 	void childClosed();
 	void listDockWidgetsInMenu();
-	void toggleMainWindowStatusBar();
 	void toggleOpenLogOnNewMessage();
 	void toggleOpenListOnAddedJob();
-	void toggleChildStatusBar();
 	void toggleToolbar();
 	void about();
 	void wiki();

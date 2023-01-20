@@ -68,9 +68,6 @@ iAInSpectrTool::iAInSpectrTool( iAMainWindow * mainWnd, iAMdiChild * child ) : i
 	{
 		throw itk::ExceptionObject(__FILE__, __LINE__, "filter_SimilarityMap failed");
 	}
-	QString filtername = tr( "XRF" );
-	m_child->addStatusMsg( filtername );
-
 	QString fileName = QFileDialog::getOpenFileName(
 		QApplication::activeWindow(),
 		tr( "Open File" ),

@@ -163,7 +163,6 @@ bool iAFeatureScoutTool::initFromConfig(iAMdiChild* child, iACsvConfig const& cs
 		curvedFiberInfo, csvConfig.cylinderQuality, csvConfig.segmentSkip);
 
 	iAFeatureScoutToolbar::addForChild(m_mainWindow, child);
-	child->addStatusMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
 	LOG(lvlInfo, QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
 	if (csvConfig.visType == iACsvConfig::UseVolume)
 	{
