@@ -69,6 +69,9 @@ public:
 	//! Retrieves the list of attributes, merged with their current values as default values:
 	iAAttributes attributesWithValues() const;
 
+
+	// MOVE TO SUBCLASS dealing with the 3D rendering?
+
 	//! Set visibility of dataset in 3D renderer
 	void setVisible(bool visible);
 	//! Whether dataset is currently visible in 3D renderer

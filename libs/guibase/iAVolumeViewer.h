@@ -24,6 +24,8 @@
 
 #include "iADataSetViewer.h"
 
+#include <vtkSmartPointer.h>
+
 #include <QObject>
 #include <QSharedPointer>
 
