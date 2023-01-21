@@ -31,6 +31,7 @@
 
 #include <QFileInfo>
 #include <QSettings>
+#include <QTextStream>
 
 namespace
 {

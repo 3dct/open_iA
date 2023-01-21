@@ -50,8 +50,8 @@ QMap<QString, QString> readSettingsFile(QString const& fileName)
 			throw std::runtime_error(QString("Invalid key/value line (#%1: %2) - could not split at separator %3")
 				.arg(lineNr).arg(currentLine).arg(KeyValueSeparator).toStdString());
 		}
-		auto key = tokensComment[0].first(firstSep).trimmed();     // everything up until the separator
-		auto value = tokensComment[0].sliced(firstSep+1).trimmed();  // everything after key value separator
+		auto key = tokensComment[0].left(firstSep).trimmed();     // everything up until the first separator
+		auto value = tokensComment[0].right(tokensComment[0].length() - (firstSep+1)).trimmed();  // everything after first separator
 		result[key] = value;
 	}
 	// file closed automatically by ~QFile
