@@ -105,7 +105,7 @@ struct iAConverter<bool>
 				ls == "on" || ls == "off" ||
 				ls == "true" || ls == "false";
 		}
-		bool result = (ls == "on" || ls == "true");
+		return ls == "on" || ls == "true";
 	}
 	static QString toString(bool b)
 	{

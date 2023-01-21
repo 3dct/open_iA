@@ -25,6 +25,7 @@
 #include <vtkSmartPointer.h>
 
 #include <QMainWindow>
+#include <QMap>
 #include <QSharedPointer>
 
 #include <functional>
