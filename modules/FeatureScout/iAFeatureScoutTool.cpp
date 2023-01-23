@@ -28,10 +28,10 @@
 #include <iACsvIO.h>
 #include <iACsvVtkTableCreator.h>
 
-#include <iAImageDataForDisplay.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
 #include <iAModuleDispatcher.h>
+#include <iAVolumeViewer.h>
 
 #include <iADataSet.h>
 #include <iAFileUtils.h>
@@ -195,7 +195,7 @@ void iAFeatureScoutTool::init(int filterID, QString const& fileName, vtkSmartPoi
 			LOG(lvlError, "No image data set loaded!");
 			return;
 		}
-		auto tf = dynamic_cast<iAImageDataForDisplay*>(m_child->dataSetViewer(idx))->transfer();
+		auto tf = dynamic_cast<iAVolumeViewer*>(m_child->dataSetViewer(idx))->transfer();
 		ctf = tf->colorTF();
 		otf = tf->opacityTF();
 		bounds = dynamic_cast<iAImageData*>(m_child->dataSets()[idx].get())->vtkImage()->GetBounds();

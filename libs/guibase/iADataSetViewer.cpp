@@ -20,8 +20,11 @@
 * ************************************************************************************/
 #include "iADataSetViewer.h"
 
+#include "defines.h"    // for NotExistingChannel
 #include "iAAABB.h"
 #include "iADataSet.h"
+#include "iADataSetListWidget.h"
+#include "iADataSetRendererImpl.h"
 #include "iAMdiChild.h"
 #include "iARenderer.h"
 #include "iAValueTypeVectorHelpers.h"
@@ -30,110 +33,20 @@
 #include <iAMainWindow.h>
 #include <iAVolumeSettings.h>
 
-#include <vtkActor.h>
-#include <vtkCubeSource.h>
 #include <vtkOpenGLRenderer.h>
-#include <vtkOutlineFilter.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkProperty.h>
-
-#include <QColor>
-
-class iAOutlineImpl
-{
-public:
-	iAOutlineImpl(iAAABB const& box, vtkRenderer* renderer, QColor const& c) : m_renderer(renderer)
-	{
-		setBounds(box);
-		m_mapper->SetInputConnection(m_cubeSource->GetOutputPort());
-		m_actor->GetProperty()->SetRepresentationToWireframe();
-		m_actor->GetProperty()->SetShading(false);
-		m_actor->GetProperty()->SetOpacity(1);
-		//m_actor->GetProperty()->SetLineWidth(2);
-		m_actor->GetProperty()->SetAmbient(1.0);
-		m_actor->GetProperty()->SetDiffuse(0.0);
-		m_actor->GetProperty()->SetSpecular(0.0);
-		setColor(c);
-		m_actor->SetPickable(false);
-		m_actor->SetMapper(m_mapper);
-		renderer->AddActor(m_actor);
-	}
-	void setVisible(bool visible)
-	{
-		if (visible)
-		{
-			m_renderer->AddActor(m_actor);
-		}
-		else
-		{
-			m_renderer->RemoveActor(m_actor);
-		}
-	}
-	void setOrientationAndPosition(QVector<double> pos, QVector<double> ori)
-	{
-		assert(pos.size() == 3);
-		assert(ori.size() == 3);
-		m_actor->SetPosition(pos.data());
-		m_actor->SetOrientation(ori.data());
-	}
-	void setBounds(iAAABB const& box)
-	{
-		m_cubeSource->SetBounds(
-			box.minCorner().x(), box.maxCorner().x(),
-			box.minCorner().y(), box.maxCorner().y(),
-			box.minCorner().z(), box.maxCorner().z()
-		);
-	}
-	void setColor(QColor const& c)
-	{
-		m_actor->GetProperty()->SetColor(c.redF(), c.greenF(), c.blueF());
-	}
-	QColor color() const
-	{
-		auto rgb = m_actor->GetProperty()->GetColor();
-		return QColor(rgb[0], rgb[1], rgb[2]);
-	}
-
-private:
-	vtkNew<vtkCubeSource> m_cubeSource;
-	vtkNew<vtkPolyDataMapper> m_mapper;
-	vtkNew<vtkActor> m_actor;
-	vtkRenderer* m_renderer;
-};
-
-const QString iADataSetViewer::Position("Position");
-const QString iADataSetViewer::Orientation("Orientation");
-const QString iADataSetViewer::OutlineColor("Box Color");
-const QString iADataSetViewer::Pickable("Pickable");
-const QString iADataSetViewer::Shading("Shading");
-const QString iADataSetViewer::AmbientLighting("Ambient lighting");
-const QString iADataSetViewer::DiffuseLighting("Diffuse lighting");
-const QString iADataSetViewer::SpecularLighting("Specular lighting");
-const QString iADataSetViewer::SpecularPower("Specular power");
-
-namespace
-{
-	const QColor OutlineDefaultColor(Qt::black);
-}
-
 
 iADataSetViewer::iADataSetViewer(iADataSet const * dataSet):
 	m_dataSet(dataSet)
 {
-	addAttribute(Position, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
-	addAttribute(Orientation, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
-	addAttribute(OutlineColor, iAValueType::Color, OutlineDefaultColor);
-	addAttribute(Pickable, iAValueType::Boolean, true);
-
-	auto volumeSettings = iAMainWindow::get()->defaultVolumeSettings();
-	addAttribute(AmbientLighting, iAValueType::Continuous, volumeSettings.AmbientLighting);
-	addAttribute(DiffuseLighting, iAValueType::Continuous, volumeSettings.DiffuseLighting);
-	addAttribute(SpecularLighting, iAValueType::Continuous, volumeSettings.SpecularLighting);
-	addAttribute(SpecularPower, iAValueType::Continuous, volumeSettings.SpecularPower);
 }
 
 iADataSetViewer::~iADataSetViewer()
-{}
+{
+	if (m_renderer && m_renderer->isVisible())
+	{
+		m_renderer->setVisible(false);
+	}
+}
 
 void iADataSetViewer::prepare(iAPreferences const& pref, iAProgress* p)
 {
@@ -141,9 +54,52 @@ void iADataSetViewer::prepare(iAPreferences const& pref, iAProgress* p)
 	Q_UNUSED(p);
 }
 
-void iADataSetViewer::createGUI(iAMdiChild* child)
-{	// by default, nothing to do
-	Q_UNUSED(child);
+void iADataSetViewer::createGUI(iAMdiChild* child, size_t newDataSetIdx)
+{
+	m_renderer = createRenderer(child->renderer()->renderer());
+	/*int row = */ child->dataSetListWidget()->addDataSet(m_dataSet, newDataSetIdx, m_renderer.get(), m_renderer.get(), hasSlicerVis());
+	// TODO NEWIO: events directly connecting to specific item / QActions linked to item
+
+	QObject::connect(child->dataSetListWidget(), &iADataSetListWidget::set3DRendererVisibility, this,
+		[this, newDataSetIdx](size_t dataSetIdx, int visibility)
+		{
+			if (newDataSetIdx != dataSetIdx)
+			{
+				return;
+			}
+			m_renderer->setVisible(visibility);
+		});
+	connect(child->dataSetListWidget(), &iADataSetListWidget::setBoundsVisibility, this,
+		[this, newDataSetIdx](size_t dataSetIdx, int visibility)
+		{
+			if (newDataSetIdx != dataSetIdx)
+			{
+				return;
+			}
+			m_renderer->setBoundsVisible(visibility);
+		});
+	connect(child->dataSetListWidget(), &iADataSetListWidget::set2DVisibility, this,
+		[this, newDataSetIdx](size_t dataSetIdx, int visibility)
+		{
+			if (newDataSetIdx != dataSetIdx)
+			{
+				return;
+			}
+			setSlicerVisibility(visibility);
+		});
+	connect(child->dataSetListWidget(), &iADataSetListWidget::set3DMagicLensVisibility, this,
+		[this, newDataSetIdx, child](size_t dataSetIdx, int visibility)
+		{
+			if (newDataSetIdx != dataSetIdx)
+			{
+				return;
+			}
+			if (!m_magicLensRenderer)
+			{
+				m_magicLensRenderer = createRenderer(child->magicLens3DRenderer());
+			}
+			m_magicLensRenderer->setVisible(visibility);
+		});
 }
 
 QString iADataSetViewer::information() const
@@ -164,14 +120,21 @@ void iADataSetViewer::dataSetChanged()
 iAAttributes iADataSetViewer::attributesWithValues() const
 {
 	iAAttributes result = combineAttributesWithValues(m_attributes, m_attribValues);
-	// set position and orientation from current values:
-	assert(result[0]->name() == Position);
-	auto pos = position();
-	result[0]->setDefaultValue(variantVector<double>({ pos[0], pos[1], pos[2] }));
-	assert(result[1]->name() == Orientation);
-	auto ori = orientation();
-	result[1]->setDefaultValue(variantVector<double>({ ori[0], ori[1], ori[2] }));
+	if (renderer())
+	{
+		result.append(renderer()->attributesWithValues());
+	}
 	return result;
+}
+
+iADataSetRenderer* iADataSetViewer::renderer()
+{
+	return m_renderer.get();
+}
+
+iADataSetRenderer const* iADataSetViewer::renderer() const
+{
+	return m_renderer.get();
 }
 
 void iADataSetViewer::addAttribute(
@@ -190,110 +153,98 @@ void iADataSetViewer::addAttribute(
 	m_attribValues[name] = defaultValue;
 }
 
+std::shared_ptr<iADataSetRenderer> iADataSetViewer::createRenderer(vtkRenderer* ren)
+{
+	Q_UNUSED(ren);
+	return {};
+}
+
+bool iADataSetViewer::hasSlicerVis() const
+{
+	return false;
+}
+
+void iADataSetViewer::setSlicerVisibility(bool visible)
+{
+	// by default we assume there is no slicer vis
+	Q_UNUSED(visible);
+}
+
 void iADataSetViewer::setAttributes(QVariantMap const& values)
 {
 	m_attribValues = values;
 	applyAttributes(values);
-	if (m_outline)
+	if (renderer())
 	{
-		m_outline->setBounds(bounds());	// only potentially changes for volume currently; maybe use signals instead?
-		m_outline->setColor(m_attribValues[OutlineColor].value<QColor>());
-		updateOutlineTransform();
+		renderer()->setAttributes(values);
 	}
+	dataSetChanged();    // TODO NEWIO: maybe we can improve this logic?
 }
 
 void iADataSetViewer::setPickable(bool pickable)
 {
-	m_attribValues[Pickable] = pickable;
-	// TODO: maybe only apply pickable?
-	applyAttributes(m_attribValues);
+	renderer()->setPickable(pickable);
 }
 
-bool iADataSetViewer::isPickable() const
+void iADataSetViewer::slicerRegionSelected(double minVal, double maxVal, uint channelID)
 {
-	return m_attribValues[Pickable].toBool();
+	Q_UNUSED(minVal);
+	Q_UNUSED(maxVal);
+	Q_UNUSED(channelID);
 }
 
-void iADataSetViewer::setVisible(bool visible)
+uint iADataSetViewer::slicerChannelID()
 {
-	m_visible = visible;
-	if (m_visible)
-	{
-		showDataSet();
-	}
-	else
-	{
-		hideDataSet();
-	}
+	return NotExistingChannel;
 }
 
-bool iADataSetViewer::isVisible() const
+void iADataSetViewer::applyAttributes(QVariantMap const& values)
 {
-	return m_visible;
+	Q_UNUSED(values);
 }
 
-void iADataSetViewer::setBoundsVisible(bool visible)
-{
-	if (!m_outline)
-	{
-		m_outline = std::make_shared<iAOutlineImpl>(bounds(), m_renderer,
-			m_attribValues.contains(OutlineColor) ? m_attribValues[OutlineColor].value<QColor>() : OutlineDefaultColor);
-		updateOutlineTransform();
-	}
-	m_outline->setVisible(visible);
-}
 
-void iADataSetViewer::updateOutlineTransform()
-{
-	if (!m_outline)
-	{
-		return;
-	}
-	QVector<double> pos(3), ori(3);
-	for (int i = 0; i < 3; ++i)
-	{
-		pos[i] = position()[i];
-		ori[i] = orientation()[i];
-	}
-	m_outline->setOrientationAndPosition(pos, ori);
-}
+// iAGraphViewer
 
-void iADataSetViewer::setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3)
-{
-	Q_UNUSED(p1);
-	Q_UNUSED(p2);
-	Q_UNUSED(p3);
-}
-
-void iADataSetViewer::removeCuttingPlanes()
+iAGraphViewer::iAGraphViewer(iADataSet const* dataSet) :
+	iADataSetViewer(dataSet)
 {}
 
-//QWidget* iADataSetRenderer::controlWidget()
-//{
-//	return nullptr;
-//}
-
-
+std::shared_ptr<iADataSetRenderer> iAGraphViewer::createRenderer(vtkRenderer * ren)
+{
+	auto meshData = dynamic_cast<iAGraphData const*>(m_dataSet);
+	return std::make_shared<iAGraphRenderer>(ren, meshData);
+}
 
 
 
 // iAMeshViewer
 
-iAMeshViewer::iAMeshViewer(iADataSet const * dataSet) : iADataSetViewer(dataSet)
-{
-}
+iAMeshViewer::iAMeshViewer(iADataSet const* dataSet) :
+	iADataSetViewer(dataSet)
+{}
 
-void iAMeshViewer::prepare(iAPreferences const& pref, iAProgress* p)
+std::shared_ptr<iADataSetRenderer> iAMeshViewer::createRenderer(vtkRenderer* ren)
 {
-	Q_UNUSED(pref);
-}
-
-void iAMeshViewer::createGUI(iAMdiChild* child)
-{
-	Q_UNUSED(child);
+	auto meshData = dynamic_cast<iAPolyData const*>(m_dataSet);
+	return std::make_shared<iAPolyDataRenderer>(ren, meshData);
 }
 
 
+
+// iAGeometricObjectViewer
+
+#include "iAGeometricObject.h"
+
+iAGeometricObjectViewer::iAGeometricObjectViewer(iADataSet const* dataSet):
+	iADataSetViewer(dataSet)
+{}
+
+std::shared_ptr<iADataSetRenderer> iAGeometricObjectViewer::createRenderer(vtkRenderer* ren)
+{
+	auto meshData = dynamic_cast<iAGeometricObject const*>(m_dataSet);
+	return std::make_shared<iAGeometricObjectRenderer>(ren, meshData);
+}
 
 
 // iAProjectViewer
@@ -315,11 +266,11 @@ iAProjectViewer::iAProjectViewer(iADataSet const* dataSet) :
 
 #include <QSettings>
 
-void iAProjectViewer::createGUI(iAMdiChild* child)
+void iAProjectViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 {
 	auto collection = dynamic_cast<iADataCollection const*>(m_dataSet);
 	auto fileName = m_dataSet->metaData(iADataSet::FileNameKey).toString();
-	auto afterRenderCallback = [this, child, collection, fileName]()
+	auto afterRenderCallback = [this, child, collection, fileName, dataSetIdx]()
 	{
 		// TODO NEWIO - also load viewer settings; this should happen in the creation of the viewers - consider metadata if available!
 				/*
@@ -395,14 +346,8 @@ void iAProjectViewer::createGUI(iAMdiChild* child)
 				settings.endGroup();
 			}
 		}
-		for (auto ds : child->dataSetMap())
-		{
-			if (ds.second.get() == m_dataSet)
-			{
-				child->removeDataSet(ds.first);
-				break;    // CHECK NEWIO: also this viewer is deleted on removing the dataset, so here the object could already be deleted!
-			}
-		}
+		child->removeDataSet(dataSetIdx);
+		// CHECK NEWIO: also this viewer is deleted on removing the dataset, so here the object could already be deleted!
 	};
 	// if no datasets available, directly load tools...
 	if (collection->dataSets().empty())
@@ -432,8 +377,8 @@ void iAProjectViewer::createGUI(iAMdiChild* child)
 		});
 	for (auto d : collection->dataSets())
 	{
-		auto dataSetIdx = child->addDataSet(d);
-		m_loadedDataSets.push_back(dataSetIdx);
+		auto newDataSetIdx = child->addDataSet(d);
+		m_loadedDataSets.push_back(newDataSetIdx);
 	}
 	// TODO: provide option to immediately load tools without waiting for dataset to finish loading/rendering?
 }

@@ -35,7 +35,6 @@
 #include <iAChannelSlicerData.h>
 #include <iADataSet.h>
 #include <iADataSetRenderer.h>
-#include <iAImageDataForDisplay.h>
 #include <iALog.h>
 #include <iAMdiChild.h>
 //#include <iAPerformanceHelper.h>
@@ -48,6 +47,7 @@
 #include <iAToolsVTK.h>
 #include <iATransferFunctionOwner.h>
 #include <iAVolumeRenderer.h>
+#include <iAVolumeViewer.h>
 
 #include <vtkCamera.h>
 #include <vtkImageActor.h>
@@ -323,15 +323,7 @@ void iAMultimodalWidget::dataSetAdded(size_t dataSetIdx)
 	{
 		return;
 	}
-	/*
-	// redundant to below check for iAImageDataForDisplay:
-	auto imgData = dynamic_cast<iAImageData*>(m_mdiChild->dataSet(dataSetIdx).get());
-	if (!imgData)
-	{
-		return;
-	}
-	*/
-	auto viewer = dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(dataSetIdx));
+	auto viewer = dynamic_cast<iAVolumeViewer*>(m_mdiChild->dataSetViewer(dataSetIdx));
 	if (!viewer || !viewer->histogramData())
 	{
 		return;
@@ -362,7 +354,13 @@ void iAMultimodalWidget::initGUI()
 	m_channelID.clear();
 	for (int ds = 0; ds < m_numOfDS; ++ds)
 	{
-		auto histData = dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(m_dataSetsActive[ds]))->histogramData();
+		auto viewer = dynamic_cast<iAVolumeViewer*>(m_mdiChild->dataSetViewer(m_dataSetsActive[ds]));
+		if (!viewer || !viewer->histogramData())
+		{
+			LOG(lvlError, QString("DataSet %1: no viewer!").arg(ds));
+			continue;
+		}
+		auto histData = viewer->histogramData();
 		auto colorTF = vtkSmartPointer<vtkColorTransferFunction>::New();
 		auto opacityTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 		colorTF->DeepCopy(dataSetTransfer(ds)->colorTF());
@@ -386,12 +384,6 @@ void iAMultimodalWidget::initGUI()
 		m_mdiChild->initChannelRenderer(m_channelID[ds], false, true);
 
 		connect((iAChartTransferFunction*)(m_histograms[ds]->functions()[0]), &iAChartTransferFunction::changed, this, [this, ds]() { updateTransferFunction(ds); });
-		auto viewer = dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(m_dataSetsActive[ds]));
-		if (!viewer || !viewer->histogramData())
-		{
-			LOG(lvlError, QString("DataSet %1: no viewer!").arg(ds));
-			continue;
-		}
 		connect((iAChartTransferFunction*)(viewer->histogram()->functions()[0]), &iAChartTransferFunction::changed, this, [this, ds]() { originalHistogramChanged(ds); });
 	}
 
@@ -782,12 +774,12 @@ QString iAMultimodalWidget::dataSetName(int index)
 
 iATransferFunction* iAMultimodalWidget::dataSetTransfer(int index)
 {
-	return dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(m_dataSetsActive[index]))->transfer();
+	return dynamic_cast<iAVolumeViewer*>(m_mdiChild->dataSetViewer(m_dataSetsActive[index]))->transfer();
 }
 
 iADataSetRenderer* iAMultimodalWidget::dataSetRenderer(int index)
 {
-	return m_mdiChild->dataSetRenderer(m_dataSetsActive[index]);
+	return m_mdiChild->dataSetViewer(m_dataSetsActive[index])->renderer();
 }
 
 iABCoord iAMultimodalWidget::getWeights()

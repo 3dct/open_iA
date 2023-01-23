@@ -37,6 +37,7 @@ class iAChannelData;
 class iAChartWithFunctionsWidget;
 class iADataSet;
 class iADataSetViewer;
+class iADataSetListWidget;
 class iAMainWindow;
 class iAPreferences;
 class iARenderer;
@@ -52,6 +53,7 @@ class vtkImageData;
 class vtkPiecewiseFunction;
 class vtkPolyData;
 class vtkScalarsToColors;
+class vtkRenderer;
 class vtkTransform;
 
 class QFileInfo;
@@ -159,8 +161,8 @@ public:
 	//! Reinitialize magic lens channel?
 	//! @deprecated, use channel mechanisms / setMagicLensInput instead!
 	//virtual void reInitMagicLens(uint id, QString const& name, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf) = 0;
+	virtual vtkRenderer* magicLens3DRenderer() const = 0;
 
-	
 	//! Access the "volume stack" if a stack of volumes is loaded
 	virtual iAVolumeStack* volumeStack() = 0;
 
@@ -192,6 +194,8 @@ public:
 	virtual std::shared_ptr<iADataSet> chooseDataSet(QString const& title = "Choose dataset") = 0;
 	//! Constant indicating an invalid dataset index
 	static const size_t NoDataSet = std::numeric_limits<size_t>::max();
+	//! Retrieve dataset list
+	virtual iADataSetListWidget* dataSetListWidget() = 0;
 
 	// Methods currently required by some modules for specific dataset access
 	// {

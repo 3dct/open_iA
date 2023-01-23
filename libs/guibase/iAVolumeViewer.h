@@ -26,7 +26,6 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QObject>
 #include <QSharedPointer>
 
 class iAChartWithFunctionsWidget;
@@ -38,22 +37,28 @@ class iAProgress;
 class iASlicer;
 class iATransferFunction;
 class iATransferFunctionOwner;
+class iAVolRenderer;
 
 class vtkSmartVolumeMapper;
 class vtkVolume;
 class vtkVolumeProperty;
 
-class iAguibase_API iAVolumeViewer : public QObject, public iADataSetViewer
+class iAguibase_API iAVolumeViewer : public iADataSetViewer
 {
 public:
 	iAVolumeViewer(iADataSet const* dataSet);
 	~iAVolumeViewer();
 	void prepare(iAPreferences const& pref, iAProgress* p) override;
-	void createGUI(iAMdiChild* child) override;
+	void createGUI(iAMdiChild* child, size_t dataSetIdx) override;
 	QString information() const override;
 	void dataSetChanged() override;
+	void slicerRegionSelected(double minVal, double maxVal, uint channelID) override;
+	void setPickable(bool pickable) override;
+	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren) override;
+	bool hasSlicerVis() const override;
+	void setSlicerVisibility(bool visible) override;
 	iAChartWithFunctionsWidget* histogram();
-	iAHistogramData* histogramData() const;
+	QSharedPointer<iAHistogramData> histogramData() const;  // should return a const raw pointer or reference
 	iATransferFunction* transfer();
 	void removeFromSlicer();
 private:
@@ -64,8 +69,5 @@ private:
 	QString m_imgStatistics;
 	uint m_slicerChannelID;
 	std::array<iASlicer*, 3> m_slicer;
-
-	vtkSmartPointer<vtkVolume> m_volume;
-	vtkSmartPointer<vtkVolumeProperty> m_volProp;
-	vtkSmartPointer<vtkSmartVolumeMapper> m_volMapper;
+	std::shared_ptr<iAVolRenderer> m_renderer;
 };

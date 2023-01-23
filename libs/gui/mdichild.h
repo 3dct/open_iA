@@ -199,9 +199,10 @@ public:
 	//void reInitMagicLens(uint id, QString const & name, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf) override;
 	int  magicLensSize() const;
 	int  magicLensFrameWidth() const;
+	vtkRenderer* magicLens3DRenderer() const override;
 	//! @}
 
-	void applyVolumeSettings(const bool loadSavedVolumeSettings);
+	void applyVolumeSettings();
 	QString layoutName() const override;
 	void loadLayout(QString const & layout) override;
 	void updateLayout() override;
@@ -214,6 +215,8 @@ public:
 	//int chooseComponentNr(int modalityNr);
 
 	std::shared_ptr<iADataSet> chooseDataSet(QString const& title = "Choose dataset") override;
+
+	iADataSetListWidget* dataSetListWidget() override;
 
 	//! Store current situation in the given project file:
 	//!    - loaded files and their transfer functions, when old project file (.mod) is chosen

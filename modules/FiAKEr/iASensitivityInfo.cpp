@@ -40,13 +40,13 @@
 
 // guibase:
 #include <iADataSetRenderer.h>
-#include <iAImageDataForDisplay.h>
 #include <iAJobListView.h>
 #include <iAMdiChild.h>
 #include <iAQVTKWidget.h>
 #include <iARenderer.h>
 #include <iARunAsync.h>
 #include <iAVolumeRenderer.h>
+#include <iAVolumeViewer.h>
 #include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iAWidgetSettingsMapper.h>
 
@@ -1297,7 +1297,7 @@ void iASensitivityInfo::showSpatialOverview()
 	{
 		return;
 	}
-	connect(m_child, &iAMdiChild::dataForDisplayCreated, this, &iASensitivityInfo::setSpatialOverviewTF);
+	connect(m_child, &iAMdiChild::dataSetPrepared, this, &iASensitivityInfo::setSpatialOverviewTF);
 	connect(m_child, &iAMdiChild::dataSetRendered, this, &iASensitivityInfo::spatialOverviewVisibilityChanged);
 	if (m_data->m_spatialOverview)
 	{
@@ -1335,7 +1335,7 @@ void iASensitivityInfo::setSpatialOverviewTF(int dataSetIdx)
 	}
 	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
 	iALUT::BuildLUT(lut, range, m_gui->m_settings->cmbboxSpatialOverviewColorMap->currentText(), 5, true);
-	auto tf = dynamic_cast<iAImageDataForDisplay*>(m_child->dataSetViewer(dataSetIdx))->transfer();
+	auto tf = dynamic_cast<iAVolumeViewer*>(m_child->dataSetViewer(dataSetIdx))->transfer();
 	auto ctf = tf->colorTF();
 	auto otf = tf->opacityTF();
 	const double AlphaOverride = 0.2;
@@ -1420,7 +1420,7 @@ void iASensitivityInfo::spatialOverviewVisibilityChanged(bool visible)
 	}
 	for (auto ds : m_child->dataSetMap())
 	{
-		if (m_child->dataSetRenderer(ds.first)->isVisible())
+		if (m_child->dataSetViewer(ds.first)->renderer()->isVisible())
 		{	// ..or any other dataset is visible  -> Nothing to do
 			return;
 		}
@@ -1676,9 +1676,9 @@ void iASensitivityInfo::spHighlightChanged()
 	//bool anyChange = false;
 	for (auto ds: m_child->dataSetMap())
 	{
-		if (newVis != m_child->dataSetRenderer(ds.first)->isVisible())
+		if (newVis != m_child->dataSetViewer(ds.first)->renderer()->isVisible())
 		{
-			m_child->dataSetRenderer(ds.first)->setVisible(newVis);
+			m_child->dataSetViewer(ds.first)->renderer()->setVisible(newVis);
 			//anyChange = true;
 		}
 	}

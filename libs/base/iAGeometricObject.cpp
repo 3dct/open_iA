@@ -31,7 +31,7 @@ iAGeometricObject::iAGeometricObject(QString const& name, vtkSmartPointer<vtkPol
 	setMetaData(NameKey, name);
 }
 
-vtkSmartPointer<vtkPolyDataAlgorithm> iAGeometricObject::source()
+vtkSmartPointer<vtkPolyDataAlgorithm> iAGeometricObject::source() const
 {
 	return m_polySource;
 }

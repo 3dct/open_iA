@@ -54,7 +54,7 @@ public:
 	threshold_defs::iAThresIndx testFindIndex(double value);
 	void testSpecifyRange(const std::vector<double>& v_inRange, const std::vector<double>& v_elements, threshold_defs::iAParametersRanges& outputRanges);
 
-	void setData(QSharedPointer<iAPlotData>& data)
+	void setData(QSharedPointer<iAPlotData> data)
 	{
 		m_data = data;
 	}

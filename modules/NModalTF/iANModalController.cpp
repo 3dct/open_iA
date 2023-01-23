@@ -30,7 +30,6 @@
 #include <iAChannelSlicerData.h>
 #include <iADataSet.h>
 #include <iADataSetRenderer.h>
-#include <iAImageDataForDisplay.h>
 #include <iAMdiChild.h>
 #include <iAPreferences.h>
 #include <iARenderSettings.h>
@@ -42,6 +41,7 @@
 #include <iATransferFunction.h>
 #include <iATypedCallHelper.h>
 #include <iAVolumeSettings.h>
+#include <iAVolumeViewer.h>
 
 #include <iAChartWithFunctionsWidget.h>
 #include <iAHistogramData.h>
@@ -134,7 +134,7 @@ void iANModalController::privateInitialize()
 			LOG(lvlWarn, QString("Dataset %1 not found in child!").arg(dataSet->name()));
 			continue;
 		}
-		auto viewer = dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(dataSetIdx));
+		auto viewer = dynamic_cast<iAVolumeViewer*>(m_mdiChild->dataSetViewer(dataSetIdx));
 		if (!viewer)
 		{
 			LOG(lvlWarn, QString("No display data found for dataset %1!").arg(dataSet->name()));
@@ -160,15 +160,14 @@ void iANModalController::privateInitialize()
 
 void iANModalController::initializeHistogram(size_t dataSetIdx)
 {
-	auto viewer = dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(dataSetIdx));
+	auto viewer = dynamic_cast<iAVolumeViewer*>(m_mdiChild->dataSetViewer(dataSetIdx));
 	auto dataSetName = m_mdiChild->dataSet(dataSetIdx)->name();
 	if (!viewer)
 	{
 		LOG(lvlWarn, QString("No display data found for dataset %1!").arg(dataSetName));
 		return;
 	}
-	QSharedPointer<iAPlot> histogramPlot =
-		QSharedPointer<iAPlot>(new iABarGraphPlot(viewer->histogramData(), QColor(70, 70, 70, 255)));
+	auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(viewer->histogramData(), QColor(70, 70, 70, 255));
 
 	auto histogram = new iAChartWithFunctionsWidget(m_mdiChild, dataSetName + " grey value", "Frequency");
 	histogram->addPlot(histogramPlot);
@@ -250,7 +249,7 @@ inline void iANModalController::initializeMainSlicers()
 			LOG(lvlWarn, QString("Dataset %1 not found in child!").arg(dataSet->name()));
 			continue;
 		}
-		auto viewer = dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(dataSetIdx));
+		auto viewer = dynamic_cast<iAVolumeViewer*>(m_mdiChild->dataSetViewer(dataSetIdx));
 		if (!viewer)
 		{
 			LOG(lvlWarn, QString("No display data found for dataset %1!").arg(dataSet->name()));
@@ -308,7 +307,7 @@ inline void iANModalController::initializeCombinedVol()
 			LOG(lvlWarn, QString("Dataset %1 not found in child!").arg(m_dataSets[i]->name()));
 			continue;
 		}
-		auto viewer = dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(dataSetIdx));
+		auto viewer = dynamic_cast<iAVolumeViewer*>(m_mdiChild->dataSetViewer(dataSetIdx));
 		if (!viewer)
 		{
 			LOG(lvlWarn, QString("No display data found for dataset %1!").arg(m_dataSets[i]->name()));
@@ -344,7 +343,7 @@ inline void iANModalController::initializeCombinedVol()
 			LOG(lvlWarn, QString("Dataset %1 not found in child!").arg(m_dataSets[i]->name()));
 			continue;
 		}
-		auto renderer = m_mdiChild->dataSetRenderer(dataSetIdx);
+		auto renderer = m_mdiChild->dataSetViewer(dataSetIdx)->renderer();
 		if (renderer && renderer->isVisible())
 		{
 			// TODO NEWIO: set dataset 3D checkboxes to unchecked
@@ -426,7 +425,7 @@ void iANModalController::setDataSets(const QList<std::shared_ptr<iAImageData>>& 
 			LOG(lvlWarn, QString("Dataset %1 not found in child!").arg(dataSet->name()));
 			continue;
 		}
-		auto viewer = dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(dataSetIdx));
+		auto viewer = dynamic_cast<iAVolumeViewer*>(m_mdiChild->dataSetViewer(dataSetIdx));
 		if (!viewer)
 		{
 			LOG(lvlWarn, QString("No display data found for dataset %1!").arg(dataSet->name()));

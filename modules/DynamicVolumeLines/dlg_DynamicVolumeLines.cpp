@@ -27,7 +27,6 @@
 
 #include <iAFunction.h>
 #include <iAFunctionalBoxplot.h>
-#include <iAImageDataForDisplay.h>
 #include <iAJobListView.h>
 #include <iALUT.h>
 #include <iAMainWindow.h>
@@ -36,6 +35,7 @@
 #include <iAQVTKWidget.h>
 #include <iARenderer.h>
 #include <iAVolumeRenderer.h>
+#include <iAVolumeViewer.h>
 
 #include <iAChartWithFunctionsWidget.h>
 
@@ -1600,7 +1600,8 @@ void setVoxelIntensity(
 void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGraphList)
 {
 	auto datasetsList = m_datasetsDir.entryList();
-	auto histoXBounds = dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(m_mdiChild->firstImageDataSetIdx()))->histogram()->xBounds();
+	auto imgDataViewer = dynamic_cast<iAVolumeViewer*>(m_mdiChild->dataSetViewer(m_mdiChild->firstImageDataSetIdx()));
+	auto histoXBounds = imgDataViewer->histogram()->xBounds();
 	for (int i = 0; i < visSelGraphList.size(); ++i)
 	{
 		int datasetIdx = datasetsList.indexOf(visSelGraphList[i]->name());
@@ -1661,7 +1662,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 			visSelGraphList[i]->pen().color().blueF());
 
 		vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
-		auto tf = dynamic_cast<iAImageDataForDisplay*>(m_mdiChild->dataSetViewer(m_mdiChild->firstImageDataSetIdx()))->transfer();
+		auto tf = imgDataViewer->transfer();
 		cTF->ShallowCopy(tf->colorTF());
 		int index = cTF->GetSize() - 1;
 		double val[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };

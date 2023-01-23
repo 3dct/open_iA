@@ -201,12 +201,12 @@ iADataSetListWidget::iADataSetListWidget()
 	layout()->setSpacing(4);
 }
 
-void iADataSetListWidget::addDataSet(iADataSet* dataset, size_t dataSetID, bool render3DChecked, bool render3DCheckable, bool render2D)
+int iADataSetListWidget::addDataSet(iADataSet const* dataset, size_t dataSetIdx, bool render3DChecked, bool render3DCheckable, bool render2D)
 {
 	QSignalBlocker blockList(m_dataList);
 	auto nameItem = new QTableWidgetItem(dataset->name());
 	nameItem->setToolTip(dataset->info());
-	nameItem->setData(Qt::UserRole, static_cast<qulonglong>(dataSetID));
+	nameItem->setData(Qt::UserRole, static_cast<qulonglong>(dataSetIdx));
 	int row = m_dataList->rowCount();
 	m_dataList->insertRow(row);
 	m_dataList->setItem(row, 0, nameItem);
@@ -223,11 +223,12 @@ void iADataSetListWidget::addDataSet(iADataSet* dataset, size_t dataSetID, bool 
 		}
 		auto viewItem = new QTableWidgetItem(iconForCol(i, checked), "");
 		viewItem->setData(Qt::UserRole, checked ? 1 : 0);
-		viewItem->setData(Qt::UserRole+1, checkable);
+		viewItem->setData(Qt::UserRole + 1, checkable);
 		viewItem->setToolTip(checkable ? QString("Enable/Disable rendering/picking") : QString("Disabled because no renderer available"));
 		m_dataList->setItem(row, i, viewItem);
 	}
 	m_dataList->resizeColumnsToContents();
+	return row;
 }
 
 void iADataSetListWidget::setName(size_t dataSetIdx, QString newName)

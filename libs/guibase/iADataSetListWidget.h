@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAgui_export.h"
+#include "iAguibase_export.h"
 
 #include <QWidget>
 
@@ -30,12 +30,12 @@ class QTableWidget;
 class QTableWidgetItem;
 
 //! A list of datasets
-class iAgui_API iADataSetListWidget : public QWidget
+class iAguibase_API iADataSetListWidget : public QWidget
 {
 	Q_OBJECT
 public:
 	iADataSetListWidget();
-	void addDataSet(iADataSet* dataset, size_t dataSetID, bool render3DChecked, bool render3DCheckable, bool render2D);
+	int addDataSet(iADataSet const* dataset, size_t dataSetID, bool render3DChecked, bool render3DCheckable, bool render2D);
 	void setName(size_t dataSetIdx, QString newName);
 	void setPickableState(size_t dataSetIdx, bool pickable);
 

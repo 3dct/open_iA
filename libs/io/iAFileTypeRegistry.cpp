@@ -60,7 +60,7 @@ std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileName, 
 		for (auto ioExt : io->extensions())
 		{
 			if ( (fileExt == ioExt || fileExtFull == ioExt) &&
-				!io->supportedDataSetTypes(op))  // QFlags::operator! checks for empty, i.e. value 0
+				!!io->supportedDataSetTypes(op))  // QFlags::operator! checks for empty, i.e. value 0; we want to check if any flag set here, so !!
 			{
 				return io;
 			}

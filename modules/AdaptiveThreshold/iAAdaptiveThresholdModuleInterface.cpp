@@ -23,10 +23,10 @@
 #include "iAAdaptiveThresholdDlg.h"
 #include "iAImageProcessingHelper.h"
 
-#include <iAImageDataForDisplay.h>
 #include <iALog.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
+#include <iAVolumeViewer.h>
 
 #include <iAChartWithFunctionsWidget.h>
 #include <iAPlot.h>
@@ -75,7 +75,7 @@ void iAAdaptiveThresholdModuleInterface::determineThreshold()
 		LOG(lvlInfo, "No image data loaded!");
 		return;
 	}
-	auto viewer = dynamic_cast<iAImageDataForDisplay*>(child->dataSetViewer(dsIdx));
+	auto viewer = dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(dsIdx));
 	if (!viewer || !viewer->histogramData())
 	{
 		LOG(lvlInfo, "No histogram available!");
