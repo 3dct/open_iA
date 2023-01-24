@@ -235,6 +235,9 @@ public:
 	//! load state (saved via saveState)
 	virtual void loadSettings(QSettings const& settings) = 0;
 
+	//! a crutch for letting interactor know which dataset is to be moved and synced across slicers
+	virtual void setDataSetMovable(size_t dataSetIdx) = 0;
+
 signals:
 	void closed();
 	//! @deprecated. no direct replacement

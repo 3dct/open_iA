@@ -35,8 +35,27 @@
 
 #include <vtkOpenGLRenderer.h>
 
+
+namespace
+{
+	QPixmap pixmapFromName(QString iconName, bool checked)
+	{
+		return QPixmap(QString(":/images/%1%2.svg")
+			.arg(iconName)
+			.arg((checked ^ !iAMainWindow::get()->brightMode()) ? "" : "_light"));
+	}
+	QIcon iconFromName(QString iconName)
+	{
+		QIcon icon;
+		icon.addPixmap(pixmapFromName(iconName, false), QIcon::Normal, QIcon::Off);
+		icon.addPixmap(pixmapFromName(iconName, true), QIcon::Normal, QIcon::On);
+		return icon;
+	}
+}
+
 iADataSetViewer::iADataSetViewer(iADataSet const * dataSet):
-	m_dataSet(dataSet)
+	m_dataSet(dataSet),
+	m_pickAction(nullptr)
 {
 }
 
@@ -54,53 +73,65 @@ void iADataSetViewer::prepare(iAPreferences const& pref, iAProgress* p)
 	Q_UNUSED(p);
 }
 
-void iADataSetViewer::createGUI(iAMdiChild* child, size_t newDataSetIdx)
+void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 {
 	m_renderer = createRenderer(child->renderer()->renderer());
 	auto dsList = child->dataSetListWidget();
-	int row = dsList->addDataSet(m_dataSet, newDataSetIdx, m_renderer.get(), m_renderer.get(), hasSlicerVis());
-	// TODO NEWIO: events directly connecting to specific item / QActions linked to item
-
-	QObject::connect(child->dataSetListWidget(), &iADataSetListWidget::set3DRendererVisibility, this,
-		[this, newDataSetIdx](size_t dataSetIdx, int visibility)
+	m_actions.push_back(createToggleAction("3D", "eye", true,
+		[this, child](bool checked)
 		{
-			if (newDataSetIdx != dataSetIdx)
-			{
-				return;
-			}
-			m_renderer->setVisible(visibility);
-		});
-	connect(child->dataSetListWidget(), &iADataSetListWidget::setBoundsVisibility, this,
-		[this, newDataSetIdx](size_t dataSetIdx, int visibility)
+			m_renderer->setVisible(checked);
+			child->updateRenderer();
+		}));
+	m_actions.push_back(createToggleAction("Box", "eye", true,
+		[this, child](bool checked)
 		{
-			if (newDataSetIdx != dataSetIdx)
-			{
-				return;
-			}
-			m_renderer->setBoundsVisible(visibility);
-		});
-	connect(child->dataSetListWidget(), &iADataSetListWidget::set2DVisibility, this,
-		[this, newDataSetIdx](size_t dataSetIdx, int visibility)
+			m_renderer->setBoundsVisible(checked);
+			child->updateRenderer();
+		}));
+	m_actions.push_back(createToggleAction("Magic Lens", "eye", true,
+		[this, child](bool checked)
 		{
-			if (newDataSetIdx != dataSetIdx)
-			{
-				return;
-			}
-			setSlicerVisibility(visibility);
-		});
-	connect(child->dataSetListWidget(), &iADataSetListWidget::set3DMagicLensVisibility, this,
-		[this, newDataSetIdx, child](size_t dataSetIdx, int visibility)
-		{
-			if (newDataSetIdx != dataSetIdx)
-			{
-				return;
-			}
 			if (!m_magicLensRenderer)
 			{
+				if (!checked)
+				{
+					return;
+				}
 				m_magicLensRenderer = createRenderer(child->magicLens3DRenderer());
 			}
-			m_magicLensRenderer->setVisible(visibility);
+			m_magicLensRenderer->setVisible(checked);
+			child->updateRenderer();
+		}));
+	m_pickAction = createToggleAction("Pickable", "transform-move", false,
+		[this, child, dataSetIdx](bool checked) {
+			Q_UNUSED(checked);
+			if (checked)
+			{
+				child->setDataSetMovable(dataSetIdx);
+			}
 		});
+	m_pickAction->setVisible(false);
+	m_actions.push_back(m_pickAction);
+	m_actions.append(additionalActions(child));
+
+	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this,
+	[this]()
+	{
+		for (auto a: m_actions)
+		{
+			auto iconName = a->data().toString();
+			if (!iconName.isEmpty())
+			{
+				a->setIcon(iconFromName(iconName));
+			}
+			else
+			{
+				LOG(lvlWarn, QString("DEVELOPER WARNING: Dataset action %1 has no proper iconName as data!").arg(a->text()));
+			}
+		}
+	});
+	dsList->addDataSet(m_dataSet, dataSetIdx, m_actions);
 }
 
 QString iADataSetViewer::information() const
@@ -160,15 +191,22 @@ std::shared_ptr<iADataSetRenderer> iADataSetViewer::createRenderer(vtkRenderer* 
 	return {};
 }
 
-bool iADataSetViewer::hasSlicerVis() const
+QAction* iADataSetViewer::createToggleAction(QString const& name, QString const& iconName, bool checked, std::function<void(bool)> handler)
 {
-	return false;
+	auto action = new QAction(name);
+	action->setToolTip(QString("Toggle %1").arg(name));
+	action->setIcon(iconFromName(iconName));
+	action->setCheckable(true);
+	action->setData(iconName);
+	action->setChecked(checked);
+	connect(action, &QAction::triggered, this, handler);
+	return action;
 }
 
-void iADataSetViewer::setSlicerVisibility(bool visible)
+QVector<QAction*> iADataSetViewer::additionalActions(iAMdiChild* child)
 {
-	// by default we assume there is no slicer vis
-	Q_UNUSED(visible);
+	Q_UNUSED(child);
+	return {};
 }
 
 void iADataSetViewer::setAttributes(QVariantMap const& values)
@@ -184,7 +222,14 @@ void iADataSetViewer::setAttributes(QVariantMap const& values)
 
 void iADataSetViewer::setPickable(bool pickable)
 {
+	QSignalBlocker sb(m_pickAction);
+	m_pickAction->setChecked(pickable);
 	renderer()->setPickable(pickable);
+}
+
+void iADataSetViewer::setPickActionVisible(bool visible)
+{
+	m_pickAction->setVisible(visible);
 }
 
 void iADataSetViewer::slicerRegionSelected(double minVal, double maxVal, uint channelID)

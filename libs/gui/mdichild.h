@@ -262,6 +262,8 @@ public:
 	void saveSettings(QSettings& settings) override;
 	void loadSettings(QSettings const& settings) override;
 
+	void setDataSetMovable(size_t dataSetIdx) override;
+
 public slots:
 	void maximizeRC();
 
@@ -412,6 +414,5 @@ private:
 	std::map<size_t, std::shared_ptr<iADataSet>> m_dataSets;            //!< list of all currently loaded datasets.
 	std::map<size_t, std::shared_ptr<iADataSetViewer>> m_dataSetViewers;//!< viewer for a currently loaded dataset; manages all aspects of showing the dataset, e.g. in 3D renderer, slicer, etc.
 
-	void setDataSetMovable(size_t dataSetIdx);
 	vtkSmartPointer<iAvtkInteractStyleActor> m_manualMoveStyle[4];      //!< for syncing the manual registration between views
 };

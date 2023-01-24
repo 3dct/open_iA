@@ -447,9 +447,14 @@ std::shared_ptr<iADataSetRenderer> iAVolumeViewer::createRenderer(vtkRenderer* r
 	return std::make_shared<iAVolRenderer>(ren, img, this);
 }
 
-bool iAVolumeViewer::hasSlicerVis() const
+QVector<QAction*> iAVolumeViewer::additionalActions(iAMdiChild* child)
 {
-	return true;
+	return {createToggleAction("2D", "eye", true,
+		[this, child](bool checked)
+		{
+			setSlicerVisibility(checked);
+			child->updateSlicers();
+		})};
 }
 
 void iAVolumeViewer::setSlicerVisibility(bool visible)

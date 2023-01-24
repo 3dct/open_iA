@@ -32,56 +32,11 @@
 
 namespace
 {
-	// possible more compact, easier to extend solution to below, separated constants & switch/case cascade in itemClicked:
-	//struct CheckableColumn
-	//{
-	//    QString name;
-	//    bool defaultCheckState;
-	//    QString iconName;
-	//    std::function<void(int, bool)> handler;
-	//};
-	// std::vector<CheckableColumn> checkableColumns = {
-	//	CheckableColumn{"3D", true, "eye", [this](int row, bool checked) {emit set3DRendererVisibility(row, checked); } },
-	//	CheckableColumn{"Box", true, "eye", [this](int row, bool checked) {emit setBoundsVisibility(row, checked); } },
-	//	CheckableColumn{"2D", true, "eye", [this](int row, bool checked) {emit setPickable(row, checked); } },
-	//	CheckableColumn{"Pick", true, "transform-move", [this](int row, bool checked) {emit set2DVisibility(row, checked); } }
-	//};
-	// but such a list of items would need to be in iADataSetListWidget (unnecessarily exposing it to users)
-	enum ViewCheckBoxes
-	{
-		ViewFirst = 1,  // index of first column with "checkbox" behavior
-		View3D = ViewFirst,
-		View3DBox = 2,
-		View2D = 3,
-		ViewLens3D = 4,
-		Pickable = 5,
-		ViewLast = Pickable  // index of last column with "checkbox" behavior
+	QStringList columnNames = QStringList() << "Name" << "Actions";
+	enum ColumIdx {
+		NameColumn = 0,
+		ActionColumn = 1
 	};
-	QStringList columnNames = QStringList() << "Name"
-		// ---------------------------
-		<< "3D"
-		<< "Box"
-		<< "2D"
-		<< "Lens3D"
-		<< "Pick"
-		//			<< "Histo"
-		;
-	std::vector<bool> DefaultChecked = {
-		true, false, true, false, true
-	};
-	QPixmap pixmapForCol(int col, bool checked)
-	{
-		return QPixmap(QString(":/images/%1%2.svg")
-			.arg(col == Pickable ? "transform-move" : "eye")
-			.arg((checked ^ !iAMainWindow::get()->brightMode()) ? "" : "_light"));
-	}
-	QIcon iconForCol(int col)
-	{
-		QIcon icon;
-		icon.addPixmap(pixmapForCol(col, false), QIcon::Normal, QIcon::Off);
-		icon.addPixmap(pixmapForCol(col, true), QIcon::Normal, QIcon::On);
-		return icon;
-	}
 }
 
 iADataSetListWidget::iADataSetListWidget()
@@ -94,7 +49,6 @@ iADataSetListWidget::iADataSetListWidget()
 	m_dataList->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
 	m_dataList->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_dataList->resizeColumnsToContents();
-	enablePicking(false);
 
 	auto buttons = new QWidget();
 	buttons->setLayout(new QVBoxLayout);
@@ -153,19 +107,6 @@ iADataSetListWidget::iADataSetListWidget()
 			}
 			emit dataSetSelected(dataSetIdx);
 		});
-	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this,
-		[this]()
-		{
-			for (auto row = 0; row < m_dataList->rowCount(); ++row)
-			{
-				for (int col = ViewFirst; col <= ViewLast; ++col)
-				{
-					auto tb = dynamic_cast<QToolButton*>(m_dataList->cellWidget(row, col));
-					tb->setIcon(iconForCol(col));
-				}
-			}
-		});
-
 	setLayout(new QHBoxLayout);
 	layout()->addWidget(m_dataList);
 	layout()->addWidget(buttons);
@@ -173,7 +114,7 @@ iADataSetListWidget::iADataSetListWidget()
 	layout()->setSpacing(4);
 }
 
-int iADataSetListWidget::addDataSet(iADataSet const* dataset, size_t dataSetIdx, bool render3DChecked, bool render3DCheckable, bool render2D)
+void iADataSetListWidget::addDataSet(iADataSet const* dataset, size_t dataSetIdx, QVector<QAction*> const & actions)
 {
 	QSignalBlocker blockList(m_dataList);
 	auto nameItem = new QTableWidgetItem(dataset->name());
@@ -181,51 +122,18 @@ int iADataSetListWidget::addDataSet(iADataSet const* dataset, size_t dataSetIdx,
 	nameItem->setData(Qt::UserRole, static_cast<qulonglong>(dataSetIdx));
 	int row = m_dataList->rowCount();
 	m_dataList->insertRow(row);
-	m_dataList->setItem(row, 0, nameItem);
-	auto checkState(DefaultChecked);
-	checkState[View3D - ViewFirst] = render3DChecked;
-	for (int col = ViewFirst; col <= ViewLast; ++col)
+	m_dataList->setItem(row, NameColumn, nameItem);
+	auto actionWidget = new QWidget();
+	actionWidget->setLayout(new QHBoxLayout);
+	for (auto& a : actions)
 	{
-		auto tb = new QToolButton(m_dataList);
-		tb->setCheckable(true);
-		auto checked = checkState[col - ViewFirst];
-		auto checkable = true;
-		if ((col == View3D && !render3DCheckable) || (col == View2D && !render2D))
-		{
-			checked = false;
-			checkable = false;
-		}
-		tb->setChecked(checked);
-		tb->setIcon(iconForCol(col));
-		tb->setToolTip(checkable ? QString("Enable/Disable rendering/picking") : QString("Disabled because no renderer available"));
-		connect(tb, &QToolButton::toggled, this, [this, col, dataSetIdx, tb](bool checked) {
-			switch (col)
-			{
-			case View3D:
-				emit set3DRendererVisibility(dataSetIdx, checked);
-				break;
-			case View3DBox:
-				emit setBoundsVisibility(dataSetIdx, checked);
-				break;
-			case Pickable:
-				emit setPickable(dataSetIdx, checked);
-				break;
-			case View2D:
-				emit set2DVisibility(dataSetIdx, checked);
-				break;
-			case ViewLens3D:
-				emit set3DMagicLensVisibility(dataSetIdx, checked);
-				break;
-			default:
-				emit dataSetSelected(dataSetIdx);
-				//LOG(lvlWarn, QString("Unhandled itemChanged(colum = %1)").arg(col));
-				break;
-			}
-		});
-		m_dataList->setCellWidget(row, col, tb);
+		auto tb = new QToolButton(this);
+		tb->setStyleSheet("background: transparent");
+		tb->setDefaultAction(a);
+		actionWidget->layout()->addWidget(tb);
 	}
+	m_dataList->setCellWidget(row, ActionColumn, actionWidget);
 	m_dataList->resizeColumnsToContents();
-	return row;
 }
 
 void iADataSetListWidget::setName(size_t dataSetIdx, QString newName)
@@ -233,20 +141,6 @@ void iADataSetListWidget::setName(size_t dataSetIdx, QString newName)
 	int row = findDataSetIdx(dataSetIdx);
 	assert(row != -1);
 	m_dataList->item(row, 0)->setText(newName);
-}
-
-void iADataSetListWidget::setPickableState(size_t dataSetIdx, bool pickable)
-{
-	QSignalBlocker blockList(m_dataList);
-	int row = findDataSetIdx(dataSetIdx);
-	assert(row != -1);
-	auto tb = dynamic_cast<QToolButton*>(m_dataList->cellWidget(row, Pickable));
-	tb->setChecked(pickable);
-}
-
-void iADataSetListWidget::enablePicking(bool enable)
-{
-	m_dataList->setColumnHidden(Pickable, !enable);
 }
 
 int iADataSetListWidget::findDataSetIdx(size_t dataSetIdx)

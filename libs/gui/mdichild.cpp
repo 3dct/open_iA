@@ -220,24 +220,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 			*/
 			emit dataSetChanged(dataSetIdx);
 		});
-	connect(m_dataSetListWidget, &iADataSetListWidget::setPickable, this,
-		[this](size_t dataSetIdx, int pickable)
-		{
-			// always enable picking in 3D renderer?
-			//m_dataRenderers[idx]->setPickable(pickable);
-			// since only a single dataset is pickable at the moment
-			// for the moment, let's make only enabling work (disabling works by enabling another)
-			if (pickable)
-			{
-				setDataSetMovable(dataSetIdx);
-			}
-		});
-	// TODO NEWIO: check whether these event handlers work properly - they are probably registered too soon (since they are registered
-	// before listeners to specific dataset viewer changes, they probably happen before the viewers have adapted to the changed state!)
-	connect(m_dataSetListWidget, &iADataSetListWidget::set3DRendererVisibility, this, &MdiChild::updateRenderer);
-	connect(m_dataSetListWidget, &iADataSetListWidget::setBoundsVisibility, this, &MdiChild::updateRenderer);
-	connect(m_dataSetListWidget, &iADataSetListWidget::set3DMagicLensVisibility, this, &MdiChild::updateRenderer);
-	connect(m_dataSetListWidget, &iADataSetListWidget::set2DVisibility, this, &MdiChild::updateSlicers);
 	connect(m_dataSetListWidget, &iADataSetListWidget::dataSetSelected, this, &iAMdiChild::dataSetSelected);
 
 	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
@@ -2239,7 +2221,10 @@ void MdiChild::setInteractionMode(iAInteractionMode mode)
 {
 	m_interactionMode = mode;
 	m_mainWnd->updateInteractionModeControls(mode);
-	m_dataSetListWidget->enablePicking(mode == imRegistration);
+	for (auto v : m_dataSetViewers)
+	{
+		v.second->setPickActionVisible(mode == imRegistration);
+	}
 	try
 	{
 		if (m_interactionMode == imRegistration)
@@ -2286,14 +2271,10 @@ void MdiChild::setInteractionMode(iAInteractionMode mode)
 
 void MdiChild::setDataSetMovable(size_t dataSetIdx)
 {
-	for (size_t i = 0; i < m_dataSets.size(); ++i)
+	for (auto ds: m_dataSetViewers)
 	{
-		bool pickable = (i == dataSetIdx);
-		m_dataSetListWidget->setPickableState(i, pickable);
-		if (m_dataSetViewers.find(i) != m_dataSetViewers.end())
-		{
-			m_dataSetViewers[i]->setPickable(pickable);
-		}
+		bool pickable = (ds.first == dataSetIdx);
+		ds.second->setPickable(pickable);
 	}
 
 	// below required for synchronized slicers

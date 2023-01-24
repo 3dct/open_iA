@@ -35,22 +35,13 @@ class iAguibase_API iADataSetListWidget : public QWidget
 	Q_OBJECT
 public:
 	iADataSetListWidget();
-	int addDataSet(iADataSet const* dataset, size_t dataSetID, bool render3DChecked, bool render3DCheckable, bool render2D);
+	void addDataSet(iADataSet const* dataset, size_t dataSetIdx, QVector<QAction*> const & actions);
 	void setName(size_t dataSetIdx, QString newName);
-	void setPickableState(size_t dataSetIdx, bool pickable);
 
 signals:
 	void editDataSet(size_t dataSetIdx);
 	void removeDataSet(size_t dataSetIdx);
-	void set3DRendererVisibility(size_t dataSetIdx, bool visibility);
-	void setBoundsVisibility(size_t dataSetIdx, bool visibility);
-	void set2DVisibility(size_t dataSetIdx, bool visibility);
-	void set3DMagicLensVisibility(size_t dataSetIdx, bool visibility);
-	void setPickable(size_t dataSetIdx, bool pickable);
 	void dataSetSelected(size_t dataSetIdx);
-
-public slots:
-	void enablePicking(bool enable);
 
 private:
 	int findDataSetIdx(size_t idx);

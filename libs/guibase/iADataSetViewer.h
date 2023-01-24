@@ -41,6 +41,8 @@ class vtkPlane;
 class vtkProp3D;
 class vtkRenderer;
 
+class QAction;
+
 //! Base class for handling the viewing of an iADataSet in the GUI.
 //! Holds all additional data structures (GUI, computed values, etc.) necessary to display it,
 //! in addition to the dataset itself (e.g., the histogram for a volume dataset)
@@ -86,6 +88,7 @@ public:
 	void setAttributes(QVariantMap const& values);
 
 	virtual void setPickable(bool pickable);
+	void setPickActionVisible(bool visible);
 
 	//! TODO NEWIO: improve!
 	virtual void slicerRegionSelected(double minVal, double maxVal, uint channelID);
@@ -94,21 +97,30 @@ public:
 protected:
 	iADataSetViewer(iADataSet const * dataSet);
 	virtual ~iADataSetViewer();
+	//! adds an attribute that can be modified by the user to change the appearance of some aspect of the viewer
 	void addAttribute(QString const& name, iAValueType valueType, QVariant defaultValue = 0.0,
 		double min = std::numeric_limits<double>::lowest(), double max = std::numeric_limits<double>::max());
-	virtual std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren);
-	virtual bool hasSlicerVis() const;
-	virtual void setSlicerVisibility(bool visible);
+	//! helper function for creating a toggling action for switching some aspect of this viewer, can be used
+	//! inside the additionalActions method.
+	QAction* createToggleAction(QString const& name, QString const& iconName, bool checked, std::function<void(bool)> handler);
 
 	QVariantMap m_attribValues;
 	iADataSet const* m_dataSet;    //!< the dataset for which this viewer is responsible
+
 private:
 	iAAttributes m_attributes;     //!< attributes of this viewer that can be changed by the user
 	std::shared_ptr<iADataSetRenderer> m_renderer; //!< the 3D renderer for this dataset (optional).
 	std::shared_ptr<iADataSetRenderer> m_magicLensRenderer; //!< the 3D renderer for this dataset (optional).
+	QVector<QAction*> m_actions;
+	QAction* m_pickAction;
 
-	//! called when the attributes have changed; derive to apply such a change to renderer
+	//! Called when the attributes have changed; override in derived classes to apply such a change to renderer (default implementation is empty)
 	virtual void applyAttributes(QVariantMap const& values);
+	//! Called to create a 3D renderer for the dataset. Override in derived class; used for both the "normal" 3D renderer and the magic lens renderer.
+	virtual std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren);
+	//! Retrieve any potential actions required to be available for the dataset in the list
+	//! (additional to the standard ones for editing it, removing it, viewing its 3D representation, viewing it in 3D magic lens, making it pickable etc.)
+	virtual QVector<QAction*> additionalActions(iAMdiChild* child);
 };
 
 class iAguibase_API iAMeshViewer : public iADataSetViewer
@@ -132,6 +144,10 @@ public:
 	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren) override;
 };
 
+//! A "viewer" for project files; special insofar as it overrides createGUI and
+//! doesn't call the one from the base class; meaning the project file dataset
+//! won't get added to the dataset list, the viewer only cares about loading all
+//! datasets in the project
 class iAguibase_API iAProjectViewer : public iADataSetViewer
 {
 public:
