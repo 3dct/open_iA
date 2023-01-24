@@ -325,7 +325,7 @@ void MainWindow::loadFileAskNewWindow(QString const & fileName)
 		{
 			return;
 		}
-		if (result == QMessageBox::Yes)
+		if (result == QMessageBox::No)
 		{
 			child = nullptr;
 		}
