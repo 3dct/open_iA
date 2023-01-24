@@ -131,6 +131,7 @@ QToolButton
 			stop:0.617 rgba(216, 216, 216, 255),
 			stop:1 rgba(205, 205, 205, 255)
 		);
+		border: 1px inset rgba(165, 165, 165, 255);
 	}
 	QToolBar::separator
 	{
@@ -416,6 +417,8 @@ QTreeWidget
 ****************************************************************************/
 	QListView,
 	QListWidget,
+	QTableView,
+	QTableWidget,
 	QTextEdit
 	{
 		background-color: rgba(255, 255, 255, 255);

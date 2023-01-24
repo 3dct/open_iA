@@ -125,10 +125,12 @@ void iADataSetListWidget::addDataSet(iADataSet const* dataset, size_t dataSetIdx
 	m_dataList->setItem(row, NameColumn, nameItem);
 	auto actionWidget = new QWidget();
 	actionWidget->setLayout(new QHBoxLayout);
+	actionWidget->layout()->setContentsMargins(0, 0, 0, 0);
+	actionWidget->layout()->setSpacing(1);
 	for (auto& a : actions)
 	{
 		auto tb = new QToolButton(this);
-		tb->setStyleSheet("background: transparent");
+		tb->setStyleSheet("background: transparent; border-style: none;");
 		tb->setDefaultAction(a);
 		actionWidget->layout()->addWidget(tb);
 	}

@@ -148,6 +148,7 @@ QToolButton
 			stop:0.617 rgba(31, 31, 31, 255),
 			stop:1 rgba(20, 20, 20, 255)
 		);
+		border: 1px inset rgba(165, 165, 165, 255);
 	}
 	QToolBar::separator
 	{
