@@ -175,51 +175,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 
 	// Dataset list events:
 	connect(m_dataSetListWidget, &iADataSetListWidget::removeDataSet, this, &iAMdiChild::removeDataSet);
-	connect(m_dataSetListWidget, &iADataSetListWidget::editDataSet, this,
-		[this](size_t dataSetIdx)
-		{
-			if (m_dataSets.find(dataSetIdx) == m_dataSets.end() ||
-				m_dataSetViewers.find(dataSetIdx) == m_dataSetViewers.end())
-			{
-				LOG(lvlWarn, QString("Invalid dataset index %1!").arg(dataSetIdx));
-				return;
-			}
-			auto params = m_dataSetViewers[dataSetIdx]->attributesWithValues();
-			params.prepend(iAAttributeDescriptor::createParam("Name", iAValueType::String, m_dataSets[dataSetIdx]->name()));
-			QString description;
-			if (m_dataSets[dataSetIdx]->hasMetaData(iADataSet::FileNameKey))
-			{
-				description = iADataSet::FileNameKey + ": " + m_dataSets[dataSetIdx]->metaData(iADataSet::FileNameKey).toString();
-			}
-			iAParameterDlg dlg(this, "Dataset parameters", params, description);
-			if (dlg.exec() != QDialog::Accepted)
-			{
-				return;
-			}
-			auto newName = dlg.parameterValues()["Name"].toString();
-			if (m_dataSets[dataSetIdx]->name() != newName)
-			{
-				m_dataSets[dataSetIdx]->setMetaData(iADataSet::NameKey, newName);
-				updateDataSetInfo();
-				m_dataSetListWidget->setName(dataSetIdx, newName);
-			}
-			m_dataSetViewers[dataSetIdx]->setAttributes(dlg.parameterValues());
-			updateRenderer();    // currently, 3D renderer properties are changed only
-			/*
-			// TODO: reset camera in 3D renderer / slicer when the spacing of modality was changed
-			// TODO: maybe instead of reset, apply a zoom corresponding to the ratio of spacing change?
-			m_renderer->updateSlicePlanes(newSpacing);
-			m_renderer->renderer()->ResetCamera();
-			m_renderer->update();
-			for (int s = 0; s < 3; ++s)
-			{
-				set3DSlicePlanePos(s, sliceNumber(s));
-				slicer(s)->renderer()->ResetCamera();
-				slicer(s)->update();
-			}
-			*/
-			emit dataSetChanged(dataSetIdx);
-		});
 	connect(m_dataSetListWidget, &iADataSetListWidget::dataSetSelected, this, &iAMdiChild::dataSetSelected);
 
 	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
@@ -402,6 +357,10 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 	}
 	auto p = std::make_shared<iAProgress>();
 	auto viewer = createDataSetViewer(dataSet.get());
+	connect(viewer.get(), &iADataSetViewer::dataSetChanged, this, [this, dataSetIdx] {
+		updateDataSetInfo();
+		emit dataSetChanged(dataSetIdx);
+	});
 	m_dataSetViewers[dataSetIdx] = viewer;
 	auto fw = runAsync(
 		[this, viewer, dataSetIdx, p]()

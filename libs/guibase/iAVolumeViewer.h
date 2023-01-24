@@ -46,12 +46,11 @@ class vtkVolumeProperty;
 class iAguibase_API iAVolumeViewer : public iADataSetViewer
 {
 public:
-	iAVolumeViewer(iADataSet const* dataSet);
+	iAVolumeViewer(iADataSet * dataSet);
 	~iAVolumeViewer();
 	void prepare(iAPreferences const& pref, iAProgress* p) override;
 	void createGUI(iAMdiChild* child, size_t dataSetIdx) override;
 	QString information() const override;
-	void dataSetChanged() override;
 	void slicerRegionSelected(double minVal, double maxVal, uint channelID) override;
 	void setPickable(bool pickable) override;
 	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren) override;
@@ -62,6 +61,7 @@ public:
 	iATransferFunction* transfer();
 	void removeFromSlicer();
 private:
+	void applyAttributes(QVariantMap const& values) override;
 	std::shared_ptr<iATransferFunctionOwner> m_transfer;
 	QSharedPointer<iAHistogramData> m_histogramData;
 	iAChartWithFunctionsWidget* m_histogram;

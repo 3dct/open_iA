@@ -48,6 +48,7 @@ class QAction;
 //! in addition to the dataset itself (e.g., the histogram for a volume dataset)
 class iAguibase_API iADataSetViewer: public QObject
 {
+	Q_OBJECT
 public:
 	//! @{
 	//! general 3D rendering properties for every kind of dataset
@@ -73,8 +74,6 @@ public:
 	virtual void createGUI(iAMdiChild* child, size_t dataSetIdx);
 	//! Get information to display about the dataset
 	virtual QString information() const;
-	//! Called after dataset properties have changed, for potential required GUI updates
-	virtual void dataSetChanged();
 	//! Retrieves the list of attributes, merged with their current values as default values:
 	iAAttributes attributesWithValues() const;
 
@@ -94,8 +93,11 @@ public:
 	virtual void slicerRegionSelected(double minVal, double maxVal, uint channelID);
 	virtual uint slicerChannelID();
 
+signals:
+	void dataSetChanged();
+
 protected:
-	iADataSetViewer(iADataSet const * dataSet);
+	iADataSetViewer(iADataSet * dataSet);
 	virtual ~iADataSetViewer();
 	//! adds an attribute that can be modified by the user to change the appearance of some aspect of the viewer
 	void addAttribute(QString const& name, iAValueType valueType, QVariant defaultValue = 0.0,
@@ -105,7 +107,7 @@ protected:
 	QAction* createToggleAction(QString const& name, QString const& iconName, bool checked, std::function<void(bool)> handler);
 
 	QVariantMap m_attribValues;
-	iADataSet const* m_dataSet;    //!< the dataset for which this viewer is responsible
+	iADataSet* m_dataSet;    //!< the dataset for which this viewer is responsible
 
 private:
 	iAAttributes m_attributes;     //!< attributes of this viewer that can be changed by the user
@@ -126,21 +128,21 @@ private:
 class iAguibase_API iAMeshViewer : public iADataSetViewer
 {
 public:
-	iAMeshViewer(iADataSet const * dataSet);
+	iAMeshViewer(iADataSet * dataSet);
 	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren) override;
 };
 
 class iAguibase_API iAGraphViewer : public iADataSetViewer
 {
 public:
-	iAGraphViewer(iADataSet const * dataSet);
+	iAGraphViewer(iADataSet * dataSet);
 	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren) override;
 };
 
 class iAguibase_API iAGeometricObjectViewer : public iADataSetViewer
 {
 public:
-	iAGeometricObjectViewer(iADataSet const* dataSet);
+	iAGeometricObjectViewer(iADataSet * dataSet);
 	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren) override;
 };
 
@@ -151,7 +153,7 @@ public:
 class iAguibase_API iAProjectViewer : public iADataSetViewer
 {
 public:
-	iAProjectViewer(iADataSet const * dataSet);
+	iAProjectViewer(iADataSet * dataSet);
 	void createGUI(iAMdiChild* child, size_t dataSetIdx) override;
 private:
 	//! IDs of the loaded datasets, to check against the list of datasets rendered
@@ -160,4 +162,4 @@ private:
 	size_t m_numOfDataSets;
 };
 
-iAguibase_API std::shared_ptr<iADataSetViewer> createDataSetViewer(iADataSet const* dataSet);
+iAguibase_API std::shared_ptr<iADataSetViewer> createDataSetViewer(iADataSet * dataSet);

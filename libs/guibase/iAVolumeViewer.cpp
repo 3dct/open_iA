@@ -259,7 +259,7 @@ private:
 
 
 
-iAVolumeViewer::iAVolumeViewer(iADataSet const* dataSet) :
+iAVolumeViewer::iAVolumeViewer(iADataSet * dataSet) :
 	iADataSetViewer(dataSet),
 	m_histogram(nullptr),
 	m_imgStatistics("Computing..."),
@@ -396,8 +396,9 @@ QString iAVolumeViewer::information() const
 	return iADataSetViewer::information() + "\n" + QString("Statistics: %1").arg(m_imgStatistics);
 }
 
-void iAVolumeViewer::dataSetChanged()
+void iAVolumeViewer::applyAttributes(QVariantMap const& values)
 {
+	Q_UNUSED(values);
 	auto title = "Histogram " + m_dataSet->name();
 	m_histogram->setXCaption(title);
 	m_histogramDW->setWindowTitle(title);

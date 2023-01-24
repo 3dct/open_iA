@@ -26,6 +26,7 @@
 #include "iADataSetListWidget.h"
 #include "iADataSetRendererImpl.h"
 #include "iAMdiChild.h"
+#include "iAParameterDlg.h"
 #include "iARenderer.h"
 #include "iAValueTypeVectorHelpers.h"
 
@@ -53,7 +54,7 @@ namespace
 	}
 }
 
-iADataSetViewer::iADataSetViewer(iADataSet const * dataSet):
+iADataSetViewer::iADataSetViewer(iADataSet * dataSet):
 	m_dataSet(dataSet),
 	m_pickAction(nullptr)
 {
@@ -76,6 +77,7 @@ void iADataSetViewer::prepare(iAPreferences const& pref, iAProgress* p)
 void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 {
 	m_renderer = createRenderer(child->renderer()->renderer());
+	assert(m_renderer);
 	auto dsList = child->dataSetListWidget();
 	m_actions.push_back(createToggleAction("3D", "eye", true,
 		[this, child](bool checked)
@@ -111,7 +113,51 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 				child->setDataSetMovable(dataSetIdx);
 			}
 		});
-	m_pickAction->setVisible(false);
+	m_pickAction->setEnabled(false);
+
+	auto editAction = new QAction("Edit dataset properties");
+	connect(editAction, &QAction::triggered, this,
+		[this, child, dataSetIdx]()
+		{
+			auto params = attributesWithValues();
+			params.prepend(iAAttributeDescriptor::createParam("Name", iAValueType::String, m_dataSet->name()));
+			QString description;
+			if (m_dataSet->hasMetaData(iADataSet::FileNameKey))
+			{
+				description = iADataSet::FileNameKey + ": " + m_dataSet->metaData(iADataSet::FileNameKey).toString();
+			}
+			iAParameterDlg dlg(child, "Dataset parameters", params, description);
+			if (dlg.exec() != QDialog::Accepted)
+			{
+				return;
+			}
+			auto newName = dlg.parameterValues()["Name"].toString();
+			if (m_dataSet->name() != newName)
+			{
+				m_dataSet->setMetaData(iADataSet::NameKey, newName);
+				child->dataSetListWidget()->setName(dataSetIdx, newName);
+			}
+			setAttributes(dlg.parameterValues());
+			child->updateRenderer();  // currently, 3D renderer properties are changed only
+			/*
+	// TODO: reset camera in 3D renderer / slicer when the spacing of modality was changed
+	// TODO: maybe instead of reset, apply a zoom corresponding to the ratio of spacing change?
+	m_renderer->updateSlicePlanes(newSpacing);
+	m_renderer->renderer()->ResetCamera();
+	m_renderer->update();
+	for (int s = 0; s < 3; ++s)
+	{
+		set3DSlicePlanePos(s, sliceNumber(s));
+		slicer(s)->renderer()->ResetCamera();
+		slicer(s)->update();
+	}
+	*/
+			emit dataSetChanged();
+		});
+	editAction->setIcon(iconFromName("edit"));
+	editAction->setData("edit");
+	m_actions.push_back(editAction);
+
 	m_actions.push_back(m_pickAction);
 	m_actions.append(additionalActions(child));
 
@@ -138,16 +184,6 @@ QString iADataSetViewer::information() const
 {
 	return m_dataSet->info();
 }
-
-/*
-iADataSet* iADataSetViewer::dataSet()
-{
-	return m_dataSet;
-}
-*/
-
-void iADataSetViewer::dataSetChanged()
-{}
 
 iAAttributes iADataSetViewer::attributesWithValues() const
 {
@@ -217,7 +253,6 @@ void iADataSetViewer::setAttributes(QVariantMap const& values)
 	{
 		renderer()->setAttributes(values);
 	}
-	dataSetChanged();    // TODO NEWIO: maybe we can improve this logic?
 }
 
 void iADataSetViewer::setPickable(bool pickable)
@@ -229,7 +264,7 @@ void iADataSetViewer::setPickable(bool pickable)
 
 void iADataSetViewer::setPickActionVisible(bool visible)
 {
-	m_pickAction->setVisible(visible);
+	m_pickAction->setEnabled(visible);
 }
 
 void iADataSetViewer::slicerRegionSelected(double minVal, double maxVal, uint channelID)
@@ -252,7 +287,7 @@ void iADataSetViewer::applyAttributes(QVariantMap const& values)
 
 // iAGraphViewer
 
-iAGraphViewer::iAGraphViewer(iADataSet const* dataSet) :
+iAGraphViewer::iAGraphViewer(iADataSet * dataSet) :
 	iADataSetViewer(dataSet)
 {}
 
@@ -266,7 +301,7 @@ std::shared_ptr<iADataSetRenderer> iAGraphViewer::createRenderer(vtkRenderer * r
 
 // iAMeshViewer
 
-iAMeshViewer::iAMeshViewer(iADataSet const* dataSet) :
+iAMeshViewer::iAMeshViewer(iADataSet * dataSet) :
 	iADataSetViewer(dataSet)
 {}
 
@@ -282,7 +317,7 @@ std::shared_ptr<iADataSetRenderer> iAMeshViewer::createRenderer(vtkRenderer* ren
 
 #include "iAGeometricObject.h"
 
-iAGeometricObjectViewer::iAGeometricObjectViewer(iADataSet const* dataSet):
+iAGeometricObjectViewer::iAGeometricObjectViewer(iADataSet * dataSet):
 	iADataSetViewer(dataSet)
 {}
 
@@ -295,7 +330,7 @@ std::shared_ptr<iADataSetRenderer> iAGeometricObjectViewer::createRenderer(vtkRe
 
 // iAProjectViewer
 
-iAProjectViewer::iAProjectViewer(iADataSet const* dataSet) :
+iAProjectViewer::iAProjectViewer(iADataSet * dataSet) :
 	iADataSetViewer(dataSet),
 	m_numOfDataSets(0)
 {
@@ -432,13 +467,13 @@ void iAProjectViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 
 #include "iAVolumeViewer.h"
 
-std::shared_ptr<iADataSetViewer> createDataSetViewer(iADataSet const* dataSet)
+std::shared_ptr<iADataSetViewer> createDataSetViewer(iADataSet * dataSet)
 {
 	switch (dataSet->type())
 	{
 	case iADataSetType::Volume: return std::make_shared<iAVolumeViewer>(dataSet);
-	case iADataSetType::Mesh: [[fallthrough]];
-	case iADataSetType::Graph:  return std::make_shared<iAMeshViewer>(dataSet);
+	case iADataSetType::Mesh: return std::make_shared<iAMeshViewer>(dataSet);
+	case iADataSetType::Graph: return std::make_shared<iAGraphViewer>(dataSet);
 	case iADataSetType::Collection: return std::make_shared<iAProjectViewer>(dataSet);
 	default: return std::shared_ptr<iADataSetViewer>();
 	}
