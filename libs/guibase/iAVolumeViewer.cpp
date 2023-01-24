@@ -450,12 +450,15 @@ std::shared_ptr<iADataSetRenderer> iAVolumeViewer::createRenderer(vtkRenderer* r
 
 QVector<QAction*> iAVolumeViewer::additionalActions(iAMdiChild* child)
 {
-	return {createToggleAction("2D", "2d", true,
+	return {
+		createToggleAction("2D", "2d", true,
 		[this, child](bool checked)
 		{
 			setSlicerVisibility(checked);
 			child->updateSlicers();
-		})};
+		}),
+		createToggleAction("Histogram", )
+	};
 }
 
 void iAVolumeViewer::setSlicerVisibility(bool visible)
