@@ -122,8 +122,8 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_slicerTransform(vtkTransform::New()),
 	m_volumeStack(new iAVolumeStack),
 	m_dataSetInfo(new QListWidget(this)),
-	m_dwInfo(new iADockWidgetWrapper(m_dataSetInfo, "Dataset Info", "DataInfo")),
 	m_dataSetListWidget(new iADataSetListWidget()),
+	m_dwInfo(new iADockWidgetWrapper(m_dataSetInfo, "Dataset Info", "DataInfo")),
 	m_dwDataSets(new iADockWidgetWrapper(m_dataSetListWidget, "Datasets", "DataSets")),
 	m_dwVolumePlayer(nullptr),
 	m_nextChannelID(0),
@@ -359,7 +359,7 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 	connect(viewer.get(), &iADataSetViewer::dataSetChanged, this, [this, dataSetIdx](size_t dsIdx) {
 		assert(dsIdx == dataSetIdx);
 		updateDataSetInfo();
-		emit dataSetChanged(dataSetIdx);
+		emit dataSetChanged(dsIdx);
 	});
 	connect(viewer.get(), &iADataSetViewer::removeDataSet, this, &iAMdiChild::removeDataSet);
 	m_dataSetViewers[dataSetIdx] = viewer;
@@ -2133,7 +2133,7 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 	}
 	auto s = std::make_shared<QSettings>(projectFileName, QSettings::IniFormat);
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	s.setIniCodec("UTF-8");
+	s->setIniCodec("UTF-8");
 #endif
 	s->setValue("UseMdiChild", true);
 	saveSettings(*s.get());
