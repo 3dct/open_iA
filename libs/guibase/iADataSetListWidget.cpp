@@ -82,7 +82,6 @@ void iADataSetListWidget::addDataSet(iADataSet const* dataset, size_t dataSetIdx
 	for (auto& a : actions)
 	{
 		auto tb = new QToolButton(this);
-		tb->setStyleSheet("background: transparent; border-style: none;");
 		tb->setDefaultAction(a);
 		actionWidget->layout()->addWidget(tb);
 	}
