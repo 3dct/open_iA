@@ -57,6 +57,7 @@
 #include <vtkVolumeProperty.h>
 #include <vtkSmartVolumeMapper.h>
 
+#include <QAction>
 #include <QApplication>
 
 namespace
@@ -342,11 +343,14 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	//     - option to put combined histograms of multiple datasets into one view / hide histograms by default
 	static int histoNum = -1;
 	m_histogramDW = std::make_shared<iADockWidgetWrapper>(m_histogram, histoName, QString("Histogram%1").arg(++histoNum));
+	connect(m_histogramDW.get(), &QDockWidget::visibilityChanged, this, [this](bool visible) {
+		m_histogramAction->setChecked(visible);
+	});
 	child->splitDockWidget(child->renderDockWidget(), m_histogramDW.get(), Qt::Vertical);
 	m_histogramDW->hide();
 	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this, [this]() {
 		m_histogram->plots()[0]->setColor(QApplication::palette().color(QPalette::Shadow));
-		});
+	});
 	// TODO NEWIO: do we need to call what previously was iAMdiChild::changeTransferFunction ?
 	//QObject::connect(m_histogram, &iAChartWithFunctionsWidget::transferFunctionChanged,
 	//	child, &iAMdiChild::changeTransferFunction);
@@ -450,6 +454,11 @@ std::shared_ptr<iADataSetRenderer> iAVolumeViewer::createRenderer(vtkRenderer* r
 
 QVector<QAction*> iAVolumeViewer::additionalActions(iAMdiChild* child)
 {
+	m_histogramAction = createToggleAction("Histogram", "histogram", false,
+	[this, child](bool checked)
+	{
+		m_histogramDW->setVisible(checked);
+	});
 	return {
 		createToggleAction("2D", "2d", true,
 		[this, child](bool checked)
@@ -457,7 +466,7 @@ QVector<QAction*> iAVolumeViewer::additionalActions(iAMdiChild* child)
 			setSlicerVisibility(checked);
 			child->updateSlicers();
 		}),
-		createToggleAction("Histogram", )
+		m_histogramAction
 	};
 }
 

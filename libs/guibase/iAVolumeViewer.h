@@ -66,6 +66,7 @@ private:
 	QSharedPointer<iAHistogramData> m_histogramData;
 	iAChartWithFunctionsWidget* m_histogram;
 	std::shared_ptr<iADockWidgetWrapper> m_histogramDW;
+	QAction* m_histogramAction;
 	QString m_imgStatistics;
 	uint m_slicerChannelID;
 	std::array<iASlicer*, 3> m_slicer;

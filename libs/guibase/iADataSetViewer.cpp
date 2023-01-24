@@ -36,6 +36,7 @@
 
 #include <vtkOpenGLRenderer.h>
 
+#include <QAction>
 
 namespace
 {
