@@ -57,7 +57,8 @@ void iADataSetViewer::prepare(iAPreferences const& pref, iAProgress* p)
 void iADataSetViewer::createGUI(iAMdiChild* child, size_t newDataSetIdx)
 {
 	m_renderer = createRenderer(child->renderer()->renderer());
-	/*int row = */ child->dataSetListWidget()->addDataSet(m_dataSet, newDataSetIdx, m_renderer.get(), m_renderer.get(), hasSlicerVis());
+	auto dsList = child->dataSetListWidget();
+	int row = dsList->addDataSet(m_dataSet, newDataSetIdx, m_renderer.get(), m_renderer.get(), hasSlicerVis());
 	// TODO NEWIO: events directly connecting to specific item / QActions linked to item
 
 	QObject::connect(child->dataSetListWidget(), &iADataSetListWidget::set3DRendererVisibility, this,

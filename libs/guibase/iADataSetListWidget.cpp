@@ -69,11 +69,18 @@ namespace
 	std::vector<bool> DefaultChecked = {
 		true, false, true, false, true
 	};
-	QIcon iconForCol(int col, bool checked)
+	QPixmap pixmapForCol(int col, bool checked)
 	{
-		return QIcon(QString(":/images/%1%2.svg")
+		return QPixmap(QString(":/images/%1%2.svg")
 			.arg(col == Pickable ? "transform-move" : "eye")
 			.arg((checked ^ !iAMainWindow::get()->brightMode()) ? "" : "_light"));
+	}
+	QIcon iconForCol(int col)
+	{
+		QIcon icon;
+		icon.addPixmap(pixmapForCol(col, false), QIcon::Normal, QIcon::Off);
+		icon.addPixmap(pixmapForCol(col, true), QIcon::Normal, QIcon::On);
+		return icon;
 	}
 }
 
@@ -84,6 +91,7 @@ iADataSetListWidget::iADataSetListWidget()
 	m_dataList->setHorizontalHeaderLabels(columnNames);
 	m_dataList->verticalHeader()->hide();
 	m_dataList->setSelectionBehavior(QAbstractItemView::SelectRows);
+	m_dataList->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
 	m_dataList->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_dataList->resizeColumnsToContents();
 	enablePicking(false);
@@ -132,24 +140,65 @@ iADataSetListWidget::iADataSetListWidget()
 			m_dataList->removeRow(row);
 			emit removeDataSet(dataSetIdx);
 		});
-	connect(m_dataList, &QTableWidget::itemClicked, this,
-		[this](QTableWidgetItem* item)
+	connect(m_dataList, &QTableWidget::itemSelectionChanged, this,
+		[this, editButton, minusButton]()
 		{
-			//		connect(m_dataList, &QTableWidget::itemChanged, this, [this](QTableWidgetItem* item)
-			//			{
-			auto col = m_dataList->column(item);
-			if (col < ViewFirst || col > ViewLast)
+			bool itemSelected = !m_dataList->selectedItems().isEmpty();
+			editButton->setEnabled(itemSelected);
+			minusButton->setEnabled(itemSelected);
+			size_t dataSetIdx = -1;
+			if (m_dataList->selectedItems().size() > 0)
 			{
-				return;
+				dataSetIdx = m_dataList->item(m_dataList->selectedItems()[0]->row(), 0)->data(Qt::UserRole).toULongLong();
 			}
-			auto row = m_dataList->row(item);
-			if (!item->data(Qt::UserRole + 1).toBool())
-			{   // not checkable
-				return;
+			emit dataSetSelected(dataSetIdx);
+		});
+	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this,
+		[this]()
+		{
+			for (auto row = 0; row < m_dataList->rowCount(); ++row)
+			{
+				for (int col = ViewFirst; col <= ViewLast; ++col)
+				{
+					auto tb = dynamic_cast<QToolButton*>(m_dataList->cellWidget(row, col));
+					tb->setIcon(iconForCol(col));
+				}
 			}
-			auto checked = !item->data(Qt::UserRole).toBool();
-			setChecked(item, checked);
-			auto dataSetIdx = m_dataList->item(row, 0)->data(Qt::UserRole).toULongLong();
+		});
+
+	setLayout(new QHBoxLayout);
+	layout()->addWidget(m_dataList);
+	layout()->addWidget(buttons);
+	layout()->setContentsMargins(1, 0, 0, 0);
+	layout()->setSpacing(4);
+}
+
+int iADataSetListWidget::addDataSet(iADataSet const* dataset, size_t dataSetIdx, bool render3DChecked, bool render3DCheckable, bool render2D)
+{
+	QSignalBlocker blockList(m_dataList);
+	auto nameItem = new QTableWidgetItem(dataset->name());
+	nameItem->setToolTip(dataset->info());
+	nameItem->setData(Qt::UserRole, static_cast<qulonglong>(dataSetIdx));
+	int row = m_dataList->rowCount();
+	m_dataList->insertRow(row);
+	m_dataList->setItem(row, 0, nameItem);
+	auto checkState(DefaultChecked);
+	checkState[View3D - ViewFirst] = render3DChecked;
+	for (int col = ViewFirst; col <= ViewLast; ++col)
+	{
+		auto tb = new QToolButton(m_dataList);
+		tb->setCheckable(true);
+		auto checked = checkState[col - ViewFirst];
+		auto checkable = true;
+		if ((col == View3D && !render3DCheckable) || (col == View2D && !render2D))
+		{
+			checked = false;
+			checkable = false;
+		}
+		tb->setChecked(checked);
+		tb->setIcon(iconForCol(col));
+		tb->setToolTip(checkable ? QString("Enable/Disable rendering/picking") : QString("Disabled because no renderer available"));
+		connect(tb, &QToolButton::toggled, this, [this, col, dataSetIdx, tb](bool checked) {
 			switch (col)
 			{
 			case View3D:
@@ -173,59 +222,7 @@ iADataSetListWidget::iADataSetListWidget()
 				break;
 			}
 		});
-	connect(m_dataList, &QTableWidget::itemSelectionChanged, this,
-		[this, editButton, minusButton]()
-		{
-			bool itemSelected = !m_dataList->selectedItems().isEmpty();
-			editButton->setEnabled(itemSelected);
-			minusButton->setEnabled(itemSelected);
-		});
-	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this,
-		[this]()
-		{
-			for (auto row = 0; row < m_dataList->rowCount(); ++row)
-			{
-				for (int col = ViewFirst; col <= ViewLast; ++col)
-				{
-					auto item = m_dataList->item(row, col);
-					auto checked = item->data(Qt::UserRole).toBool();
-					item->setIcon(iconForCol(col, checked));
-				}
-			}
-		});
-
-	setLayout(new QHBoxLayout);
-	layout()->addWidget(m_dataList);
-	layout()->addWidget(buttons);
-	layout()->setContentsMargins(1, 0, 0, 0);
-	layout()->setSpacing(4);
-}
-
-int iADataSetListWidget::addDataSet(iADataSet const* dataset, size_t dataSetIdx, bool render3DChecked, bool render3DCheckable, bool render2D)
-{
-	QSignalBlocker blockList(m_dataList);
-	auto nameItem = new QTableWidgetItem(dataset->name());
-	nameItem->setToolTip(dataset->info());
-	nameItem->setData(Qt::UserRole, static_cast<qulonglong>(dataSetIdx));
-	int row = m_dataList->rowCount();
-	m_dataList->insertRow(row);
-	m_dataList->setItem(row, 0, nameItem);
-	auto checkState(DefaultChecked);
-	checkState[View3D - ViewFirst] = render3DChecked;
-	for (int i = ViewFirst; i <= ViewLast; ++i)
-	{
-		auto checked = checkState[i - ViewFirst];
-		auto checkable = true;
-		if ((i == View3D && !render3DCheckable) || (i == View2D && !render2D))
-		{
-			checked = false;
-			checkable = false;
-		}
-		auto viewItem = new QTableWidgetItem(iconForCol(i, checked), "");
-		viewItem->setData(Qt::UserRole, checked ? 1 : 0);
-		viewItem->setData(Qt::UserRole + 1, checkable);
-		viewItem->setToolTip(checkable ? QString("Enable/Disable rendering/picking") : QString("Disabled because no renderer available"));
-		m_dataList->setItem(row, i, viewItem);
+		m_dataList->setCellWidget(row, col, tb);
 	}
 	m_dataList->resizeColumnsToContents();
 	return row;
@@ -243,8 +240,8 @@ void iADataSetListWidget::setPickableState(size_t dataSetIdx, bool pickable)
 	QSignalBlocker blockList(m_dataList);
 	int row = findDataSetIdx(dataSetIdx);
 	assert(row != -1);
-	auto item = m_dataList->item(row, Pickable);
-	setChecked(item, pickable);
+	auto tb = dynamic_cast<QToolButton*>(m_dataList->cellWidget(row, Pickable));
+	tb->setChecked(pickable);
 }
 
 void iADataSetListWidget::enablePicking(bool enable)
@@ -252,17 +249,12 @@ void iADataSetListWidget::enablePicking(bool enable)
 	m_dataList->setColumnHidden(Pickable, !enable);
 }
 
-void iADataSetListWidget::setChecked(QTableWidgetItem * item, int checked)
-{
-	item->setData(Qt::UserRole, checked);
-	item->setIcon(iconForCol(item->column(), checked));
-}
-
 int iADataSetListWidget::findDataSetIdx(size_t dataSetIdx)
 {
 	for (int row=0; row < m_dataList->rowCount(); ++row)
 	{
-		if (m_dataList->item(row, 0)->data(Qt::UserRole).toULongLong() == dataSetIdx)
+		auto listDSIdx = m_dataList->item(row, 0)->data(Qt::UserRole).toULongLong();
+		if (listDSIdx == dataSetIdx)
 		{
 			return row;
 		}

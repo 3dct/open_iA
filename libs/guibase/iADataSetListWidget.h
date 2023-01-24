@@ -53,7 +53,6 @@ public slots:
 	void enablePicking(bool enable);
 
 private:
-	void setChecked(QTableWidgetItem * item, int checked);
 	int findDataSetIdx(size_t idx);
 
 	QTableWidget* m_dataList;  //!< the actual table displaying datasets and controls for their visibility

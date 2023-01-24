@@ -127,9 +127,9 @@ QToolButton
 		background: qlineargradient(spread:pad,
 			x1:0, y1:0,
 			x2:0, y2:1,
-			stop:0 rgba(105, 69, 25, 255),
-			stop:0.381 rgba(135, 93, 36, 255),
-			stop:1 rgba(185, 133, 54, 255)
+			stop:0 rgba(235, 235, 235, 255),
+			stop:0.617 rgba(216, 216, 216, 255),
+			stop:1 rgba(205, 205, 205, 255)
 		);
 	}
 	QToolBar::separator
