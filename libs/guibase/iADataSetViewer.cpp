@@ -39,18 +39,34 @@
 
 namespace
 {
-	QPixmap pixmapFromName(QString iconName, bool checked)
+	QString assembleIconName(QString const& iconName, bool checked)
 	{
-		return QPixmap(QString(":/images/%1%2.svg")
+		return QString(":/images/%1%2.svg")
 			.arg(iconName)
-			.arg((checked ^ !iAMainWindow::get()->brightMode()) ? "" : "_light"));
+			.arg((checked ^ !iAMainWindow::get()->brightMode()) ? "" : "_light");
 	}
-	QIcon iconFromName(QString iconName)
+	QIcon toggleIconFromName(QString const& iconName)
 	{
 		QIcon icon;
-		icon.addPixmap(pixmapFromName(iconName, false), QIcon::Normal, QIcon::Off);
-		icon.addPixmap(pixmapFromName(iconName, true), QIcon::Normal, QIcon::On);
+		icon.addPixmap(QPixmap(assembleIconName(iconName, false)), QIcon::Normal, QIcon::Off);
+		icon.addPixmap(QPixmap(assembleIconName(iconName, true)), QIcon::Normal, QIcon::On);
 		return icon;
+	}
+	void setActionIcon(QAction* action, QString const& iconName, bool toggle)
+	{
+		action->setIcon(toggle ? toggleIconFromName(iconName) : QIcon(assembleIconName(iconName, true)));
+		action->setData(QString("%1%2").arg(toggle?"!":".").arg(iconName));
+	}
+	void updateActionIcon(QAction* action)
+	{
+		auto s = action->data().toString();
+		if (s.isEmpty())
+		{
+			LOG(lvlWarn, QString("DEVELOPER WARNING: Dataset action %1 has no proper iconName as data!").arg(action->text()));
+			return;
+		}
+		auto iconName = s.right(s.length() - 1);
+		setActionIcon(action, iconName, s[0] == '!');
 	}
 }
 
@@ -79,19 +95,19 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	m_renderer = createRenderer(child->renderer()->renderer());
 	assert(m_renderer);
 	auto dsList = child->dataSetListWidget();
-	m_actions.push_back(createToggleAction("3D", "eye", true,
+	m_actions.push_back(createToggleAction("3D", "3d", true,
 		[this, child](bool checked)
 		{
 			m_renderer->setVisible(checked);
 			child->updateRenderer();
 		}));
-	m_actions.push_back(createToggleAction("Box", "eye", true,
+	m_actions.push_back(createToggleAction("Box", "box_3d", false,
 		[this, child](bool checked)
 		{
 			m_renderer->setBoundsVisible(checked);
 			child->updateRenderer();
 		}));
-	m_actions.push_back(createToggleAction("Magic Lens", "eye", true,
+	m_actions.push_back(createToggleAction("Magic Lens", "magic_lens_3d", false,
 		[this, child](bool checked)
 		{
 			if (!m_magicLensRenderer)
@@ -115,6 +131,8 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 		});
 	m_pickAction->setEnabled(false);
 	m_actions.push_back(m_pickAction);
+
+	m_actions.append(additionalActions(child));
 
 	auto editAction = new QAction("Edit dataset and display properties");
 	connect(editAction, &QAction::triggered, this,
@@ -155,10 +173,8 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	*/
 			emit dataSetChanged(dataSetIdx);
 		});
-	editAction->setIcon(iconFromName("edit"));
-	editAction->setData("edit");
+	setActionIcon(editAction, "edit", false);
 	m_actions.push_back(editAction);
-
 
 	auto removeAction = new QAction("Remove");
 	removeAction->setToolTip("Remove dataset from display, unload from memory");
@@ -168,24 +184,15 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			child->dataSetListWidget()->removeDataSet(dataSetIdx);
 			emit removeDataSet(dataSetIdx);
 		});
+	setActionIcon(removeAction, "minus", false);
 	m_actions.push_back(removeAction);
-
-	m_actions.append(additionalActions(child));
 
 	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this,
 	[this]()
 	{
 		for (auto a: m_actions)
 		{
-			auto iconName = a->data().toString();
-			if (!iconName.isEmpty())
-			{
-				a->setIcon(iconFromName(iconName));
-			}
-			else
-			{
-				LOG(lvlWarn, QString("DEVELOPER WARNING: Dataset action %1 has no proper iconName as data!").arg(a->text()));
-			}
+			updateActionIcon(a);
 		}
 	});
 	dsList->addDataSet(m_dataSet, dataSetIdx, m_actions);
@@ -242,9 +249,8 @@ QAction* iADataSetViewer::createToggleAction(QString const& name, QString const&
 {
 	auto action = new QAction(name);
 	action->setToolTip(QString("Toggle %1").arg(name));
-	action->setIcon(iconFromName(iconName));
+	setActionIcon(action, iconName, true);
 	action->setCheckable(true);
-	action->setData(iconName);
 	action->setChecked(checked);
 	connect(action, &QAction::triggered, this, handler);
 	return action;

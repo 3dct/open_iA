@@ -165,7 +165,7 @@ void dlg_DynamicVolumeLines::setupScaledPlot(QCustomPlot *qcp)
 	tb_MinMaxPlot->setStyleSheet("border: 1px solid; margin-left: 3px;");
 	tb_MinMaxPlot->setMinimumSize(QSize(0, 0));
 	tb_MinMaxPlot->setMaximumSize(QSize(13, 10));
-	tb_MinMaxPlot->setIcon(QIcon(QString(":/images/minus%1.svg").arg(!iAMainWindow::get()->brightMode() ? "-dark" : "")));
+	tb_MinMaxPlot->setIcon(QIcon(QString(":/images/minus%1.svg").arg(!iAMainWindow::get()->brightMode() ? "_light" : "")));
 	tb_MinMaxPlot->setIconSize(QSize(10, 10));
 	connect(tb_MinMaxPlot, &QToolButton::clicked, this, &dlg_DynamicVolumeLines::changePlotVisibility);
 

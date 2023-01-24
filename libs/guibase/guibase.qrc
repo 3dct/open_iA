@@ -1,10 +1,26 @@
 <RCC>
   <qresource prefix="/">
+    <file>images/2d.svg</file>
+    <file>images/2d_light.svg</file>
+    <file>images/3d.svg</file>
+    <file>images/3d_light.svg</file>
+    <file>images/box_3d.svg</file>
+    <file>images/box_3d_light.svg</file>
+    <file>images/edit.svg</file>
+    <file>images/edit_light.svg</file>
     <file>images/info.png</file>
     <file>images/load.png</file>
+    <file>images/magic_lens_2d.svg</file>
+    <file>images/magic_lens_2d_light.svg</file>
+    <file>images/magic_lens_3d.svg</file>
+    <file>images/magic_lens_3d_light.svg</file>
     <file>images/mini_rect.png</file>
+    <file>images/minus.svg</file>
+    <file>images/minus_light.svg</file>
     <file>images/open.png</file>
     <file>images/paste.png</file>
+    <file>images/plus.svg</file>
+    <file>images/plus_light.svg</file>
     <file>images/save.png</file>
     <file>images/savemov.png</file>
     <file>images/savescreen.png</file>
@@ -12,11 +28,5 @@
     <file>images/settings.png</file>
     <file>images/toggle_titleBar.png</file>
     <file>images/update.png</file>
-    <file>images/plus.svg</file>
-    <file>images/minus.svg</file>
-    <file>images/edit.svg</file>
-    <file>images/plus-dark.svg</file>
-    <file>images/minus-dark.svg</file>
-    <file>images/edit-dark.svg</file>
   </qresource>
 </RCC>
