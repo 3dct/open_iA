@@ -94,7 +94,8 @@ public:
 	virtual uint slicerChannelID();
 
 signals:
-	void dataSetChanged();
+	void dataSetChanged(size_t dataSetIdx);
+	void removeDataSet(size_t dataSetIdx);
 
 protected:
 	iADataSetViewer(iADataSet * dataSet);

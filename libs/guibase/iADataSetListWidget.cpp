@@ -49,57 +49,10 @@ iADataSetListWidget::iADataSetListWidget()
 	m_dataList->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
 	m_dataList->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_dataList->resizeColumnsToContents();
-
-	auto buttons = new QWidget();
-	buttons->setLayout(new QVBoxLayout);
-	buttons->layout()->setContentsMargins(0, 0, 0, 0);
-	buttons->layout()->setSpacing(4);
-	auto editButton = new QToolButton();
-	editButton->setEnabled(false);
-	editButton->setObjectName("tbEdit");
-	editButton->setToolTip(tr("Edit dataset and display properties"));
-	buttons->layout()->addWidget(editButton);
-	auto minusButton = new QToolButton();
-	minusButton->setEnabled(false);
-	minusButton->setObjectName("tbRemove");
-	minusButton->setToolTip(tr("Remove dataset from display, unload from memory"));
-	buttons->layout()->addWidget(minusButton);
-	auto spacer = new QSpacerItem(10, 0, QSizePolicy::Fixed, QSizePolicy::Expanding);
-	buttons->layout()->addItem(spacer);
-
-	connect(editButton, &QToolButton::clicked, this,
-		[this]()
-		{
-			auto rows = m_dataList->selectionModel()->selectedRows();
-			if (rows.size() != 1)
-			{
-				LOG(lvlWarn, "Please select exactly one row for editing!");
-				return;
-			}
-			int row = rows[0].row();
-			auto dataSetIdx = m_dataList->item(row, 0)->data(Qt::UserRole).toULongLong();
-			emit editDataSet(dataSetIdx);
-		});
-	connect(minusButton, &QToolButton::clicked, this,
-		[this]()
-		{
-			auto rows = m_dataList->selectionModel()->selectedRows();
-			if (rows.size() != 1)
-			{
-				LOG(lvlWarn, "Please select exactly one row for deleting!");
-				return;
-			}
-			auto row = rows[0].row();
-			auto dataSetIdx = m_dataList->item(row, 0)->data(Qt::UserRole).toULongLong();
-			m_dataList->removeRow(row);
-			emit removeDataSet(dataSetIdx);
-		});
 	connect(m_dataList, &QTableWidget::itemSelectionChanged, this,
-		[this, editButton, minusButton]()
+		[this]()
 		{
 			bool itemSelected = !m_dataList->selectedItems().isEmpty();
-			editButton->setEnabled(itemSelected);
-			minusButton->setEnabled(itemSelected);
 			size_t dataSetIdx = -1;
 			if (m_dataList->selectedItems().size() > 0)
 			{
@@ -109,7 +62,6 @@ iADataSetListWidget::iADataSetListWidget()
 		});
 	setLayout(new QHBoxLayout);
 	layout()->addWidget(m_dataList);
-	layout()->addWidget(buttons);
 	layout()->setContentsMargins(1, 0, 0, 0);
 	layout()->setSpacing(4);
 }
@@ -143,6 +95,13 @@ void iADataSetListWidget::setName(size_t dataSetIdx, QString newName)
 	int row = findDataSetIdx(dataSetIdx);
 	assert(row != -1);
 	m_dataList->item(row, 0)->setText(newName);
+}
+
+void iADataSetListWidget::removeDataSet(size_t dataSetIdx)
+{
+	int row = findDataSetIdx(dataSetIdx);
+	assert(row != -1);
+	m_dataList->removeRow(row);
 }
 
 int iADataSetListWidget::findDataSetIdx(size_t dataSetIdx)

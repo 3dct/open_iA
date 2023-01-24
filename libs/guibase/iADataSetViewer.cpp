@@ -114,8 +114,9 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			}
 		});
 	m_pickAction->setEnabled(false);
+	m_actions.push_back(m_pickAction);
 
-	auto editAction = new QAction("Edit dataset properties");
+	auto editAction = new QAction("Edit dataset and display properties");
 	connect(editAction, &QAction::triggered, this,
 		[this, child, dataSetIdx]()
 		{
@@ -152,13 +153,23 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 		slicer(s)->update();
 	}
 	*/
-			emit dataSetChanged();
+			emit dataSetChanged(dataSetIdx);
 		});
 	editAction->setIcon(iconFromName("edit"));
 	editAction->setData("edit");
 	m_actions.push_back(editAction);
 
-	m_actions.push_back(m_pickAction);
+
+	auto removeAction = new QAction("Remove");
+	removeAction->setToolTip("Remove dataset from display, unload from memory");
+	connect(removeAction, &QAction::triggered, this,
+		[this, dataSetIdx, child]()
+		{
+			child->dataSetListWidget()->removeDataSet(dataSetIdx);
+			emit removeDataSet(dataSetIdx);
+		});
+	m_actions.push_back(removeAction);
+
 	m_actions.append(additionalActions(child));
 
 	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this,

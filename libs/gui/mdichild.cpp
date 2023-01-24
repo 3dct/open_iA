@@ -174,7 +174,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	connect(mainWnd, &MainWindow::styleChanged, this, &MdiChild::styleChanged);
 
 	// Dataset list events:
-	connect(m_dataSetListWidget, &iADataSetListWidget::removeDataSet, this, &iAMdiChild::removeDataSet);
 	connect(m_dataSetListWidget, &iADataSetListWidget::dataSetSelected, this, &iAMdiChild::dataSetSelected);
 
 	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
@@ -357,10 +356,12 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 	}
 	auto p = std::make_shared<iAProgress>();
 	auto viewer = createDataSetViewer(dataSet.get());
-	connect(viewer.get(), &iADataSetViewer::dataSetChanged, this, [this, dataSetIdx] {
+	connect(viewer.get(), &iADataSetViewer::dataSetChanged, this, [this, dataSetIdx](size_t dsIdx) {
+		assert(dsIdx == dataSetIdx);
 		updateDataSetInfo();
 		emit dataSetChanged(dataSetIdx);
 	});
+	connect(viewer.get(), &iADataSetViewer::removeDataSet, this, &iAMdiChild::removeDataSet);
 	m_dataSetViewers[dataSetIdx] = viewer;
 	auto fw = runAsync(
 		[this, viewer, dataSetIdx, p]()
