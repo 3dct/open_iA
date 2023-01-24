@@ -135,6 +135,10 @@ iADataSetRenderer::iADataSetRenderer(vtkRenderer* renderer, bool defaultVisibili
 
 iADataSetRenderer::~iADataSetRenderer()
 {
+	if (m_outline)
+	{
+		m_outline->setVisible(false);
+	}
 }
 
 void iADataSetRenderer::setAttributes(QVariantMap const& values)

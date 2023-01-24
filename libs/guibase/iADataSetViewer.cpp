@@ -83,6 +83,10 @@ iADataSetViewer::~iADataSetViewer()
 	{
 		m_renderer->setVisible(false);
 	}
+	if (m_magicLensRenderer && m_magicLensRenderer->isVisible())
+	{
+		m_magicLensRenderer->setVisible(false);
+	}
 }
 
 void iADataSetViewer::prepare(iAPreferences const& pref, iAProgress* p)
