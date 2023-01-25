@@ -391,6 +391,7 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 		[this, viewer, dataSetIdx]
 		{
 			viewer->createGUI(this, dataSetIdx);
+			updateDataSetInfo();
 			emit dataSetRendered(dataSetIdx);
 		},
 		this);
@@ -1375,6 +1376,7 @@ void MdiChild::updateDataSetInfo()
 	{
 		if (!m_dataSetViewers[dataSet.first])    // probably not computed yet...
 		{
+			LOG(lvlWarn, QString("No viewer for dataset %1").arg(dataSet.second->name()));
 			continue;
 		}
 		auto lines = m_dataSetViewers[dataSet.first]->information().split("\n", Qt::SkipEmptyParts);
