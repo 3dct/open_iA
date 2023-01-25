@@ -45,6 +45,7 @@
 
 #include <QFileInfo>
 #include <QSettings>
+#include <QTextStream>
 
 std::shared_ptr<iATool> iAFeatureScoutTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
 {
