@@ -359,6 +359,10 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this, [this]()
 	{
 		m_histogram->plots()[0]->setColor(QApplication::palette().color(QPalette::Shadow));
+		if (m_profileChart)
+		{
+			m_profileChart->plots()[0]->setColor(QApplication::palette().color(QPalette::Text));
+		}
 	});
 	connect(child, &iAMdiChild::preferencesChanged, this,
 		[this, child]()
