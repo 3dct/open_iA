@@ -1957,7 +1957,7 @@ void MdiChild::changeMagicLensSize(int chg)
 	for (int s = 0; s < 3; ++s)
 	{
 		m_slicer[s]->setMagicLensSize(newSize);
-		newSize = std::min(m_slicer[s]->magicLensSize(), newSize);
+		//newSize = std::min(m_slicer[s]->magicLensSize(), newSize);  // would try to give a consistent size across slicers; but would need two passes, and doesn't account for when a slicer is currently not visible
 	}
 	m_preferences.MagicLensSize = newSize;
 	updateSlicers();
