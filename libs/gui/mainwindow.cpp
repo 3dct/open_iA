@@ -1999,7 +1999,7 @@ iAMdiChild * MainWindow::secondNonActiveChild()
 	else if (mdiwindows.size() < 2)
 	{
 		QMessageBox::warning(this, tr("Warning"),
-			tr("Only one dataset available. Please load another one!"));
+			tr("Not enough datasets available! Please open exactly two datasets"));
 		return nullptr;
 	}
 	return activeMdiChild() == mdiwindows.at(0) ?
