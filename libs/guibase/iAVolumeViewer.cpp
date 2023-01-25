@@ -350,16 +350,16 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	{
 		m_histogramAction->setChecked(visible);
 	});
+	connect(m_histogram, &iAChartWithFunctionsWidget::transferFunctionChanged, child, [child]
+	{
+		child->updateViews();
+	});
 	child->splitDockWidget(child->renderDockWidget(), m_dwHistogram, Qt::Vertical);
 	m_dwHistogram->hide();
 	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this, [this]()
 	{
 		m_histogram->plots()[0]->setColor(QApplication::palette().color(QPalette::Shadow));
 	});
-	// TODO NEWIO: do we need to call what previously was iAMdiChild::changeTransferFunction ?
-	//QObject::connect(m_histogram, &iAChartWithFunctionsWidget::transferFunctionChanged,
-	//	child, &iAMdiChild::changeTransferFunction);
-
 	connect(child, &iAMdiChild::preferencesChanged, this,
 		[this, child]()
 		{
