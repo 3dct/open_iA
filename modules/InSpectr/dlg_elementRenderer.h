@@ -37,7 +37,6 @@ class iARendererImpl;
 class vtkColorTransferFunction;
 class vtkImageData;
 class vtkPiecewiseFunction;
-class vtkPolyData;
 class vtkTransform;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_elementRenderer>   dlg_elemRendererContainer;
@@ -48,7 +47,7 @@ class dlg_elementRenderer : public dlg_elemRendererContainer
 public:
 	dlg_elementRenderer(QWidget *parent);
 
-	void SetDataToVisualize(vtkImageData * imgData, vtkPolyData * polyData, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf);
+	void SetDataToVisualize(vtkImageData * imgData, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf);
 	iARenderer * GetRenderer();
 	void SetRefLibIndex(size_t index);
 	size_t GetRefLibIndex();

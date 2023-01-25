@@ -45,13 +45,11 @@ dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 	connect(renContainer, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARendererImpl::mouseLeftButtonReleasedSlot);
 }
 
-void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyData * polyData, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf )
+void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf )
 {
 	iATransferFunctionPtrs transferFunction(ctf, otf);
 	if(!m_rendInitialized)
 	{
-		// TODO NEWIO: use datasets!
-		// m_renderer->initialize(imgData, polyData);
 		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>::create(&transferFunction, imgData);
 		m_volumeRenderer->addTo(m_renderer->renderer());
 		m_rendInitialized = true;
@@ -59,8 +57,6 @@ void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyDat
 	else
 	{
 		m_volumeRenderer->remove();
-		// TODO NEWIO: use datasets!
-		//m_renderer->reInitialize(imgData, polyData);
 		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>::create(&transferFunction, imgData);
 		m_volumeRenderer->addTo(m_renderer->renderer());
 	}

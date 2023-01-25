@@ -53,7 +53,6 @@ class iAVolumeStack;
 
 class vtkImageData;
 class vtkPiecewiseFunction;
-class vtkPolyData;
 class vtkScalarsToColors;
 class vtkRenderer;
 class vtkTransform;
@@ -218,10 +217,6 @@ public:
 	//! @deprecated. Use iARunAsync / iAJobListView directly
 	//!    also, don't use iAAlgorithm anymore!
 	virtual void connectThreadSignalsToChildSlots(iAAlgorithm* thread) = 0;
-
-	//! Access to "main" polydata object (if any)
-	//! @deprecated move out of mdi child, into something like an iAModality
-	virtual vtkPolyData* polyData() = 0;
 
 	//! Access to file info of "current" file
 	//! @deprecated. Use access via modalities instead

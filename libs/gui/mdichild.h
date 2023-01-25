@@ -124,10 +124,6 @@ public:
 	void connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread);
 	//! @}
 
-	//! Access to "main" polydata object (if any)
-	//! @deprecated use dataSet infrastructure instead
-	vtkPolyData* polyData() override;
-
 	//! Access to the 3D renderer widget
 	iARenderer* renderer() override;
 	//! Access slicer for given mode (use iASlicerMode enum for mode values)
@@ -375,16 +371,11 @@ private:
 	vtkSmartPointer<iAParametricSpline> m_parametricSpline;
 	//! @}
 
-	//! smart pointer to first image data shown in mdiChild.
-	//! @deprecated use dataSets instead, will be removed soon
-	//! @{
-	vtkPolyData * m_polyData;
-	vtkTransform * m_axesTransform;
-	//! @}
+	vtkTransform * m_axesTransform;    //!< transform for the axes in the 3D renderer; TODO: check usage and if it should be placed somewhere else, or made a smart pointer
+	vtkTransform * m_slicerTransform;  //!< transform for the axes in the slicers; TODO: check usage and if it should be placed somewhere else, or made a smart pointer
 
-	vtkTransform * m_slicerTransform;
-	iARendererImpl * m_renderer;
-	std::array<iASlicerImpl*, 3> m_slicer;
+	iARendererImpl * m_renderer;       //!< access and decoration of 3D renderers
+	std::array<iASlicerImpl*, 3> m_slicer; //!< the 3 axis-aligned slicers
 
 	// TODO NEWIO: move volume stack functionality to separate tool
 	QScopedPointer<iAVolumeStack> m_volumeStack;

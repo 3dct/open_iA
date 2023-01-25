@@ -30,6 +30,8 @@
 #include <iAMdiChild.h>
 #include <iAMainWindow.h>
 
+#include <iADataSet.h>
+
 #include <QApplication>
 #include <QCheckBox>
 #include <QFileDialog>
@@ -37,6 +39,8 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QPushButton>
+
+#include <vtkPolyData.h>
 
 iABoneThicknessTool::iABoneThicknessTool(iAMainWindow* mainWnd, iAMdiChild * child):
 	iATool(mainWnd, child)
@@ -47,7 +51,22 @@ iABoneThicknessTool::iABoneThicknessTool(iAMainWindow* mainWnd, iAMdiChild * chi
 	m_pBoneThicknessChartBar = new iABoneThicknessChartBar(pWidget);
 	m_pBoneThicknessTable = new iABoneThicknessTable(pWidget);
 
-	m_pBoneThickness->set(m_child->renderer(), m_child->polyData(), m_pBoneThicknessChartBar, m_pBoneThicknessTable);
+	// TODO NEWIO: check
+	vtkPolyData* pd = nullptr;
+	for (auto ds : child->dataSetMap())
+	{
+		if (dynamic_cast<iAPolyData*>(ds.second.get()))
+		{
+			pd = dynamic_cast<iAPolyData*>(ds.second.get())->poly();
+			break;
+		}
+	}
+	if (!pd)
+	{
+		LOG(lvlError, "No mesh dataset loaded; but the BoneThickness tool requires a mesh dataset!");
+		return;
+	}
+	m_pBoneThickness->set(m_child->renderer(), pd, m_pBoneThicknessChartBar, m_pBoneThicknessTable);
 	m_pBoneThicknessChartBar->set(m_pBoneThickness.data(), m_pBoneThicknessTable);
 	m_pBoneThicknessTable->set(m_pBoneThickness.data(), m_pBoneThicknessChartBar);
 

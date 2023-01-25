@@ -113,7 +113,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_snakeSlicer(false),
 	m_worldSnakePoints(vtkSmartPointer<vtkPoints>::New()),
 	m_parametricSpline(vtkSmartPointer<iAParametricSpline>::New()),
-	m_polyData(vtkPolyData::New()),
 	m_axesTransform(vtkTransform::New()),
 	m_slicerTransform(vtkTransform::New()),
 	m_volumeStack(new iAVolumeStack),
@@ -224,11 +223,8 @@ void MdiChild::toggleFullScreen()
 MdiChild::~MdiChild()
 {
 	cleanWorkingAlgorithms();
-	m_polyData->ReleaseData();
 	m_axesTransform->Delete();
 	m_slicerTransform->Delete();
-
-	m_polyData->Delete();
 
 	// should be deleted automatically by Qt's mechanism of parents deleting their children
 	//for (int s = 0; s < 3; ++s)
@@ -431,11 +427,6 @@ namespace
 	const QString CameraViewUpKey("CameraViewUp");
 	const QString CameraParallelProjection("CameraParallelProjection");
 	const QString CameraParallelScale("CameraParallelScale");
-}
-
-vtkPolyData* MdiChild::polyData()
-{
-	return m_polyData;
 }
 
 iARenderer* MdiChild::renderer()

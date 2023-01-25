@@ -996,10 +996,9 @@ void dlg_InSpectr::InitElementRenderer( dlg_elementRenderer * elemRend, size_t i
 	chOTF->AddPoint(1, 0.1);
 
 	QString chElemName = m_refSpectraLib->spectra[index].name();
-	vtkPolyData * chPolyData = mdiChild->polyData();
 
 	elemRend->setWindowTitle(chElemName);
-	elemRend->SetDataToVisualize( chImgData, chPolyData, chOTF, chCTF );
+	elemRend->SetDataToVisualize( chImgData, chOTF, chCTF );
 }
 
 void dlg_InSpectr::updateConcentrationOpacity(int newVal)
