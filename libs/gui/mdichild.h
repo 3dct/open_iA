@@ -67,8 +67,6 @@ class iAvtkInteractStyleActor;
 class MainWindow;
 
 // guibase
-class dlg_modalities;
-class iAAlgorithm;
 class iAChannelData;
 class iATool;
 // TODO NEWIO: move to new tool
@@ -118,15 +116,6 @@ public:
 	iAPreferences    const & preferences()    const override;
 	//! @deprecated TODO NEWIO: move to separate tool
 	iAVolumeStack * volumeStack() override;
-	//! @{
-	//! @deprecated iAAlgorithm will be removed soon. use iAFilter / iAFileTypeRegistry instead
-	void connectThreadSignalsToChildSlots(iAAlgorithm* thread) override;
-	void connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread);
-	//! @}
-
-	//! Access to "main" polydata object (if any)
-	//! @deprecated use dataSet infrastructure instead
-	vtkPolyData* polyData() override;
 
 	//! Access to the 3D renderer widget
 	iARenderer* renderer() override;
@@ -166,7 +155,7 @@ public:
 	void updateROI(int const roi[6]) override;
 	void setROIVisible(bool visible) override;
 
-	void setWindowTitleAndFile(const QString &f);
+	void setWindowTitleAndFile(const QString &f) override;
 	QString currentFile() const override;
 	QFileInfo const & fileInfo() const override;
 	QString filePath() const override;
@@ -200,7 +189,6 @@ public:
 	bool isMagicLens3DEnabled() const;
 	void setMagicLensInput(uint id) override;
 	void setMagicLensEnabled(bool isOn) override;
-	//void reInitMagicLens(uint id, QString const & name, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf) override;
 	int  magicLensSize() const;
 	int  magicLensFrameWidth() const;
 	vtkRenderer* magicLens3DRenderer() const override;
@@ -213,10 +201,6 @@ public:
 	void multiview() override;
 	//! reset the layout to the way it was directly after setting up this child
 	void resetLayout();
-
-	//! If given modality has more than one component, ask user to choose one of them.
-	//! (currently used for determining which modality to save)
-	//int chooseComponentNr(int modalityNr);
 
 	std::shared_ptr<iADataSet> chooseDataSet(QString const& title = "Choose dataset") override;
 
@@ -335,12 +319,6 @@ private:
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void snakeNormal(int index, double point[3], double normal[3]);
 
-	//! @{ @deprecated
-	void connectSignalsToSlots();
-	void addAlgorithm(iAAlgorithm* thread);
-	void cleanWorkingAlgorithms();
-	//! @}
-
 	void slicerVisibilityChanged(int mode);
 	void updatePositionMarkerSize();
 
@@ -400,9 +378,6 @@ private:
 	dlg_slicer * m_dwSlicer[3];
 	dlg_renderer * m_dwRenderer;
 	//! @}
-
-	//! @deprecated use jobs instead (iARunAsync + iAJobListView)
-	std::vector<iAAlgorithm*> m_workingAlgorithms;
 
 	QMap<uint, QSharedPointer<iAChannelData> > m_channels;
 	uint m_nextChannelID;
