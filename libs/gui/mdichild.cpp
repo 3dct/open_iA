@@ -28,7 +28,6 @@
 #include "iAFileParamDlg.h"
 #include "iAFileUtils.h"    // for safeFileName
 #include "iAParametricSpline.h"
-#include "iAProfileProbe.h"
 #include "iAvtkInteractStyleActor.h"
 #include "mainwindow.h"
 
@@ -57,10 +56,6 @@
 // qthelper
 #include <iADockWidgetWrapper.h>
 
-// charts
-#include <iAPlotTypes.h>
-#include <iAProfileWidget.h>
-
 // io
 #include <iAFileStackParams.h>
 #include <iAImageStackFileIO.h>
@@ -87,6 +82,7 @@
 #include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkPlane.h>
+#include <vtkPolyData.h>
 #include <vtkProperty.h>
 #include <vtkRenderWindow.h>
 #include <vtkWindowToImageFilter.h>

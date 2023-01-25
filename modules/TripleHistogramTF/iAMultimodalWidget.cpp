@@ -29,7 +29,6 @@
 #include <iAChartWithFunctionsWidget.h>
 #include <iAHistogramData.h>
 #include <iAPlotTypes.h>
-#include <iAProfileWidget.h>
 
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>

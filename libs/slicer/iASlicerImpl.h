@@ -261,7 +261,7 @@ private slots:
 signals:
 	void addedPoint(double x, double y, double z);
 	void movedPoint(size_t selectedPointIndex, double xPos, double yPos, double zPos);
-	void profilePointChanged(int pointInd, double * Pos);
+	void profilePointChanged(int pointIdx, double * globalPos);
 	void deselectedPoint();
 	void switchedMode(int mode);
 	void deletedSnakeLine();
