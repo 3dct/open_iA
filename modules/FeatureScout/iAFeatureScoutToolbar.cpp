@@ -76,7 +76,7 @@ iAFeatureScoutToolbar::iAFeatureScoutToolbar(iAMainWindow* mainWnd) :
 			LOG(lvlInfo, "No FeatureScout tool open in current iAMdiChild!");
 			return;
 		}
-		fs->*thisfunc();
+		(fs->*thisfunc)();
 		//std::invoke(thisfunc, fs);    // use once we have switched to C++17
 	};
 	connect(m_mainWnd, &iAMainWindow::childChanged, this, &iAFeatureScoutToolbar::childChanged);
