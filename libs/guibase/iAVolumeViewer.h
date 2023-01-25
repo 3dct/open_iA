@@ -63,7 +63,7 @@ public:
 	void removeFromSlicer();
 private:
 	void applyAttributes(QVariantMap const& values) override;
-	void setProfilePlot();
+	void updateProfilePlot();
 
 	std::shared_ptr<iATransferFunctionOwner> m_transfer;
 

@@ -350,8 +350,12 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	{
 		m_histogramAction->setChecked(visible);
 	});
-	connect(m_histogram, &iAChartWithFunctionsWidget::transferFunctionChanged, child, [child]
+	connect(m_histogram, &iAChartWithFunctionsWidget::transferFunctionChanged, child, [child, this]
 	{
+		for (int s = 0; s < 3; ++s)
+		{
+			m_slicer[s]->updateMagicLensColors();
+		}
 		child->updateViews();
 	});
 	child->splitDockWidget(child->renderDockWidget(), m_dwHistogram, Qt::Vertical);
@@ -404,10 +408,10 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	}
 	connect(child, &iAMdiChild::profilePointChanged, this,
 		[this](int pointIdx, double const* globalPos)
-		{
-			m_profileProbe->updateProbe(pointIdx, globalPos);
-			setProfilePlot();
-		});
+	{
+		m_profileProbe->updateProbe(pointIdx, globalPos);
+		updateProfilePlot();
+	});
 }
 
 QString iAVolumeViewer::information() const
@@ -506,9 +510,9 @@ QVector<QAction*> iAVolumeViewer::additionalActions(iAMdiChild* child)
 					m_profileProbe->updateProbe(1, end);
 					m_profileChart = new iAChartWidget(nullptr, "Greyvalue", "Distance");
 					m_dwProfile = new iADockWidgetWrapper(m_profileChart, "Profile Plot", "Profile");
-					child->splitDockWidget(child->renderDockWidget(), m_dwProfile, Qt::Horizontal);
+					child->splitDockWidget(child->renderDockWidget(), m_dwProfile, Qt::Vertical);
 				}
-				setProfilePlot();
+				updateProfilePlot();
 				m_dwProfile->setVisible(checked);
 			})
 	};
@@ -529,7 +533,7 @@ iATransferFunction* iAVolumeViewer::transfer()
 	return m_transfer.get();
 }
 
-void iAVolumeViewer::setProfilePlot()
+void iAVolumeViewer::updateProfilePlot()
 {
 	const QColor ProfileColor(QApplication::palette().color(QPalette::Text));
 	m_profileProbe->updateData();
