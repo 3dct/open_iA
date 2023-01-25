@@ -241,7 +241,7 @@ public slots:
 	//! Toggle the possibility to move start and end point of the profile
 	void setProfileHandlesOn(bool isOn);
 	//! Sets coordinates for line profile
-	bool setProfilePoint(int pointInd, double* Pos);
+	bool setProfilePoint(int pointIdx, double const* globalPos);
 
 	//! Adds a new spline point to the end of the spline curve.
 	void addPoint(double x, double y, double z);
@@ -416,7 +416,7 @@ private:
 	void updateRawProfile(double posY);
 
 	//! Sets coordinates for line profile
-	bool setProfilePointWithClamp(int pointInd, double* Pos, bool doClamp);
+	bool setProfilePointWithClamp(int pointIdx, double const* globalPos, bool doClamp);
 	void setLinearInterpolation(bool enabled);
 };
 

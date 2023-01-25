@@ -177,7 +177,7 @@ signals:
 public slots:
 	void mouseRightButtonReleasedSlot();
 	void mouseLeftButtonReleasedSlot();
-	void setProfilePoint(int pointIndex, double * coords);
+	void setProfilePoint(int pointIndex, double const * coords);
 	void setProfileHandlesOn(bool isOn);
 
 private:

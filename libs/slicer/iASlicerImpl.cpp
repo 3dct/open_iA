@@ -2236,19 +2236,20 @@ void iASlicerImpl::updateRawProfile(double posY)
 	renderWindow()->GetInteractor()->Render();
 }
 
-bool iASlicerImpl::setProfilePoint(int pointInd, double* Pos)
+bool iASlicerImpl::setProfilePoint(int pointIdx, double const* globalPos)
 {
-	return setProfilePointWithClamp(pointInd, Pos, false);
+	return setProfilePointWithClamp(pointIdx, globalPos, false);
 }
 
-bool iASlicerImpl::setProfilePointWithClamp(int pointInd, double * Pos, bool doClamp)
+bool iASlicerImpl::setProfilePointWithClamp(int pointIdx, double const * globalPos, bool doClamp)
 {
 	if (!m_decorations || !hasChannel(0))
 	{
 		return false;
 	}
-	// TODO: slice profile on selected/current channel
+	// TODO NEWIO: slice profile on selected/current channel
 	auto imageData = channel(0)->input();
+	double newPos[3];
 	if (doClamp)
 	{
 		double * spacing = imageData->GetSpacing();
@@ -2256,11 +2257,15 @@ bool iASlicerImpl::setProfilePointWithClamp(int pointInd, double * Pos, bool doC
 		int * dimensions = imageData->GetDimensions();
 		for (int i = 0; i < 3; ++i)
 		{
-			Pos[i] = clamp(origin[i], origin[i] + (dimensions[i] - 1) * spacing[i], Pos[i]);
+			newPos[i] = clamp(origin[i], origin[i] + (dimensions[i] - 1) * spacing[i], globalPos[i]);
 		}
 	}
-	double profileCoord2d[2] = { Pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], Pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)] };
-	if (!m_profileHandles->setup(pointInd, Pos, profileCoord2d, channel(0)->output()))
+	else
+	{
+		std::copy(globalPos, globalPos + 3, newPos);
+	}
+	double profileCoord2d[2] = { newPos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], newPos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)] };
+	if (!m_profileHandles->setup(pointIdx, newPos, profileCoord2d, channel(0)->output()))
 	{
 		return false;
 	}

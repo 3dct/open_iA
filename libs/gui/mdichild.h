@@ -103,15 +103,14 @@ public:
 	bool applyPreferences(iAPreferences const & p);
 	void applyViewerPreferences();
 	bool applyRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs) override;
-	bool editSlicerSettings(iASlicerSettings const & slicerSettings);
+	void applySlicerSettings(iASlicerSettings const & ss);
 
 	void toggleSnakeSlicer(bool isEnabled);
 	bool isSnakeSlicerToggled() const;
 	void toggleSliceProfile(bool isEnabled);
 	bool isSliceProfileEnabled() const;
-	void enableSlicerInteraction(bool b);
+	void setProfilePoints(double const* start, double const* end) override;
 	void setRenderSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
-	void setupSlicers(iASlicerSettings const & ss, bool init);
 	void adapt3DViewDisplay();
 	iARenderSettings const & renderSettings() const override;
 	iAVolumeSettings const & volumeSettings() const override;

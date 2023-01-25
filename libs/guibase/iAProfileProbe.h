@@ -22,6 +22,7 @@
 
 #include <vtkImageData.h>
 #include <vtkLineSource.h>
+#include <vtkPointData.h>
 #include <vtkProbeFilter.h>
 
 struct iAProfileProbe
@@ -60,10 +61,17 @@ public:
 		}
 		return sqrtl(sqrLen);
 	}
-
-public:
+	vtkIdType numberOfPoints() const
+	{
+		return m_profileData->GetNumberOfPoints();
+	}
+	vtkDataArray* scalars() const
+	{
+		return m_profileData->GetPointData()->GetScalars();
+	}
+private:
 	vtkSmartPointer<vtkLineSource> m_lineSrc;
 	vtkSmartPointer<vtkProbeFilter> m_probe;
-	vtkPolyData *m_profileData;
+	vtkPolyData* m_profileData;
 	double m_positions[2][3];
 };

@@ -164,6 +164,26 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 		});
 	m_renderer->setAxesTransform(m_axesTransform);
 
+	// connect signals for updating other views of profile point changes and changes in snake slicers mode:
+	for (int i = 0; i < 3; ++i)
+	{
+		connect(m_slicer[i], &iASlicerImpl::profilePointChanged, this, &iAMdiChild::profilePointChanged);
+		connect(m_slicer[i], &iASlicerImpl::profilePointChanged, m_renderer, &iARendererImpl::setProfilePoint);
+		connect(m_slicer[i], &iASlicer::magicLensToggled, this, &MdiChild::toggleMagicLens2D);
+		for (int j = 0; j < 3; ++j)
+		{
+			if (i != j)	// connect each slicer's signals to the other slicer's slots, except for its own:
+			{
+				connect(m_slicer[i], &iASlicerImpl::addedPoint, m_slicer[j], &iASlicerImpl::addPoint);
+				connect(m_slicer[i], &iASlicerImpl::movedPoint, m_slicer[j], &iASlicerImpl::movePoint);
+				connect(m_slicer[i], &iASlicerImpl::profilePointChanged, m_slicer[j], &iASlicerImpl::setProfilePoint);
+				connect(m_slicer[i], &iASlicerImpl::switchedMode, m_slicer[j], &iASlicerImpl::switchInteractionMode);
+				connect(m_slicer[i], &iASlicerImpl::deletedSnakeLine, m_slicer[j], &iASlicerImpl::deleteSnakeLine);
+				connect(m_slicer[i], &iASlicerImpl::deselectedPoint, m_slicer[j], &iASlicerImpl::deselectPoint);
+			}
+		}
+	}
+
 	applyViewerPreferences();
 	connectSignalsToSlots();
 	connect(mainWnd, &MainWindow::fullScreenToggled, this, &MdiChild::toggleFullScreen);
@@ -1115,7 +1135,7 @@ void MdiChild::resetLayout()
 	m_isSmthMaximized = false;
 }
 
-void MdiChild::setupSlicers(iASlicerSettings const& ss, bool init)
+void MdiChild::applySlicerSettings(iASlicerSettings const& ss)
 {
 	// TODO: separate applying slicer setting from slicer set up
 	m_slicerSettings = ss;
@@ -1141,28 +1161,7 @@ void MdiChild::setupSlicers(iASlicerSettings const& ss, bool init)
 		}
 		m_slicer[s]->setup(settings);
 	}
-
-	if (init)
-	{
-		// connect signals for making slicers update other views in snake slicers mode:
-		for (int i = 0; i < 3; ++i)
-		{
-			connect(m_slicer[i], &iASlicerImpl::profilePointChanged, m_renderer, &iARendererImpl::setProfilePoint);
-			connect(m_slicer[i], &iASlicer::magicLensToggled, this, &MdiChild::toggleMagicLens2D);
-			for (int j = 0; j < 3; ++j)
-			{
-				if (i != j)	// connect each slicer's signals to the other slicer's slots, except for its own:
-				{
-					connect(m_slicer[i], &iASlicerImpl::addedPoint, m_slicer[j], &iASlicerImpl::addPoint);
-					connect(m_slicer[i], &iASlicerImpl::movedPoint, m_slicer[j], &iASlicerImpl::movePoint);
-					connect(m_slicer[i], &iASlicerImpl::profilePointChanged, m_slicer[j], &iASlicerImpl::setProfilePoint);
-					connect(m_slicer[i], &iASlicerImpl::switchedMode, m_slicer[j], &iASlicerImpl::switchInteractionMode);
-					connect(m_slicer[i], &iASlicerImpl::deletedSnakeLine, m_slicer[j], &iASlicerImpl::deleteSnakeLine);
-					connect(m_slicer[i], &iASlicerImpl::deselectedPoint, m_slicer[j], &iASlicerImpl::deselectPoint);
-				}
-			}
-		}
-	}
+	emit slicerSettingsChanged();
 }
 
 bool MdiChild::applyRendererSettings(iARenderSettings const& rs, iAVolumeSettings const& vs)
@@ -1194,17 +1193,6 @@ iASlicerSettings const& MdiChild::slicerSettings() const
 iAPreferences const& MdiChild::preferences() const
 {
 	return m_preferences;
-}
-
-bool MdiChild::editSlicerSettings(iASlicerSettings const& slicerSettings)
-{
-	setupSlicers(slicerSettings, false);
-	for (int s = 0; s < 3; ++s)
-	{
-		m_slicer[s]->show();
-	}
-	emit slicerSettingsChanged();
-	return true;
 }
 
 void MdiChild::toggleSnakeSlicer(bool isChecked)
@@ -1330,6 +1318,17 @@ void MdiChild::toggleSliceProfile(bool isChecked)
 bool MdiChild::isSliceProfileEnabled() const
 {
 	return m_isSliceProfileEnabled;
+}
+
+void MdiChild::setProfilePoints(double const* start, double const* end)
+{
+	for (int s = 0; s < 3; ++s)
+	{
+		m_slicer[s]->setProfilePoint(0, start);
+		m_slicer[s]->setProfilePoint(1, end);
+	}
+	m_renderer->setProfilePoint(0, start);
+	m_renderer->setProfilePoint(1, end);
 }
 
 void MdiChild::toggleMagicLens2D(bool isEnabled)

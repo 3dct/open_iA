@@ -240,6 +240,9 @@ public:
 	//! a crutch for letting interactor know which dataset is to be moved and synced across slicers
 	virtual void setDataSetMovable(size_t dataSetIdx) = 0;
 
+	//! called to set profile point positions in renderer and slicer
+	virtual void setProfilePoints(double const* start, double const* end) = 0;
+
 signals:
 	void closed();
 	//! @deprecated. no direct replacement
@@ -263,6 +266,9 @@ signals:
 
 	//! emitted whenever the magic lens has been toggled on or off
 	void magicLensToggled(bool isToggled);
+
+	//! emitted whenever one of the profile points changes
+	void profilePointChanged(int pointIdx, double* globalPos);
 
 	// {
 	// TODO NEWIO: move to some separate dataset list manager class?

@@ -32,6 +32,7 @@
 class iAcharts_API iAXYPlotData : public iAPlotData
 {
 public:
+	iAXYPlotData(QString const& name, iAValueType type, size_t reservedSize);
 	//! @{
 	//! overriding methods from iAPlotData
 	DataType xValue(size_t idx) const override;
@@ -48,7 +49,6 @@ public:
 	static QSharedPointer<iAXYPlotData> create(QString const& name, iAValueType type, size_t reservedSize);
 
 private:
-	iAXYPlotData(QString const& name, iAValueType type, size_t reservedSize);
 	std::vector<std::pair<DataType, DataType>> m_values;
 	DataType m_xBounds[2], m_yBounds[2];
 };

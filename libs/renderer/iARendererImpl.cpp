@@ -808,7 +808,7 @@ void iARendererImpl::mouseLeftButtonReleasedSlot()
 	m_interactor->InvokeEvent(vtkCommand::LeftButtonReleaseEvent);
 }
 
-void iARendererImpl::setProfilePoint(int pointIndex, double * coords)
+void iARendererImpl::setProfilePoint(int pointIndex, double const * coords)
 {
 	m_profileLine[0].setPoint(pointIndex, coords[0], coords[1], coords[2]);
 	m_profileLine[0].mapper->Update();

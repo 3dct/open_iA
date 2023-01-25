@@ -28,11 +28,13 @@
 
 #include <QSharedPointer>
 
+class iAChartWidget;
 class iAChartWithFunctionsWidget;
 class iADockWidgetWrapper;
 class iAImageData;
 class iAHistogramData;
 class iAPreferences;
+struct iAProfileProbe;
 class iAProgress;
 class iASlicer;
 class iATransferFunction;
@@ -55,20 +57,32 @@ public:
 	void setPickable(bool pickable) override;
 	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren) override;
 	QVector<QAction*> additionalActions(iAMdiChild* child) override;
-	void setSlicerVisibility(bool visible);
 	iAChartWithFunctionsWidget* histogram();
 	QSharedPointer<iAHistogramData> histogramData() const;  // should return a const raw pointer or reference
 	iATransferFunction* transfer();
 	void removeFromSlicer();
 private:
 	void applyAttributes(QVariantMap const& values) override;
+	void setProfilePlot();
+
 	std::shared_ptr<iATransferFunctionOwner> m_transfer;
-	QSharedPointer<iAHistogramData> m_histogramData;
-	iAChartWithFunctionsWidget* m_histogram;
-	std::shared_ptr<iADockWidgetWrapper> m_histogramDW;
-	QAction* m_histogramAction;
-	QString m_imgStatistics;
+
+	//! @{ slicer
 	uint m_slicerChannelID;
 	std::array<iASlicer*, 3> m_slicer;
+	//! @}
+	//! @{ histogram:
+	QSharedPointer<iAHistogramData> m_histogramData;
+	iAChartWithFunctionsWidget* m_histogram;
+	iADockWidgetWrapper* m_dwHistogram;
+	QAction* m_histogramAction;
+	//! @}
+
+	//! @{ line profile
+	iAChartWidget* m_profileChart;
+	std::shared_ptr<iAProfileProbe> m_profileProbe;
+	iADockWidgetWrapper* m_dwProfile;
+	//! @}
+	QString m_imgStatistics;
 	std::shared_ptr<iAVolRenderer> m_renderer;
 };

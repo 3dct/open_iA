@@ -35,6 +35,7 @@
 #include "iAMainWindow.h"
 #include "iAMdiChild.h"
 #include "iAPreferences.h"
+#include "iAProfileProbe.h"
 #include "iARenderer.h"
 #include "iARunAsync.h"
 #include "iASlicer.h"
@@ -46,6 +47,7 @@
 #include "iAChartFunctionTransfer.h"
 #include "iAHistogramData.h"
 #include "iAPlotTypes.h"
+#include "iAXYPlotData.h"
 
 #include <vtkCallbackCommand.h>
 #include <vtkColorTransferFunction.h>
@@ -262,9 +264,10 @@ private:
 
 iAVolumeViewer::iAVolumeViewer(iADataSet * dataSet) :
 	iADataSetViewer(dataSet),
+	m_slicerChannelID(NotExistingChannel),
 	m_histogram(nullptr),
-	m_imgStatistics("Computing..."),
-	m_slicerChannelID(NotExistingChannel)
+	m_profileChart(nullptr),
+	m_imgStatistics("Computing...")
 {
 }
 
@@ -342,12 +345,12 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	//     - better unique widget name!
 	//     - option to put combined histograms of multiple datasets into one view / hide histograms by default
 	static int histoNum = -1;
-	m_histogramDW = std::make_shared<iADockWidgetWrapper>(m_histogram, histoName, QString("Histogram%1").arg(++histoNum));
-	connect(m_histogramDW.get(), &QDockWidget::visibilityChanged, this, [this](bool visible) {
+	m_dwHistogram = new iADockWidgetWrapper(m_histogram, histoName, QString("Histogram%1").arg(++histoNum));
+	connect(m_dwHistogram, &QDockWidget::visibilityChanged, this, [this](bool visible) {
 		m_histogramAction->setChecked(visible);
 	});
-	child->splitDockWidget(child->renderDockWidget(), m_histogramDW.get(), Qt::Vertical);
-	m_histogramDW->hide();
+	child->splitDockWidget(child->renderDockWidget(), m_dwHistogram, Qt::Vertical);
+	m_dwHistogram->hide();
 	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this, [this]() {
 		m_histogram->plots()[0]->setColor(QApplication::palette().color(QPalette::Shadow));
 	});
@@ -384,7 +387,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			}
 		});
 
-	// slicer
+	// slicer / profile
 	m_slicerChannelID = child->createChannel();
 	auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
 	for (int s = 0; s < 3; ++s)
@@ -393,6 +396,12 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 		child->slicer(s)->addChannel(m_slicerChannelID, iAChannelData(m_dataSet->name(), img, m_transfer->colorTF()), true);
 		child->slicer(s)->resetCamera();
 	}
+	connect(child, &iAMdiChild::profilePointChanged, this,
+		[this](int pointIdx, double const* globalPos)
+		{
+			m_profileProbe->updateProbe(pointIdx, globalPos);
+			setProfilePlot();
+		});
 }
 
 QString iAVolumeViewer::information() const
@@ -405,7 +414,7 @@ void iAVolumeViewer::applyAttributes(QVariantMap const& values)
 	Q_UNUSED(values);
 	auto title = "Histogram " + m_dataSet->name();
 	m_histogram->setXCaption(title);
-	m_histogramDW->setWindowTitle(title);
+	m_dwHistogram->setWindowTitle(title);
 }
 
 void iAVolumeViewer::slicerRegionSelected(double minVal, double maxVal, uint channelID)
@@ -457,25 +466,46 @@ QVector<QAction*> iAVolumeViewer::additionalActions(iAMdiChild* child)
 	m_histogramAction = createToggleAction("Histogram", "histogram", false,
 	[this, child](bool checked)
 	{
-		m_histogramDW->setVisible(checked);
+		m_dwHistogram->setVisible(checked);
 	});
 	return {
 		createToggleAction("2D", "2d", true,
 		[this, child](bool checked)
 		{
-			setSlicerVisibility(checked);
+			for (int s = 0; s < 3; ++s)
+			{
+				m_slicer[s]->enableChannel(m_slicerChannelID, checked);
+			}
 			child->updateSlicers();
 		}),
-		m_histogramAction
+		m_histogramAction,
+		createToggleAction("Slice Profile", "profile", false,
+			[this, child](bool checked)
+			{
+				if (!m_profileChart)
+				{
+					auto img = dynamic_cast<iAImageData*>(m_dataSet)->vtkImage();
+					m_profileProbe = std::make_shared<iAProfileProbe>(img);
+					auto const start = img->GetOrigin();
+					auto const dim = img->GetDimensions();
+					auto const spacing = img->GetSpacing();
+					double end[3];
+					for (int i = 0; i < 3; ++i)
+					{
+						end[i] = start[i] + (dim[i] - 1) * spacing[i];
+					}
+					// TODO NEWIO: check if we can do this differently and if we should maybe not do this if this was already set when the profile of another dataset was initialized!
+					child->setProfilePoints(start, end);
+					m_profileProbe->updateProbe(0, start);
+					m_profileProbe->updateProbe(1, end);
+					m_profileChart = new iAChartWidget(nullptr, "Greyvalue", "Distance");
+					m_dwProfile = new iADockWidgetWrapper(m_profileChart, "Profile Plot", "Profile");
+					child->splitDockWidget(child->renderDockWidget(), m_dwProfile, Qt::Horizontal);
+				}
+				setProfilePlot();
+				m_dwProfile->setVisible(checked);
+			})
 	};
-}
-
-void iAVolumeViewer::setSlicerVisibility(bool visible)
-{
-	for (int s = 0; s < 3; ++s)
-	{
-		m_slicer[s]->enableChannel(m_slicerChannelID, visible);
-	}
 }
 
 QSharedPointer<iAHistogramData> iAVolumeViewer::histogramData() const
@@ -491,4 +521,23 @@ iAChartWithFunctionsWidget* iAVolumeViewer::histogram()
 iATransferFunction* iAVolumeViewer::transfer()
 {
 	return m_transfer.get();
+}
+
+void iAVolumeViewer::setProfilePlot()
+{
+	const QColor ProfileColor(QApplication::palette().color(QPalette::Text));
+	m_profileProbe->updateData();
+	m_profileChart->clearPlots();
+	auto scalars = m_profileProbe->scalars();
+	auto profilePlotData = QSharedPointer<iAXYPlotData>::create(
+		QString("Profile %1").arg(m_dataSet->name()),
+		iAValueType::Continuous,
+		m_profileProbe->numberOfPoints());
+	double stepWidth = m_profileProbe->rayLength() / (m_profileProbe->numberOfPoints()-1) ;
+	for (vtkIdType p = 0; p < m_profileProbe->numberOfPoints(); ++p)
+	{
+		profilePlotData->addValue(p * stepWidth, scalars->GetTuple1(p) );
+	}
+	m_profileChart->addPlot(QSharedPointer<iALinePlot>::create(profilePlotData, ProfileColor));
+	m_profileChart->update();
 }

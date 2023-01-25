@@ -37,7 +37,6 @@
 #include <iAPlotTypes.h>
 #include <iAScatterPlotWidget.h>
 #include <iASPLOMData.h>
-#include <iAXYPlotData.h>
 
 #include <QAction>
 #include <QApplication>

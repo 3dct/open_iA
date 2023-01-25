@@ -775,8 +775,7 @@ void MainWindow::loadSlicerSettings(QDomNode slicerSettingsNode)
 	{
 		m_defaultSlicerSettings.BackgroundColor[s] = attributes.namedItem(QString("slicerBgColor%1").arg(s)).nodeValue();
 	}
-
-	activeMDI()->editSlicerSettings(m_defaultSlicerSettings);
+	activeMDI()->applySlicerSettings(m_defaultSlicerSettings);
 }
 
 QList<QString> MainWindow::mdiWindowTitles()
@@ -1123,7 +1122,7 @@ void MainWindow::slicerSettings()
 
 	if (activeMdiChild())
 	{
-		activeMDI()->editSlicerSettings(m_defaultSlicerSettings);
+		activeMDI()->applySlicerSettings(m_defaultSlicerSettings);
 	}
 	LOG(lvlInfo, "Changed slicer settings");
 }
@@ -1555,7 +1554,7 @@ iAMdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	}
 	child->initializeViews();
 	child->applyRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
-	child->setupSlicers(m_defaultSlicerSettings, false);
+	child->applySlicerSettings(m_defaultSlicerSettings);
 	connect(child, &MdiChild::closed, this, &MainWindow::childClosed);
 	return child;
 }
