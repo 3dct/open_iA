@@ -65,8 +65,8 @@ public:
 	virtual iAMagicLens* magicLens() = 0;
 	//! @}
 
-	virtual void disableInteractor() = 0;
-	virtual void enableInteractor() = 0;  //also updates widget
+	virtual void enableInteractor(bool enabled) = 0;  //also updates widget
+	virtual bool isInteractorEnabled() const = 0;
 
 	//! @{ management of channels - each channel represents one "layer"
 	virtual void addChannel(uint id, iAChannelData const& chData, bool enable) = 0;

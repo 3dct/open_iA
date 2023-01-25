@@ -346,12 +346,14 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	//     - option to put combined histograms of multiple datasets into one view / hide histograms by default
 	static int histoNum = -1;
 	m_dwHistogram = new iADockWidgetWrapper(m_histogram, histoName, QString("Histogram%1").arg(++histoNum));
-	connect(m_dwHistogram, &QDockWidget::visibilityChanged, this, [this](bool visible) {
+	connect(m_dwHistogram, &QDockWidget::visibilityChanged, this, [this](bool visible)
+	{
 		m_histogramAction->setChecked(visible);
 	});
 	child->splitDockWidget(child->renderDockWidget(), m_dwHistogram, Qt::Vertical);
 	m_dwHistogram->hide();
-	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this, [this]() {
+	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this, [this]()
+	{
 		m_histogram->plots()[0]->setColor(QApplication::palette().color(QPalette::Shadow));
 	});
 	// TODO NEWIO: do we need to call what previously was iAMdiChild::changeTransferFunction ?

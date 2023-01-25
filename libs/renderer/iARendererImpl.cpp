@@ -31,6 +31,7 @@
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
 #include "iASlicerMode.h"
+#include <iAStringHelper.h>
 #include "iAToolsVTK.h"    // for setCamPos
 
 #include <vtkActor.h>
@@ -868,8 +869,22 @@ void iARendererImpl::addRenderer(vtkRenderer* renderer)
 	m_renWin->AddRenderer(renderer);
 }
 
-void iARendererImpl::disableInteractor() { m_interactor->Disable(); }
-void iARendererImpl::enableInteractor()  { m_interactor->ReInitialize(); }
+void iARendererImpl::enableInteractor(bool enable)
+{
+	if (enable)
+	{
+		m_interactor->ReInitialize();
+	}
+	else
+	{
+		m_interactor->Disable();
+	}
+	LOG(lvlInfo, tr("Renderer interaction %1.").arg(iAConverter<bool>::toString(enable)));
+}
+bool iARendererImpl::isInteractorEnabled() const
+{
+	return m_interactor->GetEnabled();
+}
 vtkPlane* iARendererImpl::plane1() { return m_plane1; };
 vtkPlane* iARendererImpl::plane2() { return m_plane2; };
 vtkPlane* iARendererImpl::plane3() { return m_plane3; };

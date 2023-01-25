@@ -58,7 +58,7 @@ dlg_slicer::dlg_slicer(iASlicerImpl* slicer):
 	connect(pbSave, &QToolButton::clicked, slicer, &iASlicer::saveAsImage);
 	connect(pbSaveStack, &QToolButton::clicked, slicer, &iASlicerImpl::saveImageStack);
 	connect(pbMov, &QToolButton::clicked, slicer, &iASlicer::saveMovie);
-	connect(pbStop, &QToolButton::clicked, slicer, &iASlicerImpl::toggleInteractorState);
+	connect(pbStop, &QToolButton::clicked, slicer, [slicer]() { slicer->enableInteractor(!slicer->isInteractorEnabled()); });
 	connect(dsbRotation, QOverload<double>::of(&QDoubleSpinBox::valueChanged), slicer, &iASlicer::rotateSlice);
 	connect(sbSlice, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_slicer::setSliceSpinBox);
 	connect(verticalScrollBar, &QSlider::valueChanged, this, &dlg_slicer::setSliceScrollBar);

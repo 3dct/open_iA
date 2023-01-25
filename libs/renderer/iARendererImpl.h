@@ -79,8 +79,8 @@ public:
 	//! @}
 
 	void setDefaultInteractor() override;
-	void disableInteractor();
-	void enableInteractor();
+	void enableInteractor(bool enable);
+	bool isInteractorEnabled() const;
 	void setAxesTransform(vtkTransform* transform) override;
 
 	void setPlaneNormals( vtkTransform *tr ) ;

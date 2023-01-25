@@ -164,10 +164,6 @@ QMenuBar
 	{
 		background-color: rgba(90, 90, 90, 255);
 	}
-	QMenuBar::item:disabled
-	{
-		background-color: rgba(70, 70, 70, 255);
-	}
 /****************************************************************************
 QMenu
 ****************************************************************************/
@@ -831,7 +827,8 @@ Disabled Inputs
 	QSpinBox:disabled,
 	QDoubleSpinBox:disabled,
 	QPushButton:disabled,
-	QMenu::item:disabled
+	QMenu::item:disabled,
+	QMenuBar::item:disabled
 	{
 		color: rgba(115, 115, 115, 255);
 	}

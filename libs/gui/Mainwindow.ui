@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1362</width>
+    <width>1117</width>
     <height>600</height>
    </rect>
   </property>
@@ -54,7 +54,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1362</width>
+     <width>1117</width>
      <height>22</height>
     </rect>
    </property>
@@ -84,6 +84,9 @@
     <addaction name="actionLoadSettings"/>
     <addaction name="actionSaveSettings"/>
     <addaction name="separator"/>
+    <addaction name="actionClose"/>
+    <addaction name="actionCloseAll"/>
+    <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
@@ -105,6 +108,7 @@
     <addaction name="actionRendererSettings"/>
     <addaction name="actionSlicerSettings"/>
     <addaction name="separator"/>
+    <addaction name="actionEditProfilePoints"/>
     <addaction name="menuInteractionMode"/>
    </widget>
    <widget class="QMenu" name="menuFilters">
@@ -144,7 +148,7 @@
       <string>Views</string>
      </property>
     </widget>
-    <widget class="QMenu" name="menuMaximize_View">
+    <widget class="QMenu" name="menuFocus">
      <property name="title">
       <string>Focus</string>
      </property>
@@ -159,6 +163,7 @@
       <string>3D Renderer</string>
      </property>
      <addaction name="actionMagicLens3D"/>
+     <addaction name="actionToggleRendererInteraction"/>
      <addaction name="actionSyncCamera"/>
      <addaction name="separator"/>
      <addaction name="actionViewXDirectionInRaycaster"/>
@@ -176,14 +181,13 @@
      <property name="title">
       <string>Slicer</string>
      </property>
+     <addaction name="actionMagicLens2D"/>
      <addaction name="actionToggleSlicerInteraction"/>
      <addaction name="actionRawProfile"/>
-     <addaction name="actionEditProfilePoints"/>
-     <addaction name="actionMagicLens2D"/>
      <addaction name="actionSnakeSlicer"/>
     </widget>
     <addaction name="menuDockWidgets"/>
-    <addaction name="menuMaximize_View"/>
+    <addaction name="menuFocus"/>
     <addaction name="menuLayout"/>
     <addaction name="separator"/>
     <addaction name="actionLinkViews"/>
@@ -192,9 +196,6 @@
     <addaction name="menuSlicer"/>
     <addaction name="menu3D_Renderer"/>
     <addaction name="separator"/>
-    <addaction name="actionShowToolbar"/>
-    <addaction name="actionFullScreenMode"/>
-    <addaction name="actionShowMenu"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="title">
@@ -212,13 +213,13 @@
     <addaction name="actionNextWindow"/>
     <addaction name="actionPrevWindow"/>
     <addaction name="separator"/>
-    <addaction name="actionClose"/>
-    <addaction name="actionCloseAll"/>
+    <addaction name="actionFullScreenMode"/>
+    <addaction name="actionShowMenu"/>
+    <addaction name="actionShowToolbar"/>
     <addaction name="separator"/>
     <addaction name="actionOpenLogOnNewMessage"/>
     <addaction name="separator"/>
     <addaction name="actionOpenListOnAddedJob"/>
-    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -551,7 +552,7 @@
     <string>Snake Slicer</string>
    </property>
   </action>
-  <action name="actionToggleSlicerInteraction">
+  <action name="actionToggleRendererInteraction">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -561,8 +562,16 @@
    <property name="text">
     <string>Enable Interaction</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl+Alt+I</string>
+  </action>
+  <action name="actionToggleSlicerInteraction">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable Interaction</string>
    </property>
   </action>
   <action name="actionViewXDirectionInRaycaster">

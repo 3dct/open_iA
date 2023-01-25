@@ -172,7 +172,7 @@ public:
 	virtual bool isVolumeDataLoaded() const = 0;
 
 	//! apply the given (3D) renderer settings
-	virtual bool applyRendererSettings(iARenderSettings const& rs, iAVolumeSettings const& vs) = 0;
+	virtual void applyRendererSettings(iARenderSettings const& rs, iAVolumeSettings const& vs) = 0;
 	//! Apply settings to the 3D renderer of the dataset with given index (the given map can also contain a subset of the list of available render parameters, the rest will be left at default)
 	virtual void applyRenderSettings(size_t dataSetIdx, QVariantMap const& renderSettings) = 0;
 

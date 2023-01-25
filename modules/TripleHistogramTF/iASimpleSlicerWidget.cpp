@@ -97,7 +97,8 @@ void iASimpleSlicerWidget::changeData(vtkImageData* imageData, iATransferFunctio
 {
 	vtkColorTransferFunction* colorFunction = tf->colorTF();
 	m_slicer->addChannel(0, iAChannelData(name, imageData, colorFunction), true);
-	m_slicer->disableInteractor();
+	// TODO ENWIO: Check
+	//m_slicer->enableInteractor(false);
 
 	if (!m_enableInteraction)
 	{

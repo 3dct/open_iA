@@ -433,20 +433,6 @@ iASlicerImpl::~iASlicerImpl()
 	}
 }
 
-void iASlicerImpl::toggleInteractorState()
-{
-	if (m_renWin->GetInteractor()->GetEnabled())
-	{
-		disableInteractor();
-		LOG(lvlInfo, tr("Slicer %1 disabled.").arg(slicerModeString(m_mode)));
-	}
-	else
-	{
-		enableInteractor();
-		LOG(lvlInfo, tr("Slicer %1 enabled.").arg(slicerModeString(m_mode)));
-	}
-}
-
 void iASlicerImpl::setMode( const iASlicerMode mode )
 {
 	m_mode = mode;
@@ -462,15 +448,24 @@ iASlicerMode iASlicerImpl::mode() const
 	return m_mode;
 }
 
-void iASlicerImpl::disableInteractor()
+void iASlicerImpl::enableInteractor(bool enable)
 {
-	m_renWin->GetInteractor()->Disable();
+	if (enable)
+	{
+	// TODO NEWIO: "also updates widget" -> this shouldn't do multiple things at once, check if required
+		m_renWin->GetInteractor()->ReInitialize();
+		update();
+	}
+	else
+	{
+		m_renWin->GetInteractor()->Disable();
+	}
+	LOG(lvlInfo, tr("Slicer %1: interaction %2.").arg(slicerModeString(m_mode)).arg(iAConverter<bool>::toString(enable)));
 }
 
-void iASlicerImpl::enableInteractor()
+bool iASlicerImpl::isInteractorEnabled() const
 {
-	m_renWin->GetInteractor()->ReInitialize();
-	update();
+	return m_renWin->GetInteractor()->GetEnabled();
 }
 
 void iASlicerImpl::update()

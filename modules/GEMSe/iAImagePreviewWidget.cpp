@@ -85,11 +85,7 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 		m_slicer->setCamera(m_commonCamera, false);
 	}
 	m_slicer->update();
-
-	if (!m_enableInteractions)
-	{
-		m_slicer->disableInteractor();
-	}
+	m_slicer->enableInteractor(m_enableInteractions);
 
 	connect(m_slicer, &iASlicer::clicked, this, &iAImagePreviewWidget::clicked);
 	connect(m_slicer, &iASlicer::rightClicked, this, &iAImagePreviewWidget::SlicerRightClicked);

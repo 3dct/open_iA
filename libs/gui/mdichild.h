@@ -100,9 +100,9 @@ public:
 	bool saveNew();
 	void saveVolumeStack();
 
-	bool applyPreferences(iAPreferences const & p);
+	void applyPreferences(iAPreferences const & p);
 	void applyViewerPreferences();
-	bool applyRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs) override;
+	void applyRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs) override;
 	void applySlicerSettings(iASlicerSettings const & ss);
 
 	void toggleSnakeSlicer(bool isEnabled);
@@ -149,6 +149,11 @@ public:
 	QDockWidget* dataInfoDockWidget() override;
 
 	vtkTransform* slicerTransform() override;
+
+	//! return true if interaction is enabled  in renderer, false otherwise
+	bool isRendererInteractionEnabled() const;
+	//! return true if interaction is enabled in all slicers, false otherwise (i.e. if disabled in at least one)
+	bool isSlicerInteractionEnabled() const;
 
 	//! Whether results should be opened in a new window; if false, they replace the content of the current window instead
 	bool resultInNewWindow() const;
@@ -275,6 +280,11 @@ public slots:
 	//! update all dataset views (3D renderer + all 3 axis-aligned slicers)
 	void updateViews() override;
 
+	//! set slicer interaction on / off
+	void enableSlicerInteraction(bool enable);
+	//! set renderer interaction on / off
+	void enableRendererInteraction(bool enable);
+
 	//! @{ @deprecated will be removed soon, see addDataset instead
 	// TODO NEWIO: move volume stack to new tool
 	void setupStackView(bool active = false);
@@ -301,7 +311,6 @@ public slots:
 private slots:
 	void saveRC();
 	void saveMovRC();
-	void toggleRendererInteraction();
 	void setSlice(int mode, int s);
 	void slicerRotationChanged();
 	void updatePositionMarker(double x, double y, double z, int mode);

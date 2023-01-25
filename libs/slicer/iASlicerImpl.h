@@ -115,8 +115,8 @@ public:
 	iAMagicLens* magicLens() override;
 	//! @}
 
-	void disableInteractor() override;
-	void enableInteractor() override;  //also updates widget
+	void enableInteractor(bool b) override;
+	bool isInteractorEnabled() const  override;
 
 	//! @{ management of channels - each channel represents one "layer"
 	void addChannel(uint id, iAChannelData const& chData, bool enable) override;
@@ -219,8 +219,6 @@ public slots:
 	void saveImageStack();
 	//! Save a movie of a full slice-through of the specimen from top to bottom
 	void saveMovie() override;
-	//! Toggle interactor state of this slicer between enabled/disabled
-	void toggleInteractorState();
 	void setSliceNumber(int sliceNumber) override;
 	void rotateSlice(double angle) override;
 	void setSlabThickness(int thickness);

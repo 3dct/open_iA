@@ -261,7 +261,10 @@ void MdiChild::connectSignalsToSlots()
 	}
 
 	connect(m_dwRenderer->pushMaxRC, &QPushButton::clicked, this, &MdiChild::maximizeRC);
-	connect(m_dwRenderer->pushStopRC, &QPushButton::clicked, this, &MdiChild::toggleRendererInteraction);
+	connect(m_dwRenderer->pushStopRC, &QPushButton::clicked, this, [this]
+	{
+		enableRendererInteraction(!isRendererInteractionEnabled());
+	});
 
 	connect(m_dwRenderer->pushPX,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::PX); });
 	connect(m_dwRenderer->pushPY,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::PY); });
@@ -813,20 +816,6 @@ void MdiChild::setCamPosition(double* camOptions, bool rsParallelProjection)
 	m_renderer->setCamPosition(camOptions, rsParallelProjection);
 }
 
-void MdiChild::toggleRendererInteraction()
-{
-	if (m_renderer->interactor()->GetEnabled())
-	{
-		m_renderer->disableInteractor();
-		LOG(lvlInfo, tr("Renderer disabled."));
-	}
-	else
-	{
-		m_renderer->enableInteractor();
-		LOG(lvlInfo, tr("Renderer enabled."));
-	}
-}
-
 void MdiChild::setSlice(int mode, int s)
 {
 	if (m_snakeSlicer)
@@ -1027,18 +1016,33 @@ void MdiChild::enableSlicerInteraction(bool b)
 {
 	for (int s = 0; s < 3; ++s)
 	{
-		if (b)
-		{
-			m_slicer[s]->enableInteractor();
-		}
-		else
-		{
-			m_slicer[s]->disableInteractor();
-		}
+		m_slicer[s]->enableInteractor(b);
 	}
 }
 
-bool MdiChild::applyPreferences(iAPreferences const& prefs)
+void MdiChild::enableRendererInteraction(bool b)
+{
+	m_renderer->enableInteractor(b);
+}
+
+bool MdiChild::isRendererInteractionEnabled() const
+{
+	return m_renderer->isInteractorEnabled();
+}
+
+bool MdiChild::isSlicerInteractionEnabled() const
+{
+	for (auto s : m_slicer)
+	{
+		if (!s->isInteractorEnabled())
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+void MdiChild::applyPreferences(iAPreferences const& prefs)
 {
 	m_preferences = prefs;
 	applyViewerPreferences();
@@ -1046,7 +1050,6 @@ bool MdiChild::applyPreferences(iAPreferences const& prefs)
 	{
 		updateSlicers();  // for updating MagicLensSize, MagicLensFrameWidth
 	}
-	return true;
 }
 
 void MdiChild::applyViewerPreferences()
@@ -1164,7 +1167,7 @@ void MdiChild::applySlicerSettings(iASlicerSettings const& ss)
 	emit slicerSettingsChanged();
 }
 
-bool MdiChild::applyRendererSettings(iARenderSettings const& rs, iAVolumeSettings const& vs)
+void MdiChild::applyRendererSettings(iARenderSettings const& rs, iAVolumeSettings const& vs)
 {
 	setRenderSettings(rs, vs);
 	applyVolumeSettings();
@@ -1172,7 +1175,6 @@ bool MdiChild::applyRendererSettings(iARenderSettings const& rs, iAVolumeSetting
 	m_dwRenderer->vtkWidgetRC->show();
 	m_dwRenderer->vtkWidgetRC->renderWindow()->Render();
 	emit renderSettingsChanged();
-	return true;
 }
 
 iARenderSettings const& MdiChild::renderSettings() const
