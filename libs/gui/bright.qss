@@ -462,13 +462,13 @@ QTreeWidget
 	QListWidget::item:hover
 	{
 		color: rgba(0, 0, 0, 255);
-		border: 1px solid rgba(135, 135, 135, 255);
+		/*border: 1px solid rgba(135, 135, 135, 255);*/
 	}
 	QListView::item:alternate:hover,
 	QListWidget::item:alternate:hover
 	{
 		color: rgba(0, 0, 0, 255);
-		border: 1px solid rgba(135, 135, 135, 255);
+		/*border: 1px solid rgba(135, 135, 135, 255);*/
 	}
 	QTableView::item:selected,
 	QTableWidget::item:selected

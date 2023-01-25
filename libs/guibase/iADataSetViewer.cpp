@@ -106,7 +106,7 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			m_renderer->setVisible(checked);
 			child->updateRenderer();
 		}));
-	m_actions.push_back(createToggleAction("Box", "box_3d", false,
+	m_actions.push_back(createToggleAction("Box", "box_3d_edge", false,
 		[this, child](bool checked)
 		{
 			m_renderer->setBoundsVisible(checked);

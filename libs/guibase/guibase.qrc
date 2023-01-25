@@ -6,6 +6,8 @@
     <file>images/3d_light.svg</file>
     <file>images/box_3d.svg</file>
     <file>images/box_3d_light.svg</file>
+    <file>images/box_3d_edge.svg</file>
+    <file>images/box_3d_edge_light.svg</file>
     <file>images/edit.svg</file>
     <file>images/edit_light.svg</file>
     <file>images/histogram.svg</file>
@@ -23,6 +25,8 @@
     <file>images/paste.png</file>
     <file>images/plus.svg</file>
     <file>images/plus_light.svg</file>
+    <file>images/profile.svg</file>
+    <file>images/profile_light.svg</file>
     <file>images/save.png</file>
     <file>images/savemov.png</file>
     <file>images/savescreen.png</file>
