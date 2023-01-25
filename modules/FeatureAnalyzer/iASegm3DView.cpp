@@ -201,7 +201,8 @@ iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
 	vtkScalarBarActor *scalarBarActor = scalarBarWgt->GetScalarBarActor();
 	scalarBarActor->SetTitle( "Distance" );
 	scalarBarActor->SetNumberOfLabels( 4 );
-	vtkPolyDataMapper * mapper = m_renderer->polyMapper();
+	// TODO NEWIO: create own polymapper or use datasets!
+	vtkPolyDataMapper* mapper;// = m_renderer->polyMapper();
 	double sr[2];  mapper->GetScalarRange(sr);
 	iALUT::BuildLUT( m_lut, sr, "Diverging blue-gray-red" );
 	m_lut->SetRange( sr ); m_lut->SetTableRange( sr );
@@ -257,7 +258,8 @@ void iASegm3DViewData::SetDataToVisualize( vtkImageData * imgData, vtkPolyData *
 	iATransferFunctionPtrs tf(ctf, otf);
 	if( !m_rendInitialized )
 	{
-		m_renderer->initialize( imgData, polyData );
+		// TODO NEWIO: create own polymapper or use datasets!
+		//m_renderer->initialize( imgData, polyData );
 		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>::create(&tf, imgData);
 		m_volumeRenderer->addTo(m_renderer->renderer());
 		m_volumeRenderer->addBoundingBoxTo(m_renderer->renderer());
@@ -265,12 +267,14 @@ void iASegm3DViewData::SetDataToVisualize( vtkImageData * imgData, vtkPolyData *
 	}
 	else
 	{
-		m_renderer->reInitialize(imgData, polyData);
+		// TODO NEWIO: create own polymapper or use datasets!
+		//m_renderer->reInitialize(imgData, polyData);
 		m_volumeRenderer->setImage(&tf, imgData);
 	}
 	m_wireMapper->SetInputData( polyData );
 	UpdateColorCoding();
-	vtkPolyDataMapper * mapper = m_renderer->polyMapper();
+	// TODO NEWIO: create own polymapper or use datasets!
+	vtkPolyDataMapper* mapper;// = m_renderer->polyMapper();
 	double sr[2];  mapper->GetScalarRange( sr );
 	m_lut->SetRange( sr ); m_lut->SetTableRange( sr );
 	mapper->SetLookupTable( m_lut );
@@ -288,8 +292,9 @@ void iASegm3DViewData::SetPolyData( vtkPolyData * polyData )
 		return;
 	}
 	m_wireMapper->SetInputData( polyData );
-	m_renderer->setPolyData( polyData );
-	vtkPolyDataMapper * mapper = m_renderer->polyMapper();
+	// TODO NEWIO: create own polymapper or use datasets!
+	//m_renderer->setPolyData( polyData );
+	vtkPolyDataMapper* mapper;// = m_renderer->polyMapper();
 	UpdateColorCoding();
 	double sr[2];  mapper->GetScalarRange( sr );
 	m_lut->SetRange( sr ); m_lut->SetTableRange( sr );
@@ -337,13 +342,15 @@ void iASegm3DViewData::LoadAndApplySettings()
 	// m_renderer->GetOutlineActor()->SetVisibility(showBoundingBox);
 	m_volumeRenderer->showBoundingBox(showBoundingBox);
 	m_volumeRenderer->showVolume(showVolume);
-
-	m_renderer->polyActor()->SetVisibility( settings.value( "FeatureAnalyzer/GUI/ShowSurface", false ).toBool() );
+	
+	// TODO NEWIO: create own polymapper or use datasets!
+	//m_renderer->polyActor()->SetVisibility( settings.value( "FeatureAnalyzer/GUI/ShowSurface", false ).toBool() );
 	m_wireActor->SetVisibility( settings.value( "FeatureAnalyzer/GUI/ShowWireframe", false ).toBool() );
 
-	m_renderer->polyActor()->GetProperty()->SetSpecular( 0 );
-	m_renderer->polyActor()->GetProperty()->SetDiffuse( 0 );
-	m_renderer->polyActor()->GetProperty()->SetAmbient( 1 );
+	// TODO NEWIO: create own polymapper or use datasets!
+	//m_renderer->polyActor()->GetProperty()->SetSpecular( 0 );
+	//m_renderer->polyActor()->GetProperty()->SetDiffuse( 0 );
+	//m_renderer->polyActor()->GetProperty()->SetAmbient( 1 );
 	scalarBarWgt->SetEnabled( settings.value( "FeatureAnalyzer/GUI/ShowSurface", false ).toBool() );
 	volScalarBarWgt->SetEnabled( settings.value( "FeatureAnalyzer/GUI/ShowVolume", false ).toBool() );
 
@@ -374,7 +381,8 @@ void iASegm3DViewData::ShowVolume( bool visible )
 
 void iASegm3DViewData::ShowSurface( bool visible )
 {
-	m_renderer->polyActor()->SetVisibility( visible );
+	// TODO NEWIO: create own polymapper or use datasets!
+	//m_renderer->polyActor()->SetVisibility( visible );
 	scalarBarWgt->SetEnabled( visible );
 	m_renderer->update();
 }
@@ -387,7 +395,8 @@ void iASegm3DViewData::ShowWireframe( bool visible )
 
 void iASegm3DViewData::UpdateColorCoding()
 {
-	vtkPolyData * pd = m_renderer->polyMapper()->GetInput();
+	// TODO NEWIO: create own polymapper or use datasets!
+	vtkPolyData* pd;// = m_renderer->polyMapper()->GetInput();
 	if (!pd)
 	{
 		return;
@@ -409,7 +418,8 @@ void iASegm3DViewData::SetSensitivity( double sensitivity )
 
 void iASegm3DViewData::UpdateRange()
 {
-	vtkPolyDataMapper * mapper = m_renderer->polyMapper();
+	// TODO NEWIO: create own polymapper or use datasets!
+	vtkPolyDataMapper* mapper; // = m_renderer->polyMapper();
 	mapper->SetScalarRange( -*m_rangeExt, *m_rangeExt );
 	m_renderer->update();
 }

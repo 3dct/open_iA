@@ -104,7 +104,8 @@ dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget* parent, QDir datasetsDir
 {
 	if (m_mdiChild)
 	{
-		m_mdiChild->renderer()->setAreaPicker();
+		// TODO NEWIO: create area picker here
+		//m_mdiChild->renderer()->setAreaPicker();
 	}
 
 	m_nonlinearScaledPlot->setObjectName("nonlinear");
@@ -371,12 +372,19 @@ void dlg_DynamicVolumeLines::visualizePath()
 	linesPolyData->SetLines(lines);
 	if (m_mdiChild)
 	{
-		m_mdiChild->renderer()->setPolyData(linesPolyData);
-		m_mdiChild->renderer()->polyActor()->GetProperty()->SetInterpolationToFlat();
-		m_mdiChild->renderer()->polyActor()->GetProperty()->SetOpacity(1.0);
-		m_mdiChild->renderer()->polyActor()->GetProperty()->SetColor(1.0, 0.0, 0.0);
-		m_mdiChild->renderer()->polyActor()->GetProperty()->SetLineWidth(4);
-		m_mdiChild->renderer()->polyActor()->GetProperty()->SetRenderLinesAsTubes(true);
+		// TODO NEWIO: check if this works or if we need a member variable for mapper...
+		vtkNew<vtkPolyDataMapper> polyMapper;
+		polyMapper->SetInputData(linesPolyData);
+		vtkNew<vtkActor> polyActor;
+		polyActor->SetMapper(polyMapper);
+		polyActor->GetProperty()->SetInterpolationToFlat();
+		polyActor->GetProperty()->SetOpacity(1.0);
+		polyActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+		polyActor->GetProperty()->SetLineWidth(4);
+		polyActor->GetProperty()->SetRenderLinesAsTubes(true);
+		vtkNew<vtkRenderer> polyRenderer;
+		polyRenderer->AddActor(polyActor);
+		m_mdiChild->renderer()->addRenderer(polyRenderer);
 		m_mdiChild->renderer()->update();
 	}
 }

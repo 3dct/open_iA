@@ -479,7 +479,8 @@ vtkIdType iABoneThickness::selected() const
 void iABoneThickness::set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABoneThicknessChartBar* _pBoneThicknessChartBar, iABoneThicknessTable* _pBoneThicknessTable)
 {
 	m_iARenderer = _iARenderer;
-	m_iARenderer->polyActor()->GetProperty()->SetOpacity(m_dSurfaceOpacity);
+	// TODO NEWIO: datasets?
+	//m_iARenderer->polyActor()->GetProperty()->SetOpacity(m_dSurfaceOpacity);
 
 	m_pPolyData = _pPolyData;
 	m_pPolyData->GetBounds(m_pBound);
@@ -582,7 +583,8 @@ void iABoneThickness::setSurfaceOpacity(const double& _dSurfaceOpacity)
 	m_dSurfaceOpacity = _dSurfaceOpacity;
 
 	setTranslucent();
-	m_iARenderer->polyActor()->GetProperty()->SetOpacity(m_dSurfaceOpacity);
+	// TODO NEWIO: datasets?
+	//m_iARenderer->polyActor()->GetProperty()->SetOpacity(m_dSurfaceOpacity);
 }
 
 void iABoneThickness::setTable(iABoneThicknessTable* _iABoneThicknessTable)

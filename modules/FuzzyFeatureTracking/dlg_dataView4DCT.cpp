@@ -64,7 +64,8 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget* parent, iAVolumeStack* volumeStack):
 		);
 		m_volumeRenderer[i] = new iAVolumeRenderer(&transferFunction, m_volumeStack->volume(i));
 		m_renderers[i]->setAxesTransform(m_axesTransform);
-		m_renderers[i]->initialize(m_volumeStack->volume(i), m_mdiChild->polyData());
+		// TODO NEWIO: get volume stack and polydata dataset in here...
+		//m_renderers[i]->initialize(m_volumeStack->volume(i), m_mdiChild->polyData());
 		m_volumeRenderer[i]->addTo(m_renderers[i]->renderer());
 		bool slicerVisibility[3] = { false, false, false };
 		m_renderers[i]->applySettings(m_mdiChild->renderSettings(), slicerVisibility );
@@ -91,7 +92,8 @@ void dlg_dataView4DCT::update()
 {
 	for(size_t i = 0; i < m_volumeStack->numberOfVolumes(); i++)
 	{
-		m_renderers[i]->reInitialize(m_volumeStack->volume(i), m_mdiChild->polyData());
+		// TODO NEWIO: use datasets / adapted volume stack tool!
+		// m_renderers[i]->reInitialize(m_volumeStack->volume(i), m_mdiChild->polyData());
 		m_renderers[i]->update();
 		m_volumeRenderer[i]->update(); // TODO: VOLUME: check if necessary!
 	}

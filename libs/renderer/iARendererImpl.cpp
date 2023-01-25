@@ -42,7 +42,6 @@
 #include <vtkCallbackCommand.h>
 #include <vtkCamera.h>
 #include <vtkCellArray.h>
-#include <vtkCellLocator.h>
 #include <vtkCubeSource.h>
 #include <vtkDataSetMapper.h>
 #include <vtkExtractSelectedFrustum.h>
@@ -83,151 +82,15 @@ namespace
 	const double IndicatorsLenMultiplier = 1.3;
 }
 
-static void GetCellCenter(vtkUnstructuredGrid* imageData, const unsigned int cellId,
-	double center[3], double spacing[3]);
-
-class iAMouseInteractorStyle : public vtkInteractorStyleRubberBandPick
-{
-public:
-	static iAMouseInteractorStyle* New();
-
-	virtual void OnChar()
-	{
-		switch (this->Interactor->GetKeyCode())
-		{
-		case 's':
-		case 'S':
-		{
-			if (this->CurrentMode == VTKISRBP_ORIENT)
-			{
-				this->CurrentMode = VTKISRBP_SELECT;
-			}
-			else
-			{
-				this->CurrentMode = VTKISRBP_ORIENT;
-			}
-			break;
-		}
-		case 'p':
-		case 'P':
-		{
-			vtkRenderWindowInteractor *rwi = this->Interactor;
-			int *eventPos = rwi->GetEventPosition();
-			FindPokedRenderer(eventPos[0], eventPos[1]);
-			StartPosition[0] = eventPos[0];
-			StartPosition[1] = eventPos[1];
-			EndPosition[0] = eventPos[0];
-			EndPosition[1] = eventPos[1];
-			Pick();
-			break;
-		}
-		default:
-			Superclass::OnChar();
-		}
-	}
-};
-vtkStandardNewMacro(iAMouseInteractorStyle);
-
-void PickCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
-	void* clientData, void* vtkNotUsed(callData))
-{
-	vtkAreaPicker *areaPicker = static_cast<vtkAreaPicker*>(caller);
-	iARendererImpl *ren = static_cast<iARendererImpl*>(clientData);
-	ren->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(ren->selectedActor());
-
-	auto extractSelection = vtkSmartPointer<vtkExtractSelectedFrustum>::New();
-	extractSelection->SetInputData(0, ren->getRenderObserver()->GetImageData());
-	extractSelection->PreserveTopologyOff();
-	extractSelection->SetFrustum(areaPicker->GetFrustum());
-	extractSelection->Update();
-
-	if (!extractSelection->GetOutput()->GetNumberOfElements(vtkUnstructuredGrid::CELL))
-	{
-		ren->emitNoSelectedCells();
-		return;
-	}
-
-	if (ren->interactor()->GetControlKey() &&
-		!ren->interactor()->GetShiftKey())
-	{
-		// Adds cells to selection
-		auto append = vtkSmartPointer<vtkAppendFilter>::New();
-		append->AddInputData(ren->finalSelection());
-		append->AddInputData(extractSelection->GetOutput());
-		append->Update();
-		ren->finalSelection()->ShallowCopy(append->GetOutput());
-	}
-	else if (ren->interactor()->GetControlKey() &&
-		ren->interactor()->GetShiftKey())
-	{
-		// Removes cells from selection
-		auto newfinalSel = vtkSmartPointer<vtkUnstructuredGrid>::New();
-		newfinalSel->Allocate(1, 1);
-		newfinalSel->SetPoints(ren->finalSelection()->GetPoints());
-		auto currSel = vtkSmartPointer<vtkUnstructuredGrid>::New();
-		currSel->ShallowCopy(extractSelection->GetOutput());
-		double f_Cell[] = { 0,0,0 }, c_Cell[] = { 0,0,0 };
-		double* spacing = ren->getRenderObserver()->GetImageData()->GetSpacing();
-
-		for (vtkIdType i = 0; i < ren->finalSelection()->GetNumberOfCells(); ++i)
-		{
-			bool addCell = true;
-			GetCellCenter(ren->finalSelection(), i, f_Cell, spacing);
-			for (vtkIdType j = 0; j < currSel->GetNumberOfCells(); ++j)
-			{
-				GetCellCenter(currSel, j, c_Cell, spacing);
-				if (f_Cell[0] == c_Cell[0] &&
-					f_Cell[1] == c_Cell[1] &&
-					f_Cell[2] == c_Cell[2])
-				{
-					addCell = false;
-					break;
-				}
-			}
-			if (addCell)
-			{
-				newfinalSel->InsertNextCell(ren->finalSelection()->GetCell(i)->GetCellType(),
-					ren->finalSelection()->GetCell(i)->GetPointIds());
-			}
-		}
-		ren->finalSelection()->ShallowCopy(newfinalSel);
-	}
-	else
-	{
-		// New selection
-		ren->finalSelection()->ShallowCopy(extractSelection->GetOutput());
-	}
-	ren->selectedMapper()->Update();
-	ren->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(ren->selectedActor());
-	ren->emitSelectedCells(ren->finalSelection());
-}
-
-void GetCellCenter(vtkUnstructuredGrid* data, const unsigned int cellId, double center[DIM], double spacing[DIM])
-{
-	double pcoords[] = { 0,0,0 };
-	double *weights = new double[data->GetMaxCellSize()];
-	vtkCell* cell = data->GetCell(cellId);
-	int subId = cell->GetParametricCenter(pcoords);
-	cell->EvaluateLocation(subId, pcoords, center, weights);
-	for (int i = 0; i < DIM; ++i)
-	{
-		center[i] = std::floor(center[i] / spacing[i]);
-	}
-}
 
 iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* renderWindow): iARenderer(parent),
 	m_initialized(false),
 	m_renderObserver(nullptr),
-	m_polyData(nullptr),
-	m_imageData(nullptr),
 	m_renWin(renderWindow),
 	m_interactor(renderWindow->GetInteractor()),
 	m_ren(vtkSmartPointer<vtkOpenGLRenderer>::New()),
 	m_labelRen(vtkSmartPointer<vtkOpenGLRenderer>::New()),
 	m_cam(vtkSmartPointer<vtkCamera>::New()),
-	m_cellLocator(vtkSmartPointer<vtkCellLocator>::New()),
-	m_polyMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	m_polyActor(vtkSmartPointer<vtkActor>::New()),
 	m_txtActor(vtkSmartPointer<vtkTextActor>::New()),
 	m_cSource(vtkSmartPointer<vtkCubeSource>::New()),
 	m_cMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
@@ -238,7 +101,6 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_plane1(vtkSmartPointer<vtkPlane>::New()),
 	m_plane2(vtkSmartPointer<vtkPlane>::New()),
 	m_plane3(vtkSmartPointer<vtkPlane>::New()),
-	m_pointPicker(vtkSmartPointer<vtkPicker>::New()),
 	m_moveableAxesActor(vtkSmartPointer<vtkAxesActor>::New()),
 	m_profileLineStartPointSource(vtkSmartPointer<vtkSphereSource>::New()),
 	m_profileLineStartPointMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
@@ -387,17 +249,14 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_orientationMarkerWidget->SetEnabled(1);
 	m_orientationMarkerWidget->InteractiveOff();
 
-	m_renderObserver = iARenderObserver::New(m_ren, m_labelRen, m_interactor, m_pointPicker,
-		m_moveableAxesTransform, m_imageData,
-		m_plane1, m_plane2, m_plane3, m_cellLocator);
+	m_renderObserver = iARenderObserver::New(m_ren, m_interactor,
+		m_moveableAxesTransform, m_plane1, m_plane2, m_plane3);
 	m_interactor->AddObserver(vtkCommand::KeyPressEvent, m_renderObserver, 0.0);
 	m_interactor->AddObserver(vtkCommand::LeftButtonPressEvent, m_renderObserver);
 	m_interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, m_renderObserver);
 	m_interactor->AddObserver(vtkCommand::RightButtonPressEvent, m_renderObserver);
 	m_interactor->AddObserver(vtkCommand::RightButtonReleaseEvent, m_renderObserver);
 
-	m_pointPicker->SetTolerance(0.00005);//spacing[0]/150);
-	m_interactor->SetPicker(m_pointPicker);
 	setDefaultInteractor();
 
 	for (int i = 0; i < NumOfProfileLines; ++i)
@@ -433,34 +292,6 @@ iARendererImpl::~iARendererImpl(void)
 	}
 }
 
-void iARendererImpl::initialize(vtkImageData* ds, vtkPolyData* pd)
-{
-	m_imageData = ds;
-	setPolyData(pd);
-
-	m_polyMapper->SelectColorArray("Colors");
-	m_polyMapper->SetScalarModeToUsePointFieldData();
-	m_polyActor->SetMapper(m_polyMapper);
-	m_polyActor->SetPickable(false);
-	m_polyActor->SetDragable(false);
-	m_ren->AddActor(m_polyActor);
-
-	emit onSetupRenderer();
-}
-
-void iARendererImpl::reInitialize(vtkImageData* ds, vtkPolyData* pd)
-{
-	m_imageData = ds;
-	setPolyData(pd);
-
-	m_renderObserver->ReInitialize(m_ren, m_labelRen, m_interactor, m_pointPicker,
-		m_moveableAxesTransform, ds,
-		m_plane1, m_plane2, m_plane3, m_cellLocator);
-	m_interactor->ReInitialize();
-	emit reInitialized();
-	update();
-}
-
 void iARendererImpl::setSceneBounds(iAAABB aabb)
 {
 	iAVec3d origin(aabb.minCorner());
@@ -494,51 +325,6 @@ void iARendererImpl::setSceneBounds(iAAABB aabb)
 	// TODO: also change camera so that full new bounding box is visible?
 }
 
-void iARendererImpl::setAreaPicker()
-{
-	auto areaPicker = vtkSmartPointer<vtkAreaPicker>::New();
-	m_interactor->SetPicker(areaPicker);
-	auto style = vtkSmartPointer<iAMouseInteractorStyle>::New();
-	m_interactor->SetInteractorStyle(style);
-
-	auto keyPressCallback = vtkSmartPointer<vtkCallbackCommand>::New();
-	keyPressCallback->SetCallback([](vtkObject* /*caller*/, long unsigned int /*eventId*/,
-		void* clientData, void* vtkNotUsed(callData))
-		{
-			iARendererImpl* ren = static_cast<iARendererImpl*>(clientData);
-			auto keyCode = ren->interactor()->GetKeyCode();
-			if (keyCode == 's' || keyCode == 'S')
-			{
-				ren->txtActor()->SetVisibility(!ren->txtActor()->GetVisibility());
-				ren->update();
-			}
-			if (keyCode == 'a' || keyCode == 'A' || keyCode == 'c' || keyCode == 'C')
-			{
-				emit ren->interactionModeChanged(keyCode == 'c' || keyCode == 'C');
-			}
-		});
-	keyPressCallback->SetClientData(this);
-	m_interactor->AddObserver(vtkCommand::KeyReleaseEvent, keyPressCallback, 1.0);
-
-	auto pickCallback = vtkSmartPointer<vtkCallbackCommand>::New();
-	pickCallback->SetCallback(PickCallbackFunction);
-	pickCallback->SetClientData(this);
-	areaPicker->AddObserver(vtkCommand::EndPickEvent, pickCallback, 1.0);
-
-	m_finalSelection = vtkSmartPointer<vtkUnstructuredGrid>::New();
-	m_selectedMapper = vtkSmartPointer<vtkDataSetMapper>::New();
-	m_selectedMapper->SetScalarModeToUseCellData();
-	m_selectedMapper->SetInputData(m_finalSelection);
-	m_selectedActor = vtkSmartPointer<vtkActor>::New();
-	QColor c(255, 0, 0);
-	m_selectedActor->SetMapper(m_selectedMapper);
-	m_selectedActor->GetProperty()->SetColor(c.redF(), c.greenF(), c.blueF());
-	m_selectedActor->GetProperty()->SetRepresentationToWireframe();
-	m_selectedActor->GetProperty()->EdgeVisibilityOn();
-	m_selectedActor->GetProperty()->SetEdgeColor(c.redF(), c.greenF(), c.blueF());
-	m_selectedActor->GetProperty()->SetLineWidth(3);
-}
-
 void iARendererImpl::setDefaultInteractor()
 {
 	m_interactor->SetInteractorStyle(vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New());
@@ -550,10 +336,6 @@ void iARendererImpl::update()
 	{                      // (no more proper redrawing, whole application window turns black on resize)
 		LOG(lvlWarn, "Invalid call to update() on an uninitialized iARendererImpl");
 		return;
-	}
-	if (m_polyData)
-	{
-		m_polyMapper->Update();
 	}
 	m_ren->Render();
 	m_renWin->Render();
@@ -849,21 +631,6 @@ void iARendererImpl::setProfileHandlesOn(bool isOn)
 	m_profileLineEndPointActor->SetVisibility(isOn);
 }
 
-void iARendererImpl::setPolyData(vtkPolyData* pd)
-{
-	m_polyData = pd;
-	if (!m_polyData)
-	{
-		return;
-	}
-	m_polyMapper->SetInputData(m_polyData);
-	m_cellLocator->SetDataSet(m_polyData);
-	if (m_polyData->GetNumberOfCells())
-	{
-		m_cellLocator->BuildLocator();
-	}
-}
-
 void iARendererImpl::addRenderer(vtkRenderer* renderer)
 {
 	m_renWin->AddRenderer(renderer);
@@ -893,9 +660,6 @@ vtkRenderWindowInteractor* iARendererImpl::interactor() { return m_interactor; }
 vtkRenderWindow* iARendererImpl::renderWindow() { return m_renWin; }
 vtkOpenGLRenderer * iARendererImpl::labelRenderer(void) { return m_labelRen; }
 vtkTextActor* iARendererImpl::txtActor() { return m_txtActor; }
-vtkPolyData* iARendererImpl::polyData() { return m_polyData; }
-vtkActor* iARendererImpl::polyActor() { return m_polyActor; };
-vtkPolyDataMapper* iARendererImpl::polyMapper() const { return m_polyMapper; }
 vtkActor* iARendererImpl::selectedActor() { return m_selectedActor; }
 vtkUnstructuredGrid* iARendererImpl::finalSelection() { return m_finalSelection; }
 vtkDataSetMapper* iARendererImpl::selectedMapper() { return m_selectedMapper; }
@@ -970,24 +734,6 @@ void iARendererImpl::setBackgroundColors(iARenderSettings const& settings)
 	m_ren->SetBackground2(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
 	m_ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
 	emit bgColorChanged(bgTop, bgBottom);
-}
-
-void iARendererImpl::emitSelectedCells(vtkUnstructuredGrid* selectedCells)
-{
-	double cell[] = { 0,0,0 };
-	double* spacing = getRenderObserver()->GetImageData()->GetSpacing();
-	auto selCellPoints = vtkSmartPointer<vtkPoints>::New();
-	for (vtkIdType i = 0; i < selectedCells->GetNumberOfCells(); ++i)
-	{
-		GetCellCenter(selectedCells, i, cell, spacing);
-		selCellPoints->InsertNextPoint(cell);
-	}
-	emit cellsSelected(selCellPoints);
-}
-
-void iARendererImpl::emitNoSelectedCells()
-{
-	emit noCellsSelected();
 }
 
 void iARendererImpl::touchStart()

@@ -30,58 +30,46 @@
 #include <vtkPlane.h>
 #include <vtkPointData.h>
 #include <vtkProbeFilter.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindowInteractor.h>
 #include <vtkTransform.h>
 #include <vtkWorldPointPicker.h>
 
 #include <iAToolsVTK.h>    // for setCamPosition
 
-iARenderObserver::iARenderObserver(vtkRenderer* pRen, vtkRenderer* pLabelRen, vtkRenderWindowInteractor* pIren,
-	vtkPicker* pPicker, vtkTransform* pTrans, vtkImageData* pImageData, vtkPlane* plane1, vtkPlane* plane2,
-	vtkPlane* plane3, vtkCellLocator* cellLocator)
+iARenderObserver::iARenderObserver(vtkRenderer* pRen, vtkRenderWindowInteractor* pIren,
+	vtkTransform* pTrans, vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3):
+
+	m_pLine(vtkSmartPointer<vtkLineSource>::New()),
+	m_pProbe(vtkSmartPointer<vtkProbeFilter>::New()),
+	m_pWorldPicker(vtkSmartPointer<vtkWorldPointPicker>::New()),
+	m_pRen(pRen),
+	m_pIren(pIren),
+	m_pTrans(pTrans),
+	m_pPlane1(plane1),
+	m_pPlane2(plane2),
+	m_pPlane3(plane3),
+	mode(0),
+	speed(1.0),
+	scale(1.0)
+{
+}
+
+void iARenderObserver::ReInitialize(vtkRenderer* pRen, vtkRenderWindowInteractor* pIren,
+	vtkTransform* pTrans, vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3)
 {
 	m_pRen = pRen;
-	m_pLabelRen = pLabelRen;
 	m_pIren = pIren;
-	m_pPicker = pPicker;
 	m_pTrans = pTrans;
-	m_pImageData = pImageData;
 	m_pPlane1 = plane1;
 	m_pPlane2 = plane2;
 	m_pPlane3 = plane3;
-	m_pcellLocator = cellLocator;
-
-	m_pLine = vtkLineSource::New();
-	m_pProbe = vtkProbeFilter::New();
-
-	mode = 0;
-	speed = 1.0;
-	scale = 1.0;
-
-	m_pWorldPicker = vtkWorldPointPicker::New();
 }
 
-void iARenderObserver::ReInitialize(vtkRenderer* pRen, vtkRenderer* pLabelRen, vtkRenderWindowInteractor* pIren,
-	vtkPicker* pPicker, vtkTransform* pTrans, vtkImageData* pImageData, vtkPlane* plane1, vtkPlane* plane2,
-	vtkPlane* plane3, vtkCellLocator* cellLocator)
+iARenderObserver* iARenderObserver::New(vtkRenderer* pRen, vtkRenderWindowInteractor* pIren,
+	vtkTransform* pTrans, vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3)
 {
-	m_pRen = pRen;
-	m_pLabelRen = pLabelRen;
-	m_pIren = pIren;
-	m_pPicker = pPicker;
-	m_pTrans = pTrans;
-	m_pImageData = pImageData;
-	m_pPlane1 = plane1;
-	m_pPlane2 = plane2;
-	m_pPlane3 = plane3;
-	m_pcellLocator = cellLocator;
-}
-
-iARenderObserver* iARenderObserver::New(vtkRenderer* pRen, vtkRenderer* pLabelRen, vtkRenderWindowInteractor* pIren,
-	vtkPicker* pPicker, vtkTransform* pTrans, vtkImageData* pImageData, vtkPlane* plane1, vtkPlane* plane2,
-	vtkPlane* plane3, vtkCellLocator* cellLocator)
-{
-	return new iARenderObserver(
-		pRen, pLabelRen, pIren, pPicker, pTrans, pImageData, plane1, plane2, plane3, cellLocator);
+	return new iARenderObserver(pRen, pIren, pTrans, plane1, plane2, plane3);
 }
 
 iARenderObserver::~iARenderObserver()
@@ -91,9 +79,7 @@ iARenderObserver::~iARenderObserver()
 	m_pWorldPicker->Delete();
 }
 
-void iARenderObserver::Execute(vtkObject * caller,
-	unsigned long eid,
-	void *  callData)
+void iARenderObserver::Execute(vtkObject * caller, unsigned long eid, void *  callData)
 {
 	switch (eid)
 	{
@@ -158,6 +144,8 @@ void iARenderObserver::Execute(vtkObject * caller,
 						speed = (speed == 10.0) ? 1.0 : 10.0;
 						break;
 					}
+					// TODO NEWIO: verify how this should work, and whether we still need it (or if we need it here)
+					/*
 					case '0':
 					{
 						double origin[3];
@@ -192,6 +180,7 @@ void iARenderObserver::Execute(vtkObject * caller,
 						SetAxis(Z_AXIS, pickedAxis);
 						break;
 					}
+					*/
 					case '4':
 						scale *= 0.8;
 						m_pTrans->Scale(0.8, 0.8, 0.8);
@@ -237,7 +226,8 @@ void iARenderObserver::Execute(vtkObject * caller,
 }
 
 void iARenderObserver::PickVolume(double point[3])
-{
+{   // TODO NEWIO: verify whether we need functionality - for registration maybe?
+	/*
 	int i;
 	double p1World[4], p2World[4], pickPosition[4];
 	double selectionX, selectionY, selectionZ;
@@ -348,6 +338,7 @@ void iARenderObserver::PickVolume(double point[3])
 		point[1] = m_pProbe->GetOutput()->GetPoint(maxindex)[1];
 		point[2] = m_pProbe->GetOutput()->GetPoint(maxindex)[2];
 	}
+	*/
 }
 
 void iARenderObserver::SetAxis(Axis axis, double pickedAxis[3])
@@ -413,29 +404,9 @@ int iARenderObserver::GetMode()
 	return mode;
 }
 
-vtkCellLocator * iARenderObserver::GetCellLocator()
-{
-	return m_pcellLocator;
-}
-
 vtkRenderWindowInteractor* iARenderObserver::GetInteractor()
 {
 	return m_pIren;
-}
-
-vtkImageData* iARenderObserver::GetImageData()
-{
-	return m_pImageData;
-}
-
-vtkRenderer* iARenderObserver::GetLabelRenderer()
-{
-	return m_pLabelRen;
-}
-
-vtkPicker* iARenderObserver::GetPicker()
-{
-	return m_pPicker;
 }
 
 vtkWorldPointPicker* iARenderObserver::GetWorldPicker()

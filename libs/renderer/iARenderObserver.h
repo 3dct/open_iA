@@ -25,15 +25,14 @@
 #include <QObject>
 
 #include <vtkCommand.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindowInteractor.h>
+#include <vtkSmartPointer.h>
 
 class vtkLineSource;
-class vtkPicker;
 class vtkPlane;
 class vtkProbeFilter;
-class vtkCellLocator;
+class vtkRenderer;
+class vtkRenderWindowInteractor;
+class vtkTransform;
 class vtkWorldPointPicker;
 
 //! Observes the mouse movements in an iARenderer.
@@ -46,38 +45,27 @@ class iArenderer_API iARenderObserver : public QObject, public vtkCommand
 	enum Axis { X_AXIS = 1, Y_AXIS, Z_AXIS };
 
 public:
-	iARenderObserver(vtkRenderer* pRen, vtkRenderer* pLabelRen, vtkRenderWindowInteractor* pIren, vtkPicker* pPicker,
-		vtkTransform* pTrans, vtkImageData* pImageData, vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3,
-		vtkCellLocator* cellLocator);
+	iARenderObserver(vtkRenderer* pRen, vtkRenderWindowInteractor* pIren, vtkTransform* pTrans,
+		vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
 	~iARenderObserver();
-	static iARenderObserver* New(vtkRenderer* pRen, vtkRenderer* pLabelRen, vtkRenderWindowInteractor* pIren,
-		vtkPicker* pPicker, vtkTransform* pTrans, vtkImageData* pImageData, vtkPlane* plane1, vtkPlane* plane2,
-		vtkPlane* plane3, vtkCellLocator* cellLocator);
-	void ReInitialize(vtkRenderer* pRen, vtkRenderer* pLabelRen, vtkRenderWindowInteractor* pIren, vtkPicker* pPicker,
-		vtkTransform* pTrans, vtkImageData* pImageData, vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3,
-		vtkCellLocator* cellLocator);
+	static iARenderObserver* New(vtkRenderer* pRen, vtkRenderWindowInteractor* pIren, vtkTransform* pTrans,
+		vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
+	void ReInitialize(vtkRenderer* pRen, vtkRenderWindowInteractor* pIren, vtkTransform* pTrans,
+		vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
 
 	void AddListener(vtkCommand* listener);
 	int GetMode();
-	vtkCellLocator * GetCellLocator();
 	vtkRenderWindowInteractor* GetInteractor();
-	vtkImageData* GetImageData();
-	vtkRenderer* GetLabelRenderer();
-	vtkPicker* GetPicker();
 	vtkWorldPointPicker* GetWorldPicker();
 	void PickWithWorldPicker();
 
 protected:
-	vtkRenderer* m_pRen, *m_pLabelRen;
+	vtkRenderer* m_pRen;
 	vtkRenderWindowInteractor* m_pIren;
-	vtkPicker* m_pPicker;
-	vtkWorldPointPicker *m_pWorldPicker;
 	vtkTransform* m_pTrans;
-	vtkImageData* m_pImageData;
-
-	vtkLineSource* m_pLine;
-	vtkProbeFilter* m_pProbe;
-	vtkCellLocator * m_pcellLocator;
+	vtkSmartPointer<vtkLineSource> m_pLine;
+	vtkSmartPointer<vtkProbeFilter> m_pProbe;
+	vtkSmartPointer<vtkWorldPointPicker> m_pWorldPicker;
 
 private:
 	vtkPlane* m_pPlane1;

@@ -50,7 +50,8 @@ void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyDat
 	iATransferFunctionPtrs transferFunction(ctf, otf);
 	if(!m_rendInitialized)
 	{
-		m_renderer->initialize(imgData, polyData);
+		// TODO NEWIO: use datasets!
+		// m_renderer->initialize(imgData, polyData);
 		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>::create(&transferFunction, imgData);
 		m_volumeRenderer->addTo(m_renderer->renderer());
 		m_rendInitialized = true;
@@ -58,7 +59,8 @@ void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyDat
 	else
 	{
 		m_volumeRenderer->remove();
-		m_renderer->reInitialize(imgData, polyData);
+		// TODO NEWIO: use datasets!
+		//m_renderer->reInitialize(imgData, polyData);
 		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>::create(&transferFunction, imgData);
 		m_volumeRenderer->addTo(m_renderer->renderer());
 	}

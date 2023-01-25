@@ -43,7 +43,6 @@ class vtkActor;
 class vtkAnnotatedCubeActor;
 class vtkAxesActor;
 class vtkCamera;
-class vtkCellLocator;
 class vtkCornerAnnotation;
 class vtkCubeSource;
 class vtkDataSetMapper;
@@ -52,7 +51,6 @@ class vtkInteractorStyleSwitch;
 class vtkLineSource;
 class vtkOpenGLRenderer;
 class vtkOrientationMarkerWidget;
-class vtkPicker;
 class vtkPlane;
 class vtkPoints;
 class vtkPolyData;
@@ -71,12 +69,6 @@ class iArenderer_API iARendererImpl: public iARenderer
 public:
 	iARendererImpl(QObject *parent, vtkGenericOpenGLRenderWindow* renderWindow);
 	virtual ~iARendererImpl( );
-
-	//! @{ deprecated. Look at addDataSet method in MdiChild for alternatives
-	void initialize( vtkImageData* ds, vtkPolyData* pd );
-	void reInitialize( vtkImageData* ds, vtkPolyData* pd );
-	void setPolyData( vtkPolyData* pd ) override;
-	//! @}
 
 	void setDefaultInteractor() override;
 	void enableInteractor(bool enable);
@@ -111,8 +103,6 @@ public:
 	//! sets opacity of the slicing planes
 	void setSlicePlaneOpacity(float opc);
 
-	void setAreaPicker() override;
-
 	void update() override;
 	void showHelpers(bool show);
 	void showRPosition(bool show);
@@ -131,12 +121,7 @@ public:
 	vtkTransform* coordinateSystemTransform() override;
 	vtkOpenGLRenderer* labelRenderer() override;
 	vtkTextActor* txtActor();
-	//! @{ access to polydata rendering
-	//! TODO: remove from here! -> separate class similar to iAVolumeRenderer?
-	vtkPolyData* polyData() override;
-	vtkActor* polyActor() override;
-	vtkPolyDataMapper* polyMapper() const override;
-	//! @}
+
 	//! @{ check for better way to get access to these in PickCallbackFunction
 	vtkActor* selectedActor() override;
 	vtkUnstructuredGrid* finalSelection();
@@ -157,9 +142,6 @@ public:
 	//! @param slicePlaneVisibility initial visibility of the single slice planes (can be modified independently via showSlicePlanes as well).
 	void applySettings(iARenderSettings const & settings, bool slicePlaneVisibility[3]) override;
 	void setBackgroundColors(iARenderSettings const& settings);
-
-	void emitSelectedCells(vtkUnstructuredGrid* selectedCells);
-	void emitNoSelectedCells();
 
 	void touchStart();
 	void touchScaleSlot(float relScale);
@@ -184,11 +166,6 @@ private:
 
 	bool m_initialized;    //!< flag indicating whether initialization of widget has finished
 	iARenderObserver *m_renderObserver;
-	//! @{ things that are set from the outside
-	vtkPolyData* m_polyData;
-	// TODO: VOLUME: check if this can be removed:
-	vtkImageData* m_imageData;
-	//! @}
 	vtkSmartPointer<vtkDataSetMapper> m_selectedMapper;
 	vtkSmartPointer<vtkActor> m_selectedActor;
 	vtkSmartPointer<vtkUnstructuredGrid> m_finalSelection;
@@ -197,7 +174,6 @@ private:
 	vtkRenderWindowInteractor* m_interactor;  //!< convenience store for m_renWin->GetInteractor()
 	vtkSmartPointer<vtkOpenGLRenderer> m_ren, m_labelRen;
 	vtkSmartPointer<vtkCamera> m_cam;
-	vtkSmartPointer<vtkCellLocator> m_cellLocator;
 	vtkSmartPointer<vtkPolyDataMapper> m_polyMapper;
 	vtkSmartPointer<vtkActor> m_polyActor;
 
@@ -220,7 +196,6 @@ private:
 	//! cutting planes:
 	vtkSmartPointer<vtkPlane> m_plane1, m_plane2, m_plane3;
 
-	vtkSmartPointer<vtkPicker> m_pointPicker;
 
 	//! @{ movable axes
 	// TODO: check what the movable axes are useful for!

@@ -32,8 +32,6 @@ class vtkCamera;
 class vtkOpenGLRenderer;
 class vtkPlane;
 class vtkPoints;
-class vtkPolyData;
-class vtkPolyDataMapper;
 class vtkRenderer;
 class vtkRenderWindow;
 class vtkRenderWindowInteractor;
@@ -84,18 +82,8 @@ public:
 	//! @param slicePlaneVisibility initial visibility of the single slice planes (can be modified independently via showSlicePlanes as well).
 	virtual void applySettings(iARenderSettings const& settings, bool slicePlaneVisibility[3]) = 0;
 
-	// Methods with limited use / might be removed in the future:
-
-	virtual void setAreaPicker() = 0;
+	//! Set the default interactor style
 	virtual void setDefaultInteractor() = 0;
-
-	//! @{ access to polydata rendering
-	//! TODO: remove from here! -> separate class similar to iAVolumeRenderer?
-	virtual void setPolyData(vtkPolyData* pd) = 0;
-	virtual vtkPolyData* polyData() = 0;
-	virtual vtkActor* polyActor() = 0;
-	virtual vtkPolyDataMapper* polyMapper() const = 0;
-	//! @}
 
 	//! Access to selected actor (when selection is enabled).
 	//! Currently only used in DynamicVolumeLines module)
@@ -112,7 +100,5 @@ public:
 signals:
 	void cellsSelected(vtkPoints* selCellPoints);
 	void noCellsSelected();
-	void reInitialized();
-	void onSetupRenderer();
 	void onSetCamera();
 };
