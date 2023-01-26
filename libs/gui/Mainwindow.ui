@@ -766,7 +766,7 @@
    </property>
    <property name="icon">
     <iconset resource="gui.qrc">
-     <normaloff>:/images/magicLens.png</normaloff>:/images/magicLens.png</iconset>
+     <normaloff>:/images/magic_lens_2d.svg</normaloff>:/images/magic_lens_2d.svg</iconset>
    </property>
    <property name="text">
     <string>2D Magic Lens</string>
@@ -923,7 +923,7 @@
    </property>
    <property name="icon">
     <iconset resource="gui.qrc">
-     <normaloff>:/images/magicLens3D.png</normaloff>:/images/magicLens3D.png</iconset>
+     <normaloff>:/images/magic_lens_3d.svg</normaloff>:/images/magic_lens_3d.svg</iconset>
    </property>
    <property name="text">
     <string>3D Magic Lens</string>

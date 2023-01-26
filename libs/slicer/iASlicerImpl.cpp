@@ -268,7 +268,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 		m_magicLens->setRenderWindow(m_renWin);
 		// setup context menu for the magic lens view options
 		m_contextMenu->addSeparator();
-		m_actionMagicLens = m_contextMenu->addAction(QIcon(":/images/magicLens.png"), tr("Magic Lens"), this, &iASlicerImpl::magicLensToggled);
+		m_actionMagicLens = m_contextMenu->addAction(QIcon(":/images/magic_lens_2d.svg"), tr("Magic Lens"), this, &iASlicerImpl::magicLensToggled);
 		m_actionMagicLens->setCheckable(true);
 		m_actionMagicLens->setChecked(false);
 

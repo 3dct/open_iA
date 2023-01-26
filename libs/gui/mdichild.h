@@ -102,6 +102,7 @@ public:
 	void applyViewerPreferences();
 	void applyRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs) override;
 	void applySlicerSettings(iASlicerSettings const & ss);
+	void applyVolumeSettings();
 
 	void toggleSnakeSlicer(bool isEnabled);
 	bool isSnakeSlicerToggled() const;
@@ -192,7 +193,6 @@ public:
 	int  magicLensFrameWidth() const;
 	//! @}
 
-	void applyVolumeSettings();
 	QString layoutName() const override;
 	void loadLayout(QString const & layout) override;
 	void updateLayout() override;
@@ -243,7 +243,6 @@ public:
 	size_t dataSetIndex(iADataSet const* dataSet) const override;
 	std::vector<std::shared_ptr<iADataSet>> dataSets() const override;
 	std::map<size_t, std::shared_ptr<iADataSet>> const& dataSetMap() const override;
-
 	size_t firstImageDataSetIdx() const override;
 	vtkSmartPointer<vtkImageData> firstImageData() const override;
 	iADataSetViewer* dataSetViewer(size_t idx) const override;
