@@ -269,13 +269,11 @@ public slots:
 	//! set renderer interaction on / off
 	void enableRendererInteraction(bool enable);
 
-	//! @{ @deprecated will be removed soon, see addDataset instead
 	// TODO NEWIO: move volume stack to new tool
+	//! @{ @deprecated will be removed soon and moved to separate tool
 	void setupStackView(bool active = false);
-	void removeFinishedAlgorithms();
-	//! @}
-
 	void updateVolumePlayerView(int updateIndex, bool isApplyForAll);
+	//! @}
 
 	//! Calls the camPosition function of iARenderer (described there in more detail).
 	//! @param camOptions All informations of the camera stored in a double array
@@ -318,6 +316,7 @@ private:
 
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void snakeNormal(int index, double point[3], double normal[3]);
+	void connectSignalsToSlots();
 
 	void slicerVisibilityChanged(int mode);
 	void updatePositionMarkerSize();

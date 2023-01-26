@@ -156,45 +156,10 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_parametricSpline->SetPoints(m_worldSnakePoints);
 
 	m_renderer = new iARendererImpl(this, dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_dwRenderer->vtkWidgetRC->renderWindow()));
-	connect(m_renderer, &iARendererImpl::bgColorChanged, m_dwRenderer->vtkWidgetRC, &iAAbstractMagicLensWidget::setLensBackground);
-	connect(m_renderer, &iARendererImpl::interactionModeChanged, this, [this](bool camera) {
-		setInteractionMode(camera ? imCamera : imRegistration);
-		});
 	m_renderer->setAxesTransform(m_axesTransform);
-
-	// connect signals for updating other views of profile point changes and changes in snake slicers mode:
-	for (int i = 0; i < 3; ++i)
-	{
-		connect(m_slicer[i], &iASlicerImpl::profilePointChanged, this, &iAMdiChild::profilePointChanged);
-		connect(m_slicer[i], &iASlicerImpl::profilePointChanged, m_renderer, &iARendererImpl::setProfilePoint);
-		connect(m_slicer[i], &iASlicer::magicLensToggled, this, &MdiChild::toggleMagicLens2D);
-		for (int j = 0; j < 3; ++j)
-		{
-			if (i != j)	// connect each slicer's signals to the other slicer's slots, except for its own:
-			{
-				connect(m_slicer[i], &iASlicerImpl::addedPoint, m_slicer[j], &iASlicerImpl::addPoint);
-				connect(m_slicer[i], &iASlicerImpl::movedPoint, m_slicer[j], &iASlicerImpl::movePoint);
-				connect(m_slicer[i], &iASlicerImpl::profilePointChanged, m_slicer[j], &iASlicerImpl::setProfilePoint);
-				connect(m_slicer[i], &iASlicerImpl::switchedMode, m_slicer[j], &iASlicerImpl::switchInteractionMode);
-				connect(m_slicer[i], &iASlicerImpl::deletedSnakeLine, m_slicer[j], &iASlicerImpl::deleteSnakeLine);
-				connect(m_slicer[i], &iASlicerImpl::deselectedPoint, m_slicer[j], &iASlicerImpl::deselectPoint);
-			}
-		}
-	}
 
 	applyViewerPreferences();
 	connectSignalsToSlots();
-	connect(mainWnd, &MainWindow::fullScreenToggled, this, &MdiChild::toggleFullScreen);
-	connect(mainWnd, &MainWindow::styleChanged, this, &MdiChild::styleChanged);
-
-	// Dataset list events:
-	connect(m_dataSetListWidget, &iADataSetListWidget::dataSetSelected, this, &iAMdiChild::dataSetSelected);
-
-	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
-	{
-		m_manualMoveStyle[i] = vtkSmartPointer<iAvtkInteractStyleActor>::New();
-		connect(m_manualMoveStyle[i].Get(), &iAvtkInteractStyleActor::actorsUpdated, this, &iAMdiChild::updateViews);
-	}
 }
 
 void MdiChild::initializeViews()
@@ -221,7 +186,6 @@ void MdiChild::toggleFullScreen()
 
 MdiChild::~MdiChild()
 {
-	cleanWorkingAlgorithms();
 	m_axesTransform->Delete();
 	m_slicerTransform->Delete();
 
@@ -249,18 +213,21 @@ void MdiChild::slicerVisibilityChanged(int mode)
 
 void MdiChild::connectSignalsToSlots()
 {
-	for (int mode = 0; mode < iASlicerMode::SlicerCount; ++mode)
-	{
-		connect(m_dwSlicer[mode]->pbMax, &QPushButton::clicked, [this, mode] { maximizeSlicer(mode); });
-		connect(m_dwSlicer[mode], &QDockWidget::visibilityChanged, [this, mode]{ slicerVisibilityChanged(mode); });
-	}
+	connect(m_mainWnd, &MainWindow::fullScreenToggled, this, &MdiChild::toggleFullScreen);
+	connect(m_mainWnd, &MainWindow::styleChanged, this, &MdiChild::styleChanged);
 
+	connect(m_dataSetListWidget, &iADataSetListWidget::dataSetSelected, this, &iAMdiChild::dataSetSelected);
+
+	connect(m_renderer, &iARendererImpl::bgColorChanged, m_dwRenderer->vtkWidgetRC, &iAAbstractMagicLensWidget::setLensBackground);
+	connect(m_renderer, &iARendererImpl::interactionModeChanged, this, [this](bool camera)
+	{
+		setInteractionMode(camera ? imCamera : imRegistration);
+	});
 	connect(m_dwRenderer->pushMaxRC, &QPushButton::clicked, this, &MdiChild::maximizeRC);
 	connect(m_dwRenderer->pushStopRC, &QPushButton::clicked, this, [this]
 	{
 		enableRendererInteraction(!isRendererInteractionEnabled());
 	});
-
 	connect(m_dwRenderer->pushPX,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::PX); });
 	connect(m_dwRenderer->pushPY,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::PY); });
 	connect(m_dwRenderer->pushPZ,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::PZ); });
@@ -270,15 +237,19 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_dwRenderer->pushIso, &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::Iso); });
 	connect(m_dwRenderer->pushSaveRC, &QPushButton::clicked, this, &MdiChild::saveRC);
 	connect(m_dwRenderer->pushMovRC, &QPushButton::clicked, this, &MdiChild::saveMovRC);
-
-	// TODO: move to renderer library?
+	// { TODO: strange way to forward signals, find out why we need to do this and find better way:
 	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARendererImpl::mouseRightButtonReleasedSlot);
 	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARendererImpl::mouseLeftButtonReleasedSlot);
 	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::touchStart, m_renderer, &iARendererImpl::touchStart);
 	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::touchScale, m_renderer, &iARendererImpl::touchScaleSlot);
+	//! }
 
-	for (int s = 0; s < 3; ++s)
+	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
 	{
+		connect(m_dwSlicer[s]->pbMax, &QPushButton::clicked, [this, s] { maximizeSlicer(s); });
+		connect(m_dwSlicer[s], &QDockWidget::visibilityChanged, [this, s] { slicerVisibilityChanged(s); });
+		m_manualMoveStyle[s] = vtkSmartPointer<iAvtkInteractStyleActor>::New();
+		connect(m_manualMoveStyle[s].Get(), &iAvtkInteractStyleActor::actorsUpdated, this, &iAMdiChild::updateViews);
 		connect(m_slicer[s], &iASlicer::shiftMouseWheel, this, &MdiChild::changeMagicLensDataSet);
 		connect(m_slicer[s], &iASlicer::altMouseWheel, this, &MdiChild::changeMagicLensOpacity);
 		connect(m_slicer[s], &iASlicer::ctrlMouseWheel, this, &MdiChild::changeMagicLensSize);
@@ -298,6 +269,21 @@ void MdiChild::connectSignalsToSlots()
 			}
 			updateViews();
 		});
+		connect(m_slicer[s], &iASlicerImpl::profilePointChanged, this, &iAMdiChild::profilePointChanged);
+		connect(m_slicer[s], &iASlicerImpl::profilePointChanged, m_renderer, &iARendererImpl::setProfilePoint);
+		connect(m_slicer[s], &iASlicer::magicLensToggled, this, &MdiChild::toggleMagicLens2D);
+		for (int j = 0; j < 3; ++j)
+		{
+			if (s != j)	// connect each slicer's signals to the other slicer's slots, except for its own:
+			{
+				connect(m_slicer[s], &iASlicerImpl::addedPoint, m_slicer[j], &iASlicerImpl::addPoint);
+				connect(m_slicer[s], &iASlicerImpl::movedPoint, m_slicer[j], &iASlicerImpl::movePoint);
+				connect(m_slicer[s], &iASlicerImpl::profilePointChanged, m_slicer[j], &iASlicerImpl::setProfilePoint);
+				connect(m_slicer[s], &iASlicerImpl::switchedMode, m_slicer[j], &iASlicerImpl::switchInteractionMode);
+				connect(m_slicer[s], &iASlicerImpl::deletedSnakeLine, m_slicer[j], &iASlicerImpl::deleteSnakeLine);
+				connect(m_slicer[s], &iASlicerImpl::deselectedPoint, m_slicer[j], &iASlicerImpl::deselectPoint);
+			}
+		}
 	}
 }
 
@@ -1585,35 +1571,6 @@ void MdiChild::removeChannel(uint id)
 		}
 	}
 	m_channels.remove(id);
-}
-
-void MdiChild::removeFinishedAlgorithms()
-{
-	for (size_t i = 0; i < m_workingAlgorithms.size(); )
-	{
-		if (m_workingAlgorithms[i]->isFinished())
-		{
-			delete m_workingAlgorithms[i];
-			m_workingAlgorithms.erase(m_workingAlgorithms.begin() + i);
-		}
-		else
-		{
-			++i;
-		}
-	}
-}
-
-void MdiChild::cleanWorkingAlgorithms()
-{
-	for (size_t i = 0; i < m_workingAlgorithms.size(); ++i)
-	{
-		if (m_workingAlgorithms[i]->isRunning())
-		{
-			m_workingAlgorithms[i]->SafeTerminate();
-			delete m_workingAlgorithms[i];
-		}
-	}
-	m_workingAlgorithms.clear();
 }
 
 void MdiChild::toggleProfileHandles(bool isChecked)
