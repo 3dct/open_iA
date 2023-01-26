@@ -123,7 +123,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_nextChannelID(0),
 	m_magicLensChannel(NotExistingChannel),
 	m_magicLensDataSet(0),
-	m_initVolumeRenderers(false),
 	m_interactionMode(imCamera),
 	m_nextDataSetID(0)
 {
@@ -132,21 +131,16 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
 	setWindowModified(unsavedChanges);
 	setupUi(this);
-	//prepare window for handling dock widgets
 	setCentralWidget(nullptr);
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
-
-	//insert default dock widgets and arrange them in a simple layout
 	m_dwRenderer = new dlg_renderer(this);
+	addDockWidget(Qt::LeftDockWidgetArea, m_dwRenderer);
+	m_initialLayoutState = saveState();
 	for (int i = 0; i < 3; ++i)
 	{
 		m_slicer[i] = new iASlicerImpl(this, static_cast<iASlicerMode>(i), true, true, m_slicerTransform, m_worldSnakePoints);
 		m_dwSlicer[i] = new dlg_slicer(m_slicer[i]);
 	}
-
-	addDockWidget(Qt::LeftDockWidgetArea, m_dwRenderer);
-	m_initialLayoutState = saveState();
-
 	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::XY], Qt::Horizontal);
 	splitDockWidget(m_dwSlicer[iASlicerMode::XY], m_dwSlicer[iASlicerMode::XZ], Qt::Vertical);
 	splitDockWidget(m_dwSlicer[iASlicerMode::XZ], m_dwSlicer[iASlicerMode::YZ], Qt::Vertical);
@@ -214,7 +208,13 @@ void MdiChild::slicerVisibilityChanged(int mode)
 void MdiChild::connectSignalsToSlots()
 {
 	connect(m_mainWnd, &MainWindow::fullScreenToggled, this, &MdiChild::toggleFullScreen);
-	connect(m_mainWnd, &MainWindow::styleChanged, this, &MdiChild::styleChanged);
+	connect(m_mainWnd, &MainWindow::styleChanged, this, [this] {
+		if (renderSettings().UseStyleBGColor)
+		{
+			m_renderer->setBackgroundColors(m_renderSettings);
+			m_renderer->update();
+		}
+	});
 
 	connect(m_dataSetListWidget, &iADataSetListWidget::dataSetSelected, this, &iAMdiChild::dataSetSelected);
 
@@ -223,7 +223,7 @@ void MdiChild::connectSignalsToSlots()
 	{
 		setInteractionMode(camera ? imCamera : imRegistration);
 	});
-	connect(m_dwRenderer->pushMaxRC, &QPushButton::clicked, this, &MdiChild::maximizeRC);
+	connect(m_dwRenderer->pushMaxRC, &QPushButton::clicked, this, &MdiChild::maximizeRenderer);
 	connect(m_dwRenderer->pushStopRC, &QPushButton::clicked, this, [this]
 	{
 		enableRendererInteraction(!isRendererInteractionEnabled());
@@ -593,12 +593,12 @@ void MdiChild::saveVolumeStack()
 	iAJobListView::get()->addJob(QString("Saving volume stack %1").arg(fileName), p.get(), fw);
 }
 
-bool MdiChild::saveNew()
+bool MdiChild::save()
 {
-	return saveNew(chooseDataSet());
+	return saveDataSet(chooseDataSet());
 }
 
-bool MdiChild::saveNew(std::shared_ptr<iADataSet> dataSet)
+bool MdiChild::saveDataSet(std::shared_ptr<iADataSet> dataSet)
 {
 	if (!dataSet)
 	{
@@ -628,10 +628,10 @@ bool MdiChild::saveNew(std::shared_ptr<iADataSet> dataSet)
 		path + "/" + safeFileName(dataSet->name()),
 		iAFileTypeRegistry::registeredFileTypes(iAFileIO::Save, dataSet->type()),
 		 &defaultFilter);
-	return saveNew(dataSet, fileName);
+	return saveDataSet(dataSet, fileName);
 }
 
-bool MdiChild::saveNew(std::shared_ptr<iADataSet> dataSet, QString const& fileName)
+bool MdiChild::saveDataSet(std::shared_ptr<iADataSet> dataSet, QString const& fileName)
 {
 	if (fileName.isEmpty())
 	{
@@ -707,7 +707,7 @@ void MdiChild::maximizeSlicer(int mode)
 	resizeDockWidget(m_dwSlicer[mode]);
 }
 
-void MdiChild::maximizeRC()
+void MdiChild::maximizeRenderer()
 {
 	resizeDockWidget(m_dwRenderer);
 }
@@ -2044,13 +2044,13 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 				QString fileName = fi.absoluteFilePath() + QString("dataSet%1.%2").arg(dataSetIdx).arg(iAFileTypeRegistry::defaultExtension(m_dataSets[dataSetIdx]->type()));
 				if (!QFileInfo::exists(fileName))
 				{
-					saveSuccess = saveNew(m_dataSets[dataSetIdx], fileName);
+					saveSuccess = saveDataSet(m_dataSets[dataSetIdx], fileName);
 					saved = true;
 				}
 			}
 			if (!saved)
 			{
-				saveSuccess = saveNew(m_dataSets[dataSetIdx]);
+				saveSuccess = saveDataSet(m_dataSets[dataSetIdx]);
 			}
 			if (!saveSuccess)
 			{
@@ -2190,14 +2190,5 @@ void MdiChild::setDataSetMovable(size_t dataSetIdx)
 	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
 	{
 		m_manualMoveStyle[i]->initialize(img, m_dataSetViewers[dataSetIdx]->renderer(), props, i);
-	}
-}
-
-void MdiChild::styleChanged()
-{
-	if (renderSettings().UseStyleBGColor)
-	{
-		m_renderer->setBackgroundColors(m_renderSettings);
-		m_renderer->update();
 	}
 }

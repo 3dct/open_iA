@@ -95,7 +95,7 @@ public:
 	//! performs initialization that needs to be done after the widget is being displayed
 	void initializeViews();
 
-	bool saveNew();
+	bool save();
 	void saveVolumeStack();
 
 	void applyPreferences(iAPreferences const & p);
@@ -161,37 +161,35 @@ public:
 	QString filePath() const override;
 
 	//! @{ Multi-Channel rendering
-	//! TODO NEWIO: check if we still need it with dataSets!
+	//! TODO NEWIO: check if we still need multi-channel feature or if it can be replaced with dataSets!
 	//! Create a new channel, return its ID.
 	uint createChannel() override;
 	//! Update the data of the given channel ID.
 	void updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf, bool enable) override;
 	//! Update opacity of the given channel ID.
 	void updateChannelOpacity(uint id, double opacity) override;
-
 	void setChannelRenderingEnabled(uint, bool enabled) override;
-
 	//! Enable / disable a channel in all slicers.
 	void setSlicerChannelEnabled(uint id, bool enabled);
-
 	//! Remove channel in all slicers.
 	void removeChannel(uint id) override;
-
 	iAChannelData * channelData(uint id) override;
 	iAChannelData const * channelData(uint id) const override;
 	void initChannelRenderer(uint id, bool use3D, bool enableChannel = true) override;
 	//! @}
 
-	//! @{ Magic Lens
-	void toggleMagicLens2D(bool isEnabled);
+	//! @{ 3D Magic Lens
 	void toggleMagicLens3D(bool isEnabled);
-	bool isMagicLens2DEnabled() const override;
 	bool isMagicLens3DEnabled() const;
+	vtkRenderer* magicLens3DRenderer() const override;
+	//! @}
+	//! @{ 2D Magic Lens
+	void toggleMagicLens2D(bool isEnabled);
+	bool isMagicLens2DEnabled() const override;
 	void setMagicLensInput(uint id) override;
 	void setMagicLensEnabled(bool isOn) override;
 	int  magicLensSize() const;
 	int  magicLensFrameWidth() const;
-	vtkRenderer* magicLens3DRenderer() const override;
 	//! @}
 
 	void applyVolumeSettings();
@@ -218,8 +216,14 @@ public:
 	//! Enable or disable linked MDI windows for this MDI child.
 	void linkMDIs(bool lm);
 
+	//! Add a new tool to this child window
+	//! @param key a unique key for identifying this tool; will also be used for storing the tool state in a project file
+	//! @param tool an instance of an iATool-derived class providing some graphical or computational tool
 	void addTool(QString const & key, std::shared_ptr<iATool> tool) override;
+	//! Remove tool with the given key from this window
+	//! @param key the tool's unique identifying key (the one that was used in addTool for adding the same tool)
 	void removeTool(QString const& key) override;
+	//! Retrieve all currently attached tools and their keys
 	QMap<QString, std::shared_ptr<iATool> > const & tools() override;
 
 	iAInteractionMode interactionMode() const override;
@@ -253,7 +257,8 @@ public:
 	void setDataSetMovable(size_t dataSetIdx) override;
 
 public slots:
-	void maximizeRC();
+	//! maximize the renderer (so that it takes all of the child's space, all other dock widgets are hidden)
+	void maximizeRenderer();
 
 	//! update a specific slicer (specified through slicer mode, @see iASlicerMode)
 	void updateSlicer(int index);
@@ -296,18 +301,16 @@ private slots:
 	void setSlice(int mode, int s);
 	void slicerRotationChanged();
 	void updatePositionMarker(double x, double y, double z, int mode);
-	void updateDataSetInfo();
 	void changeMagicLensDataSet(int chg);
 	void changeMagicLensOpacity(int chg);
 	void changeMagicLensSize(int chg);
 	void toggleFullScreen();
-	void styleChanged();
 
 private:
 	void closeEvent(QCloseEvent *event) override;
 	bool addVolumePlayer();
-	bool saveNew(std::shared_ptr<iADataSet> dataSet);
-	bool saveNew(std::shared_ptr<iADataSet> dataSet, QString const & fileName);
+	bool saveDataSet(std::shared_ptr<iADataSet> dataSet);
+	bool saveDataSet(std::shared_ptr<iADataSet> dataSet, QString const & fileName);
 	void set3DSlicePlanePos(int mode, int slice);
 
 	void maximizeDockWidget(QDockWidget * dw);
@@ -320,12 +323,7 @@ private:
 
 	void slicerVisibilityChanged(int mode);
 	void updatePositionMarkerSize();
-
-	static const unsigned char RC = 0x01;
-	static const unsigned char XY = 0x02;
-	static const unsigned char YZ = 0x04;
-	static const unsigned char XZ = 0x08;
-	static const unsigned char MULTI = RC | XY | YZ | XZ;
+	void updateDataSetInfo();
 
 	MainWindow * m_mainWnd;
 	QFileInfo m_fileInfo;
@@ -345,7 +343,7 @@ private:
 	bool m_profileHandlesEnabled; //!< whether profile handles (profile points) in renderer/slicer are enabled
 	bool m_isMagicLensEnabled;    //!< whether magic lens in slicers is enabled
 
-	//! @{ snake slicer related:
+	//! @{ snake slicer related; move to separate tool maybe?
 	bool m_snakeSlicer;           //!< whether snake slicer is enabled
 	vtkAbstractTransform *m_savedSlicerTransform[3];
 	vtkSmartPointer<vtkPoints> m_worldSnakePoints;
@@ -381,7 +379,6 @@ private:
 	QString m_layout;
 
 	size_t m_magicLensDataSet;                                          //!< index of dataset shown in magic lens
-	bool m_initVolumeRenderers;                                         //!< @deprecated TODO NEWIO remove
 	QMap<QString, std::shared_ptr<iATool>> m_tools;                     //!< list of currently active tools
 	iAInteractionMode m_interactionMode;                                //!< current interaction mode in slicers/renderer (see iAInteractionMode)
 	bool m_slicerVisibility[3];                                         //!< visibility status of slicers; for forwarding it to the display of slice planes in 3D renderer

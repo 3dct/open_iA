@@ -388,14 +388,6 @@ void MainWindow::loadFiles(QStringList fileNames)
 	}
 }
 
-void MainWindow::saveNew()
-{
-	if (activeMdiChild())
-	{
-		activeMDI()->saveNew();
-	}
-}
-
 // TODO NEWIO: separate program settings from current view state
 //     - view state -> project file
 //     - settings -> keep here
@@ -788,46 +780,6 @@ QList<QString> MainWindow::mdiWindowTitles()
 	return windowTitles;
 }
 
-void MainWindow::maxXY()
-{
-	if (activeMdiChild())
-	{
-		activeMDI()->maximizeSlicer(iASlicerMode::XY);
-	}
-}
-
-void MainWindow::maxXZ()
-{
-	if (activeMdiChild())
-	{
-		activeMDI()->maximizeSlicer(iASlicerMode::XZ);
-	}
-}
-
-void MainWindow::maxYZ()
-{
-	if (activeMdiChild())
-	{
-		activeMDI()->maximizeSlicer(iASlicerMode::YZ);
-	}
-}
-
-void MainWindow::maxRC()
-{
-	if (activeMdiChild())
-	{
-		activeMDI()->maximizeRC();
-	}
-}
-
-void MainWindow::multi()
-{
-	if (activeMdiChild())
-	{
-		activeMDI()->multiview();
-	}
-}
-
 void MainWindow::linkViews()
 {
 	if (activeMdiChild())
@@ -856,15 +808,6 @@ void MainWindow::toggleSlicerInteraction()
 	}
 	m_defaultSlicerSettings.InteractorsEnabled = m_ui->actionToggleSlicerInteraction->isChecked();
 	activeMDI()->enableSlicerInteraction(m_defaultSlicerSettings.InteractorsEnabled);
-}
-
-void MainWindow::toggleRendererInteraction()
-{
-	if (!activeMdiChild())
-	{
-		return;
-	}
-	activeMDI()->enableRendererInteraction(m_ui->actionToggleRendererInteraction->isChecked());
 }
 
 void MainWindow::toggleFullScreen()
@@ -1152,46 +1095,6 @@ void MainWindow::updateInteractionModeControls(int mode)
 	QSignalBlocker b1(m_ui->actionInteractionModeRegistration), b2(m_ui->actionInteractionModeCamera);
 	m_ui->actionInteractionModeCamera->setChecked(mode == MdiChild::imCamera);
 	m_ui->actionInteractionModeRegistration->setChecked(mode == MdiChild::imRegistration);
-}
-
-void MainWindow::toggleSnakeSlicer(bool isChecked)
-{
-	if (activeMdiChild())
-	{
-		activeMDI()->toggleSnakeSlicer(isChecked);
-	}
-}
-
-void MainWindow::toggleSliceProfile(bool isChecked)
-{
-	if (activeMdiChild())
-	{
-		activeMDI()->toggleSliceProfile(isChecked);
-	}
-}
-
-void MainWindow::toggleEditProfilePoints(bool isChecked)
-{
-	if (activeMdiChild())
-	{
-		activeMDI()->toggleProfileHandles(isChecked);
-	}
-}
-
-void MainWindow::toggleMagicLens( bool isChecked )
-{
-	if (activeMdiChild())
-	{
-		activeMDI()->toggleMagicLens2D(isChecked);
-	}
-}
-
-void MainWindow::toggleMagicLens3D(bool isChecked)
-{
-	if (activeMdiChild())
-	{
-		activeMDI()->toggleMagicLens3D(isChecked);
-	}
 }
 
 void MainWindow::rendererCamPosition()
@@ -1555,6 +1458,13 @@ void MainWindow::closeMdiChild(iAMdiChild* child)
 
 void MainWindow::connectSignalsToSlots()
 {
+	// de-duplicate standard-pattern of forwarding events to the currently active mdi child:
+	auto childCall = [this](auto method, auto... params) {
+		if (activeMDI())
+		{
+			(activeMDI()->*method)(params...);
+		}
+	};
 	// "File" menu entries:
 	auto getOpenFileName = [this]() -> QString {
 		return QFileDialog::getOpenFileName(this, tr("Open Files (new)"), m_path, iAFileTypeRegistry::registeredFileTypes(iAFileIO::Load));
@@ -1564,7 +1474,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionOpenRaw, &QAction::triggered, this, &MainWindow::openRaw);
 	connect(m_ui->actionOpenWithDataTypeConversion, &QAction::triggered, this, &MainWindow::openWithDataTypeConversion);
 	connect(m_ui->actionOpenTLGICTData, &QAction::triggered, this, &MainWindow::openTLGICTData);
-	connect(m_ui->actionSaveDataSet, &QAction::triggered, this, &MainWindow::saveNew);
+	connect(m_ui->actionSaveDataSet, &QAction::triggered, this, [childCall] { childCall(&MdiChild::save); });
 	connect(m_ui->actionSaveProject, &QAction::triggered, this, &MainWindow::saveProject);
 	connect(m_ui->actionSaveVolumeStack, &QAction::triggered, this, &MainWindow::saveVolumeStack);
 	connect(m_ui->actionLoadSettings, &QAction::triggered, this, &MainWindow::loadSettings);
@@ -1583,14 +1493,17 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionInteractionModeCamera, &QAction::triggered, this, &MainWindow::changeInteractionMode);
 
 	// "Views" menu entries:
-	connect(m_ui->actionXY, &QAction::triggered, this, &MainWindow::maxXY);
-	connect(m_ui->actionXZ, &QAction::triggered, this, &MainWindow::maxXZ);
-	connect(m_ui->actionYZ, &QAction::triggered, this, &MainWindow::maxYZ);
-	connect(m_ui->action3D, &QAction::triggered, this, &MainWindow::maxRC);
-	connect(m_ui->actionMultiViews, &QAction::triggered, this, &MainWindow::multi);
+	connect(m_ui->actionXY, &QAction::triggered, this, [childCall] { childCall(&MdiChild::maximizeSlicer, iASlicerMode::XY); });
+	connect(m_ui->actionXZ, &QAction::triggered, this, [childCall] { childCall(&MdiChild::maximizeSlicer, iASlicerMode::XZ); });
+	connect(m_ui->actionYZ, &QAction::triggered, this, [childCall] { childCall(&MdiChild::maximizeSlicer, iASlicerMode::YZ); });
+	connect(m_ui->action3D, &QAction::triggered, this, [childCall] { childCall(&MdiChild::maximizeRenderer); } );
+	connect(m_ui->actionMultiViews, &QAction::triggered, this, [childCall] { childCall(&MdiChild::multiview); });
 	connect(m_ui->actionLinkViews, &QAction::triggered, this, &MainWindow::linkViews);
 	connect(m_ui->actionLinkMdis, &QAction::triggered, this, &MainWindow::linkMDIs);
 	connect(m_ui->actionToggleSlicerInteraction, &QAction::triggered, this, &MainWindow::toggleSlicerInteraction);
+	connect(m_ui->actionToggleRendererInteraction, &QAction::triggered, this, [this, childCall] {
+		childCall(&MdiChild::enableRendererInteraction, m_ui->actionToggleRendererInteraction->isChecked());
+	});
 	connect(m_ui->actionFullScreenMode, &QAction::triggered, this, &MainWindow::toggleFullScreen);
 	connect(m_ui->actionShowMenu, &QAction::triggered, this, &MainWindow::toggleMenu);
 	connect(m_ui->actionShowToolbar, &QAction::triggered, this, &MainWindow::toggleToolbar);
@@ -1643,11 +1556,11 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionLoadCameraSettings, &QAction::triggered, this, &MainWindow::rendererLoadCameraSettings);
 
 	// Snake slicer toolbar
-	connect(m_ui->actionSnakeSlicer,  &QAction::toggled, this, &MainWindow::toggleSnakeSlicer);
-	connect(m_ui->actionRawProfile,   &QAction::toggled, this, &MainWindow::toggleSliceProfile);
-	connect(m_ui->actionEditProfilePoints, &QAction::toggled, this, &MainWindow::toggleEditProfilePoints);
-	connect(m_ui->actionMagicLens2D,  &QAction::toggled, this, &MainWindow::toggleMagicLens);
-	connect(m_ui->actionMagicLens3D,  &QAction::triggered, this, &MainWindow::toggleMagicLens3D);
+	connect(m_ui->actionSnakeSlicer, &QAction::toggled, this, [childCall](bool checked) { childCall(&MdiChild::toggleSnakeSlicer, checked); });
+	connect(m_ui->actionRawProfile,   &QAction::toggled, this, [childCall](bool checked) { childCall(&MdiChild::toggleSliceProfile, checked); });
+	connect(m_ui->actionEditProfilePoints, &QAction::toggled, this, [childCall](bool checked) { childCall(&MdiChild::toggleProfileHandles, checked); });
+	connect(m_ui->actionMagicLens2D,  &QAction::toggled, this, [childCall](bool checked) { childCall(&MdiChild::toggleMagicLens2D, checked); });
+	connect(m_ui->actionMagicLens3D,  &QAction::triggered, this, [childCall](bool checked) { childCall(&MdiChild::toggleMagicLens3D, checked); });
 
 	// Layout toolbar menu entries
 	connect(m_ui->actionSaveLayout,   &QAction::triggered, this, &MainWindow::saveLayout);
