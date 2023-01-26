@@ -108,7 +108,8 @@ void iAGEMSeModuleInterface::setupToolbar()
 			LOG(lvlError, "ERROR: GEMSE tool is not available!");
 			return;
 		}
-		std::invoke(thisfunc, t);
+		(t->*thisfunc)();
+		//std::invoke(thisfunc, t);    // use once we have switched to C++17
 	};
 
 	connect(m_toolbar->action_ResetFilter, &QAction::triggered, this, [this, toolbarCallback]() {

@@ -33,8 +33,6 @@
 #include <functional>
 #include <memory>
 
-
-class iAAlgorithm;
 class iAChannelData;
 class iAChartWithFunctionsWidget;
 class iADataSet;
@@ -213,13 +211,8 @@ public:
 	//! set window title, and if a file name is given, set it as window file and add it to recent files
 	virtual void setWindowTitleAndFile(QString const& f) = 0;
 
-	// Deprecated:
-	//! @deprecated. Use iARunAsync / iAJobListView directly
-	//!    also, don't use iAAlgorithm anymore!
-	virtual void connectThreadSignalsToChildSlots(iAAlgorithm* thread) = 0;
-
 	//! Access to file info of "current" file
-	//! @deprecated. Use access via modalities instead
+	//! @deprecated. Use access via datasets instead
 	virtual QFileInfo const & fileInfo() const = 0;
 	
 	//! @deprected access transform used in slicer. should be removed from here; no replacement in place yet

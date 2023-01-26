@@ -8,7 +8,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <defines.h>
 <iAAbortListener.h>
 <iAAbstractMagicLensWidget.h>
-<iAAlgorithm.h>
 <iAAttributeDescriptor.h>
 <iAAttributes.h>
 <iAChannelData.h>

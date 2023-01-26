@@ -39,7 +39,6 @@
 #include <iASlicerImpl.h>
 
 // guibase
-#include <iAAlgorithm.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iADataSetListWidget.h>
@@ -300,25 +299,6 @@ void MdiChild::connectSignalsToSlots()
 			updateViews();
 		});
 	}
-}
-
-void MdiChild::connectThreadSignalsToChildSlots(iAAlgorithm* thread)
-{
-	// TODO NEWIO: update mechanism to bring in output of "old style" algorithm results
-	//connect(thread, &iAAlgorithm::startUpdate, this, &MdiChild::updateRenderWindows);
-	//connect(thread, &iAAlgorithm::finished, this, &MdiChild::enableRenderWindows);
-	connectAlgorithmSignalsToChildSlots(thread);
-}
-
-void MdiChild::connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread)
-{
-	addAlgorithm(thread);
-}
-
-void MdiChild::addAlgorithm(iAAlgorithm* thread)
-{
-	m_workingAlgorithms.push_back(thread);
-	connect(thread, &iAAlgorithm::finished, this, &MdiChild::removeFinishedAlgorithms);
 }
 
 void MdiChild::updatePositionMarker(double x, double y, double z, int mode)

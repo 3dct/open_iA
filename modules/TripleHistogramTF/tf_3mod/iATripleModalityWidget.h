@@ -35,7 +35,6 @@ class iABarycentricTriangleWidget;
 class iABarycentricContextRenderer;
 
 class iAChartWithFunctionsWidget;
-class iAModality;
 class iATransferFunction;
 class iAMdiChild;
 
