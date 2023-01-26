@@ -189,7 +189,7 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			child->dataSetListWidget()->removeDataSet(dataSetIdx);
 			emit removeDataSet(dataSetIdx);
 		});
-	setActionIcon(removeAction, "minus", false);
+	setActionIcon(removeAction, "delete", false);
 	m_actions.push_back(removeAction);
 
 	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this,

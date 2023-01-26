@@ -249,8 +249,7 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_orientationMarkerWidget->SetEnabled(1);
 	m_orientationMarkerWidget->InteractiveOff();
 
-	m_renderObserver = iARenderObserver::New(m_ren, m_interactor,
-		m_moveableAxesTransform, m_plane1, m_plane2, m_plane3);
+	m_renderObserver = new iARenderObserver(m_ren, m_interactor, m_moveableAxesTransform, m_plane1, m_plane2, m_plane3);
 	m_interactor->AddObserver(vtkCommand::KeyPressEvent, m_renderObserver, 0.0);
 	m_interactor->AddObserver(vtkCommand::LeftButtonPressEvent, m_renderObserver);
 	m_interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, m_renderObserver);

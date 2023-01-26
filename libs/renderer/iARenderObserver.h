@@ -42,13 +42,8 @@ class iArenderer_API iARenderObserver : public QObject, public vtkCommand
 {
 	Q_OBJECT
 
-	enum Axis { X_AXIS = 1, Y_AXIS, Z_AXIS };
-
 public:
 	iARenderObserver(vtkRenderer* pRen, vtkRenderWindowInteractor* pIren, vtkTransform* pTrans,
-		vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
-	~iARenderObserver();
-	static iARenderObserver* New(vtkRenderer* pRen, vtkRenderWindowInteractor* pIren, vtkTransform* pTrans,
 		vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
 	void ReInitialize(vtkRenderer* pRen, vtkRenderWindowInteractor* pIren, vtkTransform* pTrans,
 		vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
@@ -68,6 +63,7 @@ protected:
 	vtkSmartPointer<vtkWorldPointPicker> m_pWorldPicker;
 
 private:
+	enum Axis { X_AXIS = 1, Y_AXIS, Z_AXIS };
 	vtkPlane* m_pPlane1;
 	vtkPlane* m_pPlane2;
 	vtkPlane* m_pPlane3;

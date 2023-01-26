@@ -66,18 +66,11 @@ void iARenderObserver::ReInitialize(vtkRenderer* pRen, vtkRenderWindowInteractor
 	m_pPlane3 = plane3;
 }
 
-iARenderObserver* iARenderObserver::New(vtkRenderer* pRen, vtkRenderWindowInteractor* pIren,
-	vtkTransform* pTrans, vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3)
-{
-	return new iARenderObserver(pRen, pIren, pTrans, plane1, plane2, plane3);
-}
-
-iARenderObserver::~iARenderObserver()
-{
-	m_pLine->Delete();
-	m_pProbe->Delete();
-	m_pWorldPicker->Delete();
-}
+//iARenderObserver* iARenderObserver::New(vtkRenderer* pRen, vtkRenderWindowInteractor* pIren,
+//	vtkTransform* pTrans, vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3)
+//{
+//	return new iARenderObserver(pRen, pIren, pTrans, plane1, plane2, plane3);
+//}
 
 void iARenderObserver::Execute(vtkObject * caller, unsigned long eid, void *  callData)
 {

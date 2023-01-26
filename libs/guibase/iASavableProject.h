@@ -30,12 +30,9 @@
 //! in order to be called when the user selects to "Save Project".
 //!
 //! Refactoring ideas:
-//! - make this class the container for the open projects currently stored in
-//!   iAMdiChild::m_projects,
-//!   and move iAMdiChild::doSaveProject into saveProject (or into default implementation of
-//!   doSaveProject, as iAMdiChild probably into the forseeable future needs to do things
-//!   differently to be able to load .mod files)
-//! - rename to iAOpenProjects or something?
+//! - Move dataset rendering capabilities from iAMdiChild / MdiChild into a separate "viewer"
+//!   tool, and make all separate tools using this as base class (only iAFeatureAnalyzer!) a
+//!   tool under iAMdiChild
 class iAguibase_API iASavableProject
 {
 public:
