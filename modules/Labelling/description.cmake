@@ -1,3 +1,3 @@
 set(MODULE_DESCRIPTION
-	"Provides functionality for setting label voxels (as input for a segmentation algorihtm, or for a full manual segmentation) on top of an input image"
+	"Provides functionality for:\n  - Setting label voxels (as input for a segmentation algorithm, or for a full manual segmentation) on top of an input image\n  - Adding annotations to (the surface of) a volume"
 )
