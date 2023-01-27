@@ -25,5 +25,5 @@
 class iACommonImageFiltersModuleInterface : public iAModuleInterface
 {
 public:
-	void Initialize() override;
+	void Initialize() override {}
 };

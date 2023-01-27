@@ -25,5 +25,5 @@
 class iAExtractSurfaceModuleInterface : public iAModuleInterface
 {
 public:
-	void Initialize() override;
+	void Initialize() override {}
 };
