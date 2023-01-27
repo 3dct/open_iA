@@ -103,7 +103,8 @@ namespace
 	void processImg(vtkSmartPointer<vtkImageData> img, std::function<double(double)> func, iAProgress* p)
 	{
 		int const* dim = img->GetDimensions();
-		qint64 count = static_cast<qint64>(dim[0]) * static_cast<qint64>(dim[1]) * dim[2];
+		int components = img->GetNumberOfScalarComponents();
+		qint64 count = static_cast<qint64>(dim[0]) * static_cast<qint64>(dim[1]) * dim[2] * components;
 		void* voidPtr = img->GetScalarPointer();
 		VTK_TYPED_CALL(processImg_tmpl, img->GetScalarType(), voidPtr, func, count, p);
 	}
