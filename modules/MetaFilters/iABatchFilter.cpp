@@ -216,7 +216,7 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 			}
 			else
 			{
-				if (filter->requiredInputs() > 0)
+				if (filter->requiredImages() > 0)
 				{
 					auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Load);
 					QVariantMap dummyParams;    // TODO: CHECK whether I/O requires other parameters and error in that case!

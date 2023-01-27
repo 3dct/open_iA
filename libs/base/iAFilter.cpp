@@ -73,8 +73,9 @@ iAFilter::iAFilter(QString const & name, QString const & category, QString const
 	m_name(name),
 	m_category(category),
 	m_description(description),
-	m_requiredInputs(requiredInputs),
+	m_requiredImages(requiredInputs),
 	m_outputCount(outputCount),
+	m_requiredMeshes(0),
 	m_firstInputChannels(1),
 	m_canAbort(supportsAbort)
 {}
@@ -110,9 +111,14 @@ iAAttributes const & iAFilter::parameters() const
 	return m_parameters;
 }
 
-unsigned int iAFilter::requiredInputs() const
+unsigned int iAFilter::requiredImages() const
 {
-	return m_requiredInputs;
+	return m_requiredImages;
+}
+
+unsigned int iAFilter::requiredMeshes() const
+{
+	return m_requiredMeshes;
 }
 
 unsigned int iAFilter::firstInputChannels() const
@@ -230,10 +236,10 @@ void iAFilter::setLogger(iALogger* log)
 
 bool iAFilter::run(QVariantMap const & parameters)
 {
-	if (m_input.size() < m_requiredInputs)
+	if (m_input.size() < (m_requiredImages + m_requiredMeshes) )
 	{
 		addMsg(QString("Not enough inputs specified. Filter %1 requires %2 input images, but only %3 given!")
-			.arg(m_name).arg(m_requiredInputs).arg(m_input.size()));
+			.arg(m_name).arg(m_requiredImages).arg(m_input.size()));
 		return false;
 	}
 	clearOutput();
@@ -447,6 +453,11 @@ bool iAFilter::isAborted() const
 void iAFilter::setOutputName(unsigned int i, QString const & name)
 {
 	m_outputNames.insert(i, name);
+}
+
+void iAFilter::setRequiredMeshInputs(unsigned int i)
+{
+	m_requiredMeshes = i;
 }
 
 iAAttributes& iAFilter::paramsWritable()

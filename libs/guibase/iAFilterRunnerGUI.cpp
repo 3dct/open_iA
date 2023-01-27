@@ -26,7 +26,6 @@
 #include "iAFileUtils.h"
 #include "iAFilter.h"
 #include "iALog.h"
-//#include "iALogger.h"
 #include "iAProgress.h"
 #include "iASettings.h"    // for storeSettings
 
@@ -38,9 +37,6 @@
 #include "iAParameterDlg.h"
 #include "iAPerformanceHelper.h"    // for formatDuration
 #include "iAPreferences.h"
-
-#include <vtkImageData.h>
-#include <vtkPolyData.h>
 
 #include <QElapsedTimer>
 #include <QFileInfo>
@@ -192,7 +188,7 @@ bool iAFilterRunnerGUI::askForParameters(std::shared_ptr<iAFilter> filter, QVari
 			showROI = true;
 		}
 	}
-	if (filter->requiredInputs() == 1 && dlgParams.empty())
+	if ( filter->requiredImages() == 1 && dlgParams.empty())
 	{
 		return true;
 	}
@@ -204,21 +200,21 @@ bool iAFilterRunnerGUI::askForParameters(std::shared_ptr<iAFilter> filter, QVari
 			otherMdis.push_back(mdi);
 		}
 	}
-	if (askForAdditionalInput && filter->requiredInputs() > static_cast<unsigned int>(otherMdis.size()+1) )
+	if (askForAdditionalInput && filter->requiredImages() > static_cast<unsigned int>(otherMdis.size()+1) )
 	{
 		QMessageBox::warning(mainWnd, filter->name(),
 			QString("This filter requires %1 datasets, only %2 open file(s)!")
-			.arg(filter->requiredInputs()).arg(otherMdis.size()+1));
+			.arg(filter->requiredImages()).arg(otherMdis.size()+1));
 		return false;
 	}
 	QStringList mdiChildrenNames;
-	if (askForAdditionalInput && filter->requiredInputs() > 1)
+	if (askForAdditionalInput && filter->requiredImages() > 1)
 	{
 		for (auto mdi: otherMdis)
 		{
 			mdiChildrenNames << mdi->windowTitle().replace("[*]", "");
 		}
-		for (unsigned int i = 1; i < filter->requiredInputs(); ++i)
+		for (unsigned int i = 1; i < filter->requiredImages(); ++i)
 		{
 			addAttr(dlgParams, QString("%1").arg(filter->inputName(i)), iAValueType::Categorical, mdiChildrenNames);
 		}
@@ -239,9 +235,9 @@ bool iAFilterRunnerGUI::askForParameters(std::shared_ptr<iAFilter> filter, QVari
 		return false;
 	}
 	paramValues = dlg.parameterValues();
-	if (askForAdditionalInput && filter->requiredInputs() > 1)
+	if (askForAdditionalInput && filter->requiredImages() > 1)
 	{
-		for (unsigned int i = 1; i < filter->requiredInputs(); ++i)
+		for (unsigned int i = 1; i < filter->requiredImages(); ++i)
 		{
 			QString selectedFile = paramValues[QString("%1").arg(filter->inputName(i))].toString();
 			int const mdiIdx = mdiChildrenNames.indexOf(selectedFile);
@@ -268,10 +264,10 @@ void iAFilterRunnerGUI::filterGUIPreparations(std::shared_ptr<iAFilter> /*filter
 void iAFilterRunnerGUI::run(std::shared_ptr<iAFilter> filter, iAMainWindow* mainWnd)
 {
 	iAMdiChild* sourceMdi = mainWnd->activeMdiChild();
-	if (filter->requiredInputs() > 0 && (!sourceMdi || sourceMdi->dataSetMap().empty()))
+	if (filter->requiredImages() > 0 && (!sourceMdi || sourceMdi->dataSetMap().empty()))
 	{
 		LOG(lvlWarn,QString("Filter requires %1 input(s), but %2!")
-			.arg(filter->requiredInputs())
+			.arg(filter->requiredImages())
 			.arg(!sourceMdi ? "no source file is available" : "source file is not fully loaded yet"));
 		emit finished();
 		return;
@@ -317,10 +313,10 @@ void iAFilterRunnerGUI::run(std::shared_ptr<iAFilter> filter, iAMainWindow* main
 	{
 		thread->addInput(m_additionalInput[a]);
 	}
-	if (thread->inputCount() < filter->requiredInputs())
+	if (thread->inputCount() < filter->requiredImages())
 	{
 		LOG(lvlError, QString("Not enough inputs specified, filter %1 requires %2 input images!")
-			.arg(filter->name()).arg(filter->requiredInputs()));
+			.arg(filter->name()).arg(filter->requiredImages()));
 		emit finished();
 		return;
 	}

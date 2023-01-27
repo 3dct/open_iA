@@ -68,9 +68,11 @@ public:
 	//!     When left empty, the filter will be added directly in the Filter menu
 	//! @param description An (optional) description of the filter algorithm, and
 	//!     ideally its settings. Can contain HTML (e.g. links)
-	//! @param requiredInputs The number of inputs required for this filter;
+	//! @param requiredImages The number of (image) inputs required for this filter;
 	//!     by default, filters are assumed to require exactly one input image; you
 	//!     can override the number of inputs required for your filter with this parameter
+	//!     for filters that require mesh input, see the setRequiredMeshInputs method;
+	//!     set this to 0 if the filter requires no images in addition to the mesh
 	//! @param outputCount the number of outputs this filter creates. Set it to 0 to
 	//!     disable image output. If you don't know this yet at the time of creating the
 	//!     filter (because it for example depends on the number of input images or the
@@ -83,7 +85,7 @@ public:
 	//!     is by checking the boolean flag accessible via isAbort, but derived classes
 	//!     can implement custom abort listeners through overriding the abort() function
 	iAFilter(QString const & name, QString const & category, QString const & description = "",
-		unsigned int requiredInputs = 1, unsigned int outputCount = 1, bool supportsAbort = false);
+		unsigned int requiredImages = 1, unsigned int outputCount = 1, bool supportsAbort = false);
 	//! virtual destructor, to enable proper destruction in derived classes and to avoid warnings
 	virtual ~iAFilter();
 	//! Retrieve the filter name.
@@ -138,10 +140,12 @@ public:
 		QVariant defaultValue = 0.0,
 		double min = std::numeric_limits<double>::lowest(),
 		double max = std::numeric_limits<double>::max());
-	//! Returns the number of image inputs required by this filter.
-	//! for typical image filters, this returns 1.
+	//! Returns the number of input images required by this filter.
+	//! For typical image filters, this returns 1.
 	//! @return the number of images required as input
-	unsigned int requiredInputs() const;
+	unsigned int requiredImages() const;
+	//! Returns the number of input meshes required by this filter.
+	unsigned int requiredMeshes() const;
 
 	//! Get input with the given index.
 	//! @see inputCount for the number of available inputs
@@ -218,6 +222,9 @@ protected:
 	//! Set the name of the output with the given index.
 	void setOutputName(unsigned int i, QString const & name);
 
+	//! Set the number of required mesh inputs (0 by default)
+	void setRequiredMeshInputs(unsigned int i);
+
 	//! "Writable" list of the filter parameters.
 	iAAttributes & paramsWritable();
 
@@ -253,9 +260,11 @@ private:
 	//! Name, category and description of the filter.
 	QString m_name, m_category, m_description;
 	//! Number of input images required by the filter.
-	unsigned int m_requiredInputs;
+	unsigned int m_requiredImages;
 	//! Number of output images produced by the filter.
 	unsigned int m_outputCount;
+	//! Number of input meshes required by the filter (default: 0)
+	unsigned int m_requiredMeshes;
 	//! In case this filter requires two "kinds" of inputs, this marks the number of inputs belonging to the first kind.
 	unsigned int m_firstInputChannels;
 	//! flag storing whether the filter supports aborting

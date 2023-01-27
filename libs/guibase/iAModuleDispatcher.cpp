@@ -247,7 +247,7 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 		}
 		QAction * filterAction = new QAction(tr(filter->name().toStdString().c_str()), m_mainWnd);
 		addToMenuSorted(filterMenu, filterAction);
-		if (filter->requiredInputs() > 0)
+		if (filter->requiredImages() > 0 || filter->requiredMeshes() > 0)
 		{
 			m_mainWnd->makeActionChildDependent(filterAction);
 		}

@@ -175,14 +175,14 @@ namespace
 			}
 			std::cout << "\n";
 		}
-		if (filter->requiredInputs() == 0)
+		if (filter->requiredImages() == 0)
 		{
 			std::cout << "No input images.\n";
 		}
 		else
 		{
 			std::cout << "Input images:\n";
-			for (unsigned int  i = 0; i < filter->requiredInputs(); ++i)
+			for (unsigned int  i = 0; i < filter->requiredImages(); ++i)
 			{
 				std::cout << "    " << filter->inputName(i).toStdString() << "\n";
 			}
@@ -398,10 +398,10 @@ namespace
 		}
 
 		// Argument checks:
-		if (static_cast<unsigned int>(inputFiles.size()) != filter->requiredInputs())
+		if (static_cast<unsigned int>(inputFiles.size()) != filter->requiredImages())
 		{
 			std::cout << "Incorrect number of input files: filter requires "
-				<< filter->requiredInputs() << " input files, but "
+				<< filter->requiredImages() << " input files, but "
 				<< inputFiles.size() << " were specified after the -i parameter." << std::endl;
 			return 1;
 		}
