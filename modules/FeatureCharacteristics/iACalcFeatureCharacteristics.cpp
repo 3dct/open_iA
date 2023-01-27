@@ -18,7 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iACalcFeatureCharacteristics.h"
+
+#include <iAFilterDefault.h>
+
+IAFILTER_DEFAULT_CLASS(iACalcFeatureCharacteristics);
 
 #include <defines.h>          // for DIM
 #include <iAProgress.h>

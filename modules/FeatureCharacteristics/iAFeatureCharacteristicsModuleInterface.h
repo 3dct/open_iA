@@ -24,5 +24,5 @@
 
 class iAFeatureCharacteristicsModuleInterface : public iAModuleInterface
 {
-	void Initialize() override;
+	void Initialize() override {}
 };

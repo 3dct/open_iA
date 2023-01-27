@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iASpatialFeatureSummary.h"
-
 #include "iAAABB.h"
+#include <iAFilterDefault.h>
 #include "iALog.h"
 #include "iAStringHelper.h"    // for stringToVector
 #include "iAToolsVTK.h"
@@ -40,6 +39,9 @@ namespace
 	const QString MinCorner("Minimum corner");
 	const QString MaxCorner("Maximum corner");
 }
+
+IAFILTER_DEFAULT_CLASS(iASpatialFeatureSummary);
+// maybe use iAFilter::adaptParametersToInput for getting boundaries of csv? but then we would need to parse csv before ...
 
 iASpatialFeatureSummary::iASpatialFeatureSummary():
 	iAFilter("Calculate Spatial Fiber Summary", "Feature Characteristics",
@@ -68,6 +70,7 @@ iASpatialFeatureSummary::iASpatialFeatureSummary():
 	addParameter(MinCorner, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
 	addParameter(MaxCorner, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
 	setOutputName(0, "Number of fibers");
+	setOutputName(1, "Number of fiber start/end points");
 }
 
 namespace
@@ -222,12 +225,18 @@ void iASpatialFeatureSummary::performWork(QVariantMap const & parameters)
 
 	
 	// determine number of fibers in each cell:
-	auto numberOfFibersImage = allocateImage(VTK_DOUBLE, metaDim.data(), metaSpacing.data());
+	auto numberOfFibersImage = allocateImage(VTK_INT, metaDim.data(), metaSpacing.data());
+	auto numberOfPointsImage = allocateImage(VTK_INT, metaDim.data(), metaSpacing.data());
 	fillImage(numberOfFibersImage, 0.0);
+	fillImage(numberOfPointsImage, 0.0);
 	for (int o = 0; o < csvTable->GetNumberOfRows(); ++o)
 	{
 		iAVec3i startVoxel(iAVec3d(csvTable->GetValue(o, startIdx[0]).ToDouble(), csvTable->GetValue(o, startIdx[1]).ToDouble(), csvTable->GetValue(o, startIdx[2]).ToDouble()) / metaSpacing);
 		iAVec3i endVoxel(iAVec3d(csvTable->GetValue(o, endIdx[0]).ToDouble(), csvTable->GetValue(o, endIdx[1]).ToDouble(), csvTable->GetValue(o, endIdx[2]).ToDouble()) / metaSpacing);
+		numberOfPointsImage->SetScalarComponentFromDouble(startVoxel.x(), startVoxel.y(), startVoxel.z(), 0,
+			numberOfPointsImage->GetScalarComponentAsDouble(startVoxel.x(), startVoxel.y(), startVoxel.z(), 0) + 1);
+		numberOfPointsImage->SetScalarComponentFromDouble(endVoxel.x(), endVoxel.y(), endVoxel.z(), 0,
+			numberOfPointsImage->GetScalarComponentAsDouble(endVoxel.x(), endVoxel.y(), endVoxel.z(), 0) + 1);
 		auto cellIds = findCellIdsBresenham3D(startVoxel, endVoxel);
 		for (auto c : cellIds)
 		{
@@ -241,11 +250,12 @@ void iASpatialFeatureSummary::performWork(QVariantMap const & parameters)
 		}
 	}
 	addOutput(numberOfFibersImage);
+	addOutput(numberOfPointsImage);
 	auto r = numberOfFibersImage->GetScalarRange();
 	LOG(lvlDebug, QString("Number of fibers: from %1 to %2").arg(r[0]).arg(r[1]));
 
 	// determine characteristics averages:
-	auto curOutput = 1;
+	auto curOutput = 2;
 	for (auto col : columns)
 	{
 		auto metaImage = allocateImage(VTK_DOUBLE, metaDim.data(), metaSpacing.data());
