@@ -18,16 +18,19 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iALevelSet.h"
-
 #include <itkLaplacianSegmentationLevelSetImageFilter.h>
 #include <itkCannySegmentationLevelSetImageFilter.h>
 #include <itkZeroCrossingImageFilter.h>
 
 #include <defines.h>    // for DIM
 #include <iADataSet.h>
+#include <iAFilterDefault.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
+
+IAFILTER_DEFAULT_CLASS(iACannySegmentationLevelSet);
+IAFILTER_DEFAULT_CLASS(iALaplacianSegmentationLevelSet);
+IAFILTER_DEFAULT_CLASS(iAZeroCrossing);
 
 template<class T>
 void laplacianSegmentationLevelSet(iAFilter* filter, QVariantMap const & parameters)

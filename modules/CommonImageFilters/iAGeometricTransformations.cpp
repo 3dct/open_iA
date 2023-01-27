@@ -18,10 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAGeometricTransformations.h"
-
 #include <defines.h>          // for DIM
 #include <iADataSet.h>
+#include <iAFilterDefault.h>
 #include <iAMathUtility.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>    // for setIndexOffsetToZero
@@ -41,6 +40,45 @@
 
 #include <QtConcurrent/qtconcurrentfilter.h>
 
+IAFILTER_DEFAULT_CLASS(iACopy)
+
+class iAExtractComponent : public iAFilter, private iAAutoRegistration<iAFilter, iAExtractComponent, iAFilterRegistry>
+{
+public:
+	iAExtractComponent();
+	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
+private:
+	void performWork(QVariantMap const& parameters) override;
+};
+
+class iASimpleResampleFilter : public iAFilter, private iAAutoRegistration<iAFilter, iASimpleResampleFilter, iAFilterRegistry>
+{
+public:
+	iASimpleResampleFilter();
+	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
+private:
+	void performWork(QVariantMap const& parameters) override;
+};
+
+class iAResampleFilter : public iAFilter, private iAAutoRegistration<iAFilter, iAResampleFilter, iAFilterRegistry>
+{
+public:
+	iAResampleFilter();
+	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
+private:
+	void performWork(QVariantMap const& parameters) override;
+};
+
+class iAExtractImageFilter : public iAFilter, private iAAutoRegistration<iAFilter, iAExtractImageFilter, iAFilterRegistry>
+{
+public:
+	iAExtractImageFilter();
+	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
+private:
+	void performWork(QVariantMap const& parameters) override;
+};
+
+IAFILTER_DEFAULT_CLASS(iAPadImageFilter);
 
 void iACopy::performWork(QVariantMap const& /*parameters*/)
 {

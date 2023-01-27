@@ -18,11 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAGradients.h"
-
-
 #include <defines.h> // for DIM
 #include <iADataSet.h>
+#include <iAFilterDefault.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
@@ -32,6 +30,13 @@
 #endif
 #include <itkGradientMagnitudeImageFilter.h>
 #include <itkGradientMagnitudeRecursiveGaussianImageFilter.h>
+
+IAFILTER_DEFAULT_CLASS(iADerivative);
+IAFILTER_DEFAULT_CLASS(iAGradientMagnitude);
+IAFILTER_DEFAULT_CLASS(iAGradientMagnitudeRecursiveGaussian);
+#ifdef ITKHigherOrderGradient
+IAFILTER_DEFAULT_CLASS(iAHigherOrderAccurateDerivative);
+#endif
 
 // iAGradientMagnitude
 

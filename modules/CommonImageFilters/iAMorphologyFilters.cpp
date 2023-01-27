@@ -18,10 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAMorphologyFilters.h"
-
 #include <defines.h>    // for DIM
 #include <iADataSet.h>
+#include <iAFilterDefault.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
@@ -44,6 +43,18 @@
 // NOTE: The 'binary' versions of the dilation (e.g., itkBinaryDilateImageFilter), erode, fill hole, opening,
 // and closing filters have been replaced by the 'grayscale' versions of these filters
 // (e.g., itkGrayscaleDilateImageFilter), because of convenience (more data types supported) and performance (parallelization).
+
+IAFILTER_DEFAULT_CLASS(iADilation);
+IAFILTER_DEFAULT_CLASS(iAErosion);
+IAFILTER_DEFAULT_CLASS(iAMorphOpening);
+IAFILTER_DEFAULT_CLASS(iAMorphClosing);
+IAFILTER_DEFAULT_CLASS(iAOpeningByReconstruction);
+IAFILTER_DEFAULT_CLASS(iAClosingByReconstruction);
+
+IAFILTER_DEFAULT_CLASS(iABinaryThinning);
+IAFILTER_DEFAULT_CLASS(iABinaryFillHole);
+IAFILTER_DEFAULT_CLASS(iAGrayscaleFillHole);
+IAFILTER_DEFAULT_CLASS(iAVesselEnhancement);
 
 namespace
 {

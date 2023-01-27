@@ -18,10 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAHessianEigenanalysis.h"
-
 #include <defines.h>          // for DIM
 #include <iADataSet.h>
+#include <iAFilterDefault.h>
 #include <iAPixelAccessors.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
@@ -32,6 +31,10 @@
 #include <itkLaplacianRecursiveGaussianImageFilter.h>
 #include <itkLaplacianImageFilter.h>
 #include <itkSymmetricEigenAnalysisImageFilter.h>
+
+IAFILTER_DEFAULT_CLASS(iAHessianEigenanalysis);
+IAFILTER_DEFAULT_CLASS(iALaplacian);
+
 
 template<class T> void hessianEigenAnalysis(iAFilter* filter, QVariantMap const & parameters)
 {

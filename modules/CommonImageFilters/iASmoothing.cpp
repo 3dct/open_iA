@@ -18,10 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iASmoothing.h"
-
 #include <defines.h> // for DIM
 #include <iADataSet.h>
+#include <iAFilterDefault.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>
 #include <iAItkVersion.h>
@@ -44,6 +43,47 @@
 // split into a separate file starting with ITK 5.1 (previously included in itkGPUGradientAnisotropicDiffusionImageFilter.h)
 #include <itkGPUGradientAnisotropicDiffusionImageFilterFactory.h>
 #endif
+#endif
+
+#include <iAItkVersion.h>
+
+#if (!defined(ITKNOGPU) && (ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(5,1,0) && ITK_VERSION_NUMBER < ITK_VERSION_CHECK(5,2,0)))
+#ifndef _MSC_VER
+#warning("With ITK 5.1.x, GPU-accelerated filters don't work in open_iA, see https://github.com/InsightSoftwareConsortium/ITK/issues/1381. Disabling GPU support")
+#else
+#pragma message("With ITK 5.1.x, GPU-accelerated filters don't work in open_iA, see https://github.com/InsightSoftwareConsortium/ITK/issues/1381. Disabling GPU support")
+#endif
+#define ITKNOGPU
+#endif
+
+namespace itk
+{
+	class ProcessObject;
+}
+
+
+// Blurring
+IAFILTER_DEFAULT_CLASS(iADiscreteGaussian);
+IAFILTER_DEFAULT_CLASS(iARecursiveGaussian);
+IAFILTER_DEFAULT_CLASS(iAMedianFilter);
+
+class iANonLocalMeans : public iAFilter, private iAAutoRegistration<iAFilter, iANonLocalMeans, iAFilterRegistry>
+{
+public:
+	iANonLocalMeans();
+	void abort() override;
+private:
+	void performWork(QVariantMap const& parameters) override;
+	itk::ProcessObject* m_itkProcess;
+};
+
+// Edge-Preserving
+IAFILTER_DEFAULT_CLASS(iAGradientAnisotropicDiffusion);
+IAFILTER_DEFAULT_CLASS(iACurvatureAnisotropicDiffusion);
+IAFILTER_DEFAULT_CLASS(iACurvatureFlow);
+IAFILTER_DEFAULT_CLASS(iABilateral);
+#ifndef ITKNOGPU
+IAFILTER_DEFAULT_CLASS(iAGPUEdgePreservingSmoothing)
 #endif
 
 

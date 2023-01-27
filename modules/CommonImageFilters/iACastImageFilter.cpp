@@ -18,11 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iACastImageFilter.h"
-
 #include <defines.h>          // for DIM
 #include <iAColorTheme.h>
 #include <iADataSet.h>
+#include <iAFilterDefault.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>    // for castImageTo
 #include <iAToolsVTK.h>    // for VTKDataTypeList
@@ -39,6 +38,10 @@
 
 #include <QStringList>
 
+IAFILTER_DEFAULT_CLASS(iACastImageFilter);
+IAFILTER_DEFAULT_CLASS(iAConvertToRGBAFilter);
+
+
 template <class InT, class OutT> void castImage(iAFilter* filter)
 {
 	typedef itk::Image<InT, DIM > InputImageType;
@@ -50,7 +53,6 @@ template <class InT, class OutT> void castImage(iAFilter* filter)
 	castFilter->Update();
 	filter->addOutput(castFilter->GetOutput());
 }
-
 
 
 template<class T> void castImage(iAFilter* filter, int vtkType)

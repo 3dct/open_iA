@@ -18,10 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAIntensity.h"
-
 #include <defines.h>          // for DIM
 #include <iADataSet.h>
+#include <iAFilterDefault.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
@@ -43,6 +42,22 @@
 #include <itkThresholdImageFilter.h>
 
 // Filters requiring 1 input image:
+IAFILTER_DEFAULT_CLASS(iAAdaptiveHistogramEqualization);
+IAFILTER_DEFAULT_CLASS(iAGeneralThreshold);
+IAFILTER_DEFAULT_CLASS(iAIntensityWindowingFilter);
+IAFILTER_DEFAULT_CLASS(iAInvertIntensityFilter);
+IAFILTER_DEFAULT_CLASS(iAMaskIntensityFilter);
+IAFILTER_DEFAULT_CLASS(iANormalizeIntensityFilter);
+IAFILTER_DEFAULT_CLASS(iARescaleIntensityFilter);
+IAFILTER_DEFAULT_CLASS(iAShiftScaleIntensityFilter);
+IAFILTER_DEFAULT_CLASS(iAHistogramFill);
+IAFILTER_DEFAULT_CLASS(iAReplaceAndShiftFilter);
+// Filters requiring 2 input images:
+IAFILTER_DEFAULT_CLASS(iAAddFilter);
+IAFILTER_DEFAULT_CLASS(iADifferenceFilter);
+IAFILTER_DEFAULT_CLASS(iAMultiplyFilter);
+IAFILTER_DEFAULT_CLASS(iASubtractFilter);
+IAFILTER_DEFAULT_CLASS(iAHistogramMatchingFilter);
 
 
 // iAInvertIntensityFilter
@@ -386,8 +401,6 @@ iAReplaceAndShiftFilter::iAReplaceAndShiftFilter() :
 }
 
 
-
-// Filters requiring 2 input images:
 
 
 // iAAddFilter

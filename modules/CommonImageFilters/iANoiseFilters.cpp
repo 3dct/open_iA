@@ -18,10 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iANoiseFilters.h"
-
 #include <defines.h>    // for DIM
 #include <iADataSet.h>
+#include <iAFilterDefault.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
@@ -29,6 +28,11 @@
 #include <itkSaltAndPepperNoiseImageFilter.h>
 #include <itkShotNoiseImageFilter.h>
 #include <itkSpeckleNoiseImageFilter.h>
+
+IAFILTER_DEFAULT_CLASS(iAAdditiveGaussianNoise);
+IAFILTER_DEFAULT_CLASS(iASaltAndPepperNoise);
+IAFILTER_DEFAULT_CLASS(iAShotNoise);
+IAFILTER_DEFAULT_CLASS(iASpeckleNoise);
 
 template<class T> void additiveGaussianNoise(iAFilter* filter, QVariantMap const & parameters)
 {

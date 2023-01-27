@@ -18,10 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iATransformations.h"
-
 #include <defines.h>    // for DIM
 #include <iADataSet.h>
+#include <iAFilterDefault.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
@@ -29,6 +28,11 @@
 #include <itkAffineTransform.h>
 #include <itkPermuteAxesImageFilter.h>
 #include <itkFlipImageFilter.h>
+
+IAFILTER_DEFAULT_CLASS(iAFlipAxis);
+IAFILTER_DEFAULT_CLASS(iAPermuteAxes);
+IAFILTER_DEFAULT_CLASS(iARotate);
+IAFILTER_DEFAULT_CLASS(iATranslate);
 
 template <class TImageType>
 static typename TImageType::PointType image_center(TImageType * image)

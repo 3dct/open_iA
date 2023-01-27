@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iADistanceMap.h"
-
 #include <iADataSet.h>
+#include <iAFilterDefault.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
@@ -29,6 +28,8 @@
 #include <itkRescaleIntensityImageFilter.h>
 #include <itkSignedMaurerDistanceMapImageFilter.h>
 
+IAFILTER_DEFAULT_CLASS(iASignedMaurerDistanceMap);
+IAFILTER_DEFAULT_CLASS(iADanielssonDistanceMap);
 
 template<class T>
 void signed_maurer_distancemap(iAFilter* filter, QVariantMap const & parameters)

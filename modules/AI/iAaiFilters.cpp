@@ -18,33 +18,34 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAaiFilters.h"
+#include <defines.h> // for DIM
+#include <iADataSet.h>
+#include <iAFilterDefault.h>
+#include <iALog.h>
+#include <iAProgress.h>
+#include <iAStringHelper.h>   // for joinStdString
+#include <iATypedCallHelper.h>
 
-#include "defines.h" // for DIM
+#include <itkCastImageFilter.h>
+#include <itkImage.h>
+#include <itkImageFileReader.h>
+#include <itkImageFileWriter.h>
+#include <itkNormalizeImageFilter.h>
+#include <itkImageRegionIterator.h>
+#include <itkMirrorPadImageFilter.h>
 
-#include "iADataSet.h"
-#include "iALog.h"
-#include "iAProgress.h"
-#include "iAStringHelper.h"    // for joinStdString
-#include "iATypedCallHelper.h"
-
-#include "itkCastImageFilter.h"
-#include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkNormalizeImageFilter.h"
-#include "itkImageRegionIterator.h"
-#include "itkMirrorPadImageFilter.h"
-
-#include "onnxruntime_cxx_api.h"
+#include <onnxruntime_cxx_api.h>
 
 #ifndef ONNX_CUDA
-	#include "dml_provider_factory.h"
+	#include <dml_provider_factory.h>
 #endif
 
 #include <omp.h>
 
 #include <vector>
+
+
+IAFILTER_DEFAULT_CLASS(iAai);
 
 typedef float                                 				PixelType;
 const unsigned int Dimension = 3;
