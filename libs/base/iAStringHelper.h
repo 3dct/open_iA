@@ -127,14 +127,14 @@ iAbase_API QStringList splitPossiblyQuotedString(QString const & str);
 iAbase_API QString quoteString(QString const & str);
 
 //! Convert a given string representation to an array of given type with given number of elements
-template <typename T>
-bool stringToArray(QString const & str, T * arr, int expectedSize, QString const & sep = " ")
+template <typename ValT, typename ContainerT>
+bool stringToArray(QString const & str, ContainerT arr, int expectedSize, QString const & sep = " ")
 {
 	QStringList list = str.split(sep);
 	for (QStringList::size_type i = 0; i < expectedSize && i < list.size(); ++i)
 	{
 		bool ok;
-		arr[i] = iAConverter<T>::toT(list[i], &ok);
+		arr[i] = iAConverter<ValT>::toT(list[i], &ok);
 		if (!ok)
 		{
 			return false;
