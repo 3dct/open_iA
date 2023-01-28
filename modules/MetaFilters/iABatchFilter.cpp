@@ -18,12 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iABatchFilter.h"
-
 #include "iAParameterNames.h"
-
-#include <iAFilterRegistry.h>
-#include <iAProgress.h>
 
 // io
 #include <iAFileTypeRegistry.h>
@@ -31,15 +26,19 @@
 // base
 #include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
-#include <iALog.h>
-#include <iAITKIO.h>
 #include <iAFileUtils.h>
+#include <iAFilterDefault.h>
+#include <iAFilterRegistry.h>
+#include <iALog.h>
+#include <iAProgress.h>
 #include <iAStringHelper.h>
 
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QTextStream>
+
+IAFILTER_DEFAULT_CLASS(iABatchFilter)
 
 iABatchFilter::iABatchFilter():
 	iAFilter("Batch...", "",

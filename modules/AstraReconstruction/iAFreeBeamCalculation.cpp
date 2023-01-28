@@ -18,10 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFreeBeamCalculation.h"
-
 #include <defines.h>        // for DIM
 #include <iADataSet.h>
+#include <iAFilterDefault.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 #include <iAValueTypeVectorHelpers.h>
@@ -34,6 +33,8 @@
 #include <itkStatisticsImageFilter.h>
 
 #include <QtMath>
+
+IAFILTER_DEFAULT_CLASS(iAFreeBeamCalculation);
 
 template<class InPixelType, class OutPixelType>
 void freeBeamCalculation(QVariantMap const & params, iAFilter* filter )

@@ -18,18 +18,16 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAPatchFilter.h"
-
 #include "iAParameterNames.h"
-
-#include <iAFileTypeRegistry.h>
 
 #include <defines.h>    // for DIM
 #include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
 #include <iADataSet.h>
-#include <iALog.h>
+#include <iAFileTypeRegistry.h>
+#include <iAFilterDefault.h>
 #include <iAFilterRegistry.h>
+#include <iALog.h>
 #include <iAProgress.h>
 #include <iAStringHelper.h>
 #include <iAToolsITK.h>
@@ -43,6 +41,8 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QTextStream>
+
+IAFILTER_DEFAULT_CLASS(iAPatchFilter)
 
 namespace
 {

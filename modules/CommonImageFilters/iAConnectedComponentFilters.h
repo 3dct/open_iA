@@ -20,8 +20,4 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAFilterDefault.h>
 
-IAFILTER_DEFAULT_CLASS(iAConnectedComponents);
-IAFILTER_DEFAULT_CLASS(iAScalarConnectedComponents);
-IAFILTER_DEFAULT_CLASS(iARelabelComponents);

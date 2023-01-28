@@ -18,19 +18,21 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAConnectedComponentFilters.h"
-
 #include <defines.h> // for DIM
-#include <iAProgress.h>
-
 #include <iADataSet.h>
 #include <iAFileUtils.h>
-#include <iATypedCallHelper.h>
+#include <iAFilterDefault.h>
+#include <iAProgress.h>
 #include <iAToolsITK.h>
+#include <iATypedCallHelper.h>
 
 #include <itkConnectedComponentImageFilter.h>
 #include <itkScalarConnectedComponentImageFilter.h>
 #include <itkRelabelComponentImageFilter.h>
+
+IAFILTER_DEFAULT_CLASS(iAConnectedComponents);
+IAFILTER_DEFAULT_CLASS(iAScalarConnectedComponents);
+IAFILTER_DEFAULT_CLASS(iARelabelComponents);
 
 template<class T>
 void connectedComponentFilter(iAFilter* filter, QVariantMap const & parameters)

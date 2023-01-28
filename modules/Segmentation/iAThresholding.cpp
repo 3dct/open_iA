@@ -18,11 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAThresholding.h"
-
 #include <defines.h>    // for DIM
 #include <iAAttributeDescriptor.h>
 #include <iADataSet.h>
+#include <iAFilterDefault.h>
 #include <iAProgress.h>
 #include <iAStringHelper.h>
 #include <iATypedCallHelper.h>
@@ -49,6 +48,15 @@
 #include <itkThresholdLabelerImageFilter.h>
 #include <itkTriangleThresholdImageFilter.h>
 #include <itkYenThresholdImageFilter.h>
+
+IAFILTER_DEFAULT_CLASS(iABinaryThreshold)
+IAFILTER_DEFAULT_CLASS(iAMultiThreshold)
+IAFILTER_DEFAULT_CLASS(iARatsThreshold)
+IAFILTER_DEFAULT_CLASS(iAOtsuThreshold)
+IAFILTER_DEFAULT_CLASS(iAAdaptiveOtsuThreshold)
+IAFILTER_DEFAULT_CLASS(iAOtsuMultipleThreshold)
+IAFILTER_DEFAULT_CLASS(iAMaximumDistance)
+IAFILTER_DEFAULT_CLASS(iAParameterlessThresholding)
 
 // Binary Threshold
 

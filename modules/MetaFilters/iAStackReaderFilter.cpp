@@ -18,11 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAStackReaderFilter.h"
-
-#include <iALog.h>
 #include <iAExceptionThrowingErrorObserver.h>
 #include <iAFileUtils.h>
+#include <iAFilterDefault.h>
+#include <iALog.h>
 #include <iAProgress.h>
 #include <iAStringHelper.h>
 #include <iAToolsVTK.h>
@@ -38,6 +37,9 @@
 
 #include <QFileInfo>
 #include <QDir>
+
+// TODO NEWIO: merge with iAImageStackFileIO ?
+IAFILTER_DEFAULT_CLASS(iAStackReaderFilter);
 
 void iAStackReaderFilter::performWork(QVariantMap const & parameters)
 {

@@ -21,7 +21,6 @@
 #include <defines.h>          // for DIM
 #include <iADataSet.h>
 #include <iAFilterDefault.h>
-#include <iAPixelAccessors.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
@@ -35,6 +34,27 @@
 IAFILTER_DEFAULT_CLASS(iAHessianEigenanalysis);
 IAFILTER_DEFAULT_CLASS(iALaplacian);
 
+//! Eigenvalue pixel accessor to access vector of eigen value pixels as individual images
+template< class TPixel >
+class iAEigenValueAccessor
+{
+public:
+	typedef TPixel                     InternalType;
+	typedef float                      ExternalType;
+
+	inline ExternalType Get( const InternalType & input ) const
+	{
+		return static_cast<ExternalType>( input[m_EigenIdx] );
+	}
+
+	void SetEigenIdx( unsigned int i )
+	{
+		this->m_EigenIdx = i;
+	}
+
+private:
+	unsigned int m_EigenIdx;
+};
 
 template<class T> void hessianEigenAnalysis(iAFilter* filter, QVariantMap const & parameters)
 {

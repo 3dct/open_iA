@@ -26,6 +26,7 @@
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
+// TODO NEWIO: merge with modules/MetaFilters/iAStackReaderFilter ?
 class iAio_API iAImageStackFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAImageStackFileIO, iAFileTypeRegistry>
 {
 public:

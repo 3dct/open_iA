@@ -18,16 +18,15 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFuzzyCMeans.h"
-
 #include <defines.h>    // for DIM
-#include <iAProgress.h>
-
-// base
+#include <iAAutoRegistration.h>
 #include <iADataSet.h>
+#include <iAFilter.h>
+#include <iAFilterRegistry.h>
+//#include <iAITKIO.h>
 #include <iALog.h>
+#include <iAProgress.h>
 #include <iATypedCallHelper.h>
-#include <iAITKIO.h>
 
 #include <itkConfigure.h>    // for ITK_VERSION...
 #include <itkFCMClassifierInitializationImageFilter.h>
@@ -40,7 +39,37 @@
 #include <itkVectorImage.h>
 #include <itkVectorIndexSelectionCastImageFilter.h>
 
-#include <vtkImageData.h>
+//#include <vtkImageData.h>
+
+#include <itkConfigure.h>    // for ITK_VERSION_MAJOR
+
+typedef iAAttributeDescriptor ParamDesc;
+
+class iAFCMFilter : public iAFilter, private iAAutoRegistration<iAFilter, iAFCMFilter, iAFilterRegistry>
+{
+public:
+	iAFCMFilter();
+	bool checkParameters(QVariantMap const & parameters) override;
+	void performWork(QVariantMap const & parameters) override;
+};
+
+class iAKFCMFilter : public iAFilter, private iAAutoRegistration<iAFilter, iAKFCMFilter, iAFilterRegistry>
+{
+public:
+	iAKFCMFilter();
+	bool checkParameters(QVariantMap const & parameters) override;
+	void performWork(QVariantMap const & parameters) override;
+};
+
+#if ITK_VERSION_MAJOR < 5
+class iAMSKFCMFilter : public iAFilter, private iAAutoRegistration<iAFilter, iAMSKFCMFilter, iAFilterRegistry>
+{
+public:
+	iAMSKFCMFilter();
+	bool checkParameters(QVariantMap const & parameters) override;
+	void performWork(QVariantMap const & parameters) override;
+};
+#endif
 
 typedef double ProbabilityPixelType;
 typedef itk::VectorImage<ProbabilityPixelType, DIM> VectorImageType;

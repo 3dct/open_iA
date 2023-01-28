@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAPCA.h"
-
 #include <iADataSet.h>
+#include <iAFilterDefault.h>
 #include <iAITKIO.h>
 #include <iATypedCallHelper.h>
 
@@ -29,6 +28,7 @@
 #include <itkImagePCAShapeModelEstimator.h>
 #include <itkNumericSeriesFileNames.h>
 
+IAFILTER_DEFAULT_CLASS(iAPCA);
 
 iAPCA::iAPCA() :
 	iAFilter("Principal Component Analysis", "Segmentation/Shape Analysis",

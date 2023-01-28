@@ -18,18 +18,11 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAExtractSurfaceFilters.h"
-
-// io
 #include <iADataSet.h>
-
-// base
-#include <iAConnector.h>
-#include <iALog.h>
+#include <iAFilterDefault.h>
 #include <iAFileUtils.h>
+#include <iALog.h>
 #include <iAProgress.h>
-
-
 
 //#include <vtkButterflySubdivisionFilter.h>
 #include <vtkCleanPolyData.h>
@@ -47,6 +40,9 @@
 #include <vtkSTLWriter.h>
 #include <vtkWindowedSincPolyDataFilter.h>
 #include <vtkFillHolesFilter.h>
+
+IAFILTER_DEFAULT_CLASS(iAExtractSurface);
+IAFILTER_DEFAULT_CLASS(iATriangulation);
 
 namespace
 {

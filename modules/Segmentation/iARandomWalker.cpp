@@ -18,8 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iARandomWalker.h"
-
 #include "iAGraphWeights.h"
 #include "iAImageGraph.h"
 #include "iANormalizerImpl.h"
@@ -29,12 +27,13 @@
 
 #include <defines.h>     // for DIM
 #include <iADataSet.h>
+#include <iAFilterDefault.h>
 #ifndef NDEBUG
 #include <iAMathUtility.h>    // for dblApproxEqual used in assert
 #endif
 #include <iAToolsVTK.h>
-#include <iATypedCallHelper.h>
 #include <iAToolsITK.h>
+#include <iATypedCallHelper.h>
 
 #include <vtkImageData.h>
 
@@ -63,6 +62,11 @@ typedef vnl_vector<double> VectorType;
 #include <QSet>
 #include <QTextStream>
 
+IAFILTER_DEFAULT_CLASS(iARandomWalker);
+IAFILTER_DEFAULT_CLASS(iAExtendedRandomWalker);
+
+IAFILTER_DEFAULT_CLASS(iAMaximumDecisionRule);
+IAFILTER_DEFAULT_CLASS(iALabelImageToSeeds);
 
 namespace
 {

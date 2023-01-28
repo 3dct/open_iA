@@ -18,10 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iARegionGrowing.h"
-
 #include <defines.h>          // for DIM
 #include <iADataSet.h>
+#include <iAFilterDefault.h>
 #include <iALog.h>
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
@@ -33,6 +32,10 @@
 //#include <itkKLMRegionGrowImageFilter.h>
 #include <itkNeighborhoodConnectedImageFilter.h>
 //#include <itkVectorConfidenceConnectedImageFilter.h>
+
+IAFILTER_DEFAULT_CLASS(iAConfidenceConnectedRegionGrow)
+IAFILTER_DEFAULT_CLASS(iAConnectedThresholdRegionGrow)
+IAFILTER_DEFAULT_CLASS(iANeighborhoodConnectedRegionGrow)
 
 
 // Common functionality for adding seeds from a given mask image:
