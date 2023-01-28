@@ -198,7 +198,7 @@ namespace
 					{
 						// extract patch from all inputs and add to filter input:
 						filter->clearInput();
-						for (int i = 0; i < inputImages.size(); ++i)
+						for (size_t i = 0; i < inputImages.size(); ++i)
 						{
 							auto itkExtractImg = extractImage(dynamic_cast<iAImageData*>(inputImages[i].get())->itkImage(), extractIndex, extractSize);
 							// maybe modify original filename to reflect that only a patch of it is passed on?

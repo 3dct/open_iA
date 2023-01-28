@@ -31,7 +31,7 @@
 #include <iASlicer.h>
 #include <iASlicerImpl.h>    // for mapSliceToGlobalAxis
 
-#include <QCheckbox>
+#include <QCheckBox>
 #include <QHeaderView>
 #include <QStandardItemModel>
 #include <QTableWidget>
