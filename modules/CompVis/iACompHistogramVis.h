@@ -197,4 +197,3 @@ private:
 	iACompVisOptions::activeVisualization m_activeVis;
 	iACompVisOptions::binningType m_activeBinning;
 };
-
