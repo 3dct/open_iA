@@ -27,6 +27,11 @@
 
 #include <cassert>
 
+iATransferFunctionOwner::iATransferFunctionOwner():
+	m_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
+	m_otf(vtkSmartPointer<vtkPiecewiseFunction>::New())
+{}
+
 iATransferFunctionOwner::iATransferFunctionOwner(vtkSmartPointer<vtkColorTransferFunction> ctf, vtkSmartPointer<vtkPiecewiseFunction> otf, bool opacityRamp):
 	m_ctf(ctf),
 	m_otf(otf),

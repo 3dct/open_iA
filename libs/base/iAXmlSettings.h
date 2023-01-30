@@ -35,7 +35,7 @@ private:
 public:
 	iAXmlSettings();
 	bool read(QString const & filename);
-	void loadTransferFunction(iATransferFunction* transferFunction);
+	bool loadTransferFunction(iATransferFunction* transferFunction);
 	void saveTransferFunction(iATransferFunction* transferFunction);
 	QDomNode node(QString const & nodeName);
 	bool hasElement(QString const & nodeName) const;
@@ -43,8 +43,10 @@ public:
 	QDomElement createElement(QString const & elementName, QDomNode parent);
 	QDomElement documentElement();
 	QDomDocument & document();
-	static void loadTransferFunction(QDomNode const & functionsNode, iATransferFunction* transferFunction);
+	static bool loadTransferFunction(QDomNode const & functionsNode, iATransferFunction* transferFunction);
 	void save(QString const & fileName);
+	bool fromString(QString const& xmlStr);
+	QString toString() const;
 private:
 	void removeNode(QString const & str);
 };

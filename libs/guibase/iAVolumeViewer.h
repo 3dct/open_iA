@@ -64,6 +64,7 @@ public:
 private:
 	void applyAttributes(QVariantMap const& values) override;
 	void updateProfilePlot();
+	QVariantMap additionalState() const override;
 
 	std::shared_ptr<iATransferFunctionOwner> m_transfer;
 

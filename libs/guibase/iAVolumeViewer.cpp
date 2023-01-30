@@ -31,6 +31,7 @@
 #include "iADataSetListWidget.h"
 #include "iADataSetRenderer.h"
 #include "iADockWidgetWrapper.h"
+#include "iAFileUtils.h"    // for MakeAbsolute
 #include "iAJobListView.h"
 #include "iAMainWindow.h"
 #include "iAMdiChild.h"
@@ -42,6 +43,7 @@
 #include "iAToolsVTK.h"
 #include "iATransferFunctionOwner.h"
 #include "iAVolumeSettings.h"
+#include "iAXmlSettings.h"
 
 #include "iAChartWithFunctionsWidget.h"
 #include "iAChartFunctionTransfer.h"
@@ -58,6 +60,7 @@
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 #include <vtkSmartVolumeMapper.h>
+#include <vtkVersion.h>
 
 #include <QAction>
 #include <QApplication>
@@ -82,16 +85,24 @@ namespace
 	const QString InteractiveUpdateRate = "Interactive Update Rate";
 	const QString FinalColorLevel = "Final Color Level";
 	const QString FinalColorWindow = "Final Color Window";
-	// VTK 9.2
-	//const QString GlobalIlluminationReach = "Global Illumination Reach";
-	//const QString VolumetricScatteringBlending = "VolumetricScatteringBlending";
+
+	const QChar RenderSlicerFlag('S');
+	const QChar RenderHistogramFlag('H');
+	const QChar RenderProfileFlag('P');
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
+	const QString GlobalIlluminationReach = "Global Illumination Reach";
+	const QString VolumetricScatteringBlending = "VolumetricScatteringBlending";
+#endif
+
+	const QString TransferFunction = "TransferFunction";
 }
 
+//! TODO: merge with iAVolumeRenderer
 class iAVolRenderer : public iADataSetRenderer
 {
 public:
 	iAVolRenderer(vtkRenderer* renderer, vtkImageData* data, iAVolumeViewer* volViewer) :
-		iADataSetRenderer(renderer, !isFlat(data) && !isLarge(data)),
+		iADataSetRenderer(renderer),
 		m_volume(vtkSmartPointer<vtkVolume>::New()),
 		m_volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
 		m_volMapper(vtkSmartPointer<vtkSmartVolumeMapper>::New()),
@@ -131,15 +142,14 @@ public:
 		addAttribute(InteractiveUpdateRate, iAValueType::Continuous, 1.0);
 		addAttribute(FinalColorLevel, iAValueType::Continuous, 0.5);
 		addAttribute(FinalColorWindow, iAValueType::Continuous, 1.0);
-		// -> VTK 9.2 ?
-		//addAttribute(GlobalIlluminationReach, iAValueType::Continuous, 0.0, 0.0, 1.0);
-		//addAttribute(VolumetricScatteringBlending, iAValueType::Continuous, -1.0, 0.0, 2.0);
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
+		addAttribute(GlobalIlluminationReach, iAValueType::Continuous, 0.0, 0.0, 1.0);
+		addAttribute(VolumetricScatteringBlending, iAValueType::Continuous, -1.0, 0.0, 2.0);
+#endif
 
 		// volume properties:
 		auto spc = data->GetSpacing();
 		addAttribute(Spacing, iAValueType::Vector3, variantVector<double>({ spc[0], spc[1], spc[2] }));
-
-		applyAttributes(m_attribValues);  // addAttribute adds default values; apply them now!
 
 		// adapt bounding box to changes in position/orientation of volume:
 		vtkNew<vtkCallbackCommand> modifiedCallback;
@@ -151,10 +161,8 @@ public:
 			});
 		modifiedCallback->SetClientData(this);
 		m_volume->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
-		if (isVisible())
-		{
-			iAVolRenderer::showDataSet();
-		}
+		
+		// TODO NEWIO: where to bring in visibility = !isFlat(data) && !isLarge(data)
 	}
 	void showDataSet() override
 	{
@@ -186,16 +194,21 @@ public:
 		m_volMapper->SetInteractiveUpdateRate(values[InteractiveUpdateRate].toDouble());
 		m_volMapper->SetFinalColorLevel(values[FinalColorLevel].toDouble());
 		m_volMapper->SetFinalColorWindow(values[FinalColorWindow].toDouble());
-		// VTK 9.2:
-		//m_volMapper->SetGlobalIlluminationReach
-		//m_volMapper->SetVolumetricScatteringBlending
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
+		m_volMapper->SetGlobalIlluminationReach(values[GlobalIlluminationReach].toFloat());
+		m_volMapper->SetVolumetricScatteringBlending(values[VolumetricScatteringBlending].toFloat());
+#endif
 
 		QVector<double> pos = values[Position].value<QVector<double>>();
 		QVector<double> ori = values[Orientation].value<QVector<double>>();
-		assert(pos.size() == 3);
-		assert(ori.size() == 3);
-		m_volume->SetPosition(pos.data());
-		m_volume->SetOrientation(ori.data());
+		if (pos.size() == 3)
+		{
+			m_volume->SetPosition(pos.data());
+		}
+		if (ori.size() == 3)
+		{
+			m_volume->SetOrientation(ori.data());
+		}
 		m_volume->SetPickable(values[Pickable].toBool());
 
 		QVector<double> spc = values[Spacing].value<QVector<double>>();
@@ -251,13 +264,10 @@ public:
 	}
 
 private:
-	//iAVolumeSettings m_volSettings;
-
 	vtkSmartPointer<vtkVolume> m_volume;
 	vtkSmartPointer<vtkVolumeProperty> m_volProp;
 	vtkSmartPointer<vtkSmartVolumeMapper> m_volMapper;
 	vtkImageData* m_image;
-	//iAChartWithFunctionsWidget* m_histogram;
 };
 
 
@@ -314,7 +324,45 @@ void iAVolumeViewer::prepare(iAPreferences const& pref, iAProgress* p)
 {
 	p->setStatus(QString("%1: Computing scalar range").arg(m_dataSet->name()));
 	auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
-	m_transfer = std::make_shared<iATransferFunctionOwner>(img->GetScalarRange(), img->GetNumberOfScalarComponents() == 1);
+
+	bool readValidTF = false;
+	auto tfSpec = m_dataSet->metaData(TransferFunction).toString();
+	if (!tfSpec.isEmpty())
+	{
+		// tfSpec could be either a full transfer function specification or a absolute or relative file name (old)
+		iAXmlSettings s;
+		if (s.fromString(tfSpec))
+		{
+			readValidTF = true;
+		}
+		else if (s.read(tfSpec))
+		{
+			readValidTF = true;
+		}
+		else
+		{
+			auto filePath = QFileInfo(m_dataSet->metaData(iADataSet::FileNameKey).toString()).absolutePath();
+			if (!s.read(MakeAbsolute(filePath, tfSpec)))
+			{
+				LOG(lvlWarn, QString("Failed to read transfer function from value %1").arg(tfSpec));
+				readValidTF = false;
+			}
+		}
+		if (readValidTF)
+		{
+			m_transfer = std::make_shared<iATransferFunctionOwner>();
+			if (!s.loadTransferFunction(m_transfer.get()))
+			{
+				readValidTF = false;
+			}
+		}
+	}
+	if (!readValidTF)
+	{
+		// create default transfer function:
+		m_transfer = std::make_shared<iATransferFunctionOwner>(img->GetScalarRange(), img->GetNumberOfScalarComponents() == 1);
+	}
+
 	iAImageStatistics stats;
 	// TODO: handle multiple components; but for that, we need to extract the vtkImageAccumulate part,
 	//       as it computes the histograms for all components at once!
@@ -358,8 +406,12 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 		}
 		child->updateViews();
 	});
+	bool visibleHistogram = renderFlagSet(RenderHistogramFlag);
 	child->splitDockWidget(child->renderDockWidget(), m_dwHistogram, Qt::Vertical);
-	m_dwHistogram->hide();
+	if (!visibleHistogram)
+	{
+		m_dwHistogram->hide();
+	}
 	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this, [this]()
 	{
 		m_histogram->plots()[0]->setColor(QApplication::palette().color(QPalette::Shadow));
@@ -397,14 +449,38 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			}
 		});
 
-	// slicer / profile
+	// slicer
+	bool visibleSlicer = renderFlagSet(RenderSlicerFlag);
 	m_slicerChannelID = child->createChannel();
 	auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
 	for (int s = 0; s < 3; ++s)
 	{
 		m_slicer[s] = child->slicer(s);
-		child->slicer(s)->addChannel(m_slicerChannelID, iAChannelData(m_dataSet->name(), img, m_transfer->colorTF()), true);
+		child->slicer(s)->addChannel(m_slicerChannelID, iAChannelData(m_dataSet->name(), img, m_transfer->colorTF()), visibleSlicer);
 		child->slicer(s)->resetCamera();
+	}
+
+	// profile plot:
+	bool visibleProfile = renderFlagSet(RenderProfileFlag);
+	m_profileProbe = std::make_shared<iAProfileProbe>(img);
+	auto const start = img->GetOrigin();
+	auto const dim = img->GetDimensions();
+	auto const spacing = img->GetSpacing();
+	double end[3];
+	for (int i = 0; i < 3; ++i)
+	{
+		end[i] = start[i] + (dim[i] - 1) * spacing[i];
+	}
+	// TODO NEWIO: check if we can do this differently; and if we should maybe not do this if this was already set when the profile of another dataset was initialized!
+	child->setProfilePoints(start, end);
+	m_profileProbe->updateProbe(0, start);
+	m_profileProbe->updateProbe(1, end);
+	m_profileChart = new iAChartWidget(nullptr, "Greyvalue", "Distance");
+	m_dwProfile = new iADockWidgetWrapper(m_profileChart, "Profile Plot", "Profile");
+	child->splitDockWidget(child->renderDockWidget(), m_dwProfile, Qt::Vertical);
+	if (!visibleProfile)
+	{
+		m_dwProfile->hide();
 	}
 	connect(child, &iAMdiChild::profilePointChanged, this,
 		[this](int pointIdx, double const* globalPos)
@@ -473,15 +549,17 @@ std::shared_ptr<iADataSetRenderer> iAVolumeViewer::createRenderer(vtkRenderer* r
 
 QVector<QAction*> iAVolumeViewer::additionalActions(iAMdiChild* child)
 {
-	m_histogramAction = createToggleAction("Histogram", "histogram", false,
+	m_histogramAction = createToggleAction("Histogram", "histogram", renderFlagSet(RenderHistogramFlag),
 	[this, child](bool checked)
 	{
+		setRenderFlag(RenderHistogramFlag, checked);
 		m_dwHistogram->setVisible(checked);
 	});
 	return {
-		createToggleAction("2D", "2d", true,
+		createToggleAction("2D", "2d", renderFlagSet(RenderSlicerFlag),
 		[this, child](bool checked)
 		{
+			setRenderFlag(RenderSlicerFlag, checked);
 			for (int s = 0; s < 3; ++s)
 			{
 				m_slicer[s]->enableChannel(m_slicerChannelID, checked);
@@ -489,29 +567,10 @@ QVector<QAction*> iAVolumeViewer::additionalActions(iAMdiChild* child)
 			child->updateSlicers();
 		}),
 		m_histogramAction,
-		createToggleAction("Slice Profile", "profile", false,
+		createToggleAction("Slice Profile", "profile", renderFlagSet(RenderProfileFlag),
 			[this, child](bool checked)
 			{
-				if (!m_profileChart)
-				{
-					auto img = dynamic_cast<iAImageData*>(m_dataSet)->vtkImage();
-					m_profileProbe = std::make_shared<iAProfileProbe>(img);
-					auto const start = img->GetOrigin();
-					auto const dim = img->GetDimensions();
-					auto const spacing = img->GetSpacing();
-					double end[3];
-					for (int i = 0; i < 3; ++i)
-					{
-						end[i] = start[i] + (dim[i] - 1) * spacing[i];
-					}
-					// TODO NEWIO: check if we can do this differently and if we should maybe not do this if this was already set when the profile of another dataset was initialized!
-					child->setProfilePoints(start, end);
-					m_profileProbe->updateProbe(0, start);
-					m_profileProbe->updateProbe(1, end);
-					m_profileChart = new iAChartWidget(nullptr, "Greyvalue", "Distance");
-					m_dwProfile = new iADockWidgetWrapper(m_profileChart, "Profile Plot", "Profile");
-					child->splitDockWidget(child->renderDockWidget(), m_dwProfile, Qt::Vertical);
-				}
+				setRenderFlag(RenderProfileFlag, checked);
 				updateProfilePlot();
 				m_dwProfile->setVisible(checked);
 			})
@@ -550,4 +609,14 @@ void iAVolumeViewer::updateProfilePlot()
 	}
 	m_profileChart->addPlot(QSharedPointer<iALinePlot>::create(profilePlotData, ProfileColor));
 	m_profileChart->update();
+}
+
+QVariantMap iAVolumeViewer::additionalState() const
+{
+	QVariantMap result;
+	// TODO NEWIO: simpler encoding?
+	iAXmlSettings s;
+	s.saveTransferFunction(m_transfer.get());
+	result.insert(TransferFunction, s.toString());
+	return result;
 }

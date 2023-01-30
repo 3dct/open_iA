@@ -59,13 +59,15 @@ bool iAXmlSettings::read(QString const & filename)
 	return true;
 }
 
-void iAXmlSettings::loadTransferFunction(iATransferFunction* transferFunction)
+bool iAXmlSettings::loadTransferFunction(iATransferFunction* transferFunction)
 {
 	QDomElement root = domDocument.documentElement();
 	QDomNode functionsNode = root.namedItem("functions");
 	if (!functionsNode.isElement())
-		return;
-	iAXmlSettings::loadTransferFunction(functionsNode, transferFunction);
+	{
+		return false;
+	}
+	return iAXmlSettings::loadTransferFunction(functionsNode, transferFunction);
 }
 
 QDomNode iAXmlSettings::node(QString const & nodeName)
@@ -102,13 +104,13 @@ QDomDocument & iAXmlSettings::document()
 	return domDocument;
 }
 
-void iAXmlSettings::loadTransferFunction(QDomNode const & functionsNode, iATransferFunction* transferFunction)
+bool iAXmlSettings::loadTransferFunction(QDomNode const & functionsNode, iATransferFunction* transferFunction)
 {
 	QDomNode transferNode = functionsNode.namedItem("transfer");
 	if (!transferNode.isElement())
 	{
 		LOG(lvlError, "'transfer' node not found in given XML file, aborting load of transfer function!");
-		return;
+		return false;
 	}
 	transferFunction->opacityTF()->RemoveAllPoints();
 	transferFunction->colorTF()->RemoveAllPoints();
@@ -127,6 +129,7 @@ void iAXmlSettings::loadTransferFunction(QDomNode const & functionsNode, iATrans
 		transferFunction->colorTF()->AddRGBPoint(value, red, green, blue);
 	}
 	transferFunction->colorTF()->Build();
+	return true;
 }
 
 void iAXmlSettings::saveTransferFunction(iATransferFunction* transferFunction)
@@ -164,6 +167,16 @@ void iAXmlSettings::save(QString const & filename)
 	QTextStream ts(&file);
 	ts << domDocument.toString();
 	file.close();
+}
+
+bool iAXmlSettings::fromString(QString const& xmlStr)
+{
+	return domDocument.setContent(xmlStr);
+}
+
+QString iAXmlSettings::toString() const
+{
+	return domDocument.toString();
 }
 
 void iAXmlSettings::removeNode(QString const & str)

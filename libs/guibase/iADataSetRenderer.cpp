@@ -117,20 +117,19 @@ const QString iADataSetRenderer::DiffuseLighting("Diffuse lighting");
 const QString iADataSetRenderer::SpecularLighting("Specular lighting");
 const QString iADataSetRenderer::SpecularPower("Specular power");
 
-iADataSetRenderer::iADataSetRenderer(vtkRenderer* renderer, bool defaultVisibility) :
+iADataSetRenderer::iADataSetRenderer(vtkRenderer* renderer) :
 	m_renderer(renderer),
-	m_visible(defaultVisibility)
+	m_visible(false)
 {
 	addAttribute(Position, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
 	addAttribute(Orientation, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
 	addAttribute(OutlineColor, iAValueType::Color, OutlineDefaultColor);
 	addAttribute(Pickable, iAValueType::Boolean, true);
-
-	auto volumeSettings = iAMainWindow::get()->defaultVolumeSettings(); // TODO NEWIO: these are not "volume" settings, these are generic lighting settings!
-	addAttribute(AmbientLighting, iAValueType::Continuous, volumeSettings.AmbientLighting);
-	addAttribute(DiffuseLighting, iAValueType::Continuous, volumeSettings.DiffuseLighting);
-	addAttribute(SpecularLighting, iAValueType::Continuous, volumeSettings.SpecularLighting);
-	addAttribute(SpecularPower, iAValueType::Continuous, volumeSettings.SpecularPower);
+	// generic lighting settings:
+	addAttribute(AmbientLighting, iAValueType::Continuous, 0.2);
+	addAttribute(DiffuseLighting, iAValueType::Continuous, 0.5);
+	addAttribute(SpecularLighting, iAValueType::Continuous, 0.7);
+	addAttribute(SpecularPower, iAValueType::Continuous, 10.0);
 }
 
 iADataSetRenderer::~iADataSetRenderer()
@@ -143,8 +142,10 @@ iADataSetRenderer::~iADataSetRenderer()
 
 void iADataSetRenderer::setAttributes(QVariantMap const& values)
 {
-	m_attribValues = values;
-	applyAttributes(values);
+	setApplyingValues(m_attribValues, m_attributes, values);
+	// merge default values to currently set values to make applying simpler:
+	auto allValues = joinValues(extractValues(attributesWithValues()), m_attribValues);
+	applyAttributes(allValues);
 	if (m_outline)
 	{
 		m_outline->setBounds(bounds());	// only potentially changes for volume currently; maybe use signals instead?
@@ -167,15 +168,17 @@ bool iADataSetRenderer::isPickable() const
 
 iAAttributes iADataSetRenderer::attributesWithValues() const
 {
-	iAAttributes result = combineAttributesWithValues(m_attributes, m_attribValues);
+	return combineAttributesWithValues(m_attributes, attributeValues());
+}
+
+QVariantMap const& iADataSetRenderer::attributeValues() const
+{
 	// set position and orientation from current values:
-	assert(result[0]->name() == Position);
 	auto pos = position();
-	result[0]->setDefaultValue(variantVector<double>({ pos[0], pos[1], pos[2] }));
-	assert(result[1]->name() == Orientation);
+	m_attribValues[Position] = variantVector<double>({ pos[0], pos[1], pos[2] });
 	auto ori = orientation();
-	result[1]->setDefaultValue(variantVector<double>({ ori[0], ori[1], ori[2] }));
-	return result;
+	m_attribValues[Orientation] = variantVector<double>({ ori[0], ori[1], ori[2] });
+	return m_attribValues;
 }
 
 void iADataSetRenderer::setVisible(bool visible)
@@ -219,7 +222,7 @@ void iADataSetRenderer::addAttribute(
 		}
 	}
 #endif
-	m_attributes.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
+	addAttr(m_attributes, name, valueType, defaultValue, min, max);
 	m_attribValues[name] = defaultValue;
 }
 

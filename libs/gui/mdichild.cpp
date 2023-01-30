@@ -2066,13 +2066,17 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 	saveSettings(*s.get());
 	iAProjectFileIO io;
 	auto dataSets = std::make_shared<iADataCollection>(m_dataSets.size(), s);
+	for (auto v : m_dataSetViewers)
+	{
+		v.second->storeState();
+	}
 	for (auto d : m_dataSets)
 	{
+		// TODO NEWIO: store viewer settings with datasets!
 		dataSets->addDataSet(d.second);
 	}
 	io.save(projectFileName, dataSets, QVariantMap());
 	setWindowTitleAndFile(projectFileName);
-	// TODO NEWIO: store viewer settings with datasets!
 
 	// store settings of any open tool:
 	for (auto toolKey : m_tools.keys())

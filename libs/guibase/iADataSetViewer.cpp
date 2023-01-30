@@ -69,7 +69,13 @@ namespace
 		auto iconName = s.right(s.length() - 1);
 		setActionIcon(action, iconName, s[0] == '!');
 	}
+
+	const QChar Render3DFlag('R');
+	const QChar RenderOutlineFlag('B');
+	const QChar RenderMagicLensFlag('L');
 }
+
+const QString iADataSetViewer::RenderFlags("RenderFlags");
 
 iADataSetViewer::iADataSetViewer(iADataSet * dataSet):
 	m_dataSet(dataSet),
@@ -98,31 +104,44 @@ void iADataSetViewer::prepare(iAPreferences const& pref, iAProgress* p)
 void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 {
 	m_renderer = createRenderer(child->renderer()->renderer());
+	// child->renderer()->bound // check current bounds of 3D renderer and reset if new dataset extends these by a lot (more than e.g. 1.2 in any direction maybe?)
+	m_renderer->setAttributes(joinValues(extractValues(m_renderer->attributesWithValues()), m_dataSet->allMetaData()) );
 	assert(m_renderer);
+	bool visible3DRenderer = renderFlagSet(Render3DFlag);
+	if (visible3DRenderer)
+	{
+		m_renderer->setVisible(true);
+	}
+	bool visible3DOutline = renderFlagSet(RenderOutlineFlag);
+	if (visible3DOutline)
+	{
+		m_renderer->setVisible(true);
+	}
+	bool visible3DMagicLens = renderFlagSet(RenderMagicLensFlag);
+	m_magicLensRenderer = createRenderer(child->magicLens3DRenderer());
+	if (visible3DMagicLens)
+	{
+		m_magicLensRenderer->setVisible(true);
+	}
 	auto dsList = child->dataSetListWidget();
-	m_actions.push_back(createToggleAction("3D", "3d", true,
+	m_actions.push_back(createToggleAction("3D", "3d", visible3DRenderer,
 		[this, child](bool checked)
 		{
+			setRenderFlag(Render3DFlag, checked);
 			m_renderer->setVisible(checked);
 			child->updateRenderer();
 		}));
-	m_actions.push_back(createToggleAction("Box", "box_3d_edge", false,
+	m_actions.push_back(createToggleAction("Box", "box_3d_edge", visible3DOutline,
 		[this, child](bool checked)
 		{
+			setRenderFlag(RenderOutlineFlag, checked);
 			m_renderer->setBoundsVisible(checked);
 			child->updateRenderer();
 		}));
-	m_actions.push_back(createToggleAction("Magic Lens", "magic_lens_3d", false,
+	m_actions.push_back(createToggleAction("Magic Lens", "magic_lens_3d", visible3DMagicLens,
 		[this, child](bool checked)
 		{
-			if (!m_magicLensRenderer)
-			{
-				if (!checked)
-				{
-					return;
-				}
-				m_magicLensRenderer = createRenderer(child->magicLens3DRenderer());
-			}
+			setRenderFlag(RenderMagicLensFlag, checked);
 			m_magicLensRenderer->setVisible(checked);
 			child->updateRenderer();
 		}));
@@ -218,6 +237,16 @@ iAAttributes iADataSetViewer::attributesWithValues() const
 	return result;
 }
 
+QVariantMap iADataSetViewer::attributeValues() const
+{
+	QVariantMap result(m_attribValues);
+	if (renderer())
+	{
+		result.insert(renderer()->attributeValues());
+	}
+	return result;
+}
+
 iADataSetRenderer* iADataSetViewer::renderer()
 {
 	return m_renderer.get();
@@ -240,7 +269,7 @@ void iADataSetViewer::addAttribute(
 		}
 	}
 #endif
-	m_attributes.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
+	addAttr(m_attributes, name, valueType, defaultValue, min, max);
 	m_attribValues[name] = defaultValue;
 }
 
@@ -269,12 +298,51 @@ QVector<QAction*> iADataSetViewer::additionalActions(iAMdiChild* child)
 
 void iADataSetViewer::setAttributes(QVariantMap const& values)
 {
-	m_attribValues = values;
-	applyAttributes(values);
+	setApplyingValues(m_attribValues, m_attributes, values);
+	// merge default values to currently set values to make applying simpler:
+	auto allValues = joinValues(extractValues(attributesWithValues()), m_attribValues);
+	applyAttributes(allValues);
 	if (renderer())
 	{
 		renderer()->setAttributes(values);
 	}
+}
+
+void iADataSetViewer::setRenderFlag(QChar const& flag, bool enable)
+{
+	auto flags = m_dataSet->metaData(RenderFlags).toString();
+	if (enable)
+	{
+		if (!flags.contains(flag))
+		{
+			m_dataSet->setMetaData(RenderFlags, flags + flag);
+		}
+	}
+	else
+	{
+		if (flags.contains(flag))
+		{
+			auto str = m_dataSet->metaData(RenderFlags).toString();
+			m_dataSet->setMetaData(RenderFlags, str.replace(flag, ""));
+		}
+	}
+}
+
+bool iADataSetViewer::renderFlagSet(QChar const& flag) const
+{
+	return m_dataSet->metaData(RenderFlags).toString().contains(flag);
+}
+
+void iADataSetViewer::storeState()
+{
+	auto attrs = attributeValues();
+	attrs.insert(additionalState());
+	m_dataSet->setMetaData(attrs);
+}
+
+QVariantMap iADataSetViewer::additionalState() const
+{
+	return QVariantMap();
 }
 
 void iADataSetViewer::setPickable(bool pickable)
@@ -375,59 +443,6 @@ void iAProjectViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	auto fileName = m_dataSet->metaData(iADataSet::FileNameKey).toString();
 	auto afterRenderCallback = [this, child, collection, fileName, dataSetIdx]()
 	{
-		// TODO NEWIO - also load viewer settings; this should happen in the creation of the viewers - consider metadata if available!
-				/*
-		int channel = settings.value(GetModalityKey(currIdx, "Channel"), -1).toInt();
-		QString modalityRenderFlags = settings.value(GetModalityKey(currIdx, "RenderFlags")).toString();
-		modalityFile = MakeAbsolute(fi.absolutePath(), modalityFile);
-		QString orientationSettings = settings.value(GetModalityKey(currIdx, "Orientation")).toString();
-		QString positionSettings = settings.value(GetModalityKey(currIdx, "Position")).toString();
-		QString tfFileName = settings.value(GetModalityKey(currIdx, "TransferFunction")).toString();
-
-		//loading volume settings
-		iAVolumeSettings defaultSettings;
-		QString Shading = settings.value(GetModalityKey(currIdx, "Shading"), defaultSettings.Shading).toString();
-		QString LinearInterpolation = settings.value(GetModalityKey(currIdx, "LinearInterpolation"), defaultSettings.LinearInterpolation).toString();
-		QString SampleDistance = settings.value(GetModalityKey(currIdx, "SampleDistance"), defaultSettings.SampleDistance).toString();
-		QString AmbientLighting = settings.value(GetModalityKey(currIdx, "AmbientLighting"), defaultSettings.AmbientLighting).toString();
-		QString DiffuseLighting = settings.value(GetModalityKey(currIdx, "DiffuseLighting"), defaultSettings.DiffuseLighting).toString();
-		QString SpecularLighting = settings.value(GetModalityKey(currIdx, "SpecularLighting"), defaultSettings.SpecularLighting).toString();
-		QString SpecularPower = settings.value(GetModalityKey(currIdx, "SpecularPower"), defaultSettings.SpecularPower).toString();
-		QString ScalarOpacityUnitDistance = settings.value(GetModalityKey(currIdx, "ScalarOpacityUnitDistance"), defaultSettings.ScalarOpacityUnitDistance).toString();
-		volSettings.RenderMode = mapRenderModeToEnum(settings.value(GetModalityKey(currIdx, "RenderMode")).toString());
-
-		//check if vol settings are ok / otherwise use default values
-		checkandSetVolumeSettings(volSettings, Shading, LinearInterpolation, SampleDistance, AmbientLighting,
-			DiffuseLighting, SpecularLighting, SpecularPower, ScalarOpacityUnitDistance);
-
-		if (!tfFileName.isEmpty())
-		{
-			tfFileName = MakeAbsolute(fi.absolutePath(), tfFileName);
-		}
-		if (modalityExists(modalityFile, channel))
-		{
-			LOG(lvlWarn, QString("Modality (name=%1, filename=%2, channel=%3) already exists!").arg(modalityName).arg(modalityFile).arg(channel));
-		}
-		else
-		{
-			int renderFlags = (modalityRenderFlags.contains("R") ? iAModality::MainRenderer : 0) |
-				(modalityRenderFlags.contains("L") ? iAModality::MagicLens : 0) |
-				(modalityRenderFlags.contains("B") ? iAModality::BoundingBox : 0) |
-				(modalityRenderFlags.contains("S") ? iAModality::Slicer : 0);
-
-			ModalityCollection mod = iAModalityList::load(modalityFile, modalityName, channel, false, renderFlags);
-			if (mod.size() != 1) // we expect to load exactly one modality
-			{
-				LOG(lvlWarn, QString("Invalid state: More or less than one modality loaded from file '%1'").arg(modalityFile));
-				return false;
-			}
-			mod[0]->setStringSettings(positionSettings, orientationSettings, tfFileName);
-			mod[0]->setVolSettings(volSettings);
-			m_modalities.push_back(mod[0]);
-			emit added(mod[0]);
-		}
-		*/
-
 		// all datasets loaded, continue with loading projects!
 		if (!collection->settings())    // not all collections come with additional settings...
 		{
@@ -450,7 +465,7 @@ void iAProjectViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			}
 		}
 		child->removeDataSet(dataSetIdx);
-		// CHECK NEWIO: also this viewer is deleted on removing the dataset, so here the object could already be deleted!
+		// TODO NEWIO: check - this viewer is deleted on removing the dataset, so here the object could already be deleted!
 	};
 	// if no datasets available, directly load tools...
 	if (collection->dataSets().empty())
@@ -462,6 +477,8 @@ void iAProjectViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	QObject::connect(child, &iAMdiChild::dataSetRendered, this,
 		[this, child, collection, fileName, afterRenderCallback](size_t dataSetIdx)
 		{
+			// viewer settings are loaded along with the dataset, so they are applied directly in the respective viewers!
+			// ... check whether the dataset that triggered this signal was the last one from this collection to be rendered....
 			static std::set<size_t> renDS;
 			renDS.insert(dataSetIdx);
 			if (m_loadedDataSets.size() < m_numOfDataSets)
@@ -483,7 +500,9 @@ void iAProjectViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 		auto newDataSetIdx = child->addDataSet(d);
 		m_loadedDataSets.push_back(newDataSetIdx);
 	}
-	// TODO: provide option to immediately load tools without waiting for dataset to finish loading/rendering?
+	// if required, provide option to immediately load tool here without waiting for dataset to finish loading/rendering
+	// this could be configured via some property defined in the iATool class.
+	// current tools typically require datasets to be available, so this is not implemented
 }
 
 

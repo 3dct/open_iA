@@ -75,13 +75,13 @@ int countAttributes(iAAttributes const& attributes, iAAttributeDescriptor::iAAtt
 }
 
 
-iAAttributes combineAttributesWithValues(iAAttributes const& attributes, QVariantMap values)
+iAAttributes combineAttributesWithValues(iAAttributes const& attributes, QVariantMap const & values)
 {
 	iAAttributes combined;
 	combined.reserve(attributes.size());
-	for (auto param : attributes)
+	for (auto attr : attributes)
 	{
-		QSharedPointer<iAAttributeDescriptor> p(param->clone());
+		QSharedPointer<iAAttributeDescriptor> p(attr->clone());
 		if (p->valueType() == iAValueType::Categorical)
 		{
 			QStringList comboValues = p->defaultValue().toStringList();
@@ -96,6 +96,17 @@ iAAttributes combineAttributesWithValues(iAAttributes const& attributes, QVarian
 		combined.push_back(p);
 	}
 	return combined;
+}
+
+void setApplyingValues(QVariantMap& out, iAAttributes const& attributes, QVariantMap const& in)
+{
+	for (auto attr : attributes)
+	{
+		if (in.contains(attr->name()))
+		{
+			out[attr->name()] = in[attr->name()];
+		}
+	}
 }
 
 QVariantMap joinValues(QVariantMap const& baseValues, QVariantMap const& newValues)

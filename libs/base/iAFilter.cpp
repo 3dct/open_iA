@@ -468,7 +468,7 @@ iAAttributes& iAFilter::paramsWritable()
 void iAFilter::addParameter(QString const & name, iAValueType valueType,
 	QVariant defaultValue, double min, double max)
 {
-	m_parameters.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
+	addAttr(m_parameters, name, valueType, defaultValue, min, max);
 }
 
 QVector<QString> const & iAFilter::outputValueNames() const

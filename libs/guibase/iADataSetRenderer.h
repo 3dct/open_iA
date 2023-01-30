@@ -50,7 +50,7 @@ public:
 	static const QString SpecularPower;
 
 	//! Create a dataset renderer
-	iADataSetRenderer(vtkRenderer* renderer, bool defaultVisibility);
+	iADataSetRenderer(vtkRenderer* renderer);
 	//! called when dataset renderer is removed from display and destroyed
 	virtual ~iADataSetRenderer();
 	//! Set visibility of dataset
@@ -60,6 +60,8 @@ public:
 
 	//! Retrieves the list of attributes, merged with their current values as default values:
 	iAAttributes attributesWithValues() const;
+	//! Retrieve only the current attribute values
+	QVariantMap const& attributeValues() const;
 	//! Call to change the attributes of this renderer
 	void setAttributes(QVariantMap const& values);
 

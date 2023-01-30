@@ -41,6 +41,7 @@ class vtkRenderer;
 //! Collects all vtk classes required for rendering a volume.
 //! Provides convenience functionality for adding it to a render window,
 //! as well as for showing its bounding box
+//! TODO: merge with iAVolRenderer
 class iAguibase_API iAVolumeRenderer
 {
 public:

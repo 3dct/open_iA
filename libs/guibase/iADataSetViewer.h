@@ -50,17 +50,9 @@ class iAguibase_API iADataSetViewer: public QObject
 {
 	Q_OBJECT
 public:
-	//! @{
-	//! general 3D rendering properties for every kind of dataset
-	static const QString Position;
-	static const QString Orientation;
-	static const QString OutlineColor;
-	static const QString Pickable;
-	static const QString Shading;
-	static const QString AmbientLighting;
-	static const QString DiffuseLighting;
-	static const QString SpecularLighting;
-	static const QString SpecularPower;
+
+	//! key that specifies which views or renderers the viewer currently has visible
+	static const QString RenderFlags;
 	//! @}
 
 	//! called directly after the dataset is loaded, should do anything that needs to be computed in the background
@@ -74,8 +66,10 @@ public:
 	virtual void createGUI(iAMdiChild* child, size_t dataSetIdx);
 	//! Get information to display about the dataset
 	virtual QString information() const;
-	//! Retrieves the list of attributes, merged with their current values as default values:
+	//! Retrieves the list of all attributes for this viewer, merged with their current values as default values:
 	iAAttributes attributesWithValues() const;
+	//! Retrieve only the current attribute values
+	QVariantMap attributeValues() const;
 
 	//! @{
 	//! Retrieves the 3D renderer for this dataset (if any; by default, no renderer)
@@ -85,6 +79,13 @@ public:
 
 	//! Call to change the attributes of this viewer
 	void setAttributes(QVariantMap const& values);
+
+	//! called before a dataset is stored; stores the current viewer state into the metadata of the linked dataset (via attributeValues)
+	void storeState();
+
+	//!
+	void setRenderFlag(QChar const& flag, bool enable);
+	bool renderFlagSet(QChar const& flag) const;
 
 	virtual void setPickable(bool pickable);
 	void setPickActionVisible(bool visible);
@@ -111,6 +112,10 @@ protected:
 	iADataSet* m_dataSet;    //!< the dataset for which this viewer is responsible
 
 private:
+
+	//! return any optional additional state required when storing the viewer's state
+	virtual QVariantMap additionalState() const;
+
 	iAAttributes m_attributes;     //!< attributes of this viewer that can be changed by the user
 	std::shared_ptr<iADataSetRenderer> m_renderer; //!< the 3D renderer for this dataset (optional).
 	std::shared_ptr<iADataSetRenderer> m_magicLensRenderer; //!< the 3D renderer for this dataset (optional).

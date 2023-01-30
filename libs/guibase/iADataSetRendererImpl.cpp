@@ -52,7 +52,7 @@ namespace
 }
 
 iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data) :
-	iADataSetRenderer(renderer, true),
+	iADataSetRenderer(renderer),
 	m_lineActor(vtkSmartPointer<vtkActor>::New()),
 	m_pointActor(vtkSmartPointer<vtkActor>::New()),
 	m_data(data)
@@ -192,7 +192,7 @@ namespace
 }
 
 iAPolyActorRenderer::iAPolyActorRenderer(vtkRenderer* renderer) :
-	iADataSetRenderer(renderer, true),
+	iADataSetRenderer(renderer),
 	m_polyActor(vtkSmartPointer<vtkActor>::New())
 {
 	vtkNew<vtkPolyDataMapper> mapper;

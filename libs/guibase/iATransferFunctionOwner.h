@@ -30,6 +30,8 @@
 class iAguibase_API iATransferFunctionOwner : public iATransferFunction
 {
 public:
+	//! Create an "empty" transfer function
+	iATransferFunctionOwner();
 	//! Create from the given transfer functions, taking on co-ownership; the transfer functions are
 	//!     assumed to be initialized already
 	//! @param ctf a smart pointer to an (allocated and initialized) color transfer function
