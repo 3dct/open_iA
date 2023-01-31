@@ -73,6 +73,7 @@ namespace
 	const QChar Render3DFlag('R');
 	const QChar RenderOutlineFlag('B');
 	const QChar RenderMagicLensFlag('L');
+	const QString RenderFlagsDefault("R");
 }
 
 const QString iADataSetViewer::RenderFlags("RenderFlags");
@@ -103,6 +104,10 @@ void iADataSetViewer::prepare(iAPreferences const& pref, iAProgress* p)
 
 void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 {
+	if (!m_dataSet->hasMetaData(RenderFlags))   // only use default render flags if not set in dataset
+	{                                               // (by loader or by derived viewer class)
+		m_dataSet->setMetaData(RenderFlags, RenderFlagsDefault);
+	}
 	m_renderer = createRenderer(child->renderer()->renderer());
 	// child->renderer()->bound // check current bounds of 3D renderer and reset if new dataset extends these by a lot (more than e.g. 1.2 in any direction maybe?)
 	m_renderer->setAttributes(joinValues(extractValues(m_renderer->attributesWithValues()), m_dataSet->allMetaData()) );
