@@ -2372,7 +2372,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	iAFileTypeRegistry::addDefaultExtension(iADataSetType::Volume, "mhd");
 	iAFileTypeRegistry::addDefaultExtension(iADataSetType::Mesh, "stl");
 	//iAFileTypeRegistry::addDefaultExtension(iADataSetType::Graph, ".txt");  -> graph storing not yet implemented!
-	iAFileTypeRegistry::addDefaultExtension(iADataSetType::Collection, ".iaproj");
+	iAFileTypeRegistry::addDefaultExtension(iADataSetType::Collection, "iaproj");
 #if defined(__APPLE__) && defined(__MACH__)
 	QSurfaceFormat::setDefaultFormat(iAVtkWidget::defaultFormat());
 #endif
