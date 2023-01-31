@@ -357,6 +357,8 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 		{
 			viewer->createGUI(this, dataSetIdx);
 			updateDataSetInfo();
+			updatePositionMarkerSize();
+			updateViews();
 			emit dataSetRendered(dataSetIdx);
 		},
 		this);
@@ -369,11 +371,11 @@ void MdiChild::removeDataSet(size_t dataSetIdx)
 	assert(m_dataSetViewers.find(dataSetIdx) != m_dataSetViewers.end());
 	m_dataSetViewers.erase(dataSetIdx);
 	m_dataSets.erase(dataSetIdx);
-	updateViews();
 	if (m_isMagicLensEnabled && m_magicLensDataSet == dataSetIdx)
 	{
 		changeMagicLensDataSet(0);
 	}
+	updateViews();
 	updateDataSetInfo();
 	emit dataSetRemoved(dataSetIdx);
 }
@@ -2005,7 +2007,10 @@ void MdiChild::loadSettings(QSettings const& settings)
 		bool parProj = settings.value(CameraParallelProjection, cam->GetParallelProjection()).toBool();
 		double parScale = settings.value(CameraParallelScale, cam->GetParallelScale()).toDouble();
 		cam->SetParallelProjection(parProj);
-		cam->SetParallelScale(parScale);
+		if (parProj)
+		{
+			cam->SetParallelScale(parScale);
+		}
 		cam->SetPosition(camPos);
 		cam->SetViewUp(camViewUp);
 		cam->SetPosition(camPos);

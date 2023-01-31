@@ -83,9 +83,10 @@ public:
 	//! unit: world coordinates
 	void setUnitSize(std::array<double, 3> size);
 
-	//! sets the bounds of the whole scene; adapts axes markers, plane indicators etc.
-	//! to be properly visible for the given bounding box
-	void setSceneBounds(iAAABB aabb);
+	//! adapts the bounds of the scene according to the given bounding box;
+	//! adapts axes markers, plane indicators etc. to be properly visible for an added
+	//! object with the given bounding box
+	void adaptSceneBoundsToNewObject(iAAABB const & newObjectBox) override;
 
 	//! Sets one of the pre-defined camera positions
 	//! @param pos descriptor of the position, @see iACameraPosition
@@ -227,9 +228,8 @@ private:
 	//! bounding box for "stick-out" information (currently used for lines leading to profile points)
 	iAVec3d m_stickOutBox[2];
 
-	// for touch interaction:
-	double m_touchStartScale;   //! scale when touch started (if parallel projection used)
-	iAVec3d m_touchStartCamPos; //! camera position (for non-parallel projection)
+	double m_touchStartScale;   //! for touch interaction: scale when touch started (if parallel projection used)
+	iAVec3d m_touchStartCamPos; //! for touch interaction: camera position (for non-parallel projection)
 
 	std::array<double, 3> m_unitSize; //!< size of a single "item", e.g. the position marker; also thickness of slicing planes
 };

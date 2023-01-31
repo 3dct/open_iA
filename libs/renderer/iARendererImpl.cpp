@@ -112,6 +112,7 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_roiCube(vtkSmartPointer<vtkCubeSource>::New()),
 	m_roiMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_roiActor(vtkSmartPointer<vtkActor>::New()),
+	m_stickOutBox{ iAVec3d(0.0, 0.0, 0.0), iAVec3d(0.0, 0.0, 0.0) },
 	m_touchStartScale(1.0)
 {
 	// fill m_profileLine; cannot do it via  m_profileLine(NumOfProfileLines, iALineSegment()),
@@ -291,12 +292,13 @@ iARendererImpl::~iARendererImpl(void)
 	}
 }
 
-void iARendererImpl::setSceneBounds(iAAABB aabb)
+void iARendererImpl::adaptSceneBoundsToNewObject(iAAABB const & newObjectBox)
 {
-	iAVec3d origin(aabb.minCorner());
-	auto size = (aabb.maxCorner() - aabb.minCorner());
+	iAVec3d origin(newObjectBox.minCorner());
+	auto size = (newObjectBox.maxCorner() - newObjectBox.minCorner());
 	// for stick out size, we compute average size over all 3 dimensions; maybe use max instead?
 	double stickOutSize = (size[0] + size[1] + size[2]) * (IndicatorsLenMultiplier - 1) / 6;
+	double oldStickOutBoxSize = (m_stickOutBox[1] - m_stickOutBox[0]).length();
 	m_stickOutBox[0] = origin - stickOutSize;
 	m_stickOutBox[1] = origin + size + stickOutSize;
 
@@ -320,8 +322,12 @@ void iARendererImpl::setSceneBounds(iAAABB aabb)
 			IndicatorsLenMultiplier * size[2] : m_unitSize[2]);
 		m_slicePlaneSource[s]->SetCenter(center.data());
 	}
+	const double ResetCameraBoxFactor = 1.2;
+	if ((m_stickOutBox[1] - m_stickOutBox[0]).length() > ResetCameraBoxFactor * oldStickOutBoxSize)
+	{
+		m_ren->ResetCamera();
+	}
 
-	// TODO: also change camera so that full new bounding box is visible?
 }
 
 void iARendererImpl::setDefaultInteractor()

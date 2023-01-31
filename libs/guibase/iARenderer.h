@@ -24,6 +24,7 @@
 
 #include <QObject>
 
+class iAAABB;
 class iARenderSettings;
 class iARenderObserver;
 
@@ -96,6 +97,11 @@ public:
 
 	//! Access to the renderer observer.
 	virtual iARenderObserver * getRenderObserver() = 0;
+
+	//! adapts the bounds of the scene according to the given bounding box;
+	//! adapts axes markers, plane indicators etc. to be properly visible for an added
+	//! object with the given bounding box
+	virtual void adaptSceneBoundsToNewObject(iAAABB const & newObjectBox) = 0;
 
 signals:
 	void cellsSelected(vtkPoints* selCellPoints);

@@ -120,7 +120,7 @@ void iARenderObserver::Execute(vtkObject * caller, unsigned long eid, void *  ca
 						m_pPlane1->SetNormal(1, 0, 0);
 						m_pPlane2->SetNormal(0, 1, 0);
 						m_pPlane3->SetNormal(0, 0, 1);
-						setCamPosition(m_pRen->GetActiveCamera(), iACameraPosition::PZ);
+						setCamPosition(m_pRen->GetActiveCamera(), iACameraPosition::Iso);
 						m_pRen->ResetCamera();
 						break;
 					}

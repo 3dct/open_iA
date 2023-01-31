@@ -29,7 +29,6 @@
 
 #include <memory>
 
-class iAAABB;
 class iADataSet;
 class iADataSetRenderer;
 class iAMdiChild;
