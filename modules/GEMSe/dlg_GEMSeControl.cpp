@@ -168,7 +168,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 void dlg_GEMSeControl::startSampling()
 {
 	iAMdiChild* child = dynamic_cast<iAMdiChild*>(parent());
-	auto numDataSets = child->dataSets().size();
+	auto numDataSets = child->dataSetMap().size();
 	if (numDataSets == 0)
 	{
 		LOG(lvlError, "No data available.");
@@ -203,7 +203,7 @@ void dlg_GEMSeControl::startSampling()
 		samplingMethod->setSampleCount(m_samplingSettings[spnNumberOfSamples].toInt(), m_dlgSamplingSettings->parameterRanges());
 		iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 		m_sampler = QSharedPointer<iAImageSampler>::create(
-			mdiChild->dataSets(),
+			mdiChild->dataSetMap(),
 			m_samplingSettings,
 			m_dlgSamplingSettings->parameterRanges(),
 			m_dlgSamplingSettings->parameterSpecs(),

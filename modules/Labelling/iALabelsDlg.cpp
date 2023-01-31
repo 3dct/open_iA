@@ -794,7 +794,6 @@ bool iALabelsDlg::store(QString const& filename, bool extendedFormat)
 	stream.writeStartDocument();
 	stream.writeStartElement("Labels");
 
-	auto dataSets = m_mdiChild->dataSets();
 	for (int l = 0; l < m_itemModel->rowCount(); ++l)
 	{
 		QStandardItem* labelItem = m_itemModel->item(l);
@@ -813,12 +812,12 @@ bool iALabelsDlg::store(QString const& filename, bool extendedFormat)
 			stream.writeAttribute("z", QString::number(z));
 			if (extendedFormat)
 			{
-				for (int d=0; d<dataSets.size(); ++d)
+				for (auto d: m_mdiChild->dataSetMap())
 				{
-					auto imgDataSet = dynamic_cast<iAImageData*>(dataSets[d].get());
+					auto imgDataSet = dynamic_cast<iAImageData*>(d.second.get());
 					double value = imgDataSet->vtkImage()->GetScalarComponentAsDouble(x, y, z, 0);
 					stream.writeStartElement("Value");
-					stream.writeAttribute("dataSet", QString::number(d));
+					stream.writeAttribute("dataSet", QString::number(d.first)); // TODO NEWIO: permanent solution - this code should also be used in storing the tool state, and we should use the ID the dataset gets in the project file here...
 					stream.writeAttribute("value", QString::number(value, 'g', 16));
 					stream.writeEndElement();
 				}

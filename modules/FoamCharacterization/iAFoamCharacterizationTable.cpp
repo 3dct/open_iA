@@ -321,7 +321,7 @@ void iAFoamCharacterizationTable::execute()
 
 	const int n(rowCount());
 
-	std::shared_ptr<iADataSet> dataSet = m_child->dataSets()[0];
+	std::shared_ptr<iADataSet> dataSet = m_child->dataSet(m_child->firstImageDataSetIdx());
 	for (int i (0) ; i < n ; ++i)
 	{
 		selectRow(i);

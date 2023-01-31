@@ -155,7 +155,7 @@ void iAUncertaintyTool::writeFullDataFile()
 	}
 	auto val = dlg.parameterValues();
 	m_currentEnsemble->writeFullDataFile(fileName, val["Write original data values"].toBool(), val["Write Member Labels"].toBool(),
-		val["Write Member Probabilities"].toBool(), val["Write Ensemble Uncertainties"].toBool(), m_child->dataSets());
+		val["Write Member Probabilities"].toBool(), val["Write Ensemble Uncertainties"].toBool(), m_child->dataSetMap());
 }
 
 void iAUncertaintyTool::saveState(QSettings& projectFile, QString const& fileName)

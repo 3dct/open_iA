@@ -43,7 +43,7 @@
 
 iAFoamCharacterizationTool::iAFoamCharacterizationTool(iAMainWindow* mainWnd, iAMdiChild * child)
 																			  : iATool(mainWnd, child)
-																			  , m_origDataSet(child->dataSets()[0])
+																			  , m_origDataSet(child->dataSet(child->firstImageDataSetIdx()))
 {
 	QWidget* pWidget(new QWidget());
 
@@ -114,7 +114,7 @@ iAFoamCharacterizationTool::iAFoamCharacterizationTool(iAMainWindow* mainWnd, iA
 
 void iAFoamCharacterizationTool::slotPushButtonAnalysis()
 {
-	auto pDialogAnalysis = new iAFoamCharacterizationDialogAnalysis(dynamic_cast<iAImageData*>(m_child->dataSets()[0].get()), m_mainWindow);
+	auto pDialogAnalysis = new iAFoamCharacterizationDialogAnalysis(dynamic_cast<iAImageData*>(m_child->dataSet(m_child->firstImageDataSetIdx()).get()), m_mainWindow);
 	pDialogAnalysis->show();
 }
 

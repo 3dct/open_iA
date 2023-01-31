@@ -66,7 +66,7 @@ public:
 	QVector<QSharedPointer<iAEnsemble> > SubEnsembles() const;
 	int ID() const;
 	QSharedPointer<iAEnsembleDescriptorFile> EnsembleFile();
-	void writeFullDataFile(QString const & filename, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties, std::vector<std::shared_ptr<iADataSet>> dataSets);
+	void writeFullDataFile(QString const & filename, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties, std::map<size_t, std::shared_ptr<iADataSet>> dataSets);
 private:
 	bool LoadSampling(QString const & fileName, int id);
 	void CreateUncertaintyImages();

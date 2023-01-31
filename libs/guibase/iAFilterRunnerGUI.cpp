@@ -241,14 +241,13 @@ bool iAFilterRunnerGUI::askForParameters(std::shared_ptr<iAFilter> filter, QVari
 		{
 			QString selectedFile = paramValues[QString("%1").arg(filter->inputName(i))].toString();
 			int const mdiIdx = mdiChildrenNames.indexOf(selectedFile);
-			auto dataSets = otherMdis[mdiIdx]->dataSets();
-			for (size_t m = 0; m < dataSets.size(); ++m)
+			for (auto d: otherMdis[mdiIdx]->dataSetMap())
 			{
 				// TODO: polydata input / ...
-				auto imgData = dynamic_cast<iAImageData*>(dataSets[m].get());
+				auto imgData = dynamic_cast<iAImageData*>(d.second.get());
 				if (imgData)
 				{
-					m_additionalInput.push_back(dataSets[m]);
+					m_additionalInput.push_back(d.second);
 				}
 			}
 		}
@@ -273,7 +272,7 @@ void iAFilterRunnerGUI::run(std::shared_ptr<iAFilter> filter, iAMainWindow* main
 		return;
 	}
 	QVariantMap paramValues = loadParameters(filter, sourceMdi);
-	filter->adaptParametersToInput(paramValues, sourceMdi? sourceMdi->dataSets() : std::vector<std::shared_ptr<iADataSet>>());
+	filter->adaptParametersToInput(paramValues, sourceMdi? sourceMdi->dataSetMap() : std::map<size_t, std::shared_ptr<iADataSet>>());
 
 	if (!askForParameters(filter, paramValues, sourceMdi, mainWnd, true))
 	{
@@ -302,10 +301,10 @@ void iAFilterRunnerGUI::run(std::shared_ptr<iAFilter> filter, iAMainWindow* main
 	}
 	if (sourceMdi)
 	{
-		auto dataSets = sourceMdi->dataSets();
-		for (size_t m = 0; m < dataSets.size(); ++m)
+		auto dataSets = sourceMdi->dataSetMap();
+		for (auto d: dataSets)
 		{	// check which (type of) datasets the filter expects, and only add these!
-			thread->addInput(dataSets[m]);
+			thread->addInput(d.second);
 		}
 		filter->setFirstInputChannels(dataSets.size());
 	}

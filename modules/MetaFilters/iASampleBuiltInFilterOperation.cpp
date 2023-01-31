@@ -35,7 +35,7 @@ iASampleBuiltInFilterOperation::iASampleBuiltInFilterOperation(
 	bool compressOutput,
 	bool overwriteOutput,
 	QVariantMap parameters,
-	std::vector<std::shared_ptr<iADataSet>> input,
+	std::map<size_t, std::shared_ptr<iADataSet>> input,
 	QString const& outputFileName,
 	iALogger* logger) :
 	m_filterName(filterName),
@@ -62,9 +62,9 @@ void iASampleBuiltInFilterOperation::performWork()
 		LOG(lvlError, msg);
 		return;
 	}
-	for (int i=0; i<m_input.size(); ++i)
+	for (auto d: m_input)
 	{
-		filter->addInput(m_input[i]);
+		filter->addInput(d.second);
 	}
 	filter->setLogger(m_logger);
 	filter->run(m_parameters);

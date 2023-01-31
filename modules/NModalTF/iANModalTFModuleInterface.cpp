@@ -69,9 +69,9 @@ void iANModalTFModuleInterface::modalitySPLOM()
 	auto child = m_mainWnd->activeMdiChild();
 	auto modalitySPLOM = new iAModalitySPLOM();
 	std::vector<iAImageData*> dataSets;
-	for (auto ds: child->dataSets())
+	for (auto ds: child->dataSetMap())
 	{
-		auto imgDS = dynamic_cast<iAImageData*>(ds.get());
+		auto imgDS = dynamic_cast<iAImageData*>(ds.second.get());
 		if (imgDS) 
 		{
 			dataSets.push_back(imgDS);

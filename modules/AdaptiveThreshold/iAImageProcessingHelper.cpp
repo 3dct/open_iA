@@ -62,7 +62,7 @@ void performSegmentation(iAMdiChild* child, double greyThresholdLower, double gr
 		{
 			throw std::invalid_argument("Could not retrieve Binary Thresholding filter. Make sure Segmentation plugin was loaded correctly!");
 		}
-		filter->addInput(child->dataSets()[child->firstImageDataSetIdx()]);  // TODO: should take first image dataset!
+		filter->addInput(child->dataSet(child->firstImageDataSetIdx()));  // TODO: should take first image dataset!
 		QVariantMap parameters;
 		parameters["Lower threshold"] = greyThresholdLower;
 		parameters["Upper threshold"] = greyThresholdUpper;

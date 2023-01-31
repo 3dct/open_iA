@@ -38,7 +38,7 @@ public:
 		bool compressOutput,
 		bool overwriteOutput,
 		QVariantMap parameters,
-		std::vector<std::shared_ptr<iADataSet>> input,
+		std::map<size_t, std::shared_ptr<iADataSet>> input,
 		QString const& outputFileName,
 		iALogger * logger);
 	QString output() const override;
@@ -48,7 +48,7 @@ private:
 	QString m_filterName;
 	bool m_compressOutput, m_overwriteOutput;
 	QVariantMap m_parameters;
-	std::vector<std::shared_ptr<iADataSet>> m_input;
+	std::map<size_t, std::shared_ptr<iADataSet>> m_input;
 	QString m_outputFileName;
 	iALogger * m_logger;
 };

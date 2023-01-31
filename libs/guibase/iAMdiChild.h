@@ -181,8 +181,6 @@ public:
 	virtual void removeDataSet(size_t dataSetIdx) = 0;
 	//! clear (remove) all datasets
 	virtual void clearDataSets() = 0;
-	//! Retrieve a list of all datasets loaded in this window. NOTE: The index in this data structure does not reflect the index! TODO: maybe remove this to avoid confusion because of the indexing differences!
-	virtual std::vector<std::shared_ptr<iADataSet>> dataSets() const = 0;
 	//! Retrieve a dataset by its index
 	virtual std::shared_ptr<iADataSet> dataSet(size_t dataSetIdx) const = 0;
 	//! Retrieve the index of a dataset

@@ -123,7 +123,7 @@ bool iASampleFilter::checkParameters(QVariantMap const& paramValues)
 	return true;
 }
 
-void iASampleFilter::setParameters(std::vector<std::shared_ptr<iADataSet>> input, QSharedPointer<iAAttributes> parameterRanges,
+void iASampleFilter::setParameters(std::map<size_t, std::shared_ptr<iADataSet>> input, QSharedPointer<iAAttributes> parameterRanges,
 	QSharedPointer<iAAttributes> parameterSpecs,
 	QString const& parameterRangeFile, QString const& parameterSetFile, QString const& derivedOutFile, int samplingID,
 	std::vector<int> numOfSamplesPerParameter)
@@ -160,7 +160,7 @@ bool iASampleFilterRunnerGUI::askForParameters(std::shared_ptr<iAFilter> filter,
 		LOG(lvlError, "Invalid use of iASampleFilterRunnerGUI for a filter other than Sample Filter!");
 		return false;
 	}
-	iASamplingSettingsDlg dlg(mainWnd, sourceMdi->dataSets().size(), parameters);
+	iASamplingSettingsDlg dlg(mainWnd, sourceMdi->dataSetMap().size(), parameters);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		LOG(lvlInfo, "Aborted sampling.");
@@ -181,7 +181,7 @@ bool iASampleFilterRunnerGUI::askForParameters(std::shared_ptr<iAFilter> filter,
 	QString derivedOutputFile  = outBaseName + "-derivedOutput.csv";   // iASEAFile::DefaultCHRFileName,
 
 	int SamplingID = 0;
-	sampleFilter->setParameters(sourceMdi->dataSets(), dlg.parameterRanges(), dlg.parameterSpecs(),
+	sampleFilter->setParameters(sourceMdi->dataSetMap(), dlg.parameterRanges(), dlg.parameterSpecs(),
 		parameterRangeFile, parameterSetFile, derivedOutputFile, SamplingID, dlg.numOfSamplesPerParameter());
 	return true;
 }

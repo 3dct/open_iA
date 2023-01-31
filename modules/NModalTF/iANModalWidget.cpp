@@ -78,11 +78,10 @@ iANModalWidget::iANModalWidget(iAMdiChild* mdiChild)
 	connect(m_c->m_dlg_labels, &iALabelsDlg::labelRemoved, this, &iANModalWidget::onLabelRemoved);
 	connect(m_c->m_dlg_labels, &iALabelsDlg::labelsColorChanged, this, &iANModalWidget::onLabelsColorChanged);
 
-	auto list = m_mdiChild->dataSets();
 	QList<std::shared_ptr<iAImageData>> dataSets;
-	for (int i = 0; i < list.size(); i++)
+	for (auto ds: m_mdiChild->dataSetMap())
 	{
-		auto imgDS = std::dynamic_pointer_cast<iAImageData>(list[i]);
+		auto imgDS = std::dynamic_pointer_cast<iAImageData>(ds.second);
 		dataSets.append(imgDS);
 	}
 

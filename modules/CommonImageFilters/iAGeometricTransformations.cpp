@@ -46,7 +46,7 @@ class iAExtractComponent : public iAFilter, private iAAutoRegistration<iAFilter,
 {
 public:
 	iAExtractComponent();
-	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
+	void adaptParametersToInput(QVariantMap& params, std::map<size_t, std::shared_ptr<iADataSet>> const& dataSets) override;
 private:
 	void performWork(QVariantMap const& parameters) override;
 };
@@ -55,7 +55,7 @@ class iASimpleResampleFilter : public iAFilter, private iAAutoRegistration<iAFil
 {
 public:
 	iASimpleResampleFilter();
-	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
+	void adaptParametersToInput(QVariantMap& params, std::map<size_t, std::shared_ptr<iADataSet>> const& dataSets) override;
 private:
 	void performWork(QVariantMap const& parameters) override;
 };
@@ -64,7 +64,7 @@ class iAResampleFilter : public iAFilter, private iAAutoRegistration<iAFilter, i
 {
 public:
 	iAResampleFilter();
-	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
+	void adaptParametersToInput(QVariantMap& params, std::map<size_t, std::shared_ptr<iADataSet>> const& dataSets) override;
 private:
 	void performWork(QVariantMap const& parameters) override;
 };
@@ -73,7 +73,7 @@ class iAExtractImageFilter : public iAFilter, private iAAutoRegistration<iAFilte
 {
 public:
 	iAExtractImageFilter();
-	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
+	void adaptParametersToInput(QVariantMap& params, std::map<size_t, std::shared_ptr<iADataSet>> const& dataSets) override;
 private:
 	void performWork(QVariantMap const& parameters) override;
 };
@@ -125,10 +125,10 @@ iAExtractComponent::iAExtractComponent() :
 	addParameter("Component to extract", iAValueType::Discrete, 1, 1, 1);
 }
 
-void iAExtractComponent::adaptParametersToInput(QVariantMap& /* params */, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
+void iAExtractComponent::adaptParametersToInput(QVariantMap& /* params */, std::map<size_t, std::shared_ptr<iADataSet>> const& dataSets)
 {
-	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
-	paramsWritable()[0]->adjustMinMax(dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage()->GetNumberOfScalarComponents());
+	auto img = dynamic_cast<iAImageData*>(dataSets.begin()->second.get());
+	paramsWritable()[0]->adjustMinMax(img->vtkImage()->GetNumberOfScalarComponents());
 }
 
 
@@ -227,11 +227,9 @@ iASimpleResampleFilter::iASimpleResampleFilter() :
 	addParameter("Adjust origin", iAValueType::Boolean, true);
 }
 
-void iASimpleResampleFilter::adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
+void iASimpleResampleFilter::adaptParametersToInput(QVariantMap& params, std::map<size_t, std::shared_ptr<iADataSet>> const& dataSets)
 {
-	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
-	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage();
-	auto dim = img->GetDimensions();
+	auto dim = dynamic_cast<iAImageData*>(dataSets.begin()->second.get())->vtkImage()->GetDimensions();
 	params["Size"] = variantVector<int>({dim[0], dim[1], dim[2]});
 }
 
@@ -280,10 +278,9 @@ iAResampleFilter::iAResampleFilter() :
 	addParameter("Interpolator", iAValueType::Categorical, interpolators());
 }
 
-void iAResampleFilter::adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
+void iAResampleFilter::adaptParametersToInput(QVariantMap& params, std::map<size_t, std::shared_ptr<iADataSet>> const& dataSets)
 {
-	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
-	auto img = dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage();
+	auto img = dynamic_cast<iAImageData*>(dataSets.begin()->second.get())->vtkImage();
 	auto spc = img->GetSpacing();
 	params["Spacing"] = variantVector<double>({spc[0], spc[1], spc[2]});
 	auto dim     = img->GetDimensions();
@@ -332,10 +329,10 @@ iAExtractImageFilter::iAExtractImageFilter() :
 	addParameter("Size", iAValueType::Vector3i, variantVector<int>({1, 1, 1}));
 }
 
-void iAExtractImageFilter::adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
+void iAExtractImageFilter::adaptParametersToInput(QVariantMap& params, std::map<size_t, std::shared_ptr<iADataSet>> const& dataSets)
 {
-	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
-	adjustIndexAndSizeToImage(params, dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage());
+	auto img = dynamic_cast<iAImageData*>(dataSets.begin()->second.get());
+	adjustIndexAndSizeToImage(params, img->vtkImage());
 }
 
 

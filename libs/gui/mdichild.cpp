@@ -521,9 +521,9 @@ std::shared_ptr<iADataSet> MdiChild::chooseDataSet(QString const & title)
 	}
 	iAAttributes params;
 	QStringList dataSetNames;
-	for (auto dataSet : dataSets())
+	for (auto dataSet : dataSetMap())
 	{
-		dataSetNames << dataSet->name();
+		dataSetNames << dataSet.second->name();
 	}
 	const QString DataSetStr("Dataset");
 	addAttr(params, DataSetStr, iAValueType::Categorical, dataSetNames);
@@ -559,13 +559,12 @@ void MdiChild::saveVolumeStack()
 	{
 		return;
 	}
-	auto allDataSets = dataSets();
-	auto imgDataSets = std::make_shared<iADataCollection>(allDataSets.size(), std::shared_ptr<QSettings>());
-	for(auto d: allDataSets)
+	auto imgDataSets = std::make_shared<iADataCollection>(dataSetMap().size(), std::shared_ptr<QSettings>());
+	for(auto d: dataSetMap())
 	{
-		if (dynamic_cast<iAImageData*>(d.get()))
+		if (dynamic_cast<iAImageData*>(d.second.get()))
 		{
-			imgDataSets->addDataSet(d);
+			imgDataSets->addDataSet(d.second);
 		}
 	}
 
@@ -1915,14 +1914,6 @@ size_t MdiChild::dataSetIndex(iADataSet const* dataSet) const
 	return NoDataSet;
 }
 
-std::vector<std::shared_ptr<iADataSet>> MdiChild::dataSets() const
-{
-	std::vector<std::shared_ptr<iADataSet>> result;
-	result.reserve(m_dataSets.size());
-	std::transform(m_dataSets.begin(), m_dataSets.end(), std::back_inserter(result), [](auto const& p) { return p.second; });
-	return result;
-}
-
 std::map<size_t, std::shared_ptr<iADataSet>> const& MdiChild::dataSetMap() const
 {
 	return m_dataSets;
@@ -1930,7 +1921,7 @@ std::map<size_t, std::shared_ptr<iADataSet>> const& MdiChild::dataSetMap() const
 
 void MdiChild::applyRenderSettings(size_t dataSetIdx, QVariantMap const& renderSettings)
 {
-	m_dataSetViewers[dataSetIdx]->setAttributes(joinValues(extractValues(m_dataSetViewers[dataSetIdx]->attributesWithValues()), renderSettings));
+	dataSetViewer(dataSetIdx)->setAttributes(joinValues(extractValues(dataSetViewer(dataSetIdx)->attributesWithValues()), renderSettings));
 }
 
 size_t MdiChild::firstImageDataSetIdx() const

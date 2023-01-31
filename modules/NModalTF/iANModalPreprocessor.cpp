@@ -273,11 +273,11 @@ QList<std::shared_ptr<iAImageData>> iANModalPreprocessor::chooseGroup(const QLis
 QList<std::shared_ptr<iAImageData>> iANModalPreprocessor::extractNewDataSets(
 	const QList<std::shared_ptr<iAImageData>>& dataSets)
 {
-	auto list = m_mdiChild->dataSets();
+	//auto list = ;
 	QList<std::shared_ptr<iAImageData>> currentDataSets;
-	for (int i = 0; i < list.size(); ++i)
+	for (auto ds: m_mdiChild->dataSetMap())
 	{
-		auto imgDS = std::dynamic_pointer_cast<iAImageData>(list[i]);
+		auto imgDS = std::dynamic_pointer_cast<iAImageData>(ds.second);
 		if (!imgDS)
 		{
 			continue;

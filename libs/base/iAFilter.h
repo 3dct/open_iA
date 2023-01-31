@@ -105,7 +105,7 @@ public:
 	//! only used from GUI for the moment
 	//! if feature is implemented where parameters can be omitted (on command line),
 	//! this could later also be used to provide useful defaults for parameters that need to adapt to input image
-	virtual void adaptParametersToInput(QVariantMap& parameters, std::vector<std::shared_ptr<iADataSet>> const & dataSets);
+	virtual void adaptParametersToInput(QVariantMap& parameters, std::map<size_t, std::shared_ptr<iADataSet>> const & dataSets);
 	//! Check whether the filter can be run with the given parameters. If
 	//! you need to perform special checks on your parameters, override this
 	//! method. The standard implementation here just checks parameters with

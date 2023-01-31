@@ -102,18 +102,18 @@ public:
 	void applyRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs) override;
 	void applySlicerSettings(iASlicerSettings const & ss);
 	void applyVolumeSettings();
+	void setRenderSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
+	iARenderSettings const & renderSettings() const override;
+	iAVolumeSettings const & volumeSettings() const override;
+	iASlicerSettings const & slicerSettings() const override;
+	iAPreferences    const & preferences()    const override;
 
 	void toggleSnakeSlicer(bool isEnabled);
 	bool isSnakeSlicerToggled() const;
 	void toggleSliceProfile(bool isEnabled);
 	bool isSliceProfileEnabled() const;
 	void setProfilePoints(double const* start, double const* end) override;
-	void setRenderSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
 	void adapt3DViewDisplay();
-	iARenderSettings const & renderSettings() const override;
-	iAVolumeSettings const & volumeSettings() const override;
-	iASlicerSettings const & slicerSettings() const override;
-	iAPreferences    const & preferences()    const override;
 	//! @deprecated TODO NEWIO: move to separate tool
 	iAVolumeStack * volumeStack() override;
 
@@ -240,7 +240,6 @@ public:
 	void clearDataSets() override;
 	std::shared_ptr<iADataSet> dataSet(size_t dataSetIdx) const override;
 	size_t dataSetIndex(iADataSet const* dataSet) const override;
-	std::vector<std::shared_ptr<iADataSet>> dataSets() const override;
 	std::map<size_t, std::shared_ptr<iADataSet>> const& dataSetMap() const override;
 	size_t firstImageDataSetIdx() const override;
 	vtkSmartPointer<vtkImageData> firstImageData() const override;

@@ -928,13 +928,13 @@ void iASamplingSettingsDlg::runClicked()
 				if (mainWnd)
 				{
 					auto child = mainWnd->activeMdiChild();
-					if (static_cast<int>(filter->requiredImages() + filter->requiredMeshes()) > child->dataSets().size())
+					if (static_cast<int>(filter->requiredImages() + filter->requiredMeshes()) > child->dataSetMap().size())
 					{
 						msg += QString("Filter requires more inputs (%1 image(s) + %2 mesh(es)) "
 							"than the number of datasets loaded in current child (%3)!\n")
 							.arg(filter->requiredImages())
 							.arg(filter->requiredMeshes())
-							.arg(child->dataSets().size());
+							.arg(child->dataSetMap().size());
 					}
 				}
 			}

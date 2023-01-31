@@ -28,7 +28,7 @@ class iASimilarity : public iAFilter, private iAAutoRegistration<iAFilter, iASim
 {
 public:
 	iASimilarity();
-	void adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets) override;
+	void adaptParametersToInput(QVariantMap& params, std::map<size_t, std::shared_ptr<iADataSet>> const& dataSets) override;
 
 private:
 	void performWork(QVariantMap const& parameters) override;

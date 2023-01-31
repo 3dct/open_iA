@@ -47,7 +47,7 @@ class MetaFilters_API iAImageSampler: public QObject, public iADurationEstimator
 	Q_OBJECT
 public:
 	iAImageSampler(
-		std::vector<std::shared_ptr<iADataSet>> datasets,
+		std::map<size_t, std::shared_ptr<iADataSet>> datasets,
 		QVariantMap const & parameters,
 		QSharedPointer<iAAttributes> parameterRanges,
 		QSharedPointer<iAAttributes> parameterSpecs,
@@ -69,7 +69,7 @@ signals:
 private:
 	//! @{
 	//! input
-	std::vector<std::shared_ptr<iADataSet>> m_datasets;
+	std::map<size_t, std::shared_ptr<iADataSet>> m_dataSets;
 	QVariantMap const& m_parameters;
 	QSharedPointer<iAAttributes> m_parameterRanges;
 	QSharedPointer<iAAttributes> m_parameterSpecs;

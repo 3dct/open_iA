@@ -561,7 +561,7 @@ void iAEnsemble::CreateUncertaintyImages()
 	}
 }
 
-void iAEnsemble::writeFullDataFile(QString const & filename, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties, std::vector<std::shared_ptr<iADataSet>> dataSets)
+void iAEnsemble::writeFullDataFile(QString const & filename, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties, std::map<size_t, std::shared_ptr<iADataSet>> dataSets)
 {
 	QFile allDataFile(filename);
 	if (!allDataFile.open(QIODevice::WriteOnly | QIODevice::Text))

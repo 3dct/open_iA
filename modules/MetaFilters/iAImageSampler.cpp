@@ -48,7 +48,7 @@ const int CONCURRENT_COMPUTATION_RUNS = 1;
 iAPerformanceTimer m_computationTimer;
 
 iAImageSampler::iAImageSampler(
-		std::vector<std::shared_ptr<iADataSet>> dataset,
+		std::map<size_t, std::shared_ptr<iADataSet>> dataSets,
 		QVariantMap const & parameters,
 		QSharedPointer<iAAttributes> parameterRanges,
 		QSharedPointer<iAAttributes> parameterSpecs,
@@ -59,7 +59,7 @@ iAImageSampler::iAImageSampler(
 		int samplingID,
 		iALogger * logger,
 		iAProgress * progress) :
-	m_datasets(dataset),
+	m_dataSets(dataSets),
 	m_parameters(parameters),
 	m_parameterRanges(parameterRanges),
 	m_parameterSpecs(parameterSpecs),
@@ -133,7 +133,7 @@ void iAImageSampler::newSamplingRun()
 			m_parameters[spnFilter].toString(),
 			m_parameters[spnCompressOutput].toBool(),
 			m_parameters[spnOverwriteOutput].toBool(),
-			singleRunParams, m_datasets, outputFile, m_logger);
+			singleRunParams, m_dataSets, outputFile, m_logger);
 	}
 	else if (m_parameters[spnAlgorithmType].toString() == atExternal)
 	{
@@ -141,9 +141,9 @@ void iAImageSampler::newSamplingRun()
 		argumentList << m_additionalArgumentList;
 		argumentList << outputFile;
 
-		for (int m = 0; m < m_datasets.size(); ++m)
+		for (auto d: m_dataSets)
 		{
-			argumentList << m_datasets[m]->metaData(iADataSet::FileNameKey).toString();
+			argumentList << d.second->metaData(iADataSet::FileNameKey).toString();
 		}
 
 		for (int i = 0; i < m_parameterCount; ++i)
@@ -198,7 +198,7 @@ void iAImageSampler::start()
 		statusMsg(QString("Executable '%1' doesn't exist!").arg(m_parameters[spnExecutable].toString()));
 		return;
 	}
-	if (m_datasets.size() == 0)
+	if (m_dataSets.size() == 0)
 	{
 		statusMsg("No input given!");
 		return;

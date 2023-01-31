@@ -315,8 +315,8 @@ void iASimilarity::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(similarity_metrics, inputScalarType(), this, parameters);
 }
 
-void iASimilarity::adaptParametersToInput(QVariantMap& params, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
+void iASimilarity::adaptParametersToInput(QVariantMap& params, std::map<size_t, std::shared_ptr<iADataSet>> const& dataSets)
 {
-	assert(dataSets.size() > 0 && dynamic_cast<iAImageData*>(dataSets[0].get()));
-	adjustIndexAndSizeToImage(params, dynamic_cast<iAImageData*>(dataSets[0].get())->vtkImage());
+	auto img = dynamic_cast<iAImageData*>(dataSets.begin()->second.get());
+	adjustIndexAndSizeToImage(params, img->vtkImage());
 }

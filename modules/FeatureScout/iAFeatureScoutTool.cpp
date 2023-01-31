@@ -199,7 +199,7 @@ void iAFeatureScoutTool::init(int filterID, QString const& fileName, vtkSmartPoi
 		auto tf = dynamic_cast<iAVolumeViewer*>(m_child->dataSetViewer(idx))->transfer();
 		ctf = tf->colorTF();
 		otf = tf->opacityTF();
-		bounds = dynamic_cast<iAImageData*>(m_child->dataSets()[idx].get())->vtkImage()->GetBounds();
+		bounds = dynamic_cast<iAImageData*>(m_child->dataSet(idx).get())->vtkImage()->GetBounds();
 	}
 	auto objvis = create3DObjectVis(visType, csvtbl, columnMapping,
 		QColor(dlg_FeatureScout::UnclassifiedColorName), curvedFiberInfo, cylinderQuality, segmentSkip,

@@ -248,7 +248,7 @@ bool iAFilter::run(QVariantMap const & parameters)
 	return true;
 }
 
-void iAFilter::adaptParametersToInput(QVariantMap& parameters, std::vector<std::shared_ptr<iADataSet>> const& dataSets)
+void iAFilter::adaptParametersToInput(QVariantMap& parameters, std::map<size_t, std::shared_ptr<iADataSet>> const& dataSets)
 {
 	Q_UNUSED(parameters);
 	Q_UNUSED(dataSets);
