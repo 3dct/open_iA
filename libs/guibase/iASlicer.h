@@ -175,4 +175,6 @@ signals:
 	//! @param sliceNumber number of the slice that was switched to
 	void sliceNumberChanged(int mode, int sliceNumber);
 	void magicLensToggled(bool enabled);
+	//! triggered when the user selects "Settings" from the context menu
+	void editSettings();
 };

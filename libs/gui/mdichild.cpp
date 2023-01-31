@@ -218,11 +218,13 @@ void MdiChild::connectSignalsToSlots()
 
 	connect(m_dataSetListWidget, &iADataSetListWidget::dataSetSelected, this, &iAMdiChild::dataSetSelected);
 
-	connect(m_renderer, &iARendererImpl::bgColorChanged, m_dwRenderer->vtkWidgetRC, &iAAbstractMagicLensWidget::setLensBackground);
+	connect(m_renderer, &iARendererImpl::bgColorChanged, m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::setLensBackground);
 	connect(m_renderer, &iARendererImpl::interactionModeChanged, this, [this](bool camera)
 	{
 		setInteractionMode(camera ? imCamera : imRegistration);
 	});
+	m_dwRenderer->vtkWidgetRC->setContextMenuEnabled(true);
+	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::editSettings, m_mainWnd, &MainWindow::renderSettings);
 	connect(m_dwRenderer->pushMaxRC, &QPushButton::clicked, this, &MdiChild::maximizeRenderer);
 	connect(m_dwRenderer->pushStopRC, &QPushButton::clicked, this, [this]
 	{
@@ -256,6 +258,7 @@ void MdiChild::connectSignalsToSlots()
 		connect(m_slicer[s], &iASlicerImpl::sliceRotated, this, &MdiChild::slicerRotationChanged);
 		connect(m_slicer[s], &iASlicer::sliceNumberChanged, this, &MdiChild::setSlice);
 		connect(m_slicer[s], &iASlicer::mouseMoved, this, &MdiChild::updatePositionMarker);
+		connect(m_slicer[s], &iASlicer::editSettings, m_mainWnd, &MainWindow::slicerSettings);
 		connect(m_slicer[s], &iASlicerImpl::regionSelected, this, [this](int minVal, int maxVal, uint channelID)
 		{
 			// TODO NEWIO: move to better place, e.g. dataset viewer for image data? slicer?

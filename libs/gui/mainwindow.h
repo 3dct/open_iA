@@ -145,6 +145,8 @@ public:
 
 public slots:
 	void loadLayout();
+	void renderSettings();
+	void slicerSettings();
 
 signals:
 	void closing();
@@ -166,8 +168,6 @@ private slots:
 	void toggleSlicerInteraction();
 	void toggleFullScreen();
 	void toggleMenu();
-	void renderSettings();
-	void slicerSettings();
 	void changeInteractionMode(bool isChecked);
 	void rendererCamPosition();
 	void rendererSyncCamera();

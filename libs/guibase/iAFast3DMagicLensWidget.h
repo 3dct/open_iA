@@ -47,6 +47,7 @@ public:
 	void setViewMode(ViewMode mode);
 	bool isMagicLensEnabled() const;
 	void setLensBackground(QColor bgTop, QColor bgBottom);
+	void setContextMenuEnabled(bool enabled);
 
 signals:
 	void rightButtonReleasedSignal();
@@ -54,6 +55,7 @@ signals:
 	void mouseMoved();
 	void touchStart();
 	void touchScale(float relScale);
+	void editSettings();
 
 protected:
 	void resizeEvent( QResizeEvent * event ) override;
@@ -61,6 +63,7 @@ protected:
 	void mouseMoveEvent(QMouseEvent* event) override;
 	void wheelEvent(QWheelEvent* event) override;
 	bool event(QEvent* event) override;
+	void contextMenuEvent(QContextMenuEvent* event) override;
 
 	virtual void updateLens();
 	virtual void updateGUI();
@@ -79,4 +82,5 @@ private:
 	int                          m_pos[2];
 	int                          m_size[2];
 	double                       m_halfSize[2];
+	bool                         m_contextMenuEnabled;
 };

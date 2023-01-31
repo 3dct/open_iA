@@ -39,6 +39,7 @@
 #include <vtkRenderWindow.h>
 
 #include <QEvent>
+#include <QMenu>
 #include <QMouseEvent>
 #include <QTouchEvent>
 
@@ -51,7 +52,8 @@ iAFast3DMagicLensWidget::iAFast3DMagicLensWidget( QWidget * parent /*= 0 */ )
 	m_GUIActor{ vtkSmartPointer<vtkActor2D>::New() },
 	m_viewMode(ViewMode::OFFSET),
 	m_viewAngle(15.0),
-	m_magicLensEnabled(false)
+	m_magicLensEnabled(false),
+	m_contextMenuEnabled(false)
 {
 	setFocusPolicy(Qt::StrongFocus);	// to receive the KeyPress Event!
 	setMouseTracking(true);
@@ -382,4 +384,20 @@ void iAFast3DMagicLensWidget::getViewportPoints(double points[4])
 	default:
 		break;
 	}
+}
+
+void iAFast3DMagicLensWidget::setContextMenuEnabled(bool enabled)
+{
+	m_contextMenuEnabled = enabled;
+}
+
+void iAFast3DMagicLensWidget::contextMenuEvent(QContextMenuEvent* event)
+{
+	if (!m_contextMenuEnabled)
+	{
+		return;
+	}
+	QMenu menu;
+	menu.addAction(tr("Settings"), this, &iAFast3DMagicLensWidget::editSettings);
+	menu.exec(event->globalPos());
 }

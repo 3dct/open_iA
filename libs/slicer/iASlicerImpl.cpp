@@ -150,8 +150,8 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 {
 	std::fill(m_angle, m_angle + 3, 0);
 	setAutoFillBackground(false);
-	setFocusPolicy(Qt::StrongFocus);		// to receive the KeyPress Event!
-	setMouseTracking(true);					// to receive the Mouse Move Event
+	setFocusPolicy(Qt::StrongFocus);    // to receive the KeyPress Event!
+	setMouseTracking(true);             // to receive the Mouse Move Event
 	m_renWin->AlphaBitPlanesOn();
 	m_renWin->LineSmoothingOn();
 	m_renWin->PointSmoothingOn();
@@ -235,6 +235,10 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_renWin->GetInteractor()->AddObserver(vtkCommand::MouseWheelForwardEvent, redirect);
 
 	updateBackground();
+
+	m_contextMenu->addAction(tr("Settings"), this, &iASlicer::editSettings);
+
+	m_contextMenu->addSeparator();
 
 	m_actionLinearInterpolation = m_contextMenu->addAction(tr("Linear Interpolation"), this, &iASlicerImpl::toggleLinearInterpolation);
 	m_actionLinearInterpolation->setCheckable(true);
