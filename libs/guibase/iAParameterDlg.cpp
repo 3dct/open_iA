@@ -43,8 +43,9 @@
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScreen>
-#include <QSpinBox>
 #include <QScrollArea>
+#include <QSpinBox>
+#include <QSplitter>
 #include <QTextBrowser>
 #include <QTextDocument>
 
@@ -59,7 +60,7 @@ namespace
 		switch (valueType)
 		{
 		default:
-#if __cplusplus >= 201703L
+#if __cpluspuls >= 201703L
 			[[fallthrough]];
 #endif
 			// fall through
@@ -85,7 +86,6 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 	m_parameters(parameters)
 {
 	auto gridLayout = new QGridLayout();
-	setLayout(gridLayout);
 	gridLayout->setContentsMargins(4, 4, 4, 4);
 	m_buttonBox = new QDialogButtonBox();
 	m_buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
@@ -93,11 +93,7 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 	connect(m_buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 	if (title.isEmpty())
 	{
-		LOG(lvlError, "No window title entered. Please give a window title");
-		auto lbl = new QLabel("No window title entered. Please give a window title");
-		gridLayout->addWidget(lbl, 0, 0);
-		m_buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-		gridLayout->addWidget(m_buttonBox, 1, 0);
+		LOG(lvlError, "DEVELOPER ERROR: No window title entered. Please give a window title");
 		return;
 	}
 	this->setWindowTitle(title);
@@ -113,9 +109,23 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 		info->setDocument(doc);
 		info->setReadOnly(true);
 		info->setOpenExternalLinks(true);
-		gridLayout->addWidget(info, 0, 0);
 		// make sure that description can be easily resized; parameters have scroll bar
 		scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+		auto s = new QSplitter(Qt::Vertical);
+		s->addWidget(info);
+		auto w = new QWidget();
+		w->setLayout(gridLayout);
+		s->addWidget(w);
+		s->setCollapsible(0, true);
+		s->setCollapsible(1, false);
+		setLayout(new QHBoxLayout);
+		layout()->addWidget(s);
+		layout()->setContentsMargins(4, 4, 4, 4);
+	}
+	else
+	{
+		setLayout(gridLayout);
 	}
 
 	scrollArea->setObjectName("scrollArea");
