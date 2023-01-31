@@ -423,10 +423,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this, [this]()
 	{
 		m_histogram->plots()[0]->setColor(QApplication::palette().color(QPalette::Shadow));
-		if (m_profileChart)
-		{
-			m_profileChart->plots()[0]->setColor(QApplication::palette().color(QPalette::Text));
-		}
+		m_profileChart->plots()[0]->setColor(QApplication::palette().color(QPalette::Text));
 	});
 	connect(child, &iAMdiChild::preferencesChanged, this,
 		[this, child]()
@@ -486,7 +483,11 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	m_profileChart = new iAChartWidget(nullptr, "Greyvalue", "Distance");
 	m_dwProfile = new iADockWidgetWrapper(m_profileChart, "Profile Plot", "Profile");
 	child->splitDockWidget(child->renderDockWidget(), m_dwProfile, Qt::Vertical);
-	if (!visibleProfile)
+	if (visibleProfile)
+	{
+		updateProfilePlot();
+	}
+	else
 	{
 		m_dwProfile->hide();
 	}
@@ -579,7 +580,10 @@ QVector<QAction*> iAVolumeViewer::additionalActions(iAMdiChild* child)
 			[this, child](bool checked)
 			{
 				setRenderFlag(RenderProfileFlag, checked);
-				updateProfilePlot();
+				if (checked)
+				{
+					updateProfilePlot();
+				}
 				m_dwProfile->setVisible(checked);
 			})
 	};

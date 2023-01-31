@@ -393,6 +393,7 @@ namespace
 	const QString CameraViewUpKey("CameraViewUp");
 	const QString CameraParallelProjection("CameraParallelProjection");
 	const QString CameraParallelScale("CameraParallelScale");
+	const QString LayoutKey("Layout");
 }
 
 iARenderer* MdiChild::renderer()
@@ -1979,6 +1980,7 @@ void MdiChild::saveSettings(QSettings& settings)
 	settings.setValue(CameraViewUpKey, arrayToString(cam->GetViewUp(), 3));
 	settings.setValue(CameraParallelScale, cam->GetParallelScale());
 	settings.setValue(CameraParallelProjection, cam->GetParallelProjection());
+	settings.setValue(LayoutKey, saveState());
 	// }
 }
 
@@ -1992,16 +1994,24 @@ void MdiChild::loadSettings(QSettings const& settings)
 		!stringToArray<double>(settings.value(CameraViewUpKey).toString(), camViewUp, 3))
 	{
 		LOG(lvlWarn, QString("Invalid or missing camera information."));
-		return;
 	}
-	auto cam = renderer()->renderer()->GetActiveCamera();
-	bool parProj = settings.value(CameraParallelProjection, cam->GetParallelProjection()).toBool();
-	double parScale = settings.value(CameraParallelScale, cam->GetParallelScale()).toDouble();
-	cam->SetPosition(camPos);
-	cam->SetViewUp(camViewUp);
-	cam->SetPosition(camPos);
-	cam->SetParallelProjection(parProj);
-	cam->SetParallelScale(parScale);
+	else
+	{
+		renderer()->renderer()->ResetCamera();
+		auto cam = renderer()->renderer()->GetActiveCamera();
+		bool parProj = settings.value(CameraParallelProjection, cam->GetParallelProjection()).toBool();
+		double parScale = settings.value(CameraParallelScale, cam->GetParallelScale()).toDouble();
+		cam->SetParallelProjection(parProj);
+		cam->SetParallelScale(parScale);
+		cam->SetPosition(camPos);
+		cam->SetViewUp(camViewUp);
+		cam->SetPosition(camPos);
+	}
+
+	if (settings.contains(LayoutKey))
+	{
+		restoreState(settings.value(LayoutKey).toByteArray());
+	}
 	// }
 }
 
