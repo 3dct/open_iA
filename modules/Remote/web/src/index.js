@@ -1,8 +1,6 @@
-
 import SmartConnect from 'wslink/src/SmartConnect';
 import vtkWSLinkClient from '@kitware/vtk.js/IO/Core/WSLinkClient';
 import vtkRemoteView from '@kitware/vtk.js/Rendering/Misc/RemoteView';
-
 
 vtkWSLinkClient.setSmartConnectClass(SmartConnect);
 
@@ -14,8 +12,6 @@ const divRenderer2 = document.createElement('div');
 const divRenderer3 = document.createElement('div');
 const divRenderer4 = document.createElement('div');
 
-
-
 document.getElementById("1").appendChild(divRenderer);
 document.getElementById("2").appendChild(divRenderer2);
 document.getElementById("3").appendChild(divRenderer3);
@@ -25,7 +21,6 @@ divRenderer.style.position = 'relative';
 divRenderer2.style.position = 'relative';
 divRenderer3.style.position = 'relative';
 divRenderer4.style.position = 'relative';
-
 
 const clientToConnect = vtkWSLinkClient.newInstance();
 
