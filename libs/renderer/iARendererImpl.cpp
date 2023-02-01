@@ -166,7 +166,7 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 
 	m_labelRen->SetActiveCamera(m_cam);
 	m_ren->SetActiveCamera(m_cam);
-	::setCamPosition(m_cam, static_cast<iACameraPosition>(iACameraPosition::PZ));
+	::setCamPosition(m_cam, static_cast<iACameraPosition>(iACameraPosition::Iso));
 
 	// set up region of interest (ROI) cube marker:
 	m_roiMapper->SetInputConnection(m_roiCube->GetOutputPort());
