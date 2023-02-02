@@ -65,8 +65,7 @@ General
 	QLineEdit:hover,
 	QSpinBox:hover,
 	QDoubleSpinBox:hover,
-	QComboBox:hover,
-	.QDateTimeEdit:hover
+	QComboBox:hover
 	{
 		background: qlineargradient(spread:pad,
 			x1:0, y1:0,
@@ -274,8 +273,14 @@ QPushButton
 	QToolButton[objectName="delete_class"],
 	QToolButton[objectName="tbRemove"],
 	QPushButton[objectName="pbRemove"] { qproperty-icon: url(:/images/minus-dark.svg); }
-	QToolButton[objectName="tbEdit"],
-	QPushButton[objectName="pbEdit"]   { qproperty-icon: url(:/images/edit-dark.svg);  }
+	QToolButton[objectName="tbEdit"] { qproperty-icon: url(:/images/edit-dark.svg);  }
+	QToolButton[objectName="pushPX"] { qproperty-icon: url(:/images/px_light.svg); }
+	QToolButton[objectName="pushPY"] { qproperty-icon: url(:/images/py_light.svg); }
+	QToolButton[objectName="pushPZ"] { qproperty-icon: url(:/images/pz_light.svg); }
+	QToolButton[objectName="pushMX"] { qproperty-icon: url(:/images/mx_light.svg); }
+	QToolButton[objectName="pushMY"] { qproperty-icon: url(:/images/my_light.svg); }
+	QToolButton[objectName="pushMZ"] { qproperty-icon: url(:/images/mz_light.svg); }
+
 /****************************************************************************
 QTabWidget
 QTabBar
@@ -361,15 +366,18 @@ QDoubleSpinBox
 	{
 		border-width: 0px;
 	}
-	QSpinBox::up-arrow,
-	QDoubleSpinBox::up-arrow
+	QDoubleSpinBox::up-arrow,
+	QScrollBar::up-arrow,
+	QSpinBox::up-arrow
 	{
-		image: url(:/images/up_arrow.png);
+		image: url(:/images/arrow_up_light.svg);
 	}
-	QSpinBox::down-arrow,
-	QDoubleSpinBox::down-arrow
+	QComboBox::down-arrow,
+	QDoubleSpinBox::down-arrow,
+	QScrollBar::down-arrow,
+	QSpinBox::down-arrow
 	{
-		image: url(:/images/down_arrow.png);
+		image: url(:/images/arrow_down_light.svg);
 	}
 	QSpinBox::up-button:hover,
 	QDoubleSpinBox::up-button:hover,
@@ -627,15 +635,9 @@ QComboBox
 		padding-right: 20px; /* make room for the arrows */
 		color: rgba(230, 230, 230, 255);
 	}
-	QComboBox::drop-down,
-	.QDateTimeEdit::drop-down
+	QComboBox::drop-down
 	{
 		border: none;
-	}
-	QComboBox::down-arrow,
-	.QDateTimeEdit::down-arrow
-	{
-		image: url(:/images/down_arrow.png);
 	}
 	QComboBox:on
 	{
@@ -662,15 +664,6 @@ QComboBox
 	{
 		selection-background-color: rgba(90, 90, 90, 255);
 		selection-color: rgba(255, 168, 0, 255);
-	}
-	.QDateTimeEdit:pressed
-	{
-		background: qlineargradient(spread:pad,
-			x1:0, y1:0,
-			x2:0, y2:1,
-			stop:0 rgba(30, 30, 30, 255),
-			stop:1 rgba(60, 60, 60, 255)
-		);
 	}
 /****************************************************************************
 QStatusBar
@@ -725,14 +718,38 @@ QScrollBar
 		subcontrol-position: left;
 		subcontrol-origin: margin;
 	}
-	QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal
+	QScrollBar::sub-line:horizontal:hover, QScrollBar::add-line:horizontal::hover,
+	QScrollBar::sub-line:vertical:hover, QScrollBar::add-line:vertical:hover
 	{
-		border: 0;
-		width: 5px;
-		height: 5px;
-		background: solid rgba(100, 100, 100, 255);
+		background: qlineargradient(spread:pad,
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(150, 186, 230, 255),
+			stop:0.617 rgba(100, 146, 212, 255),
+			stop:1 rgba(70, 122, 201, 255)
+		);
 	}
-	QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal
+	QScrollBar::sub-line:horizontal::pressed, QScrollBar::add-line:horizontal::pressed,
+	QScrollBar::sub-line:vertical:pressed, QScrollBar::add-line:vertical:pressed
+	{
+		background: qlineargradient(spread:pad,
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(70, 122, 201, 255),
+			stop:0.381 rgba(100, 146, 212, 255),
+			stop:1 rgba(150, 186, 230, 255)
+		);
+	}
+	QScrollBar::left-arrow:horizontal
+	{
+		image: url(:/images/arrow_left_light.svg);
+	}
+	QScrollBar::right-arrow:horizontal
+	{
+		image: url(:/images/arrow_right_light.svg);
+	}
+	QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal,
+	QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
 	{
 		background: none;
 	}
@@ -769,17 +786,6 @@ QScrollBar
 		height: 15px;
 		subcontrol-position: top;
 		subcontrol-origin: margin;
-	}
-	QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical
-	{
-		border: 0;
-		width: 5px;
-		height: 5px;
-		background: solid rgba(100, 100, 100, 255);
-	}
-	QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
-	{
-		background: none;
 	}
 /****************************************************************************
 QDockWidget
@@ -818,16 +824,6 @@ QSplitter
 		width: 0px;
 		height: 0px;
 		margin: 2px;
-	}
-/****************************************************************************
-QSizeGrip
-****************************************************************************/
-	QSizeGrip
-	{
-		background: transparent;
-		image: url(:/images/sizeGrip.png);
-		width: 16px;
-		height: 16px;
 	}
 /****************************************************************************
 Disabled Inputs

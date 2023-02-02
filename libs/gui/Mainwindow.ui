@@ -479,28 +479,16 @@
    </property>
   </action>
   <action name="actionPreferences">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/settings_preferences.png</normaloff>:/images/settings_preferences.png</iconset>
-   </property>
    <property name="text">
     <string>Preferences</string>
    </property>
   </action>
   <action name="actionRendererSettings">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/settings_renderer.png</normaloff>:/images/settings_renderer.png</iconset>
-   </property>
    <property name="text">
     <string>Renderer settings</string>
    </property>
   </action>
   <action name="actionSlicerSettings">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/settings_slicer.png</normaloff>:/images/settings_slicer.png</iconset>
-   </property>
    <property name="text">
     <string>Slicer settings</string>
    </property>
@@ -575,10 +563,6 @@
    </property>
   </action>
   <action name="actionViewXDirectionInRaycaster">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/px.png</normaloff>:/images/px.png</iconset>
-   </property>
    <property name="text">
     <string>View +X direction</string>
    </property>
@@ -587,10 +571,6 @@
    </property>
   </action>
   <action name="actionViewYDirectionInRaycaster">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/py.png</normaloff>:/images/py.png</iconset>
-   </property>
    <property name="text">
     <string>View +Y direction</string>
    </property>
@@ -599,10 +579,6 @@
    </property>
   </action>
   <action name="actionViewZDirectionInRaycaster">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/pz.png</normaloff>:/images/pz.png</iconset>
-   </property>
    <property name="text">
     <string>View +Z direction</string>
    </property>
@@ -611,10 +587,6 @@
    </property>
   </action>
   <action name="actionViewmXDirectionInRaycaster">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/mx.png</normaloff>:/images/mx.png</iconset>
-   </property>
    <property name="text">
     <string>View -X direction</string>
    </property>
@@ -623,10 +595,6 @@
    </property>
   </action>
   <action name="actionViewmYDirectionInRaycaster">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/my.png</normaloff>:/images/my.png</iconset>
-   </property>
    <property name="text">
     <string>View -Y direction</string>
    </property>
@@ -635,10 +603,6 @@
    </property>
   </action>
   <action name="actionViewmZDirectionInRaycaster">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/mz.png</normaloff>:/images/mz.png</iconset>
-   </property>
    <property name="text">
     <string>View -Z direction</string>
    </property>
@@ -659,10 +623,6 @@
    </property>
   </action>
   <action name="actionIsometricViewInRaycaster">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/iso.png</normaloff>:/images/iso.png</iconset>
-   </property>
    <property name="text">
     <string>Isometric view</string>
    </property>
@@ -763,10 +723,6 @@
   <action name="actionMagicLens2D">
    <property name="checkable">
     <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/magic_lens_2d.svg</normaloff>:/images/magic_lens_2d.svg</iconset>
    </property>
    <property name="text">
     <string>2D Magic Lens</string>
@@ -920,10 +876,6 @@
   <action name="actionMagicLens3D">
    <property name="checkable">
     <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/magic_lens_3d.svg</normaloff>:/images/magic_lens_3d.svg</iconset>
    </property>
    <property name="text">
     <string>3D Magic Lens</string>

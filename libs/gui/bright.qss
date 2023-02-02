@@ -55,8 +55,7 @@ General
 	QLineEdit:hover,
 	QSpinBox:hover,
 	QDoubleSpinBox:hover,
-	QComboBox:hover,
-	.QDateTimeEdit:hover
+	QComboBox:hover
 	{
 		background: qlineargradient(spread:pad,
 			x1:0, y1:0,
@@ -249,8 +248,13 @@ QPushButton
 	QToolButton[objectName="delete_class"],
 	QToolButton[objectName="tbRemove"],
 	QPushButton[objectName="pbRemove"] { qproperty-icon: url(:/images/minus.svg); }
-	QToolButton[objectName="tbEdit"],
-	QPushButton[objectName="pbEdit"]   { qproperty-icon: url(:/images/edit.svg);  }
+	QToolButton[objectName="tbEdit"] { qproperty-icon: url(:/images/edit.svg);  }
+	QToolButton[objectName="pushPX"] { qproperty-icon: url(:/images/px.svg); }
+	QToolButton[objectName="pushPY"] { qproperty-icon: url(:/images/py.svg); }
+	QToolButton[objectName="pushPZ"] { qproperty-icon: url(:/images/pz.svg); }
+	QToolButton[objectName="pushMX"] { qproperty-icon: url(:/images/mx.svg); }
+	QToolButton[objectName="pushMY"] { qproperty-icon: url(:/images/my.svg); }
+	QToolButton[objectName="pushMZ"] { qproperty-icon: url(:/images/mz.svg); }
 /****************************************************************************
 QTabWidget
 QTabBar
@@ -337,15 +341,18 @@ QDoubleSpinBox
 	{
 		border-width: 0px;
 	}
-	QSpinBox::up-arrow,
-	QDoubleSpinBox::up-arrow
+	QDoubleSpinBox::up-arrow,
+	QScrollBar::up-arrow,
+	QSpinBox::up-arrow
 	{
-		image: url(:/images/up_arrow.png);
+		image: url(:/images/arrow_up.svg);
 	}
-	QSpinBox::down-arrow,
-	QDoubleSpinBox::down-arrow
+	QComboBox::down-arrow,
+	QDoubleSpinBox::down-arrow,
+	QScrollBar::down-arrow,
+	QSpinBox::down-arrow
 	{
-		image: url(:/images/down_arrow.png);
+		image: url(:/images/arrow_down.svg);
 	}
 	QSpinBox::up-button:hover,
 	QDoubleSpinBox::up-button:hover,
@@ -615,15 +622,9 @@ QComboBox
 		padding-right: 20px; /* make room for the arrows */
 		color: rgba(25, 25, 25, 255);
 	}
-	QComboBox::drop-down,
-	.QDateTimeEdit::drop-down
+	QComboBox::drop-down
 	{
 		border: none;
-	}
-	QComboBox::down-arrow,
-	.QDateTimeEdit::down-arrow
-	{
-		image: url(:/images/down_arrow.png);
 	}
 	QComboBox:on
 	{
@@ -650,15 +651,6 @@ QComboBox
 	{
 		selection-background-color: rgb(90, 90, 90);
 		selection-color: rgb(255, 168, 0);
-	}
-	.QDateTimeEdit:pressed
-	{
-		background: qlineargradient(spread:pad,
-			x1:0, y1:0,
-			x2:0, y2:1,
-			stop:0 rgba(195, 195, 195, 255),
-			stop:1 rgba(225, 225, 225, 255)
-		);
 	}
 /****************************************************************************
 QStatusBar
@@ -713,13 +705,37 @@ QScrollBar
 		subcontrol-position: left;
 		subcontrol-origin: margin;
 	}
-	QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal
+	QScrollBar::sub-line:horizontal:hover, QScrollBar::add-line:horizontal::hover,
+	QScrollBar::sub-line:vertical:hover, QScrollBar::add-line:vertical:hover
 	{
-		border: 0;
-		width: 5px;
-		height: 5px;
-		background-color: solid rgba(155, 155, 155, 255);
+		background: qlineargradient(spread:pad,
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(150, 186, 230, 255),
+			stop:0.617 rgba(100, 146, 212, 255),
+			stop:1 rgba(70, 122, 201, 255)
+		);
 	}
+	QScrollBar::sub-line:horizontal::pressed, QScrollBar::add-line:horizontal::pressed,
+	QScrollBar::sub-line:vertical:pressed, QScrollBar::add-line:vertical:pressed
+	{
+		background: qlineargradient(spread:pad,
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(70, 122, 201, 255),
+			stop:0.381 rgba(100, 146, 212, 255),
+			stop:1 rgba(150, 186, 230, 255)
+		);
+	}
+	QScrollBar::left-arrow
+	{
+		image: url(:/images/arrow_left.svg);
+	}
+	QScrollBar::right-arrow
+	{
+		image: url(:/images/arrow_right.svg);
+	}
+	QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical,
 	QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal
 	{
 		background: none;
@@ -758,17 +774,6 @@ QScrollBar
 		subcontrol-position: top;
 		subcontrol-origin: margin;
 	}
-	QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical
-	{
-		border: 0;
-		width: 5px;
-		height: 5px;
-		background: solid rgba(155, 155, 155, 255);
-	}
-	QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
-	{
-		background: none;
-	}
 /****************************************************************************
 QDockWidget
 ****************************************************************************/
@@ -806,16 +811,6 @@ QSplitter
 		width: 0px;
 		height: 0px;
 		margin: 2px;
-	}
-/****************************************************************************
-QSizeGrip
-****************************************************************************/
-	QSizeGrip
-	{
-		background: transparent;
-		image: url(:/images/sizeGrip.png);
-		width: 16px;
-		height: 16px;
 	}
 /****************************************************************************
 Disabled Inputs

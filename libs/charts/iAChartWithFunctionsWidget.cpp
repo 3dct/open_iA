@@ -331,7 +331,7 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 	if (m_enableAdditionalFunctions)
 	{
 		contextMenu->addAction(QIcon(":/images/addBezier.png"), tr("Add bezier function"), this, &iAChartWithFunctionsWidget::addBezierFunction);
-		contextMenu->addAction(QIcon(":/images/addGaussian.png"), tr("Add gaussian function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::addGaussianFunction));
+		contextMenu->addAction(QIcon(":/images/gaussian.svg"), tr("Add gaussian function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::addGaussianFunction));
 		contextMenu->addAction(QIcon(":/images/openFkt.png"), tr("Load functions"), this, &iAChartWithFunctionsWidget::loadFunctions);
 		contextMenu->addAction(QIcon(":/images/saveFkt.png"), tr("Save functions"), this, &iAChartWithFunctionsWidget::saveFunctions);
 

@@ -236,7 +236,8 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 
 	updateBackground();
 
-	m_contextMenu->addAction(tr("Settings"), this, &iASlicer::editSettings);
+	auto settingsAction = m_contextMenu->addAction(tr("Settings"), this, &iASlicer::editSettings);
+	settingsAction->setIcon(iAMainWindow::resourceIcon("settings_slicer"));
 
 	m_contextMenu->addSeparator();
 

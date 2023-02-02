@@ -1,15 +1,14 @@
 <RCC>
   <qresource prefix="/">
     <file>bright.qss</file>
-    <file>bright_2.qss</file>
     <file>dark.qss</file>
-    <file>dark_2.qss</file>
     <file>images/Crosshair thick.png</file>
     <file>images/Crosshair thin.png</file>
     <file>images/TFTableView.png</file>
     <file>images/Xmas.png</file>
     <file>images/addBezier.png</file>
-    <file>images/addGaussian.png</file>
+    <file>images/gaussian.svg</file>
+    <file>images/gaussian_light.svg</file>
     <file>images/camera.png</file>
     <file>images/changeColor.png</file>
     <file>images/checkbox_checked.svg</file>
@@ -39,28 +38,41 @@
     <file>images/dockwidget-close_dark.svg</file>
     <file>images/dockwidget-float_bright.svg</file>
     <file>images/dockwidget-float_dark.svg</file>
-    <file>images/down_arrow.png</file>
+    <file>images/arrow_down.svg</file>
+    <file>images/arrow_down_light.svg</file>
+    <file>images/arrow_left.svg</file>
+    <file>images/arrow_left_light.svg</file>
+    <file>images/arrow_right.svg</file>
+    <file>images/arrow_right_light.svg</file>
+    <file>images/arrow_up.svg</file>
+    <file>images/arrow_up_light.svg</file>
     <file>images/eye.svg</file>
     <file>images/eye_light.svg</file>
     <file>images/fisheyeLens.png</file>
     <file>images/ia.png</file>
-    <file>images/iso.png</file>
+    <file>images/iso.svg</file>
+    <file>images/iso_light.svg</file>
     <file>images/layout_delete.png</file>
     <file>images/layout_export.png</file>
     <file>images/layout_load.png</file>
     <file>images/layout_reset.png</file>
-    <file>images/left_arrow.png</file>
     <file>images/loadCamera.png</file>
     <file>images/loadtrf.png</file>
-    <file>images/mx.png</file>
-    <file>images/my.png</file>
-    <file>images/mz.png</file>
+    <file>images/mx.svg</file>
+    <file>images/my.svg</file>
+    <file>images/mz.svg</file>
+    <file>images/mx_light.svg</file>
+    <file>images/my_light.svg</file>
+    <file>images/mz_light.svg</file>
     <file>images/openFkt.png</file>
     <file>images/profile-edit.png</file>
     <file>images/profile-raw.png</file>
-    <file>images/px.png</file>
-    <file>images/py.png</file>
-    <file>images/pz.png</file>
+    <file>images/px.svg</file>
+    <file>images/py.svg</file>
+    <file>images/pz.svg</file>
+    <file>images/px_light.svg</file>
+    <file>images/py_light.svg</file>
+    <file>images/pz_light.svg</file>
     <file>images/radiobutton_checked.svg</file>
     <file>images/radiobutton_checked_dark.svg</file>
     <file>images/radiobutton_checked_hover.svg</file>
@@ -77,15 +89,14 @@
     <file>images/removeFkt.png</file>
     <file>images/resetTrf.png</file>
     <file>images/resetView.png</file>
-    <file>images/right_arrow.png</file>
     <file>images/saveCamera.png</file>
     <file>images/saveFkt.png</file>
     <file>images/saveas.png</file>
     <file>images/savetrf.png</file>
-    <file>images/settings_preferences.png</file>
-    <file>images/settings_renderer.png</file>
-    <file>images/settings_slicer.png</file>
-    <file>images/sizeGrip.png</file>
+    <file>images/settings_renderer.svg</file>
+    <file>images/settings_renderer_light.svg</file>
+    <file>images/settings_slicer.svg</file>
+    <file>images/settings_slicer_light.svg</file>
     <file>images/snakeSlicer.png</file>
     <file>images/splashscreen.png</file>
     <file>images/stepbackward.png</file>
@@ -93,7 +104,6 @@
     <file>images/transform-move.svg</file>
     <file>images/transform-move_light.svg</file>
     <file>images/undock_white.png</file>
-    <file>images/up_arrow.png</file>
     <file>images/w2b_colormap.png</file>
     <file>images/w2r_colormap.png</file>
   </qresource>

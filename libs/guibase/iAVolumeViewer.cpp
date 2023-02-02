@@ -91,7 +91,7 @@ namespace
 	const QChar RenderProfileFlag('P');
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
 	const QString GlobalIlluminationReach = "Global Illumination Reach";
-	const QString VolumetricScatteringBlending = "VolumetricScatteringBlending";
+	const QString VolumetricScatteringBlending = "Volumetric Scattering Blending";
 #endif
 
 	const QString TransferFunction = "TransferFunction";
@@ -422,8 +422,14 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	}
 	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this, [this]()
 	{
-		m_histogram->plots()[0]->setColor(QApplication::palette().color(QPalette::Shadow));
-		m_profileChart->plots()[0]->setColor(QApplication::palette().color(QPalette::Text));
+		if (m_histogram->plots().size() > 0)
+		{
+			m_histogram->plots()[0]->setColor(QApplication::palette().color(QPalette::Shadow));
+		}
+		if (m_profileChart->plots().size() > 0)
+		{
+			m_profileChart->plots()[0]->setColor(QApplication::palette().color(QPalette::Text));
+		}
 	});
 	connect(child, &iAMdiChild::preferencesChanged, this,
 		[this, child]()

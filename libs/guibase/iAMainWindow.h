@@ -114,7 +114,6 @@ public:
 	//! whether the current qss theme is bright mode (true) or dark mode (false)
 	virtual bool brightMode() const = 0;
 
-
 	//! Retrieve current directory path (the "working folder")
 	virtual QString const& path() const = 0;
 	//! Set current directory path (the "working folder")
@@ -122,6 +121,9 @@ public:
 
 	//! Access to the main window (more or less singleton); implementation currently in iAModuleDispatcher.cpp
 	static iAMainWindow* get();
+
+	//! Retrieve an icon for a given name from the embedded resources; implementation currently in iAModuleDispatcher.cpp
+	static QIcon resourceIcon(QString const& name);
 
 signals:
 	//! Triggered whenever the user has changed the style of the program (bright/dark/...) via the preferences.

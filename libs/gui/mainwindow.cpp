@@ -845,9 +845,6 @@ void MainWindow::prefs()
 	QMap<QString, QString> styleNames;
 	styleNames.insert(tr("Dark")      , ":/dark.qss");
 	styleNames.insert(tr("Bright")    , ":/bright.qss");
-	styleNames.insert(tr("Dark New")  , ":/dark_2.qss");
-	styleNames.insert(tr("Bright New"), ":/bright_2.qss");
-
 	for (QString key: styleNames.keys())
 	{
 		if (m_qssName == styleNames[key])
@@ -1971,6 +1968,26 @@ void MainWindow::applyQSS()
 		p.setColor(QPalette::PlaceholderText, m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
 		p.setColor(QPalette::WindowText,      m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
 		QApplication::setPalette(p);
+		
+		// adapt action icons:
+		static std::vector<std::pair<QAction*, QString>> actionIcons = {
+			{ m_ui->actionViewXDirectionInRaycaster, "px" },
+			{ m_ui->actionViewYDirectionInRaycaster, "py" },
+			{ m_ui->actionViewZDirectionInRaycaster, "pz" },
+			{ m_ui->actionViewmXDirectionInRaycaster, "mx" },
+			{ m_ui->actionViewmYDirectionInRaycaster, "my" },
+			{ m_ui->actionViewmZDirectionInRaycaster, "mz" },
+			{ m_ui->actionIsometricViewInRaycaster, "iso" },
+			{ m_ui->actionMagicLens2D, "magic_lens_2d" },
+			{ m_ui->actionMagicLens3D, "magic_lens_3d" },
+			{ m_ui->actionRendererSettings, "settings_renderer" },
+			{ m_ui->actionSlicerSettings, "settings_slicer" },
+			{ m_ui->actionPreferences, "settings" },
+		};
+		for (auto a : actionIcons)
+		{
+			a.first->setIcon(resourceIcon(a.second));
+		}
 		emit styleChanged();
 	}
 }
