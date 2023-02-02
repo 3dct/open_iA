@@ -1983,6 +1983,12 @@ void MainWindow::applyQSS()
 			{ m_ui->actionRendererSettings, "settings_renderer" },
 			{ m_ui->actionSlicerSettings, "settings_slicer" },
 			{ m_ui->actionPreferences, "settings" },
+			{ m_ui->actionOpenWithDataTypeConversion, "open" },
+			{ m_ui->actionOpenVolumeStack, "open" },
+			{ m_ui->actionOpenTLGICTData, "open" },
+			{ m_ui->actionOpenRaw, "open" },
+			{ m_ui->actionOpenDataSet, "open" },
+			{ m_ui->actionOpenInNewWindow, "open" }
 		};
 		for (auto a : actionIcons)
 		{

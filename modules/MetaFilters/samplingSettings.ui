@@ -943,7 +943,7 @@
         </property>
         <property name="icon">
          <iconset resource="../../libs/guibase/guibase.qrc">
-          <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
+          <normaloff>:/images/open.svg</normaloff>:/images/open.svg</iconset>
         </property>
         <property name="popupMode">
          <enum>QToolButton::InstantPopup</enum>

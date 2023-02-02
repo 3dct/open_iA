@@ -646,19 +646,11 @@
    </property>
   </action>
   <action name="actionOpenWithDataTypeConversion">
-   <property name="icon">
-    <iconset resource="../guibase/guibase.qrc">
-     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
-   </property>
    <property name="text">
     <string>Open with Datatype Conversion...</string>
    </property>
   </action>
   <action name="actionOpenVolumeStack">
-   <property name="icon">
-    <iconset resource="../guibase/guibase.qrc">
-     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
-   </property>
    <property name="text">
     <string>Open Volume Stack...</string>
    </property>
@@ -745,10 +737,6 @@
    </property>
   </action>
   <action name="actionOpenTLGICTData">
-   <property name="icon">
-    <iconset resource="../guibase/guibase.qrc">
-     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
-   </property>
    <property name="text">
     <string>Open TLGI-CT Data...</string>
    </property>
@@ -766,10 +754,6 @@
    </property>
   </action>
   <action name="actionOpenRaw">
-   <property name="icon">
-    <iconset resource="../guibase/guibase.qrc">
-     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
-   </property>
    <property name="text">
     <string>Open Raw...</string>
    </property>
@@ -962,10 +946,6 @@
    </property>
   </action>
   <action name="actionOpenDataSet">
-   <property name="icon">
-    <iconset resource="../guibase/guibase.qrc">
-     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
-   </property>
    <property name="text">
     <string>Open dataset...</string>
    </property>
@@ -977,10 +957,6 @@
    </property>
   </action>
   <action name="actionOpenInNewWindow">
-   <property name="icon">
-    <iconset resource="../guibase/guibase.qrc">
-     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
-   </property>
    <property name="text">
     <string>&amp;Open in new window...</string>
    </property>
