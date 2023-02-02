@@ -6,7 +6,8 @@
     <file>images/Crosshair thin.png</file>
     <file>images/TFTableView.png</file>
     <file>images/Xmas.png</file>
-    <file>images/addBezier.png</file>
+    <file>images/bezier.svg</file>
+    <file>images/bezier_light.svg</file>
     <file>images/gaussian.svg</file>
     <file>images/gaussian_light.svg</file>
     <file>images/camera.png</file>
