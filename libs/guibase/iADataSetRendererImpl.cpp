@@ -44,7 +44,11 @@
 
 namespace
 {
-	const QString PointRadius = "Point Radius";
+	const QString PointRadiusMode = "Point Radius Mode";
+	const QString PointRadiusModeFixed = "Fixed";
+	const QString PointRadiusModeVary = "Vary by vertex value";
+	const QString PointRadius = "Fixed radius";
+	const QString PointRadiusVaryBy = "Vary radius by";
 	const QString PointColor = "Point Color";
 	const QString LineColor = "Line Color";
 	const QString LineWidth = "Line Width";
@@ -71,14 +75,16 @@ iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data
 	pointsPoints->DeepCopy(data->poly()->GetPoints());
 	vtkNew<vtkPolyData> glyphPoints;
 	glyphPoints->SetPoints(pointsPoints);
-	auto pointMapper = vtkGlyph3DMapper::New();
-	pointMapper->SetInputData(glyphPoints);
-	pointMapper->SetSourceConnection(m_sphereSource->GetOutputPort());
-	m_pointActor->SetMapper(pointMapper);
+	m_glyphMapper = vtkGlyph3DMapper::New();
+	m_glyphMapper->SetInputData(glyphPoints);
+	m_glyphMapper->SetSourceConnection(m_sphereSource->GetOutputPort());
+	m_pointActor->SetMapper(m_glyphMapper);
 	m_pointActor->SetPickable(false);
 	m_pointActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 
+	addAttribute(PointRadiusMode, iAValueType::Categorical, QStringList{"!"+PointRadiusModeFixed, PointRadiusModeVary } );
 	addAttribute(PointRadius, iAValueType::Continuous, 5, 0.001, 100000000);
+	addAttribute(PointRadiusVaryBy, iAValueType::Categorical, data->vertexValueNames());
 	addAttribute(PointColor, iAValueType::Color, "#FF0000");
 	addAttribute(LineColor, iAValueType::Color, "#00FF00");
 	addAttribute(LineWidth, iAValueType::Continuous, 1.0, 0.1, 100);
@@ -120,6 +126,10 @@ void iAGraphRenderer::updatePointRendererPosOri()
 void iAGraphRenderer::applyAttributes(QVariantMap const& values)
 {
 	m_sphereSource->SetRadius(values[PointRadius].toDouble());
+	m_glyphMapper->SetScaleMode(values[PointRadiusMode].toString() == PointRadiusModeFixed
+								? vtkGlyph3DMapper::NO_DATA_SCALING
+								: vtkGlyph3DMapper::SCALE_BY_COMPONENTS);
+	m_glyphMapper->SetScaleArray(values[PointRadiusVaryBy].toString().toStdString().c_str());
 	QColor pointColor(values[PointColor].toString());
 	m_pointActor->GetProperty()->SetColor(pointColor.redF(), pointColor.greenF(), pointColor.blueF());
 	m_sphereSource->Update();

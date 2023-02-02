@@ -100,14 +100,19 @@ private:
 class iAbase_API iAGraphData : public iADataSet
 {
 public:
-	iAGraphData(vtkSmartPointer<vtkPolyData> mesh);
+	iAGraphData(vtkSmartPointer<vtkPolyData> mesh,
+				QStringList const & vertexValueNames);
 	vtkSmartPointer<vtkPolyData> poly() const;
 	QString info() const override;
+
+	QStringList const & vertexValueNames() const;
 
 private:
 	iAGraphData(iAGraphData const& other) = delete;
 	iAGraphData& operator=(iAGraphData const& other) = delete;
+
 	vtkSmartPointer<vtkPolyData> m_mesh;
+	QStringList m_vertexValueNames;
 };
 
 #include <itkImageBase.h>

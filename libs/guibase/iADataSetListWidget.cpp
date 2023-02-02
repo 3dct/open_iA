@@ -52,7 +52,6 @@ iADataSetListWidget::iADataSetListWidget()
 	connect(m_dataList, &QTableWidget::itemSelectionChanged, this,
 		[this]()
 		{
-			bool itemSelected = !m_dataList->selectedItems().isEmpty();
 			size_t dataSetIdx = -1;
 			if (m_dataList->selectedItems().size() > 0)
 			{

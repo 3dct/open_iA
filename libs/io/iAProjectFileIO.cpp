@@ -116,8 +116,10 @@ std::shared_ptr<iADataSet> iAProjectFileIO::loadData(QString const& fileName, QV
 }
 
 
-void iAProjectFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress)
+void iAProjectFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet,
+							   QVariantMap const& paramValues, iAProgress const& progress)
 {
+	Q_UNUSED(fileName)
 	Q_UNUSED(paramValues);
 	auto collection = dynamic_cast<iADataCollection*>(dataSet.get());
 	collection->settings()->setValue(ProjectFileVersionKey, ProjectFileVersion);

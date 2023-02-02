@@ -24,6 +24,7 @@
 #include "iAValueTypeVectorHelpers.h"
 
 #include <vtkCellData.h>
+#include <vtkDoubleArray.h>
 #include <vtkLine.h>
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
@@ -31,6 +32,7 @@
 
 #include <QColor>
 #include <QFile>
+#include <QSet>
 #include <QTextStream>
 
 iAGraphFileIO::iAGraphFileIO() : iAFileIO(iADataSetType::Graph, iADataSetType::None)
@@ -38,17 +40,15 @@ iAGraphFileIO::iAGraphFileIO() : iAFileIO(iADataSetType::Graph, iADataSetType::N
 	addAttr(m_params[Load], "Spacing", iAValueType::Vector3, variantVector<double>({ 1.0, 1.0, 1.0 }));
 }
 
-std::shared_ptr<iADataSet> iAGraphFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
+std::shared_ptr<iADataSet> iAGraphFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& p)
 {
 	// maybe we could also use vtkPDBReader, but not sure that's the right "PDB" file type...
-	Q_UNUSED(progress);
-
 	auto spacing = paramValues["Spacing"].value<QVector<double>>();
 
 	vtkNew<vtkPolyData> myPolyData;
 
 	QFile file(fileName);
-	//const auto size = file.size();
+	auto const fileSize = file.size();
 	if (!file.open(QIODevice::ReadOnly))
 	{
 		LOG(lvlError,
@@ -59,9 +59,37 @@ std::shared_ptr<iADataSet> iAGraphFileIO::loadData(QString const& fileName, QVar
 	QStringList origCSVInfo;
 	QTextStream in(&file);
 	// skip headers:
-	for (size_t r = 0; r < 4; ++r)
+	QString line;
+	do
 	{
-		in.readLine();
+		line = in.readLine();
+	} while (line.startsWith("%%"));
+
+	// current line contains vertex column headers:
+	QStringList colHeader = line.split("\t");
+	auto numItems = colHeader.size();
+	// determine column mapping for coordinates:
+	int xIdx = colHeader.indexOf("x");
+	int yIdx = colHeader.indexOf("y");
+	int zIdx = colHeader.indexOf("z");
+	int colorIdx = colHeader.indexOf("color");
+	if (xIdx == -1 || yIdx == -1 || zIdx == -1 || colorIdx == -1)
+	{
+		LOG(lvlError, QString("An expected column (x, y, z or color) was not found!"));
+		return {};
+	}
+	int idIdx = 0;
+	QSet<int> mappedIndices { idIdx, xIdx, yIdx, zIdx, colorIdx };
+
+	QStringList vertexValueNames;
+	std::vector<int> valIdx;
+	for (int v=0; v < colHeader.size(); ++v)
+	{
+		if (!mappedIndices.contains(v))
+		{
+			vertexValueNames.push_back(colHeader[v]);
+			valIdx.push_back(v);
+		}
 	}
 
 	// read vertices
@@ -69,36 +97,53 @@ std::shared_ptr<iADataSet> iAGraphFileIO::loadData(QString const& fileName, QVar
 	colors->SetNumberOfComponents(3);
 	colors->SetName("Colors");
 	vtkNew<vtkPoints> pts;
+
+	std::vector<vtkSmartPointer<vtkDoubleArray>> allVertexValues;
+	for (int v=0; v < vertexValueNames.size(); ++v)
+	{
+		auto arr = vtkSmartPointer<vtkDoubleArray>::New();
+		arr->SetName(vertexValueNames[v].toStdString().c_str());
+		allVertexValues.push_back(arr);
+	}
 	//vtkNew<vtkIdList> pointIds;
 	//vtkNew<vtkCellArray> polyPoint;
 	//size_t curVert = 0;
-	QString line = "";
 	int numberOfPoints = 0;
 
 	iAAABB bbox;
 	while (!in.atEnd() && line != "$$")
 	{
+		std::vector<double> curVertexValues;
 		line = in.readLine();
 		auto tokens = line.split("\t");
-		if (tokens.size() == 7)
+		if (tokens.size() != numItems)
 		{
-			iAVec3d pos(
-				tokens[2].toDouble() * spacing[0],
-				tokens[3].toDouble() * spacing[1],
-				tokens[4].toDouble() * spacing[2]
-			);
-			bbox.addPointToBox(pos);
-			pts->InsertNextPoint(pos.data());
-			QColor color(tokens[5]);
-			//pointIds->InsertNextId(curVert);
-			//polyPoint->InsertNextCell(pointIds);
-			unsigned char c[3] = { static_cast<unsigned char>(color.red()), static_cast<unsigned char>(color.green()),
-				static_cast<unsigned char>(color.blue()) };
-			colors->InsertNextTypedTuple(c);
-			++numberOfPoints;
+			LOG(lvlError, QString("Inconsistent graph file: Line %1 has %2 tokens instead of the %3 expected from parsing the header!")
+					.arg(line).arg(tokens.size()).arg(numItems));
 		}
-		//auto remains = file.bytesAvailable();
-		//auto progress = ((size - remains) * 100) / size;
+		iAVec3d pos(
+			tokens[xIdx].toDouble() * spacing[0],
+			tokens[yIdx].toDouble() * spacing[1],
+			tokens[zIdx].toDouble() * spacing[2]
+		);
+		bbox.addPointToBox(pos);
+		pts->InsertNextPoint(pos.data());
+		QColor color(tokens[colorIdx]);
+		//pointIds->InsertNextId(curVert);
+		//polyPoint->InsertNextCell(pointIds);
+		unsigned char c[3] = {
+			static_cast<unsigned char>(color.red()),
+			static_cast<unsigned char>(color.green()),
+			static_cast<unsigned char>(color.blue()) };
+		colors->InsertNextTypedTuple(c);
+
+		for (size_t i=0; i<valIdx.size(); ++i)
+		{
+			allVertexValues[i]->InsertNextTuple1(tokens[valIdx[i]].toDouble());
+		}
+		++numberOfPoints;
+		auto progress = file.pos() * 100 / fileSize;
+		p.emitProgress(progress);
 	}
 	assert(numberOfPoints == pts->GetNumberOfPoints());
 
@@ -152,8 +197,8 @@ std::shared_ptr<iADataSet> iAGraphFileIO::loadData(QString const& fileName, QVar
 			lines->InsertNextCell(lineNEW);
 			++numberOfLines;
 		}
-		//auto remains = file.bytesAvailable();
-		//auto progress = ((size - remains) * 100) / size;
+		auto progress = file.pos() * 100 / fileSize;
+		p.emitProgress(progress);
 	}
 	//LOG(lvlInfo, QString("Number of lines: %1").arg(numberOfLines));
 
@@ -161,8 +206,12 @@ std::shared_ptr<iADataSet> iAGraphFileIO::loadData(QString const& fileName, QVar
 
 	myPolyData->SetLines(lines);
 	myPolyData->GetPointData()->AddArray(colors);
+	for (int v=0; v < vertexValueNames.size(); ++v)
+	{
+		myPolyData->GetPointData()->AddArray(allVertexValues[v]);
+	}
 
-	return std::make_shared<iAGraphData>(myPolyData);
+	return std::make_shared<iAGraphData>(myPolyData, vertexValueNames);
 }
 
 QString iAGraphFileIO::name() const
