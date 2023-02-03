@@ -112,7 +112,6 @@ iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data
 		});
 	modifiedCallback->SetClientData(this);
 	m_lineActor->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
-	iAGraphRenderer::showDataSet();
 }
 
 void iAGraphRenderer::showDataSet()
@@ -267,7 +266,6 @@ iAPolyActorRenderer::iAPolyActorRenderer(vtkRenderer* renderer) :
 	addAttribute(PolyColor, iAValueType::Color, "#FFFFFF");
 	addAttribute(PolyOpacity, iAValueType::Continuous, 1.0, 0.0, 1.0);
 	addAttribute(PolyWireframe, iAValueType::Boolean, false);
-	iAPolyActorRenderer::showDataSet();
 }
 
 void iAPolyActorRenderer::showDataSet()

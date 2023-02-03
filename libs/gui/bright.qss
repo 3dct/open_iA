@@ -98,7 +98,7 @@ QToolButton
 	QToolButton
 	{
 		background: transparent;
-		border: 0px;
+		border: 1px solid rgba(0, 0, 0, 0);
 	}
 	QToolButton:hover
 	{

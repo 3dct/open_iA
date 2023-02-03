@@ -118,7 +118,6 @@ private:
 	iAAttributes m_attributes;     //!< attributes of this viewer that can be changed by the user
 	std::shared_ptr<iADataSetRenderer> m_renderer; //!< the 3D renderer for this dataset (optional).
 	std::shared_ptr<iADataSetRenderer> m_magicLensRenderer; //!< the 3D renderer for this dataset (optional).
-	QVector<QAction*> m_actions;
 	QAction* m_pickAction;
 
 	//! Called when the attributes have changed; override in derived classes to apply such a change to renderer (default implementation is empty)

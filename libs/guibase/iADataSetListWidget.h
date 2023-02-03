@@ -35,7 +35,7 @@ class iAguibase_API iADataSetListWidget : public QWidget
 	Q_OBJECT
 public:
 	iADataSetListWidget();
-	void addDataSet(iADataSet const* dataset, size_t dataSetIdx, QVector<QAction*> const & actions);
+	void addDataSet(iADataSet const* dataset, size_t dataSetIdx, QVector<QAction*> const & actions, QVector<QAction*> const& editActions);
 	void setName(size_t dataSetIdx, QString newName);
 	void removeDataSet(size_t dataSetIdx);
 

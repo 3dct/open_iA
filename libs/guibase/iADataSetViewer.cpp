@@ -111,39 +111,37 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	m_renderer = createRenderer(child->renderer()->renderer());
 	assert(m_renderer);
 	m_renderer->setAttributes(joinValues(extractValues(m_renderer->attributesWithValues()), m_dataSet->allMetaData()) );
-	bool visible3DRenderer = renderFlagSet(Render3DFlag);
-	if (visible3DRenderer)
+	if (renderFlagSet(Render3DFlag))
 	{
 		m_renderer->setVisible(true);
 	}
-	bool visible3DOutline = renderFlagSet(RenderOutlineFlag);
-	if (visible3DOutline)
+	if (renderFlagSet(RenderOutlineFlag))
 	{
 		m_renderer->setBoundsVisible(true);
 	}
-	bool visible3DMagicLens = renderFlagSet(RenderMagicLensFlag);
 	m_magicLensRenderer = createRenderer(child->magicLens3DRenderer());
-	if (visible3DMagicLens)
+	if (renderFlagSet(RenderMagicLensFlag))
 	{
 		m_magicLensRenderer->setVisible(true);
 	}
 	child->renderer()->adaptSceneBoundsToNewObject(m_renderer->bounds());
 	auto dsList = child->dataSetListWidget();
-	m_actions.push_back(createToggleAction("3D", "3d", visible3DRenderer,
+	QVector<QAction*> viewActions;
+	viewActions.push_back(createToggleAction("3D", "3d", renderFlagSet(Render3DFlag),
 		[this, child](bool checked)
 		{
 			setRenderFlag(Render3DFlag, checked);
 			m_renderer->setVisible(checked);
 			child->updateRenderer();
 		}));
-	m_actions.push_back(createToggleAction("Box", "box_3d_edge", visible3DOutline,
+	viewActions.push_back(createToggleAction("Box", "box_3d_edge", renderFlagSet(RenderOutlineFlag),
 		[this, child](bool checked)
 		{
 			setRenderFlag(RenderOutlineFlag, checked);
 			m_renderer->setBoundsVisible(checked);
 			child->updateRenderer();
 		}));
-	m_actions.push_back(createToggleAction("Magic Lens", "magic_lens_3d", visible3DMagicLens,
+	viewActions.push_back(createToggleAction("Magic Lens", "magic_lens_3d", renderFlagSet(RenderMagicLensFlag),
 		[this, child](bool checked)
 		{
 			setRenderFlag(RenderMagicLensFlag, checked);
@@ -159,9 +157,9 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			}
 		});
 	m_pickAction->setEnabled(false);
-	m_actions.push_back(m_pickAction);
+	viewActions.push_back(m_pickAction);
 
-	m_actions.append(additionalActions(child));
+	viewActions.append(additionalActions(child));
 
 	auto editAction = new QAction("Edit dataset and display properties");
 	connect(editAction, &QAction::triggered, this,
@@ -203,7 +201,8 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			emit dataSetChanged(dataSetIdx);
 		});
 	setActionIcon(editAction, "edit", false);
-	m_actions.push_back(editAction);
+	QVector<QAction*> editActions;
+	editActions.push_back(editAction);
 
 	auto removeAction = new QAction("Remove");
 	removeAction->setToolTip("Remove dataset from display, unload from memory");
@@ -214,17 +213,21 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			emit removeDataSet(dataSetIdx);
 		});
 	setActionIcon(removeAction, "delete", false);
-	m_actions.push_back(removeAction);
+	editActions.push_back(removeAction);
 
 	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this,
-	[this]()
+	[viewActions, editActions]()
 	{
-		for (auto a: m_actions)
+		for (auto a: viewActions)
+		{
+			updateActionIcon(a);
+		}
+		for (auto a : editActions)
 		{
 			updateActionIcon(a);
 		}
 	});
-	dsList->addDataSet(m_dataSet, dataSetIdx, m_actions);
+	dsList->addDataSet(m_dataSet, dataSetIdx, viewActions, editActions);
 }
 
 QString iADataSetViewer::information() const

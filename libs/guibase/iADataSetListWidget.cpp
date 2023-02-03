@@ -32,11 +32,28 @@
 
 namespace
 {
-	QStringList columnNames = QStringList() << "Name" << "Actions";
+	QStringList columnNames = QStringList() << "Name" << "Views" << "Actions";
 	enum ColumIdx {
 		NameColumn = 0,
-		ActionColumn = 1
+		ViewColumn = 1,
+		ActionColumn = 2,
+		ColumnCount
 	};
+
+	QWidget* actionWidget(QVector<QAction*> actions, QWidget* parent)
+	{
+		auto w = new QWidget();
+		w->setLayout(new QHBoxLayout);
+		w->layout()->setContentsMargins(0, 0, 0, 0);
+		w->layout()->setSpacing(1);
+		for (auto& a : actions)
+		{
+			auto tb = new QToolButton(parent);
+			tb->setDefaultAction(a);
+			w->layout()->addWidget(tb);
+		}
+		return w;
+	}
 }
 
 iADataSetListWidget::iADataSetListWidget()
@@ -65,7 +82,7 @@ iADataSetListWidget::iADataSetListWidget()
 	layout()->setSpacing(4);
 }
 
-void iADataSetListWidget::addDataSet(iADataSet const* dataset, size_t dataSetIdx, QVector<QAction*> const & actions)
+void iADataSetListWidget::addDataSet(iADataSet const* dataset, size_t dataSetIdx, QVector<QAction*> const & viewActions, QVector<QAction*> const & editActions)
 {
 	QSignalBlocker blockList(m_dataList);
 	auto nameItem = new QTableWidgetItem(dataset->name());
@@ -74,17 +91,10 @@ void iADataSetListWidget::addDataSet(iADataSet const* dataset, size_t dataSetIdx
 	int row = m_dataList->rowCount();
 	m_dataList->insertRow(row);
 	m_dataList->setItem(row, NameColumn, nameItem);
-	auto actionWidget = new QWidget();
-	actionWidget->setLayout(new QHBoxLayout);
-	actionWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	actionWidget->layout()->setSpacing(1);
-	for (auto& a : actions)
-	{
-		auto tb = new QToolButton(this);
-		tb->setDefaultAction(a);
-		actionWidget->layout()->addWidget(tb);
-	}
-	m_dataList->setCellWidget(row, ActionColumn, actionWidget);
+	auto viewWidget = actionWidget(viewActions, this);
+	viewWidget->layout()->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
+	m_dataList->setCellWidget(row, ViewColumn, viewWidget);
+	m_dataList->setCellWidget(row, ActionColumn, actionWidget(editActions, this));
 	m_dataList->resizeColumnsToContents();
 }
 
