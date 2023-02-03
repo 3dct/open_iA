@@ -39,13 +39,12 @@
 
 iARenderObserver::iARenderObserver(vtkRenderer* pRen, vtkRenderWindowInteractor* pIren,
 	vtkTransform* pTrans, vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3):
-
-	m_pLine(vtkSmartPointer<vtkLineSource>::New()),
-	m_pProbe(vtkSmartPointer<vtkProbeFilter>::New()),
-	m_pWorldPicker(vtkSmartPointer<vtkWorldPointPicker>::New()),
 	m_pRen(pRen),
 	m_pIren(pIren),
 	m_pTrans(pTrans),
+	m_pLine(vtkSmartPointer<vtkLineSource>::New()),
+	m_pProbe(vtkSmartPointer<vtkProbeFilter>::New()),
+	m_pWorldPicker(vtkSmartPointer<vtkWorldPointPicker>::New()),
 	m_pPlane1(plane1),
 	m_pPlane2(plane2),
 	m_pPlane3(plane3),

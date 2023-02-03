@@ -28,6 +28,7 @@ class iAGraphData;
 class iAPolyData;
 
 class vtkActor;
+class vtkGlyph3DMapper;
 class vtkSphereSource;
 
 class iAGraphRenderer : public iADataSetRenderer
@@ -49,6 +50,7 @@ private:
 
 	vtkSmartPointer<vtkActor> m_lineActor, m_pointActor;
 	vtkSmartPointer<vtkSphereSource> m_sphereSource;
+	vtkSmartPointer<vtkGlyph3DMapper> m_glyphMapper;
 	iAGraphData const * m_data;
 };
 

@@ -132,8 +132,11 @@ std::array<double, 3> iAPolyData::unitDistance() const
 
 // ---------- iAGraphData ----------
 
-iAGraphData::iAGraphData(vtkSmartPointer<vtkPolyData> mesh) :
-	iADataSet(iADataSetType::Graph), m_mesh(mesh)
+iAGraphData::iAGraphData(vtkSmartPointer<vtkPolyData> mesh,
+						 QStringList const& vertexValueNames) :
+	iADataSet(iADataSetType::Graph),
+	m_mesh(mesh),
+	m_vertexValueNames(vertexValueNames)
 {
 }
 
@@ -145,6 +148,11 @@ vtkSmartPointer<vtkPolyData> iAGraphData::poly() const
 QString iAGraphData::info() const
 {
 	return meshInfo(m_mesh);
+}
+
+QStringList const & iAGraphData::vertexValueNames() const
+{
+	return m_vertexValueNames;
 }
 
 // ---------- iAImageData ----------
