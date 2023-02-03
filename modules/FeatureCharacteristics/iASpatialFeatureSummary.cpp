@@ -26,14 +26,16 @@ IAFILTER_DEFAULT_CLASS(iASpatialFeatureSummary);
 // maybe use iAFilter::adaptParametersToInput for getting boundaries of csv? but then we would need to parse csv before ...
 
 iASpatialFeatureSummary::iASpatialFeatureSummary():
-	iAFilter("Calculate Spatial Fiber Summary", "Feature Characteristics",
-		"Compute a spatial summary of characteristics of objects in list (.csv file).<br/>"
-		"This filter takes a table of characteristics of each of the features (=objects) "
-        "and computes the number of fibers and average characteristics for spatial regions of a defined size.<br/>"
+	iAFilter("Spatial Fiber Summary", "Feature Characteristics",
+		"Compute a spatial summary of characteristics of fibers in a list (.csv file).<br/>"
+		"This filter takes a table of characteristics of each of the fibers "
+		"and computes the number of objects and average characteristics for spatial regions of a defined size.<br/>"
 		"As input, the filter requires a feature characteristics table in a .csv file specified by the given <em>" + CsvFileName + "</em>. "
 		"It also requires the <em>" + Size + "</em>, i.e. the number of voxels (cubic regions) for which the averages are computed in each direction. "
+		"You can load the files in the FeatureScout tool to determine the dimensions of the dataset. "
 		//"A .csv configuration is also required, specifying in which .csv columns the <em>Start point</em> and <em>End point</em> of the fibers can be found. "
 		    // would require full .csv input spec? for now, let's only use FCP files
+		"Note that currently the filter assumes the standard fiber .csv format used by FeatureScout for determining start- and end points of the fibers. "
 		"It also requires a comma-separated list of <em>" + Columns + "</em>, "
 		"i.e. the indices of the columns for which the average spatial summaries will be computed (one additional output image per column)."
 		"If you want the images to cover a specific extent (i.e. bounding box), "
