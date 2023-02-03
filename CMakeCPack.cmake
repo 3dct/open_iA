@@ -8,7 +8,7 @@ include(InstallRequiredSystemLibraries)
 
 set(CPACK_PACKAGE_NAME "open_iA")
 set(CPACK_PACKAGE_VENDOR "University of Applied Sciences Upper Austria, Campus Wels")
-set(CPACK_PACKAGE_CONTACT "c.heinzl@fh-wels.at")
+set(CPACK_PACKAGE_CONTACT "bernhard.froehler@fh-wels.at")
 set(CPACK_PACKAGE_VERSION "${openiA_VERSION}")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A tool for the visual analysis and processing of volumetric datasets, with a focus on industrial computed tomography.")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")

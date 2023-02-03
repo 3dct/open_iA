@@ -1,3 +1,5 @@
+// Copyright 2016-2023, the open_iA contributors
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAXVRAModuleInterface.h"
 
 #include "iAMainWindow.h"
@@ -159,4 +161,3 @@ void iAXVRAModuleInterface::startXVRA()
 	connect(vrMain, &iAImNDTModuleInterface::selectionChanged, m_fsMain, &dlg_FeatureScout::selectionChanged3D);
 
 }
-

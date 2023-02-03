@@ -227,4 +227,3 @@ do not draw the details of this cluster on tree map.*/
 #define ICON_PL QIcon(QString::fromUtf8(":/new/prefix4/icon/gear.png"))
 
 #endif /*MACROS_H_*/
-

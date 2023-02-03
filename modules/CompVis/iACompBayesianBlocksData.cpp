@@ -39,4 +39,3 @@ QList<std::vector<double>>* iACompBayesianBlocksData::getBinBoundaries()
 {
 	return m_binsBoundaries;
 }
-

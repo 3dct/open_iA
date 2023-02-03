@@ -225,6 +225,3 @@ private:
 	const double GFVLIMIT = 0.99;
 
 };
-
-
-

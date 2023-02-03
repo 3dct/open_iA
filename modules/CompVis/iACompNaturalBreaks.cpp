@@ -361,5 +361,3 @@ namespace FishersNaturalBreaks
 		breaksArray[0] = vcpc[0].first; // break for the first class is the minimum of the dataset.
 	}
 }
-
-

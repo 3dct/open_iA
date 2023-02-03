@@ -22,4 +22,3 @@ private:
     //stores for each dataset how many objects are located in each bin
     bin::BinType* m_numberOfObjectsPerBin;
 };
-

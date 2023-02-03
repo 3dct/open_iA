@@ -6676,4 +6676,3 @@ Q_DECLARE_METATYPE(QCPItemBracket::BracketStyle)
 
 
 #endif // QCUSTOMPLOT_H
-
