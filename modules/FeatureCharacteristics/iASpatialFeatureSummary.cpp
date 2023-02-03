@@ -20,6 +20,7 @@ namespace
 	const QString Columns("Columns");
 	const QString MinCorner("Minimum corner");
 	const QString MaxCorner("Maximum corner");
+	const QString ContinueOnError("Continue on error");
 }
 
 IAFILTER_DEFAULT_CLASS(iASpatialFeatureSummary);
@@ -53,6 +54,7 @@ iASpatialFeatureSummary::iASpatialFeatureSummary():
 	addParameter(Columns, iAValueType::String, "7,8,9,10,11,17,18,19,20,21");
 	addParameter(MinCorner, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
 	addParameter(MaxCorner, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
+	addParameter(ContinueOnError, iAValueType::Boolean, false);
 	setOutputName(0, "Number of fibers");
 	setOutputName(1, "Number of fiber start/end points");
 }
@@ -226,8 +228,15 @@ void iASpatialFeatureSummary::performWork(QVariantMap const & parameters)
 		{
 			if (c[0] < 0 || c[0] >= metaDim[0] || c[1] < 0 || c[1] >= metaDim[1] || c[2] < 0 || c[2] >= metaDim[2])
 			{
-				LOG(lvlWarn, QString("Invalid coordinate %1").arg(c.toString()));
-				continue;
+				LOG(lvlWarn, QString("Invalid coordinate %1; given volume dimensions are probably too small to contain the fibers in the .csv!").arg(c.toString()));
+				if (parameters[ContinueOnError].toBool())
+				{
+					continue;
+				}
+				else
+				{
+					return;
+				}
 			}
 			numberOfFibersImage->SetScalarComponentFromDouble(c.x(), c.y(), c.z(), 0,
 				numberOfFibersImage->GetScalarComponentAsDouble(c.x(), c.y(), c.z(), 0) + 1);
