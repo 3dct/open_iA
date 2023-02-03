@@ -35,35 +35,42 @@
 #include <vtkCallbackCommand.h>
 #include <vtkGlyph3DMapper.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkPointData.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkSphereSource.h>
+#include <vtkTubeFilter.h>
 
 #include <QColor>
 #include <QVector>
 
 namespace
 {
-	const QString PointRadiusMode = "Point Radius Mode";
-	const QString PointRadiusModeFixed = "Fixed";
-	const QString PointRadiusModeVary = "Vary by vertex value";
-	const QString PointRadius = "Fixed radius";
-	const QString PointRadiusVaryBy = "Vary radius by";
-	const QString PointColor = "Point Color";
-	const QString LineColor = "Line Color";
-	const QString LineWidth = "Line Width";
-
+	const QString PointRadiusVaryBy = "Vary point radius by";
+	const QString VaryModeFixed = "Fixed";
+	const QString StoredColors = "Stored colors";
+	const QString PointRadius = "Minimum point radius";
+	const QString PointColorMode = "Point colors";
+	const QString PointColor = "Fixed Point color";
+	const QString LineColorMode = "Line colors";
+	const QString LineColor = "Fixed Line Color";
+	const QString LineWidth = "Minimum line Width";
+	const QString LineWidthVaryBy = "Vary line width by";
 }
 
 iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data) :
 	iADataSetRenderer(renderer),
 	m_lineActor(vtkSmartPointer<vtkActor>::New()),
 	m_pointActor(vtkSmartPointer<vtkActor>::New()),
+	m_tubeFilter(vtkSmartPointer<vtkTubeFilter>::New()),
+	m_lineMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_data(data)
 {
-	auto lineMapper = vtkPolyDataMapper::New();
-	lineMapper->SetInputData(data->poly());
-	m_lineActor->SetMapper(lineMapper);
+	m_tubeFilter->SidesShareVerticesOff();
+	m_tubeFilter->SetInputData(data->poly());
+	m_lineMapper->SetInputConnection(m_tubeFilter->GetOutputPort());
+	m_lineMapper->SetScalarModeToUseCellData();
+	m_lineActor->SetMapper(m_lineMapper);
 	m_lineActor->GetProperty()->SetColor(0.0, 1.0, 0.0);
 
 	// Glyph the points
@@ -75,6 +82,7 @@ iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data
 	pointsPoints->DeepCopy(data->poly()->GetPoints());
 	vtkNew<vtkPolyData> glyphPoints;
 	glyphPoints->SetPoints(pointsPoints);
+	glyphPoints->GetPointData()->ShallowCopy(data->poly()->GetPointData());
 	m_glyphMapper = vtkGlyph3DMapper::New();
 	m_glyphMapper->SetInputData(glyphPoints);
 	m_glyphMapper->SetSourceConnection(m_sphereSource->GetOutputPort());
@@ -82,12 +90,14 @@ iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data
 	m_pointActor->SetPickable(false);
 	m_pointActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 
-	addAttribute(PointRadiusMode, iAValueType::Categorical, QStringList{"!"+PointRadiusModeFixed, PointRadiusModeVary } );
+	addAttribute(PointRadiusVaryBy, iAValueType::Categorical, QStringList() << ("!" + VaryModeFixed) << data->vertexValueNames());
 	addAttribute(PointRadius, iAValueType::Continuous, 5, 0.001, 100000000);
-	addAttribute(PointRadiusVaryBy, iAValueType::Categorical, data->vertexValueNames());
+	addAttribute(PointColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
 	addAttribute(PointColor, iAValueType::Color, "#FF0000");
-	addAttribute(LineColor, iAValueType::Color, "#00FF00");
+	addAttribute(LineWidthVaryBy, iAValueType::Categorical, QStringList() << ("!" + VaryModeFixed) << data->edgeValueNames());
 	addAttribute(LineWidth, iAValueType::Continuous, 1.0, 0.1, 100);
+	addAttribute(LineColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
+	addAttribute(LineColor, iAValueType::Color, "#00FF00");
 
 	// adapt bounding box to changes in position/orientation of volume:
 	// idea how to connect lambda to observer from https://gist.github.com/esmitt/7ca96193f2c320ba438e0453f9136c20
@@ -126,17 +136,50 @@ void iAGraphRenderer::updatePointRendererPosOri()
 void iAGraphRenderer::applyAttributes(QVariantMap const& values)
 {
 	m_sphereSource->SetRadius(values[PointRadius].toDouble());
-	m_glyphMapper->SetScaleMode(values[PointRadiusMode].toString() == PointRadiusModeFixed
+	m_glyphMapper->SetScaleMode(values[PointRadiusVaryBy].toString() == VaryModeFixed
 								? vtkGlyph3DMapper::NO_DATA_SCALING
-								: vtkGlyph3DMapper::SCALE_BY_COMPONENTS);
-	m_glyphMapper->SetScaleArray(values[PointRadiusVaryBy].toString().toStdString().c_str());
-	QColor pointColor(values[PointColor].toString());
-	m_pointActor->GetProperty()->SetColor(pointColor.redF(), pointColor.greenF(), pointColor.blueF());
+								: vtkGlyph3DMapper::SCALE_BY_MAGNITUDE);
+	if (values[PointRadiusVaryBy].toString() != VaryModeFixed)
+	{
+		m_glyphMapper->SetScaleArray(values[PointRadiusVaryBy].toString().toStdString().c_str());
+	}
+	if (values[PointColorMode].toString() == VaryModeFixed)
+	{
+		QColor pointColor(values[PointColor].toString());
+		m_pointActor->GetProperty()->SetColor(pointColor.redF(), pointColor.greenF(), pointColor.blueF());
+	}
+	else
+	{
+		m_glyphMapper->SelectColorArray("VertexColors");
+	}
 	m_sphereSource->Update();
-	QColor lineColor(values[LineColor].toString());
-	m_lineActor->GetProperty()->SetColor(lineColor.redF(), lineColor.greenF(), lineColor.blueF());
-	m_lineActor->GetProperty()->SetLineWidth(values[LineWidth].toFloat());
+	m_glyphMapper->SetColorMode((values[PointColorMode].toString() == VaryModeFixed)
+		? VTK_COLOR_MODE_DEFAULT
+		: VTK_COLOR_BY_SCALAR);
 
+	m_lineMapper->SetScalarMode(values[LineColorMode].toString() == VaryModeFixed
+		? VTK_SCALAR_MODE_USE_CELL_DATA
+		: VTK_SCALAR_MODE_DEFAULT);
+	if (values[LineColorMode].toString() == VaryModeFixed)
+	{
+		QColor lineColor(values[LineColor].toString());
+		m_lineActor->GetProperty()->SetColor(lineColor.redF(), lineColor.greenF(), lineColor.blueF());
+	}
+	else
+	{
+		m_lineMapper->SelectColorArray("EdgeColors");
+	}
+	//m_lineActor->GetProperty()->SetLineWidth(values[LineWidth].toFloat());
+	
+	if (values[LineWidthVaryBy].toString() != VaryModeFixed)
+	{
+		m_data->poly()->GetPointData()->SetActiveScalars(values[LineWidthVaryBy].toString().toStdString().c_str());
+	}
+	m_tubeFilter->SetVaryRadius(values[LineWidthVaryBy].toString() == VaryModeFixed
+		? VTK_VARY_RADIUS_OFF
+		: VTK_VARY_RADIUS_BY_SCALAR);
+	m_tubeFilter->SetRadius(values[LineWidth].toDouble());
+	
 	QVector<double> pos = values[Position].value<QVector<double>>();
 	QVector<double> ori = values[Orientation].value<QVector<double>>();
 	assert(pos.size() == 3);

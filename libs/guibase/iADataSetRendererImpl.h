@@ -29,7 +29,9 @@ class iAPolyData;
 
 class vtkActor;
 class vtkGlyph3DMapper;
+class vtkPolyDataMapper;
 class vtkSphereSource;
+class vtkTubeFilter;
 
 class iAGraphRenderer : public iADataSetRenderer
 {
@@ -51,6 +53,9 @@ private:
 	vtkSmartPointer<vtkActor> m_lineActor, m_pointActor;
 	vtkSmartPointer<vtkSphereSource> m_sphereSource;
 	vtkSmartPointer<vtkGlyph3DMapper> m_glyphMapper;
+	vtkSmartPointer<vtkTubeFilter> m_tubeFilter;
+	vtkSmartPointer<vtkPolyDataMapper> m_lineMapper;
+
 	iAGraphData const * m_data;
 };
 

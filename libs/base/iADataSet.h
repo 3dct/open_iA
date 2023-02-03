@@ -97,22 +97,25 @@ private:
 };
 
 //! a graph dataset
+//! merge with iAPolyData ?
 class iAbase_API iAGraphData : public iADataSet
 {
 public:
 	iAGraphData(vtkSmartPointer<vtkPolyData> mesh,
-				QStringList const & vertexValueNames);
+		QStringList const & vertexValueNames,
+		QStringList const & edgeValueNames);
 	vtkSmartPointer<vtkPolyData> poly() const;
 	QString info() const override;
-
+	//std::array<double, 3> unitDistance() const override;
 	QStringList const & vertexValueNames() const;
+	QStringList const& edgeValueNames() const;
 
 private:
 	iAGraphData(iAGraphData const& other) = delete;
 	iAGraphData& operator=(iAGraphData const& other) = delete;
 
 	vtkSmartPointer<vtkPolyData> m_mesh;
-	QStringList m_vertexValueNames;
+	QStringList m_vertexValueNames, m_edgeValueNames;
 };
 
 #include <itkImageBase.h>
