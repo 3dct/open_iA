@@ -161,7 +161,12 @@ namespace
 void iASpatialFeatureSummary::performWork(QVariantMap const & parameters)
 {
 	QString csvFileName = parameters[CsvFileName].toString();
-	auto columns = stringToVector<QVector<int>, int>(parameters[Columns].toString());
+	
+	QVector<int> columns;
+	if (!parameters[Columns].toString().isEmpty())
+	{
+		columns = stringToVector<QVector<int>, int>(parameters[Columns].toString());
+	}
 
 	// load csv:
 	iACsvIO io;
