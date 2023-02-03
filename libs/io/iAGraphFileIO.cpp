@@ -78,7 +78,7 @@ std::shared_ptr<iADataSet> iAGraphFileIO::loadData(QString const& fileName, QVar
 	QStringList origCSVInfo;
 	QTextStream in(&file);
 
-	// skip headers:
+	// skip header comments:
 	QString line;
 	do
 	{

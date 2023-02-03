@@ -135,7 +135,12 @@ void iAProjectFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSe
 		}
 		for (auto key : ds->allMetaData().keys())
 		{
-			collection->settings()->setValue(key, ds->metaData(key));
+			auto value = ds->metaData(key);
+			if (key == iADataSet::FileNameKey)
+			{
+				value = MakeRelative(QFileInfo(fileName).absolutePath(), value.toString());
+			}
+			collection->settings()->setValue(key, value);
 		}
 		collection->settings()->endGroup();
 		progress.emitProgress(100.0 * d / collection->dataSets().size());
