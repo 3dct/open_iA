@@ -1351,12 +1351,12 @@ void MainWindow::createRecentFileActions()
 	updateRecentFileActions();
 }
 
-void MainWindow::updateMenus()
+void MainWindow::updateMenus()  // (and toolbars)
 {
 	bool hasMdiChild = activeMdiChild();
 	auto child = activeMDI();
 	
-	// File Menu:
+	// File Menu: / toolbar
 	m_ui->actionSaveDataSet->setEnabled(hasMdiChild);
 	m_ui->actionSaveProject->setEnabled(activeChild<iASavableProject>());
 	m_ui->actionSaveVolumeStack->setEnabled(hasMdiChild);
@@ -1365,29 +1365,56 @@ void MainWindow::updateMenus()
 	m_ui->actionClose->setEnabled(hasMdiChild);
 	m_ui->actionCloseAll->setEnabled(hasMdiChild);
 
-	// Edit Menu
+	// Edit Menu / toolbar
 	m_ui->actionEditProfilePoints->setEnabled(hasMdiChild);
 	QSignalBlocker blockEditProfile(m_ui->actionEditProfilePoints);
 	m_ui->actionEditProfilePoints->setChecked(child && child->profileHandlesEnabled());
 	m_ui->menuInteractionMode->setEnabled(hasMdiChild);
 	QSignalBlocker interactionModeCameraBlock(m_ui->actionInteractionModeCamera);
 	m_ui->actionInteractionModeCamera->setChecked(child && child->interactionMode() == MdiChild::imCamera);
+	m_ui->actionInteractionModeCamera->setEnabled(hasMdiChild);
 	QSignalBlocker interactionModeRegistrationBlock(m_ui->actionInteractionModeRegistration);
 	m_ui->actionInteractionModeRegistration->setChecked(child && child->interactionMode() == MdiChild::imRegistration);
+	m_ui->actionInteractionModeRegistration->setEnabled(hasMdiChild);
+	m_ui->actionRendererSettings->setEnabled(hasMdiChild);
+	m_ui->actionSlicerSettings->setEnabled(hasMdiChild);
+	m_ui->menuInteractionMode->setEnabled(hasMdiChild);
 
 	// Views Menu:
+	// layout submenu / toolbar
 	m_ui->menuViews->setEnabled(hasMdiChild);
+	m_ui->actionLoadLayout->setEnabled(hasMdiChild);
+	m_ui->actionSaveLayout->setEnabled(hasMdiChild);
+	m_ui->actionDeleteLayout->setEnabled(hasMdiChild);
+	m_ui->actionResetLayout->setEnabled(hasMdiChild);
+	m_layout->setEnabled(hasMdiChild);
+	// slicer submenu / toolbar
 	QSignalBlocker sliceInteractBlock(m_ui->actionToggleSlicerInteraction);
 	m_ui->actionToggleSlicerInteraction->setChecked(activeMDI() && activeMDI()->isSlicerInteractionEnabled());
-	QSignalBlocker renderInteractBlock(m_ui->actionToggleRendererInteraction);
-	m_ui->actionToggleRendererInteraction->setChecked(activeMDI() && activeMDI()->isRendererInteractionEnabled());
-	QSignalBlocker blockMagicLens3D(m_ui->actionMagicLens3D);
-	m_ui->actionMagicLens3D->setChecked(child && child->isMagicLens3DEnabled());
+	m_ui->actionMagicLens2D->setEnabled(hasMdiChild);
+	m_ui->actionRawProfile->setEnabled(hasMdiChild);
+	m_ui->actionSnakeSlicer->setEnabled(hasMdiChild);
 	QSignalBlocker blockSliceProfile(m_ui->actionRawProfile);
 	m_ui->actionRawProfile->setChecked(child && child->isSliceProfileEnabled());
 	QSignalBlocker blockSnakeSlicer(m_ui->actionSnakeSlicer);
 	m_ui->actionSnakeSlicer->setChecked(child && child->isSnakeSlicerToggled());
 	updateMagicLens2DCheckState(child && child->isMagicLens2DEnabled());
+	// renderer submenu / toolbar
+	QSignalBlocker renderInteractBlock(m_ui->actionToggleRendererInteraction);
+	m_ui->actionToggleRendererInteraction->setChecked(activeMDI() && activeMDI()->isRendererInteractionEnabled());
+	QSignalBlocker blockMagicLens3D(m_ui->actionMagicLens3D);
+	m_ui->actionMagicLens3D->setChecked(child && child->isMagicLens3DEnabled());
+	m_ui->actionMagicLens3D->setEnabled(hasMdiChild);
+	m_ui->actionViewXDirectionInRaycaster->setEnabled(hasMdiChild);
+	m_ui->actionViewYDirectionInRaycaster->setEnabled(hasMdiChild);
+	m_ui->actionViewZDirectionInRaycaster->setEnabled(hasMdiChild);
+	m_ui->actionViewmXDirectionInRaycaster->setEnabled(hasMdiChild);
+	m_ui->actionViewmYDirectionInRaycaster->setEnabled(hasMdiChild);
+	m_ui->actionViewmZDirectionInRaycaster->setEnabled(hasMdiChild);
+	m_ui->actionIsometricViewInRaycaster->setEnabled(hasMdiChild);
+	m_ui->actionSaveCameraSettings->setEnabled(hasMdiChild);
+	m_ui->actionLoadCameraSettings->setEnabled(hasMdiChild);
+	m_ui->actionSyncCamera->setEnabled(hasMdiChild);
 
 	// Window Menu:
 	m_ui->actionTile->setEnabled(hasMdiChild && m_ui->actionSubWindows->isChecked());
