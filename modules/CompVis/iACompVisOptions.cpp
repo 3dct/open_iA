@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompVisOptions.h"
 
-
 //Debug
 #include <iALog.h>
 

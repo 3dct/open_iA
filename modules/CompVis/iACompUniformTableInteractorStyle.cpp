@@ -1,6 +1,7 @@
-#include "iACompUniformTableInteractorStyle.h"
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
+#include "iACompUniformTableInteractorStyle.h"
+
 #include <vtkObjectFactory.h> //for macro!
 
 #include "iACompUniformTable.h"
