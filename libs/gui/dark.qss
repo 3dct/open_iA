@@ -270,11 +270,11 @@ QPushButton
        computations module, annotations list, etc.)                              */
 	QToolButton[objectName="add_class"],
 	QToolButton[objectName="pbAdd"],
-	QPushButton[objectName="pbAdd"]  { qproperty-icon: url(:/images/plus-dark.svg);  }
+	QPushButton[objectName="pbAdd"]  { qproperty-icon: url(:/images/plus_light.svg);  }
 	QToolButton[objectName="delete_class"],
 	QToolButton[objectName="pbRemove"],
-	QPushButton[objectName="pbRemove"] { qproperty-icon: url(:/images/minus-dark.svg); }
-	QToolButton[objectName="tbEdit"] { qproperty-icon: url(:/images/edit-dark.svg);  }
+	QPushButton[objectName="pbRemove"] { qproperty-icon: url(:/images/minus_light.svg); }
+	QToolButton[objectName="tbEdit"] { qproperty-icon: url(:/images/edit_light.svg);  }
 	QToolButton[objectName="pushPX"] { qproperty-icon: url(:/images/px_light.svg); }
 	QToolButton[objectName="pushPY"] { qproperty-icon: url(:/images/py_light.svg); }
 	QToolButton[objectName="pushPZ"] { qproperty-icon: url(:/images/pz_light.svg); }
