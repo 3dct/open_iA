@@ -57,14 +57,14 @@ private:
 	//! @{ histogram:
 	QSharedPointer<iAHistogramData> m_histogramData;
 	iAChartWithFunctionsWidget* m_histogram;
-	iADockWidgetWrapper* m_dwHistogram;
+	QSharedPointer<iADockWidgetWrapper> m_dwHistogram;
 	QAction* m_histogramAction;
 	//! @}
 
 	//! @{ line profile
 	iAChartWidget* m_profileChart;
 	std::shared_ptr<iAProfileProbe> m_profileProbe;
-	iADockWidgetWrapper* m_dwProfile;
+	QSharedPointer<iADockWidgetWrapper> m_dwProfile;
 	//! @}
 	QString m_imgStatistics;
 	std::shared_ptr<iAVolRenderer> m_renderer;
