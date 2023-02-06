@@ -611,10 +611,6 @@
    </property>
   </action>
   <action name="actionSyncCamera">
-   <property name="icon">
-    <iconset resource="../guibase/guibase.qrc">
-     <normaloff>:/images/update.png</normaloff>:/images/update.png</iconset>
-   </property>
    <property name="text">
     <string>Synchronize cameras</string>
    </property>
@@ -742,10 +738,6 @@
    </property>
   </action>
   <action name="actionSaveProject">
-   <property name="icon">
-    <iconset resource="../guibase/guibase.qrc">
-     <normaloff>:/images/savestack.png</normaloff>:/images/savestack.png</iconset>
-   </property>
    <property name="text">
     <string>Save Project...</string>
    </property>
@@ -968,10 +960,6 @@
    </property>
   </action>
   <action name="actionSaveDataSet">
-   <property name="icon">
-    <iconset resource="../guibase/guibase.qrc">
-     <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
-   </property>
    <property name="text">
     <string>&amp;Save Dataset...</string>
    </property>
@@ -980,10 +968,6 @@
    </property>
   </action>
   <action name="actionSaveVolumeStack">
-   <property name="icon">
-    <iconset resource="../guibase/guibase.qrc">
-     <normaloff>:/images/savestack.png</normaloff>:/images/savestack.png</iconset>
-   </property>
    <property name="text">
     <string>Save Volume Stack...</string>
    </property>

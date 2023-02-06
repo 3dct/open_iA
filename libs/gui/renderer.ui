@@ -316,7 +316,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QToolButton" name="pushMovRC">
+          <widget class="QToolButton" name="pbSaveMovie">
            <property name="minimumSize">
             <size>
              <width>10</width>
@@ -329,10 +329,6 @@
            <property name="text">
             <string/>
            </property>
-           <property name="icon">
-            <iconset resource="../guibase/guibase.qrc">
-             <normaloff>:/images/savemov.png</normaloff>:/images/savemov.png</iconset>
-           </property>
            <property name="iconSize">
             <size>
              <width>24</width>
@@ -342,7 +338,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="pushSaveRC">
+          <widget class="QToolButton" name="pbSaveScreen">
            <property name="minimumSize">
             <size>
              <width>10</width>
@@ -354,10 +350,6 @@
            </property>
            <property name="text">
             <string/>
-           </property>
-           <property name="icon">
-            <iconset resource="../guibase/guibase.qrc">
-             <normaloff>:/images/savescreen.png</normaloff>:/images/savescreen.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -400,7 +392,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="pushMaxRC">
+          <widget class="QToolButton" name="tbMax">
            <property name="minimumSize">
             <size>
              <width>10</width>
@@ -418,10 +410,6 @@
            </property>
            <property name="text">
             <string/>
-           </property>
-           <property name="icon">
-            <iconset resource="../guibase/guibase.qrc">
-             <normaloff>:/images/mini_rect.png</normaloff>:/images/mini_rect.png</iconset>
            </property>
            <property name="iconSize">
             <size>

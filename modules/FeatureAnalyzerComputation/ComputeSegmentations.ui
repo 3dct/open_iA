@@ -254,10 +254,6 @@
        <property name="text">
         <string/>
        </property>
-       <property name="icon">
-        <iconset resource="../../libs/guibase/guibase.qrc">
-         <normaloff>:/images/update.png</normaloff>:/images/update.png</iconset>
-       </property>
        <property name="iconSize">
         <size>
          <width>32</width>
@@ -276,10 +272,6 @@
        </property>
        <property name="text">
         <string/>
-       </property>
-       <property name="icon">
-        <iconset resource="../../libs/guibase/guibase.qrc">
-         <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -379,10 +371,6 @@
        <property name="text">
         <string>...</string>
        </property>
-       <property name="icon">
-        <iconset resource="../../libs/guibase/guibase.qrc">
-         <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
-       </property>
        <property name="iconSize">
         <size>
          <width>32</width>
@@ -416,10 +404,6 @@
        </property>
        <property name="text">
         <string>...</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../../libs/guibase/guibase.qrc">
-         <normaloff>:/images/load.png</normaloff>:/images/load.png</iconset>
        </property>
        <property name="iconSize">
         <size>

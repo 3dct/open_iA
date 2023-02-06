@@ -34,7 +34,7 @@
   <action name="actionMultiRendering">
    <property name="icon">
     <iconset resource="FeatureScout.qrc">
-     <normaloff>:/images/MultiRendering.png</normaloff>:/images/MultiRendering.png</iconset>
+     <normaloff>:/images/layers.svg</normaloff>:/images/layers.svg</iconset>
    </property>
    <property name="text">
     <string>Multi Rendering</string>
@@ -70,7 +70,7 @@
   <action name="actionOrientation_Rendering">
    <property name="icon">
     <iconset resource="FeatureScout.qrc">
-     <normaloff>:/images/OrientationRendering.png</normaloff>:/images/OrientationRendering.png</iconset>
+     <normaloff>:/images/compass.svg</normaloff>:/images/compass.svg</iconset>
    </property>
    <property name="text">
     <string>Orientation Rendering</string>
@@ -82,7 +82,7 @@
   <action name="actionActivate_SPM">
    <property name="icon">
     <iconset resource="FeatureScout.qrc">
-     <normaloff>:/images/activateSPM.png</normaloff>:/images/activateSPM.png</iconset>
+     <normaloff>:/images/SPM.svg</normaloff>:/images/SPM.svg</iconset>
    </property>
    <property name="text">
     <string>Activate SPM</string>

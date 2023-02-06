@@ -252,10 +252,6 @@
                     <property name="text">
                      <string/>
                     </property>
-                    <property name="icon">
-                     <iconset resource="../../libs/guibase/guibase.qrc">
-                      <normaloff>:/images/mini_rect.png</normaloff>:/images/mini_rect.png</iconset>
-                    </property>
                     <property name="iconSize">
                      <size>
                       <width>24</width>
@@ -380,10 +376,6 @@
                     </property>
                     <property name="text">
                      <string/>
-                    </property>
-                    <property name="icon">
-                     <iconset resource="../../libs/guibase/guibase.qrc">
-                      <normaloff>:/images/mini_rect.png</normaloff>:/images/mini_rect.png</iconset>
                     </property>
                     <property name="iconSize">
                      <size>
@@ -796,10 +788,6 @@
                     </property>
                     <property name="text">
                      <string/>
-                    </property>
-                    <property name="icon">
-                     <iconset resource="../../libs/guibase/guibase.qrc">
-                      <normaloff>:/images/mini_rect.png</normaloff>:/images/mini_rect.png</iconset>
                     </property>
                     <property name="iconSize">
                      <size>
@@ -1412,10 +1400,6 @@
                     </property>
                     <property name="text">
                      <string/>
-                    </property>
-                    <property name="icon">
-                     <iconset resource="../../libs/guibase/guibase.qrc">
-                      <normaloff>:/images/mini_rect.png</normaloff>:/images/mini_rect.png</iconset>
                     </property>
                     <property name="iconSize">
                      <size>
@@ -2088,10 +2072,6 @@
              </property>
              <property name="text">
               <string/>
-             </property>
-             <property name="icon">
-              <iconset resource="../../libs/guibase/guibase.qrc">
-               <normaloff>:/images/mini_rect.png</normaloff>:/images/mini_rect.png</iconset>
              </property>
              <property name="iconSize">
               <size>
@@ -5199,7 +5179,7 @@
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_77">
                     <item>
-                     <widget class="QToolButton" name="tb_add">
+                     <widget class="QToolButton" name="pbAdd">
                       <property name="minimumSize">
                        <size>
                         <width>26</width>
@@ -5214,10 +5194,6 @@
                       </property>
                       <property name="text">
                        <string>...</string>
-                      </property>
-                      <property name="icon">
-                       <iconset resource="dreamcaster.qrc">
-                        <normaloff>:/images/add.png</normaloff>:/images/add.png</iconset>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -5231,7 +5207,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QToolButton" name="tb_remove">
+                     <widget class="QToolButton" name="pbRemove">
                       <property name="minimumSize">
                        <size>
                         <width>26</width>
@@ -5246,10 +5222,6 @@
                       </property>
                       <property name="text">
                        <string>...</string>
-                      </property>
-                      <property name="icon">
-                       <iconset resource="dreamcaster.qrc">
-                        <normaloff>:/images/remove.png</normaloff>:/images/remove.png</iconset>
                       </property>
                       <property name="iconSize">
                        <size>

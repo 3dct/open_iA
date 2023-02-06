@@ -221,8 +221,8 @@ void iASSView::SetData( const QTableWidget * dataTable, QString selText )
 	iASSSlicer * view = new iASSSlicer( selText, m_slicerTransform);
 	m_slicerViewsLayout->addWidget( view->container );
 	connect(sbRot, QOverload<double>::of(&QDoubleSpinBox::valueChanged), view->slicer, &iASlicer::rotateSlice);
-	connect(pushSave, &QToolButton::clicked, view->slicer, &iASlicer::saveAsImage);
-	connect(pushMov, &QToolButton::clicked, view->slicer, &iASlicer::saveMovie);
+	connect(pbSaveScreen, &QToolButton::clicked, view->slicer, &iASlicer::saveAsImage);
+	connect(pbSaveMovie, &QToolButton::clicked, view->slicer, &iASlicer::saveMovie);
 	m_slicerViews.push_back( view );
 
 	LoadDataToSlicer(view, dataTable);
@@ -244,8 +244,8 @@ void iASSView::SetCompareData( const QList< QPair<QTableWidget *, QString> > * d
 		iASSSlicer * view = new iASSSlicer( (*dataList)[i].second, m_slicerTransform ) ;
 		m_slicerViewsLayout->addWidget( view->container );
 		connect(sbRot, QOverload<double>::of(&QDoubleSpinBox::valueChanged), view->slicer, &iASlicer::rotateSlice);
-		connect(pushSave, &QToolButton::clicked, view->slicer, &iASlicer::saveAsImage);
-		connect(pushMov,  &QToolButton::clicked, view->slicer, &iASlicer::saveMovie);
+		connect(pbSaveScreen, &QToolButton::clicked, view->slicer, &iASlicer::saveAsImage);
+		connect(pbSaveMovie,  &QToolButton::clicked, view->slicer, &iASlicer::saveMovie);
 		m_slicerViews.push_back( view );
 		LoadDataToSlicer( view, ( *dataList )[i].first );
 	}

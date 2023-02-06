@@ -207,7 +207,7 @@ void MdiChild::connectSignalsToSlots()
 	});
 	m_dwRenderer->vtkWidgetRC->setContextMenuEnabled(true);
 	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::editSettings, m_mainWnd, &MainWindow::renderSettings);
-	connect(m_dwRenderer->pushMaxRC, &QPushButton::clicked, this, &MdiChild::maximizeRenderer);
+	connect(m_dwRenderer->tbMax, &QPushButton::clicked, this, &MdiChild::maximizeRenderer);
 	connect(m_dwRenderer->pushStopRC, &QPushButton::clicked, this, [this]
 	{
 		enableRendererInteraction(!isRendererInteractionEnabled());
@@ -219,8 +219,8 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_dwRenderer->pushMY,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::MY); });
 	connect(m_dwRenderer->pushMZ,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::MZ); });
 	connect(m_dwRenderer->pushIso, &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::Iso); });
-	connect(m_dwRenderer->pushSaveRC, &QPushButton::clicked, this, &MdiChild::saveRC);
-	connect(m_dwRenderer->pushMovRC, &QPushButton::clicked, this, &MdiChild::saveMovRC);
+	connect(m_dwRenderer->pbSaveScreen, &QPushButton::clicked, this, &MdiChild::saveRC);
+	connect(m_dwRenderer->pbSaveMovie, &QPushButton::clicked, this, &MdiChild::saveMovRC);
 	// { TODO: strange way to forward signals, find out why we need to do this and find better way:
 	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARendererImpl::mouseRightButtonReleasedSlot);
 	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARendererImpl::mouseLeftButtonReleasedSlot);
@@ -230,7 +230,7 @@ void MdiChild::connectSignalsToSlots()
 
 	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
 	{
-		connect(m_dwSlicer[s]->pbMax, &QPushButton::clicked, [this, s] { maximizeSlicer(s); });
+		connect(m_dwSlicer[s]->tbMax, &QPushButton::clicked, [this, s] { maximizeSlicer(s); });
 		connect(m_dwSlicer[s], &QDockWidget::visibilityChanged, [this, s] { slicerVisibilityChanged(s); });
 		m_manualMoveStyle[s] = vtkSmartPointer<iAvtkInteractStyleActor>::New();
 		connect(m_manualMoveStyle[s].Get(), &iAvtkInteractStyleActor::actorsUpdated, this, &iAMdiChild::updateViews);

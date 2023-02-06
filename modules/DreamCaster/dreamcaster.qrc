@@ -2,7 +2,5 @@
     <qresource prefix="/">
         <file>images/opends.png</file>
         <file>images/specifyds.png</file>
-        <file>images/add.png</file>
-        <file>images/remove.png</file>
     </qresource>
 </RCC>

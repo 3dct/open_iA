@@ -264,8 +264,8 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	connect(ui.pb_updateResults, &QPushButton::clicked, this, &iADreamCaster::UpdateWeightingResultsSlot);
 	connect(ui.pbExportCSV, &QPushButton::clicked, this, &iADreamCaster::exportCSVs);
 	connect(ui.s_lowCutRes, &QSlider::valueChanged, this, &iADreamCaster::LowCutWeightingResSlot);
-	connect(ui.tb_add, &QToolButton::clicked, this, &iADreamCaster::AddCutFigSlot);
-	connect(ui.tb_remove, &QToolButton::clicked, this, &iADreamCaster::RemoveCutFigSlot);
+	connect(ui.pbAdd, &QToolButton::clicked, this, &iADreamCaster::AddCutFigSlot);
+	connect(ui.pbRemove, &QToolButton::clicked, this, &iADreamCaster::RemoveCutFigSlot);
 	connect(ui.listCutFig, &QListWidget::clicked, this, &iADreamCaster::CutFigPicked);
 	connect(ui.s_aab_maxx, &QSlider::valueChanged, this, &iADreamCaster::CutFigParametersChanged);
 	connect(ui.s_aab_maxy, &QSlider::valueChanged, this, &iADreamCaster::CutFigParametersChanged);

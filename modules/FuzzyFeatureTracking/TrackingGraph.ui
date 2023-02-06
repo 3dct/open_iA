@@ -84,10 +84,6 @@
          <property name="text">
           <string/>
          </property>
-         <property name="icon">
-          <iconset resource="../../libs/guibase/guibase.qrc">
-           <normaloff>:/images/update.png</normaloff>:/images/update.png</iconset>
-         </property>
          <property name="iconSize">
           <size>
            <width>24</width>

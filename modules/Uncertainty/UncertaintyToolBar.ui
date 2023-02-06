@@ -34,7 +34,7 @@
   <action name="action_ToggleTitleBar">
    <property name="icon">
     <iconset resource="../../libs/guibase/guibase.qrc">
-     <normaloff>:/images/toggle_titleBar.png</normaloff>:/images/toggle_titleBar.png</iconset>
+     <normaloff>:/images/titlebar-on.png</normaloff>:/images/titlebar-off.png</iconset>
    </property>
    <property name="text">
     <string>Toggle Title Bar</string>
@@ -43,7 +43,7 @@
   <action name="action_ToggleSettings">
    <property name="icon">
     <iconset resource="../../libs/guibase/guibase.qrc">
-     <normaloff>:/images/settings.png</normaloff>:/images/settings.png</iconset>
+     <normaloff>:/images/settings.svg</normaloff>:/images/settings.svg</iconset>
    </property>
    <property name="text">
     <string>Toggle Settings</string>
@@ -52,7 +52,7 @@
   <action name="action_CalculateNewSubEnsemble">
    <property name="icon">
     <iconset resource="../../libs/guibase/guibase.qrc">
-     <normaloff>:/images/paste.png</normaloff>:/images/paste.png</iconset>
+     <normaloff>:/images/paste.svg</normaloff>:/images/paste.svg</iconset>
    </property>
    <property name="text">
     <string>New Ensemble from selected Members</string>
@@ -61,7 +61,7 @@
   <action name="action_WriteFullDataFile">
    <property name="icon">
     <iconset resource="../../libs/guibase/guibase.qrc">
-     <normaloff>:/images/savestack.png</normaloff>:/images/savestack.png</iconset>
+     <normaloff>:/images/save-all.svg</normaloff>:/images/save-all.svg</iconset>
    </property>
    <property name="text">
     <string>New Ensemble from selected Members</string>

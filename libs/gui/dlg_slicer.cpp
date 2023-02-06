@@ -37,9 +37,9 @@ dlg_slicer::dlg_slicer(iASlicerImpl* slicer):
 	lbSlabThickness->hide();
 	cbSlabCompositeMode->hide();
 
-	connect(pbSave, &QToolButton::clicked, slicer, &iASlicer::saveAsImage);
+	connect(pbSaveScreen, &QToolButton::clicked, slicer, &iASlicer::saveAsImage);
 	connect(pbSaveStack, &QToolButton::clicked, slicer, &iASlicerImpl::saveImageStack);
-	connect(pbMov, &QToolButton::clicked, slicer, &iASlicer::saveMovie);
+	connect(pbSaveMovie, &QToolButton::clicked, slicer, &iASlicer::saveMovie);
 	connect(pbStop, &QToolButton::clicked, slicer, [slicer]() { slicer->enableInteractor(!slicer->isInteractorEnabled()); });
 	connect(dsbRotation, QOverload<double>::of(&QDoubleSpinBox::valueChanged), slicer, &iASlicer::rotateSlice);
 	connect(sbSlice, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_slicer::setSliceSpinBox);

@@ -70,7 +70,7 @@ public:
 		buttons->layout()->setContentsMargins(0, 0, 0, 0);
 		buttons->layout()->setSpacing(4);
 
-		m_addButton->setObjectName("tbAdd");
+		m_addButton->setObjectName("pbAdd");
 		m_addButton->setToolTip(QObject::tr("Add a new annotation"));
 		buttons->layout()->addWidget(m_addButton);
 
@@ -80,7 +80,7 @@ public:
 		buttons->layout()->addWidget(editButton);
 
 		auto removeButton = new QToolButton();
-		removeButton->setObjectName("tbRemove");
+		removeButton->setObjectName("pbRemove");
 		removeButton->setToolTip(QObject::tr("Remove annotation"));
 		buttons->layout()->addWidget(removeButton);
 

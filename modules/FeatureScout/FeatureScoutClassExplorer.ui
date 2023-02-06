@@ -213,10 +213,6 @@
               <property name="text">
                <string>sC</string>
               </property>
-              <property name="icon">
-               <iconset resource="../../libs/guibase/guibase.qrc">
-                <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
-              </property>
               <property name="iconSize">
                <size>
                 <width>24</width>
@@ -245,10 +241,6 @@
               <property name="text">
                <string>lC</string>
               </property>
-              <property name="icon">
-               <iconset resource="../../libs/guibase/guibase.qrc">
-                <normaloff>:/images/load.png</normaloff>:/images/load.png</iconset>
-              </property>
               <property name="iconSize">
                <size>
                 <width>24</width>
@@ -267,7 +259,7 @@
               </property>
               <property name="icon">
                <iconset resource="FeatureScout.qrc">
-                <normaloff>:/images/xml_save.png</normaloff>:/images/xml_save.png</iconset>
+                <normaloff>:/images/xml-save.svg</normaloff>:/images/xml-save.svg</iconset>
               </property>
               <property name="iconSize">
                <size>

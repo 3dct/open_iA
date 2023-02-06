@@ -8,6 +8,8 @@
     <file>images/box_3d_light.svg</file>
     <file>images/box_3d_edge.svg</file>
     <file>images/box_3d_edge_light.svg</file>
+    <file>images/close.svg</file>
+    <file>images/close_light.svg</file>
     <file>images/delete.svg</file>
     <file>images/delete_light.svg</file>
     <file>images/edit.svg</file>
@@ -15,29 +17,40 @@
     <file>images/histogram.svg</file>
     <file>images/histogram_light.svg</file>
     <file>images/info.svg</file>
+    <file>images/image.svg</file>
+    <file>images/image_light.svg</file>
     <file>images/info_light.svg</file>
-    <file>images/load.png</file>
+    <file>images/load.svg</file>
+    <file>images/load_light.svg</file>
     <file>images/magic_lens_2d.svg</file>
     <file>images/magic_lens_2d_light.svg</file>
     <file>images/magic_lens_3d.svg</file>
     <file>images/magic_lens_3d_light.svg</file>
-    <file>images/mini_rect.png</file>
     <file>images/minus.svg</file>
     <file>images/minus_light.svg</file>
+    <file>images/movie.svg</file>
+    <file>images/movie_light.svg</file>
     <file>images/open.svg</file>
     <file>images/open_light.svg</file>
-    <file>images/paste.png</file>
+    <file>images/paste.svg</file>
+    <file>images/paste_light.svg</file>
     <file>images/plus.svg</file>
     <file>images/plus_light.svg</file>
     <file>images/profile.svg</file>
     <file>images/profile_light.svg</file>
-    <file>images/save.png</file>
-    <file>images/savemov.png</file>
-    <file>images/savescreen.png</file>
-    <file>images/savestack.png</file>
+    <file>images/save.svg</file>
+    <file>images/save_light.svg</file>
+    <file>images/save-all.svg</file>
+    <file>images/save-all_light.svg</file>
     <file>images/settings.svg</file>
     <file>images/settings_light.svg</file>
-    <file>images/toggle_titleBar.png</file>
-    <file>images/update.png</file>
+    <file>images/titlebar-on.svg</file>
+    <file>images/titlebar-on_light.svg</file>
+    <file>images/titlebar-off.svg</file>
+    <file>images/titlebar-off_light.svg</file>
+    <file>images/update.svg</file>
+    <file>images/update_light.svg</file>
+    <file>images/zoom-in.svg</file>
+    <file>images/zoom-in_light.svg</file>
   </qresource>
 </RCC>

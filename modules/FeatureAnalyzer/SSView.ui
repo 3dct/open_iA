@@ -150,7 +150,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="pushMov">
+        <widget class="QToolButton" name="pbSaveMovie">
          <property name="minimumSize">
           <size>
            <width>30</width>
@@ -159,10 +159,6 @@
          </property>
          <property name="text">
           <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="../../libs/guibase/guibase.qrc">
-           <normaloff>:/images/savemov.png</normaloff>:/images/savemov.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -173,7 +169,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="pushSave">
+        <widget class="QToolButton" name="pbSaveScreen">
          <property name="minimumSize">
           <size>
            <width>30</width>
@@ -182,10 +178,6 @@
          </property>
          <property name="text">
           <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="../../libs/guibase/guibase.qrc">
-           <normaloff>:/images/savescreen.png</normaloff>:/images/savescreen.png</iconset>
          </property>
          <property name="iconSize">
           <size>

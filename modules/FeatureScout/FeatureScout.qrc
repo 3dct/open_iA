@@ -1,12 +1,16 @@
 <RCC>
   <qresource prefix="/">
-    <file>images/activateSPM.png</file>
+    <file>images/compass.svg</file>
+    <file>images/compass_light.svg</file>
     <file>images/FeatureScout_csvDV.png</file>
     <file>images/FeatureScout_meanObject.png</file>
     <file>images/modTF.png</file>
-    <file>images/MultiRendering.png</file>
-    <file>images/OrientationRendering.png</file>
+    <file>images/layers.svg</file>
+    <file>images/layers_light.svg</file>
     <file>images/settings_PC.png</file>
-    <file>images/xml_save.png</file>
+    <file>images/SPM.svg</file>
+    <file>images/SPM_light.svg</file>
+    <file>images/xml-save.svg</file>
+    <file>images/xml-save_light.svg</file>
   </qresource>
 </RCC>

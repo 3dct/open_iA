@@ -96,10 +96,6 @@
          <property name="text">
           <string>Save Volume</string>
          </property>
-         <property name="icon">
-          <iconset resource="../../libs/guibase/guibase.qrc">
-           <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
-         </property>
         </widget>
        </item>
        <item>
@@ -188,10 +184,6 @@
            </property>
            <property name="text">
             <string>Save STL</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../../libs/guibase/guibase.qrc">
-             <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
            </property>
           </widget>
          </item>

@@ -185,7 +185,7 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 	statusLayout->addWidget(progressBar);
 
 	auto abortButton = new QToolButton();
-	abortButton->setIcon(QIcon(":/images/remove.png"));
+	abortButton->setObjectName("pbAbort");
 	abortButton->setEnabled(j->abortListener);
 
 	auto jobWidget = new QWidget();

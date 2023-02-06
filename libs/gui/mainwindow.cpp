@@ -1997,7 +1997,12 @@ void MainWindow::applyQSS()
 			{ m_ui->actionOpenTLGICTData, "open" },
 			{ m_ui->actionOpenRaw, "open" },
 			{ m_ui->actionOpenDataSet, "open" },
-			{ m_ui->actionOpenInNewWindow, "open" }
+			{ m_ui->actionOpenInNewWindow, "open" },
+			{ m_ui->actionSaveDataSet, "save" },
+			{ m_ui->actionSaveVolumeStack, "save-all" },
+			{ m_ui->actionSaveProject, "save-all" },
+			{ m_ui->actionSyncCamera, "update" }    // TODO: create better icon
+
 		};
 		for (auto a : actionIcons)
 		{

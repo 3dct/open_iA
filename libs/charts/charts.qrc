@@ -2,6 +2,5 @@
   <qresource prefix="/">
     <file>images/addTFPoint.png</file>
     <file>images/remTFPoint.png</file>
-    <file>images/update.png</file>
   </qresource>
 </RCC>
