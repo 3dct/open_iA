@@ -630,10 +630,6 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/profile-raw.png</normaloff>:/images/profile-raw.png</iconset>
-   </property>
    <property name="text">
     <string>Raw Profile</string>
    </property>
@@ -898,10 +894,6 @@
   <action name="actionEditProfilePoints">
    <property name="checkable">
     <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/profile-edit.png</normaloff>:/images/profile-edit.png</iconset>
    </property>
    <property name="text">
     <string>Edit Profile Points</string>

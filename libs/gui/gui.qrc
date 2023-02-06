@@ -66,8 +66,10 @@
     <file>images/my_light.svg</file>
     <file>images/mz_light.svg</file>
     <file>images/openFkt.png</file>
-    <file>images/profile-edit.png</file>
-    <file>images/profile-raw.png</file>
+    <file>images/profile-edit.svg</file>
+    <file>images/profile-edit_light.svg</file>
+    <file>images/profile-raw.svg</file>
+    <file>images/profile-raw_light.svg</file>
     <file>images/px.svg</file>
     <file>images/py.svg</file>
     <file>images/pz.svg</file>
@@ -97,7 +99,8 @@
     <file>images/settings_renderer_light.svg</file>
     <file>images/settings_slicer.svg</file>
     <file>images/settings_slicer_light.svg</file>
-    <file>images/snakeSlicer.png</file>
+    <file>images/snakeSlicer.svg</file>
+    <file>images/snakeSlicer_light.svg</file>
     <file>images/splashscreen.png</file>
     <file>images/stepbackward.png</file>
     <file>images/stepforward.png</file>

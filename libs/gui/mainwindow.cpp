@@ -2001,8 +2001,10 @@ void MainWindow::applyQSS()
 			{ m_ui->actionSaveDataSet, "save" },
 			{ m_ui->actionSaveVolumeStack, "save-all" },
 			{ m_ui->actionSaveProject, "save-all" },
-			{ m_ui->actionSyncCamera, "update" }    // TODO: create better icon
-
+			{ m_ui->actionSyncCamera, "update" },    // TODO: create better icon
+			{ m_ui->actionEditProfilePoints, "profile-edit" },
+			{ m_ui->actionRawProfile, "profile-raw" },
+			{ m_ui->actionSnakeSlicer, "snakeSlicer" }
 		};
 		for (auto a : actionIcons)
 		{
