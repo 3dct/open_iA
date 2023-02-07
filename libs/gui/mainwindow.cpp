@@ -2004,7 +2004,15 @@ void MainWindow::applyQSS()
 			{ m_ui->actionSyncCamera, "update" },    // TODO: create better icon
 			{ m_ui->actionEditProfilePoints, "profile-edit" },
 			{ m_ui->actionRawProfile, "profile-raw" },
-			{ m_ui->actionSnakeSlicer, "snakeSlicer" }
+			{ m_ui->actionSnakeSlicer, "snakeSlicer" },
+			{ m_ui->actionInteractionModeCamera, "camera" },
+			{ m_ui->actionLoadCameraSettings, "camera-load" },
+			{ m_ui->actionSaveLayout, "layout_export" },
+			{ m_ui->actionLoadLayout, "layout_load" },
+			{ m_ui->actionResetLayout, "layout_reset" },
+			{ m_ui->actionDeleteLayout, "layout_delete" },
+			{ m_ui->actionInteractionModeRegistration, "transform-move" }
+
 		};
 		for (auto a : actionIcons)
 		{

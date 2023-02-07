@@ -361,7 +361,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="pbStop">
+          <widget class="QToolButton" name="pbToggleInteraction">
            <property name="minimumSize">
             <size>
              <width>10</width>
@@ -369,14 +369,10 @@
             </size>
            </property>
            <property name="toolTip">
-            <string>Stop interaction</string>
+            <string>Toggle interaction</string>
            </property>
            <property name="text">
             <string/>
-           </property>
-           <property name="icon">
-            <iconset resource="gui.qrc">
-             <normaloff>:/images/stepforward.png</normaloff>:/images/stepforward.png</iconset>
            </property>
            <property name="iconSize">
             <size>

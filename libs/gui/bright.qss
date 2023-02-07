@@ -256,6 +256,8 @@ QPushButton
 	QToolButton[objectName="pushMX"] { qproperty-icon: url(:/images/mx.svg); }
 	QToolButton[objectName="pushMY"] { qproperty-icon: url(:/images/my.svg); }
 	QToolButton[objectName="pushMZ"] { qproperty-icon: url(:/images/mz.svg); }
+	QToolButton[objectName="pushIso"] { qproperty-icon: url(:/images/iso.svg); }
+	QToolButton[objectName="pbToggleInteraction"] { qproperty-icon: url(:/images/mouse-dot.svg); }
 	QToolButton[objectName="push3DView"],
 	QToolButton[objectName="pushRaycast"],
 	QToolButton[objectName="pushStability"],
@@ -276,6 +278,8 @@ QPushButton
 	QToolButton[objectName="updateEvents"] { qproperty-icon: url(:/images/update.svg); }
 	QToolButton[objectName="pbSaveMovie"] { qproperty-icon: url(:/images/movie.svg); }
 	QToolButton[objectName="pbAbort"] { qproperty-icon: url(:/images/close.svg); }
+	QToolButton[objectName="tbAddPoint"] { qproperty-icon: url(:/images/function_point_add.svg); }
+	QToolButton[objectName="tbRemovePoint"] { qproperty-icon: url(:/images/function_point_remove.svg); }
 /****************************************************************************
 QTabWidget
 QTabBar
@@ -851,7 +855,8 @@ Disabled Inputs
 	QLineEdit:disabled,
 	QComboBox:disabled,
 	QSpinBox:disabled,
-	QDoubleSpinBox:disabled
+	QDoubleSpinBox:disabled,
+	QToolButton:disabled
 	{
 		border: 1px solid rgba(205, 205, 205, 255);
 		background-color: rgba(235, 235, 235, 255);

@@ -532,10 +532,6 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/snakeSlicer.png</normaloff>:/images/snakeSlicer.png</iconset>
-   </property>
    <property name="text">
     <string>Snake Slicer</string>
    </property>
@@ -660,19 +656,11 @@
    </property>
   </action>
   <action name="actionLoadCameraSettings">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/loadCamera.png</normaloff>:/images/loadCamera.png</iconset>
-   </property>
    <property name="text">
     <string>Load Camera Settings</string>
    </property>
   </action>
   <action name="actionSaveLayout">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/layout_export.png</normaloff>:/images/layout_export.png</iconset>
-   </property>
    <property name="text">
     <string>Save</string>
    </property>
@@ -681,10 +669,6 @@
    </property>
   </action>
   <action name="actionLoadLayout">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/layout_load.png</normaloff>:/images/layout_load.png</iconset>
-   </property>
    <property name="text">
     <string>Load</string>
    </property>
@@ -693,10 +677,6 @@
    </property>
   </action>
   <action name="actionDeleteLayout">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/layout_delete.png</normaloff>:/images/layout_delete.png</iconset>
-   </property>
    <property name="text">
     <string>Delete</string>
    </property>
@@ -716,11 +696,6 @@
    </property>
   </action>
   <action name="actionResetLayout">
-   <property name="icon">
-    <iconset>
-     <normalon>:/images/layout_reset.png</normalon>
-    </iconset>
-   </property>
    <property name="text">
     <string>Reset</string>
    </property>
@@ -860,10 +835,6 @@
    <property name="checked">
     <bool>true</bool>
    </property>
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/camera.png</normaloff>:/images/camera.png</iconset>
-   </property>
    <property name="text">
     <string>Camera change</string>
    </property>
@@ -871,10 +842,6 @@
   <action name="actionInteractionModeRegistration">
    <property name="checkable">
     <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/transform-move.svg</normaloff>:/images/transform-move.svg</iconset>
    </property>
    <property name="text">
     <string>Manual registration</string>

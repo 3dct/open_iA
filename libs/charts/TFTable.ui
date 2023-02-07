@@ -163,14 +163,10 @@
        <property name="text">
         <string>Add</string>
        </property>
-       <property name="icon">
-        <iconset resource="charts.qrc">
-         <normaloff>:/images/addTFPoint.png</normaloff>:/images/addTFPoint.png</iconset>
-       </property>
        <property name="iconSize">
         <size>
-         <width>23</width>
-         <height>23</height>
+         <width>24</width>
+         <height>24</height>
         </size>
        </property>
        <property name="toolButtonStyle">
@@ -202,14 +198,10 @@
        <property name="text">
         <string>Remove</string>
        </property>
-       <property name="icon">
-        <iconset resource="charts.qrc">
-         <normaloff>:/images/remTFPoint.png</normaloff>:/images/remTFPoint.png</iconset>
-       </property>
        <property name="iconSize">
         <size>
-         <width>23</width>
-         <height>23</height>
+         <width>24</width>
+         <height>24</height>
         </size>
        </property>
        <property name="toolButtonStyle">

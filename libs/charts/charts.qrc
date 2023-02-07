@@ -1,6 +1,11 @@
 <RCC>
   <qresource prefix="/">
-    <file>images/addTFPoint.png</file>
-    <file>images/remTFPoint.png</file>
+    <file>images/color-wheel.svg</file>
+    <file>images/function_point_add.svg</file>
+    <file>images/function_point_add_light.svg</file>
+    <file>images/function_point_remove.svg</file>
+    <file>images/function_point_remove_light.svg</file>
+    <file>images/table.svg</file>
+    <file>images/table_light.svg</file>
   </qresource>
 </RCC>

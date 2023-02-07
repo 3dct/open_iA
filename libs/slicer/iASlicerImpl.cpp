@@ -244,7 +244,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	connect(m_actionInteractionMode, &QActionGroup::triggered, this, &iASlicerImpl::toggleInteractionMode);
 	m_contextMenu->addSeparator();
 
-	m_actionFisheyeLens = m_contextMenu->addAction(QIcon(":/images/fisheyeLens.png"), tr("Fisheye Lens"), this, &iASlicerImpl::fisheyeLensToggled);
+	m_actionFisheyeLens = m_contextMenu->addAction(iAMainWindow::resourceIcon("fisheyelens"), tr("Fisheye Lens"), this, &iASlicerImpl::fisheyeLensToggled);
 	m_actionFisheyeLens->setShortcut(Qt::Key_O);
 	m_actionFisheyeLens->setCheckable(true);
 	m_actionFisheyeLens->setChecked(false);
@@ -255,7 +255,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 		m_magicLens->setRenderWindow(m_renWin);
 		// setup context menu for the magic lens view options
 		m_contextMenu->addSeparator();
-		m_actionMagicLens = m_contextMenu->addAction(QIcon(":/images/magic_lens_2d.svg"), tr("Magic Lens"), this, &iASlicerImpl::magicLensToggled);
+		m_actionMagicLens = m_contextMenu->addAction(iAMainWindow::resourceIcon("magic_lens_2d"), tr("Magic Lens"), this, &iASlicerImpl::magicLensToggled);
 		m_actionMagicLens->setCheckable(true);
 		m_actionMagicLens->setChecked(false);
 
@@ -277,7 +277,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	{
 		m_snakeSpline = new iASnakeSpline;
 		m_contextMenu->addSeparator();
-		m_actionDeleteSnakeLine = m_contextMenu->addAction(QIcon(":/images/loadtrf.png"), tr("Delete Snake Line"), this, &iASlicerImpl::menuDeleteSnakeLine);
+		m_actionDeleteSnakeLine = m_contextMenu->addAction(iAMainWindow::resourceIcon("snakeslicer-delete"), tr("Delete Snake Line"), this, &iASlicerImpl::menuDeleteSnakeLine);
 		m_sliceProfile = new iASlicerProfile();
 		m_sliceProfile->setVisibility(false);
 

@@ -4,14 +4,15 @@
     <file>dark.qss</file>
     <file>images/Crosshair thick.png</file>
     <file>images/Crosshair thin.png</file>
-    <file>images/TFTableView.png</file>
     <file>images/Xmas.png</file>
     <file>images/bezier.svg</file>
     <file>images/bezier_light.svg</file>
     <file>images/gaussian.svg</file>
     <file>images/gaussian_light.svg</file>
-    <file>images/camera.png</file>
-    <file>images/changeColor.png</file>
+    <file>images/camera.svg</file>
+    <file>images/camera_light.svg</file>
+    <file>images/camera-load.svg</file>
+    <file>images/camera-load_light.svg</file>
     <file>images/checkbox_checked.svg</file>
     <file>images/checkbox_checked_dark.svg</file>
     <file>images/checkbox_checked_hover.svg</file>
@@ -30,11 +31,7 @@
     <file>images/checkbox_unchecked_hover_dark.svg</file>
     <file>images/checkbox_unchecked_pressed.svg</file>
     <file>images/checkbox_unchecked_pressed_dark.svg</file>
-    <file>images/close_white.png</file>
     <file>images/colormap.png</file>
-    <file>images/copy.png</file>
-    <file>images/cut.png</file>
-    <file>images/deletePoint.png</file>
     <file>images/dockwidget-close_bright.svg</file>
     <file>images/dockwidget-close_dark.svg</file>
     <file>images/dockwidget-float_bright.svg</file>
@@ -49,16 +46,22 @@
     <file>images/arrow_up_light.svg</file>
     <file>images/eye.svg</file>
     <file>images/eye_light.svg</file>
-    <file>images/fisheyeLens.png</file>
+    <file>images/fisheyelens.svg</file>
+    <file>images/fisheyelens_light.svg</file>
     <file>images/ia.png</file>
     <file>images/iso.svg</file>
     <file>images/iso_light.svg</file>
-    <file>images/layout_delete.png</file>
-    <file>images/layout_export.png</file>
-    <file>images/layout_load.png</file>
-    <file>images/layout_reset.png</file>
-    <file>images/loadCamera.png</file>
+    <file>images/layout_delete.svg</file>
+    <file>images/layout_delete_light.svg</file>
+    <file>images/layout_export.svg</file>
+    <file>images/layout_export_light.svg</file>
+    <file>images/layout_load.svg</file>
+    <file>images/layout_load_light.svg</file>
+    <file>images/layout_reset.svg</file>
+    <file>images/layout_reset_light.svg</file>
     <file>images/loadtrf.png</file>
+    <file>images/mouse-dot.svg</file>
+    <file>images/mouse-dot_light.svg</file>
     <file>images/mx.svg</file>
     <file>images/my.svg</file>
     <file>images/mz.svg</file>
@@ -99,8 +102,10 @@
     <file>images/settings_renderer_light.svg</file>
     <file>images/settings_slicer.svg</file>
     <file>images/settings_slicer_light.svg</file>
-    <file>images/snakeSlicer.svg</file>
-    <file>images/snakeSlicer_light.svg</file>
+    <file>images/snakeslicer.svg</file>
+    <file>images/snakeslicer_light.svg</file>
+    <file>images/snakeslicer-delete.svg</file>
+    <file>images/snakeslicer-delete_light.svg</file>
     <file>images/splashscreen.png</file>
     <file>images/stepbackward.png</file>
     <file>images/stepforward.png</file>

@@ -113,10 +113,6 @@
            <property name="text">
             <string>+X</string>
            </property>
-           <property name="icon">
-            <iconset resource="gui.qrc">
-             <normaloff>:/images/px.png</normaloff>:/images/px.png</iconset>
-           </property>
            <property name="iconSize">
             <size>
              <width>24</width>
@@ -141,10 +137,6 @@
            </property>
            <property name="text">
             <string>-X</string>
-           </property>
-           <property name="icon">
-            <iconset resource="gui.qrc">
-             <normaloff>:/images/mx.png</normaloff>:/images/mx.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -171,10 +163,6 @@
            <property name="text">
             <string>+Y</string>
            </property>
-           <property name="icon">
-            <iconset resource="gui.qrc">
-             <normaloff>:/images/py.png</normaloff>:/images/py.png</iconset>
-           </property>
            <property name="iconSize">
             <size>
              <width>24</width>
@@ -199,10 +187,6 @@
            </property>
            <property name="text">
             <string>-Y</string>
-           </property>
-           <property name="icon">
-            <iconset resource="gui.qrc">
-             <normaloff>:/images/my.png</normaloff>:/images/my.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -229,10 +213,6 @@
            <property name="text">
             <string>+Z</string>
            </property>
-           <property name="icon">
-            <iconset resource="gui.qrc">
-             <normaloff>:/images/pz.png</normaloff>:/images/pz.png</iconset>
-           </property>
            <property name="iconSize">
             <size>
              <width>24</width>
@@ -258,10 +238,6 @@
            <property name="text">
             <string>-Z</string>
            </property>
-           <property name="icon">
-            <iconset resource="gui.qrc">
-             <normaloff>:/images/mz.png</normaloff>:/images/mz.png</iconset>
-           </property>
            <property name="iconSize">
             <size>
              <width>24</width>
@@ -286,10 +262,6 @@
            </property>
            <property name="text">
             <string>Iso</string>
-           </property>
-           <property name="icon">
-            <iconset resource="gui.qrc">
-             <normaloff>:/images/iso.png</normaloff>:/images/iso.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -360,7 +332,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="pushStopRC">
+          <widget class="QToolButton" name="pbToggleInteraction">
            <property name="minimumSize">
             <size>
              <width>10</width>
@@ -374,14 +346,10 @@
             </font>
            </property>
            <property name="toolTip">
-            <string>Stop interaction</string>
+            <string>Toggle interaction</string>
            </property>
            <property name="text">
             <string/>
-           </property>
-           <property name="icon">
-            <iconset resource="gui.qrc">
-             <normaloff>:/images/stepforward.png</normaloff>:/images/stepforward.png</iconset>
            </property>
            <property name="iconSize">
             <size>

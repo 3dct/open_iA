@@ -284,12 +284,12 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 	{
 		std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 		iAChartFunction *func = *(it + m_selectedFunction);
-
+		// TODO NEWIO: way to adapt icons to application bright mode!
 		if (func->getSelectedPoint() != -1)
 		{
 			if (func->isColored())
 			{
-				QAction *changeColorAction = new QAction(QIcon(":/images/changeColor.png"), tr("Change Color"), this);
+				QAction *changeColorAction = new QAction(QIcon(":/images/color-wheel.svg"), tr("Change Color"), this);
 				contextMenu->setDefaultAction(changeColorAction);
 				connect(changeColorAction, &QAction::triggered, [this] { changeColor(nullptr); });
 				contextMenu->addAction(changeColorAction);
@@ -297,11 +297,11 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 
 			if (func->isDeletable(func->getSelectedPoint()))
 			{
-				contextMenu->addAction(QIcon(":/images/deletePoint.png"), tr("Delete"), this, &iAChartWithFunctionsWidget::deletePoint);
+				contextMenu->addAction(QIcon(":/images/function_point_remove.svg"), tr("Delete"), this, &iAChartWithFunctionsWidget::deletePoint);
 			}
 			contextMenu->addSeparator();
 		}
-		contextMenu->addAction(QIcon(":/images/TFTableView.png"), tr("Transfer Function Table View"), this, &iAChartWithFunctionsWidget::showTFTable);
+		contextMenu->addAction(QIcon(":/images/table.svg"), tr("Transfer Function Table View"), this, &iAChartWithFunctionsWidget::showTFTable);
 		contextMenu->addAction(QIcon(":/images/loadtrf.png"), tr("Load transfer function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::loadTransferFunction));
 		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Save transfer function"), this, &iAChartWithFunctionsWidget::saveTransferFunction);
 		if (m_allowTrfReset)

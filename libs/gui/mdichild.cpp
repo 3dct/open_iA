@@ -208,7 +208,7 @@ void MdiChild::connectSignalsToSlots()
 	m_dwRenderer->vtkWidgetRC->setContextMenuEnabled(true);
 	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::editSettings, m_mainWnd, &MainWindow::renderSettings);
 	connect(m_dwRenderer->tbMax, &QPushButton::clicked, this, &MdiChild::maximizeRenderer);
-	connect(m_dwRenderer->pushStopRC, &QPushButton::clicked, this, [this]
+	connect(m_dwRenderer->pbToggleInteraction, &QPushButton::clicked, this, [this]
 	{
 		enableRendererInteraction(!isRendererInteractionEnabled());
 	});
