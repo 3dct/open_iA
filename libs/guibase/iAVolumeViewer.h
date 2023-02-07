@@ -10,6 +10,8 @@
 
 #include <QSharedPointer>
 
+#include <array>
+
 class iAChartWidget;
 class iAChartWithFunctionsWidget;
 class iADockWidgetWrapper;
