@@ -13,6 +13,10 @@
     <file>images/camera_light.svg</file>
     <file>images/camera-load.svg</file>
     <file>images/camera-load_light.svg</file>
+    <file>images/camera-save.svg</file>
+    <file>images/camera-save_light.svg</file>
+    <file>images/camera-sync.svg</file>
+    <file>images/camera-sync_light.svg</file>
     <file>images/checkbox_checked.svg</file>
     <file>images/checkbox_checked_dark.svg</file>
     <file>images/checkbox_checked_hover.svg</file>
@@ -48,7 +52,7 @@
     <file>images/eye_light.svg</file>
     <file>images/fisheyelens.svg</file>
     <file>images/fisheyelens_light.svg</file>
-    <file>images/ia.png</file>
+    <file>images/iA.svg</file>
     <file>images/iso.svg</file>
     <file>images/iso_light.svg</file>
     <file>images/layout_delete.svg</file>
@@ -94,7 +98,6 @@
     <file>images/removeFkt.png</file>
     <file>images/resetTrf.png</file>
     <file>images/resetView.png</file>
-    <file>images/saveCamera.png</file>
     <file>images/saveFkt.png</file>
     <file>images/saveas.png</file>
     <file>images/savetrf.png</file>
@@ -111,7 +114,6 @@
     <file>images/stepforward.png</file>
     <file>images/transform-move.svg</file>
     <file>images/transform-move_light.svg</file>
-    <file>images/undock_white.png</file>
     <file>images/w2b_colormap.png</file>
     <file>images/w2r_colormap.png</file>
   </qresource>

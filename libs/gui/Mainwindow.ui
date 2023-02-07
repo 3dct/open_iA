@@ -21,7 +21,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="gui.qrc">
-    <normaloff>:/images/ia.png</normaloff>:/images/ia.png</iconset>
+    <normaloff>:/images/iA.svg</normaloff>:/images/iA.svg</iconset>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -650,10 +650,6 @@
    </property>
   </action>
   <action name="actionSaveCameraSettings">
-   <property name="icon">
-    <iconset resource="gui.qrc">
-     <normaloff>:/images/saveCamera.png</normaloff>:/images/saveCamera.png</iconset>
-   </property>
    <property name="text">
     <string>Save Camera Settings</string>
    </property>

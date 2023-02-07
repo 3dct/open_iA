@@ -39,7 +39,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="gui.qrc">
-    <normaloff>:/images/ia.png</normaloff>:/images/ia.png</iconset>
+    <normaloff>:/images/iA.svg</normaloff>:/images/iA.svg</iconset>
   </property>
   <property name="layoutDirection">
    <enum>Qt::LeftToRight</enum>
