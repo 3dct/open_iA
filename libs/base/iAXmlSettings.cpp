@@ -153,7 +153,7 @@ void iAXmlSettings::save(QString const & filename)
 
 bool iAXmlSettings::fromString(QString const& xmlStr)
 {
-	return domDocument.setContent(xmlStr);
+	return static_cast<bool>(domDocument.setContent(xmlStr));    // cast required because of explicit conversion operator in Qt >= 6.5.
 }
 
 QString iAXmlSettings::toString() const
