@@ -5,20 +5,20 @@
     <file>images/3d.svg</file>
     <file>images/3d_light.svg</file>
     <file>images/box_3d.svg</file>
-    <file>images/box_3d_light.svg</file>
     <file>images/box_3d_edge.svg</file>
     <file>images/box_3d_edge_light.svg</file>
+    <file>images/box_3d_light.svg</file>
     <file>images/close.svg</file>
     <file>images/close_light.svg</file>
     <file>images/delete.svg</file>
     <file>images/delete_light.svg</file>
     <file>images/edit.svg</file>
     <file>images/edit_light.svg</file>
-    <file>images/histogram.svg</file>
-    <file>images/histogram_light.svg</file>
-    <file>images/info.svg</file>
+    <file>images/histogram-tf.svg</file>
+    <file>images/histogram-tf_light.svg</file>
     <file>images/image.svg</file>
     <file>images/image_light.svg</file>
+    <file>images/info.svg</file>
     <file>images/info_light.svg</file>
     <file>images/load.svg</file>
     <file>images/load_light.svg</file>
@@ -38,16 +38,16 @@
     <file>images/plus_light.svg</file>
     <file>images/profile.svg</file>
     <file>images/profile_light.svg</file>
-    <file>images/save.svg</file>
-    <file>images/save_light.svg</file>
     <file>images/save-all.svg</file>
     <file>images/save-all_light.svg</file>
+    <file>images/save.svg</file>
+    <file>images/save_light.svg</file>
     <file>images/settings.svg</file>
     <file>images/settings_light.svg</file>
-    <file>images/titlebar-on.svg</file>
-    <file>images/titlebar-on_light.svg</file>
     <file>images/titlebar-off.svg</file>
     <file>images/titlebar-off_light.svg</file>
+    <file>images/titlebar-on.svg</file>
+    <file>images/titlebar-on_light.svg</file>
     <file>images/update.svg</file>
     <file>images/update_light.svg</file>
     <file>images/zoom-in.svg</file>

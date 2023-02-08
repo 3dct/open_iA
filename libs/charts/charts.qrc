@@ -1,11 +1,31 @@
 <RCC>
   <qresource prefix="/">
+    <file>images/bezier.svg</file>
+    <file>images/bezier_light.svg</file>
+    <file>images/chart.svg</file>
+    <file>images/chart_light.svg</file>
     <file>images/color-wheel.svg</file>
-    <file>images/function_point_add.svg</file>
-    <file>images/function_point_add_light.svg</file>
-    <file>images/function_point_remove.svg</file>
-    <file>images/function_point_remove_light.svg</file>
+    <file>images/function-load.svg</file>
+    <file>images/function-load_light.svg</file>
+    <file>images/function-point_add.svg</file>
+    <file>images/function-point_add_light.svg</file>
+    <file>images/function-point_remove.svg</file>
+    <file>images/function-point_remove_light.svg</file>
+    <file>images/function-remove.svg</file>
+    <file>images/function-remove_light.svg</file>
+    <file>images/function-reset.svg</file>
+    <file>images/function-reset_light.svg</file>
+    <file>images/function-save.svg</file>
+    <file>images/function-save_light.svg</file>
+    <file>images/gaussian.svg</file>
+    <file>images/gaussian_light.svg</file>
     <file>images/table.svg</file>
     <file>images/table_light.svg</file>
+    <file>images/tf-load.svg</file>
+    <file>images/tf-load_light.svg</file>
+    <file>images/tf-reset.svg</file>
+    <file>images/tf-reset_light.svg</file>
+    <file>images/tf-save.svg</file>
+    <file>images/tf-save_light.svg</file>
   </qresource>
 </RCC>

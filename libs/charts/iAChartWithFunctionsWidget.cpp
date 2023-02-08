@@ -284,7 +284,7 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 	{
 		std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 		iAChartFunction *func = *(it + m_selectedFunction);
-		// TODO NEWIO: way to adapt icons to application bright mode!
+		// TODO: get _light icons if dark theme is used - see iAMainWindow::resourceIcon (requires making brightMode() available somewhere more basic)
 		if (func->getSelectedPoint() != -1)
 		{
 			if (func->isColored())
@@ -297,29 +297,29 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 
 			if (func->isDeletable(func->getSelectedPoint()))
 			{
-				contextMenu->addAction(QIcon(":/images/function_point_remove.svg"), tr("Delete"), this, &iAChartWithFunctionsWidget::deletePoint);
+				contextMenu->addAction(QIcon(":/images/function-point-remove.svg"), tr("Delete"), this, &iAChartWithFunctionsWidget::deletePoint);
 			}
 			contextMenu->addSeparator();
 		}
 		contextMenu->addAction(QIcon(":/images/table.svg"), tr("Transfer Function Table View"), this, &iAChartWithFunctionsWidget::showTFTable);
-		contextMenu->addAction(QIcon(":/images/loadtrf.png"), tr("Load transfer function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::loadTransferFunction));
-		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Save transfer function"), this, &iAChartWithFunctionsWidget::saveTransferFunction);
+		contextMenu->addAction(QIcon(":/images/tf-load.svg"), tr("Load transfer function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::loadTransferFunction));
+		contextMenu->addAction(QIcon(":/images/tf-save.svg"), tr("Save transfer function"), this, &iAChartWithFunctionsWidget::saveTransferFunction);
 		if (m_allowTrfReset)
 		{
-			contextMenu->addAction(QIcon(":/images/resetTrf.png"), tr("Reset transfer function"), this, &iAChartWithFunctionsWidget::resetTrf);
+			contextMenu->addAction(QIcon(":/images/tf-reset.png"), tr("Reset transfer function"), this, &iAChartWithFunctionsWidget::resetTrf);
 		}
 		contextMenu->addSeparator();
 	}
 	if (m_enableAdditionalFunctions)
-	{   // TODO: adapt icon to current theme (bright/dark -> when dark, use _light.svg!)
+	{
 		contextMenu->addAction(QIcon(":/images/bezier.svg"), tr("Add bezier function"), this, &iAChartWithFunctionsWidget::addBezierFunction);
 		contextMenu->addAction(QIcon(":/images/gaussian.svg"), tr("Add gaussian function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::addGaussianFunction));
-		contextMenu->addAction(QIcon(":/images/openFkt.png"), tr("Load functions"), this, &iAChartWithFunctionsWidget::loadFunctions);
-		contextMenu->addAction(QIcon(":/images/saveFkt.png"), tr("Save functions"), this, &iAChartWithFunctionsWidget::saveFunctions);
+		contextMenu->addAction(QIcon(":/images/function-load.svg"), tr("Load functions"), this, &iAChartWithFunctionsWidget::loadFunctions);
+		contextMenu->addAction(QIcon(":/images/function-save.svg"), tr("Save functions"), this, &iAChartWithFunctionsWidget::saveFunctions);
 
 		if (m_selectedFunction != 0)
 		{
-			contextMenu->addAction(QIcon(":/images/removeFkt.png"), tr("Remove selected function"), this, &iAChartWithFunctionsWidget::removeFunction);
+			contextMenu->addAction(QIcon(":/images/function-remove.svg"), tr("Remove selected function"), this, &iAChartWithFunctionsWidget::removeFunction);
 		}
 		if (m_functions.size() > 1)
 		{

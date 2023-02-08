@@ -5,18 +5,22 @@
     <file>images/Crosshair thick.png</file>
     <file>images/Crosshair thin.png</file>
     <file>images/Xmas.png</file>
-    <file>images/bezier.svg</file>
-    <file>images/bezier_light.svg</file>
-    <file>images/gaussian.svg</file>
-    <file>images/gaussian_light.svg</file>
-    <file>images/camera.svg</file>
-    <file>images/camera_light.svg</file>
+    <file>images/arrow_down.svg</file>
+    <file>images/arrow_down_light.svg</file>
+    <file>images/arrow_left.svg</file>
+    <file>images/arrow_left_light.svg</file>
+    <file>images/arrow_right.svg</file>
+    <file>images/arrow_right_light.svg</file>
+    <file>images/arrow_up.svg</file>
+    <file>images/arrow_up_light.svg</file>
     <file>images/camera-load.svg</file>
     <file>images/camera-load_light.svg</file>
     <file>images/camera-save.svg</file>
     <file>images/camera-save_light.svg</file>
     <file>images/camera-sync.svg</file>
     <file>images/camera-sync_light.svg</file>
+    <file>images/camera.svg</file>
+    <file>images/camera_light.svg</file>
     <file>images/checkbox_checked.svg</file>
     <file>images/checkbox_checked_dark.svg</file>
     <file>images/checkbox_checked_hover.svg</file>
@@ -40,18 +44,12 @@
     <file>images/dockwidget-close_dark.svg</file>
     <file>images/dockwidget-float_bright.svg</file>
     <file>images/dockwidget-float_dark.svg</file>
-    <file>images/arrow_down.svg</file>
-    <file>images/arrow_down_light.svg</file>
-    <file>images/arrow_left.svg</file>
-    <file>images/arrow_left_light.svg</file>
-    <file>images/arrow_right.svg</file>
-    <file>images/arrow_right_light.svg</file>
-    <file>images/arrow_up.svg</file>
-    <file>images/arrow_up_light.svg</file>
     <file>images/eye.svg</file>
     <file>images/eye_light.svg</file>
     <file>images/fisheyelens.svg</file>
     <file>images/fisheyelens_light.svg</file>
+    <file>images/histogram-tf.svg</file>
+    <file>images/histogram-tf_light.svg</file>
     <file>images/iA.svg</file>
     <file>images/iso.svg</file>
     <file>images/iso_light.svg</file>
@@ -63,25 +61,23 @@
     <file>images/layout_load_light.svg</file>
     <file>images/layout_reset.svg</file>
     <file>images/layout_reset_light.svg</file>
-    <file>images/loadtrf.png</file>
     <file>images/mouse-dot.svg</file>
     <file>images/mouse-dot_light.svg</file>
     <file>images/mx.svg</file>
-    <file>images/my.svg</file>
-    <file>images/mz.svg</file>
     <file>images/mx_light.svg</file>
+    <file>images/my.svg</file>
     <file>images/my_light.svg</file>
+    <file>images/mz.svg</file>
     <file>images/mz_light.svg</file>
-    <file>images/openFkt.png</file>
     <file>images/profile-edit.svg</file>
     <file>images/profile-edit_light.svg</file>
     <file>images/profile-raw.svg</file>
     <file>images/profile-raw_light.svg</file>
     <file>images/px.svg</file>
-    <file>images/py.svg</file>
-    <file>images/pz.svg</file>
     <file>images/px_light.svg</file>
+    <file>images/py.svg</file>
     <file>images/py_light.svg</file>
+    <file>images/pz.svg</file>
     <file>images/pz_light.svg</file>
     <file>images/radiobutton_checked.svg</file>
     <file>images/radiobutton_checked_dark.svg</file>
@@ -95,19 +91,14 @@
     <file>images/radiobutton_unchecked_hover_dark.svg</file>
     <file>images/radiobutton_unchecked_pressed.svg</file>
     <file>images/radiobutton_unchecked_pressed_dark.svg</file>
-    <file>images/removeFkt.png</file>
-    <file>images/resetTrf.png</file>
-    <file>images/resetView.png</file>
-    <file>images/saveFkt.png</file>
-    <file>images/savetrf.png</file>
     <file>images/settings_renderer.svg</file>
     <file>images/settings_renderer_light.svg</file>
     <file>images/settings_slicer.svg</file>
     <file>images/settings_slicer_light.svg</file>
-    <file>images/snakeslicer.svg</file>
-    <file>images/snakeslicer_light.svg</file>
     <file>images/snakeslicer-delete.svg</file>
     <file>images/snakeslicer-delete_light.svg</file>
+    <file>images/snakeslicer.svg</file>
+    <file>images/snakeslicer_light.svg</file>
     <file>images/splashscreen.png</file>
     <file>images/stepbackward.png</file>
     <file>images/stepforward.png</file>

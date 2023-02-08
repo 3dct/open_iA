@@ -143,10 +143,6 @@
               <property name="text">
                <string/>
               </property>
-              <property name="icon">
-               <iconset resource="../../libs/guibase/guibase.qrc">
-                <normaloff>:/images/plus.svg</normaloff>:/images/plus.svg</iconset>
-              </property>
               <property name="iconSize">
                <size>
                 <width>24</width>
@@ -177,10 +173,6 @@
               </property>
               <property name="text">
                <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="../../libs/guibase/guibase.qrc">
-                <normaloff>:/images/minus.svg</normaloff>:/images/minus.svg</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -250,16 +242,12 @@
              </widget>
             </item>
             <item>
-             <widget class="QToolButton" name="wisetex_save">
+             <widget class="QToolButton" name="savexml">
               <property name="toolTip">
                <string>Save as Wisetex-XML</string>
               </property>
               <property name="text">
                <string>wisetex_save</string>
-              </property>
-              <property name="icon">
-               <iconset resource="FeatureScout.qrc">
-                <normaloff>:/images/xml-save.svg</normaloff>:/images/xml-save.svg</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -270,16 +258,12 @@
              </widget>
             </item>
             <item>
-             <widget class="QToolButton" name="csv_dv">
+             <widget class="QToolButton" name="distributionCSV">
               <property name="toolTip">
                <string>Show feature distribution and save as csv-file </string>
               </property>
               <property name="text">
-               <string>csv_dv</string>
-              </property>
-              <property name="icon">
-               <iconset resource="FeatureScout.qrc">
-                <normaloff>:/images/FeatureScout_csvDV.png</normaloff>:/images/FeatureScout_csvDV.png</iconset>
+               <string>Distribution CSV</string>
               </property>
               <property name="iconSize">
                <size>
@@ -345,9 +329,7 @@
    </layout>
   </widget>
  </widget>
- <resources>
-  <include location="../../libs/guibase/guibase.qrc"/>
-  <include location="FeatureScout.qrc"/>
+ <resources/>
  </resources>
  <connections/>
 </ui>

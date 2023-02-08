@@ -46,7 +46,7 @@
   <action name="actionLength_Distribution">
    <property name="icon">
     <iconset resource="FeatureScout.qrc">
-     <normaloff>:/images/FeatureScout_csvDV.png</normaloff>:/images/FeatureScout_csvDV.png</iconset>
+     <normaloff>:/images/histogram.svg</normaloff>:/images/histogram.svg</iconset>
    </property>
    <property name="text">
     <string>Length Distribution</string>
@@ -94,7 +94,7 @@
   <action name="actionSettingsPC">
    <property name="icon">
     <iconset resource="FeatureScout.qrc">
-     <normaloff>:/images/settings_PC.png</normaloff>:/images/settings_PC.png</iconset>
+     <normaloff>:/images/settings_PC.svg</normaloff>:/images/settings_PC.svg</iconset>
    </property>
    <property name="text">
     <string>PC settings</string>

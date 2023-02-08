@@ -1256,7 +1256,7 @@ void iAChartWidget::contextMenuEvent(QContextMenuEvent *event)
 	m_contextPos = event->pos();
 	m_contextMenu->clear();
 	// TODO: get _light icons if dark theme is used - see iAMainWindow::resourceIcon (requires making brightMode() available somewhere more basic)
-	m_contextMenu->addAction(QIcon(":/images/resetView.png"), tr("Reset histogram view"), this, &iAChartWidget::resetView);
+	m_contextMenu->addAction(QIcon(":/images/chart.svg"), tr("Reset chart view"), this, &iAChartWidget::resetView);
 	QAction *showTooltipAction = new QAction(tr("Show histogram coordinates"), this);
 	showTooltipAction->setCheckable(true);
 	showTooltipAction->setChecked(m_showTooltip);

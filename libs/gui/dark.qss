@@ -303,8 +303,10 @@ QPushButton
 	QToolButton[objectName="updateEvents"] { qproperty-icon: url(:/images/update_light.svg); }
 	QToolButton[objectName="pbSaveMovie"] { qproperty-icon: url(:/images/movie_light.svg); }
 	QToolButton[objectName="pbAbort"] { qproperty-icon: url(:/images/close_light.svg); }
-	QToolButton[objectName="tbAddPoint"] { qproperty-icon: url(:/images/function_point_add_light.svg); }
-	QToolButton[objectName="tbRemovePoint"] { qproperty-icon: url(:/images/function_point_remove_light.svg); }
+	QToolButton[objectName="tbAddPoint"] { qproperty-icon: url(:/images/function-point-add_light.svg); }
+	QToolButton[objectName="tbRemovePoint"] { qproperty-icon: url(:/images/function-point-remove_light.svg); }
+	QToolButton[objectName="distributionCSV"] { qproperty-icon: url(:/images/histogram_light.svg); }
+	QToolButton[objectName="savexml"] { qproperty-icon: url(:/images/xml-save_light.svg); }
 /****************************************************************************
 QTabWidget
 QTabBar

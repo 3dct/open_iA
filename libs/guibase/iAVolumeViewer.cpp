@@ -546,7 +546,7 @@ std::shared_ptr<iADataSetRenderer> iAVolumeViewer::createRenderer(vtkRenderer* r
 
 QVector<QAction*> iAVolumeViewer::additionalActions(iAMdiChild* child)
 {
-	m_histogramAction = createToggleAction("Histogram", "histogram", renderFlagSet(RenderHistogramFlag),
+	m_histogramAction = createToggleAction("Histogram", "histogram-tf", renderFlagSet(RenderHistogramFlag),
 	[this, child](bool checked)
 	{
 		setRenderFlag(RenderHistogramFlag, checked);

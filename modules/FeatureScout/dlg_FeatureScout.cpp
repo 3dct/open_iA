@@ -680,9 +680,9 @@ void dlg_FeatureScout::setupConnections()
 	connect(m_ui->save_class, &QToolButton::released, this, &dlg_FeatureScout::ClassSaveButton);
 	connect(m_ui->load_class, &QToolButton::released, this, &dlg_FeatureScout::ClassLoadButton);
 	connect(m_ui->delete_class, &QToolButton::clicked, this, &dlg_FeatureScout::ClassDeleteButton);
-	connect(m_ui->wisetex_save, &QToolButton::released, this, &dlg_FeatureScout::WisetexSaveButton);
+	connect(m_ui->savexml, &QToolButton::released, this, &dlg_FeatureScout::WisetexSaveButton);
 	connect(m_ui->export_class, &QPushButton::clicked, this, &dlg_FeatureScout::ExportClassButton);
-	connect(m_ui->csv_dv, &QToolButton::released, this, &dlg_FeatureScout::CsvDVSaveButton);
+	connect(m_ui->distributionCSV, &QToolButton::released, this, &dlg_FeatureScout::CsvDVSaveButton);
 
 	connect(m_elementTableModel, &QStandardItemModel::itemChanged, this, &dlg_FeatureScout::updateVisibility);
 	connect(m_classTreeView, &QTreeView::clicked, this, &dlg_FeatureScout::classClicked);

@@ -278,8 +278,13 @@ QPushButton
 	QToolButton[objectName="updateEvents"] { qproperty-icon: url(:/images/update.svg); }
 	QToolButton[objectName="pbSaveMovie"] { qproperty-icon: url(:/images/movie.svg); }
 	QToolButton[objectName="pbAbort"] { qproperty-icon: url(:/images/close.svg); }
-	QToolButton[objectName="tbAddPoint"] { qproperty-icon: url(:/images/function_point_add.svg); }
-	QToolButton[objectName="tbRemovePoint"] { qproperty-icon: url(:/images/function_point_remove.svg); }
+	QToolButton[objectName="tbAddPoint"] { qproperty-icon: url(:/images/function-point-add.svg); }
+	QToolButton[objectName="tbRemovePoint"] { qproperty-icon: url(:/images/function-point-remove.svg); }
+	QToolButton[objectName="distributionCSV"] { qproperty-icon: url(:/images/histogram.svg); }
+	QToolButton[objectName="savexml"] { qproperty-icon: url(:/images/xml-save.svg); }
+	QToolButton[objectName="pb_ModTF"] { qproperty-icon: url(:/images/histogram-tf.svg); }
+
+
 /****************************************************************************
 QTabWidget
 QTabBar

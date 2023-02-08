@@ -2,12 +2,11 @@
   <qresource prefix="/">
     <file>images/compass.svg</file>
     <file>images/compass_light.svg</file>
-    <file>images/FeatureScout_csvDV.png</file>
     <file>images/FeatureScout_meanObject.png</file>
-    <file>images/modTF.png</file>
     <file>images/layers.svg</file>
     <file>images/layers_light.svg</file>
-    <file>images/settings_PC.png</file>
+    <file>images/settings_PC.svg</file>
+    <file>images/settings_PC_light.svg</file>
     <file>images/SPM.svg</file>
     <file>images/SPM_light.svg</file>
     <file>images/xml-save.svg</file>
