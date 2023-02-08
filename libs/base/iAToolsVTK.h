@@ -73,6 +73,7 @@ iAbase_API void addImages(vtkSmartPointer<vtkImageData> imgDst, vtkSmartPointer<
 //! @param img the image to store
 //! @param filename the name of the file to write to.
 //! @param useCompression whether the file should be compressed (.zraw) or not (.raw) in case we are storing .mhd files
+//! @param progress an optional progress link; if != null, the file writer will trigger its progress signal
 iAbase_API void storeImage(vtkSmartPointer<vtkImageData> img, QString const & filename, bool useCompression = true, iAProgress const* progress = nullptr);
 
 //! Read an image from disk into a VTK image.
@@ -95,11 +96,13 @@ iAbase_API bool isVtkIntegerImage(vtkImageData* img);
 
 //! Given index and size parameters in a QVariantMap, adjust these parameters
 //! so that they specify a region of interest that lies completely within the given image
-//! @param params map of parameters (which should contain values for "Index" and "Size", as iAValueType::Vector3i, i.e. QVector<int>
-//! @param
+//! @param params map of parameters (which should contain values for "Index" and "Size", as iAValueType::Vector3i, i.e. QVector<int>)
+//! @param img the image whose size determines the clamping of parameters
 iAbase_API void adjustIndexAndSizeToImage(QVariantMap& params, vtkImageData* img);
 
-//! Checks whether an image is flat (i.e. whether one side is only 1 pixel wide)
+//! Checks whether an image is flat.
+//! @param img a VTK image
+//! @return whether the image is flat in any direction, i.e. whether one side is only 1 pixel wide.
 iAbase_API bool isFlat(vtkImageData* img);
 
 

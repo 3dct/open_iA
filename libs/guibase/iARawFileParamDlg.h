@@ -20,7 +20,7 @@ public:
 	//! @param parent           The parent widget.
 	//! @param title            The window title.
 	//! @param additionalParams List of additional input parameters (@see iAParamDlg).
-	//! @param [out] rawFileParams The parameters of the raw file that were set by the user.
+	//! @param [out] paramValues The parameters of the raw file that were set by the user.
 	//! @param brightTheme      whether the program currently uses a dark theme (affects green/red background in file size check)
 	iARawFileParamDlg(QString const& fileName, QWidget* parent, QString const& title,
 		iAAttributes const& additionalParams, QVariantMap & paramValues, bool brightTheme);

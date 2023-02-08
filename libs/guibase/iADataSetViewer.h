@@ -34,7 +34,6 @@ public:
 
 	//! key that specifies which views or renderers the viewer currently has visible
 	static const QString RenderFlags;
-	//! @}
 
 	//! called directly after the dataset is loaded, should do anything that needs to be computed in the background
 	virtual void prepare(iAPreferences const & pref, iAProgress* p);

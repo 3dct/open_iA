@@ -30,10 +30,14 @@ iAbase_API iAITKIO::ImagePointer allocateImage(int const size[iAITKIO::Dim], dou
 iAbase_API void storeImage(iAITKIO::ImagePtr image, QString const & filename, bool useCompression, iAProgress const* p = nullptr);
 
 //! Translate from world coordinates to voxel coordinates for the given image
-//! @param img a VTK image
+//! @param img an ITK image
 //! @param worldCoord world (=scene) coordinates (3 components: x, y, z)
-//! @param voxelCoord place for storing 3 components of voxel coordinates in img for the given world coordinates (clamped)
+//! @return voxel coordinates in the given image for the given world coordinates (clamped)
 iAbase_API itk::Index<3> mapWorldCoordsToIndex(iAITKIO::ImagePointer img, double const* worldCoord);
+//! Translate from world coordinates to voxel coordinates for the given image
+//! @param img an ITK image
+//! @param worldCoord world (=scene) coordinates (3 components: x, y, z)
+//! @param voxelCoord place for storing the 3 components of the voxel coordinates
 iAbase_API void mapWorldToVoxelCoords(iAITKIO::ImagePointer img, double const* worldCoord, double * voxelCoord);
 
 //! @{

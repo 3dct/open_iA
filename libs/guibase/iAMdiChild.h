@@ -195,7 +195,7 @@ public:
 	//! @deprecated. Use access via datasets instead
 	virtual QFileInfo const & fileInfo() const = 0;
 	
-	//! @deprected access transform used in slicer. should be removed from here; no replacement in place yet
+	//! @deprecated access transform used in slicer. should be removed from here; no replacement in place yet
 	virtual vtkTransform* slicerTransform() = 0;
 
 	virtual void set3DControlVisibility(bool visible) = 0;

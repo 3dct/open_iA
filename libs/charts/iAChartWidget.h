@@ -177,7 +177,7 @@ signals:
 	void clicked(double x, /*double y,*/ Qt::KeyboardModifiers modifiers);
 
 	//! Emitted when a plot is clicked in the legend
-	//! @param the index of the plot that was clicked (in the vector accessible via plots())
+	//! @param plotID the index of the plot that was clicked (in the vector accessible via plots())
 	void legendPlotClicked(size_t plotID);
 
 protected:

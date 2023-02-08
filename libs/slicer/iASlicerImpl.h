@@ -148,9 +148,7 @@ public:
 	//! Sets the background color of the slicer.
 	//! By default, background color is auto-determined via the slicer mode. If set manually
 	//! via this method, it will keep the given color indefinitely
-	//! @param r red color part (0..1)
-	//! @param g green color part (0..1)
-	//! @param b blue color part (0..1)
+	//! @param color the background color part
 	void setBackground(QColor color) override;
 
 	void setTransform(vtkAbstractTransform * tr);
