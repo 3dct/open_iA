@@ -107,6 +107,11 @@ public:
 	//! Retrieve an icon for a given name from the embedded resources; implementation currently in iAModuleDispatcher.cpp
 	static QIcon resourceIcon(QString const& name);
 
+	//! add an icon to an action (and keep the action for that icon up-to-date if the style changes
+	virtual void addActionIcon(QAction* action, QString const& iconName) =0;
+	//! pendant to addActionIcon - call when an action is no longer available and should not be updated by 
+	virtual void removeActionIcon(QAction* action) =0;
+
 signals:
 	//! Triggered whenever the user has changed the style of the program (bright/dark/...) via the preferences.
 	void styleChanged();

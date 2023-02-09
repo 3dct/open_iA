@@ -125,6 +125,9 @@ public:
 	//! whether the current qss theme is bright mode (true) or dark mode (false)
 	bool brightMode() const override;
 
+	void addActionIcon(QAction* action, QString const& iconName) override;
+	void removeActionIcon(QAction* action) override;
+
 public slots:
 	void loadLayout();
 	void renderSettings();
@@ -234,4 +237,7 @@ private:
 	iADockWidgetWrapper* m_dwJobs;
 	//! whether the job list should be automatically shown when a new job is added to the list:
 	bool m_openJobListOnNewJob;
+
+	//! list of actions and their associated icon name:
+	QMap<QAction*, QString> m_actionIcons;
 };

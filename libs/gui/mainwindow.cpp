@@ -174,6 +174,40 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 
 	m_moduleDispatcher->InitializeModules(iALogWidget::get());
 	updateMenus();
+
+	addActionIcon(m_ui->actionViewXDirectionInRaycaster, "px");
+	addActionIcon(m_ui->actionViewYDirectionInRaycaster, "py");
+	addActionIcon(m_ui->actionViewZDirectionInRaycaster, "pz");
+	addActionIcon(m_ui->actionViewmXDirectionInRaycaster, "mx");
+	addActionIcon(m_ui->actionViewmYDirectionInRaycaster, "my");
+	addActionIcon(m_ui->actionViewmZDirectionInRaycaster, "mz");
+	addActionIcon(m_ui->actionIsometricViewInRaycaster, "iso");
+	addActionIcon(m_ui->actionMagicLens2D, "magic_lens_2d");
+	addActionIcon(m_ui->actionMagicLens3D, "magic_lens_3d");
+	addActionIcon(m_ui->actionRendererSettings, "settings_renderer");
+	addActionIcon(m_ui->actionSlicerSettings, "settings_slicer");
+	addActionIcon(m_ui->actionPreferences, "settings");
+	addActionIcon(m_ui->actionOpenWithDataTypeConversion, "open");
+	addActionIcon(m_ui->actionOpenVolumeStack, "open");
+	addActionIcon(m_ui->actionOpenTLGICTData, "open");
+	addActionIcon(m_ui->actionOpenRaw, "open");
+	addActionIcon(m_ui->actionOpenDataSet, "open");
+	addActionIcon(m_ui->actionOpenInNewWindow, "open");
+	addActionIcon(m_ui->actionSaveDataSet, "save");
+	addActionIcon(m_ui->actionSaveVolumeStack, "save-all");
+	addActionIcon(m_ui->actionSaveProject, "save-all");
+	addActionIcon(m_ui->actionEditProfilePoints, "profile-edit");
+	addActionIcon(m_ui->actionRawProfile, "profile-raw");
+	addActionIcon(m_ui->actionSnakeSlicer, "snakeslicer");
+	addActionIcon(m_ui->actionSyncCamera, "camera-sync");
+	addActionIcon(m_ui->actionInteractionModeCamera, "camera");
+	addActionIcon(m_ui->actionLoadCameraSettings, "camera-load");
+	addActionIcon(m_ui->actionSaveCameraSettings, "camera-save");
+	addActionIcon(m_ui->actionSaveLayout, "layout_export");
+	addActionIcon(m_ui->actionLoadLayout, "layout_load");
+	addActionIcon(m_ui->actionResetLayout, "layout_reset");
+	addActionIcon(m_ui->actionDeleteLayout, "layout_delete");
+	addActionIcon(m_ui->actionInteractionModeRegistration, "transform-move");
 }
 
 MainWindow::~MainWindow()
@@ -1977,47 +2011,10 @@ void MainWindow::applyQSS()
 		p.setColor(QPalette::PlaceholderText, m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
 		p.setColor(QPalette::WindowText,      m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
 		QApplication::setPalette(p);
-		
-		// adapt action icons:
-		static std::vector<std::pair<QAction*, QString>> actionIcons = {
-			{ m_ui->actionViewXDirectionInRaycaster, "px" },
-			{ m_ui->actionViewYDirectionInRaycaster, "py" },
-			{ m_ui->actionViewZDirectionInRaycaster, "pz" },
-			{ m_ui->actionViewmXDirectionInRaycaster, "mx" },
-			{ m_ui->actionViewmYDirectionInRaycaster, "my" },
-			{ m_ui->actionViewmZDirectionInRaycaster, "mz" },
-			{ m_ui->actionIsometricViewInRaycaster, "iso" },
-			{ m_ui->actionMagicLens2D, "magic_lens_2d" },
-			{ m_ui->actionMagicLens3D, "magic_lens_3d" },
-			{ m_ui->actionRendererSettings, "settings_renderer" },
-			{ m_ui->actionSlicerSettings, "settings_slicer" },
-			{ m_ui->actionPreferences, "settings" },
-			{ m_ui->actionOpenWithDataTypeConversion, "open" },
-			{ m_ui->actionOpenVolumeStack, "open" },
-			{ m_ui->actionOpenTLGICTData, "open" },
-			{ m_ui->actionOpenRaw, "open" },
-			{ m_ui->actionOpenDataSet, "open" },
-			{ m_ui->actionOpenInNewWindow, "open" },
-			{ m_ui->actionSaveDataSet, "save" },
-			{ m_ui->actionSaveVolumeStack, "save-all" },
-			{ m_ui->actionSaveProject, "save-all" },
-			{ m_ui->actionEditProfilePoints, "profile-edit" },
-			{ m_ui->actionRawProfile, "profile-raw" },
-			{ m_ui->actionSnakeSlicer, "snakeslicer" },
-			{ m_ui->actionSyncCamera, "camera-sync" },
-			{ m_ui->actionInteractionModeCamera, "camera" },
-			{ m_ui->actionLoadCameraSettings, "camera-load" },
-			{ m_ui->actionSaveCameraSettings, "camera-save" },
-			{ m_ui->actionSaveLayout, "layout_export" },
-			{ m_ui->actionLoadLayout, "layout_load" },
-			{ m_ui->actionResetLayout, "layout_reset" },
-			{ m_ui->actionDeleteLayout, "layout_delete" },
-			{ m_ui->actionInteractionModeRegistration, "transform-move" }
 
-		};
-		for (auto a : actionIcons)
+		for (auto a : m_actionIcons.keys())
 		{
-			a.first->setIcon(resourceIcon(a.second));
+			a->setIcon(resourceIcon(m_actionIcons[a]));
 		}
 		emit styleChanged();
 	}
@@ -2026,6 +2023,17 @@ void MainWindow::applyQSS()
 bool MainWindow::brightMode() const
 {
 	return m_qssName.contains("bright");
+}
+
+void MainWindow::addActionIcon(QAction* action, QString const& iconName)
+{
+	m_actionIcons.insert(action, iconName);
+	action->setIcon(resourceIcon(iconName));
+}
+
+void MainWindow::removeActionIcon(QAction* action)
+{
+	m_actionIcons.remove(action);
 }
 
 void MainWindow::saveLayout()
