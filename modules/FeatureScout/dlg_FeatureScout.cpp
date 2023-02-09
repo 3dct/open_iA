@@ -1927,6 +1927,7 @@ void dlg_FeatureScout::pcRightButtonPressed(vtkObject* obj, unsigned long, void*
 
 void dlg_FeatureScout::pcRightButtonReleased(vtkObject* obj, unsigned long, void* client_data, void*, vtkCommand* command)
 {
+	Q_UNUSED(client_data);
 	// Gets the mouse button event for scatter plot matrix and opens a popup menu.
 	vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast(obj);
 	int* mouseReleasePos = iren->GetLastEventPosition();
@@ -1935,6 +1936,7 @@ void dlg_FeatureScout::pcRightButtonReleased(vtkObject* obj, unsigned long, void
 		command->AbortFlagOn();    //< Consume event so the interactor style doesn't get it
 		QMenu popupMenu;
 		auto addClass = popupMenu.addAction("Add class");
+		addClass->setIcon(iAThemeHelper::icon("plus"));
 		connect(addClass, &QAction::triggered, this, &dlg_FeatureScout::ClassAddButton);
 		auto pcSettings = popupMenu.addAction("Settings");
 		pcSettings->setIcon(iAThemeHelper::icon("settings_PC"));

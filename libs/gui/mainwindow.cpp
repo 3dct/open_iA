@@ -213,11 +213,13 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 
 MainWindow::~MainWindow()
 {
-	// save geometry and state
 	QSettings settings;
 	settings.setValue("geometry", saveGeometry());
 	settings.setValue("state", saveState());
-
+	for (auto a : m_actionIcons.keys())
+	{   // to prevent invalid access when QActions are deleted
+		disconnect(a, &QObject::destroyed, this, &MainWindow::removeActionIcon);
+	}
 	m_moduleDispatcher->SaveModulesSettings();
 }
 
@@ -2024,13 +2026,15 @@ bool MainWindow::brightMode() const
 
 void MainWindow::addActionIcon(QAction* action, QString const& iconName)
 {
+	assert(action);
 	m_actionIcons.insert(action, iconName);
 	action->setIcon(iAThemeHelper::icon(iconName));
+	connect(action, &QObject::destroyed, this, &MainWindow::removeActionIcon);
 }
 
-void MainWindow::removeActionIcon(QAction* action)
+void MainWindow::removeActionIcon()
 {
-	m_actionIcons.remove(action);
+	m_actionIcons.remove(qobject_cast<QAction*>(sender()));
 }
 
 void MainWindow::saveLayout()

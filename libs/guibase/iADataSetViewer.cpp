@@ -46,14 +46,6 @@ iADataSetViewer::~iADataSetViewer()
 	{
 		m_magicLensRenderer->setVisible(false);
 	}
-	for (auto v : m_viewActions)
-	{
-		iAMainWindow::get()->removeActionIcon(v);
-	}
-	for (auto v : m_editActions)
-	{
-		iAMainWindow::get()->removeActionIcon(v);
-	}
 }
 
 void iADataSetViewer::prepare(iAPreferences const& pref, iAProgress* p)

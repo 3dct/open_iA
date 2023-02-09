@@ -10,7 +10,8 @@ class QString;
 //! Helpers for determining whether currently a bright or dark theme is applied, and for retrieving icons fitting the current theme
 namespace iAThemeHelper
 {
-	//! Retrieve an icon for a given name from the embedded resources; implementation currently in iAModuleDispatcher.cpp
+	//! Retrieve an icon for a given name from the embedded resources.
+	//! The retrieved icon can be in the resources of any currently loaded program parts (core libs, modules)
 	iAcharts_API QIcon icon(QString const& name);
 	//! set bright mode (enabled=true) or dark mode (enabled=false)
 	//! @param enabled whether we are switching to bright mode (true) or dark mode (false)

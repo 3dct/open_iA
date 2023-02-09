@@ -275,6 +275,7 @@ QPushButton
 	QToolButton[objectName="tbSaveSettings"],
 	QToolButton[objectName="tbSaveTable"] { qproperty-icon: url(:/images/save.svg); }
 	QToolButton[objectName="pbSaveStack"] { qproperty-icon: url(:/images/save-all.svg); }
+	QToolButton[objectName="export_class"],
 	QToolButton[objectName="pbSaveScreen"] { qproperty-icon: url(:/images/image.svg); }
 	QToolButton[objectName="tbReload"],
 	QToolButton[objectName="updateEvents"] { qproperty-icon: url(:/images/update.svg); }

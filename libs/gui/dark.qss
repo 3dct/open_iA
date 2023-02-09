@@ -300,6 +300,7 @@ QPushButton
 	QToolButton[objectName="tbSaveSettings"],
 	QToolButton[objectName="tbSaveTable"] { qproperty-icon: url(:/images/save_light.svg); }
 	QToolButton[objectName="pbSaveStack"] { qproperty-icon: url(:/images/save-all_light.svg); }
+	QToolButton[objectName="export_class"],
 	QToolButton[objectName="pbSaveScreen"] { qproperty-icon: url(:/images/image_light.svg); }
 	QToolButton[objectName="tbReload"],
 	QToolButton[objectName="updateEvents"] { qproperty-icon: url(:/images/update_light.svg); }

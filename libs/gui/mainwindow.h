@@ -122,7 +122,6 @@ public:
 	bool brightMode() const;
 
 	void addActionIcon(QAction* action, QString const& iconName) override;
-	void removeActionIcon(QAction* action) override;
 
 public slots:
 	void loadLayout();
@@ -169,6 +168,7 @@ private slots:
 	void updateWindowMenu();
 	void setActiveSubWindow(QWidget *window);
 	void toggleMdiViewMode();
+	void removeActionIcon();
 
 private:
 	//! internal retriever for MdiChild object (instead of iAMdiChild interface)

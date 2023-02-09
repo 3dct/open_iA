@@ -82,15 +82,7 @@ iAFeatureScoutToolbar::iAFeatureScoutToolbar(iAMainWindow* mainWnd) :
 		[toolbarCallback]() { toolbarCallback(&dlg_FeatureScout::showPCSettings); });
 }
 
-iAFeatureScoutToolbar::~iAFeatureScoutToolbar()
-{
-	m_mainWnd->removeActionIcon(m_ui->actionMultiRendering);
-	m_mainWnd->removeActionIcon(m_ui->actionLength_Distribution);
-	m_mainWnd->removeActionIcon(m_ui->actionMeanObject);
-	m_mainWnd->removeActionIcon(m_ui->actionOrientation_Rendering);
-	m_mainWnd->removeActionIcon(m_ui->actionActivate_SPM);
-	m_mainWnd->removeActionIcon(m_ui->actionSettingsPC);
-}
+iAFeatureScoutToolbar::~iAFeatureScoutToolbar() = default;
 
 void iAFeatureScoutToolbar::childClosed()
 {
