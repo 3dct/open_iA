@@ -306,7 +306,7 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 		contextMenu->addAction(QIcon(":/images/tf-save.svg"), tr("Save transfer function"), this, &iAChartWithFunctionsWidget::saveTransferFunction);
 		if (m_allowTrfReset)
 		{
-			contextMenu->addAction(QIcon(":/images/tf-reset.png"), tr("Reset transfer function"), this, &iAChartWithFunctionsWidget::resetTrf);
+			contextMenu->addAction(QIcon(":/images/tf-reset.svg"), tr("Reset transfer function"), this, &iAChartWithFunctionsWidget::resetTrf);
 		}
 		contextMenu->addSeparator();
 	}
