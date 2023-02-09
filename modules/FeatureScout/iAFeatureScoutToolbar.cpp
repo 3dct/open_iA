@@ -63,7 +63,7 @@ iAFeatureScoutToolbar::iAFeatureScoutToolbar(iAMainWindow* mainWnd) :
 	};
 	connect(m_mainWnd, &iAMainWindow::childChanged, this, &iAFeatureScoutToolbar::childChanged);
 	m_mainWnd->addActionIcon(m_ui->actionMultiRendering, "layers");
-	m_mainWnd->addActionIcon(m_ui->actionLength_Distribution, "histogram");
+	m_mainWnd->addActionIcon(m_ui->actionLength_Distribution, "length-distribution");
 	m_mainWnd->addActionIcon(m_ui->actionMeanObject, "mean-object");
 	m_mainWnd->addActionIcon(m_ui->actionOrientation_Rendering, "compass");
 	m_mainWnd->addActionIcon(m_ui->actionActivate_SPM, "SPM");
