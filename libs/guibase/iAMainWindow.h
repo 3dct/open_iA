@@ -93,9 +93,6 @@ public:
 	//! retrieve the module dispatcher
 	virtual iAModuleDispatcher& moduleDispatcher() const = 0;
 
-	//! whether the current qss theme is bright mode (true) or dark mode (false)
-	virtual bool brightMode() const = 0;
-
 	//! Retrieve current directory path (the "working folder")
 	virtual QString const& path() const = 0;
 	//! Set current directory path (the "working folder")
@@ -103,9 +100,6 @@ public:
 
 	//! Access to the main window (more or less singleton); implementation currently in iAModuleDispatcher.cpp
 	static iAMainWindow* get();
-
-	//! Retrieve an icon for a given name from the embedded resources; implementation currently in iAModuleDispatcher.cpp
-	static QIcon resourceIcon(QString const& name);
 
 	//! add an icon to an action (and keep the action for that icon up-to-date if the style changes
 	virtual void addActionIcon(QAction* action, QString const& iconName) =0;

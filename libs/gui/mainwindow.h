@@ -11,15 +11,12 @@
 #include "iAVolumeSettings.h"
 #include "iARawFileParameters.h"
 
-#include <vtkSmartPointer.h>
-
 #include <QMdiArea>
 #include <QMdiSubWindow>
 
 #include <memory>
 #include <vector>
 
-class vtkPolyData;
 class QAction;
 class QActionGroup;
 class QComboBox;
@@ -31,7 +28,6 @@ class QLabel;
 class QSplashScreen;
 
 class vtkCamera;
-class vtkImageData;
 
 class MdiChild;
 class iADockWidgetWrapper;
@@ -123,7 +119,7 @@ public:
 	void makeActionChildDependent(QAction* action) override;
 
 	//! whether the current qss theme is bright mode (true) or dark mode (false)
-	bool brightMode() const override;
+	bool brightMode() const;
 
 	void addActionIcon(QAction* action, QString const& iconName) override;
 	void removeActionIcon(QAction* action) override;

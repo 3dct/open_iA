@@ -3,7 +3,7 @@
 #include "iAFast3DMagicLensWidget.h"
 
 #include "defines.h" // for DefaultMagicLensSize
-#include "iAMainWindow.h"    // for resourceIcon TODO: avoid / move somewhere else!
+#include "iAThemeHelper.h"
 
 #include <QVTKInteractor.h>
 #include <vtkActor2D.h>
@@ -382,6 +382,6 @@ void iAFast3DMagicLensWidget::contextMenuEvent(QContextMenuEvent* event)
 	}
 	QMenu menu;
 	auto settingsAction = menu.addAction(tr("Settings"), this, &iAFast3DMagicLensWidget::editSettings);
-	settingsAction->setIcon(iAMainWindow::resourceIcon("settings_renderer"));
+	settingsAction->setIcon(iAThemeHelper::icon("settings_renderer"));
 	menu.exec(event->globalPos());
 }

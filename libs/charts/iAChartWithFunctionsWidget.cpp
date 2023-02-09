@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAChartWithFunctionsWidget.h"
 
-#include "iATFTableDlg.h"
 #include "iAChartFunctionBezier.h"
 #include "iAChartFunctionGaussian.h"
 #include "iAChartFunctionTransfer.h"
+#include "iATFTableDlg.h"
+#include "iAThemeHelper.h"
 
 #include "iALog.h"
 #include "iAMapper.h"
@@ -284,12 +285,11 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 	{
 		std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 		iAChartFunction *func = *(it + m_selectedFunction);
-		// TODO: get _light icons if dark theme is used - see iAMainWindow::resourceIcon (requires making brightMode() available somewhere more basic)
 		if (func->getSelectedPoint() != -1)
 		{
 			if (func->isColored())
 			{
-				QAction *changeColorAction = new QAction(QIcon(":/images/color-wheel.svg"), tr("Change Color"), this);
+				QAction *changeColorAction = new QAction(iAThemeHelper::icon("color-wheel"), tr("Change Color"), this);
 				contextMenu->setDefaultAction(changeColorAction);
 				connect(changeColorAction, &QAction::triggered, [this] { changeColor(nullptr); });
 				contextMenu->addAction(changeColorAction);
@@ -297,29 +297,29 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 
 			if (func->isDeletable(func->getSelectedPoint()))
 			{
-				contextMenu->addAction(QIcon(":/images/function-point-remove.svg"), tr("Delete"), this, &iAChartWithFunctionsWidget::deletePoint);
+				contextMenu->addAction(iAThemeHelper::icon("function-point-remove"), tr("Delete"), this, &iAChartWithFunctionsWidget::deletePoint);
 			}
 			contextMenu->addSeparator();
 		}
-		contextMenu->addAction(QIcon(":/images/table.svg"), tr("Transfer Function Table View"), this, &iAChartWithFunctionsWidget::showTFTable);
-		contextMenu->addAction(QIcon(":/images/tf-load.svg"), tr("Load transfer function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::loadTransferFunction));
-		contextMenu->addAction(QIcon(":/images/tf-save.svg"), tr("Save transfer function"), this, &iAChartWithFunctionsWidget::saveTransferFunction);
+		contextMenu->addAction(iAThemeHelper::icon("table"), tr("Transfer Function Table View"), this, &iAChartWithFunctionsWidget::showTFTable);
+		contextMenu->addAction(iAThemeHelper::icon("tf-load"), tr("Load transfer function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::loadTransferFunction));
+		contextMenu->addAction(iAThemeHelper::icon("tf-save"), tr("Save transfer function"), this, &iAChartWithFunctionsWidget::saveTransferFunction);
 		if (m_allowTrfReset)
 		{
-			contextMenu->addAction(QIcon(":/images/tf-reset.svg"), tr("Reset transfer function"), this, &iAChartWithFunctionsWidget::resetTrf);
+			contextMenu->addAction(iAThemeHelper::icon("tf-reset"), tr("Reset transfer function"), this, &iAChartWithFunctionsWidget::resetTrf);
 		}
 		contextMenu->addSeparator();
 	}
 	if (m_enableAdditionalFunctions)
 	{
-		contextMenu->addAction(QIcon(":/images/bezier.svg"), tr("Add bezier function"), this, &iAChartWithFunctionsWidget::addBezierFunction);
-		contextMenu->addAction(QIcon(":/images/gaussian.svg"), tr("Add gaussian function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::addGaussianFunction));
-		contextMenu->addAction(QIcon(":/images/function-load.svg"), tr("Load functions"), this, &iAChartWithFunctionsWidget::loadFunctions);
-		contextMenu->addAction(QIcon(":/images/function-save.svg"), tr("Save functions"), this, &iAChartWithFunctionsWidget::saveFunctions);
+		contextMenu->addAction(iAThemeHelper::icon("bezier"), tr("Add bezier function"), this, &iAChartWithFunctionsWidget::addBezierFunction);
+		contextMenu->addAction(iAThemeHelper::icon("gaussian"), tr("Add gaussian function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::addGaussianFunction));
+		contextMenu->addAction(iAThemeHelper::icon("function-load"), tr("Load functions"), this, &iAChartWithFunctionsWidget::loadFunctions);
+		contextMenu->addAction(iAThemeHelper::icon("function-save"), tr("Save functions"), this, &iAChartWithFunctionsWidget::saveFunctions);
 
 		if (m_selectedFunction != 0)
 		{
-			contextMenu->addAction(QIcon(":/images/function-remove.svg"), tr("Remove selected function"), this, &iAChartWithFunctionsWidget::removeFunction);
+			contextMenu->addAction(iAThemeHelper::icon("function-remove"), tr("Remove selected function"), this, &iAChartWithFunctionsWidget::removeFunction);
 		}
 		if (m_functions.size() > 1)
 		{

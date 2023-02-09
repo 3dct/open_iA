@@ -11,11 +11,11 @@
 #include <iAFunctionalBoxplot.h>
 #include <iAJobListView.h>
 #include <iALUT.h>
-#include <iAMainWindow.h>
 #include <iAMdiChild.h>
-#include <iATransferFunction.h>
 #include <iAQVTKWidget.h>
 #include <iARenderer.h>
+#include <iAThemeHelper.h>
+#include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
 #include <iAVolumeViewer.h>
 
@@ -148,7 +148,7 @@ void dlg_DynamicVolumeLines::setupScaledPlot(QCustomPlot *qcp)
 	tb_MinMaxPlot->setStyleSheet("border: 1px solid; margin-left: 3px;");
 	tb_MinMaxPlot->setMinimumSize(QSize(0, 0));
 	tb_MinMaxPlot->setMaximumSize(QSize(13, 10));
-	tb_MinMaxPlot->setIcon(QIcon(QString(":/images/minus%1.svg").arg(!iAMainWindow::get()->brightMode() ? "_light" : "")));
+	tb_MinMaxPlot->setIcon(iAThemeHelper::icon("minus"));
 	tb_MinMaxPlot->setIconSize(QSize(10, 10));
 	connect(tb_MinMaxPlot, &QToolButton::clicked, this, &dlg_DynamicVolumeLines::changePlotVisibility);
 
@@ -274,9 +274,7 @@ void dlg_DynamicVolumeLines::setupGUIConnections()
 void dlg_DynamicVolumeLines::changePlotVisibility()
 {
 	QToolButton *tb = qobject_cast<QToolButton*>(QObject::sender());
-	tb->objectName().contains("nonlinear") ?
-		setPlotVisibility(tb, m_nonlinearScaledPlot, !iAMainWindow::get()->brightMode()) :
-		setPlotVisibility(tb, m_linearScaledPlot, !iAMainWindow::get()->brightMode());
+	setPlotVisibility(tb, tb->objectName().contains("nonlinear") ?  m_nonlinearScaledPlot : m_linearScaledPlot);
 }
 
 void dlg_DynamicVolumeLines::setupMultiRendererView()

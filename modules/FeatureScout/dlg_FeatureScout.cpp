@@ -17,13 +17,13 @@
 #include "iACsvIO.h"
 #include "iAObjectType.h"
 
-#include <iAMainWindow.h>  // for resourceIcon
 #include <iAMdiChild.h>
 #include <iAMovieHelper.h>
 #include <iAParameterDlg.h>
 #include <iAPreferences.h>
 #include <iAQVTKWidget.h>
 #include <iARenderer.h>
+#include <iAThemeHelper.h>
 #include <iATypedCallHelper.h>
 
 // qthelper:
@@ -431,21 +431,13 @@ void dlg_FeatureScout::setupViews()
 	m_lengthDistrView->SetRenderWindow(m_lengthDistrWidget->renderWindow());
 	m_lengthDistrView->SetInteractor(m_lengthDistrWidget->interactor());
 
-	// Create a popup menu for Parallel Coordinates:
-	QMenu* pcPopupMenu = new QMenu(m_pcWidget);
-	auto addClass = pcPopupMenu->addAction("Add class");
-	connect(addClass, &QAction::triggered, this, &dlg_FeatureScout::ClassAddButton);
-	auto pcSettings = pcPopupMenu->addAction("Settings");
-	pcSettings->setIcon(iAMainWindow::resourceIcon("settings_PC"));
-	connect(pcSettings, &QAction::triggered, this, &dlg_FeatureScout::showPCSettings);
-
 	m_pcConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
 	// Gets right button release event (on a parallel coordinates).
 	m_pcConnections->Connect(m_pcWidget->renderWindow()->GetInteractor(),
 		vtkCommand::RightButtonReleaseEvent,
 		this,
 		SLOT(pcRightButtonReleased(vtkObject*, unsigned long, void*, void*, vtkCommand*)),
-		pcPopupMenu, 1.0);
+		nullptr, 1.0);
 
 	// Gets right button press event (on a scatter plot).
 	m_pcConnections->Connect(m_pcWidget->renderWindow()->GetInteractor(),
@@ -1939,14 +1931,18 @@ void dlg_FeatureScout::pcRightButtonReleased(vtkObject* obj, unsigned long, void
 	if (mouseReleasePos[0] == m_mousePressPos[0] && mouseReleasePos[1] == m_mousePressPos[1])
 	{
 		command->AbortFlagOn();    //< Consume event so the interactor style doesn't get it
-		QMenu* popupMenu = static_cast<QMenu*>(client_data);
+		QMenu popupMenu;
+		auto addClass = popupMenu.addAction("Add class");
+		connect(addClass, &QAction::triggered, this, &dlg_FeatureScout::ClassAddButton);
+		auto pcSettings = popupMenu.addAction("Settings");
+		pcSettings->setIcon(iAThemeHelper::icon("settings_PC"));
+		connect(pcSettings, &QAction::triggered, this, &dlg_FeatureScout::showPCSettings);
 		int* sz = iren->GetSize();
 		QPoint pt(mouseReleasePos[0], sz[1] - mouseReleasePos[1]); // flip y
 		// VTK delivers "device pixel" coordinates, while Qt expects "device independent pixel" coordinates
 		// (see https://doc.qt.io/qt-5/highdpi.html#glossary-of-high-dpi-terms); convert:
 		pt = pt / m_dwPC->devicePixelRatio();
-		auto global_pt = popupMenu->parentWidget()->mapToGlobal(pt);
-		popupMenu->popup(global_pt);
+		popupMenu.exec(m_pcWidget->mapToGlobal(pt));
 	}
 	else
 	{

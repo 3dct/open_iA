@@ -8,9 +8,9 @@
 #include <iARawFileIO.h>
 #include <iASettings.h>
 
-#include <iAMainWindow.h>
 #include <iAParameterDlg.h>
 #include <iARawFileParamDlg.h>
+#include <iAThemeHelper.h>
 
 #include <QRegularExpression>
 
@@ -88,7 +88,7 @@ public:
 		Q_UNUSED(parameters);    // iARawFileParamDlg knows which parameters to get
 		Q_UNUSED(ioName);
 		iAAttributes additionalParams;
-		iARawFileParamDlg dlg(fileName, parent, "Raw file parameters", additionalParams, values, iAMainWindow::get()->brightMode());
+		iARawFileParamDlg dlg(fileName, parent, "Raw file parameters", additionalParams, values, iAThemeHelper::brightMode());
 		if (!dlg.accepted())
 		{
 			return false;

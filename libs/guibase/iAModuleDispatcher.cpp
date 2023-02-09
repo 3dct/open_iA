@@ -303,8 +303,3 @@ iAMainWindow* iAMainWindow::get()
 {
 	return m_mainWnd;
 }
-
-QIcon iAMainWindow::resourceIcon(QString const& name)
-{
-	return QIcon(QString(":/images/%1%2.svg").arg(name).arg(m_mainWnd->brightMode() ? "" : "_light"));
-}

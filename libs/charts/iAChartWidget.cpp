@@ -11,6 +11,7 @@
 #include "iAPlotData.h"
 #include "iAQGLWidget.h"
 #include "iAStringHelper.h"
+#include "iAThemeHelper.h"
 
 #include <QAction>
 #include <QApplication>
@@ -1255,14 +1256,13 @@ void iAChartWidget::contextMenuEvent(QContextMenuEvent *event)
 {
 	m_contextPos = event->pos();
 	m_contextMenu->clear();
-	// TODO: get _light icons if dark theme is used - see iAMainWindow::resourceIcon (requires making brightMode() available somewhere more basic)
-	m_contextMenu->addAction(QIcon(":/images/chart.svg"), tr("Reset chart view"), this, &iAChartWidget::resetView);
+	m_contextMenu->addAction(iAThemeHelper::icon("chart"), tr("Reset chart view"), this, &iAChartWidget::resetView);
 	QAction *showTooltipAction = new QAction(tr("Show histogram coordinates"), this);
 	showTooltipAction->setCheckable(true);
 	showTooltipAction->setChecked(m_showTooltip);
 	connect(showTooltipAction, &QAction::toggled, this, &iAChartWidget::showTooltip);
 	m_contextMenu->addAction(showTooltipAction);
-	m_contextMenu->addAction(QIcon(":/images/save.svg"), tr("Export histogram data"), this, &iAChartWidget::exportData);
+	m_contextMenu->addAction(iAThemeHelper::icon("save"), tr("Export histogram data"), this, &iAChartWidget::exportData);
 	m_contextMenu->addSeparator();
 	addContextMenuEntries(m_contextMenu);
 	m_contextMenu->exec(event->globalPos());
