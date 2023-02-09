@@ -43,7 +43,7 @@ PROJECT_BRIEF          = "A tool for the visual analysis and processing of volum
 # exceed 55 pixels and the maximum width should not exceed 200 pixels. 
 # Doxygen will copy the logo to the output directory.
 
-PROJECT_LOGO           = gui/open_iA.png
+PROJECT_LOGO           = libs/gui/images/iA.svg
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) 
 # base path where the generated documentation will be put. 
