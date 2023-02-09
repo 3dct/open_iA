@@ -22,36 +22,6 @@
 
 namespace
 {
-	QString assembleIconName(QString const& iconName, bool checked)
-	{
-		return QString(":/images/%1%2.svg")
-			.arg(iconName)
-			.arg((checked ^ !iAMainWindow::get()->brightMode()) ? "" : "_light");
-	}
-	QIcon toggleIconFromName(QString const& iconName)
-	{
-		QIcon icon;
-		icon.addPixmap(QPixmap(assembleIconName(iconName, false)), QIcon::Normal, QIcon::Off);
-		icon.addPixmap(QPixmap(assembleIconName(iconName, true)), QIcon::Normal, QIcon::On);
-		return icon;
-	}
-	void setActionIcon(QAction* action, QString const& iconName, bool toggle)
-	{
-		action->setIcon(toggle ? toggleIconFromName(iconName) : QIcon(assembleIconName(iconName, true)));
-		action->setData(QString("%1%2").arg(toggle?"!":".").arg(iconName));
-	}
-	void updateActionIcon(QAction* action)
-	{
-		auto s = action->data().toString();
-		if (s.isEmpty())
-		{
-			LOG(lvlWarn, QString("DEVELOPER WARNING: Dataset action %1 has no proper iconName as data!").arg(action->text()));
-			return;
-		}
-		auto iconName = s.right(s.length() - 1);
-		setActionIcon(action, iconName, s[0] == '!');
-	}
-
 	const QChar Render3DFlag('R');
 	const QChar RenderOutlineFlag('B');
 	const QChar RenderMagicLensFlag('L');
@@ -75,6 +45,14 @@ iADataSetViewer::~iADataSetViewer()
 	if (m_magicLensRenderer && m_magicLensRenderer->isVisible())
 	{
 		m_magicLensRenderer->setVisible(false);
+	}
+	for (auto v : m_viewActions)
+	{
+		iAMainWindow::get()->removeActionIcon(v);
+	}
+	for (auto v : m_editActions)
+	{
+		iAMainWindow::get()->removeActionIcon(v);
 	}
 }
 
@@ -108,40 +86,38 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	}
 	child->renderer()->adaptSceneBoundsToNewObject(m_renderer->bounds());
 	auto dsList = child->dataSetListWidget();
-	QVector<QAction*> viewActions;
-	viewActions.push_back(createToggleAction("3D", "3d", renderFlagSet(Render3DFlag),
-		[this, child](bool checked)
+	// reversed to view order, see addViewAction
+	m_pickAction = addViewAction("Pickable", "transform-move", false,
+		[this, child, dataSetIdx](bool checked)
 		{
-			setRenderFlag(Render3DFlag, checked);
-			m_renderer->setVisible(checked);
-			child->updateRenderer();
-		}));
-	viewActions.push_back(createToggleAction("Box", "box_3d_edge", renderFlagSet(RenderOutlineFlag),
-		[this, child](bool checked)
-		{
-			setRenderFlag(RenderOutlineFlag, checked);
-			m_renderer->setBoundsVisible(checked);
-			child->updateRenderer();
-		}));
-	viewActions.push_back(createToggleAction("Magic Lens", "magic_lens_3d", renderFlagSet(RenderMagicLensFlag),
-		[this, child](bool checked)
-		{
-			setRenderFlag(RenderMagicLensFlag, checked);
-			m_magicLensRenderer->setVisible(checked);
-			child->updateRenderer();
-		}));
-	m_pickAction = createToggleAction("Pickable", "transform-move", false,
-		[this, child, dataSetIdx](bool checked) {
 			Q_UNUSED(checked);
 			if (checked)
 			{
 				child->setDataSetMovable(dataSetIdx);
 			}
 		});
+	addViewAction("Magic Lens", "magic_lens_3d", renderFlagSet(RenderMagicLensFlag),
+		[this, child](bool checked)
+		{
+			setRenderFlag(RenderMagicLensFlag, checked);
+			m_magicLensRenderer->setVisible(checked);
+			child->updateRenderer();
+		});
+	addViewAction("Box", "box_3d_edge", renderFlagSet(RenderOutlineFlag),
+		[this, child](bool checked)
+		{
+			setRenderFlag(RenderOutlineFlag, checked);
+			m_renderer->setBoundsVisible(checked);
+			child->updateRenderer();
+		});
+	addViewAction("3D", "3d", renderFlagSet(Render3DFlag),
+		[this, child](bool checked)
+		{
+			setRenderFlag(Render3DFlag, checked);
+			m_renderer->setVisible(checked);
+			child->updateRenderer();
+		});
 	m_pickAction->setEnabled(false);
-	viewActions.push_back(m_pickAction);
-
-	viewActions.append(additionalActions(child));
 
 	auto editAction = new QAction("Edit dataset and display properties");
 	connect(editAction, &QAction::triggered, this,
@@ -182,7 +158,8 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	*/
 			emit dataSetChanged(dataSetIdx);
 		});
-	setActionIcon(editAction, "edit", false);
+	iAMainWindow::get()->addActionIcon(editAction, "edit");
+	m_editActions.push_back(editAction);
 	QVector<QAction*> editActions;
 	editActions.push_back(editAction);
 
@@ -194,22 +171,10 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			child->dataSetListWidget()->removeDataSet(dataSetIdx);
 			emit removeDataSet(dataSetIdx);
 		});
-	setActionIcon(removeAction, "delete", false);
+	iAMainWindow::get()->addActionIcon(removeAction, "delete");
+	m_editActions.push_back(removeAction);
 	editActions.push_back(removeAction);
-
-	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this,
-	[viewActions, editActions]()
-	{
-		for (auto a: viewActions)
-		{
-			updateActionIcon(a);
-		}
-		for (auto a : editActions)
-		{
-			updateActionIcon(a);
-		}
-	});
-	dsList->addDataSet(m_dataSet, dataSetIdx, viewActions, editActions);
+	dsList->addDataSet(m_dataSet, dataSetIdx, m_viewActions, m_editActions);
 }
 
 QString iADataSetViewer::information() const
@@ -269,21 +234,16 @@ std::shared_ptr<iADataSetRenderer> iADataSetViewer::createRenderer(vtkRenderer* 
 	return {};
 }
 
-QAction* iADataSetViewer::createToggleAction(QString const& name, QString const& iconName, bool checked, std::function<void(bool)> handler)
+QAction* iADataSetViewer::addViewAction(QString const& name, QString const& iconName, bool checked, std::function<void(bool)> handler)
 {
 	auto action = new QAction(name);
 	action->setToolTip(QString("Toggle %1").arg(name));
-	setActionIcon(action, iconName, true);
 	action->setCheckable(true);
 	action->setChecked(checked);
+	iAMainWindow::get()->addActionIcon(action, iconName);
 	connect(action, &QAction::triggered, this, handler);
+	m_viewActions.prepend(action);
 	return action;
-}
-
-QVector<QAction*> iADataSetViewer::additionalActions(iAMdiChild* child)
-{
-	Q_UNUSED(child);
-	return {};
 }
 
 void iADataSetViewer::setAttributes(QVariantMap const& values)
@@ -423,7 +383,6 @@ iAProjectViewer::iAProjectViewer(iADataSet * dataSet) :
 
 #include <iATool.h>
 #include "iAToolRegistry.h"
-#include <iAMainWindow.h>
 
 #include <QSettings>
 

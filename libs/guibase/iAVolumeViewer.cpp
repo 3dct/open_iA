@@ -359,6 +359,32 @@ void iAVolumeViewer::prepare(iAPreferences const& pref, iAProgress* p)
 
 void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 {
+	addViewAction("Slice Profile", "profile", renderFlagSet(RenderProfileFlag),
+		[this, child](bool checked)
+		{
+			setRenderFlag(RenderProfileFlag, checked);
+			if (checked)
+			{
+				updateProfilePlot();
+			}
+			m_dwProfile->setVisible(checked);
+		});
+	m_histogramAction = addViewAction("Histogram", "histogram-tf", renderFlagSet(RenderHistogramFlag),
+		[this, child](bool checked)
+		{
+			setRenderFlag(RenderHistogramFlag, checked);
+			m_dwHistogram->setVisible(checked);
+		});
+	addViewAction("2D", "2d", renderFlagSet(RenderSlicerFlag),
+		[this, child](bool checked)
+		{
+			setRenderFlag(RenderSlicerFlag, checked);
+			for (int s = 0; s < 3; ++s)
+			{
+				m_slicer[s]->enableChannel(m_slicerChannelID, checked);
+			}
+			child->updateSlicers();
+		});
 	if (!m_dataSet->hasMetaData(RenderFlags))
 	{
 		QString defaultRenderFlags("S");
@@ -386,6 +412,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	m_dwHistogram = QSharedPointer<iADockWidgetWrapper>::create(m_histogram, histoName, QString("Histogram%1").arg(++histoNum));
 	connect(m_dwHistogram.get(), &QDockWidget::visibilityChanged, this, [this](bool visible)
 	{
+		QSignalBlocker sb(m_histogramAction);
 		m_histogramAction->setChecked(visible);
 	});
 	connect(m_histogram, &iAChartWithFunctionsWidget::transferFunctionChanged, child, [child, this]
@@ -542,39 +569,6 @@ std::shared_ptr<iADataSetRenderer> iAVolumeViewer::createRenderer(vtkRenderer* r
 {
 	auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
 	return std::make_shared<iAVolRenderer>(ren, img, this);
-}
-
-QVector<QAction*> iAVolumeViewer::additionalActions(iAMdiChild* child)
-{
-	m_histogramAction = createToggleAction("Histogram", "histogram-tf", renderFlagSet(RenderHistogramFlag),
-	[this, child](bool checked)
-	{
-		setRenderFlag(RenderHistogramFlag, checked);
-		m_dwHistogram->setVisible(checked);
-	});
-	return {
-		createToggleAction("2D", "2d", renderFlagSet(RenderSlicerFlag),
-		[this, child](bool checked)
-		{
-			setRenderFlag(RenderSlicerFlag, checked);
-			for (int s = 0; s < 3; ++s)
-			{
-				m_slicer[s]->enableChannel(m_slicerChannelID, checked);
-			}
-			child->updateSlicers();
-		}),
-		m_histogramAction,
-		createToggleAction("Slice Profile", "profile", renderFlagSet(RenderProfileFlag),
-			[this, child](bool checked)
-			{
-				setRenderFlag(RenderProfileFlag, checked);
-				if (checked)
-				{
-					updateProfilePlot();
-				}
-				m_dwProfile->setVisible(checked);
-			})
-	};
 }
 
 QSharedPointer<iAHistogramData> iAVolumeViewer::histogramData() const

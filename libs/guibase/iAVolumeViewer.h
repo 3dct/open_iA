@@ -40,7 +40,6 @@ public:
 	void slicerRegionSelected(double minVal, double maxVal, uint channelID) override;
 	void setPickable(bool pickable) override;
 	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren) override;
-	QVector<QAction*> additionalActions(iAMdiChild* child) override;
 	iAChartWithFunctionsWidget* histogram();
 	QSharedPointer<iAHistogramData> histogramData() const;  // should return a const raw pointer or reference
 	iATransferFunction* transfer();
