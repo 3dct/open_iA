@@ -5,6 +5,7 @@
 #include <qcustomplot.h>
 #include <defines.h>   // for DIM
 #include <iAColorTheme.h>
+#include <iAThemeHelper.h>
 
 #include <itkImageBase.h>
 #include <itkImage.h>
