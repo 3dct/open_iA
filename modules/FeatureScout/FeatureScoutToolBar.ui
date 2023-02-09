@@ -32,10 +32,6 @@
    </size>
   </property>
   <action name="actionMultiRendering">
-   <property name="icon">
-    <iconset resource="FeatureScout.qrc">
-     <normaloff>:/images/layers.svg</normaloff>:/images/layers.svg</iconset>
-   </property>
    <property name="text">
     <string>Multi Rendering</string>
    </property>
@@ -44,10 +40,6 @@
    </property>
   </action>
   <action name="actionLength_Distribution">
-   <property name="icon">
-    <iconset resource="FeatureScout.qrc">
-     <normaloff>:/images/histogram.svg</normaloff>:/images/histogram.svg</iconset>
-   </property>
    <property name="text">
     <string>Length Distribution</string>
    </property>
@@ -56,10 +48,6 @@
    </property>
   </action>
   <action name="actionMeanObject">
-   <property name="icon">
-    <iconset resource="FeatureScout.qrc">
-     <normaloff>:/images/FeatureScout_meanObject.png</normaloff>:/images/FeatureScout_meanObject.png</iconset>
-   </property>
    <property name="text">
     <string>Mean Object</string>
    </property>
@@ -68,10 +56,6 @@
    </property>
   </action>
   <action name="actionOrientation_Rendering">
-   <property name="icon">
-    <iconset resource="FeatureScout.qrc">
-     <normaloff>:/images/compass.svg</normaloff>:/images/compass.svg</iconset>
-   </property>
    <property name="text">
     <string>Orientation Rendering</string>
    </property>
@@ -80,10 +64,6 @@
    </property>
   </action>
   <action name="actionActivate_SPM">
-   <property name="icon">
-    <iconset resource="FeatureScout.qrc">
-     <normaloff>:/images/SPM.svg</normaloff>:/images/SPM.svg</iconset>
-   </property>
    <property name="text">
     <string>Activate SPM</string>
    </property>
@@ -92,10 +72,6 @@
    </property>
   </action>
   <action name="actionSettingsPC">
-   <property name="icon">
-    <iconset resource="FeatureScout.qrc">
-     <normaloff>:/images/settings_PC.svg</normaloff>:/images/settings_PC.svg</iconset>
-   </property>
    <property name="text">
     <string>PC settings</string>
    </property>
@@ -110,8 +86,6 @@
   <addaction name="actionActivate_SPM"/>
   <addaction name="actionSettingsPC"/>
  </widget>
- <resources>
-  <include location="FeatureScout.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

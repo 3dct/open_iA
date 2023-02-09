@@ -2,7 +2,8 @@
   <qresource prefix="/">
     <file>images/compass.svg</file>
     <file>images/compass_light.svg</file>
-    <file>images/FeatureScout_meanObject.png</file>
+    <file>images/mean-object.svg</file>
+    <file>images/mean-object_light.svg</file>
     <file>images/layers.svg</file>
     <file>images/layers_light.svg</file>
     <file>images/settings_PC.svg</file>

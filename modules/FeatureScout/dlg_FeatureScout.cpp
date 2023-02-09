@@ -17,8 +17,9 @@
 #include "iACsvIO.h"
 #include "iAObjectType.h"
 
-#include <iAMovieHelper.h>
+#include <iAMainWindow.h>  // for resourceIcon
 #include <iAMdiChild.h>
+#include <iAMovieHelper.h>
 #include <iAParameterDlg.h>
 #include <iAPreferences.h>
 #include <iAQVTKWidget.h>
@@ -435,6 +436,7 @@ void dlg_FeatureScout::setupViews()
 	auto addClass = pcPopupMenu->addAction("Add class");
 	connect(addClass, &QAction::triggered, this, &dlg_FeatureScout::ClassAddButton);
 	auto pcSettings = pcPopupMenu->addAction("Settings");
+	pcSettings->setIcon(iAMainWindow::resourceIcon("settings_PC"));
 	connect(pcSettings, &QAction::triggered, this, &dlg_FeatureScout::showPCSettings);
 
 	m_pcConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
