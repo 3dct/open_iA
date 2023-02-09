@@ -17,27 +17,30 @@
 #include "iACsvIO.h"
 #include "iAObjectType.h"
 
+#include <iAJobListView.h>
 #include <iAMdiChild.h>
 #include <iAMovieHelper.h>
 #include <iAParameterDlg.h>
 #include <iAPreferences.h>
 #include <iAQVTKWidget.h>
 #include <iARenderer.h>
+#include <iARunAsync.h>
 #include <iAThemeHelper.h>
-#include <iATypedCallHelper.h>
 
 // qthelper:
 #include <iADockWidgetWrapper.h>
 
 // base:
-#include "iAToolsVTK.h"
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
+#include "iADataSet.h"
 #include <iAFileUtils.h>
 #include <iALog.h>
 #include <iALookupTable.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>
+#include "iAToolsVTK.h"
+#include <iATypedCallHelper.h>
 
 #include <itkImageRegionIterator.h>
 
@@ -1453,51 +1456,56 @@ void dlg_FeatureScout::ExportClassButton()
 		QMessageBox::warning(this, "FeatureScout", "No defined class (except the 'unclassified' class) - please create at least one class first!");
 		return;
 	}
-	QString fileName = QFileDialog::getSaveFileName(this,
-		tr("Save Classes..."), "",
-		tr("mhd (*.mhd)"));
-	if (fileName.isEmpty())
-	{
-		return;
-	}
-	iAConnector con;
 	auto img = m_activeChild->firstImageData();
 	if (!img)
 	{
 		return;
 	}
-	con.setImage(img);
-	ITK_TYPED_CALL(CreateLabelledOutputMask, con.itkScalarType(), con, fileName);
+	auto con = std::make_shared<iAConnector>();
+	con->setImage(img);
+	ITK_TYPED_CALL(CreateLabelledOutputMask, con->itkScalarType(), con);
 }
 
 template <class T>
-void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector& con, const QString& fOutPath)
+void dlg_FeatureScout::CreateLabelledOutputMask(std::shared_ptr<iAConnector> con)
 {
 	typedef int ClassIDType;
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<ClassIDType, DIM>   OutputImageType;
 
-	QString mode1 = "Export all classes";
-	QString mode2 = "Export single selected class";
-	QStringList modes = (QStringList() << mode1 << mode2);
+	const QString ParamClasses = "Classes to export";
+	const QString modeExportAllClasses = "Export all classes";
+	const QString modeExportSingleClass = "Export single selected class";
 	iAAttributes params;
-	addAttr(params, "Classification", iAValueType::Categorical, modes);
-	addAttr(params, "Compress output", iAValueType::Boolean, false);
-	iAParameterDlg dlg(this, "Save classification options", params);
+	QStringList classModes = QStringList() << modeExportAllClasses;
+	QString descr;
+	if (m_activeClassItem->row() > 0)
+	{
+		classModes << modeExportSingleClass;
+	}
+	else
+	{
+		descr = "NOTE: In order to select a single class, you need to select one in the class list first. Currently, there is no class selected!";
+	}
+	addAttr(params, ParamClasses, iAValueType::Categorical, classModes);
+	
+	const QString ParamValues = "Value to use";
+	const QString modeFiberID = "Fiber ID";
+	const QString modeClassID = "Class ID";
+	addAttr(params, ParamValues, iAValueType::Categorical, QStringList() << modeFiberID << modeClassID);
+	iAParameterDlg dlg(this, "Save classification options", params, descr);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-	QString mode = dlg.parameterValues()["Classification"].toString();
-	bool compress = dlg.parameterValues()["Compress output"].toBool();
-	bool exportAllClassified = (mode == mode1);
-
+	bool exportAllClasses = (dlg.parameterValues()[ParamClasses].toString() == modeExportAllClasses);
+	// create map from fiber ID to class ID for the classes to export:
 	QMap<size_t, ClassIDType> currentEntries;
 	// Skip first, as classes start with 1, 0 is the uncategorized class
 	for (int i = 1; i < m_classTreeModel->invisibleRootItem()->rowCount(); i++)
 	{
 
-		if (!exportAllClassified && i != m_activeClassItem->row())
+		if (!exportAllClasses && i != m_activeClassItem->row())
 		{
 			continue;
 		}
@@ -1509,49 +1517,47 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector& con, const QString&
 			currentEntries.insert(labelID, i);
 		}
 	}
-
-	//export class ID or fiber labels for single class
-	bool fiberIDLabelling = (m_classTreeModel->invisibleRootItem()->rowCount() >= 2 &&
-		(m_renderMode == rmSingleClass && m_activeClassItem->row() > 0) && (!exportAllClassified));
-	if (fiberIDLabelling &&
-		(QMessageBox::question(this, "FeatureScout", "Only one class selected, "
-			"should we export the individual fiber IDs? "
-			"If you select No, all fibers in the class will be labeled with the class ID.",
-			QMessageBox::Yes | QMessageBox::No)
-			== QMessageBox::No))
-	{
-		fiberIDLabelling = false;
-	}
-
-	auto in_img = dynamic_cast<InputImageType*>(con.itkImage());
+	bool fiberIDLabelling = (dlg.parameterValues()[ParamValues].toString() == modeFiberID);
+	auto in_img = dynamic_cast<InputImageType*>(con->itkImage());
 	auto region_in = in_img->GetLargestPossibleRegion();
 	const OutputImageType::SpacingType outSpacing = in_img->GetSpacing();
 	auto out_img = createImage<OutputImageType>(region_in.GetSize(), outSpacing);
-	itk::ImageRegionConstIterator<InputImageType> in(in_img, region_in);
-	itk::ImageRegionIterator<OutputImageType> out(out_img, region_in);
-	while (!in.IsAtEnd())
-	{
-		size_t labelID = static_cast<size_t>(in.Get());
-		if (fiberIDLabelling)
+	auto fw = runAsync(
+		[in_img, out_img, region_in, fiberIDLabelling, currentEntries, con]
 		{
-			if (currentEntries.contains(labelID))
+			itk::ImageRegionConstIterator<InputImageType> in(in_img, region_in);
+			itk::ImageRegionIterator<OutputImageType> out(out_img, region_in);
+			while (!in.IsAtEnd())
 			{
-				out.Set(static_cast<ClassIDType>(labelID));
+				size_t labelID = static_cast<size_t>(in.Get());
+				if (fiberIDLabelling)
+				{
+					if (currentEntries.contains(labelID))
+					{
+						out.Set(static_cast<ClassIDType>(labelID));
+					}
+					else
+					{
+						out.Set(0);
+					}
+				}
+				else
+				{
+					out.Set(static_cast<ClassIDType>(currentEntries[labelID]));
+				}
+				++in;
+				++out;
 			}
-			else
-			{
-				out.Set(0);
-			}
-		}
-		else
+		},
+		[out_img, this]
 		{
-			out.Set(static_cast<ClassIDType>(currentEntries[labelID]));
-		}
-		++in;
-		++out;
-	}
-	storeImage(out_img, fOutPath, compress);
-	LOG(lvlInfo, "Stored image of of classes.");
+			auto ds = std::make_shared<iAImageData>(out_img);
+			ds->setMetaData(iADataSet::NameKey, "Extracted classes");
+			m_activeChild->addDataSet(ds);
+		},
+		this
+	);
+	iAJobListView::get()->addJob("Extracting class(es) as labeled volume...", nullptr, fw);
 }
 
 namespace

@@ -124,7 +124,7 @@ private slots:
 	void renderLUTChanges(QSharedPointer<iALookupTable> lut, size_t colInd);
 private:
 	//create labelled output image based on defined classes
-	template <class T> void CreateLabelledOutputMask(iAConnector & con, const QString & fOutPath);
+	template <class T> void CreateLabelledOutputMask(std::shared_ptr<iAConnector> con);
 	void setupModel();
 	void setupViews();
 	void setupConnections();  //!< define signal and slots connections

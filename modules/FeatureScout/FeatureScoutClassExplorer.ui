@@ -125,118 +125,64 @@
             </property>
             <item>
              <widget class="QToolButton" name="add_class">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>9</pointsize>
-                <bold>false</bold>
-               </font>
-              </property>
               <property name="toolTip">
-               <string>Add class</string>
+               <string>Add a new class</string>
               </property>
               <property name="text">
-               <string/>
+               <string>Add class</string>
               </property>
               <property name="iconSize">
                <size>
-                <width>24</width>
-                <height>24</height>
+                <width>32</width>
+                <height>32</height>
                </size>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QToolButton" name="delete_class">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>9</pointsize>
-                <bold>false</bold>
-               </font>
-              </property>
-              <property name="focusPolicy">
-               <enum>Qt::TabFocus</enum>
-              </property>
               <property name="toolTip">
-               <string>Delete selected class</string>
+               <string>Delete the currently selected class</string>
               </property>
               <property name="text">
-               <string/>
+               <string>Delete class</string>
               </property>
               <property name="iconSize">
                <size>
-                <width>24</width>
-                <height>24</height>
+                <width>32</width>
+                <height>32</height>
                </size>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QToolButton" name="save_class">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>9</pointsize>
-                <bold>false</bold>
-               </font>
-              </property>
-              <property name="focusPolicy">
-               <enum>Qt::TabFocus</enum>
-              </property>
               <property name="toolTip">
-               <string>Save Classes</string>
+               <string>Save the classes and the objects stored in them in an XML file (which can later be loaded again)</string>
               </property>
               <property name="text">
-               <string>sC</string>
+               <string>Save classes</string>
               </property>
               <property name="iconSize">
                <size>
-                <width>24</width>
-                <height>24</height>
+                <width>32</width>
+                <height>32</height>
                </size>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QToolButton" name="load_class">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <pointsize>9</pointsize>
-                <bold>false</bold>
-               </font>
-              </property>
               <property name="toolTip">
-               <string>Load Classes</string>
+               <string>Load classes and the objects in them from an XML file as stored via "Save classes" functionality</string>
               </property>
               <property name="text">
-               <string>lC</string>
+               <string>Load classes</string>
               </property>
               <property name="iconSize">
                <size>
-                <width>24</width>
-                <height>24</height>
+                <width>32</width>
+                <height>32</height>
                </size>
               </property>
              </widget>
@@ -251,8 +197,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>24</width>
-                <height>24</height>
+                <width>32</width>
+                <height>32</height>
                </size>
               </property>
              </widget>
@@ -267,8 +213,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>24</width>
-                <height>24</height>
+                <width>32</width>
+                <height>32</height>
                </size>
               </property>
              </widget>
@@ -276,10 +222,16 @@
             <item>
              <widget class="QToolButton" name="export_class">
               <property name="toolTip">
-               <string>Export Classes to MHD</string>
+               <string>Export class(es) to new labeled image</string>
               </property>
               <property name="text">
-               <string>Export</string>
+               <string>Export class image</string>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>32</width>
+                <height>32</height>
+               </size>
               </property>
              </widget>
             </item>
