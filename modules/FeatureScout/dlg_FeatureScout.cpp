@@ -1482,12 +1482,14 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector& con, const QString&
 	QStringList modes = (QStringList() << mode1 << mode2);
 	iAAttributes params;
 	addAttr(params, "Classification", iAValueType::Categorical, modes);
+	addAttr(params, "Compress output", iAValueType::Boolean, false);
 	iAParameterDlg dlg(this, "Save classification options", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
 	QString mode = dlg.parameterValues()["Classification"].toString();
+	bool compress = dlg.parameterValues()["Compress output"].toBool();
 	bool exportAllClassified = (mode == mode1);
 
 	QMap<size_t, ClassIDType> currentEntries;
@@ -1548,7 +1550,7 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector& con, const QString&
 		++in;
 		++out;
 	}
-	storeImage(out_img, fOutPath, m_activeChild->preferences().Compression);
+	storeImage(out_img, fOutPath, compress);
 	LOG(lvlInfo, "Stored image of of classes.");
 }
 

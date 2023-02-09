@@ -15,8 +15,7 @@ public:
 		MagicLensFrameWidth,
 		FontSize,
 		LimitForAuto3DRender;
-	bool Compression,
-		ResultInNewWindow,
+	bool ResultInNewWindow,
 		PrintParameters,
 		HistogramLogarithmicYAxis;
 		//LogToFile;
@@ -27,7 +26,6 @@ public:
 		MagicLensFrameWidth(3),
 		FontSize(8),
 		LimitForAuto3DRender(2'000),
-		Compression(true),
 		ResultInNewWindow(true),
 		PrintParameters(true),
 		HistogramLogarithmicYAxis(false)
