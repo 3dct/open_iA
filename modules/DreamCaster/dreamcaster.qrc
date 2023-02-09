@@ -1,6 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>images/opends.png</file>
-        <file>images/specifyds.png</file>
-    </qresource>
-</RCC>

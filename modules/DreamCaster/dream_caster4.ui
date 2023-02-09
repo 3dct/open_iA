@@ -1885,10 +1885,6 @@
                 <property name="text">
                  <string>...</string>
                 </property>
-                <property name="icon">
-                 <iconset resource="dreamcaster.qrc">
-                  <normaloff>:/images/opends.png</normaloff>:/images/opends.png</iconset>
-                </property>
                 <property name="iconSize">
                  <size>
                   <width>32</width>
@@ -1916,10 +1912,6 @@
                 </property>
                 <property name="text">
                  <string>...</string>
-                </property>
-                <property name="icon">
-                 <iconset resource="dreamcaster.qrc">
-                  <normaloff>:/images/specifyds.png</normaloff>:/images/specifyds.png</iconset>
                 </property>
                 <property name="iconSize">
                  <size>
@@ -7407,10 +7399,7 @@
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources>
-  <include location="dreamcaster.qrc"/>
-  <include location="../../libs/guibase/guibase.qrc"/>
- </resources>
+ <resources/>
  <connections/>
  <slots>
   <slot>RenderSingleViewSlot()</slot>

@@ -122,7 +122,6 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	qvtkPlot3d(new iAQVTKWidget),
 	qvtkWeighing(new iAQVTKWidget)
 {
-	Q_INIT_RESOURCE(dreamcaster);
 	ParseConfigFile(&stngs);
 	indices[0] = 0;
 	indices[1] = 2;

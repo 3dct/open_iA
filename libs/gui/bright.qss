@@ -264,8 +264,10 @@ QPushButton
 	QToolButton[objectName="pushPlacements"],
 	QToolButton[objectName="pushMaxTab"],
 	QToolButton[objectName="tbMax"] { qproperty-icon: url(:/images/zoom-in.svg); }
+	QToolButton[objectName="tb_opends"],
 	QToolButton[objectName="load_class"],
 	QToolButton[objectName="tbLoadTable"] { qproperty-icon: url(:/images/load.svg); }
+	QToolButton[objectName="tb_specifyds"],
 	QToolButton[objectName="save_class"],
 	QToolButton[objectName="tbSave"],
 	QToolButton[objectName="tb_saveVolume"],

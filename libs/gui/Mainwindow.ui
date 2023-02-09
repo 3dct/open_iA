@@ -771,9 +771,6 @@
    <property name="text">
     <string>Available releases</string>
    </property>
-   <property name="iconText">
-    <string>Available releases</string>
-   </property>
    <property name="toolTip">
     <string>Opens a link to the available open_iA releases in your default web browser</string>
    </property>
