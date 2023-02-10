@@ -359,6 +359,16 @@ void iAVolumeViewer::prepare(iAPreferences const& pref, iAProgress* p)
 
 void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 {
+	if (!m_dataSet->hasMetaData(RenderFlags))
+	{
+		QString defaultRenderFlags("S");
+		auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
+		if (!isFlat(img) && !isLarge(img))
+		{
+			defaultRenderFlags += "R";
+		}
+		m_dataSet->setMetaData(RenderFlags, defaultRenderFlags);
+	}
 	addViewAction("Slice Profile", "profile", renderFlagSet(RenderProfileFlag),
 		[this, child](bool checked)
 		{
@@ -385,16 +395,6 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			}
 			child->updateSlicers();
 		});
-	if (!m_dataSet->hasMetaData(RenderFlags))
-	{
-		QString defaultRenderFlags("S");
-		auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
-		if (!isFlat(img) && !isLarge(img))
-		{
-			defaultRenderFlags += "R";
-		}
-		m_dataSet->setMetaData(RenderFlags, defaultRenderFlags);
-	}
 	iADataSetViewer::createGUI(child, dataSetIdx);
 	// histogram
 	QString histoName = "Histogram " + m_dataSet->name();
