@@ -35,7 +35,6 @@ class vtkOpenGLRenderer;
 class vtkOrientationMarkerWidget;
 class vtkPlane;
 class vtkPoints;
-class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkRenderer;
 class vtkRenderWindowInteractor;
@@ -157,8 +156,6 @@ private:
 	vtkRenderWindowInteractor* m_interactor;  //!< convenience store for m_renWin->GetInteractor()
 	vtkSmartPointer<vtkOpenGLRenderer> m_ren, m_labelRen;
 	vtkSmartPointer<vtkCamera> m_cam;
-	vtkSmartPointer<vtkPolyDataMapper> m_polyMapper;
-	vtkSmartPointer<vtkActor> m_polyActor;
 
 	//! @{ Text actor, e.g., to show the selection mode
 	vtkSmartPointer<vtkTextActor> m_txtActor;
