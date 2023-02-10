@@ -2396,13 +2396,13 @@ void MainWindow::loadTLGICTData(QString const & baseDirectory)
 
 #include <QApplication>
 #include <QDate>
+#include <QPainter>
 #include <QProxyStyle>
 
 class iAProxyStyle : public QProxyStyle
 {
 public:
 	using QProxyStyle::QProxyStyle;
-
 	int styleHint(StyleHint hint, const QStyleOption* option = nullptr, const QWidget* widget = nullptr, QStyleHintReturn* returnData = nullptr) const override
 	{
 		// disable tooltip delay for iAChartWidget and descendants:
@@ -2411,6 +2411,51 @@ public:
 			return 0;
 		}
 		return QProxyStyle::styleHint(hint, option, widget, returnData);
+	}
+
+	void drawSubControl(QStyleOptionComplex const * opt, QPainter* p, QWidget const* widget, SubControl subControl, QString const& iconName) const
+	{
+		// copied from QCommonStyle::drawComplexControl; removed duplication, modified icon retrieval and button drawing:
+		if (opt->subControls & subControl) {
+			QStyleOptionButton btnOpt;
+			btnOpt.QStyleOption::operator=(*opt);
+			btnOpt.state &= ~State_MouseOver;
+			int bsx = 0;
+			int bsy = 0;
+			const int buttonIconMetric = proxy()->pixelMetric(PM_TitleBarButtonIconSize, &btnOpt, widget);
+			const QSize buttonIconSize(buttonIconMetric, buttonIconMetric);
+			btnOpt.rect = proxy()->subControlRect(CC_MdiControls, opt, subControl, widget);
+			// the following code should probably adapt hover/non-hover state; the same icon seems to be used for both, but the background changes;
+			// with our icons, there is no background change. There must be some behind the scenes logic going on in drawPrimitive, changing the
+			// background on hover, but it doesn't work when we use our icon (even though our icon has transparent background)
+			// workaround: switch icon depending on whether control is "active" (i.e. mouse hovering over it) or not
+			if (opt->activeSubControls & subControl && (opt->state & State_Sunken))
+			{
+				btnOpt.state |= State_Sunken;
+				btnOpt.state &= ~State_Raised;
+				proxy()->drawPrimitive(PE_PanelButtonCommand, &btnOpt, p, widget);
+			//	bsx = proxy()->pixelMetric(PM_ButtonShiftHorizontal, opt);  // always returns 0
+			//	bsy = proxy()->pixelMetric(PM_ButtonShiftVertical, opt);    // always returns 0
+			}
+			//else // we want to only "sink" buttons that are pressed, but not "raise" buttons that are not.
+			QPixmap pm = iAThemeHelper::icon(QString("%1%2").arg(iconName).arg((opt->activeSubControls & subControl) ? "-hover" : ""))
+				.pixmap(buttonIconSize, p->device()->devicePixelRatio());
+			proxy()->drawItemPixmap(p, btnOpt.rect.translated(bsx, bsy), Qt::AlignCenter, pm);
+		}
+	}
+
+	void drawComplexControl(QStyle::ComplexControl cc, QStyleOptionComplex const * opt, QPainter* p, QWidget const * widget = nullptr) const override
+	{
+		if (cc == CC_MdiControls)
+		{
+			drawSubControl(opt, p, widget, QStyle::SC_MdiCloseButton, "dockwidget-close");
+			drawSubControl(opt, p, widget, QStyle::SC_MdiNormalButton, "dockwidget-float");
+			drawSubControl(opt, p, widget, QStyle::SC_MdiMinButton, "dockwidget-minimize");
+		}
+		else
+		{
+			QProxyStyle::drawComplexControl(cc, opt, p, widget);
+		}
 	}
 };
 

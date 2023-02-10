@@ -828,8 +828,8 @@ QDockWidget
 		background-color: rgba(40, 40, 40, 255);
 		color: rgba(230, 230, 230, 255);
 		font: bold;
-		titlebar-close-icon: url(:/images/dockwidget-close_dark.svg);
-		titlebar-normal-icon: url(:/images/dockwidget-float_dark.svg);
+		titlebar-close-icon: url(:/images/dockwidget-close_light.svg);
+		titlebar-normal-icon: url(:/images/dockwidget-float_light.svg);
 	}
 	QDockWidget::title
 	{
@@ -840,6 +840,16 @@ QDockWidget
 	QDockWidget::close-button, QDockWidget::float-button
 	{	/* keeps title bar "slim", there otherwise seems to be some default padding applied. */
 		padding: 0;
+		/*icon-size: 20px;*/
+		border: 1px solid rgba(0, 0, 0, 0);
+	}
+	QDockWidget::close-button:pressed, QDockWidget::float-button:pressed
+	{
+		border: 1px inset rgba(80, 80, 80, 255);
+	}
+	QDockWidget::close-button:hover, QDockWidget::float-button:hover
+	{
+		background-color: rgba(150,186,230, 128);
 	}
 /****************************************************************************
 QSplitter

@@ -40,10 +40,18 @@
     <file>images/checkbox_unchecked_pressed.svg</file>
     <file>images/checkbox_unchecked_pressed_dark.svg</file>
     <file>images/colormap.png</file>
-    <file>images/dockwidget-close_bright.svg</file>
-    <file>images/dockwidget-close_dark.svg</file>
-    <file>images/dockwidget-float_bright.svg</file>
-    <file>images/dockwidget-float_dark.svg</file>
+    <file>images/dockwidget-close.svg</file>
+    <file>images/dockwidget-close_light.svg</file>
+    <file>images/dockwidget-close-hover.svg</file>
+    <file>images/dockwidget-close-hover_light.svg</file>
+    <file>images/dockwidget-float.svg</file>
+    <file>images/dockwidget-float_light.svg</file>
+    <file>images/dockwidget-float-hover.svg</file>
+    <file>images/dockwidget-float-hover_light.svg</file>
+    <file>images/dockwidget-minimize.svg</file>
+    <file>images/dockwidget-minimize_light.svg</file>
+    <file>images/dockwidget-minimize-hover.svg</file>
+    <file>images/dockwidget-minimize-hover_light.svg</file>
     <file>images/eye.svg</file>
     <file>images/eye_light.svg</file>
     <file>images/fisheyelens.svg</file>
