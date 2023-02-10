@@ -105,7 +105,7 @@ QToolButton
 	QStatusBar
 	{
 		color: rgba(230, 230, 230, 255);
-		spacing: 4px; /* spacing between items in the tool bar */
+		spacing: 0;
 	}
 	QToolBar
 	{
@@ -130,13 +130,7 @@ QToolButton
 	}
 	QToolButton:hover
 	{
-		background: qlineargradient(spread:pad,
-			x1:0, y1:0,
-			x2:0, y2:1,
-			stop:0 rgba(150, 186, 230, 255),
-			stop:0.617 rgba(100, 146, 212, 255),
-			stop:1 rgba(70, 122, 201, 255)
-		);
+		background-color: rgba(150,186,230, 128);
 	}
 	QToolButton:checked
 	{
@@ -155,6 +149,10 @@ QToolButton
 		margin-bottom: 5px;
 		background-color: rgba(50, 50, 50, 255);
 		width: 1px;
+	}
+	QToolBar QToolButton
+	{
+		width: 24px;
 	}
 /****************************************************************************
 QMenuBar
@@ -882,13 +880,15 @@ Disabled Inputs
 	QLineEdit:disabled,
 	QComboBox:disabled,
 	QSpinBox:disabled,
-	QDoubleSpinBox:disabled,
-	QToolButton:disabled
+	QDoubleSpinBox:disabled
 	{
 		border: 1px solid rgba(50, 50, 50, 255);
 		background-color: rgba(20, 20, 20, 255);
 	}
-
+	QToolButton:disabled
+	{
+		background-color: rgba(20, 20, 20, 255);
+	}
 /****************************************************************************
 Specific / Custom Widgets
 ****************************************************************************/
