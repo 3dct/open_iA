@@ -407,7 +407,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	m_histogram->update();
 	// TODO NEWIO:
 	//     - better unique widget name!
-	//     - option to put combined histograms of multiple datasets into one view / hide histograms by default
+	//     - option to put combined histograms of multiple datasets into one view
 	static int histoNum = -1;
 	m_dwHistogram = QSharedPointer<iADockWidgetWrapper>::create(m_histogram, histoName, QString("Histogram%1").arg(++histoNum));
 	connect(m_dwHistogram.get(), &QDockWidget::visibilityChanged, this, [this](bool visible)
