@@ -18,6 +18,7 @@
 #include "iASavableProject.h"
 #include "iASlicerImpl.h"      // for slicerModeToString
 #include "iAStringHelper.h"    // for iAConverter
+#include "iAThemeChangeNotifier.h"
 #include "iAThemeHelper.h"
 #include "iATLGICTLoader.h"
 #include "iATool.h"
@@ -76,6 +77,13 @@
 
 const int MainWindow::MaxRecentFiles;
 
+namespace
+{
+	const QString DarkTheme(":/dark.qss");
+	const QString BrightTheme(":/bright.qss");
+	const QString SystemTheme("system");
+}
+
 template <typename T>
 QList<T*> MainWindow::childList(QMdiArea::WindowOrder order)
 {
@@ -109,7 +117,8 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_buildInformation(buildInformation),
 	m_ui(new Ui_MainWindow()),
 	m_dwJobs(dwJobs),
-	m_openJobListOnNewJob(false)
+	m_openJobListOnNewJob(false),
+	m_useSystemTheme(false)
 {
 	assert(!m_mainWnd);
 	m_mainWnd = this;
@@ -283,6 +292,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 	}
 	writeSettings();
 	iALogWidget::shutdown();
+	iAThemeChangeNotifier::get()->stop();
 	event->accept();
 }
 
@@ -857,21 +867,19 @@ void MainWindow::toggleMenu()
 void MainWindow::prefs()
 {
 	iAMdiChild *child = activeMdiChild();
-
 	QStringList looks;
 	QMap<QString, QString> styleNames;
-	styleNames.insert(tr("Dark")      , ":/dark.qss");
-	styleNames.insert(tr("Bright")    , ":/bright.qss");
+	QString const Sys("Dependent on system");
+	QString const Dark("Dark");
+	QString const Bright("Bright");
+	styleNames.insert(Sys, SystemTheme);
+	styleNames.insert(Dark, DarkTheme);
+	styleNames.insert(Bright, BrightTheme);
 	for (QString key: styleNames.keys())
 	{
-		if (m_qssName == styleNames[key])
-		{
-			looks.append(QString("!") + key);
-		}
-		else
-		{
-			looks.append(key);
-		}
+		looks.append(QString("%1%2")
+			.arg((key == Sys && m_useSystemTheme) || (m_qssName == styleNames[key]) ? "!" : "")
+			.arg(key));
 	}
 	iAPreferences p = child ? child->preferences() : m_defaultPreferences;
 	QString descr;
@@ -913,9 +921,13 @@ void MainWindow::prefs()
 	QString logFileName = values["Log File Name"].toString();
 	iALogWidget::get()->setFileLogLevel(static_cast<iALogLevel>(AvailableLogLevels().indexOf(values["File Log Level"].toString()) + 1));
 	QString looksStr = values["Looks"].toString();
-	if (m_qssName != styleNames[looksStr])
+	m_useSystemTheme = (looksStr == Sys);
+	auto newQssName = m_useSystemTheme
+		? (iAThemeChangeNotifier::isBrightTheme() ? BrightTheme : DarkTheme)
+		: styleNames[looksStr];
+	if (m_qssName != newQssName)
 	{
-		m_qssName = styleNames[looksStr];
+		m_qssName = newQssName;
 		iAThemeHelper::setBrightMode(brightMode());
 		applyQSS();
 	}
@@ -1615,9 +1627,13 @@ void MainWindow::connectSignalsToSlots()
 void MainWindow::readSettings()
 {
 	QSettings settings;
-
 	m_path = settings.value("Path").toString();
-	m_qssName = settings.value("qssName", ":/bright.qss").toString();
+	m_qssName = settings.value("qssName", BrightTheme).toString();
+	m_useSystemTheme = m_qssName == SystemTheme;
+	if (m_useSystemTheme)
+	{
+		m_qssName = iAThemeChangeNotifier::isBrightTheme() ? BrightTheme : DarkTheme;
+	}
 	iAThemeHelper::setBrightMode(brightMode());
 	restoreGeometry(settings.value("geometry", saveGeometry()).toByteArray());
 	restoreState(settings.value("state", saveState()).toByteArray());
@@ -1760,7 +1776,7 @@ void MainWindow::writeSettings()
 {
 	QSettings settings;
 	settings.setValue("Path", m_path);
-	settings.setValue("qssName", m_qssName);
+	settings.setValue("qssName", m_useSystemTheme ? SystemTheme : m_qssName);
 
 	settings.setValue("Preferences/defaultLayout", m_layout->currentText());
 	settings.setValue("Preferences/prefHistogramBins", m_defaultPreferences.HistogramBins);
@@ -2413,6 +2429,9 @@ public:
 		return QProxyStyle::styleHint(hint, option, widget, returnData);
 	}
 
+	//! {
+	//! For drawing the MDI controls (close, float, minimize buttons) in the menu bar
+	//! when MDI children are maximized
 	void drawSubControl(QStyleOptionComplex const * opt, QPainter* p, QWidget const* widget, SubControl subControl, QString const& iconName) const
 	{
 		// copied from QCommonStyle::drawComplexControl; removed duplication, modified icon retrieval and button drawing:
@@ -2457,6 +2476,7 @@ public:
 			QProxyStyle::drawComplexControl(cc, opt, p, widget);
 		}
 	}
+	//! @}
 };
 
 void MainWindow::initResources()
@@ -2507,6 +2527,16 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	iALUT::loadMaps(QCoreApplication::applicationDirPath() + "/colormaps");
 	auto dwJobs = new iADockWidgetWrapper(iAJobListView::get(), "Job List", "Jobs");
 	MainWindow mainWin(appName, version, buildInformation, splashPath, dwJobs);
+	connect(iAThemeChangeNotifier::get(), &iAThemeChangeNotifier::themeChanged, &mainWin,
+		[&mainWin](bool brightTheme) {
+			LOG(lvlDebug, QString("Theme changed: Now %1!").arg(brightTheme));
+			if (mainWin.m_useSystemTheme)
+			{
+				mainWin.m_qssName = iAThemeChangeNotifier::isBrightTheme() ? ":/bright.qss" : ":/dark.qss";
+				iAThemeHelper::setBrightMode(mainWin.brightMode());
+				mainWin.applyQSS();
+			}
+		});
 	mainWin.addDockWidget(Qt::RightDockWidgetArea, iALogWidget::get());
 	mainWin.splitDockWidget(iALogWidget::get(), dwJobs, Qt::Vertical);
 	dwJobs->setFeatures(dwJobs->features() & ~QDockWidget::DockWidgetVerticalTitleBar);

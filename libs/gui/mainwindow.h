@@ -198,6 +198,7 @@ private:
 	QAction *m_recentFileActs[MaxRecentFiles];
 	QActionGroup *m_slicerToolsGroup, *m_mdiViewModeGroup;
 	QString m_qssName;
+	bool m_useSystemTheme;
 	iAVolumeSettings m_defaultVolumeSettings;
 	iARenderSettings m_defaultRenderSettings;
 	iASlicerSettings m_defaultSlicerSettings;
