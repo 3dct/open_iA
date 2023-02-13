@@ -10,6 +10,8 @@
 #include "iAToolsVTK.h"      // for mapVTKTypeToReadableDataType, readableDataTypes, ...
 #include "iAValueTypeVectorHelpers.h"
 
+#include "iAITKFileIO.h"
+
 #include <QDir>
 #include <QFileInfo>
 
@@ -81,6 +83,11 @@ iAImageStackFileIO::iAImageStackFileIO() : iAFileIO(iADataSetType::Volume, iADat
 
 std::shared_ptr<iADataSet> iAImageStackFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
+	if (paramValues[LoadTypeStr] == SingleImageOption)
+	{
+		iAITKFileIO io;
+		return io.loadData(fileName, paramValues, progress);
+	}
 //#if RAW_LOAD_METHOD == ITK
 // 	   test itkImageSeriesReader ?
 //#else
@@ -111,35 +118,25 @@ std::shared_ptr<iADataSet> iAImageStackFileIO::loadData(QString const& fileName,
 	progress.observe(imgReader);
 	imgReader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 
-	if (paramValues[LoadTypeStr] == SingleImageOption)
-	{
-		imgReader->SetFileName(getLocalEncodingFileName(fileName).c_str());
-	}
-	else
-	{
-		int indexRange[2];
-		int digits;
-		auto fileNameBase = paramValues[iAFileStackParams::FileNameBase].toString();
-		auto suffix = paramValues[iAFileStackParams::Extension].toString();
-		digits = paramValues[iAFileStackParams::NumDigits].toInt();
-		indexRange[0] = paramValues[iAFileStackParams::MinimumIndex].toInt();
-		indexRange[1] = paramValues[iAFileStackParams::MaximumIndex].toInt();
-		int stepSize = paramValues[StepStr].toInt();
-		double spacing[3], origin[3];
-		setFromVectorVariant<double>(spacing, paramValues[SpacingStr]);
-		setFromVectorVariant<double>(origin, paramValues[OriginStr]);
-		auto fileNames = fileNameArray(fileNameBase, suffix, indexRange, digits, stepSize);
-		imgReader->SetFileNames(fileNames);
-		imgReader->SetDataOrigin(origin);
-		imgReader->SetDataSpacing(spacing);
-	}
+	int indexRange[2];
+	int digits;
+	auto fileNameBase = paramValues[iAFileStackParams::FileNameBase].toString();
+	auto suffix = paramValues[iAFileStackParams::Extension].toString();
+	digits = paramValues[iAFileStackParams::NumDigits].toInt();
+	indexRange[0] = paramValues[iAFileStackParams::MinimumIndex].toInt();
+	indexRange[1] = paramValues[iAFileStackParams::MaximumIndex].toInt();
+	int stepSize = paramValues[StepStr].toInt();
+	double spacing[3], origin[3];
+	setFromVectorVariant<double>(spacing, paramValues[SpacingStr]);
+	setFromVectorVariant<double>(origin, paramValues[OriginStr]);
+	auto fileNames = fileNameArray(fileNameBase, suffix, indexRange, digits, stepSize);
+	imgReader->SetFileNames(fileNames);
+	imgReader->SetDataOrigin(origin);
+	imgReader->SetDataSpacing(spacing);
 	auto img = vtkSmartPointer<vtkImageData>::New();
 	imgReader->SetOutput(img);
 	imgReader->Update();
 	return std::make_shared<iAImageData>(img);
-	// TODO: maybe compute range here as well?
-	//auto rng = img->GetScalarRange();   // see also comments above about performance measurements
-//#endif
 }
 
 QString iAImageStackFileIO::name() const
