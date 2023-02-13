@@ -873,7 +873,7 @@ void MainWindow::prefs()
 	iAMdiChild *child = activeMdiChild();
 	QStringList looks;
 	QMap<QString, QString> styleNames;
-	QString const Sys("Dependent on system");
+	QString const Sys("Adapt to system theme");
 	styleNames.insert(Sys, SystemTheme);
 	styleNames.insert("Dark", DarkThemeQss);
 	styleNames.insert("Bright", BrightThemeQss);
