@@ -11,6 +11,6 @@ if (HigherOrderAccurateGradient_LOADED)
 	TARGET_COMPILE_DEFINITIONS(CommonImageFilters PRIVATE ITKHigherOrderGradient)
 endif()
 
-if ("${ITKGPUCommon_LIBRARY_DIRS}" STREQUAL "")
+if (${ITK_USE_GPU} STREQUAL "OFF")
 	TARGET_COMPILE_DEFINITIONS(CommonImageFilters PRIVATE ITKNOGPU)
 endif()

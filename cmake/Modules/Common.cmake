@@ -187,9 +187,11 @@ if (SCIFIO_LOADED)
 endif()
 
 set(ITK_GPU_INFO "on")
-if ("${ITKGPUCommon_LIBRARY_DIRS}" STREQUAL "")
+if (${ITK_USE_GPU} STREQUAL "OFF")
 	set(ITK_GPU_INFO "off")
-	message(WARNING "ITK is built without GPU support (flag ITK_USE_GPU disabled). Some GPU-optimized functionality might not be available!")
+	message(WARNING "ITK is built without GPU support (flag ITK_USE_GPU disabled). Some GPU-optimized functionality (e.g. GPU-based anisotropic filter) will not be available!")
+else()
+	message(STATUS "    GPU-accelerated filters (ITK_USE_GPU) enabled")
 endif()
 set(BUILD_INFO "${BUILD_INFO}    \"ITK	${ITK_VERSION} (GPU: ${ITK_GPU_INFO}, SCIFIO: ${ITK_SCIFIO_INFO}, RTK: ${ITK_RTK_INFO}, HOAG: ${ITK_HGrad_INFO})\\n\"\n")
 
