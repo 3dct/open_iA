@@ -4,21 +4,22 @@
 
 #include <QObject>
 
-class iAThemeChangeNotifier : public QObject
+class iASystemThemeWatcher: public QObject
 {
 	Q_OBJECT
 public:
-	iAThemeChangeNotifier();
-	~iAThemeChangeNotifier();
-	void stop();
-	static iAThemeChangeNotifier* get();
-	void emitThemeChanged(bool brightTheme);
+	iASystemThemeWatcher();
+	~iASystemThemeWatcher();
+	static iASystemThemeWatcher* get();
 	static bool isBrightTheme();
+	static void stop();
+
+signals:
+	void themeChanged(bool brightTheme);
+
+private:
 #ifdef _MSC_VER
 	void* m_stopEvent;
 #endif
 	bool m_isBright;
-
-signals:
-	void themeChanged(bool brightTheme);
 };

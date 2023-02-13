@@ -18,7 +18,7 @@
 #include "iASavableProject.h"
 #include "iASlicerImpl.h"      // for slicerModeToString
 #include "iAStringHelper.h"    // for iAConverter
-#include "iAThemeChangeNotifier.h"
+#include "iASystemThemeWatcher.h"
 #include "iAThemeHelper.h"
 #include "iATLGICTLoader.h"
 #include "iATool.h"
@@ -79,9 +79,13 @@ const int MainWindow::MaxRecentFiles;
 
 namespace
 {
-	const QString DarkTheme(":/dark.qss");
-	const QString BrightTheme(":/bright.qss");
+	const QString DarkThemeQss(":/dark.qss");
+	const QString BrightThemeQss(":/bright.qss");
 	const QString SystemTheme("system");
+	const QString qssNameFromSystem()
+	{
+		return iASystemThemeWatcher::isBrightTheme() ? BrightThemeQss : DarkThemeQss;
+	}
 }
 
 template <typename T>
@@ -290,9 +294,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
 		event->ignore();
 		return;
 	}
+	iASystemThemeWatcher::stop();
 	writeSettings();
 	iALogWidget::shutdown();
-	iAThemeChangeNotifier::get()->stop();
 	event->accept();
 }
 
@@ -870,11 +874,9 @@ void MainWindow::prefs()
 	QStringList looks;
 	QMap<QString, QString> styleNames;
 	QString const Sys("Dependent on system");
-	QString const Dark("Dark");
-	QString const Bright("Bright");
 	styleNames.insert(Sys, SystemTheme);
-	styleNames.insert(Dark, DarkTheme);
-	styleNames.insert(Bright, BrightTheme);
+	styleNames.insert("Dark", DarkThemeQss);
+	styleNames.insert("Bright", BrightThemeQss);
 	for (QString key: styleNames.keys())
 	{
 		looks.append(QString("%1%2")
@@ -922,9 +924,7 @@ void MainWindow::prefs()
 	iALogWidget::get()->setFileLogLevel(static_cast<iALogLevel>(AvailableLogLevels().indexOf(values["File Log Level"].toString()) + 1));
 	QString looksStr = values["Looks"].toString();
 	m_useSystemTheme = (looksStr == Sys);
-	auto newQssName = m_useSystemTheme
-		? (iAThemeChangeNotifier::isBrightTheme() ? BrightTheme : DarkTheme)
-		: styleNames[looksStr];
+	auto newQssName = m_useSystemTheme ? qssNameFromSystem() : styleNames[looksStr];
 	if (m_qssName != newQssName)
 	{
 		m_qssName = newQssName;
@@ -1628,11 +1628,11 @@ void MainWindow::readSettings()
 {
 	QSettings settings;
 	m_path = settings.value("Path").toString();
-	m_qssName = settings.value("qssName", BrightTheme).toString();
+	m_qssName = settings.value("qssName", SystemTheme).toString();
 	m_useSystemTheme = m_qssName == SystemTheme;
 	if (m_useSystemTheme)
 	{
-		m_qssName = iAThemeChangeNotifier::isBrightTheme() ? BrightTheme : DarkTheme;
+		m_qssName = qssNameFromSystem();
 	}
 	iAThemeHelper::setBrightMode(brightMode());
 	restoreGeometry(settings.value("geometry", saveGeometry()).toByteArray());
@@ -2527,12 +2527,12 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	iALUT::loadMaps(QCoreApplication::applicationDirPath() + "/colormaps");
 	auto dwJobs = new iADockWidgetWrapper(iAJobListView::get(), "Job List", "Jobs");
 	MainWindow mainWin(appName, version, buildInformation, splashPath, dwJobs);
-	connect(iAThemeChangeNotifier::get(), &iAThemeChangeNotifier::themeChanged, &mainWin,
+	connect(iASystemThemeWatcher::get(), &iASystemThemeWatcher::themeChanged, &mainWin,
 		[&mainWin](bool brightTheme) {
-			LOG(lvlDebug, QString("Theme changed: Now %1!").arg(brightTheme));
 			if (mainWin.m_useSystemTheme)
 			{
-				mainWin.m_qssName = iAThemeChangeNotifier::isBrightTheme() ? ":/bright.qss" : ":/dark.qss";
+				LOG(lvlDebug, QString("System theme changed and configured to automatically adapt to it, changing to %1 mode (you can override this in the Preferences)!").arg(brightTheme?"bright":"dark"));
+				mainWin.m_qssName = qssNameFromSystem();
 				iAThemeHelper::setBrightMode(mainWin.brightMode());
 				mainWin.applyQSS();
 			}
