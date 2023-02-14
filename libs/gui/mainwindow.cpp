@@ -281,23 +281,23 @@ bool MainWindow::keepOpen()
 	return false;
 }
 
-void MainWindow::closeEvent(QCloseEvent *event)
+void MainWindow::closeEvent(QCloseEvent *e)
 {
 	if (keepOpen())
 	{
-		event->ignore();
+		e->ignore();
 		return;
 	}
 	m_ui->mdiArea->closeAllSubWindows();
 	if (activeMdiChild())
 	{
-		event->ignore();
+		e->ignore();
 		return;
 	}
 	iASystemThemeWatcher::stop();
 	writeSettings();
 	iALogWidget::shutdown();
-	event->accept();
+	e->accept();
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *e)
@@ -314,6 +314,17 @@ void MainWindow::dropEvent(QDropEvent *e)
 	{
 		loadFileAskNewWindow(url.toLocalFile());
 	}
+}
+
+bool MainWindow::event(QEvent *e)
+{
+	// according to QWidget docs, StyleChanged event should also trigger more specific changeEvent method,
+	// but this does not seem to be the case (at least for Qt 6.5.0 beta2 on Ubuntu 22.04)
+	if (e->type() == QEvent::StyleChange)
+	{
+		iASystemThemeWatcher::get()->checkForChange();
+	}
+	return QMainWindow::event(e);
 }
 
 void MainWindow::closeAllSubWindows()
@@ -880,7 +891,7 @@ void MainWindow::prefs()
 	for (QString key: styleNames.keys())
 	{
 		looks.append(QString("%1%2")
-			.arg((key == Sys && m_useSystemTheme) || (m_qssName == styleNames[key]) ? "!" : "")
+			.arg((key == Sys && m_useSystemTheme) || (!m_useSystemTheme && m_qssName == styleNames[key]) ? "!" : "")
 			.arg(key));
 	}
 	iAPreferences p = child ? child->preferences() : m_defaultPreferences;

@@ -10,11 +10,17 @@ class iASystemThemeWatcher: public QObject
 public:
 	iASystemThemeWatcher();
 	~iASystemThemeWatcher();
+	//! get the (singleton) object that triggers notifications on theme change
 	static iASystemThemeWatcher* get();
+	//! whether currently the system has bright mode
 	static bool isBrightTheme();
+	//! stop looking for theme changes
 	static void stop();
+	//! trigger a check for whether something as changed (required for linux, where a changeEvent on main window (type StyleChanged(/ThemeChanged?) should trigger this)
+	void checkForChange();
 
 signals:
+	//! notification  triggered when the theme switches between bright and dark
 	void themeChanged(bool brightTheme);
 
 private:

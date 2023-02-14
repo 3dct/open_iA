@@ -173,9 +173,10 @@ private slots:
 private:
 	//! internal retriever for MdiChild object (instead of iAMdiChild interface)
 	MdiChild* activeMDI();
-	void closeEvent(QCloseEvent *event) override;
+	void closeEvent(QCloseEvent *e) override;
 	void dragEnterEvent(QDragEnterEvent *e) override;
 	void dropEvent(QDropEvent *e) override;
+	bool event(QEvent* e) override; //!< required to catch StyleChange event (changeEvent not triggered)
 	void connectSignalsToSlots();
 	void readSettings();
 	void writeSettings();

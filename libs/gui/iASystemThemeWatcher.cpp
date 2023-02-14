@@ -10,6 +10,9 @@
 #include <windows.h>
 #endif
 
+#include <QApplication>
+#include <QPalette>
+#include <QStyle>
 #include <QtConcurrent>
 
 iASystemThemeWatcher::iASystemThemeWatcher():
@@ -26,43 +29,6 @@ iASystemThemeWatcher::iASystemThemeWatcher():
 
 iASystemThemeWatcher::~iASystemThemeWatcher()
 {
-}
-
-void iASystemThemeWatcher::stop()
-{
-#ifdef _MSC_VER
-	LOG(lvlInfo, "Stopping!");
-	if (!SetEvent(get()->m_stopEvent))
-	{
-		LOG(lvlError, QString("Call to SetEvent failed: %1!").arg(GetLastError()));
-	}
-#endif
-}
-
-bool iASystemThemeWatcher::isBrightTheme()
-{
-#ifdef _MSC_VER
-	/*
-	auto ValueKey = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize\\AppsUseLightTheme");
-	DWORD value;
-	DWORD size = sizeof(DWORD);
-	auto readResult = RegQueryValueEx(HKEY_CURRENT_USER, ValueKey, NULL, NULL, reinterpret_cast<BYTE*>(&value), &size);
-	if (readResult != ERROR_SUCCESS)
-	{
-		LOG(lvlError, QString("    Error reading value; error: %1!").arg(readResult));
-		return true;
-	}
-	else
-	{
-		return (value == 1);
-	}
-	*/
-	QSettings personalize(
-		"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", QSettings::NativeFormat);
-	return (personalize.value("AppsUseLightTheme").toInt() == 1);
-#else
-	return true;
-#endif
 }
 
 iASystemThemeWatcher* iASystemThemeWatcher::get()
@@ -104,12 +70,7 @@ iASystemThemeWatcher* iASystemThemeWatcher::get()
 					auto waitResult = WaitForMultipleObjects(2, handles, false, INFINITE);
 					if (waitResult == WAIT_OBJECT_0)
 					{
-						bool newBright = iASystemThemeWatcher::isBrightTheme();
-						if (result->m_isBright != newBright)
-						{
-							result->m_isBright = newBright;
-							emit result->themeChanged(newBright);
-						}
+						result->checkForChange();
 					}
 					else if (waitResult == WAIT_OBJECT_0 + 1)
 					{
@@ -139,4 +100,53 @@ iASystemThemeWatcher* iASystemThemeWatcher::get()
 		return r;
 	} () ;  // directly call lambda instead of assigning it!
 	return tcn.get();
+}
+
+bool iASystemThemeWatcher::isBrightTheme()
+{
+#ifdef _MSC_VER
+	/*
+	auto ValueKey = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize\\AppsUseLightTheme");
+	DWORD value;
+	DWORD size = sizeof(DWORD);
+	auto readResult = RegQueryValueEx(HKEY_CURRENT_USER, ValueKey, NULL, NULL, reinterpret_cast<BYTE*>(&value), &size);
+	if (readResult != ERROR_SUCCESS)
+	{
+		LOG(lvlError, QString("    Error reading value; error: %1!").arg(readResult));
+		return true;
+	}
+	else
+	{
+		return (value == 1);
+	}
+	*/
+	QSettings personalize(
+		"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", QSettings::NativeFormat);
+	return (personalize.value("AppsUseLightTheme").toInt() == 1);
+#else
+	// inspired from comment on https://stackoverflow.com/a/69705673
+	// we need to get style's standard palette here because the application palette is overwritten and does not automatically adapt to system one!
+	return qApp->style()->standardPalette().color(QPalette::WindowText).value() < qApp->style()->standardPalette().color(QPalette::Window).value();
+#endif
+}
+
+void iASystemThemeWatcher::stop()
+{
+#ifdef _MSC_VER
+	LOG(lvlInfo, "Stopping!");
+	if (!SetEvent(get()->m_stopEvent))
+	{
+		LOG(lvlError, QString("Call to SetEvent failed: %1!").arg(GetLastError()));
+	}
+#endif
+}
+
+void iASystemThemeWatcher::checkForChange()
+{
+	bool newBright = iASystemThemeWatcher::isBrightTheme();
+	if (m_isBright != newBright)
+	{
+		m_isBright = newBright;
+		emit themeChanged(newBright);
+	}
 }
