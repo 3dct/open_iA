@@ -75,11 +75,11 @@ struct iAOverlaySlicerData
 };
 
 iALabelsDlg::iALabelsDlg(iAMdiChild* mdiChild, bool addMainSlicers /* = true*/) :
-	m_itemModel(new QStandardItemModel()),
 	m_trackingSeeds(true),
 	m_colorTheme(iAColorThemeManager::instance().theme("Brewer Set3 (max. 12)")),
 	m_mdiChild(mdiChild),
-	m_ui(new Ui_labels())
+	m_ui(new Ui_labels()),
+	m_itemModel(new QStandardItemModel())
 {
 	m_ui->setupUi(this);
 	m_ui->cbColorTheme->addItems(iAColorThemeManager::instance().availableThemes());

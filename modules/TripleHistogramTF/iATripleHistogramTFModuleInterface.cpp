@@ -5,8 +5,7 @@
 #include "iATripleHistogramTFTool.h"
 
 #include <iALog.h>
-#include <iAMainWindow.h>
-#include <iAMdiChild.h>    // for addToolToActiveMdiChild
+#include <iAToolHelper.h>    // for addToolToActiveMdiChild
 
 #include <QAction>
 #include <QMenu>

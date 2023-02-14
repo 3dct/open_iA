@@ -12,7 +12,8 @@
 
 #include <QtConcurrent>
 
-iASystemThemeWatcher::iASystemThemeWatcher()
+iASystemThemeWatcher::iASystemThemeWatcher():
+	m_isBright(iASystemThemeWatcher::isBrightTheme())
 {
 #ifdef _MSC_VER
 	m_stopEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -20,7 +21,6 @@ iASystemThemeWatcher::iASystemThemeWatcher()
 	{
 		LOG(lvlError, QString("Error in CreateEvent (%1)!").arg(GetLastError()));
 	}
-	m_isBright = iASystemThemeWatcher::isBrightTheme();
 #endif
 }
 
@@ -59,8 +59,9 @@ bool iASystemThemeWatcher::isBrightTheme()
 	*/
 	QSettings personalize(
 		"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", QSettings::NativeFormat);
-	bool bright = (personalize.value("AppsUseLightTheme").toInt() == 1);
-	return bright;
+	return (personalize.value("AppsUseLightTheme").toInt() == 1);
+#else
+	return true;
 #endif
 }
 
@@ -69,8 +70,8 @@ iASystemThemeWatcher* iASystemThemeWatcher::get()
 	static auto tcn = []()
 	{
 		auto r = std::make_unique<iASystemThemeWatcher>();
-		auto result = r.get();
 #ifdef _MSC_VER
+		auto result = r.get();
 		auto future = QtConcurrent::run([result]
 			{
 				bool running = true;

@@ -6,8 +6,7 @@
 #include "iAModalitySPLOM.h"
 
 #include <iADataSet.h>
-#include <iAMainWindow.h>
-#include <iAMdiChild.h>
+#include <iAToolHelper.h>
 
 #include <iALog.h>
 

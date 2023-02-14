@@ -20,4 +20,6 @@ iAHistogramAbstract* iAHistogramAbstract::buildHistogramAbstract(iAHistogramAbst
 }
 
 void iAHistogramAbstract::updateDataSetNames(std::array<QString, 3> names)
-{}
+{
+	Q_UNUSED(names);
+}

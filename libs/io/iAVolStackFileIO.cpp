@@ -134,8 +134,8 @@ void iAVolStackFileIO::saveData(QString const& fileName, std::shared_ptr<iADataS
 			out << key << ": " << paramValues[key].toString() << "\n";
 		}
 	}
-	//// write mhd images:
-	for (int m = 0; m < collection->dataSets().size(); m++)
+	// write mhd images:
+	for (size_t m = 0; m < collection->dataSets().size(); m++)
 	{
 		QString curFileName = fi.absolutePath() + "/" + fileNameBase + QString("%1").arg(minIdx + m, numOfDigits, 10, QChar('0')) + extension;
 		auto io = iAFileTypeRegistry::createIO(curFileName, iAFileIO::Save);

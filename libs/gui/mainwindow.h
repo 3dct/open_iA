@@ -197,7 +197,9 @@ private:
 	QAction *m_separatorAct;
 	QAction *m_recentFileActs[MaxRecentFiles];
 	QActionGroup *m_slicerToolsGroup, *m_mdiViewModeGroup;
+	//! resource path of currently loaded stylesheets (.qss)
 	QString m_qssName;
+	//! whether the option of bright/dark theme should adapt to the system theme
 	bool m_useSystemTheme;
 	iAVolumeSettings m_defaultVolumeSettings;
 	iARenderSettings m_defaultRenderSettings;

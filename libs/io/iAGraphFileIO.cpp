@@ -235,13 +235,13 @@ std::shared_ptr<iADataSet> iAGraphFileIO::loadData(QString const& fileName, QVar
 
 	myPolyData->SetLines(lines);
 	myPolyData->GetPointData()->AddArray(vertexColors);
-	for (int v=0; v < allVertexValues.size(); ++v)
+	for (size_t v=0; v < allVertexValues.size(); ++v)
 	{
 		myPolyData->GetPointData()->AddArray(allVertexValues[v]);
 	}
 
 	myPolyData->GetCellData()->AddArray(edgeColors);
-	for (int v = 0; v < allEdgeValues.size(); ++v)
+	for (size_t v = 0; v < allEdgeValues.size(); ++v)
 	{
 		myPolyData->GetCellData()->AddArray(allEdgeValues[v]);
 	}

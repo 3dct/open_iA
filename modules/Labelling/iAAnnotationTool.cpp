@@ -64,7 +64,7 @@ public:
 		m_table->verticalHeader()->hide();
 		m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
 		m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-		
+
 		auto buttons = new QWidget();
 		buttons->setLayout(new QVBoxLayout);
 		buttons->layout()->setContentsMargins(0, 0, 0, 0);
@@ -94,8 +94,8 @@ public:
 		m_container->layout()->setSpacing(4);
 
 
-		
-		QObject::connect(m_table, &QTableWidget::cellClicked, tool, 
+
+		QObject::connect(m_table, &QTableWidget::cellClicked, tool,
 			[tool, this](int row,int /*cell*/)
 			{
 				auto id = m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
@@ -170,13 +170,13 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 	m_ui->m_table->insertRow(row);
 	auto colorItem = new QTableWidgetItem();
 	colorItem->setData(Qt::DecorationRole, col);
-	colorItem->setData(Qt::UserRole, id);
+	colorItem->setData(Qt::UserRole, static_cast<qulonglong>(id));
 	m_ui->m_table->setItem(row, 0, colorItem);
 	m_ui->m_table->setItem(row, 1, new QTableWidgetItem(name));
 	m_ui->m_table->setItem(row, 2, new QTableWidgetItem(coord.toString()));
 
 	auto show = new QCheckBox();
-	show->setChecked(TRUE); 
+	show->setChecked(true);
 	show->setStyleSheet("text-align: center; margin-left:50%; margin-right:50%; unchecked{ color: red; }; checked{ color: red; } ");
 	m_ui->m_table->setCellWidget(row, 3, show);
 	m_ui->m_table->resizeColumnsToContents();
@@ -204,7 +204,7 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 		auto prop = txt->GetProperty();
 		prop->SetColor(col.redF(), col.greenF(), col.blueF());
 		prop->SetLineWidth(10.0); // does not work, tried 1, 10, 100
-		
+
 
 		// Does not work; there seems to be a slight thickening of the tip at the moment, but no real arrow visible:
 		//vtkNew<vtkArrowSource> arrowSource;
@@ -214,7 +214,7 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 		//txt->SetLeaderGlyphConnection(arrowSource->GetOutputPort());
 		//txt->SetLeaderGlyphSize(10);
 		//txt->SetMaximumLeaderGlyphSize(10);
-		
+
 		double pt[3] = {
 			coord[i < 3 ? mapSliceToGlobalAxis(static_cast<iASlicerMode>(i), 0) : 0],
 			coord[i < 3 ? mapSliceToGlobalAxis(static_cast<iASlicerMode>(i), 1) : 1],
@@ -241,7 +241,7 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 		txt->GetCaptionTextProperty()->SetFrameColor(col.redF(), col.greenF(), col.blueF());
 		txt->GetCaptionTextProperty()->FrameOn();
 		//txt->GetCaptionTextProperty()->UseTightBoundingBoxOn();
-		
+
 		vtkAnnot.m_txtActor[i] = txt;
 		auto renWin = (i < 3) ?
 			m_child->slicer(i)->renderWindow() :
@@ -267,7 +267,7 @@ void iAAnnotationTool::renameAnnotation(size_t id, QString const& newName)
 	}
 	for (auto row = 0; row < m_ui->m_table->rowCount(); ++row)
 	{
-		if (m_ui->m_table->item(row, 0)->data(Qt::UserRole) == id)
+		if (m_ui->m_table->item(row, 0)->data(Qt::UserRole).toULongLong() == id)
 		{
 			m_ui->m_table->item(row, 1)->setText(newName);
 		}
@@ -292,7 +292,7 @@ void iAAnnotationTool::removeAnnotation(size_t id)
 	}
 	for (auto row = 0; row < m_ui->m_table->rowCount(); ++row)
 	{
-		if (m_ui->m_table->item(row, 0)->data(Qt::UserRole) == id)
+		if (m_ui->m_table->item(row, 0)->data(Qt::UserRole).toULongLong() == id)
 		{
 			m_ui->m_table->removeRow(row);
 		}
@@ -319,11 +319,11 @@ void iAAnnotationTool::hideAnnotation(size_t id)
 		}
 	}
 
-	bool hideOn = false; 
+	bool hideOn = false;
 
 	for (auto row = 0; row < m_ui->m_table->rowCount(); ++row)
 	{
-		if (m_ui->m_table->item(row, 0)->data(Qt::UserRole) == id)
+		if (m_ui->m_table->item(row, 0)->data(Qt::UserRole).toULongLong() == id)
 		{
 			hideOn = m_ui->m_table->item(row, 1)->foreground().color() == QColorConstants::Gray;
 
@@ -362,7 +362,7 @@ void iAAnnotationTool::hideAnnotation(size_t id)
 	}
 	//m_ui->m_vtkAnnotateData.erase(id);
 	m_child->updateViews();
-	
+
 	emit annotationsUpdated(m_ui->m_annotations);
 }
 
@@ -411,5 +411,5 @@ void iAAnnotationTool::focusToAnnotation(size_t id)
 
 //std::shared_ptr<iAAnnotationTool> iAAnnotationTool::create()
 //{
-//	return 
+//	return
 //}

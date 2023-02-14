@@ -105,5 +105,5 @@ private:
 	iAMdiChild* m_mdiChild;
 	QSharedPointer<Ui_labels> m_ui;
 
-	QStandardItemModel* m_itemModel;  // TODO: make private
+	QStandardItemModel* m_itemModel;
 };

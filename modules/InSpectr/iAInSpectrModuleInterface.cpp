@@ -4,8 +4,7 @@
 
 #include "iAInSpectrTool.h"
 
-#include <iAMainWindow.h>
-#include <iAMdiChild.h>    // for addToolToActiveMdiChild
+#include <iAToolHelper.h>    // for addToolToActiveMdiChild
 
 #include <QAction>
 #include <QMenu>

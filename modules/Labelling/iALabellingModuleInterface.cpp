@@ -7,8 +7,8 @@
 
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
-#include <iAModuleDispatcher.h>
-#include <iAToolRegistry.h>
+#include <iAToolHelper.h>    // for addToolToActiveMdiChild
+//#include <iAToolRegistry.h>
 
 #include <QAction>
 #include <QMenu>

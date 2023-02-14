@@ -116,13 +116,13 @@ T* MainWindow::activeChild()
 
 MainWindow::MainWindow(QString const & appName, QString const & version, QString const & buildInformation, QString const & splashImage, iADockWidgetWrapper* dwJobs) :
 	m_splashScreenImg(splashImage),
+	m_useSystemTheme(false),
 	m_moduleDispatcher( new iAModuleDispatcher( this ) ),
 	m_gitVersion(version),
 	m_buildInformation(buildInformation),
 	m_ui(new Ui_MainWindow()),
 	m_dwJobs(dwJobs),
-	m_openJobListOnNewJob(false),
-	m_useSystemTheme(false)
+	m_openJobListOnNewJob(false)
 {
 	assert(!m_mainWnd);
 	m_mainWnd = this;

@@ -3,12 +3,11 @@
 #include "iARemoteModuleInterface.h"
 
 // iAguibase
-#include "iAMainWindow.h"
-#include "iAMdiChild.h"
-#include "iATool.h"
 #include "iARenderer.h"
 #include "iASlicerImpl.h"
 #include "iASlicerMode.h"
+#include "iATool.h"
+#include "iAToolHelper.h"    // for addToolToActiveMdiChild
 
 #include "iARemoteAction.h"
 #include "iARemoteRenderer.h"

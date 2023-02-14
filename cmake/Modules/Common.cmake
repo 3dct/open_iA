@@ -68,7 +68,8 @@ endif()
 #-------------------------
 # Output Directories
 #-------------------------
-if (CMAKE_CONFIGURATION_TYPES)
+get_property(is_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if (${is_multi_config})
 	message(STATUS "Multi-configuration generator")
 	# On windows, both executable and dll's are considered RUNTIME, as well as executables on Mac OS...
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/x64/Debug")

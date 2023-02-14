@@ -9,8 +9,7 @@
 #include <iALog.h>
 #include <iAFilterDefault.h>
 #include <iAToolRegistry.h>
-#include <iAMainWindow.h>
-#include <iAMdiChild.h>
+#include <iAToolHelper.h>    // for addToolToActiveMdiChild
 
 #include <QAction>
 #include <QFileDialog>
