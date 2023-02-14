@@ -204,6 +204,7 @@ void iAWebsocketAPI::commandImagePushQuality(QJsonDocument Request, QWebSocket* 
 
 void iAWebsocketAPI::sendSuccess(QJsonDocument Request, QWebSocket* pClient)
 {
+	Q_UNUSED(Request);
 	QJsonObject ResponseArray;
 	const auto success = QJsonObject{{"result", "success"}};
 	ResponseArray["wslink"] = "1.0";

@@ -21,16 +21,34 @@ if (Qt${QT_VERSION_MAJOR}HttpServer_FOUND)
 			"${HTTP_SRC_DIR}/*.json"
 			"${HTTP_SRC_DIR}/*.scss"
 			"${HTTP_SRC_DIR}/*.ts")
-		add_custom_command(OUTPUT ${HTTP_INSTALL_SRC_DIR}/index.html
-			# re-run on a change of any of the web client source files:
-			DEPENDS ${WEB_CLIENT_SRC_FILES}
-			# first, copy required files to binary folder...
-			COMMAND ${CMAKE_COMMAND} -E copy ${HTTP_SRC_DIR} ${HTTP_BIN_DIR}
-			# ... then use npm/webpack to build everything libraries (this also internally calls angular build somehow):
-			COMMAND ${MULTI_RUNNER} ${NPM_PROGRAM} run installbuild
-			WORKING_DIRECTORY ${HTTP_INSTALL_SRC_DIR}
-			# ... then copy the client files to the respective configuration's RemoteClient subfolder (TODO: test on non-multi-config generators, e.g. ninja):
-			COMMAND ${CMAKE_COMMAND} -E copy_directory ${HTTP_INSTALL_SRC_DIR}/ $<IF:$<CONFIG:Debug>,${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG},$<IF:$<CONFIG:Release>,${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE},$<IF:$<CONFIG:RelWithDebInfo>,${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO},${CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL}>>>/${HTTP_DST_SUBDIR})
+		get_property(is_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+		if (${is_multi_config})
+			add_custom_command(OUTPUT ${HTTP_INSTALL_SRC_DIR}/index.html
+				# re-run on a change of any of the web client source files:
+				DEPENDS ${WEB_CLIENT_SRC_FILES}
+				# first, copy required files to binary folder...
+				COMMAND ${CMAKE_COMMAND} -E copy_directory ${HTTP_SRC_DIR} ${HTTP_BIN_DIR}
+				# ... then use npm/webpack to build everything libraries (this also internally calls angular build somehow):
+				COMMAND ${MULTI_RUNNER} ${NPM_PROGRAM} run installbuild
+				WORKING_DIRECTORY ${HTTP_INSTALL_SRC_DIR}
+				# ... then copy the client files to the respective configuration's RemoteClient subfolder (TODO: test on non-multi-config generators, e.g. ninja):
+				COMMAND ${CMAKE_COMMAND} -E copy_directory ${HTTP_INSTALL_SRC_DIR}/ $<IF:$<CONFIG:Debug>,${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG},$<IF:$<CONFIG:Release>,${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE},$<IF:$<CONFIG:RelWithDebInfo>,${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO},${CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL}>>>/${HTTP_DST_SUBDIR})
+		else()
+			# we only need to vary the last command (no generator expression for non-multi-config generators)
+			# but I'm unaware of a way to only switch out generator expression part, as generator expression cannot be stored in a variable
+			add_custom_command(OUTPUT ${HTTP_INSTALL_SRC_DIR}/index.html
+				# re-run on a change of any of the web client source files:
+				DEPENDS ${WEB_CLIENT_SRC_FILES}
+				# first, copy required files to binary folder...
+				COMMAND ${CMAKE_COMMAND} -E copy_directory ${HTTP_SRC_DIR} ${HTTP_BIN_DIR}
+				# ... then use npm/webpack to build everything libraries (this also internally calls angular build somehow):
+				COMMAND ${MULTI_RUNNER} ${NPM_PROGRAM} run installbuild
+				WORKING_DIRECTORY ${HTTP_INSTALL_SRC_DIR}
+				# ... then copy the client files to the respective configuration's RemoteClient subfolder (TODO: test on non-multi-config generators, e.g. ninja):
+				COMMAND ${CMAKE_COMMAND} -E copy_directory ${HTTP_INSTALL_SRC_DIR}/ ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${HTTP_DST_SUBDIR})
+	
+		endif()
+
 		target_sources(${MODULE_NAME} PRIVATE ${HTTP_INSTALL_SRC_DIR}/index.html)
 		# ^ weird (feeling like a woraround) kind of way to make the above command actually run,
 		# see https://cmake.org/cmake/help/latest/command/add_custom_command.html :
