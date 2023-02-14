@@ -4,9 +4,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <cassert>
 <cmath>
 <cstddef>
-<limits>
-<memory>
-<vector>
 <iAAbortListener.h>
 <iAAttributeDescriptor.h>
 <iAAttributes.h>
@@ -31,6 +28,8 @@ set(OPENIA_PRECOMPILE_HEADERS
 <itkImageBase.h>
 <itkImageFileReader.h>
 <itkImageFileWriter.h>
+<limits>
+<memory>
 <QColor>
 <QFileInfo>
 <QFlags>
@@ -43,6 +42,7 @@ set(OPENIA_PRECOMPILE_HEADERS
 <QTextStream>
 <QVariant>
 <QVector>
+<vector>
 <vtkColorTransferFunction.h>
 <vtkCommand.h>
 <vtkImageData.h>

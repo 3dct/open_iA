@@ -1,6 +1,4 @@
 set(OPENIA_PRECOMPILE_HEADERS
-<map>
-<vector>
 <iA3DColoredPolyObjectVis.h>
 <iA3DCylinderObjectVis.h>
 <iA3DEllipseObjectVis.h>
@@ -18,6 +16,7 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAObjectType.h>
 <iAVec3.h>
 <iAvtkTubeFilter.h>
+<map>
 <QColor>
 <QFile>
 <QMap>
@@ -27,6 +26,7 @@ set(OPENIA_PRECOMPILE_HEADERS
 <QStringList>
 <QTextStream>
 <QVector>
+<vector>
 <vtkActor.h>
 <vtkCellArray.h>
 <vtkColorTransferFunction.h>
@@ -39,8 +39,8 @@ set(OPENIA_PRECOMPILE_HEADERS
 <vtkObjectFactory.h>
 <vtkOutlineFilter.h>
 <vtkPointData.h>
-<vtkPolyData.h>
 <vtkPolyDataAlgorithm.h>
+<vtkPolyData.h>
 <vtkPolyDataMapper.h>
 <vtkPolyLine.h>
 <vtkRenderer.h>

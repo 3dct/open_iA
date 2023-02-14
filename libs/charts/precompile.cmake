@@ -2,11 +2,9 @@ set(OPENIA_PRECOMPILE_HEADERS
 <algorithm>
 <cassert>
 <cstddef>
-<utility>
-<vector>
-<iAChartFunction.h>
 <iAChartFunctionBezier.h>
 <iAChartFunctionGaussian.h>
+<iAChartFunction.h>
 <iAChartFunctionTransfer.h>
 <iAChartWidget.h>
 <iAChartWithFunctionsWidget.h>
@@ -17,8 +15,8 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iALUT.h>
 <iAMapper.h>
 <iAMathUtility.h>
-<iAPlot.h>
 <iAPlotData.h>
+<iAPlot.h>
 <iAPlotTypes.h>
 <iAQGLWidget.h>
 <iAScatterPlot.h>
@@ -26,6 +24,7 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iASPLOMData.h>
 <iAStringHelper.h>
 <iATFTableDlg.h>
+<iAThemeHelper.h>
 <iAToolsVTK.h>
 <QAbstractTextDocumentLayout>
 <QAction>
@@ -34,6 +33,7 @@ set(OPENIA_PRECOMPILE_HEADERS
 <QColor>
 <QColorDialog>
 <QFileDialog>
+<QIcon>
 <QList>
 <QMap>
 <QMenu>
@@ -49,10 +49,11 @@ set(OPENIA_PRECOMPILE_HEADERS
 <QSharedPointer>
 <QString>
 <QtGlobal>
-<QToolTip>
 <QVector>
 <QWheelEvent>
 <QWidget>
+<utility>
+<vector>
 <vtkColorTransferFunction.h>
 <vtkLookupTable.h>
 <vtkMath.h>
