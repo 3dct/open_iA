@@ -1,6 +1,7 @@
 set(NModalTF_PRECOMPILE_INCLUDES
 <defines.h>
 <iAChannelData.h>
+<iADataSet.h>
 <iALog.h>
 <iAMdiChild.h>
 <iANModalBackgroundRemover.h>
@@ -10,10 +11,8 @@ set(NModalTF_PRECOMPILE_INCLUDES
 <iAPerformanceHelper.h>
 <iASlicer.h>
 <iASlicerMode.h>
-<iATransferFunctionOwner.h>
 <iATypedCallHelper.h>
 <QDialog>
-<QDockWidget>
 <QGridLayout>
 <QLabel>
 <QList>

@@ -3,7 +3,6 @@ set(FuzzyFeatureTracking_PRECOMPILE_INCLUDES
 <iAFeatureTracking.h>
 <iAGraph.h>
 <iALog.h>
-<iAMdiChild.h>
 <iAQVTKWidget.h>
 <iAVolumeStack.h>
 <vector>

@@ -4,8 +4,8 @@ set(MetaFilters_PRECOMPILE_INCLUDES
 <iADataSet.h>
 <iAFileTypeRegistry.h>
 <iAFileUtils.h>
-<iAFilter.h>
 <iAFilterDefault.h>
+<iAFilter.h>
 <iAFilterRegistry.h>
 <iAITKIO.h>
 <iALog.h>

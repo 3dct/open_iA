@@ -1,7 +1,7 @@
 set(Uncertainty_PRECOMPILE_INCLUDES
 <iAConnector.h>
-<iAEnsemble.h>
 <iAEnsembleDescriptorFile.h>
+<iAEnsemble.h>
 <iALog.h>
 <iASingleResult.h>
 <iAUncertaintyColors.h>

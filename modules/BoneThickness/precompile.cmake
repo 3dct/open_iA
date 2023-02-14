@@ -1,4 +1,4 @@
 set(BoneThickness_PRECOMPILE_INCLUDES
-<iABoneThickness.h>
 <iABoneThicknessChartBar.h>
+<iABoneThickness.h>
 <iABoneThicknessTable.h>)

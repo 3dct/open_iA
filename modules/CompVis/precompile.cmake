@@ -1,7 +1,6 @@
 set(CompVis_PRECOMPILE_INCLUDES
 <algorithm>
 <cmath>
-<dlg_CSVInput.h>
 <iACsvConfig.h>
 <iACsvDataStorage.h>
 <iACsvIO.h>
@@ -45,11 +44,11 @@ set(CompVis_PRECOMPILE_INCLUDES
 <vtkPolygon.h>
 <vtkPolyLine.h>
 <vtkProgrammableGlyphFilter.h>
-<vtkProperty.h>
 <vtkProperty2D.h>
+<vtkProperty.h>
 <vtkPropPicker.h>
-<vtkRenderer.h>
 <vtkRendererCollection.h>
+<vtkRenderer.h>
 <vtkRenderWindow.h>
 <vtkRenderWindowInteractor.h>
 <vtkScalarBarActor.h>
