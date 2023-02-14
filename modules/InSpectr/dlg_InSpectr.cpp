@@ -963,8 +963,6 @@ void dlg_InSpectr::showLinkedElementMaps( int show )
 
 void dlg_InSpectr::InitElementRenderer( dlg_elementRenderer * elemRend, size_t index )
 {
-	iAMdiChild * mdiChild = (dynamic_cast<iAMdiChild*>(parent()));
-
 	//Derive data needed for visualization
 	vtkSmartPointer<vtkImageData> chImgData = m_elementConcentrations->getImage(m_decomposeSelectedElements.indexOf(index));
 
@@ -1143,7 +1141,6 @@ void dlg_InSpectr::computeSimilarityMap()
 		// 	}
 
 		const unsigned int numSamples = 2500;
-		iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 		double numIterations = numEBins * numEBins * 0.5;
 		double curIteration = 0.0;
 		int percentage = 0;

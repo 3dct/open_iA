@@ -61,9 +61,9 @@ static const QString DISABLED_BACKGROUND_COLOR = "rgba(255,255,255)"; // white
 static const int TIMER_UPDATE_VISUALIZATIONS_WAIT_MS = 250; // in milliseconds
 
 iAMultimodalWidget::iAMultimodalWidget(iAMdiChild* mdiChild, NumOfMod num):
+	m_mdiChild(mdiChild),
 	m_histograms(num, {}),
 	m_slicerWidgets(num, {}),
-	m_mdiChild(mdiChild),
 	m_timer_updateVisualizations(new QTimer()),
 	m_slicerMode(iASlicerMode::XY),
 	m_numOfDS(num),
