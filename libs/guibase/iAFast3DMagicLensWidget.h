@@ -10,8 +10,14 @@
 class vtkActor2D;
 class vtkCamera;
 class vtkInteractorStyle;
+class vtkPolyDataMapper2D;
 class vtkRenderer;
 
+//! Base class for 3D content rendering, main functionality currently:
+//!     - The ability to show a 3D magic lens where the camera of the lens adapts to the camera of the "main" view.
+//!     - Touch-based pinch-zoom
+//!		- context menu for triggering showing settings and switching magic lens modes
+//! Should probably be merged with iARendererImpl
 class iAguibase_API iAFast3DMagicLensWidget : public iAQVTKWidget
 {
 	Q_OBJECT
@@ -56,8 +62,9 @@ private:
 
 	static const double          OFFSET_VAL;
 	vtkSmartPointer<vtkRenderer> m_lensRen;
-	vtkSmartPointer<vtkRenderer> m_GUIRen;
+	vtkSmartPointer<vtkPolyDataMapper2D> m_GUIMapper;
 	vtkSmartPointer<vtkActor2D>  m_GUIActor;
+	vtkSmartPointer<vtkRenderer> m_GUIRen;
 	ViewMode                     m_viewMode;
 	double                       m_viewAngle;
 	bool                         m_magicLensEnabled;

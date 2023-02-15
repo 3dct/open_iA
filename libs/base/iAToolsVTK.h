@@ -202,6 +202,8 @@ enum iACameraPosition
 //! Set given camera position to one of the predefined positions available in iACameraPosition
 iAbase_API void setCamPosition(vtkCamera* cam, iACameraPosition mode);
 
+iAbase_API void copyCameraParams(vtkCamera* dst, vtkCamera* src);
+
 
 // ----- Lookup table / Color transfer function conversion -----
 

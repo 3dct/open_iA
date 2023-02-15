@@ -4,6 +4,7 @@
 
 #include "defines.h" // for DefaultMagicLensSize
 #include "iAThemeHelper.h"
+#include "iAToolsVTK.h"
 
 #include <QVTKInteractor.h>
 #include <vtkActor2D.h>
@@ -31,11 +32,13 @@ const double iAFast3DMagicLensWidget::OFFSET_VAL = 20.;
 iAFast3DMagicLensWidget::iAFast3DMagicLensWidget( QWidget * parent /*= 0 */ )
 	: iAQVTKWidget( parent ),
 	m_lensRen{ vtkSmartPointer<vtkRenderer>::New() },
-	m_GUIRen{ vtkSmartPointer<vtkRenderer>::New() },
+	m_GUIMapper { vtkSmartPointer<vtkPolyDataMapper2D>::New()},
 	m_GUIActor{ vtkSmartPointer<vtkActor2D>::New() },
+	m_GUIRen{ vtkSmartPointer<vtkRenderer>::New() },
 	m_viewMode(ViewMode::OFFSET),
 	m_viewAngle(15.0),
 	m_magicLensEnabled(false),
+	m_pos{ 0, 0 },
 	m_contextMenuEnabled(false)
 {
 	setFocusPolicy(Qt::StrongFocus);	// to receive the KeyPress Event!
@@ -48,11 +51,12 @@ iAFast3DMagicLensWidget::iAFast3DMagicLensWidget( QWidget * parent /*= 0 */ )
 	m_lensRen->GradientBackgroundOn();
 	m_lensRen->SetBackground(0.5, 0.5, 0.5);
 	m_lensRen->SetBackground(0.7, 0.7, 0.7);
-	m_GUIRen->InteractiveOff();
-	m_GUIRen->AddActor(m_GUIActor);
+
+	m_GUIActor->SetMapper(m_GUIMapper);
 	m_GUIActor->GetProperty()->SetLineWidth(2.);
 	m_GUIActor->GetProperty()->SetColor(1., 1., 0);
-
+	m_GUIRen->InteractiveOff();
+	m_GUIRen->AddActor(m_GUIActor);
 	setLensSize(DefaultMagicLensSize, DefaultMagicLensSize);
 }
 
@@ -72,25 +76,25 @@ void iAFast3DMagicLensWidget::updateLens()
 	vtkCamera * mainCam = renderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
 	vtkCamera * magicLensCam = m_lensRen->GetActiveCamera();
 
-	if( mainCam->GetUseOffAxisProjection() == 0 )
-	{
-		mainCam->UseOffAxisProjectionOn();
-	}
-	if( magicLensCam->GetUseOffAxisProjection() == 0 )
+	if (magicLensCam->GetUseOffAxisProjection() == 0)
 	{
 		magicLensCam->UseOffAxisProjectionOn();
 	}
-
-	int * pos = interactor()->GetEventPosition();
-
-	// copy camera position and rotation
-	magicLensCam->SetPosition( mainCam->GetPosition() );
-	magicLensCam->SetRoll( mainCam->GetRoll() );
-	magicLensCam->SetFocalPoint( mainCam->GetFocalPoint() );
+	copyCameraParams(magicLensCam, mainCam);
 
 	// setup parameters for frustum calculations
 	double pixelHeight = height() * devicePixelRatio();
 	double pixelWidth = width() * devicePixelRatio();
+
+	if (mainCam->GetParallelProjection())
+	{
+		// scale is inverse - smaller values produce larger image!
+		double scale = std::min(m_size[0] / pixelWidth, m_size[1] / pixelHeight);
+		magicLensCam->SetParallelScale(scale * mainCam->GetParallelScale());
+		// TODO: we would also need to shift camera position!
+	}
+	// seems to be only effective for non-parallel projection:
+	int * pos = interactor()->GetEventPosition();
 	double w = m_size[0] / pixelHeight;
 	double h = m_size[1] / pixelHeight;
 	double p[2] = {
@@ -148,6 +152,7 @@ void iAFast3DMagicLensWidget::magicLensOn()
 {
 	m_magicLensEnabled = true;
 	setCursor(Qt::BlankCursor);
+	updateGUI();
 	renderWindow()->AddRenderer(m_lensRen);
 	renderWindow()->AddRenderer(m_GUIRen);
 	renderWindow()->Render();
@@ -181,6 +186,7 @@ vtkRenderer* iAFast3DMagicLensWidget::getLensRenderer()
 void iAFast3DMagicLensWidget::setViewMode(ViewMode mode)
 {
 	m_viewMode = mode;
+	update();
 }
 
 void iAFast3DMagicLensWidget::mouseMoveEvent(QMouseEvent* event)
@@ -264,14 +270,14 @@ bool iAFast3DMagicLensWidget::event(QEvent* event)
 
 void iAFast3DMagicLensWidget::updateGUI()
 {
-	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-	vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New();
+	vtkNew<vtkPoints> points;
+	vtkNew<vtkCellArray> cells;
 
 	switch (m_viewMode)
 	{
 	case ViewMode::CENTERED:
 	{
-		vtkSmartPointer<vtkPolyLine> line = vtkSmartPointer<vtkPolyLine>::New();
+		vtkNew<vtkPolyLine> line;
 		double p0[3] = { m_pos[0] - m_halfSize[0], m_pos[1] - m_halfSize[1], 0. };
 		double p1[3] = { m_pos[0] - m_halfSize[0], m_pos[1] + m_halfSize[1], 0. };
 		double p2[3] = { m_pos[0] + m_halfSize[0], m_pos[1] + m_halfSize[1], 0. };
@@ -290,9 +296,9 @@ void iAFast3DMagicLensWidget::updateGUI()
 	}
 	case ViewMode::OFFSET:
 	{
-		vtkSmartPointer<vtkPolyLine> leftRect = vtkSmartPointer<vtkPolyLine>::New();
-		vtkSmartPointer<vtkPolyLine> rightRect = vtkSmartPointer<vtkPolyLine>::New();
-		vtkSmartPointer<vtkPolyLine> line = vtkSmartPointer<vtkPolyLine>::New();
+		vtkNew<vtkPolyLine> leftRect;
+		vtkNew<vtkPolyLine> rightRect;
+		vtkNew<vtkPolyLine> line;
 		double p0[3] = { m_pos[0] - m_halfSize[0]			  , m_pos[1] - m_halfSize[1], 0. };	// left
 		double p1[3] = { m_pos[0] - m_halfSize[0]			  , m_pos[1] + m_halfSize[1], 0. };	// left
 		double p2[3] = { m_pos[0] + m_halfSize[0]			  , m_pos[1] + m_halfSize[1], 0. };	// left
@@ -336,14 +342,10 @@ void iAFast3DMagicLensWidget::updateGUI()
 	default:
 		break;
 	}
-
-	vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+	vtkNew<vtkPolyData> polyData;
 	polyData->SetPoints(points);
 	polyData->SetLines(cells);
-	// Setup actor and mapper
-	vtkSmartPointer<vtkPolyDataMapper2D> mapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
-	mapper->SetInputData(polyData);
-	m_GUIActor->SetMapper(mapper);
+	m_GUIMapper->SetInputData(polyData);
 }
 
 // input points: xmin, ymin, xmax, ymax
@@ -383,5 +385,12 @@ void iAFast3DMagicLensWidget::contextMenuEvent(QContextMenuEvent* event)
 	QMenu menu;
 	auto settingsAction = menu.addAction(tr("Settings"), this, &iAFast3DMagicLensWidget::editSettings);
 	settingsAction->setIcon(iAThemeHelper::icon("settings_renderer"));
+	menu.addSeparator();
+	auto centerAct = menu.addAction(tr("Magic Lens: Centered"), this, [this] { setViewMode(ViewMode::CENTERED); });
+	centerAct->setCheckable(true);
+	centerAct->setChecked(m_viewMode == ViewMode::CENTERED);
+	auto offsetAct = menu.addAction(tr("Magic Lens: Offset"), this, [this] { setViewMode(ViewMode::OFFSET); });
+	offsetAct->setCheckable(true);
+	offsetAct->setChecked(m_viewMode == ViewMode::OFFSET);
 	menu.exec(event->globalPos());
 }

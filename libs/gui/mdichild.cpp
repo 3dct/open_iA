@@ -1295,6 +1295,12 @@ void MdiChild::toggleMagicLens3D(bool isEnabled)
 {
 	if (isEnabled)
 	{
+		if (m_renderer->camera()->GetParallelProjection())
+		{
+			auto msg = "The 3D magic lens currently does not support parallel projection properly! You can disable parallel projection in renderer settings!";
+			QMessageBox::warning(this, "3D magic lens", msg);
+			LOG(lvlWarn, msg);
+		}
 		m_dwRenderer->vtkWidgetRC->magicLensOn();
 	}
 	else

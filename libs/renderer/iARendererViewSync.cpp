@@ -3,6 +3,7 @@
 #include "iARendererViewSync.h"
 
 #include "iALog.h"
+#include "iAToolsVTK.h"
 
 #include <vtkCamera.h>
 #include <vtkCommand.h>
@@ -13,25 +14,6 @@
 
 #include <cassert>
 #include <set>
-
-namespace
-{
-	void copyCameraParams(vtkCamera* dstCam, vtkCamera* srcCam)
-	{
-		dstCam->SetViewUp(srcCam->GetViewUp());
-		dstCam->SetPosition(srcCam->GetPosition());
-		dstCam->SetFocalPoint(srcCam->GetFocalPoint());
-		dstCam->SetClippingRange(srcCam->GetClippingRange());
-		if (srcCam->GetParallelProjection() != dstCam->GetParallelProjection())
-		{
-			dstCam->SetParallelProjection(srcCam->GetParallelProjection());
-		}
-		if (srcCam->GetParallelProjection())
-		{
-			dstCam->SetParallelScale(srcCam->GetParallelScale());
-		}
-	}
-}
 
 iARendererViewSync::iARendererViewSync(bool sharedCamera) :
 	m_updateInProgress(false),

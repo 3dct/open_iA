@@ -261,11 +261,11 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 		m_actionMagicLens->setChecked(false);
 
 		QActionGroup * actionGr(new QActionGroup(this));
-		m_actionMagicLensCentered = m_contextMenu->addAction(tr("Centered Magic Lens"), this, &iASlicerImpl::menuCenteredMagicLens);
+		m_actionMagicLensCentered = m_contextMenu->addAction(tr("Magic Lens: Centered"), this, &iASlicerImpl::menuCenteredMagicLens);
 		m_actionMagicLensCentered->setCheckable(true);
 		m_actionMagicLensCentered->setChecked(true);
 		actionGr->addAction(m_actionMagicLensCentered);
-		m_actionMagicLensOffset = m_contextMenu->addAction(tr("Offseted Magic Lens"), this, &iASlicerImpl::menuOffsetMagicLens);
+		m_actionMagicLensOffset = m_contextMenu->addAction(tr("Magic Lens: Offset"), this, &iASlicerImpl::menuOffsetMagicLens);
 		m_actionMagicLensOffset->setCheckable(true);
 		actionGr->addAction(m_actionMagicLensOffset);
 	}

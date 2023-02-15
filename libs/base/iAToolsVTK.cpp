@@ -409,6 +409,23 @@ void setCamPosition(vtkCamera* cam, iACameraPosition pos)
 	cam->SetFocalPoint(0, 0, 0);
 }
 
+void copyCameraParams(vtkCamera* dstCam, vtkCamera* srcCam)
+{
+	if (srcCam->GetParallelProjection() != dstCam->GetParallelProjection())
+	{
+		dstCam->SetParallelProjection(srcCam->GetParallelProjection());
+	}
+	if (srcCam->GetParallelProjection())
+	{
+		dstCam->SetParallelScale(srcCam->GetParallelScale());
+	}
+	dstCam->SetViewUp(srcCam->GetViewUp());
+	//dstCam->SetRoll(srcCam->GetRoll()); // covered by viewUp?
+	dstCam->SetPosition(srcCam->GetPosition());
+	dstCam->SetFocalPoint(srcCam->GetFocalPoint());
+	dstCam->SetClippingRange(srcCam->GetClippingRange());
+}
+
 
 
 void convertLUTToTF(vtkSmartPointer<vtkLookupTable> lut, vtkSmartPointer<vtkColorTransferFunction> ctf,
