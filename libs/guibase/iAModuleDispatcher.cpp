@@ -219,13 +219,11 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 		auto filterFactory = filterFactories[i];
 		auto filter = filterFactory();
 		QMenu * filterMenu = m_mainWnd->filtersMenu();
-		QStringList categories = filter->fullCategory().split("/");
+		QStringList categories = filter->fullCategory().split("/", Qt::SkipEmptyParts);
 		for (auto cat : categories)
 		{
-			if (!cat.isEmpty())
-			{
-				filterMenu = getOrAddSubMenu(filterMenu, cat);
-			}
+			assert(!cat.isEmpty());   // if (cat.isEmpty()) LOG(lvlDebug, QString("Filter %1: Invalid category %2 - empty section!").arg(filter->name()).arg(filter->fullCategory()));
+			filterMenu = getOrAddSubMenu(filterMenu, cat);
 		}
 		QAction * filterAction = new QAction(tr(filter->name().toStdString().c_str()), m_mainWnd);
 		addToMenuSorted(filterMenu, filterAction);

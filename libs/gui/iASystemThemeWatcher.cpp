@@ -106,6 +106,7 @@ bool iASystemThemeWatcher::isBrightTheme()
 {
 #ifdef _MSC_VER
 	/*
+	// not sure why but this code fails with error code 2:
 	auto ValueKey = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize\\AppsUseLightTheme");
 	DWORD value;
 	DWORD size = sizeof(DWORD);
@@ -120,6 +121,8 @@ bool iASystemThemeWatcher::isBrightTheme()
 		return (value == 1);
 	}
 	*/
+	// this check is also in Qt, at plugins\platforms\windows\qwindowstheme.h|cpp -> queryDarkMode
+	// on a quick glance this is not easy to access though, and not generically!
 	QSettings personalize(
 		"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", QSettings::NativeFormat);
 	return (personalize.value("AppsUseLightTheme").toInt() == 1);

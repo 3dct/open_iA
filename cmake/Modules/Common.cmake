@@ -513,7 +513,7 @@ if (openiA_CUDA_ENABLED)
 	find_package(CUDAToolkit REQUIRED)
 	if (CUDAToolkit_FOUND)
 		message(STATUS "CUDA: ${CUDAToolkit_VERSION} in ${CUDAToolkit_TARGET_DIR}")
-		set(BUILD_INFO "${BUILD_INFO}    \"CUDA	${CUDA_VERSION}\\n\"\n")
+		set(BUILD_INFO "${BUILD_INFO}    \"CUDA	${CUDAToolkit_VERSION}\\n\"\n")
 		#if (WIN32)
 		# TODO: Check on Unix
 		set(CUDA_LIB_DIR ${CUDAToolkit_BIN_DIR})
