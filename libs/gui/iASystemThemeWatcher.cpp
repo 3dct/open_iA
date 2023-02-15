@@ -126,7 +126,12 @@ bool iASystemThemeWatcher::isBrightTheme()
 #else
 	// inspired from comment on https://stackoverflow.com/a/69705673
 	// we need to get style's standard palette here because the application palette is overwritten and does not automatically adapt to system one!
-	return qApp->style()->standardPalette().color(QPalette::WindowText).value() < qApp->style()->standardPalette().color(QPalette::Window).value();
+	auto const & p = qApp->style()->standardPalette();
+	auto textColor = p.color(QPalette::WindowText);
+	auto windowColor = p.color(QPalette::Window);
+	auto bright = textColor.value() < windowColor.value();
+	LOG(lvlInfo, QString("isBrightTheme: textColor: %1; windowColor: %2; isBright: %3").arg(textColor.name()).arg(windowColor.name()).arg(bright));
+	return bright;
 #endif
 }
 

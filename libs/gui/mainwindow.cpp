@@ -318,10 +318,13 @@ void MainWindow::dropEvent(QDropEvent *e)
 
 bool MainWindow::event(QEvent *e)
 {
-	// according to QWidget docs, StyleChanged event should also trigger more specific changeEvent method,
+	// according to QWidget docs, StyleChange event should also trigger more specific changeEvent method,
 	// but this does not seem to be the case (at least for Qt 6.5.0 beta2 on Ubuntu 22.04)
-	if (e->type() == QEvent::StyleChange)
-	{
+	// currently only called on Linux (tested on XFCE, Gnome and KDE), not on Windows (untested on Mac OS)
+	if  (e->type() == QEvent::StyleChange
+		//|| e->type() == QEvent::PaletteChange  // also triggered, but probably only as side-effect
+		//|| e->type() == QEvent::ThemeChange    // might also be relevant, not sure about difference to StyleChange, both are triggered
+	) {
 		iASystemThemeWatcher::get()->checkForChange();
 	}
 	return QMainWindow::event(e);
