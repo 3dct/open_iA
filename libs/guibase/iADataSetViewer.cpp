@@ -80,7 +80,7 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	auto dsList = child->dataSetListWidget();
 	// reversed to view order, see addViewAction
 	m_pickAction = addViewAction("Pickable", "transform-move", false,
-		[this, child, dataSetIdx](bool checked)
+		[child, dataSetIdx](bool checked)
 		{
 			Q_UNUSED(checked);
 			if (checked)
@@ -382,7 +382,7 @@ void iAProjectViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 {
 	auto collection = dynamic_cast<iADataCollection const*>(m_dataSet);
 	auto fileName = m_dataSet->metaData(iADataSet::FileNameKey).toString();
-	auto afterRenderCallback = [this, child, collection, fileName, dataSetIdx]()
+	auto afterRenderCallback = [child, collection, fileName, dataSetIdx]()
 	{
 		LOG(lvlDebug, QString("afterRenderCallback (dataSetIdx: %1)").arg(dataSetIdx));
 		// all datasets loaded, continue with loading projects!
@@ -417,7 +417,7 @@ void iAProjectViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	}
 	// ...otherwise load datasets first...
 	QObject::connect(child, &iAMdiChild::dataSetRendered, this,
-		[this, child, collection, fileName, afterRenderCallback](size_t dataSetIdx)
+		[this, afterRenderCallback](size_t dataSetIdx)
 		{
 			LOG(lvlDebug, QString("dataSetRendered (dataSetIdx: %1)").arg(dataSetIdx));
 			// viewer settings are loaded along with the dataset, so they are applied directly in the respective viewers!

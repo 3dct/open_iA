@@ -370,7 +370,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 		m_dataSet->setMetaData(RenderFlags, defaultRenderFlags);
 	}
 	addViewAction("Slice Profile", "profile", renderFlagSet(RenderProfileFlag),
-		[this, child](bool checked)
+		[this](bool checked)
 		{
 			setRenderFlag(RenderProfileFlag, checked);
 			if (checked)
@@ -380,7 +380,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			m_dwProfile->setVisible(checked);
 		});
 	m_histogramAction = addViewAction("Histogram", "histogram-tf", renderFlagSet(RenderHistogramFlag),
-		[this, child](bool checked)
+		[this](bool checked)
 		{
 			setRenderFlag(RenderHistogramFlag, checked);
 			m_dwHistogram->setVisible(checked);
