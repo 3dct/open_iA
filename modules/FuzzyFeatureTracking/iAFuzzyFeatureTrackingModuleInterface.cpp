@@ -8,6 +8,7 @@
 
 #include <QAction>
 #include <QMenu>
+#include <QMessageBox>
 
 void iAFuzzyFeatureTrackingModuleInterface::Initialize()
 {
@@ -30,6 +31,8 @@ void iAFuzzyFeatureTrackingModuleInterface::fuzzyFeatureTracking()
 	}
 	catch (std::exception& e)
 	{
-		LOG(lvlError, QString("Failed to create Fuzzy Feature Tracking Tool: %1").arg(e.what()));
+		QString msg = QString("Failed to create Fuzzy Feature Tracking Tool: %1. Please fix the error, close the current window, and then restart the analysis!").arg(e.what());
+		QMessageBox::warning(m_mainWnd, "Fuzzy Feature Tracking", msg);
+		LOG(lvlError, msg);
 	}
 }

@@ -60,7 +60,7 @@ iAFuzzyFeatureTrackingTool::iAFuzzyFeatureTrackingTool( iAMainWindow * mainWnd, 
 		}
 		else
 		{
-			file[0] = volumeViewers[i-1]->volume()->metaData(iADataSet::NameKey).toString() + csvExt;
+			file[0] = volumeViewers[i-1]->volume()->metaData(iADataSet::FileNameKey).toString() + csvExt;
 		}
 		file[1] = volumeViewers[i]->volume()->metaData(iADataSet::FileNameKey).toString() + csvExt;
 
@@ -70,7 +70,7 @@ iAFuzzyFeatureTrackingTool::iAFuzzyFeatureTrackingTool( iAMainWindow * mainWnd, 
 		}
 		if (!QFile::exists(file[1]))
 		{
-			throw std::runtime_error(QString( "The file \"\" is missing").arg(file[1]).toStdString());
+			throw std::runtime_error(QString( "The file \"%1\" is missing").arg(file[1]).toStdString());
 		}
 
 		int lastIndex = file[1].lastIndexOf( QString( "/" ) );
