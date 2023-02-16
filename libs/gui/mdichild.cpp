@@ -32,7 +32,6 @@
 #include <iAToolRegistry.h>
 #include <iARenderSettings.h>
 #include <iARunAsync.h>
-#include <iAVolumeStack.h>
 
 // qthelper
 #include <iADockWidgetWrapper.h>
@@ -78,6 +77,7 @@
 #include <QListWidget>
 #include <QMainWindow>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QSettings>
 #include <QSpinBox>
 #include <QtGlobal> // for QT_VERSION
@@ -96,12 +96,10 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_parametricSpline(vtkSmartPointer<iAParametricSpline>::New()),
 	m_axesTransform(vtkTransform::New()),
 	m_slicerTransform(vtkTransform::New()),
-	m_volumeStack(new iAVolumeStack),
 	m_dataSetInfo(new QListWidget(this)),
 	m_dataSetListWidget(new iADataSetListWidget()),
 	m_dwInfo(new iADockWidgetWrapper(m_dataSetInfo, "Dataset Info", "DataInfo")),
 	m_dwDataSets(new iADockWidgetWrapper(m_dataSetListWidget, "Datasets", "DataSets")),
-	m_dwVolumePlayer(nullptr),
 	m_nextChannelID(0),
 	m_magicLensChannel(NotExistingChannel),
 	m_magicLensDataSet(0),
@@ -386,90 +384,6 @@ namespace
 iARenderer* MdiChild::renderer()
 {
 	return m_renderer;
-}
-
-void MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
-{
-	// TODO NEWIO: REDO by simply showing the new dataset and hiding the old one; MOVE to volume stack widget
-	
-	// TODO: VOLUME: Test!!! copy from currently selected instead of fixed 0 index?
-	// This function probbl never called, update(int, bool) signal doesn't seem to be emitted anywhere?
-	/*
-	vtkColorTransferFunction* colorTransferFunction = modality(0)->transfer()->colorTF();
-	vtkPiecewiseFunction* piecewiseFunction = modality(0)->transfer()->opacityTF();
-	m_volumeStack->colorTF(m_previousIndexOfVolume)->DeepCopy(colorTransferFunction);
-	m_volumeStack->opacityTF(m_previousIndexOfVolume)->DeepCopy(piecewiseFunction);
-	m_previousIndexOfVolume = updateIndex;
-
-	m_imageData->DeepCopy(m_volumeStack->volume(updateIndex));
-	assert(m_volumeStack->numberOfVolumes() < std::numeric_limits<int>::max());
-	if (isApplyForAll)
-	{
-		for (size_t i = 0; i < m_volumeStack->numberOfVolumes(); ++i)
-		{
-			if (static_cast<int>(i) != updateIndex)
-			{
-				m_volumeStack->colorTF(i)->DeepCopy(colorTransferFunction);
-				m_volumeStack->opacityTF(i)->DeepCopy(piecewiseFunction);
-			}
-		}
-	}
-
-	colorTransferFunction->DeepCopy(m_volumeStack->colorTF(updateIndex));
-	piecewiseFunction->DeepCopy(m_volumeStack->opacityTF(updateIndex));
-
-	//setHistogramModality(0);
-
-	m_renderer->reInitialize(m_imageData, m_polyData);
-	for (int s = 0; s < 3; ++s)
-	{
-		// TODO: check how to update s:
-		m_slicer[s]->updateChannel(0, iAChannelData(modality(0)->name(), m_imageData, colorTransferFunction));
-	}
-	updateViews();
-
-	if (m_checkedList.at(updateIndex) != 0)
-	{
-		enableRenderWindows();
-	}
-
-	return true;
-	*/
-}
-
-void MdiChild::setupStackView(bool active)
-{
-	addVolumePlayer();
-	// TODO NEWIO: check / REWRITE
-
-	/*
-	m_previousIndexOfVolume = 0;
-	if (m_volumeStack->numberOfVolumes() == 0)
-	{
-		LOG(lvlError, "Invalid call to setupStackView: No Volumes loaded!");
-		return;
-	}
-
-	int currentIndexOfVolume = 0;
-	m_imageData->DeepCopy(m_volumeStack->volume(currentIndexOfVolume));
-	setupViewInternal(active);
-	for (size_t i = 0; i < m_volumeStack->numberOfVolumes(); ++i)
-	{
-		vtkSmartPointer<vtkColorTransferFunction> cTF = defaultColorTF(m_imageData->GetScalarRange());
-		vtkSmartPointer<vtkPiecewiseFunction> pWF = defaultOpacityTF(m_imageData->GetScalarRange(), m_imageData->GetNumberOfScalarComponents() == 1);
-		m_volumeStack->addColorTransferFunction(cTF);
-		m_volumeStack->addPiecewiseFunction(pWF);
-	}
-	auto modTrans = modality(0)->transfer();
-	modTrans->colorTF()->DeepCopy(m_volumeStack->colorTF(0));
-	modTrans->opacityTF()->DeepCopy(m_volumeStack->opacityTF(0));
-	m_renderer->reInitialize(m_imageData, m_polyData);
-	for (int s = 0; s < 3; ++s)
-	{
-		m_slicer[s]->updateChannel(0, iAChannelData(modality(0)->name(), m_imageData, modTrans->colorTF()));
-	}
-	updateViews();
-	*/
 }
 
 /*
@@ -1339,17 +1253,6 @@ void MdiChild::updateDataSetInfo()
 	}
 }
 
-bool MdiChild::addVolumePlayer()
-{
-	m_dwVolumePlayer = new dlg_volumePlayer(this, m_volumeStack.data());
-	splitDockWidget(m_dwDataSets, m_dwVolumePlayer, Qt::Horizontal);
-	for (size_t id = 0; id < m_volumeStack->numberOfVolumes(); ++id)
-	{
-		m_checkedList.append(0);
-	}
-	return true;
-}
-
 void MdiChild::updateROI(int const roi[6])
 {
 	for (int s = 0; s < 3; ++s)
@@ -1787,11 +1690,6 @@ vtkRenderer* MdiChild::magicLens3DRenderer() const
 QString MdiChild::filePath() const
 {
 	return m_path;
-}
-
-iAVolumeStack* MdiChild::volumeStack()
-{
-	return m_volumeStack.data();
 }
 
 bool MdiChild::isVolumeDataLoaded() const

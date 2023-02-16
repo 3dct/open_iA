@@ -29,7 +29,6 @@ class iASlicerSettings;
 class iATool;
 class iATransferFunction;
 class iAVolumeSettings;
-class iAVolumeStack;
 
 class vtkImageData;
 class vtkPiecewiseFunction;
@@ -143,9 +142,6 @@ public:
 	//! @deprecated, use channel mechanisms / setMagicLensInput instead!
 	//virtual void reInitMagicLens(uint id, QString const& name, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf) = 0;
 	virtual vtkRenderer* magicLens3DRenderer() const = 0;
-
-	//! Access the "volume stack" if a stack of volumes is loaded
-	virtual iAVolumeStack* volumeStack() = 0;
 
 	//! whether the child currently has volume data loaded
 	virtual bool isVolumeDataLoaded() const = 0;

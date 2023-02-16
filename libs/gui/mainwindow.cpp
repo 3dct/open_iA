@@ -2498,6 +2498,8 @@ void MainWindow::initResources()
 	Q_INIT_RESOURCE(gui);
 }
 
+#include "dlg_volumePlayer.h"
+
 int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString const & version,
 	QString const& buildInformation, QString const & splashPath, QString const & iconPath)
 {
@@ -2559,6 +2561,17 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	app.setWindowIcon(QIcon(QPixmap(iconPath)));
 	QApplication::setStyle(new iAProxyStyle(QApplication::style()));
 	mainWin.setWindowIcon(QIcon(QPixmap(iconPath)));
+
+	mainWin.toolsMenu()->addAction("Volume Player",
+		[&mainWin]
+		{
+			if (!mainWin.activeMdiChild())
+			{
+				return;
+			}
+			mainWin.activeMdiChild()->addTool(
+				"VolumePlayer", std::make_shared<iAVolumePlayerTool>(&mainWin, mainWin.activeMdiChild()));
+		});
 	if (QDate::currentDate().dayOfYear() >= 350)
 	{
 		mainWin.setWindowTitle("Merry Christmas and a Happy New Year!");

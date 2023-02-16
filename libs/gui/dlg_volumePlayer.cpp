@@ -6,11 +6,16 @@
 #include <iAMathUtility.h>
 
 #include "iAChannelData.h"
+#include "iADataSet.h"
+#include "iADataSetRenderer.h"
 #include "iAParameterDlg.h"
 #include "iASlicer.h"
+#include "iATransferFunction.h"
+#include "iAVolumeViewer.h"
 
-#include "iAVolumeStack.h"
 #include "mdichild.h"
+
+#include "ui_VolumePlayer.h"
 
 #include <vtkImageData.h>
 #include <vtkPiecewiseFunction.h>
@@ -21,62 +26,73 @@
 #include <cassert>
 
 
-const float TIMER_MIN_SPEED = 0.2f;	// frames per second
-const float TIMER_MAX_SPEED = 50.0f;	// frames per second
-const int SECONDS_TO_MILISECONDS = 1000;
-const int DIVISIONS_PER_VOLUME = 200;
-
-dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
-	: QDockWidget(parent),
-	m_mask(0),
-	m_volumeStack(volumeStack),
-	m_multiChannelIsInitialized(false)
+iAVolumePlayerTool::iAVolumePlayerTool(iAMainWindow* wnd, iAMdiChild* child):
+	iATool(wnd, child)
 {
-	setupUi(this);
-	m_isBlendingOn = blending->isChecked();
-	m_mdiChild = dynamic_cast<MdiChild*>(parent);
-	if (m_volumeStack->numberOfVolumes() > std::numeric_limits<int>::max())
+	std::vector<iAVolumeViewer*> volumeViewers;
+	for (auto ds : child->dataSetMap())
 	{
-		LOG(lvlWarn, QString("More Volumes (%1) in volume player than supported (%2)!")
-			.arg(m_volumeStack->numberOfVolumes())
-			.arg(std::numeric_limits<int>::max()));
+		if (ds.second->type() == iADataSetType::Volume)
+		{
+			volumeViewers.push_back(dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(ds.first)));
+		}
 	}
-	m_numberOfVolumes = static_cast<int>(m_volumeStack->numberOfVolumes());
-	for (int i = 0; i < m_numberOfVolumes; ++i)
-	{
-		showVolume(i);
-	}
+	m_volumePlayer = new iAVolumePlayerWidget(child, volumeViewers);
+	child->splitDockWidget(child->dataInfoDockWidget(), m_volumePlayer, Qt::Horizontal);
+}
 
+namespace
+{
+	const float TimerMinFPS = 0.25f;
+	const float TimerMaxFPS = 20.0f;
+	const int MilliSecondsPerSecond = 1000;
+	const int BlendSteps = 100;
+	const int NumberOfColumns = 5;
+	const auto NoStep = -1;
+	const auto NoVolIdx = std::numeric_limits<size_t>::max();
+
+	float frac(float val)
+	{
+		return val - std::trunc(val);
+	}
+}
+
+iAVolumePlayerWidget::iAVolumePlayerWidget(iAMdiChild *child, std::vector<iAVolumeViewer*> const& volumes)
+	: QDockWidget(child),
+	m_volumeViewers(volumes),
+	m_ui(std::make_unique<Ui_VolumePlayer>()),
+	m_prevStep(NoStep),
+	m_prevVolIdx{ NoVolIdx, NoVolIdx },
+	m_child(child)
+{
+	m_ui->setupUi(this);
+	m_isBlendingOn = m_ui->blending->isChecked();
 	setSpeed();
 
-	volumeSlider->setMaximum(m_numberOfVolumes-1);
-	volumeSlider->setMinimum(0);
+	m_ui->volumeSlider->setMaximum(m_volumeViewers.size() - 1);
+	m_ui->volumeSlider->setMinimum(0);
 
-	connect(volumeSlider, &QSlider::valueChanged, this, &dlg_volumePlayer::sliderChanged);
-	connect(nextVolumeButton, &QPushButton::clicked,this, &dlg_volumePlayer::nextVolume);
-	connect(previousVolumeButton, &QPushButton::clicked,this, &dlg_volumePlayer::previousVolume);
-	connect(playVolumeButton, &QPushButton::clicked,this, &dlg_volumePlayer::playVolume);
-	connect(pauseVolumeButton, &QPushButton::clicked, this, &dlg_volumePlayer::pauseVolume);
-	connect(stopVolumeButton, &QPushButton::clicked,this, &dlg_volumePlayer::stopVolume);
-	connect(speedSlider, &QSlider::valueChanged, this, &dlg_volumePlayer::setSpeed);
-	connect(setMaxSpeedButton, &QPushButton::clicked, this, &dlg_volumePlayer::editMaxSpeed);
-	connect(dataTable, &QTableWidget::cellClicked, this, &dlg_volumePlayer::setChecked);
-	connect(dataTable, &QTableWidget::cellDoubleClicked, this, &dlg_volumePlayer::updateView);
-	connect(applyForAllButton, &QPushButton::clicked,this, &dlg_volumePlayer::applyForAll);
-	connect(dataTable->horizontalHeader(), &QHeaderView::sectionClicked, this, &dlg_volumePlayer::selectAll);
-	connect(this, &dlg_volumePlayer::setAllSelected, this, &dlg_volumePlayer::selectAll);
-	connect(this, &dlg_volumePlayer::update, m_mdiChild, &MdiChild::updateVolumePlayerView);
-	connect(&m_timer, &QTimer::timeout, this, &dlg_volumePlayer::nextVolume);
-	connect(blending, &QCheckBox::stateChanged, this, &dlg_volumePlayer::blendingStateChanged);
+	connect(m_ui->volumeSlider, &QSlider::valueChanged, this, &iAVolumePlayerWidget::sliderChanged);
+	connect(m_ui->nextVolumeButton, &QPushButton::clicked,this, &iAVolumePlayerWidget::nextVolume);
+	connect(m_ui->previousVolumeButton, &QPushButton::clicked,this, &iAVolumePlayerWidget::previousVolume);
+	connect(m_ui->playVolumeButton, &QPushButton::clicked,this, &iAVolumePlayerWidget::playVolume);
+	connect(m_ui->pauseVolumeButton, &QPushButton::clicked, this, &iAVolumePlayerWidget::pauseVolume);
+	connect(m_ui->stopVolumeButton, &QPushButton::clicked,this, &iAVolumePlayerWidget::stopVolume);
+	connect(m_ui->speedSlider, &QSlider::valueChanged, this, &iAVolumePlayerWidget::setSpeed);
+	connect(m_ui->setMaxSpeedButton, &QPushButton::clicked, this, &iAVolumePlayerWidget::editMaxSpeed);
+	connect(m_ui->dataTable, &QTableWidget::cellClicked, this, &iAVolumePlayerWidget::setChecked);
+	//connect(m_ui->dataTable, &QTableWidget::cellDoubleClicked, this, &iAVolumePlayerWidget::updateView);
+	connect(m_ui->applyForAllButton, &QPushButton::clicked,this, &iAVolumePlayerWidget::applyForAll);
+	connect(m_ui->dataTable->horizontalHeader(), &QHeaderView::sectionClicked, this, &iAVolumePlayerWidget::selectAll);
+	connect(&m_timer, &QTimer::timeout, this, &iAVolumePlayerWidget::nextVolume);
+	connect(m_ui->blending, &QCheckBox::stateChanged, this, &iAVolumePlayerWidget::blendingStateChanged);
 
-	dataTable->setShowGrid(true);
-	dataTable->setRowCount(m_numberOfVolumes);
-	m_numberOfColumns=5;
-	m_numberOfRows=m_numberOfVolumes;
-	dataTable->setColumnCount(m_numberOfColumns);
+	m_ui->dataTable->setShowGrid(true);
+	m_ui->dataTable->setRowCount(m_volumeViewers.size());
+	m_ui->dataTable->setColumnCount(NumberOfColumns);
 
-	m_list<<"Select All"<<"Dim"<<"Spacing"<<"Filename";
-	dataTable->setHorizontalHeaderLabels(m_list);
+	auto headers = QStringList() <<"Select All"<<"Dim"<<"Spacing"<<"Filename";
+	m_ui->dataTable->setHorizontalHeaderLabels(headers);
 
 	int countNumber=0;
 	m_checkColumn=countNumber++;
@@ -85,42 +101,40 @@ dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
 	m_fileColumn=countNumber++;
 	m_sortColumn=countNumber++;
 
-	for (int i=0; i<m_numberOfVolumes; i++)
+	for (int i=0; i< m_volumeViewers.size(); i++)
 	{
-		m_tempStr=QString("%1").arg(i);
 		auto cb = new QCheckBox(this);
-		m_newWidget = cb;
-		m_newWidget->setObjectName(m_tempStr.append("check"));
-		m_checkBoxes.push_back((QCheckBox*)m_newWidget);
-		dataTable->setCellWidget(i,m_checkColumn,m_newWidget);
-		connect(cb, &QCheckBox::stateChanged, this, &dlg_volumePlayer::enableVolume);
-		m_widgetList.insert(i, m_tempStr);
-		dataTable->setRowHeight(i, 17);
-		dataTable->setItem(i, m_dimColumn, new QTableWidgetItem(QString("%1, %2, %3")
-			.arg(volumeStack->volume(i)->GetDimensions()[0]).arg(volumeStack->volume(i)->GetDimensions()[1]).arg(volumeStack->volume(i)->GetDimensions()[2])));
-		dataTable->setItem(i, m_spacColumn,new QTableWidgetItem(QString("%1, %2, %3")
-			.arg(volumeStack->volume(i)->GetSpacing()[0])   .arg(volumeStack->volume(i)->GetSpacing()[1])   .arg(volumeStack->volume(i)->GetSpacing()[2])));
-		dataTable->setItem(i, m_fileColumn,new QTableWidgetItem(volumeStack->fileName(i)));
-		dataTable->setItem(i, m_sortColumn,new QTableWidgetItem(QString("%1").arg(0)));
+		cb->setObjectName(QString("check%1").arg(i));
+		cb->setChecked(true);
+		m_checkBoxes.push_back(cb);
+		m_ui->dataTable->setCellWidget(i, m_checkColumn, cb);
+		connect(cb, &QCheckBox::stateChanged, this, &iAVolumePlayerWidget::enableVolume);
+		m_ui->dataTable->setRowHeight(i, 17);
+		auto const dim = m_volumeViewers[i]->volume()->vtkImage()->GetDimensions();
+		m_ui->dataTable->setItem(i, m_dimColumn, new QTableWidgetItem(QString("%1, %2, %3").arg(dim[0]).arg(dim[1]).arg(dim[2])));
+		auto const spc = m_volumeViewers[i]->volume()->vtkImage()->GetSpacing();
+		m_ui->dataTable->setItem(i, m_spacColumn,new QTableWidgetItem(QString("%1, %2, %3")	.arg(spc[0]).arg(spc[1]).arg(spc[2])));
+		m_ui->dataTable->setItem(i, m_fileColumn,new QTableWidgetItem(m_volumeViewers[i]->volume()->metaData(iADataSet::FileNameKey).toString()));
+		m_ui->dataTable->setItem(i, m_sortColumn,new QTableWidgetItem(QString("%1").arg(0)));
 	}
 	m_old_r=1;
 
 	QFont font;
 	font.setBold(true);
-	dataTable->horizontalHeaderItem(m_checkColumn)->setFont(font);
-	dataTable->setColumnHidden(m_sortColumn, true);
+	m_ui->dataTable->horizontalHeaderItem(m_checkColumn)->setFont(font);
+	m_ui->dataTable->setColumnHidden(m_sortColumn, true);
 
 	//Contextmenu start
 	m_contextDimensions = new QAction(tr("Dimensions"), this );
-	connect( m_contextDimensions, &QAction::triggered, this, &dlg_volumePlayer::dimensionsActive);
+	connect( m_contextDimensions, &QAction::triggered, this, &iAVolumePlayerWidget::dimensionsActive);
 	m_contextDimensions->setCheckable(true);
 	m_contextDimensions->setChecked(true);
 	m_contextSpacing = new QAction(tr("Spacing"), this );
-	connect( m_contextSpacing, &QAction::triggered, this, &dlg_volumePlayer::spacingActive);
+	connect( m_contextSpacing, &QAction::triggered, this, &iAVolumePlayerWidget::spacingActive);
 	m_contextSpacing->setCheckable(true);
 	m_contextSpacing->setChecked(true);
 	m_contextFileName = new QAction(tr("Filename"), this );
-	connect( m_contextFileName, &QAction::triggered, this, &dlg_volumePlayer::fileNameActive);
+	connect( m_contextFileName, &QAction::triggered, this, &iAVolumePlayerWidget::fileNameActive);
 	m_contextFileName->setCheckable(true);
 	m_contextFileName->setChecked(true);
 	setContextMenuPolicy( Qt::ActionsContextMenu );
@@ -130,337 +144,264 @@ dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
 	//Contextmenu end
 
 	m_dimShow=m_spacShow=m_fileShow=true;
-	dataTable->resizeColumnsToContents();
-
-	emit setAllSelected(0);
+	m_ui->dataTable->resizeColumnsToContents();
 }
 
-dlg_volumePlayer::~dlg_volumePlayer()
+void iAVolumePlayerWidget::applyForAll()
 {
-
+	assert(!m_isBlendingOn);
+	auto currentIdx = listToVolumeIndex(m_ui->volumeSlider->value());
+	auto tf = m_volumeViewers[currentIdx]->transfer();
+	for (size_t i = 0; i < m_volumeViewers.size(); ++i)
+	{
+		if (i != currentIdx)
+		{
+			m_volumeViewers[i]->transfer()->colorTF()->DeepCopy(tf->colorTF());
+			m_volumeViewers[i]->transfer()->opacityTF()->DeepCopy(tf->opacityTF());
+		}
+	}
 }
 
-void dlg_volumePlayer::applyForAll()
+void iAVolumePlayerWidget::nextVolume()
 {
-	emit update(sliderIndexToVolumeIndex(volumeSlider->value()), true);
+	int index = m_ui->volumeSlider->value();
+	index = (index + 1) % (m_ui->volumeSlider->maximum() + 1);
+	m_ui->volumeSlider->setValue(index);    // triggers update
 }
 
-void dlg_volumePlayer::nextVolume()
+void iAVolumePlayerWidget::previousVolume()
 {
-	int index = volumeSlider->value();
-	index = (index + 1) % (volumeSlider->maximum() + 1);
-	volumeSlider->setValue(index);
-}
-
-void dlg_volumePlayer::previousVolume()
-{
-	int index = volumeSlider->value() - 1;
+	int index = m_ui->volumeSlider->value() - 1;
 	if (index < 0)
 	{
-		index = volumeSlider->maximum();
+		index = m_ui->volumeSlider->maximum();
 	}
-	volumeSlider->setValue(index);
+	m_ui->volumeSlider->setValue(index);    // triggers update
 }
 
-void dlg_volumePlayer::sliderChanged()
+void iAVolumePlayerWidget::sliderChanged()
 {
-	if (m_isBlendingOn)
+	int step = m_ui->volumeSlider->value();
+	//if (m_isBlendingOn)
 	{
-		updateMultiChannelVisualization();
+		//float listIdx = static_cast<float>(step / BlendSteps);
+		//QSet<size_t> tohide;
+		//if (m_prevVolIdx.first != NoVolIdx && m_prevVolIdx.second != NoVolIdx &&
+		//	m_prevVolIdx.first != std::floor(listToVolumeIndex(listIdx)) || m_prevVolIdx.second != std::ceil(listToVolumeIndex(listIdx)))
+		//{
+		//	tohide.insert(m_prevVolIdx.first);
+		//	tohide.insert(m_prevVolIdx.second);
+		//}
+		//if (step % BlendSteps == 0)
+		//{
+		//	tohide.insert(m_prevVolIdx.first);  // possibly not accurate, does this consider each case (automatic/manual switching?)
+		//}
+		//auto fadeOutVolIdx = listToVolumeIndex(std::floor(listIdx));
+		//auto fadeInVolIdx = listToVolumeIndex(static_cast<int>(std::trunc(listIdx + 1)) % getNumberOfCheckedVolumes());
+		//auto alpha = frac(listIdx);
+		//QVector<size_t> toshow;
+		//m_prevVolIdx.first = fadeOutVolIdx;
+		//m_prevVolIdx.second = fadeInVolIdx;
+		//
+		//for (auto h : tohide)
+		//{
+		//	if (!toshow.contains(h))
+		//	{
+		//		m_volumeViewers[h]->renderer()->setVisible(false);
+		//	}
+		//}
+		//for (auto s : toshow)
+		//{
+		//	m_volumeViewers[s]->renderer()->setVisible(true);
+		//}
+		//// actual blending: modify TF - store original somewhere...
+		//for ()
+		//m_volumeViewers[fadeOutVolIdx]->transfer()->opacityTF
+
 	}
-	else
+	//else
 	{
-		emit update(sliderIndexToVolumeIndex(volumeSlider->value()));
+		if (m_prevVolIdx.first != NoVolIdx)
+		{
+			m_volumeViewers[m_prevVolIdx.first]->renderer()->setVisible(false);
+			for (int s = 0; s < 3; ++s)
+			{
+				m_child->slicer(s)->enableChannel(m_volumeViewers[m_prevVolIdx.first]->slicerChannelID(), false);
+			}
+		}
+		auto volIdx = listToVolumeIndex(step);
+		m_child->updateRenderer();
+		m_volumeViewers[volIdx]->renderer()->setVisible(true);
+		// TODO: move more into viewer?
+		for (int s = 0; s < 3; ++s)
+		{
+			m_child->slicer(s)->enableChannel(m_volumeViewers[volIdx]->slicerChannelID(), true);
+		}
+		m_child->updateSlicers();
+		m_prevVolIdx.first = volIdx;
 	}
 }
 
-void dlg_volumePlayer::playVolume()
+void iAVolumePlayerWidget::playVolume()
 {
-	this->m_timer.start();
+	m_timer.start();
 }
 
-void dlg_volumePlayer::pauseVolume()
+void iAVolumePlayerWidget::pauseVolume()
 {
-	this->m_timer.stop();
+	m_timer.stop();
 }
 
-void dlg_volumePlayer::stopVolume()
+void iAVolumePlayerWidget::stopVolume()
 {
-	this->m_timer.stop();
-	volumeSlider->setValue(volumeSlider->minimum());
+	m_timer.stop();
+	m_ui->volumeSlider->setValue(m_ui->volumeSlider->minimum());
 }
 
-void dlg_volumePlayer::setSpeed()
+void iAVolumePlayerWidget::setSpeed()
 {
-	float speed = getCurrentSpeed();
-	m_timer.setInterval((int)((1/speed) * SECONDS_TO_MILISECONDS));
-	this->speedValue->setText(QString::number(speed, 'f', 2));
+	m_timer.setInterval((int)((1/ currentSpeed()) * MilliSecondsPerSecond));
+	m_ui->speedValue->setText(QString::number(currentSpeed(), 'f', 2));
 }
 
-void dlg_volumePlayer::updateView(int r, int /*c*/)
+void iAVolumePlayerWidget::editMaxSpeed()
 {
-	emit update(r);
-}
-
-void dlg_volumePlayer::editMaxSpeed()
-{
+	const QString SpeedFPSKey("Speed (fps)");
 	iAAttributes param;
-	addAttr(param, "Speed (one step/msec)", iAValueType::Continuous, QString::number(getCurrentSpeed(), 'f', 2), TIMER_MIN_SPEED, TIMER_MAX_SPEED);
-	iAParameterDlg dlg(m_mdiChild, "Set speed", param, nullptr);
-	if (dlg.exec() == QDialog::Accepted)
+	addAttr(param, SpeedFPSKey, iAValueType::Continuous, QString::number(currentSpeed(), 'f', 2), TimerMinFPS, TimerMaxFPS);
+	iAParameterDlg dlg(this, "Set speed", param, nullptr);
+	if (dlg.exec() != QDialog::Accepted)
 	{
-		float speed = clamp(TIMER_MIN_SPEED, TIMER_MAX_SPEED, dlg.parameterValues()["Speed (one step/msec)"].toFloat());
-		m_timer.setInterval((int)((1/speed) * SECONDS_TO_MILISECONDS));
-		QSignalBlocker block(speedSlider);
-		speedSlider->setValue(mapValue(TIMER_MIN_SPEED, TIMER_MAX_SPEED, speedSlider->minimum(), speedSlider->maximum(), speed));
-		speedValue->setText(QString::number(speed, 'f', 2));
+		return;
 	}
+	float speed = clamp(TimerMinFPS, TimerMaxFPS, dlg.parameterValues()[SpeedFPSKey].toFloat());
+	m_timer.setInterval((int)((1/speed) * MilliSecondsPerSecond));
+	QSignalBlocker block(m_ui->speedSlider);
+	m_ui->speedSlider->setValue(mapValue(TimerMinFPS, TimerMaxFPS, m_ui->speedSlider->minimum(), m_ui->speedSlider->maximum(), speed));
+	m_ui->speedValue->setText(QString::number(speed, 'f', 2));
 }
 
-void dlg_volumePlayer::setChecked(int r, int /*c*/)
+void iAVolumePlayerWidget::setChecked(int r, int /*c*/)
 {
-	for (int i=1; i<m_numberOfColumns;i++)
+	for (int i=1; i<NumberOfColumns;i++)
 	{
-		dataTable->item(m_old_r,i)->setBackground(Qt::white);
-		dataTable->item(r,i)->setBackground(Qt::lightGray);
+		m_ui->dataTable->item(m_old_r,i)->setBackground(Qt::white);
+		m_ui->dataTable->item(r,i)->setBackground(Qt::lightGray);
 	}
 	m_old_r=r;
 }
 
-QList<int> dlg_volumePlayer::getCheckedList()
+void iAVolumePlayerWidget::selectAll(int c)
 {
-	m_outCheckList.clear();
-	for (int i = 0; i < m_numberOfVolumes; i++)
+	if (c != m_checkColumn)
 	{
-		// find the child widget with the name in the leList
-		QCheckBox *t = this->findChild<QCheckBox*>(m_widgetList[i]);
-
-		if (t != 0)
-		{
-			//get the text from the child widget and insert is to outValueList
-			m_outCheckList.insert(i,t->checkState());
-		}
-		else
-		{
-			m_outCheckList.insert(i, 0);
-		}
+		return;
 	}
-	return (m_outCheckList);
-}
-
-void dlg_volumePlayer::selectAll(int c)
-{
-	if (c==m_checkColumn)
+	for (int i=0; i< m_volumeViewers.size();i++)
 	{
-		m_areAllChecked=true;
-		for (int i=0; i<m_numberOfVolumes;i++)
-		{
-			QCheckBox *t = this->findChild<QCheckBox*>(m_widgetList[i]);
-			if (t->checkState()>=1)
-			{
-			}
-			else
-			{
-				m_areAllChecked=false;
-			}
-		}
-		for (int i=0; i<m_numberOfVolumes;i++)
-		{
-			QCheckBox *t = this->findChild<QCheckBox*>(m_widgetList[i]);
-			if (m_areAllChecked)
-			{
-				t->setChecked(false);
-			}
-			else
-			{
-				t->setChecked(true);
-			}
-		}
+		m_checkBoxes[i]->setChecked(true);
 	}
 }
 
-void dlg_volumePlayer::dimensionsActive()
+void iAVolumePlayerWidget::dimensionsActive()
 {
-	if (dataTable->columnWidth(m_dimColumn)==0)
+	if (m_ui->dataTable->columnWidth(m_dimColumn)==0)
 	{
-		dataTable->resizeColumnToContents(m_dimColumn);
+		m_ui->dataTable->resizeColumnToContents(m_dimColumn);
 		m_contextDimensions->setChecked(true);
 	}
 	else
 	{
-		dataTable->setColumnWidth(m_dimColumn, 0);
+		m_ui->dataTable->setColumnWidth(m_dimColumn, 0);
 		m_contextDimensions->setChecked(false);
 	}
 }
 
-void dlg_volumePlayer::spacingActive()
+void iAVolumePlayerWidget::spacingActive()
 {
-	if (dataTable->columnWidth(m_spacColumn)==0)
+	if (m_ui->dataTable->columnWidth(m_spacColumn)==0)
 	{
-		dataTable->resizeColumnToContents(m_spacColumn);
+		m_ui->dataTable->resizeColumnToContents(m_spacColumn);
 		m_contextSpacing->setChecked(true);
 	}
 	else
 	{
-		dataTable->setColumnWidth(m_spacColumn, 0);
+		m_ui->dataTable->setColumnWidth(m_spacColumn, 0);
 		m_contextSpacing->setChecked(false);
 	}
 }
 
-void dlg_volumePlayer::fileNameActive()
+void iAVolumePlayerWidget::fileNameActive()
 {
-	if (dataTable->columnWidth(m_fileColumn)==0)
+	if (m_ui->dataTable->columnWidth(m_fileColumn)==0)
 	{
-		dataTable->resizeColumnToContents(m_fileColumn);
+		m_ui->dataTable->resizeColumnToContents(m_fileColumn);
 		m_contextFileName->setChecked(true);
 	}
 	else
 	{
-		dataTable->setColumnWidth(m_fileColumn, 0);
+		m_ui->dataTable->setColumnWidth(m_fileColumn, 0);
 		m_contextFileName->setChecked(false);
 	}
 }
 
-float dlg_volumePlayer::getCurrentSpeed()
+float iAVolumePlayerWidget::currentSpeed() const
 {
-	return mapValue(speedSlider->minimum(), speedSlider->maximum(), TIMER_MIN_SPEED, TIMER_MAX_SPEED, speedSlider->value());
+	return mapValue(m_ui->speedSlider->minimum(), m_ui->speedSlider->maximum(), TimerMinFPS, TimerMaxFPS, m_ui->speedSlider->value());
 }
 
-void dlg_volumePlayer::blendingStateChanged(int state)
+void iAVolumePlayerWidget::adjustSliderMax()
+{
+	m_ui->volumeSlider->setMaximum((getNumberOfCheckedVolumes() - 1) * (m_isBlendingOn ? BlendSteps : 1));
+}
+
+void iAVolumePlayerWidget::blendingStateChanged(int state)
 {
 	m_isBlendingOn = state;
-	int oldVal = volumeSlider->value();
-	if (m_isBlendingOn)
-	{
-		// set slider parameters
-		volumeSlider->setMaximum((getNumberOfCheckedVolumes() - 1) * DIVISIONS_PER_VOLUME);
-		volumeSlider->setValue(oldVal * DIVISIONS_PER_VOLUME);
-
-		// set multi channel
-		updateMultiChannelVisualization();
-		enableMultiChannelVisualization();
-
-		// setup gui
-		applyForAllButton->setEnabled(false);
-	}
-	else
-	{
-		// set slider parameters
-		volumeSlider->setMaximum(getNumberOfCheckedVolumes() - 1);
-		volumeSlider->setValue(std::floor(static_cast<double>(oldVal + 1) / DIVISIONS_PER_VOLUME + 0.5));
-
-		// set multi channel
-		disableMultiChannelVisualization();
-		emit update(sliderIndexToVolumeIndex(volumeSlider->value()));
-
-		// setup gui
-		applyForAllButton->setEnabled(true);
-	}
+	int oldVal = m_ui->volumeSlider->value();
+	adjustSliderMax();
+	m_ui->volumeSlider->setValue(m_isBlendingOn
+		? oldVal * BlendSteps
+		: std::floor(static_cast<double>(oldVal + 1) / BlendSteps + 0.5));
+	m_ui->applyForAllButton->setEnabled(!m_isBlendingOn);
 }
 
-void dlg_volumePlayer::enableVolume(int state)
+void iAVolumePlayerWidget::enableVolume(int state)
 {
-	QCheckBox* check = static_cast<QCheckBox*>(QObject::sender());
-	if (!check)
-	{
-		return;
-	}
-	assert(m_checkBoxes.size() < std::numeric_limits<int>::max());
-	for(int i = 0; i < static_cast<int>(m_checkBoxes.size()); i++)
-	{
-		if (check == m_checkBoxes[i])
-		{
-			switch(state)
-			{
-			case Qt::Checked:
-				showVolume(i);
-				break;
-			case Qt::PartiallyChecked:
-				break;
-			case Qt::Unchecked:
-				hideVolume(i);
-				break;
-			default:
-				break;
-			}
-		}
-	}
-
 	int numOfCheckedVolumes = getNumberOfCheckedVolumes();
 	for(size_t i = 0; i < m_checkBoxes.size(); ++i)
-	{
-		if (numOfCheckedVolumes <= 1 && m_checkBoxes[i]->isChecked())
-		{
-			m_checkBoxes[i]->setEnabled(false);
-		}
-		else
-		{
-			m_checkBoxes[i]->setEnabled(true);
-		}
+	{	// make sure one volume remains visible (disable last checked checkbox)
+		m_checkBoxes[i]->setEnabled(numOfCheckedVolumes > 1 || !m_checkBoxes[i]->isChecked());
 	}
-
-	// setup slider
-	if(m_isBlendingOn)
-	{
-		volumeSlider->setMaximum((getNumberOfCheckedVolumes() - 1) * DIVISIONS_PER_VOLUME);
-	}
-	else
-	{
-		volumeSlider->setMaximum(getNumberOfCheckedVolumes() - 1);
-	}
-	volumeSlider->setValue(volumeSlider->minimum());
+	int oldVal = m_ui->volumeSlider->value();
+	adjustSliderMax();
+	// TODO: keep current value (i.e. keep same value as before if checked is after current position, increase accordingly if before
+	m_ui->volumeSlider->setValue(m_ui->volumeSlider->minimum());
 }
 
-int dlg_volumePlayer::volumeIndexToSlicerIndex(int volumeIndex)
+size_t iAVolumePlayerWidget::listToVolumeIndex(int listIndex)
 {
-	int slicerIndex = -1;
-	if (((m_mask >> volumeIndex) & 1) == 0)
+	int checkedVolumes = 0;
+	for (size_t volIdx = 0; volIdx < m_checkBoxes.size(); ++volIdx)
 	{
-		return -1;
-	}
-	for (int i = 0; i <= volumeIndex; i++)
-	{
-		if (((m_mask >> i) & 1) == 1)
+		if (m_checkBoxes[volIdx]->isChecked())
 		{
-			++slicerIndex;
-		}
-	}
-	return slicerIndex;
-}
-
-int dlg_volumePlayer::sliderIndexToVolumeIndex(int slicerIndex)
-{
-	int passedVolumes = 0;
-	for (int i = 0; i <= m_numberOfVolumes; i++)
-	{
-		if (((m_mask>>i)&1) == 1)
-		{
-			passedVolumes++;
-			if (passedVolumes > slicerIndex)
+			++checkedVolumes;
+			if (checkedVolumes > listIndex)
 			{
-				return i;
+				return volIdx;
 			}
 		}
 	}
 	return -1;
 }
 
-void dlg_volumePlayer::showVolume(int volumeIndex)
-{	// since mask is short, this only works for up to 16 volumes?
-	m_mask = m_mask|(1<<volumeIndex);
-}
-
-void dlg_volumePlayer::hideVolume(int volumeIndex)
-{
-	m_mask = m_mask&~(1<<volumeIndex);
-}
-
-int dlg_volumePlayer::getNumberOfCheckedVolumes()
+int iAVolumePlayerWidget::getNumberOfCheckedVolumes()
 {
 	int num = 0;
-	for(int i = 0; i < m_numberOfVolumes; ++i)
+	for(int i = 0; i < m_checkBoxes.size(); ++i)
 	{
-		if (volumeIsShown(i))
+		if (m_checkBoxes[i]->isChecked())
 		{
 			++num;
 		}
@@ -468,12 +409,9 @@ int dlg_volumePlayer::getNumberOfCheckedVolumes()
 	return num;
 }
 
-bool dlg_volumePlayer::volumeIsShown (int volumeIndex)
-{
-	return (((m_mask>>volumeIndex)&1) == 1);
-}
 
-void dlg_volumePlayer::enableMultiChannelVisualization()
+/*
+void iAVolumePlayerWidget::enableMultiChannelVisualization()
 {
 	if (!m_mdiChild)
 	{
@@ -486,7 +424,7 @@ void dlg_volumePlayer::enableMultiChannelVisualization()
 	}
 }
 
-void dlg_volumePlayer::disableMultiChannelVisualization()
+void iAVolumePlayerWidget::disableMultiChannelVisualization()
 {
 	if (!m_mdiChild)
 	{
@@ -499,7 +437,7 @@ void dlg_volumePlayer::disableMultiChannelVisualization()
 	}
 }
 
-void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volumeIndex2, double blendingCoeff)
+void iAVolumePlayerWidget::setMultiChannelVisualization(int volumeIndex1, int volumeIndex2, double blendingCoeff)
 {
 	if (!m_mdiChild)
 	{
@@ -559,7 +497,7 @@ void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volume
 	m_mdiChild->updateViews();
 }
 
-void dlg_volumePlayer::updateMultiChannelVisualization()
+void iAVolumePlayerWidget::updateMultiChannelVisualization()
 {
 	double sliderVal = static_cast<double>(volumeSlider->value()) / DIVISIONS_PER_VOLUME;
 	double blend = sliderVal - std::floor(sliderVal);
@@ -572,3 +510,4 @@ void dlg_volumePlayer::updateMultiChannelVisualization()
 		setMultiChannelVisualization(sliderIndexToVolumeIndex(std::floor(sliderVal)), sliderIndexToVolumeIndex(std::floor(sliderVal) + 1), blend);
 	}
 }
+*/

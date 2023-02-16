@@ -37,6 +37,7 @@ public:
 	void prepare(iAPreferences const& pref, iAProgress* p) override;
 	void createGUI(iAMdiChild* child, size_t dataSetIdx) override;
 	QString information() const override;
+	uint slicerChannelID() const override;
 	void slicerRegionSelected(double minVal, double maxVal, uint channelID) override;
 	void setPickable(bool pickable) override;
 	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren) override;
@@ -44,6 +45,8 @@ public:
 	QSharedPointer<iAHistogramData> histogramData() const;  // should return a const raw pointer or reference
 	iATransferFunction* transfer();
 	void removeFromSlicer();
+	//! accessing dataset
+	iAImageData const* volume() const;
 private:
 	void applyAttributes(QVariantMap const& values) override;
 	void updateProfilePlot();

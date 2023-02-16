@@ -72,7 +72,7 @@ public:
 
 	//! TODO NEWIO: improve!
 	virtual void slicerRegionSelected(double minVal, double maxVal, uint channelID);
-	virtual uint slicerChannelID();
+	virtual uint slicerChannelID() const;
 
 signals:
 	void dataSetChanged(size_t dataSetIdx);

@@ -83,14 +83,13 @@ namespace
 class iAVolRenderer : public iADataSetRenderer
 {
 public:
-	iAVolRenderer(vtkRenderer* renderer, vtkImageData* data, iAVolumeViewer* volViewer) :
+	iAVolRenderer(vtkRenderer* renderer, vtkImageData* data, iATransferFunction* tf) :
 		iADataSetRenderer(renderer),
 		m_volume(vtkSmartPointer<vtkVolume>::New()),
 		m_volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
 		m_volMapper(vtkSmartPointer<vtkSmartVolumeMapper>::New()),
 		m_image(data)
 	{
-		assert(volViewer);
 		m_volMapper->SetBlendModeToComposite();
 		m_volume->SetMapper(m_volMapper);
 		m_volume->SetProperty(m_volProp);
@@ -103,9 +102,9 @@ public:
 		}
 		else
 		{
-			m_volProp->SetColor(0, volViewer->transfer()->colorTF());
+			m_volProp->SetColor(0, tf->colorTF());
 		}
-		m_volProp->SetScalarOpacity(0, volViewer->transfer()->opacityTF());
+		m_volProp->SetScalarOpacity(0, tf->opacityTF());
 		m_volProp->Modified();
 
 		// properties specific to volumes:
@@ -272,6 +271,11 @@ void iAVolumeViewer::removeFromSlicer()
 	{
 		m_slicer[s]->removeChannel(m_slicerChannelID);
 	}
+}
+
+iAImageData const* iAVolumeViewer::volume() const
+{
+	return dynamic_cast<iAImageData*>(m_dataSet);
 }
 /*
 TODO: link to some trigger in dataset list
@@ -527,6 +531,11 @@ void iAVolumeViewer::applyAttributes(QVariantMap const& values)
 	m_dwHistogram->setWindowTitle(title);
 }
 
+uint iAVolumeViewer::slicerChannelID() const
+{
+	return m_slicerChannelID;
+}
+
 void iAVolumeViewer::slicerRegionSelected(double minVal, double maxVal, uint channelID)
 {
 	if (m_slicerChannelID != channelID)
@@ -568,7 +577,7 @@ void iAVolumeViewer::setPickable(bool pickable)
 std::shared_ptr<iADataSetRenderer> iAVolumeViewer::createRenderer(vtkRenderer* ren)
 {
 	auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
-	return std::make_shared<iAVolRenderer>(ren, img, this);
+	return std::make_shared<iAVolRenderer>(ren, img, transfer());
 }
 
 QSharedPointer<iAHistogramData> iAVolumeViewer::histogramData() const

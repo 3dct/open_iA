@@ -40,7 +40,6 @@ class vtkScalarsToColors;
 class vtkTransform;
 
 // gui
-class dlg_volumePlayer;
 class iADataSetListWidget;
 class iADataSetViewer;
 class iAParametricSpline;
@@ -50,8 +49,6 @@ class MainWindow;
 // guibase
 class iAChannelData;
 class iATool;
-// TODO NEWIO: move to new tool
-class iAVolumeStack;
 
 // slicer / renderer
 class dlg_slicer;
@@ -96,8 +93,6 @@ public:
 	bool isSliceProfileEnabled() const;
 	void setProfilePoints(double const* start, double const* end) override;
 	void adapt3DViewDisplay();
-	//! @deprecated TODO NEWIO: move to separate tool
-	iAVolumeStack * volumeStack() override;
 
 	//! Access to the 3D renderer widget
 	iARenderer* renderer() override;
@@ -253,12 +248,6 @@ public slots:
 	//! set renderer interaction on / off
 	void enableRendererInteraction(bool enable);
 
-	// TODO NEWIO: move volume stack to new tool
-	//! @{ @deprecated will be removed soon and moved to separate tool
-	void setupStackView(bool active = false);
-	void updateVolumePlayerView(int updateIndex, bool isApplyForAll);
-	//! @}
-
 	//! Calls the camPosition function of iARenderer (described there in more detail).
 	//! @param camOptions All informations of the camera stored in a double array
 	void camPosition(double * camOptions);
@@ -287,7 +276,6 @@ private slots:
 
 private:
 	void closeEvent(QCloseEvent *event) override;
-	bool addVolumePlayer();
 	bool saveDataSet(std::shared_ptr<iADataSet> dataSet);
 	bool saveDataSet(std::shared_ptr<iADataSet> dataSet, QString const & fileName);
 	void set3DSlicePlanePos(int mode, int slice);
@@ -335,17 +323,11 @@ private:
 	iARendererImpl * m_renderer;       //!< access and decoration of 3D renderers
 	std::array<iASlicerImpl*, 3> m_slicer; //!< the 3 axis-aligned slicers
 
-	// TODO NEWIO: move volume stack functionality to separate tool
-	QScopedPointer<iAVolumeStack> m_volumeStack;
-	QList<int> m_checkedList;
-	//int m_previousIndexOfVolume;
-
 	QListWidget* m_dataSetInfo;                                         //!< widget showing information on datasets
 	iADataSetListWidget* m_dataSetListWidget;                           //!< widget showing list of currently loaded datasets
 
 	//! @{ dock widgets
 	iADockWidgetWrapper * m_dwInfo, * m_dwDataSets;                     //!< dock widgets for dataset info and dataset list widgets
-	dlg_volumePlayer * m_dwVolumePlayer;                                //!< TODO NEWIO move to separate tool
 	dlg_slicer * m_dwSlicer[3];
 	dlg_renderer * m_dwRenderer;
 	//! @}

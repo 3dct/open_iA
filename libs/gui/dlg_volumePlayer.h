@@ -2,82 +2,58 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "ui_VolumePlayer.h"
+#include "iATool.h"
 
 #include <vtkSmartPointer.h>
 
+#include <QDockWidget>
 #include <QTimer>
 
 #include <vector>
 
-class MdiChild;
-class iAVolumeStack;
+class iAVolumeViewer;
+class iAMdiChild;
 
-class vtkPiecewiseFunction;
+class QCheckBox;
 
-const int CHANNELS_COUNT = 2;
+//class vtkPiecewiseFunction;
+//const int CHANNELS_COUNT = 2;
 
-class dlg_volumePlayer : public QDockWidget, public Ui_VolumePlayer
+
+class Ui_VolumePlayer;
+
+class iAVolumePlayerWidget : public QDockWidget
 {
 	Q_OBJECT
 
 public:
-	dlg_volumePlayer(QWidget *parent, iAVolumeStack *volumeStack);
-	~dlg_volumePlayer();
+	iAVolumePlayerWidget(iAMdiChild* child, std::vector<iAVolumeViewer*> const& volumes);
 
 private:
-	float				getCurrentSpeed();
-	int					volumeIndexToSlicerIndex(int volumeIndex);
-	int					sliderIndexToVolumeIndex(int slicerIndex);
-	QList<int>			getCheckedList();
-	int					getNumberOfCheckedVolumes();
-	void				showVolume(int volumeIndex);
-	void				hideVolume(int volumeIndex);
-	bool				volumeIsShown(int volumeIndex);
-	void				enableMultiChannelVisualization();
-	void				disableMultiChannelVisualization();
-	void				setMultiChannelVisualization(int volumeIndex1, int volumeIndex2, double blendingCoeff);
-	void				updateMultiChannelVisualization();
-
-	int					m_numberOfVolumes;
-	int					m_volumePlayerSpeed;
-	QWidget*			m_parent;
-	bool				m_isBlendingOn;
-	QTimer				m_timer;
-	QStringList			m_widgetList;
-	QStringList			m_newWidgetList;
-	QList <int>			m_outCheckList;
-	QStringList			m_list;
-	QWidget*			m_newWidget;
-	QString				m_tempStr;
-	int					m_old_r;
-	int					m_numberOfColumns;
-	int					m_numberOfRows;
-	bool				m_areAllChecked;
-	int					m_dimColumn, m_spacColumn, m_fileColumn, m_checkColumn, m_sortColumn;
-	bool				m_dimShow, m_spacShow, m_fileShow;
-	QAction*			m_contextDimensions;
-	QAction*			m_contextSpacing;
-	QAction*			m_contextFileName;
-	int					m_selectedMaxSpeed;
-	short				m_mask;
-	std::vector<QCheckBox*>	m_checkBoxes;
-	iAVolumeStack*		m_volumeStack;
-	int					m_enabledChanels;
-	MdiChild*			m_mdiChild;
-	vtkSmartPointer<vtkPiecewiseFunction>	m_otf[CHANNELS_COUNT];
-	bool				m_multiChannelIsInitialized;
-	std::vector<uint>   m_channelID;
+	float currentSpeed() const;
+	size_t listToVolumeIndex(int listIndex);
+	int getNumberOfCheckedVolumes();
+	void adjustSliderMax();
+	bool m_isBlendingOn;
+	QTimer m_timer;
+	int m_old_r;
+	int m_dimColumn, m_spacColumn, m_fileColumn, m_checkColumn, m_sortColumn;
+	bool m_dimShow, m_spacShow, m_fileShow;
+	QAction* m_contextDimensions;
+	QAction* m_contextSpacing;
+	QAction* m_contextFileName;
+	int m_selectedMaxSpeed;
+	std::vector<QCheckBox*> m_checkBoxes;
+	std::vector<iAVolumeViewer*> m_volumeViewers;
+	std::unique_ptr<Ui_VolumePlayer> m_ui;
+	int m_prevStep;
+	std::pair<size_t, size_t> m_prevVolIdx;
+	iAMdiChild* m_child;
 
 signals:
-	void update(int index, bool isApplyForAll=false);
-	void setAllSelected(int c=0);
-	void editSpeed();
+	void setAllSelected(int c = 0);
 
-public slots:
-	void applyForAll();
-
-protected slots:
+private slots:
 	void nextVolume();
 	void previousVolume();
 	void sliderChanged();
@@ -87,11 +63,21 @@ protected slots:
 	void setSpeed();
 	void editMaxSpeed();
 	void setChecked(int r, int c);
-	void updateView(int r, int c);
+	//void updateView(int r, int c);
 	void selectAll(int c);
 	void fileNameActive();
 	void spacingActive();
 	void dimensionsActive();
 	void blendingStateChanged(int state);
 	void enableVolume(int state);
+	void applyForAll();
+};
+
+
+class iAVolumePlayerTool : public iATool
+{
+public:
+	iAVolumePlayerTool(iAMainWindow* wnd, iAMdiChild* child);
+private:
+	iAVolumePlayerWidget* m_volumePlayer;
 };

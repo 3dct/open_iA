@@ -306,7 +306,7 @@ void iADataSetViewer::slicerRegionSelected(double minVal, double maxVal, uint ch
 	Q_UNUSED(channelID);
 }
 
-uint iADataSetViewer::slicerChannelID()
+uint iADataSetViewer::slicerChannelID() const
 {
 	return NotExistingChannel;
 }
