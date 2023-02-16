@@ -50,28 +50,16 @@
    </property>
   </action>
   <action name="action_ToggleTitleBar">
-   <property name="icon">
-    <iconset resource="../../libs/guibase/guibase.qrc">
-     <normaloff>:/images/toggle_titleBar.png</normaloff>:/images/toggle_titleBar.png</iconset>
-   </property>
    <property name="text">
     <string>Toggle Title Bar</string>
    </property>
   </action>
   <action name="action_ExportIDs">
-   <property name="icon">
-    <iconset resource="GEMSe.qrc">
-     <normaloff>:/images/GEMSe_export_ids.png</normaloff>:/images/GEMSe_export_ids.png</iconset>
-   </property>
    <property name="text">
     <string>Export IDs of currently selected cluster (e.g. for VALENE)</string>
    </property>
   </action>
   <action name="action_ExportAttributeRangeRanking">
-   <property name="icon">
-    <iconset resource="GEMSe.qrc">
-     <normaloff>:/images/GEMSe_export_ranges.png</normaloff>:/images/GEMSe_export_ranges.png</iconset>
-   </property>
    <property name="text">
     <string>Export current ranking ranges for all attributes</string>
    </property>

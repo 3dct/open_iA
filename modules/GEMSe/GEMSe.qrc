@@ -7,8 +7,10 @@
     <file>images/GEMSe_goto.png</file>
     <file>images/GEMSe_filter_reset.png</file>
     <file>images/GEMSe_toggle_autoshrink.png</file>
-    <file>images/GEMSe_export_ids.png</file>
-    <file>images/GEMSe_export_ranges.png</file>
+    <file>images/export_ids.svg</file>
+    <file>images/export_ids_light.svg</file>
+    <file>images/export_ranges.svg</file>
+    <file>images/export_ranges_light.svg</file>
     <file>images/GEMSe_export_rankings.png</file>
     <file>images/GEMSe_import_rankings.png</file>
   </qresource>
