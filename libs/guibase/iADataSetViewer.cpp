@@ -384,7 +384,6 @@ void iAProjectViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	auto fileName = m_dataSet->metaData(iADataSet::FileNameKey).toString();
 	auto afterRenderCallback = [child, collection, fileName, dataSetIdx]()
 	{
-		LOG(lvlDebug, QString("afterRenderCallback (dataSetIdx: %1)").arg(dataSetIdx));
 		// all datasets loaded, continue with loading projects!
 		if (!collection->settings())    // not all collections come with additional settings...
 		{
@@ -419,7 +418,6 @@ void iAProjectViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	QObject::connect(child, &iAMdiChild::dataSetRendered, this,
 		[this, afterRenderCallback](size_t dataSetIdx)
 		{
-			LOG(lvlDebug, QString("dataSetRendered (dataSetIdx: %1)").arg(dataSetIdx));
 			// viewer settings are loaded along with the dataset, so they are applied directly in the respective viewers!
 			// ... check whether the dataset that triggered this signal was the last one from this collection to be rendered....
 			static std::set<size_t> renDS;
