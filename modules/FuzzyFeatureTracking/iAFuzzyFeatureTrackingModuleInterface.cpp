@@ -24,5 +24,12 @@ void iAFuzzyFeatureTrackingModuleInterface::Initialize()
 
 void iAFuzzyFeatureTrackingModuleInterface::fuzzyFeatureTracking()
 {
-	addToolToActiveMdiChild<iAFuzzyFeatureTrackingTool>("FuzzyFeatureTracking", m_mainWnd);
+	try
+	{
+		addToolToActiveMdiChild<iAFuzzyFeatureTrackingTool>("FuzzyFeatureTracking", m_mainWnd);
+	}
+	catch (std::exception& e)
+	{
+		LOG(lvlError, QString("Failed to create Fuzzy Feature Tracking Tool: %1").arg(e.what()));
+	}
 }

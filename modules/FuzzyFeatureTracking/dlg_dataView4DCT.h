@@ -12,9 +12,9 @@ class iAFuzzyVTKWidget;
 
 class iARendererImpl;
 
-class iAVolumeRenderer;
-class iAVolumeStack;
 class iAMdiChild;
+class iAVolumeRenderer;
+class iAVolumeViewer;
 
 class vtkCamera;
 class vtkPolyData;
@@ -24,12 +24,12 @@ class dlg_dataView4DCT : public QWidget
 {
 	Q_OBJECT
 public:
-	dlg_dataView4DCT(QWidget* parent, iAVolumeStack* volumeStack);
+	dlg_dataView4DCT(QWidget* parent, std::vector<iAVolumeViewer*> const& volumeViewers);
 	~dlg_dataView4DCT();
 	void update();
 
 private:
-	iAVolumeStack* m_volumeStack;
+	std::vector<iAVolumeViewer*> m_volumeViewers;
 	iAFuzzyVTKWidget** m_vtkWidgets;
 	iARendererImpl**  m_renderers;
 	iAVolumeRenderer** m_volumeRenderer;

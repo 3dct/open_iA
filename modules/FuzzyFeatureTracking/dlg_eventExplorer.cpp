@@ -6,8 +6,9 @@
 #include "iAFeatureTracking.h"
 
 #include <iALog.h>
-#include <iAVolumeStack.h>
 #include <iAQVTKWidget.h>
+#include <iATransferFunction.h>
+#include <iAVolumeViewer.h>
 
 #include <vtkAxis.h>
 #include <vtkChartXY.h>
@@ -84,7 +85,8 @@ void dlg_eventExplorer::addPlot(size_t eventID, size_t chartID)
 	m_plots[chartID + m_numberOfCharts * eventID] = plot;
 }
 
-dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int numberOfEventTypes, iAVolumeStack* volumeStack, dlg_trackingGraph* trackingGraph, std::vector<iAFeatureTracking*> trackedFeaturesForwards, std::vector<iAFeatureTracking*> trackedFeaturesBackwards) : QDockWidget(parent)
+dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int numberOfEventTypes, std::vector<iAVolumeViewer*> volumeViewers,
+	dlg_trackingGraph* trackingGraph, std::vector<iAFeatureTracking*> trackedFeaturesForwards, std::vector<iAFeatureTracking*> trackedFeaturesBackwards) : QDockWidget(parent)
 {
 	setupUi(this);
 
@@ -96,7 +98,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 
 	this->m_numberOfCharts = numberOfCharts;
 	this->m_numberOfEventTypes = numberOfEventTypes;
-	this->m_volumeStack = volumeStack;
+	this->m_volumeViewers = volumeViewers;
 	this->m_trackingGraph = trackingGraph;
 	this->m_trackedFeaturesForwards = trackedFeaturesForwards;
 	this->m_trackedFeaturesBackwards = trackedFeaturesBackwards;
@@ -461,8 +463,8 @@ void dlg_eventExplorer::chartSelectionChanged(vtkObject* /*obj*/)
 	{
 		LOG(lvlInfo, QString("\nChart[%1]").arg(i));
 
-		auto cTF = m_volumeStack->colorTF(i);
-		auto oTF = m_volumeStack->opacityTF(i);
+		auto cTF = m_volumeViewers[i]->transfer()->colorTF();
+		auto oTF = m_volumeViewers[i]->transfer()->opacityTF();
 
 		cTF->RemoveAllPoints();
 		oTF->RemoveAllPoints();
@@ -474,11 +476,11 @@ void dlg_eventExplorer::chartSelectionChanged(vtkObject* /*obj*/)
 
 		for (size_t c = 1; c < m_trackedFeaturesBackwards.at(i)->getNumberOfEventsInV(); ++c)
 		{
-			cTF = m_volumeStack->colorTF(i);
+			cTF = m_volumeViewers[i]->transfer()->colorTF();
 			cTF->AddRGBPoint(c - 0.5, 0.0, 0.0, 0.0, 0.5, 1.0);
 			cTF->AddRGBPoint(c, 0.0, 0.0, 0.0, 0.5, 1.0);
 			cTF->AddRGBPoint(c + 0.3, 0.0, 0.0, 0.0, 0.5, 1.0);
-			oTF = m_volumeStack->opacityTF(i);
+			oTF = m_volumeViewers[i]->transfer()->opacityTF();
 			oTF->AddPoint(c - 0.5, 0.0, 0.5, 1.0);
 			oTF->AddPoint(c, (double)gridOpacitySlider->value() / 255.0 / 100, 0.5, 1.0);
 			oTF->AddPoint(c + 0.3, 0.0, 0.5, 1.0);
@@ -521,7 +523,7 @@ void dlg_eventExplorer::chartSelectionChanged(vtkObject* /*obj*/)
 		}
 		LOG(lvlInfo, QString("   cTF range: %1, %2").arg(cTF->GetRange()[0]).arg(cTF->GetRange()[1]));
 	}
-	m_trackingGraph->updateGraph(m_graph, this->m_volumeStack->numberOfVolumes());
+	m_trackingGraph->updateGraph(m_graph, m_volumeViewers.size());
 }
 
 void dlg_eventExplorer::buildGraph(int id, int layer, int eventType, double uncertainty)
@@ -540,11 +542,11 @@ void dlg_eventExplorer::buildGraph(int id, int layer, int eventType, double unce
 		m_tableToGraphId[layer][id] = vId;
 		m_nodesToLayers[vId] = layer;
 
-		auto cTF = m_volumeStack->colorTF(layer);
+		auto cTF = m_volumeViewers[layer]->transfer()->colorTF();
 		cTF->AddRGBPoint(id - 0.5, 0.0, 0.0, 0.0, 0.5, 1.0);
 		cTF->AddRGBPoint(id, EventColors[eventType].redF(), EventColors[eventType].greenF(), EventColors[eventType].blueF(), 0.5, 1.0);
 		cTF->AddRGBPoint(id + 0.3, 0.0, 0.0, 0.0, 0.5, 1.0);
-		auto oTF = m_volumeStack->opacityTF(layer);
+		auto oTF = m_volumeViewers[layer]->transfer()->opacityTF();
 		oTF->AddPoint(id - 0.5, 0.0, 0.5, 1.0);
 		oTF->AddPoint(id, (double)creationSlider->value() / 255.0, 0.5, 1.0);
 		oTF->AddPoint(id + 0.3, 0.0, 0.5, 1.0);
@@ -608,12 +610,12 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 
 						m_nodesToLayers[newVertexId] = layer - 1;
 
-						auto cTF = m_volumeStack->colorTF(layer - 1);
+						auto cTF = m_volumeViewers[layer-1]->transfer()->colorTF();
 						cTF->AddRGBPoint(c.id - 0.5, 0.0, 0.0, 0.0, 0.5, 1.0);
 						cTF->AddRGBPoint(c.id, EventColors[featureEvent].redF(), EventColors[featureEvent].greenF(), EventColors[featureEvent].blueF(), 0.5, 1.0);
 						cTF->AddRGBPoint(c.id + 0.3, 0.0, 0.0, 0.0, 0.5, 1.0);
 
-						auto oTF = m_volumeStack->opacityTF(layer - 1);
+						auto oTF = m_volumeViewers[layer-1]->transfer()->opacityTF();
 						oTF->AddPoint(c.id - 0.5, 0.0, 0.5, 1.0);
 						oTF->AddPoint(c.id, (double)creationSlider->value() / 255.0, 0.5, 1.0);
 						oTF->AddPoint(c.id + 0.3, 0.0, 0.5, 1.0);
@@ -686,11 +688,11 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 
 						m_nodesToLayers[newVertexId] = layer + 1;
 
-						auto cTF = m_volumeStack->colorTF(layer + 1);
+						auto cTF = m_volumeViewers[layer+1]->transfer()->colorTF();
 						cTF->AddRGBPoint(c.id - 0.5, 0.0, 0.0, 0.0, 0.5, 1.0);
 						cTF->AddRGBPoint(c.id, EventColors[featureEvent].redF(), EventColors[featureEvent].greenF(), EventColors[featureEvent].blueF(), 0.5, 1.0);
 						cTF->AddRGBPoint(c.id + 0.3, 0.0, 0.0, 0.0, 0.5, 1.0);
-						auto oTF = m_volumeStack->opacityTF(layer + 1);
+						auto oTF = m_volumeViewers[layer]->transfer()->opacityTF();
 						oTF->AddPoint(c.id - 0.5, 0.0, 0.5, 1.0);
 						oTF->AddPoint(c.id, (double)creationSlider->value() / 255.0, 0.5, 1.0);
 						oTF->AddPoint(c.id + 0.3, 0.0, 0.5, 1.0);

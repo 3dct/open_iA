@@ -4,13 +4,14 @@
 
 #include "iAFuzzyVTKWidget.h"
 
+#include <iAMdiChild.h>
 #include <iATransferFunctionPtrs.h>
 #include <iAVolumeRenderer.h>
-#include <iAVolumeStack.h>
-#include <iAMdiChild.h>
+#include <iAVolumeViewer.h>
 
 #include <iARendererImpl.h>
 
+#include <iADataSet.h>
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkTransform.h>
@@ -21,17 +22,17 @@ const double	FOURDCT_BACGROUND[3]	= {1, 1, 1};
 const double	FOURDCT_BACGROUND2[3]	= {1, 1, 1};
 const bool		SHOW_HELPERS			= false;
 
-dlg_dataView4DCT::dlg_dataView4DCT(QWidget* parent, iAVolumeStack* volumeStack):
+dlg_dataView4DCT::dlg_dataView4DCT(QWidget* parent, std::vector<iAVolumeViewer*> const & volumeViewers):
 	QWidget(parent),
+	m_volumeViewers(volumeViewers),
 	m_axesTransform(vtkSmartPointer<vtkTransform>::New())
 {
 	m_mdiChild = dynamic_cast<iAMdiChild*>(parent);
-	m_volumeStack = volumeStack;
 
 	m_rendererManager.addToBundle(m_mdiChild->renderer()->renderer());
 
 	// add widgets to window
-	size_t numOfVolumes = m_volumeStack->numberOfVolumes();
+	size_t numOfVolumes = m_volumeViewers.size();
 	m_vtkWidgets = new iAFuzzyVTKWidget*[numOfVolumes];
 	m_renderers = new iARendererImpl*[numOfVolumes];
 	m_volumeRenderer = new iAVolumeRenderer*[numOfVolumes];
@@ -39,12 +40,7 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget* parent, iAVolumeStack* volumeStack):
 	{
 		m_vtkWidgets[i] = new iAFuzzyVTKWidget(this);
 		m_renderers[i] = new iARendererImpl(this, dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_vtkWidgets[i]->renderWindow()));
-		// TODO: VOLUME: check if this is working!
-		iATransferFunctionPtrs transferFunction(
-			m_volumeStack->colorTF(i),
-			m_volumeStack->opacityTF(i)
-		);
-		m_volumeRenderer[i] = new iAVolumeRenderer(&transferFunction, m_volumeStack->volume(i));
+		m_volumeRenderer[i] = new iAVolumeRenderer(m_volumeViewers[i]->transfer(), m_volumeViewers[i]->volume()->vtkImage());
 		m_renderers[i]->setAxesTransform(m_axesTransform);
 		// TODO NEWIO: get volume stack and polydata dataset in here...
 		//m_renderers[i]->initialize(m_volumeStack->volume(i), m_mdiChild->polyData());
@@ -72,7 +68,7 @@ dlg_dataView4DCT::~dlg_dataView4DCT()
 
 void dlg_dataView4DCT::update()
 {
-	for(size_t i = 0; i < m_volumeStack->numberOfVolumes(); i++)
+	for(size_t i = 0; i < m_volumeViewers.size(); i++)
 	{
 		// TODO NEWIO: use datasets / adapted volume stack tool!
 		// m_renderers[i]->reInitialize(m_volumeStack->volume(i), m_mdiChild->polyData());

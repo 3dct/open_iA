@@ -13,7 +13,7 @@
 class dlg_trackingGraph;
 class iAFeatureTracking;
 class iAQVTKWidget;
-class iAVolumeStack;
+class iAVolumeViewer;
 
 class vtkEventQtSlotConnect;
 class vtkChartXY;
@@ -31,7 +31,8 @@ class dlg_eventExplorer : public QDockWidget, private Ui_EventExplorer
 	Q_OBJECT
 
 public:
-	dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int numberOfEventTypes, iAVolumeStack *volumeStack, dlg_trackingGraph* trackingGraph, std::vector<iAFeatureTracking*> trackedFeaturesForwards, std::vector<iAFeatureTracking*> trackedFeaturesBackwards);
+	dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int numberOfEventTypes, std::vector<iAVolumeViewer*> volumeViewers,
+		dlg_trackingGraph* trackingGraph, std::vector<iAFeatureTracking*> trackedFeaturesForwards, std::vector<iAFeatureTracking*> trackedFeaturesBackwards);
 	~dlg_eventExplorer();
 
 private slots:
@@ -50,7 +51,7 @@ private:
 	void updateCharts();
 	void addPlot(size_t eventType, size_t chartID);
 
-	iAVolumeStack* m_volumeStack;
+	std::vector<iAVolumeViewer*> m_volumeViewers;
 	size_t m_numberOfCharts;
 	int m_numberOfEventTypes;
 	int m_plotPositionInVector[5];

@@ -7,9 +7,10 @@
 #include "dlg_trackingGraph.h"
 #include "iAFeatureTracking.h"
 
+#include <iADataSet.h>
 #include <iADockWidgetWrapper.h>
 #include <iALog.h>
-#include <iAVolumeStack.h>
+#include <iAVolumeViewer.h>
 #include <iAMdiChild.h>
 
 #include <itkMacro.h>    // for itk::ExceptionObject
@@ -22,84 +23,32 @@ iAFuzzyFeatureTrackingTool::iAFuzzyFeatureTrackingTool( iAMainWindow * mainWnd, 
 	iATool( mainWnd, child ),
 	m_dlgDataView4DCT(nullptr),
 	m_dlgTrackingGraph(nullptr),
-	m_dlgEventExplorer(nullptr),
-	m_volumeStack(child->volumeStack())
+	m_dlgEventExplorer(nullptr)
 {
 	connect( child, &iAMdiChild::viewsUpdated, this, &iAFuzzyFeatureTrackingTool::updateViews);
-
-	if (!create4DCTDataViewWidget())
+	std::vector<iAVolumeViewer*> volumeViewers;
+	for (auto ds : child->dataSetMap())
 	{
-		throw itk::ExceptionObject(__FILE__, __LINE__, "create4DCTDataViewWidget failed");
+		if (ds.second->type() == iADataSetType::Volume)
+		{
+			volumeViewers.push_back(dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(ds.first)));
+		}
 	}
-	if( !create4DCTTrackingGraphWidget() )
+	if (volumeViewers.size() < FOURDCT_MIN_NUMBER_OF_VOLUMES)
 	{
-		throw itk::ExceptionObject(__FILE__, __LINE__, "create4DCTTrackingGraphWidget failed");
-	}
-	if( !create4DCTEventExplorerWidget() )
-	{
-		throw itk::ExceptionObject(__FILE__, __LINE__, "create4DCTEventExplorerWidget failed");
-	}
-}
-
-bool iAFuzzyFeatureTrackingTool::create4DCTDataViewWidget()
-{
-	if (m_dlgDataView4DCT)
-	{
-		LOG(lvlWarn, tr( "The data view 4DCT dialog already exists!" ) );
-		return false;
-	}
-
-	if (!m_volumeStack || m_volumeStack->numberOfVolumes() < FOURDCT_MIN_NUMBER_OF_VOLUMES)
-	{
-		LOG(lvlError, tr( "No volume stack loaded or it does not contain enough volumes (expected: %1, actual: %2)!" )
+		throw std::runtime_error(QString( "No volume stack loaded or it does not contain enough volumes (expected: %1, actual: %2)!" )
 			.arg(FOURDCT_MIN_NUMBER_OF_VOLUMES)
-			.arg(m_volumeStack->numberOfVolumes()) );
-		return false;
+			.arg(volumeViewers.size()).toStdString() );
 	}
 
-	m_dlgDataView4DCT = new dlg_dataView4DCT( m_child, m_volumeStack );
-	m_child->tabifyDockWidget( m_child->renderDockWidget(), new iADockWidgetWrapper(m_dlgDataView4DCT, "4DCT Data View", "DataView4DCT") );
-	// test m_renderer->reInitialize (m_volumeStack->volume(1), polyData, m_volumeStack->opacityTF(1),m_volumeStack->colorTF(1));
-
-	LOG(lvlInfo, tr( "The 4DCT Data View widget was successfully created" ) );
-
-	return true;
-}
-
-bool iAFuzzyFeatureTrackingTool::create4DCTTrackingGraphWidget()
-{
-	if (m_dlgTrackingGraph)
-	{
-		LOG(lvlWarn, tr( "The Tracking Graph widget already exists!" ) );
-		return false;
-	}
-
-	m_dlgTrackingGraph = new dlg_trackingGraph( m_child );
-	m_child->tabifyDockWidget( m_child->renderDockWidget(), m_dlgTrackingGraph );
-
-	LOG(lvlInfo, tr( "The Tracking Graph widget was successfully created" ) );
-
-	return true;
-}
-
-bool iAFuzzyFeatureTrackingTool::create4DCTEventExplorerWidget()
-{
-	if (m_dlgEventExplorer)
-	{
-		LOG(lvlWarn, tr( "The Event Explorer widget already exists!" ) );
-		return false;
-	}
-
-	if (!m_dlgTrackingGraph)
-	{
-		LOG(lvlError, tr( "The Tracking Graph widget is missing. It is required for creating the Event Explorer widget" ) );
-		return false;
-	}
-
+	m_dlgDataView4DCT = new dlg_dataView4DCT(m_child, volumeViewers);
+	m_child->tabifyDockWidget(m_child->renderDockWidget(), new iADockWidgetWrapper(m_dlgDataView4DCT, "4DCT Data View", "DataView4DCT"));
+	m_dlgTrackingGraph = new dlg_trackingGraph(m_child);
+	m_child->tabifyDockWidget(m_child->renderDockWidget(), m_dlgTrackingGraph);
 	std::vector<iAFeatureTracking*> trackedFeaturesForwards;
 	std::vector<iAFeatureTracking*> trackedFeaturesBackwards;
 
-	for (size_t i = 0; i < m_volumeStack->fileNames()->size(); ++i)
+	for (size_t i = 0; i < volumeViewers.size(); ++i)
 	{
 		QString file[2];
 
@@ -111,19 +60,17 @@ bool iAFuzzyFeatureTrackingTool::create4DCTEventExplorerWidget()
 		}
 		else
 		{
-			file[0] = m_volumeStack->fileName( i - 1 ) + csvExt;
+			file[0] = volumeViewers[i-1]->volume()->metaData(iADataSet::NameKey).toString() + csvExt;
 		}
-		file[1] = m_volumeStack->fileName( i ) + csvExt;
+		file[1] = volumeViewers[i]->volume()->metaData(iADataSet::FileNameKey).toString() + csvExt;
 
 		if (!file[0].isEmpty() && !QFile::exists(file[0]))
 		{
-			LOG(lvlError, QString( "The file \"" ) + file[0] + QString( "\" is missing" ) );
-			return false;
+			throw std::runtime_error(QString("The file \"%1\" is missing").arg(file[0]).toStdString());
 		}
 		if (!QFile::exists(file[1]))
 		{
-			LOG(lvlError, QString( "The file \"" ) + file[1] + QString( "\" is missing" ) );
-			return false;
+			throw std::runtime_error(QString( "The file \"\" is missing").arg(file[1]).toStdString());
 		}
 
 		int lastIndex = file[1].lastIndexOf( QString( "/" ) );
@@ -145,26 +92,13 @@ bool iAFuzzyFeatureTrackingTool::create4DCTEventExplorerWidget()
 			trackedFeaturesBackwards.push_back(new iAFeatureTracking(file[1], file[0], lineOffset, outputFileName, dissipationThreshold, overlapThreshold, volumeThreshold, maxSearchValue));
 		}
 	}
-
-	// 		AllocConsole();
-	// 		freopen("CON", "w", stdout);
-
 	for (size_t i = 0; i < trackedFeaturesForwards.size(); ++i)
 	{
 		trackedFeaturesForwards.at(i)->TrackFeatures();
 		trackedFeaturesBackwards.at(i)->TrackFeatures();
 	}
-
-	m_dlgEventExplorer = new dlg_eventExplorer( m_child, trackedFeaturesForwards.size(), 5, m_volumeStack, m_dlgTrackingGraph, trackedFeaturesForwards, trackedFeaturesBackwards );
+	m_dlgEventExplorer = new dlg_eventExplorer( m_child, trackedFeaturesForwards.size(), 5, volumeViewers, m_dlgTrackingGraph, trackedFeaturesForwards, trackedFeaturesBackwards );
 	m_child->tabifyDockWidget( m_child->renderDockWidget(), m_dlgEventExplorer );
-	LOG(lvlInfo, tr( "The Event Explorer widget was successfully created" ) );
-
-	return true;
-}
-
-iAFuzzyFeatureTrackingTool::~iAFuzzyFeatureTrackingTool()
-{
-	delete m_dlgDataView4DCT;
 }
 
 void iAFuzzyFeatureTrackingTool::updateViews()

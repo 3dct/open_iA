@@ -10,24 +10,21 @@ class dlg_trackingGraph;
 class dlg_dataView4DCT;
 class dlg_trackingGraph;
 class dlg_eventExplorer;
-class iAVolumeStack;
+class iAVolumeViewer;
 
 class iAFuzzyFeatureTrackingTool: public QObject, public iATool
 {
 public:
 	iAFuzzyFeatureTrackingTool(iAMainWindow* mainWnd, iAMdiChild* child);
-	~iAFuzzyFeatureTrackingTool();
 
 private slots:
 	void updateViews();
 
 protected:
-	bool create4DCTDataViewWidget();
 	bool create4DCTTrackingGraphWidget();
-	bool create4DCTEventExplorerWidget();
+	bool create4DCTEventExplorerWidget(std::vector<iAVolumeViewer*> const & volumeViewers);
 
 	dlg_dataView4DCT * m_dlgDataView4DCT;
 	dlg_trackingGraph * m_dlgTrackingGraph;
 	dlg_eventExplorer * m_dlgEventExplorer;
-	iAVolumeStack * m_volumeStack;
 };
