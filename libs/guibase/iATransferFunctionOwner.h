@@ -8,6 +8,8 @@
 
 #include <vtkSmartPointer.h>
 
+#include <QtCore/qtclasshelpermacros.h>  // for Q_DISABLE_COPY_MOVE
+
 //! Implements iATransferFunction and owns both color and opacity transfer function
 class iAguibase_API iATransferFunctionOwner : public iATransferFunction
 {
@@ -35,10 +37,8 @@ public:
 	//! @}
 
 private:
-	//! @{ prevent copying; there should always be only one owner of the same set of transfer functions
-	iATransferFunctionOwner(iATransferFunctionOwner const& other) = delete;
-	iATransferFunctionOwner & operator=(iATransferFunctionOwner const& other) = delete;
-	//! @}
+	//! there should always be only one owner of the same set of transfer functions
+	Q_DISABLE_COPY_MOVE(iATransferFunctionOwner);
 	//! internal helper function for resetting to a specified range (could be made public if required)
 	void resetFunctions(double const range[2]);
 

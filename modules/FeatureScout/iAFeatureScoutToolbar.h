@@ -19,14 +19,13 @@ class FeatureScout_API iAFeatureScoutToolbar : public QToolBar
 public:
 	//! add child for which a FeatureScout toolbar should be available.
 	static void addForChild(iAMainWindow* mainWnd, iAMdiChild* child);
-	//! @{ disable copying/moving.
-	void operator=(const iAFeatureScoutToolbar&) = delete;
-	iAFeatureScoutToolbar(const iAFeatureScoutToolbar&) = delete;
-	//! @}
+
 private slots:
 	void childClosed();
 	void childChanged();
+
 private:
+	Q_DISABLE_COPY_MOVE(iAFeatureScoutToolbar);
 	explicit iAFeatureScoutToolbar(iAMainWindow* mainWnd);
 	~iAFeatureScoutToolbar() override; // required for std::unique_ptr
 	static iAFeatureScoutToolbar* tlbFeatureScout;

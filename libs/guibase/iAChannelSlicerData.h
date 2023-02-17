@@ -69,10 +69,7 @@ public:
 	void setContoursOpacity(double opacity);
 	// }
 private:
-	//! @{ disable copy construction/assignment
-	iAChannelSlicerData(iAChannelSlicerData const & other) =delete;
-	iAChannelSlicerData& operator=(iAChannelSlicerData const & other) = delete;
-	//! @}
+	Q_DISABLE_COPY_MOVE(iAChannelSlicerData);
 
 	void assign(vtkSmartPointer<vtkImageData> imageData);
 	void setupOutput(vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);

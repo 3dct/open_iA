@@ -46,10 +46,7 @@ private:
 	//! Default constructor - only callable via ::New().
 	iAvtkInteractStyleActor();
 
-	//! @{ disable copying.
-	void operator=(const iAvtkInteractStyleActor&) = delete;
-	iAvtkInteractStyleActor(const iAvtkInteractStyleActor&) = delete;
-	//! @}
+	Q_DISABLE_COPY_MOVE(iAvtkInteractStyleActor);
 
 	iADataSetRenderer* m_dataSetRenderer;
 	bool m_is3D;  //!< true if style assigned to 3D renderer, false if assigned to a slicer

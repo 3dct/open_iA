@@ -4,6 +4,8 @@
 
 #include "iALogger.h"
 
+#include <QtCore/qtclasshelpermacros.h>  // for Q_DISABLE_COPY_MOVE
+
 //! A logger whose output is written to standard output.
 class iALoggerStdOut : public iALogger
 {
@@ -13,8 +15,5 @@ public:
 private:
 	//! make default constructor private
 	iALoggerStdOut() =default;
-	//! @{ don't allow copying / copy-assingment
-	iALoggerStdOut(iALoggerStdOut const&) =delete;
-	void operator=(iALoggerStdOut const&) =delete;
-	//! @}
+	Q_DISABLE_COPY_MOVE(iALoggerStdOut);
 };

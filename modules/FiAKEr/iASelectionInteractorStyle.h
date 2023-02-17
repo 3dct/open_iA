@@ -59,11 +59,7 @@ signals:
 private:
 	//! disable default constructor.
 	iASelectionInteractorStyle();
-
-	//! @{ disable copying.
-	void operator=(const iASelectionInteractorStyle&) = delete;
-	iASelectionInteractorStyle(const iASelectionInteractorStyle&) = delete;
-	//! @}
+	Q_DISABLE_COPY_MOVE(iASelectionInteractorStyle);
 
 	void pick();
 	void updateModeLabel();

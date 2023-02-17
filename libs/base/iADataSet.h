@@ -55,10 +55,7 @@ protected:
 	iADataSet(iADataSetType type);
 
 private:
-	//! @{ prevent copying
-	iADataSet(iADataSet const& other) = delete;
-	iADataSet& operator=(iADataSet const& other) = delete;
-	//! @}
+	Q_DISABLE_COPY_MOVE(iADataSet);
 	iADataSetType m_type;      //!< type of data in this dataset
 	QVariantMap m_metaData;    //!< (optional) additional metadata that is required to load the file, or that came along with the dataset
 };

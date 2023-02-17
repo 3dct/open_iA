@@ -9,6 +9,7 @@
 #include <itkSmartPointer.h>
 
 #include <QString>
+#include <QtCore/qtclasshelpermacros.h>  // for Q_DISABLE_COPY_MOVE
 
 class iALogRedirectVTK;
 class iALogRedirectITK;
@@ -69,10 +70,7 @@ private:
 	iALogWidget();
 	//! destructor explicitly implemented to avoid having to include iALogRedirectITK
 	~iALogWidget();
-	//! @{ prevent copying:
-	iALogWidget(iALogWidget const&)    = delete;
-	void operator=(iALogWidget const&) = delete;
-	//! @}
+	Q_DISABLE_COPY_MOVE(iALogWidget);
 	void closeEvent(QCloseEvent* event) override;
 
 	QString m_logFileName;
