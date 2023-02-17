@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>643</width>
-    <height>189</height>
+    <width>600</width>
+    <height>158</height>
    </rect>
   </property>
   <property name="features">
@@ -209,9 +209,18 @@
                 </widget>
                </item>
                <item>
-                <widget class="QLabel" name="speedValue">
-                 <property name="text">
-                  <string>[val]</string>
+                <widget class="QDoubleSpinBox" name="sbSpeed">
+                 <property name="decimals">
+                  <number>2</number>
+                 </property>
+                 <property name="maximum">
+                  <double>50.000000000000000</double>
+                 </property>
+                 <property name="singleStep">
+                  <double>0.100000000000000</double>
+                 </property>
+                 <property name="value">
+                  <double>1.000000000000000</double>
                  </property>
                 </widget>
                </item>
@@ -231,13 +240,6 @@
               </layout>
              </item>
             </layout>
-           </item>
-           <item>
-            <widget class="QToolButton" name="tbSetSpeed">
-             <property name="text">
-              <string>Set speed</string>
-             </property>
-            </widget>
            </item>
            <item>
             <widget class="QToolButton" name="tbApplyForAll">

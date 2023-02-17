@@ -57,7 +57,7 @@ private slots:
 	void pauseVolume();
 	void stopVolume();
 	void setSpeed();
-	void editSpeed();
+	void speedEdited(double newSpeed);
 	void setChecked(int r, int c);
 	void selectAll(int c);
 	void fileNameActive();

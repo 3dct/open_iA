@@ -79,7 +79,7 @@ iAVolumePlayerWidget::iAVolumePlayerWidget(iAMdiChild *child, std::vector<iAVolu
 	connect(m_ui->tbPause,&QToolButton::clicked, this, &iAVolumePlayerWidget::pauseVolume);
 	connect(m_ui->tbStop, &QToolButton::clicked,this, &iAVolumePlayerWidget::stopVolume);
 	connect(m_ui->speedSlider, &QSlider::valueChanged, this, &iAVolumePlayerWidget::setSpeed);
-	connect(m_ui->tbSetSpeed, &QToolButton::clicked, this, &iAVolumePlayerWidget::editSpeed);
+	connect(m_ui->sbSpeed, &QDoubleSpinBox::valueChanged, this, &iAVolumePlayerWidget::speedEdited);
 	connect(m_ui->dataTable, &QTableWidget::cellClicked, this, &iAVolumePlayerWidget::setChecked);
 	//connect(m_ui->dataTable, &QTableWidget::cellDoubleClicked, this, &iAVolumePlayerWidget::updateView);
 	connect(m_ui->tbApplyForAll, &QToolButton::clicked, this, &iAVolumePlayerWidget::applyForAll);
@@ -87,10 +87,12 @@ iAVolumePlayerWidget::iAVolumePlayerWidget(iAMdiChild *child, std::vector<iAVolu
 	connect(&m_timer, &QTimer::timeout, this, &iAVolumePlayerWidget::nextVolume);
 	connect(m_ui->blending, &QCheckBox::stateChanged, this, &iAVolumePlayerWidget::blendingStateChanged);
 
+	m_ui->sbSpeed->setMinimum(TimerMinFPS);
+	m_ui->sbSpeed->setMaximum(TimerMaxFPS);
+
 	m_ui->dataTable->setShowGrid(true);
 	m_ui->dataTable->setRowCount(m_volumeViewers.size());
 	m_ui->dataTable->setColumnCount(NumberOfColumns);
-
 	auto headers = QStringList() <<"Select All"<<"Dim"<<"Spacing"<<"Filename";
 	m_ui->dataTable->setHorizontalHeaderLabels(headers);
 
@@ -254,24 +256,13 @@ void iAVolumePlayerWidget::stopVolume()
 void iAVolumePlayerWidget::setSpeed()
 {
 	m_timer.setInterval((int)((1/ currentSpeed()) * MilliSecondsPerSecond));
-	m_ui->speedValue->setText(QString::number(currentSpeed(), 'f', 2));
+	QSignalBlocker block(m_ui->sbSpeed);
+	m_ui->sbSpeed->setValue(currentSpeed());
 }
 
-void iAVolumePlayerWidget::editSpeed()
+void iAVolumePlayerWidget::speedEdited(double newSpeed)
 {
-	const QString SpeedFPSKey("Speed (fps)");
-	iAAttributes param;
-	addAttr(param, SpeedFPSKey, iAValueType::Continuous, QString::number(currentSpeed(), 'f', 2), TimerMinFPS, TimerMaxFPS);
-	iAParameterDlg dlg(this, "Set speed", param, nullptr);
-	if (dlg.exec() != QDialog::Accepted)
-	{
-		return;
-	}
-	float speed = clamp(TimerMinFPS, TimerMaxFPS, dlg.parameterValues()[SpeedFPSKey].toFloat());
-	m_timer.setInterval((int)((1/speed) * MilliSecondsPerSecond));
-	QSignalBlocker block(m_ui->speedSlider);
-	m_ui->speedSlider->setValue(mapValue(TimerMinFPS, TimerMaxFPS, m_ui->speedSlider->minimum(), m_ui->speedSlider->maximum(), speed));
-	m_ui->speedValue->setText(QString::number(speed, 'f', 2));
+	m_ui->speedSlider->setValue(mapValue(TimerMinFPS, TimerMaxFPS, m_ui->speedSlider->minimum(), m_ui->speedSlider->maximum(), static_cast<float>(newSpeed)));
 }
 
 void iAVolumePlayerWidget::setChecked(int r, int /*c*/)
