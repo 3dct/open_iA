@@ -50,11 +50,9 @@ signals:
 	void setAllSelected(int c = 0);
 
 private slots:
+	void sliderChanged();
 	void nextVolume();
 	void previousVolume();
-	void sliderChanged();
-	void playVolume();
-	void pauseVolume();
 	void stopVolume();
 	void setSpeed();
 	void speedEdited(double newSpeed);

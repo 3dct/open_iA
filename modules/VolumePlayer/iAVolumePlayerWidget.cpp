@@ -73,11 +73,11 @@ iAVolumePlayerWidget::iAVolumePlayerWidget(iAMdiChild *child, std::vector<iAVolu
 	m_ui->volumeSlider->setMinimum(0);
 
 	connect(m_ui->volumeSlider, &QSlider::valueChanged, this, &iAVolumePlayerWidget::sliderChanged);
-	connect(m_ui->tbNext, &QToolButton::clicked,this, &iAVolumePlayerWidget::nextVolume);
-	connect(m_ui->tbPrev, &QToolButton::clicked,this, &iAVolumePlayerWidget::previousVolume);
-	connect(m_ui->tbPlay, &QToolButton::clicked,this, &iAVolumePlayerWidget::playVolume);
-	connect(m_ui->tbPause,&QToolButton::clicked, this, &iAVolumePlayerWidget::pauseVolume);
-	connect(m_ui->tbStop, &QToolButton::clicked,this, &iAVolumePlayerWidget::stopVolume);
+	connect(m_ui->tbNext, &QToolButton::clicked, this, &iAVolumePlayerWidget::nextVolume);
+	connect(m_ui->tbPrev, &QToolButton::clicked, this, &iAVolumePlayerWidget::previousVolume);
+	connect(m_ui->tbPlay, &QToolButton::clicked, this, [this] {	m_timer.start(); });
+	connect(m_ui->tbPause,&QToolButton::clicked, this, [this] { m_timer.stop(); });
+	connect(m_ui->tbStop, &QToolButton::clicked, this, &iAVolumePlayerWidget::stopVolume);
 	connect(m_ui->speedSlider, &QSlider::valueChanged, this, &iAVolumePlayerWidget::setSpeed);
 	connect(m_ui->sbSpeed, &QDoubleSpinBox::valueChanged, this, &iAVolumePlayerWidget::speedEdited);
 	connect(m_ui->dataTable, &QTableWidget::cellClicked, this, &iAVolumePlayerWidget::setChecked);
@@ -235,16 +235,6 @@ void iAVolumePlayerWidget::sliderChanged()
 		m_child->updateSlicers();     // maybe do update in viewer?
 		m_prevVolIdx.first = volIdx;
 	}
-}
-
-void iAVolumePlayerWidget::playVolume()
-{
-	m_timer.start();
-}
-
-void iAVolumePlayerWidget::pauseVolume()
-{
-	m_timer.stop();
 }
 
 void iAVolumePlayerWidget::stopVolume()
