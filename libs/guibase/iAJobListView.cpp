@@ -120,7 +120,7 @@ iAJobListView::iAJobListView():
 	scrollWidget->setWidgetResizable(true);
 
 	setLayout(new QVBoxLayout());
-	layout()->setContentsMargins(1, 0, 1, 0);
+	layout()->setContentsMargins(0, 1, 0, 1);
 	layout()->setSpacing(0);
 	layout()->addWidget(scrollWidget);
 	connect(this, &iAJobListView::newJobSignal, this, &iAJobListView::newJobSlot, Qt::QueuedConnection); // make sure widgets are created in GUI thread

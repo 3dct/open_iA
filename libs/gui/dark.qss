@@ -92,6 +92,7 @@ General
 	QSlider::groove:horizontal,
 	QSpinBox,
 	QTabBar::tab,
+	QTextEdit,
 	QWidget[qssClass="jobList"]
 	{
 		border: 1px solid rgba(100, 100, 100, 255);
