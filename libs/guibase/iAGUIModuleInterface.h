@@ -32,18 +32,5 @@ public:
 	virtual void SaveSettings() const;
 
 protected:
-	//! Create a new result child, with a title made from the given title + the previous title of the active child.
-	//! @deprecated. Use methods from iAMainWindow directly
-	void PrepareResultChild( QString const & title);
-	//! Create a new result child at the given index in the iAMdiChild list with the given title.
-	//! @deprecated. Use methods from iAMainWindow directly
-	void PrepareResultChild( int childInd, QString const & title );
-	//! Set the currently active child as "current".
-	//! @deprecated. Don't use m_mdichild mechanism, use activeMdiChild from iAMainWindow directly.
-	void PrepareActiveChild();
-
 	iAMainWindow * m_mainWnd;            //!< access to the main window
-	//! "current" mdi child
-	//! @deprecated use direct access via iAMainWindow methods
-	iAMdiChild * m_mdiChild;
 };

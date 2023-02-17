@@ -56,6 +56,7 @@
 
 #include <QActionGroup>
 #include <QCloseEvent>
+#include <QDate>
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QComboBox>
@@ -1197,40 +1198,6 @@ void MainWindow::rendererLoadCameraSettings()
 	}
 	// apply this camera settings to all the MdiChild.
 	rendererSyncCamera();
-}
-
-iAMdiChild* MainWindow::resultChild(iAMdiChild* iaOldChild, QString const & title)
-{
-	auto oldChild = dynamic_cast<MdiChild*>(iaOldChild);
-	if (!oldChild || oldChild->resultInNewWindow())
-	{
-		// TODO: copy all dataset images, or don't copy anything here and use image from old child directly,
-		// or nothing at all until new image available!
-		// Note that filters currently get their input from this child already!
-		MdiChild* newChild = dynamic_cast<MdiChild*>(createMdiChild(true));
-		if (oldChild)
-		{
-			//auto img = oldChild->firstImageData();
-			//if (img)
-			//{
-			//	newChild->displayResult(title, img);
-			//}
-			copyFunctions(oldChild, newChild);
-		}
-		return newChild;
-	}
-	oldChild->setWindowModified(true);
-	return oldChild;
-}
-
-iAMdiChild * MainWindow::resultChild(QString const & title)
-{
-	return resultChild(activeMdiChild(), title);
-}
-
-iAMdiChild * MainWindow::resultChild(int childInd, QString const & f)
-{
-	return resultChild(mdiChildList().at(childInd), f);
 }
 
 // TODO NEWIO: probably has outlived its usefulness, but check!
@@ -2421,11 +2388,8 @@ void MainWindow::loadTLGICTData(QString const & baseDirectory)
 	// tlgictLoader will delete itself when finished!
 }
 
-#include "iALog.h"
 #include "iASCIFIOCheck.h"
 
-#include <QApplication>
-#include <QDate>
 #include <QPainter>
 #include <QProxyStyle>
 

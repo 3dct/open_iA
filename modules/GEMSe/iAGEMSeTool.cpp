@@ -25,7 +25,7 @@ iAGEMSeTool::iAGEMSeTool(iAMainWindow* mainWnd, iAMdiChild* child):
 
 void iAGEMSeTool::loadState(QSettings & projectFile, QString const & fileName)
 {
-	iAGEMSeModuleInterface * gemseModule = m_mainWindow->moduleDispatcher().module<iAGEMSeModuleInterface>();
+	auto gemseModule = m_mainWindow->moduleDispatcher().module<iAGEMSeModuleInterface>();
 	gemseModule->setupToolbar();
 		
 	auto seaFile = QSharedPointer<iASEAFile>::create(projectFile, fileName);

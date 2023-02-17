@@ -24,10 +24,9 @@ void iADynamicVolumeLinesModuleInterface::Initialize()
 
 void iADynamicVolumeLinesModuleInterface::DynamicVolumeLines()
 {
-	PrepareActiveChild();
-	QDir datasetsDir = m_mdiChild->filePath();
+	QDir datasetsDir = m_mainWnd->activeMdiChild()->filePath();
 	datasetsDir.setNameFilters(QStringList("*.mhd"));
-	dc = new dlg_DynamicVolumeLines(m_mdiChild, datasetsDir);
-	m_mdiChild->addDockWidget(Qt::BottomDockWidgetArea, dc);
+	dc = new dlg_DynamicVolumeLines(m_mainWnd->activeMdiChild(), datasetsDir);
+	m_mainWnd->activeMdiChild()->addDockWidget(Qt::BottomDockWidgetArea, dc);
 	dc->raise();
 }

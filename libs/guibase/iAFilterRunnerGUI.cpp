@@ -329,6 +329,7 @@ void iAFilterRunnerGUI::filterFinished()
 	if (filter->finalOutputCount() > 0)
 	{
 		QString baseName = filter->inputCount() > 0 ? (filter->input(0)->metaData(iADataSet::NameKey).toString() + " ") : "";
+		// TODO NEWIO: result in new or in existing window? consider current preferences / settings assigned to current job / ...?
 		iAMdiChild* newChild = iAMainWindow::get()->createMdiChild(true);
 		newChild->show();
 		for (size_t o = 0; o < filter->finalOutputCount(); ++o)

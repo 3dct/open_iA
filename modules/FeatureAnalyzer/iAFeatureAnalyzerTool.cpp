@@ -29,7 +29,7 @@ void iAFeatureAnalyzerTool::loadState(QSettings& projectFile, QString const& /*f
 {
 	m_resultsFolder = projectFile.value(ResultsFolderKey).toString();
 	m_datasetsFolder = projectFile.value(DatasetFolderKey).toString();
-	iAFeatureAnalyzerModuleInterface* featureAnalyzer = m_mainWindow->moduleDispatcher().module<iAFeatureAnalyzerModuleInterface>();
+	auto featureAnalyzer = m_mainWindow->moduleDispatcher().module<iAFeatureAnalyzerModuleInterface>();
 	featureAnalyzer->startFeatureAnalyzer(m_resultsFolder, m_datasetsFolder);
 }
 

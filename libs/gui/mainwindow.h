@@ -60,18 +60,6 @@ public:
 	//! TODO NEWIO: create signal triggered on new child (fully) created
 	void loadFileNew(QString const& fileName, iAMdiChild* child = nullptr, std::shared_ptr<iAFileIO> io = nullptr) override;
 
-	void saveCamera(iAXmlSettings & xml);
-	bool loadCamera(iAXmlSettings & xml);
-	void saveSliceViews(iAXmlSettings & xml);
-	void saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkCamera *ren, QString const & elemStr);
-	void loadSliceViews(QDomNode sliceViewsNode);
-	void savePreferences(iAXmlSettings &xml);
-	void loadPreferences(QDomNode preferencesNode);
-	void saveRenderSettings(iAXmlSettings &xml);
-	void loadRenderSettings(QDomNode renderSettingsNode);
-	void saveSlicerSettings(iAXmlSettings &xml);
-	void loadSlicerSettings(QDomNode slicerSettingsNode);
-
 	//! Get the File menu (can be used by modules to append entries to it).
 	QMenu * fileMenu() override;
 	//! Get the Filters menu (can be used by modules to append entries to it).
@@ -80,14 +68,7 @@ public:
 	QMenu* toolsMenu() override;
 	//! Get the Help menu (can be used by modules to append entries to it).
 	QMenu* helpMenu() override;
-	//! @{ Get access to result child with the given title.
-	//! (depending on preferences, this will either open a new mdi child window, or reuse the currently active one)
-	//! @deprecated either use loadFileNew to load a file into a new or existing window, or createChild to create a new window
-	//! TODO NEWIO: remove/replace!
-	iAMdiChild * resultChild( QString const & title ) override;
-	iAMdiChild * resultChild( int childInd, QString const & title ) override;
-	iAMdiChild * resultChild( iAMdiChild* oldChild, QString const & title ) override;
-	//! @}
+
 	//! Provides access to the currently active mdi child, if such is available.
 	//! @return pointer to the currently active mdi child, or nullptr if no child is currently open
 	iAMdiChild * activeMdiChild() override;
@@ -106,7 +87,6 @@ public:
 	template <typename T> T * activeChild();
 	QMdiSubWindow* activeChild() override;
 	QMdiSubWindow* addSubWindow(QWidget * child) override;
-	void loadArguments(int argc, char** argv);
 	iAPreferences const& defaultPreferences() const override;
 	iARenderSettings const& defaultRenderSettings() const override;
 	iAVolumeSettings const& defaultVolumeSettings() const override;
@@ -184,12 +164,25 @@ private:
 	void updateRecentFileActions();
 	void applyQSS();
 	void setModuleActionsEnabled( bool isEnabled );
-	void loadCamera(QDomNode const & node, vtkCamera* camera);
-	void saveCamera(QDomElement &cameraElement, vtkCamera* camera);
 	void copyFunctions(MdiChild* oldChild, MdiChild* newChild);
 	void loadTLGICTData(QString const & baseDirectory);
 	void loadFileAskNewWindow(QString const& fileName);
 	bool keepOpen();
+	void loadArguments(int argc, char** argv);
+
+	void loadCamera(QDomNode const & node, vtkCamera* camera);
+	void saveCamera(QDomElement &cameraElement, vtkCamera* camera);
+	void saveCamera(iAXmlSettings& xml);
+	bool loadCamera(iAXmlSettings& xml);
+	void saveSliceViews(iAXmlSettings& xml);
+	void saveSliceView(QDomDocument& doc, QDomNode& sliceViewsNode, vtkCamera* ren, QString const& elemStr);
+	void loadSliceViews(QDomNode sliceViewsNode);
+	void savePreferences(iAXmlSettings& xml);
+	void loadPreferences(QDomNode preferencesNode);
+	void saveRenderSettings(iAXmlSettings& xml);
+	void loadRenderSettings(QDomNode renderSettingsNode);
+	void saveSlicerSettings(iAXmlSettings& xml);
+	void loadSlicerSettings(QDomNode slicerSettingsNode);
 
 	static const int MaxRecentFiles = 8;
 

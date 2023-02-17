@@ -22,13 +22,6 @@ class iAguibase_API iAMainWindow : public QMainWindow
 	Q_OBJECT
 public:
 	// Child windows creation / access:
-
-	//! @{ Get access to result child with the given title.
-	//! (depending on preferences, this will either open a new mdi child window, or reuse the currently active one)
-	virtual iAMdiChild* resultChild(QString const& title) = 0;
-	virtual iAMdiChild* resultChild(int childInd, QString const& title) = 0;
-	virtual iAMdiChild* resultChild(iAMdiChild* oldChild, QString const& title) = 0;
-	//! @}
 	//! Create a new child window
 	virtual iAMdiChild* createMdiChild(bool unsavedChanges) = 0;
 	//! Close a child window

@@ -83,7 +83,7 @@ void iAGEMSeModuleInterface::setupToolbar()
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
 
 	auto toolbarCallback = [this](auto thisfunc) {
-		auto t = getTool<iAGEMSeTool>(m_mdiChild);
+		auto t = getTool<iAGEMSeTool>(m_mainWnd->activeMdiChild());
 		if (!t)
 		{
 			LOG(lvlError, "ERROR: GEMSE tool is not available!");

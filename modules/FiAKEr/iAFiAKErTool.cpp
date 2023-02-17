@@ -53,7 +53,7 @@ void iAFiAKErTool::loadState(QSettings& projectFile, QString const& fileName)
 			"Please report this error, along with the project file, to the open_iA developers!").arg(fileName));
 		return;
 	}
-	iAFiAKErModuleInterface* fiaker = m_mainWindow->moduleDispatcher().module<iAFiAKErModuleInterface>();
+	auto fiaker = m_mainWindow->moduleDispatcher().module<iAFiAKErModuleInterface>();
 	fiaker->setupToolBar();
 	//m_mainWindow->setPath(m_lastPath);
 	auto projectSettings = mapFromQSettings(projectFile);
