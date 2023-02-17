@@ -9,7 +9,6 @@
 #include "iAHistogramTriangle.h"
 
 #include <iARenderer.h>
-#include <iAVolumeRenderer.h>
 #include <iAMdiChild.h>
 
 #include <vtkCamera.h>

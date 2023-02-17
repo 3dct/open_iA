@@ -40,7 +40,6 @@ class iAQSplom;
 class iARendererViewSync;
 class iARefDistCompute;
 class iASensitivityInfo;
-class iAVolumeRenderer;
 class iAMainWindow;
 class iAMdiChild;
 

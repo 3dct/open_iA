@@ -27,7 +27,7 @@
 #include <iASlicerSettings.h>
 #include <iAToolsVTK.h>
 #include <iATransferFunctionOwner.h>
-#include <iAVolumeRenderer.h>
+#include <iAVolumeSettings.h>
 #include <iAVolumeViewer.h>
 
 #include <vtkCamera.h>

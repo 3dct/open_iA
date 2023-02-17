@@ -19,6 +19,7 @@
 
 #include <openvr.h>
 
+#include <vtkImageData.h>
 #include <vtkTable.h>
 
 #include <QAction>
@@ -270,17 +271,17 @@ void iAImNDTModuleInterface::renderVolume()
 	{
 		// prepare for VR environment re-use: properly remove all renderers
 		LOG(lvlInfo, "iAVREnvironment::finished renderVolume lambda");
-		m_volumeRenderer->remove();
-		m_volumeRenderer->removeBoundingBox();
+		m_volumeRenderer->setVisible(false);
+		m_volumeRenderer->setBoundsVisible(false);
 		m_vrEnv.reset();
 		m_volumeRenderer.reset();  // for now, let's reset volume renderer as indicator of whether it's volume rendering that's currently running in VR
 	});
 	m_actionVRVolumeRender->setText("Stop Volume Rendering");
 	auto child = m_mainWnd->activeMdiChild();
-	m_volumeRenderer = std::make_shared<iAVolumeRenderer>(
-		dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))->transfer(), child->firstImageData());
-	m_volumeRenderer->applySettings(child->volumeSettings());
-	m_volumeRenderer->addTo(m_vrEnv->renderer());
-	m_volumeRenderer->addBoundingBoxTo(m_vrEnv->renderer());
+	m_volumeRenderer = std::make_shared<iAVolumeRenderer>(m_vrEnv->renderer(), child->firstImageData().Get(),
+		dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))->transfer());
+	//m_volumeRenderer->applySettings(child->volumeSettings());
+	m_volumeRenderer->setVisible(true);
+	m_volumeRenderer->setBoundsVisible(true);
 	m_vrEnv->start();
 }

@@ -5,7 +5,7 @@
 #include "dlg_slicer.h"
 #include "iADataSetViewer.h"
 #include "iADataSetRenderer.h"
-#include "iAVolumeViewer.h"    // TODO NEWIO: remove this from here
+#include "iAVolumeViewer.h"    // TODO NEWIO: only required for changing magic lens input - move from here, e.g. to slicer
 #include "iAFileParamDlg.h"
 #include "iAFileUtils.h"    // for safeFileName
 #include "iAParametricSpline.h"

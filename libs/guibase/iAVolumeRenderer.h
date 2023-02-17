@@ -3,79 +3,49 @@
 #pragma once
 
 #include "iAguibase_export.h"
-#include "iAVolumeSettings.h"
 
-#include <vtkActor.h>
-#include <vtkOutlineFilter.h>
-#include <vtkPolyDataMapper.h>
+#include "iADataSetRenderer.h"
+
 #include <vtkSmartPointer.h>
-#include <vtkSmartVolumeMapper.h>
-#include <vtkVolume.h>
-#include <vtkVolumeProperty.h>
 
 class iATransferFunction;
 
 class vtkImageData;
-class vtkPlane;
-class vtkOpenGLRenderer;
 class vtkRenderer;
+class vtkSmartVolumeMapper;
+class vtkVolume;
+class vtkVolumeProperty;
 
-//! Collects all vtk classes required for rendering a volume.
+//! Class for rendering a volume dataset.
 //! Provides convenience functionality for adding it to a render window,
 //! as well as for showing its bounding box
-//! TODO: merge with iAVolRenderer
-class iAguibase_API iAVolumeRenderer
+class iAguibase_API iAVolumeRenderer : public iADataSetRenderer
 {
 public:
-	iAVolumeRenderer(
-		iATransferFunction * transfer,
-		vtkSmartPointer<vtkImageData> imgData);
-	void applySettings(iAVolumeSettings const & rs);
-	double const * orientation() const;
-	double const * position() const;
-	void setPosition(double *);
-	void setOrientation(double *);
-	void addTo(vtkRenderer* w);
-	void remove();
-	vtkSmartPointer<vtkVolume> volume();
-	vtkRenderer* currentRenderer();
-	void update();
-	void showVolume(bool visible);
+	static const QString LinearInterpolation;
+	static const QString ScalarOpacityUnitDistance;
+	static const QString RendererType;
+	static const QString SampleDistance;
 
-	void setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3);
-	void removeCuttingPlanes();
-
-	void addBoundingBoxTo(vtkRenderer* w);
-	void removeBoundingBox();
-	void updateBoundingBox();
-	void showBoundingBox(bool visible);
-
-	void setImage(iATransferFunction * transfer, vtkSmartPointer<vtkImageData> imgData);
-
-	vtkRenderer * getCurrentRenderer()
-	{
-		return m_currentRenderer;
-	}
-
-	void setMovable(bool movable);
-
-	iAVolumeSettings const & volumeSettings() const;
-	bool isRendered() const;
-	bool isVisible() const;
+	iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, iATransferFunction* tf);
+	//! ensure that we get removed from the renderer
+	~iAVolumeRenderer();
+	void applyAttributes(QVariantMap const& values) override;
+	iAAABB bounds() override;
+	double const* orientation() const override;
+	double const* position() const override;
+	void setPosition(double pos[3]) override;
+	void setOrientation(double ori[3]) override;
+	vtkProp3D* vtkProp() override;
+	void setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3) override;
+	void removeCuttingPlanes() override;
 
 private:
-	iAVolumeSettings m_volSettings;
+	Q_DISABLE_COPY(iAVolumeRenderer);
+	void showDataSet() override;
+	void hideDataSet() override;
 	vtkSmartPointer<vtkVolume> m_volume;
 	vtkSmartPointer<vtkVolumeProperty> m_volProp;
 	vtkSmartPointer<vtkSmartVolumeMapper> m_volMapper;
-	vtkRenderer* m_currentRenderer;
-
-	//! @{ Bounding Box
-	vtkSmartPointer<vtkOutlineFilter> m_outlineFilter;
-	vtkSmartPointer<vtkPolyDataMapper> m_outlineMapper;
-	vtkSmartPointer<vtkActor> m_outlineActor;
-	vtkRenderer* m_currentBoundingBoxRenderer;
-	//! @}
-
-	bool m_isFlat;
+	vtkImageData* m_image;
 };

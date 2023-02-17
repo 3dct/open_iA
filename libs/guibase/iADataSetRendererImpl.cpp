@@ -96,6 +96,14 @@ iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data
 	m_lineActor->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
 }
 
+iAGraphRenderer::~iAGraphRenderer()
+{
+	if (isVisible())
+	{
+		hideDataSet();
+	}
+}
+
 void iAGraphRenderer::showDataSet()
 {
 	m_renderer->AddActor(m_lineActor);
@@ -250,6 +258,14 @@ iAPolyActorRenderer::iAPolyActorRenderer(vtkRenderer* renderer) :
 	addAttribute(PolyWireframe, iAValueType::Boolean, false);
 }
 
+iAPolyActorRenderer::~iAPolyActorRenderer()
+{
+	if (isVisible())
+	{
+		hideDataSet();
+	}
+}
+
 void iAPolyActorRenderer::showDataSet()
 {
 	m_renderer->AddActor(m_polyActor);
@@ -312,11 +328,21 @@ vtkProp3D* iAPolyActorRenderer::vtkProp()
 	return m_polyActor;
 }
 
+vtkPolyDataMapper* iAPolyActorRenderer::mapper()
+{
+	return dynamic_cast<vtkPolyDataMapper*>(m_polyActor->GetMapper());
+}
+
+vtkActor* iAPolyActorRenderer::actor()
+{
+	return m_polyActor;
+}
+
 iAPolyDataRenderer::iAPolyDataRenderer(vtkRenderer* renderer, iAPolyData const * data) :
 	iAPolyActorRenderer(renderer),
 	m_data(data)
 {
-	dynamic_cast<vtkPolyDataMapper*>(m_polyActor->GetMapper())->SetInputData(data->poly());
+	mapper()->SetInputData(data->poly());
 	//m_polyMapper->SelectColorArray("Colors");
 }
 
@@ -332,7 +358,7 @@ iAGeometricObjectRenderer::iAGeometricObjectRenderer(vtkRenderer* renderer, iAGe
 	iAPolyActorRenderer(renderer),
 	m_data(data)
 {
-	m_polyActor->GetMapper()->SetInputConnection(m_data->source()->GetOutputPort());
+	mapper()->SetInputConnection(m_data->source()->GetOutputPort());
 	//m_polyMapper->SelectColorArray("Colors");
 }
 iAAABB iAGeometricObjectRenderer::bounds()

@@ -8,10 +8,15 @@
 
 #include <vtkSmartPointer.h>
 
+#include <memory>
+
+class iAPolyData;
+class iAPolyDataRenderer;
 class iAFast3DMagicLensWidget;
 class iARenderer;
 class iARendererImpl;
 class iARendererViewSync;
+class iATransferFunctionPtrs;
 class iAVolumeRenderer;
 
 class vtkActor;
@@ -46,8 +51,10 @@ protected:
 	void LoadAndApplySettings();
 	void UpdateColorCoding();
 protected:
-	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
-	bool m_rendInitialized;
+	std::shared_ptr<iAPolyData> m_polyData;
+	std::shared_ptr<iAVolumeRenderer> m_volumeRenderer;
+	std::shared_ptr<iAPolyDataRenderer> m_polyDataRenderer;
+	std::shared_ptr<iATransferFunctionPtrs> m_tf;
 	vtkSmartPointer<vtkTransform> m_axesTransform;
 	vtkRenderer * m_observedRenderer;
 	unsigned long m_tag;

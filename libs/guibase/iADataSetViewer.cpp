@@ -14,7 +14,6 @@
 
 #include <iALog.h>
 #include <iAMainWindow.h>
-#include <iAVolumeSettings.h>
 
 #include <vtkOpenGLRenderer.h>
 
@@ -38,14 +37,6 @@ iADataSetViewer::iADataSetViewer(iADataSet * dataSet):
 
 iADataSetViewer::~iADataSetViewer()
 {
-	if (m_renderer && m_renderer->isVisible())
-	{
-		m_renderer->setVisible(false);
-	}
-	if (m_magicLensRenderer && m_magicLensRenderer->isVisible())
-	{
-		m_magicLensRenderer->setVisible(false);
-	}
 }
 
 void iADataSetViewer::prepare(iAPreferences const& pref, iAProgress* p)

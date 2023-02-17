@@ -24,7 +24,6 @@
 #include <iAModuleDispatcher.h>
 #include <iARenderSettings.h>
 #include <iARenderer.h>
-#include <iAVolumeRenderer.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
 

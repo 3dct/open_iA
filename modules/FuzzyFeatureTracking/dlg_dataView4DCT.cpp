@@ -5,13 +5,13 @@
 #include "iAFuzzyVTKWidget.h"
 
 #include <iAMdiChild.h>
+#include <iARendererImpl.h>
 #include <iATransferFunctionPtrs.h>
 #include <iAVolumeRenderer.h>
 #include <iAVolumeViewer.h>
 
-#include <iARendererImpl.h>
-
 #include <iADataSet.h>
+
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkTransform.h>
@@ -40,14 +40,14 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget* parent, std::vector<iAVolumeViewer*>
 	{
 		m_vtkWidgets[i] = new iAFuzzyVTKWidget(this);
 		m_renderers[i] = new iARendererImpl(this, dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_vtkWidgets[i]->renderWindow()));
-		m_volumeRenderer[i] = new iAVolumeRenderer(m_volumeViewers[i]->transfer(), m_volumeViewers[i]->volume()->vtkImage());
+		m_volumeRenderer[i] = new iAVolumeRenderer(m_renderers[i]->renderer(), m_volumeViewers[i]->volume()->vtkImage(), m_volumeViewers[i]->transfer());
 		m_renderers[i]->setAxesTransform(m_axesTransform);
 		// TODO NEWIO: get volume stack and polydata dataset in here...
 		//m_renderers[i]->initialize(m_volumeStack->volume(i), m_mdiChild->polyData());
-		m_volumeRenderer[i]->addTo(m_renderers[i]->renderer());
+		m_volumeRenderer[i]->setVisible(true);
 		bool slicerVisibility[3] = { false, false, false };
 		m_renderers[i]->applySettings(m_mdiChild->renderSettings(), slicerVisibility );
-		m_volumeRenderer[i]->applySettings(m_mdiChild->volumeSettings());
+		//m_volumeRenderer[i]->applySettings(m_mdiChild->volumeSettings());
 
 		// setup renderers
 		m_renderers[i]->showHelpers(SHOW_HELPERS);
@@ -70,9 +70,9 @@ void dlg_dataView4DCT::update()
 {
 	for(size_t i = 0; i < m_volumeViewers.size(); i++)
 	{
-		// TODO NEWIO: use datasets / adapted volume stack tool!
+		// TODO NEWIO: use datasets!
 		// m_renderers[i]->reInitialize(m_volumeStack->volume(i), m_mdiChild->polyData());
 		m_renderers[i]->update();
-		m_volumeRenderer[i]->update(); // TODO: VOLUME: check if necessary!
+		//m_volumeRenderer[i]->update(); // TODO: VOLUME: check if necessary!
 	}
 }

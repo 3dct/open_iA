@@ -7,7 +7,6 @@
 
 #include <iALog.h>
 #include <iAMainWindow.h>
-#include <iAVolumeSettings.h>
 
 #include <vtkActor.h>
 #include <vtkCubeSource.h>
@@ -116,6 +115,7 @@ iADataSetRenderer::iADataSetRenderer(vtkRenderer* renderer) :
 
 iADataSetRenderer::~iADataSetRenderer()
 {
+	// cannot call virtual functions in destructor -> setVisible(false) leads to crash!
 	if (m_outline)
 	{
 		m_outline->setVisible(false);

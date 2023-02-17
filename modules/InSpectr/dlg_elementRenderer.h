@@ -13,6 +13,7 @@
 class iARenderer;
 class iAVolumeRenderer;
 class iAVolumeSettings;
+class iATransferFunctionPtrs;
 
 class iARendererImpl;
 
@@ -37,8 +38,8 @@ public:
 
 private:
 	iARendererImpl * m_renderer;
-	bool m_rendInitialized;
 	vtkSmartPointer<vtkTransform> m_axesTransform;
+	QSharedPointer<iATransferFunctionPtrs> m_transferFunction;
 	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
 	size_t m_indexInReferenceLib;
 };

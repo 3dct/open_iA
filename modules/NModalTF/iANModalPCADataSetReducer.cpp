@@ -55,8 +55,7 @@ QList<std::shared_ptr<iAImageData>> iANModalPCADataSetReducer::reduce(
 		//storeImage(connectors[i].itkImage(), "pca_output_" + QString::number(i) + ".mhd", true);
 #endif
 
-		//QSharedPointer<iAVolumeRenderer> renderer(new iAVolumeRenderer(mod->transfer().data(), mod->image()));
-		//mod->setRenderer(renderer);
+		//QSharedPointer<iAVolumeRenderer> renderer(new iAVolumeRenderer(renderer, mod->image(), mod->transfer().data()));
 
 		//m_mdiChild->dataDockWidget()->addModality(...);
 

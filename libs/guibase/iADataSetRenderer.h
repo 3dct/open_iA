@@ -33,7 +33,8 @@ public:
 
 	//! Create a dataset renderer
 	iADataSetRenderer(vtkRenderer* renderer);
-	//! called when dataset renderer is removed from display and destroyed
+	//! called when dataset renderer is removed from display and destroyed.
+	//! Only takes care of removing outline from display; derived classes need to remove their props from renderers themselves!
 	virtual ~iADataSetRenderer();
 	//! Set visibility of dataset
 	void setVisible(bool visible);

@@ -23,11 +23,7 @@ class iAProgress;
 class iASlicer;
 class iATransferFunction;
 class iATransferFunctionOwner;
-class iAVolRenderer;
-
-class vtkSmartVolumeMapper;
-class vtkVolume;
-class vtkVolumeProperty;
+class iAVolumeRenderer;
 
 //! Class for managing all viewing aspects of volume datasets (3D renderer, slicers, histogram, line profile)
 class iAguibase_API iAVolumeViewer : public iADataSetViewer
@@ -75,6 +71,6 @@ private:
 	//! @}
 
 	std::shared_ptr<iATransferFunctionOwner> m_transfer; //!< transfer function used in 2D slicer and 3D renderer
-	QString m_imgStatistics;                   //!< image statistics, for display in data info widget
-	std::shared_ptr<iAVolRenderer> m_renderer; //!< the 3D renderer
+	QString m_imgStatistics;                      //!< image statistics, for display in data info widget
+	std::shared_ptr<iAVolumeRenderer> m_renderer; //!< the 3D renderer
 };

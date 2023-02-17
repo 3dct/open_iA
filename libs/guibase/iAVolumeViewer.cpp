@@ -2,16 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVolumeViewer.h"
 
-#include "iAAABB.h"
 #include "iADataSet.h"
 #include "iAProgress.h"
-#include "iAValueTypeVectorHelpers.h"
 
 #include "defines.h"    // for NotExistingChannel
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
 #include "iADataSetListWidget.h"
-#include "iADataSetRenderer.h"
 #include "iADockWidgetWrapper.h"
 #include "iAFileUtils.h"    // for MakeAbsolute
 #include "iAJobListView.h"
@@ -24,7 +21,7 @@
 #include "iASlicer.h"
 #include "iAToolsVTK.h"
 #include "iATransferFunctionOwner.h"
-#include "iAVolumeSettings.h"
+#include "iAVolumeRenderer.h"
 #include "iAXmlSettings.h"
 
 #include "iAChartWithFunctionsWidget.h"
@@ -33,16 +30,10 @@
 #include "iAPlotTypes.h"
 #include "iAXYPlotData.h"
 
-#include <vtkCallbackCommand.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
-#include <vtkRenderer.h>
-#include <vtkVolume.h>
-#include <vtkVolumeProperty.h>
-#include <vtkSmartVolumeMapper.h>
-#include <vtkVersion.h>
 
 #include <QAction>
 #include <QApplication>
@@ -56,187 +47,12 @@ namespace
 		return (byteSize * dim[0] * dim[1] * dim[2] / 1048576.0) >= iAMainWindow::get()->defaultPreferences().LimitForAuto3DRender;
 	}
 
-	const QString LinearInterpolation = "Linear interpolation";
-	const QString ScalarOpacityUnitDistance = "Scalar Opacity Unit Distance";
-
-	const QString RendererType = "Renderer type";
-	const QString Spacing = "Spacing";
-	const QString InteractiveAdjustSampleDistance = "Interactively Adjust Sample Distances";
-	const QString AutoAdjustSampleDistance = "Auto-Adjust Sample Distances";
-	const QString SampleDistance = "Sample distance";
-	const QString InteractiveUpdateRate = "Interactive Update Rate";
-	const QString FinalColorLevel = "Final Color Level";
-	const QString FinalColorWindow = "Final Color Window";
-
 	const QChar RenderSlicerFlag('S');
 	const QChar RenderHistogramFlag('H');
 	const QChar RenderProfileFlag('P');
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
-	const QString GlobalIlluminationReach = "Global Illumination Reach";
-	const QString VolumetricScatteringBlending = "Volumetric Scattering Blending";
-#endif
 
 	const QString TransferFunction = "TransferFunction";
 }
-
-//! TODO: merge with iAVolumeRenderer
-class iAVolRenderer : public iADataSetRenderer
-{
-public:
-	iAVolRenderer(vtkRenderer* renderer, vtkImageData* data, iATransferFunction* tf) :
-		iADataSetRenderer(renderer),
-		m_volume(vtkSmartPointer<vtkVolume>::New()),
-		m_volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
-		m_volMapper(vtkSmartPointer<vtkSmartVolumeMapper>::New()),
-		m_image(data)
-	{
-		m_volMapper->SetBlendModeToComposite();
-		m_volume->SetMapper(m_volMapper);
-		m_volume->SetProperty(m_volProp);
-		m_volume->SetVisibility(true);
-		m_volMapper->SetInputData(data);
-		if (data->GetNumberOfScalarComponents() > 1)
-		{
-			m_volMapper->SetBlendModeToComposite();
-			m_volProp->IndependentComponentsOff();
-		}
-		else
-		{
-			m_volProp->SetColor(0, tf->colorTF());
-		}
-		m_volProp->SetScalarOpacity(0, tf->opacityTF());
-		m_volProp->Modified();
-
-		// properties specific to volumes:
-		auto volumeSettings = iAMainWindow::get()->defaultVolumeSettings();
-		addAttribute(LinearInterpolation, iAValueType::Boolean, volumeSettings.LinearInterpolation);
-		addAttribute(Shading, iAValueType::Boolean, volumeSettings.Shading);
-		addAttribute(ScalarOpacityUnitDistance, iAValueType::Continuous, volumeSettings.ScalarOpacityUnitDistance);
-
-		// mapper properties:
-		QStringList renderTypes = RenderModeMap().values();
-		selectOption(renderTypes, renderTypes[volumeSettings.RenderMode]);
-		addAttribute(RendererType, iAValueType::Categorical, renderTypes);
-		addAttribute(InteractiveAdjustSampleDistance, iAValueType::Boolean, false);
-		addAttribute(AutoAdjustSampleDistance, iAValueType::Boolean, false);
-		addAttribute(SampleDistance, iAValueType::Continuous, volumeSettings.SampleDistance);
-		addAttribute(InteractiveUpdateRate, iAValueType::Continuous, 1.0);
-		addAttribute(FinalColorLevel, iAValueType::Continuous, 0.5);
-		addAttribute(FinalColorWindow, iAValueType::Continuous, 1.0);
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
-		addAttribute(GlobalIlluminationReach, iAValueType::Continuous, 0.0, 0.0, 1.0);
-		addAttribute(VolumetricScatteringBlending, iAValueType::Continuous, -1.0, 0.0, 2.0);
-#endif
-
-		// volume properties:
-		auto spc = data->GetSpacing();
-		addAttribute(Spacing, iAValueType::Vector3, variantVector<double>({ spc[0], spc[1], spc[2] }));
-
-		// adapt bounding box to changes in position/orientation of volume:
-		vtkNew<vtkCallbackCommand> modifiedCallback;
-		modifiedCallback->SetCallback(
-			[](vtkObject* vtkNotUsed(caller), long unsigned int vtkNotUsed(eventId), void* clientData,
-				void* vtkNotUsed(callData))
-			{
-				reinterpret_cast<iAVolRenderer*>(clientData)->updateOutlineTransform();
-			});
-		modifiedCallback->SetClientData(this);
-		m_volume->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
-	}
-	void showDataSet() override
-	{
-		m_renderer->AddVolume(m_volume);
-	}
-	void hideDataSet() override
-	{
-		m_renderer->RemoveVolume(m_volume);
-	}
-	void applyAttributes(QVariantMap const& values) override
-	{
-		applyLightingProperties(m_volProp.Get(), values);
-		m_volProp->SetInterpolationType(values[LinearInterpolation].toInt());
-		m_volProp->SetShade(values[Shading].toBool());
-		if (values[ScalarOpacityUnitDistance].toDouble() > 0)
-		{
-			m_volProp->SetScalarOpacityUnitDistance(values[ScalarOpacityUnitDistance].toDouble());
-		}
-		/*
-		else
-		{
-			m_volSettings.ScalarOpacityUnitDistance = m_volProp->GetScalarOpacityUnitDistance();
-		}
-		*/
-		m_volMapper->SetRequestedRenderMode(values[RendererType].toInt());
-		m_volMapper->SetInteractiveAdjustSampleDistances(values[InteractiveAdjustSampleDistance].toBool());
-		m_volMapper->SetAutoAdjustSampleDistances(values[AutoAdjustSampleDistance].toBool());
-		m_volMapper->SetSampleDistance(values[SampleDistance].toDouble());
-		m_volMapper->SetInteractiveUpdateRate(values[InteractiveUpdateRate].toDouble());
-		m_volMapper->SetFinalColorLevel(values[FinalColorLevel].toDouble());
-		m_volMapper->SetFinalColorWindow(values[FinalColorWindow].toDouble());
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
-		m_volMapper->SetGlobalIlluminationReach(values[GlobalIlluminationReach].toFloat());
-		m_volMapper->SetVolumetricScatteringBlending(values[VolumetricScatteringBlending].toFloat());
-#endif
-
-		QVector<double> pos = values[Position].value<QVector<double>>();
-		QVector<double> ori = values[Orientation].value<QVector<double>>();
-		if (pos.size() == 3)
-		{
-			m_volume->SetPosition(pos.data());
-		}
-		if (ori.size() == 3)
-		{
-			m_volume->SetOrientation(ori.data());
-		}
-		m_volume->SetPickable(values[Pickable].toBool());
-
-		QVector<double> spc = values[Spacing].value<QVector<double>>();
-		assert(spc.size() == 3);
-		m_image->SetSpacing(spc.data());
-	}
-	iAAABB bounds() override
-	{
-		return iAAABB(m_image->GetBounds());
-	}
-	double const* orientation() const override
-	{
-		return m_volume->GetOrientation();
-	}
-	double const* position() const override
-	{
-		return m_volume->GetPosition();
-	}
-	void setPosition(double pos[3]) override
-	{
-		m_volume->SetPosition(pos);
-	}
-	void setOrientation(double ori[3]) override
-	{
-		m_volume->SetOrientation(ori);
-	}
-	vtkProp3D* vtkProp() override
-	{
-		return m_volume;
-	}
-
-	void setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3) override
-	{
-		m_volMapper->AddClippingPlane(p1);
-		m_volMapper->AddClippingPlane(p2);
-		m_volMapper->AddClippingPlane(p3);
-	}
-
-	void removeCuttingPlanes() override
-	{
-		m_volMapper->RemoveAllClippingPlanes();
-	}
-
-private:
-	vtkSmartPointer<vtkVolume> m_volume;
-	vtkSmartPointer<vtkVolumeProperty> m_volProp;
-	vtkSmartPointer<vtkSmartVolumeMapper> m_volMapper;
-	vtkImageData* m_image;
-};
 
 
 
@@ -559,7 +375,7 @@ void iAVolumeViewer::setPickable(bool pickable)
 std::shared_ptr<iADataSetRenderer> iAVolumeViewer::createRenderer(vtkRenderer* ren)
 {
 	auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
-	return std::make_shared<iAVolRenderer>(ren, img, transfer());
+	return std::make_shared<iAVolumeRenderer>(ren, img, transfer());
 }
 
 QSharedPointer<iAHistogramData> iAVolumeViewer::histogramData() const

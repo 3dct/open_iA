@@ -27,7 +27,6 @@
 #include <iAQVTKWidget.h>
 #include <iARenderer.h>
 #include <iARunAsync.h>
-#include <iAVolumeRenderer.h>
 #include <iAVolumeViewer.h>
 #include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iAWidgetSettingsMapper.h>
