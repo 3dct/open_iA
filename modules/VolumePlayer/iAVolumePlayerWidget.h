@@ -16,10 +16,6 @@ class iAMdiChild;
 
 class QCheckBox;
 
-//class vtkPiecewiseFunction;
-//const int CHANNELS_COUNT = 2;
-
-
 class Ui_VolumePlayer;
 
 class iAVolumePlayerWidget : public QDockWidget
@@ -61,9 +57,8 @@ private slots:
 	void pauseVolume();
 	void stopVolume();
 	void setSpeed();
-	void editMaxSpeed();
+	void editSpeed();
 	void setChecked(int r, int c);
-	//void updateView(int r, int c);
 	void selectAll(int c);
 	void fileNameActive();
 	void spacingActive();

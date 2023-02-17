@@ -3,7 +3,6 @@
 #include "mdichild.h"
 
 #include "dlg_slicer.h"
-#include "dlg_volumePlayer.h"
 #include "iADataSetViewer.h"
 #include "iADataSetRenderer.h"
 #include "iAVolumeViewer.h"    // TODO NEWIO: remove this from here

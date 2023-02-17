@@ -1,21 +1,21 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "dlg_volumePlayer.h"
+#include "iAVolumePlayerWidget.h"
 
-#include <iALog.h>
-#include <iAMathUtility.h>
+#include "ui_VolumePlayer.h"
 
 #include "iAChannelData.h"
 #include "iADataSet.h"
 #include "iADataSetRenderer.h"
+#include "iAMathUtility.h"
+#include "iAMdiChild.h"
 #include "iAParameterDlg.h"
 #include "iASlicer.h"
 #include "iATransferFunction.h"
 #include "iAVolumeViewer.h"
 
-#include "mdichild.h"
-
-#include "ui_VolumePlayer.h"
+#include <iALog.h>
+#include <iAMathUtility.h>
 
 #include <vtkImageData.h>
 #include <vtkPiecewiseFunction.h>
@@ -37,6 +37,11 @@ iAVolumePlayerTool::iAVolumePlayerTool(iAMainWindow* wnd, iAMdiChild* child):
 			volumeViewers.push_back(dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(ds.first)));
 		}
 	}
+	// hide all but first dataset:
+	for (int v = 1; v < volumeViewers.size(); ++v)
+	{
+		volumeViewers[v]->renderer()->setVisible(false);
+	}
 	m_volumePlayer = new iAVolumePlayerWidget(child, volumeViewers);
 	child->splitDockWidget(child->dataInfoDockWidget(), m_volumePlayer, Qt::Horizontal);
 }
@@ -50,11 +55,6 @@ namespace
 	const int NumberOfColumns = 5;
 	const auto NoStep = -1;
 	const auto NoVolIdx = std::numeric_limits<size_t>::max();
-
-	float frac(float val)
-	{
-		return val - std::trunc(val);
-	}
 }
 
 iAVolumePlayerWidget::iAVolumePlayerWidget(iAMdiChild *child, std::vector<iAVolumeViewer*> const& volumes)
@@ -73,16 +73,16 @@ iAVolumePlayerWidget::iAVolumePlayerWidget(iAMdiChild *child, std::vector<iAVolu
 	m_ui->volumeSlider->setMinimum(0);
 
 	connect(m_ui->volumeSlider, &QSlider::valueChanged, this, &iAVolumePlayerWidget::sliderChanged);
-	connect(m_ui->nextVolumeButton, &QPushButton::clicked,this, &iAVolumePlayerWidget::nextVolume);
-	connect(m_ui->previousVolumeButton, &QPushButton::clicked,this, &iAVolumePlayerWidget::previousVolume);
-	connect(m_ui->playVolumeButton, &QPushButton::clicked,this, &iAVolumePlayerWidget::playVolume);
-	connect(m_ui->pauseVolumeButton, &QPushButton::clicked, this, &iAVolumePlayerWidget::pauseVolume);
-	connect(m_ui->stopVolumeButton, &QPushButton::clicked,this, &iAVolumePlayerWidget::stopVolume);
+	connect(m_ui->tbNext, &QToolButton::clicked,this, &iAVolumePlayerWidget::nextVolume);
+	connect(m_ui->tbPrev, &QToolButton::clicked,this, &iAVolumePlayerWidget::previousVolume);
+	connect(m_ui->tbPlay, &QToolButton::clicked,this, &iAVolumePlayerWidget::playVolume);
+	connect(m_ui->tbPause,&QToolButton::clicked, this, &iAVolumePlayerWidget::pauseVolume);
+	connect(m_ui->tbStop, &QToolButton::clicked,this, &iAVolumePlayerWidget::stopVolume);
 	connect(m_ui->speedSlider, &QSlider::valueChanged, this, &iAVolumePlayerWidget::setSpeed);
-	connect(m_ui->setMaxSpeedButton, &QPushButton::clicked, this, &iAVolumePlayerWidget::editMaxSpeed);
+	connect(m_ui->tbSetSpeed, &QToolButton::clicked, this, &iAVolumePlayerWidget::editSpeed);
 	connect(m_ui->dataTable, &QTableWidget::cellClicked, this, &iAVolumePlayerWidget::setChecked);
 	//connect(m_ui->dataTable, &QTableWidget::cellDoubleClicked, this, &iAVolumePlayerWidget::updateView);
-	connect(m_ui->applyForAllButton, &QPushButton::clicked,this, &iAVolumePlayerWidget::applyForAll);
+	connect(m_ui->tbApplyForAll, &QToolButton::clicked, this, &iAVolumePlayerWidget::applyForAll);
 	connect(m_ui->dataTable->horizontalHeader(), &QHeaderView::sectionClicked, this, &iAVolumePlayerWidget::selectAll);
 	connect(&m_timer, &QTimer::timeout, this, &iAVolumePlayerWidget::nextVolume);
 	connect(m_ui->blending, &QCheckBox::stateChanged, this, &iAVolumePlayerWidget::blendingStateChanged);
@@ -224,20 +224,13 @@ void iAVolumePlayerWidget::sliderChanged()
 		if (m_prevVolIdx.first != NoVolIdx)
 		{
 			m_volumeViewers[m_prevVolIdx.first]->renderer()->setVisible(false);
-			for (int s = 0; s < 3; ++s)
-			{
-				m_child->slicer(s)->enableChannel(m_volumeViewers[m_prevVolIdx.first]->slicerChannelID(), false);
-			}
+			m_volumeViewers[m_prevVolIdx.first]->showInSlicers(false);
 		}
 		auto volIdx = listToVolumeIndex(step);
-		m_child->updateRenderer();
 		m_volumeViewers[volIdx]->renderer()->setVisible(true);
-		// TODO: move more into viewer?
-		for (int s = 0; s < 3; ++s)
-		{
-			m_child->slicer(s)->enableChannel(m_volumeViewers[volIdx]->slicerChannelID(), true);
-		}
-		m_child->updateSlicers();
+		m_child->updateRenderer();    // maybe do update in viewer?
+		m_volumeViewers[volIdx]->showInSlicers(true);
+		m_child->updateSlicers();     // maybe do update in viewer?
 		m_prevVolIdx.first = volIdx;
 	}
 }
@@ -264,7 +257,7 @@ void iAVolumePlayerWidget::setSpeed()
 	m_ui->speedValue->setText(QString::number(currentSpeed(), 'f', 2));
 }
 
-void iAVolumePlayerWidget::editMaxSpeed()
+void iAVolumePlayerWidget::editSpeed()
 {
 	const QString SpeedFPSKey("Speed (fps)");
 	iAAttributes param;
@@ -363,17 +356,18 @@ void iAVolumePlayerWidget::blendingStateChanged(int state)
 	m_ui->volumeSlider->setValue(m_isBlendingOn
 		? oldVal * BlendSteps
 		: std::floor(static_cast<double>(oldVal + 1) / BlendSteps + 0.5));
-	m_ui->applyForAllButton->setEnabled(!m_isBlendingOn);
+	m_ui->tbApplyForAll->setEnabled(!m_isBlendingOn);
 }
 
 void iAVolumePlayerWidget::enableVolume(int state)
 {
+	Q_UNUSED(state);
 	int numOfCheckedVolumes = getNumberOfCheckedVolumes();
 	for(size_t i = 0; i < m_checkBoxes.size(); ++i)
 	{	// make sure one volume remains visible (disable last checked checkbox)
 		m_checkBoxes[i]->setEnabled(numOfCheckedVolumes > 1 || !m_checkBoxes[i]->isChecked());
 	}
-	int oldVal = m_ui->volumeSlider->value();
+	//int oldVal = m_ui->volumeSlider->value();
 	adjustSliderMax();
 	// TODO: keep current value (i.e. keep same value as before if checked is after current position, increase accordingly if before
 	m_ui->volumeSlider->setValue(m_ui->volumeSlider->minimum());
@@ -393,7 +387,7 @@ size_t iAVolumePlayerWidget::listToVolumeIndex(int listIndex)
 			}
 		}
 	}
-	return -1;
+	return NoVolIdx;
 }
 
 int iAVolumePlayerWidget::getNumberOfCheckedVolumes()

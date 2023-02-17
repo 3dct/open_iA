@@ -185,6 +185,13 @@ T linterp(const T a, const T b, const T t)
 	return a + (b - a)*t;
 }
 
+//! Compute the fractional part of a floating-point type
+template <typename T>
+T frac(T val)
+{
+	return val - std::trunc(val);
+}
+
 typedef std::vector<double> FuncType;
 
 //! Compute Gaussian function for the given value x and parameter sigma (mean = 0).

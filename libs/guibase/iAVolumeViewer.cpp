@@ -194,17 +194,6 @@ public:
 		assert(spc.size() == 3);
 		m_image->SetSpacing(spc.data());
 	}
-	/*
-	void setMovable(bool movable) override
-	{
-		m_volume->SetPickable(movable);
-		m_volume->SetDragable(movable);
-	}
-	*/
-	//QWidget* controlWidget() override
-	//{
-	//
-	//}
 	iAAABB bounds() override
 	{
 		return iAAABB(m_image->GetBounds());
@@ -262,11 +251,6 @@ iAVolumeViewer::iAVolumeViewer(iADataSet * dataSet) :
 
 iAVolumeViewer::~iAVolumeViewer()
 {
-	removeFromSlicer();
-}
-	
-void iAVolumeViewer::removeFromSlicer()
-{
 	for (int s = 0; s < 3; ++s)
 	{
 		m_slicer[s]->removeChannel(m_slicerChannelID);
@@ -277,15 +261,16 @@ iAImageData const* iAVolumeViewer::volume() const
 {
 	return dynamic_cast<iAImageData*>(m_dataSet);
 }
-/*
-TODO: link to some trigger in dataset list
-void setSlicerVisible(bool visible) override
+
+void iAVolumeViewer::showInSlicers(bool show)
 {
 	for (int s = 0; s < 3; ++s)
 	{
-		m_slicer[s]->enableChannel(m_channelID, visible);
+		m_slicer[s]->enableChannel(m_slicerChannelID, show);
 	}
 }
+/*
+TODO: link to some trigger in dataset list
 void setPickable(bool pickable) override
 {
 	if (m_channelID == NotExistingChannel)
@@ -393,10 +378,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 		[this, child](bool checked)
 		{
 			setRenderFlag(RenderSlicerFlag, checked);
-			for (int s = 0; s < 3; ++s)
-			{
-				m_slicer[s]->enableChannel(m_slicerChannelID, checked);
-			}
+			showInSlicers(checked);
 			child->updateSlicers();
 		});
 	iADataSetViewer::createGUI(child, dataSetIdx);

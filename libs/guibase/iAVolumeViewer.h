@@ -29,6 +29,7 @@ class vtkSmartVolumeMapper;
 class vtkVolume;
 class vtkVolumeProperty;
 
+//! Class for managing all viewing aspects of volume datasets (3D renderer, slicers, histogram, line profile)
 class iAguibase_API iAVolumeViewer : public iADataSetViewer
 {
 public:
@@ -41,18 +42,21 @@ public:
 	void slicerRegionSelected(double minVal, double maxVal, uint channelID) override;
 	void setPickable(bool pickable) override;
 	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren) override;
+	//! Access to the chart widget used for displaying the histogram
 	iAChartWithFunctionsWidget* histogram();
+	//! Access to the histogram data
 	QSharedPointer<iAHistogramData> histogramData() const;  // should return a const raw pointer or reference
+	//! Access to the transfer function used in renderer and slicer view
 	iATransferFunction* transfer();
-	void removeFromSlicer();
-	//! accessing dataset
+	//! Access to the displayed dataset
 	iAImageData const* volume() const;
+	//! convenience function for showing/hiding dataset in slicer:
+	void showInSlicers(bool show);
 private:
-	void applyAttributes(QVariantMap const& values) override;
+	//! updates the line profile plot
 	void updateProfilePlot();
+	void applyAttributes(QVariantMap const& values) override;
 	QVariantMap additionalState() const override;
-
-	std::shared_ptr<iATransferFunctionOwner> m_transfer;
 
 	//! @{ slicer
 	uint m_slicerChannelID;
@@ -64,12 +68,13 @@ private:
 	QSharedPointer<iADockWidgetWrapper> m_dwHistogram;
 	QAction* m_histogramAction;
 	//! @}
-
 	//! @{ line profile
 	iAChartWidget* m_profileChart;
 	std::shared_ptr<iAProfileProbe> m_profileProbe;
 	QSharedPointer<iADockWidgetWrapper> m_dwProfile;
 	//! @}
-	QString m_imgStatistics;
-	std::shared_ptr<iAVolRenderer> m_renderer;
+
+	std::shared_ptr<iATransferFunctionOwner> m_transfer; //!< transfer function used in 2D slicer and 3D renderer
+	QString m_imgStatistics;                   //!< image statistics, for display in data info widget
+	std::shared_ptr<iAVolRenderer> m_renderer; //!< the 3D renderer
 };

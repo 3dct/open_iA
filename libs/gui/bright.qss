@@ -283,8 +283,12 @@ QPushButton
 	QToolButton[objectName="tbRemovePoint"] { qproperty-icon: url(:/images/function-point-remove.svg); }
 	QToolButton[objectName="distributionCSV"] { qproperty-icon: url(:/images/histogram.svg); }
 	QToolButton[objectName="savexml"] { qproperty-icon: url(:/images/xml-save.svg); }
-	QToolButton[objectName="pb_ModTF"] { qproperty-icon: url(:/images/histogram-tf.svg); }
-
+	QToolButton[objectName="tb_ModTF"] { qproperty-icon: url(:/images/histogram-tf.svg); }
+	QToolButton[objectName="tbPlay"]  { qproperty-icon: url(:/images/media-play.svg); }
+	QToolButton[objectName="tbPause"]  { qproperty-icon: url(:/images/media-pause.svg); }
+	QToolButton[objectName="tbStop"]  { qproperty-icon: url(:/images/media-stop.svg); }
+	QToolButton[objectName="tbPrev"]  { qproperty-icon: url(:/images/media-prev.svg); }
+	QToolButton[objectName="tbNext"]  { qproperty-icon: url(:/images/media-next.svg); }
 
 /****************************************************************************
 QTabWidget

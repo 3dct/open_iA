@@ -24,6 +24,16 @@
     <file>images/info_light.svg</file>
     <file>images/load.svg</file>
     <file>images/load_light.svg</file>
+    <file>images/media-play.svg</file>
+    <file>images/media-play_light.svg</file>
+    <file>images/media-pause.svg</file>
+    <file>images/media-pause_light.svg</file>
+    <file>images/media-stop.svg</file>
+    <file>images/media-stop_light.svg</file>
+    <file>images/media-next.svg</file>
+    <file>images/media-next_light.svg</file>
+    <file>images/media-prev.svg</file>
+    <file>images/media-prev_light.svg</file>
     <file>images/magic_lens_2d.svg</file>
     <file>images/magic_lens_2d_light.svg</file>
     <file>images/magic_lens_3d.svg</file>
