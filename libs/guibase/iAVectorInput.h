@@ -53,13 +53,19 @@ public:
 			else
 			{
 				connect(qobject_cast<QLineEdit*>(m_inputs[i]), &QLineEdit::textChanged, this, [this]() {
-					emit valueChanged(value());
+					bool ok;
+					auto v = value(&ok);
+					if (ok)
+					{
+						emit valueChanged(v);
+					}
 				});
 			}
 		}
 	}
-	QVariant value() const
+	QVariant value(bool * okOut = nullptr) const
 	{
+		if (okOut)	{ *okOut = true; }
 		if (m_valueType == iAValueType::Discrete)
 		{
 			QVector<int> values(m_inputs.size());
@@ -80,7 +86,8 @@ public:
 				values[i] = text.toDouble(&ok);
 				if (!ok)
 				{
-					LOG(lvlWarn, QString("Value %1 at position %2 in vector input is not a valid floating point number!").arg(text).arg(i));
+					if (okOut) { *okOut = false; }
+					//LOG(lvlDebug, QString("Value %1 at position %2 in vector input is not a valid floating point number!").arg(text).arg(i));
 				}
 			}
 			return QVariant::fromValue(values);
