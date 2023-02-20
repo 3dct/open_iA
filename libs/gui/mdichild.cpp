@@ -123,6 +123,10 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::XY], Qt::Horizontal);
 	splitDockWidget(m_dwSlicer[iASlicerMode::XY], m_dwSlicer[iASlicerMode::XZ], Qt::Vertical);
 	splitDockWidget(m_dwSlicer[iASlicerMode::XZ], m_dwSlicer[iASlicerMode::YZ], Qt::Vertical);
+	for (int i = 0; i < 3; ++i)
+	{
+		m_dwSlicer[i]->hide();
+	}
 	splitDockWidget(m_dwRenderer, m_dwDataSets, Qt::Vertical);
 	splitDockWidget(m_dwDataSets, m_dwInfo, Qt::Horizontal);
 
