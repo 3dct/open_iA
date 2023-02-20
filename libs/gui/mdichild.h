@@ -92,7 +92,6 @@ public:
 	void toggleSliceProfile(bool isEnabled);
 	bool isSliceProfileEnabled() const;
 	void setProfilePoints(double const* start, double const* end) override;
-	void adapt3DViewDisplay();
 
 	//! Access to the 3D renderer widget
 	iARenderer* renderer() override;

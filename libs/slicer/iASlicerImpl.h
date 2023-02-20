@@ -187,8 +187,12 @@ public:
 
 	//! in case the "linked mdi" feature is used, use this to set the mdi child this slicer is linked to.
 	void setLinkedMdiChild(iAMdiChild* mdiChild) override;
+
+	int globalAxis(int slicerAxis) override;
+
 	//! call if the dimension of the input in direction of the slice axis has changed.
 	void setSlicerRange(uint channelID);
+
 public slots:
 	//! Save an image of the image viewer native resolution or the current view.
 	void saveAsImage() override;

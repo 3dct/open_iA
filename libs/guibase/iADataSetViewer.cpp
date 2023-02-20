@@ -18,6 +18,7 @@
 #include <vtkOpenGLRenderer.h>
 
 #include <QAction>
+#include <QDockWidget>
 
 namespace
 {
@@ -47,8 +48,8 @@ void iADataSetViewer::prepare(iAPreferences const& pref, iAProgress* p)
 
 void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 {
-	if (!m_dataSet->hasMetaData(RenderFlags))   // only use default render flags if not set in dataset
-	{                                               // (by loader or by derived viewer class)
+	if (!m_dataSet->hasMetaData(RenderFlags))    // only use default render flags if not set in dataset
+	{                                            // (by loader or by derived viewer class)
 		m_dataSet->setMetaData(RenderFlags, RenderFlagsDefault);
 	}
 	m_renderer = createRenderer(child->renderer()->renderer());
@@ -57,6 +58,10 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	if (renderFlagSet(Render3DFlag))
 	{
 		m_renderer->setVisible(true);
+		if (!child->renderDockWidget()->isVisible())
+		{
+			child->renderDockWidget()->setVisible(true);
+		}
 	}
 	if (renderFlagSet(RenderOutlineFlag))
 	{

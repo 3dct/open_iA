@@ -308,6 +308,16 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	{
 		m_dwProfile->hide();
 	}
+	if (visibleSlicer)
+	{
+		for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
+		{
+			if (!child->slicerDockWidget(s)->isVisible() && (dim[m_slicer[s]->globalAxis(0)] > 1 && dim[m_slicer[s]->globalAxis(1)] > 1))
+			{
+				child->slicerDockWidget(s)->setVisible(true);
+			}
+		}
+	}
 	connect(child, &iAMdiChild::profilePointChanged, this,
 		[this](int pointIdx, double const* globalPos)
 	{

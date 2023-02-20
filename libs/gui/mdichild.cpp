@@ -1590,34 +1590,6 @@ bool MdiChild::linkedViews() const
 	return m_slicerSettings.LinkViews;
 }
 
-void MdiChild::adapt3DViewDisplay()
-{
-	// TODO NEWIO:
-	//     - move (part of functionality) into dataset viewers (the check for whether specific slicer required)
-	std::array<bool, 3> slicerVisibility = { false, false, false };
-	bool rendererVisibility = false;
-	for (auto ds : m_dataSets)
-	{
-		auto imgDS = dynamic_cast<iAImageData*>(ds.second.get());
-		if (!imgDS)
-		{
-			rendererVisibility = true;  // all non-image datasets currently have a 3D representation!
-			continue;
-		}
-		const int* dim = imgDS->vtkImage()->GetDimensions();
-		rendererVisibility |= dim[0] > 1 && dim[1] > 1 && dim[2] > 1;
-		for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
-		{
-			slicerVisibility[s] |= dim[mapSliceToGlobalAxis(s, 0)] > 1 && dim[mapSliceToGlobalAxis(s, 1)] > 1;
-		}
-	}
-	m_dwRenderer->setVisible(rendererVisibility);
-	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
-	{
-		m_dwSlicer[s]->setVisible(slicerVisibility[s]);
-	}
-}
-
 void MdiChild::setMagicLensInput(uint id)
 {
 	for (int s = 0; s < 3; ++s)
@@ -1966,13 +1938,12 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 	}
 	for (auto d : m_dataSets)
 	{
-		// TODO NEWIO: store viewer settings with datasets!
 		dataSets->addDataSet(d.second);
 	}
 	io.save(projectFileName, dataSets, QVariantMap());
 	setWindowTitleAndFile(projectFileName);
 
-	// store settings of any open tool:
+	// store settings of current tools:
 	for (auto toolKey : m_tools.keys())
 	{
 		s->beginGroup(toolKey);

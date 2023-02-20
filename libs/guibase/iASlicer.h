@@ -125,6 +125,10 @@ public:
 
 	//! in case the "linked mdi" feature is used, use this to set the mdi child this slicer is linked to.
 	virtual void setLinkedMdiChild(iAMdiChild* mdiChild) = 0;
+
+	//! retrieve the global axis that is represented by the given local axis (e.g. for XY:, 0 -> X, 1 -> Y, 2 -> Z; for XZ: 0 -> X, 1 -> Z, ...)
+	virtual int globalAxis(int slicerAxis) = 0;
+
 public slots:
 	//! Save an image of the image viewer native resolution or the current view.
 	virtual void saveAsImage() = 0;

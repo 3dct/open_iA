@@ -26,7 +26,6 @@
 
 // slicer
 #include <iASlicer.h>
-#include <iASlicerImpl.h>  // for mapSliceToGlobalAxis
 
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
@@ -285,9 +284,7 @@ void iALabelsDlg::addSeed(double cx, double cy, double cz, iASlicer* slicer)
 	//iATimeGuard timer(QString("Drawing circle of radius %1").arg(radius).toStdString());
 
 	auto extent = oi->image->GetExtent();
-	auto mode = slicer->mode();
-
-	int xAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::X), yAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::Y),
+	int xAxis = slicer->globalAxis(iAAxisIndex::X), yAxis = slicer->globalAxis(iAAxisIndex::Y),
 		minSlicerX = vtkMath::Max(center[xAxis] - radius, extent[xAxis * 2]),
 		maxSlicerX = vtkMath::Min(center[xAxis] + radius, extent[xAxis * 2 + 1]),
 		minSlicerY = vtkMath::Max(center[yAxis] - radius, extent[yAxis * 2]),

@@ -11,7 +11,6 @@
 #include <iAParameterDlg.h>
 #include <iARenderer.h>
 #include <iASlicer.h>
-#include <iASlicerImpl.h>    // for mapSliceToGlobalAxis
 
 #include <QCheckBox>
 #include <QHeaderView>
@@ -216,8 +215,8 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 		//txt->SetMaximumLeaderGlyphSize(10);
 
 		double pt[3] = {
-			coord[i < 3 ? mapSliceToGlobalAxis(static_cast<iASlicerMode>(i), 0) : 0],
-			coord[i < 3 ? mapSliceToGlobalAxis(static_cast<iASlicerMode>(i), 1) : 1],
+			coord[i < 3 ? m_child->slicer(i)->globalAxis(0) : 0],
+			coord[i < 3 ? m_child->slicer(i)->globalAxis(1) : 1],
 			i < 3 ? 0: coord[2],
 		};
 		txt->SetAttachmentPoint(pt);

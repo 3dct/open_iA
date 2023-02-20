@@ -2316,6 +2316,11 @@ void iASlicerImpl::setLinkedMdiChild(iAMdiChild* mdiChild)
 	m_linkedMdiChild = mdiChild;
 }
 
+int iASlicerImpl::globalAxis(int slicerAxis)
+{
+	return mapSliceToGlobalAxis(m_mode, slicerAxis);
+}
+
 void iASlicerImpl::resizeEvent(QResizeEvent * event)
 {
 	updateMagicLens();

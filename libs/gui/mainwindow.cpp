@@ -2187,20 +2187,6 @@ void MainWindow::childClosed()
 	}
 	// magic lens size can be modified in the slicers as well; make sure to store this change:
 	m_defaultPreferences.MagicLensSize = sender->magicLensSize();
-	/*
-	if( mdiArea->subWindowList().size() == 1 )
-	{
-		MdiChild * child = dynamic_cast<MdiChild*> ( mdiArea->subWindowList().at( 0 )->widget() );
-		if (!child)
-		{
-			return;
-		}
-		if (child == sender)
-		{
-			setModuleActionsEnabled(false);
-		}
-	}
-	*/
 }
 
 void MainWindow::saveProject()
