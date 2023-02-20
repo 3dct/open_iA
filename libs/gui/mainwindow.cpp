@@ -1137,15 +1137,6 @@ void MainWindow::updateInteractionModeControls(int mode)
 	m_ui->actionInteractionModeRegistration->setChecked(mode == MdiChild::imRegistration);
 }
 
-void MainWindow::rendererCamPosition()
-{
-	if (activeMdiChild())
-	{
-		int pos = sender()->property("camPosition").toInt();
-		activeMDI()->setCamPosition(pos);
-	}
-}
-
 void MainWindow::rendererSyncCamera()
 {
 	QList<iAMdiChild *> mdiwindows = mdiChildList();
@@ -1568,20 +1559,13 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
 
 	// Renderer toolbar:
-	connect(m_ui->actionViewXDirectionInRaycaster, &QAction::triggered, this, &MainWindow::rendererCamPosition);
-	m_ui->actionViewXDirectionInRaycaster->setProperty("camPosition", iACameraPosition::PX);
-	connect(m_ui->actionViewmXDirectionInRaycaster, &QAction::triggered, this, &MainWindow::rendererCamPosition);
-	m_ui->actionViewmXDirectionInRaycaster->setProperty("camPosition", iACameraPosition::MX);
-	connect(m_ui->actionViewYDirectionInRaycaster, &QAction::triggered, this, &MainWindow::rendererCamPosition);
-	m_ui->actionViewYDirectionInRaycaster->setProperty("camPosition", iACameraPosition::PY);
-	connect(m_ui->actionViewmYDirectionInRaycaster, &QAction::triggered, this, &MainWindow::rendererCamPosition);
-	m_ui->actionViewmYDirectionInRaycaster->setProperty("camPosition", iACameraPosition::MY);
-	connect(m_ui->actionViewZDirectionInRaycaster, &QAction::triggered, this, &MainWindow::rendererCamPosition);
-	m_ui->actionViewZDirectionInRaycaster->setProperty("camPosition", iACameraPosition::PZ);
-	connect(m_ui->actionViewmZDirectionInRaycaster, &QAction::triggered, this, &MainWindow::rendererCamPosition);
-	m_ui->actionViewmZDirectionInRaycaster->setProperty("camPosition", iACameraPosition::MZ);
-	connect(m_ui->actionIsometricViewInRaycaster, &QAction::triggered, this, &MainWindow::rendererCamPosition);
-	m_ui->actionIsometricViewInRaycaster->setProperty("camPosition", iACameraPosition::Iso);
+	connect(m_ui->actionViewXDirectionInRaycaster, &QAction::triggered,  this, [childCall] { childCall(&MdiChild::setPredefCamPos, iACameraPosition::PX); });
+	connect(m_ui->actionViewmXDirectionInRaycaster, &QAction::triggered, this, [childCall] { childCall(&MdiChild::setPredefCamPos, iACameraPosition::MX); });
+	connect(m_ui->actionViewYDirectionInRaycaster, &QAction::triggered,  this, [childCall] { childCall(&MdiChild::setPredefCamPos, iACameraPosition::PY); });
+	connect(m_ui->actionViewmYDirectionInRaycaster, &QAction::triggered, this, [childCall] { childCall(&MdiChild::setPredefCamPos, iACameraPosition::MY); });
+	connect(m_ui->actionViewZDirectionInRaycaster, &QAction::triggered,  this, [childCall] { childCall(&MdiChild::setPredefCamPos, iACameraPosition::PZ); });
+	connect(m_ui->actionViewmZDirectionInRaycaster, &QAction::triggered, this, [childCall] { childCall(&MdiChild::setPredefCamPos, iACameraPosition::MZ); });
+	connect(m_ui->actionIsometricViewInRaycaster, &QAction::triggered,   this, [childCall] { childCall(&MdiChild::setPredefCamPos, iACameraPosition::Iso);});
 
 	// Camera toolbar:
 	connect(m_ui->actionSyncCamera,   &QAction::triggered, this, &MainWindow::rendererSyncCamera);

@@ -664,7 +664,7 @@ void MdiChild::camPosition(double* camOptions)
 	m_renderer->camPosition(camOptions);
 }
 
-void MdiChild::setCamPosition(int pos)
+void MdiChild::setPredefCamPos(int pos)
 {
 	m_renderer->setCamPosition(pos);
 }

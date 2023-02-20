@@ -129,7 +129,6 @@ private slots:
 	void toggleFullScreen();
 	void toggleMenu();
 	void changeInteractionMode(bool isChecked);
-	void rendererCamPosition();
 	void rendererSyncCamera();
 	void rendererSaveCameraSettings();
 	void rendererLoadCameraSettings();

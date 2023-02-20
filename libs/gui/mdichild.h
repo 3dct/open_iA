@@ -253,7 +253,7 @@ public slots:
 	void camPosition(double * camOptions);
 	//! Calls the setCamPosition function of iARenderer (described there in more detail).
 	//! @param pos set one of the predefined camera positions
-	void setCamPosition(int pos);
+	void setPredefCamPos(int pos);
 	//! Calls the setCamPosition function of iARenderer (described there in more detail).
 	//! @param camOptions All informations of the camera stored in a double array
 	//! @param rsParallelProjection boolean variable to determine if parallel projection option on.
