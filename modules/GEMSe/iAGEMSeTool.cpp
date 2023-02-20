@@ -15,12 +15,24 @@
 #include <iAMdiChild.h>
 #include <iAModuleDispatcher.h> // TODO: Refactor; it shouldn't be required to go via iAModuleDispatcher to retrieve one's own module
 
+namespace
+{
+	const QString defaultThemeName("Brewer Set3 (max. 12)");
+}
+
 const QString iAGEMSeTool::ID("GEMSe");
 
 iAGEMSeTool::iAGEMSeTool(iAMainWindow* mainWnd, iAMdiChild* child):
 	iATool(mainWnd, child),
-	m_dummyTitleWidget(new QWidget())
+	m_dummyTitleWidget(new QWidget()),
+	m_dlgSamplings(new dlg_samplings()),
+	m_dlgGEMSe(new dlg_GEMSe(child, iALog::get(), iAColorThemeManager::instance().theme(defaultThemeName))),
+	m_dlgGEMSeControl(new dlg_GEMSeControl(child, m_dlgGEMSe, m_dlgSamplings,
+		iAColorThemeManager::instance().theme(defaultThemeName)))
 {
+	child->splitDockWidget(child->renderDockWidget(), m_dlgGEMSe, Qt::Vertical);
+	child->splitDockWidget(child->renderDockWidget(), m_dlgGEMSeControl, Qt::Horizontal);
+	child->splitDockWidget(m_dlgGEMSeControl, m_dlgSamplings, Qt::Vertical);
 }
 
 void iAGEMSeTool::loadState(QSettings & projectFile, QString const & fileName)
@@ -29,7 +41,6 @@ void iAGEMSeTool::loadState(QSettings & projectFile, QString const & fileName)
 	gemseModule->setupToolbar();
 		
 	auto seaFile = QSharedPointer<iASEAFile>::create(projectFile, fileName);
-
 
 	if (!seaFile->good())
 	{
@@ -72,22 +83,7 @@ void iAGEMSeTool::saveState(QSettings & projectFile, QString const & fileName)
 
 std::shared_ptr<iATool> iAGEMSeTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
 {
-	auto t = std::make_shared<iAGEMSeTool>(mainWnd, child);
-	QString defaultThemeName("Brewer Set3 (max. 12)");
-	iAColorTheme const* colorTheme = iAColorThemeManager::instance().theme(defaultThemeName);
-
-	t->m_dlgGEMSe = new dlg_GEMSe(child, iALog::get(), colorTheme);
-	t->m_dlgSamplings = new dlg_samplings();
-	t->m_dlgGEMSeControl = new dlg_GEMSeControl(
-		child,
-		t->m_dlgGEMSe,
-		t->m_dlgSamplings,
-		colorTheme
-	);
-	child->splitDockWidget(child->renderDockWidget(), t->m_dlgGEMSe, Qt::Vertical);
-	child->splitDockWidget(child->renderDockWidget(), t->m_dlgGEMSeControl, Qt::Horizontal);
-	child->splitDockWidget(t->m_dlgGEMSeControl, t->m_dlgSamplings, Qt::Vertical);
-	return t;
+	return std::make_shared<iAGEMSeTool>(mainWnd, child);;
 }
 
 bool iAGEMSeTool::loadSampling(QString const& smpFileName, int labelCount, int datasetID)

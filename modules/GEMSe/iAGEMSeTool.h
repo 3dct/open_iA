@@ -8,7 +8,6 @@
 
 class dlg_GEMSe;
 class dlg_GEMSeControl;
-class dlg_priors;
 class dlg_samplings;
 
 class iASEAFile;
@@ -40,9 +39,8 @@ public:
 	void exportRankings();
 	void importRankings();
 private:
-	dlg_priors* m_dlgPriors;
-	dlg_GEMSeControl* m_dlgGEMSeControl;
 	QWidget* m_dummyTitleWidget;
-	dlg_GEMSe* m_dlgGEMSe;
 	dlg_samplings* m_dlgSamplings;
+	dlg_GEMSe* m_dlgGEMSe;
+	dlg_GEMSeControl* m_dlgGEMSeControl;
 };
