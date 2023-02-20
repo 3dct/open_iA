@@ -106,10 +106,11 @@ private:
 };
 
 template <class T>
-void applyLightingProperties(T* prop, QVariantMap const& values)
+void applyLightingProperties(T* prop, QVariantMap const& values, QString const & prefix = "")
 {
-	prop->SetAmbient(values[iADataSetRenderer::AmbientLighting].toDouble());
-	prop->SetDiffuse(values[iADataSetRenderer::DiffuseLighting].toDouble());
-	prop->SetSpecular(values[iADataSetRenderer::SpecularLighting].toDouble());
-	prop->SetSpecularPower(values[iADataSetRenderer::SpecularPower].toDouble());
+	prop->SetAmbient(values[prefix + iADataSetRenderer::AmbientLighting].toDouble());
+	prop->SetDiffuse(values[prefix + iADataSetRenderer::DiffuseLighting].toDouble());
+	prop->SetSpecular(values[prefix + iADataSetRenderer::SpecularLighting].toDouble());
+	prop->SetSpecularPower(values[prefix + iADataSetRenderer::SpecularPower].toDouble());
+	// prop->SetShading(values[prefix + iADataSetRenderer::Shading].toBool()); // not generic - Shading/Shade
 }

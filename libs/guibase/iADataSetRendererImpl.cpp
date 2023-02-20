@@ -3,7 +3,6 @@
 #include "iADataSetRendererImpl.h"
 
 #include "iADataSet.h"
-#include "iADataSetRenderer.h"
 #include "iAMainWindow.h"
 
 #include "iAAABB.h"
@@ -34,10 +33,12 @@ namespace
 	const QString PointRadius = "Minimum point radius";
 	const QString PointColorMode = "Point colors";
 	const QString PointColor = "Fixed Point color";
+	const QString PointPrefix = "Point ";
 	const QString LineColorMode = "Line colors";
 	const QString LineColor = "Fixed Line Color";
 	const QString LineWidth = "Minimum line Width";
 	const QString LineWidthVaryBy = "Vary line width by";
+	const QString LinePrefix = "Line ";
 }
 
 iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data) :
@@ -76,10 +77,20 @@ iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data
 	addAttribute(PointRadius, iAValueType::Continuous, 5, 0.001, 100000000);
 	addAttribute(PointColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
 	addAttribute(PointColor, iAValueType::Color, "#FF0000");
+	addAttribute(PointPrefix + Shading, iAValueType::Boolean, false);
+	addAttribute(PointPrefix + AmbientLighting, iAValueType::Continuous, 0.2);
+	addAttribute(PointPrefix + DiffuseLighting, iAValueType::Continuous, 0.5);
+	addAttribute(PointPrefix + SpecularLighting, iAValueType::Continuous, 0.7);
+	addAttribute(PointPrefix + SpecularPower, iAValueType::Continuous, 10.0);
 	addAttribute(LineWidthVaryBy, iAValueType::Categorical, QStringList() << ("!" + VaryModeFixed) << data->edgeValueNames());
 	addAttribute(LineWidth, iAValueType::Continuous, 1.0, 0.1, 100);
 	addAttribute(LineColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
 	addAttribute(LineColor, iAValueType::Color, "#00FF00");
+	addAttribute(LinePrefix + Shading, iAValueType::Boolean, false);
+	addAttribute(LinePrefix + AmbientLighting, iAValueType::Continuous, 0.2);
+	addAttribute(LinePrefix + DiffuseLighting, iAValueType::Continuous, 0.5);
+	addAttribute(LinePrefix + SpecularLighting, iAValueType::Continuous, 0.7);
+	addAttribute(LinePrefix + SpecularPower, iAValueType::Continuous, 10.0);
 
 	// adapt bounding box to changes in position/orientation of volume:
 	// idea how to connect lambda to observer from https://gist.github.com/esmitt/7ca96193f2c320ba438e0453f9136c20
@@ -175,8 +186,12 @@ void iAGraphRenderer::applyAttributes(QVariantMap const& values)
 	assert(ori.size() == 3);
 	m_pointActor->SetPosition(pos.data());
 	m_pointActor->SetOrientation(ori.data());
+	applyLightingProperties(m_pointActor->GetProperty(), values, PointPrefix);
+	m_pointActor->GetProperty()->SetShading(values[PointPrefix+Shading].toBool());
 	m_lineActor->SetPosition(pos.data());
 	m_lineActor->SetOrientation(ori.data());
+	applyLightingProperties(m_lineActor->GetProperty(), values, LinePrefix);
+	m_lineActor->GetProperty()->SetShading(values[LinePrefix+Shading].toBool());
 
 	m_lineActor->SetPickable(values[Pickable].toBool());
 	//m_pointActor->SetPickable(values[Pickable].toBool()); // both move together same as bounds
