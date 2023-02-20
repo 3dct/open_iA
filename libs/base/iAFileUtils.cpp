@@ -103,9 +103,16 @@ void determineStackParameters(QString const& fullFileName,
 			prefix = newPrefix;
 			suffix = newSuffix;
 		}
+		// detect invalid / ambiguous configurations?
+		// a non-shared part is not a number (but skip files with completely different base?):
 		//else
 		//{
 		//	LOG(lvlWarn, QString("    Skipping: Part differing (%1) from chosen file (%2) is not a number!").arg(differentPart).arg(f));
+		//}
+		// filename of first file is completely contained in the current file:
+		//if (newPrefix == fi.absoluteFilePath())
+		//{
+		//	LOG(lvlWarn, QString("    Full selected filename is contained in another file name")
 		//}
 	}
 	//LOG(lvlInfo, QString("FINAL prefix=%1, suffix=%2").arg(m_fileNamesBase).arg(m_extension));
@@ -156,7 +163,7 @@ void determineStackParameters(QString const& fullFileName,
 		// Check if all files in range exist:
 		for (int val = range[0]; val <= range[1]; ++val)
 		{
-			QString filename(prefix + QString::number(val).rightJustified(digits, '0') + suffix);
+			QString filename(prefix + QString("%1").arg(val, digits, 10, QChar('0')) + suffix);
 			if (!QFile::exists(filename))
 			{
 				LOG(lvlWarn, QString("NOTE: Filename '%1' would be in determined range, but it does not exist! "
