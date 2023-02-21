@@ -172,12 +172,13 @@ void iAVolumeViewer::prepare(iAPreferences const& pref, iAProgress* p)
 	for (int c = 0; c < numCmp; ++c)
 	{
 		m_histogramData[c] = iAHistogramData::create(plotName(c, numCmp), img, pref.HistogramBins, &stats, c);
-		m_imgStatistics += QString("%1min=%2, max=%3, µ=%4, σ=%5")
+		m_imgStatistics += QString("%1min=%2, max=%3, µ=%4, σ=%5%6")
 			.arg(numCmp > 1 ? QString("component %1: ").arg(c) : "")
 			.arg(stats.minimum)
 			.arg(stats.maximum)
 			.arg(stats.mean)
-			.arg(stats.standardDeviation);
+			.arg(stats.standardDeviation)
+			.arg(c < numCmp-1 ? "; ":"");
 	}
 	p->emitProgress(100);
 	
