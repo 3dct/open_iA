@@ -155,8 +155,8 @@ DstType mapValue(SrcType minSrcVal, SrcType maxSrcVal, DstType minDstVal, DstTyp
 //! @param value the value to be mapped from the source range to the destination range
 //! @return if value was in range [minSrcVal..maxSrcVal], the
 //!     corresponding mapped value in range [minDstVal..maxDstVal]
-template <typename T>
-inline T mapValue(T const * rangeSrc, T const * rangeDst, T const value)
+template <typename SrcType, typename DstType>
+inline DstType mapValue(SrcType const * rangeSrc, DstType const * rangeDst, SrcType const value)
 {
 	return mapValue(rangeSrc[0], rangeSrc[1], rangeDst[0], rangeDst[1], value);
 }

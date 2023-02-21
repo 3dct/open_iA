@@ -56,7 +56,7 @@ public:
 	//! @param desiredNumBin the desired number of bins the data will be split into; can be adapted, depending on the actual number of different values in image
 	//! @param imgStatistics optional iAImageStatistics struct that will be filled with the statistical information determined while computing the histogram
 	static QSharedPointer<iAHistogramData> create(QString const& name,
-		vtkImageData* img, size_t desiredNumBin, iAImageStatistics* imgStatistics = nullptr);
+		vtkImageData* img, size_t desiredNumBin, iAImageStatistics* imgStatistics = nullptr, int component = 0);
 	//! create a histogram for the given (raw) data vector.
 	//! @param name the name of the plot
 	//! @param type the type of the data values (continuous or discrete)

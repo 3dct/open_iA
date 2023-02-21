@@ -122,7 +122,7 @@ void iANModalController::privateInitialize()
 			LOG(lvlWarn, QString("No display data found for dataset %1!").arg(dataSet->name()));
 			continue;
 		}
-		if (viewer->histogramData())
+		if (viewer->histogramData(0))
 		{
 			initializeHistogram(dataSetIdx);
 		}  // no else required - histograms are automatically computed now, and connection to dataSetRendered should take care of it!
@@ -149,7 +149,7 @@ void iANModalController::initializeHistogram(size_t dataSetIdx)
 		LOG(lvlWarn, QString("No display data found for dataset %1!").arg(dataSetName));
 		return;
 	}
-	auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(viewer->histogramData(), QColor(70, 70, 70, 255));
+	auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(viewer->histogramData(0), QColor(70, 70, 70, 255));
 
 	auto histogram = new iAChartWithFunctionsWidget(m_mdiChild, dataSetName + " grey value", "Frequency");
 	histogram->addPlot(histogramPlot);

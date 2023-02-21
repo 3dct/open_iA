@@ -6,10 +6,13 @@
 #include "iAMathUtility.h"
 #include "iAVtkDataTypeMapper.h"
 #include "iAToolsVTK.h"
+#include "iATypedCallHelper.h"
 
 #include <vtkImageAccumulate.h>
 #include <vtkImageCast.h>
 #include <vtkImageData.h>
+
+//#include <QElapsedTimer>
 
 #include <algorithm>
 #include <cassert>
@@ -160,25 +163,78 @@ size_t iAHistogramData::finalNumBin(vtkImageData* img, size_t desiredBins)
 	return newBinCount;
 }
 
+template <typename T>
+void computeHistogram(QSharedPointer<iAHistogramData> histData, vtkImageData* img, iAImageStatistics* imgStatistics, int component)
+{
+	auto dim = img->GetDimensions();
+	long long numOfVoxels = static_cast<long long>(dim[0]) * dim[1] * dim[2];
+	long long numOfValues = numOfVoxels * img->GetNumberOfScalarComponents();
+	auto stride = img->GetNumberOfScalarComponents();
+	auto imgData = static_cast<T*>(img->GetScalarPointer());
+	auto plotRng = histData->xBounds();
+	auto numBin = histData->valueCount();
+	size_t binRng[2] = {0, numBin};
+	double sum = 0;
+#pragma omp parallel
+	{
+		std::vector private_hist(numBin, 0);
+		double private_sum = 0;
+#pragma omp for
+		for (long long v = 0; v < numOfValues; v += stride)
+		{
+			auto value = static_cast<double>(imgData[v + component]);
+			size_t bin = clamp(0ull, numBin - 1, mapValue(plotRng, binRng, value));
+			private_sum += value ;
+			private_hist[bin] += 1;
+		}
+#pragma omp critical
+		{
+			for (size_t i = 0; i < numBin; ++i)
+			{
+				histData->setBin(i, histData->yValue(i) + private_hist[i]);
+			}
+			sum += private_sum;
+		}
+	}
+	if (imgStatistics)
+	{
+		double mean = sum / numOfVoxels;
+		double sum_udev = 0;
+#pragma omp parallel
+		{
+			double private_sum_udev = 0;
+#pragma omp for
+			for (long long v = 0; v < numOfValues; v += stride)
+			{
+				auto value = static_cast<double>(imgData[v + component]);
+				auto diff = value - mean;
+				private_sum_udev += diff * diff;
+			}
+#pragma omp critical
+			{
+				sum_udev += private_sum_udev;
+			}
+		}
+		double stddev = std::sqrt(sum_udev / numOfVoxels);
+		auto imgRng = img->GetScalarRange();
+		*imgStatistics = iAImageStatistics{ imgRng[0], imgRng[1], mean, stddev};
+	}
+}
+
+
+#define MODE_VTK 0    // use self-written code above
+//#define MODE_VTK 1    // use vtkImageAccumulate
+
 QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name,
-	vtkImageData* img, size_t desiredNumBin, iAImageStatistics* imgStatistics)
+	vtkImageData* img, size_t desiredNumBin, iAImageStatistics* imgStatistics, int component)
 {
 	if (!img)
 	{
 		LOG(lvlWarn, "iAHistogram::create: No image given!");
 		return QSharedPointer<iAHistogramData>(); // return "dummy": histogram with range 0..1, 1 bin with value 0?
 	}
-	if (img->GetNumberOfScalarComponents() != 1)
-	{
-		LOG(lvlDebug,
-			QString("Image has %2 components, only computing histogram of first one!")
-				.arg(img->GetNumberOfScalarComponents()));
-	}
-	auto accumulate = vtkSmartPointer<vtkImageAccumulate>::New();
-	accumulate->ReleaseDataFlagOn();
-	accumulate->SetInputData(img);
-	accumulate->SetComponentOrigin(img->GetScalarRange()[0], 0.0, 0.0);
-	double * const scalarRange = img->GetScalarRange();
+
+	double* const scalarRange = img->GetScalarRange();
 	double valueRange = scalarRange[1] - scalarRange[0];
 	double histRange = valueRange;
 	auto valueType = isVtkIntegerImage(img) ? iAValueType::Discrete : iAValueType::Continuous;
@@ -189,16 +245,30 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name,
 		double newMax = scalarRange[0] + static_cast<int>(stepSize * numBin);
 		histRange = newMax - scalarRange[0];
 	}
-	// The check above guarantees that numBin is smaller than int max, so the cast to int below is safe!
-	accumulate->SetComponentExtent(0, static_cast<int>(numBin - 1), 0, 0, 0, 0);
 	if (dblApproxEqual(valueRange, histRange))
 	{  // to put max values in max bin (as vtkImageAccumulate otherwise would cut off with < max)
 		const double RangeEnlargeFactor = 1 + 1e-10;
 		histRange = valueRange * RangeEnlargeFactor;
 	}
+	auto result = iAHistogramData::create(name, valueType, scalarRange[0], scalarRange[0] + histRange, numBin);
+
+	//QElapsedTimer timer;
+	//timer.start();
+#if MODE_VTK
+	if (img->GetNumberOfScalarComponents() != 1)
+	{
+		LOG(lvlDebug,
+			QString("Image has %2 components, only computing histogram of first one!")
+				.arg(img->GetNumberOfScalarComponents()));
+	}
+	auto accumulate = vtkSmartPointer<vtkImageAccumulate>::New();
+	accumulate->ReleaseDataFlagOn();
+	accumulate->SetInputData(img);
+	accumulate->SetComponentOrigin(img->GetScalarRange()[0], 0.0, 0.0);
+	// The check in finalNumBin guarantees that numBin is smaller than int max, so the cast to int below is safe!
+	accumulate->SetComponentExtent(0, static_cast<int>(numBin - 1), 0, 0, 0, 0);
 	accumulate->SetComponentSpacing(histRange / numBin, 0.0, 0.0);
 	accumulate->Update();
-
 	int extent[6];
 	accumulate->GetComponentExtent(extent);
 	vtkSmartPointer<vtkImageCast> caster = vtkSmartPointer<vtkImageCast>::New();
@@ -206,16 +276,21 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name,
 	caster->SetOutputScalarType(iAVtkDataType<DataType>::value);
 	caster->Update();
 	auto rawImg = caster->GetOutput();
-	auto result = iAHistogramData::create(name, valueType, scalarRange[0], scalarRange[0]+histRange, numBin);
 
 	auto vtkRawData = static_cast<DataType*>(rawImg->GetScalarPointer());
 	std::copy(vtkRawData, vtkRawData + result->m_numBin, result->m_histoData);
-	result->m_spacing = histRange / result->m_numBin;
-	result->updateYBounds();
 	if (imgStatistics)
 	{
 		*imgStatistics = iAImageStatistics{ *accumulate->GetMin(), *accumulate->GetMax(), *accumulate->GetMean(), *accumulate->GetStandardDeviation() };
 	}
+	//LOG(lvlDebug, QString("VTK: %1 seconds").arg(timer.elapsed() / 1000.0, 5, 'f', 3));
+#else
+	VTK_TYPED_CALL(computeHistogram, img->GetScalarType(), result, img, imgStatistics, component);
+	//LOG(lvlDebug, QString("OpenMP: %1 seconds").arg(timer.elapsed() / 1000.0, 5, 'f', 3));
+#endif
+	result->m_spacing = histRange / result->m_numBin;
+	result->updateYBounds();
+
 	return result;
 }
 

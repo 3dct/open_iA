@@ -305,7 +305,7 @@ void iAMultimodalWidget::dataSetAdded(size_t dataSetIdx)
 		return;
 	}
 	auto viewer = dynamic_cast<iAVolumeViewer*>(m_mdiChild->dataSetViewer(dataSetIdx));
-	if (!viewer || !viewer->histogramData())
+	if (!viewer || !viewer->histogramData(0))
 	{
 		return;
 	}
@@ -336,12 +336,12 @@ void iAMultimodalWidget::initGUI()
 	for (int ds = 0; ds < m_numOfDS; ++ds)
 	{
 		auto viewer = dynamic_cast<iAVolumeViewer*>(m_mdiChild->dataSetViewer(m_dataSetsActive[ds]));
-		if (!viewer || !viewer->histogramData())
+		if (!viewer || !viewer->histogramData(0))
 		{
 			LOG(lvlError, QString("DataSet %1: no viewer!").arg(ds));
 			continue;
 		}
-		auto histData = viewer->histogramData();
+		auto histData = viewer->histogramData(0);
 		auto colorTF = vtkSmartPointer<vtkColorTransferFunction>::New();
 		auto opacityTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 		colorTF->DeepCopy(dataSetTransfer(ds)->colorTF());

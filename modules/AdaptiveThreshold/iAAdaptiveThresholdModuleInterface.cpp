@@ -58,7 +58,7 @@ void iAAdaptiveThresholdModuleInterface::determineThreshold()
 		return;
 	}
 	auto viewer = dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(dsIdx));
-	if (!viewer || !viewer->histogramData())
+	if (!viewer || !viewer->histogramData(0))
 	{
 		LOG(lvlInfo, "No histogram available!");
 		return;
@@ -67,7 +67,7 @@ void iAAdaptiveThresholdModuleInterface::determineThreshold()
 	{
 
 		iAAdaptiveThresholdDlg dlg_thres;
-		auto data = viewer->histogramData();
+		auto data = viewer->histogramData(0);
 		dlg_thres.setHistData(data);
 
 		/*

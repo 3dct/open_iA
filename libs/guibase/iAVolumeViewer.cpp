@@ -47,6 +47,19 @@ namespace
 		return (byteSize * dim[0] * dim[1] * dim[2] / 1048576.0) >= iAMainWindow::get()->defaultPreferences().LimitForAuto3DRender;
 	}
 
+	const QString componentNames[4]{ "red", "green", "blue", "alpha" };
+
+	QString plotName(int plot, int plotCount)
+	{
+		return "Frequency" + ((plotCount == 1) ? "" : " " + componentNames[plot]);
+	}
+	QColor plotColor(int plot, int plotCount)
+	{
+		auto c = plotCount > 1 && plot < 3 ? QColor(componentNames[plot]) : QApplication::palette().color(QPalette::Shadow);
+		c.setAlpha(plotCount > 1 ? 64 : 255);
+		return c;
+	}
+
 	const QChar RenderSlicerFlag('S');
 	const QChar RenderHistogramFlag('H');
 	const QChar RenderProfileFlag('P');
@@ -153,13 +166,21 @@ void iAVolumeViewer::prepare(iAPreferences const& pref, iAProgress* p)
 	//       as it computes the histograms for all components at once!
 	p->emitProgress(50);
 	p->setStatus(QString("%1: Computing histogram and statistics.").arg(m_dataSet->name()));
-	m_histogramData = iAHistogramData::create("Frequency", img, pref.HistogramBins, &stats);
+	auto numCmp = img->GetNumberOfScalarComponents();
+	m_histogramData.resize(numCmp);
+	m_imgStatistics = "";
+	for (int c = 0; c < numCmp; ++c)
+	{
+		m_histogramData[c] = iAHistogramData::create(plotName(c, numCmp), img, pref.HistogramBins, &stats, c);
+		m_imgStatistics += QString("%1min=%2, max=%3, µ=%4, σ=%5")
+			.arg(numCmp > 1 ? QString("component %1: ").arg(c) : "")
+			.arg(stats.minimum)
+			.arg(stats.maximum)
+			.arg(stats.mean)
+			.arg(stats.standardDeviation);
+	}
 	p->emitProgress(100);
-	m_imgStatistics = QString("min=%1, max=%2, mean=%3, stddev=%4")
-		.arg(stats.minimum)
-		.arg(stats.maximum)
-		.arg(stats.mean)
-		.arg(stats.standardDeviation);
+	
 }
 
 void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
@@ -201,10 +222,13 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	// histogram
 	QString histoName = "Histogram " + m_dataSet->name();
 	m_histogram = new iAChartWithFunctionsWidget(child, histoName, "Frequency");
-	auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(
-		m_histogramData,
-		QApplication::palette().color(QPalette::Shadow));
-	m_histogram->addPlot(histogramPlot);
+	auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
+	int numCmp = img->GetNumberOfScalarComponents();
+	for (int c = 0; c < numCmp; ++c)
+	{
+		auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(m_histogramData[c], plotColor(c, numCmp) );
+		m_histogram->addPlot(histogramPlot);
+	}
 	m_histogram->setTransferFunction(m_transfer.get());
 	m_histogram->update();
 	// TODO NEWIO:
@@ -235,7 +259,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	{
 		if (m_histogram->plots().size() > 0)
 		{
-			m_histogram->plots()[0]->setColor(QApplication::palette().color(QPalette::Shadow));
+			m_histogram->plots()[m_histogramData.size()-1]->setColor(QApplication::palette().color(QPalette::Shadow));
 		}
 		if (m_profileChart->plots().size() > 0)
 		{
@@ -249,20 +273,25 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			size_t newBinCount = iAHistogramData::finalNumBin(img, child->preferences().HistogramBins);
 			m_histogram->setYMappingMode(
 				child->preferences().HistogramLogarithmicYAxis ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
-			if (m_histogramData->valueCount() != newBinCount)
+			if (m_histogramData[0]->valueCount() != newBinCount)
 			{
 				auto fw = runAsync(
 					[this, newBinCount, img]
 					{
-						iAImageStatistics stats;
-						m_histogramData = iAHistogramData::create("Frequency", img, newBinCount, &stats);
+						for (int c = 0; c < img->GetNumberOfScalarComponents(); ++c)
+						{
+							m_histogramData[c] = iAHistogramData::create(plotName(c, newBinCount), img, newBinCount, nullptr, c);
+						}
 					},
-					[this]
+					[this, img]
 					{
 						m_histogram->clearPlots();
-						auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(
-							m_histogramData, QApplication::palette().color(QPalette::Shadow));
-						m_histogram->addPlot(histogramPlot);
+						auto numCmp = img->GetNumberOfScalarComponents();
+						for (int c = 0; c < numCmp; ++c)
+						{
+							auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(m_histogramData[c], plotColor(c, numCmp));
+							m_histogram->addPlot(histogramPlot);
+						}
 						m_histogram->update();
 					},
 					this);
@@ -274,7 +303,6 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	// slicer
 	bool visibleSlicer = renderFlagSet(RenderSlicerFlag);
 	m_slicerChannelID = child->createChannel();
-	auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
 	for (int s = 0; s < 3; ++s)
 	{
 		m_slicer[s] = child->slicer(s);
@@ -388,9 +416,9 @@ std::shared_ptr<iADataSetRenderer> iAVolumeViewer::createRenderer(vtkRenderer* r
 	return std::make_shared<iAVolumeRenderer>(ren, img, transfer());
 }
 
-QSharedPointer<iAHistogramData> iAVolumeViewer::histogramData() const
+QSharedPointer<iAHistogramData> iAVolumeViewer::histogramData(int component) const
 {
-	return m_histogramData;
+	return m_histogramData[component];
 }
 
 iAChartWithFunctionsWidget* iAVolumeViewer::histogram()
