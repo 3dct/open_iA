@@ -148,8 +148,6 @@ public:
 
 	//! apply the given (3D) renderer settings
 	virtual void applyRendererSettings(iARenderSettings const& rs, iAVolumeSettings const& vs) = 0;
-	//! Apply settings to the 3D renderer of the dataset with given index (the given map can also contain a subset of the list of available render parameters, the rest will be left at default)
-	virtual void applyRenderSettings(size_t dataSetIdx, QVariantMap const& renderSettings) = 0;
 
 	// Datasets:
 	// TODO NEWIO: There's potential for better encapsulation / better API here! Maybe extract to separate dataset container?

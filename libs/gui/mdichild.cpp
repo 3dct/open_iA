@@ -1786,11 +1786,6 @@ std::map<size_t, std::shared_ptr<iADataSet>> const& MdiChild::dataSetMap() const
 	return m_dataSets;
 }
 
-void MdiChild::applyRenderSettings(size_t dataSetIdx, QVariantMap const& renderSettings)
-{
-	dataSetViewer(dataSetIdx)->setAttributes(joinValues(extractValues(dataSetViewer(dataSetIdx)->attributesWithValues()), renderSettings));
-}
-
 size_t MdiChild::firstImageDataSetIdx() const
 {
 	for (auto dataSet : m_dataSets)

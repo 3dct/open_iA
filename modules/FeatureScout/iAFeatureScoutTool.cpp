@@ -156,8 +156,7 @@ bool iAFeatureScoutTool::initFromConfig(iAMdiChild* child, iACsvConfig const& cs
 		renderSettings["Diffuse lighting"] = 1.6;
 		renderSettings["Specular lighting"] = 0.0;
 		renderSettings["Renderer type"] = RenderModeMap()[vtkSmartVolumeMapper::RayCastRenderMode];
-
-		child->applyRenderSettings(child->firstImageDataSetIdx(), renderSettings);
+		child->dataSetViewer(child->firstImageDataSetIdx())->setAttributes(renderSettings);
 	}
 	setOptions(csvConfig);
 	return true;

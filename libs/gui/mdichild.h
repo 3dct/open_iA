@@ -220,7 +220,6 @@ public:
 	size_t firstImageDataSetIdx() const override;
 	vtkSmartPointer<vtkImageData> firstImageData() const override;
 	iADataSetViewer* dataSetViewer(size_t idx) const override;
-	void applyRenderSettings(size_t dataSetIdx, QVariantMap const& renderSettings) override;
 
 	bool hasUnsavedData() const;
 
