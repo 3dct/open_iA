@@ -271,6 +271,7 @@ void MdiChild::connectSignalsToSlots()
 			}
 		}
 	}
+	m_manualMoveStyle[3] = vtkSmartPointer<iAvtkInteractStyleActor>::New();    // for renderer
 }
 
 void MdiChild::updatePositionMarker(double x, double y, double z, int mode)
