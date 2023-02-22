@@ -8,7 +8,7 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QtCore/qtclasshelpermacros.h>  // for Q_DISABLE_COPY_MOVE
+#include <QObject>  // for Q_DISABLE_COPY_MOVE
 
 //! Implements iATransferFunction and owns both color and opacity transfer function
 class iAguibase_API iATransferFunctionOwner : public iATransferFunction

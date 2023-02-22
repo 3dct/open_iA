@@ -9,7 +9,7 @@
 #include <itkSmartPointer.h>
 
 #include <QString>
-#include <QtCore/qtclasshelpermacros.h>  // for Q_DISABLE_COPY_MOVE
+#include <QObject>  // for Q_DISABLE_COPY_MOVE
 
 class iALogRedirectVTK;
 class iALogRedirectITK;
