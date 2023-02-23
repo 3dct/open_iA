@@ -74,7 +74,7 @@ iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data
 	m_pointActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 
 	addAttribute(PointRadiusVaryBy, iAValueType::Categorical, QStringList() << ("!" + VaryModeFixed) << data->vertexValueNames());
-	addAttribute(PointRadius, iAValueType::Continuous, 5, 0.001, 100000000);
+	addAttribute(PointRadius, iAValueType::Continuous, 5, 0.0000001, 100000000);
 	addAttribute(PointColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
 	addAttribute(PointColor, iAValueType::Color, "#FF0000");
 	addAttribute(PointPrefix + Shading, iAValueType::Boolean, false);
