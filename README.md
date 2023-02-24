@@ -32,7 +32,7 @@ If you use open\_iA for your research, please cite our journal article: [![statu
 
 - B. Fröhler, J. Weissenböck, M. Schiwarth, J. Kastner, C. Heinzl, open\_iA: A tool for processing and visual analysis of industrial computed tomography datasets, Journal of Open Source Software, 4 (35), 1185, 2019, doi: [10.21105/joss.01185](https://doi.org/10.21105/joss.01185).
 
-If you want to refer to the software directly, you can use the zenodo DOI; use [doi: 10.5281/zenodo.2591998](https://doi.org/zenodo.2591998), which always refers to the latest release on github. You can also cite a specific release by picking the respective DOI from the list visible after following [that same link](https://doi.org/zenodo.2591998)).
+If you want to refer to the software directly, you can use the zenodo DOI; use [doi: 10.5281/zenodo.2591998](https://doi.org/10.5281/zenodo.2591998), which always refers to the latest release on github. You can also cite a specific release by picking the respective DOI from the list visible after following [that same link](https://doi.org/10.5281/zenodo.2591998)).
 
 
 ## Contributors
