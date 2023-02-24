@@ -135,7 +135,7 @@ private:
 	iADataCollection(iADataCollection const& other) = delete;
 	iADataCollection& operator=(iADataCollection const& other) = delete;
 	std::vector<std::shared_ptr<iADataSet>> m_dataSets;
-	std::shared_ptr<QSettings> m_settings;    //< TODO NEWIO: maybe replace with QVariantMap? re-use metadata? move somewhere else?
+	std::shared_ptr<QSettings> m_settings;
 };
 
 iAbase_API QString boundsStr(double const* bds);

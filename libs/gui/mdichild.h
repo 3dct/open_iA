@@ -274,6 +274,9 @@ private slots:
 
 private:
 	void closeEvent(QCloseEvent *event) override;
+	void dragEnterEvent(QDragEnterEvent* e) override;
+	void dropEvent(QDropEvent* e) override;
+
 	bool saveDataSet(std::shared_ptr<iADataSet> dataSet);
 	bool saveDataSet(std::shared_ptr<iADataSet> dataSet, QString const & fileName);
 	void set3DSlicePlanePos(int mode, int slice);

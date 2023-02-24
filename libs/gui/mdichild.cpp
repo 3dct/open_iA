@@ -105,6 +105,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_interactionMode(imCamera),
 	m_nextDataSetID(0)
 {
+	setAcceptDrops(true);
 	std::fill(m_slicerVisibility, m_slicerVisibility + 3, false);
 	setAttribute(Qt::WA_DeleteOnClose);
 	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
@@ -1316,6 +1317,22 @@ void MdiChild::closeEvent(QCloseEvent* event)
 	}
 	emit closed();
 	event->accept();
+}
+
+void MdiChild::dragEnterEvent(QDragEnterEvent* e)
+{
+	if (e->mimeData()->hasUrls())
+	{
+		e->acceptProposedAction();
+	}
+}
+
+void MdiChild::dropEvent(QDropEvent* e)
+{
+	for (const QUrl& url : e->mimeData()->urls())
+	{
+		m_mainWnd->loadFileNew(url.toLocalFile(), this);
+	}
 }
 
 void MdiChild::setWindowTitleAndFile(const QString& f)

@@ -87,6 +87,7 @@ namespace
 	{
 		return iASystemThemeWatcher::isBrightTheme() ? BrightThemeQss : DarkThemeQss;
 	}
+	const QString ProjectFileExtension("iaproj"); // TODO: reuse in iAProjectFileIO
 }
 
 template <typename T>
@@ -313,7 +314,7 @@ void MainWindow::dropEvent(QDropEvent *e)
 {
 	for(const QUrl &url: e->mimeData()->urls())
 	{
-		loadFileAskNewWindow(url.toLocalFile());
+		loadFileNew(url.toLocalFile(), nullptr);
 	}
 }
 
@@ -347,8 +348,7 @@ void MainWindow::openRaw()
 		m_path,
 		"Raw File (*)"
 	);
-	// TODO NEWIO: ask for whether to load in new window here?
-	loadFileNew(fileName, nullptr, std::make_shared<iARawFileIO>());
+	loadFileNew(fileName, askWhichChild(), std::make_shared<iARawFileIO>());
 }
 
 void MainWindow::openRecentFile()
@@ -359,26 +359,21 @@ void MainWindow::openRecentFile()
 		return;
 	}
 	QString fileName = action->data().toString();
-	loadFileAskNewWindow(fileName);
+	loadFileNew(fileName, askWhichChild());
 }
 
-void MainWindow::loadFileAskNewWindow(QString const & fileName)
+iAMdiChild* MainWindow::askWhichChild()
 {
 	auto child = activeMdiChild();
 	if (child)
 	{
-		auto result = QMessageBox::question(
-			this, "", "Load data into the active window?", QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-		if (result == QMessageBox::Cancel)
-		{
-			return;
-		}
+		auto result = QMessageBox::question(this, "", "Load data into the active window?", QMessageBox::Yes | QMessageBox::No);
 		if (result == QMessageBox::No)
 		{
 			child = nullptr;
 		}
 	}
-	loadFileNew(fileName, child);
+	return child;
 }
 
 void MainWindow::loadFileNew(QString const& fileName, iAMdiChild* child, std::shared_ptr<iAFileIO> io)
@@ -2329,7 +2324,7 @@ void MainWindow::openWithDataTypeConversion()
 				mapReadableDataTypeToVTKType(outDataType),
 				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax, roi);
 		}
-		loadFileAskNewWindow(finalfilename);
+		loadFileNew(finalfilename, askWhichChild());
 	}
 	catch (std::exception & e)
 	{
@@ -2442,7 +2437,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	iAFileTypeRegistry::addDefaultExtension(iADataSetType::Volume, "mhd");
 	iAFileTypeRegistry::addDefaultExtension(iADataSetType::Mesh, "stl");
 	//iAFileTypeRegistry::addDefaultExtension(iADataSetType::Graph, ".txt");  -> graph storing not yet implemented!
-	iAFileTypeRegistry::addDefaultExtension(iADataSetType::Collection, "iaproj");
+	iAFileTypeRegistry::addDefaultExtension(iADataSetType::Collection, ProjectFileExtension);
 #if defined(__APPLE__) && defined(__MACH__)
 	QSurfaceFormat::setDefaultFormat(iAVtkWidget::defaultFormat());
 #endif
