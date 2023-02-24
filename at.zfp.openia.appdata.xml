@@ -42,6 +42,13 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="2023.02" date="2023-02-24">
+            <description>
+                New module for remote collaboration, enabling web clients to view the same data as shown in open_iA.
+                Reworked, more generic dataset interface for a broader range (and better future support) of multiple dataset types.
+                Theme (bright/dark) improvements, possibility to adapt to system theme.
+            </description>
+        </release>
         <release version="2022.06.22" date="2022-06-22">
             <description>Minor release (changes required by flatpak, e.g. this manifest)</description>
         </release>
