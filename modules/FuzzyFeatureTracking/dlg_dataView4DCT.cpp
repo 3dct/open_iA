@@ -47,7 +47,6 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget* parent, std::vector<iAVolumeViewer*>
 		m_volumeRenderer[i]->setVisible(true);
 		bool slicerVisibility[3] = { false, false, false };
 		m_renderers[i]->applySettings(m_mdiChild->renderSettings(), slicerVisibility );
-		//m_volumeRenderer[i]->applySettings(m_mdiChild->volumeSettings());
 
 		// setup renderers
 		m_renderers[i]->showHelpers(SHOW_HELPERS);

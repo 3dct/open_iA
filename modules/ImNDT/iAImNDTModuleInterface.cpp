@@ -280,7 +280,6 @@ void iAImNDTModuleInterface::renderVolume()
 	auto child = m_mainWnd->activeMdiChild();
 	m_volumeRenderer = std::make_shared<iAVolumeRenderer>(m_vrEnv->renderer(), child->firstImageData().Get(),
 		dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))->transfer());
-	//m_volumeRenderer->applySettings(child->volumeSettings());
 	m_volumeRenderer->setVisible(true);
 	m_volumeRenderer->setBoundsVisible(true);
 	m_vrEnv->start();

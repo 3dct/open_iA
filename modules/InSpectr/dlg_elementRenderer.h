@@ -34,7 +34,6 @@ public:
 	iARenderer * GetRenderer();
 	void SetRefLibIndex(size_t index);
 	size_t GetRefLibIndex();
-	void ApplyVolumeSettings(iAVolumeSettings const & vs);
 
 private:
 	iARendererImpl * m_renderer;

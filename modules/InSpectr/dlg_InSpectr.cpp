@@ -950,7 +950,6 @@ void dlg_InSpectr::showLinkedElementMaps( int show )
 		InitElementRenderer( elemRend, i );
 		bool slicerVisibility[3] = { false, false, false };
 		elemRend->GetRenderer()->applySettings(mdiChild->renderSettings(), slicerVisibility);
-		elemRend->ApplyVolumeSettings(mdiChild->volumeSettings());
 		m_rendererManager.addToBundle(elemRend->GetRenderer()->renderer());
 		m_elementRenderers.push_back( elemRend );
 		if(isFirst)
