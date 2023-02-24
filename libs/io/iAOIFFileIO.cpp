@@ -48,7 +48,6 @@ std::shared_ptr<iADataSet> iAOIFFileIO::loadData(QString const& fileName, QVaria
 			result->addDataSet(std::make_shared<iAImageData>(reader.GetResult(i)));
 		}
 		return result;
-
 	}
 	else
 	{
@@ -56,7 +55,9 @@ std::shared_ptr<iADataSet> iAOIFFileIO::loadData(QString const& fileName, QVaria
 		auto channel = paramValues[ChannelNumberStr].toInt();
 		if (channel >= 0 && channel < reader.GetChanNum())
 		{
-			return std::make_shared<iAImageData>(reader.GetResult(channel));
+			auto ds = std::make_shared<iAImageData>(reader.GetResult(channel));
+			ds->setMetaData(paramValues);
+			return ds;
 		}
 		else
 		{

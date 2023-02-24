@@ -31,19 +31,10 @@ std::shared_ptr<iADataSet> iAFileIO::load(QString const& fileName, QVariantMap c
 		}
 		dataSet->setMetaData(iADataSet::FileNameKey, fileName);
 		dataSet->setMetaData(iADataSet::NameKey, QFileInfo(fileName).completeBaseName());
-		dataSet->setMetaData(checkedValues);
-		//for (auto k : checkedValues.keys())
-		//{
-		//	dataSet->setMetaData(k, checkedValues[k]);
-		//}
 		LOG(lvlInfo, QString("Loaded dataset %1 in %2 ms.").arg(fileName).arg(t.elapsed()));
 		return dataSet;
 	}
 	// TODO NEWIO: unify exception handling? maybe move somewhere else?
-	catch (itk::ExceptionObject& e)
-	{
-		LOG(lvlError, QString("Error loading file %1: %2").arg(fileName).arg(e.GetDescription()));
-	}
 	catch (std::exception& e)
 	{
 		LOG(lvlError, QString("Error loading file %1: %2").arg(fileName).arg(e.what()));

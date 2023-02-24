@@ -85,8 +85,10 @@ std::shared_ptr<iADataSet> iAImageStackFileIO::loadData(QString const& fileName,
 {
 	if (paramValues[LoadTypeStr] == SingleImageOption)
 	{
-		iAITKFileIO io;    // load with ITK file I/O, but don't pass "our" parameters -> they could overwrite values loaded from file (e.g. spacing)!
-		return io.loadData(fileName, QVariantMap(), progress);
+		iAITKFileIO io;
+		auto ds = io.loadData(fileName, QVariantMap(), progress);
+		ds->setMetaData(LoadTypeStr, SingleImageOption);
+		return ds;
 	}
 //#if RAW_LOAD_METHOD == ITK
 // 	   test itkImageSeriesReader ?
@@ -136,7 +138,9 @@ std::shared_ptr<iADataSet> iAImageStackFileIO::loadData(QString const& fileName,
 	auto img = vtkSmartPointer<vtkImageData>::New();
 	imgReader->SetOutput(img);
 	imgReader->Update();
-	return std::make_shared<iAImageData>(img);
+	auto ds = std::make_shared<iAImageData>(img);
+	ds->setMetaData(paramValues);
+	return ds;
 }
 
 QString iAImageStackFileIO::name() const

@@ -127,9 +127,9 @@ std::shared_ptr<iADataSet> iARawFileIO::loadData(QString const& fileName, QVaria
 	// ITK: 51837 (52087) ms (erstes Lesen von Hard disk), 5463 (5721) ms (zweites lesen, nach VTK)
 	//      -> ITK consistently faster, and much faster for small datasets!
 #endif
-	return { std::make_shared<iAImageData>(img) };
-	// TODO: maybe compute range here as well?
-	//auto rng = img->GetScalarRange();   // see also comments above about performance measurements
+	auto ds = std::make_shared<iAImageData>(img);
+	ds->setMetaData(paramValues);
+	return ds;
 }
 
 template<class T>

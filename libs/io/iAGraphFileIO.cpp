@@ -245,8 +245,9 @@ std::shared_ptr<iADataSet> iAGraphFileIO::loadData(QString const& fileName, QVar
 	{
 		myPolyData->GetCellData()->AddArray(allEdgeValues[v]);
 	}
-
-	return std::make_shared<iAGraphData>(myPolyData, vertexValueNames, edgeValueNames);
+	auto ds = std::make_shared<iAGraphData>(myPolyData, vertexValueNames, edgeValueNames);
+	ds->setMetaData(paramValues);
+	return ds;
 }
 
 QString iAGraphFileIO::name() const

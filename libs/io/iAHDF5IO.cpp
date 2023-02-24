@@ -184,7 +184,9 @@ std::shared_ptr<iADataSet> iAHDF5IO::loadData(QString const& fileName, QVariantM
 	// but it causes the same errors as the code above; so we need to deep-copy:
 	auto img = vtkSmartPointer<vtkImageData>::New();
 	img->DeepCopy(imgImport->GetOutput());
-	return std::make_shared<iAImageData>(img);
+	auto ds = std::make_shared<iAImageData>(img);
+	ds->setMetaData(params);
+	return ds;
 }
 
 void iAHDF5IO::saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress)

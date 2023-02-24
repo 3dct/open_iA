@@ -33,7 +33,7 @@ std::shared_ptr<iADataSet> iAVTKFileIO::loadData(QString const& fileName, QVaria
 	{
 		LOG(lvlInfo, "File contains polydata");
 		vtkSmartPointer<vtkPolyData> polyData = reader->GetPolyDataOutput();
-		return { std::make_shared<iAPolyData>(polyData) };
+		return std::make_shared<iAPolyData>(polyData);
 	}
 	else if (reader->IsFileRectilinearGrid())
 	{

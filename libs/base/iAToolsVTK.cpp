@@ -185,7 +185,7 @@ void readImage(QString const & filename, bool releaseFlag, vtkSmartPointer<vtkIm
 	iAITKIO::PixelType pixelType;
 	iAITKIO::ScalarType scalarType;
 	iAITKIO::ImagePointer img = iAITKIO::readFile(filename, pixelType, scalarType, releaseFlag);
-	assert(pixelType == iAITKIO::PixelType::SCALAR);
+	//assert(pixelType == iAITKIO::PixelType::SCALAR);
 	con.setImage(img);
 	// only works with deep copy, not with returning vtkImage
 	// assumption: ITK smart pointer goes out of scope, deletes image, and
