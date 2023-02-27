@@ -956,7 +956,7 @@
         </property>
         <property name="icon">
          <iconset resource="../../libs/guibase/guibase.qrc">
-          <normaloff>:/images/info.png</normaloff>:/images/info.png</iconset>
+          <normaloff>:/images/info.svg</normaloff>:/images/info.svg</iconset>
         </property>
         <property name="checkable">
          <bool>true</bool>

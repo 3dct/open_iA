@@ -34,7 +34,7 @@
   <action name="action_ToggleTitleBar">
    <property name="icon">
     <iconset resource="../../libs/guibase/guibase.qrc">
-     <normaloff>:/images/titlebar-on.png</normaloff>:/images/titlebar-off.png</iconset>
+     <normaloff>:/images/titlebar-on.svg</normaloff>:/images/titlebar-off.svg</iconset>
    </property>
    <property name="text">
     <string>Toggle Title Bar</string>
