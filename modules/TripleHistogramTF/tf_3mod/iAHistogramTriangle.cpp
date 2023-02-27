@@ -49,6 +49,7 @@ void iAHistogramTriangle::glresized()
 
 void iAHistogramTriangle::initialize(std::array<QString, 3> names)
 {
+	Q_UNUSED(names);
 	m_clipPathPen.setWidth(1);
 	m_clipPathPen.setColor(Qt::black);
 

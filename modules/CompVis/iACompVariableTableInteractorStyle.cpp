@@ -45,8 +45,7 @@ void iACompVariableTableInteractorStyle::OnLeftButtonDown()
 		return;
 	}
 
-	int cellPicked = INFINITY;
-	cellPicked = m_picker->Pick(pos[0], pos[1], 0, this->CurrentRenderer);
+	int cellPicked = m_picker->Pick(pos[0], pos[1], 0, this->CurrentRenderer);
 
 	if (cellPicked == 0)
 	{

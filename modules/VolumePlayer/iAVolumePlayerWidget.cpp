@@ -38,7 +38,7 @@ iAVolumePlayerTool::iAVolumePlayerTool(iAMainWindow* wnd, iAMdiChild* child):
 		}
 	}
 	// hide all but first dataset:
-	for (int v = 1; v < volumeViewers.size(); ++v)
+	for (size_t v = 1; v < volumeViewers.size(); ++v)
 	{
 		volumeViewers[v]->renderer()->setVisible(false);
 	}
@@ -103,7 +103,7 @@ iAVolumePlayerWidget::iAVolumePlayerWidget(iAMdiChild *child, std::vector<iAVolu
 	m_fileColumn=countNumber++;
 	m_sortColumn=countNumber++;
 
-	for (int i=0; i< m_volumeViewers.size(); i++)
+	for (size_t i=0; i< m_volumeViewers.size(); i++)
 	{
 		auto cb = new QCheckBox(this);
 		cb->setObjectName(QString("check%1").arg(i));
@@ -273,7 +273,7 @@ void iAVolumePlayerWidget::selectAll(int c)
 	{
 		return;
 	}
-	for (int i=0; i< m_volumeViewers.size();i++)
+	for (size_t i=0; i< m_volumeViewers.size();i++)
 	{
 		m_checkBoxes[i]->setChecked(true);
 	}
@@ -376,7 +376,7 @@ size_t iAVolumePlayerWidget::listToVolumeIndex(int listIndex)
 int iAVolumePlayerWidget::getNumberOfCheckedVolumes()
 {
 	int num = 0;
-	for(int i = 0; i < m_checkBoxes.size(); ++i)
+	for (size_t i = 0; i < m_checkBoxes.size(); ++i)
 	{
 		if (m_checkBoxes[i]->isChecked())
 		{

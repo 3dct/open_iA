@@ -203,7 +203,7 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 					QVariantMap dummyParams;    // TODO: CHECK whether I/O requires other parameters and error in that case!
 					auto dataSet = io->load(fileName, dummyParams);
 					filter->addInput(dataSet);
-					for (int i = 0; i < inputImages.size(); ++i)
+					for (size_t i = 0; i < inputImages.size(); ++i)
 					{
 						filter->addInput(inputImages[i]);
 					}

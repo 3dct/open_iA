@@ -137,7 +137,7 @@ void iAModalitySPLOM::setData(std::vector<iAImageData*> dataSets)
 	paramNames.push_back("x"); paramVisibility.push_back(false);
 	paramNames.push_back("y"); paramVisibility.push_back(false);
 	paramNames.push_back("z"); paramVisibility.push_back(false);
-	for (int imgIdx = 0; imgIdx < dataSets.size(); ++imgIdx)
+	for (size_t imgIdx = 0; imgIdx < dataSets.size(); ++imgIdx)
 	{
 		if (dataSets[imgIdx]->vtkImage()->GetScalarType() != VTK_UNSIGNED_SHORT)
 		{
@@ -151,7 +151,7 @@ void iAModalitySPLOM::setData(std::vector<iAImageData*> dataSets)
 	}
 	m_data->setParameterNames(paramNames);
 
-	for (int imgIdx = 0; imgIdx < dataSets.size(); ++imgIdx)
+	for (size_t imgIdx = 0; imgIdx < dataSets.size(); ++imgIdx)
 	{
 		vtkSmartPointer<vtkImageData> img = dataSets[imgIdx]->vtkImage();
 		std::function<void (int[3], VoxelValueType)> pixelVisitor = [this, &imgIdx](int coord[3], VoxelValueType modalityValue)

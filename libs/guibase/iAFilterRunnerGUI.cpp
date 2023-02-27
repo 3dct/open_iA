@@ -290,7 +290,7 @@ void iAFilterRunnerGUI::run(std::shared_ptr<iAFilter> filter, iAMainWindow* main
 		}
 		filter->setFirstInputChannels(dataSets.size());
 	}
-	for (int a=0; a < m_additionalInput.size(); ++a)
+	for (size_t a=0; a < m_additionalInput.size(); ++a)
 	{
 		thread->addInput(m_additionalInput[a]);
 	}

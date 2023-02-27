@@ -589,7 +589,7 @@ void iAEnsemble::writeFullDataFile(QString const & filename, bool writeIntensiti
 
 				if (writeIntensities)
 				{
-					for (int m = 0; m < dataSets.size(); ++m)
+					for (size_t m = 0; m < dataSets.size(); ++m)
 					{
 						//for (size_t c = 0; c < dataSets[m]->componentCount(); ++c)
 						//{

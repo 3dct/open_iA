@@ -93,6 +93,7 @@ void iABimodalWidget::tChanged(double t)
 
 void iABimodalWidget::dataSetChanged(size_t dataSetIdx)
 {
+	Q_UNUSED(dataSetIdx);
 	for (int i = 0; i < 2; i++)
 	{
 		m_labels[i]->setText(dataSetName(i));

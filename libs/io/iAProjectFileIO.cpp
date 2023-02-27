@@ -60,7 +60,7 @@ std::shared_ptr<iADataSet> iAProjectFileIO::loadData(QString const& fileName, QV
 		++numDataSets;
 	}
 	progress.emitProgress(0);
-	int idx = 0;
+	size_t idx = 0;
 	auto result = std::make_shared<iADataCollection>(numDataSets, s);
 	result->setMetaData(mapFromQSettings(settings));
 	while (idx < numDataSets)
