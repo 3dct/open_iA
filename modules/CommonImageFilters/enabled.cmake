@@ -11,6 +11,6 @@ if (HigherOrderAccurateGradient_LOADED)
 	TARGET_COMPILE_DEFINITIONS(CommonImageFilters PRIVATE ITKHigherOrderGradient)
 endif()
 
-if (${ITK_USE_GPU} STREQUAL "OFF")
+if (${ITK_USE_GPU} STREQUAL "OFF" AND NOT FLATPAK_BUILD)
 	TARGET_COMPILE_DEFINITIONS(CommonImageFilters PRIVATE ITKNOGPU)
 endif()
