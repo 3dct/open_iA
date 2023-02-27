@@ -30,7 +30,9 @@ iATransferFunctionOwner::iATransferFunctionOwner(double const range[2], bool opa
 
 void iATransferFunctionOwner::resetFunctions()
 {
-	resetFunctions(m_ctf->GetRange());
+	double range[2];         // we need to use the GetRange version with parameters here; the other returns a
+	m_ctf->GetRange(range);  // reference to the internals, and would lead to it being modified while being used!
+	resetFunctions(range);
 }
 
 vtkPiecewiseFunction* iATransferFunctionOwner::opacityTF()

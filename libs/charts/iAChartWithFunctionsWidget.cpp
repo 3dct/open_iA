@@ -449,7 +449,6 @@ void iAChartWithFunctionsWidget::resetTrf()
 {
 	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 	iAChartFunction *func = *(it + m_selectedFunction);
-
 	func->reset();
 	update();
 	emit updateTFTable();
