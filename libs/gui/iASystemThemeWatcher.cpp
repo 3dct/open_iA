@@ -74,26 +74,26 @@ iASystemThemeWatcher* iASystemThemeWatcher::get()
 					}
 					else if (waitResult == WAIT_OBJECT_0 + 1)
 					{
-						LOG(lvlInfo, "Stopping listening to registry value change!");
+						//LOG(lvlDebug, "Stopping listening to registry value change!");
 						running = false;
 					}
 					else
 					{
-						LOG(lvlInfo, QString("Waiting error; result: %1; error: %2")
+						LOG(lvlError, QString("Waiting error; result: %1; error: %2")
 							.arg(waitResult).arg(GetLastError()));
 					}
 					auto lErrorCode = RegCloseKey(hKey);
 					if (lErrorCode != ERROR_SUCCESS)
 					{
-						LOG(lvlInfo, QString("Error in RegCloseKey (%1)").arg(GetLastError()));
+						LOG(lvlError, QString("Error in RegCloseKey (%1)").arg(GetLastError()));
 					}
 					if (!CloseHandle(hEvent))
 					{
-						LOG(lvlInfo, "Error in CloseHandle.");
+						LOG(lvlError, "Error in CloseHandle.");
 						return;
 					}
 				}
-				LOG(lvlInfo, "Shutting down registry key change listener!");
+				//LOG(lvlDebug, "Shutting down registry key change listener!");
 			}
 		);
 #endif
@@ -133,7 +133,7 @@ bool iASystemThemeWatcher::isBrightTheme()
 	auto textColor = p.color(QPalette::WindowText);
 	auto windowColor = p.color(QPalette::Window);
 	auto bright = textColor.value() < windowColor.value();
-	LOG(lvlInfo, QString("isBrightTheme: textColor: %1; windowColor: %2; isBright: %3").arg(textColor.name()).arg(windowColor.name()).arg(bright));
+	//LOG(lvlDebug, QString("iASystemThemeWatcher: isBrightTheme: textColor: %1; windowColor: %2; isBright: %3").arg(textColor.name()).arg(windowColor.name()).arg(bright));
 	return bright;
 #endif
 }
@@ -141,7 +141,7 @@ bool iASystemThemeWatcher::isBrightTheme()
 void iASystemThemeWatcher::stop()
 {
 #ifdef _MSC_VER
-	LOG(lvlInfo, "Stopping!");
+	//LOG(lvlDebug, "iASystemThemeWatcher: Stopping!");
 	if (!SetEvent(get()->m_stopEvent))
 	{
 		LOG(lvlError, QString("Call to SetEvent failed: %1!").arg(GetLastError()));
