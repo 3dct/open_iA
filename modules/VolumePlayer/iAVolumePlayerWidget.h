@@ -24,6 +24,7 @@ class iAVolumePlayerWidget : public QDockWidget
 
 public:
 	iAVolumePlayerWidget(iAMdiChild* child, std::vector<iAVolumeViewer*> const& volumes);
+	~iAVolumePlayerWidget();   //!< required because of unique_ptr
 
 private:
 	float currentSpeed() const;

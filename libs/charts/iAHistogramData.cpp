@@ -183,7 +183,7 @@ void computeHistogram(QSharedPointer<iAHistogramData> histData, vtkImageData* im
 		for (long long v = 0; v < numOfValues; v += stride)
 		{
 			auto value = static_cast<double>(imgData[v + component]);
-			size_t bin = clamp(0ull, numBin - 1, mapValue(plotRng, binRng, value));
+			size_t bin = clamp(static_cast<size_t>(0), numBin - 1, mapValue(plotRng, binRng, value));
 			private_sum += value ;
 			private_hist[bin] += 1;
 		}

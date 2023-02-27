@@ -149,6 +149,8 @@ iAVolumePlayerWidget::iAVolumePlayerWidget(iAMdiChild *child, std::vector<iAVolu
 	m_ui->dataTable->resizeColumnsToContents();
 }
 
+iAVolumePlayerWidget::~iAVolumePlayerWidget() = default;
+
 void iAVolumePlayerWidget::applyForAll()
 {
 	assert(!m_isBlendingOn);
