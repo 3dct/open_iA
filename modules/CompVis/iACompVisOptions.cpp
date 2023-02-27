@@ -217,6 +217,12 @@ namespace iACompVisOptions
 	}
 
 	/*************** Initialization of Computation & GUI Options ****************************/
+	namespace
+	{
+		bool computeMDS; //initialized in dlg_CSVReader, since depending on user input at beginning
+		bool show3DViews; //initialized in dlg_CSVReader, since depending on user input at beginning
+	}
+
 	void setComputeMDS(bool val)
 	{
 		computeMDS = val;
