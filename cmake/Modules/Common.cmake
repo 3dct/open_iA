@@ -714,7 +714,9 @@ endif()
 
 # open_iA Version number
 include(GetGitRevisionDescription)
+git_describe(openiA_VERSION openiA_HASH --tags)
 if (FLATPAK_BUILD)
+	# make sure version in appdata and in app match up (and in case git versioning doesn't work):
 	execute_process(
 		COMMAND "grep" "version=\"2" "at.zfp.openia.appdata.xml"
 		COMMAND "cut" "-d" "\"" "-f2"
@@ -722,8 +724,6 @@ if (FLATPAK_BUILD)
 		COMMAND "tr" "-d" "'\n'"
 		OUTPUT_VARIABLE openiA_VERSION
 		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
-else()
-	git_describe(openiA_VERSION openiA_HASH --tags)
 endif()
 message(STATUS "Build version: ${openiA_VERSION}")
 set(BUILD_INFO "${BUILD_INFO}    \"git revision	${openiA_HASH}\\n\"\n")
