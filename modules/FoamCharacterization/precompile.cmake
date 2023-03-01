@@ -1,10 +1,10 @@
 set(FoamCharacterization_PRECOMPILE_INCLUDES
 <iADataSet.h>
 <iAFoamCharacterizationDialog.h>
+<iAFoamCharacterizationItem.h>
 <iAFoamCharacterizationItemBinarization.h>
 <iAFoamCharacterizationItemDistanceTransform.h>
 <iAFoamCharacterizationItemFilter.h>
-<iAFoamCharacterizationItem.h>
 <iAFoamCharacterizationItemWatershed.h>
 <iAFoamCharacterizationTable.h>
 <iAProgress.h>

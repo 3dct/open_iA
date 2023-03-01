@@ -21,9 +21,9 @@ set(4DCT_PRECOMPILE_INCLUDES
 <iAVisModule.h>
 <iAVisModuleItem.h>
 <iAVisModulesCollection.h>
+<itkImage.h>
 <itkImageFileReader.h>
 <itkImageFileWriter.h>
-<itkImage.h>
 <itkResampleImageFilter.h>
 <map>
 <QColor>

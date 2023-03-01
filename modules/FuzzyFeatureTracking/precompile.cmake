@@ -4,7 +4,7 @@ set(FuzzyFeatureTracking_PRECOMPILE_INCLUDES
 <iAGraph.h>
 <iALog.h>
 <iAQVTKWidget.h>
-<iAVolumeStack.h>
+<iAVolumeViewer.h>
 <vector>
 <vtkContextScene.h>
 <vtkDataSetAttributes.h>

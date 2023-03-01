@@ -23,6 +23,7 @@ set(InSpectr_PRECOMPILE_INCLUDES
 <QPainter>
 <QSharedPointer>
 <qthelper/iAQTtoUIConnector.h>
+<QThread>
 <QVector>
 <QWidget>
 <vector>

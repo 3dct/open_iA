@@ -44,11 +44,11 @@ set(CompVis_PRECOMPILE_INCLUDES
 <vtkPolygon.h>
 <vtkPolyLine.h>
 <vtkProgrammableGlyphFilter.h>
-<vtkProperty2D.h>
 <vtkProperty.h>
+<vtkProperty2D.h>
 <vtkPropPicker.h>
-<vtkRendererCollection.h>
 <vtkRenderer.h>
+<vtkRendererCollection.h>
 <vtkRenderWindow.h>
 <vtkRenderWindowInteractor.h>
 <vtkScalarBarActor.h>
