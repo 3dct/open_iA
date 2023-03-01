@@ -17,8 +17,8 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAOIFReader.h>
 <iAProgress.h>
 <iARawFileIO.h>
-<iASettingsFileHelper.h>
 <iASettings.h>
+<iASettingsFileHelper.h>
 <iAStringHelper.h>
 <iAToolsITK.h>
 <iAToolsVTK.h>

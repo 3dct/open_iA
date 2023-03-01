@@ -2,9 +2,9 @@ set(OPENIA_PRECOMPILE_HEADERS
 <algorithm>
 <cassert>
 <cstddef>
+<iAChartFunction.h>
 <iAChartFunctionBezier.h>
 <iAChartFunctionGaussian.h>
-<iAChartFunction.h>
 <iAChartFunctionTransfer.h>
 <iAChartWidget.h>
 <iAChartWithFunctionsWidget.h>
@@ -15,8 +15,8 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iALUT.h>
 <iAMapper.h>
 <iAMathUtility.h>
-<iAPlotData.h>
 <iAPlot.h>
+<iAPlotData.h>
 <iAPlotTypes.h>
 <iAQGLWidget.h>
 <iAScatterPlot.h>

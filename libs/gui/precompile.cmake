@@ -1,9 +1,6 @@
 set(OPENIA_PRECOMPILE_HEADERS
-<cassert>
 <dlg_datatypeconversion.h>
 <dlg_slicer.h>
-<dlg_volumePlayer.h>
-<iAChannelData.h>
 <iAChannelSlicerData.h>
 <iAChartWidget.h>
 <iADataSet.h>
@@ -40,11 +37,8 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAToolsVTK.h>
 <iATransferFunction.h>
 <iAVolumeSettings.h>
-<iAVolumeStack.h>
 <iAvtkInteractStyleActor.h>
 <memory>
-<QApplication>
-<QCheckBox>
 <QCloseEvent>
 <QComboBox>
 <QFileDialog>
@@ -57,7 +51,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <QSharedPointer>
 <QString>
 <QtConcurrent>
-<QTimer>
 <QVariant>
 <vector>
 <vtkCamera.h>

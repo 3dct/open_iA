@@ -39,8 +39,8 @@ set(OPENIA_PRECOMPILE_HEADERS
 <vtkObjectFactory.h>
 <vtkOutlineFilter.h>
 <vtkPointData.h>
-<vtkPolyDataAlgorithm.h>
 <vtkPolyData.h>
+<vtkPolyDataAlgorithm.h>
 <vtkPolyDataMapper.h>
 <vtkPolyLine.h>
 <vtkRenderer.h>

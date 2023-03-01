@@ -13,8 +13,8 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iASlicerProfileHandles.h>
 <iASlicerSettings.h>
 <iAVtkText.h>
-<vtkActor2D.h>
 <vtkActor.h>
+<vtkActor2D.h>
 <vtkCamera.h>
 <vtkCellArray.h>
 <vtkCellData.h>
@@ -29,8 +29,8 @@ set(OPENIA_PRECOMPILE_HEADERS
 <vtkPolyData.h>
 <vtkPolyDataMapper.h>
 <vtkProperty.h>
-<vtkRendererCollection.h>
 <vtkRenderer.h>
+<vtkRendererCollection.h>
 <vtkRenderWindow.h>
 <vtkRenderWindowInteractor.h>
 <vtkSmartPointer.h>
