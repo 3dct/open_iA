@@ -4,7 +4,6 @@
 
 #include "iADataSet.h"
 #include "iALog.h"
-#include "iAMainWindow.h"
 #include "iAParameterDlg.h"
 
 #include <QHeaderView>
@@ -51,7 +50,7 @@ iADataSetListWidget::iADataSetListWidget()
 	connect(m_dataList, &QTableWidget::itemSelectionChanged, this,
 		[this]()
 		{
-			size_t dataSetIdx = -1;
+			size_t dataSetIdx = std::numeric_limits<size_t>::max();    // TODO: same as iAMdiChild::NoDataSet - common constant somewhere!
 			if (m_dataList->selectedItems().size() > 0)
 			{
 				dataSetIdx = m_dataList->item(m_dataList->selectedItems()[0]->row(), 0)->data(Qt::UserRole).toULongLong();

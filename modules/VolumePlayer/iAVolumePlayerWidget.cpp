@@ -21,6 +21,7 @@
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
 
+#include <QAction>
 #include <QCheckBox>
 
 #include <cassert>

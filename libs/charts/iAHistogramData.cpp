@@ -191,7 +191,7 @@ void computeHistogram(QSharedPointer<iAHistogramData> histData, vtkImageData* im
 		{
 			for (size_t i = 0; i < numBin; ++i)
 			{
-				histData->setBin(i, histData->yValue(i) + private_hist[i]);
+				histData->setBin(i, histData->yValue(i) + private_hist.at(i));
 			}
 			sum += private_sum;
 		}
