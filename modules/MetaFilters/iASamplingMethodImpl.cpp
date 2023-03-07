@@ -406,8 +406,8 @@ void iACartesianGridSamplingMethod::setSampleCount(int targetedSampleCount, QSha
 	}
 	int sampleCountRemaining = targetedSampleCount / actualSampleCount;
 	int samplesPerParameter = static_cast<int>(std::pow(10, std::log10(sampleCountRemaining) / normalVariedParamCount));
-	int samplesPerParameter2 = static_cast<int>(std::pow(sampleCountRemaining, 1.0 / normalVariedParamCount));
-	assert(samplesPerParameter == samplesPerParameter2);
+	//int samplesPerParameter2 = static_cast<int>(std::pow(sampleCountRemaining, 1.0 / normalVariedParamCount));
+	//assert(samplesPerParameter == samplesPerParameter2);
 	samplesPerParameter = std::max(1, samplesPerParameter);
 	for (int pIdx = 0; pIdx < parameters->size(); ++pIdx)
 	{

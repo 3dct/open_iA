@@ -280,8 +280,8 @@ void iASpatialFeatureSummary::performWork(QVariantMap const & parameters)
 		}
 		setOutputName(curOutput, headers[col]);
 		addOutput(metaImage);
-		auto r = metaImage->GetScalarRange();
-		LOG(lvlDebug, QString("Output %1: values from %2 to %3").arg(headers[col]).arg(r[0]).arg(r[1]));
+		auto rng = metaImage->GetScalarRange();
+		LOG(lvlDebug, QString("Output %1: values from %2 to %3").arg(headers[col]).arg(rng[0]).arg(rng[1]));
 		++curOutput;
 	}
 }

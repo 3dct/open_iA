@@ -93,8 +93,8 @@ void iAImageSampler::newSamplingRun()
 	QString outputFolder(getOutputFolder(
 		m_parameters[spnOutputFolder].toString(),
 		m_parameters[spnSubfolderPerSample].toBool(), m_curSample, m_numDigits));
-	QDir d(QDir::root());
-	if (!QDir(outputFolder).exists() && !d.mkpath(outputFolder))
+	QDir dir(QDir::root());
+	if (!QDir(outputFolder).exists() && !dir.mkpath(outputFolder))
 	{
 		statusMsg(QString("Could not create output folder '%1'").arg(outputFolder));
 		return;
@@ -123,9 +123,9 @@ void iAImageSampler::newSamplingRun()
 		argumentList << m_additionalArgumentList;
 		argumentList << outputFile;
 
-		for (auto d: m_dataSets)
+		for (auto ds: m_dataSets)
 		{
-			argumentList << d.second->metaData(iADataSet::FileNameKey).toString();
+			argumentList << ds.second->metaData(iADataSet::FileNameKey).toString();
 		}
 
 		for (int i = 0; i < m_parameterCount; ++i)
