@@ -665,7 +665,7 @@ if (MSVC)
 		set(WinDLLPaths "${ASTRA_LIBRARIES_RELEASE_WIN_PATH};${WinDLLPaths}")
 	endif()
 
-	if (NOT "${ITKZLIB_LIBRARIES}" STREQUAL "itkzlib")
+	if (NOT ("${ITKZLIB_LIBRARIES}" STREQUAL "itkzlib" OR "${ITKZLIB_LIBRARIES}" STREQUAL "zlib") )
 		STRING (FIND "${ITKZLIB_LIBRARIES}" ";" SEMICOLONPOS)
 		if (SEMICOLONPOS EQUAL -1)
 			set(ZLIB_LIBRARY_RELEASE "${ITKZLIB_LIBRARIES}")
@@ -694,6 +694,14 @@ if (MSVC)
 	endif()
 
 	string(REGEX REPLACE "/" "\\\\" CMAKE_BINARY_WIN_DIR ${CMAKE_BINARY_DIR})
+	
+	# Path to use in test environments (; has to be escaped)
+	string(REPLACE ";" "\\;" TestDllTmp "${WinDLLPaths}")
+	string(REPLACE "$(Configuration)" "Release" TestDllPaths "${TestDllTmp}")
+	string(REPLACE ";" "\\;" EnvPathTmp "$ENV{PATH}")   # probably not strictly necessary?
+	set(TestEnvPath "${TestDllPaths}\\;${EnvPathTmp}")
+	message(STATUS "TestEnvPath: ${TestEnvPath}")
+	# see tests/CMakeLists.txt or module/Segmentation/enabled.cmake for example usage
 endif()
 
 if (ONNX_RUNTIME_LIBRARIES)
