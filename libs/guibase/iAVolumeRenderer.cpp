@@ -71,7 +71,7 @@ iAVolumeRenderer::iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, 
 	QStringList renderTypes = RenderModeMap().values();
 	selectOption(renderTypes, renderTypes[volumeSettings.RenderMode]);
 	addAttribute(RendererType, iAValueType::Categorical, renderTypes);
-	addAttribute(InteractiveAdjustSampleDistance, iAValueType::Boolean, false);
+	addAttribute(InteractiveAdjustSampleDistance, iAValueType::Boolean, true);   // maybe only enable for large datasets?
 	addAttribute(AutoAdjustSampleDistance, iAValueType::Boolean, false);
 	addAttribute(SampleDistance, iAValueType::Continuous, volumeSettings.SampleDistance);
 	addAttribute(InteractiveUpdateRate, iAValueType::Continuous, 1.0);
