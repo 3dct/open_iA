@@ -169,10 +169,11 @@ public:
 	//! @param name the name of the output value
 	//! @param value the actual output value
 	void addOutputValue(QString const & name, QVariant value);
-	//! @{ Adds an output image.
+	//! @{ Adds an output image (helper function for adding ITK/VTK datasets).
 	//! @param img output image from the filter
 	void addOutput(itk::ImageBase<3>* img);
-	void addOutput(vtkSmartPointer<vtkImageData> img);
+	void addOutput(vtkImageData* img);
+	void addOutput(vtkPolyData* vtkPoly);
 	//! @}
 	//! adds an output dataset
 	void addOutput(std::shared_ptr<iADataSet> dataSet);

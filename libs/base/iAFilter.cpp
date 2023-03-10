@@ -139,9 +139,14 @@ void iAFilter::addOutput(itk::ImageBase<3>* itkImg)
 	addOutput(std::make_shared<iAImageData>(itkImg));
 }
 
-void iAFilter::addOutput(vtkSmartPointer<vtkImageData> vtkImg)
+void iAFilter::addOutput(vtkImageData* vtkImg)
 {
 	addOutput(std::make_shared<iAImageData>(vtkImg));
+}
+
+void iAFilter::addOutput(vtkPolyData* vtkPoly)
+{
+	addOutput(std::make_shared<iAPolyData>(vtkPoly));
 }
 
 void iAFilter::addOutput(std::shared_ptr<iADataSet> dataSet)
