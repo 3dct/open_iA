@@ -60,7 +60,7 @@ private:
 	QVariantMap m_metaData;    //!< (optional) additional metadata that is required to load the file, or that came along with the dataset
 };
 
-//! a polygon (surface) mesh
+//! a class for vtk polydata mesh datasets
 class iAbase_API iAPolyData : public iADataSet
 {
 public:

@@ -7,7 +7,7 @@
 #include <array>
 
 iAGeometricObject::iAGeometricObject(QString const& name, vtkSmartPointer<vtkPolyDataAlgorithm> source) :
-	iADataSet(iADataSetType::Mesh),
+	iADataSet(iADataSetType::GeometricObject),
 	m_polySource(source)
 {
 	setMetaData(NameKey, name);

@@ -325,6 +325,11 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 	}
 	auto p = std::make_shared<iAProgress>();
 	auto viewer = createDataSetViewer(dataSet.get());
+	if (!viewer)
+	{
+		LOG(lvlError, "No viewer associated with this dataset type!");
+		return dataSetIdx;
+	}
 	connect(viewer.get(), &iADataSetViewer::dataSetChanged, this, [this, dataSetIdx](size_t dsIdx) {
 		assert(dsIdx == dataSetIdx);
 		updateDataSetInfo();

@@ -451,8 +451,10 @@ std::shared_ptr<iADataSetViewer> createDataSetViewer(iADataSet * dataSet)
 	{
 	case iADataSetType::Volume: return std::make_shared<iAVolumeViewer>(dataSet);
 	case iADataSetType::Mesh: return std::make_shared<iAMeshViewer>(dataSet);
+	case iADataSetType::GeometricObject: return std::make_shared<iAGeometricObjectViewer>(dataSet);
 	case iADataSetType::Graph: return std::make_shared<iAGraphViewer>(dataSet);
 	case iADataSetType::Collection: return std::make_shared<iAProjectViewer>(dataSet);
+
 	default: return std::shared_ptr<iADataSetViewer>();
 	}
 }

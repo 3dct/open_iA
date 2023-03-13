@@ -11,7 +11,8 @@ enum class iADataSetType
 	Volume = 0x1,
 	Mesh = 0x2,
 	Graph = 0x4,
-	Collection = 0x8,
+	GeometricObject = 0x8,
+	Collection = 0x10,
 	SingleDataSets = Volume | Mesh | Graph,
 	All = Volume | Mesh | Graph | Collection
 };
