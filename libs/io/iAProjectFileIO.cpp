@@ -74,6 +74,7 @@ std::shared_ptr<iADataSet> iAProjectFileIO::loadData(QString const& fileName, QV
 			{
 				auto dataSetParamValues = mapFromQSettings(settings);
 				auto currentDataSet = io->load(dataSetFileName, dataSetParamValues);
+				currentDataSet->setMetaData(dataSetParamValues);
 				result->addDataSet(currentDataSet);
 			}
 		}

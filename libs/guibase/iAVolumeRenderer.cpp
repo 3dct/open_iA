@@ -155,9 +155,11 @@ void iAVolumeRenderer::applyAttributes(QVariantMap const& values)
 	}
 	m_volume->SetPickable(values[Pickable].toBool());
 
-	QVector<double> spc = values[Spacing].value<QVector<double>>();
-	assert(spc.size() == 3);
-	m_image->SetSpacing(spc.data());
+	auto spc = values[Spacing].value<QVector<double>>();
+	if (spc.size() == 3)
+	{
+		m_image->SetSpacing(spc.data());
+	}
 }
 
 iAAABB iAVolumeRenderer::bounds()
