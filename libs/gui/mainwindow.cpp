@@ -412,7 +412,7 @@ void MainWindow::loadFileNew(QString const& fileName, iAMdiChild* child, std::sh
 			if (!targetChild)
 			{
 				targetChild = createMdiChild(false);
-				dynamic_cast<MdiChild*>(targetChild)->setWindowTitleAndFile(fileName);
+				targetChild->setWindowTitleAndFile(fileName);
 			}
 			addRecentFile(fileName);
 			targetChild->addDataSet(dataSet);
