@@ -1142,10 +1142,11 @@ void iASlicerImpl::saveImageStack()
 		movingOrigin[sliceZAxisIdx] = imgOrigin[sliceZAxisIdx] + slice * imgSpacing[sliceZAxisIdx];
 		setResliceAxesOrigin(movingOrigin[0], movingOrigin[1], movingOrigin[2]);
 		m_channels[channelID]->updateReslicer();
-
 		auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
 		iAConnector con;
 		vtkImageData* img;
+		update();
+		QCoreApplication::processEvents();
 		if (saveNative)
 		{
 			con.setImage(reslicer->GetOutput());
@@ -1163,14 +1164,12 @@ void iASlicerImpl::saveImageStack()
 		}
 		else
 		{
-			m_renWin->Render();
 			windowToImage->SetInput(m_renWin);
 			windowToImage->ReadFrontBufferOff();
 			windowToImage->Update();
 			img = windowToImage->GetOutput();
 		}
 		p.emitProgress((slice - sliceFrom) * 100.0 / (sliceTo - sliceFrom));
-		QCoreApplication::processEvents();
 
 		QString newFileName(QString("%1%2.%3").arg(baseName).arg(slice).arg(fileInfo.suffix()));
 		writeSingleSliceImage(newFileName, img);
