@@ -84,7 +84,7 @@ iAVolumeRenderer::iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, 
 
 	// volume properties:
 	auto spc = vtkImg->GetSpacing();
-	addAttribute(Spacing, iAValueType::Vector3, variantVector<double>({ spc[0], spc[1], spc[2] }));
+	addAttribute(Spacing, iAValueType::Vector3, QVariant::fromValue(QVector<double>({ spc[0], spc[1], spc[2] })));
 
 	// adapt bounding box to changes in position/orientation of volume:
 	vtkNew<vtkCallbackCommand> modifiedCallback;
@@ -143,8 +143,8 @@ void iAVolumeRenderer::applyAttributes(QVariantMap const& values)
 	m_volMapper->SetVolumetricScatteringBlending(values[VolumetricScatteringBlending].toFloat());
 #endif
 
-	QVector<double> pos = values[Position].value<QVector<double>>();
-	QVector<double> ori = values[Orientation].value<QVector<double>>();
+	auto pos = values[Position].value<QVector<double>>();
+	auto ori = values[Orientation].value<QVector<double>>();
 	if (pos.size() == 3)
 	{
 		m_volume->SetPosition(pos.data());
@@ -202,6 +202,13 @@ void iAVolumeRenderer::setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3
 void iAVolumeRenderer::removeCuttingPlanes()
 {
 	m_volMapper->RemoveAllClippingPlanes();
+}
+
+QVariantMap const& iAVolumeRenderer::attributeValues() const
+{
+	auto spc = m_image->GetSpacing();
+	m_attribValues[Spacing] = variantVector<double>({ spc[0], spc[1], spc[2] });
+	return iADataSetRenderer::attributeValues();
 }
 
 

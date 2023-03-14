@@ -44,7 +44,7 @@ public:
 	//! Retrieves the list of attributes, merged with their current values as default values:
 	iAAttributes attributesWithValues() const;
 	//! Retrieve only the current attribute values
-	QVariantMap const& attributeValues() const;
+	virtual QVariantMap const& attributeValues() const;
 	//! Call to change the attributes of this renderer
 	void setAttributes(QVariantMap const& values);
 
@@ -59,8 +59,10 @@ public:
 	virtual iAAABB bounds() = 0;
 
 	//! Get Position of this dataset in scene
+	//! TODO: make deliver std::array by value to avoid pointer to internal data!
 	virtual double const* position() const = 0;
 	//! Get Orientation of this dataset in scene
+	//! TODO: make deliver std::array by value to avoid pointer to internal data!
 	virtual double const* orientation() const = 0;
 	//! Set position of this dataset in scene
 	virtual void setPosition(double pos[3]) = 0;
@@ -90,7 +92,7 @@ protected:
 	void updateOutlineTransform();
 
 	vtkRenderer* m_renderer;
-	QVariantMap m_attribValues;
+	mutable QVariantMap m_attribValues;
 
 private:
 	//! @{ internal logic of showing/hiding dataset in renderer; called internally from setVisible; implement in derived classes

@@ -40,6 +40,8 @@ public:
 	void setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3) override;
 	void removeCuttingPlanes() override;
 
+	QVariantMap const& attributeValues() const override;
+
 private:
 	Q_DISABLE_COPY(iAVolumeRenderer);
 	void showDataSet() override;
