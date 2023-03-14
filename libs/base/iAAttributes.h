@@ -41,6 +41,7 @@ iAbase_API QVariantMap joinValues(QVariantMap const & baseValues, QVariantMap co
 //! Extract just the values from the given descriptors into a map
 iAbase_API QVariantMap extractValues(iAAttributes const& attributes);
 
+//! Add a new attribute specified by the parameters to the given attributes list
 iAbase_API void addAttr(iAAttributes& attributes,
 	QString const& name, iAValueType valueType,
 	QVariant defaultValue = 0.0,

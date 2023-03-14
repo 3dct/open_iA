@@ -251,3 +251,15 @@ void selectOption(QStringList& options, QString const& selected)
 		}
 	}
 }
+
+QString selectedOption(QStringList const & options)
+{
+	for (int i = 0; i < options.size(); ++i)
+	{
+		if (options[i].startsWith("!"))
+		{
+			return options[i].right(options[i].size() - 1);
+		}
+	}
+	return options.isEmpty() ? QString() : options[0];
+}

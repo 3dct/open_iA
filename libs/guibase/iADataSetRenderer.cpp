@@ -205,7 +205,9 @@ void iADataSetRenderer::addAttribute(
 	}
 #endif
 	addAttr(m_attributes, name, valueType, defaultValue, min, max);
-	m_attribValues[name] = defaultValue;
+	m_attribValues[name] = valueType == iAValueType::Categorical
+		? selectedOption(defaultValue.toStringList())
+		: defaultValue;
 }
 
 void iADataSetRenderer::updateOutlineTransform()

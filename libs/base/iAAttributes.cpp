@@ -103,7 +103,9 @@ QVariantMap extractValues(iAAttributes const& attributes)
 	QVariantMap result;
 	for (auto param : attributes)
 	{
-		result.insert(param->name(), param->defaultValue());
+		result.insert(param->name(), param->valueType() == iAValueType::Categorical
+			? selectedOption(param->defaultValue().toStringList())
+			: param->defaultValue());
 	}
 	return result;
 }
