@@ -358,7 +358,12 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 
 void MdiChild::removeDataSet(size_t dataSetIdx)
 {
-	assert(m_dataSetViewers.find(dataSetIdx) != m_dataSetViewers.end());
+	if (m_dataSetViewers.find(dataSetIdx) == m_dataSetViewers.end())
+	{
+		LOG(lvlDebug, QString("Trying to remove dataset idx=%1 which does not exist anymore!").arg(dataSetIdx));
+		return;
+	}
+	LOG(lvlDebug, QString("Removing dataset idx = %1.").arg(dataSetIdx));
 	m_dataSetViewers.erase(dataSetIdx);
 	m_dataSets.erase(dataSetIdx);
 	if (m_isMagicLensEnabled && m_magicLensDataSet == dataSetIdx)
