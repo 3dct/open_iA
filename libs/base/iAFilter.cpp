@@ -191,6 +191,11 @@ void iAFilter::addInput(std::shared_ptr<iADataSet> dataSet)
 	m_input.push_back(dataSet);
 }
 
+void iAFilter::addInput(vtkImageData *vtkImage)
+{
+	m_input.push_back(std::make_shared<iAImageData>(vtkImage));
+}
+
 std::shared_ptr<iADataSet> iAFilter::input(size_t idx) const
 {
 	return m_input[idx];

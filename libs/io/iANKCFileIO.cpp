@@ -27,7 +27,7 @@ std::shared_ptr<iADataSet> iANKCFileIO::loadData(QString const& fileName, QVaria
 	QFile file(fileName);
 	file.open(QFile::ReadOnly | QFile::Text);
 	QTextStream in(&file);
-	auto text = in.readAll();
+	auto text = in.read(4096);
 
 	QVector<int> size(3);
 	QRegularExpression regexColumns("number of columns : (\\d*)\\D");

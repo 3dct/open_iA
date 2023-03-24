@@ -106,6 +106,8 @@ public:
 	//! @{
 	//! Adds a dataSet as input.
 	void addInput(std::shared_ptr<iADataSet> con);
+
+	void addInput(vtkImageData* vtkImage);
 	//! @}
 	//! Initialize and run the filter.
 	//! @param parameters the map of parameters to use in this specific filter run
