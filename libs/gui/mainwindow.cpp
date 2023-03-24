@@ -975,9 +975,9 @@ void MainWindow::renderSettings()
 	addAttr(params, "Background bottom", iAValueType::Color, renderSettings.BackgroundBottom);
 	addAttr(params, "Use FXAA", iAValueType::Boolean, renderSettings.UseFXAA);
 	addAttr(params, "MultiSamples", iAValueType::Discrete, renderSettings.MultiSamples);
-	addAttr(params, "Use Depth Peeling", iAValueType::Boolean, renderSettings.UseDepthPeeling);
 	addAttr(params, "Occlusion Ratio", iAValueType::Continuous, renderSettings.OcclusionRatio);
 	addAttr(params, "Use Screen Space Ambient Occlusion", iAValueType::Boolean, renderSettings.UseSSAO);
+	addAttr(params, "Use Depth Peeling", iAValueType::Boolean, renderSettings.UseDepthPeeling);
 	addAttr(params, "Maximum Depth Peels", iAValueType::Discrete, renderSettings.DepthPeels);
 
 	addAttr(params, "Linear interpolation", iAValueType::Boolean, volumeSettings.LinearInterpolation);
