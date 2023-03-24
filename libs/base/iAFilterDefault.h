@@ -12,7 +12,6 @@ class FilterName : public iAFilter, private iAAutoRegistration<iAFilter, FilterN
 { \
 public: \
 	FilterName(); \
-	static std::shared_ptr<FilterName> create(); \
 private: \
 	void performWork(QVariantMap const & parameters) override; \
 };
