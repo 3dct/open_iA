@@ -1300,7 +1300,7 @@ void iASlicerImpl::screenPixelPosToImgPos(int const pos[2], double * slicerPos, 
 {
 	m_pointPicker->Pick(pos[0], pos[1], 0, m_ren); // z is always zero
 	m_pointPicker->GetPickPosition(slicerPos);     // get position in local slicer scene/world coordinates
-
+	slicerPos[2] = 0;                              // for some reason, sometimes slicerPos[2] is not zero here (but it should be); so make sure it stays 0
 	// compute global point:
 	auto channelID = firstVisibleChannel();
 	if (channelID == NotExistingChannel)
@@ -1407,7 +1407,7 @@ void iASlicerImpl::printVoxelInformation()
 			strDetails += QString("%1: %2 [%3 %4 %5]")
 				.arg(padOrTruncate(m_channels[channelID]->name(), MaxNameLength))
 				.arg(valueStr)
-				.arg(coord.x()).arg(coord.y()).arg(coord.y());
+				.arg(coord.x()).arg(coord.y()).arg(coord.z());
 
 		}
 		strDetails += "\n";

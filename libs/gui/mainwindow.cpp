@@ -975,9 +975,9 @@ void MainWindow::renderSettings()
 	addAttr(params, "Background bottom", iAValueType::Color, renderSettings.BackgroundBottom);
 	addAttr(params, "Use FXAA", iAValueType::Boolean, renderSettings.UseFXAA);
 	addAttr(params, "MultiSamples", iAValueType::Discrete, renderSettings.MultiSamples);
-	addAttr(params, "Use Depth Peeling", iAValueType::Boolean, renderSettings.UseDepthPeeling);
 	addAttr(params, "Occlusion Ratio", iAValueType::Continuous, renderSettings.OcclusionRatio);
 	addAttr(params, "Use Screen Space Ambient Occlusion", iAValueType::Boolean, renderSettings.UseSSAO);
+	addAttr(params, "Use Depth Peeling", iAValueType::Boolean, renderSettings.UseDepthPeeling);
 	addAttr(params, "Maximum Depth Peels", iAValueType::Discrete, renderSettings.DepthPeels);
 
 	addAttr(params, "Linear interpolation", iAValueType::Boolean, volumeSettings.LinearInterpolation);
@@ -1588,7 +1588,7 @@ void MainWindow::readSettings()
 {
 	QSettings settings;
 	m_path = settings.value("Path").toString();
-	m_qssName = settings.value("qssName", SystemTheme).toString();
+	m_qssName = settings.value("themeName", SystemTheme).toString();
 	m_useSystemTheme = m_qssName == SystemTheme;
 	if (m_useSystemTheme)
 	{
@@ -1736,7 +1736,7 @@ void MainWindow::writeSettings()
 {
 	QSettings settings;
 	settings.setValue("Path", m_path);
-	settings.setValue("qssName", m_useSystemTheme ? SystemTheme : m_qssName);
+	settings.setValue("themeName", m_useSystemTheme ? SystemTheme : m_qssName);
 
 	settings.setValue("Preferences/defaultLayout", m_layout->currentText());
 	settings.setValue("Preferences/prefHistogramBins", m_defaultPreferences.HistogramBins);
