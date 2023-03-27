@@ -176,15 +176,6 @@ bool iAImNDTModuleInterface::setupVREnvironment()
 		QMessageBox::information(m_mainWnd, "VR", msg);
 		return false;
 	}
-	if (m_vrEnvStartedBefore)
-	{
-		QString msg("Note that when starting the VR environment a second time within the same instance of open_iA, we "
-					"encountered flickering effects in the current implementation. You may continue, but we recommend "
-					"to restart the open_iA application before starting another VR environment!");
-		LOG(lvlInfo, msg);
-		QMessageBox::information(m_mainWnd, "VR", msg);
-	}
-	m_vrEnvStartedBefore = true;
 	m_vrEnv.reset(new iAVREnvironment());
 	return true;
 }
