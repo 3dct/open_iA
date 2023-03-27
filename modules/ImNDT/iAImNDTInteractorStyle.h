@@ -19,6 +19,7 @@ using inputScheme = std::vector < std::vector < std::vector<std::vector<int>>>>;
 // Enumeration for Touchpad positions
 enum class iAVRTouchpadPosition {
 	Unknown = -1,
+	Middle,
 	Up,
 	Right,
 	Down,

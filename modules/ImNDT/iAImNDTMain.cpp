@@ -543,6 +543,11 @@ double iAImNDTMain::calculateWorldScaleFactor()
 void iAImNDTMain::changeOctreeAndMetric()
 {
 	iAVRTouchpadPosition touchpadPos = iAImNDTInteractorStyle::getTouchedPadSide(m_touchPadPosition);
+	if (touchpadPos == iAVRTouchpadPosition::Middle)
+	{
+		this->toggleArView();
+		return;
+	}
 
 	if (touchpadPos == iAVRTouchpadPosition::Up || touchpadPos == iAVRTouchpadPosition::Down) {
 
@@ -784,6 +789,12 @@ void iAImNDTMain::pressLeftTouchpad()
 	double offsetMiM = initWorldScale * 0.022;
 	double offsetVol = initWorldScale * 0.039;
 	iAVRTouchpadPosition touchpadPos = iAImNDTInteractorStyle::getTouchedPadSide(m_touchPadPosition);
+
+	if (touchpadPos == iAVRTouchpadPosition::Middle)
+	{
+		this->toggleArView();
+		return;
+	}
 
 	if (modelInMiniatureActive && currentOctreeLevel > 0)
 	{

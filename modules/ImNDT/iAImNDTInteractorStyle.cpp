@@ -266,6 +266,13 @@ iAVRTouchpadPosition iAImNDTInteractorStyle::getTouchedPadSide(float position[3]
 	vtkVector2f q0 = vtkVector2f(1, -1);
 	vtkVector2f q1 = vtkVector2f(-1, 1);
 
+	double distFromCenter = std::sqrt(position[0] * position[0] + position[1] * position[1]);
+
+	if (distFromCenter < 0.5)
+	{
+		return iAVRTouchpadPosition::Middle;
+	}
+
 	float sideOfDiag1 = ((p1.GetX() - p0.GetX()) * (position[1] - p0.GetY()) - (p1.GetY() - p0.GetY()) * (position[0] - p0.GetX()));
 	float sideOfDiag2 = ((q1.GetX() - q0.GetX()) * (position[1] - q0.GetY()) - (q1.GetY() - q0.GetY()) * (position[0] - q0.GetX()));
 
