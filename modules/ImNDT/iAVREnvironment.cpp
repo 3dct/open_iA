@@ -46,11 +46,12 @@ public:
 		QDir::setCurrent(prevWorkingDir);
 #endif
 		m_interactor->Start();
+		LOG(lvlInfo, "VR has shut down!");
+		m_renderWindow->Finalize();
 	}
 	void stop()
 	{
 		m_interactor->SetDone(true);
-		//m_renderWindow->Finalize();	
 	}
 	QString message() const
 	{
@@ -125,7 +126,6 @@ void iAVREnvironment::start()
 
 	//TODO: Wait for thread to finish or the rendering might not have started yet
 	storeInitialWorldScale();
-	//emit finished();
 }
 
 void iAVREnvironment::stop()
@@ -136,7 +136,6 @@ void iAVREnvironment::stop()
 		return;
 	}
 	m_vrMainThread->stop();
-	emit finished();
 }
 
 void iAVREnvironment::showSkybox()
@@ -243,8 +242,8 @@ vtkSmartPointer<vtkTexture> iAVREnvironment::ReadCubeMap(std::string const& fold
 	// Build the file names.
 	std::for_each(fns.begin(), fns.end(),
 		[&folderPath, &fileRoot, &ext](std::string& f) {
-		f = folderPath + fileRoot + f + ext;
-	});
+			f = folderPath + fileRoot + f + ext;
+		});
 	auto i = 0;
 	for (auto const& fn : fns)
 	{
@@ -273,4 +272,5 @@ void iAVREnvironment::vrDone()
 	}
 	delete m_vrMainThread;
 	m_vrMainThread = nullptr;
+	emit finished();
 }

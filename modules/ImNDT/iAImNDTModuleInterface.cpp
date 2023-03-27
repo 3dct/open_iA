@@ -273,8 +273,8 @@ void iAImNDTModuleInterface::renderVolume()
 		LOG(lvlInfo, "iAVREnvironment::finished renderVolume lambda");
 		m_volumeRenderer->setVisible(false);
 		m_volumeRenderer->setBoundsVisible(false);
-		m_vrEnv.reset();
 		m_volumeRenderer.reset();  // for now, let's reset volume renderer as indicator of whether it's volume rendering that's currently running in VR
+		m_vrEnv.reset();
 	});
 	m_actionVRVolumeRender->setText("Stop Volume Rendering");
 	auto child = m_mainWnd->activeMdiChild();
