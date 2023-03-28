@@ -4,21 +4,20 @@
 
 #include "DynamicVolumeLines_export.h"
 
-#include "iAScalingWidget.h"
 #include "DynamicVolumeLinesHelpers.h"
-#include "ui_dlg_DynamicVolumeLines.h"
-#include "ui_Multi3DView.h"
 
-#include <qthelper/iAQTtoUIConnector.h>
 #include <iAProgress.h>
 
 #include <vtkSmartPointer.h>
 
 #include <QDir>
+#include <QDockWidget>
 
+class iAMulti3DRendererView;
 class iANonLinearAxisTicker;
 class iAOrientationWidget;
 class iASegmentTree;
+class Ui_dlg_DynamicVolumeLines;
 
 class iAMdiChild;
 class iAQVTKWidget;
@@ -31,10 +30,7 @@ class vtkRenderer;
 class vtkRenderWindow;
 class vtkTextActor;
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_DynamicVolumeLines>  DynamicVolumeLinesConnector;
-typedef iAQTtoUIConnector<QDockWidget, Ui_Multi3DRendererView> multi3DRendererView;
-
-class DynamicVolumeLines_API dlg_DynamicVolumeLines : public DynamicVolumeLinesConnector
+class DynamicVolumeLines_API dlg_DynamicVolumeLines : public QDockWidget
 {
 	Q_OBJECT
 
@@ -42,12 +38,8 @@ public:
 	dlg_DynamicVolumeLines(QWidget* parent, QDir datasetsDir);
 	~dlg_DynamicVolumeLines();
 
-
-
 	QDir m_datasetsDir;
 	QList<QPair <QString, QList<icData> >> m_DatasetIntensityMap;
-
-
 
 public slots:
 	void mousePress(QMouseEvent*);
@@ -81,6 +73,7 @@ protected:
 	bool eventFilter(QObject * obj, QEvent * event) override;
 
 private:
+	std::unique_ptr<Ui_dlg_DynamicVolumeLines> m_ui;
 	iAMdiChild *m_mdiChild;
 	QCustomPlot *m_nonlinearScaledPlot;
 	QCustomPlot *m_linearScaledPlot;
@@ -110,7 +103,7 @@ private:
 	iAProgress m_iMProgress;
 
 	QList<vtkSmartPointer<vtkImageData>> m_imgDataList;
-	multi3DRendererView *m_MultiRendererView;
+	iAMulti3DRendererView *m_MultiRendererView;
 
 	iAQVTKWidget* m_wgtContainer;
 

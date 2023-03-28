@@ -6,6 +6,8 @@
 #include "iANonLinearAxisTicker.h"
 #include "iAOrientationWidget.h"
 #include "iASegmentTree.h"
+#include "ui_dlg_DynamicVolumeLines.h"
+#include "ui_Multi3DView.h"
 
 #include <iAFunction.h>
 #include <iAFunctionalBoxplot.h>
@@ -18,6 +20,7 @@
 #include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
 #include <iAVolumeViewer.h>
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <iAChartWithFunctionsWidget.h>
 
@@ -52,6 +55,8 @@
 #include <QMessageBox>
 #include <QThread>
 
+class iAMulti3DRendererView : public iAQTtoUIConnector<QDockWidget, Ui_Multi3DRendererView> {};
+
 const double impInitValue = 0.025;
 const double offsetY = 1000;
 const QString plotColor = "DVL-Metro Colors (max. 17)";	// Brewer Qualitaive 1 (max. 8) // DVL-Metro Colors (max. 17)
@@ -70,20 +75,22 @@ void winModCallback(vtkObject *caller, long unsigned int vtkNotUsed(eventId),
 }
 
 dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget* parent, QDir datasetsDir) :
-	DynamicVolumeLinesConnector(parent),
+	QDockWidget(parent),
+	m_ui(new Ui_dlg_DynamicVolumeLines()),
 	m_datasetsDir(datasetsDir),
 	m_mdiChild(static_cast<iAMdiChild*>(parent)),
-	m_nonlinearScaledPlot(new QCustomPlot(dockWidgetContents)),
-	m_linearScaledPlot(new QCustomPlot(dockWidgetContents)),
+	m_nonlinearScaledPlot(new QCustomPlot(m_ui->dockWidgetContents)),
+	m_linearScaledPlot(new QCustomPlot(m_ui->dockWidgetContents)),
 	m_scalingWidget(nullptr),
 	m_compLvlLUT(vtkSmartPointer<vtkLookupTable>::New()),
 	m_histLUT(vtkSmartPointer<vtkLookupTable>::New()),
 	m_subHistBinCntChanged(false),
 	m_histVisMode(true),
-	m_MultiRendererView(new multi3DRendererView()),
+	m_MultiRendererView(new iAMulti3DRendererView()),
 	m_mrvBGRen(vtkSmartPointer<vtkRenderer>::New()),
 	m_mrvTxtAct(vtkSmartPointer<vtkTextActor>::New())
 {
+	m_ui->setupUi(this);
 	if (m_mdiChild)
 	{
 		// TODO NEWIO: create area picker here
@@ -152,8 +159,8 @@ void dlg_DynamicVolumeLines::setupScaledPlot(QCustomPlot *qcp)
 	tb_MinMaxPlot->setIconSize(QSize(10, 10));
 	connect(tb_MinMaxPlot, &QToolButton::clicked, this, &dlg_DynamicVolumeLines::changePlotVisibility);
 
-	PlotsContainer_verticalLayout->addWidget(tb_MinMaxPlot);
-	PlotsContainer_verticalLayout->addWidget(qcp);
+	m_ui->PlotsContainer_verticalLayout->addWidget(tb_MinMaxPlot);
+	m_ui->PlotsContainer_verticalLayout->addWidget(qcp);
 }
 
 bool dlg_DynamicVolumeLines::eventFilter(QObject *o, QEvent *e)
@@ -182,7 +189,7 @@ bool dlg_DynamicVolumeLines::eventFilter(QObject *o, QEvent *e)
 void dlg_DynamicVolumeLines::setupScalingWidget()
 {
 	m_scalingWidget = new iAScalingWidget(this);
-	PlotsContainer_verticalLayout->addWidget(m_scalingWidget);
+	m_ui->PlotsContainer_verticalLayout->addWidget(m_scalingWidget);
 }
 
 void dlg_DynamicVolumeLines::setupPlotConnections(QCustomPlot *qcp)
@@ -208,9 +215,9 @@ void dlg_DynamicVolumeLines::setupPlotConnections(QCustomPlot *qcp)
 
 void dlg_DynamicVolumeLines::setupGUIElements()
 {
-	sl_FBPTransparency->hide();
-	cb_showFBP->setEnabled(false);
-	cb_FBPView->setEnabled(false);
+	m_ui->sl_FBPTransparency->hide();
+	m_ui->cb_showFBP->setEnabled(false);
+	m_ui->cb_FBPView->setEnabled(false);
 
 	iALinearColorGradientBar *compLvl_colorBar = new iALinearColorGradientBar(this,
 		"ColorBrewer sequential single hue (5c) grays", false);
@@ -221,7 +228,7 @@ void dlg_DynamicVolumeLines::setupGUIElements()
 	compLvl_lutLayoutHB->setContentsMargins(0, 0, 0, 0);
 	compLvl_lutLayoutHB->addWidget(compLvl_colorBar);
 	compLvl_lutLayoutHB->update();
-	scalarBarWidget->setLayout(compLvl_lutLayoutHB);
+	m_ui->scalarBarWidget->setLayout(compLvl_lutLayoutHB);
 
 	iALinearColorGradientBar *hist_colorBar = new iALinearColorGradientBar(this,
 		"Extended Black Body", true);
@@ -232,10 +239,10 @@ void dlg_DynamicVolumeLines::setupGUIElements()
 	hist_lutLayoutHB->setContentsMargins(0, 0, 0, 0);
 	hist_lutLayoutHB->addWidget(hist_colorBar);
 	hist_lutLayoutHB->update();
-	histBarWidget->setLayout(hist_lutLayoutHB);
+	m_ui->histBarWidget->setLayout(hist_lutLayoutHB);
 
 	m_orientationWidget = new iAOrientationWidget(this);
-	orientationWidgetLayout->addWidget(m_orientationWidget);
+	m_ui->orientationWidgetLayout->addWidget(m_orientationWidget);
 	m_orientationWidget->update(m_linearScaledPlot, 0, m_nonlinearMappingVec.size() - 1,
 		m_minEnsembleIntensity - offsetY, m_maxEnsembleIntensity + offsetY);
 }
@@ -248,20 +255,20 @@ void dlg_DynamicVolumeLines::updateHistColorMap(vtkSmartPointer<vtkLookupTable> 
 
 void dlg_DynamicVolumeLines::setupGUIConnections()
 {
-	connect(pB_Update, &QPushButton::clicked, this, &dlg_DynamicVolumeLines::updateDynamicVolumeLines);
-	connect(cb_showFBP, &QCheckBox::stateChanged, this, &dlg_DynamicVolumeLines::showFBPGraphs);
-	connect(cb_FBPView, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_DynamicVolumeLines::updateFBPView);
-	connect(sl_FBPTransparency, &QSlider::valueChanged, this, &dlg_DynamicVolumeLines::setFBPTransparency);
-	connect(sb_BkgrdThr, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &dlg_DynamicVolumeLines::visualize);
-	connect(cb_BkgrdThrLine, &QCheckBox::stateChanged, this, &dlg_DynamicVolumeLines::showBkgrdThrLine);
-	connect(sb_nonlinearScalingFactor, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &dlg_DynamicVolumeLines::visualize);
-	connect(pB_selectCompLevel, &QPushButton::clicked, this, &dlg_DynamicVolumeLines::selectCompLevel);
+	connect(m_ui->pB_Update, &QPushButton::clicked, this, &dlg_DynamicVolumeLines::updateDynamicVolumeLines);
+	connect(m_ui->cb_showFBP, &QCheckBox::stateChanged, this, &dlg_DynamicVolumeLines::showFBPGraphs);
+	connect(m_ui->cb_FBPView, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_DynamicVolumeLines::updateFBPView);
+	connect(m_ui->sl_FBPTransparency, &QSlider::valueChanged, this, &dlg_DynamicVolumeLines::setFBPTransparency);
+	connect(m_ui->sb_BkgrdThr, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &dlg_DynamicVolumeLines::visualize);
+	connect(m_ui->cb_BkgrdThrLine, &QCheckBox::stateChanged, this, &dlg_DynamicVolumeLines::showBkgrdThrLine);
+	connect(m_ui->sb_nonlinearScalingFactor, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &dlg_DynamicVolumeLines::visualize);
+	connect(m_ui->pB_selectCompLevel, &QPushButton::clicked, this, &dlg_DynamicVolumeLines::selectCompLevel);
 	connect(m_linearScaledPlot->xAxis, QOverload<QCPRange const &>::of(&QCPAxis::rangeChanged), m_orientationWidget, QOverload<>::of(&QWidget::update));
 	connect(m_linearScaledPlot->yAxis, QOverload<QCPRange const &>::of(&QCPAxis::rangeChanged), m_orientationWidget, QOverload<>::of(&QWidget::update));
-	connect(sb_histBinWidth,  QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_DynamicVolumeLines::visualize);
-	connect(sb_subHistBinCnt, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_DynamicVolumeLines::setSubHistBinCntFlag);
-	connect(sb_UpperCompLevelThr, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, QOverload<>::of(&dlg_DynamicVolumeLines::compLevelRangeChanged));
-	connect(sb_LowerCompLevelThr, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, QOverload<>::of(&dlg_DynamicVolumeLines::compLevelRangeChanged));
+	connect(m_ui->sb_histBinWidth,  QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_DynamicVolumeLines::visualize);
+	connect(m_ui->sb_subHistBinCnt, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_DynamicVolumeLines::setSubHistBinCntFlag);
+	connect(m_ui->sb_UpperCompLevelThr, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, QOverload<>::of(&dlg_DynamicVolumeLines::compLevelRangeChanged));
+	connect(m_ui->sb_LowerCompLevelThr, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, QOverload<>::of(&dlg_DynamicVolumeLines::compLevelRangeChanged));
 	if (m_mdiChild)
 	{
 		connect(
@@ -312,7 +319,7 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 void dlg_DynamicVolumeLines::generateHilbertIdx()
 {
 	QThread *thread = new QThread;
-	iAIntensityMapper *im = new iAIntensityMapper(m_iMProgress, m_datasetsDir, PathNameToId[cb_Paths->currentText()],
+	iAIntensityMapper *im = new iAIntensityMapper(m_iMProgress, m_datasetsDir, PathNameToId[m_ui->cb_Paths->currentText()],
 		m_DatasetIntensityMap, m_imgDataList, m_minEnsembleIntensity, m_maxEnsembleIntensity);
 	iAJobListView::get()->addJob("Running Intensity mapper", &m_iMProgress, thread);
 	im->moveToThread(thread);
@@ -576,7 +583,7 @@ void dlg_DynamicVolumeLines::calcNonLinearMapping()
 	for (int i = 0; i < m_DatasetIntensityMap[0].second.size(); ++i)
 	{
 		double innerEnsembleDist = -1.0;
-		double thr = sb_BkgrdThr->value();
+		double thr = m_ui->sb_BkgrdThr->value();
 		if (m_DatasetIntensityMap[0].second[i].intensity >= thr)
 		{
 			QList<double> localIntValList;
@@ -609,7 +616,7 @@ void dlg_DynamicVolumeLines::calcNonLinearMapping()
 			imp = innerEnsembleDistList[i];
 			imp /= maxInnerEnsableDist;
 		}
-		imp = std::pow(imp * 1, sb_nonlinearScalingFactor->value()); // //imp = pow(imp*2,-0.9);
+		imp = std::pow(imp * 1, m_ui->sb_nonlinearScalingFactor->value()); // //imp = pow(imp*2,-0.9);
 		m_impFunctVec.append(imp);
 		m_nonlinearMappingVec.append(i == 0 ? imp : m_nonlinearMappingVec[i - 1] + imp);
 
@@ -637,8 +644,8 @@ void dlg_DynamicVolumeLines::calcNonLinearMapping()
 void dlg_DynamicVolumeLines::generateSegmentTree()
 {
 	// TODO: draw after BkgdRanges + draw only the histograms without the BkgdRanes
-	int subhistBinCnt = sb_subHistBinCnt->value(), lowerBnd = 0, upperBnd = 65535,
-		plotBinWidth = sb_histBinWidth->value(),
+	int subhistBinCnt = m_ui->sb_subHistBinCnt->value(), lowerBnd = 0, upperBnd = 65535,
+		plotBinWidth = m_ui->sb_histBinWidth->value(),
 		plotWidth = m_linearScaledPlot->axisRect()->rect().width(),
 		plotBinCnt = std::ceil(plotWidth / (double)plotBinWidth);
 	double rgb[3]; QColor c;
@@ -825,7 +832,7 @@ void dlg_DynamicVolumeLines::showBkgrdThrRanges(QCustomPlot* qcp)
 {
 	QCPItemStraightLine *thrLine = new QCPItemStraightLine(qcp);
 	thrLine->setObjectName("BkgrdThrLine");
-	thrLine->setVisible(cb_BkgrdThrLine->isChecked());
+	thrLine->setVisible(m_ui->cb_BkgrdThrLine->isChecked());
 	thrLine->setAntialiased(false);
 	thrLine->setLayer("background");
 	thrLine->setPen(QPen(Qt::darkGray, 0, Qt::DotLine));
@@ -833,12 +840,12 @@ void dlg_DynamicVolumeLines::showBkgrdThrRanges(QCustomPlot* qcp)
 	thrLine->point1->setTypeY(QCPItemPosition::ptPlotCoords);
 	thrLine->point1->setAxes(qcp->xAxis, qcp->yAxis);
 	thrLine->point1->setAxisRect(qcp->axisRect());
-	thrLine->point1->setCoords(0.0, sb_BkgrdThr->value());
+	thrLine->point1->setCoords(0.0, m_ui->sb_BkgrdThr->value());
 	thrLine->point2->setTypeX(QCPItemPosition::ptAxisRectRatio);
 	thrLine->point2->setTypeY(QCPItemPosition::ptPlotCoords);
 	thrLine->point2->setAxes(qcp->xAxis, qcp->yAxis);
 	thrLine->point2->setAxisRect(qcp->axisRect());
-	thrLine->point2->setCoords(1.0, sb_BkgrdThr->value());
+	thrLine->point2->setCoords(1.0, m_ui->sb_BkgrdThr->value());
 	thrLine->setClipToAxisRect(true);
 
 	for (auto it = m_bkgrdThrRangeList.begin(); it != m_bkgrdThrRangeList.end(); ++it)
@@ -879,29 +886,29 @@ void dlg_DynamicVolumeLines::showBkgrdThrRanges(QCustomPlot* qcp)
 
 void  dlg_DynamicVolumeLines::checkHistVisMode(int lowerIdx, int upperIdx)
 {
-	if ((upperIdx - lowerIdx) <= sb_RngSwtVal->value() && m_histVisMode)	// TODO: remove magic number; better strategy
+	if ((upperIdx - lowerIdx) <= m_ui->sb_RngSwtVal->value() && m_histVisMode)	// TODO: remove magic number; better strategy
 	{
 		m_histVisMode = false;
-		switchLevelOfDetail(m_histVisMode, cb_showFBP, cb_FBPView, sl_FBPTransparency,
+		switchLevelOfDetail(m_histVisMode, m_ui->cb_showFBP, m_ui->cb_FBPView, m_ui->sl_FBPTransparency,
 			m_nonlinearScaledPlot, m_linearScaledPlot, m_scalingWidget);
-		if (cb_showFBP->isChecked())
+		if (m_ui->cb_showFBP->isChecked())
 		{
-			switchFBPMode(cb_FBPView->currentText(), m_nonlinearScaledPlot, m_linearScaledPlot,
-				m_DatasetIntensityMap.size(), sl_FBPTransparency);
+			switchFBPMode(m_ui->cb_FBPView->currentText(), m_nonlinearScaledPlot, m_linearScaledPlot,
+				m_DatasetIntensityMap.size(), m_ui->sl_FBPTransparency);
 		}
 		else
 		{
-			sl_FBPTransparency->hide();
+			m_ui->sl_FBPTransparency->hide();
 			for (int i = 0; i < m_selGraphList.size(); ++i)
 			{
 				m_selGraphList[i]->setVisible(true);
 			}
 		}
 	}
-	else if ((upperIdx - lowerIdx) > sb_RngSwtVal->value() && !m_histVisMode)
+	else if ((upperIdx - lowerIdx) > m_ui->sb_RngSwtVal->value() && !m_histVisMode)
 	{
 		m_histVisMode = true;
-		switchLevelOfDetail(m_histVisMode, cb_showFBP, cb_FBPView, sl_FBPTransparency,
+		switchLevelOfDetail(m_histVisMode, m_ui->cb_showFBP, m_ui->cb_FBPView, m_ui->sl_FBPTransparency,
 			m_nonlinearScaledPlot, m_linearScaledPlot, m_scalingWidget);
 		for (int i = 0; i < m_nonlinearScaledPlot->graphCount(); ++i)
 		{
@@ -1354,7 +1361,7 @@ void dlg_DynamicVolumeLines::legendClick(QCPLegend* legendU,
 		}
 	}
 
-	if ((e->button() == Qt::LeftButton) && !cb_showFBP->isChecked() && legendUItem)
+	if ((e->button() == Qt::LeftButton) && !m_ui->cb_showFBP->isChecked() && legendUItem)
 	{
 		QCPPlottableLegendItem *ptliU = qobject_cast<QCPPlottableLegendItem*>(
 			legendUItem);
@@ -1384,7 +1391,7 @@ void dlg_DynamicVolumeLines::legendClick(QCPLegend* legendU,
 		}
 	}
 	else if ((e->button() == Qt::RightButton) &&
-		!cb_showFBP->isChecked() && m_selGraphList.size() > 0)
+		!m_ui->cb_showFBP->isChecked() && m_selGraphList.size() > 0)
 	{
 		m_selGraphList.clear();
 
@@ -1411,14 +1418,14 @@ void dlg_DynamicVolumeLines::updateDynamicVolumeLines()
 
 void dlg_DynamicVolumeLines::showFBPGraphs()
 {
-	if (cb_showFBP->isChecked())
+	if (m_ui->cb_showFBP->isChecked())
 	{
-		switchFBPMode(cb_FBPView->currentText(), m_nonlinearScaledPlot, m_linearScaledPlot,
-			m_DatasetIntensityMap.size(), sl_FBPTransparency);
+		switchFBPMode(m_ui->cb_FBPView->currentText(), m_nonlinearScaledPlot, m_linearScaledPlot,
+			m_DatasetIntensityMap.size(), m_ui->sl_FBPTransparency);
 	}
 	else
 	{
-		sl_FBPTransparency->hide();
+		m_ui->sl_FBPTransparency->hide();
 		for (int i = 0; i < m_nonlinearScaledPlot->graphCount(); ++i)
 		{
 			if (i >= m_DatasetIntensityMap.size())
@@ -1450,15 +1457,15 @@ void dlg_DynamicVolumeLines::showFBPGraphs()
 
 void dlg_DynamicVolumeLines::showBkgrdThrLine()
 {
-	m_nonlinearScaledPlot->findChild<QCPItemStraightLine*>("BkgrdThrLine")->setVisible(cb_BkgrdThrLine->isChecked());
-	m_linearScaledPlot->findChild<QCPItemStraightLine*>("BkgrdThrLine")->setVisible(cb_BkgrdThrLine->isChecked());
+	m_nonlinearScaledPlot->findChild<QCPItemStraightLine*>("BkgrdThrLine")->setVisible(m_ui->cb_BkgrdThrLine->isChecked());
+	m_linearScaledPlot->findChild<QCPItemStraightLine*>("BkgrdThrLine")->setVisible(m_ui->cb_BkgrdThrLine->isChecked());
 	m_nonlinearScaledPlot->replot();
 	m_linearScaledPlot->replot();
 }
 
 void dlg_DynamicVolumeLines::updateFBPView()
 {
-	if (cb_showFBP->isChecked())
+	if (m_ui->cb_showFBP->isChecked())
 	{
 		showFBPGraphs();
 	}
@@ -1498,8 +1505,8 @@ void dlg_DynamicVolumeLines::setSubHistBinCntFlag()
 
 void dlg_DynamicVolumeLines::selectCompLevel()
 {
-	if ((sb_LowerCompLevelThr->value() > sb_UpperCompLevelThr->value()) ||
-		(sb_UpperCompLevelThr->value() < sb_LowerCompLevelThr->value()))
+	if ((m_ui->sb_LowerCompLevelThr->value() > m_ui->sb_UpperCompLevelThr->value()) ||
+		(m_ui->sb_UpperCompLevelThr->value() < m_ui->sb_LowerCompLevelThr->value()))
 	{
 		QMessageBox msgBox;
 		msgBox.setText("Lower/upper ranges are flipped.");
@@ -1511,9 +1518,9 @@ void dlg_DynamicVolumeLines::selectCompLevel()
 		switch (msgBox.exec())
 		{
 		case QMessageBox::Ok:
-			tmp = sb_LowerCompLevelThr->value();
-			sb_LowerCompLevelThr->setValue(sb_UpperCompLevelThr->value());
-			sb_UpperCompLevelThr->setValue(tmp);
+			tmp = m_ui->sb_LowerCompLevelThr->value();
+			m_ui->sb_LowerCompLevelThr->setValue(m_ui->sb_UpperCompLevelThr->value());
+			m_ui->sb_UpperCompLevelThr->setValue(tmp);
 			break;
 		case QMessageBox::Cancel:
 			return;
@@ -1524,15 +1531,15 @@ void dlg_DynamicVolumeLines::selectCompLevel()
 	double sectionStart = -1.0;
 	for (int i = 0; i < m_impFunctVec.size(); ++i)
 	{
-		if (((m_impFunctVec[i]) < sb_LowerCompLevelThr->value() ||
-			(m_impFunctVec[i]) > sb_UpperCompLevelThr->value()) &&
+		if (((m_impFunctVec[i]) < m_ui->sb_LowerCompLevelThr->value() ||
+			(m_impFunctVec[i]) > m_ui->sb_UpperCompLevelThr->value()) &&
 			sectionStart >= 0.0)
 		{
 			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i));
 			sectionStart = -1.0;
 		}
-		else if ((m_impFunctVec[i]) >= sb_LowerCompLevelThr->value() &&
-			(m_impFunctVec[i]) <= sb_UpperCompLevelThr->value() &&
+		else if ((m_impFunctVec[i]) >= m_ui->sb_LowerCompLevelThr->value() &&
+			(m_impFunctVec[i]) <= m_ui->sb_UpperCompLevelThr->value() &&
 			sectionStart == -1.0)
 		{
 			sectionStart = i-1;
@@ -1541,8 +1548,8 @@ void dlg_DynamicVolumeLines::selectCompLevel()
 				sectionStart = 0;
 			}
 		}
-		else if (((m_impFunctVec[i]) >= sb_LowerCompLevelThr->value() ||
-			(m_impFunctVec[i]) <= sb_LowerCompLevelThr->value()) &&
+		else if (((m_impFunctVec[i]) >= m_ui->sb_LowerCompLevelThr->value() ||
+			(m_impFunctVec[i]) <= m_ui->sb_LowerCompLevelThr->value()) &&
 			sectionStart >= 0.0 && i == m_impFunctVec.size()-1)
 		{
 			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i+1));
@@ -1803,22 +1810,22 @@ void dlg_DynamicVolumeLines::setSelectionForPlots(vtkPoints *selCellPoints)
 void dlg_DynamicVolumeLines::compLevelRangeChanged()
 {
 	QVector<double> range(2);
-	if (sb_UpperCompLevelThr->value() < sb_LowerCompLevelThr->value())
+	if (m_ui->sb_UpperCompLevelThr->value() < m_ui->sb_LowerCompLevelThr->value())
 	{
-		range[0] = sb_UpperCompLevelThr->value();
-		range[1] = sb_LowerCompLevelThr->value();
+		range[0] = m_ui->sb_UpperCompLevelThr->value();
+		range[1] = m_ui->sb_LowerCompLevelThr->value();
 	}
 	else
 	{
-		range[0] = sb_LowerCompLevelThr->value();
-		range[1] = sb_UpperCompLevelThr->value();
+		range[0] = m_ui->sb_LowerCompLevelThr->value();
+		range[1] = m_ui->sb_UpperCompLevelThr->value();
 	}
 	emit compLevelRangeChanged(range);
 }
 
 void dlg_DynamicVolumeLines::setupDebugPlot()
 {
-	m_debugPlot = new QCustomPlot(dockWidgetContents);
+	m_debugPlot = new QCustomPlot(m_ui->dockWidgetContents);
 	m_debugPlot->setCursor(QCursor(Qt::CrossCursor));
 	m_debugPlot->installEventFilter(this);
 	m_debugPlot->plotLayout()->insertRow(0);
@@ -1844,7 +1851,7 @@ void dlg_DynamicVolumeLines::setupDebugPlot()
 	m_debugPlot->yAxis2->setVisible(true);
 	//m_debugPlot->yAxis2->setSubTicks(false);	// Debug
 	//m_debugPlot->yAxis2->setTicks(false);		// Debug
-	PlotsContainer_verticalLayout->addWidget(m_debugPlot);
+	m_ui->PlotsContainer_verticalLayout->addWidget(m_debugPlot);
 }
 
 void dlg_DynamicVolumeLines::showDebugPlot()

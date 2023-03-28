@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#include "iAScalingWidget.h"
+
 #include <qcustomplot.h>
 #include <defines.h>   // for DIM
 #include <iAColorTheme.h>
