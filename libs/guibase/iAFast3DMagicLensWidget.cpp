@@ -11,7 +11,6 @@
 #include <vtkActor2DCollection.h>
 #include <vtkCamera.h>
 #include <vtkCellArray.h>
-#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkMath.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>

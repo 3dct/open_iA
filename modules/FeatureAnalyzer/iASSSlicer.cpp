@@ -22,13 +22,13 @@
 
 #include <vtkColorTransferFunction.h>
 #include <vtkDistancePolyDataFilter.h>
-#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageData.h>
 #include <vtkMarchingContourFilter.h>
 #include <vtkMetaImageReader.h>
 #include <vtkPolyData.h>
 #include <vtkPointData.h>
 #include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
 #include <vtkScalarBarWidget.h>
 #include <vtkScalarBarActor.h>
 #include <vtkScalarBarRepresentation.h>

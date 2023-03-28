@@ -28,6 +28,7 @@
 #include <vtkDataSetMapper.h>
 #include <vtkExtractSelectedFrustum.h>
 #include <vtkGenericMovieWriter.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageData.h>
 #include <vtkInteractorStyleRubberBandPick.h>
 #include <vtkInteractorStyleSwitch.h>

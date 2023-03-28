@@ -19,6 +19,7 @@
 #include <vtkActor.h>
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageData.h>
 #include <vtkLight.h>
 #include <vtkLookupTable.h>

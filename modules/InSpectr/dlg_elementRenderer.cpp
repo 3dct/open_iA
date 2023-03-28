@@ -8,6 +8,7 @@
 #include <iAVolumeSettings.h>
 
 #include <vtkColorTransferFunction.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>

@@ -12,6 +12,7 @@
 
 #include <iADataSet.h>
 
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkTransform.h>

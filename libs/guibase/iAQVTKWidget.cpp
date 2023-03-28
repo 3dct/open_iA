@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAQVTKWidget.h"
 
-#include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkRenderWindow.h>
 
 #include <QEvent>
 

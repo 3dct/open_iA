@@ -681,11 +681,6 @@ double iASlicerImpl::magicLensOpacity() const
 	return (m_magicLens) ? m_magicLens->opacity() : 0;
 }
 
-vtkGenericOpenGLRenderWindow * iASlicerImpl::renderWindow()
-{
-	return m_renWin;
-}
-
 vtkRenderer * iASlicerImpl::renderer()
 {
 	return m_ren;

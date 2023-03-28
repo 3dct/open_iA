@@ -51,7 +51,6 @@
 
 #include <vtkColorTransferFunction.h>
 #include <vtkDiscretizableColorTransferFunction.h>
-#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageData.h>
 #include <vtkImageResample.h>
 #include <vtkInteractorStyleImage.h>
@@ -62,6 +61,7 @@
 #include <vtkPiecewiseFunction.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
 #include <vtkRendererCollection.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkScalarBarActor.h>

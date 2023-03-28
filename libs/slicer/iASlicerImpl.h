@@ -121,8 +121,6 @@ public:
 	void setResliceAxesOrigin(double x, double y, double z) override;
 	//! Access to the slicer's main renderer.
 	vtkRenderer* renderer() override;
-	//! Access to the slicer's render window.
-	vtkGenericOpenGLRenderWindow* renderWindow() override;
 	//! Access to the interactor of this slicer's render window.
 	vtkRenderWindowInteractor* interactor() override;
 	//! Access to the slicer's main renderer's camera.

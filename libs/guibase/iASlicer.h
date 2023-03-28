@@ -16,7 +16,6 @@ class iASingleSlicerSettings;
 
 class vtkAlgorithmOutput;
 class vtkCamera;
-class vtkGenericOpenGLRenderWindow;
 class vtkImageActor;
 class vtkObject;
 class vtkRenderer;
@@ -74,8 +73,6 @@ public:
 	virtual void setResliceAxesOrigin(double x, double y, double z) = 0;
 	//! Access to the slicer's main renderer.
 	virtual vtkRenderer* renderer() = 0;
-	//! Access to the slicer's render window.
-	virtual vtkGenericOpenGLRenderWindow* renderWindow() = 0;
 	//! Access to the interactor of this slicer's render window.
 	virtual vtkRenderWindowInteractor* interactor() = 0;
 	//! Access to the slicer's main renderer's camera.

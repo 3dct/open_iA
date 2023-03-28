@@ -9,7 +9,6 @@
 #include "iAVec3.h"
 #include "iAAABB.h"
 
-#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkSmartPointer.h>
 
 #include <QObject>
@@ -28,6 +27,7 @@ class vtkCamera;
 class vtkCornerAnnotation;
 class vtkCubeSource;
 class vtkDataSetMapper;
+class vtkGenericOpenGLRenderWindow;
 class vtkImageData;
 class vtkInteractorStyleSwitch;
 class vtkLineSource;
