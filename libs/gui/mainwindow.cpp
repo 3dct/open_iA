@@ -2422,11 +2422,6 @@ public:
 	//! @}
 };
 
-void MainWindow::initResources()
-{
-	Q_INIT_RESOURCE(gui);
-}
-
 int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString const & version,
 	QString const& buildInformation, QString const & splashPath, QString const & iconPath)
 {
@@ -2441,7 +2436,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 #if defined(__APPLE__) && defined(__MACH__)
 	QSurfaceFormat::setDefaultFormat(iAVtkWidget::defaultFormat());
 #endif
-	MainWindow::initResources();
+	Q_INIT_RESOURCE(gui);
 	QApplication app(argc, argv);
 	QString msg;
 	if (!checkOpenGLVersion(msg))

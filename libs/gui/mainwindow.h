@@ -48,7 +48,6 @@ public:
 	~MainWindow() override;
 	static int runGUI(int argc, char * argv[], QString const & appName, QString const & version, QString const& buildInformation,
 		QString const & splashPath, QString const & iconPath);
-	static void initResources();
 
 	void setPath(QString const & p) override;
 	QString const & path() const override;
