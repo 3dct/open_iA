@@ -11,7 +11,7 @@
 #include <iADataSet.h>
 #include <iAFileUtils.h>
 #include <iALog.h>
-#include <iAPerformanceHelper.h>
+//#include <iAPerformanceHelper.h>
 #include <iAToolsVTK.h>
 #include <iAVtkDraw.h>
 #include <iAVec3.h>
