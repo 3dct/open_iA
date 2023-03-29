@@ -40,11 +40,12 @@ public:
 	static bool addToChild(iAMdiChild* child, iACsvConfig const& csvConfig);
 
 	iAFeatureScoutTool(iAMainWindow* mainWnd, iAMdiChild* child);
-	virtual ~iAFeatureScoutTool();
 
 	//! to ensure correct "order" of deletion (that for example object vis registered with renderer
 	//! can de-register itself, before renderer gets destroyed - if destroyed through MdiChild's
 	//! destructing its child widgets, then this happens after renderer is destroyed!
+	virtual ~iAFeatureScoutTool();
+
 	void saveState(QSettings & state, QString const& fileName) override;
 	void loadState(QSettings & state, QString const& fileName) override;
 
