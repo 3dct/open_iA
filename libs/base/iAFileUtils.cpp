@@ -10,6 +10,8 @@
 #include <QRegularExpression>
 #include <QString>
 
+#include <stdexcept>
+
 QString MakeAbsolute(QString const & baseDir, QString const & fileName)
 {
 #if _WIN32

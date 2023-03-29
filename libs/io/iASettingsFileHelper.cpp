@@ -5,6 +5,8 @@
 #include <QFile>
 #include <QTextStream>
 
+#include <stdexcept>
+
 QMap<QString, QString> readSettingsFile(QString const& fileName)
 {
 	QFile file(fileName);

@@ -177,7 +177,7 @@ void computeHistogram(QSharedPointer<iAHistogramData> histData, vtkImageData* im
 	double sum = 0;
 #pragma omp parallel
 	{
-		std::vector private_hist(numBin, 0);
+		std::vector<double> private_hist(numBin, 0);
 		double private_sum = 0;
 #pragma omp for
 		for (long long v = 0; v < numOfValues; v += stride)

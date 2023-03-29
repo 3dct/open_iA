@@ -7,6 +7,7 @@
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
 
+#include <QAction>
 #include <QFileDialog>
 #include <QMessageBox>
 

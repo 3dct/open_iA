@@ -98,40 +98,41 @@ void iAVolStackFileIO::saveData(QString const& fileName, std::shared_ptr<iADataS
 	{
 		LOG(lvlError, "VolStack I/O save called with dataset which is not a collection of datasets!");
 	}
-	Q_UNUSED(paramValues);
+	//Q_UNUSED(paramValues);
+	QVariantMap newParamVals(paramValues);
 	QFile volstackFile(fileName);
-	auto fileNameBase = paramValues[iAFileStackParams::FileNameBase].toString();
+	auto fileNameBase = newParamVals[iAFileStackParams::FileNameBase].toString();
 	QFileInfo fi(fileName);
 	if (fileNameBase.isEmpty())
 	{
 		LOG(lvlWarn, QString("Empty %1, setting to %2").arg(iAFileStackParams::FileNameBase).arg(fi.completeBaseName()));
 		fileNameBase = fi.completeBaseName();
-		paramValues[iAFileStackParams::FileNameBase] = fileNameBase;
+		newParamVals[iAFileStackParams::FileNameBase] = fileNameBase;
 	}
-	auto extension = paramValues[iAFileStackParams::Extension].toString();
+	auto extension = newParamVals[iAFileStackParams::Extension].toString();
 	if (extension.isEmpty())
 	{
 		const QString DefaultExtension = ".mhd";
 		LOG(lvlWarn, QString("Empty %1, setting to %2").arg(iAFileStackParams::Extension).arg(DefaultExtension));
 		extension = DefaultExtension;
-		paramValues[iAFileStackParams::Extension] = extension;
+		newParamVals[iAFileStackParams::Extension] = extension;
 	}
-	int numOfDigits = paramValues[iAFileStackParams::NumDigits].toInt();
-	int minIdx = paramValues[iAFileStackParams::MinimumIndex].toInt();
-	int maxIdx = paramValues[iAFileStackParams::MaximumIndex].toInt();
+	int numOfDigits = newParamVals[iAFileStackParams::NumDigits].toInt();
+	int minIdx = newParamVals[iAFileStackParams::MinimumIndex].toInt();
+	int maxIdx = newParamVals[iAFileStackParams::MaximumIndex].toInt();
 	int expectedMaxIdx = (minIdx + collection->dataSets().size() - 1);
 	if (maxIdx != expectedMaxIdx)
 	{
 		LOG(lvlWarn, QString("Invalid value for %1; expected %2 (number of datasets given), but was %3").arg(iAFileStackParams::MaximumIndex).arg(expectedMaxIdx).arg(maxIdx));
 		maxIdx = expectedMaxIdx;
-		paramValues[iAFileStackParams::MaximumIndex] = maxIdx;
+		newParamVals[iAFileStackParams::MaximumIndex] = maxIdx;
 	}
 	if (volstackFile.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
 		QTextStream out(&volstackFile);
-		for (auto const & key : paramValues.keys())
+		for (auto const& key : newParamVals.keys())
 		{
-			out << key << ": " << paramValues[key].toString() << "\n";
+			out << key << ": " << newParamVals[key].toString() << "\n";
 		}
 	}
 	// write mhd images:
@@ -146,7 +147,7 @@ void iAVolStackFileIO::saveData(QString const& fileName, std::shared_ptr<iADataS
 		}
 		iAProgress dummyProgress;
 		QVariantMap curParamValues;
-		curParamValues[iAFileIO::CompressionStr] = paramValues[iAFileIO::CompressionStr];
+		curParamValues[iAFileIO::CompressionStr] = newParamVals[iAFileIO::CompressionStr];
 		io->save(curFileName, collection->dataSets()[m], curParamValues, dummyProgress);
 		progress.emitProgress(m * 100.0 / collection->dataSets().size());
 	}

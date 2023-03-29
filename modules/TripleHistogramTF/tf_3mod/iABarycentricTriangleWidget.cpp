@@ -16,6 +16,8 @@
 #include <QString>
 #include <QSpinBox>
 
+#include <array>
+
 // Constants (more in the header file!)
 static const qreal RAD60 = vtkMath::Pi() / 3.0;
 static const qreal SIN60 = std::sin(RAD60);
