@@ -236,7 +236,7 @@ void iAScalingWidget::paintGL()
 		painter.setRenderHint(QPainter::Antialiasing, true);
 		m_prevNonlinearBarStartPosX = 0.0, m_prevLinearBarStartPosX = 0.0;
 
-		for (int histBinNbr = m_nonlinearLowerIdx - 1; histBinNbr <= m_nonlinearUpperIdx; ++histBinNbr)
+		for (int histBinNbr = m_nonlinearLowerIdx - 1; histBinNbr < m_nonlinearUpperIdx; ++histBinNbr)
 		{
 			if (histBinNbr == m_nonlinearLowerIdx - 1)
 			{
