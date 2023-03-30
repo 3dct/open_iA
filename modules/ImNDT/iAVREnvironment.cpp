@@ -6,6 +6,11 @@
 
 #include <iALog.h>
 
+#include <vtkVersion.h>
+
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
+#include <vtkCullerCollection.h>
+#endif
 #include <vtkImageFlip.h>
 #include <vtkLight.h>
 #include <vtkLightKit.h>
@@ -71,6 +76,10 @@ void iAVREnvironment::start()
 	m_renderer->SetActiveCamera(camera);
 	m_renderer->ResetCamera();
 	m_renderer->ResetCameraClippingRange();
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
+	// workaround for dysfunctional culler culling right eye in VTK >= 9.2:
+	m_renderer->RemoveCuller(m_renderer->GetCullers()->GetLastItem());
+#endif
 	m_interactor->GetPickingManager()->EnabledOn();
 
 	m_vrMainThread = new iAVRMainThread(m_renderWindow, m_interactor);
