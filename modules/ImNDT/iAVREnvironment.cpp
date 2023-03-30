@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVREnvironment.h"
 
+#include "iAVRMainThread.h"
+
 #include <iALog.h>
 
 #include <vtkImageFlip.h>
@@ -15,56 +17,8 @@
 #include <vtkVersion.h>
 
 #include <QCoreApplication>
-#include <QDir>
 #include <QMessageBox>
 #include <QString>
-#include <QThread>
-
-class iAVRMainThread : public QThread
-{
-
-public:
-	iAVRMainThread(vtkSmartPointer<vtkOpenVRRenderWindow> renderWindow, vtkSmartPointer<vtkOpenVRRenderWindowInteractor> interactor):
-		m_renderWindow(renderWindow), m_interactor(interactor)
-	{}
-	void run() override
-	{
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
-		// for correct input manifest json path
-		auto prevWorkingDir = QDir::currentPath();
-		QDir::setCurrent(QCoreApplication::applicationDirPath() + "/VR-input-manifests");
-#endif
-		m_renderWindow->Initialize();
-		if (!vr::VRInput())
-		{
-			m_msg = "Headset not available or turned off. Please attach, turn on and try again!";
-			LOG(lvlWarn, "Headset not available or turned off. Please attach, turn on and try again!");
-			return;
-		}
-		m_renderWindow->Render();
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
-		QDir::setCurrent(prevWorkingDir);
-#endif
-		m_interactor->Start();
-		LOG(lvlInfo, "VR has shut down!");
-		m_renderWindow->Finalize();
-	}
-	void stop()
-	{
-		m_interactor->SetDone(true);
-	}
-	QString message() const
-	{
-		return m_msg;
-	}
-
-private:
-	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
-	vtkSmartPointer<vtkOpenVRRenderWindowInteractor> m_interactor;
-	QString m_msg;
-};
-
-
 
 
 iAVREnvironment::iAVREnvironment():
