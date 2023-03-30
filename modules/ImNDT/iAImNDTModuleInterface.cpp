@@ -27,7 +27,6 @@
 #include <QMessageBox>
 
 
-
 iAImNDTModuleInterface::~iAImNDTModuleInterface()
 {
 	if (m_vrEnv)
@@ -132,10 +131,11 @@ void iAImNDTModuleInterface::startAnalysis()
 		{
 			return;
 		}
-		connect(m_vrEnv.get(), &iAVREnvironment::finished, this, [this] {
-				m_vrMain.reset();
-				m_actionVRStartAnalysis->setText("Start Analysis");
-				m_vrEnv.reset();
+		connect(m_vrEnv.get(), &iAVREnvironment::finished, this, [this]
+		{
+			m_vrMain.reset();
+			m_actionVRStartAnalysis->setText("Start Analysis");
+			m_vrEnv.reset();
 		});
 		m_actionVRStartAnalysis->setText("Stop Analysis");
 	}
@@ -176,7 +176,8 @@ bool iAImNDTModuleInterface::setupVREnvironment()
 		QMessageBox::information(m_mainWnd, "VR", msg);
 		return false;
 	}
-	m_vrEnv.reset(new iAVREnvironment());
+
+	m_vrEnv = std::make_shared<iAVREnvironment>();
 	return true;
 }
 
@@ -195,7 +196,7 @@ bool iAImNDTModuleInterface::ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> poly
 	//TODO: CHECK IF PolyObject is not Volume OR NoVis
 	m_polyObject = polyObject;
 	m_objectTable = objectTable;
-	m_vrMain.reset(new iAImNDTMain(m_vrEnv.get(), m_style, m_polyObject.data(), m_objectTable, io, csvConfig));
+	m_vrMain = std::make_shared<iAImNDTMain>(m_vrEnv.get(), m_style, m_polyObject.data(), m_objectTable, io, csvConfig);
 	connect(m_vrMain.get(), &iAImNDTMain::selectionChanged, this, &iAImNDTModuleInterface::selectionChanged);
 
 	// Start Render Loop HERE!
@@ -250,7 +251,7 @@ void iAImNDTModuleInterface::renderVolume()
 {
 	if (m_vrEnv && m_vrEnv->isRunning() && m_volumeRenderer)
 	{
-		m_vrEnv->stop();  // triggers finished signal, which currently leads to destroying this vrEnv (see iAImNDTModuleInterface)
+		m_vrEnv->stop();  // triggers finished signal, which currently leads to destroying this vrEnv (see finished signal below)
 		m_actionVRVolumeRender->setText("Start Volume Rendering");
 		return;
 	}
@@ -261,7 +262,6 @@ void iAImNDTModuleInterface::renderVolume()
 	connect(m_vrEnv.get(), &iAVREnvironment::finished, this, [this]
 	{
 		// prepare for VR environment re-use: properly remove all renderers
-		LOG(lvlInfo, "iAVREnvironment::finished renderVolume lambda");
 		m_volumeRenderer->setVisible(false);
 		m_volumeRenderer->setBoundsVisible(false);
 		m_volumeRenderer.reset();  // for now, let's reset volume renderer as indicator of whether it's volume rendering that's currently running in VR
