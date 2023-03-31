@@ -780,35 +780,6 @@ void iASlicerImpl::removeImageActor(vtkSmartPointer<vtkImageActor> imgActor)
 	m_ren->RemoveActor(imgActor);
 }
 
-void iASlicerImpl::blend(vtkAlgorithmOutput *data1, vtkAlgorithmOutput *data2,
-	double opacity, double * range)
-{
-	if (!hasChannel(0))
-	{
-		return;
-	}
-	// ToDo: check what it does, implement using new slicer channel feature!
-	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
-	lut->SetRange( range );
-	lut->SetHueRange(0, 1);
-	lut->SetSaturationRange(0, 1);
-	lut->SetValueRange( 0, 1 );
-	lut->Build();
-
-	vtkSmartPointer<vtkImageBlend> imgBlender = vtkSmartPointer<vtkImageBlend>::New();
-	imgBlender->SetOpacity( 0, opacity );
-	imgBlender->SetOpacity( 1, 1.0-opacity );
-	imgBlender->AddInputConnection(data1);
-	imgBlender->AddInputConnection(data2);
-	imgBlender->UpdateInformation();
-	imgBlender->Update();
-
-	channel(0)->update(iAChannelData(QString(""), imgBlender->GetOutput(), lut));
-	channel(0)->reslicer()->SetInputConnection(imgBlender->GetOutputPort());
-	channel(0)->updateReslicer();
-	update();
-}
-
 void iASlicerImpl::setROIVisible(bool visible)
 {
 	if (!m_decorations)

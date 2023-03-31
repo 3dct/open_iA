@@ -150,9 +150,6 @@ public:
 
 	void setDefaultInteractor() override;
 
-	//! Blend two images. Should probably be implemented in terms of two channels?
-	void blend(vtkAlgorithmOutput* data1, vtkAlgorithmOutput* data2, double opacity, double* range) override;
-
 	//! Set the position of the position marker (in slicer coordinates).
 	void setPositionMarkerCenter(double x, double y, double z);
 	//! Get current slice number

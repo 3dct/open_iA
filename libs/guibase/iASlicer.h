@@ -99,9 +99,6 @@ public:
 
 	virtual void setDefaultInteractor() = 0;
 
-	//! Blend two images. Should probably be implemented in terms of two channels?
-	virtual void blend(vtkAlgorithmOutput* data1, vtkAlgorithmOutput* data2, double opacity, double* range) = 0;
-
 	//! Get current slice number
 	virtual int sliceNumber() const = 0;
 
