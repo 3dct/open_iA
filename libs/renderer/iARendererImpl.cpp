@@ -643,10 +643,10 @@ bool iARendererImpl::isInteractorEnabled() const
 vtkPlane* iARendererImpl::plane1() { return m_plane1; };
 vtkPlane* iARendererImpl::plane2() { return m_plane2; };
 vtkPlane* iARendererImpl::plane3() { return m_plane3; };
-vtkOpenGLRenderer * iARendererImpl::renderer() { return m_ren; };
+vtkRenderer * iARendererImpl::renderer() { return m_ren; };
 vtkRenderWindowInteractor* iARendererImpl::interactor() { return m_interactor; }
 vtkRenderWindow* iARendererImpl::renderWindow() { return m_renWin; }
-vtkOpenGLRenderer * iARendererImpl::labelRenderer(void) { return m_labelRen; }
+vtkRenderer * iARendererImpl::labelRenderer(void) { return m_labelRen; }
 vtkTextActor* iARendererImpl::txtActor() { return m_txtActor; }
 vtkActor* iARendererImpl::selectedActor() { return m_selectedActor; }
 vtkUnstructuredGrid* iARendererImpl::finalSelection() { return m_finalSelection; }

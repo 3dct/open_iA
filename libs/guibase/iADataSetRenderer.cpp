@@ -10,10 +10,10 @@
 
 #include <vtkActor.h>
 #include <vtkCubeSource.h>
-#include <vtkOpenGLRenderer.h>
 #include <vtkOutlineFilter.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
+#include <vtkRenderer.h>
 
 #include <QColor>
 

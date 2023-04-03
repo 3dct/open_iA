@@ -12,7 +12,6 @@ class iARenderObserver;
 
 class vtkActor;
 class vtkCamera;
-class vtkOpenGLRenderer;
 class vtkPlane;
 class vtkPoints;
 class vtkRenderer;
@@ -52,10 +51,10 @@ public:
 	virtual vtkRenderWindow* renderWindow() = 0;
 
 	//! Access to "main" VTK renderer, used for volumes etc.
-	virtual vtkOpenGLRenderer* renderer() = 0;
+	virtual vtkRenderer* renderer() = 0;
 
 	//! Access to "label" VTK renderer, used for text (which should be shown in front of volumes).
-	virtual vtkOpenGLRenderer* labelRenderer() = 0;
+	virtual vtkRenderer* labelRenderer() = 0;
 
 	//! Adds a custom renderer to the render window.
 	virtual void addRenderer(vtkRenderer* renderer) = 0;

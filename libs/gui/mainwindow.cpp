@@ -51,7 +51,7 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
 #include <vtkPolyData.h>
-#include <vtkOpenGLRenderer.h>
+#include <vtkRenderer.h>
 #include <vtkPiecewiseFunction.h>
 
 #include <QActionGroup>

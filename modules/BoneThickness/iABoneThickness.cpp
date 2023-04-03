@@ -21,12 +21,12 @@
 #include <vtkCellData.h>
 #include <vtkLineSource.h>
 #include <vtkMath.h>
-#include <vtkOpenGLRenderer.h>
 #include <vtkPCAStatistics.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkPointLocator.h>
 #include <vtkProperty.h>
+#include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSphereSource.h>
@@ -639,7 +639,7 @@ void iABoneThickness::setSurfaceDistanceMaximum(const double& _dSurfaceDistanceM
 
 void iABoneThickness::setTranslucent()
 {
-	vtkOpenGLRenderer* pRenderer(m_iARenderer->renderer());
+	vtkRenderer* pRenderer(m_iARenderer->renderer());
 	vtkRenderWindow* pWindow(m_iARenderer->renderWindow());
 
 	if ((m_dSphereOpacity < 0.99) || (m_dSurfaceOpacity < 0.99))

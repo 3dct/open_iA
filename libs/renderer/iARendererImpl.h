@@ -99,9 +99,9 @@ public:
 	void setSlicePlanePos(int planeID, double originX, double originY, double originZ);
 	vtkRenderWindowInteractor* interactor() override;
 	vtkRenderWindow* renderWindow() override;
-	vtkOpenGLRenderer* renderer() override;
+	vtkRenderer* renderer() override;
 	vtkTransform* coordinateSystemTransform() override;
-	vtkOpenGLRenderer* labelRenderer() override;
+	vtkRenderer* labelRenderer() override;
 	vtkTextActor* txtActor();
 
 	//! @{ check for better way to get access to these in PickCallbackFunction

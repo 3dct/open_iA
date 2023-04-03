@@ -58,11 +58,11 @@
 #include <vtkImageReslice.h>
 #include <vtkMath.h>
 #include <vtkMatrixToLinearTransform.h>
-#include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkPlane.h>
 #include <vtkPolyData.h>
 #include <vtkProperty.h>
+#include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkWindowToImageFilter.h>
 
