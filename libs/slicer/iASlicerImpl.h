@@ -130,8 +130,8 @@ public:
 	iASlicerMode mode() const override;
 	//! Sets the slice mode (which axis-aligned slice-plane to use for slicing).
 	void setMode(const iASlicerMode mode) override;
-
-	void setStatisticalExtent(int statExt);
+	//! Set the size of the position marker cube (showing the current position in other views)
+	void setPositionMarkerSize(int size);
 
 	//! Set the camera for the slicer's main renderer.
 	//! Use this if you want share the camera between multiple views (i.e. synchronize their viewing parameters)
@@ -336,11 +336,12 @@ private:
 	vtkSmartPointer<iAVtkText> m_textInfo;
 	vtkSmartPointer<iARulerWidget> m_rulerWidget;
 
-	//! @{ position marker / statistical extent
+	//! @{ position marker GUI elements
 	vtkSmartPointer<vtkCubeSource> m_positionMarkerSrc;
 	vtkSmartPointer<vtkPolyDataMapper> m_positionMarkerMapper;
 	vtkSmartPointer<vtkActor> m_positionMarkerActor;
 	//! @}
+	int m_positionMarkerSize;   //!< size of the position marker cube (showing the current position in other views)
 
 	iASingleSlicerSettings m_settings;
 	int m_slabThickness;       //! current slab thickness (default = 0, i.e. only a single voxel slice); TODO: move to iASingleslicerSettings?
@@ -364,7 +365,6 @@ private:
 	vtkSmartPointer<vtkTransform> m_axisTransform[2];
 	vtkSmartPointer<vtkTextActor3D> m_axisTextActor[2];
 
-	int m_ext;
 	double m_angle[3];          //!< current rotation angle
 	QColor m_backgroundColor;   //!< background color; if invalid, indicates that user has not set a custom background
 	int m_sliceNumber;          //!< current slice

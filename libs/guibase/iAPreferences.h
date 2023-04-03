@@ -10,7 +10,7 @@ class iAPreferences
 	// TODO: currently, all of these are stored per MdiChild; some of them should be global though
 public:
 	int HistogramBins,
-		StatisticalExtent,
+		PositionMarkerSize,
 		MagicLensSize,
 		MagicLensFrameWidth,
 		FontSize,
@@ -21,7 +21,7 @@ public:
 		//LogToFile;
 	iAPreferences():
 		HistogramBins(2048),
-		StatisticalExtent(3),
+		PositionMarkerSize(3),
 		MagicLensSize(DefaultMagicLensSize),
 		MagicLensFrameWidth(3),
 		FontSize(8),

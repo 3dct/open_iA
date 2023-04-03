@@ -679,7 +679,7 @@ void MainWindow::savePreferences(iAXmlSettings &xml)
 	preferencesElement.setAttribute("histogramBins", tr("%1").arg(m_defaultPreferences.HistogramBins));
 	preferencesElement.setAttribute("histogramLogarithmicYAxis", tr("%1").arg(m_defaultPreferences.HistogramLogarithmicYAxis));
 	preferencesElement.setAttribute("limitForAuto3DRender", tr("%1").arg(m_defaultPreferences.LimitForAuto3DRender));
-	preferencesElement.setAttribute("statisticalExtent", tr("%1").arg(m_defaultPreferences.StatisticalExtent));
+	preferencesElement.setAttribute("positionMarkerSize", tr("%1").arg(m_defaultPreferences.PositionMarkerSize));
 	preferencesElement.setAttribute("printParameters", tr("%1").arg(m_defaultPreferences.PrintParameters));
 	preferencesElement.setAttribute("resultsInNewWindow", tr("%1").arg(m_defaultPreferences.ResultInNewWindow));
 	preferencesElement.setAttribute("magicLensSize", tr("%1").arg(m_defaultPreferences.MagicLensSize));
@@ -694,7 +694,7 @@ void MainWindow::loadPreferences(QDomNode preferencesNode)
 	m_defaultPreferences.HistogramBins = attributes.namedItem("histogramBins").nodeValue().toInt();
 	m_defaultPreferences.HistogramLogarithmicYAxis = attributes.namedItem("histogramLogarithmicYAxis").nodeValue().toInt();
 	m_defaultPreferences.LimitForAuto3DRender = attributes.namedItem("limitForAuto3DRender").nodeValue().toInt();
-	m_defaultPreferences.StatisticalExtent = attributes.namedItem("statisticalExtent").nodeValue().toDouble();
+	m_defaultPreferences.PositionMarkerSize = attributes.namedItem("positionMarkerSize").nodeValue().toDouble();
 	m_defaultPreferences.PrintParameters = attributes.namedItem("printParameters").nodeValue() == "1";
 	m_defaultPreferences.ResultInNewWindow = attributes.namedItem("resultsInNewWindow").nodeValue() == "1";
 	m_defaultPreferences.MagicLensSize = attributes.namedItem("magicLensSize").nodeValue().toInt();
@@ -905,7 +905,7 @@ void MainWindow::prefs()
 	fileLogLevels[iALogWidget::get()->fileLogLevel() - 1] = "!" + fileLogLevels[iALogWidget::get()->fileLogLevel() - 1];
 	iAAttributes params;
 	addAttr(params, "Histogram Bins", iAValueType::Discrete, p.HistogramBins, 2);
-	addAttr(params, "Statistical extent", iAValueType::Discrete, p.StatisticalExtent, 1);
+	addAttr(params, "Position marker size", iAValueType::Discrete, p.PositionMarkerSize, 1);
 	addAttr(params, "Print Parameters", iAValueType::Boolean, p.PrintParameters);
 	addAttr(params, "Results in new window", iAValueType::Boolean, p.ResultInNewWindow);
 	addAttr(params, "Log Level", iAValueType::Categorical, logLevels);
@@ -925,7 +925,7 @@ void MainWindow::prefs()
 	}
 	auto values = dlg.parameterValues();
 	m_defaultPreferences.HistogramBins = values["Histogram Bins"].toInt();
-	m_defaultPreferences.StatisticalExtent = values["Statistical extent"].toInt();
+	m_defaultPreferences.PositionMarkerSize = values["Position marker size"].toInt();
 	m_defaultPreferences.PrintParameters = values["Print Parameters"].toBool();
 	m_defaultPreferences.ResultInNewWindow = values["Results in new window"].toBool();
 	iALogWidget::get()->setLogLevel(static_cast<iALogLevel>(AvailableLogLevels().indexOf(values["Log Level"].toString()) + 1));
@@ -1603,7 +1603,7 @@ void MainWindow::readSettings()
 	m_defaultPreferences.HistogramBins = settings.value("Preferences/prefHistogramBins", defaultPrefs.HistogramBins).toInt();
 	m_defaultPreferences.HistogramLogarithmicYAxis = settings.value("Preferences/prefHistogramLogarithmicYAxis", defaultPrefs.HistogramLogarithmicYAxis).toBool();
 	m_defaultPreferences.LimitForAuto3DRender = settings.value("Preferences/prefLimitForAuto3DRender", defaultPrefs.LimitForAuto3DRender).toInt();
-	m_defaultPreferences.StatisticalExtent = settings.value("Preferences/prefStatExt", defaultPrefs.StatisticalExtent).toInt();
+	m_defaultPreferences.PositionMarkerSize = settings.value("Preferences/prefStatExt", defaultPrefs.PositionMarkerSize).toInt();
 	m_defaultPreferences.PrintParameters = settings.value("Preferences/prefPrintParameters", defaultPrefs.PrintParameters).toBool();
 	m_defaultPreferences.ResultInNewWindow = settings.value("Preferences/prefResultInNewWindow", defaultPrefs.ResultInNewWindow).toBool();
 	m_defaultPreferences.MagicLensSize = settings.value("Preferences/prefMagicLensSize", defaultPrefs.MagicLensSize).toInt();
@@ -1742,7 +1742,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Preferences/prefHistogramBins", m_defaultPreferences.HistogramBins);
 	settings.setValue("Preferences/prefHistogramLogarithmicYAxis", m_defaultPreferences.HistogramLogarithmicYAxis);
 	settings.setValue("Preferences/prefLimitForAuto3DRender", m_defaultPreferences.LimitForAuto3DRender);
-	settings.setValue("Preferences/prefStatExt", m_defaultPreferences.StatisticalExtent);
+	settings.setValue("Preferences/prefStatExt", m_defaultPreferences.PositionMarkerSize);
 	settings.setValue("Preferences/prefPrintParameters", m_defaultPreferences.PrintParameters);
 	settings.setValue("Preferences/prefResultInNewWindow", m_defaultPreferences.ResultInNewWindow);
 	settings.setValue("Preferences/prefMagicLensSize", m_defaultPreferences.MagicLensSize);

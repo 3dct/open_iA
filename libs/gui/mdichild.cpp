@@ -932,7 +932,7 @@ void MdiChild::applyViewerPreferences()
 	{
 		m_slicer[s]->setMagicLensFrameWidth(m_preferences.MagicLensFrameWidth);
 		m_slicer[s]->setMagicLensSize(m_preferences.MagicLensSize);
-		m_slicer[s]->setStatisticalExtent(m_preferences.StatisticalExtent);
+		m_slicer[s]->setPositionMarkerSize(m_preferences.PositionMarkerSize);
 	}
 	m_dwRenderer->vtkWidgetRC->setLensSize(m_preferences.MagicLensSize, m_preferences.MagicLensSize);
 	updatePositionMarkerSize();
@@ -948,7 +948,7 @@ void MdiChild::updatePositionMarkerSize()
 		auto unitDist = dataSet.second->unitDistance();
 		for (int c = 0; c < 3; ++c)
 		{
-			maxSpacing[c] = std::max(maxSpacing[c], unitDist[c] * m_preferences.StatisticalExtent);
+			maxSpacing[c] = std::max(maxSpacing[c], unitDist[c] * m_preferences.PositionMarkerSize);
 		}
 	}
 	m_renderer->setUnitSize(maxSpacing);

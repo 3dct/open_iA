@@ -841,7 +841,7 @@ void iASlicerImpl::setPositionMarkerCenter(double x, double y, double z)
 		// we only want to show the position in a small slab around the current slice;
 		// but we also want to make the position marker easy to spot;
 		// so we scale the size of the position marker inversely to the distance to the current slice
-		double scale = 1.0 / std::max(1.0, (std::abs(z / spacing[zIdx] - m_sliceNumber) - (m_slabThickness/2)) / 3 ) * m_ext;
+		double scale = 1.0 / std::max(1.0, (std::abs(z / spacing[zIdx] - m_sliceNumber) - (m_slabThickness/2)) / 3 ) * m_positionMarkerSize;
 		m_positionMarkerSrc->SetXLength(scale * spacing[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)]);
 		m_positionMarkerSrc->SetYLength(scale * spacing[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
 		m_positionMarkerActor->SetVisibility(true);
@@ -1156,16 +1156,16 @@ void iASlicerImpl::updatePositionMarkerExtent()
 	{
 		return;
 	}
-	// TODO: how to choose spacing? currently fixed from first image? export all channels?
+	// TODO: how to choose spacing? currently fixed from first image? should be relative to voxels somehow...
 	auto imageData = m_channels[channelID]->input();
-	m_positionMarkerSrc->SetXLength(m_ext * imageData->GetSpacing()[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)]);
-	m_positionMarkerSrc->SetYLength(m_ext * imageData->GetSpacing()[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
+	m_positionMarkerSrc->SetXLength(m_positionMarkerSize * imageData->GetSpacing()[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)]);
+	m_positionMarkerSrc->SetYLength(m_positionMarkerSize * imageData->GetSpacing()[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
 	m_positionMarkerSrc->SetZLength(0);
 }
 
-void iASlicerImpl::setStatisticalExtent(int statExt)
+void iASlicerImpl::setPositionMarkerSize(int size)
 {
-	m_ext = statExt;
+	m_positionMarkerSize = size;
 	updatePositionMarkerExtent();
 }
 
