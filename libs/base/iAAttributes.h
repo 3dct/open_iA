@@ -29,16 +29,20 @@ iAbase_API int countAttributes(iAAttributes const& attributes, iAAttributeDescri
 //! Merge the given values into the descriptors (returns new descriptors with the given values as default values)
 iAbase_API iAAttributes combineAttributesWithValues(iAAttributes const& attributes, QVariantMap const & values);
 
-//! In a given key/value map out, set values from another map in, for all keys that exist in the given attributes and the in map
-//! @param out the key/value map that is modified
-//! @param attributes list of possible attributes - only keys in out which have a corresponding entry in here will be set
-//! @param in the map of key/values used as input; any values existing in this map AND in attributes, will be set in out
-iAbase_API void setApplyingValues(QVariantMap& out, iAAttributes const & attributes, QVariantMap const & in);
+//! In a given key/value map outMap, set values from another map inMap, for all keys that exist in the given attributes and the inMap
+//! @param outMap the key/value map that is modified (note that this map isn't emptied before; so all key/value pairs that were
+//!        already contained in there, and are not in both attributes and inMap, will remain unchanged.
+//! @param attributes list of possible attributes - only keys of outMap which have a corresponding entry in here will be set
+//! @param inMap the map of key/values used as input; any values existing in this map AND in attributes, will be set in outMap
+iAbase_API void setApplyingValues(QVariantMap& outMap, iAAttributes const & attributes, QVariantMap const & inMap);
 
-//! Merge the values from newValues into baseValues
+//! Merge the values from newValues and baseValues into a new map.
+//! Creates and returns a map that contains key/value pairs from both given maps; values that exist in both get assigned the value from newValues
+//! @param baseValues used to initialize the resulting map
+//! @param newValues all key/value pairs in this map are added to the result, overwriting ones that might already be present from baseValues
 iAbase_API QVariantMap joinValues(QVariantMap const & baseValues, QVariantMap const & newValues);
 
-//! Extract just the values from the given descriptors into a map
+//! Extract just the (default) values from the given descriptors into a map
 iAbase_API QVariantMap extractValues(iAAttributes const& attributes);
 
 //! Add a new attribute specified by the parameters to the given attributes list
