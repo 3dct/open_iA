@@ -76,8 +76,8 @@ void winModCallback(vtkObject *caller, long unsigned int vtkNotUsed(eventId),
 
 dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget* parent, QDir datasetsDir) :
 	QDockWidget(parent),
-	m_ui(new Ui_dlg_DynamicVolumeLines()),
 	m_datasetsDir(datasetsDir),
+	m_ui(new Ui_dlg_DynamicVolumeLines()),
 	m_mdiChild(static_cast<iAMdiChild*>(parent)),
 	m_nonlinearScaledPlot(new QCustomPlot(m_ui->dockWidgetContents)),
 	m_linearScaledPlot(new QCustomPlot(m_ui->dockWidgetContents)),
