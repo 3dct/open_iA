@@ -3,9 +3,9 @@
 #include "iAVolumeRenderer.h"
 
 #include <iAAABB.h>
-#include <iATransferFunction.h>
 #include <iAToolsVTK.h>
-#include "iAValueTypeVectorHelpers.h"
+#include <iATransferFunction.h>
+#include <iAValueTypeVectorHelpers.h>
 #include <iAVolumeSettings.h>
 
 #include <iAMainWindow.h>    // for default volume settings
@@ -204,11 +204,12 @@ void iAVolumeRenderer::removeCuttingPlanes()
 	m_volMapper->RemoveAllClippingPlanes();
 }
 
-QVariantMap const& iAVolumeRenderer::attributeValues() const
+QVariantMap iAVolumeRenderer::attributeValues() const
 {
+	QVariantMap result = iADataSetRenderer::attributeValues();
 	auto spc = m_image->GetSpacing();
-	m_attribValues[Spacing] = variantVector<double>({ spc[0], spc[1], spc[2] });
-	return iADataSetRenderer::attributeValues();
+	result[Spacing] = variantVector<double>({ spc[0], spc[1], spc[2] });
+	return result;
 }
 
 

@@ -44,7 +44,7 @@ public:
 	//! Retrieves the list of attributes, merged with their current values as default values:
 	iAAttributes attributesWithValues() const;
 	//! Retrieve only the current attribute values
-	virtual QVariantMap const& attributeValues() const;
+	virtual QVariantMap attributeValues() const;
 	//! Call to change the attributes of this renderer
 	void setAttributes(QVariantMap const& values);
 

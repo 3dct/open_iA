@@ -153,14 +153,15 @@ iAAttributes iADataSetRenderer::attributesWithValues() const
 	return combineAttributesWithValues(m_attributes, attributeValues());
 }
 
-QVariantMap const& iADataSetRenderer::attributeValues() const
+QVariantMap iADataSetRenderer::attributeValues() const
 {
+	QVariantMap result(m_attribValues);
 	// set position and orientation from current values:
 	auto pos = position();
-	m_attribValues[Position] = variantVector<double>({ pos[0], pos[1], pos[2] });
+	result[Position] = variantVector<double>({ pos[0], pos[1], pos[2] });
 	auto ori = orientation();
-	m_attribValues[Orientation] = variantVector<double>({ ori[0], ori[1], ori[2] });
-	return m_attribValues;
+	result[Orientation] = variantVector<double>({ ori[0], ori[1], ori[2] });
+	return result;
 }
 
 void iADataSetRenderer::setVisible(bool visible)
