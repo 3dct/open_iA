@@ -272,6 +272,8 @@ private:
 	void updateBackground();
 	void printVoxelInformation();
 	void executeKeyPressEvent();
+	//! sets the visibility of the measurement disk and line
+	void setMeasurementVisibility(bool visible);
 
 	//!	This function is used to check whether any agreeable maximum gradient is near the given point.
 	//!	The ROI is 2 voxels on all four direction. if yes move to the closest maximum gradient.

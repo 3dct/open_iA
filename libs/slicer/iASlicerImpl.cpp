@@ -1438,31 +1438,38 @@ void iASlicerImpl::printVoxelInformation()
 	}
 }
 
+void iASlicerImpl::setMeasurementVisibility(bool visible)
+{
+	m_lineActor->SetVisibility(visible);
+	m_diskActor->SetVisibility(visible);
+	printVoxelInformation();
+}
+
 void iASlicerImpl::executeKeyPressEvent()
 {
 	switch (m_renWin->GetInteractor()->GetKeyCode())
 	{
 	case 'm':
-		m_startMeasurePoint[0] = m_slicerPt[0];
-		m_startMeasurePoint[1] = m_slicerPt[1];
-		// does not work reliably (often snaps to positions not the highest gradient close to the current position)
-		// and causes access to pixels outside of the image:
-		//snapToHighGradient(m_startMeasurePoint[0], m_startMeasurePoint[1]);
-		if (m_decorations && m_lineSource)
+		if (m_decorations)
 		{
-			m_lineSource->SetPoint1(m_startMeasurePoint[0], m_startMeasurePoint[1], 0.0);
-			m_diskActor->SetPosition(m_startMeasurePoint[0], m_startMeasurePoint[1], 0.0);
-			m_lineActor->SetVisibility(true);
-			m_diskActor->SetVisibility(true);
-			printVoxelInformation();
+			m_startMeasurePoint[0] = m_slicerPt[0];
+			m_startMeasurePoint[1] = m_slicerPt[1];
+			// does not work reliably (often snaps to positions not the highest gradient close to the current position)
+			// and causes access to pixels outside of the image:
+			//snapToHighGradient(m_startMeasurePoint[0], m_startMeasurePoint[1]);
+			bool newVisibility = !m_lineActor->GetVisibility();
+			if (newVisibility)
+			{
+				m_lineSource->SetPoint1(m_startMeasurePoint[0], m_startMeasurePoint[1], 0.0);
+				m_diskActor->SetPosition(m_startMeasurePoint[0], m_startMeasurePoint[1], 0.0);
+			}
+			setMeasurementVisibility(newVisibility);
 		}
 		break;
 	case 27: //ESCAPE
-		if (m_decorations && m_lineActor)
+		if (m_decorations)
 		{
-			m_lineActor->SetVisibility(false);
-			m_diskActor->SetVisibility(false);
-			printVoxelInformation();
+			setMeasurementVisibility(false);
 		}
 		break;
 	}
