@@ -64,10 +64,8 @@ public:
 	//! unit: world coordinates
 	void setUnitSize(std::array<double, 3> size);
 
-	//! adapts the bounds of the scene according to the given bounding box;
-	//! adapts axes markers, plane indicators etc. to be properly visible for an added
-	//! object with the given bounding box
-	void adaptSceneBoundsToNewObject(iAAABB const & newObjectBox) override;
+	//! see iARenderer
+	void setSceneBounds(iAAABB const & boundingBox) override;
 
 	//! Sets one of the pre-defined camera positions
 	//! @param pos descriptor of the position, @see iACameraPosition

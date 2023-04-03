@@ -72,7 +72,14 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	{
 		m_magicLensRenderer->setVisible(true);
 	}
-	child->renderer()->adaptSceneBoundsToNewObject(m_renderer->bounds());
+	// compute overall bounding box across all datasets of this child, and adapt renderer "scene" to that:
+	iAAABB overallBB;
+	for (auto ds : child->dataSetMap())
+	{
+		overallBB.merge(child->dataSetViewer(ds.first)->renderer()->bounds());
+	}
+	child->renderer()->setSceneBounds(overallBB);
+
 	auto dsList = child->dataSetListWidget();
 	// reversed to view order, see addViewAction
 	m_pickAction = addViewAction("Pickable", "transform-move", false,

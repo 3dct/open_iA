@@ -275,10 +275,10 @@ iARendererImpl::~iARendererImpl(void)
 	}
 }
 
-void iARendererImpl::adaptSceneBoundsToNewObject(iAAABB const & newObjectBox)
+void iARendererImpl::setSceneBounds(iAAABB const & boundingBox)
 {
-	iAVec3d origin(newObjectBox.minCorner());
-	auto size = (newObjectBox.maxCorner() - newObjectBox.minCorner());
+	iAVec3d origin(boundingBox.minCorner());
+	auto size = (boundingBox.maxCorner() - boundingBox.minCorner());
 	// for stick out size, we compute average size over all 3 dimensions; maybe use max instead?
 	double stickOutSize = (size[0] + size[1] + size[2]) * (IndicatorsLenMultiplier - 1) / 6;
 	double oldStickOutBoxSize = (m_stickOutBox[1] - m_stickOutBox[0]).length();
