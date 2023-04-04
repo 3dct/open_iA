@@ -1,11 +1,8 @@
-MESSAGE("Extracting ${SPECTRA_ARCHIVE} to ${SPECTRA_DIR}")
 EXECUTE_PROCESS(
 	COMMAND           "${CMAKE_COMMAND}" -E tar "xf" "${SPECTRA_ARCHIVE}"
 	WORKING_DIRECTORY "${SPECTRA_DIR}"
 	RESULT_VARIABLE   res
 	OUTPUT_VARIABLE   out)
 IF (NOT "${res}" EQUAL "0")
-	MESSAGE(SEND_ERROR "...FAILED! exit code=${res}, output: ${out}")
-ELSE()
-	MESSAGE("...Success!")
+	MESSAGE(SEND_ERROR "Extracting ${SPECTRA_ARCHIVE} to ${SPECTRA_DIR} FAILED! exit code=${res}, output: ${out}")
 ENDIF()
