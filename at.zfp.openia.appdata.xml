@@ -42,14 +42,16 @@
         </screenshot>
     </screenshots>
     <releases>
-        <release version="2023.03" date="2023-03-31">
+        <release version="2023.4" date="2023-04-04">
             <description>
                 Mainly bugfixes:
-				Transfer functions: resetting, loading from project files,
-				Volume Rendering: adjust sample distance on by default (more interactive rendering for large volumes),
+				Transfer functions: Fix resetting, loading from project files,
+				Volume Rendering: adjust sample distance now on by default (more interactive rendering for large volumes),
 				Fix viewing of geometric objects,
 				VR/ImNDT: Fix shutdown / enable restarting, fix potential crash on shutdown,
-				Slicer position display
+				Fix slicer position display,
+				Fix editing spacing of dataset,
+				Slicer measurements now end on second 'm' press as well, not only on ESC
             </description>
         </release>
         <release version="2023.02" date="2023-02-24">
