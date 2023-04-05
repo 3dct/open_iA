@@ -173,7 +173,7 @@ void iAVRFrontCamera::getFrameSize()
 	uint32_t nCameraFrameBufferSize = 0;
 
 	if (m_VRTrackedCamera->GetCameraFrameSize(vr::k_unTrackedDeviceIndex_Hmd, m_frameType, &m_cameraFrameWidth,
-		&this->m_cameraFrameHeight, &nCameraFrameBufferSize) != vr::VRTrackedCameraError_None)
+		&m_cameraFrameHeight, &nCameraFrameBufferSize) != vr::VRTrackedCameraError_None)
 	{
 		LOG(lvlError, "GetCameraFrameBounds() Failed");
 		return;
