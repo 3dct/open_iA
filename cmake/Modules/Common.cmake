@@ -700,7 +700,6 @@ if (MSVC)
 	string(REPLACE "$(Configuration)" "Release" TestDllPaths "${TestDllTmp}")
 	string(REPLACE ";" "\\;" EnvPathTmp "$ENV{PATH}")   # probably not strictly necessary?
 	set(TestEnvPath "${TestDllPaths}\\;${EnvPathTmp}")
-	message(STATUS "TestEnvPath: ${TestEnvPath}")
 	# see tests/CMakeLists.txt or module/Segmentation/enabled.cmake for example usage
 endif()
 
