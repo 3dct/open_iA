@@ -302,9 +302,9 @@ a {
 .checkSumLine pre {
   cursor: text;
 }
-summary::-webkit-details-marker {
-  color: rgba(21, 153, 87, 0.8);
+details summary:before {
+  content: '\25b6  ';
 }
-summary:focus {
-  outline-style: none;
+details[open] summary:before {
+  content: '\25bc  ';
 }
