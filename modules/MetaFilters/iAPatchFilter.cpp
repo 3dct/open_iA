@@ -20,6 +20,7 @@
 
 #include <vtkImageData.h>
 
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QTextStream>
@@ -141,6 +142,16 @@ namespace
 				outputNames << filter->outputValueNames()[outputImages.size() - 1];
 			}
 		}
+		QFileInfo fi(parameters["Output image base name"].toString());
+		QDir outDir(fi.absolutePath());
+		if (!outDir.exists())
+		{
+			if (!outDir.mkdir("."))
+			{
+				throw std::runtime_error(QString("Output directory %1 does not exist and cannot create it .")
+					.arg(fi.absolutePath()).toStdString());
+			}
+		}
 		filter->setLogger(patchFilter->logger());
 		// iterate over all patches:
 		itk::Index<DIM> outIdx; outIdx[0] = 0;
@@ -192,7 +203,6 @@ namespace
 						// get output images and values from filter:
 						for (size_t o = 0; o < filter->finalOutputCount(); ++o)
 						{
-							QFileInfo fi(parameters["Output image base name"].toString());
 							QString outFileName = QString("%1/%2-patch%3%4.%5")
 								.arg(fi.absolutePath())
 								.arg(fi.baseName())
@@ -267,29 +277,31 @@ namespace
 			throw std::runtime_error("Aborted by user!");
 		}
 		QString outputFile = parameters["Output csv file"].toString();
-		QFile file(outputFile);
-		if (file.exists() && !overwrite)
+		if (!outputFile.isEmpty())
 		{
-			LOG(lvlError, QString("Output file %1 already exists; if you want to overwrite it, "
-				"you need to set the '%2' parameter to true.")
-				.arg(outputFile).arg(spnOverwriteOutput));
-		}
-		else if (file.open(QIODevice::WriteOnly | QIODevice::Text))
-		{
-			QTextStream textStream(&file);
-			for (QString line : outputBuffer)
+			QFile file(outputFile);
+			if (file.exists() && !overwrite)
 			{
-				textStream << line << Qt::endl;
+				LOG(lvlError, QString("Output file %1 already exists; if you want to overwrite it, "
+					"you need to set the '%2' parameter to true.")
+					.arg(outputFile).arg(spnOverwriteOutput));
 			}
-			file.close();
-		}
-		else
-		{
-			LOG(lvlError, QString("Output file not specified, or could not be opened (%1)").arg(outputFile));
+			else if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+			{
+				QTextStream textStream(&file);
+				for (QString line : outputBuffer)
+				{
+					textStream << line << Qt::endl;
+				}
+				file.close();
+			}
+			else
+			{
+				LOG(lvlError, QString("Output csv file could not be opened (%1)").arg(outputFile));
+			}
 		}
 		for (int i = 0; i < outputImages.size(); ++i)
 		{
-			QFileInfo fi(parameters["Output image base name"].toString());
 			QString outFileName = QString("%1/%2%3.%4")
 				.arg(fi.absolutePath())
 				.arg(fi.baseName())
