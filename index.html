@@ -15,31 +15,35 @@
     </section>
 
     <section class="main-content">
-      <h3>Latest Stable Release: 2023.02</h3>
+      <h3>Latest Stable Release: 2023.04</h3>
       <div>
         <div class="highlights"><strong>Highlights:</strong>
           <ul>
-            <li>New module for remote collaboration, enabling web clients to view the same data as shown in open_iA.</li>
-            <li>Reworked, more generic dataset interface for a broader range (and better future support) of multiple dataset types.</li>
-            <li>Theme (bright/dark) improvements, possibility to adapt to system theme.</li>
+            <li>Transfer functions: Fix resetting, loading from project files</li>
+            <li>Volume Rendering: adjust sample distance now on by default (more interactive rendering for large volumes)</li>
+            <li>Fix viewing of geometric objects</li>
+            <li>VR (ImNDT/XVRA module): Fix shutdown / enable restarting, fix potential crash on shutdown</li>
+            <li>Fix slicer position display</li>
+            <li>Fix editing spacing of dataset</li>
+            <li>Slicer measurements now end on second 'm' press as well, not only on ESC</li>
           </ul>
         </div>
         <div>The Windows binary releases below are available in two versions:
         <ul>
           <li><strong>Full</strong> includes all modules.</li>
-          <li><strong>Lite</strong> much smaller, excludes CUDA and modules built on top of it (AI, ASTRA Reconstruction).</li>
+          <li><strong>Lite</strong> much smaller, excludes ASTRA reconstruction built on top of CUDA</li>
         </ul>
         <div>
           <div class="line-heading">Windows</div>
-          <a href="https://github.com/3dct/open_iA/releases/download/2023.02/open_iA-2023.02.zip" class="btn">Normal (.zip, 54MB)</a>
-          <a href="https://github.com/3dct/open_iA/releases/download/2023.02/open_iA_2023.02-CUDA.zip" class="btn">Full (.zip, 335MB)</a>
+          <a href="https://github.com/3dct/open_iA/releases/download/2023.04/open_iA-2023.04.zip" class="btn">Normal (.zip, 60.6MB)</a>
+          <a href="https://github.com/3dct/open_iA/releases/download/2023.04/open_iA-2023.04-with-ASTRA.zip" class="btn">Full (.zip, 341MB)</a>
         </div><details class="checkSumLine">
           <summary>Checksums (SHA512)</summary>
           <ul id="checkSumContainer">
-              <li>open_iA-2023.02.zip:
-<pre>56c08394443b489f2fc9cf812922cbd3030308be8560621ccabc384eaef2fede572c970c265b88a82dd61d3df4bd93c64919b5c166ff477b97fcb1321d695c1d</pre></li>
-              <li>open_iA-2023.02-CUDA.zip:
-<pre>e687bf4995f2a71b0ccb0cf16c854a52fd94bd595c51d00fcfa5a55b1f2e60ae59a4985ceb729147086d3a87a8bc7d500c4d068ab9235d881ef96ec8e3443cd4</pre></li>
+              <li>open_iA-2023.04.zip:
+<pre>58D0501A66BE32F646FFF11C927C5DED2B51FCAAF3977508FB244F2943131DB17574D5ACA22013FC92AC7596BA64946A59BB7DA00808F07267FB7D12739A94FB</pre></li>
+              <li>open_iA-2023.04-with-ASTRA.zip:
+<pre>A80ABEB13BE73560DB9306D7DE92636349456AB007586B2DCB1F8D84B82DBA8FD5711C08B59185F94053741D3AD856C52F97AA68E1DD109663F576DEB7AF3481</pre></li>
           </ul>
         </details><div>
           <div class="line-heading">Linux</div>
