@@ -218,3 +218,7 @@ elseif (NOT "${ENABLED_MODULE_NAMES}" STREQUAL "")
 		message(STATUS "    ${m}")
 	endforeach()
 endif()
+
+# propagate BUILD_INFO changes to parent scope (easier to do here than in single modules; single modules
+# would have to set _both_ current scope and parent scope, otherwise current scope var wouldn't change)
+set(BUILD_INFO ${BUILD_INFO} PARENT_SCOPE)
