@@ -51,4 +51,6 @@ void initializeSettingTypes()
 	qRegisterMetaTypeStreamOperators<QVector<int>>("QVector<int>");
 	qRegisterMetaTypeStreamOperators<QVector<double>>("QVector<double>");
 #endif
+	qRegisterMetaType<QVector<int>>("QVector<int>");
+	qRegisterMetaType<QVector<double>>("QVector<double>");
 }
