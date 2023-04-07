@@ -45,4 +45,4 @@ else()
 	#message(STATUS "ONNX_BASE_PATH: ${ONNX_BASE_PATH}; ONNX_VERSION_FILE: ${ONNX_VERSION_FILE}; ONNX_VERSION: ${ONNX_VERSION}")
 endif()
 
-set(BUILD_INFO "${BUILD_INFO}    \"ONNX	runtime ${ONNX_VERSION} (${ONNX_TYPE})\\n\"\n")
+set(BUILD_INFO "${BUILD_INFO}    \"ONNX runtime	${ONNX_VERSION} (GPU backend: ${ONNX_TYPE})\\n\"\n")
