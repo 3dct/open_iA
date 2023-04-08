@@ -80,7 +80,7 @@ iAVolumePlayerWidget::iAVolumePlayerWidget(iAMdiChild *child, std::vector<iAVolu
 	connect(m_ui->tbPause,&QToolButton::clicked, this, [this] { m_timer.stop(); });
 	connect(m_ui->tbStop, &QToolButton::clicked, this, &iAVolumePlayerWidget::stopVolume);
 	connect(m_ui->speedSlider, &QSlider::valueChanged, this, &iAVolumePlayerWidget::setSpeed);
-	connect(m_ui->sbSpeed, &QDoubleSpinBox::valueChanged, this, &iAVolumePlayerWidget::speedEdited);
+	connect(m_ui->sbSpeed, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &iAVolumePlayerWidget::speedEdited);
 	connect(m_ui->dataTable, &QTableWidget::cellClicked, this, &iAVolumePlayerWidget::setChecked);
 	//connect(m_ui->dataTable, &QTableWidget::cellDoubleClicked, this, &iAVolumePlayerWidget::updateView);
 	connect(m_ui->tbApplyForAll, &QToolButton::clicked, this, &iAVolumePlayerWidget::applyForAll);
