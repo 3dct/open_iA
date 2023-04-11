@@ -22,5 +22,5 @@ private:
 	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
 	vtkSmartPointer<vtkOpenVRRenderWindowInteractor> m_interactor;
 	QString m_msg;
-	bool m_done;
+	volatile bool m_done;
 };
