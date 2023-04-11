@@ -119,8 +119,8 @@ private:
 	int sign;
 	vtkSmartPointer<vtkActor> pointsActor;
 
-	iAVRFrontCamera* arViewer;
-	bool arEnabled = false;
+	std::unique_ptr<iAVRFrontCamera> m_arViewer;
+	bool m_arEnabled = false;
 
 	void setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, iAVRInteractionOptions options, iAVROperations operation);
 	int getOptionForObject(vtkProp3D* pickedProp);

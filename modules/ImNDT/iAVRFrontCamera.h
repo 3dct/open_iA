@@ -18,13 +18,13 @@ class iAVRFrontCamera
 {
 public:
 	iAVRFrontCamera(vtkRenderer* renderer, vtkOpenVRRenderWindow* renderWindow);
-	virtual ~iAVRFrontCamera();
+	~iAVRFrontCamera();
 
 	/** Initialize the tracked camera */
-	virtual void initialize();
+	bool initialize();
 
 	/*Build representation */
-	void buildRepresentation();
+	bool buildRepresentation();
 
 	/*Show AR View */
 	void show();
@@ -32,7 +32,7 @@ public:
 
 	//void switch Background ?
 
-	void refreshImage();
+	bool refreshImage();
 
 
 private:
@@ -80,7 +80,7 @@ private:
 	vtkSmartPointer<vtkOpenVRRenderer> m_backgroundRenderer;
 	vtkSmartPointer<vtkActor> m_cameraActor;
 
-	void getFrameSize();
+	bool getFrameSize();
 	void allocateImages();
 	void loadVideoStream();
 	void createImage();

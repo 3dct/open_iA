@@ -308,9 +308,9 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 	//Movement of Head
 	if (deviceID == static_cast<int>(vtkEventDataDevice::HeadMountedDisplay))
 	{
-		if (arEnabled)
+		if (m_arEnabled)
 		{
-			arViewer->refreshImage();
+			m_arViewer->refreshImage();
 		}
 
 		double* tempFocalPos = cam->GetFocalPoint();
@@ -922,18 +922,20 @@ void iAImNDTMain::displayNodeLinkD()
 
 void iAImNDTMain::toggleArView()
 {
-	if (!arEnabled)
+	if (!m_arEnabled)
 	{
 		m_vrEnv->hideSkybox();
-		arViewer = new iAVRFrontCamera(m_vrEnv->renderer(), m_vrEnv->renderWindow());
-		arViewer->initialize();
-		arViewer->buildRepresentation();
-		arViewer->refreshImage();
-		arEnabled = true;
+		m_arViewer = std::make_unique<iAVRFrontCamera>(m_vrEnv->renderer(), m_vrEnv->renderWindow());
+		if (!m_arViewer->initialize())
+		{
+			m_vrEnv->showSkybox();
+			LOG(lvlWarn, "Initializing AR view failed; maybe your headset doesn't have a camera? If your headset does have a camera, make sure you have Camera enabled in the SteamVR settings!");
+			return;
+		}
+		m_arEnabled = true;
 		return;
 	}
-
-	arEnabled = false;
+	m_arEnabled = false;
 	m_vrEnv->showSkybox();
 	
 }

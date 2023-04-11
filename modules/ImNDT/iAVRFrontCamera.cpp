@@ -41,22 +41,22 @@ iAVRFrontCamera::~iAVRFrontCamera()
 	m_VRTrackedCamera = nullptr;
 }
 
-void iAVRFrontCamera::initialize()
+bool iAVRFrontCamera::initialize()
 {
 	m_pHMD = m_renderWindow->GetHMD();
 	m_VRTrackedCamera = vr::VRTrackedCamera();
 	if (!m_VRTrackedCamera)
 	{
 		LOG(lvlError, "Unable to get tracked camera interface!");
-		return;
+		return false;
 	}
 
 	bool bHasCamera = false;
 	vr::EVRTrackedCameraError nCameraError = m_VRTrackedCamera->HasCamera(vr::k_unTrackedDeviceIndex_Hmd, &bHasCamera);
 	if (nCameraError != vr::VRTrackedCameraError_None || !bHasCamera)
 	{
-		LOG(lvlError, QString("No Tracked Camera Available %1").arg(m_VRTrackedCamera->GetCameraErrorNameFromEnum(nCameraError)));
-		return;
+		LOG(lvlError, QString("No tracked camera available! Error: %1").arg(m_VRTrackedCamera->GetCameraErrorNameFromEnum(nCameraError)));
+		return false;
 	}
 
 	// Accessing the FW description is just a further check to ensure camera communication
@@ -70,27 +70,36 @@ void iAVRFrontCamera::initialize()
 	if (propertyError != vr::TrackedProp_Success)
 	{
 		LOG(lvlError, "Failed to get tracked camera firmware description");
-		return;
+		return false;
 	}
 
 	m_pHMD->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd,
 		vr::Prop_CameraFirmwareDescription_String, buffer, sizeof(buffer), &propertyError);
 	if (propertyError != vr::TrackedProp_Success)
 	{
-		LOG(lvlError, "Error Initializing the front camera");
-		return;
+		LOG(lvlError, "Error initializing the front camera");
+		return false;
 	}
 
 	LOG(lvlInfo, "Front Camera initialized");
 	LOG(lvlInfo, QString("Camera Firmware %1").arg(buffer));
 	//m_renderWindow->MakeCurrent();
+	if (!buildRepresentation() ||
+		!refreshImage())
+	{
+		return false;
+	}
+	return true;
 }
 
-void iAVRFrontCamera::buildRepresentation()
+bool iAVRFrontCamera::buildRepresentation()
 {
 	m_renderWindow->MakeCurrent();
 
-	getFrameSize();
+	if (!getFrameSize())
+	{
+		return false;
+	}
 	allocateImages();
 	loadVideoStream();
 	createLeftAndRightEyeImage();
@@ -108,6 +117,7 @@ void iAVRFrontCamera::buildRepresentation()
 	m_renderer->SetLayer(1);
 
 	m_renderWindow->Render();
+	return true;
 }
 
 void iAVRFrontCamera::show()
@@ -130,13 +140,13 @@ void iAVRFrontCamera::hide()
 	m_visible = false;
 }
 
-void iAVRFrontCamera::refreshImage()
+bool iAVRFrontCamera::refreshImage()
 {
 	m_renderWindow->MakeCurrent();
 
 	if (!m_VRTrackedCamera || !m_VRTrackedCameraHandle)
 	{
-		return;
+		return false;
 	}
 
 	//get the frame header only
@@ -145,14 +155,13 @@ void iAVRFrontCamera::refreshImage()
 	vr::EVRTrackedCameraError nCameraError = m_VRTrackedCamera->GetVideoStreamFrameBuffer(m_VRTrackedCameraHandle, m_frameType, nullptr, 0, &frameHeader, sizeof(frameHeader));
 	if (nCameraError != vr::VRTrackedCameraError_None)
 	{
-		LOG(lvlError, QString("No Tracked Camera Available %1").arg(m_VRTrackedCamera->GetCameraErrorNameFromEnum(nCameraError)));
-		return;
+		LOG(lvlError, QString("No tracked camera available! Error: %1").arg(m_VRTrackedCamera->GetCameraErrorNameFromEnum(nCameraError)));
+		return false;
 	}
 
 	if (frameHeader.nFrameSequence == m_lastFrameSequence)
 	{
 		// frame hasn't changed yet, nothing to do
-		return;
 	}
 	else
 	{
@@ -164,19 +173,21 @@ void iAVRFrontCamera::refreshImage()
 
 		m_renderWindow->Render();
 	}
+	return true;
 }
 
 //! Get FrameWidth and FrameHeight from tracked camera
-void iAVRFrontCamera::getFrameSize()
+bool iAVRFrontCamera::getFrameSize()
 {
 	// Allocate for camera frame buffer requirements
 	uint32_t nCameraFrameBufferSize = 0;
 
-	if (m_VRTrackedCamera->GetCameraFrameSize(vr::k_unTrackedDeviceIndex_Hmd, m_frameType, &m_cameraFrameWidth,
-		&m_cameraFrameHeight, &nCameraFrameBufferSize) != vr::VRTrackedCameraError_None)
+	auto nCameraError = m_VRTrackedCamera->GetCameraFrameSize(vr::k_unTrackedDeviceIndex_Hmd, m_frameType,
+		&m_cameraFrameWidth, &m_cameraFrameHeight, &nCameraFrameBufferSize);
+	if (nCameraError != vr::VRTrackedCameraError_None)
 	{
-		LOG(lvlError, "GetCameraFrameBounds() Failed");
-		return;
+		LOG(lvlError, QString("GetCameraFrameBounds() failed! Error: %1!").arg(m_VRTrackedCamera->GetCameraErrorNameFromEnum(nCameraError)));
+		return false;
 	}
 	LOG(lvlInfo, QString("Size: Width: %1 Height: %2").arg(m_cameraFrameWidth).arg(m_cameraFrameHeight));
 
@@ -192,8 +203,9 @@ void iAVRFrontCamera::getFrameSize()
 	if (m_VRTrackedCameraHandle == INVALID_TRACKED_CAMERA_HANDLE)
 	{
 		LOG(lvlError, "AcquireVideoStreamingService() Failed");
-		return;
+		return false;
 	}
+	return true;
 }
 
 //! Allocate dimensions to the source image and the image for left and right eye
@@ -232,7 +244,7 @@ void iAVRFrontCamera::loadVideoStream()
 	vr::EVRTrackedCameraError nCameraError = m_VRTrackedCamera->GetVideoStreamFrameBuffer(m_VRTrackedCameraHandle, m_frameType, m_cameraFrameBuffer, m_cameraFrameBufferSize, &m_frameHeader, sizeof(m_frameHeader));
 	if (nCameraError != vr::VRTrackedCameraError_None)
 	{
-		LOG(lvlError, QString("No Tracked Camera Available %1").arg(m_VRTrackedCamera->GetCameraErrorNameFromEnum(nCameraError)));
+		LOG(lvlError, QString("No tracked camera available! Error: %1").arg(m_VRTrackedCamera->GetCameraErrorNameFromEnum(nCameraError)));
 		return;
 	}
 
