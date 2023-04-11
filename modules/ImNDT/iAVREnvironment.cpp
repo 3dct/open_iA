@@ -16,10 +16,13 @@
 #include <vtkLightKit.h>
 #include <vtkOpenVRRenderer.h>
 #include <vtkOpenVRRenderWindow.h>
+#include <vtkOpenVRRenderWindowInteractor.h>
 #include <vtkOpenVRCamera.h>
 #include <vtkPickingManager.h>
 #include <vtkPNGReader.h>
+#include <vtkSkybox.h>
 #include <vtkVersion.h>
+#include <vtkTexture.h>
 
 #include <QCoreApplication>
 #include <QMessageBox>
@@ -99,6 +102,7 @@ void iAVREnvironment::stop()
 		return;
 	}
 	m_vrMainThread->stop();
+	m_vrMainThread->wait();
 }
 
 void iAVREnvironment::showSkybox()

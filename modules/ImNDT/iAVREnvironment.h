@@ -3,10 +3,6 @@
 #pragma once
 
 #include <vtkSmartPointer.h>
-#include <vtkTexture.h>
-#include <vtkActor.h>
-#include <vtkOpenVRRenderWindowInteractor.h>
-#include <vtkSkybox.h>
 
 #include <QObject>
 
@@ -15,6 +11,9 @@ class iAVRMainThread;
 class vtkOpenVRRenderer;
 class vtkRenderer;
 class vtkOpenVRRenderWindow;
+class vtkOpenVRRenderWindowInteractor;
+class vtkSkybox;
+class vtkTexture;
 
 //! The VR environment. Currently deleted every time when the environment is stopped.
 //! Could be re-used, but that would require all features using it to cleanly remove

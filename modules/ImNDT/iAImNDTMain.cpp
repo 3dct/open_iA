@@ -13,18 +13,20 @@
 #include "iAVRObjectModel.h"
 #include "iAVROctree.h"
 #include "iAVRSlider.h"
+
 #include <iALog.h>
 
-#include "vtkActor.h"
-#include "vtkIntersectionPolyDataFilter.h"
-#include "vtkLineSource.h"
-#include "vtkOpenVRCamera.h"
-#include "vtkPolyData.h"
-#include "vtkPolyDataMapper.h"
-#include "vtkProp3D.h"
-#include "vtkProperty.h"
-#include "vtkRenderer.h"
-#include "vtkVertexGlyphFilter.h"
+#include <vtkActor.h>
+#include <vtkIntersectionPolyDataFilter.h>
+#include <vtkLineSource.h>
+#include <vtkOpenVRCamera.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProp3D.h>
+#include <vtkProperty.h>
+#include <vtkRenderer.h>
+#include <vtkOpenVRRenderWindowInteractor.h>
+#include <vtkVertexGlyphFilter.h>
 
 #include <QColor>
 

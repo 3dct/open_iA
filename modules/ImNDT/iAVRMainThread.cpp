@@ -11,10 +11,9 @@
 #include <QDir>
 
 iAVRMainThread::iAVRMainThread(vtkSmartPointer<vtkOpenVRRenderWindow> renderWindow, vtkSmartPointer<vtkOpenVRRenderWindowInteractor> interactor) :
-	m_renderWindow(renderWindow), m_interactor(interactor)
-{
-	connect(this, &iAVRMainThread::stopSignal, this, &iAVRMainThread::stopSlot, Qt::QueuedConnection);
-}
+	m_renderWindow(renderWindow), m_interactor(interactor), m_done(false)
+{}
+
 void iAVRMainThread::run()
 {
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
@@ -34,22 +33,26 @@ void iAVRMainThread::run()
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
 	QDir::setCurrent(prevWorkingDir);
 #endif
-	m_interactor->Start();
+	// use of vtk's event loop is potentially problematic - calling SetDone on it from another
+	// thread causes potential assertion failures in the immediately invoked event:
+	// m_interactor->Start();
+	// Workaround - custom event loop:
+	while (!m_done)
+	{
+		m_interactor->ProcessEvents();
+	}
 	LOG(lvlInfo, "VR rendering has shut down!");
 	m_renderWindow->Finalize();
 }
 
 void iAVRMainThread::stop()
 {
-	emit stopSignal();
+	// can cause assertion failure: `cannot dereference value-initialized vector<bool> iterator` -> probably not thread safe?
+	//m_interactor->SetDone(true);
+	m_done = true;
 }
 
 QString iAVRMainThread::message() const
 {
 	return m_msg;
-}
-
-void iAVRMainThread::stopSlot()
-{
-	m_interactor->SetDone(true);
 }

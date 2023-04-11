@@ -18,11 +18,9 @@ public:
 	void run() override;
 	void stop();
 	QString message() const;
-	void stopSlot();
-signals:
-	void stopSignal();
 private:
 	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
 	vtkSmartPointer<vtkOpenVRRenderWindowInteractor> m_interactor;
 	QString m_msg;
+	bool m_done;
 };
