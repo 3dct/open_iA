@@ -66,6 +66,7 @@
 
 namespace itk {
 
+//! A local thresholding filter based on Otsu's method.
 template < class TInputImage, class TOutputImage >
 class AdaptiveOtsuThresholdImageFilter :
   public ImageToImageFilter< TInputImage, TOutputImage >

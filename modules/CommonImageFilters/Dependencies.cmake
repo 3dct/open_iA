@@ -37,6 +37,3 @@ endif()
 #if (HigherOrderAccurateGradient_LOADED)
 #	list(APPEND DEPENDENCIES_ITK_MODULES HigherOrderAccurateGradient)
 #endif()
-set(DEPENDENCIES_IA_TOOLKIT_DIRS
-	RemovePeaksOtsu    # for itkFHWRescaleIntensityImageFilter
-)

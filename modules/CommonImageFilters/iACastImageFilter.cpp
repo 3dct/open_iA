@@ -8,11 +8,11 @@
 #include <iAToolsITK.h>    // for castImageTo
 #include <iAToolsVTK.h>    // for VTKDataTypeList
 #include <iATypedCallHelper.h>
-#include <itkFHWRescaleIntensityImageFilter.h>
 
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>
 #include <itkImageIterator.h>
+#include <itkIntensityWindowingImageFilter.h>
 #include <itkLabelToRGBImageFilter.h>
 #include <itkRGBPixel.h>
 #include <itkRGBAPixel.h>
@@ -64,20 +64,19 @@ void dataTypeConversion(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image<InT, DIM>   InputImageType;
 	typedef itk::Image<OutT, DIM> OutputImageType;
-	typedef itk::FHWRescaleIntensityImageFilter<InputImageType, OutputImageType> RIIFType;
-	typename RIIFType::Pointer rescaleFilter = RIIFType::New();
+	auto rescaleFilter = itk::IntensityWindowingImageFilter<InputImageType, OutputImageType>::New();
 	rescaleFilter->SetInput(dynamic_cast<InputImageType *>(filter->imageInput(0)->itkImage()));
 	if (parameters["Automatic Input Range"].toBool())
 	{
 		double minVal, maxVal;
 		getStatistics(filter->imageInput(0)->itkImage(), &minVal, &maxVal);
-		rescaleFilter->SetInputMinimum(minVal);
-		rescaleFilter->SetInputMaximum(maxVal);
+		rescaleFilter->SetWindowMinimum(minVal);
+		rescaleFilter->SetWindowMaximum(maxVal);
 	}
 	else
 	{
-		rescaleFilter->SetInputMinimum(parameters["Input Min"].toDouble());
-		rescaleFilter->SetInputMaximum(parameters["Input Max"].toDouble());
+		rescaleFilter->SetWindowMinimum(parameters["Input Min"].toDouble());
+		rescaleFilter->SetWindowMaximum(parameters["Input Max"].toDouble());
 	}
 	if (parameters["Use Full Output Range"].toBool())
 	{
@@ -144,8 +143,8 @@ iACastImageFilter::iACastImageFilter() :
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1CastImageFilter.html\">"
 		"Cast Image Filter</a> and the "
-		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RescaleIntensityImageFilter.html\">"
-		"Rescale Image Filter</a> in the ITK documentation.")
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1IntensityWindowingImageFilter.html\">"
+		"Intensity Windowing Image Filter</a> in the ITK documentation.")
 {
 	QStringList datatypes = readableDataTypeList(false);
 	addParameter("Data Type", iAValueType::Categorical, datatypes);

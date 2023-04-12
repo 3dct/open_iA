@@ -14,49 +14,45 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkRemovePeaksOtsuThresholdImageFilter_txx
-#define _itkRemovePeaksOtsuThresholdImageFilter_txx
-#include "itkRemovePeaksOtsuThresholdImageFilter.h"
+#ifndef _iARemovePeaksOtsuThresholdImageFilter_txx
+#define _iARemovePeaksOtsuThresholdImageFilter_txx
+
+#include "iARemovePeaksOtsuThresholdImageCalculator.h"
 
 #include "itkBinaryThresholdImageFilter.h"
-#include "itkRemovePeaksOtsuThresholdImageCalculator.h"
 #include "itkProgressAccumulator.h"
 
-namespace itk {
-
 template<class TInputImage, class TOutputImage>
-RemovePeaksOtsuThresholdImageFilter<TInputImage, TOutputImage>
-::RemovePeaksOtsuThresholdImageFilter()
+iARemovePeaksOtsuThresholdImageFilter<TInputImage, TOutputImage>
+::iARemovePeaksOtsuThresholdImageFilter()
 {
-  m_OutsideValue   = NumericTraits<OutputPixelType>::Zero;
-  m_InsideValue    = NumericTraits<OutputPixelType>::max();
-  m_Threshold      = NumericTraits<InputPixelType>::Zero;
+  m_OutsideValue   = itk::NumericTraits<OutputPixelType>::Zero;
+  m_InsideValue    = itk::NumericTraits<OutputPixelType>::max();
+  m_Threshold      = itk::NumericTraits<InputPixelType>::Zero;
   m_NumberOfHistogramBins = 128;
 }
 
 template<class TInputImage, class TOutputImage>
 void
-RemovePeaksOtsuThresholdImageFilter<TInputImage, TOutputImage>
+iARemovePeaksOtsuThresholdImageFilter<TInputImage, TOutputImage>
 ::GenerateData()
 {
-  typename ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
+  auto progress = itk::ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
   // Compute the Otsu Threshold for the input image
-  typename RemovePeaksOtsuThresholdImageCalculator<TInputImage>::Pointer otsu =
-    RemovePeaksOtsuThresholdImageCalculator<TInputImage>::New();
+  auto otsu = iARemovePeaksOtsuThresholdImageCalculator<TInputImage>::New();
   otsu->SetImage (this->GetInput());
   otsu->SetNumberOfHistogramBins (m_NumberOfHistogramBins);
   otsu->Compute();
   m_Threshold = otsu->GetThreshold();
 
-  typename BinaryThresholdImageFilter<TInputImage,TOutputImage>::Pointer threshold =
-    BinaryThresholdImageFilter<TInputImage,TOutputImage>::New();
+  auto threshold = itk::BinaryThresholdImageFilter<TInputImage,TOutputImage>::New();
 
   progress->RegisterInternalFilter(threshold,.5f);
   threshold->GraftOutput (this->GetOutput());
   threshold->SetInput (this->GetInput());
-  threshold->SetLowerThreshold(NumericTraits<InputPixelType>::NonpositiveMin());
+  threshold->SetLowerThreshold(itk::NumericTraits<InputPixelType>::NonpositiveMin());
   threshold->SetUpperThreshold(otsu->GetThreshold());
   threshold->SetInsideValue (m_InsideValue);
   threshold->SetOutsideValue (m_OutsideValue);
@@ -67,7 +63,7 @@ RemovePeaksOtsuThresholdImageFilter<TInputImage, TOutputImage>
 
 template<class TInputImage, class TOutputImage>
 void
-RemovePeaksOtsuThresholdImageFilter<TInputImage, TOutputImage>
+iARemovePeaksOtsuThresholdImageFilter<TInputImage, TOutputImage>
 ::GenerateInputRequestedRegion()
 {
   TInputImage * input = const_cast<TInputImage *>(this->GetInput());
@@ -79,22 +75,20 @@ RemovePeaksOtsuThresholdImageFilter<TInputImage, TOutputImage>
 
 template<class TInputImage, class TOutputImage>
 void 
-RemovePeaksOtsuThresholdImageFilter<TInputImage,TOutputImage>
-::PrintSelf(std::ostream& os, Indent indent) const
+iARemovePeaksOtsuThresholdImageFilter<TInputImage,TOutputImage>
+::PrintSelf(std::ostream& os, itk::Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
 
   os << indent << "OutsideValue: "
-     << static_cast<typename NumericTraits<OutputPixelType>::PrintType>(m_OutsideValue) << std::endl;
+     << static_cast<typename itk::NumericTraits<OutputPixelType>::PrintType>(m_OutsideValue) << std::endl;
   os << indent << "InsideValue: "
-     << static_cast<typename NumericTraits<OutputPixelType>::PrintType>(m_InsideValue) << std::endl;
+     << static_cast<typename itk::NumericTraits<OutputPixelType>::PrintType>(m_InsideValue) << std::endl;
   os << indent << "NumberOfHistogramBins: "
      << m_NumberOfHistogramBins << std::endl;
   os << indent << "Threshold (computed): "
-     << static_cast<typename NumericTraits<InputPixelType>::PrintType>(m_Threshold) << std::endl;
+     << static_cast<typename itk::NumericTraits<InputPixelType>::PrintType>(m_Threshold) << std::endl;
 
 }
 
-
-}// end namespace itk
 #endif

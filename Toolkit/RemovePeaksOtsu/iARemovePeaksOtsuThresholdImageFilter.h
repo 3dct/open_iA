@@ -14,46 +14,31 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkRemovePeaksOtsuThresholdImageFilter_h
-#define __itkRemovePeaksOtsuThresholdImageFilter_h
+#ifndef __iARemovePeaksOtsuThresholdImageFilter_h
+#define __iARemovePeaksOtsuThresholdImageFilter_h
 
 #include "itkImageToImageFilter.h"
 #include "itkFixedArray.h"
 
-namespace itk {
-
-/** \class RemovePeaksOtsuThresholdImageFilter 
- * \brief Threshold an image using the Otsu Threshold
- *
- * This filter creates a binary thresholded image that separates an
- * image into foreground and background components. The filter
- * computes the threshold using the RemovePeaksOtsuThresholdImageCalculator and
- * applies that theshold to the input image using the
- * BinaryThresholdImageFilter. The NunberOfHistogram bins can be set
- * for the Calculator. The InsideValue and OutsideValue can be set
- * for the BinaryThresholdImageFilter.
- *
- * \sa RemovePeaksOtsuThresholdImageCalculator
- * \sa BinaryThresholdImageFilter
- * \ingroup IntensityImageFilters  Multithreaded
- */
-
+//! Segment image using otsu threshold method, with additional "remove peak" functionality (by applying a median filter to the histogram)
+//! 
+//! Based on an (older version of the) itk::OtsuThresholdImageFilter
 template<class TInputImage, class TOutputImage>
-class RemovePeaksOtsuThresholdImageFilter : 
-    public ImageToImageFilter<TInputImage, TOutputImage>
+class iARemovePeaksOtsuThresholdImageFilter : 
+	public itk::ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard Self typedef */
-  typedef RemovePeaksOtsuThresholdImageFilter Self;
-  typedef ImageToImageFilter<TInputImage,TOutputImage>  Superclass;
-  typedef SmartPointer<Self>        Pointer;
-  typedef SmartPointer<const Self>  ConstPointer;
+  typedef iARemovePeaksOtsuThresholdImageFilter Self;
+  typedef itk::ImageToImageFilter<TInputImage,TOutputImage>  Superclass;
+  typedef itk::SmartPointer<Self>        Pointer;
+  typedef itk::SmartPointer<const Self>  ConstPointer;
   
   /** Method for creation through the object factory. */
   itkNewMacro(Self);  
 
   /** Runtime information support. */
-  itkTypeMacro(RemovePeaksOtsuThresholdImageFilter, ImageToImageFilter);
+  itkTypeMacro(iARemovePeaksOtsuThresholdImageFilter, itk::ImageToImageFilter);
   
   /** Image pixel value typedef. */
   typedef typename TInputImage::PixelType   InputPixelType;
@@ -93,32 +78,33 @@ public:
 
   /** Set/Get the number of histogram bins. Defaults is 128. */
   itkSetClampMacro( NumberOfHistogramBins, unsigned long, 1, 
-                    NumericTraits<unsigned long>::max() );
+	  itk::NumericTraits<unsigned long>::max() );
   itkGetMacro( NumberOfHistogramBins, unsigned long );
 
   /** Get the computed threshold. */
   itkGetMacro(Threshold,InputPixelType);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
+
   /** Begin concept checking */
   itkConceptMacro(OutputEqualityComparableCheck,
-    (Concept::EqualityComparable<OutputPixelType>));
+    (itk::Concept::EqualityComparable<OutputPixelType>));
   itkConceptMacro(InputOStreamWritableCheck,
-    (Concept::OStreamWritable<InputPixelType>));
+    (itk::Concept::OStreamWritable<InputPixelType>));
   itkConceptMacro(OutputOStreamWritableCheck,
-    (Concept::OStreamWritable<OutputPixelType>));
+    (itk::Concept::OStreamWritable<OutputPixelType>));
   /** End concept checking */
 #endif
 protected:
-  RemovePeaksOtsuThresholdImageFilter();
-  ~RemovePeaksOtsuThresholdImageFilter(){};
-  void PrintSelf(std::ostream& os, Indent indent) const override;
+  iARemovePeaksOtsuThresholdImageFilter();
+  ~iARemovePeaksOtsuThresholdImageFilter(){};
+  void PrintSelf(std::ostream& os, itk::Indent indent) const override;
 
   void GenerateInputRequestedRegion() override;
   void GenerateData () override;
 
 private:
-  RemovePeaksOtsuThresholdImageFilter(const Self&); //purposely not implemented
+	iARemovePeaksOtsuThresholdImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
   InputPixelType      m_Threshold;
@@ -127,11 +113,7 @@ private:
   unsigned long       m_NumberOfHistogramBins;
 
 } ; // end of class
-
-} // end namespace itk
   
-#ifndef ITK_MANUAL_INSTANTIATION
-#include "itkRemovePeaksOtsuThresholdImageFilter.txx"
-#endif
+#include "iARemovePeaksOtsuThresholdImageFilter.txx"
 
 #endif

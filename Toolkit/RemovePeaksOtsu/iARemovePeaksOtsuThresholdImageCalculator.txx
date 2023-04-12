@@ -17,35 +17,27 @@
 #ifndef _itkRemovePeaksOtsuThresholdImageCalculator_txx
 #define _itkRemovePeaksOtsuThresholdImageCalculator_txx
 
-#include "itkRemovePeaksOtsuThresholdImageCalculator.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkMinimumMaximumImageCalculator.h"
 
 #include "vnl/vnl_math.h"
 
-namespace itk
-{
 
-/*
- * Constructor
- */
 template<class TInputImage>
-RemovePeaksOtsuThresholdImageCalculator<TInputImage>
-::RemovePeaksOtsuThresholdImageCalculator()
+iARemovePeaksOtsuThresholdImageCalculator<TInputImage>
+::iARemovePeaksOtsuThresholdImageCalculator()
 {
   m_Image = nullptr;
-  m_Threshold = NumericTraits<PixelType>::Zero;
+  m_Threshold = itk::NumericTraits<PixelType>::Zero;
   m_NumberOfHistogramBins = 128;
   m_RegionSetByUser = false;
 }
 
 
-/*
- * Compute the Otsu's threshold
- */
+//! Compute the Otsu's threshold
 template<class TInputImage>
 void
-RemovePeaksOtsuThresholdImageCalculator<TInputImage>
+iARemovePeaksOtsuThresholdImageCalculator<TInputImage>
 ::Compute(void)
 {
   if ( !m_Image ) { return; }
@@ -58,8 +50,7 @@ RemovePeaksOtsuThresholdImageCalculator<TInputImage>
   //if ( totalPixels == 0 ) { return; }
 
   // compute image max and min
-  typedef MinimumMaximumImageCalculator<TInputImage> RangeCalculator;
-  typename RangeCalculator::Pointer rangeCalculator = RangeCalculator::New();
+  auto rangeCalculator = itk::MinimumMaximumImageCalculator<TInputImage>::New();
   rangeCalculator->SetImage( m_Image );
   rangeCalculator->Compute();
 
@@ -83,8 +74,7 @@ RemovePeaksOtsuThresholdImageCalculator<TInputImage>
   double binMultiplier = (double) m_NumberOfHistogramBins /
     (double) ( imageMax - imageMin );
 
-  typedef ImageRegionConstIteratorWithIndex<TInputImage> Iterator;
-  Iterator iter( m_Image, m_Region );
+  itk::ImageRegionConstIteratorWithIndex<TInputImage> iter( m_Image, m_Region );
 
   while ( !iter.IsAtEnd() )
     {
@@ -198,7 +188,7 @@ RemovePeaksOtsuThresholdImageCalculator<TInputImage>
 
 template<class TInputImage>
 void
-RemovePeaksOtsuThresholdImageCalculator<TInputImage>
+iARemovePeaksOtsuThresholdImageCalculator<TInputImage>
 ::SetRegion( const RegionType & region )
 {
   m_Region = region;
@@ -208,8 +198,8 @@ RemovePeaksOtsuThresholdImageCalculator<TInputImage>
 
 template<class TInputImage>
 void
-RemovePeaksOtsuThresholdImageCalculator<TInputImage>
-::PrintSelf( std::ostream& os, Indent indent ) const
+iARemovePeaksOtsuThresholdImageCalculator<TInputImage>
+::PrintSelf( std::ostream& os, itk::Indent indent ) const
 {
   Superclass::PrintSelf(os,indent);
 
@@ -217,7 +207,5 @@ RemovePeaksOtsuThresholdImageCalculator<TInputImage>
   os << indent << "NumberOfHistogramBins: " << m_NumberOfHistogramBins << std::endl;
   os << indent << "Image: " << m_Image.GetPointer() << std::endl;
 }
-
-} // end namespace itk
 
 #endif

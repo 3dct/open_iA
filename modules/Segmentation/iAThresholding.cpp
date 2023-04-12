@@ -8,8 +8,9 @@
 #include <iAStringHelper.h>
 #include <iATypedCallHelper.h>
 
-// from Toolkit/MaximumDistance
-#include <iAMaximumDistanceFilter.h>
+// from Toolkit
+#include <iAMaximumDistanceFilter.h>                  // MaximumDistance
+#include <iARemovePeaksOtsuThresholdImageFilter.h>    // RemovePeakOtsu
 
 #include <itkAdaptiveOtsuThresholdImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
@@ -24,7 +25,6 @@
 #include <itkOtsuThresholdImageFilter.h>
 #include <itkOtsuMultipleThresholdsImageFilter.h>
 #include <itkRobustAutomaticThresholdImageFilter.h>
-#include <itkRemovePeaksOtsuThresholdImageFilter.h>
 #include <itkRenyiEntropyThresholdImageFilter.h>
 #include <itkShanbhagThresholdImageFilter.h>
 #include <itkThresholdLabelerImageFilter.h>
@@ -208,8 +208,7 @@ void otsu_threshold(iAFilter* filter, QVariantMap const & parameters)
 	}
 	if (parameters["Remove peaks"].toBool())
 	{
-		typedef typename itk::RemovePeaksOtsuThresholdImageFilter<InputImageType, OutputImageType> RPOTIFType;
-		auto otsuFilter = RPOTIFType::New();
+		auto otsuFilter = iARemovePeaksOtsuThresholdImageFilter<InputImageType, OutputImageType>::New();
 		otsuFilter->SetNumberOfHistogramBins(static_cast<unsigned int>(numBins));
 		otsuFilter->SetOutsideValue(static_cast<T>(parameters["Outside value"].toDouble()));
 		otsuFilter->SetInsideValue(static_cast<T>(parameters["Inside value"].toDouble()));
