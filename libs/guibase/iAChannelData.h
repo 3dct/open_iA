@@ -12,7 +12,8 @@ class vtkImageData;
 class vtkPiecewiseFunction;
 class vtkScalarsToColors;
 
-
+//! Class collecting everything required to visualize a "channel" (dataset) in slicer and renderer.
+//! @deprecated for new developments, use the new iADataSet/iADataSetViewer/iADataSetRenderer infrastructure
 class iAguibase_API iAChannelData
 {
 public:

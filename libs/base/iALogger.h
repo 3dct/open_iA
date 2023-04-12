@@ -36,7 +36,7 @@ enum iALogLevel
 	lvlImportant = lvlFatal
 };
 
-//! Base interface for logging
+//! Base interface for logging.
 //! implementation in iALog.cpp
 class iAbase_API iALogger
 {

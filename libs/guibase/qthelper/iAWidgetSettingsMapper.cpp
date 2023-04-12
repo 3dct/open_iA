@@ -153,12 +153,14 @@ void loadSettings(QVariantMap const& settings, iAWidgetMap const& settingsWidget
 	}
 }
 
+//! Interface for setting (key, value) pairs in a data collection.
 class iAInternalSettingsWrapper
 {
 public:
 	virtual void setValue(QString const& key, QVariant const& value) = 0;
 };
 
+//! Wrapper for setting (key, value) pairs in a QSettings object using the iAInternalSettingsWrapper interface.
 class iAQSettingsWrapper: public iAInternalSettingsWrapper
 {
 public:
@@ -173,6 +175,7 @@ private:
 	QSettings & m_qs;
 };
 
+//! Wrapper for setting (key, value) pairs in a QVariantMap using the iAInternalSettingsWrapper interface.
 class iASettingsWrapper : public iAInternalSettingsWrapper
 {
 public:

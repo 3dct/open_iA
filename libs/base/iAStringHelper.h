@@ -16,7 +16,7 @@
 class QString;
 
 //! Class for converting a variable of the type QString to the templated type.
-//! Can be overloaded for any desired conversion.
+//! Can be overloaded for conversions to and from custom types.
 template <typename T>
 struct iAConverter
 {
@@ -36,6 +36,7 @@ struct iAConverter
 	}
 };
 
+//! Converts int to and from QString.
 template <>
 struct iAConverter<int>
 {
@@ -49,6 +50,7 @@ struct iAConverter<int>
 	}
 };
 
+//! Converts unsigned short to and from QString.
 template <>
 struct iAConverter<unsigned short>
 {
@@ -62,6 +64,7 @@ struct iAConverter<unsigned short>
 	}
 };
 
+//! Converts double to and from QString.
 template <>
 struct iAConverter<double>
 {
@@ -75,6 +78,7 @@ struct iAConverter<double>
 	}
 };
 
+//! Converts bool to and from QString.
 template <>
 struct iAConverter<bool>
 {

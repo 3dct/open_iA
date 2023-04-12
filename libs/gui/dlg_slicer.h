@@ -10,6 +10,7 @@
 
 class iASlicerImpl;
 
+//! DockWidget container for slicers.
 class dlg_slicer : public QDockWidget, public Ui_slicer
 {
 Q_OBJECT

@@ -137,9 +137,9 @@ private:
 #include <itkImage.h>
 #include <itkImageRegionConstIterator.h>
 
-// TODO: separate file for that ?
-// specific histogram for a collection of binary images (one for each label)
-// the created histogram has one bin per label
+//! Specific histogram for a collection of binary images (one for each label)
+//! the created histogram has one bin per label
+//! @todo move to a separate file?
 template <typename PixelT>
 QSharedPointer<iAHistogramData> createHistogramData(QString const& name, iAValueType xValueType,
 	QVector<typename itk::Image<PixelT, 3>::Pointer> const& imgs, size_t numBin, PixelT min, PixelT max)

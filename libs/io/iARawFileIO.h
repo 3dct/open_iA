@@ -8,6 +8,7 @@
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
+//! Support for loading/saving raw files (that is, binary data) for the file I/O framework of open_iA.
 class iAio_API iARawFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iARawFileIO, iAFileTypeRegistry>
 {
 public:

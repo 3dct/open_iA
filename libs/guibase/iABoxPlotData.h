@@ -6,7 +6,7 @@
 
 #include <QList>
 
-//! Computes and stores data required for showing a boxplot
+//! Computes and stores data required for showing a boxplot.
 struct iAguibase_API iABoxPlotData
 {
 public:

@@ -10,6 +10,9 @@
 
 class vtkPoints;
 
+//! Visualizes the objects given in a table as lines.
+//!
+//! Requires column mappings for start- and end point in the given object table data.
 class iAobjectvis_API iA3DLineObjectVis : public iA3DColoredPolyObjectVis
 {
 public:

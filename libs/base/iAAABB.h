@@ -11,6 +11,10 @@
 
 #include <array>
 
+//! An axis-aligned bounding box.
+//!
+//! Provides convenience functions for creating a bounding box (adding a single point, merging boxes),
+//! as well as for testing containment/intersection.
 class iAbase_API iAAABB
 {
 public:
@@ -31,4 +35,5 @@ private:
 	std::array<iAVec3d, 2> box;
 };
 
+//! Get a human-readable string representation of an iAAABB (axis-aligned bounding box)
 iAbase_API QString toStr(iAAABB const& box);

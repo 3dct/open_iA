@@ -9,8 +9,8 @@
 
 class QPropertyAnimation;
 
-// inspired from https://stackoverflow.com/a/34445886
-
+//! Animates a given widget property.
+//! inspired from https://stackoverflow.com/a/34445886
 class iAqthelper_API iAWidgetAnimationDecorator: public QObject
 {
 	Q_OBJECT

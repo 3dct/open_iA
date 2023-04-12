@@ -22,6 +22,7 @@ class QCheckBox;
 class QComboBox;
 class QLineEdit;
 
+//! Dialog for opening raw files with preview and conversion options.
 class dlg_datatypeconversion : public QDialog
 {
 	Q_OBJECT

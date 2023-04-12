@@ -15,8 +15,9 @@
 
 const QStringList columnNames = QStringList() << "X" << "Y" << "Color";
 
-// override operator < for search ... TODO: maybe this could be done via a standalone operator?
-class iATableWidgetItem : public QTableWidgetItem
+//! An item in the transfer function table, overrides operator< for search.
+//! @todo maybe this could be done via a standalone operator?
+class iATFTableWidgetItem : public QTableWidgetItem
 {
 public:
 	bool operator<(const QTableWidgetItem& other) const
@@ -25,8 +26,9 @@ public:
 	}
 };
 
-// to unconditionally draw item in the specified color (no matter whether row is selected or not)
-class iAColorColumnDelegate : public QItemDelegate
+//! Delegate for color column of transfer function table.
+//! Necessary to unconditionally draw item in the specified color, no matter whether row is selected or not
+class iATFColorColumnDelegate : public QItemDelegate
 {
 	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
 	{
@@ -61,7 +63,7 @@ iATFTableDlg::iATFTableDlg(QWidget* parent, iAChartFunction* func) :
 	table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 	table->verticalHeader()->setDefaultSectionSize(25);
 	table->setSelectionBehavior(QAbstractItemView::SelectRows);
-	table->setItemDelegateForColumn(2, new iAColorColumnDelegate());
+	table->setItemDelegateForColumn(2, new iATFColorColumnDelegate);
 
 	connect(tbChangeColor, &QToolButton::clicked, this, &iATFTableDlg::changeColor);
 	connect(tbAddPoint, &QToolButton::clicked, this, &iATFTableDlg::addPoint);
@@ -86,9 +88,9 @@ void iATFTableDlg::updateTable()
 		m_tf->colorTF()->GetIndexedColor(i, color);
 		QColor c;
 		c.setRgbF(color[0], color[1], color[2], color[3]);
-		iATableWidgetItem* xItem = new iATableWidgetItem;
-		iATableWidgetItem* yItem = new iATableWidgetItem;
-		iATableWidgetItem* colorItem = new iATableWidgetItem;
+		auto xItem     = new iATFTableWidgetItem;
+		auto yItem     = new iATFTableWidgetItem;
+		auto colorItem = new iATFTableWidgetItem;
 		xItem->setData(Qt::DisplayRole, QString::number(pointValue[0]));
 		yItem->setData(Qt::DisplayRole, QString::number(pointValue[1]));
 		colorItem->setData(Qt::DisplayRole, c.name());
@@ -125,9 +127,9 @@ void iATFTableDlg::addPoint()
 	}
 	table->insertRow(table->rowCount());
 	QSignalBlocker b(table);
-	iATableWidgetItem* newXItem = new iATableWidgetItem;
-	iATableWidgetItem* newYItem = new iATableWidgetItem;
-	iATableWidgetItem* newColorItem = new iATableWidgetItem;
+	auto newXItem     = new iATFTableWidgetItem;
+	auto newYItem     = new iATFTableWidgetItem;
+	auto newColorItem = new iATFTableWidgetItem;
 	newXItem->setData(Qt::DisplayRole, QString::number((double)dsbNewPointX->value()));
 	newYItem->setData(Qt::DisplayRole, QString::number((double)dsbNewPointY->value()));
 	table->setSortingEnabled(false);

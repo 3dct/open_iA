@@ -6,6 +6,7 @@
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
+//! Support for loading Olympus image files (.oif) for the file I/O framework of open_iA.
 class iAOIFFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAOIFFileIO, iAFileTypeRegistry>
 {
 public:

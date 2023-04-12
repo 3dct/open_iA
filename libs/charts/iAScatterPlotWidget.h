@@ -21,7 +21,7 @@ class iASPLOMData;
 
 class QMenu;
 
-//! class for providing information on a point in the scatter plot (used in tooltips)
+//! Provides information on a point in the scatter plot (used in tooltips).
 class iAcharts_API iAScatterPlotPointInfo
 {
 public:
@@ -29,8 +29,8 @@ public:
 	virtual QString text(const size_t paramIdx[2], size_t pointIdx) =0;
 };
 
-//! Widget for using a single scatter plot (outside of a SPLOM)
-// TODO: minimize duplication between iAScatterPlotWidget and iAQSplom!
+//! Widget for using a single scatter plot (outside of a SPLOM).
+//! @todo minimize duplication between iAScatterPlotWidget and iAQSplom!
 class iAcharts_API iAScatterPlotWidget : public iAChartParentWidget
 #ifdef CHART_OPENGL
 	, public QOpenGLFunctions

@@ -17,6 +17,7 @@ class vtkPolyDataMapper;
 class vtkSphereSource;
 class vtkTubeFilter;
 
+//! 3D renderer for graph data, with options to adapt node and vertex size and color.
 class iAGraphRenderer : public iADataSetRenderer
 {
 public:
@@ -44,6 +45,7 @@ private:
 	iAGraphData const * m_data;
 };
 
+//! 3D renderer for any kind of polydata.
 class iAguibase_API iAPolyActorRenderer : public iADataSetRenderer
 {
 public:
@@ -67,6 +69,7 @@ private:
 	Q_DISABLE_COPY(iAPolyActorRenderer);
 };
 
+//! 3D renderer for surface mesh data.
 class iAguibase_API iAPolyDataRenderer : public iAPolyActorRenderer
 {
 public:
@@ -79,6 +82,7 @@ private:
 
 class iAGeometricObject;
 
+//! 3D renderer for simple geometric objects (sphere, cube, ...).
 class iAGeometricObjectRenderer : public iAPolyActorRenderer
 {
 public:

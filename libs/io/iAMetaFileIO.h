@@ -8,6 +8,7 @@
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
+//! Support for loading/saving MetaImage files (https://itk.org/Wiki/ITK/MetaIO/Documentation) for the file I/O framework of open_iA.
 class iAio_API iAMetaFileIO : public iAFileIO, iAAutoRegistration<iAFileIO, iAMetaFileIO, iAFileTypeRegistry>
 {
 public:

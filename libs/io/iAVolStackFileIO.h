@@ -8,6 +8,8 @@
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
+//! Support for loading and storing volume stacks for the file I/O framework of open_iA.
+//! Stores/Loads a .volstack file, a descriptive text file containing the parameters for finding the actual volume data files.
 class iAio_API iAVolStackFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAVolStackFileIO, iAFileTypeRegistry>
 {
 public:

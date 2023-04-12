@@ -22,11 +22,11 @@ class iAMdiChild;
 
 class vtkImageData;
 
-//! GUI Runner Thread for running descendants of iAFilter.
+//! Used for running descendants of iAFilter in the GUI.
 //!
 //! Used in iAFilterRunnerGUI::run (see below) as thread to run a descendant of iAFilter inside its
-//! own thread
-//! needs to be in the .h file so that moc'ing it works.
+//! own thread.
+//! Needs to be in the .h file so that moc'ing it works.
 class iAguibase_API iAFilterRunnerGUIThread : public QThread, public iAAbortListener
 {
 	Q_OBJECT

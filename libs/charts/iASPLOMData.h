@@ -11,8 +11,8 @@
 
 class QString;
 
-//! Class for storing data shown in a scatter plot matrix (SPLOM)
-//! (a table with data values for one object per row, along with the names of the columns/parameters).
+//! Stores data shown in a scatter plot matrix (SPLOM).
+//! Data is represented as table with data values for one object per row, along with the names of the columns/parameters.
 class iAcharts_API iASPLOMData : public QObject
 {
 	Q_OBJECT

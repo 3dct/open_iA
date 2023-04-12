@@ -6,6 +6,7 @@
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
+//! Support for loading/saving STL files for the file I/O framework of open_iA.
 class iASTLFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iASTLFileIO, iAFileTypeRegistry>
 {
 public:

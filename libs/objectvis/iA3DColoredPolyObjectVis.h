@@ -15,6 +15,7 @@ class vtkAlgorithmOutput;
 class vtkPolyData;
 class vtkUnsignedCharArray;
 
+//! Base class for polydata-based object visualizations that can be colored.
 class iAobjectvis_API iA3DColoredPolyObjectVis : public iA3DObjectVis
 {
 public:

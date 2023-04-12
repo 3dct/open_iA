@@ -9,6 +9,10 @@
 class iAFilterRunnerGUI;
 using iAFilterRunnerGUICreateFuncPtr = std::shared_ptr<iAFilterRunnerGUI>(*)();
 
+//! Registry for descendants of iAFilter, providing some processing of datasets.
+//!
+//! All filters in the registry are made available via the "Filters" menu,
+//! and also on the command line.
 class iAguibase_API iAFilterRunnerRegistry
 {
 public:

@@ -6,6 +6,7 @@
 
 class iARulerActor;
 
+//! Representation data for visualizing a ruler in the slicer.
 class iARulerRepresentation : public vtkBorderRepresentation
 {
 public:

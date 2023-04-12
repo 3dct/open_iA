@@ -4,6 +4,8 @@
 
 #include <QObject>
 
+//! Notifies about changes between dark/bright mode in the system that the application runs on.
+//! Currently only supports Windows (10/11), and selected Linux window managers (tested with XFCE)
 class iASystemThemeWatcher: public QObject
 {
 	Q_OBJECT

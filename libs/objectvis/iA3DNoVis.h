@@ -4,6 +4,7 @@
 
 #include "iA3DObjectVis.h"
 
+//! A "dummy" visualization for objects given in a table - no visualization at all (null object pattern).
 class iAobjectvis_API iA3DNoVis : public iA3DObjectVis
 {
 public:

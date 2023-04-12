@@ -4,28 +4,27 @@
 
 #include <stdexcept>
 
-// Requirements:
-// |function| return type must be void
-//
-// Usage:
-//
-// having for instance such |type| variable:
-//   ColumnType type = INT;
-// and such |foo| function definition:
-//   template <ColumnType T>
-//   void foo(t1 arg1, t2 arg2) {
-//   }
-//
-// instead of writing (won't compile):
-//   foo<type>(arg1, arg2);
-// write this:
-//   xxx_TYPED_CALL(foo, type, arg1, arg2);
-//
-//
-// for foo with 0 arguments write this:
-//   xxx_TYPED_CALL(foo, type, );
-//
-
+//! Call a specific instance of a templated function based on ITK's scalar type
+//! Requirements:
+//! |function| return type must be void
+//!
+//! Usage:
+//!
+//! having for instance such |type| variable:
+//!   ColumnType type = INT;
+//! and such |foo| function definition:
+//!   template <ColumnType T>
+//!   void foo(t1 arg1, t2 arg2) {
+//!   }
+//!
+//! instead of writing (won't compile):
+//!   foo<type>(arg1, arg2);
+//! write this:
+//!   xxx_TYPED_CALL(foo, type, arg1, arg2);
+//!
+//!
+//! for foo with 0 arguments write this:
+//!   xxx_TYPED_CALL(foo, type, );
 #define ITK_TYPED_CALL(function, itk_scalar_type, ...)      \
 {                                                           \
 	switch (itk_scalar_type)                                \
@@ -75,6 +74,7 @@
 	}                                                       \
 }
 
+//! Call a specific instance of a templated function based on VTK's scalar type
 #define VTK_TYPED_CALL(function, vtk_scalar_type, ...)      \
 {                                                           \
 	switch (vtk_scalar_type)                                \

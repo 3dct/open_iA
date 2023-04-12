@@ -6,6 +6,7 @@
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
+//! Support for storing volumes in .csv for the file I/O framework of open_iA.
 class iACSVImageFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iACSVImageFileIO, iAFileTypeRegistry>
 {
 public:

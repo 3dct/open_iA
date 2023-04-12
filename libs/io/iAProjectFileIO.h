@@ -8,8 +8,9 @@
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
-//! class I/O of a "project file" for a collection of datatasets
-//! ONLY stores the references to the actual datasets; no viewing settings, etc.; it does store parameters required to load the data though
+//! Support for loading/saving a "project file" (a collection of datatasets) for the file I/O framework of open_iA.
+//! ONLY stores the references to the actual datasets; storing viewing settings doesn't happen within this class.
+//! It does store parameters required to load the datasets (e.g. size, spacing etc. for raw datasets).
 class iAio_API iAProjectFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAProjectFileIO, iAFileTypeRegistry>
 {
 public:

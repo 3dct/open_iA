@@ -4,6 +4,13 @@
 
 #include <memory>
 
+//! Automatically register classes with a registry by deriving from this class.
+//! As template parameters pass the classes Base class, the Class itself, and the Registry class.
+//! Automatically creates a factory function with no parameters returning a std::shared_ptr<Base>
+//! with an instance of Class; requires that the Registry has an `add` function that expects
+//! such a factory function as parameter.
+//!
+//! DUPLICATION to io/iAAutoRegistration!
 template <class Base, class Class, class Registry>
 class iAAutoRegistration
 {

@@ -28,6 +28,7 @@ namespace
 	std::mutex pendingJobsMutex;
 }
 
+//! Internal holder for data required about a currently running operation
 class iAJob
 {
 public:
@@ -70,6 +71,10 @@ private:
 	std::chrono::system_clock::time_point m_start;
 };
 
+//! Alternative for a QLabel which automatically cuts off text exceeding its width.
+//! This widget, in contrast to a QLabel, is resizable to widths smaller than the required with to display its full text.
+//! It does not impose any minimum width requirements on parent widgets, instead, any text text exceeding the width will
+//! just be invisible.
 class iAQShorteningLabel : public QScrollArea
 {
 public:

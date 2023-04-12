@@ -4,6 +4,8 @@
 
 #include "iAbase_export.h"
 
+//! Value types that can be used for parameters and attributes
+//! @see iAAttributeDescriptor
 enum class iAValueType
 {
 	Invalid = -1,

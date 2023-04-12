@@ -156,20 +156,32 @@ iAITKIO::ImagePointer internalCastImageTo(iAITKIO::ImagePointer img)
 	return cast->GetOutput();
 }
 
-// mapping from pixel type to itk component type ID:
+//! Maps from a pixel type to ITK component type ID
 template<typename T> struct iAITKTypeMapper { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::UNKNOWNCOMPONENTTYPE; };
 //template <>                   class iAITKTypeMapper { int ID; };
+//! Maps from pixel type unsigned char to ITK component type ID
 template<> struct iAITKTypeMapper<unsigned char>       { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::UCHAR; };
+//! Maps from pixel type char to ITK component type ID
 template<> struct iAITKTypeMapper<char>                { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::CHAR; };
+//! Maps from pixel type unsigned short to ITK component type ID
 template<> struct iAITKTypeMapper<unsigned short>      { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::USHORT; };
+//! Maps from pixel type short to ITK component type ID
 template<> struct iAITKTypeMapper<short>               { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::SHORT; };
+//! Maps from pixel type unsigned int to ITK component type ID
 template<> struct iAITKTypeMapper<unsigned int>        { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::UINT; };
+//! Maps from pixel type int to ITK component type ID
 template<> struct iAITKTypeMapper<int>                 { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::INT; };
+//! Maps from pixel type unsigned long to ITK component type ID
 template<> struct iAITKTypeMapper<unsigned long>       { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::ULONG; };
+//! Maps from pixel type long to ITK component type ID
 template<> struct iAITKTypeMapper<long>                { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::LONG; };
+//! Maps from pixel type unsigned long long to ITK component type ID
 template<> struct iAITKTypeMapper <unsigned long long> { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::ULONGLONG; };
+//! Maps from pixel type long long to ITK component type ID
 template<> struct iAITKTypeMapper <long long>          { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::LONGLONG; };
+//! Maps from pixel type float to ITK component type ID
 template<> struct iAITKTypeMapper<float>               { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::FLOAT; };
+//! Maps from pixel type double to ITK component type ID
 template<> struct iAITKTypeMapper<double>              { static const iAITKIO::ScalarType ID = iAITKIO::ScalarType::DOUBLE; };
 
 //! Cast pixel type of image to given ResultPixelType.

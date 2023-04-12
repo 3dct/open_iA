@@ -43,7 +43,7 @@ class vtkTextActor;
 class vtkTransform;
 class vtkUnstructuredGrid;
 
-//! Displays several helper widgets for a 3D vtk rendering window.
+//! Concrete implementation of iARenderer, displays several helper widgets for a 3D rendering window.
 class iArenderer_API iARendererImpl: public iARenderer
 {
 	Q_OBJECT

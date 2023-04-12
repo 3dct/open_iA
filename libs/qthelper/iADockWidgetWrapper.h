@@ -8,7 +8,7 @@
 
 class QString;
 
-//! Show any arbitrary widget inside of a QDockWidget.
+//! Wrapper to show an arbitrary widget inside of a QDockWidget.
 class iAqthelper_API iADockWidgetWrapper: public QDockWidget
 {
 public:

@@ -394,7 +394,6 @@ void iAProjectViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 		}
 		auto& settings = *collection->settings().get();
 		child->loadSettings(settings);
-		auto tools = iAToolRegistry::toolKeys();
 		auto registeredTools = iAToolRegistry::toolKeys();
 		auto projectFileGroups = settings.childGroups();
 		for (auto toolKey : registeredTools)

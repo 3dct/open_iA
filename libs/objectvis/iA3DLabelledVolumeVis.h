@@ -7,6 +7,11 @@
 class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
 
+//! Visualizes the objects given in a table by referencing them in a labeled volume.
+//!
+//! This class basically manages the transfer functions used for coloring specific
+//! object IDs when these are selected and for hiding the other objects.
+//! Requires column mappings for length, phi and theta orientation for the distribution renderings.
 class iAobjectvis_API iA3DLabelledVolumeVis : public iA3DObjectVis
 {
 public:

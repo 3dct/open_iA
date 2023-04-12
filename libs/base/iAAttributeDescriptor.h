@@ -15,6 +15,7 @@ class iANameMapper;
 // TODO: split up into different subtypes according to iAValueType?
 // then e.g. iAFilter::CheckParameter could be part of this
 // and it would be easier to incorporate type-specific restraints (e.g. a Folder parameter that can also be empty)
+//! Class for describing an attribute or parameter: its value type (see iAValueType), its name, its range, etc.
 class iAbase_API iAAttributeDescriptor
 {
 public:

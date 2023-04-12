@@ -10,6 +10,7 @@
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
 
+//! Collection of VTK objects necessary to display a spline in the slicer.
 class iASpline
 {
 public:
@@ -90,9 +91,9 @@ public:
 	}
 
 protected:
-	vtkSmartPointer<vtkPoints>						m_points;			// container for all spline points
-	vtkSmartPointer<vtkActor>						m_splineActor;
-	vtkSmartPointer<vtkPolyDataMapper>				m_splineMapper;
-	vtkSmartPointer<vtkParametricSpline>			m_spline;			// actual spline
-	vtkSmartPointer<vtkParametricFunctionSource>	m_parametricFuncSrc;// source for spline function
+	vtkSmartPointer<vtkPoints> m_points;                              //!< container for all spline points
+	vtkSmartPointer<vtkActor> m_splineActor;
+	vtkSmartPointer<vtkPolyDataMapper> m_splineMapper;
+	vtkSmartPointer<vtkParametricSpline> m_spline;                    //!< actual spline
+	vtkSmartPointer<vtkParametricFunctionSource> m_parametricFuncSrc; //!< source for spline function
 };

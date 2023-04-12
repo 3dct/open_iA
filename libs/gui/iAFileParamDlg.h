@@ -13,8 +13,8 @@
 
 class QWidget;
 
-//! provides a dialog for reading parameters, currently for a given file I/O type
-//! ToDo: check whether it makes sense to use this or something similar for similar purposes,
+//! Provides a dialog for reading parameters, currently for a given file I/O type.
+//! @todo: check whether it makes sense to use this or something similar for similar purposes,
 //! e.g. for asking for filter parameters?
 class iAFileParamDlg
 {

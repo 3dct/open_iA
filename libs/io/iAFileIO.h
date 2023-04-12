@@ -15,8 +15,9 @@
 #include <memory>
 
 
-//! Base class for dataset readers within open_iA
-//! Derived classes loading specific file types can be registered via iAFileTypeRegistry
+//! Base class for dataset readers/writers within the file I/O framework of open_iA.
+//! Derived classes (for loading/saving specific file types) should be registered via iAFileTypeRegistry;
+//! Automatic registration works by using iAAutoRegistration.
 class iAio_API iAFileIO
 {
 public:

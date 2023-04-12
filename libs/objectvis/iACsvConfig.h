@@ -12,7 +12,7 @@
 
 class QSettings;
 
-//! parameters for csv loading configuraton
+//! Holds the configuration parameters for loading a specific csv file format.
 struct iAobjectvis_API iACsvConfig
 {
 	static const QString FCPFiberFormat;

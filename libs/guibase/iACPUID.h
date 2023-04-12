@@ -10,6 +10,7 @@ typedef unsigned __int32  uint32_t;
 #include <cstdint>
 #endif
 
+//! Retrieves and holds information on the CPU the program runs on.
 class iACPUID {
 	uint32_t regs[4];
 

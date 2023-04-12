@@ -111,6 +111,7 @@ private:
 	virtual std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren);
 };
 
+//! Dataset viewer for surface mesh data.
 class iAguibase_API iAMeshViewer : public iADataSetViewer
 {
 public:
@@ -118,6 +119,7 @@ public:
 	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren) override;
 };
 
+//! Dataset viewer for graph data.
 class iAguibase_API iAGraphViewer : public iADataSetViewer
 {
 public:
@@ -125,6 +127,7 @@ public:
 	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren) override;
 };
 
+//! Dataset viewer for simple geometric objects.
 class iAguibase_API iAGeometricObjectViewer : public iADataSetViewer
 {
 public:
@@ -132,7 +135,8 @@ public:
 	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren) override;
 };
 
-//! A "viewer" for project files; special insofar as it overrides createGUI and
+//! A "viewer" for project files.
+//! Special insofar as it overrides createGUI and
 //! doesn't call the one from the base class; meaning the project file dataset
 //! won't get added to the dataset list, the viewer only cares about loading all
 //! datasets in the project

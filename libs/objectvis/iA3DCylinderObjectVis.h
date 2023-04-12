@@ -6,6 +6,9 @@
 
 class iAvtkTubeFilter;
 
+//! Visualizes the objects given in a table as cylinders.
+//!
+//! Requires column mappings for start- and end point as well as for radius in the given object table data.
 class iAobjectvis_API iA3DCylinderObjectVis : public iA3DLineObjectVis
 {
 public:

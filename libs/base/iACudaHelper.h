@@ -4,4 +4,7 @@
 
 #include "iAbase_export.h"
 
+//! Checks whether CUDA is available; two aspects need to be fulfilled:
+//!      - open_iA has to be built with CUDA support,
+//!      - and CUDA has to be available on the system currently running open_iA
 iAbase_API bool isCUDAAvailable();

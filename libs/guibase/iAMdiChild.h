@@ -41,6 +41,7 @@ class QHBoxLayout;
 class QSettings;
 class QSlider;
 
+//! Interface for child windows, used for showing datasets and optional additional tools from the modules.
 class iAguibase_API iAMdiChild : public QMainWindow
 {
 	Q_OBJECT

@@ -24,7 +24,7 @@ class vtkPiecewiseFunction;
 class vtkRenderer;
 class vtkScalarsToColors;
 
-
+//! Class storing required data for visualizing a "channel" (iAChannelData) in a slicer
 class iAguibase_API iAChannelSlicerData
 {
 public:

@@ -147,8 +147,8 @@ iAbase_API int mapReadableDataTypeToVTKType(QString const & dataTypeName);
 iAbase_API QString mapVTKTypeToReadableDataType(int vtkType);
 
 
-// Byte Order handling - is a class mainly for simplifying exporting the two string constants
-class iAbase_API ByteOrder
+//! Byte Order handling - mainly for simplifying exporting string constants for the two possible values
+class iAbase_API iAByteOrder
 {
 public:
 	static const QString BigEndianStr;

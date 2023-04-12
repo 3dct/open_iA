@@ -10,6 +10,9 @@
 
 class QLabel;
 
+//! Shows a dialog specialized for reading parameters of a raw file.
+//! Adds a red/green bar depending on whether the currently specified dimensions
+//! match the size of the raw file.
 class iAguibase_API iARawFileParamDlg : public QObject
 {
 	Q_OBJECT

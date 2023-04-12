@@ -6,6 +6,7 @@
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
+//! Support for loading graph datasets from a simple text-based description for the file I/O framework of open_iA.
 class iAGraphFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAGraphFileIO, iAFileTypeRegistry>
 {
 public:

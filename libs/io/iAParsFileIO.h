@@ -8,6 +8,8 @@
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
+//! Support for loading .pars files for the file I/O framework of open_iA.
+//! Pars file contain reconstruction settings as well as a reference to a raw file with the sinogram.
 class iAio_API iAParsFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAParsFileIO, iAFileTypeRegistry>
 {
 public:

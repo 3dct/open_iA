@@ -83,7 +83,7 @@ std::shared_ptr<iADataSet> iAVGIFileIO::loadData(QString const& fileName, QVaria
 	}
 
 	rawFileParams[iARawFileIO::HeadersizeStr] = vgiFileSettings.value("file1/SkipHeader").toInt();
-	rawFileParams[iARawFileIO::ByteOrderStr] = ByteOrder::LittleEndianStr;
+	rawFileParams[iARawFileIO::ByteOrderStr] = iAByteOrder::LittleEndianStr;
 
 	auto rawFileName = tryFixFileName(vgiFileSettings.value("file1/Name").toString(), QFileInfo(fileName).canonicalPath());
 	iARawFileIO io;

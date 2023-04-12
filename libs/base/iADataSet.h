@@ -20,7 +20,7 @@ class iAProgress;
 class vtkPolyData;
 class vtkImageData;
 
-//! abstract interface for datasets
+//! Abstract interface for datasets.
 class iAbase_API iADataSet
 {
 public:

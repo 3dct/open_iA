@@ -17,6 +17,9 @@ class vtkColorTransferFunction;
 class vtkLookupTable;
 class vtkPiecewiseFunction;
 
+//! Class for creating lookup tables from color maps.
+//! Has static helper functions to create vtkLookupTable, vtkPiecewiseFunction or iALookupTable instances with a given colormap.
+//! The colormaps are loaded at program startup via iALUT::loadMaps.
 class iAcharts_API iALUT
 {
 public:

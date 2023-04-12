@@ -9,6 +9,9 @@ class vtkAxisActor2D;
 class vtkPropCollection;
 class vtkWindow;
 
+//! An actor for visualizing a ruler in the slicer.
+//! Displays either a vertical or horizontal ruler using a vtkAxisActor2D,
+//! depending on the aspect ratio of the widget.
 class iARulerActor : public vtkProp
 {
 public:
@@ -109,7 +112,8 @@ protected:
   int    BottomBorderOffset;
   double CornerOffsetFactor;
 
-  //! @{ The axes around the borders of the renderer
+  //! @{
+  //! vertical (left) / horizontal (bottom) axis; only one of the two is shown at a time, depending on the widget's aspect ratio
   vtkAxisActor2D *LeftAxis;
   vtkAxisActor2D *BottomAxis;
   //! @}

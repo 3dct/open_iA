@@ -82,8 +82,7 @@ size_t getCurrentRSS( )
 #endif
 }
 
-// class iAPerformanceTimer
-
+//! internal data encapsulation class for iAPerformanceTimer (PIMPL idiom).
 class iAPerfTimerImpl
 {
 public:
@@ -133,7 +132,7 @@ iAPerformanceTimer::DurationType iATimeAdder::elapsed() const
 }
 
 
-// class iAPerformanceHelper
+//! internal data encapsulation class for iAPerformanceHelper (PIMPL idiom).
 class iAPerfHelperImpl
 {
 public:

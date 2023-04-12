@@ -8,7 +8,7 @@ class vtkImageData;
 
 class QString;
 
-
+//! Encapsulates loading and storing (uncompressed) volumes from/to the Amira mesh format.
 class iAAmiraMeshIO
 {
 public:

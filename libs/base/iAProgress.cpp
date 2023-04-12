@@ -7,6 +7,7 @@
 
 #include <itkProcessObject.h>
 
+//! Helper class for forwarding progress events in VTK (where the observer pattern is used) to an iAProgress object.
 class iAvtkCommand : public vtkCommand
 {
 public:

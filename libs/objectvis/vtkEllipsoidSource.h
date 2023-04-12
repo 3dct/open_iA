@@ -30,6 +30,7 @@ class vtkSphereSource;
 
 #define VTK_MAX_SPHERE_RESOLUTION 1024
 
+//! An ellispoid mesh source from https://github.com/daviddoria/vtkEllipsoidSource.git
 class vtkEllipsoidSource : public vtkPolyDataAlgorithm
 {
 public:

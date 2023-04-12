@@ -11,6 +11,8 @@
 
 class iAProgress;
 
+//! Helper class for forwarding progress events in ITK (where the observer pattern is used) to an iAProgress object.
+//! @todo hide from iAProgress users (maybe via PIMPL idiom)
 class iAitkCommand : public itk::Command
 {
 public:

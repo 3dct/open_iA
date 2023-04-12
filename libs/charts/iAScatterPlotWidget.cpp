@@ -28,6 +28,7 @@ iAScatterPlotPointInfo::~iAScatterPlotPointInfo()
 {
 }
 
+//! Default implementation of scatter plot point information - print x,y values and parameter names.
 class iADefaultScatterPlotPointInfo : public iAScatterPlotPointInfo
 {
 public:

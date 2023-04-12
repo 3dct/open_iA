@@ -8,7 +8,7 @@
 
 //! An image which allows the user to specify min/max of scalar range.
 //! Required e.g. in situations where the scalar range of the raw image data
-//! is modified behind VTK's back (e.g. by settings pixels via drawPixel method)
+//! is modified behind VTK's back (e.g. by setting pixels via drawPixel method)
 class iAbase_API iAvtkImageData : public vtkImageData
 {
 public:

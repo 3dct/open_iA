@@ -4,6 +4,7 @@
 
 #include <itkImageToImageFilter.h>
 
+//! Given a number of input images, compute a final classification based on first and second best guess.
 template< typename TInputImage, typename TOutputImage = TInputImage >
 class iAUndecidedPixelClassifierImageFilter :
 	public itk::ImageToImageFilter< TInputImage, TOutputImage >
@@ -91,6 +92,4 @@ private:
 	bool m_uncertaintyTieSolver;
 };
 
-#ifndef ITK_MANUAL_INSTANTIATION
 #include "iAUndecidedPixelClassifierImageFilter.hxx"
-#endif

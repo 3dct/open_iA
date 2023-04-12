@@ -12,8 +12,8 @@ class iAMapper;
 
 class QPainter;
 
-//! Interface for a function which is drawable in a chart.
-//! Encapsulates both the data of the function and the drawing method
+//! Interface for a plot which is drawable in a chart.
+//! Encapsulates both the data of the plot and the drawing method
 class iAcharts_API iAPlot
 {
 public:

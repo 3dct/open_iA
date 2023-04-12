@@ -6,6 +6,8 @@
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
+//! Support for loading .nkc files for the file I/O framework of open_iA.
+//! Description of ultrasound measurements, including a reference to a file containig binary data.
 class iANKCFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iANKCFileIO, iAFileTypeRegistry>
 {
 public:

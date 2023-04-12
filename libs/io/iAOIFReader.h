@@ -17,7 +17,7 @@ class vtkImageData;
 class QString;
 
 
-//! Helper class for reading .oif files. Adapted from FluoRenderer code
+//! Helper class for reading Olympus image files (.oif). Adapted from FluoRenderer code.
 class iAOIFReaderHelper
 {
 protected:

@@ -8,7 +8,7 @@
 
 class vtkPolyDataAlgorithm;
 
-//! a geometric object produced by some VTK algorithm such as the various sources
+//! A geometric object produced by some VTK algorithm such as the various sources.
 class iAbase_API iAGeometricObject : public iADataSet
 {
 public:

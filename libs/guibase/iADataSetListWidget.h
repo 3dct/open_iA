@@ -11,7 +11,7 @@ class iADataSet;
 class QTableWidget;
 class QTableWidgetItem;
 
-//! A list of datasets
+//! A widget containing a list of datasets.
 class iAguibase_API iADataSetListWidget : public QWidget
 {
 	Q_OBJECT

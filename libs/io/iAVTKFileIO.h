@@ -6,6 +6,7 @@
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
+//! Support for loading .vtk files for the file I/O framework of open_iA.
 class iAVTKFileIO : public iAFileIO , private iAAutoRegistration<iAFileIO, iAVTKFileIO, iAFileTypeRegistry>
 {
 public:

@@ -8,6 +8,8 @@
 
 #include <vector>
 
+//! Fills a vector-based table with values from a .csv file.
+//! To be used in conjunction with iACsvIO::loadCSV; creates an std::vector of std::vectors of type double
 class iAobjectvis_API iACsvVectorTableCreator : public iACsvTableCreator
 {
 public:
@@ -19,6 +21,6 @@ public:
 	TableType const & table();
 	QStringList const& header();
 private:
-	QStringList m_header;
+	QStringList m_header; //!< column names
 	TableType m_values;   //!< output values
 };

@@ -7,6 +7,7 @@
 class iARulerActor;
 class iARulerRepresentation;
 
+//! Widget for visualizing a ruler in the slicer.
 class iARulerWidget : public vtkBorderWidget
 {
 public:

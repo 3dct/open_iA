@@ -6,6 +6,7 @@
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
+//! Support for loading/saving files via ITK (https://itk.org/Wiki/ITK/File_Formats) for the file I/O framework of open_iA.
 class iAITKFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAITKFileIO, iAFileTypeRegistry>
 {
 public:

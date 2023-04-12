@@ -27,7 +27,6 @@ class vtkTable;
 
 class iAFAQSplom;
 struct iASelection;
-class iASPMSettings;
 
 class iAMainWindow;
 class iAQVTKWidget;

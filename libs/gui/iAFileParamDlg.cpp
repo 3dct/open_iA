@@ -79,7 +79,7 @@ bool iAFileParamDlg::getParameters(QWidget* parent, iAFileIO const* io, iAFileIO
 	return true;
 }
 
-
+//! Dialog for retrieving parameters for the raw file I/O.
 class iANewRawFileLoadParamDlg : public iAFileParamDlg
 {
 public:
@@ -98,6 +98,7 @@ public:
 	}
 };
 
+//! Dialog for retrieving parameters for the image stack file I/O.
 class iAImageStackLoadParamDlg: public iAFileParamDlg
 {
 

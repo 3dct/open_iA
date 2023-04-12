@@ -8,6 +8,8 @@
 
 class QTableWidget;
 
+//! Fills a QTableWidget with values from a .csv file.
+//! To be used in conjunction with iACsvIO::loadCSV
 class iAobjectvis_API iACsvQTableCreator : public iACsvTableCreator
 {
 public:

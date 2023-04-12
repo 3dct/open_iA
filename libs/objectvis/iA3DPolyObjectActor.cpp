@@ -11,6 +11,10 @@
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 
+//! Listener class helping to prevent access to deleted renderers.
+//! Used in iA3DPolyObjectActor to detect when the renderer this actor is attached to
+//! gets deleted. In that case, the internal renderer pointer is set to nullptr to
+//! avoid an invalid access to the deleted renderer.
 class iARenderDeleteListener : public vtkCommand
 {
 public:
@@ -24,7 +28,7 @@ public:
 	}
 	void Execute(vtkObject*, unsigned long, void*) override
 	{
-		m_objActor->clearRenderer();;
+		m_objActor->clearRenderer();
 	}
 private:
 	iA3DObjectActor* m_objActor;

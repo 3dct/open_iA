@@ -71,7 +71,7 @@ std::shared_ptr<iADataSet> iAParsFileIO::loadData(QString const& fileName, QVari
 
 	// default values for things not configurable in pars file:
 	rawFileParams[iARawFileIO::HeadersizeStr] = 0;
-	rawFileParams[iARawFileIO::ByteOrderStr] = ByteOrder::LittleEndianStr;
+	rawFileParams[iARawFileIO::ByteOrderStr] = iAByteOrder::LittleEndianStr;
 	rawFileParams[iARawFileIO::OriginStr] = QVariant::fromValue(QVector<double>{0.0, 0.0, 0.0});
 
 	auto rawFileName = tryFixFileName(fileSettings["proj_filename_template_1"], QFileInfo(fileName).canonicalPath());

@@ -6,6 +6,7 @@
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
+//! Amira mesh support for the file I/O framework of open_iA.
 class iAAmiraVolumeFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAAmiraVolumeFileIO, iAFileTypeRegistry>
 {
 public:

@@ -11,7 +11,7 @@ class QString;
 
 using iAFileIOCreateFuncPtr = std::shared_ptr<iAFileIO>(*)();
 
-//! Registry for file types (of type iAFileIO).
+//! Registry for file types (of type iAFileIO) with the file I/O framework of open_iA.
 class iAio_API iAFileTypeRegistry final
 {
 public:

@@ -38,6 +38,7 @@ class vtkFloatArray;
 class vtkPointData;
 class vtkPoints;
 
+//! A tube filter for polylines, extending vtkTubeFilter by some options on how to vary radius.
 class iAvtkTubeFilter : public vtkPolyDataAlgorithm
 {
 public:

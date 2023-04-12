@@ -55,6 +55,10 @@
 
 #include "iAqthelper_export.h"
 
+//! A flow layout, where items are arranged horizontally in rows.
+//! Items are typically all placed in a single row, horizontally next to each other.
+//! When the items do not fit all into a single row, they flow over into additional
+//! rows.
 class iAqthelper_API iAQFlowLayout : public QLayout
 {
 public:

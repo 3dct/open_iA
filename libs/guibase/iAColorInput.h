@@ -9,9 +9,9 @@
 #include <QToolButton>
 #include <QWidget>
 
-//! Input line for a color value; with a text box, an indicator and a button for opening a color chooser
-//! Currently only used in iAParameterDialog. If used somewhere else, extract method
-//! definitions to separate .cpp file to avoid according errors
+//! Input for a color value, combining a text box, a color indicator and a chooser button.
+//! Currently only used in iAParameterDialog. If used somewhere else, method
+//! definitions should be extracted to separate .cpp file to avoid according errors
 class iAColorInput : public QWidget
 {
 	Q_OBJECT

@@ -12,8 +12,10 @@ class QString;
 
 //! Base class for all tools; a tool is some collection of user interface elements that provides additional visualization or computation capabilities.
 //! Typical ways how iATool is used/created:
-//!     - a new iATool-derived class is created
-//!     - if state is available, the loadState method is called (@see loadState)
+//! <ul>
+//!     <li>a new iATool-derived class is created</li>
+//!     <li>if state is available, the loadState method is called (@see loadState)</li>
+//! </ul>
 class iAguibase_API iATool
 {
 public:

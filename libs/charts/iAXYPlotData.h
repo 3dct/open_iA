@@ -11,6 +11,7 @@
 #include <utility> // for pair
 #include <vector>
 
+//! Holds data of a plot in the form of (x,y) value pairs.
 class iAcharts_API iAXYPlotData : public iAPlotData
 {
 public:

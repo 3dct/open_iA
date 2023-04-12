@@ -12,7 +12,7 @@
 
 class QString;
 
-//! A simple (qualitative) color theme. Holds a number of colors (which can be distinguished easily)
+//! Interface for (qualitative) color themes. Holds a number of colors (which can be distinguished easily)
 class iAbase_API iAColorTheme
 {
 public:
@@ -28,6 +28,7 @@ private:
 	QString m_name;
 };
 
+//! Simple implementation of a color theme, storing the colors in a vector.
 class iAbase_API iAVectorColorTheme: public iAColorTheme
 {
 public:
@@ -41,6 +42,7 @@ private:
 	static QColor ErrorColor;
 };
 
+//! Simplest possible color scheme: only one single color for all items.
 class iAbase_API iASingleColorTheme : public iAColorTheme
 {
 public:
@@ -51,10 +53,10 @@ private:
 	QColor m_color;
 };
 
-//! Manager for color themes. Internally creates the qualitative color themes from
-//! Color Brewer (http://mkweb.bcgsc.ca/brewer/swatches/brewer.txt) as well as from
-//! a few other sources and provides access to their names as well as the single
-//! themes.
+//! Manager for color themes (iAColorTheme).
+//! Internally creates the qualitative color themes from Color Brewer
+//! (http://mkweb.bcgsc.ca/brewer/swatches/brewer.txt) as well as from a few other
+//! sources and provides access to their names as well as the single themes.
 class iAbase_API iAColorThemeManager
 {
 public:

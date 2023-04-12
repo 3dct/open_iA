@@ -22,6 +22,7 @@ enum transformationMode
 	z
 };
 
+//! interactor style enabling the manual registration of objects in slicer and 3D renderer.
 class iAvtkInteractStyleActor : public QObject, public vtkInteractorStyleTrackballActor
 {
 	Q_OBJECT

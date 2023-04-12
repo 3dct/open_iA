@@ -6,7 +6,7 @@
 
 #include <QObject>  // for Q_DISABLE_COPY_MOVE
 
-//! A logger whose output is written to standard output.
+//! A logger writing its output to standard output.
 class iALoggerStdOut : public iALogger
 {
 public:

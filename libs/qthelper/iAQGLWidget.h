@@ -6,4 +6,5 @@
 
 #include <QSurfaceFormat>
 
+//! default surface format for OpenGL widgets
 iAqthelper_API QSurfaceFormat defaultQOpenGLWidgetFormat();

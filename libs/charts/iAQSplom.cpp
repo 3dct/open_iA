@@ -3,18 +3,19 @@
 #include "iAQSplom.h"
 
 #include "iAChartWidget.h"
+#include "iAHistogramData.h"
+#include "iALUT.h"
+#include "iAPlotTypes.h"
+#include "iAScatterPlot.h"
+#include "iASPLOMData.h"
+#include "ui_SPMSettings.h"
+
 #include "iAColorTheme.h"
 #include "iALog.h"
-#include "iAHistogramData.h"
 #include "iALookupTable.h"
-#include "iALUT.h"
 #include "iAMathUtility.h"
-#include "iAPlotTypes.h"
 #include "iAQGLWidget.h"
-#include "iAScatterPlot.h"
 #include "iASettings.h"    // for mapFromQSettings
-#include "iASPLOMData.h"
-#include "iASPMSettings.h"
 #include "iAStringHelper.h"
 
 #include <vtkLookupTable.h>
@@ -62,6 +63,17 @@ namespace
 	const QString CfgKeyVisibleParameters("SPM/VisibleParameters");
 	const QString CfgKeyMaximizedPlot("SPM/MaximizedPlot");
 }
+
+//! Dialog for scatter plot matrix settings
+class iASPMSettingsDlg : public QDialog, public Ui_SPMSettings
+{
+public:
+	iASPMSettingsDlg(QWidget* parent = nullptr) : QDialog(parent)
+	{
+		setupUi(this);
+	}
+};
+
 
 iAQSplom::Settings::Settings() :
 	plotsSpacing(7),
@@ -200,7 +212,7 @@ iAQSplom::iAQSplom(QWidget * parent):
 	m_separationIdx(-1),
 	m_bgColorTheme(iAColorThemeManager::instance().theme("White")),
 	m_contextMenu(new QMenu(this)),
-	m_settingsDlg(new iASPMSettings(this))
+	m_settingsDlg(new iASPMSettingsDlg(this))
 {
 #ifdef CHART_OPENGL
 	auto fmt = defaultQOpenGLWidgetFormat();

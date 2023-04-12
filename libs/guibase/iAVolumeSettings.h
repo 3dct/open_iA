@@ -4,6 +4,7 @@
 
 #include "iAguibase_export.h"
 
+//! Volume rendering settings.
 //! @deprecated to be removed soon, replaced by iADataSetRenderer / iAVolumeRenderer settings (see m_attributes member)
 class iAguibase_API iAVolumeSettings
 {

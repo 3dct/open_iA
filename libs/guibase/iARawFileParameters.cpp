@@ -21,7 +21,7 @@ QVariantMap rawParamsToMap(iARawFileParameters const& p)
 	result["Origin"] = variantVector<double>({ p.m_origin[0], p.m_origin[1], p.m_origin[2] });
 	result["Headersize"] = p.m_headersize;
 	result["DataType"] = mapVTKTypeToReadableDataType(p.m_scalarType);
-	result["ByteOrder"] = ByteOrder::mapVTKTypeToString(p.m_byteOrder);
+	result["ByteOrder"] = iAByteOrder::mapVTKTypeToString(p.m_byteOrder);
 	return result;
 }
 
@@ -33,6 +33,6 @@ iARawFileParameters rawParamsFromMap(QVariantMap const& map)
 	setFromVectorVariant<double>(result.m_origin, map["Origin"]);
 	result.m_headersize = map["Headersize"].toULongLong();
 	result.m_scalarType = mapReadableDataTypeToVTKType(map["Data Type"].toString());
-	result.m_byteOrder = ByteOrder::mapStringToVTKType(map["Byte Order"].toString());
+	result.m_byteOrder = iAByteOrder::mapStringToVTKType(map["Byte Order"].toString());
 	return result;
 }

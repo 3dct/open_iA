@@ -8,6 +8,10 @@
 
 class vtkPolyData;
 
+//! Visualizes the objects given in a table as ellipses.
+//!
+//! Requires column mappings for center point coordinates and a dimension in each
+//! 3D direction in the given object table data
 class iAobjectvis_API iA3DEllipseObjectVis : public iA3DColoredPolyObjectVis
 {
 public:

@@ -9,9 +9,11 @@
 #include <QRadioButton>
 #include <QSettings>
 
-// To be able to put non-QObject derived class in iAWidgetMap
+//! Helper class to be able to put non-QObject class QVector<QCheckBox> in a iAWidgetMap
 class iAQCheckBoxVector : public QObject, public QVector<QCheckBox*> { };
+//! Helper class to be able to put non-QObject class QVector<QRadioButton> in a iAWidgetMap
 class iAQRadioButtonVector : public QObject, public QVector<QRadioButton*> { };
+//! Helper class to be able to put non-QObject class QVector<QLineEdit> in a iAWidgetMap
 class iAQLineEditVector : public QObject, public QVector<QLineEdit*> { };
 
 using iAWidgetMap = QMap<QString, QObject*>;

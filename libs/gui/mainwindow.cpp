@@ -2358,6 +2358,9 @@ void MainWindow::loadTLGICTData(QString const & baseDirectory)
 #include <QPainter>
 #include <QProxyStyle>
 
+//! An application style used to override certain aspects of the user interface.
+//! Specifically, to disable the tooltip delay in iAChartWidget and descendants,
+//! and for drawing nice-looking MDI child control buttons in the menu bar on maximized child windows
 class iAProxyStyle : public QProxyStyle
 {
 public:

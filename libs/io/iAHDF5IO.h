@@ -14,6 +14,7 @@
 #define H5_USE_110_API
 #include <hdf5.h>
 
+//! Support for loading/saving images from/to HDF5 files (https://www.hdfgroup.org/solutions/hdf5/) for the file I/O framework of open_iA.
 class iAio_API iAHDF5IO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAHDF5IO, iAFileTypeRegistry>
 {
 public:

@@ -12,6 +12,7 @@ class iADataCollection;
 class iAMultiStepProgressObserver;
 class MdiChild;
 
+//! Helper for loading Talbot-Lau Grating Interferometry (TLGI) Computed Tomography (CT) image stacks.
 class iATLGICTLoader : public QThread
 {
 	Q_OBJECT

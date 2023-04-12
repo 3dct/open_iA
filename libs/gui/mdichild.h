@@ -60,8 +60,8 @@ class iADockWidgetWrapper;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>  dlg_renderer;
 
-//! Child window of MainWindow's mdi area for showing a volume or mesh dataset.
-//! Some tools in the modules attach to MdiChild's to enhance their functionality.
+//! Child window of MainWindow's mdi area for showing datasets and visualizations.
+//! Most tools in the modules can be added to MdiChild to extend its functionality.
 class iAgui_API MdiChild : public iAMdiChild, public Ui_Mdichild, public iASavableProject
 {
 	Q_OBJECT

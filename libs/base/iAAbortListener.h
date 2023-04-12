@@ -4,14 +4,14 @@
 
 #include "iAbase_export.h"
 
+//! An interface for aborting operations.
 class iAbase_API iAAbortListener
 {
 public:
 	virtual void abort() =0;
 };
 
-//! a simple implementation of an iAAbortListener -
-//! it holds a boolean flag that is set by the abort method.
+//! Simplest implementation of an iAAbortListener, it holds a boolean flag that is set by the abort method.
 //! Users can determine whether abort was called through the isAborted method
 //! Implementation can be found in iAJobListView.cpp
 class iAbase_API iASimpleAbortListener : public iAAbortListener

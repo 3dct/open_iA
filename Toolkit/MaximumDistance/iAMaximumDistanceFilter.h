@@ -6,6 +6,7 @@
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkImageRegionConstIterator.h>
 
+//! Segmentation based on maximum distance of peaks in histogram
 template <class TImageType>
 class iAMaximumDistanceFilter :
 	public itk::ImageToImageFilter<TImageType, TImageType>
@@ -71,6 +72,4 @@ private:
 	ImageConstPointer m_inImage;
 };
 
-#ifndef ITK_MANUAL_INSTANTIATION
 #include "iAMaximumDistanceFilter.txx"
-#endif

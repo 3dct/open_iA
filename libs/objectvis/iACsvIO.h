@@ -20,8 +20,8 @@
 
 class QTextStream;
 
-//! interface used by iACsvIO for creating the actual table
-//! subclass for each kind of table that is specifically required somewhere
+//! Interface used by iACsvIO for creating a actual table from .csv data.
+//! Subclass for each kind of table that is specifically required somewhere
 //! (e.g. vtkTable, QTableWidget)
 //! @see iACsvVtkTableCreator, iACsvQTableCreator
 class iACsvTableCreator
@@ -31,7 +31,7 @@ public:
 	virtual void addRow(size_t row, std::vector<double> const & values) = 0;
 };
 
-//! class for reading a csv into a table, using given options
+//! Class for reading a csv file into a table, using given options.
 class iAobjectvis_API iACsvIO
 {
 public:

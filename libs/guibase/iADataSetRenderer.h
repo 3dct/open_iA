@@ -17,7 +17,7 @@ class vtkPlane;
 class vtkProp3D;
 class vtkRenderer;
 
-//! abstract interface for a class for 3D rendering of a dataset (in an iARenderer)
+//! Abstract interface for 3D renderers of a dataset (in an iARenderer).
 class iAguibase_API iADataSetRenderer
 {
 public:

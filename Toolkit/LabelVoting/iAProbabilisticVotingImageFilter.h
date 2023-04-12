@@ -13,6 +13,7 @@ enum VotingRule
 	MajorityVoteRule		// includes weighted voting, use SetWeights
 };
 
+//! Filter implementing probabilistic voting based on a given voting rule
 template< typename TInputImage, typename TOutputImage = TInputImage >
 class iAProbabilisticVotingImageFilter :
 	public itk::ImageToImageFilter< TInputImage, TOutputImage >

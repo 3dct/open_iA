@@ -26,6 +26,7 @@ QVariant variantVector(std::initializer_list<T> s)
 	return QVariant::fromValue(QVector<T>(s));
 }
 
+//! Create a QVariant with a QVector<T> (first templated type) from an array d with n elements
 template <typename T>
 QVariant variantVector(T const* d, int n)
 {

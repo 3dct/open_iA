@@ -4,6 +4,11 @@
 
 #include <QObject>
 
+//! A progress indicator for the command line, printing to standard out.
+//! Prints end markers and dots marking the current progress, such as:
+//!     |----------|
+//!      .....
+//! for a progress of 50%
 class iACommandLineProgressIndicator : public QObject
 {
 	Q_OBJECT

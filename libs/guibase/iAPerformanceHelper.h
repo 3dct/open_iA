@@ -13,6 +13,7 @@ class iAPerfTimerImpl;
 //! Class for simple performance measurements.
 //! Holds a reference start time and allows to retrieve the time elapsed since
 //! that time
+//! @deprecated use QElapsedTimer instead
 class iAguibase_API iAPerformanceTimer
 {
 public:
@@ -38,7 +39,7 @@ private:
 };
 
 
-//! class for adding up intervals of time
+//! Class for adding up intervals of time.
 //! one example use case is if you have a long running procedure with many steps,
 //! but only want to measure the contribution of some of the steps; e.g.:
 //! do {
@@ -68,7 +69,7 @@ private:
 
 class iAPerfHelperImpl;
 
-//! Class for debug output about start and end of an operation
+//! Class for debug output about start and end of an operation.
 //! call start() to print start message
 //! call stop() to print stop message + time
 //! call time() in between to show lap times
@@ -91,20 +92,20 @@ private:
 	iAPerfHelperImpl*     m_pImpl;
 };
 
-//! Simple performance helper class following RAII principle:
-//! Instantiate to start timer, destroy to stop timer
-//! prints to debug console
+//! Simple performance helper class following RAII principle.
+//! Instantiate to start timer, destroy to stop timer;
+//! prints to log window
 class iAguibase_API iATimeGuard
 {
 public:
 	//! Starts measuring and writes according message (and optionally memory.
-	//! usage) to the debug console
+	//! usage) to the log window
 	iATimeGuard(std::string const & caption = "", bool printMemUsage = true);
 	//! output an intermediate time with an optional caption
 	void time(std::string const & caption = "");
 	iAPerformanceTimer::DurationType elapsed() const;
 	//! destructor, stops timer and outputs duration (and optionally memory
-	//! usage) to the debug console
+	//! usage) to the log window
 	~iATimeGuard();
 private:
 	iAPerformanceHelper m_perfHelper;

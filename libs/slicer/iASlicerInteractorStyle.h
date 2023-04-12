@@ -11,9 +11,9 @@ class vtkActor2D;
 class vtkPolyData;
 class vtkPolyDataMapper2D;
 
-//! Separates Qt signal out from iASlicerInteractorStyle, to avoid iASlicerInteractorStyle being moc'ed
-//! directly; the mix of deriving from QObject and the Q_OBJECT declaration with the vtk way of object
-//! inheritance causes problems, a least with Qt 6:
+//! Separates Qt signals from iASlicerInteractorStyle.
+//! This avoids iASlicerInteractorStyle being moc'ed directly; the mix of deriving from QObject and the
+//! Q_OBJECT declaration with the vtk way of object inheritance causes problems, a least with Qt 6:
 //! qmetatype.h(2250,1): error C2660: 'vtkObject::operator new': function does not take 3 arguments
 class iASlicerInteractionEvents: public QObject
 {
@@ -29,9 +29,14 @@ private:
 	void triggerSliceChange(int direction);
 };
 
-//! Custom interactor style for slicers, disabling some interactions from vtkInteractorStyleImage
-//! (e.g. rotation via ctrl+drag, window/level adjustments if not explicitly enabled), and adding
-//! a transfer function by region mode.
+//! Custom interactor style for slicers, changing some interactions from vtkInteractorStyleImage.
+//! Changed interactions:
+//! <ul>
+//!   <li>Disables rotation via ctrl+drag</li>
+//!   <li>Disables window/level adjustments (unless explicitly enabled)</li>
+//!   <li>Option to disables right mouse button zooming (e.g. when context menu is used)</li>
+//!   <li>Adds region selection (used to create a transfer function with optimal contrast for the selected region)</li>
+//! </ul>
 class iASlicerInteractorStyle: public vtkInteractorStyleImage
 {
 public:

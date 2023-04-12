@@ -3,6 +3,7 @@
 #pragma once
 
 //! Settings for vtkRenderer, and helpers defined in iARenderer.
+//! @deprecated to be removed soon, replaced by iADataSetRenderer / iAVolumeRenderer settings (see m_attributes member)
 class iARenderSettings
 {
 public:

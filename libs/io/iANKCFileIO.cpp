@@ -77,7 +77,7 @@ std::shared_ptr<iADataSet> iANKCFileIO::loadData(QString const& fileName, QVaria
 	rawFileParamValues[iARawFileIO::SpacingStr] = variantVector<double>({ 1.0, 1.0, 1.0 });
 	rawFileParamValues[iARawFileIO::OriginStr] = variantVector<double>({ 0.0, 0.0, 0.0 });
 	rawFileParamValues[iARawFileIO::SizeStr] = QVariant::fromValue(size);
-	rawFileParamValues[iARawFileIO::ByteOrderStr] = ByteOrder::BigEndianStr;
+	rawFileParamValues[iARawFileIO::ByteOrderStr] = iAByteOrder::BigEndianStr;
 	rawFileParamValues[iARawFileIO::DataTypeStr] = mapVTKTypeToReadableDataType(VTK_TYPE_UINT16);
 	rawFileParamValues[iARawFileIO::HeadersizeStr] = file.size() - (2ull * size[0] * size[1]);
 	auto d = io.load(fileName, rawFileParamValues, progress);

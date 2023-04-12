@@ -25,7 +25,7 @@ class iATransferFunction;
 class iATransferFunctionOwner;
 class iAVolumeRenderer;
 
-//! Class for managing all viewing aspects of volume datasets (3D renderer, slicers, histogram, line profile)
+//! Class for managing all viewing aspects of volume datasets (3D renderer, slicers, histogram, line profile).
 class iAguibase_API iAVolumeViewer : public iADataSetViewer
 {
 public:

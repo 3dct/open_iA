@@ -4,6 +4,7 @@
 
 #include <QToolBar>
 
+//! Helper for using .ui file
 template <typename QtContainerType, typename uiType>
 class iAQTtoUIConnector : public QtContainerType, public uiType
 {
@@ -14,6 +15,7 @@ public:
 	}
 };
 
+//! Helper for using a .ui file, specifically for modelling a QToolBar.
 template <typename uiType>
 class iAQTtoUIConnector<QToolBar, uiType> : public QToolBar, public uiType
 {

@@ -6,6 +6,7 @@
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
+//! Support for loading and saving .vti files for the file I/O framework of open_iA.
 class iAVTIFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAVTIFileIO, iAFileTypeRegistry>
 {
 public:

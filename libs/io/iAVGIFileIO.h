@@ -6,6 +6,7 @@
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
+//! Support for loading .vgi files for the file I/O framework of open_iA.
 class iAVGIFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAVGIFileIO, iAFileTypeRegistry>
 {
 public:

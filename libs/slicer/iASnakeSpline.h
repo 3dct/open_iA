@@ -7,6 +7,7 @@
 
 typedef std::vector<iADiskData*> disc_vector;
 
+//! Visualize a snake spline (for snake slicer - currently not fully working!) across the slicer.
 class iASnakeSpline
 {
 public:

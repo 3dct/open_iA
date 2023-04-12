@@ -8,8 +8,7 @@
 
 class iATransferFunction;
 
-//! Class for loading and storing settings to/from XML documents.
-//! transfer functions
+//! Class for loading and storing settings (transfer functions) to/from XML documents.
 class iAbase_API iAXmlSettings
 {
 private:

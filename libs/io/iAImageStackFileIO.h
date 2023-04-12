@@ -8,7 +8,8 @@
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
 
-// TODO NEWIO: merge with modules/MetaFilters/iAStackReaderFilter ?
+//! Support for loading/saving image stack files for the file I/O framework of open_iA.
+//! @todo merge with modules/MetaFilters/iAStackReaderFilter ?
 class iAio_API iAImageStackFileIO : public iAFileIO, private iAAutoRegistration<iAFileIO, iAImageStackFileIO, iAFileTypeRegistry>
 {
 public:

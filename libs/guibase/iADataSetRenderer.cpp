@@ -17,6 +17,7 @@
 
 #include <QColor>
 
+//! Holds VTK classes necessary for viewing an outline for a given box.
 class iAOutlineImpl
 {
 public:

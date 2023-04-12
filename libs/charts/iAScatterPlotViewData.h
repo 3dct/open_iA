@@ -16,10 +16,9 @@
 
 class iASPLOMData;
 
-//! Class providing details on the current viewing configuration
-//! to a scatterplot or a scatterplot matrix (iAScatterPlotWidget or iAQSplom).
-//! This includes details on the current selection, highlight,
-//! mouse hover animation, and lines connecting points.
+//! Class providing details on the current viewing configuration of a scatterplot.
+//! Works with both a single scatterplot or a scatterplot matrix (iAScatterPlotWidget or iAQSplom).
+//! This includes details on the current selection, highlight, mouse hover animation, and lines connecting points.
 class iAcharts_API iAScatterPlotViewData : public QObject
 {
 	Q_OBJECT

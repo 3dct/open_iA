@@ -27,7 +27,7 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 
 	QStringList datatypeList(readableDataTypeList(false));
 	selectOption(datatypeList, paramValues[iARawFileIO::DataTypeStr].toString());
-	QStringList byteOrderList(ByteOrder::stringList());
+	QStringList byteOrderList(iAByteOrder::stringList());
 	selectOption(byteOrderList, paramValues[iARawFileIO::ByteOrderStr].toString());
 	iAAttributes params;
 	// duplication to iARawFileIO!

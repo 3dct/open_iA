@@ -6,6 +6,7 @@
 
 #include <QString>
 
+//! Types of objects currently supported by the object visualization framework.
 enum iAObjectType
 {
 	InvalidObjectType = -1,
@@ -14,5 +15,7 @@ enum iAObjectType
 	Other
 };
 
+//! Map a value from iAObjectType to a string representation for display to the user.
 iAobjectvis_API QString MapObjectTypeToString(int objectType);
+//! Map a string value to the corresponding iAObjectType.
 iAobjectvis_API iAObjectType MapStringToObjectType(QString const& objectTypeName);

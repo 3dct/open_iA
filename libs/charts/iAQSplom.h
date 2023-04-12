@@ -24,7 +24,7 @@ class iAColorTheme;
 class iALookupTable;
 class iAScatterPlot;
 class iASPLOMData;
-class iASPMSettings;
+class iASPMSettingsDlg;
 
 class vtkLookupTable;
 
@@ -34,45 +34,45 @@ class QMenu;
 class QSettings;
 
 //! A scatter plot matrix (SPLOM) widget.
-/*!
-	Multidimensional data points are shown using a grid of 2D scatter plots for each pair of dimensions.
-	Each plot is interactive and user-transformations such as scaling and translating
-	are possible using mouse wheel and right-button dragging correspondingly.
-	When 'R' key is pressed all the transformations are reset to default.
-	The user can also hover over points of any plot, to see a popup with detailed information about the point.
-	When hovering over a point, it will be highlighted in all plots to allow interactive exploration.
-	Any parameter of the data can be color-coded using a lookup table.
-	Any scatter plot from an upper matrix triangle can be maximized by clicking a button in the upper-right corner.
-	The maximized plot can be minimized by using a button in upper-right corner.
-	Inherits Q[Open]GLWidget,manages scatter plots internally.
-	Some customization options are available via the public settings member.
-
-	Usage:
-	- Create iAQSPLOM
-	- add to a window/widget, make visible
-	- set some data (using one of the setData methods)
-	- set a lookup table for dot colors (setLookupTable)
-	- (optional:) set the parameter visibility (by default, all parameters are visible
-	- (optional:)
-
-	Example (visibleWidget is some widget, currently shown, with a layout):
-		iAQSplom* splom = new iAQSplom();
-		visibleWidget->layout()->addWidget(splom);
-		// ... you might want enable Qt to process a paint event here, to make sure the OpenGL context is created
-		QSharedPoiner<iASPLOMData> splomData = createSPLOMDataSomehow();
-		splom->setData(splomData);
-		iALookupTable lut;
-		// we assume here you want all points colored in a middle gray; we set up a color lookoup table
-		// over all values of column 0, and set the same color for the whole range
-		// if you want to color the dots by an actual column value, adapt this to your own needs!
-		lut.setRange( splomData->paramRange(0) );
-		lut.allocate(2);
-		QColor CustomDotColor(128, 128, 128)
-		lut.setColor( 0, CustomDotColor );
-		lut.setColor( 1, CustomDotColor );
-		splom->setLookupTable( lut, 0 );
-*/
-
+//! Multidimensional data points are shown using a grid of 2D scatter plots for each pair of dimensions.
+//! Each plot is interactive and user-transformations such as scaling and translating
+//! are possible using mouse wheel and right-button dragging correspondingly.
+//! When 'R' key is pressed all the transformations are reset to default.
+//! The user can also hover over points of any plot, to see a popup with detailed information about the point.
+//! When hovering over a point, it will be highlighted in all plots to allow interactive exploration.
+//! Any parameter of the data can be color-coded using a lookup table.
+//! Any scatter plot from an upper matrix triangle can be maximized by clicking a button in the upper-right corner.
+//! The maximized plot can be minimized by using a button in upper-right corner.
+//! Inherits Q[Open]GLWidget,manages scatter plots internally.
+//! Some customization options are available via the public settings member.
+//!
+//! Usage:
+//! <ul>
+//! <li>Create iAQSPLOM</li>
+//! <li>add to a window/widget, make visible</li>
+//! <li>set some data (using one of the setData methods)</li>
+//! <li>set a lookup table for dot colors (setLookupTable)</li>
+//! <li>(optional:) set the parameter visibility (by default, all parameters are visible</li>
+//! </ul>
+//!
+//! Example (visibleWidget is some widget, currently shown, with a layout):
+//!
+//! 	iAQSplom* splom = new iAQSplom();
+//! 	visibleWidget->layout()->addWidget(splom);
+//! 	// ... you might want enable Qt to process a paint event here, to make sure the OpenGL context is created
+//! 	QSharedPoiner<iASPLOMData> splomData = createSPLOMDataSomehow();
+//! 	splom->setData(splomData);
+//! 	iALookupTable lut;
+//! 	// we assume here you want all points colored in a middle gray; we set up a color lookoup table
+//! 	// over all values of column 0, and set the same color for the whole range
+//! 	// if you want to color the dots by an actual column value, adapt this to your own needs!
+//! 	lut.setRange( splomData->paramRange(0) );
+//! 	lut.allocate(2);
+//! 	QColor CustomDotColor(128, 128, 128)
+//! 	lut.setColor( 0, CustomDotColor );
+//! 	lut.setColor( 1, CustomDotColor );
+//! 	splom->setLookupTable( lut, 0 );
+//!
 class iAcharts_API iAQSplom : public iAChartParentWidget
 #ifdef CHART_OPENGL
 	, public QOpenGLFunctions
@@ -287,5 +287,5 @@ private:
 	QAction *showHistogramAction, *selectionModePolygonAction, *selectionModeRectangleAction, *quadraticPlotsAction,
 		*showPCCAction, *showSCCAction, *flipAxesAction, *showColorLegendAction;
 	std::vector<iAChartWidget*> m_histograms;    //!< histograms of scatter plot matrix
-	iASPMSettings * m_settingsDlg;               //!< dialog with all the SPLOM settings (which params are visible, opacity of each dot, which column to use for coloring...
+	iASPMSettingsDlg* m_settingsDlg;             //!< dialog with all the SPLOM settings (which params are visible, opacity of each dot, which column to use for coloring...
 };

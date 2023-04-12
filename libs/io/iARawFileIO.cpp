@@ -43,8 +43,8 @@ iARawFileIO::iARawFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volu
 	auto datatype = readableDataTypeList(false);
 	QString selectedType = mapVTKTypeToReadableDataType(VTK_UNSIGNED_SHORT);
 	selectOption(datatype, selectedType);
-	auto byteOrders = ByteOrder::stringList();
-	selectOption(byteOrders, ByteOrder::LittleEndianStr);
+	auto byteOrders = iAByteOrder::stringList();
+	selectOption(byteOrders, iAByteOrder::LittleEndianStr);
 	addAttr(m_params[Load], SizeStr, iAValueType::Vector3i, variantVector<int>({1, 1, 1}));
 	addAttr(m_params[Load], SpacingStr, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
 	addAttr(m_params[Load], OriginStr, iAValueType::Vector3, variantVector<double>({0.0, 0.0, 0.0}));
@@ -68,7 +68,7 @@ void readRawImage(QVariantMap const& params, QString const& fileName, iAConnecto
 		io->SetSpacing(i, params[iARawFileIO::SpacingStr].value<QVector<double>>()[i]);
 		io->SetOrigin(i, params[iARawFileIO::OriginStr].value<QVector<double>>()[i]);
 	}
-	if (params[iARawFileIO::ByteOrderStr].toString() == ByteOrder::LittleEndianStr)
+	if (params[iARawFileIO::ByteOrderStr].toString() == iAByteOrder::LittleEndianStr)
 	{
 		io->SetByteOrderToLittleEndian();
 	}
@@ -148,7 +148,7 @@ void writeRawImage(QString const& fileName, vtkImageData* img, QVariantMap param
 	//	io->SetSpacing(i, img->GetSpacing()[i]);
 	//	io->SetOrigin(i, img->GetOrigin()[i]);
 	//}
-	if (paramValues[iARawFileIO::ByteOrderStr].toString() == ByteOrder::LittleEndianStr)
+	if (paramValues[iARawFileIO::ByteOrderStr].toString() == iAByteOrder::LittleEndianStr)
 	{
 		io->SetByteOrderToLittleEndian();
 	}

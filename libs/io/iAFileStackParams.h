@@ -6,6 +6,7 @@
 
 #include <QString>
 
+//! Parameters for loading/saving file stacks.
 class iAio_API iAFileStackParams
 {
 public:
