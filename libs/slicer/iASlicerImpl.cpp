@@ -149,6 +149,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_renWin->GetInteractor()->SetPicker(m_pointPicker);
 	m_renWin->GetInteractor()->Initialize();
 	m_interactorStyle->SetDefaultRenderer(m_ren);
+	m_interactorStyle->setRightButtonDragZoomEnabled(false);   // we do have a context menu, this doesn't combine well with right-click zooming
 
 	connect(&m_interactorStyle->qtEventObject(), &iASlicerInteractionEvents::selection, this,
 		[this](int dragStart[2], int dragEnd[2])
@@ -590,7 +591,6 @@ void iASlicerImpl::setMagicLensEnabled( bool isEnabled )
 		m_textInfo->show(false);
 	}
 	m_magicLens->setEnabled(isEnabled);
-	m_interactorStyle->setRightButtonDragZoomEnabled(!isEnabled);
 	updateMagicLens();
 }
 
