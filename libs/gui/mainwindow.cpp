@@ -137,10 +137,11 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_mdiViewModeGroup->addAction(m_ui->actionSubWindows);
 	m_mdiViewModeGroup->setExclusive(true);
 
-	// restore geometry and state
-	QCoreApplication::setOrganizationName("FHW");
+	const QString OrganisationName("FHW");
+	const QString ApplicationName("open_iA");
+	QCoreApplication::setOrganizationName(OrganisationName);
 	QCoreApplication::setOrganizationDomain("3dct.at");
-	QCoreApplication::setApplicationName(appName);
+	QCoreApplication::setApplicationName(ApplicationName);
 	setWindowTitle(appName + " " + m_gitVersion);
 
 	m_splashScreen = new QSplashScreen(m_splashScreenImg);

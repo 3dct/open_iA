@@ -6,7 +6,6 @@
 #include "iAHMData.h"
 
 #include <qcustomplot.h>
-#include <defines.h>    // for organisationName / applicationName
 #include <iALUT.h>
 #include <iAQVTKWidget.h>
 
@@ -41,7 +40,7 @@ iAPDMView::iAPDMView(QWidget* parent) :
 	m_sbRen( vtkSmartPointer<vtkRenderer>::New() ),
 	m_sbActor(vtkSmartPointer<vtkScalarBarActor>::New())
 {
-	QSettings settings( organisationName, applicationName );
+	QSettings settings;
 	this->dsbCMRange->setValue( settings.value( "FeatureAnalyzer/GUI/CMRange", 2.0 ).toDouble() );
 
 	m_selectedIndices.clear();
@@ -437,6 +436,6 @@ void iAPDMView::UpdateColormapSettings( double range )
 	UpdateTableDeviation();
 	m_sbWidget->update();
 
-	QSettings settings( organisationName, applicationName );
+	QSettings settings;
 	settings.setValue( "FeatureAnalyzer/GUI/CMRange", range );
 }

@@ -16,7 +16,7 @@ class QString;
 //! Support for loading and storing images via ITK's file I/O
 namespace iAITKIO
 {
-	static const int Dim = 3;
+	static const int Dim = 3;    //! merge with defines -> DIM
 	using ImageBaseType = itk::ImageBase<Dim>;
 	using ImagePointer = ImageBaseType::Pointer;
 	using ImagePtr = ImageBaseType*;

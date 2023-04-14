@@ -7,7 +7,6 @@
 #include "iADropPipelineWidget.h"
 #include "iARunBatchThread.h"
 
-#include <defines.h>    // for organisationName / applicationName
 #include <iACPUID.h>
 #include <iACSVToQTableWidgetConverter.h>
 #include <iAToolRegistry.h>
@@ -43,7 +42,7 @@ void iAFeatureAnalyzerComputationModuleInterface::Initialize()
 	submenu->addAction( actionComputeSegmentations );
 
 	//Read settings
-	QSettings settings( organisationName, applicationName );
+	QSettings settings;
 	m_computerName = settings.value( "FeatureAnalyzer/Computation/computerName", "" ).toString();
 	m_resultsFolder = settings.value( "FeatureAnalyzer/Computation/resultsFolder", "" ).toString();
 	m_datasetsFolder = settings.value( "FeatureAnalyzer/Computation/datasetsFolder", "" ).toString();
@@ -305,7 +304,7 @@ void iAFeatureAnalyzerComputationModuleInterface::displayPipelineInSlots( QTable
 void iAFeatureAnalyzerComputationModuleInterface::SaveSettings() const
 {
 	updateFromGUI();
-	QSettings settings( organisationName, applicationName );
+	QSettings settings;
 	settings.setValue( "FeatureAnalyzer/Computation/computerName", m_computerName );
 	settings.setValue( "FeatureAnalyzer/Computation/resultsFolder", m_resultsFolder );
 	settings.setValue( "FeatureAnalyzer/Computation/datasetsFolder", m_datasetsFolder );

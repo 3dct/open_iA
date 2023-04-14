@@ -4,14 +4,9 @@
 
 #include <limits>
 
-#include <QString>
-
-#include "iAbase_export.h"
+#include <QtGlobal>    // for uint
 
 #define DIM 3
-
-iAbase_API extern const QString organisationName;
-iAbase_API extern const QString applicationName;
 
 const int DefaultMagicLensSize = 120;
 const int MinimumMagicLensSize = 40;

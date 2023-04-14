@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iADataFolderDialog.h"
 
-#include <defines.h>    // for organisationName / applicationName
-
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSettings>
@@ -12,7 +10,7 @@ iADataFolderDialog::iADataFolderDialog( QWidget * parent /*= 0*/, Qt::WindowFlag
 {
 	setupUi( this );
 
-	QSettings settings( organisationName, applicationName );
+	QSettings settings;
 	dataFolder->setText( settings.value( "FeatureAnalyzer/GUI/resultsFolder", "" ).toString() );
 	datasetsFolder->setText( settings.value( "FeatureAnalyzer/GUI/datasetsFolder", "" ).toString() );
 
@@ -33,7 +31,7 @@ QString iADataFolderDialog::DatasetsFolderName()
 
 iADataFolderDialog::~iADataFolderDialog()
 {
-	QSettings settings( organisationName, applicationName );
+	QSettings settings;
 	settings.setValue( "FeatureAnalyzer/GUI/resultsFolder", dataFolder->text() );
 	settings.setValue( "FeatureAnalyzer/GUI/datasetsFolder", datasetsFolder->text() );
 }
@@ -45,7 +43,7 @@ void iADataFolderDialog::browseDataFolder()
 		return;
 
 	dataFolder->setText( dir );
-	QSettings settings( organisationName, applicationName );
+	QSettings settings;
 	settings.setValue( "FeatureAnalyzer/GUI/resultsFolder", dataFolder->text() );
 }
 
@@ -56,7 +54,7 @@ void iADataFolderDialog::browseDatasetsFolder()
 		return;
 
 	datasetsFolder->setText( dir );
-	QSettings settings( organisationName, applicationName );
+	QSettings settings;
 	settings.setValue( "FeatureAnalyzer/GUI/datasetsFolder", datasetsFolder->text() );
 }
 

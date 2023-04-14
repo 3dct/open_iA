@@ -411,7 +411,7 @@ void dlg_ParamSpaceSampling::createDatasetInfo()
 
 void dlg_ParamSpaceSampling::createHistoSpinBoxes()
 {
-	//TODO: Set SpinBox initial values from registry, see: QSettings settings( organisationName, applicationName );
+	//TODO: Set SpinBox initial values from registry, see: QSettings settings;
 
 	// histogram buttons
 	auto histoBtnContainer = new QWidget( this );

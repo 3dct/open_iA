@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASegm3DView.h"
 
-#include <defines.h>    // for organisationName / applicationName
 #include <iADataSet.h>  // for iAPolyData
 #include <iADataSetRendererImpl.h>    // for iAPolyDataRenderer
 #include <iALog.h>
@@ -281,7 +280,7 @@ iARenderer * iASegm3DViewData::GetRenderer()
 void iASegm3DViewData::LoadAndApplySettings()
 {
 	// TODO: VOLUME: unify with mainwindow settings loading!
-	QSettings settings( organisationName, applicationName );
+	QSettings settings;
 
 	iARenderSettings renderSettings;
 	iAVolumeSettings volumeSettings;

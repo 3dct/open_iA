@@ -5,8 +5,6 @@
 #include "dlg_ParamSpaceSampling.h"
 #include "FeatureAnalyzerHelpers.h"
 
-#include <defines.h>    // for organisationName / applicationName
-
 #include <QDrag>
 #include <QDragEnterEvent>
 #include <QLabel>
@@ -219,7 +217,7 @@ void iADropPipelineWidget::mousePressEvent( QMouseEvent *event )
 			paramsNameType.append(FilterIdToParamList[fid]);
 		}
 
-		QSettings settings( organisationName, applicationName );
+		QSettings settings;
 		QString filterName = pieceName[found],
 			dialogWindowName = paramsNameType.size() > 0
 			? pieceName[found] + " Parameters"

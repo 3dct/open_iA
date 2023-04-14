@@ -9,7 +9,6 @@
 #include "iASSViewSetings.h"
 #include "FeatureAnalyzerHelpers.h"
 
-#include <defines.h>    // for organisationName / applicationName
 #include <iABoxPlotData.h>
 #include <iAChannelData.h>
 #include <iAFileUtils.h>
@@ -51,7 +50,7 @@ iASSView::iASSView(QWidget* parent) :
 	m_runsOffset( -10000 )
 {
 	m_slicerViewsLayout->setContentsMargins(0, 0, 0, 0);
-	QSettings settings( organisationName, applicationName );
+	QSettings settings;
 	m_datasetFolder = settings.value( "FeatureAnalyzer/GUI/datasetsFolder", "" ).toString();
 	m_resultsFolder = settings.value( "FeatureAnalyzer/GUI/resultsFolder", "" ).toString();
 	m_SSViewSettings->cbShowMasks->setChecked( settings.value( "FeatureAnalyzer/GUI/ShowMasks", false ).toBool() );
@@ -105,7 +104,7 @@ iASSView::~iASSView()
 
 void iASSView::updateSettings()
 {
-	QSettings settings( organisationName, applicationName );
+	QSettings settings;
 	settings.setValue( "FeatureAnalyzer/GUI/ShowMasks", m_SSViewSettings->cbShowMasks->isChecked() );
 	settings.setValue( "FeatureAnalyzer/GUI/MasksOpacity", m_SSViewSettings->sMasksOpacity->value() );
 	settings.setValue( "FeatureAnalyzer/GUI/ShowGT", m_SSViewSettings->cbShowGT->isChecked() );
