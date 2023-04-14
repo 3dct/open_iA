@@ -23,7 +23,8 @@ dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 	m_indexInReferenceLib(std::numeric_limits<size_t>::max())
 {
 	m_renderer->setAxesTransform(m_axesTransform);
-	m_renderer->showHelpers(false);
+	m_renderer->showAxesCube(false);
+	m_renderer->showOriginIndicator(false);
 	connect(renContainer, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARendererImpl::mouseRightButtonReleasedSlot);
 	connect(renContainer, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARendererImpl::mouseLeftButtonReleasedSlot);
 }

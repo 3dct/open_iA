@@ -84,7 +84,8 @@ public:
 	void setSlicePlaneOpacity(float opc);
 
 	void update() override;
-	void showHelpers(bool show);
+	void showOriginIndicator(bool show);
+	void showAxesCube(bool show);
 	void showRPosition(bool show);
 	//! show or hide the slice plane for the given axis
 	//! @param axis index of the axis (x..0, y..1, z..2)

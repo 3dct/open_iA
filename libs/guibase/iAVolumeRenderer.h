@@ -22,7 +22,7 @@ class vtkVolumeProperty;
 class iAguibase_API iAVolumeRenderer : public iADataSetRenderer
 {
 public:
-	static const QString LinearInterpolation;
+	static const QString Interpolation;
 	static const QString ScalarOpacityUnitDistance;
 	static const QString RendererType;
 	static const QString SampleDistance;

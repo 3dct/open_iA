@@ -18,7 +18,7 @@
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 
-const QString iAVolumeRenderer::LinearInterpolation("Linear interpolation");
+const QString iAVolumeRenderer::Interpolation("Interpolation");
 const QString iAVolumeRenderer::ScalarOpacityUnitDistance("Scalar Opacity Unit Distance");
 const QString iAVolumeRenderer::RendererType("Renderer type");
 const QString iAVolumeRenderer::SampleDistance("Sample distance");
@@ -35,6 +35,16 @@ namespace
 	const QString GlobalIlluminationReach = "Global Illumination Reach";
 	const QString VolumetricScatteringBlending = "Volumetric Scattering Blending";
 #endif
+	const QString InterpolateNearest = "Nearest";
+	const QString InterpolateLinear = "Linear";
+
+	int string2VtkVolInterpolationType(QString const & interpType)
+	{
+		return (interpType == InterpolateNearest)
+			? VTK_NEAREST_INTERPOLATION
+			: VTK_LINEAR_INTERPOLATION;
+	
+	}
 }
 
 iAVolumeRenderer::iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, iATransferFunction* tf) :
@@ -63,7 +73,9 @@ iAVolumeRenderer::iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, 
 
 	// properties specific to volumes:
 	auto volumeSettings = iAMainWindow::get()->defaultVolumeSettings();
-	addAttribute(LinearInterpolation, iAValueType::Boolean, volumeSettings.LinearInterpolation);
+	QStringList volInterpolationTypes = QStringList() << InterpolateNearest << InterpolateLinear;
+	selectOption(volInterpolationTypes, volumeSettings.LinearInterpolation ? InterpolateLinear : InterpolateNearest);
+	addAttribute(Interpolation, iAValueType::Categorical, volInterpolationTypes);
 	addAttribute(Shading, iAValueType::Boolean, volumeSettings.Shading);
 	addAttribute(ScalarOpacityUnitDistance, iAValueType::Continuous, volumeSettings.ScalarOpacityUnitDistance);
 
@@ -119,7 +131,7 @@ void iAVolumeRenderer::hideDataSet()
 void iAVolumeRenderer::applyAttributes(QVariantMap const& values)
 {
 	applyLightingProperties(m_volProp.Get(), values);
-	m_volProp->SetInterpolationType(values[LinearInterpolation].toInt());
+	m_volProp->SetInterpolationType(string2VtkVolInterpolationType(values[Interpolation].toString()));
 	m_volProp->SetShade(values[Shading].toBool());
 	if (values[ScalarOpacityUnitDistance].toDouble() > 0)
 	{
@@ -235,7 +247,7 @@ QVariantMap iAVolumeSettings::toMap() const
 	result[iADataSetRenderer::SpecularLighting] = SpecularLighting;
 	result[iADataSetRenderer::SpecularPower] = SpecularPower;
 
-	result[iAVolumeRenderer::LinearInterpolation] = LinearInterpolation;
+	result[iAVolumeRenderer::Interpolation] = LinearInterpolation ? InterpolateLinear : InterpolateNearest;
 	result[iAVolumeRenderer::ScalarOpacityUnitDistance] = ScalarOpacityUnitDistance;
 	result[iAVolumeRenderer::RendererType] = RenderMode;
 	result[iAVolumeRenderer::SampleDistance] = SampleDistance;

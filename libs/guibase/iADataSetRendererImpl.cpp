@@ -39,6 +39,40 @@ namespace
 	const QString LineWidth = "Minimum line Width";
 	const QString LineWidthVaryBy = "Vary line width by";
 	const QString LinePrefix = "Line ";
+
+	const QString ShadingInterpolation = "Shading interpolation";
+
+	const QString InterpolationFlat = "Flat";
+	const QString InterpolationGouraud = "Gouraud";
+	const QString InterpolationPhong = "Phong";
+	const QString InterpolationPBR = "Physically based rendering";
+
+	int string2VtkShadingInterpolation(QString const & type)
+	{
+		if (type == InterpolationFlat) { return VTK_FLAT; }
+		else if (type == InterpolationGouraud) { return VTK_GOURAUD; }
+		else if (type == InterpolationPBR) { return VTK_PBR; }
+		else /* if (type == InterpolationPhong) */ { return VTK_PHONG; }
+	}
+
+	QStringList const & shadingInterpolationTypes()
+	{
+		static QStringList types = QStringList() << InterpolationFlat << InterpolationGouraud << InterpolationPhong << InterpolationPBR;
+		return types;
+	}
+
+	void applyActorProperties(vtkActor* actor, QVariantMap const& values, QString const& prefix = "")
+	{
+		applyLightingProperties(actor->GetProperty(), values, prefix);
+		QVector<double> pos = values[iADataSetRenderer::Position].value<QVector<double>>();
+		QVector<double> ori = values[iADataSetRenderer::Orientation].value<QVector<double>>();
+		assert(pos.size() == 3);
+		assert(ori.size() == 3);
+		actor->SetPosition(pos.data());
+		actor->SetOrientation(ori.data());
+		actor->GetProperty()->SetInterpolation(string2VtkShadingInterpolation(values[prefix + ShadingInterpolation].toString()));
+		actor->GetProperty()->SetShading(values[prefix + iADataSetRenderer::Shading].toBool());
+	}
 }
 
 iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data) :
@@ -78,6 +112,7 @@ iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data
 	addAttribute(PointColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
 	addAttribute(PointColor, iAValueType::Color, "#FF0000");
 	addAttribute(PointPrefix + Shading, iAValueType::Boolean, false);
+	addAttribute(PointPrefix + ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
 	addAttribute(PointPrefix + AmbientLighting, iAValueType::Continuous, 0.2);
 	addAttribute(PointPrefix + DiffuseLighting, iAValueType::Continuous, 0.5);
 	addAttribute(PointPrefix + SpecularLighting, iAValueType::Continuous, 0.7);
@@ -87,6 +122,7 @@ iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data
 	addAttribute(LineColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
 	addAttribute(LineColor, iAValueType::Color, "#00FF00");
 	addAttribute(LinePrefix + Shading, iAValueType::Boolean, false);
+	addAttribute(LinePrefix + ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
 	addAttribute(LinePrefix + AmbientLighting, iAValueType::Continuous, 0.2);
 	addAttribute(LinePrefix + DiffuseLighting, iAValueType::Continuous, 0.5);
 	addAttribute(LinePrefix + SpecularLighting, iAValueType::Continuous, 0.7);
@@ -180,19 +216,8 @@ void iAGraphRenderer::applyAttributes(QVariantMap const& values)
 		: VTK_VARY_RADIUS_BY_SCALAR);
 	m_tubeFilter->SetRadius(values[LineWidth].toDouble());
 	
-	QVector<double> pos = values[Position].value<QVector<double>>();
-	QVector<double> ori = values[Orientation].value<QVector<double>>();
-	assert(pos.size() == 3);
-	assert(ori.size() == 3);
-	m_pointActor->SetPosition(pos.data());
-	m_pointActor->SetOrientation(ori.data());
-	applyLightingProperties(m_pointActor->GetProperty(), values, PointPrefix);
-	m_pointActor->GetProperty()->SetShading(values[PointPrefix+Shading].toBool());
-	m_lineActor->SetPosition(pos.data());
-	m_lineActor->SetOrientation(ori.data());
-	applyLightingProperties(m_lineActor->GetProperty(), values, LinePrefix);
-	m_lineActor->GetProperty()->SetShading(values[LinePrefix+Shading].toBool());
-
+	applyActorProperties(m_pointActor, values, PointPrefix);
+	applyActorProperties(m_lineActor, values, LinePrefix);
 	m_lineActor->SetPickable(values[Pickable].toBool());
 	//m_pointActor->SetPickable(values[Pickable].toBool()); // both move together same as bounds
 }
@@ -268,6 +293,7 @@ iAPolyActorRenderer::iAPolyActorRenderer(vtkRenderer* renderer) :
 	m_polyActor->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
 
 	addAttribute(Shading, iAValueType::Boolean, true);
+	addAttribute(ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
 	addAttribute(PolyColor, iAValueType::Color, "#FFFFFF");
 	addAttribute(PolyOpacity, iAValueType::Continuous, 1.0, 0.0, 1.0);
 	addAttribute(PolyWireframe, iAValueType::Boolean, false);
@@ -293,8 +319,7 @@ void iAPolyActorRenderer::hideDataSet()
 
 void iAPolyActorRenderer::applyAttributes(QVariantMap const& values)
 {
-	applyLightingProperties(m_polyActor->GetProperty(), values);
-	m_polyActor->GetProperty()->SetShading(values[Shading].toBool());
+	applyActorProperties(m_polyActor, values);
 
 	QColor color(values[PolyColor].toString());
 	double opacity = values[PolyOpacity].toDouble();
@@ -308,13 +333,6 @@ void iAPolyActorRenderer::applyAttributes(QVariantMap const& values)
 	{
 		m_polyActor->GetProperty()->SetRepresentationToSurface();
 	}
-
-	QVector<double> pos = values[Position].value<QVector<double>>();
-	QVector<double> ori = values[Orientation].value<QVector<double>>();
-	assert(pos.size() == 3);
-	assert(ori.size() == 3);
-	m_polyActor->SetPosition(pos.data());
-	m_polyActor->SetOrientation(ori.data());
 	m_polyActor->SetPickable(values[Pickable].toBool());
 }
 

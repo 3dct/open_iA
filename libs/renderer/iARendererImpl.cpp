@@ -330,11 +330,15 @@ void iARendererImpl::update()
 	m_renWin->GetInteractor()->Render();
 }
 
-void iARendererImpl::showHelpers(bool show)
+void iARendererImpl::showOriginIndicator(bool show)
 {
-	m_orientationMarkerWidget->SetEnabled(show);
 	m_axesActor->SetVisibility(show);
 	m_moveableAxesActor->SetVisibility(show);
+}
+
+void iARendererImpl::showAxesCube(bool show)
+{
+	m_orientationMarkerWidget->SetEnabled(show);
 }
 
 void iARendererImpl::showRPosition(bool s)
@@ -703,7 +707,8 @@ void iARendererImpl::applySettings(iARenderSettings const & settings, bool slice
 	m_cam->SetParallelProjection(settings.ParallelProjection);
 	setSlicePlaneOpacity(settings.PlaneOpacity);
 	setBackgroundColors(settings);
-	showHelpers(settings.ShowHelpers);
+	showOriginIndicator(settings.ShowOriginIndicator);
+	showAxesCube(settings.ShowAxesCube);
 	showRPosition(settings.ShowRPosition);
 	for (int i = 0; i < 3; ++i)
 	{

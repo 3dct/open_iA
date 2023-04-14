@@ -286,7 +286,8 @@ void iASegm3DViewData::LoadAndApplySettings()
 	iAVolumeSettings volumeSettings;
 
 	renderSettings.ShowSlicers = settings.value("Renderer/rsShowSlicers", false).toBool();
-	renderSettings.ShowHelpers = settings.value("Renderer/rsShowHelpers", true).toBool();
+	renderSettings.ShowAxesCube = settings.value("Renderer/rsShowHelpers", true).toBool();
+	renderSettings.ShowOriginIndicator = settings.value("Renderer/rsShowHelpers", true).toBool();
 	renderSettings.ShowRPosition = settings.value("Renderer/rsShowRPosition", false).toBool();
 	renderSettings.ParallelProjection = true;
 	renderSettings.BackgroundTop = "#8f8f8f"; //"#FFFFFF"

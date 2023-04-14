@@ -50,7 +50,8 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget* parent, std::vector<iAVolumeViewer*>
 		m_renderers[i]->applySettings(m_mdiChild->renderSettings(), slicerVisibility );
 
 		// setup renderers
-		m_renderers[i]->showHelpers(SHOW_HELPERS);
+		m_renderers[i]->showAxesCube(SHOW_HELPERS);
+		m_renderers[i]->showOriginIndicator(SHOW_HELPERS);
 		m_renderers[i]->renderer()->SetBackground(FOURDCT_BACGROUND[0], FOURDCT_BACGROUND[1], FOURDCT_BACGROUND[2]);
 		m_renderers[i]->renderer()->SetBackground2(FOURDCT_BACGROUND2[0], FOURDCT_BACGROUND2[1], FOURDCT_BACGROUND2[2]);
 

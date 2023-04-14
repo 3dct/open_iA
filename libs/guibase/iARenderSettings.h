@@ -12,7 +12,8 @@ public:
 	bool
 		ShowSlicers,			//! TODO: VOLUME: move to iAVolumeSettings?
 		ShowSlicePlanes,        //!< whether a colored plane is shown for each currently visible slicer)
-		ShowHelpers,            //!< whether axes cube and origin indicator are shown
+		ShowAxesCube,           //!< whether axes cube is shown
+		ShowOriginIndicator,    //!< whether origin indicator is shown
 		ShowRPosition,          //!< whether red position cube indicator is shown
 		ParallelProjection,     //!< true - use parallel projection, false - use perspective projection
 		UseStyleBGColor,        //!< true - use background color from style (bright/dark), false - use BackgroundTop/BackgroundBottom
@@ -31,7 +32,8 @@ public:
 	iARenderSettings() :
 		ShowSlicers(false),
 		ShowSlicePlanes(false),
-		ShowHelpers(true),
+		ShowAxesCube(true),
+		ShowOriginIndicator(true),
 		ShowRPosition(true),
 		ParallelProjection(false),
 		UseStyleBGColor(false),

@@ -706,7 +706,7 @@ void MainWindow::saveRenderSettings(iAXmlSettings &xml)
 	QDomElement renderSettingsElement = xml.createElement("renderSettings");
 	renderSettingsElement.setAttribute("showSlicers", m_defaultRenderSettings.ShowSlicers);
 	renderSettingsElement.setAttribute("showSlicePlanes", m_defaultRenderSettings.ShowSlicePlanes);
-	renderSettingsElement.setAttribute("showHelpers", m_defaultRenderSettings.ShowHelpers);
+	renderSettingsElement.setAttribute("showHelpers", m_defaultRenderSettings.ShowAxesCube);  // ShowOriginIndicator...
 	renderSettingsElement.setAttribute("showRPosition", m_defaultRenderSettings.ShowRPosition);
 	renderSettingsElement.setAttribute("parallelProjection", m_defaultRenderSettings.ParallelProjection);
 	renderSettingsElement.setAttribute("useStyleBGColor", m_defaultRenderSettings.UseStyleBGColor);
@@ -734,7 +734,8 @@ void MainWindow::loadRenderSettings(QDomNode renderSettingsNode)
 
 	m_defaultRenderSettings.ShowSlicers = attributes.namedItem("showSlicers").nodeValue() == "1";
 	m_defaultRenderSettings.ShowSlicePlanes = attributes.namedItem("showSlicePlanes").nodeValue() == "1";
-	m_defaultRenderSettings.ShowHelpers = attributes.namedItem("showHelpers").nodeValue() == "1";
+	m_defaultRenderSettings.ShowOriginIndicator = attributes.namedItem("showHelpers").nodeValue() == "1";
+	m_defaultRenderSettings.ShowAxesCube = attributes.namedItem("showHelpers").nodeValue() == "1";
 	m_defaultRenderSettings.ShowRPosition = attributes.namedItem("showRPosition").nodeValue() == "1";
 	m_defaultRenderSettings.ParallelProjection = attributes.namedItem("parallelProjection").nodeValue() == "1";
 	m_defaultRenderSettings.UseStyleBGColor = attributes.namedItem("useStyleBGColor").nodeValue() == "1";
@@ -952,7 +953,8 @@ void MainWindow::renderSettings()
 	addAttr(params, "Show slicers", iAValueType::Boolean, renderSettings.ShowSlicers);
 	addAttr(params, "Show slice planes", iAValueType::Boolean, renderSettings.ShowSlicePlanes);
 	addAttr(params, "Slice plane opacity", iAValueType::Continuous, renderSettings.PlaneOpacity, 0, 1);
-	addAttr(params, "Show helpers", iAValueType::Boolean, renderSettings.ShowHelpers);
+	addAttr(params, "Show axes cube", iAValueType::Boolean, renderSettings.ShowAxesCube);
+	addAttr(params, "Show origin indicator", iAValueType::Boolean, renderSettings.ShowOriginIndicator);
 	addAttr(params, "Show position", iAValueType::Boolean, renderSettings.ShowRPosition);
 	addAttr(params, "Parallel projection", iAValueType::Boolean, renderSettings.ParallelProjection);
 	addAttr(params, "Use style background color", iAValueType::Boolean, renderSettings.UseStyleBGColor);
@@ -983,7 +985,8 @@ void MainWindow::renderSettings()
 	auto values = dlg.parameterValues();
 	m_defaultRenderSettings.ShowSlicers = values["Show slicers"].toBool();
 	m_defaultRenderSettings.ShowSlicePlanes = values["Show slice planes"].toBool();
-	m_defaultRenderSettings.ShowHelpers = values["Show helpers"].toBool();
+	m_defaultRenderSettings.ShowAxesCube = values["Show axes cube"].toBool();
+	m_defaultRenderSettings.ShowOriginIndicator = values["Show origin indicator"].toBool();
 	m_defaultRenderSettings.ShowRPosition = values["Show position"].toBool();
 	m_defaultRenderSettings.ParallelProjection = values["Parallel projection"].toBool();
 	m_defaultRenderSettings.UseStyleBGColor = values["Use style background color"].toBool();
@@ -1653,7 +1656,8 @@ void MainWindow::readSettings()
 	iARenderSettings fallbackRS;
 	m_defaultRenderSettings.ShowSlicers = settings.value("Renderer/rsShowSlicers", fallbackRS.ShowSlicers).toBool();
 	m_defaultRenderSettings.ShowSlicePlanes = settings.value("Renderer/rsShowSlicePlanes", fallbackRS.ShowSlicePlanes).toBool();
-	m_defaultRenderSettings.ShowHelpers = settings.value("Renderer/rsShowHelpers", fallbackRS.ShowHelpers).toBool();
+	m_defaultRenderSettings.ShowOriginIndicator = settings.value("Renderer/rsShowHelpers", fallbackRS.ShowOriginIndicator).toBool();
+	m_defaultRenderSettings.ShowAxesCube = settings.value("Renderer/rsShowHelpers", fallbackRS.ShowAxesCube).toBool();
 	m_defaultRenderSettings.ShowRPosition = settings.value("Renderer/rsShowRPosition", fallbackRS.ShowRPosition).toBool();
 	m_defaultRenderSettings.ParallelProjection = settings.value("Renderer/rsParallelProjection", fallbackRS.ParallelProjection).toBool();
 	m_defaultRenderSettings.UseStyleBGColor = settings.value("Renderer/rsUseStyleBGColor", fallbackRS.UseStyleBGColor).toBool();
@@ -1753,7 +1757,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Renderer/rsUseStyleBGColor", m_defaultRenderSettings.UseStyleBGColor);
 	settings.setValue("Renderer/rsBackgroundTop", m_defaultRenderSettings.BackgroundTop);
 	settings.setValue("Renderer/rsBackgroundBottom", m_defaultRenderSettings.BackgroundBottom);
-	settings.setValue("Renderer/rsShowHelpers", m_defaultRenderSettings.ShowHelpers);
+	settings.setValue("Renderer/rsShowHelpers", m_defaultRenderSettings.ShowAxesCube);
 	settings.setValue("Renderer/rsShowRPosition", m_defaultRenderSettings.ShowRPosition);
 	settings.setValue("Renderer/rsUseFXAA", m_defaultRenderSettings.UseFXAA);
 	settings.setValue("Renderer/rsMultiSamples", m_defaultRenderSettings.MultiSamples);
