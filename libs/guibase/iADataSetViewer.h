@@ -36,7 +36,7 @@ public:
 	static const QString RenderFlags;
 
 	//! called directly after the dataset is loaded, should do anything that needs to be computed in the background
-	virtual void prepare(iAPreferences const & pref, iAProgress* p);
+	virtual void prepare(iAProgress* p);
 	//! Should contain all things that need to be done in the GUI thread for viewing this dataset
 	//! The default implementation creates a 3D renderer (via createRenderer method) and adds an entry
 	//! to the dataset list. If you want these things to happen, but additionally some other things,

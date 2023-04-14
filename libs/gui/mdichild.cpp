@@ -136,7 +136,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_renderer = new iARendererImpl(this, dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_dwRenderer->vtkWidgetRC->renderWindow()));
 	m_renderer->setAxesTransform(m_axesTransform);
 
-	applyViewerPreferences();
 	connectSignalsToSlots();
 }
 
@@ -237,8 +236,6 @@ void MdiChild::connectSignalsToSlots()
 		m_manualMoveStyle[s] = vtkSmartPointer<iAvtkInteractStyleActor>::New();
 		connect(m_manualMoveStyle[s].Get(), &iAvtkInteractStyleActor::actorsUpdated, this, &iAMdiChild::updateViews);
 		connect(m_slicer[s], &iASlicer::shiftMouseWheel, this, &MdiChild::changeMagicLensDataSet);
-		connect(m_slicer[s], &iASlicer::altMouseWheel, this, &MdiChild::changeMagicLensOpacity);
-		connect(m_slicer[s], &iASlicer::ctrlMouseWheel, this, &MdiChild::changeMagicLensSize);
 		connect(m_slicer[s], &iASlicerImpl::sliceRotated, this, &MdiChild::slicerRotationChanged);
 		connect(m_slicer[s], &iASlicer::sliceNumberChanged, this, &MdiChild::setSlice);
 		connect(m_slicer[s], &iASlicer::mouseMoved, this, &MdiChild::updatePositionMarker);
@@ -340,7 +337,7 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 	auto fw = runAsync(
 		[this, viewer, dataSetIdx, p]()
 		{
-			viewer->prepare(m_preferences, p.get());
+			viewer->prepare(p.get());
 			emit dataSetPrepared(dataSetIdx);
 		},
 		[this, viewer, dataSetIdx]
@@ -919,24 +916,7 @@ bool MdiChild::isSlicerInteractionEnabled() const
 void MdiChild::applyPreferences(iAPreferences const& prefs)
 {
 	m_preferences = prefs;
-	applyViewerPreferences();
-	if (isMagicLens2DEnabled())
-	{
-		updateSlicers();  // for updating MagicLensSize, MagicLensFrameWidth
-	}
-}
-
-void MdiChild::applyViewerPreferences()
-{
-	for (int s = 0; s < 3; ++s)
-	{
-		m_slicer[s]->setMagicLensFrameWidth(m_preferences.MagicLensFrameWidth);
-		m_slicer[s]->setMagicLensSize(m_preferences.MagicLensSize);
-		m_slicer[s]->setPositionMarkerSize(m_preferences.PositionMarkerSize);
-	}
-	m_dwRenderer->vtkWidgetRC->setLensSize(m_preferences.MagicLensSize, m_preferences.MagicLensSize);
 	updatePositionMarkerSize();
-	emit preferencesChanged();
 }
 
 void MdiChild::updatePositionMarkerSize()
@@ -952,6 +932,12 @@ void MdiChild::updatePositionMarkerSize()
 		}
 	}
 	m_renderer->setUnitSize(maxSpacing);
+	// TODO NewIO: make slicer also use a size in physical units instead of voxels
+	//auto maxSpc = std::max(std::max(maxSpacing[0], maxSpacing[1]), maxSpacing[2]);
+	for (int s = 0; s < 3; ++s)
+	{
+		m_slicer[s]->setPositionMarkerSize(m_preferences.PositionMarkerSize);
+	}
 }
 
 void MdiChild::setRenderSettings(iARenderSettings const& rs, iAVolumeSettings const& vs)
@@ -1046,6 +1032,9 @@ void MdiChild::applyRendererSettings(iARenderSettings const& rs, iAVolumeSetting
 	setRenderSettings(rs, vs);
 	applyVolumeSettings();
 	m_renderer->applySettings(renderSettings(), m_slicerVisibility);
+
+	m_dwRenderer->vtkWidgetRC->setLensSize(rs.MagicLensSize, rs.MagicLensSize);
+	m_dwRenderer->vtkWidgetRC->setFrameWidth(rs.MagicLensFrameWidth);
 	m_dwRenderer->vtkWidgetRC->show();
 	m_dwRenderer->vtkWidgetRC->renderWindow()->Render();
 	emit renderSettingsChanged();
@@ -1675,16 +1664,6 @@ void MdiChild::reInitMagicLens(uint id, QString const& name, vtkSmartPointer<vtk
 }
 */
 
-int MdiChild::magicLensSize() const
-{
-	return m_preferences.MagicLensSize;
-}
-
-int MdiChild::magicLensFrameWidth() const
-{
-	return m_preferences.MagicLensFrameWidth;
-}
-
 vtkRenderer* MdiChild::magicLens3DRenderer() const
 {
 	return m_dwRenderer->vtkWidgetRC->getLensRenderer();
@@ -1754,35 +1733,6 @@ void MdiChild::changeMagicLensDataSet(int chg)
 	channelData(m_magicLensChannel)->setName(name);
 	updateChannel(m_magicLensChannel, imgData->vtkImage(), viewer->transfer()->colorTF(), viewer->transfer()->opacityTF(), false);
 	setMagicLensInput(m_magicLensChannel);
-}
-
-void MdiChild::changeMagicLensOpacity(int chg)
-{
-	for (int s = 0; s < 3; ++s)
-	{
-		m_slicer[s]->setMagicLensOpacity(m_slicer[s]->magicLensOpacity() + (chg * 0.05));
-	}
-}
-
-void MdiChild::changeMagicLensSize(int chg)
-{
-	if (!isMagicLens2DEnabled())
-	{
-		return;
-	}
-	double sizeFactor = 1.1 * (std::abs(chg));
-	if (chg < 0)
-	{
-		sizeFactor = 1 / sizeFactor;
-	}
-	int newSize = std::max(MinimumMagicLensSize, static_cast<int>(m_preferences.MagicLensSize * sizeFactor));
-	for (int s = 0; s < 3; ++s)
-	{
-		m_slicer[s]->setMagicLensSize(newSize);
-		//newSize = std::min(m_slicer[s]->magicLensSize(), newSize);  // would try to give a consistent size across slicers; but would need two passes, and doesn't account for when a slicer is currently not visible
-	}
-	m_preferences.MagicLensSize = newSize;
-	updateSlicers();
 }
 
 void MdiChild::set3DControlVisibility(bool visible)

@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#include "defines.h"   // for DefaultMagicLensSize
+
 //! Settings for vtkRenderer, and helpers defined in iARenderer.
 //! @deprecated to be removed soon, replaced by iADataSetRenderer / iAVolumeRenderer settings (see m_attributes member)
 class iARenderSettings
@@ -21,7 +23,9 @@ public:
 		BackgroundBottom;       //!< bottom color used in background gradient
 	float PlaneOpacity;         //!< opacity of the slice planes enabled via ShowSlicePlanes
 	int DepthPeels,             //!< number of depth peels to use (if enabled via UseDepthPeeling). The more the higher quality, but also slower rendering
-		MultiSamples;           //!< number of multi
+		MultiSamples,           //!< number of multi-samples; needs to be 0 for depth peeling to work!
+		MagicLensSize,          //!< size (width & height) of the 3D magic lens (in pixels / pixel-equivalent units considering scaling)
+		MagicLensFrameWidth;    //!< width of the frame of the 3D magic lens
 	double OcclusionRatio;      //!< In case of use of depth peeling technique for rendering translucent material, define the threshold under which the algorithm stops to iterate over peel layers (see <a href="https://vtk.org/doc/nightly/html/classvtkRenderer.html">vtkRenderer documentation</a>
 
 	iARenderSettings() :
@@ -39,6 +43,8 @@ public:
 		PlaneOpacity(1.0),
 		DepthPeels(4),
 		MultiSamples(0),
+		MagicLensSize(DefaultMagicLensSize),
+		MagicLensFrameWidth(3),
 		OcclusionRatio(0.0)
 	{}
 };

@@ -677,14 +677,10 @@ void MainWindow::loadSliceViews(QDomNode sliceViewsNode)
 void MainWindow::savePreferences(iAXmlSettings &xml)
 {
 	QDomElement preferencesElement = xml.createElement("preferences");
-	preferencesElement.setAttribute("histogramBins", tr("%1").arg(m_defaultPreferences.HistogramBins));
-	preferencesElement.setAttribute("histogramLogarithmicYAxis", tr("%1").arg(m_defaultPreferences.HistogramLogarithmicYAxis));
 	preferencesElement.setAttribute("limitForAuto3DRender", tr("%1").arg(m_defaultPreferences.LimitForAuto3DRender));
 	preferencesElement.setAttribute("positionMarkerSize", tr("%1").arg(m_defaultPreferences.PositionMarkerSize));
 	preferencesElement.setAttribute("printParameters", tr("%1").arg(m_defaultPreferences.PrintParameters));
 	preferencesElement.setAttribute("resultsInNewWindow", tr("%1").arg(m_defaultPreferences.ResultInNewWindow));
-	preferencesElement.setAttribute("magicLensSize", tr("%1").arg(m_defaultPreferences.MagicLensSize));
-	preferencesElement.setAttribute("magicLensFrameWidth", tr("%1").arg(m_defaultPreferences.MagicLensFrameWidth));
 	preferencesElement.setAttribute("fontSize", QString::number(m_defaultPreferences.FontSize));
 	preferencesElement.setAttribute("logToFile", tr("%1").arg(iALogWidget::get()->isLogToFileOn()));
 }
@@ -692,14 +688,10 @@ void MainWindow::savePreferences(iAXmlSettings &xml)
 void MainWindow::loadPreferences(QDomNode preferencesNode)
 {
 	QDomNamedNodeMap attributes = preferencesNode.attributes();
-	m_defaultPreferences.HistogramBins = attributes.namedItem("histogramBins").nodeValue().toInt();
-	m_defaultPreferences.HistogramLogarithmicYAxis = attributes.namedItem("histogramLogarithmicYAxis").nodeValue().toInt();
 	m_defaultPreferences.LimitForAuto3DRender = attributes.namedItem("limitForAuto3DRender").nodeValue().toInt();
 	m_defaultPreferences.PositionMarkerSize = attributes.namedItem("positionMarkerSize").nodeValue().toDouble();
 	m_defaultPreferences.PrintParameters = attributes.namedItem("printParameters").nodeValue() == "1";
 	m_defaultPreferences.ResultInNewWindow = attributes.namedItem("resultsInNewWindow").nodeValue() == "1";
-	m_defaultPreferences.MagicLensSize = attributes.namedItem("magicLensSize").nodeValue().toInt();
-	m_defaultPreferences.MagicLensFrameWidth = attributes.namedItem("magicLensFrameWidth").nodeValue().toInt();
 	m_defaultPreferences.FontSize = attributes.namedItem("fontSize").nodeValue().toInt();
 	bool prefLogToFile = attributes.namedItem("logToFile").nodeValue() == "1";
 	QString logFileName = attributes.namedItem("logFile").nodeValue();
@@ -905,7 +897,6 @@ void MainWindow::prefs()
 	logLevels[iALogWidget::get()->logLevel()-1] = "!" + logLevels[iALogWidget::get()->logLevel()-1];
 	fileLogLevels[iALogWidget::get()->fileLogLevel() - 1] = "!" + fileLogLevels[iALogWidget::get()->fileLogLevel() - 1];
 	iAAttributes params;
-	addAttr(params, "Histogram Bins", iAValueType::Discrete, p.HistogramBins, 2);
 	addAttr(params, "Position marker size", iAValueType::Discrete, p.PositionMarkerSize, 1);
 	addAttr(params, "Print Parameters", iAValueType::Boolean, p.PrintParameters);
 	addAttr(params, "Results in new window", iAValueType::Boolean, p.ResultInNewWindow);
@@ -915,9 +906,6 @@ void MainWindow::prefs()
 	addAttr(params, "File Log Level", iAValueType::Categorical, fileLogLevels);
 	addAttr(params, "Looks", iAValueType::Categorical, looks);
 	addAttr(params, "Font size", iAValueType::Discrete, QString::number(p.FontSize), 4, 120);
-	addAttr(params, "Magic lens size", iAValueType::Discrete, p.MagicLensSize, MinimumMagicLensSize, MaximumMagicLensSize);
-	addAttr(params, "Magic lens frame width", iAValueType::Discrete, p.MagicLensFrameWidth, 0);
-	addAttr(params, "Logarithmic Histogram y axis", iAValueType::Boolean, p.HistogramLogarithmicYAxis);
 	addAttr(params, "Size limit for automatic 3D rendering (MB)", iAValueType::Discrete, p.LimitForAuto3DRender, 0);
 	iAParameterDlg dlg(this, "Preferences", params, descr);
 	if (dlg.exec() != QDialog::Accepted)
@@ -925,7 +913,6 @@ void MainWindow::prefs()
 		return;
 	}
 	auto values = dlg.parameterValues();
-	m_defaultPreferences.HistogramBins = values["Histogram Bins"].toInt();
 	m_defaultPreferences.PositionMarkerSize = values["Position marker size"].toInt();
 	m_defaultPreferences.PrintParameters = values["Print Parameters"].toBool();
 	m_defaultPreferences.ResultInNewWindow = values["Results in new window"].toBool();
@@ -946,9 +933,6 @@ void MainWindow::prefs()
 	auto f = QApplication::font();
 	f.setPointSize(m_defaultPreferences.FontSize);
 	QApplication::setFont(f);
-	m_defaultPreferences.MagicLensSize = clamp(MinimumMagicLensSize, MaximumMagicLensSize, values["Magic lens size"].toInt());
-	m_defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(values["Magic lens frame width"].toInt()));
-	m_defaultPreferences.HistogramLogarithmicYAxis = values["Logarithmic Histogram y axis"].toBool();
 	m_defaultPreferences.LimitForAuto3DRender = values["Size limit for automatic 3D rendering (MB)"].toInt();
 	if (activeMdiChild())
 	{
@@ -959,7 +943,7 @@ void MainWindow::prefs()
 
 void MainWindow::renderSettings()
 {
-	QString dlgTitle = activeMdiChild()? (activeMdiChild()->windowTitle() + " - renderer setings") : "Default renderer settings";
+	QString dlgTitle = activeMdiChild()? (activeMdiChild()->windowTitle() + " - Renderer settings") : "Default renderer settings";
 	iARenderSettings renderSettings = activeMdiChild() ? activeMDI()->renderSettings() : m_defaultRenderSettings;
 	iAVolumeSettings volumeSettings = activeMdiChild() ? activeMdiChild()->volumeSettings() : m_defaultVolumeSettings;
 	QStringList renderTypes = RenderModeMap().values();
@@ -980,6 +964,8 @@ void MainWindow::renderSettings()
 	addAttr(params, "Use Screen Space Ambient Occlusion", iAValueType::Boolean, renderSettings.UseSSAO);
 	addAttr(params, "Use Depth Peeling", iAValueType::Boolean, renderSettings.UseDepthPeeling);
 	addAttr(params, "Maximum Depth Peels", iAValueType::Discrete, renderSettings.DepthPeels);
+	addAttr(params, "Magic lens size", iAValueType::Discrete, renderSettings.MagicLensSize, MinimumMagicLensSize, MaximumMagicLensSize);
+	addAttr(params, "Magic lens frame width", iAValueType::Discrete, renderSettings.MagicLensFrameWidth, 0);
 
 	addAttr(params, "Linear interpolation", iAValueType::Boolean, volumeSettings.LinearInterpolation);
 	addAttr(params, "Shading", iAValueType::Boolean, volumeSettings.Shading);
@@ -1004,13 +990,15 @@ void MainWindow::renderSettings()
 	m_defaultRenderSettings.BackgroundTop = values["Background top"].toString();
 	m_defaultRenderSettings.BackgroundBottom = values["Background bottom"].toString();
 	m_defaultRenderSettings.UseFXAA = values["Use FXAA"].toBool();
+	m_defaultRenderSettings.MultiSamples = values["MultiSamples"].toInt();
+	m_defaultRenderSettings.OcclusionRatio = values["Occlusion Ratio"].toDouble();
 	m_defaultRenderSettings.UseSSAO = values["Use Screen Space Ambient Occlusion"].toBool();
 	// available sub-options:
 	//      radius, bias, kernel size, blur
-	m_defaultRenderSettings.MultiSamples = values["MultiSamples"].toInt();
 	m_defaultRenderSettings.UseDepthPeeling = values["Use Depth Peeling"].toBool();
 	m_defaultRenderSettings.DepthPeels = values["Maximum Depth Peels"].toInt();
-	m_defaultRenderSettings.OcclusionRatio = values["Occlusion Ratio"].toDouble();
+	m_defaultRenderSettings.MagicLensSize = values["Magic lens size"].toUInt();
+	m_defaultRenderSettings.MagicLensFrameWidth = values["Magic lens frame width"].toUInt();
 
 	QColor bgTop(m_defaultRenderSettings.BackgroundTop);
 	QColor bgBottom(m_defaultRenderSettings.BackgroundBottom);
@@ -1065,6 +1053,9 @@ void MainWindow::slicerSettings()
 	selectOption(mouseCursorOptions, slicerSettings.SingleSlicer.CursorMode);
 	iAAttributes params;
 	addAttr(params, "Link Views", iAValueType::Boolean, slicerSettings.LinkViews);
+	addAttr(params, "Link MDIs", iAValueType::Boolean, slicerSettings.LinkMDIs);
+	addAttr(params, "Snake Slices", iAValueType::Discrete, slicerSettings.SnakeSlices);
+	addAttr(params, "Mouse Cursor", iAValueType::Categorical, mouseCursorOptions);
 	addAttr(params, "Show Position", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowPosition);
 	addAttr(params, "Show Isolines", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowIsoLines);
 	addAttr(params, "Linear Interpolation", iAValueType::Boolean, slicerSettings.SingleSlicer.LinearInterpolation);
@@ -1072,12 +1063,11 @@ void MainWindow::slicerSettings()
 	addAttr(params, "Number of Isolines", iAValueType::Discrete, slicerSettings.SingleSlicer.NumberOfIsoLines);
 	addAttr(params, "Min Isovalue", iAValueType::Continuous, slicerSettings.SingleSlicer.MinIsoValue);
 	addAttr(params, "Max Isovalue", iAValueType::Continuous, slicerSettings.SingleSlicer.MaxIsoValue);
-	addAttr(params, "Snake Slices", iAValueType::Discrete, slicerSettings.SnakeSlices);
-	addAttr(params, "Link MDIs", iAValueType::Boolean, slicerSettings.LinkMDIs);
-	addAttr(params, "Mouse Cursor", iAValueType::Categorical, mouseCursorOptions);
 	addAttr(params, "Show Axes Caption", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowAxesCaption);
 	addAttr(params, "Tooltip Font Size (pt)", iAValueType::Discrete, slicerSettings.SingleSlicer.ToolTipFontSize);
 	addAttr(params, "Show Tooltip", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowTooltip);
+	addAttr(params, "Magic lens size", iAValueType::Discrete, slicerSettings.SingleSlicer.MagicLensSize, MinimumMagicLensSize, MaximumMagicLensSize);
+	addAttr(params, "Magic lens frame width", iAValueType::Discrete, slicerSettings.SingleSlicer.MagicLensFrameWidth, 0);
 	for (int s=0; s<iASlicerMode::SlicerCount; ++s)
 	{
 		addAttr(params, slicerBGColorSetting(s), iAValueType::Color, slicerSettings.BackgroundColor[s]);
@@ -1089,8 +1079,8 @@ void MainWindow::slicerSettings()
 	}
 	auto values = dlg.parameterValues();
 	m_defaultSlicerSettings.LinkViews = values["Link Views"].toBool();
-	m_defaultSlicerSettings.SnakeSlices = values["Snake Slices"].toInt();
 	m_defaultSlicerSettings.LinkMDIs = values["Link MDIs"].toBool();
+	m_defaultSlicerSettings.SnakeSlices = values["Snake Slices"].toInt();
 	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
 	{
 		m_defaultSlicerSettings.BackgroundColor[s] = values[slicerBGColorSetting(s)].toString();
@@ -1106,6 +1096,8 @@ void MainWindow::slicerSettings()
 	m_defaultSlicerSettings.SingleSlicer.ShowAxesCaption = values["Show Axes Caption"].toBool();
 	m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize = values["Tooltip Font Size (pt)"].toInt();
 	m_defaultSlicerSettings.SingleSlicer.ShowTooltip = values["Show Tooltip"].toBool();
+	m_defaultSlicerSettings.SingleSlicer.MagicLensSize = values["Magic lens size"].toUInt();
+	m_defaultSlicerSettings.SingleSlicer.MagicLensFrameWidth = values["Magic lens frame width"].toUInt();
 
 	if (activeMdiChild())
 	{
@@ -1589,6 +1581,8 @@ void MainWindow::readSettings()
 {
 	QSettings settings;
 	m_path = settings.value("Path").toString();
+
+	// layout / look:
 	m_qssName = settings.value("themeName", SystemTheme).toString();
 	m_useSystemTheme = m_qssName == SystemTheme;
 	if (m_useSystemTheme)
@@ -1601,15 +1595,21 @@ void MainWindow::readSettings()
 
 	iAPreferences defaultPrefs;
 	m_defaultLayout = settings.value("Preferences/defaultLayout", "").toString();
-	m_defaultPreferences.HistogramBins = settings.value("Preferences/prefHistogramBins", defaultPrefs.HistogramBins).toInt();
-	m_defaultPreferences.HistogramLogarithmicYAxis = settings.value("Preferences/prefHistogramLogarithmicYAxis", defaultPrefs.HistogramLogarithmicYAxis).toBool();
-	m_defaultPreferences.LimitForAuto3DRender = settings.value("Preferences/prefLimitForAuto3DRender", defaultPrefs.LimitForAuto3DRender).toInt();
-	m_defaultPreferences.PositionMarkerSize = settings.value("Preferences/prefStatExt", defaultPrefs.PositionMarkerSize).toInt();
-	m_defaultPreferences.PrintParameters = settings.value("Preferences/prefPrintParameters", defaultPrefs.PrintParameters).toBool();
-	m_defaultPreferences.ResultInNewWindow = settings.value("Preferences/prefResultInNewWindow", defaultPrefs.ResultInNewWindow).toBool();
-	m_defaultPreferences.MagicLensSize = settings.value("Preferences/prefMagicLensSize", defaultPrefs.MagicLensSize).toInt();
-	m_defaultPreferences.MagicLensFrameWidth = settings.value("Preferences/prefMagicLensFrameWidth", defaultPrefs.MagicLensFrameWidth).toInt();
 	m_defaultPreferences.FontSize = settings.value("Preferences/fontSize", defaultPrefs.FontSize).toInt();
+	settings.beginGroup("Layout");
+	m_layoutNames = settings.allKeys();
+	m_layoutNames = m_layoutNames.filter(QRegularExpression("^state"));
+	m_layoutNames.replaceInStrings(QRegularExpression("^state"), "");
+	settings.endGroup();
+	if (m_layoutNames.size() == 0)
+	{
+		m_layoutNames.push_back("1");
+		m_layoutNames.push_back("2");
+		m_layoutNames.push_back("3");
+	}
+	m_defaultPreferences.PositionMarkerSize = settings.value("Preferences/prefStatExt", defaultPrefs.PositionMarkerSize).toInt();
+	
+	// Logging-related:
 	bool prefLogToFile = settings.value("Preferences/prefLogToFile", false).toBool();
 	QString logFileName = settings.value("Preferences/prefLogFile", "debug.log").toString();
 	iALogWidget::get()->setLogToFile(prefLogToFile, logFileName);
@@ -1620,6 +1620,35 @@ void MainWindow::readSettings()
 	auto f = QApplication::font();
 	f.setPointSize(m_defaultPreferences.FontSize);
 	QApplication::setFont(f);
+	bool showLog = settings.value("Parameters/ShowLog", false).toBool();
+	iALogWidget::get()->toggleViewAction()->setChecked(showLog);
+	iALogWidget::get()->setVisible(showLog);
+	m_ui->actionOpenLogOnNewMessage->setChecked(settings.value("Parameters/OpenLogOnNewMessages", true).toBool());
+	toggleOpenLogOnNewMessage();
+
+	// job/filter related:
+	m_defaultPreferences.PrintParameters = settings.value("Preferences/prefPrintParameters", defaultPrefs.PrintParameters).toBool();
+	m_defaultPreferences.ResultInNewWindow = settings.value("Preferences/prefResultInNewWindow", defaultPrefs.ResultInNewWindow).toBool();
+	bool showJobs = settings.value("Parameters/ShowJobs", false).toBool();
+	m_dwJobs->toggleViewAction()->setChecked(showJobs);
+	m_dwJobs->setVisible(showJobs);
+	m_ui->actionOpenListOnAddedJob->setChecked(settings.value("Parameters/OpenListOnAddedJob", true).toBool());
+	toggleOpenListOnAddedJob();
+	m_ui->actionShowToolbar->setChecked(settings.value("Parameters/ShowToolbar", true).toBool());
+	toggleToolbar();
+	auto viewMode = static_cast<QMdiArea::ViewMode>(settings.value("Parameters/ViewMode", QMdiArea::SubWindowView).toInt());
+	m_ui->mdiArea->setViewMode(viewMode);
+	if (viewMode == QMdiArea::SubWindowView)
+	{
+		m_ui->actionSubWindows->setChecked(true);
+	}
+	else
+	{
+		m_ui->actionTabbed->setChecked(true);
+	}
+	
+	// performance:
+	m_defaultPreferences.LimitForAuto3DRender = settings.value("Preferences/prefLimitForAuto3DRender", defaultPrefs.LimitForAuto3DRender).toInt();
 
 	iARenderSettings fallbackRS;
 	m_defaultRenderSettings.ShowSlicers = settings.value("Renderer/rsShowSlicers", fallbackRS.ShowSlicers).toBool();
@@ -1678,29 +1707,6 @@ void MainWindow::readSettings()
 	m_spRenderSettings = settings.value("Parameters/spRenderSettings").toBool();
 	m_spSlicerSettings = settings.value("Parameters/spSlicerSettings").toBool();
 
-	bool showLog = settings.value("Parameters/ShowLog", false).toBool();
-	iALogWidget::get()->toggleViewAction()->setChecked(showLog);
-	iALogWidget::get()->setVisible(showLog);
-	m_ui->actionOpenLogOnNewMessage->setChecked(settings.value("Parameters/OpenLogOnNewMessages", true).toBool());
-	toggleOpenLogOnNewMessage();
-	bool showJobs = settings.value("Parameters/ShowJobs", false).toBool();
-	m_dwJobs->toggleViewAction()->setChecked(showJobs);
-	m_dwJobs->setVisible(showJobs);
-	m_ui->actionOpenListOnAddedJob->setChecked(settings.value("Parameters/OpenListOnAddedJob", true).toBool());
-	toggleOpenListOnAddedJob();
-	m_ui->actionShowToolbar->setChecked(settings.value("Parameters/ShowToolbar", true).toBool());
-	toggleToolbar();
-	auto viewMode = static_cast<QMdiArea::ViewMode>(settings.value("Parameters/ViewMode", QMdiArea::SubWindowView).toInt());
-	m_ui->mdiArea->setViewMode(viewMode);
-	if (viewMode == QMdiArea::SubWindowView)
-	{
-		m_ui->actionSubWindows->setChecked(true);
-	}
-	else
-	{
-		m_ui->actionTabbed->setChecked(true);
-	}
-
 	m_owdtcs = settings.value("OpenWithDataTypeConversion/owdtcs", 1).toInt();
 	m_rawFileParams.m_size[0] = settings.value("OpenWithDataTypeConversion/owdtcx", 1).toInt();
 	m_rawFileParams.m_size[1] = settings.value("OpenWithDataTypeConversion/owdtcy", 1).toInt();
@@ -1719,18 +1725,6 @@ void MainWindow::readSettings()
 	m_owdtcxsize = settings.value("OpenWithDataTypeConversion/owdtcxsize").toInt();
 	m_owdtcysize = settings.value("OpenWithDataTypeConversion/owdtcysize").toInt();
 	m_owdtczsize = settings.value("OpenWithDataTypeConversion/owdtczsize").toInt();
-
-	settings.beginGroup("Layout");
-	m_layoutNames = settings.allKeys();
-	m_layoutNames = m_layoutNames.filter(QRegularExpression("^state"));
-	m_layoutNames.replaceInStrings(QRegularExpression("^state"), "");
-	settings.endGroup();
-	if (m_layoutNames.size() == 0)
-	{
-		m_layoutNames.push_back("1");
-		m_layoutNames.push_back("2");
-		m_layoutNames.push_back("3");
-	}
 }
 
 void MainWindow::writeSettings()
@@ -1740,14 +1734,10 @@ void MainWindow::writeSettings()
 	settings.setValue("themeName", m_useSystemTheme ? SystemTheme : m_qssName);
 
 	settings.setValue("Preferences/defaultLayout", m_layout->currentText());
-	settings.setValue("Preferences/prefHistogramBins", m_defaultPreferences.HistogramBins);
-	settings.setValue("Preferences/prefHistogramLogarithmicYAxis", m_defaultPreferences.HistogramLogarithmicYAxis);
 	settings.setValue("Preferences/prefLimitForAuto3DRender", m_defaultPreferences.LimitForAuto3DRender);
 	settings.setValue("Preferences/prefStatExt", m_defaultPreferences.PositionMarkerSize);
 	settings.setValue("Preferences/prefPrintParameters", m_defaultPreferences.PrintParameters);
 	settings.setValue("Preferences/prefResultInNewWindow", m_defaultPreferences.ResultInNewWindow);
-	settings.setValue("Preferences/prefMagicLensSize", m_defaultPreferences.MagicLensSize);
-	settings.setValue("Preferences/prefMagicLensFrameWidth", m_defaultPreferences.MagicLensFrameWidth);
 	settings.setValue("Preferences/fontSize", m_defaultPreferences.FontSize);
 
 	settings.setValue("Preferences/prefLogToFile", iALogWidget::get()->isLogToFileOn());
@@ -2181,8 +2171,6 @@ void MainWindow::childClosed()
 	{
 		return;
 	}
-	// magic lens size can be modified in the slicers as well; make sure to store this change:
-	m_defaultPreferences.MagicLensSize = sender->magicLensSize();
 }
 
 void MainWindow::saveProject()
@@ -2292,8 +2280,7 @@ void MainWindow::openWithDataTypeConversion()
 	convPara[6] = m_owdtcxsize; convPara[7] = m_owdtcyori; convPara[8] = m_owdtcysize;  convPara[9] = m_owdtczori;   convPara[10] = m_owdtczsize;
 	try
 	{
-		dlg_datatypeconversion conversionwidget(this, fileName, m_rawFileParams,
-			m_owdtcs, m_defaultPreferences.HistogramBins, convPara);
+		dlg_datatypeconversion conversionwidget(this, fileName, m_rawFileParams, m_owdtcs, convPara);
 		if (conversionwidget.exec() != QDialog::Accepted)
 		{
 			return;

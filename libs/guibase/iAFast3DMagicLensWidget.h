@@ -17,8 +17,10 @@ class vtkRenderer;
 //!     - The ability to show a 3D magic lens where the camera of the lens adapts to the camera of the "main" view.
 //!     - Touch-based pinch-zoom
 //!		- context menu for triggering showing settings and switching magic lens modes
-//! Should probably be merged with iARendererImpl
-class iAguibase_API iAFast3DMagicLensWidget : public iAQVTKWidget
+//! @todo refactor:
+//!     - split up into basic 3D renderer widget functionality to iARendererImpl
+//!     - magic lens stuff to separate class (similar to iAMagicLens)
+class iAguibase_API iAFast3DMagicLensWidget final : public iAQVTKWidget
 {
 	Q_OBJECT
 public:
@@ -27,10 +29,11 @@ public:
 		OFFSET
 	};
 	iAFast3DMagicLensWidget(QWidget * parent = nullptr);
-	virtual ~iAFast3DMagicLensWidget( );
+	~iAFast3DMagicLensWidget( );
 	void magicLensOn();
 	void magicLensOff();
 	void setLensSize(int sizeX, int sizeY);
+	void setFrameWidth(int width);
 	vtkRenderer* getLensRenderer();
 	void setViewMode(ViewMode mode);
 	bool isMagicLensEnabled() const;
@@ -45,7 +48,7 @@ signals:
 	void touchScale(float relScale);
 	void editSettings();
 
-protected:
+private:
 	void resizeEvent( QResizeEvent * event ) override;
 	void mouseReleaseEvent(QMouseEvent * event) override;
 	void mouseMoveEvent(QMouseEvent* event) override;
@@ -53,11 +56,9 @@ protected:
 	bool event(QEvent* event) override;
 	void contextMenuEvent(QContextMenuEvent* event) override;
 
-	virtual void updateLens();
-	virtual void updateGUI();
+	void updateLens();
+	void updateGUI();
 	void getViewportPoints(double points[4]);
-
-private:
 	double calculateZ( double viewAngle );
 
 	static const double          OFFSET_VAL;

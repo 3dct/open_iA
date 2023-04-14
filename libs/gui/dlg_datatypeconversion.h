@@ -29,7 +29,7 @@ class dlg_datatypeconversion : public QDialog
 
 public:
 	dlg_datatypeconversion ( QWidget *parent, QString const & filename, iARawFileParameters const & p,
-		unsigned int zSkip, size_t numBins, double* inPara );
+		unsigned int zSkip, double* inPara );
 	~dlg_datatypeconversion();
 
 	QString convert(QString const & filename, int outdatatype,

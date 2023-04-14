@@ -9,25 +9,17 @@ class iAPreferences
 {
 	// TODO: currently, all of these are stored per MdiChild; some of them should be global though
 public:
-	int HistogramBins,
+	int FontSize,
 		PositionMarkerSize,
-		MagicLensSize,
-		MagicLensFrameWidth,
-		FontSize,
 		LimitForAuto3DRender;
 	bool ResultInNewWindow,
-		PrintParameters,
-		HistogramLogarithmicYAxis;
+		PrintParameters;
 		//LogToFile;
 	iAPreferences():
-		HistogramBins(2048),
-		PositionMarkerSize(3),
-		MagicLensSize(DefaultMagicLensSize),
-		MagicLensFrameWidth(3),
 		FontSize(8),
 		LimitForAuto3DRender(2'000),
+		PositionMarkerSize(3),
 		ResultInNewWindow(true),
-		PrintParameters(true),
-		HistogramLogarithmicYAxis(false)
+		PrintParameters(true)
 	{}
 };

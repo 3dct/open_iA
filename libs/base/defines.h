@@ -8,6 +8,7 @@
 
 #define DIM 3
 
+// for both 2D and 3D magic lenses
 const int DefaultMagicLensSize = 120;
 const int MinimumMagicLensSize = 40;
 const int MaximumMagicLensSize = 8192;

@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#include "defines.h"   // for DefaultMagicLensSize
+
 #include <QString>
 
 //! Settings applicable to a single slicer window.
@@ -16,7 +18,9 @@ public:
 		AdjustWindowLevelEnabled;
 	double MinIsoValue, MaxIsoValue;
 	int NumberOfIsoLines,
-		ToolTipFontSize;
+		ToolTipFontSize,
+		MagicLensSize,          //!< size (width & height) of the 2D magic lens (in pixels / pixel-equivalent units considering scaling)
+		MagicLensFrameWidth;    //!< width of the frame of the 2D magic lens
 	QString CursorMode;
 	QColor backgroundColor;
 
@@ -31,6 +35,8 @@ public:
 		MaxIsoValue(40000),
 		NumberOfIsoLines(5),
 		ToolTipFontSize(12),
+		MagicLensSize(DefaultMagicLensSize),
+		MagicLensFrameWidth(3),
 		CursorMode(QString("Crosshair default")),
 		backgroundColor()	// invalid
 	{}

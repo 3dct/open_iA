@@ -65,6 +65,8 @@ namespace
 	const QChar RenderProfileFlag('P');
 
 	const QString TransferFunction = "TransferFunction";
+	const QString HistogramBins = "Histogram Bins";
+	const QString HistogramLogarithmicYAxis = "Histogram Logarithmic y axis";
 }
 
 
@@ -76,6 +78,8 @@ iAVolumeViewer::iAVolumeViewer(iADataSet * dataSet) :
 	m_profileChart(nullptr),
 	m_imgStatistics("Computing...")
 {
+	addAttribute(HistogramBins, iAValueType::Discrete, 256, 2);
+	addAttribute(HistogramLogarithmicYAxis, iAValueType::Boolean, false);
 }
 
 iAVolumeViewer::~iAVolumeViewer()
@@ -118,7 +122,7 @@ unsigned int channelID() const override
 */
 
 
-void iAVolumeViewer::prepare(iAPreferences const& pref, iAProgress* p)
+void iAVolumeViewer::prepare(iAProgress* p)
 {
 	p->setStatus(QString("%1: Computing scalar range").arg(m_dataSet->name()));
 	auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
@@ -171,7 +175,7 @@ void iAVolumeViewer::prepare(iAPreferences const& pref, iAProgress* p)
 	m_imgStatistics = "";
 	for (int c = 0; c < numCmp; ++c)
 	{
-		m_histogramData[c] = iAHistogramData::create(plotName(c, numCmp), img, pref.HistogramBins, &stats, c);
+		m_histogramData[c] = iAHistogramData::create(plotName(c, numCmp), img, m_attribValues[HistogramBins].toUInt(), &stats, c);
 		m_imgStatistics += QString("%1min=%2, max=%3, µ=%4, σ=%5%6")
 			.arg(numCmp > 1 ? QString("component %1: ").arg(c) : "")
 			.arg(stats.minimum)
@@ -267,39 +271,6 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			m_profileChart->plots()[0]->setColor(QApplication::palette().color(QPalette::Text));
 		}
 	});
-	connect(child, &iAMdiChild::preferencesChanged, this,
-		[this, child]()
-		{
-			auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
-			size_t newBinCount = iAHistogramData::finalNumBin(img, child->preferences().HistogramBins);
-			m_histogram->setYMappingMode(
-				child->preferences().HistogramLogarithmicYAxis ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
-			if (m_histogramData[0]->valueCount() != newBinCount)
-			{
-				auto fw = runAsync(
-					[this, newBinCount, img]
-					{
-						for (int c = 0; c < img->GetNumberOfScalarComponents(); ++c)
-						{
-							m_histogramData[c] = iAHistogramData::create(plotName(c, newBinCount), img, newBinCount, nullptr, c);
-						}
-					},
-					[this, img]
-					{
-						m_histogram->clearPlots();
-						auto numCmp = img->GetNumberOfScalarComponents();
-						for (int c = 0; c < numCmp; ++c)
-						{
-							auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(m_histogramData[c], plotColor(c, numCmp));
-							m_histogram->addPlot(histogramPlot);
-						}
-						m_histogram->update();
-					},
-					this);
-				iAJobListView::get()->addJob(
-					QString("Updating preferences for dataset %1").arg(m_dataSet->name()), nullptr, fw);
-			}
-		});
 
 	// slicer
 	bool visibleSlicer = renderFlagSet(RenderSlicerFlag);
@@ -366,6 +337,35 @@ void iAVolumeViewer::applyAttributes(QVariantMap const& values)
 	auto title = "Histogram " + m_dataSet->name();
 	m_histogram->setXCaption(title);
 	m_dwHistogram->setWindowTitle(title);
+
+	auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
+	size_t newBinCount = iAHistogramData::finalNumBin(img, values[HistogramBins].toUInt());
+	m_histogram->setYMappingMode( values[HistogramLogarithmicYAxis].toBool() ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
+	if (m_histogramData[0]->valueCount() != newBinCount)
+	{
+		auto fw = runAsync(
+			[this, newBinCount, img]
+			{
+				for (int c = 0; c < img->GetNumberOfScalarComponents(); ++c)
+				{
+					m_histogramData[c] = iAHistogramData::create(plotName(c, newBinCount), img, newBinCount, nullptr, c);
+				}
+			},
+				[this, img]
+			{
+				m_histogram->clearPlots();
+				auto numCmp = img->GetNumberOfScalarComponents();
+				for (int c = 0; c < numCmp; ++c)
+				{
+					auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(m_histogramData[c], plotColor(c, numCmp));
+					m_histogram->addPlot(histogramPlot);
+				}
+				m_histogram->update();
+			},
+				this);
+		iAJobListView::get()->addJob(
+			QString("Computing histogram for dataset %1").arg(m_dataSet->name()), nullptr, fw);
+	}
 }
 
 uint iAVolumeViewer::slicerChannelID() const

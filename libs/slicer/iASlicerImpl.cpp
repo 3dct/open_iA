@@ -568,6 +568,8 @@ void iASlicerImpl::setup( iASingleSlicerSettings const & settings )
 	m_textInfo->setFontSize(settings.ToolTipFontSize);
 	setBackground(settings.backgroundColor);
 	m_textInfo->show(m_settings.ShowTooltip);
+	setMagicLensFrameWidth(settings.MagicLensFrameWidth);
+	setMagicLensSize(settings.MagicLensSize);
 	if (m_magicLens)
 	{
 		updateMagicLens();
@@ -2302,17 +2304,33 @@ void iASlicerImpl::resizeEvent(QResizeEvent * event)
 void iASlicerImpl::wheelEvent(QWheelEvent* event)
 {
 	event->accept();
-	if (event->modifiers().testFlag(Qt::ControlModifier) && receivers(SIGNAL(ctrlMouseWheel(int))) > 0)
+	if (event->modifiers().testFlag(Qt::ControlModifier))
 	{
-		emit ctrlMouseWheel(event->angleDelta().y() / 120.0);
+		int chg = event->angleDelta().y() / 120.0;
+		if (m_magicLens)
+		{
+			double sizeFactor = 1.1 * (std::abs(chg));
+			if (chg < 0)
+			{
+				sizeFactor = 1 / sizeFactor;
+			}
+			int newSize = std::max(MinimumMagicLensSize, static_cast<int>(magicLensSize() * sizeFactor));
+			setMagicLensSize(newSize);
+		}
+		emit ctrlMouseWheel(chg);
 	}
 	else if (event->modifiers().testFlag(Qt::ShiftModifier) && receivers(SIGNAL(shiftMouseWheel(int))) > 0)
 	{
 		emit shiftMouseWheel(event->angleDelta().y() / 120);
 	}
-	else if (event->modifiers().testFlag(Qt::AltModifier) && receivers(SIGNAL(altMouseWheel(int))) > 0)
+	else if (event->modifiers().testFlag(Qt::AltModifier))
 	{
-		emit altMouseWheel(event->angleDelta().x() / 120);
+		int chg = event->angleDelta().x() / 120;
+		if (m_magicLens)
+		{
+			setMagicLensOpacity(magicLensOpacity() + (chg * 0.05));
+		}
+		emit altMouseWheel(chg);
 	}
 	else if (event->angleDelta().x() != 0 && receivers(SIGNAL(altMouseWheel(int))) > 0)
 	{

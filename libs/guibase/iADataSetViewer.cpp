@@ -40,9 +40,8 @@ iADataSetViewer::~iADataSetViewer()
 {
 }
 
-void iADataSetViewer::prepare(iAPreferences const& pref, iAProgress* p)
+void iADataSetViewer::prepare(iAProgress* p)
 {
-	Q_UNUSED(pref);
 	Q_UNUSED(p);
 }
 

@@ -382,7 +382,7 @@ QVBoxLayout* setupSliceWidget(iAQVTKWidget* &widget, vtkSmartPointer<vtkPlaneSou
 }
 
 dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & filename, iARawFileParameters const & p,
-	unsigned int zSkip, size_t numBins, double* inPara) : QDialog (parent)
+	unsigned int zSkip, double* inPara) : QDialog (parent)
 {
 	setLayout(new QVBoxLayout());
 
@@ -399,6 +399,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 	m_roi[4] = p.m_size[1];
 	m_roi[5] = p.m_size[2];
 
+	const size_t numBins = 2048;
 	m_histbinlist = new iAPlotData::DataType[numBins];
 
 	loadPreview(filename, p, zSkip, numBins);

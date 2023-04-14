@@ -31,7 +31,7 @@ class iAguibase_API iAVolumeViewer : public iADataSetViewer
 public:
 	iAVolumeViewer(iADataSet * dataSet);
 	~iAVolumeViewer();
-	void prepare(iAPreferences const& pref, iAProgress* p) override;
+	void prepare(iAProgress* p) override;
 	void createGUI(iAMdiChild* child, size_t dataSetIdx) override;
 	QString information() const override;
 	uint slicerChannelID() const override;

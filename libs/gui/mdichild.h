@@ -268,8 +268,6 @@ private slots:
 	void slicerRotationChanged();
 	void updatePositionMarker(double x, double y, double z, int mode);
 	void changeMagicLensDataSet(int chg);
-	void changeMagicLensOpacity(int chg);
-	void changeMagicLensSize(int chg);
 	void toggleFullScreen();
 
 private:
