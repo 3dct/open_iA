@@ -42,6 +42,12 @@ public:
 
 	QVariantMap attributeValues() const override;
 
+	static iAAttributes const & defaultAttributes();
+	static void setDefaultAttributes(QVariantMap const& values);
+
+protected:
+	iAAttributes& attributes() const override;
+
 private:
 	Q_DISABLE_COPY(iAVolumeRenderer);
 	void showDataSet() override;

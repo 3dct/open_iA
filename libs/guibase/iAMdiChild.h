@@ -28,7 +28,6 @@ class iASlicer;
 class iASlicerSettings;
 class iATool;
 class iATransferFunction;
-class iAVolumeSettings;
 
 class vtkImageData;
 class vtkPiecewiseFunction;
@@ -91,7 +90,6 @@ public:
 	
 	// Settings:
 	virtual iARenderSettings const& renderSettings() const = 0;
-	virtual iAVolumeSettings const& volumeSettings() const = 0;
 	virtual iASlicerSettings const& slicerSettings() const = 0;
 	virtual iAPreferences const& preferences() const = 0;
 	//! Whether this child has the linked views feature enabled
@@ -148,7 +146,7 @@ public:
 	virtual bool isVolumeDataLoaded() const = 0;
 
 	//! apply the given (3D) renderer settings
-	virtual void applyRendererSettings(iARenderSettings const& rs, iAVolumeSettings const& vs) = 0;
+	virtual void applyRendererSettings(iARenderSettings const& rs) = 0;
 
 	// Datasets:
 	// TODO NEWIO: There's potential for better encapsulation / better API here! Maybe extract to separate dataset container?

@@ -8,7 +8,6 @@
 #include "iAPreferences.h"
 #include "iARenderSettings.h"
 #include "iASlicerSettings.h"
-#include "iAVolumeSettings.h"
 #include "iARawFileParameters.h"
 
 #include <QMdiArea>
@@ -88,7 +87,6 @@ public:
 	QMdiSubWindow* addSubWindow(QWidget * child) override;
 	iAPreferences const& defaultPreferences() const override;
 	iARenderSettings const& defaultRenderSettings() const override;
-	iAVolumeSettings const& defaultVolumeSettings() const override;
 	iAModuleDispatcher& moduleDispatcher() const override;
 	iAMdiChild* createMdiChild(bool unsavedChanges) override;
 	void closeMdiChild(iAMdiChild* child) override;
@@ -194,7 +192,6 @@ private:
 	QString m_qssName;
 	//! whether the option of bright/dark theme should adapt to the system theme
 	bool m_useSystemTheme;
-	iAVolumeSettings m_defaultVolumeSettings;
 	iARenderSettings m_defaultRenderSettings;
 	iASlicerSettings m_defaultSlicerSettings;
 	iAPreferences m_defaultPreferences;

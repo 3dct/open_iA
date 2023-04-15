@@ -15,7 +15,6 @@
 #include "iARenderSettings.h"
 #include "iASavableProject.h"
 #include "iASlicerSettings.h"
-#include "iAVolumeSettings.h"
 
 #include <vtkSmartPointer.h>
 
@@ -77,13 +76,11 @@ public:
 	void saveVolumeStack();
 
 	void applyPreferences(iAPreferences const & p);
-	void applyViewerPreferences();
-	void applyRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs) override;
+	void applyRendererSettings(iARenderSettings const & rs) override;
 	void applySlicerSettings(iASlicerSettings const & ss);
 	void applyVolumeSettings();
-	void setRenderSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
+	void setRenderSettings(iARenderSettings const & rs);
 	iARenderSettings const & renderSettings() const override;
-	iAVolumeSettings const & volumeSettings() const override;
 	iASlicerSettings const & slicerSettings() const override;
 	iAPreferences    const & preferences()    const override;
 
@@ -299,7 +296,6 @@ private:
 	QDockWidget* m_whatMaximized;
 
 	iARenderSettings m_renderSettings;
-	iAVolumeSettings m_volumeSettings;
 	iASlicerSettings m_slicerSettings;
 	iAPreferences m_preferences;
 

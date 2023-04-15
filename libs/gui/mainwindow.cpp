@@ -717,15 +717,6 @@ void MainWindow::saveRenderSettings(iAXmlSettings &xml)
 	renderSettingsElement.setAttribute("multiSamples", m_defaultRenderSettings.MultiSamples);
 	renderSettingsElement.setAttribute("useDepthPeeling", m_defaultRenderSettings.UseDepthPeeling);
 	renderSettingsElement.setAttribute("depthPeels", m_defaultRenderSettings.DepthPeels);
-
-	renderSettingsElement.setAttribute("linearInterpolation", m_defaultVolumeSettings.LinearInterpolation);
-	renderSettingsElement.setAttribute("shading", m_defaultVolumeSettings.Shading);
-	renderSettingsElement.setAttribute("sampleDistance", m_defaultVolumeSettings.SampleDistance);
-	renderSettingsElement.setAttribute("ambientLighting", m_defaultVolumeSettings.AmbientLighting);
-	renderSettingsElement.setAttribute("diffuseLighting", m_defaultVolumeSettings.DiffuseLighting);
-	renderSettingsElement.setAttribute("specularLighting", m_defaultVolumeSettings.SpecularLighting);
-	renderSettingsElement.setAttribute("specularPower", m_defaultVolumeSettings.SpecularPower);
-	renderSettingsElement.setAttribute("renderMode", m_defaultVolumeSettings.RenderMode);
 }
 
 void MainWindow::loadRenderSettings(QDomNode renderSettingsNode)
@@ -747,16 +738,7 @@ void MainWindow::loadRenderSettings(QDomNode renderSettingsNode)
 	m_defaultRenderSettings.UseDepthPeeling = attributes.namedItem("useDepthPeeling").nodeValue() == "1";
 	m_defaultRenderSettings.DepthPeels = attributes.namedItem("depthPeels").nodeValue().toInt();
 
-	m_defaultVolumeSettings.LinearInterpolation = attributes.namedItem("linearInterpolation").nodeValue() == "1";
-	m_defaultVolumeSettings.Shading = attributes.namedItem("shading").nodeValue() == "1";
-	m_defaultVolumeSettings.SampleDistance = attributes.namedItem("sampleDistance").nodeValue().toDouble();
-	m_defaultVolumeSettings.AmbientLighting = attributes.namedItem("ambientLighting").nodeValue().toDouble();
-	m_defaultVolumeSettings.DiffuseLighting = attributes.namedItem("diffuseLighting").nodeValue().toDouble();
-	m_defaultVolumeSettings.SpecularLighting = attributes.namedItem("specularLighting").nodeValue().toDouble();
-	m_defaultVolumeSettings.SpecularPower = attributes.namedItem("specularPower").nodeValue().toDouble();
-	m_defaultVolumeSettings.RenderMode = attributes.namedItem("renderMode").nodeValue().toInt();
-
-	activeMDI()->applyRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
+	activeMDI()->applyRendererSettings(m_defaultRenderSettings);
 }
 
 void MainWindow::saveSlicerSettings(iAXmlSettings &xml)
@@ -946,9 +928,6 @@ void MainWindow::renderSettings()
 {
 	QString dlgTitle = activeMdiChild()? (activeMdiChild()->windowTitle() + " - Renderer settings") : "Default renderer settings";
 	iARenderSettings renderSettings = activeMdiChild() ? activeMDI()->renderSettings() : m_defaultRenderSettings;
-	iAVolumeSettings volumeSettings = activeMdiChild() ? activeMdiChild()->volumeSettings() : m_defaultVolumeSettings;
-	QStringList renderTypes = RenderModeMap().values();
-	selectOption(renderTypes, renderTypes[volumeSettings.RenderMode]);
 	iAAttributes params;
 	addAttr(params, "Show slicers", iAValueType::Boolean, renderSettings.ShowSlicers);
 	addAttr(params, "Show slice planes", iAValueType::Boolean, renderSettings.ShowSlicePlanes);
@@ -969,14 +948,6 @@ void MainWindow::renderSettings()
 	addAttr(params, "Magic lens size", iAValueType::Discrete, renderSettings.MagicLensSize, MinimumMagicLensSize, MaximumMagicLensSize);
 	addAttr(params, "Magic lens frame width", iAValueType::Discrete, renderSettings.MagicLensFrameWidth, 0);
 
-	addAttr(params, "Linear interpolation", iAValueType::Boolean, volumeSettings.LinearInterpolation);
-	addAttr(params, "Shading", iAValueType::Boolean, volumeSettings.Shading);
-	addAttr(params, "Sample distance", iAValueType::Continuous, volumeSettings.SampleDistance);
-	addAttr(params, "Ambient lighting", iAValueType::Continuous, volumeSettings.AmbientLighting);
-	addAttr(params, "Diffuse lighting", iAValueType::Continuous, volumeSettings.DiffuseLighting);
-	addAttr(params, "Specular lighting", iAValueType::Continuous, volumeSettings.SpecularLighting);
-	addAttr(params, "Specular power", iAValueType::Continuous, volumeSettings.SpecularPower);
-	addAttr(params, "Renderer type", iAValueType::Categorical, renderTypes);
 	iAParameterDlg dlg(this, dlgTitle, params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
@@ -1016,20 +987,11 @@ void MainWindow::renderSettings()
 		m_defaultRenderSettings.BackgroundBottom = bgTop.name();
 	}
 
-	m_defaultVolumeSettings.LinearInterpolation = values["Linear interpolation"].toBool();
-	m_defaultVolumeSettings.Shading = values["Shading"].toBool();
-	m_defaultVolumeSettings.SampleDistance = values["Sample distance"].toDouble();
-	m_defaultVolumeSettings.AmbientLighting = values["Ambient lighting"].toDouble();
-	m_defaultVolumeSettings.DiffuseLighting = values["Diffuse lighting"].toDouble();
-	m_defaultVolumeSettings.SpecularLighting = values["Specular lighting"].toDouble();
-	m_defaultVolumeSettings.SpecularPower = values["Specular power"].toDouble();
-	m_defaultVolumeSettings.RenderMode = mapRenderModeToEnum(values["Renderer type"].toString());
-
 	m_defaultRenderSettings.PlaneOpacity = values["Slice plane opacity"].toDouble();
 
 	if (activeMdiChild())
 	{
-		activeMDI()->applyRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
+		activeMDI()->applyRendererSettings(m_defaultRenderSettings);
 	}
 	LOG(lvlInfo, "Changed renderer settings");
 }
@@ -1455,7 +1417,7 @@ iAMdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 		child->show();
 	}
 	child->initializeViews();
-	child->applyRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
+	child->applyRendererSettings(m_defaultRenderSettings);
 	child->applySlicerSettings(m_defaultSlicerSettings);
 	connect(child, &MdiChild::closed, this, &MainWindow::childClosed);
 	return child;
@@ -1669,16 +1631,6 @@ void MainWindow::readSettings()
 	m_defaultRenderSettings.UseDepthPeeling = settings.value("Renderer/rsUseDepthPeeling", fallbackRS.UseDepthPeeling).toBool();
 	m_defaultRenderSettings.DepthPeels = settings.value("Renderer/rsDepthPeels", fallbackRS.DepthPeels).toInt();
 
-	iAVolumeSettings fallbackVS;
-	m_defaultVolumeSettings.LinearInterpolation = settings.value("Renderer/rsLinearInterpolation", fallbackVS.LinearInterpolation).toBool();
-	m_defaultVolumeSettings.Shading = settings.value("Renderer/rsShading", fallbackVS.Shading).toBool();
-	m_defaultVolumeSettings.SampleDistance = settings.value("Renderer/rsSampleDistance", fallbackVS.SampleDistance).toDouble();
-	m_defaultVolumeSettings.AmbientLighting = settings.value("Renderer/rsAmbientLighting", fallbackVS.AmbientLighting).toDouble();
-	m_defaultVolumeSettings.DiffuseLighting = settings.value("Renderer/rsDiffuseLighting", fallbackVS.DiffuseLighting).toDouble();
-	m_defaultVolumeSettings.SpecularLighting = settings.value("Renderer/rsSpecularLighting", fallbackVS.SpecularLighting).toDouble();
-	m_defaultVolumeSettings.SpecularPower = settings.value("Renderer/rsSpecularPower", fallbackVS.SpecularPower).toDouble();
-	m_defaultVolumeSettings.RenderMode = settings.value("Renderer/rsRenderMode", fallbackVS.RenderMode).toInt();
-
 	iASlicerSettings fallbackSS;
 	m_defaultSlicerSettings.LinkViews = settings.value("Slicer/ssLinkViews", fallbackSS.LinkViews).toBool();
 	m_defaultSlicerSettings.LinkMDIs = settings.value("Slicer/ssLinkMDIs", fallbackSS.LinkMDIs).toBool();
@@ -1764,15 +1716,6 @@ void MainWindow::writeSettings()
 	settings.setValue("Renderer/rsPlaneOpacity", m_defaultRenderSettings.PlaneOpacity);
 	settings.setValue("Renderer/rsUseDepthPeeling", m_defaultRenderSettings.UseDepthPeeling);
 	settings.setValue("Renderer/rsDepthPeels", m_defaultRenderSettings.DepthPeels);
-
-	settings.setValue("Renderer/rsLinearInterpolation", m_defaultVolumeSettings.LinearInterpolation);
-	settings.setValue("Renderer/rsShading", m_defaultVolumeSettings.Shading);
-	settings.setValue("Renderer/rsSampleDistance", m_defaultVolumeSettings.SampleDistance);
-	settings.setValue("Renderer/rsAmbientLighting", m_defaultVolumeSettings.AmbientLighting);
-	settings.setValue("Renderer/rsDiffuseLighting", m_defaultVolumeSettings.DiffuseLighting);
-	settings.setValue("Renderer/rsSpecularLighting", m_defaultVolumeSettings.SpecularLighting);
-	settings.setValue("Renderer/rsSpecularPower", m_defaultVolumeSettings.SpecularPower);
-	settings.setValue("Renderer/rsRenderMode", m_defaultVolumeSettings.RenderMode);
 
 	settings.setValue("Slicer/ssLinkViews", m_defaultSlicerSettings.LinkViews);
 	settings.setValue("Slicer/ssLinkMDIs", m_defaultSlicerSettings.LinkMDIs);
@@ -2241,11 +2184,6 @@ iAPreferences const & MainWindow::defaultPreferences() const
 iARenderSettings const& MainWindow::defaultRenderSettings() const
 {
 	return m_defaultRenderSettings;
-}
-
-iAVolumeSettings const& MainWindow::defaultVolumeSettings() const
-{
-	return m_defaultVolumeSettings;
 }
 
 iAModuleDispatcher & MainWindow::moduleDispatcher() const

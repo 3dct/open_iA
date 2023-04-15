@@ -85,11 +85,13 @@ public:
 	virtual void removeCuttingPlanes();
 
 protected:
-	void addAttribute(QString const& name, iAValueType valueType, QVariant defaultValue = 0.0,
-		double min = std::numeric_limits<double>::lowest(), double max = std::numeric_limits<double>::max());
+	//void addAttribute(QString const& name, iAValueType valueType, QVariant defaultValue = 0.0,
+	//	double min = std::numeric_limits<double>::lowest(), double max = std::numeric_limits<double>::max());
 
 	//! needs to be called by derived classes whenever the bounds of the dataset change (position, orientation, ...)
 	void updateOutlineTransform();
+
+	virtual iAAttributes& attributes() const;
 
 	vtkRenderer* m_renderer;
 	mutable QVariantMap m_attribValues;
@@ -102,7 +104,6 @@ private:
 	//! called when the attributes have changed; derive to apply such a change to renderer
 	virtual void applyAttributes(QVariantMap const& values) = 0;
 
-	iAAttributes m_attributes;
 	std::shared_ptr<iAOutlineImpl> m_outline;
 	bool m_visible;
 };

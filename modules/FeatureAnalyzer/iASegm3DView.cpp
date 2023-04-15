@@ -283,7 +283,8 @@ void iASegm3DViewData::LoadAndApplySettings()
 	QSettings settings;
 
 	iARenderSettings renderSettings;
-	iAVolumeSettings volumeSettings;
+
+	auto volAttr = iAVolumeRenderer::defaultAttributes();
 
 	renderSettings.ShowSlicers = settings.value("Renderer/rsShowSlicers", false).toBool();
 	renderSettings.ShowAxesCube = settings.value("Renderer/rsShowHelpers", true).toBool();

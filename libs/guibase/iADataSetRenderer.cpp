@@ -103,15 +103,24 @@ iADataSetRenderer::iADataSetRenderer(vtkRenderer* renderer) :
 	m_renderer(renderer),
 	m_visible(false)
 {
-	addAttribute(Position, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
-	addAttribute(Orientation, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
-	addAttribute(OutlineColor, iAValueType::Color, OutlineDefaultColor);
-	addAttribute(Pickable, iAValueType::Boolean, true);
-	// generic lighting settings:
-	addAttribute(AmbientLighting, iAValueType::Continuous, 0.2);
-	addAttribute(DiffuseLighting, iAValueType::Continuous, 0.5);
-	addAttribute(SpecularLighting, iAValueType::Continuous, 0.7);
-	addAttribute(SpecularPower, iAValueType::Continuous, 10.0);
+}
+
+iAAttributes& iADataSetRenderer::attributes() const
+{
+	static iAAttributes attr;
+	if (attr.isEmpty())
+	{
+		addAttr(attr, Position, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
+		addAttr(attr, Orientation, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
+		addAttr(attr, OutlineColor, iAValueType::Color, OutlineDefaultColor);
+		addAttr(attr, Pickable, iAValueType::Boolean, true);
+		// generic lighting settings:
+		addAttr(attr, AmbientLighting, iAValueType::Continuous, 0.2);
+		addAttr(attr, DiffuseLighting, iAValueType::Continuous, 0.5);
+		addAttr(attr, SpecularLighting, iAValueType::Continuous, 0.7);
+		addAttr(attr, SpecularPower, iAValueType::Continuous, 10.0);
+	}
+	return attr;
 }
 
 iADataSetRenderer::~iADataSetRenderer()
@@ -125,7 +134,7 @@ iADataSetRenderer::~iADataSetRenderer()
 
 void iADataSetRenderer::setAttributes(QVariantMap const& values)
 {
-	setApplyingValues(m_attribValues, m_attributes, values);
+	setApplyingValues(m_attribValues, attributes(), values);
 	// merge default values to currently set values to make applying simpler:
 	auto allValues = joinValues(extractValues(attributesWithValues()), m_attribValues);
 	applyAttributes(allValues);
@@ -151,7 +160,7 @@ bool iADataSetRenderer::isPickable() const
 
 iAAttributes iADataSetRenderer::attributesWithValues() const
 {
-	return combineAttributesWithValues(m_attributes, attributeValues());
+	return combineAttributesWithValues(attributes(), attributeValues());
 }
 
 QVariantMap iADataSetRenderer::attributeValues() const
@@ -194,11 +203,12 @@ void iADataSetRenderer::setBoundsVisible(bool visible)
 	m_outline->setVisible(visible);
 }
 
+/*
 void iADataSetRenderer::addAttribute(
 	QString const& name, iAValueType valueType, QVariant defaultValue, double min, double max)
 {
 #ifndef NDEBUG
-	for (auto attr : m_attributes)
+	for (auto attr : attributes())
 	{
 		if (attr->name() == name)
 		{
@@ -211,6 +221,7 @@ void iADataSetRenderer::addAttribute(
 		? selectedOption(defaultValue.toStringList())
 		: defaultValue;
 }
+*/
 
 void iADataSetRenderer::updateOutlineTransform()
 {

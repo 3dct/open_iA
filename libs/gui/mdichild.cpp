@@ -940,11 +940,10 @@ void MdiChild::updatePositionMarkerSize()
 	}
 }
 
-void MdiChild::setRenderSettings(iARenderSettings const& rs, iAVolumeSettings const& vs)
+void MdiChild::setRenderSettings(iARenderSettings const& rs)
 {
 	// TODO NEWIO: there are now settings of the individual viewers -> REMOVE?
 	m_renderSettings = rs;
-	m_volumeSettings = vs;
 }
 
 void MdiChild::applyVolumeSettings()
@@ -1027,9 +1026,9 @@ void MdiChild::applySlicerSettings(iASlicerSettings const& ss)
 	emit slicerSettingsChanged();
 }
 
-void MdiChild::applyRendererSettings(iARenderSettings const& rs, iAVolumeSettings const& vs)
+void MdiChild::applyRendererSettings(iARenderSettings const& rs)
 {
-	setRenderSettings(rs, vs);
+	setRenderSettings(rs);
 	applyVolumeSettings();
 	m_renderer->applySettings(renderSettings(), m_slicerVisibility);
 
@@ -1043,11 +1042,6 @@ void MdiChild::applyRendererSettings(iARenderSettings const& rs, iAVolumeSetting
 iARenderSettings const& MdiChild::renderSettings() const
 {
 	return m_renderSettings;
-}
-
-iAVolumeSettings const& MdiChild::volumeSettings() const
-{
-	return m_volumeSettings;
 }
 
 iASlicerSettings const& MdiChild::slicerSettings() const

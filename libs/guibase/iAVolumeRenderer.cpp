@@ -6,7 +6,7 @@
 #include <iAToolsVTK.h>
 #include <iATransferFunction.h>
 #include <iAValueTypeVectorHelpers.h>
-#include <iAVolumeSettings.h>
+#include "iAVolumeSettings.h"     // TODO: move to defaultsettings
 
 #include <iAMainWindow.h>    // for default volume settings
 
@@ -70,33 +70,6 @@ iAVolumeRenderer::iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, 
 	}
 	m_volProp->SetScalarOpacity(0, tf->opacityTF());
 	m_volProp->Modified();
-
-	// properties specific to volumes:
-	auto volumeSettings = iAMainWindow::get()->defaultVolumeSettings();
-	QStringList volInterpolationTypes = QStringList() << InterpolateNearest << InterpolateLinear;
-	selectOption(volInterpolationTypes, volumeSettings.LinearInterpolation ? InterpolateLinear : InterpolateNearest);
-	addAttribute(Interpolation, iAValueType::Categorical, volInterpolationTypes);
-	addAttribute(Shading, iAValueType::Boolean, volumeSettings.Shading);
-	addAttribute(ScalarOpacityUnitDistance, iAValueType::Continuous, volumeSettings.ScalarOpacityUnitDistance);
-
-	// mapper properties:
-	QStringList renderTypes = RenderModeMap().values();
-	selectOption(renderTypes, renderTypes[volumeSettings.RenderMode]);
-	addAttribute(RendererType, iAValueType::Categorical, renderTypes);
-	addAttribute(InteractiveAdjustSampleDistance, iAValueType::Boolean, true);   // maybe only enable for large datasets?
-	addAttribute(AutoAdjustSampleDistance, iAValueType::Boolean, false);
-	addAttribute(SampleDistance, iAValueType::Continuous, volumeSettings.SampleDistance);
-	addAttribute(InteractiveUpdateRate, iAValueType::Continuous, 1.0);
-	addAttribute(FinalColorLevel, iAValueType::Continuous, 0.5);
-	addAttribute(FinalColorWindow, iAValueType::Continuous, 1.0);
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
-	addAttribute(GlobalIlluminationReach, iAValueType::Continuous, 0.0, 0.0, 1.0);
-	addAttribute(VolumetricScatteringBlending, iAValueType::Continuous, -1.0, 0.0, 2.0);
-#endif
-
-	// volume properties:
-	auto spc = vtkImg->GetSpacing();
-	addAttribute(Spacing, iAValueType::Vector3, QVariant::fromValue(QVector<double>({ spc[0], spc[1], spc[2] })));
 
 	// adapt bounding box to changes in position/orientation of volume:
 	vtkNew<vtkCallbackCommand> modifiedCallback;
@@ -224,9 +197,49 @@ QVariantMap iAVolumeRenderer::attributeValues() const
 	return result;
 }
 
+void iAVolumeRenderer::setDefaultAttributes(QVariantMap const& values)
+{
+
+}
+
+iAAttributes& iAVolumeRenderer::attributes() const
+{
+	static iAAttributes attr;
+	if (attr.isEmpty())
+	{
+		attr = iADataSetRenderer::attributes();
+		// volumes properties:
+		QStringList volInterpolationTypes = QStringList() << InterpolateNearest << InterpolateLinear;
+		selectOption(volInterpolationTypes, InterpolateLinear);
+		addAttr(attr, Interpolation, iAValueType::Categorical, volInterpolationTypes);
+		addAttr(attr, Shading, iAValueType::Boolean, true);
+		addAttr(attr, ScalarOpacityUnitDistance, iAValueType::Continuous, -1.0);
+
+		// mapper properties:
+		QStringList renderTypes = RenderModeMap().values();
+		selectOption(renderTypes, renderTypes[0]);
+		addAttr(attr, RendererType, iAValueType::Categorical, renderTypes);
+		addAttr(attr, InteractiveAdjustSampleDistance, iAValueType::Boolean, true);   // maybe only enable for large datasets?
+		addAttr(attr, AutoAdjustSampleDistance, iAValueType::Boolean, false);
+		addAttr(attr, SampleDistance, iAValueType::Continuous, 1.0);
+		addAttr(attr, InteractiveUpdateRate, iAValueType::Continuous, 1.0);
+		addAttr(attr, FinalColorLevel, iAValueType::Continuous, 0.5);
+		addAttr(attr, FinalColorWindow, iAValueType::Continuous, 1.0);
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
+		addAttribute(GlobalIlluminationReach, iAValueType::Continuous, 0.0, 0.0, 1.0);
+		addAttribute(VolumetricScatteringBlending, iAValueType::Continuous, -1.0, 0.0, 2.0);
+#endif
+		// image properties:
+		addAttr(attr, Spacing, iAValueType::Vector3, QVariant::fromValue(QVector<double>({ 1.0, 1.0, 1.0 })));
+
+		registerDefaultSettings("Volume Renderer", attr, &iAVolumeRenderer::setDefaultAttributes);
+	}
+	return attr;
+}
+
 
 // iAVolumeSettings implementation
-
+/*
 iAVolumeSettings::iAVolumeSettings() :
 	Shading(true),
 	AmbientLighting(0.2),
@@ -253,4 +266,18 @@ QVariantMap iAVolumeSettings::toMap() const
 	result[iAVolumeRenderer::SampleDistance] = SampleDistance;
 
 	return result;
+}
+*/
+
+
+using MapType = QMap<QString, std::pair<iAAttributes const&, DefaultValCallback>>;
+
+MapType& myDefaultMap() {
+	static MapType mymap;
+	return mymap;
+}
+
+void registerDefaultSettings(QString const& name, iAAttributes const& attributes, DefaultValCallback callback)
+{
+	myDefaultMap.insert(name, std::make_pair(attributes, callback));
 }
