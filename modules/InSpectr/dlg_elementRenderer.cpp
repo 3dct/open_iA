@@ -5,7 +5,6 @@
 #include <iARendererImpl.h>
 #include <iATransferFunctionPtrs.h>
 #include <iAVolumeRenderer.h>
-#include <iAVolumeSettings.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkGenericOpenGLRenderWindow.h>

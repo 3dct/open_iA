@@ -91,7 +91,8 @@ protected:
 	//! needs to be called by derived classes whenever the bounds of the dataset change (position, orientation, ...)
 	void updateOutlineTransform();
 
-	virtual iAAttributes& attributes() const;
+	virtual iAAttributes const & attributes() const;
+	static iAAttributes& defaultAttributes();
 
 	vtkRenderer* m_renderer;
 	mutable QVariantMap m_attribValues;

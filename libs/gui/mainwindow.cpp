@@ -7,6 +7,7 @@
 
 #include "dlg_datatypeconversion.h"
 #include "iACheckOpenGL.h"
+#include "iADefaultSettings.h"
 #include "iAFileParamDlg.h"
 #include "iAJobListView.h"
 #include "iALogWidget.h"
@@ -225,6 +226,8 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	addActionIcon(m_ui->actionResetLayout, "layout_reset");
 	addActionIcon(m_ui->actionDeleteLayout, "layout_delete");
 	addActionIcon(m_ui->actionInteractionModeRegistration, "transform-move");
+
+	m_ui->menuEdit->addSeparator();
 }
 
 MainWindow::~MainWindow()
@@ -237,6 +240,7 @@ MainWindow::~MainWindow()
 		disconnect(a, &QObject::destroyed, this, &MainWindow::removeActionIcon);
 	}
 	m_moduleDispatcher->SaveModulesSettings();
+	storeDefaultSettings();
 }
 
 void MainWindow::hideSplashSlot()
@@ -2023,6 +2027,11 @@ QMenu * MainWindow::fileMenu()
 	return m_ui->menuFile;
 }
 
+QMenu* MainWindow::editMenu()
+{
+	return m_ui->menuEdit;
+}
+
 QMenu * MainWindow::filtersMenu()
 {
 	return m_ui->menuFilters;
@@ -2412,6 +2421,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 				mainWin.applyQSS();
 			}
 		});
+	initDefaultSettings();
 	mainWin.addDockWidget(Qt::RightDockWidgetArea, iALogWidget::get());
 	mainWin.splitDockWidget(iALogWidget::get(), dwJobs, Qt::Vertical);
 	dwJobs->setFeatures(dwJobs->features() & ~QDockWidget::DockWidgetVerticalTitleBar);

@@ -10,7 +10,6 @@
 #include <iARenderSettings.h>
 #include <iATransferFunctionPtrs.h>
 #include <iAVolumeRenderer.h>
-#include <iAVolumeSettings.h>
 
 #include <iARendererImpl.h>
 #include <iARendererViewSync.h>
@@ -284,7 +283,7 @@ void iASegm3DViewData::LoadAndApplySettings()
 
 	iARenderSettings renderSettings;
 
-	auto volAttr = iAVolumeRenderer::defaultAttributes();
+	//auto volAttr = iAVolumeRenderer::defaultAttributes();
 
 	renderSettings.ShowSlicers = settings.value("Renderer/rsShowSlicers", false).toBool();
 	renderSettings.ShowAxesCube = settings.value("Renderer/rsShowHelpers", true).toBool();
@@ -294,18 +293,18 @@ void iASegm3DViewData::LoadAndApplySettings()
 	renderSettings.BackgroundTop = "#8f8f8f"; //"#FFFFFF"
 	renderSettings.BackgroundBottom = "#8f8f8f";
 
-	volumeSettings.LinearInterpolation = settings.value("Renderer/rsLinearInterpolation", true).toBool();
-	volumeSettings.Shading = settings.value("Renderer/rsShading", true).toBool();
-	volumeSettings.SampleDistance = settings.value("Renderer/rsSampleDistance", 0.1).toDouble();
-	volumeSettings.AmbientLighting = settings.value("Renderer/rsAmbientLighting", 0.2).toDouble();
-	volumeSettings.DiffuseLighting = settings.value("Renderer/rsDiffuseLighting", 0.5).toDouble();
-	volumeSettings.SpecularLighting = settings.value("Renderer/rsSpecularLighting", 0.7).toDouble();
-	volumeSettings.SpecularPower = settings.value("Renderer/rsSpecularPower", 1).toDouble();
-	volumeSettings.RenderMode = settings.value("Renderer/rsRenderMode", 0).toInt();
+	//volumeSettings.LinearInterpolation = settings.value("Renderer/rsLinearInterpolation", true).toBool();
+	//volumeSettings.Shading = settings.value("Renderer/rsShading", true).toBool();
+	//volumeSettings.SampleDistance = settings.value("Renderer/rsSampleDistance", 0.1).toDouble();
+	//volumeSettings.AmbientLighting = settings.value("Renderer/rsAmbientLighting", 0.2).toDouble();
+	//volumeSettings.DiffuseLighting = settings.value("Renderer/rsDiffuseLighting", 0.5).toDouble();
+	//volumeSettings.SpecularLighting = settings.value("Renderer/rsSpecularLighting", 0.7).toDouble();
+	//volumeSettings.SpecularPower = settings.value("Renderer/rsSpecularPower", 1).toDouble();
+	//volumeSettings.RenderMode = settings.value("Renderer/rsRenderMode", 0).toInt();
 
 	bool slicerVisibility[3] = { false, false, false };
 	m_renderer->applySettings(renderSettings, slicerVisibility);
-	m_volumeRenderer->applyAttributes(volumeSettings.toMap());
+	//m_volumeRenderer->applyAttributes(volumeSettings.toMap());
 
 	bool showBoundingBox = settings.value("Renderer/rsBoundingBox", true).toBool();
 	bool showVolume = settings.value("FeatureAnalyzer/GUI/ShowVolume", false).toBool();

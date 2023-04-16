@@ -22,7 +22,6 @@
 #include <iAToolsVTK.h>
 #include <iATransferFunction.h>
 #include <iATypedCallHelper.h>
-#include <iAVolumeSettings.h>
 #include <iAVolumeViewer.h>
 
 #include <iAChartWithFunctionsWidget.h>
@@ -337,16 +336,17 @@ inline void iANModalController::initializeCombinedVol()
 
 inline void iANModalController::applyVolumeSettings()
 {
-	auto const & vs = m_mdiChild->volumeSettings();
+	// use iAVolumeRenderer?
+	//auto const & vs = m_mdiChild->volumeSettings();
 	auto volProp = m_combinedVol->GetProperty();
-	volProp->SetAmbient(vs.AmbientLighting);
-	volProp->SetDiffuse(vs.DiffuseLighting);
-	volProp->SetSpecular(vs.SpecularLighting);
-	volProp->SetSpecularPower(vs.SpecularPower);
-	volProp->SetInterpolationType(vs.LinearInterpolation);
-	volProp->SetShade(vs.Shading);
-	if (vs.ScalarOpacityUnitDistance > 0)
-		volProp->SetScalarOpacityUnitDistance(vs.ScalarOpacityUnitDistance);
+	//volProp->SetAmbient(vs.AmbientLighting);
+	//volProp->SetDiffuse(vs.DiffuseLighting);
+	//volProp->SetSpecular(vs.SpecularLighting);
+	//volProp->SetSpecularPower(vs.SpecularPower);
+	//volProp->SetInterpolationType(vs.LinearInterpolation);
+	//volProp->SetShade(vs.Shading);
+	//if (vs.ScalarOpacityUnitDistance > 0)
+	//	volProp->SetScalarOpacityUnitDistance(vs.ScalarOpacityUnitDistance);
 	if (m_mdiChild->renderSettings().ShowSlicers)
 	{
 		m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane1());
@@ -357,7 +357,7 @@ inline void iANModalController::applyVolumeSettings()
 	{
 		m_combinedVolMapper->RemoveAllClippingPlanes();
 	}
-	m_combinedVolMapper->SetSampleDistance(vs.SampleDistance);
+	//m_combinedVolMapper->SetSampleDistance(vs.SampleDistance);
 	m_combinedVolMapper->InteractiveAdjustSampleDistancesOff();
 }
 

@@ -42,18 +42,17 @@ public:
 
 	QVariantMap attributeValues() const override;
 
-	static iAAttributes const & defaultAttributes();
-	static void setDefaultAttributes(QVariantMap const& values);
-
-protected:
-	iAAttributes& attributes() const override;
-
 private:
 	Q_DISABLE_COPY(iAVolumeRenderer);
 	void showDataSet() override;
 	void hideDataSet() override;
+	iAAttributes const& attributes() const override;
+	static iAAttributes& defaultAttributes();
 	vtkSmartPointer<vtkVolume> m_volume;
 	vtkSmartPointer<vtkVolumeProperty> m_volProp;
 	vtkSmartPointer<vtkSmartVolumeMapper> m_volMapper;
 	vtkImageData* m_image;
+
+	static bool registerDefaultAttributes();
+	static const bool m_sDefaultAttr;
 };

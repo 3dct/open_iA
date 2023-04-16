@@ -56,28 +56,44 @@ int countAttributes(iAAttributes const& attributes, iAAttributeDescriptor::iAAtt
 	return count;
 }
 
-
-iAAttributes combineAttributesWithValues(iAAttributes const& attributes, QVariantMap const & values)
+iAAttributes cloneAttributes(iAAttributes const& attributes)
 {
 	iAAttributes combined;
 	combined.reserve(attributes.size());
-	for (auto attr : attributes)
+	for (auto const& attr : attributes)
 	{
-		QSharedPointer<iAAttributeDescriptor> p(attr->clone());
-		if (p->valueType() == iAValueType::Categorical)
+		combined.push_back(attr->clone());
+	}
+	return combined;
+}
+
+iAAttributes combineAttributesWithValues(iAAttributes const& attributes, QVariantMap const & values)
+{
+	auto clone = cloneAttributes(attributes);
+	setDefaultValues(clone, values);
+	return clone;
+}
+
+void setDefaultValues(iAAttributes& attributes, QVariantMap const& values)
+{
+	for (auto & attr : attributes)
+	{
+		if (!values.contains(attr->name()))
 		{
-			QStringList comboValues = p->defaultValue().toStringList();
-			QString storedValue = values[p->name()].toString();
+			continue;
+		}
+		if (attr->valueType() == iAValueType::Categorical)
+		{
+			QStringList comboValues = attr->defaultValue().toStringList();
+			QString storedValue = values[attr->name()].toString();
 			selectOption(comboValues, storedValue);
-			p->setDefaultValue(comboValues);
+			attr->setDefaultValue(comboValues);
 		}
 		else
 		{
-			p->setDefaultValue(values[p->name()]);
+			attr->setDefaultValue(values[attr->name()]);
 		}
-		combined.push_back(p);
 	}
-	return combined;
 }
 
 void setApplyingValues(QVariantMap& out, iAAttributes const& attributes, QVariantMap const& in)

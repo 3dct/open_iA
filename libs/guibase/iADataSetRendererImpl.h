@@ -36,6 +36,9 @@ private:
 	void showDataSet() override;
 	void hideDataSet() override;
 
+	iAAttributes const & attributes() const override;
+	static iAAttributes& defaultAttributes();
+
 	vtkSmartPointer<vtkActor> m_lineActor, m_pointActor;
 	vtkSmartPointer<vtkSphereSource> m_sphereSource;
 	vtkSmartPointer<vtkGlyph3DMapper> m_glyphMapper;
@@ -43,6 +46,9 @@ private:
 	vtkSmartPointer<vtkPolyDataMapper> m_lineMapper;
 
 	iAGraphData const * m_data;
+
+	static bool registerDefaultAttributes();
+	static const bool m_sDefaultAttr;
 };
 
 //! 3D renderer for any kind of polydata.
@@ -66,7 +72,12 @@ protected:
 private:
 	void showDataSet() override;
 	void hideDataSet() override;
+	iAAttributes const& attributes() const override;
+	static iAAttributes& defaultAttributes();
 	Q_DISABLE_COPY(iAPolyActorRenderer);
+
+	static bool registerDefaultAttributes();
+	static const bool m_sDefaultAttr;
 };
 
 //! 3D renderer for surface mesh data.

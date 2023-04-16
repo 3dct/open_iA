@@ -3,6 +3,8 @@
 #include "iADataSetRendererImpl.h"
 
 #include "iADataSet.h"
+#include "iADefaultSettings.h"
+
 #include "iAMainWindow.h"
 
 #include "iAAABB.h"
@@ -107,27 +109,6 @@ iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data
 	m_pointActor->SetPickable(false);
 	m_pointActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 
-	addAttribute(PointRadiusVaryBy, iAValueType::Categorical, QStringList() << ("!" + VaryModeFixed) << data->vertexValueNames());
-	addAttribute(PointRadius, iAValueType::Continuous, 5, 0.0000001, 100000000);
-	addAttribute(PointColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
-	addAttribute(PointColor, iAValueType::Color, "#FF0000");
-	addAttribute(PointPrefix + Shading, iAValueType::Boolean, false);
-	addAttribute(PointPrefix + ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
-	addAttribute(PointPrefix + AmbientLighting, iAValueType::Continuous, 0.2);
-	addAttribute(PointPrefix + DiffuseLighting, iAValueType::Continuous, 0.5);
-	addAttribute(PointPrefix + SpecularLighting, iAValueType::Continuous, 0.7);
-	addAttribute(PointPrefix + SpecularPower, iAValueType::Continuous, 10.0);
-	addAttribute(LineWidthVaryBy, iAValueType::Categorical, QStringList() << ("!" + VaryModeFixed) << data->edgeValueNames());
-	addAttribute(LineWidth, iAValueType::Continuous, 1.0, 0.1, 100);
-	addAttribute(LineColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
-	addAttribute(LineColor, iAValueType::Color, "#00FF00");
-	addAttribute(LinePrefix + Shading, iAValueType::Boolean, false);
-	addAttribute(LinePrefix + ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
-	addAttribute(LinePrefix + AmbientLighting, iAValueType::Continuous, 0.2);
-	addAttribute(LinePrefix + DiffuseLighting, iAValueType::Continuous, 0.5);
-	addAttribute(LinePrefix + SpecularLighting, iAValueType::Continuous, 0.7);
-	addAttribute(LinePrefix + SpecularPower, iAValueType::Continuous, 10.0);
-
 	// adapt bounding box to changes in position/orientation of volume:
 	// idea how to connect lambda to observer from https://gist.github.com/esmitt/7ca96193f2c320ba438e0453f9136c20
 	vtkNew<vtkCallbackCommand> modifiedCallback;
@@ -141,6 +122,61 @@ iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data
 		});
 	modifiedCallback->SetClientData(this);
 	m_lineActor->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
+
+//#pragma GCC diagnostic push
+//#pragma GCC diagnostic ignored "-Wunused-value"
+//	m_sDefaultAttr;  // required for self registration - otherwise it will not be done.
+//#pragma GCC diagnostic pop
+}
+
+iAAttributes const& iAGraphRenderer::attributes() const
+{
+	static iAAttributes attr;
+	if (attr.isEmpty())
+	{
+		attr = cloneAttributes(iAGraphRenderer::defaultAttributes());
+		addAttr(attr, PointRadiusVaryBy, iAValueType::Categorical,
+			QStringList() << ("!" + VaryModeFixed) << m_data->vertexValueNames());
+		addAttr(attr, LineWidthVaryBy, iAValueType::Categorical,
+			QStringList() << ("!" + VaryModeFixed) << m_data->edgeValueNames());
+	}
+	return attr;
+}
+
+iAAttributes& iAGraphRenderer::defaultAttributes()
+{
+	static iAAttributes attr;
+	if (attr.isEmpty())
+	{
+		attr = cloneAttributes(iADataSetRenderer::defaultAttributes());
+		addAttr(attr, PointRadius, iAValueType::Continuous, 5, 0.0000001, 100000000);
+		addAttr(attr, PointColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
+		addAttr(attr, PointColor, iAValueType::Color, "#FF0000");
+		addAttr(attr, PointPrefix + iADataSetRenderer::Shading, iAValueType::Boolean, false);
+		addAttr(attr, PointPrefix + ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
+		addAttr(attr, PointPrefix + iADataSetRenderer::AmbientLighting, iAValueType::Continuous, 0.2);
+		addAttr(attr, PointPrefix + iADataSetRenderer::DiffuseLighting, iAValueType::Continuous, 0.5);
+		addAttr(attr, PointPrefix + iADataSetRenderer::SpecularLighting, iAValueType::Continuous, 0.7);
+		addAttr(attr, PointPrefix + iADataSetRenderer::SpecularPower, iAValueType::Continuous, 10.0);
+		addAttr(attr, LineWidth, iAValueType::Continuous, 1.0, 0.1, 100);
+		addAttr(attr, LineColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
+		addAttr(attr, LineColor, iAValueType::Color, "#00FF00");
+		addAttr(attr, LinePrefix + iADataSetRenderer::Shading, iAValueType::Boolean, false);
+		addAttr(attr, LinePrefix + ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
+		addAttr(attr, LinePrefix + iADataSetRenderer::AmbientLighting, iAValueType::Continuous, 0.2);
+		addAttr(attr, LinePrefix + iADataSetRenderer::DiffuseLighting, iAValueType::Continuous, 0.5);
+		addAttr(attr, LinePrefix + iADataSetRenderer::SpecularLighting, iAValueType::Continuous, 0.7);
+		addAttr(attr, LinePrefix + iADataSetRenderer::SpecularPower, iAValueType::Continuous, 10.0);
+	}
+	return attr;
+}
+
+const bool iAGraphRenderer::m_sDefaultAttr = registerDefaultAttributes();
+
+bool iAGraphRenderer::registerDefaultAttributes()
+{
+	registerDefaultSettings("Graph Renderer", &defaultAttributes());
+	return true;
 }
 
 iAGraphRenderer::~iAGraphRenderer()
@@ -291,12 +327,34 @@ iAPolyActorRenderer::iAPolyActorRenderer(vtkRenderer* renderer) :
 		});
 	modifiedCallback->SetClientData(this);
 	m_polyActor->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
+}
 
-	addAttribute(Shading, iAValueType::Boolean, true);
-	addAttribute(ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
-	addAttribute(PolyColor, iAValueType::Color, "#FFFFFF");
-	addAttribute(PolyOpacity, iAValueType::Continuous, 1.0, 0.0, 1.0);
-	addAttribute(PolyWireframe, iAValueType::Boolean, false);
+iAAttributes const& iAPolyActorRenderer::attributes() const
+{
+	return defaultAttributes();
+}
+
+iAAttributes& iAPolyActorRenderer::defaultAttributes()
+{
+	static iAAttributes attr;
+	if (attr.isEmpty())
+	{
+		attr = cloneAttributes(iADataSetRenderer::defaultAttributes());
+		addAttr(attr, Shading, iAValueType::Boolean, true);
+		addAttr(attr, ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
+		addAttr(attr, PolyColor, iAValueType::Color, "#FFFFFF");
+		addAttr(attr, PolyOpacity, iAValueType::Continuous, 1.0, 0.0, 1.0);
+		addAttr(attr, PolyWireframe, iAValueType::Boolean, false);
+	}
+	return attr;
+}
+
+const bool iAPolyActorRenderer::m_sDefaultAttr = registerDefaultAttributes();
+
+bool iAPolyActorRenderer::registerDefaultAttributes()
+{
+	registerDefaultSettings("Surface Renderer", &defaultAttributes());
+	return true;
 }
 
 iAPolyActorRenderer::~iAPolyActorRenderer()

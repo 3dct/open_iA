@@ -58,13 +58,10 @@ public:
 	//! TODO NEWIO: create signal triggered on new child (fully) created
 	void loadFileNew(QString const& fileName, iAMdiChild* child = nullptr, std::shared_ptr<iAFileIO> io = nullptr) override;
 
-	//! Get the File menu (can be used by modules to append entries to it).
 	QMenu * fileMenu() override;
-	//! Get the Filters menu (can be used by modules to append entries to it).
+	QMenu* editMenu() override;
 	QMenu* filtersMenu() override;
-	//! Get the Tools menu (can be used by modules to append entries to it).
 	QMenu* toolsMenu() override;
-	//! Get the Help menu (can be used by modules to append entries to it).
 	QMenu* helpMenu() override;
 
 	//! Provides access to the currently active mdi child, if such is available.

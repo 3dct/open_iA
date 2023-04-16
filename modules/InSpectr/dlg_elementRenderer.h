@@ -12,7 +12,6 @@
 
 class iARenderer;
 class iAVolumeRenderer;
-class iAVolumeSettings;
 class iATransferFunctionPtrs;
 
 class iARendererImpl;

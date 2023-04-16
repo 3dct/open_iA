@@ -59,6 +59,8 @@ public:
 
 	//! Get the File menu (can be used by modules to append entries to it).
 	virtual QMenu* fileMenu() = 0;
+	//! Get the File menu (can be used by modules to append entries to it).
+	virtual QMenu* editMenu() = 0;
 	//! Get the Filters menu (can be used by modules to append entries to it).
 	virtual QMenu* filtersMenu() = 0;
 	//! Get the Tools menu (can be used by modules to append entries to it).

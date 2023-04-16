@@ -27,7 +27,6 @@
 #include <iASlicerSettings.h>
 #include <iAToolsVTK.h>
 #include <iATransferFunctionOwner.h>
-#include <iAVolumeSettings.h>
 #include <iAVolumeViewer.h>
 
 #include <vtkCamera.h>
@@ -454,18 +453,19 @@ void iAMultimodalWidget::initGUI()
 
 void iAMultimodalWidget::applyVolumeSettings()
 {
-	auto vs = m_mdiChild->volumeSettings();
+	// use iAVolumeRenderer?
+	//auto vs = m_mdiChild->volumeSettings();
 	auto volProp = m_combinedVol->GetProperty();
-	volProp->SetAmbient(vs.AmbientLighting);
-	volProp->SetDiffuse(vs.DiffuseLighting);
-	volProp->SetSpecular(vs.SpecularLighting);
-	volProp->SetSpecularPower(vs.SpecularPower);
-	volProp->SetInterpolationType(vs.LinearInterpolation);
-	volProp->SetShade(vs.Shading);
-	if (vs.ScalarOpacityUnitDistance > 0)
-	{
-		volProp->SetScalarOpacityUnitDistance(vs.ScalarOpacityUnitDistance);
-	}
+	//volProp->SetAmbient(vs.AmbientLighting);
+	//volProp->SetDiffuse(vs.DiffuseLighting);
+	//volProp->SetSpecular(vs.SpecularLighting);
+	//volProp->SetSpecularPower(vs.SpecularPower);
+	//volProp->SetInterpolationType(vs.LinearInterpolation);
+	//volProp->SetShade(vs.Shading);
+	//if (vs.ScalarOpacityUnitDistance > 0)
+	//{
+	//	volProp->SetScalarOpacityUnitDistance(vs.ScalarOpacityUnitDistance);
+	//}
 	if (m_mdiChild->renderSettings().ShowSlicers)
 	{
 		m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane1());
@@ -476,7 +476,7 @@ void iAMultimodalWidget::applyVolumeSettings()
 	{
 		m_combinedVolMapper->RemoveAllClippingPlanes();
 	}
-	m_combinedVolMapper->SetSampleDistance(vs.SampleDistance);
+	//m_combinedVolMapper->SetSampleDistance(vs.SampleDistance);
 	m_combinedVolMapper->InteractiveAdjustSampleDistancesOff();
 }
 

@@ -3,10 +3,10 @@
 #include "iAVolumeRenderer.h"
 
 #include <iAAABB.h>
+#include "iADefaultSettings.h"
 #include <iAToolsVTK.h>
 #include <iATransferFunction.h>
 #include <iAValueTypeVectorHelpers.h>
-#include "iAVolumeSettings.h"     // TODO: move to defaultsettings
 
 #include <iAMainWindow.h>    // for default volume settings
 
@@ -197,17 +197,24 @@ QVariantMap iAVolumeRenderer::attributeValues() const
 	return result;
 }
 
-void iAVolumeRenderer::setDefaultAttributes(QVariantMap const& values)
-{
-
-}
-
-iAAttributes& iAVolumeRenderer::attributes() const
+iAAttributes const& iAVolumeRenderer::attributes() const
 {
 	static iAAttributes attr;
 	if (attr.isEmpty())
 	{
-		attr = iADataSetRenderer::attributes();
+		attr = cloneAttributes(defaultAttributes());
+		// data-specific property:
+		addAttr(attr, Spacing, iAValueType::Vector3, QVariant::fromValue(QVector<double>({1.0, 1.0, 1.0})));
+	}
+	return attr;
+}
+
+iAAttributes& iAVolumeRenderer::defaultAttributes()
+{
+	static iAAttributes attr;
+	if (attr.isEmpty())
+	{
+		attr = cloneAttributes(iADataSetRenderer::defaultAttributes());
 		// volumes properties:
 		QStringList volInterpolationTypes = QStringList() << InterpolateNearest << InterpolateLinear;
 		selectOption(volInterpolationTypes, InterpolateLinear);
@@ -226,58 +233,17 @@ iAAttributes& iAVolumeRenderer::attributes() const
 		addAttr(attr, FinalColorLevel, iAValueType::Continuous, 0.5);
 		addAttr(attr, FinalColorWindow, iAValueType::Continuous, 1.0);
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
-		addAttribute(GlobalIlluminationReach, iAValueType::Continuous, 0.0, 0.0, 1.0);
-		addAttribute(VolumetricScatteringBlending, iAValueType::Continuous, -1.0, 0.0, 2.0);
+		addAttr(attr, GlobalIlluminationReach, iAValueType::Continuous, 0.0, 0.0, 1.0);
+		addAttr(attr, VolumetricScatteringBlending, iAValueType::Continuous, -1.0, 0.0, 2.0);
 #endif
-		// image properties:
-		addAttr(attr, Spacing, iAValueType::Vector3, QVariant::fromValue(QVector<double>({ 1.0, 1.0, 1.0 })));
-
-		registerDefaultSettings("Volume Renderer", attr, &iAVolumeRenderer::setDefaultAttributes);
 	}
 	return attr;
 }
 
+const bool iAVolumeRenderer::m_sDefaultAttr = registerDefaultAttributes();
 
-// iAVolumeSettings implementation
-/*
-iAVolumeSettings::iAVolumeSettings() :
-	Shading(true),
-	AmbientLighting(0.2),
-	DiffuseLighting(0.5),
-	SpecularLighting(0.7),
-	SpecularPower(10.0),
-	LinearInterpolation(true),
-	SampleDistance(1.0),
-	ScalarOpacityUnitDistance(-1.0),
-	RenderMode(0) // 0 = DefaultRenderMode
-{}
-QVariantMap iAVolumeSettings::toMap() const
+bool iAVolumeRenderer::registerDefaultAttributes()
 {
-	QVariantMap result;
-	result[iADataSetRenderer::Shading] = Shading;
-	result[iADataSetRenderer::AmbientLighting] = AmbientLighting;
-	result[iADataSetRenderer::DiffuseLighting] = DiffuseLighting;
-	result[iADataSetRenderer::SpecularLighting] = SpecularLighting;
-	result[iADataSetRenderer::SpecularPower] = SpecularPower;
-
-	result[iAVolumeRenderer::Interpolation] = LinearInterpolation ? InterpolateLinear : InterpolateNearest;
-	result[iAVolumeRenderer::ScalarOpacityUnitDistance] = ScalarOpacityUnitDistance;
-	result[iAVolumeRenderer::RendererType] = RenderMode;
-	result[iAVolumeRenderer::SampleDistance] = SampleDistance;
-
-	return result;
-}
-*/
-
-
-using MapType = QMap<QString, std::pair<iAAttributes const&, DefaultValCallback>>;
-
-MapType& myDefaultMap() {
-	static MapType mymap;
-	return mymap;
-}
-
-void registerDefaultSettings(QString const& name, iAAttributes const& attributes, DefaultValCallback callback)
-{
-	myDefaultMap.insert(name, std::make_pair(attributes, callback));
+	registerDefaultSettings("Volume Renderer", &defaultAttributes());
+	return true;
 }

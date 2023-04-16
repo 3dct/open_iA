@@ -105,7 +105,12 @@ iADataSetRenderer::iADataSetRenderer(vtkRenderer* renderer) :
 {
 }
 
-iAAttributes& iADataSetRenderer::attributes() const
+iAAttributes const & iADataSetRenderer::attributes() const
+{
+	return defaultAttributes();
+}
+
+iAAttributes& iADataSetRenderer::defaultAttributes()
 {
 	static iAAttributes attr;
 	if (attr.isEmpty())
