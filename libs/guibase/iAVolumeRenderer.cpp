@@ -37,7 +37,6 @@ namespace
 #endif
 	const QString InterpolateNearest = "Nearest";
 	const QString InterpolateLinear = "Linear";
-
 }
 
 iAVolumeRenderer::iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, iATransferFunction* tf) :
@@ -233,17 +232,14 @@ iAAttributes& iAVolumeRenderer::defaultAttributes()
 	return attr;
 }
 
-const bool iAVolumeRenderer::m_sDefaultAttr = registerDefaultAttributes();
-
-bool iAVolumeRenderer::registerDefaultAttributes()
-{
-	registerDefaultSettings("Volume Renderer", &defaultAttributes());
-	return true;
-}
-
 int iAVolumeRenderer::string2VtkVolInterpolationType(QString const& interpType)
 {
 	return (interpType == InterpolateNearest)
 		? VTK_NEAREST_INTERPOLATION
 		: VTK_LINEAR_INTERPOLATION;
 }
+
+
+// register with iASettingsManager (export - iAguibase_API - only serves to make sure this initialization isn't optimized away
+constexpr char VolumeRendererName[] = "Volume Renderer";
+class iAguibase_API iAGraphRendererAutoRegister : iASettingsObject<VolumeRendererName, iAVolumeRenderer> {};

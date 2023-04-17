@@ -10,33 +10,32 @@
 #include <QMenu>
 #include <QSettings>
 
-DefaultSettingsMap& defaultSettingsInternal()
+iASettingsManager::iASettingsMap& defaultSettingsInternal()
 {
-	static DefaultSettingsMap mymap;
+	static iASettingsManager::iASettingsMap mymap;
 	return mymap;
 }
 
-DefaultSettingsMap const& defaultSettings()
+iASettingsManager::iASettingsMap const& iASettingsManager::getMap()
 {
 	return defaultSettingsInternal();
 }
 
-void registerDefaultSettings(QString const& name, iAAttributes* attributes)
+void iASettingsManager::add(QString const& name, iAAttributes* attributes)
 {
 	defaultSettingsInternal().insert(name, attributes);
 }
 
-void initDefaultSettings()
+void iASettingsManager::init()
 {
 	QSettings settings;
-	for (auto name : defaultSettings().keys())
+	for (auto name : getMap().keys())
 	{
-		auto attr = defaultSettings()[name];
+		auto attrPtr = getMap()[name];
 		settings.beginGroup("Defaults/" + name);
 		auto valueMap = mapFromQSettings(settings);
-		setDefaultValues(*attr, valueMap);
+		setDefaultValues(*attrPtr, valueMap);
 		auto editArgsAction = new QAction(name);
-		auto attrPtr = defaultSettings()[name];
 		auto mainWnd = iAMainWindow::get();
 		QObject::connect(editArgsAction, &QAction::triggered, mainWnd,
 			[attrPtr, mainWnd, name]
@@ -53,7 +52,7 @@ void initDefaultSettings()
 	}
 }
 
-void storeDefaultSettings()
+void iASettingsManager::store()
 {
 	QSettings settings;
 	for (auto key : defaultSettingsInternal().keys())

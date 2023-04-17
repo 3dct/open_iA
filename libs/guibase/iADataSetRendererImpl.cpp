@@ -122,11 +122,6 @@ iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data
 		});
 	modifiedCallback->SetClientData(this);
 	m_lineActor->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
-
-//#pragma GCC diagnostic push
-//#pragma GCC diagnostic ignored "-Wunused-value"
-//	m_sDefaultAttr;  // required for self registration - otherwise it will not be done.
-//#pragma GCC diagnostic pop
 }
 
 iAAttributes const& iAGraphRenderer::attributes() const
@@ -169,14 +164,6 @@ iAAttributes& iAGraphRenderer::defaultAttributes()
 		addAttr(attr, LinePrefix + iADataSetRenderer::SpecularPower, iAValueType::Continuous, 10.0);
 	}
 	return attr;
-}
-
-const bool iAGraphRenderer::m_sDefaultAttr = registerDefaultAttributes();
-
-bool iAGraphRenderer::registerDefaultAttributes()
-{
-	registerDefaultSettings("Graph Renderer", &defaultAttributes());
-	return true;
 }
 
 iAGraphRenderer::~iAGraphRenderer()
@@ -309,6 +296,12 @@ namespace
 	const QString PolyWireframe = "Wireframe";
 }
 
+// register with iASettingsManager (export - iAguibase_API - only serves to make sure this initialization isn't optimized away
+constexpr char GraphRendererName[] = "Graph Renderer";
+class iAguibase_API iAGraphRendererAutoRegister : iASettingsObject<GraphRendererName, iAGraphRenderer> {};
+constexpr char SurfaceRendererName[] = "Surface Renderer";
+class iAguibase_API iAPolyActorRendererAutoRegister : iASettingsObject<SurfaceRendererName, iAPolyActorRenderer> {};
+
 iAPolyActorRenderer::iAPolyActorRenderer(vtkRenderer* renderer) :
 	iADataSetRenderer(renderer),
 	m_polyActor(vtkSmartPointer<vtkActor>::New())
@@ -347,14 +340,6 @@ iAAttributes& iAPolyActorRenderer::defaultAttributes()
 		addAttr(attr, PolyWireframe, iAValueType::Boolean, false);
 	}
 	return attr;
-}
-
-const bool iAPolyActorRenderer::m_sDefaultAttr = registerDefaultAttributes();
-
-bool iAPolyActorRenderer::registerDefaultAttributes()
-{
-	registerDefaultSettings("Surface Renderer", &defaultAttributes());
-	return true;
 }
 
 iAPolyActorRenderer::~iAPolyActorRenderer()

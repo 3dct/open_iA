@@ -240,7 +240,7 @@ MainWindow::~MainWindow()
 		disconnect(a, &QObject::destroyed, this, &MainWindow::removeActionIcon);
 	}
 	m_moduleDispatcher->SaveModulesSettings();
-	storeDefaultSettings();
+	iASettingsManager::store();
 }
 
 void MainWindow::hideSplashSlot()
@@ -2421,7 +2421,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 				mainWin.applyQSS();
 			}
 		});
-	initDefaultSettings();
+	iASettingsManager::init();
 	mainWin.addDockWidget(Qt::RightDockWidgetArea, iALogWidget::get());
 	mainWin.splitDockWidget(iALogWidget::get(), dwJobs, Qt::Vertical);
 	dwJobs->setFeatures(dwJobs->features() & ~QDockWidget::DockWidgetVerticalTitleBar);

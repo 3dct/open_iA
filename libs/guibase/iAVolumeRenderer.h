@@ -55,7 +55,4 @@ private:
 	vtkSmartPointer<vtkVolumeProperty> m_volProp;
 	vtkSmartPointer<vtkSmartVolumeMapper> m_volMapper;
 	vtkImageData* m_image;
-
-	static bool registerDefaultAttributes();
-	static const bool m_sDefaultAttr;
 };
