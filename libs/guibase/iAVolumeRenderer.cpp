@@ -241,5 +241,5 @@ int iAVolumeRenderer::string2VtkVolInterpolationType(QString const& interpType)
 
 
 // register with iASettingsManager (export - iAguibase_API - only serves to make sure this initialization isn't optimized away
-constexpr char VolumeRendererName[] = "Volume Renderer";
+constexpr char VolumeRendererName[] = "Default Settings: Volume Renderer";
 class iAguibase_API iAGraphRendererAutoRegister : iASettingsObject<VolumeRendererName, iAVolumeRenderer> {};

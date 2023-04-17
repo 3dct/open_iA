@@ -8,7 +8,17 @@
 
 #include <QAction>
 #include <QMenu>
+#include <QRegularExpression>
 #include <QSettings>
+
+namespace
+{
+	QString configStorageName(QString const& in)
+	{
+		QString out(in);
+		return out.remove(QRegularExpression("[^a-zA-Z\\d]"));
+	}
+}
 
 iASettingsManager::iASettingsMap& defaultSettingsInternal()
 {
@@ -32,7 +42,7 @@ void iASettingsManager::init()
 	for (auto name : getMap().keys())
 	{
 		auto attrPtr = getMap()[name];
-		settings.beginGroup("Defaults/" + name);
+		settings.beginGroup("Settings/" + configStorageName(name));
 		auto valueMap = mapFromQSettings(settings);
 		setDefaultValues(*attrPtr, valueMap);
 		auto editArgsAction = new QAction(name);
@@ -40,7 +50,7 @@ void iASettingsManager::init()
 		QObject::connect(editArgsAction, &QAction::triggered, mainWnd,
 			[attrPtr, mainWnd, name]
 			{
-				iAParameterDlg dlg(mainWnd, "Default settings: " + name, *attrPtr);
+				iAParameterDlg dlg(mainWnd, name, *attrPtr);
 				if (dlg.exec() != QDialog::Accepted)
 				{
 					return;
@@ -58,6 +68,6 @@ void iASettingsManager::store()
 	for (auto key : defaultSettingsInternal().keys())
 	{
 		auto attr = defaultSettingsInternal()[key];
-		storeSettings("Defaults/" + key, extractValues(*attr));
+		storeSettings("Settings/" + configStorageName(key), extractValues(*attr));
 	}
 }
