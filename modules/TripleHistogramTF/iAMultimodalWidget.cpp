@@ -27,6 +27,7 @@
 #include <iASlicerSettings.h>
 #include <iAToolsVTK.h>
 #include <iATransferFunctionOwner.h>
+#include <iAVolumeRenderer.h>    // for default volume settings
 #include <iAVolumeViewer.h>
 
 #include <vtkCamera.h>
@@ -453,19 +454,19 @@ void iAMultimodalWidget::initGUI()
 
 void iAMultimodalWidget::applyVolumeSettings()
 {
-	// use iAVolumeRenderer?
-	//auto vs = m_mdiChild->volumeSettings();
+	auto volSettings = extractValues(iAVolumeRenderer::defaultAttributes());
 	auto volProp = m_combinedVol->GetProperty();
-	//volProp->SetAmbient(vs.AmbientLighting);
-	//volProp->SetDiffuse(vs.DiffuseLighting);
-	//volProp->SetSpecular(vs.SpecularLighting);
-	//volProp->SetSpecularPower(vs.SpecularPower);
-	//volProp->SetInterpolationType(vs.LinearInterpolation);
-	//volProp->SetShade(vs.Shading);
-	//if (vs.ScalarOpacityUnitDistance > 0)
-	//{
-	//	volProp->SetScalarOpacityUnitDistance(vs.ScalarOpacityUnitDistance);
-	//}
+	volProp->SetAmbient(volSettings[iADataSetRenderer::AmbientLighting].toDouble());
+	volProp->SetDiffuse(volSettings[iADataSetRenderer::DiffuseLighting].toDouble());
+	volProp->SetSpecular(volSettings[iADataSetRenderer::SpecularLighting].toDouble());
+	volProp->SetSpecularPower(volSettings[iADataSetRenderer::SpecularPower].toDouble());
+	volProp->SetInterpolationType(iAVolumeRenderer::string2VtkVolInterpolationType(volSettings[iAVolumeRenderer::Interpolation].toString()));
+	volProp->SetShade(volSettings[iADataSetRenderer::Shading].toBool());
+	auto scalarOpacityUnitDistance = volSettings[iAVolumeRenderer::ScalarOpacityUnitDistance].toDouble();
+	if (scalarOpacityUnitDistance > 0)
+	{
+		volProp->SetScalarOpacityUnitDistance(scalarOpacityUnitDistance);
+	}
 	if (m_mdiChild->renderSettings().ShowSlicers)
 	{
 		m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane1());
@@ -476,7 +477,7 @@ void iAMultimodalWidget::applyVolumeSettings()
 	{
 		m_combinedVolMapper->RemoveAllClippingPlanes();
 	}
-	//m_combinedVolMapper->SetSampleDistance(vs.SampleDistance);
+	m_combinedVolMapper->SetSampleDistance(volSettings[iAVolumeRenderer::SampleDistance].toDouble());
 	m_combinedVolMapper->InteractiveAdjustSampleDistancesOff();
 }
 

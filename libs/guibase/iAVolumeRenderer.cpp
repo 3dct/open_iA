@@ -22,13 +22,13 @@ const QString iAVolumeRenderer::Interpolation("Interpolation");
 const QString iAVolumeRenderer::ScalarOpacityUnitDistance("Scalar Opacity Unit Distance");
 const QString iAVolumeRenderer::RendererType("Renderer type");
 const QString iAVolumeRenderer::SampleDistance("Sample distance");
+const QString iAVolumeRenderer::InteractiveAdjustSampleDistance = "Interactively Adjust Sample Distances";
+const QString iAVolumeRenderer::AutoAdjustSampleDistance = "Auto-Adjust Sample Distances";
+const QString iAVolumeRenderer::InteractiveUpdateRate = "Interactive Update Rate";
 
 namespace
 {
 	const QString Spacing = "Spacing";
-	const QString InteractiveAdjustSampleDistance = "Interactively Adjust Sample Distances";
-	const QString AutoAdjustSampleDistance = "Auto-Adjust Sample Distances";
-	const QString InteractiveUpdateRate = "Interactive Update Rate";
 	const QString FinalColorLevel = "Final Color Level";
 	const QString FinalColorWindow = "Final Color Window";
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
@@ -38,13 +38,6 @@ namespace
 	const QString InterpolateNearest = "Nearest";
 	const QString InterpolateLinear = "Linear";
 
-	int string2VtkVolInterpolationType(QString const & interpType)
-	{
-		return (interpType == InterpolateNearest)
-			? VTK_NEAREST_INTERPOLATION
-			: VTK_LINEAR_INTERPOLATION;
-	
-	}
 }
 
 iAVolumeRenderer::iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, iATransferFunction* tf) :
@@ -246,4 +239,11 @@ bool iAVolumeRenderer::registerDefaultAttributes()
 {
 	registerDefaultSettings("Volume Renderer", &defaultAttributes());
 	return true;
+}
+
+int iAVolumeRenderer::string2VtkVolInterpolationType(QString const& interpType)
+{
+	return (interpType == InterpolateNearest)
+		? VTK_NEAREST_INTERPOLATION
+		: VTK_LINEAR_INTERPOLATION;
 }

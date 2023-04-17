@@ -22,6 +22,7 @@
 #include <iAToolsVTK.h>
 #include <iATransferFunction.h>
 #include <iATypedCallHelper.h>
+#include <iAVolumeRenderer.h>
 #include <iAVolumeViewer.h>
 
 #include <iAChartWithFunctionsWidget.h>
@@ -336,17 +337,19 @@ inline void iANModalController::initializeCombinedVol()
 
 inline void iANModalController::applyVolumeSettings()
 {
-	// use iAVolumeRenderer?
-	//auto const & vs = m_mdiChild->volumeSettings();
 	auto volProp = m_combinedVol->GetProperty();
-	//volProp->SetAmbient(vs.AmbientLighting);
-	//volProp->SetDiffuse(vs.DiffuseLighting);
-	//volProp->SetSpecular(vs.SpecularLighting);
-	//volProp->SetSpecularPower(vs.SpecularPower);
-	//volProp->SetInterpolationType(vs.LinearInterpolation);
-	//volProp->SetShade(vs.Shading);
-	//if (vs.ScalarOpacityUnitDistance > 0)
-	//	volProp->SetScalarOpacityUnitDistance(vs.ScalarOpacityUnitDistance);
+	auto volSettings = extractValues(iAVolumeRenderer::defaultAttributes());
+	volProp->SetAmbient(volSettings[iADataSetRenderer::AmbientLighting].toDouble());
+	volProp->SetDiffuse(volSettings[iADataSetRenderer::DiffuseLighting].toDouble());
+	volProp->SetSpecular(volSettings[iADataSetRenderer::SpecularLighting].toDouble());
+	volProp->SetSpecularPower(volSettings[iADataSetRenderer::SpecularPower].toDouble());
+	volProp->SetInterpolationType(iAVolumeRenderer::string2VtkVolInterpolationType(volSettings[iAVolumeRenderer::Interpolation].toString()));
+	volProp->SetShade(volSettings[iADataSetRenderer::Shading].toBool());
+	auto scalarOpacityUnitDistance = volSettings[iAVolumeRenderer::ScalarOpacityUnitDistance].toDouble();
+	if (scalarOpacityUnitDistance > 0)
+	{
+		volProp->SetScalarOpacityUnitDistance(scalarOpacityUnitDistance);
+	}
 	if (m_mdiChild->renderSettings().ShowSlicers)
 	{
 		m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane1());
@@ -357,8 +360,8 @@ inline void iANModalController::applyVolumeSettings()
 	{
 		m_combinedVolMapper->RemoveAllClippingPlanes();
 	}
-	//m_combinedVolMapper->SetSampleDistance(vs.SampleDistance);
-	m_combinedVolMapper->InteractiveAdjustSampleDistancesOff();
+	m_combinedVolMapper->SetSampleDistance(volSettings[iAVolumeRenderer::SampleDistance].toDouble());
+	m_combinedVolMapper->SetInteractiveAdjustSampleDistances(volSettings[iAVolumeRenderer::InteractiveAdjustSampleDistance].toBool());
 }
 
 bool iANModalController::checkDataSets(const QList<std::shared_ptr<iAImageData>>& dataSets)

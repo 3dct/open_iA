@@ -26,6 +26,9 @@ public:
 	static const QString ScalarOpacityUnitDistance;
 	static const QString RendererType;
 	static const QString SampleDistance;
+	static const QString InteractiveAdjustSampleDistance;
+	static const QString AutoAdjustSampleDistance;
+	static const QString InteractiveUpdateRate;
 
 	iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, iATransferFunction* tf);
 	//! ensure that we get removed from the renderer
@@ -39,15 +42,15 @@ public:
 	vtkProp3D* vtkProp() override;
 	void setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3) override;
 	void removeCuttingPlanes() override;
-
 	QVariantMap attributeValues() const override;
 
+	static iAAttributes& defaultAttributes();
+	static int string2VtkVolInterpolationType(QString const& interpType);
 private:
 	Q_DISABLE_COPY(iAVolumeRenderer);
 	void showDataSet() override;
 	void hideDataSet() override;
 	iAAttributes const& attributes() const override;
-	static iAAttributes& defaultAttributes();
 	vtkSmartPointer<vtkVolume> m_volume;
 	vtkSmartPointer<vtkVolumeProperty> m_volProp;
 	vtkSmartPointer<vtkSmartVolumeMapper> m_volMapper;
