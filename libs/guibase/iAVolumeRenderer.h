@@ -21,17 +21,17 @@ class vtkVolumeProperty;
 //! Provides convenience functionality for adding it to a render window,
 //! as well as for showing its bounding box
 
-constexpr char VolumeRendererName[] = "Default Settings: Volume Renderer";
+constexpr const char VolumeRendererName[] = "Default Settings: Volume Renderer";
 class iAguibase_API iAVolumeRenderer : public iADataSetRenderer, iASettingsObject<VolumeRendererName, iAVolumeRenderer>
 {
 public:
-	static const QString Interpolation;
-	static const QString ScalarOpacityUnitDistance;
-	static const QString RendererType;
-	static const QString SampleDistance;
-	static const QString InteractiveAdjustSampleDistance;
-	static const QString AutoAdjustSampleDistance;
-	static const QString InteractiveUpdateRate;
+	static constexpr const char* Interpolation = "Interpolation";
+	static constexpr const char* ScalarOpacityUnitDistance = "Scalar Opacity Unit Distance";
+	static constexpr const char* RendererType = "Renderer type";
+	static constexpr const char* SampleDistance = "Sample distance";
+	static constexpr const char* InteractiveAdjustSampleDistance = "Interactively Adjust Sample Distances";
+	static constexpr const char* AutoAdjustSampleDistance = "Auto-Adjust Sample Distances";
+	static constexpr const char* InteractiveUpdateRate = "Interactive Update Rate";
 
 	iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, iATransferFunction* tf);
 	//! ensure that we get removed from the renderer

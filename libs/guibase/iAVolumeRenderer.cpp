@@ -17,25 +17,17 @@
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 
-const QString iAVolumeRenderer::Interpolation("Interpolation");
-const QString iAVolumeRenderer::ScalarOpacityUnitDistance("Scalar Opacity Unit Distance");
-const QString iAVolumeRenderer::RendererType("Renderer type");
-const QString iAVolumeRenderer::SampleDistance("Sample distance");
-const QString iAVolumeRenderer::InteractiveAdjustSampleDistance = "Interactively Adjust Sample Distances";
-const QString iAVolumeRenderer::AutoAdjustSampleDistance = "Auto-Adjust Sample Distances";
-const QString iAVolumeRenderer::InteractiveUpdateRate = "Interactive Update Rate";
-
 namespace
 {
-	const QString Spacing = "Spacing";
-	const QString FinalColorLevel = "Final Color Level";
-	const QString FinalColorWindow = "Final Color Window";
+	constexpr const char* Spacing = "Spacing";
+	constexpr const char* FinalColorLevel = "Final Color Level";
+	constexpr const char* FinalColorWindow = "Final Color Window";
+	constexpr const char* InterpolateNearest = "Nearest";
+	constexpr const char* InterpolateLinear = "Linear";
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
-	const QString GlobalIlluminationReach = "Global Illumination Reach";
-	const QString VolumetricScatteringBlending = "Volumetric Scattering Blending";
+	constexpr const char* GlobalIlluminationReach = "Global Illumination Reach";
+	constexpr const char* VolumetricScatteringBlending = "Volumetric Scattering Blending";
 #endif
-	const QString InterpolateNearest = "Nearest";
-	const QString InterpolateLinear = "Linear";
 }
 
 iAVolumeRenderer::iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, iATransferFunction* tf) :

@@ -21,15 +21,15 @@ class vtkRenderer;
 class iAguibase_API iADataSetRenderer
 {
 public:
-	static const QString Position;
-	static const QString Orientation;
-	static const QString OutlineColor;
-	static const QString Pickable;
-	static const QString Shading;
-	static const QString AmbientLighting;
-	static const QString DiffuseLighting;
-	static const QString SpecularLighting;
-	static const QString SpecularPower;
+	static constexpr const char * Position = "Position";
+	static constexpr const char * Orientation = "Orientation";
+	static constexpr const char * OutlineColor = "Box Color";
+	static constexpr const char * Pickable = "Pickable";
+	static constexpr const char * Shading = "Shading";
+	static constexpr const char * AmbientLighting = "Ambient lighting";
+	static constexpr const char * DiffuseLighting = "Diffuse lighting";
+	static constexpr const char * SpecularLighting = "Specular lighting";
+	static constexpr const char * SpecularPower = "Specular power";
 
 	//! Create a dataset renderer
 	iADataSetRenderer(vtkRenderer* renderer);

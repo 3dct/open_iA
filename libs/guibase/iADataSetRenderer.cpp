@@ -89,16 +89,6 @@ namespace
 
 
 
-const QString iADataSetRenderer::Position("Position");
-const QString iADataSetRenderer::Orientation("Orientation");
-const QString iADataSetRenderer::OutlineColor("Box Color");
-const QString iADataSetRenderer::Pickable("Pickable");
-const QString iADataSetRenderer::Shading("Shading");
-const QString iADataSetRenderer::AmbientLighting("Ambient lighting");
-const QString iADataSetRenderer::DiffuseLighting("Diffuse lighting");
-const QString iADataSetRenderer::SpecularLighting("Specular lighting");
-const QString iADataSetRenderer::SpecularPower("Specular power");
-
 iADataSetRenderer::iADataSetRenderer(vtkRenderer* renderer) :
 	m_renderer(renderer),
 	m_visible(false)

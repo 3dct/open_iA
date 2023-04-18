@@ -27,25 +27,29 @@
 
 namespace
 {
-	const QString PointRadiusVaryBy = "Vary point radius by";
-	const QString VaryModeFixed = "Fixed";
-	const QString StoredColors = "Stored colors";
-	const QString PointRadius = "Minimum point radius";
-	const QString PointColorMode = "Point colors";
-	const QString PointColor = "Fixed Point color";
-	const QString PointPrefix = "Point ";
-	const QString LineColorMode = "Line colors";
-	const QString LineColor = "Fixed Line Color";
-	const QString LineWidth = "Minimum line Width";
-	const QString LineWidthVaryBy = "Vary line width by";
-	const QString LinePrefix = "Line ";
+	// graph renderer options:
+	constexpr const char* PointRadiusVaryBy = "Vary point radius by";
+	constexpr const char* VaryModeFixed = "Fixed";
+	constexpr const char* StoredColors = "Stored colors";
+	constexpr const char* PointRadius = "Minimum point radius";
+	constexpr const char* PointColorMode = "Point colors";
+	constexpr const char* PointColor = "Fixed Point color";
+	constexpr const char* PointPrefix = "Point ";
+	constexpr const char* LineColorMode = "Line colors";
+	constexpr const char* LineColor = "Fixed Line Color";
+	constexpr const char* LineWidth = "Minimum line Width";
+	constexpr const char* LineWidthVaryBy = "Vary line width by";
+	constexpr const char* LinePrefix = "Line ";
+	constexpr const char* ShadingInterpolation = "Shading interpolation";
+	constexpr const char* InterpolationFlat = "Flat";
+	constexpr const char* InterpolationGouraud = "Gouraud";
+	constexpr const char* InterpolationPhong = "Phong";
+	constexpr const char* InterpolationPBR = "Physically based rendering";
+	// surface renderer options:
+	constexpr const char* PolyColor = "Color";
+	constexpr const char* PolyOpacity = "Opacity";
+	constexpr const char* PolyWireframe = "Wireframe";
 
-	const QString ShadingInterpolation = "Shading interpolation";
-
-	const QString InterpolationFlat = "Flat";
-	const QString InterpolationGouraud = "Gouraud";
-	const QString InterpolationPhong = "Phong";
-	const QString InterpolationPBR = "Physically based rendering";
 
 	int string2VtkShadingInterpolation(QString const & type)
 	{
@@ -129,9 +133,9 @@ iAAttributes const& iAGraphRenderer::attributes() const
 	{
 		attr = cloneAttributes(iAGraphRenderer::defaultAttributes());
 		addAttr(attr, PointRadiusVaryBy, iAValueType::Categorical,
-			QStringList() << ("!" + VaryModeFixed) << m_data->vertexValueNames());
+			QStringList() << (QString("!") + VaryModeFixed) << m_data->vertexValueNames());
 		addAttr(attr, LineWidthVaryBy, iAValueType::Categorical,
-			QStringList() << ("!" + VaryModeFixed) << m_data->edgeValueNames());
+			QStringList() << (QString("!") + VaryModeFixed) << m_data->edgeValueNames());
 	}
 	return attr;
 }
@@ -145,21 +149,21 @@ iAAttributes& iAGraphRenderer::defaultAttributes()
 		addAttr(attr, PointRadius, iAValueType::Continuous, 5, 0.0000001, 100000000);
 		addAttr(attr, PointColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
 		addAttr(attr, PointColor, iAValueType::Color, "#FF0000");
-		addAttr(attr, PointPrefix + iADataSetRenderer::Shading, iAValueType::Boolean, false);
-		addAttr(attr, PointPrefix + ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
-		addAttr(attr, PointPrefix + iADataSetRenderer::AmbientLighting, iAValueType::Continuous, 0.2);
-		addAttr(attr, PointPrefix + iADataSetRenderer::DiffuseLighting, iAValueType::Continuous, 0.5);
-		addAttr(attr, PointPrefix + iADataSetRenderer::SpecularLighting, iAValueType::Continuous, 0.7);
-		addAttr(attr, PointPrefix + iADataSetRenderer::SpecularPower, iAValueType::Continuous, 10.0);
+		addAttr(attr, QString(PointPrefix) + iADataSetRenderer::Shading, iAValueType::Boolean, false);
+		addAttr(attr, QString(PointPrefix) + ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
+		addAttr(attr, QString(PointPrefix) + iADataSetRenderer::AmbientLighting, iAValueType::Continuous, 0.2);
+		addAttr(attr, QString(PointPrefix) + iADataSetRenderer::DiffuseLighting, iAValueType::Continuous, 0.5);
+		addAttr(attr, QString(PointPrefix) + iADataSetRenderer::SpecularLighting, iAValueType::Continuous, 0.7);
+		addAttr(attr, QString(PointPrefix) + iADataSetRenderer::SpecularPower, iAValueType::Continuous, 10.0);
 		addAttr(attr, LineWidth, iAValueType::Continuous, 1.0, 0.1, 100);
 		addAttr(attr, LineColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
 		addAttr(attr, LineColor, iAValueType::Color, "#00FF00");
-		addAttr(attr, LinePrefix + iADataSetRenderer::Shading, iAValueType::Boolean, false);
-		addAttr(attr, LinePrefix + ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
-		addAttr(attr, LinePrefix + iADataSetRenderer::AmbientLighting, iAValueType::Continuous, 0.2);
-		addAttr(attr, LinePrefix + iADataSetRenderer::DiffuseLighting, iAValueType::Continuous, 0.5);
-		addAttr(attr, LinePrefix + iADataSetRenderer::SpecularLighting, iAValueType::Continuous, 0.7);
-		addAttr(attr, LinePrefix + iADataSetRenderer::SpecularPower, iAValueType::Continuous, 10.0);
+		addAttr(attr, QString(LinePrefix) + iADataSetRenderer::Shading, iAValueType::Boolean, false);
+		addAttr(attr, QString(LinePrefix) + ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
+		addAttr(attr, QString(LinePrefix) + iADataSetRenderer::AmbientLighting, iAValueType::Continuous, 0.2);
+		addAttr(attr, QString(LinePrefix) + iADataSetRenderer::DiffuseLighting, iAValueType::Continuous, 0.5);
+		addAttr(attr, QString(LinePrefix) + iADataSetRenderer::SpecularLighting, iAValueType::Continuous, 0.7);
+		addAttr(attr, QString(LinePrefix) + iADataSetRenderer::SpecularPower, iAValueType::Continuous, 10.0);
 	}
 	return attr;
 }
@@ -286,13 +290,6 @@ vtkProp3D* iAGraphRenderer::vtkProp()
 
 
 // ---------- iAMeshRenderer ----------
-
-namespace
-{
-	const QString PolyColor = "Color";
-	const QString PolyOpacity = "Opacity";
-	const QString PolyWireframe = "Wireframe";
-}
 
 iAPolyActorRenderer::iAPolyActorRenderer(vtkRenderer* renderer) :
 	iADataSetRenderer(renderer),
