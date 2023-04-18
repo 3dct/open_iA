@@ -237,20 +237,20 @@ public:
 		unsigned int r_tri_start_ind = (unsigned int) tri_ind.size();
 
 		std::vector<iATriPrim*> l_tris, r_tris;
-		int cntr;
+		//int cntr;
 		iAVec3f center = m_aabb.center(), h_size = m_aabb.half_size();
 		for (unsigned int i=0; i<primSz; i++)
 		{
-			cntr=0;
+			//cntr=0;
 			if(parent_tris[i]->Intersect( l_aabb, center, h_size))
 			{
 				l_tris.push_back(parent_tris[i]);
-				cntr++;
+				//cntr++;
 			}
 			if(parent_tris[i]->Intersect( r_aabb, center, h_size))
 			{
 				r_tris.push_back(parent_tris[i]);
-				cntr++;
+				//cntr++;
 			}
 		}
 		int nxtLvl = level+1;

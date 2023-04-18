@@ -362,13 +362,13 @@ bool iAEngine::RenderGPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, c
 	unsigned int col;
 	unsigned int* buffer=getBuffer();
 	//float av_pl=0;
-	unsigned int active_rays_count=0;
+	//unsigned int active_rays_count=0;
 	for (int i=0; i<s->RFRAME_W*s->RFRAME_H; i++)
 	{
 		if(cuda_avpl_buff[i])
 		{
 			//av_pl+=cuda_avpl_buff[i];
-			active_rays_count++;
+			//active_rays_count++;
 			if(dipAsColor)
 			{
 				*buffer++ = (
@@ -473,7 +473,7 @@ bool iAEngine::RenderBatchGPU( unsigned int batchSize, iAVec3f * a_o, iAVec3f * 
 	unsigned int col;
 	unsigned int* buffer=getBuffer();
 	//float av_pl=0;
-	unsigned int active_rays_count=0;
+	//unsigned int active_rays_count=0;
 	unsigned int offset=0;
 	unsigned int buff_start, buff_end;
 	buff_start = s->RFRAME_W*s->RFRAME_H*(batchSize-1); buff_end = s->RFRAME_W*s->RFRAME_H*batchSize;
@@ -482,7 +482,7 @@ bool iAEngine::RenderBatchGPU( unsigned int batchSize, iAVec3f * a_o, iAVec3f * 
 		if(cuda_avpl_buff[i])
 		{
 			//av_pl+=cuda_avpl_buff[i];
-			active_rays_count++;
+			//active_rays_count++;
 			if(dipAsColor)
 			{
 				*buffer++ = (

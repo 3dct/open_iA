@@ -248,7 +248,7 @@ int readSTLFile(QString const & filename, std::vector<iAtriangle*> & stlMesh, st
 
 		unsigned short zero;
 
-		long count = 0;
+		// long count = 0;
 		for (unsigned long i=0;i<noOfFacets;i++)
 		{
 			if ((fread(&item,sizeof(item),1,fptr) != 1) ||				// reads triangle
@@ -279,7 +279,7 @@ int readSTLFile(QString const & filename, std::vector<iAtriangle*> & stlMesh, st
 						^(*copy->vertices[0]-*copy->vertices[2]);
 			copy->N.normalize();
 
-			count++;
+			//count++;
 
 			stlMesh.push_back( copy );
 		}

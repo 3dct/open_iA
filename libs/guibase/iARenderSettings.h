@@ -10,7 +10,7 @@ class iARenderSettings
 {
 public:
 	bool
-		ShowSlicers,			//! TODO: VOLUME: move to iAVolumeSettings?
+		ShowSlicers,            //!< whether objects are cut at the current slice plane of each slicer (currently applies for all volume datasets; should be moved to individual dataset renderers, to be able to selectively enable it for each dataset)
 		ShowSlicePlanes,        //!< whether a colored plane is shown for each currently visible slicer)
 		ShowAxesCube,           //!< whether axes cube is shown
 		ShowOriginIndicator,    //!< whether origin indicator is shown
