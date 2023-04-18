@@ -68,7 +68,7 @@ void iACompNaturalBreaks::calculateBins()
 				binsWithFiberIds->push_back(init);
 			}
 
-			int datasetInd = (int)values.size();
+			//int datasetInd = (int)values.size();
 
 			//check for every value inside a dataset for the corresponding bin
 			for (int v = 0; v < static_cast<int>(values.size()); v++)
@@ -102,7 +102,7 @@ void iACompNaturalBreaks::calculateBins()
 					}
 				}
 
-				datasetInd--;
+				//datasetInd--;
 			}
 
 			//compute goodness of variance fit

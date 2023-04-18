@@ -67,7 +67,7 @@ namespace
 		//http://www.ict.griffith.edu.au/anthony/info/graphics/bresenham.procs
 
 		int i, l, m, n, x_inc, y_inc, z_inc, err_1, err_2, dx2, dy2, dz2;
-		int id = 0;
+		//int id = 0;
 		std::vector<iAVec3i> cellIds;
 
 		iAVec3i pixel = start;
@@ -89,7 +89,7 @@ namespace
 			for (i = 0; i < l; i++)
 			{
 				cellIds.push_back(pixel);
-				id++;
+				//id++;
 				if (err_1 > 0)
 				{
 					pixel[1] += y_inc;
@@ -112,7 +112,7 @@ namespace
 			for (i = 0; i < m; i++)
 			{
 				cellIds.push_back(pixel);
-				id++;
+				//id++;
 				if (err_1 > 0)
 				{
 					pixel[0] += x_inc;
@@ -135,7 +135,7 @@ namespace
 			for (i = 0; i < n; i++)
 			{
 				cellIds.push_back(pixel);
-				id++;
+				//id++;
 				if (err_1 > 0)
 				{
 					pixel[1] += y_inc;
@@ -152,7 +152,7 @@ namespace
 			}
 		}
 		cellIds.push_back(pixel);
-		id++;
+		//id++;
 
 		return cellIds;
 	}

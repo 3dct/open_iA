@@ -45,7 +45,7 @@ void iACompUniformBinning::calculateBins()
 			binsWithFiberIds->push_back(init);
 		}
 
-		int datasetInd = static_cast<int> (values.size());
+		//int datasetInd = static_cast<int> (values.size());
 
 		//check for every value inside a dataset for the corresponding bin
 		for (int v = 0; v < static_cast<int>(values.size()); v++)
@@ -75,7 +75,7 @@ void iACompUniformBinning::calculateBins()
 				}
 			}
 
-			datasetInd--;
+			//datasetInd--;
 		}
 
 		initializeMaxAmountInBins(bins, initialNumberBins);
