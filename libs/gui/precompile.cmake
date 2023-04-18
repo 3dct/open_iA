@@ -36,7 +36,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAToolRegistry.h>
 <iAToolsVTK.h>
 <iATransferFunction.h>
-<iAVolumeSettings.h>
 <iAvtkInteractStyleActor.h>
 <memory>
 <QCloseEvent>
