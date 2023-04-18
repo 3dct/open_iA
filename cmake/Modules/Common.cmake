@@ -713,6 +713,10 @@ endif()
 # Common Settings
 #-------------------------
 
+# Options for default library symbol visibility - adds -fvisibility=hidden to libraries
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
+
 option (openiA_USE_IDE_FOLDERS "Whether to group projects in subfolders in the IDE (mainly Visual Studio). Default: enabled." ON)
 if (openiA_USE_IDE_FOLDERS)
 	set_property(GLOBAL PROPERTY USE_FOLDERS ON)

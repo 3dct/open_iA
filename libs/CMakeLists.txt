@@ -1,5 +1,4 @@
 set(LIB_TYPE SHARED)
-include(Modules)
 
 file(GLOB children RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/*")
 if (MSVC)
@@ -46,7 +45,7 @@ foreach(libdir ${children})
 		#	ADD_LEGACY_LIBRARIES(${libname} "" "PRIVATE" "${ITK_REQUIRED_LIBS_PRIVATE}")
 		#endif()
 
-		MODULE_GENERATE_EXPORT_HEADER ( ${libname} )
+		GENERATE_EXPORT_HEADER ( ${libname} EXPORT_MACRO_NAME ${libname}_API )
 		vtk_module_autoinit(TARGETS ${libname} MODULES ${VTK_LIBRARIES})
 
 		if (openiA_PRECOMPILE)
@@ -85,15 +84,6 @@ foreach(libdir ${children})
 			install(TARGETS ${libname} LIBRARY DESTINATION lib)
 		else ()
 			install(TARGETS ${libname} LIBRARY DESTINATION .)
-		endif()
-
-		# Compiler Flags
-		if (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-			# see Ulrich Drepper - How to write Shared Libraries
-			#   (https://software.intel.com/sites/default/files/m/a/1/e/dsohowto.pdf)
-			#   (- fPIC vs. fpic) -> fPIC added automatically by CMake)
-			#   - why fvisibility=hidden
-			target_compile_options(${libname} PRIVATE -fvisibility=hidden)
 		endif()
 	endif()
 endforeach()

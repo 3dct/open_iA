@@ -77,8 +77,6 @@ foreach (indx RANGE ${len} )
 
 	# clean module name for use as identifier (if leading number, then add "_" prefix)
 	string(REGEX REPLACE "^([0123456789])" "_\\1" ident_module_name ${module_name})
-	# Generate module export header
-	MODULE_GENERATE_EXPORT_HEADER ( ${ident_module_name} )
 	# Generate module interface factory
 	MODULE_GENERATE_INTERFACE_FACTORY ( ${ident_module_name}, ${module_name} )
 	list(APPEND module_srcs "${CMAKE_CURRENT_BINARY_DIR}/${module_name}_factory.cpp")
@@ -87,6 +85,7 @@ foreach (indx RANGE ${len} )
 	if(MSVC)
 		set_target_properties(${module_name} PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
 	endif()
+	GENERATE_EXPORT_HEADER ( ${module_name} EXPORT_MACRO_NAME ${module_name}_API )
 	vtk_module_autoinit(TARGETS ${module_name} MODULES ${VTK_LIBRARIES})
 	target_include_directories(${module_name} PUBLIC ${module_full_path} )      # public so depending modules only need to link to the target
 	target_include_directories(${module_name} PRIVATE ${OpeniABinDir}/modules ) # _export files
@@ -202,10 +201,6 @@ foreach (indx RANGE ${len} )
 	if (EXISTS "${module_full_path}/enabled.cmake")
 		message(STATUS "    Running ${module_full_path}/enabled.cmake...")
 		include("${module_full_path}/enabled.cmake")
-	endif()
-
-	if (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-		target_compile_options(${module_name} PRIVATE -fvisibility=hidden)
 	endif()
 endforeach()
 set(BUNDLE_LIBS "${BUNDLE_LIBS}" PARENT_SCOPE)
