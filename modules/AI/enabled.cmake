@@ -1,4 +1,8 @@
-option (openiA_ONNX_CUDA "Whether to use CUDA for running ONNX. Note that CUDA support is currently BROKEN in open_iA! If disabled, DirectML will be used (on Windows)." OFF)
+if (NOT UNIX)
+	option (openiA_ONNX_CUDA "Whether to use CUDA for running ONNX. Note that CUDA support is currently BROKEN in open_iA! If disabled, DirectML will be used (on Windows)." OFF)
+else()
+	set (openiA_ONNX_CUDA ON)
+endif ()
 option (openiA_ONNX_NEWNAMEFUNCTIONS "Set to true for ONNX >= 1.13.1; with that version, the GetOutputNames and GetInputNames functions have been renamed to GetOutputNamesAllocated and GetInputNamesAllocated." OFF)
 if (UNIX OR openiA_ONNX_CUDA)
 	target_compile_definitions(AI PRIVATE ONNX_CUDA)
@@ -15,7 +19,7 @@ find_library(DIRECTML_LIBRARY DirectML
 )
 
 if (openiA_ONNX_CUDA)
-	message(WARNING "ONNX CUDA support in open_iA is currently BROKEN! Please use DirectML on Windows (by disabling AI_ONNX_CUDA).")
+	message(WARNING "ONNX CUDA support in open_iA is currently BROKEN! On Windows, you can use DirectML instead (by disabling AI_ONNX_CUDA).")
 else()
 	if (${DIRECTML_LIBRARY} STREQUAL "DIRECTML_LIBRARY-NOTFOUND")
 		message(WARNING "You did not specify a DirectML library to use! If you build a release, the AI segmentation will not work!")
