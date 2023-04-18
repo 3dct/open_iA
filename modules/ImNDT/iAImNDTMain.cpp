@@ -169,8 +169,8 @@ iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAImNDTInteractorStyle* style, 
 	}
 }
 
-//! Defines the action executed for specific controller inputs
-//! Position and Orientation are in WorldCoordinates and Orientation is in Degree
+iAImNDTMain::~iAImNDTMain() =default;
+
 void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4])
 {
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
@@ -398,7 +398,6 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 	}
 }
 
-//! Corrects the size of elements based on the new physical scale of the environment
 void iAImNDTMain::onZoom()
 {
 	auto scaleDiff = (1.0 / calculateWorldScaleFactor());
@@ -425,7 +424,6 @@ void iAImNDTMain::setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceIn
 	
 }
 
-//! Returns which InteractionOption is for the currently picked Object available 
 int iAImNDTMain::getOptionForObject(vtkProp3D* pickedProp)
 {
 	if (pickedProp == nullptr)

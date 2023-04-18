@@ -17,8 +17,8 @@ public:
 		//LogToFile;
 	iAPreferences():
 		FontSize(8),
-		LimitForAuto3DRender(2'000),
 		PositionMarkerSize(3),
+		LimitForAuto3DRender(2'000),
 		ResultInNewWindow(true),
 		PrintParameters(true)
 	{}

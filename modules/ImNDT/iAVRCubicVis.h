@@ -23,8 +23,11 @@ class iAVRCubicVis
 public:
 	iAVRCubicVis(vtkRenderer* ren);
 	void setOctree(iAVROctree* octree);
+	//! Sets up the cubic representation of given points. The calculated points (from the octree) are displayed as glyphs (cubes) and saved in an actor.
 	virtual void createCubeModel();
+	//! Displays the cubes
 	void show();
+	//! Hides the cubes
 	void hide();
 	void setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage);
 	vtkSmartPointer<vtkActor> getActor();

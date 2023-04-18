@@ -255,7 +255,7 @@ double iAVROctreeMetrics::calculateWeightedJaccardIndex(vtkIdType level, vtkIdTy
 
 	double sizeRegion1 = fibersInRegion1->size();
 	double sizeRegion2 = fibersInRegion2->size();
-	double sizeShared = 0;
+	//double sizeShared = 0;
 
 	if (sizeRegion1 == 0 || sizeRegion2 == 0) return 0.0;
 
@@ -270,7 +270,7 @@ double iAVROctreeMetrics::calculateWeightedJaccardIndex(vtkIdType level, vtkIdTy
 
 		if (fibersInRegion2->count(fiber.first) == 1)
 		{
-			sizeShared++;
+			//sizeShared++;
 			sharedfibers += fiber.second;
 			sharedfibers += fibersInRegion2->at(fiber.first);
 		}

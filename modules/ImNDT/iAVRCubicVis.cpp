@@ -43,7 +43,6 @@ void iAVRCubicVis::setOctree(iAVROctree* octree)
 	m_octree = octree;
 }
 
-//! This method sets up the cubic representation of given points. The calculated points (from the octree) are displayed as glyphs (cubes) and saved in an actor.
 void iAVRCubicVis::createCubeModel()
 {
 	//RESET TO DEFAULT VALUES
@@ -80,7 +79,6 @@ void iAVRCubicVis::createCubeModel()
 	m_actor->GetProperty()->SetColor(defaultColor.redF(), defaultColor.greenF(), defaultColor.blueF());
 }
 
-//! Displays the cubes
 void iAVRCubicVis::show()
 {
 	if (m_visible)
@@ -91,7 +89,6 @@ void iAVRCubicVis::show()
 	m_visible = true;
 }
 
-//! Hides the cubes
 void iAVRCubicVis::hide()
 {
 	if (!m_visible)
@@ -274,7 +271,7 @@ double* iAVRCubicVis::getDefaultActorSize()
 //! It also calculates the region size and adds the scalar array for it
 void iAVRCubicVis::calculateStartPoints()
 {
-	int count = 0;
+	//int count = 0;
 	vtkSmartPointer<vtkPoints> cubeStartPoints = vtkSmartPointer<vtkPoints>::New();
 	m_cubePolyData = vtkSmartPointer<vtkPolyData>::New();
 
@@ -299,7 +296,7 @@ void iAVRCubicVis::calculateStartPoints()
 			double regionSize[3];
 			m_octree->calculateOctreeRegionSize(i, regionSize);
 			glyphScales->InsertNextTuple3(regionSize[0], regionSize[1], regionSize[2]);
-			count++;
+			//count++;
 		}
 		else
 		{

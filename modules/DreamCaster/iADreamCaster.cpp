@@ -574,7 +574,7 @@ void iADreamCaster::RenderViewsSlot()
 	std::fill(viewsBuffer, viewsBuffer+s, 0);
 	AllocateData();
 
-	unsigned int curRend=0;
+	//unsigned int curRend=0;
 	float minValX = ui.sb_min_x->value()*DEG2RAD;
 	float minValZ = ui.sb_min_z->value()*DEG2RAD;
 	float maxValX = ui.sb_max_x->value()*DEG2RAD;
@@ -856,7 +856,7 @@ void iADreamCaster::RenderViewsSlot()
 				RenderFrame->repaint();
 				stabilityView->repaint();
 				app->processEvents();
-				curRend++;
+				//curRend++;
 				batch_counter=0;
 			}
 		}
@@ -941,7 +941,7 @@ void iADreamCaster::RenderViewsSlot()
 						placementsParams[x][z].maxPenLen = rotationsParams[x][y][z].maxPenLen;
 					}
 
-					curRend++;
+					//curRend++;
 					counter++;
 				}
 
@@ -1178,7 +1178,7 @@ void iADreamCaster::readRenderFromBinaryFile(unsigned int x, unsigned int y, uns
 		fclose(fptr);
 		return;
 	}
-	int curRend = cntZ*cntY*x + y + cntY*z;//cntX*y + x;
+	const int curRend = cntZ*cntY*x + y + cntY*z;//cntX*y + x;
 	unsigned int raysSize;
 	unsigned int intersectionsSize;
 	for(int i=0; i<curRend; i++)
