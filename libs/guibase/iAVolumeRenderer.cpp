@@ -3,7 +3,6 @@
 #include "iAVolumeRenderer.h"
 
 #include <iAAABB.h>
-#include "iADefaultSettings.h"
 #include <iAToolsVTK.h>
 #include <iATransferFunction.h>
 #include <iAValueTypeVectorHelpers.h>
@@ -239,7 +238,3 @@ int iAVolumeRenderer::string2VtkVolInterpolationType(QString const& interpType)
 		: VTK_LINEAR_INTERPOLATION;
 }
 
-
-// register with iASettingsManager (export - iAguibase_API - only serves to make sure this initialization isn't optimized away
-constexpr char VolumeRendererName[] = "Default Settings: Volume Renderer";
-class iAguibase_API iAGraphRendererAutoRegister : iASettingsObject<VolumeRendererName, iAVolumeRenderer> {};

@@ -5,6 +5,7 @@
 #include "iAguibase_export.h"
 
 #include "iADataSetRenderer.h"
+#include "iADefaultSettings.h"
 
 #include <vtkSmartPointer.h>
 
@@ -19,7 +20,9 @@ class vtkVolumeProperty;
 //! Class for rendering a volume dataset.
 //! Provides convenience functionality for adding it to a render window,
 //! as well as for showing its bounding box
-class iAguibase_API iAVolumeRenderer : public iADataSetRenderer
+
+constexpr char VolumeRendererName[] = "Default Settings: Volume Renderer";
+class iAguibase_API iAVolumeRenderer : public iADataSetRenderer, iASettingsObject<VolumeRendererName, iAVolumeRenderer>
 {
 public:
 	static const QString Interpolation;

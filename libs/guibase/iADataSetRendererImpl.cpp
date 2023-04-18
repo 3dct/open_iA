@@ -3,8 +3,6 @@
 #include "iADataSetRendererImpl.h"
 
 #include "iADataSet.h"
-#include "iADefaultSettings.h"
-
 #include "iAMainWindow.h"
 
 #include "iAAABB.h"
@@ -295,12 +293,6 @@ namespace
 	const QString PolyOpacity = "Opacity";
 	const QString PolyWireframe = "Wireframe";
 }
-
-// register with iASettingsManager (export - iAguibase_API - only serves to make sure this initialization isn't optimized away
-constexpr char GraphRendererName[] = "Default Settings: Graph Renderer";
-class iAguibase_API iAGraphRendererAutoRegister : iASettingsObject<GraphRendererName, iAGraphRenderer> {};
-constexpr char SurfaceRendererName[] = "Default Settings: Surface Renderer";
-class iAguibase_API iAPolyActorRendererAutoRegister : iASettingsObject<SurfaceRendererName, iAPolyActorRenderer> {};
 
 iAPolyActorRenderer::iAPolyActorRenderer(vtkRenderer* renderer) :
 	iADataSetRenderer(renderer),

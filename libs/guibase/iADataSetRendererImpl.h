@@ -5,6 +5,7 @@
 #include "iAguibase_export.h"
 
 #include "iADataSetRenderer.h"
+#include "iADefaultSettings.h"
 
 #include <vtkSmartPointer.h>
 
@@ -17,8 +18,10 @@ class vtkPolyDataMapper;
 class vtkSphereSource;
 class vtkTubeFilter;
 
+constexpr char GraphRendererName[] = "Default Settings: Graph Renderer";
+
 //! 3D renderer for graph data, with options to adapt node and vertex size and color.
-class iAGraphRenderer : public iADataSetRenderer
+class iAGraphRenderer : public iADataSetRenderer, iASettingsObject<GraphRendererName, iAGraphRenderer>
 {
 public:
 	iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data);
@@ -47,8 +50,11 @@ private:
 	iAGraphData const * m_data;
 };
 
+
+constexpr char SurfaceRendererName[] = "Default Settings: Surface Renderer";
+
 //! 3D renderer for any kind of polydata.
-class iAguibase_API iAPolyActorRenderer : public iADataSetRenderer
+class iAguibase_API iAPolyActorRenderer: public iADataSetRenderer, iASettingsObject<SurfaceRendererName, iAPolyActorRenderer>
 {
 public:
 	iAPolyActorRenderer(vtkRenderer* renderer);

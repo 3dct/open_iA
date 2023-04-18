@@ -42,6 +42,15 @@ class iASettingsObject
 	// initialization needs to be outside class, since this is not working:
 	// ... m_sDefaultAttr = iASettingsObject<Name, Obj>::registerDefaultAttributes();
 	// error C2131: expression did not evaluate to a constant
+public:
+	// required for clang; without this, no self registration there (optimized away?)
+	iASettingsObject()
+	{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-value"
+		m_sDefaultAttr;
+#pragma GCC diagnostic pop
+	}
 };
 
 template <const char* Name, class Obj>
