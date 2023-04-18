@@ -9,8 +9,6 @@
 //! Automatically creates a factory function with no parameters returning a std::shared_ptr<Base>
 //! with an instance of Class; requires that the Registry has an `add` function that expects
 //! such a factory function as parameter.
-//!
-//! DUPLICATION to io/iAAutoRegistration!
 template <class Base, class Class, class Registry>
 class iAAutoRegistration
 {
