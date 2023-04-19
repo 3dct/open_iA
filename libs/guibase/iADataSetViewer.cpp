@@ -75,7 +75,10 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	iAAABB overallBB;
 	for (auto ds : child->dataSetMap())
 	{
-		overallBB.merge(child->dataSetViewer(ds.first)->renderer()->bounds());
+		if (child->dataSetViewer(ds.first)->renderer())   // e.g. project files don't have a renderer...
+		{
+			overallBB.merge(child->dataSetViewer(ds.first)->renderer()->bounds());
+		}
 	}
 	child->renderer()->setSceneBounds(overallBB);
 
