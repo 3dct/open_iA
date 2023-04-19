@@ -486,7 +486,7 @@ void iAParameterDlg::updatedROI(QVariant value)
 
 void iAParameterDlg::updateROIPart(QString const & partName, QVariant value)
 {
-	auto vals = value.value<QVector<int>>();
+	auto vals = variantToVector<int>(value);
 	size_t baseIdx = partName.contains("Index") ? 0 : 3;
 	const int MinVal = 0;
 	m_roi[baseIdx + 0] = vals[0] >= MinVal ? vals[0] : MinVal;

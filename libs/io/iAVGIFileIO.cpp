@@ -34,7 +34,7 @@ std::shared_ptr<iADataSet> iAVGIFileIO::loadData(QString const& fileName, QVaria
 		LOG(lvlError, QString("VGI reader: One of the 3 dimensions has size 0 (determined values: %1x%2x%3)!").arg(size[0]).arg(size[1]).arg(size[2]));
 		return {};
 	}
-	rawFileParams[iARawFileIO::SizeStr] = QVariant::fromValue(size);
+	rawFileParams[iARawFileIO::SizeStr] = variantVector(size);
 	auto spacing = stringToVector<QVector<double>, double>(vgiFileSettings.value("geometry/resolution").toString(), " ");
 	spacing.resize(3);
 	if (spacing[1] == 0 && spacing[2] == 0)
@@ -48,7 +48,7 @@ std::shared_ptr<iADataSet> iAVGIFileIO::loadData(QString const& fileName, QVaria
 		spacing[1] = 1;
 		spacing[2] = 1;
 	}
-	rawFileParams[iARawFileIO::SpacingStr] = QVariant::fromValue(spacing);
+	rawFileParams[iARawFileIO::SpacingStr] = variantVector(spacing);
 	auto origin = stringToVector<QVector<double>, double>(vgiFileSettings.value("geometry/position").toString(), " ");
 	origin.resize(3);
 	if (origin[0] == 0 || origin[1] == 0 || origin[2] == 0)
@@ -57,7 +57,7 @@ std::shared_ptr<iADataSet> iAVGIFileIO::loadData(QString const& fileName, QVaria
 		origin[1] = 1;
 		origin[2] = 1;
 	}
-	rawFileParams[iARawFileIO::OriginStr] = QVariant::fromValue(origin);
+	rawFileParams[iARawFileIO::OriginStr] = variantVector(origin);
 	int	elementSize = vgiFileSettings.value("file1/BitsPerElement", 0).toInt();
 	if (elementSize == 0)
 	{

@@ -44,7 +44,7 @@ void createValueNamesAndArrays(QStringList& header, QSet<int> mappedIndices, QSt
 
 std::shared_ptr<iADataSet> iAGraphFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& p)
 {
-	auto spacing = paramValues["Spacing"].value<QVector<double>>();
+	auto spacing = variantToVector<double>(paramValues["Spacing"]);
 
 	vtkNew<vtkPolyData> myPolyData;
 

@@ -62,11 +62,14 @@ void readRawImage(QVariantMap const& params, QString const& fileName, iAConnecto
 	auto io = itk::RawImageIO<T, iAITKIO::Dim>::New();
 	io->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	io->SetHeaderSize(params[iARawFileIO::HeadersizeStr].toInt());
+	auto dim = variantToVector<int>(params[iARawFileIO::SizeStr]);
+	auto spc = variantToVector<double>(params[iARawFileIO::SpacingStr]);
+	auto ori = variantToVector<double>(params[iARawFileIO::OriginStr]);
 	for (int i = 0; i < iAITKIO::Dim; i++)
 	{
-		io->SetDimensions(i, params[iARawFileIO::SizeStr].value<QVector<int>>()[i]);
-		io->SetSpacing(i, params[iARawFileIO::SpacingStr].value<QVector<double>>()[i]);
-		io->SetOrigin(i, params[iARawFileIO::OriginStr].value<QVector<double>>()[i]);
+		io->SetDimensions(i, dim[i]);
+		io->SetSpacing(i, spc[i]);
+		io->SetOrigin(i, ori[i]);
 	}
 	if (params[iARawFileIO::ByteOrderStr].toString() == iAByteOrder::LittleEndianStr)
 	{
@@ -104,9 +107,9 @@ std::shared_ptr<iADataSet> iARawFileIO::loadData(QString const& fileName, QVaria
 #else // VTK
 	vtkSmartPointer<vtkImageReader2> reader = vtkSmartPointer<vtkImageReader2>::New();
 	reader->SetFileName(m_fileName.toStdString().c_str());
-	auto size = paramValues[SizeStr].value<QVector<int>>();
-	auto spacing = paramValues[SpacingStr].value<QVector<double>>();
-	auto origin = paramValues[OriginStr].value<QVector<double>>();
+	auto size    = variantToVector<int>(paramValues[SizeStr]);
+	auto spacing = variantToVector<double>(paramValues[SpacingStr]);
+	auto origin  = variantToVector<double>(paramValues[OriginStr ]);
 	reader->SetDataExtent(0, size[0] - 1, 0, size[1] - 1, 0, size[2] - 1);
 	reader->SetDataSpacing(spacing[0], spacing[1], spacing[2]);
 	reader->SetDataOrigin(origin[0], origin[1], origin[2]);

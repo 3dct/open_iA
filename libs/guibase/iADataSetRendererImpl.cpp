@@ -4,6 +4,7 @@
 
 #include "iADataSet.h"
 #include "iAMainWindow.h"
+#include "iAValueTypeVectorHelpers.h"
 
 #include "iAAABB.h"
 #ifndef NDEBUG
@@ -68,8 +69,8 @@ namespace
 	void applyActorProperties(vtkActor* actor, QVariantMap const& values, QString const& prefix = "")
 	{
 		applyLightingProperties(actor->GetProperty(), values, prefix);
-		QVector<double> pos = values[iADataSetRenderer::Position].value<QVector<double>>();
-		QVector<double> ori = values[iADataSetRenderer::Orientation].value<QVector<double>>();
+		auto pos = variantToVector<double>(values[iADataSetRenderer::Position]);
+		auto ori = variantToVector<double>(values[iADataSetRenderer::Orientation]);
 		assert(pos.size() == 3);
 		assert(ori.size() == 3);
 		actor->SetPosition(pos.data());

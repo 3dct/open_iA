@@ -111,8 +111,8 @@ void iAVolumeRenderer::applyAttributes(QVariantMap const& values)
 	m_volMapper->SetVolumetricScatteringBlending(values[VolumetricScatteringBlending].toFloat());
 #endif
 
-	auto pos = values[Position].value<QVector<double>>();
-	auto ori = values[Orientation].value<QVector<double>>();
+	auto pos = variantToVector<double>(values[Position]);
+	auto ori = variantToVector<double>(values[Orientation]);
 	if (pos.size() == 3)
 	{
 		m_volume->SetPosition(pos.data());
@@ -123,7 +123,7 @@ void iAVolumeRenderer::applyAttributes(QVariantMap const& values)
 	}
 	m_volume->SetPickable(values[Pickable].toBool());
 
-	auto spc = values[Spacing].value<QVector<double>>();
+	auto spc = variantToVector<double>(values[Spacing]);
 	if (spc.size() == 3)
 	{
 		m_image->SetSpacing(spc.data());
@@ -187,7 +187,7 @@ iAAttributes const& iAVolumeRenderer::attributes() const
 	{
 		attr = cloneAttributes(defaultAttributes());
 		// data-specific property:
-		addAttr(attr, Spacing, iAValueType::Vector3, QVariant::fromValue(QVector<double>({1.0, 1.0, 1.0})));
+		addAttr(attr, Spacing, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
 	}
 	return attr;
 }

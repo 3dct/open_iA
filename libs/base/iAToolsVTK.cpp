@@ -230,8 +230,8 @@ bool isVtkIntegerImage(vtkImageData* img)
 
 void adjustIndexAndSizeToImage(QVariantMap& params, vtkImageData* img)
 {
-	auto idx = params["Index"].value<QVector<int>>();
-	auto size = params["Size"].value<QVector<int>>();
+	auto idx = variantToVector<int>(params["Index"]);
+	auto size = variantToVector<int>(params["Size"]);
 	int const* dim = img->GetDimensions();
 	params["Index"] = variantVector<int>({
 		clamp(0, dim[0], idx[0]),

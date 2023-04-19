@@ -168,7 +168,7 @@ std::shared_ptr<iADataSet> iAHDF5IO::loadData(QString const& fileName, QVariantM
 	H5Fclose(file_id);
 
 	vtkNew<vtkImageImport> imgImport;
-	auto spc = params[SpacingStr].value<QVector<double>>();
+	auto spc = variantToVector<double>(params[SpacingStr]);
 	imgImport->SetDataSpacing(spc[2], spc[1], spc[0]);
 	imgImport->SetDataOrigin(0, 0, 0);
 	imgImport->SetWholeExtent(0, dim[2] - 1, 0, dim[1] - 1, 0, dim[0] - 1);

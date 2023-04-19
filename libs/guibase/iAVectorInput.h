@@ -3,6 +3,7 @@
 #pragma once
 
 #include "iAValueType.h"
+#include "iAValueTypeVectorHelpers.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
@@ -74,7 +75,7 @@ public:
 			{
 				values[i] = qobject_cast<QSpinBox*>(m_inputs[i])->value();
 			}
-			return QVariant::fromValue(values);
+			return variantVector(values);
 		}
 		else
 		{
@@ -90,7 +91,7 @@ public:
 					//LOG(lvlDebug, QString("Value %1 at position %2 in vector input is not a valid floating point number!").arg(text).arg(i));
 				}
 			}
-			return QVariant::fromValue(values);
+			return variantVector(values);
 		}
 	}
 	void setValue(QVariant const& valueVariant)
@@ -99,7 +100,7 @@ public:
 		{
 			if (m_valueType == iAValueType::Discrete)
 			{
-				QVector<int> values = valueVariant.value<QVector<int>>();
+				auto values = variantToVector<int>(valueVariant);
 				assert(values.size() <= m_inputs.size());
 				if (i >= values.size())
 				{
@@ -109,7 +110,7 @@ public:
 			}
 			else
 			{
-				QVector<double> values = valueVariant.value<QVector<double>>();
+				auto values = variantToVector<double>(valueVariant);
 				assert(values.size() <= m_inputs.size());
 				if (i >= values.size())
 				{

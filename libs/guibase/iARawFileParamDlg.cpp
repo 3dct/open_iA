@@ -6,6 +6,7 @@
 #include "iARawFileIO.h"
 #include "iALog.h"
 #include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType, readableDataTypes, ...
+#include "iAValueTypeVectorHelpers.h"
 
 #include "iAVectorInput.h"
 
@@ -80,7 +81,7 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 void iARawFileParamDlg::checkFileSize()
 {
 	auto values = m_inputDlg->parameterValues();
-	auto sizeVec = values[iARawFileIO::SizeStr].value<QVector<int>>();
+	auto sizeVec = variantToVector<int>(values[iARawFileIO::SizeStr]);
 	qint64
 		sizeX = sizeVec[0],
 		sizeY = sizeVec[1],
@@ -106,16 +107,16 @@ void iARawFileParamDlg::guessParameters(QString fileName)
 	auto sizeMatch = sizeRegEx.match(fileName);
 	if (sizeMatch.hasMatch())
 	{
-		QVector<int> sizeVec{ sizeMatch.captured(1).toInt(), sizeMatch.captured(2).toInt(), sizeMatch.captured(3).toInt()};
-		m_inputDlg->setValue(iARawFileIO::SizeStr, QVariant::fromValue(sizeVec));
+		auto size = { sizeMatch.captured(1).toInt(), sizeMatch.captured(2).toInt(), sizeMatch.captured(3).toInt() };
+		m_inputDlg->setValue(iARawFileIO::SizeStr, variantVector<int>(size));
 	}
 	QString spcGrp("(\\d+(?:[.-]\\d+)?)(um|mm)");
 	QRegularExpression spcRegEx1(QString("%1x%2x%3").arg(spcGrp).arg(spcGrp).arg(spcGrp));
 	auto spc1Match = spcRegEx1.match(fileName);
 	if (spc1Match.hasMatch())
 	{
-		QVector<double> spcVec{ spc1Match.captured(1).replace("-", ".").toDouble(), spc1Match.captured(3).replace("-", ".").toDouble(), spc1Match.captured(5).replace("-", ".").toDouble() };
-		m_inputDlg->setValue(iARawFileIO::SpacingStr, QVariant::fromValue(spcVec));
+		auto spc = { spc1Match.captured(1).replace("-", ".").toDouble(), spc1Match.captured(3).replace("-", ".").toDouble(), spc1Match.captured(5).replace("-", ".").toDouble() };
+		m_inputDlg->setValue(iARawFileIO::SpacingStr, variantVector<double>(spc));
 	}
 	else
 	{
@@ -124,8 +125,8 @@ void iARawFileParamDlg::guessParameters(QString fileName)
 		if (spc2Match.hasMatch())
 		{
 
-			QVector<double> spcVec{ spc2Match.captured(1).replace("-", ".").toDouble(), spc2Match.captured(1).replace("-", ".").toDouble(), spc2Match.captured(1).replace("-", ".").toDouble() };
-			m_inputDlg->setValue(iARawFileIO::SpacingStr, QVariant::fromValue(spcVec));
+			auto spc = { spc2Match.captured(1).replace("-", ".").toDouble(), spc2Match.captured(1).replace("-", ".").toDouble(), spc2Match.captured(1).replace("-", ".").toDouble() };
+			m_inputDlg->setValue(iARawFileIO::SpacingStr, variantVector<double>(spc));
 		}
 	}
 	QRegularExpression scalarTypeRegEx("(\\d+)bit");

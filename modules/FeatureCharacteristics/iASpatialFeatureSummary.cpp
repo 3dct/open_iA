@@ -184,8 +184,8 @@ void iASpatialFeatureSummary::performWork(QVariantMap const & parameters)
 	iAVec3i startIdx(config.columnMapping[iACsvConfig::StartX], config.columnMapping[iACsvConfig::StartY], config.columnMapping[iACsvConfig::StartZ]);
 	iAVec3i endIdx(config.columnMapping[iACsvConfig::EndX], config.columnMapping[iACsvConfig::EndY], config.columnMapping[iACsvConfig::EndZ]);
 
-	auto minCorner = iAVec3d(parameters[MinCorner].value<QVector<double>>().data());
-	auto maxCorner = iAVec3d(parameters[MaxCorner].value<QVector<double>>().data());
+	auto minCorner = iAVec3d( variantToVector<double>(parameters[MinCorner]).data() );
+	auto maxCorner = iAVec3d( variantToVector<double>(parameters[MaxCorner]).data() );
 	iAVec3d nullVec(0, 0, 0);
 	iAAABB overallBB;
 	if (minCorner != nullVec || maxCorner != nullVec)
@@ -206,7 +206,7 @@ void iASpatialFeatureSummary::performWork(QVariantMap const & parameters)
 
 	// compute image measurements
 	auto metaOrigin = overallBB.minCorner().data();
-	auto metaDim = parameters[Size].value<QVector<int>>();
+	auto metaDim = variantToVector<int>(parameters[Size]);
 	auto metaSpacing = (overallBB.maxCorner() - overallBB.minCorner()) / iAVec3i(metaDim.data());
 	LOG(lvlDebug, QString("Creating image; ") +
 		QString("dimensions: %1x%2x%3; ")

@@ -7,6 +7,7 @@
 
 #include "iARawFileIO.h"
 #include "iASettingsFileHelper.h"  // for readSettingsFile
+#include "iAValueTypeVectorHelpers.h"
 
 #include <iALog.h>
 #include <iAStringHelper.h>
@@ -55,7 +56,7 @@ std::shared_ptr<iADataSet> iAParsFileIO::loadData(QString const& fileName, QVari
 	auto fileSettings = readSettingsFile(fileName);
 	auto detsize = getNumFromSettings<int>(fileSettings, "det_size", 2);
 	auto reco_n_proj = getNumFromSettings<int>(fileSettings, "reco_n_proj", 1);
-	rawFileParams[iARawFileIO::SizeStr] = QVariant::fromValue(QVector<int>{ detsize[0], detsize[1], reco_n_proj[0] });
+	rawFileParams[iARawFileIO::SizeStr] = variantVector({ detsize[0], detsize[1], reco_n_proj[0] });
 	auto detpitch = getNumFromSettings<double>(fileSettings, "det_pitch", 2);
 	auto SD = getNumFromSettings<double>(fileSettings, "geo_SD", 1)[0];
 	auto SO = getNumFromSettings<double>(fileSettings, "geo_SO", 1)[0];
@@ -63,7 +64,7 @@ std::shared_ptr<iADataSet> iAParsFileIO::loadData(QString const& fileName, QVari
 
 	QVector<double> spacing{ detpitch[0] / magn, detpitch[1] / magn };
 	spacing.push_back(std::min(spacing[0], spacing[1]));
-	rawFileParams[iARawFileIO::SpacingStr] = QVariant::fromValue(spacing);
+	rawFileParams[iARawFileIO::SpacingStr] = variantVector(spacing);
 
 	auto proj_datatype = fileSettings["proj_datatype"];
 	rawFileParams[iARawFileIO::DataTypeStr] = mapVTKTypeToReadableDataType(
@@ -72,7 +73,7 @@ std::shared_ptr<iADataSet> iAParsFileIO::loadData(QString const& fileName, QVari
 	// default values for things not configurable in pars file:
 	rawFileParams[iARawFileIO::HeadersizeStr] = 0;
 	rawFileParams[iARawFileIO::ByteOrderStr] = iAByteOrder::LittleEndianStr;
-	rawFileParams[iARawFileIO::OriginStr] = QVariant::fromValue(QVector<double>{0.0, 0.0, 0.0});
+	rawFileParams[iARawFileIO::OriginStr] = variantVector({0.0, 0.0, 0.0});
 
 	auto rawFileName = tryFixFileName(fileSettings["proj_filename_template_1"], QFileInfo(fileName).canonicalPath());
 	iARawFileIO io;
