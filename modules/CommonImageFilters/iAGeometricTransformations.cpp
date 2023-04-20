@@ -225,9 +225,9 @@ void resampler(iAFilter* filter, QVariantMap const& parameters)
 	auto resampler = ResampleFilterType::New();
 
 	typename ResampleFilterType::OriginPointType origin;
-	setFromVectorVariant<int>(origin, parameters["Origin"]);
+	setFromVectorVariant<double>(origin, parameters["Origin"]);
 	typename ResampleFilterType::SpacingType spacing;
-	setFromVectorVariant<int>(spacing, parameters["Spacing"]);
+	setFromVectorVariant<double>(spacing, parameters["Spacing"]);
 	typename ResampleFilterType::SizeType size;
 	setFromVectorVariant<int>(size, parameters["Size"]);
 	QString interpolatorName = parameters["Interpolator"].toString();
