@@ -20,12 +20,19 @@ namespace
 		EditColumn = 2,
 		ColumnCount
 	};
+	const int IconWidth = 24;
 
-	void addActionButton(QWidget* w, QAction* a)
+	void addActionButton(QTableWidget* tw, int row, int col, QAction* a)
 	{
-		auto tb = new QToolButton(w);
+		auto w = tw->cellWidget(row, col);
+		auto tb = new QToolButton( w );
 		tb->setDefaultAction(a);
 		w->layout()->addWidget(tb);
+		int minWidth = IconWidth * w->children().size();
+		if (tw->columnWidth(col) < minWidth)
+		{   // auto-adjust width of column if necessary:
+			tw->setColumnWidth(col, minWidth);
+		}
 	}
 
 	QWidget* actionWidget()
@@ -98,7 +105,7 @@ void iADataSetListWidget::addAction(size_t dataSetIdx, QAction* viewAction, Acti
 {
 	int row = findDataSetIdx(dataSetIdx);
 	assert(row != -1);
-	addActionButton(m_dataList->cellWidget(row, col == ActionColumn::View ? ViewColumn: EditColumn), viewAction);
+	addActionButton(m_dataList, row, col == ActionColumn::View ? ViewColumn : EditColumn, viewAction);
 }
 
 int iADataSetListWidget::findDataSetIdx(size_t dataSetIdx)
