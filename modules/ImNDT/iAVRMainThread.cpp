@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVRMainThread.h"
 
+#include <iADataSetRenderer.h>
 #include <iALog.h>
 
 #include <vtkOpenVRRenderWindow.h>
@@ -39,6 +40,15 @@ void iAVRMainThread::run()
 	// Workaround - custom event loop:
 	while (!m_done)
 	{
+		if (m_renderersToRemove.size() > 0)  // no lock for better performance: reading an incorrect value here doesn't hurt,
+		{                                    // we will just remove the renderer in the next loop cycle
+			std::lock_guard<std::mutex> g(m_removeMutex);
+			for (auto r : m_renderersToRemove)
+			{
+				r->setVisible(false);
+			}
+			m_renderersToRemove.clear();
+		}
 		m_interactor->ProcessEvents();
 	}
 	LOG(lvlInfo, "VR rendering has shut down!");
@@ -55,4 +65,10 @@ void iAVRMainThread::stop()
 QString iAVRMainThread::message() const
 {
 	return m_msg;
+}
+
+void iAVRMainThread::removeRenderer(std::shared_ptr<iADataSetRenderer> renderer)
+{
+	std::lock_guard<std::mutex> g(m_removeMutex);
+	m_renderersToRemove.push_back(renderer);
 }

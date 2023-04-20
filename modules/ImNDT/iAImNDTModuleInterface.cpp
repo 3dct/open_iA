@@ -70,9 +70,8 @@ void iAImNDTModuleInterface::Initialize()
 					auto key = std::make_pair(child, dataSetIdx);
 					if (!checked)
 					{
-						// prepare for VR environment re-use: properly remove all renderers
 						auto vrRen = m_vrRenderers.at(key);
-						vrRen->setVisible(false);
+						m_vrEnv->removeRenderer(vrRen);
 						m_vrRenderers.erase(key);
 						if (m_vrRenderers.empty())
 						{
@@ -80,8 +79,8 @@ void iAImNDTModuleInterface::Initialize()
 							{
 								m_vrEnv->stop();  // no more VR renderers -> stop VR environment
 							}
-							return;
 						}
+						return;
 					}
 					if (!m_vrEnv)
 					{

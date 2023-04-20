@@ -231,6 +231,15 @@ bool iAVREnvironment::isRunning() const
 	return m_vrMainThread;
 }
 
+void iAVREnvironment::removeRenderer(std::shared_ptr<iADataSetRenderer> renderer)
+{
+	if (!m_vrMainThread)
+	{
+		return;
+	}
+	m_vrMainThread->removeRenderer(renderer);
+}
+
 void iAVREnvironment::vrDone()
 {
 	if (!m_vrMainThread->message().isEmpty())

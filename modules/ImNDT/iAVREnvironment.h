@@ -6,6 +6,7 @@
 
 #include <QObject>
 
+class iADataSetRenderer;
 class iAVRMainThread;
 
 class vtkOpenVRRenderer;
@@ -38,6 +39,7 @@ public:
 	void hideFloor();
 	double getInitialWorldScale();
 	bool isRunning() const;
+	void removeRenderer(std::shared_ptr<iADataSetRenderer> renderer);
 private slots:
 	void vrDone();
 private:
