@@ -37,7 +37,7 @@ void iAVRMainThread::run()
 	// use of vtk's event loop is potentially problematic - calling SetDone on it from another
 	// thread causes potential assertion failures in the immediately invoked event:
 	// m_interactor->Start();
-	// Workaround - custom event loop:
+	// Workaround - custom event loop (we need that for the thread-safe removal of renderers now anyway):
 	while (!m_done)
 	{
 		if (m_renderersToRemove.size() > 0)  // no lock for better performance: reading an incorrect value here doesn't hurt,
