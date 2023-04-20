@@ -1641,7 +1641,7 @@ void MainWindow::readSettings()
 	m_defaultSlicerSettings.SnakeSlices = settings.value("Slicer/ssSnakeSlices", fallbackSS.SnakeSlices).toInt();
 	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
 	{
-		m_defaultSlicerSettings.BackgroundColor[s] = settings.value(QString("ssBgColor%1").arg(s), "").toString();
+		m_defaultSlicerSettings.BackgroundColor[s] = settings.value(QString("Slicer/ssBgColor%1").arg(s), "").toString();
 	}
 	m_defaultSlicerSettings.SingleSlicer.ShowPosition = settings.value("Slicer/ssShowPosition", fallbackSS.SingleSlicer.ShowPosition).toBool();
 	m_defaultSlicerSettings.SingleSlicer.ShowAxesCaption = settings.value("Slicer/ssShowAxesCaption", fallbackSS.SingleSlicer.ShowAxesCaption).toBool();
@@ -1726,7 +1726,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Slicer/ssSnakeSlices", m_defaultSlicerSettings.SnakeSlices);
 	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
 	{
-		settings.setValue(QString("ssBgColor%1").arg(s), m_defaultSlicerSettings.BackgroundColor[s]);
+		settings.setValue(QString("Slicer/ssBgColor%1").arg(s), m_defaultSlicerSettings.BackgroundColor[s]);
 	}
 	settings.setValue("Slicer/ssShowPosition", m_defaultSlicerSettings.SingleSlicer.ShowPosition);
 	settings.setValue("Slicer/ssShowAxesCaption", m_defaultSlicerSettings.SingleSlicer.ShowAxesCaption);

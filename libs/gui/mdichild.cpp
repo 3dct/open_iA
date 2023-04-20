@@ -1017,7 +1017,7 @@ void MdiChild::applySlicerSettings(iASlicerSettings const& ss)
 	for (int s = 0; s < 3; ++s)
 	{
 		auto settings(ss.SingleSlicer);
-		if (!ss.BackgroundColor[s].isEmpty())
+		if (!ss.BackgroundColor[s].isEmpty() && QColor(ss.BackgroundColor[s]).isValid())
 		{
 			settings.backgroundColor = QColor(ss.BackgroundColor[s]);
 		}
