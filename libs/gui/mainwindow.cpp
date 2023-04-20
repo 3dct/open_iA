@@ -1423,7 +1423,7 @@ iAMdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	child->initializeViews();
 	child->applyRendererSettings(m_defaultRenderSettings);
 	child->applySlicerSettings(m_defaultSlicerSettings);
-	connect(child, &MdiChild::closed, this, &MainWindow::childClosed);
+	emit childCreated(child);
 	return child;
 }
 
@@ -2117,15 +2117,6 @@ void MainWindow::setModuleActionsEnabled( bool isEnabled )
 		{
 			actMenu->setEnabled(isEnabled);
 		}
-	}
-}
-
-void MainWindow::childClosed()
-{
-	auto sender = dynamic_cast<MdiChild*>(QObject::sender());
-	if (!sender)
-	{
-		return;
 	}
 }
 

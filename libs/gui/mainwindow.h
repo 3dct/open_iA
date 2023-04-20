@@ -127,7 +127,6 @@ private slots:
 	void rendererSaveCameraSettings();
 	void rendererLoadCameraSettings();
 	void openRecentFile();
-	void childClosed();
 	void listDockWidgetsInMenu();
 	void toggleOpenLogOnNewMessage();
 	void toggleOpenListOnAddedJob();

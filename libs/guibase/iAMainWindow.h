@@ -100,6 +100,8 @@ signals:
 	//! Triggered whenever the active child window has changed.
 	//! Use for example to adapt UI's depending on the current child (toolbars etc.)
 	void childChanged();
+	//! Triggered whenever a new iAMdiChild instance is created.
+	void childCreated(iAMdiChild*);
 
 protected:
 	static iAMainWindow* m_mainWnd; //!< the one main window

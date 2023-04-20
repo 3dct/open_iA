@@ -205,9 +205,8 @@ public:
 	virtual void setProfilePoints(double const* start, double const* end) = 0;
 
 signals:
+	//! emitted when the child is about to be closed
 	void closed();
-	//! @deprecated. no direct replacement
-	void rendererDeactivated(int c);
 
 	//! emitted when the file data is loaded; the initialization operations are not fully
 	//! done yet then - use dataSetRendered instead if you require the file to be fully loaded!
