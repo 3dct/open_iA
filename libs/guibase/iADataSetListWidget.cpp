@@ -17,22 +17,23 @@ namespace
 	enum ColumIdx {
 		NameColumn = 0,
 		ViewColumn = 1,
-		ActionColumn = 2,
+		EditColumn = 2,
 		ColumnCount
 	};
 
-	QWidget* actionWidget(QVector<QAction*> actions, QWidget* parent)
+	void addActionButton(QWidget* w, QAction* a)
+	{
+		auto tb = new QToolButton(w);
+		tb->setDefaultAction(a);
+		w->layout()->addWidget(tb);
+	}
+
+	QWidget* actionWidget()
 	{
 		auto w = new QWidget();
 		w->setLayout(new QHBoxLayout);
 		w->layout()->setContentsMargins(0, 0, 0, 0);
 		w->layout()->setSpacing(1);
-		for (auto& a : actions)
-		{
-			auto tb = new QToolButton(parent);
-			tb->setDefaultAction(a);
-			w->layout()->addWidget(tb);
-		}
 		return w;
 	}
 }
@@ -63,7 +64,7 @@ iADataSetListWidget::iADataSetListWidget()
 	layout()->setSpacing(4);
 }
 
-void iADataSetListWidget::addDataSet(iADataSet const* dataset, size_t dataSetIdx, QVector<QAction*> const & viewActions, QVector<QAction*> const & editActions)
+void iADataSetListWidget::addDataSet(iADataSet const* dataset, size_t dataSetIdx)
 {
 	QSignalBlocker blockList(m_dataList);
 	auto nameItem = new QTableWidgetItem(dataset->name());
@@ -72,10 +73,10 @@ void iADataSetListWidget::addDataSet(iADataSet const* dataset, size_t dataSetIdx
 	int row = m_dataList->rowCount();
 	m_dataList->insertRow(row);
 	m_dataList->setItem(row, NameColumn, nameItem);
-	auto viewWidget = actionWidget(viewActions, this);
+	auto viewWidget = actionWidget();
 	viewWidget->layout()->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
 	m_dataList->setCellWidget(row, ViewColumn, viewWidget);
-	m_dataList->setCellWidget(row, ActionColumn, actionWidget(editActions, this));
+	m_dataList->setCellWidget(row, EditColumn, actionWidget());
 	m_dataList->resizeColumnsToContents();
 }
 
@@ -91,6 +92,13 @@ void iADataSetListWidget::removeDataSet(size_t dataSetIdx)
 	int row = findDataSetIdx(dataSetIdx);
 	assert(row != -1);
 	m_dataList->removeRow(row);
+}
+
+void iADataSetListWidget::addAction(size_t dataSetIdx, QAction* viewAction, ActionColumn col)
+{
+	int row = findDataSetIdx(dataSetIdx);
+	assert(row != -1);
+	addActionButton(m_dataList->cellWidget(row, col == ActionColumn::View ? ViewColumn: EditColumn), viewAction);
 }
 
 int iADataSetListWidget::findDataSetIdx(size_t dataSetIdx)

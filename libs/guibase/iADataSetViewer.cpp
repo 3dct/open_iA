@@ -47,6 +47,8 @@ void iADataSetViewer::prepare(iAProgress* p)
 
 void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 {
+	m_child = child;
+	m_dataSetIdx = dataSetIdx;
 	if (!m_dataSet->hasMetaData(RenderFlags))    // only use default render flags if not set in dataset
 	{                                            // (by loader or by derived viewer class)
 		m_dataSet->setMetaData(RenderFlags, RenderFlagsDefault);
@@ -81,40 +83,7 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 		}
 	}
 	child->renderer()->setSceneBounds(overallBB);
-
-	auto dsList = child->dataSetListWidget();
-	// reversed to view order, see addViewAction
-	m_pickAction = addViewAction("Pickable", "transform-move", false,
-		[child, dataSetIdx](bool checked)
-		{
-			Q_UNUSED(checked);
-			if (checked)
-			{
-				child->setDataSetMovable(dataSetIdx);
-			}
-		});
-	addViewAction("Magic Lens", "magic_lens_3d", renderFlagSet(RenderMagicLensFlag),
-		[this, child](bool checked)
-		{
-			setRenderFlag(RenderMagicLensFlag, checked);
-			m_magicLensRenderer->setVisible(checked);
-			child->updateRenderer();
-		});
-	addViewAction("Box", "box_3d_edge", renderFlagSet(RenderOutlineFlag),
-		[this, child](bool checked)
-		{
-			setRenderFlag(RenderOutlineFlag, checked);
-			m_renderer->setBoundsVisible(checked);
-			child->updateRenderer();
-		});
-	addViewAction("3D", "3d", renderFlagSet(Render3DFlag),
-		[this, child](bool checked)
-		{
-			setRenderFlag(Render3DFlag, checked);
-			m_renderer->setVisible(checked);
-			child->updateRenderer();
-		});
-	m_pickAction->setEnabled(false);
+	child->dataSetListWidget()->addDataSet(m_dataSet, dataSetIdx);
 
 	auto editAction = new QAction("Edit dataset and display properties");
 	connect(editAction, &QAction::triggered, this,
@@ -156,9 +125,7 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			emit dataSetChanged(dataSetIdx);
 		});
 	iAMainWindow::get()->addActionIcon(editAction, "edit");
-	m_editActions.push_back(editAction);
-	QVector<QAction*> editActions;
-	editActions.push_back(editAction);
+	child->dataSetListWidget()->addAction(dataSetIdx, editAction, iADataSetListWidget::Edit);
 
 	auto removeAction = new QAction("Remove");
 	removeAction->setToolTip("Remove dataset from display, unload from memory");
@@ -169,9 +136,39 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			emit removeDataSet(dataSetIdx);
 		});
 	iAMainWindow::get()->addActionIcon(removeAction, "delete");
-	m_editActions.push_back(removeAction);
-	editActions.push_back(removeAction);
-	dsList->addDataSet(m_dataSet, dataSetIdx, m_viewActions, m_editActions);
+	child->dataSetListWidget()->addAction(dataSetIdx, removeAction, iADataSetListWidget::Edit);
+
+	addViewAction("3D", "3d", renderFlagSet(Render3DFlag),
+		[this, child](bool checked)
+		{
+			setRenderFlag(Render3DFlag, checked);
+			m_renderer->setVisible(checked);
+			child->updateRenderer();
+		});
+	addViewAction("Box", "box_3d_edge", renderFlagSet(RenderOutlineFlag),
+		[this, child](bool checked)
+		{
+			setRenderFlag(RenderOutlineFlag, checked);
+			m_renderer->setBoundsVisible(checked);
+			child->updateRenderer();
+		});
+	addViewAction("Magic Lens", "magic_lens_3d", renderFlagSet(RenderMagicLensFlag),
+		[this, child](bool checked)
+		{
+			setRenderFlag(RenderMagicLensFlag, checked);
+			m_magicLensRenderer->setVisible(checked);
+			child->updateRenderer();
+		});
+	m_pickAction = addViewAction("Pickable", "transform-move", false,
+		[child, dataSetIdx](bool checked)
+		{
+			Q_UNUSED(checked);
+			if (checked)
+			{
+				child->setDataSetMovable(dataSetIdx);
+			}
+		});
+	m_pickAction->setEnabled(false);
 }
 
 QString iADataSetViewer::information() const
@@ -233,13 +230,14 @@ std::shared_ptr<iADataSetRenderer> iADataSetViewer::createRenderer(vtkRenderer* 
 
 QAction* iADataSetViewer::addViewAction(QString const& name, QString const& iconName, bool checked, std::function<void(bool)> handler)
 {
+	assert(m_child);
 	auto action = new QAction(name);
 	action->setToolTip(QString("Toggle %1").arg(name));
 	action->setCheckable(true);
 	action->setChecked(checked);
 	iAMainWindow::get()->addActionIcon(action, iconName);
 	connect(action, &QAction::triggered, this, handler);
-	m_viewActions.prepend(action);
+	m_child->dataSetListWidget()->addAction(m_dataSetIdx, action, iADataSetListWidget::View);
 	return action;
 }
 

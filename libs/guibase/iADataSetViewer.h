@@ -74,6 +74,15 @@ public:
 	virtual void slicerRegionSelected(double minVal, double maxVal, uint channelID);
 	virtual uint slicerChannelID() const;
 
+	//! helper function for creating and adding a toggling action for switching some aspect of this viewer
+	//! needs to be called before calling createGUI of this base class (which passes the view actions created so far
+	//! to the dataset list. Actions are shown in reverse order to call to this function, since we want to show
+	//! the ones common to all viewers first, but these are only created in createGUI of this base class
+	QAction* addViewAction(QString const& name, QString const& iconName, bool checked, std::function<void(bool)> handler);
+	
+	//! Called to create a 3D renderer for the dataset. Override in derived class; used for both the "normal" 3D renderer and the magic lens renderer.
+	virtual std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren);
+
 signals:
 	void dataSetChanged(size_t dataSetIdx);
 	void removeDataSet(size_t dataSetIdx);
@@ -84,11 +93,6 @@ protected:
 	//! adds an attribute that can be modified by the user to change the appearance of some aspect of the viewer
 	void addAttribute(QString const& name, iAValueType valueType, QVariant defaultValue = 0.0,
 		double min = std::numeric_limits<double>::lowest(), double max = std::numeric_limits<double>::max());
-	//! helper function for creating and adding a toggling action for switching some aspect of this viewer
-	//! needs to be called before calling createGUI of this base class (which passes the view actions created so far
-	//! to the dataset list. Actions are shown in reverse order to call to this function, since we want to show
-	//! the ones common to all viewers first, but these are only created in createGUI of this base class
-	QAction* addViewAction(QString const& name, QString const& iconName, bool checked, std::function<void(bool)> handler);
 
 	QVariantMap m_attribValues;
 	iADataSet* m_dataSet;    //!< the dataset for which this viewer is responsible
@@ -102,13 +106,11 @@ private:
 	std::shared_ptr<iADataSetRenderer> m_renderer; //!< the 3D renderer for this dataset (optional).
 	std::shared_ptr<iADataSetRenderer> m_magicLensRenderer; //!< the 3D renderer for this dataset (optional).
 	QAction* m_pickAction;
-	QVector<QAction*> m_viewActions;
-	QVector<QAction*> m_editActions;
+	iAMdiChild* m_child;
+	size_t m_dataSetIdx;
 
 	//! Called when the attributes have changed; override in derived classes to apply such a change to renderer (default implementation is empty)
 	virtual void applyAttributes(QVariantMap const& values);
-	//! Called to create a 3D renderer for the dataset. Override in derived class; used for both the "normal" 3D renderer and the magic lens renderer.
-	virtual std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren);
 };
 
 //! Dataset viewer for surface mesh data.
