@@ -9,6 +9,7 @@
 #include <iAMainWindow.h>
 
 #include <vtkActor.h>
+#include <vtkCallbackCommand.h>
 #include <vtkCubeSource.h>
 #include <vtkOutlineFilter.h>
 #include <vtkPolyDataMapper.h>
@@ -93,6 +94,8 @@ iADataSetRenderer::iADataSetRenderer(vtkRenderer* renderer) :
 	m_renderer(renderer),
 	m_visible(false)
 {
+	// if renderer is deleted for whatever reason, make sure it isn't accessed anymore
+	renderer->AddObserver(vtkCommand::DeleteEvent, this, &iADataSetRenderer::clearRenderer);
 }
 
 iAAttributes const & iADataSetRenderer::attributes() const
@@ -116,6 +119,11 @@ iAAttributes& iADataSetRenderer::defaultAttributes()
 		addAttr(attr, SpecularPower, iAValueType::Continuous, 10.0);
 	}
 	return attr;
+}
+
+void iADataSetRenderer::clearRenderer()
+{
+	m_renderer = nullptr;
 }
 
 iADataSetRenderer::~iADataSetRenderer()

@@ -81,6 +81,10 @@ void iAVolumeRenderer::showDataSet()
 
 void iAVolumeRenderer::hideDataSet()
 {
+	if (!m_renderer)
+	{
+		return;
+	}
 	m_renderer->RemoveVolume(m_volume);
 }
 

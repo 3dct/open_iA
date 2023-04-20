@@ -94,6 +94,9 @@ protected:
 	virtual iAAttributes const & attributes() const;
 	static iAAttributes& defaultAttributes();
 
+	//! The VTK renderer used for showing this dataset.
+	//! Note that this pointer may be set to nullptr if the renderer is deleted before;
+	//! so in derived classes, one should always check if it is set before accessing it!
 	vtkRenderer* m_renderer;
 	mutable QVariantMap m_attribValues;
 
@@ -104,6 +107,8 @@ private:
 	//! @}
 	//! called when the attributes have changed; derive to apply such a change to renderer
 	virtual void applyAttributes(QVariantMap const& values) = 0;
+
+	void clearRenderer();
 
 	std::shared_ptr<iAOutlineImpl> m_outline;
 	bool m_visible;

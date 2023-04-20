@@ -185,6 +185,10 @@ void iAGraphRenderer::showDataSet()
 
 void iAGraphRenderer::hideDataSet()
 {
+	if (!m_renderer)
+	{
+		return;
+	}
 	m_renderer->RemoveActor(m_pointActor);
 	m_renderer->RemoveActor(m_lineActor);
 }
@@ -347,6 +351,10 @@ void iAPolyActorRenderer::showDataSet()
 
 void iAPolyActorRenderer::hideDataSet()
 {
+	if (!m_renderer)
+	{
+		return;
+	}
 	m_renderer->RemoveActor(m_polyActor);
 }
 
