@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAAttributes.h"
 
+#include "iAValueTypeVectorHelpers.h"
+
 #include <QTextStream>
 
 QSharedPointer<iAAttributes> createAttributes(QTextStream & in)
@@ -91,7 +93,15 @@ void setDefaultValues(iAAttributes& attributes, QVariantMap const& values)
 		}
 		else
 		{
-			attr->setDefaultValue(values[attr->name()]);
+			auto v = values[attr->name()];
+			// for vector types, ensure the right number of valid values
+			if ((attr->valueType() != iAValueType::Vector2  || variantToVector<double>(v).size() == 2) &&
+				(attr->valueType() != iAValueType::Vector2i || variantToVector<int   >(v).size() == 2) &&
+				(attr->valueType() != iAValueType::Vector3  || variantToVector<double>(v).size() == 3) &&
+				(attr->valueType() != iAValueType::Vector3i || variantToVector<int   >(v).size() == 3))
+			{
+				attr->setDefaultValue(v);
+			}
 		}
 	}
 }

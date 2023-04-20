@@ -19,6 +19,7 @@
 #include "iAParameterDlg.h"
 #include "iAPerformanceHelper.h"    // for formatDuration
 #include "iAPreferences.h"
+#include "iAValueTypeVectorHelpers.h"
 
 #include <QElapsedTimer>
 #include <QFileInfo>
@@ -138,6 +139,13 @@ QVariantMap iAFilterRunnerGUI::loadParameters(std::shared_ptr<iAFilter> filter, 
 		QVariant value = (param->valueType() == iAValueType::FileNameSave && sourceMdi)
 			? pathFileBaseName(sourceMdi->fileInfo()) + param->defaultValue().toString()
 			: settings.value(param->name(), defaultValue);
+		if ((param->valueType() == iAValueType::Vector2  && variantToVector<double>(value).size() != 2) ||
+			(param->valueType() == iAValueType::Vector2i && variantToVector<int   >(value).size() != 2) ||
+			(param->valueType() == iAValueType::Vector3  && variantToVector<double>(value).size() != 3) ||
+			(param->valueType() == iAValueType::Vector3i && variantToVector<int   >(value).size() != 3))
+		{
+			value = defaultValue;
+		}
 		result.insert(param->name(), value);
 	}
 	return result;
