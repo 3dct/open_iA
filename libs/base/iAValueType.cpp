@@ -5,6 +5,7 @@
 #include "iALog.h"
 #include "iAStringHelper.h"    // for joinNumbersAsString
 
+#include <QColor>
 #include <QString>
 #include <QVariant>
 
@@ -159,4 +160,14 @@ QString variantValueToString(iAValueType valueType, QVariant value)
 */
 	default: return value.toString();
 	}
+}
+
+QColor variantToColor(QVariant const& v)
+{
+	return QColor(v.toString());
+}
+
+QVariant colorToVariant(QColor const& c)
+{
+	return c.name(QColor::HexArgb);
 }

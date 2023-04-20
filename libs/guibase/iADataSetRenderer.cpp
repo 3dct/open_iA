@@ -136,7 +136,7 @@ void iADataSetRenderer::setAttributes(QVariantMap const& values)
 	if (m_outline)
 	{
 		m_outline->setBounds(bounds());	// only potentially changes for volume currently; maybe use signals instead?
-		m_outline->setColor(m_attribValues[OutlineColor].value<QColor>());
+		m_outline->setColor(variantToColor(m_attribValues[OutlineColor]));
 		updateOutlineTransform();
 	}
 }
@@ -192,7 +192,7 @@ void iADataSetRenderer::setBoundsVisible(bool visible)
 	if (!m_outline)
 	{
 		m_outline = std::make_shared<iAOutlineImpl>(bounds(), m_renderer,
-			m_attribValues.contains(OutlineColor) ? m_attribValues[OutlineColor].value<QColor>() : OutlineDefaultColor);
+			m_attribValues.contains(OutlineColor) ? variantToColor(m_attribValues[OutlineColor]) : OutlineDefaultColor);
 		updateOutlineTransform();
 	}
 	m_outline->setVisible(visible);

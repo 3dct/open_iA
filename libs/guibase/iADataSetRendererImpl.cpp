@@ -207,7 +207,7 @@ void iAGraphRenderer::applyAttributes(QVariantMap const& values)
 	}
 	if (values[PointColorMode].toString() == VaryModeFixed)
 	{
-		QColor pointColor(values[PointColor].toString());
+		QColor pointColor = variantToColor(values[PointColor]);
 		m_pointActor->GetProperty()->SetColor(pointColor.redF(), pointColor.greenF(), pointColor.blueF());
 	}
 	else
@@ -224,7 +224,7 @@ void iAGraphRenderer::applyAttributes(QVariantMap const& values)
 		: VTK_SCALAR_MODE_DEFAULT);
 	if (values[LineColorMode].toString() == VaryModeFixed)
 	{
-		QColor lineColor(values[LineColor].toString());
+		QColor lineColor = variantToColor(values[LineColor]);
 		m_lineActor->GetProperty()->SetColor(lineColor.redF(), lineColor.greenF(), lineColor.blueF());
 	}
 	else
@@ -354,7 +354,7 @@ void iAPolyActorRenderer::applyAttributes(QVariantMap const& values)
 {
 	applyActorProperties(m_polyActor, values);
 
-	QColor color(values[PolyColor].toString());
+	QColor color = variantToColor(values[PolyColor]);
 	double opacity = values[PolyOpacity].toDouble();
 	m_polyActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
 	m_polyActor->GetProperty()->SetOpacity(opacity);
