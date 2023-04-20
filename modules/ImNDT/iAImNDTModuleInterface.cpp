@@ -42,6 +42,7 @@ void iAImNDTModuleInterface::Initialize()
 	{
 		return;
 	}
+	Q_INIT_RESOURCE(ImNDT);
 
 	QAction * actionIMNDTInfo = new QAction(tr("ImNDT Info"), m_mainWnd);
 	connect(actionIMNDTInfo, &QAction::triggered, this, &iAImNDTModuleInterface::info);
@@ -49,18 +50,61 @@ void iAImNDTModuleInterface::Initialize()
 	QAction* actionVRInfo = new QAction(tr("VR Info"), m_mainWnd);
 	connect(actionVRInfo, &QAction::triggered, this, &iAImNDTModuleInterface::vrInfo);
 
-	m_actionVRVolumeRender = new QAction(tr("Start Volume Rendering"), m_mainWnd);
-	connect(m_actionVRVolumeRender, &QAction::triggered, this, &iAImNDTModuleInterface::renderVolume);
-	m_mainWnd->makeActionChildDependent(m_actionVRVolumeRender);
-
 	m_actionVRStartAnalysis = new QAction(tr("Start Analysis"), m_mainWnd);
 	connect(m_actionVRStartAnalysis, &QAction::triggered, this, &iAImNDTModuleInterface::startAnalysis);
 
 	QMenu* vrMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("ImNDT"), false);
 	vrMenu->addAction(actionIMNDTInfo);
 	vrMenu->addAction(actionVRInfo);
-	vrMenu->addAction(m_actionVRVolumeRender);
 	vrMenu->addAction(m_actionVRStartAnalysis);
+
+	connect(m_mainWnd, &iAMainWindow::childCreated, this, [this](iAMdiChild* child)
+	{   // on every child window, listen to new datasets, and if one becomes available add action to add VR renderer
+		connect(child, &iAMdiChild::dataSetRendered, this, [this, child](size_t dataSetIdx)
+		{
+			auto viewer = child->dataSetViewer(dataSetIdx);
+			if (viewer->renderer())    // if dataset has a renderer, add a button to view it in VR:
+			{
+				viewer->addViewAction("VR", "VR", false, [viewer, this, child, dataSetIdx](bool checked)
+				{
+					auto key = std::make_pair(child, dataSetIdx);
+					if (!checked)
+					{
+						// prepare for VR environment re-use: properly remove all renderers
+						auto vrRen = m_vrRenderers.at(key);
+						vrRen->setVisible(false);
+						m_vrRenderers.erase(key);
+						if (m_vrRenderers.empty())
+						{
+							if (m_vrEnv)          // VR might already be finished due to errors (e.g. headset currently not available)
+							{
+								m_vrEnv->stop();  // no more VR renderers -> stop VR environment
+							}
+							return;
+						}
+					}
+					if (!m_vrEnv)
+					{
+						if (!setupVREnvironment())
+						{
+							return;
+						}
+						connect(m_vrEnv.get(), &iAVREnvironment::finished, this, [this]
+						{
+							m_vrEnv.reset();
+						});
+					}
+					auto vrRen = viewer->createRenderer(m_vrEnv->renderer());
+					m_vrRenderers.insert(std::make_pair(key, vrRen));
+					vrRen->setVisible(true);
+					if (!m_vrEnv->isRunning())
+					{
+						m_vrEnv->start();
+					}
+				});
+			}
+		});
+	});
 }
 
 void iAImNDTModuleInterface::info()
@@ -245,33 +289,4 @@ bool iAImNDTModuleInterface::loadImNDT()
 	}
 
 	return true;
-}
-
-void iAImNDTModuleInterface::renderVolume()
-{
-	if (m_vrEnv && m_vrEnv->isRunning() && m_volumeRenderer)
-	{
-		m_vrEnv->stop();  // triggers finished signal, which currently leads to destroying this vrEnv (see finished signal below)
-		m_actionVRVolumeRender->setText("Start Volume Rendering");
-		return;
-	}
-	if (!setupVREnvironment())
-	{
-		return;
-	}
-	connect(m_vrEnv.get(), &iAVREnvironment::finished, this, [this]
-	{
-		// prepare for VR environment re-use: properly remove all renderers
-		m_volumeRenderer->setVisible(false);
-		m_volumeRenderer->setBoundsVisible(false);
-		m_volumeRenderer.reset();  // for now, let's reset volume renderer as indicator of whether it's volume rendering that's currently running in VR
-		m_vrEnv.reset();
-	});
-	m_actionVRVolumeRender->setText("Stop Volume Rendering");
-	auto child = m_mainWnd->activeMdiChild();
-	m_volumeRenderer = std::make_shared<iAVolumeRenderer>(m_vrEnv->renderer(), child->firstImageData().Get(),
-		dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))->transfer());
-	m_volumeRenderer->setVisible(true);
-	m_volumeRenderer->setBoundsVisible(true);
-	m_vrEnv->start();
 }

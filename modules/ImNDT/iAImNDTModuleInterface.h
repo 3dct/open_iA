@@ -16,11 +16,9 @@
 
 class iAVREnvironment;
 
-class iAVolumeRenderer;
+class iADataSetRenderer;
 
 class vtkTable;
-
-class QAction;
 
 
 class ImNDT_API iAImNDTModuleInterface : public iAGUIModuleInterface{
@@ -52,13 +50,12 @@ private:
 	iACsvIO m_io;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	//! @}
-	std::shared_ptr<iAVolumeRenderer> m_volumeRenderer;  //! for VR volume rendering
+	QAction *m_actionVRStartAnalysis;
 
-	QAction *m_actionVRStartAnalysis, * m_actionVRVolumeRender;
+	std::map<std::pair<iAMdiChild*, size_t>, std::shared_ptr<iADataSetRenderer> >  m_vrRenderers;
 
 private slots:
 	void info();
-	void renderVolume();
 	void startAnalysis();
 	void vrInfo();
 };
