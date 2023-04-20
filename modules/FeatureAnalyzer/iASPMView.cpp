@@ -32,7 +32,7 @@ const QString defaultColorParam = "Deviat. from Ref.";
 const int popupWidthRange[2] = { 80, 300 };
 
 iASPMView::iASPMView(iAMainWindow* mWnd, QWidget* parent):
-	iAPorosityAnalyzerSPMConnector(parent),
+	iAFeatureAnalyzerSPMConnector(parent),
 	m_splom(new iAFAQSplom(mWnd, parent)),
 	m_SPLOMSelection( vtkSmartPointer<vtkIdTypeArray>::New() ),
 	m_lut( vtkSmartPointer<vtkLookupTable>::New() ),

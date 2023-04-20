@@ -31,9 +31,9 @@ struct iASelection;
 class iAMainWindow;
 class iAQVTKWidget;
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_SPMView> iAPorosityAnalyzerSPMConnector;
+typedef iAQTtoUIConnector<QDockWidget, Ui_SPMView> iAFeatureAnalyzerSPMConnector;
 
-class iASPMView : public iAPorosityAnalyzerSPMConnector
+class iASPMView : public iAFeatureAnalyzerSPMConnector
 {
 	Q_OBJECT
 

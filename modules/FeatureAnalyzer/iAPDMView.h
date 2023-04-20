@@ -30,9 +30,9 @@ struct iAHMData;
 struct iABoxPlotData;
 class iAQVTKWidget;
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_PDMView>  PorosityAnalyzerPDMConnector;
+typedef iAQTtoUIConnector<QDockWidget, Ui_PDMView>  FeatureAnalyzerPDMConnector;
 
-class iAPDMView : public PorosityAnalyzerPDMConnector
+class iAPDMView : public FeatureAnalyzerPDMConnector
 {
 	Q_OBJECT
 

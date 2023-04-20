@@ -34,7 +34,7 @@ void SetWidgetSelectionStyle(QWidget * w, bool isSelected)
 }
 
 iAPDMView::iAPDMView(QWidget* parent) :
-	PorosityAnalyzerPDMConnector(parent),
+	FeatureAnalyzerPDMConnector(parent),
 	m_lut( vtkSmartPointer<vtkLookupTable>::New() ),
 	m_sbWidget(new iAQVTKWidget()),
 	m_sbRen( vtkSmartPointer<vtkRenderer>::New() ),
