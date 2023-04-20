@@ -104,20 +104,27 @@ public:
 	// Multi-Channel Rendering:
 
 	//! Create a new channel, return its ID.
+	//! @deprecated, use datasets instead
 	virtual uint createChannel() = 0;
 	//! Initialize the renderers for a channel.
+	//! @deprecated, use datasets instead
 	virtual void initChannelRenderer(uint id, bool use3D, bool enableChannel = true) = 0;
 	//! Enable/Disable channel rendering for a given channel ID
+	//! @deprecated, use datasets instead
 	virtual void setChannelRenderingEnabled(uint, bool enabled) = 0;
 	//! Update the data of the given channel ID.
+	//! @deprecated, use datasets instead
 	virtual void updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf,
 		vtkPiecewiseFunction* otf, bool enable) = 0;
 	//! Update opacity of the given channel ID.
+	//! @deprecated, use datasets instead
 	virtual void updateChannelOpacity(uint id, double opacity) = 0;
 	//! Remove channel in all slicers.
+	//! @deprecated, use datasets instead
 	virtual void removeChannel(uint id) = 0;
 	//! @{
 	//! Retrieve data for a given channel ID
+	//! @deprecated, use datasets instead
 	virtual iAChannelData* channelData(uint id) = 0;
 	virtual iAChannelData const* channelData(uint id) const = 0;
 	//! @}
@@ -168,6 +175,9 @@ public:
 	static const size_t NoDataSet = std::numeric_limits<size_t>::max();
 	//! Retrieve dataset list
 	virtual iADataSetListWidget* dataSetListWidget() = 0;
+	//! Retrieve the viewer for the dataset with given index
+	//! @return viewer for the given dataset index, nullptr if there is no dataset with given index or if there is no viewer available
+	virtual iADataSetViewer* dataSetViewer(size_t idx) const = 0;
 
 	// Methods currently required by some modules for specific dataset access
 	// {
@@ -177,9 +187,7 @@ public:
 	virtual vtkSmartPointer<vtkImageData> firstImageData() const = 0;
 	//! Retrieve the index of the first image data set (if any loaded), or NoDataSet if none loaded.
 	virtual size_t firstImageDataSetIdx() const = 0;
-	//! Retrieve the viewer for the dataset with given index
-	//! @return viewer for the given dataset index, nullptr if there is no dataset with given index or if there is no viewer available
-	virtual iADataSetViewer* dataSetViewer(size_t idx) const =0;
+	// }
 
 	//! set window title, and if a file name is given, set it as window file and add it to recent files
 	virtual void setWindowTitleAndFile(QString const& f) = 0;
