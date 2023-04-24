@@ -157,7 +157,7 @@ public:
 			interactor->SetAltKey(action.altKey);
 			int const* size = renWin->GetSize();
 			int pos[] = {static_cast<int>(size[0] * action.x), static_cast<int>(size[1] * action.y)};
-			LOG(lvlDebug, QString("event id: %1; x: %2, y: %3").arg(vtkEventID).arg(pos[0]).arg(pos[1]));
+			//LOG(lvlDebug, QString("event id: %1; x: %2, y: %3").arg(vtkEventID).arg(pos[0]).arg(pos[1]));
 
 			interactor->SetEventPosition(pos);
 			//interactor->SetKeyCode(static_cast<char>(action.keyCode));

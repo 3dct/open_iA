@@ -126,11 +126,11 @@ namespace
 		auto const dim = vtkImg->GetDimensions();
 		unsigned char* buffer = static_cast<unsigned char*>(vtkImg->GetScalarPointer());
 		assert(dim[2] == 1);
-		LOG(lvlDebug, QString("grab: %1 ms").arg(t2.elapsed()));
+		//LOG(lvlDebug, QString("grab: %1 ms").arg(t2.elapsed()));
 
 		QElapsedTimer t3; t3.start();
 		auto data = cudaImageGen.BitmapToJpegCUDA(dim[0], dim[1], buffer, quality);
-		LOG(lvlDebug, QString("nvJPEG: %1 ms").arg(t3.elapsed()));
+		//LOG(lvlDebug, QString("nvJPEG: %1 ms").arg(t3.elapsed()));
 		return QByteArray(reinterpret_cast<char*>(data.data()), data.size());
 	}
 
@@ -151,7 +151,7 @@ namespace
 		writer->Write();
 		vtkSmartPointer<vtkUnsignedCharArray> imgData = writer->GetResult();
 		QByteArray result((char*)imgData->Begin(), static_cast<qsizetype>(imgData->GetSize()));
-		LOG(lvlDebug, QString("turboJPEG: %1 ms").arg(t.elapsed()));
+		//LOG(lvlDebug, QString("turboJPEG: %1 ms").arg(t.elapsed()));
 		return result;
 	}
 }

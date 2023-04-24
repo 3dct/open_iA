@@ -20,7 +20,7 @@ void iAViewHandler::vtkCallbackFunc(vtkObject* caller, long unsigned int evId, v
 	Q_UNUSED(caller);
 	Q_UNUSED(evId);
 	Q_UNUSED(callData);
-	LOG(lvlDebug, QString("DIRECT time check %1, time %2").arg(id).arg(m_StoppWatch.elapsed()));
+	//LOG(lvlDebug, QString("DIRECT time check %1, time %2").arg(id).arg(m_StoppWatch.elapsed()));
 
 	if ((m_StoppWatch.elapsed() > waitTimeRendering) && (m_StoppWatch.elapsed() >50))
 	{
@@ -31,6 +31,6 @@ void iAViewHandler::vtkCallbackFunc(vtkObject* caller, long unsigned int evId, v
 		createImage(id, quality);
 		timeRendering = m_StoppWatch.elapsed();
 		waitTimeRendering = waitTimeRendering + (timeRendering - waitTimeRendering + 12)/4;
-		LOG(lvlDebug, QString("DIRECT %1, time %2 wait %3").arg(id).arg(timeRendering).arg(waitTimeRendering));
+		//LOG(lvlDebug, QString("DIRECT %1, time %2 wait %3").arg(id).arg(timeRendering).arg(waitTimeRendering));
 	}
 }

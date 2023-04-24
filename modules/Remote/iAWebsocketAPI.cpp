@@ -52,23 +52,18 @@ iAWebsocketAPI::~iAWebsocketAPI()
 
 void iAWebsocketAPI::onNewConnection()
 {
-
 	m_count = 0;
 	QWebSocket* pSocket = m_pWebSocketServer->nextPendingConnection();
-
 	connect(pSocket, &QWebSocket::textMessageReceived, this, &iAWebsocketAPI::processTextMessage);
 	connect(pSocket, &QWebSocket::binaryMessageReceived, this, &iAWebsocketAPI::processBinaryMessage);
 	connect(pSocket, &QWebSocket::disconnected, this, &iAWebsocketAPI::socketDisconnected);
-
-
-
 	m_clients << pSocket;
 }
 
 void iAWebsocketAPI::processTextMessage(QString message)
 {
 
-	LOG(lvlDebug, QString("Websocket time %1").arg(m_StoppWatch.elapsed()));
+	//LOG(lvlDebug, QString("Websocket time %1").arg(m_StoppWatch.elapsed()));
 	m_StoppWatch.restart();
 
 	QWebSocket* pClient = qobject_cast<QWebSocket*>(sender());
