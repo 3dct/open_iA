@@ -33,19 +33,17 @@
 namespace
 {
 
-	void addFileToServe(QString path, QString query, QString fileName, QHttpServer* server, QString mimeType)
+	void addFileToServe(QString path, QString query, QString fileName, QHttpServer* server)
 	{
-		auto routeCreated = server->route(query,
-			[path, fileName, mimeType](QHttpServerResponder&& responder)
+		auto routeCreated = server->route(query, [path, fileName](QHttpServerRequest const& request)
 			{
-				QFile fileToServe(path + "/" + fileName);
-		if (!fileToServe.open(QFile::ReadOnly | QFile::Text))
-		{
-			LOG(lvlError, QString("Could not open file to server (%1) in given path (%2).").arg(fileName).arg(path));
-		}
-		QTextStream in(&fileToServe);
-		auto value = in.readAll();
-		responder.write(value.toUtf8(), mimeType.toUtf8());
+				Q_UNUSED(request);
+				auto fileToServe = path + "/" + fileName;
+				if (!QFile::exists(fileToServe))
+				{
+					LOG(lvlError, QString("Could not open file to serve (%1) in given path (%2).").arg(fileName).arg(path));
+				}
+				return QHttpServerResponse::fromFile(path + "/" + fileName);
 			});
 
 		if (!routeCreated)
@@ -56,32 +54,12 @@ namespace
 
 	void addDirectorytoServer(QString path, QHttpServer* server)
 	{
-
 		QDir directory(path);
 		QStringList files = directory.entryList(QDir::Files);
+		addFileToServe(path, "/", "index.html", server);
 		for (QString filename : files)
 		{
-			if (filename.contains("index.html"))
-			{
-				addFileToServe(path, "/", filename, server, "text/html");
-				addFileToServe(path, "/" + filename, filename, server, "text/html");
-			}
-			else if (filename.endsWith("css", Qt::CaseInsensitive))
-			{
-				addFileToServe(path, "/" + filename, filename, server, "text/css");
-			}
-			else if (filename.endsWith("html", Qt::CaseInsensitive))
-			{
-				addFileToServe(path, "/" + filename, filename, server, "text/html");
-			}
-			else if (filename.endsWith("js", Qt::CaseInsensitive))
-			{
-				addFileToServe(path, "/" + filename, filename, server, "application/javascript");
-			}
-			else
-			{
-				addFileToServe(path, "/" + filename, filename, server, "text/plain");
-			}
+			addFileToServe(path, "/" + filename, filename, server);
 		}
 	}
 }
