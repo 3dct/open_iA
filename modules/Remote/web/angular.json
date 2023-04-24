@@ -23,28 +23,33 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-			"deleteOutputPath": false,
+            "deleteOutputPath": false,
             "outputPath": "dist_angular",
             "main": "src_angular/main.ts",
             "polyfills": "src_angular/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
-              "src_angular/assets"
+              "src_angular/assets",
+              {
+                "glob": "*",
+                "input": "fonts",
+                "output": ""
+              }
             ],
             "styles": [
               "src_angular/theme.scss",
               "src_angular/styles.scss",
-			  "src/scss/bootstrap.scss"
+              "src/scss/bootstrap.scss"
             ],
             "stylePreprocessorOptions": {
               "includePaths": ["node_modules/"]
             },
             "scripts": [ "dist/main.js"],
-			"index": {
-				"input": "src/index.html",
-				"output": "index.html"
-			}
+            "index": {
+              "input": "src/index.html",
+              "output": "index.html"
+            }
           },
           "configurations": {
             "production": {
