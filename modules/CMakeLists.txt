@@ -75,10 +75,8 @@ foreach (indx RANGE ${len} )
 	endif()
 	list(APPEND ENABLED_MODULE_NAMES ${module_name})
 
-	# clean module name for use as identifier (if leading number, then add "_" prefix)
-	string(REGEX REPLACE "^([0123456789])" "_\\1" ident_module_name ${module_name})
 	# Generate module interface factory
-	MODULE_GENERATE_INTERFACE_FACTORY ( ${ident_module_name}, ${module_name} )
+	MODULE_GENERATE_INTERFACE_FACTORY ( ${module_name} )
 	list(APPEND module_srcs "${CMAKE_CURRENT_BINARY_DIR}/${module_name}_factory.cpp")
 
 	add_library(${module_name} ${LIB_TYPE} ${module_srcs} ${module_hs} )
