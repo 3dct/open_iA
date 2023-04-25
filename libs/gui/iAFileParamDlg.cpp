@@ -2,15 +2,19 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <iAFileParamDlg.h>
 
-#include <iAFileStackParams.h>
 #include <iAFileUtils.h>
+#include <iAMathUtility.h>
+#include <iASettings.h>
+
+#include <iAFileStackParams.h>
 #include <iAImageStackFileIO.h>
 #include <iARawFileIO.h>
-#include <iASettings.h>
 
 #include <iAParameterDlg.h>
 #include <iARawFileParamDlg.h>
 #include <iAThemeHelper.h>
+
+#include <vtkImageData.h>
 
 #include <QRegularExpression>
 
@@ -27,9 +31,10 @@ namespace
 iAFileParamDlg::~iAFileParamDlg()
 {}
 
-bool iAFileParamDlg::askForParameters(QWidget* parent, iAAttributes const& parameters, QString const & ioName, QVariantMap& values, QString const& fileName) const
+bool iAFileParamDlg::askForParameters(QWidget* parent, iAAttributes const& parameters, QString const & ioName, QVariantMap& values, QString const& fileName, iADataSet const * dataSet) const
 {
 	Q_UNUSED(fileName);
+	Q_UNUSED(dataSet);
 	auto dlgParams = combineAttributesWithValues(parameters, values);
 	auto it = std::find_if(dlgParams.begin(), dlgParams.end(), [](auto a) { return a->name() == iADataSet::FileNameKey; });
 	if (it != dlgParams.end())
@@ -63,14 +68,14 @@ void iAFileParamDlg::add(QString const& ioName, std::shared_ptr<iAFileParamDlg> 
 
 QMap<QString, std::shared_ptr<iAFileParamDlg>> iAFileParamDlg::m_dialogs;
 
-bool iAFileParamDlg::getParameters(QWidget* parent, iAFileIO const* io, iAFileIO::Operation op, QString const& fileName, QVariantMap & paramValues)
+bool iAFileParamDlg::getParameters(QWidget* parent, iAFileIO const* io, iAFileIO::Operation op, QString const& fileName, QVariantMap & paramValues, iADataSet const * dataSet)
 {
 	if (io->parameter(op).size() > 1 || (io->parameter(op).size() == 1 && io->parameter(op)[0]->name() != iADataSet::FileNameKey))
 	{
 		auto settingPath = settingName(op, io->name());
 		paramValues = ::loadSettings(settingPath, extractValues(io->parameter(op)));
 		auto paramDlg = iAFileParamDlg::get(settingPath);
-		if (!paramDlg->askForParameters(parent, io->parameter(op), io->name(), paramValues, fileName))
+		if (!paramDlg->askForParameters(parent, io->parameter(op), io->name(), paramValues, fileName, dataSet))
 		{
 			return false;
 		}
@@ -83,10 +88,11 @@ bool iAFileParamDlg::getParameters(QWidget* parent, iAFileIO const* io, iAFileIO
 class iANewRawFileLoadParamDlg : public iAFileParamDlg
 {
 public:
-	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QString const& ioName, QVariantMap& values, QString const& fileName) const override
+	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QString const& ioName, QVariantMap& values, QString const& fileName, iADataSet const * dataSet) const override
 	{
 		Q_UNUSED(parameters);    // iARawFileParamDlg knows which parameters to get
 		Q_UNUSED(ioName);
+		Q_UNUSED(dataSet);
 		iAAttributes additionalParams;
 		iARawFileParamDlg dlg(fileName, parent, "Raw file parameters", additionalParams, values, iAThemeHelper::brightMode());
 		if (!dlg.accepted())
@@ -98,13 +104,14 @@ public:
 	}
 };
 
-//! Dialog for retrieving parameters for the image stack file I/O.
+//! Dialog for retrieving parameters for loading an image stack.
 class iAImageStackLoadParamDlg: public iAFileParamDlg
 {
 
 public:
-	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QString const & ioName, QVariantMap& values, QString const& fileName) const override
+	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QString const & ioName, QVariantMap& values, QString const& fileName, iADataSet const * dataSet) const override
 	{
+		Q_UNUSED(dataSet);
 		QString base, suffix;
 		int range[2];
 		int digits;
@@ -115,6 +122,26 @@ public:
 		values[iAFileStackParams::NumDigits] = digits;
 		values[iAFileStackParams::MinimumIndex] = range[0];
 		values[iAFileStackParams::MaximumIndex] = range[1];
+		return iAFileParamDlg::askForParameters(parent, parameters, ioName, values, fileName);
+	}
+};
+
+//! Dialog for retrieving parameters for loading an image stack.
+class iAImageStackSaveParamDlg : public iAFileParamDlg
+{
+
+public:
+	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QString const& ioName, QVariantMap& values, QString const& fileName, iADataSet const * dataSet) const override
+	{
+		auto imgDS = dynamic_cast<iAImageData const *>(dataSet);
+		if (!imgDS)
+		{
+			return false;
+		}
+		auto extent = imgDS->vtkImage()->GetExtent();
+		int axisIdx = iAImageStackFileIO::axisName2Idx(values[iAImageStackFileIO::AxisOption].toString());
+		values[iAFileStackParams::MinimumIndex] = clamp(extent[axisIdx * 2], extent[axisIdx * 2 + 1], values[iAFileStackParams::MinimumIndex].toInt());
+		values[iAFileStackParams::MaximumIndex] = clamp(extent[axisIdx * 2], extent[axisIdx * 2 + 1], values[iAFileStackParams::MaximumIndex].toInt());
 		return iAFileParamDlg::askForParameters(parent, parameters, ioName, values, fileName);
 	}
 };
@@ -264,10 +291,11 @@ typedef iAQTtoUIConnector<QDialog, Ui_dlgOpenHDF5> OpenHDF5Dlg;
 
 class iAHDF5FileLoadParamDlg: public iAFileParamDlg
 {
-	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QString const& ioName, QVariantMap& values, QString const& fileName) const override
+	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QString const& ioName, QVariantMap& values, QString const& fileName, iADataSet const * dataSet) const override
 	{
 		Q_UNUSED(parameters); // we know which parameters we have
 		Q_UNUSED(ioName);
+		Q_UNUSED(dataSet);
 		hid_t file_id = H5Fopen(getLocalEncodingFileName(fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
 		if (file_id < 0)
 		{
@@ -394,6 +422,7 @@ void iAFileParamDlg::setupDefaultFileParamDlgs()
 {
 	add(settingName(iAFileIO::Load, iARawFileIO::Name), std::make_shared<iANewRawFileLoadParamDlg>());
 	add(settingName(iAFileIO::Load, iAImageStackFileIO::Name), std::make_shared<iAImageStackLoadParamDlg>());
+	add(settingName(iAFileIO::Save, iAImageStackFileIO::Name), std::make_shared<iAImageStackSaveParamDlg>());
 #ifdef USE_HDF5
 	add(settingName(iAFileIO::Load, iAHDF5IO::Name), std::make_shared<iAHDF5FileLoadParamDlg>());
 #endif

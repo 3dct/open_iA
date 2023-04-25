@@ -5,15 +5,19 @@
 #include "iAExceptionThrowingErrorObserver.h"
 #include "iAFileStackParams.h"
 #include "iAFileUtils.h"     // for getLocalEncodingFileName
+#include "iAMathUtility.h"   // for clamp
 #include "iAProgress.h"
 #include "iAStringHelper.h"  // for greatestCommonPrefix
 #include "iAToolsVTK.h"      // for mapVTKTypeToReadableDataType, readableDataTypes, ...
+#include "iATypedCallHelper.h"
 #include "iAValueTypeVectorHelpers.h"
 
 #include "iAITKFileIO.h"
 
 #include <QDir>
 #include <QFileInfo>
+
+#include <vtkImageReslice.h>
 
 
 //#define VTK 0
@@ -40,6 +44,7 @@ QString const iAImageStackFileIO::LoadTypeStr("Loading Type");
 QString const iAImageStackFileIO::SingleImageOption("Single Image");
 QString const iAImageStackFileIO::ImageStackOption("Image Stack");
 QString const iAImageStackFileIO::Name("Image (Stack)");
+QString const iAImageStackFileIO::AxisOption("Axis");
 
 namespace
 {
@@ -61,6 +66,8 @@ namespace
 
 iAImageStackFileIO::iAImageStackFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volume)
 {
+	QStringList axesOptions = QStringList() << "X" << "Y" << "Z";
+
 	QStringList loadTypes = QStringList() << SingleImageOption << ImageStackOption;
 	addAttr(m_params[Load], LoadTypeStr, iAValueType::Categorical, loadTypes);
 	addAttr(m_params[Load], StepStr, iAValueType::Discrete, 1);
@@ -71,6 +78,8 @@ iAImageStackFileIO::iAImageStackFileIO() : iAFileIO(iADataSetType::Volume, iADat
 	addAttr(m_params[Load], iAFileStackParams::NumDigits, iAValueType::Discrete, 0);
 	addAttr(m_params[Load], iAFileStackParams::MinimumIndex, iAValueType::Discrete, 0);
 	addAttr(m_params[Load], iAFileStackParams::MaximumIndex, iAValueType::Discrete, 0);
+	// TODO: Maybe support in a future version
+	//addAttr(m_params[Load], AxisOption, iAValueType::Categorical, axesOptions);
 	// no file name parameter in image stack:
 	auto it = std::find_if(m_params[Load].begin(), m_params[Load].end(), [](auto a) { return a->name() == iADataSet::FileNameKey; });
 	if (it != m_params[Load].end())
@@ -79,6 +88,9 @@ iAImageStackFileIO::iAImageStackFileIO() : iAFileIO(iADataSetType::Volume, iADat
 	}
 
 	addAttr(m_params[Save], CompressionStr, iAValueType::Boolean, false);
+	addAttr(m_params[Save], AxisOption, iAValueType::Categorical, axesOptions);
+	addAttr(m_params[Save], iAFileStackParams::MinimumIndex, iAValueType::Discrete, 0);
+	addAttr(m_params[Save], iAFileStackParams::MaximumIndex, iAValueType::Discrete, 0);
 }
 
 std::shared_ptr<iADataSet> iAImageStackFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
@@ -163,7 +175,48 @@ bool iAImageStackFileIO::isDataSetSupported(std::shared_ptr<iADataSet> dataSet, 
 		((ext == "tif" || ext == "tiff") && (type == VTK_UNSIGNED_SHORT || type == VTK_FLOAT));
 }
 
-#include "iAExtendedTypedCallHelper.h"
+//#include "iASlicerMode.h"    // for iAAxisIndex -> is in iAguibase!
+enum iAAxisIndex {    // TODO: merge with iASlicerMode.h iAAxisIndex
+	X, Y, Z
+};
+
+void writeImageStack(vtkSmartPointer<vtkImageData> img,
+	QString const& base, QString const& suffix, int numDigits, int minIdx, int maxIdx, bool comp,
+	int axisIdx, iAProgress const& progress)
+{
+	vtkNew<vtkImageReslice> reslicer;
+	reslicer->SetInputData(img);
+	reslicer->SetOutputDimensionality(2);
+	reslicer->InterpolateOff();
+	reslicer->SetEnableSMP(true);
+	switch (axisIdx)
+	{
+		case iAAxisIndex::X: reslicer->SetResliceAxesDirectionCosines(0, 1, 0, 0, 0, 1, 1,  0, 0); break;
+		case iAAxisIndex::Y: reslicer->SetResliceAxesDirectionCosines(1, 0, 0, 0, 0, 1, 0, -1, 0); break;
+		case iAAxisIndex::Z: reslicer->SetResliceAxesDirectionCosines(1, 0, 0, 0, 1, 0, 0,  0, 1); break;
+	}
+	auto ext = img->GetExtent();
+	auto spc = img->GetSpacing();
+	auto ori = img->GetOrigin();
+	double xyz[3] = { 0.0, 0.0, 0.0 };
+	minIdx = clamp(ext[axisIdx * 2], ext[axisIdx * 2 + 1], minIdx);
+	maxIdx = clamp(ext[axisIdx * 2], ext[axisIdx * 2 + 1], maxIdx);
+	for (int i = minIdx; i <= maxIdx; ++i)
+	{
+		xyz[axisIdx] = i;
+		reslicer->SetResliceAxesOrigin(ori[0] + xyz[0] * spc[0], ori[1] + xyz[1] * spc[1], ori[2] + xyz[2] * spc[2]);
+		reslicer->Update();
+		auto sliceImg = reslicer->GetOutput();
+		QString fileName = base + QString("%1").arg(i, numDigits, 10, QChar('0')) + "." + suffix;
+		storeImage(sliceImg, fileName, comp);
+		progress.emitProgress(100.0 * static_cast<double>(i - minIdx) / (maxIdx - minIdx));
+	}
+}
+
+// "legacy" code for writing images stacks; kept because it writes the stack in z-direction much faster than above code
+// (~500ms vs ~5500ms for 400x400x400 dataset):
+
+#include "iAConnector.h"
 #include "iAToolsITK.h"
 
 #include <itkBMPImageIO.h>
@@ -175,8 +228,8 @@ bool iAImageStackFileIO::isDataSetSupported(std::shared_ptr<iADataSet> dataSet, 
 #include <itkNumericSeriesFileNames.h>
 
 template <typename T>
-void writeImageStack(itk::ImageBase<3>* img,
-	QString const & base, QString const & suffix, int numDigits, int minIdx, int maxIdx, bool comp,
+void simpleWriteImageStack(itk::ImageBase<3>* img,
+	QString const& base, QString const& suffix, int numDigits, int minIdx, int maxIdx, bool comp,
 	iAProgress const& progress)
 {
 	using InputImageType = itk::Image<T, iAITKIO::Dim>;
@@ -219,6 +272,13 @@ void writeImageStack(itk::ImageBase<3>* img,
 	writer->Update();
 }
 
+int iAImageStackFileIO::axisName2Idx(QString const & axisName)
+{
+	if (axisName == "X") { return iAAxisIndex::X; }
+	else if (axisName == "Y") { return iAAxisIndex::Y; }
+	else return iAAxisIndex::Z;
+}
+
 void iAImageStackFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress)
 {
 	Q_UNUSED(paramValues);
@@ -227,18 +287,22 @@ void iAImageStackFileIO::saveData(QString const& fileName, std::shared_ptr<iADat
 	QString base = fi.absolutePath() + "/" + fi.baseName();
 	QString suffix = fi.completeSuffix();
 	auto imgData = dynamic_cast<iAImageData*>(dataSet.get());
-	auto itkImg = imgData->itkImage();
-	auto region = itkImg->GetLargestPossibleRegion();
-	auto start = region.GetIndex();
-	auto size = region.GetSize();
-	int numDigits = QString::number(size[2]).size();  // number of digits in z size number string
-	int minIdx = start[2];
-	int maxIdx = start[2] + size[2] - 1;
-	auto scalarType = ::itkScalarType(itkImg);
-	auto pixelType = ::itkPixelType(itkImg);
-	ITK_EXTENDED_TYPED_CALL(writeImageStack, scalarType, pixelType,
-		itkImg, base, suffix, numDigits, minIdx, maxIdx,
-		paramValues[iAFileIO::CompressionStr].toBool(), progress);
+	auto vtkImg = imgData->vtkImage();
+	int minIdx = paramValues[iAFileStackParams::MinimumIndex].toInt(),
+		maxIdx = paramValues[iAFileStackParams::MaximumIndex].toInt();
+	int axisIdx = axisName2Idx(paramValues[AxisOption].toString());
+	auto ext = vtkImg->GetExtent();
+	int numDigits = QString::number(ext[axisIdx * 2 + 1]).size();  // number of digits in z size number string
+	if (axisIdx == iAAxisIndex::Z)
+	{
+		iAConnector con;
+		con.setImage(vtkImg);
+		ITK_TYPED_CALL(simpleWriteImageStack, con.itkScalarType(), con.itkImage(), base, suffix, numDigits, minIdx, maxIdx, paramValues[iAFileIO::CompressionStr].toBool(), progress);
+	}
+	else
+	{
+		writeImageStack(vtkImg, base, suffix, numDigits, minIdx, maxIdx, paramValues[iAFileIO::CompressionStr].toBool(), axisIdx, progress);
+	}
 
 	dataSet->setMetaData(LoadTypeStr, ImageStackOption);
 	dataSet->setMetaData(StepStr, 1);

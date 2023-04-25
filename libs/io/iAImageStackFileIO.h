@@ -17,10 +17,12 @@ public:
 	static QString const LoadTypeStr;
 	static QString const SingleImageOption;
 	static QString const ImageStackOption;
+	static QString const AxisOption;
 	iAImageStackFileIO();
 	std::shared_ptr<iADataSet> loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress) override;
 	QString name() const override;
 	QStringList extensions() const override;
 	bool isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName) const override;
 	void saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress) override;
+	static int axisName2Idx(QString const& axisName);
 };

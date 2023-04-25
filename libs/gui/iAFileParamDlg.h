@@ -23,7 +23,7 @@ public:
 	//! default implementation for asking file parameters
 	//! The value contained in the values argument will be used as default values for the parameter,
 	//! overwriting the default values provided in the parameters argument
-	virtual bool askForParameters(QWidget* parent, iAAttributes const& parameters, QString const& ioName, QVariantMap& values, QString const & fileName) const;
+	virtual bool askForParameters(QWidget* parent, iAAttributes const& parameters, QString const& ioName, QVariantMap& values, QString const & fileName, iADataSet const * dataSet = nullptr) const;
 
 	//! factory method, creating a parameter dialog for the given file I/O name:
 	static iAFileParamDlg* get(QString const & ioName);
@@ -36,7 +36,7 @@ public:
 
 	//! Convenience function for retrieving parameters for loading/saving a file.
 	//! Note: in contrast to askForParameters, result is an out parameter only; the values in there will not be used as default
-	static bool getParameters(QWidget* parent, iAFileIO const * io, iAFileIO::Operation op, QString const& fileName, QVariantMap& result);
+	static bool getParameters(QWidget* parent, iAFileIO const * io, iAFileIO::Operation op, QString const& fileName, QVariantMap& result, iADataSet const * dataSet = nullptr);
 
 private:
 	static QMap<QString, std::shared_ptr<iAFileParamDlg>> m_dialogs;

@@ -37,7 +37,6 @@ iAChannelSlicerData::iAChannelSlicerData(iAChannelData const& chData, int mode) 
 	m_contourActor(vtkSmartPointer<vtkActor>::New())
 {
 	m_reslicer->SetOutputDimensionality(2);
-	m_reslicer->SetInterpolationModeToCubic();
 	m_reslicer->InterpolateOn();
 	m_reslicer->AutoCropOutputOn();
 	m_reslicer->SetNumberOfThreads(QThread::idealThreadCount());

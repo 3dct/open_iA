@@ -491,8 +491,7 @@ void MdiChild::saveVolumeStack()
 	//paramValues[iAFileStackParams::MaximumIndex] = imgDataSets->size() - 1;
 
 	auto io = std::make_shared<iAVolStackFileIO>();
-	iAFileParamDlg dlg;
-	if (!dlg.askForParameters(this, io->parameter(iAFileIO::Save), io->name(), paramValues, fileName))
+	if (!iAFileParamDlg::getParameters(this, io.get(), iAFileIO::Save, fileName, paramValues))
 	{
 		return;
 	}
@@ -557,7 +556,7 @@ bool MdiChild::saveDataSet(std::shared_ptr<iADataSet> dataSet, QString const& fi
 		return false;
 	}
 	QVariantMap paramValues;
-	if (!iAFileParamDlg::getParameters(this, io.get(), iAFileIO::Save, fileName, paramValues))
+	if (!iAFileParamDlg::getParameters(this, io.get(), iAFileIO::Save, fileName, paramValues, dataSet.get()))
 	{
 		return false;
 	}
@@ -567,7 +566,6 @@ bool MdiChild::saveDataSet(std::shared_ptr<iADataSet> dataSet, QString const& fi
 		{
 			if (futureWatcher->result())
 			{
-				LOG(lvlInfo, QString("Saved file %1").arg(fileName));
 				dataSet->setMetaData(iADataSet::FileNameKey, fileName);
 				if (m_dataSets.size() == 1)
 				{
@@ -668,8 +666,7 @@ void MdiChild::saveMovRC()
 	m_renderer->saveMovie(QFileDialog::getSaveFileName(this, tr("Export movie %1").arg(mode),
 							m_fileInfo.absolutePath() + "/" +
 								((mode.isEmpty()) ? m_fileInfo.baseName() : m_fileInfo.baseName() + "_" + mode),
-							movie_file_types),
-		imode);
+							movie_file_types), imode);
 }
 
 void MdiChild::camPosition(double* camOptions)

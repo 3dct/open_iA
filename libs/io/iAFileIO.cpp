@@ -101,7 +101,7 @@ void iAFileIO::save(QString const& fileName, std::shared_ptr<iADataSet> dataSet,
 	checkParams(checkedValues, Save, fileName);
 	saveData(fileName, dataSet, checkedValues, progress);
 	dataSet->setMetaData(iADataSet::FileNameKey, fileName);
-	LOG(lvlInfo, QString("Saved %1 in %2 ms.").arg(fileName).arg(t.elapsed()));
+	LOG(lvlInfo, QString("Saved dataset %1 in %2 ms.").arg(fileName).arg(t.elapsed()));
 }
 
 bool iAFileIO::checkParams(QVariantMap & paramValues, Operation op, QString const& fileName)

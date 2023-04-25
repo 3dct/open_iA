@@ -959,8 +959,8 @@ void iASlicerImpl::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 
 namespace
 {
-	QString const SaveNative("Save native image (intensity rescaled to output format)");
-	QString const Output16Bit("16 bit native output (if disabled, native output will be 8 bit)");
+	QString const SaveNative("Save native image");
+	QString const Output16Bit("16 bit native output");
 }
 
 void iASlicerImpl::saveAsImage()
@@ -978,7 +978,7 @@ void iASlicerImpl::saveAsImage()
 		return;
 	}
 	iAAttributes params;
-	QString const Channel("Channel (native only exports slice of what's selected here)");
+	QString const Channel("Channel");
 	addAttr(params, SaveNative, iAValueType::Boolean, true);
 	bool moreThanOneChannel = m_channels.size() > 1;
 	QFileInfo fi(fileName);
@@ -997,7 +997,12 @@ void iASlicerImpl::saveAsImage()
 		addAttr(params, Output16Bit, iAValueType::Boolean, false);
 	}
 
-	iAParameterDlg dlg(this, "Save options", params);
+	iAParameterDlg dlg(this, "Save options", params, "<em>" + SaveNative + "</em> means that the image to be written will be taken directly from the slicer, "
+		"and the intensity will be rescaled to the range of the output format (0..255 unless .tif[f] is chosen and <em>16 bit native output</em> is selected). "
+		"If disabled, a screen shot of this slicer will be stored (including scale bar, color scale, ...) "
+		"<em>" + Channel + "</em> determines which image channel will be considered for native output (only affects native output) "
+		"<em>" + Output16Bit + "</em> if enabled (and if native output chosen above), native output will be 16 bit. "
+		"Note that this option is only available for .tif[f] output files (other image file formats do not support 16 bit depth).");
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
@@ -1072,25 +1077,16 @@ void iASlicerImpl::saveImageStack()
 	int const sliceMin = imgExtent[sliceZAxisIdx * 2];
 	int const sliceMax = imgExtent[sliceZAxisIdx * 2 + 1];
 	iAAttributes params;
-	addAttr(params, SaveNative, iAValueType::Boolean, true);
 	addAttr(params, "From Slice Number:", iAValueType::Discrete, sliceMin, sliceMin, sliceMax);
 	addAttr(params, "To Slice Number:", iAValueType::Discrete, sliceMax, sliceMin, sliceMax);
-	if ((QString::compare(fileInfo.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
-		(QString::compare(fileInfo.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
-	{
-		addAttr(params, Output16Bit, iAValueType::Boolean, false);
-	}
 	iAParameterDlg dlg(this, "Save options", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
 	auto values = dlg.parameterValues();
-	bool saveNative = values[SaveNative].toBool();
 	int sliceFrom = values["From Slice Number:"].toInt();
 	int sliceTo = values["To Slice Number:"].toInt();
-	bool output16Bit = values.contains(Output16Bit) ? values[Output16Bit].toBool() : false;
-
 	if (sliceFrom < sliceMin || sliceFrom > sliceTo || sliceTo > sliceMax)
 	{
 		QMessageBox::information(this, "Save Image Stack", QString("Invalid input: 'From Slice Number' is greater than 'To Slice Number',"
@@ -1104,7 +1100,6 @@ void iASlicerImpl::saveImageStack()
 	double movingOrigin[3];
 	imageData->GetOrigin(movingOrigin);
 	double const * imgOrigin = imageData->GetOrigin();
-	auto reslicer = m_channels[channelID]->reslicer();
 	for (int slice = sliceFrom; slice <= sliceTo && !aborter.isAborted(); slice++)
 	{
 		movingOrigin[sliceZAxisIdx] = imgOrigin[sliceZAxisIdx] + slice * imgSpacing[sliceZAxisIdx];
@@ -1115,28 +1110,10 @@ void iASlicerImpl::saveImageStack()
 		vtkImageData* img;
 		update();
 		QCoreApplication::processEvents();
-		if (saveNative)
-		{
-			con.setImage(reslicer->GetOutput());
-			iAITKIO::ImagePointer imgITK;
-			if (!output16Bit)
-			{
-				imgITK = rescaleImageTo<unsigned char>(con.itkImage(), 0, 255);
-			}
-			else
-			{
-				imgITK = rescaleImageTo<unsigned short>(con.itkImage(), 0, 65535);
-			}
-			con.setImage(imgITK);
-			img = con.vtkImage();
-		}
-		else
-		{
-			windowToImage->SetInput(m_renWin);
-			windowToImage->ReadFrontBufferOff();
-			windowToImage->Update();
-			img = windowToImage->GetOutput();
-		}
+		windowToImage->SetInput(m_renWin);
+		windowToImage->ReadFrontBufferOff();
+		windowToImage->Update();
+		img = windowToImage->GetOutput();
 		p.emitProgress((slice - sliceFrom) * 100.0 / (sliceTo - sliceFrom));
 
 		QString newFileName(QString("%1%2.%3").arg(baseName).arg(slice).arg(fileInfo.suffix()));
