@@ -112,6 +112,7 @@ private:
 
 	std::shared_ptr<iAOutlineImpl> m_outline;
 	bool m_visible;
+	unsigned long m_renderObserverTag;
 };
 
 template <class T>

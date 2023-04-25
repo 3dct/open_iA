@@ -95,7 +95,7 @@ iADataSetRenderer::iADataSetRenderer(vtkRenderer* renderer) :
 	m_visible(false)
 {
 	// if renderer is deleted for whatever reason, make sure it isn't accessed anymore
-	renderer->AddObserver(vtkCommand::DeleteEvent, this, &iADataSetRenderer::clearRenderer);
+	m_renderObserverTag = renderer->AddObserver(vtkCommand::DeleteEvent, this, &iADataSetRenderer::clearRenderer);
 }
 
 iAAttributes const & iADataSetRenderer::attributes() const
@@ -127,8 +127,9 @@ void iADataSetRenderer::clearRenderer()
 }
 
 iADataSetRenderer::~iADataSetRenderer()
-{
-	// cannot call virtual functions in destructor -> setVisible(false) leads to crash!
+{   // if this dataset renderer is cleaned up before renderer, de-register observer, otherwise invalid memory is accessed:
+	m_renderer->RemoveObserver(m_renderObserverTag);
+	// cannot call virtual functions in destructor -> setVisible(false) leads to crash! -> needs to be done in derived classes.
 	if (m_outline)
 	{
 		m_outline->setVisible(false);
