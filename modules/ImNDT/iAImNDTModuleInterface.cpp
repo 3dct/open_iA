@@ -100,6 +100,7 @@ void iAImNDTModuleInterface::Initialize()
 						});
 					}
 					auto vrRen = viewer->createRenderer(m_vrEnv->renderer());
+					vrRen->setAttributes(viewer->attributeValues());
 					m_vrRenderers.insert(std::make_pair(std::make_pair(child, dataSetIdx), vrRen));
 					vrRen->setVisible(true);
 					if (!m_vrEnv->isRunning())
