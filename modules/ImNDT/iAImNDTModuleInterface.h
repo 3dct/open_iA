@@ -53,6 +53,7 @@ private:
 	QAction *m_actionVRStartAnalysis;
 
 	std::map<std::pair<iAMdiChild*, size_t>, std::shared_ptr<iADataSetRenderer> >  m_vrRenderers;
+	std::vector<QAction*> m_vrActions;
 
 private slots:
 	void info();

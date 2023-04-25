@@ -58,28 +58,29 @@ void iAImNDTModuleInterface::Initialize()
 	vrMenu->addAction(actionVRInfo);
 	vrMenu->addAction(m_actionVRStartAnalysis);
 
-	connect(m_mainWnd, &iAMainWindow::childCreated, this, [this](iAMdiChild* child)
+	auto removeRenderer = [this](iAMdiChild* child, size_t dataSetIdx)
+	{
+		auto key = std::make_pair(child, dataSetIdx);
+		auto vrRen = m_vrRenderers.at(key);
+		m_vrEnv->removeRenderer(vrRen);
+		m_vrRenderers.erase(key);
+		if (m_vrRenderers.empty() && m_vrEnv)    // VR might already be finished due to errors (e.g. headset currently not available)
+		{
+			m_vrEnv->stop();  // no more VR renderers -> stop VR environment
+		}
+	};
+	connect(m_mainWnd, &iAMainWindow::childCreated, this, [this, removeRenderer](iAMdiChild* child)
 	{   // on every child window, listen to new datasets, and if one becomes available add action to add VR renderer
-		connect(child, &iAMdiChild::dataSetRendered, this, [this, child](size_t dataSetIdx)
+		connect(child, &iAMdiChild::dataSetRendered, this, [this, removeRenderer, child](size_t dataSetIdx)
 		{
 			auto viewer = child->dataSetViewer(dataSetIdx);
 			if (viewer->renderer())    // if dataset has a renderer, add a button to view it in VR:
 			{
-				viewer->addViewAction("VR", "VR", false, [viewer, this, child, dataSetIdx](bool checked)
+				auto action = viewer->addViewAction("VR", "VR", false, [this, removeRenderer, child, viewer, dataSetIdx](bool checked)
 				{
-					auto key = std::make_pair(child, dataSetIdx);
 					if (!checked)
 					{
-						auto vrRen = m_vrRenderers.at(key);
-						m_vrEnv->removeRenderer(vrRen);
-						m_vrRenderers.erase(key);
-						if (m_vrRenderers.empty())
-						{
-							if (m_vrEnv)          // VR might already be finished due to errors (e.g. headset currently not available)
-							{
-								m_vrEnv->stop();  // no more VR renderers -> stop VR environment
-							}
-						}
+						removeRenderer(child, dataSetIdx);
 						return;
 					}
 					if (!m_vrEnv)
@@ -91,15 +92,31 @@ void iAImNDTModuleInterface::Initialize()
 						connect(m_vrEnv.get(), &iAVREnvironment::finished, this, [this]
 						{
 							m_vrEnv.reset();
+							m_vrRenderers.clear();
+							for (auto vrAction : m_vrActions)
+							{
+								vrAction->setChecked(false);
+							}
 						});
 					}
 					auto vrRen = viewer->createRenderer(m_vrEnv->renderer());
-					m_vrRenderers.insert(std::make_pair(key, vrRen));
+					m_vrRenderers.insert(std::make_pair(std::make_pair(child, dataSetIdx), vrRen));
 					vrRen->setVisible(true);
 					if (!m_vrEnv->isRunning())
 					{
 						m_vrEnv->start();
 					}
+				});
+				m_vrActions.push_back(action);
+				connect(viewer, &iADataSetViewer::dataSetChanged, this, [this, child, viewer](size_t dataSetIdx)
+				{
+					auto key = std::make_pair(child, dataSetIdx);
+					auto vrRen = m_vrRenderers.at(key);
+					vrRen->setAttributes(viewer->attributeValues());
+				});
+				connect(viewer, &iADataSetViewer::removeDataSet, this, [this, child, removeRenderer](size_t dataSetIdx)
+				{
+					removeRenderer(child, dataSetIdx);
 				});
 			}
 		});

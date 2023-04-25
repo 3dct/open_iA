@@ -50,6 +50,10 @@ void iAVRMainThread::run()
 			m_renderersToRemove.clear();
 		}
 		m_interactor->ProcessEvents();
+		if (m_interactor->GetDone())
+		{
+			m_done = true;
+		}
 	}
 	LOG(lvlInfo, "VR rendering has shut down!");
 	m_renderWindow->Finalize();
