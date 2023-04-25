@@ -383,7 +383,7 @@ void iAAnnotationTool::startAddMode()
 void iAAnnotationTool::slicerPointClicked(double x, double y, double z)
 {
 	m_ui->m_addButton->setDown(false);
-	LOG(lvlInfo, QString("%1, %2, %3").arg(x).arg(y).arg(z));
+	LOG(lvlInfo, QString("New Annotation: %1, %2, %3").arg(x).arg(y).arg(z));
 	addAnnotation(iAVec3d(x, y, z));
 	for (int i = 0; i < 3; ++i)
 	{
