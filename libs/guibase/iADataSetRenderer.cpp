@@ -110,7 +110,7 @@ iAAttributes& iADataSetRenderer::defaultAttributes()
 	{
 		addAttr(attr, Position, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
 		addAttr(attr, Orientation, iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
-		addAttr(attr, OutlineColor, iAValueType::Color, OutlineDefaultColor);
+		addAttr(attr, OutlineColor, iAValueType::Color, colorToVariant(OutlineDefaultColor));
 		addAttr(attr, Pickable, iAValueType::Boolean, true);
 		// generic lighting settings:
 		addAttr(attr, AmbientLighting, iAValueType::Continuous, 0.2);
