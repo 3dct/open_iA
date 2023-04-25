@@ -112,6 +112,10 @@ void iAImNDTModuleInterface::Initialize()
 				connect(viewer, &iADataSetViewer::dataSetChanged, this, [this, child, viewer](size_t dataSetIdx)
 				{
 					auto key = std::make_pair(child, dataSetIdx);
+					if (m_vrRenderers.find(key) == m_vrRenderers.end())
+					{
+						return;
+					}
 					auto vrRen = m_vrRenderers.at(key);
 					vrRen->setAttributes(viewer->attributeValues());
 				});
