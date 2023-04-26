@@ -127,8 +127,11 @@ void iADataSetRenderer::clearRenderer()
 }
 
 iADataSetRenderer::~iADataSetRenderer()
-{   // if this dataset renderer is cleaned up before renderer, de-register observer, otherwise invalid memory is accessed:
-	m_renderer->RemoveObserver(m_renderObserverTag);
+{
+	if (m_renderer)
+	{   // if this dataset renderer is cleaned up before renderer, de-register observer, otherwise invalid memory is accessed:
+		m_renderer->RemoveObserver(m_renderObserverTag);
+	}
 	// cannot call virtual functions in destructor -> setVisible(false) leads to crash! -> needs to be done in derived classes.
 	if (m_outline)
 	{
