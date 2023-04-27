@@ -485,7 +485,7 @@ void iAMultimodalWidget::applySlicerSettings()
 {
 	for (int i = 0; i < m_numOfDS; ++i)
 	{
-		m_slicerWidgets[i]->applySettings(m_mdiChild->slicerSettings().SingleSlicer);
+		//m_slicerWidgets[i]->applySettings(m_mdiChild->singleSlicerSettings());
 	}
 }
 
@@ -495,7 +495,6 @@ void iAMultimodalWidget::resetSlicer(int i)
 	// Make sure there are no other references to the old iASimpleSlicerWidget
 	// referenced by the QSharedPointer!
 	m_slicerWidgets[i] = QSharedPointer<iASimpleSlicerWidget>::create(nullptr, true);
-	m_slicerWidgets[i]->applySettings(m_mdiChild->slicerSettings().SingleSlicer);
 	m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 	if (i < m_dataSetsActive.size())
 	{

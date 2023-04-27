@@ -80,6 +80,40 @@ namespace
 	}
 }
 
+constexpr const char GraphRendererName[] = "Default Settings/Graph Renderer";
+
+class iAguibase_API iAGraphRendererSettings : iASettingsObject<GraphRendererName, iAGraphRendererSettings>
+{
+public:
+	static iAAttributes& defaultAttributes()
+	{
+		static iAAttributes attr;
+		if (attr.isEmpty())
+		{
+			cloneAttributes(iADataSetRenderer::defaultAttributes());
+			addAttr(attr, PointRadius, iAValueType::Continuous, 5, 0.0000001, 100000000);
+			addAttr(attr, PointColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
+			addAttr(attr, PointColor, iAValueType::Color, "#FF0000");
+			addAttr(attr, QString(PointPrefix) + iADataSetRenderer::Shading, iAValueType::Boolean, false);
+			addAttr(attr, QString(PointPrefix) + ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
+			addAttr(attr, QString(PointPrefix) + iADataSetRenderer::AmbientLighting, iAValueType::Continuous, 0.2);
+			addAttr(attr, QString(PointPrefix) + iADataSetRenderer::DiffuseLighting, iAValueType::Continuous, 0.5);
+			addAttr(attr, QString(PointPrefix) + iADataSetRenderer::SpecularLighting, iAValueType::Continuous, 0.7);
+			addAttr(attr, QString(PointPrefix) + iADataSetRenderer::SpecularPower, iAValueType::Continuous, 10.0);
+			addAttr(attr, LineWidth, iAValueType::Continuous, 1.0, 0.1, 100);
+			addAttr(attr, LineColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
+			addAttr(attr, LineColor, iAValueType::Color, "#00FF00");
+			addAttr(attr, QString(LinePrefix) + iADataSetRenderer::Shading, iAValueType::Boolean, false);
+			addAttr(attr, QString(LinePrefix) + ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
+			addAttr(attr, QString(LinePrefix) + iADataSetRenderer::AmbientLighting, iAValueType::Continuous, 0.2);
+			addAttr(attr, QString(LinePrefix) + iADataSetRenderer::DiffuseLighting, iAValueType::Continuous, 0.5);
+			addAttr(attr, QString(LinePrefix) + iADataSetRenderer::SpecularLighting, iAValueType::Continuous, 0.7);
+			addAttr(attr, QString(LinePrefix) + iADataSetRenderer::SpecularPower, iAValueType::Continuous, 10.0);
+		}
+		return attr;
+	}
+};
+
 iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data) :
 	iADataSetRenderer(renderer),
 	m_lineActor(vtkSmartPointer<vtkActor>::New()),
@@ -143,29 +177,7 @@ iAAttributes const& iAGraphRenderer::attributes() const
 
 iAAttributes& iAGraphRenderer::defaultAttributes()
 {
-	static iAAttributes attr;
-	if (attr.isEmpty())
-	{
-		attr = cloneAttributes(iADataSetRenderer::defaultAttributes());
-		addAttr(attr, PointRadius, iAValueType::Continuous, 5, 0.0000001, 100000000);
-		addAttr(attr, PointColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
-		addAttr(attr, PointColor, iAValueType::Color, "#FF0000");
-		addAttr(attr, QString(PointPrefix) + iADataSetRenderer::Shading, iAValueType::Boolean, false);
-		addAttr(attr, QString(PointPrefix) + ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
-		addAttr(attr, QString(PointPrefix) + iADataSetRenderer::AmbientLighting, iAValueType::Continuous, 0.2);
-		addAttr(attr, QString(PointPrefix) + iADataSetRenderer::DiffuseLighting, iAValueType::Continuous, 0.5);
-		addAttr(attr, QString(PointPrefix) + iADataSetRenderer::SpecularLighting, iAValueType::Continuous, 0.7);
-		addAttr(attr, QString(PointPrefix) + iADataSetRenderer::SpecularPower, iAValueType::Continuous, 10.0);
-		addAttr(attr, LineWidth, iAValueType::Continuous, 1.0, 0.1, 100);
-		addAttr(attr, LineColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
-		addAttr(attr, LineColor, iAValueType::Color, "#00FF00");
-		addAttr(attr, QString(LinePrefix) + iADataSetRenderer::Shading, iAValueType::Boolean, false);
-		addAttr(attr, QString(LinePrefix) + ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
-		addAttr(attr, QString(LinePrefix) + iADataSetRenderer::AmbientLighting, iAValueType::Continuous, 0.2);
-		addAttr(attr, QString(LinePrefix) + iADataSetRenderer::DiffuseLighting, iAValueType::Continuous, 0.5);
-		addAttr(attr, QString(LinePrefix) + iADataSetRenderer::SpecularLighting, iAValueType::Continuous, 0.7);
-		addAttr(attr, QString(LinePrefix) + iADataSetRenderer::SpecularPower, iAValueType::Continuous, 10.0);
-	}
+	static iAAttributes attr = iAGraphRendererSettings::defaultAttributes();
 	return attr;
 }
 
@@ -296,6 +308,26 @@ vtkProp3D* iAGraphRenderer::vtkProp()
 
 // ---------- iAMeshRenderer ----------
 
+constexpr const char SurfaceRendererName[] = "Default Settings/Surface Renderer";
+class iAguibase_API iAPolyActorRendererSettings : iASettingsObject<SurfaceRendererName, iAPolyActorRendererSettings>
+{
+public:
+	static iAAttributes& defaultAttributes()
+	{
+		static iAAttributes attr;
+		if (attr.isEmpty())
+		{
+			attr = cloneAttributes(iADataSetRenderer::defaultAttributes());
+			addAttr(attr, iAPolyActorRenderer::Shading, iAValueType::Boolean, true);
+			addAttr(attr, ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
+			addAttr(attr, PolyColor, iAValueType::Color, "#FFFFFF");
+			addAttr(attr, PolyOpacity, iAValueType::Continuous, 1.0, 0.0, 1.0);
+			addAttr(attr, PolyWireframe, iAValueType::Boolean, false);
+		}
+		return attr;
+	}
+};
+
 iAPolyActorRenderer::iAPolyActorRenderer(vtkRenderer* renderer) :
 	iADataSetRenderer(renderer),
 	m_polyActor(vtkSmartPointer<vtkActor>::New())
@@ -323,16 +355,7 @@ iAAttributes const& iAPolyActorRenderer::attributes() const
 
 iAAttributes& iAPolyActorRenderer::defaultAttributes()
 {
-	static iAAttributes attr;
-	if (attr.isEmpty())
-	{
-		attr = cloneAttributes(iADataSetRenderer::defaultAttributes());
-		addAttr(attr, Shading, iAValueType::Boolean, true);
-		addAttr(attr, ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
-		addAttr(attr, PolyColor, iAValueType::Color, "#FFFFFF");
-		addAttr(attr, PolyOpacity, iAValueType::Continuous, 1.0, 0.0, 1.0);
-		addAttr(attr, PolyWireframe, iAValueType::Boolean, false);
-	}
+	static iAAttributes attr = iAPolyActorRendererSettings::defaultAttributes();
 	return attr;
 }
 

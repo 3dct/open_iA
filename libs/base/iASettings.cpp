@@ -2,14 +2,22 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASettings.h"
 
+#include <QRegularExpression>
 #include <QSettings>
+
+
+QString configStorageName(QString const& in)
+{
+	QString out(in);
+	return out.remove(QRegularExpression("[^a-zA-Z\\d]"));
+}
 
 QVariantMap mapFromQSettings(QSettings const & settings)
 {
 	QVariantMap result;
 	for (QString key : settings.allKeys())
 	{
-		result[key] = settings.value(key);
+		result[key] = settings.value(configStorageName(key));
 	}
 	return result;
 }
@@ -20,7 +28,7 @@ void storeSettings(QString const& group, QVariantMap const& values)
 	settings.beginGroup(group);
 	for (QString key : values.keys())
 	{
-		settings.setValue(key, values[key]);
+		settings.setValue(configStorageName(key), values[key]);
 	}
 }
 

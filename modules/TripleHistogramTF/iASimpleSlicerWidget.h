@@ -8,7 +8,6 @@
 
 #include <QWidget>
 
-class iASingleSlicerSettings;
 class iASlicer;
 class iATransferFunction;
 
@@ -32,7 +31,7 @@ public:
 	bool hasHeightForWidth() const override;
 	int heightForWidth(int width) const override;
 
-	void applySettings(iASingleSlicerSettings const & settings);
+	void applySettings(QVariantMap const & settings);
 	void changeData(vtkImageData* imageData, iATransferFunction* tf, QString const& name);
 
 	void setCamera(vtkCamera* camera);

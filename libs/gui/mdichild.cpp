@@ -290,7 +290,7 @@ void MdiChild::updatePositionMarker(double x, double y, double z, int mode)
 			double spacing = m_slicer[i]->channel(0)->input()->GetSpacing()[i];
 			m_dwSlicer[i]->sbSlice->setValue(pos[mapSliceToGlobalAxis(i, iAAxisIndex::Z)] / spacing);
 		}
-		if (m_slicerSettings.SingleSlicer.ShowPosition)
+		if (m_slicer[i]->settings()[iASlicerImpl::ShowPosition].toBool())
 		{
 			int slicerXAxisIdx = mapSliceToGlobalAxis(i, iAAxisIndex::X);
 			int slicerYAxisIdx = mapSliceToGlobalAxis(i, iAAxisIndex::Y);
@@ -996,7 +996,6 @@ void MdiChild::resetLayout()
 
 void MdiChild::applySlicerSettings(iASlicerSettings const& ss)
 {
-	// TODO: separate applying slicer setting from slicer set up
 	m_slicerSettings = ss;
 
 	if (m_snakeSlicer)
@@ -1013,12 +1012,12 @@ void MdiChild::applySlicerSettings(iASlicerSettings const& ss)
 
 	for (int s = 0; s < 3; ++s)
 	{
-		auto settings(ss.SingleSlicer);
-		if (!ss.BackgroundColor[s].isEmpty() && QColor(ss.BackgroundColor[s]).isValid())
-		{
-			settings.backgroundColor = QColor(ss.BackgroundColor[s]);
-		}
-		m_slicer[s]->setup(settings);
+		//auto settings(ss.SingleSlicer);
+		//if (!ss.BackgroundColor[s].isEmpty() && QColor(ss.BackgroundColor[s]).isValid())
+		//{
+		//	settings.backgroundColor = QColor(ss.BackgroundColor[s]);
+		//}
+		//m_slicer[s]->setup(settings);
 	}
 	emit slicerSettingsChanged();
 }

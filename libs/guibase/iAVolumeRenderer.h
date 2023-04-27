@@ -20,9 +20,7 @@ class vtkVolumeProperty;
 //! Class for rendering a volume dataset.
 //! Provides convenience functionality for adding it to a render window,
 //! as well as for showing its bounding box
-
-constexpr const char VolumeRendererName[] = "Default Settings: Volume Renderer";
-class iAguibase_API iAVolumeRenderer : public iADataSetRenderer, iASettingsObject<VolumeRendererName, iAVolumeRenderer>
+class iAguibase_API iAVolumeRenderer : public iADataSetRenderer
 {
 public:
 	static constexpr const char Interpolation[] = "Interpolation";

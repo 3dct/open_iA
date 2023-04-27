@@ -12,7 +12,6 @@ class iAChannelData;
 class iAChannelSlicerData;
 class iAMagicLens;
 class iAMdiChild;
-class iASingleSlicerSettings;
 
 class vtkAlgorithmOutput;
 class vtkCamera;
@@ -31,7 +30,7 @@ public:
 		iAQVTKWidget(parent)
 	{}
 	//! Sets up the slicer with the given settings.
-	virtual void setup(iASingleSlicerSettings const & settings) = 0;
+	virtual void setup(QVariantMap const & settings) = 0;
 	virtual ~iASlicer(){};
 
 	//! @{ Magic Lens methods
@@ -122,6 +121,9 @@ public:
 
 	//! retrieve the global axis that is represented by the given local axis (e.g. for XY:, 0 -> X, 1 -> Y, 2 -> Z; for XZ: 0 -> X, 1 -> Z, ...)
 	virtual int globalAxis(int slicerAxis) = 0;
+
+	//! retrieve current settings of this slicer
+	virtual QVariantMap const& settings() = 0;
 
 public slots:
 	//! Save an image of the image viewer native resolution or the current view.

@@ -30,6 +30,41 @@ namespace
 #endif
 }
 
+constexpr const char VolumeRendererName[] = "Default Settings/Volume Renderer";
+class iAguibase_API iAVolumeRendererSettings : iASettingsObject<VolumeRendererName, iAVolumeRendererSettings>
+{
+public:
+	static iAAttributes& defaultAttributes() {
+		static iAAttributes attr;
+		if (attr.isEmpty())
+		{
+			attr = cloneAttributes(iADataSetRenderer::defaultAttributes());
+			// volumes properties:
+			QStringList volInterpolationTypes = QStringList() << InterpolateNearest << InterpolateLinear;
+			selectOption(volInterpolationTypes, InterpolateLinear);
+			addAttr(attr, iAVolumeRenderer::Interpolation, iAValueType::Categorical, volInterpolationTypes);
+			addAttr(attr, iAVolumeRenderer::Shading, iAValueType::Boolean, true);
+			addAttr(attr, iAVolumeRenderer::ScalarOpacityUnitDistance, iAValueType::Continuous, -1.0);
+
+			// mapper properties:
+			QStringList renderTypes = RenderModeMap().values();
+			selectOption(renderTypes, renderTypes[0]);
+			addAttr(attr, iAVolumeRenderer::RendererType, iAValueType::Categorical, renderTypes);
+			addAttr(attr, iAVolumeRenderer::InteractiveAdjustSampleDistance, iAValueType::Boolean, true);   // maybe only enable for large datasets?
+			addAttr(attr, iAVolumeRenderer::AutoAdjustSampleDistance, iAValueType::Boolean, false);
+			addAttr(attr, iAVolumeRenderer::SampleDistance, iAValueType::Continuous, 1.0);
+			addAttr(attr, iAVolumeRenderer::InteractiveUpdateRate, iAValueType::Continuous, 1.0);
+			addAttr(attr, FinalColorLevel, iAValueType::Continuous, 0.5);
+			addAttr(attr, FinalColorWindow, iAValueType::Continuous, 1.0);
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
+			addAttr(attr, GlobalIlluminationReach, iAValueType::Continuous, 0.0, 0.0, 1.0);
+			addAttr(attr, VolumetricScatteringBlending, iAValueType::Continuous, -1.0, 0.0, 2.0);
+#endif
+		}
+		return attr;
+	}
+};
+
 iAVolumeRenderer::iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, iATransferFunction* tf) :
 	iADataSetRenderer(renderer),
 	m_volume(vtkSmartPointer<vtkVolume>::New()),
@@ -198,32 +233,7 @@ iAAttributes const& iAVolumeRenderer::attributes() const
 
 iAAttributes& iAVolumeRenderer::defaultAttributes()
 {
-	static iAAttributes attr;
-	if (attr.isEmpty())
-	{
-		attr = cloneAttributes(iADataSetRenderer::defaultAttributes());
-		// volumes properties:
-		QStringList volInterpolationTypes = QStringList() << InterpolateNearest << InterpolateLinear;
-		selectOption(volInterpolationTypes, InterpolateLinear);
-		addAttr(attr, Interpolation, iAValueType::Categorical, volInterpolationTypes);
-		addAttr(attr, Shading, iAValueType::Boolean, true);
-		addAttr(attr, ScalarOpacityUnitDistance, iAValueType::Continuous, -1.0);
-
-		// mapper properties:
-		QStringList renderTypes = RenderModeMap().values();
-		selectOption(renderTypes, renderTypes[0]);
-		addAttr(attr, RendererType, iAValueType::Categorical, renderTypes);
-		addAttr(attr, InteractiveAdjustSampleDistance, iAValueType::Boolean, true);   // maybe only enable for large datasets?
-		addAttr(attr, AutoAdjustSampleDistance, iAValueType::Boolean, false);
-		addAttr(attr, SampleDistance, iAValueType::Continuous, 1.0);
-		addAttr(attr, InteractiveUpdateRate, iAValueType::Continuous, 1.0);
-		addAttr(attr, FinalColorLevel, iAValueType::Continuous, 0.5);
-		addAttr(attr, FinalColorWindow, iAValueType::Continuous, 1.0);
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
-		addAttr(attr, GlobalIlluminationReach, iAValueType::Continuous, 0.0, 0.0, 1.0);
-		addAttr(attr, VolumetricScatteringBlending, iAValueType::Continuous, -1.0, 0.0, 2.0);
-#endif
-	}
+	static iAAttributes attr = iAVolumeRendererSettings::defaultAttributes();
 	return attr;
 }
 

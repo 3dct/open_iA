@@ -18,10 +18,8 @@ class vtkPolyDataMapper;
 class vtkSphereSource;
 class vtkTubeFilter;
 
-constexpr const char GraphRendererName[] = "Default Settings: Graph Renderer";
-
 //! 3D renderer for graph data, with options to adapt node and vertex size and color.
-class iAGraphRenderer : public iADataSetRenderer, iASettingsObject<GraphRendererName, iAGraphRenderer>
+class iAGraphRenderer : public iADataSetRenderer
 {
 public:
 	iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data);
@@ -51,10 +49,8 @@ private:
 };
 
 
-constexpr const char SurfaceRendererName[] = "Default Settings: Surface Renderer";
-
 //! 3D renderer for any kind of polydata.
-class iAguibase_API iAPolyActorRenderer: public iADataSetRenderer, iASettingsObject<SurfaceRendererName, iAPolyActorRenderer>
+class iAguibase_API iAPolyActorRenderer: public iADataSetRenderer
 {
 public:
 	iAPolyActorRenderer(vtkRenderer* renderer);

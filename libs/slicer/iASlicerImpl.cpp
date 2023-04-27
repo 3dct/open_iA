@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASlicerImpl.h"
 
-#include <defines.h>    // for NotExistingChannel
+#include <defines.h>    // for NotExistingChannel, DefaultMagicLensSize
 #include <iAAbortListener.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iAConnector.h>
+#include <iADefaultSettings.h>
 #include <iAImageStackFileIO.h>
 #include <iAJobListView.h>
 #include <iALog.h>
@@ -98,6 +99,48 @@ private:
 };
 
 
+constexpr const char SlicerSettingsName[] = "Default Settings/Slicer";
+//! Settings applicable to a single slicer window.
+class iAslicer_API iASingleSlicerSettings : iASettingsObject<SlicerSettingsName, iASingleSlicerSettings>
+{
+public:
+	static iAAttributes& defaultAttributes()
+	{
+		static iAAttributes attr;
+		if (attr.isEmpty())
+		{
+			QStringList mouseCursorOptions = QStringList()
+				<< "Crosshair default"
+				<< "Crosshair thick red" << "Crosshair thin red"
+				<< "Crosshair thick orange" << "Crosshair thin orange"
+				<< "Crosshair thick yellow" << "Crosshair thin yellow"
+				<< "Crosshair thick blue" << "Crosshair thin blue"
+				<< "Crosshair thick cyan" << "Crosshair thin cyan";
+			selectOption(mouseCursorOptions, "Crosshair default");
+			addAttr(attr, iASlicerImpl::MouseCursor, iAValueType::Categorical, mouseCursorOptions);
+			addAttr(attr, iASlicerImpl::LinearInterpolation, iAValueType::Boolean, true);
+			addAttr(attr, iASlicerImpl::AdjustWindowLevelEnabled, iAValueType::Boolean, false);
+			addAttr(attr, iASlicerImpl::ShowPosition, iAValueType::Boolean, false);
+			addAttr(attr, iASlicerImpl::ShowAxesCaption, iAValueType::Boolean, false);
+			addAttr(attr, iASlicerImpl::ToolTipFontSize, iAValueType::Discrete, 12);
+			addAttr(attr, iASlicerImpl::ShowTooltip, iAValueType::Boolean, true);
+			addAttr(attr, iASlicerImpl::MagicLensSize, iAValueType::Discrete, DefaultMagicLensSize, MinimumMagicLensSize, MaximumMagicLensSize); //!< size (width & height) of the 2D magic lens (in pixels / pixel-equivalent units considering scaling)
+			addAttr(attr, iASlicerImpl::MagicLensFrameWidth, iAValueType::Discrete, 3, 0);  //!< width of the frame of the 2D magic lens
+			addAttr(attr, iASlicerImpl::BackgroundColor, iAValueType::Color, ""); // by default, invalid color -> results in gray scale color depending on slicer mode
+			// move to separate iso visualization maybe ?
+			// {
+			addAttr(attr, iASlicerImpl::ShowIsoLines, iAValueType::Boolean, false);
+			addAttr(attr, iASlicerImpl::NumberOfIsoLines, iAValueType::Discrete, 5);
+			addAttr(attr, iASlicerImpl::MinIsoValue, iAValueType::Continuous, 20000);    // should probably be dependent on the value range of the image ...?
+			addAttr(attr, iASlicerImpl::MaxIsoValue, iAValueType::Continuous, 40000);    // should probably be dependent on the value range of the image ...?
+			// }
+		}
+		return attr;
+	}
+};
+
+
+
 iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	bool decorations /*= true*/, bool magicLensAvailable /*= true*/, vtkAbstractTransform *transform, vtkPoints* snakeSlicerPoints) :
 	iASlicer(parent),
@@ -129,7 +172,8 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_sliceNumber(0),
 	m_cursorSet(false),
 	m_sliceNumberChannel(NotExistingChannel),
-	m_linkedMdiChild(nullptr)
+	m_linkedMdiChild(nullptr),
+	m_settings(extractValues(iASingleSlicerSettings::defaultAttributes()))
 {
 	std::fill(m_angle, m_angle + 3, 0);
 	setAutoFillBackground(false);
@@ -543,33 +587,34 @@ void iASlicerImpl::setLinearInterpolation(bool enabled)
 	}
 }
 
-void iASlicerImpl::setup( iASingleSlicerSettings const & settings )
+void iASlicerImpl::setup( QVariantMap const & settings )
 {
 	m_settings = settings;
-	m_actionLinearInterpolation->setChecked(settings.LinearInterpolation);
-	setLinearInterpolation(settings.LinearInterpolation);
-	m_interactorStyle->setInteractionMode(
-		settings.AdjustWindowLevelEnabled ? iASlicerInteractorStyle::imWindowLevelAdjust :
-		iASlicerInteractorStyle::imNormal
+	m_actionLinearInterpolation->setChecked(settings[iASlicerImpl::LinearInterpolation].toBool());
+	setLinearInterpolation(settings[iASlicerImpl::LinearInterpolation].toBool());
+	m_interactorStyle->setInteractionMode(settings[iASlicerImpl::AdjustWindowLevelEnabled].toBool()
+		? iASlicerInteractorStyle::imWindowLevelAdjust
+		: iASlicerInteractorStyle::imNormal
 	);
-	setMouseCursor(settings.CursorMode);
-	setContours(settings.NumberOfIsoLines, settings.MinIsoValue, settings.MaxIsoValue);
-	showIsolines(settings.ShowIsoLines);
-	showPosition(settings.ShowPosition);
+	setMouseCursor(settings[iASlicerImpl::MouseCursor].toString());
+	setContours(settings[iASlicerImpl::NumberOfIsoLines].toInt(),
+		settings[iASlicerImpl::MinIsoValue].toDouble(), settings[iASlicerImpl::MaxIsoValue].toDouble());
+	showIsolines(settings[iASlicerImpl::ShowIsoLines].toBool());
+	showPosition(settings[iASlicerImpl::ShowPosition].toBool());
 	if (m_decorations)
 	{
-		m_axisTextActor[0]->SetVisibility(settings.ShowAxesCaption);
-		m_axisTextActor[1]->SetVisibility(settings.ShowAxesCaption);
+		m_axisTextActor[0]->SetVisibility(settings[iASlicerImpl::ShowAxesCaption].toBool());
+		m_axisTextActor[1]->SetVisibility(settings[iASlicerImpl::ShowAxesCaption].toBool());
 	}
 	// compromise between keeping old behavior (tooltips disabled if m_decorations == false),
 	// but still making it possible to enable tooltips via context menu: only enable tooltips
 	// from settings if decorations turned on:
-	m_settings.ShowTooltip &= m_decorations;
-	m_textInfo->setFontSize(settings.ToolTipFontSize);
-	setBackground(settings.backgroundColor);
-	m_textInfo->show(m_settings.ShowTooltip);
-	setMagicLensFrameWidth(settings.MagicLensFrameWidth);
-	setMagicLensSize(settings.MagicLensSize);
+	m_settings[iASlicerImpl::ShowTooltip] = m_settings[iASlicerImpl::ShowTooltip].toBool() && m_decorations;
+	m_textInfo->setFontSize(settings[iASlicerImpl::ToolTipFontSize].toInt());
+	setBackground(variantToColor(settings[iASlicerImpl::BackgroundColor]));
+	m_textInfo->show(m_settings[iASlicerImpl::ShowTooltip].toBool());
+	setMagicLensFrameWidth(m_settings[iASlicerImpl::MagicLensFrameWidth].toInt());
+	setMagicLensSize(m_settings[iASlicerImpl::MagicLensSize].toInt());
 	if (m_magicLens)
 	{
 		updateMagicLens();
@@ -1298,7 +1343,7 @@ namespace
 
 void iASlicerImpl::printVoxelInformation()
 {
-	if (!m_decorations || !m_settings.ShowTooltip || m_channels.isEmpty() || m_magicLens->isEnabled())
+	if (!m_decorations || !m_settings[iASlicerImpl::ShowTooltip].toBool() || m_channels.isEmpty() || m_magicLens->isEnabled())
 	{
 		return;
 	}
@@ -1645,7 +1690,7 @@ void iASlicerImpl::snapToHighGradient(double &x, double &y)
 
 void iASlicerImpl::setShowTooltip(bool isVisible)
 {
-	m_settings.ShowTooltip = isVisible;
+	m_settings[iASlicerImpl::ShowTooltip] = isVisible;
 	m_textInfo->show(isVisible);
 }
 
@@ -1709,7 +1754,7 @@ QSharedPointer<iAChannelSlicerData> iASlicerImpl::createChannel(uint id, iAChann
 	}
 
 	QSharedPointer<iAChannelSlicerData> newData(new iAChannelSlicerData(chData, m_mode));
-	newData->setInterpolate(m_settings.LinearInterpolation);
+	newData->setInterpolate(m_settings[iASlicerImpl::LinearInterpolation].toBool());
 	newData->setSlabNumberOfSlices(m_slabThickness);
 	newData->setSlabMode(m_slabCompositeMode);
 	newData->setTransform(m_transform);
@@ -2113,7 +2158,7 @@ void iASlicerImpl::contextMenuEvent(QContextMenuEvent *event)
 	m_actionToggleWindowLevelAdjust->setChecked(m_interactorStyle->interactionMode() == iASlicerInteractorStyle::imWindowLevelAdjust);
 	m_actionToggleRegionTransferFunction->setChecked(m_interactorStyle->interactionMode() == iASlicerInteractorStyle::imRegionSelect);
 	m_actionToggleNormalInteraction->setChecked(m_interactorStyle->interactionMode() == iASlicerInteractorStyle::imNormal);
-	m_actionShowTooltip->setChecked(m_settings.ShowTooltip);
+	m_actionShowTooltip->setChecked(m_settings[iASlicerImpl::ShowTooltip].toBool());
 	m_actionFisheyeLens->setChecked(m_fisheyeLensActivated);
 	if (m_magicLens)
 	{
@@ -2272,6 +2317,11 @@ int iASlicerImpl::globalAxis(int slicerAxis)
 	return mapSliceToGlobalAxis(m_mode, slicerAxis);
 }
 
+QVariantMap const& iASlicerImpl::settings()
+{
+	return m_settings;
+}
+
 void iASlicerImpl::resizeEvent(QResizeEvent * event)
 {
 	updateMagicLens();
@@ -2357,7 +2407,7 @@ void iASlicerImpl::toggleInteractionMode(QAction * )
 
 void iASlicerImpl::toggleShowTooltip()
 {
-	setShowTooltip(!m_settings.ShowTooltip);
+	setShowTooltip(!m_settings[iASlicerImpl::ShowTooltip].toBool());
 }
 
 void iASlicerImpl::fisheyeLensToggled(bool enabled)

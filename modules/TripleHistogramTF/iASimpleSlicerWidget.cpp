@@ -30,7 +30,7 @@ iASimpleSlicerWidget::~iASimpleSlicerWidget()
 	delete m_slicer;
 }
 
-void iASimpleSlicerWidget::applySettings(iASingleSlicerSettings const & settings)
+void iASimpleSlicerWidget::applySettings(QVariantMap const & settings)
 {
 	m_slicer->setup(settings);
 }

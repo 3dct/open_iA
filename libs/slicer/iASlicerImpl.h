@@ -21,7 +21,6 @@ class iAChannelData;
 class iAChannelSlicerData;
 class iAMagicLens;
 class iARulerWidget;
-class iASingleSlicerSettings;
 class iASlicerInteractorStyle;
 class iASnakeSpline;
 class iAVtkText;
@@ -61,6 +60,20 @@ class iAslicer_API iASlicerImpl : public iASlicer
 {
 	Q_OBJECT
 public:
+	static constexpr const char MouseCursor[] = "Mouse Cursor";
+	static constexpr const char LinearInterpolation[] = "Linear Interpolation";
+	static constexpr const char AdjustWindowLevelEnabled[] = "Adjust Window/Level via Mouse Click+Drag";
+	static constexpr const char ShowPosition[] = "Show Position";
+	static constexpr const char ShowAxesCaption[] = "Show axes caption";
+	static constexpr const char ShowTooltip[] = "Show Tooltip";
+	static constexpr const char ToolTipFontSize[] = "Tooltip Font Size (pt)";
+	static constexpr const char MagicLensSize[] = "Magic lens size";
+	static constexpr const char MagicLensFrameWidth[] = "Magic lens frame width";
+	static constexpr const char BackgroundColor[] = "Background Color";
+	static constexpr const char ShowIsoLines[] = "Show Isolines";
+	static constexpr const char NumberOfIsoLines[] = "Number of Isolines";
+	static constexpr const char MinIsoValue[] = "Mininmum isovalue";
+	static constexpr const char MaxIsoValue[] = "Maxinmum isovalue";
 	enum InteractionMode {
 		Normal,
 		SnakeEdit,
@@ -76,7 +89,7 @@ public:
 	iASlicerImpl(QWidget * parent, const iASlicerMode mode, bool decorations = true, bool magicLensAvailable = true,
 		vtkAbstractTransform *transform = nullptr, vtkPoints* snakeSlicerPoints = nullptr);
 	//! Sets up the slicer with the given settings.
-	void setup(iASingleSlicerSettings const & settings) override;
+	void setup(QVariantMap const & settings) override;
 	virtual ~iASlicerImpl();
 
 	//! @{ Magic Lens methods
@@ -184,6 +197,8 @@ public:
 	void setLinkedMdiChild(iAMdiChild* mdiChild) override;
 
 	int globalAxis(int slicerAxis) override;
+
+	virtual QVariantMap const& settings() override;
 
 	//! call if the dimension of the input in direction of the slice axis has changed.
 	void setSlicerRange(uint channelID);
@@ -343,7 +358,6 @@ private:
 	//! @}
 	int m_positionMarkerSize;   //!< size of the position marker cube (showing the current position in other views)
 
-	iASingleSlicerSettings m_settings;
 	int m_slabThickness;       //! current slab thickness (default = 0, i.e. only a single voxel slice); TODO: move to iASingleslicerSettings?
 	int m_slabCompositeMode;   //! current slab mode (how to combine the voxels of the current slab into a single pixel); TODO: move to iASingleslicerSettings?
 
@@ -378,6 +392,8 @@ private:
 	uint m_sliceNumberChannel;     //!< the image of this channel is used for determining slice range
 
 	iAMdiChild* m_linkedMdiChild;  //!< access to child for "linked mdi childs feature - get rid of this somehow!
+
+	QVariantMap m_settings;        //!< current settings of this slicer
 
 	uint firstVisibleChannel() const;
 	QSharedPointer<iAChannelSlicerData> createChannel(uint id, iAChannelData const & chData);

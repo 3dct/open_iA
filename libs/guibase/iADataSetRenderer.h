@@ -84,6 +84,8 @@ public:
 	virtual void setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3);
 	virtual void removeCuttingPlanes();
 
+	static iAAttributes& defaultAttributes();
+
 protected:
 	//void addAttribute(QString const& name, iAValueType valueType, QVariant defaultValue = 0.0,
 	//	double min = std::numeric_limits<double>::lowest(), double max = std::numeric_limits<double>::max());
@@ -92,7 +94,6 @@ protected:
 	void updateOutlineTransform();
 
 	virtual iAAttributes const & attributes() const;
-	static iAAttributes& defaultAttributes();
 
 	//! The VTK renderer used for showing this dataset.
 	//! Note that this pointer may be set to nullptr if the renderer is deleted before;

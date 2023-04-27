@@ -10,6 +10,8 @@
 
 class QSettings;
 
+iAbase_API QString configStorageName(QString const& in);
+
 //! Retrieve a map of all values in (the current group of) a given QSettings object.
 //! @param settings the QSettings object to load all settings from
 //! @return a map containing key->value pairs for all settings currently in

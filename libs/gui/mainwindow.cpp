@@ -206,7 +206,6 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	addActionIcon(m_ui->actionSlicerSettings, "settings_slicer");
 	addActionIcon(m_ui->actionPreferences, "settings");
 	addActionIcon(m_ui->actionOpenWithDataTypeConversion, "open");
-	addActionIcon(m_ui->actionOpenVolumeStack, "open");
 	addActionIcon(m_ui->actionOpenTLGICTData, "open");
 	addActionIcon(m_ui->actionOpenRaw, "open");
 	addActionIcon(m_ui->actionOpenDataSet, "open");
@@ -749,6 +748,7 @@ void MainWindow::saveSlicerSettings(iAXmlSettings &xml)
 {
 	QDomElement slicerSettingsElement = xml.createElement("slicerSettings");
 	slicerSettingsElement.setAttribute("linkViews", m_defaultSlicerSettings.LinkViews);
+	/*
 	slicerSettingsElement.setAttribute("showIsolines", m_defaultSlicerSettings.SingleSlicer.ShowIsoLines);
 	slicerSettingsElement.setAttribute("showPosition", m_defaultSlicerSettings.SingleSlicer.ShowPosition);
 	slicerSettingsElement.setAttribute("showAxesCaption", m_defaultSlicerSettings.SingleSlicer.ShowAxesCaption);
@@ -757,20 +757,23 @@ void MainWindow::saveSlicerSettings(iAXmlSettings &xml)
 	slicerSettingsElement.setAttribute("maxIsovalue", m_defaultSlicerSettings.SingleSlicer.MaxIsoValue);
 	slicerSettingsElement.setAttribute("linearInterpolation", m_defaultSlicerSettings.SingleSlicer.LinearInterpolation);
 	slicerSettingsElement.setAttribute("adjustWindowLevelEnabled", m_defaultSlicerSettings.SingleSlicer.AdjustWindowLevelEnabled);
-	slicerSettingsElement.setAttribute("snakeSlices", m_defaultSlicerSettings.SnakeSlices);
-	slicerSettingsElement.setAttribute("linkMDIs", m_defaultSlicerSettings.LinkMDIs);
 	slicerSettingsElement.setAttribute("cursorMode", m_defaultSlicerSettings.SingleSlicer.CursorMode);
 	slicerSettingsElement.setAttribute("toolTipFontSize", m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize);
 	for (int s=0; s<iASlicerMode::SlicerCount; ++s)
 	{
 		slicerSettingsElement.setAttribute(QString("slicerBgColor%1").arg(s), m_defaultSlicerSettings.BackgroundColor[s]);
 	}
+	*/
+	slicerSettingsElement.setAttribute("snakeSlices", m_defaultSlicerSettings.SnakeSlices);
+	slicerSettingsElement.setAttribute("linkMDIs", m_defaultSlicerSettings.LinkMDIs);
 }
 
 void MainWindow::loadSlicerSettings(QDomNode slicerSettingsNode)
 {
 	QDomNamedNodeMap attributes = slicerSettingsNode.attributes();
-
+	m_defaultSlicerSettings.SnakeSlices = attributes.namedItem("snakeSlices").nodeValue().toDouble();
+	m_defaultSlicerSettings.LinkMDIs = attributes.namedItem("linkMDIs").nodeValue() == "1";
+/*
 	m_defaultSlicerSettings.LinkViews = attributes.namedItem("linkViews").nodeValue() == "1";
 	m_defaultSlicerSettings.SingleSlicer.ShowIsoLines = attributes.namedItem("showIsolines").nodeValue() == "1";
 	m_defaultSlicerSettings.SingleSlicer.ShowPosition = attributes.namedItem("showPosition").nodeValue() == "1";
@@ -780,14 +783,13 @@ void MainWindow::loadSlicerSettings(QDomNode slicerSettingsNode)
 	m_defaultSlicerSettings.SingleSlicer.MaxIsoValue = attributes.namedItem("maxIsovalue").nodeValue().toDouble();
 	m_defaultSlicerSettings.SingleSlicer.LinearInterpolation = attributes.namedItem("linearInterpolation").nodeValue() == "1";
 	m_defaultSlicerSettings.SingleSlicer.AdjustWindowLevelEnabled = attributes.namedItem("adjustWindowLevelEnabled").nodeValue() == "1";
-	m_defaultSlicerSettings.SnakeSlices = attributes.namedItem("snakeSlices").nodeValue().toDouble();
-	m_defaultSlicerSettings.LinkMDIs = attributes.namedItem("linkMDIs").nodeValue() == "1";
 	m_defaultSlicerSettings.SingleSlicer.CursorMode = attributes.namedItem("cursorMode").nodeValue();
 	m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize = attributes.namedItem("toolTipFontSize").nodeValue().toInt();
 	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
 	{
 		m_defaultSlicerSettings.BackgroundColor[s] = attributes.namedItem(QString("slicerBgColor%1").arg(s)).nodeValue();
 	}
+*/
 	activeMDI()->applySlicerSettings(m_defaultSlicerSettings);
 }
 
@@ -1010,37 +1012,12 @@ namespace
 
 void MainWindow::slicerSettings()
 {
-	QStringList mouseCursorOptions = QStringList()
-		<< "Crosshair default"
-		<< "Crosshair thick red"	<< "Crosshair thin red"
-		<< "Crosshair thick orange"	<< "Crosshair thin orange"
-		<< "Crosshair thick yellow"	<< "Crosshair thin yellow"
-		<< "Crosshair thick blue"	<< "Crosshair thin blue"
-		<< "Crosshair thick cyan"	<< "Crosshair thin cyan";
-	QString dlgTitle = activeMdiChild() ? (activeMdiChild()->windowTitle() + " - slicer setings") : "Default slicer settings";
-	iASlicerSettings const& slicerSettings = activeMDI() ? activeMDI()->slicerSettings() : m_defaultSlicerSettings;
-	selectOption(mouseCursorOptions, slicerSettings.SingleSlicer.CursorMode);
+	QString dlgTitle = "Slicer settings";
 	iAAttributes params;
+	iASlicerSettings const& slicerSettings = activeMDI() ? activeMDI()->slicerSettings() : m_defaultSlicerSettings;
 	addAttr(params, "Link Views", iAValueType::Boolean, slicerSettings.LinkViews);
 	addAttr(params, "Link MDIs", iAValueType::Boolean, slicerSettings.LinkMDIs);
 	addAttr(params, "Snake Slices", iAValueType::Discrete, slicerSettings.SnakeSlices);
-	addAttr(params, "Mouse Cursor", iAValueType::Categorical, mouseCursorOptions);
-	addAttr(params, "Show Position", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowPosition);
-	addAttr(params, "Show Isolines", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowIsoLines);
-	addAttr(params, "Linear Interpolation", iAValueType::Boolean, slicerSettings.SingleSlicer.LinearInterpolation);
-	addAttr(params, "Adjust Window/Level via Mouse Click+Drag", iAValueType::Boolean, slicerSettings.SingleSlicer.AdjustWindowLevelEnabled);
-	addAttr(params, "Number of Isolines", iAValueType::Discrete, slicerSettings.SingleSlicer.NumberOfIsoLines);
-	addAttr(params, "Min Isovalue", iAValueType::Continuous, slicerSettings.SingleSlicer.MinIsoValue);
-	addAttr(params, "Max Isovalue", iAValueType::Continuous, slicerSettings.SingleSlicer.MaxIsoValue);
-	addAttr(params, "Show Axes Caption", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowAxesCaption);
-	addAttr(params, "Tooltip Font Size (pt)", iAValueType::Discrete, slicerSettings.SingleSlicer.ToolTipFontSize);
-	addAttr(params, "Show Tooltip", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowTooltip);
-	addAttr(params, "Magic lens size", iAValueType::Discrete, slicerSettings.SingleSlicer.MagicLensSize, MinimumMagicLensSize, MaximumMagicLensSize);
-	addAttr(params, "Magic lens frame width", iAValueType::Discrete, slicerSettings.SingleSlicer.MagicLensFrameWidth, 0);
-	for (int s=0; s<iASlicerMode::SlicerCount; ++s)
-	{
-		addAttr(params, slicerBGColorSetting(s), iAValueType::Color, slicerSettings.BackgroundColor[s]);
-	}
 	iAParameterDlg dlg(this, dlgTitle, params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
@@ -1050,6 +1027,7 @@ void MainWindow::slicerSettings()
 	m_defaultSlicerSettings.LinkViews = values["Link Views"].toBool();
 	m_defaultSlicerSettings.LinkMDIs = values["Link MDIs"].toBool();
 	m_defaultSlicerSettings.SnakeSlices = values["Snake Slices"].toInt();
+	/*
 	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
 	{
 		m_defaultSlicerSettings.BackgroundColor[s] = values[slicerBGColorSetting(s)].toString();
@@ -1067,7 +1045,7 @@ void MainWindow::slicerSettings()
 	m_defaultSlicerSettings.SingleSlicer.ShowTooltip = values["Show Tooltip"].toBool();
 	m_defaultSlicerSettings.SingleSlicer.MagicLensSize = values["Magic lens size"].toUInt();
 	m_defaultSlicerSettings.SingleSlicer.MagicLensFrameWidth = values["Magic lens frame width"].toUInt();
-
+	*/
 	if (activeMdiChild())
 	{
 		activeMDI()->applySlicerSettings(m_defaultSlicerSettings);
@@ -1333,8 +1311,8 @@ void MainWindow::updateMenus()  // (and toolbars)
 	QSignalBlocker interactionModeRegistrationBlock(m_ui->actionInteractionModeRegistration);
 	m_ui->actionInteractionModeRegistration->setChecked(child && child->interactionMode() == MdiChild::imRegistration);
 	m_ui->actionInteractionModeRegistration->setEnabled(hasMdiChild);
-	m_ui->actionRendererSettings->setEnabled(hasMdiChild);
-	m_ui->actionSlicerSettings->setEnabled(hasMdiChild);
+	//m_ui->actionRendererSettings->setEnabled(hasMdiChild);
+	//m_ui->actionSlicerSettings->setEnabled(hasMdiChild);
 	m_ui->menuInteractionMode->setEnabled(hasMdiChild);
 
 	// Views Menu:
@@ -1639,6 +1617,7 @@ void MainWindow::readSettings()
 	m_defaultSlicerSettings.LinkViews = settings.value("Slicer/ssLinkViews", fallbackSS.LinkViews).toBool();
 	m_defaultSlicerSettings.LinkMDIs = settings.value("Slicer/ssLinkMDIs", fallbackSS.LinkMDIs).toBool();
 	m_defaultSlicerSettings.SnakeSlices = settings.value("Slicer/ssSnakeSlices", fallbackSS.SnakeSlices).toInt();
+	/*
 	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
 	{
 		m_defaultSlicerSettings.BackgroundColor[s] = settings.value(QString("Slicer/ssBgColor%1").arg(s), "").toString();
@@ -1654,6 +1633,7 @@ void MainWindow::readSettings()
 	m_defaultSlicerSettings.SingleSlicer.AdjustWindowLevelEnabled = settings.value("Slicer/ssAdjustWindowLevelEnabled", fallbackSS.SingleSlicer.AdjustWindowLevelEnabled).toBool();
 	m_defaultSlicerSettings.SingleSlicer.CursorMode = settings.value( "Slicer/ssCursorMode", fallbackSS.SingleSlicer.CursorMode).toString();
 	m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize = settings.value("Slicer/toolTipFontSize", fallbackSS.SingleSlicer.ToolTipFontSize).toInt();
+	*/
 
 	m_lpCamera = settings.value("Parameters/lpCamera").toBool();
 	m_lpSliceViews = settings.value("Parameters/lpSliceViews").toBool();
@@ -1724,6 +1704,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Slicer/ssLinkViews", m_defaultSlicerSettings.LinkViews);
 	settings.setValue("Slicer/ssLinkMDIs", m_defaultSlicerSettings.LinkMDIs);
 	settings.setValue("Slicer/ssSnakeSlices", m_defaultSlicerSettings.SnakeSlices);
+	/*
 	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
 	{
 		settings.setValue(QString("Slicer/ssBgColor%1").arg(s), m_defaultSlicerSettings.BackgroundColor[s]);
@@ -1739,6 +1720,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Slicer/ssAdjustWindowLevelEnabled", m_defaultSlicerSettings.SingleSlicer.AdjustWindowLevelEnabled);
 	settings.setValue("Slicer/ssCursorMode", m_defaultSlicerSettings.SingleSlicer.CursorMode);
 	settings.setValue("Slicer/toolTipFontSize", m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize);
+	*/
 
 	settings.setValue("Parameters/lpCamera", m_lpCamera);
 	settings.setValue("Parameters/lpSliceViews", m_lpSliceViews);

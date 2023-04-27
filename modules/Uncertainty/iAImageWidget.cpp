@@ -61,7 +61,6 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img, vtkSmartPointer<
 	setLayout(new QHBoxLayout);
 	layout()->setSpacing(0);
 	layout()->addWidget(m_slicer);
-	m_slicer->setup(iASingleSlicerSettings());
 	m_slicer->addChannel(0, iAChannelData("", img, m_lut), true);
 	StyleChanged();
 }
