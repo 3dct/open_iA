@@ -748,24 +748,9 @@ void MainWindow::saveSlicerSettings(iAXmlSettings &xml)
 {
 	QDomElement slicerSettingsElement = xml.createElement("slicerSettings");
 	slicerSettingsElement.setAttribute("linkViews", m_defaultSlicerSettings.LinkViews);
-	/*
-	slicerSettingsElement.setAttribute("showIsolines", m_defaultSlicerSettings.SingleSlicer.ShowIsoLines);
-	slicerSettingsElement.setAttribute("showPosition", m_defaultSlicerSettings.SingleSlicer.ShowPosition);
-	slicerSettingsElement.setAttribute("showAxesCaption", m_defaultSlicerSettings.SingleSlicer.ShowAxesCaption);
-	slicerSettingsElement.setAttribute("numberOfIsolines", m_defaultSlicerSettings.SingleSlicer.NumberOfIsoLines);
-	slicerSettingsElement.setAttribute("minIsovalue", m_defaultSlicerSettings.SingleSlicer.MinIsoValue);
-	slicerSettingsElement.setAttribute("maxIsovalue", m_defaultSlicerSettings.SingleSlicer.MaxIsoValue);
-	slicerSettingsElement.setAttribute("linearInterpolation", m_defaultSlicerSettings.SingleSlicer.LinearInterpolation);
-	slicerSettingsElement.setAttribute("adjustWindowLevelEnabled", m_defaultSlicerSettings.SingleSlicer.AdjustWindowLevelEnabled);
-	slicerSettingsElement.setAttribute("cursorMode", m_defaultSlicerSettings.SingleSlicer.CursorMode);
-	slicerSettingsElement.setAttribute("toolTipFontSize", m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize);
-	for (int s=0; s<iASlicerMode::SlicerCount; ++s)
-	{
-		slicerSettingsElement.setAttribute(QString("slicerBgColor%1").arg(s), m_defaultSlicerSettings.BackgroundColor[s]);
-	}
-	*/
 	slicerSettingsElement.setAttribute("snakeSlices", m_defaultSlicerSettings.SnakeSlices);
 	slicerSettingsElement.setAttribute("linkMDIs", m_defaultSlicerSettings.LinkMDIs);
+	// TODO SETTINGS: store settings from slicer directly
 }
 
 void MainWindow::loadSlicerSettings(QDomNode slicerSettingsNode)
@@ -773,23 +758,7 @@ void MainWindow::loadSlicerSettings(QDomNode slicerSettingsNode)
 	QDomNamedNodeMap attributes = slicerSettingsNode.attributes();
 	m_defaultSlicerSettings.SnakeSlices = attributes.namedItem("snakeSlices").nodeValue().toDouble();
 	m_defaultSlicerSettings.LinkMDIs = attributes.namedItem("linkMDIs").nodeValue() == "1";
-/*
-	m_defaultSlicerSettings.LinkViews = attributes.namedItem("linkViews").nodeValue() == "1";
-	m_defaultSlicerSettings.SingleSlicer.ShowIsoLines = attributes.namedItem("showIsolines").nodeValue() == "1";
-	m_defaultSlicerSettings.SingleSlicer.ShowPosition = attributes.namedItem("showPosition").nodeValue() == "1";
-	m_defaultSlicerSettings.SingleSlicer.ShowAxesCaption = attributes.namedItem("showAxesCaption").nodeValue() == "1";
-	m_defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = attributes.namedItem("numberOfIsolines").nodeValue().toInt();
-	m_defaultSlicerSettings.SingleSlicer.MinIsoValue = attributes.namedItem("minIsovalue").nodeValue().toDouble();
-	m_defaultSlicerSettings.SingleSlicer.MaxIsoValue = attributes.namedItem("maxIsovalue").nodeValue().toDouble();
-	m_defaultSlicerSettings.SingleSlicer.LinearInterpolation = attributes.namedItem("linearInterpolation").nodeValue() == "1";
-	m_defaultSlicerSettings.SingleSlicer.AdjustWindowLevelEnabled = attributes.namedItem("adjustWindowLevelEnabled").nodeValue() == "1";
-	m_defaultSlicerSettings.SingleSlicer.CursorMode = attributes.namedItem("cursorMode").nodeValue();
-	m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize = attributes.namedItem("toolTipFontSize").nodeValue().toInt();
-	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
-	{
-		m_defaultSlicerSettings.BackgroundColor[s] = attributes.namedItem(QString("slicerBgColor%1").arg(s)).nodeValue();
-	}
-*/
+	// TODO SETTINGS: load settings from slicer directly
 	activeMDI()->applySlicerSettings(m_defaultSlicerSettings);
 }
 
@@ -1027,25 +996,6 @@ void MainWindow::slicerSettings()
 	m_defaultSlicerSettings.LinkViews = values["Link Views"].toBool();
 	m_defaultSlicerSettings.LinkMDIs = values["Link MDIs"].toBool();
 	m_defaultSlicerSettings.SnakeSlices = values["Snake Slices"].toInt();
-	/*
-	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
-	{
-		m_defaultSlicerSettings.BackgroundColor[s] = values[slicerBGColorSetting(s)].toString();
-	}
-	m_defaultSlicerSettings.SingleSlicer.ShowPosition = values["Show Position"].toBool();
-	m_defaultSlicerSettings.SingleSlicer.ShowIsoLines = values["Show Isolines"].toBool();
-	m_defaultSlicerSettings.SingleSlicer.LinearInterpolation = values["Linear Interpolation"].toBool();
-	m_defaultSlicerSettings.SingleSlicer.AdjustWindowLevelEnabled = values["Adjust Window/Level via Mouse Click+Drag"].toBool();
-	m_defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = values["Number of Isolines"].toInt();
-	m_defaultSlicerSettings.SingleSlicer.MinIsoValue = values["Min Isovalue"].toDouble();
-	m_defaultSlicerSettings.SingleSlicer.MaxIsoValue = values["Max Isovalue"].toDouble();
-	m_defaultSlicerSettings.SingleSlicer.CursorMode = values["Mouse Coursor Types"].toString();
-	m_defaultSlicerSettings.SingleSlicer.ShowAxesCaption = values["Show Axes Caption"].toBool();
-	m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize = values["Tooltip Font Size (pt)"].toInt();
-	m_defaultSlicerSettings.SingleSlicer.ShowTooltip = values["Show Tooltip"].toBool();
-	m_defaultSlicerSettings.SingleSlicer.MagicLensSize = values["Magic lens size"].toUInt();
-	m_defaultSlicerSettings.SingleSlicer.MagicLensFrameWidth = values["Magic lens frame width"].toUInt();
-	*/
 	if (activeMdiChild())
 	{
 		activeMDI()->applySlicerSettings(m_defaultSlicerSettings);
