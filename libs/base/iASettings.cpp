@@ -17,7 +17,7 @@ QVariantMap mapFromQSettings(QSettings const & settings)
 	QVariantMap result;
 	for (QString key : settings.allKeys())
 	{
-		result[key] = settings.value(configStorageName(key));
+		result[key] = settings.value(key);
 	}
 	return result;
 }
@@ -28,7 +28,7 @@ void storeSettings(QString const& group, QVariantMap const& values)
 	settings.beginGroup(group);
 	for (QString key : values.keys())
 	{
-		settings.setValue(configStorageName(key), values[key]);
+		settings.setValue(key, values[key]);
 	}
 }
 
