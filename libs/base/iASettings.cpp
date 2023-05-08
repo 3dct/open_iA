@@ -46,19 +46,3 @@ QVariantMap loadSettings(QString const& group, QVariantMap const& defaultValues)
 	}
 	return result;
 }
-
-#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
-#include <QDataStream>    // required, otherwise "no operator>>" errors
-#include <QMetaType>      // for qRegisterMetaTypeStreamOperators
-#include <QVector>
-#endif
-
-void initializeSettingTypes()
-{
-#if QT_VERSION < QT_VERSION_CHECK(6,0,0)    // stream operators automatically registered with Qt >= 6
-	qRegisterMetaTypeStreamOperators<QVector<int>>("QVector<int>");
-	qRegisterMetaTypeStreamOperators<QVector<double>>("QVector<double>");
-#endif
-	qRegisterMetaType<QVector<int>>("QVector<int>");
-	qRegisterMetaType<QVector<double>>("QVector<double>");
-}

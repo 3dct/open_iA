@@ -4,7 +4,6 @@
 #include "iALog.h"
 #include "iALoggerStdOut.h"
 #include "iASCIFIOCheck.h"
-#include "iASettings.h"    // for initializeSettingsTypes
 #include "version.h"
 
 #include <QFileInfo>
@@ -14,6 +13,5 @@ int main(int argc, char *argv[])
 	iALog::setLogger(iALoggerStdOut::get());
 	QFileInfo fi(argv[0]);
 	CheckSCIFIO(fi.absolutePath());
-	initializeSettingTypes();
 	return ProcessCommandLine(argc, argv, Open_iA_Version);
 }

@@ -24,6 +24,3 @@ iAbase_API QVariantMap mapFromQSettings(QSettings const& settings);
 iAbase_API QVariantMap loadSettings(QString const& group, QVariantMap const & defaultValues);
 //! Save the given setting values to the platform-specific storage
 iAbase_API void storeSettings(QString const & group, QVariantMap const& values);
-//! Initialize Qt meta types / serialization operators required for
-//! storing and loading specific setting values
-iAbase_API void initializeSettingTypes();

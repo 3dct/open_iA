@@ -44,7 +44,7 @@
 #include "iALogLevelMappings.h"
 #include "iALUT.h"
 #include "iAMathUtility.h"
-#include "iASettings.h"    // for loadSettings, storeSettings, initializeSettingTypes
+#include "iASettings.h"    // for loadSettings, storeSettings
 #include "iAToolsVTK.h"
 #include "iAXmlSettings.h"
 
@@ -2295,7 +2295,6 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	QString const& buildInformation, QString const & splashPath, QString const & iconPath)
 {
 	iAFileParamDlg::setupDefaultFileParamDlgs();
-	initializeSettingTypes();
 	QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
 	QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);
 	iAFileTypeRegistry::addDefaultExtension(iADataSetType::Volume, "mhd");
