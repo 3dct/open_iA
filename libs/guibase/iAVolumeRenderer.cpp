@@ -99,6 +99,7 @@ iAVolumeRenderer::iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, 
 		});
 	modifiedCallback->SetClientData(this);
 	m_volume->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
+	applyAttributes(extractValues(defaultAttributes()));
 }
 
 iAVolumeRenderer::~iAVolumeRenderer()

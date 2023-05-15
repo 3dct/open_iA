@@ -172,8 +172,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_sliceNumber(0),
 	m_cursorSet(false),
 	m_sliceNumberChannel(NotExistingChannel),
-	m_linkedMdiChild(nullptr),
-	m_settings(extractValues(iASingleSlicerSettings::defaultAttributes()))
+	m_linkedMdiChild(nullptr)
 {
 	std::fill(m_angle, m_angle + 3, 0);
 	setAutoFillBackground(false);
@@ -444,6 +443,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 		m_sliceProfile->addToRenderer(m_ren);
 		m_profileHandles->addToRenderer(m_ren);
 	}
+	setup(extractValues(iASingleSlicerSettings::defaultAttributes()));
 	m_ren->ResetCamera();
 }
 

@@ -70,11 +70,17 @@ namespace
 	{
 		applyLightingProperties(actor->GetProperty(), values, prefix);
 		auto pos = variantToVector<double>(values[iADataSetRenderer::Position]);
-		auto ori = variantToVector<double>(values[iADataSetRenderer::Orientation]);
 		assert(pos.size() == 3);
+		if (pos.size() == 3)
+		{
+			actor->SetPosition(pos.data());
+		}
+		auto ori = variantToVector<double>(values[iADataSetRenderer::Orientation]);
 		assert(ori.size() == 3);
-		actor->SetPosition(pos.data());
-		actor->SetOrientation(ori.data());
+		if (ori.size() == 3)
+		{
+			actor->SetOrientation(ori.data());
+		}
 		actor->GetProperty()->SetInterpolation(string2VtkShadingInterpolation(values[prefix + ShadingInterpolation].toString()));
 		actor->GetProperty()->SetShading(values[prefix + iADataSetRenderer::Shading].toBool());
 	}
@@ -90,7 +96,7 @@ public:
 		static iAAttributes attr;
 		if (attr.isEmpty())
 		{
-			cloneAttributes(iADataSetRenderer::defaultAttributes());
+			attr = cloneAttributes(iADataSetRenderer::defaultAttributes());
 			addAttr(attr, PointRadius, iAValueType::Continuous, 5, 0.0000001, 100000000);
 			addAttr(attr, PointColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
 			addAttr(attr, PointColor, iAValueType::Color, "#FF0000");

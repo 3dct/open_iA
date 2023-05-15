@@ -70,10 +70,11 @@ public:
 	static constexpr const char MagicLensSize[] = "Magic lens size";
 	static constexpr const char MagicLensFrameWidth[] = "Magic lens frame width";
 	static constexpr const char BackgroundColor[] = "Background Color";
+	// extract to separate iso visualization:
 	static constexpr const char ShowIsoLines[] = "Show Isolines";
 	static constexpr const char NumberOfIsoLines[] = "Number of Isolines";
-	static constexpr const char MinIsoValue[] = "Mininmum isovalue";
-	static constexpr const char MaxIsoValue[] = "Maxinmum isovalue";
+	static constexpr const char MinIsoValue[] = "Minimum isovalue";
+	static constexpr const char MaxIsoValue[] = "Maximum isovalue";
 	enum InteractionMode {
 		Normal,
 		SnakeEdit,
