@@ -5,35 +5,22 @@
 #include <iADataSetRenderer.h>
 #include <iALog.h>
 
-#include <vtkOpenVRRenderWindow.h>
-#include <vtkOpenVRRenderWindowInteractor.h>
-
-#include <QCoreApplication>
-#include <QDir>
-
-iAVRMainThread::iAVRMainThread(vtkSmartPointer<vtkOpenVRRenderWindow> renderWindow, vtkSmartPointer<vtkOpenVRRenderWindowInteractor> interactor) :
+iAVRMainThread::iAVRMainThread(iAvtkVRRenderWindow* renderWindow, iAvtkVRRenderWindowInteractor* interactor) :
 	m_renderWindow(renderWindow), m_interactor(interactor), m_done(false)
 {}
 
 void iAVRMainThread::run()
 {
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
-	// for correct input manifest json path
-	auto prevWorkingDir = QDir::currentPath();
-	QDir::setCurrent(QCoreApplication::applicationDirPath() + "/VR-input-manifests");
-#endif
 	m_renderWindow->Initialize();
-	if (!vr::VRInput())
-	{
-		m_msg = "Headset not available or turned off. Please attach, turn on and try again!";
-		LOG(lvlWarn, "Headset not available or turned off. Please attach, turn on and try again!");
-		return;
-	}
+	//if (!vr::VRInput())
+	//{
+	//	m_msg = "Headset not available or turned off. Please attach, turn on and try again!";
+	//	LOG(lvlWarn, "Headset not available or turned off. Please attach, turn on and try again!");
+	//	return;
+	//}
 	LOG(lvlInfo, "VR rendering started!");
 	m_renderWindow->Render();
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
-	QDir::setCurrent(prevWorkingDir);
-#endif
+	iAVRObjectFactory::setActionManifest(m_interactor);
 	// use of vtk's event loop is potentially problematic - calling SetDone on it from another
 	// thread causes potential assertion failures in the immediately invoked event:
 	// m_interactor->Start();

@@ -5,8 +5,14 @@
 #include <iALog.h>
 #include <iAVec3.h>
 
-#include "vtkTextProperty.h"
-#include "vtkCamera.h"
+#include <vtkCamera.h>
+#include <vtkTextProperty.h>
+
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
+#include <vtkVRControlsHelper.h>
+#else
+#include <vtkOpenVRControlsHelper.h>
+#endif
 
 iAVR3DText::iAVR3DText(vtkRenderer* ren): m_renderer(ren)
 {

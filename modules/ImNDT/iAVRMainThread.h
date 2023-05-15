@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#include "iAvtkVR.h"
+
 #include <vtkSmartPointer.h>
 
 #include <QString>
@@ -11,21 +13,18 @@
 
 class iADataSetRenderer;
 
-class vtkOpenVRRenderWindow;
-class vtkOpenVRRenderWindowInteractor;
-
 class iAVRMainThread : public QThread
 {
 	Q_OBJECT
 public:
-	iAVRMainThread(vtkSmartPointer<vtkOpenVRRenderWindow> renderWindow, vtkSmartPointer<vtkOpenVRRenderWindowInteractor> interactor);
+	iAVRMainThread(iAvtkVRRenderWindow* renderWindow, iAvtkVRRenderWindowInteractor* interactor);
 	void run() override;
 	void stop();
 	QString message() const;
 	void removeRenderer(std::shared_ptr<iADataSetRenderer> renderer);
 private:
-	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
-	vtkSmartPointer<vtkOpenVRRenderWindowInteractor> m_interactor;
+	iAvtkVRRenderWindow* m_renderWindow;
+	iAvtkVRRenderWindowInteractor* m_interactor;
 	std::vector<std::shared_ptr<iADataSetRenderer>> m_renderersToRemove;
 	std::mutex m_removeMutex;
 	QString m_msg;

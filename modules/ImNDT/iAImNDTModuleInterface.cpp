@@ -17,7 +17,13 @@
 
 #include <iALog.h>
 
+#ifdef OPENVR_AVAILABLE
 #include <openvr.h>
+#endif
+
+#ifdef OPENXR_AVAILABLE
+#include <openxr/openxr.h>
+#endif
 
 #include <vtkImageData.h>
 #include <vtkTable.h>
@@ -47,15 +53,22 @@ void iAImNDTModuleInterface::Initialize()
 	QAction * actionIMNDTInfo = new QAction(tr("ImNDT Info"), m_mainWnd);
 	connect(actionIMNDTInfo, &QAction::triggered, this, &iAImNDTModuleInterface::info);
 
-	QAction* actionVRInfo = new QAction(tr("VR Info"), m_mainWnd);
-	connect(actionVRInfo, &QAction::triggered, this, &iAImNDTModuleInterface::vrInfo);
-
 	m_actionVRStartAnalysis = new QAction(tr("Start Analysis"), m_mainWnd);
 	connect(m_actionVRStartAnalysis, &QAction::triggered, this, &iAImNDTModuleInterface::startAnalysis);
 
 	QMenu* vrMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("ImNDT"), false);
 	vrMenu->addAction(actionIMNDTInfo);
-	vrMenu->addAction(actionVRInfo);
+
+#ifdef OPENVR_AVAILABLE
+	QAction* actionOpenVRInfo = new QAction(tr("OpenVR Info"), m_mainWnd);
+	connect(actionOpenVRInfo, &QAction::triggered, this, &iAImNDTModuleInterface::openVRInfo);
+	vrMenu->addAction(actionOpenVRInfo);
+#endif
+#ifdef OPENXR_AVAILABLE
+	QAction* actionOpenXRInfo = new QAction(tr("OpenXR Info"), m_mainWnd);
+	connect(actionOpenXRInfo, &QAction::triggered, this, &iAImNDTModuleInterface::openXRInfo);
+	vrMenu->addAction(actionOpenXRInfo);
+#endif
 	vrMenu->addAction(m_actionVRStartAnalysis);
 
 	auto removeRenderer = [this](iAMdiChild* child, size_t dataSetIdx)
@@ -152,7 +165,8 @@ void iAImNDTModuleInterface::info()
 	QMessageBox::information(m_mainWnd, "ImNDT Module", infoTxt);
 }
 
-void iAImNDTModuleInterface::vrInfo()
+#ifdef OPENVR_AVAILABLE
+void iAImNDTModuleInterface::openVRInfo()
 {
 	LOG(lvlInfo, QString("VR Information:"));
 	LOG(lvlInfo, QString("    Is Runtime installed: %1").arg(vr::VR_IsRuntimeInstalled() ? "yes" : "no"));
@@ -187,6 +201,13 @@ void iAImNDTModuleInterface::vrInfo()
 	}
 	vr::VR_Shutdown();
 }
+#endif
+
+#if OPENXR_AVAILABLE
+void iAImNDTModuleInterface::openXRInfo()
+{
+}
+#endif
 
 void iAImNDTModuleInterface::startAnalysis()
 {
@@ -213,6 +234,8 @@ void iAImNDTModuleInterface::startAnalysis()
 
 bool iAImNDTModuleInterface::vrAvailable()
 {
+#if OPENXR_AVAILABLE
+#else
 	if (!vr::VR_IsRuntimeInstalled())
 	{
 		LOG(lvlWarn, "VR runtime not found. Please install Steam and SteamVR!");
@@ -225,6 +248,7 @@ bool iAImNDTModuleInterface::vrAvailable()
 		QMessageBox::warning(m_mainWnd, "VR", "No VR device found. Make sure your HMD device is plugged in and turned on!");
 		return false;
 	}
+#endif
 	return true;
 }
 

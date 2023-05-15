@@ -1,20 +1,24 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "iAVRFrontCamera.h"
+#ifndef OPENXR_AVAILABLE
 
-#include <qstring.h>
+#include "iAVRFrontCamera.h"
 
 #include <iALog.h>
 
-#include <vtkImageData.h>
-#include <vtkOpenVRCamera.h>
-#include <vtkOpenVRRenderer.h>
-#include <vtkProperty.h>
-#include <vtkTexture.h>
 #include <vtkExtractVOI.h>
+#include <vtkImageData.h>
+#include <vtkOpenVRRenderer.h>
+#include <vtkOpenVRRenderWindow.h>
 #include <vtkPNGWriter.h>
+#include <vtkProperty.h>
+#include <vtkRenderer.h>
+#include <vtkTexture.h>
 
-iAVRFrontCamera::iAVRFrontCamera(vtkRenderer* renderer,vtkOpenVRRenderWindow* renderWindow): m_renderWindow(renderWindow), m_renderer(renderer)
+#include <QString>
+
+iAVRFrontCamera::iAVRFrontCamera(vtkRenderer* renderer, iAvtkVRRenderWindow* renderWindow)
+	: m_renderWindow(renderWindow), m_renderer(renderer)
 {
 	m_pHMD = nullptr;
 	m_VRTrackedCamera = 0;
@@ -43,7 +47,8 @@ iAVRFrontCamera::~iAVRFrontCamera()
 
 bool iAVRFrontCamera::initialize()
 {
-	m_pHMD = m_renderWindow->GetHMD();
+	auto openVRRenWin = vtkOpenVRRenderWindow::SafeDownCast(m_renderWindow);
+	m_pHMD = openVRRenWin->GetHMD();
 	m_VRTrackedCamera = vr::VRTrackedCamera();
 	if (!m_VRTrackedCamera)
 	{
@@ -118,26 +123,6 @@ bool iAVRFrontCamera::buildRepresentation()
 
 	m_renderWindow->Render();
 	return true;
-}
-
-void iAVRFrontCamera::show()
-{
-	if (m_visible)
-	{
-		return;
-	}
-	m_renderer->AddActor(m_cameraActor);
-	m_visible = true;
-}
-
-void iAVRFrontCamera::hide()
-{
-	if (!m_visible)
-	{
-		return;
-	}
-	m_renderer->RemoveActor(m_cameraActor);
-	m_visible = false;
 }
 
 bool iAVRFrontCamera::refreshImage()
@@ -329,6 +314,7 @@ void iAVRFrontCamera::createLeftAndRightEyeImage()
 	m_rightTexture->Modified();
 }
 
+/*
 //! Saves the camera image as PNG
 //! 0: Source Image
 //! 1: Right Eye Image
@@ -359,3 +345,5 @@ void iAVRFrontCamera::saveImageAsPNG(int type)
 		writer->Write();
 	}
 }
+*/
+#endif

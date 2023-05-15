@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#include "iAvtkVR.h"
+
 #include <vtkSmartPointer.h>
 
 #include <QObject>
@@ -9,10 +11,7 @@
 class iADataSetRenderer;
 class iAVRMainThread;
 
-class vtkOpenVRRenderer;
 class vtkRenderer;
-class vtkOpenVRRenderWindow;
-class vtkOpenVRRenderWindowInteractor;
 class vtkSkybox;
 class vtkTexture;
 
@@ -28,8 +27,8 @@ class iAVREnvironment: public QObject
 public:
 	iAVREnvironment();
 	vtkRenderer* renderer();
-	vtkOpenVRRenderWindowInteractor* interactor();
-	vtkOpenVRRenderWindow* renderWindow();
+	iAvtkVRRenderWindowInteractor* interactor();
+	iAvtkVRRenderWindow* renderWindow();
 	void update();
 	void start();
 	void stop();
@@ -44,9 +43,9 @@ private slots:
 	void vrDone();
 private:
 	iAVRMainThread* m_vrMainThread = nullptr;
-	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
-	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
-	vtkSmartPointer<vtkOpenVRRenderWindowInteractor> m_interactor;
+	vtkSmartPointer<iAvtkVRRenderer> m_renderer;
+	vtkSmartPointer<iAvtkVRRenderWindow> m_renderWindow;
+	vtkSmartPointer<iAvtkVRRenderWindowInteractor> m_interactor;
 	vtkSmartPointer<vtkSkybox> m_skyboxActor;
 	//Stores the world scale at start
 	double m_worldScale;

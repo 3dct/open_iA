@@ -11,8 +11,11 @@
 #include <vtkMath.h>
 #include <vtkMatrix4x4.h>
 #include <vtkObjectFactory.h>
-#include <vtkOpenVRModel.h>
+#ifdef OPENXR_AVAILABLE
+#include <vtkOpenXRRenderWindowInteractor.h>
+#else
 #include <vtkOpenVRRenderWindowInteractor.h>
+#endif
 #include <vtkPointPicker.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
@@ -43,9 +46,18 @@ void iAImNDTInteractorStyle::setVRMain(iAImNDTMain* vrMain)
 void iAImNDTInteractorStyle::SetInteractor(vtkRenderWindowInteractor* iren)
 {
 	this->Superclass::SetInteractor(iren);
+#ifdef OPENXR_AVAILABLE
+	auto oiren = vtkOpenXRRenderWindowInteractor::SafeDownCast(iren);
+#else
 	auto oiren = vtkOpenVRRenderWindowInteractor::SafeDownCast(iren);
+#endif
 	assert(oiren);
+	// works in conjunction with the actions defined in the action manifest specified via interactor->SetActionManifestFileName in iAVRMainThread!
+#ifdef OPENXR_AVAILABLE
+	oiren->AddAction("leftgripaction",
+#else
 	oiren->AddAction("/actions/vtk/in/leftgripaction", false,
+#endif
 		[this](vtkEventData* edata)
 		{
 			// for some reason, the input ID is not set; set it to the proper Application Menu
@@ -54,7 +66,11 @@ void iAImNDTInteractorStyle::SetInteractor(vtkRenderWindowInteractor* iren)
 			edd->SetInput(vtkEventDataDeviceInput::Grip);
 			OnButton3D(edata);
 		});
+#ifdef OPENXR_AVAILABLE
+	oiren->AddAction("rightgripaction",
+#else
 	oiren->AddAction("/actions/vtk/in/rightgripaction", false,
+#endif
 		[this](vtkEventData* edata)
 		{
 			// for some reason, the input ID is not set; set it to the proper Application Menu
@@ -63,17 +79,29 @@ void iAImNDTInteractorStyle::SetInteractor(vtkRenderWindowInteractor* iren)
 			edd->SetInput(vtkEventDataDeviceInput::Grip);
 			OnButton3D(edata);
 		});
+#ifdef OPENXR_AVAILABLE
+	oiren->AddAction("trackpadleftclick",
+#else
 	oiren->AddAction("/actions/vtk/in/TrackPadLeftClick", false,
+#endif
 		[this](vtkEventData* edata)
 		{
 			OnButton3D(edata);
 		});
+#ifdef OPENXR_AVAILABLE
+	oiren->AddAction("trackpadleftmove",
+#else
 	oiren->AddAction("/actions/vtk/in/TrackPadLeftMove", true,
+#endif
 		[this](vtkEventData* edata)
 		{
 			updateTrackPadPos(edata);
 		});
+#ifdef OPENXR_AVAILABLE
+	oiren->AddAction("showmenuleft",
+#else
 	oiren->AddAction("/actions/vtk/in/ShowMenuLeft", false,
+#endif
 		[this](vtkEventData* edata)
 		{
 			// for some reason, the input ID is not set; set it to the proper Application Menu
@@ -82,13 +110,21 @@ void iAImNDTInteractorStyle::SetInteractor(vtkRenderWindowInteractor* iren)
 			edd->SetInput(vtkEventDataDeviceInput::ApplicationMenu);
 			OnButton3D(edata);
 		});
+#ifdef OPENXR_AVAILABLE
+	oiren->AddAction("secondbuttonright",
+#else
 	oiren->AddAction("/actions/vtk/in/SecondButtonRight", false,
+#endif
 		[](vtkEventData* edata)
 		{	// currently unused (not working on VIVE as system button there apparently cannot be remapped)
 			Q_UNUSED(edata);
 			LOG(lvlInfo, QString("Right Second Button."));
 		});
+#ifdef OPENXR_AVAILABLE
+	oiren->AddAction("secondbuttonleft",
+#else
 	oiren->AddAction("/actions/vtk/in/SecondButtonLeft", false,
+#endif
 		[](vtkEventData* edata)
 		{	// currently unused (not working on VIVE as system button there apparently cannot be remapped)
 			Q_UNUSED(edata);
@@ -213,12 +249,12 @@ void iAImNDTInteractorStyle::OnMove3D(vtkEventData * edata)
 
 	/* //Orientation?
 	vtkRenderer* ren = this->CurrentRenderer;
-	vtkOpenVRRenderWindow* renWin =
-		vtkOpenVRRenderWindow::SafeDownCast(this->Interactor->GetRenderWindow());
-	vtkOpenVRRenderWindowInteractor* iren =
-		static_cast<vtkOpenVRRenderWindowInteractor*>(this->Interactor);
+	vtkOpenXRRenderWindow* renWin =
+		vtkOpenXRRenderWindow::SafeDownCast(this->Interactor->GetRenderWindow());
+	vtkOpenXRRenderWindowInteractor* iren =
+		static_cast<vtkOpenXRRenderWindowInteractor*>(this->Interactor);
 
-	vtkOpenVRModel* cmodel = renWin->GetTrackedDeviceModel(device->GetDevice());
+	vtkOpenXRModel* cmodel = renWin->GetTrackedDeviceModel(device->GetDevice());
 
 	renWin->GetTrackedDevicePose(cmodel->TrackedDevice);
 	*/

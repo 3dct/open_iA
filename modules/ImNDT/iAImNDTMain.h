@@ -15,12 +15,12 @@
 
 #include <unordered_map>
 
-class vtkOpenVRTrackedCamera;
 class iAImNDTInteractorStyle;
 class iAVR3DText;
 class iAVRColorLegend;
-class iAVRColorLegend;
+#ifndef OPENXR_AVAILABLE
 class iAVRFrontCamera;
+#endif
 class iAVRHistogramPairVis;
 class iAVRMip;
 class iAVRModelInMiniature;
@@ -125,7 +125,9 @@ private:
 	int sign;
 	vtkSmartPointer<vtkActor> pointsActor;
 
+#ifndef OPENXR_AVAILABLE
 	std::unique_ptr<iAVRFrontCamera> m_arViewer;
+#endif
 	bool m_arEnabled = false;
 
 	void setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, iAVRInteractionOptions options, iAVROperations operation);

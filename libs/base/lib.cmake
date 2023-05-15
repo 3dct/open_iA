@@ -14,8 +14,7 @@ set(VTK_REQUIRED_LIBS_PUBLIC
 	CommonDataModel
 	CommonExecutionModel
 	# move to separate IO library?
-	IOImage               # for volume loading; move to a new "io" library?
-	IOGeometry            # for vtkSTLReader/Writer; move to a new "io" library?
+	IOImage               # for volume loading; move to new "io" library?
 	# ideally, base would not reference any VTK libraries;
 	# at least the following GUI/Rendering library references should be removed:
 	GUISupportQt
@@ -28,9 +27,8 @@ set(VTK_REQUIRED_LIBS_PUBLIC
 	RenderingGL2PSOpenGL2 # implements VTK::RenderingOpenGL2
 	RenderingUI           # implements VTK::RenderingCore
 )
-if (TARGET VTK::RenderingOpenVR)
-	list(APPEND VTK_REQUIRED_LIBS_PUBLIC
-		RenderingOpenVR)       # implements VTK::RenderingCore
+if (VTK_VERSION VERSION_LESS "9.1.0" AND TARGET VTK::RenderingOpenVR)
+    list(APPEND VTK_REQUIRED_LIBS_PUBLIC RenderingOpenVR)    # otherwise we get unresolved external symbol "void __cdecl vtkRenderingOpenVR_AutoInit_Construct
 endif()
 
 # instead of linking all ITK_LIBRARIES:

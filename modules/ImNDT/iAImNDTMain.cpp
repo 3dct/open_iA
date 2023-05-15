@@ -17,16 +17,21 @@
 #include <iALog.h>
 
 #include <vtkActor.h>
+#include <vtkCamera.h>
 #include <vtkIntersectionPolyDataFilter.h>
 #include <vtkLineSource.h>
-#include <vtkOpenVRCamera.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProp3D.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
-#include <vtkOpenVRRenderWindowInteractor.h>
 #include <vtkVertexGlyphFilter.h>
+
+
+#ifdef OPENXR_AVAILABLE
+#include <openxr/openxr.h>
+#include <vtkOpenXRManager.h>
+#endif
 
 #include <QColor>
 
@@ -312,7 +317,9 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 	{
 		if (m_arEnabled)
 		{
+#ifndef OPENXR_AVAILABLE
 			m_arViewer->refreshImage();
+#endif
 		}
 
 		double* tempFocalPos = cam->GetFocalPoint();
@@ -924,6 +931,10 @@ void iAImNDTMain::toggleArView()
 {
 	if (!m_arEnabled)
 	{
+#ifdef OPENXR_AVAILABLE
+		// Currently requires additional setup: https://github.com/Rectus/openxr-steamvr-passthrough/blob/main/readme.md
+		vtkOpenXRManager::GetInstance().SetBlendMode(XrEnvironmentBlendMode::XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND);
+#else
 		m_vrEnv->hideSkybox();
 		m_arViewer = std::make_unique<iAVRFrontCamera>(m_vrEnv->renderer(), m_vrEnv->renderWindow());
 		if (!m_arViewer->initialize())
@@ -932,10 +943,14 @@ void iAImNDTMain::toggleArView()
 			LOG(lvlWarn, "Initializing AR view failed; maybe your headset doesn't have a camera? If your headset does have a camera, make sure you have Camera enabled in the SteamVR settings!");
 			return;
 		}
+#endif
 		m_arEnabled = true;
 		return;
 	}
 	m_arEnabled = false;
+#ifdef OPENXR_AVAILABLE
+	vtkOpenXRManager::GetInstance().SetBlendMode(XrEnvironmentBlendMode::XR_ENVIRONMENT_BLEND_MODE_OPAQUE);
+#else
 	m_vrEnv->showSkybox();
-	
+#endif
 }

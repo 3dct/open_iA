@@ -2,15 +2,10 @@ target_link_libraries(${libname} PUBLIC
 	iA::base
 )
 set(VTK_REQUIRED_LIBS_PUBLIC
-	# move to separate IO library?
-	IOImage               # for volume loading; move to a new "io" library?
-	IOGeometry            # for vtkSTLReader/Writer; move to a new "io" library?
+	IOImage               # for volume loading
+	IOGeometry            # for vtkSTLReader/Writer
 	IOXML                 # for vtkXMLImageDataReader
 )
-if (TARGET VTK::RenderingOpenVR)
-	list(APPEND VTK_REQUIRED_LIBS_PUBLIC
-		RenderingOpenVR)       # implements VTK::RenderingCore
-endif()
 
 if (HDF5_FOUND)
 	# as HDF5 is required only here, we could link privately, but under Linux this leads

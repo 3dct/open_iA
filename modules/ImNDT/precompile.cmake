@@ -14,7 +14,7 @@ set(ImNDT_PRECOMPILE_INCLUDES
 <iAVRObjectModel.h>
 <iAVROctree.h>
 <iAVROctreeMetrics.h>
-<openvr.h>
+<openxr.h>
 <QColor>
 <QString>
 <unordered_map>
@@ -26,7 +26,6 @@ set(ImNDT_PRECOMPILE_INCLUDES
 <vtkIdTypeArray.h>
 <vtkLookupTable.h>
 <vtkMath.h>
-<vtkOpenVRCamera.h>
 <vtkPlaneSource.h>
 <vtkPointData.h>
 <vtkPolyData.h>

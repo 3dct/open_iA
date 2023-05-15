@@ -58,5 +58,10 @@ private:
 private slots:
 	void info();
 	void startAnalysis();
-	void vrInfo();
+#ifdef OPENVR_AVAILABLE
+	void openVRInfo();
+#endif
+#ifdef OPENXR_AVAILABLE
+	void openXRInfo();
+#endif
 };

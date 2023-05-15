@@ -2,22 +2,26 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#ifndef OPENXR_AVAILABLE
+
+#include "iAvtkVR.h"
+
 #include <openvr.h>
 
-#include <vtkOpenVRRenderWindow.h>
 #include <vtkSmartPointer.h>
-#include <openvr.h>
 
-class vtkExtractVOI;
-class vtkOpenVRRenderer;
 class vtkActor;
+class vtkExtractVOI;
+class vtkFloatArray;
 class vtkImageData;
+class vtkOpenVRRenderer;
 class vtkRenderer;
+class vtkTexture;
 
 class iAVRFrontCamera
 {
 public:
-	iAVRFrontCamera(vtkRenderer* renderer, vtkOpenVRRenderWindow* renderWindow);
+	iAVRFrontCamera(vtkRenderer* renderer, iAvtkVRRenderWindow* renderWindow);
 	~iAVRFrontCamera();
 
 	/** Initialize the tracked camera */
@@ -26,30 +30,11 @@ public:
 	/*Build representation */
 	bool buildRepresentation();
 
-	/*Show AR View */
-	void show();
-	void hide();
-
 	//void switch Background ?
 
 	bool refreshImage();
 
-
 private:
-	bool m_visible;
-
-	/** Vive System */
-	vr::IVRSystem* m_pHMD;
-
-	/** Tracked Camera (or front camera) */
-	vr::IVRTrackedCamera* m_VRTrackedCamera;
-
-	/*The tracked Camera has a unique TrackedCameraHandle_t
-	* This handle is used to set attributes, receive events, (and render?).
-	* These are several circumstances where the tracked camera isn't detected or invalid.
-	* In those case the handle will be equal to INVALID_TRACKED_CAMERA_HANDLE */
-	vr::TrackedCameraHandle_t m_VRTrackedCameraHandle;
-
 
 	/** Camera frame parameters */
 	uint32_t				m_cameraFrameWidth;
@@ -59,11 +44,26 @@ private:
 
 	uint32_t				m_lastFrameSequence;
 
+	iAvtkVRRenderWindow* m_renderWindow;
+	/** Vive System */
+	vr::IVRSystem* m_pHMD;
+
+	/** Tracked Camera (or front camera) */
+	vr::IVRTrackedCamera* m_VRTrackedCamera;
+
 	/*Type of frame from the Tracked Camera : distorted/Undistorted/MaximumUndistorted*/
 	vr::EVRTrackedCameraFrameType m_frameType;
 
 	//get the frame header only
 	vr::CameraVideoStreamFrameHeader_t m_frameHeader;
+
+	/*The tracked Camera has a unique TrackedCameraHandle_t
+	* This handle is used to set attributes, receive events, (and render?).
+	* These are several circumstances where the tracked camera isn't detected or invalid.
+	* In those case the handle will be equal to INVALID_TRACKED_CAMERA_HANDLE */
+	vr::TrackedCameraHandle_t m_VRTrackedCameraHandle;
+
+	vtkSmartPointer<vtkOpenVRRenderer> m_backgroundRenderer;
 
 	/** Image source to fill and return for display */
 	vtkSmartPointer<vtkImageData> m_sourceImage;
@@ -75,10 +75,7 @@ private:
 	vtkSmartPointer<vtkTexture> m_rightTexture;
 	vtkSmartPointer<vtkFloatArray> m_textureCoordinates;
 
-	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
 	vtkSmartPointer<vtkRenderer> m_renderer;
-	vtkSmartPointer<vtkOpenVRRenderer> m_backgroundRenderer;
-	vtkSmartPointer<vtkActor> m_cameraActor;
 
 	bool getFrameSize();
 	void allocateImages();
@@ -86,5 +83,6 @@ private:
 	void createImage();
 	void createLeftAndRightEyeImage();
 
-	void saveImageAsPNG(int type);
+	//void saveImageAsPNG(int type);
 };
+#endif

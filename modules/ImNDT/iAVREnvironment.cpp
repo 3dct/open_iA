@@ -3,6 +3,7 @@
 #include "iAVREnvironment.h"
 
 #include "iAVRMainThread.h"
+#include "iAvtkVR.h"
 
 #include <iALog.h>
 
@@ -14,14 +15,15 @@
 #include <vtkImageFlip.h>
 #include <vtkLight.h>
 #include <vtkLightKit.h>
-#include <vtkOpenVRRenderer.h>
-#include <vtkOpenVRRenderWindow.h>
-#include <vtkOpenVRRenderWindowInteractor.h>
-#include <vtkOpenVRCamera.h>
+// TODO: user choice
+#ifdef OPENXR_AVAILABLE
+const auto Backend = iAVRObjectFactory::OpenXR;
+#else
+const auto Backend = iAVRObjectFactory::OpenVR;
+#endif
 #include <vtkPickingManager.h>
 #include <vtkPNGReader.h>
 #include <vtkSkybox.h>
-#include <vtkVersion.h>
 #include <vtkTexture.h>
 
 #include <QCoreApplication>
@@ -30,9 +32,9 @@
 
 
 iAVREnvironment::iAVREnvironment():
-	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()),
-	m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New()),
-	m_interactor(vtkSmartPointer<vtkOpenVRRenderWindowInteractor>::New()),
+	m_renderer(iAVRObjectFactory::createRenderer(Backend)),
+	m_renderWindow(iAVRObjectFactory::createWindow(Backend)),
+	m_interactor(iAVRObjectFactory::createInteractor(Backend)),
 	m_worldScale(-1.0)
 {
 	createLightKit();
@@ -46,12 +48,12 @@ vtkRenderer* iAVREnvironment::renderer()
 	return m_renderer;
 }
 
-vtkOpenVRRenderWindowInteractor* iAVREnvironment::interactor()
+iAvtkVRRenderWindowInteractor* iAVREnvironment::interactor()
 {
 	return m_interactor;
 }
 
-vtkOpenVRRenderWindow* iAVREnvironment::renderWindow()
+iAvtkVRRenderWindow* iAVREnvironment::renderWindow()
 {
 	return m_renderWindow;
 }
@@ -74,9 +76,7 @@ void iAVREnvironment::start()
 	// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
 	//m_renderWindow->SetMultiSamples(0);
 	m_interactor->SetRenderWindow(m_renderWindow);
-	auto camera = vtkSmartPointer<vtkOpenVRCamera>::New();
-
-	m_renderer->SetActiveCamera(camera);
+	m_renderer->SetActiveCamera(iAVRObjectFactory::createCamera(Backend) );
 	m_renderer->ResetCamera();
 	m_renderer->ResetCameraClippingRange();
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)

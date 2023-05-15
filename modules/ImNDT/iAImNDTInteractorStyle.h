@@ -5,7 +5,11 @@
 #include "iAImNDTMain.h"
 
 #include <vtkEventData.h>
+#ifdef OPENXR_AVAILABLE
+#include <vtkOpenXRInteractorStyle.h>
+#else
 #include <vtkOpenVRInteractorStyle.h>
+#endif
 #include <vtkSmartPointer.h>
 #include <vtkVersion.h>
 
@@ -38,11 +42,19 @@ enum class iAVRViewDirection {
 };
 
 //! Base Class for specific interaction callbacks
+#ifdef OPENXR_AVAILABLE
+class iAImNDTInteractorStyle : public vtkOpenXRInteractorStyle
+#else
 class iAImNDTInteractorStyle : public vtkOpenVRInteractorStyle
+#endif
 {
 public:
 	static iAImNDTInteractorStyle* New();
+#ifdef OPENXR_AVAILABLE
+	vtkTypeMacro(iAImNDTInteractorStyle, vtkOpenXRInteractorStyle);
+#else
 	vtkTypeMacro(iAImNDTInteractorStyle, vtkOpenVRInteractorStyle);
+#endif
 
 	void setVRMain(iAImNDTMain* vrMain);
 
@@ -52,9 +64,9 @@ public:
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
 
 	// The VTK VR interactor comes with its own predefined "actions" and input manifest json files
-	// We could define our fully own manifest with all actions; then we would however need to reimplement the vtkOpenVRInteractorStyle / vtkOpenVRRenderWindowInteractor
+	// We could define our fully own manifest with all actions; then we would however need to reimplement the InteractorStyle / RenderWindowInteractor
 	// for now, as a workaround, we map the actions from VTK to our own ImNDT actions; for example:
-	//     "OnNextPose3D", by default linked to the left trigger (see vtkOpenVRInteractorStyle::SetInteractor: ...AddAction("/actions/vtk/in/NextCameraPose", vtkCommand::NextPose3DEvent...)
+	//     "OnNextPose3D", by default linked to the left trigger (see InteractorStyle::SetInteractor: ...AddAction("/actions/vtk/in/NextCameraPose", vtkCommand::NextPose3DEvent...)
 	// We just forward that and all other press/touch/release/untouch events to the startInteraction method in ImNDTMain
 	// in contrast to the input manifest shipped with VTK, we have added a few more actions to be able to map all input:
 	//      - /actions/vtk/in/ShowMenuLeft      for retrieving left menu button
@@ -66,11 +78,11 @@ public:
 
 	//! for setting up some actions required for VTK >= 9.1.0
 	void SetInteractor(vtkRenderWindowInteractor* iren) override;
-	//! called on right trigger press (set up in vtkOpenVRInteractorStyle); forwards to OnButton3D>
+	//! called on right trigger press (set up in InteractorStyle); forwards to OnButton3D>
 	void OnSelect3D(vtkEventData* edata) override;
-	//! called on left trigger press (set up in vtkOpenVRInteractorStyle); forwards to OnButton3D>
+	//! called on left trigger press (set up in InteractorStyle); forwards to OnButton3D>
 	void OnNextPose3D(vtkEventData* edata) override;
-	//! called on right menu button press (set up in vtkOpenVRInteractorStyle); forwards to OnButton3D
+	//! called on right menu button press (set up in InteractorStyle); forwards to OnButton3D
 	void OnMenu3D(vtkEventData* edata) override;
 	void Dolly3D(vtkEventData* edata) override;
 	void OnViewerMovement3D(vtkEventData* edata) override;
