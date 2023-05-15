@@ -704,6 +704,12 @@ void iARendererImpl::applySettings(iARenderSettings const & settings, bool slice
 	m_ren->SetUseSSAO(settings.UseSSAO);
 #endif
 	m_renWin->SetMultiSamples(settings.MultiSamples);
+	auto stereoMode = mapStereoModeToEnum(settings.StereoRenderMode);
+	if (stereoMode != 0)
+	{
+		m_renWin->SetStereoType(stereoMode);
+	}
+	m_renWin->SetStereoRender(stereoMode != 0);
 	m_cam->SetParallelProjection(settings.ParallelProjection);
 	setSlicePlaneOpacity(settings.PlaneOpacity);
 	setBackgroundColors(settings);

@@ -166,11 +166,15 @@ public:
 
 // ----- Render Modes -----
 
+// could be moved to GUI code!
+
 //! a map of available render modes in vtkSmartVolumeMapper to their names
-iAbase_API QMap<int, QString> const & RenderModeMap();
+iAbase_API QMap<QString, int> const & RenderModeMap();
 //! map the given render mode name to the respective enum in the render mode map
 iAbase_API int mapRenderModeToEnum(QString const &);
 
+iAbase_API QMap<QString, int> const& StereoModeMap();
+iAbase_API int mapStereoModeToEnum(QString const &);
 
 // ----- Image Iteration -----
 

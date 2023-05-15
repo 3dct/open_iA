@@ -21,7 +21,8 @@ public:
 		UseDepthPeeling,        //!< whether to use depth peeling (improves depth ordering in rendering of multiple objects), if false, alpha blending is used
 		UseSSAO;                //!< whether to use Screen Space Ambient Occlusion (SSAO) - darkens some pixels to improve depth perception.
 	QString BackgroundTop,      //!< top color used in background gradient
-		BackgroundBottom;       //!< bottom color used in background gradient
+		BackgroundBottom,       //!< bottom color used in background gradient
+		StereoRenderMode;       //!< whether to use a stereo rendering mode and if so, which one, for the render window
 	float PlaneOpacity;         //!< opacity of the slice planes enabled via ShowSlicePlanes
 	int DepthPeels,             //!< number of depth peels to use (if enabled via UseDepthPeeling). The more the higher quality, but also slower rendering
 		MultiSamples,           //!< number of multi-samples; needs to be 0 for depth peeling to work!
@@ -42,6 +43,7 @@ public:
 		UseSSAO(false),
 		BackgroundTop("#7FAAFF"),
 		BackgroundBottom("#FFFFFF"),
+		StereoRenderMode("None"),
 		PlaneOpacity(1.0),
 		DepthPeels(4),
 		MultiSamples(0),

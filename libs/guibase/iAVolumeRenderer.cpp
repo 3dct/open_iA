@@ -47,7 +47,7 @@ public:
 			addAttr(attr, iAVolumeRenderer::ScalarOpacityUnitDistance, iAValueType::Continuous, -1.0);
 
 			// mapper properties:
-			QStringList renderTypes = RenderModeMap().values();
+			QStringList renderTypes = RenderModeMap().keys();
 			selectOption(renderTypes, renderTypes[0]);
 			addAttr(attr, iAVolumeRenderer::RendererType, iAValueType::Categorical, renderTypes);
 			addAttr(attr, iAVolumeRenderer::InteractiveAdjustSampleDistance, iAValueType::Boolean, true);   // maybe only enable for large datasets?

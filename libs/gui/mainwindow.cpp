@@ -16,6 +16,7 @@
 #include "iAQMenuHelper.h"
 #include "iARawFileParamDlg.h"
 #include "iARenderer.h"
+#include "iARenderSettings.h"
 #include "iASavableProject.h"
 #include "iASlicerImpl.h"      // for slicerModeToString
 #include "iAStringHelper.h"    // for iAConverter
@@ -901,8 +902,10 @@ void MainWindow::prefs()
 
 void MainWindow::renderSettings()
 {
+	QStringList stereoModes = StereoModeMap().keys();
 	QString dlgTitle = activeMdiChild()? (activeMdiChild()->windowTitle() + " - Renderer settings") : "Default renderer settings";
 	iARenderSettings renderSettings = activeMdiChild() ? activeMDI()->renderSettings() : m_defaultRenderSettings;
+	selectOption(stereoModes, renderSettings.StereoRenderMode);
 	iAAttributes params;
 	addAttr(params, "Show slicers", iAValueType::Boolean, renderSettings.ShowSlicers);
 	addAttr(params, "Show slice planes", iAValueType::Boolean, renderSettings.ShowSlicePlanes);
@@ -918,6 +921,7 @@ void MainWindow::renderSettings()
 	addAttr(params, "MultiSamples", iAValueType::Discrete, renderSettings.MultiSamples);
 	addAttr(params, "Occlusion Ratio", iAValueType::Continuous, renderSettings.OcclusionRatio);
 	addAttr(params, "Use Screen Space Ambient Occlusion", iAValueType::Boolean, renderSettings.UseSSAO);
+	addAttr(params, "Stereo Render Mode", iAValueType::Categorical, stereoModes);
 	addAttr(params, "Use Depth Peeling", iAValueType::Boolean, renderSettings.UseDepthPeeling);
 	addAttr(params, "Maximum Depth Peels", iAValueType::Discrete, renderSettings.DepthPeels);
 	addAttr(params, "Magic lens size", iAValueType::Discrete, renderSettings.MagicLensSize, MinimumMagicLensSize, MaximumMagicLensSize);
@@ -942,6 +946,7 @@ void MainWindow::renderSettings()
 	m_defaultRenderSettings.MultiSamples = values["MultiSamples"].toInt();
 	m_defaultRenderSettings.OcclusionRatio = values["Occlusion Ratio"].toDouble();
 	m_defaultRenderSettings.UseSSAO = values["Use Screen Space Ambient Occlusion"].toBool();
+	m_defaultRenderSettings.StereoRenderMode = values["Stereo Render Mode"].toString();
 	// available sub-options:
 	//      radius, bias, kernel size, blur
 	m_defaultRenderSettings.UseDepthPeeling = values["Use Depth Peeling"].toBool();
