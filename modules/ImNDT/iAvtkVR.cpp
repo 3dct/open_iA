@@ -21,7 +21,7 @@
 
 #include <QCoreApplication>
 
-vtkSmartPointer<iAvtkVRCamera> iAVRObjectFactory::createCamera(Backend b)
+vtkSmartPointer<iAvtkVRCamera> iAvtkVR::createCamera(Backend b)
 {
 #ifdef OPENVR_AVAILABLE
 	if (b == OpenVR)
@@ -40,7 +40,7 @@ vtkSmartPointer<iAvtkVRCamera> iAVRObjectFactory::createCamera(Backend b)
 	return {};
 }
 
-vtkSmartPointer<iAvtkVRRenderWindow> iAVRObjectFactory::createWindow(Backend b)
+vtkSmartPointer<iAvtkVRRenderWindow> iAvtkVR::createWindow(Backend b)
 {
 #ifdef OPENVR_AVAILABLE
 	if (b == OpenVR)
@@ -59,7 +59,7 @@ vtkSmartPointer<iAvtkVRRenderWindow> iAVRObjectFactory::createWindow(Backend b)
 	return {};
 }
 
-vtkSmartPointer<iAvtkVRRenderWindowInteractor> iAVRObjectFactory::createInteractor(Backend b)
+vtkSmartPointer<iAvtkVRRenderWindowInteractor> iAvtkVR::createInteractor(Backend b)
 {
 #ifdef OPENVR_AVAILABLE
 	if (b == OpenVR)
@@ -78,7 +78,7 @@ vtkSmartPointer<iAvtkVRRenderWindowInteractor> iAVRObjectFactory::createInteract
 	return {};
 }
 
-vtkSmartPointer<iAvtkVRRenderer> iAVRObjectFactory::createRenderer(Backend b)
+vtkSmartPointer<iAvtkVRRenderer> iAvtkVR::createRenderer(Backend b)
 {
 #ifdef OPENVR_AVAILABLE
 	if (b == OpenVR)
@@ -97,17 +97,45 @@ vtkSmartPointer<iAvtkVRRenderer> iAVRObjectFactory::createRenderer(Backend b)
 	return {};
 }
 
-void iAVRObjectFactory::setActionManifest(iAvtkVRRenderWindowInteractor* interactor)
+void iAvtkVR::setActionManifest(iAvtkVRRenderWindowInteractor* interactor, iAvtkVR::Backend backend)
 {
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
-	// TODO: move to interactor retrieval?
-#if OPENXR_AVAILABLE
-	QString actionManifest = QCoreApplication::applicationDirPath() + "/VR-input-manifests/open_iA_openxr_actions.json";
-#else
-	QString actionManifest = QCoreApplication::applicationDirPath() + "/VR-input-manifests/vtk_openvr_actions.json";
+	QString actionManifest;
+#ifdef OPENXR_AVAILABLE
+	if (backend == iAvtkVR::OpenXR)
+	{
+		actionManifest = QCoreApplication::applicationDirPath() + "/VR-input-manifests/open_iA_openxr_actions.json";
+	}
 #endif
+#ifdef OPENVR_AVAILABLE
+	if (backend == iAvtkVR::OpenVR)
+	{
+		actionManifest = QCoreApplication::applicationDirPath() + "/VR-input-manifests/vtk_openvr_actions.json";
+	}
+#endif
+	if (actionManifest.isEmpty())
+	{
+		LOG(lvlError, QString("Could not determine action manifest for backend %1").arg(backendName(backend)));
+		return;
+	}
 	interactor->SetActionManifestFileName(actionManifest.toStdString());
-#else
-	Q_UNUSED(interactor);
+}
+
+QString iAvtkVR::backendName(iAvtkVR::Backend b)
+{
+	return b == iAvtkVR::OpenVR ? "OpenVR" : "OpenXR";
+}
+
+std::vector<iAvtkVR::Backend> const& iAvtkVR::availableBackends()
+{
+	static std::vector<Backend> backends;
+	if (backends.empty())
+	{
+#ifdef OPENXR_AVAILABLE
+		backends.push_back(iAvtkVR::OpenXR);
 #endif
+#ifdef OPENVR_AVAILABLE
+		backends.push_back(iAvtkVR::OpenVR);
+#endif
+	}
+	return backends;
 }

@@ -17,7 +17,7 @@ class iAVRMainThread : public QThread
 {
 	Q_OBJECT
 public:
-	iAVRMainThread(iAvtkVRRenderWindow* renderWindow, iAvtkVRRenderWindowInteractor* interactor);
+	iAVRMainThread(iAvtkVRRenderWindow* renderWindow, iAvtkVRRenderWindowInteractor* interactor, iAvtkVR::Backend backend);
 	void run() override;
 	void stop();
 	QString message() const;
@@ -28,5 +28,6 @@ private:
 	std::vector<std::shared_ptr<iADataSetRenderer>> m_renderersToRemove;
 	std::mutex m_removeMutex;
 	QString m_msg;
+	iAvtkVR::Backend m_backend;
 	volatile bool m_done;
 };

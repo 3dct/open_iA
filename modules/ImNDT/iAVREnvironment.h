@@ -25,7 +25,7 @@ class iAVREnvironment: public QObject
 {
 	Q_OBJECT
 public:
-	iAVREnvironment();
+	iAVREnvironment(iAvtkVR::Backend backend);
 	vtkRenderer* renderer();
 	iAvtkVRRenderWindowInteractor* interactor();
 	iAvtkVRRenderWindow* renderWindow();
@@ -39,6 +39,7 @@ public:
 	double getInitialWorldScale();
 	bool isRunning() const;
 	void removeRenderer(std::shared_ptr<iADataSetRenderer> renderer);
+	iAvtkVR::Backend backend() const;
 private slots:
 	void vrDone();
 private:
@@ -51,6 +52,7 @@ private:
 	double m_worldScale;
 	bool m_skyBoxVisible = false;
 	bool m_floorVisible = false;
+	iAvtkVR::Backend m_backend;
 
 	void storeInitialWorldScale();
 	void createLightKit();

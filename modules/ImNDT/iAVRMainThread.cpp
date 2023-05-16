@@ -5,8 +5,8 @@
 #include <iADataSetRenderer.h>
 #include <iALog.h>
 
-iAVRMainThread::iAVRMainThread(iAvtkVRRenderWindow* renderWindow, iAvtkVRRenderWindowInteractor* interactor) :
-	m_renderWindow(renderWindow), m_interactor(interactor), m_done(false)
+iAVRMainThread::iAVRMainThread(iAvtkVRRenderWindow* renderWindow, iAvtkVRRenderWindowInteractor* interactor,iAvtkVR::Backend backend) :
+	m_renderWindow(renderWindow), m_interactor(interactor), m_backend(backend), m_done(false)
 {}
 
 void iAVRMainThread::run()
@@ -20,7 +20,7 @@ void iAVRMainThread::run()
 	//}
 	LOG(lvlInfo, "VR rendering started!");
 	m_renderWindow->Render();
-	iAVRObjectFactory::setActionManifest(m_interactor);
+	iAvtkVR::setActionManifest(m_interactor, m_backend);
 	// use of vtk's event loop is potentially problematic - calling SetDone on it from another
 	// thread causes potential assertion failures in the immediately invoked event:
 	// m_interactor->Start();

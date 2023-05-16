@@ -15,12 +15,6 @@
 #include <vtkImageFlip.h>
 #include <vtkLight.h>
 #include <vtkLightKit.h>
-// TODO: user choice
-#ifdef OPENXR_AVAILABLE
-const auto Backend = iAVRObjectFactory::OpenXR;
-#else
-const auto Backend = iAVRObjectFactory::OpenVR;
-#endif
 #include <vtkPickingManager.h>
 #include <vtkPNGReader.h>
 #include <vtkSkybox.h>
@@ -31,11 +25,12 @@ const auto Backend = iAVRObjectFactory::OpenVR;
 #include <QString>
 
 
-iAVREnvironment::iAVREnvironment():
-	m_renderer(iAVRObjectFactory::createRenderer(Backend)),
-	m_renderWindow(iAVRObjectFactory::createWindow(Backend)),
-	m_interactor(iAVRObjectFactory::createInteractor(Backend)),
-	m_worldScale(-1.0)
+iAVREnvironment::iAVREnvironment(iAvtkVR::Backend backend):
+	m_renderer(iAvtkVR::createRenderer(backend)),
+	m_renderWindow(iAvtkVR::createWindow(backend)),
+	m_interactor(iAvtkVR::createInteractor(backend)),
+	m_worldScale(-1.0),
+	m_backend(backend)
 {
 	createLightKit();
 	createSkybox(0);
@@ -76,7 +71,7 @@ void iAVREnvironment::start()
 	// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
 	//m_renderWindow->SetMultiSamples(0);
 	m_interactor->SetRenderWindow(m_renderWindow);
-	m_renderer->SetActiveCamera(iAVRObjectFactory::createCamera(Backend) );
+	m_renderer->SetActiveCamera(iAvtkVR::createCamera(m_backend) );
 	m_renderer->ResetCamera();
 	m_renderer->ResetCameraClippingRange();
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
@@ -85,7 +80,7 @@ void iAVREnvironment::start()
 #endif
 	m_interactor->GetPickingManager()->EnabledOn();
 
-	m_vrMainThread = new iAVRMainThread(m_renderWindow, m_interactor);
+	m_vrMainThread = new iAVRMainThread(m_renderWindow, m_interactor, m_backend);
 	connect(m_vrMainThread, &QThread::finished, this, &iAVREnvironment::vrDone);
 	m_vrMainThread->setObjectName("ImNDTRenderThread");
 	m_vrMainThread->start();
@@ -238,6 +233,11 @@ void iAVREnvironment::removeRenderer(std::shared_ptr<iADataSetRenderer> renderer
 		return;
 	}
 	m_vrMainThread->removeRenderer(renderer);
+}
+
+iAvtkVR::Backend iAVREnvironment::backend() const
+{
+	return m_backend;
 }
 
 void iAVREnvironment::vrDone()

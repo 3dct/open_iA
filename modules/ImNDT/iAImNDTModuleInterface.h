@@ -45,7 +45,6 @@ private:
 	//! @{ for ImNDT
 	QSharedPointer<iA3DColoredPolyObjectVis> m_polyObject;
 	std::shared_ptr<iAImNDTMain> m_vrMain;
-	vtkSmartPointer<iAImNDTInteractorStyle> m_style;
 	iACsvConfig m_csvConfig;
 	iACsvIO m_io;
 	vtkSmartPointer<vtkTable> m_objectTable;

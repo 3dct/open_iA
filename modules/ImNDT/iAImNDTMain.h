@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#include "iAImNDTInteractorStyle.h"
 #include "iAVREnvironment.h"
 #include "iAVRHistogramMetric.h"
 #include "iAVRObjectCoverage.h"
@@ -15,12 +16,9 @@
 
 #include <unordered_map>
 
-class iAImNDTInteractorStyle;
 class iAVR3DText;
 class iAVRColorLegend;
-#ifndef OPENXR_AVAILABLE
 class iAVRFrontCamera;
-#endif
 class iAVRHistogramPairVis;
 class iAVRMip;
 class iAVRModelInMiniature;
@@ -64,7 +62,7 @@ class iAImNDTMain: public QObject
 {
 	Q_OBJECT
 public:
-	iAImNDTMain(iAVREnvironment* vrEnv, iAImNDTInteractorStyle* style, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig);
+	iAImNDTMain(iAVREnvironment* vrEnv, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig);
 	// required to be able to forward-declare for unique_ptr on clang:
 	~iAImNDTMain();
 	//! Defines the action executed for specific controller inputs
@@ -85,7 +83,7 @@ private:
 	iAVRModelInMiniature* m_modelInMiniature;
 	iAVRObjectModel* m_volume;
 	vtkSmartPointer<vtkPolyData> m_extendedCylinderVisData; // Data extended with additional intersection points
-	vtkSmartPointer<iAImNDTInteractorStyle> m_style;
+	iAImNDTInteractions m_interactions;
 	iA3DColoredPolyObjectVis* m_polyObject;
 	vtkSmartPointer<vtkTable> m_objectTable;
 
@@ -125,9 +123,7 @@ private:
 	int sign;
 	vtkSmartPointer<vtkActor> pointsActor;
 
-#ifndef OPENXR_AVAILABLE
 	std::unique_ptr<iAVRFrontCamera> m_arViewer;
-#endif
 	bool m_arEnabled = false;
 
 	void setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, iAVRInteractionOptions options, iAVROperations operation);

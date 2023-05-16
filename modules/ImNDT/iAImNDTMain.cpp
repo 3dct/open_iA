@@ -18,6 +18,7 @@
 
 #include <vtkActor.h>
 #include <vtkCamera.h>
+#include <vtkInteractorStyle3D.h>
 #include <vtkIntersectionPolyDataFilter.h>
 #include <vtkLineSource.h>
 #include <vtkPolyData.h>
@@ -26,12 +27,6 @@
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkVertexGlyphFilter.h>
-
-
-#ifdef OPENXR_AVAILABLE
-#include <openxr.h>
-#include <vtkOpenXRManager.h>
-#endif
 
 #include <QColor>
 
@@ -42,8 +37,8 @@
 #define OCTREE_COLOR QColor(126, 0, 223, 255)
 //#define OCTREE_COLOR QColor(130, 10, 10, 255)
 
-iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAImNDTInteractorStyle* style, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig) : m_vrEnv(vrEnv),
-		m_style(style), m_polyObject(polyObject), m_objectTable(objectTable), m_io(io)
+iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig) :
+	m_vrEnv(vrEnv), m_interactions(vrEnv->backend(), this), m_polyObject(polyObject), m_objectTable(objectTable), m_io(io), m_arViewer(createARViewer(vrEnv))
 {
 
 	// For true TranslucentGeometry
@@ -86,10 +81,9 @@ iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAImNDTInteractorStyle* style, 
 	fiberMetrics->getMaxCoverageFiberPerRegion();
 
 	//Add InteractorStyle
-	m_style->setVRMain(this);
-	m_vrEnv->interactor()->SetInteractorStyle(m_style);
+	m_vrEnv->interactor()->SetInteractorStyle(m_interactions.style());
 	// Active Input Saves the current applied Input in case Multiinput is requires
-	activeInput = m_style->getActiveInput();
+	activeInput = m_interactions.getActiveInput();
 	multiPickIDs = new std::vector<vtkIdType>();
 
 	//Initialize Text Lables vector
@@ -179,7 +173,7 @@ iAImNDTMain::~iAImNDTMain() =default;
 void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4])
 {
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
-	auto touchPos = m_style->getTrackPadPos(device->GetDevice());
+	auto touchPos = m_interactions.getTrackPadPos(device->GetDevice());
 	m_touchPadPosition[0] = touchPos.c[0];
 	m_touchPadPosition[1] = touchPos.c[1];
 	m_touchPadPosition[2] = 0.0;
@@ -191,7 +185,7 @@ void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pick
 	int inputID = static_cast<int>(device->GetInput());  // Input Method
 	int actioniD = static_cast<int>(device->GetAction()); // Action of Input Method
 	int optionID = getOptionForObject(pickedProp);
-	int operation = m_style->getInputScheme()->at(deviceID).at(inputID).at(actioniD).at(optionID);
+	int operation = m_interactions.getInputScheme()->at(deviceID).at(inputID).at(actioniD).at(optionID);
 
 	switch (iAVROperations(operation))
 	{
@@ -261,7 +255,7 @@ void iAImNDTMain::endInteraction(vtkEventDataDevice3D* device, vtkProp3D* picked
 	int inputID = static_cast<int>(device->GetInput());  // Input Method
 	int actioniD = static_cast<int>(device->GetAction()); // Action of Input Method
 	int optionID = getOptionForObject(pickedProp);
-	int operation = m_style->getInputScheme()->at(deviceID).at(inputID).at(actioniD).at(optionID);
+	int operation = m_interactions.getInputScheme()->at(deviceID).at(inputID).at(actioniD).at(optionID);
 
 	switch (iAVROperations(operation))
 	{
@@ -317,9 +311,7 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 	{
 		if (m_arEnabled)
 		{
-#ifndef OPENXR_AVAILABLE
 			m_arViewer->refreshImage();
-#endif
 		}
 
 		double* tempFocalPos = cam->GetFocalPoint();
@@ -330,7 +322,7 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 		m_3DTextLabels->at(2)->setLabelPos(tempFocalPos);
 
 		double* tempViewDirection = cam->GetDirectionOfProjection();
-		viewDirection = static_cast<int>(m_style->getViewDirection(tempViewDirection));
+		viewDirection = static_cast<int>(iAImNDTInteractions::getViewDirection(tempViewDirection));
 
 		if (m_networkGraphMode)
 		{
@@ -415,7 +407,7 @@ void iAImNDTMain::onZoom()
 
 void iAImNDTMain::setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, iAVRInteractionOptions options, iAVROperations operation)
 {
-	inputScheme* scheme = m_style->getInputScheme();
+	inputScheme* scheme = m_interactions.getInputScheme();
 
 	if(options == iAVRInteractionOptions::Anywhere) //Apply Operation for every Interaction Option
 	{
@@ -549,7 +541,7 @@ double iAImNDTMain::calculateWorldScaleFactor()
 //! Increases/Decreases the current octree level and feature. Recalculates the Model in Miniature Object.
 void iAImNDTMain::changeOctreeAndMetric()
 {
-	iAVRTouchpadPosition touchpadPos = iAImNDTInteractorStyle::getTouchedPadSide(m_touchPadPosition);
+	iAVRTouchpadPosition touchpadPos = iAImNDTInteractions::getTouchedPadSide(m_touchPadPosition);
 	if (touchpadPos == iAVRTouchpadPosition::Middle)
 	{
 		this->toggleArView();
@@ -795,7 +787,7 @@ void iAImNDTMain::pressLeftTouchpad()
 	auto initWorldScale = m_vrEnv->getInitialWorldScale();
 	double offsetMiM = initWorldScale * 0.022;
 	double offsetVol = initWorldScale * 0.039;
-	iAVRTouchpadPosition touchpadPos = iAImNDTInteractorStyle::getTouchedPadSide(m_touchPadPosition);
+	iAVRTouchpadPosition touchpadPos = iAImNDTInteractions::getTouchedPadSide(m_touchPadPosition);
 
 	if (touchpadPos == iAVRTouchpadPosition::Middle)
 	{
@@ -929,28 +921,8 @@ void iAImNDTMain::displayNodeLinkD()
 
 void iAImNDTMain::toggleArView()
 {
-	if (!m_arEnabled)
+	if (m_arViewer->setEnabled(!m_arEnabled))
 	{
-#ifdef OPENXR_AVAILABLE
-		// Currently requires additional setup: https://github.com/Rectus/openxr-steamvr-passthrough/blob/main/readme.md
-		vtkOpenXRManager::GetInstance().SetBlendMode(XrEnvironmentBlendMode::XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND);
-#else
-		m_vrEnv->hideSkybox();
-		m_arViewer = std::make_unique<iAVRFrontCamera>(m_vrEnv->renderer(), m_vrEnv->renderWindow());
-		if (!m_arViewer->initialize())
-		{
-			m_vrEnv->showSkybox();
-			LOG(lvlWarn, "Initializing AR view failed; maybe your headset doesn't have a camera? If your headset does have a camera, make sure you have Camera enabled in the SteamVR settings!");
-			return;
-		}
-#endif
-		m_arEnabled = true;
-		return;
+		m_arEnabled = !m_arEnabled;
 	}
-	m_arEnabled = false;
-#ifdef OPENXR_AVAILABLE
-	vtkOpenXRManager::GetInstance().SetBlendMode(XrEnvironmentBlendMode::XR_ENVIRONMENT_BLEND_MODE_OPAQUE);
-#else
-	m_vrEnv->showSkybox();
-#endif
 }

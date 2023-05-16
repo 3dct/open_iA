@@ -12,6 +12,7 @@
 
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
+#include "iAParameterDlg.h"
 #include <iAVolumeRenderer.h>
 #include <iAVolumeViewer.h>
 
@@ -203,7 +204,7 @@ void iAImNDTModuleInterface::openVRInfo()
 }
 #endif
 
-#if OPENXR_AVAILABLE
+#ifdef OPENXR_AVAILABLE
 void iAImNDTModuleInterface::openXRInfo()
 {
 	// errors encountered in API calls so far:
@@ -417,7 +418,7 @@ void iAImNDTModuleInterface::startAnalysis()
 
 bool iAImNDTModuleInterface::vrAvailable()
 {
-#if OPENXR_AVAILABLE
+#ifdef OPENXR_AVAILABLE
 #else
 	if (!vr::VR_IsRuntimeInstalled())
 	{
@@ -448,8 +449,26 @@ bool iAImNDTModuleInterface::setupVREnvironment()
 		QMessageBox::information(m_mainWnd, "VR", msg);
 		return false;
 	}
-
-	m_vrEnv = std::make_shared<iAVREnvironment>();
+	auto backends = iAvtkVR::availableBackends();
+	if (backends.size() < 1)
+	{
+		LOG(lvlError, "No VR backend available!");
+		return false;
+	}
+	auto backend = backends[0];
+	if (backends.size() > 1)
+	{// quick and dirty: if more than one backends available, let user choose each time. TODO: Store user choice (option - store / ask each time?) !
+		QStringList backendNames;
+		for (auto b : backends)
+		{
+			backendNames << iAvtkVR::backendName(b);
+		}
+		iAAttributes a;
+		addAttr(a, "Backend", iAValueType::Categorical, backendNames);
+		iAParameterDlg dlg(m_mainWnd, "VR Backend", a);
+		backend = (dlg.parameterValues()["Backend"].toString() == iAvtkVR::backendName(iAvtkVR::OpenVR)) ? iAvtkVR::OpenVR : iAvtkVR::OpenXR;
+	}
+	m_vrEnv = std::make_shared<iAVREnvironment>(backend);
 	return true;
 }
 
@@ -461,14 +480,12 @@ bool iAImNDTModuleInterface::ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> poly
 		return false;
 	}
 	LOG(lvlInfo, QString("Starting ImNDT analysis of %1").arg(csvConfig.fileName));
-	//Create InteractorStyle
-	m_style = vtkSmartPointer<iAImNDTInteractorStyle>::New();
 
 	//Create VR Main
 	//TODO: CHECK IF PolyObject is not Volume OR NoVis
 	m_polyObject = polyObject;
 	m_objectTable = objectTable;
-	m_vrMain = std::make_shared<iAImNDTMain>(m_vrEnv.get(), m_style, m_polyObject.data(), m_objectTable, io, csvConfig);
+	m_vrMain = std::make_shared<iAImNDTMain>(m_vrEnv.get(), m_polyObject.data(), m_objectTable, io, csvConfig);
 	connect(m_vrMain.get(), &iAImNDTMain::selectionChanged, this, &iAImNDTModuleInterface::selectionChanged);
 
 	// Start Render Loop HERE!

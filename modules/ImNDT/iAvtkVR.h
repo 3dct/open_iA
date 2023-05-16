@@ -32,7 +32,7 @@ using iAvtkVRRenderWindow = vtkOpenVRRenderWindow;
 using iAvtkVRRenderWindowInteractor = vtkOpenVRRenderWindowInteractor;
 #endif
 
-class iAVRObjectFactory
+class iAvtkVR
 {
 public:
 	enum Backend {
@@ -43,6 +43,8 @@ public:
 	static vtkSmartPointer<iAvtkVRRenderWindow> createWindow(Backend b);
 	static vtkSmartPointer<iAvtkVRRenderWindowInteractor> createInteractor(Backend b);
 	static vtkSmartPointer<iAvtkVRRenderer> createRenderer(Backend b);
-	static void setActionManifest(iAvtkVRRenderWindowInteractor* interactor);
+	static void setActionManifest(iAvtkVRRenderWindowInteractor* interactor, iAvtkVR::Backend m_backend);
+
+	static std::vector<Backend> const & availableBackends();
 	static QString backendName(Backend b);
 };

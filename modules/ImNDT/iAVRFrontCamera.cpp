@@ -1,10 +1,15 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-#ifndef OPENXR_AVAILABLE
-
 #include "iAVRFrontCamera.h"
 
+#ifdef OPENVR_AVAILABLE
+
+#include "iAVtkVR.h"
+#include "iAVREnvironment.h"
+
 #include <iALog.h>
+
+#include <openvr.h>
 
 #include <vtkExtractVOI.h>
 #include <vtkImageData.h>
@@ -13,12 +18,96 @@
 #include <vtkPNGWriter.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
+#include <vtkSmartPointer.h>
 #include <vtkTexture.h>
 
 #include <QString>
 
-iAVRFrontCamera::iAVRFrontCamera(vtkRenderer* renderer, iAvtkVRRenderWindow* renderWindow)
-	: m_renderWindow(renderWindow), m_renderer(renderer)
+class vtkFloatArray;
+
+// dummy implementations so that we can use iAVRFrontCamera as "null object":
+iAVRFrontCamera::~iAVRFrontCamera()
+{}
+
+bool iAVRFrontCamera::refreshImage()
+{
+	return true;
+}
+
+bool iAVRFrontCamera::setEnabled(bool enabled)
+{
+	Q_UNUSED(enabled);
+	return true;
+}
+
+class iAOpenVRFrontCamera: public iAVRFrontCamera
+{
+public:
+	iAOpenVRFrontCamera(iAVREnvironment* env);  // vtkRenderer* renderer, iAvtkVRRenderWindow* renderWindow
+	~iAOpenVRFrontCamera();
+
+	/** Initialize the tracked camera */
+	bool initialize();
+
+	/*Build representation */
+	bool buildRepresentation();
+
+	//void switch Background ?
+
+	bool refreshImage() override;
+
+	bool setEnabled(bool enabled) override;
+
+private:
+
+	/** Camera frame parameters */
+	uint32_t m_cameraFrameWidth;
+	uint32_t m_cameraFrameHeight;
+	uint32_t m_cameraFrameBufferSize;
+	uint8_t* m_cameraFrameBuffer;
+	uint32_t m_lastFrameSequence;
+
+	/** Vive System */
+	vr::IVRSystem* m_pHMD;
+
+	/** Tracked Camera (or front camera) */
+	vr::IVRTrackedCamera* m_VRTrackedCamera;
+
+	/*Type of frame from the Tracked Camera : distorted/Undistorted/MaximumUndistorted*/
+	vr::EVRTrackedCameraFrameType m_frameType;
+
+	//get the frame header only
+	vr::CameraVideoStreamFrameHeader_t m_frameHeader;
+
+	/*The tracked Camera has a unique TrackedCameraHandle_t
+	* This handle is used to set attributes, receive events, (and render?).
+	* These are several circumstances where the tracked camera isn't detected or invalid.
+	* In those case the handle will be equal to INVALID_TRACKED_CAMERA_HANDLE */
+	vr::TrackedCameraHandle_t m_VRTrackedCameraHandle;
+
+	vtkSmartPointer<vtkOpenVRRenderer> m_backgroundRenderer;
+
+	/** Image source to fill and return for display */
+	vtkSmartPointer<vtkImageData> m_sourceImage;
+	vtkSmartPointer<vtkImageData> m_leftImage;
+	vtkSmartPointer<vtkImageData> m_rightImage;
+
+	vtkSmartPointer<vtkTexture> m_sourceTexture;
+	vtkSmartPointer<vtkTexture> m_leftTexture;
+	vtkSmartPointer<vtkTexture> m_rightTexture;
+
+	bool getFrameSize();
+	void allocateImages();
+	void loadVideoStream();
+	void createImage();
+	void createLeftAndRightEyeImage();
+
+	//void saveImageAsPNG(int type);
+	iAVREnvironment* m_vrEnv;
+};
+
+iAOpenVRFrontCamera::iAOpenVRFrontCamera(iAVREnvironment* env)
+	: m_vrEnv(env)
 {
 	m_pHMD = nullptr;
 	m_VRTrackedCamera = 0;
@@ -39,15 +128,15 @@ iAVRFrontCamera::iAVRFrontCamera(vtkRenderer* renderer, iAvtkVRRenderWindow* ren
 	m_frameType = vr::VRTrackedCameraFrameType_Distorted;
 }
 
-iAVRFrontCamera::~iAVRFrontCamera()
+iAOpenVRFrontCamera::~iAOpenVRFrontCamera()
 {
 	m_pHMD = nullptr;
 	m_VRTrackedCamera = nullptr;
 }
 
-bool iAVRFrontCamera::initialize()
+bool iAOpenVRFrontCamera::initialize()
 {
-	auto openVRRenWin = vtkOpenVRRenderWindow::SafeDownCast(m_renderWindow);
+	auto openVRRenWin = vtkOpenVRRenderWindow::SafeDownCast(m_vrEnv->renderWindow());
 	m_pHMD = openVRRenWin->GetHMD();
 	m_VRTrackedCamera = vr::VRTrackedCamera();
 	if (!m_VRTrackedCamera)
@@ -97,9 +186,9 @@ bool iAVRFrontCamera::initialize()
 	return true;
 }
 
-bool iAVRFrontCamera::buildRepresentation()
+bool iAOpenVRFrontCamera::buildRepresentation()
 {
-	m_renderWindow->MakeCurrent();
+	m_vrEnv->renderWindow()->MakeCurrent();
 
 	if (!getFrameSize())
 	{
@@ -115,19 +204,19 @@ bool iAVRFrontCamera::buildRepresentation()
 	m_backgroundRenderer->SetRightBackgroundTexture(m_rightTexture);
 	m_backgroundRenderer->SetLeftBackgroundTexture(m_leftTexture);
 
-	m_renderWindow->SetNumberOfLayers(2);
-	m_renderWindow->AddRenderer(m_backgroundRenderer);
+	m_vrEnv->renderWindow()->SetNumberOfLayers(2);
+	m_vrEnv->renderWindow()->AddRenderer(m_backgroundRenderer);
 	m_backgroundRenderer->SetLayer(0);
 	m_backgroundRenderer->InteractiveOff();
-	m_renderer->SetLayer(1);
+	m_vrEnv->renderer()->SetLayer(1);
 
-	m_renderWindow->Render();
+	m_vrEnv->renderWindow()->Render();
 	return true;
 }
 
-bool iAVRFrontCamera::refreshImage()
+bool iAOpenVRFrontCamera::refreshImage()
 {
-	m_renderWindow->MakeCurrent();
+	m_vrEnv->renderWindow()->MakeCurrent();
 
 	if (!m_VRTrackedCamera || !m_VRTrackedCameraHandle)
 	{
@@ -156,13 +245,13 @@ bool iAVRFrontCamera::refreshImage()
 		m_rightTexture->Modified();
 		m_leftTexture->Modified();
 
-		m_renderWindow->Render();
+		m_vrEnv->renderWindow()->Render();
 	}
 	return true;
 }
 
 //! Get FrameWidth and FrameHeight from tracked camera
-bool iAVRFrontCamera::getFrameSize()
+bool iAOpenVRFrontCamera::getFrameSize()
 {
 	// Allocate for camera frame buffer requirements
 	uint32_t nCameraFrameBufferSize = 0;
@@ -194,7 +283,7 @@ bool iAVRFrontCamera::getFrameSize()
 }
 
 //! Allocate dimensions to the source image and the image for left and right eye
-void iAVRFrontCamera::allocateImages()
+void iAOpenVRFrontCamera::allocateImages()
 {
 	//m_sourceImage = vtkImageData::New();
 	m_sourceImage = vtkSmartPointer<vtkImageData>::New();
@@ -218,7 +307,7 @@ void iAVRFrontCamera::allocateImages()
 }
 
 //! Copies the frame buffer of the openVR device and creates the image
-void iAVRFrontCamera::loadVideoStream()
+void iAOpenVRFrontCamera::loadVideoStream()
 {
 	if (!m_VRTrackedCamera || !m_VRTrackedCameraHandle)
 	{
@@ -242,7 +331,7 @@ void iAVRFrontCamera::loadVideoStream()
 }
 
 //! creates the source image out of the buffer
-void iAVRFrontCamera::createImage()
+void iAOpenVRFrontCamera::createImage()
 {
 	const uint8_t* pFrameImage = m_cameraFrameBuffer;
 
@@ -283,7 +372,7 @@ void iAVRFrontCamera::createImage()
 	}
 }
 
-void iAVRFrontCamera::createLeftAndRightEyeImage()
+void iAOpenVRFrontCamera::createLeftAndRightEyeImage()
 {
 	const int* dims = m_sourceImage->GetDimensions();
 
@@ -346,4 +435,70 @@ void iAVRFrontCamera::saveImageAsPNG(int type)
 	}
 }
 */
+
+bool iAOpenVRFrontCamera::setEnabled(bool enabled)
+{
+	if (enabled)
+	{
+		m_vrEnv->hideSkybox();
+		if (!initialize())
+		{
+			m_vrEnv->showSkybox();
+			LOG(lvlWarn, "Initializing AR view failed; maybe your headset doesn't have a camera? If your headset does have a camera, make sure you have Camera enabled in the SteamVR settings!");
+			return false;
+		}
+	}
+	else
+	{
+		m_vrEnv->showSkybox();
+	}
+	return true;
+}
+
 #endif
+
+
+#ifdef OPENXR_AVAILABLE
+
+#include <openxr.h>
+#include <vtkOpenXRManager.h>
+
+class iAOpenXRFrontCamera : public iAVRFrontCamera
+{
+	bool refreshImage() override
+	{
+		return true;
+	}
+	bool setEnabled(bool enabled) override {
+		if (enabled)
+		{
+			// Currently requires additional setup: https://github.com/Rectus/openxr-steamvr-passthrough/blob/main/readme.md
+			vtkOpenXRManager::GetInstance().SetBlendMode(XrEnvironmentBlendMode::XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND);
+		}
+		else
+		{
+			vtkOpenXRManager::GetInstance().SetBlendMode(XrEnvironmentBlendMode::XR_ENVIRONMENT_BLEND_MODE_OPAQUE);
+		}
+		return true;
+	}
+};
+#endif
+
+
+std::unique_ptr<iAVRFrontCamera> createARViewer(iAVREnvironment* env)
+{
+#ifdef OPENXR_AVAILABLE
+	if (env->backend()  == iAvtkVR::OpenVR)
+	{
+		return std::make_unique<iAOpenVRFrontCamera>(env);
+	}
+#endif
+#ifdef OPENVR_AVAILABLE
+	if (env->backend() == iAvtkVR::OpenXR)
+	{
+		return std::make_unique<iAOpenXRFrontCamera>();
+	}
+#endif
+	LOG(lvlError, "Could not create AR viewer for given environment, using dummy!");
+	return std::make_unique<iAVRFrontCamera>();
+}
