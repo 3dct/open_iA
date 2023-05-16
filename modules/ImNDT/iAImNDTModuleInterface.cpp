@@ -22,7 +22,7 @@
 #endif
 
 #ifdef OPENXR_AVAILABLE
-#include <openxr/openxr.h>
+#include <openxr.h>
 #endif
 
 #include <vtkImageData.h>

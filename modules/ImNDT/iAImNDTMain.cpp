@@ -29,7 +29,7 @@
 
 
 #ifdef OPENXR_AVAILABLE
-#include <openxr/openxr.h>
+#include <openxr.h>
 #include <vtkOpenXRManager.h>
 #endif
 

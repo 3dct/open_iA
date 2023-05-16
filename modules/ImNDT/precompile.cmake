@@ -14,7 +14,6 @@ set(ImNDT_PRECOMPILE_INCLUDES
 <iAVRObjectModel.h>
 <iAVROctree.h>
 <iAVROctreeMetrics.h>
-<openxr.h>
 <QColor>
 <QString>
 <unordered_map>
