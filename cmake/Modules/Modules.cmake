@@ -127,6 +127,7 @@ function (MODULE_CHECK_DEPENDENCIES option_name module_full_path )
 endfunction()
 
 macro (MODULE_GENERATE_INTERFACE_FACTORY real_module_name)
+	# clean module name for use as identifier (if leading number, then add "_" prefix)
 	string(REGEX REPLACE "^([0123456789])" "_\\1" ident_module_name ${module_name})
 	set(factory_cpp_file ${CMAKE_CURRENT_BINARY_DIR}/${real_module_name}_factory.cpp)
 	GET_MODULE_INTERFACE_NAME( ${real_module_name} module_interface_class_name)
