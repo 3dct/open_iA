@@ -370,6 +370,25 @@ void iAImNDTModuleInterface::openXRInfo()
 	{
 		LOG(lvlError, QString("    Error while destroying instance: %1").arg(destroyInstanceResult));
 	}
+
+	// further info possibilities:
+
+	// xrEnumerateViewConfigurations     // potentially most interesting
+	// xrEnumerateViewConfigurationViews
+	// xrEnumerateSwapchainImages
+	// xrEnumerateSwapchainFormats       // requires session
+	// xrEnumerateReferenceSpaces        // requires session
+	// xrEnumerateBoundSourcesForAction  // requires session
+
+	// from extensions:
+
+	// xrEnumerateDisplayRefreshRatesFB  // requires session
+	// xrEnumerateRenderModelPathsFB     // requires session
+	// xrEnumerateSpaceSupportedComponentsFB
+	// xrEnumeratePerformanceMetricsCounterPathsMETA
+	// xrEnumerateReprojectionModesMSFT
+	// xrEnumerateSceneComputeFeaturesMSFT
+	// xrEnumeratePersistedSpatialAnchorNamesMSFT
 }
 #endif
 
