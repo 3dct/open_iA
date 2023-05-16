@@ -168,7 +168,7 @@ void iAImNDTModuleInterface::info()
 #ifdef OPENVR_AVAILABLE
 void iAImNDTModuleInterface::openVRInfo()
 {
-	LOG(lvlInfo, QString("VR Information:"));
+	LOG(lvlInfo, QString("OpenVR Information:"));
 	LOG(lvlInfo, QString("    Is Runtime installed: %1").arg(vr::VR_IsRuntimeInstalled() ? "yes" : "no"));
 	const uint32_t MaxRuntimePathLength = 1024;
 	uint32_t actualLength;
@@ -184,7 +184,7 @@ void iAImNDTModuleInterface::openVRInfo()
 	auto pHMD = vr::VR_Init(&eError, vr::VRApplication_Scene);
 	if (eError != vr::VRInitError_None)
 	{
-		LOG(lvlError, QString("    Unable to init VR runtime: %1").arg(vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
+		LOG(lvlError, QString("    Unable to initialize OpenVR: %1").arg(vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
 	}
 	else
 	{
@@ -206,6 +206,170 @@ void iAImNDTModuleInterface::openVRInfo()
 #if OPENXR_AVAILABLE
 void iAImNDTModuleInterface::openXRInfo()
 {
+	// errors encountered in API calls so far:
+	
+	// XR_ERROR_RUNTIME_FAILURE = -2,           when no HMD connected / vive connection box not turned on (?)
+	// XR_ERROR_API_VERSION_UNSUPPORTED = -4    when type member wasn't properly set in passed-in struct (?) - but xrGetSystemProperty crashed in this case with an access violation!
+	// XR_ERROR_SIZE_INSUFFICIENT = -11         when space in data structure not sufficient to store all results of xrEnumerate... call
+	// XR_ERROR_RUNTIME_UNAVAILABLE = -51       when SteamVR wasn't installed at all
+
+	// Most important thing to keep in mind: in all structures passed into an API call, set the type field to the respective constant from XrStructureType!"
+	// If you don't apparently different things can happen: Either error result (e.g. XR_ERROR_API_VERSION_UNSUPPORTED) or crash (access violation)!
+
+	LOG(lvlInfo, QString("OpenXR Information:"));
+
+	// there seem to be no layers available ... ?
+	uint32_t layerCount;
+	auto getLayerCountResult = xrEnumerateApiLayerProperties(0, &layerCount, nullptr);
+	if (getLayerCountResult != XR_SUCCESS)
+	{
+		LOG(lvlError, QString("    Unable to get layer count: %1").arg(getLayerCountResult));
+		return;
+	}
+	LOG(lvlInfo, QString("  Layers (%1):").arg(layerCount));
+
+	uint32_t layersRead;
+	std::vector<XrApiLayerProperties> layers(layerCount, { XR_TYPE_API_LAYER_PROPERTIES } );
+	auto getLayersResult = xrEnumerateApiLayerProperties(layerCount, &layersRead, layers.data());
+	if (getLayersResult != XR_SUCCESS)
+	{
+		LOG(lvlError, QString("    Unable to get layer information: %1").arg(getLayersResult));
+		return;
+	}
+
+	assert(layerCount == layersRead);
+
+	for (uint32_t l = 0; l < layersRead; ++l)
+	{
+		LOG(lvlInfo, QString("    %1: name=%2, layerVersion=%3, specVersion=%4, description=%5")
+			.arg(l)
+			.arg(layers[l].layerName)
+			.arg(layers[l].layerVersion)
+			.arg(layers[l].specVersion)
+			.arg(layers[l].description));
+	}
+
+	uint32_t extensionCount;
+	auto getExtensionCountResult = xrEnumerateInstanceExtensionProperties(nullptr, 0, &extensionCount, nullptr);
+	if (getExtensionCountResult == XR_ERROR_RUNTIME_UNAVAILABLE)
+	{
+		LOG(lvlError, QString("    Runtime is not available! Please install e.g. SteamVR and try again!"));
+		return;
+	}
+	if (getExtensionCountResult != XR_SUCCESS)
+	{
+		LOG(lvlError, QString("    Unable to get extension count: %1").arg(getExtensionCountResult));
+		return;
+	}
+	LOG(lvlInfo, QString("  Extensions (%1):").arg(extensionCount));
+
+	uint32_t extensionRead;
+	std::vector<XrExtensionProperties> extensions(extensionCount, { XR_TYPE_EXTENSION_PROPERTIES } );
+	auto getExtensionsResult = xrEnumerateInstanceExtensionProperties(nullptr, extensionCount, &extensionRead, extensions.data());
+	if (getExtensionsResult != XR_SUCCESS)
+	{
+		LOG(lvlError, QString("    Unable to get extension information: %1").arg(getExtensionsResult));
+		return;
+	}
+	assert(extensionCount == extensionRead);
+
+	for (uint32_t e = 0; e < extensionRead; ++e)
+	{
+		LOG(lvlInfo, QString("    %1: name=%2, version=%3")
+			.arg(e)
+			.arg(extensions[e].extensionName)
+			.arg(extensions[e].extensionVersion));
+	}
+
+	XrInstanceCreateInfo info = { XR_TYPE_INSTANCE_CREATE_INFO };
+	std::string appName = "open_iA";
+	strncpy(info.applicationInfo.applicationName, appName.c_str(), XR_MAX_APPLICATION_NAME_SIZE);
+	info.applicationInfo.applicationVersion = 1;
+	strncpy(info.applicationInfo.engineName, appName.c_str(), XR_MAX_ENGINE_NAME_SIZE);
+	info.applicationInfo.engineVersion = 1;
+	info.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
+	XrInstance instance = nullptr;
+	auto createInstanceResult = xrCreateInstance(&info, &instance);
+	if (createInstanceResult != XR_SUCCESS || instance == nullptr)
+	{
+		LOG(lvlError, QString("    Unable to initialize: %1").arg(createInstanceResult));
+		return;
+	}
+
+	XrInstanceProperties properties;
+	auto getPropsResult = xrGetInstanceProperties(instance, &properties);
+	if (getPropsResult != XR_SUCCESS)
+	{
+		LOG(lvlError, QString("    Unable to get instance properties: %1").arg(getPropsResult));
+		return;
+	}
+	LOG(lvlInfo, QString("    Instance properties: runtimeName=%1, runtimeVersion=%2")
+		.arg(properties.runtimeName)
+		.arg(properties.runtimeVersion));
+
+	XrSystemGetInfo systemInfo = { XR_TYPE_SYSTEM_GET_INFO };
+	XrSystemId systemID = XR_NULL_SYSTEM_ID;
+	systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
+	auto getSystemResult = xrGetSystem(instance, &systemInfo, &systemID);
+	if (getSystemResult != XR_SUCCESS)
+	{
+		LOG(lvlError, QString("    Unable to get HMD system: %1").arg(getSystemResult));
+		return;
+	}
+
+	XrSystemProperties systemProps = { XR_TYPE_SYSTEM_PROPERTIES };
+	auto getSystemPropsResult = xrGetSystemProperties(instance, systemID, &systemProps);
+	if (getSystemPropsResult != XR_SUCCESS)
+	{
+		LOG(lvlError, QString("    Unable to get system properties: %1").arg(getSystemPropsResult));
+		return;
+	}
+	LOG(lvlInfo, QString("    System properties: name=%1, systemId=%2, vendorId=%3, graphicsProps(max LayerCount=%4, ImageHeight=%5, ImageWidth=%6), trackingProps(orientation=%7, position=%8)")
+		.arg(systemProps.systemName)
+		.arg(systemProps.systemId)
+		.arg(systemProps.vendorId)
+		.arg(systemProps.graphicsProperties.maxLayerCount)
+		.arg(systemProps.graphicsProperties.maxSwapchainImageHeight)
+		.arg(systemProps.graphicsProperties.maxSwapchainImageWidth)
+		.arg(systemProps.trackingProperties.orientationTracking)
+		.arg(systemProps.trackingProperties.positionTracking));
+
+	XrViewConfigurationType app_config_view = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+	uint32_t blendCount = 0;
+	auto getBlendModeCountResult = xrEnumerateEnvironmentBlendModes(instance, systemID, app_config_view, 0, &blendCount, nullptr);
+	if (getBlendModeCountResult != XR_SUCCESS)
+	{
+		LOG(lvlError, QString("    Unable to get count of environment blend modes: %1").arg(getBlendModeCountResult));
+		return;
+	}
+
+	LOG(lvlInfo, QString("Available environment blend modes (%1):").arg(blendCount));
+	uint32_t blendRead;
+	std::vector<XrEnvironmentBlendMode> blendModes(blendCount);
+	auto enumerateBlendModeResult = xrEnumerateEnvironmentBlendModes(instance, systemID, app_config_view, blendCount, &blendRead, blendModes.data());
+	if (enumerateBlendModeResult != XR_SUCCESS)
+	{
+		LOG(lvlError, QString("    Unable to get environmet blend mode information: %1").arg(enumerateBlendModeResult));
+		return;
+	}
+	for (auto blendModeID : blendModes)
+	{
+		QString blendMode;
+		switch (blendModeID)
+		{
+		case XR_ENVIRONMENT_BLEND_MODE_OPAQUE: blendMode = "Opaque"; break;
+		case XR_ENVIRONMENT_BLEND_MODE_ADDITIVE: blendMode = "Additive"; break;
+		case XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND: blendMode = "Alpha blend"; break;
+		default: blendMode = QString("unknown (%1)").arg(blendModeID);
+		}
+		LOG(lvlInfo, QString("    %1: %2").arg(blendModeID).arg(blendMode));
+	}
+
+	auto destroyInstanceResult = xrDestroyInstance(instance);
+	if (destroyInstanceResult != XR_SUCCESS)
+	{
+		LOG(lvlError, QString("    Error while destroying instance: %1").arg(destroyInstanceResult));
+	}
 }
 #endif
 
