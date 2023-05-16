@@ -155,7 +155,15 @@ bool iAFeatureScoutTool::initFromConfig(iAMdiChild* child, iACsvConfig const& cs
 		renderSettings["Linear interpolation"] = false;
 		renderSettings["Diffuse lighting"] = 1.6;
 		renderSettings["Specular lighting"] = 0.0;
-		renderSettings["Renderer type"] = RenderModeMap()[vtkSmartVolumeMapper::RayCastRenderMode];
+		for (auto key: RenderModeMap().keys())
+		{
+			if (RenderModeMap()[key] == vtkSmartVolumeMapper::RayCastRenderMode)
+			{
+				renderSettings["Renderer type"] = key;
+				break;
+			}
+		}
+		
 		child->dataSetViewer(child->firstImageDataSetIdx())->setAttributes(renderSettings);
 	}
 	setOptions(csvConfig);
