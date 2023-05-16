@@ -4,7 +4,7 @@
 add_executable(StringHelperTest iAStringHelperTest.cpp ../libs/base/iAStringHelper.cpp)      # for iAbase_export.h
 target_include_directories(StringHelperTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base ${CMAKE_CURRENT_BINARY_DIR}/../libs)
 target_link_libraries(StringHelperTest PRIVATE Qt${QT_VERSION_MAJOR}::Core)
-target_compile_definitions(StringHelperTest PRIVATE NO_DLL_LINKAGE)
+target_compile_definitions(StringHelperTest PRIVATE IABASE_STATIC_DEFINE)
 add_test(NAME StringHelperTest COMMAND StringHelperTest)
 if (MSVC)
 	string(REGEX REPLACE "/" "\\\\" QT_WIN_DLL_DIR ${QT_LIB_DIR})
@@ -18,7 +18,7 @@ endif()
 # Vec3Test
 add_executable(Vec3Test iAVec3Test.cpp)
 target_include_directories(Vec3Test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base)
-target_compile_definitions(Vec3Test PRIVATE NO_DLL_LINKAGE)
+target_compile_definitions(Vec3Test PRIVATE IABASE_STATIC_DEFINE)
 target_link_libraries(Vec3Test PRIVATE Qt${QT_VERSION_MAJOR}::Core)
 add_test(NAME Vec3Test COMMAND Vec3Test)
 
@@ -30,7 +30,7 @@ if (openiA_DEPENDENCY_INFO)
 	message(STATUS "MathUtilTest dependencies")
 endif()
 ADD_VTK_LIBRARIES(MathUtilTest PRIVATE CommonCore)    # for vtkMath
-target_compile_definitions(MathUtilTest PRIVATE NO_DLL_LINKAGE)
+target_compile_definitions(MathUtilTest PRIVATE IABASE_STATIC_DEFINE)
 add_test(NAME MathUtilTest COMMAND MathUtilTest)
 if (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	target_compile_options(MathUtilTest PRIVATE -fPIC)
@@ -44,7 +44,7 @@ endif()
 # FunctionalBoxplotTest
 add_executable(FunctionalBoxplotTest iAFunctionalBoxplotTest.cpp)
 target_include_directories(FunctionalBoxplotTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base ${CMAKE_CURRENT_SOURCE_DIR}/../Toolkit/FunctionalBoxplot)
-target_compile_definitions(FunctionalBoxplotTest PRIVATE NO_DLL_LINKAGE)
+target_compile_definitions(FunctionalBoxplotTest PRIVATE IABASE_STATIC_DEFINE)
 add_test(NAME FunctionalBoxplotTest COMMAND FunctionalBoxplotTest)
 
 # MSVC
