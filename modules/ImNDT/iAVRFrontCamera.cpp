@@ -474,6 +474,7 @@ class iAOpenXRFrontCamera : public iAVRFrontCamera
 		if (enabled)
 		{
 			// Currently requires additional setup: https://github.com/Rectus/openxr-steamvr-passthrough/blob/main/readme.md
+			// and even then, it doesn't seem to work - probably due to "OpenGL applications are not currently supported."
 			vtkOpenXRManager::GetInstance().SetBlendMode(XrEnvironmentBlendMode::XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND);
 		}
 		else
