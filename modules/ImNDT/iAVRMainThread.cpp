@@ -11,6 +11,7 @@ iAVRMainThread::iAVRMainThread(iAvtkVRRenderWindow* renderWindow, iAvtkVRRenderW
 
 void iAVRMainThread::run()
 {
+	iAvtkVR::setActionManifest(m_interactor, m_backend);
 	m_renderWindow->Initialize();
 	//if (!vr::VRInput())
 	//{
@@ -18,9 +19,8 @@ void iAVRMainThread::run()
 	//	LOG(lvlWarn, "Headset not available or turned off. Please attach, turn on and try again!");
 	//	return;
 	//}
-	LOG(lvlInfo, "VR rendering started!");
+	LOG(lvlInfo, QString("VR rendering started (backend: %1)!").arg(iAvtkVR::backendName(m_backend)));
 	m_renderWindow->Render();
-	iAvtkVR::setActionManifest(m_interactor, m_backend);
 	// use of vtk's event loop is potentially problematic - calling SetDone on it from another
 	// thread causes potential assertion failures in the immediately invoked event:
 	// m_interactor->Start();

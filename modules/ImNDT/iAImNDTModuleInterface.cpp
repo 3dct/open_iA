@@ -466,6 +466,10 @@ bool iAImNDTModuleInterface::setupVREnvironment()
 		iAAttributes a;
 		addAttr(a, "Backend", iAValueType::Categorical, backendNames);
 		iAParameterDlg dlg(m_mainWnd, "VR Backend", a);
+		if (dlg.exec() != QDialog::Accepted)
+		{
+			return false;
+		}
 		backend = (dlg.parameterValues()["Backend"].toString() == iAvtkVR::backendName(iAvtkVR::OpenVR)) ? iAvtkVR::OpenVR : iAvtkVR::OpenXR;
 	}
 	m_vrEnv = std::make_shared<iAVREnvironment>(backend);

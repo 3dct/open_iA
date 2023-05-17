@@ -27,7 +27,6 @@ vtkSmartPointer<iAvtkVRCamera> iAvtkVR::createCamera(Backend b)
 	if (b == OpenVR)
 	{
 		return vtkSmartPointer<vtkOpenVRCamera>::New();
-
 	}
 #endif
 #ifdef OPENXR_AVAILABLE
@@ -46,7 +45,6 @@ vtkSmartPointer<iAvtkVRRenderWindow> iAvtkVR::createWindow(Backend b)
 	if (b == OpenVR)
 	{
 		return vtkSmartPointer<vtkOpenVRRenderWindow>::New();
-
 	}
 #endif
 #ifdef OPENXR_AVAILABLE
@@ -65,7 +63,6 @@ vtkSmartPointer<iAvtkVRRenderWindowInteractor> iAvtkVR::createInteractor(Backend
 	if (b == OpenVR)
 	{
 		return vtkSmartPointer<vtkOpenVRRenderWindowInteractor>::New();
-
 	}
 #endif
 #ifdef OPENXR_AVAILABLE
@@ -84,7 +81,6 @@ vtkSmartPointer<iAvtkVRRenderer> iAvtkVR::createRenderer(Backend b)
 	if (b == OpenVR)
 	{
 		return vtkSmartPointer<vtkOpenVRRenderer>::New();
-
 	}
 #endif
 #ifdef OPENXR_AVAILABLE
@@ -130,11 +126,11 @@ std::vector<iAvtkVR::Backend> const& iAvtkVR::availableBackends()
 	static std::vector<Backend> backends;
 	if (backends.empty())
 	{
-#ifdef OPENXR_AVAILABLE
-		backends.push_back(iAvtkVR::OpenXR);
-#endif
 #ifdef OPENVR_AVAILABLE
 		backends.push_back(iAvtkVR::OpenVR);
+#endif
+#ifdef OPENXR_AVAILABLE
+		backends.push_back(iAvtkVR::OpenXR);
 #endif
 	}
 	return backends;

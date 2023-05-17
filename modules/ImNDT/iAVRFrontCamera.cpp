@@ -469,7 +469,8 @@ class iAOpenXRFrontCamera : public iAVRFrontCamera
 	{
 		return true;
 	}
-	bool setEnabled(bool enabled) override {
+	bool setEnabled(bool enabled) override
+	{
 		if (enabled)
 		{
 			// Currently requires additional setup: https://github.com/Rectus/openxr-steamvr-passthrough/blob/main/readme.md
