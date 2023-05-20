@@ -90,7 +90,7 @@ QString iAFoamCharacterizationItem::fileRead(QFile* _pFileOpen)
 	int iText;
 	_pFileOpen->read((char*)&iText, sizeof(iText));
 
-	QScopedPointer<char> pText(new char[iText]);
+	QScopedArrayPointer<char> pText(new char[iText]);
 	_pFileOpen->read(pText.data(), iText);
 
 	return QString(pText.data()).mid(0, iText);
