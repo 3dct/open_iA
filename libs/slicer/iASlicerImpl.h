@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAslicer_export.h"
+#include "iaslicer_export.h"
 
 #include "iASlicer.h"
 #include "iASlicerMode.h"

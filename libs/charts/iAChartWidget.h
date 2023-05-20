@@ -12,7 +12,7 @@ using iAChartParentWidget = QOpenGLWidget;
 using iAChartParentWidget = QWidget;
 #endif
 
-#include "iAcharts_export.h"
+#include "iacharts_export.h"
 
 #include <vector>
 

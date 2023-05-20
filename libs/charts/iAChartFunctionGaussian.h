@@ -4,7 +4,7 @@
 
 #include "iAChartFunction.h"
 
-#include "iAcharts_export.h"
+#include "iacharts_export.h"
 
 #include <QColor>
 

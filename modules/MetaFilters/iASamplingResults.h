@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "MetaFilters_export.h"
+#include "metafilters_export.h"
 
 #include <iAAttributes.h>
 

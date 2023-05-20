@@ -13,7 +13,7 @@ using iAChartParentWidget = QWidget;
 
 #include "iAScatterPlot.h"	// for iAScatterPlot::SelectionMode, iAScatterPlot::HighlightDrawMode
 
-#include "iAcharts_export.h"
+#include "iacharts_export.h"
 
 class iAColorTheme;
 class iAScatterPlotViewData;

@@ -4,7 +4,7 @@
 
 #include "iAPlot.h"
 
-#include "iAcharts_export.h"
+#include "iacharts_export.h"
 
 #include <QVector>
 #include <QSharedPointer>

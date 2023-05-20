@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "FeatureScout_export.h"
+#include "featurescout_export.h"
 #include "iAObjectType.h"
 
 #include <vtkSmartPointer.h>

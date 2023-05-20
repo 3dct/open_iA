@@ -4,7 +4,7 @@
 
 #include "iAObjectType.h"
 
-#include "iAobjectvis_export.h"
+#include "iaobjectvis_export.h"
 
 #include <QMap>
 #include <QString>

@@ -7,7 +7,7 @@ class vtkPiecewiseFunction;
 
 #include <vtkSmartPointer.h>
 
-#include "iAbase_export.h"
+#include "iabase_export.h"
 
 //! Base class for anything providing a full transfer function (opacity + color)
 class iAbase_API iATransferFunction

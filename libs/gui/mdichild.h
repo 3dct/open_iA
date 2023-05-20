@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAgui_export.h"
+#include "iagui_export.h"
 
 // TODO: get rid of ui_ includes (use ui internally only, see MainWindow::m_ui)
 #include "ui_Mdichild.h"

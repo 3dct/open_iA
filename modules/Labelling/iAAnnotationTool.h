@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include <Labelling_export.h>
+#include "labelling_export.h"
 
 #include <iATool.h>
 #include <iAVec3.h>

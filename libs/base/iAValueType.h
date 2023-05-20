@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAbase_export.h"
+#include "iabase_export.h"
 
 //! Value types that can be used for parameters and attributes
 //! @see iAAttributeDescriptor

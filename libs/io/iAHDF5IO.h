@@ -4,7 +4,7 @@
 
 #ifdef USE_HDF5
 
-#include "iAio_export.h"
+#include "iaio_export.h"
 
 #include "iAAutoRegistration.h"
 #include "iAFileIO.h"

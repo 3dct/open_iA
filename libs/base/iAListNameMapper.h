@@ -3,7 +3,7 @@
 #pragma once
 
 #include "iANameMapper.h"
-#include "iAbase_export.h"
+#include "iabase_export.h"
 
 #include <QStringList>
 

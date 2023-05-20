@@ -26,7 +26,7 @@
 #ifndef QCUSTOMPLOT_H
 #define QCUSTOMPLOT_H
 
-#include "iAcharts_export.h"
+#include "iacharts_export.h"
 
 #ifdef CHART_OPENGL
 #define QCUSTOMPLOT_USE_OPENGL

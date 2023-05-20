@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAcharts_export.h"
+#include "iacharts_export.h"
 
 class QIcon;
 class QString;

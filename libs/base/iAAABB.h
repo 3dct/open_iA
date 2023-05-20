@@ -3,7 +3,7 @@
 #pragma once
 
 // TODO: re-use in FIAKER/FiberSA(/DreamCaster?)
-#include "iAbase_export.h"
+#include "iabase_export.h"
 
 #include <iAVec3.h>
 

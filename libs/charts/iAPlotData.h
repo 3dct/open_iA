@@ -4,7 +4,7 @@
 
 #include "iAValueType.h"
 
-#include "iAcharts_export.h"
+#include "iacharts_export.h"
 
 #include <QString>
 

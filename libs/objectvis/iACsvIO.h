@@ -5,7 +5,7 @@
 #include "iAObjectType.h"
 #include "iACsvConfig.h"
 
-#include "iAobjectvis_export.h"
+#include "iaobjectvis_export.h"
 
 #include <iAVec3.h>
 

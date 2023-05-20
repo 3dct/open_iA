@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAio_export.h"
+#include "iaio_export.h"
 
 #include <itkImage.h>
 

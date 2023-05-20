@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAbase_export.h"
+#include "iabase_export.h"
 
 // why is this not unsigned int?
 typedef int iAVoxelIndexType;

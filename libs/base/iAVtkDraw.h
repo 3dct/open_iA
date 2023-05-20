@@ -4,7 +4,7 @@
 
 #include <vtkImageData.h>
 
-#include "iAbase_export.h"
+#include "iabase_export.h"
 
 //! An image which allows the user to specify min/max of scalar range.
 //! Required e.g. in situations where the scalar range of the raw image data

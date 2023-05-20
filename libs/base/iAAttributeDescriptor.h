@@ -4,7 +4,7 @@
 
 #include "iAValueType.h"
 
-#include "iAbase_export.h"
+#include "iabase_export.h"
 
 #include <QSharedPointer>
 #include <QString>

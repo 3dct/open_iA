@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAbase_export.h"
+#include "iabase_export.h"
 
 //! Checks whether CUDA is available; two aspects need to be fulfilled:
 //!      - open_iA has to be built with CUDA support,

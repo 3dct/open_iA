@@ -3,7 +3,7 @@
 #pragma once
 
 #include "iAObjectType.h"
-#include "FeatureScout_export.h"
+#include "featurescout_export.h"
 
 #include <iAGUIModuleInterface.h>
 

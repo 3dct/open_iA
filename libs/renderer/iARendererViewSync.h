@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iArenderer_export.h"
+#include "iarenderer_export.h"
 
 #include <QMap>
 

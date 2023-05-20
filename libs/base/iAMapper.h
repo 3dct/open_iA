@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAbase_export.h"
+#include "iabase_export.h"
 
 //! Abstract base class for a mapping from a source- into a destination range.
 class iAbase_API iAMapper

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "Segmentation_export.h"
+#include "segmentation_export.h"
 
 #include <QSharedPointer>
 

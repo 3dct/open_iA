@@ -4,7 +4,7 @@
 
 #include "iAChartWidget.h"
 
-#include "iAcharts_export.h"
+#include "iacharts_export.h"
 
 #include <QDomNode>
 #include <QString>

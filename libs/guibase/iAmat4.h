@@ -3,7 +3,7 @@
 #pragma once
 
 #include "iAVec3.h"
-#include "iAguibase_export.h"
+#include "iaguibase_export.h"
 
 //! Class representing a 4x4 float matrix.
 class iAguibase_API iAMat4

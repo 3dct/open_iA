@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "ImNDT_export.h"
+#include "imndt_export.h"
 #include "iAImNDTMain.h"
 #include "iAImNDTInteractorStyle.h"
 

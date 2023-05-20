@@ -53,7 +53,7 @@
 #include <QRect>
 #include <QStyle>
 
-#include "iAqthelper_export.h"
+#include "iaqthelper_export.h"
 
 //! A flow layout, where items are arranged horizontally in rows.
 //! Items are typically all placed in a single row, horizontally next to each other.

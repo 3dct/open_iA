@@ -11,7 +11,7 @@
 #include <QPropertyAnimation>
 #include <QSharedPointer>
 
-#include "iAcharts_export.h"
+#include "iacharts_export.h"
 
 
 class iASPLOMData;

@@ -5,7 +5,7 @@
 #include "iAChartFunction.h"
 #include "iATransferFunction.h"
 
-#include "iAcharts_export.h"
+#include "iacharts_export.h"
 
 #include <QLinearGradient>
 

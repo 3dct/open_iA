@@ -4,7 +4,7 @@
 
 #include "iACsvIO.h"
 
-#include "iAobjectvis_export.h"
+#include "iaobjectvis_export.h"
 
 class QTableWidget;
 

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAguibase_export.h"
+#include "iaguibase_export.h"
 
 #include "iADataSetRenderer.h"
 #include "iADefaultSettings.h"

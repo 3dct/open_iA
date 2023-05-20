@@ -6,7 +6,7 @@
 #include "iALog.h"
 #include "iAITKIO.h"
 
-#include "iAbase_export.h"
+#include "iabase_export.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-overflow"

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "DynamicVolumeLines_export.h"
+#include "dynamicvolumelines_export.h"
 
 #include "DynamicVolumeLinesHelpers.h"
 

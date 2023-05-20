@@ -4,7 +4,7 @@
 
 #include "iAMapper.h"
 
-#include "iAbase_export.h"
+#include "iabase_export.h"
 
 #include <cmath>
 

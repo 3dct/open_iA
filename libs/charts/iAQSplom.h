@@ -4,7 +4,7 @@
 
 #include "iAScatterPlotViewData.h"
 
-#include "iAcharts_export.h"
+#include "iacharts_export.h"
 
 #ifdef CHART_OPENGL
 #include <QOpenGLWidget>

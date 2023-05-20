@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAguibase_export.h"
+#include "iaguibase_export.h"
 
 #include <vtkImageReader.h>  // for VTK_FILE_BYTE_ORDER_... constants
 #include <vtkType.h>         // For types, e.g. VTK_UNSIGNED_SHORT
