@@ -4,7 +4,7 @@
 
 #ifdef OPENVR_AVAILABLE
 
-#include "iAVtkVR.h"
+#include "iAvtkVR.h"
 #include "iAVREnvironment.h"
 
 #include <iALog.h>
@@ -489,13 +489,13 @@ class iAOpenXRFrontCamera : public iAVRFrontCamera
 
 std::unique_ptr<iAVRFrontCamera> createARViewer(iAVREnvironment* env)
 {
-#ifdef OPENXR_AVAILABLE
+#ifdef OPENVR_AVAILABLE
 	if (env->backend()  == iAvtkVR::OpenVR)
 	{
 		return std::make_unique<iAOpenVRFrontCamera>(env);
 	}
 #endif
-#ifdef OPENVR_AVAILABLE
+#ifdef OPENXR_AVAILABLE
 	if (env->backend() == iAvtkVR::OpenXR)
 	{
 		return std::make_unique<iAOpenXRFrontCamera>();
