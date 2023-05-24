@@ -710,7 +710,7 @@
     <string>Save Project...</string>
    </property>
    <property name="toolTip">
-    <string>Save the state of the current window in a project file</string>
+    <string>Save the state of the current window (with references to all files open in it) in a project file</string>
    </property>
   </action>
   <action name="actionOpenRaw">
@@ -895,7 +895,7 @@
     <string>Open dataset...</string>
    </property>
    <property name="toolTip">
-    <string>Open dataset into existing window</string>
+    <string>Open dataset(s) in current window (all selected files are opened in the same window; a new window is created only if there is none open yet)</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -906,7 +906,7 @@
     <string>&amp;Open in new window...</string>
    </property>
    <property name="toolTip">
-    <string>Open a dataset or project in a new window</string>
+    <string>Open file(s) (datasets/projects) in new window (if multiple files are selected, each is opened in separate window)</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+O</string>
@@ -917,7 +917,7 @@
     <string>&amp;Save Dataset...</string>
    </property>
    <property name="toolTip">
-    <string>Save one dataset to disk</string>
+    <string>Save one dataset as file</string>
    </property>
   </action>
   <action name="actionSaveVolumeStack">

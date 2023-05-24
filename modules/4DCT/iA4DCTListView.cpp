@@ -65,7 +65,7 @@ void iA4DCTListView::openFile( )
 	iAMainWindow* win = qobject_cast<iAMainWindow*>(QApplication::activeWindow());
 	if( win)
 	{
-		win->loadFileNew( m_data->at( indexes[0].row( ) ).Path, nullptr);
+		win->loadFile( m_data->at( indexes[0].row( ) ).Path, nullptr);
 	}
 }
 

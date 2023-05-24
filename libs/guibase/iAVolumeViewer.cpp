@@ -278,7 +278,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	for (int s = 0; s < 3; ++s)
 	{
 		m_slicer[s] = child->slicer(s);
-		child->slicer(s)->addChannel(m_slicerChannelID, iAChannelData(m_dataSet->name(), img, m_transfer->colorTF()), visibleSlicer);
+		child->slicer(s)->addChannel(m_slicerChannelID, iAChannelData(m_dataSet->name(), img, m_transfer->colorTF()/*, TODO NEWIO: opacity TF ?*/), visibleSlicer);
 		child->slicer(s)->resetCamera();
 	}
 

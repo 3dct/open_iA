@@ -1320,7 +1320,7 @@ void MdiChild::dropEvent(QDropEvent* e)
 {
 	for (const QUrl& url : e->mimeData()->urls())
 	{
-		m_mainWnd->loadFileNew(url.toLocalFile(), this);
+		m_mainWnd->loadFile(url.toLocalFile(), this);
 	}
 }
 

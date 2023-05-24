@@ -52,11 +52,12 @@ public:
 	QString const & path() const override;
 	//! add a file to the list of recently loaded/saved files
 	void addRecentFile(const QString &fileName);
-
-	void loadFiles(QStringList fileNames);
-
-	//! TODO NEWIO: create signal triggered on new child (fully) created
-	void loadFileNew(QString const& fileName, iAMdiChild* child = nullptr, std::shared_ptr<iAFileIO> io = nullptr) override;
+	//! Opens multiple files in an existing or new window
+	//! @param fileNames the list of the file names of the files to load
+	//! @param child the child window to load the files into. If nullptr, a new window is created **for each file**
+	void loadFiles(QStringList fileNames, iAMdiChild* child = nullptr);
+	//! see iAMainWindow::loadFile
+	void loadFile(QString const& fileName, iAMdiChild* child = nullptr, std::shared_ptr<iAFileIO> io = nullptr) override;
 
 	QMenu * fileMenu() override;
 	QMenu* editMenu() override;

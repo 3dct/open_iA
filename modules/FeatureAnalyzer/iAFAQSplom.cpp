@@ -404,7 +404,7 @@ void iAFAQSplom::sendToFeatureScout()
 	}
 	m_mdiChild->show();
 	connect(m_mdiChild, &iAMdiChild::dataSetRendered, this, &iAFAQSplom::startFeatureScout);
-	m_mainWnd->loadFileNew(mhdName, m_mdiChild);
+	m_mainWnd->loadFile(mhdName, m_mdiChild);
 }
 
 void iAFAQSplom::getFilesLabeledFromPoint(QString &fileName, QString &mhdName)

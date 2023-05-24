@@ -319,7 +319,7 @@ void MainWindow::dropEvent(QDropEvent *e)
 {
 	for(const QUrl &url: e->mimeData()->urls())
 	{
-		loadFileNew(url.toLocalFile(), nullptr);
+		loadFile(url.toLocalFile(), nullptr);
 	}
 }
 
@@ -353,7 +353,7 @@ void MainWindow::openRaw()
 		m_path,
 		"Raw File (*)"
 	);
-	loadFileNew(fileName, askWhichChild(), std::make_shared<iARawFileIO>());
+	loadFile(fileName, askWhichChild(), std::make_shared<iARawFileIO>());
 }
 
 void MainWindow::openRecentFile()
@@ -364,7 +364,7 @@ void MainWindow::openRecentFile()
 		return;
 	}
 	QString fileName = action->data().toString();
-	loadFileNew(fileName, askWhichChild());
+	loadFile(fileName, askWhichChild());
 }
 
 iAMdiChild* MainWindow::askWhichChild()
@@ -381,7 +381,7 @@ iAMdiChild* MainWindow::askWhichChild()
 	return child;
 }
 
-void MainWindow::loadFileNew(QString const& fileName, iAMdiChild* child, std::shared_ptr<iAFileIO> io)
+void MainWindow::loadFile(QString const& fileName, iAMdiChild* child, std::shared_ptr<iAFileIO> io)
 {
 	if (fileName.isEmpty())
 	{
@@ -428,11 +428,11 @@ void MainWindow::loadFileNew(QString const& fileName, iAMdiChild* child, std::sh
 	iAJobListView::get()->addJob(QString("Loading file '%1'").arg(fileName), p.get(), futureWatcher);
 }
 
-void MainWindow::loadFiles(QStringList fileNames)
+void MainWindow::loadFiles(QStringList fileNames, iAMdiChild* child)
 {
 	for (int i = 0; i < fileNames.length(); i++)
 	{
-		loadFileNew(fileNames[i], activeMdiChild());
+		loadFile(fileNames[i], child);
 	}
 }
 
@@ -1380,11 +1380,24 @@ void MainWindow::connectSignalsToSlots()
 		}
 	};
 	// "File" menu entries:
-	auto getOpenFileName = [this]() -> QString {
-		return QFileDialog::getOpenFileName(this, tr("Open Files (new)"), m_path, iAFileTypeRegistry::registeredFileTypes(iAFileIO::Load));
+	auto getOpenFileNames = [this]() -> QStringList {
+		return QFileDialog::getOpenFileNames(this, tr("Open Files (new)"), m_path, iAFileTypeRegistry::registeredFileTypes(iAFileIO::Load));
 	};
-	connect(m_ui->actionOpenDataSet, &QAction::triggered, this, [this, getOpenFileName] { loadFileNew(getOpenFileName(), activeMdiChild()); });
-	connect(m_ui->actionOpenInNewWindow, &QAction::triggered, this, [this, getOpenFileName] { loadFileNew(getOpenFileName(), nullptr); });
+	connect(m_ui->actionOpenDataSet, &QAction::triggered, this, [this, getOpenFileNames]
+	{
+		auto fileNames = getOpenFileNames();
+		if (fileNames.isEmpty())
+		{
+			return;
+		}
+		auto child = activeMdiChild();
+		if (!child) // difference between "Open dataset" and "Open in new window" (below) if no window is open: here, we only open a single window for all datasets!
+		{
+			child = createMdiChild(false);
+		}
+		loadFiles(fileNames, child);
+	});
+	connect(m_ui->actionOpenInNewWindow, &QAction::triggered, this, [this, getOpenFileNames] { loadFiles(getOpenFileNames(), nullptr); });
 	connect(m_ui->actionOpenRaw, &QAction::triggered, this, &MainWindow::openRaw);
 	connect(m_ui->actionOpenWithDataTypeConversion, &QAction::triggered, this, &MainWindow::openWithDataTypeConversion);
 	connect(m_ui->actionOpenTLGICTData, &QAction::triggered, this, &MainWindow::openTLGICTData);
@@ -2191,7 +2204,7 @@ void MainWindow::openWithDataTypeConversion()
 				mapReadableDataTypeToVTKType(outDataType),
 				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax, roi);
 		}
-		loadFileNew(finalfilename, askWhichChild());
+		loadFile(finalfilename, askWhichChild());
 	}
 	catch (std::exception & e)
 	{
