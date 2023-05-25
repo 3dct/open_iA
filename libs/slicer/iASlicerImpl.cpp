@@ -279,7 +279,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_actionToggleRegionTransferFunction = new QAction(tr("Click+Drag: Set Transfer Function for Region"), m_contextMenu);
 	m_actionToggleRegionTransferFunction->setCheckable(true);
 	m_contextMenu->addAction(m_actionToggleRegionTransferFunction);
-	m_actionToggleWindowLevelAdjust = new QAction(tr("Click+Drag: Adjust Window/Level"), m_contextMenu);
+	m_actionToggleWindowLevelAdjust = new QAction(tr("Click+Drag: Adjust Window+Level"), m_contextMenu);
 	m_actionToggleWindowLevelAdjust->setCheckable(true);
 	m_contextMenu->addAction(m_actionToggleWindowLevelAdjust);
 	m_actionInteractionMode = new QActionGroup(m_contextMenu);

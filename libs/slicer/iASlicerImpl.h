@@ -61,7 +61,7 @@ class iAslicer_API iASlicerImpl : public iASlicer
 public:
 	static constexpr const char MouseCursor[] = "Mouse Cursor";
 	static constexpr const char LinearInterpolation[] = "Linear Interpolation";
-	static constexpr const char AdjustWindowLevelEnabled[] = "Adjust Window/Level via Mouse Click+Drag";
+	static constexpr const char AdjustWindowLevelEnabled[] = "Adjust Window+Level via Mouse Click+Drag";
 	static constexpr const char ShowPosition[] = "Show Position";
 	static constexpr const char ShowAxesCaption[] = "Show axes caption";
 	static constexpr const char ShowTooltip[] = "Show Tooltip";
