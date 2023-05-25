@@ -426,10 +426,10 @@ void iAVolumeViewer::setPickable(bool pickable)
 	}
 }
 
-std::shared_ptr<iADataSetRenderer> iAVolumeViewer::createRenderer(vtkRenderer* ren)
+std::shared_ptr<iADataSetRenderer> iAVolumeViewer::createRenderer(vtkRenderer* ren, QVariantMap const& overrideValues)
 {
 	auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
-	return std::make_shared<iAVolumeRenderer>(ren, img, transfer());
+	return std::make_shared<iAVolumeRenderer>(ren, img, transfer(), overrideValues);
 }
 
 QSharedPointer<iAHistogramData> iAVolumeViewer::histogramData(int component) const

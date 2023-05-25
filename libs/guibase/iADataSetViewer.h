@@ -81,7 +81,9 @@ public:
 	QAction* addViewAction(QString const& name, QString const& iconName, bool checked, std::function<void(bool)> handler);
 	
 	//! Called to create a 3D renderer for the dataset. Override in derived class; used for both the "normal" 3D renderer and the magic lens renderer.
-	virtual std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren);
+	//! @param ren the vtk renderer to attach the created renderer to
+	//! @param overrideValues (optional) parameter values for creating the renderer, overriding the default values that can be configured via Edit menu / iASettingsMananger
+	virtual std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren, QVariantMap const& overrideValues = QVariantMap());
 
 signals:
 	void dataSetChanged(size_t dataSetIdx);
@@ -118,7 +120,7 @@ class iAguibase_API iAMeshViewer : public iADataSetViewer
 {
 public:
 	iAMeshViewer(iADataSet * dataSet);
-	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren) override;
+	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren, QVariantMap const& paramValues) override;
 };
 
 //! Dataset viewer for graph data.
@@ -126,7 +128,7 @@ class iAguibase_API iAGraphViewer : public iADataSetViewer
 {
 public:
 	iAGraphViewer(iADataSet * dataSet);
-	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren) override;
+	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren, QVariantMap const& paramValues) override;
 };
 
 //! Dataset viewer for simple geometric objects.
@@ -134,7 +136,7 @@ class iAguibase_API iAGeometricObjectViewer : public iADataSetViewer
 {
 public:
 	iAGeometricObjectViewer(iADataSet * dataSet);
-	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren) override;
+	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren, QVariantMap const& paramValues) override;
 };
 
 //! A "viewer" for project files.

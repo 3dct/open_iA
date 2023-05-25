@@ -22,7 +22,7 @@ class vtkTubeFilter;
 class iAGraphRenderer : public iADataSetRenderer
 {
 public:
-	iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data);
+	iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data, QVariantMap const& overrideValues);
 	~iAGraphRenderer();
 	void updatePointRendererPosOri();
 	void applyAttributes(QVariantMap const& values) override;
@@ -53,7 +53,7 @@ private:
 class iAguibase_API iAPolyActorRenderer: public iADataSetRenderer
 {
 public:
-	iAPolyActorRenderer(vtkRenderer* renderer);
+	iAPolyActorRenderer(vtkRenderer* renderer, QVariantMap const & overrideValues);
 	~iAPolyActorRenderer();
 	void applyAttributes(QVariantMap const& values) override;
 	double const* orientation() const override;
@@ -79,7 +79,7 @@ private:
 class iAguibase_API iAPolyDataRenderer : public iAPolyActorRenderer
 {
 public:
-	iAPolyDataRenderer(vtkRenderer* renderer, iAPolyData const * data);
+	iAPolyDataRenderer(vtkRenderer* renderer, iAPolyData const * data, QVariantMap const& overrideValues = QVariantMap());
 	iAAABB bounds() override;
 private:
 	iAPolyData const * m_data;
@@ -92,7 +92,7 @@ class iAGeometricObject;
 class iAGeometricObjectRenderer : public iAPolyActorRenderer
 {
 public:
-	iAGeometricObjectRenderer(vtkRenderer* renderer, iAGeometricObject const * data);
+	iAGeometricObjectRenderer(vtkRenderer* renderer, iAGeometricObject const * data, QVariantMap const& overrideValues);
 	iAAABB bounds() override;
 private:
 	iAGeometricObject const * m_data;

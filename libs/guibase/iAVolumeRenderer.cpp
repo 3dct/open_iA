@@ -65,7 +65,7 @@ public:
 	}
 };
 
-iAVolumeRenderer::iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, iATransferFunction* tf) :
+iAVolumeRenderer::iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, iATransferFunction* tf, QVariantMap const& overrideValues) :
 	iADataSetRenderer(renderer),
 	m_volume(vtkSmartPointer<vtkVolume>::New()),
 	m_volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
@@ -99,7 +99,7 @@ iAVolumeRenderer::iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, 
 		});
 	modifiedCallback->SetClientData(this);
 	m_volume->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
-	applyAttributes(extractValues(defaultAttributes()));
+	setDefaultAttributes(defaultAttributes(), overrideValues);  // use defaultAttributes and not attributes here; spacing does not get assigned a default value!
 }
 
 iAVolumeRenderer::~iAVolumeRenderer()
@@ -163,10 +163,13 @@ void iAVolumeRenderer::applyAttributes(QVariantMap const& values)
 	}
 	m_volume->SetPickable(values[Pickable].toBool());
 
-	auto spc = variantToVector<double>(values[Spacing]);
-	if (spc.size() == 3)
+	if (values.contains(Spacing))    // avoid warning if no spacing available (e.g. when setting default values)
 	{
-		m_image->SetSpacing(spc.data());
+		auto spc = variantToVector<double>(values[Spacing]);
+		if (spc.size() == 3)
+		{
+			m_image->SetSpacing(spc.data());
+		}
 	}
 }
 

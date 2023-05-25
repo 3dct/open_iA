@@ -97,6 +97,12 @@ protected:
 	//! attributes of the specific renderer; this is typically the default attributes plus dataset-specific attributes
 	virtual iAAttributes const & attributes() const;
 
+	//! convenience methods for derived classes: to be used at end of constructor to initialize attribute values to default,
+	//! with the option to override these default values (e.g. by ones loaded along with the dataset in a project file)
+	//! @param defaultAttr the list of default attributes to set
+	//! @param overrideValues the values overriding the defaults
+	void setDefaultAttributes(iAAttributes const& defaultAttr, QVariantMap const& overrideValues);
+
 	//! The VTK renderer used for showing this dataset.
 	//! Note that this pointer may be set to nullptr if the renderer is deleted before;
 	//! so in derived classes, one should always check if it is set before accessing it!

@@ -37,7 +37,7 @@ public:
 	uint slicerChannelID() const override;
 	void slicerRegionSelected(double minVal, double maxVal, uint channelID) override;
 	void setPickable(bool pickable) override;
-	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren) override;
+	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren, QVariantMap const& overrideValues) override;
 	//! Access to the chart widget used for displaying the histogram
 	iAChartWithFunctionsWidget* histogram();
 	//! Access to the histogram data

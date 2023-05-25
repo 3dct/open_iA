@@ -103,6 +103,11 @@ iAAttributes const & iADataSetRenderer::attributes() const
 	return defaultAttributes();
 }
 
+void iADataSetRenderer::setDefaultAttributes(iAAttributes const& defaultAttr, QVariantMap const& overrideValues)
+{
+	setAttributes(joinValues(extractValues(defaultAttr), overrideValues));
+}
+
 iAAttributes& iADataSetRenderer::defaultAttributes()
 {
 	static iAAttributes attr;

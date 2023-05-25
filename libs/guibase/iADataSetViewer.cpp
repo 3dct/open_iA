@@ -53,9 +53,8 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	{                                            // (by loader or by derived viewer class)
 		m_dataSet->setMetaData(RenderFlags, RenderFlagsDefault);
 	}
-	m_renderer = createRenderer(child->renderer()->renderer());
+	m_renderer = createRenderer(child->renderer()->renderer(), m_dataSet->allMetaData());
 	assert(m_renderer);
-	m_renderer->setAttributes(joinValues(extractValues(m_renderer->attributesWithValues()), m_dataSet->allMetaData()) );
 	if (renderFlagSet(Render3DFlag))
 	{
 		m_renderer->setVisible(true);
@@ -68,7 +67,7 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	{
 		m_renderer->setBoundsVisible(true);
 	}
-	m_magicLensRenderer = createRenderer(child->magicLens3DRenderer());
+	m_magicLensRenderer = createRenderer(child->magicLens3DRenderer(), m_dataSet->allMetaData());
 	if (renderFlagSet(RenderMagicLensFlag))
 	{
 		m_magicLensRenderer->setVisible(true);
@@ -222,9 +221,10 @@ void iADataSetViewer::addAttribute(
 	m_attribValues[name] = defaultValue;
 }
 
-std::shared_ptr<iADataSetRenderer> iADataSetViewer::createRenderer(vtkRenderer* ren)
+std::shared_ptr<iADataSetRenderer> iADataSetViewer::createRenderer(vtkRenderer* ren, QVariantMap const & paramValues)
 {
 	Q_UNUSED(ren);
+	Q_UNUSED(paramValues);
 	return {};
 }
 
@@ -247,9 +247,13 @@ void iADataSetViewer::setAttributes(QVariantMap const& values)
 	// merge default values to currently set values to make applying simpler:
 	auto allValues = joinValues(extractValues(attributesWithValues()), m_attribValues);
 	applyAttributes(allValues);
-	if (renderer())
+	if (m_renderer)
 	{
-		renderer()->setAttributes(values);
+		m_renderer->setAttributes(values);
+	}
+	if (m_magicLensRenderer)
+	{
+		m_magicLensRenderer->setAttributes(values);
 	}
 }
 
@@ -326,10 +330,10 @@ iAGraphViewer::iAGraphViewer(iADataSet * dataSet) :
 	iADataSetViewer(dataSet)
 {}
 
-std::shared_ptr<iADataSetRenderer> iAGraphViewer::createRenderer(vtkRenderer * ren)
+std::shared_ptr<iADataSetRenderer> iAGraphViewer::createRenderer(vtkRenderer * ren, QVariantMap const& paramValues)
 {
 	auto meshData = dynamic_cast<iAGraphData const*>(m_dataSet);
-	return std::make_shared<iAGraphRenderer>(ren, meshData);
+	return std::make_shared<iAGraphRenderer>(ren, meshData, paramValues);
 }
 
 
@@ -340,10 +344,10 @@ iAMeshViewer::iAMeshViewer(iADataSet * dataSet) :
 	iADataSetViewer(dataSet)
 {}
 
-std::shared_ptr<iADataSetRenderer> iAMeshViewer::createRenderer(vtkRenderer* ren)
+std::shared_ptr<iADataSetRenderer> iAMeshViewer::createRenderer(vtkRenderer* ren, QVariantMap const& paramValues)
 {
 	auto meshData = dynamic_cast<iAPolyData const*>(m_dataSet);
-	return std::make_shared<iAPolyDataRenderer>(ren, meshData);
+	return std::make_shared<iAPolyDataRenderer>(ren, meshData, paramValues);
 }
 
 
@@ -356,10 +360,10 @@ iAGeometricObjectViewer::iAGeometricObjectViewer(iADataSet * dataSet):
 	iADataSetViewer(dataSet)
 {}
 
-std::shared_ptr<iADataSetRenderer> iAGeometricObjectViewer::createRenderer(vtkRenderer* ren)
+std::shared_ptr<iADataSetRenderer> iAGeometricObjectViewer::createRenderer(vtkRenderer* ren, QVariantMap const& paramValues)
 {
 	auto meshData = dynamic_cast<iAGeometricObject const*>(m_dataSet);
-	return std::make_shared<iAGeometricObjectRenderer>(ren, meshData);
+	return std::make_shared<iAGeometricObjectRenderer>(ren, meshData, paramValues);
 }
 
 

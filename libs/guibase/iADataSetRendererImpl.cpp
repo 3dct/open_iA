@@ -120,7 +120,7 @@ public:
 	}
 };
 
-iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data) :
+iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data, QVariantMap const& overrideValues) :
 	iADataSetRenderer(renderer),
 	m_lineActor(vtkSmartPointer<vtkActor>::New()),
 	m_pointActor(vtkSmartPointer<vtkActor>::New()),
@@ -165,6 +165,7 @@ iAGraphRenderer::iAGraphRenderer(vtkRenderer* renderer, iAGraphData const * data
 		});
 	modifiedCallback->SetClientData(this);
 	m_lineActor->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
+	setDefaultAttributes(defaultAttributes(), overrideValues);
 }
 
 iAAttributes const& iAGraphRenderer::attributes() const
@@ -334,7 +335,7 @@ public:
 	}
 };
 
-iAPolyActorRenderer::iAPolyActorRenderer(vtkRenderer* renderer) :
+iAPolyActorRenderer::iAPolyActorRenderer(vtkRenderer* renderer, QVariantMap const & overrideValues) :
 	iADataSetRenderer(renderer),
 	m_polyActor(vtkSmartPointer<vtkActor>::New())
 {
@@ -352,6 +353,7 @@ iAPolyActorRenderer::iAPolyActorRenderer(vtkRenderer* renderer) :
 		});
 	modifiedCallback->SetClientData(this);
 	m_polyActor->AddObserver(vtkCommand::ModifiedEvent, modifiedCallback);
+	setDefaultAttributes(defaultAttributes(), overrideValues);
 }
 
 iAAttributes const& iAPolyActorRenderer::attributes() const
@@ -441,8 +443,8 @@ vtkActor* iAPolyActorRenderer::actor()
 	return m_polyActor;
 }
 
-iAPolyDataRenderer::iAPolyDataRenderer(vtkRenderer* renderer, iAPolyData const * data) :
-	iAPolyActorRenderer(renderer),
+iAPolyDataRenderer::iAPolyDataRenderer(vtkRenderer* renderer, iAPolyData const * data, QVariantMap const& overrideValues) :
+	iAPolyActorRenderer(renderer, overrideValues),
 	m_data(data)
 {
 	mapper()->SetInputData(data->poly());
@@ -457,8 +459,8 @@ iAAABB iAPolyDataRenderer::bounds()
 
 #include "iAGeometricObject.h"
 
-iAGeometricObjectRenderer::iAGeometricObjectRenderer(vtkRenderer* renderer, iAGeometricObject const * data) :
-	iAPolyActorRenderer(renderer),
+iAGeometricObjectRenderer::iAGeometricObjectRenderer(vtkRenderer* renderer, iAGeometricObject const * data, QVariantMap const& overrideValues) :
+	iAPolyActorRenderer(renderer, overrideValues),
 	m_data(data)
 {
 	mapper()->SetInputConnection(m_data->source()->GetOutputPort());

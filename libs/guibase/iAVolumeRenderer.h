@@ -31,7 +31,7 @@ public:
 	static constexpr const char AutoAdjustSampleDistance[] = "Auto-Adjust Sample Distances";
 	static constexpr const char InteractiveUpdateRate[] = "Interactive Update Rate";
 
-	iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, iATransferFunction* tf);
+	iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, iATransferFunction* tf, QVariantMap const& overrideValues = QVariantMap());
 	//! ensure that we get removed from the renderer
 	~iAVolumeRenderer();
 	void applyAttributes(QVariantMap const& values) override;
