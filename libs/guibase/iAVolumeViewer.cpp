@@ -69,7 +69,20 @@ namespace
 	const QString HistogramLogarithmicYAxis = "Histogram Logarithmic y axis";
 }
 
-
+constexpr const char VolumeViewerSettingsName[] = "Default Settings/Volume Viewer";
+class iAguibase_API iAVolumeViewerSettings : iASettingsObject<VolumeViewerSettingsName, iAVolumeViewerSettings>
+{
+public:
+	static iAAttributes& defaultAttributes() {
+		static iAAttributes attr;
+		if (attr.isEmpty())
+		{
+			addAttr(attr, HistogramBins, iAValueType::Discrete, 256, 2);
+			addAttr(attr, HistogramLogarithmicYAxis, iAValueType::Boolean, false);
+		}
+		return attr;
+	}
+};
 
 iAVolumeViewer::iAVolumeViewer(iADataSet * dataSet) :
 	iADataSetViewer(dataSet),
@@ -78,8 +91,10 @@ iAVolumeViewer::iAVolumeViewer(iADataSet * dataSet) :
 	m_profileChart(nullptr),
 	m_imgStatistics("Computing...")
 {
-	addAttribute(HistogramBins, iAValueType::Discrete, 256, 2);
-	addAttribute(HistogramLogarithmicYAxis, iAValueType::Boolean, false);
+	for (auto& a : iAVolumeViewerSettings::defaultAttributes())
+	{
+		addAttribute(a->name(), a->valueType(), a->defaultValue(), a->min(), a->max());
+	}
 }
 
 iAVolumeViewer::~iAVolumeViewer()
