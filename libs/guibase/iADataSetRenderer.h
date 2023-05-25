@@ -84,6 +84,7 @@ public:
 	virtual void setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3);
 	virtual void removeCuttingPlanes();
 
+	//! default attributes of the dataset renderer
 	static iAAttributes& defaultAttributes();
 
 protected:
@@ -93,6 +94,7 @@ protected:
 	//! needs to be called by derived classes whenever the bounds of the dataset change (position, orientation, ...)
 	void updateOutlineTransform();
 
+	//! attributes of the specific renderer; this is typically the default attributes plus dataset-specific attributes
 	virtual iAAttributes const & attributes() const;
 
 	//! The VTK renderer used for showing this dataset.

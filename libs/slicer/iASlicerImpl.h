@@ -5,7 +5,6 @@
 #include "iaslicer_export.h"
 
 #include "iASlicer.h"
-#include "iASlicerSettings.h"    // for iASingleSlicerSettings
 #include "iAQVTKWidget.h"
 
 #include <vtkSmartPointer.h>
