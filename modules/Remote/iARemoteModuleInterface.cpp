@@ -4,7 +4,7 @@
 
 // iAguibase
 #include "iARenderer.h"
-#include "iASlicerImpl.h"
+#include "iASlicer.h"
 #include "iASlicerMode.h"
 #include "iATool.h"
 #include "iAToolHelper.h"    // for addToolToActiveMdiChild

@@ -6,8 +6,6 @@
 #include "iAGEMSeConstants.h"
 #include "iAQtCaptionWidget.h"
 
-#include <iASlicerImpl.h>    // for slicerModeToString
-
 #include <iAColorTheme.h>
 #include <iALog.h>
 

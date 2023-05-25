@@ -18,7 +18,7 @@
 #include "iARenderer.h"
 #include "iARenderSettings.h"
 #include "iASavableProject.h"
-#include "iASlicerImpl.h"      // for slicerModeToString
+#include "iASlicer.h"          // for iASlicer and slicerModeString
 #include "iAStringHelper.h"    // for iAConverter
 #include "iASystemThemeWatcher.h"
 #include "iAThemeHelper.h"

@@ -5,8 +5,6 @@
 
 #include "iASimpleSlicerWidget.h"
 
-#include <iASlicerImpl.h>    // for slicerModeToString
-
 #include <iAChartFunctionTransfer.h>
 #include <iAChartWithFunctionsWidget.h>
 #include <iAHistogramData.h>
@@ -23,7 +21,7 @@
 #include <iARenderer.h>
 #include <iARenderSettings.h>
 #include <iASlicer.h>
-#include <iASlicerMode.h>
+#include <iASlicerMode.h>   // for slicerModeString
 #include <iASlicerSettings.h>
 #include <iAToolsVTK.h>
 #include <iATransferFunctionOwner.h>

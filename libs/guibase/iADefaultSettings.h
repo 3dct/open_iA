@@ -25,11 +25,13 @@ public:
 	static void store();
 };
 
-//! Helper for registering collections of settings with the iASettingsManager
-//! adds a settings collection, available via the given class `Obj`'s `defaultAttributes` method
-//! to iASettingsManager under the given `Name`.
+//! Helper for registering collections of settings with the iASettingsManager.
+//! Adds a settings collection, available via the given class `Obj`'s static `defaultAttributes`
+//! method to iASettingsManager under the given `Name`.
 //! Simplifies running the registration automatically at "program startup" without having to
-//! explicitly
+//! explicitly call some registration function within the class; the iASettingsManager
+//! takes care of loading stored previous values at application start, and of storing the
+//! values at application end.
 template <const char* Name, class Obj>
 class iASettingsObject
 {
