@@ -234,7 +234,7 @@ iAAttributes const& iAVolumeRenderer::attributes() const
 
 iAAttributes& iAVolumeRenderer::defaultAttributes()
 {
-	static iAAttributes attr = iAVolumeRendererSettings::defaultAttributes();
+	static iAAttributes& attr = iAVolumeRendererSettings::defaultAttributes();
 	return attr;
 }
 

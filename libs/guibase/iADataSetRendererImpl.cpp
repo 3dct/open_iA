@@ -183,7 +183,7 @@ iAAttributes const& iAGraphRenderer::attributes() const
 
 iAAttributes& iAGraphRenderer::defaultAttributes()
 {
-	static iAAttributes attr = iAGraphRendererSettings::defaultAttributes();
+	static iAAttributes& attr = iAGraphRendererSettings::defaultAttributes();
 	return attr;
 }
 
