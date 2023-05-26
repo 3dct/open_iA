@@ -19,9 +19,11 @@
 
 #include <QHBoxLayout>
 
-const double	FOURDCT_BACGROUND[3]	= {1, 1, 1};
-const double	FOURDCT_BACGROUND2[3]	= {1, 1, 1};
-const bool		SHOW_HELPERS			= false;
+namespace
+{
+	const QString RendererBackground("#FFFFFF");
+	const bool ShowHelpers = false;
+}
 
 dlg_dataView4DCT::dlg_dataView4DCT(QWidget* parent, std::vector<iAVolumeViewer*> const & volumeViewers):
 	QWidget(parent),
@@ -46,15 +48,13 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget* parent, std::vector<iAVolumeViewer*>
 		// TODO NEWIO: get volume stack and polydata dataset in here...
 		//m_renderers[i]->initialize(m_volumeStack->volume(i), m_mdiChild->polyData());
 		m_volumeRenderer[i]->setVisible(true);
-		bool slicerVisibility[3] = { false, false, false };
-		m_renderers[i]->applySettings(m_mdiChild->renderSettings(), slicerVisibility );
 
-		// setup renderers
-		m_renderers[i]->showAxesCube(SHOW_HELPERS);
-		m_renderers[i]->showOriginIndicator(SHOW_HELPERS);
-		m_renderers[i]->renderer()->SetBackground(FOURDCT_BACGROUND[0], FOURDCT_BACGROUND[1], FOURDCT_BACGROUND[2]);
-		m_renderers[i]->renderer()->SetBackground2(FOURDCT_BACGROUND2[0], FOURDCT_BACGROUND2[1], FOURDCT_BACGROUND2[2]);
-
+		QVariantMap rendererSettings;
+		rendererSettings[iARendererImpl::ShowAxesCube] = ShowHelpers;
+		rendererSettings[iARendererImpl::ShowOriginIndicator] = ShowHelpers;
+		rendererSettings[iARendererImpl::BackgroundBottom] = RendererBackground;
+		rendererSettings[iARendererImpl::BackgroundTop] = RendererBackground;
+		m_renderers[i]->applySettings(rendererSettings);
 		m_rendererManager.addToBundle(m_renderers[i]->renderer());
 		setLayout(new QHBoxLayout());
 		layout()->addWidget(m_vtkWidgets[i]);

@@ -22,7 +22,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iARawFileIO.h>
 <iARawFileParamDlg.h>
 <iARawFileParameters.h>
-<iARenderSettings.h>
 <iASavableProject.h>
 <iASettings.h>
 <iASlicerImpl.h>

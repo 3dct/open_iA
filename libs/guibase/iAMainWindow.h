@@ -10,7 +10,6 @@ class iAFileIO;
 class iAMdiChild;
 class iAModuleDispatcher;
 class iAPreferences;
-class iARenderSettings;
 
 class QMdiSubWindow;
 class QString;
@@ -74,7 +73,7 @@ public:
 	virtual iAPreferences const& defaultPreferences() const = 0;
 
 	//! retrieve default renderer settings.
-	virtual iARenderSettings const& defaultRenderSettings() const = 0;
+	//virtual iARenderSettings const& defaultRenderSettings() const = 0;
 
 	//! mark a QAction (typically added to filters or tools menu by a module)
 	//! as depending on an MDI child window being open and active

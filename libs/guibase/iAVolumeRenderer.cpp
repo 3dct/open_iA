@@ -30,7 +30,7 @@ namespace
 #endif
 }
 
-constexpr const char VolumeRendererName[] = "Default Settings/Volume Renderer";
+constexpr const char VolumeRendererName[] = "Default Settings/Dataset Renderer: Volume";
 class iAguibase_API iAVolumeRendererSettings : iASettingsObject<VolumeRendererName, iAVolumeRendererSettings>
 {
 public:

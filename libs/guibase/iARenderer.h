@@ -7,7 +7,7 @@
 #include <QObject>
 
 class iAAABB;
-class iARenderSettings;
+//class iARenderSettings;
 class iARenderObserver;
 
 class vtkActor;
@@ -60,9 +60,8 @@ public:
 	virtual void addRenderer(vtkRenderer* renderer) = 0;
 
 	//! Apply the given settings to the renderer.
-	//! @param settings data holder for all settings.
-	//! @param slicePlaneVisibility initial visibility of the single slice planes (can be modified independently via showSlicePlanes as well).
-	virtual void applySettings(iARenderSettings const& settings, bool slicePlaneVisibility[3]) = 0;
+	//! @param paramValues the values for the settings.
+	virtual void applySettings(QVariantMap const & paramValues) = 0;
 
 	//! Set the default interactor style
 	virtual void setDefaultInteractor() = 0;

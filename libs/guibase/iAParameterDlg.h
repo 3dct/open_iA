@@ -60,3 +60,17 @@ private:
 
 	void updateROIPart(QString const& partName, QVariant value);
 };
+
+//! Generic editing of settings, and applying them, if dialog was not cancelled
+template <typename Obj>
+bool editSettingsDialog(iAAttributes const& attr, QVariantMap const& curVal, QString name, Obj& obj, void (Obj::* applyFun)(QVariantMap const&))
+{
+	iAAttributes dlgAttr = combineAttributesWithValues(attr, curVal);
+	iAParameterDlg dlg(iAMainWindow::get(), name, dlgAttr);
+	if (dlg.exec() != QDialog::Accepted)
+	{
+		return false;
+	}
+	(obj.*applyFun)(dlg.parameterValues());
+	return true;
+}

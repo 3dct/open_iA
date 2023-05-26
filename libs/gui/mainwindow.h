@@ -6,7 +6,6 @@
 
 #include "iAMainWindow.h"
 #include "iAPreferences.h"
-#include "iARenderSettings.h"
 #include "iASlicerSettings.h"
 #include "iARawFileParameters.h"
 
@@ -84,7 +83,7 @@ public:
 	QMdiSubWindow* activeChild() override;
 	QMdiSubWindow* addSubWindow(QWidget * child) override;
 	iAPreferences const& defaultPreferences() const override;
-	iARenderSettings const& defaultRenderSettings() const override;
+	//iARenderSettings const& defaultRenderSettings() const override;
 	iAModuleDispatcher& moduleDispatcher() const override;
 	iAMdiChild* createMdiChild(bool unsavedChanges) override;
 	void closeMdiChild(iAMdiChild* child) override;
@@ -100,7 +99,7 @@ public:
 
 public slots:
 	void loadLayout();
-	void renderSettings();
+	//void renderSettings();
 	void slicerSettings();
 
 signals:
@@ -189,7 +188,7 @@ private:
 	QString m_qssName;
 	//! whether the option of bright/dark theme should adapt to the system theme
 	bool m_useSystemTheme;
-	iARenderSettings m_defaultRenderSettings;
+	//iARenderSettings m_defaultRenderSettings;
 	iASlicerSettings m_defaultSlicerSettings;
 	iAPreferences m_defaultPreferences;
 

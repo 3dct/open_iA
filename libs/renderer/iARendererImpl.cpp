@@ -2,19 +2,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iARendererImpl.h"
 
-#include "defines.h"
-#include "iAAbortListener.h"
-#include "iALog.h"
-#include "iAJobListView.h"
-#include "iALineSegment.h"
-#include "iAMovieHelper.h"
-#include "iAProfileColors.h"
-#include "iAProgress.h"
-#include "iARenderObserver.h"
-#include "iARenderSettings.h"
-#include "iASlicerMode.h"
+#include <defines.h>
+#include <iAAbortListener.h>
+#include <iALog.h>
+#include <iAJobListView.h>
+#include <iALineSegment.h>
+#include <iAMainWindow.h>  // for styleChanged
+#include <iAMovieHelper.h>
+#include <iAParameterDlg.h>
+#include <iAProfileColors.h>
+#include <iAProgress.h>
+#include <iARenderObserver.h>
+#include <iASlicerMode.h>
 #include <iAStringHelper.h>
-#include "iAToolsVTK.h"    // for setCamPos
+#include <iAToolsVTK.h>    // for setCamPos
 
 #include <vtkActor.h>
 #include <vtkAnnotatedCubeActor.h>
@@ -65,6 +66,42 @@ namespace
 	const double IndicatorsLenMultiplier = 1.3;
 }
 
+#include "iADefaultSettings.h"
+
+constexpr const char RendererSettingsName[] = "Default Settings/View: 3D Renderer";
+//! Settings applicable to a single slicer window.
+class iArenderer_API iARendererSettings : iASettingsObject<RendererSettingsName, iARendererSettings>
+{
+public:
+	static iAAttributes& defaultAttributes()
+	{
+		static iAAttributes attr;
+		if (attr.isEmpty())
+		{
+			QStringList stereoModes = StereoModeMap().keys();
+			selectOption(stereoModes, "None");
+			addAttr(attr, iARendererImpl::ShowSlicePlanes, iAValueType::Boolean, false);            // whether a colored plane is shown for each currently visible slicer)
+			addAttr(attr, iARendererImpl::SlicePlaneOpacity, iAValueType::Continuous, 1.0, 0, 1);   // opacity of the slice planes enabled via ShowSlicePlanes
+			addAttr(attr, iARendererImpl::ShowAxesCube, iAValueType::Boolean, true);                // whether axes cube is shown
+			addAttr(attr, iARendererImpl::ShowOriginIndicator, iAValueType::Boolean, true);         // whether origin indicator is shown
+			addAttr(attr, iARendererImpl::ShowPosition, iAValueType::Boolean, false);               // whether red position cube indicator is shown
+			addAttr(attr, iARendererImpl::ParallelProjection, iAValueType::Boolean, false);         // true - use parallel projection, false - use perspective projection
+			addAttr(attr, iARendererImpl::UseStyleBGColor, iAValueType::Boolean, false);            // true - use background color from style (bright/dark), false - use BackgroundTop/BackgroundBottom
+			addAttr(attr, iARendererImpl::BackgroundTop, iAValueType::Color, "#7FAAFF");            // top color used in background gradient
+			addAttr(attr, iARendererImpl::BackgroundBottom, iAValueType::Color, "#FFFFFF");         // bottom color used in background gradient
+			addAttr(attr, iARendererImpl::UseFXAA, iAValueType::Boolean, true);                     // whether to use FXAA anti-aliasing, if supported
+			addAttr(attr, iARendererImpl::MultiSamples, iAValueType::Discrete, 0);                  // number of multi-samples; needs to be 0 for depth peeling to work!
+			addAttr(attr, iARendererImpl::OcclusionRatio, iAValueType::Continuous, 0.0);            // In case of use of depth peeling technique for rendering translucent material, define the threshold under which the algorithm stops to iterate over peel layers (see <a href="https://vtk.org/doc/nightly/html/classvtkRenderer.html">vtkRenderer documentation</a>
+			addAttr(attr, iARendererImpl::UseSSAO, iAValueType::Boolean, false);                    // whether to use Screen Space Ambient Occlusion (SSAO) - darkens some pixels to improve depth perception.
+			addAttr(attr, iARendererImpl::StereoRenderMode, iAValueType::Categorical, stereoModes); // whether to use a stereo rendering mode and if so, which one, for the render window
+			addAttr(attr, iARendererImpl::UseDepthPeeling, iAValueType::Boolean, true);             // whether to use depth peeling (improves depth ordering in rendering of multiple objects), if false, alpha blending is used
+			addAttr(attr, iARendererImpl::DepthPeels, iAValueType::Discrete, 4);                    // number of depth peels to use (if enabled via UseDepthPeeling). The more the higher quality, but also slower rendering
+			addAttr(attr, iARendererImpl::MagicLensSize, iAValueType::Discrete, DefaultMagicLensSize, MinimumMagicLensSize, MaximumMagicLensSize); // size (width & height) of the 3D magic lens (in pixels / pixel-equivalent units considering scaling)
+			addAttr(attr, iARendererImpl::MagicLensFrameWidth, iAValueType::Discrete, 3, 0);        // width of the frame of the 3D magic lens
+		}
+		return attr;
+	}
+};
 
 iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* renderWindow): iARenderer(parent),
 	m_initialized(false),
@@ -265,6 +302,16 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_profileLineEndPointActor->GetProperty()->SetColor(ProfileEndColor.redF(), ProfileEndColor.greenF(), ProfileEndColor.blueF());
 	setProfileHandlesOn(false);
 	m_initialized = true;
+	m_slicePlaneVisible.fill(false);
+	applySettings(extractValues(iARendererSettings::defaultAttributes()));
+	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this, [this]
+	{
+		if (m_settings[UseStyleBGColor].toBool())
+		{
+			updateBackgroundColors();
+			update();
+		}
+	});
 }
 
 iARendererImpl::~iARendererImpl(void)
@@ -348,15 +395,34 @@ void iARendererImpl::showRPosition(bool s)
 
 void iARendererImpl::showSlicePlane(int axis, bool show)
 {
+	if (m_slicePlaneVisible[axis] == show)
+	{   // no change
+		return;
+	}
+	m_slicePlaneVisible[axis] = show;
+	if (isShowSlicePlanes())
+	{
+		showSlicePlaneActor(axis, show);
+	}
+	update();
+}
+
+bool iARendererImpl::isShowSlicePlanes() const
+{
+	return m_settings[ShowSlicePlanes].toBool();
+}
+
+void iARendererImpl::showSlicePlaneActor(int axis, bool show)
+{
 	if (show)
 	{
 		m_ren->AddActor(m_slicePlaneActor[axis]);
+		m_slicePlaneMapper[axis]->Update();
 	}
 	else
 	{
 		m_ren->RemoveActor(m_slicePlaneActor[axis]);
 	}
-	m_slicePlaneActor[axis]->GetProperty()->SetOpacity(m_slicePlaneOpacity);
 }
 
 void iARendererImpl::setPlaneNormals( vtkTransform *tr )
@@ -381,11 +447,11 @@ void iARendererImpl::setPlaneNormals( vtkTransform *tr )
 
 void iARendererImpl::setPositionMarkerCenter(double x, double y, double z )
 {
-	if (!m_interactor->GetEnabled())
+	m_cSource->SetCenter(x, y, z);
+	if (!m_interactor->GetEnabled() || m_settings[ShowPosition].toBool())
 	{
 		return;
 	}
-	m_cSource->SetCenter(x, y, z);
 	update();
 }
 
@@ -689,47 +755,71 @@ void iARendererImpl::setSlicePlanePos(int planeID, double originX, double origin
 	m_slicePlaneSource[planeID]->GetCenter(center);
 	center[planeID] = (planeID == 0) ? originX : ((planeID == 1) ? originY : originZ);
 	m_slicePlaneSource[planeID]->SetCenter(center);
-	m_slicePlaneMapper[planeID]->Update();
-	update();
+	if (isShowSlicePlanes() && m_slicePlaneVisible[planeID])
+	{
+		m_slicePlaneMapper[planeID]->Update();
+		update();
+	}
 }
 
-void iARendererImpl::applySettings(iARenderSettings const & settings, bool slicePlaneVisibility[3])
+void iARendererImpl::applySettings(QVariantMap const& paramValues)
 {
-	m_ren->SetUseDepthPeeling(settings.UseDepthPeeling);
-	m_ren->SetUseDepthPeelingForVolumes(settings.UseDepthPeeling);
-	m_ren->SetMaximumNumberOfPeels(settings.DepthPeels);
-	m_ren->SetOcclusionRatio(settings.OcclusionRatio);
-	m_ren->SetUseFXAA(settings.UseFXAA);
+	auto slicePlaneVisibilityChanged = paramValues[ShowSlicePlanes].toBool() != isShowSlicePlanes();
+	m_settings.insert(paramValues);    // set all applying values from paramValues, but keep old values not set in paramValues
+	m_ren->SetUseDepthPeeling(paramValues[UseDepthPeeling].toBool());
+	m_ren->SetUseDepthPeelingForVolumes(m_settings[UseDepthPeeling].toBool());
+	m_ren->SetMaximumNumberOfPeels(m_settings[DepthPeels].toInt());
+	m_ren->SetOcclusionRatio(m_settings[OcclusionRatio].toDouble());
+	m_ren->SetUseFXAA(m_settings[UseFXAA].toBool());
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
-	m_ren->SetUseSSAO(settings.UseSSAO);
+	m_ren->SetUseSSAO(m_settings[UseSSAO].toBool());
 #endif
-	m_renWin->SetMultiSamples(settings.MultiSamples);
-	auto stereoMode = mapStereoModeToEnum(settings.StereoRenderMode);
+	m_renWin->SetMultiSamples(m_settings[MultiSamples].toInt());
+	auto stereoMode = mapStereoModeToEnum(m_settings[StereoRenderMode].toString());
 	if (stereoMode != 0)
 	{
 		m_renWin->SetStereoType(stereoMode);
 	}
 	m_renWin->SetStereoRender(stereoMode != 0);
-	m_cam->SetParallelProjection(settings.ParallelProjection);
-	setSlicePlaneOpacity(settings.PlaneOpacity);
-	setBackgroundColors(settings);
-	showOriginIndicator(settings.ShowOriginIndicator);
-	showAxesCube(settings.ShowAxesCube);
-	showRPosition(settings.ShowRPosition);
+	m_cam->SetParallelProjection(m_settings[ParallelProjection].toBool());
+	setSlicePlaneOpacity(m_settings[SlicePlaneOpacity].toDouble());
+	updateBackgroundColors();
+	showOriginIndicator(m_settings[ShowOriginIndicator].toBool());
+	showAxesCube(m_settings[ShowAxesCube].toBool());
+	showRPosition(m_settings[ShowPosition].toBool());
 	for (int i = 0; i < 3; ++i)
 	{
-		showSlicePlane(i, settings.ShowSlicePlanes && slicePlaneVisibility[i]);
+		m_slicePlaneActor[i]->GetProperty()->SetOpacity(m_slicePlaneOpacity);
+	}
+	if (slicePlaneVisibilityChanged)
+	{
+		for (int i = 0; i < 3; ++i)
+		{
+			showSlicePlaneActor(i, isShowSlicePlanes() && m_slicePlaneVisible[i]);
+		}
+	}
+	emit settingsChanged();
+}
+
+QVariantMap const& iARendererImpl::settings() const
+{
+	return m_settings;
+}
+
+void iARendererImpl::editSettings()
+{
+	if (editSettingsDialog<iARendererImpl>(iARendererSettings::defaultAttributes(), m_settings, "3D renderer view settings", *this, &iARendererImpl::applySettings))
+	{
+		update();
 	}
 }
 
-void iARendererImpl::setBackgroundColors(iARenderSettings const& settings)
+void iARendererImpl::updateBackgroundColors()
 {
-	QColor bgTop(settings.BackgroundTop);
-	QColor bgBottom(settings.BackgroundBottom);
-	if (settings.UseStyleBGColor)
-	{
-		bgBottom = bgTop = QApplication::palette().color(QPalette::Window);
-	}
+	auto windowColor = QApplication::palette().color(QPalette::Window);
+	bool useSystemColor = m_settings[UseStyleBGColor].toBool();
+	QColor bgTop    = useSystemColor ? windowColor : variantToColor(m_settings[BackgroundTop]);
+	QColor bgBottom = useSystemColor ? windowColor : variantToColor(m_settings[BackgroundBottom]);
 	m_ren->SetBackground2(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
 	m_ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
 	emit bgColorChanged(bgTop, bgBottom);

@@ -11,13 +11,13 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QObject>
 #include <QColor>    // for signal support of QColor (parameters to bgColorChanged)
+#include <QObject>
+#include <QVariantMap>
 
 #include <vector>
 
 struct iALineSegment;
-class iARenderSettings;
 class iARenderObserver;
 
 class vtkActor;
@@ -48,6 +48,25 @@ class iArenderer_API iARendererImpl: public iARenderer
 {
 	Q_OBJECT
 public:
+	static constexpr const char ShowSlicePlanes[] = "Show slice planes";
+	static constexpr const char SlicePlaneOpacity[] = "Slice plane opacity";
+	static constexpr const char ShowAxesCube[] = "Show axes cube";
+	static constexpr const char ShowOriginIndicator[] = "Show origin indicator";
+	static constexpr const char ShowPosition[] = "Show position";
+	static constexpr const char ParallelProjection[] = "Parallel projection";
+	static constexpr const char UseStyleBGColor[] = "Use style background color";
+	static constexpr const char BackgroundTop[] = "Background top";
+	static constexpr const char BackgroundBottom[] = "Background bottom";
+	static constexpr const char UseFXAA[] = "Use FXAA";
+	static constexpr const char MultiSamples[] = "MultiSamples";
+	static constexpr const char OcclusionRatio[] = "Occlusion Ratio";
+	static constexpr const char UseSSAO[] = "Use Screen Space Ambient Occlusion";
+	static constexpr const char StereoRenderMode[] = "Stereo Render Mode";
+	static constexpr const char UseDepthPeeling[] = "Use Depth Peeling";
+	static constexpr const char DepthPeels[] = "Maximum Depth Peels";
+	static constexpr const char MagicLensSize[] = "Magic lens size";
+	static constexpr const char MagicLensFrameWidth[] = "Magic lens frame width";
+
 	iARendererImpl(QObject *parent, vtkGenericOpenGLRenderWindow* renderWindow);
 	virtual ~iARendererImpl( );
 
@@ -87,10 +106,15 @@ public:
 	void showOriginIndicator(bool show);
 	void showAxesCube(bool show);
 	void showRPosition(bool show);
-	//! show or hide the slice plane for the given axis
+
+	//! Show or hide the slice plane for the given axis.
+	//! Public-facing method for setting slice plane visibility; for the slice plane to be visible,
+	//! also the "Show slice plane" setting has to be enabled.
 	//! @param axis index of the axis (x..0, y..1, z..2)
 	//! @param show whether to show (true) or hide (false) the given axis slice plane
 	void showSlicePlane(int axis, bool show);
+	//! Whether showing slice planes is generally enabled or disabled.
+	bool isShowSlicePlanes() const;
 
 	vtkPlane* plane1() override;
 	vtkPlane* plane2() override;
@@ -121,8 +145,10 @@ public:
 	//! apply the given settings to the renderer
 	//! @param settings data holder for all settings.
 	//! @param slicePlaneVisibility initial visibility of the single slice planes (can be modified independently via showSlicePlanes as well).
-	void applySettings(iARenderSettings const & settings, bool slicePlaneVisibility[3]) override;
-	void setBackgroundColors(iARenderSettings const& settings);
+	void applySettings(QVariantMap const & paramValues) override;
+	//! access to current settings.
+	QVariantMap const& settings() const;
+	void editSettings();
 
 	void touchStart();
 	void touchScaleSlot(float relScale);
@@ -136,6 +162,7 @@ signals:
 	void bgColorChanged(QColor bgTop, QColor bgBottom);
 	//! called when user presses 'a'/'A' or 'c'/'C' key to change between modifying actors and camera
 	void interactionModeChanged(bool camera);
+	void settingsChanged();
 
 public slots:
 	void mouseRightButtonReleasedSlot();
@@ -144,6 +171,11 @@ public slots:
 	void setProfileHandlesOn(bool isOn);
 
 private:
+	void updateBackgroundColors();
+	//! Internal method for switching between showing / not showing the slice plane; this method
+	//! does not care for the "Show slice plane" setting, and therefore should only be called internally.
+	//! @see showSlicePlane for public facing function that changes slice plane visibility respecting the "Show slice plane" setting.
+	void showSlicePlaneActor(int axis, bool show);
 
 	bool m_initialized;    //!< flag indicating whether initialization of widget has finished
 	iARenderObserver *m_renderObserver;
@@ -174,7 +206,8 @@ private:
 
 	//! cutting planes:
 	vtkSmartPointer<vtkPlane> m_plane1, m_plane2, m_plane3;
-
+	//! keep track of which slicing/cutting planes should be visible:
+	std::array<bool, 3> m_slicePlaneVisible;
 
 	//! @{ movable axes
 	// TODO: check what the movable axes are useful for!
@@ -210,4 +243,6 @@ private:
 	iAVec3d m_touchStartCamPos; //! for touch interaction: camera position (for non-parallel projection)
 
 	std::array<double, 3> m_unitSize; //!< size of a single "item", e.g. the position marker; also thickness of slicing planes
+
+	QVariantMap m_settings;       //! current settings of this renderer
 };

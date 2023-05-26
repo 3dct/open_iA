@@ -19,7 +19,6 @@
 //#include <iAPerformanceHelper.h>
 #include <iAPreferences.h>
 #include <iARenderer.h>
-#include <iARenderSettings.h>
 #include <iASlicer.h>
 #include <iASlicerMode.h>   // for slicerModeString
 #include <iASlicerSettings.h>
@@ -465,16 +464,17 @@ void iAMultimodalWidget::applyVolumeSettings()
 	{
 		volProp->SetScalarOpacityUnitDistance(scalarOpacityUnitDistance);
 	}
-	if (m_mdiChild->renderSettings().ShowSlicers)
-	{
-		m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane1());
-		m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane2());
-		m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane3());
-	}
-	else
-	{
-		m_combinedVolMapper->RemoveAllClippingPlanes();
-	}
+	// TODO SETTINGS: make clipping plane settings a dataset setting, and make it available somehow?
+	//if (m_mdiChild->renderSettings().ShowSlicers)
+	//{
+	//	m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane1());
+	//	m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane2());
+	//	m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane3());
+	//}
+	//else
+	//{
+	//	m_combinedVolMapper->RemoveAllClippingPlanes();
+	//}
 	m_combinedVolMapper->SetSampleDistance(volSettings[iAVolumeRenderer::SampleDistance].toDouble());
 	m_combinedVolMapper->InteractiveAdjustSampleDistancesOff();
 }
@@ -483,6 +483,7 @@ void iAMultimodalWidget::applySlicerSettings()
 {
 	for (int i = 0; i < m_numOfDS; ++i)
 	{
+		// TODO SETTINGS: apply changed settings?
 		//m_slicerWidgets[i]->applySettings(m_mdiChild->singleSlicerSettings());
 	}
 }

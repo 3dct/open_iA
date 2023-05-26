@@ -14,7 +14,6 @@
 #include <iADataSetRenderer.h>
 #include <iAMdiChild.h>
 #include <iAPreferences.h>
-#include <iARenderSettings.h>
 #include <iARenderer.h>
 #include <iASlicer.h>
 #include <iASlicerImpl.h>
@@ -349,16 +348,17 @@ inline void iANModalController::applyVolumeSettings()
 	{
 		volProp->SetScalarOpacityUnitDistance(scalarOpacityUnitDistance);
 	}
-	if (m_mdiChild->renderSettings().ShowSlicers)
-	{
-		m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane1());
-		m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane2());
-		m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane3());
-	}
-	else
-	{
-		m_combinedVolMapper->RemoveAllClippingPlanes();
-	}
+	// TODO SETTINGS: make clipping plane settings a dataset setting, and make it available somehow?
+	//if (m_mdiChild->renderSettings().ShowSlicers)
+	//{
+	//	m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane1());
+	//	m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane2());
+	//	m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane3());
+	//}
+	//else
+	//{
+	//	m_combinedVolMapper->RemoveAllClippingPlanes();
+	//}
 	m_combinedVolMapper->SetSampleDistance(volSettings[iAVolumeRenderer::SampleDistance].toDouble());
 	m_combinedVolMapper->SetInteractiveAdjustSampleDistances(volSettings[iAVolumeRenderer::InteractiveAdjustSampleDistance].toBool());
 }

@@ -87,8 +87,7 @@ public:
 	//! @param snakeSlicerPoints the array of points in the snake slicer (leave at default nullptr if you don't require snake slicer).
 	iASlicerImpl(QWidget * parent, const iASlicerMode mode, bool decorations = true, bool magicLensAvailable = true,
 		vtkAbstractTransform *transform = nullptr, vtkPoints* snakeSlicerPoints = nullptr);
-	//! Sets up the slicer with the given settings.
-	void setup(QVariantMap const & settings) override;
+	void applySettings(QVariantMap const & settings) override;
 	virtual ~iASlicerImpl();
 
 	//! @{ Magic Lens methods

@@ -122,6 +122,8 @@ iAAttributes& iADataSetRenderer::defaultAttributes()
 		addAttr(attr, DiffuseLighting, iAValueType::Continuous, 0.5);
 		addAttr(attr, SpecularLighting, iAValueType::Continuous, 0.7);
 		addAttr(attr, SpecularPower, iAValueType::Continuous, 10.0);
+
+		// addAttr(attr, ShowSlicers, iAValueType::Boolean, false);                // whether objects are cut at the current slice plane of each slicer (currently applies for all volume datasets; should be moved to individual dataset renderers, to be able to selectively enable it for each dataset)
 	}
 	return attr;
 }

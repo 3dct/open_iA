@@ -23,7 +23,7 @@ class iADataSetListWidget;
 class iAMainWindow;
 class iAPreferences;
 class iARenderer;
-class iARenderSettings;
+//class iARenderSettings;
 class iASlicer;
 class iASlicerSettings;
 class iATool;
@@ -89,7 +89,7 @@ public:
 	virtual void multiview() = 0;
 	
 	// Settings:
-	virtual iARenderSettings const& renderSettings() const = 0;
+	//virtual iARenderSettings const& renderSettings() const = 0;
 	virtual iASlicerSettings const& slicerSettings() const = 0;
 	virtual iAPreferences const& preferences() const = 0;
 	//! Whether this child has the linked views feature enabled
@@ -153,7 +153,7 @@ public:
 	virtual bool isVolumeDataLoaded() const = 0;
 
 	//! apply the given (3D) renderer settings
-	virtual void applyRendererSettings(iARenderSettings const& rs) = 0;
+	//virtual void applyRendererSettings(iARenderSettings const& rs) = 0;
 
 	// Datasets:
 	// TODO NEWIO: There's potential for better encapsulation / better API here! Maybe extract to separate dataset container?

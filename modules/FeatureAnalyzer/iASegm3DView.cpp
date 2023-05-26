@@ -7,7 +7,6 @@
 #include <iALog.h>
 #include <iAFast3DMagicLensWidget.h>
 #include <iALUT.h>
-#include <iARenderSettings.h>
 #include <iATransferFunctionPtrs.h>
 #include <iAVolumeRenderer.h>
 
@@ -281,21 +280,13 @@ void iASegm3DViewData::LoadAndApplySettings()
 	// TODO: VOLUME: unify with mainwindow settings loading!
 	QSettings settings;
 
-	iARenderSettings renderSettings;
-	renderSettings.ShowSlicers = settings.value("Renderer/rsShowSlicers", false).toBool();
-	renderSettings.ShowAxesCube = settings.value("Renderer/rsShowHelpers", true).toBool();
-	renderSettings.ShowOriginIndicator = settings.value("Renderer/rsShowHelpers", true).toBool();
-	renderSettings.ShowRPosition = settings.value("Renderer/rsShowRPosition", false).toBool();
-	renderSettings.ParallelProjection = true;
-	renderSettings.BackgroundTop = "#8f8f8f"; //"#FFFFFF"
-	renderSettings.BackgroundBottom = "#8f8f8f";
+	QVariantMap renderParams;
+	renderParams[iARendererImpl::ParallelProjection] = true;
+	renderParams[iARendererImpl::BackgroundTop] = colorToVariant("#8f8f8f"); //"#FFFFFF"
+	renderParams[iARendererImpl::BackgroundBottom] = colorToVariant("#8f8f8f");
+	m_renderer->applySettings(renderParams);
 
-	bool slicerVisibility[3] = { false, false, false };
-	m_renderer->applySettings(renderSettings, slicerVisibility);
-
-	bool showBoundingBox = settings.value("Renderer/rsBoundingBox", true).toBool();
 	bool showVolume = settings.value("FeatureAnalyzer/GUI/ShowVolume", false).toBool();
-	m_volumeRenderer->setBoundsVisible(showBoundingBox);
 	m_volumeRenderer->setVisible(showVolume);
 	
 	m_polyDataRenderer->setVisible( settings.value( "FeatureAnalyzer/GUI/ShowSurface", false ).toBool() );

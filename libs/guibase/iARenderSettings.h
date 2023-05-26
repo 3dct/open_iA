@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+/*
 #include "defines.h"   // for DefaultMagicLensSize
 
 //! Settings for vtkRenderer, and helpers defined in iARenderer.
@@ -52,3 +53,4 @@ public:
 		OcclusionRatio(0.0)
 	{}
 };
+*/

@@ -32,7 +32,7 @@ iASimpleSlicerWidget::~iASimpleSlicerWidget()
 
 void iASimpleSlicerWidget::applySettings(QVariantMap const & settings)
 {
-	m_slicer->setup(settings);
+	m_slicer->applySettings(settings);
 }
 
 void iASimpleSlicerWidget::setSlicerMode(iASlicerMode slicerMode)

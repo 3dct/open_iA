@@ -12,7 +12,6 @@
 #include "qthelper/iAQTtoUIConnector.h"
 #include "iAMdiChild.h"
 #include "iAPreferences.h"
-#include "iARenderSettings.h"
 #include "iASavableProject.h"
 #include "iASlicerSettings.h"
 
@@ -76,11 +75,10 @@ public:
 	void saveVolumeStack();
 
 	void applyPreferences(iAPreferences const & p);
-	void applyRendererSettings(iARenderSettings const & rs) override;
+	//void applyRendererSettings(iARenderSettings const & rs) override;
 	void applySlicerSettings(iASlicerSettings const & ss);
-	void applyVolumeSettings();
-	void setRenderSettings(iARenderSettings const & rs);
-	iARenderSettings const & renderSettings() const override;
+	//void setRenderSettings(iARenderSettings const & rs);
+	//iARenderSettings const & renderSettings() const override;
 	iASlicerSettings const & slicerSettings() const override;
 	iAPreferences    const & preferences()    const override;
 
@@ -275,16 +273,12 @@ private:
 	bool saveDataSet(std::shared_ptr<iADataSet> dataSet);
 	bool saveDataSet(std::shared_ptr<iADataSet> dataSet, QString const & fileName);
 	void set3DSlicePlanePos(int mode, int slice);
-
 	void maximizeDockWidget(QDockWidget * dw);
 	void demaximizeDockWidget(QDockWidget * dw);
 	void resizeDockWidget(QDockWidget * dw);
-
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void snakeNormal(int index, double point[3], double normal[3]);
 	void connectSignalsToSlots();
-
-	void slicerVisibilityChanged(int mode);
 	void updatePositionMarkerSize();
 	void updateDataSetInfo();
 
@@ -295,7 +289,6 @@ private:
 	QByteArray m_beforeMaximizeState;
 	QDockWidget* m_whatMaximized;
 
-	iARenderSettings m_renderSettings;
 	iASlicerSettings m_slicerSettings;
 	iAPreferences m_preferences;
 
@@ -337,7 +330,6 @@ private:
 	size_t m_magicLensDataSet;                                          //!< index of dataset shown in magic lens
 	QMap<QString, std::shared_ptr<iATool>> m_tools;                     //!< list of currently active tools
 	iAInteractionMode m_interactionMode;                                //!< current interaction mode in slicers/renderer (see iAInteractionMode)
-	bool m_slicerVisibility[3];                                         //!< visibility status of slicers; for forwarding it to the display of slice planes in 3D renderer
 
 	size_t m_nextDataSetID;                                             //!< holds ID for next dataSet (in order to provide a unique ID to each loaded dataset)
 	QMutex m_dataSetMutex;                                              //!< used to guarantee that m_nextDataSetID can only be read and modified together

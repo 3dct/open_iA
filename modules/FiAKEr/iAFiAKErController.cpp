@@ -22,7 +22,6 @@
 // core
 #include <iAMapperImpl.h>
 #include <iAModuleDispatcher.h>
-#include <iARenderSettings.h>
 #include <iARenderer.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
@@ -43,6 +42,7 @@
 #include <iASignallingWidget.h>
 
 // renderer
+#include <iARendererImpl.h>      // for access to renderer settings
 #include <iARendererViewSync.h>
 
 // base
@@ -2988,16 +2988,17 @@ void iAFiAKErController::update3D()
 
 void iAFiAKErController::setClippingPlanes(QSharedPointer<iA3DPolyObjectActor> actor)
 {
-	if (m_mdiChild->renderSettings().ShowSlicers)
-	{
-		auto iaren = m_mdiChild->renderer();
-		vtkPlane* planes[3] = { iaren->plane1(), iaren->plane2(), iaren->plane3() };
-		actor->setClippingPlanes(planes);
-	}
-	else
-	{
-		actor->removeClippingPlanes();
-	}
+	// TODO SETTINGS: make clipping plane settings a dataset setting, and make it available somehow?
+	//if (m_mdiChild->renderSettings().ShowSlicers)
+	//{
+	//	auto iaren = m_mdiChild->renderer();
+	//	vtkPlane* planes[3] = { iaren->plane1(), iaren->plane2(), iaren->plane3() };
+	//	actor->setClippingPlanes(planes);
+	//}
+	//else
+	//{
+	//	actor->removeClippingPlanes();
+	//}
 }
 
 void iAFiAKErController::applyRenderSettings()
@@ -3008,13 +3009,14 @@ void iAFiAKErController::applyRenderSettings()
 
 		if (m_resultUIs[resultID].vtkWidget)
 		{
+			auto renSet = dynamic_cast<iARendererImpl*>(m_mdiChild->renderer())->settings();
 			auto ren = m_resultUIs[resultID].vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer();
-			ren->SetUseDepthPeeling(m_mdiChild->renderSettings().UseDepthPeeling);
-			ren->SetUseDepthPeelingForVolumes(m_mdiChild->renderSettings().UseDepthPeeling);
-			ren->SetMaximumNumberOfPeels(m_mdiChild->renderSettings().DepthPeels);
-			ren->SetUseFXAA(m_mdiChild->renderSettings().UseFXAA);
-			QColor bgTop(m_mdiChild->renderSettings().BackgroundTop);
-			QColor bgBottom(m_mdiChild->renderSettings().BackgroundBottom);
+			ren->SetUseDepthPeeling(renSet[iARendererImpl::UseDepthPeeling].toBool());
+			ren->SetUseDepthPeelingForVolumes(renSet[iARendererImpl::UseDepthPeeling].toBool());
+			ren->SetMaximumNumberOfPeels(renSet[iARendererImpl::DepthPeels].toInt());
+			ren->SetUseFXAA(renSet[iARendererImpl::UseFXAA].toBool());
+			auto bgTop = variantToColor(renSet[iARendererImpl::BackgroundTop].toString());
+			auto bgBottom = variantToColor(renSet[iARendererImpl::BackgroundBottom].toString());
 			ren->SetBackground2(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
 			ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
 		}

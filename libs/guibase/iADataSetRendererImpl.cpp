@@ -86,7 +86,7 @@ namespace
 	}
 }
 
-constexpr const char GraphRendererName[] = "Default Settings/Graph Renderer";
+constexpr const char GraphRendererName[] = "Default Settings/Dataset Renderer: Graph";
 
 class iAguibase_API iAGraphRendererSettings : iASettingsObject<GraphRendererName, iAGraphRendererSettings>
 {
@@ -315,7 +315,7 @@ vtkProp3D* iAGraphRenderer::vtkProp()
 
 // ---------- iAMeshRenderer ----------
 
-constexpr const char SurfaceRendererName[] = "Default Settings/Surface Renderer";
+constexpr const char SurfaceRendererName[] = "Default Settings/Dataset Renderer: Surface";
 class iAguibase_API iAPolyActorRendererSettings : iASettingsObject<SurfaceRendererName, iAPolyActorRendererSettings>
 {
 public:

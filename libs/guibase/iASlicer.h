@@ -29,8 +29,8 @@ public:
 	iASlicer(QWidget* parent):
 		iAQVTKWidget(parent)
 	{}
-	//! Sets up the slicer with the given settings.
-	virtual void setup(QVariantMap const & settings) = 0;
+	//! Apply the given settings to the slicer.
+	virtual void applySettings(QVariantMap const & settings) = 0;
 	virtual ~iASlicer(){};
 
 	//! @{ Magic Lens methods
@@ -157,6 +157,4 @@ signals:
 	//! @param sliceNumber number of the slice that was switched to
 	void sliceNumberChanged(int mode, int sliceNumber);
 	void magicLensToggled(bool enabled);
-	//! triggered when the user selects "Settings" from the context menu
-	void editSettings();
 };

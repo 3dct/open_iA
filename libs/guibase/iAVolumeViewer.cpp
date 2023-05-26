@@ -5,14 +5,14 @@
 #include "iADataSet.h"
 #include "iAProgress.h"
 
-#include "defines.h"    // for NotExistingChannel
+#include "defines.h"        // for NotExistingChannel
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
 #include "iADataSetListWidget.h"
 #include "iADockWidgetWrapper.h"
 #include "iAFileUtils.h"    // for MakeAbsolute
 #include "iAJobListView.h"
-#include "iAMainWindow.h"
+#include "iAMainWindow.h"   // for preferences, styleChanged
 #include "iAMdiChild.h"
 #include "iAPreferences.h"
 #include "iAProfileProbe.h"

@@ -29,7 +29,6 @@
 #include <iAPreferences.h>
 #include <iATool.h>
 #include <iAToolRegistry.h>
-#include <iARenderSettings.h>
 #include <iARunAsync.h>
 
 // qthelper
@@ -106,7 +105,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_nextDataSetID(0)
 {
 	setAcceptDrops(true);
-	std::fill(m_slicerVisibility, m_slicerVisibility + 3, false);
 	setAttribute(Qt::WA_DeleteOnClose);
 	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
 	setWindowModified(unsavedChanges);
@@ -174,30 +172,9 @@ MdiChild::~MdiChild()
 	//delete m_renderer; m_renderer = nullptr;
 }
 
-void MdiChild::slicerVisibilityChanged(int mode)
-{
-	if (m_dwSlicer[mode]->isVisible() == m_slicerVisibility[mode])
-	{
-		return; // no change
-	}
-	m_slicerVisibility[mode] = m_dwSlicer[mode]->isVisible();
-	if (m_renderSettings.ShowSlicePlanes)
-	{
-		m_renderer->showSlicePlane(mode, m_slicerVisibility[mode]);
-		m_renderer->update();
-	}
-}
-
 void MdiChild::connectSignalsToSlots()
 {
 	connect(m_mainWnd, &MainWindow::fullScreenToggled, this, &MdiChild::toggleFullScreen);
-	connect(m_mainWnd, &MainWindow::styleChanged, this, [this] {
-		if (renderSettings().UseStyleBGColor)
-		{
-			m_renderer->setBackgroundColors(m_renderSettings);
-			m_renderer->update();
-		}
-	});
 
 	connect(m_dataSetListWidget, &iADataSetListWidget::dataSetSelected, this, &iAMdiChild::dataSetSelected);
 
@@ -206,8 +183,16 @@ void MdiChild::connectSignalsToSlots()
 	{
 		setInteractionMode(camera ? imCamera : imRegistration);
 	});
+	connect(m_renderer, &iARendererImpl::settingsChanged, this, [this]()
+	{
+		for (int i = 0; i < 3; ++i)
+		{
+			m_dwSlicer[i]->showBorder(m_renderer->isShowSlicePlanes());
+		}
+	});
 	m_dwRenderer->vtkWidgetRC->setContextMenuEnabled(true);
-	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::editSettings, m_mainWnd, &MainWindow::renderSettings);
+	// TODO: merge iAFast3DMagicLensWidget (at least iAQVTKWidget part) with iARenderer, then this can be moved there:
+	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::editSettings, m_renderer, &iARendererImpl::editSettings);
 	connect(m_dwRenderer->tbMax, &QPushButton::clicked, this, &MdiChild::maximizeRenderer);
 	connect(m_dwRenderer->pbToggleInteraction, &QPushButton::clicked, this, [this]
 	{
@@ -232,14 +217,13 @@ void MdiChild::connectSignalsToSlots()
 	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
 	{
 		connect(m_dwSlicer[s]->tbMax, &QPushButton::clicked, [this, s] { maximizeSlicer(s); });
-		connect(m_dwSlicer[s], &QDockWidget::visibilityChanged, [this, s] { slicerVisibilityChanged(s); });
+		connect(m_dwSlicer[s], &QDockWidget::visibilityChanged, [this, s] { m_renderer->showSlicePlane(s, m_dwSlicer[s]->isVisible()); });
 		m_manualMoveStyle[s] = vtkSmartPointer<iAvtkInteractStyleActor>::New();
 		connect(m_manualMoveStyle[s].Get(), &iAvtkInteractStyleActor::actorsUpdated, this, &iAMdiChild::updateViews);
 		connect(m_slicer[s], &iASlicer::shiftMouseWheel, this, &MdiChild::changeMagicLensDataSet);
 		connect(m_slicer[s], &iASlicerImpl::sliceRotated, this, &MdiChild::slicerRotationChanged);
 		connect(m_slicer[s], &iASlicer::sliceNumberChanged, this, &MdiChild::setSlice);
 		connect(m_slicer[s], &iASlicer::mouseMoved, this, &MdiChild::updatePositionMarker);
-		connect(m_slicer[s], &iASlicer::editSettings, m_mainWnd, &MainWindow::slicerSettings);
 		connect(m_slicer[s], &iASlicerImpl::regionSelected, this, [this](int minVal, int maxVal, uint channelID)
 		{
 			// TODO NEWIO: move to better place, e.g. dataset viewer for image data? slicer?
@@ -275,10 +259,7 @@ void MdiChild::connectSignalsToSlots()
 void MdiChild::updatePositionMarker(double x, double y, double z, int mode)
 {
 	double pos[3] = { x, y, z };
-	if (m_renderSettings.ShowRPosition)
-	{
-		m_renderer->setPositionMarkerCenter(x, y, z);
-	}
+	m_renderer->setPositionMarkerCenter(x, y, z);
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
 		if (mode == i)  // only update other slicers
@@ -704,11 +685,7 @@ void MdiChild::setSlice(int mode, int s)
 			QSignalBlocker block(m_dwSlicer[mode]->verticalScrollBar);
 			m_dwSlicer[mode]->verticalScrollBar->setValue(s);
 		}
-
-		if (m_renderSettings.ShowSlicers || m_renderSettings.ShowSlicePlanes)
-		{
-			set3DSlicePlanePos(mode, s);
-		}
+		set3DSlicePlanePos(mode, s);
 	}
 }
 
@@ -937,35 +914,30 @@ void MdiChild::updatePositionMarkerSize()
 	}
 }
 
-void MdiChild::setRenderSettings(iARenderSettings const& rs)
-{
-	// TODO NEWIO: there are now settings of the individual viewers -> REMOVE?
-	m_renderSettings = rs;
-}
+//void MdiChild::setRenderSettings(iARenderSettings const& rs)
+//{
+//	// TODO NEWIO: there are now settings of the individual viewers -> REMOVE?
+//	m_renderSettings = rs;
+//}
 
-void MdiChild::applyVolumeSettings()
+// TODO SETTINGS: slicing should be a per-dataset thing!
+/*
+for (auto v : m_dataSetViewers)
 {
-	// TODO NEWIO: there are now settings of the individual viewers -> REMOVE?
-	for (int i = 0; i < 3; ++i)
+	if (v.second->renderer())
 	{
-		m_dwSlicer[i]->showBorder(m_renderSettings.ShowSlicePlanes);
+		continue;
 	}
-	for (auto v : m_dataSetViewers)
+	if (m_renderSettings.ShowSlicers && !m_snakeSlicer)
 	{
-		if (v.second->renderer())
-		{
-			continue;
-		}
-		if (m_renderSettings.ShowSlicers && !m_snakeSlicer)
-		{
-			v.second->renderer()->setCuttingPlanes(m_renderer->plane1(), m_renderer->plane2(), m_renderer->plane3());
-		}
-		else
-		{
-			v.second->renderer()->removeCuttingPlanes();
-		}
+		v.second->renderer()->setCuttingPlanes(m_renderer->plane1(), m_renderer->plane2(), m_renderer->plane3());
+	}
+	else
+	{
+		v.second->renderer()->removeCuttingPlanes();
 	}
 }
+*/
 
 QString MdiChild::layoutName() const
 {
@@ -1022,6 +994,7 @@ void MdiChild::applySlicerSettings(iASlicerSettings const& ss)
 	emit slicerSettingsChanged();
 }
 
+/*
 void MdiChild::applyRendererSettings(iARenderSettings const& rs)
 {
 	setRenderSettings(rs);
@@ -1034,11 +1007,12 @@ void MdiChild::applyRendererSettings(iARenderSettings const& rs)
 	m_dwRenderer->vtkWidgetRC->renderWindow()->Render();
 	emit renderSettingsChanged();
 }
+*/
 
-iARenderSettings const& MdiChild::renderSettings() const
-{
-	return m_renderSettings;
-}
+//iARenderSettings const& MdiChild::renderSettings() const
+//{
+//	return m_renderSettings;
+//}
 
 iASlicerSettings const& MdiChild::slicerSettings() const
 {
@@ -1060,6 +1034,8 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 
 	if (m_snakeSlicer)
 	{
+		/*
+		// TODO SETTINGS: slicing should be a per-dataset thing!
 		if (m_renderSettings.ShowSlicers)
 		{
 			for (auto v : m_dataSetViewers)
@@ -1067,6 +1043,7 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 				v.second->renderer()->removeCuttingPlanes();
 			}
 		}
+		*/
 
 		// save the slicer transforms
 		for (int s = 0; s < 3; ++s)
@@ -1102,6 +1079,8 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 			m_slicer[s]->renderer()->Render();
 			m_slicer[s]->switchInteractionMode(iASlicerImpl::Normal);
 		}
+		// TODO SETTINGS: slicing should be a per-dataset thing!
+		/*
 		if (m_renderSettings.ShowSlicers)
 		{
 			for (auto v : m_dataSetViewers)
@@ -1109,6 +1088,7 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 				v.second->renderer()->setCuttingPlanes(m_renderer->plane1(), m_renderer->plane2(), m_renderer->plane3());
 			}
 		}
+		*/
 	}
 }
 

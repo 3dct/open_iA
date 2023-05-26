@@ -31,6 +31,9 @@ public:
 	static constexpr const char SpecularLighting[] = "Specular lighting";
 	static constexpr const char SpecularPower[] = "Specular power";
 
+	// TODO SETTINGS: make cutting along slice plane a setting here!
+	// static constexpr const char ShowSlicers[] = "Show slicers";
+
 	//! Create a dataset renderer
 	iADataSetRenderer(vtkRenderer* renderer);
 	//! called when dataset renderer is removed from display and destroyed.

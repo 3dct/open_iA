@@ -99,7 +99,7 @@ private:
 };
 
 
-constexpr const char SlicerSettingsName[] = "Default Settings/Slicer";
+constexpr const char SlicerSettingsName[] = "Default Settings/View: Slicer";
 //! Settings applicable to a single slicer window.
 class iAslicer_API iASingleSlicerSettings : iASettingsObject<SlicerSettingsName, iASingleSlicerSettings>
 {
@@ -263,7 +263,13 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 
 	updateBackground();
 
-	auto settingsAction = m_contextMenu->addAction(tr("Settings"), this, &iASlicer::editSettings);
+	auto settingsAction = m_contextMenu->addAction(tr("Settings"), this, [this]
+	{
+		if (editSettingsDialog<iASlicerImpl>(iASingleSlicerSettings::defaultAttributes(), m_settings, "Slicer view settings", *this, &iASlicerImpl::applySettings))
+		{
+			update();
+		}
+	});
 	settingsAction->setIcon(iAThemeHelper::icon("settings_slicer"));
 
 	m_contextMenu->addSeparator();
@@ -443,7 +449,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 		m_sliceProfile->addToRenderer(m_ren);
 		m_profileHandles->addToRenderer(m_ren);
 	}
-	setup(extractValues(iASingleSlicerSettings::defaultAttributes()));
+	applySettings(extractValues(iASingleSlicerSettings::defaultAttributes()));
 	m_ren->ResetCamera();
 }
 
@@ -587,7 +593,7 @@ void iASlicerImpl::setLinearInterpolation(bool enabled)
 	}
 }
 
-void iASlicerImpl::setup( QVariantMap const & settings )
+void iASlicerImpl::applySettings( QVariantMap const & settings )
 {
 	m_settings = settings;
 	m_actionLinearInterpolation->setChecked(settings[iASlicerImpl::LinearInterpolation].toBool());

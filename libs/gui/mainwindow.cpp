@@ -2,31 +2,27 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "mainwindow.h"
 
-#include "defines.h"
-#include "iAProgress.h"
-
+// gui
 #include "dlg_datatypeconversion.h"
 #include "iACheckOpenGL.h"
-#include "iADefaultSettings.h"
 #include "iAFileParamDlg.h"
-#include "iAJobListView.h"
 #include "iALogWidget.h"
-#include "iAModuleDispatcher.h"
-#include "iAParameterDlg.h"
-#include "iAQMenuHelper.h"
-#include "iARawFileParamDlg.h"
-#include "iARenderer.h"
-#include "iARenderSettings.h"
-#include "iASavableProject.h"
-#include "iASlicer.h"          // for iASlicer and slicerModeString
-#include "iAStringHelper.h"    // for iAConverter
 #include "iASystemThemeWatcher.h"
-#include "iAThemeHelper.h"
 #include "iATLGICTLoader.h"
-#include "iATool.h"
-#include "iAToolRegistry.h"
 #include "mdichild.h"
 #include "ui_Mainwindow.h"
+
+// guibase
+#include <iADefaultSettings.h>
+#include <iAJobListView.h>
+#include <iAModuleDispatcher.h>
+#include <iAParameterDlg.h>
+#include <iAQMenuHelper.h>
+#include <iARawFileParamDlg.h>
+#include <iARenderer.h>
+#include <iASavableProject.h>
+#include <iASlicer.h>          // for iASlicer and slicerModeString
+#include <iAThemeHelper.h>
 
 // io:
 #include <iADataSet.h>
@@ -38,16 +34,18 @@
 #include <iAChartWidget.h>
 
 // qthelper
-#include "iADockWidgetWrapper.h"
+#include <iADockWidgetWrapper.h>
 
 // base
-#include "iALog.h"
-#include "iALogLevelMappings.h"
-#include "iALUT.h"
-#include "iAMathUtility.h"
-#include "iASettings.h"    // for loadSettings, storeSettings
-#include "iAToolsVTK.h"
-#include "iAXmlSettings.h"
+#include <iALog.h>
+#include <iALogLevelMappings.h>
+#include <iALUT.h>
+#include <iAMathUtility.h>
+#include <iAProgress.h>
+#include <iASettings.h>    // for loadSettings, storeSettings
+#include <iAStringHelper.h>    // for iAConverter
+#include <iAToolsVTK.h>
+#include <iAXmlSettings.h>
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
@@ -203,7 +201,6 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	addActionIcon(m_ui->actionIsometricViewInRaycaster, "iso");
 	addActionIcon(m_ui->actionMagicLens2D, "magic_lens_2d");
 	addActionIcon(m_ui->actionMagicLens3D, "magic_lens_3d");
-	addActionIcon(m_ui->actionRendererSettings, "settings_renderer");
 	addActionIcon(m_ui->actionSlicerSettings, "settings_slicer");
 	addActionIcon(m_ui->actionPreferences, "settings");
 	addActionIcon(m_ui->actionOpenWithDataTypeConversion, "open");
@@ -707,6 +704,7 @@ void MainWindow::loadPreferences(QDomNode preferencesNode)
 
 void MainWindow::saveRenderSettings(iAXmlSettings &xml)
 {
+	/*
 	QDomElement renderSettingsElement = xml.createElement("renderSettings");
 	renderSettingsElement.setAttribute("showSlicers", m_defaultRenderSettings.ShowSlicers);
 	renderSettingsElement.setAttribute("showSlicePlanes", m_defaultRenderSettings.ShowSlicePlanes);
@@ -721,10 +719,13 @@ void MainWindow::saveRenderSettings(iAXmlSettings &xml)
 	renderSettingsElement.setAttribute("multiSamples", m_defaultRenderSettings.MultiSamples);
 	renderSettingsElement.setAttribute("useDepthPeeling", m_defaultRenderSettings.UseDepthPeeling);
 	renderSettingsElement.setAttribute("depthPeels", m_defaultRenderSettings.DepthPeels);
+*/
+	// TODO SETTINGS: store renderer default settings
 }
 
 void MainWindow::loadRenderSettings(QDomNode renderSettingsNode)
 {
+	/*
 	QDomNamedNodeMap attributes = renderSettingsNode.attributes();
 
 	m_defaultRenderSettings.ShowSlicers = attributes.namedItem("showSlicers").nodeValue() == "1";
@@ -743,6 +744,7 @@ void MainWindow::loadRenderSettings(QDomNode renderSettingsNode)
 	m_defaultRenderSettings.DepthPeels = attributes.namedItem("depthPeels").nodeValue().toInt();
 
 	activeMDI()->applyRendererSettings(m_defaultRenderSettings);
+	*/
 }
 
 void MainWindow::saveSlicerSettings(iAXmlSettings &xml)
@@ -751,7 +753,7 @@ void MainWindow::saveSlicerSettings(iAXmlSettings &xml)
 	slicerSettingsElement.setAttribute("linkViews", m_defaultSlicerSettings.LinkViews);
 	slicerSettingsElement.setAttribute("snakeSlices", m_defaultSlicerSettings.SnakeSlices);
 	slicerSettingsElement.setAttribute("linkMDIs", m_defaultSlicerSettings.LinkMDIs);
-	// TODO SETTINGS: store settings from slicer directly
+	// TODO SETTINGS: store slicer default settings
 }
 
 void MainWindow::loadSlicerSettings(QDomNode slicerSettingsNode)
@@ -759,7 +761,7 @@ void MainWindow::loadSlicerSettings(QDomNode slicerSettingsNode)
 	QDomNamedNodeMap attributes = slicerSettingsNode.attributes();
 	m_defaultSlicerSettings.SnakeSlices = attributes.namedItem("snakeSlices").nodeValue().toDouble();
 	m_defaultSlicerSettings.LinkMDIs = attributes.namedItem("linkMDIs").nodeValue() == "1";
-	// TODO SETTINGS: load settings from slicer directly
+	// TODO SETTINGS: load slicer default settings
 	activeMDI()->applySlicerSettings(m_defaultSlicerSettings);
 }
 
@@ -900,6 +902,7 @@ void MainWindow::prefs()
 	iALogWidget::get()->setLogToFile(logToFile, logFileName, true);
 }
 
+/*
 void MainWindow::renderSettings()
 {
 	QStringList stereoModes = StereoModeMap().keys();
@@ -983,6 +986,7 @@ namespace
 		return QString("Background Color %1 Slicer").arg(slicerModeString(slicerMode));
 	}
 }
+*/
 
 void MainWindow::slicerSettings()
 {
@@ -1044,7 +1048,8 @@ void MainWindow::rendererSyncCamera()
 		{
 			continue;
 		}
-		tmpChild->setCamPosition(camOptions, m_defaultRenderSettings.ParallelProjection);
+		// TODO SETTINGS: use iARendererViewSync instead?
+		tmpChild->setCamPosition(camOptions, /*m_defaultRenderSettings.ParallelProjection*/ true);
 	}
 }
 
@@ -1266,8 +1271,6 @@ void MainWindow::updateMenus()  // (and toolbars)
 	QSignalBlocker interactionModeRegistrationBlock(m_ui->actionInteractionModeRegistration);
 	m_ui->actionInteractionModeRegistration->setChecked(child && child->interactionMode() == MdiChild::imRegistration);
 	m_ui->actionInteractionModeRegistration->setEnabled(hasMdiChild);
-	//m_ui->actionRendererSettings->setEnabled(hasMdiChild);
-	//m_ui->actionSlicerSettings->setEnabled(hasMdiChild);
 	m_ui->menuInteractionMode->setEnabled(hasMdiChild);
 
 	// Views Menu:
@@ -1354,7 +1357,7 @@ iAMdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 		child->show();
 	}
 	child->initializeViews();
-	child->applyRendererSettings(m_defaultRenderSettings);
+	//child->applyRendererSettings(m_defaultRenderSettings);
 	child->applySlicerSettings(m_defaultSlicerSettings);
 	emit childCreated(child);
 	return child;
@@ -1414,7 +1417,6 @@ void MainWindow::connectSignalsToSlots()
 
 	// "Edit" menu entries:
 	connect(m_ui->actionPreferences, &QAction::triggered, this, &MainWindow::prefs);
-	connect(m_ui->actionRendererSettings, &QAction::triggered, this, &MainWindow::renderSettings);
 	connect(m_ui->actionSlicerSettings, &QAction::triggered, this, &MainWindow::slicerSettings);
 	connect(m_ui->actionInteractionModeRegistration, &QAction::triggered, this, &MainWindow::changeInteractionMode);
 	connect(m_ui->actionInteractionModeCamera, &QAction::triggered, this, &MainWindow::changeInteractionMode);
@@ -1565,6 +1567,7 @@ void MainWindow::readSettings()
 	// performance:
 	m_defaultPreferences.LimitForAuto3DRender = settings.value("Preferences/prefLimitForAuto3DRender", defaultPrefs.LimitForAuto3DRender).toInt();
 
+	/*
 	iARenderSettings fallbackRS;
 	m_defaultRenderSettings.ShowSlicers = settings.value("Renderer/rsShowSlicers", fallbackRS.ShowSlicers).toBool();
 	m_defaultRenderSettings.ShowSlicePlanes = settings.value("Renderer/rsShowSlicePlanes", fallbackRS.ShowSlicePlanes).toBool();
@@ -1580,6 +1583,7 @@ void MainWindow::readSettings()
 	m_defaultRenderSettings.BackgroundBottom = settings.value("Renderer/rsBackgroundBottom", fallbackRS.BackgroundBottom).toString();
 	m_defaultRenderSettings.UseDepthPeeling = settings.value("Renderer/rsUseDepthPeeling", fallbackRS.UseDepthPeeling).toBool();
 	m_defaultRenderSettings.DepthPeels = settings.value("Renderer/rsDepthPeels", fallbackRS.DepthPeels).toInt();
+	*/
 
 	iASlicerSettings fallbackSS;
 	m_defaultSlicerSettings.LinkViews = settings.value("Slicer/ssLinkViews", fallbackSS.LinkViews).toBool();
@@ -1655,6 +1659,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Preferences/prefLogITK", iALogWidget::get()->logITK());
 	settings.setValue("Preferences/prefFileLogLevel", iALogWidget::get()->fileLogLevel());
 
+	/*
 	settings.setValue("Renderer/rsShowSlicers", m_defaultRenderSettings.ShowSlicers);
 	settings.setValue("Renderer/rsShowSlicePlanes", m_defaultRenderSettings.ShowSlicePlanes);
 	settings.setValue("Renderer/rsParallelProjection", m_defaultRenderSettings.ParallelProjection);
@@ -1668,6 +1673,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Renderer/rsPlaneOpacity", m_defaultRenderSettings.PlaneOpacity);
 	settings.setValue("Renderer/rsUseDepthPeeling", m_defaultRenderSettings.UseDepthPeeling);
 	settings.setValue("Renderer/rsDepthPeels", m_defaultRenderSettings.DepthPeels);
+	*/
 
 	settings.setValue("Slicer/ssLinkViews", m_defaultSlicerSettings.LinkViews);
 	settings.setValue("Slicer/ssLinkMDIs", m_defaultSlicerSettings.LinkMDIs);
@@ -2131,10 +2137,10 @@ iAPreferences const & MainWindow::defaultPreferences() const
 	return m_defaultPreferences;
 }
 
-iARenderSettings const& MainWindow::defaultRenderSettings() const
-{
-	return m_defaultRenderSettings;
-}
+//iARenderSettings const& MainWindow::defaultRenderSettings() const
+//{
+//	return m_defaultRenderSettings;
+//}
 
 iAModuleDispatcher & MainWindow::moduleDispatcher() const
 {
