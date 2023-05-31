@@ -62,17 +62,17 @@ public:
 	static constexpr const char LinearInterpolation[] = "Linear Interpolation";
 	static constexpr const char AdjustWindowLevelEnabled[] = "Adjust Window+Level via Mouse Click+Drag";
 	static constexpr const char ShowPosition[] = "Show Position";
-	static constexpr const char ShowAxesCaption[] = "Show axes caption";
+	static constexpr const char ShowAxesCaption[] = "Show Axes Caption";
 	static constexpr const char ShowTooltip[] = "Show Tooltip";
 	static constexpr const char ToolTipFontSize[] = "Tooltip Font Size (pt)";
-	static constexpr const char MagicLensSize[] = "Magic lens size";
-	static constexpr const char MagicLensFrameWidth[] = "Magic lens frame width";
+	static constexpr const char MagicLensSize[] = "Magic Lens Size";    // duplication with iARendererImpl; but how to fix without triggering static initialization order fiasco?
+	static constexpr const char MagicLensFrameWidth[] = "Magic Lens Frame Width";
 	static constexpr const char BackgroundColor[] = "Background Color";
 	// extract to separate iso visualization:
 	static constexpr const char ShowIsoLines[] = "Show Isolines";
 	static constexpr const char NumberOfIsoLines[] = "Number of Isolines";
-	static constexpr const char MinIsoValue[] = "Minimum isovalue";
-	static constexpr const char MaxIsoValue[] = "Maximum isovalue";
+	static constexpr const char MinIsoValue[] = "Minimum Iso Value";
+	static constexpr const char MaxIsoValue[] = "Maximum Iso Value";
 	enum InteractionMode {
 		Normal,
 		SnakeEdit,

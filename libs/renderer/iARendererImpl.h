@@ -49,28 +49,28 @@ class iArenderer_API iARendererImpl: public iARenderer
 {
 	Q_OBJECT
 public:
-	static constexpr const char ShowSlicePlanes[] = "Show slice planes";
-	static constexpr const char SlicePlaneOpacity[] = "Slice plane opacity";
-	static constexpr const char ShowAxesCube[] = "Show axes cube";
-	static constexpr const char ShowOriginIndicator[] = "Show origin indicator";
-	static constexpr const char ShowPosition[] = "Show position";
-	static constexpr const char ParallelProjection[] = "Parallel projection";
-	static constexpr const char UseStyleBGColor[] = "Use style background color";
-	static constexpr const char BackgroundTop[] = "Background top";
-	static constexpr const char BackgroundBottom[] = "Background bottom";
-	static constexpr const char UseFXAA[] = "Use fast approximate anti-aliasing";
+	static constexpr const char ShowSlicePlanes[] = "Show Slice Planes";
+	static constexpr const char SlicePlaneOpacity[] = "Slice Plane Opacity";
+	static constexpr const char ShowAxesCube[] = "Show Axes Cube";
+	static constexpr const char ShowOriginIndicator[] = "Show Origin Indicator";
+	static constexpr const char ShowPosition[] = "Show Position";
+	static constexpr const char ParallelProjection[] = "Parallel Projection";
+	static constexpr const char UseStyleBGColor[] = "Use Style Background Color";
+	static constexpr const char BackgroundTop[] = "Background Top";
+	static constexpr const char BackgroundBottom[] = "Background Bottom";
+	static constexpr const char UseFXAA[] = "Use Fast Approximate Anti-aliasing";
 	static constexpr const char MultiSamples[] = "MultiSamples";
-	static constexpr const char UseSSAO[] = "Use screen space ambient occlusion";
-	static constexpr const char SSAORadius[] = "Screen space ambient occlusion radius";
-	static constexpr const char SSAOBias[] = "Screen space ambient occlusion bias";
-	static constexpr const char SSAOKernelSize[] = "Screen space ambient occlusion kernel size";
-	static constexpr const char SSAOBlur[] = "Screen space ambient occlusion blur";
-	static constexpr const char StereoRenderMode[] = "Stereo render mode";
-	static constexpr const char UseDepthPeeling[] = "Use depth peeling";
-	static constexpr const char DepthPeelOcclusionRatio[] = "Depth peels occlusion ratio";
-	static constexpr const char DepthPeelsMax[] = "Depth peels maximum number";
-	static constexpr const char MagicLensSize[] = "Magic lens size";
-	static constexpr const char MagicLensFrameWidth[] = "Magic lens frame width";
+	static constexpr const char UseSSAO[] = "Use Screen Space Ambient Occlusion";
+	static constexpr const char SSAORadius[] = "Screen Space Ambient Occlusion Radius";
+	static constexpr const char SSAOBias[] = "Screen Space Ambient Occlusion Bias";
+	static constexpr const char SSAOKernelSize[] = "Screen Space Ambient Occlusion Kernel Size";
+	static constexpr const char SSAOBlur[] = "Screen Space Ambient Occlusion Blur";
+	static constexpr const char StereoRenderMode[] = "Stereo Render Mode";
+	static constexpr const char UseDepthPeeling[] = "Use Depth Peeling";
+	static constexpr const char DepthPeelOcclusionRatio[] = "Depth Peels Occlusion Ratio";
+	static constexpr const char DepthPeelsMax[] = "Depth Peels Maximum Number";
+	static constexpr const char MagicLensSize[] = "Magic Lens size";
+	static constexpr const char MagicLensFrameWidth[] = "Magic Lens Frame Width";
 
 	iARendererImpl(QObject *parent, vtkGenericOpenGLRenderWindow* renderWindow);
 	virtual ~iARendererImpl( );

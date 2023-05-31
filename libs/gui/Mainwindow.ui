@@ -172,9 +172,6 @@
      <addaction name="actionViewZDirectionInRaycaster"/>
      <addaction name="actionViewmZDirectionInRaycaster"/>
      <addaction name="actionIsometricViewInRaycaster"/>
-     <addaction name="separator"/>
-     <addaction name="actionSaveCameraSettings"/>
-     <addaction name="actionLoadCameraSettings"/>
     </widget>
     <widget class="QMenu" name="menuSlicer">
      <property name="title">
@@ -195,6 +192,8 @@
     <addaction name="menuSlicer"/>
     <addaction name="menu3D_Renderer"/>
     <addaction name="separator"/>
+    <addaction name="actionSaveCameraSettings"/>
+    <addaction name="actionLoadCameraSettings"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="title">

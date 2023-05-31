@@ -43,7 +43,6 @@
 #include <iALUT.h>
 #include <iAMathUtility.h>
 #include <iAProgress.h>
-#include <iARendererImpl.h>  // for loading/storing default settings in XML
 #include <iASettings.h>      // for loadSettings, storeSettings
 #include <iAStringHelper.h>  // for iAConverter
 #include <iAToolsVTK.h>
@@ -90,6 +89,125 @@ namespace
 		return iASystemThemeWatcher::isBrightTheme() ? BrightThemeQss : DarkThemeQss;
 	}
 	const QString ProjectFileExtension("iaproj"); // TODO: reuse in iAProjectFileIO
+
+	constexpr const char RendererNiceName[] = "3D Renderer";
+	constexpr const char RendererElemName[] = "renderer";
+	constexpr const char PrefElemName[] = "preferences";
+	constexpr const char PrefNiceName[] = "Preferences";
+	constexpr const char SlicerElemName[] = "slicerSettings";
+	constexpr const char SlicerNiceName[] = "Slicer Settings";
+	constexpr const char XMLFileFilter[] = "XML (*.xml)";
+
+	QString slicerNiceName(int m)
+	{
+		return QString("Slicer %1").arg(slicerModeString(m));
+	}
+
+	QString slicerElemName(int m)
+	{
+		return QString("slicer%1").arg(slicerModeString(m));
+	}
+
+	void saveCamera(QDomElement& element, vtkCamera* camera)
+	{
+		double position[4], focalPoint[4], viewUp[4];
+		camera->GetPosition(position);
+		camera->GetFocalPoint(focalPoint);
+		camera->GetViewUp(viewUp);
+		position[3] = 1.0; focalPoint[3] = 1.0; viewUp[3] = 1.0;
+
+		element.setAttribute("positionX", position[0]);
+		element.setAttribute("positionY", position[1]);
+		element.setAttribute("positionZ", position[2]);
+		element.setAttribute("focalPointX", focalPoint[0]);
+		element.setAttribute("focalPointY", focalPoint[1]);
+		element.setAttribute("focalPointZ", focalPoint[2]);
+		element.setAttribute("viewUpX", viewUp[0]);
+		element.setAttribute("viewUpY", viewUp[1]);
+		element.setAttribute("viewUpZ", viewUp[2]);
+
+		if (camera->GetParallelProjection())
+		{
+			double scale = camera->GetParallelScale();
+			element.setAttribute("scale", scale);
+		}
+	}
+
+	void loadCamera(QDomNode const& node, vtkRenderer* ren)
+	{
+		QDomNamedNodeMap attributes = node.attributes();
+		double position[4], focalPoint[4], viewUp[4];
+		position[0] = attributes.namedItem("positionX").nodeValue().toDouble();
+		position[1] = attributes.namedItem("positionY").nodeValue().toDouble();
+		position[2] = attributes.namedItem("positionZ").nodeValue().toDouble();
+		focalPoint[0] = attributes.namedItem("focalPointX").nodeValue().toDouble();
+		focalPoint[1] = attributes.namedItem("focalPointY").nodeValue().toDouble();
+		focalPoint[2] = attributes.namedItem("focalPointZ").nodeValue().toDouble();
+		viewUp[0] = attributes.namedItem("viewUpX").nodeValue().toDouble();
+		viewUp[1] = attributes.namedItem("viewUpY").nodeValue().toDouble();
+		viewUp[2] = attributes.namedItem("viewUpZ").nodeValue().toDouble();
+
+		vtkCamera* camera = ren->GetActiveCamera();
+		camera->SetPosition(position);
+		camera->SetFocalPoint(focalPoint);
+		camera->SetViewUp(viewUp);
+		if (attributes.contains("scale"))
+		{
+			double scale = attributes.namedItem("scale").nodeValue().toDouble();
+			camera->SetParallelScale(scale);
+		}
+		double allBounds[6];
+		ren->ComputeVisiblePropBounds(allBounds);
+		ren->ResetCameraClippingRange(allBounds);
+	}
+
+	void savePreferences(iAXmlSettings& xml, iAPreferences const& prefs)
+	{
+		QDomElement preferencesElement = xml.createElement(PrefElemName);
+		preferencesElement.setAttribute("limitForAuto3DRender", prefs.LimitForAuto3DRender);
+		preferencesElement.setAttribute("positionMarkerSize", prefs.PositionMarkerSize);
+		preferencesElement.setAttribute("printParameters", prefs.PrintParameters);
+		preferencesElement.setAttribute("resultsInNewWindow", prefs.ResultInNewWindow);
+		preferencesElement.setAttribute("fontSize", QString::number(prefs.FontSize));
+		preferencesElement.setAttribute("logFileName", iALogWidget::get()->logFileName());
+		preferencesElement.setAttribute("logToFile", iALogWidget::get()->isLogToFileOn());
+		preferencesElement.setAttribute("logLevel", iALogWidget::get()->logLevel());
+		preferencesElement.setAttribute("logFileLevel", iALogWidget::get()->fileLogLevel());
+		preferencesElement.setAttribute("logVTK", iALogWidget::get()->logVTK());
+		preferencesElement.setAttribute("logITK", iALogWidget::get()->logITK());
+	}
+
+	void loadPreferences(QDomNode preferencesNode, iAPreferences& preferences)
+	{
+		QDomNamedNodeMap attributes = preferencesNode.attributes();
+		preferences.LimitForAuto3DRender = attributes.namedItem("limitForAuto3DRender").nodeValue().toInt();
+		preferences.PositionMarkerSize = attributes.namedItem("positionMarkerSize").nodeValue().toDouble();
+		preferences.PrintParameters = attributes.namedItem("printParameters").nodeValue() == "1";
+		preferences.ResultInNewWindow = attributes.namedItem("resultsInNewWindow").nodeValue() == "1";
+		preferences.FontSize = attributes.namedItem("fontSize").nodeValue().toInt();
+		bool prefLogToFile = attributes.namedItem("logToFile").nodeValue() == "1";
+		QString logFileName = attributes.namedItem("logFileName").nodeValue();
+		iALogWidget::get()->setLogToFile(prefLogToFile, logFileName);
+		iALogWidget::get()->setLogLevel(static_cast<iALogLevel>(attributes.namedItem("logLevel").nodeValue().toInt()));
+		iALogWidget::get()->setFileLogLevel(static_cast<iALogLevel>(attributes.namedItem("logFileLevel").nodeValue().toInt()));
+		iALogWidget::get()->setLogVTK(attributes.namedItem("logVTK").nodeValue() == "1");
+		iALogWidget::get()->setLogITK(attributes.namedItem("logITK").nodeValue() == "1");
+	}
+
+	void saveSlicerSettings(iAXmlSettings& xml, iASlicerSettings const slicerSettings)
+	{
+		QDomElement slicerSettingsElement = xml.createElement(SlicerElemName);
+		slicerSettingsElement.setAttribute("linkViews", slicerSettings.LinkViews);
+		slicerSettingsElement.setAttribute("snakeSlices", slicerSettings.SnakeSlices);
+		slicerSettingsElement.setAttribute("linkMDIs", slicerSettings.LinkMDIs);
+	}
+
+	void loadSlicerSettings(QDomNode slicerSettingsNode, iASlicerSettings& slicerSettings)
+	{
+		QDomNamedNodeMap attributes = slicerSettingsNode.attributes();
+		slicerSettings.SnakeSlices = attributes.namedItem("snakeSlices").nodeValue().toDouble();
+		slicerSettings.LinkMDIs = attributes.namedItem("linkMDIs").nodeValue() == "1";
+	}
 }
 
 template <typename T>
@@ -435,73 +553,58 @@ void MainWindow::loadFiles(QStringList fileNames, iAMdiChild* child)
 	}
 }
 
-// TODO NEWIO: separate program settings from current view state
-//     - view state -> project file
-//     - settings -> keep here
 void MainWindow::saveSettings()
 {
-	if (!activeMdiChild())
-	{
-		return;
-	}
-	QString filePath = activeMdiChild()->currentFile();
-	filePath.truncate(filePath.lastIndexOf('/'));
-	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), filePath ,tr("XML (*.xml)"));
+	auto SaveSettings = tr("Save Settings");
+	QString fileName = QFileDialog::getSaveFileName(this, SaveSettings, path(), XMLFileFilter);
 	if (fileName.isEmpty())
 	{
 		return;
 	}
 	iAAttributes params;
-	addAttr(params, "Camera", iAValueType::Boolean, m_spCamera);
-	addAttr(params, "Slice Views", iAValueType::Boolean, m_spSliceViews);
-	addAttr(params, "Preferences", iAValueType::Boolean, m_spPreferences);
-	addAttr(params, "Render Settings", iAValueType::Boolean, m_spRenderSettings);
-	addAttr(params, "Slice Settings", iAValueType::Boolean, m_spSlicerSettings);
-	iAParameterDlg dlg(this, "Save Settings", params);
+	addAttr(params, PrefNiceName, iAValueType::Boolean, m_loadSavePreferences);
+	addAttr(params, SlicerNiceName, iAValueType::Boolean, m_loadSaveSlicerSettings);
+	auto settingsMap = iASettingsManager::getMap();
+	for (auto const& settingName: settingsMap.keys())
+	{
+		addAttr(params, settingName, iAValueType::Boolean, m_settingsToLoadSave.contains(configStorageName(settingName)));
+	}
+	iAParameterDlg dlg(this, SaveSettings, params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
 	auto values = dlg.parameterValues();
-	m_spCamera = values["Camera"].toBool();
-	m_spSliceViews = values["Slice Views"].toBool();
-	m_spPreferences = values["Preferences"].toBool();
-	m_spRenderSettings = values["Render Settings"].toBool();
-	m_spSlicerSettings = values["Slice Settings"].toBool();
+	m_loadSavePreferences = values[PrefNiceName].toBool();
+	m_loadSaveSlicerSettings = values[SlicerNiceName].toBool();
 
 	iAXmlSettings xml;
-	if (m_spCamera)
+	if (m_loadSavePreferences)
 	{
-		saveCamera(xml);
+		savePreferences(xml, m_defaultPreferences);
 	}
-	if (m_spSliceViews)
+	if (m_loadSaveSlicerSettings)
 	{
-		saveSliceViews(xml);
+		saveSlicerSettings(xml, m_defaultSlicerSettings);
 	}
-	if (m_spPreferences)
+	m_settingsToLoadSave.clear();
+	for (auto const& settingName : settingsMap.keys())
 	{
-		savePreferences(xml);
-	}
-	if (m_spRenderSettings)
-	{
-		saveRenderSettings(xml);
-	}
-	if (m_spSlicerSettings)
-	{
-		saveSlicerSettings(xml);
+		if (values[settingName].toBool())
+		{
+			m_settingsToLoadSave.append(configStorageName(settingName));
+			QDomElement element = xml.createElement(configStorageName(settingName));
+			storeAttributeValues(element, *settingsMap[settingName]);
+		}
 	}
 	xml.save(fileName);
+	LOG(lvlInfo, QString("Saved settings to %1").arg(fileName));
 }
 
 void MainWindow::loadSettings()
 {
-	if (!activeMdiChild())
-	{
-		return;
-	}
-	QString filePath = activeMdiChild()->currentFile();
-	filePath.truncate(filePath.lastIndexOf('/'));
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath, tr("XML (*.xml)"));
+	auto LoadSettings = tr("Load Settings");
+	QString fileName = QFileDialog::getOpenFileName(this, LoadSettings, path(), XMLFileFilter);
 	if (fileName.isEmpty())
 	{
 		return;
@@ -509,227 +612,104 @@ void MainWindow::loadSettings()
 	iAXmlSettings xml;
 	if (!xml.read(fileName))
 	{
-		QMessageBox::warning(this, "Loading settings", "An error occurred during xml parsing!");
+		QMessageBox::warning(this, LoadSettings, "An error occurred during xml parsing!");
 		return;
 	}
-	bool camera = false, sliceViews = false, preferences = false, renderSettings = false, slicerSettings = false;
-
-	QDomElement root = xml.documentElement();
-	QDomNodeList list = root.childNodes();
-	for (int n = 0; n < int(list.length()); n++)
-	{
-		QDomNode node = list.item(n);
-		QString nodeName = node.nodeName();
-		if (nodeName == "camera") camera = true;
-		else if (nodeName == "sliceViews") sliceViews = true;
-		else if (nodeName == "functions")
-		{
-			LOG(lvlWarn, "This file contains (transfer or probability) functions. "
-				"Note that saving and loading such functions through the settings has been discontinued, "
-				"since we can load multiple datasets now and wouldn't know for which dataset these functions should apply. "
-				"You can still load the functions in the histogram of a specific volume dataset!");
-		}
-		else if (nodeName == "preferences") preferences = true;
-		else if (nodeName == "renderSettings") renderSettings = true;
-		else if (nodeName == "slicerSettings") slicerSettings = true;
-	}
 	iAAttributes params;
-	if (camera)               { addAttr(params, "Camera", iAValueType::Boolean, m_lpCamera ); }
-	if (sliceViews)           { addAttr(params, "Slice Views", iAValueType::Boolean, m_lpSliceViews); }
-	if (preferences)          { addAttr(params, "Preferences", iAValueType::Boolean, m_lpPreferences); }
-	if (renderSettings)       { addAttr(params, "Render Settings", iAValueType::Boolean, m_lpRenderSettings); }
-	if (slicerSettings)       { addAttr(params, "Slice Settings", iAValueType::Boolean, m_lpSlicerSettings); }
-	iAParameterDlg dlg(this, "Load Settings", params);
+	if (xml.hasElement(PrefElemName))   { addAttr(params, PrefNiceName, iAValueType::Boolean, m_loadSavePreferences); }
+	if (xml.hasElement(SlicerElemName)) { addAttr(params, SlicerNiceName, iAValueType::Boolean, m_loadSaveSlicerSettings); }
+
+	constexpr const char ApplyTo[] = "Apply above to";
+	constexpr const char CurrentWindow[] = "Current window";
+	constexpr const char AllOpenWindows[] = "All open windows";
+	if (childList<MdiChild>().size() > 0 && xml.hasElement(PrefElemName) || xml.hasElement(SlicerElemName))
+	{
+		auto applyToOptions = QStringList() << "Only defaults";
+		if (activeMDI())
+		{
+			applyToOptions << CurrentWindow;
+		}
+		if (childList<MdiChild>().size() > 1)
+		{
+			applyToOptions << AllOpenWindows;
+		}
+		addAttr(params, ApplyTo, iAValueType::Categorical, applyToOptions);
+	}
+
+	auto settingsMap = iASettingsManager::getMap();
+	for (auto settingName : settingsMap.keys())
+	{
+		auto sanitizedName = configStorageName(settingName);
+		if (xml.hasElement(sanitizedName))
+		{
+			addAttr(params, settingName, iAValueType::Boolean, m_settingsToLoadSave.contains(sanitizedName));
+		}
+	}
+	iAParameterDlg dlg(this, LoadSettings + ": " + fileName, params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
 	auto values = dlg.parameterValues();
-	if (camera)               { m_lpCamera               = values["Camera"].toBool(); }
-	if (sliceViews)           { m_lpSliceViews           = values["Slice Views"].toBool(); }
-	if (preferences)          { m_lpPreferences          = values["Preferences"].toBool(); }
-	if (renderSettings)       { m_lpRenderSettings       = values["Render Settings"].toBool(); }
-	if (slicerSettings)       { m_lpSlicerSettings       = values["Slice Settings"].toBool(); }
-
-	if (m_lpCamera)
+	if (xml.hasElement(PrefElemName))
 	{
-		loadCamera(xml);
+		m_loadSavePreferences = values[PrefNiceName].toBool();
+		if (m_loadSavePreferences)
+		{
+			loadPreferences(xml.node(PrefElemName), m_defaultPreferences);
+			if (values[ApplyTo].toString() == CurrentWindow && activeMDI())
+			{
+				activeMDI()->applyPreferences(m_defaultPreferences);
+			}
+			else if (values[ApplyTo].toString() == AllOpenWindows)
+			{
+				for (auto m : childList<MdiChild>())
+				{
+					m->applyPreferences(m_defaultPreferences);
+				}
+			}
+		}
 	}
-	if (m_lpSliceViews && xml.hasElement("sliceViews"))
+	if (xml.hasElement(SlicerElemName))
 	{
-		loadSliceViews(xml.node("sliceViews"));
+		m_loadSaveSlicerSettings = values[SlicerNiceName].toBool();
+		if (m_loadSaveSlicerSettings)
+		{
+			loadSlicerSettings(xml.node(SlicerElemName), m_defaultSlicerSettings);
+			if (values[ApplyTo].toString() == CurrentWindow && activeMDI())
+			{
+				activeMDI()->applySlicerSettings(m_defaultSlicerSettings);
+			}
+			else if (values[ApplyTo].toString() == AllOpenWindows)
+			{
+				for (auto m : childList<MdiChild>())
+				{
+					m->applySlicerSettings(m_defaultSlicerSettings);
+				}
+			}
+		}
 	}
-	if (m_lpPreferences && xml.hasElement("preferences"))
+	for (auto settingName : settingsMap.keys())
 	{
-		loadPreferences(xml.node("preferences"));
+		auto sanitizedName = configStorageName(settingName);
+		if (xml.hasElement(sanitizedName))
+		{
+			if (values[settingName].toBool())
+			{
+				if (!m_settingsToLoadSave.contains(sanitizedName))
+				{
+					m_settingsToLoadSave.append(sanitizedName);
+				}
+				QDomNamedNodeMap attributes = xml.node(sanitizedName).attributes();
+				loadAttributeValues(attributes, *settingsMap[settingName]);
+			}
+			else
+			{
+				m_settingsToLoadSave.removeAll(sanitizedName);
+			}
+		}
 	}
-	if (m_lpRenderSettings && xml.hasElement("renderSettings"))
-	{
-		loadRenderSettings(xml.node("renderSettings"));
-	}
-	if (m_lpSlicerSettings && xml.hasElement("slicerSettings"))
-	{
-		loadSlicerSettings(xml.node("slicerSettings"));
-	}
-}
-
-void MainWindow::saveCamera(iAXmlSettings & xml)
-{
-	vtkCamera *camera = activeMdiChild()->renderer()->renderer()->GetActiveCamera();
-	QDomElement cameraElement = xml.createElement("camera");
-	saveCamera(cameraElement, camera);
-}
-
-bool MainWindow::loadCamera(iAXmlSettings & xml)
-{
-	vtkCamera *camera = activeMdiChild()->renderer()->renderer()->GetActiveCamera();
-	if (!xml.hasElement("camera"))
-	{
-		return false;
-	}
-	loadCamera(xml.node("camera"), camera);
-
-	double allBounds[6];
-	activeMdiChild()->renderer()->renderer()->ComputeVisiblePropBounds( allBounds );
-	activeMdiChild()->renderer()->renderer()->ResetCameraClippingRange( allBounds );
-	return true;
-}
-
-void MainWindow::saveSliceViews(iAXmlSettings & xml)
-{
-	QDomNode sliceViewsNode = xml.createElement("sliceViews");
-	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
-	{
-		saveSliceView(xml.document(), sliceViewsNode, activeMdiChild()->slicer(i)->camera(), slicerModeString(i));
-	}
-}
-
-void MainWindow::saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkCamera *cam, QString const & elemStr)
-{
-	QDomElement cameraElement = doc.createElement(elemStr);
-	saveCamera(cameraElement, cam);
-	sliceViewsNode.appendChild(cameraElement);
-}
-
-void MainWindow::loadCamera(QDomNode const & node, vtkCamera* camera)
-{
-	QDomNamedNodeMap attributes = node.attributes();
-	double position[4], focalPoint[4], viewUp[4];
-	position[0] = attributes.namedItem("positionX").nodeValue().toDouble();
-	position[1] = attributes.namedItem("positionY").nodeValue().toDouble();
-	position[2] = attributes.namedItem("positionZ").nodeValue().toDouble();
-	focalPoint[0] = attributes.namedItem("focalPointX").nodeValue().toDouble();
-	focalPoint[1] = attributes.namedItem("focalPointY").nodeValue().toDouble();
-	focalPoint[2] = attributes.namedItem("focalPointZ").nodeValue().toDouble();
-	viewUp[0] = attributes.namedItem("viewUpX").nodeValue().toDouble();
-	viewUp[1] = attributes.namedItem("viewUpY").nodeValue().toDouble();
-	viewUp[2] = attributes.namedItem("viewUpZ").nodeValue().toDouble();
-
-	camera->SetPosition(position);
-	camera->SetFocalPoint(focalPoint);
-	camera->SetViewUp(viewUp);
-	if (attributes.contains("scale"))
-	{
-		double scale = attributes.namedItem("scale").nodeValue().toDouble();
-		camera->SetParallelScale(scale);
-	}
-}
-
-void MainWindow::saveCamera(QDomElement &cameraElement, vtkCamera* camera)
-{
-	double position[4], focalPoint[4], viewUp[4];
-	camera->GetPosition(position);
-	camera->GetFocalPoint(focalPoint);
-	camera->GetViewUp(viewUp);
-	position[3] = 1.0; focalPoint[3] = 1.0; viewUp[3] = 1.0;
-
-	cameraElement.setAttribute("positionX", tr("%1").arg(position[0]));
-	cameraElement.setAttribute("positionY", tr("%1").arg(position[1]));
-	cameraElement.setAttribute("positionZ", tr("%1").arg(position[2]));
-	cameraElement.setAttribute("focalPointX", tr("%1").arg(focalPoint[0]));
-	cameraElement.setAttribute("focalPointY", tr("%1").arg(focalPoint[1]));
-	cameraElement.setAttribute("focalPointZ", tr("%1").arg(focalPoint[2]));
-	cameraElement.setAttribute("viewUpX", tr("%1").arg(viewUp[0]));
-	cameraElement.setAttribute("viewUpY", tr("%1").arg(viewUp[1]));
-	cameraElement.setAttribute("viewUpZ", tr("%1").arg(viewUp[2]));
-
-	if (camera->GetParallelProjection())
-	{
-		double scale = camera->GetParallelScale();
-		cameraElement.setAttribute("scale", tr("%1").arg(scale));
-	}
-}
-
-void MainWindow::loadSliceViews(QDomNode sliceViewsNode)
-{
-	QDomNodeList list = sliceViewsNode.childNodes();
-	for (int n = 0; n < int(list.length()); n++)
-	{
-		QDomNode node = list.item(n);
-		vtkCamera *camera;
-		if      (node.nodeName() == "XY") camera = activeMdiChild()->slicer(iASlicerMode::XY)->camera();
-		else if (node.nodeName() == "YZ") camera = activeMdiChild()->slicer(iASlicerMode::YZ)->camera();
-		else                              camera = activeMdiChild()->slicer(iASlicerMode::XZ)->camera();
-		loadCamera(node, camera);
-	}
-}
-
-void MainWindow::savePreferences(iAXmlSettings &xml)
-{
-	QDomElement preferencesElement = xml.createElement("preferences");
-	preferencesElement.setAttribute("limitForAuto3DRender", tr("%1").arg(m_defaultPreferences.LimitForAuto3DRender));
-	preferencesElement.setAttribute("positionMarkerSize", tr("%1").arg(m_defaultPreferences.PositionMarkerSize));
-	preferencesElement.setAttribute("printParameters", tr("%1").arg(m_defaultPreferences.PrintParameters));
-	preferencesElement.setAttribute("resultsInNewWindow", tr("%1").arg(m_defaultPreferences.ResultInNewWindow));
-	preferencesElement.setAttribute("fontSize", QString::number(m_defaultPreferences.FontSize));
-	preferencesElement.setAttribute("logToFile", tr("%1").arg(iALogWidget::get()->isLogToFileOn()));
-}
-
-void MainWindow::loadPreferences(QDomNode preferencesNode)
-{
-	QDomNamedNodeMap attributes = preferencesNode.attributes();
-	m_defaultPreferences.LimitForAuto3DRender = attributes.namedItem("limitForAuto3DRender").nodeValue().toInt();
-	m_defaultPreferences.PositionMarkerSize = attributes.namedItem("positionMarkerSize").nodeValue().toDouble();
-	m_defaultPreferences.PrintParameters = attributes.namedItem("printParameters").nodeValue() == "1";
-	m_defaultPreferences.ResultInNewWindow = attributes.namedItem("resultsInNewWindow").nodeValue() == "1";
-	m_defaultPreferences.FontSize = attributes.namedItem("fontSize").nodeValue().toInt();
-	bool prefLogToFile = attributes.namedItem("logToFile").nodeValue() == "1";
-	QString logFileName = attributes.namedItem("logFile").nodeValue();
-
-	iALogWidget::get()->setLogToFile(prefLogToFile, logFileName);
-
-	activeMDI()->applyPreferences(m_defaultPreferences);
-}
-
-void MainWindow::saveRenderSettings(iAXmlSettings &xml)
-{
-	QDomElement renderSettingsElement = xml.createElement("renderSettings");
-	storeAttributeValues(renderSettingsElement, iARendererImpl::defaultSettings());
-}
-
-void MainWindow::loadRenderSettings(QDomNode renderSettingsNode)
-{
-	QDomNamedNodeMap attributes = renderSettingsNode.attributes();
-	loadAttributeValues(attributes, iARendererImpl::defaultSettings());
-	// activeMDI()->applyRendererSettings(m_defaultRenderSettings);
-}
-
-void MainWindow::saveSlicerSettings(iAXmlSettings &xml)
-{
-	QDomElement slicerSettingsElement = xml.createElement("slicerSettings");
-	slicerSettingsElement.setAttribute("linkViews", m_defaultSlicerSettings.LinkViews);
-	slicerSettingsElement.setAttribute("snakeSlices", m_defaultSlicerSettings.SnakeSlices);
-	slicerSettingsElement.setAttribute("linkMDIs", m_defaultSlicerSettings.LinkMDIs);
-	// TODO SETTINGS: store slicer default settings
-}
-
-void MainWindow::loadSlicerSettings(QDomNode slicerSettingsNode)
-{
-	QDomNamedNodeMap attributes = slicerSettingsNode.attributes();
-	m_defaultSlicerSettings.SnakeSlices = attributes.namedItem("snakeSlices").nodeValue().toDouble();
-	m_defaultSlicerSettings.LinkMDIs = attributes.namedItem("linkMDIs").nodeValue() == "1";
-	// TODO SETTINGS: load slicer default settings
-	activeMDI()->applySlicerSettings(m_defaultSlicerSettings);
+	LOG(lvlInfo, QString("Loaded settings from %1").arg(fileName));
 }
 
 QList<QString> MainWindow::mdiWindowTitles()
@@ -837,7 +817,7 @@ void MainWindow::prefs()
 	addAttr(params, "Looks", iAValueType::Categorical, looks);
 	addAttr(params, "Font size", iAValueType::Discrete, QString::number(p.FontSize), 4, 120);
 	addAttr(params, "Size limit for automatic 3D rendering (MB)", iAValueType::Discrete, p.LimitForAuto3DRender, 0);
-	iAParameterDlg dlg(this, "Preferences", params, descr);
+	iAParameterDlg dlg(this, PrefNiceName, params, descr);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
@@ -936,37 +916,111 @@ void MainWindow::rendererSyncCamera()
 	}
 }
 
-void MainWindow::rendererSaveCameraSettings()
+void MainWindow::saveCameraSettings()
 {
 	QString filePath = activeMdiChild()->currentFile();
 	filePath.truncate(filePath.lastIndexOf('/'));
-	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), filePath ,tr("XML (*.xml)"));
+	auto SaveCameraTitle = tr("Save Camera Settings");
+	QString fileName = QFileDialog::getSaveFileName(this, SaveCameraTitle, filePath, XMLFileFilter);
 	if (fileName.isEmpty())
 	{
 		return;
 	}
+	iAAttributes params;
+	addAttr(params, RendererNiceName, iAValueType::Boolean, m_loadSaveCamRen3D);
+	for (int m = 0; m < iASlicerMode::SlicerCount; ++m)
+	{
+		addAttr(params, slicerNiceName(m), iAValueType::Boolean, m_loadSaveSlice[m]);
+	}
+	iAParameterDlg dlg(this, SaveCameraTitle, params);
+	if (dlg.exec() != QDialog::Accepted)
+	{
+		return;
+	}
+	auto values = dlg.parameterValues();
 	iAXmlSettings xml;
-	saveCamera(xml);
+	m_loadSaveCamRen3D = values[RendererNiceName].toBool();
+	if (m_loadSaveCamRen3D)
+	{
+		vtkCamera* camera = activeMdiChild()->renderer()->renderer()->GetActiveCamera();
+		auto camElem = xml.createElement(RendererElemName);
+		saveCamera(camElem, camera);
+	}
+	for (int m = 0; m < iASlicerMode::SlicerCount; ++m)
+	{
+		m_loadSaveSlice[m] = values[slicerNiceName(m)].toBool();
+		if (m_loadSaveSlice[m])
+		{
+			auto camElem = xml.createElement(slicerElemName(m));
+			saveCamera(camElem, activeMdiChild()->slicer(m)->camera());
+		}
+	}
 	xml.save(fileName);
+	LOG(lvlInfo, QString("Saved camera settings to %1").arg(fileName));
 }
 
-void MainWindow::rendererLoadCameraSettings()
+void MainWindow::loadCameraSettings()
 {
 	QString filePath = activeMdiChild()->currentFile();
 	filePath.truncate(filePath.lastIndexOf('/'));
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath, tr("XML (*.xml)"));
+	auto LoadCameraTitle = tr("Load Camera Settings");
+	QString fileName = QFileDialog::getOpenFileName(this, LoadCameraTitle, filePath, XMLFileFilter);
 	if (fileName.isEmpty())
 	{
 		return;
 	}
 	iAXmlSettings xml;
-	if (!xml.read(fileName) ||
-		!loadCamera(xml))
+	if (!xml.read(fileName))
+	{
+		QMessageBox::warning(this, LoadCameraTitle, "An error occurred during xml parsing!");
+		return;
+	}
+	QDomElement root = xml.documentElement();
+	iAAttributes params;
+	if (xml.hasElement(RendererElemName))
+	{
+		addAttr(params, RendererNiceName, iAValueType::Boolean, m_loadSaveCamRen3D);
+	}
+	for (int m = 0; m < iASlicerMode::SlicerCount; ++m)
+	{
+		if (xml.hasElement(slicerElemName(m)))
+		{
+			addAttr(params, slicerNiceName(m), iAValueType::Boolean, m_loadSaveSlice[m]);
+		}
+	}
+	constexpr const char ApplyToAllOpenWindows[] = "Apply to all open windows";
+	addAttr(params, ApplyToAllOpenWindows, iAValueType::Boolean, m_loadSaveApplyToAllOpenWindows);
+	iAParameterDlg dlg(this, LoadCameraTitle, params);
+	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-	// apply this camera settings to all the MdiChild.
-	rendererSyncCamera();
+	auto values = dlg.parameterValues();
+	if (xml.hasElement(RendererElemName))
+	{
+		m_loadSaveCamRen3D = values[RendererNiceName].toBool();
+		if (m_loadSaveCamRen3D)
+		{
+			loadCamera(xml.node(RendererElemName), activeMdiChild()->renderer()->renderer());
+		}
+	}
+	for (int m = 0; m < iASlicerMode::SlicerCount; ++m)
+	{
+		if (xml.hasElement(slicerElemName(m)))
+		{
+			m_loadSaveSlice[m] = values[slicerNiceName(m)].toBool();
+			if (m_loadSaveSlice[m])
+			{
+				loadCamera(xml.node(RendererElemName), activeMdiChild()->slicer(m)->renderer());
+			}
+		}
+	}
+	m_loadSaveApplyToAllOpenWindows = values[ApplyToAllOpenWindows].toBool();
+	if (m_loadSaveApplyToAllOpenWindows)
+	{
+		rendererSyncCamera();
+	}
+	LOG(lvlInfo, QString("Loaded camera settings from %1").arg(fileName));
 }
 
 // TODO NEWIO: probably has outlived its usefulness, but check!
@@ -1138,8 +1192,6 @@ void MainWindow::updateMenus()  // (and toolbars)
 	m_ui->actionSaveDataSet->setEnabled(hasMdiChild);
 	m_ui->actionSaveProject->setEnabled(activeChild<iASavableProject>());
 	m_ui->actionSaveVolumeStack->setEnabled(hasMdiChild);
-	m_ui->actionLoadSettings->setEnabled(hasMdiChild);
-	m_ui->actionSaveSettings->setEnabled(hasMdiChild);
 	m_ui->actionClose->setEnabled(hasMdiChild);
 	m_ui->actionCloseAll->setEnabled(hasMdiChild);
 
@@ -1357,8 +1409,8 @@ void MainWindow::connectSignalsToSlots()
 
 	// Camera toolbar:
 	connect(m_ui->actionSyncCamera,   &QAction::triggered, this, &MainWindow::rendererSyncCamera);
-	connect(m_ui->actionSaveCameraSettings, &QAction::triggered, this, &MainWindow::rendererSaveCameraSettings);
-	connect(m_ui->actionLoadCameraSettings, &QAction::triggered, this, &MainWindow::rendererLoadCameraSettings);
+	connect(m_ui->actionSaveCameraSettings, &QAction::triggered, this, &MainWindow::saveCameraSettings);
+	connect(m_ui->actionLoadCameraSettings, &QAction::triggered, this, &MainWindow::loadCameraSettings);
 
 	// Snake slicer toolbar
 	connect(m_ui->actionSnakeSlicer, &QAction::toggled, this, [childCall](bool checked) { childCall(&MdiChild::toggleSnakeSlicer, checked); });
@@ -1450,57 +1502,20 @@ void MainWindow::readSettings()
 	// performance:
 	m_defaultPreferences.LimitForAuto3DRender = settings.value("Preferences/prefLimitForAuto3DRender", defaultPrefs.LimitForAuto3DRender).toInt();
 
-	/*
-	iARenderSettings fallbackRS;
-	m_defaultRenderSettings.ShowSlicers = settings.value("Renderer/rsShowSlicers", fallbackRS.ShowSlicers).toBool();
-	m_defaultRenderSettings.ShowSlicePlanes = settings.value("Renderer/rsShowSlicePlanes", fallbackRS.ShowSlicePlanes).toBool();
-	m_defaultRenderSettings.ShowOriginIndicator = settings.value("Renderer/rsShowHelpers", fallbackRS.ShowOriginIndicator).toBool();
-	m_defaultRenderSettings.ShowAxesCube = settings.value("Renderer/rsShowHelpers", fallbackRS.ShowAxesCube).toBool();
-	m_defaultRenderSettings.ShowRPosition = settings.value("Renderer/rsShowRPosition", fallbackRS.ShowRPosition).toBool();
-	m_defaultRenderSettings.ParallelProjection = settings.value("Renderer/rsParallelProjection", fallbackRS.ParallelProjection).toBool();
-	m_defaultRenderSettings.UseStyleBGColor = settings.value("Renderer/rsUseStyleBGColor", fallbackRS.UseStyleBGColor).toBool();
-	m_defaultRenderSettings.UseFXAA = settings.value("Renderer/rsUseFXAA", fallbackRS.UseFXAA).toBool();
-	m_defaultRenderSettings.MultiSamples = settings.value("Renderer/rsMultiSamples", fallbackRS.MultiSamples).toInt();
-	m_defaultRenderSettings.PlaneOpacity = settings.value("Renderer/rsPlaneOpacity", fallbackRS.PlaneOpacity).toDouble();
-	m_defaultRenderSettings.BackgroundTop = settings.value("Renderer/rsBackgroundTop", fallbackRS.BackgroundTop).toString();
-	m_defaultRenderSettings.BackgroundBottom = settings.value("Renderer/rsBackgroundBottom", fallbackRS.BackgroundBottom).toString();
-	m_defaultRenderSettings.UseDepthPeeling = settings.value("Renderer/rsUseDepthPeeling", fallbackRS.UseDepthPeeling).toBool();
-	m_defaultRenderSettings.DepthPeels = settings.value("Renderer/rsDepthPeels", fallbackRS.DepthPeels).toInt();
-	*/
-
 	iASlicerSettings fallbackSS;
 	m_defaultSlicerSettings.LinkViews = settings.value("Slicer/ssLinkViews", fallbackSS.LinkViews).toBool();
 	m_defaultSlicerSettings.LinkMDIs = settings.value("Slicer/ssLinkMDIs", fallbackSS.LinkMDIs).toBool();
 	m_defaultSlicerSettings.SnakeSlices = settings.value("Slicer/ssSnakeSlices", fallbackSS.SnakeSlices).toInt();
-	/*
-	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
+
+	m_loadSavePreferences = settings.value("Parameters/loadSavePreferences", true).toBool();
+	m_loadSaveSlicerSettings = settings.value("Parameters/loadSaveSlicerSettings", true).toBool();
+	m_settingsToLoadSave = settings.value("Parameters/settingsToLoadSave").toStringList();
+	m_loadSaveCamRen3D = settings.value("Parameters/loadSaveCameraRenderer3D", true).toBool();
+	for (int m = 0; m < iASlicerMode::SlicerCount; ++m)
 	{
-		m_defaultSlicerSettings.BackgroundColor[s] = settings.value(QString("Slicer/ssBgColor%1").arg(s), "").toString();
+		m_loadSaveSlice[m] = settings.value(QString("Parameters/loadSaveCamera%1").arg(slicerElemName(m)), true).toBool();
 	}
-	m_defaultSlicerSettings.SingleSlicer.ShowPosition = settings.value("Slicer/ssShowPosition", fallbackSS.SingleSlicer.ShowPosition).toBool();
-	m_defaultSlicerSettings.SingleSlicer.ShowAxesCaption = settings.value("Slicer/ssShowAxesCaption", fallbackSS.SingleSlicer.ShowAxesCaption).toBool();
-	m_defaultSlicerSettings.SingleSlicer.ShowIsoLines = settings.value("Slicer/ssShowIsolines", fallbackSS.SingleSlicer.ShowIsoLines).toBool();
-	m_defaultSlicerSettings.SingleSlicer.ShowTooltip = settings.value("Slicer/ssShowTooltip", fallbackSS.SingleSlicer.ShowTooltip).toBool();
-	m_defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = settings.value("Slicer/ssNumberOfIsolines", fallbackSS.SingleSlicer.NumberOfIsoLines).toDouble();
-	m_defaultSlicerSettings.SingleSlicer.MinIsoValue = settings.value("Slicer/ssMinIsovalue", fallbackSS.SingleSlicer.MinIsoValue).toDouble();
-	m_defaultSlicerSettings.SingleSlicer.MaxIsoValue = settings.value("Slicer/ssMaxIsovalue", fallbackSS.SingleSlicer.MaxIsoValue).toDouble();
-	m_defaultSlicerSettings.SingleSlicer.LinearInterpolation = settings.value("Slicer/ssImageActorUseInterpolation", fallbackSS.SingleSlicer.LinearInterpolation).toBool();
-	m_defaultSlicerSettings.SingleSlicer.AdjustWindowLevelEnabled = settings.value("Slicer/ssAdjustWindowLevelEnabled", fallbackSS.SingleSlicer.AdjustWindowLevelEnabled).toBool();
-	m_defaultSlicerSettings.SingleSlicer.CursorMode = settings.value( "Slicer/ssCursorMode", fallbackSS.SingleSlicer.CursorMode).toString();
-	m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize = settings.value("Slicer/toolTipFontSize", fallbackSS.SingleSlicer.ToolTipFontSize).toInt();
-	*/
-
-	m_lpCamera = settings.value("Parameters/lpCamera").toBool();
-	m_lpSliceViews = settings.value("Parameters/lpSliceViews").toBool();
-	m_lpPreferences = settings.value("Parameters/lpPreferences").toBool();
-	m_lpRenderSettings = settings.value("Parameters/lpRenderSettings").toBool();
-	m_lpSlicerSettings = settings.value("Parameters/lpSlicerSettings").toBool();
-
-	m_spCamera = settings.value("Parameters/spCamera").toBool();
-	m_spSliceViews = settings.value("Parameters/spSliceViews").toBool();
-	m_spPreferences = settings.value("Parameters/spPreferences").toBool();
-	m_spRenderSettings = settings.value("Parameters/spRenderSettings").toBool();
-	m_spSlicerSettings = settings.value("Parameters/spSlicerSettings").toBool();
+	m_loadSaveApplyToAllOpenWindows = settings.value("Parameters/loadSaveApplyToAllOpenWindows", false).toBool();
 
 	m_owdtcs = settings.value("OpenWithDataTypeConversion/owdtcs", 1).toInt();
 	m_rawFileParams.m_size[0] = settings.value("OpenWithDataTypeConversion/owdtcx", 1).toInt();
@@ -1534,7 +1549,6 @@ void MainWindow::writeSettings()
 	settings.setValue("Preferences/prefPrintParameters", m_defaultPreferences.PrintParameters);
 	settings.setValue("Preferences/prefResultInNewWindow", m_defaultPreferences.ResultInNewWindow);
 	settings.setValue("Preferences/fontSize", m_defaultPreferences.FontSize);
-
 	settings.setValue("Preferences/prefLogToFile", iALogWidget::get()->isLogToFileOn());
 	settings.setValue("Preferences/prefLogFile", iALogWidget::get()->logFileName());
 	settings.setValue("Preferences/prefLogLevel", iALogWidget::get()->logLevel());
@@ -1542,54 +1556,19 @@ void MainWindow::writeSettings()
 	settings.setValue("Preferences/prefLogITK", iALogWidget::get()->logITK());
 	settings.setValue("Preferences/prefFileLogLevel", iALogWidget::get()->fileLogLevel());
 
-	/*
-	settings.setValue("Renderer/rsShowSlicers", m_defaultRenderSettings.ShowSlicers);
-	settings.setValue("Renderer/rsShowSlicePlanes", m_defaultRenderSettings.ShowSlicePlanes);
-	settings.setValue("Renderer/rsParallelProjection", m_defaultRenderSettings.ParallelProjection);
-	settings.setValue("Renderer/rsUseStyleBGColor", m_defaultRenderSettings.UseStyleBGColor);
-	settings.setValue("Renderer/rsBackgroundTop", m_defaultRenderSettings.BackgroundTop);
-	settings.setValue("Renderer/rsBackgroundBottom", m_defaultRenderSettings.BackgroundBottom);
-	settings.setValue("Renderer/rsShowHelpers", m_defaultRenderSettings.ShowAxesCube);
-	settings.setValue("Renderer/rsShowRPosition", m_defaultRenderSettings.ShowRPosition);
-	settings.setValue("Renderer/rsUseFXAA", m_defaultRenderSettings.UseFXAA);
-	settings.setValue("Renderer/rsMultiSamples", m_defaultRenderSettings.MultiSamples);
-	settings.setValue("Renderer/rsPlaneOpacity", m_defaultRenderSettings.PlaneOpacity);
-	settings.setValue("Renderer/rsUseDepthPeeling", m_defaultRenderSettings.UseDepthPeeling);
-	settings.setValue("Renderer/rsDepthPeels", m_defaultRenderSettings.DepthPeels);
-	*/
-
 	settings.setValue("Slicer/ssLinkViews", m_defaultSlicerSettings.LinkViews);
 	settings.setValue("Slicer/ssLinkMDIs", m_defaultSlicerSettings.LinkMDIs);
 	settings.setValue("Slicer/ssSnakeSlices", m_defaultSlicerSettings.SnakeSlices);
-	/*
-	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
+	
+	settings.setValue("Parameters/loadSavePreferences", m_loadSavePreferences);
+	settings.setValue("Parameters/loadSaveSlicerSettings", m_loadSaveSlicerSettings);
+	settings.setValue("Parameters/settingsToLoadSave", m_settingsToLoadSave);
+	settings.setValue("Parameters/loadSaveCameraRenderer3D", m_loadSaveCamRen3D);
+	for (int m = 0; m < iASlicerMode::SlicerCount; ++m)
 	{
-		settings.setValue(QString("Slicer/ssBgColor%1").arg(s), m_defaultSlicerSettings.BackgroundColor[s]);
+		settings.setValue(QString("Parameters/loadSaveCamera%1").arg(slicerElemName(m)), m_loadSaveSlice[m]);
 	}
-	settings.setValue("Slicer/ssShowPosition", m_defaultSlicerSettings.SingleSlicer.ShowPosition);
-	settings.setValue("Slicer/ssShowAxesCaption", m_defaultSlicerSettings.SingleSlicer.ShowAxesCaption);
-	settings.setValue("Slicer/ssShowIsolines", m_defaultSlicerSettings.SingleSlicer.ShowIsoLines);
-	settings.setValue("Slicer/ssShowTooltip", m_defaultSlicerSettings.SingleSlicer.ShowTooltip);
-	settings.setValue("Slicer/ssNumberOfIsolines", m_defaultSlicerSettings.SingleSlicer.NumberOfIsoLines);
-	settings.setValue("Slicer/ssMinIsovalue", m_defaultSlicerSettings.SingleSlicer.MinIsoValue);
-	settings.setValue("Slicer/ssMaxIsovalue", m_defaultSlicerSettings.SingleSlicer.MaxIsoValue);
-	settings.setValue("Slicer/ssImageActorUseInterpolation", m_defaultSlicerSettings.SingleSlicer.LinearInterpolation);
-	settings.setValue("Slicer/ssAdjustWindowLevelEnabled", m_defaultSlicerSettings.SingleSlicer.AdjustWindowLevelEnabled);
-	settings.setValue("Slicer/ssCursorMode", m_defaultSlicerSettings.SingleSlicer.CursorMode);
-	settings.setValue("Slicer/toolTipFontSize", m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize);
-	*/
-
-	settings.setValue("Parameters/lpCamera", m_lpCamera);
-	settings.setValue("Parameters/lpSliceViews", m_lpSliceViews);
-	settings.setValue("Parameters/lpPreferences", m_lpPreferences);
-	settings.setValue("Parameters/lpRenderSettings", m_lpRenderSettings);
-	settings.setValue("Parameters/lpSlicerSettings", m_lpSlicerSettings);
-
-	settings.setValue("Parameters/spCamera", m_spCamera);
-	settings.setValue("Parameters/spSliceViews", m_spSliceViews);
-	settings.setValue("Parameters/spPreferences", m_spPreferences);
-	settings.setValue("Parameters/spRenderSettings", m_spRenderSettings);
-	settings.setValue("Parameters/spSlicerSettings", m_spSlicerSettings);
+	settings.setValue("Parameters/loadSaveApplyToAllOpenWindows", m_loadSaveApplyToAllOpenWindows);
 
 	settings.setValue("Parameters/ShowLog", iALogWidget::get()->toggleViewAction()->isChecked());
 	settings.setValue("Parameters/ShowJobs", m_dwJobs->toggleViewAction()->isChecked());

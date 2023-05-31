@@ -25,8 +25,8 @@ class iAguibase_API iAVolumeRenderer : public iADataSetRenderer
 public:
 	static constexpr const char Interpolation[] = "Interpolation";
 	static constexpr const char ScalarOpacityUnitDistance[] = "Scalar Opacity Unit Distance";
-	static constexpr const char RendererType[] = "Renderer type";
-	static constexpr const char SampleDistance[] = "Sample distance";
+	static constexpr const char RendererType[] = "Renderer Type";
+	static constexpr const char SampleDistance[] = "Sample Distance";
 	static constexpr const char InteractiveAdjustSampleDistance[] = "Interactively Adjust Sample Distances";
 	static constexpr const char AutoAdjustSampleDistance[] = "Auto-Adjust Sample Distances";
 	static constexpr const char InteractiveUpdateRate[] = "Interactive Update Rate";

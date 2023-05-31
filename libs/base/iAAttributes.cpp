@@ -148,9 +148,10 @@ void addAttr(iAAttributes& attributes, QString const& name, iAValueType valueTyp
 
 void storeAttributeValues(QDomElement& xml, iAAttributes const& attributes)
 {
+	auto values = extractValues(attributes);
 	for (auto a : attributes)
 	{
-		xml.setAttribute( configStorageName(a->name()), a->defaultValue().toString() );
+		xml.setAttribute( configStorageName(a->name()), values[a->name()].toString());
 	}
 }
 

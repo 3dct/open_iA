@@ -18,21 +18,13 @@
 class QAction;
 class QActionGroup;
 class QComboBox;
-class QDomDocument;
-class QDomElement;
-class QDomNode;
 class QMenu;
-class QLabel;
 class QSplashScreen;
-
-class vtkCamera;
 
 class MdiChild;
 class iADockWidgetWrapper;
 class iAFileIO;
 class iAModuleDispatcher;
-class iATransferFunction;
-class iAXmlSettings;
 
 class Ui_MainWindow;
 
@@ -122,8 +114,8 @@ private slots:
 	void toggleMenu();
 	void changeInteractionMode(bool isChecked);
 	void rendererSyncCamera();
-	void rendererSaveCameraSettings();
-	void rendererLoadCameraSettings();
+	void saveCameraSettings();
+	void loadCameraSettings();
 	void openRecentFile();
 	void listDockWidgetsInMenu();
 	void toggleOpenLogOnNewMessage();
@@ -161,20 +153,6 @@ private:
 	bool keepOpen();
 	void loadArguments(int argc, char** argv);
 
-	void loadCamera(QDomNode const & node, vtkCamera* camera);
-	void saveCamera(QDomElement &cameraElement, vtkCamera* camera);
-	void saveCamera(iAXmlSettings& xml);
-	bool loadCamera(iAXmlSettings& xml);
-	void saveSliceViews(iAXmlSettings& xml);
-	void saveSliceView(QDomDocument& doc, QDomNode& sliceViewsNode, vtkCamera* ren, QString const& elemStr);
-	void loadSliceViews(QDomNode sliceViewsNode);
-	void savePreferences(iAXmlSettings& xml);
-	void loadPreferences(QDomNode preferencesNode);
-	void saveRenderSettings(iAXmlSettings& xml);
-	void loadRenderSettings(QDomNode renderSettingsNode);
-	void saveSlicerSettings(iAXmlSettings& xml);
-	void loadSlicerSettings(QDomNode slicerSettingsNode);
-
 	static const int MaxRecentFiles = 8;
 
 	QSplashScreen *m_splashScreen;
@@ -198,10 +176,9 @@ private:
 	double m_owdtcoutmin, m_owdtcoutmax, m_owdtcmin, m_owdtcmax;
 	//! @}
 
-	//! which settings to load from an XML settings file:
-	bool m_lpCamera, m_lpSliceViews, m_lpPreferences, m_lpRenderSettings, m_lpSlicerSettings;
-	//! which settings to save to an XML settings file:
-	bool m_spCamera, m_spSliceViews, m_spPreferences, m_spRenderSettings, m_spSlicerSettings;
+	QStringList m_settingsToLoadSave;  //!< list of default settings that by default are selected for loading from /saving to an XML settings file
+	bool m_loadSavePreferences, m_loadSaveSlicerSettings;
+	bool m_loadSaveCamRen3D, m_loadSaveSlice[3], m_loadSaveApplyToAllOpenWindows;   //!< camera settings: whether to save 3D renderer, slicer cameras, and whether to apply camera settings to all
 
 	QString m_defaultLayout;
 	QString m_path;

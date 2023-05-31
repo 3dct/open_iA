@@ -29,23 +29,23 @@
 namespace
 {
 	// graph renderer options:
-	constexpr const char* PointRadiusVaryBy = "Vary point radius by";
+	constexpr const char* PointRadiusVaryBy = "Vary Point Radius by";
 	constexpr const char* VaryModeFixed = "Fixed";
-	constexpr const char* StoredColors = "Stored colors";
-	constexpr const char* PointRadius = "Minimum point radius";
-	constexpr const char* PointColorMode = "Point colors";
-	constexpr const char* PointColor = "Fixed Point color";
+	constexpr const char* StoredColors = "Stored Colors";
+	constexpr const char* PointRadius = "Minimum Point Radius";
+	constexpr const char* PointColorMode = "Point Colors";
+	constexpr const char* PointColor = "Fixed Point Color";
 	constexpr const char* PointPrefix = "Point ";
-	constexpr const char* LineColorMode = "Line colors";
+	constexpr const char* LineColorMode = "Line Colors";
 	constexpr const char* LineColor = "Fixed Line Color";
-	constexpr const char* LineWidth = "Minimum line Width";
-	constexpr const char* LineWidthVaryBy = "Vary line width by";
+	constexpr const char* LineWidth = "Minimum Line Width";
+	constexpr const char* LineWidthVaryBy = "Vary Line Width by";
 	constexpr const char* LinePrefix = "Line ";
-	constexpr const char* ShadingInterpolation = "Shading interpolation";
+	constexpr const char* ShadingInterpolation = "Shading Interpolation";
 	constexpr const char* InterpolationFlat = "Flat";
 	constexpr const char* InterpolationGouraud = "Gouraud";
 	constexpr const char* InterpolationPhong = "Phong";
-	constexpr const char* InterpolationPBR = "Physically based rendering";
+	constexpr const char* InterpolationPBR = "Physically Based Rendering";
 	// surface renderer options:
 	constexpr const char* PolyColor = "Color";
 	constexpr const char* PolyOpacity = "Opacity";
