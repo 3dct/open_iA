@@ -140,3 +140,71 @@ void addAttr(iAAttributes& attributes, QString const& name, iAValueType valueTyp
 {
 	attributes.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
 }
+
+#include "iASettings.h"
+
+#include <QDomElement>
+#include <QDomNamedNodeMap>
+
+void storeAttributeValues(QDomElement& xml, iAAttributes const& attributes)
+{
+	for (auto a : attributes)
+	{
+		xml.setAttribute( configStorageName(a->name()), a->defaultValue().toString() );
+	}
+}
+
+void loadAttributeValues(QDomNamedNodeMap const & xml, iAAttributes & attributes)
+{
+	for (auto a : attributes)
+	{
+		QString valStr = xml.namedItem(configStorageName(a->name())).nodeValue();
+		QVariant v;
+		switch (a->valueType())
+		{
+		case iAValueType::Continuous:
+		{
+			bool ok;
+			v = valStr.toDouble(&ok);
+			if (!ok)
+			{
+				LOG(lvlWarn, QString("loadAttributeValues: Invalid value %1 for attribute %2!").arg(valStr).arg(a->name()));
+			}
+			break;
+		}
+		case iAValueType::Discrete:
+		{
+			bool ok;
+			v = valStr.toInt(&ok);
+			if (!ok)
+			{
+				LOG(lvlWarn, QString("loadAttributeValues: Invalid value %1 for attribute %2!").arg(valStr).arg(a->name()));
+			}
+			break;
+		}
+		case iAValueType::Boolean:
+		{
+			v = valStr == "true";
+			break;
+		}
+		case iAValueType::Categorical:
+		{
+			QStringList l(a->defaultValue().toStringList());
+			selectOption(l, valStr);
+			v = l;
+			break;
+		}
+		default:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+			// fall through
+		case iAValueType::String:
+		{
+			v = valStr;
+			break;
+		}
+		}
+		a->setDefaultValue(v);
+	}
+}

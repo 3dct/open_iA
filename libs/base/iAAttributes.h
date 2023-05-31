@@ -9,6 +9,8 @@
 #include <QVector>
 #include <QSharedPointer>
 
+class QDomNamedNodeMap;
+class QDomElement;
 class QTextStream;
 
 //! List of descriptors for e.g. parameter values
@@ -57,3 +59,7 @@ iAbase_API void addAttr(iAAttributes& attributes,
 	QVariant defaultValue = 0.0,
 	double min = std::numeric_limits<double>::lowest(),
 	double max = std::numeric_limits<double>::max());
+
+iAbase_API void storeAttributeValues(QDomElement& xml, iAAttributes const& attributes);
+
+iAbase_API void loadAttributeValues(QDomNamedNodeMap const & xml, iAAttributes & attributes);

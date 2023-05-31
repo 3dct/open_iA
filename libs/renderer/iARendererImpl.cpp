@@ -91,13 +91,19 @@ public:
 			addAttr(attr, iARendererImpl::BackgroundBottom, iAValueType::Color, "#FFFFFF");         // bottom color used in background gradient
 			addAttr(attr, iARendererImpl::UseFXAA, iAValueType::Boolean, true);                     // whether to use FXAA anti-aliasing, if supported
 			addAttr(attr, iARendererImpl::MultiSamples, iAValueType::Discrete, 0);                  // number of multi-samples; needs to be 0 for depth peeling to work!
-			addAttr(attr, iARendererImpl::OcclusionRatio, iAValueType::Continuous, 0.0);            // In case of use of depth peeling technique for rendering translucent material, define the threshold under which the algorithm stops to iterate over peel layers (see <a href="https://vtk.org/doc/nightly/html/classvtkRenderer.html">vtkRenderer documentation</a>
-			addAttr(attr, iARendererImpl::UseSSAO, iAValueType::Boolean, false);                    // whether to use Screen Space Ambient Occlusion (SSAO) - darkens some pixels to improve depth perception.
 			addAttr(attr, iARendererImpl::StereoRenderMode, iAValueType::Categorical, stereoModes); // whether to use a stereo rendering mode and if so, which one, for the render window
 			addAttr(attr, iARendererImpl::UseDepthPeeling, iAValueType::Boolean, true);             // whether to use depth peeling (improves depth ordering in rendering of multiple objects), if false, alpha blending is used
-			addAttr(attr, iARendererImpl::DepthPeels, iAValueType::Discrete, 4);                    // number of depth peels to use (if enabled via UseDepthPeeling). The more the higher quality, but also slower rendering
+			addAttr(attr, iARendererImpl::DepthPeelOcclusionRatio, iAValueType::Continuous, 0.0);   // In case of use of depth peeling technique for rendering translucent material, define the threshold under which the algorithm stops to iterate over peel layers (see <a href="https://vtk.org/doc/nightly/html/classvtkRenderer.html">vtkRenderer documentation</a>
+			addAttr(attr, iARendererImpl::DepthPeelsMax, iAValueType::Discrete, 4, 0);              // maximum number of depth peels to use (if enabled via UseDepthPeeling). The more the higher quality, but also slower rendering
 			addAttr(attr, iARendererImpl::MagicLensSize, iAValueType::Discrete, DefaultMagicLensSize, MinimumMagicLensSize, MaximumMagicLensSize); // size (width & height) of the 3D magic lens (in pixels / pixel-equivalent units considering scaling)
 			addAttr(attr, iARendererImpl::MagicLensFrameWidth, iAValueType::Discrete, 3, 0);        // width of the frame of the 3D magic lens
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
+			addAttr(attr, iARendererImpl::UseSSAO, iAValueType::Boolean, false);                    // whether to use Screen Space Ambient Occlusion (SSAO) - darkens some pixels to improve depth perception
+			addAttr(attr, iARendererImpl::SSAORadius, iAValueType::Continuous, 0.5);                // SSAO: The hemisphere radius
+			addAttr(attr, iARendererImpl::SSAOBias, iAValueType::Continuous, 0.01);                 // SSAO: The bias when comparing samples
+			addAttr(attr, iARendererImpl::SSAOKernelSize, iAValueType::Discrete, 32);               // SSAO: The number of samples
+			addAttr(attr, iARendererImpl::SSAOBlur, iAValueType::Boolean, false);                   // SSAO: Whether the ambient occlusion should be blurred (can help to improve the result if samples number is low).
+#endif
 		}
 		return attr;
 	}
@@ -768,11 +774,15 @@ void iARendererImpl::applySettings(QVariantMap const& paramValues)
 	m_settings.insert(paramValues);    // set all applying values from paramValues, but keep old values not set in paramValues
 	m_ren->SetUseDepthPeeling(paramValues[UseDepthPeeling].toBool());
 	m_ren->SetUseDepthPeelingForVolumes(m_settings[UseDepthPeeling].toBool());
-	m_ren->SetMaximumNumberOfPeels(m_settings[DepthPeels].toInt());
-	m_ren->SetOcclusionRatio(m_settings[OcclusionRatio].toDouble());
+	m_ren->SetMaximumNumberOfPeels(m_settings[DepthPeelsMax].toInt());
+	m_ren->SetOcclusionRatio(m_settings[DepthPeelOcclusionRatio].toDouble());
 	m_ren->SetUseFXAA(m_settings[UseFXAA].toBool());
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
 	m_ren->SetUseSSAO(m_settings[UseSSAO].toBool());
+	m_ren->SetSSAOBias(m_settings[SSAOBias].toDouble());
+	m_ren->SetSSAOBlur(m_settings[SSAOBlur].toBool());
+	m_ren->SetSSAORadius(m_settings[SSAORadius].toDouble());
+	m_ren->SetSSAOKernelSize(m_settings[SSAOKernelSize].toUInt());
 #endif
 	m_renWin->SetMultiSamples(m_settings[MultiSamples].toInt());
 	auto stereoMode = mapStereoModeToEnum(m_settings[StereoRenderMode].toString());
@@ -851,4 +861,9 @@ void iARendererImpl::touchScaleSlot(float relScale)
 		m_cam->SetPosition(newCamPos.data());
 	}
 	update();
+}
+
+iAAttributes& iARendererImpl::defaultSettings()
+{
+	return iARendererSettings::defaultAttributes();
 }

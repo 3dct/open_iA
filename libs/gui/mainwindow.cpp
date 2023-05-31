@@ -21,7 +21,7 @@
 #include <iARawFileParamDlg.h>
 #include <iARenderer.h>
 #include <iASavableProject.h>
-#include <iASlicer.h>          // for iASlicer and slicerModeString
+#include <iASlicer.h>        // for iASlicer and slicerModeString
 #include <iAThemeHelper.h>
 
 // io:
@@ -37,13 +37,15 @@
 #include <iADockWidgetWrapper.h>
 
 // base
+#include <iAAttributes.h>    // for loading/storing default settings in XML
 #include <iALog.h>
 #include <iALogLevelMappings.h>
 #include <iALUT.h>
 #include <iAMathUtility.h>
 #include <iAProgress.h>
-#include <iASettings.h>    // for loadSettings, storeSettings
-#include <iAStringHelper.h>    // for iAConverter
+#include <iARendererImpl.h>  // for loading/storing default settings in XML
+#include <iASettings.h>      // for loadSettings, storeSettings
+#include <iAStringHelper.h>  // for iAConverter
 #include <iAToolsVTK.h>
 #include <iAXmlSettings.h>
 
@@ -604,11 +606,8 @@ void MainWindow::saveSliceViews(iAXmlSettings & xml)
 
 void MainWindow::saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkCamera *cam, QString const & elemStr)
 {
-	// add new slice view node
 	QDomElement cameraElement = doc.createElement(elemStr);
-
 	saveCamera(cameraElement, cam);
-
 	sliceViewsNode.appendChild(cameraElement);
 }
 
@@ -704,47 +703,15 @@ void MainWindow::loadPreferences(QDomNode preferencesNode)
 
 void MainWindow::saveRenderSettings(iAXmlSettings &xml)
 {
-	/*
 	QDomElement renderSettingsElement = xml.createElement("renderSettings");
-	renderSettingsElement.setAttribute("showSlicers", m_defaultRenderSettings.ShowSlicers);
-	renderSettingsElement.setAttribute("showSlicePlanes", m_defaultRenderSettings.ShowSlicePlanes);
-	renderSettingsElement.setAttribute("showHelpers", m_defaultRenderSettings.ShowAxesCube);  // ShowOriginIndicator...
-	renderSettingsElement.setAttribute("showRPosition", m_defaultRenderSettings.ShowRPosition);
-	renderSettingsElement.setAttribute("parallelProjection", m_defaultRenderSettings.ParallelProjection);
-	renderSettingsElement.setAttribute("useStyleBGColor", m_defaultRenderSettings.UseStyleBGColor);
-	renderSettingsElement.setAttribute("backgroundTop", m_defaultRenderSettings.BackgroundTop);
-	renderSettingsElement.setAttribute("backgroundBottom", m_defaultRenderSettings.BackgroundBottom);
-	renderSettingsElement.setAttribute("planeOpacity", m_defaultRenderSettings.PlaneOpacity);
-	renderSettingsElement.setAttribute("useFXAA", m_defaultRenderSettings.UseFXAA);
-	renderSettingsElement.setAttribute("multiSamples", m_defaultRenderSettings.MultiSamples);
-	renderSettingsElement.setAttribute("useDepthPeeling", m_defaultRenderSettings.UseDepthPeeling);
-	renderSettingsElement.setAttribute("depthPeels", m_defaultRenderSettings.DepthPeels);
-*/
-	// TODO SETTINGS: store renderer default settings
+	storeAttributeValues(renderSettingsElement, iARendererImpl::defaultSettings());
 }
 
 void MainWindow::loadRenderSettings(QDomNode renderSettingsNode)
 {
-	/*
 	QDomNamedNodeMap attributes = renderSettingsNode.attributes();
-
-	m_defaultRenderSettings.ShowSlicers = attributes.namedItem("showSlicers").nodeValue() == "1";
-	m_defaultRenderSettings.ShowSlicePlanes = attributes.namedItem("showSlicePlanes").nodeValue() == "1";
-	m_defaultRenderSettings.ShowOriginIndicator = attributes.namedItem("showHelpers").nodeValue() == "1";
-	m_defaultRenderSettings.ShowAxesCube = attributes.namedItem("showHelpers").nodeValue() == "1";
-	m_defaultRenderSettings.ShowRPosition = attributes.namedItem("showRPosition").nodeValue() == "1";
-	m_defaultRenderSettings.ParallelProjection = attributes.namedItem("parallelProjection").nodeValue() == "1";
-	m_defaultRenderSettings.UseStyleBGColor = attributes.namedItem("useStyleBGColor").nodeValue() == "1";
-	m_defaultRenderSettings.BackgroundTop = attributes.namedItem("backgroundTop").nodeValue();
-	m_defaultRenderSettings.BackgroundBottom = attributes.namedItem("backgroundBottom").nodeValue();
-	m_defaultRenderSettings.PlaneOpacity = attributes.namedItem("planeOpacity").nodeValue().toDouble();
-	m_defaultRenderSettings.UseFXAA = attributes.namedItem("useFXAA").nodeValue() == "1";
-	m_defaultRenderSettings.MultiSamples = attributes.namedItem("multiSamples").nodeValue().toInt();
-	m_defaultRenderSettings.UseDepthPeeling = attributes.namedItem("useDepthPeeling").nodeValue() == "1";
-	m_defaultRenderSettings.DepthPeels = attributes.namedItem("depthPeels").nodeValue().toInt();
-
-	activeMDI()->applyRendererSettings(m_defaultRenderSettings);
-	*/
+	loadAttributeValues(attributes, iARendererImpl::defaultSettings());
+	// activeMDI()->applyRendererSettings(m_defaultRenderSettings);
 }
 
 void MainWindow::saveSlicerSettings(iAXmlSettings &xml)
@@ -777,22 +744,24 @@ QList<QString> MainWindow::mdiWindowTitles()
 
 void MainWindow::linkViews()
 {
-	if (activeMdiChild())
+	if (!activeMdiChild())
 	{
-		m_defaultSlicerSettings.LinkViews = m_ui->actionLinkViews->isChecked();
-		activeMDI()->linkViews(m_defaultSlicerSettings.LinkViews);
-		LOG(lvlInfo, QString("Link Views: ").arg(iAConverter<bool>::toString(m_defaultSlicerSettings.LinkViews)));
+		return;
 	}
+	m_defaultSlicerSettings.LinkViews = m_ui->actionLinkViews->isChecked();
+	activeMDI()->linkViews(m_defaultSlicerSettings.LinkViews);
+	LOG(lvlInfo, QString("Link Views: ").arg(iAConverter<bool>::toString(m_defaultSlicerSettings.LinkViews)));
 }
 
 void MainWindow::linkMDIs()
 {
-	if (activeMdiChild())
+	if (!activeMdiChild())
 	{
-		m_defaultSlicerSettings.LinkMDIs = m_ui->actionLinkMdis->isChecked();
-		activeMDI()->linkMDIs(m_defaultSlicerSettings.LinkMDIs);
-		LOG(lvlInfo, QString("Link MDIs: ").arg(iAConverter<bool>::toString(m_defaultSlicerSettings.LinkMDIs)));
+		return;
 	}
+	m_defaultSlicerSettings.LinkMDIs = m_ui->actionLinkMdis->isChecked();
+	activeMDI()->linkMDIs(m_defaultSlicerSettings.LinkMDIs);
+	LOG(lvlInfo, QString("Link MDIs: ").arg(iAConverter<bool>::toString(m_defaultSlicerSettings.LinkMDIs)));
 }
 
 void MainWindow::toggleSlicerInteraction()
@@ -901,92 +870,6 @@ void MainWindow::prefs()
 	}
 	iALogWidget::get()->setLogToFile(logToFile, logFileName, true);
 }
-
-/*
-void MainWindow::renderSettings()
-{
-	QStringList stereoModes = StereoModeMap().keys();
-	QString dlgTitle = activeMdiChild()? (activeMdiChild()->windowTitle() + " - Renderer settings") : "Default renderer settings";
-	iARenderSettings renderSettings = activeMdiChild() ? activeMDI()->renderSettings() : m_defaultRenderSettings;
-	selectOption(stereoModes, renderSettings.StereoRenderMode);
-	iAAttributes params;
-	addAttr(params, "Show slicers", iAValueType::Boolean, renderSettings.ShowSlicers);
-	addAttr(params, "Show slice planes", iAValueType::Boolean, renderSettings.ShowSlicePlanes);
-	addAttr(params, "Slice plane opacity", iAValueType::Continuous, renderSettings.PlaneOpacity, 0, 1);
-	addAttr(params, "Show axes cube", iAValueType::Boolean, renderSettings.ShowAxesCube);
-	addAttr(params, "Show origin indicator", iAValueType::Boolean, renderSettings.ShowOriginIndicator);
-	addAttr(params, "Show position", iAValueType::Boolean, renderSettings.ShowRPosition);
-	addAttr(params, "Parallel projection", iAValueType::Boolean, renderSettings.ParallelProjection);
-	addAttr(params, "Use style background color", iAValueType::Boolean, renderSettings.UseStyleBGColor);
-	addAttr(params, "Background top", iAValueType::Color, renderSettings.BackgroundTop);
-	addAttr(params, "Background bottom", iAValueType::Color, renderSettings.BackgroundBottom);
-	addAttr(params, "Use FXAA", iAValueType::Boolean, renderSettings.UseFXAA);
-	addAttr(params, "MultiSamples", iAValueType::Discrete, renderSettings.MultiSamples);
-	addAttr(params, "Occlusion Ratio", iAValueType::Continuous, renderSettings.OcclusionRatio);
-	addAttr(params, "Use Screen Space Ambient Occlusion", iAValueType::Boolean, renderSettings.UseSSAO);
-	addAttr(params, "Stereo Render Mode", iAValueType::Categorical, stereoModes);
-	addAttr(params, "Use Depth Peeling", iAValueType::Boolean, renderSettings.UseDepthPeeling);
-	addAttr(params, "Maximum Depth Peels", iAValueType::Discrete, renderSettings.DepthPeels);
-	addAttr(params, "Magic lens size", iAValueType::Discrete, renderSettings.MagicLensSize, MinimumMagicLensSize, MaximumMagicLensSize);
-	addAttr(params, "Magic lens frame width", iAValueType::Discrete, renderSettings.MagicLensFrameWidth, 0);
-
-	iAParameterDlg dlg(this, dlgTitle, params);
-	if (dlg.exec() != QDialog::Accepted)
-	{
-		return;
-	}
-	auto values = dlg.parameterValues();
-	m_defaultRenderSettings.ShowSlicers = values["Show slicers"].toBool();
-	m_defaultRenderSettings.ShowSlicePlanes = values["Show slice planes"].toBool();
-	m_defaultRenderSettings.ShowAxesCube = values["Show axes cube"].toBool();
-	m_defaultRenderSettings.ShowOriginIndicator = values["Show origin indicator"].toBool();
-	m_defaultRenderSettings.ShowRPosition = values["Show position"].toBool();
-	m_defaultRenderSettings.ParallelProjection = values["Parallel projection"].toBool();
-	m_defaultRenderSettings.UseStyleBGColor = values["Use style background color"].toBool();
-	m_defaultRenderSettings.BackgroundTop = values["Background top"].toString();
-	m_defaultRenderSettings.BackgroundBottom = values["Background bottom"].toString();
-	m_defaultRenderSettings.UseFXAA = values["Use FXAA"].toBool();
-	m_defaultRenderSettings.MultiSamples = values["MultiSamples"].toInt();
-	m_defaultRenderSettings.OcclusionRatio = values["Occlusion Ratio"].toDouble();
-	m_defaultRenderSettings.UseSSAO = values["Use Screen Space Ambient Occlusion"].toBool();
-	m_defaultRenderSettings.StereoRenderMode = values["Stereo Render Mode"].toString();
-	// available sub-options:
-	//      radius, bias, kernel size, blur
-	m_defaultRenderSettings.UseDepthPeeling = values["Use Depth Peeling"].toBool();
-	m_defaultRenderSettings.DepthPeels = values["Maximum Depth Peels"].toInt();
-	m_defaultRenderSettings.MagicLensSize = values["Magic lens size"].toUInt();
-	m_defaultRenderSettings.MagicLensFrameWidth = values["Magic lens frame width"].toUInt();
-
-	QColor bgTop(m_defaultRenderSettings.BackgroundTop);
-	QColor bgBottom(m_defaultRenderSettings.BackgroundBottom);
-	if (!bgTop.isValid())
-	{
-		bgTop.setRgbF(0.5, 0.666666666666666667, 1.0);
-		m_defaultRenderSettings.BackgroundTop = bgTop.name();
-	}
-	if (!bgBottom.isValid())
-	{
-		bgBottom.setRgbF(1.0, 1.0, 1.0);
-		m_defaultRenderSettings.BackgroundBottom = bgTop.name();
-	}
-
-	m_defaultRenderSettings.PlaneOpacity = values["Slice plane opacity"].toDouble();
-
-	if (activeMdiChild())
-	{
-		activeMDI()->applyRendererSettings(m_defaultRenderSettings);
-	}
-	LOG(lvlInfo, "Changed renderer settings");
-}
-
-namespace
-{
-	QString slicerBGColorSetting(int slicerMode)
-	{
-		return QString("Background Color %1 Slicer").arg(slicerModeString(slicerMode));
-	}
-}
-*/
 
 void MainWindow::slicerSettings()
 {

@@ -6,8 +6,9 @@
 
 #include <iARenderer.h>
 
-#include "iAVec3.h"
-#include "iAAABB.h"
+#include <iAAABB.h>
+#include <iAAttributes.h>
+#include <iAVec3.h>
 
 #include <vtkSmartPointer.h>
 
@@ -57,13 +58,17 @@ public:
 	static constexpr const char UseStyleBGColor[] = "Use style background color";
 	static constexpr const char BackgroundTop[] = "Background top";
 	static constexpr const char BackgroundBottom[] = "Background bottom";
-	static constexpr const char UseFXAA[] = "Use FXAA";
+	static constexpr const char UseFXAA[] = "Use fast approximate anti-aliasing";
 	static constexpr const char MultiSamples[] = "MultiSamples";
-	static constexpr const char OcclusionRatio[] = "Occlusion Ratio";
-	static constexpr const char UseSSAO[] = "Use Screen Space Ambient Occlusion";
-	static constexpr const char StereoRenderMode[] = "Stereo Render Mode";
-	static constexpr const char UseDepthPeeling[] = "Use Depth Peeling";
-	static constexpr const char DepthPeels[] = "Maximum Depth Peels";
+	static constexpr const char UseSSAO[] = "Use screen space ambient occlusion";
+	static constexpr const char SSAORadius[] = "Screen space ambient occlusion radius";
+	static constexpr const char SSAOBias[] = "Screen space ambient occlusion bias";
+	static constexpr const char SSAOKernelSize[] = "Screen space ambient occlusion kernel size";
+	static constexpr const char SSAOBlur[] = "Screen space ambient occlusion blur";
+	static constexpr const char StereoRenderMode[] = "Stereo render mode";
+	static constexpr const char UseDepthPeeling[] = "Use depth peeling";
+	static constexpr const char DepthPeelOcclusionRatio[] = "Depth peels occlusion ratio";
+	static constexpr const char DepthPeelsMax[] = "Depth peels maximum number";
 	static constexpr const char MagicLensSize[] = "Magic lens size";
 	static constexpr const char MagicLensFrameWidth[] = "Magic lens frame width";
 
@@ -152,6 +157,9 @@ public:
 
 	void touchStart();
 	void touchScaleSlot(float relScale);
+
+	//! proxy access to default settings object
+	static iAAttributes& defaultSettings();
 
 signals:
 	void cellsSelected(vtkPoints* selCellPoints);

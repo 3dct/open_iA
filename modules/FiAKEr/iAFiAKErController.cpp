@@ -3013,7 +3013,8 @@ void iAFiAKErController::applyRenderSettings()
 			auto ren = m_resultUIs[resultID].vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer();
 			ren->SetUseDepthPeeling(renSet[iARendererImpl::UseDepthPeeling].toBool());
 			ren->SetUseDepthPeelingForVolumes(renSet[iARendererImpl::UseDepthPeeling].toBool());
-			ren->SetMaximumNumberOfPeels(renSet[iARendererImpl::DepthPeels].toInt());
+			ren->SetMaximumNumberOfPeels(renSet[iARendererImpl::DepthPeelsMax].toInt());
+			m_ren->SetOcclusionRatio(renSet[iARendererImpl::DepthPeelOcclusionRatio].toDouble());
 			ren->SetUseFXAA(renSet[iARendererImpl::UseFXAA].toBool());
 			auto bgTop = variantToColor(renSet[iARendererImpl::BackgroundTop].toString());
 			auto bgBottom = variantToColor(renSet[iARendererImpl::BackgroundBottom].toString());
