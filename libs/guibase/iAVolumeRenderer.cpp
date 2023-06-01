@@ -142,7 +142,7 @@ void iAVolumeRenderer::applyAttributes(QVariantMap const& values)
 		m_volSettings.ScalarOpacityUnitDistance = m_volProp->GetScalarOpacityUnitDistance();
 	}
 	*/
-	m_volMapper->SetRequestedRenderMode(values[RendererType].toInt());
+	m_volMapper->SetRequestedRenderMode(RenderModeMap()[values[RendererType].toString()]);
 	m_volMapper->SetInteractiveAdjustSampleDistances(values[InteractiveAdjustSampleDistance].toBool());
 	m_volMapper->SetAutoAdjustSampleDistances(values[AutoAdjustSampleDistance].toBool());
 	m_volMapper->SetSampleDistance(values[SampleDistance].toDouble());
