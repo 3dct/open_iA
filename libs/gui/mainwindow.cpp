@@ -40,7 +40,7 @@
 #include <iAAttributes.h>    // for loading/storing default settings in XML
 #include <iALog.h>
 #include <iALogLevelMappings.h>
-#include <iALUT.h>
+#include <iALUT.h>           // for iALUT::loadMaps
 #include <iAMathUtility.h>
 #include <iAProgress.h>
 #include <iASettings.h>      // for loadSettings, storeSettings
@@ -49,11 +49,7 @@
 #include <iAXmlSettings.h>
 
 #include <vtkCamera.h>
-#include <vtkColorTransferFunction.h>
-#include <vtkImageData.h>
-#include <vtkPolyData.h>
 #include <vtkRenderer.h>
-#include <vtkPiecewiseFunction.h>
 
 #include <QActionGroup>
 #include <QCloseEvent>
@@ -110,22 +106,13 @@ namespace
 
 	void saveCamera(QDomElement& element, vtkCamera* camera)
 	{
-		double position[4], focalPoint[4], viewUp[4];
+		double position[3], focalPoint[3], viewUp[3];
 		camera->GetPosition(position);
 		camera->GetFocalPoint(focalPoint);
 		camera->GetViewUp(viewUp);
-		position[3] = 1.0; focalPoint[3] = 1.0; viewUp[3] = 1.0;
-
-		element.setAttribute("positionX", position[0]);
-		element.setAttribute("positionY", position[1]);
-		element.setAttribute("positionZ", position[2]);
-		element.setAttribute("focalPointX", focalPoint[0]);
-		element.setAttribute("focalPointY", focalPoint[1]);
-		element.setAttribute("focalPointZ", focalPoint[2]);
-		element.setAttribute("viewUpX", viewUp[0]);
-		element.setAttribute("viewUpY", viewUp[1]);
-		element.setAttribute("viewUpZ", viewUp[2]);
-
+		element.setAttribute("position", arrayToString(position, 3, ","));
+		element.setAttribute("focalPoint", arrayToString(focalPoint, 3, ","));
+		element.setAttribute("viewUp", arrayToString(viewUp, 3, ","));
 		if (camera->GetParallelProjection())
 		{
 			double scale = camera->GetParallelScale();
@@ -135,30 +122,21 @@ namespace
 
 	void loadCamera(QDomNode const& node, vtkRenderer* ren)
 	{
-		QDomNamedNodeMap attributes = node.attributes();
-		double position[4], focalPoint[4], viewUp[4];
-		position[0] = attributes.namedItem("positionX").nodeValue().toDouble();
-		position[1] = attributes.namedItem("positionY").nodeValue().toDouble();
-		position[2] = attributes.namedItem("positionZ").nodeValue().toDouble();
-		focalPoint[0] = attributes.namedItem("focalPointX").nodeValue().toDouble();
-		focalPoint[1] = attributes.namedItem("focalPointY").nodeValue().toDouble();
-		focalPoint[2] = attributes.namedItem("focalPointZ").nodeValue().toDouble();
-		viewUp[0] = attributes.namedItem("viewUpX").nodeValue().toDouble();
-		viewUp[1] = attributes.namedItem("viewUpY").nodeValue().toDouble();
-		viewUp[2] = attributes.namedItem("viewUpZ").nodeValue().toDouble();
-
 		vtkCamera* camera = ren->GetActiveCamera();
+		QDomNamedNodeMap attributes = node.attributes();
+		double position[3], focalPoint[3], viewUp[3];
+		stringToArray<double>(attributes.namedItem("viewUp").nodeValue(), viewUp, 3, ",");
+		stringToArray<double>(attributes.namedItem("position").nodeValue(), position, 3, ",");
+		stringToArray<double>(attributes.namedItem("focalPoint").nodeValue(), focalPoint, 3, ",");
+		camera->SetViewUp(viewUp);
 		camera->SetPosition(position);
 		camera->SetFocalPoint(focalPoint);
-		camera->SetViewUp(viewUp);
 		if (attributes.contains("scale"))
 		{
 			double scale = attributes.namedItem("scale").nodeValue().toDouble();
 			camera->SetParallelScale(scale);
 		}
-		double allBounds[6];
-		ren->ComputeVisiblePropBounds(allBounds);
-		ren->ResetCameraClippingRange(allBounds);
+		camera->SetParallelProjection(attributes.contains("scale"));
 	}
 
 	void savePreferences(iAXmlSettings& xml, iAPreferences const& prefs)
@@ -911,7 +889,6 @@ void MainWindow::rendererSyncCamera()
 		{
 			continue;
 		}
-		// TODO SETTINGS: use iARendererViewSync instead?
 		tmpChild->setCamPosition(camOptions, /*m_defaultRenderSettings.ParallelProjection*/ true);
 	}
 }
@@ -1011,10 +988,11 @@ void MainWindow::loadCameraSettings()
 			m_loadSaveSlice[m] = values[slicerNiceName(m)].toBool();
 			if (m_loadSaveSlice[m])
 			{
-				loadCamera(xml.node(RendererElemName), activeMdiChild()->slicer(m)->renderer());
+				loadCamera(xml.node(slicerElemName(m)), activeMdiChild()->slicer(m)->renderer());
 			}
 		}
 	}
+	activeMdiChild()->updateViews();
 	m_loadSaveApplyToAllOpenWindows = values[ApplyToAllOpenWindows].toBool();
 	if (m_loadSaveApplyToAllOpenWindows)
 	{
