@@ -88,6 +88,9 @@ namespace
 
 constexpr const char GraphRendererName[] = "Default Settings/Dataset Renderer: Graph";
 
+//! Encapsulates the specifics of the settings of a graph renderer.
+//! Handles auto-registration of the settings with iASettingsManager (via deriving from iASettingsObject),
+//! and thus avoids having to expose users of iAGraphRenderer to the settings auto-registration.
 class iAguibase_API iAGraphRendererSettings : iASettingsObject<GraphRendererName, iAGraphRendererSettings>
 {
 public:
@@ -315,6 +318,9 @@ vtkProp3D* iAGraphRenderer::vtkProp()
 
 // ---------- iAMeshRenderer ----------
 
+//! Encapsulates the specifics of the settings of a surface mesh renderer.
+//! Handles auto-registration of the settings with iASettingsManager (via deriving from iASettingsObject),
+//! and thus avoids having to expose users of iAPolyDataRenderer/iAGeometricObjectRenderer to the settings auto-registration.
 constexpr const char SurfaceRendererName[] = "Default Settings/Dataset Renderer: Surface";
 class iAguibase_API iAPolyActorRendererSettings : iASettingsObject<SurfaceRendererName, iAPolyActorRendererSettings>
 {

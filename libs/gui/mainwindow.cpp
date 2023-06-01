@@ -1569,7 +1569,6 @@ void MainWindow::writeSettings()
 		settings.setValue(QString("Parameters/loadSaveCamera%1").arg(slicerElemName(m)), m_loadSaveSlice[m]);
 	}
 	settings.setValue("Parameters/loadSaveApplyToAllOpenWindows", m_loadSaveApplyToAllOpenWindows);
-
 	settings.setValue("Parameters/ShowLog", iALogWidget::get()->toggleViewAction()->isChecked());
 	settings.setValue("Parameters/ShowJobs", m_dwJobs->toggleViewAction()->isChecked());
 	settings.setValue("Parameters/ViewMode", m_ui->mdiArea->viewMode());
