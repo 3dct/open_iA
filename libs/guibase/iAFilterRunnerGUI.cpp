@@ -39,6 +39,7 @@ iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(std::shared_ptr<iAFilter> filte
 	m_sourceMDI(sourceMDI),
 	m_aborted(false)
 {
+	connect(m_sourceMDI, &iAMdiChild::closed, this, [this] { m_sourceMDI = nullptr;  });   // to avoid accessing a closed window
 }
 
 void iAFilterRunnerGUIThread::run()
@@ -337,9 +338,16 @@ void iAFilterRunnerGUI::filterFinished()
 	if (filter->finalOutputCount() > 0)
 	{
 		QString baseName = filter->inputCount() > 0 ? (filter->input(0)->metaData(iADataSet::NameKey).toString() + " ") : "";
-		// TODO NEWIO: result in new or in existing window? consider current preferences / settings assigned to current job / ...?
-		iAMdiChild* newChild = iAMainWindow::get()->createMdiChild(true);
-		newChild->show();
+		iAMdiChild* newChild = nullptr;
+		if (!iAMainWindow::get()->defaultPreferences().ResultInNewWindow)
+		{
+			newChild = thread->sourceMDI();
+		}
+		if (!newChild)    // if we want a new result child, if there was no source MDI, or if child was closed in the meantime...
+		{
+			newChild = iAMainWindow::get()->createMdiChild(true);
+			newChild->show();
+		}
 		for (size_t o = 0; o < filter->finalOutputCount(); ++o)
 		{
 			auto dataSet = filter->output(o);
