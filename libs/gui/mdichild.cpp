@@ -647,19 +647,9 @@ void MdiChild::saveMovRC()
 							movie_file_types), imode);
 }
 
-void MdiChild::camPosition(double* camOptions)
-{
-	m_renderer->camPosition(camOptions);
-}
-
 void MdiChild::setPredefCamPos(int pos)
 {
 	m_renderer->setCamPosition(pos);
-}
-
-void MdiChild::setCamPosition(double* camOptions, bool rsParallelProjection)
-{
-	m_renderer->setCamPosition(camOptions, rsParallelProjection);
 }
 
 void MdiChild::setSlice(int mode, int s)

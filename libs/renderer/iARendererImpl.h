@@ -94,13 +94,6 @@ public:
 	//! Sets one of the pre-defined camera positions
 	//! @param pos descriptor of the position, @see iACameraPosition
 	void setCamPosition(int pos);
-	//! Sets viewup, position and focal point of a renderer from the information in a double array.
-	//! @param camOptions All informations of the camera stored in a double array
-	//! @param rsParallelProjection boolean variable to determine if parallel projection option is on.
-	void setCamPosition( double * camOptions, bool rsParallelProjection  );
-	//! Returns viewup, position and focal point information of a renderer in a double array.
-	//! @param camOptions double array where all informations about the camera will be stored
-	void camPosition ( double * camOptions );
 	void setCamera(vtkCamera* c) override;
 	vtkCamera* camera() override;
 

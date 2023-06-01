@@ -875,22 +875,20 @@ void MainWindow::updateInteractionModeControls(int mode)
 
 void MainWindow::rendererSyncCamera()
 {
-	QList<iAMdiChild *> mdiwindows = mdiChildList();
-	int sizeMdi = mdiwindows.size();
-	if (sizeMdi <= 1)
+	auto mdiChilds = childList<MdiChild>();
+	if (mdiChilds.size() <= 1)
 	{
 		return;
 	}
-	double camOptions[10] = {0};
-	activeMDI()->camPosition(camOptions);
-	for (int i = 0; i < sizeMdi; i++)
+	auto srcCam = activeMDI()->renderer()->camera();
+	for (auto dstChild: mdiChilds)
 	{
-		MdiChild *tmpChild = dynamic_cast<MdiChild*>(mdiwindows.at(i));
-		if (tmpChild == activeMDI())
+		if (dstChild == activeMDI())
 		{
 			continue;
 		}
-		tmpChild->setCamPosition(camOptions, /*m_defaultRenderSettings.ParallelProjection*/ true);
+		copyCameraParams(dstChild->renderer()->camera(), srcCam);
+		dstChild->renderer()->update();
 	}
 }
 

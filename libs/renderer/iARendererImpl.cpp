@@ -462,41 +462,6 @@ void iARendererImpl::setCamPosition(int pos)
 	update();
 }
 
-void iARendererImpl::camPosition( double * camOptions )
-{
-	double pS = m_cam->GetParallelScale();
-	double a[3] = {0};
-	double b[3] = {0};
-	double c[3] = {0};
-	m_cam->GetViewUp(a);
-	m_cam->GetPosition(b);
-	m_cam->GetFocalPoint(c);
-
-	camOptions[0] = a[0];
-	camOptions[1] = a[1];
-	camOptions[2] = a[2];
-	camOptions[3] = b[0];
-	camOptions[4] = b[1];
-	camOptions[5] = b[2];
-	camOptions[6] = c[0];
-	camOptions[7] = c[1];
-	camOptions[8] = c[2];
-	camOptions[9] = pS;
-}
-
-void iARendererImpl::setCamPosition( double * camOptions, bool rsParallelProjection )
-{
-	m_cam->SetViewUp ( camOptions[0], camOptions[1], camOptions[2] );
-	m_cam->SetPosition ( camOptions[3], camOptions[4], camOptions[5] );
-	m_cam->SetFocalPoint( camOptions[6], camOptions[7], camOptions[8] );
-
-	if (rsParallelProjection)
-	{
-		m_cam->SetParallelScale(camOptions[9]);
-	}
-	update();
-}
-
 void iARendererImpl::setCamera(vtkCamera* c)
 {
 	m_cam = c;

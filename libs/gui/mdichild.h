@@ -241,16 +241,9 @@ public slots:
 	//! set renderer interaction on / off
 	void enableRendererInteraction(bool enable);
 
-	//! Calls the camPosition function of iARenderer (described there in more detail).
-	//! @param camOptions All informations of the camera stored in a double array
-	void camPosition(double * camOptions);
 	//! Calls the setCamPosition function of iARenderer (described there in more detail).
 	//! @param pos set one of the predefined camera positions
 	void setPredefCamPos(int pos);
-	//! Calls the setCamPosition function of iARenderer (described there in more detail).
-	//! @param camOptions All informations of the camera stored in a double array
-	//! @param rsParallelProjection boolean variable to determine if parallel projection option on.
-	void setCamPosition(double * camOptions, bool rsParallelProjection);
 
 	//! called when the user wants to display the profile handles inside the views
 	//! showing the dataset (3D renderer and slicers)
