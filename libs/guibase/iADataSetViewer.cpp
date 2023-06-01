@@ -22,14 +22,14 @@
 
 namespace
 {
-	const QChar Render3DFlag('R');
-	const QChar RenderOutlineFlag('B');
-	const QChar RenderMagicLensFlag('L');
-	const QChar RenderCutPlane('C');
 	const QString RenderFlagsDefault("R");
 }
 
 const QString iADataSetViewer::RenderFlags("RenderFlags");
+const QChar iADataSetViewer::Render3DFlag('R');
+const QChar iADataSetViewer::RenderOutlineFlag('B');
+const QChar iADataSetViewer::RenderMagicLensFlag('L');
+const QChar iADataSetViewer::RenderCutPlane('C');
 
 iADataSetViewer::iADataSetViewer(iADataSet * dataSet):
 	m_dataSet(dataSet),
@@ -447,7 +447,6 @@ void iAProjectViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			}
 		}
 		child->removeDataSet(dataSetIdx);
-		// TODO NEWIO: check - this viewer is deleted on removing the dataset, so here the object could already be deleted!
 	};
 	// if no datasets available, directly load tools...
 	if (collection->dataSets().empty())

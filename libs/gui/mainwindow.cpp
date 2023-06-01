@@ -386,6 +386,14 @@ bool MainWindow::keepOpen()
 
 void MainWindow::closeEvent(QCloseEvent *e)
 {
+	// TODO: Check whether any operation is still in progress, and cancel that (or wait for it to finish)
+	/*
+	{
+		LOG(lvlWarn, "Cannot close application while operation is running!");
+		event->ignore();
+		return;
+	}
+	*/
 	if (keepOpen())
 	{
 		e->ignore();

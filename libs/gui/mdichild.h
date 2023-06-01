@@ -75,10 +75,7 @@ public:
 	void saveVolumeStack();
 
 	void applyPreferences(iAPreferences const & p);
-	//void applyRendererSettings(iARenderSettings const & rs) override;
 	void applySlicerSettings(iASlicerSettings const & ss);
-	//void setRenderSettings(iARenderSettings const & rs);
-	//iARenderSettings const & renderSettings() const override;
 	iASlicerSettings const & slicerSettings() const override;
 	iAPreferences    const & preferences()    const override;
 

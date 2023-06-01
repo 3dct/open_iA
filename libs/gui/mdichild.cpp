@@ -494,24 +494,6 @@ bool MdiChild::saveDataSet(std::shared_ptr<iADataSet> dataSet)
 	{
 		return false;
 	}
-	// TODO NEWIO: provide option to only store single component, in case dataSet is an image data and contains multiple components!
-	// below the code from previous iAModality-based parts:
-	/*
-		int componentNr = chooseComponentNr(modalityNr);
-		if (componentNr == -1)
-		{
-			return false;
-		}
-		if (m_tmpSaveImg->GetNumberOfScalarComponents() > 1 &&
-			componentNr != m_tmpSaveImg->GetNumberOfScalarComponents())
-		{
-			auto imgExtract = vtkSmartPointer<vtkImageExtractComponents>::New();
-			imgExtract->SetInputData(m_tmpSaveImg);
-			imgExtract->SetComponents(componentNr);
-			imgExtract->Update();
-			m_tmpSaveImg = imgExtract->GetOutput();
-		}
-	*/
 	QString path = m_path.isEmpty() ? m_mainWnd->path() : m_path;
 	QString defaultFilter = iAFileTypeRegistry::defaultExtFilterString(dataSet->type());
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
@@ -901,31 +883,6 @@ void MdiChild::updatePositionMarkerSize()
 	}
 }
 
-//void MdiChild::setRenderSettings(iARenderSettings const& rs)
-//{
-//	// TODO NEWIO: there are now settings of the individual viewers -> REMOVE?
-//	m_renderSettings = rs;
-//}
-
-// TODO SETTINGS: slicing should be a per-dataset thing!
-/*
-for (auto v : m_dataSetViewers)
-{
-	if (v.second->renderer())
-	{
-		continue;
-	}
-	if (m_renderSettings.ShowSlicers && !m_snakeSlicer)
-	{
-		v.second->renderer()->setCuttingPlanes(m_renderer->plane1(), m_renderer->plane2(), m_renderer->plane3());
-	}
-	else
-	{
-		v.second->renderer()->removeCuttingPlanes();
-	}
-}
-*/
-
 QString MdiChild::layoutName() const
 {
 	return m_layout;
@@ -965,41 +922,10 @@ void MdiChild::applySlicerSettings(iASlicerSettings const& ss)
 		m_dwSlicer[iASlicerMode::XY]->sbSlice->setRange(0, ss.SnakeSlices - 1);
 		m_dwSlicer[iASlicerMode::XY]->sbSlice->setValue((double)prevValue / prevMax * (ss.SnakeSlices - 1));
 	}
-
 	linkViews(ss.LinkViews);
 	linkMDIs(ss.LinkMDIs);
-
-	for (int s = 0; s < 3; ++s)
-	{
-		//auto settings(ss.SingleSlicer);
-		//if (!ss.BackgroundColor[s].isEmpty() && QColor(ss.BackgroundColor[s]).isValid())
-		//{
-		//	settings.backgroundColor = QColor(ss.BackgroundColor[s]);
-		//}
-		//m_slicer[s]->setup(settings);
-	}
 	emit slicerSettingsChanged();
 }
-
-/*
-void MdiChild::applyRendererSettings(iARenderSettings const& rs)
-{
-	setRenderSettings(rs);
-	applyVolumeSettings();
-	m_renderer->applySettings(renderSettings(), m_slicerVisibility);
-
-	m_dwRenderer->vtkWidgetRC->setLensSize(rs.MagicLensSize, rs.MagicLensSize);
-	m_dwRenderer->vtkWidgetRC->setFrameWidth(rs.MagicLensFrameWidth);
-	m_dwRenderer->vtkWidgetRC->show();
-	m_dwRenderer->vtkWidgetRC->renderWindow()->Render();
-	emit renderSettingsChanged();
-}
-*/
-
-//iARenderSettings const& MdiChild::renderSettings() const
-//{
-//	return m_renderSettings;
-//}
 
 iASlicerSettings const& MdiChild::slicerSettings() const
 {
@@ -1021,16 +947,10 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 
 	if (m_snakeSlicer)
 	{
-		/*
-		// TODO SETTINGS: slicing should be a per-dataset thing!
-		if (m_renderSettings.ShowSlicers)
+		for (auto v : m_dataSetViewers)
 		{
-			for (auto v : m_dataSetViewers)
-			{
-				v.second->renderer()->removeCuttingPlanes();
-			}
+			v.second->renderer()->removeCuttingPlanes();
 		}
-		*/
 
 		// save the slicer transforms
 		for (int s = 0; s < 3; ++s)
@@ -1066,16 +986,13 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 			m_slicer[s]->renderer()->Render();
 			m_slicer[s]->switchInteractionMode(iASlicerImpl::Normal);
 		}
-		// TODO SETTINGS: slicing should be a per-dataset thing!
-		/*
-		if (m_renderSettings.ShowSlicers)
+		for (auto v : m_dataSetViewers)
 		{
-			for (auto v : m_dataSetViewers)
+			if (v.second->renderFlagSet(iADataSetViewer::RenderCutPlane))
 			{
-				v.second->renderer()->setCuttingPlanes(m_renderer->plane1(), m_renderer->plane2(), m_renderer->plane3());
+				v.second->renderer()->setCuttingPlanes(m_renderer->slicePlanes());
 			}
 		}
-		*/
 	}
 }
 
@@ -1250,16 +1167,6 @@ QFileInfo const & MdiChild::fileInfo() const
 
 void MdiChild::closeEvent(QCloseEvent* event)
 {
-	// TODO NEWIO: Check whether it's still required to check whether currently an I/O operation is in progress
-	/*
-	{
-		LOG(lvlWarn, "Cannot close window while I/O operation is in progress!");
-		event->ignore();
-		return;
-	}
-	else
-	{
-	*/
 	if (isWindowModified())
 	{
 		auto reply = QMessageBox::question(this, "Unsaved changes",

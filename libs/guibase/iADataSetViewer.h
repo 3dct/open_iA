@@ -35,6 +35,11 @@ public:
 	//! key that specifies which views or renderers the viewer currently has visible
 	static const QString RenderFlags;
 
+	static const QChar Render3DFlag;
+	static const QChar RenderOutlineFlag;
+	static const QChar RenderMagicLensFlag;
+	static const QChar RenderCutPlane;
+
 	//! called directly after the dataset is loaded, should do anything that needs to be computed in the background
 	virtual void prepare(iAProgress* p);
 	//! Should contain all things that need to be done in the GUI thread for viewing this dataset
