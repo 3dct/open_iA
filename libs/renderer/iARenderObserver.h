@@ -25,10 +25,8 @@ class iArenderer_API iARenderObserver : public QObject, public vtkCommand
 	Q_OBJECT
 
 public:
-	iARenderObserver(vtkRenderer* pRen, vtkRenderWindowInteractor* pIren, vtkTransform* pTrans,
-		vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
-	void ReInitialize(vtkRenderer* pRen, vtkRenderWindowInteractor* pIren, vtkTransform* pTrans,
-		vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
+	iARenderObserver(vtkRenderer* pRen, vtkRenderWindowInteractor* pIren, vtkTransform* pTrans, std::array<vtkPlane*, 3> planes);
+	void ReInitialize(vtkRenderer* pRen, vtkRenderWindowInteractor* pIren, vtkTransform* pTrans, std::array<vtkPlane*, 3> planes);
 
 	void AddListener(vtkCommand* listener);
 	int GetMode();
@@ -46,9 +44,7 @@ protected:
 
 private:
 	enum Axis { X_AXIS = 1, Y_AXIS, Z_AXIS };
-	vtkPlane* m_pPlane1;
-	vtkPlane* m_pPlane2;
-	vtkPlane* m_pPlane3;
+	std::array<vtkPlane*, 3> m_planes;
 	int mode;
 	double speed;
 	double scale;
@@ -63,3 +59,6 @@ signals:
 	//void clicked(int x, int y, int z);
 	void keyPressed(int keyCode);
 };
+
+//! retrieve the normal vector for the given slicer mode
+std::vector<double> slicerNormal(int mode, size_t size = 3);

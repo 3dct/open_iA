@@ -125,7 +125,7 @@ public:
 			addAttr(attr, iASlicerImpl::ToolTipFontSize, iAValueType::Discrete, 12);
 			addAttr(attr, iASlicerImpl::ShowTooltip, iAValueType::Boolean, true);
 			addAttr(attr, iASlicerImpl::MagicLensSize, iAValueType::Discrete, DefaultMagicLensSize, MinimumMagicLensSize, MaximumMagicLensSize); //!< size (width & height) of the 2D magic lens (in pixels / pixel-equivalent units considering scaling)
-			addAttr(attr, iASlicerImpl::MagicLensFrameWidth, iAValueType::Discrete, 3, 0);  //!< width of the frame of the 2D magic lens
+			addAttr(attr, iASlicerImpl::MagicLensFrameWidth, iAValueType::Discrete, DefaultMagicLensFrameWidth, 0);  //!< width of the frame of the 2D magic lens
 			addAttr(attr, iASlicerImpl::BackgroundColor, iAValueType::Color, ""); // by default, invalid color -> results in gray scale color depending on slicer mode
 			// move to separate iso visualization maybe ?
 			// {

@@ -206,11 +206,11 @@ vtkProp3D* iAVolumeRenderer::vtkProp()
 	return m_volume;
 }
 
-void iAVolumeRenderer::setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3)
+void iAVolumeRenderer::setCuttingPlanes(std::array<vtkPlane*, 3> p)
 {
-	m_volMapper->AddClippingPlane(p1);
-	m_volMapper->AddClippingPlane(p2);
-	m_volMapper->AddClippingPlane(p3);
+	m_volMapper->AddClippingPlane(p[0]);
+	m_volMapper->AddClippingPlane(p[1]);
+	m_volMapper->AddClippingPlane(p[2]);
 }
 
 void iAVolumeRenderer::removeCuttingPlanes()

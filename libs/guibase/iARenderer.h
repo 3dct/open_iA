@@ -38,11 +38,8 @@ public:
 	//! which requires VTK to redraw the scene).
 	virtual void update() = 0;
 
-	//! @{ Access to the slice planes
-	virtual vtkPlane* plane1() = 0;
-	virtual vtkPlane* plane2() = 0;
-	virtual vtkPlane* plane3() = 0;
-	//! @}
+	//! Access to the slice planes
+	virtual std::array<vtkPlane*,3> slicePlanes() const = 0;
 
 	//! Access to the render window interactor
 	virtual vtkRenderWindowInteractor* interactor() = 0;
@@ -82,6 +79,10 @@ public:
 	//! adapts axes markers, plane indicators etc. to be properly visible for a scene 
 	//! where all datasets fit within the given bounding box
 	virtual void setSceneBounds(iAAABB const & boundingBox) = 0;
+
+	//! Set whether currently a dataset cutting is active.
+	//! If enabled, the renderer is updated on changes to the slicing planes (even if the planes themselves are not shown).
+	virtual void setCuttingActive(bool enabled) = 0;
 
 signals:
 	void cellsSelected(vtkPoints* selCellPoints);

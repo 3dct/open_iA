@@ -19,17 +19,22 @@
 
 #include <iAToolsVTK.h>    // for setCamPosition
 
+std::vector<double> slicerNormal(int mode, size_t size)
+{
+	std::vector<double> normal(size, 0.0);
+	normal[mode] = 1.0;
+	return normal;
+}
+
 iARenderObserver::iARenderObserver(vtkRenderer* pRen, vtkRenderWindowInteractor* pIren,
-	vtkTransform* pTrans, vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3):
+	vtkTransform* pTrans, std::array<vtkPlane*, 3> planes):
 	m_pRen(pRen),
 	m_pIren(pIren),
 	m_pTrans(pTrans),
 	m_pLine(vtkSmartPointer<vtkLineSource>::New()),
 	m_pProbe(vtkSmartPointer<vtkProbeFilter>::New()),
 	m_pWorldPicker(vtkSmartPointer<vtkWorldPointPicker>::New()),
-	m_pPlane1(plane1),
-	m_pPlane2(plane2),
-	m_pPlane3(plane3),
+	m_planes(planes),
 	mode(0),
 	speed(1.0),
 	scale(1.0)
@@ -37,14 +42,12 @@ iARenderObserver::iARenderObserver(vtkRenderer* pRen, vtkRenderWindowInteractor*
 }
 
 void iARenderObserver::ReInitialize(vtkRenderer* pRen, vtkRenderWindowInteractor* pIren,
-	vtkTransform* pTrans, vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3)
+	vtkTransform* pTrans, std::array<vtkPlane*, 3> planes)
 {
 	m_pRen = pRen;
 	m_pIren = pIren;
 	m_pTrans = pTrans;
-	m_pPlane1 = plane1;
-	m_pPlane2 = plane2;
-	m_pPlane3 = plane3;
+	m_planes = planes;
 }
 
 //iARenderObserver* iARenderObserver::New(vtkRenderer* pRen, vtkRenderWindowInteractor* pIren,
@@ -76,31 +79,30 @@ void iARenderObserver::Execute(vtkObject * caller, unsigned long eid, void *  ca
 		{
 			char keyCode = m_pIren->GetKeyCode();
 			emit keyPressed(keyCode);
-			if (keyCode == '\t') {
+			if (keyCode == '\t')
+			{
 				mode = (mode + 1) % 2;
 			}
-
 			if (mode == 0)
 			{
 				switch (keyCode)
 				{
 					case 'x':
-						m_pPlane1->SetNormal(-m_pPlane1->GetNormal()[0], -m_pPlane1->GetNormal()[1], -m_pPlane1->GetNormal()[2]);
+						m_planes[0]->SetNormal(-m_planes[0]->GetNormal()[0], -m_planes[0]->GetNormal()[1], -m_planes[0]->GetNormal()[2]);
 						break;
 					case 'y':
-						m_pPlane2->SetNormal(-m_pPlane2->GetNormal()[0], -m_pPlane2->GetNormal()[1], -m_pPlane2->GetNormal()[2]);
+						m_planes[1]->SetNormal(-m_planes[1]->GetNormal()[0], -m_planes[1]->GetNormal()[1], -m_planes[1]->GetNormal()[2]);
 						break;
 					case 'z':
-						m_pPlane3->SetNormal(-m_pPlane3->GetNormal()[0], -m_pPlane3->GetNormal()[1], -m_pPlane3->GetNormal()[2]);
+						m_planes[2]->SetNormal(-m_planes[2]->GetNormal()[0], -m_planes[2]->GetNormal()[1], -m_planes[2]->GetNormal()[2]);
 						break;
 					case 'r':
 					{
-						m_pPlane1->SetOrigin(0, 0, 0);
-						m_pPlane2->SetOrigin(0, 0, 0);
-						m_pPlane3->SetOrigin(0, 0, 0);
-						m_pPlane1->SetNormal(1, 0, 0);
-						m_pPlane2->SetNormal(0, 1, 0);
-						m_pPlane3->SetNormal(0, 0, 1);
+						for (int m = 0; m < 3; ++m)
+						{
+							m_planes[m]->SetOrigin(0, 0, 0);
+							m_planes[0]->SetNormal(slicerNormal(m).data());
+						}
 						setCamPosition(m_pRen->GetActiveCamera(), iACameraPosition::Iso);
 						m_pRen->ResetCamera();
 						break;

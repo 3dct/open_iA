@@ -80,7 +80,7 @@ public:
 	bool isInteractorEnabled() const;
 	void setAxesTransform(vtkTransform* transform) override;
 
-	void setPlaneNormals( vtkTransform *tr ) ;
+	void setPlaneNormals(vtkTransform* tr);
 	//! Set the position of the position marker to the given world coordinates
 	void setPositionMarkerCenter(double x, double y, double z);
 	//! Set size of a single standard "unit" across all shown datasets; used
@@ -104,27 +104,28 @@ public:
 	void setCamera(vtkCamera* c) override;
 	vtkCamera* camera() override;
 
-	//! sets opacity of the slicing planes
-	void setSlicePlaneOpacity(float opc);
-
 	void update() override;
 	void showOriginIndicator(bool show);
 	void showAxesCube(bool show);
 	void showRPosition(bool show);
 
+	//! sets opacity of the slicing planes
+	void setSlicePlaneOpacity(float opc);
 	//! Show or hide the slice plane for the given axis.
-	//! Public-facing method for setting slice plane visibility; for the slice plane to be visible,
-	//! also the "Show slice plane" setting has to be enabled.
+	//! Method for setting visibility of a single slice plane (used to make plane visibility depending on whether the respective slicer view is currently shown);
+	//! for the slice plane to be visible, also the "Show slice plane" setting has to be enabled.
 	//! @param axis index of the axis (x..0, y..1, z..2)
 	//! @param show whether to show (true) or hide (false) the given axis slice plane
 	void showSlicePlane(int axis, bool show);
 	//! Whether showing slice planes is generally enabled or disabled.
 	bool isShowSlicePlanes() const;
-
-	vtkPlane* plane1() override;
-	vtkPlane* plane2() override;
-	vtkPlane* plane3() override;
+	//! see iARenderer
+	std::array<vtkPlane*, 3> slicePlanes() const override;
+	//! update the position of a specific slice plane
 	void setSlicePlanePos(int planeID, double originX, double originY, double originZ);
+	//! see iARenderer
+	void setCuttingActive(bool enabled) override;
+
 	vtkRenderWindowInteractor* interactor() override;
 	vtkRenderWindow* renderWindow() override;
 	vtkRenderer* renderer() override;
@@ -212,11 +213,6 @@ private:
 	vtkSmartPointer<vtkOrientationMarkerWidget> m_orientationMarkerWidget;
 	//! @}
 
-	//! cutting planes:
-	vtkSmartPointer<vtkPlane> m_plane1, m_plane2, m_plane3;
-	//! keep track of which slicing/cutting planes should be visible:
-	std::array<bool, 3> m_slicePlaneVisible;
-
 	//! @{ movable axes
 	// TODO: check what the movable axes are useful for!
 	vtkTransform* m_moveableAxesTransform;
@@ -233,12 +229,20 @@ private:
 	vtkSmartPointer<vtkActor>          m_profileLineEndPointActor;
 	//! @}
 
-	//! @{ Slice planes
+	//! Slice planes: actual plane data
+	vtkSmartPointer<vtkPlane> m_slicePlanes[3];
+	//! Slice planes: keep track of which slicing/cutting planes should be visible:
+	std::array<bool, 3> m_slicePlaneVisible;
+	//! Slice planes: sources for geometric objects shown
 	vtkSmartPointer<vtkCubeSource>     m_slicePlaneSource[3];
+	//! Slice planes: mesh mappers for planes
 	vtkSmartPointer<vtkPolyDataMapper> m_slicePlaneMapper[3];
+	//! Slice planes: actors for planes
 	vtkSmartPointer<vtkActor>          m_slicePlaneActor[3];
-	float m_slicePlaneOpacity; //!< Slice Plane Opacity
-	//! @}
+	//! Slice planes_ Opacity
+	float m_slicePlaneOpacity;
+	//! Whether currently a dataset cutting is active:
+	bool m_cuttingActive;
 
 	vtkSmartPointer<vtkCubeSource> m_roiCube;
 	vtkSmartPointer<vtkPolyDataMapper> m_roiMapper;

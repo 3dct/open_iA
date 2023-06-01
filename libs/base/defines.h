@@ -12,5 +12,6 @@
 const int DefaultMagicLensSize = 120;
 const int MinimumMagicLensSize = 40;
 const int MaximumMagicLensSize = 8192;
+const int DefaultMagicLensFrameWidth = 3;
 
 const uint NotExistingChannel = std::numeric_limits<uint>::max();

@@ -25,6 +25,7 @@ namespace
 	const QChar Render3DFlag('R');
 	const QChar RenderOutlineFlag('B');
 	const QChar RenderMagicLensFlag('L');
+	const QChar RenderCutPlane('C');
 	const QString RenderFlagsDefault("R");
 }
 
@@ -71,6 +72,10 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	if (renderFlagSet(RenderMagicLensFlag))
 	{
 		m_magicLensRenderer->setVisible(true);
+	}
+	if (renderFlagSet(RenderCutPlane))
+	{
+		m_renderer->setCuttingPlanes(child->renderer()->slicePlanes());
 	}
 	// compute overall bounding box across all datasets of this child, and adapt renderer "scene" to that:
 	iAAABB overallBB;
@@ -156,6 +161,36 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 		{
 			setRenderFlag(RenderMagicLensFlag, checked);
 			m_magicLensRenderer->setVisible(checked);
+			child->updateRenderer();
+		});
+	addViewAction("Cut Plane", "cut_plane", renderFlagSet(RenderCutPlane),
+		[this, child](bool checked)
+		{
+			setRenderFlag(RenderCutPlane, checked);
+			if (checked)
+			{
+				m_renderer->setCuttingPlanes(child->renderer()->slicePlanes());
+				child->renderer()->setCuttingActive(true);
+			}
+			else
+			{
+				m_renderer->removeCuttingPlanes();
+				// only disable renderer updates on slice plane changes if cutting is disabled for all other datasets viewers:
+				bool allDisabled = true;
+				for (auto d : child->dataSetMap())
+				{
+					auto v = child->dataSetViewer(d.first);
+					if (v->renderFlagSet(RenderCutPlane))
+					{
+						allDisabled = false;
+						break;
+					}
+				}
+				if (allDisabled)
+				{
+					child->renderer()->setCuttingActive(false);
+				}
+			}
 			child->updateRenderer();
 		});
 	m_pickAction = addViewAction("Pickable", "transform-move", false,

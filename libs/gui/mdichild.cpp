@@ -49,16 +49,12 @@
 #include <iAToolsVTK.h>
 #include <iATransferFunction.h>
 
-#include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
-#include <vtkCornerAnnotation.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageExtractComponents.h>
 #include <vtkImageReslice.h>
 #include <vtkMath.h>
 #include <vtkMatrixToLinearTransform.h>
-#include <vtkPiecewiseFunction.h>
-#include <vtkPlane.h>
 #include <vtkPolyData.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
@@ -66,6 +62,7 @@
 #include <vtkWindowToImageFilter.h>
 
 // TODO: refactor methods using the following out of mdichild!
+#include <vtkCamera.h>
 #include <vtkTransform.h>
 
 #include <QByteArray>

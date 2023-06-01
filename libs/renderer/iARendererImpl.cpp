@@ -96,7 +96,7 @@ public:
 			addAttr(attr, iARendererImpl::DepthPeelOcclusionRatio, iAValueType::Continuous, 0.0);   // In case of use of depth peeling technique for rendering translucent material, define the threshold under which the algorithm stops to iterate over peel layers (see <a href="https://vtk.org/doc/nightly/html/classvtkRenderer.html">vtkRenderer documentation</a>
 			addAttr(attr, iARendererImpl::DepthPeelsMax, iAValueType::Discrete, 4, 0);              // maximum number of depth peels to use (if enabled via UseDepthPeeling). The more the higher quality, but also slower rendering
 			addAttr(attr, iARendererImpl::MagicLensSize, iAValueType::Discrete, DefaultMagicLensSize, MinimumMagicLensSize, MaximumMagicLensSize); // size (width & height) of the 3D magic lens (in pixels / pixel-equivalent units considering scaling)
-			addAttr(attr, iARendererImpl::MagicLensFrameWidth, iAValueType::Discrete, 3, 0);        // width of the frame of the 3D magic lens
+			addAttr(attr, iARendererImpl::MagicLensFrameWidth, iAValueType::Discrete, DefaultMagicLensFrameWidth, 0); // width of the frame of the 3D magic lens
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
 			addAttr(attr, iARendererImpl::UseSSAO, iAValueType::Boolean, false);                    // whether to use Screen Space Ambient Occlusion (SSAO) - darkens some pixels to improve depth perception
 			addAttr(attr, iARendererImpl::SSAORadius, iAValueType::Continuous, 0.5);                // SSAO: The hemisphere radius
@@ -124,9 +124,6 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_annotatedCubeActor(vtkSmartPointer<vtkAnnotatedCubeActor>::New()),
 	m_axesActor(vtkSmartPointer<vtkAxesActor>::New()),
 	m_orientationMarkerWidget(vtkSmartPointer<vtkOrientationMarkerWidget>::New()),
-	m_plane1(vtkSmartPointer<vtkPlane>::New()),
-	m_plane2(vtkSmartPointer<vtkPlane>::New()),
-	m_plane3(vtkSmartPointer<vtkPlane>::New()),
 	m_moveableAxesActor(vtkSmartPointer<vtkAxesActor>::New()),
 	m_profileLineStartPointSource(vtkSmartPointer<vtkSphereSource>::New()),
 	m_profileLineStartPointMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
@@ -135,6 +132,7 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_profileLineEndPointMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_profileLineEndPointActor(vtkSmartPointer<vtkActor>::New()),
 	m_slicePlaneOpacity(0.8),
+	m_cuttingActive(false),
 	m_roiCube(vtkSmartPointer<vtkCubeSource>::New()),
 	m_roiMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_roiActor(vtkSmartPointer<vtkActor>::New()),
@@ -170,8 +168,10 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_txtActor->SetDragable(false);
 
 	// slice plane display:
-	for (int s = 0; s < 3; ++s)
+	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
 	{
+		m_slicePlanes[s] = vtkSmartPointer<vtkPlane>::New();
+		m_slicePlanes[s]->SetNormal(slicerNormal(s).data());
 		m_slicePlaneSource[s] = vtkSmartPointer<vtkCubeSource>::New();
 		//m_slicePlaneSource[s]->SetOutputPointsPrecision(10);
 		m_slicePlaneMapper[s] = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -185,10 +185,6 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 		m_slicePlaneActor[s]->GetProperty()->SetColor((s == 0) ? 1 : 0, (s == 1) ? 1 : 0, (s == 2) ? 1 : 0);
 		m_slicePlaneActor[s]->GetProperty()->SetOpacity(1.0);
 	}
-	// set up cutting planes:
-	m_plane1->SetNormal(1, 0, 0);
-	m_plane2->SetNormal(0, 1, 0);
-	m_plane3->SetNormal(0, 0, 1);
 
 	m_labelRen->SetActiveCamera(m_cam);
 	m_ren->SetActiveCamera(m_cam);
@@ -276,7 +272,7 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_orientationMarkerWidget->SetEnabled(1);
 	m_orientationMarkerWidget->InteractiveOff();
 
-	m_renderObserver = new iARenderObserver(m_ren, m_interactor, m_moveableAxesTransform, m_plane1, m_plane2, m_plane3);
+	m_renderObserver = new iARenderObserver(m_ren, m_interactor, m_moveableAxesTransform, slicePlanes());
 	m_interactor->AddObserver(vtkCommand::KeyPressEvent, m_renderObserver, 0.0);
 	m_interactor->AddObserver(vtkCommand::LeftButtonPressEvent, m_renderObserver);
 	m_interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, m_renderObserver);
@@ -348,7 +344,7 @@ void iARendererImpl::setSceneBounds(iAAABB const & boundingBox)
 	m_profileLineEndPointSource->SetRadius(indicatorsSize[0]);
 
 	iAVec3d center = origin + size / 2;
-	for (int s = 0; s < 3; ++s)
+	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
 	{
 		m_slicePlaneSource[s]->SetXLength((s == iASlicerMode::XY || s == iASlicerMode::XZ) ?
 			IndicatorsLenMultiplier * size[0] : m_unitSize[0]);
@@ -363,7 +359,11 @@ void iARendererImpl::setSceneBounds(iAAABB const & boundingBox)
 	{
 		m_ren->ResetCamera();
 	}
+}
 
+void iARendererImpl::setCuttingActive(bool enabled)
+{
+	m_cuttingActive = enabled;
 }
 
 void iARendererImpl::setDefaultInteractor()
@@ -433,20 +433,14 @@ void iARendererImpl::showSlicePlaneActor(int axis, bool show)
 
 void iARendererImpl::setPlaneNormals( vtkTransform *tr )
 {
-	double normal[4], temp[4];
-
-	normal[0] = 1; normal[1] = 0; normal[2] = 0; normal[3] = 1;
-	tr->GetMatrix()->MultiplyPoint(normal, temp);
-	m_plane1->SetNormal( temp[0], temp[1], temp[2] );
-
-	normal[0] = 0; normal[1] = 1; normal[2] = 0; normal[3] = 1;
-	tr->GetMatrix()->MultiplyPoint(normal, temp);
-	m_plane2->SetNormal( temp[0], temp[1], temp[2] );
-
-	normal[0] = 0; normal[1] = 0; normal[2] = 1; normal[3] = 1;
-	tr->GetMatrix()->MultiplyPoint(normal, temp);
-	m_plane3->SetNormal( temp[0], temp[1], temp[2] );
-
+	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
+	{
+		auto normVec = slicerNormal(s, 4);
+		normVec[3] = 1;
+		double temp[4];
+		tr->GetMatrix()->MultiplyPoint(normVec.data(), temp);
+		m_slicePlanes[s]->SetNormal(temp);
+	}
 	m_renWin->Render();
 	m_ren->Render();
 };
@@ -716,9 +710,7 @@ bool iARendererImpl::isInteractorEnabled() const
 {
 	return m_interactor->GetEnabled();
 }
-vtkPlane* iARendererImpl::plane1() { return m_plane1; };
-vtkPlane* iARendererImpl::plane2() { return m_plane2; };
-vtkPlane* iARendererImpl::plane3() { return m_plane3; };
+std::array<vtkPlane*, 3> iARendererImpl::slicePlanes() const { return { m_slicePlanes[0], m_slicePlanes[1], m_slicePlanes[2] }; };
 vtkRenderer * iARendererImpl::renderer() { return m_ren; };
 vtkRenderWindowInteractor* iARendererImpl::interactor() { return m_interactor; }
 vtkRenderWindow* iARendererImpl::renderWindow() { return m_renWin; }
@@ -750,18 +742,12 @@ void iARendererImpl::setROIVisible(bool visible)
 
 void iARendererImpl::setSlicePlanePos(int planeID, double originX, double originY, double originZ)
 {
-	switch (planeID)
-	{
-		default:
-		case iASlicerMode::YZ: m_plane1->SetOrigin(originX, originY, originZ); break;
-		case iASlicerMode::XZ: m_plane2->SetOrigin(originX, originY, originZ); break;
-		case iASlicerMode::XY: m_plane3->SetOrigin(originX, originY, originZ); break;
-	}
+	m_slicePlanes[planeID]->SetOrigin(originX, originY, originZ);
 	double center[3];
 	m_slicePlaneSource[planeID]->GetCenter(center);
 	center[planeID] = (planeID == 0) ? originX : ((planeID == 1) ? originY : originZ);
 	m_slicePlaneSource[planeID]->SetCenter(center);
-	if (isShowSlicePlanes() && m_slicePlaneVisible[planeID])
+	if ( (isShowSlicePlanes() && m_slicePlaneVisible[planeID]) || m_cuttingActive)
 	{
 		m_slicePlaneMapper[planeID]->Update();
 		update();

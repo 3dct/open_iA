@@ -84,7 +84,7 @@ public:
 	virtual void setMovable(bool movable);
 	*/
 
-	virtual void setCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3);
+	virtual void setCuttingPlanes(std::array<vtkPlane*, 3> p);
 	virtual void removeCuttingPlanes();
 
 	//! default attributes of the dataset renderer
