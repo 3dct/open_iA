@@ -185,6 +185,7 @@ namespace
 		QDomNamedNodeMap attributes = slicerSettingsNode.attributes();
 		slicerSettings.SnakeSlices = attributes.namedItem("snakeSlices").nodeValue().toDouble();
 		slicerSettings.LinkMDIs = attributes.namedItem("linkMDIs").nodeValue() == "1";
+		slicerSettings.LinkViews = attributes.namedItem("linkViews").nodeValue() == "1";
 	}
 }
 

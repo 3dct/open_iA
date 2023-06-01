@@ -482,9 +482,6 @@ void iARendererImpl::camPosition( double * camOptions )
 	camOptions[7] = c[1];
 	camOptions[8] = c[2];
 	camOptions[9] = pS;
-
-	m_ren->ResetCamera();
-	update();
 }
 
 void iARendererImpl::setCamPosition( double * camOptions, bool rsParallelProjection )
