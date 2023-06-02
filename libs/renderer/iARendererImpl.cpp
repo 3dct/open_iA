@@ -431,18 +431,25 @@ void iARendererImpl::showSlicePlaneActor(int axis, bool show)
 	}
 }
 
-void iARendererImpl::setPlaneNormals( vtkTransform *tr )
+void iARendererImpl::setPlaneNormals(vtkTransform* tr)
 {
 	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
 	{
-		auto normVec = slicerNormal(s, 4);
-		normVec[3] = 1;
-		double temp[4];
-		tr->GetMatrix()->MultiplyPoint(normVec.data(), temp);
-		m_slicePlanes[s]->SetNormal(temp);
+		auto normVec = slicerNormal(s);
+		LOG(lvlInfo, QString("Plane: origin: %1, %2, %3; normal: %4, %5, %6")
+		//	.arg(m_slicePlaneOrigin[s][0]).arg(m_slicePlaneOrigin[s][1]).arg(m_slicePlaneOrigin[s][2])
+			.arg(normVec[0]).arg(normVec[1]).arg(normVec[2]));
+		tr->TransformVector(normVec.data(), normVec.data());
+		//double transformedOrigin[3];
+		//tr->TransformVector(m_slicePlaneOrigin[s].data(), transformedOrigin);
+		LOG(lvlInfo, QString("Transformed: origin: %1, %2, %3; normal: %4, %5, %6")
+		//	.arg(transformedOrigin[0]).arg(transformedOrigin[1]).arg(transformedOrigin[2])
+			.arg(normVec[0]).arg(normVec[1]).arg(normVec[2]));
+		m_slicePlanes[s]->SetNormal(normVec.data());
+		//m_slicePlanes[s]->SetOrigin(transformedOrigin);
+		m_slicePlaneActor[s]->SetUserTransform(tr);
 	}
-	m_renWin->Render();
-	m_ren->Render();
+	update();
 };
 
 void iARendererImpl::setPositionMarkerCenter(double x, double y, double z )
@@ -704,6 +711,7 @@ void iARendererImpl::setROIVisible(bool visible)
 
 void iARendererImpl::setSlicePlanePos(int planeID, double originX, double originY, double originZ)
 {
+	m_slicePlaneOrigin[planeID][0] = originX; m_slicePlaneOrigin[planeID][1] = originY; m_slicePlaneOrigin[planeID][2] = originZ;
 	m_slicePlanes[planeID]->SetOrigin(originX, originY, originZ);
 	double center[3];
 	m_slicePlaneSource[planeID]->GetCenter(center);

@@ -24,7 +24,6 @@ class iASnakeSpline;
 class iAVtkText;
 class iAMdiChild;
 
-class vtkAbstractTransform;
 class vtkActor;
 class vtkAlgorithmOutput;
 class vtkCamera;
@@ -83,10 +82,10 @@ public:
 	//! @param mode determines which axis-aligned slice-plane is used for slicing.
 	//! @param decorations whether to show the scalar bar widget, the measure bar and the tooltip.
 	//! @param magicLensAvailable whether a magic lens should be available.
-	//! @param transform the basic transform the reslicers inside the channels of this slicer (should probably be removed here).
+	//! @param transform if specified, a transform shared between slicers (e.g. for sharing rotation)
 	//! @param snakeSlicerPoints the array of points in the snake slicer (leave at default nullptr if you don't require snake slicer).
 	iASlicerImpl(QWidget * parent, const iASlicerMode mode, bool decorations = true, bool magicLensAvailable = true,
-		vtkAbstractTransform *transform = nullptr, vtkPoints* snakeSlicerPoints = nullptr);
+		vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>(), vtkPoints* snakeSlicerPoints = nullptr);
 	void applySettings(QVariantMap const & settings) override;
 	virtual ~iASlicerImpl();
 
@@ -156,8 +155,6 @@ public:
 	//! via this method, it will keep the given color indefinitely
 	//! @param color the background color part
 	void setBackground(QColor color) override;
-
-	void setTransform(vtkAbstractTransform * tr);
 
 	void setDefaultInteractor() override;
 
@@ -342,7 +339,7 @@ private:
 	vtkSmartPointer<vtkRenderer> m_ren;
 	vtkCamera * m_camera; // TODO: smart pointer?
 	bool m_cameraOwner;
-	vtkAbstractTransform * m_transform; // TODO: smart pointer?
+	vtkSmartPointer<vtkTransform> m_transform;
 	vtkSmartPointer<vtkWorldPointPicker> m_pointPicker;
 	QMap<uint, QSharedPointer<iAChannelSlicerData> > m_channels;
 	vtkSmartPointer<vtkScalarBarWidget> m_scalarBarWidget;

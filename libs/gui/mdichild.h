@@ -294,10 +294,10 @@ private:
 	//! @}
 
 	vtkTransform * m_axesTransform;    //!< transform for the axes in the 3D renderer; TODO: check usage and if it should be placed somewhere else, or made a smart pointer
-	vtkTransform * m_slicerTransform;  //!< transform for the axes in the slicers; TODO: check usage and if it should be placed somewhere else, or made a smart pointer
 
 	iARendererImpl * m_renderer;       //!< access and decoration of 3D renderers
 	std::array<iASlicerImpl*, 3> m_slicer; //!< the 3 axis-aligned slicers
+	vtkSmartPointer<vtkTransform> m_slicerTransform;  //!< the slicer transform (to share rotation between slicers)
 
 	QListWidget* m_dataSetInfo;                                         //!< widget showing information on datasets
 	iADataSetListWidget* m_dataSetListWidget;                           //!< widget showing list of currently loaded datasets

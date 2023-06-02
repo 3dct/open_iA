@@ -90,7 +90,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_worldSnakePoints(vtkSmartPointer<vtkPoints>::New()),
 	m_parametricSpline(vtkSmartPointer<iAParametricSpline>::New()),
 	m_axesTransform(vtkTransform::New()),
-	m_slicerTransform(vtkTransform::New()),
+	m_slicerTransform(vtkSmartPointer<vtkTransform>::New()),
 	m_dataSetInfo(new QListWidget(this)),
 	m_dataSetListWidget(new iADataSetListWidget()),
 	m_dwInfo(new iADockWidgetWrapper(m_dataSetInfo, "Dataset Info", "DataInfo")),
@@ -159,14 +159,6 @@ void MdiChild::toggleFullScreen()
 MdiChild::~MdiChild()
 {
 	m_axesTransform->Delete();
-	m_slicerTransform->Delete();
-
-	// should be deleted automatically by Qt's mechanism of parents deleting their children
-	//for (int s = 0; s < 3; ++s)
-	//{
-	//	delete m_slicer[s];
-	//}
-	//delete m_renderer; m_renderer = nullptr;
 }
 
 void MdiChild::connectSignalsToSlots()

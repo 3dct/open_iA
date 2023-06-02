@@ -142,7 +142,7 @@ public:
 
 
 iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
-	bool decorations /*= true*/, bool magicLensAvailable /*= true*/, vtkAbstractTransform *transform, vtkPoints* snakeSlicerPoints) :
+	bool decorations /*= true*/, bool magicLensAvailable /*= true*/, vtkSmartPointer<vtkTransform> transform, vtkPoints* snakeSlicerPoints) :
 	iASlicer(parent),
 	m_contextMenu(new QMenu(this)),
 	m_interactionMode(Normal),
@@ -164,7 +164,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_ren(vtkSmartPointer<vtkRenderer>::New()),
 	m_camera(vtkCamera::New()),
 	m_cameraOwner(true),
-	m_transform(transform ? transform : vtkTransform::New()),
+	m_transform(transform? transform: vtkSmartPointer<vtkTransform>::New()),
 	m_pointPicker(vtkSmartPointer<vtkWorldPointPicker>::New()),
 	m_textInfo(vtkSmartPointer<iAVtkText>::New()),
 	m_slabThickness(0),
@@ -806,15 +806,6 @@ void iASlicerImpl::updateMagicLensColors()
 	if (m_magicLens)
 	{
 		m_magicLens->updateColors();
-	}
-}
-
-void iASlicerImpl::setTransform(vtkAbstractTransform * tr)
-{
-	m_transform = tr;
-	for (auto ch : m_channels)
-	{
-		ch->setTransform(m_transform);
 	}
 }
 
@@ -1867,13 +1858,15 @@ void iASlicerImpl::rotateSlice(double angle)
 	vtkTransform *t3 = vtkTransform::New();
 	t3->Translate(center[0], center[1], center[2]);
 
-	auto transform = vtkTransform::New();
-	transform->Identity();
-	transform->PostMultiply();
-	transform->Concatenate(t1);
-	transform->Concatenate(t2);
-	transform->Concatenate(t3);
-	setTransform(transform);
+	m_transform->Identity();
+	m_transform->PostMultiply();
+	m_transform->Concatenate(t1);
+	m_transform->Concatenate(t2);
+	m_transform->Concatenate(t3);
+	for (auto ch : m_channels)
+	{
+		ch->setTransform(m_transform);
+	}
 
 	update();
 	emit sliceRotated(m_mode, angle);

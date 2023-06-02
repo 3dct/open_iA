@@ -61,4 +61,4 @@ signals:
 };
 
 //! retrieve the normal vector for the given slicer mode
-std::vector<double> slicerNormal(int mode, size_t size = 3);
+std::vector<double> slicerNormal(int mode);

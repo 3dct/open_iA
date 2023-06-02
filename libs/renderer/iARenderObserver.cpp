@@ -19,9 +19,9 @@
 
 #include <iAToolsVTK.h>    // for setCamPosition
 
-std::vector<double> slicerNormal(int mode, size_t size)
+std::vector<double> slicerNormal(int mode)
 {
-	std::vector<double> normal(size, 0.0);
+	std::vector<double> normal(3, 0.0);
 	normal[mode] = 1.0;
 	return normal;
 }

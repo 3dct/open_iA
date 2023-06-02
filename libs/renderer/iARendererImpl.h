@@ -236,6 +236,7 @@ private:
 	float m_slicePlaneOpacity;
 	//! Whether currently a dataset cutting is active:
 	bool m_cuttingActive;
+	std::array<std::array<double, 3>, 3>  m_slicePlaneOrigin;
 
 	vtkSmartPointer<vtkCubeSource> m_roiCube;
 	vtkSmartPointer<vtkPolyDataMapper> m_roiMapper;
