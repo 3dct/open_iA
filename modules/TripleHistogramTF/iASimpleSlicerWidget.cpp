@@ -16,10 +16,9 @@
 #include <QHBoxLayout>
 
 iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent /*= 0*/, bool enableInteraction /*= false*/, Qt::WindowFlags f /*= 0 */) :
-	QWidget(parent, f), m_enableInteraction(enableInteraction),
-	m_slicerTransform(vtkTransform::New())
+	QWidget(parent, f), m_enableInteraction(enableInteraction)
 {
-	m_slicer = new iASlicerImpl(this, iASlicerMode::XY, /* magicLens = */ false, /*bool decorations = */false, m_slicerTransform); // Hide everything except the slice itself
+	m_slicer = new iASlicerImpl(this, iASlicerMode::XY, /* magicLens = */ false, /*bool decorations = */false); // Hide everything except the slice itself
 	setLayout(new QHBoxLayout);
 	layout()->setSpacing(0);
 	layout()->addWidget(m_slicer);

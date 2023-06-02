@@ -21,13 +21,11 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
-#include <vtkTransform.h>
 
 #include <QApplication>
 #include <QHBoxLayout>
 
 iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img, vtkSmartPointer<vtkScalarsToColors> lut):
-	m_transform(vtkSmartPointer<vtkTransform>::New()),
 	m_lut(lut)
 {
 	/*
@@ -57,7 +55,7 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img, vtkSmartPointer<
 	renderWindow->AddRenderer(m_renderer);
 	SetRenderWindow(renderWindow);
 	*/
-	m_slicer = new iASlicerImpl(this, iASlicerMode::XY, false, true, m_transform);
+	m_slicer = new iASlicerImpl(this, iASlicerMode::XY, false, true);
 	setLayout(new QHBoxLayout);
 	layout()->setSpacing(0);
 	layout()->addWidget(m_slicer);

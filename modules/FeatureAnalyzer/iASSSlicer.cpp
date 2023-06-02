@@ -32,7 +32,6 @@
 #include <vtkScalarBarWidget.h>
 #include <vtkScalarBarActor.h>
 #include <vtkScalarBarRepresentation.h>
-#include <vtkTransform.h>
 
 #include <QVBoxLayout>
 #include <QLabel>
@@ -93,7 +92,7 @@ namespace
 	const uint MaxChanID   = 5;
 }
 
-iASSSlicer::iASSSlicer( const QString slicerName, vtkSmartPointer<vtkTransform> transform) :
+iASSSlicer::iASSSlicer( const QString slicerName) :
 	masksChan( new iAChanData( brewer_RdPu, MasksChanID ) ),
 	gtChan( new iAChanData( QColor( 0, 0, 0 ), QColor( 255, 255, 0 ), GTChanID ) ),
 	minChan( new iAChanData( QColor( 0, 0, 0 ), QColor( 80, 80, 80 ), MinChanID ) ),
@@ -115,7 +114,7 @@ iASSSlicer::iASSSlicer( const QString slicerName, vtkSmartPointer<vtkTransform> 
 	selTextLabel->setFixedHeight( 15 );
 	selTextLabel->setStyleSheet( "font-weight: bold;" );
 
-	slicer = new iASlicerImpl( nullptr, iASlicerMode::XY, true, true, transform);
+	slicer = new iASlicerImpl( nullptr, iASlicerMode::XY, true, true);
 
 	medContour->SetNumberOfContours( 1 );
 	medContour->SetValue( 0, contourValue );

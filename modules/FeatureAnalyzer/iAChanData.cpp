@@ -9,7 +9,6 @@
 #include <vtkPiecewiseFunction.h>
 #include <vtkScalarBarActor.h>
 #include <vtkScalarBarWidget.h>
-#include <vtkTransform.h>
 
 iAChanData::iAChanData( const QList<QColor> & colors, uint chanId ) :
 	visData( new iAChannelData ),

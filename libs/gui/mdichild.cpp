@@ -1455,11 +1455,6 @@ QDockWidget* MdiChild::dataInfoDockWidget()
 	return m_dwInfo;
 }
 
-vtkTransform* MdiChild::slicerTransform()
-{
-	return m_slicerTransform;
-}
-
 bool MdiChild::resultInNewWindow() const
 {
 	return m_preferences.ResultInNewWindow;

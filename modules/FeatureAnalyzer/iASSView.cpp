@@ -18,7 +18,6 @@
 
 #include <iARendererViewSync.h>
 
-#include <vtkTransform.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkImageData.h>
@@ -40,7 +39,6 @@ void loadImageData( QString const & fileName, vtkSmartPointer<vtkImageData> & im
 iASSView::iASSView(QWidget* parent) :
 	FeatureAnalyzerSSConnector(parent),
 	m_SSViewSettings( new iASSViewSettings(this) ),
-	m_slicerTransform( vtkSmartPointer<vtkTransform>::New() ),
 	m_slicerTF( vtkSmartPointer<vtkColorTransferFunction>::New() ),
 	m_modeInd( 0 ),
 	m_sliceMgr( new iARendererViewSync ),
@@ -217,7 +215,7 @@ void iASSView::SetData( const QTableWidget * dataTable, QString selText )
 	}
 	m_slicerViews.clear();
 
-	iASSSlicer * view = new iASSSlicer( selText, m_slicerTransform);
+	iASSSlicer * view = new iASSSlicer( selText );
 	m_slicerViewsLayout->addWidget( view->container );
 	connect(sbRot, QOverload<double>::of(&QDoubleSpinBox::valueChanged), view->slicer, &iASlicer::rotateSlice);
 	connect(pbSaveScreen, &QToolButton::clicked, view->slicer, &iASlicer::saveAsImage);
@@ -240,7 +238,7 @@ void iASSView::SetCompareData( const QList< QPair<QTableWidget *, QString> > * d
 
 	for ( int i = 0; i < dataList->size(); ++i )
 	{
-		iASSSlicer * view = new iASSSlicer( (*dataList)[i].second, m_slicerTransform ) ;
+		iASSSlicer * view = new iASSSlicer( (*dataList)[i].second ) ;
 		m_slicerViewsLayout->addWidget( view->container );
 		connect(sbRot, QOverload<double>::of(&QDoubleSpinBox::valueChanged), view->slicer, &iASlicer::rotateSlice);
 		connect(pbSaveScreen, &QToolButton::clicked, view->slicer, &iASlicer::saveAsImage);

@@ -5,7 +5,6 @@
 #include <iALog.h>
 
 #include <vtkProperty.h>
-#include <vtkTransform.h>
 #include <vtkPropCollection.h>
 
 iAVRSlider::iAVRSlider(vtkRenderer* ren, vtkRenderWindowInteractor* interactor) : m_renderer(ren), m_interactor(interactor)

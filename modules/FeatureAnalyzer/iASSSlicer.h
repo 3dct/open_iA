@@ -11,7 +11,6 @@
 #include <QStringList>
 
 class vtkImageData;
-class vtkTransform;
 class vtkColorTransferFunction;
 class vtkMarchingContourFilter;
 class vtkDistancePolyDataFilter;
@@ -25,7 +24,7 @@ class QVBoxLayout;
 class iASSSlicer
 {
 public:
-	iASSSlicer( const QString slicerName, vtkSmartPointer<vtkTransform> transform);
+	iASSSlicer( const QString slicerName);
 	~iASSSlicer();
 	void enableMasksChannel( bool isEnabled );
 	void enableGTChannel( bool isEnabled );

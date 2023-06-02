@@ -12,12 +12,7 @@
 #include <vtkMath.h>
 #include <vtkMatrix4x4.h>
 #include <vtkObjectFactory.h>
-#include <vtkPointPicker.h>
-#include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
-#include <vtkPropPicker.h>
-#include <vtkTransform.h>
-
 
 #include "iAImNDTMain.h"
 

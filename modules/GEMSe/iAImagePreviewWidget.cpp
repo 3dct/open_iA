@@ -54,7 +54,7 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 	m_aspectRatio(1.0),
 	m_colorTheme(nullptr)
 {
-	m_slicer = new iASlicerImpl(this, mode, false, magicLens, m_slicerTransform);
+	m_slicer = new iASlicerImpl(this, mode, false, magicLens);
 	m_slicer->setBackground(DefaultColors::SlicerBackgroundColor);
 	if (m_sliceNumber == SliceNumberNotSet)
 	{

@@ -19,7 +19,6 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
-#include <vtkTransform.h>
 
 #include <QThread>
 

@@ -105,8 +105,6 @@ public:
 	//! Access to dataset information dock widget
 	QDockWidget* dataInfoDockWidget() override;
 
-	vtkTransform* slicerTransform() override;
-
 	//! return true if interaction is enabled  in renderer, false otherwise
 	bool isRendererInteractionEnabled() const;
 	//! return true if interaction is enabled in all slicers, false otherwise (i.e. if disabled in at least one)

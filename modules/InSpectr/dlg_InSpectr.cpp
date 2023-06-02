@@ -66,7 +66,6 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkScalarBarActor.h>
 #include <vtkTextProperty.h>
-#include <vtkTransform.h>
 
 #include <QColorDialog>
 #include <QFileDialog>

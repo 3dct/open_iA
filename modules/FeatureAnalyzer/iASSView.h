@@ -11,16 +11,16 @@
 #include <QDockWidget>
 #include <QColor>
 
-class vtkTransform;
 class vtkColorTransferFunction;
 class vtkImageData;
-class QTableWidget;
-class iASSViewSettings;
-class iASSSlicer;
-class QHBoxLayout;
-class iASegm3DView;
-class vtkPolyData;
+
 class iARendererViewSync;
+class iASegm3DView;
+class iASSSlicer;
+class iASSViewSettings;
+
+class QHBoxLayout;
+class QTableWidget;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_SSView>  FeatureAnalyzerSSConnector;
 
@@ -66,7 +66,6 @@ protected:
 
 protected:
 	iASSViewSettings * m_SSViewSettings;
-	vtkSmartPointer<vtkTransform> m_slicerTransform;
 	vtkSmartPointer<vtkColorTransferFunction> m_slicerTF;
 	int m_modeInd;
 	int m_deviationMode;

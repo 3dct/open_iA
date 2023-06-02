@@ -56,7 +56,6 @@
 #include <vtkSequencePass.h>
 #include <vtkSphereSource.h>
 #include <vtkSTLReader.h>
-#include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkTranslucentPass.h>
 

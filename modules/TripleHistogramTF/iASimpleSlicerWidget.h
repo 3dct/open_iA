@@ -4,8 +4,6 @@
 
 #include <iASlicerMode.h>
 
-#include <vtkTransform.h>
-
 #include <QWidget>
 
 class iASlicer;
@@ -46,6 +44,5 @@ public slots:
 
 private:
 	bool m_enableInteraction;
-	vtkTransform *m_slicerTransform;
 	iASlicer *m_slicer;
 };

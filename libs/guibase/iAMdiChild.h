@@ -23,7 +23,6 @@ class iADataSetListWidget;
 class iAMainWindow;
 class iAPreferences;
 class iARenderer;
-//class iARenderSettings;
 class iASlicer;
 class iASlicerSettings;
 class iATool;
@@ -33,7 +32,6 @@ class vtkImageData;
 class vtkPiecewiseFunction;
 class vtkScalarsToColors;
 class vtkRenderer;
-class vtkTransform;
 
 class QFileInfo;
 class QHBoxLayout;
@@ -195,9 +193,6 @@ public:
 	//! Access to file info of "current" file
 	//! @deprecated. Use access via datasets instead
 	virtual QFileInfo const & fileInfo() const = 0;
-	
-	//! @deprecated access transform used in slicer. should be removed from here; no replacement in place yet
-	virtual vtkTransform* slicerTransform() = 0;
 
 	virtual void set3DControlVisibility(bool visible) = 0;
 

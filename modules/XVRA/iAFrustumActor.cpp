@@ -11,7 +11,6 @@
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkSphereSource.h>
-#include <vtkTransform.h>
 
 iAFrustumActor::iAFrustumActor(vtkRenderer* ren, vtkCamera* cam, double size) :
 	m_ren(ren),

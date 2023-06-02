@@ -10,7 +10,6 @@ class iASlicer;
 
 class vtkImageData;
 class vtkScalarsToColors;
-class vtkTransform;
 
 class iAImageWidget: public QWidget
 {
@@ -22,7 +21,6 @@ public:
 	int GetSliceCount() const;
 	iASlicer* GetSlicer();
 private:
-	vtkSmartPointer<vtkTransform> m_transform;
 	vtkSmartPointer<vtkScalarsToColors> m_lut;
 	iASlicer* m_slicer;
 };
