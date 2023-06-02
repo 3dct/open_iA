@@ -180,13 +180,15 @@ void MdiChild::connectSignalsToSlots()
 	{
 		setInteractionMode(camera ? imCamera : imRegistration);
 	});
-	connect(m_renderer, &iARendererImpl::settingsChanged, this, [this]()
+	auto adaptSlicerBorders = [this]()
 	{
 		for (int i = 0; i < 3; ++i)
 		{
 			m_dwSlicer[i]->showBorder(m_renderer->isShowSlicePlanes());
 		}
-	});
+	};
+	connect(m_renderer, &iARendererImpl::settingsChanged, this, adaptSlicerBorders);
+	adaptSlicerBorders();
 	m_dwRenderer->vtkWidgetRC->setContextMenuEnabled(true);
 	// TODO: merge iAFast3DMagicLensWidget (at least iAQVTKWidget part) with iARenderer, then this can be moved there:
 	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::editSettings, m_renderer, &iARendererImpl::editSettings);
