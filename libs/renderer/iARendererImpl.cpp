@@ -63,7 +63,7 @@
 namespace
 {
 	const int NumOfProfileLines = 7;
-	const double IndicatorsLenMultiplier = 1.3;
+	const double IndicatorsLenMultiplier = std::sqrt(2);
 }
 
 #include "iADefaultSettings.h"
