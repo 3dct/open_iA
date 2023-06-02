@@ -545,7 +545,7 @@ QVariantMap iAParameterDlg::parameterValues() const
 		{
 			QCheckBox* t = qobject_cast<QCheckBox*>(m_widgetList[i]);
 			assert(t);
-			result.insert(p->name(), t->checkState());
+			result.insert(p->name(), t->isChecked());
 			break;
 		}
 		case iAValueType::Categorical:

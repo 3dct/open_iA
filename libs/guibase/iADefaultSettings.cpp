@@ -76,6 +76,7 @@ void iASettingsManager::init()
 void iASettingsManager::store()
 {
 	QSettings settings;
+	settings.remove("Settings"); // clean up previous settings; removes outdated settings and prevents case changes in a settings key to prevent successful loading
 	for (auto key : defaultSettingsInternal().keys())
 	{
 		auto attr = defaultSettingsInternal()[key];
