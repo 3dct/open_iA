@@ -248,7 +248,7 @@ private slots:
 	void saveRC();
 	void saveMovRC();
 	void setSlice(int mode, int s);
-	void slicerRotationChanged();
+	void slicerRotationChanged(int mode, double angle);
 	void updatePositionMarker(double x, double y, double z, int mode);
 	void changeMagicLensDataSet(int chg);
 	void toggleFullScreen();

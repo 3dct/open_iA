@@ -807,9 +807,13 @@ void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptInde
 	slicer->setSliceNumber(point1[ptIndex]);
 }
 
-void MdiChild::slicerRotationChanged()
+void MdiChild::slicerRotationChanged(int mode, double angle)
 {
 	m_renderer->setPlaneNormals(m_slicerTransform);
+	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
+	{
+		m_slicer[s]->setAngle(mode, angle);
+	}
 }
 
 void MdiChild::linkViews(bool l)

@@ -236,6 +236,8 @@ public slots:
 	void deleteSnakeLine();
 	//! Called when the delete snake line menu is clicked.
 	void menuDeleteSnakeLine();
+	//! to synchronize angles of all modes between different slicers
+	void setAngle(int mode, double angle);
 
 private slots:
 	void menuCenteredMagicLens();
@@ -253,7 +255,7 @@ signals:
 	void switchedMode(int mode);
 	void deletedSnakeLine();
 	//! triggered when slice was rotated
-	void sliceRotated();
+	void sliceRotated(int mode, double angle);
 	//! triggered when the slice number range has changed; parameters are new minimum, maximum and current index
 	void sliceRangeChanged(int minIdx, int maxIdx, int val);
 	void regionSelected(double minVal, double maxVal, uint channelID);

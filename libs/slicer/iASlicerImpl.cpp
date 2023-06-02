@@ -1825,6 +1825,16 @@ void iASlicerImpl::updateChannelMappers()
 	}
 }
 
+void iASlicerImpl::setAngle(int mode, double angle)
+{
+	if (mode == m_mode)
+	{
+		return;
+	}
+	m_angle[mode] = angle;
+	update();
+}
+
 void iASlicerImpl::rotateSlice(double angle)
 {
 	m_angle[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z)] = angle;
@@ -1866,7 +1876,7 @@ void iASlicerImpl::rotateSlice(double angle)
 	setTransform(transform);
 
 	update();
-	emit sliceRotated();
+	emit sliceRotated(m_mode, angle);
 }
 
 /*
