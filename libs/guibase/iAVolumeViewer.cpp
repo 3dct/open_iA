@@ -24,11 +24,13 @@
 #include "iAVolumeRenderer.h"
 #include "iAXmlSettings.h"
 
-#include "iAChartWithFunctionsWidget.h"
-#include "iAChartFunctionTransfer.h"
-#include "iAHistogramData.h"
-#include "iAPlotTypes.h"
-#include "iAXYPlotData.h"
+#include <iAChartWithFunctionsWidget.h>
+#include <iAChartFunctionTransfer.h>
+#include <iAHistogramData.h>
+#include <iAPlotTypes.h>
+#include <iAXYPlotData.h>
+
+#include <iAStringHelper.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
@@ -67,6 +69,12 @@ namespace
 	const QString TransferFunction = "TransferFunction";
 	const QString HistogramBins = "Histogram Bins";
 	const QString HistogramLogarithmicYAxis = "Histogram Logarithmic y axis";
+
+	const QString Histogram = "Histogram";
+	const QString ImageStatistics = "ImageStatistics";
+	const QString ImageRange = "ImageRange";
+	const QString HistogramSeparator = "|";
+	const QString ArrayValueSeparator = ";";
 }
 
 constexpr const char VolumeViewerSettingsName[] = "Default Settings/Volume Viewer";
@@ -144,9 +152,20 @@ void iAVolumeViewer::prepare(iAProgress* p)
 {
 	p->setStatus(QString("%1: Computing scalar range").arg(m_dataSet->name()));
 	auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
+	
+	double range[2];
+	if (m_dataSet->hasMetaData(ImageRange))
+	{
+		stringToArray<double>(m_dataSet->metaData(ImageRange).toString(), range, 2);
+	}
+	else
+	{
+		img->GetScalarRange(range);
+	}
+
 
 	bool readValidTF = false;
-	auto tfSpec = m_dataSet->metaData(TransferFunction).toString();
+	auto tfSpec = m_dataSet->hasMetaData(TransferFunction) ? m_dataSet->metaData(TransferFunction).toString(): "";
 	if (!tfSpec.isEmpty())
 	{
 		// tfSpec could be either a full transfer function specification or a absolute or relative file name (old)
@@ -177,30 +196,56 @@ void iAVolumeViewer::prepare(iAProgress* p)
 			}
 		}
 	}
+	auto numCmp = img->GetNumberOfScalarComponents();
 	if (!readValidTF)
 	{
 		// create default transfer function:
-		m_transfer = std::make_shared<iATransferFunctionOwner>(img->GetScalarRange(), img->GetNumberOfScalarComponents() == 1);
+		m_transfer = std::make_shared<iATransferFunctionOwner>(range, numCmp == 1);
 	}
 
-	iAImageStatistics stats;
-	// TODO: handle multiple components; but for that, we need to extract the vtkImageAccumulate part,
-	//       as it computes the histograms for all components at once!
-	p->emitProgress(50);
-	p->setStatus(QString("%1: Computing histogram and statistics.").arg(m_dataSet->name()));
-	auto numCmp = img->GetNumberOfScalarComponents();
+	m_imgStatistics = m_dataSet->hasMetaData(ImageStatistics) ? m_dataSet->metaData(ImageStatistics).toString() : "";
+
 	m_histogramData.resize(numCmp);
-	m_imgStatistics = "";
-	for (int c = 0; c < numCmp; ++c)
+	bool computeHistograms = m_imgStatistics.isEmpty() || !m_dataSet->hasMetaData(Histogram);
+	if (!computeHistograms)  // try and load histograms
 	{
-		m_histogramData[c] = iAHistogramData::create(plotName(c, numCmp), img, m_attribValues[HistogramBins].toUInt(), &stats, c);
-		m_imgStatistics += QString("%1min=%2, max=%3, µ=%4, σ=%5%6")
-			.arg(numCmp > 1 ? QString("component %1: ").arg(c) : "")
-			.arg(stats.minimum)
-			.arg(stats.maximum)
-			.arg(stats.mean)
-			.arg(stats.standardDeviation)
-			.arg(c < numCmp-1 ? "; ":"");
+		auto histoStr = m_dataSet->metaData(Histogram).toString();
+		auto histos = histoStr.split(HistogramSeparator);
+		if (histos.size() != numCmp)
+		{
+			computeHistograms = true;
+		}
+		else
+		{
+			for (qsizetype c = 0; c < histos.size(); ++c)
+			{
+				auto values = stringToVector<QVector<double>, double>(histos[c], ArrayValueSeparator);
+				if (values.size() < 2)
+				{
+					computeHistograms = true;
+					break;
+				}
+				m_histogramData[c] = iAHistogramData::create(plotName(c, numCmp), iAValueType::Discrete, range[0], range[1], values);
+			}
+		}
+	}
+	if (computeHistograms)
+	{
+		iAImageStatistics stats;
+		p->emitProgress(50);
+		p->setStatus(QString("%1: Computing histogram and statistics.").arg(m_dataSet->name()));
+		m_imgStatistics = "";
+		for (int c = 0; c < numCmp; ++c)
+		{
+			m_histogramData[c] = iAHistogramData::create(plotName(c, numCmp), img, m_attribValues[HistogramBins].toUInt(), &stats, c);
+			m_imgStatistics += QString("%1min=%2, max=%3, µ=%4, σ=%5%6")
+				.arg(numCmp > 1 ? QString("component %1: ").arg(c) : "")
+				.arg(stats.minimum)
+				.arg(stats.maximum)
+				.arg(stats.mean)
+				.arg(stats.standardDeviation)
+				.arg(c < numCmp - 1 ? "; " : "");
+		}
 	}
 	p->emitProgress(100);
 	
@@ -472,9 +517,31 @@ void iAVolumeViewer::updateProfilePlot()
 QVariantMap iAVolumeViewer::additionalState() const
 {
 	QVariantMap result;
-	// TODO NEWIO: simpler encoding?
+	// TODO NEWIO: simpler encoding for transfer function?
 	iAXmlSettings s;
 	s.saveTransferFunction(m_transfer.get());
 	result.insert(TransferFunction, s.toString());
+
+	QString histoStr;
+	for (size_t hidx=0; hidx < m_histogramData.size(); ++hidx)
+	{
+		auto h = m_histogramData[hidx];
+		// TODO: retrieve vector interface from histogramdata?
+		for (size_t idx = 0; idx < h->valueCount(); ++idx)
+		{
+			histoStr += QString::number(h->yValue(idx));
+			if (idx < h->valueCount() - 1)
+			{
+				histoStr += ArrayValueSeparator;
+			}
+		}
+		if (hidx < m_histogramData.size() - 1)
+		{
+			histoStr += HistogramSeparator;
+		}
+	}
+	result.insert(Histogram, histoStr);
+	result.insert(ImageStatistics, m_imgStatistics);
+	result.insert(ImageRange, arrayToString(volume()->vtkImage()->GetScalarRange(), 2, ArrayValueSeparator));
 	return result;
 }
