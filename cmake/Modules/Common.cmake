@@ -585,11 +585,42 @@ if (MSVC)
 	# /bigobj            increase the number of sections in .obj file (65,279 -> 2^32), exceeded by some compilations
 	# /Zc:__cplusplus    set correct value in __cplusplus macro (https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus)
 	# /MP                enable multi-processor compilation
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /bigobj /Zc:__cplusplus")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /bigobj /Zc:__cplusplus /Zc:inline")
 	if (MSVC_VERSION GREATER_EQUAL 1910)
 		# specify standard conformance mode (https://docs.microsoft.com/en-us/cpp/build/reference/permissive-standards-conformance)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive-")
 	endif()
+
+	# More standard conformance...
+
+	# Below version values deduced from https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
+
+	if (MSVC_VERSION GREATER_EQUAL 1925)  # Strict preprocessor available from VS 2019 16.5 - https://learn.microsoft.com/en-us/cpp/build/reference/zc-preprocessor
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor")
+	endif()
+	
+	if (MSVC_VERSION GREATER_EQUAL 1929)  #  Address sanitizer available from VS 2019 16.9 - https://learn.microsoft.com/en-us/cpp/build/reference/fsanitize#
+		option(openiA_ENABLE_ASAN  "Whether to enable the address sanitizer. Default: disabled." OFF)
+		if (openiA_ENABLE_ASAN)
+			set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /fsanitize=address")
+			# vector and string are address-sanitizer aware also;
+			# if not all statically linked libraries are compiled with address sanitizer, we get compilation errors:
+			# LNK2038 mismatch detected for 'annotate_string' (/ 'annotate_vector'): value '0' doesn't mathc value'1'
+			# 	https://learn.microsoft.com/en-us/answers/questions/864574/enabling-address-sanitizer-results-in-error-lnk203
+			# 	https://learn.microsoft.com/en-us/cpp/sanitizers/error-container-overflow
+			# Two options to address this problem:
+			#      - enable address sanitizer for all statically linked libraries
+			#      - disable annotations for string and vector by defining _DISABLE_VECTOR_ANNOTATION and _DISABLE_STRING_ANNOTATION
+			add_compile_definitions(_DISABLE_VECTOR_ANNOTATION _DISABLE_STRING_ANNOTATION)
+		endif()
+	endif()
+
+	if (MSVC_VERSION GREATER_EQUAL 1934)  # Enum type deduction available from VS 2022 17.4 - https://learn.microsoft.com/en-us/cpp/build/reference/zc-enumtypes
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:enumTypes")
+	endif()
+
+	# ... and even more might be available, see see https://stackoverflow.com/questions/69575307 :
+	# /volatile:iso /Zc:externConstexpr /Zc:throwingNew /Zc:enumTypes /Zc:templateScope
 
 	# Reduce size of .pdb files:
 	option(openiA_COMPRESS_PDB "Whether to compress .pdb files to conserve disk space. Default: enabled." ON)
@@ -715,6 +746,10 @@ if (MSVC)
 		get_filename_component(ONNX_LIB_DIR ${ONNX_RUNTIME_LIBRARIES} DIRECTORY)
 		string(REGEX REPLACE "/" "\\\\" ONNX_LIB_WIN_DIR ${ONNX_LIB_DIR})
 		set(WinDLLPaths "${ONNX_LIB_WIN_DIR};${WinDLLPaths}")
+	endif()
+
+	if (openiA_ENABLE_ASAN)
+		set(WinDLLPaths "$(VCToolsInstallDir)\\bin\\Hostx64\\x64;${WinDLLPaths}")
 	endif()
 
 	string(REGEX REPLACE "/" "\\\\" CMAKE_BINARY_WIN_DIR ${CMAKE_BINARY_DIR})
