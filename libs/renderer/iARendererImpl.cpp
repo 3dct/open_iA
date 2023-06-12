@@ -137,7 +137,8 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_roiMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_roiActor(vtkSmartPointer<vtkActor>::New()),
 	m_stickOutBox{ iAVec3d(0.0, 0.0, 0.0), iAVec3d(0.0, 0.0, 0.0) },
-	m_touchStartScale(1.0)
+	m_touchStartScale(1.0),
+	m_unitSize({1.0, 1.0, 1.0})
 {
 	// fill m_profileLine; cannot do it via  m_profileLine(NumOfProfileLines, iALineSegment()),
 	// since that would insert copies of one iALineSegment, meaning all would reference the same vtk objects...
@@ -346,12 +347,9 @@ void iARendererImpl::setSceneBounds(iAAABB const & boundingBox)
 	iAVec3d center = origin + size / 2;
 	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
 	{
-		m_slicePlaneSource[s]->SetXLength((s == iASlicerMode::XY || s == iASlicerMode::XZ) ?
-			IndicatorsLenMultiplier * size[0] : m_unitSize[0]);
-		m_slicePlaneSource[s]->SetYLength((s == iASlicerMode::XY || s == iASlicerMode::YZ) ?
-			IndicatorsLenMultiplier * size[1] : m_unitSize[1]);
-		m_slicePlaneSource[s]->SetZLength((s == iASlicerMode::XZ || s == iASlicerMode::YZ) ?
-			IndicatorsLenMultiplier * size[2] : m_unitSize[2]);
+		m_slicePlaneSource[s]->SetXLength((s != iAAxisIndex::X) ? IndicatorsLenMultiplier * size[0] : m_unitSize[0]);
+		m_slicePlaneSource[s]->SetYLength((s != iAAxisIndex::Y) ? IndicatorsLenMultiplier * size[1] : m_unitSize[1]);
+		m_slicePlaneSource[s]->SetZLength((s != iAAxisIndex::Z) ? IndicatorsLenMultiplier * size[2] : m_unitSize[2]);
 		m_slicePlaneSource[s]->SetCenter(center.data());
 	}
 	const double ResetCameraBoxFactor = 1.2;
@@ -488,6 +486,9 @@ void iARendererImpl::setUnitSize(std::array<double, 3> size)
 	m_cSource->SetXLength(size[0]);
 	m_cSource->SetYLength(size[1]);
 	m_cSource->SetZLength(size[2]);
+	m_slicePlaneSource[0]->SetXLength(size[0]);
+	m_slicePlaneSource[1]->SetYLength(size[1]);
+	m_slicePlaneSource[2]->SetZLength(size[2]);
 }
 
 void iARendererImpl::setSlicePlaneOpacity(float opc)
