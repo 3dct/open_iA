@@ -38,7 +38,7 @@ public:
 	void Spin() override;
 	//! @}
 
-	void initialize(vtkImageData* img, iADataSetRenderer* dataSetRenderer, iAChannelSlicerData* slicerChannel[4], int currentMode);
+	void initialize(vtkImageData* img, iADataSetRenderer* dataSetRenderer, iAChannelSlicerData* slicerChannel[3], int currentMode);
 
 signals:
 	void actorsUpdated();

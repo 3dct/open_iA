@@ -339,12 +339,11 @@ void iAInterpolationSlider::calculateCoordinatesNow()
 	// Interpolation between 'a' and 'b' with value 't': a*(1-t) + b*(t)
 	m_interpolationVolume->AllocateScalars(VTK_FLOAT, 1);
 
-	double rangea[2], rangeb[2], rangec[2];
+	double rangea[2], rangeb[2];
 	d1->GetScalarRange(rangea);
 	d2->GetScalarRange(rangeb);
 	rangea[1] -= rangea[0];
 	rangeb[1] -= rangeb[0];
-	rangec[1] -= rangec[0];
 
 	// TODO parallelize
 	float a, b, sum, *values;
