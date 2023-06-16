@@ -1,9 +1,8 @@
-if ("${openiA_VR_BACKEND}" STREQUAL "OpenVR")
-	set(VR_BACKEND_VERSION "${OpenVR_VERSION_MAJOR}.${OpenVR_VERSION_MINOR}.${OpenVR_VERSION_PATCH}")
+if (RenderingOpenVR IN_LIST VTK_COMPONENTS)
+	set(BUILD_INFO "${BUILD_INFO}    \"OpenVR	${OpenVR_VERSION_MAJOR}.${OpenVR_VERSION_MINOR}.${OpenVR_VERSION_PATCH}\\n\"\n")
 else ()
-	set(VR_BACKEND_VERSION "${OpenXR_VERSION}")
+	set(BUILD_INFO "${BUILD_INFO}    \"OpenXR	${OpenXR_VERSION}\\n\"\n")
 endif()
-set(BUILD_INFO "${BUILD_INFO}    \"VR Backend	${openiA_VR_BACKEND} ${VR_BACKEND_VERSION}\\n\"\n")
 
 set(VR_INSTALL_SRC_SUBDIRS images)
 set(VR_INSTALL_DST_SUBDIRS VR-skybox)
