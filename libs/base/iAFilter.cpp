@@ -228,10 +228,11 @@ void iAFilter::setLogger(iALogger* log)
 
 bool iAFilter::run(QVariantMap const & parameters)
 {
-	if (m_input.size() < (m_requiredImages + m_requiredMeshes) )
+	auto requiredDataSets = m_requiredImages + m_requiredMeshes;
+	if (m_input.size() < requiredDataSets)
 	{
-		addMsg(QString("Not enough inputs specified. Filter %1 requires %2 input images, but only %3 given!")
-			.arg(m_name).arg(m_requiredImages).arg(m_input.size()));
+		addMsg(QString("Not enough inputs specified. Filter %1 requires %2 input datasets, but only %3 given!")
+			.arg(m_name).arg(requiredDataSets).arg(m_input.size()));
 		return false;
 	}
 	clearOutput();
