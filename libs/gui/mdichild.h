@@ -218,17 +218,19 @@ public:
 
 	void setDataSetMovable(size_t dataSetIdx) override;
 
+	void updatePositionMarkerSize() override;
+
 public slots:
 	//! maximize the renderer (so that it takes all of the child's space, all other dock widgets are hidden)
 	void maximizeRenderer();
 
 	//! update a specific slicer (specified through slicer mode, @see iASlicerMode)
 	void updateSlicer(int index);
-	//! update all 3 axis-aligned slicer
+	//! Update all 3 axis-aligned slicer
 	void updateSlicers() override;
-	//! update 3D renderer
+	//! Update 3D renderer
 	void updateRenderer() override;
-	//! update all dataset views (3D renderer + all 3 axis-aligned slicers)
+	//! Update all dataset views (3D renderer + all 3 axis-aligned slicers)
 	void updateViews() override;
 
 	//! set slicer interaction on / off
@@ -267,7 +269,6 @@ private:
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void snakeNormal(int index, double point[3], double normal[3]);
 	void connectSignalsToSlots();
-	void updatePositionMarkerSize();
 	void updateDataSetInfo();
 
 	MainWindow * m_mainWnd;

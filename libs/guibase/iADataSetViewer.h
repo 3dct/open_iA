@@ -118,6 +118,10 @@ private:
 
 	//! Called when the attributes have changed; override in derived classes to apply such a change to renderer (default implementation is empty)
 	virtual void applyAttributes(QVariantMap const& values);
+
+	//! Adapt scene bounds of 3D renderer
+	//TODO: not sure if this is best done here or somewhere else, maybe some kind of dataset manager ?
+	void adaptRendererSceneBounds(iAMdiChild* child);
 };
 
 //! Dataset viewer for surface mesh data.

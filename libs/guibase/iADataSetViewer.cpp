@@ -10,6 +10,7 @@
 #include "iAMdiChild.h"
 #include "iAParameterDlg.h"
 #include "iARenderer.h"
+#include "iASlicer.h"
 #include "iAValueTypeVectorHelpers.h"
 
 #include <iALog.h>
@@ -46,6 +47,20 @@ void iADataSetViewer::prepare(iAProgress* p)
 	Q_UNUSED(p);
 }
 
+void iADataSetViewer::adaptRendererSceneBounds(iAMdiChild* child)
+{
+	//TODO: not sure if this is best done here or somewhere else, maybe some kind of dataset manager ?
+	iAAABB overallBB;
+	for (auto ds : child->dataSetMap())
+	{
+		if (child->dataSetViewer(ds.first)->renderer())   // e.g. project files don't have a renderer...
+		{
+			overallBB.merge(child->dataSetViewer(ds.first)->renderer()->bounds());
+		}
+	}
+	child->renderer()->setSceneBounds(overallBB);
+}
+
 void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 {
 	m_child = child;
@@ -77,22 +92,14 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	{
 		m_renderer->setCuttingPlanes(child->renderer()->slicePlanes());
 	}
-	// compute overall bounding box across all datasets of this child, and adapt renderer "scene" to that:
-	iAAABB overallBB;
-	for (auto ds : child->dataSetMap())
-	{
-		if (child->dataSetViewer(ds.first)->renderer())   // e.g. project files don't have a renderer...
-		{
-			overallBB.merge(child->dataSetViewer(ds.first)->renderer()->bounds());
-		}
-	}
-	child->renderer()->setSceneBounds(overallBB);
+	adaptRendererSceneBounds(child);
 	child->dataSetListWidget()->addDataSet(m_dataSet, dataSetIdx);
 
 	auto editAction = new QAction("Edit dataset and display properties");
 	connect(editAction, &QAction::triggered, this,
 		[this, child, dataSetIdx]()
 		{
+			auto prevUnitDistance = m_dataSet->unitDistance();
 			auto params = attributesWithValues();
 			params.prepend(iAAttributeDescriptor::createParam("Name", iAValueType::String, m_dataSet->name()));
 			QString description;
@@ -112,20 +119,20 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 				child->dataSetListWidget()->setName(dataSetIdx, newName);
 			}
 			setAttributes(dlg.parameterValues());
+			if (m_dataSet->unitDistance() != prevUnitDistance)
+			{
+				child->updatePositionMarkerSize();
+				for (int s = 0; s < 3; ++s)
+				{
+					auto slicer = child->slicer(s);
+					slicer->updateChannelMappers();  // to make possible spacing changes in image arrive in renderer
+					//child->set3DSlicePlanePos(s, child->sliceNumber(s));  // private...
+					slicer->resetCamera();
+					slicer->update();
+				}
+				adaptRendererSceneBounds(child);    // automatically resets scene if necessary
+			}
 			child->updateRenderer();  // currently, 3D renderer properties are changed only
-			/*
-	// TODO: reset camera in 3D renderer / slicer when the spacing of modality was changed
-	// TODO: maybe instead of reset, apply a zoom corresponding to the ratio of spacing change?
-	m_renderer->updateSlicePlanes(newSpacing);
-	m_renderer->renderer()->ResetCamera();
-	m_renderer->update();
-	for (int s = 0; s < 3; ++s)
-	{
-		set3DSlicePlanePos(s, sliceNumber(s));
-		slicer(s)->renderer()->ResetCamera();
-		slicer(s)->update();
-	}
-	*/
 			emit dataSetChanged(dataSetIdx);
 		});
 	iAMainWindow::get()->addActionIcon(editAction, "edit");

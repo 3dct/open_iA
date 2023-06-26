@@ -207,6 +207,10 @@ public:
 	//! called to set profile point positions in renderer and slicer
 	virtual void setProfilePoints(double const* start, double const* end) = 0;
 
+	//! update the size of position markers in slicers and renderers based on the
+	//! marker size setting and the unit distance (spacing) of datasets
+	virtual void updatePositionMarkerSize() = 0;
+
 signals:
 	//! emitted when the child is about to be closed
 	void closed();
@@ -250,7 +254,7 @@ signals:
 public slots:
 	//! Updates all views (slicers, renderers)
 	virtual void updateViews() = 0;
-	//! Update all slice views
+	//! Update all 3 axis-aligned slicers
 	virtual void updateSlicers() = 0;
 	//! Update 3D renderer
 	virtual void updateRenderer() = 0;

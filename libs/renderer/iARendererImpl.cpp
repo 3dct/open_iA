@@ -346,17 +346,18 @@ void iARendererImpl::setSceneBounds(iAAABB const & boundingBox)
 
 	iAVec3d center = origin + size / 2;
 	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
-	{
+	{   // update the length of the "non-dominant" (2/3) parts of the axis; the dominant axis length is set in setUnitSize
 		m_slicePlaneSource[s]->SetXLength((s != iAAxisIndex::X) ? IndicatorsLenMultiplier * size[0] : m_unitSize[0]);
 		m_slicePlaneSource[s]->SetYLength((s != iAAxisIndex::Y) ? IndicatorsLenMultiplier * size[1] : m_unitSize[1]);
 		m_slicePlaneSource[s]->SetZLength((s != iAAxisIndex::Z) ? IndicatorsLenMultiplier * size[2] : m_unitSize[2]);
 		m_slicePlaneSource[s]->SetCenter(center.data());
 	}
-	const double ResetCameraBoxFactor = 1.2;
-	if ((m_stickOutBox[1] - m_stickOutBox[0]).length() > ResetCameraBoxFactor * oldStickOutBoxSize)
-	{
+	auto boxSizeChangeWindow = (oldStickOutBoxSize == 0) ? 0 : ((m_stickOutBox[1] - m_stickOutBox[0]).length() / oldStickOutBoxSize);
+	if (std::abs(boxSizeChangeWindow - 1) > 0.2)    // if box changed by a factor of less than 0.8 / more than 1.2
+	{	// TODO: maybe instead of reset, apply a zoom corresponding to the ratio of spacing change?
 		m_ren->ResetCamera();
 	}
+	// related: cSource size / slicePlaneSource size -> setUnitSize
 }
 
 void iARendererImpl::setCuttingActive(bool enabled)
@@ -489,6 +490,7 @@ void iARendererImpl::setUnitSize(std::array<double, 3> size)
 	m_slicePlaneSource[0]->SetXLength(size[0]);
 	m_slicePlaneSource[1]->SetYLength(size[1]);
 	m_slicePlaneSource[2]->SetZLength(size[2]);
+	// related: m_axesActor length; see setSceneBounds
 }
 
 void iARendererImpl::setSlicePlaneOpacity(float opc)

@@ -1957,11 +1957,9 @@ void iASlicerImpl::keyPressEvent(QKeyEvent *event)
 	{
 		return;
 	}
-
-	vtkRenderer * ren = m_renWin->GetRenderers()->GetFirstRenderer();
 	if (event->key() == Qt::Key_R)
 	{
-		ren->ResetCamera();
+		m_ren->ResetCamera();
 	}
 	if (event->key() == Qt::Key_O)
 	{
@@ -1977,7 +1975,7 @@ void iASlicerImpl::keyPressEvent(QKeyEvent *event)
 #endif
 		))
 	{
-		ren->SetWorldPoint(m_slicerPt[0], m_slicerPt[1], 0, 1);
+		m_ren->SetWorldPoint(m_slicerPt[0], m_slicerPt[1], 0, 1);
 
 		// TODO: fisheye lens on all channels???
 		auto reslicer = channel(0)->reslicer();
@@ -2003,7 +2001,7 @@ void iASlicerImpl::keyPressEvent(QKeyEvent *event)
 		}
 		if (oldRadius != m_fisheyeRadius || oldInnerRadius != m_innerFisheyeRadius) // only update if something changed
 		{
-			updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
+			updateFisheyeTransform(m_ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
 		}
 	}
 	if (event->key() == Qt::Key_S)

@@ -33,12 +33,16 @@ public:
 	QString name() const;
 	//! a sensible unit distance for this dataset (e.g. the spacing of a single voxel, for volume datasets)
 	virtual std::array<double, 3> unitDistance() const;
-	//! should deliver information about the dataset interesting to users viewing it
+	//! should deliver information about the dataset interesting to users viewing it; implemented by derived classes
 	virtual QString info() const;
 
 	//! set an (optional) metadata key/value pair
+	//! @param key the key to be added; if it already exists, its value is overwritten
+	//! @param value the value for the given key
 	void setMetaData(QString const & key, QVariant const& value);
-	//! set bulk metadata from another key/value map
+	//! Set bulk metadata from another key/value map.
+	//! This adds/overwrites the key/value pairs given via parameter; it does NOT delete keys in the dataset's metadata which don't exist in the given parameter
+	//! @param other map of meta data; all key-value pairs in this list are added to this dataset's metadata (for already existing keys, the values are overwritten)
 	void setMetaData(QVariantMap const& other);
 	//! retrieve (optional) additional parameters for the dataset
 	QVariant metaData(QString const& key) const;
