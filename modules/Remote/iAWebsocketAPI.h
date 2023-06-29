@@ -7,7 +7,6 @@
 #include <QObject>
 #include <QMap>
 #include <QThread>
-#include <iACaptionItem.h>
 #include <QJsonDocument>
 
 #include <iAAnnotationTool.h>

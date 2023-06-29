@@ -338,8 +338,7 @@ void iAWebsocketAPI::processBinaryMessage(QByteArray message)
 	}
 	if (pClient)
 	{
-		pClient->sendBinaryMessage(message);
-	}
+		pClient->sendBinaryMessage(message);	}
 }
 
 void iAWebsocketAPI::socketDisconnected()

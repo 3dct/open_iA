@@ -12,6 +12,7 @@
 #include "iARemoteAction.h"
 #include "iARemoteRenderer.h"
 #include "iAWebsocketAPI.h"
+#include "iAWebSocketServerTool.h"
 
 #include <QAction>
 #include <QDateTime>
@@ -197,6 +198,7 @@ private:
 
 const QString iARemoteTool::Name("NDTflix");
 
+
 void iARemoteModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
@@ -210,4 +212,12 @@ void iARemoteModuleInterface::Initialize()
 		});
 	m_mainWnd->makeActionChildDependent(actionRemote);
 	addToMenuSorted(m_mainWnd->toolsMenu(), actionRemote);
+
+	QAction* actionWS = new QAction("WebSocket Server", m_mainWnd);
+	connect(actionWS, &QAction::triggered, this, [this]()
+		{
+			addToolToActiveMdiChild<iAWebSocketServerTool>(iAWebSocketServerTool::Name, m_mainWnd);
+		});
+	m_mainWnd->makeActionChildDependent(actionWS);
+	addToMenuSorted(m_mainWnd->toolsMenu(), actionWS);
 }
