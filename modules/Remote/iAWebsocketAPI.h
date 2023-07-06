@@ -5,12 +5,11 @@
 #include <iAAnnotationTool.h>
 
 #include <QByteArray>
-#include <QList>
-#include <QObject>
-#include <QMap>
-#include <QThread>
-#include <iACaptionItem.h>
 #include <QJsonDocument>
+#include <QList>
+#include <QMap>
+#include <QObject>
+#include <QThread>
 
 class iARemoteAction;
 
