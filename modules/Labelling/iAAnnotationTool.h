@@ -46,7 +46,7 @@ public slots:
 	void hideAnnotation(size_t id);
 
 signals:
-	void annotationsUpdated(std::vector<iAAnnotation>);
+	void annotationsUpdated(std::vector<iAAnnotation> const &);
 	void annotionMode(bool activated);
 	void focusedToAnnotation(size_t id);
 
