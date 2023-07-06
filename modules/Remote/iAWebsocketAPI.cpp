@@ -2,21 +2,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAWebsocketAPI.h"
 
-#include <iALog.h>
-
 #include "iARemoteAction.h"
 
-#include <QWebSocketServer>
-#include <QWebSocket>
+#include <iALog.h>
+
 #include <QDebug>
+#include <QImage>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
-#include <QFile>
-#include <QImage>
-
-
-
+#include <QWebSocketServer>
+#include <QWebSocket>
 
 iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :
 	QObject(parent),
@@ -34,7 +30,6 @@ iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :
 
 	std::vector<iAAnnotation> captions;
 	updateCaptionList(captions);
-
 }
 
 void iAWebsocketAPI::setRenderedImage(QByteArray img, QString id)
@@ -62,7 +57,6 @@ void iAWebsocketAPI::onNewConnection()
 
 void iAWebsocketAPI::processTextMessage(QString message)
 {
-
 	//LOG(lvlDebug, QString("Websocket time %1").arg(m_StoppWatch.elapsed()));
 	m_StoppWatch.restart();
 
@@ -129,8 +123,6 @@ void iAWebsocketAPI::processTextMessage(QString message)
 	{
 		emit hideAnnotation(Request["id"].toInt());
 	}
-
-
 }
 
 void iAWebsocketAPI::commandWslinkHello(QJsonDocument Request, QWebSocket* pClient)
@@ -178,13 +170,11 @@ void iAWebsocketAPI::commandImagePush(QJsonDocument Request, QWebSocket* pClient
 	QString viewIDString = Request["args"][0]["view"].toString();
 	commandImagePushSize(Request, pClient);
 	sendImage(pClient, viewIDString);
-
 }
 
 void iAWebsocketAPI::commandImagePushSize(QJsonDocument Request, QWebSocket* pClient)
 {
 	sendSuccess(Request, pClient);
-
 }
 
 void iAWebsocketAPI::commandImagePushInvalidateCache(QJsonDocument Request, QWebSocket* pClient)
@@ -246,13 +236,10 @@ void iAWebsocketAPI::commandControls(QJsonDocument Request, QWebSocket* pClient)
 	webAction.ctrlKey = argList["controlKey"].toBool() || argList["ctrlKey"].toInt();
 	webAction.metaKey = argList["metaKey"].toInt();
 	webAction.shiftKey = argList["shiftKey"].toInt() || argList["shiftKey"].toBool();
-
 	webAction.viewID = argList["view"].toString();
-
 	webAction.x = argList["x"].toDouble();
 	webAction.y = argList["y"].toDouble();
 	webAction.spinY = argList["spinY"].toDouble();
-
 
 	emit controlCommand(webAction);
 
@@ -279,16 +266,11 @@ void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)  // use in f
 
 	pClient->sendTextMessage(Response.toJson());
 
-	
-
-	int width=0, height=0;
-
-	
 	QByteArray ba = images[viewID];
 	QImage img;
 	img.loadFromData(ba);
-	width = img.size().width();
-	height = img.size().height();
+	int width = img.size().width();
+	int height = img.size().height();
 	pClient->sendBinaryMessage(ba);
 
 	auto imageSize = ba.size();
@@ -297,10 +279,8 @@ void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)  // use in f
 	const auto result = QJsonObject{{"format", "jpeg"}, {"global_id", 1}, {"global_id", "1"}, {"id", viewID},
 		{"image", imageString}, {"localTime", 0}, {"memsize", imageSize}, {"mtime", 2125+m_count*5}, {"size", resultArray2},
 		{"stale", m_count%2==0}, {"workTime", 77}};
-	
 
 	QJsonObject ResponseArray2;
-
 	ResponseArray2["wslink"] = "1.0";
 	ResponseArray2["id"] = "publish:viewport.image.push.subscription:0";
 	ResponseArray2["result"] = result;
@@ -308,16 +288,13 @@ void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)  // use in f
 	const QJsonDocument Response2{ResponseArray2};
 
 	pClient->sendTextMessage(Response2.toJson());
-
 	pClient->flush();
 
 	m_count++;
-
 }
 
 void iAWebsocketAPI::sendViewIDUpdate(QByteArray img, QString ViewID)
 {
-
 	setRenderedImage(img, ViewID);
 
 	if (subscriptions.contains(ViewID))
@@ -361,9 +338,8 @@ void iAWebsocketAPI::socketDisconnected()
 	}
 }
 
-void iAWebsocketAPI::updateCaptionList(std::vector<iAAnnotation> captions)
+void iAWebsocketAPI::updateCaptionList(std::vector<iAAnnotation> const & captions)
 {
-
 	QJsonArray captionList;
 
 	for (auto caption : captions)
@@ -375,9 +351,7 @@ void iAWebsocketAPI::updateCaptionList(std::vector<iAAnnotation> captions)
 		captionObject["y"] = caption.m_coord[1];
 		captionObject["z"] = caption.m_coord[2];
 		captionObject["hide"] = caption.m_hide;
-
 		captionList.append(captionObject);
-
 	}
 
 	QJsonObject response;
@@ -393,8 +367,6 @@ void iAWebsocketAPI::updateCaptionList(std::vector<iAAnnotation> captions)
 
 void iAWebsocketAPI::captionSubscribe(QWebSocket* pClient)
 {
-
-
 	if (subscriptions.contains(cptionKey))
 	{
 		subscriptions[cptionKey].append(pClient);
@@ -410,8 +382,6 @@ void iAWebsocketAPI::captionSubscribe(QWebSocket* pClient)
 
 void iAWebsocketAPI::sendCaptionUpdate()
 {
-
-
 	if (subscriptions.contains(cptionKey))
 	{
 		for (auto client : subscriptions[cptionKey])
@@ -423,7 +393,6 @@ void iAWebsocketAPI::sendCaptionUpdate()
 
 void iAWebsocketAPI::sendInteractionUpdate( size_t focusedId)
 {
-
 	QJsonObject response;
 	response["id"] = "caption.interactionUpdate";
 	response["focusedId"] = (int)focusedId;

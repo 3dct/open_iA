@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include <QByteArray>
-#include <QList>
-#include <QObject>
-#include <QMap>
-#include <QThread>
-#include <QJsonDocument>
-
 #include <iAAnnotationTool.h>
+
+#include <QByteArray>
+#include <QJsonDocument>
+#include <QList>
+#include <QMap>
+#include <QObject>
+#include <QThread>
 
 class iARemoteAction;
 
@@ -42,16 +42,11 @@ private Q_SLOTS:
 
 	void sendCaptionUpdate();
 	
-
-
-
 public Q_SLOTS:
 	void sendViewIDUpdate(QByteArray img, QString ViewID);
-	void updateCaptionList(std::vector<iAAnnotation> captions);
+	void updateCaptionList(std::vector<iAAnnotation> const & captions);
 	void sendInteractionUpdate( size_t focusedId);
 	
- 
-
 private:
 	QWebSocketServer* m_pWebSocketServer;
 	QList<QWebSocket*> m_clients;
