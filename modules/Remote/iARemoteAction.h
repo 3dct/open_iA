@@ -7,12 +7,8 @@
 
 class iARemoteAction: public QObject
 {
-
-Q_OBJECT
-
-
+	Q_OBJECT
 public:
-
 	enum mouseAction
 	{
 		ButtonDown,
@@ -22,7 +18,6 @@ public:
 		EndMouseWheel,
 		Unknown
 	};
-
 	mouseAction action;
 	float x;
 	float y;

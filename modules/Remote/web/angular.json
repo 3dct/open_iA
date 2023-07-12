@@ -30,7 +30,6 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
-              "src_angular/assets",
               {
                 "glob": "*",
                 "input": "fonts",

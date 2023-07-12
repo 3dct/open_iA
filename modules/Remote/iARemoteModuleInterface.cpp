@@ -65,6 +65,23 @@ namespace
 }
 #endif
 
+namespace
+{
+	QString mouseActionToString(iARemoteAction::mouseAction action)
+	{
+		switch (action)
+		{
+		case iARemoteAction::ButtonDown:      return "Mouse button down";
+		case iARemoteAction::ButtonUp:        return "Mouse button up";
+		case iARemoteAction::StartMouseWheel: return "Mouse wheel start";
+		case iARemoteAction::MouseWheel:      return "Mouse wheel continue";
+		case iARemoteAction::EndMouseWheel:   return "Mouse wheel end";
+		default:
+		case iARemoteAction::Unknown:         return "Unknown";
+		}
+	}
+}
+
 class iARemoteTool: public QObject, public iATool
 {
 public:
@@ -91,13 +108,16 @@ public:
 			child->slicer(i)->setShowTooltip(false);
 			m_viewWidgets.insert(slicerModeString(i), child->slicer(i));
 		}
-		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::controlCommand, this, [this](iARemoteAction const & action) {
-			//LOG(lvlDebug, QString("client control: action: %1; position: %2, %3")
-			//	.arg((action.action == iARemoteAction::ButtonUp)?"up":"down")
-			//	.arg(action.x)
-			//	.arg(action.y)
-			//	);
+		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::controlCommand, this, [this](iARemoteAction const & action)
+		{
 			int vtkEventID;
+			LOG(lvlDebug, QString("Action: %1; position: %2, %3; shift: %4; ctrl: %5; alt: %6.")
+				.arg(mouseActionToString(action.action))
+				.arg(action.x)
+				.arg(action.y)
+				.arg(action.shiftKey)
+				.arg(action.ctrlKey)
+				.arg(action.altKey));
 			if (action.action == iARemoteAction::MouseWheel || action.action == iARemoteAction::StartMouseWheel)
 			{
 				vtkEventID = (action.spinY < 0) ? vtkCommand::MouseWheelForwardEvent : vtkCommand::MouseWheelBackwardEvent;
@@ -174,17 +194,12 @@ public:
 #endif
 
 		connect(annotTool, &iAAnnotationTool::annotationsUpdated, m_wsAPI->m_websocket.get(),&iAWebsocketAPI::updateCaptionList);
-		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::changeCaptionTitle, annotTool,
-			&iAAnnotationTool::renameAnnotation);
-		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::removeCaption, annotTool,
-			&iAAnnotationTool::removeAnnotation);
+		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::changeCaptionTitle, annotTool,	&iAAnnotationTool::renameAnnotation);
+		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::removeCaption, annotTool, &iAAnnotationTool::removeAnnotation);
 		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::addMode, annotTool, &iAAnnotationTool::startAddMode);
-		connect(
-			m_wsAPI->m_websocket.get(), &iAWebsocketAPI::selectCaption, annotTool, &iAAnnotationTool::focusToAnnotation);
-		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::hideAnnotation, annotTool,
-			&iAAnnotationTool::hideAnnotation);
-		connect(annotTool, &iAAnnotationTool::focusedToAnnotation, m_wsAPI->m_websocket.get(),
-				&iAWebsocketAPI::sendInteractionUpdate);
+		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::selectCaption, annotTool, &iAAnnotationTool::focusToAnnotation);
+		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::hideAnnotation, annotTool,	&iAAnnotationTool::hideAnnotation);
+		connect(annotTool, &iAAnnotationTool::focusedToAnnotation, m_wsAPI->m_websocket.get(), &iAWebsocketAPI::sendInteractionUpdate);
 	}
 
 private:
