@@ -352,7 +352,7 @@ void iAFilterRunnerGUI::filterFinished()
 		{
 			auto dataSet = filter->output(o);
 			dataSet->setMetaData(iADataSet::NameKey, baseName + dataSet->name());
-			newChild->addDataSet(dataSet);
+			newChild->addDataSet(dataSet);    // TODO: if it makes sense for this filter, we might want to pass in the viewer parameters (transfer function, etc.) from the old dataset (?)
 		}
 	}
 	for (auto outputValue : filter->outputValues())

@@ -7,7 +7,7 @@
 #include "iAItkVersion.h"
 
 #include <itkImageBase.h>
-#include <itkImageIOBase.h>
+//#include <itkImageIOBase.h>
 
 class iAProgress;
 
