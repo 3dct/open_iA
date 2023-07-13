@@ -27,13 +27,11 @@ public:
 
 private:
 	QMap<QString, vtkRenderWindow*> m_renderWindows;
-	long long Lastrendered=0;
-	int timeRendering;
 	QMap<QString, iAViewHandler*> views;
 
-public Q_SLOTS: 
-	void createImage(QString const& ViewID, int Quality );
+public slots:
+	void createImage(QString const& viewID, int quality );
 
-Q_SIGNALS:
-	void imageHasChanged(QByteArray Image, QString ViewID);
+signals:
+	void imageHasChanged(QByteArray image, QString viewID);
 };

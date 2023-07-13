@@ -248,7 +248,7 @@ void iAWebsocketAPI::commandControls(QJsonDocument Request, QWebSocket* pClient)
 
 
 
-void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)  // use in future
+void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)
 {
 	QString imageString("wslink_bin");
 	
@@ -368,14 +368,14 @@ void iAWebsocketAPI::updateCaptionList(std::vector<iAAnnotation> const & caption
 
 void iAWebsocketAPI::captionSubscribe(QWebSocket* pClient)
 {
-	if (subscriptions.contains(cptionKey))
+	if (subscriptions.contains(captionKey))
 	{
-		subscriptions[cptionKey].append(pClient);
+		subscriptions[captionKey].append(pClient);
 	}
 	else
 	{
-		subscriptions.insert(cptionKey, QList<QWebSocket*>());
-		subscriptions[cptionKey].append(pClient);
+		subscriptions.insert(captionKey, QList<QWebSocket*>());
+		subscriptions[captionKey].append(pClient);
 	}
 	sendCaptionUpdate();
 }
@@ -383,9 +383,9 @@ void iAWebsocketAPI::captionSubscribe(QWebSocket* pClient)
 
 void iAWebsocketAPI::sendCaptionUpdate()
 {
-	if (subscriptions.contains(cptionKey))
+	if (subscriptions.contains(captionKey))
 	{
-		for (auto client : subscriptions[cptionKey])
+		for (auto client : subscriptions[captionKey])
 		{
 			client->sendTextMessage(m_captionUpdate.toJson());
 		}
@@ -399,9 +399,9 @@ void iAWebsocketAPI::sendInteractionUpdate( size_t focusedId)
 	response["focusedId"] = (int)focusedId;
 	const QJsonDocument JsonResponse{response};
 
-	if (subscriptions.contains(cptionKey))
+	if (subscriptions.contains(captionKey))
 	{
-		for (auto client : subscriptions[cptionKey])
+		for (auto client : subscriptions[captionKey])
 		{
 			client->sendTextMessage(JsonResponse.toJson());
 		}

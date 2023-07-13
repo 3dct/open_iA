@@ -20,7 +20,7 @@ iARemoteRenderer::iARemoteRenderer(int port):
 void iARemoteRenderer::addRenderWindow(vtkRenderWindow* window, QString const& viewID)
 {
 	m_renderWindows.insert(viewID, window);
-	auto imgData = iAImagegenerator::createImage(window,100);
+	auto imgData = iAImagegenerator::createImage(viewID, window, 100);
 	m_websocket->setRenderedImage(imgData, viewID);
 
 	auto view = new iAViewHandler();
@@ -43,10 +43,9 @@ vtkRenderWindow* iARemoteRenderer::renderWindow(QString const& viewID)
 	return m_renderWindows[viewID];
 }
 
-void iARemoteRenderer::createImage(QString const& ViewID, int Quality)
+void iARemoteRenderer::createImage(QString const& viewID, int quality)
 {
-	QSignalBlocker block(views[ViewID]);
-	auto data = iAImagegenerator::createImage(m_renderWindows[ViewID],Quality);
-
-	imageHasChanged(data, ViewID);
+	QSignalBlocker block(views[viewID]);
+	auto data = iAImagegenerator::createImage(viewID, m_renderWindows[viewID], quality);
+	emit imageHasChanged(data, viewID);
 }

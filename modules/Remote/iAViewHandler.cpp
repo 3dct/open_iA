@@ -10,7 +10,7 @@ iAViewHandler::iAViewHandler()
 	timer->setSingleShot(true);
 	connect(timer, &QTimer::timeout, [=]() -> void {
 		//LOG(lvlDebug, "TIMER");
-		createImage(id, 100);
+		emit createImage(id, 100);
 	});
 	m_StoppWatch.start();
 }
@@ -28,7 +28,7 @@ void iAViewHandler::vtkCallbackFunc(vtkObject* caller, long unsigned int evId, v
 		timer->stop();
 		timer->start(250);
 
-		createImage(id, quality);
+		emit createImage(id, quality);
 		timeRendering = m_StoppWatch.elapsed();
 		waitTimeRendering = waitTimeRendering + (timeRendering - waitTimeRendering + 12)/4;
 		//LOG(lvlDebug, QString("DIRECT %1, time %2 wait %3").arg(id).arg(timeRendering).arg(waitTimeRendering));

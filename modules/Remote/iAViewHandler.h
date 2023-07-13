@@ -12,7 +12,6 @@
 
 class iAViewHandler: public QObject
 {
-
 	Q_OBJECT
 public:
 	iAViewHandler();
@@ -22,12 +21,11 @@ public:
 	int quality = 45;
 
 private: 
-	long long Lastrendered =0;
 	int timeRendering =0;
 	int waitTimeRendering = 50;
 	QTimer* timer;
 	QElapsedTimer m_StoppWatch;
 
-Q_SIGNALS:
+signals:
 	void createImage(QString id, int Quality);
 };

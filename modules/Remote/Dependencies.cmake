@@ -23,7 +23,7 @@ if (Qt${QT_VERSION_MAJOR}HttpServer_FOUND)
 endif()
 
 if (CUDAToolkit_FOUND)
-	list(APPEND DEPENDENCIES_LIBRARIES CUDA::cudart CUDA::nvjpeg)
+	list(APPEND DEPENDENCIES_LIBRARIES CUDA::cudart CUDA::nvjpeg CUDA::nppc CUDA::nppig)
 endif()
 
 #set(VTK_REQUIRED_LIBS_PUBLIC

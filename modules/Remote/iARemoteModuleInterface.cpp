@@ -16,9 +16,7 @@
 #include <QAction>
 #include <QDateTime>
 
-#include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkInteractorStyle.h>
-#include <vtkRenderWindowInteractor.h>
+#include <vtkRenderWindow.h>
 
 
 #ifdef QT_HTTPSERVER

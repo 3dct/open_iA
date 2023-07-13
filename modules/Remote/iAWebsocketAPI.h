@@ -54,7 +54,7 @@ private:
 	int m_count;
 	QMap<QString, QByteArray> images;
 	QJsonDocument m_captionUpdate;
-	const QString cptionKey = "caption";
+	const QString captionKey = "caption";
 
 	QElapsedTimer m_StoppWatch;
 
