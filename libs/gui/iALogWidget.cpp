@@ -37,7 +37,7 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 			show();
 		}
 		QString msg = QString("%1 %2 %3")
-			.arg(QLocale().toString(QTime::currentTime(), "hh:mm:ss"))
+			.arg(QLocale().toString(QTime::currentTime(), "hh:mm:ss.zzz"))
 			.arg(logLevelToString(static_cast<iALogLevel>(lvl)).left(1))
 			.arg(text);
 		msg = QString("<span style=\"color:%1\">%2</span>").arg((lvl == lvlError)?"red":"black").arg(msg);
