@@ -454,7 +454,7 @@ void iARendererImpl::setPlaneNormals(vtkTransform* tr)
 void iARendererImpl::setPositionMarkerCenter(double x, double y, double z )
 {
 	m_cSource->SetCenter(x, y, z);
-	if (!m_interactor->GetEnabled() || m_settings[ShowPosition].toBool())
+	if (!m_interactor->GetEnabled() || !m_settings[ShowPosition].toBool())
 	{
 		return;
 	}
