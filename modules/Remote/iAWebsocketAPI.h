@@ -21,7 +21,8 @@ class iAWebsocketAPI : public QObject
 	Q_OBJECT
 public:
 	iAWebsocketAPI(quint16 port, bool debug = false, QObject* parent = nullptr);
-	void setRenderedImage(QByteArray img, QString id);
+	//! @return true if passed in image is new, false if passed in image is the same as was cached in previous call
+	bool setRenderedImage(QByteArray img, QString id);
 	~iAWebsocketAPI();
 	 
 Q_SIGNALS:
@@ -63,7 +64,7 @@ private:
 	QMap<QString, QList<QWebSocket*>> subscriptions;
 
 	void commandWslinkHello(QJsonDocument Request, QWebSocket* pClient);
-	void commandAdObserver(QJsonDocument Request, QWebSocket* pClient);
+	void commandAddObserver(QJsonDocument Request, QWebSocket* pClient);
 	void commandImagePush(QJsonDocument Request, QWebSocket* pClient);
 	void commandImagePushSize(QJsonDocument Request, QWebSocket* pClient);
 	void commandImagePushInvalidateCache(QJsonDocument Request, QWebSocket* pClient);

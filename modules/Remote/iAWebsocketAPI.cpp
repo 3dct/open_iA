@@ -32,9 +32,15 @@ iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :
 	updateCaptionList(captions);
 }
 
-void iAWebsocketAPI::setRenderedImage(QByteArray img, QString id)
+bool iAWebsocketAPI::setRenderedImage(QByteArray img, QString id)
 {
-	images.insert(id,img);
+	if (images.contains(id) && images[id] == img)
+	{
+		LOG(lvlDebug, "Setting same image again, ignoring!");
+		return false;
+	}
+	images.insert(id, img);
+	return true;
 }
 
 iAWebsocketAPI::~iAWebsocketAPI()
@@ -64,14 +70,13 @@ void iAWebsocketAPI::processTextMessage(QString message)
 
 	auto Request = QJsonDocument::fromJson(message.toLatin1());
 
-
 	if (Request["method"].toString() == "wslink.hello")
 	{ 
 		commandWslinkHello(Request, pClient);
 	}
 	else if (Request["method"].toString() == "viewport.image.push.observer.add")
 	{
-		commandAdObserver(Request, pClient);
+		commandAddObserver(Request, pClient);
 	}
 	else if (Request["method"].toString() == "viewport.image.push")
 	{
@@ -129,27 +134,26 @@ void iAWebsocketAPI::commandWslinkHello(QJsonDocument Request, QWebSocket* pClie
 {
 	const auto ClientID = QJsonObject{{"clientID", QUuid::createUuid().toString()}};
 	const auto resultArray = QJsonArray{ClientID};
-
-	QJsonObject ResponseArray;
-
-	ResponseArray["wslink"] = "1.0";
-	ResponseArray["id"] = Request["id"].toString();
-	ResponseArray["result"] = ClientID;
-
-	const QJsonDocument Response{ResponseArray};
-	 
-	pClient->sendTextMessage(Response.toJson());
+	auto wsLinkHelloResponse = QJsonObject{
+		{"wslink", "1.0" },
+		{"id", Request["id"].toString()},
+		{"result", ClientID}
+	};
+	pClient->sendTextMessage(QJsonDocument{ wsLinkHelloResponse }.toJson());
 }
 
-void iAWebsocketAPI::commandAdObserver(QJsonDocument Request, QWebSocket* pClient)
+void iAWebsocketAPI::commandAddObserver(QJsonDocument Request, QWebSocket* pClient)
 {
-	QJsonObject ResponseArray;
-	 
-	ResponseArray["wslink"] = "1.0";
 	QString viewIDString = Request["args"][0].toString();
-	const auto viewIDResponse = QJsonObject{{"result", "success"}, {"viewId", viewIDString}};
-	ResponseArray["result"] = viewIDResponse;
-	const QJsonDocument Response{ResponseArray};
+	const auto viewIDResponse = QJsonObject{
+		{"result", "success"},
+		{"viewId", viewIDString}
+	};
+	auto addObserverResponse = QJsonObject{
+		{"wslink", "1.0"},
+		{"result", viewIDResponse}
+	};
+	pClient->sendTextMessage(QJsonDocument{ addObserverResponse }.toJson());
 
 	if (subscriptions.contains(viewIDString))
 	{
@@ -160,15 +164,13 @@ void iAWebsocketAPI::commandAdObserver(QJsonDocument Request, QWebSocket* pClien
 		subscriptions.insert(viewIDString,  QList<QWebSocket*>());
 		subscriptions[viewIDString].append(pClient);
 	}
-	
-	pClient->sendTextMessage(Response.toJson());
 }
 
 
 void iAWebsocketAPI::commandImagePush(QJsonDocument Request, QWebSocket* pClient)
 {
+	sendSuccess(Request, pClient);
 	QString viewIDString = Request["args"][0]["view"].toString();
-	commandImagePushSize(Request, pClient);
 	sendImage(pClient, viewIDString);
 }
 
@@ -190,13 +192,11 @@ void iAWebsocketAPI::commandImagePushQuality(QJsonDocument Request, QWebSocket* 
 void iAWebsocketAPI::sendSuccess(QJsonDocument Request, QWebSocket* pClient)
 {
 	Q_UNUSED(Request);
-	QJsonObject ResponseArray;
-	const auto success = QJsonObject{{"result", "success"}};
-	ResponseArray["wslink"] = "1.0";
-	ResponseArray["result"] = success;
-	const QJsonDocument Response{ResponseArray};
-
-	pClient->sendTextMessage(Response.toJson());
+	auto successResponseObj = QJsonObject{
+		{"wslink", "1.0"},
+		{"result", QJsonObject{{"result", "success"}}}
+	};
+	pClient->sendTextMessage(QJsonDocument{ successResponseObj }.toJson());
 }
 
 void iAWebsocketAPI::commandControls(QJsonDocument Request, QWebSocket* pClient)
@@ -246,27 +246,17 @@ void iAWebsocketAPI::commandControls(QJsonDocument Request, QWebSocket* pClient)
 	sendSuccess(Request, pClient);
 }
 
-
-
 void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)
 {
-	QString imageString("wslink_bin");
-	
-	imageString.append(QString::number(m_count));
+	auto imgIDString = QString("wslink_bin%1").arg(m_count);
+	auto imgHeaderObj = QJsonObject{
+		{"wslink", "1.0"},
+		{"method", "wslink.binary.attachment"},
+		{"args", QJsonArray{ imgIDString } }
+	};
+	pClient->sendTextMessage(QJsonDocument{ imgHeaderObj }.toJson());
 
-	const auto resultArray1 = QJsonArray{imageString};
-
-	QJsonObject ResponseArray;
-
-	ResponseArray["wslink"] = "1.0";
-	ResponseArray["method"] = "wslink.binary.attachment";
-	ResponseArray["args"] = resultArray1;
-
-	const QJsonDocument Response{ResponseArray};
-
-	pClient->sendTextMessage(Response.toJson());
-
-	QByteArray ba = images[viewID];
+	QByteArray const & ba = images[viewID];
 	QImage img;
 	img.loadFromData(ba);
 	int width = img.size().width();
@@ -274,20 +264,25 @@ void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)
 	pClient->sendBinaryMessage(ba);
 
 	auto imageSize = ba.size();
-
-	const auto resultArray2 = QJsonArray{width, height};
-	const auto result = QJsonObject{{"format", "jpeg"}, {"global_id", 1}, {"global_id", "1"}, {"id", viewID},
-		{"image", imageString}, {"localTime", 0}, {"memsize", imageSize}, {"mtime", 2125+m_count*5}, {"size", resultArray2},
-		{"stale", m_count%2==0}, {"workTime", 77}};
-
-	QJsonObject ResponseArray2;
-	ResponseArray2["wslink"] = "1.0";
-	ResponseArray2["id"] = "publish:viewport.image.push.subscription:0";
-	ResponseArray2["result"] = result;
-
-	const QJsonDocument Response2{ResponseArray2};
-
-	pClient->sendTextMessage(Response2.toJson());
+	const auto imgDescriptorObj = QJsonObject{
+		{"format", "jpeg"},
+		{"global_id", 1},
+		{"global_id", "1"},
+		{"id", viewID},
+		{"image", imgIDString},
+		{"localTime", 0},
+		{"memsize", imageSize},
+		{"mtime", 2125+m_count*5},
+		{"size", QJsonArray{width, height} },
+		{"stale", m_count%2==0},    // find out use of this flag in client
+		{"workTime", 77}            // send actual work time ?
+	};
+	auto imgDescriptorHeaderObj = QJsonObject{
+		{"wslink", "1.0"},
+		{"id", "publish:viewport.image.push.subscription:0"},
+		{"result", imgDescriptorObj }
+	};
+	pClient->sendTextMessage(QJsonDocument{ imgDescriptorHeaderObj }.toJson());
 	pClient->flush();
 
 	m_count++;
@@ -295,8 +290,10 @@ void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)
 
 void iAWebsocketAPI::sendViewIDUpdate(QByteArray img, QString ViewID)
 {
-	setRenderedImage(img, ViewID);
-
+	if (!setRenderedImage(img, ViewID))
+	{
+		return;
+	}
 	if (subscriptions.contains(ViewID))
 	{
 		for (auto client : subscriptions[ViewID])
@@ -328,12 +325,10 @@ void iAWebsocketAPI::socketDisconnected()
 	}
 	if (pClient)
 	{
-
 		for (auto &x : subscriptions)
 		{
 			x.removeAll(pClient);
 		}
-
 		m_clients.removeAll(pClient);
 		pClient->deleteLater();
 	}
@@ -342,28 +337,23 @@ void iAWebsocketAPI::socketDisconnected()
 void iAWebsocketAPI::updateCaptionList(std::vector<iAAnnotation> const & captions)
 {
 	QJsonArray captionList;
-
 	for (auto caption : captions)
 	{
-		QJsonObject captionObject;
-		captionObject["id"] = (int)caption.m_id;
-		captionObject["Title"] = caption.m_name;
-		captionObject["x"] = caption.m_coord[0];
-		captionObject["y"] = caption.m_coord[1];
-		captionObject["z"] = caption.m_coord[2];
-		captionObject["hide"] = caption.m_hide;
-		captionList.append(captionObject);
+		captionList.append(QJsonObject{
+			{"id", static_cast<int>(caption.m_id) },
+			{"Title", caption.m_name},
+			{"x", caption.m_coord[0]},
+			{"y", caption.m_coord[1]},
+			{"z", caption.m_coord[2]},
+			{"hide", caption.m_hide}
+		});
 	}
-
-	QJsonObject response;
-	response["id"] = "caption.response";
-	response["captionList"] = captionList;
-	const QJsonDocument Response2{response};
-
-	m_captionUpdate = Response2;
-
+	auto response = QJsonObject{
+		{"id", "caption.response"},
+		{"captionList", captionList}
+	};
+	m_captionUpdate = QJsonDocument{ response };
 	sendCaptionUpdate();
-
 }
 
 void iAWebsocketAPI::captionSubscribe(QWebSocket* pClient)
@@ -394,9 +384,10 @@ void iAWebsocketAPI::sendCaptionUpdate()
 
 void iAWebsocketAPI::sendInteractionUpdate( size_t focusedId)
 {
-	QJsonObject response;
-	response["id"] = "caption.interactionUpdate";
-	response["focusedId"] = (int)focusedId;
+	auto response = QJsonObject{
+		{"id", "caption.interactionUpdate"},
+		{"focusedId", static_cast<int>(focusedId)}
+	};
 	const QJsonDocument JsonResponse{response};
 
 	if (subscriptions.contains(captionKey))
