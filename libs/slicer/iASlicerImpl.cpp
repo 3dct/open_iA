@@ -277,6 +277,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_actionLinearInterpolation = m_contextMenu->addAction(tr("Linear Interpolation"), this, &iASlicerImpl::toggleLinearInterpolation);
 	m_actionLinearInterpolation->setCheckable(true);
 	m_actionShowTooltip = m_contextMenu->addAction(tr("Show Tooltip"), this, &iASlicerImpl::toggleShowTooltip);
+	m_actionShowTooltip->setCheckable(true);
 	
 	m_contextMenu->addSeparator();
 	m_actionToggleNormalInteraction = new QAction(tr("Click+Drag: disabled"), m_contextMenu);
@@ -1442,9 +1443,10 @@ void iASlicerImpl::printVoxelInformation()
 	}
 	if (infoAvailable)
 	{
-		// Update the info text with pixel coordinates/value if requested.
-		m_textInfo->setPosition(m_renWin->GetInteractor()->GetEventPosition()[0] + 10,
-			m_renWin->GetInteractor()->GetEventPosition()[1] + 10);
+		int x, y;
+		const int TextOfs = 10;
+		m_renWin->GetInteractor()->GetEventPosition(x, y);
+		m_textInfo->setPosition(x + TextOfs, y + TextOfs);
 		m_textInfo->setText(strDetails.toStdString().c_str());
 		m_positionMarkerMapper->Update();
 	}
@@ -1689,6 +1691,11 @@ void iASlicerImpl::setShowTooltip(bool isVisible)
 {
 	m_settings[iASlicerImpl::ShowTooltip] = isVisible;
 	m_textInfo->show(isVisible);
+	if (isVisible)
+	{
+		printVoxelInformation();
+	}
+	m_renWin->GetInteractor()->Render();
 }
 
 void iASlicerImpl::enableChannel(uint id, bool enabled)
