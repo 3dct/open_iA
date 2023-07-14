@@ -162,11 +162,7 @@ public:
 
 			interactor->InvokeEvent(vtkEventID, nullptr);
 
-			//renWin->Render();
 			m_viewWidgets[action.viewID]->update();
-
-			//interactor()->Modified();
-			//interactor()->Render();
 		});
 
 #ifdef QT_HTTPSERVER

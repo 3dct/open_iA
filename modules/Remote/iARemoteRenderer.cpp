@@ -25,10 +25,9 @@ void iARemoteRenderer::addRenderWindow(vtkRenderWindow* window, QString const& v
 
 	auto view = new iAViewHandler();
 	view->id = viewID;
-
 	connect(view, &iAViewHandler::createImage, this, &iARemoteRenderer::createImage);
 
-	views.insert(viewID,view);
+	views.insert(viewID, view);
 	auto renderer = window->GetRenderers()->GetFirstRenderer();
 	renderer->AddObserver(vtkCommand::EndEvent, view, &iAViewHandler::vtkCallbackFunc);
 }

@@ -6,6 +6,7 @@
 
 #include <vtkImageFlip.h>
 #include <vtkJPEGWriter.h>
+#include <vtkRendererCollection.h>
 #include <vtkRenderWindow.h>
 #include <vtkUnsignedCharArray.h>
 #include <vtkWindowToImageFilter.h>
@@ -85,7 +86,7 @@ namespace
 
 			//checkCuda("streamDestroy", cudaStreamDestroy(stream));
 		}
-		std::vector<unsigned char> BitmapToJpegCUDA(int width, int height, unsigned char* buffer, int quality)
+		std::vector<unsigned char> BitmapToJpegCUDA(int width, int height, unsigned char* buffer, int quality, QString & debugMsg)
 		{
 			checknvj("encoderParamsSetSamplingFactors", nvjpegEncoderParamsSetSamplingFactors(nv_enc_params, NVJPEG_CSS_444, stream));
 			checknvj("encoderParamsSetQuality", nvjpegEncoderParamsSetQuality(nv_enc_params, quality, stream));
@@ -107,7 +108,7 @@ namespace
 				NppiAxis flip = NPP_HORIZONTAL_AXIS;  // a bit confusing - horizontal axis means switch vertically, i.e. flip y
 				// NppStatus nppiMirror_8u_C3IR(Npp8u *pSrcDst, int nSrcDstStep, NppiSize oROI, NppiAxis flip)
 				checknpp(nppiMirror_8u_C3IR(pCudaBuffer, lineStep, oROI, flip));
-				LOG(lvlDebug, QString("nppiMirror: %1 ms").arg(flipTimer.elapsed()));
+				debugMsg += QString("; nppiMirror: %1 ms").arg(flipTimer.elapsed());
 			}
 
 			// for "planar" memory layout:
@@ -146,17 +147,17 @@ namespace
 	{
 		QElapsedTimer t1; t1.start();
 		static iACudaImageGen cudaImageGen;
-		vtkNew<vtkWindowToImageFilter> w2if;
+		vtkNew<vtkWindowToImageFilter> w2if;    // grabs RGB image
 		w2if->ShouldRerenderOff();
 		w2if->SetInput(window);
 		w2if->Update();
-		LOG(lvlDebug, QString("grab: %1 ms").arg(t1.elapsed()));
-		// grabs RGB image
+		auto renderTime = window->GetRenderers()->GetFirstRenderer()->GetLastRenderTimeInSeconds() * 1000;
 
 		// nvidia expects image flipped around y axis in comparison to VTK!
 		auto vtkImg = w2if->GetOutput();
 		auto const dim = vtkImg->GetDimensions();
-		LOG(lvlDebug, QString("nvJPEG image view=%1; %2x%3").arg(viewID).arg(dim[0]).arg(dim[1]));
+		QString debugMsg = QString("nvJPEG create image from %1 view (%2x%3); grab: %4 ms; last render: %5 ms")
+			.arg(viewID).arg(dim[0]).arg(dim[1]).arg(t1.elapsed()).arg(renderTime);
 		vtkNew<vtkImageFlip> flipYFilter;    // outside of if to avoid memory problems (release of output when filter goes out of scope)
 		if (dim[0] % 2 != 0 || dim[1] % 2 != 0)    // for CUDA-accelerated flip, both sizes need to be divisible by 2 (see also BitmapToJpegCUDA)
 		{
@@ -166,17 +167,17 @@ namespace
 			flipYFilter->SetInputData(image);
 			flipYFilter->Update();
 			vtkImg = flipYFilter->GetOutput();
-			LOG(lvlDebug, QString("VTK flip: %1 ms").arg(tFlip.elapsed()));
+			debugMsg += QString("; VTK flip: %1 ms").arg(tFlip.elapsed());
 		}
 
 		QElapsedTimer t2; t2.start();
 		unsigned char* buffer = static_cast<unsigned char*>(vtkImg->GetScalarPointer());
+		auto extractTime = t2.elapsed();
 		assert(dim[2] == 1);
-		LOG(lvlDebug, QString("extract: %1 ms").arg(t2.elapsed()));
 
 		QElapsedTimer t3; t3.start();
-		auto data = cudaImageGen.BitmapToJpegCUDA(dim[0], dim[1], buffer, quality);
-		LOG(lvlDebug, QString("nvJPEG: %1 ms").arg(t3.elapsed()));
+		auto data = cudaImageGen.BitmapToJpegCUDA(dim[0], dim[1], buffer, quality, debugMsg);
+		LOG(lvlDebug, QString("%1; extract: %2 ms; nvJPEG: %3 ms").arg(debugMsg).arg(extractTime).arg(t3.elapsed()));
 		return QByteArray(reinterpret_cast<char*>(data.data()), data.size());
 	}
 
@@ -189,7 +190,8 @@ namespace
 		w2if->ShouldRerenderOff();
 		w2if->SetInput(window);
 		w2if->Update();
-		LOG(lvlDebug, QString("grab: %1 ms").arg(t1.elapsed()));
+		auto renderTime = window->GetRenderers()->GetFirstRenderer()->GetLastRenderTimeInSeconds() * 1000;
+		auto grabTime = t1.elapsed();
 
 		QElapsedTimer t; t.start();
 		vtkNew<vtkJPEGWriter> writer;
@@ -199,7 +201,7 @@ namespace
 		writer->Write();
 		vtkSmartPointer<vtkUnsignedCharArray> imgData = writer->GetResult();
 		QByteArray result((char*)imgData->Begin(), static_cast<qsizetype>(imgData->GetSize()));
-		LOG(lvlDebug, QString("turboJPEG: %1 ms").arg(t.elapsed()));
+		LOG(lvlDebug, QString("VTK create image. grab: %1 ms; last render: %2 ms; turboJPEG: %3 ms").arg(grabTime).arg(renderTime).arg(t.elapsed()));
 		return result;
 	}
 }

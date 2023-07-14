@@ -6,9 +6,8 @@
 
 iAViewHandler::iAViewHandler()
 {
-	timer = new QTimer(this);
-	timer->setSingleShot(true);
-	connect(timer, &QTimer::timeout, [=]() -> void {
+	timer.setSingleShot(true);
+	connect(&timer, &QTimer::timeout, [=]() -> void {
 		//LOG(lvlDebug, "TIMER");
 		emit createImage(id, 100);
 	});
@@ -21,16 +20,17 @@ void iAViewHandler::vtkCallbackFunc(vtkObject* caller, long unsigned int evId, v
 	Q_UNUSED(evId);
 	Q_UNUSED(callData);
 	//LOG(lvlDebug, QString("DIRECT time check %1, time %2").arg(id).arg(m_StoppWatch.elapsed()));
-
-	if ((m_StoppWatch.elapsed() > waitTimeRendering) && (m_StoppWatch.elapsed() >50))
+	const int MinWaitTime = 50;
+	const int FinalUpdateTime = 250;
+	if ((m_StoppWatch.elapsed() > std::max(waitTimeRendering, MinWaitTime)))
 	{
 		m_StoppWatch.restart();
-		timer->stop();
-		timer->start(250);
+		timer.stop();
+		timer.start(FinalUpdateTime);
 
 		emit createImage(id, quality);
 		timeRendering = m_StoppWatch.elapsed();
-		waitTimeRendering = waitTimeRendering + (timeRendering - waitTimeRendering + 12)/4;
-		//LOG(lvlDebug, QString("DIRECT %1, time %2 wait %3").arg(id).arg(timeRendering).arg(waitTimeRendering));
+		waitTimeRendering = waitTimeRendering + (timeRendering - waitTimeRendering + 12)/4;  // magic numbers -> gradual adaptation
+		//LOG(lvlDebug, QString("DIRECT %1, time %2 ms; wait %3 ms").arg(id).arg(timeRendering).arg(waitTimeRendering));
 	}
 }
