@@ -17,7 +17,8 @@
 iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :
 	QObject(parent),
 	m_pWebSocketServer(new QWebSocketServer(QStringLiteral("Remote Server"), QWebSocketServer::NonSecureMode, this)),
-	m_debug(debug)
+	m_debug(debug),
+	m_count(0) // possibly use a separate counter per client?
 {
 	m_pWebSocketServer->moveToThread(&m_ServerThread);
 	m_ServerThread.start();
@@ -32,14 +33,14 @@ iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :
 	updateCaptionList(captions);
 }
 
-bool iAWebsocketAPI::setRenderedImage(QByteArray img, QString id)
+bool iAWebsocketAPI::setRenderedImage(QByteArray img, QString viewID)
 {
-	if (images.contains(id) && images[id] == img)
+	if (images.contains(viewID) && images[viewID] == img)
 	{
 		LOG(lvlDebug, "Setting same image again, ignoring!");
 		return false;
 	}
-	images.insert(id, img);
+	images.insert(viewID, img);
 	return true;
 }
 
@@ -47,13 +48,12 @@ iAWebsocketAPI::~iAWebsocketAPI()
 {
 	m_ServerThread.quit();
 	m_ServerThread.wait();
-	//qDeleteAll(m_clients);	// memory leak? but with it, we crash with access violation!
+	//qDeleteAll(m_clients);	// any client QWebSockets are closed and deleted (see ~QWebSocketServer documentation)
 	m_pWebSocketServer->close();
 }
 
 void iAWebsocketAPI::onNewConnection()
 {
-	m_count = 0;
 	QWebSocket* pSocket = m_pWebSocketServer->nextPendingConnection();
 	connect(pSocket, &QWebSocket::textMessageReceived, this, &iAWebsocketAPI::processTextMessage);
 	connect(pSocket, &QWebSocket::binaryMessageReceived, this, &iAWebsocketAPI::processBinaryMessage);
@@ -165,7 +165,6 @@ void iAWebsocketAPI::commandAddObserver(QJsonDocument Request, QWebSocket* pClie
 		subscriptions[viewIDString].append(pClient);
 	}
 }
-
 
 void iAWebsocketAPI::commandImagePush(QJsonDocument Request, QWebSocket* pClient)
 {
@@ -288,19 +287,21 @@ void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)
 	m_count++;
 }
 
-void iAWebsocketAPI::sendViewIDUpdate(QByteArray img, QString ViewID)
+void iAWebsocketAPI::sendViewIDUpdate(QByteArray img, QString viewID)
 {
-	if (!setRenderedImage(img, ViewID))
+	//LOG(lvlDebug, QString("sendViewIDUpdate %1 START").arg(viewID));
+	if (!setRenderedImage(img, viewID))
 	{
 		return;
 	}
-	if (subscriptions.contains(ViewID))
+	if (subscriptions.contains(viewID))
 	{
-		for (auto client : subscriptions[ViewID])
+		for (auto client : subscriptions[viewID])
 		{
-			sendImage(client, ViewID);
+			sendImage(client, viewID);
 		}
 	}
+	//LOG(lvlDebug, QString("sendViewIDUpdate %1 END").arg(viewID));
 }
 
 void iAWebsocketAPI::processBinaryMessage(QByteArray message)
@@ -369,7 +370,6 @@ void iAWebsocketAPI::captionSubscribe(QWebSocket* pClient)
 	}
 	sendCaptionUpdate();
 }
-
 
 void iAWebsocketAPI::sendCaptionUpdate()
 {

@@ -134,6 +134,7 @@ public:
 				}
 				else    // ignore mouse moves less than a few milliseconds apart from previous
 				{
+					LOG(lvlDebug, "Input ignored!");
 					return;
 				}
 				if (lastDown != curDown)
@@ -215,6 +216,17 @@ void iARemoteModuleInterface::Initialize()
 	QAction* actionRemote = new QAction(tr("Remote Render Server"), m_mainWnd);
 	connect(actionRemote, &QAction::triggered, this,[this]()
 		{
+			// cannot start remote server twice - hard-coded websocket ports!
+			for (auto c : m_mainWnd->mdiChildList())
+			{
+				if (getTool<iARemoteTool>(c))
+				{
+					LOG(lvlWarn, "Remote render server already running!");
+					return;
+				}
+			}
+			// TODO: - find way to inject websocket port into served html? we could modify served file on the fly...
+			//       - then we would need to modify above check to only check for current child (no sense in serving same child twice)
 			addToolToActiveMdiChild<iARemoteTool>(iARemoteTool::Name, m_mainWnd);
 		});
 	m_mainWnd->makeActionChildDependent(actionRemote);

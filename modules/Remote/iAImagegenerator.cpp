@@ -156,7 +156,7 @@ namespace
 		// nvidia expects image flipped around y axis in comparison to VTK!
 		auto vtkImg = w2if->GetOutput();
 		auto const dim = vtkImg->GetDimensions();
-		QString debugMsg = QString("nvJPEG create image from %1 view (%2x%3); grab: %4 ms; last render: %5 ms")
+		QString debugMsg = QString("CUDA JPEG from %1 view (%2x%3); grab: %4 ms; last render: %5 ms")
 			.arg(viewID).arg(dim[0]).arg(dim[1]).arg(t1.elapsed()).arg(renderTime);
 		vtkNew<vtkImageFlip> flipYFilter;    // outside of if to avoid memory problems (release of output when filter goes out of scope)
 		if (dim[0] % 2 != 0 || dim[1] % 2 != 0)    // for CUDA-accelerated flip, both sizes need to be divisible by 2 (see also BitmapToJpegCUDA)
@@ -177,7 +177,8 @@ namespace
 
 		QElapsedTimer t3; t3.start();
 		auto data = cudaImageGen.BitmapToJpegCUDA(dim[0], dim[1], buffer, quality, debugMsg);
-		LOG(lvlDebug, QString("%1; extract: %2 ms; nvJPEG: %3 ms").arg(debugMsg).arg(extractTime).arg(t3.elapsed()));
+		LOG(lvlDebug, QString("%1; extract: %2 ms; nvJPEG: %3 ms; size: %4 kB")
+			.arg(debugMsg).arg(extractTime).arg(t3.elapsed()).arg(data.size()/1000.0));
 		return QByteArray(reinterpret_cast<char*>(data.data()), data.size());
 	}
 
@@ -201,7 +202,8 @@ namespace
 		writer->Write();
 		vtkSmartPointer<vtkUnsignedCharArray> imgData = writer->GetResult();
 		QByteArray result((char*)imgData->Begin(), static_cast<qsizetype>(imgData->GetSize()));
-		LOG(lvlDebug, QString("VTK create image. grab: %1 ms; last render: %2 ms; turboJPEG: %3 ms").arg(grabTime).arg(renderTime).arg(t.elapsed()));
+		LOG(lvlDebug, QString("VTK JPEG. grab: %1 ms; last render: %2 ms; jpeg: %3 ms; size: %4 kB")
+			.arg(grabTime).arg(renderTime).arg(t.elapsed()).arg(imgData->GetSize()/1000.0));
 		return result;
 	}
 }

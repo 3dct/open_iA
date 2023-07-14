@@ -22,7 +22,7 @@ class iAWebsocketAPI : public QObject
 public:
 	iAWebsocketAPI(quint16 port, bool debug = false, QObject* parent = nullptr);
 	//! @return true if passed in image is new, false if passed in image is the same as was cached in previous call
-	bool setRenderedImage(QByteArray img, QString id);
+	bool setRenderedImage(QByteArray img, QString viewID);
 	~iAWebsocketAPI();
 	 
 Q_SIGNALS:
@@ -44,7 +44,7 @@ private Q_SLOTS:
 	void sendCaptionUpdate();
 	
 public Q_SLOTS:
-	void sendViewIDUpdate(QByteArray img, QString ViewID);
+	void sendViewIDUpdate(QByteArray img, QString viewID);
 	void updateCaptionList(std::vector<iAAnnotation> const & captions);
 	void sendInteractionUpdate( size_t focusedId);
 	

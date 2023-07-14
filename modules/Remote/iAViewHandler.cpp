@@ -31,6 +31,10 @@ void iAViewHandler::vtkCallbackFunc(vtkObject* caller, long unsigned int evId, v
 		emit createImage(id, quality);
 		timeRendering = m_StoppWatch.elapsed();
 		waitTimeRendering = waitTimeRendering + (timeRendering - waitTimeRendering + 12)/4;  // magic numbers -> gradual adaptation
-		//LOG(lvlDebug, QString("DIRECT %1, time %2 ms; wait %3 ms").arg(id).arg(timeRendering).arg(waitTimeRendering));
+		LOG(lvlDebug, QString("DIRECT %1, time %2 ms; wait %3 ms").arg(id).arg(timeRendering).arg(waitTimeRendering));
+	}
+	else
+	{
+		LOG(lvlDebug, "vtk callback ignored!");
 	}
 }
