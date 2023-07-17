@@ -63,6 +63,23 @@ namespace
 }
 #endif
 
+namespace
+{
+	QString mouseActionToString(iARemoteAction::mouseAction action)
+	{
+		switch (action)
+		{
+		case iARemoteAction::ButtonDown:      return "Mouse button down";
+		case iARemoteAction::ButtonUp:        return "Mouse button up";
+		case iARemoteAction::StartMouseWheel: return "Mouse wheel start";
+		case iARemoteAction::MouseWheel:      return "Mouse wheel continue";
+		case iARemoteAction::EndMouseWheel:   return "Mouse wheel end";
+		default:
+		case iARemoteAction::Unknown:         return "Unknown";
+		}
+	}
+}
+
 class iARemoteTool: public QObject, public iATool
 {
 public:
@@ -91,12 +108,20 @@ public:
 		}
 		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::controlCommand, this, [this]()
 		{
-			//QSet<QString> viewIDs;
+			// TODO: potential for speedup: avoid dynamic allocation here!
 			auto actions = m_remoteRenderer->m_wsAPI->getQueuedActions();
-			LOG(lvlDebug, QString("ControlCommand: %1 actions to process.").arg(actions.size()));
-			for (auto action: actions)
+			static bool lastDown = false;
+			for (int cur = 0; cur < actions.size(); ++cur)
 			{
-				//viewIDs.insert(action->viewID);
+				auto action = actions[cur];
+				LOG(lvlDebug, QString("Action: %1; position: %2, %3; shift: %4; ctrl: %5; alt: %6. %7 REMOTEMODULEINTERFACE")
+					.arg(mouseActionToString(action->action))
+					.arg(action->x)
+					.arg(action->y)
+					.arg(action->shiftKey)
+					.arg(action->ctrlKey)
+					.arg(action->altKey)
+				);
 				int vtkEventID;
 				if (action->action == iARemoteAction::MouseWheel || action->action == iARemoteAction::StartMouseWheel)
 				{
@@ -104,25 +129,25 @@ public:
 				}
 				else    // mouse button press or move
 				{
-					static bool lastDown = false;
-					static qint64 lastInput = 0;
 					vtkEventID = vtkCommand::MouseMoveEvent;
 					bool curDown = (action->action == iARemoteAction::ButtonDown);
-					auto now = QDateTime::currentMSecsSinceEpoch();
-					auto millisecondsSinceLastInput = now - lastInput;
-					if (lastDown != curDown || millisecondsSinceLastInput > 50)
-					{
-						lastInput = QDateTime::currentMSecsSinceEpoch();
-					}
-					else    // ignore mouse moves less than a few milliseconds apart from previous
-					{
-						LOG(lvlDebug, "Input ignored!");
-						return;
-					}
+					bool nextDown = (cur < actions.size() - 1 &&
+						actions[cur + 1]->action == iARemoteAction::ButtonDown);
+					// TODO: check whether left/middle/right button matches?
 					if (lastDown != curDown)
 					{
+						//LOG(lvlDebug, QString("Processing mouse up/down x=%1, y=%2").arg(action->x).arg(action->y));
 						lastDown = curDown;
 						vtkEventID = curDown ? vtkCommand::LeftButtonPressEvent : vtkCommand::LeftButtonReleaseEvent;
+					}
+					else if (curDown&& nextDown)
+					{   // next action is also a mouse move, skip this one!
+						//LOG(lvlDebug, QString("Skipping mouse move x=%1, y=%2").arg(action->x).arg(action->y));
+						continue;
+					}
+					else
+					{
+						//LOG(lvlDebug, QString("Processing mouse move x=%1, y=%2").arg(action->x).arg(action->y));
 					}
 				}
 				auto renWin = m_remoteRenderer->renderWindow(action->viewID);
@@ -145,13 +170,8 @@ public:
 				//interactor->SetKeySym(keySym);
 
 				interactor->InvokeEvent(vtkEventID, nullptr);
-				delete action;    // clean up action
+				delete action;    // clean up action;
 			}
-
-			//for (auto viewID : viewIDs)
-			//{
-			//	m_viewWidgets[viewID]->update();
-			//}
 		});
 
 #ifdef QT_HTTPSERVER

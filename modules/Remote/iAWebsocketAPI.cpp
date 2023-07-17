@@ -52,7 +52,7 @@ void iAWebsocketAPI::close()
 void iAWebsocketAPI::onNewConnection()
 {
 	QWebSocket* client = m_wsServer->nextPendingConnection();
-	LOG(lvlDebug, QString("Client connected: %1 (local %2)").arg(client->peerAddress().toString()).arg(client->localAddress().toString()));
+	LOG(lvlDebug, QString("Client connected: %1:%2").arg(client->peerAddress().toString()).arg(client->peerPort()));
 	connect(client, &QWebSocket::textMessageReceived, this, &iAWebsocketAPI::processTextMessage);
 	//connect(client, &QWebSocket::binaryMessageReceived, this, &iAWebsocketAPI::processBinaryMessage);    // clients don't send binary messages at the moment
 	connect(client, &QWebSocket::disconnected, this, &iAWebsocketAPI::socketDisconnected);
@@ -61,7 +61,6 @@ void iAWebsocketAPI::onNewConnection()
 
 void iAWebsocketAPI::processTextMessage(QString message)
 {
-	//LOG(lvlDebug, QString("Websocket time %1").arg(m_StoppWatch.elapsed()));
 	m_StoppWatch.restart();
 
 	QWebSocket* pClient = qobject_cast<QWebSocket*>(sender());
@@ -196,23 +195,6 @@ void iAWebsocketAPI::sendSuccess(QJsonDocument Request, QWebSocket* pClient)
 	pClient->sendTextMessage(QJsonDocument{ successResponseObj }.toJson());
 }
 
-namespace
-{
-	QString mouseActionToString(iARemoteAction::mouseAction action)
-	{
-		switch (action)
-		{
-		case iARemoteAction::ButtonDown:      return "Mouse button down";
-		case iARemoteAction::ButtonUp:        return "Mouse button up";
-		case iARemoteAction::StartMouseWheel: return "Mouse wheel start";
-		case iARemoteAction::MouseWheel:      return "Mouse wheel continue";
-		case iARemoteAction::EndMouseWheel:   return "Mouse wheel end";
-		default:
-		case iARemoteAction::Unknown:         return "Unknown";
-		}
-	}
-}
-
 void iAWebsocketAPI::commandControls(QJsonDocument Request, QWebSocket* pClient)
 {
 	iARemoteAction * webAction = new iARemoteAction();
@@ -254,16 +236,8 @@ void iAWebsocketAPI::commandControls(QJsonDocument Request, QWebSocket* pClient)
 	webAction->x = argList["x"].toDouble();
 	webAction->y = argList["y"].toDouble();
 	webAction->spinY = argList["spinY"].toDouble();
-
-	LOG(lvlDebug, QString("Action: %1; position: %2, %3; shift: %4; ctrl: %5; alt: %6.")
-		.arg(mouseActionToString(webAction->action))
-		.arg(webAction->x)
-		.arg(webAction->y)
-		.arg(webAction->shiftKey)
-		.arg(webAction->ctrlKey)
-		.arg(webAction->altKey));
-
 	{
+		// TODO: potential for speedup: avoid dynamic allocation here!
 		// enqueue in local data structure to enable receiver to apply all actions at once:
 		std::lock_guard<std::mutex> guard(m_actionsMutex);
 		m_actions.push_back(webAction);
@@ -327,7 +301,6 @@ void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)
 
 void iAWebsocketAPI::sendViewIDUpdate(std::shared_ptr<iAJPGImage> img, QString viewID)
 {
-	//LOG(lvlDebug, QString("sendViewIDUpdate %1 START").arg(viewID));
 	if (!setRenderedImage(img, viewID))
 	{
 		return;
@@ -339,7 +312,6 @@ void iAWebsocketAPI::sendViewIDUpdate(std::shared_ptr<iAJPGImage> img, QString v
 			sendImage(client, viewID);
 		}
 	}
-	//LOG(lvlDebug, QString("sendViewIDUpdate %1 END").arg(viewID));
 }
 
 /*

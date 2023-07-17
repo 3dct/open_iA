@@ -63,7 +63,7 @@ namespace
 		if (status != NPP_SUCCESS)
 		{
 			QString msg = "JPEG generation: Flip error:" + nppError2String(status);
-			LOG(lvlDebug, msg);
+			LOG(lvlError, msg);
 			throw std::runtime_error(msg.toStdString());
 		}
 	}

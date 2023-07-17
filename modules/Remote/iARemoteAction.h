@@ -31,4 +31,5 @@ public:
 	bool metaKey;
 	QString viewID;
 };
+
 Q_DECLARE_METATYPE(iARemoteAction);

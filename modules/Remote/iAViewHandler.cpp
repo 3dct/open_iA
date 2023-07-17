@@ -20,9 +20,9 @@ void iAViewHandler::vtkCallbackFunc(vtkObject* caller, long unsigned int evId, v
 	Q_UNUSED(evId);
 	Q_UNUSED(callData);
 	//LOG(lvlDebug, QString("DIRECT time check %1, time %2").arg(id).arg(m_StoppWatch.elapsed()));
-	const int MinWaitTime = 200;
+	const int MinWaitTime = 50;
 	const int FinalUpdateTime = 250;
-	const int ReducedQuality = 20;
+	const int ReducedQuality = 20;   // reduce resolution as well?
 	if ((m_StoppWatch.elapsed() > std::max(waitTimeRendering, MinWaitTime)))
 	{
 		m_StoppWatch.restart();
