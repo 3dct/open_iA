@@ -349,12 +349,12 @@ void iAWebsocketAPI::sendViewIDUpdate(QByteArray img, QString viewID)
 
 void iAWebsocketAPI::processBinaryMessage(QByteArray message)
 {
-	QWebSocket* pClient = qobject_cast<QWebSocket*>(sender());
-	LOG(lvlDebug, QString("Binary Message received: %1").arg(message));
-	if (pClient)
-	{
-		pClient->sendBinaryMessage(message);
-	}
+	QWebSocket* client = qobject_cast<QWebSocket*>(sender());
+	LOG(lvlDebug, QString("Binary Message received!"));
+	//if (client)
+	//{
+	//	client->sendBinaryMessage(message);
+	//}
 }
 
 void iAWebsocketAPI::socketDisconnected()
