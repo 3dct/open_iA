@@ -114,7 +114,7 @@ public:
 			for (int cur = 0; cur < actions.size(); ++cur)
 			{
 				auto action = actions[cur];
-				LOG(lvlDebug, QString("Action: %1; position: %2, %3; shift: %4; ctrl: %5; alt: %6. %7 REMOTEMODULEINTERFACE")
+				LOG(lvlDebug, QString("Action: %1; position: %2, %3; shift: %4; ctrl: %5; alt: %6.")
 					.arg(mouseActionToString(action->action))
 					.arg(action->x)
 					.arg(action->y)

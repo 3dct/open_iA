@@ -39,8 +39,7 @@ void iARemoteRenderer::addRenderWindow(vtkRenderWindow* window, QString const& v
 	auto imgData = iAImagegenerator::createImage(viewID, window, 100);
 	emit setRenderedImage(imgData, viewID);
 
-	auto view = new iAViewHandler();
-	view->id = viewID;
+	auto view = new iAViewHandler(viewID);
 	connect(view, &iAViewHandler::createImage, this, &iARemoteRenderer::createImage);
 
 	views.insert(viewID, view);

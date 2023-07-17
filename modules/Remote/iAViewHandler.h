@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include <QObject>
 #include <QElapsedTimer>
+#include <QObject>
 #include <QTimer>
 
 class vtkObject;
@@ -12,16 +12,15 @@ class iAViewHandler: public QObject
 {
 	Q_OBJECT
 public:
-	iAViewHandler();
+	iAViewHandler(QString const & id);
 	void vtkCallbackFunc(vtkObject* caller, long unsigned int evId, void* /*callData*/);
 
-	QString id;
-
-private: 
-	int timeRendering =0;
-	int waitTimeRendering = 50;
-	QTimer timer;
-	QElapsedTimer m_StoppWatch;
+private:
+	QString m_id;
+	int m_timeRendering =0;
+	int m_waitTimeRendering = 50;
+	QTimer m_timer;
+	QElapsedTimer m_stopWatch;
 
 signals:
 	void createImage(QString id, int Quality);
