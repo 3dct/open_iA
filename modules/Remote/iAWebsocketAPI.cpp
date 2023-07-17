@@ -296,11 +296,13 @@ void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)
 	pClient->sendTextMessage(QJsonDocument{ imgHeaderObj }.toJson());
 
 	QByteArray const & ba = images[viewID];
+	QElapsedTimer imgTimer; imgTimer.start();
 	// TODO: cache image size!
 	QImage img;
 	img.loadFromData(ba);
 	int width = img.size().width();
 	int height = img.size().height();
+	LOG(lvlDebug, QString("image parsing: %1 ms").arg(imgTimer.elapsed()));
 	pClient->sendBinaryMessage(ba);
 
 	auto imageSize = ba.size();
