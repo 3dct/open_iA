@@ -5,11 +5,13 @@
 #include <iAAnnotationTool.h>
 
 #include <QByteArray>
+#include <QElapsedTimer>
 #include <QJsonDocument>
 #include <QList>
 #include <QMap>
 #include <QObject>
-#include <QThread>
+
+#include <mutex>
 
 class iARemoteAction;
 
@@ -20,14 +22,24 @@ class iAWebsocketAPI : public QObject
 { 
 	Q_OBJECT
 public:
-	iAWebsocketAPI(quint16 port, bool debug = false, QObject* parent = nullptr);
+	iAWebsocketAPI(quint16 port);
+	//! retrieve all queued actions, empty this object's queue in the process
+	QList<iARemoteAction*> getQueuedActions();
+
+public Q_SLOTS:
+	void init();
+	void close();
+	//! call when a new image is available which should be sent out to clients (calls setRenderedImage internally)
+	void sendViewIDUpdate(QByteArray img, QString viewID);
+	void updateCaptionList(std::vector<iAAnnotation> captions);
+	void sendInteractionUpdate(size_t focusedId);
+	//! call when a new image is available which doesn't need to be sent out immediately (called by sendViewIDUpdate internally)
 	//! @return true if passed in image is new, false if passed in image is the same as was cached in previous call
 	bool setRenderedImage(QByteArray img, QString viewID);
-	~iAWebsocketAPI();
 	 
 Q_SIGNALS:
 	void closed();
-	void controlCommand(iARemoteAction const & action);
+	void controlCommand();
 	void removeCaption(int id);
 	void addMode();
 	void selectCaption(int id);
@@ -39,29 +51,23 @@ private Q_SLOTS:
 	void processTextMessage(QString message);
 	void processBinaryMessage(QByteArray message);
 	void socketDisconnected();
-	void captionSubscribe(QWebSocket* pClient);
 
+	void captionSubscribe(QWebSocket* pClient);
 	void sendCaptionUpdate();
 	
-public Q_SLOTS:
-	void sendViewIDUpdate(QByteArray img, QString viewID);
-	void updateCaptionList(std::vector<iAAnnotation> const & captions);
-	void sendInteractionUpdate( size_t focusedId);
-	
 private:
-	QWebSocketServer* m_pWebSocketServer;
+	quint16 m_port;
+	QWebSocketServer* m_wsServer;
 	QList<QWebSocket*> m_clients;
-	bool m_debug;
+	QMap<QString, QList<QWebSocket*>> subscriptions;
 	int m_count;
 	QMap<QString, QByteArray> images;
 	QJsonDocument m_captionUpdate;
 	const QString captionKey = "caption";
-
 	QElapsedTimer m_StoppWatch;
 
-	QThread m_ServerThread;
-
-	QMap<QString, QList<QWebSocket*>> subscriptions;
+	QList<iARemoteAction*> m_actions;
+	std::mutex m_actionsMutex;
 
 	void commandWslinkHello(QJsonDocument Request, QWebSocket* pClient);
 	void commandAddObserver(QJsonDocument Request, QWebSocket* pClient);
@@ -73,5 +79,4 @@ private:
 
 	void sendSuccess(QJsonDocument Request, QWebSocket* pClient);
 	void sendImage(QWebSocket* pClient, QString viewID);
-
 };

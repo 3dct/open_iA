@@ -63,30 +63,13 @@ namespace
 }
 #endif
 
-namespace
-{
-	QString mouseActionToString(iARemoteAction::mouseAction action)
-	{
-		switch (action)
-		{
-		case iARemoteAction::ButtonDown:      return "Mouse button down";
-		case iARemoteAction::ButtonUp:        return "Mouse button up";
-		case iARemoteAction::StartMouseWheel: return "Mouse wheel start";
-		case iARemoteAction::MouseWheel:      return "Mouse wheel continue";
-		case iARemoteAction::EndMouseWheel:   return "Mouse wheel end";
-		default:
-		case iARemoteAction::Unknown:         return "Unknown";
-		}
-	}
-}
-
 class iARemoteTool: public QObject, public iATool
 {
 public:
 	static const QString Name;
 	iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 		iATool(mainWnd, child),
-		m_wsAPI(std::make_unique<iARemoteRenderer>(1234))
+		m_remoteRenderer(std::make_unique<iARemoteRenderer>(1234))
 #ifdef QT_HTTPSERVER
 		, m_httpServer(std::make_unique<QHttpServer>())
 #endif
@@ -98,72 +81,77 @@ public:
 			child->addTool(iAAnnotationTool::Name, newTool);
 			annotTool = newTool.get();
 		}
-		m_wsAPI->addRenderWindow(child->renderer()->renderWindow(), "3D");
+		m_remoteRenderer->addRenderWindow(child->renderer()->renderWindow(), "3D");
 		m_viewWidgets.insert("3D", child->rendererWidget());
 		for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 		{
-			m_wsAPI->addRenderWindow(child->slicer(i)->renderWindow(), slicerModeString(i));
+			m_remoteRenderer->addRenderWindow(child->slicer(i)->renderWindow(), slicerModeString(i));
 			child->slicer(i)->setShowTooltip(false);
 			m_viewWidgets.insert(slicerModeString(i), child->slicer(i));
 		}
-		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::controlCommand, this, [this](iARemoteAction const & action)
+		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::controlCommand, this, [this]()
 		{
-			int vtkEventID;
-			LOG(lvlDebug, QString("Action: %1; position: %2, %3; shift: %4; ctrl: %5; alt: %6.")
-				.arg(mouseActionToString(action.action))
-				.arg(action.x)
-				.arg(action.y)
-				.arg(action.shiftKey)
-				.arg(action.ctrlKey)
-				.arg(action.altKey));
-			if (action.action == iARemoteAction::MouseWheel || action.action == iARemoteAction::StartMouseWheel)
+			//QSet<QString> viewIDs;
+			auto actions = m_remoteRenderer->m_wsAPI->getQueuedActions();
+			LOG(lvlDebug, QString("ControlCommand: %1 actions to process.").arg(actions.size()));
+			for (auto action: actions)
 			{
-				vtkEventID = (action.spinY < 0) ? vtkCommand::MouseWheelForwardEvent : vtkCommand::MouseWheelBackwardEvent;
-			}
-			else    // mouse button press or move
-			{
-				static bool lastDown = false;
-				static qint64 lastInput = 0;
-				vtkEventID = vtkCommand::MouseMoveEvent;
-				bool curDown = (action.action == iARemoteAction::ButtonDown);
-				auto now = QDateTime::currentMSecsSinceEpoch();
-				auto millisecondsSinceLastInput = now - lastInput;
-				if (lastDown != curDown || millisecondsSinceLastInput > 50)
+				//viewIDs.insert(action->viewID);
+				int vtkEventID;
+				if (action->action == iARemoteAction::MouseWheel || action->action == iARemoteAction::StartMouseWheel)
 				{
-					lastInput = QDateTime::currentMSecsSinceEpoch();
+					vtkEventID = (action->spinY < 0) ? vtkCommand::MouseWheelForwardEvent : vtkCommand::MouseWheelBackwardEvent;
 				}
-				else    // ignore mouse moves less than a few milliseconds apart from previous
+				else    // mouse button press or move
 				{
-					LOG(lvlDebug, "Input ignored!");
+					static bool lastDown = false;
+					static qint64 lastInput = 0;
+					vtkEventID = vtkCommand::MouseMoveEvent;
+					bool curDown = (action->action == iARemoteAction::ButtonDown);
+					auto now = QDateTime::currentMSecsSinceEpoch();
+					auto millisecondsSinceLastInput = now - lastInput;
+					if (lastDown != curDown || millisecondsSinceLastInput > 50)
+					{
+						lastInput = QDateTime::currentMSecsSinceEpoch();
+					}
+					else    // ignore mouse moves less than a few milliseconds apart from previous
+					{
+						LOG(lvlDebug, "Input ignored!");
+						return;
+					}
+					if (lastDown != curDown)
+					{
+						lastDown = curDown;
+						vtkEventID = curDown ? vtkCommand::LeftButtonPressEvent : vtkCommand::LeftButtonReleaseEvent;
+					}
+				}
+				auto renWin = m_remoteRenderer->renderWindow(action->viewID);
+				if (!renWin)
+				{
+					LOG(lvlError, QString("No render window for view %1").arg(action->viewID));
 					return;
 				}
-				if (lastDown != curDown)
-				{
-					lastDown = curDown;
-					vtkEventID = curDown ? vtkCommand::LeftButtonPressEvent : vtkCommand::LeftButtonReleaseEvent;
-				}
+				auto interactor = renWin->GetInteractor();
+				interactor->SetControlKey(action->ctrlKey);
+				interactor->SetShiftKey(action->shiftKey);
+				interactor->SetAltKey(action->altKey);
+				int const* size = renWin->GetSize();
+				int pos[] = {static_cast<int>(size[0] * action->x), static_cast<int>(size[1] * action->y)};
+				//LOG(lvlDebug, QString("event id: %1; x: %2, y: %3").arg(vtkEventID).arg(pos[0]).arg(pos[1]));
+
+				interactor->SetEventPosition(pos);
+				//interactor->SetKeyCode(static_cast<char>(action.keyCode));
+				//interactor->SetRepeatCount(repeatCount);
+				//interactor->SetKeySym(keySym);
+
+				interactor->InvokeEvent(vtkEventID, nullptr);
+				delete action;    // clean up action
 			}
-			auto renWin = m_wsAPI->renderWindow(action.viewID);
-			if (!renWin)
-			{
-				return;
-			}
-			auto interactor = renWin->GetInteractor();
-			interactor->SetControlKey(action.ctrlKey);
-			interactor->SetShiftKey(action.shiftKey);
-			interactor->SetAltKey(action.altKey);
-			int const* size = renWin->GetSize();
-			int pos[] = {static_cast<int>(size[0] * action.x), static_cast<int>(size[1] * action.y)};
-			//LOG(lvlDebug, QString("event id: %1; x: %2, y: %3").arg(vtkEventID).arg(pos[0]).arg(pos[1]));
 
-			interactor->SetEventPosition(pos);
-			//interactor->SetKeyCode(static_cast<char>(action.keyCode));
-			//interactor->SetRepeatCount(repeatCount);
-			//interactor->SetKeySym(keySym);
-
-			interactor->InvokeEvent(vtkEventID, nullptr);
-
-			m_viewWidgets[action.viewID]->update();
+			//for (auto viewID : viewIDs)
+			//{
+			//	m_viewWidgets[viewID]->update();
+			//}
 		});
 
 #ifdef QT_HTTPSERVER
@@ -188,17 +176,17 @@ public:
 		}
 #endif
 
-		connect(annotTool, &iAAnnotationTool::annotationsUpdated, m_wsAPI->m_websocket.get(),&iAWebsocketAPI::updateCaptionList);
-		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::changeCaptionTitle, annotTool,	&iAAnnotationTool::renameAnnotation);
-		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::removeCaption, annotTool, &iAAnnotationTool::removeAnnotation);
-		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::addMode, annotTool, &iAAnnotationTool::startAddMode);
-		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::selectCaption, annotTool, &iAAnnotationTool::focusToAnnotation);
-		connect(m_wsAPI->m_websocket.get(), &iAWebsocketAPI::hideAnnotation, annotTool,	&iAAnnotationTool::hideAnnotation);
-		connect(annotTool, &iAAnnotationTool::focusedToAnnotation, m_wsAPI->m_websocket.get(), &iAWebsocketAPI::sendInteractionUpdate);
+		connect(annotTool, &iAAnnotationTool::annotationsUpdated, m_remoteRenderer->m_wsAPI.get(),&iAWebsocketAPI::updateCaptionList);
+		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::changeCaptionTitle, annotTool,	&iAAnnotationTool::renameAnnotation);
+		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::removeCaption, annotTool, &iAAnnotationTool::removeAnnotation);
+		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::addMode, annotTool, &iAAnnotationTool::startAddMode);
+		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::selectCaption, annotTool, &iAAnnotationTool::focusToAnnotation);
+		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::hideAnnotation, annotTool,	&iAAnnotationTool::hideAnnotation);
+		connect(annotTool, &iAAnnotationTool::focusedToAnnotation, m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::sendInteractionUpdate);
 	}
 
 private:
-	std::unique_ptr<iARemoteRenderer> m_wsAPI;
+	std::unique_ptr<iARemoteRenderer> m_remoteRenderer;
 	QMap<QString, QWidget*> m_viewWidgets;
 #ifdef QT_HTTPSERVER
 	std::unique_ptr<QHttpServer> m_httpServer;

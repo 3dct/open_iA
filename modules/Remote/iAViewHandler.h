@@ -16,7 +16,6 @@ public:
 	void vtkCallbackFunc(vtkObject* caller, long unsigned int evId, void* /*callData*/);
 
 	QString id;
-	int quality = 45;
 
 private: 
 	int timeRendering =0;

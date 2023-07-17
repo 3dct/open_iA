@@ -6,7 +6,6 @@
 
 #include <iALog.h>
 
-#include <QDebug>
 #include <QImage>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -14,27 +13,27 @@
 #include <QWebSocketServer>
 #include <QWebSocket>
 
-iAWebsocketAPI::iAWebsocketAPI(quint16 port, bool debug, QObject* parent) :
-	QObject(parent),
-	m_pWebSocketServer(new QWebSocketServer(QStringLiteral("Remote Server"), QWebSocketServer::NonSecureMode, this)),
-	m_debug(debug),
+iAWebsocketAPI::iAWebsocketAPI(quint16 port):
+	m_port(port),
 	m_count(0) // possibly use a separate counter per client?
 {
-	m_pWebSocketServer->moveToThread(&m_ServerThread);
-	m_ServerThread.start();
+}
 
-	if (m_pWebSocketServer->listen(QHostAddress::Any, port))
+void iAWebsocketAPI::init()
+{
+	m_wsServer = new QWebSocketServer(QStringLiteral("Remote Server"), QWebSocketServer::NonSecureMode, this);
+	if (m_wsServer->listen(QHostAddress::Any, m_port))
 	{
-		connect(m_pWebSocketServer, &QWebSocketServer::newConnection, this, &iAWebsocketAPI::onNewConnection);
-		connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &iAWebsocketAPI::closed);
+		connect(m_wsServer, &QWebSocketServer::newConnection, this, &iAWebsocketAPI::onNewConnection);
+		connect(m_wsServer, &QWebSocketServer::closed, this, &iAWebsocketAPI::closed);
 	}
-
 	std::vector<iAAnnotation> captions;
 	updateCaptionList(captions);
 }
 
 bool iAWebsocketAPI::setRenderedImage(QByteArray img, QString viewID)
 {
+	// TODO: check other thread communication methods, e.g. locking images via mutex; currently using signal/slot
 	if (images.contains(viewID) && images[viewID] == img)
 	{
 		LOG(lvlDebug, "Setting same image again, ignoring!");
@@ -44,21 +43,20 @@ bool iAWebsocketAPI::setRenderedImage(QByteArray img, QString viewID)
 	return true;
 }
 
-iAWebsocketAPI::~iAWebsocketAPI()
+void iAWebsocketAPI::close()
 {
-	m_ServerThread.quit();
-	m_ServerThread.wait();
 	//qDeleteAll(m_clients);	// any client QWebSockets are closed and deleted (see ~QWebSocketServer documentation)
-	m_pWebSocketServer->close();
+	m_wsServer->close();
 }
 
 void iAWebsocketAPI::onNewConnection()
 {
-	QWebSocket* pSocket = m_pWebSocketServer->nextPendingConnection();
-	connect(pSocket, &QWebSocket::textMessageReceived, this, &iAWebsocketAPI::processTextMessage);
-	connect(pSocket, &QWebSocket::binaryMessageReceived, this, &iAWebsocketAPI::processBinaryMessage);
-	connect(pSocket, &QWebSocket::disconnected, this, &iAWebsocketAPI::socketDisconnected);
-	m_clients << pSocket;
+	QWebSocket* client = m_wsServer->nextPendingConnection();
+	LOG(lvlDebug, QString("Client connected: %1 (local %2)").arg(client->peerAddress().toString()).arg(client->localAddress().toString()));
+	connect(client, &QWebSocket::textMessageReceived, this, &iAWebsocketAPI::processTextMessage);
+	connect(client, &QWebSocket::binaryMessageReceived, this, &iAWebsocketAPI::processBinaryMessage);
+	connect(client, &QWebSocket::disconnected, this, &iAWebsocketAPI::socketDisconnected);
+	m_clients << client;
 }
 
 void iAWebsocketAPI::processTextMessage(QString message)
@@ -198,51 +196,93 @@ void iAWebsocketAPI::sendSuccess(QJsonDocument Request, QWebSocket* pClient)
 	pClient->sendTextMessage(QJsonDocument{ successResponseObj }.toJson());
 }
 
+namespace
+{
+	QString mouseActionToString(iARemoteAction::mouseAction action)
+	{
+		switch (action)
+		{
+		case iARemoteAction::ButtonDown:      return "Mouse button down";
+		case iARemoteAction::ButtonUp:        return "Mouse button up";
+		case iARemoteAction::StartMouseWheel: return "Mouse wheel start";
+		case iARemoteAction::MouseWheel:      return "Mouse wheel continue";
+		case iARemoteAction::EndMouseWheel:   return "Mouse wheel end";
+		default:
+		case iARemoteAction::Unknown:         return "Unknown";
+		}
+	}
+}
+
 void iAWebsocketAPI::commandControls(QJsonDocument Request, QWebSocket* pClient)
 {
-	iARemoteAction webAction ;
+	iARemoteAction * webAction = new iARemoteAction();
 	auto argList = Request["args"][0];
 
 	if (argList["action"] == "down")
 	{
-		webAction.action = iARemoteAction::ButtonDown;
+		webAction->action = iARemoteAction::ButtonDown;
 	}
 	else if (argList["action"] == "up")
 	{
-		webAction.action = iARemoteAction::ButtonUp;
+		webAction->action = iARemoteAction::ButtonUp;
 	}
 	else if (argList["type"] == "MouseWheel")
 	{
-		webAction.action = iARemoteAction::MouseWheel;
+		webAction->action = iARemoteAction::MouseWheel;
 	}
 	else if (argList["type"] == "EndMouseWheel")
 	{
-		webAction.action = iARemoteAction::EndMouseWheel;
+		webAction->action = iARemoteAction::EndMouseWheel;
 	}
 	else if (argList["type"] == "StartMouseWheel")
 	{
-		webAction.action = iARemoteAction::StartMouseWheel;
+		webAction->action = iARemoteAction::StartMouseWheel;
 	}
 	else
 	{
-		webAction.action = iARemoteAction::Unknown;
+		webAction->action = iARemoteAction::Unknown;
 	}
 
-	webAction.buttonLeft = argList["buttonLeft"].toInt();
-	webAction.buttonRight = argList["buttonRight"].toInt();
-	webAction.buttonMiddle = argList["buttonMiddle"].toInt();
-	webAction.altKey = argList["altKey"].toInt();
-	webAction.ctrlKey = argList["controlKey"].toBool() || argList["ctrlKey"].toInt();
-	webAction.metaKey = argList["metaKey"].toInt();
-	webAction.shiftKey = argList["shiftKey"].toInt() || argList["shiftKey"].toBool();
-	webAction.viewID = argList["view"].toString();
-	webAction.x = argList["x"].toDouble();
-	webAction.y = argList["y"].toDouble();
-	webAction.spinY = argList["spinY"].toDouble();
+	webAction->buttonLeft = argList["buttonLeft"].toInt();
+	webAction->buttonRight = argList["buttonRight"].toInt();
+	webAction->buttonMiddle = argList["buttonMiddle"].toInt();
+	webAction->altKey = argList["altKey"].toInt();
+	webAction->ctrlKey = argList["controlKey"].toBool() || argList["ctrlKey"].toInt();
+	webAction->metaKey = argList["metaKey"].toInt();
+	webAction->shiftKey = argList["shiftKey"].toInt() || argList["shiftKey"].toBool();
+	webAction->viewID = argList["view"].toString();
+	webAction->x = argList["x"].toDouble();
+	webAction->y = argList["y"].toDouble();
+	webAction->spinY = argList["spinY"].toDouble();
 
-	emit controlCommand(webAction);
+	LOG(lvlDebug, QString("Action: %1; position: %2, %3; shift: %4; ctrl: %5; alt: %6.")
+		.arg(mouseActionToString(webAction->action))
+		.arg(webAction->x)
+		.arg(webAction->y)
+		.arg(webAction->shiftKey)
+		.arg(webAction->ctrlKey)
+		.arg(webAction->altKey));
 
+	{
+		// enqueue in local data structure to enable receiver to apply all actions at once:
+		std::lock_guard<std::mutex> guard(m_actionsMutex);
+		m_actions.push_back(webAction);
+	}
+	// notify GUI that control message has come in:
+	emit controlCommand();
 	sendSuccess(Request, pClient);
+}
+
+QList<iARemoteAction*> iAWebsocketAPI::getQueuedActions()
+{
+	std::lock_guard<std::mutex> guard(m_actionsMutex);
+	QList<iARemoteAction*> result;
+	for (auto a : m_actions)
+	{
+		result.push_back(a);
+	}
+	m_actions.clear();
+	return result;
 }
 
 void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)
@@ -256,6 +296,7 @@ void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)
 	pClient->sendTextMessage(QJsonDocument{ imgHeaderObj }.toJson());
 
 	QByteArray const & ba = images[viewID];
+	// TODO: cache image size!
 	QImage img;
 	img.loadFromData(ba);
 	int width = img.size().width();
@@ -307,10 +348,7 @@ void iAWebsocketAPI::sendViewIDUpdate(QByteArray img, QString viewID)
 void iAWebsocketAPI::processBinaryMessage(QByteArray message)
 {
 	QWebSocket* pClient = qobject_cast<QWebSocket*>(sender());
-	if (m_debug)
-	{
-		qDebug() << "Binary Message received:" << message;
-	}
+	LOG(lvlDebug, QString("Binary Message received: %1").arg(message));
 	if (pClient)
 	{
 		pClient->sendBinaryMessage(message);
@@ -319,23 +357,22 @@ void iAWebsocketAPI::processBinaryMessage(QByteArray message)
 
 void iAWebsocketAPI::socketDisconnected()
 {
-	QWebSocket* pClient = qobject_cast<QWebSocket*>(sender());
-	if (m_debug)
+	QWebSocket* client = qobject_cast<QWebSocket*>(sender());
+	if (!client)
 	{
-		qDebug() << "socketDisconnected:" << pClient;
+		LOG(lvlWarn, "Invalid call to socketDisconnected with nullptr client!");
+		return;
 	}
-	if (pClient)
+	LOG(lvlDebug, QString("Client disconnected: %1 (local %2)").arg(client->peerAddress().toString()).arg(client->localAddress().toString()));
+	for (auto &x : subscriptions)
 	{
-		for (auto &x : subscriptions)
-		{
-			x.removeAll(pClient);
-		}
-		m_clients.removeAll(pClient);
-		pClient->deleteLater();
+		x.removeAll(client);
 	}
+	m_clients.removeAll(client);
+	client->deleteLater();
 }
 
-void iAWebsocketAPI::updateCaptionList(std::vector<iAAnnotation> const & captions)
+void iAWebsocketAPI::updateCaptionList(std::vector<iAAnnotation> captions)
 {
 	QJsonArray captionList;
 	for (auto caption : captions)
