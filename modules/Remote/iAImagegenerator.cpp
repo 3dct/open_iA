@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAImagegenerator.h"
 
+#include "iAJPGImage.h"
+
 #include <iALog.h>
 
 #include <vtkImageFlip.h>
@@ -143,7 +145,7 @@ namespace
 		cudaStream_t stream = nullptr;
 	};
 
-	QByteArray nvJPEGCreateImage(QString viewID, vtkRenderWindow* window, int quality)
+	std::shared_ptr<iAJPGImage> nvJPEGCreateImage(QString viewID, vtkRenderWindow* window, int quality)
 	{
 		QElapsedTimer t1; t1.start();
 		static iACudaImageGen cudaImageGen;
@@ -179,12 +181,16 @@ namespace
 		auto data = cudaImageGen.BitmapToJpegCUDA(dim[0], dim[1], buffer, quality, debugMsg);
 		LOG(lvlDebug, QString("%1; extract: %2 ms; nvJPEG: %3 ms; size: %4 kB")
 			.arg(debugMsg).arg(extractTime).arg(t3.elapsed()).arg(data.size()/1000.0));
-		return QByteArray(reinterpret_cast<char*>(data.data()), data.size());
+		auto result = std::make_shared<iAJPGImage>();
+		result->data = std::move(QByteArray(reinterpret_cast<char*>(data.data()), data.size()));
+		result->width = dim[0];
+		result->height = dim[1];
+		return result;
 	}
 
 #endif
 
-	QByteArray vtkTurboJPEGCreateImage(vtkRenderWindow* window, int quality)
+	std::shared_ptr<iAJPGImage> vtkTurboJPEGCreateImage(vtkRenderWindow* window, int quality)
 	{
 		QElapsedTimer t1; t1.start();
 		vtkNew<vtkWindowToImageFilter> w2if;
@@ -193,6 +199,7 @@ namespace
 		w2if->Update();
 		auto renderTime = window->GetRenderers()->GetFirstRenderer()->GetLastRenderTimeInSeconds() * 1000;
 		auto grabTime = t1.elapsed();
+		auto img = w2if->GetOutput();
 
 		QElapsedTimer t; t.start();
 		vtkNew<vtkJPEGWriter> writer;
@@ -201,7 +208,10 @@ namespace
 		writer->WriteToMemoryOn();
 		writer->Write();
 		vtkSmartPointer<vtkUnsignedCharArray> imgData = writer->GetResult();
-		QByteArray result((char*)imgData->Begin(), static_cast<qsizetype>(imgData->GetSize()));
+		auto result = std::make_shared<iAJPGImage>();
+		result->data = std::move(QByteArray((char*)imgData->Begin(), static_cast<qsizetype>(imgData->GetSize())));
+		result->width = img->GetDimensions()[0];
+		result->height = img->GetDimensions()[1];
 		LOG(lvlDebug, QString("VTK JPEG. grab: %1 ms; last render: %2 ms; jpeg: %3 ms; size: %4 kB")
 			.arg(grabTime).arg(renderTime).arg(t.elapsed()).arg(imgData->GetSize()/1000.0));
 		return result;
@@ -210,7 +220,7 @@ namespace
 
 namespace iAImagegenerator
 {
-	QByteArray createImage(QString const & viewID, vtkRenderWindow* window, int quality)
+	std::shared_ptr<iAJPGImage> createImage(QString const & viewID, vtkRenderWindow* window, int quality)
 	{
 #if CUDA_AVAILABLE
 		static bool cudaWorking = isCUDAAvailable();

@@ -13,6 +13,7 @@
 
 #include <mutex>
 
+class iAJPGImage;
 class iARemoteAction;
 
 class QWebSocket;
@@ -30,12 +31,12 @@ public Q_SLOTS:
 	void init();
 	void close();
 	//! call when a new image is available which should be sent out to clients (calls setRenderedImage internally)
-	void sendViewIDUpdate(QByteArray img, QString viewID);
+	void sendViewIDUpdate(std::shared_ptr<iAJPGImage> img, QString viewID);
 	void updateCaptionList(std::vector<iAAnnotation> captions);
 	void sendInteractionUpdate(size_t focusedId);
 	//! call when a new image is available which doesn't need to be sent out immediately (called by sendViewIDUpdate internally)
 	//! @return true if passed in image is new, false if passed in image is the same as was cached in previous call
-	bool setRenderedImage(QByteArray img, QString viewID);
+	bool setRenderedImage(std::shared_ptr<iAJPGImage> img, QString viewID);
 	 
 Q_SIGNALS:
 	void closed();
@@ -49,7 +50,7 @@ Q_SIGNALS:
 private Q_SLOTS:
 	void onNewConnection();
 	void processTextMessage(QString message);
-	void processBinaryMessage(QByteArray message);
+	//void processBinaryMessage(QByteArray message);
 	void socketDisconnected();
 
 	void captionSubscribe(QWebSocket* pClient);
@@ -61,7 +62,7 @@ private:
 	QList<QWebSocket*> m_clients;
 	QMap<QString, QList<QWebSocket*>> subscriptions;
 	int m_count;
-	QMap<QString, QByteArray> images;
+	QMap<QString, std::shared_ptr<iAJPGImage>> images;
 	QJsonDocument m_captionUpdate;
 	const QString captionKey = "caption";
 	QElapsedTimer m_StoppWatch;

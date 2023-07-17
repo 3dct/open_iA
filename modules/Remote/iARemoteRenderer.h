@@ -7,6 +7,7 @@
 
 #include <memory>
 
+class iAJPGImage;
 class iAViewHandler;
 class iAWebsocketAPI;
 
@@ -38,9 +39,9 @@ public slots:
 signals:
 	//! Called when image for a view changes;
 	//! used to communicate with web socket server thread
-	bool setRenderedImage(QByteArray img, QString viewID);
+	bool setRenderedImage(std::shared_ptr<iAJPGImage> img, QString viewID);
 	//! Called when image for a view changes;
 	//! used to communicate with web socket server thread
-	void imageHasChanged(QByteArray image, QString viewID);
+	void imageHasChanged(std::shared_ptr<iAJPGImage> img, QString viewID);
 	void finished();
 };

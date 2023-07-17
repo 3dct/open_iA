@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAWebsocketAPI.h"
 
+#include "iAJPGImage.h"
 #include "iARemoteAction.h"
 
 #include <iALog.h>
 
-#include <QImage>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -31,10 +31,10 @@ void iAWebsocketAPI::init()
 	updateCaptionList(captions);
 }
 
-bool iAWebsocketAPI::setRenderedImage(QByteArray img, QString viewID)
+bool iAWebsocketAPI::setRenderedImage(std::shared_ptr<iAJPGImage> img, QString viewID)
 {
 	// TODO: check other thread communication methods, e.g. locking images via mutex; currently using signal/slot
-	if (images.contains(viewID) && images[viewID] == img)
+	if (images.contains(viewID) && images[viewID]->data == img->data)
 	{
 		LOG(lvlDebug, "Setting same image again, ignoring!");
 		return false;
@@ -54,7 +54,7 @@ void iAWebsocketAPI::onNewConnection()
 	QWebSocket* client = m_wsServer->nextPendingConnection();
 	LOG(lvlDebug, QString("Client connected: %1 (local %2)").arg(client->peerAddress().toString()).arg(client->localAddress().toString()));
 	connect(client, &QWebSocket::textMessageReceived, this, &iAWebsocketAPI::processTextMessage);
-	connect(client, &QWebSocket::binaryMessageReceived, this, &iAWebsocketAPI::processBinaryMessage);
+	//connect(client, &QWebSocket::binaryMessageReceived, this, &iAWebsocketAPI::processBinaryMessage);    // clients don't send binary messages at the moment
 	connect(client, &QWebSocket::disconnected, this, &iAWebsocketAPI::socketDisconnected);
 	m_clients << client;
 }
@@ -295,14 +295,9 @@ void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)
 	};
 	pClient->sendTextMessage(QJsonDocument{ imgHeaderObj }.toJson());
 
-	QByteArray const & ba = images[viewID];
-	QElapsedTimer imgTimer; imgTimer.start();
-	// TODO: cache image size!
-	QImage img;
-	img.loadFromData(ba);
-	int width = img.size().width();
-	int height = img.size().height();
-	LOG(lvlDebug, QString("image parsing: %1 ms").arg(imgTimer.elapsed()));
+	QByteArray const & ba = images[viewID]->data;
+	int width  = images[viewID]->width;
+	int height = images[viewID]->height;
 	pClient->sendBinaryMessage(ba);
 
 	auto imageSize = ba.size();
@@ -330,7 +325,7 @@ void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)
 	m_count++;
 }
 
-void iAWebsocketAPI::sendViewIDUpdate(QByteArray img, QString viewID)
+void iAWebsocketAPI::sendViewIDUpdate(std::shared_ptr<iAJPGImage> img, QString viewID)
 {
 	//LOG(lvlDebug, QString("sendViewIDUpdate %1 START").arg(viewID));
 	if (!setRenderedImage(img, viewID))
@@ -347,15 +342,13 @@ void iAWebsocketAPI::sendViewIDUpdate(QByteArray img, QString viewID)
 	//LOG(lvlDebug, QString("sendViewIDUpdate %1 END").arg(viewID));
 }
 
+/*
 void iAWebsocketAPI::processBinaryMessage(QByteArray message)
 {
 	QWebSocket* client = qobject_cast<QWebSocket*>(sender());
 	LOG(lvlDebug, QString("Binary Message received!"));
-	//if (client)
-	//{
-	//	client->sendBinaryMessage(message);
-	//}
 }
+*/
 
 void iAWebsocketAPI::socketDisconnected()
 {
