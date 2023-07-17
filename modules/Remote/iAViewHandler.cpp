@@ -22,14 +22,14 @@ void iAViewHandler::vtkCallbackFunc(vtkObject* caller, long unsigned int evId, v
 	//LOG(lvlDebug, QString("DIRECT time check %1, time %2").arg(id).arg(m_StoppWatch.elapsed()));
 	const int MinWaitTime = 200;
 	const int FinalUpdateTime = 250;
-	const int quality = 30;
+	const int ReducedQuality = 20;
 	if ((m_StoppWatch.elapsed() > std::max(waitTimeRendering, MinWaitTime)))
 	{
 		m_StoppWatch.restart();
 		timer.stop();
 		timer.start(FinalUpdateTime);
 
-		emit createImage(id, quality);
+		emit createImage(id, ReducedQuality);
 		timeRendering = m_StoppWatch.elapsed();
 		waitTimeRendering = waitTimeRendering + (timeRendering - waitTimeRendering + 12)/4;  // magic numbers -> gradual adaptation
 		LOG(lvlDebug, QString("DIRECT %1, time %2 ms; wait %3 ms").arg(id).arg(timeRendering).arg(waitTimeRendering));
