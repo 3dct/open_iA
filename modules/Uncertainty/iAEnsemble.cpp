@@ -472,7 +472,7 @@ void iAEnsemble::CreateUncertaintyImages()
 			|| !LoadValues(m_cachePath + "/algorithmEntropyVar.csv", m_memberEntropyVar))
 		{
 			m_entropyAvgEntropy = createImage<DoubleImage>(size, spacing);
-			int memberIdx = 0;
+			//int memberIdx = 0;
 			double numberOfPixels = size[0] * size[1] * size[2];
 			for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 			{
@@ -504,7 +504,7 @@ void iAEnsemble::CreateUncertaintyImages()
 					double entropyVar = diffsum / numberOfPixels;
 					m_memberEntropyAvg.push_back(entropyAvg);
 					m_memberEntropyVar.push_back(entropyVar);
-					++memberIdx;
+					//++memberIdx;
 					AddImageInPlace(m_entropyAvgEntropy, memberEntropy);
 				}
 			}
