@@ -15,6 +15,7 @@
 
 #include <vtkMath.h>
 
+#include <QClipboard>
 #include <QFileDialog>
 #include <QMenu>
 #include <QMouseEvent>
@@ -304,6 +305,9 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 		contextMenu->addAction(iAThemeHelper::icon("table"), tr("Transfer Function Table View"), this, &iAChartWithFunctionsWidget::showTFTable);
 		contextMenu->addAction(iAThemeHelper::icon("tf-load"), tr("Load transfer function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::loadTransferFunction));
 		contextMenu->addAction(iAThemeHelper::icon("tf-save"), tr("Save transfer function"), this, &iAChartWithFunctionsWidget::saveTransferFunction);
+		contextMenu->addAction(iAThemeHelper::icon("tf-copy"), tr("Copy transfer function"), this, &iAChartWithFunctionsWidget::copyTransferFunction);
+		// maybe disable pasting if no proper XML in clipboard?
+		contextMenu->addAction(iAThemeHelper::icon("tf-paste"), tr("Paste transfer function"), this, &iAChartWithFunctionsWidget::pasteTransferFunction);
 		if (m_allowTrfReset)
 		{
 			contextMenu->addAction(iAThemeHelper::icon("tf-reset"), tr("Reset transfer function"), this, &iAChartWithFunctionsWidget::resetTrf);
@@ -315,7 +319,13 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 		contextMenu->addAction(iAThemeHelper::icon("bezier"), tr("Add bezier function"), this, &iAChartWithFunctionsWidget::addBezierFunction);
 		contextMenu->addAction(iAThemeHelper::icon("gaussian"), tr("Add gaussian function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::addGaussianFunction));
 		contextMenu->addAction(iAThemeHelper::icon("function-load"), tr("Load functions"), this, &iAChartWithFunctionsWidget::loadFunctions);
-		contextMenu->addAction(iAThemeHelper::icon("function-save"), tr("Save functions"), this, &iAChartWithFunctionsWidget::saveFunctions);
+		if (m_functions.size() > 1)
+		{   // it only makes sense to copy / save functions if there are some defined!
+			contextMenu->addAction(iAThemeHelper::icon("function-save"), tr("Save functions"), this, &iAChartWithFunctionsWidget::saveFunctions);
+			contextMenu->addAction(iAThemeHelper::icon("function-copy"), tr("Copy functions"), this, &iAChartWithFunctionsWidget::copyProbabilityFunctions);
+		}
+		// maybe disable pasting if no proper XML in clipboard?
+		contextMenu->addAction(iAThemeHelper::icon("function-paste"), tr("Paste functions"), this, &iAChartWithFunctionsWidget::pasteProbabilityFunctions);
 
 		if (m_selectedFunction != 0)
 		{
@@ -497,6 +507,29 @@ void iAChartWithFunctionsWidget::saveTransferFunction()
 	}
 }
 
+void iAChartWithFunctionsWidget::copyTransferFunction()
+{
+	iAXmlSettings s;
+	iATransferFunction* tf = dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf();
+	s.saveTransferFunction(tf);
+	QGuiApplication::clipboard()->setText(s.toString());
+}
+
+void iAChartWithFunctionsWidget::pasteTransferFunction()
+{
+	iAXmlSettings xml;
+	if (!xml.fromString(QGuiApplication::clipboard()->text()) ||
+		!xml.loadTransferFunction(dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf()))
+	{
+		LOG(lvlWarn, "Inserting transfer function from clipboard failed; probably there is currently no valid transfer function definition in clipboard!");
+	}
+	else
+	{
+		newTransferFunction();
+	}
+}
+
+
 void iAChartWithFunctionsWidget::addBezierFunction()
 {
 	iAChartFunctionBezier *bezier = new iAChartFunctionBezier(this, FunctionColors()[m_functions.size() % 7]);
@@ -552,6 +585,23 @@ void iAChartWithFunctionsWidget::loadFunctions()
 	}
 	emit noPointSelected();
 	update();
+}
+
+void iAChartWithFunctionsWidget::copyProbabilityFunctions()
+{
+	iAXmlSettings xml;
+	saveProbabilityFunctions(xml);
+	QGuiApplication::clipboard()->setText(xml.toString());
+}
+
+void iAChartWithFunctionsWidget::pasteProbabilityFunctions()
+{
+	iAXmlSettings xml;
+	if (!xml.fromString(QGuiApplication::clipboard()->text()) ||
+		!loadProbabilityFunctions(xml))
+	{
+		LOG(lvlWarn, "Inserting functions from clipboard failed; probably there is currently no valid function definition in clipboard!");
+	}
 }
 
 bool iAChartWithFunctionsWidget::loadProbabilityFunctions(iAXmlSettings & xml)

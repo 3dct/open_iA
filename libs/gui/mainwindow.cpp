@@ -1008,37 +1008,6 @@ void MainWindow::loadCameraSettings()
 	LOG(lvlInfo, QString("Loaded camera settings from %1").arg(fileName));
 }
 
-// TODO NEWIO: probably has outlived its usefulness, but check!
-void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
-{
-	//std::vector<iAChartFunction*> const & oldChildFunctions = oldChild->histogram()->functions();
-	//for (unsigned int i = 1; i < oldChildFunctions.size(); ++i)
-	//{
-	//	// TODO: implement a "clone" function to avoid dynamic_cast here?
-	//	iAChartFunction *curFunc = oldChildFunctions[i];
-	//	if (dynamic_cast<iAChartFunctionGaussian*>(curFunc))
-	//	{
-	//		auto oldGaussian = dynamic_cast<iAChartFunctionGaussian*>(curFunc);
-	//		auto newGaussian = new iAChartFunctionGaussian(newChild->histogram(), FunctionColors()[i % 7]);
-	//		newGaussian->setMean(oldGaussian->getMean());
-	//		newGaussian->setMultiplier(oldGaussian->getMultiplier());
-	//		newGaussian->setSigma(oldGaussian->getSigma());
-	//		newChild->histogram()->functions().push_back(newGaussian);
-	//	}
-	//	else if (dynamic_cast<iAChartFunctionBezier*>(curFunc))
-	//	{
-	//		auto oldBezier = dynamic_cast<iAChartFunctionBezier*>(curFunc);
-	//		auto newBezier = new iAChartFunctionBezier(newChild->histogram(), FunctionColors()[i % 7]);
-	//		for (unsigned int j = 0; j < oldBezier->getPoints().size(); ++j)
-	//		{
-	//			newBezier->addPoint(oldBezier->getPoints()[j].x(), oldBezier->getPoints()[j].y());
-	//		}
-	//		newChild->histogram()->functions().push_back(newBezier);
-	//	}
-	//	// otherwise: unknown function type, do nothing
-	//}
-}
-
 void MainWindow::about()
 {
 	QDialog dlg(this);
@@ -1277,7 +1246,6 @@ iAMdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 		child->show();
 	}
 	child->initializeViews();
-	//child->applyRendererSettings(m_defaultRenderSettings);
 	child->applySlicerSettings(m_defaultSlicerSettings);
 	emit childCreated(child);
 	return child;

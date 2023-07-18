@@ -5,8 +5,12 @@
     <file>images/chart.svg</file>
     <file>images/chart_light.svg</file>
     <file>images/color-wheel.svg</file>
+    <file>images/function-copy.svg</file>
+    <file>images/function-copy_light.svg</file>
     <file>images/function-load.svg</file>
     <file>images/function-load_light.svg</file>
+    <file>images/function-paste.svg</file>
+    <file>images/function-paste_light.svg</file>
     <file>images/function-point-add.svg</file>
     <file>images/function-point-add_light.svg</file>
     <file>images/function-point-remove.svg</file>
@@ -19,8 +23,12 @@
     <file>images/gaussian_light.svg</file>
     <file>images/table.svg</file>
     <file>images/table_light.svg</file>
+    <file>images/tf-copy.svg</file>
+    <file>images/tf-copy_light.svg</file>
     <file>images/tf-load.svg</file>
     <file>images/tf-load_light.svg</file>
+    <file>images/tf-paste.svg</file>
+    <file>images/tf-paste_light.svg</file>
     <file>images/tf-reset.svg</file>
     <file>images/tf-reset_light.svg</file>
     <file>images/tf-save.svg</file>

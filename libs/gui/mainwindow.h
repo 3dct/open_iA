@@ -146,8 +146,6 @@ private:
 	void updateRecentFileActions();
 	void applyQSS();
 	void setModuleActionsEnabled( bool isEnabled );
-	// TDOO NEWIO: currently unused, but functionality should be available for any filter (general runner options - re-use transfer function, result in new/existing window, copy non-TF functions
-	void copyFunctions(MdiChild* oldChild, MdiChild* newChild);
 	void loadTLGICTData(QString const & baseDirectory);
 	iAMdiChild* askWhichChild();
 	bool keepOpen();
