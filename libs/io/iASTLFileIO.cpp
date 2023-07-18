@@ -37,7 +37,6 @@ std::shared_ptr<iADataSet> iASTLFileIO::loadData(QString const& fileName, QVaria
 
 void iASTLFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress)
 {
-	assert(dataSet->type() == iADataSetType::Mesh);
 	Q_UNUSED(paramValues);
 	vtkNew<vtkSTLWriter> writer;
 	progress.observe(writer);

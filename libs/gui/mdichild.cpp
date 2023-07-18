@@ -504,9 +504,11 @@ bool MdiChild::saveDataSet(std::shared_ptr<iADataSet> dataSet, QString const& fi
 		return false;
 	}
 	auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Save);
-	if (!io || !io->isDataSetSupported(dataSet, fileName))
+	if (!io || !io->isDataSetSupported(dataSet, fileName, iAFileIO::Save))
 	{
-		LOG(lvlError, "The chosen file format does not support this kind of dataset!");
+		auto msg = QString("The chosen file format (%1) does not support this kind of dataset!").arg(io->name());
+		QMessageBox::warning(this, "Save: Error", msg);
+		LOG(lvlError, msg);
 		return false;
 	}
 	QVariantMap paramValues;
@@ -531,29 +533,15 @@ bool MdiChild::saveDataSet(std::shared_ptr<iADataSet> dataSet, QString const& fi
 					setWindowModified(hasUnsavedData());
 				}
 			}
+			else
+			{
+				QMessageBox::warning(this, "Save: Error", QString("Saving %1 failed. See the log window for details.").arg(fileName));
+			}
 			delete futureWatcher;
 		});
 	auto future = QtConcurrent::run([fileName, p, io, dataSet, paramValues]()
 		{
-			try
-			{
-				io->save(fileName, dataSet, paramValues, *p.get());
-				return true;
-			}
-			// TODO: unify exception handling?
-			catch (itk::ExceptionObject& e)
-			{
-				LOG(lvlError, QString("Error saving file %1: %2").arg(fileName).arg(e.GetDescription()));
-			}
-			catch (std::exception& e)
-			{
-				LOG(lvlError, QString("Error saving file %1: %2").arg(fileName).arg(e.what()));
-			}
-			catch (...)
-			{
-				LOG(lvlError, QString("Unknown error while saving file %1!").arg(fileName));
-			}
-			return false;
+			return io->save(fileName, dataSet, paramValues, *p.get());
 		});
 	futureWatcher->setFuture(future);
 	iAJobListView::get()->addJob("Save File", p.get(), futureWatcher);

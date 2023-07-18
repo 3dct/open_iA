@@ -61,9 +61,8 @@ std::shared_ptr<iADataSet> iAOIFFileIO::loadData(QString const& fileName, QVaria
 		}
 		else
 		{
-			LOG(lvlError, QString("OIF reader: Extracting single channel from file %1 failed: Given channel number %2 is outside of valid range (0..%3)!")
-				.arg(fileName).arg(channel).arg(reader.GetChanNum()));
-			return {};
+			throw std::runtime_error(QString("OIF reader: Extracting single channel failed: Given channel number %1 is outside of valid range (0..%2)!")
+				.arg(channel).arg(reader.GetChanNum()).toStdString());
 		}
 	}
 }

@@ -58,17 +58,7 @@ void iAFilterRunnerGUIThread::run()
 			return;
 		}
 	}
-	catch (itk::ExceptionObject& e)
-	{
-		LOG(lvlError, tr("%1 terminated unexpectedly. Error: %2; in File %3, Line %4. Elapsed time: %5")
-				   .arg(m_filter->name())
-				   .arg(e.GetDescription())
-				   .arg(e.GetFile())
-				   .arg(e.GetLine())
-				.arg(formatDuration(time.elapsed() / 1000.0, true, false)));
-		return;
-	}
-	catch (const std::exception& e)
+	catch (std::exception const & e)
 	{
 		LOG(lvlError, tr("%1 terminated unexpectedly. Error: %2. Elapsed time: %3")
 				   .arg(m_filter->name())

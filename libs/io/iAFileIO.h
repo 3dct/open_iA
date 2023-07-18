@@ -46,10 +46,10 @@ public:
 
 	//! Whether this IO can be used for storing the given data set.
 	//! It could for example check whether the format supports the data types in the dataset
-	//! The default implementation here always returns true
-	virtual bool isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName) const;
+	//! @return by default, it only checks whether the given dataSet is of a supported data set type for the given operation
+	virtual bool isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName, Operation op) const;
 	//! Save the (list of) dataset(s); modify input datasets to reflect the new file name this data is now stored under
-	void save(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress = iAProgress());
+	bool save(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress = iAProgress());
 	//! Check whether the given values contain all required parameters; set to default if not
 	bool checkParams(QVariantMap & paramValues, Operation op, QString const& fileName);
 

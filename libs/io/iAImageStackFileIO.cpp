@@ -165,14 +165,17 @@ QStringList iAImageStackFileIO::extensions() const
 	return QStringList{ "bmp", "jpg", "jpeg", "png", "tif", "tiff" }; //TODO NEWIO: check jpeg2000 support
 }
 
-bool iAImageStackFileIO::isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName) const
+bool iAImageStackFileIO::isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName, Operation op) const
 {
 	auto ext = QFileInfo(fileName).suffix().toLower();
 	auto imgData = dynamic_cast<iAImageData*>(dataSet.get());
 	assert(imgData);
 	auto type = imgData->vtkImage()->GetScalarType();
-	return type == VTK_UNSIGNED_CHAR || // supported by all file formats
-		((ext == "tif" || ext == "tiff") && (type == VTK_UNSIGNED_SHORT || type == VTK_FLOAT));
+	return
+		iAFileIO::isDataSetSupported(dataSet, fileName, op) && (
+			type == VTK_UNSIGNED_CHAR || // supported by all file formats
+			((ext == "tif" || ext == "tiff") && (type == VTK_UNSIGNED_SHORT || type == VTK_FLOAT))
+		);
 }
 
 //#include "iASlicerMode.h"    // for iAAxisIndex -> is in iAguibase!

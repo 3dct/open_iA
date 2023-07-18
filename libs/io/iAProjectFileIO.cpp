@@ -79,11 +79,7 @@ std::shared_ptr<iADataSet> iAProjectFileIO::loadData(QString const& fileName, QV
 			}
 		}
 		// catch exceptions here to skip only the current dataset on error, don't abort loading the whole project
-		catch (itk::ExceptionObject& e)
-		{
-			LOG(lvlError, QString("Error (ITK) loading file %1: %2").arg(fileName).arg(e.GetDescription()));
-		}
-		catch (std::exception& e)
+		catch (std::exception const & e)    // includes itk::ExceptionObject
 		{
 			LOG(lvlError, QString("Error loading file %1: %2").arg(fileName).arg(e.what()));
 		}
@@ -113,7 +109,7 @@ void iAProjectFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSe
 		auto ds = collection->dataSets()[d];
 		if (ds->type() == iADataSetType::Collection)
 		{
-			LOG(lvlWarn, QString("Will not store collection dataset(% 1)!").arg(ds->name()) );
+			LOG(lvlWarn, QString("Will not store collection dataset (%1) - unsupported at the moment!").arg(ds->name()) );
 			continue;
 		}
 		for (auto key : ds->allMetaData().keys())

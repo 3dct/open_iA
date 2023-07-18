@@ -85,10 +85,7 @@ std::shared_ptr<iADataSet> iANKCFileIO::loadData(QString const& fileName, QVaria
 	auto replaceAndShift = iAFilterRegistry::filter("Replace and Shift");
 	if (!replaceAndShift)
 	{
-		LOG(lvlError,
-			QString("Reading NKC file %1 requires 'Replace and Shift' filter, but filter could not be found!")
-			.arg(fileName));
-		return {};
+		throw std::runtime_error("Reading NKC format requires 'Replace and Shift' filter, but filter could not be found!");
 	}
 	replaceAndShift->addInput(d);
 	QVariantMap paramValuesReplaceAndShift;
@@ -99,10 +96,7 @@ std::shared_ptr<iADataSet> iANKCFileIO::loadData(QString const& fileName, QVaria
 	auto dataTypeConversion = iAFilterRegistry::filter("Datatype Conversion");
 	if (!dataTypeConversion)
 	{
-		LOG(lvlError,
-			QString("Reading NKC file %1 requires 'Datatype Conversion' filter, but filter could not be found!")
-			.arg(fileName));
-		return {};
+		throw std::runtime_error("Reading NKC format requires 'Datatype Conversion' filter, but filter could not be found!");
 	}
 
 	dataTypeConversion->addInput(replaceAndShift->output(0));
@@ -116,10 +110,7 @@ std::shared_ptr<iADataSet> iANKCFileIO::loadData(QString const& fileName, QVaria
 	auto filterScale = iAFilterRegistry::filter("Shift and Scale");
 	if (!filterScale)
 	{
-		LOG(lvlError,
-			QString("Reading NKC file %1 requires 'Shift and Scale' filter, but filter could not be found!")
-			.arg(fileName));
-		return {};
+		throw std::runtime_error("Reading NKC file %1 requires 'Shift and Scale' filter, but filter could not be found!");
 	}
 	filterScale->addInput(dataTypeConversion->output(0));
 	QVariantMap paramValuesScale;

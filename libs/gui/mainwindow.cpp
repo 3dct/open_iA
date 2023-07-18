@@ -514,7 +514,7 @@ void MainWindow::loadFile(QString const& fileName, iAMdiChild* child, std::share
 			auto dataSet = watcher->result();
 			if (!dataSet)
 			{
-				LOG(lvlError, QString("No data loaded!"));
+				QMessageBox::warning(this, "Load: Error", QString("Loading %1 failed. See the log window for details.").arg(fileName));
 				return;
 			}
 			iAMdiChild* targetChild = child;
