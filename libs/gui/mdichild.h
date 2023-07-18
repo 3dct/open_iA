@@ -66,7 +66,6 @@ class iAgui_API MdiChild : public iAMdiChild, public Ui_Mdichild, public iASavab
 public:
 
 	MdiChild(MainWindow* mainWnd, iAPreferences const& preferences, bool unsavedChanges);
-	~MdiChild();
 
 	//! performs initialization that needs to be done after the widget is being displayed
 	void initializeViews();
@@ -293,8 +292,6 @@ private:
 	vtkSmartPointer<vtkPoints> m_worldSnakePoints;
 	vtkSmartPointer<iAParametricSpline> m_parametricSpline;
 	//! @}
-
-	vtkTransform * m_axesTransform;    //!< transform for the axes in the 3D renderer; TODO: check usage and if it should be placed somewhere else, or made a smart pointer
 
 	iARendererImpl * m_renderer;       //!< access and decoration of 3D renderers
 	std::array<iASlicerImpl*, 3> m_slicer; //!< the 3 axis-aligned slicers

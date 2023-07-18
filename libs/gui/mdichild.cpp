@@ -14,7 +14,6 @@
 
 // renderer
 #include <iARendererImpl.h>
-#include <iARenderObserver.h>
 
 // slicer
 #include <iASlicerImpl.h>
@@ -28,7 +27,6 @@
 #include <iAParameterDlg.h>
 #include <iAPreferences.h>
 #include <iATool.h>
-#include <iAToolRegistry.h>
 #include <iARunAsync.h>
 
 // qthelper
@@ -51,19 +49,17 @@
 
 #include <vtkColorTransferFunction.h>
 #include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkImageExtractComponents.h>
-#include <vtkImageReslice.h>
-#include <vtkMath.h>
-#include <vtkMatrixToLinearTransform.h>
-#include <vtkPolyData.h>
-#include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
-#include <vtkWindowToImageFilter.h>
 
 // TODO: refactor methods using the following out of mdichild!
 #include <vtkCamera.h>
+#include <vtkImageReslice.h>
+#include <vtkMath.h>
+#include <vtkMatrixToLinearTransform.h>
+#include <vtkPoints.h>
 #include <vtkTransform.h>
+#include <vtkWindowToImageFilter.h>
 
 #include <QByteArray>
 #include <QCloseEvent>
@@ -89,7 +85,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_snakeSlicer(false),
 	m_worldSnakePoints(vtkSmartPointer<vtkPoints>::New()),
 	m_parametricSpline(vtkSmartPointer<iAParametricSpline>::New()),
-	m_axesTransform(vtkTransform::New()),
 	m_slicerTransform(vtkSmartPointer<vtkTransform>::New()),
 	m_dataSetInfo(new QListWidget(this)),
 	m_dataSetListWidget(new iADataSetListWidget()),
@@ -129,7 +124,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_parametricSpline->SetPoints(m_worldSnakePoints);
 
 	m_renderer = new iARendererImpl(this, dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_dwRenderer->vtkWidgetRC->renderWindow()));
-	m_renderer->setAxesTransform(m_axesTransform);
 
 	connectSignalsToSlots();
 }
@@ -154,11 +148,6 @@ void MdiChild::toggleFullScreen()
 		mdiSubWin->setWindowFlags(windowFlags() & ~Qt::FramelessWindowHint);
 	}
 	mdiSubWin->show();
-}
-
-MdiChild::~MdiChild()
-{
-	m_axesTransform->Delete();
 }
 
 void MdiChild::connectSignalsToSlots()

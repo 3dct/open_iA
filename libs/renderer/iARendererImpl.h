@@ -78,7 +78,6 @@ public:
 	void setDefaultInteractor() override;
 	void enableInteractor(bool enable);
 	bool isInteractorEnabled() const;
-	void setAxesTransform(vtkTransform* transform) override;
 
 	void setPlaneNormals(vtkTransform* tr);
 	//! Set the position of the position marker to the given world coordinates
@@ -122,7 +121,6 @@ public:
 	vtkRenderWindowInteractor* interactor() override;
 	vtkRenderWindow* renderWindow() override;
 	vtkRenderer* renderer() override;
-	vtkTransform* coordinateSystemTransform() override;
 	vtkRenderer* labelRenderer() override;
 	vtkTextActor* txtActor();
 
@@ -204,12 +202,6 @@ private:
 	vtkSmartPointer<vtkAnnotatedCubeActor> m_annotatedCubeActor;
 	vtkSmartPointer<vtkAxesActor> m_axesActor;
 	vtkSmartPointer<vtkOrientationMarkerWidget> m_orientationMarkerWidget;
-	//! @}
-
-	//! @{ movable axes
-	// TODO: check what the movable axes are useful for!
-	vtkTransform* m_moveableAxesTransform;
-	vtkSmartPointer<vtkAxesActor> m_moveableAxesActor;
 	//! @}
 
 	//! @{ Line profile

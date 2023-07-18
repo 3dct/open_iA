@@ -27,8 +27,7 @@ namespace
 
 dlg_dataView4DCT::dlg_dataView4DCT(QWidget* parent, std::vector<iAVolumeViewer*> const & volumeViewers):
 	QWidget(parent),
-	m_volumeViewers(volumeViewers),
-	m_axesTransform(vtkSmartPointer<vtkTransform>::New())
+	m_volumeViewers(volumeViewers)
 {
 	m_mdiChild = dynamic_cast<iAMdiChild*>(parent);
 
@@ -44,7 +43,6 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget* parent, std::vector<iAVolumeViewer*>
 		m_vtkWidgets[i] = new iAFuzzyVTKWidget(this);
 		m_renderers[i] = new iARendererImpl(this, dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_vtkWidgets[i]->renderWindow()));
 		m_volumeRenderer[i] = new iAVolumeRenderer(m_renderers[i]->renderer(), m_volumeViewers[i]->volume()->vtkImage(), m_volumeViewers[i]->transfer());
-		m_renderers[i]->setAxesTransform(m_axesTransform);
 		// TODO NEWIO: get volume stack and polydata dataset in here...
 		//m_renderers[i]->initialize(m_volumeStack->volume(i), m_mdiChild->polyData());
 		m_volumeRenderer[i]->setVisible(true);

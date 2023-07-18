@@ -8,20 +8,13 @@
 
 #include <vtkColorTransferFunction.h>
 #include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkImageData.h>
-#include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
-#include <vtkPolyData.h>
-#include <vtkRendererCollection.h>
-#include <vtkTransform.h>
 
 dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 	dlg_elemRendererContainer(parent),
 	m_renderer( new iARendererImpl(this, dynamic_cast<vtkGenericOpenGLRenderWindow*>(renContainer->renderWindow()) )),
-	m_axesTransform( vtkSmartPointer<vtkTransform>::New() ),
 	m_indexInReferenceLib(std::numeric_limits<size_t>::max())
 {
-	m_renderer->setAxesTransform(m_axesTransform);
 	m_renderer->showAxesCube(false);
 	m_renderer->showOriginIndicator(false);
 	connect(renContainer, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARendererImpl::mouseRightButtonReleasedSlot);

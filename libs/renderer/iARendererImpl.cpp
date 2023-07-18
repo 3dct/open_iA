@@ -19,37 +19,26 @@
 
 #include <vtkActor.h>
 #include <vtkAnnotatedCubeActor.h>
-#include <vtkAppendFilter.h>
-#include <vtkAreaPicker.h>
 #include <vtkAxesActor.h>
-#include <vtkCallbackCommand.h>
 #include <vtkCamera.h>
-#include <vtkCellArray.h>
 #include <vtkCubeSource.h>
 #include <vtkDataSetMapper.h>
-#include <vtkExtractSelectedFrustum.h>
 #include <vtkGenericMovieWriter.h>
 #include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkImageData.h>
-#include <vtkInteractorStyleRubberBandPick.h>
-#include <vtkInteractorStyleSwitch.h>
-#include <vtkObjectFactory.h>
+#include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkOrientationMarkerWidget.h>
-#include <vtkPicker.h>
 #include <vtkPlane.h>
-#include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
-#include <vtkRendererCollection.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSphereSource.h>
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h>
 #include <vtkTransform.h>
 #include <vtkUnstructuredGrid.h>
-#include <vtkVersion.h>
 #include <vtkWindowToImageFilter.h>
+#include <vtkWorldPointPicker.h>    // not sure why this is required here; somehow drawn in via iARenderObserver?
 
 #include <QApplication>
 #include <QColor>
@@ -124,7 +113,6 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_annotatedCubeActor(vtkSmartPointer<vtkAnnotatedCubeActor>::New()),
 	m_axesActor(vtkSmartPointer<vtkAxesActor>::New()),
 	m_orientationMarkerWidget(vtkSmartPointer<vtkOrientationMarkerWidget>::New()),
-	m_moveableAxesActor(vtkSmartPointer<vtkAxesActor>::New()),
 	m_profileLineStartPointSource(vtkSmartPointer<vtkSphereSource>::New()),
 	m_profileLineStartPointMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_profileLineStartPointActor(vtkSmartPointer<vtkActor>::New()),
@@ -246,18 +234,12 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_axesActor->AxisLabelsOff();
 	m_axesActor->SetShaftTypeToCylinder();
 	m_axesActor->SetTotalLength(1, 1, 1);
-	m_moveableAxesActor->AxisLabelsOff();
-	m_moveableAxesActor->SetShaftTypeToCylinder();
-	m_moveableAxesActor->SetTotalLength(1, 1, 1);
-	m_moveableAxesActor->SetPickable(false);
-	m_moveableAxesActor->SetDragable(false);
 
 	// add actors of helpers to renderer:
 	m_ren->GradientBackgroundOn();
 	m_ren->AddActor2D(m_txtActor);
 	m_ren->AddActor(m_cActor);
 	m_ren->AddActor(m_axesActor);
-	m_ren->AddActor(m_moveableAxesActor);
 	for (int i = 0; i < NumOfProfileLines; ++i)
 	{
 		m_ren->AddActor(m_profileLine[i].actor);
@@ -273,7 +255,7 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_orientationMarkerWidget->SetEnabled(1);
 	m_orientationMarkerWidget->InteractiveOff();
 
-	m_renderObserver = new iARenderObserver(m_ren, m_interactor, m_moveableAxesTransform, slicePlanes());
+	m_renderObserver = new iARenderObserver(m_ren, m_interactor, slicePlanes());
 	m_interactor->AddObserver(vtkCommand::KeyPressEvent, m_renderObserver, 0.0);
 	m_interactor->AddObserver(vtkCommand::LeftButtonPressEvent, m_renderObserver);
 	m_interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, m_renderObserver);
@@ -339,7 +321,6 @@ void iARendererImpl::setSceneBounds(iAAABB const & boundingBox)
 	auto indicatorsSize = size / IndicatorsSizeDivisor;
 
 	m_axesActor->SetTotalLength(indicatorsSize[0], indicatorsSize[0], indicatorsSize[0]);
-	m_moveableAxesActor->SetTotalLength(indicatorsSize[0], indicatorsSize[0], indicatorsSize[0]);
 
 	m_profileLineStartPointSource->SetRadius(indicatorsSize[0]);
 	m_profileLineEndPointSource->SetRadius(indicatorsSize[0]);
@@ -385,7 +366,6 @@ void iARendererImpl::update()
 void iARendererImpl::showOriginIndicator(bool show)
 {
 	m_axesActor->SetVisibility(show);
-	m_moveableAxesActor->SetVisibility(show);
 }
 
 void iARendererImpl::showAxesCube(bool show)
@@ -691,8 +671,6 @@ vtkTextActor* iARendererImpl::txtActor() { return m_txtActor; }
 vtkActor* iARendererImpl::selectedActor() { return m_selectedActor; }
 vtkUnstructuredGrid* iARendererImpl::finalSelection() { return m_finalSelection; }
 vtkDataSetMapper* iARendererImpl::selectedMapper() { return m_selectedMapper; }
-vtkTransform* iARendererImpl::coordinateSystemTransform() { m_moveableAxesTransform->Update(); return m_moveableAxesTransform; }
-void iARendererImpl::setAxesTransform(vtkTransform* transform) { m_moveableAxesTransform = transform; }
 iARenderObserver * iARendererImpl::getRenderObserver() { return m_renderObserver; }
 
 void iARendererImpl::setSlicingBounds(const int roi[6], const double * spacing)

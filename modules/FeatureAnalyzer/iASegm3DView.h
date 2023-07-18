@@ -55,7 +55,6 @@ protected:
 	std::shared_ptr<iAVolumeRenderer> m_volumeRenderer;
 	std::shared_ptr<iAPolyDataRenderer> m_polyDataRenderer;
 	std::shared_ptr<iATransferFunctionPtrs> m_tf;
-	vtkSmartPointer<vtkTransform> m_axesTransform;
 	vtkRenderer * m_observedRenderer;
 	unsigned long m_tag;
 	iAFast3DMagicLensWidget * m_wgt;

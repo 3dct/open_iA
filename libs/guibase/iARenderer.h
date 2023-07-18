@@ -67,11 +67,6 @@ public:
 	//! Currently only used in DynamicVolumeLines module)
 	virtual vtkActor* selectedActor() = 0;
 
-	//! @{ Access to the transform of the coordinate system axis actor.
-	virtual void setAxesTransform(vtkTransform* transform) = 0;
-	virtual vtkTransform* coordinateSystemTransform() = 0;
-	//! @}
-
 	//! Access to the renderer observer.
 	virtual iARenderObserver * getRenderObserver() = 0;
 
