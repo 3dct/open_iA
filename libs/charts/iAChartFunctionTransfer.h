@@ -64,7 +64,7 @@ private:
 	//! convert from opacity [0..1] to pixel coordinate on chart [0..maxDiagPixelHeight]
 	int opacity2PixelY(double opacity) const;
 
-	//! x offset based on data type of chart
+	//! x offset based on data type of chart (0.5 offset for discrete datasets)
 	double xOfs() const;
 
 	// TODO: remove / move to iAFilterChart/iARangeSliderDiagramWidget!

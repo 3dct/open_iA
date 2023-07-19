@@ -309,9 +309,9 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 		contextMenu->addAction(iAThemeHelper::icon("tf-copy"), tr("Copy transfer function"), this, &iAChartWithFunctionsWidget::copyTransferFunction);
 		// maybe disable pasting if no proper XML in clipboard?
 		contextMenu->addAction(iAThemeHelper::icon("tf-paste"), tr("Paste transfer function"), this, &iAChartWithFunctionsWidget::pasteTransferFunction);
-		if (m_allowTrfReset)
+		if (m_allowTFReset)
 		{
-			contextMenu->addAction(iAThemeHelper::icon("tf-reset"), tr("Reset transfer function"), this, &iAChartWithFunctionsWidget::resetTrf);
+			contextMenu->addAction(iAThemeHelper::icon("tf-reset"), tr("Reset transfer function"), this, &iAChartWithFunctionsWidget::resetTF);
 		}
 		contextMenu->addSeparator();
 	}
@@ -456,7 +456,7 @@ void iAChartWithFunctionsWidget::changeColor(QMouseEvent *event)
 	emit updateTFTable();
 }
 
-void iAChartWithFunctionsWidget::resetTrf()
+void iAChartWithFunctionsWidget::resetTF()
 {
 	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 	iAChartFunction *func = *(it + m_selectedFunction);
@@ -770,9 +770,9 @@ std::vector<iAChartFunction*> &iAChartWithFunctionsWidget::functions()
 	return m_functions;
 }
 
-void iAChartWithFunctionsWidget::setAllowTrfReset(bool allow)
+void iAChartWithFunctionsWidget::setAllowTFReset(bool allow)
 {
-	m_allowTrfReset = allow;
+	m_allowTFReset = allow;
 }
 
 void iAChartWithFunctionsWidget::setEnableAdditionalFunctions(bool enable)

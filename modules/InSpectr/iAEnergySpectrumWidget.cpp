@@ -45,7 +45,7 @@ iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent,
 	setTransferFunction(m_tf.data());
 	addPlot(QSharedPointer<iAStepFunctionPlot>::create(m_data, QColor(70, 70, 70, 255)));
 	selectionRubberBand->hide();
-	setAllowTrfReset(false);
+	setAllowTFReset(false);
 	setEnableAdditionalFunctions(false);
 	setMinimumHeight(150);
 }

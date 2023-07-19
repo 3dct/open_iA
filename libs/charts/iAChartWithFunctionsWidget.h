@@ -46,7 +46,7 @@ public:
 	//! Get all functions currently defined in this chart.
 	std::vector<iAChartFunction*> &functions();
 	//! Set whether the user is allowed to reset the transfer function.
-	void setAllowTrfReset(bool allow);
+	void setAllowTFReset(bool allow);
 	//! Set whether the user can add additional functions (Bezier and Gaussian curves), in addition to the standard transfer function.
 	void setEnableAdditionalFunctions(bool enable);
 
@@ -107,10 +107,10 @@ private slots:
 	void removeFunction();
 	int deletePoint();
 	void changeColor(QMouseEvent* event = nullptr);
-	void resetTrf();
+	void resetTF();
 
 private:
-	bool m_allowTrfReset;
+	bool m_allowTFReset;
 	bool m_enableAdditionalFunctions;
 	iATFTableDlg* m_TFTable;
 
