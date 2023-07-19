@@ -13,9 +13,21 @@
 #include <QWebSocketServer>
 #include <QWebSocket>
 
+namespace
+{
+	QList<iAWSClient>::iterator findClient(QList<iAWSClient>& list, QWebSocket* client)
+	{
+		auto it = std::find_if(list.begin(), list.end(),
+			[client](iAWSClient const& clientData) { return clientData.ws == client; });
+		assert(it != list.end());
+		return it;
+	}
+}
+
 iAWebsocketAPI::iAWebsocketAPI(quint16 port):
 	m_port(port),
-	m_count(0) // possibly use a separate counter per client?
+	m_count(0), // possibly use a separate counter per client?
+	m_clientID(0)
 {
 }
 
@@ -56,92 +68,111 @@ void iAWebsocketAPI::onNewConnection()
 	connect(client, &QWebSocket::textMessageReceived, this, &iAWebsocketAPI::processTextMessage);
 	//connect(client, &QWebSocket::binaryMessageReceived, this, &iAWebsocketAPI::processBinaryMessage);    // clients don't send binary messages at the moment
 	connect(client, &QWebSocket::disconnected, this, &iAWebsocketAPI::socketDisconnected);
-	m_clients << client;
+	iAWSClient ws{ client, m_clientID++, 0, 0 };
+	m_clients << ws;
+	emit clientConnected(ws.id);
 }
 
 void iAWebsocketAPI::processTextMessage(QString message)
 {
 	m_StoppWatch.restart();
+	QWebSocket*  client = qobject_cast<QWebSocket*>(sender());
+	auto it = findClient(m_clients, client);
+	it->rcvd += message.toUtf8().size();
+	emit clientTransferUpdated(it->id, it->rcvd, it->sent);
 
-	QWebSocket* pClient = qobject_cast<QWebSocket*>(sender());
-
-	auto Request = QJsonDocument::fromJson(message.toLatin1());
-
-	if (Request["method"].toString() == "wslink.hello")
+	auto request = QJsonDocument::fromJson(message.toLatin1());
+	if (request["method"].toString() == "wslink.hello")
 	{ 
-		commandWslinkHello(Request, pClient);
+		commandWslinkHello(request, client);
 	}
-	else if (Request["method"].toString() == "viewport.image.push.observer.add")
+	else if (request["method"].toString() == "viewport.image.push.observer.add")
 	{
-		commandAddObserver(Request, pClient);
+		commandAddObserver(request, client);
 	}
-	else if (Request["method"].toString() == "viewport.image.push")
+	else if (request["method"].toString() == "viewport.image.push")
 	{
-		commandImagePush(Request, pClient);
+		commandImagePush(request, client);
 	}
-	else if (Request["method"].toString() == "viewport.image.push.original.size")
+	else if (request["method"].toString() == "viewport.image.push.original.size")
 	{
-		commandImagePushSize(Request, pClient);
+		commandImagePushSize(request, client);
 	}
-	else if (Request["method"].toString() == "viewport.image.push.invalidate.cache")
+	else if (request["method"].toString() == "viewport.image.push.invalidate.cache")
 	{
-		commandImagePushInvalidateCache(Request, pClient);
+		commandImagePushInvalidateCache(request, client);
 	}
-	else if (Request["method"].toString() == "viewport.image.push.quality")
+	else if (request["method"].toString() == "viewport.image.push.quality")
 	{
-		commandImagePushQuality(Request, pClient);
+		commandImagePushQuality(request, client);
 	}
-	else if (Request["method"].toString() == "viewport.mouse.interaction")
+	else if (request["method"].toString() == "viewport.mouse.interaction")
 	{
-		commandControls(Request, pClient);
+		commandControls(request, client);
 	}
-	else if (Request["method"].toString() == "viewport.mouse.zoom.wheel")
+	else if (request["method"].toString() == "viewport.mouse.zoom.wheel")
 	{
-		commandControls(Request, pClient);
+		commandControls(request, client);
 	}
 
 	//Captions API 
-	else if (Request["method"].toString() == "subscribe.captions")
+	else if (request["method"].toString() == "subscribe.captions")
 	{
-		captionSubscribe(pClient);
+		captionSubscribe(client);
 	}
-	else if (Request["method"].toString() == "select.caption")
+	else if (request["method"].toString() == "select.caption")
 	{
-		emit selectCaption(Request["id"].toInt());
+		emit selectCaption(request["id"].toInt());
 	}
-	else if (Request["method"].toString() == "remove.caption")
+	else if (request["method"].toString() == "remove.caption")
 	{
-		emit removeCaption(Request["id"].toInt());
+		emit removeCaption(request["id"].toInt());
 	}
-	else if (Request["method"].toString() == "addMode.caption")
+	else if (request["method"].toString() == "addMode.caption")
 	{
 		emit addMode();
 	}
-	else if (Request["method"].toString() == "nameChanged.caption")
+	else if (request["method"].toString() == "nameChanged.caption")
 	{
-		emit changeCaptionTitle(Request["id"].toInt(), Request["title"].toString());
+		emit changeCaptionTitle(request["id"].toInt(), request["title"].toString());
 	}
-	else if (Request["method"].toString() == "hideAnnotation.caption")
+	else if (request["method"].toString() == "hideAnnotation.caption")
 	{
-		emit hideAnnotation(Request["id"].toInt());
+		emit hideCaption(request["id"].toInt());
 	}
 }
 
-void iAWebsocketAPI::commandWslinkHello(QJsonDocument Request, QWebSocket* pClient)
+void iAWebsocketAPI::sendTextMessage(QByteArray const & data, QWebSocket* client)
 {
-	const auto ClientID = QJsonObject{{"clientID", QUuid::createUuid().toString()}};
-	const auto resultArray = QJsonArray{ClientID};
+	auto it = findClient(m_clients, client);
+	it->sent += data.size();
+	client->sendTextMessage(data);
+	emit clientTransferUpdated(it->id, it->rcvd, it->sent);
+}
+
+void iAWebsocketAPI::sendBinaryMessage(QByteArray const& data, QWebSocket* client)
+{
+	auto it = findClient(m_clients, client);
+	it->sent += data.size();
+	client->sendBinaryMessage(data);
+	emit clientTransferUpdated(it->id, it->rcvd, it->sent);
+}
+
+void iAWebsocketAPI::commandWslinkHello(QJsonDocument request, QWebSocket* client)
+{
+	const auto clientID = QJsonObject{{"clientID", QUuid::createUuid().toString()}};
+	const auto resultArray = QJsonArray{clientID};
 	auto wsLinkHelloResponse = QJsonObject{
 		{"wslink", "1.0" },
-		{"id", Request["id"].toString()},
-		{"result", ClientID}
+		{"id", request["id"].toString()},
+		{"result", clientID}
 	};
-	pClient->sendTextMessage(QJsonDocument{ wsLinkHelloResponse }.toJson());
+	sendTextMessage(QJsonDocument{ wsLinkHelloResponse }.toJson(), client);
 }
 
-void iAWebsocketAPI::commandAddObserver(QJsonDocument Request, QWebSocket* pClient)
+void iAWebsocketAPI::commandAddObserver(QJsonDocument request, QWebSocket* client)
 {
-	QString viewIDString = Request["args"][0].toString();
+	QString viewIDString = request["args"][0].toString();
 	const auto viewIDResponse = QJsonObject{
 		{"result", "success"},
 		{"viewId", viewIDString}
@@ -150,55 +181,55 @@ void iAWebsocketAPI::commandAddObserver(QJsonDocument Request, QWebSocket* pClie
 		{"wslink", "1.0"},
 		{"result", viewIDResponse}
 	};
-	pClient->sendTextMessage(QJsonDocument{ addObserverResponse }.toJson());
+	sendTextMessage(QJsonDocument{ addObserverResponse }.toJson(), client);
 
 	if (subscriptions.contains(viewIDString))
 	{
-		subscriptions[viewIDString].append(pClient);
+		subscriptions[viewIDString].append(client);
 	}
 	else
 	{
 		subscriptions.insert(viewIDString,  QList<QWebSocket*>());
-		subscriptions[viewIDString].append(pClient);
+		subscriptions[viewIDString].append(client);
 	}
 }
 
-void iAWebsocketAPI::commandImagePush(QJsonDocument Request, QWebSocket* pClient)
+void iAWebsocketAPI::commandImagePush(QJsonDocument request, QWebSocket* client)
 {
-	sendSuccess(Request, pClient);
-	QString viewIDString = Request["args"][0]["view"].toString();
-	sendImage(pClient, viewIDString);
+	sendSuccess(request, client);
+	QString viewIDString = request["args"][0]["view"].toString();
+	sendImage(client, viewIDString);
 }
 
-void iAWebsocketAPI::commandImagePushSize(QJsonDocument Request, QWebSocket* pClient)
+void iAWebsocketAPI::commandImagePushSize(QJsonDocument request, QWebSocket* client)
 {
-	sendSuccess(Request, pClient);
+	sendSuccess(request, client);
 }
 
-void iAWebsocketAPI::commandImagePushInvalidateCache(QJsonDocument Request, QWebSocket* pClient)
+void iAWebsocketAPI::commandImagePushInvalidateCache(QJsonDocument request, QWebSocket* client)
 {
-	sendSuccess(Request, pClient);
+	sendSuccess(request, client);
 }
 
-void iAWebsocketAPI::commandImagePushQuality(QJsonDocument Request, QWebSocket* pClient)
+void iAWebsocketAPI::commandImagePushQuality(QJsonDocument request, QWebSocket* client)
 {
-	sendSuccess(Request, pClient);
+	sendSuccess(request, client);
 }
 
-void iAWebsocketAPI::sendSuccess(QJsonDocument Request, QWebSocket* pClient)
+void iAWebsocketAPI::sendSuccess(QJsonDocument request, QWebSocket* client)
 {
-	Q_UNUSED(Request);
+	Q_UNUSED(request);
 	auto successResponseObj = QJsonObject{
 		{"wslink", "1.0"},
 		{"result", QJsonObject{{"result", "success"}}}
 	};
-	pClient->sendTextMessage(QJsonDocument{ successResponseObj }.toJson());
+	sendTextMessage(QJsonDocument{ successResponseObj }.toJson(), client);
 }
 
-void iAWebsocketAPI::commandControls(QJsonDocument Request, QWebSocket* pClient)
+void iAWebsocketAPI::commandControls(QJsonDocument request, QWebSocket* client)
 {
 	iARemoteAction * webAction = new iARemoteAction();
-	auto argList = Request["args"][0];
+	auto argList = request["args"][0];
 
 	if (argList["action"] == "down")
 	{
@@ -244,7 +275,7 @@ void iAWebsocketAPI::commandControls(QJsonDocument Request, QWebSocket* pClient)
 	}
 	// notify GUI that control message has come in:
 	emit controlCommand();
-	sendSuccess(Request, pClient);
+	sendSuccess(request, client);
 }
 
 QList<iARemoteAction*> iAWebsocketAPI::getQueuedActions()
@@ -259,7 +290,7 @@ QList<iARemoteAction*> iAWebsocketAPI::getQueuedActions()
 	return result;
 }
 
-void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)
+void iAWebsocketAPI::sendImage(QWebSocket* client, QString viewID)
 {
 	auto imgIDString = QString("wslink_bin%1").arg(m_count);
 	auto imgHeaderObj = QJsonObject{
@@ -267,18 +298,18 @@ void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)
 		{"method", "wslink.binary.attachment"},
 		{"args", QJsonArray{ imgIDString } }
 	};
-	pClient->sendTextMessage(QJsonDocument{ imgHeaderObj }.toJson());
+	sendTextMessage(QJsonDocument{ imgHeaderObj }.toJson(), client);
 
 	QByteArray const & ba = images[viewID]->data;
 	int width  = images[viewID]->width;
 	int height = images[viewID]->height;
-	pClient->sendBinaryMessage(ba);
+	sendBinaryMessage(ba, client);
 
 	auto imageSize = ba.size();
 	const auto imgDescriptorObj = QJsonObject{
 		{"format", "jpeg"},
 		{"global_id", 1},
-		{"global_id", "1"},
+		{"global_id", "1"},         // check: duplicate required??
 		{"id", viewID},
 		{"image", imgIDString},
 		{"localTime", 0},
@@ -293,8 +324,8 @@ void iAWebsocketAPI::sendImage(QWebSocket* pClient, QString viewID)
 		{"id", "publish:viewport.image.push.subscription:0"},
 		{"result", imgDescriptorObj }
 	};
-	pClient->sendTextMessage(QJsonDocument{ imgDescriptorHeaderObj }.toJson());
-	pClient->flush();
+	sendTextMessage(QJsonDocument{ imgDescriptorHeaderObj }.toJson(), client);
+	client->flush();
 
 	m_count++;
 }
@@ -335,8 +366,15 @@ void iAWebsocketAPI::socketDisconnected()
 	{
 		x.removeAll(client);
 	}
-	m_clients.removeAll(client);
+	auto it = findClient(m_clients, client);
 	client->deleteLater();
+	if (it == m_clients.end())
+	{
+		LOG(lvlWarn, "Disconnect from socket not found in list of connected clients!");
+		return;
+	}
+	emit clientDisconnected(it->id);
+	m_clients.erase(it);
 }
 
 void iAWebsocketAPI::updateCaptionList(std::vector<iAAnnotation> captions)
@@ -361,16 +399,16 @@ void iAWebsocketAPI::updateCaptionList(std::vector<iAAnnotation> captions)
 	sendCaptionUpdate();
 }
 
-void iAWebsocketAPI::captionSubscribe(QWebSocket* pClient)
+void iAWebsocketAPI::captionSubscribe(QWebSocket* client)
 {
 	if (subscriptions.contains(captionKey))
 	{
-		subscriptions[captionKey].append(pClient);
+		subscriptions[captionKey].append(client);
 	}
 	else
 	{
 		subscriptions.insert(captionKey, QList<QWebSocket*>());
-		subscriptions[captionKey].append(pClient);
+		subscriptions[captionKey].append(client);
 	}
 	sendCaptionUpdate();
 }
@@ -381,7 +419,7 @@ void iAWebsocketAPI::sendCaptionUpdate()
 	{
 		for (auto client : subscriptions[captionKey])
 		{
-			client->sendTextMessage(m_captionUpdate.toJson());
+			sendTextMessage(m_captionUpdate.toJson(), client);
 		}
 	}
 }
@@ -398,7 +436,7 @@ void iAWebsocketAPI::sendInteractionUpdate( size_t focusedId)
 	{
 		for (auto client : subscriptions[captionKey])
 		{
-			client->sendTextMessage(JsonResponse.toJson());
+			sendTextMessage(JsonResponse.toJson(), client);
 		}
 	}
 }

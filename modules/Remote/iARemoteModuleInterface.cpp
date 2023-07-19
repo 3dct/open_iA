@@ -2,19 +2,24 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iARemoteModuleInterface.h"
 
+#include "iARemoteAction.h"
+#include "iARemoteRenderer.h"
+#include "iAWebsocketAPI.h"
+
 // iAguibase
+#include "iADockWidgetWrapper.h"
 #include "iARenderer.h"
 #include "iASlicer.h"
 #include "iASlicerMode.h"
 #include "iATool.h"
 #include "iAToolHelper.h"    // for addToolToActiveMdiChild
 
-#include "iARemoteAction.h"
-#include "iARemoteRenderer.h"
-#include "iAWebsocketAPI.h"
+// base
+#include "iAStringHelper.h"
 
 #include <QAction>
 #include <QDateTime>
+#include <QHeaderView>
 
 #include <vtkRenderWindow.h>
 
@@ -24,6 +29,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
+#include <QTableWidget>
 #include <QString>
 #include <QHttpServer>
 #include <QTextStream>
@@ -197,12 +203,48 @@ public:
 #endif
 
 		connect(annotTool, &iAAnnotationTool::annotationsUpdated, m_remoteRenderer->m_wsAPI.get(),&iAWebsocketAPI::updateCaptionList);
-		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::changeCaptionTitle, annotTool,	&iAAnnotationTool::renameAnnotation);
+		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::changeCaptionTitle, annotTool, &iAAnnotationTool::renameAnnotation);
 		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::removeCaption, annotTool, &iAAnnotationTool::removeAnnotation);
 		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::addMode, annotTool, &iAAnnotationTool::startAddMode);
 		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::selectCaption, annotTool, &iAAnnotationTool::focusToAnnotation);
-		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::hideAnnotation, annotTool,	&iAAnnotationTool::hideAnnotation);
+		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::hideCaption, annotTool, &iAAnnotationTool::hideAnnotation);
 		connect(annotTool, &iAAnnotationTool::focusedToAnnotation, m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::sendInteractionUpdate);
+
+		m_clientList = new QTableWidget(child);
+		QStringList columnNames = { "id", "status", "sent", "received" };
+		m_clientList->setColumnCount(columnNames.size());
+		m_clientList->setHorizontalHeaderLabels(columnNames);
+		m_clientList->verticalHeader()->hide();
+		//m_clientList->setSelectionBehavior(QAbstractItemView::SelectRows);
+		//m_clientList->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
+		m_clientList->setEditTriggers(QAbstractItemView::NoEditTriggers);
+		m_clientList->resizeColumnsToContents();
+		auto dw = new iADockWidgetWrapper(m_clientList, "Clients", "RemoteClientList");
+		child->splitDockWidget(child->renderDockWidget(), dw, Qt::Vertical);
+
+		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::clientConnected, this, [this](qulonglong id)
+			{
+				int row = m_clientList->rowCount();
+				m_clientList->insertRow(row);
+				m_clientList->setItem(row, 0, new QTableWidgetItem(QString::number(id)));
+				m_clientList->setItem(row, 1, new QTableWidgetItem("connected"));
+				m_clientList->setItem(row, 2, new QTableWidgetItem(QString::number(0)));
+				m_clientList->setItem(row, 3, new QTableWidgetItem(QString::number(0)));
+				m_clientList->resizeColumnsToContents();
+			});
+		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::clientDisconnected, this, [this](qulonglong id)
+			{
+				int row = findClientRow(id);
+				m_clientList->item(row, 1)->setText("disconnected");
+				m_clientList->resizeColumnsToContents();
+			});
+		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::clientTransferUpdated, this, [this](qulonglong id, qulonglong rcvd, qulonglong sent)
+			{
+				int row = findClientRow(id);
+				m_clientList->item(row, 2)->setText(dblToStringWithUnits(sent)+"B");
+				m_clientList->item(row, 3)->setText(dblToStringWithUnits(rcvd)+"B");
+				m_clientList->resizeColumnsToContents();
+			});
 	}
 
 private:
@@ -211,6 +253,20 @@ private:
 #ifdef QT_HTTPSERVER
 	std::unique_ptr<QHttpServer> m_httpServer;
 #endif
+	QTableWidget* m_clientList;
+
+	int findClientRow(qulonglong clientID)
+	{
+		for (int row = 0; row < m_clientList->rowCount(); ++row)
+		{
+			auto listClientID = m_clientList->item(row, 0)->text().toULongLong();
+			if (listClientID == clientID)
+			{
+				return row;
+			}
+		}
+		return -1;
+	}
 };
 
 const QString iARemoteTool::Name("NDTflix");

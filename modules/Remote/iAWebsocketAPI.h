@@ -19,6 +19,15 @@ class iARemoteAction;
 class QWebSocket;
 class QWebSocketServer;
 
+class iAWSClient
+{
+public:
+	QWebSocket* ws;   //!< the websocket connection
+	int id;    //!< internal id of the client
+	qulonglong rcvd;  //!< bytes received
+	qulonglong sent;  //!< bytes sent
+};
+
 class iAWebsocketAPI : public QObject
 { 
 	Q_OBJECT
@@ -41,11 +50,15 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void closed();
 	void controlCommand();
-	void removeCaption(int id);
 	void addMode();
-	void selectCaption(int id);
-	void changeCaptionTitle(int id, QString title); 
-	void hideAnnotation(int id);
+	void removeCaption(int capID);
+	void selectCaption(int capID);
+	void changeCaptionTitle(int capID, QString title);
+	void hideCaption(int capID);
+
+	void clientConnected(int clientID);
+	void clientDisconnected(int clientID);
+	void clientTransferUpdated(int clientID, qulonglong rcvd, qulonglong sent);
 	
 private Q_SLOTS:
 	void onNewConnection();
@@ -53,31 +66,34 @@ private Q_SLOTS:
 	//void processBinaryMessage(QByteArray message);
 	void socketDisconnected();
 
-	void captionSubscribe(QWebSocket* pClient);
+	void captionSubscribe(QWebSocket* client);
 	void sendCaptionUpdate();
 	
 private:
 	quint16 m_port;
 	QWebSocketServer* m_wsServer;
-	QList<QWebSocket*> m_clients;
+	QList<iAWSClient> m_clients;
 	QMap<QString, QList<QWebSocket*>> subscriptions;
 	int m_count;
 	QMap<QString, std::shared_ptr<iAJPGImage>> images;
 	QJsonDocument m_captionUpdate;
 	const QString captionKey = "caption";
 	QElapsedTimer m_StoppWatch;
-
 	QList<iARemoteAction*> m_actions;
 	std::mutex m_actionsMutex;
+	int m_clientID;
 
-	void commandWslinkHello(QJsonDocument Request, QWebSocket* pClient);
-	void commandAddObserver(QJsonDocument Request, QWebSocket* pClient);
-	void commandImagePush(QJsonDocument Request, QWebSocket* pClient);
-	void commandImagePushSize(QJsonDocument Request, QWebSocket* pClient);
-	void commandImagePushInvalidateCache(QJsonDocument Request, QWebSocket* pClient);
-	void commandImagePushQuality(QJsonDocument Request, QWebSocket* pClient);
-	void commandControls(QJsonDocument Request, QWebSocket* pClient);
+	void commandWslinkHello(QJsonDocument request, QWebSocket* client);
+	void commandAddObserver(QJsonDocument request, QWebSocket* client);
+	void commandImagePush(QJsonDocument request, QWebSocket* client);
+	void commandImagePushSize(QJsonDocument request, QWebSocket* client);
+	void commandImagePushInvalidateCache(QJsonDocument request, QWebSocket* client);
+	void commandImagePushQuality(QJsonDocument request, QWebSocket* client);
+	void commandControls(QJsonDocument request, QWebSocket* client);
 
-	void sendSuccess(QJsonDocument Request, QWebSocket* pClient);
-	void sendImage(QWebSocket* pClient, QString viewID);
+	void sendSuccess(QJsonDocument request, QWebSocket* client);
+	void sendImage(QWebSocket* client, QString viewID);
+	
+	void sendTextMessage(QByteArray const& data, QWebSocket* client);
+	void sendBinaryMessage(QByteArray const& data, QWebSocket* client);
 };
