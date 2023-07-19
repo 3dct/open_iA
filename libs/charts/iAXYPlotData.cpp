@@ -75,9 +75,9 @@ QString iAXYPlotData::toolTipText(iAPlotData::DataType dataX) const
 	return QString("%1: %2").arg(valueX).arg(valueY);
 }
 
-QSharedPointer<iAXYPlotData> iAXYPlotData::create(QString const& name, iAValueType type, size_t reservedSize)
+std::shared_ptr<iAXYPlotData> iAXYPlotData::create(QString const& name, iAValueType type, size_t reservedSize)
 {
-	return QSharedPointer<iAXYPlotData>(new iAXYPlotData(name, type, reservedSize));
+	return std::make_shared<iAXYPlotData>(name, type, reservedSize);
 }
 
 iAXYPlotData::iAXYPlotData(QString const& name, iAValueType type, size_t reservedSize) :

@@ -6,7 +6,7 @@
 
 void initSpectraColormap(
 	vtkSmartPointer<vtkColorTransferFunction> colormapLUT,
-	QSharedPointer<iAAccumulatedXRFData> accData,
+	iAAccumulatedXRFData const * accData,
 	double val, double max,
 	QImage const & spectraHistogramColormap)
 {
@@ -25,9 +25,9 @@ void initSpectraColormap(
 	colormapLUT->Modified();
 }
 
-QSharedPointer<QImage> CalculateSpectraHistogramImage(
+std::shared_ptr<QImage> CalculateSpectraHistogramImage(
 	vtkSmartPointer<vtkColorTransferFunction> colormapLUT,
-	QSharedPointer<iAAccumulatedXRFData> accData,
+	iAAccumulatedXRFData * accData,
 	QImage const & spectraHistogramColormap,
 	long numBin,
 	double sensVal, double sensMax, double threshVal, double threshMax,
@@ -41,7 +41,7 @@ QSharedPointer<QImage> CalculateSpectraHistogramImage(
 
 	double opacThreshold = 0.1 * threshVal / threshMax;
 	int width = std::abs(static_cast<int>(numHist));
-	auto result = QSharedPointer<QImage>::create(width, numBin, QImage::Format_ARGB32);
+	auto result = std::make_shared<QImage>(width, numBin, QImage::Format_ARGB32);
 	for (size_t x = 0; x < numHist; ++x)
 	{
 		for(int y = 0; y < numBin; ++y)

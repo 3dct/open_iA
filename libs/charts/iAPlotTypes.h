@@ -7,7 +7,6 @@
 #include "iacharts_export.h"
 
 #include <QVector>
-#include <QSharedPointer>
 
 class iALookupTable;
 class iAMapper;
@@ -19,7 +18,7 @@ class QPolygon;
 class iAcharts_API iASelectedBinPlot : public iAPlot
 {
 public:
-	iASelectedBinPlot(QSharedPointer<iAPlotData> proxyData, size_t idx = 0, QColor const & color = Qt::red );
+	iASelectedBinPlot(std::shared_ptr<iAPlotData> proxyData, size_t idx = 0, QColor const & color = Qt::red );
 	void setSelectedBin(size_t idx);
 	void draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const & xMapper, iAMapper const & yMapper) const override;
 private:
@@ -32,7 +31,7 @@ private:
 class iAcharts_API iALinePlot: public iAPlot
 {
 public:
-	iALinePlot(QSharedPointer<iAPlotData> data, QColor const& color);
+	iALinePlot(std::shared_ptr<iAPlotData> data, QColor const& color);
 	void setLineWidth(int width);
 private:
 	int m_lineWidth;
@@ -44,7 +43,7 @@ private:
 class iAcharts_API iAStepFunctionPlot : public iAPlot
 {
 public:
-	iAStepFunctionPlot(QSharedPointer<iAPlotData> data, QColor const & color);
+	iAStepFunctionPlot(std::shared_ptr<iAPlotData> data, QColor const & color);
 private:
 	void draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const & xMapper, iAMapper const & yMapper) const override;
 	void drawLegendItem(QPainter& painter, QRect const& rect) override;
@@ -57,7 +56,7 @@ private:
 class iAcharts_API iAFilledLinePlot : public iAPlot
 {
 public:
-	iAFilledLinePlot(QSharedPointer<iAPlotData> data, QColor const & color);
+	iAFilledLinePlot(std::shared_ptr<iAPlotData> data, QColor const & color);
 private:
 	void draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const & xMapper, iAMapper const & yMapper) const override;
 	void drawLegendItem(QPainter& painter, QRect const& rect) override;
@@ -69,12 +68,12 @@ private:
 class iAcharts_API iABarGraphPlot: public iAPlot
 {
 public:
-	iABarGraphPlot(QSharedPointer<iAPlotData> data, QColor const& color, int margin = 0);
+	iABarGraphPlot(std::shared_ptr<iAPlotData> data, QColor const& color, int margin = 0);
 	void draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const& xMapper, iAMapper const& yMapper) const override;
 	void drawLegendItem(QPainter& painter, QRect const& rect) override;
-	void setLookupTable(QSharedPointer<iALookupTable> lut);
+	void setLookupTable(std::shared_ptr<iALookupTable> lut);
 private:
-	QSharedPointer<iALookupTable> m_lut;
+	std::shared_ptr<iALookupTable> m_lut;
 	int m_margin;
 };
 
@@ -84,10 +83,10 @@ class iAcharts_API iAPlotCollection: public iAPlot
 public:
 	iAPlotCollection();
 	void draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const& xMapper, iAMapper const& yMapper) const override;
-	void add (QSharedPointer<iAPlot> plot);
+	void add (std::shared_ptr<iAPlot> plot);
 	void clear();
 	void setColor(QColor const & color) override;
-	QSharedPointer<iAPlotData> data() override;
+	std::shared_ptr<iAPlotData> data() override;
 private:
-	QVector<QSharedPointer<iAPlot> > m_drawers;
+	QVector<std::shared_ptr<iAPlot> > m_drawers;
 };

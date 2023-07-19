@@ -17,7 +17,7 @@
 iAClusterAttribChart::iAClusterAttribChart(
 	QString const & caption,
 	int id,
-	QSharedPointer<iAParamHistogramData> data,
+	std::shared_ptr<iAParamHistogramData> data,
 	QSharedPointer<iANameMapper> nameMapper):
 	m_ID(id),
 	m_oldMin(-1),
@@ -48,7 +48,7 @@ iAClusterAttribChart::iAClusterAttribChart(
 	connect(m_charts, &iAFilterChart::selectionChanged, this, &iAClusterAttribChart::SelectionChanged);
 }
 
-void iAClusterAttribChart::SetAdditionalDrawer(QSharedPointer<iAPlot>& drawer, QSharedPointer<iAPlot> newDrawer)
+void iAClusterAttribChart::SetAdditionalDrawer(std::shared_ptr<iAPlot>& drawer, std::shared_ptr<iAPlot> newDrawer)
 {
 	if (drawer)
 	{
@@ -59,7 +59,7 @@ void iAClusterAttribChart::SetAdditionalDrawer(QSharedPointer<iAPlot>& drawer, Q
 	m_charts->update();
 }
 
-void iAClusterAttribChart::SetFilteredData(QSharedPointer<iAParamHistogramData> newData)
+void iAClusterAttribChart::SetFilteredData(std::shared_ptr<iAParamHistogramData> newData)
 {
 	SetAdditionalDrawer(m_filteredDrawer, m_charts->GetDrawer(newData, DefaultColors::FilteredChartColor));
 }
@@ -67,7 +67,7 @@ void iAClusterAttribChart::SetFilteredData(QSharedPointer<iAParamHistogramData> 
 void iAClusterAttribChart::ClearClusterData()
 {
 	m_charts->RemoveMarker();
-	for (QSharedPointer<iAPlot> drawer: m_clusterDrawer)
+	for (auto drawer: m_clusterDrawer)
 	{
 		m_charts->removePlot(drawer);
 	}
@@ -80,12 +80,12 @@ void iAClusterAttribChart::RemoveFilterData()
 	if (m_filteredDrawer)
 	{
 		m_charts->removePlot(m_filteredDrawer);
-		m_filteredDrawer.clear();
+		m_filteredDrawer.reset();
 	}
 	if (m_filteredClusterDrawer)
 	{
 		m_charts->removePlot(m_filteredClusterDrawer);
-		m_filteredClusterDrawer.clear();
+		m_filteredClusterDrawer.reset();
 	}
 	if (redraw)
 	{
@@ -99,13 +99,13 @@ QColor iAClusterAttribChart::GetClusterColor(int nr) const
 	return DefaultColors::ClusterChartColor[nr];
 }
 
-void iAClusterAttribChart::AddClusterData(QSharedPointer<iAParamHistogramData> newData)
+void iAClusterAttribChart::AddClusterData(std::shared_ptr<iAParamHistogramData> newData)
 {
 	m_clusterDrawer.push_back(m_charts->GetDrawer(newData, GetClusterColor(m_clusterDrawer.size())));
 	m_charts->addPlot(m_clusterDrawer[m_clusterDrawer.size()-1]);
 }
 
-void iAClusterAttribChart::SetFilteredClusterData(QSharedPointer<iAParamHistogramData> filteredData)
+void iAClusterAttribChart::SetFilteredClusterData(std::shared_ptr<iAParamHistogramData> filteredData)
 {
 	SetAdditionalDrawer(m_filteredClusterDrawer, m_charts->GetDrawer(filteredData, DefaultColors::FilteredClusterChartColor));
 }

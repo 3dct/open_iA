@@ -7,7 +7,6 @@
 
 #include <iAPlotData.h>
 
-#include <QSharedPointer>
 #include <QDialog>
 
 #include <vector>
@@ -49,7 +48,7 @@ public:
 		const std::vector<double>& y_vals, QString* grText, bool useDefaultValues, bool updateCoords);
 	void addSeries(QXYSeries* aSeries, bool disableMarker);
 #endif
-	void setHistData(/*const*/ QSharedPointer<iAPlotData> data);
+	void setHistData(/*const*/ std::shared_ptr<iAPlotData> data);
 	double resultingThreshold() const;
 	double segmentationStartValue() const;
 

@@ -19,8 +19,8 @@ class iADecompositionCalculator: public QThread
 public:
 	iADecompositionCalculator(
 		QSharedPointer<iAElementConcentrations> data,
-		QSharedPointer<iAXRFData const> xrfData,
-		QSharedPointer<iAAccumulatedXRFData const> accumulatedXRF);
+		iAXRFData const * xrfData,
+		iAAccumulatedXRFData const * accumulatedXRF);
 	void AddElement(iAElementSpectralInfo* element);
 	int ElementCount() const;
 	void Stop();
@@ -28,8 +28,8 @@ public:
 	iAProgress* progress();
 private:
 	QSharedPointer<iAElementConcentrations> m_data;
-	QSharedPointer<iAXRFData const> m_xrfData;
-	QSharedPointer<iAAccumulatedXRFData const> m_accumulatedXRF;
+	iAXRFData const * m_xrfData;
+	iAAccumulatedXRFData const * m_accumulatedXRF;
 	QVector<iAElementSpectralInfo*> m_elements;
 	bool m_stopped;
 	iAProgress m_progress;

@@ -18,12 +18,12 @@ class iAClusterAttribChart: public QWidget
 {
 	Q_OBJECT
 public:
-	iAClusterAttribChart(QString const & caption, int id, QSharedPointer<iAParamHistogramData> data,
+	iAClusterAttribChart(QString const & caption, int id, std::shared_ptr<iAParamHistogramData> data,
 		QSharedPointer<iANameMapper> nameMapper);
-	void SetFilteredData(QSharedPointer<iAParamHistogramData> data);
-	void SetFilteredClusterData(QSharedPointer<iAParamHistogramData> data);
+	void SetFilteredData(std::shared_ptr<iAParamHistogramData> data);
+	void SetFilteredClusterData(std::shared_ptr<iAParamHistogramData> data);
 	void RemoveFilterData();
-	void AddClusterData(QSharedPointer<iAParamHistogramData> data);
+	void AddClusterData(std::shared_ptr<iAParamHistogramData> data);
 	void ClearClusterData();
 	void SetMarker(double xPos);
 	void RemoveMarker();
@@ -46,17 +46,17 @@ signals:
 private slots:
 	void SelectionChanged();
 private:
-	void SetAdditionalDrawer(QSharedPointer<iAPlot>& drawer, QSharedPointer<iAPlot> newDrawer);
+	void SetAdditionalDrawer(std::shared_ptr<iAPlot>& drawer, std::shared_ptr<iAPlot> newDrawer);
 	QColor GetClusterColor(int nr) const;
 
 	iAFilterChart*  m_charts;
 	QCheckBox*     m_checkbox;
 	int    m_ID;
-	QVector<QSharedPointer<iAPlot> > m_clusterDrawer;
-	QSharedPointer<iAPlot> m_filteredDrawer;
-	QSharedPointer<iAPlot> m_filteredClusterDrawer;
+	QVector<std::shared_ptr<iAPlot> > m_clusterDrawer;
+	std::shared_ptr<iAPlot> m_filteredDrawer;
+	std::shared_ptr<iAPlot> m_filteredClusterDrawer;
 	int	           m_oldMin;
 	int	           m_oldMax;
 
-	QSharedPointer<iAParamHistogramData> m_filteredClusterData;
+	std::shared_ptr<iAParamHistogramData> m_filteredClusterData;
 };

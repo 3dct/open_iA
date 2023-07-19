@@ -164,7 +164,7 @@ size_t iAHistogramData::finalNumBin(vtkImageData* img, size_t desiredBins)
 }
 
 template <typename T>
-void computeHistogram(QSharedPointer<iAHistogramData> histData, vtkImageData* img, iAImageStatistics* imgStatistics, int component)
+void computeHistogram(std::shared_ptr<iAHistogramData> histData, vtkImageData* img, iAImageStatistics* imgStatistics, int component)
 {
 	auto dim = img->GetDimensions();
 	long long numOfVoxels = static_cast<long long>(dim[0]) * dim[1] * dim[2];
@@ -225,13 +225,13 @@ void computeHistogram(QSharedPointer<iAHistogramData> histData, vtkImageData* im
 #define MODE_VTK 0    // use self-written code above
 //#define MODE_VTK 1    // use vtkImageAccumulate
 
-QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name,
+std::shared_ptr<iAHistogramData> iAHistogramData::create(QString const& name,
 	vtkImageData* img, size_t desiredNumBin, iAImageStatistics* imgStatistics, int component)
 {
 	if (!img)
 	{
 		LOG(lvlWarn, "iAHistogram::create: No image given!");
-		return QSharedPointer<iAHistogramData>(); // return "dummy": histogram with range 0..1, 1 bin with value 0?
+		return std::shared_ptr<iAHistogramData>(); // return "dummy": histogram with range 0..1, 1 bin with value 0?
 	}
 
 	double* const scalarRange = img->GetScalarRange();
@@ -294,7 +294,7 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name,
 	return result;
 }
 
-QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name, iAValueType type,
+std::shared_ptr<iAHistogramData> iAHistogramData::create(QString const& name, iAValueType type,
 	const std::vector<DataType>& data, size_t numBin, DataType minX, DataType maxX)
 {
 	if (std::isinf(minX))
@@ -322,19 +322,19 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name, iAV
 			++histoData[bin];
 		}
 	}
-	return QSharedPointer<iAHistogramData>(new iAHistogramData(name, type, minX, maxX, numBin, histoData));
+	return std::make_shared<iAHistogramData>(name, type, minX, maxX, numBin, histoData);
 }
 
-QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name, iAValueType type,
+std::shared_ptr<iAHistogramData> iAHistogramData::create(QString const& name, iAValueType type,
 	DataType minX, DataType maxX, size_t numBin)
 {
-	return QSharedPointer<iAHistogramData>(new iAHistogramData(name, type, minX, maxX, numBin));
+	return std::make_shared<iAHistogramData>(name, type, minX, maxX, numBin);
 }
 
-QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name, iAValueType type,
+std::shared_ptr<iAHistogramData> iAHistogramData::create(QString const& name, iAValueType type,
 	DataType minX, DataType maxX, size_t numBin, DataType* histoData)
 {
-	return QSharedPointer<iAHistogramData>(new iAHistogramData(name, type, minX, maxX, numBin, histoData));
+	return std::make_shared<iAHistogramData>(name, type, minX, maxX, numBin, histoData);
 }
 
 template <typename ContT> double* createArrayFromContainer(ContT const & cont)
@@ -347,19 +347,19 @@ template <typename ContT> double* createArrayFromContainer(ContT const & cont)
 	return dataArr;
 }
 
-QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name, iAValueType type,
+std::shared_ptr<iAHistogramData> iAHistogramData::create(QString const& name, iAValueType type,
 	DataType minX, DataType maxX, std::vector<double> const& histoData)
 {
-	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData(name, type, minX, maxX, histoData.size(), createArrayFromContainer(histoData)));
+	auto result = std::make_shared<iAHistogramData>(name, type, minX, maxX, histoData.size(), createArrayFromContainer(histoData));
 	result->m_dataOwner = true;
 	return result;
 }
 
 
-QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name, iAValueType type,
+std::shared_ptr<iAHistogramData> iAHistogramData::create(QString const& name, iAValueType type,
 	DataType minX, DataType maxX, QVector<double> const& histoData)
 {
-	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData(name, type, minX, maxX, histoData.size(), createArrayFromContainer(histoData)));
+	auto result = std::make_shared<iAHistogramData>(name, type, minX, maxX, histoData.size(), createArrayFromContainer(histoData));
 	result->m_dataOwner = true;
 	return result;
 }
@@ -375,7 +375,7 @@ static inline double Round(double val)
 #define Round std::round
 #endif
 
-QSharedPointer<iAHistogramData> createMappedHistogramData(QString const& name,
+std::shared_ptr<iAHistogramData> createMappedHistogramData(QString const& name,
 	iAPlotData::DataType const* data, size_t srcNumBin,
 	double srcMinX, double srcMaxX, size_t targetNumBin, double targetMinX, double targetMaxX,
 	iAPlotData::DataType const maxValue)

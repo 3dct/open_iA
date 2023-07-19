@@ -7,19 +7,18 @@
 
 #include <QColor>
 #include <QImage>
-#include <QSharedPointer>
 
 class iAAccumulatedXRFData;
 
 void initSpectraColormap(
 	vtkSmartPointer<vtkColorTransferFunction> colormapLUT,
-	QSharedPointer<iAAccumulatedXRFData> accData,
+	iAAccumulatedXRFData const * accData,
 	double val, double max,
 	QImage const & spectraHistogramColormap);
 
-QSharedPointer<QImage> CalculateSpectraHistogramImage(
+std::shared_ptr<QImage> CalculateSpectraHistogramImage(
 	vtkSmartPointer<vtkColorTransferFunction> colormapLUT,
-	QSharedPointer<iAAccumulatedXRFData> accData,
+	iAAccumulatedXRFData* accData,
 	QImage const & spectraHistogramColormap,
 	long numBin,
 	double sensVal, double sensMax, double threshVal, double threshMax,

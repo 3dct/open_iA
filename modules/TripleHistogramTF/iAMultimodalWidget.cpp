@@ -346,7 +346,7 @@ void iAMultimodalWidget::initGUI()
 		m_copyTFs[ds] = std::make_shared<iATransferFunctionOwner>(colorTF, opacityTF);
 
 		m_histograms[ds] = QSharedPointer<iAChartWithFunctionsWidget>::create(nullptr, dataSetName(ds) + " gray value", "Frequency");
-		auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(histData, QColor(70, 70, 70, 255));
+		auto histogramPlot = std::make_shared<iABarGraphPlot>(histData, QColor(70, 70, 70, 255));
 		m_histograms[ds]->addPlot(histogramPlot);
 		m_histograms[ds]->setTransferFunction(m_copyTFs[ds].get());
 		m_histograms[ds]->update();

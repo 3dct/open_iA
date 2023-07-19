@@ -83,7 +83,7 @@ private:
 	void toggleBar(bool show, int outType, int outIdx);
 	void addTableWidgets();
 	void setActionChecked(int outType, int outIdx, bool checked);
-	QSharedPointer<iAPlot> createHistoPlot(QSharedPointer<iAHistogramData> data, QColor color);
+	std::shared_ptr<iAPlot> createHistoPlot(std::shared_ptr<iAHistogramData> data, QColor color);
 	void addResultHistoPlot(size_t resultIdx, int charIdx, int paramIdx, QColor c);
 	void setInColor(QColor const& inColor);
 	void setInOutColorPrivate(QColor const& inColor, QColor const& outColor);
@@ -108,7 +108,7 @@ private:
 	QVector<int> m_sort;
 	int m_sortLastOut;
 	bool m_sortLastDesc;
-	QMap<std::tuple<size_t, int, int>, QSharedPointer<iAPlot>> m_selectedResultHistoPlots;
+	QMap<std::tuple<size_t, int, int>, std::shared_ptr<iAPlot>> m_selectedResultHistoPlots;
 	QString m_histogramChartType;
 	QSet<int> m_highlightedParams;
 	bool m_normalizePerOutput;

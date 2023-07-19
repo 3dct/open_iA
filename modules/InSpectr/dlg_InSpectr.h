@@ -146,9 +146,9 @@ private:
 	void InitElementRenderer(dlg_elementRenderer * elemRend, size_t index);
 	void InitCommonGUI();
 
-	QSharedPointer<QImage>                         m_spectraHistogramImage;
+	std::shared_ptr<QImage>                        m_spectraHistogramImage;
 	QImage                                         m_spectraHistogramColormap;
-	QSharedPointer<QImage>                         m_functionalBoxplotImage;
+	std::shared_ptr<QImage>                        m_functionalBoxplotImage;
 	bool                                           m_initialized;
 	bool                                           m_ctfChanged;
 	bool                                           m_decompositionLoaded;
@@ -159,16 +159,16 @@ private:
 	vtkSmartPointer<vtkPiecewiseFunction>          m_oTF;
 	vtkSmartPointer<vtkColorTransferFunction>      m_cTF;
 	QSharedPointer<iAXRFData>                      m_xrfData;
-	QSharedPointer<iAHistogramData>                m_voxelEnergy;
-	QSharedPointer<iAAccumulatedXRFData>           m_accumulatedXRF;
-	QMap<int, QSharedPointer<iAStepFunctionPlot> > m_refSpectraDrawers;
+	std::shared_ptr<iAHistogramData>               m_voxelEnergy;
+	std::shared_ptr<iAAccumulatedXRFData>          m_accumulatedXRF;
+	QMap<int, std::shared_ptr<iAStepFunctionPlot>> m_refSpectraDrawers;
 	QSharedPointer<iAReferenceSpectraLibrary>      m_refSpectraLib;
-	QSharedPointer<iAPlotCollection>               m_spectraLinesDrawer;
-	QSharedPointer<iAPlot>                         m_voxelSpectrumDrawer;
+	std::shared_ptr<iAPlotCollection>              m_spectraLinesDrawer;
+	std::shared_ptr<iAPlot>                        m_voxelSpectrumDrawer;
 	QSharedPointer<iAElementConcentrations>        m_elementConcentrations;
 	QSharedPointer<iADecompositionCalculator>      m_decompositionCalculator;
-	QSharedPointer<iASelectedBinPlot>              m_selectedBinXDrawer;
-	QSharedPointer<iASelectedBinPlot>              m_selectedBinYDrawer;
+	std::shared_ptr<iASelectedBinPlot>             m_selectedBinXDrawer;
+	std::shared_ptr<iASelectedBinPlot>             m_selectedBinYDrawer;
 	QVector<int>                                   m_decomposeSelectedElements;
 	int                                            m_enabledChannels;
 	std::vector<uint>                              m_channelIDs;

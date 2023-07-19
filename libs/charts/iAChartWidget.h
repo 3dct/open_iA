@@ -120,15 +120,15 @@ public:
 	//! Set whether legend should be shown or not.
 	void showLegend(bool show);
 	//! Add a plot to the chart.
-	void addPlot(QSharedPointer<iAPlot> plot);
+	void addPlot(std::shared_ptr<iAPlot> plot);
 	//! Remove a plot from the chart.
-	void removePlot(QSharedPointer<iAPlot> plot);
+	void removePlot(std::shared_ptr<iAPlot> plot);
 	//! Remove all plots from the chart.
 	void clearPlots();
 	//! Retrieve all plots currently in the chart.
-	std::vector<QSharedPointer<iAPlot>> const & plots();
+	std::vector<std::shared_ptr<iAPlot>> const & plots();
 	//! Add an image overlay to the chart.
-	void addImageOverlay(QSharedPointer<QImage> imgOverlay, bool stretch=true);
+	void addImageOverlay(std::shared_ptr<QImage> imgOverlay, bool stretch=true);
 	//! Remove an image overlay from the chart.
 	void removeImageOverlay(QImage * imgOverlay);
 	//! Clear all image overlays:
@@ -191,7 +191,7 @@ protected:
 	int m_dragStartPosX, m_dragStartPosY;
 	int m_mode;
 	//! Main mappers from diagram coordinates to pixel coordinates, for each axis:
-	mutable QSharedPointer<iAMapper> m_xMapper, m_yMapper;
+	mutable std::shared_ptr<iAMapper> m_xMapper, m_yMapper;
 	AxisMappingType m_yMappingMode;
 
 	virtual void drawPlots(QPainter& painter);
@@ -238,8 +238,8 @@ private:
 	double visibleXEnd() const;
 	double limitXShift(double newXShift);
 
-	std::vector<QSharedPointer<iAPlot> >	m_plots;
-	std::vector<std::pair<QSharedPointer<QImage>, bool> > m_overlays;
+	std::vector<std::shared_ptr<iAPlot>> m_plots;
+	std::vector<std::pair<std::shared_ptr<QImage>, bool>> m_overlays;
 	QMenu* m_contextMenu;
 	QPoint m_contextPos;
 	bool m_showTooltip, m_showXAxisLabel, m_showLegend;

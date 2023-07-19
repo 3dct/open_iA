@@ -1117,10 +1117,10 @@ void iAFiAKErController::changeDistributionSource(int index)
 				: d.table->GetValue(fiberID, index).ToDouble();
 		}
 		auto histogramData = iAHistogramData::create("Frequency", iAValueType::Continuous, fiberData, m_histogramBins, range[0], range[1]);
-		QSharedPointer<iAPlot> histogramPlot =
+		std::shared_ptr<iAPlot> histogramPlot =
 			(m_settingsView->cmbboxDistributionPlotType->currentIndex() == 0) ?
-			QSharedPointer<iAPlot>(new iABarGraphPlot(histogramData, getResultColor(resultID)))
-			: QSharedPointer<iAPlot>(new iALinePlot(histogramData, getResultColor(resultID)));
+			  std::shared_ptr<iAPlot>(new iABarGraphPlot(histogramData, getResultColor(resultID)))
+			: std::shared_ptr<iAPlot>(new iALinePlot(histogramData, getResultColor(resultID)));
 		chart->addPlot(histogramPlot);
 		if (histogramData->yBounds()[1] > yMax)
 		{
@@ -1147,16 +1147,16 @@ void iAFiAKErController::updateHistogramColors()
 	}
 	double range[2] = { 0.0, static_cast<double>(m_histogramBins) };
 	auto lut = m_colorByDistribution->isChecked() ?
-		QSharedPointer<iALookupTable>::create(iALUT::Build(range, m_colorByThemeName, 255, 1))
-		: QSharedPointer<iALookupTable>();
+		std::make_shared<iALookupTable>(iALUT::Build(range, m_colorByThemeName, 255, 1))
+		: std::shared_ptr<iALookupTable>();
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & chart = m_resultUIs[resultID].histoChart;
 		if (chart->plots().size() > 0)
 		{
-			if (dynamic_cast<iABarGraphPlot*>(chart->plots()[0].data()))
+			if (dynamic_cast<iABarGraphPlot*>(chart->plots()[0].get()))
 			{
-				dynamic_cast<iABarGraphPlot*>(chart->plots()[0].data())->setLookupTable(lut);
+				dynamic_cast<iABarGraphPlot*>(chart->plots()[0].get())->setLookupTable(lut);
 			}
 			if (!lut)
 			{
@@ -1188,11 +1188,11 @@ void iAFiAKErController::updateRefDistPlots()
 		{
 			QColor refColor = getResultColor(m_referenceID);
 			refColor.setAlpha(DistributionRefAlpha);
-			QSharedPointer<iAPlotData> refPlotData = m_resultUIs[m_referenceID].histoChart->plots()[0]->data();
-			QSharedPointer<iAPlot> refPlot =
+			auto refPlotData = m_resultUIs[m_referenceID].histoChart->plots()[0]->data();
+			std::shared_ptr<iAPlot> refPlot =
 				(m_settingsView->cmbboxDistributionPlotType->currentIndex() == 0) ?
-				QSharedPointer<iAPlot>(new iABarGraphPlot(refPlotData, refColor))
-				: QSharedPointer<iAPlot>(new iALinePlot(refPlotData, refColor));
+				std::shared_ptr<iAPlot>(new iABarGraphPlot(refPlotData, refColor))
+				: std::shared_ptr<iAPlot>(new iALinePlot(refPlotData, refColor));
 			chart->addPlot(refPlot);
 		}
 		chart->update();
@@ -1442,7 +1442,7 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 					histoData = &d.projectionError[fiberID];
 				}
 				auto plotData = iAHistogramData::create(diffName(chartID), iAValueType::Discrete, 0, histoData->size(), *histoData);
-				m_optimStepChart[chartID]->addPlot(QSharedPointer<iALinePlot>::create(plotData, getResultColor(resultID)));
+				m_optimStepChart[chartID]->addPlot(std::make_shared<iALinePlot>(plotData, getResultColor(resultID)));
 			}
 		}
 		connect(m_optimStepChart[chartID], &iAChartWidget::plotsSelected,
@@ -1775,7 +1775,7 @@ void iAFiAKErController::showSelectionInPlot(int chartID)
 				{
 					break;
 				}
-				auto plot = dynamic_cast<iALinePlot*>(chart->plots()[m_resultUIs[resultID].startPlotIdx + fiberID].data());
+				auto plot = dynamic_cast<iALinePlot*>(chart->plots()[m_resultUIs[resultID].startPlotIdx + fiberID].get());
 				if (curSelIdx < m_selection[resultID].size() && fiberID == m_selection[resultID][curSelIdx])
 				{
 					plot->setLineWidth(2);

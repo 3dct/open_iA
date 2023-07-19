@@ -46,7 +46,7 @@ double iAParamHistogramData::mapBinToValue(double bin) const
 }
 
 void iAParamHistogramData::countNodeBin(iAImageTreeLeaf const* leaf,
-	QSharedPointer<iAParamHistogramData> data, int chartID,
+	std::shared_ptr<iAParamHistogramData> data, int chartID,
 	iAChartAttributeMapper const & chartAttrMap)
 {
 	if (!chartAttrMap.GetDatasetIDs(chartID).contains(leaf->GetDatasetID()))
@@ -59,7 +59,7 @@ void iAParamHistogramData::countNodeBin(iAImageTreeLeaf const* leaf,
 }
 
 void iAParamHistogramData::visitNode(iAImageTreeNode const * node,
-	QSharedPointer<iAParamHistogramData> data, int chartID,
+	std::shared_ptr<iAParamHistogramData> data, int chartID,
 	iAChartAttributeMapper const & chartAttrMap)
 {
 	VisitLeafs(node, [&](iAImageTreeLeaf const * leaf)
@@ -69,7 +69,7 @@ void iAParamHistogramData::visitNode(iAImageTreeNode const * node,
 }
 
 void iAParamHistogramData::visitNode(iAImageTreeNode const * node,
-	QSharedPointer<iAParamHistogramData> data, int chartID,
+	std::shared_ptr<iAParamHistogramData> data, int chartID,
 	iAChartAttributeMapper const & chartAttrMap,
 	iAChartFilter const & attributeFilter)
 {
@@ -95,19 +95,19 @@ double iAParamHistogramData::xValue(size_t idx) const
 	return std::pow(LogBase, valueLog);
 }
 
-QSharedPointer<iAParamHistogramData> iAParamHistogramData::create(iAImageTreeNode const * tree,
+std::shared_ptr<iAParamHistogramData> iAParamHistogramData::create(iAImageTreeNode const * tree,
 	int chartID,
 	iAValueType rangeType,
 	double min, double max, bool log,
 	iAChartAttributeMapper const & chartAttrMap,
 	int numBin)
 {
-	QSharedPointer<iAParamHistogramData> result(new iAParamHistogramData(numBin, min, max, log, rangeType));
+	auto result = std::make_shared<iAParamHistogramData>(numBin, min, max, log, rangeType);
 	visitNode(tree, result, chartID, chartAttrMap);
 	return result;
 }
 
-QSharedPointer<iAParamHistogramData> iAParamHistogramData::create(iAImageTreeNode const * tree,
+std::shared_ptr<iAParamHistogramData> iAParamHistogramData::create(iAImageTreeNode const * tree,
 	int chartID,
 	iAValueType rangeType,
 	double min, double max, bool log,
@@ -115,7 +115,7 @@ QSharedPointer<iAParamHistogramData> iAParamHistogramData::create(iAImageTreeNod
 	iAChartFilter const & attributeFilter,
 	int numBin)
 {
-	QSharedPointer<iAParamHistogramData> result(new iAParamHistogramData(numBin, min, max, log, rangeType));
+	auto result = std::make_shared<iAParamHistogramData>(numBin, min, max, log, rangeType);
 	visitNode(tree, result, chartID, chartAttrMap, attributeFilter);
 	return result;
 }

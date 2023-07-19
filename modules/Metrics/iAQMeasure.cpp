@@ -115,7 +115,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QVariantMap
 	if (filter->m_chart)
 	{
 		auto histoPlotData = iAHistogramData::create("Frequency", iAValueType::Continuous, minVal, maxVal, vecHist);
-		filter->m_chart->addPlot(QSharedPointer<iABarGraphPlot>::create(histoPlotData, QColor(180, 90, 90, 127)));
+		filter->m_chart->addPlot(std::make_shared<iABarGraphPlot>(histoPlotData, QColor(180, 90, 90, 127)));
 	}
 
 	double derivSigma = static_cast<double>(binCount) / Kderiv;
@@ -125,7 +125,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QVariantMap
 	if (filter->m_chart)
 	{
 		auto smoothedHistoPlotData = iAHistogramData::create("Smoothed Frequency", iAValueType::Continuous, minVal, maxVal, smoothedHist);
-		filter->m_chart->addPlot(QSharedPointer<iABarGraphPlot>::create(smoothedHistoPlotData, QColor(90, 180, 90, 127)));
+		filter->m_chart->addPlot(std::make_shared<iABarGraphPlot>(smoothedHistoPlotData, QColor(90, 180, 90, 127)));
 	}
 
 	// 3. find peaks: (derivative = 0, 2nd deriv. negative)
@@ -134,7 +134,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QVariantMap
 	if (filter->m_chart)
 	{
 		auto firstDerivPlotData = iAHistogramData::create("Smoothed Derivative", iAValueType::Continuous, minVal, maxVal, smoothedDeriv);
-		filter->m_chart->addPlot(QSharedPointer<iABarGraphPlot>::create(firstDerivPlotData, QColor(90, 90, 180, 127)));
+		filter->m_chart->addPlot(std::make_shared<iABarGraphPlot>(firstDerivPlotData, QColor(90, 90, 180, 127)));
 	}
 
 	// peak is at every 0-crossing, so where:
@@ -179,7 +179,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QVariantMap
 	{
 		for (size_t p = 0; p < numberOfPeaks; ++p)
 		{
-			filter->m_chart->addPlot(QSharedPointer<iASelectedBinPlot>::create(filter->m_chart->plots()[0]->data(), peaks[p].first, QColor(90, 180, 90, 182)));
+			filter->m_chart->addPlot(std::make_shared<iASelectedBinPlot>(filter->m_chart->plots()[0]->data(), peaks[p].first, QColor(90, 180, 90, 182)));
 		}
 	}
 										// order peaks by index
@@ -220,7 +220,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QVariantMap
 		// calculate mean/stddev:
 		getMeanVariance(vecHist, minVal, maxVal, thresholdIndices[m], thresholdIndices[m + 1], mean[m], variance[m]);
 		if (filter->m_chart)
-			filter->m_chart->addPlot(QSharedPointer<iASelectedBinPlot>::create(filter->m_chart->plots()[0]->data(), minIdx, QColor(180, 90, 90, 182)));
+			filter->m_chart->addPlot(std::make_shared<iASelectedBinPlot>(filter->m_chart->plots()[0]->data(), minIdx, QColor(180, 90, 90, 182)));
 	}
 	// for last peak we still have to calculate mean and stddev
 	getMeanVariance(vecHist, minVal, maxVal, thresholdIndices[numberOfPeaks - 1], thresholdIndices[numberOfPeaks], mean[numberOfPeaks - 1], variance[numberOfPeaks - 1]);

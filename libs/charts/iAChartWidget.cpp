@@ -293,7 +293,7 @@ iAMapper const & iAChartWidget::xMapper() const
 	{
 		createMappers();
 	}
-	return *m_xMapper.data();
+	return *m_xMapper.get();
 }
 
 iAMapper const & iAChartWidget::yMapper() const
@@ -302,7 +302,7 @@ iAMapper const & iAChartWidget::yMapper() const
 	{
 		createMappers();
 	}
-	return *m_yMapper.data();
+	return *m_yMapper.get();
 }
 
 int iAChartWidget::data2MouseX(double dataX)
@@ -317,14 +317,14 @@ double iAChartWidget::mouse2DataX(int mouseX)
 
 void iAChartWidget::createMappers() const
 {
-	m_xMapper = QSharedPointer<iALinearMapper>::create(m_xBounds[0], m_xBounds[1], 0, fullChartWidth());
+	m_xMapper = std::make_shared<iALinearMapper>(m_xBounds[0], m_xBounds[1], 0, fullChartWidth());
 	if (m_yMappingMode == Linear)
 	{
-		m_yMapper = QSharedPointer<iALinearMapper>::create(m_yBounds[0], m_yBounds[1], 0, (chartHeight() - 1) * m_yZoom);
+		m_yMapper = std::make_shared<iALinearMapper>(m_yBounds[0], m_yBounds[1], 0, (chartHeight() - 1) * m_yZoom);
 	}
 	else
 	{
-		m_yMapper = QSharedPointer<iALogarithmicMapper>::create(
+		m_yMapper = std::make_shared<iALogarithmicMapper>(
 			m_yBounds[0] > 0 ? m_yBounds[0] : LogYMapModeMin, m_yBounds[1], 0, (chartHeight() - 1) * m_yZoom);
 		if (m_yBounds[0] < 0)
 		{
@@ -347,7 +347,7 @@ void iAChartWidget::drawImageOverlays(QPainter& painter)
 	{
 		painter.drawImage(m_overlays[i].second ? // stretch to full chart area?
 			targetRect : chartRect,
-			*(m_overlays[i].first.data()), m_overlays[i].first->rect());
+			*(m_overlays[i].first.get()), m_overlays[i].first->rect());
 	}
 }
 
@@ -767,7 +767,7 @@ void iAChartWidget::showLegend(bool show)
 	m_showLegend = show;
 }
 
-void iAChartWidget::addPlot(QSharedPointer<iAPlot> plot)
+void iAChartWidget::addPlot(std::shared_ptr<iAPlot> plot)
 {
 	assert(plot);
 	if (!plot)
@@ -784,7 +784,7 @@ void iAChartWidget::addPlot(QSharedPointer<iAPlot> plot)
 	updateBounds(m_plots.size()-1);
 }
 
-void iAChartWidget::removePlot(QSharedPointer<iAPlot> plot)
+void iAChartWidget::removePlot(std::shared_ptr<iAPlot> plot)
 {
 	if (!plot)
 	{
@@ -803,12 +803,12 @@ void iAChartWidget::clearPlots()
 	m_plots.clear();
 }
 
-std::vector<QSharedPointer<iAPlot> > const & iAChartWidget::plots()
+std::vector<std::shared_ptr<iAPlot>> const & iAChartWidget::plots()
 {
 	return m_plots;
 }
 
-void iAChartWidget::addImageOverlay(QSharedPointer<QImage> imgOverlay, bool stretch)
+void iAChartWidget::addImageOverlay(std::shared_ptr<QImage> imgOverlay, bool stretch)
 {
 	m_overlays.push_back(std::make_pair(imgOverlay, stretch));
 }
@@ -817,7 +817,7 @@ void iAChartWidget::removeImageOverlay(QImage * imgOverlay)
 {
 	for (auto it = m_overlays.begin(); it != m_overlays.end(); ++it)
 	{
-		if (it->first.data() == imgOverlay)
+		if (it->first.get() == imgOverlay)
 		{
 			m_overlays.erase(it);
 			break;

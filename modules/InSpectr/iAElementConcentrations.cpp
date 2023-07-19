@@ -23,7 +23,7 @@ iAElementConcentrations::~iAElementConcentrations()
 
 bool iAElementConcentrations::calculateAverageConcentration(
 	QSharedPointer<QVector<QSharedPointer<iAEnergySpectrum> > > elements,
-	QSharedPointer<iAAccumulatedXRFData const> accumulatedXRF)
+	iAAccumulatedXRFData const * accumulatedXRF)
 {
 	int threshold = accumulatedXRF->yBounds()[1]/20;
 
@@ -37,9 +37,9 @@ bool iAElementConcentrations::calculateAverageConcentration(
 
 
 bool iAElementConcentrations::calculateAverageConcentration(
-	QSharedPointer<iAXRFData const> xrfData,
+	iAXRFData const * xrfData,
 	QVector<iAElementSpectralInfo*> const & elements,
-	QSharedPointer<iAAccumulatedXRFData const> accumulatedXRF)
+	iAAccumulatedXRFData const * accumulatedXRF)
 {
 	auto adaptedElementSpectra = GetAdaptedSpectra(xrfData, elements);
 	return calculateAverageConcentration(adaptedElementSpectra, accumulatedXRF);
@@ -103,7 +103,7 @@ void iAElementConcentrations::clear()
 
 
 QSharedPointer<QVector<QSharedPointer<iAEnergySpectrum> > > iAElementConcentrations::GetAdaptedSpectra(
-	QSharedPointer<iAXRFData const> xrfData,
+	iAXRFData const * xrfData,
 	QVector<iAElementSpectralInfo*> const & elements)
 {
 	// sample reference spectra to be in the same range as object's spectra

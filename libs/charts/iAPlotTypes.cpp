@@ -13,7 +13,7 @@
 
 // iAPlot
 
-iAPlot::iAPlot(QSharedPointer<iAPlotData> data, QColor const & color):
+iAPlot::iAPlot(std::shared_ptr<iAPlotData> data, QColor const & color):
 	m_data(data),
 	m_visible(true),
 	m_color(color)
@@ -28,7 +28,7 @@ void iAPlot::drawLegendItem(QPainter& painter, QRect const& rect)
 	painter.drawLine(rect.left(), y, rect.right(), y);
 }
 
-QSharedPointer<iAPlotData> iAPlot::data()
+std::shared_ptr<iAPlotData> iAPlot::data()
 {
 	return m_data;
 }
@@ -55,7 +55,7 @@ QColor const iAPlot::color() const
 
 // iASelectedBinPlot
 
-iASelectedBinPlot::iASelectedBinPlot(QSharedPointer<iAPlotData> proxyData, size_t idx /*= 0*/, QColor const & color /*= Qt::red */ ) :
+iASelectedBinPlot::iASelectedBinPlot(std::shared_ptr<iAPlotData> proxyData, size_t idx /*= 0*/, QColor const & color /*= Qt::red */ ) :
 	iAPlot(proxyData, color), m_idx(idx)
 {}
 
@@ -81,7 +81,7 @@ void iASelectedBinPlot::setSelectedBin(size_t idx)
 
 namespace
 {
-	void buildLinePolygon(QPolygon& poly, QSharedPointer<iAPlotData> data, size_t startIdx, size_t endIdx,
+	void buildLinePolygon(QPolygon& poly, std::shared_ptr<iAPlotData> data, size_t startIdx, size_t endIdx,
 		iAMapper const& xMapper, iAMapper const& yMapper)
 	{
 		for (size_t idx = startIdx; idx <= endIdx; ++idx)
@@ -95,7 +95,7 @@ namespace
 
 // iALinePlot
 
-iALinePlot::iALinePlot(QSharedPointer<iAPlotData> data, QColor const& color) :
+iALinePlot::iALinePlot(std::shared_ptr<iAPlotData> data, QColor const& color) :
 	iAPlot(data, color),
 	m_lineWidth(1)
 {}
@@ -123,7 +123,7 @@ void iALinePlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMappe
 
 // iAFilledLinePlot
 
-iAFilledLinePlot::iAFilledLinePlot(QSharedPointer<iAPlotData> data, QColor const& color) :
+iAFilledLinePlot::iAFilledLinePlot(std::shared_ptr<iAPlotData> data, QColor const& color) :
 	iAPlot(data, color)
 {}
 
@@ -174,7 +174,7 @@ void iAFilledLinePlot::drawLegendItem(QPainter& painter, QRect const& rect)
 
 // iAStepFunctionPlot
 
-iAStepFunctionPlot::iAStepFunctionPlot(QSharedPointer<iAPlotData> data, QColor const& color) :
+iAStepFunctionPlot::iAStepFunctionPlot(std::shared_ptr<iAPlotData> data, QColor const& color) :
 	iAPlot(data, color)
 {}
 
@@ -210,7 +210,7 @@ void iAStepFunctionPlot::drawLegendItem(QPainter& painter, QRect const& rect)
 
 // iABarGraphPlot
 
-iABarGraphPlot::iABarGraphPlot(QSharedPointer<iAPlotData> data, QColor const& color, int margin) :
+iABarGraphPlot::iABarGraphPlot(std::shared_ptr<iAPlotData> data, QColor const& color, int margin) :
 	iAPlot(data, color),
 	m_margin(margin)
 {}
@@ -238,7 +238,7 @@ void iABarGraphPlot::drawLegendItem(QPainter& painter, QRect const& rect)
 	drawBoxLegendItem(painter, rect, color(), visible());
 }
 
-void iABarGraphPlot::setLookupTable(QSharedPointer<iALookupTable> lut)
+void iABarGraphPlot::setLookupTable(std::shared_ptr<iALookupTable> lut)
 {
 	m_lut = lut;
 }
@@ -246,7 +246,7 @@ void iABarGraphPlot::setLookupTable(QSharedPointer<iALookupTable> lut)
 // iAPlotCollection
 
 iAPlotCollection::iAPlotCollection() :
-	iAPlot(QSharedPointer<iAPlotData>(), QColor())
+	iAPlot(std::shared_ptr<iAPlotData>(), QColor())
 {}
 
 void iAPlotCollection::draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const & xMapper, iAMapper const & yMapper) const
@@ -263,7 +263,7 @@ void iAPlotCollection::draw(QPainter& painter, size_t startIdx, size_t endIdx, i
 	painter.setPen(pen);
 }
 
-void iAPlotCollection::add(QSharedPointer<iAPlot> drawer)
+void iAPlotCollection::add(std::shared_ptr<iAPlot> drawer)
 {
 	if (m_drawers.size() > 0)
 	{
@@ -283,7 +283,7 @@ void iAPlotCollection::clear()
 	m_drawers.clear();
 }
 
-QSharedPointer<iAPlotData> iAPlotCollection::data()
+std::shared_ptr<iAPlotData> iAPlotCollection::data()
 {
 	if (m_drawers.size() > 0)
 	{
@@ -292,7 +292,7 @@ QSharedPointer<iAPlotData> iAPlotCollection::data()
 	else
 	{
 		LOG(lvlWarn, "iAPlotCollection::data() called before any plots were added!");
-		return QSharedPointer<iAPlotData>();
+		return std::shared_ptr<iAPlotData>();
 	}
 }
 

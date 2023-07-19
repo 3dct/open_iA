@@ -36,18 +36,18 @@ public:
 	VoxelConcentrationType const & getAvgConcentration();
 	void clear();
 	bool calculateAverageConcentration(
-		QSharedPointer<iAXRFData const> xrfData,
+		iAXRFData const * xrfData,
 		QVector<iAElementSpectralInfo*> const & elements,
-		QSharedPointer<iAAccumulatedXRFData const> accumulatedXRF);
+		iAAccumulatedXRFData const * accumulatedXRF);
 	bool hasAvgConcentration() const;
 private:
 	void initImages(int elemCount, int extent[6], double spacing[3], double origin[3]);
 	QSharedPointer<QVector<QSharedPointer<iAEnergySpectrum> > > GetAdaptedSpectra(
-		QSharedPointer<iAXRFData const> xrfData,
+		iAXRFData const * xrfData,
 		QVector<iAElementSpectralInfo*> const & elements);
 	bool calculateAverageConcentration(
 		QSharedPointer<QVector<QSharedPointer<iAEnergySpectrum> > > elements,
-		QSharedPointer<iAAccumulatedXRFData const> accumulatedXRF);
+		iAAccumulatedXRFData const * accumulatedXRF);
 
 	int m_elementCount;
 	VoxelConcentrationType  m_averageConcentration;

@@ -5,9 +5,9 @@
 
 #include "iacharts_export.h"
 
-#include <QSharedPointer>
 #include <QVector>
 
+//#include <memory>
 #include <vector>
 
 class vtkImageData;
@@ -22,6 +22,10 @@ struct iAImageStatistics
 class iAcharts_API iAHistogramData : public iAPlotData
 {
 public:
+	//! Create an empty histogram (with numBin bins, initialized to 0).
+	iAHistogramData(QString const& name, iAValueType type, DataType minX, DataType maxX, size_t numBin);
+	//! Create with the given, already computed histogram data.
+	iAHistogramData(QString const& name, iAValueType type, DataType minX, DataType maxX, size_t numBin, DataType* histoData);
 	~iAHistogramData();
 	//! @{ overriden from iAPlotData, check description there!
 	DataType yValue(size_t idx) const override;
@@ -55,7 +59,7 @@ public:
 	//! @param img a pointer to the vtk image for which to create the histogram
 	//! @param desiredNumBin the desired number of bins the data will be split into; can be adapted, depending on the actual number of different values in image
 	//! @param imgStatistics optional iAImageStatistics struct that will be filled with the statistical information determined while computing the histogram
-	static QSharedPointer<iAHistogramData> create(QString const& name,
+	static std::shared_ptr<iAHistogramData> create(QString const& name,
 		vtkImageData* img, size_t desiredNumBin, iAImageStatistics* imgStatistics = nullptr, int component = 0);
 	//! create a histogram for the given (raw) data vector.
 	//! @param name the name of the plot
@@ -64,7 +68,7 @@ public:
 	//! @param numBin the number of bins the data will be split into
 	//! @param minValue the minimum value in the data values (performance improvement if both minValue and maxValue are given; if left out, it is determined automatically)
 	//! @param maxValue the maximum value in the data values (performance improvement if both minValue and maxValue are given; if left out, it is determined automatically)
-	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
+	static std::shared_ptr<iAHistogramData> create(QString const& name, iAValueType type,
 		const std::vector<DataType>& data, size_t numBin,
 		DataType minValue=std::numeric_limits<DataType>::infinity(),
 		DataType maxValue=std::numeric_limits<DataType>::infinity());
@@ -75,7 +79,7 @@ public:
 	//! @param minX minimum value in the data values
 	//! @param maxX minimum value in the data values
 	//! @param numBin the number of bins in the new histogram data (all initialized to 0).
-	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
+	static std::shared_ptr<iAHistogramData> create(QString const& name, iAValueType type,
 		DataType minX, DataType maxX, size_t numBin);
 	//! Create from already computed histogram data.
 	//! @deprecated (because of data ownership issues, see notes for histoData parameter)
@@ -86,7 +90,7 @@ public:
 	//! @param numBin the number of bins - the number of items contained in histoData
 	//! @param histoData the histogram frequencies. note that the class DOES NOT take ownership of the given array:
 	//!        you have to delete the array manually!
-	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
+	static std::shared_ptr<iAHistogramData> create(QString const& name, iAValueType type,
 		DataType minX, DataType maxX, size_t numBin, DataType* histoData);
 	//! Create from already computed histogram data in a std::vector.
 	//! @param name the name of the plot
@@ -94,7 +98,7 @@ public:
 	//! @param minX minimum value in the data values
 	//! @param maxX minimum value in the data values
 	//! @param histoData the histogram frequencies
-	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
+	static std::shared_ptr<iAHistogramData> create(QString const& name, iAValueType type,
 		DataType minX, DataType maxX, std::vector<DataType> const& histoData);
 	//! Create from already computed histogram data in a QVector.
 	//! @param name the name of the plot
@@ -102,19 +106,13 @@ public:
 	//! @param minX minimum value in the data values
 	//! @param maxX minimum value in the data values
 	//! @param histoData the histogram frequencies
-	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
+	static std::shared_ptr<iAHistogramData> create(QString const& name, iAValueType type,
 		DataType minX, DataType maxX, QVector<DataType> const& histoData);
 
 	//! compute the final bin count for a given image and desired bin count
 	static size_t finalNumBin(vtkImageData* img, size_t desiredNumBin);
 
-protected:
-	//! Create an empty histogram (with numBin bins, initialized to 0).
-	iAHistogramData(QString const& name, iAValueType type, DataType minX, DataType maxX, size_t numBin);
-
 private:
-	//! Create with the given, already computed histogram data.
-	iAHistogramData(QString const& name, iAValueType type, DataType minX, DataType maxX, size_t numBin, DataType* histoData);
 	//! Set y value range from current data.
 	void updateYBounds();
 	void setXBounds(DataType minX, DataType maxX);
@@ -141,7 +139,7 @@ private:
 //! the created histogram has one bin per label
 //! @todo move to a separate file?
 template <typename PixelT>
-QSharedPointer<iAHistogramData> createHistogramData(QString const& name, iAValueType xValueType,
+std::shared_ptr<iAHistogramData> createHistogramData(QString const& name, iAValueType xValueType,
 	QVector<typename itk::Image<PixelT, 3>::Pointer> const& imgs, size_t numBin, PixelT min, PixelT max)
 {
 	/*
@@ -170,7 +168,7 @@ QSharedPointer<iAHistogramData> createHistogramData(QString const& name, iAValue
 /*
 // for pixel probing:
 template <typename PixelT>
-QSharedPointer<iAHistogramData> CreateHistogram(QVector<typename itk::Image<PixelT, 3>::Pointer> const & imgs, size_t numBin, int index[3], PixelT min, PixelT max, iAValueType xValueType)
+std::shared_ptr<iAHistogramData> CreateHistogram(QVector<typename itk::Image<PixelT, 3>::Pointer> const & imgs, size_t numBin, int index[3], PixelT min, PixelT max, iAValueType xValueType)
 {
 	auto result = iAHistogramData::Create(min, max, numBin, xValueType);
 	itk::Index<3> idx;
@@ -184,6 +182,6 @@ QSharedPointer<iAHistogramData> CreateHistogram(QVector<typename itk::Image<Pixe
 */
 
 //! Returns histogram with given data mapped from specified source to target range.
-iAcharts_API QSharedPointer<iAHistogramData> createMappedHistogramData(QString const& name,
+iAcharts_API std::shared_ptr<iAHistogramData> createMappedHistogramData(QString const& name,
 	iAPlotData::DataType const* data, size_t srcNumBin, double srcMinX, double srcMaxX,
 	size_t targetNumBin, double targetMinX, double targetMaxX, iAPlotData::DataType const maxValue);

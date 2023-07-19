@@ -8,8 +8,6 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QSharedPointer>
-
 #include <array>
 
 class iAChartWidget;
@@ -41,7 +39,7 @@ public:
 	//! Access to the chart widget used for displaying the histogram
 	iAChartWithFunctionsWidget* histogram();
 	//! Access to the histogram data
-	QSharedPointer<iAHistogramData> histogramData(int component) const;  // should return a const raw pointer or reference
+	std::shared_ptr<iAHistogramData> histogramData(int component) const;  // should return a const raw pointer or reference
 	//! Access to the transfer function used in renderer and slicer view
 	iATransferFunction* transfer();
 	//! Access to the displayed dataset
@@ -59,7 +57,7 @@ private:
 	std::array<iASlicer*, 3> m_slicer;
 	//! @}
 	//! @{ histogram:
-	std::vector<QSharedPointer<iAHistogramData>> m_histogramData;
+	std::vector<std::shared_ptr<iAHistogramData>> m_histogramData;
 	iAChartWithFunctionsWidget* m_histogram;
 	QSharedPointer<iADockWidgetWrapper> m_dwHistogram;
 	QAction* m_histogramAction;

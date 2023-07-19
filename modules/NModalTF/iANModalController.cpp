@@ -148,8 +148,7 @@ void iANModalController::initializeHistogram(size_t dataSetIdx)
 		LOG(lvlWarn, QString("No display data found for dataset %1!").arg(dataSetName));
 		return;
 	}
-	auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(viewer->histogramData(0), QColor(70, 70, 70, 255));
-
+	auto histogramPlot = std::make_shared<iABarGraphPlot>(viewer->histogramData(0), QColor(70, 70, 70, 255));
 	auto histogram = new iAChartWithFunctionsWidget(m_mdiChild, dataSetName + " grey value", "Frequency");
 	histogram->addPlot(histogramPlot);
 	histogram->setTransferFunction(viewer->transfer());

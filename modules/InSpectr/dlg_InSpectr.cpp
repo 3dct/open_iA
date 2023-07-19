@@ -165,16 +165,16 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	m_cTF->AddRGBPoint ( maxEnergy, 0.0, 0.0, 0.0 );
 	m_cTF->Build();
 	m_xrfData->SetEnergyRange(minEnergy, maxEnergy);
-	m_accumulatedXRF = QSharedPointer<iAAccumulatedXRFData>::create(m_xrfData, minEnergy, maxEnergy);
+	m_accumulatedXRF = std::make_shared<iAAccumulatedXRFData>(m_xrfData, minEnergy, maxEnergy);
 	m_voxelEnergy = iAHistogramData::create("Voxel Energy", m_accumulatedXRF->valueType(), m_accumulatedXRF->xBounds()[0],
 		m_accumulatedXRF->xBounds()[1], m_xrfData->size());
-	m_voxelSpectrumDrawer = QSharedPointer<iAStepFunctionPlot>::create(m_voxelEnergy, QColor(150, 0, 0));
+	m_voxelSpectrumDrawer = std::make_shared<iAStepFunctionPlot>(m_voxelEnergy, QColor(150, 0, 0));
 	m_spectrumDiagram = new iAEnergySpectrumWidget(this, m_accumulatedXRF, m_oTF, m_cTF, this,
 		haveEnergyLevels ? "Energy (keV)" : "Energy (bins)");
 	m_spectrumDiagram->setObjectName(QString::fromUtf8("EnergySpectrum"));
 
-	m_selectedBinXDrawer = QSharedPointer<iASelectedBinPlot>::create(m_voxelEnergy, 0, QColor(150, 0, 0, 50));
-	m_selectedBinYDrawer = QSharedPointer<iASelectedBinPlot>::create(m_voxelEnergy, 0, QColor(0, 0, 150, 50));
+	m_selectedBinXDrawer = std::make_shared<iASelectedBinPlot>(m_voxelEnergy, 0, QColor(150, 0, 0, 50));
+	m_selectedBinYDrawer = std::make_shared<iASelectedBinPlot>(m_voxelEnergy, 0, QColor(0, 0, 150, 50));
 
 	connect((iAChartTransferFunction*)(m_spectrumDiagram->functions()[0]), &iAChartTransferFunction::changed, this, &dlg_InSpectr::SpectrumTFChanged);
 	iADockWidgetWrapper* spectrumChartContainer = new iADockWidgetWrapper(m_spectrumDiagram, "Spectrum View", "SpectrumChartWidget");
@@ -336,7 +336,7 @@ int findCharEnergy(QVector<iACharacteristicEnergy> const& energies, QString cons
 	return -1;
 }
 
-void updateSpectrumData(QSharedPointer<iAHistogramData> histData, QSharedPointer<iAXRFData> xrfData, int x, int y, int z)
+void updateSpectrumData(std::shared_ptr<iAHistogramData> histData, QSharedPointer<iAXRFData> xrfData, int x, int y, int z)
 {
 	int extent[6];
 	xrfData->GetExtent(extent);
@@ -402,7 +402,7 @@ void dlg_InSpectr::initSpectraLinesDrawer()
 	}
 	else
 	{
-		m_spectraLinesDrawer = QSharedPointer<iAPlotCollection>::create();
+		m_spectraLinesDrawer = std::make_shared<iAPlotCollection>();
 	}
 
 	long numberOfSpectra = (extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1);
@@ -421,11 +421,9 @@ void dlg_InSpectr::initSpectraLinesDrawer()
 
 				bool isSelected = m_activeFilter.empty() ||
 					m_xrfData->CheckFilters(x, y, z, m_activeFilter, static_cast<iAFilterMode>(comB_spectrumSelectionMode->currentIndex()));
-
-				QSharedPointer<iALinePlot> lineDrawer(new iALinePlot(dataset,
+				m_spectraLinesDrawer->add(std::make_shared<iALinePlot>(dataset,
 					m_activeFilter.empty() ? QColor(96, 102, 174, transparency) :
-					(isSelected ? QColor(255, 0, 0, transparency): QColor(88, 88, 88, transparency/2))));
-				m_spectraLinesDrawer->add(lineDrawer);
+					(isSelected ? QColor(255, 0, 0, transparency) : QColor(88, 88, 88, transparency / 2))));
 			}
 		}
 	}
@@ -439,7 +437,7 @@ void dlg_InSpectr::initSpectraOverlay()
 	double sensMax   = sl_specHistSensitivity->maximum()   + 1, sensVal   = sl_specHistSensitivity->value();
 	m_spectraHistogramImage = CalculateSpectraHistogramImage(
 		m_colormapLUT,
-		m_accumulatedXRF,
+		m_accumulatedXRF.get(),
 		m_spectraHistogramColormap,
 		numBin,
 		sensVal, sensMax, threshVal, threshMax, smoothFade);
@@ -473,9 +471,9 @@ void dlg_InSpectr::showSpectraHistograms( int show )
 	}
 	else
 	{
-		if(!m_spectraHistogramImage.isNull())
+		if(m_spectraHistogramImage)
 		{
-			m_spectrumDiagram->removeImageOverlay(m_spectraHistogramImage.data());
+			m_spectrumDiagram->removeImageOverlay(m_spectraHistogramImage.get());
 			tb_spectraSettings->setEnabled(false);
 		}
 	}
@@ -530,7 +528,7 @@ void dlg_InSpectr::updateFunctionalBoxplot(int show)
 	}
 	else
 	{
-		m_spectrumDiagram->removeImageOverlay(m_functionalBoxplotImage.data());
+		m_spectrumDiagram->removeImageOverlay(m_functionalBoxplotImage.get());
 	}
 	m_spectrumDiagram->update();
 }
@@ -623,8 +621,8 @@ void dlg_InSpectr::decomposeElements()
 	m_elementConcentrations = QSharedPointer<iAElementConcentrations>::create();
 	m_decompositionCalculator = QSharedPointer<iADecompositionCalculator>::create(
 		m_elementConcentrations,
-		m_xrfData,
-		m_accumulatedXRF);
+		m_xrfData.get(),
+		m_accumulatedXRF.get());
 	m_decomposeSelectedElements.clear();
 	iAJobListView::get()->addJob("Computing elemental decomposition",
 		m_decompositionCalculator->progress(), m_decompositionCalculator.data());
@@ -830,8 +828,8 @@ void dlg_InSpectr::combinedElementMaps(int show)
 
 void dlg_InSpectr::recomputeSpectraHistograms()
 {
-	if(!m_spectraHistogramImage.isNull())
-		m_spectrumDiagram->removeImageOverlay(m_spectraHistogramImage.data());
+	if (m_spectraHistogramImage)
+		m_spectrumDiagram->removeImageOverlay(m_spectraHistogramImage.get());
 	initSpectraOverlay();
 	m_spectrumDiagram->update();
 }
@@ -1254,7 +1252,7 @@ void dlg_InSpectr::updateDecompositionGUI( QStringList elementsNames )
 
 	if ( m_accumulatedXRF )
 	{
-		m_elementConcentrations->calculateAverageConcentration( m_xrfData, elementSpectra, m_accumulatedXRF );
+		m_elementConcentrations->calculateAverageConcentration( m_xrfData.get(), elementSpectra, m_accumulatedXRF.get());
 	}
 
 	decompositionAvailable();
@@ -1314,7 +1312,7 @@ void dlg_InSpectr::AddReferenceSpectrum(int modelIdx)
 		m_xrfData->size(), m_xrfData->GetMinEnergy(), m_xrfData->GetMaxEnergy(),
 		m_accumulatedXRF->yBounds()[1]);
 	QColor color = m_refSpectraLib->getElementColor(modelIdx);
-	QSharedPointer<iAStepFunctionPlot> drawable(new iAStepFunctionPlot(plotData, color));
+	auto drawable = std::make_shared<iAStepFunctionPlot>(plotData, color);
 	m_refSpectraDrawers.insert(modelIdx, drawable);
 	m_spectrumDiagram->addPlot(drawable);
 	m_spectrumDiagram->update();

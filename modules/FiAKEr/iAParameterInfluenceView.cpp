@@ -600,20 +600,20 @@ QString iAParameterInfluenceView::columnName(int outType, int outIdx) const
 			getAvailableDissimilarityMeasureNames()[m_data->m_resultDissimMeasures[outIdx].first]);
 }
 
-QSharedPointer<iAPlot> iAParameterInfluenceView::createHistoPlot(QSharedPointer<iAHistogramData> histoData, QColor color)
+std::shared_ptr<iAPlot> iAParameterInfluenceView::createHistoPlot(std::shared_ptr<iAHistogramData> histoData, QColor color)
 {	// m_histogramChartType values need to match values from SensitivitySettings.ui file
 	if (m_histogramChartType == "Bars")
 	{
-		return QSharedPointer<iABarGraphPlot>::create(histoData, barGraphColor(color));
+		return std::make_shared<iABarGraphPlot>(histoData, barGraphColor(color));
 	}
 	else if (m_histogramChartType == "Lines")
 	{
-		return QSharedPointer<iALinePlot>::create(histoData, color);
+		return std::make_shared<iALinePlot>(histoData, color);
 	}
 	else
 	{
 		LOG(lvlWarn, QString("Unknown chart type '%1'!").arg(m_histogramChartType));
-		return QSharedPointer<iAPlot>();
+		return std::shared_ptr<iAPlot>();
 	}
 }
 

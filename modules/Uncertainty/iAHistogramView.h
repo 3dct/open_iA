@@ -19,8 +19,8 @@ class iAHistogramView : public QWidget
 public:
 	iAHistogramView();
 	void Clear();
-	void AddChart(QString const& caption, QSharedPointer<iAHistogramData> data,
-			QColor const & color, QSharedPointer<iALookupTable> lut = QSharedPointer<iALookupTable>());
+	void AddChart(QString const& caption, std::shared_ptr<iAHistogramData> data,
+			QColor const & color, std::shared_ptr<iALookupTable> lut = std::shared_ptr<iALookupTable>());
 private:
 	iAChartWidget* m_chart;
 };

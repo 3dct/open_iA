@@ -295,7 +295,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	int numCmp = img->GetNumberOfScalarComponents();
 	for (int c = 0; c < numCmp; ++c)
 	{
-		auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(m_histogramData[c], plotColor(c, numCmp) );
+		auto histogramPlot = std::make_shared<iABarGraphPlot>(m_histogramData[c], plotColor(c, numCmp) );
 		m_histogram->addPlot(histogramPlot);
 	}
 	m_histogram->setTransferFunction(m_transfer.get());
@@ -421,7 +421,7 @@ void iAVolumeViewer::applyAttributes(QVariantMap const& values)
 				auto numCmp = img->GetNumberOfScalarComponents();
 				for (int c = 0; c < numCmp; ++c)
 				{
-					auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(m_histogramData[c], plotColor(c, numCmp));
+					auto histogramPlot = std::make_shared<iABarGraphPlot>(m_histogramData[c], plotColor(c, numCmp));
 					m_histogram->addPlot(histogramPlot);
 				}
 				m_histogram->update();
@@ -481,7 +481,7 @@ std::shared_ptr<iADataSetRenderer> iAVolumeViewer::createRenderer(vtkRenderer* r
 	return std::make_shared<iAVolumeRenderer>(ren, img, transfer(), overrideValues);
 }
 
-QSharedPointer<iAHistogramData> iAVolumeViewer::histogramData(int component) const
+std::shared_ptr<iAHistogramData> iAVolumeViewer::histogramData(int component) const
 {
 	return m_histogramData[component];
 }
@@ -502,7 +502,7 @@ void iAVolumeViewer::updateProfilePlot()
 	m_profileProbe->updateData();
 	m_profileChart->clearPlots();
 	auto scalars = m_profileProbe->scalars();
-	auto profilePlotData = QSharedPointer<iAXYPlotData>::create(
+	auto profilePlotData = std::make_shared<iAXYPlotData>(
 		QString("Profile %1").arg(m_dataSet->name()),
 		iAValueType::Continuous,
 		m_profileProbe->numberOfPoints());
@@ -511,7 +511,7 @@ void iAVolumeViewer::updateProfilePlot()
 	{
 		profilePlotData->addValue(p * stepWidth, scalars->GetTuple1(p) );
 	}
-	m_profileChart->addPlot(QSharedPointer<iALinePlot>::create(profilePlotData, ProfileColor));
+	m_profileChart->addPlot(std::make_shared<iALinePlot>(profilePlotData, ProfileColor));
 	m_profileChart->update();
 }
 

@@ -31,7 +31,7 @@ const char * EnergyLineNames[9] =
 };
 
 iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent,
-		QSharedPointer<iAAccumulatedXRFData> data,
+		std::shared_ptr<iAAccumulatedXRFData> data,
 		vtkPiecewiseFunction* oTF,
 		vtkColorTransferFunction* cTF,
 		iASpectrumFilterListener* filterListener,
@@ -43,7 +43,7 @@ iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent,
 	m_tf(new iATransferFunctionPtrs(cTF, oTF))
 {
 	setTransferFunction(m_tf.data());
-	addPlot(QSharedPointer<iAStepFunctionPlot>::create(m_data, QColor(70, 70, 70, 255)));
+	addPlot(std::make_shared<iAStepFunctionPlot>(m_data, QColor(70, 70, 70, 255)));
 	selectionRubberBand->hide();
 	setAllowTFReset(false);
 	setEnableAdditionalFunctions(false);

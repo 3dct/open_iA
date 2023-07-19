@@ -209,7 +209,7 @@ void iAUncertaintyTool::ensembleSelected(QSharedPointer<iAEnsemble> ensemble)
 		m_labelLut->SetTableValue(i, rgba);
 	}
 	m_labelLut->Build();
-	QSharedPointer<iALookupTable> labelLookup(new iALookupTable(m_labelLut));
+	auto labelLookup = std::make_shared<iALookupTable>(m_labelLut);
 	m_labelDistributionView->AddChart("Label", labelDistributionHistogram, iAUncertaintyColors::LabelDistributionBase, labelLookup);
 	m_uncertaintyDistributionView->Clear();
 	auto entropyHistogram = iAHistogramData::create("Frequency (Pixels)", iAValueType::Continuous,

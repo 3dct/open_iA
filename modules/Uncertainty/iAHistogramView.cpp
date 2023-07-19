@@ -19,12 +19,12 @@ iAHistogramView::iAHistogramView()
 	setLayout(new QHBoxLayout());
 }
 
-void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iAHistogramData> histoData,
-		QColor const & color, QSharedPointer<iALookupTable> lut)
+void iAHistogramView::AddChart(QString const & caption, std::shared_ptr<iAHistogramData> histoData,
+		QColor const & color, std::shared_ptr<iALookupTable> lut)
 {
 	m_chart = new iAChartWidget(this, caption, "Frequency (Pixels)");
 	m_chart->setMinimumHeight(120);
-	auto barGraph = QSharedPointer<iABarGraphPlot>::create(histoData, color, 2);
+	auto barGraph = std::make_shared<iABarGraphPlot>(histoData, color, 2);
 	barGraph->setLookupTable(lut);
 	m_chart->addPlot(barGraph);
 	layout()->setSpacing(0);

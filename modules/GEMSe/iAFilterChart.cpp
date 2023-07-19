@@ -25,7 +25,7 @@ namespace
 
 iAFilterChart::iAFilterChart(QWidget* parent,
 	QString const & caption,
-	QSharedPointer<iAParamHistogramData> data,
+	std::shared_ptr<iAParamHistogramData> data,
 	QSharedPointer<iANameMapper> nameMapper,
 	bool showCaption)
 :
@@ -57,12 +57,12 @@ double iAFilterChart::mapValueToBin(double value) const
 	return m_data->mapValueToBin(value);
 }
 
-QSharedPointer<iAPlot> iAFilterChart::GetDrawer(QSharedPointer<iAParamHistogramData> newData, QColor color)
+std::shared_ptr<iAPlot> iAFilterChart::GetDrawer(std::shared_ptr<iAParamHistogramData> newData, QColor color)
 {
 	return (newData->valueType() == iAValueType::Categorical ||
-		(newData->valueType() == iAValueType::Discrete && ((newData->xBounds()[1]- newData->xBounds()[0])  <= newData->valueCount())))
-		? QSharedPointer<iAPlot>(new iABarGraphPlot(newData, color, 2))
-		: QSharedPointer<iAPlot>(new iAFilledLinePlot(newData, color));
+		(newData->valueType() == iAValueType::Discrete && ((newData->xBounds()[1] - newData->xBounds()[0]) <= newData->valueCount())))
+		? std::shared_ptr<iAPlot>(new iABarGraphPlot(newData, color, 2))
+		: std::shared_ptr<iAPlot>(new iAFilledLinePlot(newData, color));
 }
 
 void iAFilterChart::drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush)
