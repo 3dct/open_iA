@@ -7,7 +7,7 @@
 #include "iAMapper.h"
 #include "iAMathUtility.h"
 #include "iAPlot.h"
-#include "iAPlotDATA.h"
+#include "iAPlotData.h"
 
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
