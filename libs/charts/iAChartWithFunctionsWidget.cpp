@@ -42,7 +42,7 @@ iAChartWithFunctionsWidget::iAChartWithFunctionsWidget(QWidget *parent,
 	iAChartWidget(parent, xLabel, yLabel),
 	m_selectedFunction(0),
 	m_showFunctions(false),
-	m_allowTrfReset(true),
+	m_allowTFReset(true),
 	m_enableAdditionalFunctions(true),
 	m_TFTable(nullptr)
 {
