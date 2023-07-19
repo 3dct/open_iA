@@ -194,6 +194,7 @@ void iAVolumeViewer::prepare(iAProgress* p)
 			{
 				readValidTF = false;
 			}
+			m_transfer->ensureValidity(range);
 		}
 	}
 	auto numCmp = img->GetNumberOfScalarComponents();

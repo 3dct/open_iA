@@ -18,6 +18,9 @@ public:
 	virtual vtkPiecewiseFunction* opacityTF() =0;
 	virtual vtkColorTransferFunction* colorTF() = 0;
 	virtual void resetFunctions() = 0;
+	//! make sure the contained transfer function matches the given range, adapt TF if necessary
+	//! in order to better encapsulate modification, this would probably better not be allowed here
+	void ensureValidity(double range[2]);
 };
 
 // double range? pass in vtk variables?

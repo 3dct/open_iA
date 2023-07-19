@@ -13,6 +13,7 @@
 #include "iAMathUtility.h"
 #include "iAXmlSettings.h"
 
+#include <vtkColorTransferFunction.h>
 #include <vtkMath.h>
 
 #include <QClipboard>
@@ -479,19 +480,27 @@ void iAChartWithFunctionsWidget::loadTransferFunction()
 	{
 		return;
 	}
+	auto tf = dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf();
+	double oldRange[2];
+	tf->colorTF()->GetRange(oldRange);
 	iAXmlSettings s;
 	if (!s.read(fileName))
 	{
 		LOG(lvlError, QString("Failed to read transfer function from file %1").arg(fileName));
 		return;
 	}
-	s.loadTransferFunction(dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf());
+	s.loadTransferFunction(tf);
+	tf->ensureValidity(oldRange);
 	newTransferFunction();
 }
 
 void iAChartWithFunctionsWidget::loadTransferFunction(QDomNode functionsNode)
 {
-	iAXmlSettings::loadTransferFunction(functionsNode, dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf());
+	auto tf = dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf();
+	double oldRange[2];
+	tf->colorTF()->GetRange(oldRange);
+	iAXmlSettings::loadTransferFunction(functionsNode, tf);
+	tf->ensureValidity(oldRange);
 	newTransferFunction();
 }
 
@@ -517,6 +526,9 @@ void iAChartWithFunctionsWidget::copyTransferFunction()
 
 void iAChartWithFunctionsWidget::pasteTransferFunction()
 {
+	auto tf = dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf();
+	double oldRange[2];
+	tf->colorTF()->GetRange(oldRange);
 	iAXmlSettings xml;
 	if (!xml.fromString(QGuiApplication::clipboard()->text()) ||
 		!xml.loadTransferFunction(dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf()))
@@ -525,6 +537,7 @@ void iAChartWithFunctionsWidget::pasteTransferFunction()
 	}
 	else
 	{
+		tf->ensureValidity(oldRange);
 		newTransferFunction();
 	}
 }
