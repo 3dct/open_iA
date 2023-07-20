@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iALineSegment.h"
 #include "iALinePointers.h"
-#include "iADiskData.h"
+
+#include <array>
 
 class vtkRenderer;
 class vtkImageData;
@@ -20,7 +20,7 @@ public:
 	void setPointScaling(double scaling);
 	void setVisibility(bool isVisible);
 	void findSelectedPointIdx(double x, double y);
-	int setup(int pointInd, double const * pos3d, double const * pos2d, vtkImageData *imgData);
+	void setup(int pointInd, double const * pos3d, double const * pos2d, vtkImageData *imgData);
 	int pointIdx() const;
 	double const * position(int pointIdx);
 
@@ -30,9 +30,9 @@ public:
 protected:
 	double              m_radius;               //!< radius, taking into account image spacing
 	int                 m_profPntInd;           //!< currently selected point of profile
-	iALineSegment       m_hLine[2], m_vLine[2]; //!< horizontal and vertical lines
-	iALineSegment       m_profLine;             //!< profile line
+	std::array<iALineSource, 2> m_hLine, m_vLine; //!< horizontal and vertical lines
+	iALineSource m_profLine;     //!< profile line
 	iALinePointers      m_zeroLine;             //!< zero line
-	iADiskData          m_points[2];            //!< data for the disk visualizations of start and end point
+	std::array<iADiskSource, 2> m_points;    //!< data for the disk visualizations of start and end point
 	double              m_positions[2][3];
 };

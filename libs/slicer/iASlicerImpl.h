@@ -5,7 +5,9 @@
 #include "iaslicer_export.h"
 
 #include "iASlicer.h"
-#include "iAQVTKWidget.h"
+
+#include <iAQVTKWidget.h>
+#include <iAvtkSourcePoly.h>
 
 #include <vtkSmartPointer.h>
 
@@ -27,12 +29,9 @@ class iAMdiChild;
 class vtkActor;
 class vtkAlgorithmOutput;
 class vtkCamera;
-class vtkCubeSource;
-class vtkDiskSource;
 class vtkGenericOpenGLRenderWindow;
 class vtkImageActor;
 class vtkImageReslice;
-class vtkLineSource;
 class vtkObject;
 class vtkPoints;
 class vtkPolyDataMapper;
@@ -225,7 +224,7 @@ public slots:
 	//! Toggle the possibility to move start and end point of the profile
 	void setProfileHandlesOn(bool isOn);
 	//! Sets coordinates for line profile
-	bool setProfilePoint(int pointIdx, double const* globalPos);
+	void setProfilePoint(int pointIdx, double const * globalPos);
 
 	//! Adds a new spline point to the end of the spline curve.
 	void addPoint(double x, double y, double z);
@@ -328,12 +327,13 @@ private:
 	vtkSmartPointer<vtkRegularPolygonSource> m_fisheye;
 	vtkSmartPointer<vtkPolyDataMapper> m_fisheyeMapper;
 	vtkSmartPointer<vtkActor> m_fisheyeActor;
-
+	// visualize 2 circles
 	QList<vtkSmartPointer<vtkRegularPolygonSource>> m_circle1List;
 	QList<vtkSmartPointer<vtkActor>> m_circle1ActList;
 	QList<vtkSmartPointer<vtkRegularPolygonSource>> m_circle2List;
 	QList<vtkSmartPointer<vtkActor>> m_circle2ActList;
 	//! @}
+
 	iASlicerInteractorStyle * m_interactorStyle;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renWin;
 	vtkSmartPointer<vtkRenderer> m_ren;
@@ -348,28 +348,17 @@ private:
 	vtkSmartPointer<iAVtkText> m_textInfo;
 	vtkSmartPointer<iARulerWidget> m_rulerWidget;
 
-	//! @{ position marker GUI elements
-	vtkSmartPointer<vtkCubeSource> m_positionMarkerSrc;
-	vtkSmartPointer<vtkPolyDataMapper> m_positionMarkerMapper;
-	vtkSmartPointer<vtkActor> m_positionMarkerActor;
-	//! @}
-	int m_positionMarkerSize;   //!< size of the position marker cube (showing the current position in other views)
+	iACubeSource m_posMarker;  //!< GUI data of position marker cube
+	int m_positionMarkerSize;  //!< size of the position marker cube (showing the current position in other views)
 
-	int m_slabThickness;       //! current slab thickness (default = 0, i.e. only a single voxel slice); TODO: move to iASingleslicerSettings?
-	int m_slabCompositeMode;   //! current slab mode (how to combine the voxels of the current slab into a single pixel); TODO: move to iASingleslicerSettings?
+	int m_slabThickness;       //!< current slab thickness (default = 0, i.e. only a single voxel slice); TODO: move to iASingleslicerSettings?
+	int m_slabCompositeMode;   //!< current slab mode (how to combine the voxels of the current slab into a single pixel); TODO: move to iASingleslicerSettings?
 
 	//! @{ for indicating current measurement ('m' key)
-	vtkSmartPointer<vtkLineSource> m_lineSource;
-	vtkSmartPointer<vtkPolyDataMapper> m_lineMapper;
-	vtkSmartPointer<vtkActor> m_lineActor;
-	vtkSmartPointer<vtkDiskSource> m_diskSource;
-	vtkSmartPointer<vtkPolyDataMapper> m_diskMapper;
-	vtkSmartPointer<vtkActor> m_diskActor;
+	iALineSource m_measureLine;
+	iADiskSource m_measureDisk;
 	//! @}
-
-	vtkSmartPointer<vtkCubeSource> m_roiSource;
-	vtkSmartPointer<vtkPolyDataMapper> m_roiMapper;
-	vtkSmartPointer<vtkActor> m_roiActor;
+	iACubeSource m_roi;
 	bool m_roiActive;
 	int m_roiSlice[2];
 
@@ -400,11 +389,10 @@ private:
 	void screenPixelPosToImgPos(int const pos[2], double* slicerPos, double* globalPos);
 	QPoint slicerPosToImgPixelCoords(int channelID, double const slicerPt[3]);
 
-
 	//! Update the position of the raw profile line.
 	void updateRawProfile(double posY);
-
 	//! Sets coordinates for line profile
-	bool setProfilePointWithClamp(int pointIdx, double const* globalPos, bool doClamp);
+	void setProfilePointInternal(int pointIdx, double const * globalPos);
+	//! enable or disable the linear interpolation
 	void setLinearInterpolation(bool enabled);
 };

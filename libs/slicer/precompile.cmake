@@ -1,7 +1,5 @@
 set(OPENIA_PRECOMPILE_HEADERS
-<iADiskData.h>
 <iALinePointers.h>
-<iALineSegment.h>
 <iALog.h>
 <iAMathUtility.h>
 <iAProfileColors.h>

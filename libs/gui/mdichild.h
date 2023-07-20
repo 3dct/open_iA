@@ -82,7 +82,7 @@ public:
 	bool isSnakeSlicerToggled() const;
 	void toggleSliceProfile(bool isEnabled);
 	bool isSliceProfileEnabled() const;
-	void setProfilePoints(double const* start, double const* end) override;
+	void initProfilePoints(double const* start, double const* end) override;
 
 	//! Access to the 3D renderer widget
 	iARenderer* renderer() override;

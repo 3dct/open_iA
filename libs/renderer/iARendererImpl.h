@@ -6,6 +6,8 @@
 
 #include <iARenderer.h>
 
+#include <iAvtkSourcePoly.h>
+
 #include <iAAABB.h>
 #include <iAAttributes.h>
 #include <iAVec3.h>
@@ -16,9 +18,6 @@
 #include <QObject>
 #include <QVariantMap>
 
-#include <vector>
-
-struct iALineSegment;
 class iARenderObserver;
 
 class vtkActor;
@@ -150,6 +149,9 @@ public:
 	void touchStart();
 	void touchScaleSlot(float relScale);
 
+	//! initialize profile points (set positions, without triggering an update
+	void initProfilePoints(double const* start, double const* end);
+
 	//! proxy access to default settings object
 	static iAAttributes& defaultSettings();
 
@@ -177,6 +179,9 @@ private:
 	//! @see showSlicePlane for public facing function that changes slice plane visibility respecting the "Show slice plane" setting.
 	void showSlicePlaneActor(int axis, bool show);
 
+	//! set profile point data (without triggering updates)
+	void setProfilePointInternal(int pointIndex, double const* coords);
+
 	bool m_initialized;    //!< flag indicating whether initialization of widget has finished
 	iARenderObserver *m_renderObserver;
 	vtkSmartPointer<vtkDataSetMapper> m_selectedMapper;
@@ -193,9 +198,7 @@ private:
 	//! @}
 
 	//! @{ position marker cube
-	vtkSmartPointer<vtkCubeSource> m_cSource;
-	vtkSmartPointer<vtkPolyDataMapper> m_cMapper;
-	vtkSmartPointer<vtkActor> m_cActor;
+	iACubeSource m_posMarker;
 	//! @}
 
 	//! @{ Axes direction information:
@@ -205,25 +208,17 @@ private:
 	//! @}
 
 	//! @{ Line profile
-	std::vector<iALineSegment>         m_profileLine;
-	vtkSmartPointer<vtkSphereSource>   m_profileLineStartPointSource;
-	vtkSmartPointer<vtkPolyDataMapper> m_profileLineStartPointMapper;
-	vtkSmartPointer<vtkActor>          m_profileLineStartPointActor;
-	vtkSmartPointer<vtkSphereSource>   m_profileLineEndPointSource;
-	vtkSmartPointer<vtkPolyDataMapper> m_profileLineEndPointMapper;
-	vtkSmartPointer<vtkActor>          m_profileLineEndPointActor;
+	static const int NumOfProfileLines = 7;
+	std::array<iALineSource, NumOfProfileLines> m_profileLines;
+	std::array<iASphereSource, 2> m_profileLinePoints;
 	//! @}
 
 	//! Slice planes: actual plane data
 	vtkSmartPointer<vtkPlane> m_slicePlanes[3];
 	//! Slice planes: keep track of which slicing/cutting planes should be visible:
 	std::array<bool, 3> m_slicePlaneVisible;
-	//! Slice planes: sources for geometric objects shown
-	vtkSmartPointer<vtkCubeSource>     m_slicePlaneSource[3];
-	//! Slice planes: mesh mappers for planes
-	vtkSmartPointer<vtkPolyDataMapper> m_slicePlaneMapper[3];
-	//! Slice planes: actors for planes
-	vtkSmartPointer<vtkActor>          m_slicePlaneActor[3];
+	//! Slice planes: data for geometric objects shown
+	std::array<iACubeSource, 3> m_slicePlaneViews;
 	//! Slice planes_ Opacity
 	float m_slicePlaneOpacity;
 	//! Whether currently a dataset cutting is active:

@@ -358,7 +358,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 		end[i] = start[i] + (dim[i] - 1) * spacing[i];
 	}
 	// TODO NEWIO: check if we can do this differently; and if we should maybe not do this if this was already set when the profile of another dataset was initialized!
-	child->setProfilePoints(start, end);
+	child->initProfilePoints(start, end);
 	m_profileProbe->updateProbe(0, start);
 	m_profileProbe->updateProbe(1, end);
 	m_profileChart = new iAChartWidget(nullptr, "Greyvalue", "Distance");

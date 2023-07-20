@@ -6,14 +6,11 @@
 
 #include <iALog.h>
 
-#include <vtkActor.h>
 #include <vtkLine.h>
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
-#include <vtkPolyDataMapper.h>
 #include <vtkPolyLine.h>
 #include <vtkTable.h>
-#include <vtkUnsignedCharArray.h>
 
 iA3DLineObjectVis::iA3DLineObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color,
 	std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, size_t segmentSkip):

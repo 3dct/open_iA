@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iALineSegment.h"
 #include "iALinePointers.h"
 
 #include <vtkType.h>
@@ -30,7 +29,7 @@ public:
 	static const int ZCoord = 0;
 
 protected:
-	iALineSegment                      m_profileLine;
+	iALineSource                       m_profileLine;
 	iALinePointers                     m_zeroLine;
 	//plot
 	vtkSmartPointer<vtkPolyLine>       m_plotPolyLine;

@@ -1034,15 +1034,14 @@ bool MdiChild::isSliceProfileEnabled() const
 	return m_isSliceProfileEnabled;
 }
 
-void MdiChild::setProfilePoints(double const* start, double const* end)
+void MdiChild::initProfilePoints(double const* start, double const* end)
 {
 	for (int s = 0; s < 3; ++s)
 	{
 		m_slicer[s]->setProfilePoint(0, start);
 		m_slicer[s]->setProfilePoint(1, end);
 	}
-	m_renderer->setProfilePoint(0, start);
-	m_renderer->setProfilePoint(1, end);
+	m_renderer->initProfilePoints(start, end);
 }
 
 void MdiChild::toggleMagicLens2D(bool isEnabled)

@@ -8,9 +8,7 @@
 #include <vtkDoubleArray.h>
 #include <vtkFloatArray.h>
 #include <vtkNew.h>
-#include <vtkOutlineFilter.h>
 #include <vtkPolyData.h>
-#include <vtkPolyDataMapper.h>
 #include <vtkPointData.h>
 #include <vtkTable.h>
 
