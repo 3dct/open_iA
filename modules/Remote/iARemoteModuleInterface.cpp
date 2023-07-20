@@ -20,6 +20,7 @@
 #include <QAction>
 #include <QDateTime>
 #include <QHeaderView>
+#include <QTableWidget>
 
 #include <vtkRenderWindow.h>
 
@@ -29,7 +30,6 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
-#include <QTableWidget>
 #include <QString>
 #include <QHttpServer>
 #include <QTextStream>
