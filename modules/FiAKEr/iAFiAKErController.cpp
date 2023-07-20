@@ -2986,7 +2986,7 @@ void iAFiAKErController::update3D()
 	m_mdiChild->updateRenderer();
 }
 
-void iAFiAKErController::setClippingPlanes(QSharedPointer<iA3DPolyObjectActor> actor)
+void iAFiAKErController::setClippingPlanes(QSharedPointer<iA3DPolyObjectActor> /*actor*/)
 {
 	// TODO SETTINGS: make clipping plane settings a dataset setting, and make it available somehow?
 	//if (m_mdiChild->renderSettings().ShowSlicers)

@@ -609,7 +609,7 @@ void MainWindow::loadSettings()
 	constexpr const char ApplyTo[] = "Apply above to";
 	constexpr const char CurrentWindow[] = "Current window";
 	constexpr const char AllOpenWindows[] = "All open windows";
-	if (childList<MdiChild>().size() > 0 && xml.hasElement(PrefElemName) || xml.hasElement(SlicerElemName))
+	if (childList<MdiChild>().size() > 0 && (xml.hasElement(PrefElemName) || xml.hasElement(SlicerElemName)))
 	{
 		auto applyToOptions = QStringList() << "Only defaults";
 		if (activeMDI())
