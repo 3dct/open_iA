@@ -8,13 +8,6 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkSmartPointer.h>
 
-// maybe including all these specific sources could be avoided somehow?
-#include <vtkConeSource.h>
-#include <vtkCubeSource.h>
-#include <vtkDiskSource.h>
-#include <vtkLineSource.h>
-#include <vtkSphereSource.h>
-
 class vtkActor;
 class vtkPolyDataMapper;
 
@@ -66,9 +59,3 @@ void iAvtkSourcePoly<PolySourceClass>::point(int idx, double* point_out)
 		source->GetPoint2(point_out);
 	}
 }
-
-using iAConeSource = iAvtkSourcePoly<vtkConeSource>;
-using iACubeSource = iAvtkSourcePoly<vtkCubeSource>;
-using iADiskSource = iAvtkSourcePoly<vtkDiskSource>;
-using iALineSource = iAvtkSourcePoly<vtkLineSource>;
-using iASphereSource = iAvtkSourcePoly<vtkSphereSource>;

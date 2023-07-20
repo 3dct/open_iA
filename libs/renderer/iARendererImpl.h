@@ -12,7 +12,10 @@
 #include <iAAttributes.h>
 #include <iAVec3.h>
 
+#include <vtkCubeSource.h>
+#include <vtkLineSource.h>
 #include <vtkSmartPointer.h>
+#include <vtkSphereSource.h>
 
 #include <QColor>    // for signal support of QColor (parameters to bgColorChanged)
 #include <QObject>
@@ -25,12 +28,10 @@ class vtkAnnotatedCubeActor;
 class vtkAxesActor;
 class vtkCamera;
 class vtkCornerAnnotation;
-class vtkCubeSource;
 class vtkDataSetMapper;
 class vtkGenericOpenGLRenderWindow;
 class vtkImageData;
 class vtkInteractorStyleSwitch;
-class vtkLineSource;
 class vtkOpenGLRenderer;
 class vtkOrientationMarkerWidget;
 class vtkPlane;
@@ -189,17 +190,13 @@ private:
 	vtkSmartPointer<vtkUnstructuredGrid> m_finalSelection;
 
 	vtkGenericOpenGLRenderWindow* m_renWin;
-	vtkRenderWindowInteractor* m_interactor;  //!< convenience store for m_renWin->GetInteractor()
+	vtkRenderWindowInteractor* m_interactor;    //!< convenience store for m_renWin->GetInteractor()
 	vtkSmartPointer<vtkOpenGLRenderer> m_ren, m_labelRen;
 	vtkSmartPointer<vtkCamera> m_cam;
 
-	//! @{ Text actor, e.g., to show the selection mode
-	vtkSmartPointer<vtkTextActor> m_txtActor;
-	//! @}
+	vtkSmartPointer<vtkTextActor> m_txtActor;   //!< Text actor, e.g., to show the selection mode
 
-	//! @{ position marker cube
-	iACubeSource m_posMarker;
-	//! @}
+	iAvtkSourcePoly<vtkCubeSource> m_posMarker; //!< position marker cube
 
 	//! @{ Axes direction information:
 	vtkSmartPointer<vtkAnnotatedCubeActor> m_annotatedCubeActor;
@@ -209,8 +206,8 @@ private:
 
 	//! @{ Line profile
 	static const int NumOfProfileLines = 7;
-	std::array<iALineSource, NumOfProfileLines> m_profileLines;
-	std::array<iASphereSource, 2> m_profileLinePoints;
+	std::array<iAvtkSourcePoly<vtkLineSource>, NumOfProfileLines> m_profileLines;
+	std::array<iAvtkSourcePoly<vtkSphereSource>, 2> m_profileLinePoints;
 	//! @}
 
 	//! Slice planes: actual plane data
@@ -218,7 +215,7 @@ private:
 	//! Slice planes: keep track of which slicing/cutting planes should be visible:
 	std::array<bool, 3> m_slicePlaneVisible;
 	//! Slice planes: data for geometric objects shown
-	std::array<iACubeSource, 3> m_slicePlaneViews;
+	std::array<iAvtkSourcePoly<vtkCubeSource>, 3> m_slicePlaneViews;
 	//! Slice planes_ Opacity
 	float m_slicePlaneOpacity;
 	//! Whether currently a dataset cutting is active:

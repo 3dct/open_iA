@@ -4,6 +4,7 @@
 
 #include <iAvtkSourcePoly.h>
 
+#include <vtkConeSource.h>
 #include <vtkSmartPointer.h>
 
 #include <array>
@@ -22,7 +23,7 @@ public:
 
 private:
 	vtkSmartPointer<vtkPoints> points;
-	std::array<iAConeSource, 2> m_cones;
+	std::array<iAvtkSourcePoly<vtkConeSource>, 2> m_cones;
 	static const int ConeHeight = 10;
 	static const int ZCoord = 0;
 };

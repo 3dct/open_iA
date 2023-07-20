@@ -4,11 +4,14 @@
 
 #include "iALinePointers.h"
 
+#include <vtkDiskSource.h>
+#include <vtkLineSource.h>
+
 #include <array>
 
-class vtkRenderer;
-class vtkImageData;
 class vtkActor;
+class vtkImageData;
+class vtkRenderer;
 
 //! Shows handles for start and end of a profile line on the given (slicer) renderer.
 class iASlicerProfileHandles
@@ -30,9 +33,9 @@ public:
 protected:
 	double              m_radius;               //!< radius, taking into account image spacing
 	int                 m_profPntInd;           //!< currently selected point of profile
-	std::array<iALineSource, 2> m_hLine, m_vLine; //!< horizontal and vertical lines
-	iALineSource m_profLine;     //!< profile line
+	std::array<iAvtkSourcePoly<vtkLineSource>, 2> m_hLine, m_vLine; //!< horizontal and vertical lines
+	iAvtkSourcePoly<vtkLineSource> m_profLine;     //!< profile line
 	iALinePointers      m_zeroLine;             //!< zero line
-	std::array<iADiskSource, 2> m_points;    //!< data for the disk visualizations of start and end point
+	std::array<iAvtkSourcePoly<vtkDiskSource>, 2> m_points;    //!< data for the disk visualizations of start and end point
 	double              m_positions[2][3];
 };

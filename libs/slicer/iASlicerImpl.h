@@ -9,6 +9,9 @@
 #include <iAQVTKWidget.h>
 #include <iAvtkSourcePoly.h>
 
+#include <vtkCubeSource.h>
+#include <vtkDiskSource.h>
+#include <vtkLineSource.h>
 #include <vtkSmartPointer.h>
 
 #include <QCursor>
@@ -348,17 +351,17 @@ private:
 	vtkSmartPointer<iAVtkText> m_textInfo;
 	vtkSmartPointer<iARulerWidget> m_rulerWidget;
 
-	iACubeSource m_posMarker;  //!< GUI data of position marker cube
+	iAvtkSourcePoly<vtkCubeSource> m_posMarker;  //!< GUI data of position marker cube
 	int m_positionMarkerSize;  //!< size of the position marker cube (showing the current position in other views)
 
 	int m_slabThickness;       //!< current slab thickness (default = 0, i.e. only a single voxel slice); TODO: move to iASingleslicerSettings?
 	int m_slabCompositeMode;   //!< current slab mode (how to combine the voxels of the current slab into a single pixel); TODO: move to iASingleslicerSettings?
 
 	//! @{ for indicating current measurement ('m' key)
-	iALineSource m_measureLine;
-	iADiskSource m_measureDisk;
+	iAvtkSourcePoly<vtkLineSource> m_measureLine;
+	iAvtkSourcePoly<vtkDiskSource> m_measureDisk;
 	//! @}
-	iACubeSource m_roi;
+	iAvtkSourcePoly<vtkCubeSource> m_roi;
 	bool m_roiActive;
 	int m_roiSlice[2];
 
