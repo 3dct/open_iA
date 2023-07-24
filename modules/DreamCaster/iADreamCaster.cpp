@@ -3286,10 +3286,9 @@ double iADreamCaster::RandonSpaceAnalysis()
 	float torusRadius = std::fabs(0.5f*stngs.ORIGIN_Z);
 	float bad_area = 0.f;
 	float good_area = 0.f;
-	int i;
 
-	#pragma omp parallel for private(i, abscos, triNorm, d) reduction(+: bad_area, good_area)
-	for (i = 0; i < numTriangles; i++ )
+	#pragma omp parallel for private(abscos, triNorm, d) reduction(+: bad_area, good_area)
+	for (int i = 0; i < numTriangles; i++ )
 	{
 		tri = tracer->scene()->getTriangle(trisInsideAoI[i]);
 		triNorm = tri->normal();
