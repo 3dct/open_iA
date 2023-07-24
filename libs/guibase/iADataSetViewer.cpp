@@ -467,15 +467,14 @@ void iAProjectViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 		{
 			// viewer settings are loaded along with the dataset, so they are applied directly in the respective viewers!
 			// ... check whether the dataset that triggered this signal was the last one from this collection to be rendered....
-			static std::set<size_t> renDS;
-			renDS.insert(dataSetIdx);
+			m_renderedDataSets.insert(dataSetIdx);
 			if (m_loadedDataSets.size() < m_numOfDataSets)
 			{
 				return;
 			}
 			for (auto l : m_loadedDataSets)
 			{
-				if (renDS.find(l) == renDS.end())
+				if (m_renderedDataSets.find(l) == m_renderedDataSets.end())
 				{
 					return;
 				}

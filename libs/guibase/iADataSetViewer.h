@@ -10,6 +10,7 @@
 #include <QObject>
 
 #include <memory>
+#include <set>
 
 class iADataSet;
 class iADataSetRenderer;
@@ -161,6 +162,7 @@ public:
 private:
 	//! IDs of the loaded datasets, to check against the list of datasets rendered
 	std::vector<size_t> m_loadedDataSets;
+	std::set<size_t> m_renderedDataSets;
 	//! number of datasets to load in total
 	size_t m_numOfDataSets;
 };
