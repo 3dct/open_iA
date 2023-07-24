@@ -2,7 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning( disable : 4702)
+#endif
 #include <boost/histogram.hpp> // make_histogram, regular, weight, indexed
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
 /**************************Define histogram type**********************************/
 using axes_regular = std::tuple<
