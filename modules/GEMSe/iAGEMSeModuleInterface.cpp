@@ -92,28 +92,28 @@ void iAGEMSeModuleInterface::setupToolbar()
 		(t->*thisfunc)();
 		//std::invoke(thisfunc, t);    // use once we have switched to C++17
 	};
-	connect(m_toolbar->action_ResetFilter, &QAction::triggered, this, [this, toolbarCallback]() {
+	connect(m_toolbar->action_ResetFilter, &QAction::triggered, this, [toolbarCallback]() {
 		toolbarCallback(&iAGEMSeTool::resetFilter);
 	});
-	connect(m_toolbar->action_ToggleAutoShrink, &QAction::triggered, this,[this, toolbarCallback]() {
+	connect(m_toolbar->action_ToggleAutoShrink, &QAction::triggered, this, [toolbarCallback]() {
 		toolbarCallback(&iAGEMSeTool::toggleAutoShrink);
 	});
 	m_mainWnd->addActionIcon(m_toolbar->action_ToggleTitleBar, "titlebar-off");
-	connect(m_toolbar->action_ToggleTitleBar, &QAction::triggered, this, [this, toolbarCallback]() {
+	connect(m_toolbar->action_ToggleTitleBar, &QAction::triggered, this, [toolbarCallback]() {
 		toolbarCallback(&iAGEMSeTool::toggleDockWidgetTitleBar);
 	});
 	m_mainWnd->addActionIcon(m_toolbar->action_ExportIDs, "export_ids");
-	connect(m_toolbar->action_ExportIDs, &QAction::triggered, this, [this, toolbarCallback]() {
+	connect(m_toolbar->action_ExportIDs, &QAction::triggered, this, [toolbarCallback]() {
 		toolbarCallback(&iAGEMSeTool::exportClusterIDs);
 	});
 	m_mainWnd->addActionIcon(m_toolbar->action_ExportAttributeRangeRanking, "export_ranges");
-	connect(m_toolbar->action_ExportAttributeRangeRanking, &QAction::triggered, this, [this, toolbarCallback]() {
+	connect(m_toolbar->action_ExportAttributeRangeRanking, &QAction::triggered, this, [toolbarCallback]() {
 		toolbarCallback(&iAGEMSeTool::exportAttributeRangeRanking);
 	});
-	connect(m_toolbar->action_ExportRanking, &QAction::triggered, this, [this, toolbarCallback]() {
+	connect(m_toolbar->action_ExportRanking, &QAction::triggered, this, [toolbarCallback]() {
 		toolbarCallback(&iAGEMSeTool::exportRankings);
 	});
-	connect(m_toolbar->action_ImportRanking, &QAction::triggered, this, [this, toolbarCallback]() {
+	connect(m_toolbar->action_ImportRanking, &QAction::triggered, this, [toolbarCallback]() {
 		toolbarCallback(&iAGEMSeTool::importRankings);
 	});
 }
