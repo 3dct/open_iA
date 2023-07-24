@@ -288,8 +288,8 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 		LOG(lvlError, "No viewer associated with this dataset type!");
 		return dataSetIdx;
 	}
-	connect(viewer.get(), &iADataSetViewer::dataSetChanged, this, [this, dataSetIdx](size_t dsIdx) {
-		assert(dsIdx == dataSetIdx);
+	connect(viewer.get(), &iADataSetViewer::dataSetChanged, this, [this](size_t dsIdx)
+	{
 		updateDataSetInfo();
 		emit dataSetChanged(dsIdx);
 	});
