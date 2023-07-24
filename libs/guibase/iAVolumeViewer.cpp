@@ -156,7 +156,7 @@ void iAVolumeViewer::prepare(iAProgress* p)
 	double range[2];
 	if (m_dataSet->hasMetaData(ImageRange))
 	{
-		stringToArray<double>(m_dataSet->metaData(ImageRange).toString(), range, 2);
+		stringToArray<double>(m_dataSet->metaData(ImageRange).toString(), range, 2, ArrayValueSeparator);
 	}
 	else
 	{
