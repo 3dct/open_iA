@@ -247,13 +247,9 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_splashScreen->setWindowFlags(m_splashScreen->windowFlags() | Qt::WindowStaysOnTopHint);
 	m_splashScreen->show();
 	m_splashScreen->showMessage("\n      Reading settings...", Qt::AlignTop, QColor(255, 255, 255));
+	m_splashScreen->finish(this);
 
 	readSettings();
-
-	m_splashTimer = new QTimer();
-	m_splashTimer->setSingleShot(true);
-	connect(m_splashTimer, &QTimer::timeout, this, &MainWindow::hideSplashSlot);
-	m_splashTimer->start(2000);
 
 	m_splashScreen->showMessage("\n      Setup UI...", Qt::AlignTop, QColor(255, 255, 255));
 	applyQSS();
@@ -337,24 +333,6 @@ MainWindow::~MainWindow()
 	}
 	m_moduleDispatcher->SaveModulesSettings();
 	iASettingsManager::store();
-}
-
-void MainWindow::hideSplashSlot()
-{
-	m_splashScreen->finish(this);
-	delete m_splashTimer;
-}
-
-void MainWindow::quitTimerSlot()
-{
-	if (iAJobListView::get()->isAnyJobRunning())
-	{
-		constexpr int RecheckTimeMS = 1000;
-		m_quitTimer->start(RecheckTimeMS);
-		return;
-	}
-	delete m_quitTimer;
-	QApplication::closeAllWindows();
 }
 
 bool MainWindow::keepOpen()
@@ -1918,43 +1896,52 @@ void MainWindow::saveVolumeStack()
 
 void MainWindow::loadArguments(int argc, char** argv)
 {
-	QStringList files;
+	QStringList filesToLoad;
+	bool doQuit = false;
+	quint64 quitMS;
 	for (int a = 1; a < argc; ++a)
 	{
 		if (QString(argv[a]).startsWith("--quit"))
 		{
 			++a;
 			bool ok;
-			quint64 ms = QString(argv[a]).toULongLong(&ok);
-			if (ok)
-			{
-				m_quitTimer = new QTimer();
-				m_quitTimer->setSingleShot(true);
-				connect(m_quitTimer, &QTimer::timeout, this, &MainWindow::quitTimerSlot);
-				m_quitTimer->start(ms);
-			}
-			else
+			quitMS = QString(argv[a]).toULongLong(&ok);
+			doQuit = ok;
+			if (!ok)
 			{
 				LOG(lvlWarn, "Invalid --quit parameter; must be followed by an integer number (milliseconds) after which to quit, e.g. '--quit 1000'");
 			}
 		}
 		else
 		{
-			files << QString::fromLocal8Bit(argv[a]);
+			filesToLoad << QString::fromLocal8Bit(argv[a]);
 		}
 	}
-	loadFiles(files);
+	loadFiles(filesToLoad);
+	if (doQuit)
+	{
+		auto quitTimer = new QTimer();
+		quitTimer->setSingleShot(true);
+		auto quitFunc = [quitTimer]()
+		{
+			if (iAJobListView::get()->isAnyJobRunning())
+			{
+				constexpr int RecheckTimeMS = 1000;
+				quitTimer->start(RecheckTimeMS);
+				return;
+			}
+			delete quitTimer;
+			QApplication::closeAllWindows();
+		};
+		connect(quitTimer, &QTimer::timeout, this, quitFunc);
+		quitTimer->start(quitMS);
+	}
 }
 
 iAPreferences const & MainWindow::defaultPreferences() const
 {
 	return m_defaultPreferences;
 }
-
-//iARenderSettings const& MainWindow::defaultRenderSettings() const
-//{
-//	return m_defaultRenderSettings;
-//}
 
 iAModuleDispatcher & MainWindow::moduleDispatcher() const
 {
@@ -2186,7 +2173,6 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	mainWin.splitDockWidget(iALogWidget::get(), dwJobs, Qt::Vertical);
 	dwJobs->setFeatures(dwJobs->features() & ~QDockWidget::DockWidgetVerticalTitleBar);
 	CheckSCIFIO(QCoreApplication::applicationDirPath());
-	mainWin.loadArguments(argc, argv);
 	app.setWindowIcon(QIcon(QPixmap(iconPath)));
 	QApplication::setStyle(new iAProxyStyle(QApplication::style()));
 	mainWin.setWindowIcon(QIcon(QPixmap(iconPath)));
@@ -2197,5 +2183,6 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 		app.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
 	}
 	mainWin.show();
+	mainWin.loadArguments(argc, argv);
 	return app.exec();
 }

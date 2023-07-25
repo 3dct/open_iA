@@ -97,8 +97,6 @@ signals:
 	void fullScreenToggled();
 
 private slots:
-	void quitTimerSlot();
-	void hideSplashSlot();
 	void openRaw();
 	void openWithDataTypeConversion();
 	void openTLGICTData();
@@ -180,7 +178,6 @@ private:
 
 	QString m_defaultLayout;
 	QString m_path;
-	QTimer *m_splashTimer, *m_quitTimer;
 	QComboBox * m_layout;
 	QScopedPointer<iAModuleDispatcher> m_moduleDispatcher;
 	//! actions from modules which should only be enabled when a child is active:
