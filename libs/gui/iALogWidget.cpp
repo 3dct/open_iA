@@ -46,7 +46,7 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 	if (m_logToFile && lvl >= m_fileLogLevel)
 	{
 		QString msg = QString("%1 %2 %3")
-			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+			.arg(QLocale().toString(QDateTime::currentDateTime(), "yyyy-MM-dd hh:mm:ss.zzz"))
 			.arg(logLevelToString(static_cast<iALogLevel>(lvl)))
 			.arg(text);
 		std::ofstream logfile( getLocalEncodingFileName(m_logFileName).c_str(), std::ofstream::out | std::ofstream::app);
