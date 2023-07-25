@@ -10,14 +10,13 @@
 #include "iARawFileParameters.h"
 
 #include <QMdiArea>
-#include <QMdiSubWindow>
 
 #include <memory>
-#include <vector>
 
 class QAction;
 class QActionGroup;
 class QComboBox;
+class QMdiSubWindow;
 class QMenu;
 class QSplashScreen;
 
@@ -34,7 +33,8 @@ class iAgui_API MainWindow : public iAMainWindow
 	Q_OBJECT
 
 public:
-	MainWindow(QString const & appName, QString const & version, QString const& buildInformation, QString const & splashImage, iADockWidgetWrapper* dwJobs);
+	MainWindow(QString const & appName, QString const & version, QString const& buildInformation,
+		QString const & splashImage, QSplashScreen& splashScreen, iADockWidgetWrapper* dwJobs);
 	~MainWindow() override;
 	static int runGUI(int argc, char * argv[], QString const & appName, QString const & version, QString const& buildInformation,
 		QString const & splashPath, QString const & iconPath);
@@ -151,7 +151,6 @@ private:
 
 	static const int MaxRecentFiles = 8;
 
-	QSplashScreen *m_splashScreen;
 	QPixmap m_splashScreenImg;
 	QAction *m_separatorAct;
 	QAction *m_recentFileActs[MaxRecentFiles];

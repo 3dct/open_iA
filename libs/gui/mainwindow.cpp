@@ -26,7 +26,6 @@
 
 // io:
 #include <iADataSet.h>
-#include <iAFileStackParams.h>
 #include <iAFileTypeRegistry.h>
 #include <iARawFileIO.h>
 
@@ -187,6 +186,11 @@ namespace
 		slicerSettings.LinkMDIs = attributes.namedItem("linkMDIs").nodeValue() == "1";
 		slicerSettings.LinkViews = attributes.namedItem("linkViews").nodeValue() == "1";
 	}
+
+	void showSplashMsg(QSplashScreen& splash, QString const& msg)
+	{
+		splash.showMessage(QString("\n      %1").arg(msg), Qt::AlignTop, QColor(255, 255, 255));
+	}
 }
 
 template <typename T>
@@ -215,7 +219,8 @@ T* MainWindow::activeChild()
 	return nullptr;
 }
 
-MainWindow::MainWindow(QString const & appName, QString const & version, QString const & buildInformation, QString const & splashImage, iADockWidgetWrapper* dwJobs) :
+MainWindow::MainWindow(QString const & appName, QString const & version, QString const & buildInformation,
+	QString const & splashImage, QSplashScreen& splashScreen, iADockWidgetWrapper* dwJobs) :
 	m_splashScreenImg(splashImage),
 	m_useSystemTheme(false),
 	m_moduleDispatcher( new iAModuleDispatcher( this ) ),
@@ -243,19 +248,16 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	QCoreApplication::setApplicationName(ApplicationName);
 	setWindowTitle(appName + " " + m_gitVersion);
 
-	m_splashScreen = new QSplashScreen(m_splashScreenImg);
-	m_splashScreen->setWindowFlags(m_splashScreen->windowFlags() | Qt::WindowStaysOnTopHint);
-	m_splashScreen->show();
-	m_splashScreen->showMessage("\n      Reading settings...", Qt::AlignTop, QColor(255, 255, 255));
-	m_splashScreen->finish(this);
-
+	showSplashMsg(splashScreen, "Reading settings...");
 	readSettings();
 
-	m_splashScreen->showMessage("\n      Setup UI...", Qt::AlignTop, QColor(255, 255, 255));
-	applyQSS();
+	showSplashMsg(splashScreen, "Setting up user interface...");
 	m_ui->actionLinkViews->setChecked(m_defaultSlicerSettings.LinkViews);//removed from readSettings, if is needed at all?
 	m_ui->actionLinkMdis->setChecked(m_defaultSlicerSettings.LinkMDIs);
 	setCentralWidget(m_ui->mdiArea);
+	addDockWidget(Qt::RightDockWidgetArea, iALogWidget::get());
+	splitDockWidget(iALogWidget::get(), dwJobs, Qt::Vertical);
+	dwJobs->setFeatures(dwJobs->features() & ~QDockWidget::DockWidgetVerticalTitleBar);
 
 	createRecentFileActions();
 	connectSignalsToSlots();
@@ -267,8 +269,6 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 
 	m_ui->menuWindow->insertAction(m_ui->actionOpenLogOnNewMessage, iALogWidget::get()->toggleViewAction());
 	m_ui->menuWindow->insertAction(m_ui->actionOpenListOnAddedJob, m_dwJobs->toggleViewAction());
-
-	m_splashScreen->showMessage(tr("\n      Version: %1").arg (m_gitVersion), Qt::AlignTop, QColor(255, 255, 255));
 
 	m_layout = new QComboBox(this);
 	for (int i=0; i< m_layoutNames.size(); ++i)
@@ -283,10 +283,13 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_layout->resize(m_layout->geometry().width(), 100);
 	m_layout->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 	m_ui->layoutToolbar->insertWidget(m_ui->actionSaveLayout, m_layout);
+	applyQSS();
 
+	showSplashMsg(splashScreen, "Initializing modules...");
 	m_moduleDispatcher->InitializeModules(iALogWidget::get());
-	updateMenus();
 
+	showSplashMsg(splashScreen, "Finalizing user interface...");
+	updateMenus();
 	addActionIcon(m_ui->actionViewXDirectionInRaycaster, "px");
 	addActionIcon(m_ui->actionViewYDirectionInRaycaster, "py");
 	addActionIcon(m_ui->actionViewZDirectionInRaycaster, "pz");
@@ -320,6 +323,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	addActionIcon(m_ui->actionInteractionModeRegistration, "transform-move");
 
 	m_ui->menuEdit->addSeparator();
+	splashScreen.finish(this);
 }
 
 MainWindow::~MainWindow()
@@ -1404,8 +1408,11 @@ void MainWindow::readSettings()
 	f.setPointSize(m_defaultPreferences.FontSize);
 	QApplication::setFont(f);
 	bool showLog = settings.value("Parameters/ShowLog", false).toBool();
+	if (!showLog)
+	{
+		iALogWidget::get()->hide();
+	}
 	iALogWidget::get()->toggleViewAction()->setChecked(showLog);
-	iALogWidget::get()->setVisible(showLog);
 	m_ui->actionOpenLogOnNewMessage->setChecked(settings.value("Parameters/OpenLogOnNewMessages", true).toBool());
 	toggleOpenLogOnNewMessage();
 
@@ -1898,7 +1905,7 @@ void MainWindow::loadArguments(int argc, char** argv)
 {
 	QStringList filesToLoad;
 	bool doQuit = false;
-	quint64 quitMS;
+	quint64 quitMS = 0;
 	for (int a = 1; a < argc; ++a)
 	{
 		if (QString(argv[a]).startsWith("--quit"))
@@ -2131,9 +2138,16 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 #endif
 	Q_INIT_RESOURCE(gui);
 	QApplication app(argc, argv);
+	QSplashScreen splashScreen{ QPixmap(splashPath) };
+	//splashScreen.setWindowFlags(splashScreen.windowFlags() | Qt::WindowStaysOnTopHint);   // don't stay on top - otherwise it covers error messages, e.g. by Visual Studio!
+	splashScreen.setWindowOpacity(0.8);
+	splashScreen.show();
+	iALog::setLogger(iALogWidget::get());
 	QString msg;
+	showSplashMsg(splashScreen, "Checking OpenGL version...");
 	if (!checkOpenGLVersion(msg))
 	{
+		LOG(lvlWarn, msg);
 		bool runningScripted = false;
 		for (int a = 1; a < argc; ++a)
 		{
@@ -2143,21 +2157,16 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 				break;
 			}
 		}
-		if (runningScripted)
-		{
-			LOG(lvlWarn, msg);
-		}
-		else
+		if (!runningScripted)
 		{
 			QMessageBox::warning(nullptr, appName, msg);
 		}
 		return 1;
 	}
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
-	iALog::setLogger(iALogWidget::get());
 	iALUT::loadMaps(QCoreApplication::applicationDirPath() + "/colormaps");
 	auto dwJobs = new iADockWidgetWrapper(iAJobListView::get(), "Job List", "Jobs");
-	MainWindow mainWin(appName, version, buildInformation, splashPath, dwJobs);
+	MainWindow mainWin(appName, version, buildInformation, splashPath, splashScreen, dwJobs);
 	connect(iASystemThemeWatcher::get(), &iASystemThemeWatcher::themeChanged, &mainWin,
 		[&mainWin](bool brightTheme) {
 			if (mainWin.m_useSystemTheme)
@@ -2169,9 +2178,6 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 			}
 		});
 	iASettingsManager::init();
-	mainWin.addDockWidget(Qt::RightDockWidgetArea, iALogWidget::get());
-	mainWin.splitDockWidget(iALogWidget::get(), dwJobs, Qt::Vertical);
-	dwJobs->setFeatures(dwJobs->features() & ~QDockWidget::DockWidgetVerticalTitleBar);
 	CheckSCIFIO(QCoreApplication::applicationDirPath());
 	app.setWindowIcon(QIcon(QPixmap(iconPath)));
 	QApplication::setStyle(new iAProxyStyle(QApplication::style()));
