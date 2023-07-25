@@ -120,7 +120,6 @@ private slots:
 	void toggleOpenLogOnNewMessage();
 	void toggleOpenListOnAddedJob();
 	void toggleToolbar();
-	void wiki();
 	void saveLayout();
 	void resetLayout();
 	void deleteLayout();

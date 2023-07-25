@@ -982,31 +982,6 @@ void MainWindow::loadCameraSettings()
 	LOG(lvlInfo, QString("Loaded camera settings from %1").arg(fileName));
 }
 
-void MainWindow::wiki()
-{
-	auto act = qobject_cast<QAction*>(QObject::sender());
-	if (act->text().contains("Core"))
-	{
-		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Core"));
-	}
-	else if (act->text().contains("Filters"))
-	{
-		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Filters"));
-	}
-	else if (act->text().contains("Tools"))
-	{
-		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Tools"));
-	}
-	else if (act->text().contains("releases"))
-	{
-		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/releases"));
-	}
-	else if (act->text().contains("bug"))
-	{
-		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/issues"));
-	}
-}
-
 void MainWindow::createRecentFileActions()
 {
 	m_separatorAct = m_ui->menuFile->addSeparator();
@@ -1226,11 +1201,24 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionSubWindows, &QAction::triggered, this, &MainWindow::toggleMdiViewMode);
 
 	// "Help" menu entries:
-	connect(m_ui->actionUserGuideCore, &QAction::triggered, this, &MainWindow::wiki);
-	connect(m_ui->actionUserGuideFilters, &QAction::triggered, this, &MainWindow::wiki);
-	connect(m_ui->actionUserGuideTools, &QAction::triggered, this, &MainWindow::wiki);
-	connect(m_ui->actionReleases, &QAction::triggered, this, &MainWindow::wiki);
-	connect(m_ui->actionBug, &QAction::triggered, this, &MainWindow::wiki);
+	static QMap<QString, QString> linkMap{
+		{"Core user guide", "https://github.com/3dct/open_iA/wiki/Core"},
+		{"Filters user guide", "https://github.com/3dct/open_iA/wiki/Filters"},
+		{"Tools user guide", "https://github.com/3dct/open_iA/wiki/Tools"},
+		{"Available releases", "https://github.com/3dct/open_iA/releases"},
+		{"Found a bug?", "https://github.com/3dct/open_iA/issues"}
+	};
+	for (auto linkText : linkMap.keys())
+	{
+		auto a = new QAction(linkText, m_ui->menuHelp);
+		connect(a, &QAction::triggered, this, [this]()
+		{
+			auto s = QObject::sender();
+			auto act = qobject_cast<QAction*>(s);
+			QDesktopServices::openUrl(QUrl(linkMap[act->text()]));
+		});
+		m_ui->menuHelp->insertAction(m_ui->actionAbout, a);
+	}
 	connect(m_ui->actionAbout, &QAction::triggered, this, [this]
 		{ iAAboutDlg::show(this, m_splashScreenImg, m_buildInformation, m_gitVersion, screen()->geometry().height()); });
 
