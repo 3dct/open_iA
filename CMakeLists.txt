@@ -1,11 +1,5 @@
-cmake_minimum_required(VERSION 3.14)
-# 3.13 required for VS_DEBUGGER_ENVIRONMENT property
+cmake_minimum_required(VERSION 3.14...3.27 FATAL_ERROR)
 # 3.14 required for CMAKE_POLICY CMP0087 / Generator expressions in install code|script
-
-if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.21")
-	cmake_policy(SET CMP0121 NEW)    # for LIST operations, error on invalid indices
-endif()
-
 project(open_iA LANGUAGES CXX)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")

@@ -343,7 +343,7 @@ find_package(Qt6 COMPONENTS Concurrent Gui OpenGL Svg Widgets Xml REQUIRED)
 message(STATUS "Qt: ${Qt6_VERSION} in ${Qt6_DIR}")
 set(BUILD_INFO "${BUILD_INFO}    \"Qt	${Qt6_VERSION}\\n\"\n")
 #if (Qt6_VERSION VERSION_LESS "6.0.0")
-#	message(FATAL_ERROR "Your Qt version is too old. Please use Qt >= 5.15.0")
+#	message(FATAL_ERROR "Your Qt version is too old. Please use Qt >= 6.0.0")
 #endif()
 
 string(REGEX REPLACE "/lib/cmake/Qt6" "" Qt_BASEDIR ${Qt6_DIR})
