@@ -298,10 +298,7 @@ void iAvtkInteractStyleActor::rotate2D()
 	{
 	default:
 		LOG(lvlInfo, "Invalid slicer mode, defaulting to YZ.");
-#if __cplusplus >= 201703L
 		[[fallthrough]];
-#endif
-		// fall through
 	case iASlicerMode::YZ:
 		rotationDir = transformationMode::x;
 		break;

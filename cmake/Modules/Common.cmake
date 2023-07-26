@@ -561,9 +561,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if (MSVC)
-	# /bigobj            increase the number of sections in .obj file (65,279 -> 2^32), exceeded by some compilations
-	# /Zc:__cplusplus    set correct value in __cplusplus macro (https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus)
 	# /MP                enable multi-processor compilation
+	# /bigobj            increase the number of sections in .obj file (65,279 -> 2^32), exceeded by some compilations
+	# /Zc:__cplusplus    set correct value in __cplusplus macro (https://learn.microsoft.com/en-us/cpp/build/reference/zc-cplusplus)
+	# /Zc:inline         Remove unreferenced COMDAT (reduce .obj file size and improve linker speed, see https://learn.microsoft.com/en-us/cpp/build/reference/zc-inline-remove-unreferenced-comdat)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /bigobj /Zc:__cplusplus /Zc:inline")
 	if (MSVC_VERSION GREATER_EQUAL 1910)
 		# specify standard conformance mode (https://docs.microsoft.com/en-us/cpp/build/reference/permissive-standards-conformance)

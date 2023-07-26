@@ -279,10 +279,7 @@ bool iAFast3DMagicLensWidget::event(QEvent* event)
 		}
 		// other cases should be handled by default event handler, i.e. fall-through:
 	}
-#if __cplusplus >= 201703L
 	[[fallthrough]];
-#endif
-	// fall through
 	default:
 		return iAQVTKWidget::event(event);
 	}

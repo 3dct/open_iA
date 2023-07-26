@@ -71,9 +71,7 @@ public:
 	//!     }  // here, jobListHandle goes out of scope, and the job will be automatically removed from the list!
 	//!
 	//! For comments on the parameters, see @ref addJobParams "the other addJob variant".
-#if __cplusplus >= 201703L
 	[[nodiscard]]
-#endif
 	QSharedPointer<QObject>	addJob(QString name, iAProgress* p, iAAbortListener* abortListener = nullptr,
 		QSharedPointer<iADurationEstimator> estimator = QSharedPointer<iADurationEstimator>());
 	//! Destructor, automatically cancels any still running jobs.

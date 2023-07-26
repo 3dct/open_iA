@@ -23,15 +23,9 @@ namespace
 		{
 		default:
 			LOG(lvlError, QString("mapVTKtoITKPixelType: Invalid VTK type %1").arg(vtkType));
-#if __cplusplus >= 201703L
 			[[fallthrough]];
-#endif
-			// fall through
 		case VTK_CHAR:
-#if __cplusplus >= 201703L
 			[[fallthrough]];
-#endif
-			// fall through
 		case VTK_SIGNED_CHAR       : return iAITKIO::ScalarType::CHAR;
 		case VTK_UNSIGNED_CHAR     : return iAITKIO::ScalarType::UCHAR;
 		case VTK_SHORT             : return iAITKIO::ScalarType::SHORT;

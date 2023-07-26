@@ -533,11 +533,7 @@ namespace
 		switch (objectType)
 		{
 		case iACsvConfig::Ellipses: return QSharedPointer<iA3DEllipseObjectVis>::create(table, mapping, color);
-		default:
-#if __cplusplus >= 201703L
-			[[fallthrough]];
-#endif
-			// fall through
+		default: [[fallthrough]];
 		case iACsvConfig::Cylinders: return QSharedPointer<iA3DCylinderObjectVis>::create(table, mapping, color, curvedFiberData, CylinderSides, SegmentSkip);
 		}
 	}

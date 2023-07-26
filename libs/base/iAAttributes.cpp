@@ -196,10 +196,7 @@ void loadAttributeValues(QDomNamedNodeMap const & xml, iAAttributes & attributes
 			break;
 		}
 		default:
-#if __cplusplus >= 201703L
 			[[fallthrough]];
-#endif
-			// fall through
 		case iAValueType::String:
 		{
 			v = valStr;

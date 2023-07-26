@@ -220,11 +220,8 @@ iAITKIO::ImagePointer castImageTo(iAITKIO::ImagePointer img)
 		case iAITKIO::ScalarType::FLOAT:
 			return internalCastImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img);
 		default:
-			LOG(lvlError, "Invalid/Unknown itk pixel datatype in rescale!");
-#if __cplusplus >= 201703L
+			LOG(lvlError, "Invalid/Unknown itk pixel datatype in rescale, assuming double!");
 			[[fallthrough]];
-#endif
-			// fall through
 		case iAITKIO::ScalarType::DOUBLE:
 			return internalCastImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img);
 	}
@@ -271,11 +268,8 @@ iAITKIO::ImagePointer rescaleImageTo(iAITKIO::ImagePointer img, double min, doub
 	case iAITKIO::ScalarType::FLOAT:
 		return internalRescaleImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	default:
-		LOG(lvlError, "Invalid/Unknown itk pixel datatype in rescale!");
-#if __cplusplus >= 201703L
+		LOG(lvlError, "Invalid/Unknown itk pixel datatype in rescale, assuming double!");
 		[[fallthrough]];
-#endif
-		// fall through
 	case iAITKIO::ScalarType::DOUBLE:
 		return internalRescaleImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	}

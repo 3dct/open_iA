@@ -1076,10 +1076,7 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 	{
 	case cmAllPointsSame: scalarBarCaption = "Uniform"; break;
 	case cmCustom:
-#if __cplusplus >= 201703L
 		[[fallthrough]];
-#endif
-		// fall through
 	case cmByParameter  : scalarBarCaption = m_splomData->parameterName(m_colorLookupParam); break;
 	default:              scalarBarCaption = "Unknown"; break;
 	}
@@ -1617,10 +1614,7 @@ void iAQSplom::updateLookupTable()
 			{
 				LOG(lvlWarn, "Invalid color state!");
 			}
-#if __cplusplus >= 201703L
 			[[fallthrough]];
-#endif
-			// fall through
 		case cmCustom:
 			m_lut->setOpacity(alpha);
 	}
