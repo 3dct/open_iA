@@ -71,7 +71,6 @@
 #include <QPushButton>
 #include <QSettings>
 #include <QSpinBox>
-#include <QtGlobal> // for QT_VERSION
 
 
 MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsavedChanges) :
@@ -1735,9 +1734,6 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 		}
 	}
 	auto s = std::make_shared<QSettings>(projectFileName, QSettings::IniFormat);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	s->setIniCodec("UTF-8");
-#endif
 	s->setValue("UseMdiChild", true);
 	saveSettings(*s.get());
 	iAProjectFileIO io;

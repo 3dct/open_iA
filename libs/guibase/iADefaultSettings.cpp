@@ -54,15 +54,7 @@ void iASettingsManager::init()
 				setDefaultValues(*attrPtr, newDefaultValues);
 			});
 		QMenu* settingsMenu = mainWnd->editMenu();
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-		QStringList categories;
-		for (auto i = 0; i < catName.size() - 1; ++i)
-		{
-			categories << catName[i];
-		}
-#else
 		QStringList categories = catName.sliced(0, catName.size() - 1);
-#endif
 		for (auto cat : categories)
 		{
 			assert(!cat.isEmpty());   // if (cat.isEmpty()) LOG(lvlDebug, QString("Filter %1: Invalid category %2 - empty section!").arg(filter->name()).arg(filter->fullCategory()));

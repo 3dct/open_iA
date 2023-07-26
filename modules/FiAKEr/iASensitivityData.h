@@ -20,11 +20,7 @@ class iAColorTheme;
 
 class vtkImageData;
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-using qvectorsizetype = int;
-#else
 using qvectorsizetype = size_t;
-#endif
 
 class iASensitivityData
 {

@@ -34,7 +34,6 @@
 #include <QPainter>
 #include <QSettings>
 #include <QWheelEvent>
-#include <QtGlobal> // for QT_VERSION
 
 namespace
 { // apparently QFontMetric width is not returning the full width of the string - correction constant:
@@ -1740,9 +1739,6 @@ void iAQSplom::saveSettingsSlot()
 		return;
 	}
 	QSettings iniFile(fileName, QSettings::IniFormat);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	iniFile.setIniCodec("UTF-8");
-#endif
 	saveSettings(iniFile);
 }
 
@@ -1755,9 +1751,6 @@ void iAQSplom::loadSettingsSlot()
 		return;
 	}
 	QSettings iniFile(fileName, QSettings::IniFormat);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	iniFile.setIniCodec("UTF-8");
-#endif
 	loadSettings(mapFromQSettings(iniFile));
 }
 

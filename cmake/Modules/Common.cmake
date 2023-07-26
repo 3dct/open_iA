@@ -319,19 +319,16 @@ set(BUILD_INFO "${BUILD_INFO}    \"${BUILD_INFO_VTK}\\n\"\n")
 unset(FPHSA_NAME_MISMATCHED)
 
 
-# Qt (>= 5)
+# Qt (>= 6)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 set(QT_USE_QTXML TRUE)
-if (Qt5_DIR AND NOT QT_DIR)
-	set(QT_DIR "${Qt5_DIR}" CACHE PATH "" FORCE)
-endif()
-if (Qt6_DIR AND NOT QT_DIR)
-	set(QT_DIR "{Qt6_DIR}" CACHE PATH "" FORCE)
+if (QT_DIR AND NOT Qt6_DIR)
+	set(Qt6_DIR "{QT_DIR}" CACHE PATH "" FORCE)
 endif()
 # not sure how the following works exactly currently - OpenGLWidgets is only available in Qt >= 6 I think...
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets OpenGLWidgets REQUIRED)
+#find_package(QT NAMES Qt6 COMPONENTS Widgets OpenGLWidgets REQUIRED)
 # TO Do: Find way to automatically set QtxWidgets/Core/GuiTools for Qt >= 6
 # Problem: Qt is discovered somehow above already, but inside vtk/itk discover code;
 # maybe we could move this discovery earlier, but then we probably could not use
@@ -342,15 +339,15 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets OpenGLWidgets REQUIRED)
 #	set(Qt${QT_VERSION_MAJOR}GuiTools_DIR ${QT_DIR}GuiTools CACHE PATH "" FORCE)
 #	set(Qt${QT_VERSION_MAJOR}WidgetsTools_DIR ${QT_DIR}WidgetsTools CACHE PATH "" FORCE)
 #endif
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Concurrent Gui OpenGL Svg Widgets Xml REQUIRED)
-message(STATUS "Qt: ${QT_VERSION} in ${Qt${QT_VERSION_MAJOR}_DIR}")
-set(BUILD_INFO "${BUILD_INFO}    \"Qt	${QT_VERSION}\\n\"\n")
-if (QT_VERSION VERSION_LESS "5.15.0")
-	message(FATAL_ERROR "Your Qt version is too old. Please use Qt >= 5.15.0")
-endif()
+find_package(Qt6 COMPONENTS Concurrent Gui OpenGL Svg Widgets Xml REQUIRED)
+message(STATUS "Qt: ${Qt6_VERSION} in ${Qt6_DIR}")
+set(BUILD_INFO "${BUILD_INFO}    \"Qt	${Qt6_VERSION}\\n\"\n")
+#if (Qt6_VERSION VERSION_LESS "6.0.0")
+#	message(FATAL_ERROR "Your Qt version is too old. Please use Qt >= 5.15.0")
+#endif()
 
-string(REGEX REPLACE "/lib/cmake/Qt${QT_VERSION_MAJOR}" "" Qt_BASEDIR ${Qt${QT_VERSION_MAJOR}_DIR})
-string(REGEX REPLACE "/cmake/Qt${QT_VERSION_MAJOR}" "" Qt_BASEDIR ${Qt_BASEDIR})	# on linux, lib is omitted if installed from package repos
+string(REGEX REPLACE "/lib/cmake/Qt6" "" Qt_BASEDIR ${Qt6_DIR})
+string(REGEX REPLACE "/cmake/Qt6" "" Qt_BASEDIR ${Qt_BASEDIR})	# on linux, lib is omitted if installed from package repos
 
 if (WIN32)
 	set(QT_LIB_DIR "${Qt_BASEDIR}/bin")
@@ -363,52 +360,36 @@ if (UNIX AND NOT APPLE AND NOT FLATPAK_BUILD)
 	endif()
 endif()
 
+# Qt Plugins
+# find_package calls required due to https://bugreports.qt.io/browse/QTBUG-94066
 # Install svg imageformats plugin:
 if (FLATPAK_BUILD)
 	# I guess plugins should all be available on Flatpak?
 	#	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION bin/imageformats)
 	#	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgIconPlugin>" DESTINATION bin/iconengines)
 else()
-	if (${QT_VERSION_MAJOR} GREATER_EQUAL 6) # Qt6 does not expose plugins? at least not the same as in Qt 5
-		set(LIB_SvgIconPlugin "${Qt_BASEDIR}/plugins/iconengines/${CMAKE_SHARED_LIBRARY_PREFIX}qsvgicon${CMAKE_SHARED_LIBRARY_SUFFIX}")
-		set(LIB_SvgPlugin "${Qt_BASEDIR}/plugins/imageformats/${CMAKE_SHARED_LIBRARY_PREFIX}qsvg${CMAKE_SHARED_LIBRARY_SUFFIX}")
-		INSTALL (FILES "${LIB_SvgIconPlugin}" DESTINATION iconengines)
-		list(APPEND BUNDLE_LIBS "${LIB_SvgIconPlugin}")
-		INSTALL (FILES "${LIB_SvgPlugin}" DESTINATION imageformats)
-		list(APPEND BUNDLE_LIBS "${LIB_SvgPlugin}")
-	else() # use imported targets & generator expressions:
-		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgIconPlugin>" DESTINATION iconengines)
-		list(APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgIconPlugin>")
-		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgPlugin>" DESTINATION imageformats)
-		list(APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgPlugin>")
-	endif()
+	find_package(Qt6QSvgPlugin REQUIRED PATHS ${Qt6Gui_DIR})
+	find_package(Qt6QSvgIconPlugin REQUIRED PATHS ${Qt6Gui_DIR})
+	INSTALL (FILES "$<TARGET_FILE:Qt6::QSvgIconPlugin>" DESTINATION iconengines)
+	list(APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt6::QSvgIconPlugin>")
+	INSTALL (FILES "$<TARGET_FILE:Qt6::QSvgPlugin>" DESTINATION imageformats)
+	list(APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt6::QSvgPlugin>")
 endif()
 # on windows, windows platform and vista style plugins are required:
 if (WIN32)
-	if (${QT_VERSION_MAJOR} GREATER_EQUAL 6) # Qt6 does not expose plugins? at least not the same as in Qt 5
-		set(LIB_WindowsPlatform "${Qt_BASEDIR}/plugins/platforms/qwindows.dll")
-		set(LIB_WindowsVistaStyle "${Qt_BASEDIR}/plugins/styles/qwindowsvistastyle.dll")
-		INSTALL (FILES "${LIB_WindowsPlatform}" DESTINATION platforms)
-		INSTALL (FILES "${LIB_WindowsVistaStyle}" DESTINATION styles)
-	else() # use imported targets & generator expressions:
-		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QWindowsIntegrationPlugin>" DESTINATION platforms)
-		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QWindowsVistaStylePlugin>" DESTINATION styles)
-	endif()
+	find_package(Qt6QWindowsIntegrationPlugin REQUIRED PATHS ${Qt6Gui_DIR})
+	find_package(Qt6QWindowsVistaStylePlugin REQUIRED PATHS ${Qt6Widgets_DIR})
+	INSTALL (FILES "$<TARGET_FILE:Qt6::QWindowsIntegrationPlugin>" DESTINATION platforms)
+	INSTALL (FILES "$<TARGET_FILE:Qt6::QWindowsVistaStylePlugin>" DESTINATION styles)
 endif()
 # on linux/unix, xcb platform plugin, and its plugins egl and glx are required:
 if (UNIX AND NOT APPLE AND NOT FLATPAK_BUILD)
-	if (${QT_VERSION_MAJOR} GREATER_EQUAL 6) # Qt6 does not expose plugins? at least not the same as in Qt 5
-		set(LIB_XcbPlatform "${Qt_BASEDIR}/plugins/platforms/libqxcb.so")
-		set(LIB_XcbEglIntegration "${Qt_BASEDIR}/plugins/xcbglintegrations/libqxcb-egl-integration.so")
-		set(LIB_XcbGlxIntegration "${Qt_BASEDIR}/plugins/xcbglintegrations/libqxcb-glx-integration.so")
-		INSTALL (FILES "${LIB_XcbPlatform}" DESTINATION platforms)
-		INSTALL (FILES "${LIB_XcbEglIntegration}" DESTINATION xcbglintegrations)
-		INSTALL (FILES "${LIB_XcbGlxIntegration}" DESTINATION xcbglintegrations)
-	else()
-		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QXcbIntegrationPlugin>" DESTINATION platforms)
-		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QXcbEglIntegrationPlugin>" DESTINATION xcbglintegrations)
-		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QXcbGlxIntegrationPlugin>" DESTINATION xcbglintegrations)
-	endif()
+	find_package(Qt6QXcbIntegrationPlugin REQUIRED PATHS ${Qt6Gui_DIR})
+	find_package(Qt6QXcbEglIntegrationPlugin REQUIRED PATHS ${Qt6Gui_DIR})
+	find_package(Qt6QXcbGlxIntegrationPlugin REQUIRED PATHS ${Qt6Gui_DIR})
+	INSTALL (FILES "$<TARGET_FILE:Qt6::QXcbIntegrationPlugin>" DESTINATION platforms)
+	INSTALL (FILES "$<TARGET_FILE:Qt6::QXcbEglIntegrationPlugin>" DESTINATION xcbglintegrations)
+	INSTALL (FILES "$<TARGET_FILE:Qt6::QXcbGlxIntegrationPlugin>" DESTINATION xcbglintegrations)
 
 	# install icu:
 	# TODO: find out whether Qt was built with icu library dependencies
@@ -575,12 +556,7 @@ if (${avx_support_index} EQUAL -1)
 endif()
 set(BUILD_INFO "${BUILD_INFO}    \"Advanced Vector Extensions	${openiA_AVX_SUPPORT}\\n\"\n")
 
-if (${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-	# Qt >= 6 requires to use the C++17 standard
-	set(CMAKE_CXX_STANDARD 17)
-else()
-	set(CMAKE_CXX_STANDARD 14)
-endif()
+set(CMAKE_CXX_STANDARD 17)
 # - C++20 can cause problems with ITK 5.0.1 (apparently in some experiments it wasn't yet fully C++20 compatible; though not sure on specifics)!
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -799,7 +775,7 @@ endif()
 message(STATUS "Build version: ${openiA_VERSION}")
 set(BUILD_INFO "${BUILD_INFO}    \"git revision	${openiA_HASH}\\n\"\n")
 
-add_compile_definitions(UNICODE _UNICODE)    # Enable Unicode
+add_compile_definitions(UNICODE _UNICODE)    # Enable Unicode (probably not required anymore since Qt6 automatically defines these, see https://doc.qt.io/qt-6/cmake-qt5-and-qt6-compatibility.html#unicode-support-in-windows)
 
 if (UNIX)
 	set(CMAKE_INSTALL_RPATH "\$ORIGIN")      # Set RunPath in all created libraries / executables to $ORIGIN

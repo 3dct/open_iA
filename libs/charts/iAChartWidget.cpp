@@ -27,7 +27,6 @@
 #endif
 #include <QPainter>
 #include <QRubberBand>
-#include <QtGlobal> // for QT_VERSION
 #include <QToolTip>
 #include <QWheelEvent>
 #include <QWindow>
@@ -895,13 +894,8 @@ void iAChartWidget::changeMode(int newMode, QMouseEvent *event)
 	{
 		m_xShiftStart = m_xShift;
 		m_translationStartY = m_translationY;
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-		m_dragStartPosX = event->x();
-		m_dragStartPosY = event->y();
-#else
 		m_dragStartPosX = event->position().x();
 		m_dragStartPosY = event->position().y();
-#endif
 	}
 }
 
@@ -965,15 +959,9 @@ void iAChartWidget::mousePressEvent(QMouseEvent *event)
 	switch(event->button())
 	{
 	case Qt::LeftButton:
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-		if (m_legendBox.contains(event->pos()))
-		{
-			auto yPos = event->pos().y();
-#else
 		if (m_legendBox.contains(event->position().toPoint()))
 		{
 			auto yPos = event->position().toPoint().y();
-#endif
 			auto plotIdx = clamp(static_cast<size_t>(0), m_plots.size() - 1,
 				mapValue(m_legendBox.top(), m_legendBox.bottom(), static_cast<size_t>(0), m_plots.size(), yPos));
 			m_plots[plotIdx]->setVisible(!m_plots[plotIdx]->visible());		// make option to let the implementer using iAChartWidget decide whether he wants to provide this functionality to users?
@@ -983,24 +971,15 @@ void iAChartWidget::mousePressEvent(QMouseEvent *event)
 			event->modifiers().testFlag(Qt::ControlModifier) &&
 			event->modifiers().testFlag(Qt::AltModifier))
 		{
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-			m_zoomYPos = event->y();
-#else
 			m_zoomYPos = event->position().y();
-#endif
 			m_yZoomStart = m_yZoom;
 			changeMode(Y_ZOOM_MODE, event);
 		}
 		else if (event->modifiers().testFlag(Qt::ShiftModifier) &&
 			event->modifiers().testFlag(Qt::ControlModifier))
 		{
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-			m_zoomXPos = event->x();
-			m_zoomYPos = event->y();
-#else
 			m_zoomXPos = event->position().x();
 			m_zoomYPos = event->position().y();
-#endif
 			m_xZoomStart = m_xZoom;
 			changeMode(X_ZOOM_MODE, event);
 		}
@@ -1024,12 +1003,7 @@ void iAChartWidget::mousePressEvent(QMouseEvent *event)
 	default:
 		break;
 	}
-
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	emit clicked(mouse2DataX(event->x()-leftMargin()), /*yMapper().dstToSrc(event->y()), */event->modifiers());
-#else
 	emit clicked(mouse2DataX(event->position().x() - leftMargin()), /*yMapper().dstToSrc(event->y()), */ event->modifiers());
-#endif
 }
 
 double iAChartWidget::limitXShift(double newXShift)
@@ -1049,39 +1023,23 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 		/* do nothing */ break;
 	case MOVE_VIEW_MODE:
 	{
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-		int xDelta = m_dragStartPosX - event->x();
-#else
 		int xDelta = m_dragStartPosX - event->position().x();
-#endif
 		double dataDelta = xMapper().dstToSrc(xDelta) - m_xBounds[0];
 		m_xShift = limitXShift(m_xShiftStart + dataDelta);
 		emit axisChanged();
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-		m_translationY = m_translationStartY + event->y() - m_dragStartPosY;
-#else
 		m_translationY = m_translationStartY + event->position().y() - m_dragStartPosY;
-#endif
 		m_translationY = clamp(static_cast<int>(-(geometry().height() * m_yZoom - geometry().height())),
 				static_cast<int>(geometry().height() * m_yZoom - geometry().height()), m_translationY);
 		update();
 	}
 		break;
 	case X_ZOOM_MODE:
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-		zoomAlongX(((m_zoomYPos-event->y())/2.0)+ m_xZoomStart, m_zoomXPos, false);
-#else
 		zoomAlongX(((m_zoomYPos - event->position().y()) / 2.0) + m_xZoomStart, m_zoomXPos, false);
-#endif
 		update();
 		break;
 	case Y_ZOOM_MODE:
 		{
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-			int diff = static_cast<int>((m_zoomYPos-event->y())/2.0);
-#else
 			int diff = static_cast<int>((m_zoomYPos - event->position().y()) / 2.0);
-#endif
 			if (diff < 0)
 			{
 				zoomAlongY(-std::pow(ZoomYStep,-diff)+ m_yZoomStart, false);

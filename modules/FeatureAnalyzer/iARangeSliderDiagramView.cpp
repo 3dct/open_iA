@@ -288,11 +288,7 @@ void iARangeSliderDiagramView::setupHistogram()
 
 	QList<double> binList;
 	m_histogramMap = calculateHistogram( porosityList, 0.0, 100.0 );
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	QMapIterator<double, QList<double>> mapIt(m_histogramMap);
-#else
 	QMultiMapIterator<double, QList<double>> mapIt(m_histogramMap);
-#endif
 	while ( mapIt.hasNext() )
 	{
 		mapIt.next();
@@ -325,12 +321,7 @@ void iARangeSliderDiagramView::setupDiagrams()
 	//Setup parameter diagrams (INPUT)
 	auto paramPorOrDevMap = prepareData( m_rawTable, m_cbPorDev->currentIndex(),
 																  m_cbStatisticMeasurements->currentIndex() );
-
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	QMapIterator<QString, QList<double>> mapIt(paramPorOrDevMap);
-#else
 	QMultiMapIterator<QString, QList<double>> mapIt(paramPorOrDevMap);
-#endif
 	while ( mapIt.hasNext() )
 	{
 		mapIt.next();

@@ -2098,11 +2098,7 @@ public:
 			}
 			//else // we want to only "sink" buttons that are pressed, but not "raise" buttons that are not.
 			QPixmap pm = iAThemeHelper::icon(QString("%1%2").arg(iconName).arg((opt->activeSubControls & subControl) ? "-hover" : ""))
-				.pixmap(buttonIconSize
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-				, p->device()->devicePixelRatio()
-#endif
-			);
+				.pixmap(buttonIconSize, p->device()->devicePixelRatio());
 			proxy()->drawItemPixmap(p, btnOpt.rect.translated(bsx, bsy), Qt::AlignCenter, pm);
 		}
 	}

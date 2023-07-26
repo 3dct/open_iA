@@ -17,18 +17,10 @@ enum axisMode
 	y
 };
 
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-namespace QtCharts
-{
-#endif
-	class QChart;
-	class QChartView;
-	class QLineSeries;
-	class QValueAxis;
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-}
-#endif
+class QChart;
+class QChartView;
+class QLineSeries;
+class QValueAxis;
 
 class  iAAdaptiveThresholdDlg : public QDialog, Ui_AdaptiveThreshold
 
@@ -40,14 +32,9 @@ public:
 	iAAdaptiveThresholdDlg(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 	void setupUIActions();
 	void initAxes(double xmin, double xmax, double ymin, double yMax, bool setDefaultAxis);
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	void prepareDataSeries(QtCharts::QXYSeries* aSeries, const std::vector<double>& x_vals, const std::vector<double>& y_vals, QString* grText, bool useDefaultValues, bool updateCoords);
-	void addSeries(QtCharts::QXYSeries* aSeries, bool disableMarker);
-#else
 	void prepareDataSeries(QXYSeries* aSeries, const std::vector<double>& x_vals,
 		const std::vector<double>& y_vals, QString* grText, bool useDefaultValues, bool updateCoords);
 	void addSeries(QXYSeries* aSeries, bool disableMarker);
-#endif
 	void setHistData(/*const*/ std::shared_ptr<iAPlotData> data);
 	double resultingThreshold() const;
 	double segmentationStartValue() const;
@@ -79,11 +66,7 @@ private:
 
 	void setGraphRangeFromInput();
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	void prepareAxis(QtCharts::QValueAxis *axis, const QString &title, double min, double max, uint ticks, axisMode mode);
-#else
 	void prepareAxis(QValueAxis* axis, const QString& title, double min, double max, uint ticks, axisMode mode);
-#endif
 	void determineMinMax(const std::vector<double> &xVal, const std::vector<double> &yVal);
 	void logText(const QString& Text);
 	void setInputData(const std::vector<double> &thres_binInX, const std::vector<double> &freqValsInY);
@@ -112,17 +95,9 @@ private:
 	std::vector<double> m_frequencies;
 	std::vector<double> m_movingFrequencies;
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	QtCharts::QLineSeries *m_refSeries;
-	QtCharts::QChartView* m_chartView;
-	QtCharts::QChart* m_chart;
-	QtCharts::QValueAxis* axisX;
-	QtCharts::QValueAxis* axisY;
-#else
 	QLineSeries* m_refSeries;
 	QChartView* m_chartView;
 	QChart* m_chart;
 	QValueAxis* axisX;
 	QValueAxis* axisY;
-#endif
 };

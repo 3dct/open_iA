@@ -421,14 +421,9 @@ void iAScatterPlotWidget::wheelEvent(QWheelEvent * event)
 
 void iAScatterPlotWidget::mousePressEvent(QMouseEvent * event)
 {
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	if (event->x() >= PaddingLeft() && event->x() <= (width() - PaddingRight) &&
-		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom()))
-#else
 	QPointF p = event->position();
 	if (p.x() >= PaddingLeft() && p.x() <= (width() - PaddingRight) &&
 	    p.y() >= PaddingTop    && p.y() <= (height() - PaddingBottom()))
-#endif
 	{
 		m_scatterplot->SPLOMMousePressEvent(event);
 	}
@@ -483,14 +478,9 @@ void iAScatterPlotWidget::setHighlightDrawMode(iAScatterPlot::HighlightDrawModes
 
 void iAScatterPlotWidget::mouseReleaseEvent(QMouseEvent * event)
 {
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	if (event->x() >= PaddingLeft() && event->x() <= (width() - PaddingRight) &&
-		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom()))
-#else
 	QPointF p = event->position();
 	if (p.x() >= PaddingLeft() && p.x() <= (width() - PaddingRight) &&
 	    p.y() >= PaddingTop    && p.y() <= (height() - PaddingBottom()))
-#endif
 	{
 		m_scatterplot->SPLOMMouseReleaseEvent(event);
 		update();
@@ -499,14 +489,9 @@ void iAScatterPlotWidget::mouseReleaseEvent(QMouseEvent * event)
 
 void iAScatterPlotWidget::mouseMoveEvent(QMouseEvent * event)
 {
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	if (event->x() >= PaddingLeft() && event->x() <= (width() - PaddingRight) &&
-		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom()))
-#else
 	QPointF p = event->position();
 	if (p.x() >= PaddingLeft() && p.x() <= (width() - PaddingRight) &&
 	    p.y() >= PaddingTop    && p.y() <= (height() - PaddingBottom()))
-#endif
 	{
 		m_scatterplot->SPLOMMouseMoveEvent(event);
 	}

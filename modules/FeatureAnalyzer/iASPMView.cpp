@@ -4,13 +4,11 @@
 
 #include "iAFAQSplom.h"
 #include "iASelection.h"
-#include "FeatureAnalyzerHelpers.h"
+
+#include <iAQVTKWidget.h>
 
 #include <iASPLOMData.h>
 #include <iALookupTable.h>
-#include <iALUT.h>
-#include <iAQtVTKBindings.h>
-#include <iAQVTKWidget.h>
 
 #include <vtkIdTypeArray.h>
 #include <vtkLookupTable.h>
@@ -19,12 +17,7 @@
 #include <vtkScalarBarActor.h>
 #include <vtkTextProperty.h>
 
-#include <QCheckBox>
-#include <QDebug>
 #include <QHBoxLayout>
-#include <QMenu>
-#include <QTableWidget>
-#include <QtGlobal>
 #include <QVBoxLayout>
 
 

@@ -226,11 +226,7 @@ void iASimilarityMapWidget::setWindowing( double lowerVal, double upperVal )
 void iASimilarityMapWidget::mouseMoveEvent( QMouseEvent *event )
 {
 	int selectedBins[2] = { 0, 0 };
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	double pos[2] = {static_cast<double>(event->x()), static_cast<double>(event->y()) };
-#else
 	double pos[2] = {event->position().x(), event->position().y()};
-#endif
 	binsFromPos( pos, selectedBins );
 	emit energyBinsSelectedSignal( selectedBins[0], selectedBins[1] );
 }
@@ -238,11 +234,7 @@ void iASimilarityMapWidget::mouseMoveEvent( QMouseEvent *event )
 void iASimilarityMapWidget::mouseReleaseEvent( QMouseEvent * event )
 {
 	int selectedBins[2] = {0, 0};
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	double pos[2] = {static_cast<double>(event->x()), static_cast<double>(event->y())};
-#else
 	double pos[2] = {event->position().x(), event->position().y()};
-#endif
 	binsFromPos( pos, selectedBins );
 	findPeak( selectedBins[0], selectedBins[1] );
 	findPeakRanges();

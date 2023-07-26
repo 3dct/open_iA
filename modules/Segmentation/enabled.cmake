@@ -3,8 +3,8 @@ if (openiA_TESTING_ENABLED)
 	get_filename_component(CoreBinDir "../libs" REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 	add_executable(ImageGraphTest Segmentation/iAImageGraphTest.cpp Segmentation/iAImageGraph.cpp ${CoreSrcDir}/base/iAImageCoordinate.cpp)
 	add_executable(DistanceMeasureTest Segmentation/iADistanceMeasureTest.cpp Segmentation/iAVectorDistanceImpl.cpp Segmentation/iAVectorArrayImpl.cpp Segmentation/iAVectorTypeImpl.cpp ${CoreSrcDir}/base/iAImageCoordinate.cpp)
-	target_link_libraries(ImageGraphTest PRIVATE Qt${QT_VERSION_MAJOR}::Core)
-	target_link_libraries(DistanceMeasureTest PRIVATE Qt${QT_VERSION_MAJOR}::Core)
+	target_link_libraries(ImageGraphTest PRIVATE Qt::Core)
+	target_link_libraries(DistanceMeasureTest PRIVATE Qt::Core)
 	set(VTK_REQUIRED_LIBS
 		CommonCore        # for vtkSmartPointer
 		CommonDataModel   # for vtkImageData

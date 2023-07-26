@@ -77,11 +77,7 @@ QSharedPointer<iASamplingResults> iASamplingResults::load(QString const & smpFil
 	}
 	// TODO: replace with QSettings?
 	QTextStream in(&file);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	in.setCodec("UTF-8");
-#else
 	in.setEncoding(QStringConverter::Utf8);
-#endif
 	QFileInfo fileInfo(file);
 	if (in.atEnd())
 	{
@@ -141,11 +137,7 @@ bool iASamplingResults::store(QString const & rangeFileName,
 		return false;
 	}
 	QTextStream out(&paramRangeFile);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	out.setCodec("UTF-8");
-#else
 	out.setEncoding(QStringConverter::Utf8);
-#endif
 	QFileInfo fi(paramRangeFile);
 	out << SMPFileFormatVersion << Qt::endl;
 	out << "Name" << Output::NameSeparator << m_name << Qt::endl;

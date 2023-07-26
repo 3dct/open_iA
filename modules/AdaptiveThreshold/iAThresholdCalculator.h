@@ -142,9 +142,5 @@ private:
 	std::vector<double> m_freqValsY;
 	std::vector<double> m_movingFreqs;
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	QtCharts::QLineSeries *m_newDataSeries;
-#else
 	QLineSeries* m_newDataSeries;
-#endif
 };

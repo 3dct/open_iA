@@ -78,11 +78,7 @@ public:
 	{
 		if (ev->button() == Qt::LeftButton)
 		{
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-			size_t barID = m_s->getBarAt(ev->x());
-#else
 			size_t barID = m_s->getBarAt(ev->position().x());
-#endif
 			if (barID != NoBar)
 			{
 				//LOG(lvlDebug, QString("DblClicked on bar %1").arg(barID));
@@ -96,11 +92,7 @@ public:
 	{
 		if (ev->button() == Qt::LeftButton)
 		{
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-			size_t barID = m_s->getBarAt(ev->x());
-#else
 			size_t barID = m_s->getBarAt(ev->position().x());
-#endif
 			if (barID != NoBar)
 			{
 				//LOG(lvlDebug, QString("Clicked on bar %1").arg(barID));
@@ -603,11 +595,7 @@ void iAStackedBarChart::mouseMoveEvent(QMouseEvent* ev)
 			}
 			else
 			{
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-				int xOfs = ev->x() - m_resizeStartX;
-#else
 				int xOfs = ev->position().x() - m_resizeStartX;
-#endif
 				double newWidth = clamp(1.0, static_cast<double>(geometry().width() - m_bars.size() + 1), m_resizeWidth + xOfs);
 				double oldRestWidth = geometry().width() - m_resizeWidth;
 				double newRestWidth = geometry().width() - newWidth;
@@ -626,31 +614,18 @@ void iAStackedBarChart::mouseMoveEvent(QMouseEvent* ev)
 		}
 		else
 		{
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-			size_t barID = dividerWithinRange(ev->x());
-#else
 			size_t barID = dividerWithinRange(ev->position().x());
-#endif
 			this->setCursor(barID != NoBar ? Qt::SizeHorCursor : Qt::ArrowCursor);
 		}
 	}
 	else
 	{
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-		size_t curBar = getBarAt(ev->x());
-#else
 		size_t curBar = getBarAt(ev->position().x());
-#endif
 		if (curBar != NoBar)
 		{
 			auto& b = m_bars[curBar];
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-			QToolTip::showText(ev->globalPos(), QString("%1: %2 (weight: %3)")
-				.arg(b->name).arg(b->value).arg(b->weight), this);
-#else
 			QToolTip::showText(ev->globalPosition().toPoint(), QString("%1: %2 (weight: %3)")
 				.arg(b->name).arg(b->value).arg(b->weight), this);
-#endif
 		}
 	}
 }
@@ -659,19 +634,11 @@ void iAStackedBarChart::mousePressEvent(QMouseEvent* ev)
 {
 	if (m_header && (ev->button() & Qt::LeftButton))
 	{
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-		size_t barID = dividerWithinRange(ev->x());
-#else
 		size_t barID = dividerWithinRange(ev->position().x());
-#endif
 		if (barID != NoBar)
 		{
 			m_resizeBar = barID;
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-			m_resizeStartX = ev->x();
-#else
 			m_resizeStartX = ev->position().x();
-#endif
 			m_resizeWidth = barWidth(*m_bars[barID].data());
 			m_resizeBars = m_bars;
 		}

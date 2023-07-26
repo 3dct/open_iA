@@ -3,7 +3,7 @@ target_link_libraries(${libname} PUBLIC
 	iA::charts   # for iAImageDataForDisplay
 	iA::qthelper # for iAImageDataForDisplay
 	iA::io       # for iAOIFReader in iAIO - can be removed once iAIO isn't there anymore
-	Qt${QT_VERSION_MAJOR}::Concurrent
+	Qt::Concurrent
 )
 set(VTK_REQUIRED_LIBS_PUBLIC
 	FiltersGeometry         # for vtkImageDataGeometryFilter, used in iALabel3D and vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
