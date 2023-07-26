@@ -172,15 +172,10 @@ iAImNDTMain::~iAImNDTMain() =default;
 
 void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4])
 {
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
 	auto touchPos = m_interactions.getTrackPadPos(device->GetDevice());
 	m_touchPadPosition[0] = touchPos.c[0];
 	m_touchPadPosition[1] = touchPos.c[1];
 	m_touchPadPosition[2] = 0.0;
-#else
-	m_vrEnv->interactor()->GetTouchPadPosition(device->GetDevice(), device->GetInput(), m_touchPadPosition);
-#endif
-
 	int deviceID = static_cast<int>(device->GetDevice()); // Device
 	int inputID = static_cast<int>(device->GetInput());  // Input Method
 	int actioniD = static_cast<int>(device->GetAction()); // Action of Input Method

@@ -199,8 +199,8 @@ set(BUILD_INFO "${BUILD_INFO}    \"ITK	${ITK_VERSION} (GPU: ${ITK_GPU_INFO}, SCI
 # VTK
 find_package(VTK REQUIRED)
 message(STATUS "VTK: ${VTK_VERSION} in ${VTK_DIR}")
-if (VTK_VERSION VERSION_LESS "9.0.0")
-	message(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 9.0")
+if (VTK_VERSION VERSION_LESS "9.1.0")
+	message(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 9.1")
 endif()
 set(VTK_LIB_PREFIX "VTK::")
 set(VTK_COMPONENTS
@@ -637,9 +637,7 @@ if (MSVC)
 	if (NOT "${openiA_AVX_SUPPORT}" STREQUAL "${openiA_AVX_SUPPORT_DISABLED}")
 		add_compile_options(/arch:${openiA_AVX_SUPPORT})
 	endif()
-	add_compile_definitions(_CRT_SECURE_NO_WARNINGS _SCL_SECURE_NO_WARNINGS
-		_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING	# silence warnings when compiling VTK (<= 9.0.1) with C++17
-	)
+	add_compile_definitions(_CRT_SECURE_NO_WARNINGS _SCL_SECURE_NO_WARNINGS)
 	
 	# enable all warnings, disable selected:
 	add_compile_options(/W4 /wd4068 /wd4127 /wd4251 /wd4515)

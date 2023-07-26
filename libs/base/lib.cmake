@@ -27,10 +27,6 @@ set(VTK_REQUIRED_LIBS_PUBLIC
 	RenderingGL2PSOpenGL2 # implements VTK::RenderingOpenGL2
 	RenderingUI           # implements VTK::RenderingCore
 )
-if (VTK_VERSION VERSION_LESS "9.1.0" AND TARGET VTK::RenderingOpenVR)
-    list(APPEND VTK_REQUIRED_LIBS_PUBLIC RenderingOpenVR)    # otherwise we get unresolved external symbol "void __cdecl vtkRenderingOpenVR_AutoInit_Construct
-endif()
-
 # instead of linking all ITK_LIBRARIES:
 	# regarding ITKIO... dependencies to these are pulled in automatically by IO factories somehow:
 #set(ITK_REQUIRED_LIBS_PUBLIC

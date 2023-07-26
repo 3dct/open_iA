@@ -84,13 +84,11 @@ public:
 			addAttr(attr, iARendererImpl::DepthPeelsMax, iAValueType::Discrete, 4, 0);              // maximum number of depth peels to use (if enabled via UseDepthPeeling). The more the higher quality, but also slower rendering
 			addAttr(attr, iARendererImpl::MagicLensSize, iAValueType::Discrete, DefaultMagicLensSize, MinimumMagicLensSize, MaximumMagicLensSize); // size (width & height) of the 3D magic lens (in pixels / pixel-equivalent units considering scaling)
 			addAttr(attr, iARendererImpl::MagicLensFrameWidth, iAValueType::Discrete, DefaultMagicLensFrameWidth, 0); // width of the frame of the 3D magic lens
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
 			addAttr(attr, iARendererImpl::UseSSAO, iAValueType::Boolean, false);                    // whether to use Screen Space Ambient Occlusion (SSAO) - darkens some pixels to improve depth perception
 			addAttr(attr, iARendererImpl::SSAORadius, iAValueType::Continuous, 0.5);                // SSAO: The hemisphere radius
 			addAttr(attr, iARendererImpl::SSAOBias, iAValueType::Continuous, 0.01);                 // SSAO: The bias when comparing samples
 			addAttr(attr, iARendererImpl::SSAOKernelSize, iAValueType::Discrete, 32);               // SSAO: The number of samples
 			addAttr(attr, iARendererImpl::SSAOBlur, iAValueType::Boolean, false);                   // SSAO: Whether the ambient occlusion should be blurred (can help to improve the result if samples number is low).
-#endif
 		}
 		return attr;
 	}
@@ -688,13 +686,11 @@ void iARendererImpl::applySettings(QVariantMap const& paramValues)
 	m_ren->SetMaximumNumberOfPeels(m_settings[DepthPeelsMax].toInt());
 	m_ren->SetOcclusionRatio(m_settings[DepthPeelOcclusionRatio].toDouble());
 	m_ren->SetUseFXAA(m_settings[UseFXAA].toBool());
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
 	m_ren->SetUseSSAO(m_settings[UseSSAO].toBool());
 	m_ren->SetSSAOBias(m_settings[SSAOBias].toDouble());
 	m_ren->SetSSAOBlur(m_settings[SSAOBlur].toBool());
 	m_ren->SetSSAORadius(m_settings[SSAORadius].toDouble());
 	m_ren->SetSSAOKernelSize(m_settings[SSAOKernelSize].toUInt());
-#endif
 	m_renWin->SetMultiSamples(m_settings[MultiSamples].toInt());
 	auto stereoMode = mapStereoModeToEnum(m_settings[StereoRenderMode].toString());
 	if (stereoMode != 0)

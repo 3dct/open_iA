@@ -102,7 +102,6 @@ public:
 		m_vrMain->onMove(device, m_movePosition, m_eventOrientation);
 	}
 
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
 	void updateTrackPadPos(vtkEventData* edata)
 	{
 		vtkEventDataDevice3D* edd = edata->GetAsEventDataDevice3D();
@@ -123,7 +122,7 @@ public:
 			m_rightTrackPadPos.c[1] = pos[1];
 		}
 	}
-#endif
+
 	void updateEventData(vtkEventData* edata)
 	{
 		vtkEventDataDevice3D* device = edata->GetAsEventDataDevice3D(); // Used Device
@@ -363,7 +362,6 @@ public:
 	//! Events can occur through left/right Controller and its input (trigger, grip, Trackpad,...) and an Action (Press, Release, Touch,...)
 	void OnButton3D(vtkEventData* edata) override;
 
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
 	// The VTK VR interactor comes with its own predefined "actions" and input manifest json files
 	// We could define our fully own manifest with all actions; then we would however need to reimplement the InteractorStyle / RenderWindowInteractor
 	// for now, as a workaround, we map the actions from VTK to our own ImNDT actions; for example:
@@ -390,7 +388,6 @@ public:
 
 	//! retrieve the position of the last interaction with the trackpad (since it's not available on a click in the event directly)
 	iAImNDTInteractions::iAVec2d getTrackPadPos(vtkEventDataDevice device);
-#endif
 
 	void OnMove3D(vtkEventData* edata) override
 	{
@@ -412,9 +409,6 @@ vtkStandardNewMacro(iAImNDTOpenVRInteractorStyle);
 
 iAImNDTOpenVRInteractorStyle::iAImNDTOpenVRInteractorStyle()
 {}
-
-
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
 
 void iAImNDTOpenVRInteractorStyle::SetInteractor(vtkRenderWindowInteractor* iren)
 {
@@ -508,8 +502,6 @@ void iAImNDTOpenVRInteractorStyle::OnSelect3D(vtkEventData* edata)
 	OnButton3D(edata);
 }
 
-#endif
-
 // FindPickedActor is protected, therefore we cannot move this function to Impl!
 void iAImNDTOpenVRInteractorStyle::OnButton3D(vtkEventData* edata)
 {
@@ -567,19 +559,16 @@ std::vector<int>* iAImNDTInteractions::getActiveInput()
 	return m_impl->m_activeInput;
 }
 
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
 //! retrieve the position of the last interaction with the trackpad (since it's not available on a click in the event directly)
 iAImNDTInteractions::iAVec2d iAImNDTInteractions::getTrackPadPos(vtkEventDataDevice device)
 {
 	return m_impl->getTrackPadPos(device);
 }
-#endif
 
 vtkInteractorStyle3D* iAImNDTInteractions::style()
 {
 	return m_impl->m_style;
 }
-
 
 //! Calculates the vector of the diagonals in the touchpad "square" and returns if the position is Up, Right, Down or left on the pad.
 //! The touchpad forms a square from (-1,-1) to (1,1)

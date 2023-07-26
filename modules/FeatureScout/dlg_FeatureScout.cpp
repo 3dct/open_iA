@@ -508,11 +508,7 @@ void dlg_FeatureScout::initElementTableModel(int idx)
 				QString str;
 				if (j == 0)
 				{
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 1, 0)
-					str = QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed();
-#else
 					str = QString::fromUtf8(v.ToString().c_str()).trimmed();
-#endif
 				}
 				else
 				{
@@ -566,11 +562,7 @@ void dlg_FeatureScout::initClassTreeModel()
 	for (int i = 0; i < m_objectCount; ++i)
 	{
 		vtkVariant v = m_chartTable->GetColumn(0)->GetVariantValue(i);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 1, 0)
-		QStandardItem* item = new QStandardItem(QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed());
-#else
 		QStandardItem* item = new QStandardItem(QString::fromUtf8(v.ToString().c_str()).trimmed());
-#endif
 		stammItem.first()->appendRow(item);
 	}
 	m_activeClassItem = stammItem.first();
@@ -2306,13 +2298,8 @@ void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStanda
 		{
 			vtkVariant v = m_csvTable->GetValue(item->child(i)->text().toInt() - 1, j);
 			vtkVariant v1 = m_elementTable->GetValue(j, 0);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 1, 0)
-			QString str = QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed();
-			QString str1 = filterToXMLAttributeName(QString::fromUtf8(v1.ToUnicodeString().utf8_str()).trimmed());
-#else
 			QString str = QString::fromUtf8(v.ToString().c_str()).trimmed();
 			QString str1 = filterToXMLAttributeName(QString::fromUtf8(v1.ToString().c_str()).trimmed());
-#endif
 			writer->writeAttribute(str1, str);
 		}
 		writer->writeEndElement(); // end object tag
