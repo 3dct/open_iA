@@ -33,6 +33,8 @@ protected:
 	vtkSmartPointer<vtkWorldPointPicker> m_pWorldPicker;
 
 private:
+	iARenderObserver(iARenderObserver const& other) = delete;
+	iARenderObserver& operator=(iARenderObserver const& other) = delete;
 	std::array<vtkPlane*, 3> m_planes;
 	std::vector<vtkCommand*> m_listener;
 

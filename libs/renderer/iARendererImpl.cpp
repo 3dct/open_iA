@@ -37,7 +37,6 @@
 #include <vtkTransform.h>
 #include <vtkUnstructuredGrid.h>
 #include <vtkWindowToImageFilter.h>
-#include <vtkWorldPointPicker.h>    // not sure why this is required here; somehow drawn in via iARenderObserver?
 
 #include <QApplication>
 #include <QColor>
