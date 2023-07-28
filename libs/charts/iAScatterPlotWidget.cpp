@@ -381,6 +381,11 @@ void iAScatterPlotWidget::drawTooltip(QPainter& painter)
 
 void iAScatterPlotWidget::adjustScatterPlotSize()
 {
+	if (!m_scatterplot)
+	{
+		LOG(lvlError, "No scatterplot!");
+		return;
+	}
 	QRect size(geometry());
 	size.moveTop(0);
 	size.moveLeft(0);
