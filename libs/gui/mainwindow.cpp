@@ -1387,6 +1387,7 @@ void MainWindow::readSettings()
 	m_layoutNames = settings.allKeys();
 	m_layoutNames = m_layoutNames.filter(QRegularExpression("^state"));
 	m_layoutNames.replaceInStrings(QRegularExpression("^state"), "");
+	m_layoutNames.sort(Qt::CaseInsensitive);
 	settings.endGroup();
 	if (m_layoutNames.size() == 0)
 	{
