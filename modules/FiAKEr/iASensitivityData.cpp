@@ -326,6 +326,10 @@ void iASensitivityData::compute(iAProgress* progress)
 		return;
 	}
 
+	// According to https://math.stackexchange.com/questions/302160:
+	// it is popular to use the centered finite differences when possible: ( x_(t+1) - x_(t-1) ) / 2 delta t ) 
+	// at boundary, use forward or backward difference
+
 	// for each characteristic
 	//     for each varied parameter
 	//         for each selected characteristics difference measure

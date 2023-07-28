@@ -56,7 +56,6 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkExtractSurface.h>
 #include <vtkImageData.h>
-#include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkLookupTable.h>
 #include <vtkNew.h>
 #include <vtkPCANormalEstimation.h>
@@ -69,7 +68,6 @@
 #include <vtkScalarBarWidget.h>
 #include <vtkSignedDistance.h>
 #include <vtkSmartPointer.h>
-#include <vtkTable.h>
 #include <vtkTextActor.h>
 #include <vtkTextWidget.h>
 #include <vtkTextRepresentation.h>
@@ -1275,25 +1273,43 @@ void iASensitivityInfo::showSpatialOverview()
 		return;
 	}
 	connect(m_child, &iAMdiChild::dataSetPrepared, this, &iASensitivityInfo::setSpatialOverviewTF);
-	connect(m_child, &iAMdiChild::dataSetRendered, this, &iASensitivityInfo::spatialOverviewVisibilityChanged);
+	connect(m_child, &iAMdiChild::dataSetRendered, this, [this](size_t dataSetIdx)
+	{
+		if (m_spatialOverviewDataSets.find(dataSetIdx) != m_spatialOverviewDataSets.end())
+		{
+			spatialOverviewVisibilityChanged(true);
+		}
+	});
 	if (m_data->m_spatialOverview)
 	{
 		auto spatialOverviewDataSet = std::make_shared<iAImageData>(m_data->m_spatialOverview);
 		spatialOverviewDataSet->setMetaData(iADataSet::NameKey, "Avg unique fiber/voxel");
 		spatialOverviewDataSet->setMetaData(iADataSet::FileNameKey, data().spatialOverviewCacheFileName());
-		m_child->addDataSet(spatialOverviewDataSet);
+		auto dsIdx = m_child->addDataSet(spatialOverviewDataSet);
+		m_spatialOverviewDataSets.insert(dsIdx);
 	}
 	if (m_data->m_averageFiberVoxel)
 	{
 		auto averageFiberVoxelDataSet = std::make_shared<iAImageData>(m_data->m_averageFiberVoxel);
 		averageFiberVoxelDataSet->setMetaData(iADataSet::NameKey, "Mean objects (fibers/voxel)");
 		averageFiberVoxelDataSet->setMetaData(iADataSet::FileNameKey, data().averageFiberVoxelCacheFileName());
-		m_child->addDataSet(averageFiberVoxelDataSet);
+		auto dsIdx = m_child->addDataSet(averageFiberVoxelDataSet);
+		m_spatialOverviewDataSets.insert(dsIdx);
 	}
 }
 
 void iASensitivityInfo::setSpatialOverviewTF(int dataSetIdx)
 {
+	if (m_spatialOverviewDataSets.find(dataSetIdx) == m_spatialOverviewDataSets.end())
+	{   // ignore datasets other than spatial overview images
+		return;
+	}
+	auto volViewer = dynamic_cast<iAVolumeViewer*>(m_child->dataSetViewer(dataSetIdx));
+	if (!volViewer)
+	{
+		LOG(lvlError, QString("setSpatialOverviewTF: No viewer available for spatial overview dataset %1").arg(dataSetIdx));
+		return;
+	}
 	double range[2];
 	if (m_gui->m_settings->cbLimitSpatialOverviewRange->isChecked())
 	{  // for "mean objects", fix range to 0..1
@@ -1312,7 +1328,7 @@ void iASensitivityInfo::setSpatialOverviewTF(int dataSetIdx)
 	}
 	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
 	iALUT::BuildLUT(lut, range, m_gui->m_settings->cmbboxSpatialOverviewColorMap->currentText(), 5, true);
-	auto tf = dynamic_cast<iAVolumeViewer*>(m_child->dataSetViewer(dataSetIdx))->transfer();
+	auto tf = volViewer->transfer();
 	auto ctf = tf->colorTF();
 	auto otf = tf->opacityTF();
 	const double AlphaOverride = 0.2;

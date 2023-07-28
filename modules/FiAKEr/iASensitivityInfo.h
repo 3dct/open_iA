@@ -7,6 +7,8 @@
 #include <iAAbortListener.h>
 #include <iAProgress.h>
 
+#include <set>
+
 class iAMdiChild;
 
 class iACsvTableCreator;
@@ -78,6 +80,7 @@ private:
 	QVariantMap m_projectToLoad;
 
 	QSharedPointer<iASensitivityData> m_data;
+	std::set<size_t> m_spatialOverviewDataSets;
 signals:
 	void aborted();
 	void resultSelected(size_t resultIdx, bool state);
