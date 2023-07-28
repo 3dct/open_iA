@@ -88,7 +88,7 @@ void iAImNDTModuleInterface::Initialize()
 		connect(child, &iAMdiChild::dataSetRendered, this, [this, removeRenderer, child](size_t dataSetIdx)
 		{
 			auto viewer = child->dataSetViewer(dataSetIdx);
-			if (viewer->renderer())    // if dataset has a renderer, add a button to view it in VR:
+			if (viewer && viewer->renderer())    // if dataset has a renderer, add a button to view it in VR:
 			{
 				auto action = viewer->addViewAction("VR", "VR", false, [this, removeRenderer, child, viewer, dataSetIdx](bool checked)
 				{
