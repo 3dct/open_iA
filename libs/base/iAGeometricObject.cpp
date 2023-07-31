@@ -6,16 +6,18 @@
 
 #include <array>
 
-iAGeometricObject::iAGeometricObject(QString const& name, vtkSmartPointer<vtkPolyDataAlgorithm> source) :
+iAGeometricObjectSource::~iAGeometricObjectSource() = default;
+
+iAGeometricObject::iAGeometricObject(QString const& name, std::unique_ptr<iAGeometricObjectSource> source) :
 	iADataSet(iADataSetType::GeometricObject),
-	m_polySource(source)
+	m_source(std::move(source))
 {
 	setMetaData(NameKey, name);
 }
 
-vtkSmartPointer<vtkPolyDataAlgorithm> iAGeometricObject::source() const
+vtkPolyDataAlgorithm* iAGeometricObject::source() const
 {
-	return m_polySource;
+	return m_source->vtkSource;
 }
 
 QString iAGeometricObject::info() const
@@ -25,22 +27,31 @@ QString iAGeometricObject::info() const
 		.arg(boundsStr(bounds()));
 }
 
-double const* iAGeometricObject::bounds() const
-{
-	auto out = m_polySource->GetOutput();
-	static double bds[6];
-	out->GetBounds(bds);
-	return bds;
-}
-
 std::array<double, 3> iAGeometricObject::unitDistance() const
 {
-	m_polySource->Update();
+	m_source->vtkSource->Update();
 	const double Divisor = 100;
 	return {
 		(bounds()[1] - bounds()[0]) / Divisor,
 		(bounds()[3] - bounds()[2]) / Divisor,
 		(bounds()[5] - bounds()[4]) / Divisor
 	};
+}
 
+double const* iAGeometricObject::bounds() const
+{
+	auto out = m_source->vtkSource->GetOutput();
+	static double bds[6];
+	out->GetBounds(bds);
+	return bds;
+}
+
+void iAGeometricObject::applyAttributes(QVariantMap const& values)
+{
+	m_source->applyAttributes(values);
+}
+
+iAAttributes iAGeometricObject::objectProperties()
+{
+	return m_source->objectProperties();
 }

@@ -1,5 +1,5 @@
 set(DEPENDENCIES_LIBRARIES
-	iA::base
+	iA::guibase
 )
 set(DEPENDENCIES_VTK_MODULES
 	FiltersGeometry    # for vtkDataSetSurfaceFilter used in iAExtractSurfaceFilter

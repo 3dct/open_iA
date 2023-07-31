@@ -400,12 +400,24 @@ std::shared_ptr<iADataSetRenderer> iAMeshViewer::createRenderer(vtkRenderer* ren
 
 iAGeometricObjectViewer::iAGeometricObjectViewer(iADataSet * dataSet):
 	iADataSetViewer(dataSet)
-{}
+{
+	auto meshData = dynamic_cast<iAGeometricObject*>(m_dataSet);
+	for (auto a : meshData->objectProperties())
+	{
+		addAttribute(a->name(), a->valueType(), a->defaultValue(), a->min(), a->max());
+	}
+}
 
 std::shared_ptr<iADataSetRenderer> iAGeometricObjectViewer::createRenderer(vtkRenderer* ren, QVariantMap const& paramValues)
 {
 	auto meshData = dynamic_cast<iAGeometricObject const*>(m_dataSet);
 	return std::make_shared<iAGeometricObjectRenderer>(ren, meshData, paramValues);
+}
+
+void iAGeometricObjectViewer::applyAttributes(QVariantMap const& values)
+{
+	auto meshData = dynamic_cast<iAGeometricObject*>(m_dataSet);
+	meshData->applyAttributes(values);
 }
 
 

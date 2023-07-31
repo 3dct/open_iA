@@ -147,6 +147,7 @@ class iAguibase_API iAGeometricObjectViewer : public iADataSetViewer
 public:
 	iAGeometricObjectViewer(iADataSet * dataSet);
 	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren, QVariantMap const& paramValues) override;
+	void applyAttributes(QVariantMap const& values) override;
 };
 
 //! A "viewer" for project files.

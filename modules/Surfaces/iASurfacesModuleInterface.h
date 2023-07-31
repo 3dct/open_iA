@@ -1,17 +1,14 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
-#include "iAGUIModuleInterface.h"
 
-class iAGeometricObjectsDialog;
+#include <iAGUIModuleInterface.h>
 
-class iAPolygonPrimitivesModuleInterface : public iAGUIModuleInterface
+class iASurfacesModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:
 	void Initialize();
 private slots:
 	void addObject();
-private:
-	iAGeometricObjectsDialog* m_dlg;
 };
