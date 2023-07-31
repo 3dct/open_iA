@@ -21,11 +21,14 @@
 #include <iAMdiChild.h>
 #include <iAMovieHelper.h>
 #include <iAParameterDlg.h>
-#include <iAPreferences.h>
 #include <iAQVTKWidget.h>
 #include <iARenderer.h>
 #include <iARunAsync.h>
+#include <iAToolsITK.h>
 #include <iAThemeHelper.h>
+
+// io:
+#include <iAFileTypeRegistry.h>
 
 // qthelper:
 #include <iADockWidgetWrapper.h>
@@ -37,18 +40,13 @@
 #include <iAFileUtils.h>
 #include <iALog.h>
 #include <iALookupTable.h>
-#include <iAProgress.h>
-#include <iAToolsITK.h>
-#include "iAToolsVTK.h"
 #include <iATypedCallHelper.h>
 
 #include <itkImageRegionIterator.h>
 
 #include <vtkActor.h>
 #include <vtkActor2D.h>
-#include <vtkAnnotationLink.h>
 #include <vtkAxis.h>
-#include <vtkCellData.h>
 #include <vtkChart.h>
 #include <vtkChartMatrix.h>
 #include <vtkChartParallelCoordinates.h>
@@ -67,7 +65,6 @@
 #include <vtkMath.h>
 #include <vtkMathUtilities.h>
 #include <vtkNew.h>
-#include <vtkOpenGLRenderer.h>
 #include <vtkPen.h>
 #include <vtkPlot.h>
 #include <vtkPlotParallelCoordinates.h>
@@ -90,7 +87,6 @@
 #include <vtkTable.h>
 #include <vtkTextProperty.h>
 #include <vtkVariantArray.h>
-#include <vtkVersion.h>
 
 #include <QFileDialog>
 #include <QFileInfo>
@@ -1887,6 +1883,57 @@ void dlg_FeatureScout::showPCSettings()
 	m_pcView->Update();
 	m_pcView->ResetCamera();
 	m_pcView->Render();
+}
+
+void dlg_FeatureScout::saveMesh()
+{
+	// TODO: instad, make objectvis available in datasets!
+	if (m_visualization == iACsvConfig::UseVolume)
+	{
+		QMessageBox::warning(this, "FeatureScout", "Cannot export mesh for labelled volume visualization!");
+		return;
+	}
+	auto polyVis = dynamic_cast<iA3DColoredPolyObjectVis*>(m_3dvis.get());
+	if (!polyVis)
+	{
+		return;
+	}
+	QString defaultFilter = iAFileTypeRegistry::defaultExtFilterString(iADataSetType::Mesh);
+	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
+		m_sourcePath,
+		iAFileTypeRegistry::registeredFileTypes(iAFileIO::Save, iADataSetType::Mesh),
+		&defaultFilter);
+	if (fileName.isEmpty())
+	{
+		return;
+	}
+	auto dataSet = std::make_shared<iAPolyData>(polyVis->finalPolyData());
+	auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Save);
+	if (!io || !io->isDataSetSupported(dataSet, fileName, iAFileIO::Save))
+	{
+		auto msg = QString("The chosen file format (%1) does not support this kind of dataset!").arg(io->name());
+		QMessageBox::warning(this, "Save: Error", msg);
+		LOG(lvlError, msg);
+	}
+	QVariantMap paramValues;
+	auto attr = io->parameter(iAFileIO::Save);
+	if (!attr.isEmpty())
+	{
+		iAParameterDlg dlg(this, "Save mesh parameters", attr);
+		if (dlg.exec() != QDialog::Accepted)
+		{
+			return;
+		}
+	}
+	auto p = std::make_shared<iAProgress>();
+	auto fw = runAsync([fileName, p, io, dataSet, paramValues]()
+		{
+			if (!io->save(fileName, dataSet, paramValues, *p.get()))
+			{
+				LOG(lvlError, "Error saving mesh!");
+			}
+		}, []() {}, this);
+	iAJobListView::get()->addJob("Save mesh", p.get(), fw);
 }
 
 void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const& selInds)

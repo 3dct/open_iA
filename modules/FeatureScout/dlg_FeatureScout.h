@@ -85,6 +85,7 @@ public:
 	void renderLengthDistribution();  //!< render fiber-length distribution
 	void renderMeanObject();          //!< compute and render a mean object for each class
 	void renderOrientation();         //!< color all objects according to their orientation
+	void saveMesh();                  //!< store the (objectvis) mesh as file
 
 	void saveProject(QSettings& projectFile);
 	void loadProject(QSettings const & projectFile);

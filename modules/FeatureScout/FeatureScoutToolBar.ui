@@ -79,12 +79,21 @@
     <string>Open Parallel Coordinates Settings Dialog</string>
    </property>
   </action>
+  <action name="actionSaveMesh">
+   <property name="text">
+    <string>Save mesh</string>
+   </property>
+   <property name="toolTip">
+    <string>Save objects as mesh</string>
+   </property>
+  </action>
   <addaction name="actionLength_Distribution"/>
   <addaction name="actionOrientation_Rendering"/>
   <addaction name="actionMultiRendering"/>
   <addaction name="actionMeanObject"/>
   <addaction name="actionActivate_SPM"/>
   <addaction name="actionSettingsPC"/>
+  <addaction name="actionSaveMesh"/>
  </widget>
  <resources/>
  <connections/>

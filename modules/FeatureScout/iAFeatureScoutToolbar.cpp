@@ -68,6 +68,7 @@ iAFeatureScoutToolbar::iAFeatureScoutToolbar(iAMainWindow* mainWnd) :
 	m_mainWnd->addActionIcon(m_ui->actionOrientation_Rendering, "compass");
 	m_mainWnd->addActionIcon(m_ui->actionActivate_SPM, "SPM");
 	m_mainWnd->addActionIcon(m_ui->actionSettingsPC, "settings_PC");
+	m_mainWnd->addActionIcon(m_ui->actionSaveMesh, "save");
 	connect(m_ui->actionLength_Distribution, &QAction::triggered, this,
 		[toolbarCallback]() { toolbarCallback(&dlg_FeatureScout::renderLengthDistribution); });
 	connect(m_ui->actionMeanObject, &QAction::triggered, this,
@@ -80,6 +81,8 @@ iAFeatureScoutToolbar::iAFeatureScoutToolbar(iAMainWindow* mainWnd) :
 		[toolbarCallback]() { toolbarCallback(&dlg_FeatureScout::showScatterPlot); });
 	connect(m_ui->actionSettingsPC, &QAction::triggered, this,
 		[toolbarCallback]() { toolbarCallback(&dlg_FeatureScout::showPCSettings); });
+	connect(m_ui->actionSaveMesh, &QAction::triggered, this,
+		[toolbarCallback]() { toolbarCallback(&dlg_FeatureScout::saveMesh);  });
 }
 
 iAFeatureScoutToolbar::~iAFeatureScoutToolbar() = default;
