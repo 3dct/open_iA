@@ -8,7 +8,6 @@
 #include <vtkObjectFactory.h>
 #include <vtkPropCollection.h>
 #include <vtkSmartPointer.h>
-#include <vtkVersion.h>
 
 
 vtkStandardNewMacro(iARulerRepresentation);
