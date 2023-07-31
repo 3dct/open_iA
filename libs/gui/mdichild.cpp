@@ -1707,9 +1707,19 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 	}
 	if (!unsavedDataSets.isEmpty())
 	{
-		auto result = QMessageBox::question(m_mainWnd, "Unsaved datasets",
+		bool defaultExtAvailable = true;
+		for (size_t dataSetIdx : unsavedDataSets)
+		{
+			if (iAFileTypeRegistry::defaultExtension(m_dataSets[dataSetIdx]->type()).isEmpty())
+			{
+				defaultExtAvailable = false;
+				break;
+			}
+		}
+		auto result = defaultExtAvailable ?
+			QMessageBox::question(m_mainWnd, "Unsaved datasets",
 			"Before saving as a project, some unsaved datasets need to be saved first. Should I choose a filename automatically (in same folder as project file)?",
-			QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes);
+			QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes) : QMessageBox::No;
 		if (result == QMessageBox::Cancel)
 		{
 			return false;
@@ -1722,7 +1732,8 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 			if (result == QMessageBox::Yes)
 			{
 				// try auto-creating; but if file exists, let user choose!
-				QString fileName = fi.absoluteFilePath() + QString("dataSet%1.%2").arg(dataSetIdx).arg(iAFileTypeRegistry::defaultExtension(m_dataSets[dataSetIdx]->type()));
+				auto defaultExt = iAFileTypeRegistry::defaultExtension(m_dataSets[dataSetIdx]->type());
+				QString fileName = fi.absoluteFilePath() + QString("dataSet%1.%2").arg(dataSetIdx).arg(defaultExt);
 				if (!QFileInfo::exists(fileName))
 				{
 					saveSuccess = saveDataSet(m_dataSets[dataSetIdx], fileName);
