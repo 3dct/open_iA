@@ -15,7 +15,7 @@ class iACubeObject : public iAGeometricObjectSource
 public:
 	iACubeObject();
 	void applyAttributes(QVariantMap const& values) override;
-	iAAttributes objectProperties();
+	iAAttributes objectProperties() override;
 private:
 	vtkSmartPointer<vtkCubeSource> m_cubeSource;
 };
@@ -25,7 +25,7 @@ class iALineObject : public iAGeometricObjectSource
 public:
 	iALineObject();
 	void applyAttributes(QVariantMap const& values) override;
-	iAAttributes objectProperties();
+	iAAttributes objectProperties() override;
 private:
 	vtkSmartPointer<vtkLineSource> m_lineSource;
 };
@@ -35,7 +35,7 @@ class iASphereObject: public iAGeometricObjectSource
 public:
 	iASphereObject();
 	void applyAttributes(QVariantMap const& values) override;
-	iAAttributes objectProperties();
+	iAAttributes objectProperties() override;
 private:
 	vtkSmartPointer<vtkSphereSource> m_sphereSource;
 };
