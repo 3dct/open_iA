@@ -462,6 +462,7 @@ bool iAOpenVRFrontCamera::setEnabled(bool enabled)
 
 #include <openxr.h>
 #include <vtkOpenXRManager.h>
+#include <vtkVersion.h>
 
 class iAOpenXRFrontCamera : public iAVRFrontCamera
 {
@@ -471,6 +472,7 @@ class iAOpenXRFrontCamera : public iAVRFrontCamera
 	}
 	bool setEnabled(bool enabled) override
 	{
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 3, 0)  // VTK >= 9.3.0 removed SetBlendMode?
 		if (enabled)
 		{
 			// Currently requires additional setup: https://github.com/Rectus/openxr-steamvr-passthrough/blob/main/readme.md
@@ -481,6 +483,9 @@ class iAOpenXRFrontCamera : public iAVRFrontCamera
 		{
 			vtkOpenXRManager::GetInstance().SetBlendMode(XrEnvironmentBlendMode::XR_ENVIRONMENT_BLEND_MODE_OPAQUE);
 		}
+#else
+		Q_UNUSED(enabled);
+#endif
 		return true;
 	}
 };

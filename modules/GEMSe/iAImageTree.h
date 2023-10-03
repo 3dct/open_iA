@@ -4,6 +4,8 @@
 
 #include "iAGEMSeConstants.h"
 
+#include <QSharedPointer>
+
 class iAChartAttributeMapper;
 class iAChartFilter;
 class iAImageTreeNode;
