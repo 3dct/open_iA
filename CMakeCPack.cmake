@@ -29,10 +29,4 @@ set(CPACK_PACKAGE_CHECKSUM "SHA512")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${openiA_VERSION}-source")
 #set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/logo.bmp")
 
-# DEB-specific settings:
-# TODO: not sure yet how to handle dependencies properly
-#SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Bernhard Froehler")
-#MESSAGE(STATUS "${CPACK_DEBIAN_PACKAGE_DEPENDS}")
-#SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.23)")
-
 include(CPack)
