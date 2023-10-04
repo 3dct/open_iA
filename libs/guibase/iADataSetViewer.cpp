@@ -507,16 +507,23 @@ void iAProjectViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 
 #include "iAVolumeViewer.h"
 
+std::map<iADataSetType, iADataSetViewerCreateFuncPtr>& dataSetViewerFactoryMap()
+{
+	static std::map<iADataSetType, iADataSetViewerCreateFuncPtr> m;
+	return m;
+}
+
 std::shared_ptr<iADataSetViewer> createDataSetViewer(iADataSet * dataSet)
 {
-	switch (dataSet->type())
+	dataSetViewerFactoryMap().clear();
+	addViewer<iAVolumeViewer>(iADataSetType::Volume);
+	addViewer<iAMeshViewer>(iADataSetType::Mesh);
+	addViewer<iAGeometricObjectViewer>(iADataSetType::GeometricObject);
+	addViewer<iAGraphViewer>(iADataSetType::Graph);
+	addViewer<iAProjectViewer>(iADataSetType::Collection);
+	if (dataSetViewerFactoryMap().find(dataSet->type()) == dataSetViewerFactoryMap().end())
 	{
-	case iADataSetType::Volume: return std::make_shared<iAVolumeViewer>(dataSet);
-	case iADataSetType::Mesh: return std::make_shared<iAMeshViewer>(dataSet);
-	case iADataSetType::GeometricObject: return std::make_shared<iAGeometricObjectViewer>(dataSet);
-	case iADataSetType::Graph: return std::make_shared<iAGraphViewer>(dataSet);
-	case iADataSetType::Collection: return std::make_shared<iAProjectViewer>(dataSet);
-
-	default: return std::shared_ptr<iADataSetViewer>();
+		return std::shared_ptr<iADataSetViewer>();
 	}
+	return dataSetViewerFactoryMap()[dataSet->type()](dataSet);
 }
