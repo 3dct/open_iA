@@ -97,23 +97,21 @@ void iAComp3DWidget::removeAllRendererFromWidget()
 /*************** Initialization ****************************/
 void iAComp3DWidget::create3DVis(vtkSmartPointer<vtkTable> objectTable, QSharedPointer<QMap<uint, uint>> columnMapping, const iACsvConfig& csvConfig)
 {
-	if (csvConfig.visType == iACsvConfig::Cylinders)
+	if (csvConfig.visType == iAObjectVisType::Cylinders)
 	{
 		int cylinderQuality = csvConfig.cylinderQuality;
 		size_t segmentSkip = csvConfig.segmentSkip;
 		m_3dvisData = std::make_shared<iA3DCylinderObjectVis>(
-			objectTable,
-			columnMapping,
+			std::make_shared<iA3DObjectsData>(objectTable, columnMapping),
 			m_objectColor,
 			std::map<size_t, std::vector<iAVec3f>>(),	// empty curved fiber info
 			cylinderQuality,
 			segmentSkip);
 	}
-	else if (csvConfig.visType == iACsvConfig::Ellipses)
+	else if (csvConfig.visType == iAObjectVisType::Ellipses)
 	{
 		m_3dvisData = std::make_shared<iA3DEllipseObjectVis>(
-			objectTable,
-			columnMapping,
+			std::make_shared<iA3DObjectsData>(objectTable, columnMapping),
 			m_objectColor);
 	}
 	m_3dvisActor = std::make_shared<iA3DPolyObjectActor>(m_renderer.Get(), m_3dvisData.get());

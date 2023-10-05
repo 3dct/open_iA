@@ -527,14 +527,14 @@ QWidget* iAFiAKErController::setupOptimStepView()
 namespace
 {
 	QSharedPointer<iA3DColoredPolyObjectVis> create3DVis(
-		vtkSmartPointer<vtkTable> table, QSharedPointer<QMap<uint, uint> > mapping, QColor const & color, int objectType,
+		vtkSmartPointer<vtkTable> table, QSharedPointer<QMap<uint, uint> > mapping, QColor const & color, iAObjectVisType objectType,
 		std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData)
 	{
 		switch (objectType)
 		{
-		case iACsvConfig::Ellipses: return QSharedPointer<iA3DEllipseObjectVis>::create(table, mapping, color);
+		case iAObjectVisType::Ellipses: return QSharedPointer<iA3DEllipseObjectVis>::create(std::make_shared<iA3DObjectsData>(table, mapping), color);
 		default: [[fallthrough]];
-		case iACsvConfig::Cylinders: return QSharedPointer<iA3DCylinderObjectVis>::create(table, mapping, color, curvedFiberData, CylinderSides, SegmentSkip);
+		case iAObjectVisType::Cylinders: return QSharedPointer<iA3DCylinderObjectVis>::create(std::make_shared<iA3DObjectsData>(table, mapping), color, curvedFiberData, CylinderSides, SegmentSkip);
 		}
 	}
 }
@@ -1570,7 +1570,7 @@ void iAFiAKErController::showMainVis(size_t resultID, bool state)
 		{
 			ui.main3DVis->setSelection(m_selection[resultID], anythingSelected);
 		}
-		if ((m_data->objectType == iACsvConfig::Cylinders || m_data->objectType == iACsvConfig::Lines) &&
+		if ((m_data->objectType == iAObjectVisType::Cylinders || m_data->objectType == iAObjectVisType::Lines) &&
 			d.stepData != iAFiberResult::NoStepData &&
 			m_useStepData)
 		{
@@ -1960,7 +1960,7 @@ void iAFiAKErController::setOptimStep(int optimStep)
 		{
 			auto main3DVis = m_resultUIs[resultID].main3DVis;
 			if (main3DVis && m_resultUIs[resultID].main3DActor->visible() &&
-				m_data->objectType == iACsvConfig::Cylinders &&
+				m_data->objectType == iAObjectVisType::Cylinders &&
 				m_data->result[resultID].stepData != iAFiberResult::NoStepData)
 			{
 				auto & stepValues = m_data->result[resultID].stepValues;
@@ -2001,7 +2001,7 @@ void iAFiAKErController::contextOpacityChanged(int opacity)
 
 void iAFiAKErController::diameterFactorChanged(int diameterFactorInt)
 {
-	if (m_data->objectType != iACsvConfig::Cylinders)
+	if (m_data->objectType != iAObjectVisType::Cylinders)
 	{
 		return;
 	}
@@ -2016,7 +2016,7 @@ void iAFiAKErController::diameterFactorChanged(int diameterFactorInt)
 
 void iAFiAKErController::contextDiameterFactorChanged(int contextDiameterFactorInt)
 {
-	if (m_data->objectType != iACsvConfig::Cylinders)
+	if (m_data->objectType != iAObjectVisType::Cylinders)
 	{
 		return;
 	}
@@ -2646,8 +2646,9 @@ void iAFiAKErController::changeReferenceDisplay()
 		}
 	}
 
-	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>::create(m_refVisTable,
-		m_data->result[m_referenceID].mapping, QColor(0,0,0), refCurvedFiberInfo);
+	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>::create(
+		std::make_shared<iA3DObjectsData>(m_refVisTable, m_data->result[m_referenceID].mapping),
+		QColor(0,0,0), refCurvedFiberInfo);
 	m_nearestReferenceActor = m_nearestReferenceVis->createPolyActor(m_ren);
 	/*
 	QSharedPointer<iALookupTable> lut(new iALookupTable);

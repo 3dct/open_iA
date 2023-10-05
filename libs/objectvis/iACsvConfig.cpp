@@ -5,18 +5,6 @@
 #include <QFile>
 #include <QSettings>
 
-namespace
-{
-	const char * VisualizationTypeName[iACsvConfig::VisTypeCount] =
-	{
-		"Labelled Volume",
-		"Lines",
-		"Cylinders",
-		"Ellipses",
-		"No Visualization"
-	};
-}
-
 const QString iACsvConfig::FCPFiberFormat("FCP Fiber csv");
 const QString iACsvConfig::FCVoidFormat("Feature Characteristics (Pore) csv");
 
@@ -49,23 +37,6 @@ namespace
 //	static const QString CfgKeyAddClassID = "AddClassID";
 }
 
-QString MapVisType2Str(iACsvConfig::VisualizationType visType)
-{
-	return VisualizationTypeName[visType];
-}
-
-iACsvConfig::VisualizationType MapStr2VisType(QString name)
-{
-	for (int i = 0; i < iACsvConfig::VisTypeCount; ++i)
-	{
-		if (name == VisualizationTypeName[i])
-		{
-			return static_cast<iACsvConfig::VisualizationType>(i);
-		}
-	}
-	return iACsvConfig::UseVolume;
-}
-
 iACsvConfig::iACsvConfig() :
 	fileName(""),
 	encoding("System"),
@@ -83,7 +54,7 @@ iACsvConfig::iACsvConfig() :
 	computeTensors(false),
 	computeCenter(false),
 	computeStartEnd(false),
-	visType(UseVolume),
+	visType(iAObjectVisType::UseVolume),
 	cylinderQuality(12),
 	segmentSkip(1),
 	isDiameterFixed(false),
@@ -137,7 +108,7 @@ bool iACsvConfig::isValid(QString & errorMsg) const
 		errorMsg = "Cannot compute tensors without angles. Either enable to compute them, or specify where to find them!";
 		return false;
 	}
-	if ((visType == Lines || visType == Cylinders) && (
+	if ((visType == iAObjectVisType::Lines || visType == iAObjectVisType::Cylinders) && (
 		!computeStartEnd && (
 			!columnMapping.contains(iACsvConfig::StartX) ||
 			!columnMapping.contains(iACsvConfig::StartY) ||
@@ -150,13 +121,13 @@ bool iACsvConfig::isValid(QString & errorMsg) const
 		errorMsg = "Visualization as Lines or Cylinders requires start and end position column, please specify where to find these!";
 		return false;
 	}
-	if (visType == Cylinders &&
+	if (visType == iAObjectVisType::Cylinders &&
 		(!columnMapping.contains(iACsvConfig::Diameter) && !isDiameterFixed) )
 	{
 		errorMsg = "Visualization as Cylinders requires start- and end-position as well as a diameter, please specify where to find these!";
 		return false;
 	}
-	if (visType == Ellipses && (
+	if (visType == iAObjectVisType::Ellipses && (
 		!columnMapping.contains(iACsvConfig::CenterX) ||
 		!columnMapping.contains(iACsvConfig::CenterY) ||
 		!columnMapping.contains(iACsvConfig::CenterZ) ||
@@ -193,7 +164,7 @@ iACsvConfig const & iACsvConfig::getFCPFiberFormat(QString const & fileName)
 	FCPFormat.computeCenter = true;
 	FCPFormat.computeStartEnd = false;
 	std::fill(FCPFormat.offset, FCPFormat.offset + 3, 0.0);
-	FCPFormat.visType = UseVolume;
+	FCPFormat.visType = iAObjectVisType::UseVolume;
 	FCPFormat.currentHeaders = QStringList() << "Label"
 		<< "X1[µm]"
 		<< "Y1[µm]"
@@ -240,7 +211,7 @@ iACsvConfig const& iACsvConfig::getFCVoidFormat(QString const& fileName)
 	FCFormat.computeCenter = false;
 	FCFormat.computeStartEnd = false;
 	std::fill(FCFormat.offset, FCFormat.offset + 3, 0.0);
-	FCFormat.visType = UseVolume;
+	FCFormat.visType = iAObjectVisType::UseVolume;
 	FCFormat.currentHeaders = QStringList()
 		<< "Label Id"
 		<< "X1"	<< "Y1"	<< "Z1"

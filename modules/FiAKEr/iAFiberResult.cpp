@@ -79,7 +79,7 @@ namespace
 		iACsvConfig config = iACsvConfig::getFCPFiberFormat("");
 		config.skipLinesStart = 0;
 		config.containsHeader = false;
-		config.visType = iACsvConfig::Cylinders;
+		config.visType = iAObjectVisType::Cylinders;
 		return config;
 	}
 
@@ -100,7 +100,7 @@ namespace
 		config.computeCenter = false;
 		config.computeStartEnd = true;
 		std::fill_n(config.offset, 3, SimpleConfigCoordShift);
-		config.visType = iACsvConfig::Cylinders;
+		config.visType = iAObjectVisType::Cylinders;
 		config.currentHeaders = QStringList() <<
 			"ID" << "CenterX" << "CenterY" << "CenterZ" << "Phi" << "Theta" << "Length";
 		config.selectedHeaders = config.currentHeaders;

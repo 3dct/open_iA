@@ -11,21 +11,21 @@
 #include <vtkPointData.h>
 #include <vtkTable.h>
 
-iA3DEllipseObjectVis::iA3DEllipseObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+iA3DEllipseObjectVis::iA3DEllipseObjectVis(std::shared_ptr<iA3DObjectsData> data,
 	QColor const & color, int phiRes, int thetaRes) :
-	iA3DColoredPolyObjectVis(objectTable, columnMapping, color),
+	iA3DColoredPolyObjectVis(data, color),
 	m_pointsPerEllipse((phiRes - 2) * thetaRes + 2)
 {
 	auto fullPolySource = vtkSmartPointer<vtkAppendPolyData>::New();
 	// maybe use vtkParametricFunctionSource with vtkParametricEllipsoid?
-	for (vtkIdType row = 0; row < objectTable->GetNumberOfRows(); ++row)
+	for (vtkIdType row = 0; row < data->m_table->GetNumberOfRows(); ++row)
 	{
-		double cx = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::CenterX)).ToDouble();
-		double cy = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::CenterY)).ToDouble();
-		double cz = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::CenterZ)).ToDouble();
-		double dx = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::DimensionX)).ToDouble()/2;
-		double dy = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::DimensionY)).ToDouble()/2;
-		double dz = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::DimensionZ)).ToDouble()/2;
+		double cx = data->m_table->GetValue(row, data->m_colMapping->value(iACsvConfig::CenterX)).ToDouble();
+		double cy = data->m_table->GetValue(row, data->m_colMapping->value(iACsvConfig::CenterY)).ToDouble();
+		double cz = data->m_table->GetValue(row, data->m_colMapping->value(iACsvConfig::CenterZ)).ToDouble();
+		double dx = data->m_table->GetValue(row, data->m_colMapping->value(iACsvConfig::DimensionX)).ToDouble()/2;
+		double dy = data->m_table->GetValue(row, data->m_colMapping->value(iACsvConfig::DimensionY)).ToDouble()/2;
+		double dz = data->m_table->GetValue(row, data->m_colMapping->value(iACsvConfig::DimensionZ)).ToDouble()/2;
 		auto ellipsoidSrc = vtkSmartPointer<vtkEllipsoidSource>::New();
 		ellipsoidSrc->SetThetaResolution(thetaRes);
 		ellipsoidSrc->SetPhiResolution(phiRes);

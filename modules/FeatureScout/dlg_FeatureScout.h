@@ -76,7 +76,7 @@ public:
 	static const QString DlgObjectName;
 	static const QString UnclassifiedColorName;
 	dlg_FeatureScout(iAMdiChild *parent, iAObjectType fid, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl,
-		int visType, QSharedPointer<QMap<uint, uint>> columnMapping,
+		iAObjectVisType visType, QSharedPointer<QMap<uint, uint>> columnMapping,
 		QSharedPointer<iA3DObjectVis> objvis);
 	~dlg_FeatureScout();
 	void showPCSettings();            //!< show settings dialog for parallel coordinates
@@ -176,7 +176,7 @@ private:
 	bool m_draw3DPolarPlot;                         //!< Whether the polar plot is drawn in 3D, set only in constructor, default false
 	int m_renderMode;                               //!< Indicates what is currently shown: single classes, or special rendering (multi-class, orientation, ...)
 	bool m_singleObjectSelected;                    //!< Indicates whether a single object or a whole class is selected (if m_renderMode is rmSingleClass)
-	int m_visualization;                            //!< 3D visualization being used (a value out of iACsvConfig::VisualizationType
+	iAObjectVisType m_visualization;                //!< 3D visualization being used
 	const QString m_sourcePath;                     //!< folder of file currently opened
 
 	//! Input csv table with all objects.

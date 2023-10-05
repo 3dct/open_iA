@@ -124,8 +124,8 @@ public:
 	QString folder;
 	//! shift applied to each step
 	double stepShift;
-	//! type of objects (typically fibers, see iACsvConfig::VisualizationType)
-	int objectType;
+	//! type of objects (typically fibers, see iAObjectVisType)
+	iAObjectVisType objectType;
 // }
 // Comparison to reference:
 	//! for each fiber in the reference, the average match quality over all results (-1.. no match, otherwise 0..1 where 0 perfect match, 1..bad match)

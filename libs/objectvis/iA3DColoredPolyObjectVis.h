@@ -21,7 +21,7 @@ class iAobjectvis_API iA3DColoredPolyObjectVis : public iA3DObjectVis
 public:
 	static const int DefaultContextOpacity = 8;
 	static const int DefaultSelectionOpacity = 128;
-	iA3DColoredPolyObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor);
+	iA3DColoredPolyObjectVis(std::shared_ptr<iA3DObjectsData> data, QColor const & neutralColor);
 
 	//! @{ "legacy" methods for various selection/coloring options, specific to FeatureScout module
 	void renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem) override;

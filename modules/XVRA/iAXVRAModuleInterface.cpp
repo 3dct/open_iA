@@ -102,7 +102,7 @@ void iAXVRAModuleInterface::startXVRA()
 
 	std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo;
 
-	if (csvConfig.visType == iACsvConfig::Cylinders || csvConfig.visType == iACsvConfig::Lines)
+	if (csvConfig.visType == iAObjectVisType::Cylinders || csvConfig.visType == iAObjectVisType::Lines)
 	{
 		if (!readCurvedFiberInfo(csvConfig.curvedFiberFileName, curvedFiberInfo))
 		{

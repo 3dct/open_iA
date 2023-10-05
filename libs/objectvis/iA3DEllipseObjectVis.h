@@ -17,7 +17,7 @@ class iAobjectvis_API iA3DEllipseObjectVis : public iA3DColoredPolyObjectVis
 public:
 	static const int DefaultPhiRes = 10;
 	static const int DefaultThetaRes = 10;
-	iA3DEllipseObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+	iA3DEllipseObjectVis(std::shared_ptr<iA3DObjectsData> data,
 		QColor const & color, int phiRes = DefaultPhiRes, int thetaRes = DefaultThetaRes);
 	double const * bounds() override;
 	vtkPolyData* polyData() override;

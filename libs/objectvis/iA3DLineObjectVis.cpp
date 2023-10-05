@@ -12,18 +12,18 @@
 #include <vtkPolyLine.h>
 #include <vtkTable.h>
 
-iA3DLineObjectVis::iA3DLineObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color,
+iA3DLineObjectVis::iA3DLineObjectVis(std::shared_ptr<iA3DObjectsData> data, QColor const& color,
 	std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, size_t segmentSkip):
-	iA3DColoredPolyObjectVis(objectTable, columnMapping, color),
+	iA3DColoredPolyObjectVis(data, color),
 	m_linePolyData(vtkSmartPointer<vtkPolyData>::New()),
 	m_points(vtkSmartPointer<vtkPoints>::New()),
 	m_curvedFiberData(curvedFiberData),
 	m_totalNumOfSegments(0)
 {
 	auto lines = vtkSmartPointer<vtkCellArray>::New();
-	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
+	for (vtkIdType row = 0; row < m_data->m_table->GetNumberOfRows(); ++row)
 	{
-		//int labelID = m_objectTable->GetValue(row, 0).ToInt();
+		//int labelID = m_data->m_table->GetValue(row, 0).ToInt();
 		auto it = curvedFiberData.find(row);
 		IndexType numberOfPts;
 		IndexType totalNumOfPtsBefore = m_points->GetNumberOfPoints();
@@ -55,8 +55,8 @@ iA3DLineObjectVis::iA3DLineObjectVis(vtkTable* objectTable, QSharedPointer<QMap<
 			float first[3], end[3];
 			for (int i = 0; i < 3; ++i)
 			{
-				first[i] = m_objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::StartX + i)).ToFloat();
-				end[i] = m_objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::EndX + i)).ToFloat();
+				first[i] = m_data->m_table->GetValue(row, m_data->m_colMapping->value(iACsvConfig::StartX + i)).ToFloat();
+				end[i] = m_data->m_table->GetValue(row, m_data->m_colMapping->value(iACsvConfig::EndX + i)).ToFloat();
 			}
 			m_points->InsertNextPoint(first);
 			m_points->InsertNextPoint(end);

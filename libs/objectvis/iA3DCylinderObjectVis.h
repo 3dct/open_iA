@@ -13,7 +13,7 @@ class iAobjectvis_API iA3DCylinderObjectVis : public iA3DLineObjectVis
 {
 public:
 	static const int DefaultNumberOfCylinderSides = 12;
-	iA3DCylinderObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+	iA3DCylinderObjectVis(std::shared_ptr<iA3DObjectsData> data,
 		QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData,
 		int numberOfCylinderSides = DefaultNumberOfCylinderSides, size_t segmentSkip = 1);
 	virtual ~iA3DCylinderObjectVis();

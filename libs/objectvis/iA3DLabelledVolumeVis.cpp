@@ -13,8 +13,8 @@
 #include <QStandardItem>
 
 iA3DLabelledVolumeVis::iA3DLabelledVolumeVis(vtkColorTransferFunction* color, vtkPiecewiseFunction* opac,
-		vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, double const * bounds ):
-	iA3DObjectVis(objectTable, columnMapping),
+	std::shared_ptr<iA3DObjectsData> data, double const* bounds) :
+	iA3DObjectVis(data),
 	oTF(opac),
 	cTF(color)
 {
@@ -193,10 +193,10 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 		prev_hid = hid;
 	}
 
-	if ( hid < static_cast<size_t>(m_objectTable->GetNumberOfRows()) )	// Creates the very last points (for all objects)  if it's not created yet
+	if ( hid < static_cast<size_t>(m_data->m_table->GetNumberOfRows()) )	// Creates the very last points (for all objects)  if it's not created yet
 	{
-		oTF->AddPoint( m_objectTable->GetNumberOfRows() + 0.3, backAlpha, 0.5, 1.0 );
-		cTF->AddRGBPoint( m_objectTable->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+		oTF->AddPoint(m_data->m_table->GetNumberOfRows() + 0.3, backAlpha, 0.5, 1.0 );
+		cTF->AddRGBPoint(m_data->m_table->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 	}
 	emit renderRequired();
 }
@@ -231,7 +231,7 @@ void iA3DLabelledVolumeVis::renderSingle(IndexType selectedObjID, int /*classID*
 		}
 		oTF->AddPoint(selectedObjID, alpha);
 		cTF->AddRGBPoint(selectedObjID, red, green, blue);
-		if ((selectedObjID + 1) <= m_objectTable->GetNumberOfRows())
+		if ((selectedObjID + 1) <= m_data->m_table->GetNumberOfRows())
 		{
 			oTF->AddPoint(selectedObjID + 0.3, backAlpha);
 			oTF->AddPoint(selectedObjID + 0.29, alpha);
@@ -303,10 +303,10 @@ void iA3DLabelledVolumeVis::renderSingle(IndexType selectedObjID, int /*classID*
 			}
 		}
 
-		if ( hid < m_objectTable->GetNumberOfRows() )
+		if ( hid < m_data->m_table->GetNumberOfRows() )
 		{
-			oTF->AddPoint( m_objectTable->GetNumberOfRows() + 0.3, backAlpha, 0.5, 1.0 );
-			cTF->AddRGBPoint( m_objectTable->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+			oTF->AddPoint(m_data->m_table->GetNumberOfRows() + 0.3, backAlpha, 0.5, 1.0 );
+			cTF->AddRGBPoint(m_data->m_table->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 		}
 	}
 	emit renderRequired();
@@ -410,10 +410,10 @@ void iA3DLabelledVolumeVis::multiClassRendering( QList<QColor> const & classColo
 			}
 		}
 
-		if ( hid < m_objectTable->GetNumberOfRows() )
+		if ( hid < m_data->m_table->GetNumberOfRows() )
 		{
-			oTF->AddPoint(m_objectTable->GetNumberOfRows() + 0.3, backAlpha, 0.5, 1.0);
-			cTF->AddRGBPoint(m_objectTable->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
+			oTF->AddPoint(m_data->m_table->GetNumberOfRows() + 0.3, backAlpha, 0.5, 1.0);
+			cTF->AddRGBPoint(m_data->m_table->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 		}
 	}
 	emit renderRequired();
@@ -430,7 +430,7 @@ void iA3DLabelledVolumeVis::renderOrientationDistribution( vtkImageData* oi )
 	oTF->AddPoint( 0, backAlpha );
 	cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2] );
 
-	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID )
+	for (IndexType objID = 0; objID < m_data->m_table->GetNumberOfRows(); ++objID )
 	{
 		QColor color = getOrientationColor( oi, objID );
 		oTF->AddPoint( objID + 1, alpha );
@@ -446,9 +446,9 @@ void iA3DLabelledVolumeVis::renderLengthDistribution( vtkColorTransferFunction* 
 	cTF->RemoveAllPoints();
 	cTF->AddRGBPoint(0, 0.0, 0.0, 0.0);
 
-	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID )
+	for (IndexType objID = 0; objID < m_data->m_table->GetNumberOfRows(); ++objID )
 	{
-		double ll = m_objectTable->GetValue(objID, m_columnMapping->value(iACsvConfig::Length)).ToDouble();
+		double ll = m_data->m_table->GetValue(objID, m_data->m_colMapping->value(iACsvConfig::Length)).ToDouble();
 		QColor color = getLengthColor( ctFun, objID );
 
 		if ( filterID == iAObjectType::Fibers )

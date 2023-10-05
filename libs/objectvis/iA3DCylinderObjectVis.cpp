@@ -13,20 +13,20 @@
 #include <vtkTable.h>
 
 
-iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+iA3DCylinderObjectVis::iA3DCylinderObjectVis(std::shared_ptr<iA3DObjectsData> data,
 	QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, int numberOfCylinderSides, size_t segmentSkip):
-	iA3DLineObjectVis(objectTable, columnMapping, color, curvedFiberData, segmentSkip),
+	iA3DLineObjectVis(data, color, curvedFiberData, segmentSkip),
 	m_tubeFilter(vtkSmartPointer<iAvtkTubeFilter>::New()),
 	m_contextFactors(nullptr),
-	m_objectCount(objectTable->GetNumberOfRows()),
+	m_objectCount(data->m_table->GetNumberOfRows()),
 	m_contextDiameterFactor(1.0)
 {
 	auto tubeRadius = vtkSmartPointer<vtkDoubleArray>::New();
 	tubeRadius->SetName("TubeRadius");
 	tubeRadius->SetNumberOfTuples(m_points->GetNumberOfPoints());
-	for (vtkIdType row = 0; row < objectTable->GetNumberOfRows(); ++row)
+	for (vtkIdType row = 0; row < data->m_table->GetNumberOfRows(); ++row)
 	{
-		double diameter = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::Diameter)).ToDouble();
+		double diameter = data->m_table->GetValue(row, m_data->m_colMapping->value(iACsvConfig::Diameter)).ToDouble();
 		for (int p = 0; p < objectPointCount(row); ++p)
 			tubeRadius->SetTuple1(objectStartPointIdx(row)+p, diameter/2);
 	}
@@ -140,20 +140,20 @@ std::vector<vtkSmartPointer<vtkPolyData>> iA3DCylinderObjectVis::extractSelected
 	{
 		vtkNew<vtkTable> tmpTbl;
 		tmpTbl->Initialize();
-		for (int c = 0; c<m_objectTable->GetNumberOfColumns(); ++c)
+		for (int c = 0; c<m_data->m_table->GetNumberOfColumns(); ++c)
 		{
 			vtkSmartPointer<vtkFloatArray> arrC = vtkSmartPointer<vtkFloatArray>::New();
-			arrC->SetName(m_objectTable->GetColumnName(c));
+			arrC->SetName(m_data->m_table->GetColumnName(c));
 			tmpTbl->AddColumn(arrC);
 		}
 		tmpTbl->SetNumberOfRows(1);
 		// TODO: use labelID everywhere to identify object!
-		//int labelID = m_objectTable->GetValue(selIdx, 0).ToInt() - 1;
+		//int labelID = m_data->m_table->GetValue(selIdx, 0).ToInt() - 1;
 		//for the moment: assert(labelID == selIdx);
 		size_t labelID = selIdx;
-		for (int c = 1; c < m_objectTable->GetNumberOfColumns(); ++c)
+		for (int c = 1; c < m_data->m_table->GetNumberOfColumns(); ++c)
 		{
-			tmpTbl->SetValue(0, c, m_objectTable->GetValue(selIdx, c));
+			tmpTbl->SetValue(0, c, m_data->m_table->GetValue(selIdx, c));
 		}
 		const int ExtractedID = 1;
 		tmpTbl->SetValue(0, 0, ExtractedID);
@@ -163,8 +163,8 @@ std::vector<vtkSmartPointer<vtkPolyData>> iA3DCylinderObjectVis::extractSelected
 		{	// Note: curved fiber data currently does not use LabelID, but starts from 0!
 			tmpCurvedFiberData.insert(std::make_pair(ExtractedID-1, it->second));
 		}
-		iA3DCylinderObjectVis tmpVis(
-			tmpTbl.GetPointer(), m_columnMapping, color.isValid() ? color : QColor(0, 0, 0), tmpCurvedFiberData);
+		auto tmpData = std::make_shared<iA3DObjectsData>( tmpTbl.GetPointer(), m_data->m_colMapping );
+		iA3DCylinderObjectVis tmpVis(tmpData, color.isValid() ? color : QColor(0, 0, 0), tmpCurvedFiberData);
 		auto pd = tmpVis.finalPolyData();
 		result.push_back(pd);
 	}

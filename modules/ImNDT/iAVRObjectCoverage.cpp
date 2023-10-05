@@ -21,11 +21,11 @@ void iAVRObjectCoverage::calculateObjectCoverage()
 {
 	switch (m_csvConfig.visType)
 	{
-	case iACsvConfig::Lines:
-	case iACsvConfig::Cylinders:
+	case iAObjectVisType::Lines:
+	case iAObjectVisType::Cylinders:
 		calculateCurvedLineCoverage();
 		break;
-	case iACsvConfig::Ellipses:
+	case iAObjectVisType::Ellipses:
 		calculateEllipseCoverage();
 		break;
 	default:

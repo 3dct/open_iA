@@ -12,9 +12,14 @@
 #include <QColor>
 #include <QtMath>
 
-iA3DObjectVis::iA3DObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping):
-	m_objectTable(objectTable),
-	m_columnMapping(columnMapping)
+iA3DObjectsData::iA3DObjectsData(vtkTable* table, QSharedPointer<QMap<uint, uint> > colMapping) :
+	iADataSet(iADataSetType::Objects),
+	m_table(table),
+	m_colMapping(colMapping)
+{}
+
+iA3DObjectVis::iA3DObjectVis(std::shared_ptr<iA3DObjectsData> data):
+	m_data(data)
 {}
 
 iA3DObjectVis::~iA3DObjectVis()
@@ -22,15 +27,15 @@ iA3DObjectVis::~iA3DObjectVis()
 
 QColor iA3DObjectVis::getOrientationColor( vtkImageData* oi, IndexType objID ) const
 {
-	int ip = qFloor( m_objectTable->GetValue( objID, m_columnMapping->value(iACsvConfig::Phi) ).ToDouble() );
-	int it = qFloor( m_objectTable->GetValue( objID, m_columnMapping->value(iACsvConfig::Theta) ).ToDouble() );
+	int ip = qFloor( m_data->m_table->GetValue( objID, m_data->m_colMapping->value(iACsvConfig::Phi) ).ToDouble() );
+	int it = qFloor( m_data->m_table->GetValue( objID, m_data->m_colMapping->value(iACsvConfig::Theta) ).ToDouble() );
 	double *p = static_cast<double *>( oi->GetScalarPointer( it, ip, 0 ) );
 	return QColor(p[0]*255, p[1]*255, p[2]*255, 255);
 }
 
 QColor iA3DObjectVis::getLengthColor( vtkColorTransferFunction* cTFun, IndexType objID ) const
 {
-	double length = m_objectTable->GetValue( objID, m_columnMapping->value(iACsvConfig::Length) ).ToDouble();
+	double length = m_data->m_table->GetValue( objID, m_data->m_colMapping->value(iACsvConfig::Length) ).ToDouble();
 	double dcolor[3];
 	cTFun->GetColor( length, dcolor );
 	return QColor(dcolor[0]*255, dcolor[1]*255, dcolor[2]*255);

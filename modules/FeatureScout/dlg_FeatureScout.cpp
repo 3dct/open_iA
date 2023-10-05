@@ -172,7 +172,7 @@ const QString dlg_FeatureScout::DlgObjectName("FeatureScoutMainDlg");
 const QString dlg_FeatureScout::UnclassifiedColorName("darkGray");
 
 dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString const& fileName,
-	vtkSmartPointer<vtkTable> csvtbl, int visType, QSharedPointer<QMap<uint, uint>> columnMapping,
+	vtkSmartPointer<vtkTable> csvtbl, iAObjectVisType visType, QSharedPointer<QMap<uint, uint>> columnMapping,
 	QSharedPointer<iA3DObjectVis> objvis) :
 	QDockWidget(parent),
 	m_activeChild(parent),
@@ -221,12 +221,12 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	setupModel();
 	setupConnections();
 
-	if (visType != iACsvConfig::UseVolume && m_activeChild->dataSetMap().empty())
+	if (visType != iAObjectVisType::UseVolume && m_activeChild->dataSetMap().empty())
 	{
 		parent->setWindowTitleAndFile(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
 			.arg(MapObjectTypeToString(m_filterID)));
 	}
-	if (visType == iACsvConfig::UseVolume)
+	if (visType == iAObjectVisType::UseVolume)
 	{
 		SingleRendering();
 	}
@@ -735,7 +735,7 @@ void dlg_FeatureScout::RenderSelection(std::vector<size_t> const& selInds)
 
 void dlg_FeatureScout::renderMeanObject()
 {
-	if (m_visualization != iACsvConfig::UseVolume)
+	if (m_visualization != iAObjectVisType::UseVolume)
 	{
 		QMessageBox::warning(this, "FeatureScout", "Mean objects feature only available for the Labeled Volume visualization at the moment!");
 		return;
@@ -1426,7 +1426,7 @@ void dlg_FeatureScout::WisetexSaveButton()
 void dlg_FeatureScout::ExportClassButton()
 {
 	// if no volume loaded, then exit
-	if (m_visualization != iACsvConfig::UseVolume)
+	if (m_visualization != iAObjectVisType::UseVolume)
 	{
 		if (m_activeChild->firstImageData() == nullptr)
 		{
@@ -1888,7 +1888,7 @@ void dlg_FeatureScout::showPCSettings()
 void dlg_FeatureScout::saveMesh()
 {
 	// TODO: instad, make objectvis available in datasets!
-	if (m_visualization == iACsvConfig::UseVolume)
+	if (m_visualization == iAObjectVisType::UseVolume)
 	{
 		QMessageBox::warning(this, "FeatureScout", "Cannot export mesh for labelled volume visualization!");
 		return;

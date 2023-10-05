@@ -78,9 +78,9 @@ dlg_CSVInput::dlg_CSVInput(bool volumeDataAvailable, QWidget * parent/* = 0,*/, 
 	m_mappingBoxes.push_back(m_ui->cmbbox_col_DimensionZ);
 	m_mappingBoxes.push_back(m_ui->cmbbox_col_CurvedLength);
 	m_ui->cb_AdvancedMode->setChecked(loadGeneralSetting(AdvancedMode).toBool());
-	for (int i = 0; i < iACsvConfig::VisTypeCount; ++i)
+	for (int i = 0; i < static_cast<int>(iAObjectVisType::Count); ++i)
 	{
-		m_ui->cmbbox_VisualizeAs->addItem(MapVisType2Str(static_cast<iACsvConfig::VisualizationType>(i)));
+		m_ui->cmbbox_VisualizeAs->addItem(MapVisType2Str(static_cast<iAObjectVisType>(i)));
 	}
 	advancedModeToggled();
 	initParameters();
@@ -191,7 +191,7 @@ void dlg_CSVInput::okBtnClicked()
 		QMessageBox::warning(this, tr("CSV Input"), errorMsg);
 		return;
 	}
-	if (m_confParams.visType == iACsvConfig::UseVolume && !m_volumeDataAvailable)
+	if (m_confParams.visType == iAObjectVisType::UseVolume && !m_volumeDataAvailable)
 	{
 		QMessageBox::information(this, "CSV Input", "You have selected to use the 'Labelled Volume' Visualization. "
 			"Note that for the XVRA tool, this is currently not supported. Otherwise, "
@@ -245,15 +245,16 @@ void dlg_CSVInput::updatePreview()
 	showSelectedCols();
 }
 
-void dlg_CSVInput::visualizationTypeChanged(int newType)
+void dlg_CSVInput::visualizationTypeChanged(int newTypeInt)
 {
-	m_ui->sb_CylinderQuality->setEnabled(newType == iACsvConfig::Cylinders);
-	m_ui->sb_SegmentSkip->setEnabled(newType == iACsvConfig::Cylinders || newType == iACsvConfig::Lines);
-	if (newType != iACsvConfig::Cylinders && newType != iACsvConfig::Lines)
+	auto newType = static_cast<iAObjectVisType>(newTypeInt);
+	m_ui->sb_CylinderQuality->setEnabled(newType == iAObjectVisType::Cylinders);
+	m_ui->sb_SegmentSkip->setEnabled(newType == iAObjectVisType::Cylinders || newType == iAObjectVisType::Lines);
+	if (newType != iAObjectVisType::Cylinders && newType != iAObjectVisType::Lines)
 	{
 		m_ui->cb_CurvedFiberInfo->setChecked(false);
 	}
-	m_ui->cb_CurvedFiberInfo->setEnabled(newType == iACsvConfig::Cylinders || newType == iACsvConfig::Lines);
+	m_ui->cb_CurvedFiberInfo->setEnabled(newType == iAObjectVisType::Cylinders || newType == iAObjectVisType::Lines);
 }
 
 void dlg_CSVInput::exportTable()
@@ -607,7 +608,7 @@ void dlg_CSVInput::showConfigParams()
 	m_ui->sb_OfsY->setValue(m_confParams.offset[1]);
 	m_ui->sb_OfsZ->setValue(m_confParams.offset[2]);
 	m_ui->cmbbox_VisualizeAs->setCurrentText(MapVisType2Str(m_confParams.visType));
-	visualizationTypeChanged(m_confParams.visType);
+	visualizationTypeChanged(static_cast<int>(m_confParams.visType));
 	m_ui->sb_SegmentSkip->setValue(static_cast<int>(m_confParams.segmentSkip));
 	m_ui->sb_CylinderQuality->setValue(m_confParams.cylinderQuality);
 	m_ui->cb_FixedDiameter->setChecked(m_confParams.isDiameterFixed);
@@ -637,7 +638,7 @@ void dlg_CSVInput::assignFormatSettings()
 	m_confParams.offset[1] = m_ui->sb_OfsY->value();
 	m_confParams.offset[2] = m_ui->sb_OfsZ->value();
 	m_confParams.containsHeader = m_ui->cb_ContainsHeader->isChecked();
-	m_confParams.visType = static_cast<iACsvConfig::VisualizationType>(m_ui->cmbbox_VisualizeAs->currentIndex());
+	m_confParams.visType = static_cast<iAObjectVisType>(m_ui->cmbbox_VisualizeAs->currentIndex());
 	m_confParams.cylinderQuality = m_ui->sb_CylinderQuality->value();
 	m_confParams.segmentSkip = m_ui->sb_SegmentSkip->value();
 	m_confParams.isDiameterFixed = m_ui->cb_FixedDiameter->isChecked();

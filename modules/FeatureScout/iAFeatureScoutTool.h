@@ -55,7 +55,7 @@ public:
 
 private:
 	bool initFromConfig(iAMdiChild* child, iACsvConfig const& csvConfig);
-	void init(int filterID, QString const& fileName, vtkSmartPointer<vtkTable> csvtbl, int visType,
+	void init(int filterID, QString const& fileName, vtkSmartPointer<vtkTable> csvtbl, iAObjectVisType visType,
 		QSharedPointer<QMap<uint, uint>> columnMapping, std::map<size_t, std::vector<iAVec3f>>& curvedFiberInfo,
 		int cylinderQuality, size_t segmentSkip);
 	iACsvConfig m_config;

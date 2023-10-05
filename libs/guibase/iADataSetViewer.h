@@ -174,16 +174,4 @@ using iADataSetViewerCreateFuncPtr = std::shared_ptr<iADataSetViewer>(*)(iADataS
 
 iAguibase_API std::map<iADataSetType, iADataSetViewerCreateFuncPtr>& dataSetViewerFactoryMap();
 
-template <class ViewerType>
-std::shared_ptr<iADataSetViewer> createFunc(iADataSet* ds)
-{
-	return std::make_shared<iAVolumeViewer>(ds);
-}
-
-template <class ViewerType>
-void addViewer(iADataSetType type)
-{
-	dataSetViewerFactoryMap().insert(std::make_pair(type, createFunc<ViewerType>));
-}
-
 iAguibase_API std::shared_ptr<iADataSetViewer> createDataSetViewer(iADataSet * dataSet);

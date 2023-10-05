@@ -18,9 +18,8 @@ namespace
 	const int TransparentAlpha = 32;
 }
 
-iA3DColoredPolyObjectVis::iA3DColoredPolyObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
-	QColor const & color) :
-	iA3DObjectVis(objectTable, columnMapping),
+iA3DColoredPolyObjectVis::iA3DColoredPolyObjectVis(std::shared_ptr<iA3DObjectsData> data, QColor const & color) :
+	iA3DObjectVis(data),
 	m_colors(vtkSmartPointer<vtkUnsignedCharArray>::New()),
 	m_contextAlpha(DefaultContextOpacity),
 	m_selectionAlpha(DefaultSelectionOpacity),
@@ -46,9 +45,9 @@ void iA3DColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sorte
 	{
 		classColor.setAlpha(255);
 	}
-	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	for (IndexType objID = 0; objID < m_data->m_table->GetNumberOfRows(); ++objID)
 	{
-		int curClassID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
+		int curClassID = m_data->m_table->GetValue(objID, m_data->m_table->GetNumberOfColumns() - 1).ToInt();
 		QColor curColor = (objID == curSelObjID) ?
 			SelectedColor :
 			((curClassID == classID) ?
@@ -75,9 +74,9 @@ void iA3DColoredPolyObjectVis::renderSingle(IndexType selectedObjID, int classID
 	{
 		classColor.setAlpha(TransparentAlpha);
 	}
-	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	for (IndexType objID = 0; objID < m_data->m_table->GetNumberOfRows(); ++objID)
 	{
-		int curClassID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
+		int curClassID = m_data->m_table->GetValue(objID, m_data->m_table->GetNumberOfColumns() - 1).ToInt();
 		setObjectColor(objID, (selectedObjID > 0 && objID + 1 == selectedObjID) ? SelectedColor : (curClassID == classID) ? classColor : nonClassColor);
 	}
 	emit dataChanged();
@@ -85,9 +84,9 @@ void iA3DColoredPolyObjectVis::renderSingle(IndexType selectedObjID, int classID
 
 void iA3DColoredPolyObjectVis::multiClassRendering(QList<QColor> const & classColors, QStandardItem* /*rootItem*/, double /*alpha*/)
 {
-	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	for (IndexType objID = 0; objID < m_data->m_table->GetNumberOfRows(); ++objID)
 	{
-		int classID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
+		int classID = m_data->m_table->GetValue(objID, m_data->m_table->GetNumberOfColumns() - 1).ToInt();
 		setObjectColor(objID, classColors.at(classID));
 	}
 	emit dataChanged();
@@ -95,7 +94,7 @@ void iA3DColoredPolyObjectVis::multiClassRendering(QList<QColor> const & classCo
 
 void iA3DColoredPolyObjectVis::renderOrientationDistribution(vtkImageData* oi)
 {
-	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	for (IndexType objID = 0; objID < m_data->m_table->GetNumberOfRows(); ++objID)
 	{
 		QColor color = getOrientationColor(oi, objID);
 		setObjectColor(objID, color);
@@ -105,7 +104,7 @@ void iA3DColoredPolyObjectVis::renderOrientationDistribution(vtkImageData* oi)
 
 void iA3DColoredPolyObjectVis::renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* /*extents*/, double /*halfInc*/, int /*filterID*/, double const * /*range*/)
 {
-	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	for (IndexType objID = 0; objID < m_data->m_table->GetNumberOfRows(); ++objID)
 	{
 		QColor color = getLengthColor(ctFun, objID);
 		setObjectColor(objID, color);
@@ -160,7 +159,7 @@ void iA3DColoredPolyObjectVis::setupOriginalIds()
 	auto ids = vtkSmartPointer<vtkIdTypeArray>::New();
 	ids->SetName("OriginalIds");
 	ids->SetNumberOfTuples(allPointCount());
-	for (vtkIdType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	for (vtkIdType objID = 0; objID < m_data->m_table->GetNumberOfRows(); ++objID)
 	{
 		for (vtkIdType pt = 0; pt < objectPointCount(objID); ++pt)
 		{
@@ -223,12 +222,12 @@ void iA3DColoredPolyObjectVis::setLookupTable(QSharedPointer<iALookupTable> lut,
 void iA3DColoredPolyObjectVis::updateColorSelectionRendering()
 {
 	size_t curSelIdx = 0;
-	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	for (IndexType objID = 0; objID < m_data->m_table->GetNumberOfRows(); ++objID)
 	{
 		QColor color = m_baseColor;
 		if (m_lut)
 		{
-			double curValue = m_objectTable->GetValue(objID, m_colorParamIdx).ToDouble();
+			double curValue = m_data->m_table->GetValue(objID, m_colorParamIdx).ToDouble();
 			color = m_lut->getQColor(curValue);
 		}
 		if (m_selectionActive)
@@ -266,7 +265,7 @@ iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::objectStartPointId
 iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::allPointCount() const
 {
 	IndexType pointCount = 0;
-	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	for (IndexType objID = 0; objID < m_data->m_table->GetNumberOfRows(); ++objID)
 	{
 		pointCount += objectPointCount(objID);
 	}
@@ -286,7 +285,7 @@ iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::finalObjectStartPo
 iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::finalAllPointCount() const
 {
 	IndexType pointCount = 0;
-	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	for (IndexType objID = 0; objID < m_data->m_table->GetNumberOfRows(); ++objID)
 	{
 		pointCount += finalObjectPointCount(objID);
 	}

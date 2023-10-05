@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iA3DNoVis.h"
 
-iA3DNoVis::iA3DNoVis(): iA3DObjectVis(nullptr, QSharedPointer<QMap<uint,uint>>())
+iA3DNoVis::iA3DNoVis(): iA3DObjectVis(std::shared_ptr<iA3DObjectsData>())
 {
 	std::fill(m_dummyBounds, m_dummyBounds + 3, 0);
 	std::fill(m_dummyBounds +3, m_dummyBounds + 6, 1);
