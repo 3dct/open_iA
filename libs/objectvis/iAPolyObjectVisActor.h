@@ -4,12 +4,12 @@
 
 #include "iaobjectvis_export.h"
 
-#include "iA3DObjectActor.h"
+#include "iAObjectVisActor.h"
 
 #include <vtkSmartPointer.h>
 
 class iARenderDeleteListener;
-class iA3DColoredPolyObjectVis;
+class iAColoredPolyObjectVis;
 
 class vtkActor;
 class vtkOutlineFilter;
@@ -18,15 +18,15 @@ class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkRenderer;
 
-//! Displays data from objects in a class derived from iA3DColoredPolyObjectVis
-class iAobjectvis_API iA3DPolyObjectActor : public iA3DObjectActor
+//! Displays data from objects in a class derived from iAColoredPolyObjectVis
+class iAobjectvis_API iAPolyObjectVisActor: public iAObjectVisActor
 {
 public:
 	//! create a new visualization of the given 3D object in the given renderer
 	//! @param ren the VTK renderer to which the 3D object will be added
 	//! @param obj the polydata object that is dislayed
-	iA3DPolyObjectActor(vtkRenderer* ren, iA3DColoredPolyObjectVis* obj);
-	~iA3DPolyObjectActor();
+	iAPolyObjectVisActor(vtkRenderer* ren, iAColoredPolyObjectVis* obj);
+	~iAPolyObjectVisActor();
 	//! show the object
 	void show() override;
 	//! hide the object
@@ -54,7 +54,7 @@ public:
 
 private:
 	bool m_visible, m_clippingPlanesEnabled, m_simple, m_outlineVisible;
-	iA3DColoredPolyObjectVis* m_obj;
+	iAColoredPolyObjectVis* m_obj;
 
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
 	vtkSmartPointer<vtkActor> m_actor;

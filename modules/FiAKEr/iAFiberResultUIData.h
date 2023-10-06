@@ -4,8 +4,8 @@
 
 #include <QSharedPointer>
 
-class iA3DColoredPolyObjectVis;
-class iA3DPolyObjectActor;
+class iAColoredPolyObjectVis;
+class iAPolyObjectVisActor;
 class iAChartWidget;
 class iAFixedAspectWidget;
 class iASignallingWidget;
@@ -18,10 +18,10 @@ class iAFiberResultUIData
 {
 public:
 	iAQVTKWidget* vtkWidget = nullptr;
-	QSharedPointer<iA3DColoredPolyObjectVis> mini3DVis;
-	QSharedPointer<iA3DPolyObjectActor> mini3DActor;
-	QSharedPointer<iA3DColoredPolyObjectVis> main3DVis;
-	QSharedPointer<iA3DPolyObjectActor> main3DActor;
+	QSharedPointer<iAColoredPolyObjectVis> mini3DVis;
+	QSharedPointer<iAPolyObjectVisActor> mini3DActor;
+	QSharedPointer<iAColoredPolyObjectVis> main3DVis;
+	QSharedPointer<iAPolyObjectVisActor> main3DActor;
 	iAChartWidget* histoChart;
 	iAStackedBarChart* stackedBars;
 	iAFixedAspectWidget* previewWidget = nullptr;

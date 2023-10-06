@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVRObjectModel.h"
 
-#include <iA3DColoredPolyObjectVis.h>
+#include <iAColoredPolyObjectVis.h>
 #include <iALog.h>
 #include <iAVROctreeMetrics.h>
 
@@ -21,7 +21,7 @@
 #include <vtkPointData.h>
 
 
-iAVRObjectModel::iAVRObjectModel(vtkRenderer* ren, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig):
+iAVRObjectModel::iAVRObjectModel(vtkRenderer* ren, iAColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig):
 	iAVRCubicVis{ ren }, m_polyObject(polyObject), m_objectTable(objectTable), m_io(io), m_csvConfig(csvConfig)
 {
 	defaultColor = QColor(126, 0, 223, 255);
@@ -157,7 +157,7 @@ void iAVRObjectModel::resetNodeColor()
 	}
 }
 
-iA3DColoredPolyObjectVis* iAVRObjectModel::getPolyObject()
+iAColoredPolyObjectVis* iAVRObjectModel::getPolyObject()
 {
 	return m_polyObject;
 }

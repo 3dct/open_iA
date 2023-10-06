@@ -35,7 +35,7 @@
 #include <iADockWidgetWrapper.h>
 
 // objectvis:
-#include <iA3DColoredPolyObjectVis.h>
+#include <iAColoredPolyObjectVis.h>
 
 // FeatureScout
 #include "iACsvVectorTableCreator.h"

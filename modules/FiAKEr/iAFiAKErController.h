@@ -29,8 +29,8 @@
 class iAFiberResultsCollection;
 class iAStackedBarChart;
 
-class iA3DColoredPolyObjectVis;
-class iA3DCylinderObjectVis;
+class iAColoredPolyObjectVis;
+class iACylinderObjectVis;
 
 class iAChartWidget;
 class iAColorTheme;
@@ -189,9 +189,9 @@ private:
 	void updateFiberContext();
 	//void startFeatureScout(int resultID, iAMdiChild* newChild);
 	void visitAllVisibleVis(std::function<void(
-			QSharedPointer<iA3DColoredPolyObjectVis>, QSharedPointer<iA3DPolyObjectActor>, size_t resultID)>
+			QSharedPointer<iAColoredPolyObjectVis>, QSharedPointer<iAPolyObjectVisActor>, size_t resultID)>
 			func);
-	void setClippingPlanes(QSharedPointer<iA3DPolyObjectActor> vis);
+	void setClippingPlanes(QSharedPointer<iAPolyObjectVisActor> vis);
 
 	void setupMain3DView();
 	void setupSettingsView();
@@ -235,8 +235,8 @@ private:
 	//! column index for the columns of the result list:
 	int m_nameActionColumn, m_previewColumn, m_histogramColumn, m_stackedBarColumn;
 
-	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
-	QSharedPointer<iA3DPolyObjectActor> m_nearestReferenceActor;
+	QSharedPointer<iACylinderObjectVis> m_nearestReferenceVis;
+	QSharedPointer<iAPolyObjectVisActor> m_nearestReferenceActor;
 
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;

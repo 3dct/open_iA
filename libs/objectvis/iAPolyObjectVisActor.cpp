@@ -1,8 +1,8 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "iA3DPolyObjectActor.h"
+#include "iAPolyObjectVisActor.h"
 
-#include <iA3DColoredPolyObjectVis.h>
+#include <iAColoredPolyObjectVis.h>
 
 #include <vtkActor.h>
 #include <vtkCommand.h>
@@ -12,7 +12,7 @@
 #include <vtkRenderer.h>
 
 //! Listener class helping to prevent access to deleted renderers.
-//! Used in iA3DPolyObjectActor to detect when the renderer this actor is attached to
+//! Used in iAPolyObjectVisActor to detect when the renderer this actor is attached to
 //! gets deleted. In that case, the internal renderer pointer is set to nullptr to
 //! avoid an invalid access to the deleted renderer.
 class iARenderDeleteListener : public vtkCommand
@@ -22,7 +22,7 @@ public:
 	{
 		return new iARenderDeleteListener();
 	}
-	void setObjActor(iA3DObjectActor* objActor)
+	void setObjActor(iAObjectVisActor* objActor)
 	{
 		m_objActor = objActor;
 	}
@@ -31,12 +31,12 @@ public:
 		m_objActor->clearRenderer();
 	}
 private:
-	iA3DObjectActor* m_objActor;
+	iAObjectVisActor* m_objActor;
 };
 
 
-iA3DPolyObjectActor::iA3DPolyObjectActor(vtkRenderer* ren, iA3DColoredPolyObjectVis* obj) :
-	iA3DObjectActor(ren),
+iAPolyObjectVisActor::iAPolyObjectVisActor(vtkRenderer* ren, iAColoredPolyObjectVis* obj) :
+	iAObjectVisActor(ren),
 	m_visible(false),
 	m_clippingPlanesEnabled(false),
 	m_simple(false),
@@ -73,7 +73,7 @@ iA3DPolyObjectActor::iA3DPolyObjectActor(vtkRenderer* ren, iA3DColoredPolyObject
 	m_renObserverTag = m_ren->AddObserver(vtkCommand::DeleteEvent, m_renderDeleteListener);
 }
 
-iA3DPolyObjectActor::~iA3DPolyObjectActor()
+iAPolyObjectVisActor::~iAPolyObjectVisActor()
 {
 	if (m_ren)
 	{
@@ -82,7 +82,7 @@ iA3DPolyObjectActor::~iA3DPolyObjectActor()
 	hide();
 }
 
-void iA3DPolyObjectActor::show()
+void iAPolyObjectVisActor::show()
 {
 	if (m_visible || !m_ren)
 	{
@@ -92,7 +92,7 @@ void iA3DPolyObjectActor::show()
 	m_visible = true;
 }
 
-void iA3DPolyObjectActor::hide()
+void iAPolyObjectVisActor::hide()
 {
 	if (!m_visible || !m_ren)
 	{
@@ -102,15 +102,15 @@ void iA3DPolyObjectActor::hide()
 	m_visible = false;
 }
 
-void iA3DPolyObjectActor::updateRenderer()
+void iAPolyObjectVisActor::updateRenderer()
 {
 	if (m_visible || m_outlineVisible)
 	{
-		iA3DObjectActor::updateRenderer();
+		iAObjectVisActor::updateRenderer();
 	}
 }
 
-void iA3DPolyObjectActor::setShowWireFrame(bool show)
+void iAPolyObjectVisActor::setShowWireFrame(bool show)
 {
 	if (show)
 	{
@@ -123,18 +123,18 @@ void iA3DPolyObjectActor::setShowWireFrame(bool show)
 	updateMapper();
 }
 
-void iA3DPolyObjectActor::updateMapper()
+void iAPolyObjectVisActor::updateMapper()
 {
 	m_mapper->Update();
 	updateRenderer();
 }
 
-vtkActor* iA3DPolyObjectActor::actor()
+vtkActor* iAPolyObjectVisActor::actor()
 {
 	return m_actor;
 }
 
-void iA3DPolyObjectActor::showBoundingBox()
+void iAPolyObjectVisActor::showBoundingBox()
 {
 	if (m_outlineVisible || !m_ren)
 	{
@@ -146,7 +146,7 @@ void iA3DPolyObjectActor::showBoundingBox()
 	updateRenderer();
 }
 
-void iA3DPolyObjectActor::hideBoundingBox()
+void iAPolyObjectVisActor::hideBoundingBox()
 {
 	if (!m_outlineVisible || !m_ren)
 	{
@@ -157,7 +157,7 @@ void iA3DPolyObjectActor::hideBoundingBox()
 	updateRenderer();
 }
 
-void iA3DPolyObjectActor::setShowSimple(bool simple)
+void iAPolyObjectVisActor::setShowSimple(bool simple)
 {
 	m_simple = simple;
 	if (m_simple)
@@ -170,7 +170,7 @@ void iA3DPolyObjectActor::setShowSimple(bool simple)
 	}
 }
 
-void iA3DPolyObjectActor::setClippingPlanes(vtkPlane* planes[3])
+void iAPolyObjectVisActor::setClippingPlanes(vtkPlane* planes[3])
 {
 	if (m_clippingPlanesEnabled)
 	{
@@ -183,14 +183,14 @@ void iA3DPolyObjectActor::setClippingPlanes(vtkPlane* planes[3])
 	}
 }
 
-void iA3DPolyObjectActor::removeClippingPlanes()
+void iAPolyObjectVisActor::removeClippingPlanes()
 {
 	m_mapper->RemoveAllClippingPlanes();
 	m_clippingPlanesEnabled = false;
 }
 
 
-bool iA3DPolyObjectActor::visible() const
+bool iAPolyObjectVisActor::visible() const
 {
 	return m_visible;
 }

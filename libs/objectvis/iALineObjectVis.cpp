@@ -1,6 +1,6 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "iA3DLineObjectVis.h"
+#include "iALineObjectVis.h"
 
 #include "iACsvConfig.h"
 
@@ -12,9 +12,9 @@
 #include <vtkPolyLine.h>
 #include <vtkTable.h>
 
-iA3DLineObjectVis::iA3DLineObjectVis(std::shared_ptr<iA3DObjectsData> data, QColor const& color,
+iALineObjectVis::iALineObjectVis(std::shared_ptr<iAObjectsData> data, QColor const& color,
 	std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, size_t segmentSkip):
-	iA3DColoredPolyObjectVis(data, color),
+	iAColoredPolyObjectVis(data, color),
 	m_linePolyData(vtkSmartPointer<vtkPolyData>::New()),
 	m_points(vtkSmartPointer<vtkPoints>::New()),
 	m_curvedFiberData(curvedFiberData),
@@ -75,7 +75,7 @@ iA3DLineObjectVis::iA3DLineObjectVis(std::shared_ptr<iA3DObjectsData> data, QCol
 	setupOriginalIds();
 }
 
-void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & values, int straightOrCurved)
+void iALineObjectVis::updateValues(std::vector<std::vector<double> > const & values, int straightOrCurved)
 {
 	if (2*values.size()+1 >= static_cast<size_t>(std::numeric_limits<vtkIdType>::max()))
 	{
@@ -118,33 +118,33 @@ void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & v
 	emit dataChanged();
 }
 
-vtkPolyData* iA3DLineObjectVis::polyData()
+vtkPolyData* iALineObjectVis::polyData()
 {
 	return m_linePolyData;
 }
 
-vtkPolyData* iA3DLineObjectVis::finalPolyData()
+vtkPolyData* iALineObjectVis::finalPolyData()
 {
 	return m_linePolyData;
 }
 
-QString iA3DLineObjectVis::visualizationStatistics() const
+QString iALineObjectVis::visualizationStatistics() const
 {
 	return QString("# lines: %1; # line segments: %2; # points: %3")
 		.arg(m_linePolyData->GetNumberOfCells()).arg(m_totalNumOfSegments).arg(m_points->GetNumberOfPoints());
 }
 
-iA3DColoredPolyObjectVis::IndexType iA3DLineObjectVis::objectStartPointIdx(IndexType objIdx) const
+iAColoredPolyObjectVis::IndexType iALineObjectVis::objectStartPointIdx(IndexType objIdx) const
 {
 	return m_objectPointMap[objIdx].first;
 }
 
-iA3DColoredPolyObjectVis::IndexType iA3DLineObjectVis::objectPointCount(IndexType objIdx) const
+iAColoredPolyObjectVis::IndexType iALineObjectVis::objectPointCount(IndexType objIdx) const
 {
 	return m_objectPointMap[objIdx].second;
 }
 
-std::vector<vtkSmartPointer<vtkPolyData>> iA3DLineObjectVis::extractSelectedObjects(QColor c) const
+std::vector<vtkSmartPointer<vtkPolyData>> iALineObjectVis::extractSelectedObjects(QColor c) const
 {
 	Q_UNUSED(c);
 	std::vector<vtkSmartPointer<vtkPolyData>> result;

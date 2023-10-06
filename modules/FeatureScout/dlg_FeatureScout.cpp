@@ -12,8 +12,8 @@
 #include "ui_FeatureScoutClassExplorer.h"
 #include "ui_FeatureScoutPolarPlot.h"
 
-#include "iA3DObjectVis.h"
-#include "iA3DLineObjectVis.h"
+#include "iAObjectVis.h"
+#include "iALineObjectVis.h"
 #include "iACsvIO.h"
 #include "iAObjectType.h"
 
@@ -173,7 +173,7 @@ const QString dlg_FeatureScout::UnclassifiedColorName("darkGray");
 
 dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString const& fileName,
 	vtkSmartPointer<vtkTable> csvtbl, iAObjectVisType visType, QSharedPointer<QMap<uint, uint>> columnMapping,
-	QSharedPointer<iA3DObjectVis> objvis) :
+	QSharedPointer<iAObjectVis> objvis) :
 	QDockWidget(parent),
 	m_activeChild(parent),
 	m_elementCount(csvtbl->GetNumberOfColumns()),
@@ -232,7 +232,7 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	}
 	m_3dactor = m_3dvis->createActor(parent->renderer()->renderer());
 	m_3dactor->show();
-	connect(m_3dactor.data(), &iA3DObjectActor::updated, m_activeChild, &iAMdiChild::updateRenderer);
+	connect(m_3dactor.data(), &iAObjectVisActor::updated, m_activeChild, &iAMdiChild::updateRenderer);
 	parent->renderer()->renderer()->ResetCamera();
 	m_blobManager->SetRenderers(parent->renderer()->renderer(), m_renderer->labelRenderer());
 	m_blobManager->SetBounds(m_3dvis->bounds());
@@ -324,7 +324,7 @@ void dlg_FeatureScout::spParameterVisibilityChanged(size_t paramIndex, bool enab
 
 void dlg_FeatureScout::renderLUTChanges(QSharedPointer<iALookupTable> lut, size_t colInd)
 {
-	iA3DLineObjectVis* lov = dynamic_cast<iA3DLineObjectVis*>(m_3dvis.data());
+	iALineObjectVis* lov = dynamic_cast<iALineObjectVis*>(m_3dvis.data());
 	if (lov)
 	{
 		lov->setLookupTable(lut, colInd);
@@ -850,7 +850,7 @@ void dlg_FeatureScout::renderOrientation()
 
 void dlg_FeatureScout::selectionChanged3D()
 {
-	auto vis = dynamic_cast<iA3DColoredPolyObjectVis*>(m_3dvis.data());
+	auto vis = dynamic_cast<iAColoredPolyObjectVis*>(m_3dvis.data());
 	if (!vis)
 	{
 		LOG(lvlError, "Invalid VIS for 3D selection change!");
@@ -1893,7 +1893,7 @@ void dlg_FeatureScout::saveMesh()
 		QMessageBox::warning(this, "FeatureScout", "Cannot export mesh for labelled volume visualization!");
 		return;
 	}
-	auto polyVis = dynamic_cast<iA3DColoredPolyObjectVis*>(m_3dvis.get());
+	auto polyVis = dynamic_cast<iAColoredPolyObjectVis*>(m_3dvis.get());
 	if (!polyVis)
 	{
 		return;

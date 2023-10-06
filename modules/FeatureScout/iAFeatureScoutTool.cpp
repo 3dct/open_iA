@@ -5,7 +5,7 @@
 #include "dlg_FeatureScout.h"
 #include "iAFeatureScoutToolbar.h"
 
-#include <iA3DObjectFactory.h>
+#include <iAObjectVisFactory.h>
 #include <iACsvConfig.h>
 #include <iACsvIO.h>
 #include <iACsvVtkTableCreator.h>

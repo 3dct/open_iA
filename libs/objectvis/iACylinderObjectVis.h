@@ -2,21 +2,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iA3DLineObjectVis.h"
+#include "iALineObjectVis.h"
 
 class iAvtkTubeFilter;
 
 //! Visualizes the objects given in a table as cylinders.
 //!
 //! Requires column mappings for start- and end point as well as for radius in the given object table data.
-class iAobjectvis_API iA3DCylinderObjectVis : public iA3DLineObjectVis
+class iAobjectvis_API iACylinderObjectVis : public iALineObjectVis
 {
 public:
 	static const int DefaultNumberOfCylinderSides = 12;
-	iA3DCylinderObjectVis(std::shared_ptr<iA3DObjectsData> data,
+	iACylinderObjectVis(std::shared_ptr<iAObjectsData> data,
 		QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData,
 		int numberOfCylinderSides = DefaultNumberOfCylinderSides, size_t segmentSkip = 1);
-	virtual ~iA3DCylinderObjectVis();
+	virtual ~iACylinderObjectVis();
 	void setDiameterFactor(double diameterFactor);
 	void setContextDiameterFactor(double contextDiameterFactor);
 	void setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive) override;

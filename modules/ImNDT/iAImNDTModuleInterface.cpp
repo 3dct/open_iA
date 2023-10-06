@@ -6,7 +6,7 @@
 
 // 3D object visualization
 #include "dlg_CSVInput.h"
-#include "iA3DObjectFactory.h"
+#include "iAObjectVisFactory.h"
 #include "iACsvConfig.h"
 #include "iACsvVtkTableCreator.h"
 
@@ -477,7 +477,7 @@ bool iAImNDTModuleInterface::setupVREnvironment()
 }
 
 // Start ImNDT with pre-loaded data
-bool iAImNDTModuleInterface::ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io, iACsvConfig csvConfig)
+bool iAImNDTModuleInterface::ImNDT(QSharedPointer<iAColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io, iACsvConfig csvConfig)
 {
 	if (!setupVREnvironment())
 	{
@@ -530,7 +530,7 @@ bool iAImNDTModuleInterface::loadImNDT()
 	m_objectTable = creator.table();
 	m_polyObject = create3DObjectVis(
 		m_csvConfig.visType, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo)
-					   .dynamicCast<iA3DColoredPolyObjectVis>();
+					   .dynamicCast<iAColoredPolyObjectVis>();
 	if (!m_polyObject)
 	{
 		LOG(lvlError, "Invalid 3D object visualization!");

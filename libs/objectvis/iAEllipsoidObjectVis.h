@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iA3DColoredPolyObjectVis.h"
+#include "iAColoredPolyObjectVis.h"
 
 #include <vtkSmartPointer.h>
 
@@ -12,12 +12,12 @@ class vtkPolyData;
 //!
 //! Requires column mappings for center point coordinates and a dimension in each
 //! 3D direction in the given object table data
-class iAobjectvis_API iA3DEllipseObjectVis : public iA3DColoredPolyObjectVis
+class iAobjectvis_API iAEllipsoidObjectVis : public iAColoredPolyObjectVis
 {
 public:
 	static const int DefaultPhiRes = 10;
 	static const int DefaultThetaRes = 10;
-	iA3DEllipseObjectVis(std::shared_ptr<iA3DObjectsData> data,
+	iAEllipsoidObjectVis(std::shared_ptr<iAObjectsData> data,
 		QColor const & color, int phiRes = DefaultPhiRes, int thetaRes = DefaultThetaRes);
 	double const * bounds() override;
 	vtkPolyData* polyData() override;

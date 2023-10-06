@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iA3DColoredPolyObjectVis.h"
+#include "iAColoredPolyObjectVis.h"
 
 #include <iAVec3.h>
 
@@ -13,11 +13,11 @@ class vtkPoints;
 //! Visualizes the objects given in a table as lines.
 //!
 //! Requires column mappings for start- and end point in the given object table data.
-class iAobjectvis_API iA3DLineObjectVis : public iA3DColoredPolyObjectVis
+class iAobjectvis_API iALineObjectVis : public iAColoredPolyObjectVis
 {
 public:
 	// TODO: unify curved fiber data between here and updateValues!
-	iA3DLineObjectVis(std::shared_ptr<iA3DObjectsData> data,
+	iALineObjectVis(std::shared_ptr<iAObjectsData> data,
 		QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, size_t segmentSkip );
 	void updateValues( std::vector<std::vector<double> > const & values, int straightOrCurved);
 	vtkPolyData* polyData() override;

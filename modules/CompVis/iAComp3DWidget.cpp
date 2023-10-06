@@ -9,10 +9,10 @@
 #include "iAQVTKWidget.h"
 #include "iACsvIO.h"
 #include "iACsvConfig.h"
-#include "iA3DObjectVis.h"
-#include "iA3DEllipseObjectVis.h"
-#include "iA3DCylinderObjectVis.h"
-#include "iA3DPolyObjectActor.h"
+#include "iAObjectVis.h"
+#include "iAEllipsoidObjectVis.h"
+#include "iACylinderObjectVis.h"
+#include "iAPolyObjectVisActor.h"
 #include "iAVec3.h"
 
 // Qt
@@ -101,8 +101,8 @@ void iAComp3DWidget::create3DVis(vtkSmartPointer<vtkTable> objectTable, QSharedP
 	{
 		int cylinderQuality = csvConfig.cylinderQuality;
 		size_t segmentSkip = csvConfig.segmentSkip;
-		m_3dvisData = std::make_shared<iA3DCylinderObjectVis>(
-			std::make_shared<iA3DObjectsData>(objectTable, columnMapping),
+		m_3dvisData = std::make_shared<iACylinderObjectVis>(
+			std::make_shared<iAObjectsData>(objectTable, columnMapping),
 			m_objectColor,
 			std::map<size_t, std::vector<iAVec3f>>(),	// empty curved fiber info
 			cylinderQuality,
@@ -110,11 +110,11 @@ void iAComp3DWidget::create3DVis(vtkSmartPointer<vtkTable> objectTable, QSharedP
 	}
 	else if (csvConfig.visType == iAObjectVisType::Ellipses)
 	{
-		m_3dvisData = std::make_shared<iA3DEllipseObjectVis>(
-			std::make_shared<iA3DObjectsData>(objectTable, columnMapping),
+		m_3dvisData = std::make_shared<iAEllipsoidObjectVis>(
+			std::make_shared<iAObjectsData>(objectTable, columnMapping),
 			m_objectColor);
 	}
-	m_3dvisActor = std::make_shared<iA3DPolyObjectActor>(m_renderer.Get(), m_3dvisData.get());
+	m_3dvisActor = std::make_shared<iAPolyObjectVisActor>(m_renderer.Get(), m_3dvisData.get());
 	m_3dvisActor->show();
 }
 

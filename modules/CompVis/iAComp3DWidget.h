@@ -21,8 +21,8 @@ class iAMainWindow;
 //iA
 class iAQVTKWidget;
 struct iACsvConfig;
-class iA3DColoredPolyObjectVis;
-class iA3DPolyObjectActor;
+class iAColoredPolyObjectVis;
+class iAPolyObjectVisActor;
 
 //vtk
 class vtkTable;
@@ -60,8 +60,8 @@ private:
 	void create3DVis(vtkSmartPointer<vtkTable> objectTable, QSharedPointer<QMap<uint, uint>> columnMapping, const iACsvConfig& csvConfig);
 
 	/*** Rendering ***/
-	std::shared_ptr<iA3DColoredPolyObjectVis> m_3dvisData;
-	std::shared_ptr<iA3DPolyObjectActor> m_3dvisActor;
+	std::shared_ptr<iAColoredPolyObjectVis> m_3dvisData;
+	std::shared_ptr<iAPolyObjectVisActor> m_3dvisActor;
 
 	iAQVTKWidget* m_qvtkWidget;
 	vtkSmartPointer<vtkRenderer> m_renderer;

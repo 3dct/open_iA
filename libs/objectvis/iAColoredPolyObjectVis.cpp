@@ -1,8 +1,8 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "iA3DColoredPolyObjectVis.h"
+#include "iAColoredPolyObjectVis.h"
 
-#include "iA3DPolyObjectActor.h"
+#include "iAPolyObjectVisActor.h"
 
 #include <iALog.h>
 #include <iALookupTable.h>
@@ -18,8 +18,8 @@ namespace
 	const int TransparentAlpha = 32;
 }
 
-iA3DColoredPolyObjectVis::iA3DColoredPolyObjectVis(std::shared_ptr<iA3DObjectsData> data, QColor const & color) :
-	iA3DObjectVis(data),
+iAColoredPolyObjectVis::iAColoredPolyObjectVis(std::shared_ptr<iAObjectsData> data, QColor const & color) :
+	iAObjectVis(data),
 	m_colors(vtkSmartPointer<vtkUnsignedCharArray>::New()),
 	m_contextAlpha(DefaultContextOpacity),
 	m_selectionAlpha(DefaultSelectionOpacity),
@@ -29,7 +29,7 @@ iA3DColoredPolyObjectVis::iA3DColoredPolyObjectVis(std::shared_ptr<iA3DObjectsDa
 {
 }
 
-void iA3DColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & constClassColor, QStandardItem* /*activeClassItem*/)
+void iAColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & constClassColor, QStandardItem* /*activeClassItem*/)
 {
 	m_selection = sortedSelInds;
 	QColor BackColor(128, 128, 128, 0);
@@ -66,7 +66,7 @@ void iA3DColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sorte
 	emit dataChanged();
 }
 
-void iA3DColoredPolyObjectVis::renderSingle(IndexType selectedObjID, int classID, QColor const & constClassColor, QStandardItem* /*activeClassItem*/)
+void iAColoredPolyObjectVis::renderSingle(IndexType selectedObjID, int classID, QColor const & constClassColor, QStandardItem* /*activeClassItem*/)
 {
 	QColor classColor(constClassColor);
 	QColor nonClassColor = QColor(0, 0, 0, 0);
@@ -82,7 +82,7 @@ void iA3DColoredPolyObjectVis::renderSingle(IndexType selectedObjID, int classID
 	emit dataChanged();
 }
 
-void iA3DColoredPolyObjectVis::multiClassRendering(QList<QColor> const & classColors, QStandardItem* /*rootItem*/, double /*alpha*/)
+void iAColoredPolyObjectVis::multiClassRendering(QList<QColor> const & classColors, QStandardItem* /*rootItem*/, double /*alpha*/)
 {
 	for (IndexType objID = 0; objID < m_data->m_table->GetNumberOfRows(); ++objID)
 	{
@@ -92,7 +92,7 @@ void iA3DColoredPolyObjectVis::multiClassRendering(QList<QColor> const & classCo
 	emit dataChanged();
 }
 
-void iA3DColoredPolyObjectVis::renderOrientationDistribution(vtkImageData* oi)
+void iAColoredPolyObjectVis::renderOrientationDistribution(vtkImageData* oi)
 {
 	for (IndexType objID = 0; objID < m_data->m_table->GetNumberOfRows(); ++objID)
 	{
@@ -102,7 +102,7 @@ void iA3DColoredPolyObjectVis::renderOrientationDistribution(vtkImageData* oi)
 	emit dataChanged();
 }
 
-void iA3DColoredPolyObjectVis::renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* /*extents*/, double /*halfInc*/, int /*filterID*/, double const * /*range*/)
+void iAColoredPolyObjectVis::renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* /*extents*/, double /*halfInc*/, int /*filterID*/, double const * /*range*/)
 {
 	for (IndexType objID = 0; objID < m_data->m_table->GetNumberOfRows(); ++objID)
 	{
@@ -112,7 +112,7 @@ void iA3DColoredPolyObjectVis::renderLengthDistribution(vtkColorTransferFunction
 	emit dataChanged();
 }
 
-void iA3DColoredPolyObjectVis::setObjectColor(IndexType objIdx, QColor const & qcolor)
+void iAColoredPolyObjectVis::setObjectColor(IndexType objIdx, QColor const & qcolor)
 {
 	auto const poly = finalPolyData() ? finalPolyData() : polyData();
 	auto const colorsAbstr = poly->GetPointData()->GetAbstractArray("Colors");
@@ -125,10 +125,10 @@ void iA3DColoredPolyObjectVis::setObjectColor(IndexType objIdx, QColor const & q
 	{
 		LOG(lvlDebug, "Colors array has wrong type!");
 	}
-	auto const pntCnt = finalPolyData() ? &iA3DColoredPolyObjectVis::finalObjectPointCount
-										: &iA3DColoredPolyObjectVis::objectPointCount;
-	auto const startPntIdx = finalPolyData() ? &iA3DColoredPolyObjectVis::finalObjectStartPointIdx
-											 : &iA3DColoredPolyObjectVis::objectStartPointIdx;
+	auto const pntCnt = finalPolyData() ? &iAColoredPolyObjectVis::finalObjectPointCount
+										: &iAColoredPolyObjectVis::objectPointCount;
+	auto const startPntIdx = finalPolyData() ? &iAColoredPolyObjectVis::finalObjectStartPointIdx
+											 : &iAColoredPolyObjectVis::objectStartPointIdx;
 	unsigned char color[4];
 	color[0] = qcolor.red();
 	color[1] = qcolor.green();
@@ -144,17 +144,17 @@ void iA3DColoredPolyObjectVis::setObjectColor(IndexType objIdx, QColor const & q
 	colors->Modified();
 }
 
-void iA3DColoredPolyObjectVis::setSelectionOpacity(int selectionAlpha)
+void iAColoredPolyObjectVis::setSelectionOpacity(int selectionAlpha)
 {
 	m_selectionAlpha = selectionAlpha;
 }
 
-void iA3DColoredPolyObjectVis::setContextOpacity(int contextAlpha)
+void iAColoredPolyObjectVis::setContextOpacity(int contextAlpha)
 {
 	m_contextAlpha = contextAlpha;
 }
 
-void iA3DColoredPolyObjectVis::setupOriginalIds()
+void iAColoredPolyObjectVis::setupOriginalIds()
 {
 	auto ids = vtkSmartPointer<vtkIdTypeArray>::New();
 	ids->SetName("OriginalIds");
@@ -169,7 +169,7 @@ void iA3DColoredPolyObjectVis::setupOriginalIds()
 	polyData()->GetPointData()->AddArray(ids);
 }
 
-void iA3DColoredPolyObjectVis::setupColors()
+void iAColoredPolyObjectVis::setupColors()
 {
 	m_colors->SetNumberOfComponents(4);
 	m_colors->SetName("Colors");
@@ -187,24 +187,24 @@ void iA3DColoredPolyObjectVis::setupColors()
 	emit dataChanged();
 }
 
-double const * iA3DColoredPolyObjectVis::bounds()
+double const * iAColoredPolyObjectVis::bounds()
 {
 	return polyData()->GetBounds();
 }
 
-void iA3DColoredPolyObjectVis::setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive)
+void iAColoredPolyObjectVis::setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive)
 {
 	m_selection = sortedSelInds;
 	m_selectionActive = selectionActive;
 	updateColorSelectionRendering();
 }
 
-std::vector<size_t> const& iA3DColoredPolyObjectVis::selection() const
+std::vector<size_t> const& iAColoredPolyObjectVis::selection() const
 {
 	return m_selection;
 }
 
-void iA3DColoredPolyObjectVis::setColor(QColor const &color)
+void iAColoredPolyObjectVis::setColor(QColor const &color)
 {
 	m_baseColor = color;
 	m_colorParamIdx = -1;
@@ -212,14 +212,14 @@ void iA3DColoredPolyObjectVis::setColor(QColor const &color)
 	updateColorSelectionRendering();
 }
 
-void iA3DColoredPolyObjectVis::setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIndex)
+void iAColoredPolyObjectVis::setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIndex)
 {
 	m_lut = lut;
 	m_colorParamIdx = paramIndex;
 	updateColorSelectionRendering();
 }
 
-void iA3DColoredPolyObjectVis::updateColorSelectionRendering()
+void iAColoredPolyObjectVis::updateColorSelectionRendering()
 {
 	size_t curSelIdx = 0;
 	for (IndexType objID = 0; objID < m_data->m_table->GetNumberOfRows(); ++objID)
@@ -252,17 +252,17 @@ void iA3DColoredPolyObjectVis::updateColorSelectionRendering()
 	emit dataChanged();
 }
 
-iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::objectPointCount(IndexType /*ptIdx*/) const
+iAColoredPolyObjectVis::IndexType iAColoredPolyObjectVis::objectPointCount(IndexType /*ptIdx*/) const
 {
 	return DefaultPointsPerObject;
 }
 
-iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::objectStartPointIdx(IndexType ptIdx) const
+iAColoredPolyObjectVis::IndexType iAColoredPolyObjectVis::objectStartPointIdx(IndexType ptIdx) const
 {
 	return ptIdx * DefaultPointsPerObject;
 }
 
-iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::allPointCount() const
+iAColoredPolyObjectVis::IndexType iAColoredPolyObjectVis::allPointCount() const
 {
 	IndexType pointCount = 0;
 	for (IndexType objID = 0; objID < m_data->m_table->GetNumberOfRows(); ++objID)
@@ -272,17 +272,17 @@ iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::allPointCount() co
 	return pointCount;
 }
 
-iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::finalObjectPointCount(IndexType ptIdx) const
+iAColoredPolyObjectVis::IndexType iAColoredPolyObjectVis::finalObjectPointCount(IndexType ptIdx) const
 {
 	return objectPointCount(ptIdx);
 }
 
-iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::finalObjectStartPointIdx(IndexType ptIdx) const
+iAColoredPolyObjectVis::IndexType iAColoredPolyObjectVis::finalObjectStartPointIdx(IndexType ptIdx) const
 {
 	return objectStartPointIdx(ptIdx);
 }
 
-iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::finalAllPointCount() const
+iAColoredPolyObjectVis::IndexType iAColoredPolyObjectVis::finalAllPointCount() const
 {
 	IndexType pointCount = 0;
 	for (IndexType objID = 0; objID < m_data->m_table->GetNumberOfRows(); ++objID)
@@ -293,21 +293,21 @@ iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::finalAllPointCount
 }
 
 /*
-vtkAlgorithmOutput* iA3DColoredPolyObjectVis::output()
+vtkAlgorithmOutput* iAColoredPolyObjectVis::output()
 {
 	return nullptr;
 }
 */
 
-QSharedPointer<iA3DObjectActor> iA3DColoredPolyObjectVis::createActor(vtkRenderer* ren)
+QSharedPointer<iAObjectVisActor> iAColoredPolyObjectVis::createActor(vtkRenderer* ren)
 {
 	return createPolyActor(ren);
 }
 
-QSharedPointer<iA3DPolyObjectActor> iA3DColoredPolyObjectVis::createPolyActor(vtkRenderer* ren)
+QSharedPointer<iAPolyObjectVisActor> iAColoredPolyObjectVis::createPolyActor(vtkRenderer* ren)
 {
-	auto result = QSharedPointer<iA3DPolyObjectActor>::create(ren, this);
-	connect(this, &iA3DObjectVis::dataChanged, result.data(), &iA3DPolyObjectActor::updateMapper);
-	connect(this, &iA3DObjectVis::renderRequired, result.data(), &iA3DPolyObjectActor::updateRenderer);
+	auto result = QSharedPointer<iAPolyObjectVisActor>::create(ren, this);
+	connect(this, &iAObjectVis::dataChanged, result.data(), &iAPolyObjectVisActor::updateMapper);
+	connect(this, &iAObjectVis::renderRequired, result.data(), &iAPolyObjectVisActor::updateRenderer);
 	return result;
 }

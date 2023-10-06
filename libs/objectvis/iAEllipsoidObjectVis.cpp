@@ -1,6 +1,6 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "iA3DEllipseObjectVis.h"
+#include "iAEllipsoidObjectVis.h"
 
 #include "iACsvConfig.h"
 
@@ -11,9 +11,9 @@
 #include <vtkPointData.h>
 #include <vtkTable.h>
 
-iA3DEllipseObjectVis::iA3DEllipseObjectVis(std::shared_ptr<iA3DObjectsData> data,
+iAEllipsoidObjectVis::iAEllipsoidObjectVis(std::shared_ptr<iAObjectsData> data,
 	QColor const & color, int phiRes, int thetaRes) :
-	iA3DColoredPolyObjectVis(data, color),
+	iAColoredPolyObjectVis(data, color),
 	m_pointsPerEllipse((phiRes - 2) * thetaRes + 2)
 {
 	auto fullPolySource = vtkSmartPointer<vtkAppendPolyData>::New();
@@ -45,39 +45,39 @@ iA3DEllipseObjectVis::iA3DEllipseObjectVis(std::shared_ptr<iA3DObjectsData> data
 	setupOriginalIds();
 }
 
-double const * iA3DEllipseObjectVis::bounds()
+double const * iAEllipsoidObjectVis::bounds()
 {
 	return m_fullPoly->GetBounds();
 }
 
-vtkPolyData* iA3DEllipseObjectVis::polyData()
+vtkPolyData* iAEllipsoidObjectVis::polyData()
 {
 	return m_fullPoly;
 }
 
-vtkPolyData* iA3DEllipseObjectVis::finalPolyData()
+vtkPolyData* iAEllipsoidObjectVis::finalPolyData()
 {
 	return m_fullPoly;
 }
 
-QString iA3DEllipseObjectVis::visualizationStatistics() const
+QString iAEllipsoidObjectVis::visualizationStatistics() const
 {
 	return QString("Number of cells: %1; Number of points: %3")
 		.arg(m_fullPoly->GetNumberOfCells())
 		.arg(m_fullPoly->GetNumberOfPoints());
 }
 
-iA3DColoredPolyObjectVis::IndexType iA3DEllipseObjectVis::objectStartPointIdx(IndexType objIdx) const
+iAColoredPolyObjectVis::IndexType iAEllipsoidObjectVis::objectStartPointIdx(IndexType objIdx) const
 {
 	return objIdx * m_pointsPerEllipse;
 }
 
-iA3DColoredPolyObjectVis::IndexType iA3DEllipseObjectVis::objectPointCount(IndexType /*objIdx*/) const
+iAColoredPolyObjectVis::IndexType iAEllipsoidObjectVis::objectPointCount(IndexType /*objIdx*/) const
 {
 	return m_pointsPerEllipse;
 }
 
-std::vector<vtkSmartPointer<vtkPolyData>> iA3DEllipseObjectVis::extractSelectedObjects(QColor c) const
+std::vector<vtkSmartPointer<vtkPolyData>> iAEllipsoidObjectVis::extractSelectedObjects(QColor c) const
 {
 	Q_UNUSED(c);
 	std::vector<vtkSmartPointer<vtkPolyData>> result;

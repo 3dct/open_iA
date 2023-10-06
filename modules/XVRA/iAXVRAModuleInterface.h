@@ -4,7 +4,7 @@
 #include <iAGUIModuleInterface.h>
 
 // FeatureScout
-#include "iA3DColoredPolyObjectVis.h"
+#include "iAColoredPolyObjectVis.h"
 
 #include <QTimer>
 
@@ -19,7 +19,7 @@ public:
 	iAXVRAModuleInterface();
 	void Initialize() override;
 private:
-	QSharedPointer<iA3DColoredPolyObjectVis> m_polyObject;
+	QSharedPointer<iAColoredPolyObjectVis> m_polyObject;
 	dlg_FeatureScout* m_fsMain;
 	iAFrustumActor* fsFrustum;
 	iAFrustumActor* vrFrustum;

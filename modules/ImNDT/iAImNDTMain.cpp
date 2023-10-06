@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAImNDTMain.h"
 
-#include "iA3DColoredPolyObjectVis.h"
+#include "iAColoredPolyObjectVis.h"
 #include "iAImNDTInteractorStyle.h"
 #include "iAVR3DText.h"
 #include "iAVRColorLegend.h"
@@ -37,7 +37,7 @@
 #define OCTREE_COLOR QColor(126, 0, 223, 255)
 //#define OCTREE_COLOR QColor(130, 10, 10, 255)
 
-iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig) :
+iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig) :
 	m_vrEnv(vrEnv), m_interactions(vrEnv->backend(), this), m_polyObject(polyObject), m_objectTable(objectTable), m_io(io), m_arViewer(createARViewer(vrEnv))
 {
 

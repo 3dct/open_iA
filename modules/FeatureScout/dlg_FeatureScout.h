@@ -28,8 +28,8 @@ class iARenderer;
 class iAMdiChild;
 class iAQVTKWidget;
 
-class iA3DObjectVis;
-class iA3DObjectActor;
+class iAObjectVis;
+class iAObjectVisActor;
 
 class iAConnector;
 class iALookupTable;
@@ -77,7 +77,7 @@ public:
 	static const QString UnclassifiedColorName;
 	dlg_FeatureScout(iAMdiChild *parent, iAObjectType fid, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl,
 		iAObjectVisType visType, QSharedPointer<QMap<uint, uint>> columnMapping,
-		QSharedPointer<iA3DObjectVis> objvis);
+		QSharedPointer<iAObjectVis> objvis);
 	~dlg_FeatureScout();
 	void showPCSettings();            //!< show settings dialog for parallel coordinates
 	void showScatterPlot();           //!< show the scatter plot matrix
@@ -246,7 +246,7 @@ private:
 	QSharedPointer<QMap<uint, uint>> m_columnMapping;
 
 	QSharedPointer<iAFeatureScoutSPLOM> m_splom;
-	QSharedPointer<iA3DObjectVis> m_3dvis;
-	QSharedPointer<iA3DObjectActor> m_3dactor;
+	QSharedPointer<iAObjectVis> m_3dvis;
+	QSharedPointer<iAObjectVisActor> m_3dactor;
 	QSharedPointer<iAMeanObject> m_meanObject;
 };

@@ -62,7 +62,7 @@ class iAImNDTMain: public QObject
 {
 	Q_OBJECT
 public:
-	iAImNDTMain(iAVREnvironment* vrEnv, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig);
+	iAImNDTMain(iAVREnvironment* vrEnv, iAColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig);
 	// required to be able to forward-declare for unique_ptr on clang:
 	~iAImNDTMain();
 	//! Defines the action executed for specific controller inputs
@@ -84,7 +84,7 @@ private:
 	iAVRObjectModel* m_volume;
 	vtkSmartPointer<vtkPolyData> m_extendedCylinderVisData; // Data extended with additional intersection points
 	iAImNDTInteractions m_interactions;
-	iA3DColoredPolyObjectVis* m_polyObject;
+	iAColoredPolyObjectVis* m_polyObject;
 	vtkSmartPointer<vtkTable> m_objectTable;
 
 	bool m_networkGraphMode;

@@ -1,5 +1,5 @@
 set(ImNDT_PRECOMPILE_INCLUDES
-<iA3DColoredPolyObjectVis.h>
+<iAColoredPolyObjectVis.h>
 <iACsvIO.h>
 <iAImNDTInteractorStyle.h>
 <iAImNDTMain.h>

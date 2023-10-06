@@ -6,7 +6,7 @@
 #include "iAImNDTMain.h"
 #include "iAImNDTInteractorStyle.h"
 
-#include "iA3DColoredPolyObjectVis.h"
+#include "iAColoredPolyObjectVis.h"
 
 #include <iAGUIModuleInterface.h>
 
@@ -26,7 +26,7 @@ class ImNDT_API iAImNDTModuleInterface : public iAGUIModuleInterface{
 public:
 	~iAImNDTModuleInterface();
 	void Initialize() override;
-	bool ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io,
+	bool ImNDT(QSharedPointer<iAColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io,
 		iACsvConfig csvConfig);
 	vtkRenderer* getRenderer();
 
@@ -43,7 +43,7 @@ private:
 	//! all elements from the VR renderer before exiting!
 	std::shared_ptr<iAVREnvironment> m_vrEnv;
 	//! @{ for ImNDT
-	QSharedPointer<iA3DColoredPolyObjectVis> m_polyObject;
+	QSharedPointer<iAColoredPolyObjectVis> m_polyObject;
 	std::shared_ptr<iAImNDTMain> m_vrMain;
 	iACsvConfig m_csvConfig;
 	iACsvIO m_io;

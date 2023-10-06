@@ -1,6 +1,6 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "iA3DObjectVis.h"
+#include "iAObjectVis.h"
 
 #include "iACsvConfig.h"
 
@@ -12,20 +12,20 @@
 #include <QColor>
 #include <QtMath>
 
-iA3DObjectsData::iA3DObjectsData(vtkTable* table, QSharedPointer<QMap<uint, uint> > colMapping) :
+iAObjectsData::iAObjectsData(vtkTable* table, QSharedPointer<QMap<uint, uint> > colMapping) :
 	iADataSet(iADataSetType::Objects),
 	m_table(table),
 	m_colMapping(colMapping)
 {}
 
-iA3DObjectVis::iA3DObjectVis(std::shared_ptr<iA3DObjectsData> data):
+iAObjectVis::iAObjectVis(std::shared_ptr<iAObjectsData> data):
 	m_data(data)
 {}
 
-iA3DObjectVis::~iA3DObjectVis()
+iAObjectVis::~iAObjectVis()
 {}
 
-QColor iA3DObjectVis::getOrientationColor( vtkImageData* oi, IndexType objID ) const
+QColor iAObjectVis::getOrientationColor( vtkImageData* oi, IndexType objID ) const
 {
 	int ip = qFloor( m_data->m_table->GetValue( objID, m_data->m_colMapping->value(iACsvConfig::Phi) ).ToDouble() );
 	int it = qFloor( m_data->m_table->GetValue( objID, m_data->m_colMapping->value(iACsvConfig::Theta) ).ToDouble() );
@@ -33,7 +33,7 @@ QColor iA3DObjectVis::getOrientationColor( vtkImageData* oi, IndexType objID ) c
 	return QColor(p[0]*255, p[1]*255, p[2]*255, 255);
 }
 
-QColor iA3DObjectVis::getLengthColor( vtkColorTransferFunction* cTFun, IndexType objID ) const
+QColor iAObjectVis::getLengthColor( vtkColorTransferFunction* cTFun, IndexType objID ) const
 {
 	double length = m_data->m_table->GetValue( objID, m_data->m_colMapping->value(iACsvConfig::Length) ).ToDouble();
 	double dcolor[3];
@@ -41,16 +41,16 @@ QColor iA3DObjectVis::getLengthColor( vtkColorTransferFunction* cTFun, IndexType
 	return QColor(dcolor[0]*255, dcolor[1]*255, dcolor[2]*255);
 }
 
-const QColor iA3DObjectVis::SelectedColor(255, 0, 0, 255);
+const QColor iAObjectVis::SelectedColor(255, 0, 0, 255);
 
 
-// iA3DObjectActor
+// iAObjectVisActor
 
-iA3DObjectActor::iA3DObjectActor(vtkRenderer* ren):
+iAObjectVisActor::iAObjectVisActor(vtkRenderer* ren):
 	m_ren(ren)
 {}
 
-void iA3DObjectActor::updateRenderer()
+void iAObjectVisActor::updateRenderer()
 {
 	if (!m_ren)
 	{
@@ -60,10 +60,10 @@ void iA3DObjectActor::updateRenderer()
 	emit updated();
 }
 
-void iA3DObjectActor::show()
+void iAObjectVisActor::show()
 {}
 
-void iA3DObjectActor::clearRenderer()
+void iAObjectVisActor::clearRenderer()
 {
 	m_ren = nullptr;
 }

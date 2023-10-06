@@ -9,7 +9,7 @@
 #include "vtkCamera.h"
 
 // objectvis
-#include "iA3DObjectFactory.h"
+#include "iAObjectVisFactory.h"
 #include "dlg_CSVInput.h"
 #include "iACsvConfig.h"
 #include "iACsvVtkTableCreator.h"
@@ -114,7 +114,7 @@ void iAXVRAModuleInterface::startXVRA()
 	// Create PolyObject visualization
 	m_polyObject = create3DObjectVis(
 		csvConfig.visType, m_objectTable, io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo)
-		.dynamicCast<iA3DColoredPolyObjectVis>();
+		.dynamicCast<iAColoredPolyObjectVis>();
 	if (!m_polyObject)
 	{
 		LOG(lvlError, "Invalid 3D object visualization!");

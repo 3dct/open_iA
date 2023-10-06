@@ -1,6 +1,6 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "iA3DCylinderObjectVis.h"
+#include "iACylinderObjectVis.h"
 #include "iAvtkTubeFilter.h"
 
 #include "iACsvConfig.h"
@@ -13,9 +13,9 @@
 #include <vtkTable.h>
 
 
-iA3DCylinderObjectVis::iA3DCylinderObjectVis(std::shared_ptr<iA3DObjectsData> data,
+iACylinderObjectVis::iACylinderObjectVis(std::shared_ptr<iAObjectsData> data,
 	QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, int numberOfCylinderSides, size_t segmentSkip):
-	iA3DLineObjectVis(data, color, curvedFiberData, segmentSkip),
+	iALineObjectVis(data, color, curvedFiberData, segmentSkip),
 	m_tubeFilter(vtkSmartPointer<iAvtkTubeFilter>::New()),
 	m_contextFactors(nullptr),
 	m_objectCount(data->m_table->GetNumberOfRows()),
@@ -43,12 +43,12 @@ iA3DCylinderObjectVis::iA3DCylinderObjectVis(std::shared_ptr<iA3DObjectsData> da
 	m_finalObjectPointMap = m_tubeFilter->GetFinalObjectPointMap();
 }
 
-iA3DCylinderObjectVis::~iA3DCylinderObjectVis()
+iACylinderObjectVis::~iACylinderObjectVis()
 {
 	delete [] m_contextFactors;
 }
 
-void iA3DCylinderObjectVis::setDiameterFactor(double diameterFactor)
+void iACylinderObjectVis::setDiameterFactor(double diameterFactor)
 {
 	m_tubeFilter->SetRadiusFactor(diameterFactor);
 	m_tubeFilter->Modified();
@@ -56,7 +56,7 @@ void iA3DCylinderObjectVis::setDiameterFactor(double diameterFactor)
 	emit renderRequired();
 }
 
-void iA3DCylinderObjectVis::setContextDiameterFactor(double contextDiameterFactor)
+void iACylinderObjectVis::setContextDiameterFactor(double contextDiameterFactor)
 {
 	if (contextDiameterFactor == 1.0)
 	{
@@ -98,42 +98,42 @@ void iA3DCylinderObjectVis::setContextDiameterFactor(double contextDiameterFacto
 	emit renderRequired();
 }
 
-void iA3DCylinderObjectVis::setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive)
+void iACylinderObjectVis::setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive)
 {
-	iA3DColoredPolyObjectVis::setSelection(sortedSelInds, selectionActive);
+	iAColoredPolyObjectVis::setSelection(sortedSelInds, selectionActive);
 	setContextDiameterFactor(m_contextDiameterFactor);
 }
 
-QString iA3DCylinderObjectVis::visualizationStatistics() const
+QString iACylinderObjectVis::visualizationStatistics() const
 {
-	return iA3DLineObjectVis::visualizationStatistics() + "; # cylinder sides: " +
+	return iALineObjectVis::visualizationStatistics() + "; # cylinder sides: " +
 		QString::number(m_tubeFilter->GetNumberOfSides());
 }
 
-vtkPolyData* iA3DCylinderObjectVis::finalPolyData()
+vtkPolyData* iACylinderObjectVis::finalPolyData()
 {
 	//m_tubeFilter->Update();
 	return m_tubeFilter->GetOutput();
 }
 
-iA3DColoredPolyObjectVis::IndexType iA3DCylinderObjectVis::finalObjectStartPointIdx(IndexType objIdx) const
+iAColoredPolyObjectVis::IndexType iACylinderObjectVis::finalObjectStartPointIdx(IndexType objIdx) const
 {
 	return m_finalObjectPointMap[objIdx].first;
 }
 
-iA3DColoredPolyObjectVis::IndexType iA3DCylinderObjectVis::finalObjectPointCount(IndexType objIdx) const
+iAColoredPolyObjectVis::IndexType iACylinderObjectVis::finalObjectPointCount(IndexType objIdx) const
 {
 	return m_finalObjectPointMap[objIdx].second;
 }
 
 /*
-vtkAlgorithmOutput* iA3DCylinderObjectVis::output()
+vtkAlgorithmOutput* iACylinderObjectVis::output()
 {
 	return m_tubeFilter->GetOutputPort();
 }
 */
 
-std::vector<vtkSmartPointer<vtkPolyData>> iA3DCylinderObjectVis::extractSelectedObjects(QColor color) const
+std::vector<vtkSmartPointer<vtkPolyData>> iACylinderObjectVis::extractSelectedObjects(QColor color) const
 {
 	std::vector<vtkSmartPointer<vtkPolyData>> result;
 	for (auto selIdx: m_selection)
@@ -163,8 +163,8 @@ std::vector<vtkSmartPointer<vtkPolyData>> iA3DCylinderObjectVis::extractSelected
 		{	// Note: curved fiber data currently does not use LabelID, but starts from 0!
 			tmpCurvedFiberData.insert(std::make_pair(ExtractedID-1, it->second));
 		}
-		auto tmpData = std::make_shared<iA3DObjectsData>( tmpTbl.GetPointer(), m_data->m_colMapping );
-		iA3DCylinderObjectVis tmpVis(tmpData, color.isValid() ? color : QColor(0, 0, 0), tmpCurvedFiberData);
+		auto tmpData = std::make_shared<iAObjectsData>( tmpTbl.GetPointer(), m_data->m_colMapping );
+		iACylinderObjectVis tmpVis(tmpData, color.isValid() ? color : QColor(0, 0, 0), tmpCurvedFiberData);
 		auto pd = tmpVis.finalPolyData();
 		result.push_back(pd);
 	}

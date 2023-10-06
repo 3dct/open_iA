@@ -7,7 +7,7 @@
 #include <vtkPointData.h>
 #include <vtkMath.h>
 
-#include "iA3DColoredPolyObjectVis.h"
+#include "iAColoredPolyObjectVis.h"
 
 iAVRObjectCoverage::iAVRObjectCoverage(vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::vector<iAVROctree*>* octrees, iAVRObjectModel* volume) : m_objectTable(objectTable), m_io(io), m_csvConfig(csvConfig), m_octrees(octrees), m_volume(volume)
 {

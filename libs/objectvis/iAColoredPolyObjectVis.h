@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iA3DObjectVis.h"
+#include "iAObjectVis.h"
 
 #include <vtkSmartPointer.h>
 
 #include <QColor>
 
-class iA3DPolyObjectActor;
+class iAPolyObjectVisActor;
 class iALookupTable;
 
 class vtkAlgorithmOutput;
@@ -16,12 +16,12 @@ class vtkPolyData;
 class vtkUnsignedCharArray;
 
 //! Base class for polydata-based object visualizations that can be colored.
-class iAobjectvis_API iA3DColoredPolyObjectVis : public iA3DObjectVis
+class iAobjectvis_API iAColoredPolyObjectVis : public iAObjectVis
 {
 public:
 	static const int DefaultContextOpacity = 8;
 	static const int DefaultSelectionOpacity = 128;
-	iA3DColoredPolyObjectVis(std::shared_ptr<iA3DObjectsData> data, QColor const & neutralColor);
+	iAColoredPolyObjectVis(std::shared_ptr<iAObjectsData> data, QColor const & neutralColor);
 
 	//! @{ "legacy" methods for various selection/coloring options, specific to FeatureScout module
 	void renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem) override;
@@ -71,13 +71,13 @@ public:
 	//virtual vtkAlgorithmOutput* output();
 
 	//! create "actor" class for visualizing this data collection
-	QSharedPointer<iA3DObjectActor> createActor(vtkRenderer* ren) override;
+	QSharedPointer<iAObjectVisActor> createActor(vtkRenderer* ren) override;
 
 	//! same as createActor, but retrieve derived class more specific for visualizing
 	//! a 3D colored poly data object; use this if you need to access methods
-	//! from the iA3DPolyObjectActor class which are not available through the
-	//! iA3DObjectActor interface.
-	QSharedPointer<iA3DPolyObjectActor> createPolyActor(vtkRenderer* ren);
+	//! from the iAPolyObjectVisActorclass which are not available through the
+	//! iAObjectVisActor interface.
+	QSharedPointer<iAPolyObjectVisActor> createPolyActor(vtkRenderer* ren);
 
 	std::vector<size_t> const& selection() const;
 

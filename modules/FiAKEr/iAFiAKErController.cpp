@@ -27,9 +27,9 @@
 #include <iAMdiChild.h>
 
 // objectvis
-#include "iA3DCylinderObjectVis.h"
-#include "iA3DEllipseObjectVis.h"
-#include "iA3DPolyObjectActor.h"
+#include "iACylinderObjectVis.h"
+#include "iAEllipsoidObjectVis.h"
+#include "iAPolyObjectVisActor.h"
 #include "iACsvConfig.h"
 #include "iACsvVectorTableCreator.h"
 
@@ -199,8 +199,8 @@ iAFiAKErController::iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChi
 	m_colorByThemeName(iALUT::colorMapNames()[0]),
 	m_contextSpacing(0.0),
 	m_histogramBins(DefaultHistogramBins),
-	m_selectionOpacity(iA3DLineObjectVis::DefaultSelectionOpacity),
-	m_contextOpacity(iA3DLineObjectVis::DefaultContextOpacity),
+	m_selectionOpacity(iALineObjectVis::DefaultSelectionOpacity),
+	m_contextOpacity(iALineObjectVis::DefaultContextOpacity),
 	m_diameterFactor(DefaultDiameterFactor),
 	m_contextDiameterFactor(DefaultContextDiameterFactor),
 	m_nameActionColumn(0),
@@ -526,15 +526,15 @@ QWidget* iAFiAKErController::setupOptimStepView()
 
 namespace
 {
-	QSharedPointer<iA3DColoredPolyObjectVis> create3DVis(
+	QSharedPointer<iAColoredPolyObjectVis> create3DVis(
 		vtkSmartPointer<vtkTable> table, QSharedPointer<QMap<uint, uint> > mapping, QColor const & color, iAObjectVisType objectType,
 		std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData)
 	{
 		switch (objectType)
 		{
-		case iAObjectVisType::Ellipses: return QSharedPointer<iA3DEllipseObjectVis>::create(std::make_shared<iA3DObjectsData>(table, mapping), color);
+		case iAObjectVisType::Ellipses: return QSharedPointer<iAEllipsoidObjectVis>::create(std::make_shared<iAObjectsData>(table, mapping), color);
 		default: [[fallthrough]];
-		case iAObjectVisType::Cylinders: return QSharedPointer<iA3DCylinderObjectVis>::create(std::make_shared<iA3DObjectsData>(table, mapping), color, curvedFiberData, CylinderSides, SegmentSkip);
+		case iAObjectVisType::Cylinders: return QSharedPointer<iACylinderObjectVis>::create(std::make_shared<iAObjectsData>(table, mapping), color, curvedFiberData, CylinderSides, SegmentSkip);
 		}
 	}
 }
@@ -727,7 +727,7 @@ QWidget* iAFiAKErController::setupResultListView()
 			ui.previewWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
 			connect(ui.previewWidget, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 			//connect(ui.previewWidget, &iASignallingWidget::clicked, this, &iAFiAKErController::previewMouseClick);
-			connect(ui.mini3DActor.data(), &iA3DObjectActor::updated, ui.vtkWidget, &iAQVTKWidget::updateAll);
+			connect(ui.mini3DActor.data(), &iAObjectVisActor::updated, ui.vtkWidget, &iAQVTKWidget::updateAll);
 		}
 		QString bboxText = QString("Bounding box: (x: %1..%2, y: %3..%4, z: %5..%6)")
 			.arg(d.bbox.minCorner().x()).arg(d.bbox.maxCorner().x())
@@ -1500,7 +1500,7 @@ void iAFiAKErController::ensureMain3DViewCreated(size_t resultID)
 		ui.nameActions->setToolTip(ui.nameActions->toolTip() +
 			"Visualization details: " + ui.main3DVis->visualizationStatistics());
 		// iA3DColoredObjectVis::updateRenderer makes sure this connection is only triggered if vis is currently shown:
-		connect(ui.main3DActor.data(), &iA3DObjectActor::updated, this, &iAFiAKErController::update3D);
+		connect(ui.main3DActor.data(), &iAObjectVisActor::updated, this, &iAFiAKErController::update3D);
 	}
 }
 
@@ -1516,7 +1516,7 @@ void iAFiAKErController::showMainVis(size_t resultID, bool state)
 		ui.main3DActor->setShowWireFrame(m_showWireFrame);
 		ui.main3DActor->setShowSimple(m_showLines);
 		setClippingPlanes(ui.main3DActor);
-		auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.data());
+		auto vis = dynamic_cast<iACylinderObjectVis*>(ui.main3DVis.data());
 		if (vis)
 		{
 			vis->setDiameterFactor(m_diameterFactor);
@@ -1964,7 +1964,7 @@ void iAFiAKErController::setOptimStep(int optimStep)
 				m_data->result[resultID].stepData != iAFiberResult::NoStepData)
 			{
 				auto & stepValues = m_data->result[resultID].stepValues;
-				auto vis = dynamic_cast<iA3DCylinderObjectVis*>(main3DVis.data());
+				auto vis = dynamic_cast<iACylinderObjectVis*>(main3DVis.data());
 				vis->updateValues(stepValues[std::min(static_cast<size_t>(optimStep), stepValues.size() - 1)],
 					m_data->result[resultID].stepData);
 			}
@@ -1978,7 +1978,7 @@ void iAFiAKErController::mainOpacityChanged(int opacity)
 	addInteraction(QString("Set main opacity to %1.").arg(opacity));
 	m_settingsView->lbOpacityDefaultValue->setText(QString::number(opacity, 'f', 2));
 	m_selectionOpacity = opacity;
-	visitAllVisibleVis([opacity](QSharedPointer<iA3DColoredPolyObjectVis> vis, QSharedPointer<iA3DPolyObjectActor> /*actor*/, size_t /*resultID*/)
+	visitAllVisibleVis([opacity](QSharedPointer<iAColoredPolyObjectVis> vis, QSharedPointer<iAPolyObjectVisActor> /*actor*/, size_t /*resultID*/)
 	{
 		vis->setSelectionOpacity(opacity);
 		vis->updateColorSelectionRendering();
@@ -1991,7 +1991,7 @@ void iAFiAKErController::contextOpacityChanged(int opacity)
 	m_settingsView->lbOpacityContextValue->setText(QString::number(opacity, 'f', 2));
 	m_contextOpacity = opacity;
 	visitAllVisibleVis(
-		[opacity](QSharedPointer<iA3DColoredPolyObjectVis> vis,	QSharedPointer<iA3DPolyObjectActor> /*actor*/, size_t /*resultID*/)
+		[opacity](QSharedPointer<iAColoredPolyObjectVis> vis,	QSharedPointer<iAPolyObjectVisActor> /*actor*/, size_t /*resultID*/)
 	{
 		vis->setContextOpacity(opacity);
 		vis->updateColorSelectionRendering();
@@ -2008,9 +2008,9 @@ void iAFiAKErController::diameterFactorChanged(int diameterFactorInt)
 	m_diameterFactor = m_diameterFactorMapper->dstToSrc(diameterFactorInt);
 	addInteraction(QString("Set diameter modification factor to %1.").arg(m_diameterFactor));
 	m_settingsView->lbDiameterFactorDefaultValue->setText(QString::number(m_diameterFactor, 'f', 2));
-	visitAllVisibleVis([=](QSharedPointer<iA3DColoredPolyObjectVis> vis, QSharedPointer<iA3DPolyObjectActor> /*actor*/, size_t /*resultID*/)
+	visitAllVisibleVis([=](QSharedPointer<iAColoredPolyObjectVis> vis, QSharedPointer<iAPolyObjectVisActor> /*actor*/, size_t /*resultID*/)
 	{
-		(dynamic_cast<iA3DCylinderObjectVis*>(vis.data()))->setDiameterFactor(m_diameterFactor);
+		(dynamic_cast<iACylinderObjectVis*>(vis.data()))->setDiameterFactor(m_diameterFactor);
 	});
 }
 
@@ -2023,9 +2023,9 @@ void iAFiAKErController::contextDiameterFactorChanged(int contextDiameterFactorI
 	m_contextDiameterFactor = m_diameterFactorMapper->dstToSrc(contextDiameterFactorInt);
 	addInteraction(QString("Set context diameter modification factor to %1.").arg(m_contextDiameterFactor));
 	m_settingsView->lbDiameterFactorContextValue->setText(QString::number(m_contextDiameterFactor, 'f', 2));
-	visitAllVisibleVis([=](QSharedPointer<iA3DColoredPolyObjectVis> vis, QSharedPointer<iA3DPolyObjectActor> /*actor*/, size_t /*resultID*/)
+	visitAllVisibleVis([=](QSharedPointer<iAColoredPolyObjectVis> vis, QSharedPointer<iAPolyObjectVisActor> /*actor*/, size_t /*resultID*/)
 	{
-		(dynamic_cast<iA3DCylinderObjectVis*>(vis.data()))->setContextDiameterFactor(m_contextDiameterFactor);
+		(dynamic_cast<iACylinderObjectVis*>(vis.data()))->setContextDiameterFactor(m_contextDiameterFactor);
 	});
 }
 
@@ -2042,7 +2042,7 @@ void iAFiAKErController::mergeFiberContextBoxesChanged(int newState)
 }
 
 void iAFiAKErController::visitAllVisibleVis(
-	std::function<void(QSharedPointer<iA3DColoredPolyObjectVis>, QSharedPointer<iA3DPolyObjectActor>, size_t)> func)
+	std::function<void(QSharedPointer<iAColoredPolyObjectVis>, QSharedPointer<iAPolyObjectVisActor>, size_t)> func)
 {
 	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
@@ -2061,7 +2061,7 @@ void iAFiAKErController::visitAllVisibleVis(
 void iAFiAKErController::showWireFrameChanged(int newState)
 {
 	m_showWireFrame = (newState == Qt::Checked);
-	visitAllVisibleVis([this](QSharedPointer<iA3DColoredPolyObjectVis> /*vis*/, QSharedPointer<iA3DPolyObjectActor> actor, size_t /*resultID*/)
+	visitAllVisibleVis([this](QSharedPointer<iAColoredPolyObjectVis> /*vis*/, QSharedPointer<iAPolyObjectVisActor> actor, size_t /*resultID*/)
 	{
 		actor->setShowWireFrame(m_showWireFrame);
 	});
@@ -2070,7 +2070,7 @@ void iAFiAKErController::showWireFrameChanged(int newState)
 void iAFiAKErController::showLinesChanged(int newState)
 {
 	m_showLines = (newState == Qt::Checked);
-	visitAllVisibleVis([this](QSharedPointer<iA3DColoredPolyObjectVis> /*vis*/, QSharedPointer<iA3DPolyObjectActor> actor, size_t /*resultID*/)
+	visitAllVisibleVis([this](QSharedPointer<iAColoredPolyObjectVis> /*vis*/, QSharedPointer<iAPolyObjectVisActor> actor, size_t /*resultID*/)
 	{
 		actor->setShowSimple(m_showLines);
 	});
@@ -2646,8 +2646,8 @@ void iAFiAKErController::changeReferenceDisplay()
 		}
 	}
 
-	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>::create(
-		std::make_shared<iA3DObjectsData>(m_refVisTable, m_data->result[m_referenceID].mapping),
+	m_nearestReferenceVis = QSharedPointer<iACylinderObjectVis>::create(
+		std::make_shared<iAObjectsData>(m_refVisTable, m_data->result[m_referenceID].mapping),
 		QColor(0,0,0), refCurvedFiberInfo);
 	m_nearestReferenceActor = m_nearestReferenceVis->createPolyActor(m_ren);
 	/*
@@ -2983,7 +2983,7 @@ void iAFiAKErController::update3D()
 	m_mdiChild->updateRenderer();
 }
 
-void iAFiAKErController::setClippingPlanes(QSharedPointer<iA3DPolyObjectActor> /*actor*/)
+void iAFiAKErController::setClippingPlanes(QSharedPointer<iAPolyObjectVisActor> /*actor*/)
 {
 	// TODO SETTINGS: make clipping plane settings a dataset setting, and make it available somehow?
 	//if (m_mdiChild->renderSettings().ShowSlicers)

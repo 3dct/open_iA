@@ -1,6 +1,6 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "iA3DLabelledVolumeVis.h"
+#include "iALabeledVolumeVis.h"
 
 #include "iACsvConfig.h"
 #include "iAObjectType.h"
@@ -12,16 +12,16 @@
 
 #include <QStandardItem>
 
-iA3DLabelledVolumeVis::iA3DLabelledVolumeVis(vtkColorTransferFunction* color, vtkPiecewiseFunction* opac,
-	std::shared_ptr<iA3DObjectsData> data, double const* bounds) :
-	iA3DObjectVis(data),
+iALabeledVolumeVis::iALabeledVolumeVis(vtkColorTransferFunction* color, vtkPiecewiseFunction* opac,
+	std::shared_ptr<iAObjectsData> data, double const* bounds) :
+	iAObjectVis(data),
 	oTF(opac),
 	cTF(color)
 {
 	std::copy(bounds, bounds + 6, m_bounds);
 }
 
-void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedSelInds, int /*classID*/, QColor const & classColor, QStandardItem* activeClassItem )
+void iALabeledVolumeVis::renderSelection( std::vector<size_t> const & sortedSelInds, int /*classID*/, QColor const & classColor, QStandardItem* activeClassItem )
 {
 	QColor BackColor(128, 128, 128, 0);
 	double backRGB[3];
@@ -201,7 +201,7 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 	emit renderRequired();
 }
 
-void iA3DLabelledVolumeVis::renderSingle(IndexType selectedObjID, int /*classID*/, QColor const & classColor, QStandardItem* activeClassItem )
+void iALabeledVolumeVis::renderSingle(IndexType selectedObjID, int /*classID*/, QColor const & classColor, QStandardItem* activeClassItem )
 {
 	int itemL = activeClassItem->rowCount();
 	double red   = classColor.redF(),
@@ -312,7 +312,7 @@ void iA3DLabelledVolumeVis::renderSingle(IndexType selectedObjID, int /*classID*
 	emit renderRequired();
 }
 
-void iA3DLabelledVolumeVis::multiClassRendering( QList<QColor> const & classColors, QStandardItem* rootItem, double alpha )
+void iALabeledVolumeVis::multiClassRendering( QList<QColor> const & classColors, QStandardItem* rootItem, double alpha )
 {
 	double backAlpha = 0.00005;
 	double backRGB[3];
@@ -419,7 +419,7 @@ void iA3DLabelledVolumeVis::multiClassRendering( QList<QColor> const & classColo
 	emit renderRequired();
 }
 
-void iA3DLabelledVolumeVis::renderOrientationDistribution( vtkImageData* oi )
+void iALabeledVolumeVis::renderOrientationDistribution( vtkImageData* oi )
 {
 	double backRGB[3];
 	backRGB[0] = 0.0; backRGB[1] = 0.0; backRGB[2] = 0.0;
@@ -439,7 +439,7 @@ void iA3DLabelledVolumeVis::renderOrientationDistribution( vtkImageData* oi )
 	emit renderRequired();
 }
 
-void iA3DLabelledVolumeVis::renderLengthDistribution( vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range )
+void iALabeledVolumeVis::renderLengthDistribution( vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range )
 {
 	// clear existing points
 	oTF->RemoveAllPoints();
@@ -512,15 +512,15 @@ void iA3DLabelledVolumeVis::renderLengthDistribution( vtkColorTransferFunction* 
 	emit renderRequired();
 }
 
-double const * iA3DLabelledVolumeVis::bounds()
+double const * iALabeledVolumeVis::bounds()
 {
 	return m_bounds;
 }
 
-QSharedPointer<iA3DObjectActor> iA3DLabelledVolumeVis::createActor(vtkRenderer* ren)
+QSharedPointer<iAObjectVisActor> iALabeledVolumeVis::createActor(vtkRenderer* ren)
 {
-	auto result = QSharedPointer<iA3DObjectActor>::create(ren);
-	connect(this, &iA3DObjectVis::dataChanged, result.data(), &iA3DObjectActor::updateRenderer);
-	connect(this, &iA3DObjectVis::renderRequired, result.data(), &iA3DObjectActor::updateRenderer);
+	auto result = QSharedPointer<iAObjectVisActor>::create(ren);
+	connect(this, &iAObjectVis::dataChanged, result.data(), &iAObjectVisActor::updateRenderer);
+	connect(this, &iAObjectVis::renderRequired, result.data(), &iAObjectVisActor::updateRenderer);
 	return result;
 }
