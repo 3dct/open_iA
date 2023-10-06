@@ -7,14 +7,16 @@
 #include "iAFiAKErController.h"
 #include "iAFiAKErTool.h"
 
-#include <iAAttributeDescriptor.h>    // for selectOption
-#include <iAFileUtils.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
 #include <iAModuleDispatcher.h>
 #include <iAParameterDlg.h>
 #include <iATool.h>
 #include <iAToolRegistry.h>
+
+#include <iAAttributeDescriptor.h>    // for selectOption
+#include <iAFileUtils.h>
+#include <iALog.h>
 
 #include <QAction>
 #include <QFileDialog>
