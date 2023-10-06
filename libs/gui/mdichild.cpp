@@ -3,7 +3,7 @@
 #include "mdichild.h"
 
 #include "dlg_slicer.h"
-#include "iADataSetViewer.h"
+#include "iADataSetViewerImpl.h"
 #include "iADataSetRenderer.h"
 #include "iAVolumeViewer.h"    // TODO NEWIO: only required for changing magic lens input - move from here, e.g. to slicer
 #include "iAFileParamDlg.h"
