@@ -6,16 +6,17 @@
 #include "iAVREnvironment.h"
 
 // 3D object visualization
-#include "dlg_CSVInput.h"
-#include "iAObjectVisFactory.h"
-#include "iACsvConfig.h"
-#include "iACsvVtkTableCreator.h"
+#include <dlg_CSVInput.h>
+#include <iAColoredPolyObjectVis.h>
+#include <iACsvConfig.h>
+#include <iACsvVtkTableCreator.h>
+#include <iAObjectVisFactory.h>
 
+#include <iADataSetRenderer.h>
+#include <iADataSetViewer.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
 #include <iAParameterDlg.h>
-#include <iAVolumeRenderer.h>
-#include <iAVolumeViewer.h>
 
 #include <iALog.h>
 
@@ -478,7 +479,7 @@ bool iAImNDTModuleInterface::setupVREnvironment()
 }
 
 // Start ImNDT with pre-loaded data
-bool iAImNDTModuleInterface::ImNDT(QSharedPointer<iAColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io, iACsvConfig csvConfig)
+bool iAImNDTModuleInterface::ImNDT(std::shared_ptr<iAColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io, iACsvConfig csvConfig)
 {
 	if (!setupVREnvironment())
 	{
@@ -490,7 +491,7 @@ bool iAImNDTModuleInterface::ImNDT(QSharedPointer<iAColoredPolyObjectVis> polyOb
 	//TODO: CHECK IF PolyObject is not Volume OR NoVis
 	m_polyObject = polyObject;
 	m_objectTable = objectTable;
-	m_vrMain = std::make_shared<iAImNDTMain>(m_vrEnv.get(), m_polyObject.data(), m_objectTable, io, csvConfig);
+	m_vrMain = std::make_shared<iAImNDTMain>(m_vrEnv.get(), m_polyObject.get(), m_objectTable, io, csvConfig);
 	connect(m_vrMain.get(), &iAImNDTMain::selectionChanged, this, &iAImNDTModuleInterface::selectionChanged);
 
 	// Start Render Loop HERE!
@@ -529,9 +530,8 @@ bool iAImNDTModuleInterface::loadImNDT()
 		}
 	}
 	m_objectTable = creator.table();
-	m_polyObject = create3DObjectVis(
-		m_csvConfig.visType, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo)
-					   .dynamicCast<iAColoredPolyObjectVis>();
+	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(create3DObjectVis(
+		m_csvConfig.visType, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo));
 	if (!m_polyObject)
 	{
 		LOG(lvlError, "Invalid 3D object visualization!");

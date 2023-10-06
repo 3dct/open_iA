@@ -16,17 +16,17 @@ class dlg_samplings : public dlgSamplingsUI
 {
 	Q_OBJECT
 public:
-	typedef QSharedPointer<iASamplingResults> SamplingResultPtr;
+	typedef std::shared_ptr<iASamplingResults> SamplingResultPtr;
 	dlg_samplings();
 	void Add(SamplingResultPtr samplingResults);
 	SamplingResultPtr GetSampling(int idx);
 	int SamplingCount() const;
-	QSharedPointer<QVector<SamplingResultPtr> > GetSamplings();
+	std::shared_ptr<QVector<SamplingResultPtr> > GetSamplings();
 public slots:
 	void Remove();
 signals:
 	void AddSampling();
 private:
 	QStandardItemModel* m_itemModel;
-	QSharedPointer<QVector<SamplingResultPtr> > m_samplings;
+	std::shared_ptr<QVector<SamplingResultPtr> > m_samplings;
 };

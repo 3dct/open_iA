@@ -2,17 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-//Debug
 #include <iALog.h>
 
-//QT
-#include <QSharedPointer>
+#include <vtkSmartPointer.h>
+
 #include <QString>
 
+#include <memory>
 #include <vector>
-
-//vtk
-#include "vtkSmartPointer.h"
 
 class iACsvIO;
 struct iACsvConfig;
@@ -101,7 +98,7 @@ class iACsvDataStorage
 
 	/*** 3D Rendering ***/
 	std::vector<vtkSmartPointer<vtkTable>> const & getObjectTables();
-	std::vector<QSharedPointer<QMap<uint, uint>>> const & getOutputMappings();
+	std::vector<std::shared_ptr<QMap<uint, uint>>> const & getOutputMappings();
 	std::vector<iACsvConfig> const & getCsvConfigs();
 
    private:
@@ -131,7 +128,7 @@ class iACsvDataStorage
 
 	/*** Initialization for Rendering with iAobjectvis***/
 	std::vector<vtkSmartPointer<vtkTable>> m_objectTables;
-	std::vector<QSharedPointer<QMap<uint, uint>>> m_outputMappings;
+	std::vector<std::shared_ptr<QMap<uint, uint>>> m_outputMappings;
 	std::vector<iACsvConfig> m_csvConfigs;
 
 	//minimum value of all distributions/csv files

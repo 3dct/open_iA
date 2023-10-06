@@ -139,7 +139,7 @@ namespace
 		IndexMap const & rowIndices,
 		IndexMap const & colIndices,
 		iAImageGraph & imageGraph,
-		QSharedPointer<iAGraphWeights const> finalWeight,
+		std::shared_ptr<iAGraphWeights const> finalWeight,
 		QVector<double> const & vertexWeightSum,
 		iAVertexIndexType vertexCount,
 		bool noSameIndices = false)
@@ -194,9 +194,9 @@ namespace
 
 	struct iARWInputChannel
 	{
-		QSharedPointer<iAVectorArray const> image;
-		QSharedPointer<iAVectorDistance const> distanceFunc;
-		QSharedPointer<iANormalizer> normalizeFunc;
+		std::shared_ptr<iAVectorArray const> image;
+		std::shared_ptr<iAVectorDistance const> distanceFunc;
+		std::shared_ptr<iANormalizer> normalizeFunc;
 		double weight;
 	};
 
@@ -242,7 +242,7 @@ void iARandomWalker::performWork(QVariantMap const & parameters)
 	double const * spc = imageInput(0)->vtkImage()->GetSpacing();
 	QVector<iARWInputChannel> inputChannels;
 	iARWInputChannel inputChannel;
-	auto vtkPixelAccess = QSharedPointer<iAvtkPixelVectorArray>::create(dim);
+	auto vtkPixelAccess = std::make_shared<iAvtkPixelVectorArray>(dim);
 	for (size_t i = 0; i < inputCount(); ++i)
 	{
 		vtkPixelAccess->AddImage(imageInput(i)->vtkImage());
@@ -299,7 +299,7 @@ void iARandomWalker::performWork(QVariantMap const & parameters)
 		return;
 	}
 
-	QVector<QSharedPointer<iAGraphWeights> > graphWeights(inputChannels.size());
+	QVector<std::shared_ptr<iAGraphWeights> > graphWeights(inputChannels.size());
 	QVector<double> weightsForChannels(inputChannels.size());
 	for (int i = 0; i<inputChannels.size(); ++i)
 	{
@@ -447,7 +447,7 @@ void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 	double const * spc = imageInput(0)->vtkImage()->GetSpacing();
 	QVector<iARWInputChannel> inputChannels;
 	iARWInputChannel inputChannel;
-	auto vtkPixelAccess = QSharedPointer<iAvtkPixelVectorArray>::create(dim);
+	auto vtkPixelAccess = std::make_shared<iAvtkPixelVectorArray>(dim);
 	for (int i = 0; static_cast<unsigned int>(i) < firstInputChannels(); ++i)
 	{
 		vtkPixelAccess->AddImage(imageInput(i)->vtkImage());
@@ -472,7 +472,7 @@ void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 		return;
 	}
 
-	QVector<QSharedPointer<iAGraphWeights> > graphWeights(inputChannels.size());
+	QVector<std::shared_ptr<iAGraphWeights> > graphWeights(inputChannels.size());
 	QVector<double> weightsForChannels(inputChannels.size());
 	for (int i = 0; i<inputChannels.size(); ++i)
 	{

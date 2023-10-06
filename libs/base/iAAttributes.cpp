@@ -6,9 +6,9 @@
 
 #include <QTextStream>
 
-QSharedPointer<iAAttributes> createAttributes(QTextStream & in)
+std::shared_ptr<iAAttributes> createAttributes(QTextStream & in)
 {
-	auto result = QSharedPointer<iAAttributes>::create();
+	auto result = std::make_shared<iAAttributes>();
 	while (!in.atEnd())
 	{
 		QString line = in.readLine();
@@ -19,7 +19,7 @@ QSharedPointer<iAAttributes> createAttributes(QTextStream & in)
 		}
 		else
 		{
-			return QSharedPointer<iAAttributes>::create();
+			return std::make_shared<iAAttributes>();
 		}
 	}
 	return result;

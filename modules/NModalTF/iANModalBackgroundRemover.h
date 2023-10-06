@@ -5,7 +5,8 @@
 #include <vtkSmartPointer.h>
 
 #include <QList>
-#include <QSharedPointer>
+
+#include <memory>
 
 class vtkImageData;
 

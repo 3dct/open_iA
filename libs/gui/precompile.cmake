@@ -46,7 +46,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <QMessageBox>
 <QObject>
 <QSettings>
-<QSharedPointer>
 <QString>
 <QtConcurrent>
 <QVariant>

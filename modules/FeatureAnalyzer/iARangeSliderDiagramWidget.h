@@ -65,7 +65,7 @@ private:
 
 	QMultiMap<double, QList<double> > * m_histogramMap;
 	const QTableWidget * m_rawTable;
-	QSharedPointer<iATransferFunction> m_tf;
+	std::shared_ptr<iATransferFunction> m_tf;
 
 	int getBin( QMouseEvent *event );
 	void setupSelectionDrawer();

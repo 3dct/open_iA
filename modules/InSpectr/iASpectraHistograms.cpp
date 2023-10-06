@@ -11,7 +11,7 @@
 #include <cassert>
 #include <cmath>
 
-iASpectraHistograms::iASpectraHistograms(QSharedPointer<iAXRFData> xrfData, long numBins, double minCount, double maxCount ) :
+iASpectraHistograms::iASpectraHistograms(std::shared_ptr<iAXRFData> xrfData, long numBins, double minCount, double maxCount ) :
 	m_numBins(numBins),
 	m_histData(nullptr),
 	m_xrfData(xrfData),

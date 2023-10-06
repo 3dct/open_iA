@@ -25,7 +25,7 @@
 #include <QTextStream>
 
 iAHistogramContainer::iAHistogramContainer(
-	QSharedPointer<iAAttributes> chartAttributes,
+	std::shared_ptr<iAAttributes> chartAttributes,
 	iAChartAttributeMapper const & chartAttributeMapper,
 	iAImageTreeNode const * root,
 	QStringList const & pipelineNames):
@@ -155,7 +155,7 @@ void iAHistogramContainer::CreateCharts()
 }
 
 
-void iAHistogramContainer::UpdateClusterChartData(QVector<QSharedPointer<iAImageTreeNode> > const & selection)
+void iAHistogramContainer::UpdateClusterChartData(QVector<std::shared_ptr<iAImageTreeNode> > const & selection)
 {
 	for (int chartID = 0; chartID < m_chartAttributes->size(); ++chartID)
 	{
@@ -168,7 +168,7 @@ void iAHistogramContainer::UpdateClusterChartData(QVector<QSharedPointer<iAImage
 		{
 			auto attrib = m_chartAttributes->at(chartID);
 			m_charts[chartID]->AddClusterData(iAParamHistogramData::create(
-				node.data(), chartID,
+				node.get(), chartID,
 				attrib->valueType(),
 				attrib->min(),
 				attrib->max(),

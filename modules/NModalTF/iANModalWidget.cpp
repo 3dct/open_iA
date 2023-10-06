@@ -67,7 +67,7 @@ iANModalWidget::iANModalWidget(iAMdiChild* mdiChild)
 		dataSets.append(imgDS);
 	}
 
-	m_preprocessor = QSharedPointer<iANModalPreprocessor>::create(mdiChild);
+	m_preprocessor = std::make_shared<iANModalPreprocessor>(mdiChild);
 	auto output = m_preprocessor->preprocess(dataSets);
 
 	if (!output.valid)

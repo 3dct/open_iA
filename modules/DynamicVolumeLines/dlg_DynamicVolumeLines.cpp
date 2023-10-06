@@ -407,7 +407,7 @@ void dlg_DynamicVolumeLines::visualize()
 			p.setWidth(5);
 			p.setColor(QColor(255, 0, 0));  // Selection color: red
 			m_linearScaledPlot->graph()->selectionDecorator()->setPen(p);
-			QSharedPointer<QCPGraphDataContainer> linearScaledPlotData(new QCPGraphDataContainer);
+			auto linearScaledPlotData = QSharedPointer<QCPGraphDataContainer>::create();
 			auto * funct = new iAFunction<double, double>();
 			for (int i = 0; i < it->second.size(); ++i)
 			{
@@ -466,7 +466,7 @@ void dlg_DynamicVolumeLines::visualize()
 		p.setWidth(5);
 		p.setColor(QColor(255, 0, 0));  // Selection color: red
 		m_nonlinearScaledPlot->graph()->selectionDecorator()->setPen(p);
-		QSharedPointer<QCPGraphDataContainer> nonlinearScaledPlotData(new QCPGraphDataContainer);
+		auto nonlinearScaledPlotData = QSharedPointer<QCPGraphDataContainer>::create();
 		auto * funct = new iAFunction<double, double>();
 		for (int i = 0; i < m_nonlinearMappingVec.size(); ++i)
 		{
@@ -760,7 +760,7 @@ void dlg_DynamicVolumeLines::generateSegmentTree()
 
 void dlg_DynamicVolumeLines::setupFBPGraphs(QCustomPlot* qcp, iAFunctionalBoxplot<double, double>* FBPData)
 {
-	QSharedPointer<QCPGraphDataContainer> FBP075Data(new QCPGraphDataContainer);
+	auto FBP075Data = QSharedPointer<QCPGraphDataContainer>::create();
 	for (auto it = FBPData->getMedian().begin(); it != FBPData->getMedian().end(); ++it)
 	{
 		FBP075Data->add(QCPGraphData(it->first, FBPData->getCentralRegion().getMax(it->first)));
@@ -773,7 +773,7 @@ void dlg_DynamicVolumeLines::setupFBPGraphs(QCustomPlot* qcp, iAFunctionalBoxplo
 	qcp->graph()->setPen(QPen(Qt::NoPen));
 	qcp->graph()->setSelectable(QCP::stNone);
 
-	QSharedPointer<QCPGraphDataContainer> FBP025Data(new QCPGraphDataContainer);
+	auto  FBP025Data = QSharedPointer<QCPGraphDataContainer>::create();
 	for (auto it = FBPData->getMedian().begin(); it != FBPData->getMedian().end(); ++it)
 	{
 		FBP025Data->add(QCPGraphData(it->first, FBPData->getCentralRegion().getMin(it->first)));
@@ -788,7 +788,7 @@ void dlg_DynamicVolumeLines::setupFBPGraphs(QCustomPlot* qcp, iAFunctionalBoxplo
 	qcp->graph()->setChannelFillGraph(qcp->graph(qcp->graphCount() - 2));
 	qcp->graph()->setSelectable(QCP::stNone);
 
-	QSharedPointer<QCPGraphDataContainer> medianData(new QCPGraphDataContainer);
+	auto medianData = QSharedPointer<QCPGraphDataContainer>::create();
 	for (auto it = FBPData->getMedian().begin(); it != FBPData->getMedian().end(); ++it)
 	{
 		medianData->add(QCPGraphData(it->first, it->second));
@@ -801,7 +801,7 @@ void dlg_DynamicVolumeLines::setupFBPGraphs(QCustomPlot* qcp, iAFunctionalBoxplo
 	qcp->graph()->setData(medianData);
 	qcp->graph()->setSelectable(QCP::stNone);
 
-	QSharedPointer<QCPGraphDataContainer> MaxData(new QCPGraphDataContainer);
+	auto MaxData = QSharedPointer<QCPGraphDataContainer>::create();
 	for (auto it = FBPData->getMedian().begin(); it != FBPData->getMedian().end(); ++it)
 	{
 		MaxData->add(QCPGraphData(it->first, FBPData->getEnvelope().getMax(it->first)));
@@ -814,7 +814,7 @@ void dlg_DynamicVolumeLines::setupFBPGraphs(QCustomPlot* qcp, iAFunctionalBoxplo
 	qcp->graph()->setPen(QPen(QColor(255, 0, 0, 255), 3));
 	qcp->graph()->setSelectable(QCP::stNone);
 
-	QSharedPointer<QCPGraphDataContainer> MinData(new QCPGraphDataContainer);
+	auto MinData = QSharedPointer<QCPGraphDataContainer>::create();
 	for (auto it = FBPData->getMedian().begin(); it != FBPData->getMedian().end(); ++it)
 	{
 		MinData->add(QCPGraphData(it->first, FBPData->getEnvelope().getMin(it->first)));
@@ -1677,7 +1677,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 			1 - (std::ceil((i + 1.0) / viewportCols) / viewportRows) + fieldLengthY);
 		ren->AddViewProp(cornerAnnotation);
 		ren->ResetCamera();
-		m_volRen = QSharedPointer<iAVolumeRenderer>::create(ren, m_imgDataList[datasetIdx], tf);
+		m_volRen = std::make_shared<iAVolumeRenderer>(ren, m_imgDataList[datasetIdx], tf);
 		m_volRen->setVisible(true);
 		m_volRen->setBoundsVisible(true);
 		m_wgtContainer->renderWindow()->AddRenderer(ren);

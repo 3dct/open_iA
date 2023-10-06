@@ -28,7 +28,7 @@ double const * iANoObjectVis::bounds()
 	return m_dummyBounds;
 }
 
-QSharedPointer<iAObjectVisActor> iANoObjectVis::createActor(vtkRenderer* ren)
+std::shared_ptr<iAObjectVisActor> iANoObjectVis::createActor(vtkRenderer* ren)
 {
-	return QSharedPointer<iAObjectVisActor>::create(ren);
+	return std::make_shared<iAObjectVisActor>(ren);
 }

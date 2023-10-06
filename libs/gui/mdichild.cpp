@@ -1235,7 +1235,7 @@ iAChannelData* MdiChild::channelData(uint id)
 	{
 		return nullptr;
 	}
-	return it->data();
+	return it->get();
 }
 
 iAChannelData const* MdiChild::channelData(uint id) const
@@ -1245,14 +1245,14 @@ iAChannelData const* MdiChild::channelData(uint id) const
 	{
 		return nullptr;
 	}
-	return it->data();
+	return it->get();
 }
 
 uint MdiChild::createChannel()
 {
 	uint newChannelID = m_nextChannelID;
 	++m_nextChannelID;
-	m_channels.insert(newChannelID, QSharedPointer<iAChannelData>::create());
+	m_channels.insert(newChannelID, std::make_shared<iAChannelData>());
 	return newChannelID;
 }
 

@@ -8,11 +8,11 @@ set(FeatureScout_PRECOMPILE_INCLUDES
 <iAMdiChild.h>
 <iAObjectType.h>
 <iAToolsVTK.h>
+<memory>
 <QList>
 <QMessageBox>
 <QObject>
 <QSettings>
-<QSharedPointer>
 <vector>
 <vtkActor.h>
 <vtkImageData.h>

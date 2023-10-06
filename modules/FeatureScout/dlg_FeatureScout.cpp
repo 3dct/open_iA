@@ -172,8 +172,8 @@ const QString dlg_FeatureScout::DlgObjectName("FeatureScoutMainDlg");
 const QString dlg_FeatureScout::UnclassifiedColorName("darkGray");
 
 dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString const& fileName,
-	vtkSmartPointer<vtkTable> csvtbl, iAObjectVisType visType, QSharedPointer<QMap<uint, uint>> columnMapping,
-	QSharedPointer<iAObjectVis> objvis) :
+	vtkSmartPointer<vtkTable> csvtbl, iAObjectVisType visType, std::shared_ptr<QMap<uint, uint>> columnMapping,
+	std::shared_ptr<iAObjectVis> objvis) :
 	QDockWidget(parent),
 	m_activeChild(parent),
 	m_elementCount(csvtbl->GetNumberOfColumns()),
@@ -232,7 +232,7 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	}
 	m_3dactor = m_3dvis->createActor(parent->renderer()->renderer());
 	m_3dactor->show();
-	connect(m_3dactor.data(), &iAObjectVisActor::updated, m_activeChild, &iAMdiChild::updateRenderer);
+	connect(m_3dactor.get(), &iAObjectVisActor::updated, m_activeChild, &iAMdiChild::updateRenderer);
 	parent->renderer()->renderer()->ResetCamera();
 	m_blobManager->SetRenderers(parent->renderer()->renderer(), m_renderer->labelRenderer());
 	m_blobManager->SetBounds(m_3dvis->bounds());
@@ -322,9 +322,9 @@ void dlg_FeatureScout::spParameterVisibilityChanged(size_t paramIndex, bool enab
 	// itemChanged signal from elementTableModel takes care about updating PC (see updatePCColumnValues slot)
 }
 
-void dlg_FeatureScout::renderLUTChanges(QSharedPointer<iALookupTable> lut, size_t colInd)
+void dlg_FeatureScout::renderLUTChanges(std::shared_ptr<iALookupTable> lut, size_t colInd)
 {
-	iALineObjectVis* lov = dynamic_cast<iALineObjectVis*>(m_3dvis.data());
+	iALineObjectVis* lov = dynamic_cast<iALineObjectVis*>(m_3dvis.get());
 	if (lov)
 	{
 		lov->setLookupTable(lut, colInd);
@@ -674,10 +674,10 @@ void dlg_FeatureScout::setupConnections()
 	connect(m_classTreeView, &QTreeView::activated, this, &dlg_FeatureScout::classClicked);
 	connect(m_classTreeView, &QTreeView::doubleClicked, this, &dlg_FeatureScout::classDoubleClicked);
 
-	connect(m_splom.data(), &iAFeatureScoutSPLOM::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart);
-	connect(m_splom.data(), &iAFeatureScoutSPLOM::addClass, this, &dlg_FeatureScout::ClassAddButton);
-	connect(m_splom.data(), &iAFeatureScoutSPLOM::parameterVisibilityChanged, this, &dlg_FeatureScout::spParameterVisibilityChanged);
-	connect(m_splom.data(), &iAFeatureScoutSPLOM::renderLUTChanges, this, &dlg_FeatureScout::renderLUTChanges);
+	connect(m_splom.get(), &iAFeatureScoutSPLOM::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart);
+	connect(m_splom.get(), &iAFeatureScoutSPLOM::addClass, this, &dlg_FeatureScout::ClassAddButton);
+	connect(m_splom.get(), &iAFeatureScoutSPLOM::parameterVisibilityChanged, this, &dlg_FeatureScout::spParameterVisibilityChanged);
+	connect(m_splom.get(), &iAFeatureScoutSPLOM::renderLUTChanges, this, &dlg_FeatureScout::renderLUTChanges);
 }
 
 void dlg_FeatureScout::multiClassRendering()
@@ -850,7 +850,7 @@ void dlg_FeatureScout::renderOrientation()
 
 void dlg_FeatureScout::selectionChanged3D()
 {
-	auto vis = dynamic_cast<iAColoredPolyObjectVis*>(m_3dvis.data());
+	auto vis = dynamic_cast<iAColoredPolyObjectVis*>(m_3dvis.get());
 	if (!vis)
 	{
 		LOG(lvlError, "Invalid VIS for 3D selection change!");
@@ -1825,7 +1825,7 @@ void dlg_FeatureScout::showScatterPlot()
 		QMessageBox::information(this, "FeatureScout", "Scatterplot Matrix already created.");
 		return;
 	}
-	QSignalBlocker spmBlock(m_splom.data()); //< no need to trigger updates while we're creating SPM
+	QSignalBlocker spmBlock(m_splom.get()); //< no need to trigger updates while we're creating SPM
 	m_splom->initScatterPlot(m_csvTable, m_columnVisibility);
 	m_dwSPM = new iADockWidgetWrapper(m_splom->matrixWidget(), "Scatter Plot Matrix", "FeatureScoutSPM");
 	m_activeChild->splitDockWidget(m_activeChild->renderDockWidget(), m_dwSPM, Qt::Vertical);

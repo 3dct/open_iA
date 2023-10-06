@@ -3,7 +3,6 @@
 #pragma once
 
 #include <QFileInfoList>
-#include <QSharedPointer>
 #include <QThread>
 
 #include <memory>

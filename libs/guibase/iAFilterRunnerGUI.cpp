@@ -26,7 +26,6 @@
 #include <QMessageBox>
 #include <QRegularExpression>
 #include <QSettings>
-#include <QSharedPointer>
 #include <QStatusBar>
 #include <QString>
 #include <QVariant>

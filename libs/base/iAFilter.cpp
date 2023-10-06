@@ -253,7 +253,7 @@ bool iAFilter::checkParameters(QVariantMap const & parameters)
 	return true;
 }
 
-bool iAFilter::defaultParameterCheck(QSharedPointer<iAAttributeDescriptor> param, QVariant const& paramValue)
+bool iAFilter::defaultParameterCheck(std::shared_ptr<iAAttributeDescriptor> param, QVariant const& paramValue)
 {
 	bool ok;
 	switch (param->valueType())

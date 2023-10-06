@@ -9,9 +9,8 @@
 
 #include <QDockWidget>
 #include <QMap>
-#include <QSharedPointer>
 
-#include <memory>    // for std::unique_ptr
+#include <memory>
 #include <vector>
 
 class dlg_blobVisualization;
@@ -76,8 +75,8 @@ public:
 	static const QString DlgObjectName;
 	static const QString UnclassifiedColorName;
 	dlg_FeatureScout(iAMdiChild *parent, iAObjectType fid, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl,
-		iAObjectVisType visType, QSharedPointer<QMap<uint, uint>> columnMapping,
-		QSharedPointer<iAObjectVis> objvis);
+		iAObjectVisType visType, std::shared_ptr<QMap<uint, uint>> columnMapping,
+		std::shared_ptr<iAObjectVis> objvis);
 	~dlg_FeatureScout();
 	void showPCSettings();            //!< show settings dialog for parallel coordinates
 	void showScatterPlot();           //!< show the scatter plot matrix
@@ -122,7 +121,7 @@ private slots:
 	void pcViewMouseButtonCallBack(vtkObject * obj, unsigned long, void * client_data, void*, vtkCommand * command);
 	//! @}
 
-	void renderLUTChanges(QSharedPointer<iALookupTable> lut, size_t colInd);
+	void renderLUTChanges(std::shared_ptr<iALookupTable> lut, size_t colInd);
 private:
 	//create labelled output image based on defined classes
 	template <class T> void CreateLabelledOutputMask(std::shared_ptr<iAConnector> con);
@@ -243,10 +242,10 @@ private:
 	iAPolarPlotWidget* m_dwPP;
 	const std::unique_ptr<Ui_FeatureScoutCE> m_ui;
 
-	QSharedPointer<QMap<uint, uint>> m_columnMapping;
+	std::shared_ptr<QMap<uint, uint>> m_columnMapping;
 
-	QSharedPointer<iAFeatureScoutSPLOM> m_splom;
-	QSharedPointer<iAObjectVis> m_3dvis;
-	QSharedPointer<iAObjectVisActor> m_3dactor;
-	QSharedPointer<iAMeanObject> m_meanObject;
+	std::shared_ptr<iAFeatureScoutSPLOM> m_splom;
+	std::shared_ptr<iAObjectVis> m_3dvis;
+	std::shared_ptr<iAObjectVisActor> m_3dactor;
+	std::shared_ptr<iAMeanObject> m_meanObject;
 };

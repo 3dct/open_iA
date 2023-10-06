@@ -5,11 +5,11 @@
 #include <QPropertyAnimation>
 
 iAWidgetAnimationDecorator::iAWidgetAnimationDecorator(QWidget* animatedWidget, int duration, QColor startValue, QColor endValue, QString animatedQssProperty) :
-	m_animation(QSharedPointer<QPropertyAnimation>::create(this, "color")),
+	m_animation(std::make_shared<QPropertyAnimation>(this, "color")),
 	m_animatedQssProperty(animatedQssProperty),
 	m_animatedWidget(animatedWidget)
 {
-	connect(m_animation.data(), &QPropertyAnimation::finished, this, &QObject::deleteLater);
+	connect(m_animation.get(), &QPropertyAnimation::finished, this, &QObject::deleteLater);
 	connect(m_animatedWidget, &QWidget::destroyed, this, [this]
 	{
 		m_animation->stop();

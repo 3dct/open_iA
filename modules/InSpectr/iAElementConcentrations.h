@@ -6,9 +6,9 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QSharedPointer>
 #include <QVector>
 
+#include <memory>
 #include <vector>
 
 class vtkImageData;
@@ -42,11 +42,11 @@ public:
 	bool hasAvgConcentration() const;
 private:
 	void initImages(int elemCount, int extent[6], double spacing[3], double origin[3]);
-	QSharedPointer<QVector<QSharedPointer<iAEnergySpectrum> > > GetAdaptedSpectra(
+	std::shared_ptr<QVector<std::shared_ptr<iAEnergySpectrum> > > GetAdaptedSpectra(
 		iAXRFData const * xrfData,
 		QVector<iAElementSpectralInfo*> const & elements);
 	bool calculateAverageConcentration(
-		QSharedPointer<QVector<QSharedPointer<iAEnergySpectrum> > > elements,
+		std::shared_ptr<QVector<std::shared_ptr<iAEnergySpectrum> > > elements,
 		iAAccumulatedXRFData const * accumulatedXRF);
 
 	int m_elementCount;

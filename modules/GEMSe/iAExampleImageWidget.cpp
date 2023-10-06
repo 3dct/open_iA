@@ -130,7 +130,7 @@ void iAExampleImageWidget::AdaptLayout()
 	UpdateImages();
 }
 
-void iAExampleImageWidget::SetSelectedNode(QSharedPointer<iAImageTreeNode> node)
+void iAExampleImageWidget::SetSelectedNode(std::shared_ptr<iAImageTreeNode> node)
 {
 	m_rootNode = node;
 	UpdateImages();

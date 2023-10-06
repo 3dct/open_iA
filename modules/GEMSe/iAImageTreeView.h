@@ -8,8 +8,9 @@
 
 #include <QMap>
 #include <QRect>
-#include <QSharedPointer>
 #include <QWidget>
+
+#include <memory>
 
 class iAImageTree;
 class iAPreviewWidgetPool;
@@ -34,15 +35,15 @@ public:
 
 	iAImageTreeView(
 		QWidget* parent,
-		QSharedPointer<iAImageTree > tree,
+		std::shared_ptr<iAImageTree > tree,
 		iAPreviewWidgetPool * previewPool,
 		int representativeType);
-	QSharedPointer<iAImageTree> const GetTree() const;
-	void AddSelectedNode(QSharedPointer<iAImageTreeNode> node, bool clear);
+	std::shared_ptr<iAImageTree> const GetTree() const;
+	void AddSelectedNode(std::shared_ptr<iAImageTreeNode> node, bool clear);
 	void EnableSubtreeHighlight(bool enable);
 	void FilterUpdated();
 	bool JumpToNode(iAImageTreeNode const *, int stepLimit=0);
-	QVector<QSharedPointer<iAImageTreeNode> > const CurrentSelection() const;
+	QVector<std::shared_ptr<iAImageTreeNode> > const CurrentSelection() const;
 	void UpdateAutoShrink(iAImageTreeNode* node, bool wasSelected);
 	void UpdateSubtreeHighlight();
 	void SetAutoShrink(bool enabled);
@@ -50,14 +51,14 @@ public:
 	void SetIconSize(int iconSize);
 	bool SetRepresentativeType(int representativeType, LabelImagePointer refImg);
 	int  GetRepresentativeType() const;
-	void freeMemory(QSharedPointer<iAImageTreeNode> node, bool overrideFree);
+	void freeMemory(std::shared_ptr<iAImageTreeNode> node, bool overrideFree);
 	void SetRefImg(LabelImagePointer refImg);
 signals:
-	void clicked(QSharedPointer<iAImageTreeNode >);
-	void ImageClicked(QSharedPointer<iAImageTreeNode >);
+	void clicked(std::shared_ptr<iAImageTreeNode >);
+	void ImageClicked(std::shared_ptr<iAImageTreeNode >);
 	void ImageRightClicked(iAImageTreeNode *);
-	void Expanded(QSharedPointer<iAImageTreeNode >);
-	void JumpedTo(QSharedPointer<iAImageTreeNode >);
+	void Expanded(std::shared_ptr<iAImageTreeNode >);
+	void JumpedTo(std::shared_ptr<iAImageTreeNode >);
 	void ViewUpdated();
 	void SelectionChanged();
 protected:
@@ -68,25 +69,25 @@ private slots:
 	void NodeImageClicked();
 	void NodeImageRightClicked();
 private:
-	void AddNode(QSharedPointer<iAImageTreeNode > node, bool shrinked);
+	void AddNode(std::shared_ptr<iAImageTreeNode > node, bool shrinked);
 	//! return true if expand was successful
 	bool ExpandNode(iAImageNodeWidget* nodeWidget, bool expand, bool shrinked);
 	void UpdateLayout();
-	int LayoutNode(QSharedPointer<iAImageTreeNode > node, int nodeNumber, int level, int & shrinked);
+	int LayoutNode(std::shared_ptr<iAImageTreeNode > node, int nodeNumber, int level, int & shrinked);
 
-	void UpdateRepresentative(QSharedPointer<iAImageTreeNode > node);
+	void UpdateRepresentative(std::shared_ptr<iAImageTreeNode > node);
 	//! collapse a node and all its subclusters:
-	void CollapseNode(QSharedPointer<iAImageTreeNode > node, bool & selectionChanged);
+	void CollapseNode(std::shared_ptr<iAImageTreeNode > node, bool & selectionChanged);
 
-	int getNodeWithIdx(QSharedPointer<iAImageTreeNode > node, int currentNr,
-		int level, int searchedFor, QSharedPointer<iAImageTreeNode > &result);
+	int getNodeWithIdx(std::shared_ptr<iAImageTreeNode > node, int currentNr,
+		int level, int searchedFor, std::shared_ptr<iAImageTreeNode > &result);
 
 	void InsertNodeHighlight(iAImageTreeNode* node, QColor const & color);
 	int GetExpandedChildren(iAImageTreeNode* node,
 		int curLevel, int & maxLevel, int & shrinked);
 
 	bool m_highlightSubtree;
-	QSharedPointer<iAImageTree> m_imageTree;
+	std::shared_ptr<iAImageTree> m_imageTree;
 	// ToDo: extract to widget for a single cluster node:
 	QMap<iAImageTreeNode*, iAImageNodeWidget* > m_nodeWidgets;
 	//! number of currently shown nodes:
@@ -95,7 +96,7 @@ private:
 	//! whether to automatically shrink clusters:
 	bool m_autoShrink;
 	//! currently selected cluster
-	QVector<QSharedPointer<iAImageTreeNode> > m_selectedNode;
+	QVector<std::shared_ptr<iAImageTreeNode> > m_selectedNode;
 	QVector<iATreeHighlight> m_highlights;
 	iAPreviewWidgetPool * m_previewPool;
 	int m_iconSize;

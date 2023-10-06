@@ -16,12 +16,12 @@ dlg_samplings::dlg_samplings():
 	lvSamplings->setModel(m_itemModel);
 }
 
-QSharedPointer<iASamplingResults> dlg_samplings::GetSampling(int idx)
+std::shared_ptr<iASamplingResults> dlg_samplings::GetSampling(int idx)
 {
 	return m_samplings->at(idx);
 }
 
-void dlg_samplings::Add(QSharedPointer<iASamplingResults> samplingResults)
+void dlg_samplings::Add(std::shared_ptr<iASamplingResults> samplingResults)
 {
 	QStandardItem* newItem = new QStandardItem(samplingResults->fileName());
 	m_samplings->push_back(samplingResults);
@@ -50,7 +50,7 @@ int dlg_samplings::SamplingCount() const
 	return m_samplings->size();
 }
 
-QSharedPointer<QVector<dlg_samplings::SamplingResultPtr> > dlg_samplings::GetSamplings()
+std::shared_ptr<QVector<dlg_samplings::SamplingResultPtr>> dlg_samplings::GetSamplings()
 {
 	return m_samplings;
 }

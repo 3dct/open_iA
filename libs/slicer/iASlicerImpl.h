@@ -16,7 +16,8 @@
 
 #include <QCursor>
 #include <QMap>
-#include <QSharedPointer>
+
+#include <memory>
 
 class iASlicerProfile;
 class iASlicerProfileHandles;
@@ -312,7 +313,7 @@ private:
 	bool m_leftMouseDrag = false;   //!< whether the left mouse button is currently being held down
 
 	uint m_magicLensInput;
-	QSharedPointer<iAMagicLens> m_magicLens;
+	std::shared_ptr<iAMagicLens> m_magicLens;
 
 	//! @{ fish-eye lens
 	void initializeFisheyeLens(vtkImageReslice* reslicer);
@@ -344,7 +345,7 @@ private:
 	bool m_cameraOwner;
 	vtkSmartPointer<vtkTransform> m_transform;
 	vtkSmartPointer<vtkWorldPointPicker> m_pointPicker;
-	QMap<uint, QSharedPointer<iAChannelSlicerData> > m_channels;
+	QMap<uint, std::shared_ptr<iAChannelSlicerData> > m_channels;
 	vtkSmartPointer<vtkScalarBarWidget> m_scalarBarWidget;
 	vtkSmartPointer<vtkTextProperty> m_textProperty;
 
@@ -385,7 +386,7 @@ private:
 	QVariantMap m_settings;        //!< current settings of this slicer
 
 	uint firstVisibleChannel() const;
-	QSharedPointer<iAChannelSlicerData> createChannel(uint id, iAChannelData const & chData);
+	std::shared_ptr<iAChannelSlicerData> createChannel(uint id, iAChannelData const & chData);
 	void updatePositionMarkerExtent();
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 	void updatePosition();

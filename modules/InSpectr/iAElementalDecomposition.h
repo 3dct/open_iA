@@ -4,7 +4,7 @@
 
 #include "iAEnergySpectrum.h"
 
-#include <QSharedPointer>
+#include <memory>
 
 class iAElementSpectralInfo;
 
@@ -19,6 +19,6 @@ class iAElementSpectralInfo;
 //!		spectrum e.g. did not contain any data values above threshold)
 bool fitSpectrum(
 	iAEnergySpectrum const & unknownSpectrum,
-	QSharedPointer<QVector<QSharedPointer<iAEnergySpectrum> > > elements,
+	std::shared_ptr<QVector<std::shared_ptr<iAEnergySpectrum> > > elements,
 	CountType threshold,
 	QVector<double> & result);

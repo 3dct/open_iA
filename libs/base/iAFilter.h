@@ -12,7 +12,6 @@
 #include <vtkSmartPointer.h>
 
 #include <QMap>
-#include <QSharedPointer>
 #include <QString>
 #include <QVector>
 
@@ -98,7 +97,7 @@ public:
 	//!     otherwise
 	virtual bool checkParameters(QVariantMap const & parameters);
 	//! the default check for a single parameter descriptor & value combination
-	bool defaultParameterCheck(QSharedPointer<iAAttributeDescriptor> param, QVariant const& paramValue);
+	bool defaultParameterCheck(std::shared_ptr<iAAttributeDescriptor> param, QVariant const& paramValue);
 	//! Clears the list of input images to this filter.
 	//! Call this in case you are re-using a filter already called before,
 	//! and you want to call it with new input images

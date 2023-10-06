@@ -26,7 +26,7 @@ namespace
 iAFilterChart::iAFilterChart(QWidget* parent,
 	QString const & caption,
 	std::shared_ptr<iAParamHistogramData> data,
-	QSharedPointer<iANameMapper> nameMapper,
+	std::shared_ptr<iANameMapper> nameMapper,
 	bool showCaption)
 :
 	iAChartWidget(parent, caption, ""),

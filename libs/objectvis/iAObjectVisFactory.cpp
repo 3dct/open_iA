@@ -11,8 +11,8 @@
 
 #include <iALog.h>
 
-QSharedPointer<iAObjectVis> create3DObjectVis(iAObjectVisType visType, vtkTable* table,
-	QSharedPointer<QMap<uint, uint>> columnMapping, QColor const& color,
+std::shared_ptr<iAObjectVis> create3DObjectVis(iAObjectVisType visType, vtkTable* table,
+	std::shared_ptr<QMap<uint, uint>> columnMapping, QColor const& color,
 	std::map<size_t, std::vector<iAVec3f>>& curvedFiberInfo, int numberOfCylinderSides, size_t segmentSkip,
 	vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf, double const* bounds)
 {
@@ -24,17 +24,17 @@ QSharedPointer<iAObjectVis> create3DObjectVis(iAObjectVisType visType, vtkTable*
 		if (!ctf || !otf || !bounds)
 		{
 			LOG(lvlWarn, "Labelled Volume visualization requested, but transfer functions or bounds missing. Disabling 3D visualization!");
-			return QSharedPointer<iANoObjectVis>::create();
+			return std::make_shared<iANoObjectVis>();
 		}
-		return QSharedPointer<iALabeledVolumeVis>::create(ctf, otf, data, bounds);
+		return std::make_shared<iALabeledVolumeVis>(ctf, otf, data, bounds);
 	case iAObjectVisType::Line:
-		return QSharedPointer<iALineObjectVis>::create(data, color, curvedFiberInfo, segmentSkip);
+		return std::make_shared<iALineObjectVis>(data, color, curvedFiberInfo, segmentSkip);
 	case iAObjectVisType::Cylinder:
-		return QSharedPointer<iACylinderObjectVis>::create(
+		return std::make_shared<iACylinderObjectVis>(
 			data, color, curvedFiberInfo, numberOfCylinderSides, segmentSkip);
 	case iAObjectVisType::Ellipsoid:
-		return QSharedPointer<iAEllipsoidObjectVis>::create(data, color);
+		return std::make_shared<iAEllipsoidObjectVis>(data, color);
 	case iAObjectVisType::None:
-		return QSharedPointer<iANoObjectVis>::create();
+		return std::make_shared<iANoObjectVis>();
 	}
 }

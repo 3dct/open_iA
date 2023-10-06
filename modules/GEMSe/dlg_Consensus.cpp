@@ -132,7 +132,7 @@ dlg_Consensus::dlg_Consensus(iAMdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labe
 	m_consensusCharts.push_back(CreateChartWidget("Consensus Method Parameter", "Prob. Voting Label Dice", mdiChild));
 	m_consensusCharts.push_back(CreateChartWidget("Consensus Method Parameter", "Undecided Label Dice", mdiChild));
 
-	QSharedPointer<iAImageTreeNode> root = dlgGEMSe->GetRoot();
+	std::shared_ptr<iAImageTreeNode> root = dlgGEMSe->GetRoot();
 	int ensembleSize = root->GetClusterSize();
 	slMinRatio->setMaximum(ensembleSize*100);
 	slLabelVoters->setMaximum(ensembleSize);
@@ -236,14 +236,14 @@ void dlg_Consensus::SetGroundTruthImage(LabelImagePointer groundTruthImage)
 
 void dlg_Consensus::ClusterUncertaintyDice()
 {
-	QVector<QSharedPointer<iASingleResult> > selection;
+	QVector<std::shared_ptr<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
-	QSharedPointer<iAImageTreeNode> node = m_dlgGEMSe->GetSelectedCluster();
+	std::shared_ptr<iAImageTreeNode> node = m_dlgGEMSe->GetSelectedCluster();
 	//"Cluster (id=" + QString::number(node->GetID()) + ")";
 }
 
 void dlg_Consensus::SelectionUncertaintyDice(
-	QVector<QSharedPointer<iASingleResult> > const & selection,
+	QVector<std::shared_ptr<iASingleResult> > const & selection,
 	QString const & name)
 {
 	if (!m_groundTruthImage)
@@ -260,8 +260,8 @@ void dlg_Consensus::SelectionUncertaintyDice(
 
 	for (int i = 0; i < selection.size(); ++i)
 	{
-		int avgUncIdx = findAttribute(*selection[i]->attributes().data(), "Average Uncertainty");
-		int diceIdx = findAttribute(*selection[i]->attributes().data(), "Dice");
+		int avgUncIdx = findAttribute(*selection[i]->attributes().get(), "Average Uncertainty");
+		int diceIdx = findAttribute(*selection[i]->attributes().get(), "Dice");
 		double unc    = selection[i]->attribute(avgUncIdx);
 		double dice   = selection[i]->attribute(diceIdx);
 		table->SetValue(i, 0, unc);
@@ -274,7 +274,7 @@ void dlg_Consensus::SelectionUncertaintyDice(
 typedef iAParametrizableLabelVotingImageFilter<LabelImageType> LabelVotingType;
 
 LabelVotingType::Pointer GetLabelVotingFilter(
-	QVector<QSharedPointer<iASingleResult> > selection,
+	QVector<std::shared_ptr<iASingleResult> > selection,
 	double minAbsPercentage, double minDiffPercentage, double minRatio, double maxPixelEntropy,
 	int labelVoters, int weightType, int labelCount)
 {
@@ -295,7 +295,7 @@ LabelVotingType::Pointer GetLabelVotingFilter(
 			std::vector<InputDice> memberDice;
 			for (int m = 0; m < selection.size(); ++m)
 			{
-				int attributeID = findAttribute(*selection[m]->attributes().data(), QString("Dice %1").arg(l));
+				int attributeID = findAttribute(*selection[m]->attributes().get(), QString("Dice %1").arg(l));
 				if (attributeID == -1)
 				{
 					LOG(lvlError, QString("Attribute 'Dice %1' not found, aborting!").arg(l));
@@ -324,7 +324,7 @@ LabelVotingType::Pointer GetLabelVotingFilter(
 		{
 			for (int m = 0; m < selection.size(); ++m)
 			{
-				int attributeID = findAttribute(*selection[m]->attributes().data(), QString("Dice %1").arg(l));
+				int attributeID = findAttribute(*selection[m]->attributes().get(), QString("Dice %1").arg(l));
 				if (attributeID == -1)
 				{
 					LOG(lvlError, QString("Attribute 'Dice %1' not found, aborting!").arg(l));
@@ -360,7 +360,7 @@ LabelVotingType::Pointer GetLabelVotingFilter(
 	return labelVotingFilter;
 }
 
-iAITKIO::ImagePointer GetVotingImage(QVector<QSharedPointer<iASingleResult> > selection,
+iAITKIO::ImagePointer GetVotingImage(QVector<std::shared_ptr<iASingleResult> > selection,
 	double minAbsPercentage, double minDiffPercentage, double minRatio, double maxPixelEntropy,
 	int labelVoters, int weightType, int labelCount, bool undecidedPixels, double & undecided)
 {
@@ -408,7 +408,7 @@ iAITKIO::ImagePointer GetVotingImage(QVector<QSharedPointer<iASingleResult> > se
 }
 
 
-iAITKIO::ImagePointer GetProbVotingImage(QVector<QSharedPointer<iASingleResult> > selection,
+iAITKIO::ImagePointer GetProbVotingImage(QVector<std::shared_ptr<iASingleResult> > selection,
 	double threshold, VotingRule rule, int labelCount, bool undecidedPixels, double & undecided,
 	QVector<double> & diceMV, QVector<double> & diceUndecided, LabelImagePointer groundTruth,
 	QString const & cachePath, int methodNr, int sampleNr)
@@ -500,7 +500,7 @@ iAITKIO::ImagePointer GetProbVotingImage(QVector<QSharedPointer<iASingleResult> 
 }
 
 
-iAITKIO::ImagePointer GetVotingNumbers(QVector<QSharedPointer<iASingleResult> > selection,
+iAITKIO::ImagePointer GetVotingNumbers(QVector<std::shared_ptr<iASingleResult> > selection,
 	double minAbsPercentage, double minDiffPercentage, double minRatio, double maxPixelEntropy,
 	int labelVoters, int weightType, int labelCount, int mode)
 {
@@ -520,7 +520,7 @@ iAITKIO::ImagePointer GetVotingNumbers(QVector<QSharedPointer<iASingleResult> > 
 }
 
 
-QString CollectedIDs(QVector<QSharedPointer<iASingleResult> > selection)
+QString CollectedIDs(QVector<std::shared_ptr<iASingleResult> > selection)
 {
 	QStringList ids;
 	for (int i = 0; i < selection.size(); ++i)
@@ -532,7 +532,7 @@ QString CollectedIDs(QVector<QSharedPointer<iASingleResult> > selection)
 
 void dlg_Consensus::AbsMinPercentSlider(int)
 {
-	QVector<QSharedPointer<iASingleResult> > selection;
+	QVector<std::shared_ptr<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
@@ -550,7 +550,7 @@ void dlg_Consensus::AbsMinPercentSlider(int)
 
 void dlg_Consensus::MinDiffPercentSlider(int)
 {
-	QVector<QSharedPointer<iASingleResult> > selection;
+	QVector<std::shared_ptr<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
@@ -568,7 +568,7 @@ void dlg_Consensus::MinDiffPercentSlider(int)
 
 void dlg_Consensus::MinRatioSlider(int)
 {
-	QVector<QSharedPointer<iASingleResult> > selection;
+	QVector<std::shared_ptr<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
@@ -586,7 +586,7 @@ void dlg_Consensus::MinRatioSlider(int)
 
 void dlg_Consensus::MaxPixelEntropySlider(int)
 {
-	QVector<QSharedPointer<iASingleResult> > selection;
+	QVector<std::shared_ptr<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
@@ -609,7 +609,7 @@ void dlg_Consensus::LabelVoters(int)
 		LOG(lvlError, "Please load a reference image first!");
 		return;
 	}
-	QVector<QSharedPointer<iASingleResult> > selection;
+	QVector<std::shared_ptr<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
@@ -628,7 +628,7 @@ void dlg_Consensus::LabelVoters(int)
 
 void dlg_Consensus::MinAbsPlot()
 {
-	QVector<QSharedPointer<iASingleResult> > selection;
+	QVector<std::shared_ptr<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
@@ -642,7 +642,7 @@ void dlg_Consensus::MinAbsPlot()
 
 void dlg_Consensus::MinDiffPlot()
 {
-	QVector<QSharedPointer<iASingleResult> > selection;
+	QVector<std::shared_ptr<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
@@ -656,7 +656,7 @@ void dlg_Consensus::MinDiffPlot()
 
 void dlg_Consensus::RatioPlot()
 {
-	QVector<QSharedPointer<iASingleResult> > selection;
+	QVector<std::shared_ptr<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
@@ -671,7 +671,7 @@ void dlg_Consensus::RatioPlot()
 
 void dlg_Consensus::MaxPixelEntropyPlot()
 {
-	QVector<QSharedPointer<iASingleResult> > selection;
+	QVector<std::shared_ptr<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
@@ -746,7 +746,7 @@ void dlg_Consensus::StoreConfig()
 		for (int s = 0; s < sampling->size(); ++s)
 		{
 			auto r = sampling->get(s);
-			int derivedOutID = findAttribute(*r->attributes().data(), DerivedOutputName);
+			int derivedOutID = findAttribute(*r->attributes().get(), DerivedOutputName);
 			runs.push_back(std::make_tuple(r->datasetID(), r->id(), r->attribute(derivedOutID)));
 		}
 	}
@@ -766,7 +766,7 @@ void dlg_Consensus::StoreConfig()
 	settings.setValue(QString("BestSingle/%1").arg(DerivedOutputName), bestDice.join(","));
 
 	// fetch config for (last?) consensus (sampling?)
-	QVector<QSharedPointer<iASingleResult> > selection;
+	QVector<std::shared_ptr<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
@@ -789,7 +789,7 @@ void dlg_Consensus::StoreConfig()
 			for (int m = 0; m < selection.size(); ++m)
 			{
 				QString derivedOutName(QString("%1 %2").arg(DerivedOutputName).arg(l));
-				int attributeID = findAttribute(*selection[m]->attributes().data(), derivedOutName);
+				int attributeID = findAttribute(*selection[m]->attributes().get(), derivedOutName);
 				if (attributeID == -1)
 				{
 					LOG(lvlError, QString("Attribute '%1' not found!").arg(derivedOutName));
@@ -963,7 +963,7 @@ void dlg_Consensus::LoadConfig()
 			return;
 		}
 		auto paramValues = dlg.parameterValues();
-		QSharedPointer<iARerunSamplingMethod> generator(
+		std::shared_ptr<iARerunSamplingMethod> generator(
 			new iARerunSamplingMethod(parameterSets,
 				QString("Holdout Comparison, Algorithm %1").arg(s)));
 		m_samplerParameters.push_back(QVariantMap());
@@ -982,7 +982,7 @@ void dlg_Consensus::LoadConfig()
 		params.insert(spnContinueOnError, true);
 		params.insert(spnOverwriteOutput, true);
 		params.insert(spnCompressOutput, true);
-		auto sampler = QSharedPointer<iAImageSampler>::create(
+		auto sampler = std::make_shared<iAImageSampler>(
 			m_mdiChild->dataSetMap(),
 			params,
 			samplingResults->attributes(),
@@ -1004,9 +1004,9 @@ void dlg_Consensus::LoadConfig()
 void dlg_Consensus::StartNextSampler()
 {
 	m_currentSampler = m_queuedSamplers.takeFirst();
-	connect(m_currentSampler.data(), &iAImageSampler::finished, this, &dlg_Consensus::samplerFinished);
+	connect(m_currentSampler.get(), &iAImageSampler::finished, this, &dlg_Consensus::samplerFinished);
 
-	iAJobListView::get()->addJob("Sampling Progress", &m_progress, m_currentSampler.data(), m_currentSampler.data());
+	iAJobListView::get()->addJob("Sampling Progress", &m_progress, m_currentSampler.get(), m_currentSampler.get());
 
 	m_currentSampler->start();
 }
@@ -1029,7 +1029,7 @@ void dlg_Consensus::samplerFinished()
 	auto results = sender->results();
 	m_comparisonSamplingResults.push_back(results);
 	m_dlgSamplings->Add(results);
-	m_currentSampler.clear();
+	m_currentSampler.reset();
 	{
 		if (m_queuedSamplers.size() > 0)
 		{
@@ -1046,25 +1046,25 @@ void dlg_Consensus::samplerFinished()
 		auto attributes = m_comparisonSamplingResults[s]->attributes();
 		// do ref img comparison / measure calculation for the new samplings:
 		// TODO: remove duplication between here and dlg_GEMSe::CalcRefImgComp
-		QVector<QSharedPointer<iAAttributeDescriptor> > measures;
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+		QVector<std::shared_ptr<iAAttributeDescriptor> > measures;
+		measures.push_back(std::make_shared<iAAttributeDescriptor>(
 			"Dice", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+		measures.push_back(std::make_shared<iAAttributeDescriptor>(
 			"Kappa", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+		measures.push_back(std::make_shared<iAAttributeDescriptor>(
 			"Overall Accuracy", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+		measures.push_back(std::make_shared<iAAttributeDescriptor>(
 			"Precision", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+		measures.push_back(std::make_shared<iAAttributeDescriptor>(
 			"Recall", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 		for (int i = 0; i<m_labelCount; ++i)
 		{
-			measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			measures.push_back(std::make_shared<iAAttributeDescriptor>(
 				QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 		}
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+		measures.push_back(std::make_shared<iAAttributeDescriptor>(
 			"Undecided Pixels", iAAttributeDescriptor::DerivedOutput, iAValueType::Discrete));
-		for (QSharedPointer<iAAttributeDescriptor> measure : measures)
+		for (std::shared_ptr<iAAttributeDescriptor> measure : measures)
 		{
 			measure->resetMinMax();
 			attributes->push_back(measure);
@@ -1106,7 +1106,7 @@ void dlg_Consensus::samplerFinished()
 			// }
 			for (int i = 0; i<measures.size(); ++i)
 			{
-				int attributeID = findAttribute(*attributes.data(), measures[i]->name());
+				int attributeID = findAttribute(*attributes.get(), measures[i]->name());
 				m_comparisonSamplingResults[s]->get(m)->setAttribute(attributeID, measureValues[i]);
 				attributes->at(attributeID)->adjustMinMax(measureValues[i]);
 			}
@@ -1174,12 +1174,12 @@ void dlg_Consensus::UpdateWeightPlot()
 
 void dlg_Consensus::Sample()
 {
-	QVector<QSharedPointer<iASingleResult> > selection;
+	QVector<std::shared_ptr<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
 	Sample(selection, m_dlgGEMSe->GetSelectedCluster()->GetID(), GetWeightType());
 }
 
-void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & selection, int selectedClusterID, int weightType)
+void dlg_Consensus::Sample(QVector<std::shared_ptr<iASingleResult> > const & selection, int selectedClusterID, int weightType)
 {
 	try
 	{
@@ -1422,7 +1422,7 @@ typedef itk::CastImageFilter<UIntImage, LabelImageType> CastUIntToInt;
 
 void dlg_Consensus::CalcSTAPLE()
 {
-	QVector<QSharedPointer<iASingleResult> > selection;
+	QVector<std::shared_ptr<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
@@ -1451,7 +1451,7 @@ void dlg_Consensus::CalcSTAPLE()
 
 void dlg_Consensus::CalcMajorityVote()
 {
-	QVector<QSharedPointer<iASingleResult> > selection;
+	QVector<std::shared_ptr<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
@@ -1480,7 +1480,7 @@ void dlg_Consensus::CalcMajorityVote()
 
 void dlg_Consensus::CalcProbRuleVote()
 {
-	QVector<QSharedPointer<iASingleResult> > selection;
+	QVector<std::shared_ptr<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{

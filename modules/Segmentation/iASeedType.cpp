@@ -9,10 +9,10 @@
 
 #include <utility>     // for std::make_pair
 
-QSharedPointer<iASeedVector> ExtractSeedVector(QString const & seedString, int width, int height, int depth)
+std::shared_ptr<iASeedVector> ExtractSeedVector(QString const & seedString, int width, int height, int depth)
 {
 	QStringList lines = seedString.split(QRegularExpression("[\r\n]"), Qt::SkipEmptyParts);
-	auto result = QSharedPointer<iASeedVector>::create();
+	auto result = std::make_shared<iASeedVector>();
 	QString parseErrors;
 	bool numberOK;
 	// convert seed string to vector:

@@ -19,7 +19,7 @@ class iAMemberView: public QWidget
 	Q_OBJECT
 public:
 	iAMemberView();
-	void SetEnsemble(QSharedPointer<iAEnsemble> ensemble);
+	void SetEnsemble(std::shared_ptr<iAEnsemble> ensemble);
 	QVector<int > SelectedMemberIDs() const;
 signals:
 	void MemberSelected(int memberIdx);
@@ -27,7 +27,7 @@ public slots:
 	void StyleChanged();
 	void mouseWheel(QWheelEvent*);
 private:
-	QSharedPointer<iAEnsemble> m_ensemble;
+	std::shared_ptr<iAEnsemble> m_ensemble;
 	QCustomPlot* m_plot;
 	std::vector<size_t> m_sortedIndices;
 	QCPBars * mean;

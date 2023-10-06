@@ -15,13 +15,13 @@ class iAEnsembleView : public QWidget
 	Q_OBJECT
 public:
 	iAEnsembleView();
-	void AddEnsemble(QString const & caption, QSharedPointer<iAEnsemble> ensemble);
-	QVector<QSharedPointer<iAEnsemble> > & Ensembles();
+	void AddEnsemble(QString const & caption, std::shared_ptr<iAEnsemble> ensemble);
+	QVector<std::shared_ptr<iAEnsemble> > & Ensembles();
 signals:
-	void EnsembleSelected(QSharedPointer<iAEnsemble> ensemble);
+	void EnsembleSelected(std::shared_ptr<iAEnsemble> ensemble);
 private slots:
 	void EnsembleDblClicked(QListWidgetItem*);
 private:
 	QListWidget* m_list;
-	QVector<QSharedPointer<iAEnsemble> > m_ensembles;
+	QVector<std::shared_ptr<iAEnsemble> > m_ensembles;
 };

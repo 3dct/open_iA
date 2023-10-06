@@ -7,7 +7,6 @@
 
 //iA
 #include "iAQVTKWidget.h"
-#include "iACsvIO.h"
 #include "iACsvConfig.h"
 #include "iAObjectVis.h"
 #include "iAEllipsoidObjectVis.h"
@@ -15,15 +14,9 @@
 #include "iAPolyObjectVisActor.h"
 #include "iAVec3.h"
 
-// Qt
-#include <QBoxLayout>
-#include <QSharedPointer>
-#include <QMap>
-#include <QColor>
+#include <QVBoxLayout>
 
-//vtk
 #include "vtkRenderWindow.h"
-#include "vtkRenderWindowInteractor.h"
 #include "vtkTable.h"
 #include "vtkRenderer.h"
 #include "vtkRendererCollection.h"
@@ -35,14 +28,14 @@
 
 
 iAComp3DWidget::iAComp3DWidget(
-	iAMainWindow* parent, vtkSmartPointer<vtkTable> objectTable, QSharedPointer<QMap<uint, uint>> columnMapping, const iACsvConfig& csvConfig) :
+	iAMainWindow* parent, vtkSmartPointer<vtkTable> objectTable, std::shared_ptr<QMap<uint, uint>> columnMapping, const iACsvConfig& csvConfig) :
 	QDockWidget(parent),
 	m_objectColor(QColor(140, 140, 140, 255)),
 	m_interactionStyle(vtkSmartPointer<iAComp3DWidgetInteractionStyle>::New())
 {
 	setupUi(this);
 
-	QVBoxLayout* layout = new QVBoxLayout;
+	auto layout = new QVBoxLayout;
 	dockWidgetContents->setLayout(layout);
 
 	m_qvtkWidget = new iAQVTKWidget(this);
@@ -95,7 +88,7 @@ void iAComp3DWidget::removeAllRendererFromWidget()
 }
 
 /*************** Initialization ****************************/
-void iAComp3DWidget::create3DVis(vtkSmartPointer<vtkTable> objectTable, QSharedPointer<QMap<uint, uint>> columnMapping, const iACsvConfig& csvConfig)
+void iAComp3DWidget::create3DVis(vtkSmartPointer<vtkTable> objectTable, std::shared_ptr<QMap<uint, uint>> columnMapping, const iACsvConfig& csvConfig)
 {
 	if (csvConfig.visType == iAObjectVisType::Cylinder)
 	{

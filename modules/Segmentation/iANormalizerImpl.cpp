@@ -85,18 +85,18 @@ char const * iAGaussianNormalizer::name() const
 	return TransformNames[nmGaussian];
 }
 
-QSharedPointer<iANormalizer> CreateNormalizer(QString const & name, double beta)
+std::shared_ptr<iANormalizer> CreateNormalizer(QString const & name, double beta)
 {
 	if (name == TransformNames[nmLinear])
-		return QSharedPointer<iALinearNormalizer>::create();
+		return std::make_shared<iALinearNormalizer>();
 	else if (name == TransformNames[nmGaussian])
 	{
 		iAGaussianNormalizer* norm = new iAGaussianNormalizer;
 		norm->SetBeta(beta);
-		return QSharedPointer<iANormalizer>(norm);
+		return std::shared_ptr<iANormalizer>(norm);
 	}
 	else
-		return QSharedPointer<iANoNormalizer>::create();
+		return std::make_shared<iANoNormalizer>();
 }
 
 

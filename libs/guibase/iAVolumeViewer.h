@@ -59,13 +59,13 @@ private:
 	//! @{ histogram:
 	std::vector<std::shared_ptr<iAHistogramData>> m_histogramData;
 	iAChartWithFunctionsWidget* m_histogram;
-	QSharedPointer<iADockWidgetWrapper> m_dwHistogram;
+	std::shared_ptr<iADockWidgetWrapper> m_dwHistogram;
 	QAction* m_histogramAction;
 	//! @}
 	//! @{ line profile
 	iAChartWidget* m_profileChart;
 	std::shared_ptr<iAProfileProbe> m_profileProbe;
-	QSharedPointer<iADockWidgetWrapper> m_dwProfile;
+	std::shared_ptr<iADockWidgetWrapper> m_dwProfile;
 	//! @}
 
 	std::shared_ptr<iATransferFunctionOwner> m_transfer; //!< transfer function used in 2D slicer and 3D renderer

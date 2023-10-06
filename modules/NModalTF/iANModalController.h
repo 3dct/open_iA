@@ -11,10 +11,10 @@
 #include <QColor>
 #include <QList>
 #include <QMap>
-#include <QSharedPointer>
 #include <QString>
 #include <QVector>
 
+#include <memory>
 #include <unordered_set>
 
 class iALabelsDlg;
@@ -81,7 +81,7 @@ private:
 
 	iAMdiChild* m_mdiChild;
 	QList<std::shared_ptr<iAImageData>> m_dataSets;
-	QList<QSharedPointer<iANModalTFManager>> m_tfs;
+	QList<std::shared_ptr<iANModalTFManager>> m_tfs;
 	vtkSmartPointer<vtkImageData> m_mask;
 	QMap<int, std::shared_ptr<iAImageData>> m_mapOverlayImageId2dataSet;
 	QMap<size_t, int> m_dataSetIdx2HistIdx;

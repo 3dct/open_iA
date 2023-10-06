@@ -6,8 +6,9 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QSharedPointer>
 #include <QVector>
+
+#include <memory>
 
 class QWidget;
 
@@ -61,7 +62,7 @@ public:
 	void render();
 
 private:
-	QVector<QSharedPointer<iALensData>> m_lenses;
+	QVector<std::shared_ptr<iALensData>> m_lenses;
 	bool m_isEnabled;
 	bool m_isInitialized;
 	int m_maxLensCount;

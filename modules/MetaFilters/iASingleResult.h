@@ -8,9 +8,10 @@
 #include <iAITKImageTypes.h>
 #include <iAITKIO.h>
 
-#include <QSharedPointer>
 #include <QString>
 #include <QVector>
+
+#include <memory>
 
 class iASamplingResults;
 
@@ -19,13 +20,13 @@ class MetaFilters_API iASingleResult
 public:
 	static const QString ValueSplitString;
 	//! create from string
-	static QSharedPointer<iASingleResult> create(
+	static std::shared_ptr<iASingleResult> create(
 		QString const & line,
 		iASamplingResults const & sampling,
-		QSharedPointer<iAAttributes> attributes,
+		std::shared_ptr<iAAttributes> attributes,
 		bool showErrorOutput);
 
-	static QSharedPointer<iASingleResult> create(
+	static std::shared_ptr<iASingleResult> create(
 		int id,
 		iASamplingResults const & sampling,
 		QVector<QVariant> const & parameter,
@@ -33,7 +34,7 @@ public:
 
 	//! retrieve all attritutes of the given type as string
 	//! (such as can be passed into Create method above)
-	QString toString(QSharedPointer<iAAttributes> attributes, int type);
+	QString toString(std::shared_ptr<iAAttributes> attributes, int type);
 
 	//! retrieve labelled image
 	iAITKIO::ImagePointer const labelImage();
@@ -66,7 +67,7 @@ public:
 	void addProbabilityImages(QVector<iAITKIO::ImagePointer> & probImgs);
 
 	int datasetID() const;
-	QSharedPointer<iAAttributes> attributes() const;
+	std::shared_ptr<iAAttributes> attributes() const;
 private:
 	//! constructor; use static Create methods instead!
 	iASingleResult(int id, iASamplingResults const & sampling);

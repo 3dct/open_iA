@@ -184,7 +184,7 @@ private:
 	QStringList m_layoutNames;
 	QString m_gitVersion, m_buildInformation;
 
-	QSharedPointer<Ui_MainWindow> m_ui;
+	std::shared_ptr<Ui_MainWindow> m_ui;
 
 	//! the job list dock widget
 	iADockWidgetWrapper* m_dwJobs;

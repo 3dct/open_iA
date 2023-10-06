@@ -6,7 +6,8 @@
 
 #include <QObject>
 #include <QColor>
-#include <QSharedPointer>
+
+#include <memory>
 
 struct iALabel
 {
@@ -22,14 +23,14 @@ struct iALabel
 struct iASeed
 {
 	iASeed() : x(-1), y(-1), z(-1), overlayImageId(-1) {};
-	iASeed(int X, int Y, int Z, int oiid, QSharedPointer<iALabel> l) :
+	iASeed(int X, int Y, int Z, int oiid, std::shared_ptr<iALabel> l) :
 		x(X), y(Y), z(Z), overlayImageId(oiid), label(l)
 	{}
 	int x;
 	int y;
 	int z;
 	int overlayImageId;
-	QSharedPointer<iALabel> label;
+	std::shared_ptr<iALabel> label;
 };
 
 inline bool operator==(const iASeed& i1, const iASeed& i2)

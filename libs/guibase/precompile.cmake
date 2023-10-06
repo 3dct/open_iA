@@ -69,7 +69,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <QRegularExpression>
 <QScrollArea>
 <QSettings>
-<QSharedPointer>
 <QSpinBox>
 <QStatusBar>
 <QString>

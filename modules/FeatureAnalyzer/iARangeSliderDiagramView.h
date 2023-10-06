@@ -5,8 +5,9 @@
 #include <vtkSmartPointer.h>
 
 #include <QMultiMap>
-#include <QSharedPointer>
 #include <QWidget>
+
+#include <memory>
 
 class iAHistogramData;
 class iABarGraphPlot;

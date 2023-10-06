@@ -32,7 +32,7 @@ iAScatterPlotPointInfo::~iAScatterPlotPointInfo()
 class iADefaultScatterPlotPointInfo : public iAScatterPlotPointInfo
 {
 public:
-	iADefaultScatterPlotPointInfo(QSharedPointer<iASPLOMData> data) :
+	iADefaultScatterPlotPointInfo(std::shared_ptr<iASPLOMData> data) :
 		m_data(data)
 	{}
 	QString text(const size_t paramIdx[2], size_t pointIdx) override
@@ -43,7 +43,7 @@ public:
 			QString::number(m_data->paramData(paramIdx[1])[pointIdx]);
 	}
 private:
-	QSharedPointer<iASPLOMData> m_data;
+	std::shared_ptr<iASPLOMData> m_data;
 };
 
 namespace
@@ -62,7 +62,7 @@ iAScatterPlotWidget::iAScatterPlotWidget() :
 	initWidget();
 }
 
-iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool columnSelection) :
+iAScatterPlotWidget::iAScatterPlotWidget(std::shared_ptr<iASPLOMData> data, bool columnSelection) :
 	m_viewData(new iAScatterPlotViewData()),
 	m_columnSelection(columnSelection)
 {
@@ -83,11 +83,11 @@ void iAScatterPlotWidget::initWidget()
 	setFocusPolicy(Qt::StrongFocus);
 }
 
-void iAScatterPlotWidget::setData(QSharedPointer<iASPLOMData> d)
+void iAScatterPlotWidget::setData(std::shared_ptr<iASPLOMData> d)
 {
 	m_data = d;
-	m_pointInfo = QSharedPointer<iADefaultScatterPlotPointInfo>::create(d);
-	m_scatterplot = QSharedPointer<iAScatterPlot>::create(m_viewData.data(), this, 5, false);
+	m_pointInfo = std::make_shared<iADefaultScatterPlotPointInfo>(d);
+	m_scatterplot = std::make_shared<iAScatterPlot>(m_viewData.get(), this, 5, false);
 	m_scatterplot->settings.selectionEnabled = true;
 	d->updateRanges();
 	if (d->numPoints() > std::numeric_limits<int>::max())
@@ -123,17 +123,17 @@ void iAScatterPlotWidget::setData(QSharedPointer<iASPLOMData> d)
 		}
 	}
 	m_scatterplot->setData(0, 1, d);
-	connect(m_viewData.data(), &iAScatterPlotViewData::updateRequired, this, QOverload<>::of(&iAChartParentWidget::update));
-	connect(m_viewData.data(), &iAScatterPlotViewData::filterChanged, this, &iAScatterPlotWidget::updateFilter);
-	connect(m_scatterplot.data(), &iAScatterPlot::currentPointModified, this, &iAScatterPlotWidget::currentPointUpdated);
-	connect(m_scatterplot.data(), &iAScatterPlot::selectionModified, this, &iAScatterPlotWidget::selectionModified);
-	connect(m_scatterplot.data(), &iAScatterPlot::chartClicked, this, &iAScatterPlotWidget::chartClicked);
+	connect(m_viewData.get(), &iAScatterPlotViewData::updateRequired, this, QOverload<>::of(&iAChartParentWidget::update));
+	connect(m_viewData.get(), &iAScatterPlotViewData::filterChanged, this, &iAScatterPlotWidget::updateFilter);
+	connect(m_scatterplot.get(), &iAScatterPlot::currentPointModified, this, &iAScatterPlotWidget::currentPointUpdated);
+	connect(m_scatterplot.get(), &iAScatterPlot::selectionModified, this, &iAScatterPlotWidget::selectionModified);
+	connect(m_scatterplot.get(), &iAScatterPlot::chartClicked, this, &iAScatterPlotWidget::chartClicked);
 	update();
 }
 
 iASPLOMData * iAScatterPlotWidget::data()
 {
-	return m_data.data();
+	return m_data.get();
 }
 
 void iAScatterPlotWidget::currentPointUpdated(size_t index)
@@ -172,7 +172,7 @@ void iAScatterPlotWidget::resetYBounds()
 	m_scatterplot->resetYBounds();
 }
 
-QSharedPointer<iAScatterPlotViewData> iAScatterPlotWidget::viewData()
+std::shared_ptr<iAScatterPlotViewData> iAScatterPlotWidget::viewData()
 {
 	return m_viewData;
 }
@@ -206,7 +206,7 @@ void iAScatterPlotWidget::updateFilter()
 
 void iAScatterPlotWidget::setPlotColor(QColor const & c, double rangeMin, double rangeMax)
 {
-	auto lut = QSharedPointer<iALookupTable>::create();
+	auto lut = std::make_shared<iALookupTable>();
 	double lutRange[2] = { rangeMin, rangeMax };
 	lut->setRange(lutRange);
 	lut->allocate(2);
@@ -217,13 +217,13 @@ void iAScatterPlotWidget::setPlotColor(QColor const & c, double rangeMin, double
 	m_scatterplot->setLookupTable(lut, 0);
 }
 
-void iAScatterPlotWidget::setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIdx)
+void iAScatterPlotWidget::setLookupTable(std::shared_ptr<iALookupTable> lut, size_t paramIdx)
 {
 	m_scatterplot->setLookupTable(lut, paramIdx);
 	update();
 }
 
-QSharedPointer<iALookupTable> iAScatterPlotWidget::lookupTable() const
+std::shared_ptr<iALookupTable> iAScatterPlotWidget::lookupTable() const
 {
 	return m_scatterplot->lookupTable();
 }
@@ -512,7 +512,7 @@ void iAScatterPlotWidget::keyPressEvent(QKeyEvent * event)
 
 namespace
 {
-	void updateParamMenuCheckState(QMenu* menu, QSharedPointer<iASPLOMData> data, size_t visibleIdx)
+	void updateParamMenuCheckState(QMenu* menu, std::shared_ptr<iASPLOMData> data, size_t visibleIdx)
 	{
 		for (auto col : menu->actions())
 		{
@@ -569,7 +569,7 @@ void iAScatterPlotWidget::setShowToolTips(bool enabled)
 	m_showTooltip = enabled;
 }
 
-void iAScatterPlotWidget::setPointInfo(QSharedPointer<iAScatterPlotPointInfo> pointInfo)
+void iAScatterPlotWidget::setPointInfo(std::shared_ptr<iAScatterPlotPointInfo> pointInfo)
 {
 	m_pointInfo = pointInfo;
 }

@@ -4,8 +4,9 @@
 
 #include "iATool.h"
 
-#include <QSharedPointer>
 #include <QString>
+
+#include <memory>
 
 class iAFeatureAnalyzerTool : public iATool
 {

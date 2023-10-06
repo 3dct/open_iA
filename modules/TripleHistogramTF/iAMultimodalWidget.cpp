@@ -41,17 +41,16 @@
 #include <vtkImageMapToColors.h>
 #include <vtkLookupTable.h>
 
+#include <QDebug>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QString>
-#include <QSharedPointer>
 #include <QStackedLayout>
 #include <QMessageBox>
 #include <QCheckBox>
 #include <QTimer>
 
-// Debug
-#include <QDebug>
+#include <memory>
 
 static const QString DISABLED_TEXT_COLOR = "rgb(0,0,0)"; // black
 static const QString DISABLED_BACKGROUND_COLOR = "rgba(255,255,255)"; // white
@@ -345,7 +344,7 @@ void iAMultimodalWidget::initGUI()
 		opacityTF->DeepCopy(dataSetTransfer(ds)->opacityTF());
 		m_copyTFs[ds] = std::make_shared<iATransferFunctionOwner>(colorTF, opacityTF);
 
-		m_histograms[ds] = QSharedPointer<iAChartWithFunctionsWidget>::create(nullptr, dataSetName(ds) + " gray value", "Frequency");
+		m_histograms[ds] = std::make_shared<iAChartWithFunctionsWidget>(nullptr, dataSetName(ds) + " gray value", "Frequency");
 		auto histogramPlot = std::make_shared<iABarGraphPlot>(histData, QColor(70, 70, 70, 255));
 		m_histograms[ds]->addPlot(histogramPlot);
 		m_histograms[ds]->setTransferFunction(m_copyTFs[ds].get());
@@ -492,8 +491,8 @@ void iAMultimodalWidget::resetSlicer(int i)
 {
 	// Slicer is replaced here.
 	// Make sure there are no other references to the old iASimpleSlicerWidget
-	// referenced by the QSharedPointer!
-	m_slicerWidgets[i] = QSharedPointer<iASimpleSlicerWidget>::create(nullptr, true);
+	// referenced by the std::shared_ptr!
+	m_slicerWidgets[i] = std::make_shared<iASimpleSlicerWidget>(nullptr, true);
 	m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 	if (i < m_dataSetsActive.size())
 	{

@@ -4,9 +4,10 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QSharedPointer>
 #include <QVector>
 #include <QWidget>
+
+#include <memory>
 
 class vtkImageData;
 class QImage;
@@ -41,7 +42,7 @@ protected:
 	vtkSmartPointer<vtkImageData> m_vtkImageData;
 	QVector<ImageScalarType> m_avrgSimilarityVec;
 	int m_numBins;
-	QSharedPointer<QImage>	m_qtImage;
+	std::shared_ptr<QImage>	m_qtImage;
 	double m_WindowRange[2];
 	int m_mapWidth;
 	int m_peakPos[2]; //TODO: refactor?, struct/class iAPeak?

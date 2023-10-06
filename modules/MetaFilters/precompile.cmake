@@ -19,11 +19,11 @@ set(MetaFilters_PRECOMPILE_INCLUDES
 <iASingleResult.h>
 <iAStringHelper.h>
 <iAToolsITK.h>
+<memory>
 <QDir>
 <QFile>
 <QFileInfo>
 <QMap>
-<QSharedPointer>
 <QString>
 <QTextStream>
 <QThread>

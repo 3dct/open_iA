@@ -137,7 +137,7 @@ int iALabelsDlg::addSlicer(iASlicer* slicer, QString name, int* extent, double* 
 	labelOverlayImg->AllocateScalars(VTK_INT, 1);
 	clearImage<LabelPixelType>(labelOverlayImg, 0);
 
-	m_mapId2image.insert(imageId, QSharedPointer<iAOverlayImage>::create(imageId, name, labelOverlayImg));
+	m_mapId2image.insert(imageId, std::make_shared<iAOverlayImage>(imageId, name, labelOverlayImg));
 
 	addSlicer(slicer, imageId, channelId);
 
@@ -156,7 +156,7 @@ void iALabelsDlg::addSlicer(iASlicer* slicer, int imageId, uint channelId)
 	oi->slicers.append(slicer);
 
 	auto slicerData = m_mapSlicer2data.value(slicer);
-	if (slicerData.isNull())
+	if (!slicerData)
 	{
 		int id = oi->id;
 
@@ -174,7 +174,7 @@ void iALabelsDlg::addSlicer(iASlicer* slicer, int imageId, uint channelId)
 		auto channelData = iAChannelData("name", oi->image, m_labelColorTF, m_labelOpacityTF);
 		slicer->addChannel(channelId, channelData, true);
 
-		m_mapSlicer2data.insert(slicer, QSharedPointer<iAOverlaySlicerData>::create(channelData, channelId, c, id));
+		m_mapSlicer2data.insert(slicer, std::make_shared<iAOverlaySlicerData>(channelData, channelId, c, id));
 	}
 	else
 	{
@@ -228,12 +228,12 @@ namespace
 		item->setData(overlayImageId, Qt::UserRole + 4);
 		return item;
 	}
-	inline QList<iALabel> createLabelsList(QList<QSharedPointer<iALabel>> labelPtrs)
+	inline QList<iALabel> createLabelsList(QList<std::shared_ptr<iALabel>> labelPtrs)
 	{
 		auto labels = QList<iALabel>();
 		for (auto labelPtr : labelPtrs)
 		{
-			labels.append(*labelPtr.data());
+			labels.append(*labelPtr.get());
 		}
 		return labels;
 	}
@@ -378,7 +378,7 @@ int iALabelsDlg::addLabelItem(QString const& labelText)
 	newRow.append(newItemCount);
 	m_itemModel->appendRow(newRow);
 	auto id = getNextLabelId();
-	auto label = QSharedPointer<iALabel>(new iALabel(id, QString::number(id), color));
+	auto label = std::shared_ptr<iALabel>(new iALabel(id, QString::number(id), color));
 	m_labels.append(label);
 	emit labelAdded(*label);
 	return newItem->row();
@@ -635,7 +635,7 @@ int iALabelsDlg::chooseOverlayImage(QString title)
 
 	QStringList items;
 	QMap<QString, int> map;
-	for (QSharedPointer<iAOverlayImage> oi : m_mapId2image.values())
+	for (std::shared_ptr<iAOverlayImage> oi : m_mapId2image.values())
 	{
 		QString name = oi->name;
 		items.append(name);
@@ -659,7 +659,7 @@ bool iALabelsDlg::load(QString const& filename)
 	{
 		return false;
 	}
-	QSharedPointer<iAOverlayImage> oi = m_mapId2image.value(overlayImageId);
+	std::shared_ptr<iAOverlayImage> oi = m_mapId2image.value(overlayImageId);
 
 	clearImage<LabelPixelType>(oi->image, 0);
 

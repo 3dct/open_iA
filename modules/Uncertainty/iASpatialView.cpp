@@ -97,7 +97,7 @@ iASpatialView::iASpatialView(): QWidget(),
 }
 
 
-void iASpatialView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs,
+void iASpatialView::SetDatasets(std::shared_ptr<iAUncertaintyImages> imgs,
 		vtkSmartPointer<vtkLookupTable> labelImgLut)
 {
 	m_labelImgLut = labelImgLut;
@@ -145,12 +145,12 @@ QToolButton* iASpatialView::AddImage(QString const & caption, vtkImagePointer im
 
 namespace
 {
-	void InitializeChannel(ImageGUIElements & gui, QSharedPointer<iAChannelData> selectionData)
+	void InitializeChannel(ImageGUIElements & gui, std::shared_ptr<iAChannelData> selectionData)
 	{
 		iASlicer* slicer = gui.imageWidget->GetSlicer();
 		const uint SelectionChannelID = 0;
 		selectionData->setName("Scatterplot Selection");
-		slicer->addChannel(SelectionChannelID, *selectionData.data(), true);
+		slicer->addChannel(SelectionChannelID, *selectionData.get(), true);
 		gui.m_selectionChannelInitialized = true;
 	}
 }
@@ -275,7 +275,7 @@ void iASpatialView::SetupSelection(vtkImagePointer selectionImg)
 {
 	m_ctf = BuildLabelOverlayLUT();
 	m_otf = BuildLabelOverlayOTF();
-	m_selectionData = QSharedPointer<iAChannelData>::create();
+	m_selectionData = std::make_shared<iAChannelData>();
 	m_selectionData->setData(selectionImg, m_ctf, m_otf);
 }
 

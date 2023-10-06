@@ -22,12 +22,12 @@ class iAParameterInputs
 {
 public:
 	QLabel* label;
-	QSharedPointer<iAAttributeDescriptor> descriptor;
+	std::shared_ptr<iAAttributeDescriptor> descriptor;
 	iAParameterInputs();
 	virtual ~iAParameterInputs();
 	virtual void retrieveInputValues(QVariantMap& values) =0;
 	virtual void changeInputValues(QVariantMap const & values) =0;
-	virtual QSharedPointer<iAAttributeDescriptor> currentDescriptor() = 0;
+	virtual std::shared_ptr<iAAttributeDescriptor> currentDescriptor() = 0;
 };
 
 class MetaFilters_API iASamplingSettingsDlg : public QDialog
@@ -36,8 +36,8 @@ class MetaFilters_API iASamplingSettingsDlg : public QDialog
 public:
 	iASamplingSettingsDlg(QWidget* parentWdgt, int inputImageCount,
 		QVariantMap const & values);
-	QSharedPointer<iAAttributes> parameterRanges();
-	QSharedPointer<iAAttributes> parameterSpecs();
+	std::shared_ptr<iAAttributes> parameterRanges();
+	std::shared_ptr<iAAttributes> parameterSpecs();
 	void getValues(QVariantMap& values) const;
 	std::vector<int> numOfSamplesPerParameter() const;
 public slots:
@@ -60,7 +60,7 @@ private slots:
 	void showSamplingInfo();
 private:
 	void setInputsFromMap(QVariantMap const & values);
-	void setParameters(QSharedPointer<iAAttributes> params);
+	void setParameters(std::shared_ptr<iAAttributes> params);
 	void setParameterValues(QVariantMap const& values);
 	void setParametersFromFilter(QString const& filterName);
 	void setParametersFromFile(QString const& fileName);
@@ -69,9 +69,9 @@ private:
 	int m_startLine;
 	int m_inputImageCount;
 	QString m_lastParamsFileName, m_lastFilterName;
-	QVector<QSharedPointer<iAParameterInputs> > m_paramInputs;
+	QVector<std::shared_ptr<iAParameterInputs> > m_paramInputs;
 	iAWidgetMap m_widgetMap;
 	iAQRadioButtonVector m_rgAlgorithmType;
-	QSharedPointer<iAAttributes> m_paramSpecs;
-	QSharedPointer<Ui_samplingSettings> m_ui;
+	std::shared_ptr<iAAttributes> m_paramSpecs;
+	std::shared_ptr<Ui_samplingSettings> m_ui;
 };

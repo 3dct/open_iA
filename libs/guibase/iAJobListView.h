@@ -44,7 +44,7 @@ public:
 	//!        is required. By default, a simple estimation based on the current
 	//!        finished percentage and the time elapsed so far will be used.
 	void addJob(QString name, iAProgress* p, QObject* t, iAAbortListener* abortListener = nullptr,
-		QSharedPointer<iADurationEstimator> estimator = QSharedPointer<iADurationEstimator>());
+		std::shared_ptr<iADurationEstimator> estimator = std::shared_ptr<iADurationEstimator>());
 	//! Add a job bound to the life time of the returned object.
 	//! useful for situations where no finished signal can be connected
 	//! (e.g. if a synchronous operation is run)
@@ -72,8 +72,8 @@ public:
 	//!
 	//! For comments on the parameters, see @ref addJobParams "the other addJob variant".
 	[[nodiscard]]
-	QSharedPointer<QObject>	addJob(QString name, iAProgress* p, iAAbortListener* abortListener = nullptr,
-		QSharedPointer<iADurationEstimator> estimator = QSharedPointer<iADurationEstimator>());
+	std::shared_ptr<QObject>	addJob(QString name, iAProgress* p, iAAbortListener* abortListener = nullptr,
+		std::shared_ptr<iADurationEstimator> estimator = std::shared_ptr<iADurationEstimator>());
 	//! Destructor, automatically cancels any still running jobs.
 	//! Even for jobs it's not able to cancel, removes their finish action.
 	~iAJobListView();
@@ -93,11 +93,11 @@ private slots:
 private:
 	//! Prevent creation - singleton pattern
 	iAJobListView();
-	QWidget* addJobWidget(QSharedPointer<iAJob> j);
+	QWidget* addJobWidget(std::shared_ptr<iAJob> j);
 	//! The container widget for all job entries
 	QVBoxLayout* m_insideLayout;
 	//! List of jobs pending to be added (needed to be able to add jobs also from non-GUI-threads
-	QStack<QSharedPointer<iAJob>> m_pendingJobs;
+	QStack<std::shared_ptr<iAJob>> m_pendingJobs;
 	//! Currently running jobs
-	QVector<QSharedPointer<iAJob>> m_jobs;
+	QVector<std::shared_ptr<iAJob>> m_jobs;
 };

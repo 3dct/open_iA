@@ -4,7 +4,7 @@
 
 #include "segmentation_export.h"
 
-#include <QSharedPointer>
+#include <memory>
 
 typedef double iAVectorDataType;
 
@@ -17,5 +17,5 @@ public:
 	virtual iAVectorDataType operator[](size_t channelIdx) const;
 	virtual iAVectorDataType get(size_t channelIdx) const = 0;
 	virtual IndexType size() const = 0;
-	virtual QSharedPointer<iAVectorType const> normalized() const;
+	virtual std::shared_ptr<iAVectorType const> normalized() const;
 };

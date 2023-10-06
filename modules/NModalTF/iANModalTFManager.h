@@ -6,8 +6,7 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QSharedPointer>
-
+#include <memory>
 #include <vector>
 
 class iATransferFunction;

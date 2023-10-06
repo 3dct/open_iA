@@ -60,7 +60,7 @@ namespace
 
 iARefDistCompute::ContainerSizeType iARefDistCompute::MaxNumberOfCloseFibers = 3;
 
-iARefDistCompute::iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, size_t referenceID) :
+iARefDistCompute::iARefDistCompute(std::shared_ptr<iAFiberResultsCollection> data, size_t referenceID) :
 	m_data(data),
 	m_referenceID(referenceID),
 	m_columnsBefore(data->spmData->numParams()),
@@ -181,7 +181,7 @@ void iARefDistCompute::run()
 		"and the difference between consecutive steps.");
 	auto & ref = m_data->result[m_referenceID];
 
-	auto const & mapping = *ref.mapping.data();
+	auto const & mapping = *ref.mapping.get();
 	/*
 	std::array<size_t, iAFiberResult::FiberValueCount> diffCols = {
 		mapping[iACsvConfig::StartX],  mapping[iACsvConfig::StartY],  mapping[iACsvConfig::StartZ],

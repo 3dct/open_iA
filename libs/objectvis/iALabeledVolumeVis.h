@@ -23,7 +23,7 @@ public:
 	void renderOrientationDistribution(vtkImageData* oi ) override;
 	void renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range ) override;
 	double const * bounds() override;
-	QSharedPointer<iAObjectVisActor> createActor(vtkRenderer* ren) override;
+	std::shared_ptr<iAObjectVisActor> createActor(vtkRenderer* ren) override;
 
 private:
 	vtkPiecewiseFunction     *oTF;

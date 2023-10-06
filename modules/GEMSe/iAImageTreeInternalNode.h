@@ -10,8 +10,8 @@ class iAImageTreeInternalNode : public iAImageTreeNode
 {
 public:
 	iAImageTreeInternalNode(
-		QSharedPointer<iAImageTreeNode > a,
-		QSharedPointer<iAImageTreeNode > b,
+		std::shared_ptr<iAImageTreeNode > a,
+		std::shared_ptr<iAImageTreeNode > b,
 		LabelPixelType differenceMarkerValue,
 		QString const & cachePath,
 		ClusterIDType id,
@@ -29,14 +29,14 @@ public:
 	virtual void ClearFilterData();
 	virtual ClusterIDType GetID() const;
 	virtual void GetExampleImages(QVector<iAImageTreeLeaf *> & result, int amount);
-	virtual QSharedPointer<iAImageTreeNode > GetChild(int idx) const;
+	virtual std::shared_ptr<iAImageTreeNode > GetChild(int idx) const;
 	virtual double GetAttribute(int) const;
 	virtual void GetMinMax(int chartID, double & min, double & max,
 		iAChartAttributeMapper const & chartAttrMap) const;
 	virtual ClusterDistanceType GetDistance() const;
 	virtual LabelPixelHistPtr UpdateLabelDistribution() const;
 	virtual CombinedProbPtr UpdateProbabilities() const;
-	virtual void GetSelection(QVector<QSharedPointer<iASingleResult> > & result) const;
+	virtual void GetSelection(QVector<std::shared_ptr<iASingleResult> > & result) const;
 private:
 	void RecalculateFilteredRepresentative(int type, LabelImagePointer refImg) const;
 	QString GetCachedFileName(int type) const;
@@ -49,7 +49,7 @@ private:
 	LabelPixelType m_differenceMarkerValue; // TODO: find way to get rid of this variable
 	mutable QVector<ClusterImageType> m_representative;
 	mutable QVector<ClusterImageType> m_filteredRepresentative;
-	std::pair<QSharedPointer<iAImageTreeNode >, QSharedPointer<iAImageTreeNode > > m_children;
+	std::pair<std::shared_ptr<iAImageTreeNode>, std::shared_ptr<iAImageTreeNode> > m_children;
 	ClusterDistanceType m_distance;
 	QString m_cachePath;
 	int m_labelCount;

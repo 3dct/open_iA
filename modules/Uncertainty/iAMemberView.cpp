@@ -42,7 +42,7 @@ iAMemberView::iAMemberView():
 	connect(m_plot, &QCustomPlot::mouseWheel, this, &iAMemberView::mouseWheel);
 }
 
-void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
+void iAMemberView::SetEnsemble(std::shared_ptr<iAEnsemble> ensemble)
 {
 	m_plot->clearPlottables();
 	m_ensemble = ensemble;

@@ -6,9 +6,10 @@
 
 #include "iabase_export.h"
 
-#include <QSharedPointer>
 #include <QString>
 #include <QVariant>
+
+#include <memory>
 
 class iANameMapper;
 
@@ -28,9 +29,9 @@ public:
 	};
 	//! Create an attribute descriptor from the given string
 	//! (which could e.g. be created by the toString method).
-	static QSharedPointer<iAAttributeDescriptor> create(QString const & def);
+	static std::shared_ptr<iAAttributeDescriptor> create(QString const & def);
 	//! Create an attribute descriptor with attribute type Parameter from the given values
-	static QSharedPointer<iAAttributeDescriptor> createParam(
+	static std::shared_ptr<iAAttributeDescriptor> createParam(
 		QString const & name, iAValueType valueType,
 		QVariant defaultValue = 0.0,
 		double min = std::numeric_limits<double>::lowest(),
@@ -39,7 +40,7 @@ public:
 	iAAttributeDescriptor(QString const & name, iAAttributeType attribType, iAValueType valueType);
 	virtual ~iAAttributeDescriptor();
 	//! Deep copy the attribute descriptor.
-	QSharedPointer<iAAttributeDescriptor> clone() const;
+	std::shared_ptr<iAAttributeDescriptor> clone() const;
 	//! The type of attribute (parameter or derived output, see iAAttributeType).
 	iAAttributeType attribType() const;
 	//! The type of the value of this attribute; see iAValueType.
@@ -50,7 +51,7 @@ public:
 	//! set the (default) values of the attribute. For categorical parameters, this should be a
 	//! QStringList of all possible values.
 	void setDefaultValue(QVariant v);
-	virtual QSharedPointer<iANameMapper> nameMapper() const;
+	virtual std::shared_ptr<iANameMapper> nameMapper() const;
 	//! For discrete/continuous types, the minimum possible value. For categorical values, it's 0.
 	double min() const;
 	//! For discrete/continuous types, the maximum possible value. For categorical values,
@@ -82,7 +83,7 @@ private:
 	QVariant m_defaultValue;
 	bool m_logarithmic;
 	QString m_name;
-	mutable QSharedPointer<iANameMapper> m_nameMapper;
+	mutable std::shared_ptr<iANameMapper> m_nameMapper;
 };
 
 iAbase_API void selectOption(QStringList& options, QString const& selected);

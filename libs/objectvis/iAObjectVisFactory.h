@@ -8,9 +8,9 @@
 
 #include <QColor>
 #include <QMap>
-#include <QSharedPointer>
 
 #include <map>
+#include <memory>
 #include <vector>
 
 #include "iAVec3.h"
@@ -35,7 +35,7 @@ class vtkTable;
 //! @param ctf color transfer function; only used for labeled volume visualization
 //! @param otf opacity transfer function; only used for labeled volume visualization
 //! @param bounds optional bounds of the object visualization
-iAobjectvis_API QSharedPointer<iAObjectVis> create3DObjectVis(iAObjectVisType visualization, vtkTable* table,
-	QSharedPointer<QMap<uint, uint>> columnMapping, QColor const& color,
+iAobjectvis_API std::shared_ptr<iAObjectVis> create3DObjectVis(iAObjectVisType visualization, vtkTable* table,
+	std::shared_ptr<QMap<uint, uint>> columnMapping, QColor const& color,
 	std::map<size_t, std::vector<iAVec3f>>& curvedFiberInfo, int numberOfCylinderSides = 12, size_t segmentSkip = 1,
 	vtkColorTransferFunction* ctf = nullptr, vtkPiecewiseFunction* otf = nullptr, double const* bounds = nullptr);

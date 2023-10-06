@@ -10,12 +10,12 @@
 #include <iAVec3.h>
 
 #include <QMap>
-#include <QSharedPointer>
 #include <QString>
 #include <QStringList>
 #include <QVector>
 
 #include <map>
+#include <memory>
 #include <vector>
 
 class QTextStream;
@@ -49,12 +49,12 @@ public:
 	//! This is basically the column mapping of the iACsvConfig used to load the dataset,
 	//! but adapted / extended to match the created output: When an auto-id is inserted as first column,
 	//! all indices shift by one to the back; also for computed columns, mappings are inserted.
-	QSharedPointer<QMap<uint, uint>> getOutputMapping() const;
+	std::shared_ptr<QMap<uint, uint>> getOutputMapping() const;
 private:
 	QStringList m_fileHeaders;          //!< list of column header names in file
 	QStringList m_outputHeaders;        //!< list of column header names in result table
 	iACsvConfig m_csvConfig;            //!< settings used for reading the csv
-	QSharedPointer<QMap<uint, uint> > m_outputMapping;   //!< maps a value identifier (given as a value out of the iACsvConfig::MappedColumn enum) to the index of the column in the output which contains this value
+	std::shared_ptr<QMap<uint, uint>> m_outputMapping;   //!< maps a value identifier (given as a value out of the iACsvConfig::MappedColumn enum) to the index of the column in the output which contains this value
 
 	//! determine the header columns used in the output
 	void determineOutputHeaders(QVector<uint> const & selectedCols);

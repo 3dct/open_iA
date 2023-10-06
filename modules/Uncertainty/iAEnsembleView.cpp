@@ -16,7 +16,7 @@ iAEnsembleView::iAEnsembleView():
 }
 
 
-void iAEnsembleView::AddEnsemble(QString const & caption, QSharedPointer<iAEnsemble> ensemble)
+void iAEnsembleView::AddEnsemble(QString const & caption, std::shared_ptr<iAEnsemble> ensemble)
 {
 	m_ensembles.push_back(ensemble);
 	QListWidgetItem* item = new QListWidgetItem(caption);
@@ -34,7 +34,7 @@ void iAEnsembleView::EnsembleDblClicked(QListWidgetItem* item)
 	);
 }
 
-QVector<QSharedPointer<iAEnsemble> > & iAEnsembleView::Ensembles()
+QVector<std::shared_ptr<iAEnsemble> > & iAEnsembleView::Ensembles()
 {
 	return m_ensembles;
 }

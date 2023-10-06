@@ -12,10 +12,10 @@
 #include <vtkSmartPointer.h>
 
 #include <QMap>
-#include <QSharedPointer>
 #include <QThread>
 
 #include <array>
+#include <memory>
 #include <vector>
 
 struct iAFiberData;
@@ -72,7 +72,7 @@ public:
 	// TODO: deduplicate data here and in iAFiberResultsCollection::spmData
 	vtkSmartPointer<vtkTable> table;
 	//! mapping of the columns in m_resultTable
-	QSharedPointer<QMap<uint, uint> > mapping;
+	std::shared_ptr<QMap<uint, uint> > mapping;
 	//! name of the csv file this result was loaded from
 	QString fileName;
 	//! name of the csv file the curved info for this file was loaded from
@@ -114,7 +114,7 @@ public:
 	std::vector<iAFiberResult> result;
 	//! SPM data.
 	// TODO: deduplicate data here and in result[x].table
-	QSharedPointer<iASPLOMData> spmData;
+	std::shared_ptr<iASPLOMData> spmData;
 	//! min and max of fiber count over all results
 	size_t minFiberCount, maxFiberCount;
 // { TODO: make private ?
@@ -148,7 +148,7 @@ class iAFiberResultsLoader: public QThread, public iAAbortListener
 {
 	Q_OBJECT
 public:
-	iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollection> results,
+	iAFiberResultsLoader(std::shared_ptr<iAFiberResultsCollection> results,
 		QString const & path, iACsvConfig const & config, double stepShift);
 	void run() override;
 	void abort() override;
@@ -159,7 +159,7 @@ signals:
 	void success();
 private:
 	iAProgress m_progress;
-	QSharedPointer<iAFiberResultsCollection> m_results;
+	std::shared_ptr<iAFiberResultsCollection> m_results;
 	QString m_path;
 	iACsvConfig m_config;
 	double m_stepShift;

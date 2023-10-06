@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include <QSharedPointer>
+#include <memory>
 
 class QImage;
 

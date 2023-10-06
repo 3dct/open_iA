@@ -203,7 +203,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QVariantMap
 		if (filter->m_chart)
 		{
 			//auto smoothedHisto2PlotData = iAHistogramData::create(minVal, maxVal, smoothedHistoMin, iAValueType::Continuous);
-			//filter->m_chart->AddPlot(QSharedPointer<iABarGraphPlot>::create(smoothedHisto2PlotData, QColor(90, 180, 180, 127)));
+			//filter->m_chart->AddPlot(std::make_shared<iABarGraphPlot>(smoothedHisto2PlotData, QColor(90, 180, 180, 127)));
 		}
 		int minIdx = peaks[m].first;
 		double curMinFreq = peaks[m].second;

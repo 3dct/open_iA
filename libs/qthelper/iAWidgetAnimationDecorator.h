@@ -27,7 +27,7 @@ public:
 private:
 	iAWidgetAnimationDecorator(QWidget* animatedWidget, int duration,
 		QColor startValue, QColor endValue, QString animatedQssProperty);
-	QSharedPointer<QPropertyAnimation> m_animation;
+	std::shared_ptr<QPropertyAnimation> m_animation;
 	QString m_animatedQssProperty;
 	QWidget* m_animatedWidget;
 };

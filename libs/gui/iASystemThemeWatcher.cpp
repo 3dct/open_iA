@@ -4,16 +4,19 @@
 
 #include <iALog.h>
 
-#include <memory>
-
-#ifdef _MSC_VER
-#include <windows.h>
-#endif
-
 #include <QApplication>
 #include <QPalette>
 #include <QStyle>
 #include <QtConcurrent>
+
+#include <memory>
+
+#ifdef _MSC_VER
+#define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
+#define NOMINMAX
+#include <windows.h>
+#endif
 
 iASystemThemeWatcher::iASystemThemeWatcher():
 	m_isBright(iASystemThemeWatcher::isBrightTheme())

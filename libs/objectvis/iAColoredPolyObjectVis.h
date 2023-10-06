@@ -39,7 +39,7 @@ public:
 
 	virtual void setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive);
 	void setColor(QColor const & color);
-	void setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIndex);
+	void setLookupTable(std::shared_ptr<iALookupTable> lut, size_t paramIndex);
 	void updateColorSelectionRendering();
 	virtual QString visualizationStatistics() const =0;
 	//! extract one mesh per selected object
@@ -71,13 +71,13 @@ public:
 	//virtual vtkAlgorithmOutput* output();
 
 	//! create "actor" class for visualizing this data collection
-	QSharedPointer<iAObjectVisActor> createActor(vtkRenderer* ren) override;
+	std::shared_ptr<iAObjectVisActor> createActor(vtkRenderer* ren) override;
 
 	//! same as createActor, but retrieve derived class more specific for visualizing
 	//! a 3D colored poly data object; use this if you need to access methods
 	//! from the iAPolyObjectVisActorclass which are not available through the
 	//! iAObjectVisActor interface.
-	QSharedPointer<iAPolyObjectVisActor> createPolyActor(vtkRenderer* ren);
+	std::shared_ptr<iAPolyObjectVisActor> createPolyActor(vtkRenderer* ren);
 
 	std::vector<size_t> const& selection() const;
 
@@ -100,7 +100,7 @@ protected:
 
 private:
 
-	QSharedPointer<iALookupTable> m_lut;
+	std::shared_ptr<iALookupTable> m_lut;
 	IndexType m_colorParamIdx;
 	bool m_selectionActive;
 

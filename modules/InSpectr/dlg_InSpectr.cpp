@@ -229,13 +229,13 @@ void dlg_InSpectr::InitCommonGUI()
 
 	// load reference spectra & characteristic energy lines:
 	QString rootDir(QCoreApplication::applicationDirPath() + "/refSpectra/");
-	m_refSpectraLib = QSharedPointer<iAReferenceSpectraLibrary>::create(
+	m_refSpectraLib = std::make_shared<iAReferenceSpectraLibrary>(
 		rootDir + "elementSpectra/reference_library.reflib");
-	m_refSpectra->getSpectraList()->setModel(m_refSpectraLib->getItemModel().data());
+	m_refSpectra->getSpectraList()->setModel(m_refSpectraLib->getItemModel().get());
 	EnergyLoader::Load(rootDir + "characteristic-energies.cel", m_characteristicEnergies);
 	connect(m_refSpectra->getSpectraList(), &QListView::doubleClicked, this, &dlg_InSpectr::ReferenceSpectrumDoubleClicked, Qt::UniqueConnection);
 	connect(m_refSpectra->getSpectraList(), &QListView::clicked, this, &dlg_InSpectr::ReferenceSpectrumClicked, Qt::UniqueConnection );
-	connect(m_refSpectraLib->getItemModel().data(), &QStandardItemModel::itemChanged, this, &dlg_InSpectr::ReferenceSpectrumItemChanged, Qt::UniqueConnection);
+	connect(m_refSpectraLib->getItemModel().get(), &QStandardItemModel::itemChanged, this, &dlg_InSpectr::ReferenceSpectrumItemChanged, Qt::UniqueConnection);
 	connect(m_refSpectra->cb_showRefSpectra, &QCheckBox::stateChanged, this, &dlg_InSpectr::showRefSpectraChanged);
 	connect(m_refSpectra->cb_showRefLines, &QCheckBox::stateChanged, this, &dlg_InSpectr::showRefLineChanged);
 
@@ -288,7 +288,7 @@ QThread* dlg_InSpectr::UpdateForVisualization()
 	return nullptr;
 }
 
-QSharedPointer<iAXRFData> dlg_InSpectr::GetXRFData()
+std::shared_ptr<iAXRFData> dlg_InSpectr::GetXRFData()
 {
 	return m_xrfData;
 }
@@ -336,7 +336,7 @@ int findCharEnergy(QVector<iACharacteristicEnergy> const& energies, QString cons
 	return -1;
 }
 
-void updateSpectrumData(std::shared_ptr<iAHistogramData> histData, QSharedPointer<iAXRFData> xrfData, int x, int y, int z)
+void updateSpectrumData(std::shared_ptr<iAHistogramData> histData, std::shared_ptr<iAXRFData> xrfData, int x, int y, int z)
 {
 	int extent[6];
 	xrfData->GetExtent(extent);
@@ -618,14 +618,14 @@ void dlg_InSpectr::decomposeElements()
 		LOG(lvlInfo, tr("Decomposition was aborted by user."));
 		return;
 	}
-	m_elementConcentrations = QSharedPointer<iAElementConcentrations>::create();
-	m_decompositionCalculator = QSharedPointer<iADecompositionCalculator>::create(
+	m_elementConcentrations = std::make_shared<iAElementConcentrations>();
+	m_decompositionCalculator = std::make_shared<iADecompositionCalculator>(
 		m_elementConcentrations,
 		m_xrfData.get(),
 		m_accumulatedXRF.get());
 	m_decomposeSelectedElements.clear();
 	iAJobListView::get()->addJob("Computing elemental decomposition",
-		m_decompositionCalculator->progress(), m_decompositionCalculator.data());
+		m_decompositionCalculator->progress(), m_decompositionCalculator.get());
 	for (size_t i=0; i<m_refSpectraLib->spectra.size(); ++i)
 	{
 		if (m_refSpectraLib->getItemModel()->item(i)->checkState() == Qt::Checked)
@@ -636,13 +636,13 @@ void dlg_InSpectr::decomposeElements()
 	}
 	if (m_decompositionCalculator->ElementCount() == 0)
 	{
-		m_decompositionCalculator.clear();
+		m_decompositionCalculator.reset();
 		LOG(lvlWarn, tr("You have to select at least one element from the reference spectra list!"));
 		return;
 	}
 	pb_decompose->setText("Stop");
-	connect(m_decompositionCalculator.data(), &iADecompositionCalculator::success, this, &dlg_InSpectr::decompositionSuccess);
-	connect(m_decompositionCalculator.data(), &iADecompositionCalculator::finished, this, &dlg_InSpectr::decompositionFinished);
+	connect(m_decompositionCalculator.get(), &iADecompositionCalculator::success, this, &dlg_InSpectr::decompositionSuccess);
+	connect(m_decompositionCalculator.get(), &iADecompositionCalculator::finished, this, &dlg_InSpectr::decompositionFinished);
 	m_decompositionCalculator->start();
 	LOG(lvlInfo, tr("Decomposition calculation started..."));
 }
@@ -664,7 +664,7 @@ void dlg_InSpectr::decompositionAvailable()
 
 void dlg_InSpectr::decompositionFinished()
 {
-	m_decompositionCalculator.clear();
+	m_decompositionCalculator.reset();
 	pb_decompose->setText("Calculate");
 }
 
@@ -688,7 +688,7 @@ void dlg_InSpectr::loadDecomposition()
 	}
 	if (!m_elementConcentrations)
 	{
-		m_elementConcentrations = QSharedPointer<iAElementConcentrations>::create();
+		m_elementConcentrations = std::make_shared<iAElementConcentrations>();
 	}
 	else
 	{
@@ -1005,7 +1005,7 @@ void dlg_InSpectr::ReferenceSpectrumClicked( const QModelIndex &index )
 	}
 }
 
-QSharedPointer<iAElementConcentrations> dlg_InSpectr::GetElementConcentrations()
+std::shared_ptr<iAElementConcentrations> dlg_InSpectr::GetElementConcentrations()
 {
 	return m_elementConcentrations;
 }
@@ -1496,7 +1496,7 @@ void dlg_InSpectr::updatePieGlyphs(int slicerMode)
 
 				if (portion > EPSILON)
 				{
-					auto pieGlyph = QSharedPointer<iAPieChartGlyph>::create(angularRange[0], angularRange[1]);
+					auto pieGlyph = std::make_shared<iAPieChartGlyph>(angularRange[0], angularRange[1]);
 					double pos[3] = { origin[0] + x * spacing[0], origin[1] + y * spacing[1], 1.0 };
 					pieGlyph->actor->SetPosition(pos);
 					pieGlyph->actor->SetScale((std::min)(spacing[0], spacing[1]) * m_pieGlyphSpacing);

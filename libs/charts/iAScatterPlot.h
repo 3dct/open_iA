@@ -55,12 +55,12 @@ public:
 	iAScatterPlot(iAScatterPlotViewData * spViewData, iAChartParentWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
 	~iAScatterPlot();
 
-	void setData(size_t x, size_t y, QSharedPointer<iASPLOMData> &splomData ); //!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
+	void setData(size_t x, size_t y, std::shared_ptr<iASPLOMData> &splomData ); //!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
 	void setIndices(size_t x, size_t y);                             //!< Set the indices of the parameters to view
 	bool hasData() const;                                            //!< Check if data is already set to the plot
 	//! Set color lookup table and the name of a color-coded parameter
-	void setLookupTable( QSharedPointer<iALookupTable> &lut, size_t colInd );
-	QSharedPointer<iALookupTable> lookupTable() const;
+	void setLookupTable( std::shared_ptr<iALookupTable> &lut, size_t colInd );
+	std::shared_ptr<iALookupTable> lookupTable() const;
 	const size_t* getIndices() const { return m_paramIndices; }      //!< Get indices of X and Y parameters
 	void setTransform( double scale, QPointF newOffset );            //!< Set new transform: new scale and new offset
 	void setTransformDelta( double scale, QPointF deltaOffset );     //!< Set new transform: new scale and change in the offset (delta)
@@ -196,11 +196,11 @@ protected:
 	iAScatterPlotViewData* m_viewData;                               //!< selection/highlight/settings handler (if part of a SPLOM, the SPLOM-parent)
 	QRect m_globRect;                                                //!< plot's rectangle
 	QRectF m_locRect;                                                //!< plot's local drawing rectangle
-	QSharedPointer<iASPLOMData> m_splomData;                         //!< pointer to SPLOM-parent's data
+	std::shared_ptr<iASPLOMData> m_splomData;                         //!< pointer to SPLOM-parent's data
 	size_t m_paramIndices[2];                                        //!< indices of plot X, Y parameters
 	double m_prX[2], m_prY[2];                                       //!< range of x and y parameter
 	size_t m_colInd;                                                 //!< index of color-coded parameter
-	QSharedPointer<iALookupTable> m_lut;                             //!< pointer to SPLOM-parent's lookup table
+	std::shared_ptr<iALookupTable> m_lut;                             //!< pointer to SPLOM-parent's lookup table
 	QRectF m_maxBtnRect;                                             //!< rectangle of maximized button
 	// zooming, translating
 	double m_scale;                                                  //!< transform scale component

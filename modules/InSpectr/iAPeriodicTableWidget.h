@@ -19,7 +19,7 @@ class iAPeriodicTableWidget: public QWidget
 public:
 	iAPeriodicTableWidget(QWidget *parent);
 	void setConcentration(QString const & elementName, double percentage, QColor const & color);
-	void setListener(QSharedPointer<iAElementSelectionListener> listener);
+	void setListener(std::shared_ptr<iAElementSelectionListener> listener);
 	int GetCurrentElement() const;
 protected:
 	void paintEvent(QPaintEvent *);
@@ -32,6 +32,6 @@ private:
 	QMap<QString, std::pair<double, QColor> > m_concentration;
 	QVector<std::pair<QPoint, int> > m_elementPositions;
 	int m_elementWidth, m_elementHeight;
-	QSharedPointer<iAElementSelectionListener> m_listener;
+	std::shared_ptr<iAElementSelectionListener> m_listener;
 	int m_currentElemIdx;
 };

@@ -313,7 +313,7 @@ void iADetailView::UpdateLikeHate(bool isLike, bool isHate)
 }
 
 
-QString attrValueStr(double value, QSharedPointer<iAAttributes> attributes, int id)
+QString attrValueStr(double value, std::shared_ptr<iAAttributes> attributes, int id)
 {
 	switch(attributes->at(id)->valueType())
 	{
@@ -325,7 +325,7 @@ QString attrValueStr(double value, QSharedPointer<iAAttributes> attributes, int 
 
 
 void iADetailView::SetNode(iAImageTreeNode const * node,
-	QSharedPointer<iAAttributes> allAttributes,
+	std::shared_ptr<iAAttributes> allAttributes,
 	iAChartAttributeMapper const & mapper)
 {
 	m_node = node;
@@ -340,7 +340,7 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 	{
 		iAImageTreeLeaf* leaf = (iAImageTreeLeaf*)node;
 		m_detailText->append(QString("ID: %1-%2").arg(leaf->GetDatasetID()).arg(node->GetID()));
-		QSharedPointer<iAAttributes> attributes = leaf->GetAttributes();
+		std::shared_ptr<iAAttributes> attributes = leaf->GetAttributes();
 		for (int attributeID = 0; attributeID < attributes->size(); ++attributeID)
 		{
 			double value = node->GetAttribute(attributeID);
@@ -457,7 +457,7 @@ void iADetailView::SetLabelInfo(iALabelInfo const & labelInfo, iAColorTheme cons
 		m_resultFilterOverlayOTF = iALUT::BuildLabelOpacityTF(m_labelCount);
 		m_resultFilterChannel->setData(m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
 		iASlicer* slicer = m_previewWidget->slicer();
-		slicer->updateChannel(ResultFilterChannelID, *m_resultFilterChannel.data());
+		slicer->updateChannel(ResultFilterChannelID, *m_resultFilterChannel.get());
 		slicer->update();
 	}
 }
@@ -653,8 +653,8 @@ void iADetailView::AddResultFilterPixel(double x, double y, double z)
 	iASlicer* slicer = m_previewWidget->slicer();
 	if (!m_resultFilterChannel)
 	{
-		m_resultFilterChannel = QSharedPointer<iAChannelData>::create("Result Filter", m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
-		slicer->addChannel(ResultFilterChannelID, *m_resultFilterChannel.data(), true);
+		m_resultFilterChannel = std::make_shared<iAChannelData>("Result Filter", m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
+		slicer->addChannel(ResultFilterChannelID, *m_resultFilterChannel.get(), true);
 	}
 	slicer->update();
 }

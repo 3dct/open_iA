@@ -42,8 +42,8 @@ namespace
 	double distributionDifference(HistogramType const& distr1, HistogramType const& distr2, int diffType)
 	{
 		assert(distr1.size() == distr2.size());
-		QSharedPointer<iAVectorType> dist1Ptr(new iARefVector<HistogramType>(distr1));
-		QSharedPointer<iAVectorType> dist2Ptr(new iARefVector<HistogramType>(distr2));
+		std::shared_ptr<iAVectorType> dist1Ptr(new iARefVector<HistogramType>(distr1));
+		std::shared_ptr<iAVectorType> dist2Ptr(new iARefVector<HistogramType>(distr2));
 		if (diffType == 0)
 		{
 			/*
@@ -265,7 +265,7 @@ QDataStream& operator>>(QDataStream& in, iAResultPairInfo& pairInfo)
 }
 
 
-iASensitivityData::iASensitivityData(QSharedPointer<iAFiberResultsCollection> data, QStringList const& paramNames,
+iASensitivityData::iASensitivityData(std::shared_ptr<iAFiberResultsCollection> data, QStringList const& paramNames,
 	std::vector<std::vector<double>> const& paramValues) :
 	m_data(data), m_paramNames(paramNames), m_paramValues(paramValues), m_aborted(false)
 {
@@ -812,7 +812,7 @@ void iASensitivityData::compute(iAProgress* progress)
 		for (int r1 = 0; r1 < resultCount && !m_aborted; ++r1)
 		{
 			auto& res1 = m_data->result[r1];
-			auto const& mapping = *res1.mapping.data();
+			auto const& mapping = *res1.mapping.get();
 			// TODO: only center -> should use bounding box instead!
 			double const* cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
 				* cyr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterY]),

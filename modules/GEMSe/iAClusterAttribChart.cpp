@@ -18,7 +18,7 @@ iAClusterAttribChart::iAClusterAttribChart(
 	QString const & caption,
 	int id,
 	std::shared_ptr<iAParamHistogramData> data,
-	QSharedPointer<iANameMapper> nameMapper):
+	std::shared_ptr<iANameMapper> nameMapper):
 	m_ID(id),
 	m_oldMin(-1),
 	m_oldMax(-1)

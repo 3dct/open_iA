@@ -17,7 +17,7 @@ public:
 	iAFilterChart(QWidget* parent,
 		QString const & caption,
 		std::shared_ptr<iAParamHistogramData> data,
-		QSharedPointer<iANameMapper> nameMapper,
+		std::shared_ptr<iANameMapper> nameMapper,
 		bool showCaption = false);
 	double mapBinToValue(double bin) const;
 	double mapValueToBin(double value) const;
@@ -44,7 +44,7 @@ private:
 	void drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush);
 
 	std::shared_ptr<iAParamHistogramData> m_data;
-	QSharedPointer<iANameMapper> m_nameMapper;
+	std::shared_ptr<iANameMapper> m_nameMapper;
 	double m_markedLocation;
 	std::vector<QColor> m_binColors;
 	double m_minSliderPos, m_maxSliderPos;

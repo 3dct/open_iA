@@ -17,11 +17,11 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAVec3.h>
 <iAvtkTubeFilter.h>
 <map>
+<memory>
 <QColor>
 <QFile>
 <QMap>
 <QSettings>
-<QSharedPointer>
 <QString>
 <QStringList>
 <QTextStream>

@@ -304,7 +304,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	//     - better unique widget name!
 	//     - option to put combined histograms of multiple datasets into one view
 	static int histoNum = -1;
-	m_dwHistogram = QSharedPointer<iADockWidgetWrapper>::create(m_histogram, histoName, QString("Histogram%1").arg(++histoNum));
+	m_dwHistogram = std::make_shared<iADockWidgetWrapper>(m_histogram, histoName, QString("Histogram%1").arg(++histoNum));
 	connect(m_dwHistogram.get(), &QDockWidget::visibilityChanged, this, [this](bool visible)
 	{
 		QSignalBlocker sb(m_histogramAction);
@@ -362,7 +362,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	m_profileProbe->updateProbe(0, start);
 	m_profileProbe->updateProbe(1, end);
 	m_profileChart = new iAChartWidget(nullptr, "Greyvalue", "Distance");
-	m_dwProfile = QSharedPointer<iADockWidgetWrapper>::create(m_profileChart, "Profile Plot", "Profile");
+	m_dwProfile = std::make_shared<iADockWidgetWrapper>(m_profileChart, "Profile Plot", "Profile");
 	child->splitDockWidget(child->renderDockWidget(), m_dwProfile.get(), Qt::Vertical);
 	if (visibleProfile)
 	{

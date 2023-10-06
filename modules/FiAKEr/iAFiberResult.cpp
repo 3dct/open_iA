@@ -129,7 +129,7 @@ namespace
 	}
 	iAFiberData createFiberData(iAFiberResult const& result, size_t fiberID)
 	{
-		auto const& mapping = *result.mapping.data();
+		auto const& mapping = *result.mapping.get();
 		auto it = result.curveInfo.find(fiberID);
 		return iAFiberData(
 			result.table, fiberID, mapping, (it != result.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
@@ -657,7 +657,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 	return !abort;
 }
 
-iAFiberResultsLoader::iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollection> results,
+iAFiberResultsLoader::iAFiberResultsLoader(std::shared_ptr<iAFiberResultsCollection> results,
 	QString const & path, iACsvConfig const & config, double stepShift):
 	m_results(results),
 	m_path(path),

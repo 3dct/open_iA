@@ -53,7 +53,7 @@ public:
 		int representativeType,
 		QWidget* comparisonDetailsWidget);
 	void SetNode(iAImageTreeNode const * node,
-		QSharedPointer<iAAttributes> allAttributes,
+		std::shared_ptr<iAAttributes> allAttributes,
 		iAChartAttributeMapper const & mapper);
 	void SetCompareNode(iAImageTreeNode const * node);
 	int sliceNumber() const;
@@ -125,7 +125,7 @@ private:
 	vtkSmartPointer<vtkLookupTable> m_resultFilterOverlayLUT;
 	vtkSmartPointer<vtkPiecewiseFunction> m_resultFilterOverlayOTF;
 	iAResultFilter m_resultFilter;
-	QSharedPointer<iAChannelData> m_resultFilterChannel;
+	std::shared_ptr<iAChannelData> m_resultFilterChannel;
 	int m_lastResultFilterX, m_lastResultFilterY, m_lastResultFilterZ;
 	iATimedEvent* m_resultFilterTriggerThread;
 	bool m_MouseButtonDown;

@@ -36,7 +36,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <QMap>
 <QObject>
 <QRegularExpression>
-<QSharedPointer>
 <QString>
 <QStringList>
 <QTextStream>

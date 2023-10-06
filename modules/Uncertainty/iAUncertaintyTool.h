@@ -8,9 +8,10 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QSharedPointer>
 #include <QObject>
 #include <QVector>
+
+#include <memory>
 
 class iADockWidgetWrapper;
 class iAEnsemble;
@@ -37,7 +38,7 @@ public:
 	void writeFullDataFile();
 private slots:
 	void memberSelected(int memberIdx);
-	void ensembleSelected(QSharedPointer<iAEnsemble> ensemble);
+	void ensembleSelected(std::shared_ptr<iAEnsemble> ensemble);
 private:
 	iAHistogramView * m_labelDistributionView, * m_uncertaintyDistributionView;
 	iAMemberView* m_memberView;
@@ -46,9 +47,9 @@ private:
 	iAEnsembleView* m_ensembleView;
 	QVector<iADockWidgetWrapper*> m_dockWidgets;
 	QVector<iAITKIO::ImagePointer> m_shownMembers;
-	QSharedPointer<iAEnsemble> m_currentEnsemble;
+	std::shared_ptr<iAEnsemble> m_currentEnsemble;
 	vtkSmartPointer<vtkLookupTable> m_labelLut;
 	int m_newSubEnsembleID;
 	// cache for ensemble loading:
-	QSharedPointer<iAEnsembleDescriptorFile> m_ensembleFile;
+	std::shared_ptr<iAEnsembleDescriptorFile> m_ensembleFile;
 };

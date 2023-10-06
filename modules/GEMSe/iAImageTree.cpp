@@ -23,14 +23,14 @@ namespace
 }
 
 
-iAImageTree::iAImageTree(QSharedPointer<iAImageTreeNode > node, int labelCount):
+iAImageTree::iAImageTree(std::shared_ptr<iAImageTreeNode > node, int labelCount):
 m_root(node),
 m_labelCount(labelCount)
 {
 }
 
 
-void iAImageTree::WriteNode(QTextStream & out, QSharedPointer<iAImageTreeNode > const node, int level)
+void iAImageTree::WriteNode(QTextStream & out, std::shared_ptr<iAImageTreeNode > const node, int level)
 {
 	for (int l=0; l<level; ++l)
 	{
@@ -39,7 +39,7 @@ void iAImageTree::WriteNode(QTextStream & out, QSharedPointer<iAImageTreeNode > 
 	out << QString::number(node->GetID()) << " ";
 	if (node->IsLeaf())
 	{
-		iAImageTreeLeaf* leaf = (iAImageTreeLeaf*)node.data();
+		iAImageTreeLeaf* leaf = (iAImageTreeLeaf*)node.get();
 		out << LeafMarker << " " << leaf->GetDatasetID();
 	}
 	else
@@ -73,7 +73,7 @@ bool iAImageTree::Store(QString const & fileName) const
 	return true;
 }
 
-QSharedPointer<iASingleResult> findResultWithID(QVector<QSharedPointer<iASingleResult> > const & sampleResults, int id)
+std::shared_ptr<iASingleResult> findResultWithID(QVector<std::shared_ptr<iASingleResult> > const & sampleResults, int id)
 {
 	for (int i=0; i<sampleResults.size(); ++i)
 	{
@@ -85,12 +85,12 @@ QSharedPointer<iASingleResult> findResultWithID(QVector<QSharedPointer<iASingleR
 	// shouldn't happen...
 	assert(false);
 	LOG(lvlError, QString("Result with requested id %1 was not found!").arg(id));
-	return QSharedPointer<iASingleResult>();
+	return std::shared_ptr<iASingleResult>();
 }
 
 
-QSharedPointer<iAImageTreeNode> iAImageTree::ReadNode(QTextStream & in,
-	QSharedPointer<QVector<QSharedPointer<iASamplingResults> > >samplingResults,
+std::shared_ptr<iAImageTreeNode> iAImageTree::ReadNode(QTextStream & in,
+	std::shared_ptr<QVector<std::shared_ptr<iASamplingResults>>> samplingResults,
 	int labelCount,
 	QString const & outputDirectory,
 	int & lastClusterID)
@@ -99,7 +99,7 @@ QSharedPointer<iAImageTreeNode> iAImageTree::ReadNode(QTextStream & in,
 	{
 		assert(false);
 		LOG(lvlError, "Reading node in cluster file failed!");
-		return QSharedPointer<iAImageTreeNode>();
+		return std::shared_ptr<iAImageTreeNode>();
 	}
 	QString currentLine = in.readLine().trimmed();
 	QStringList strs = currentLine.split(" ");
@@ -109,7 +109,7 @@ QSharedPointer<iAImageTreeNode> iAImageTree::ReadNode(QTextStream & in,
 	if (!isNum)
 	{
 		LOG(lvlError, QString("Reading node: Invalid (non-integer) ID in cluster file, line: '%1'").arg(currentLine));
-		return QSharedPointer<iAImageTreeNode>();
+		return std::shared_ptr<iAImageTreeNode>();
 	}
 	if (isLeaf)
 	{
@@ -117,18 +117,18 @@ QSharedPointer<iAImageTreeNode> iAImageTree::ReadNode(QTextStream & in,
 		if (!isNum)
 		{
 			LOG(lvlError, QString("Reading node: Invalid (non-integer) dataset ID in cluster file, line: '%1'").arg(currentLine));
-			return QSharedPointer<iAImageTreeNode>();
+			return std::shared_ptr<iAImageTreeNode>();
 		}
 		auto sampleResults = samplingResults->at(datasetID)->members();
 		auto result = findResultWithID(sampleResults, id);
-		return QSharedPointer<iAImageTreeLeaf>::create(result, labelCount);
+		return std::make_shared<iAImageTreeLeaf>(result, labelCount);
 	}
 	else
 	{
 		float diff = strs[2].toFloat();
-		QSharedPointer<iAImageTreeNode> child1(iAImageTree::ReadNode(in, samplingResults, labelCount, outputDirectory, lastClusterID));
-		QSharedPointer<iAImageTreeNode> child2(iAImageTree::ReadNode(in, samplingResults, labelCount, outputDirectory, lastClusterID));
-		QSharedPointer<iAImageTreeNode> result(new iAImageTreeInternalNode(child1, child2,
+		std::shared_ptr<iAImageTreeNode> child1(iAImageTree::ReadNode(in, samplingResults, labelCount, outputDirectory, lastClusterID));
+		std::shared_ptr<iAImageTreeNode> child2(iAImageTree::ReadNode(in, samplingResults, labelCount, outputDirectory, lastClusterID));
+		std::shared_ptr<iAImageTreeNode> result(new iAImageTreeInternalNode(child1, child2,
 			labelCount,
 			outputDirectory,
 			id, diff)
@@ -140,12 +140,12 @@ QSharedPointer<iAImageTreeNode> iAImageTree::ReadNode(QTextStream & in,
 }
 
 
-QSharedPointer<iAImageTree> iAImageTree::Create(QString const & fileName,
-	QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > samplingResults,
+std::shared_ptr<iAImageTree> iAImageTree::Create(QString const & fileName,
+	std::shared_ptr<QVector<std::shared_ptr<iASamplingResults>>> samplingResults,
 	int labelCount)
 {
 	QFile file(fileName);
-	QSharedPointer<iAImageTree> result;
+	std::shared_ptr<iAImageTree> result;
 	if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
 		LOG(lvlError, QString("Opening clustering file '%1' for reading failed!").arg(fileName));
@@ -164,7 +164,7 @@ QSharedPointer<iAImageTree> iAImageTree::Create(QString const & fileName,
 	{
 		lastClusterID = std::max(lastClusterID, samplingResults->at(i)->size());
 	}
-	result =  QSharedPointer<iAImageTree>(new iAImageTree(ReadNode(in, samplingResults, labelCount,
+	result =  std::shared_ptr<iAImageTree>(new iAImageTree(ReadNode(in, samplingResults, labelCount,
 		dir, lastClusterID), labelCount));
 	file.close();
 	return result;

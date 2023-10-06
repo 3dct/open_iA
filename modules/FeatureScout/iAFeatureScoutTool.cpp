@@ -171,7 +171,7 @@ bool iAFeatureScoutTool::initFromConfig(iAMdiChild* child, iACsvConfig const& cs
 }
 
 void iAFeatureScoutTool::init(int filterID, QString const& fileName, vtkSmartPointer<vtkTable> csvtbl,
-	iAObjectVisType visType, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
+	iAObjectVisType visType, std::shared_ptr<QMap<uint, uint> > columnMapping, std::map<size_t,
 	std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip)
 {
 	vtkColorTransferFunction* ctf = nullptr;

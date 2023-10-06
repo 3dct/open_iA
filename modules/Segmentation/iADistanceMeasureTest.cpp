@@ -19,9 +19,9 @@ public:
 	{
 		return m_data[0].size();
 	}
-	virtual QSharedPointer<iAVectorType const> get(size_t voxelIdx) const
+	virtual std::shared_ptr<iAVectorType const> get(size_t voxelIdx) const
 	{
-		return QSharedPointer<iAVectorType const>(new iAPixelVector(*this, voxelIdx));
+		return std::shared_ptr<iAVectorType const>(new iAPixelVector(*this, voxelIdx));
 	}
 	virtual iAVectorDataType get(size_t voxelIdx, size_t channelIdx) const
 	{

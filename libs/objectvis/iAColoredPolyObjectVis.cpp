@@ -208,11 +208,11 @@ void iAColoredPolyObjectVis::setColor(QColor const &color)
 {
 	m_baseColor = color;
 	m_colorParamIdx = -1;
-	m_lut.clear();
+	m_lut.reset();
 	updateColorSelectionRendering();
 }
 
-void iAColoredPolyObjectVis::setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIndex)
+void iAColoredPolyObjectVis::setLookupTable(std::shared_ptr<iALookupTable> lut, size_t paramIndex)
 {
 	m_lut = lut;
 	m_colorParamIdx = paramIndex;
@@ -299,15 +299,15 @@ vtkAlgorithmOutput* iAColoredPolyObjectVis::output()
 }
 */
 
-QSharedPointer<iAObjectVisActor> iAColoredPolyObjectVis::createActor(vtkRenderer* ren)
+std::shared_ptr<iAObjectVisActor> iAColoredPolyObjectVis::createActor(vtkRenderer* ren)
 {
 	return createPolyActor(ren);
 }
 
-QSharedPointer<iAPolyObjectVisActor> iAColoredPolyObjectVis::createPolyActor(vtkRenderer* ren)
+std::shared_ptr<iAPolyObjectVisActor> iAColoredPolyObjectVis::createPolyActor(vtkRenderer* ren)
 {
-	auto result = QSharedPointer<iAPolyObjectVisActor>::create(ren, this);
-	connect(this, &iAObjectVis::dataChanged, result.data(), &iAPolyObjectVisActor::updateMapper);
-	connect(this, &iAObjectVis::renderRequired, result.data(), &iAPolyObjectVisActor::updateRenderer);
+	auto result = std::make_shared<iAPolyObjectVisActor>(ren, this);
+	connect(this, &iAObjectVis::dataChanged, result.get(), &iAPolyObjectVisActor::updateMapper);
+	connect(this, &iAObjectVis::renderRequired, result.get(), &iAPolyObjectVisActor::updateRenderer);
 	return result;
 }

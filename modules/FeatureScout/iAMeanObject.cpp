@@ -85,7 +85,7 @@ public:
 iAMeanObject::iAMeanObject(iAMdiChild* activeChild, QString const& sourcePath) :
 	m_dwMO(nullptr),
 	m_motfView(nullptr),
-	m_MOData(QSharedPointer<iAMeanObjectData>::create()),
+	m_MOData(std::make_shared<iAMeanObjectData>()),
 	m_meanObjectWidget(nullptr),
 	m_activeChild(activeChild),
 	m_filterID(-1),

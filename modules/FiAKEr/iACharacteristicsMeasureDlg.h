@@ -3,7 +3,8 @@
 #pragma once
 
 #include <QDialog>
-#include <QSharedPointer>
+
+#include <memory>
 
 QStringList const& DistributionDifferenceMeasureNames();
 
@@ -16,10 +17,10 @@ class iACharacteristicsMeasureDlg : public QDialog
 {
 	Q_OBJECT
 public:
-	iACharacteristicsMeasureDlg(QSharedPointer<iAFiberResultsCollection> data);
+	iACharacteristicsMeasureDlg(std::shared_ptr<iAFiberResultsCollection> data);
 	QVector<int> selectedCharacteristics() const;
 	QVector<int> selectedDiffMeasures() const;
 private:
 	QStandardItemModel* m_characteristicsModel, * m_diffMeasuresModel;
-	QSharedPointer<Ui_CharacteristicsMeasureDialog> m_ui;
+	std::shared_ptr<Ui_CharacteristicsMeasureDialog> m_ui;
 };

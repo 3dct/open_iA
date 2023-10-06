@@ -42,7 +42,7 @@ iARangeSliderDiagramWidget::iARangeSliderDiagramWidget(QWidget* parent, vtkPiece
 	m_rawTable(rawTable),
 	m_tf(new iATransferFunctionPtrs(cTF, oTF))
 {
-	setTransferFunction(m_tf.data());
+	setTransferFunction(m_tf.get());
 	addPlot(std::make_shared<iABarGraphPlot>(m_data, QColor(70, 70, 70, 255)));
 	m_selectionRubberBand->hide();
 	( (iAChartTransferFunction*) m_functions[0] )->enableRangeSliderHandles( true );

@@ -8,7 +8,7 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QSharedPointer>
+#include <memory>
 
 class iAChartAttributeMapper;
 class iAChartFilter;

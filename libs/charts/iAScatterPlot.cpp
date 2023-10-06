@@ -93,7 +93,7 @@ iAScatterPlot::~iAScatterPlot()
 #endif
 }
 
-void iAScatterPlot::setData(size_t x, size_t y, QSharedPointer<iASPLOMData>& splomData)
+void iAScatterPlot::setData(size_t x, size_t y, std::shared_ptr<iASPLOMData>& splomData)
 {
 	if (m_splomData)
 	{
@@ -101,7 +101,7 @@ void iAScatterPlot::setData(size_t x, size_t y, QSharedPointer<iASPLOMData>& spl
 	}
 
 	m_splomData = splomData;
-	connect(m_splomData.data(), &iASPLOMData::dataChanged, this, &iAScatterPlot::dataChanged);
+	connect(m_splomData.get(), &iASPLOMData::dataChanged, this, &iAScatterPlot::dataChanged);
 	if (!hasData())
 	{
 		return;
@@ -121,7 +121,7 @@ void iAScatterPlot::setIndices(size_t x, size_t y)
 
 bool iAScatterPlot::hasData() const
 {
-	if (m_splomData.isNull() || !(m_splomData->numPoints()) || !(m_splomData->numParams()))
+	if (!m_splomData || !(m_splomData->numPoints()) || !(m_splomData->numParams()))
 	{
 		return false;
 	}
@@ -135,14 +135,14 @@ void iAScatterPlot::updatePoints()
 #endif
 }
 
-void iAScatterPlot::setLookupTable( QSharedPointer<iALookupTable> &lut, size_t colInd )
+void iAScatterPlot::setLookupTable( std::shared_ptr<iALookupTable> &lut, size_t colInd )
 {
 	m_colInd = colInd;
 	m_lut = lut;
 	updatePoints();
 }
 
-QSharedPointer<iALookupTable> iAScatterPlot::lookupTable() const
+std::shared_ptr<iALookupTable> iAScatterPlot::lookupTable() const
 {
 	return m_lut;
 }

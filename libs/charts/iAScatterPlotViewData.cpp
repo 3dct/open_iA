@@ -29,7 +29,7 @@ iAScatterPlotViewData::SelectionType const& iAScatterPlotViewData::selection() c
 	return m_selection;
 }
 
-iAScatterPlotViewData::SelectionType const& iAScatterPlotViewData::filteredSelection(QSharedPointer<iASPLOMData> splomData) const
+iAScatterPlotViewData::SelectionType const& iAScatterPlotViewData::filteredSelection(std::shared_ptr<iASPLOMData> splomData) const
 {
 	if (!filterDefined() || selection().size() == 0)
 	{
@@ -59,7 +59,7 @@ iAScatterPlotViewData::SelectionType const& iAScatterPlotViewData::filteredSelec
 	return m_filteredSelection;
 }
 
-void iAScatterPlotViewData::setFilteredSelection(iAScatterPlotViewData::SelectionType const& filteredSelection, QSharedPointer<iASPLOMData> splomData)
+void iAScatterPlotViewData::setFilteredSelection(iAScatterPlotViewData::SelectionType const& filteredSelection, std::shared_ptr<iASPLOMData> splomData)
 {
 	if (!filterDefined())
 	{
@@ -209,7 +209,7 @@ void iAScatterPlotViewData::updateAnimation(size_t curPt, size_t prePt)
 	}
 }
 
-bool iAScatterPlotViewData::matchesFilter(QSharedPointer<iASPLOMData> splomData, size_t ind) const
+bool iAScatterPlotViewData::matchesFilter(std::shared_ptr<iASPLOMData> splomData, size_t ind) const
 {
 	if (m_filters.empty())
 	{

@@ -19,7 +19,7 @@ class iAClusterAttribChart: public QWidget
 	Q_OBJECT
 public:
 	iAClusterAttribChart(QString const & caption, int id, std::shared_ptr<iAParamHistogramData> data,
-		QSharedPointer<iANameMapper> nameMapper);
+		std::shared_ptr<iANameMapper> nameMapper);
 	void SetFilteredData(std::shared_ptr<iAParamHistogramData> data);
 	void SetFilteredClusterData(std::shared_ptr<iAParamHistogramData> data);
 	void RemoveFilterData();

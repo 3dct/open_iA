@@ -21,10 +21,10 @@
 #include <QMap>
 #include <QMutex>
 #include <QString>
-#include <QSharedPointer>
 
 #include <array>
 #include <functional>
+#include <memory>
 #include <vector>
 
 class QListWidget;
@@ -306,7 +306,7 @@ private:
 	dlg_renderer * m_dwRenderer;
 	//! @}
 
-	QMap<uint, QSharedPointer<iAChannelData> > m_channels;
+	QMap<uint, std::shared_ptr<iAChannelData> > m_channels;
 	uint m_nextChannelID;
 	uint m_magicLensChannel;
 	

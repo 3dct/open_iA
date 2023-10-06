@@ -17,7 +17,7 @@
 #include <QVBoxLayout>
 
 iAImageNodeWidget::iAImageNodeWidget(QWidget* parent,
-	QSharedPointer<iAImageTreeNode> treeNode,
+	std::shared_ptr<iAImageTreeNode> treeNode,
 	iAPreviewWidgetPool * previewPool,
 	bool shrinkAuto,
 	int representativeType)
@@ -127,7 +127,7 @@ void iAImageNodeWidget::Layout(int x, int y, int width, int height)
 	move(x, y);
 }
 
-QSharedPointer<iAImageTreeNode > iAImageNodeWidget::GetClusterNode()
+std::shared_ptr<iAImageTreeNode > iAImageNodeWidget::GetClusterNode()
 {
 	return m_cluster;
 }

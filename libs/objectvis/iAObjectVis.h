@@ -13,8 +13,8 @@
 
 #include <QList>
 #include <QMap>
-#include <QSharedPointer>
 
+#include <memory>
 #include <vector>
 
 class vtkColorTransferFunction;
@@ -30,9 +30,9 @@ class QStandardItem;
 class iAobjectvis_API iAObjectsData : public iADataSet
 {
 public:
-	iAObjectsData(vtkTable* m_table, QSharedPointer<QMap<uint, uint> > m_colMapping);
+	iAObjectsData(vtkTable* m_table, std::shared_ptr<QMap<uint, uint>> m_colMapping);
 	vtkTable* m_table;
-	QSharedPointer<QMap<uint, uint> > m_colMapping;
+	std::shared_ptr<QMap<uint, uint>> m_colMapping;
 	iAObjectVisType m_visType;
 	// maybe also store csv config?
 };
@@ -56,7 +56,7 @@ public:
 	virtual void renderOrientationDistribution( vtkImageData* oi ) =0;
 	virtual void renderLengthDistribution( vtkColorTransferFunction* cTFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range ) =0;
 	virtual double const* bounds() = 0;
-	virtual QSharedPointer<iAObjectVisActor> createActor(vtkRenderer* ren) = 0;
+	virtual std::shared_ptr<iAObjectVisActor> createActor(vtkRenderer* ren) = 0;
 
 signals:
 	void renderRequired();

@@ -303,7 +303,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 
 	if (magicLensAvailable)
 	{
-		m_magicLens = QSharedPointer<iAMagicLens>::create();
+		m_magicLens = std::make_shared<iAMagicLens>();
 		m_magicLens->setRenderWindow(m_renWin);
 		// setup context menu for the magic lens view options
 		m_contextMenu->addSeparator();
@@ -631,7 +631,7 @@ iAMagicLens * iASlicerImpl::magicLens()
 		LOG(lvlWarn, "SetMagicLensEnabled called on slicer which doesn't have a magic lens!");
 		return nullptr;
 	}
-	return m_magicLens.data();
+	return m_magicLens.get();
 }
 
 void iASlicerImpl::setMagicLensSize(int newSize)
@@ -1726,14 +1726,14 @@ uint iASlicerImpl::firstVisibleChannel() const
 	return NotExistingChannel;
 }
 
-QSharedPointer<iAChannelSlicerData> iASlicerImpl::createChannel(uint id, iAChannelData const & chData)
+std::shared_ptr<iAChannelSlicerData> iASlicerImpl::createChannel(uint id, iAChannelData const & chData)
 {
 	if (m_channels.contains(id))
 	{
 		throw std::runtime_error(QString("iASlicer: Channel with ID %1 already exists!").arg(id).toStdString());
 	}
 
-	QSharedPointer<iAChannelSlicerData> newData(new iAChannelSlicerData(chData, m_mode));
+	std::shared_ptr<iAChannelSlicerData> newData(new iAChannelSlicerData(chData, m_mode));
 	newData->setInterpolate(m_settings[iASlicerImpl::LinearInterpolation].toBool());
 	newData->setSlabNumberOfSlices(m_slabThickness);
 	newData->setSlabMode(m_slabCompositeMode);
@@ -1749,7 +1749,7 @@ iAChannelSlicerData * iASlicerImpl::channel(uint id)
 	{
 		return nullptr;
 	}
-	return m_channels.find(id)->data();
+	return m_channels.find(id)->get();
 }
 
 void iASlicerImpl::removeChannel(uint id)

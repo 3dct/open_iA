@@ -517,10 +517,10 @@ double const * iALabeledVolumeVis::bounds()
 	return m_bounds;
 }
 
-QSharedPointer<iAObjectVisActor> iALabeledVolumeVis::createActor(vtkRenderer* ren)
+std::shared_ptr<iAObjectVisActor> iALabeledVolumeVis::createActor(vtkRenderer* ren)
 {
-	auto result = QSharedPointer<iAObjectVisActor>::create(ren);
-	connect(this, &iAObjectVis::dataChanged, result.data(), &iAObjectVisActor::updateRenderer);
-	connect(this, &iAObjectVis::renderRequired, result.data(), &iAObjectVisActor::updateRenderer);
+	auto result = std::make_shared<iAObjectVisActor>(ren);
+	connect(this, &iAObjectVis::dataChanged, result.get(), &iAObjectVisActor::updateRenderer);
+	connect(this, &iAObjectVis::renderRequired, result.get(), &iAObjectVisActor::updateRenderer);
 	return result;
 }

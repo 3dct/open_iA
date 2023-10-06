@@ -4,8 +4,9 @@
 
 #include "iAImageGraphTypes.h"
 
-#include <QSharedPointer>
 #include <QVector>
+
+#include <memory>
 
 class iANormalizer;
 class iAImageGraph;
@@ -16,7 +17,7 @@ class iAGraphWeights
 {
 public:
 	iAGraphWeights(iAEdgeIndexType edgeCount);
-	void Normalize(QSharedPointer<iANormalizer> normalizeFunc);
+	void Normalize(std::shared_ptr<iANormalizer> normalizeFunc);
 	iAEdgeWeightType GetMaxWeight() const;
 	iAEdgeWeightType GetWeight(iAEdgeIndexType edgeIdx) const;
 	void SetWeight(iAEdgeIndexType edgeIdx, iAEdgeWeightType weight);
@@ -25,13 +26,13 @@ private:
 	QVector<iAEdgeWeightType> m_weights;
 };
 
-QSharedPointer<iAGraphWeights> CalculateGraphWeights(
+std::shared_ptr<iAGraphWeights> CalculateGraphWeights(
 	iAImageGraph const & graph,
 	iAVectorArray const & voxelData,
 	iAVectorDistance const & distanceFunc
 );
 
-QSharedPointer<iAGraphWeights const> CombineGraphWeights(
-	QVector<QSharedPointer<iAGraphWeights>> const & graphWeights,
+std::shared_ptr<iAGraphWeights const> CombineGraphWeights(
+	QVector<std::shared_ptr<iAGraphWeights>> const & graphWeights,
 	QVector<double> const & weight
 );

@@ -49,7 +49,7 @@ private:
 	vtkSmartPointer<vtkActor> m_RegionNodesActor;
 	iAColoredPolyObjectVis* m_polyObject;
 	vtkSmartPointer<vtkPoints> m_initialPoints;
-	//QSharedPointer<> m_PolyObjectActor;
+	//std::shared_ptr<> m_PolyObjectActor;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	iACsvIO m_io;

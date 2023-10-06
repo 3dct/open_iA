@@ -206,7 +206,7 @@ void iAInSpectrTool::updateXRFVoxelEnergy( double x, double y, double z, int /*m
 	{
 		return;
 	}
-	iAXRFData * xrfData = dlgXRF->GetXRFData().data();
+	iAXRFData * xrfData = dlgXRF->GetXRFData().get();
 	if (!xrfData || xrfData->begin() == xrfData->end())
 	{
 		return;

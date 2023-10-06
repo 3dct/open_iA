@@ -41,7 +41,7 @@ iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent,
 	filterListener(filterListener),
 	m_tf(new iATransferFunctionPtrs(cTF, oTF))
 {
-	setTransferFunction(m_tf.data());
+	setTransferFunction(m_tf.get());
 	addPlot(std::make_shared<iAStepFunctionPlot>(m_data, QColor(70, 70, 70, 255)));
 	selectionRubberBand->hide();
 	setAllowTFReset(false);

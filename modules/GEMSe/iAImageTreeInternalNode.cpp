@@ -16,8 +16,8 @@
 const int CHILD_NODE_NUMBER = 2;
 
 iAImageTreeInternalNode::iAImageTreeInternalNode(
-	QSharedPointer<iAImageTreeNode > a,
-	QSharedPointer<iAImageTreeNode > b,
+	std::shared_ptr<iAImageTreeNode > a,
+	std::shared_ptr<iAImageTreeNode > b,
 	LabelPixelType differenceMarkerValue,
 	QString const & cachePath,
 	ClusterIDType id,
@@ -299,7 +299,7 @@ void iAImageTreeInternalNode::DiscardFilterData()
 }
 
 
-QSharedPointer<iAImageTreeNode > iAImageTreeInternalNode::GetChild(int idx) const
+std::shared_ptr<iAImageTreeNode > iAImageTreeInternalNode::GetChild(int idx) const
 {
 	return (idx == 0) ? m_children.first : m_children.second;
 }
@@ -537,7 +537,7 @@ void iAImageTreeInternalNode::GetMinMax(int chartID, double & min, double & max,
 }
 
 
-void iAImageTreeInternalNode::GetSelection(QVector<QSharedPointer<iASingleResult> > & result) const
+void iAImageTreeInternalNode::GetSelection(QVector<std::shared_ptr<iASingleResult> > & result) const
 {
 	if (m_filteredSize == 0)	// shortcut
 	{

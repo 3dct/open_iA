@@ -42,5 +42,5 @@ private:
 	QVector<QRect> selectionRects;
 	iASpectrumFilterListener* filterListener;
 	QMap<iACharacteristicEnergy*, QColor> m_elementEnergies;
-	QSharedPointer<iATransferFunctionPtrs> m_tf;
+	std::shared_ptr<iATransferFunctionPtrs> m_tf;
 };

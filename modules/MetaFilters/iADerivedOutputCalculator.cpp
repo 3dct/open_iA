@@ -21,7 +21,7 @@
 #include <QString>
 
 iADerivedOutputCalculator::iADerivedOutputCalculator(
-		QSharedPointer<iASingleResult> result,
+		std::shared_ptr<iASingleResult> result,
 		int objCountIdx,
 		int avgUncIdx,
 		int labelCount):

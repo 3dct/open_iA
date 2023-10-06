@@ -27,16 +27,16 @@ class iASensitivityInfo: public QObject, public iAAbortListener
 {
 	Q_OBJECT
 public:
-	static QSharedPointer<iASensitivityInfo> create(iAMdiChild* child,
-		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
+	static std::shared_ptr<iASensitivityInfo> create(iAMdiChild* child,
+		std::shared_ptr<iAFiberResultsCollection> data, QDockWidget* nextToDW,
 		int histogramBins, int skipColumns, std::vector<iAFiberResultUIData> const& resultUIs,
 		vtkRenderWindow* main3DWin,
 		QString parameterSetFileName = QString(),
 		QVector<int> const& charSelected = QVector<int>(),
 		QVector<int> const& charDiffMeasure = QVector<int>(),
 		QVariantMap const & projectFile = QVariantMap());
-	static QSharedPointer<iASensitivityInfo> load(iAMdiChild* child,
-		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
+	static std::shared_ptr<iASensitivityInfo> load(iAMdiChild* child,
+		std::shared_ptr<iAFiberResultsCollection> data, QDockWidget* nextToDW,
 		QVariantMap const & projectFile, QString const& projectFileName,
 		std::vector<iAFiberResultUIData> const& resultUIs, vtkRenderWindow* main3DWin);
 	static bool hasData(QVariantMap const& settings);
@@ -48,7 +48,7 @@ public:
 	iASensitivityData& data();
 
 	//! the GUI elements:
-	QSharedPointer<iASensitivityGUI> m_gui;
+	std::shared_ptr<iASensitivityGUI> m_gui;
 
 	// for interaction:
 	std::vector<std::vector<size_t>> m_baseFiberSelection;
@@ -56,7 +56,7 @@ public:
 
 	void abort() override;
 private:
-	iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data,
+	iASensitivityInfo(std::shared_ptr<iAFiberResultsCollection> data,
 		QString const& parameterFileName, int skipColumns, QStringList const& paramNames,
 		std::vector<std::vector<double>> const& paramValues, iAMdiChild* child,
 		QDockWidget* nextToDW, std::vector<iAFiberResultUIData> const& resultUIs, vtkRenderWindow* main3DWin);
@@ -79,7 +79,7 @@ private:
 	//! "temporary" copy of project to load:
 	QVariantMap m_projectToLoad;
 
-	QSharedPointer<iASensitivityData> m_data;
+	std::shared_ptr<iASensitivityData> m_data;
 	std::set<size_t> m_spatialOverviewDataSets;
 signals:
 	void aborted();

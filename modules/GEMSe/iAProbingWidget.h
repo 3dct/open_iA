@@ -3,8 +3,9 @@
 #pragma once
 
 #include <QScrollArea>
-#include <QSharedPointer>
 #include <QVector>
+
+#include <memory>
 
 class iAPlot;
 class iAChartWidget;

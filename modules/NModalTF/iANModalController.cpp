@@ -414,7 +414,7 @@ void iANModalController::setDataSets(const QList<std::shared_ptr<iAImageData>>& 
 			LOG(lvlWarn, QString("No display data found for dataset %1!").arg(dataSet->name()));
 			continue;
 		}
-		m_tfs.append(QSharedPointer<iANModalTFManager>::create(viewer->transfer()));
+		m_tfs.append(std::make_shared<iANModalTFManager>(viewer->transfer()));
 		resetTf(dataSetIdx);
 	}
 }

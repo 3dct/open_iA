@@ -4,7 +4,7 @@
 
 #include "iAVectorType.h"
 
-#include <QSharedPointer>
+#include <memory>
 
 //! abstract base class for the distance between two vectors of same length
 class Segmentation_API iAVectorDistance
@@ -14,6 +14,6 @@ public:
 	virtual ~iAVectorDistance();
 	virtual char const * GetShortName() const =0;
 	virtual char const * name() const =0;
-	virtual double GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const = 0;
+	virtual double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const = 0;
 	virtual bool isSymmetric() const;
 };

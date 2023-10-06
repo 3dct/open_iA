@@ -46,15 +46,15 @@ class dlg_GEMSe: public dlg_GEMSeUI
 	Q_OBJECT
 public:
 	dlg_GEMSe(QWidget *parent, iALogger * logger, iAColorTheme const * colorTheme);
-	void SetTree(QSharedPointer<iAImageTree> imageTree,
+	void SetTree(std::shared_ptr<iAImageTree> imageTree,
 		vtkSmartPointer<vtkImageData> originalImage,
 		std::vector<std::shared_ptr<iADataSet>> const& dataSets,
 		std::vector<iATransferFunction*> const& transfer,
 		iALabelInfo const * labelInfo,
-		QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > samplings);
+		std::shared_ptr<QVector<std::shared_ptr<iASamplingResults>>> samplings);
 	void StoreClustering(QString const & fileName);
-	QSharedPointer<iAImageTreeNode> GetCurrentCluster();
-	QSharedPointer<iAImageTreeNode> GetRoot();
+	std::shared_ptr<iAImageTreeNode> GetCurrentCluster();
+	std::shared_ptr<iAImageTreeNode> GetRoot();
 	void setColorTheme(iAColorTheme const * colorTheme, iALabelInfo const * labelInfo);
 	void ShowImage(vtkSmartPointer<vtkImageData> imgData);
 	void CalcRefImgComp(LabelImagePointer refImg);
@@ -66,14 +66,14 @@ public:
 	void ExportAttributeRangeRanking(QString const & fileName);
 	void ExportRankings(QString const & fileName);
 	void ImportRankings(QString const & fileName);
-	void GetSelection(QVector<QSharedPointer<iASingleResult> > &);
-	QSharedPointer<iAImageTreeNode> GetSelectedCluster();
+	void GetSelection(QVector<std::shared_ptr<iASingleResult> > &);
+	std::shared_ptr<iAImageTreeNode> GetSelectedCluster();
 	void AddConsensusImage(iAITKIO::ImagePointer imgData, QString const & name);
 	void AddConsensusNumbersImage(iAITKIO::ImagePointer imgData, QString const & name);
 	int GetMeasureStartID() { return m_MeasureChartIDStart; }
 	QString GetSerializedHiddenCharts() const;
 	void SetSerializedHiddenCharts(QString const & hiddenCharts);
-	QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > GetSamplings();
+	std::shared_ptr<QVector<std::shared_ptr<iASamplingResults>>> GetSamplings();
 	void setMagicLensCount(int count);
 	void freeMemory();
 	void SetProbabilityProbing(bool enabled);
@@ -83,9 +83,9 @@ public slots:
 	void ResetFilters();
 	void selectHistograms();
 private slots:
-	void ClusterNodeClicked(QSharedPointer<iAImageTreeNode> node);
-	void ClusterNodeImageClicked(QSharedPointer<iAImageTreeNode> node);
-	void SelectCluster(QSharedPointer<iAImageTreeNode> node);
+	void ClusterNodeClicked(std::shared_ptr<iAImageTreeNode> node);
+	void ClusterNodeImageClicked(std::shared_ptr<iAImageTreeNode> node);
+	void SelectCluster(std::shared_ptr<iAImageTreeNode> node);
 	void ClusterLeafSelected(iAImageTreeLeaf *);
 	void CompareAlternateSelected(iAImageTreeNode * node);
 	void FilterChanged(int chartID, double min, double max);
@@ -108,17 +108,17 @@ private:
 	void UpdateFilteredData();
 	void UpdateAttributeRangeAttitude();
 	void CreateMapper();
-	void CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelImagePointer refImg,
+	void CalculateRefImgComp(std::shared_ptr<iAImageTreeNode> node, LabelImagePointer refImg,
 		int labelCount);
 
 	// data:
-	QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > m_samplings;
+	std::shared_ptr<QVector<std::shared_ptr<iASamplingResults>>> m_samplings;
 	QStringList m_pipelineNames;
-	QSharedPointer<iAAttributes> m_chartAttributes;
+	std::shared_ptr<iAAttributes> m_chartAttributes;
 	iAChartAttributeMapper m_chartAttributeMapper;
 	int m_MeasureChartIDStart;
 
-	QSharedPointer<iAImageTreeNode> m_selectedCluster;
+	std::shared_ptr<iAImageTreeNode> m_selectedCluster;
 	iAImageTreeLeaf * m_selectedLeaf;
 
 	iAChartFilter m_chartFilter;
@@ -137,5 +137,5 @@ private:
 	iAPreviewWidgetPool* m_previewWidgetPool;
 	ClusterImageType m_nullImage;
 	iARepresentativeType m_representativeType;
-	QVector<QSharedPointer<iAFakeTreeNode> > m_ConsensusResults;		// to store them somewhere so they don't get deleted - TODO: discard once unused!
+	QVector<std::shared_ptr<iAFakeTreeNode> > m_ConsensusResults;		// to store them somewhere so they don't get deleted - TODO: discard once unused!
 };

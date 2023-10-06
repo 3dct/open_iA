@@ -12,12 +12,12 @@ iAImageTreeNode::iAImageTreeNode() :
 iAImageTreeNode::~iAImageTreeNode()
 {}
 
-void iAImageTreeNode::SetParent(QSharedPointer<iAImageTreeNode > parent)
+void iAImageTreeNode::SetParent(std::shared_ptr<iAImageTreeNode > parent)
 {
 	m_parent = parent;
 }
 
-QSharedPointer<iAImageTreeNode > iAImageTreeNode::GetParent() const
+std::shared_ptr<iAImageTreeNode > iAImageTreeNode::GetParent() const
 {
 	return m_parent;
 }
@@ -48,10 +48,10 @@ void iAImageTreeNode::ClearFilterData()
 }
 
 
-void FindNode(iAImageTreeNode const * searched, QList<QSharedPointer<iAImageTreeNode> > & path, QSharedPointer<iAImageTreeNode> curCluster, bool & found)
+void FindNode(iAImageTreeNode const * searched, QList<std::shared_ptr<iAImageTreeNode> > & path, std::shared_ptr<iAImageTreeNode> curCluster, bool & found)
 {
 	path.push_back(curCluster);
-	if (curCluster.data() != searched)
+	if (curCluster.get() != searched)
 	{
 		for (int i = 0; i<curCluster->GetChildCount() && !found; ++i)
 		{
@@ -68,9 +68,9 @@ void FindNode(iAImageTreeNode const * searched, QList<QSharedPointer<iAImageTree
 	}
 }
 
-QSharedPointer<iAImageTreeNode> GetSibling(QSharedPointer<iAImageTreeNode> node)
+std::shared_ptr<iAImageTreeNode> GetSibling(std::shared_ptr<iAImageTreeNode> node)
 {
-	QSharedPointer<iAImageTreeNode> parent(node->GetParent());
+	std::shared_ptr<iAImageTreeNode> parent(node->GetParent());
 	for (int i = 0; i<parent->GetChildCount(); ++i)
 	{
 		if (parent->GetChild(i) != node)
@@ -78,7 +78,7 @@ QSharedPointer<iAImageTreeNode> GetSibling(QSharedPointer<iAImageTreeNode> node)
 			return parent->GetChild(i);
 		}
 	}
-	return QSharedPointer<iAImageTreeNode>();
+	return std::shared_ptr<iAImageTreeNode>();
 }
 
 

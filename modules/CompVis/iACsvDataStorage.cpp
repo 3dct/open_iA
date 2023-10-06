@@ -258,7 +258,7 @@ std::vector<vtkSmartPointer<vtkTable>> const & iACsvDataStorage::getObjectTables
 	return m_objectTables;
 }
 
-std::vector<QSharedPointer<QMap<uint, uint>>> const & iACsvDataStorage::getOutputMappings()
+std::vector<std::shared_ptr<QMap<uint, uint>>> const & iACsvDataStorage::getOutputMappings()
 {
 	return m_outputMappings;
 }

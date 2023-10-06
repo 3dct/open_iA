@@ -457,7 +457,7 @@ const QStringList & iACsvIO::getOutputHeaders() const
 	return m_outputHeaders;
 }
 
-QSharedPointer<QMap<uint, uint>> iACsvIO::getOutputMapping() const
+std::shared_ptr<QMap<uint, uint>> iACsvIO::getOutputMapping() const
 {
 	return m_outputMapping;
 }

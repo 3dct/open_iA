@@ -104,8 +104,8 @@ public:
 	iAQSplom(QWidget * parent = nullptr);
 	~iAQSplom();
 
-	void setData(QSharedPointer<iASPLOMData> data, std::vector<char> const & visibility);                  //! set SPLOM data directly.
-	QSharedPointer<iASPLOMData> data();                              //! retrieve SPLOM data
+	void setData(std::shared_ptr<iASPLOMData> data, std::vector<char> const & visibility);                  //! set SPLOM data directly.
+	std::shared_ptr<iASPLOMData> data();                              //! retrieve SPLOM data
 	void setLookupTable( vtkLookupTable * lut, const QString & paramName ); //!< Set lookup table from VTK (vtkLookupTable) given the name of a parameter to color-code.
 	void setLookupTable( iALookupTable &lut, size_t paramIndex );    //!< Set lookup table given the index of a parameter to color-code.
 	void setColorParam( const QString & paramName );                 //!< Set the parameter to color code, lookup table will be auto-determined (By Parameter)
@@ -117,7 +117,7 @@ public:
 	void setPointRadius( double radius );                            //!< set the radius for scatter plot points
 	void setPointColor( QColor const & color );                      //!< set the color for all data points
 	void setPointOpacity( double opacity );                          //!< set the opaci	ty for all data points
-	QSharedPointer<iAScatterPlotViewData> viewData();
+	std::shared_ptr<iAScatterPlotViewData> viewData();
 	void setSelectionColor(QColor color);                            //!< set the color for selected points
 	void enableSelection(bool enable);                               //!< set whether selections are allowed or not
 	void getActivePlotIndices( int * inds_out );                     //!< Get X and Y parameter indices of currently active scatter plot.
@@ -129,7 +129,7 @@ public:
 	void showDefaultMaxizimedPlot();                                 //!< maximize plot in upper left corner
 	void addContextMenuAction(QAction* action);                      //!< add an additional option to the context menu
 	size_t colorLookupParam() const;                                 //!< parameter currently used for color lookup
-	QSharedPointer<iALookupTable> lookupTable() const;               //!< get lookup table
+	std::shared_ptr<iALookupTable> lookupTable() const;               //!< get lookup table
 	ColorMode colorMode() const;                                     //!< get current coloring mode
 	void saveSettings(QSettings & iniFile) const;                    //!< store current settings into given object
 	void loadSettings(QVariantMap const & iniFile);                  //!< load settings from given object
@@ -268,15 +268,15 @@ protected:
 	std::vector<std::vector<iAScatterPlot*> > m_visiblePlots; //!< matrix of visible scatter plots
 	std::vector<char> m_paramVisibility;         //!< array of individual parameter visibility
 	std::vector<size_t> m_visibleIndices;        //!< stores mapping from visible plot index to parameter index
-	QSharedPointer<iALookupTable> m_lut;         //!< lookup table, shared with individual scatter plots
+	std::shared_ptr<iALookupTable> m_lut;         //!< lookup table, shared with individual scatter plots
 	size_t m_colorLookupParam;                   //!< index of the column to use for color lookup (TODO: Move to settings?)
 	QPoint m_scatPlotSize;                       //!< size of one scatter plot in the layout
 	iAScatterPlot * m_activePlot;                //!< scatter plot that user currently interacts with
 	SPMMode m_mode;                              //!< SPLOM current state: all plots or upper triangle with maximized plot (TODO: Move to settings?)
-	QSharedPointer<iASPLOMData> m_splomData;     //!< contains raw data points used in SPLOM
+	std::shared_ptr<iASPLOMData> m_splomData;     //!< contains raw data points used in SPLOM
 	iAScatterPlot * m_previewPlot;               //!< plot currently being previewed (shown in maximized plot)
 	iAScatterPlot * m_maximizedPlot;             //!< pointer to the maximized plot
-	QSharedPointer<iAScatterPlotViewData> m_viewData;
+	std::shared_ptr<iAScatterPlotViewData> m_viewData;
 
 	double m_popupHeight;                        //!< height of the last drawn popup
 	int m_separationIdx;                         //!< index at which to separate scatterplots spatially (e.g. into in- and output parameters)

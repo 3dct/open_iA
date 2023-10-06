@@ -7,7 +7,6 @@
 
 #include <QVector>
 
-//#include <memory>
 #include <vector>
 
 class vtkImageData;

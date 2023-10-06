@@ -15,15 +15,15 @@ class iASampleFilter : public iAFilter, private iAAutoRegistration<iAFilter, iAS
 {
 public:
 	iASampleFilter();
-	void setParameters(std::map<size_t, std::shared_ptr<iADataSet>> input, QSharedPointer<iAAttributes> parameterRanges,
-		QSharedPointer<iAAttributes> parameterSpecs, QString const& parameterRangeFile, QString const& parameterSetFile,
+	void setParameters(std::map<size_t, std::shared_ptr<iADataSet>> input, std::shared_ptr<iAAttributes> parameterRanges,
+		std::shared_ptr<iAAttributes> parameterSpecs, QString const& parameterRangeFile, QString const& parameterSetFile,
 		QString const& derivedOutFile, int samplingID, std::vector<int> numOfSamplesPerParameter);
 	void abort() override;
 private:
 	void performWork(QVariantMap const& parameters) override;
 	bool checkParameters(QVariantMap const& parameters) override;
 	std::map<size_t, std::shared_ptr<iADataSet>> m_input;
-	QSharedPointer<iAAttributes> m_parameterRanges, m_parameterSpecs;
+	std::shared_ptr<iAAttributes> m_parameterRanges, m_parameterSpecs;
 	QString m_parameterRangeFile,
 		m_parameterSetFile,
 		m_derivedOutFile;

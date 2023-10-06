@@ -11,9 +11,9 @@
 #include <vtkSmartPointer.h>
 
 #include <QObject>
-#include <QSharedPointer>
 
 #include <map>
+#include <memory>
 #include <vector>
 
 class dlg_FeatureScout;
@@ -56,7 +56,7 @@ public:
 private:
 	bool initFromConfig(iAMdiChild* child, iACsvConfig const& csvConfig);
 	void init(int filterID, QString const& fileName, vtkSmartPointer<vtkTable> csvtbl, iAObjectVisType visType,
-		QSharedPointer<QMap<uint, uint>> columnMapping, std::map<size_t, std::vector<iAVec3f>>& curvedFiberInfo,
+		std::shared_ptr<QMap<uint, uint>> columnMapping, std::map<size_t, std::vector<iAVec3f>>& curvedFiberInfo,
 		int cylinderQuality, size_t segmentSkip);
 	iACsvConfig m_config;
 	dlg_FeatureScout * m_featureScout;

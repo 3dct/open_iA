@@ -46,7 +46,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <QPainter>
 <QPen>
 <QPolygon>
-<QSharedPointer>
 <QString>
 <QVector>
 <QWheelEvent>

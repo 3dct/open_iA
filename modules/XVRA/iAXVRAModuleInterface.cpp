@@ -112,9 +112,8 @@ void iAXVRAModuleInterface::startXVRA()
 	vtkSmartPointer<vtkTable> m_objectTable = creator.table();
 
 	// Create PolyObject visualization
-	m_polyObject = create3DObjectVis(
-		csvConfig.visType, m_objectTable, io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo)
-		.dynamicCast<iAColoredPolyObjectVis>();
+	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(create3DObjectVis(
+		csvConfig.visType, m_objectTable, io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo));
 	if (!m_polyObject)
 	{
 		LOG(lvlError, "Invalid 3D object visualization!");

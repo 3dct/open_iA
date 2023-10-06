@@ -19,7 +19,7 @@ public:
 	iAXVRAModuleInterface();
 	void Initialize() override;
 private:
-	QSharedPointer<iAColoredPolyObjectVis> m_polyObject;
+	std::shared_ptr<iAColoredPolyObjectVis> m_polyObject;
 	dlg_FeatureScout* m_fsMain;
 	iAFrustumActor* fsFrustum;
 	iAFrustumActor* vrFrustum;

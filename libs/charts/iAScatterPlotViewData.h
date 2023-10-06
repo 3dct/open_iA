@@ -9,7 +9,8 @@
 #include <QColor>
 #include <QObject>
 #include <QPropertyAnimation>
-#include <QSharedPointer>
+
+#include <memory>
 
 #include "iacharts_export.h"
 
@@ -37,8 +38,8 @@ public:
 	//! returns the index of the selected points in the filtered list of points
 	//! i.e. the index of those points that are selected in a list which only contains those points which match the current filter
 	//! NOTE: Only useful if you actually have such a filtered list! As is e.g. currently created in iAScatterPlot::drawPoints when SP_OLDOPENGL is defined...
-	SelectionType const& filteredSelection(QSharedPointer<iASPLOMData> splomData) const;
-	void setFilteredSelection(SelectionType const& filteredSelection, QSharedPointer<iASPLOMData> splomData);
+	SelectionType const& filteredSelection(std::shared_ptr<iASPLOMData> splomData) const;
+	void setFilteredSelection(SelectionType const& filteredSelection, std::shared_ptr<iASPLOMData> splomData);
 	void clearSelection();
 
 	SelectionType const& highlightedPoints() const;
@@ -61,7 +62,7 @@ public:
 	
 	//! @{
 	//! Filtering for data items (matching values)
-	bool matchesFilter(QSharedPointer<iASPLOMData> splomData, size_t ind) const; //!< Returns true if point with given index matches current filter
+	bool matchesFilter(std::shared_ptr<iASPLOMData> splomData, size_t ind) const; //!< Returns true if point with given index matches current filter
 	void addFilter(size_t paramIndex, double value);  //!< Adds a filter on the data to be shown, on the given column (index). The value in this column needs to match the given value; multiple filters added via this function are linked via OR.
 	void removeFilter(size_t paramIndex, double value);//!< Removes the filter on the given column and value.
 	void clearFilters();                              //!< Clear all filters on data; after calling this method, all data points will be shown again.

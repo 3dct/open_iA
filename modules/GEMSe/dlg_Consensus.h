@@ -63,9 +63,9 @@ private:
 	void AddResult(vtkSmartPointer<vtkTable> table, QString const & title);
 	int GetWeightType();
 	void UpdateWeightPlot();
-	void Sample(QVector<QSharedPointer<iASingleResult> > const & selection, int selectedClusterID, int weightType);
+	void Sample(QVector<std::shared_ptr<iASingleResult> > const & selection, int selectedClusterID, int weightType);
 	void SelectionUncertaintyDice(
-		QVector<QSharedPointer<iASingleResult> > const & selection,
+		QVector<std::shared_ptr<iASingleResult> > const & selection,
 		QString const & name);
 	void StartNextSampler();
 
@@ -83,15 +83,15 @@ private:
 	QString const & m_folder;
 
 	// for hold-out validation:
-	QVector<QSharedPointer<iAImageSampler> > m_queuedSamplers;
+	QVector<std::shared_ptr<iAImageSampler> > m_queuedSamplers;
 	QVector<QVariantMap > m_samplerParameters;
-	QSharedPointer<iAImageSampler> m_currentSampler;
+	std::shared_ptr<iAImageSampler> m_currentSampler;
 	iAProgress m_progress;
-	QVector<QSharedPointer<iASamplingResults> > m_comparisonSamplingResults;
+	QVector<std::shared_ptr<iASamplingResults> > m_comparisonSamplingResults;
 	QVector<QVector<int> > m_comparisonBestIDs;
 	QVector<QVector<int> > m_comparisonMVIDs;
-	QVector<QSharedPointer<iASingleResult> > m_comparisonBestSelection;
-	QVector<QSharedPointer<iASingleResult> > m_comparisonMVSelection;
+	QVector<std::shared_ptr<iASingleResult> > m_comparisonBestSelection;
+	QVector<std::shared_ptr<iASingleResult> > m_comparisonMVSelection;
 	int m_comparisonWeightType;
 	dlg_samplings * m_dlgSamplings;
 	QString m_cachePath;

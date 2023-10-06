@@ -8,7 +8,6 @@
 
 #include <QMainWindow>
 #include <QMap>
-#include <QSharedPointer>
 
 #include <functional>
 #include <memory>

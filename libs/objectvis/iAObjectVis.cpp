@@ -12,7 +12,7 @@
 #include <QColor>
 #include <QtMath>
 
-iAObjectsData::iAObjectsData(vtkTable* table, QSharedPointer<QMap<uint, uint> > colMapping) :
+iAObjectsData::iAObjectsData(vtkTable* table, std::shared_ptr<QMap<uint, uint>> colMapping) :
 	iADataSet(iADataSetType::Objects),
 	m_table(table),
 	m_colMapping(colMapping)

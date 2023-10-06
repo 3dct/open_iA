@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include <QSharedPointer>
+#include <memory>
 
 class iAColoredPolyObjectVis;
 class iAPolyObjectVisActor;
@@ -18,10 +18,10 @@ class iAFiberResultUIData
 {
 public:
 	iAQVTKWidget* vtkWidget = nullptr;
-	QSharedPointer<iAColoredPolyObjectVis> mini3DVis;
-	QSharedPointer<iAPolyObjectVisActor> mini3DActor;
-	QSharedPointer<iAColoredPolyObjectVis> main3DVis;
-	QSharedPointer<iAPolyObjectVisActor> main3DActor;
+	std::shared_ptr<iAColoredPolyObjectVis> mini3DVis;
+	std::shared_ptr<iAPolyObjectVisActor> mini3DActor;
+	std::shared_ptr<iAColoredPolyObjectVis> main3DVis;
+	std::shared_ptr<iAPolyObjectVisActor> main3DActor;
 	iAChartWidget* histoChart;
 	iAStackedBarChart* stackedBars;
 	iAFixedAspectWidget* previewWidget = nullptr;
