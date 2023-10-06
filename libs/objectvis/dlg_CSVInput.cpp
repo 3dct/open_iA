@@ -248,13 +248,13 @@ void dlg_CSVInput::updatePreview()
 void dlg_CSVInput::visualizationTypeChanged(int newTypeInt)
 {
 	auto newType = static_cast<iAObjectVisType>(newTypeInt);
-	m_ui->sb_CylinderQuality->setEnabled(newType == iAObjectVisType::Cylinders);
-	m_ui->sb_SegmentSkip->setEnabled(newType == iAObjectVisType::Cylinders || newType == iAObjectVisType::Lines);
-	if (newType != iAObjectVisType::Cylinders && newType != iAObjectVisType::Lines)
+	m_ui->sb_CylinderQuality->setEnabled(newType == iAObjectVisType::Cylinder);
+	m_ui->sb_SegmentSkip->setEnabled(newType == iAObjectVisType::Cylinder || newType == iAObjectVisType::Line);
+	if (newType != iAObjectVisType::Cylinder && newType != iAObjectVisType::Line)
 	{
 		m_ui->cb_CurvedFiberInfo->setChecked(false);
 	}
-	m_ui->cb_CurvedFiberInfo->setEnabled(newType == iAObjectVisType::Cylinders || newType == iAObjectVisType::Lines);
+	m_ui->cb_CurvedFiberInfo->setEnabled(newType == iAObjectVisType::Cylinder || newType == iAObjectVisType::Line);
 }
 
 void dlg_CSVInput::exportTable()

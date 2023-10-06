@@ -11,7 +11,7 @@ namespace
 		"Labelled Volume",
 		"Lines",
 		"Cylinders",
-		"Ellipses",
+		"Ellipsoids",
 		"No Visualization"
 	};
 }

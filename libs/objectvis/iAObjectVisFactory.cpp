@@ -27,14 +27,14 @@ QSharedPointer<iAObjectVis> create3DObjectVis(iAObjectVisType visType, vtkTable*
 			return QSharedPointer<iANoObjectVis>::create();
 		}
 		return QSharedPointer<iALabeledVolumeVis>::create(ctf, otf, data, bounds);
-	case iAObjectVisType::Lines:
+	case iAObjectVisType::Line:
 		return QSharedPointer<iALineObjectVis>::create(data, color, curvedFiberInfo, segmentSkip);
-	case iAObjectVisType::Cylinders:
+	case iAObjectVisType::Cylinder:
 		return QSharedPointer<iACylinderObjectVis>::create(
 			data, color, curvedFiberInfo, numberOfCylinderSides, segmentSkip);
-	case iAObjectVisType::Ellipses:
+	case iAObjectVisType::Ellipsoid:
 		return QSharedPointer<iAEllipsoidObjectVis>::create(data, color);
-	case iAObjectVisType::NoVis:
+	case iAObjectVisType::None:
 		return QSharedPointer<iANoObjectVis>::create();
 	}
 }

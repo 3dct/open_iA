@@ -108,7 +108,7 @@ bool iACsvConfig::isValid(QString & errorMsg) const
 		errorMsg = "Cannot compute tensors without angles. Either enable to compute them, or specify where to find them!";
 		return false;
 	}
-	if ((visType == iAObjectVisType::Lines || visType == iAObjectVisType::Cylinders) && (
+	if ((visType == iAObjectVisType::Line || visType == iAObjectVisType::Cylinder) && (
 		!computeStartEnd && (
 			!columnMapping.contains(iACsvConfig::StartX) ||
 			!columnMapping.contains(iACsvConfig::StartY) ||
@@ -121,13 +121,13 @@ bool iACsvConfig::isValid(QString & errorMsg) const
 		errorMsg = "Visualization as Lines or Cylinders requires start and end position column, please specify where to find these!";
 		return false;
 	}
-	if (visType == iAObjectVisType::Cylinders &&
+	if (visType == iAObjectVisType::Cylinder &&
 		(!columnMapping.contains(iACsvConfig::Diameter) && !isDiameterFixed) )
 	{
 		errorMsg = "Visualization as Cylinders requires start- and end-position as well as a diameter, please specify where to find these!";
 		return false;
 	}
-	if (visType == iAObjectVisType::Ellipses && (
+	if (visType == iAObjectVisType::Ellipsoid && (
 		!columnMapping.contains(iACsvConfig::CenterX) ||
 		!columnMapping.contains(iACsvConfig::CenterY) ||
 		!columnMapping.contains(iACsvConfig::CenterZ) ||

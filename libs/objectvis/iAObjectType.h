@@ -23,10 +23,10 @@ iAobjectvis_API iAObjectType MapStringToObjectType(QString const& objectTypeName
 enum class iAObjectVisType
 {
 	UseVolume,
-	Lines,
-	Cylinders,
-	Ellipses,
-	NoVis,
+	Line,
+	Cylinder,
+	Ellipsoid,
+	None,
 	Count //must be last element
 }; //!< what visualization to use for the objects. Should match the entries of VisualizationTypeName iACsvConfig.cpp
 

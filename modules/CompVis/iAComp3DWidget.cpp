@@ -97,7 +97,7 @@ void iAComp3DWidget::removeAllRendererFromWidget()
 /*************** Initialization ****************************/
 void iAComp3DWidget::create3DVis(vtkSmartPointer<vtkTable> objectTable, QSharedPointer<QMap<uint, uint>> columnMapping, const iACsvConfig& csvConfig)
 {
-	if (csvConfig.visType == iAObjectVisType::Cylinders)
+	if (csvConfig.visType == iAObjectVisType::Cylinder)
 	{
 		int cylinderQuality = csvConfig.cylinderQuality;
 		size_t segmentSkip = csvConfig.segmentSkip;
@@ -108,7 +108,7 @@ void iAComp3DWidget::create3DVis(vtkSmartPointer<vtkTable> objectTable, QSharedP
 			cylinderQuality,
 			segmentSkip);
 	}
-	else if (csvConfig.visType == iAObjectVisType::Ellipses)
+	else if (csvConfig.visType == iAObjectVisType::Ellipsoid)
 	{
 		m_3dvisData = std::make_shared<iAEllipsoidObjectVis>(
 			std::make_shared<iAObjectsData>(objectTable, columnMapping),

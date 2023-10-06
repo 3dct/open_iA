@@ -21,12 +21,12 @@ void iAVRObjectCoverage::calculateObjectCoverage()
 {
 	switch (m_csvConfig.visType)
 	{
-	case iAObjectVisType::Lines:
-	case iAObjectVisType::Cylinders:
+	case iAObjectVisType::Line:
+	case iAObjectVisType::Cylinder:
 		calculateCurvedLineCoverage();
 		break;
-	case iAObjectVisType::Ellipses:
-		calculateEllipseCoverage();
+	case iAObjectVisType::Ellipsoid:
+		calculateEllipsoidCoverage();
 		break;
 	default:
 		LOG(lvlError, QString("Coverage calculation for object not found"));
@@ -170,7 +170,7 @@ void iAVRObjectCoverage::calculateCurvedLineCoverage()
 //! Computes the coverage of ellipsoid objects for every octree level and region.
 //! Calculates the possible intersection points from the center of the ellipse to the 6 possible, axes parallel (-x,+x,-y,+y,-z,+z),
 //!  points within radius distance.
-void iAVRObjectCoverage::calculateEllipseCoverage()
+void iAVRObjectCoverage::calculateEllipsoidCoverage()
 {
 	// For every pore in csv table
 	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)

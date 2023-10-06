@@ -520,7 +520,7 @@ bool iAImNDTModuleInterface::loadImNDT()
 
 	std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo;
 
-	if (m_csvConfig.visType == iAObjectVisType::Cylinders || m_csvConfig.visType == iAObjectVisType::Lines)
+	if (m_csvConfig.visType == iAObjectVisType::Cylinder || m_csvConfig.visType == iAObjectVisType::Line)
 	{
 		if (!readCurvedFiberInfo(m_csvConfig.curvedFiberFileName, curvedFiberInfo))
 		{

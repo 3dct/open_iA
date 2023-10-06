@@ -532,9 +532,9 @@ namespace
 	{
 		switch (objectType)
 		{
-		case iAObjectVisType::Ellipses: return QSharedPointer<iAEllipsoidObjectVis>::create(std::make_shared<iAObjectsData>(table, mapping), color);
+		case iAObjectVisType::Ellipsoid: return QSharedPointer<iAEllipsoidObjectVis>::create(std::make_shared<iAObjectsData>(table, mapping), color);
 		default: [[fallthrough]];
-		case iAObjectVisType::Cylinders: return QSharedPointer<iACylinderObjectVis>::create(std::make_shared<iAObjectsData>(table, mapping), color, curvedFiberData, CylinderSides, SegmentSkip);
+		case iAObjectVisType::Cylinder: return QSharedPointer<iACylinderObjectVis>::create(std::make_shared<iAObjectsData>(table, mapping), color, curvedFiberData, CylinderSides, SegmentSkip);
 		}
 	}
 }
@@ -1570,7 +1570,7 @@ void iAFiAKErController::showMainVis(size_t resultID, bool state)
 		{
 			ui.main3DVis->setSelection(m_selection[resultID], anythingSelected);
 		}
-		if ((m_data->objectType == iAObjectVisType::Cylinders || m_data->objectType == iAObjectVisType::Lines) &&
+		if ((m_data->objectType == iAObjectVisType::Cylinder || m_data->objectType == iAObjectVisType::Line) &&
 			d.stepData != iAFiberResult::NoStepData &&
 			m_useStepData)
 		{
@@ -1960,7 +1960,7 @@ void iAFiAKErController::setOptimStep(int optimStep)
 		{
 			auto main3DVis = m_resultUIs[resultID].main3DVis;
 			if (main3DVis && m_resultUIs[resultID].main3DActor->visible() &&
-				m_data->objectType == iAObjectVisType::Cylinders &&
+				m_data->objectType == iAObjectVisType::Cylinder &&
 				m_data->result[resultID].stepData != iAFiberResult::NoStepData)
 			{
 				auto & stepValues = m_data->result[resultID].stepValues;
@@ -2001,7 +2001,7 @@ void iAFiAKErController::contextOpacityChanged(int opacity)
 
 void iAFiAKErController::diameterFactorChanged(int diameterFactorInt)
 {
-	if (m_data->objectType != iAObjectVisType::Cylinders)
+	if (m_data->objectType != iAObjectVisType::Cylinder)
 	{
 		return;
 	}
@@ -2016,7 +2016,7 @@ void iAFiAKErController::diameterFactorChanged(int diameterFactorInt)
 
 void iAFiAKErController::contextDiameterFactorChanged(int contextDiameterFactorInt)
 {
-	if (m_data->objectType != iAObjectVisType::Cylinders)
+	if (m_data->objectType != iAObjectVisType::Cylinder)
 	{
 		return;
 	}
