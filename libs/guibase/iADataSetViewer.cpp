@@ -513,22 +513,16 @@ std::shared_ptr<iADataSetViewer> createFunc(iADataSet* ds)
 	return std::make_shared<ViewerType>(ds);
 }
 
-template <class ViewerType>
-void addViewer(iADataSetType type)
-{
-	dataSetViewerFactoryMap().insert(std::make_pair(type, createFunc<ViewerType>));
-}
-
 std::map<iADataSetType, iADataSetViewerCreateFuncPtr>& dataSetViewerFactoryMap()
 {
 	static std::map<iADataSetType, iADataSetViewerCreateFuncPtr> m;
 	if (m.empty())    // not thread-safe!
 	{
-		addViewer<iAVolumeViewer>(iADataSetType::Volume);
-		addViewer<iAMeshViewer>(iADataSetType::Mesh);
-		addViewer<iAGeometricObjectViewer>(iADataSetType::GeometricObject);
-		addViewer<iAGraphViewer>(iADataSetType::Graph);
-		addViewer<iAProjectViewer>(iADataSetType::Collection);
+		m.insert(std::make_pair(iADataSetType::Volume, createFunc<iAVolumeViewer>));
+		m.insert(std::make_pair(iADataSetType::Mesh, createFunc<iAMeshViewer>));
+		m.insert(std::make_pair(iADataSetType::GeometricObject, createFunc<iAGeometricObjectViewer>));
+		m.insert(std::make_pair(iADataSetType::Graph, createFunc<iAGraphViewer>));
+		m.insert(std::make_pair(iADataSetType::Collection, createFunc<iAProjectViewer>));
 	}
 	return m;
 }
