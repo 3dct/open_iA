@@ -9,7 +9,6 @@
 #include <iAParameterDlg.h>
 
 #include <QAction>
-#include <QMenu>
 #include <QMessageBox>
 
 namespace

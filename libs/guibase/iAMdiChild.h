@@ -4,8 +4,6 @@
 
 #include "iaguibase_export.h"
 
-#include <iALog.h>
-
 #include <vtkSmartPointer.h>
 
 #include <QMainWindow>

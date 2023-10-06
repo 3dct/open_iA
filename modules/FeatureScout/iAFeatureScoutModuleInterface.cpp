@@ -7,10 +7,11 @@
 #include <dlg_CSVInput.h>
 
 #include <iAFileUtils.h>
-#include <iALog.h>
-#include <iAToolRegistry.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
+#include <iAToolRegistry.h>
+
+#include <iALog.h>
 
 #include <vtkTable.h>
 

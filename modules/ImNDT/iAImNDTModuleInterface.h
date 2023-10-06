@@ -3,8 +3,8 @@
 #pragma once
 
 #include "imndt_export.h"
-#include "iAImNDTMain.h"
-#include "iAImNDTInteractorStyle.h"
+
+#include "iACsvIO.h"
 
 #include "iAColoredPolyObjectVis.h"
 
@@ -12,8 +12,10 @@
 
 #include <vtkSmartPointer.h>
 
+#include <QAction>
 #include <QSharedPointer>
 
+class iAImNDTMain;
 class iAVREnvironment;
 
 class iADataSetRenderer;

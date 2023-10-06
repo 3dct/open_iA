@@ -2,33 +2,33 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAXVRAModuleInterface.h"
 
-#include "iAMainWindow.h"
-#include "iAMdiChild.h"
-#include "iARenderer.h"
-#include "vtkOpenGLRenderer.h"
-#include "vtkCamera.h"
+#include <iALog.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
+#include <iAModuleDispatcher.h>
+#include <iARenderer.h>
 
 // objectvis
-#include "iAObjectVisFactory.h"
-#include "dlg_CSVInput.h"
-#include "iACsvConfig.h"
-#include "iACsvVtkTableCreator.h"
+#include <dlg_CSVInput.h>
+#include <iACsvConfig.h>
+#include <iACsvVtkTableCreator.h>
+#include <iAObjectVisFactory.h>
 
 // FeatureScout
-#include "dlg_FeatureScout.h"
-#include "iAFeatureScoutToolbar.h"
+#include <dlg_FeatureScout.h>
+#include <iAFeatureScoutToolbar.h>
 
 // ImNDT
-#include "iAImNDTModuleInterface.h"
+#include <iAImNDTModuleInterface.h>
+#include <iAFrustumActor.h>
 
-#include "iAFrustumActor.h"
-
-#include "iAModuleDispatcher.h"
+#include <vtkCamera.h>
+#include <vtkRenderer.h>
+#include <vtkTable.h>    // required to avoid error C2440: 'static_cast': cannot convert from 'vtkObjectBase *const ' to 'T *'
 
 #include <QAction>
 #include <QMenu>
 #include <QMessageBox>
-#include <QTimer>
 
 
 iAXVRAModuleInterface::iAXVRAModuleInterface() :

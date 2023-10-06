@@ -13,6 +13,7 @@
 #include <iAMainWindow.h>
 
 #include <iADataSet.h>
+#include <iALog.h>
 
 #include <QApplication>
 #include <QCheckBox>

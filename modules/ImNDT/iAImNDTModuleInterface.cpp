@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAImNDTModuleInterface.h"
 
+#include "iAImNDTMain.h"
 #include "iAVREnvironment.h"
 
 // 3D object visualization
@@ -12,7 +13,7 @@
 
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
-#include "iAParameterDlg.h"
+#include <iAParameterDlg.h>
 #include <iAVolumeRenderer.h>
 #include <iAVolumeViewer.h>
 

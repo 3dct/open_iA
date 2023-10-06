@@ -5,12 +5,9 @@
 #include "iabase_export.h"
 
 #include "iADataSetType.h"
-#include "iALog.h"
 
 #include <vtkSmartPointer.h>
 
-#include <QFlags>
-#include <QMap>
 #include <QString>
 #include <QVariant>    // for QVariantMap (at least under Qt 5.15.2)
 

@@ -6,7 +6,7 @@
 #include "iAParameterDlg.h"
 #include "iASettings.h"
 
-#include "iAQMenuHelper.h"    // to make getOrAddSubmenu / addToMenuSorted available as before
+#include "iAQMenuHelper.h"
 
 #include <QAction>
 #include <QMenu>

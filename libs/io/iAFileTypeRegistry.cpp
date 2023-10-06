@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFileTypeRegistry.h"
 
+#include <iALog.h>
+
 #include <QFileInfo>
 
 #include <QMap>

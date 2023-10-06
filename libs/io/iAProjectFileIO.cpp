@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAProjectFileIO.h"
 
-#include "iAFileTypeRegistry.h"
-#include "iAFileUtils.h"
-#include "iAProgress.h"
-#include "iASettings.h"    // for mapFromQSettings
+#include <iALog.h>
+#include <iAFileTypeRegistry.h>
+#include <iAFileUtils.h>
+#include <iAProgress.h>
+#include <iASettings.h>    // for mapFromQSettings
 
 #include <QFileInfo>
 #include <QSettings>
