@@ -1,6 +1,8 @@
 if (RenderingOpenVR IN_LIST VTK_COMPONENTS)
 	set(BUILD_INFO "${BUILD_INFO}    \"OpenVR	${OpenVR_VERSION_MAJOR}.${OpenVR_VERSION_MINOR}.${OpenVR_VERSION_PATCH}\\n\"\n")
-else ()
+endif()
+
+if (RenderingOpenXR IN_LIST VTK_COMPONENTS)
 	set(BUILD_INFO "${BUILD_INFO}    \"OpenXR	${OpenXR_VERSION}\\n\"\n")
 endif()
 
