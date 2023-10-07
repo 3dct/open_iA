@@ -7,6 +7,7 @@
 
 //CompVis
 #include "dlg_CSVReader.h"
+#include "dlg_VisMainWindow.h"
 #include "iACompBarChart.h"
 #include "iACompBoxPlot.h"
 #include "iACompHistogramTable.h"
@@ -17,8 +18,6 @@
 #include "iACorrelationCoefficient.h"
 #include "iAComp3DView.h"
 
-//QT
-#include <QMessageBox>
 #include <QBoxLayout>
 
 iACompVisMain::iACompVisMain(iAMainWindow* mainWin) : m_mainWindow(mainWin)

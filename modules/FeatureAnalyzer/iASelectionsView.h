@@ -9,7 +9,6 @@
 
 #include <QList>
 #include <QModelIndex>
-#include <vtkSmartPointer.h>
 
 class vtkIdTypeArray;
 class QTreeWidgetItem;

@@ -10,8 +10,6 @@
 
 #include <qthelper/iAQTtoUIConnector.h>
 
-#include <vtkSmartPointer.h>
-
 #include <QMap>
 
 class iAImageClusterer;

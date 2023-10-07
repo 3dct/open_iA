@@ -6,8 +6,6 @@
 
 #include "iAAbortListener.h"
 
-#include <vtkSmartPointer.h>
-
 #include <QMap>
 #include <QThread>
 #include <QVariant>

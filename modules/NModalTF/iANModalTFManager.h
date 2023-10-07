@@ -4,9 +4,6 @@
 
 #include "iANModalObjects.h"
 
-#include <vtkSmartPointer.h>
-
-#include <memory>
 #include <vector>
 
 class iATransferFunction;

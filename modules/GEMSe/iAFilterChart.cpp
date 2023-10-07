@@ -11,7 +11,6 @@
 
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
-#include <vtkSmartPointer.h>
 
 #include <QMouseEvent>
 #include <QPainter>

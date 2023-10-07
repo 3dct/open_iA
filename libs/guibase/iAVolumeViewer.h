@@ -6,8 +6,6 @@
 
 #include "iADataSetViewer.h"
 
-#include <vtkSmartPointer.h>
-
 #include <array>
 
 class iAChartWidget;

@@ -14,9 +14,6 @@
 #include <iASlicer.h>
 #include <iASlicerMode.h>
 
-#include <vtkImageData.h>
-#include <vtkSmartPointer.h>
-
 #include <QGridLayout>
 #include <QScrollArea>
 #include <QSlider>

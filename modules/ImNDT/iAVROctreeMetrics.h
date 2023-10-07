@@ -4,9 +4,6 @@
 
 #include "iAVRMetrics.h"
 
-#include <vtkSmartPointer.h>
-#include <unordered_map>
-
 //!This class calculates the metrics used in the Model in Miniature Heatmap
 class iAVROctreeMetrics : public iAVRMetrics
 {

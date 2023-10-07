@@ -7,8 +7,6 @@
 
 #include <iASlicerMode.h>
 
-#include <vtkSmartPointer.h>
-
 #include <QWidget>
 
 #include <memory>

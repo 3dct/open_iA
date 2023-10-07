@@ -2,26 +2,22 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAMainWindow.h"
-
 #include "iACsvDataStorage.h"
-#include "dlg_VisMainWindow.h"
-#include "iACompHistogramTableData.h"
-#include "vtkSmartPointer.h"
 
-//QT
-#include "qlist.h"
+#include <map>
 
-class iAMultidimensionalScaling;
+class dlg_VisMainWindow;
 class iACoefficientOfVariation;
-class iACorrelationCoefficient;
-
+class iAComp3DView;
 class iACompBarChart;
 class iACompHistogramTable;
 class iACompBoxPlot;
 class iACompCorrelationMap;
+class iACorrelationCoefficient;
 class iAHistogramData;
-class iAComp3DView;
+class iAMultidimensionalScaling;
+
+class iAMainWindow;
 
 class iACompVisMain
 {
