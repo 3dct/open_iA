@@ -5,8 +5,9 @@
 #include "iAVectorType.h"	// for iAVectorDataType
 #include "iAVectorArray.h"
 
-#include <vector>
 #include <cstddef> // for size_t
+#include <limits>
+#include <vector>
 
 //! implementation of a standalone vector of values
 class iAStandaloneVector: public iAVectorType
