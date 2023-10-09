@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iADataSetViewer.h"
 
-#include "defines.h"    // for NotExistingChannel
 #include "iAAABB.h"
+#include "iAChannelID.h"    // for NotExistingChannel
 #include "iADataSet.h"
 #include "iADataSetRenderer.h"
 #include "iADataSetListWidget.h"

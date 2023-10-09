@@ -9,9 +9,9 @@
 #include "iAPeriodicTableWidget.h"
 #include "iAXRFData.h"
 
+#include <iAChannelID.h>    // for NotExistingChannel
 #include <iAChannelData.h>
 #include <iADockWidgetWrapper.h>
-//#include <iAMainWindow.h>
 #include <iAMdiChild.h>
 #include <iARunAsync.h>
 #include <iASlicer.h>
@@ -20,7 +20,6 @@
 #include <iAFileTypeRegistry.h>
 
 #include <iALog.h>
-#include <defines.h>    // for NotExistingChannel
 
 #include <itkMacro.h>    // for itk::ExceptionObject
 

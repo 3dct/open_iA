@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAModalitySPLOM.h"
 
+#include <iAChannelID.h>    // for NotExistingChannel
 #include <iAChannelData.h>
 #include <iAPerformanceHelper.h>
 #include <iAMdiChild.h>
@@ -9,7 +10,6 @@
 #include <iAQSplom.h>
 #include <iASPLOMData.h>
 
-#include <defines.h>    // for NotExistingChannel
 #include <iADataSet.h>
 #include <iALog.h>
 

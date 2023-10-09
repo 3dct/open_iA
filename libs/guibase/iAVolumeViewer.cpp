@@ -5,7 +5,7 @@
 #include "iADataSet.h"
 #include "iAProgress.h"
 
-#include "defines.h"        // for NotExistingChannel
+#include "iAChannelID.h"        // for NotExistingChannel
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
 #include "iADataSetListWidget.h"

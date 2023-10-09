@@ -19,6 +19,7 @@
 #include <iASlicerImpl.h>
 
 // guibase
+#include <iAChannelID.h>    // for NotExistingChannel
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iADataSetListWidget.h>

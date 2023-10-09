@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iARendererImpl.h"
 
-#include <defines.h>
 #include <iAAbortListener.h>
 #include <iALog.h>
 #include <iAJobListView.h>
+#include <iAMagicLensConstants.h>
 #include <iAMainWindow.h>  // for styleChanged
 #include <iAMovieHelper.h>
 #include <iAParameterDlg.h>

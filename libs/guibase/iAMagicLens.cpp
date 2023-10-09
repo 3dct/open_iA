@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAMagicLens.h"
 
-#include "defines.h"    // for DefaultMagicLensSize
+#include "iAMagicLensConstants.h" // for DefaultMagicLensSize
+
 #include "iALog.h"
 #include "iAMathUtility.h"
 

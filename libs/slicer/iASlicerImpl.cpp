@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASlicerImpl.h"
 
-#include <defines.h>    // for NotExistingChannel, DefaultMagicLensSize
 #include <iAAbortListener.h>
+#include <iAChannelID.h>    // for NotExistingChannel
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iAConnector.h>
@@ -12,6 +12,7 @@
 #include <iAJobListView.h>
 #include <iALog.h>
 #include <iAMagicLens.h>
+#include <iAMagicLensConstants.h> // for DefaultMagicLensSize
 #include <iAMathUtility.h>
 #include <iAMovieHelper.h>
 #include <iAParameterDlg.h>

@@ -696,7 +696,7 @@ int iADetailView::GetCurLabelRow() const
 }
 
 
-#include "itkLabelOverlapMeasuresImageFilter.h"
+#include <itkLabelOverlapMeasuresImageFilter.h>
 
 void iADetailView::UpdateComparisonNumbers()
 {
