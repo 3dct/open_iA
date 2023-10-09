@@ -10,54 +10,31 @@
 #include "iAQVTKWidget.h"
 
 //vtk
-
-#include "vtkRenderer.h"
-
-#include "vtkRenderWindow.h"
-#include "vtkContextView.h"
-#include "vtkContextScene.h"
-
-#include "vtkChartBox.h"
-#include "vtkChart.h"
-#include "vtkTable.h"
-#include "vtkPlot.h"
-#include "vtkTextProperty.h"
-#include "vtkAxis.h"
-
-#include "vtkDoubleArray.h"
-#include "vtkStringArray.h"
-#include "vtkIntArray.h"
-#include "vtkVariantArray.h"
-
-
-#include "vtkComputeQuartiles.h"
-#include "vtkStatisticsAlgorithm.h"
-#include "vtkLookupTable.h"
-#include "vtkVariant.h"
-
-#include "vtkTextActor.h"
-#include "vtkTooltipItem.h"
-#include "vtkContextMouseEvent.h"
-#include "vtkProperty2D.h"
-
-#include "vtkCellArray.h"
-#include "vtkPolyDataMapper.h"
-#include "vtkPoints.h"
-#include "vtkPolyData.h"
-#include "vtkActor.h"
-#include "vtkProperty.h"
-#include "vtkRegularPolygonSource.h"
-#include "vtkCoordinate.h"
-#include "vtkActor2D.h"
-#include "vtkPolyDataMapper2D.h"
-#include "vtkDataSetAttributes.h"
-
-#include "vtkPen.h"
-#include "vtkBrush.h"
-#include "vtkContext2D.h"
+#include <vtkAxis.h>
+#include <vtkBrush.h>
+#include <vtkChartBox.h>
+#include <vtkComputeQuartiles.h>
+#include <vtkContext2D.h>
+#include <vtkContextMouseEvent.h>
+#include <vtkContextScene.h>
+#include <vtkContextView.h>
+#include <vtkDataSetAttributes.h>
+#include <vtkDoubleArray.h>
+#include <vtkLookupTable.h>
+#include <vtkPen.h>
+#include <vtkPlot.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderer.h>
+#include <vtkStatisticsAlgorithm.h>
+#include <vtkStringArray.h>
+#include <vtkTable.h>
+#include <vtkTextActor.h>
+#include <vtkTextProperty.h>
+#include <vtkTooltipItem.h>
+#include <vtkVariant.h>
 
 // Qt
-#include <QBoxLayout>
+#include <QVBoxLayout>
 
 #include <string>
 

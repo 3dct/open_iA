@@ -7,7 +7,7 @@
 #include "iACompKernelDensityEstimationData.h"
 
 //vtk
-#include "vtkSmartPointer.h"
+#include <vtkSmartPointer.h>
 
 class vtkPolyData;
 class vtkPoints;

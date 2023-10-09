@@ -16,11 +16,11 @@
 
 #include <QVBoxLayout>
 
-#include "vtkRenderWindow.h"
-#include "vtkTable.h"
-#include "vtkRenderer.h"
-#include "vtkRendererCollection.h"
-#include "vtkInteractorObserver.h"
+#include <vtkInteractorObserver.h>
+#include <vtkRenderer.h>
+#include <vtkRendererCollection.h>
+#include <vtkRenderWindow.h>
+#include <vtkTable.h>
 
 #include <map>
 #include <vector>

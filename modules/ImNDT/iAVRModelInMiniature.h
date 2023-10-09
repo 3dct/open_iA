@@ -4,11 +4,6 @@
 
 #include "iAVRCubicVis.h"
 
-#include <vtkPoints.h>
-#include <vtkPolyData.h>
-#include <vtkGlyph3DMapper.h>
-#include <QColor>
-
 //! Class for the abstract 3D Model in Miniature visualization
 class iAVRModelInMiniature : public iAVRCubicVis
 {
@@ -19,6 +14,4 @@ public:
 	void setPos(double x, double y, double z);
 	void addPos(double x, double y, double z);
 	void setOrientation(double x, double y, double z);
-
-private:
 };

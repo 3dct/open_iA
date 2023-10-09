@@ -17,15 +17,13 @@
 #include <iALog.h>
 
 #include <vtkActor.h>
+#include <vtkAssembly.h>
 #include <vtkCamera.h>
 #include <vtkInteractorStyle3D.h>
-#include <vtkIntersectionPolyDataFilter.h>
-#include <vtkLineSource.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProp3D.h>
 #include <vtkProperty.h>
-#include <vtkRenderer.h>
 #include <vtkVertexGlyphFilter.h>
 
 #include <QColor>

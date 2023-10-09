@@ -6,13 +6,13 @@
 #include "iACsvDataStorage.h"
 #include "iACompVisOptions.h"
 #include "iAComp3DWidgetInteractionStyle.h"
+#include "ui_CompHistogramTable.h"
 
 //Qt
 #include <QDockWidget>
-#include "ui_CompHistogramTable.h"
 
 //vtk
-#include "vtkSmartPointer.h"
+#include <vtkSmartPointer.h>
 
 
 //CompVis

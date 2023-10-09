@@ -6,7 +6,7 @@
 #include "iALog.h"
 
 //Qt
-#include <qlist.h>
+#include <QList>
 
 #include <vector>
 #include <array>

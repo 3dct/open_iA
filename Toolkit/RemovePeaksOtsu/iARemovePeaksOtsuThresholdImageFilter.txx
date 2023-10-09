@@ -19,8 +19,8 @@
 
 #include "iARemovePeaksOtsuThresholdImageCalculator.h"
 
-#include "itkBinaryThresholdImageFilter.h"
-#include "itkProgressAccumulator.h"
+#include <itkBinaryThresholdImageFilter.h>
+#include <itkProgressAccumulator.h>
 
 template<class TInputImage, class TOutputImage>
 iARemovePeaksOtsuThresholdImageFilter<TInputImage, TOutputImage>

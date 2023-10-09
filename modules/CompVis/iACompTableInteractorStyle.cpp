@@ -2,29 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompTableInteractorStyle.h"
 
-#include <vtkObjectFactory.h>  //for macro!
-
-//CompVis
-#include "iACompTable.h"
-#include "iACompUniformTable.h"
-#include "iACompVariableTable.h"
-
 //Debug
 #include "iALog.h"
 #include "iACompHistogramVis.h"
 
 //VTK
-#include <vtkSmartPointer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkCallbackCommand.h>
-
 #include <vtkActor.h>
-
 #include <vtkCamera.h>
-
-//c++
-#include <typeinfo>
+#include <vtkSmartPointer.h>
+#include <vtkRenderWindowInteractor.h>
 
 
 namespace Pick

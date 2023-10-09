@@ -17,7 +17,7 @@
 #include <QTextStream>
 
 //vtk
-#include "vtkTable.h"
+#include <vtkTable.h>
 
 
 #include <cstdlib>

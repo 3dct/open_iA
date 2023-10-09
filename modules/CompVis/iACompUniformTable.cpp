@@ -6,49 +6,26 @@
 #include "iACompUniformBinningData.h"
 #include "iACompHistogramVis.h"
 
-//Qt
-#include <QColor>
-
 //vtk
-#include "vtkRenderWindow.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkColorTransferFunction.h"
-#include "vtkLookupTable.h"
-#include "vtkScalarBarActor.h"
-#include "vtkTextProperty.h"
-#include "vtkRenderer.h"
-#include "vtkActor.h"
-#include "vtkTextActor.h"
-#include "vtkAlgorithmOutput.h"
-#include "vtkPlaneSource.h"
-#include "vtkCellData.h"
-#include "vtkPolyDataMapper.h"
-#include "vtkProperty.h"
-#include "vtkCamera.h"
-
-#include "vtkSelectionNode.h"
-#include "vtkUnsignedCharArray.h"
-#include "vtkSelection.h"
-#include "vtkExtractSelection.h"
-#include "vtkDataSetMapper.h"
-#include "vtkUnstructuredGrid.h"
-#include "vtkPolyLine.h"
-#include "vtkProp.h"
-#include "vtkLineSource.h"
-#include "vtkSphereSource.h"
-#include "vtkGlyph2D.h"
-#include "vtkProperty2D.h"
-#include "vtkNamedColors.h"
-
-#include <vtkBorderRepresentation.h>
-#include <vtkBorderWidget.h>
-#include <vtkDoubleArray.h>
-#include <vtkPointData.h>
+#include <vtkActor.h>
+#include <vtkAlgorithmOutput.h>
+#include <vtkCamera.h>
 #include <vtkCellData.h>
-
-#include "vtkProgrammableGlyphFilter.h"
-
-#include "vtkCamera.h"
+#include <vtkDoubleArray.h>
+#include <vtkGlyph2D.h>
+#include <vtkLineSource.h>
+#include <vtkLookupTable.h>
+#include <vtkNamedColors.h>
+#include <vtkPlaneSource.h>
+#include <vtkPointData.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkPolyLine.h>
+#include <vtkProgrammableGlyphFilter.h>
+#include <vtkProperty.h>
+#include <vtkRenderer.h>
+#include <vtkSphereSource.h>
+#include <vtkTextActor.h>
+#include <vtkUnsignedCharArray.h>
 
 iACompUniformTable::iACompUniformTable(iACompHistogramVis* vis, iACompUniformBinningData* uniformBinningData) :
 	iACompTable(vis), 

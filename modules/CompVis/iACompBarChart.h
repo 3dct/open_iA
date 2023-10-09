@@ -4,14 +4,14 @@
 
 //CompVis
 #include "iACompVisOptions.h"
+#include "ui_CompBarChart.h"
 
 //Qt
-#include "ui_CompBarChart.h"
 #include <QDockWidget>
 
 //vtk
-#include "vtkSmartPointer.h"
-#include "vtkContextInteractorStyle.h"
+#include <vtkContextInteractorStyle.h>
+#include <vtkSmartPointer.h>
 
 //CompVis
 class iAMainWindow;

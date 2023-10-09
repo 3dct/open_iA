@@ -3,14 +3,14 @@
 #pragma once
 
 #include <vtkSmartPointer.h>
-#include <vtkRenderer.h>
-#include <vtkActor.h>
-#include <vtkFollower.h>
-#include <vtkAssembly.h>
-#include <vtkTextActor3D.h>
-#include <vtkLookupTable.h>
 
-#include <qcolor.h>
+#include <QColor>
+
+class vtkActor;
+class vtkAssembly;
+class vtkLookupTable;
+class vtkRenderer;
+class vtkTextActor3D;
 
 /*
 * This class calculates color transfer functions and LUT for Metrics and allows the display of a color legend

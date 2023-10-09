@@ -12,11 +12,11 @@
 #include "iACsvIO.h"
 #include "iACsvConfig.h"
 
+#include <vtkRenderer.h>
+#include <vtkTable.h>
+
 // Qt
 #include <QGridLayout>
-
-#include "vtkRenderer.h"
-#include "vtkTable.h"
 
 iAComp3DView::iAComp3DView(iAMainWindow* parent, iACsvDataStorage* dataStorage) : 
 	m_dataStorage(dataStorage), 

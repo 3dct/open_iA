@@ -8,34 +8,27 @@
 #include "iACompHistogramVis.h"
 
 //VTK
-#include <vtkActorCollection.h>
-#include <vtkCellPicker.h>
-#include <vtkPropPicker.h>
-#include <vtkRendererCollection.h>
-
-#include <vtkCellData.h>
-#include <vtkProperty.h>
-
 #include <vtkActor.h>
+#include <vtkActorCollection.h>
 #include <vtkAlgorithmOutput.h>
+#include <vtkCallbackCommand.h>
 #include <vtkCamera.h>
 #include <vtkCellData.h>
+#include <vtkCellPicker.h>
 #include <vtkLight.h>
 #include <vtkMapper.h>
 #include <vtkNew.h>
 #include <vtkPlaneSource.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkPropPicker.h>
 #include <vtkProperty.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
+#include <vtkRendererCollection.h>
 #include <vtkSphereSource.h>
-#include <vtkUnsignedCharArray.h>
-
-#include <vtkCallbackCommand.h>
 #include <vtkTransform.h>
-
-#include <tuple>
+#include <vtkUnsignedCharArray.h>
 
 
 vtkStandardNewMacro(iACompUniformTableInteractorStyle);

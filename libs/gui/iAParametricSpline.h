@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "vtkParametricSpline.h"
+#include <vtkParametricSpline.h>
 
 //! Wrapper for vtkParametricSpline to be able to retrieve protected length property.
 class iAParametricSpline : public vtkParametricSpline

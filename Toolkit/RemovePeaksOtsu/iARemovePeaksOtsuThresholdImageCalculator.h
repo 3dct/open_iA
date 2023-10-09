@@ -17,9 +17,9 @@
 #ifndef __iARemovePeaksOtsuThresholdImageCalculator_h
 #define __iARemovePeaksOtsuThresholdImageCalculator_h
 
-#include "itkObject.h"
-#include "itkObjectFactory.h"
-#include "itkNumericTraits.h"
+#include <itkObject.h>
+#include <itkObjectFactory.h>
+#include <itkNumericTraits.h>
 
 //! Computes the Otsu's threshold for an image, with option to remove peaks.
 //!

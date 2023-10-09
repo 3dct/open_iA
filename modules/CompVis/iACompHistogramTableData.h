@@ -4,11 +4,10 @@
 
 //CompVis
 #include "iACsvDataStorage.h"
-#include "vtkIdTypeArray.h"
 #include "iAMultidimensionalScaling.h"
 
 //Qt
-#include <qlist.h>
+#include <QList>
 
 class vtkPolyData;
 

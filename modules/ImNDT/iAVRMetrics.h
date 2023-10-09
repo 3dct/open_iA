@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iACsvIO.h"
 #include "iAVROctree.h"
 #include "iAVR3DText.h"
 
-#include "vtkTable.h"
+#include "iACsvIO.h"
 
 #include <QString>
+
+class vtkTable;
 
 //!This class contains basic data structures/values for metrics calculation
 class iAVRMetrics

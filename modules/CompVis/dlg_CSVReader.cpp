@@ -2,12 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "dlg_CSVReader.h"
 
-
-//Debug
-#include "iALog.h"
 #include "iACompVisOptions.h"
 
-#include <QDirIterator>
 #include <QFileDialog>
 #include <QStringListModel>
 #include <QPushButton>

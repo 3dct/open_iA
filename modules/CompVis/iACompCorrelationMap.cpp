@@ -13,78 +13,40 @@
 #include <iAQVTKWidget.h>
 
 //vtk
-#include "vtkRenderer.h"
-#include "vtkRenderWindow.h"
-#include "vtkCamera.h"
-#include "vtkActor.h"
-#include "vtkActor2D.h"
-#include "vtkProperty.h"
-
-#include "vtkMutableUndirectedGraph.h"
-#include "vtkGraphLayoutView.h"
-#include <vtkVertexListIterator.h>
-#include "vtkGraphToGlyphs.h"
-#include "vtkGraphToPolyData.h"
-
-#include "vtkFloatArray.h"
-#include "vtkDoubleArray.h"
-#include "vtkIntArray.h"
-#include "vtkStringArray.h"
-#include "vtkUnsignedCharArray.h"
-#include "vtkDataSetAttributes.h"
-
-#include "vtkViewTheme.h"
-#include "vtkLookupTable.h"
-#include "vtkScalarBarActor.h"
-#include "vtkScalarBarRepresentation.h"
-#include "vtkTextProperty.h"
-#include "vtkProperty2D.h"
-
-#include <vtkEdgeListIterator.h>
-
-#include "vtkArcSource.h"
-#include "vtkPolyDataMapper.h"
-#include "vtkPolyData.h"
-#include "vtkCubeSource.h"
-#include "vtkGlyph3D.h"
-#include "vtkPointData.h"
-#include "vtkPoints.h"
-#include "vtkTextActor.h"
-#include "vtkImageData.h"
-#include "vtkTexture.h"
-#include "vtkPolygon.h"
-#include "vtkCellArray.h"
-
-#include "vtkPropPicker.h"
-#include "vtkAlgorithmOutput.h"
-
-#include "vtkLegendBoxActor.h"
-#include "vtkLineSource.h"
-#include "vtkCubeSource.h"
-
-#include "vtkHoverWidget.h"
-#include "vtkBalloonRepresentation.h"
-#include "vtkBalloonWidget.h"
-
-#include "vtkScalarBarWidget.h"
-#include "vtkPolygon.h"
-#include "vtkPolyDataMapper.h"
-#include "vtkPolyDataMapper2D.h"
-#include "vtkOutlineFilter.h"
-#include "vtkCubeSource.h"
-#include "vtkProperty2D.h"
-
-#include "vtkForceDirectedLayoutStrategy.h"
-
-#include <cmath>
-
-
-//testing
-#include <vtkNamedColors.h>
+#include <vtkActor.h>
+#include <vtkAlgorithmOutput.h>
+#include <vtkArcSource.h>
 #include <vtkCubeSource.h>
-#include <vtkSphereSource.h>
+#include <vtkDataSetAttributes.h>
+#include <vtkDoubleArray.h>
+#include <vtkEdgeListIterator.h>
+#include <vtkFloatArray.h>
+#include <vtkGlyph3D.h>
+#include <vtkGraphLayoutView.h>
+#include <vtkGraphToGlyphs.h>
+#include <vtkIntArray.h>
+#include <vtkLegendBoxActor.h>
+#include <vtkLineSource.h>
+#include <vtkLookupTable.h>
+#include <vtkMutableUndirectedGraph.h>
+#include <vtkPoints.h>
+#include <vtkPointData.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkPropPicker.h>
+#include <vtkProperty.h>
+#include <vtkProperty2D.h>
+#include <vtkRenderedGraphRepresentation.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
+#include <vtkScalarBarActor.h>
+#include <vtkScalarBarWidget.h>
+#include <vtkStringArray.h>
+#include <vtkTextActor.h>
+#include <vtkTextProperty.h>
+#include <vtkViewTheme.h>
 
-#include <QVBoxLayout>
+#include <QBoxLayout>
 
 vtkStandardNewMacro(iACompCorrelationMap::CorrelationGraphLayout);
 vtkStandardNewMacro(iACompCorrelationMap::GraphInteractorStyle);

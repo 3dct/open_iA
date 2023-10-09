@@ -5,15 +5,15 @@
 //CompVis
 #include "iACsvDataStorage.h"
 #include "iACompVisOptions.h"
+#include "ui_CompHistogramTable.h"
 
 //Qt
 #include <QDockWidget>
-#include "ui_CompHistogramTable.h"
 
 //vtk
 #include <vtkChartBox.h>
-#include "vtkPlotBox.h"
-#include "vtkSmartPointer.h"
+#include <vtkPlotBox.h>
+#include <vtkSmartPointer.h>
 
 //CompVis
 class iAMainWindow;

@@ -6,7 +6,7 @@
 #include "iACompHistogramTableData.h"
 
 //Qt
-#include <qlist.h>
+#include <QList>
 
 class iAMultidimensionalScaling;
 

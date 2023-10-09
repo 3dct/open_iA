@@ -3,9 +3,9 @@
 #include "iACompBinning.h"
 
 //Qt
-#include "qlist.h"
+#include <QList>
 
-#include <cmath>
+#include <cmath>    // for std::isnan
 
 iACompBinning::iACompBinning(iACsvDataStorage* dataStorage, bin::BinType* datasets) :
 	m_datasets(datasets),

@@ -4,16 +4,16 @@
 
 #include <iALog.h>
 
-#include "vtkCellPicker.h"
-#include "vtkIdTypeArray.h"
-#include "vtkVertexGlyphFilter.h"
+//#include "iAVR3DText.h"
+
+#include <vtkCellPicker.h>
+#include <vtkCubeSource.h>
+#include <vtkIdTypeArray.h>
+#include <vtkMatrix4x4.h>
+#include <vtkPointData.h>
 #include <vtkPolyDataMapper.h>
-#include <vtkAlgorithmOutput.h>
-#include "vtkPointData.h"
-#include "vtkProperty.h"
-#include "vtkMatrix4x4.h"
-#include "vtkCubeSource.h"
-#include "iAVR3DText.h"
+#include <vtkProperty.h>
+#include <vtkVertexGlyphFilter.h>
 
 iAVRCubicVis::iAVRCubicVis(vtkRenderer* ren) :m_renderer(ren), m_actor(vtkSmartPointer<vtkActor>::New()), m_activeActor(vtkSmartPointer<vtkActor>::New())
 {

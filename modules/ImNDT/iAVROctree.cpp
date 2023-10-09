@@ -3,12 +3,7 @@
 #include "iAVROctree.h"
 
 #include <vtkPolyDataMapper.h>
-#include "vtkPointData.h"
-#include "vtkActor.h"
-#include "vtkProperty.h"
-#include "vtkIdTypeArray.h"
-#include <iALog.h>
-
+#include <vtkProperty.h>
 
 iAVROctree::iAVROctree(vtkRenderer* ren, vtkDataSet* dataSet):m_renderer(ren),m_dataSet(dataSet),m_actor(vtkSmartPointer<vtkActor>::New()),
 m_octree(vtkSmartPointer<vtkOctreePointLocator>::New())

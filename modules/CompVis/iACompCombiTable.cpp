@@ -5,35 +5,21 @@
 //CompVis
 #include "iACompHistogramVis.h"
 
-#include "iALog.h"
-
 //vtk
-#include "vtkRenderer.h"
-#include "vtkCamera.h"
-#include "vtkColorTransferFunction.h"
-#include "vtkLookupTable.h"
-
-#include "vtkActor.h"
+#include <vtkActor.h>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
+#include <vtkNew.h>
+#include <vtkPlaneSource.h>
+#include <vtkPointData.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkPolyLine.h>
-#include <vtkProperty.h>
-#include <vtkDoubleArray.h>
-#include <vtkPointData.h>
-
-#include <vtkLine.h>
-#include <vtkNew.h>
 #include <vtkProgrammableGlyphFilter.h>
-#include <vtkPlaneSource.h>
-#include <vtkCellData.h>
+#include <vtkProperty.h>
+#include <vtkRenderer.h>
 #include <vtkUnsignedCharArray.h>
-
-#include <vtkParametricSpline.h>
-#include <vtkParametricFunctionSource.h>
-#include <vtkTubeFilter.h>
 
 iACompCombiTable::iACompCombiTable(
 	iACompHistogramVis* vis, iACompKernelDensityEstimationData* kdeData, double lineWidth, double opacity) :
