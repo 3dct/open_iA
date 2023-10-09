@@ -27,16 +27,14 @@
 #include <iAMdiChild.h>
 
 // objectvis
+#include "iACsvConfig.h"
+#include "iACsvVectorTableCreator.h"
 #include "iACylinderObjectVis.h"
 #include "iAEllipsoidObjectVis.h"
 #include "iAPolyObjectVisActor.h"
-#include "iACsvConfig.h"
-#include "iACsvVectorTableCreator.h"
-
-// qthelper
-#include <iADockWidgetWrapper.h>
 
 // guibase
+#include <iADockWidgetWrapper.h>
 #include <iAFixedAspectWidget.h>
 #include <iAQVTKWidget.h>
 #include <iASignallingWidget.h>

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iaqthelper_export.h"
+#include "iaguibase_export.h"
 
 #include <QApplication>
 #include <QWidget>
@@ -11,7 +11,7 @@ class QPropertyAnimation;
 
 //! Animates a given widget property.
 //! inspired from https://stackoverflow.com/a/34445886
-class iAqthelper_API iAWidgetAnimationDecorator: public QObject
+class iAguibase_API iAWidgetAnimationDecorator: public QObject
 {
 	Q_OBJECT
 	Q_PROPERTY(QColor color READ color WRITE setColor)

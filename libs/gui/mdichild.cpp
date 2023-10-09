@@ -23,15 +23,13 @@
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iADataSetListWidget.h>
+#include <iADockWidgetWrapper.h>
 #include <iAJobListView.h>
 #include <iAMovieHelper.h>
 #include <iAParameterDlg.h>
 #include <iAPreferences.h>
 #include <iATool.h>
 #include <iARunAsync.h>
-
-// qthelper
-#include <iADockWidgetWrapper.h>
 
 // io
 #include <iAFileStackParams.h>

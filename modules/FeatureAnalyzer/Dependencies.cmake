@@ -1,5 +1,5 @@
 set(DEPENDENCIES_LIBRARIES
-	iA::charts	          # also pulls in required iA::qthelper
+	iA::charts
 	iA::objectvis
 	iA::renderer          # for iARendererImpl and iARendererViewSync
 	iA::slicer            # also pulls in iA::guibase

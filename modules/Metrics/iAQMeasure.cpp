@@ -19,10 +19,8 @@
 #include <iAHistogramData.h>
 #include <iAPlotTypes.h>
 
-// qthelper
-#include <iADockWidgetWrapper.h>
-
 // guibase
+#include <iADockWidgetWrapper.h>
 #include <iAMdiChild.h>
 #include <iAPreferences.h>
 

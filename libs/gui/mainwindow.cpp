@@ -14,6 +14,7 @@
 
 // guibase
 #include <iADefaultSettings.h>
+#include <iADockWidgetWrapper.h>
 #include <iAJobListView.h>
 #include <iAModuleDispatcher.h>
 #include <iAParameterDlg.h>
@@ -31,9 +32,6 @@
 
 // charts:
 #include <iAChartWidget.h>
-
-// qthelper
-#include <iADockWidgetWrapper.h>
 
 // base
 #include <iAAttributes.h>    // for loading/storing default settings in XML

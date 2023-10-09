@@ -12,11 +12,14 @@
 #include "ui_FeatureScoutClassExplorer.h"
 #include "ui_FeatureScoutPolarPlot.h"
 
+// objectvis:
 #include "iAObjectVis.h"
 #include "iALineObjectVis.h"
 #include "iACsvIO.h"
 #include "iAObjectType.h"
 
+// guibase:
+#include <iADockWidgetWrapper.h>
 #include <iAJobListView.h>
 #include <iAMdiChild.h>
 #include <iAMovieHelper.h>
@@ -29,9 +32,6 @@
 
 // io:
 #include <iAFileTypeRegistry.h>
-
-// qthelper:
-#include <iADockWidgetWrapper.h>
 
 // base:
 #include <defines.h>    // for DIM

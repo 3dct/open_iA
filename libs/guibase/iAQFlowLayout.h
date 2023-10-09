@@ -53,13 +53,13 @@
 #include <QRect>
 #include <QStyle>
 
-#include "iaqthelper_export.h"
+#include "iaguibase_export.h"
 
 //! A flow layout, where items are arranged horizontally in rows.
 //! Items are typically all placed in a single row, horizontally next to each other.
 //! When the items do not fit all into a single row, they flow over into additional
 //! rows.
-class iAqthelper_API iAQFlowLayout : public QLayout
+class iAguibase_API iAQFlowLayout : public QLayout
 {
 public:
 	explicit iAQFlowLayout(QWidget *parent, int margin = -1, int hSpacing = -1, int vSpacing = -1);

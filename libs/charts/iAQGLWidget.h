@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iaqthelper_export.h"
+#include "iacharts_export.h"
 
 #include <QSurfaceFormat>
 
 //! default surface format for OpenGL widgets
-iAqthelper_API QSurfaceFormat defaultQOpenGLWidgetFormat();
+iAcharts_API QSurfaceFormat defaultQOpenGLWidgetFormat();

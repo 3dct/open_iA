@@ -1,8 +1,6 @@
 target_link_libraries(${libname} PUBLIC
 	iA::base
-	iA::charts   # for iAImageDataForDisplay
-	iA::qthelper # for iAImageDataForDisplay
-	iA::io       # for iAOIFReader in iAIO - can be removed once iAIO isn't there anymore
+	iA::charts
 	Qt::Concurrent
 )
 set(VTK_REQUIRED_LIBS_PUBLIC

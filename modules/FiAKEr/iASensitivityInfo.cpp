@@ -22,6 +22,7 @@
 
 // guibase:
 #include <iADataSetRenderer.h>
+#include <iADockWidgetWrapper.h>
 #include <iAJobListView.h>
 #include <iAMdiChild.h>
 #include <iAQVTKWidget.h>
@@ -31,14 +32,9 @@
 #include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iAWidgetSettingsMapper.h>
 
-// qthelper:
-#include <iADockWidgetWrapper.h>
-
 // objectvis:
 #include <iAColoredPolyObjectVis.h>
-
-// FeatureScout
-#include "iACsvVectorTableCreator.h"
+#include <iACsvVectorTableCreator.h>
 
 // FIAKER
 #include "iAAlgorithmInfo.h"

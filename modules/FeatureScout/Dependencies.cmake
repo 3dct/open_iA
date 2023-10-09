@@ -1,5 +1,5 @@
 set(DEPENDENCIES_LIBRARIES
-	iA::charts      # also pulls in required iAqthelper
+	iA::charts
 	iA::objectvis
 	iA::guibase
 )
