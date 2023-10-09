@@ -17,12 +17,14 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iALog.h>
 <iAMathUtility.h>
 <iAProgress.h>
+<iASettings.h>
 <iAStringHelper.h>
 <iAToolsITK.h>
 <iAToolsVTK.h>
 <iATransferFunction.h>
 <iATypedCallHelper.h>
 <iAValueType.h>
+<iAValueTypeVectorHelpers.h>
 <iAVec3.h>
 <iostream>
 <itkImageBase.h>
@@ -41,6 +43,7 @@ set(OPENIA_PRECOMPILE_HEADERS
 <QTextStream>
 <QVariant>
 <QVector>
+<stdexcept>
 <vector>
 <vtkColorTransferFunction.h>
 <vtkCommand.h>

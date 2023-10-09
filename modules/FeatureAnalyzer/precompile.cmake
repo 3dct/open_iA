@@ -1,15 +1,14 @@
 set(FeatureAnalyzer_PRECOMPILE_INCLUDES
-<defines.h>
 <FeatureAnalyzerHelpers.h>
 <iAChanData.h>
 <iAChannelData.h>
 <iACSVToQTableWidgetConverter.h>
 <iAFeatureAnalyzerTool.h>
 <iALog.h>
-<iALUT.h>
 <iAMainWindow.h>
 <iASegm3DView.h>
 <iASelection.h>
+<memory>
 <QDir>
 <QDockWidget>
 <QLabel>
@@ -31,7 +30,7 @@ set(FeatureAnalyzer_PRECOMPILE_INCLUDES
 <vtkLookupTable.h>
 <vtkPiecewiseFunction.h>
 <vtkRenderer.h>
+<vtkRenderWindow.h>
 <vtkScalarBarActor.h>
 <vtkScalarBarWidget.h>
-<vtkSmartPointer.h>
-<vtkTransform.h>)
+<vtkSmartPointer.h>)

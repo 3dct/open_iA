@@ -1,5 +1,4 @@
 set(NModalTF_PRECOMPILE_INCLUDES
-<defines.h>
 <iAChannelData.h>
 <iADataSet.h>
 <iALog.h>

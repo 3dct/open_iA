@@ -18,6 +18,7 @@
 #include "iAXRFData.h"
 #include "iAXRFOverlay.h"
 
+#include <iAChannelID.h>    // for NotExistingChannel
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iAFunctionalBoxplot.h>
@@ -36,7 +37,6 @@
 #include <iAHistogramData.h>
 #include <iAPlotTypes.h>
 
-#include "defines.h"    // for NotExistingChannel
 #include <iAColorTheme.h>
 #include <iAConnector.h>
 #include <iAFileUtils.h>

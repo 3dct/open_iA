@@ -1,18 +1,19 @@
 set(OPENIA_PRECOMPILE_HEADERS
 <cassert>
 <chrono>
-<defines.h>
 <iAAABB.h>
 <iAAbortListener.h>
 <iAAttributeDescriptor.h>
 <iAAttributes.h>
 <iAChannelData.h>
+<iAChannelID.h>
 <iAChannelSlicerData.h>
 <iADataSet.h>
 <iADataSetListWidget.h>
 <iADataSetRenderer.h>
 <iADataSetRendererImpl.h>
 <iADataSetViewer.h>
+<iADefaultSettings.h>
 <iAFileChooserWidget.h>
 <iAFileUtils.h>
 <iAFilter.h>
@@ -24,6 +25,7 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAGUIModuleInterface.h>
 <iAJobListView.h>
 <iALog.h>
+<iAMagicLensConstants.h>
 <iAMainWindow.h>
 <iAMathUtility.h>
 <iAMdiChild.h>
@@ -35,6 +37,8 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAQVTKWidget.h>
 <iARenderer.h>
 <iARunAsync.h>
+<iASettings.h>
+<iASlicer.h>
 <iASlicerMode.h>
 <iAStringHelper.h>
 <iATool.h>
@@ -84,7 +88,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <vtkCamera.h>
 <vtkCellArray.h>
 <vtkColorTransferFunction.h>
-<vtkGenericOpenGLRenderWindow.h>
 <vtkImageActor.h>
 <vtkImageData.h>
 <vtkImageMapper3D.h>
@@ -102,6 +105,7 @@ set(OPENIA_PRECOMPILE_HEADERS
 <vtkProperty.h>
 <vtkProperty2D.h>
 <vtkRenderer.h>
+<vtkRenderWindow.h>
 <vtkScalarsToColors.h>
 <vtkSmartPointer.h>
 <vtkSphereSource.h>

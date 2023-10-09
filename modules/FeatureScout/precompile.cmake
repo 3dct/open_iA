@@ -7,7 +7,6 @@ set(FeatureScout_PRECOMPILE_INCLUDES
 <iAMainWindow.h>
 <iAMdiChild.h>
 <iAObjectType.h>
-<iAToolsVTK.h>
 <memory>
 <QList>
 <QMessageBox>
