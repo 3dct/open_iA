@@ -1,6 +1,7 @@
 target_link_libraries(${libname} PUBLIC
 	iA::base
 	iA::charts
+	iA::io
 	Qt::Concurrent
 )
 set(VTK_REQUIRED_LIBS_PUBLIC
