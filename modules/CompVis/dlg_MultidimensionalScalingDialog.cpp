@@ -7,7 +7,7 @@
 
 //QT
 #include <QButtonGroup>
-#include <QStringlist>
+#include <QStringList>
 #include <QHeaderView>
 #include <QString>
 
