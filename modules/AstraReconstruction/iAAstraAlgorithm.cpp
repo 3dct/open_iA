@@ -5,13 +5,13 @@
 #include "dlg_ProjectionParameters.h"
 
 #include <iACudaHelper.h>
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iALog.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 #include <iAToolsVTK.h>
 #include <iATypedCallHelper.h>
 #include <iAVec3.h>
-#include <iAMainWindow.h>
-#include <iAMdiChild.h>
 
 #include <astra/CudaBackProjectionAlgorithm3D.h>
 #include <astra/CudaFDKAlgorithm3D.h>
@@ -21,9 +21,7 @@
 #include <astra/CudaProjector3D.h>
 #include <astra/Logging.h>
 
-#include <vtkImageCast.h>
 #include <vtkImageData.h>
-#include <vtkNew.h>
 #include <vtkSmartPointer.h>
 
 #include <QMessageBox>

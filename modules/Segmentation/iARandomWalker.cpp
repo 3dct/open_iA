@@ -8,11 +8,11 @@
 #include "iAVectorDistanceImpl.h"
 
 #include <defines.h>     // for DIM
-#include <iADataSet.h>
 #include <iAFilterDefault.h>
 #ifndef NDEBUG
 #include <iAMathUtility.h>    // for dblApproxEqual used in assert
 #endif
+#include <iAImageData.h>
 #include <iAToolsVTK.h>
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>

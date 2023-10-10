@@ -24,8 +24,8 @@
 #include <iAAttributeDescriptor.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
-#include <iADataSet.h>
 #include <iAFileUtils.h>    // for getLocalEncodingFileName
+#include <iAImageData.h>
 #include <iAJobListView.h>
 #include <iALog.h>
 #include <iAMdiChild.h>

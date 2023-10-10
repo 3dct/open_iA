@@ -5,7 +5,7 @@
 // base
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
 #include <iAProgress.h>

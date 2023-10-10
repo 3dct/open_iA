@@ -36,10 +36,11 @@
 // base:
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
-#include "iADataSet.h"
+#include <iAImageData.h>
 #include <iAFileUtils.h>
 #include <iALog.h>
 #include <iALookupTable.h>
+#include <iAPolyData.h>
 #include <iATypedCallHelper.h>
 
 #include <itkImageRegionIterator.h>

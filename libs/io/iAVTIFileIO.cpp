@@ -3,6 +3,7 @@
 #include "iAVTIFileIO.h"
 
 #include "iAFileUtils.h"
+#include "iAImageData.h"
 #include "iAProgress.h"
 
 #include <vtkImageData.h>

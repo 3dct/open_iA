@@ -6,7 +6,7 @@
 #include <iAEntropyImageFilter.h>
 
 #include <defines.h>    // for DIM
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iATypedCallHelper.h>
 
 iAEntropy::iAEntropy() :

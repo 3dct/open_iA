@@ -14,7 +14,7 @@
 
 #include <iADockWidgetWrapper.h>
 
-#include <iADataSet.h>
+#include <iAImageData.h>
 
 #include <QApplication>
 #include <QFileDialog>

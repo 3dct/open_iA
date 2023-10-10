@@ -16,6 +16,7 @@
 
 #include <iAColorTheme.h>
 #include <iAFileUtils.h>
+#include <iAImageData.h>
 #include <iAJobListView.h>
 #include <iALog.h>
 #include <iALookupTable.h>

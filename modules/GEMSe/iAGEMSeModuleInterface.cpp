@@ -5,7 +5,7 @@
 #include "iAGEMSeTool.h"
 #include "iARepresentative.h"
 
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iALog.h>
 #include <iAFilterDefault.h>
 #include <iAToolRegistry.h>

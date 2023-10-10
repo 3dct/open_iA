@@ -4,7 +4,7 @@
 #include "iANModalDisplay.h"
 
 #include <iAChannelData.h>
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iAMdiChild.h>
 #include <iASlicerImpl.h>
 #include <iASlicerMode.h>

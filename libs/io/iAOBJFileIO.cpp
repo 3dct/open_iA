@@ -4,6 +4,7 @@
 
 #include "iAExceptionThrowingErrorObserver.h"
 #include "iAFileUtils.h"
+#include "iAPolyData.h"
 #include "iAProgress.h"
 
 #include <vtkOBJReader.h>

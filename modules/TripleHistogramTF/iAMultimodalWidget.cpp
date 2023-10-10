@@ -12,8 +12,8 @@
 
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
-#include <iADataSet.h>
 #include <iADataSetRenderer.h>
+#include <iAImageData.h>
 #include <iALog.h>
 #include <iAMdiChild.h>
 //#include <iAPerformanceHelper.h>

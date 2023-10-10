@@ -1,6 +1,6 @@
 #include "iADataSetViewerImpl.h"
 
-#include "iADataSet.h"
+#include "iAPolyData.h"
 #include "iADataSetRendererImpl.h"
 
 

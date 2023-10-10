@@ -9,7 +9,7 @@
 #include "iANModalPreprocessor.h"
 
 #include <iAChartWithFunctionsWidget.h>
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iAMdiChild.h>
 #include <iASlicer.h>
 #include <iASlicerMode.h>

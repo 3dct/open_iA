@@ -9,7 +9,7 @@
 #include "iANModalDataSetReducer.h"
 #include "iANModalPCADataSetReducer.h"
 
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iAMdiChild.h>
 #include <iAToolsVTK.h>
 

@@ -14,7 +14,7 @@
 #include <iAAttributeDescriptor.h>
 #include <iAChannelData.h>
 #include <iAConnector.h>
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iALog.h>
 #include <iALUT.h>
 #include <iATransferFunction.h>

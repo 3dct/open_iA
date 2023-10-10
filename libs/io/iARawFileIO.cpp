@@ -3,6 +3,7 @@
 #include "iARawFileIO.h"
 
 #include "iAFileUtils.h"   // for getLocalEncodingFileName
+#include "iAImageData.h"
 #include "iAITKIO.h"       // for iAITKIO::Dim
 #include "iAProgress.h"
 #include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType, readableDataTypes, ...

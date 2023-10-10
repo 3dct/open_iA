@@ -4,8 +4,9 @@
 
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
-#include "iADataSet.h"
+#include "iAImageData.h"
 #include "iALog.h"
+#include "iAPolyData.h"
 #include "iAProgress.h"
 #include "iAStringHelper.h"
 

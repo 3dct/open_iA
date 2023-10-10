@@ -7,7 +7,7 @@
 #include "iASingleResult.h"
 
 #include <iAConnector.h>
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
 #include <iAToolsITK.h>

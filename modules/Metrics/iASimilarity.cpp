@@ -4,7 +4,7 @@
 
 #include <defines.h>          // for DIM
 #include <iAConnector.h>
-#include <iADataSet.h>        // for iAImageData
+#include <iAImageData.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>
 #include <iAToolsVTK.h>       // for adjustIndexAndSizeToImage

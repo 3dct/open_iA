@@ -5,7 +5,7 @@
 #include "iAFoamCharacterizationDialogFilter.h"
 #include "iAFoamCharacterizationTable.h"
 
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iAProgress.h>
 #include <iAToolsVTK.h>
 

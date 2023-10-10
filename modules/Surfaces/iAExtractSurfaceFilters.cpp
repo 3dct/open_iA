@@ -1,9 +1,10 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include <iADataSet.h>
 #include <iAFilterDefault.h>
 #include <iAFileUtils.h>
+#include <iAImageData.h>
 #include <iALog.h>
+#include <iAPolyData.h>
 #include <iAProgress.h>
 #include <iAValueTypeVectorHelpers.h>
 

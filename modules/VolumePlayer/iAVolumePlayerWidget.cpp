@@ -5,8 +5,8 @@
 #include "ui_VolumePlayer.h"
 
 #include "iAChannelData.h"
-#include "iADataSet.h"
 #include "iADataSetRenderer.h"
+#include "iAImageData.h"
 #include "iAMathUtility.h"
 #include "iAMdiChild.h"
 #include "iAParameterDlg.h"

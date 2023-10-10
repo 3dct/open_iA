@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <defines.h>    // for DIM
 #include <iAAttributeDescriptor.h>
-#include <iADataSet.h>
 #include <iAFilterDefault.h>
+#include <iAImageData.h>
 #include <iAProgress.h>
 #include <iAStringHelper.h>
 #include <iATypedCallHelper.h>

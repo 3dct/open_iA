@@ -7,8 +7,8 @@
 #include "dlg_trackingGraph.h"
 #include "iAFeatureTracking.h"
 
-#include <iADataSet.h>
 #include <iADockWidgetWrapper.h>
+#include <iAImageData.h>
 #include <iALog.h>
 #include <iAVolumeViewer.h>
 #include <iAMdiChild.h>

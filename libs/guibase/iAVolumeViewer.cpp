@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVolumeViewer.h"
 
-#include "iADataSet.h"
+#include "iAImageData.h"
 #include "iAProgress.h"
 
 #include "iAChannelID.h"        // for NotExistingChannel

@@ -9,7 +9,7 @@
 
 class iADataCollection;
 class iAMultiStepProgressObserver;
-class MdiChild;
+class iAMdiChild;
 
 //! Helper for loading Talbot-Lau Grating Interferometry (TLGI) Computed Tomography (CT) image stacks.
 class iATLGICTLoader : public QThread
@@ -18,14 +18,14 @@ class iATLGICTLoader : public QThread
 public:
 	iATLGICTLoader();
 	bool setup(QString const & baseDirectory, QWidget* parent);
-	void start(MdiChild* child);
+	void start(iAMdiChild* child);
 protected:
 	~iATLGICTLoader();	// destructur private to make sure we can only be constructed on the heap
 						// and will destruct ourselves in finishUp()
 private:
 
 	QString m_baseDirectory;
-	MdiChild* m_child;
+	iAMdiChild* m_child;
 	
 	std::shared_ptr<iADataCollection> m_result;
 	double m_spacing[3];

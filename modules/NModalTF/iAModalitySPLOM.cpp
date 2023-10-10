@@ -10,7 +10,7 @@
 #include <iAQSplom.h>
 #include <iASPLOMData.h>
 
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iALog.h>
 
 #include <vtkColorTransferFunction.h>

@@ -22,6 +22,7 @@
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iAFunctionalBoxplot.h>
+#include <iAImageData.h>
 #include <iAJobListView.h>
 #include <iAMdiChild.h>
 #include <iAQVTKWidget.h>

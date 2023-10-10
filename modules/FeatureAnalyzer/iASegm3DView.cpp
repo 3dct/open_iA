@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASegm3DView.h"
 
-#include <iADataSet.h>  // for iAPolyData
-#include <iADataSetRendererImpl.h>    // for iAPolyDataRenderer
 #include <iALog.h>
+#include <iAPolyData.h>
+
+#include <iADataSetRendererImpl.h>    // for iAPolyDataRenderer
 #include <iAFast3DMagicLensWidget.h>
 #include <iALUT.h>
 #include <iATransferFunctionPtrs.h>

@@ -15,8 +15,8 @@
 #include <iAModuleDispatcher.h>
 #include <iAVolumeViewer.h>
 
-#include <iADataSet.h>
 #include <iAFileUtils.h>
+#include <iAImageData.h>
 #include <iALog.h>
 #include <iAToolsVTK.h>    // for RenderModeMap
 #include <iATransferFunction.h>

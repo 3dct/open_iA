@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASegmentationMetrics.h"
 
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iALog.h>
 #include <iATypedCallHelper.h>
 

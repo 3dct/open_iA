@@ -5,10 +5,10 @@
 #include <defines.h>    // for DIM
 #include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
-#include <iADataSet.h>
 #include <iAFileTypeRegistry.h>
 #include <iAFilterDefault.h>
 #include <iAFilterRegistry.h>
+#include <iAImageData.h>
 #include <iALog.h>
 #include <iAProgress.h>
 #include <iAStringHelper.h>

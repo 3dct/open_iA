@@ -3,6 +3,7 @@
 #include <iAFileParamDlg.h>
 
 #include <iAFileUtils.h>
+#include <iAImageData.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
 #include <iASettings.h>

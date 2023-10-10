@@ -10,8 +10,8 @@
 
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
-#include <iADataSet.h>
 #include <iADataSetRenderer.h>
+#include <iAImageData.h>
 #include <iAMdiChild.h>
 #include <iAPreferences.h>
 #include <iARenderer.h>

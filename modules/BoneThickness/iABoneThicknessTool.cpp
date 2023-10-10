@@ -12,7 +12,7 @@
 #include <iAMdiChild.h>
 #include <iAMainWindow.h>
 
-#include <iADataSet.h>
+#include <iAPolyData.h>
 #include <iALog.h>
 
 #include <QApplication>

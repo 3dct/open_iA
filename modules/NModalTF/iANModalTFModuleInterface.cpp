@@ -5,7 +5,7 @@
 #include "iANModalTool.h"
 #include "iAModalitySPLOM.h"
 
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iAToolHelper.h>
 
 #include <iALog.h>

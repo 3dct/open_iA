@@ -3,7 +3,7 @@
 
 #include "iANModalPCADataSetReducer.h"
 
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iAPerformanceHelper.h>
 #include <iATypedCallHelper.h>
 

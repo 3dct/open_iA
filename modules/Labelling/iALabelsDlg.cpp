@@ -8,8 +8,8 @@
 
 // base
 #include <iAColorTheme.h>
-#include <iADataSet.h>
 #include <iAFileUtils.h>
+#include <iAImageData.h>
 #include <iALog.h>
 //#include <iAPerformanceHelper.h>
 #include <iAToolsVTK.h>

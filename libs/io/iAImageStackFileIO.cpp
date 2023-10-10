@@ -5,6 +5,7 @@
 #include "iAExceptionThrowingErrorObserver.h"
 #include "iAFileStackParams.h"
 #include "iAFileUtils.h"     // for getLocalEncodingFileName
+#include "iAImageData.h"
 #include "iAMathUtility.h"   // for clamp
 #include "iAProgress.h"
 #include "iAStringHelper.h"  // for greatestCommonPrefix

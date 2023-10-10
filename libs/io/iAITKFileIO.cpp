@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAITKFileIO.h"
 
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iAFileUtils.h>   // for getLocalEncodingFileName
 #include <iAToolsITK.h>
 #include <iAProgress.h>

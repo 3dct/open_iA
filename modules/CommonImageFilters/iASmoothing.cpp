@@ -1,11 +1,11 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <defines.h> // for DIM
-#include <iADataSet.h>
 #include <iAFilterDefault.h>
+#include <iAImageData.h>
+#include <iAItkVersion.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>
-#include <iAItkVersion.h>
 #include <iATypedCallHelper.h>
 
 #include <itkBilateralImageFilter.h>

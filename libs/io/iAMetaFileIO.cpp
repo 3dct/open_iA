@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAMetaFileIO.h"
 
-#include "iADataSet.h"
 #include "iAFileUtils.h"
+#include "iAImageData.h"
 #include "iAProgress.h"
 
 #include "iAConnector.h"  // for writing

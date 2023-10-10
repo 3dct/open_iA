@@ -19,6 +19,7 @@
 
 #include <iAFileTypeRegistry.h>
 
+#include <iAImageData.h>
 #include <iALog.h>
 
 #include <itkMacro.h>    // for itk::ExceptionObject

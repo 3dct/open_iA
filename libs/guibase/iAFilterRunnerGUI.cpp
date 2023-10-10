@@ -4,7 +4,7 @@
 
 // base
 #include "iAAttributeDescriptor.h"
-#include "iADataSet.h"
+#include "iAImageData.h"
 #include "iAFileUtils.h"
 #include "iAFilter.h"
 #include "iALog.h"

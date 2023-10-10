@@ -3,9 +3,9 @@
 #include "svm.h"
 
 #include <defines.h>    // for DIM
-#include <iADataSet.h>
 #include <iAFilterDefault.h>
 #include <iAImageCoordinate.h>
+#include <iAImageData.h>
 #include <iALog.h>
 #include <iAProgress.h>
 #include <iASeedType.h>

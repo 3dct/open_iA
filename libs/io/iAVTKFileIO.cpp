@@ -5,6 +5,8 @@
 #include <iALog.h>
 #include <iAExceptionThrowingErrorObserver.h>
 #include <iAFileUtils.h>   // for getLocalEncodingFileName
+#include <iAImageData.h>
+#include <iAPolyData.h>
 #include <iAProgress.h>
 #include <iAToolsVTK.h>
 

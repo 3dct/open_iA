@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASTLFileIO.h"
 
-#include "iAExceptionThrowingErrorObserver.h"
-#include "iAFileUtils.h"
-#include "iAProgress.h"
+#include <iAExceptionThrowingErrorObserver.h>
+#include <iAFileUtils.h>
+#include <iAPolyData.h>
+#include <iAProgress.h>
 
 #include <vtkSTLReader.h>
 #include <vtkSTLWriter.h>

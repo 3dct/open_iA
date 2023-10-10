@@ -4,6 +4,7 @@
 
 #include "iAConnector.h"
 #include "iAFileUtils.h"   // for getLocalEncodingFileName
+#include "iAImageData.h"
 #include "iAProgress.h"
 #include "iAOIFReader.h"
 

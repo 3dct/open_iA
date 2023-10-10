@@ -10,7 +10,7 @@
 #include <iAVolumeRenderer.h>
 #include <iAVolumeViewer.h>
 
-#include <iADataSet.h>
+#include <iAImageData.h>
 
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageData.h>

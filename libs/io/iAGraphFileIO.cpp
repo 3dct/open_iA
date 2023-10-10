@@ -3,6 +3,7 @@
 #include "iAGraphFileIO.h"
 
 #include "iAAABB.h"
+#include "iAPolyData.h"
 #include "iAValueTypeVectorHelpers.h"
 
 #include <vtkCellData.h>
