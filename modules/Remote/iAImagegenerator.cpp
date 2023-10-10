@@ -182,7 +182,7 @@ namespace
 		LOG(lvlDebug, QString("%1; extract: %2 ms; nvJPEG: %3 ms; size: %4 kB")
 			.arg(debugMsg).arg(extractTime).arg(t3.elapsed()).arg(data.size()/1000.0));
 		auto result = std::make_shared<iAJPGImage>();
-		result->data = std::move(QByteArray(reinterpret_cast<char*>(data.data()), data.size()));
+		result->data = QByteArray(reinterpret_cast<char*>(data.data()), data.size());
 		result->width = dim[0];
 		result->height = dim[1];
 		return result;
@@ -209,7 +209,7 @@ namespace
 		writer->Write();
 		vtkSmartPointer<vtkUnsignedCharArray> imgData = writer->GetResult();
 		auto result = std::make_shared<iAJPGImage>();
-		result->data = std::move(QByteArray((char*)imgData->Begin(), static_cast<qsizetype>(imgData->GetSize())));
+		result->data = QByteArray((char*)imgData->Begin(), static_cast<qsizetype>(imgData->GetSize()));
 		result->width = img->GetDimensions()[0];
 		result->height = img->GetDimensions()[1];
 		LOG(lvlDebug, QString("VTK JPEG. grab: %1 ms; last render: %2 ms; jpeg: %3 ms; size: %4 kB")
