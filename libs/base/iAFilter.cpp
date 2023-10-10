@@ -11,6 +11,7 @@
 #include "iAStringHelper.h"
 
 #include <vtkImageData.h>
+#include <vtkPolyData.h>
 
 #include <QColor>
 #include <QFileInfo>

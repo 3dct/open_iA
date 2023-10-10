@@ -8,9 +8,6 @@
 #include "iAAttributes.h"
 #include "iAITKIO.h"
 
-#include <vtkPolyData.h>
-#include <vtkSmartPointer.h>
-
 #include <QMap>
 #include <QString>
 #include <QVector>
@@ -23,6 +20,7 @@ class iALogger;
 class iAProgress;
 
 class vtkImageData;
+class vtkPolyData;
 
 class QVariant;
 
@@ -224,8 +222,6 @@ private:
 	//! output images (if any).
 	// TODO: make unique_ptr: -> compile error: `attempting to reference deleted function` in iAFilterRegistry...
 	std::vector<std::shared_ptr<iADataSet>> m_output;
-	//! output mesh (if any).
-	vtkSmartPointer<vtkPolyData> m_outputMesh;
 	//! output values (if any).
 	QVector<QPair<QString, QVariant> > m_outputValues;
 	//! The class that is watched for progress.

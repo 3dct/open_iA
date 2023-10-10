@@ -12,6 +12,7 @@
 
 #include <vtkImageData.h>
 #include <vtkTable.h>
+#include <vtkVariant.h>
 
 namespace
 {

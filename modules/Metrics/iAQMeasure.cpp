@@ -28,6 +28,7 @@
 #include <itkImageToHistogramFilter.h>
 
 #include <vtkImageData.h>
+#include <vtkMath.h>
 
 namespace
 {
