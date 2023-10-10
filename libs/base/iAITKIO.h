@@ -4,10 +4,9 @@
 
 #include "iabase_export.h"
 
-#include "iAItkVersion.h"
+#include "iAItkTypes.h"
 
 #include <itkImageBase.h>
-//#include <itkImageIOBase.h>
 
 class iAProgress;
 
@@ -16,17 +15,9 @@ class QString;
 //! Support for loading and storing images via ITK's file I/O
 namespace iAITKIO
 {
-	static const int Dim = 3;    //! merge with defines -> DIM
 	using ImageBaseType = itk::ImageBase<Dim>;
 	using ImagePointer = ImageBaseType::Pointer;
 	using ImagePtr = ImageBaseType*;
-#if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(5, 1, 0)
-	using PixelType = itk::CommonEnums::IOPixel;
-	using ScalarType = itk::CommonEnums::IOComponent;
-#else
-	using PixelType = itk::ImageIOBase::IOPixelType;
-	using ScalarType = itk::ImageIOBase::IOComponentType;
-#endif
 
 	// TODO:
 	//     - check usage - replace with iAFileTypeRegistry::createIO where it makes sense to support broader range of file types
