@@ -33,7 +33,7 @@ void laplacianSegmentationLevelSet(iAFilter* filter, QVariantMap const & paramet
 	laplacianSegmentation->SetReverseExpansionDirection(parameters["Reverse expansion direction"].toBool());
 	filter->progress()->observe(laplacianSegmentation);
 	laplacianSegmentation->Update();
-	filter->addOutput(laplacianSegmentation->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(laplacianSegmentation->GetOutput()));
 }
 
 iALaplacianSegmentationLevelSet::iALaplacianSegmentationLevelSet() :
@@ -81,7 +81,7 @@ void cannySegmentationLevelSet(iAFilter* filter, QVariantMap const & parameters)
 	cannySegmentation->SetReverseExpansionDirection(parameters["Reverse expansion direction"].toBool());
 	filter->progress()->observe(cannySegmentation);
 	cannySegmentation->Update();
-	filter->addOutput(cannySegmentation->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(cannySegmentation->GetOutput()));
 }
 
 iACannySegmentationLevelSet::iACannySegmentationLevelSet() :
@@ -121,7 +121,7 @@ void zeroCrossing(iAFilter* filter, QVariantMap const & parameters)
 	zeroCrossingFilter->SetBackgroundValue(parameters["Background value"].toDouble());
 	filter->progress()->observe(zeroCrossingFilter);
 	zeroCrossingFilter->Update();
-	filter->addOutput(zeroCrossingFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(zeroCrossingFilter->GetOutput()));
 }
 
 iAZeroCrossing::iAZeroCrossing() :

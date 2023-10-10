@@ -26,7 +26,7 @@ template<class T> void additiveGaussianNoise(iAFilter* filter, QVariantMap const
 	noiseFilter->SetStandardDeviation(parameters["Standard deviation"].toDouble());
 	filter->progress()->observe( noiseFilter );
 	noiseFilter->Update();
-	filter->addOutput(noiseFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(noiseFilter->GetOutput()));
 }
 
 void iAAdditiveGaussianNoise::performWork(QVariantMap const & parameters)
@@ -58,7 +58,7 @@ template<class T> void saltAndPepperNoise(iAFilter* filter, QVariantMap const & 
 	noiseFilter->SetProbability(parameters["Probability"].toDouble());
 	filter->progress()->observe( noiseFilter );
 	noiseFilter->Update();
-	filter->addOutput(noiseFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(noiseFilter->GetOutput()));
 }
 
 void iASaltAndPepperNoise::performWork(QVariantMap const & parameters)
@@ -89,7 +89,7 @@ template<class T> void shotNoise(iAFilter* filter, QVariantMap const & parameter
 	noiseFilter->SetScale(parameters["Scale"].toDouble());
 	filter->progress()->observe( noiseFilter );
 	noiseFilter->Update();
-	filter->addOutput(noiseFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(noiseFilter->GetOutput()));
 }
 
 void iAShotNoise::performWork(QVariantMap const & parameters)
@@ -120,7 +120,7 @@ template<class T> void speckleNoise(iAFilter* filter, QVariantMap const & parame
 	noiseFilter->SetStandardDeviation(parameters["Standard deviation"].toDouble());
 	filter->progress()->observe( noiseFilter );
 	noiseFilter->Update();
-	filter->addOutput(noiseFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(noiseFilter->GetOutput()));
 }
 
 void iASpeckleNoise::performWork(QVariantMap const & parameters)

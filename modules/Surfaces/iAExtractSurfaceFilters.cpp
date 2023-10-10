@@ -193,13 +193,13 @@ void iAExtractSurface::performWork(QVariantMap const & parameters)
 	if (parameters["Simplification Algorithm"].toString() == "None")
 	{
 		surfaceFilter->Update();
-		addOutput(surfaceFilter->GetOutput());
+		addOutput(std::make_shared<iAPolyData>(surfaceFilter->GetOutput()));
 	}
 	else
 	{
 		auto simplifyFilter = createDecimation(parameters, surfaceFilter, progress());
 		simplifyFilter->Update();
-		addOutput(simplifyFilter->GetOutput());
+		addOutput(std::make_shared<iAPolyData>(simplifyFilter->GetOutput()));
 	}
 }
 
@@ -279,7 +279,7 @@ void iATriangulation::performWork(QVariantMap const& parameters) {
 
 	auto smoothing = createSmoothing(delaunyFilter);
 
-	addOutput(smoothing->GetOutput());
+	addOutput(std::make_shared<iAPolyData>(smoothing->GetOutput()));
 }
 
 
@@ -348,7 +348,7 @@ void iASimplifyMeshDecimatePro::performWork(QVariantMap const& parameters)
 	vtkFilter->SetBoundaryVertexDeletion(parameters["Boundary Vertex Deletion"].toBool());
 	vtkFilter->SetInputData( dynamic_cast<iAPolyData*>(input(0).get())->poly() );
 	vtkFilter->Update();
-	addOutput(vtkFilter->GetOutput());
+	addOutput(std::make_shared<iAPolyData>(vtkFilter->GetOutput()));
 }
 
 
@@ -378,7 +378,7 @@ void iASimplifyMeshQuadricClustering::performWork(QVariantMap const& parameters)
 	vtkFilter->SetNumberOfZDivisions(clusterDiv[2]);
 	vtkFilter->SetInputData(dynamic_cast<iAPolyData*>(input(0).get())->poly());
 	vtkFilter->Update();
-	addOutput(vtkFilter->GetOutput());
+	addOutput(std::make_shared<iAPolyData>(vtkFilter->GetOutput()));
 }
 
 
@@ -411,7 +411,7 @@ void iASimplifyMeshQuadricDecimation::performWork(QVariantMap const& parameters)
 	//vtkFilter->SetRegularization(parameters["Regularization"].toDouble());
 	vtkFilter->SetInputData(dynamic_cast<iAPolyData*>(input(0).get())->poly());
 	vtkFilter->Update();
-	addOutput(vtkFilter->GetOutput());
+	addOutput(std::make_shared<iAPolyData>(vtkFilter->GetOutput()));
 }
 
 
@@ -443,7 +443,7 @@ void iASmoothMeshWindowedSinc::performWork(QVariantMap const& parameters)
 	vtkFilter->SetNormalizeCoordinates(parameters["Normalize Coordinates"].toBool());   // true
 	vtkFilter->SetInputData(dynamic_cast<iAPolyData*>(input(0).get())->poly());
 	vtkFilter->Update();
-	addOutput(vtkFilter->GetOutput());
+	addOutput(std::make_shared<iAPolyData>(vtkFilter->GetOutput()));
 }
 
 iAFillHoles::iAFillHoles() :
@@ -462,7 +462,7 @@ void iAFillHoles::performWork(QVariantMap const& parameters)
 	vtkFilter->SetInputData(dynamic_cast<iAPolyData*>(input(0).get())->poly());
 	vtkFilter->SetHoleSize(parameters["Hole size"].toDouble());
 	vtkFilter->Update();
-	addOutput(vtkFilter->GetOutput());
+	addOutput(std::make_shared<iAPolyData>(vtkFilter->GetOutput()));
 }
 
 iADelauny3D::iADelauny3D() :
@@ -498,5 +498,5 @@ void iADelauny3D::performWork(QVariantMap const& parameters)
 	datasetSurfaceFilter->SetInputConnection(vtkFilter->GetOutputPort());
 	progress()->observe(datasetSurfaceFilter);
 	datasetSurfaceFilter->Update();
-	addOutput(datasetSurfaceFilter->GetOutput());
+	addOutput(std::make_shared<iAPolyData>(datasetSurfaceFilter->GetOutput()));
 }

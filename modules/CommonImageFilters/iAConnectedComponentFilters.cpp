@@ -31,8 +31,7 @@ void connectedComponentFilter(iAFilter* filter, QVariantMap const & parameters)
 	auto out = ccFilter->GetOutput();
 	// by default, at least ITK 5.1.2 creates long long image (which subsequently
 	// cannot be shown); so let's cast it to int:
-	auto cast = castImageTo<int>(out);
-	filter->addOutput(cast);
+	filter->addOutput(std::make_shared<iAImageData>(castImageTo<int>(out)));
 }
 
 void iAConnectedComponents::performWork(QVariantMap const & parameters)
@@ -64,7 +63,7 @@ void scalarConnectedComponentFilter(iAFilter* filter, QVariantMap const & parame
 	sccFilter->SetDistanceThreshold(parameters["Distance Threshold"].toDouble());
 	filter->progress()->observe(sccFilter);
 	sccFilter->Update();
-	filter->addOutput(sccFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(sccFilter->GetOutput()));
 }
 
 void iAScalarConnectedComponents::performWork(QVariantMap const & parameters)
@@ -108,7 +107,7 @@ void relabelComponentImageFilter(iAFilter* filter, QVariantMap const & parameter
 		}
 		myfile.close();
 	}
-	filter->addOutput(rccFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(rccFilter->GetOutput()));
 }
 
 void iARelabelComponents::performWork(QVariantMap const & parameters)

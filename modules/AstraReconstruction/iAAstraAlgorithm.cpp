@@ -308,7 +308,7 @@ void iAASTRAForwardProject::performWork(QVariantMap const & parameters)
 			imgIndex += projDim[0];
 		}
 	}
-	addOutput(projImg);
+	addOutput(std::make_shared<iAImageData>(projImg));
 
 	delete algorithm;
 	delete volumeData;
@@ -494,7 +494,7 @@ void iAASTRAReconstruct::performWork(QVariantMap const & parameters)
 		}
 		slice += sliceOffset;
 	}
-	addOutput(volImg);
+	addOutput(std::make_shared<iAImageData>(volImg));
 
 	delete volumeData;
 	delete projectionData;

@@ -33,7 +33,7 @@ template <class InT, class OutT> void castImage(iAFilter* filter)
 	castFilter->SetInput(dynamic_cast<InputImageType *>(filter->imageInput(0)->itkImage()));
 	filter->progress()->observe(castFilter);
 	castFilter->Update();
-	filter->addOutput(castFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(castFilter->GetOutput()));
 }
 
 
@@ -90,7 +90,7 @@ void dataTypeConversion(iAFilter* filter, QVariantMap const & parameters)
 	}
 	filter->progress()->observe(rescaleFilter);
 	rescaleFilter->Update();
-	filter->addOutput(rescaleFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(rescaleFilter->GetOutput()));
 }
 
 template<class T>
@@ -222,7 +222,7 @@ void convertToRGB(iAFilter * filter, QVariantMap const & params)
 			oIt.Value().SetAlpha(alpha);
 		}
 	}, nullptr);
-	filter->addOutput(rgbaImage);
+	filter->addOutput(std::make_shared<iAImageData>(rgbaImage));
 }
 
 iAConvertToRGBAFilter::iAConvertToRGBAFilter() :

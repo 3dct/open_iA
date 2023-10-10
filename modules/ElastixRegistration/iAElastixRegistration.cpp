@@ -43,7 +43,7 @@ void extractChannels(typename itk::VectorImage<InPixelType, DIM>::Pointer vector
 		imageWriter->Update();
 
 		if (loadTransformixResult) {
-			filter->addOutput(indexSelectionFilter->GetOutput());
+			filter->addOutput(std::make_shared<iAImageData>(indexSelectionFilter->GetOutput()));
 		}
 	}
 }
@@ -95,14 +95,14 @@ void createOutput(iAFilter* filter, QString dirname, bool tranformixActive, bool
 	ReaderType::Pointer resulImage = ReaderType::New();
 	resulImage->SetFileName(resulImagePath.toStdString());
 	resulImage->Update();
-	filter->addOutput(resulImage->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(resulImage->GetOutput()));
 	
 	
 	if (tranformixActive) {
 		ReaderType::Pointer jacobianImage = ReaderType::New();
 		jacobianImage->SetFileName(jacobianImagePath.toStdString());
 		jacobianImage->Update();
-		filter->addOutput(jacobianImage->GetOutput());
+		filter->addOutput(std::make_shared<iAImageData>(jacobianImage->GetOutput()));
 
 		writeDeformationImage(filter, dirname, loadTransformixResult);
 

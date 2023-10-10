@@ -40,7 +40,7 @@ void entropy(iAFilter* filter, QVariantMap const & parameters)
 	}
 	entropyFilter->SetNormalize(parameters["Normalize"].toBool());
 	entropyFilter->Update();
-	filter->addOutput(entropyFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(entropyFilter->GetOutput()));
 }
 
 

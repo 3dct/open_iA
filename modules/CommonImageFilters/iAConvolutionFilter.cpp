@@ -43,7 +43,7 @@ template<class T> void convolution(iAFilter* filter)
 	convFilter->SetKernelImage(dynamic_cast<FloatImageType*>(kernelImg.GetPointer()));
 	filter->progress()->observe(convFilter);
 	convFilter->Update();
-	filter->addOutput(convFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(convFilter->GetOutput()));
 }
 
 void iAConvolution::performWork(QVariantMap const & /*parameters*/)
@@ -81,7 +81,7 @@ template<class T> void fft_convolution(iAFilter* filter)
 	fftConvFilter->SetNormalize(true);
 	filter->progress()->observe(fftConvFilter);
 	fftConvFilter->Update();
-	filter->addOutput(fftConvFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(fftConvFilter->GetOutput()));
 }
 
 void iAFFTConvolution::performWork(QVariantMap const & /*parameters*/)
@@ -129,7 +129,7 @@ template<class T> void correlation(iAFilter* filter)
 	corrFilter->SetTemplate(kernelOperator);
 	filter->progress()->observe(corrFilter);
 	corrFilter->Update();
-	filter->addOutput(corrFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(corrFilter->GetOutput()));
 }
 
 void iACorrelation::performWork(QVariantMap const & /*parameters*/)
@@ -170,7 +170,7 @@ template<class T> void fft_correlation(iAFilter* filter)
 	corrFilter->Modified();
 	filter->progress()->observe(corrFilter);
 	corrFilter->Update();
-	filter->addOutput(corrFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(corrFilter->GetOutput()));
 }
 
 void iAFFTCorrelation::performWork(QVariantMap const & /*parameters*/)
@@ -222,7 +222,7 @@ template<class T> void streamed_fft_correlation(iAFilter* filter)
 	corrFilter->SetMovingImage(dynamic_cast<FloatImageType*>(templateImg.GetPointer()));
 	filter->progress()->observe(corrFilter);
 	corrFilter->Update();
-	filter->addOutput(corrFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(corrFilter->GetOutput()));
 }
 
 void iAStreamedFFTCorrelation::performWork(QVariantMap const & /*parameters*/)

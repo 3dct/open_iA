@@ -3,15 +3,12 @@
 #include "iAFilter.h"
 
 #include "iAAttributeDescriptor.h"
-#include "iAConnector.h"
 #include "iAImageData.h"
 #include "iALog.h"
-#include "iAPolyData.h"
 #include "iAProgress.h"
 #include "iAStringHelper.h"
 
 #include <vtkImageData.h>
-#include <vtkPolyData.h>
 
 #include <QColor>
 #include <QFileInfo>
@@ -130,21 +127,6 @@ void iAFilter::clearOutput()
 	m_output.clear();
 }
 
-void iAFilter::addOutput(itk::ImageBase<3>* itkImg)
-{
-	addOutput(std::make_shared<iAImageData>(itkImg));
-}
-
-void iAFilter::addOutput(vtkImageData* vtkImg)
-{
-	addOutput(std::make_shared<iAImageData>(vtkImg));
-}
-
-void iAFilter::addOutput(vtkPolyData* vtkPoly)
-{
-	addOutput(std::make_shared<iAPolyData>(vtkPoly));
-}
-
 void iAFilter::addOutput(std::shared_ptr<iADataSet> dataSet)
 {
 	dataSet->setMetaData(iADataSet::NameKey, outputName(m_output.size()));
@@ -185,11 +167,6 @@ void iAFilter::clearInput()
 void iAFilter::addInput(std::shared_ptr<iADataSet> dataSet)
 {
 	m_input.push_back(dataSet);
-}
-
-void iAFilter::addInput(vtkImageData *vtkImage)
-{
-	m_input.push_back(std::make_shared<iAImageData>(vtkImage));
 }
 
 std::shared_ptr<iADataSet> iAFilter::input(size_t idx) const

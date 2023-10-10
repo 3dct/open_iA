@@ -1,14 +1,15 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "iAAABB.h"
+#include <iAAABB.h>
 #include <iAFilterDefault.h>
-#include "iALog.h"
-#include "iAStringHelper.h"    // for stringToVector
-#include "iAToolsVTK.h"
-#include "iAValueTypeVectorHelpers.h"
+#include <iAImageData.h>
+#include <iALog.h>
+#include <iAStringHelper.h>    // for stringToVector
+#include <iAToolsVTK.h>
+#include <iAValueTypeVectorHelpers.h>
 
-#include "iACsvIO.h"
-#include "iACsvVtkTableCreator.h"
+#include <iACsvIO.h>
+#include <iACsvVtkTableCreator.h>
 
 #include <vtkImageData.h>
 #include <vtkTable.h>
@@ -248,8 +249,8 @@ void iASpatialFeatureSummary::performWork(QVariantMap const & parameters)
 				numberOfFibersImage->GetScalarComponentAsDouble(c.x(), c.y(), c.z(), 0) + 1);
 		}
 	}
-	addOutput(numberOfFibersImage);
-	addOutput(numberOfPointsImage);
+	addOutput(std::make_shared<iAImageData>(numberOfFibersImage));
+	addOutput(std::make_shared<iAImageData>(numberOfPointsImage));
 	auto r = numberOfFibersImage->GetScalarRange();
 	LOG(lvlDebug, QString("Number of fibers: from %1 to %2").arg(r[0]).arg(r[1]));
 
@@ -280,7 +281,7 @@ void iASpatialFeatureSummary::performWork(QVariantMap const & parameters)
 			}
 		}
 		setOutputName(curOutput, headers[col]);
-		addOutput(metaImage);
+		addOutput(std::make_shared<iAImageData>(metaImage));
 		auto rng = metaImage->GetScalarRange();
 		LOG(lvlDebug, QString("Output %1: values from %2 to %3").arg(headers[col]).arg(rng[0]).arg(rng[1]));
 		++curOutput;

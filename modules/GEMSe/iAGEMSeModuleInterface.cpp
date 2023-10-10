@@ -43,7 +43,7 @@ void iADifferenceMarker::performWork(QVariantMap const & params)
 	}
 	else
 	{
-		addOutput(out);
+		addOutput(std::make_shared<iAImageData>(out));
 	}
 }
 

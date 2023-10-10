@@ -80,7 +80,7 @@ template<class T> void medianFilter(iAFilter* filter, QVariantMap const & params
 	medianFilter->SetInput(dynamic_cast<InputImageType*>(filter->imageInput(0)->itkImage()));
 	filter->progress()->observe( medianFilter );
 	medianFilter->Update();
-	filter->addOutput(medianFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(medianFilter->GetOutput()));
 }
 
 void iAMedianFilter::performWork(QVariantMap const & parameters)
@@ -140,9 +140,9 @@ void recursiveGaussian(iAFilter* filter, QVariantMap const & params)
 	filter->progress()->observe(rgsfilterZ);
 	rgsfilterZ->Update();
 	if (params["Convert back to input type"].toBool())
-		filter->addOutput(castImageTo<T>(rgsfilterZ->GetOutput()));
+		filter->addOutput(std::make_shared<iAImageData>(castImageTo<T>(rgsfilterZ->GetOutput())));
 	else
-		filter->addOutput(rgsfilterZ->GetOutput());
+		filter->addOutput(std::make_shared<iAImageData>(rgsfilterZ->GetOutput()));
 }
 
 void iARecursiveGaussian::performWork(QVariantMap const & parameters)
@@ -180,11 +180,11 @@ void discreteGaussian(iAFilter* filter, QVariantMap const & params)
 	dgFilter->Update();
 	if (params["Convert back to input type"].toBool())
 	{
-		filter->addOutput(castImageTo<T>(dgFilter->GetOutput()));
+		filter->addOutput(std::make_shared<iAImageData>(castImageTo<T>(dgFilter->GetOutput())));
 	}
 	else
 	{
-		filter->addOutput(dgFilter->GetOutput());
+		filter->addOutput(std::make_shared<iAImageData>(dgFilter->GetOutput()));
 	}
 }
 
@@ -223,7 +223,7 @@ void patchBasedDenoising(iAFilter* filter, QVariantMap const & params, itk::Proc
 	nlmFilter->SetPatchRadius(params["Patch radius"].toDouble());
 	filter->progress()->observe(nlmFilter);
 	nlmFilter->Update();
-	filter->addOutput(nlmFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(nlmFilter->GetOutput()));
 }
 
 void iANonLocalMeans::performWork(QVariantMap const & parameters)
@@ -290,11 +290,11 @@ void gradientAnisotropicDiffusion(iAFilter* filter, QVariantMap const & params)
 	gadFilter->Update();
 	if (params["Convert back to input type"].toBool())
 	{
-		filter->addOutput(castImageTo<T>(gadFilter->GetOutput()));
+		filter->addOutput(std::make_shared<iAImageData>(castImageTo<T>(gadFilter->GetOutput())));
 	}
 	else
 	{
-		filter->addOutput(gadFilter->GetOutput());
+		filter->addOutput(std::make_shared<iAImageData>(gadFilter->GetOutput()));
 	}
 }
 
@@ -350,11 +350,11 @@ void GPU_gradient_anisotropic_diffusion(iAFilter* filter, QVariantMap const & pa
 	gadFilter->Update();
 	if (params["Convert back to input type"].toBool())
 	{
-		filter->addOutput(castImageTo<T>(gadFilter->GetOutput()));
+		filter->addOutput(std::make_shared<iAImageData>(castImageTo<T>(gadFilter->GetOutput())));
 	}
 	else
 	{
-		filter->addOutput(gadFilter->GetOutput());
+		filter->addOutput(std::make_shared<iAImageData>(gadFilter->GetOutput()));
 	}
 }
 
@@ -401,11 +401,11 @@ void curvatureAnisotropicDiffusion(iAFilter* filter, QVariantMap const& params)
 	cadFilter->Update();
 	if (params["Convert back to input type"].toBool())
 	{
-		filter->addOutput(castImageTo<T>(cadFilter->GetOutput()));
+		filter->addOutput(std::make_shared<iAImageData>(castImageTo<T>(cadFilter->GetOutput())));
 	}
 	else
 	{
-		filter->addOutput(cadFilter->GetOutput());
+		filter->addOutput(std::make_shared<iAImageData>(cadFilter->GetOutput()));
 	}
 }
 
@@ -451,11 +451,11 @@ void curvatureFlow(iAFilter* filter, QVariantMap const & params)
 	cfFfilter->Update();
 	if (params["Convert back to input type"].toBool())
 	{
-		filter->addOutput(castImageTo<T>(cfFfilter->GetOutput()));
+		filter->addOutput(std::make_shared<iAImageData>(castImageTo<T>(cfFfilter->GetOutput())));
 	}
 	else
 	{
-		filter->addOutput(cfFfilter->GetOutput());
+		filter->addOutput(std::make_shared<iAImageData>(cfFfilter->GetOutput()));
 	}
 }
 
@@ -493,11 +493,11 @@ void bilateralFilter(iAFilter* filter, QVariantMap const & params)
 	biFilter->Update();
 	if (params["Convert back to input type"].toBool())
 	{
-		filter->addOutput(castImageTo<T>(biFilter->GetOutput()));
+		filter->addOutput(std::make_shared<iAImageData>(castImageTo<T>(biFilter->GetOutput())));
 	}
 	else
 	{
-		filter->addOutput(biFilter->GetOutput());
+		filter->addOutput(std::make_shared<iAImageData>(biFilter->GetOutput()));
 	}
 }
 

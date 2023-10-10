@@ -405,11 +405,11 @@ void iARandomWalker::performWork(QVariantMap const & parameters)
 	}
 	iAITKIO::ImagePointer labelImg;
 	ITK_TYPED_CALL(CreateLabelImage, inputScalarType(), dim, spc, probImgs, labelCount, labelImg );
-	addOutput(labelImg);
+	addOutput(std::make_shared<iAImageData>(labelImg));
 	setOutputName(0u, "Label Image");
 	for (int i = 0; i < labelCount; ++i)
 	{
-		addOutput(probImgs[i]);
+		addOutput(std::make_shared<iAImageData>(probImgs[i]));
 		setOutputName(static_cast<unsigned int>(1+i), QString("Probability image label %1").arg(i));
 	}
 }
@@ -604,11 +604,11 @@ void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 
 	iAITKIO::ImagePointer labelImg;
 	ITK_TYPED_CALL(CreateLabelImage, inputScalarType(), dim, spc, probImgs, labelCount, labelImg);
-	addOutput(labelImg);
+	addOutput(std::make_shared<iAImageData>(labelImg));
 	setOutputName(0u, "Label Image");
 	for (int i = 0; i < labelCount; ++i)
 	{
-		addOutput(probImgs[i]);
+		addOutput(std::make_shared<iAImageData>(probImgs[i]));
 		setOutputName(static_cast<unsigned int>(1 + i), QString("Probability image label %1").arg(i));
 	}
 }
@@ -638,7 +638,7 @@ void iAMaximumDecisionRule::performWork(QVariantMap const & /*parameters*/)
 	}
 	iAITKIO::ImagePointer labelImg;
 	ITK_TYPED_CALL(CreateLabelImage, inputScalarType(), dim, spc, probImgs, inputCount(), labelImg);
-	addOutput(labelImg);
+	addOutput(std::make_shared<iAImageData>(labelImg));
 }
 
 

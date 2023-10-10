@@ -163,7 +163,7 @@ void freeBeamCalculation(QVariantMap const & params, iAFilter* filter )
 			}
 		}
 	}
-	filter->addOutput(outputImage);
+	filter->addOutput(std::make_shared<iAImageData>(outputImage));
 }
 
 template<class InPixelType>

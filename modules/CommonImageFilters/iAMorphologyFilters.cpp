@@ -82,7 +82,7 @@ template<class MorphOp, class T> void morphOp(iAFilter* filter, QVariantMap cons
 	morphOpFilter->SetKernel(structuringElement);
 	filter->progress()->observe(morphOpFilter);
 	morphOpFilter->Update();
-	filter->addOutput(morphOpFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(morphOpFilter->GetOutput()));
 }
 
 
@@ -292,7 +292,7 @@ void binaryThinning(iAFilter* filter, QVariantMap const& params)
 	thinningFilter->SetInput(dynamic_cast<InputImage<T>*>(filter->imageInput(0)->itkImage()));
 	filter->progress()->observe(thinningFilter);
 	thinningFilter->Update();
-	filter->addOutput(thinningFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(thinningFilter->GetOutput()));
 }
 
 void iABinaryThinning::performWork(QVariantMap const& parameters)
@@ -325,7 +325,7 @@ template<class T> void binaryFillHole(iAFilter* filter, QVariantMap const & para
 	fillHoleFilter->SetForegroundValue(params["Foreground Value"].toDouble());
 	filter->progress()->observe(fillHoleFilter);
 	fillHoleFilter->Update();
-	filter->addOutput(fillHoleFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(fillHoleFilter->GetOutput()));
 }
 
 void iABinaryFillHole::performWork(QVariantMap const & parameters)
@@ -355,7 +355,7 @@ void grayscaleFillHole(iAFilter* filter, QVariantMap const& params)
 	fillHoleFilter->SetFullyConnected(params["Fully Connected"].toBool());
 	filter->progress()->observe(fillHoleFilter);
 	fillHoleFilter->Update();
-	filter->addOutput(fillHoleFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(fillHoleFilter->GetOutput()));
 }
 
 void iAGrayscaleFillHole::performWork(QVariantMap const& parameters)
@@ -390,7 +390,7 @@ template<class T> void vesselEnhancement(iAFilter* filter, QVariantMap const & p
 	auto vesselness = EnhancementFilter::New();
 	vesselness->SetInput(hessfilter->GetOutput());
 	vesselness->Update();
-	filter->addOutput(vesselness->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(vesselness->GetOutput()));
 }
 
 void iAVesselEnhancement::performWork(QVariantMap const & parameters)

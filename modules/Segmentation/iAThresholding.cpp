@@ -56,7 +56,7 @@ void binary_threshold(iAFilter* filter, QVariantMap const & parameters)
 	binThreshFilter->SetInput(dynamic_cast<InputImageType *>(filter->imageInput(0)->itkImage()));
 	filter->progress()->observe(binThreshFilter);
 	binThreshFilter->Update();
-	filter->addOutput(binThreshFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(binThreshFilter->GetOutput()));
 }
 
 void iABinaryThreshold::performWork(QVariantMap const & parameters)
@@ -109,7 +109,7 @@ void multi_threshold(iAFilter* filter, QVariantMap const& parameters)
 	multiThreshFilter->SetInput(dynamic_cast<InputImageType*>(filter->imageInput(0)->itkImage()));
 	filter->progress()->observe(multiThreshFilter);
 	multiThreshFilter->Update();
-	filter->addOutput(multiThreshFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(multiThreshFilter->GetOutput()));
 }
 
 void iAMultiThreshold::performWork(QVariantMap const& parameters)
@@ -154,7 +154,7 @@ void rats_threshold(iAFilter* filter, QVariantMap const & parameters)
 	filter->progress()->observe( ratsFilter );
 	ratsFilter->Update();
 	filter->addOutputValue("Threshold", (double)ratsFilter->GetThreshold());
-	filter->addOutput(ratsFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(ratsFilter->GetOutput()));
 }
 
 void iARatsThreshold::performWork(QVariantMap const & parameters)
@@ -216,7 +216,7 @@ void otsu_threshold(iAFilter* filter, QVariantMap const & parameters)
 		filter->progress()->observe( otsuFilter );
 		otsuFilter->Update();
 		filter->addOutputValue("Threshold", (double)otsuFilter->GetThreshold());
-		filter->addOutput(otsuFilter->GetOutput());
+		filter->addOutput(std::make_shared<iAImageData>(otsuFilter->GetOutput()));
 	}
 	else
 	{
@@ -229,7 +229,7 @@ void otsu_threshold(iAFilter* filter, QVariantMap const & parameters)
 		filter->progress()->observe( otsuFilter );
 		otsuFilter->Update();
 		filter->addOutputValue("Threshold", (double)otsuFilter->GetThreshold());
-		filter->addOutput(otsuFilter->GetOutput());
+		filter->addOutput(std::make_shared<iAImageData>(otsuFilter->GetOutput()));
 	}
 }
 
@@ -278,7 +278,7 @@ void adaptive_otsu_threshold(iAFilter* filter, QVariantMap const & parameters)
 	adotFilter->Update();
 	filter->progress()->observe(adotFilter);
 	adotFilter->Update();
-	filter->addOutput(adotFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(adotFilter->GetOutput()));
 }
 
 void iAAdaptiveOtsuThreshold::performWork(QVariantMap const & parameters)
@@ -323,7 +323,7 @@ void otsu_multiple_threshold(iAFilter* filter, QVariantMap const & parameters)
 	{
 		filter->addOutputValue(QString("Otsu multiple threshold %1").arg(i), otsumultiFilter->GetThresholds()[i]);
 	}
-	filter->addOutput(otsumultiFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(otsumultiFilter->GetOutput()));
 }
 
 void iAOtsuMultipleThreshold::performWork(QVariantMap const & parameters)
@@ -360,7 +360,7 @@ void maximum_distance(iAFilter* filter, QVariantMap const & parameters)
 	} // if not set, centre / low intensity will be automatically determined as maximum possible pixelType value / 2
 	filter->progress()->observe(maxFilter);
 	maxFilter->Update();
-	filter->addOutput(maxFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(maxFilter->GetOutput()));
 	filter->addOutputValue("Maximum distance threshold", static_cast<double>(maxFilter->GetThreshold()));
 	filter->addOutputValue("Maximum distance low peak",  maxFilter->GetLowIntensity());
 	filter->addOutputValue("Maximum distance high peak", maxFilter->GetHighIntensity());
@@ -535,7 +535,7 @@ void parameterless(iAFilter* filter, QVariantMap const & params)
 	plFilter->SetInsideValue(params["Inside value"].toDouble());
 	filter->progress()->observe(plFilter);
 	plFilter->Update();
-	filter->addOutput(plFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(plFilter->GetOutput()));
 	filter->addOutputValue("Threshold", static_cast<double>(plFilter->GetThreshold()));
 }
 

@@ -436,7 +436,7 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 	for (auto outputImage : outputs)
 	{
 		outputImage->SetSpacing(filter->imageInput(0)->itkImage()->GetSpacing());
-		filter->addOutput(outputImage);
+		filter->addOutput(std::make_shared<iAImageData>(outputImage));
 	}
 }
 

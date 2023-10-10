@@ -78,7 +78,7 @@ void confidenceConnected(iAFilter* filter, QVariantMap const & params)
 
 	confiConnFilter->ReleaseDataFlagOn();
 	confiConnFilter->Update();
-	filter->addOutput(confiConnFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(confiConnFilter->GetOutput()));
 }
 
 void iAConfidenceConnectedRegionGrow::performWork(QVariantMap const & parameters)
@@ -117,7 +117,7 @@ void connectedThreshold(iAFilter* filter, QVariantMap const & params)
 	setSeeds(connThrfilter.GetPointer(), filter->imageInput(1)->itkImage());
 	connThrfilter->ReleaseDataFlagOn();
 	connThrfilter->Update();
-	filter->addOutput(connThrfilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(connThrfilter->GetOutput()));
 }
 
 void iAConnectedThresholdRegionGrow::performWork(QVariantMap const & parameters)
@@ -161,7 +161,7 @@ void neighborhoodConnected(iAFilter* filter, QVariantMap const & params)
 	setSeeds(neighbConnfilter.GetPointer(), filter->imageInput(1)->itkImage());
 	neighbConnfilter->ReleaseDataFlagOn();
 	neighbConnfilter->Update();
-	filter->addOutput(neighbConnfilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(neighbConnfilter->GetOutput()));
 }
 
 void iANeighborhoodConnectedRegionGrow::performWork(QVariantMap const & parameters)

@@ -69,7 +69,7 @@ namespace
 			indexSelectionFilter->SetIndex(p);
 			indexSelectionFilter->SetInput(vectorImg);
 			indexSelectionFilter->Update();
-			filter->addOutput(indexSelectionFilter->GetOutput());
+			filter->addOutput(std::make_shared<iAImageData>(indexSelectionFilter->GetOutput()));
 		}
 	}
 
@@ -158,7 +158,7 @@ void fcm(iAFilter* filter, QVariantMap const & params)
 	auto probs = classifier->GetOutput();
 	auto labelClass = TLabelClassifier::New();
 	labelClass->SetInput(probs);
-	filter->addOutput(labelClass->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(labelClass->GetOutput()));
 	setProbabilities(probs, filter);
 }
 
@@ -257,7 +257,7 @@ void kfcm(iAFilter* filter, QVariantMap const & parameters)
 	TLabelClassifier::Pointer labelClass = TLabelClassifier::New();
 	labelClass->SetInput(probs);
 	labelClass->Update();
-	filter->addOutput(labelClass->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(labelClass->GetOutput()));
 	setProbabilities(probs, filter);
 }
 

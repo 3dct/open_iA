@@ -40,7 +40,7 @@ void signed_maurer_distancemap(iAFilter* filter, QVariantMap const & parameters)
 			++iter;
 		}
 	}
-	filter->addOutput( distanceImage );
+	filter->addOutput(std::make_shared<iAImageData>(distanceImage) );
 }
 
 void iASignedMaurerDistanceMap::performWork(QVariantMap const & parameters)
@@ -82,7 +82,7 @@ void danielsson_distancemap(iAFilter* filter, QVariantMap const & parameters)
 
 	if (!parameters["Rescale to unsigned char"].toBool())
 	{
-		filter->addOutput(distFilter->GetOutput());
+		filter->addOutput(std::make_shared<iAImageData>(distFilter->GetOutput()));
 	}
 	else
 	{
@@ -92,7 +92,7 @@ void danielsson_distancemap(iAFilter* filter, QVariantMap const & parameters)
 		intensityRescaler->SetOutputMinimum( 0 );
 		intensityRescaler->SetOutputMaximum( 255 );
 		intensityRescaler->Update();
-		filter->addOutput( intensityRescaler->GetOutput() );
+		filter->addOutput(std::make_shared<iAImageData>(intensityRescaler->GetOutput()) );
 	}
 }
 

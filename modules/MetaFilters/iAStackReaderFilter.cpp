@@ -3,6 +3,7 @@
 #include <iAExceptionThrowingErrorObserver.h>
 #include <iAFileUtils.h>
 #include <iAFilterDefault.h>
+#include <iAImageData.h>
 #include <iALog.h>
 #include <iAProgress.h>
 #include <iAStringHelper.h>
@@ -72,7 +73,7 @@ void iAStackReaderFilter::performWork(QVariantMap const & parameters)
 	spacing[2] = parameters["Spacing Z"].toDouble();
 	imgReader->SetDataSpacing(spacing);
 	imgReader->Update();
-	addOutput(imgReader->GetOutput());
+	addOutput( std::make_shared<iAImageData>(imgReader->GetOutput()) );
 }
 
 iAStackReaderFilter::iAStackReaderFilter() :

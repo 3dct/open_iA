@@ -177,7 +177,7 @@ void iASVMImageFilter::performWork(QVariantMap const & parameters)
 	}
 	for (int l = 0; l < labelCount; ++l)
 	{
-		addOutput(probabilities[l]);
+		addOutput(std::make_shared<iAImageData>(probabilities[l]));
 	}
 	delete[] prob_estimates;
 	delete[] node;
@@ -231,7 +231,7 @@ template<class T> void kmeansclustering(iAFilter* filter, QVariantMap const & pa
 	}
 	filter->progress()->observe(kmeansFilter);
 	kmeansFilter->Update();
-	filter->addOutput(kmeansFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(kmeansFilter->GetOutput()));
 }
 
 void iAKMeans::performWork(QVariantMap const & parameters)

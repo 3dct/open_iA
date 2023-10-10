@@ -57,7 +57,7 @@ template<class T> void invert_intensity(iAFilter* filter, QVariantMap const & pa
 	}
 	filter->progress()->observe(invFilter);
 	invFilter->Update();
-	filter->addOutput(invFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(invFilter->GetOutput()));
 }
 
 void iAInvertIntensityFilter::performWork(QVariantMap const & parameters)
@@ -91,7 +91,7 @@ template<class T> void normalize(iAFilter* filter)
 	normalizeFilter->Update();
 	filter->progress()->observe(normalizeFilter);
 	normalizeFilter->Update();
-	filter->addOutput(normalizeFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(normalizeFilter->GetOutput()));
 }
 
 void iANormalizeIntensityFilter::performWork(QVariantMap const & /*parameters*/)
@@ -129,7 +129,7 @@ void intensity_windowing(iAFilter* filter, QVariantMap const & parameters)
 	intensityWindowingFilter->Update();
 	filter->progress()->observe(intensityWindowingFilter);
 	intensityWindowingFilter->Update();
-	filter->addOutput(intensityWindowingFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(intensityWindowingFilter->GetOutput()));
 }
 
 void iAIntensityWindowingFilter::performWork(QVariantMap const & parameters)
@@ -169,7 +169,7 @@ template<class T> void threshold(iAFilter* filter, QVariantMap const & parameter
 	thresholdFilter->SetInput( dynamic_cast< ImageType * >( filter->imageInput(0)->itkImage() ) );
 	filter->progress()->observe( thresholdFilter );
 	thresholdFilter->Update();
-	filter->addOutput(thresholdFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(thresholdFilter->GetOutput()));
 }
 
 void iAGeneralThreshold::performWork(QVariantMap const & parameters)
@@ -205,7 +205,7 @@ template<class T> void rescaleImage(iAFilter* filter, QVariantMap const & parame
 	rescaleFilter->SetOutputMaximum(parameters["Output Maximum"].toDouble());
 	filter->progress()->observe(rescaleFilter);
 	rescaleFilter->Update();
-	filter->addOutput(rescaleFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(rescaleFilter->GetOutput()));
 }
 
 void iARescaleIntensityFilter::performWork(QVariantMap const & parameters)
@@ -249,7 +249,7 @@ template<typename T> void shiftScale(iAFilter* filter, QVariantMap const & param
 	rescaleFilter->SetScale(parameters["Scale"].toDouble());
 	filter->progress()->observe(rescaleFilter);
 	rescaleFilter->Update();
-	filter->addOutput(rescaleFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(rescaleFilter->GetOutput()));
 }
 
 void iAShiftScaleIntensityFilter::performWork(QVariantMap const & parameters)
@@ -283,7 +283,7 @@ template<class T> void adaptiveHistogramEqualization(iAFilter* filter, QVariantM
 	adaptHistoEqualFilter->SetRadius(params["Radius"].toUInt());
 	filter->progress()->observe(adaptHistoEqualFilter);
 	adaptHistoEqualFilter->Update();
-	filter->addOutput(adaptHistoEqualFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(adaptHistoEqualFilter->GetOutput()));
 }
 
 void iAAdaptiveHistogramEqualization::performWork(QVariantMap const & parameters)
@@ -356,7 +356,7 @@ void replaceAndShift(iAFilter* filter, QVariantMap const & params)
 			itOut.Set(it.Value());
 		}
 	}
-	filter->addOutput(imgOut);
+	filter->addOutput(std::make_shared<iAImageData>(imgOut));
 }
 
 void iAReplaceAndShiftFilter::performWork(QVariantMap const& parameters)
@@ -399,7 +399,7 @@ template<class T> void addImages(iAFilter* filter)
 	fusion->SetInput2(dynamic_cast<InputImageType *>(img2.GetPointer()));
 	filter->progress()->observe(fusion);
 	fusion->Update();
-	filter->addOutput(fusion->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(fusion->GetOutput()));
 }
 
 void iAAddFilter::performWork(QVariantMap const & /*parameters*/)
@@ -433,7 +433,7 @@ void multiplyImages(iAFilter* filter)
 	mulFilter->SetInput2(dynamic_cast<InputImageType*>(img2.GetPointer()));
 	filter->progress()->observe(mulFilter);
 	mulFilter->Update();
-	filter->addOutput(mulFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(mulFilter->GetOutput()));
 }
 
 void iAMultiplyFilter::performWork(QVariantMap const& /*parameters*/)
@@ -469,7 +469,7 @@ template<class T> void subtractImages(iAFilter* filter)
 	subFilter->SetInput2(dynamic_cast<InputImageType *>(img2.GetPointer()));
 	filter->progress()->observe(subFilter);
 	subFilter->Update();
-	filter->addOutput(subFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(subFilter->GetOutput()));
 }
 
 void iASubtractFilter::performWork(QVariantMap const & /*parameters*/)
@@ -504,7 +504,7 @@ template<class T> void difference(iAFilter* filter, QVariantMap const & paramete
 	diffFilter->SetInput(1, dynamic_cast<ImageType *>(img2.GetPointer()));
 	filter->progress()->observe(diffFilter);
 	diffFilter->Update();
-	filter->addOutput(diffFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(diffFilter->GetOutput()));
 }
 
 void iADifferenceFilter::performWork(QVariantMap const & parameters)
@@ -541,7 +541,7 @@ template<class T> void mask(iAFilter* filter)
 	maskFilter->SetMaskImage(dynamic_cast< ImageType * >(filter->imageInput(1)->itkImage()));
 	filter->progress()->observe(maskFilter);
 	maskFilter->Update();
-	filter->addOutput(maskFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(maskFilter->GetOutput()));
 }
 
 void iAMaskIntensityFilter::performWork(QVariantMap const & /*parameters*/)
@@ -590,7 +590,7 @@ void histomatch(iAFilter* filter, QVariantMap const & parameters)
 	}
 	filter->progress()->observe( matcher );
 	matcher->Update();
-	filter->addOutput( matcher->GetOutput() );
+	filter->addOutput(std::make_shared<iAImageData>(matcher->GetOutput()) );
 }
 
 void iAHistogramMatchingFilter::performWork(QVariantMap const & parameters)
