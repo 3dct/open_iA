@@ -203,31 +203,33 @@ if (VTK_VERSION VERSION_LESS "9.1.0")
 	message(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 9.1")
 endif()
 set(VTK_LIB_PREFIX "VTK::")
+# List of ALL VTK components we might need (for all modules)
 set(VTK_COMPONENTS
-	ChartsCore                  # for vtkAxis, vtkChart, vtkChartParallelCoordinates, used in FeatureScout, FuzzyFeatureTracking, GEMSE, PorosityAnalyzer
+	ChartsCore                  # for vtkAxis, vtkChart, vtkChartParallelCoordinates, used in FeatureScout, FuzzyFeatureTracking, GEMSE, FeatureAnalyzer
 	CommonColor                 # for vtkNamedColors, vtkColorSeries, used in CompVis
 	CommonComputationalGeometry # for vtkParametricSpline, used in core - iASpline/iAParametricSpline
 	FiltersExtraction           # for vtkExtractGeometry, used in FIAKER - iASelectionInteractorStyle
 	FiltersGeometry             # for vtkImageDataGeometryFilter used in iALabel3D and vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
 	FiltersHybrid               # for vtkDepthSortPolyData used in 4DCT, DreamCaster, FeatureScout, vtkPolyDataSilhouette used in FeatureScout
 	FiltersModeling             # for vtkRotationalExtrusionFilter, vtkOutlineFilter
-	FiltersStatistics           # for vtkDataSetSurfaceFilter used in BoneThickness - iABoneThickness
+	FiltersStatistics           # for vtkPCAStatistics used in BoneThickness - iABoneThickness
 	GUISupportQt                # for QVTKOpenGLNativeWidget
-	ImagingHybrid               # for vtkSampleFunction.h used in FeatureScout - iABlobCluster
+	ImagingHybrid               # for vtkSampleFunction used in FeatureScout - iABlobCluster
 	InfovisLayout               # for vtkGraphLayoutStrategy used in CompVis
-	InteractionImage            # for vtkImageViewer2
+	#InteractionImage            # for vtkImageViewer2
 	InteractionWidgets          # for vtkScalarBarWidget/Representation
 	ImagingStatistics           # for vtkImageAccumulate
 	IOGeometry                  # for vtkSTLReader/Writer
 	IOMovie                     # for vtkGenericMovieWriter
-	IOXML                       # for vtkXMLImageDataReader used in iAIO
+	IOXML                       # for vtkXMLImageDataReader used in iAVTIFileIO
 	RenderingAnnotation         # for vtkAnnotatedCubeActor, vtkCaptionActor, vtkScalarBarActor
 	RenderingContextOpenGL2     # required, otherwise 3D renderer CRASHES somewhere with a nullptr access in vtkContextActor::GetDevice !!!
-	RenderingImage              # for vtkImageResliceMapper
+	RenderingImage              # for vtkImageResliceMapper used in Uncertainty - iAImageWidget
 	RenderingVolumeOpenGL2      # for volume rendering
 	RenderingQt                 # for vtkQImageToImageSource, also pulls in vtkGUISupportQt (for QVTKWidgetOpenGL)
 	ViewsContext2D              # for vtkContextView, vtkContextInteractorStyle
-	ViewsInfovis)               # for vtkGraphItem
+	ViewsInfovis                # for vtkGraphItem
+)
 if ("${vtkRenderingOSPRay_LOADED}")
 	add_compile_definitions(VTK_OSPRAY_AVAILABLE)
 endif()

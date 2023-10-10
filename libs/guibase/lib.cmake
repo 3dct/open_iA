@@ -5,12 +5,10 @@ target_link_libraries(${libname} PUBLIC
 	Qt::Concurrent
 )
 set(VTK_REQUIRED_LIBS_PUBLIC
-	FiltersGeometry         # for vtkImageDataGeometryFilter, used in iALabel3D and vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
-	FiltersModeling
-	IOGeometry              # for vtkSTLReader/Writer
+	FiltersGeometry         # for vtkImageDataGeometryFilter, used in iALabel3D
+	FiltersModeling         # for vtkOutlineFilter
 	IOMovie                 # for vtkAVIWriter, vtkGenericMovieWriter
 	IOOggTheora             # for vtkOggTheoraWriter
-	IOXML                   # for vtkXMLImageDataReader used in iAIO
 	RenderingAnnotation     # for vtkAnnotatedCubeActor, vtkCaptionActor, vtkScalarBarActor
 	RenderingQt             # for vtkQImageToImageSource, also pulls in vtkGUISupportQt (for QVTKWidgetOpenGL)
 )
