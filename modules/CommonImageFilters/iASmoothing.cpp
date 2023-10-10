@@ -27,8 +27,6 @@
 #endif
 #endif
 
-#include <iAItkVersion.h>
-
 #if (!defined(ITKNOGPU) && (ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(5,1,0) && ITK_VERSION_NUMBER < ITK_VERSION_CHECK(5,2,0)))
 #ifndef _MSC_VER
 #warning("With ITK 5.1.x, GPU-accelerated filters don't work in open_iA, see https://github.com/InsightSoftwareConsortium/ITK/issues/1381. Disabling GPU support")

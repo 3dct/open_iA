@@ -6,6 +6,7 @@
 
 #if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(5, 1, 0)
 #include <itkCommonEnums.h>
+#else
 #include <itkImageIOBase.h>
 #endif
 
