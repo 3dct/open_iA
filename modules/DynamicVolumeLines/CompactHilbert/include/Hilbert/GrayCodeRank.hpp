@@ -162,8 +162,8 @@ namespace Hilbert
 		g.zero();
 		gi.zero();
 
-		int i, j, ir, jr;
-		FBV_UINT im, jm;
+		int i, j;
+		FBV_UINT im, jm, ir, jr;
 
 		i = n-1;
 		BBV_MODSPLIT(ir,im,i);

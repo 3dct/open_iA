@@ -1129,7 +1129,7 @@ void iAChartWidget::paintEvent(QPaintEvent* /*event*/)
 	QColor bgColor(QApplication::palette().color(QWidget::backgroundRole()));
 #ifdef CHART_OPENGL
 	p.beginNativePainting();
-	glClearColor(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0, 1.0);
+	glClearColor(bgColor.redF(), bgColor.greenF(), bgColor.blueF(), 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	p.endNativePainting();
 #else

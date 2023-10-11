@@ -105,7 +105,7 @@ void iAScalingWidget::setHistVisMode(bool hisVisMode)
 void iAScalingWidget::initializeGL()
 {
 	initializeOpenGLFunctions();
-	glClearColor(1.0, 1.0, 1.0, 1.0);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 void iAScalingWidget::paintGL()

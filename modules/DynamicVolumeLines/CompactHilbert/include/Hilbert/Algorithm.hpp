@@ -164,7 +164,7 @@ namespace Hilbert
 
 		int r, b;
 		BBV_MODSPLIT(r,b,n-1);
-		FBV_UINT bm = (1<<b);
+		FBV_UINT bm = (1ull<<b);
 
 		// Work from MSB to LSB
 		for ( i = m-1; i >= 0; i-- )
