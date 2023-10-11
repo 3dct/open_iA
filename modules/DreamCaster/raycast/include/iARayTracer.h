@@ -7,7 +7,10 @@
 #include "iADreamCasterCommon.h"
 #include "iADataFormat.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-copy"
 #include "cl_common.h"
+#pragma clang diagnostic pop
 
 //! Class representing a ray in 3D.
 class iARay

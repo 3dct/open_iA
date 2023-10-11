@@ -53,7 +53,6 @@ void iASpectraHistograms::computeHistograms( )
 
 	std::fill_n(m_histData, m_numHistograms*m_numBins, CountTypeNull);
 
-	size_t i = 0;
 	int extent[6];
 	(*it)->GetExtent(extent);
 	int xrange = extent[1]-extent[0]+1;
@@ -74,7 +73,6 @@ void iASpectraHistograms::computeHistograms( )
 		VTK_TYPED_CALL(computeHistogram, type, curImg->GetScalarPointer(), count, m_binWidth, curHistPtr, m_countRange);
 		curHistPtr += m_numBins;
 		++it;
-		++i;
 	}
 	computeMaximumVal();
 }

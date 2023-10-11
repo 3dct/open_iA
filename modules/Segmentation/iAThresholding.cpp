@@ -12,10 +12,16 @@
 #include <iAMaximumDistanceFilter.h>                  // MaximumDistance
 #include <iARemovePeaksOtsuThresholdImageFilter.h>    // RemovePeakOtsu
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
 #include <itkAdaptiveOtsuThresholdImageFilter.h>
+#pragma clang diagnostic pop
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkGradientMagnitudeImageFilter.h>
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
 #include <itkHuangThresholdImageFilter.h>
+#pragma clang diagnostic pop
 #include <itkIntermodesThresholdImageFilter.h>
 #include <itkIsoDataThresholdImageFilter.h>
 #include <itkKittlerIllingworthThresholdImageFilter.h>

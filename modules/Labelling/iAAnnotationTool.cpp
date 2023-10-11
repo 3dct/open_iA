@@ -103,7 +103,7 @@ public:
 			});
 
 		QObject::connect(m_addButton, &QToolButton::clicked, tool,
-			[tool, this]()
+			[tool]()
 			{
 				tool->startAddMode();
 			});

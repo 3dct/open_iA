@@ -10,7 +10,6 @@
 #include <iAMathUtility.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>
-#include <iAToolsVTK.h>
 #include <iATypedCallHelper.h>
 #include <iAValueTypeVectorHelpers.h>
 
@@ -22,10 +21,12 @@
 // guibase
 #include <iADockWidgetWrapper.h>
 #include <iAMdiChild.h>
-#include <iAPreferences.h>
 
 #include <itkImage.h>
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
 #include <itkImageToHistogramFilter.h>
+#pragma clang diagnostic pop
 
 #include <vtkImageData.h>
 #include <vtkMath.h>

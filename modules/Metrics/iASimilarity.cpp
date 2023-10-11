@@ -3,23 +3,20 @@
 #include "iASimilarity.h"
 
 #include <defines.h>          // for DIM
-#include <iAConnector.h>
 #include <iAImageData.h>
-#include <iAProgress.h>
 #include <iAToolsITK.h>
 #include <iAToolsVTK.h>       // for adjustIndexAndSizeToImage
 #include <iATypedCallHelper.h>
-#include <iAMdiChild.h>
 #include <iAValueTypeVectorHelpers.h>
 
-#include <itkCastImageFilter.h>
-#include <itkExtractImageFilter.h>
 #include <itkImageRegionConstIterator.h>
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
 #include <itkImageToHistogramFilter.h>
+#pragma clang diagnostic pop
 #include <itkJoinImageFilter.h>
 #include <itkNormalizedCorrelationImageToImageMetric.h>
 #include <itkMeanSquaresImageToImageMetric.h>
-#include <itkStatisticsImageFilter.h>
 #include <itkTranslationTransform.h>
 
 #include <vtkImageData.h>

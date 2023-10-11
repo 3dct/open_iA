@@ -11,7 +11,10 @@
 
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkGradientAnisotropicDiffusionImageFilter.h>
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
 #include <itkMedianImageFilter.h>
+#pragma clang diagnostic pop
 #include <itkPatchBasedDenoisingImageFilter.h>
 
 #include <vtkImageData.h>

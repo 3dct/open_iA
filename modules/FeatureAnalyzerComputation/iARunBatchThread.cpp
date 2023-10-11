@@ -17,7 +17,11 @@
 #include <itkBinaryContourImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkCastImageFilter.h>
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-copy"
+#pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
 #include <itkConfidenceConnectedImageFilter.h>
+#pragma clang diagnostic pop
 #include <itkConnectedComponentImageFilter.h>
 #include <itkConnectedThresholdImageFilter.h>
 #include <itkCurvatureAnisotropicDiffusionImageFilter.h>
@@ -25,7 +29,10 @@
 #include <itkExtractImageFilter.h>
 #include <itkGradientAnisotropicDiffusionImageFilter.h>
 #include <itkGradientMagnitudeImageFilter.h>
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
 #include <itkHuangThresholdImageFilter.h>
+#pragma clang diagnostic pop
 #include <itkImageDuplicator.h>
 #include <itkImageFileWriter.h>
 #include <itkImageRegionConstIterator.h>

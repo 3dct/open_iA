@@ -142,7 +142,7 @@ bool iASampleFilterRunnerGUI::askForParameters(std::shared_ptr<iAFilter> filter,
 		LOG(lvlError, "Invalid use of iASampleFilterRunnerGUI for a filter other than Sample Filter!");
 		return false;
 	}
-	iASamplingSettingsDlg dlg(mainWnd, sourceMdi->dataSetMap().size(), parameters);
+	iASamplingSettingsDlg dlg(mainWnd, static_cast<int>(sourceMdi->dataSetMap().size()), parameters);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		LOG(lvlInfo, "Aborted sampling.");

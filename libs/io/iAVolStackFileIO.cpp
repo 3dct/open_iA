@@ -120,7 +120,7 @@ void iAVolStackFileIO::saveData(QString const& fileName, std::shared_ptr<iADataS
 	int numOfDigits = newParamVals[iAFileStackParams::NumDigits].toInt();
 	int minIdx = newParamVals[iAFileStackParams::MinimumIndex].toInt();
 	int maxIdx = newParamVals[iAFileStackParams::MaximumIndex].toInt();
-	int expectedMaxIdx = (minIdx + collection->dataSets().size() - 1);
+	int expectedMaxIdx = (minIdx + static_cast<int>(collection->dataSets().size()) - 1);
 	if (maxIdx != expectedMaxIdx)
 	{
 		LOG(lvlWarn, QString("Invalid value for %1; expected %2 (number of datasets given), but was %3").arg(iAFileStackParams::MaximumIndex).arg(expectedMaxIdx).arg(maxIdx));

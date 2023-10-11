@@ -22,7 +22,10 @@
 #ifdef USE_EIGEN
 
 #include <Eigen/Core>
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #include <Eigen/Sparse>
+#pragma clang diagnostic pop
 typedef Eigen::SparseMatrix<double, Eigen::ColMajor> MatrixType;
 typedef Eigen::VectorXd VectorType;
 

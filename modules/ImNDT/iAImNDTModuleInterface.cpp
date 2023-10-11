@@ -135,7 +135,7 @@ void iAImNDTModuleInterface::Initialize()
 					auto vrRen = m_vrRenderers.at(key);
 					vrRen->setAttributes(viewer->attributeValues());
 				});
-				connect(viewer, &iADataSetViewer::removeDataSet, this, [this, child, removeRenderer](size_t dataSetIdx)
+				connect(viewer, &iADataSetViewer::removeDataSet, this, [child, removeRenderer](size_t dataSetIdx)
 				{
 					removeRenderer(child, dataSetIdx);
 				});
