@@ -16,7 +16,11 @@
 //#define CL_TARGET_OPENCL_VERSION 120
 //#define CL_TARGET_OPENCL_VERSION 110
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-copy"
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #include "CL/cl2.hpp"
+#pragma clang diagnostic pop
 
 inline char const * descriptionOfError(cl_int err)
 {
