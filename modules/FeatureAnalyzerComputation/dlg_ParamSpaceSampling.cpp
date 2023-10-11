@@ -6,10 +6,10 @@
 
 #include <itkImage.h>
 #include <itkImageRegionIterator.h>
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-copy"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
 #include <itkMedianImageFilter.h>
-#pragma clang diagnostic pop
+#pragma GCC diagnostic pop
 
 #include <QCheckBox>
 #include <QComboBox>

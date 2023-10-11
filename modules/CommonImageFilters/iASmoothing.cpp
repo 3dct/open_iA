@@ -13,10 +13,10 @@
 #include <itkCurvatureFlowImageFilter.h>
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkGradientAnisotropicDiffusionImageFilter.h>
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-copy"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
 #include <itkMedianImageFilter.h>
-#pragma clang diagnostic pop
+#pragma GCC diagnostic pop
 #include <itkPatchBasedDenoisingImageFilter.h>
 #include <itkRecursiveGaussianImageFilter.h>
 #ifndef ITKNOGPU

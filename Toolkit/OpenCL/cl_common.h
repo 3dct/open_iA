@@ -15,12 +15,20 @@
 // now defined via CMake option:
 //#define CL_TARGET_OPENCL_VERSION 120
 //#define CL_TARGET_OPENCL_VERSION 110
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4100)  // unreferenced formal parameter
+#endif
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-copy"
-#pragma clang diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include "CL/cl2.hpp"
-#pragma clang diagnostic pop
+#pragma GCC diagnostic pop
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 inline char const * descriptionOfError(cl_int err)
 {

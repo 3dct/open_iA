@@ -41,7 +41,7 @@ iAEllipsoidObjectVis::iAEllipsoidObjectVis(std::shared_ptr<iAObjectsData> data,
 	m_fullPoly = fullPolySource->GetOutput();
 	setupColors();
 	m_fullPoly->GetPointData()->AddArray(m_colors);
-	assert ( objectPointCount(0)*objectTable->GetNumberOfRows() == fullPolySource->GetOutput()->GetNumberOfPoints() );
+	assert ( objectPointCount(0)*m_data->m_table->GetNumberOfRows() == fullPolySource->GetOutput()->GetNumberOfPoints() );
 	setupOriginalIds();
 }
 

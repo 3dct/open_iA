@@ -7,10 +7,14 @@
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
+#endif
 #include <itkConfidenceConnectedImageFilter.h>
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
 #include <itkConnectedThresholdImageFilter.h>
 #include <itkImageRegionConstIteratorWithIndex.h>
 //#include <itkIsolatedConnectedImageFilter.h>

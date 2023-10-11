@@ -11,11 +11,13 @@
 
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkGradientAnisotropicDiffusionImageFilter.h>
-#pragma clang diagnostic push
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#ifdef __clang__
 #pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
-#pragma clang diagnostic ignored "-Wdeprecated-copy"
+#endif
 #include <itkMedianImageFilter.h>
-#pragma clang diagnostic pop
+#pragma GCC diagnostic pop
 #include <itkPatchBasedDenoisingImageFilter.h>
 
 #include <vtkImageData.h>

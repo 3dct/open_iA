@@ -14,10 +14,14 @@
 //#include <itkExtractImageFilter.h>
 #include <itkImageDuplicator.h>
 //#include <itkImageFileWriter.h>
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
+#endif
 #include <itkImageToHistogramFilter.h>
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
 #include <itkRescaleIntensityImageFilter.h>
 //#include <itkStatisticsImageFilter.h>
 
