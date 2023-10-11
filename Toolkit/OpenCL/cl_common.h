@@ -16,7 +16,7 @@
 //#define CL_TARGET_OPENCL_VERSION 120
 //#define CL_TARGET_OPENCL_VERSION 110
 
-#include "CL/cl.hpp"
+#include "CL/cl2.hpp"
 
 inline char const * descriptionOfError(cl_int err)
 {
