@@ -12,7 +12,7 @@
 #include <itkImageRegionConstIterator.h>
 #ifdef __clang__
 #pragma clang diagnostic push
-#if __clang_major > 10
+#if __clang_major__ > 10
 #pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
 #else
 #pragma clang diagnostic ignored "-Wimplicit-int-float-conversion"

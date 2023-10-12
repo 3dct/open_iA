@@ -6,7 +6,14 @@
 #include <iALog.h>
 #include <iATypedCallHelper.h>
 
+#if __clang_major__ >= 10 || __GNUC__ >= 9
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#endif
 #include <itkLabelOverlapMeasuresImageFilter.h>
+#if __clang_major__ >= 10 || __GNUC__ >= 9
+#pragma GCC diagnostic pop
+#endif
 
 template <typename ImagePixelType>
 void CalculateSegmentationMetrics(iAFilter* filter)

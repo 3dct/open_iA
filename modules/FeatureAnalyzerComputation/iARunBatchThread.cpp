@@ -20,7 +20,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-copy"
 #ifdef __clang__
-#if __clang_major > 10
+#if __clang_major__ > 10
 #pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
 #else
 #pragma clang diagnostic ignored "-Wimplicit-int-float-conversion"
@@ -37,7 +37,7 @@
 #include <itkGradientMagnitudeImageFilter.h>
 #ifdef __clang__
 #pragma clang diagnostic push
-#if __clang_major > 10
+#if __clang_major__ > 10
 #pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
 #else
 #pragma clang diagnostic ignored "-Wimplicit-int-float-conversion"
