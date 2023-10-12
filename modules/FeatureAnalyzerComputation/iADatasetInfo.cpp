@@ -16,7 +16,11 @@
 //#include <itkImageFileWriter.h>
 #ifdef __clang__
 #pragma clang diagnostic push
+#if __clang_major > 10
 #pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
+#else
+#pragma clang diagnostic ignored "-Wimplicit-int-float-conversion"
+#endif
 #endif
 #include <itkImageToHistogramFilter.h>
 #ifdef __clang__
