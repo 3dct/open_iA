@@ -745,20 +745,20 @@ CBigBitVec::fsb() const
 // was a carry, false otherwise.
 bool
 CBigBitVec::operator--()
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4706)
+#endif
 {
 	int i = 0;
 	bool b = false;
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning( disable : 4706 )
-#endif
 	while ( i < m_iRacks && (b = --m_pcRacks[i]) ) i++;
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#endif
 
 	return b;
 }
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
 
 // Gray Code
