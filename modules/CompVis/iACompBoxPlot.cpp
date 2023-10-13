@@ -32,6 +32,7 @@
 #include <vtkTextProperty.h>
 #include <vtkTooltipItem.h>
 #include <vtkVariant.h>
+#include <vtkVersion.h>
 
 // Qt
 #include <QVBoxLayout>
@@ -113,7 +114,11 @@ void iACompBoxPlot::initializeChart()
 
 	double col[3];
 	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, col);
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9,3,0)
+	m_boxOriginal->SetColorF(col[0], col[1], col[2]);
+#else
 	m_boxOriginal->SetColor(col[0], col[1], col[2]);
+#endif
 	m_boxOriginal->GetPen()->SetWidth(m_boxOriginal->GetPen()->GetWidth() * 2.5);
 
 	m_chartOriginal->SetPlot(m_boxOriginal);
@@ -337,7 +342,11 @@ void iACompBoxPlot::initializeLegend(vtkSmartPointer<BoxPlotChart> chart)
 	{
 		vtkSmartPointer<vtkTextActor> legend = vtkSmartPointer<vtkTextActor>::New();
 		legend->SetTextScaleModeToNone();
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9,3,0)
+		legend->SetInput(labels->GetValue(m_orderedPositions->at(i)).c_str()); //reordered positions
+#else
 		legend->SetInput(labels->GetValue(m_orderedPositions->at(i))); //reordered positions
+#endif
 
 		vtkSmartPointer<vtkTextProperty> legendProperty = legend->GetTextProperty();
 		legendProperty->BoldOff();
@@ -571,7 +580,11 @@ void iACompBoxPlot::updateBoxPlot(csvDataType::ArrayType* selectedData, std::vec
 	//color of inner space
 	m_boxSelected->SetLookupTable(lutSelected);
 	//color of bar contours
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9,3,0)
+	m_boxSelected->SetColorF(col[0], col[1], col[2]);
+#else
 	m_boxSelected->SetColor(col[0], col[1], col[2]);
+#endif
 	m_boxSelected->Update();
 
 	m_chartSelected = vtkSmartPointer<BoxPlotChart>::New();
@@ -641,7 +654,11 @@ void iACompBoxPlot::reorderLegend(std::vector<double>* selected_orderedPositions
 	for (int i = 0; i < ((int)m_legendAttributes->size()); i++)
 	{
 		vtkSmartPointer<vtkTextActor> legend = m_legendAttributes->at(i);
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9,3,0)
+		legend->SetInput(labels->GetValue(selected_orderedPositions->at(i)).c_str());
+#else
 		legend->SetInput(labels->GetValue(selected_orderedPositions->at(i)));
+#endif
 		legend->Modified();
 	}
 }
@@ -680,7 +697,11 @@ void iACompBoxPlot::resetBoxPlot()
 	for (int i = 0; i < ((int)m_legendAttributes->size()); i++)
 	{
 		vtkSmartPointer<vtkTextActor> legend = m_legendAttributes->at(i);
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9,3,0)
+		legend->SetInput(labels->GetValue(m_orderedPositions->at(i)).c_str());
+#else
 		legend->SetInput(labels->GetValue(m_orderedPositions->at(i)));
+#endif
 		legend->Modified();
 	}
 

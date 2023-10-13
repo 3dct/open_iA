@@ -1106,6 +1106,22 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 					writer->writeStartElement(QString("Fibre-%1").arg(j + 1)); //Fibre-n tag
 
 					//Gets fibre features from csvTable
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9,3,0)
+					writer->writeTextElement("X1", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::StartX)).ToString().c_str()));
+					writer->writeTextElement("Y1", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::StartY)).ToString().c_str()));
+					writer->writeTextElement("Z1", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::StartZ)).ToString().c_str()));
+					writer->writeTextElement("X1", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::EndX)).ToString().c_str()));
+					writer->writeTextElement("Y2", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::EndY)).ToString().c_str()));
+					writer->writeTextElement("Z2", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::EndZ)).ToString().c_str()));
+					writer->writeTextElement("Phi", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::Phi)).ToString().c_str()));
+					writer->writeTextElement("Theta", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::Theta)).ToString().c_str()));
+					writer->writeTextElement("Dia", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::Diameter)).ToString().c_str()));
+					writer->writeTextElement("sL", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::Length)).ToString().c_str()));
+					// TODO: define mapping?
+					writer->writeTextElement("cL", QString(m_tableList[i]->GetValue(j, 19).ToString().c_str()));
+					writer->writeTextElement("Surf", QString(m_tableList[i]->GetValue(j, 21).ToString().c_str()));
+					writer->writeTextElement("Vol", QString(m_tableList[i]->GetValue(j, 22).ToString().c_str()));
+#else
 					writer->writeTextElement("X1", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::StartX)).ToString()));
 					writer->writeTextElement("Y1", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::StartY)).ToString()));
 					writer->writeTextElement("Z1", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::StartZ)).ToString()));
@@ -1120,6 +1136,7 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 					writer->writeTextElement("cL", QString(m_tableList[i]->GetValue(j, 19).ToString()));
 					writer->writeTextElement("Surf", QString(m_tableList[i]->GetValue(j, 21).ToString()));
 					writer->writeTextElement("Vol", QString(m_tableList[i]->GetValue(j, 22).ToString()));
+#endif
 
 					writer->writeEndElement(); //end Fibre-n tag
 				}
@@ -1149,6 +1166,15 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 					writer->writeStartElement(QString("Void-%1").arg(j + 1)); //Void-n tag
 
 					//Gets void properties from csvTable
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9,3,0)
+					writer->writeTextElement("Volume", QString(m_tableList[i]->GetValue(j, 21).ToString().c_str()));
+					writer->writeTextElement("dimX", QString(m_tableList[i]->GetValue(j, 13).ToString().c_str()));
+					writer->writeTextElement("dimY", QString(m_tableList[i]->GetValue(j, 14).ToString().c_str()));
+					writer->writeTextElement("dimZ", QString(m_tableList[i]->GetValue(j, 15).ToString().c_str()));
+					writer->writeTextElement("posX", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::CenterX)).ToString().c_str()));
+					writer->writeTextElement("posY", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::CenterY)).ToString().c_str()));
+					writer->writeTextElement("posZ", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::CenterZ)).ToString().c_str()));
+#else
 					writer->writeTextElement("Volume", QString(m_tableList[i]->GetValue(j, 21).ToString()));
 					writer->writeTextElement("dimX", QString(m_tableList[i]->GetValue(j, 13).ToString()));
 					writer->writeTextElement("dimY", QString(m_tableList[i]->GetValue(j, 14).ToString()));
@@ -1156,6 +1182,7 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 					writer->writeTextElement("posX", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::CenterX)).ToString()));
 					writer->writeTextElement("posY", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::CenterY)).ToString()));
 					writer->writeTextElement("posZ", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::CenterZ)).ToString()));
+#endif
 					//writer->writeTextElement("ShapeFactor", QString(m_tableList[i]->GetValue(j,22).ToString()));
 
 					writer->writeEndElement(); //end Void-n tag
