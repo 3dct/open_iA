@@ -23,7 +23,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-copy"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-#include "CL/cl2.hpp"
+#include "CL/opencl.hpp"
 #pragma GCC diagnostic pop
 
 #ifdef _MSC_VER

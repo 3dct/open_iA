@@ -456,17 +456,6 @@ endif()
 
 
 # OpenCL
-if (OPENCL_ROOT_DIR)
-	if (NOT OpenCLHeaders_DIR)
-		set(OpenCLHeaders_DIR "${OPENCL_ROOT_DIR}/share/cmake/OpenCLHeaders" CACHE PATH "OpenCL Headers folder")
-	endif()
-	if (NOT OpenCLHeadersCpp_DIR)
-		set(OpenCLHeadersCpp_DIR "${OPENCL_ROOT_DIR}/share/cmake/OpenCLHeadersCpp" CACHE PATH "OpenCL C++ Headers folder")
-	endif()
-	if (NOT OpenCLICDLoader_DIR)
-		set(OpenCLICDLoader_DIR "${OPENCL_ROOT_DIR}/share/cmake/OpenCLICDLoader" CACHE PATH "OpenCL ICD loader folder")
-	endif()
-endif()
 find_package(OpenCLHeaders REQUIRED)
 find_package(OpenCLHeadersCpp REQUIRED)
 find_package(OpenCLICDLoader REQUIRED)
