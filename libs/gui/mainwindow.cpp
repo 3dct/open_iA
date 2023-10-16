@@ -1681,7 +1681,9 @@ void MainWindow::applyQSS()
 		p.setColor(QPalette::ToolTipText,     brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
 		p.setColor(QPalette::PlaceholderText, brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
 		p.setColor(QPalette::WindowText,      brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
+#if (!__APPLE__)   // would prevent automatic recognition of bright/light mode on Mac OS, and doesn't change much there anyway:
 		QApplication::setPalette(p);
+#endif
 
 		for (auto a : m_actionIcons.keys())
 		{
