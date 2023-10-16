@@ -20,6 +20,8 @@
 
 #include <QHBoxLayout>
 
+#include <omp.h>
+
 #include <functional>
 
 iAModalitySPLOM::iAModalitySPLOM():

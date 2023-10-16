@@ -86,11 +86,7 @@
 #include <QTime>
 
 // OpenMP
-#ifndef __APPLE__
-#ifndef __MACOSX
 #include <omp.h>
-#endif
-#endif
 
 #include <cassert>
 

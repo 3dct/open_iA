@@ -18,12 +18,7 @@
 #include <QMenu>
 #include <QPainter>
 
-// OpenMP
-#ifndef __APPLE__
-#ifndef __MACOSX
 #include <omp.h>
-#endif
-#endif
 
 const int maskOpacity = 127;
 

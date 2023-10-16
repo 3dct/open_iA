@@ -18,15 +18,11 @@
 
 #include <QDir>
 
+#include <omp.h>
+
 #include <array>
 #include <cassert>
 
-// OpenMP
-#ifndef __APPLE__
-#ifndef __MACOSX
-#include <omp.h>
-#endif
-#endif
 
 namespace
 {

@@ -62,6 +62,8 @@
 #include <QElapsedTimer>
 #include <QFileDialog>
 
+#include <omp.h>
+
 #include <algorithm>    // for std::fill
 
 #define DEG_IN_PI  180
@@ -69,13 +71,6 @@
 
 std::vector<iAwald_tri> wald;
 std::vector<iABSPNode> nodes;
-
-// OpenMP
-#ifndef __APPLE__
-#ifndef __MACOSX
-	#include <omp.h>
-#endif
-#endif
 
 namespace
 {
