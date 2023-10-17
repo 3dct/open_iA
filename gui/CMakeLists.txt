@@ -51,10 +51,11 @@ if (openiA_TESTING_ENABLED)
 	if (MSVC)
 		# use the created .bat which makes sure all required dll's are in the path:
 		set(FileOpenTestBinary "${CMAKE_BINARY_DIR}/x64/open_iA_gui_Release.bat")
+	elseif(APPLE)
+		set(FileOpenTestBinary "${CMAKE_BINARY_DIR}/x64/Release/open_iA.app/Contents/MacOS/open_iA")
 	else()
 		# make sure the Mesa OpenGL Override version is set
 		set(FileOpenTestBinary "${CMAKE_SOURCE_DIR}/test/run_with_gl.sh" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${GUI_EXECUTABLE_TARGET}")
-
 	endif()
 	add_test(NAME FileOpenTest COMMAND ${FileOpenTestBinary} ${CMAKE_SOURCE_DIR}/test/data/test2x2x2.mhd --quit 100)
 endif()
