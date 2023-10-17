@@ -87,16 +87,14 @@ inline char const * descriptionOfError(cl_int err)
 #define itk_clSafeCall(err)\
 	if(CL_SUCCESS != err)\
 {\
-	char buffer[200];\
-	sprintf (buffer, "An error occurred in OpenCL function call! Error: \"%s\"", descriptionOfError(err));\
-	throw itk::ExceptionObject(__FILE__, __LINE__, buffer);\
+	QString msg = QString("An error occurred in OpenCL function call! Error: \"%1\"").arg(descriptionOfError(err));\
+	throw itk::ExceptionObject(__FILE__, __LINE__, msg.toStdString().c_str());\
 }
 
 #define itk_clThrowBuildLog(log)\
 {\
-	char buffer[99999];\
-	sprintf (buffer, "An error occurred during OpenCL build. Log:\n \"%s\"", log.data());\
-	throw itk::ExceptionObject(__FILE__, __LINE__, buffer);\
+	QString msg = QString("An error occurred during OpenCL build. Log:\n \"%1\"").arg(log.data());\
+	throw itk::ExceptionObject(__FILE__, __LINE__, msg.toStdString().c_str());\
 }
 //TODO: remove inline?
 inline QString readFile(QString filename) 
@@ -193,13 +191,13 @@ inline void cl_init(cl::Device			& device_out,
 			for(std::vector<cl::Device>::const_iterator d = devices.begin(); d != devices.end(); ++d) 
 			{
 				cl_uint CU = 0, Clock = 0;
-                char buf[128];
-                itk_clSafeCall( clGetDeviceInfo((*d)(), CL_DEVICE_VENDOR, 128, buf, nullptr) );
+				char buf[128];
+				itk_clSafeCall( clGetDeviceInfo((*d)(), CL_DEVICE_VENDOR, 128, buf, nullptr) );
 				itk_clSafeCall( clGetDeviceInfo((*d)(), CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &CU,	 nullptr) );
 				itk_clSafeCall( clGetDeviceInfo((*d)(), CL_DEVICE_MAX_CLOCK_FREQUENCY, sizeof(cl_uint), &Clock, nullptr) );
-                QString deviceVendor( buf );
-                if( devType == CL_DEVICE_TYPE_GPU && deviceVendor.contains("Intel", Qt::CaseInsensitive) ) //skip intel's gpu
-                    continue;
+				QString deviceVendor( buf );
+				if( devType == CL_DEVICE_TYPE_GPU && deviceVendor.contains("Intel", Qt::CaseInsensitive) ) //skip intel's gpu
+					continue;
 				if(CU*Clock > maxCU*maxClock)
 				{
 					maxCU = CU; maxClock = Clock;
@@ -215,9 +213,8 @@ inline void cl_init(cl::Device			& device_out,
 	}
 	if(noDevices)
 	{
-		char buffer[1024];
-		sprintf (buffer, "An error occurred in OpenCL initialization! Error: \"%s\"", "no cl devices were found");
-		throw itk::ExceptionObject(__FILE__, __LINE__, buffer);
+		const char msg[] = "An error occurred in OpenCL initialization! Error: no cl devices were found";
+		throw itk::ExceptionObject(__FILE__, __LINE__, msg);
 	}
 }
 

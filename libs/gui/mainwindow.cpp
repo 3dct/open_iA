@@ -209,8 +209,7 @@ QList<T*> MainWindow::childList(QMdiArea::WindowOrder order)
 template <typename T>
 T* MainWindow::activeChild()
 {
-	int subWndCnt = childList<T>().size();
-	if (subWndCnt > 0)
+	if (childList<T>().size() > 0)
 	{
 		return childList<T>(QMdiArea::ActivationHistoryOrder).last();
 	}

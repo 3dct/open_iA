@@ -590,7 +590,7 @@ void MdiChild::saveMovRC()
 		return;
 	}
 	QString mode = dlg.parameterValues()["Rotation mode"].toString();
-	int imode = modes.indexOf(mode);
+	auto imode = modes.indexOf(mode);
 
 	// Show standard save file dialog using available movie file types.
 	m_renderer->saveMovie(QFileDialog::getSaveFileName(this, tr("Export movie %1").arg(mode),

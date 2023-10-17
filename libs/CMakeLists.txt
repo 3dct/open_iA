@@ -22,6 +22,10 @@ foreach(libdir ${children})
 		# Generate core dll file / shared object:
 		add_library(${libname} ${LIB_TYPE} ${lib_SRCS} ${lib_QRC})
 		add_library(iA::${libdir} ALIAS ${libname})	# alias
+
+		if (APPLE)  # suppress duplicate libraries warning on Apple Clang:
+			target_link_options(${libname} PUBLIC LINKER:-no_warn_duplicate_libraries)
+		endif()
 		
 		set(VTK_REQUIRED_LIBS_PUBLIC)
 		set(VTK_REQUIRED_LIBS_PRIVATE)

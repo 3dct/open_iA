@@ -67,7 +67,7 @@ QString iAFilter::name() const
 
 QString iAFilter::category() const
 {
-	int slashPos = m_category.indexOf("/");
+	auto slashPos = m_category.indexOf("/");
 	return slashPos > 0 ? m_category.left(slashPos) : m_category;
 }
 
@@ -129,7 +129,7 @@ void iAFilter::clearOutput()
 
 void iAFilter::addOutput(std::shared_ptr<iADataSet> dataSet)
 {
-	dataSet->setMetaData(iADataSet::NameKey, outputName(m_output.size()));
+	dataSet->setMetaData(iADataSet::NameKey, outputName(static_cast<int>(m_output.size())));
 	m_output.push_back(dataSet);
 }
 
