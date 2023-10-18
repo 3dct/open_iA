@@ -1663,6 +1663,7 @@ void MainWindow::applyQSS()
 		styleFile.close();
 		qApp->setStyleSheet(style);
 
+#if (!__APPLE__)   // would prevent automatic recognition of bright/light mode on Mac OS, and doesn't change much there anyway:
 		QPalette p = QApplication::palette();
 		p.setColor(QPalette::Window,          brightMode() ? QColor(255, 255, 255) : QColor(  0,   0,   0));
 		p.setColor(QPalette::Base,            brightMode() ? QColor(255, 255, 255) : QColor(  0,   0,   0));
@@ -1680,7 +1681,6 @@ void MainWindow::applyQSS()
 		p.setColor(QPalette::ToolTipText,     brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
 		p.setColor(QPalette::PlaceholderText, brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
 		p.setColor(QPalette::WindowText,      brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
-#if (!__APPLE__)   // would prevent automatic recognition of bright/light mode on Mac OS, and doesn't change much there anyway:
 		QApplication::setPalette(p);
 #endif
 
