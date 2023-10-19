@@ -7,10 +7,11 @@
 #include <dlg_CSVInput.h>
 
 #include <iAFileUtils.h>
-#include <iALog.h>
-#include <iAToolRegistry.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
+#include <iAToolRegistry.h>
+
+#include <iALog.h>
 
 #include <vtkTable.h>
 
@@ -63,7 +64,7 @@ void iAFeatureScoutModuleInterface::featureScout()
 	iACsvConfig csvConfig = dlg.getConfig();
 	bool createdMdi = false;
 	iAMdiChild* child = nullptr;
-	if (csvConfig.visType != iACsvConfig::UseVolume)
+	if (csvConfig.visType != iAObjectVisType::UseVolume)
 	{
 		if (m_mainWnd->activeMdiChild() && QMessageBox::question(m_mainWnd, "FeatureScout",
 			"Load FeatureScout in currently active window (If you choose No, FeatureScout will be opened in a new window)?",

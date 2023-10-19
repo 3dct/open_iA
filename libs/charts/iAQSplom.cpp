@@ -34,7 +34,6 @@
 #include <QPainter>
 #include <QSettings>
 #include <QWheelEvent>
-#include <QtGlobal> // for QT_VERSION
 
 namespace
 { // apparently QFontMetric width is not returning the full width of the string - correction constant:
@@ -127,7 +126,7 @@ iAColorTheme const * iAQSplom::getBackgroundColorTheme()
 	return m_bgColorTheme;
 }
 
-QSharedPointer<iAScatterPlotViewData> iAQSplom::viewData()
+std::shared_ptr<iAScatterPlotViewData> iAQSplom::viewData()
 {
 	return m_viewData;
 }
@@ -300,8 +299,8 @@ iAQSplom::iAQSplom(QWidget * parent):
 	connect(m_settingsDlg->cbColorTheme, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeFromComboBox);
 	connect(m_settingsDlg->cbColorThemeQual, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeQual);
 	m_columnPickMenu = m_contextMenu->addMenu("Columns");
-	connect(m_viewData.data(), &iAScatterPlotViewData::updateRequired, this, QOverload<>::of(&iAChartParentWidget::update));
-	connect(m_viewData.data(), &iAScatterPlotViewData::filterChanged, this, &iAQSplom::updateFilter);
+	connect(m_viewData.get(), &iAScatterPlotViewData::updateRequired, this, QOverload<>::of(&iAChartParentWidget::update));
+	connect(m_viewData.get(), &iAScatterPlotViewData::filterChanged, this, &iAQSplom::updateFilter);
 }
 
 void iAQSplom::addContextMenuAction(QAction* action)
@@ -325,7 +324,7 @@ void iAQSplom::updateHistogram(size_t paramIndex)
 	}
 
 	auto histogramData = iAHistogramData::create("Frequency", iAValueType::Continuous, hist_InputValues, settings.histogramBins);
-	auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(histogramData, QColor(70, 70, 70, 255));
+	auto histogramPlot = std::make_shared<iABarGraphPlot>(histogramData, QColor(70, 70, 70, 255));
 	m_histograms[paramIndex]->addPlot(histogramPlot);
 	m_histograms[paramIndex]->update();
 }
@@ -377,7 +376,7 @@ iAQSplom::~iAQSplom()
 	delete m_maximizedPlot;
 }
 
-void iAQSplom::setData( QSharedPointer<iASPLOMData> data, std::vector<char> const & visibility )
+void iAQSplom::setData( std::shared_ptr<iASPLOMData> data, std::vector<char> const & visibility )
 {
 	if (data->numPoints() > std::numeric_limits<int>::max())
 	{
@@ -395,7 +394,7 @@ void iAQSplom::setData( QSharedPointer<iASPLOMData> data, std::vector<char> cons
 	dataChanged(visibility);
 }
 
-QSharedPointer<iASPLOMData> iAQSplom::data()
+std::shared_ptr<iASPLOMData> iAQSplom::data()
 {
 	return m_splomData;
 }
@@ -407,7 +406,7 @@ void iAQSplom::createScatterPlot(size_t y, size_t x, bool initial)
 	{
 		return;
 	}
-	iAScatterPlot * s = new iAScatterPlot(m_viewData.data(), this);
+	iAScatterPlot * s = new iAScatterPlot(m_viewData.get(), this);
 	s->settings.backgroundColor = settings.backgroundColor;
 	connect(s, &iAScatterPlot::transformModified, this, &iAQSplom::transformUpdated);
 	connect(s, &iAScatterPlot::currentPointModified, this, &iAQSplom::currentPointUpdated);
@@ -870,7 +869,7 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 	}
 
 	delete m_maximizedPlot;
-	m_maximizedPlot = new iAScatterPlot(m_viewData.data(), this, 11, true);
+	m_maximizedPlot = new iAScatterPlot(m_viewData.get(), this, 11, true);
 	m_maximizedPlot->settings.backgroundColor = settings.backgroundColor;
 	connect(m_maximizedPlot, &iAScatterPlot::selectionModified, this, &iAQSplom::selectionUpdated);
 	connect(m_maximizedPlot, &iAScatterPlot::currentPointModified, this, &iAQSplom::currentPointUpdated);
@@ -1077,10 +1076,7 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 	{
 	case cmAllPointsSame: scalarBarCaption = "Uniform"; break;
 	case cmCustom:
-#if __cplusplus >= 201703L
 		[[fallthrough]];
-#endif
-		// fall through
 	case cmByParameter  : scalarBarCaption = m_splomData->parameterName(m_colorLookupParam); break;
 	default:              scalarBarCaption = "Unknown"; break;
 	}
@@ -1602,7 +1598,7 @@ void iAQSplom::updateLookupTable()
 		case cmByParameter:
 			if (m_settingsDlg->rbContinuous->isChecked())
 			{
-				*m_lut.data() = iALUT::Build(lutRange, settings.colorThemeName, 256, alpha);
+				*m_lut.get() = iALUT::Build(lutRange, settings.colorThemeName, 256, alpha);
 			}
 			else if (m_settingsDlg->rbQualitative->isChecked())
 			{
@@ -1618,10 +1614,7 @@ void iAQSplom::updateLookupTable()
 			{
 				LOG(lvlWarn, "Invalid color state!");
 			}
-#if __cplusplus >= 201703L
 			[[fallthrough]];
-#endif
-			// fall through
 		case cmCustom:
 			m_lut->setOpacity(alpha);
 	}
@@ -1696,7 +1689,7 @@ size_t iAQSplom::colorLookupParam() const
 	return m_colorLookupParam;
 }
 
-QSharedPointer<iALookupTable> iAQSplom::lookupTable() const
+std::shared_ptr<iALookupTable> iAQSplom::lookupTable() const
 {
 	return m_lut;
 }
@@ -1740,9 +1733,6 @@ void iAQSplom::saveSettingsSlot()
 		return;
 	}
 	QSettings iniFile(fileName, QSettings::IniFormat);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	iniFile.setIniCodec("UTF-8");
-#endif
 	saveSettings(iniFile);
 }
 
@@ -1755,9 +1745,6 @@ void iAQSplom::loadSettingsSlot()
 		return;
 	}
 	QSettings iniFile(fileName, QSettings::IniFormat);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	iniFile.setIniCodec("UTF-8");
-#endif
 	loadSettings(mapFromQSettings(iniFile));
 }
 

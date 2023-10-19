@@ -8,7 +8,7 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QSharedPointer>
+#include <memory>
 
 class iARenderer;
 class iAVolumeRenderer;
@@ -37,7 +37,7 @@ public:
 private:
 	iARendererImpl * m_renderer;
 	vtkSmartPointer<vtkTransform> m_axesTransform;
-	QSharedPointer<iATransferFunctionPtrs> m_transferFunction;
-	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
+	std::shared_ptr<iATransferFunctionPtrs> m_transferFunction;
+	std::shared_ptr<iAVolumeRenderer> m_volumeRenderer;
 	size_t m_indexInReferenceLib;
 };

@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#include <iAVec3.h>
+
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 #include <vtkDataSet.h>
 #include <vtkOctreePointLocator.h>
-#include <vtkPlaneSource.h>
 #include <vtkPolyData.h>
 
-#include <iAVec3.h>
-
 #include <QColor>
+
 #include <unordered_map>
 #include <forward_list>
 

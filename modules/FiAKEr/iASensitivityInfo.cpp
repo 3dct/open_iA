@@ -3,9 +3,9 @@
 #include "iASensitivityInfo.h"
 
 // base:
-#include <iAFileUtils.h>
 #include <iAColorTheme.h>
-#include <iADataSet.h>
+#include <iAFileUtils.h>
+#include <iAImageData.h>
 #include <iALog.h>
 #include <iALUT.h>
 #include <iAMathUtility.h>
@@ -22,6 +22,7 @@
 
 // guibase:
 #include <iADataSetRenderer.h>
+#include <iADockWidgetWrapper.h>
 #include <iAJobListView.h>
 #include <iAMdiChild.h>
 #include <iAQVTKWidget.h>
@@ -31,14 +32,9 @@
 #include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iAWidgetSettingsMapper.h>
 
-// qthelper:
-#include <iADockWidgetWrapper.h>
-
 // objectvis:
-#include <iA3DColoredPolyObjectVis.h>
-
-// FeatureScout
-#include "iACsvVectorTableCreator.h"
+#include <iAColoredPolyObjectVis.h>
+#include <iACsvVectorTableCreator.h>
 
 // FIAKER
 #include "iAAlgorithmInfo.h"
@@ -56,7 +52,6 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkExtractSurface.h>
 #include <vtkImageData.h>
-#include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkLookupTable.h>
 #include <vtkNew.h>
 #include <vtkPCANormalEstimation.h>
@@ -69,7 +64,6 @@
 #include <vtkScalarBarWidget.h>
 #include <vtkSignedDistance.h>
 #include <vtkSmartPointer.h>
-#include <vtkTable.h>
 #include <vtkTextActor.h>
 #include <vtkTextWidget.h>
 #include <vtkTextRepresentation.h>
@@ -178,13 +172,9 @@ bool readParameterCSV(QString const& fileName, QString const& encoding, QString 
 		return false;
 	}
 	QTextStream in(&file);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	in.setCodec(encoding.toStdString().c_str());
-#else
 	auto encOpt = QStringConverter::encodingForName(encoding.toStdString().c_str());
 	QStringConverter::Encoding enc = encOpt.has_value() ? encOpt.value() : QStringConverter::Utf8;
 	in.setEncoding(enc);
-#endif
 	auto headers = in.readLine().split(columnSeparator);
 	for (int i = 0; i < skipColumns; ++i)
 	{
@@ -226,8 +216,8 @@ void iASensitivityInfo::abort()
 	m_aborted = true;
 }
 
-QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
-	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW, int histogramBins, int skipColumns,
+std::shared_ptr<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
+	std::shared_ptr<iAFiberResultsCollection> data, QDockWidget* nextToDW, int histogramBins, int skipColumns,
 	std::vector<iAFiberResultUIData> const& resultUIs, vtkRenderWindow* main3DWin, QString parameterSetFileName,
 	QVector<int> const & charSelected, QVector<int> const & charDiffMeasure, QVariantMap const & projectFile)
 {
@@ -240,12 +230,12 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 	if (parameterSetFileName.isEmpty())
 	{
 		LOG(lvlInfo, "Empty parameter set filename / aborted.");
-		return QSharedPointer<iASensitivityInfo>();
+		return std::shared_ptr<iASensitivityInfo>();
 	}
 	iACsvVectorTableCreator tblCreator;
 	if (!readParameterCSV(parameterSetFileName, "UTF-8", ",", tblCreator, data->result.size(), skipColumns))
 	{
-		return QSharedPointer<iASensitivityInfo>();
+		return std::shared_ptr<iASensitivityInfo>();
 	}
 	auto const & paramValues = tblCreator.table();
 	auto const& paramNames = tblCreator.header();
@@ -258,10 +248,10 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 			.arg(paramValues.size() > 0 ? paramValues[0].size() : -1)
 			.arg(paramValues.size())
 		);
-		return QSharedPointer<iASensitivityInfo>();
+		return std::shared_ptr<iASensitivityInfo>();
 	}
 	// data in m_paramValues is indexed [col(=parameter index)][row(=parameter set index)]
-	QSharedPointer<iASensitivityInfo> sens(
+	std::shared_ptr<iASensitivityInfo> sens(
 		new iASensitivityInfo(data, parameterSetFileName, skipColumns, paramNames, paramValues, child, nextToDW, resultUIs, main3DWin));
 
 	// find min/max, for all columns
@@ -285,7 +275,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 	if (sens->data().m_variedParams.size() == 0)
 	{
 		LOG(lvlError, "Invalid sampling: No parameter was varied!");
-		return QSharedPointer<iASensitivityInfo>();
+		return std::shared_ptr<iASensitivityInfo>();
 	}
 
 	//LOG(lvlInfo, QString("Found the following parameters to vary (number: %1): %2")
@@ -333,7 +323,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 		LOG(lvlError, QString("Expected a number of STAR groups of size %1; "
 			"but %2 (the number of samples) isn't divisible by that number!")
 			.arg(sens->data().m_starGroupSize).arg(paramValues[0].size()));
-		return QSharedPointer<iASensitivityInfo>();
+		return std::shared_ptr<iASensitivityInfo>();
 	}
 
 	LOG(lvlDebug, QString("In %1 parameter sets, found %2 varying parameters, in STAR groups of %3 (parameter branch size: %4)")
@@ -355,7 +345,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 		iACharacteristicsMeasureDlg dlg(data);
 		if (dlg.exec() != QDialog::Accepted)
 		{
-			return QSharedPointer<iASensitivityInfo>();
+			return std::shared_ptr<iASensitivityInfo>();
 		}
 		sens->data().m_charSelected = dlg.selectedCharacteristics();
 		sens->data().m_charDiffMeasure = dlg.selectedDiffMeasures();
@@ -382,14 +372,14 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 	if (sens->data().m_charSelected.size() == 0 || sens->data().m_charDiffMeasure.size() == 0)
 	{
 		QMessageBox::warning(child, "Sensitivity", "You have to select at least one characteristic and at least one measure!", QMessageBox::Ok);
-		return QSharedPointer<iASensitivityInfo>();
+		return std::shared_ptr<iASensitivityInfo>();
 	}
 	if (!QFile::exists(sens->data().dissimilarityMatrixCacheFileName()))
 	{
 		iAMeasureSelectionDlg selectMeasure;
 		if (selectMeasure.exec() != QDialog::Accepted)
 		{
-			return QSharedPointer<iASensitivityInfo>();
+			return std::shared_ptr<iASensitivityInfo>();
 		}
 		sens->data().m_resultDissimMeasures = selectMeasure.measures();
 		sens->data().m_resultDissimOptimMeasureIdx = selectMeasure.optimizeMeasureIdx();
@@ -401,11 +391,11 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 		[sens, sensP] { sens->createGUI(); delete sensP; },
 		child);
 	iAJobListView::get()->addJob("Computing sensitivity data",
-		sensP, sensitivityComputation, sens.data());
+		sensP, sensitivityComputation, sens.get());
 	return sens;
 }
 
-iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data,
+iASensitivityInfo::iASensitivityInfo(std::shared_ptr<iAFiberResultsCollection> data,
 	QString const& parameterFileName, int skipColumns, QStringList const& paramNames,
 	std::vector<std::vector<double>> const & paramValues, iAMdiChild* child, QDockWidget* nextToDW,
 	std::vector<iAFiberResultUIData> const & resultUIs, vtkRenderWindow* main3DWin) :
@@ -631,13 +621,13 @@ public:
 		m_lut->setColor(1, ScatterPlotPointColor);
 		m_lut->setRange(0, 1);
 	}
-	void setColorMap(QSharedPointer<iALookupTable> lut)
+	void setColorMap(std::shared_ptr<iALookupTable> lut)
 	{
 		m_lut = lut;
 	}
 private:
 	const int ScalarBarPadding = 5;
-	QSharedPointer<iALookupTable> m_lut;
+	std::shared_ptr<iALookupTable> m_lut;
 	void paintEvent(QPaintEvent* ev) override
 	{
 		Q_UNUSED(ev);
@@ -741,10 +731,10 @@ public:
 	iAScatterPlotWidget* m_mdsSP;
 	QSplitter* m_splitter;
 	//! lookup table for points in scatter plot
-	QSharedPointer<iALookupTable> m_lut;
+	std::shared_ptr<iALookupTable> m_lut;
 	iAColorMapWidget* m_colorMapWidget;
 	// table used in parameter space / MDS scatter plot:
-	QSharedPointer<iASPLOMData> m_mdsData;
+	std::shared_ptr<iASPLOMData> m_mdsData;
 	// indices of the columns added in addition to parameters;
 	size_t spColIdxMDSX, spColIdxMDSY, spColIdxID, spColIdxDissimilarity, spColIdxFilter;
 	//! }
@@ -760,7 +750,7 @@ public:
 	iAQVTKWidget* m_diff3DWidget;
 	iADockWidgetWrapper* m_dwDiff3D;
 	iARendererViewSync m_diff3DRenderManager;
-	std::vector<QSharedPointer<iAFiberDiffRenderer>> m_diff3DRenderers;
+	std::vector<std::shared_ptr<iAFiberDiffRenderer>> m_diff3DRenderers;
 	vtkSmartPointer<vtkRenderer> m_diff3DEmptyRenderer;
 	vtkSmartPointer<vtkCornerAnnotation> m_diff3DEmptyText;
 	vtkSmartPointer<vtkScalarBarWidget> m_scalarBarWidget;
@@ -869,7 +859,7 @@ public:
 			rng[1] = m_sensInf->data().m_resultDissimRanges.size() > 0
 				? m_sensInf->data().m_resultDissimRanges[measureIdx].second
 				: 1;
-			*m_lut.data() = iALUT::Build(rng, m_settings->spColorMap(), 255, 0);
+			*m_lut.get() = iALUT::Build(rng, m_settings->spColorMap(), 255, 0);
 			m_paramSP->setLookupTable(m_lut, spColIdxDissimilarity);
 			m_mdsSP->setLookupTable(m_lut, spColIdxDissimilarity);
 		}
@@ -1037,8 +1027,8 @@ bool iASensitivityInfo::hasData(QVariantMap const& settings)
 }
 
 
-QSharedPointer<iASensitivityInfo> iASensitivityInfo::load(iAMdiChild* child,
-	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW, QVariantMap const& projectFile,
+std::shared_ptr<iASensitivityInfo> iASensitivityInfo::load(iAMdiChild* child,
+	std::shared_ptr<iAFiberResultsCollection> data, QDockWidget* nextToDW, QVariantMap const& projectFile,
 	QString const& projectFileName, std::vector<iAFiberResultUIData> const& resultUIs, vtkRenderWindow* main3DWin)
 {
 	QString parameterSetFileName = MakeAbsolute(QFileInfo(projectFileName).absolutePath(), projectFile.value(ProjectParameterFile).toString());
@@ -1053,7 +1043,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::load(iAMdiChild* child,
 class iASPParamPointInfo final: public iAScatterPlotPointInfo
 {
 public:
-	iASPParamPointInfo(QSharedPointer<iASensitivityData> data) :
+	iASPParamPointInfo(std::shared_ptr<iASensitivityData> data) :
 		m_data(data)
 	{}
 	QString text(const size_t paramIdx[2], size_t pointIdx) override
@@ -1075,7 +1065,7 @@ public:
 		return result;
 	}
 private:
-	QSharedPointer<iASensitivityData> m_data;
+	std::shared_ptr<iASensitivityData> m_data;
 };
 
 void iASensitivityInfo::createGUI()
@@ -1161,7 +1151,7 @@ void iASensitivityInfo::createGUI()
 
 
 	//////////// Constellation Plots (Scatter Plots)  ////////////
-	m_gui->m_mdsData = QSharedPointer<iASPLOMData>(new iASPLOMData());
+	m_gui->m_mdsData = std::shared_ptr<iASPLOMData>(new iASPLOMData());
 	std::vector<QString> spParamNames;
 	for (auto p : m_data->m_variedParams)
 	{
@@ -1249,7 +1239,7 @@ void iASensitivityInfo::createGUI()
 
 	m_gui->updateScatterPlotLUT();
 
-	auto ptInfo = QSharedPointer<iASPParamPointInfo>::create(m_data);
+	auto ptInfo = std::make_shared<iASPParamPointInfo>(m_data);
 	m_gui->m_paramSP->setPointInfo(ptInfo);
 	m_gui->m_mdsSP->setPointInfo(ptInfo);
 
@@ -1279,25 +1269,43 @@ void iASensitivityInfo::showSpatialOverview()
 		return;
 	}
 	connect(m_child, &iAMdiChild::dataSetPrepared, this, &iASensitivityInfo::setSpatialOverviewTF);
-	connect(m_child, &iAMdiChild::dataSetRendered, this, &iASensitivityInfo::spatialOverviewVisibilityChanged);
+	connect(m_child, &iAMdiChild::dataSetRendered, this, [this](size_t dataSetIdx)
+	{
+		if (m_spatialOverviewDataSets.find(dataSetIdx) != m_spatialOverviewDataSets.end())
+		{
+			spatialOverviewVisibilityChanged(true);
+		}
+	});
 	if (m_data->m_spatialOverview)
 	{
 		auto spatialOverviewDataSet = std::make_shared<iAImageData>(m_data->m_spatialOverview);
 		spatialOverviewDataSet->setMetaData(iADataSet::NameKey, "Avg unique fiber/voxel");
 		spatialOverviewDataSet->setMetaData(iADataSet::FileNameKey, data().spatialOverviewCacheFileName());
-		m_child->addDataSet(spatialOverviewDataSet);
+		auto dsIdx = m_child->addDataSet(spatialOverviewDataSet);
+		m_spatialOverviewDataSets.insert(dsIdx);
 	}
 	if (m_data->m_averageFiberVoxel)
 	{
 		auto averageFiberVoxelDataSet = std::make_shared<iAImageData>(m_data->m_averageFiberVoxel);
 		averageFiberVoxelDataSet->setMetaData(iADataSet::NameKey, "Mean objects (fibers/voxel)");
 		averageFiberVoxelDataSet->setMetaData(iADataSet::FileNameKey, data().averageFiberVoxelCacheFileName());
-		m_child->addDataSet(averageFiberVoxelDataSet);
+		auto dsIdx = m_child->addDataSet(averageFiberVoxelDataSet);
+		m_spatialOverviewDataSets.insert(dsIdx);
 	}
 }
 
 void iASensitivityInfo::setSpatialOverviewTF(int dataSetIdx)
 {
+	if (m_spatialOverviewDataSets.find(dataSetIdx) == m_spatialOverviewDataSets.end())
+	{   // ignore datasets other than spatial overview images
+		return;
+	}
+	auto volViewer = dynamic_cast<iAVolumeViewer*>(m_child->dataSetViewer(dataSetIdx));
+	if (!volViewer)
+	{
+		LOG(lvlError, QString("setSpatialOverviewTF: No viewer available for spatial overview dataset %1").arg(dataSetIdx));
+		return;
+	}
 	double range[2];
 	if (m_gui->m_settings->cbLimitSpatialOverviewRange->isChecked())
 	{  // for "mean objects", fix range to 0..1
@@ -1316,7 +1324,7 @@ void iASensitivityInfo::setSpatialOverviewTF(int dataSetIdx)
 	}
 	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
 	iALUT::BuildLUT(lut, range, m_gui->m_settings->cmbboxSpatialOverviewColorMap->currentText(), 5, true);
-	auto tf = dynamic_cast<iAVolumeViewer*>(m_child->dataSetViewer(dataSetIdx))->transfer();
+	auto tf = volViewer->transfer();
 	auto ctf = tf->colorTF();
 	auto otf = tf->opacityTF();
 	const double AlphaOverride = 0.2;
@@ -1690,7 +1698,7 @@ void iASensitivityInfo::spVisibleParamChanged()
 
 iASensitivityData& iASensitivityInfo::data()
 {
-	return *m_data.data();
+	return *m_data.get();
 }
 
 namespace
@@ -1842,7 +1850,7 @@ void iASensitivityInfo::updateDifferenceView()
 			LOG(lvlDebug, QString("Result %1: 3D vis not initialized!").arg(rID));
 			continue;
 		}
-		auto resultData = QSharedPointer<iAFiberDiffRenderer>::create();
+		auto resultData = std::make_shared<iAFiberDiffRenderer>();
 		QColor color = t->color(i);
 		resultData->data = m_resultUIs[rID].main3DVis->extractSelectedObjects(QColor(128, 128, 128));  // color given here isn't used ...
 		if (resultData->data.size() == 0)

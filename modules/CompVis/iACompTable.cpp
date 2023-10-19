@@ -4,35 +4,29 @@
 
 //CompVis
 #include "iACompHistogramVis.h"
-#include "iACsvDataStorage.h"
 #include "iACompTableInteractorStyle.h"
 
 //vtk
-#include "vtkRenderer.h"
-#include "vtkTextActor.h"
-#include "vtkTextProperty.h"
-#include "vtkLookupTable.h"
-#include "vtkActor.h"
+#include <vtkActor.h>
+#include <vtkAppendPolyData.h>
+#include <vtkCellData.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkDoubleArray.h>
+#include <vtkLineSource.h>
+#include <vtkLookupTable.h>
 #include <vtkNew.h>
-#include "vtkScalarBarActor.h"
-#include "vtkProperty2D.h"
-#include "vtkPlaneSource.h"
-#include "vtkPolyDataMapper.h"
-#include "vtkProperty.h"
-
-#include "vtkProgrammableGlyphFilter.h"
-#include "vtkDoubleArray.h"
-#include "vtkPointData.h"
-#include "vtkPolyData.h"
-#include "vtkCellData.h"
-
-#include "vtkDoubleArray.h"
-#include "vtkCamera.h"
-#include "vtkAppendPolyData.h"
-#include "vtkLineSource.h"
-#include "vtkPolyLine.h"
-
-#include "vtkColorTransferFunction.h"
+#include <vtkPlaneSource.h>
+#include <vtkPointData.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkPolyLine.h>
+#include <vtkProgrammableGlyphFilter.h>
+#include <vtkProperty.h>
+#include <vtkProperty2D.h>
+#include <vtkRenderer.h>
+#include <vtkScalarBarActor.h>
+#include <vtkTextActor.h>
+#include <vtkTextProperty.h>
 
 
 iACompTable::iACompTable(iACompHistogramVis* vis) :

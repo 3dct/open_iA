@@ -32,27 +32,15 @@ iAAdaptiveThresholdDlg::iAAdaptiveThresholdDlg(QWidget * parent, Qt::WindowFlags
 	m_yMaxRef(std::numeric_limits<double>::infinity())
 {
 	setupUi(this);
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	m_chart = new QtCharts::QChart;
-	m_chartView = new QtCharts::QChartView(m_chart);
-#else
 	m_chart = new QChart;
 	m_chartView = new QChartView(m_chart);
-#endif
 	m_chart->setMargins(QMargins(0, 0, 0, 0));
 	m_chart->layout()->setContentsMargins(0, 0, 0, 0);
 	m_chart->setBackgroundRoundness(0);
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	m_chartView->setRubberBand(QtCharts::QChartView::RectangleRubberBand);
-	axisX = new QtCharts::QValueAxis;
-	axisY = new QtCharts::QValueAxis;
-	m_refSeries = new QtCharts::QLineSeries();
-#else
 	m_chartView->setRubberBand(QChartView::RectangleRubberBand);
 	axisX = new QValueAxis;
 	axisY = new QValueAxis;
 	m_refSeries = new QLineSeries();
-#endif
 	QValidator* validator = new QDoubleValidator(0, 8000, 2, this);
 	this->ed_minSegmRange->setValidator(validator);
 	this->ed_minSegmRange->setText(QString("%1").arg(0));
@@ -112,7 +100,7 @@ void iAAdaptiveThresholdDlg::setInputData(const std::vector<double> &thres_binIn
 	m_frequencies = freqValsInY;
 }
 
-void iAAdaptiveThresholdDlg::setHistData (QSharedPointer<iAPlotData> newData)
+void iAAdaptiveThresholdDlg::setHistData (std::shared_ptr<iAPlotData> newData)
 {
 	if (!newData)
 	{
@@ -169,11 +157,7 @@ void iAAdaptiveThresholdDlg::calculateMovingAndVisualizeAverage()
 
 	/*prepare visualisation*/
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	QtCharts::QLineSeries* newSeries = new QtCharts::QLineSeries;
-#else
 	QLineSeries* newSeries = new QLineSeries;
-#endif
 	this->prepareDataSeries(newSeries, m_greyThresholds, m_movingFrequencies, &text, false,false);
 
 }
@@ -275,11 +259,7 @@ void iAAdaptiveThresholdDlg::visualizeIntermediateResults(threshold_defs::iAThre
 	QPointF f1 = QPointF(resultingthrPeaks.Iso50ValueThr(), m_yMaxRef);
 	QPointF f2 = QPointF(resultingthrPeaks.Iso50ValueThr(), 0);
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	QtCharts::QLineSeries* iso50 = nullptr;
-#else
 	QLineSeries* iso50 = nullptr;
-#endif
 
 	iso50 = createLineSeries(f2, f1, LineVisOption::horizontally);
 
@@ -354,11 +334,7 @@ void iAAdaptiveThresholdDlg::assignValuesToField(double min, double max, double 
 
 void iAAdaptiveThresholdDlg::createVisualisation(threshold_defs::iAParametersRanges paramRanges, threshold_defs::iAThresMinMax thrPeaks)
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	QtCharts::QLineSeries* rangedSeries = nullptr;
-#else
 	QLineSeries* rangedSeries = nullptr;
-#endif
 	rangedSeries = createLineSeries(paramRanges);
 	QPointF lokalPeakMax(thrPeaks.LokalMaxPeakThreshold_X(), thrPeaks.FreqPeakLokalMaxY());
 	QPointF p2(thrPeaks.PeakMinXThreshold(), thrPeaks.FreqPeakMinY());
@@ -376,11 +352,7 @@ void iAAdaptiveThresholdDlg::createVisualisation(threshold_defs::iAParametersRan
 	}
 
 	QColor basis = QColor(0, 0, m_colCounter);
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	std::vector<QtCharts::QXYSeries*> newData;
-#else
 	std::vector<QXYSeries*> newData;
-#endif
 	auto SeriesTwoPoints = createLineSeries(lokalPeakMax, lokalPeakMax, LineVisOption::vertically);
 	auto SeriesTwoPointsb = createLineSeries(lokalPeakMax, lokalPeakMax, LineVisOption::horizontally);
 	SeriesTwoPointsb->setColor(basis);
@@ -412,11 +384,7 @@ void iAAdaptiveThresholdDlg::createVisualisation(threshold_defs::iAParametersRan
 	newData.push_back(series_p2);
 
 	this->addSeries(series_p2, true);
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	for (QtCharts::QXYSeries* el : newData)
-#else
 	for (QXYSeries* el : newData)
-#endif
 	{
 		this->addSeries(el, /*disableMarker*/true);
 	}
@@ -426,11 +394,7 @@ void iAAdaptiveThresholdDlg::createVisualisation(threshold_defs::iAParametersRan
 
 void iAAdaptiveThresholdDlg::visualizeSeries(threshold_defs::iAParametersRanges ParamRanges, QColor color, QString *seriesName)
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	QtCharts::QLineSeries* rangedSeries = nullptr;
-#else
 	QLineSeries* rangedSeries = nullptr;
-#endif
 	rangedSeries = createLineSeries(ParamRanges);
 	rangedSeries->setColor(color);
 	if (seriesName)
@@ -620,11 +584,7 @@ void iAAdaptiveThresholdDlg::redrawPlots()
 			LOG(lvlInfo, "Delete viewer");
 			auto sList = m_chart->series();
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-			QListIterator<QtCharts::QAbstractSeries*> iter(sList);
-#else
 			QListIterator<QAbstractSeries*> iter(sList);
-#endif
 			while (iter.hasNext())
 			{
 				auto* oldseries = iter.next();
@@ -643,14 +603,8 @@ void iAAdaptiveThresholdDlg::redrawPlots()
 		}
 	}
 
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	m_chart = new QtCharts::QChart();
-	m_chartView = new QtCharts::QChartView(m_chart);
-#else
 	m_chart = new QChart();
 	m_chartView = new QChartView(m_chart);
-#endif
 
 	this->initAxes(xmin, xmax, ymin, ymax, true);
 
@@ -660,11 +614,7 @@ void iAAdaptiveThresholdDlg::redrawPlots()
 	{
 		delete m_refSeries;
 	}
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	m_refSeries = new QtCharts::QLineSeries;
-#else
 	m_refSeries = new QLineSeries;
-#endif
 	QString hist = "Histogram Data";
 
 	this->prepareDataSeries(m_refSeries, m_greyThresholds,
@@ -729,11 +679,7 @@ void iAAdaptiveThresholdDlg::initAxes(double xmin, double xmax, double ymin, dou
 	prepareAxis(axisY, titleY, ymin, yMax, m_defaultTickCountsY, axisMode::y);
 }
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-void iAAdaptiveThresholdDlg::prepareAxis(QtCharts::QValueAxis *axis, const QString &title, double min, double max, uint ticks, axisMode mode)
-#else
 void iAAdaptiveThresholdDlg::prepareAxis(QValueAxis *axis, const QString &title, double min, double max, uint ticks, axisMode mode)
-#endif
 {
 	axis->setRange(min, max);
 	axis->setTickCount(ticks);
@@ -752,11 +698,7 @@ void iAAdaptiveThresholdDlg::prepareAxis(QValueAxis *axis, const QString &title,
 	}
 }
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-void iAAdaptiveThresholdDlg::prepareDataSeries(QtCharts::QXYSeries *aSeries,
-#else
 void iAAdaptiveThresholdDlg::prepareDataSeries(QXYSeries* aSeries,
-#endif
 	const std::vector<double> &x_vals, const std::vector<double> &y_vals,
 	QString *grText, bool useDefaultValues, bool updateCoords)
 {
@@ -810,11 +752,7 @@ void iAAdaptiveThresholdDlg::prepareDataSeries(QXYSeries* aSeries,
 	this->m_chartView->update();
 }
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-void iAAdaptiveThresholdDlg::addSeries(QtCharts::QXYSeries* aSeries, bool disableMarker)
-#else
 void iAAdaptiveThresholdDlg::addSeries(QXYSeries* aSeries, bool disableMarker)
-#endif
 {
 	if (!aSeries)
 	{

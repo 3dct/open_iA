@@ -21,7 +21,6 @@ class iAMdiChild;
 struct iAAnnotation
 {
 	iAAnnotation(size_t id, iAVec3d coord, QString const& name, QColor color);
-	iAAnnotation(iAAnnotation const& a) = default;
 	size_t m_id;
 	iAVec3d m_coord;
 	QString m_name;

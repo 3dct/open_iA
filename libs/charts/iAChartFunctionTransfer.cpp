@@ -6,6 +6,8 @@
 #include "iALog.h"
 #include "iAMapper.h"
 #include "iAMathUtility.h"
+#include "iAPlot.h"
+#include "iAPlotData.h"
 
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
@@ -57,7 +59,7 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 	m_tf->opacityTF()->GetNodeValue(0, opacityTFValue);
 	m_tf->colorTF()->GetNodeValue(0, colorTFValue);
 
-	int x1 = m_chart->xMapper().srcToDst(opacityTFValue[0]);
+	int x1 = m_chart->xMapper().srcToDst(opacityTFValue[0] + xOfs());
 	int y1 = opacity2PixelY(opacityTFValue[1]);
 
 	QColor c; c.setRgbF(colorTFValue[1], colorTFValue[2], colorTFValue[3], 0.588);
@@ -69,7 +71,7 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 		m_tf->opacityTF()->GetNodeValue(i, opacityTFValue);
 		m_tf->colorTF()->GetNodeValue(i, colorTFValue);
 
-		int x2 = m_chart->xMapper().srcToDst(opacityTFValue[0]);
+		int x2 = m_chart->xMapper().srcToDst(opacityTFValue[0] + xOfs());
 		if (x2 == lastX)
 		{
 			++x2;
@@ -139,7 +141,7 @@ int iAChartTransferFunction::selectPoint(int mouseX, int mouseY)
 	for (int pointIndex = 0; pointIndex < m_tf->opacityTF()->GetSize(); pointIndex++)
 	{
 		m_tf->opacityTF()->GetNodeValue(pointIndex, pointValue);
-		int pointX = m_chart->data2MouseX(pointValue[0]);
+		int pointX = m_chart->data2MouseX(pointValue[0] + xOfs());
 		int pointY = opacity2PixelY(pointValue[1]);
 		int pointRadius = iAChartFunction::pointRadius(pointIndex == m_selectedPoint);
 		if ( !m_rangeSliderHandles )
@@ -174,7 +176,7 @@ int iAChartTransferFunction::selectPoint(int mouseX, int mouseY)
 
 int iAChartTransferFunction::addPoint(int mouseX, int mouseY)
 {
-	double dataX = m_chart->mouse2DataX(mouseX);
+	double dataX = m_chart->mouse2DataX(mouseX) - xOfs();
 	double const * tfRange = m_tf->opacityTF()->GetRange();
 	if (dataX < tfRange[0] || dataX > tfRange[1])
 	{
@@ -227,8 +229,7 @@ void iAChartTransferFunction::addColorPoint(int x, double red, double green, dou
 		green = (firstColor.green()*firstWeight +secondColor.green()*secondWeight)/255.0;
 		blue = (firstColor.blue()*firstWeight +secondColor.blue()*secondWeight)/255.0;
 	}
-
-	m_tf->colorTF()->AddRGBPoint(m_chart->mouse2DataX(x), red, green, blue);
+	m_tf->colorTF()->AddRGBPoint(m_chart->mouse2DataX(x) - xOfs(), red, green, blue);
 	m_tf->colorTF()->Build();
 	triggerOnChange();
 }
@@ -256,34 +257,32 @@ void iAChartTransferFunction::moveSelectedPoint(int mouseX, int mouseY)
 	mouseX = clamp(0, m_chart->chartWidth() - 1, mouseX);
 	mouseY = clamp(0, m_chart->chartHeight() - 1, mouseY);
 
-	double dataX = m_chart->mouse2DataX(mouseX);
+	double dataX = m_chart->mouse2DataX(mouseX) - xOfs();
 	if (m_selectedPoint != 0 && m_selectedPoint != m_tf->opacityTF()->GetSize()-1)
 	{
 		double nextOpacityTFValue[4];
 		double prevOpacityTFValue[4];
-
 		m_tf->opacityTF()->GetNodeValue(m_selectedPoint+1, nextOpacityTFValue);
 		m_tf->opacityTF()->GetNodeValue(m_selectedPoint-1, prevOpacityTFValue);
 		int newX = mouseX;
 		if (dataX >= nextOpacityTFValue[0])
 		{
-			newX = m_chart->data2MouseX(nextOpacityTFValue[0]) - 1;
+			newX = m_chart->data2MouseX(nextOpacityTFValue[0] + xOfs()) - 1;
 		}
 		else if (dataX <= prevOpacityTFValue[0])
 		{
-			newX = m_chart->data2MouseX(prevOpacityTFValue[0]) + 1;
+			newX = m_chart->data2MouseX(prevOpacityTFValue[0] + xOfs()) + 1;
 		}
 		setPointOpacity(m_selectedPoint, newX, mouseY);
 		double colorTFValue[6];
 		m_tf->colorTF()->GetNodeValue(m_selectedPoint, colorTFValue);
-		double chartX = m_chart->mouse2DataX(newX);
+		double chartX = m_chart->mouse2DataX(newX) - xOfs();
 		setPointColor(m_selectedPoint, chartX, colorTFValue[1], colorTFValue[2], colorTFValue[3]);
 	}
 	else
 	{
 		setPointOpacity(m_selectedPoint, mouseY);
 	}
-
 	triggerOnChange();
 }
 
@@ -301,7 +300,6 @@ void iAChartTransferFunction::changeColor()
 	{
 		return;
 	}
-
 	QColor col = colorDlg.selectedColor();
 	setPointColor(m_selectedPoint, colorTFValue[0], col.redF(), col.greenF(), col.blueF());
 	m_tf->colorTF()->Modified();
@@ -361,7 +359,7 @@ void iAChartTransferFunction::setPointColor(int selectedPoint, double x, double 
 
 void iAChartTransferFunction::setPointOpacity(int selectedPoint, int pixelX, int pixelY)
 {
-	double opacityVal[4] = { m_chart->mouse2DataX(pixelX), pixelY2Opacity(pixelY), 0.0, 0.0 };
+	double opacityVal[4] = { m_chart->mouse2DataX(pixelX) - xOfs(), pixelY2Opacity(pixelY), 0.0, 0.0};
 	m_tf->opacityTF()->SetNodeValue(selectedPoint, opacityVal);
 }
 
@@ -374,14 +372,20 @@ void iAChartTransferFunction::setPointOpacity(int selectedPoint, int pixelY)
 	m_tf->opacityTF()->SetNodeValue(selectedPoint, opacityTFValues);
 }
 
-double iAChartTransferFunction::pixelY2Opacity(int pixelY)
+double iAChartTransferFunction::pixelY2Opacity(int pixelY) const
 {
 	return mapToNorm(0, m_chart->chartHeight(), clamp(0, m_chart->chartHeight(), pixelY));
 }
 
-int iAChartTransferFunction::opacity2PixelY(double opacity)
+int iAChartTransferFunction::opacity2PixelY(double opacity) const
 {
 	return mapNormTo(0, std::max(0, m_chart->chartHeight()), opacity);
+}
+
+double iAChartTransferFunction::xOfs() const
+{
+	return m_chart->plots().empty() ? 0 :
+		m_chart->plots()[0]->data()->valueType() == iAValueType::Discrete ? 0.5 : 0;
 }
 
 void iAChartTransferFunction::triggerOnChange()

@@ -87,24 +87,15 @@ void iADropPipelineWidget::dragLeaveEvent( QDragLeaveEvent *event )
 
 void iADropPipelineWidget::dragMoveEvent( QDragMoveEvent *event )
 {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 	QRect updateRect = highlightedRect.united( targetSquare( event->position().toPoint() ) );
 	QRect square = targetSquare( event->position().toPoint() );
-#else
-	QRect updateRect = highlightedRect.united( targetSquare( event->pos() ) );
-	QRect square = targetSquare( event->pos() );
-#endif
 	int pipePos = square.x() / pieceSize();
 
 	if ( ( event->mimeData()->hasFormat( customMimeType[1] )
 		|| event->mimeData()->hasFormat( customMimeType[3] ) )
 		&& pipePos == 0 )
 	{
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		highlightedRect = targetSquare( event->position().toPoint() );
-#else
-		highlightedRect = targetSquare( event->pos() );
-#endif
 		event->setDropAction( Qt::MoveAction );
 		event->accept();
 	}
@@ -113,11 +104,7 @@ void iADropPipelineWidget::dragMoveEvent( QDragMoveEvent *event )
 		&& pipePos > 0
 		&& pipePos <= ( imageSize() / pieceSize() ) )
 	{
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		highlightedRect = targetSquare( event->position().toPoint() );
-#else
-		highlightedRect = targetSquare( event->pos() );
-#endif
 		event->setDropAction( Qt::MoveAction );
 		event->accept();
 	}
@@ -144,11 +131,7 @@ void iADropPipelineWidget::dropEvent( QDropEvent *event )
 	QString currentFormat = event->mimeData()->formats()[0];
 	QByteArray pieceData = event->mimeData()->data( currentFormat );
 	QDataStream dataStream( &pieceData, QIODevice::ReadOnly );
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 	QRect square = targetSquare( event->position().toPoint() );
-#else
-	QRect square = targetSquare( event->pos() );
-#endif
 	QPixmap pixmap;
 	int lastPiecePos;
 	QString name;

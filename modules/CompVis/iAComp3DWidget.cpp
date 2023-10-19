@@ -7,27 +7,20 @@
 
 //iA
 #include "iAQVTKWidget.h"
-#include "iACsvIO.h"
 #include "iACsvConfig.h"
-#include "iA3DObjectVis.h"
-#include "iA3DEllipseObjectVis.h"
-#include "iA3DCylinderObjectVis.h"
-#include "iA3DPolyObjectActor.h"
+#include "iAObjectVis.h"
+#include "iAEllipsoidObjectVis.h"
+#include "iACylinderObjectVis.h"
+#include "iAPolyObjectVisActor.h"
 #include "iAVec3.h"
 
-// Qt
-#include <QBoxLayout>
-#include <QSharedPointer>
-#include <QMap>
-#include <QColor>
+#include <QVBoxLayout>
 
-//vtk
-#include "vtkRenderWindow.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkTable.h"
-#include "vtkRenderer.h"
-#include "vtkRendererCollection.h"
-#include "vtkInteractorObserver.h"
+#include <vtkInteractorObserver.h>
+#include <vtkRenderer.h>
+#include <vtkRendererCollection.h>
+#include <vtkRenderWindow.h>
+#include <vtkTable.h>
 
 #include <map>
 #include <vector>
@@ -35,14 +28,14 @@
 
 
 iAComp3DWidget::iAComp3DWidget(
-	iAMainWindow* parent, vtkSmartPointer<vtkTable> objectTable, QSharedPointer<QMap<uint, uint>> columnMapping, const iACsvConfig& csvConfig) :
+	iAMainWindow* parent, vtkSmartPointer<vtkTable> objectTable, std::shared_ptr<QMap<uint, uint>> columnMapping, const iACsvConfig& csvConfig) :
 	QDockWidget(parent),
 	m_objectColor(QColor(140, 140, 140, 255)),
 	m_interactionStyle(vtkSmartPointer<iAComp3DWidgetInteractionStyle>::New())
 {
 	setupUi(this);
 
-	QVBoxLayout* layout = new QVBoxLayout;
+	auto layout = new QVBoxLayout;
 	dockWidgetContents->setLayout(layout);
 
 	m_qvtkWidget = new iAQVTKWidget(this);
@@ -95,28 +88,26 @@ void iAComp3DWidget::removeAllRendererFromWidget()
 }
 
 /*************** Initialization ****************************/
-void iAComp3DWidget::create3DVis(vtkSmartPointer<vtkTable> objectTable, QSharedPointer<QMap<uint, uint>> columnMapping, const iACsvConfig& csvConfig)
+void iAComp3DWidget::create3DVis(vtkSmartPointer<vtkTable> objectTable, std::shared_ptr<QMap<uint, uint>> columnMapping, const iACsvConfig& csvConfig)
 {
-	if (csvConfig.visType == iACsvConfig::Cylinders)
+	if (csvConfig.visType == iAObjectVisType::Cylinder)
 	{
 		int cylinderQuality = csvConfig.cylinderQuality;
 		size_t segmentSkip = csvConfig.segmentSkip;
-		m_3dvisData = std::make_shared<iA3DCylinderObjectVis>(
-			objectTable,
-			columnMapping,
+		m_3dvisData = std::make_shared<iACylinderObjectVis>(
+			std::make_shared<iAObjectsData>(objectTable, columnMapping),
 			m_objectColor,
 			std::map<size_t, std::vector<iAVec3f>>(),	// empty curved fiber info
 			cylinderQuality,
 			segmentSkip);
 	}
-	else if (csvConfig.visType == iACsvConfig::Ellipses)
+	else if (csvConfig.visType == iAObjectVisType::Ellipsoid)
 	{
-		m_3dvisData = std::make_shared<iA3DEllipseObjectVis>(
-			objectTable,
-			columnMapping,
+		m_3dvisData = std::make_shared<iAEllipsoidObjectVis>(
+			std::make_shared<iAObjectsData>(objectTable, columnMapping),
 			m_objectColor);
 	}
-	m_3dvisActor = std::make_shared<iA3DPolyObjectActor>(m_renderer.Get(), m_3dvisData.get());
+	m_3dvisActor = std::make_shared<iAPolyObjectVisActor>(m_renderer.Get(), m_3dvisData.get());
 	m_3dvisActor->show();
 }
 

@@ -4,8 +4,9 @@
 
 #include "iANormalizer.h"
 
-#include <QSharedPointer>
 #include <QString>
+
+#include <memory>
 
 enum NormalizeModes
 {
@@ -56,4 +57,4 @@ private:
 };
 
 char const * const * GetNormalizerNames();
-QSharedPointer<iANormalizer> CreateNormalizer(QString const & name, double beta);
+std::shared_ptr<iANormalizer> CreateNormalizer(QString const & name, double beta);

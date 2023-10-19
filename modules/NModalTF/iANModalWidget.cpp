@@ -9,13 +9,10 @@
 #include "iANModalPreprocessor.h"
 
 #include <iAChartWithFunctionsWidget.h>
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iAMdiChild.h>
 #include <iASlicer.h>
 #include <iASlicerMode.h>
-
-#include <vtkImageData.h>
-#include <vtkSmartPointer.h>
 
 #include <QGridLayout>
 #include <QScrollArea>
@@ -67,7 +64,7 @@ iANModalWidget::iANModalWidget(iAMdiChild* mdiChild)
 		dataSets.append(imgDS);
 	}
 
-	m_preprocessor = QSharedPointer<iANModalPreprocessor>::create(mdiChild);
+	m_preprocessor = std::make_shared<iANModalPreprocessor>(mdiChild);
 	auto output = m_preprocessor->preprocess(dataSets);
 
 	if (!output.valid)

@@ -5,32 +5,24 @@
 //CompVis
 #include "iACompHistogramVis.h"
 #include "iACompKernelDensityEstimationData.h"
-#include "iACompBayesianBlocksData.h"
-#include "iACompNaturalBreaksData.h"
 
 //vtk
-#include "vtkRenderer.h"
-#include "vtkColorTransferFunction.h"
-#include "vtkLookupTable.h"
-#include "vtkCamera.h"
-
+#include <vtkAppendPolyData.h>
+#include <vtkCamera.h>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
+#include <vtkCleanPolyData.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkLookupTable.h>
+#include <vtkNew.h>
+#include <vtkPointData.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkPolyLine.h>
-#include <vtkProperty.h>
-
-#include <vtkLine.h>
-#include <vtkNew.h>
-
-#include <vtkDoubleArray.h>
-#include <vtkPointData.h>
 #include <vtkPolygon.h>
-#include <vtkAppendPolyData.h>
-#include <vtkCleanPolyData.h>
-#include <vtkAppendFilter.h>
+#include <vtkProperty.h>
+#include <vtkRenderer.h>
 
 iACompCurve::iACompCurve(
 	iACompHistogramVis* vis, iACompKernelDensityEstimationData* kdeData, double lineWidth, double opacity) :

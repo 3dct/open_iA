@@ -21,7 +21,7 @@ namespace
 }
 
 iASamplingResults::iASamplingResults(
-	QSharedPointer<iAAttributes> attr,
+	std::shared_ptr<iAAttributes> attr,
 	QString const & samplingMethod,
 	QString const & path,
 	QString const & executable,
@@ -67,26 +67,22 @@ namespace
 	}
 }
 
-QSharedPointer<iASamplingResults> iASamplingResults::load(QString const & smpFileName, int datasetID)
+std::shared_ptr<iASamplingResults> iASamplingResults::load(QString const & smpFileName, int datasetID)
 {
 	QFile file(smpFileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
 		LOG(lvlError, QString("Couldn't open file '%1'\n").arg(smpFileName));
-		return QSharedPointer<iASamplingResults>();
+		return std::shared_ptr<iASamplingResults>();
 	}
 	// TODO: replace with QSettings?
 	QTextStream in(&file);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	in.setCodec("UTF-8");
-#else
 	in.setEncoding(QStringConverter::Utf8);
-#endif
 	QFileInfo fileInfo(file);
 	if (in.atEnd())
 	{
 		LOG(lvlError, "Invalid sampling descriptor!\n");
-		return QSharedPointer<iASamplingResults>();
+		return std::shared_ptr<iASamplingResults>();
 	}
 
 	QString currentLine = in.readLine();
@@ -103,7 +99,7 @@ QSharedPointer<iASamplingResults> iASamplingResults::load(QString const & smpFil
 		!GetNameValue("SamplingMethod", samplingMethod, in))
 	{
 		LOG(lvlError, "Invalid sampling descriptor!");
-		return QSharedPointer<iASamplingResults>();
+		return std::shared_ptr<iASamplingResults>();
 	}
 	QString executable, additionalArguments;
 	if (!GetNameValue("Executable", executable, in) ||
@@ -112,8 +108,8 @@ QSharedPointer<iASamplingResults> iASamplingResults::load(QString const & smpFil
 		LOG(lvlError, "Executable and/or AdditionalArguments missing in sampling descriptor!");
 	}
 
-	QSharedPointer<iAAttributes> attributes = createAttributes(in);
-	QSharedPointer<iASamplingResults> result(new iASamplingResults(
+	std::shared_ptr<iAAttributes> attributes = createAttributes(in);
+	std::shared_ptr<iASamplingResults> result(new iASamplingResults(
 		attributes, samplingMethod, fileInfo.absolutePath(), executable, additionalArguments, name, datasetID));
 	file.close();
 	if (result->loadInternal(MakeAbsolute(fileInfo.absolutePath(), parameterSetFileName),
@@ -123,7 +119,7 @@ QSharedPointer<iASamplingResults> iASamplingResults::load(QString const & smpFil
 		return result;
 	}
 	LOG(lvlError, "Sampling: Internal loading failed.");
-	return QSharedPointer<iASamplingResults>();
+	return std::shared_ptr<iASamplingResults>();
 }
 
 
@@ -141,11 +137,7 @@ bool iASamplingResults::store(QString const & rangeFileName,
 		return false;
 	}
 	QTextStream out(&paramRangeFile);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	out.setCodec("UTF-8");
-#else
 	out.setEncoding(QStringConverter::Utf8);
-#endif
 	QFileInfo fi(paramRangeFile);
 	out << SMPFileFormatVersion << Qt::endl;
 	out << "Name" << Output::NameSeparator << m_name << Qt::endl;
@@ -154,7 +146,7 @@ bool iASamplingResults::store(QString const & rangeFileName,
 	out << "SamplingMethod" << Output::NameSeparator << m_samplingMethod << Qt::endl;
 	out << "Executable" << Output::NameSeparator << m_executable << Qt::endl;
 	out << "AdditionalArguments" << Output::NameSeparator << m_additionalArguments << Qt::endl;
-	::storeAttributes(out, *m_attributes.data());
+	::storeAttributes(out, *m_attributes.get());
 	paramRangeFile.close();
 
 	m_rangeFileName = rangeFileName;
@@ -180,9 +172,9 @@ bool iASamplingResults::storeAttributes(int type, QString const & fileName, bool
 	// filter attributes for type:
 	iAAttributes typeAttribs;
 	std::copy_if(m_attributes->begin(), m_attributes->end(), std::back_inserter(typeAttribs),
-		[type](QSharedPointer<iAAttributeDescriptor> att) { return att->attribType() == type; });
+		[type](std::shared_ptr<iAAttributeDescriptor> att) { return att->attribType() == type; });
 	outParamSet << joinAsString((typeAttribs), iASingleResult::ValueSplitString,
-		[](QSharedPointer<iAAttributeDescriptor> const& attrib) { return attrib->name(); });
+		[](std::shared_ptr<iAAttributeDescriptor> const& attrib) { return attrib->name(); });
 	if (type == iAAttributeDescriptor::Parameter)
 	{
 		outParamSet << iASingleResult::ValueSplitString << "Filename";
@@ -236,7 +228,7 @@ bool iASamplingResults::loadInternal(QString const & parameterSetFileName, QStri
 			attribLine = paramLine + iASingleResult::ValueSplitString + derivedOutLine;
 		}
 		lineNr++;
-		QSharedPointer<iASingleResult> result = iASingleResult::create(
+		std::shared_ptr<iASingleResult> result = iASingleResult::create(
 			// for now, assemble attributes from two files (could be merged in one)
 			attribLine,
 			*this,
@@ -271,28 +263,28 @@ int iASamplingResults::size() const
 }
 
 
-QSharedPointer<iASingleResult> iASamplingResults::get(int i) const
+std::shared_ptr<iASingleResult> iASamplingResults::get(int i) const
 {
 	return m_results[i];
 }
 
 
-void iASamplingResults::addResult(QSharedPointer<iASingleResult> result)
+void iASamplingResults::addResult(std::shared_ptr<iASingleResult> result)
 {
 	m_results.push_back(result);
 }
 
-QVector<QSharedPointer<iASingleResult> > const & iASamplingResults::members() const
+QVector<std::shared_ptr<iASingleResult> > const & iASamplingResults::members() const
 {
 	return m_results;
 }
 
-void iASamplingResults::setMembers(QVector<QSharedPointer<iASingleResult> > const& members)
+void iASamplingResults::setMembers(QVector<std::shared_ptr<iASingleResult> > const& members)
 {
 	m_results = members;
 }
 
-QSharedPointer<iAAttributes> iASamplingResults::attributes() const
+std::shared_ptr<iAAttributes> iASamplingResults::attributes() const
 {
 	return m_attributes;
 }

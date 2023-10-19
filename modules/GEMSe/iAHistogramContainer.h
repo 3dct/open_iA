@@ -6,9 +6,10 @@
 
 #include <QMap>
 #include <QSet>
-#include <QSharedPointer>
 #include <QSplitter>
 #include <QVector>
+
+#include <memory>
 
 class iAChartAttributeMapper;
 class iAChartFilter;
@@ -24,14 +25,14 @@ class iAHistogramContainer: public QSplitter
 	Q_OBJECT
 public:
 	iAHistogramContainer(
-		QSharedPointer<iAAttributes> chartAttributes,
+		std::shared_ptr<iAAttributes> chartAttributes,
 		iAChartAttributeMapper const & chartAttributeMapper,
 		iAImageTreeNode const * root,
 		QStringList const & pipelineNames
 	);
 	bool ChartExists(int chartID) const;
 	void CreateCharts();
-	void UpdateClusterChartData(QVector<QSharedPointer<iAImageTreeNode> > const & selection);
+	void UpdateClusterChartData(QVector<std::shared_ptr<iAImageTreeNode> > const & selection);
 	void UpdateFilteredChartData(iAChartFilter const & chartFilter);
 	void UpdateClusterFilteredChartData(iAImageTreeNode const * selectedNode, iAChartFilter const & chartFilter);
 	void ResetFilters();
@@ -64,7 +65,7 @@ private:
 	QVector< QVector<float> > m_attitudes;
 	QVector<QLabel*> m_labels;
 	QVector<int> m_selected;
-	QSharedPointer<iAAttributes> m_chartAttributes;
+	std::shared_ptr<iAAttributes> m_chartAttributes;
 	iAChartAttributeMapper const & m_chartAttributeMapper;
 	iAImageTreeNode const * m_root;
 	QSet<int> m_disabledCharts;

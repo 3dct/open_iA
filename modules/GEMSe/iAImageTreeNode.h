@@ -9,8 +9,9 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QSharedPointer>
 #include <QVector>
+
+#include <memory>
 
 class iAChartAttributeMapper;
 
@@ -37,8 +38,8 @@ struct CombinedProbability
 	int count;
 };
 
-typedef QSharedPointer<LabelPixelHistogram> LabelPixelHistPtr;
-typedef QSharedPointer<CombinedProbability> CombinedProbPtr;
+typedef std::shared_ptr<LabelPixelHistogram> LabelPixelHistPtr;
+typedef std::shared_ptr<CombinedProbability> CombinedProbPtr;
 
 class iAImageTreeNode
 {
@@ -64,9 +65,9 @@ public:
 	virtual void ClearFilterData();
 	virtual ClusterIDType GetID() const = 0;
 	virtual void GetExampleImages(QVector<iAImageTreeLeaf *> & result, int amount) = 0;
-	virtual void SetParent(QSharedPointer<iAImageTreeNode > parent);
-	virtual QSharedPointer<iAImageTreeNode > GetParent() const;
-	virtual QSharedPointer<iAImageTreeNode > GetChild(int idx) const = 0;
+	virtual void SetParent(std::shared_ptr<iAImageTreeNode > parent);
+	virtual std::shared_ptr<iAImageTreeNode > GetParent() const;
+	virtual std::shared_ptr<iAImageTreeNode > GetChild(int idx) const = 0;
 	virtual double GetAttribute(int) const = 0;
 	virtual void GetMinMax(int chartID, double & min, double & max,
 		iAChartAttributeMapper const & chartAttrMap) const = 0;
@@ -76,14 +77,14 @@ public:
 	virtual Attitude ParentAttitude() const;
 	virtual LabelPixelHistPtr UpdateLabelDistribution() const = 0;
 	virtual CombinedProbPtr UpdateProbabilities() const = 0;
-	virtual void GetSelection(QVector<QSharedPointer<iASingleResult> > & result) const = 0;
+	virtual void GetSelection(QVector<std::shared_ptr<iASingleResult> > & result) const = 0;
 private:
-	QSharedPointer<iAImageTreeNode > m_parent;
+	std::shared_ptr<iAImageTreeNode > m_parent;
 	Attitude m_attitude;
 };
 
-void FindNode(iAImageTreeNode const * searched, QList<QSharedPointer<iAImageTreeNode> > & path, QSharedPointer<iAImageTreeNode> curCluster, bool & found);
-QSharedPointer<iAImageTreeNode> GetSibling(QSharedPointer<iAImageTreeNode> node);
+void FindNode(iAImageTreeNode const * searched, QList<std::shared_ptr<iAImageTreeNode> > & path, std::shared_ptr<iAImageTreeNode> curCluster, bool & found);
+std::shared_ptr<iAImageTreeNode> GetSibling(std::shared_ptr<iAImageTreeNode> node);
 
 
 template<typename VisitorFn>
@@ -92,6 +93,6 @@ void VisitNodes(iAImageTreeNode const * node, VisitorFn visitor)
 	visitor(node);
 	for (int i = 0; i<node->GetChildCount(); ++i)
 	{
-		VisitNodes(node->GetChild(i).data(), visitor);
+		VisitNodes(node->GetChild(i).get(), visitor);
 	}
 }

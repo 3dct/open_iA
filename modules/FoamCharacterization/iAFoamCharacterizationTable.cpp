@@ -210,11 +210,7 @@ void iAFoamCharacterizationTable::dropEvent(QDropEvent* e)
 {
 	if ((e->source() == this) && (m_iRowDrag > -1))
 	{
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-		m_iRowDrop = indexAt(e->pos()).row();
-#else
 		m_iRowDrop = indexAt(e->position().toPoint()).row();
-#endif
 
 		if ((m_iRowDrop > -1) && (m_iRowDrag != m_iRowDrop))
 		{
@@ -355,21 +351,13 @@ void iAFoamCharacterizationTable::keyPressEvent(QKeyEvent* e)
 void iAFoamCharacterizationTable::mouseDoubleClickEvent(QMouseEvent* e)
 {
 	QTableWidget::mouseDoubleClickEvent(e);
-
 	const int iMargin(100 * logicalDpiX() / 254);
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	if (e->x() > iMargin)
-#else
 	if (e->position().x() > iMargin)
-#endif
 	{
 		QModelIndexList mlIndex(selectedIndexes());
-
 		if (mlIndex.size())
 		{
 			iAFoamCharacterizationItem* pItem((iAFoamCharacterizationItem*) item(mlIndex.at(0).row(), 0));
-
 			pItem->dialog();
 		}
 	}

@@ -7,8 +7,6 @@
 
 #include <iAPlotData.h>
 
-#include <QSharedPointer>
-
 #include <QLineSeries>
 
 #include <vector>
@@ -36,7 +34,7 @@ public:
 	threshold_defs::iAThresIndx testFindIndex(double value);
 	void testSpecifyRange(const std::vector<double>& v_inRange, const std::vector<double>& v_elements, threshold_defs::iAParametersRanges& outputRanges);
 
-	void setData(QSharedPointer<iAPlotData> data)
+	void setData(std::shared_ptr<iAPlotData> data)
 	{
 		m_data = data;
 	}
@@ -137,16 +135,12 @@ private:
 
 	threshold_defs::iAParametersRanges m_NormalizedRanges;
 
-	QSharedPointer<iAPlotData> m_data;
+	std::shared_ptr<iAPlotData> m_data;
 	iAThresholdCalcHelper m_calcHelper;
 
 	std::vector<double> m_thresBinsX;
 	std::vector<double> m_freqValsY;
 	std::vector<double> m_movingFreqs;
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	QtCharts::QLineSeries *m_newDataSeries;
-#else
 	QLineSeries* m_newDataSeries;
-#endif
 };

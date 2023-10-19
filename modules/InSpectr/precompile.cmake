@@ -16,12 +16,12 @@ set(InSpectr_PRECOMPILE_INCLUDES
 <iASpectrumFilter.h>
 <iATypedCallHelper.h>
 <iAXRFData.h>
+<memory>
 <QFileDialog>
 <QImage>
 <QMap>
 <QMouseEvent>
 <QPainter>
-<QSharedPointer>
 <qthelper/iAQTtoUIConnector.h>
 <QThread>
 <QVector>

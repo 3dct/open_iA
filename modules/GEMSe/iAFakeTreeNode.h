@@ -23,9 +23,9 @@ public:
 	virtual ClusterDistanceType GetDistance() const;
 	// we should never get into any of these:
 	virtual void GetExampleImages(QVector<iAImageTreeLeaf *> & result, int amount);
-	virtual void SetParent(QSharedPointer<iAImageTreeNode > parent);
-	virtual QSharedPointer<iAImageTreeNode > GetParent() const;
-	virtual QSharedPointer<iAImageTreeNode > GetChild(int idx) const;
+	virtual void SetParent(std::shared_ptr<iAImageTreeNode > parent);
+	virtual std::shared_ptr<iAImageTreeNode > GetParent() const;
+	virtual std::shared_ptr<iAImageTreeNode > GetChild(int idx) const;
 	virtual void DiscardDetails() const;
 	ClusterImageType const GetLargeImage() const;
 	virtual LabelPixelHistPtr UpdateLabelDistribution() const;
@@ -33,7 +33,7 @@ public:
 	virtual void UpdateFilter(iAChartFilter const & filter,
 		iAChartAttributeMapper const & chartAttrMap,
 		iAResultFilter const & resultFilter);
-	virtual void GetSelection(QVector<QSharedPointer<iASingleResult> > & result) const;
+	virtual void GetSelection(QVector<std::shared_ptr<iASingleResult> > & result) const;
 
 private:
 	QString m_name;

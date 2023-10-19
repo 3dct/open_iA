@@ -3,10 +3,11 @@
 #include "iACorrelationCoefficient.h"
 
 //vtk
-#include "vtkDataObject.h"
-#include "vtkDoubleArray.h"
-#include "vtkMultiBlockDataSet.h"
-#include "vtkStringArray.h"
+#include <vtkCorrelativeStatistics.h>
+#include <vtkDoubleArray.h>
+#include <vtkMultiBlockDataSet.h>
+#include <vtkStringArray.h>
+#include <vtkTable.h>
 
 #include <QList>
 

@@ -4,7 +4,7 @@
 
 // base
 #include "iAAttributeDescriptor.h"
-#include "iADataSet.h"
+#include "iAImageData.h"
 #include "iAFileUtils.h"
 #include "iAFilter.h"
 #include "iALog.h"
@@ -26,7 +26,6 @@
 #include <QMessageBox>
 #include <QRegularExpression>
 #include <QSettings>
-#include <QSharedPointer>
 #include <QStatusBar>
 #include <QString>
 #include <QVariant>
@@ -58,17 +57,7 @@ void iAFilterRunnerGUIThread::run()
 			return;
 		}
 	}
-	catch (itk::ExceptionObject& e)
-	{
-		LOG(lvlError, tr("%1 terminated unexpectedly. Error: %2; in File %3, Line %4. Elapsed time: %5")
-				   .arg(m_filter->name())
-				   .arg(e.GetDescription())
-				   .arg(e.GetFile())
-				   .arg(e.GetLine())
-				.arg(formatDuration(time.elapsed() / 1000.0, true, false)));
-		return;
-	}
-	catch (const std::exception& e)
+	catch (std::exception const & e)
 	{
 		LOG(lvlError, tr("%1 terminated unexpectedly. Error: %2. Elapsed time: %3")
 				   .arg(m_filter->name())
@@ -352,7 +341,7 @@ void iAFilterRunnerGUI::filterFinished()
 		{
 			auto dataSet = filter->output(o);
 			dataSet->setMetaData(iADataSet::NameKey, baseName + dataSet->name());
-			newChild->addDataSet(dataSet);
+			newChild->addDataSet(dataSet);    // TODO: if it makes sense for this filter, we might want to pass in the viewer parameters (transfer function, etc.) from the old dataset (?)
 		}
 	}
 	for (auto outputValue : filter->outputValues())

@@ -7,10 +7,10 @@
 #include <vtkSmartPointer.h>
 
 #include <QPair>
-#include <QSharedPointer>
 #include <QStringList>
 #include <QVector>
 
+#include <memory>
 #include <vector>
 
 class iAFiberResultsCollection;
@@ -20,16 +20,12 @@ class iAColorTheme;
 
 class vtkImageData;
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-using qvectorsizetype = int;
-#else
 using qvectorsizetype = size_t;
-#endif
 
 class iASensitivityData
 {
 public:
-	iASensitivityData(QSharedPointer<iAFiberResultsCollection> data, QStringList const& paramNames,
+	iASensitivityData(std::shared_ptr<iAFiberResultsCollection> data, QStringList const& paramNames,
 		std::vector<std::vector<double>> const& paramValues);
 	//! compute characteristics
 	void compute(iAProgress* progress);
@@ -49,7 +45,7 @@ public:
 	// DATA / COMPUTED DATA:
 	//
 	//! the "original" FIAKER data of all loaded results:
-	QSharedPointer<iAFiberResultsCollection> m_data;
+	std::shared_ptr<iAFiberResultsCollection> m_data;
 	//! the names of all parameters
 	QStringList m_paramNames;
 	//! "points" in parameter space at which the sensitivity was computed

@@ -3,8 +3,9 @@
 #pragma once
 
 #include <QScrollArea>
-#include <QSharedPointer>
 #include <QVector>
+
+#include <memory>
 
 class iAPlot;
 class iAChartWidget;
@@ -26,10 +27,10 @@ public slots:
 private:
 	iALabelInfo const * m_labelInfo;
 	QVector<iAChartWidget *> m_charts;
-	QVector<QSharedPointer<iAParamHistogramData> > m_labelDistributionChartData;
-	QVector<QSharedPointer<iAParamHistogramData> > m_probabilitiesChartData;
-	QSharedPointer<iAParamHistogramData> m_entropyChartData;
-	QVector<QSharedPointer<iAPlot> > m_drawers;
+	QVector<std::shared_ptr<iAParamHistogramData>> m_labelDistributionChartData;
+	QVector<std::shared_ptr<iAParamHistogramData>> m_probabilitiesChartData;
+	std::shared_ptr<iAParamHistogramData> m_entropyChartData;
+	QVector<std::shared_ptr<iAPlot>> m_drawers;
 	iAImageTreeNode const * m_selectedNode;
 	QLabel* m_lbInfo;
 	int m_probChartStart;

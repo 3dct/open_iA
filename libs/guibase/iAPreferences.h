@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "defines.h" // for DefaultMagicLensSize
+#include "iAMagicLensConstants.h" // for DefaultMagicLensSize
 
 //! Collection of generic open_iA program preferences.
 class iAPreferences

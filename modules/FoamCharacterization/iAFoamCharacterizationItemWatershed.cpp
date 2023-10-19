@@ -4,7 +4,7 @@
 
 #include "iAFoamCharacterizationDialogWatershed.h"
 
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>    // for itkScalarType
 

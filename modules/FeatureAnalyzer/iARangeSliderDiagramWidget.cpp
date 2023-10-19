@@ -13,8 +13,8 @@
 
 #include <cassert>
 
-QSharedPointer<iAHistogramData> createFilteredPlotData(
-	QSharedPointer<iAPlotData> other, int firstBin, int lastBin)
+std::shared_ptr<iAHistogramData> createFilteredPlotData(
+	std::shared_ptr<iAPlotData> other, int firstBin, int lastBin)
 {
 	auto result = iAHistogramData::create("Filtered "+other->name(), other->valueType(),
 		other->xBounds()[0], other->xBounds()[1], other->valueCount());
@@ -27,7 +27,7 @@ QSharedPointer<iAHistogramData> createFilteredPlotData(
 }
 
 iARangeSliderDiagramWidget::iARangeSliderDiagramWidget(QWidget* parent, vtkPiecewiseFunction* oTF,
-	vtkColorTransferFunction* cTF, QSharedPointer<iAHistogramData> data, QMultiMap<double, QList<double>>* histogramMap,
+	vtkColorTransferFunction* cTF, std::shared_ptr<iAHistogramData> data, QMultiMap<double, QList<double>>* histogramMap,
 	const QTableWidget* rawTable, QString const& xlabel, QString const& yLabel) :
 	iAChartWithFunctionsWidget(parent, xlabel, yLabel),
 	m_data(data),
@@ -42,8 +42,8 @@ iARangeSliderDiagramWidget::iARangeSliderDiagramWidget(QWidget* parent, vtkPiece
 	m_rawTable(rawTable),
 	m_tf(new iATransferFunctionPtrs(cTF, oTF))
 {
-	setTransferFunction(m_tf.data());
-	addPlot(QSharedPointer<iABarGraphPlot>::create(m_data, QColor(70, 70, 70, 255)));
+	setTransferFunction(m_tf.get());
+	addPlot(std::make_shared<iABarGraphPlot>(m_data, QColor(70, 70, 70, 255)));
 	m_selectionRubberBand->hide();
 	( (iAChartTransferFunction*) m_functions[0] )->enableRangeSliderHandles( true );
 }
@@ -51,11 +51,8 @@ iARangeSliderDiagramWidget::iARangeSliderDiagramWidget(QWidget* parent, vtkPiece
 void iARangeSliderDiagramWidget::drawFunctions( QPainter &painter )
 {
 	size_t counter = 0;
-	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
-	while ( it != m_functions.end() )
+	for (auto func: m_functions)
 	{
-		iAChartFunction *func = ( *it );
-
 		if (counter == m_selectedFunction)
 		{
 			func->draw(painter, QColor(255, 128, 0, 255), iAChartFunction::LineWidthSelected);
@@ -64,7 +61,6 @@ void iARangeSliderDiagramWidget::drawFunctions( QPainter &painter )
 		{
 			func->draw(painter);
 		}
-		++it;
 		++counter;
 	}
 }
@@ -77,13 +73,8 @@ void iARangeSliderDiagramWidget::mousePressEvent( QMouseEvent *event )
 {
 	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 	iAChartFunction *func = *( it + m_selectedFunction );
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 	int mouseX = event->position().x() - leftMargin();
 	int selectedPoint = func->selectPoint(mouseX, chartHeight() - event->position().y());
-#else
-	int mouseX = event->x() - leftMargin();
-	int selectedPoint = func->selectPoint(mouseX, chartHeight() - event->y());
-#endif
 
 	if ( event->button() == Qt::RightButton )
 	{
@@ -129,12 +120,8 @@ void iARangeSliderDiagramWidget::mousePressEvent( QMouseEvent *event )
 				m_addedHandles.append( m_firstSelectedBin );
 			}
 		}
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		else if (event->position().y() > geometry().height() - bottomMargin() - m_translationY &&
-#else
-		else if ( event->y() > geometry().height() - bottomMargin() - m_translationY  &&
-#endif
-				  !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) )	// mouse event below X-axis
+			!( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) )	// mouse event below X-axis
 		{
 			if ( m_addedHandles.size() < 2 )
 			{
@@ -161,11 +148,7 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 	{
 		std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 		iAChartFunction *func = *( it + m_selectedFunction );
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		func->selectPoint(event->position().x() - leftMargin(), chartHeight() - event->position().y());
-#else
-		func->selectPoint(event->x() - leftMargin(), chartHeight() - event->y());
-#endif
 		update();
 	}
 	else if ( event->button() == Qt::LeftButton )
@@ -179,13 +162,8 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 
 			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 			iAChartFunction* func = *(it + m_selectedFunction);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 			int mouseX = event->position().x() - leftMargin();
 			int selectedPoint = func->selectPoint(mouseX, chartHeight() - event->position().y());
-#else
-			int mouseX = event->x() - leftMargin();
-			int selectedPoint = func->selectPoint(mouseX, chartHeight() - event->y());
-#endif
 
 			// don't do anything if outside of diagram region:
 			if ( selectedPoint == -1 && mouseX < 0 )
@@ -207,11 +185,7 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 				func->moveSelectedPoint(dataBin2ScreenX(m_lastSelectedBin + 1) - m_xMapper->srcToDst(m_xShift), 0);
 			}
 		}
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		else if ( event->position().y() > geometry().height() - bottomMargin() - m_translationY )	// mouse event below X-axis
-#else
-		else if ( event->y() > geometry().height() - bottomMargin() - m_translationY )	// mouse event below X-axis
-#endif
 		{
 			if ( m_addedHandles.size() == 2 )	// there are two handles draw a selection
 			{
@@ -253,20 +227,12 @@ void iARangeSliderDiagramWidget::mouseMoveEvent( QMouseEvent *event )
 			}
 			m_selectionRubberBand->setGeometry( QRect( m_selectionOrigin, event->pos() ).normalized() );
 		}
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		else if ( event->position().y() > geometry().height() - bottomMargin() - m_translationY
-#else
-		else if ( event->y() > geometry().height() - bottomMargin() - m_translationY
-#endif
-				  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) )	// mouse event below X-axis
+		  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) )	// mouse event below X-axis
 		{
 			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 			iAChartFunction *func = *( it + m_selectedFunction );
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 			int x = event->position().x() - leftMargin();
-#else
-			int x = event->x() - leftMargin();
-#endif
 			int selectedPoint = func->getSelectedPoint();
 
 			// don't do anything if not an added handle is selected
@@ -312,21 +278,13 @@ void iARangeSliderDiagramWidget::contextMenuEvent( QContextMenuEvent * /*event*/
 
 int iARangeSliderDiagramWidget::getBin( QMouseEvent *event )
 {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 	int nthBin = m_data->nearestIdx(mouse2DataX(event->position().x() - leftMargin()));
-#else
-	int nthBin = m_data->nearestIdx(mouse2DataX(event->x() - leftMargin()));
-#endif
 	QString text( tr( "%1: %2 %\n%3: %4" )
 				  .arg( m_yLabel )
 				  .arg( m_data->yValue(nthBin) )
 				  .arg( m_xLabel )
 				  .arg( (m_data->spacing() * nthBin + xBounds()[0] ) ) );
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 	QToolTip::showText(event->globalPosition().toPoint(), text, this);
-#else
-	QToolTip::showText( event->globalPos(), text, this );
-#endif
 	return nthBin;
 }
 
@@ -337,7 +295,7 @@ void iARangeSliderDiagramWidget::setupSelectionDrawer()
 	{
 		removePlot(m_selectionDrawer);
 	}
-	m_selectionDrawer = QSharedPointer<iAStepFunctionPlot>::create(m_selectedData, m_selectionColor);
+	m_selectionDrawer = std::make_shared<iAStepFunctionPlot>(m_selectedData, m_selectionColor);
 	addPlot( m_selectionDrawer );
 }
 
@@ -365,24 +323,16 @@ void iARangeSliderDiagramWidget::selectSlot()
 
 	QList<double> rawTableRows(set.values());
 
-	if ( m_histogramDrawerList.size() )
+	for(auto plot: m_histogramDrawerList)
 	{
-		QListIterator<QSharedPointer<iAStepFunctionPlot> > it( m_histogramDrawerList );
-		while (it.hasNext())
-		{
-			removePlot(it.next());
-		}
-		m_histogramDrawerList.clear();
+		removePlot(plot);
 	}
+	m_histogramDrawerList.clear();
 
-	QListIterator<double> it( rawTableRows );
-	while ( it.hasNext() )
+	for (auto row: rawTableRows)
 	{
-		int row = it.next();
 		auto selectedData = createFilteredPlotData( m_data, row - 1, row - 1 );	//-1 cause of DiagramData
-
-		auto selectionDrawer = QSharedPointer<iAStepFunctionPlot>::create( selectedData, QColor( Qt::yellow ) );
-
+		auto selectionDrawer = std::make_shared<iAStepFunctionPlot>( selectedData, QColor( Qt::yellow ) );
 		m_histogramDrawerList.append( selectionDrawer );
 		addPlot( selectionDrawer );
 	}
@@ -391,15 +341,11 @@ void iARangeSliderDiagramWidget::selectSlot()
 
 void iARangeSliderDiagramWidget::deleteSlot()
 {
-	if ( m_histogramDrawerList.size() )
+	for (auto plot: m_histogramDrawerList)
 	{
-		QListIterator<QSharedPointer<iAStepFunctionPlot> > it( m_histogramDrawerList );
-		while (it.hasNext())
-		{
-			removePlot(it.next());
-		}
-		m_histogramDrawerList.clear();
+		removePlot(plot);
 	}
+	m_histogramDrawerList.clear();
 	update();
 }
 

@@ -6,7 +6,7 @@
 
 #include <QDialog>
 
-#include <memory>    // for unique_ptr
+#include <memory>
 
 class Ui_FilterSelectionDlg;
 

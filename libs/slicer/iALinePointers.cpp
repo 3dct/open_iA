@@ -2,10 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iALinePointers.h"
 
-#include <vtkActor.h>
-#include <vtkConeSource.h>
 #include <vtkPoints.h>
-#include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 
@@ -15,29 +12,28 @@ iALinePointers::iALinePointers():
 	points->Allocate(2);
 	for (vtkIdType i = 0; i < 2; i++)
 	{
-		pointers[i] = vtkSmartPointer<vtkConeSource>::New();
-		mappers[i] = vtkSmartPointer<vtkPolyDataMapper>::New();
-		actors[i] = vtkSmartPointer<vtkActor>::New();
-		pointers[i]->SetResolution(4);
-		mappers[i]->SetInputConnection(pointers[i]->GetOutputPort());
-		actors[i]->SetMapper(mappers[i]);
-		actors[i]->GetProperty()->SetAmbientColor(1.0, 1.0, 1.0);
-		actors[i]->GetProperty()->SetAmbient(1.0);
-		//actors[i]->GetProperty()->SetLineWidth(1);
+		m_cones[i].source->SetResolution(4);
+		m_cones[i].actor->GetProperty()->SetAmbientColor(1.0, 1.0, 1.0);
+		m_cones[i].actor->GetProperty()->SetAmbient(1.0);
+		//m_cones[i].actor->GetProperty()->SetLineWidth(1);
 	}
-	pointers[1]->SetDirection(-1, 0, 0);
+	m_cones[1].source->SetDirection(-1, 0, 0);
 }
 
 void iALinePointers::setVisible(bool visible)
 {
 	for (vtkIdType i = 0; i < 2; i++)
-		actors[i]->SetVisibility(visible);
+	{
+		m_cones[i].actor->SetVisibility(visible);
+	}
 }
 
 void iALinePointers::addToRenderer(vtkRenderer * ren)
 {
 	for (vtkIdType i = 0; i < 2; i++)
-		ren->AddActor(actors[i]);
+	{
+		ren->AddActor(m_cones[i].actor);
+	}
 }
 
 void iALinePointers::updatePosition(double posY, double zeroLevelPosY, double startX, double endX, double const * spacing)
@@ -48,10 +44,10 @@ void iALinePointers::updatePosition(double posY, double zeroLevelPosY, double st
 	double height = ConeHeight * scaling;
 	for (int i = 0; i < 2; ++i)
 	{
-		pointers[i]->SetHeight(height);
-		pointers[i]->SetRadius(height / 4.0);
-		pointers[i]->SetCenter(points->GetPoint(i));
+		m_cones[i].source->SetHeight(height);
+		m_cones[i].source->SetRadius(height / 4.0);
+		m_cones[i].source->SetCenter(points->GetPoint(i));
 	}
-	actors[0]->SetPosition(-height / 2, posY, 0);
-	actors[1]->SetPosition( height / 2, posY, 0);
+	m_cones[0].actor->SetPosition(-height / 2, posY, 0);
+	m_cones[1].actor->SetPosition( height / 2, posY, 0);
 }

@@ -14,9 +14,9 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QSharedPointer>
 #include <QStandardItemModel>
 
+#include <memory>
 #include <vector>
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_InSpectr>   dlg_xrfContainer;
@@ -59,8 +59,8 @@ public:
 	vtkSmartPointer<vtkImageData> GetCombinedVolume();
 	vtkSmartPointer<vtkColorTransferFunction> GetColorTransferFunction();
 	QThread* UpdateForVisualization();
-	QSharedPointer<iAXRFData> GetXRFData();
-	QSharedPointer<iAElementConcentrations> GetElementConcentrations();
+	std::shared_ptr<iAXRFData> GetXRFData();
+	std::shared_ptr<iAElementConcentrations> GetElementConcentrations();
 
 	void UpdateVoxelSpectrum(int x, int y, int z);
 	void UpdateConcentrationViews(int x, int y, int z);
@@ -131,7 +131,7 @@ private:
 	void updateAllPieGlyphs();
 
 	bool            m_pieGlyphsEnabled;         //!< if slice pie glyphs are enabled
-	QVector<QSharedPointer<iAPieChartGlyph> > m_pieGlyphs[3];
+	QVector<std::shared_ptr<iAPieChartGlyph> > m_pieGlyphs[3];
 	double          m_pieGlyphMagFactor;
 	double          m_pieGlyphSpacing;
 	double          m_pieGlyphOpacity;
@@ -146,9 +146,9 @@ private:
 	void InitElementRenderer(dlg_elementRenderer * elemRend, size_t index);
 	void InitCommonGUI();
 
-	QSharedPointer<QImage>                         m_spectraHistogramImage;
+	std::shared_ptr<QImage>                        m_spectraHistogramImage;
 	QImage                                         m_spectraHistogramColormap;
-	QSharedPointer<QImage>                         m_functionalBoxplotImage;
+	std::shared_ptr<QImage>                        m_functionalBoxplotImage;
 	bool                                           m_initialized;
 	bool                                           m_ctfChanged;
 	bool                                           m_decompositionLoaded;
@@ -158,17 +158,17 @@ private:
 	QGridLayout *                                  m_pieChartGridLayout;
 	vtkSmartPointer<vtkPiecewiseFunction>          m_oTF;
 	vtkSmartPointer<vtkColorTransferFunction>      m_cTF;
-	QSharedPointer<iAXRFData>                      m_xrfData;
-	QSharedPointer<iAHistogramData>                m_voxelEnergy;
-	QSharedPointer<iAAccumulatedXRFData>           m_accumulatedXRF;
-	QMap<int, QSharedPointer<iAStepFunctionPlot> > m_refSpectraDrawers;
-	QSharedPointer<iAReferenceSpectraLibrary>      m_refSpectraLib;
-	QSharedPointer<iAPlotCollection>               m_spectraLinesDrawer;
-	QSharedPointer<iAPlot>                         m_voxelSpectrumDrawer;
-	QSharedPointer<iAElementConcentrations>        m_elementConcentrations;
-	QSharedPointer<iADecompositionCalculator>      m_decompositionCalculator;
-	QSharedPointer<iASelectedBinPlot>              m_selectedBinXDrawer;
-	QSharedPointer<iASelectedBinPlot>              m_selectedBinYDrawer;
+	std::shared_ptr<iAXRFData>                      m_xrfData;
+	std::shared_ptr<iAHistogramData>               m_voxelEnergy;
+	std::shared_ptr<iAAccumulatedXRFData>          m_accumulatedXRF;
+	QMap<int, std::shared_ptr<iAStepFunctionPlot>> m_refSpectraDrawers;
+	std::shared_ptr<iAReferenceSpectraLibrary>      m_refSpectraLib;
+	std::shared_ptr<iAPlotCollection>              m_spectraLinesDrawer;
+	std::shared_ptr<iAPlot>                        m_voxelSpectrumDrawer;
+	std::shared_ptr<iAElementConcentrations>        m_elementConcentrations;
+	std::shared_ptr<iADecompositionCalculator>      m_decompositionCalculator;
+	std::shared_ptr<iASelectedBinPlot>             m_selectedBinXDrawer;
+	std::shared_ptr<iASelectedBinPlot>             m_selectedBinYDrawer;
 	QVector<int>                                   m_decomposeSelectedElements;
 	int                                            m_enabledChannels;
 	std::vector<uint>                              m_channelIDs;
@@ -190,6 +190,6 @@ private:
 	iARendererViewSync                             m_rendererManager;
 	QVector<iACharacteristicEnergy>                m_characteristicEnergies;
 	QDockWidget *                                  m_pieChartContainer;
-	QSharedPointer<iAPeriodicTableListener>        m_periodicTableListener;
+	std::shared_ptr<iAPeriodicTableListener>        m_periodicTableListener;
 	iAQVTKWidget *                                 m_colormapWidget;
 };

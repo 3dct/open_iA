@@ -2,19 +2,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAImNDTModuleInterface.h"
 
+#include "iAImNDTMain.h"
 #include "iAVREnvironment.h"
 
 // 3D object visualization
-#include "dlg_CSVInput.h"
-#include "iA3DObjectFactory.h"
-#include "iACsvConfig.h"
-#include "iACsvVtkTableCreator.h"
+#include <dlg_CSVInput.h>
+#include <iAColoredPolyObjectVis.h>
+#include <iACsvConfig.h>
+#include <iACsvVtkTableCreator.h>
+#include <iAObjectVisFactory.h>
 
+#include <iADataSetRenderer.h>
+#include <iADataSetViewer.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
-#include "iAParameterDlg.h"
-#include <iAVolumeRenderer.h>
-#include <iAVolumeViewer.h>
+#include <iAParameterDlg.h>
 
 #include <iALog.h>
 
@@ -88,7 +90,7 @@ void iAImNDTModuleInterface::Initialize()
 		connect(child, &iAMdiChild::dataSetRendered, this, [this, removeRenderer, child](size_t dataSetIdx)
 		{
 			auto viewer = child->dataSetViewer(dataSetIdx);
-			if (viewer->renderer())    // if dataset has a renderer, add a button to view it in VR:
+			if (viewer && viewer->renderer())    // if dataset has a renderer, add a button to view it in VR:
 			{
 				auto action = viewer->addViewAction("VR", "VR", false, [this, removeRenderer, child, viewer, dataSetIdx](bool checked)
 				{
@@ -133,7 +135,7 @@ void iAImNDTModuleInterface::Initialize()
 					auto vrRen = m_vrRenderers.at(key);
 					vrRen->setAttributes(viewer->attributeValues());
 				});
-				connect(viewer, &iADataSetViewer::removeDataSet, this, [this, child, removeRenderer](size_t dataSetIdx)
+				connect(viewer, &iADataSetViewer::removeDataSet, this, [child, removeRenderer](size_t dataSetIdx)
 				{
 					removeRenderer(child, dataSetIdx);
 				});
@@ -477,7 +479,7 @@ bool iAImNDTModuleInterface::setupVREnvironment()
 }
 
 // Start ImNDT with pre-loaded data
-bool iAImNDTModuleInterface::ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io, iACsvConfig csvConfig)
+bool iAImNDTModuleInterface::ImNDT(std::shared_ptr<iAColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io, iACsvConfig csvConfig)
 {
 	if (!setupVREnvironment())
 	{
@@ -489,7 +491,7 @@ bool iAImNDTModuleInterface::ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> poly
 	//TODO: CHECK IF PolyObject is not Volume OR NoVis
 	m_polyObject = polyObject;
 	m_objectTable = objectTable;
-	m_vrMain = std::make_shared<iAImNDTMain>(m_vrEnv.get(), m_polyObject.data(), m_objectTable, io, csvConfig);
+	m_vrMain = std::make_shared<iAImNDTMain>(m_vrEnv.get(), m_polyObject.get(), m_objectTable, io, csvConfig);
 	connect(m_vrMain.get(), &iAImNDTMain::selectionChanged, this, &iAImNDTModuleInterface::selectionChanged);
 
 	// Start Render Loop HERE!
@@ -520,7 +522,7 @@ bool iAImNDTModuleInterface::loadImNDT()
 
 	std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo;
 
-	if (m_csvConfig.visType == iACsvConfig::Cylinders || m_csvConfig.visType == iACsvConfig::Lines)
+	if (m_csvConfig.visType == iAObjectVisType::Cylinder || m_csvConfig.visType == iAObjectVisType::Line)
 	{
 		if (!readCurvedFiberInfo(m_csvConfig.curvedFiberFileName, curvedFiberInfo))
 		{
@@ -528,9 +530,8 @@ bool iAImNDTModuleInterface::loadImNDT()
 		}
 	}
 	m_objectTable = creator.table();
-	m_polyObject = create3DObjectVis(
-		m_csvConfig.visType, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo)
-					   .dynamicCast<iA3DColoredPolyObjectVis>();
+	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(create3DObjectVis(
+		m_csvConfig.visType, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo));
 	if (!m_polyObject)
 	{
 		LOG(lvlError, "Invalid 3D object visualization!");

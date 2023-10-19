@@ -26,7 +26,6 @@
 #include <vtkSmartPointer.h>
 
 class vtkTransform;
-class vtkSphereSource;
 
 #define VTK_MAX_SPHERE_RESOLUTION 1024
 

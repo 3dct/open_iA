@@ -5,19 +5,15 @@ set(DEPENDENCIES_LIBRARIES
 )
 set(DEPENDENCIES_VTK_MODULES
 	ChartsCore            # for vtkAxis
-	FiltersHybrid         # for vtkPolyDataSilhouette
-	ImagingHybrid         # for vtkSampleFunction used in iABlobCluster
+	CommonColor           # for vtkNamedColors, vtkColorSeries
 	RenderingContext2D    # for vtkContextActor, vtkContextScene, vtkContextTransform
 	RenderingContextOpenGL2 # for implementation of RenderingContext2D (?)
 	ViewsContext2D        # for vtkContextView, vtkContextInteractorStyle
-	InfovisCore
-	InfovisLayout
-	ViewsInfovis
-	FiltersStatistics
-	FiltersExtraction
-	FiltersProgrammable
-	CommonComputationalGeometry
-	
+	InfovisLayout         # for vtkGraphLayoutStrategy
+	ViewsInfovis          # for vtkGraphLayoutView
+	FiltersStatistics     # for vtkComputeQuartiles, vtkCorrelativeStatistics
+	FiltersExtraction     # for vtkExtractSelection
+	FiltersProgrammable   # for vtkProgrammableGlyphFilter	
 )
 set(DEPENDENCIES_INCLUDE_DIRS
 	${EIGEN3_INCLUDE_DIR}

@@ -17,7 +17,17 @@
 #include <itkBinaryContourImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkCastImageFilter.h>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#ifdef __clang__
+#if __clang_major__ > 10
+#pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
+#else
+#pragma clang diagnostic ignored "-Wimplicit-int-float-conversion"
+#endif
+#endif
 #include <itkConfidenceConnectedImageFilter.h>
+#pragma GCC diagnostic pop
 #include <itkConnectedComponentImageFilter.h>
 #include <itkConnectedThresholdImageFilter.h>
 #include <itkCurvatureAnisotropicDiffusionImageFilter.h>
@@ -25,7 +35,18 @@
 #include <itkExtractImageFilter.h>
 #include <itkGradientAnisotropicDiffusionImageFilter.h>
 #include <itkGradientMagnitudeImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic push
+#if __clang_major__ > 10
+#pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
+#else
+#pragma clang diagnostic ignored "-Wimplicit-int-float-conversion"
+#endif
+#endif
 #include <itkHuangThresholdImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 #include <itkImageDuplicator.h>
 #include <itkImageFileWriter.h>
 #include <itkImageRegionConstIterator.h>
@@ -65,11 +86,7 @@
 #include <QTime>
 
 // OpenMP
-#ifndef __APPLE__
-#ifndef __MACOSX
 #include <omp.h>
-#endif
-#endif
 
 #include <cassert>
 

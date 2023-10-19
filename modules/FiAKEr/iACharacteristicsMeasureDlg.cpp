@@ -45,7 +45,7 @@ namespace
 }
 
 iACharacteristicsMeasureDlg::iACharacteristicsMeasureDlg(
-	QSharedPointer<iAFiberResultsCollection> data) :
+	std::shared_ptr<iAFiberResultsCollection> data) :
 	m_characteristicsModel(new QStandardItemModel()),
 	m_diffMeasuresModel(new QStandardItemModel()),
 	m_ui(new Ui_CharacteristicsMeasureDialog())

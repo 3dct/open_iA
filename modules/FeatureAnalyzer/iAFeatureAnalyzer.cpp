@@ -403,9 +403,6 @@ bool iAFeatureAnalyzer::doSaveProject(QString const& projectFileName)
 	}
 	// TODO: Unify with iAMdiChild::doSaveProject
 	QSettings projectFile(projectFileName, QSettings::IniFormat);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	projectFile.setIniCodec("UTF-8");
-#endif
 	projectFile.setValue("UseMdiChild", false);
 	projectFile.beginGroup(iAFeatureAnalyzerTool::ID);
 	tool.saveState(projectFile, projectFileName);

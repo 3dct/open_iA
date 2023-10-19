@@ -10,9 +10,9 @@ iAVectorDataType iAVectorType::operator[](size_t channelIdx) const
 	return get(channelIdx);
 }
 
-QSharedPointer<iAVectorType const> iAVectorType::normalized() const
+std::shared_ptr<iAVectorType const> iAVectorType::normalized() const
 {
-	QSharedPointer<iAStandaloneVector> result(new iAStandaloneVector(size()));
+	std::shared_ptr<iAStandaloneVector> result(new iAStandaloneVector(size()));
 	iAVectorDataType sum = 0;
 	for(iAVectorType::IndexType i = 0; i<size(); ++i)
 	{

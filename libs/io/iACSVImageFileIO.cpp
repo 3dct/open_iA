@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACSVImageFileIO.h"
 
+#include "iAImageData.h"
 #include "iAFileUtils.h"
 #include "iAProgress.h"
 #include "iAToolsVTK.h"

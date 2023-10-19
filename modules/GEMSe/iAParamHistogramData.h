@@ -6,8 +6,6 @@
 
 #include <iAHistogramData.h>
 
-#include <QSharedPointer>
-
 #include <cstddef> // for size_t
 
 class iAChartFilter;
@@ -20,14 +18,14 @@ class iAParamHistogramData : public iAHistogramData
 {
 public:
 	// TODO: extract creation?
-	static QSharedPointer<iAParamHistogramData> create(iAImageTreeNode const * ,
+	static std::shared_ptr<iAParamHistogramData> create(iAImageTreeNode const * ,
 		int chartID,
 		iAValueType rangeType,
 		double minX, double maxX,
 		bool log,
 		iAChartAttributeMapper const & chartAttrMap,
 		int numBin);
-	static QSharedPointer<iAParamHistogramData> create(iAImageTreeNode const * ,
+	static std::shared_ptr<iAParamHistogramData> create(iAImageTreeNode const * ,
 		int chartID,
 		iAValueType rangeType,
 		double minX, double maxX,
@@ -46,16 +44,16 @@ public:
 	void addValue(double value);
 private:
 	static void visitNode(iAImageTreeNode const * node,
-		QSharedPointer<iAParamHistogramData> data,
+		std::shared_ptr<iAParamHistogramData> data,
 		int chartID,
 		iAChartAttributeMapper const & chartAttrMap);
 	static void visitNode(iAImageTreeNode const * node,
-		QSharedPointer<iAParamHistogramData> data,
+		std::shared_ptr<iAParamHistogramData> data,
 		int chartID,
 		iAChartAttributeMapper const & chartAttrMap,
 		iAChartFilter const & attributeFilter);
 	static void countNodeBin(iAImageTreeLeaf const * node,
-		QSharedPointer<iAParamHistogramData> data,
+		std::shared_ptr<iAParamHistogramData> data,
 		int chartID,
 		iAChartAttributeMapper const & chartAttrMap);
 	

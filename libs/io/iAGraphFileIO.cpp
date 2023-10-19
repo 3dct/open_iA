@@ -3,6 +3,7 @@
 #include "iAGraphFileIO.h"
 
 #include "iAAABB.h"
+#include "iAPolyData.h"
 #include "iAValueTypeVectorHelpers.h"
 
 #include <vtkCellData.h>
@@ -52,10 +53,7 @@ std::shared_ptr<iADataSet> iAGraphFileIO::loadData(QString const& fileName, QVar
 	auto const fileSize = file.size();
 	if (!file.open(QIODevice::ReadOnly))
 	{
-		LOG(lvlError,
-			QString("Could not open file '%1' for reading! It probably does not exist!")
-			.arg(fileName));
-		return {};
+		throw std::runtime_error("File could not be opened (it might not exist?)!");
 	}
 	QStringList origCSVInfo;
 	QTextStream in(&file);
@@ -77,8 +75,7 @@ std::shared_ptr<iADataSet> iAGraphFileIO::loadData(QString const& fileName, QVar
 	int vertexColorIdx = vertexHeader.indexOf("color");
 	if (xIdx == -1 || yIdx == -1 || zIdx == -1 || vertexColorIdx == -1)
 	{
-		LOG(lvlError, QString("An expected column (x, y, z or color) was not found!"));
-		return {};
+		throw std::runtime_error("An expected column (x, y, z or color) was not found!");
 	}
 	QSet<int> mappedVertexIndices{ vertexIDIdx, xIdx, yIdx, zIdx, vertexColorIdx };
 	QStringList vertexValueNames;

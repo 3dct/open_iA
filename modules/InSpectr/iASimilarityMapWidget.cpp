@@ -108,7 +108,7 @@ void iASimilarityMapWidget::updateQtImage()
 	m_numBins = dims[0];
 	ImageScalarType * scalPtr = (ImageScalarType*)m_vtkImageData->GetScalarPointer();
 	double windowRange[2] = { scalRange[1] * m_WindowRange[0], scalRange[1] * m_WindowRange[1] };
-	m_qtImage = QSharedPointer<QImage>::create( dims[0], dims[1], QImage::Format_ARGB32 );
+	m_qtImage = std::make_shared<QImage>( dims[0], dims[1], QImage::Format_ARGB32 );
 
 	for( int x = 0; x < dims[0]; ++x )
 	{
@@ -174,7 +174,7 @@ void iASimilarityMapWidget::drawMap()
 	m_mapWidth = std::min( geometry().width(), geometry().height() );
 	painter.save();
 	painter.translate( 0, geometry().height() - m_mapWidth );
-	painter.drawImage( QRectF( 0, 0, m_mapWidth, m_mapWidth ), *m_qtImage.data() );
+	painter.drawImage( QRectF( 0, 0, m_mapWidth, m_mapWidth ), *m_qtImage.get() );
 	painter.restore();
 }
 
@@ -226,11 +226,7 @@ void iASimilarityMapWidget::setWindowing( double lowerVal, double upperVal )
 void iASimilarityMapWidget::mouseMoveEvent( QMouseEvent *event )
 {
 	int selectedBins[2] = { 0, 0 };
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	double pos[2] = {static_cast<double>(event->x()), static_cast<double>(event->y()) };
-#else
 	double pos[2] = {event->position().x(), event->position().y()};
-#endif
 	binsFromPos( pos, selectedBins );
 	emit energyBinsSelectedSignal( selectedBins[0], selectedBins[1] );
 }
@@ -238,11 +234,7 @@ void iASimilarityMapWidget::mouseMoveEvent( QMouseEvent *event )
 void iASimilarityMapWidget::mouseReleaseEvent( QMouseEvent * event )
 {
 	int selectedBins[2] = {0, 0};
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	double pos[2] = {static_cast<double>(event->x()), static_cast<double>(event->y())};
-#else
 	double pos[2] = {event->position().x(), event->position().y()};
-#endif
 	binsFromPos( pos, selectedBins );
 	findPeak( selectedBins[0], selectedBins[1] );
 	findPeakRanges();

@@ -53,18 +53,23 @@ namespace Hilbert
 		case (a+1): SETBIT;
 #define SETBIT2(a) \
 		SETBIT1(a+1); \
+			[[fallthrough]]; \
 		SETBIT1(a);
 #define SETBIT4(a) \
 		SETBIT2(a+2); \
+			[[fallthrough]]; \
 		SETBIT2(a);
 #define SETBIT8(a) \
 		SETBIT4(a+4); \
+			[[fallthrough]]; \
 		SETBIT4(a);
 #define SETBIT16(a) \
 		SETBIT8(a+8); \
+			[[fallthrough]]; \
 		SETBIT8(a);
 #define SETBIT32(a) \
 		SETBIT16(a+16); \
+			[[fallthrough]]; \
 		SETBIT16(a);
 
 		int j = 0;
@@ -79,14 +84,12 @@ namespace Hilbert
 			}
 
 			int dj = n - j;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
 			switch ( n - j )
 			{
 				default: dj = 32;
+					[[fallthrough]];
 				SETBIT32(0);
 			}
-#pragma GCC diagnostic pop
 			j += dj;
 		}
 

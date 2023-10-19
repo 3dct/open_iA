@@ -28,16 +28,8 @@ public:
 		{
 		case MESSAGE_TYPE_TEXT           : lvl = lvlInfo;  break;
 		case MESSAGE_TYPE_ERROR          : lvl = lvlError; break;
-		default:
-	#if __cplusplus >= 201703L
-			[[fallthrough]];
-	#endif
-			// fall through
-		case MESSAGE_TYPE_WARNING        :
-	#if __cplusplus >= 201703L
-			[[fallthrough]];
-	#endif
-			// fall through
+		default                          : [[fallthrough]];
+		case MESSAGE_TYPE_WARNING        : [[fallthrough]];
 		case MESSAGE_TYPE_GENERIC_WARNING: lvl = lvlWarn;  break;
 		case MESSAGE_TYPE_DEBUG          : lvl = lvlDebug; break;
 		}

@@ -31,13 +31,13 @@ namespace
 		return QPoint(imgX(a), imgY(fctA));
 	}
 }
-QSharedPointer<QImage> drawFunctionalBoxplot(FunctionalBoxPlot const * fbp, int width, int height)
+std::shared_ptr<QImage> drawFunctionalBoxplot(FunctionalBoxPlot const * fbp, int width, int height)
 {
 	ScaleYFactor = PixelHeight / height;
 	ScaleXFactor = std::min(32768 / width, static_cast<int>(ScaleXFactor));
 	int PixelWidth = ScaleXFactor * width;
 	assert (PixelWidth * PixelHeight < std::numeric_limits<int>::max());
-	QSharedPointer<QImage> image(new QImage(PixelWidth, PixelHeight, QImage::Format_ARGB32));
+	auto image = std::make_shared<QImage>(PixelWidth, PixelHeight, QImage::Format_ARGB32);
 	image->fill(QColor(0, 0, 0, 0));
 
 	// reserve space in point list to avoid reallocation:
@@ -67,7 +67,7 @@ QSharedPointer<QImage> drawFunctionalBoxplot(FunctionalBoxPlot const * fbp, int 
 		centralRegion.append(img(a, fbp->getCentralRegion().getMax(a) ) );
 		envelope.append(img(a, fbp->getEnvelope().getMax(a)));
 	}
-	QPainter painter(image.data());
+	QPainter painter(image.get());
 	painter.setRenderHint(QPainter::Antialiasing);
 
 	// a line for upper and lower envelope:

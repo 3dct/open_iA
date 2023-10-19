@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAMagicLens.h"
 
-#include "defines.h"    // for DefaultMagicLensSize
+#include "iAMagicLensConstants.h" // for DefaultMagicLensSize
+
 #include "iALog.h"
 #include "iAMathUtility.h"
 
@@ -24,8 +25,6 @@
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h>
 #include <vtkWindowToImageFilter.h>
-
-#include <QSharedPointer>
 
 const double iAMagicLens::DefaultFrameWidth = 5;
 const int iAMagicLens::OffsetModeXOffset = 10;
@@ -392,7 +391,7 @@ void iAMagicLens::addInput(vtkImageReslice * reslicer,  vtkScalarsToColors* cTF,
 			m_lenses[0]->setLensVisible(false);
 			m_lenses.remove(0);
 		}
-		QSharedPointer<iALensData> l(new iALensData(m_renderWindow, m_opacity, m_size, m_frameWidth, m_interpolate, m_isEnabled));
+		std::shared_ptr<iALensData> l(new iALensData(m_renderWindow, m_opacity, m_size, m_frameWidth, m_interpolate, m_isEnabled));
 		m_lenses.append(l);
 		l->updateContent(reslicer, cTF, name);
 	}

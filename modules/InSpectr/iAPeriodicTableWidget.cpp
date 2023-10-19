@@ -169,7 +169,7 @@ void iAPeriodicTableWidget::setConcentration(QString const & elementName, double
 	m_concentration.insert(elementName, std::pair<double, QColor>(percentage, color));
 }
 
-void iAPeriodicTableWidget::setListener(QSharedPointer<iAElementSelectionListener> listener)
+void iAPeriodicTableWidget::setListener(std::shared_ptr<iAElementSelectionListener> listener)
 {
 	m_listener = listener;
 }

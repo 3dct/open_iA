@@ -455,11 +455,7 @@ void iAAlgorithmInfo::mouseMoveEvent(QMouseEvent* event)
 	int cellWidth  = m_matrixRect.width() / m_outNames.size();
 	int cellHeight = m_matrixRect.height() / m_inNames.size();
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	QPointF mousePoint(event->x(), event->y());
-#else
 	QPointF mousePoint(event->position());
-#endif
 	if (!m_matrixRect.contains(mousePoint.x(), mousePoint.y()))
 	{
 		QToolTip::hideText();
@@ -469,11 +465,7 @@ void iAAlgorithmInfo::mouseMoveEvent(QMouseEvent* event)
 	int col = clamp(0, static_cast<int>(m_matrix.size()-1), static_cast<int>(matrixPoint.x() / cellWidth));  // out
 	int row = clamp(0, static_cast<int>(m_matrix[col].size()-1), static_cast<int>(matrixPoint.y() / cellHeight)); // in
 	auto sortIdx = m_inSort.size() > row ? m_inSort[row] : row;
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	QToolTip::showText(event->globalPos(),
-#else
 	QToolTip::showText(event->globalPosition().toPoint(),
-#endif
 		QString("%1/%2: %3").arg(m_inNames[sortIdx]).arg(m_outNames[col]).arg(m_matrix[col][sortIdx]));
 }
 

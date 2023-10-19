@@ -1,6 +1,7 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <iAFilterDefault.h>
+#include <iAImageData.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
@@ -75,7 +76,7 @@ namespace
 			image->SetPixel(pixelIndex, var[indexFile]);
 		}
 
-		filter->addOutput(image.GetPointer());
+		filter->addOutput(std::make_shared<iAImageData>(image.GetPointer()));
 	}
 }
 

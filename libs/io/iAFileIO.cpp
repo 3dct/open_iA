@@ -35,7 +35,7 @@ std::shared_ptr<iADataSet> iAFileIO::load(QString const& fileName, QVariantMap c
 		return dataSet;
 	}
 	// TODO NEWIO: unify exception handling? maybe move somewhere else?
-	catch (std::exception& e)
+	catch (std::exception const & e)    // no need to catch itk::ExceptionObject separately, std::exception is its base class
 	{
 		LOG(lvlError, QString("Error loading file %1: %2").arg(fileName).arg(e.what()));
 	}
@@ -87,21 +87,33 @@ iADataSetTypes iAFileIO::supportedDataSetTypes(Operation op) const
 	return m_dataSetTypes[op];
 }
 
-bool iAFileIO::isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName) const
+bool iAFileIO::isDataSetSupported(std::shared_ptr<iADataSet> dataSet, QString const& fileName, Operation op) const
 {
-	Q_UNUSED(dataSet);
 	Q_UNUSED(fileName);
-	return true;
+	return supportedDataSetTypes(op).testFlag(dataSet->type());
 }
 
-void iAFileIO::save(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress)
+bool iAFileIO::save(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress)
 {
-	QElapsedTimer t; t.start();
-	QVariantMap checkedValues(paramValues);
-	checkParams(checkedValues, Save, fileName);
-	saveData(fileName, dataSet, checkedValues, progress);
-	dataSet->setMetaData(iADataSet::FileNameKey, fileName);
-	LOG(lvlInfo, QString("Saved dataset %1 in %2 ms.").arg(fileName).arg(t.elapsed()));
+	try
+	{
+		QElapsedTimer t; t.start();
+		QVariantMap checkedValues(paramValues);
+		checkParams(checkedValues, Save, fileName);
+		saveData(fileName, dataSet, checkedValues, progress);
+		dataSet->setMetaData(iADataSet::FileNameKey, fileName);
+		LOG(lvlInfo, QString("Saved dataset %1 in %2 ms.").arg(fileName).arg(t.elapsed()));
+		return true;
+	}
+	catch (std::exception const & e)
+	{
+		LOG(lvlError, QString("Error saving file %1: %2").arg(fileName).arg(e.what()));
+	}
+	catch (...)
+	{
+		LOG(lvlError, QString("Unknown error while saving file %1!").arg(fileName));
+	}
+	return false;
 }
 
 bool iAFileIO::checkParams(QVariantMap & paramValues, Operation op, QString const& fileName)

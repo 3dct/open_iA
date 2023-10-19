@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASegm3DView.h"
 
-#include <iADataSet.h>  // for iAPolyData
-#include <iADataSetRendererImpl.h>    // for iAPolyDataRenderer
 #include <iALog.h>
+#include <iAPolyData.h>
+
+#include <iADataSetRendererImpl.h>    // for iAPolyDataRenderer
 #include <iAFast3DMagicLensWidget.h>
 #include <iALUT.h>
 #include <iATransferFunctionPtrs.h>
@@ -161,7 +162,6 @@ void iASegm3DView::ShowWireframe( bool visible )
 
 
 iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
-	m_axesTransform( vtkSmartPointer<vtkTransform>::New() ),
 	m_observedRenderer( 0 ),
 	m_tag( 0 ),
 	m_wgt( new iAFast3DMagicLensWidget ),
@@ -206,7 +206,6 @@ iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
 	m_wireActor->GetProperty()->SetDiffuse( 0.0 );
 	m_wireActor->GetProperty()->SetSpecular( 0.0 );
 	m_renderer->renderer()->AddActor( m_wireActor );
-	m_renderer->setAxesTransform( m_axesTransform );
 
 	QObject::connect(m_wgt, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARendererImpl::mouseRightButtonReleasedSlot);
 	QObject::connect(m_wgt, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARendererImpl::mouseLeftButtonReleasedSlot);

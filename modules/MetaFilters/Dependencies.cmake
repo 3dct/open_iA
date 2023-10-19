@@ -1,6 +1,5 @@
 set(DEPENDENCIES_LIBRARIES
 	iA::guibase
-	iA::qthelper
 )
 #set(DEPENDENCIES_ITK_MODULES
 #	ITKConnectedComponents    # for RelabelComponentImageFilter

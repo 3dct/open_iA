@@ -28,15 +28,6 @@ struct iAobjectvis_API iACsvConfig
 		CurvedLength,
 		MappedCount
 	}; //!< must be the same order as dlg_CSVInput::m_mappingBoxes!
-	enum VisualizationType
-	{
-		UseVolume,
-		Lines,
-		Cylinders,
-		Ellipses,
-		NoVis,
-		VisTypeCount //must be last element
-	}; //!< what visualization to use for the objects. Should match the entries of VisualizationTypeName iACsvConfig.cpp
 	static const int FCPFormatStartSkipLines = 5;
 	iACsvConfig();
 	bool isValid(QString & errorMsg) const;
@@ -55,7 +46,7 @@ struct iAobjectvis_API iACsvConfig
 	QStringList currentHeaders;             //!< current headers of the table
 	QStringList selectedHeaders;            //!< names of the selected headers
 	bool computeLength, computeAngles, computeTensors, computeCenter, computeStartEnd;  //!< flags whether to compute additional columns
-	VisualizationType visType;              //! how to visualize the given objects
+	iAObjectVisType visType;                //! how to visualize the given objects
 	int cylinderQuality;                    //! how much sides are used for the cylinder visualization; the higher the number, the worse the quality (default=12)
 	size_t segmentSkip;                     //! curved fiber optimization: if 1, all points along the fiber will be used; if larger, points will be skipped
 	QMap<uint, uint> columnMapping;         //! map a specific value (denoted by an ID from MappedColumn) to the number of the column where it's stored
@@ -77,6 +68,3 @@ struct iAobjectvis_API iACsvConfig
 	//! Load a given configuration name
 	bool load(QSettings const & settings, const QString & formatName);
 };
-
-iAobjectvis_API QString MapVisType2Str(iACsvConfig::VisualizationType visType);
-iAobjectvis_API iACsvConfig::VisualizationType MapStr2VisType(QString name);

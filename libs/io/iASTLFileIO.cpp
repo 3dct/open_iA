@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASTLFileIO.h"
 
-#include "iAExceptionThrowingErrorObserver.h"
-#include "iAFileUtils.h"
-#include "iAProgress.h"
+#include <iAExceptionThrowingErrorObserver.h>
+#include <iAFileUtils.h>
+#include <iAPolyData.h>
+#include <iAProgress.h>
 
 #include <vtkSTLReader.h>
 #include <vtkSTLWriter.h>
@@ -37,7 +38,6 @@ std::shared_ptr<iADataSet> iASTLFileIO::loadData(QString const& fileName, QVaria
 
 void iASTLFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress)
 {
-	assert(dataSet->type() == iADataSetType::Mesh);
 	Q_UNUSED(paramValues);
 	vtkNew<vtkSTLWriter> writer;
 	progress.observe(writer);

@@ -32,7 +32,8 @@
 #include <vtkSphereSource.h>
 #include <vtkTable.h>
 #include <vtkTubeFilter.h>
-#include <qvector.h>
+
+#include <QVector>
 
 
 iABoneThickness::iABoneThickness()

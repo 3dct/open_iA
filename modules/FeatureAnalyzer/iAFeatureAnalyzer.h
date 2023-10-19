@@ -7,29 +7,28 @@
 #include <iASavableProject.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
-#include <vtkSmartPointer.h>
-
-#include <QTableWidget>
 #include <QFileInfo>
 #include <QMap>
-#include <QList>
+#include <QTableWidget>
 
 
 typedef iAQTtoUIConnector<QMainWindow, Ui_FeatureAnalyzer> FeatureAnalyzerConnector;
 
-class iASPMView;
-class iATreeView;
 class iAPDMView;
-class iASSView;
-class iASelectionsView;
-class QTreeWidgetItem;
-class QTableWidget;
-class vtkIdTypeArray;
-struct iASelection;
-class iASegm3DView;
 class iAPreviewSPLOMView;
-class QButtonGroup;
+class iASegm3DView;
+struct iASelection;
+class iASelectionsView;
+class iASPMView;
+class iASSView;
+class iATreeView;
+
 class iAMainWindow;
+
+class vtkIdTypeArray;
+
+class QButtonGroup;
+class QTreeWidgetItem;
 
 class iAFeatureAnalyzer : public FeatureAnalyzerConnector, public iASavableProject
 {

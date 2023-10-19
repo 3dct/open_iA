@@ -190,7 +190,9 @@ endif()
 set(ITK_GPU_INFO "on")
 if (${ITK_USE_GPU} STREQUAL "OFF")
 	set(ITK_GPU_INFO "off")
-	message(WARNING "ITK is built without GPU support (flag ITK_USE_GPU disabled). Some GPU-optimized functionality (e.g. GPU-based anisotropic filter) will not be available!")
+	if (NOT APPLE)  # ITK_USE_GPU not working anyway under Mac OS (see https://github.com/InsightSoftwareConsortium/ITK/issues/3821)
+		message(WARNING "ITK is built without GPU support (flag ITK_USE_GPU disabled). Some GPU-optimized functionality (e.g. GPU-based anisotropic filter) will not be available!")
+	endif()
 else()
 	message(STATUS "    GPU-accelerated filters (ITK_USE_GPU) enabled")
 endif()
@@ -199,35 +201,37 @@ set(BUILD_INFO "${BUILD_INFO}    \"ITK	${ITK_VERSION} (GPU: ${ITK_GPU_INFO}, SCI
 # VTK
 find_package(VTK REQUIRED)
 message(STATUS "VTK: ${VTK_VERSION} in ${VTK_DIR}")
-if (VTK_VERSION VERSION_LESS "9.0.0")
-	message(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 9.0")
+if (VTK_VERSION VERSION_LESS "9.1.0")
+	message(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 9.1")
 endif()
 set(VTK_LIB_PREFIX "VTK::")
+# List of ALL VTK components we might need (for all modules)
 set(VTK_COMPONENTS
-	ChartsCore                  # for vtkAxis, vtkChart, vtkChartParallelCoordinates, used in FeatureScout, FuzzyFeatureTracking, GEMSE, PorosityAnalyzer
+	ChartsCore                  # for vtkAxis, vtkChart, vtkChartParallelCoordinates, used in FeatureScout, FuzzyFeatureTracking, GEMSE, FeatureAnalyzer
 	CommonColor                 # for vtkNamedColors, vtkColorSeries, used in CompVis
 	CommonComputationalGeometry # for vtkParametricSpline, used in core - iASpline/iAParametricSpline
 	FiltersExtraction           # for vtkExtractGeometry, used in FIAKER - iASelectionInteractorStyle
 	FiltersGeometry             # for vtkImageDataGeometryFilter used in iALabel3D and vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
 	FiltersHybrid               # for vtkDepthSortPolyData used in 4DCT, DreamCaster, FeatureScout, vtkPolyDataSilhouette used in FeatureScout
 	FiltersModeling             # for vtkRotationalExtrusionFilter, vtkOutlineFilter
-	FiltersStatistics           # for vtkDataSetSurfaceFilter used in BoneThickness - iABoneThickness
+	FiltersStatistics           # for vtkPCAStatistics used in BoneThickness - iABoneThickness
 	GUISupportQt                # for QVTKOpenGLNativeWidget
-	ImagingHybrid               # for vtkSampleFunction.h used in FeatureScout - iABlobCluster
+	ImagingHybrid               # for vtkSampleFunction used in FeatureScout - iABlobCluster
 	InfovisLayout               # for vtkGraphLayoutStrategy used in CompVis
-	InteractionImage            # for vtkImageViewer2
+	#InteractionImage            # for vtkImageViewer2
 	InteractionWidgets          # for vtkScalarBarWidget/Representation
 	ImagingStatistics           # for vtkImageAccumulate
 	IOGeometry                  # for vtkSTLReader/Writer
 	IOMovie                     # for vtkGenericMovieWriter
-	IOXML                       # for vtkXMLImageDataReader used in iAIO
+	IOXML                       # for vtkXMLImageDataReader used in iAVTIFileIO
 	RenderingAnnotation         # for vtkAnnotatedCubeActor, vtkCaptionActor, vtkScalarBarActor
 	RenderingContextOpenGL2     # required, otherwise 3D renderer CRASHES somewhere with a nullptr access in vtkContextActor::GetDevice !!!
-	RenderingImage              # for vtkImageResliceMapper
+	RenderingImage              # for vtkImageResliceMapper used in Uncertainty - iAImageWidget
 	RenderingVolumeOpenGL2      # for volume rendering
 	RenderingQt                 # for vtkQImageToImageSource, also pulls in vtkGUISupportQt (for QVTKWidgetOpenGL)
 	ViewsContext2D              # for vtkContextView, vtkContextInteractorStyle
-	ViewsInfovis)               # for vtkGraphItem
+	ViewsInfovis                # for vtkGraphItem
+)
 if ("${vtkRenderingOSPRay_LOADED}")
 	add_compile_definitions(VTK_OSPRAY_AVAILABLE)
 endif()
@@ -319,19 +323,16 @@ set(BUILD_INFO "${BUILD_INFO}    \"${BUILD_INFO_VTK}\\n\"\n")
 unset(FPHSA_NAME_MISMATCHED)
 
 
-# Qt (>= 5)
+# Qt (>= 6)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 set(QT_USE_QTXML TRUE)
-if (Qt5_DIR AND NOT QT_DIR)
-	set(QT_DIR "${Qt5_DIR}" CACHE PATH "" FORCE)
-endif()
-if (Qt6_DIR AND NOT QT_DIR)
-	set(QT_DIR "{Qt6_DIR}" CACHE PATH "" FORCE)
+if (QT_DIR AND NOT Qt6_DIR)
+	set(Qt6_DIR "{QT_DIR}" CACHE PATH "" FORCE)
 endif()
 # not sure how the following works exactly currently - OpenGLWidgets is only available in Qt >= 6 I think...
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets OpenGLWidgets REQUIRED)
+#find_package(QT NAMES Qt6 COMPONENTS Widgets OpenGLWidgets REQUIRED)
 # TO Do: Find way to automatically set QtxWidgets/Core/GuiTools for Qt >= 6
 # Problem: Qt is discovered somehow above already, but inside vtk/itk discover code;
 # maybe we could move this discovery earlier, but then we probably could not use
@@ -342,15 +343,15 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets OpenGLWidgets REQUIRED)
 #	set(Qt${QT_VERSION_MAJOR}GuiTools_DIR ${QT_DIR}GuiTools CACHE PATH "" FORCE)
 #	set(Qt${QT_VERSION_MAJOR}WidgetsTools_DIR ${QT_DIR}WidgetsTools CACHE PATH "" FORCE)
 #endif
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Concurrent Gui OpenGL Svg Widgets Xml REQUIRED)
-message(STATUS "Qt: ${QT_VERSION} in ${Qt${QT_VERSION_MAJOR}_DIR}")
-set(BUILD_INFO "${BUILD_INFO}    \"Qt	${QT_VERSION}\\n\"\n")
-if (QT_VERSION VERSION_LESS "5.15.0")
-	message(FATAL_ERROR "Your Qt version is too old. Please use Qt >= 5.15.0")
-endif()
+find_package(Qt6 COMPONENTS Concurrent Gui OpenGL Svg Widgets Xml REQUIRED)
+message(STATUS "Qt: ${Qt6_VERSION} in ${Qt6_DIR}")
+set(BUILD_INFO "${BUILD_INFO}    \"Qt	${Qt6_VERSION}\\n\"\n")
+#if (Qt6_VERSION VERSION_LESS "6.0.0")
+#	message(FATAL_ERROR "Your Qt version is too old. Please use Qt >= 6.0.0")
+#endif()
 
-string(REGEX REPLACE "/lib/cmake/Qt${QT_VERSION_MAJOR}" "" Qt_BASEDIR ${Qt${QT_VERSION_MAJOR}_DIR})
-string(REGEX REPLACE "/cmake/Qt${QT_VERSION_MAJOR}" "" Qt_BASEDIR ${Qt_BASEDIR})	# on linux, lib is omitted if installed from package repos
+string(REGEX REPLACE "/lib/cmake/Qt6" "" Qt_BASEDIR ${Qt6_DIR})
+string(REGEX REPLACE "/cmake/Qt6" "" Qt_BASEDIR ${Qt_BASEDIR})	# on linux, lib is omitted if installed from package repos
 
 if (WIN32)
 	set(QT_LIB_DIR "${Qt_BASEDIR}/bin")
@@ -363,52 +364,36 @@ if (UNIX AND NOT APPLE AND NOT FLATPAK_BUILD)
 	endif()
 endif()
 
+# Qt Plugins
+# find_package calls required due to https://bugreports.qt.io/browse/QTBUG-94066
 # Install svg imageformats plugin:
 if (FLATPAK_BUILD)
 	# I guess plugins should all be available on Flatpak?
 	#	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION bin/imageformats)
 	#	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgIconPlugin>" DESTINATION bin/iconengines)
 else()
-	if (${QT_VERSION_MAJOR} GREATER_EQUAL 6) # Qt6 does not expose plugins? at least not the same as in Qt 5
-		set(LIB_SvgIconPlugin "${Qt_BASEDIR}/plugins/iconengines/${CMAKE_SHARED_LIBRARY_PREFIX}qsvgicon${CMAKE_SHARED_LIBRARY_SUFFIX}")
-		set(LIB_SvgPlugin "${Qt_BASEDIR}/plugins/imageformats/${CMAKE_SHARED_LIBRARY_PREFIX}qsvg${CMAKE_SHARED_LIBRARY_SUFFIX}")
-		INSTALL (FILES "${LIB_SvgIconPlugin}" DESTINATION iconengines)
-		list(APPEND BUNDLE_LIBS "${LIB_SvgIconPlugin}")
-		INSTALL (FILES "${LIB_SvgPlugin}" DESTINATION imageformats)
-		list(APPEND BUNDLE_LIBS "${LIB_SvgPlugin}")
-	else() # use imported targets & generator expressions:
-		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgIconPlugin>" DESTINATION iconengines)
-		list(APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgIconPlugin>")
-		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgPlugin>" DESTINATION imageformats)
-		list(APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgPlugin>")
-	endif()
+	find_package(Qt6QSvgPlugin REQUIRED PATHS ${Qt6Gui_DIR})
+	find_package(Qt6QSvgIconPlugin REQUIRED PATHS ${Qt6Gui_DIR})
+	INSTALL (FILES "$<TARGET_FILE:Qt6::QSvgIconPlugin>" DESTINATION iconengines)
+	list(APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt6::QSvgIconPlugin>")
+	INSTALL (FILES "$<TARGET_FILE:Qt6::QSvgPlugin>" DESTINATION imageformats)
+	list(APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt6::QSvgPlugin>")
 endif()
 # on windows, windows platform and vista style plugins are required:
 if (WIN32)
-	if (${QT_VERSION_MAJOR} GREATER_EQUAL 6) # Qt6 does not expose plugins? at least not the same as in Qt 5
-		set(LIB_WindowsPlatform "${Qt_BASEDIR}/plugins/platforms/qwindows.dll")
-		set(LIB_WindowsVistaStyle "${Qt_BASEDIR}/plugins/styles/qwindowsvistastyle.dll")
-		INSTALL (FILES "${LIB_WindowsPlatform}" DESTINATION platforms)
-		INSTALL (FILES "${LIB_WindowsVistaStyle}" DESTINATION styles)
-	else() # use imported targets & generator expressions:
-		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QWindowsIntegrationPlugin>" DESTINATION platforms)
-		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QWindowsVistaStylePlugin>" DESTINATION styles)
-	endif()
+	find_package(Qt6QWindowsIntegrationPlugin REQUIRED PATHS ${Qt6Gui_DIR})
+	find_package(Qt6QWindowsVistaStylePlugin REQUIRED PATHS ${Qt6Widgets_DIR})
+	INSTALL (FILES "$<TARGET_FILE:Qt6::QWindowsIntegrationPlugin>" DESTINATION platforms)
+	INSTALL (FILES "$<TARGET_FILE:Qt6::QWindowsVistaStylePlugin>" DESTINATION styles)
 endif()
 # on linux/unix, xcb platform plugin, and its plugins egl and glx are required:
 if (UNIX AND NOT APPLE AND NOT FLATPAK_BUILD)
-	if (${QT_VERSION_MAJOR} GREATER_EQUAL 6) # Qt6 does not expose plugins? at least not the same as in Qt 5
-		set(LIB_XcbPlatform "${Qt_BASEDIR}/plugins/platforms/libqxcb.so")
-		set(LIB_XcbEglIntegration "${Qt_BASEDIR}/plugins/xcbglintegrations/libqxcb-egl-integration.so")
-		set(LIB_XcbGlxIntegration "${Qt_BASEDIR}/plugins/xcbglintegrations/libqxcb-glx-integration.so")
-		INSTALL (FILES "${LIB_XcbPlatform}" DESTINATION platforms)
-		INSTALL (FILES "${LIB_XcbEglIntegration}" DESTINATION xcbglintegrations)
-		INSTALL (FILES "${LIB_XcbGlxIntegration}" DESTINATION xcbglintegrations)
-	else()
-		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QXcbIntegrationPlugin>" DESTINATION platforms)
-		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QXcbEglIntegrationPlugin>" DESTINATION xcbglintegrations)
-		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QXcbGlxIntegrationPlugin>" DESTINATION xcbglintegrations)
-	endif()
+	find_package(Qt6QXcbIntegrationPlugin REQUIRED PATHS ${Qt6Gui_DIR})
+	find_package(Qt6QXcbEglIntegrationPlugin REQUIRED PATHS ${Qt6Gui_DIR})
+	find_package(Qt6QXcbGlxIntegrationPlugin REQUIRED PATHS ${Qt6Gui_DIR})
+	INSTALL (FILES "$<TARGET_FILE:Qt6::QXcbIntegrationPlugin>" DESTINATION platforms)
+	INSTALL (FILES "$<TARGET_FILE:Qt6::QXcbEglIntegrationPlugin>" DESTINATION xcbglintegrations)
+	INSTALL (FILES "$<TARGET_FILE:Qt6::QXcbGlxIntegrationPlugin>" DESTINATION xcbglintegrations)
 
 	# install icu:
 	# TODO: find out whether Qt was built with icu library dependencies
@@ -473,8 +458,10 @@ endif()
 
 
 # OpenCL
-find_package(OpenCL)
-if (OPENCL_FOUND)
+find_package(OpenCLHeaders REQUIRED)
+find_package(OpenCLHeadersCpp REQUIRED)
+find_package(OpenCLICDLoader REQUIRED)
+if (OpenCLICDLoader_FOUND)
 	set(openiA_OPENCL_VERSION_OPTIONS "1.1.0" "1.2.0" "2.0.0" "2.1.0"  "2.2.0")
 	list (FIND openiA_OPENCL_VERSION_OPTIONS "${openiA_OPENCL_VERSION}" opencl_version_index)
 	if (${opencl_version_index} EQUAL -1)
@@ -486,44 +473,29 @@ if (OPENCL_FOUND)
 		set_property(CACHE openiA_OPENCL_VERSION PROPERTY STRINGS ${openiA_OPENCL_VERSION_OPTIONS})
 	endif()
 	string(REPLACE "." "" CL_TARGET_OPENCL_VERSION "${openiA_OPENCL_VERSION}")
-	add_library(OpenCL INTERFACE)
-	target_compile_definitions(OpenCL INTERFACE
+	add_library(OpenCLDefines INTERFACE)
+	target_compile_definitions(OpenCLDefines INTERFACE
 		__CL_ENABLE_EXCEPTIONS
+		CL_HPP_ENABLE_EXCEPTIONS
 		CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY
 		CL_HPP_ENABLE_SIZE_T_COMPATIBILITY
 		CL_HPP_TARGET_OPENCL_VERSION=${CL_TARGET_OPENCL_VERSION}
 		CL_HPP_MINIMUM_OPENCL_VERSION=${CL_TARGET_OPENCL_VERSION}
 		CL_TARGET_OPENCL_VERSION=${CL_TARGET_OPENCL_VERSION})
 	if (openiA_OPENCL_VERSION MATCHES "^2")
-		target_compile_definitions(OpenCL INTERFACE CL_VERSION_2_0)
+		target_compile_definitions(OpenCLDefines INTERFACE CL_VERSION_2_0)
 	else()
-		target_compile_definitions(OpenCL INTERFACE CL_USE_DEPRECATED_OPENCL_1_2_APIS)
+		target_compile_definitions(OpenCLDefines INTERFACE CL_USE_DEPRECATED_OPENCL_1_2_APIS)
 	endif()
-	target_link_libraries(OpenCL INTERFACE ${OPENCL_LIBRARIES})
-	target_include_directories(OpenCL INTERFACE ${OPENCL_INCLUDE_DIRS} ${Toolkit_DIR}/OpenCL)
-	message(STATUS "OpenCL: include=${OPENCL_INCLUDE_DIRS}, libraries=${OPENCL_LIBRARIES}")
+	target_include_directories(OpenCLDefines INTERFACE ${Toolkit_DIR}/OpenCL)
+	target_link_libraries(OpenCLDefines INTERFACE OpenCL::Headers OpenCL::HeadersCpp OpenCL::OpenCL)
+	message(STATUS "OpenCL: ${OpenCLICDLoader_DIR}")
 	set(BUILD_INFO "${BUILD_INFO}    \"OpenCL targeted version	${openiA_OPENCL_VERSION}\\n\"\n")
-	if (WIN32)
-		# Find path of OpenCL.dll to include in release:
-		get_filename_component(OPENCL_LIB_DIR "${OPENCL_LIBRARIES}" DIRECTORY)
-		get_filename_component(OPENCL_LIB_BASENAME "${OPENCL_LIBRARIES}" NAME_WE)
-		
-		if (EXISTS "${OPENCL_LIB_DIR}/${OPENCL_LIB_BASENAME}.dll")
-			list(APPEND BUNDLE_DIRS "${OPENCL_LIB_DIR}")
-		else()
-			string(REGEX REPLACE "lib" "bin" OPENCL_BIN_DIR "${OPENCL_LIB_DIR}")
-			if (EXISTS "${OPENCL_BIN_DIR}/${OPENCL_LIB_BASENAME}.dll")
-				list(APPEND BUNDLE_DIRS "${OPENCL_BIN_DIR}")
-			else()
-				message(STATUS "Directory containing ${OPENCL_LIB_BASENAME}.dll was not found. You can continue building, but the program might not run (or it might fail to run when installed/cpacked).")
-			endif()
-		endif()
-	elseif (UNIX AND NOT APPLE)
-		# typically OPENCL_LIBRARIES will only contain the one libOpenCL.so anyway, FOREACH just to make sure
-		foreach (OPENCL_LIB ${OPENCL_LIBRARIES})
-			get_filename_component(OPENCL_LIB_DIR "${OPENCL_LIB}" DIRECTORY)
-			list(APPEND BUNDLE_DIRS "${OPENCL_LIB_DIR}")
-		endforeach()
+	# new since CMake 3.21: installs library!
+	install(IMPORTED_RUNTIME_ARTIFACTS OpenCL::OpenCL DESTINATION .)
+	if (MSVC)
+		string(REPLACE "share/cmake/OpenCLICDLoader" "bin" OpenCL_DLL_DIR "${OpenCLICDLoader_DIR}")
+		message(STATUS "OpenCL DLL dir: ${OpenCL_DLL_DIR}")
 	endif()
 endif()
 
@@ -574,19 +546,15 @@ if (${avx_support_index} EQUAL -1)
 endif()
 set(BUILD_INFO "${BUILD_INFO}    \"Advanced Vector Extensions	${openiA_AVX_SUPPORT}\\n\"\n")
 
-if (${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-	# Qt >= 6 requires to use the C++17 standard
-	set(CMAKE_CXX_STANDARD 17)
-else()
-	set(CMAKE_CXX_STANDARD 14)
-endif()
+set(CMAKE_CXX_STANDARD 17)
 # - C++20 can cause problems with ITK 5.0.1 (apparently in some experiments it wasn't yet fully C++20 compatible; though not sure on specifics)!
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if (MSVC)
-	# /bigobj            increase the number of sections in .obj file (65,279 -> 2^32), exceeded by some compilations
-	# /Zc:__cplusplus    set correct value in __cplusplus macro (https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus)
 	# /MP                enable multi-processor compilation
+	# /bigobj            increase the number of sections in .obj file (65,279 -> 2^32), exceeded by some compilations
+	# /Zc:__cplusplus    set correct value in __cplusplus macro (https://learn.microsoft.com/en-us/cpp/build/reference/zc-cplusplus)
+	# /Zc:inline         Remove unreferenced COMDAT (reduce .obj file size and improve linker speed, see https://learn.microsoft.com/en-us/cpp/build/reference/zc-inline-remove-unreferenced-comdat)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /bigobj /Zc:__cplusplus /Zc:inline")
 	if (MSVC_VERSION GREATER_EQUAL 1910)
 		# specify standard conformance mode (https://docs.microsoft.com/en-us/cpp/build/reference/permissive-standards-conformance)
@@ -636,9 +604,7 @@ if (MSVC)
 	if (NOT "${openiA_AVX_SUPPORT}" STREQUAL "${openiA_AVX_SUPPORT_DISABLED}")
 		add_compile_options(/arch:${openiA_AVX_SUPPORT})
 	endif()
-	add_compile_definitions(_CRT_SECURE_NO_WARNINGS _SCL_SECURE_NO_WARNINGS
-		_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING	# silence warnings when compiling VTK (<= 9.0.1) with C++17
-	)
+	add_compile_definitions(_CRT_SECURE_NO_WARNINGS _SCL_SECURE_NO_WARNINGS)
 	
 	# enable all warnings, disable selected:
 	add_compile_options(/W4 /wd4068 /wd4127 /wd4251 /wd4515)
@@ -695,10 +661,9 @@ if (MSVC)
 	string(REGEX REPLACE "/" "\\\\" Qt_WIN_DIR ${QT_LIB_DIR})
 	set(WinDLLPaths "${VTK_WIN_DIR}\\bin\\$(Configuration);${ITK_WIN_DIR}\\bin\\$(Configuration);${Qt_WIN_DIR}")
 	
-	if (OPENCL_FOUND AND EXISTS "${OPENCL_DLL}")
-		string(REGEX REPLACE "/OpenCL.dll" "" OPENCL_WIN_DIR ${OPENCL_DLL})
-		string(REGEX REPLACE "/" "\\\\" OPENCL_WIN_DIR ${OPENCL_WIN_DIR})
-		set(WinDLLPaths "${OPENCL_WIN_DIR};${WinDLLPaths}")
+	if (OpenCLICDLoader_FOUND AND EXISTS "${OpenCL_DLL_DIR}")
+		string(REGEX REPLACE "/" "\\\\" OpenCL_DLL_DIR ${OpenCL_DLL_DIR})
+		set(WinDLLPaths "${OpenCL_DLL_DIR};${WinDLLPaths}")
 	endif()
 
 	if (CUDA_FOUND)
@@ -800,7 +765,7 @@ endif()
 message(STATUS "Build version: ${openiA_VERSION}")
 set(BUILD_INFO "${BUILD_INFO}    \"git revision	${openiA_HASH}\\n\"\n")
 
-add_compile_definitions(UNICODE _UNICODE)    # Enable Unicode
+add_compile_definitions(UNICODE _UNICODE)    # Enable Unicode (probably not required anymore since Qt6 automatically defines these, see https://doc.qt.io/qt-6/cmake-qt5-and-qt6-compatibility.html#unicode-support-in-windows)
 
 if (UNIX)
 	set(CMAKE_INSTALL_RPATH "\$ORIGIN")      # Set RunPath in all created libraries / executables to $ORIGIN

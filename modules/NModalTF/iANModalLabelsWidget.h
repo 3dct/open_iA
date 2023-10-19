@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include <QSharedPointer>
 #include <QWidget>
+
+#include <memory>
 
 struct iANModalLabel;
 

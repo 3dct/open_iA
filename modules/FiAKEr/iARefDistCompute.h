@@ -8,9 +8,9 @@
 #include <iAProgress.h>
 
 #include <QDataStream>
-#include <QSharedPointer>
 #include <QThread>
 
+#include <memory>
 #include <vector>
 
 class iAFiberResultsCollection;
@@ -29,7 +29,7 @@ public:
 	//! type for containers - but since we mix QVector and std::vector usages, it doesn't really help!
 	typedef int ContainerSizeType;
 	static ContainerSizeType MaxNumberOfCloseFibers;
-	iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, size_t referenceID);
+	iARefDistCompute(std::shared_ptr<iAFiberResultsCollection> data, size_t referenceID);
 	bool setMeasuresToCompute(std::vector<std::pair<int, bool>> const& measuresToCompute, int optimizationMeasure, int bestMeasure);
 	void run() override;
 	iAProgress* progress();
@@ -43,7 +43,7 @@ private:
 	void writeAverageMeasures(QFile& cacheFile);
 
 	iAProgress m_progress;
-	QSharedPointer<iAFiberResultsCollection> m_data;
+	std::shared_ptr<iAFiberResultsCollection> m_data;
 	size_t m_referenceID;
 	std::vector<std::pair<int, bool>> m_measuresToCompute;  //!< index of measure to compute along with flag whether to use optimized computation
 	size_t m_columnsBefore;

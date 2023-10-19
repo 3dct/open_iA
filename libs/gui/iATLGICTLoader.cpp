@@ -2,14 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iATLGICTLoader.h"
 
-#include "iAJobListView.h"
-#include "iALog.h"
-#include "iADataSet.h"
-#include "iAMultiStepProgressObserver.h"
-#include "iAParameterDlg.h"
-#include "iAStringHelper.h"
-#include "iAFileUtils.h"
-#include "mdichild.h"
+#include <iAJobListView.h>
+#include <iAMultiStepProgressObserver.h>
+#include <iAParameterDlg.h>
+#include <iAMdiChild.h>
+
+#include <iAFileUtils.h>
+#include <iALog.h>
+#include <iAImageData.h>
+#include <iAStringHelper.h>
 
 #include <vtkImageData.h>
 #include <vtkImageReader2.h>
@@ -78,7 +79,7 @@ bool iATLGICTLoader::setup(QString const& baseDirectory, QWidget* parent)
 	return true;
 }
 
-void iATLGICTLoader::start(MdiChild* child)
+void iATLGICTLoader::start(iAMdiChild* child)
 {
 	m_multiStepObserver = new iAMultiStepProgressObserver(m_subDirs.size());
 	m_child = child;

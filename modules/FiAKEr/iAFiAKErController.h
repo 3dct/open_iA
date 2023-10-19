@@ -22,15 +22,15 @@
 
 #include <QMainWindow>
 #include <QMap>
-#include <QSharedPointer>
 
+#include <memory>
 #include <vector>
 
 class iAFiberResultsCollection;
 class iAStackedBarChart;
 
-class iA3DColoredPolyObjectVis;
-class iA3DCylinderObjectVis;
+class iAColoredPolyObjectVis;
+class iACylinderObjectVis;
 
 class iAChartWidget;
 class iAColorTheme;
@@ -189,9 +189,9 @@ private:
 	void updateFiberContext();
 	//void startFeatureScout(int resultID, iAMdiChild* newChild);
 	void visitAllVisibleVis(std::function<void(
-			QSharedPointer<iA3DColoredPolyObjectVis>, QSharedPointer<iA3DPolyObjectActor>, size_t resultID)>
+			std::shared_ptr<iAColoredPolyObjectVis>, std::shared_ptr<iAPolyObjectVisActor>, size_t resultID)>
 			func);
-	void setClippingPlanes(QSharedPointer<iA3DPolyObjectActor> vis);
+	void setClippingPlanes(std::shared_ptr<iAPolyObjectVisActor> vis);
 
 	void setupMain3DView();
 	void setupSettingsView();
@@ -201,10 +201,10 @@ private:
 	QWidget* setupSelectionView();
 
 	//! all data about the fiber characteristics optimization results that are analyzed
-	QSharedPointer<iAFiberResultsCollection> m_data;
+	std::shared_ptr<iAFiberResultsCollection> m_data;
 	std::vector<iAFiberResultUIData> m_resultUIs;
 
-	QSharedPointer<iARendererViewSync> m_renderManager;
+	std::shared_ptr<iARendererViewSync> m_renderManager;
 	vtkSmartPointer<iASelectionInteractorStyle> m_style;
 	iAColorTheme const * m_resultColorTheme;
 	iAMainWindow* m_mainWnd;
@@ -235,8 +235,8 @@ private:
 	//! column index for the columns of the result list:
 	int m_nameActionColumn, m_previewColumn, m_histogramColumn, m_stackedBarColumn;
 
-	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
-	QSharedPointer<iA3DPolyObjectActor> m_nearestReferenceActor;
+	std::shared_ptr<iACylinderObjectVis> m_nearestReferenceVis;
+	std::shared_ptr<iAPolyObjectVisActor> m_nearestReferenceActor;
 
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;
@@ -312,6 +312,6 @@ private:
 	std::vector<SelectionType> m_selections;
 
 	// Sensitivity
-	QSharedPointer<iASensitivityInfo> m_sensitivityInfo;
+	std::shared_ptr<iASensitivityInfo> m_sensitivityInfo;
 	void connectSensitivity();
 };

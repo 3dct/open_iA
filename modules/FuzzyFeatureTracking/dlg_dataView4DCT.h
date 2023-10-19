@@ -4,8 +4,6 @@
 
 #include <iARendererViewSync.h>
 
-#include <vtkSmartPointer.h>
-
 #include <QWidget>
 
 class iAFuzzyVTKWidget;
@@ -15,10 +13,6 @@ class iARendererImpl;
 class iAMdiChild;
 class iAVolumeRenderer;
 class iAVolumeViewer;
-
-class vtkCamera;
-class vtkPolyData;
-class vtkTransform;
 
 class dlg_dataView4DCT : public QWidget
 {
@@ -33,7 +27,6 @@ private:
 	iAFuzzyVTKWidget** m_vtkWidgets;
 	iARendererImpl**  m_renderers;
 	iAVolumeRenderer** m_volumeRenderer;
-	vtkSmartPointer<vtkTransform> m_axesTransform;
 	iAMdiChild* m_mdiChild;
 	iARendererViewSync m_rendererManager;
 };

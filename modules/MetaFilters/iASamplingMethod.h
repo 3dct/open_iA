@@ -6,12 +6,13 @@
 
 #include <iAAttributes.h>
 
-#include <QSharedPointer>
 #include <QVector>
+
+#include <memory>
 
 typedef QVector<QVariant> iAParameterSet;
 typedef QVector<iAParameterSet> iAParameterSets;
-typedef QSharedPointer<iAParameterSets> iAParameterSetsPointer;
+typedef std::shared_ptr<iAParameterSets> iAParameterSetsPointer;
 
 class MetaFilters_API iASamplingMethod
 {
@@ -21,8 +22,8 @@ public:
 	virtual bool supportsSamplesPerParameter() const;
 	virtual void setSamplesPerParameter(std::vector<int> samplesPerParameter);
 	virtual int sampleCount() const;
-	virtual void setSampleCount(int sampleCount, QSharedPointer<iAAttributes> parameters);
-	virtual iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameters) =0;
+	virtual void setSampleCount(int sampleCount, std::shared_ptr<iAAttributes> parameters);
+	virtual iAParameterSetsPointer parameterSets(std::shared_ptr<iAAttributes> parameters) =0;
 private:
 	int m_sampleCount;
 };

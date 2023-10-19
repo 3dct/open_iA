@@ -30,7 +30,7 @@ void iAGraphWeights::SetWeight(iAEdgeIndexType edgeIdx, iAEdgeWeightType weight)
 	m_weights[edgeIdx] = weight;
 }
 
-void iAGraphWeights::Normalize(QSharedPointer<iANormalizer> normalizeFunc)
+void iAGraphWeights::Normalize(std::shared_ptr<iANormalizer> normalizeFunc)
 {
 	iAEdgeWeightType max = GetMaxWeight();
 	normalizeFunc->SetMaxValue(max);
@@ -46,12 +46,12 @@ int iAGraphWeights::GetEdgeCount() const
 	return m_weights.size();
 }
 
-QSharedPointer<iAGraphWeights> CalculateGraphWeights(
+std::shared_ptr<iAGraphWeights> CalculateGraphWeights(
 	iAImageGraph const & graph,
 	iAVectorArray const & voxelData,
 	iAVectorDistance const & distanceFunc)
 {
-	QSharedPointer<iAGraphWeights> result(new iAGraphWeights(graph.edgeCount()));
+	std::shared_ptr<iAGraphWeights> result(new iAGraphWeights(graph.edgeCount()));
 	for (iAEdgeIndexType i=0; i<graph.edgeCount(); ++i)
 	{
 		iAEdgeType edge = graph.edge(i);
@@ -62,14 +62,14 @@ QSharedPointer<iAGraphWeights> CalculateGraphWeights(
 }
 
 
-QSharedPointer<iAGraphWeights const> CombineGraphWeights(
-	QVector<QSharedPointer<iAGraphWeights>> const & graphWeights,
+std::shared_ptr<iAGraphWeights const> CombineGraphWeights(
+	QVector<std::shared_ptr<iAGraphWeights>> const & graphWeights,
 	QVector<double> const & weight)
 {
 	assert(graphWeights.size() > 0);
 	assert(graphWeights.size() == weight.size());
 	int edgeCount = graphWeights[0]->GetEdgeCount();
-	QSharedPointer<iAGraphWeights> result(new iAGraphWeights(edgeCount));
+	std::shared_ptr<iAGraphWeights> result(new iAGraphWeights(edgeCount));
 	for (int edgeIdx=0; edgeIdx<edgeCount; ++edgeIdx)
 	{
 		double combinedWeight = 0;

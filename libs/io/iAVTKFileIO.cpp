@@ -2,10 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVTKFileIO.h"
 
-#include "iAExceptionThrowingErrorObserver.h"
-#include "iAFileUtils.h"   // for getLocalEncodingFileName
-#include "iAProgress.h"
-#include "iAToolsVTK.h"
+#include <iALog.h>
+#include <iAExceptionThrowingErrorObserver.h>
+#include <iAFileUtils.h>   // for getLocalEncodingFileName
+#include <iAImageData.h>
+#include <iAPolyData.h>
+#include <iAProgress.h>
+#include <iAToolsVTK.h>
 
 #include <vtkGenericDataObjectReader.h>
 #include <vtkImageData.h>

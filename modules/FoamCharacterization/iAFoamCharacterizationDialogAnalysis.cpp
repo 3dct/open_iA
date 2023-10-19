@@ -4,7 +4,7 @@
 
 #include "iAFoamCharacterizationTableAnalysis.h"
 
-#include <iADataSet.h>
+#include <iAImageData.h>
 
 #include <itkLabelMap.h>
 #include <itkLabelGeometryImageFilter.h>

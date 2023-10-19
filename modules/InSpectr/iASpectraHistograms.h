@@ -4,14 +4,14 @@
 
 #include "iAEnergySpectrum.h"
 
-#include <QSharedPointer>
+#include <memory>
 
 class iAXRFData;
 
 class iASpectraHistograms
 {
 public:
-	iASpectraHistograms(QSharedPointer<iAXRFData> xrfData, long numBins = 1, double minCount = 0, double maxCount = 0);
+	iASpectraHistograms(std::shared_ptr<iAXRFData> xrfData, long numBins = 1, double minCount = 0, double maxCount = 0);
 	~iASpectraHistograms();
 	void compute(long numBins, double maxCount, double minCount);
 	CountType * histData() const;
@@ -30,6 +30,6 @@ private:
 	double			m_binWidth;			///< width of a histogram bin
 	CountType	*	m_histData;			///< raw data containing a 2D array, first dimension - histograms, second - bins
 
-	QSharedPointer<iAXRFData> m_xrfData;	///< pointer to the input xrf data set
+	std::shared_ptr<iAXRFData> m_xrfData;	///< pointer to the input xrf data set
 	CountType	m_maxValue;			///< maximum value of all histograms' bins
 };

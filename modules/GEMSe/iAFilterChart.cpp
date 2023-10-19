@@ -11,7 +11,6 @@
 
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
-#include <vtkSmartPointer.h>
 
 #include <QMouseEvent>
 #include <QPainter>
@@ -25,8 +24,8 @@ namespace
 
 iAFilterChart::iAFilterChart(QWidget* parent,
 	QString const & caption,
-	QSharedPointer<iAParamHistogramData> data,
-	QSharedPointer<iANameMapper> nameMapper,
+	std::shared_ptr<iAParamHistogramData> data,
+	std::shared_ptr<iANameMapper> nameMapper,
 	bool showCaption)
 :
 	iAChartWidget(parent, caption, ""),
@@ -57,12 +56,12 @@ double iAFilterChart::mapValueToBin(double value) const
 	return m_data->mapValueToBin(value);
 }
 
-QSharedPointer<iAPlot> iAFilterChart::GetDrawer(QSharedPointer<iAParamHistogramData> newData, QColor color)
+std::shared_ptr<iAPlot> iAFilterChart::GetDrawer(std::shared_ptr<iAParamHistogramData> newData, QColor color)
 {
 	return (newData->valueType() == iAValueType::Categorical ||
-		(newData->valueType() == iAValueType::Discrete && ((newData->xBounds()[1]- newData->xBounds()[0])  <= newData->valueCount())))
-		? QSharedPointer<iAPlot>(new iABarGraphPlot(newData, color, 2))
-		: QSharedPointer<iAPlot>(new iAFilledLinePlot(newData, color));
+		(newData->valueType() == iAValueType::Discrete && ((newData->xBounds()[1] - newData->xBounds()[0]) <= newData->valueCount())))
+		? std::shared_ptr<iAPlot>(new iABarGraphPlot(newData, color, 2))
+		: std::shared_ptr<iAPlot>(new iAFilledLinePlot(newData, color));
 }
 
 void iAFilterChart::drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush)
@@ -174,20 +173,11 @@ void iAFilterChart::mousePressEvent( QMouseEvent *event )
 			return;
 		}
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		if ( event->position().y() > geometry().height() - bottomMargin() - m_translationY
-#else
-		if ( event->y() > geometry().height() - bottomMargin() - m_translationY
-#endif
 			  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) )	// mouse event below X-axis
 		{
 			// check if we hit min or max handle:
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 			int x = event->position().x() - leftMargin();
-#else
-			int x = event->x() - leftMargin();
-#endif
-
 			int minX = xMapper().srcToDst(m_minSliderPos);
 			int maxX = xMapper().srcToDst(m_maxSliderPos);
 			if ( std::abs(x-minX) <= MarkerTriangleWidthHalf)
@@ -222,19 +212,11 @@ void iAFilterChart::mouseReleaseEvent( QMouseEvent *event )
 void iAFilterChart::mouseMoveEvent( QMouseEvent *event )
 {
 	if (	( event->buttons() == Qt::LeftButton ) &&
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 			( event->position().y() > geometry().height() - bottomMargin() - m_translationY			// mouse event below X-axis
-#else
-			( event->y() > geometry().height() - bottomMargin() - m_translationY			// mouse event below X-axis
-#endif
 			  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) ) &&
 			  m_selectedHandle != -1)
 	{
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		int x = event->position().x() - leftMargin() + m_selectionOffset;
-#else
-		int x = event->x() - leftMargin() + m_selectionOffset;
-#endif
 		if (x < 0 || x + m_xMapper->srcToDst(m_xShift) > static_cast<int>(chartWidth() * xZoom()))
 		{
 			return;
@@ -261,11 +243,7 @@ void iAFilterChart::mouseMoveEvent( QMouseEvent *event )
 				  .arg( m_data->xBounds()[0] )
 				  .arg( m_data->xBounds()[1] )
 		);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		QToolTip::showText(event->globalPosition().toPoint(), text, this);
-#else
-		QToolTip::showText( event->globalPos(), text, this );
-#endif
 		update();
 		return;
 	}

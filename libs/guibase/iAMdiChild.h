@@ -4,13 +4,10 @@
 
 #include "iaguibase_export.h"
 
-#include <iALog.h>
-
 #include <vtkSmartPointer.h>
 
 #include <QMainWindow>
 #include <QMap>
-#include <QSharedPointer>
 
 #include <functional>
 #include <memory>
@@ -204,8 +201,8 @@ public:
 	//! a crutch for letting interactor know which dataset is to be moved and synced across slicers
 	virtual void setDataSetMovable(size_t dataSetIdx) = 0;
 
-	//! called to set profile point positions in renderer and slicer
-	virtual void setProfilePoints(double const* start, double const* end) = 0;
+	//! called to initialize profile point positions in renderer and slicer
+	virtual void initProfilePoints(double const* start, double const* end) = 0;
 
 	//! update the size of position markers in slicers and renderers based on the
 	//! marker size setting and the unit distance (spacing) of datasets

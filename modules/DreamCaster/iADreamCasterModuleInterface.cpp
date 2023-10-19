@@ -8,7 +8,6 @@
 
 #include <QAction>
 #include <QFileDialog>
-#include <QMenu>
 #include <QStatusBar>
 
 void iADreamCasterModuleInterface::Initialize()

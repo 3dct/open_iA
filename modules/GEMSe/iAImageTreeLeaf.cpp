@@ -8,7 +8,7 @@
 
 #include <iAToolsITK.h>
 
-iAImageTreeLeaf::iAImageTreeLeaf(QSharedPointer<iASingleResult> img, int labelCount) :
+iAImageTreeLeaf::iAImageTreeLeaf(std::shared_ptr<iASingleResult> img, int labelCount) :
 	m_filtered(false),
 	m_labelCount(labelCount),
 	m_singleResult(img)
@@ -52,10 +52,10 @@ void iAImageTreeLeaf::DiscardDetails() const
 }
 
 
-QSharedPointer<iAImageTreeNode > iAImageTreeLeaf::GetChild(int /*idx*/) const
+std::shared_ptr<iAImageTreeNode> iAImageTreeLeaf::GetChild(int /*idx*/) const
 {
 	// leaf node, no children -> null pointer
-	return QSharedPointer<iAImageTreeNode >();
+	return std::shared_ptr<iAImageTreeNode >();
 }
 
 
@@ -169,7 +169,7 @@ int iAImageTreeLeaf::GetDatasetID() const
 }
 
 
-QSharedPointer<iAAttributes> iAImageTreeLeaf::GetAttributes() const
+std::shared_ptr<iAAttributes> iAImageTreeLeaf::GetAttributes() const
 {
 	return m_singleResult->attributes();
 }
@@ -197,7 +197,7 @@ void iAImageTreeLeaf::GetMinMax(int chartID, double & min, double & max,
 	}
 }
 
-void iAImageTreeLeaf::GetSelection(QVector<QSharedPointer<iASingleResult> > & result) const
+void iAImageTreeLeaf::GetSelection(QVector<std::shared_ptr<iASingleResult> > & result) const
 {
 	if (!m_filtered)
 	{

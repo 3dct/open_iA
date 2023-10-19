@@ -7,7 +7,6 @@ endif()
 set(DEPENDENCIES_LIBRARIES
 	iA::guibase
 	iA::objectvis
-	iA::qthelper
 )
 set(DEPENDENCIES_INCLUDE_DIRS
 	${BOOST_INCLUDE_DIR}

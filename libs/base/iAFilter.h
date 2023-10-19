@@ -6,13 +6,9 @@
 
 #include "iAAbortListener.h"
 #include "iAAttributes.h"
-#include "iAITKIO.h"
-
-#include <vtkPolyData.h>
-#include <vtkSmartPointer.h>
+#include "iAitkTypes.h"
 
 #include <QMap>
-#include <QSharedPointer>
 #include <QString>
 #include <QVector>
 
@@ -22,8 +18,6 @@ class iADataSet;
 class iAImageData;
 class iALogger;
 class iAProgress;
-
-class vtkImageData;
 
 class QVariant;
 
@@ -98,17 +92,13 @@ public:
 	//!     otherwise
 	virtual bool checkParameters(QVariantMap const & parameters);
 	//! the default check for a single parameter descriptor & value combination
-	bool defaultParameterCheck(QSharedPointer<iAAttributeDescriptor> param, QVariant const& paramValue);
+	bool defaultParameterCheck(std::shared_ptr<iAAttributeDescriptor> param, QVariant const& paramValue);
 	//! Clears the list of input images to this filter.
 	//! Call this in case you are re-using a filter already called before,
 	//! and you want to call it with new input images
 	void clearInput();
-	//! @{
 	//! Adds a dataSet as input.
 	void addInput(std::shared_ptr<iADataSet> con);
-
-	void addInput(vtkImageData* vtkImage);
-	//! @}
 	//! Initialize and run the filter.
 	//! @param parameters the map of parameters to use in this specific filter run
 	bool run(QVariantMap const & parameters);
@@ -171,12 +161,6 @@ public:
 	//! @param name the name of the output value
 	//! @param value the actual output value
 	void addOutputValue(QString const & name, QVariant value);
-	//! @{ Adds an output image (helper function for adding ITK/VTK datasets).
-	//! @param img output image from the filter
-	void addOutput(itk::ImageBase<3>* img);
-	void addOutput(vtkImageData* img);
-	void addOutput(vtkPolyData* vtkPoly);
-	//! @}
 	//! adds an output dataset
 	void addOutput(std::shared_ptr<iADataSet> dataSet);
 	//! The planned number of outputs the filter will produce.
@@ -225,8 +209,6 @@ private:
 	//! output images (if any).
 	// TODO: make unique_ptr: -> compile error: `attempting to reference deleted function` in iAFilterRegistry...
 	std::vector<std::shared_ptr<iADataSet>> m_output;
-	//! output mesh (if any).
-	vtkSmartPointer<vtkPolyData> m_outputMesh;
 	//! output values (if any).
 	QVector<QPair<QString, QVariant> > m_outputValues;
 	//! The class that is watched for progress.

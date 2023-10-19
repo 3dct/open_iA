@@ -3,10 +3,15 @@
 
 #include "iAVRHistogramMetric.h"
 
-#include "iALog.h"
+//#include "iALog.h"
 
 #include <algorithm>           // std::for_each
-#include <functional>          // std::ref
+//#include <functional>          // std::ref
+
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning( disable : 4459 )
+#endif
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics/stats.hpp>
 #include <boost/accumulators/statistics/mean.hpp>
@@ -14,9 +19,12 @@
 #include <boost/accumulators/statistics/variance.hpp>
 #include <boost/accumulators/statistics/kurtosis.hpp>
 #include <boost/accumulators/statistics/skewness.hpp>
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
-#include <boost/format.hpp>    // only needed for printing
-#include <boost/histogram.hpp> // make_histogram, regular, weight, indexed
+//#include <boost/format.hpp>    // only needed for printing
+//#include <boost/histogram.hpp> // make_histogram, regular, weight, indexed
 
 
 

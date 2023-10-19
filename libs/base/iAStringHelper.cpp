@@ -13,7 +13,7 @@ QStringList splitPossiblyQuotedString(QString const & str)
 	//     (where quotes are escaped by \" )
 	QStringList result;
 	QRegularExpression exp("\\s*([^\"]\\S*|\".*?\")\\s*");
-	int offset = 0;
+	qsizetype offset = 0;
 	QRegularExpressionMatch match = exp.match(str, offset);
 	while (match.hasMatch())
 	{

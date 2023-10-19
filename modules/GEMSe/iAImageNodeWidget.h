@@ -7,10 +7,9 @@
 
 #include <iASlicerMode.h>
 
-#include <vtkSmartPointer.h>
-
-#include <QSharedPointer>
 #include <QWidget>
+
+#include <memory>
 
 class iAImagePreviewWidget;
 class iAPreviewWidgetPool;
@@ -29,7 +28,7 @@ class iAImageNodeWidget: public QWidget
 public:
 	iAImageNodeWidget(
 		QWidget* parent,
-		QSharedPointer<iAImageTreeNode > node,
+		std::shared_ptr<iAImageTreeNode > node,
 		iAPreviewWidgetPool * previewPool,
 		bool shrinkAuto,
 		int representativeType);
@@ -37,7 +36,7 @@ public:
 	bool IsExpanded() const;
 	bool IsShrinked() const;
 	void Layout(int x, int y, int width, int height);
-	QSharedPointer<iAImageTreeNode> GetClusterNode();
+	std::shared_ptr<iAImageTreeNode> GetClusterNode();
 	bool UpdateShrinkStatus(LabelImagePointer refImg);
 	void ToggleButton();
 	void ExpandNode();
@@ -65,7 +64,7 @@ private:
 
 	bool m_shrinkedAuto;
 	bool m_shrinkStatus;
-	QSharedPointer<iAImageTreeNode > m_cluster;
+	std::shared_ptr<iAImageTreeNode > m_cluster;
 	iAImagePreviewWidget * m_imageView;
 	iATriangleButton* m_expandButton;
 	QLabel* m_infoLabel;

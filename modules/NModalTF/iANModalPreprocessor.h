@@ -7,7 +7,8 @@
 #include <QObject>
 #include <QList>
 #include <QMap>
-#include <QSharedPointer>
+
+#include <memory>
 
 class iANModalDataSetReducer;
 class iANModalBackgroundRemover;
@@ -69,8 +70,8 @@ private:
 	};
 
 	Pipeline choosePipeline();
-	QSharedPointer<iANModalDataSetReducer> chooseDataSetReducer();
-	QSharedPointer<iANModalBackgroundRemover> chooseBackgroundRemover();
+	std::shared_ptr<iANModalDataSetReducer> chooseDataSetReducer();
+	std::shared_ptr<iANModalBackgroundRemover> chooseBackgroundRemover();
 
 	void groupDataSets(const QList<std::shared_ptr<iAImageData>>&, QList<DataSetGroup>& output);
 	QList<std::shared_ptr<iAImageData>> chooseGroup(const QList<DataSetGroup>&);

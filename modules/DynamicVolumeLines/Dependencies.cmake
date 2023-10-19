@@ -1,5 +1,5 @@
 set(DEPENDENCIES_LIBRARIES
-	iA::charts    # for qcustomplot, also pulls in required iAqthelper
+	iA::charts    # for qcustomplot
 	iA::guibase
 )
 #set(DEPENDENCIES_ITK_MODULES

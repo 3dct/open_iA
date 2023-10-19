@@ -48,10 +48,8 @@ public:
 	//! encapsulate a 2D vector to avoid returning a pointer to const double
 	struct iAVec2d {	double c[2];	};
 
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
 	//! retrieve the position of the last interaction with the trackpad (since it's not available on a click in the event directly)
 	iAVec2d getTrackPadPos(vtkEventDataDevice device);
-#endif
 
 	vtkInteractorStyle3D* style();
 

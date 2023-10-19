@@ -4,8 +4,6 @@
 
 #include "iAvtkVR.h"
 
-#include <vtkSmartPointer.h>
-
 #include <QString>
 #include <QThread>
 

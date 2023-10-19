@@ -2,25 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVRModelInMiniature.h"
 
-#include "vtkPolyDataMapper.h"
-#include "vtkProperty.h"
-#include "vtkIdFilter.h"
-#include "vtkIdTypeArray.h"
-#include "vtkPointData.h"
-#include "vtkCellData.h"
-#include "vtkUnsignedCharArray.h"
-#include "vtkLookupTable.h"
-#include "vtkColorTransferFunction.h"
-#include "vtkCellPicker.h"
-#include "vtkProp3DCollection.h"
-#include "vtkVertexGlyphFilter.h"
-#include <vtkAlgorithmOutput.h>
-#include <vtkCubeSource.h>
-
-#include <iALog.h>
-#include <iAVec3.h>
-
-#include <cmath>
+#include <vtkMapper.h>
 
 iAVRModelInMiniature::iAVRModelInMiniature(vtkRenderer* ren):iAVRCubicVis{ren}
 {

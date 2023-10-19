@@ -6,7 +6,8 @@
 
 #include <QList>
 #include <QObject>
-#include <QSharedPointer>
+
+#include <memory>
 
 class iAMeanObjectData;
 class iAMeanObjectDockWidget;
@@ -34,7 +35,7 @@ private slots:
 private:
 	iAMeanObjectDockWidget* m_dwMO;
 	QDialog* m_motfView;
-	QSharedPointer<iAMeanObjectData> m_MOData;
+	std::shared_ptr<iAMeanObjectData> m_MOData;
 	iAQVTKWidget* m_meanObjectWidget;
 	iAMdiChild* m_activeChild;
 	int m_filterID;

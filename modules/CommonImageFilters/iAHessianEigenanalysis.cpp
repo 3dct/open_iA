@@ -1,8 +1,8 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <defines.h>          // for DIM
-#include <iADataSet.h>
 #include <iAFilterDefault.h>
+#include <iAImageData.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
@@ -100,17 +100,17 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QVariantMap const 
 	auto eigenCastfilter1 = CastImageFilterType::New();
 	eigenCastfilter1->SetInput( eigenAdaptor3 );
 	eigenCastfilter1->Update();
-	filter->addOutput(eigenCastfilter1->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(eigenCastfilter1->GetOutput()));
 
 	auto eigenCastfilter2 = CastImageFilterType::New();
 	eigenCastfilter2->SetInput( eigenAdaptor2 );
 	eigenCastfilter2->Update();
-	filter->addOutput(eigenCastfilter2->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(eigenCastfilter2->GetOutput()));
 
 	auto eigenCastfilter3 = CastImageFilterType::New();
 	eigenCastfilter3->SetInput( eigenAdaptor1 );
 	eigenCastfilter3->Update();
-	filter->addOutput(eigenCastfilter3->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(eigenCastfilter3->GetOutput()));
 
 /*
 	// TODO: check if the following code in its current form does anything useful
@@ -172,7 +172,7 @@ template<class T> void Laplacian(iAFilter* filter, QVariantMap const & params)
 	logFilter->SetInput(dynamic_cast< ImageType * >(filter->imageInput(0)->itkImage()));
 	logFilter->SetSigma(params["Sigma"].toDouble());
 	logFilter->Update();
-	filter->addOutput(logFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(logFilter->GetOutput()));
 }
 
 void iALaplacian::performWork(QVariantMap const & parameters)

@@ -17,7 +17,7 @@
 
 namespace
 {
-QSharedPointer<iAHistogramData> createRangeSliderData(QList<double> m_rangeSliderData, double min, double max)
+std::shared_ptr<iAHistogramData> createRangeSliderData(QList<double> m_rangeSliderData, double min, double max)
 {
 	auto data = iAHistogramData::create("Frequency", iAValueType::Continuous, min, max, m_rangeSliderData.size());
 	size_t idx = 0;
@@ -288,11 +288,7 @@ void iARangeSliderDiagramView::setupHistogram()
 
 	QList<double> binList;
 	m_histogramMap = calculateHistogram( porosityList, 0.0, 100.0 );
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	QMapIterator<double, QList<double>> mapIt(m_histogramMap);
-#else
 	QMultiMapIterator<double, QList<double>> mapIt(m_histogramMap);
-#endif
 	while ( mapIt.hasNext() )
 	{
 		mapIt.next();
@@ -301,7 +297,7 @@ void iARangeSliderDiagramView::setupHistogram()
 
 	m_rangeSliderData = createRangeSliderData( binList, 0.0, 99.9);
 
-	m_rangeSliderDiagramDrawer = QSharedPointer<iABarGraphPlot>::create(m_rangeSliderData, QColor(70, 70, 70, 255));
+	m_rangeSliderDiagramDrawer = std::make_shared<iABarGraphPlot>(m_rangeSliderData, QColor(70, 70, 70, 255));
 	vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 	vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
 	// Adds two end points to set up a propper transfer function
@@ -325,12 +321,7 @@ void iARangeSliderDiagramView::setupDiagrams()
 	//Setup parameter diagrams (INPUT)
 	auto paramPorOrDevMap = prepareData( m_rawTable, m_cbPorDev->currentIndex(),
 																  m_cbStatisticMeasurements->currentIndex() );
-
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	QMapIterator<QString, QList<double>> mapIt(paramPorOrDevMap);
-#else
 	QMultiMapIterator<QString, QList<double>> mapIt(paramPorOrDevMap);
-#endif
 	while ( mapIt.hasNext() )
 	{
 		mapIt.next();
@@ -347,7 +338,7 @@ void iARangeSliderDiagramView::setupDiagrams()
 		double min = m_rawTable->item( 1, paramColumnPos )->text().toDouble();
 		double max = m_rawTable->item( m_rawTable->rowCount() - 1, paramColumnPos )->text().toDouble();
 		m_rangeSliderData = createRangeSliderData(mapIt.value(), min, max);
-		m_rangeSliderDiagramDrawer = QSharedPointer<iABarGraphPlot>::create(m_rangeSliderData, QColor(70, 70, 70, 255));
+		m_rangeSliderDiagramDrawer = std::make_shared<iABarGraphPlot>(m_rangeSliderData, QColor(70, 70, 70, 255));
 		vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 		vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();;
 		// Adds two end points to set up a propper transfer function

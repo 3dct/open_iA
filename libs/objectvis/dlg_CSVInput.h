@@ -133,5 +133,5 @@ private:
 	QVector<QComboBox*> m_mappingBoxes;
 	bool m_columnMappingChoiceSet; //!< whether we have provided proper choices in the column mapping comboboxes already
 	bool m_volumeDataAvailable;    //!< whether a volume dataset was available before opening the dialog
-	QSharedPointer<Ui_CsvInput> m_ui;
+	std::shared_ptr<Ui_CsvInput> m_ui;
 };

@@ -1,8 +1,8 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <defines.h> // for DIM
-#include <iADataSet.h>
 #include <iAFilterDefault.h>
+#include <iAImageData.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
@@ -32,7 +32,7 @@ template<class T> void gradientMagnitude(iAFilter* filter, QVariantMap const & p
 	gmFilter->SetUseImageSpacing(params["Use Image Spacing"].toBool());
 	filter->progress()->observe(gmFilter);
 	gmFilter->Update();
-	filter->addOutput(gmFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(gmFilter->GetOutput()));
 }
 
 void iAGradientMagnitude::performWork(QVariantMap const & parameters)
@@ -65,7 +65,7 @@ template<class T> void gradientMagnitudeRecursiveGaussian(iAFilter* filter, QVar
 	gmFilter->SetSigma(params["Sigma"].toDouble());
 	filter->progress()->observe(gmFilter);
 	gmFilter->Update();
-	filter->addOutput(gmFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(gmFilter->GetOutput()));
 }
 
 void iAGradientMagnitudeRecursiveGaussian::performWork(QVariantMap const & parameters)
@@ -101,7 +101,7 @@ void derivative(iAFilter* filter, QVariantMap const & params)
 	derFilter->SetInput( dynamic_cast< InputImageType * >(filter->imageInput(0)->itkImage()) );
 	filter->progress()->observe( derFilter );
 	derFilter->Update();
-	filter->addOutput(derFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(derFilter->GetOutput()));
 }
 
 void iADerivative::performWork(QVariantMap const & parameters)
@@ -139,7 +139,7 @@ void hoaDerivative(iAFilter* filter, QVariantMap const & parameters)
 	hoaFilter->SetInput(dynamic_cast<InputImageType *>(filter->imageInput(0)->itkImage()));
 	filter->progress()->observe(hoaFilter);
 	hoaFilter->Update();
-	filter->addOutput(hoaFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(hoaFilter->GetOutput()));
 }
 
 void iAHigherOrderAccurateDerivative::performWork(QVariantMap const & parameters)

@@ -38,7 +38,7 @@ public:
 	~iANumberParameterInputs();
 	void retrieveInputValues(QVariantMap& values) override;
 	void changeInputValues(QVariantMap const& values) override;
-	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
+	std::shared_ptr<iAAttributeDescriptor> currentDescriptor() override;
 };
 
 class iACategoryParameterInputs : public iAParameterInputs
@@ -49,7 +49,7 @@ public:
 	QString featureString();
 	void retrieveInputValues(QVariantMap& values) override;
 	void changeInputValues(QVariantMap const& values) override;
-	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
+	std::shared_ptr<iAAttributeDescriptor> currentDescriptor() override;
 };
 
 class iAOtherParameterInputs : public iAParameterInputs
@@ -60,7 +60,7 @@ public:
 	~iAOtherParameterInputs();
 	void retrieveInputValues(QVariantMap& values) override;
 	void changeInputValues(QVariantMap const& values) override;
-	QSharedPointer<iAAttributeDescriptor> currentDescriptor() override;
+	std::shared_ptr<iAAttributeDescriptor> currentDescriptor() override;
 };
 
 
@@ -152,11 +152,7 @@ namespace
 		if (values.contains(name))
 		{
 			auto v = values[name];
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-			QString txt = (v.type() == QVariant::Double) ? QString::number(v.toDouble(), 'g', ContinuousPrecision) : v.toString();
-#else
 			QString txt = (v.metaType().id() == QMetaType::Double) ? QString::number(v.toDouble(), 'g', ContinuousPrecision) : v.toString();
-#endif
 			edit->setText(txt);
 			return true;
 		}
@@ -172,14 +168,14 @@ namespace
 	}
 	QString const KeyValueSeparator(": ");
 
-	QSharedPointer<iAParameterInputs> createParameterLine(
+	std::shared_ptr<iAParameterInputs> createParameterLine(
 		QString const& pName,
-		QSharedPointer<iAAttributeDescriptor> descriptor,
+		std::shared_ptr<iAAttributeDescriptor> descriptor,
 		QGridLayout* gridLay,
 		int curGridLine, 
 		iASamplingSettingsDlg* eventHandler)
 	{
-		QSharedPointer<iAParameterInputs> result;
+		std::shared_ptr<iAParameterInputs> result;
 		// merge with common input / iAParameter dlg ?
 		bool isCategorical = descriptor->valueType() == iAValueType::Categorical;
 		if (isCategorical || descriptor->valueType() == iAValueType::Boolean)
@@ -201,7 +197,7 @@ namespace
 			}
 			w->setLayout(checkLay);
 			gridLay->addWidget(w, curGridLine, 1, 1, 3);
-			result = QSharedPointer<iAParameterInputs>(categoryInputs);
+			result = std::shared_ptr<iAParameterInputs>(categoryInputs);
 		}
 		else if (descriptor->valueType() == iAValueType::Continuous || descriptor->valueType() == iAValueType::Discrete)
 		{
@@ -225,7 +221,7 @@ namespace
 			gridLay->addWidget(numberInputs->logScale, curGridLine, 3);
 			gridLay->addWidget(numberInputs->numSamples, curGridLine, 4);
 			QObject::connect(numberInputs->numSamples, QOverload<int>::of(&QSpinBox::valueChanged), eventHandler, &iASamplingSettingsDlg::updateNumSamples);
-			result = QSharedPointer<iAParameterInputs>(numberInputs);
+			result = std::shared_ptr<iAParameterInputs>(numberInputs);
 		}
 		else
 		{
@@ -234,7 +230,7 @@ namespace
 				descriptor->defaultValue().toString());
 			otherInputs->m_valueEdit->setReadOnly(descriptor->valueType() == iAValueType::FileNameSave);
 			gridLay->addWidget(otherInputs->m_valueEdit, curGridLine, 1, 1, 3);
-			result = QSharedPointer<iAParameterInputs>(otherInputs);
+			result = std::shared_ptr<iAParameterInputs>(otherInputs);
 			// LOG(lvlWarn, QString("Don't know how to handle parameters with type %1").arg(descriptor->valueType()));
 		}
 		result->label = new QLabel(pName);
@@ -294,7 +290,7 @@ void iANumberParameterInputs::changeInputValues(QVariantMap const & values)
 	}
 }
 
-void adjustMinMax(QSharedPointer<iAAttributeDescriptor> desc, QString valueText)
+void adjustMinMax(std::shared_ptr<iAAttributeDescriptor> desc, QString valueText)
 {
 	bool ok;
 	double value = valueText.toDouble(&ok);
@@ -311,11 +307,11 @@ void adjustMinMax(QSharedPointer<iAAttributeDescriptor> desc, QString valueText)
 	desc->adjustMinMax(value);
 }
 
-QSharedPointer<iAAttributeDescriptor> iANumberParameterInputs::currentDescriptor()
+std::shared_ptr<iAAttributeDescriptor> iANumberParameterInputs::currentDescriptor()
 {
 	assert(descriptor->valueType() == iAValueType::Discrete || descriptor->valueType() == iAValueType::Continuous);
 	QString pName(label->text());
-	QSharedPointer<iAAttributeDescriptor> desc(new iAAttributeDescriptor(
+	std::shared_ptr<iAAttributeDescriptor> desc(new iAAttributeDescriptor(
 		pName,
 		iAAttributeDescriptor::Parameter,
 		descriptor->valueType()));
@@ -385,11 +381,11 @@ void iACategoryParameterInputs::changeInputValues(QVariantMap const & values)
 	}
 }
 
-QSharedPointer<iAAttributeDescriptor> iACategoryParameterInputs::currentDescriptor()
+std::shared_ptr<iAAttributeDescriptor> iACategoryParameterInputs::currentDescriptor()
 {
 	QString pName(label->text());
 	assert(descriptor->valueType() == iAValueType::Categorical || descriptor->valueType() == iAValueType::Boolean);
-	QSharedPointer<iAAttributeDescriptor> desc(new iAAttributeDescriptor(
+	std::shared_ptr<iAAttributeDescriptor> desc(new iAAttributeDescriptor(
 		pName,
 		iAAttributeDescriptor::Parameter,
 		descriptor->valueType()));
@@ -430,10 +426,10 @@ void iAOtherParameterInputs::changeInputValues(QVariantMap const& values)
 	}
 }
 
-QSharedPointer<iAAttributeDescriptor> iAOtherParameterInputs::currentDescriptor()
+std::shared_ptr<iAAttributeDescriptor> iAOtherParameterInputs::currentDescriptor()
 {
 	QString pName(label->text());
-	QSharedPointer<iAAttributeDescriptor> desc(new iAAttributeDescriptor(
+	std::shared_ptr<iAAttributeDescriptor> desc(new iAAttributeDescriptor(
 		pName,
 		iAAttributeDescriptor::Parameter,
 		descriptor->valueType()));
@@ -507,7 +503,7 @@ std::vector<int> iASamplingSettingsDlg::numOfSamplesPerParameter() const
 		}
 		else if (desc->valueType() == iAValueType::Continuous || desc->valueType() == iAValueType::Discrete)
 		{
-			result[l]  = dynamic_cast<iANumberParameterInputs*>(m_paramInputs[l].data())->numSamples->value();
+			result[l]  = dynamic_cast<iANumberParameterInputs*>(m_paramInputs[l].get())->numSamples->value();
 		}
 	}
 	return result;
@@ -621,7 +617,7 @@ void iASamplingSettingsDlg::outputBaseChanged()
 	{
 		if (m_paramSpecs->at(p)->valueType() == iAValueType::FileNameSave)
 		{
-			auto inputs = dynamic_cast<iAOtherParameterInputs*>(m_paramInputs[p].data());
+			auto inputs = dynamic_cast<iAOtherParameterInputs*>(m_paramInputs[p].get());
 			assert(inputs);
 			int sampleNr = 0;
 			bool createSubFolder = m_ui->cbSeparateFolder->isChecked();
@@ -673,7 +669,7 @@ void iASamplingSettingsDlg::samplingMethodChanged()
 		auto t = m_paramSpecs->at(p)->valueType();
 		if (t == iAValueType::Discrete || t == iAValueType::Continuous)
 		{
-			auto inputs = dynamic_cast<iANumberParameterInputs*>(m_paramInputs[p].data());
+			auto inputs = dynamic_cast<iANumberParameterInputs*>(m_paramInputs[p].get());
 			inputs->numSamples->setVisible(samplingMethod->supportsSamplesPerParameter());
 		}
 	}
@@ -752,7 +748,7 @@ void iASamplingSettingsDlg::setParametersFromFilter(QString const& filterName)
 	{
 		LOG(lvlError, QString("Invalid filter name '%1'").arg(filterName));
 	}
-	auto params = QSharedPointer<iAAttributes>(new iAAttributes(filter->parameters()));
+	auto params = std::shared_ptr<iAAttributes>(new iAAttributes(filter->parameters()));
 	setParameters(params);
 
 	QTextDocument* sampleFilterDescDoc = new QTextDocument(m_ui->textAlgorithmDescription); // set parent so it will get deleted along with it
@@ -763,20 +759,20 @@ void iASamplingSettingsDlg::setParametersFromFilter(QString const& filterName)
 	m_lastParamsFileName.clear();   // if we change to external, it should reload parameters
 }
 
-void iASamplingSettingsDlg::setParameters(QSharedPointer<iAAttributes> params)
+void iASamplingSettingsDlg::setParameters(std::shared_ptr<iAAttributes> params)
 {
 	m_paramSpecs = params;
 	m_paramInputs.clear();
 	int curGridLine = m_startLine;
 	m_ui->parameterLayout->removeItem(m_ui->vspaceParamBottom);
-	for (auto p: *params.data())
+	for (auto p: *params.get())
 	{
 		QString pName(p->name());
 		if (pName.startsWith("Mod "))
 		{
 			for (int m = 0; m < m_inputImageCount; ++m)
 			{
-				QSharedPointer<iAParameterInputs> pInput = createParameterLine(QString("Mod %1 ").arg(m) +
+				std::shared_ptr<iAParameterInputs> pInput = createParameterLine(QString("Mod %1 ").arg(m) +
 					pName.right(pName.length() - 4),
 					p,
 					m_ui->parameterLayout,
@@ -787,7 +783,7 @@ void iASamplingSettingsDlg::setParameters(QSharedPointer<iAAttributes> params)
 		}
 		else
 		{
-			QSharedPointer<iAParameterInputs> pInput = createParameterLine(
+			std::shared_ptr<iAParameterInputs> pInput = createParameterLine(
 				pName,
 				p,
 				m_ui->parameterLayout,
@@ -799,9 +795,9 @@ void iASamplingSettingsDlg::setParameters(QSharedPointer<iAAttributes> params)
 	m_ui->parameterLayout->addItem(m_ui->vspaceParamBottom, curGridLine, 1);
 }
 
-QSharedPointer<iAAttributes> iASamplingSettingsDlg::parameterRanges()
+std::shared_ptr<iAAttributes> iASamplingSettingsDlg::parameterRanges()
 {
-	QSharedPointer<iAAttributes> result(new iAAttributes);
+	std::shared_ptr<iAAttributes> result(new iAAttributes);
 	for (int l = 0; l < m_paramInputs.size(); ++l)
 	{
 		result->push_back(m_paramInputs[l]->currentDescriptor());
@@ -809,7 +805,7 @@ QSharedPointer<iAAttributes> iASamplingSettingsDlg::parameterRanges()
 	return result;
 }
 
-QSharedPointer<iAAttributes> iASamplingSettingsDlg::parameterSpecs()
+std::shared_ptr<iAAttributes> iASamplingSettingsDlg::parameterSpecs()
 {
 	return m_paramSpecs;
 }

@@ -9,7 +9,7 @@ class iARandomSamplingMethod : public iASamplingMethod
 {
 public:
 	QString name() const override;
-	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter) override;
+	iAParameterSetsPointer parameterSets(std::shared_ptr<iAAttributes> parameter) override;
 };
 
 //! Uniform / Cartesian grid sampling.
@@ -20,10 +20,10 @@ class iACartesianGridSamplingMethod : public iASamplingMethod
 {
 public:
 	QString name() const override;
-	void setSampleCount(int sampleCount, QSharedPointer<iAAttributes> params) override;
+	void setSampleCount(int sampleCount, std::shared_ptr<iAAttributes> params) override;
 	bool supportsSamplesPerParameter() const override;
 	void setSamplesPerParameter(std::vector<int> samplesPerParameter) override;
-	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter) override;
+	iAParameterSetsPointer parameterSets(std::shared_ptr<iAAttributes> parameter) override;
 private:
 	std::vector<int> m_samplesPerParameter;
 };
@@ -34,7 +34,7 @@ class iALatinHypercubeSamplingMethod : public iASamplingMethod
 {
 public:
 	QString name() const override;
-	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter) override;
+	iAParameterSetsPointer parameterSets(std::shared_ptr<iAAttributes> parameter) override;
 };
 
 //! Generates parameters around middle of given range for each parameter - "One at a time" sensitivity sampling.
@@ -44,7 +44,7 @@ class iALocalSensitivitySamplingMethod : public iASamplingMethod
 {
 public:
 	QString name() const override;
-	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter) override;
+	iAParameterSetsPointer parameterSets(std::shared_ptr<iAAttributes> parameter) override;
 };
 
 //! Generates a global sensitivity sampling by generating additional parameter sets
@@ -52,24 +52,24 @@ public:
 class MetaFilters_API iAGlobalSensitivitySamplingMethod : public iASamplingMethod
 {
 public:
-	iAGlobalSensitivitySamplingMethod(QSharedPointer<iASamplingMethod> otherGenerator, double delta);
+	iAGlobalSensitivitySamplingMethod(std::shared_ptr<iASamplingMethod> otherGenerator, double delta);
 	QString name() const override;
-	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter) override;
+	iAParameterSetsPointer parameterSets(std::shared_ptr<iAAttributes> parameter) override;
 private:
-	QSharedPointer<iASamplingMethod> m_baseGenerator;
+	std::shared_ptr<iASamplingMethod> m_baseGenerator;
 	double m_delta;
 };
 
 class MetaFilters_API iAGlobalSensitivitySmallStarSamplingMethod: public iASamplingMethod
 {
 public:
-	iAGlobalSensitivitySmallStarSamplingMethod(QSharedPointer<iASamplingMethod> otherGenerator,
+	iAGlobalSensitivitySmallStarSamplingMethod(std::shared_ptr<iASamplingMethod> otherGenerator,
 		double delta, int numSteps);
 	QString name() const override;
-	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter) override;
+	iAParameterSetsPointer parameterSets(std::shared_ptr<iAAttributes> parameter) override;
 
 private:
-	QSharedPointer<iASamplingMethod> m_baseGenerator;
+	std::shared_ptr<iASamplingMethod> m_baseGenerator;
 	double m_delta;
 	int m_numSteps;
 };
@@ -80,7 +80,7 @@ public:
 	iARerunSamplingMethod(QString const& fileName);
 	iARerunSamplingMethod(iAParameterSetsPointer parameterSets, QString const& name);
 	QString name() const override;
-	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter) override;
+	iAParameterSetsPointer parameterSets(std::shared_ptr<iAAttributes> parameter) override;
 private:
 	QString m_name;
 	iAParameterSetsPointer m_parameterSets;
@@ -93,4 +93,4 @@ MetaFilters_API QStringList const & samplingMethodNames();
 //! Note that most strategies don't require any parameters,
 //! but to provide a generic interface for the construction
 //! of all strategies, the parameters are required.
-MetaFilters_API QSharedPointer<iASamplingMethod> createSamplingMethod(QVariantMap const & parameters);
+MetaFilters_API std::shared_ptr<iASamplingMethod> createSamplingMethod(QVariantMap const & parameters);

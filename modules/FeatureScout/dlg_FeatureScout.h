@@ -9,9 +9,8 @@
 
 #include <QDockWidget>
 #include <QMap>
-#include <QSharedPointer>
 
-#include <memory>    // for std::unique_ptr
+#include <memory>
 #include <vector>
 
 class dlg_blobVisualization;
@@ -28,8 +27,8 @@ class iARenderer;
 class iAMdiChild;
 class iAQVTKWidget;
 
-class iA3DObjectVis;
-class iA3DObjectActor;
+class iAObjectVis;
+class iAObjectVisActor;
 
 class iAConnector;
 class iALookupTable;
@@ -76,8 +75,8 @@ public:
 	static const QString DlgObjectName;
 	static const QString UnclassifiedColorName;
 	dlg_FeatureScout(iAMdiChild *parent, iAObjectType fid, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl,
-		int visType, QSharedPointer<QMap<uint, uint>> columnMapping,
-		QSharedPointer<iA3DObjectVis> objvis);
+		iAObjectVisType visType, std::shared_ptr<QMap<uint, uint>> columnMapping,
+		std::shared_ptr<iAObjectVis> objvis);
 	~dlg_FeatureScout();
 	void showPCSettings();            //!< show settings dialog for parallel coordinates
 	void showScatterPlot();           //!< show the scatter plot matrix
@@ -85,6 +84,7 @@ public:
 	void renderLengthDistribution();  //!< render fiber-length distribution
 	void renderMeanObject();          //!< compute and render a mean object for each class
 	void renderOrientation();         //!< color all objects according to their orientation
+	void saveMesh();                  //!< store the (objectvis) mesh as file
 
 	void saveProject(QSettings& projectFile);
 	void loadProject(QSettings const & projectFile);
@@ -121,7 +121,7 @@ private slots:
 	void pcViewMouseButtonCallBack(vtkObject * obj, unsigned long, void * client_data, void*, vtkCommand * command);
 	//! @}
 
-	void renderLUTChanges(QSharedPointer<iALookupTable> lut, size_t colInd);
+	void renderLUTChanges(std::shared_ptr<iALookupTable> lut, size_t colInd);
 private:
 	//create labelled output image based on defined classes
 	template <class T> void CreateLabelledOutputMask(std::shared_ptr<iAConnector> con);
@@ -175,7 +175,7 @@ private:
 	bool m_draw3DPolarPlot;                         //!< Whether the polar plot is drawn in 3D, set only in constructor, default false
 	int m_renderMode;                               //!< Indicates what is currently shown: single classes, or special rendering (multi-class, orientation, ...)
 	bool m_singleObjectSelected;                    //!< Indicates whether a single object or a whole class is selected (if m_renderMode is rmSingleClass)
-	int m_visualization;                            //!< 3D visualization being used (a value out of iACsvConfig::VisualizationType
+	iAObjectVisType m_visualization;                //!< 3D visualization being used
 	const QString m_sourcePath;                     //!< folder of file currently opened
 
 	//! Input csv table with all objects.
@@ -242,10 +242,10 @@ private:
 	iAPolarPlotWidget* m_dwPP;
 	const std::unique_ptr<Ui_FeatureScoutCE> m_ui;
 
-	QSharedPointer<QMap<uint, uint>> m_columnMapping;
+	std::shared_ptr<QMap<uint, uint>> m_columnMapping;
 
-	QSharedPointer<iAFeatureScoutSPLOM> m_splom;
-	QSharedPointer<iA3DObjectVis> m_3dvis;
-	QSharedPointer<iA3DObjectActor> m_3dactor;
-	QSharedPointer<iAMeanObject> m_meanObject;
+	std::shared_ptr<iAFeatureScoutSPLOM> m_splom;
+	std::shared_ptr<iAObjectVis> m_3dvis;
+	std::shared_ptr<iAObjectVisActor> m_3dactor;
+	std::shared_ptr<iAMeanObject> m_meanObject;
 };

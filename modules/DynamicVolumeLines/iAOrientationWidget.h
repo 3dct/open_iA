@@ -7,8 +7,6 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLWidget>
 
-#include <vtkSmartPointer.h>
-
 class iAOrientationWidget : public QOpenGLWidget, public QOpenGLFunctions
 {
 	Q_OBJECT

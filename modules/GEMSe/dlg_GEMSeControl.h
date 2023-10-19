@@ -10,8 +10,6 @@
 
 #include <qthelper/iAQTtoUIConnector.h>
 
-#include <vtkSmartPointer.h>
-
 #include <QMap>
 
 class iAImageClusterer;
@@ -81,7 +79,7 @@ private:
 	void saveDerivedOutput(
 		QString const & derivedOutputFileName,
 		QString const & attributeDescriptorOutputFileName,
-		QSharedPointer<iASamplingResults> results);
+		std::shared_ptr<iASamplingResults> results);
 
 	iASamplingSettingsDlg* m_dlgSamplingSettings;
 	dlg_GEMSe* m_dlgGEMSe;
@@ -89,11 +87,11 @@ private:
 	dlg_Consensus* m_dlgConsensus;
 
 	iAProgress m_progress;
-	QSharedPointer<iAImageSampler> m_sampler;
-	QSharedPointer<iAImageClusterer> m_clusterer;
+	std::shared_ptr<iAImageSampler> m_sampler;
+	std::shared_ptr<iAImageClusterer> m_clusterer;
 
 	QString m_outputFolder, m_cltFile, m_m_metaFileName;
-	QSharedPointer<iASimpleLabelInfo> m_simpleLabelInfo;
+	std::shared_ptr<iASimpleLabelInfo> m_simpleLabelInfo;
 	LabelImagePointer m_refImg;
 	QVariantMap m_samplingSettings;
 };

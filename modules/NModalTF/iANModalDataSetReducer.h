@@ -3,7 +3,8 @@
 #pragma once
 
 #include <QList>
-#include <QSharedPointer>
+
+#include <memory>
 
 class iAImageData;
 

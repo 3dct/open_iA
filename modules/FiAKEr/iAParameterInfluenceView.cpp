@@ -73,8 +73,8 @@ public:
 	iAClickableLabel* labels[LabelCount];
 };
 
-iAParameterInfluenceView::iAParameterInfluenceView(QSharedPointer<iASensitivityData> data,
-	QSharedPointer<iASensitivityViewState> viewState, QColor const& inColor, QColor const& outColor) :
+iAParameterInfluenceView::iAParameterInfluenceView(std::shared_ptr<iASensitivityData> data,
+	std::shared_ptr<iASensitivityViewState> viewState, QColor const& inColor, QColor const& outColor) :
 	m_data(data),
 	m_viewState(viewState),
 	m_measureIdx(0),
@@ -83,14 +83,14 @@ iAParameterInfluenceView::iAParameterInfluenceView(QSharedPointer<iASensitivityD
 	m_selectedParam(-1),
 	m_selectedCol(-1),
 	m_paramListLayout(new QGridLayout()),
-	m_stackedBarTheme(QSharedPointer<iASingleColorTheme>::create("OneOutputColorTheme", outColor)),
+	m_stackedBarTheme(std::make_shared<iASingleColorTheme>("OneOutputColorTheme", outColor)),
 	m_table(data->m_variedParams.size()),
 	m_sort(data->m_variedParams.size()),
 	m_sortLastOut(-1),
 	m_sortLastDesc(true),
 	m_histogramChartType("Bars"),    // needs to match value from radio buttons in SensitivitySettings.ui
 	m_normalizePerOutput(false),
-	m_sortParamLUT(QSharedPointer<iALookupTable>::create(QColor(64, 64, 64))),
+	m_sortParamLUT(std::make_shared<iALookupTable>(QColor(64, 64, 64))),
 	m_spColorMapName("Matplotlib: Plasma")
 {
 	for (int i=0; i<m_sort.size(); ++i)
@@ -99,7 +99,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(QSharedPointer<iASensitivityD
 	}
 	for (int j=0; j<data->m_variedParams.size(); ++j)
 	{
-		m_table[j] = QSharedPointer<iAParTableRow>::create();
+		m_table[j] = std::make_shared<iAParTableRow>();
 	}
 	setLayout(new QHBoxLayout);
 	layout()->setContentsMargins(1, 0, 1, 0);
@@ -127,15 +127,15 @@ iAParameterInfluenceView::iAParameterInfluenceView(QSharedPointer<iASensitivityD
 
 	for (int paramIdx = 0; paramIdx < data->m_variedParams.size(); ++paramIdx)
 	{
-		iAParTableRow * row = m_table[paramIdx].data();
+		iAParTableRow * row = m_table[paramIdx].get();
 		int rowIdx = 1 + RowsPerParam * paramIdx;
-		row->head = new iAStackedBarChart(m_stackedBarTheme.data(), m_paramListLayout,
+		row->head = new iAStackedBarChart(m_stackedBarTheme.get(), m_paramListLayout,
 			rowIdx + RowStackedHeader, colStackedBar, true);
 		row->head->setDoStack(false);
 		row->head->setNormalizeMode(false);
 		connect(row->head, &iAStackedBarChart::barDblClicked, this, &iAParameterInfluenceView::sortListByBar);
 		QString paramName = data->m_paramNames[data->m_variedParams[paramIdx]];
-		row->bars = new iAStackedBarChart(m_stackedBarTheme.data(), m_paramListLayout,
+		row->bars = new iAStackedBarChart(m_stackedBarTheme.get(), m_paramListLayout,
 			rowIdx + RowStackedBar, colStackedBar, false,
 			paramIdx == data->m_variedParams.size() - 1);
 		row->bars->setNormalizeMode(false);
@@ -600,20 +600,20 @@ QString iAParameterInfluenceView::columnName(int outType, int outIdx) const
 			getAvailableDissimilarityMeasureNames()[m_data->m_resultDissimMeasures[outIdx].first]);
 }
 
-QSharedPointer<iAPlot> iAParameterInfluenceView::createHistoPlot(QSharedPointer<iAHistogramData> histoData, QColor color)
+std::shared_ptr<iAPlot> iAParameterInfluenceView::createHistoPlot(std::shared_ptr<iAHistogramData> histoData, QColor color)
 {	// m_histogramChartType values need to match values from SensitivitySettings.ui file
 	if (m_histogramChartType == "Bars")
 	{
-		return QSharedPointer<iABarGraphPlot>::create(histoData, barGraphColor(color));
+		return std::make_shared<iABarGraphPlot>(histoData, barGraphColor(color));
 	}
 	else if (m_histogramChartType == "Lines")
 	{
-		return QSharedPointer<iALinePlot>::create(histoData, color);
+		return std::make_shared<iALinePlot>(histoData, color);
 	}
 	else
 	{
 		LOG(lvlWarn, QString("Unknown chart type '%1'!").arg(m_histogramChartType));
-		return QSharedPointer<iAPlot>();
+		return std::shared_ptr<iAPlot>();
 	}
 }
 
@@ -662,7 +662,7 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 	outChart->update();
 
 	auto parChart = m_table[paramIdx]->par[barIdx];
-	auto spData = QSharedPointer<iASPLOMData>::create();
+	auto spData = std::make_shared<iASPLOMData>();
 	auto const& d = ((outType == outCharacteristic) ?
 		(m_charDiffMeasureIdx == 0 ?
 				 m_data->sensitivityField[outIdx][m_measureIdx][m_aggrType] :
@@ -925,7 +925,7 @@ void iAParameterInfluenceView::setInColor(QColor const& inColor)
 {
 	for (int paramIdx = 0; paramIdx < m_table.size(); ++paramIdx)
 	{
-		m_table[paramIdx].data()->labels[colParamName]->setStyleSheet(
+		m_table[paramIdx].get()->labels[colParamName]->setStyleSheet(
 			"QLabel { background-color : " + inColor.name() + "; }");
 	}
 }
@@ -933,12 +933,12 @@ void iAParameterInfluenceView::setInColor(QColor const& inColor)
 void iAParameterInfluenceView::setInOutColorPrivate(QColor const& inColor, QColor const& outColor)
 {
 	setInColor(inColor);
-	auto newColorTheme = QSharedPointer<iASingleColorTheme>::create("OneOutputColorTheme", outColor);
+	auto newColorTheme = std::make_shared<iASingleColorTheme>("OneOutputColorTheme", outColor);
 	for (int r = 0; r < m_table.size(); ++r)
 	{
-		auto row = m_table[r].data();
-		row->head->setColorTheme(newColorTheme.data());
-		row->bars->setColorTheme(newColorTheme.data());
+		auto row = m_table[r].get();
+		row->head->setColorTheme(newColorTheme.get());
+		row->bars->setColorTheme(newColorTheme.get());
 	}
 	m_stackedBarTheme = newColorTheme;
 }

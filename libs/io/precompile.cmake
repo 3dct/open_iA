@@ -27,13 +27,13 @@ set(OPENIA_PRECOMPILE_HEADERS
 <itkImage.h>
 <itkImageSeriesWriter.h>
 <itkNumericSeriesFileNames.h>
-<memory>
 <QFile>
 <QFileInfo>
 <QMap>
 <QSettings>
 <QString>
 <QTextStream>
+<stdexcept>
 <vector>
 <vtkImageData.h>
 <vtkPointData.h>

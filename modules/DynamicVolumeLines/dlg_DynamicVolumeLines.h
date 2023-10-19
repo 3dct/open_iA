@@ -12,6 +12,7 @@
 
 #include <QDir>
 #include <QDockWidget>
+#include <QSharedPointer>
 
 class iAMulti3DRendererView;
 class iANonLinearAxisTicker;
@@ -109,7 +110,7 @@ private:
 
 	vtkSmartPointer<vtkRenderer> m_mrvBGRen;
 	vtkSmartPointer<vtkTextActor> m_mrvTxtAct;
-	QSharedPointer<iAVolumeRenderer> m_volRen;
+	std::shared_ptr<iAVolumeRenderer> m_volRen;
 
 	void generateHilbertIdx();
 	void setupFBPGraphs(QCustomPlot* qcp, iAFunctionalBoxplot<double, double>* fbpData);

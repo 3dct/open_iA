@@ -2,24 +2,34 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#include "iAAttributes.h"
 #include "iADataSet.h"
 
-#include <vtkSmartPointer.h>
-
 class vtkPolyDataAlgorithm;
+
+class iAbase_API iAGeometricObjectSource
+{
+public:
+	virtual ~iAGeometricObjectSource();
+	vtkPolyDataAlgorithm* vtkSource;
+	virtual void applyAttributes(QVariantMap const& values) = 0;
+	virtual iAAttributes objectProperties() = 0;
+};
 
 //! A geometric object produced by some VTK algorithm such as the various sources.
 class iAbase_API iAGeometricObject : public iADataSet
 {
 public:
-	iAGeometricObject(QString const& name, vtkSmartPointer<vtkPolyDataAlgorithm> source);
-	vtkSmartPointer<vtkPolyDataAlgorithm> source() const;
+	iAGeometricObject(QString const& name, std::unique_ptr<iAGeometricObjectSource> source);
+	vtkPolyDataAlgorithm* source() const;
 	QString info() const override;
 	std::array<double, 3> unitDistance() const override;
 	double const* bounds() const;
+	void applyAttributes(QVariantMap const& values);
+	iAAttributes objectProperties();
 
 private:
 	iAGeometricObject(iAGeometricObject const& other) = delete;
 	iAGeometricObject& operator=(iAGeometricObject const& other) = delete;
-	vtkSmartPointer<vtkPolyDataAlgorithm> m_polySource;
+	std::unique_ptr<iAGeometricObjectSource> m_source;
 };

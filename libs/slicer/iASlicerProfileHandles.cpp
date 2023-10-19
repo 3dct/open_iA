@@ -33,6 +33,8 @@ iASlicerProfileHandles::iASlicerProfileHandles():
 	for (int i = 0; i < 2; i++)
 	{
 		m_points[i].source->SetOuterRadius(m_radius);
+		m_points[i].source->SetInnerRadius(0.0);
+		m_points[i].source->SetCircumferentialResolution(20);
 		m_points[i].actor->GetProperty()->SetOpacity(0.3);
 
 		m_hLine[i].actor->GetProperty()->SetOpacity(0.3);
@@ -95,12 +97,9 @@ void iASlicerProfileHandles::addToRenderer( vtkRenderer * ren )
 	}
 }
 
-int iASlicerProfileHandles::setup( int pointIdx, double const * pos3d, double const * pos2d, vtkImageData *imgData )
+void iASlicerProfileHandles::setup( int pointIdx, double const * pos3d, double const * pos2d, vtkImageData *imgData )
 {
-	if (pointIdx < 0 || pointIdx>1)
-	{
-		return 0;
-	}
+	assert(pointIdx >= 0 && pointIdx < 2);
 	for (int i = 0; i < 3; i++)
 	{
 		m_positions[pointIdx][i] = pos3d[i];
@@ -123,7 +122,6 @@ int iASlicerProfileHandles::setup( int pointIdx, double const * pos3d, double co
 	m_points[pointIdx].actor->SetPosition(pos2d[0], pos2d[1], ZCoord);
 
 	setPointScaling(spacing[0] > spacing[1] ? spacing[0] : spacing[1]);
-	return 1;
 }
 
 int iASlicerProfileHandles::pointIdx() const

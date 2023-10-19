@@ -76,7 +76,7 @@ private:
 	void emitBarClick(size_t barID);
 	void emitBarDblClick(size_t barID);
 
-	std::vector<QSharedPointer<iABarData>> m_bars;
+	std::vector<std::shared_ptr<iABarData>> m_bars;
 	std::vector<int> m_dividers;
 	iAColorTheme const * m_theme;
 	QMenu* m_contextMenu;
@@ -84,7 +84,7 @@ private:
 	size_t m_resizeBar;
 	int m_resizeStartX;
 	double m_resizeWidth;
-	std::vector<QSharedPointer<iABarData>> m_resizeBars;
+	std::vector<std::shared_ptr<iABarData>> m_resizeBars;
 	bool m_normalizePerBar;
 	double m_overallMaxValue;
 	int m_selectedBar;

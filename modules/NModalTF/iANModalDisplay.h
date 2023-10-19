@@ -7,8 +7,9 @@
 
 #include <QDialog>
 #include <QList>
-#include <QSharedPointer>
 #include <QWidget>
+
+#include <memory>
 
 class iAImageData;
 class iASlicer;

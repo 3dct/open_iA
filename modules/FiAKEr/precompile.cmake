@@ -24,6 +24,7 @@ set(FiAKEr_PRECOMPILE_INCLUDES
 <iAStringHelper.h>
 <iAToolsVTK.h>
 <iAVec3.h>
+<memory>
 <QAction>
 <QApplication>
 <QFileDialog>
@@ -37,7 +38,6 @@ set(FiAKEr_PRECOMPILE_INCLUDES
 <QPainter>
 <QScrollArea>
 <QSettings>
-<QSharedPointer>
 <QStandardItemModel>
 <QTextStream>
 <qthelper/iAQTtoUIConnector.h>

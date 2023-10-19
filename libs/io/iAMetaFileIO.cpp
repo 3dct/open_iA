@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAMetaFileIO.h"
 
-#include "iADataSet.h"
 #include "iAFileUtils.h"
+#include "iAImageData.h"
 #include "iAProgress.h"
 
 #include "iAConnector.h"  // for writing
@@ -66,8 +66,7 @@ void iAMetaFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSet> 
 	auto imgData = dynamic_cast<iAImageData*>(dataSet.get());
 	if (!imgData)
 	{
-		LOG(lvlError, "Meta File IO expects image(/volume) data, but given dataset was of a different type!");
-		return;
+		throw std::runtime_error("Meta File IO expects image(/volume) data, but given dataset was of a different type!");
 	}
 	storeImage(imgData->vtkImage(), fileName, paramValues[CompressionStr].toBool(), &progress);
 }

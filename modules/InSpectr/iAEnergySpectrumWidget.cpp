@@ -15,7 +15,6 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QRubberBand>
-#include <QtGlobal> // for QT_VERSION
 
 const char * EnergyLineNames[9] =
 {
@@ -31,7 +30,7 @@ const char * EnergyLineNames[9] =
 };
 
 iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent,
-		QSharedPointer<iAAccumulatedXRFData> data,
+		std::shared_ptr<iAAccumulatedXRFData> data,
 		vtkPiecewiseFunction* oTF,
 		vtkColorTransferFunction* cTF,
 		iASpectrumFilterListener* filterListener,
@@ -42,10 +41,10 @@ iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent,
 	filterListener(filterListener),
 	m_tf(new iATransferFunctionPtrs(cTF, oTF))
 {
-	setTransferFunction(m_tf.data());
-	addPlot(QSharedPointer<iAStepFunctionPlot>::create(m_data, QColor(70, 70, 70, 255)));
+	setTransferFunction(m_tf.get());
+	addPlot(std::make_shared<iAStepFunctionPlot>(m_data, QColor(70, 70, 70, 255)));
 	selectionRubberBand->hide();
-	setAllowTrfReset(false);
+	setAllowTFReset(false);
 	setEnableAdditionalFunctions(false);
 	setMinimumHeight(150);
 }
@@ -65,20 +64,11 @@ void iAEnergySpectrumWidget::mousePressEvent(QMouseEvent *event)
 			selectionRects.clear();
 			update();
 		}
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-		else if( event->modifiers() || event->y() > geometry().height() - bottomMargin() )
-#else
 		else if (event->modifiers() || event->position().y() > geometry().height() - bottomMargin())
-#endif
 		{
 			QMouseEvent eventCopy(event->type(),
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-				QPoint(event->x(), geometry().height() - bottomMargin()),
-				event->globalPos(),
-#else
 				QPoint(event->position().x(), geometry().height() - bottomMargin()),
 				event->globalPosition().toPoint(),
-#endif
 				event->button(),
 				event->buttons(),
 				event->modifiers()
@@ -91,13 +81,8 @@ void iAEnergySpectrumWidget::mousePressEvent(QMouseEvent *event)
 void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 {
 	QMouseEvent eventCopy(event->type(),
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-		QPoint(event->x(), geometry().height() - bottomMargin()),
-		event->globalPos(),
-#else
 		QPoint(event->position().x(), geometry().height() - bottomMargin()),
 		event->globalPosition().toPoint(),
-#endif
 		event->button(),
 		event->buttons(),
 		event->modifiers()
@@ -138,13 +123,8 @@ void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 void iAEnergySpectrumWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	QMouseEvent eventCopy(event->type(),
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-		QPoint(event->x(), geometry().height() - bottomMargin()),
-		event->globalPos(),
-#else
 		QPoint(event->position().x(), geometry().height() - bottomMargin()),
 		event->globalPosition().toPoint(),
-#endif
 		event->button(),
 		event->buttons(),
 		event->modifiers()

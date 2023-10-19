@@ -4,6 +4,8 @@
 
 #include "iAGEMSeConstants.h"
 
+#include <memory>
+
 class iAChartAttributeMapper;
 class iAChartFilter;
 class iAImageTreeNode;
@@ -14,19 +16,19 @@ class QTextStream;
 class iAImageTree
 {
 public:
-	static QSharedPointer<iAImageTree> Create(
+	static std::shared_ptr<iAImageTree> Create(
 		QString const & fileName,
-		QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > samplings,
+		std::shared_ptr<QVector<std::shared_ptr<iASamplingResults> > > samplings,
 		int labelCount);
-	iAImageTree(QSharedPointer<iAImageTreeNode >, int labelCount);
-	QSharedPointer<iAImageTreeNode > m_root;
+	iAImageTree(std::shared_ptr<iAImageTreeNode >, int labelCount);
+	std::shared_ptr<iAImageTreeNode > m_root;
 	bool Store(QString const & fileName) const;
 	int labelCount() const;
 private:
-	static void WriteNode(QTextStream & out, QSharedPointer<iAImageTreeNode >, int level);
-	static QSharedPointer<iAImageTreeNode> ReadNode(
+	static void WriteNode(QTextStream & out, std::shared_ptr<iAImageTreeNode >, int level);
+	static std::shared_ptr<iAImageTreeNode> ReadNode(
 		QTextStream & in,
-		QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > samplings,
+		std::shared_ptr<QVector<std::shared_ptr<iASamplingResults> > > samplings,
 		int labelCount,
 		QString const & outputDirectory,
 		int & lastClusterID);

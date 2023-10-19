@@ -59,10 +59,13 @@ private:
 	void setPointOpacity(int selectedPoint, int pixelY);
 	
 	//! convert from pixel coordinate on chart [0..maxDiagPixelHeight] to opacity [0..1]
-	double pixelY2Opacity(int pixelY);
+	double pixelY2Opacity(int pixelY) const;
 
 	//! convert from opacity [0..1] to pixel coordinate on chart [0..maxDiagPixelHeight]
-	int opacity2PixelY(double opacity);
+	int opacity2PixelY(double opacity) const;
+
+	//! x offset based on data type of chart (0.5 offset for discrete datasets)
+	double xOfs() const;
 
 	// TODO: remove / move to iAFilterChart/iARangeSliderDiagramWidget!
 	bool m_rangeSliderHandles;

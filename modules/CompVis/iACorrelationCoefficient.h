@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "vtkCorrelativeStatistics.h"
-#include "vtkMultiCorrelativeStatistics.h"
-#include "vtkSmartPointer.h"
-#include "vtkTable.h"
-
 #include "iACsvDataStorage.h"
 
+#include <vtkSmartPointer.h>
+
 #include <map>
+
+class vtkTable;
+class vtkCorrelativeStatistics;
 
 namespace Correlation
 {

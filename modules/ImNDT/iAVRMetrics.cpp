@@ -3,6 +3,8 @@
 
 #include "iAVRMetrics.h"
 
+#include <vtkTable.h>
+
 int iAVRMetrics::numberOfFeatures = 0;
 std::vector<std::vector<double>>* iAVRMetrics::m_minMaxValues = nullptr;
 

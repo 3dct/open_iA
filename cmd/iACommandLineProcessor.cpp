@@ -116,10 +116,7 @@ namespace
 				{
 					std::cout << " max=" << p->max();
 				}
-#if __cplusplus >= 201703L
 				[[fallthrough]];
-#endif
-				// fall through
 			case iAValueType::Boolean:
 				std::cout << " default=" << p->defaultValue().toString().toStdString();
 				break;
@@ -139,10 +136,7 @@ namespace
 				std::cout << " specify a folder.";
 				break;
 			case iAValueType::String:
-#if __cplusplus >= 201703L
 				[[fallthrough]];
-#endif
-				// fall through
 			case iAValueType::Text:
 				std::cout << " text, see filter description for details.";
 				break;

@@ -9,9 +9,9 @@
 #include "iAPeriodicTableWidget.h"
 #include "iAXRFData.h"
 
+#include <iAChannelID.h>    // for NotExistingChannel
 #include <iAChannelData.h>
 #include <iADockWidgetWrapper.h>
-//#include <iAMainWindow.h>
 #include <iAMdiChild.h>
 #include <iARunAsync.h>
 #include <iASlicer.h>
@@ -19,8 +19,8 @@
 
 #include <iAFileTypeRegistry.h>
 
+#include <iAImageData.h>
 #include <iALog.h>
-#include <defines.h>    // for NotExistingChannel
 
 #include <itkMacro.h>    // for itk::ExceptionObject
 
@@ -206,7 +206,7 @@ void iAInSpectrTool::updateXRFVoxelEnergy( double x, double y, double z, int /*m
 	{
 		return;
 	}
-	iAXRFData * xrfData = dlgXRF->GetXRFData().data();
+	iAXRFData * xrfData = dlgXRF->GetXRFData().get();
 	if (!xrfData || xrfData->begin() == xrfData->end())
 	{
 		return;

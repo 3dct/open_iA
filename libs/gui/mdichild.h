@@ -21,10 +21,10 @@
 #include <QMap>
 #include <QMutex>
 #include <QString>
-#include <QSharedPointer>
 
 #include <array>
 #include <functional>
+#include <memory>
 #include <vector>
 
 class QListWidget;
@@ -66,7 +66,6 @@ class iAgui_API MdiChild : public iAMdiChild, public Ui_Mdichild, public iASavab
 public:
 
 	MdiChild(MainWindow* mainWnd, iAPreferences const& preferences, bool unsavedChanges);
-	~MdiChild();
 
 	//! performs initialization that needs to be done after the widget is being displayed
 	void initializeViews();
@@ -83,7 +82,7 @@ public:
 	bool isSnakeSlicerToggled() const;
 	void toggleSliceProfile(bool isEnabled);
 	bool isSliceProfileEnabled() const;
-	void setProfilePoints(double const* start, double const* end) override;
+	void initProfilePoints(double const* start, double const* end) override;
 
 	//! Access to the 3D renderer widget
 	iARenderer* renderer() override;
@@ -294,8 +293,6 @@ private:
 	vtkSmartPointer<iAParametricSpline> m_parametricSpline;
 	//! @}
 
-	vtkTransform * m_axesTransform;    //!< transform for the axes in the 3D renderer; TODO: check usage and if it should be placed somewhere else, or made a smart pointer
-
 	iARendererImpl * m_renderer;       //!< access and decoration of 3D renderers
 	std::array<iASlicerImpl*, 3> m_slicer; //!< the 3 axis-aligned slicers
 	vtkSmartPointer<vtkTransform> m_slicerTransform;  //!< the slicer transform (to share rotation between slicers)
@@ -309,7 +306,7 @@ private:
 	dlg_renderer * m_dwRenderer;
 	//! @}
 
-	QMap<uint, QSharedPointer<iAChannelData> > m_channels;
+	QMap<uint, std::shared_ptr<iAChannelData> > m_channels;
 	uint m_nextChannelID;
 	uint m_magicLensChannel;
 	

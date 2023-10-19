@@ -6,9 +6,10 @@
 
 #include <iAAttributes.h>
 
-#include <QSharedPointer>
 #include <QString>
 #include <QVector>
+
+#include <memory>
 
 class iASingleResult;
 
@@ -16,7 +17,7 @@ class MetaFilters_API iASamplingResults
 {
 public:
 	iASamplingResults(
-		QSharedPointer<iAAttributes> attr,
+		std::shared_ptr<iAAttributes> attr,
 		QString const & samplingMethod,
 		QString const & path,
 		QString const & executable,
@@ -24,15 +25,15 @@ public:
 		QString const & name,
 		int id
 	);
-	static QSharedPointer<iASamplingResults> load(QString const & metaFileName, int datasetID);
+	static std::shared_ptr<iASamplingResults> load(QString const & metaFileName, int datasetID);
 	bool store(QString const& rangeFileName, QString const& parameterSetFileName,
 		QString const& derivedOutputFileName);
 	int size() const;
-	QSharedPointer<iASingleResult> get(int i) const;
-	void addResult(QSharedPointer<iASingleResult> result);
-	QVector<QSharedPointer<iASingleResult> > const & members() const;
-	void setMembers(QVector<QSharedPointer<iASingleResult> > const& members);
-	QSharedPointer<iAAttributes> attributes() const;
+	std::shared_ptr<iASingleResult> get(int i) const;
+	void addResult(std::shared_ptr<iASingleResult> result);
+	QVector<std::shared_ptr<iASingleResult> > const & members() const;
+	void setMembers(QVector<std::shared_ptr<iASingleResult> > const& members);
+	std::shared_ptr<iAAttributes> attributes() const;
 	QString name() const;
 	QString fileName() const;
 	QString path(int id) const;
@@ -42,8 +43,8 @@ public:
 	int id() const;
 	bool storeAttributes(int type, QString const & fileName, bool id);
 private:
-	QSharedPointer<iAAttributes> m_attributes;
-	QVector<QSharedPointer<iASingleResult> > m_results;
+	std::shared_ptr<iAAttributes> m_attributes;
+	QVector<std::shared_ptr<iASingleResult> > m_results;
 	QString m_name;           //!< name of this sampling
 	QString m_parameterSetFile;//!<the name of the file containing the parameter sets
 	QString m_derivedOutputFile;//!<the name of the file containing the derived outputs
@@ -57,5 +58,5 @@ private:
 	bool loadInternal(QString const & parameterSetFileName, QString const & derivedOutputFileName);
 };
 
-typedef QSharedPointer<iASamplingResults> SamplingResultPtr;
-typedef QSharedPointer<QVector<SamplingResultPtr> > SamplingVectorPtr;
+typedef std::shared_ptr<iASamplingResults> SamplingResultPtr;
+typedef std::shared_ptr<QVector<SamplingResultPtr> > SamplingVectorPtr;

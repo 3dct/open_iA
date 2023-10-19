@@ -7,29 +7,18 @@
 
 #include <QString>
 
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
-	#include <vtkVRCamera.h>
-	#include <vtkVRRenderer.h>
-	#include <vtkVRRenderWindow.h>
-	using iAvtkVRCamera = vtkVRCamera;
-	using iAvtkVRRenderer = vtkVRRenderer;
-	using iAvtkVRRenderWindow = vtkVRRenderWindow;
-	#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
+#include <vtkVRCamera.h>
+#include <vtkVRRenderer.h>
+#include <vtkVRRenderWindow.h>
+using iAvtkVRCamera = vtkVRCamera;
+using iAvtkVRRenderer = vtkVRRenderer;
+using iAvtkVRRenderWindow = vtkVRRenderWindow;
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
 	#include <vtkVRRenderWindowInteractor.h>
-		using iAvtkVRRenderWindowInteractor = vtkVRRenderWindowInteractor;
-	#else
-	#include <vtkOpenVRRenderWindowInteractor.h>
-		using iAvtkVRRenderWindowInteractor = vtkOpenVRRenderWindowInteractor;
-	#endif
+	using iAvtkVRRenderWindowInteractor = vtkVRRenderWindowInteractor;
 #else
-#include <vtkOpenVRCamera.h>
-#include <vtkOpenVRRenderer.h>
-#include <vtkOpenVRRenderWindow.h>
 #include <vtkOpenVRRenderWindowInteractor.h>
-using iAvtkVRCamera = vtkOpenVRCamera;
-using iAvtkVRRenderer = vtkOpenVRRenderer;
-using iAvtkVRRenderWindow = vtkOpenVRRenderWindow;
-using iAvtkVRRenderWindowInteractor = vtkOpenVRRenderWindowInteractor;
+	using iAvtkVRRenderWindowInteractor = vtkOpenVRRenderWindowInteractor;
 #endif
 
 class iAvtkVR

@@ -3,7 +3,7 @@
 #include "mdichild.h"
 
 #include "dlg_slicer.h"
-#include "iADataSetViewer.h"
+#include "iADataSetViewerImpl.h"
 #include "iADataSetRenderer.h"
 #include "iAVolumeViewer.h"    // TODO NEWIO: only required for changing magic lens input - move from here, e.g. to slicer
 #include "iAFileParamDlg.h"
@@ -14,25 +14,22 @@
 
 // renderer
 #include <iARendererImpl.h>
-#include <iARenderObserver.h>
 
 // slicer
 #include <iASlicerImpl.h>
 
 // guibase
+#include <iAChannelID.h>    // for NotExistingChannel
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iADataSetListWidget.h>
+#include <iADockWidgetWrapper.h>
 #include <iAJobListView.h>
 #include <iAMovieHelper.h>
 #include <iAParameterDlg.h>
 #include <iAPreferences.h>
 #include <iATool.h>
-#include <iAToolRegistry.h>
 #include <iARunAsync.h>
-
-// qthelper
-#include <iADockWidgetWrapper.h>
 
 // io
 #include <iAFileStackParams.h>
@@ -41,9 +38,10 @@
 #include <iAVolStackFileIO.h>
 
 // base
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iAFileTypeRegistry.h>
 #include <iALog.h>
+#include <iAPolyData.h>
 #include <iAProgress.h>
 #include <iAStringHelper.h>
 #include <iAToolsVTK.h>
@@ -51,19 +49,17 @@
 
 #include <vtkColorTransferFunction.h>
 #include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkImageExtractComponents.h>
-#include <vtkImageReslice.h>
-#include <vtkMath.h>
-#include <vtkMatrixToLinearTransform.h>
-#include <vtkPolyData.h>
-#include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
-#include <vtkWindowToImageFilter.h>
 
 // TODO: refactor methods using the following out of mdichild!
 #include <vtkCamera.h>
+#include <vtkImageReslice.h>
+#include <vtkMath.h>
+#include <vtkMatrixToLinearTransform.h>
+#include <vtkPoints.h>
 #include <vtkTransform.h>
+#include <vtkWindowToImageFilter.h>
 
 #include <QByteArray>
 #include <QCloseEvent>
@@ -75,7 +71,6 @@
 #include <QPushButton>
 #include <QSettings>
 #include <QSpinBox>
-#include <QtGlobal> // for QT_VERSION
 
 
 MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsavedChanges) :
@@ -89,7 +84,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_snakeSlicer(false),
 	m_worldSnakePoints(vtkSmartPointer<vtkPoints>::New()),
 	m_parametricSpline(vtkSmartPointer<iAParametricSpline>::New()),
-	m_axesTransform(vtkTransform::New()),
 	m_slicerTransform(vtkSmartPointer<vtkTransform>::New()),
 	m_dataSetInfo(new QListWidget(this)),
 	m_dataSetListWidget(new iADataSetListWidget()),
@@ -129,7 +123,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_parametricSpline->SetPoints(m_worldSnakePoints);
 
 	m_renderer = new iARendererImpl(this, dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_dwRenderer->vtkWidgetRC->renderWindow()));
-	m_renderer->setAxesTransform(m_axesTransform);
 
 	connectSignalsToSlots();
 }
@@ -154,11 +147,6 @@ void MdiChild::toggleFullScreen()
 		mdiSubWin->setWindowFlags(windowFlags() & ~Qt::FramelessWindowHint);
 	}
 	mdiSubWin->show();
-}
-
-MdiChild::~MdiChild()
-{
-	m_axesTransform->Delete();
 }
 
 void MdiChild::connectSignalsToSlots()
@@ -299,8 +287,8 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 		LOG(lvlError, "No viewer associated with this dataset type!");
 		return dataSetIdx;
 	}
-	connect(viewer.get(), &iADataSetViewer::dataSetChanged, this, [this, dataSetIdx](size_t dsIdx) {
-		assert(dsIdx == dataSetIdx);
+	connect(viewer.get(), &iADataSetViewer::dataSetChanged, this, [this](size_t dsIdx)
+	{
 		updateDataSetInfo();
 		emit dataSetChanged(dsIdx);
 	});
@@ -504,9 +492,11 @@ bool MdiChild::saveDataSet(std::shared_ptr<iADataSet> dataSet, QString const& fi
 		return false;
 	}
 	auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Save);
-	if (!io || !io->isDataSetSupported(dataSet, fileName))
+	if (!io || !io->isDataSetSupported(dataSet, fileName, iAFileIO::Save))
 	{
-		LOG(lvlError, "The chosen file format does not support this kind of dataset!");
+		auto msg = QString("The chosen file format (%1) does not support this kind of dataset!").arg(io->name());
+		QMessageBox::warning(this, "Save: Error", msg);
+		LOG(lvlError, msg);
 		return false;
 	}
 	QVariantMap paramValues;
@@ -531,29 +521,15 @@ bool MdiChild::saveDataSet(std::shared_ptr<iADataSet> dataSet, QString const& fi
 					setWindowModified(hasUnsavedData());
 				}
 			}
+			else
+			{
+				QMessageBox::warning(this, "Save: Error", QString("Saving %1 failed. See the log window for details.").arg(fileName));
+			}
 			delete futureWatcher;
 		});
 	auto future = QtConcurrent::run([fileName, p, io, dataSet, paramValues]()
 		{
-			try
-			{
-				io->save(fileName, dataSet, paramValues, *p.get());
-				return true;
-			}
-			// TODO: unify exception handling?
-			catch (itk::ExceptionObject& e)
-			{
-				LOG(lvlError, QString("Error saving file %1: %2").arg(fileName).arg(e.GetDescription()));
-			}
-			catch (std::exception& e)
-			{
-				LOG(lvlError, QString("Error saving file %1: %2").arg(fileName).arg(e.what()));
-			}
-			catch (...)
-			{
-				LOG(lvlError, QString("Unknown error while saving file %1!").arg(fileName));
-			}
-			return false;
+			return io->save(fileName, dataSet, paramValues, *p.get());
 		});
 	futureWatcher->setFuture(future);
 	iAJobListView::get()->addJob("Save File", p.get(), futureWatcher);
@@ -614,7 +590,7 @@ void MdiChild::saveMovRC()
 		return;
 	}
 	QString mode = dlg.parameterValues()["Rotation mode"].toString();
-	int imode = modes.indexOf(mode);
+	auto imode = modes.indexOf(mode);
 
 	// Show standard save file dialog using available movie file types.
 	m_renderer->saveMovie(QFileDialog::getSaveFileName(this, tr("Export movie %1").arg(mode),
@@ -1057,15 +1033,14 @@ bool MdiChild::isSliceProfileEnabled() const
 	return m_isSliceProfileEnabled;
 }
 
-void MdiChild::setProfilePoints(double const* start, double const* end)
+void MdiChild::initProfilePoints(double const* start, double const* end)
 {
 	for (int s = 0; s < 3; ++s)
 	{
 		m_slicer[s]->setProfilePoint(0, start);
 		m_slicer[s]->setProfilePoint(1, end);
 	}
-	m_renderer->setProfilePoint(0, start);
-	m_renderer->setProfilePoint(1, end);
+	m_renderer->initProfilePoints(start, end);
 }
 
 void MdiChild::toggleMagicLens2D(bool isEnabled)
@@ -1260,7 +1235,7 @@ iAChannelData* MdiChild::channelData(uint id)
 	{
 		return nullptr;
 	}
-	return it->data();
+	return it->get();
 }
 
 iAChannelData const* MdiChild::channelData(uint id) const
@@ -1270,14 +1245,14 @@ iAChannelData const* MdiChild::channelData(uint id) const
 	{
 		return nullptr;
 	}
-	return it->data();
+	return it->get();
 }
 
 uint MdiChild::createChannel()
 {
 	uint newChannelID = m_nextChannelID;
 	++m_nextChannelID;
-	m_channels.insert(newChannelID, QSharedPointer<iAChannelData>::create());
+	m_channels.insert(newChannelID, std::make_shared<iAChannelData>());
 	return newChannelID;
 }
 
@@ -1650,7 +1625,13 @@ vtkSmartPointer<vtkImageData> MdiChild::firstImageData() const
 
 iADataSetViewer* MdiChild::dataSetViewer(size_t idx) const
 {
-	return m_dataSetViewers.at(idx).get();
+	return
+#if __cplusplus >= 202002L
+		m_dataSetViewers.contains(idx)
+#else
+		m_dataSetViewers.find(idx) == m_dataSetViewers.end()
+#endif
+		? nullptr: m_dataSetViewers.at(idx).get();
 }
 
 bool MdiChild::hasUnsavedData() const
@@ -1726,9 +1707,19 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 	}
 	if (!unsavedDataSets.isEmpty())
 	{
-		auto result = QMessageBox::question(m_mainWnd, "Unsaved datasets",
+		bool defaultExtAvailable = true;
+		for (size_t dataSetIdx : unsavedDataSets)
+		{
+			if (iAFileTypeRegistry::defaultExtension(m_dataSets[dataSetIdx]->type()).isEmpty())
+			{
+				defaultExtAvailable = false;
+				break;
+			}
+		}
+		auto result = defaultExtAvailable ?
+			QMessageBox::question(m_mainWnd, "Unsaved datasets",
 			"Before saving as a project, some unsaved datasets need to be saved first. Should I choose a filename automatically (in same folder as project file)?",
-			QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes);
+			QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes) : QMessageBox::No;
 		if (result == QMessageBox::Cancel)
 		{
 			return false;
@@ -1741,7 +1732,8 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 			if (result == QMessageBox::Yes)
 			{
 				// try auto-creating; but if file exists, let user choose!
-				QString fileName = fi.absoluteFilePath() + QString("dataSet%1.%2").arg(dataSetIdx).arg(iAFileTypeRegistry::defaultExtension(m_dataSets[dataSetIdx]->type()));
+				auto defaultExt = iAFileTypeRegistry::defaultExtension(m_dataSets[dataSetIdx]->type());
+				QString fileName = fi.absoluteFilePath() + QString("dataSet%1.%2").arg(dataSetIdx).arg(defaultExt);
 				if (!QFileInfo::exists(fileName))
 				{
 					saveSuccess = saveDataSet(m_dataSets[dataSetIdx], fileName);
@@ -1759,9 +1751,6 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 		}
 	}
 	auto s = std::make_shared<QSettings>(projectFileName, QSettings::IniFormat);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	s->setIniCodec("UTF-8");
-#endif
 	s->setValue("UseMdiChild", true);
 	saveSettings(*s.get());
 	iAProjectFileIO io;

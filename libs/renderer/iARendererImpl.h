@@ -6,19 +6,21 @@
 
 #include <iARenderer.h>
 
+#include <iAvtkSourcePoly.h>
+
 #include <iAAABB.h>
 #include <iAAttributes.h>
 #include <iAVec3.h>
 
+#include <vtkCubeSource.h>
+#include <vtkLineSource.h>
 #include <vtkSmartPointer.h>
+#include <vtkSphereSource.h>
 
 #include <QColor>    // for signal support of QColor (parameters to bgColorChanged)
 #include <QObject>
 #include <QVariantMap>
 
-#include <vector>
-
-struct iALineSegment;
 class iARenderObserver;
 
 class vtkActor;
@@ -26,12 +28,10 @@ class vtkAnnotatedCubeActor;
 class vtkAxesActor;
 class vtkCamera;
 class vtkCornerAnnotation;
-class vtkCubeSource;
 class vtkDataSetMapper;
 class vtkGenericOpenGLRenderWindow;
 class vtkImageData;
 class vtkInteractorStyleSwitch;
-class vtkLineSource;
 class vtkOpenGLRenderer;
 class vtkOrientationMarkerWidget;
 class vtkPlane;
@@ -78,7 +78,6 @@ public:
 	void setDefaultInteractor() override;
 	void enableInteractor(bool enable);
 	bool isInteractorEnabled() const;
-	void setAxesTransform(vtkTransform* transform) override;
 
 	void setPlaneNormals(vtkTransform* tr);
 	//! Set the position of the position marker to the given world coordinates
@@ -122,7 +121,6 @@ public:
 	vtkRenderWindowInteractor* interactor() override;
 	vtkRenderWindow* renderWindow() override;
 	vtkRenderer* renderer() override;
-	vtkTransform* coordinateSystemTransform() override;
 	vtkRenderer* labelRenderer() override;
 	vtkTextActor* txtActor();
 
@@ -152,6 +150,9 @@ public:
 	void touchStart();
 	void touchScaleSlot(float relScale);
 
+	//! initialize profile points (set positions, without triggering an update
+	void initProfilePoints(double const* start, double const* end);
+
 	//! proxy access to default settings object
 	static iAAttributes& defaultSettings();
 
@@ -179,6 +180,9 @@ private:
 	//! @see showSlicePlane for public facing function that changes slice plane visibility respecting the "Show slice plane" setting.
 	void showSlicePlaneActor(int axis, bool show);
 
+	//! set profile point data (without triggering updates)
+	void setProfilePointInternal(int pointIndex, double const* coords);
+
 	bool m_initialized;    //!< flag indicating whether initialization of widget has finished
 	iARenderObserver *m_renderObserver;
 	vtkSmartPointer<vtkDataSetMapper> m_selectedMapper;
@@ -186,19 +190,13 @@ private:
 	vtkSmartPointer<vtkUnstructuredGrid> m_finalSelection;
 
 	vtkGenericOpenGLRenderWindow* m_renWin;
-	vtkRenderWindowInteractor* m_interactor;  //!< convenience store for m_renWin->GetInteractor()
+	vtkRenderWindowInteractor* m_interactor;    //!< convenience store for m_renWin->GetInteractor()
 	vtkSmartPointer<vtkOpenGLRenderer> m_ren, m_labelRen;
 	vtkSmartPointer<vtkCamera> m_cam;
 
-	//! @{ Text actor, e.g., to show the selection mode
-	vtkSmartPointer<vtkTextActor> m_txtActor;
-	//! @}
+	vtkSmartPointer<vtkTextActor> m_txtActor;   //!< Text actor, e.g., to show the selection mode
 
-	//! @{ position marker cube
-	vtkSmartPointer<vtkCubeSource> m_cSource;
-	vtkSmartPointer<vtkPolyDataMapper> m_cMapper;
-	vtkSmartPointer<vtkActor> m_cActor;
-	//! @}
+	iAvtkSourcePoly<vtkCubeSource> m_posMarker; //!< position marker cube
 
 	//! @{ Axes direction information:
 	vtkSmartPointer<vtkAnnotatedCubeActor> m_annotatedCubeActor;
@@ -206,32 +204,18 @@ private:
 	vtkSmartPointer<vtkOrientationMarkerWidget> m_orientationMarkerWidget;
 	//! @}
 
-	//! @{ movable axes
-	// TODO: check what the movable axes are useful for!
-	vtkTransform* m_moveableAxesTransform;
-	vtkSmartPointer<vtkAxesActor> m_moveableAxesActor;
-	//! @}
-
 	//! @{ Line profile
-	std::vector<iALineSegment>         m_profileLine;
-	vtkSmartPointer<vtkSphereSource>   m_profileLineStartPointSource;
-	vtkSmartPointer<vtkPolyDataMapper> m_profileLineStartPointMapper;
-	vtkSmartPointer<vtkActor>          m_profileLineStartPointActor;
-	vtkSmartPointer<vtkSphereSource>   m_profileLineEndPointSource;
-	vtkSmartPointer<vtkPolyDataMapper> m_profileLineEndPointMapper;
-	vtkSmartPointer<vtkActor>          m_profileLineEndPointActor;
+	static const int NumOfProfileLines = 7;
+	std::array<iAvtkSourcePoly<vtkLineSource>, NumOfProfileLines> m_profileLines;
+	std::array<iAvtkSourcePoly<vtkSphereSource>, 2> m_profileLinePoints;
 	//! @}
 
 	//! Slice planes: actual plane data
 	vtkSmartPointer<vtkPlane> m_slicePlanes[3];
 	//! Slice planes: keep track of which slicing/cutting planes should be visible:
 	std::array<bool, 3> m_slicePlaneVisible;
-	//! Slice planes: sources for geometric objects shown
-	vtkSmartPointer<vtkCubeSource>     m_slicePlaneSource[3];
-	//! Slice planes: mesh mappers for planes
-	vtkSmartPointer<vtkPolyDataMapper> m_slicePlaneMapper[3];
-	//! Slice planes: actors for planes
-	vtkSmartPointer<vtkActor>          m_slicePlaneActor[3];
+	//! Slice planes: data for geometric objects shown
+	std::array<iAvtkSourcePoly<vtkCubeSource>, 3> m_slicePlaneViews;
 	//! Slice planes_ Opacity
 	float m_slicePlaneOpacity;
 	//! Whether currently a dataset cutting is active:

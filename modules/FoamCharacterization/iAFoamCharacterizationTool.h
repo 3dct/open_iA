@@ -4,8 +4,6 @@
 
 #include <iATool.h>
 
-#include <vtkSmartPointer.h>
-
 #include <QObject>
 
 #include <memory>

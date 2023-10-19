@@ -22,8 +22,8 @@ iAElementConcentrations::~iAElementConcentrations()
 }
 
 bool iAElementConcentrations::calculateAverageConcentration(
-	QSharedPointer<QVector<QSharedPointer<iAEnergySpectrum> > > elements,
-	QSharedPointer<iAAccumulatedXRFData const> accumulatedXRF)
+	std::shared_ptr<QVector<std::shared_ptr<iAEnergySpectrum> > > elements,
+	iAAccumulatedXRFData const * accumulatedXRF)
 {
 	int threshold = accumulatedXRF->yBounds()[1]/20;
 
@@ -37,9 +37,9 @@ bool iAElementConcentrations::calculateAverageConcentration(
 
 
 bool iAElementConcentrations::calculateAverageConcentration(
-	QSharedPointer<iAXRFData const> xrfData,
+	iAXRFData const * xrfData,
 	QVector<iAElementSpectralInfo*> const & elements,
-	QSharedPointer<iAAccumulatedXRFData const> accumulatedXRF)
+	iAAccumulatedXRFData const * accumulatedXRF)
 {
 	auto adaptedElementSpectra = GetAdaptedSpectra(xrfData, elements);
 	return calculateAverageConcentration(adaptedElementSpectra, accumulatedXRF);
@@ -102,18 +102,18 @@ void iAElementConcentrations::clear()
 }
 
 
-QSharedPointer<QVector<QSharedPointer<iAEnergySpectrum> > > iAElementConcentrations::GetAdaptedSpectra(
-	QSharedPointer<iAXRFData const> xrfData,
+std::shared_ptr<QVector<std::shared_ptr<iAEnergySpectrum> > > iAElementConcentrations::GetAdaptedSpectra(
+	iAXRFData const * xrfData,
 	QVector<iAElementSpectralInfo*> const & elements)
 {
 	// sample reference spectra to be in the same range as object's spectra
-	auto adaptedElementSpectra = QSharedPointer<QVector<QSharedPointer<iAEnergySpectrum>>>::create(elements.size());
+	auto adaptedElementSpectra = std::make_shared<QVector<std::shared_ptr<iAEnergySpectrum>>>(elements.size());
 	int objSpectrumSize = static_cast<int>(xrfData->size());
 	double minObjEnergy = xrfData->GetMinEnergy();
 	double maxObjEnergy = xrfData->GetMaxEnergy();
 	for (int i=0; i<elements.size(); ++i)
 	{
-		auto spectrum = QSharedPointer<iAEnergySpectrum>::create(objSpectrumSize);
+		auto spectrum = std::make_shared<iAEnergySpectrum>(objSpectrumSize);
 
 		double minRefEnergy = elements[i]->GetEnergyData()[0];
 		double maxRefEnergy = elements[i]->GetEnergyData()[elements[i]->GetEnergyData().size()-1];

@@ -1,5 +1,5 @@
 set(DEPENDENCIES_LIBRARIES
-	OpenCL
+	OpenCLDefines
 	iA::charts
 	iA::guibase
 )

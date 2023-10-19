@@ -10,9 +10,9 @@
 #include <vtkImageData.h>
 
 iADecompositionCalculator::iADecompositionCalculator(
-	QSharedPointer<iAElementConcentrations> data,
-	QSharedPointer<iAXRFData const> xrfData,
-	QSharedPointer<iAAccumulatedXRFData const> accumulatedXRF
+	std::shared_ptr<iAElementConcentrations> data,
+	iAXRFData const * xrfData,
+	iAAccumulatedXRFData const * accumulatedXRF
 ):
 	m_data(data),
 	m_xrfData(xrfData),

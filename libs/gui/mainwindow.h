@@ -10,14 +10,13 @@
 #include "iARawFileParameters.h"
 
 #include <QMdiArea>
-#include <QMdiSubWindow>
 
 #include <memory>
-#include <vector>
 
 class QAction;
 class QActionGroup;
 class QComboBox;
+class QMdiSubWindow;
 class QMenu;
 class QSplashScreen;
 
@@ -34,7 +33,8 @@ class iAgui_API MainWindow : public iAMainWindow
 	Q_OBJECT
 
 public:
-	MainWindow(QString const & appName, QString const & version, QString const& buildInformation, QString const & splashImage, iADockWidgetWrapper* dwJobs);
+	MainWindow(QString const & appName, QString const & version, QString const& buildInformation,
+		QString const & splashImage, QSplashScreen& splashScreen, iADockWidgetWrapper* dwJobs);
 	~MainWindow() override;
 	static int runGUI(int argc, char * argv[], QString const & appName, QString const & version, QString const& buildInformation,
 		QString const & splashPath, QString const & iconPath);
@@ -97,8 +97,6 @@ signals:
 	void fullScreenToggled();
 
 private slots:
-	void quitTimerSlot();
-	void hideSplashSlot();
 	void openRaw();
 	void openWithDataTypeConversion();
 	void openTLGICTData();
@@ -146,8 +144,6 @@ private:
 	void updateRecentFileActions();
 	void applyQSS();
 	void setModuleActionsEnabled( bool isEnabled );
-	// TDOO NEWIO: currently unused, but functionality should be available for any filter (general runner options - re-use transfer function, result in new/existing window, copy non-TF functions
-	void copyFunctions(MdiChild* oldChild, MdiChild* newChild);
 	void loadTLGICTData(QString const & baseDirectory);
 	iAMdiChild* askWhichChild();
 	bool keepOpen();
@@ -155,7 +151,6 @@ private:
 
 	static const int MaxRecentFiles = 8;
 
-	QSplashScreen *m_splashScreen;
 	QPixmap m_splashScreenImg;
 	QAction *m_separatorAct;
 	QAction *m_recentFileActs[MaxRecentFiles];
@@ -182,7 +177,6 @@ private:
 
 	QString m_defaultLayout;
 	QString m_path;
-	QTimer *m_splashTimer, *m_quitTimer;
 	QComboBox * m_layout;
 	QScopedPointer<iAModuleDispatcher> m_moduleDispatcher;
 	//! actions from modules which should only be enabled when a child is active:
@@ -190,7 +184,7 @@ private:
 	QStringList m_layoutNames;
 	QString m_gitVersion, m_buildInformation;
 
-	QSharedPointer<Ui_MainWindow> m_ui;
+	std::shared_ptr<Ui_MainWindow> m_ui;
 
 	//! the job list dock widget
 	iADockWidgetWrapper* m_dwJobs;

@@ -13,7 +13,6 @@
 #include <QComboBox>
 #include <QWidget>
 #include <QVector>
-#include <QSharedPointer>
 
 #include <memory>
 
@@ -62,12 +61,12 @@ public:
 
 	iAChartWithFunctionsWidget* w_histogram(int i)
 	{
-		return m_histograms[i].data();
+		return m_histograms[i].get();
 	}
 
 	iASimpleSlicerWidget* w_slicer(int i)
 	{
-		return m_slicerWidgets[i].data();
+		return m_slicerWidgets[i].get();
 	}
 
 	QCheckBox* w_checkBox_weightByOpacity()
@@ -137,8 +136,8 @@ protected:
 
 private:
 	// User interface {
-	QVector<QSharedPointer<iAChartWithFunctionsWidget>> m_histograms;
-	QVector<QSharedPointer<iASimpleSlicerWidget>> m_slicerWidgets;
+	QVector<std::shared_ptr<iAChartWithFunctionsWidget>> m_histograms;
+	QVector<std::shared_ptr<iASimpleSlicerWidget>> m_slicerWidgets;
 	QVector<uint> m_channelID;
 	QStackedLayout *m_stackedLayout;
 	QCheckBox *m_checkBox_weightByOpacity;

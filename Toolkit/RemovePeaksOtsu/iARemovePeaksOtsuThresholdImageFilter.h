@@ -17,8 +17,8 @@
 #ifndef __iARemovePeaksOtsuThresholdImageFilter_h
 #define __iARemovePeaksOtsuThresholdImageFilter_h
 
-#include "itkImageToImageFilter.h"
-#include "itkFixedArray.h"
+#include <itkImageToImageFilter.h>
+#include <itkFixedArray.h>
 
 //! Segment image using otsu threshold method, with additional "remove peak" functionality (by applying a median filter to the histogram)
 //! 

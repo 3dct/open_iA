@@ -1,7 +1,7 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include <iADataSet.h>
 #include <iAFilterDefault.h>
+#include <iAImageData.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
@@ -32,7 +32,7 @@ void canny_edge_detection(iAFilter* filter, QVariantMap const & parameters)
 	canny->SetInput(dynamic_cast<RealImageType*>(inImg.GetPointer()));
 	filter->progress()->observe( canny );
 	canny->Update();
-	filter->addOutput(canny->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(canny->GetOutput()));
 }
 
 void iACannyEdgeDetection::performWork(QVariantMap const & parameters)
@@ -68,7 +68,7 @@ void sobel_edge_detection(iAFilter* filter, QVariantMap const& parameters)
 	edgeDetector->SetInput(dynamic_cast<RealImageType*>(inImg.GetPointer()));
 	filter->progress()->observe(edgeDetector);
 	edgeDetector->Update();
-	filter->addOutput(edgeDetector->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(edgeDetector->GetOutput()));
 }
 
 void iASobelEdgeDetection::performWork(QVariantMap const& parameters)

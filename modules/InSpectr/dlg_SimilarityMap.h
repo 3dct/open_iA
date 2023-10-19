@@ -8,8 +8,6 @@
 
 #include <qthelper/iAQTtoUIConnector.h>
 
-#include <vtkSmartPointer.h>
-
 #include <QScopedPointer>
 
 class dlg_InSpectr;

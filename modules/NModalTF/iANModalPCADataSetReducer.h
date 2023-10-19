@@ -6,10 +6,6 @@
 
 #include <iAConnector.h>
 
-#include <vtkSmartPointer.h>
-
-class vtkImageData;
-
 class iANModalPCADataSetReducer : public iANModalDataSetReducer
 {
 public:

@@ -4,16 +4,19 @@
 
 #include <iALog.h>
 
-#include <memory>
-
-#ifdef _MSC_VER
-#include <windows.h>
-#endif
-
 #include <QApplication>
 #include <QPalette>
 #include <QStyle>
 #include <QtConcurrent>
+
+#include <memory>
+
+#ifdef _MSC_VER
+#define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
+#define NOMINMAX
+#include <windows.h>
+#endif
 
 iASystemThemeWatcher::iASystemThemeWatcher():
 	m_isBright(iASystemThemeWatcher::isBrightTheme())
@@ -127,6 +130,14 @@ bool iASystemThemeWatcher::isBrightTheme()
 		"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", QSettings::NativeFormat);
 	return (personalize.value("AppsUseLightTheme").toInt() == 1);
 #else
+#if (__APPLE__)
+	// inspired from https://stackoverflow.com/a/63035856
+	// in contrast to below, here even the standard palette seems to get overwritten, that's why setPalette is disabled (see mainwindow.cpp)
+	auto bg = qApp->palette().color(QPalette::Active, QPalette::Window);
+	constexpr int OSX_LIGHT_MODE = 236;   //constexpr int OSX_DARK_MODE  = 50;
+	LOG(lvlDebug, QString("iASystemThemeWatcher: lightness: %1").arg(bg.lightness()));
+	auto bright = (bg.lightness() == OSX_LIGHT_MODE);
+#else
 	// inspired from comment on https://stackoverflow.com/a/69705673
 	// we need to get style's standard palette here because the application palette is overwritten and does not automatically adapt to system one!
 	auto const & p = qApp->style()->standardPalette();
@@ -134,6 +145,7 @@ bool iASystemThemeWatcher::isBrightTheme()
 	auto windowColor = p.color(QPalette::Window);
 	auto bright = textColor.value() < windowColor.value();
 	//LOG(lvlDebug, QString("iASystemThemeWatcher: isBrightTheme: textColor: %1; windowColor: %2; isBright: %3").arg(textColor.name()).arg(windowColor.name()).arg(bright));
+#endif
 	return bright;
 #endif
 }

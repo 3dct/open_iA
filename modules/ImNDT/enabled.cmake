@@ -1,15 +1,15 @@
 if (RenderingOpenVR IN_LIST VTK_COMPONENTS)
 	set(BUILD_INFO "${BUILD_INFO}    \"OpenVR	${OpenVR_VERSION_MAJOR}.${OpenVR_VERSION_MINOR}.${OpenVR_VERSION_PATCH}\\n\"\n")
-else ()
+endif()
+
+if (RenderingOpenXR IN_LIST VTK_COMPONENTS)
 	set(BUILD_INFO "${BUILD_INFO}    \"OpenXR	${OpenXR_VERSION}\\n\"\n")
 endif()
 
 set(VR_INSTALL_SRC_SUBDIRS images)
 set(VR_INSTALL_DST_SUBDIRS VR-skybox)
-if (VTK_VERSION VERSION_GREATER_EQUAL "9.1.0")
-	list(APPEND VR_INSTALL_SRC_SUBDIRS action_manifests)
-	list(APPEND VR_INSTALL_DST_SUBDIRS VR-input-manifests)
-endif()
+list(APPEND VR_INSTALL_SRC_SUBDIRS action_manifests)
+list(APPEND VR_INSTALL_DST_SUBDIRS VR-input-manifests)
 list(LENGTH VR_INSTALL_SRC_SUBDIRS VR_INSTALL_DIRS_COUNT)
 math(EXPR VR_INSTALL_DIRS_COUNT "${VR_INSTALL_DIRS_COUNT} - 1") # subtract one since foreach loop includes end index
 

@@ -2,7 +2,7 @@ set(DEPENDENCIES_LIBRARIES
 	iA::base
 )
 if (OPENCL_FOUND)
-	list(APPEND DEPENDENCIES_LIBRARIES OpenCL)    # not ideal - only required for TARGET_VERSION defines
+	list(APPEND DEPENDENCIES_LIBRARIES OpenCLDefines)    # not ideal - only required for TARGET_VERSION defines
 endif()
 #set(DEPENDENCIES_ITK_MODULES
 #	ITKAnisotropicSmoothing      # for CurvatureAnisotropicDiffusionImageFilter, GradientAnisotropicDiffusionImageFilter

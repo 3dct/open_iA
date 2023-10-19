@@ -7,17 +7,18 @@
 #include "iAAttributeDescriptor.h"
 
 #include <QVector>
-#include <QSharedPointer>
+
+#include <memory>
 
 class QDomNamedNodeMap;
 class QDomElement;
 class QTextStream;
 
 //! List of descriptors for e.g. parameter values
-using iAAttributes = QVector<QSharedPointer<iAAttributeDescriptor>>;
+using iAAttributes = QVector<std::shared_ptr<iAAttributeDescriptor>>;
 
 //! Create a descriptor from a given text stream
-iAbase_API QSharedPointer<iAAttributes> createAttributes(QTextStream& in);
+iAbase_API std::shared_ptr<iAAttributes> createAttributes(QTextStream& in);
 
 //! Store the given descriptors in the given text stream
 iAbase_API void storeAttributes(QTextStream& out, iAAttributes const& attributes);

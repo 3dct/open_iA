@@ -4,11 +4,8 @@
 
 #include "iaguibase_export.h"
 
-#include "iALog.h"
 #include "iAModuleInterface.h"
 #include "iAQMenuHelper.h"    // to make getOrAddSubmenu / addToMenuSorted available as before
-
-#include <QVector>
 
 class iAMainWindow;
 class iAMdiChild;

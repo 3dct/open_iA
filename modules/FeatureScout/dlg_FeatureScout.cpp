@@ -12,43 +12,42 @@
 #include "ui_FeatureScoutClassExplorer.h"
 #include "ui_FeatureScoutPolarPlot.h"
 
-#include "iA3DObjectVis.h"
-#include "iA3DLineObjectVis.h"
+// objectvis:
+#include "iAObjectVis.h"
+#include "iALineObjectVis.h"
 #include "iACsvIO.h"
 #include "iAObjectType.h"
 
+// guibase:
+#include <iADockWidgetWrapper.h>
 #include <iAJobListView.h>
 #include <iAMdiChild.h>
 #include <iAMovieHelper.h>
 #include <iAParameterDlg.h>
-#include <iAPreferences.h>
 #include <iAQVTKWidget.h>
 #include <iARenderer.h>
 #include <iARunAsync.h>
+#include <iAToolsITK.h>
 #include <iAThemeHelper.h>
 
-// qthelper:
-#include <iADockWidgetWrapper.h>
+// io:
+#include <iAFileTypeRegistry.h>
 
 // base:
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
-#include "iADataSet.h"
+#include <iAImageData.h>
 #include <iAFileUtils.h>
 #include <iALog.h>
 #include <iALookupTable.h>
-#include <iAProgress.h>
-#include <iAToolsITK.h>
-#include "iAToolsVTK.h"
+#include <iAPolyData.h>
 #include <iATypedCallHelper.h>
 
 #include <itkImageRegionIterator.h>
 
 #include <vtkActor.h>
 #include <vtkActor2D.h>
-#include <vtkAnnotationLink.h>
 #include <vtkAxis.h>
-#include <vtkCellData.h>
 #include <vtkChart.h>
 #include <vtkChartMatrix.h>
 #include <vtkChartParallelCoordinates.h>
@@ -67,7 +66,6 @@
 #include <vtkMath.h>
 #include <vtkMathUtilities.h>
 #include <vtkNew.h>
-#include <vtkOpenGLRenderer.h>
 #include <vtkPen.h>
 #include <vtkPlot.h>
 #include <vtkPlotParallelCoordinates.h>
@@ -90,7 +88,6 @@
 #include <vtkTable.h>
 #include <vtkTextProperty.h>
 #include <vtkVariantArray.h>
-#include <vtkVersion.h>
 
 #include <QFileDialog>
 #include <QFileInfo>
@@ -176,8 +173,8 @@ const QString dlg_FeatureScout::DlgObjectName("FeatureScoutMainDlg");
 const QString dlg_FeatureScout::UnclassifiedColorName("darkGray");
 
 dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString const& fileName,
-	vtkSmartPointer<vtkTable> csvtbl, int visType, QSharedPointer<QMap<uint, uint>> columnMapping,
-	QSharedPointer<iA3DObjectVis> objvis) :
+	vtkSmartPointer<vtkTable> csvtbl, iAObjectVisType visType, std::shared_ptr<QMap<uint, uint>> columnMapping,
+	std::shared_ptr<iAObjectVis> objvis) :
 	QDockWidget(parent),
 	m_activeChild(parent),
 	m_elementCount(csvtbl->GetNumberOfColumns()),
@@ -225,18 +222,18 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	setupModel();
 	setupConnections();
 
-	if (visType != iACsvConfig::UseVolume && m_activeChild->dataSetMap().empty())
+	if (visType != iAObjectVisType::UseVolume && m_activeChild->dataSetMap().empty())
 	{
 		parent->setWindowTitleAndFile(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
 			.arg(MapObjectTypeToString(m_filterID)));
 	}
-	if (visType == iACsvConfig::UseVolume)
+	if (visType == iAObjectVisType::UseVolume)
 	{
 		SingleRendering();
 	}
 	m_3dactor = m_3dvis->createActor(parent->renderer()->renderer());
 	m_3dactor->show();
-	connect(m_3dactor.data(), &iA3DObjectActor::updated, m_activeChild, &iAMdiChild::updateRenderer);
+	connect(m_3dactor.get(), &iAObjectVisActor::updated, m_activeChild, &iAMdiChild::updateRenderer);
 	parent->renderer()->renderer()->ResetCamera();
 	m_blobManager->SetRenderers(parent->renderer()->renderer(), m_renderer->labelRenderer());
 	m_blobManager->SetBounds(m_3dvis->bounds());
@@ -326,9 +323,9 @@ void dlg_FeatureScout::spParameterVisibilityChanged(size_t paramIndex, bool enab
 	// itemChanged signal from elementTableModel takes care about updating PC (see updatePCColumnValues slot)
 }
 
-void dlg_FeatureScout::renderLUTChanges(QSharedPointer<iALookupTable> lut, size_t colInd)
+void dlg_FeatureScout::renderLUTChanges(std::shared_ptr<iALookupTable> lut, size_t colInd)
 {
-	iA3DLineObjectVis* lov = dynamic_cast<iA3DLineObjectVis*>(m_3dvis.data());
+	iALineObjectVis* lov = dynamic_cast<iALineObjectVis*>(m_3dvis.get());
 	if (lov)
 	{
 		lov->setLookupTable(lut, colInd);
@@ -508,11 +505,7 @@ void dlg_FeatureScout::initElementTableModel(int idx)
 				QString str;
 				if (j == 0)
 				{
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 1, 0)
-					str = QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed();
-#else
 					str = QString::fromUtf8(v.ToString().c_str()).trimmed();
-#endif
 				}
 				else
 				{
@@ -566,11 +559,7 @@ void dlg_FeatureScout::initClassTreeModel()
 	for (int i = 0; i < m_objectCount; ++i)
 	{
 		vtkVariant v = m_chartTable->GetColumn(0)->GetVariantValue(i);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 1, 0)
-		QStandardItem* item = new QStandardItem(QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed());
-#else
 		QStandardItem* item = new QStandardItem(QString::fromUtf8(v.ToString().c_str()).trimmed());
-#endif
 		stammItem.first()->appendRow(item);
 	}
 	m_activeClassItem = stammItem.first();
@@ -686,10 +675,10 @@ void dlg_FeatureScout::setupConnections()
 	connect(m_classTreeView, &QTreeView::activated, this, &dlg_FeatureScout::classClicked);
 	connect(m_classTreeView, &QTreeView::doubleClicked, this, &dlg_FeatureScout::classDoubleClicked);
 
-	connect(m_splom.data(), &iAFeatureScoutSPLOM::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart);
-	connect(m_splom.data(), &iAFeatureScoutSPLOM::addClass, this, &dlg_FeatureScout::ClassAddButton);
-	connect(m_splom.data(), &iAFeatureScoutSPLOM::parameterVisibilityChanged, this, &dlg_FeatureScout::spParameterVisibilityChanged);
-	connect(m_splom.data(), &iAFeatureScoutSPLOM::renderLUTChanges, this, &dlg_FeatureScout::renderLUTChanges);
+	connect(m_splom.get(), &iAFeatureScoutSPLOM::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart);
+	connect(m_splom.get(), &iAFeatureScoutSPLOM::addClass, this, &dlg_FeatureScout::ClassAddButton);
+	connect(m_splom.get(), &iAFeatureScoutSPLOM::parameterVisibilityChanged, this, &dlg_FeatureScout::spParameterVisibilityChanged);
+	connect(m_splom.get(), &iAFeatureScoutSPLOM::renderLUTChanges, this, &dlg_FeatureScout::renderLUTChanges);
 }
 
 void dlg_FeatureScout::multiClassRendering()
@@ -747,7 +736,7 @@ void dlg_FeatureScout::RenderSelection(std::vector<size_t> const& selInds)
 
 void dlg_FeatureScout::renderMeanObject()
 {
-	if (m_visualization != iACsvConfig::UseVolume)
+	if (m_visualization != iAObjectVisType::UseVolume)
 	{
 		QMessageBox::warning(this, "FeatureScout", "Mean objects feature only available for the Labeled Volume visualization at the moment!");
 		return;
@@ -862,7 +851,7 @@ void dlg_FeatureScout::renderOrientation()
 
 void dlg_FeatureScout::selectionChanged3D()
 {
-	auto vis = dynamic_cast<iA3DColoredPolyObjectVis*>(m_3dvis.data());
+	auto vis = dynamic_cast<iAColoredPolyObjectVis*>(m_3dvis.get());
 	if (!vis)
 	{
 		LOG(lvlError, "Invalid VIS for 3D selection change!");
@@ -1117,6 +1106,22 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 					writer->writeStartElement(QString("Fibre-%1").arg(j + 1)); //Fibre-n tag
 
 					//Gets fibre features from csvTable
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9,3,0)
+					writer->writeTextElement("X1", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::StartX)).ToString().c_str()));
+					writer->writeTextElement("Y1", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::StartY)).ToString().c_str()));
+					writer->writeTextElement("Z1", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::StartZ)).ToString().c_str()));
+					writer->writeTextElement("X1", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::EndX)).ToString().c_str()));
+					writer->writeTextElement("Y2", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::EndY)).ToString().c_str()));
+					writer->writeTextElement("Z2", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::EndZ)).ToString().c_str()));
+					writer->writeTextElement("Phi", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::Phi)).ToString().c_str()));
+					writer->writeTextElement("Theta", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::Theta)).ToString().c_str()));
+					writer->writeTextElement("Dia", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::Diameter)).ToString().c_str()));
+					writer->writeTextElement("sL", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::Length)).ToString().c_str()));
+					// TODO: define mapping?
+					writer->writeTextElement("cL", QString(m_tableList[i]->GetValue(j, 19).ToString().c_str()));
+					writer->writeTextElement("Surf", QString(m_tableList[i]->GetValue(j, 21).ToString().c_str()));
+					writer->writeTextElement("Vol", QString(m_tableList[i]->GetValue(j, 22).ToString().c_str()));
+#else
 					writer->writeTextElement("X1", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::StartX)).ToString()));
 					writer->writeTextElement("Y1", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::StartY)).ToString()));
 					writer->writeTextElement("Z1", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::StartZ)).ToString()));
@@ -1131,6 +1136,7 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 					writer->writeTextElement("cL", QString(m_tableList[i]->GetValue(j, 19).ToString()));
 					writer->writeTextElement("Surf", QString(m_tableList[i]->GetValue(j, 21).ToString()));
 					writer->writeTextElement("Vol", QString(m_tableList[i]->GetValue(j, 22).ToString()));
+#endif
 
 					writer->writeEndElement(); //end Fibre-n tag
 				}
@@ -1160,6 +1166,15 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 					writer->writeStartElement(QString("Void-%1").arg(j + 1)); //Void-n tag
 
 					//Gets void properties from csvTable
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9,3,0)
+					writer->writeTextElement("Volume", QString(m_tableList[i]->GetValue(j, 21).ToString().c_str()));
+					writer->writeTextElement("dimX", QString(m_tableList[i]->GetValue(j, 13).ToString().c_str()));
+					writer->writeTextElement("dimY", QString(m_tableList[i]->GetValue(j, 14).ToString().c_str()));
+					writer->writeTextElement("dimZ", QString(m_tableList[i]->GetValue(j, 15).ToString().c_str()));
+					writer->writeTextElement("posX", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::CenterX)).ToString().c_str()));
+					writer->writeTextElement("posY", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::CenterY)).ToString().c_str()));
+					writer->writeTextElement("posZ", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::CenterZ)).ToString().c_str()));
+#else
 					writer->writeTextElement("Volume", QString(m_tableList[i]->GetValue(j, 21).ToString()));
 					writer->writeTextElement("dimX", QString(m_tableList[i]->GetValue(j, 13).ToString()));
 					writer->writeTextElement("dimY", QString(m_tableList[i]->GetValue(j, 14).ToString()));
@@ -1167,6 +1182,7 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 					writer->writeTextElement("posX", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::CenterX)).ToString()));
 					writer->writeTextElement("posY", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::CenterY)).ToString()));
 					writer->writeTextElement("posZ", QString(m_tableList[i]->GetValue(j, m_columnMapping->value(iACsvConfig::CenterZ)).ToString()));
+#endif
 					//writer->writeTextElement("ShapeFactor", QString(m_tableList[i]->GetValue(j,22).ToString()));
 
 					writer->writeEndElement(); //end Void-n tag
@@ -1438,7 +1454,7 @@ void dlg_FeatureScout::WisetexSaveButton()
 void dlg_FeatureScout::ExportClassButton()
 {
 	// if no volume loaded, then exit
-	if (m_visualization != iACsvConfig::UseVolume)
+	if (m_visualization != iAObjectVisType::UseVolume)
 	{
 		if (m_activeChild->firstImageData() == nullptr)
 		{
@@ -1837,7 +1853,7 @@ void dlg_FeatureScout::showScatterPlot()
 		QMessageBox::information(this, "FeatureScout", "Scatterplot Matrix already created.");
 		return;
 	}
-	QSignalBlocker spmBlock(m_splom.data()); //< no need to trigger updates while we're creating SPM
+	QSignalBlocker spmBlock(m_splom.get()); //< no need to trigger updates while we're creating SPM
 	m_splom->initScatterPlot(m_csvTable, m_columnVisibility);
 	m_dwSPM = new iADockWidgetWrapper(m_splom->matrixWidget(), "Scatter Plot Matrix", "FeatureScoutSPM");
 	m_activeChild->splitDockWidget(m_activeChild->renderDockWidget(), m_dwSPM, Qt::Vertical);
@@ -1895,6 +1911,57 @@ void dlg_FeatureScout::showPCSettings()
 	m_pcView->Update();
 	m_pcView->ResetCamera();
 	m_pcView->Render();
+}
+
+void dlg_FeatureScout::saveMesh()
+{
+	// TODO: instad, make objectvis available in datasets!
+	if (m_visualization == iAObjectVisType::UseVolume)
+	{
+		QMessageBox::warning(this, "FeatureScout", "Cannot export mesh for labelled volume visualization!");
+		return;
+	}
+	auto polyVis = dynamic_cast<iAColoredPolyObjectVis*>(m_3dvis.get());
+	if (!polyVis)
+	{
+		return;
+	}
+	QString defaultFilter = iAFileTypeRegistry::defaultExtFilterString(iADataSetType::Mesh);
+	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
+		m_sourcePath,
+		iAFileTypeRegistry::registeredFileTypes(iAFileIO::Save, iADataSetType::Mesh),
+		&defaultFilter);
+	if (fileName.isEmpty())
+	{
+		return;
+	}
+	auto dataSet = std::make_shared<iAPolyData>(polyVis->finalPolyData());
+	auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Save);
+	if (!io || !io->isDataSetSupported(dataSet, fileName, iAFileIO::Save))
+	{
+		auto msg = QString("The chosen file format (%1) does not support this kind of dataset!").arg(io->name());
+		QMessageBox::warning(this, "Save: Error", msg);
+		LOG(lvlError, msg);
+	}
+	QVariantMap paramValues;
+	auto attr = io->parameter(iAFileIO::Save);
+	if (!attr.isEmpty())
+	{
+		iAParameterDlg dlg(this, "Save mesh parameters", attr);
+		if (dlg.exec() != QDialog::Accepted)
+		{
+			return;
+		}
+	}
+	auto p = std::make_shared<iAProgress>();
+	auto fw = runAsync([fileName, p, io, dataSet, paramValues]()
+		{
+			if (!io->save(fileName, dataSet, paramValues, *p.get()))
+			{
+				LOG(lvlError, "Error saving mesh!");
+			}
+		}, []() {}, this);
+	iAJobListView::get()->addJob("Save mesh", p.get(), fw);
 }
 
 void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const& selInds)
@@ -2306,13 +2373,8 @@ void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStanda
 		{
 			vtkVariant v = m_csvTable->GetValue(item->child(i)->text().toInt() - 1, j);
 			vtkVariant v1 = m_elementTable->GetValue(j, 0);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 1, 0)
-			QString str = QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed();
-			QString str1 = filterToXMLAttributeName(QString::fromUtf8(v1.ToUnicodeString().utf8_str()).trimmed());
-#else
 			QString str = QString::fromUtf8(v.ToString().c_str()).trimmed();
 			QString str1 = filterToXMLAttributeName(QString::fromUtf8(v1.ToString().c_str()).trimmed());
-#endif
 			writer->writeAttribute(str1, str);
 		}
 		writer->writeEndElement(); // end object tag

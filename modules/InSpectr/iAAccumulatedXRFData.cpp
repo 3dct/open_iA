@@ -15,7 +15,7 @@
 #include <cassert>
 #include <limits>
 
-iAAccumulatedXRFData::iAAccumulatedXRFData(QSharedPointer<iAXRFData> data, double minEnergy, double maxEnergy) :
+iAAccumulatedXRFData::iAAccumulatedXRFData(std::shared_ptr<iAXRFData> data, double minEnergy, double maxEnergy) :
 	iAPlotData("Accumulated Spectrum", iAValueType::Continuous),
 	m_xrfData(data),
 	m_minimum(new CountType[m_xrfData->size()]),
@@ -121,7 +121,7 @@ void iAAccumulatedXRFData::retrieveHistData( long numBin_in, DataType * &data_ou
 
 namespace
 {
-	iASpectrumFunction * createSpectrumFunction(QSharedPointer<iAXRFData const> xrfData, int x, int y, int z)
+	iASpectrumFunction * createSpectrumFunction(std::shared_ptr<iAXRFData const> xrfData, int x, int y, int z)
 	{
 		iASpectrumFunction *result = new iASpectrumFunction();
 		for (size_t i=0; i<xrfData->size(); ++i)

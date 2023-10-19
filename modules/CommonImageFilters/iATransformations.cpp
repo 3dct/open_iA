@@ -1,8 +1,8 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <defines.h>    // for DIM
-#include <iADataSet.h>
 #include <iAFilterDefault.h>
+#include <iAImageData.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
@@ -61,7 +61,7 @@ template<class TPixelType> void flip(iAFilter* filter, QString const & axis)
 	flipFilter->Update();
 	ImageType * outImage = flipFilter->GetOutput();
 	outImage->SetOrigin(origin);
-	filter->addOutput(outImage);
+	filter->addOutput(std::make_shared<iAImageData>(outImage));
 }
 
 void iAFlipAxis::performWork(QVariantMap const & parameters)
@@ -102,7 +102,7 @@ static void affine(iAFilter* filter, itk::AffineTransform<TPrecision, DIM> * tra
 	resample->SetTransform(transform);
 	filter->progress()->observe(resample);
 	resample->Update();
-	filter->addOutput(resample->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(resample->GetOutput()));
 }
 
 template <class TPixelType>
@@ -122,7 +122,7 @@ void permute(iAFilter* filter, QString const& orderStr)
 	permFilter->SetOrder(order);
 	filter->progress()->observe(permFilter);
 	permFilter->Update();
-	filter->addOutput(permFilter->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(permFilter->GetOutput()));
 }
 
 void iAPermuteAxes::performWork(QVariantMap const& parameters)

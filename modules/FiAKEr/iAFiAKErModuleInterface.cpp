@@ -7,14 +7,16 @@
 #include "iAFiAKErController.h"
 #include "iAFiAKErTool.h"
 
-#include <iAAttributeDescriptor.h>    // for selectOption
-#include <iAFileUtils.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
 #include <iAModuleDispatcher.h>
 #include <iAParameterDlg.h>
 #include <iATool.h>
 #include <iAToolRegistry.h>
+
+#include <iAAttributeDescriptor.h>    // for selectOption
+#include <iAFileUtils.h>
+#include <iALog.h>
 
 #include <QAction>
 #include <QFileDialog>
@@ -42,19 +44,11 @@ void iAFiAKErModuleInterface::Initialize()
 	iAToolRegistry::addTool(iAFiAKErController::FIAKERToolID, iAFiAKErTool::create);
 
 	QAction * actionFiAKEr = new QAction(tr("Start FIAKER"), m_mainWnd);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	actionFiAKEr->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_O));
-#else
 	actionFiAKEr->setShortcut(QKeySequence(QKeyCombination(Qt::ALT, Qt::Key_R), QKeyCombination(Qt::Key_O)));
-#endif
 	connect(actionFiAKEr, &QAction::triggered, this, &iAFiAKErModuleInterface::startFiAKEr );
 
 	QAction* actionFiAKErProject = new QAction(tr("Load FIAKER (old .fpf files)"), m_mainWnd);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	actionFiAKErProject->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_P));
-#else
 	actionFiAKErProject->setShortcut(QKeySequence(QKeyCombination(Qt::ALT, Qt::Key_R), QKeyCombination(Qt::Key_P)));
-#endif
 	connect(actionFiAKErProject, &QAction::triggered, this, &iAFiAKErModuleInterface::loadFiAKErProject);
 
 	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Feature Analysis"), true);
@@ -185,9 +179,6 @@ void iAFiAKErModuleInterface::loadFiAKErProject()
 	iAMdiChild* newChild = m_mainWnd->createMdiChild(false);
 	newChild->show();
 	QSettings projectFile(fileName, QSettings::IniFormat);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	projectFile.setIniCodec("UTF-8");
-#endif
 	auto tool = iAFiAKErTool::create(m_mainWnd, newChild);
 	newChild->addTool(iAFiAKErController::FIAKERToolID, tool);
 	tool->loadState(projectFile, fileName);

@@ -14,6 +14,7 @@
 
 // guibase
 #include <iADefaultSettings.h>
+#include <iADockWidgetWrapper.h>
 #include <iAJobListView.h>
 #include <iAModuleDispatcher.h>
 #include <iAParameterDlg.h>
@@ -26,15 +27,11 @@
 
 // io:
 #include <iADataSet.h>
-#include <iAFileStackParams.h>
 #include <iAFileTypeRegistry.h>
 #include <iARawFileIO.h>
 
 // charts:
 #include <iAChartWidget.h>
-
-// qthelper
-#include <iADockWidgetWrapper.h>
 
 // base
 #include <iAAttributes.h>    // for loading/storing default settings in XML
@@ -187,6 +184,11 @@ namespace
 		slicerSettings.LinkMDIs = attributes.namedItem("linkMDIs").nodeValue() == "1";
 		slicerSettings.LinkViews = attributes.namedItem("linkViews").nodeValue() == "1";
 	}
+
+	void showSplashMsg(QSplashScreen& splash, QString const& msg)
+	{
+		splash.showMessage(QString("\n      %1").arg(msg), Qt::AlignTop, QColor(255, 255, 255));
+	}
 }
 
 template <typename T>
@@ -207,15 +209,15 @@ QList<T*> MainWindow::childList(QMdiArea::WindowOrder order)
 template <typename T>
 T* MainWindow::activeChild()
 {
-	int subWndCnt = childList<T>().size();
-	if (subWndCnt > 0)
+	if (childList<T>().size() > 0)
 	{
 		return childList<T>(QMdiArea::ActivationHistoryOrder).last();
 	}
 	return nullptr;
 }
 
-MainWindow::MainWindow(QString const & appName, QString const & version, QString const & buildInformation, QString const & splashImage, iADockWidgetWrapper* dwJobs) :
+MainWindow::MainWindow(QString const & appName, QString const & version, QString const & buildInformation,
+	QString const & splashImage, QSplashScreen& splashScreen, iADockWidgetWrapper* dwJobs) :
 	m_splashScreenImg(splashImage),
 	m_useSystemTheme(false),
 	m_moduleDispatcher( new iAModuleDispatcher( this ) ),
@@ -243,23 +245,16 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	QCoreApplication::setApplicationName(ApplicationName);
 	setWindowTitle(appName + " " + m_gitVersion);
 
-	m_splashScreen = new QSplashScreen(m_splashScreenImg);
-	m_splashScreen->setWindowFlags(m_splashScreen->windowFlags() | Qt::WindowStaysOnTopHint);
-	m_splashScreen->show();
-	m_splashScreen->showMessage("\n      Reading settings...", Qt::AlignTop, QColor(255, 255, 255));
-
+	showSplashMsg(splashScreen, "Reading settings...");
 	readSettings();
 
-	m_splashTimer = new QTimer();
-	m_splashTimer->setSingleShot(true);
-	connect(m_splashTimer, &QTimer::timeout, this, &MainWindow::hideSplashSlot);
-	m_splashTimer->start(2000);
-
-	m_splashScreen->showMessage("\n      Setup UI...", Qt::AlignTop, QColor(255, 255, 255));
-	applyQSS();
+	showSplashMsg(splashScreen, "Setting up user interface...");
 	m_ui->actionLinkViews->setChecked(m_defaultSlicerSettings.LinkViews);//removed from readSettings, if is needed at all?
 	m_ui->actionLinkMdis->setChecked(m_defaultSlicerSettings.LinkMDIs);
 	setCentralWidget(m_ui->mdiArea);
+	addDockWidget(Qt::RightDockWidgetArea, iALogWidget::get());
+	splitDockWidget(iALogWidget::get(), dwJobs, Qt::Vertical);
+	dwJobs->setFeatures(dwJobs->features() & ~QDockWidget::DockWidgetVerticalTitleBar);
 
 	createRecentFileActions();
 	connectSignalsToSlots();
@@ -271,8 +266,6 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 
 	m_ui->menuWindow->insertAction(m_ui->actionOpenLogOnNewMessage, iALogWidget::get()->toggleViewAction());
 	m_ui->menuWindow->insertAction(m_ui->actionOpenListOnAddedJob, m_dwJobs->toggleViewAction());
-
-	m_splashScreen->showMessage(tr("\n      Version: %1").arg (m_gitVersion), Qt::AlignTop, QColor(255, 255, 255));
 
 	m_layout = new QComboBox(this);
 	for (int i=0; i< m_layoutNames.size(); ++i)
@@ -287,10 +280,13 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_layout->resize(m_layout->geometry().width(), 100);
 	m_layout->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 	m_ui->layoutToolbar->insertWidget(m_ui->actionSaveLayout, m_layout);
+	applyQSS();
 
+	showSplashMsg(splashScreen, "Initializing modules...");
 	m_moduleDispatcher->InitializeModules(iALogWidget::get());
-	updateMenus();
 
+	showSplashMsg(splashScreen, "Finalizing user interface...");
+	updateMenus();
 	addActionIcon(m_ui->actionViewXDirectionInRaycaster, "px");
 	addActionIcon(m_ui->actionViewYDirectionInRaycaster, "py");
 	addActionIcon(m_ui->actionViewZDirectionInRaycaster, "pz");
@@ -324,6 +320,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	addActionIcon(m_ui->actionInteractionModeRegistration, "transform-move");
 
 	m_ui->menuEdit->addSeparator();
+	splashScreen.finish(this);
 }
 
 MainWindow::~MainWindow()
@@ -337,24 +334,6 @@ MainWindow::~MainWindow()
 	}
 	m_moduleDispatcher->SaveModulesSettings();
 	iASettingsManager::store();
-}
-
-void MainWindow::hideSplashSlot()
-{
-	m_splashScreen->finish(this);
-	delete m_splashTimer;
-}
-
-void MainWindow::quitTimerSlot()
-{
-	if (iAJobListView::get()->isAnyJobRunning())
-	{
-		constexpr int RecheckTimeMS = 1000;
-		m_quitTimer->start(RecheckTimeMS);
-		return;
-	}
-	delete m_quitTimer;
-	QApplication::closeAllWindows();
 }
 
 bool MainWindow::keepOpen()
@@ -514,7 +493,7 @@ void MainWindow::loadFile(QString const& fileName, iAMdiChild* child, std::share
 			auto dataSet = watcher->result();
 			if (!dataSet)
 			{
-				LOG(lvlError, QString("No data loaded!"));
+				QMessageBox::warning(this, "Load: Error", QString("Loading %1 failed. See the log window for details.").arg(fileName));
 				return;
 			}
 			iAMdiChild* targetChild = child;
@@ -609,7 +588,7 @@ void MainWindow::loadSettings()
 	constexpr const char ApplyTo[] = "Apply above to";
 	constexpr const char CurrentWindow[] = "Current window";
 	constexpr const char AllOpenWindows[] = "All open windows";
-	if (childList<MdiChild>().size() > 0 && xml.hasElement(PrefElemName) || xml.hasElement(SlicerElemName))
+	if (childList<MdiChild>().size() > 0 && (xml.hasElement(PrefElemName) || xml.hasElement(SlicerElemName)))
 	{
 		auto applyToOptions = QStringList() << "Only defaults";
 		if (activeMDI())
@@ -1008,37 +987,6 @@ void MainWindow::loadCameraSettings()
 	LOG(lvlInfo, QString("Loaded camera settings from %1").arg(fileName));
 }
 
-// TODO NEWIO: probably has outlived its usefulness, but check!
-void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
-{
-	//std::vector<iAChartFunction*> const & oldChildFunctions = oldChild->histogram()->functions();
-	//for (unsigned int i = 1; i < oldChildFunctions.size(); ++i)
-	//{
-	//	// TODO: implement a "clone" function to avoid dynamic_cast here?
-	//	iAChartFunction *curFunc = oldChildFunctions[i];
-	//	if (dynamic_cast<iAChartFunctionGaussian*>(curFunc))
-	//	{
-	//		auto oldGaussian = dynamic_cast<iAChartFunctionGaussian*>(curFunc);
-	//		auto newGaussian = new iAChartFunctionGaussian(newChild->histogram(), FunctionColors()[i % 7]);
-	//		newGaussian->setMean(oldGaussian->getMean());
-	//		newGaussian->setMultiplier(oldGaussian->getMultiplier());
-	//		newGaussian->setSigma(oldGaussian->getSigma());
-	//		newChild->histogram()->functions().push_back(newGaussian);
-	//	}
-	//	else if (dynamic_cast<iAChartFunctionBezier*>(curFunc))
-	//	{
-	//		auto oldBezier = dynamic_cast<iAChartFunctionBezier*>(curFunc);
-	//		auto newBezier = new iAChartFunctionBezier(newChild->histogram(), FunctionColors()[i % 7]);
-	//		for (unsigned int j = 0; j < oldBezier->getPoints().size(); ++j)
-	//		{
-	//			newBezier->addPoint(oldBezier->getPoints()[j].x(), oldBezier->getPoints()[j].y());
-	//		}
-	//		newChild->histogram()->functions().push_back(newBezier);
-	//	}
-	//	// otherwise: unknown function type, do nothing
-	//}
-}
-
 void MainWindow::about()
 {
 	QDialog dlg(this);
@@ -1277,7 +1225,6 @@ iAMdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 		child->show();
 	}
 	child->initializeViews();
-	//child->applyRendererSettings(m_defaultRenderSettings);
 	child->applySlicerSettings(m_defaultSlicerSettings);
 	emit childCreated(child);
 	return child;
@@ -1437,6 +1384,7 @@ void MainWindow::readSettings()
 	m_layoutNames = settings.allKeys();
 	m_layoutNames = m_layoutNames.filter(QRegularExpression("^state"));
 	m_layoutNames.replaceInStrings(QRegularExpression("^state"), "");
+	m_layoutNames.sort(Qt::CaseInsensitive);
 	settings.endGroup();
 	if (m_layoutNames.size() == 0)
 	{
@@ -1458,8 +1406,11 @@ void MainWindow::readSettings()
 	f.setPointSize(m_defaultPreferences.FontSize);
 	QApplication::setFont(f);
 	bool showLog = settings.value("Parameters/ShowLog", false).toBool();
+	if (!showLog)
+	{
+		iALogWidget::get()->hide();
+	}
 	iALogWidget::get()->toggleViewAction()->setChecked(showLog);
-	iALogWidget::get()->setVisible(showLog);
 	m_ui->actionOpenLogOnNewMessage->setChecked(settings.value("Parameters/OpenLogOnNewMessages", true).toBool());
 	toggleOpenLogOnNewMessage();
 
@@ -1712,6 +1663,7 @@ void MainWindow::applyQSS()
 		styleFile.close();
 		qApp->setStyleSheet(style);
 
+#if (!__APPLE__)   // would prevent automatic recognition of bright/light mode on Mac OS, and doesn't change much there anyway:
 		QPalette p = QApplication::palette();
 		p.setColor(QPalette::Window,          brightMode() ? QColor(255, 255, 255) : QColor(  0,   0,   0));
 		p.setColor(QPalette::Base,            brightMode() ? QColor(255, 255, 255) : QColor(  0,   0,   0));
@@ -1730,6 +1682,7 @@ void MainWindow::applyQSS()
 		p.setColor(QPalette::PlaceholderText, brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
 		p.setColor(QPalette::WindowText,      brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
 		QApplication::setPalette(p);
+#endif
 
 		for (auto a : m_actionIcons.keys())
 		{
@@ -1950,43 +1903,52 @@ void MainWindow::saveVolumeStack()
 
 void MainWindow::loadArguments(int argc, char** argv)
 {
-	QStringList files;
+	QStringList filesToLoad;
+	bool doQuit = false;
+	quint64 quitMS = 0;
 	for (int a = 1; a < argc; ++a)
 	{
 		if (QString(argv[a]).startsWith("--quit"))
 		{
 			++a;
 			bool ok;
-			quint64 ms = QString(argv[a]).toULongLong(&ok);
-			if (ok)
-			{
-				m_quitTimer = new QTimer();
-				m_quitTimer->setSingleShot(true);
-				connect(m_quitTimer, &QTimer::timeout, this, &MainWindow::quitTimerSlot);
-				m_quitTimer->start(ms);
-			}
-			else
+			quitMS = QString(argv[a]).toULongLong(&ok);
+			doQuit = ok;
+			if (!ok)
 			{
 				LOG(lvlWarn, "Invalid --quit parameter; must be followed by an integer number (milliseconds) after which to quit, e.g. '--quit 1000'");
 			}
 		}
 		else
 		{
-			files << QString::fromLocal8Bit(argv[a]);
+			filesToLoad << QString::fromLocal8Bit(argv[a]);
 		}
 	}
-	loadFiles(files);
+	loadFiles(filesToLoad);
+	if (doQuit)
+	{
+		auto quitTimer = new QTimer();
+		quitTimer->setSingleShot(true);
+		auto quitFunc = [quitTimer]()
+		{
+			if (iAJobListView::get()->isAnyJobRunning())
+			{
+				constexpr int RecheckTimeMS = 1000;
+				quitTimer->start(RecheckTimeMS);
+				return;
+			}
+			delete quitTimer;
+			QApplication::closeAllWindows();
+		};
+		connect(quitTimer, &QTimer::timeout, this, quitFunc);
+		quitTimer->start(quitMS);
+	}
 }
 
 iAPreferences const & MainWindow::defaultPreferences() const
 {
 	return m_defaultPreferences;
 }
-
-//iARenderSettings const& MainWindow::defaultRenderSettings() const
-//{
-//	return m_defaultRenderSettings;
-//}
 
 iAModuleDispatcher & MainWindow::moduleDispatcher() const
 {
@@ -2136,11 +2098,7 @@ public:
 			}
 			//else // we want to only "sink" buttons that are pressed, but not "raise" buttons that are not.
 			QPixmap pm = iAThemeHelper::icon(QString("%1%2").arg(iconName).arg((opt->activeSubControls & subControl) ? "-hover" : ""))
-				.pixmap(buttonIconSize
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-				, p->device()->devicePixelRatio()
-#endif
-			);
+				.pixmap(buttonIconSize, p->device()->devicePixelRatio());
 			proxy()->drawItemPixmap(p, btnOpt.rect.translated(bsx, bsy), Qt::AlignCenter, pm);
 		}
 	}
@@ -2176,9 +2134,16 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 #endif
 	Q_INIT_RESOURCE(gui);
 	QApplication app(argc, argv);
+	QSplashScreen splashScreen{ QPixmap(splashPath) };
+	//splashScreen.setWindowFlags(splashScreen.windowFlags() | Qt::WindowStaysOnTopHint);   // don't stay on top - otherwise it covers error messages, e.g. by Visual Studio!
+	splashScreen.setWindowOpacity(0.8);
+	splashScreen.show();
+	iALog::setLogger(iALogWidget::get());
 	QString msg;
+	showSplashMsg(splashScreen, "Checking OpenGL version...");
 	if (!checkOpenGLVersion(msg))
 	{
+		LOG(lvlWarn, msg);
 		bool runningScripted = false;
 		for (int a = 1; a < argc; ++a)
 		{
@@ -2188,21 +2153,16 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 				break;
 			}
 		}
-		if (runningScripted)
-		{
-			LOG(lvlWarn, msg);
-		}
-		else
+		if (!runningScripted)
 		{
 			QMessageBox::warning(nullptr, appName, msg);
 		}
 		return 1;
 	}
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
-	iALog::setLogger(iALogWidget::get());
 	iALUT::loadMaps(QCoreApplication::applicationDirPath() + "/colormaps");
 	auto dwJobs = new iADockWidgetWrapper(iAJobListView::get(), "Job List", "Jobs");
-	MainWindow mainWin(appName, version, buildInformation, splashPath, dwJobs);
+	MainWindow mainWin(appName, version, buildInformation, splashPath, splashScreen, dwJobs);
 	connect(iASystemThemeWatcher::get(), &iASystemThemeWatcher::themeChanged, &mainWin,
 		[&mainWin](bool brightTheme) {
 			if (mainWin.m_useSystemTheme)
@@ -2214,11 +2174,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 			}
 		});
 	iASettingsManager::init();
-	mainWin.addDockWidget(Qt::RightDockWidgetArea, iALogWidget::get());
-	mainWin.splitDockWidget(iALogWidget::get(), dwJobs, Qt::Vertical);
-	dwJobs->setFeatures(dwJobs->features() & ~QDockWidget::DockWidgetVerticalTitleBar);
 	CheckSCIFIO(QCoreApplication::applicationDirPath());
-	mainWin.loadArguments(argc, argv);
 	app.setWindowIcon(QIcon(QPixmap(iconPath)));
 	QApplication::setStyle(new iAProxyStyle(QApplication::style()));
 	mainWin.setWindowIcon(QIcon(QPixmap(iconPath)));
@@ -2229,5 +2185,6 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 		app.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
 	}
 	mainWin.show();
+	mainWin.loadArguments(argc, argv);
 	return app.exec();
 }

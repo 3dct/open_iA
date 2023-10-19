@@ -7,9 +7,10 @@
 
 #include <iAPerformanceHelper.h>
 
-#include <QSharedPointer>
 #include <QVector>
 #include <QThread>
+
+#include <memory>
 
 class iAImageTree;
 class iAImageTreeNode;
@@ -22,9 +23,9 @@ class iAImageClusterer: public QThread, public iADurationEstimator, public iAAbo
 public:
 
 	iAImageClusterer(int labelCount, QString const & outputDirectory, iAProgress* progress);
-	void AddImage(QSharedPointer<iASingleResult> singleResult);
+	void AddImage(std::shared_ptr<iASingleResult> singleResult);
 
-	QSharedPointer<iAImageTree > GetResult();
+	std::shared_ptr<iAImageTree > GetResult();
 
 	void abort() override;
 	bool IsAborted();
@@ -32,8 +33,8 @@ public:
 	double estimatedTimeRemaining(double percent) const override;
 private:
 	void run() override;
-	QVector<QSharedPointer<iAImageTreeNode> > m_images;
-	QSharedPointer<iAImageTree> m_tree;
+	QVector<std::shared_ptr<iAImageTreeNode> > m_images;
+	std::shared_ptr<iAImageTree> m_tree;
 	int m_labelCount;
 	bool m_aborted;
 	iAPerformanceTimer m_perfTimer;

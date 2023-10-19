@@ -6,6 +6,16 @@ set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ".")
 set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
 include(InstallRequiredSystemLibraries)
 
+set(CPACK_SOURCE_GENERATOR "ZIP")
+if (WIN32)
+	set(CPACK_GENERATOR "ZIP")
+elseif (UNIX)
+	set(CPACK_SOURCE_GENERATOR "TXZ")
+	set(CPACK_GENERATOR "STGZ")
+elseif (APPLE)
+	set(CPACK_GENERATOR "DragNDrop")
+endif()
+set(CPACK_STRIP_FILES TRUE)
 set(CPACK_PACKAGE_NAME "open_iA")
 set(CPACK_PACKAGE_VENDOR "University of Applied Sciences Upper Austria, Campus Wels")
 set(CPACK_PACKAGE_CONTACT "bernhard.froehler@fh-wels.at")
@@ -18,18 +28,5 @@ set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${openiA_VERSION}")
 set(CPACK_PACKAGE_CHECKSUM "SHA512")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${openiA_VERSION}-source")
 #set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/logo.bmp")
-
-set(CPACK_PACKAGE_EXECUTABLES "" "")
-
-# NSIS-specific settings:
-set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/gui/open_iA.ico")
-set(CPACK_NSIS_MENU_LINKS "./${CPACK_PACKAGE_NAME}.exe" "${CPACK_PACKAGE_NAME} ${openiA_VERSION}")
-set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_NAME} ${openiA_VERSION}")
-
-# DEB-specific settings:
-# TODO: not sure yet how to handle dependencies properly
-#SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Bernhard Froehler")
-#MESSAGE(STATUS "${CPACK_DEBIAN_PACKAGE_DEPENDS}")
-#SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.23)")
 
 include(CPack)

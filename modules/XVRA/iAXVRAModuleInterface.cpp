@@ -2,33 +2,33 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAXVRAModuleInterface.h"
 
-#include "iAMainWindow.h"
-#include "iAMdiChild.h"
-#include "iARenderer.h"
-#include "vtkOpenGLRenderer.h"
-#include "vtkCamera.h"
+#include <iALog.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
+#include <iAModuleDispatcher.h>
+#include <iARenderer.h>
 
 // objectvis
-#include "iA3DObjectFactory.h"
-#include "dlg_CSVInput.h"
-#include "iACsvConfig.h"
-#include "iACsvVtkTableCreator.h"
+#include <dlg_CSVInput.h>
+#include <iACsvConfig.h>
+#include <iACsvVtkTableCreator.h>
+#include <iAObjectVisFactory.h>
 
 // FeatureScout
-#include "dlg_FeatureScout.h"
-#include "iAFeatureScoutToolbar.h"
+#include <dlg_FeatureScout.h>
+#include <iAFeatureScoutToolbar.h>
 
 // ImNDT
-#include "iAImNDTModuleInterface.h"
+#include <iAImNDTModuleInterface.h>
+#include <iAFrustumActor.h>
 
-#include "iAFrustumActor.h"
-
-#include "iAModuleDispatcher.h"
+#include <vtkCamera.h>
+#include <vtkRenderer.h>
+#include <vtkTable.h>    // required to avoid error C2440: 'static_cast': cannot convert from 'vtkObjectBase *const ' to 'T *'
 
 #include <QAction>
 #include <QMenu>
 #include <QMessageBox>
-#include <QTimer>
 
 
 iAXVRAModuleInterface::iAXVRAModuleInterface() :
@@ -102,7 +102,7 @@ void iAXVRAModuleInterface::startXVRA()
 
 	std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo;
 
-	if (csvConfig.visType == iACsvConfig::Cylinders || csvConfig.visType == iACsvConfig::Lines)
+	if (csvConfig.visType == iAObjectVisType::Cylinder || csvConfig.visType == iAObjectVisType::Line)
 	{
 		if (!readCurvedFiberInfo(csvConfig.curvedFiberFileName, curvedFiberInfo))
 		{
@@ -112,9 +112,8 @@ void iAXVRAModuleInterface::startXVRA()
 	vtkSmartPointer<vtkTable> m_objectTable = creator.table();
 
 	// Create PolyObject visualization
-	m_polyObject = create3DObjectVis(
-		csvConfig.visType, m_objectTable, io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo)
-		.dynamicCast<iA3DColoredPolyObjectVis>();
+	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(create3DObjectVis(
+		csvConfig.visType, m_objectTable, io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo));
 	if (!m_polyObject)
 	{
 		LOG(lvlError, "Invalid 3D object visualization!");

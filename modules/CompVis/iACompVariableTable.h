@@ -11,8 +11,6 @@
 class iACompHistogramVis;
 
 //vtk
-class vtkUnsignedCharArray;
-class vtkDoubleArray;
 class vtkActor;
 
 class iACompVariableTable : public iACompTable

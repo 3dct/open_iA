@@ -5,7 +5,7 @@
 #include "dlg_FeatureScout.h"
 #include "iAFeatureScoutToolbar.h"
 
-#include <iA3DObjectFactory.h>
+#include <iAObjectVisFactory.h>
 #include <iACsvConfig.h>
 #include <iACsvIO.h>
 #include <iACsvVtkTableCreator.h>
@@ -15,8 +15,8 @@
 #include <iAModuleDispatcher.h>
 #include <iAVolumeViewer.h>
 
-#include <iADataSet.h>
 #include <iAFileUtils.h>
+#include <iAImageData.h>
 #include <iALog.h>
 #include <iAToolsVTK.h>    // for RenderModeMap
 #include <iATransferFunction.h>
@@ -147,7 +147,7 @@ bool iAFeatureScoutTool::initFromConfig(iAMdiChild* child, iACsvConfig const& cs
 
 	iAFeatureScoutToolbar::addForChild(m_mainWindow, child);
 	LOG(lvlInfo, QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
-	if (csvConfig.visType == iACsvConfig::UseVolume)
+	if (csvConfig.visType == iAObjectVisType::UseVolume)
 	{
 		QVariantMap renderSettings;
 		// ToDo: Remove duplication with string constants from iADataSetRenderer!
@@ -171,13 +171,13 @@ bool iAFeatureScoutTool::initFromConfig(iAMdiChild* child, iACsvConfig const& cs
 }
 
 void iAFeatureScoutTool::init(int filterID, QString const& fileName, vtkSmartPointer<vtkTable> csvtbl,
-	int visType, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
+	iAObjectVisType visType, std::shared_ptr<QMap<uint, uint> > columnMapping, std::map<size_t,
 	std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip)
 {
 	vtkColorTransferFunction* ctf = nullptr;
 	vtkPiecewiseFunction* otf = nullptr;
 	double* bounds = nullptr;
-	if (visType == iACsvConfig::UseVolume)
+	if (visType == iAObjectVisType::UseVolume)
 	{
 		auto idx = m_child->firstImageDataSetIdx();
 		if (idx == iAMdiChild::NoDataSet)

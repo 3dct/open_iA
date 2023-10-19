@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFileTypeRegistry.h"
 
+#include <iALog.h>
+
 #include <QFileInfo>
 
 #include <QMap>
@@ -62,11 +64,7 @@ QString iAFileTypeRegistry::registeredFileTypes(iAFileIO::Operation op, iADataSe
 	for (auto ioFactory : fileIOs())  // all registered file types
 	{
 		auto io = ioFactory();
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-		if ( (io->supportedDataSetTypes(op) & allowedTypes) == 0 )
-#else
 		if (!io->supportedDataSetTypes(op).testAnyFlags(allowedTypes))
-#endif
 		{   // current I/O does not support any of the allowed types
 			continue;
 		}

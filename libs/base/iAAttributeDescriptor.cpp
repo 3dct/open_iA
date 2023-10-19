@@ -52,15 +52,15 @@ QString AttribType2Str(iAAttributeDescriptor::iAAttributeType type)
 	}
 }
 
-QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString const & def)
+std::shared_ptr<iAAttributeDescriptor> iAAttributeDescriptor::create(QString const & def)
 {
 	QStringList defTokens = def.split(AttributeSplitString);
 	if (defTokens.size() < 3)
 	{
 		LOG(lvlWarn, QString("Not enough tokens in attribute descriptor '%1'").arg(def));
-		return QSharedPointer<iAAttributeDescriptor>();
+		return std::shared_ptr<iAAttributeDescriptor>();
 	}
-	auto result = QSharedPointer<iAAttributeDescriptor>::create(
+	auto result = std::make_shared<iAAttributeDescriptor>(
 			defTokens[0], Str2AttribType(defTokens[1]), Str2ValueType(defTokens[2])
 	);
 	int requiredTokens = (result->valueType() == iAValueType::Boolean) ? 3 :
@@ -68,7 +68,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString cons
 	if (defTokens.size() < requiredTokens)
 	{
 		LOG(lvlWarn, QString("Not enough tokens in attribute descriptor '%1'").arg(def));
-		return QSharedPointer<iAAttributeDescriptor>();
+		return std::shared_ptr<iAAttributeDescriptor>();
 	}
 	if (result->valueType() == iAValueType::Continuous || result->valueType() == iAValueType::Discrete)
 	{
@@ -79,7 +79,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString cons
 		if (!minOk || !maxOk)
 		{
 			LOG(lvlWarn, QString("Minimum or maximum of attribute couldn't be parsed in line %1\n").arg(def));
-			return QSharedPointer<iAAttributeDescriptor>();
+			return std::shared_ptr<iAAttributeDescriptor>();
 		}
 		if (defTokens.size() >= 6)
 		{
@@ -104,20 +104,20 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString cons
 	return result;
 }
 
-QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::createParam(
+std::shared_ptr<iAAttributeDescriptor> iAAttributeDescriptor::createParam(
 	QString const & name, iAValueType valueType,
 	QVariant defaultValue, double min, double max)
 {
-	auto result = QSharedPointer<iAAttributeDescriptor>::create(name, Parameter, valueType);
+	auto result = std::make_shared<iAAttributeDescriptor>(name, Parameter, valueType);
 	result->m_min = valueType == iAValueType::Categorical ? 0 : min;
 	result->m_max = valueType == iAValueType::Categorical ? defaultValue.toStringList().size()-1 : max;
 	result->m_defaultValue = defaultValue;
 	return result;
 }
 
-QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::clone() const
+std::shared_ptr<iAAttributeDescriptor> iAAttributeDescriptor::clone() const
 {
-	auto result = QSharedPointer<iAAttributeDescriptor>::create(m_name, m_attribType, m_valueType);
+	auto result = std::make_shared<iAAttributeDescriptor>(m_name, m_attribType, m_valueType);
 	result->m_min = m_min;
 	result->m_max = m_max;
 	result->m_defaultValue = m_defaultValue;
@@ -228,11 +228,11 @@ bool iAAttributeDescriptor::coversWholeRange(double min, double max) const
 	return min <= m_min && m_max <= max;
 }
 
-QSharedPointer<iANameMapper> iAAttributeDescriptor::nameMapper() const
+std::shared_ptr<iANameMapper> iAAttributeDescriptor::nameMapper() const
 {
 	if (!m_nameMapper)
 	{
-		m_nameMapper = QSharedPointer<iAListNameMapper>::create(m_defaultValue.toStringList());
+		m_nameMapper = std::make_shared<iAListNameMapper>(m_defaultValue.toStringList());
 	}
 	return m_nameMapper;
 }

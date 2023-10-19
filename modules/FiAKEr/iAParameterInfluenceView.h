@@ -31,7 +31,7 @@ class iAParameterInfluenceView : public QWidget
 {
 	Q_OBJECT
 public:
-	iAParameterInfluenceView(QSharedPointer<iASensitivityData> data, QSharedPointer<iASensitivityViewState> viewState,
+	iAParameterInfluenceView(std::shared_ptr<iASensitivityData> data, std::shared_ptr<iASensitivityViewState> viewState,
 		QColor const& paramColor, QColor const& outputColor);
 	void setDistributionMeasure(int newMeasure);
 	void setCharDiffMeasure(int newMeasure);
@@ -83,7 +83,7 @@ private:
 	void toggleBar(bool show, int outType, int outIdx);
 	void addTableWidgets();
 	void setActionChecked(int outType, int outIdx, bool checked);
-	QSharedPointer<iAPlot> createHistoPlot(QSharedPointer<iAHistogramData> data, QColor color);
+	std::shared_ptr<iAPlot> createHistoPlot(std::shared_ptr<iAHistogramData> data, QColor color);
 	void addResultHistoPlot(size_t resultIdx, int charIdx, int paramIdx, QColor c);
 	void setInColor(QColor const& inColor);
 	void setInOutColorPrivate(QColor const& inColor, QColor const& outColor);
@@ -92,9 +92,9 @@ private:
 	// pair output type / index
 	QVector<QPair<int,int>> m_visibleCharacts;
 	//! sensitivity data
-	QSharedPointer<iASensitivityData> m_data;
+	std::shared_ptr<iASensitivityData> m_data;
 	//! view state:
-	QSharedPointer<iASensitivityViewState> m_viewState;
+	std::shared_ptr<iASensitivityViewState> m_viewState;
 	//! values from which distribution difference measure to show
 	int m_measureIdx;
 	//! whether to show values from distribution based (0) or pairwise characteristics difference measures
@@ -103,15 +103,15 @@ private:
 	int m_aggrType;
 	int m_selectedParam, m_selectedCol;
 	QGridLayout* m_paramListLayout;
-	QSharedPointer<iASingleColorTheme> m_stackedBarTheme;
-	QVector<QSharedPointer<iAParTableRow>> m_table;
+	std::shared_ptr<iASingleColorTheme> m_stackedBarTheme;
+	QVector<std::shared_ptr<iAParTableRow>> m_table;
 	QVector<int> m_sort;
 	int m_sortLastOut;
 	bool m_sortLastDesc;
-	QMap<std::tuple<size_t, int, int>, QSharedPointer<iAPlot>> m_selectedResultHistoPlots;
+	QMap<std::tuple<size_t, int, int>, std::shared_ptr<iAPlot>> m_selectedResultHistoPlots;
 	QString m_histogramChartType;
 	QSet<int> m_highlightedParams;
 	bool m_normalizePerOutput;
-	QSharedPointer<iALookupTable> m_sortParamLUT;
+	std::shared_ptr<iALookupTable> m_sortParamLUT;
 	QString m_spColorMapName;
 };

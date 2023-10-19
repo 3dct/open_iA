@@ -3,6 +3,7 @@
 #include "iAAmiraVolumeFileIO.h"
 
 #include "iAAmiraMeshIO.h"
+#include "iAImageData.h"
 
 #include <vtkImageData.h>
 

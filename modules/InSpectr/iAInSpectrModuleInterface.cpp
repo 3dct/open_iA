@@ -7,7 +7,6 @@
 #include <iAToolHelper.h>    // for addToolToActiveMdiChild
 
 #include <QAction>
-#include <QMenu>
 
 void iAInSpectrModuleInterface::Initialize()
 {

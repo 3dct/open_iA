@@ -3,6 +3,7 @@
 #include "iADCMFileIO.h"
 
 #include "iAFileUtils.h"   // for getLocalEncodingFileName
+#include "iAImageData.h"
 #include "iAITKIO.h"       // for iAITKIO::Dim
 #include "iAProgress.h"
 #include "iAToolsITK.h"

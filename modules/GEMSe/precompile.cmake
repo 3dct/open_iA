@@ -39,6 +39,7 @@ set(GEMSe_PRECOMPILE_INCLUDES
 <iASlicerMode.h>
 <iAToolsITK.h>
 <itkLabelOverlapMeasuresImageFilter.h>
+<memory>
 <QCheckBox>
 <QFile>
 <QFileDialog>
@@ -50,7 +51,6 @@ set(GEMSe_PRECOMPILE_INCLUDES
 <QMessageBox>
 <QMouseEvent>
 <QPainter>
-<QSharedPointer>
 <QSplitter>
 <QTextStream>
 <qthelper/iAQTtoUIConnector.h>

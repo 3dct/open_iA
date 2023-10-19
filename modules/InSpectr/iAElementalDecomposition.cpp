@@ -32,10 +32,10 @@ void free_matrix ( TReal **m, size_t nrow)
 	delete[] m;
 }
 
-bool anyElementAboveThreshold(QSharedPointer<QVector<QSharedPointer<iAEnergySpectrum> > > const & elements, int i, unsigned int threshold)
+bool anyElementAboveThreshold(std::shared_ptr<QVector<std::shared_ptr<iAEnergySpectrum> > > const & elements, int i, unsigned int threshold)
 {
 	for (
-		QVector<QSharedPointer<iAEnergySpectrum> >::const_iterator it = elements->begin();
+		QVector<std::shared_ptr<iAEnergySpectrum> >::const_iterator it = elements->begin();
 		it != elements->end();
 		++it)
 	{
@@ -51,7 +51,7 @@ bool anyElementAboveThreshold(QSharedPointer<QVector<QSharedPointer<iAEnergySpec
 
 bool fitSpectrum(
 	iAEnergySpectrum const & unknownSpectrum,
-	QSharedPointer<QVector<QSharedPointer<iAEnergySpectrum> > > elements,
+	std::shared_ptr<QVector<std::shared_ptr<iAEnergySpectrum> > > elements,
 	CountType threshold,
 	QVector<double> & result)
 {

@@ -1,7 +1,6 @@
 set(OPENIA_PRECOMPILE_HEADERS
-<iADiskData.h>
+<array>
 <iALinePointers.h>
-<iALineSegment.h>
 <iALog.h>
 <iAMathUtility.h>
 <iAProfileColors.h>
@@ -11,7 +10,7 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iASlicerInteractorStyle.h>
 <iASlicerProfile.h>
 <iASlicerProfileHandles.h>
-<iASlicerSettings.h>
+<iAvtkSourcePoly.h>
 <iAVtkText.h>
 <vtkActor.h>
 <vtkActor2D.h>
@@ -20,9 +19,11 @@ set(OPENIA_PRECOMPILE_HEADERS
 <vtkCellData.h>
 <vtkConeSource.h>
 <vtkCoordinate.h>
+<vtkCubeSource.h>
 <vtkDiskSource.h>
 <vtkImageData.h>
 <vtkInteractorStyleImage.h>
+<vtkLineSource.h>
 <vtkMath.h>
 <vtkObjectFactory.h>
 <vtkPoints.h>

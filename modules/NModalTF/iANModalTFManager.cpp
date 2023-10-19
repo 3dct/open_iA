@@ -8,7 +8,6 @@
 
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
-#include <vtkSmartPointer.h>
 
 #include <assert.h>
 

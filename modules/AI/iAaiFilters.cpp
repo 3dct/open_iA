@@ -1,8 +1,8 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <defines.h> // for DIM
-#include <iADataSet.h>
 #include <iAFilterDefault.h>
+#include <iAImageData.h>
 #include <iALog.h>
 #include <iAProgress.h>
 #include <iAStringHelper.h>   // for joinStdString
@@ -436,7 +436,7 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 	for (auto outputImage : outputs)
 	{
 		outputImage->SetSpacing(filter->imageInput(0)->itkImage()->GetSpacing());
-		filter->addOutput(outputImage);
+		filter->addOutput(std::make_shared<iAImageData>(outputImage));
 	}
 }
 

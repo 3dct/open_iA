@@ -24,7 +24,7 @@ public:
 	iARangeSliderDiagramWidget( QWidget *parent,
 								vtkPiecewiseFunction* oTF,
 								vtkColorTransferFunction* cTF,
-								QSharedPointer<iAHistogramData> data,
+								std::shared_ptr<iAHistogramData> data,
 								QMultiMap<double, QList<double> > *,
 								const QTableWidget * rawTable,
 								QString const & xlabel = "Greyvalue",
@@ -49,10 +49,10 @@ public slots:
 	void deleteSlot();
 
 private:
-	QSharedPointer<iAHistogramData> m_data;
-	QSharedPointer<iAPlotData> m_selectedData;
-	QSharedPointer<iAStepFunctionPlot> m_selectionDrawer;
-	QList<QSharedPointer<iAStepFunctionPlot> > m_histogramDrawerList;
+	std::shared_ptr<iAHistogramData> m_data;
+	std::shared_ptr<iAPlotData> m_selectedData;
+	std::shared_ptr<iAStepFunctionPlot> m_selectionDrawer;
+	QList<std::shared_ptr<iAStepFunctionPlot> > m_histogramDrawerList;
 	QPoint m_selectionOrigin;
 	QRubberBand * m_selectionRubberBand;
 	QString m_xLabel;
@@ -65,7 +65,7 @@ private:
 
 	QMultiMap<double, QList<double> > * m_histogramMap;
 	const QTableWidget * m_rawTable;
-	QSharedPointer<iATransferFunction> m_tf;
+	std::shared_ptr<iATransferFunction> m_tf;
 
 	int getBin( QMouseEvent *event );
 	void setupSelectionDrawer();

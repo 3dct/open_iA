@@ -13,8 +13,10 @@
 #include "iAMathUtility.h"
 #include "iAXmlSettings.h"
 
+#include <vtkColorTransferFunction.h>
 #include <vtkMath.h>
 
+#include <QClipboard>
 #include <QFileDialog>
 #include <QMenu>
 #include <QMouseEvent>
@@ -40,7 +42,7 @@ iAChartWithFunctionsWidget::iAChartWithFunctionsWidget(QWidget *parent,
 	iAChartWidget(parent, xLabel, yLabel),
 	m_selectedFunction(0),
 	m_showFunctions(false),
-	m_allowTrfReset(true),
+	m_allowTFReset(true),
 	m_enableAdditionalFunctions(true),
 	m_TFTable(nullptr)
 {
@@ -125,23 +127,14 @@ void iAChartWithFunctionsWidget::mousePressEvent(QMouseEvent *event)
 				((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) &&
 				((event->modifiers() & Qt::AltModifier) == Qt::AltModifier))
 			{
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-				m_zoomYPos = event->y();
-#else
 				m_zoomYPos = event->position().y();
-#endif
 				changeMode(Y_ZOOM_MODE, event);
 			}
 			else if (((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier) &&
 				((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier))
 			{
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-				m_zoomXPos = event->x();
-				m_zoomYPos = event->y();
-#else
 				m_zoomXPos = event->position().x();
 				m_zoomYPos = event->position().y();
-#endif
 				m_xZoomStart = m_xZoom;
 				changeMode(X_ZOOM_MODE, event);
 			}
@@ -162,11 +155,7 @@ void iAChartWithFunctionsWidget::mousePressEvent(QMouseEvent *event)
 			}
 			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 			iAChartFunction *func = *(it + m_selectedFunction);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-			int selectedPoint = func->selectPoint(event->x() - leftMargin(), chartHeight() - event->y());
-#else
 			int selectedPoint = func->selectPoint(event->position().x() - leftMargin(), chartHeight() - event->position().y());
-#endif
 			if (selectedPoint == -1)
 			{
 				emit noPointSelected();
@@ -218,13 +207,8 @@ void iAChartWithFunctionsWidget::mouseMoveEvent(QMouseEvent *event)
 		case MOVE_POINT_MODE:
 		case MOVE_NEW_POINT_MODE:
 		{
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-			int mouseX = event->x() - leftMargin();
-			int mouseY = geometry().height() -event->y() -bottomMargin();
-#else
 			int mouseX = event->position().x() - leftMargin();
 			int mouseY = geometry().height() - event->position().y() - bottomMargin();
-#endif
 			if (m_showFunctions)
 			{
 				std::vector<iAChartFunction*>::iterator it = m_functions.begin();
@@ -239,11 +223,8 @@ void iAChartWithFunctionsWidget::mouseMoveEvent(QMouseEvent *event)
 			iAChartWidget::mouseMoveEvent(event);
 	}
 }
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-void iAChartWithFunctionsWidget::enterEvent(QEvent*)
-#else
+
 void iAChartWithFunctionsWidget::enterEvent(QEnterEvent*)
-#endif
 {   // to get keyboard events;
 	setFocus(Qt::OtherFocusReason);
 }
@@ -304,9 +285,12 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 		contextMenu->addAction(iAThemeHelper::icon("table"), tr("Transfer Function Table View"), this, &iAChartWithFunctionsWidget::showTFTable);
 		contextMenu->addAction(iAThemeHelper::icon("tf-load"), tr("Load transfer function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::loadTransferFunction));
 		contextMenu->addAction(iAThemeHelper::icon("tf-save"), tr("Save transfer function"), this, &iAChartWithFunctionsWidget::saveTransferFunction);
-		if (m_allowTrfReset)
+		contextMenu->addAction(iAThemeHelper::icon("tf-copy"), tr("Copy transfer function"), this, &iAChartWithFunctionsWidget::copyTransferFunction);
+		// maybe disable pasting if no proper XML in clipboard?
+		contextMenu->addAction(iAThemeHelper::icon("tf-paste"), tr("Paste transfer function"), this, &iAChartWithFunctionsWidget::pasteTransferFunction);
+		if (m_allowTFReset)
 		{
-			contextMenu->addAction(iAThemeHelper::icon("tf-reset"), tr("Reset transfer function"), this, &iAChartWithFunctionsWidget::resetTrf);
+			contextMenu->addAction(iAThemeHelper::icon("tf-reset"), tr("Reset transfer function"), this, &iAChartWithFunctionsWidget::resetTF);
 		}
 		contextMenu->addSeparator();
 	}
@@ -315,7 +299,13 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 		contextMenu->addAction(iAThemeHelper::icon("bezier"), tr("Add bezier function"), this, &iAChartWithFunctionsWidget::addBezierFunction);
 		contextMenu->addAction(iAThemeHelper::icon("gaussian"), tr("Add gaussian function"), this, QOverload<>::of(&iAChartWithFunctionsWidget::addGaussianFunction));
 		contextMenu->addAction(iAThemeHelper::icon("function-load"), tr("Load functions"), this, &iAChartWithFunctionsWidget::loadFunctions);
-		contextMenu->addAction(iAThemeHelper::icon("function-save"), tr("Save functions"), this, &iAChartWithFunctionsWidget::saveFunctions);
+		if (m_functions.size() > 1)
+		{   // it only makes sense to copy / save functions if there are some defined!
+			contextMenu->addAction(iAThemeHelper::icon("function-save"), tr("Save functions"), this, &iAChartWithFunctionsWidget::saveFunctions);
+			contextMenu->addAction(iAThemeHelper::icon("function-copy"), tr("Copy functions"), this, &iAChartWithFunctionsWidget::copyProbabilityFunctions);
+		}
+		// maybe disable pasting if no proper XML in clipboard?
+		contextMenu->addAction(iAThemeHelper::icon("function-paste"), tr("Paste functions"), this, &iAChartWithFunctionsWidget::pasteProbabilityFunctions);
 
 		if (m_selectedFunction != 0)
 		{
@@ -349,13 +339,8 @@ void iAChartWithFunctionsWidget::changeMode(int newMode, QMouseEvent *event)
 			}
 			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 			iAChartFunction *func = *(it + m_selectedFunction);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-			int mouseX = event->x() - leftMargin();
-			int mouseY = chartHeight() - event->y();
-#else
 			int mouseX = event->position().x() - leftMargin();
 			int mouseY = chartHeight() - event->position().y();
-#endif
 			int selectedPoint = func->selectPoint(mouseX, mouseY);
 			// don't do anything if outside of diagram region:
 			if (selectedPoint == -1 && mouseX < 0)
@@ -433,11 +418,7 @@ void iAChartWithFunctionsWidget::changeColor(QMouseEvent *event)
 	iAChartFunction *func = *(it + m_selectedFunction);
 	if (event != nullptr)
 	{
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-		func->selectPoint(event->x() - leftMargin(), chartHeight() - event->y());
-#else
 		func->selectPoint(event->position().x() - leftMargin(), chartHeight() - event->position().y());
-#endif
 	}
 	func->changeColor();
 
@@ -445,7 +426,7 @@ void iAChartWithFunctionsWidget::changeColor(QMouseEvent *event)
 	emit updateTFTable();
 }
 
-void iAChartWithFunctionsWidget::resetTrf()
+void iAChartWithFunctionsWidget::resetTF()
 {
 	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 	iAChartFunction *func = *(it + m_selectedFunction);
@@ -469,19 +450,27 @@ void iAChartWithFunctionsWidget::loadTransferFunction()
 	{
 		return;
 	}
+	auto tf = dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf();
+	double oldRange[2];
+	tf->colorTF()->GetRange(oldRange);
 	iAXmlSettings s;
 	if (!s.read(fileName))
 	{
 		LOG(lvlError, QString("Failed to read transfer function from file %1").arg(fileName));
 		return;
 	}
-	s.loadTransferFunction(dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf());
+	s.loadTransferFunction(tf);
+	tf->ensureValidity(oldRange);
 	newTransferFunction();
 }
 
 void iAChartWithFunctionsWidget::loadTransferFunction(QDomNode functionsNode)
 {
-	iAXmlSettings::loadTransferFunction(functionsNode, dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf());
+	auto tf = dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf();
+	double oldRange[2];
+	tf->colorTF()->GetRange(oldRange);
+	iAXmlSettings::loadTransferFunction(functionsNode, tf);
+	tf->ensureValidity(oldRange);
 	newTransferFunction();
 }
 
@@ -496,6 +485,33 @@ void iAChartWithFunctionsWidget::saveTransferFunction()
 		s.save(fileName);
 	}
 }
+
+void iAChartWithFunctionsWidget::copyTransferFunction()
+{
+	iAXmlSettings s;
+	iATransferFunction* tf = dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf();
+	s.saveTransferFunction(tf);
+	QGuiApplication::clipboard()->setText(s.toString());
+}
+
+void iAChartWithFunctionsWidget::pasteTransferFunction()
+{
+	auto tf = dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf();
+	double oldRange[2];
+	tf->colorTF()->GetRange(oldRange);
+	iAXmlSettings xml;
+	if (!xml.fromString(QGuiApplication::clipboard()->text()) ||
+		!xml.loadTransferFunction(dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf()))
+	{
+		LOG(lvlWarn, "Inserting transfer function from clipboard failed; probably there is currently no valid transfer function definition in clipboard!");
+	}
+	else
+	{
+		tf->ensureValidity(oldRange);
+		newTransferFunction();
+	}
+}
+
 
 void iAChartWithFunctionsWidget::addBezierFunction()
 {
@@ -552,6 +568,23 @@ void iAChartWithFunctionsWidget::loadFunctions()
 	}
 	emit noPointSelected();
 	update();
+}
+
+void iAChartWithFunctionsWidget::copyProbabilityFunctions()
+{
+	iAXmlSettings xml;
+	saveProbabilityFunctions(xml);
+	QGuiApplication::clipboard()->setText(xml.toString());
+}
+
+void iAChartWithFunctionsWidget::pasteProbabilityFunctions()
+{
+	iAXmlSettings xml;
+	if (!xml.fromString(QGuiApplication::clipboard()->text()) ||
+		!loadProbabilityFunctions(xml))
+	{
+		LOG(lvlWarn, "Inserting functions from clipboard failed; probably there is currently no valid function definition in clipboard!");
+	}
 }
 
 bool iAChartWithFunctionsWidget::loadProbabilityFunctions(iAXmlSettings & xml)
@@ -707,9 +740,9 @@ std::vector<iAChartFunction*> &iAChartWithFunctionsWidget::functions()
 	return m_functions;
 }
 
-void iAChartWithFunctionsWidget::setAllowTrfReset(bool allow)
+void iAChartWithFunctionsWidget::setAllowTFReset(bool allow)
 {
-	m_allowTrfReset = allow;
+	m_allowTFReset = allow;
 }
 
 void iAChartWithFunctionsWidget::setEnableAdditionalFunctions(bool enable)

@@ -1,7 +1,7 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <defines.h>          // for DIM
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iAFilterDefault.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>
@@ -30,7 +30,7 @@ void watershed(iAFilter* filter, QVariantMap const & parameters)
 	filter->progress()->observe( wsFilter );
 	wsFilter->Update();
 	// return is unsigned long long, but vtk can't handle that, so convert to ulong:
-	filter->addOutput( castImageTo<unsigned long>(wsFilter->GetOutput()) );
+	filter->addOutput(std::make_shared<iAImageData>(castImageTo<unsigned long>(wsFilter->GetOutput())) );
 }
 
 iAWatershed::iAWatershed() :
@@ -72,7 +72,7 @@ void morph_watershed(iAFilter* filter, QVariantMap const & parameters)
 	mWSFilter->SetInput( dynamic_cast< InputImageType * >( filter->imageInput(0)->itkImage() ) );
 	filter->progress()->observe( mWSFilter );
 	mWSFilter->Update();
-	filter->addOutput( mWSFilter->GetOutput() );
+	filter->addOutput(std::make_shared<iAImageData>(mWSFilter->GetOutput()) );
 }
 
 iAMorphologicalWatershed::iAMorphologicalWatershed() :

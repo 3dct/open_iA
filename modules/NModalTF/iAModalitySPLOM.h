@@ -5,8 +5,8 @@
 #include <vtkSmartPointer.h>
 
 #include <QDockWidget>
-#include <QSharedPointer>
 
+#include <memory>
 #include <vector>
 
 class iAImageData;
@@ -28,7 +28,7 @@ private slots:
 	void splomSelection(std::vector<size_t> const &);
 private:
 	iAQSplom* m_splom;
-	QSharedPointer<iASPLOMData> m_data;
+	std::shared_ptr<iASPLOMData> m_data;
 	int m_extent[6];
 	double m_spacing[3];
 	double m_origin[3];

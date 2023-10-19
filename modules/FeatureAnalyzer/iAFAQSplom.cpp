@@ -18,12 +18,7 @@
 #include <QMenu>
 #include <QPainter>
 
-// OpenMP
-#ifndef __APPLE__
-#ifndef __MACOSX
 #include <omp.h>
-#endif
-#endif
 
 const int maskOpacity = 127;
 
@@ -46,7 +41,7 @@ iAFAQSplom::iAFAQSplom( iAMainWindow *mWnd, QWidget * parent):
 
 void iAFAQSplom::setData( const QTableWidget * data )
 {
-	QSharedPointer<iASPLOMData> newData(new iASPLOMData);
+	std::shared_ptr<iASPLOMData> newData(new iASPLOMData);
 	int maskCol = data->columnCount() - 1;
 	m_maskNames.clear();
 	m_datasetIndices.clear();

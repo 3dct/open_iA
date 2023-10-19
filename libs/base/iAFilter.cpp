@@ -3,8 +3,7 @@
 #include "iAFilter.h"
 
 #include "iAAttributeDescriptor.h"
-#include "iAConnector.h"
-#include "iADataSet.h"
+#include "iAImageData.h"
 #include "iALog.h"
 #include "iAProgress.h"
 #include "iAStringHelper.h"
@@ -23,15 +22,9 @@ namespace
 		{
 		default:
 			LOG(lvlError, QString("mapVTKtoITKPixelType: Invalid VTK type %1").arg(vtkType));
-#if __cplusplus >= 201703L
 			[[fallthrough]];
-#endif
-			// fall through
 		case VTK_CHAR:
-#if __cplusplus >= 201703L
 			[[fallthrough]];
-#endif
-			// fall through
 		case VTK_SIGNED_CHAR       : return iAITKIO::ScalarType::CHAR;
 		case VTK_UNSIGNED_CHAR     : return iAITKIO::ScalarType::UCHAR;
 		case VTK_SHORT             : return iAITKIO::ScalarType::SHORT;
@@ -74,7 +67,7 @@ QString iAFilter::name() const
 
 QString iAFilter::category() const
 {
-	int slashPos = m_category.indexOf("/");
+	auto slashPos = m_category.indexOf("/");
 	return slashPos > 0 ? m_category.left(slashPos) : m_category;
 }
 
@@ -134,24 +127,9 @@ void iAFilter::clearOutput()
 	m_output.clear();
 }
 
-void iAFilter::addOutput(itk::ImageBase<3>* itkImg)
-{
-	addOutput(std::make_shared<iAImageData>(itkImg));
-}
-
-void iAFilter::addOutput(vtkImageData* vtkImg)
-{
-	addOutput(std::make_shared<iAImageData>(vtkImg));
-}
-
-void iAFilter::addOutput(vtkPolyData* vtkPoly)
-{
-	addOutput(std::make_shared<iAPolyData>(vtkPoly));
-}
-
 void iAFilter::addOutput(std::shared_ptr<iADataSet> dataSet)
 {
-	dataSet->setMetaData(iADataSet::NameKey, outputName(m_output.size()));
+	dataSet->setMetaData(iADataSet::NameKey, outputName(static_cast<int>(m_output.size())));
 	m_output.push_back(dataSet);
 }
 
@@ -189,11 +167,6 @@ void iAFilter::clearInput()
 void iAFilter::addInput(std::shared_ptr<iADataSet> dataSet)
 {
 	m_input.push_back(dataSet);
-}
-
-void iAFilter::addInput(vtkImageData *vtkImage)
-{
-	m_input.push_back(std::make_shared<iAImageData>(vtkImage));
 }
 
 std::shared_ptr<iADataSet> iAFilter::input(size_t idx) const
@@ -259,7 +232,7 @@ bool iAFilter::checkParameters(QVariantMap const & parameters)
 	return true;
 }
 
-bool iAFilter::defaultParameterCheck(QSharedPointer<iAAttributeDescriptor> param, QVariant const& paramValue)
+bool iAFilter::defaultParameterCheck(std::shared_ptr<iAAttributeDescriptor> param, QVariant const& paramValue)
 {
 	bool ok;
 	switch (param->valueType())

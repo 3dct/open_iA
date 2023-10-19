@@ -20,7 +20,7 @@ class iAEnergySpectrumWidget: public iAChartWithFunctionsWidget
 {
 public:
 	iAEnergySpectrumWidget(QWidget *parent,
-		QSharedPointer<iAAccumulatedXRFData> data,
+		std::shared_ptr<iAAccumulatedXRFData> data,
 		vtkPiecewiseFunction* oTF,
 		vtkColorTransferFunction* cTF,
 		iASpectrumFilterListener* filterListener,
@@ -35,12 +35,12 @@ protected:
 private:
 	void NotifySelectionUpdateListener();
 
-	QSharedPointer<iAAccumulatedXRFData>	m_data;
+	std::shared_ptr<iAAccumulatedXRFData> m_data;
 
 	QPoint selectionOrigin;
 	QRubberBand* selectionRubberBand;
 	QVector<QRect> selectionRects;
 	iASpectrumFilterListener* filterListener;
 	QMap<iACharacteristicEnergy*, QColor> m_elementEnergies;
-	QSharedPointer<iATransferFunctionPtrs> m_tf;
+	std::shared_ptr<iATransferFunctionPtrs> m_tf;
 };

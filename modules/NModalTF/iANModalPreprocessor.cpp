@@ -9,7 +9,7 @@
 #include "iANModalDataSetReducer.h"
 #include "iANModalPCADataSetReducer.h"
 
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iAMdiChild.h>
 #include <iAToolsVTK.h>
 
@@ -165,7 +165,7 @@ iANModalPreprocessor::Pipeline iANModalPreprocessor::choosePipeline()
 	return map.value(selection);
 }
 
-QSharedPointer<iANModalDataSetReducer> iANModalPreprocessor::chooseDataSetReducer()
+std::shared_ptr<iANModalDataSetReducer> iANModalPreprocessor::chooseDataSetReducer()
 {
 	const QString PCA = "PCA";
 	const QString NONE = "Skip";
@@ -181,11 +181,11 @@ QSharedPointer<iANModalDataSetReducer> iANModalPreprocessor::chooseDataSetReduce
 
 	if (selection == NONE)
 	{
-		return QSharedPointer<PassthroughReducer>(new PassthroughReducer());
+		return std::shared_ptr<PassthroughReducer>(new PassthroughReducer());
 	}
 	else if (selection == PCA)
 	{
-		return QSharedPointer<iANModalDataSetReducer>(new iANModalPCADataSetReducer());
+		return std::shared_ptr<iANModalDataSetReducer>(new iANModalPCADataSetReducer());
 	}
 	else
 	{
@@ -193,7 +193,7 @@ QSharedPointer<iANModalDataSetReducer> iANModalPreprocessor::chooseDataSetReduce
 	}
 }
 
-QSharedPointer<iANModalBackgroundRemover> iANModalPreprocessor::chooseBackgroundRemover()
+std::shared_ptr<iANModalBackgroundRemover> iANModalPreprocessor::chooseBackgroundRemover()
 {
 	const QString CLOSING = "Morphological Closing";
 	const QString NONE = "Skip";
@@ -214,11 +214,11 @@ QSharedPointer<iANModalBackgroundRemover> iANModalPreprocessor::chooseBackground
 
 	if (selection == NONE)
 	{
-		return QSharedPointer<PassthroughBackgroundRemover>(new PassthroughBackgroundRemover());
+		return std::shared_ptr<PassthroughBackgroundRemover>(new PassthroughBackgroundRemover());
 	}
 	else if (selection == CLOSING)
 	{
-		return QSharedPointer<iANModalBackgroundRemover>(new iANModalDilationBackgroundRemover(m_mdiChild));
+		return std::shared_ptr<iANModalBackgroundRemover>(new iANModalDilationBackgroundRemover(m_mdiChild));
 	}
 	else
 	{

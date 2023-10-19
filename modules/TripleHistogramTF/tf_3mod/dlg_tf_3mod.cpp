@@ -4,29 +4,10 @@
 #include "dlg_tf_3mod.h"
 
 #include "iATripleModalityWidget.h"
-#include "iABarycentricContextRenderer.h"
-#include "iAHistogramStack.h"
-#include "iAHistogramTriangle.h"
 
-#include <iARenderer.h>
 #include <iAMdiChild.h>
 
-#include <vtkCamera.h>
-#include <vtkImageData.h>
-#include <vtkRenderer.h>
-#include <vtkSmartVolumeMapper.h>
-#include <vtkVolume.h>
-#include <vtkVolumeProperty.h>
-#include <vtkColorTransferFunction.h>
-#include <vtkPiecewiseFunction.h>
-#include <vtkImageActor.h>
-
-#include <QLabel>
-#include <QSplitter>
-#include <QStackedLayout>
-// Debug
-#include <QDebug>
-
+#include <QHBoxLayout>
 
 dlg_tf_3mod::dlg_tf_3mod(iAMdiChild * mdiChild /*= 0*/, Qt::WindowFlags f /*= 0 */)
 	:

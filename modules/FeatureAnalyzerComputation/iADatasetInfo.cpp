@@ -8,15 +8,26 @@
 #include <defines.h>
 #include <iAFileUtils.h>
 #include <iAItkVersion.h>
-#include <iAToolsITK.h>
+#include <iAToolsITK.h>    // for getStatistics
 #include <iAITKIO.h>
 
-#include <itkExtractImageFilter.h>
+//#include <itkExtractImageFilter.h>
 #include <itkImageDuplicator.h>
-#include <itkImageFileWriter.h>
+//#include <itkImageFileWriter.h>
+#ifdef __clang__
+#pragma clang diagnostic push
+#if __clang_major__ > 10
+#pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
+#else
+#pragma clang diagnostic ignored "-Wimplicit-int-float-conversion"
+#endif
+#endif
 #include <itkImageToHistogramFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 #include <itkRescaleIntensityImageFilter.h>
-#include <itkStatisticsImageFilter.h>
+//#include <itkStatisticsImageFilter.h>
 
 #include <QDir>
 #include <QDebug>

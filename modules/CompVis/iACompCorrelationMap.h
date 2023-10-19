@@ -5,42 +5,42 @@
 //CompVis
 #include "iACompVisOptions.h"
 #include "iACorrelationCoefficient.h"
-
-//Qt
-#include <QDockWidget>
 #include "ui_CompHistogramTable.h"
 
 //vtk
-#include "vtkInteractorStyleRubberBand2D.h"
-#include "vtkRenderedGraphRepresentation.h"
-#include "vtkGraphLayoutStrategy.h"
-#include "vtkSmartPointer.h"
+#include <vtkGraphLayoutStrategy.h>
+#include <vtkInteractorStyleRubberBand2D.h>
+#include <vtkSmartPointer.h>
 
-#include <cmath>
+//Qt
+#include <QDockWidget>
+
+#include <cmath>    // for abs (cpp), atan
 
 //CompVis
-class iAMainWindow;
+class iACompVisMain;
 class iACorrelationCoefficient;
 class iACsvDataStorage;
 
-class iACompVisMain;
-
+class iAMainWindow;
 class iAQVTKWidget;
 
 //vtk
-class vtkRenderer;
-class vtkGraphLayoutView;
-class vtkMutableUndirectedGraph;
-class vtkLookupTable;
-class vtkDoubleArray;
-class vtkPoints;
-class vtkUnsignedCharArray;
-class vtkActor;
 class vtkActor2D;
-class vtkPropPicker;
-class vtkTextActor;
-class vtkHoverWidget;
+class vtkActor;
 class vtkBalloonWidget;
+class vtkDoubleArray;
+class vtkGraphLayoutView;
+class vtkHoverWidget;
+class vtkLookupTable;
+class vtkMutableUndirectedGraph;
+class vtkPoints;
+class vtkPropPicker;
+class vtkRenderer;
+class vtkScalarBarWidget;
+class vtkTextActor;
+class vtkUnsignedCharArray;
+class vtkViewTheme;
 
 class iACompCorrelationMap : public QDockWidget, public Ui_CompHistogramTable
 {

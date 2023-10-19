@@ -11,7 +11,8 @@
 #include <QDockWidget>
 #include <QList>
 #include <QMap>
-#include <QSharedPointer>
+
+#include <memory>
 
 class iAColorTheme;
 class iAImageCoordinate;
@@ -91,19 +92,19 @@ private:
 
 	iAColorTheme const* m_colorTheme;
 	QString m_fileName;
-	QList<QSharedPointer<iALabel>> m_labels;
+	QList<std::shared_ptr<iALabel>> m_labels;
 	int m_nextLabelId = 0;
 	int getNextLabelId();
 
 	int m_nextId = 0;
 	int getNextId();
-	QMap<int, QSharedPointer<iAOverlayImage>> m_mapId2image;
-	QMap<iASlicer*, QSharedPointer<iAOverlaySlicerData>> m_mapSlicer2data;
+	QMap<int, std::shared_ptr<iAOverlayImage>> m_mapId2image;
+	QMap<iASlicer*, std::shared_ptr<iAOverlaySlicerData>> m_mapSlicer2data;
 
 	vtkSmartPointer<vtkLookupTable> m_labelColorTF;
 	vtkSmartPointer<vtkPiecewiseFunction> m_labelOpacityTF;
 	iAMdiChild* m_mdiChild;
-	QSharedPointer<Ui_labels> m_ui;
+	std::shared_ptr<Ui_labels> m_ui;
 
 	QStandardItemModel* m_itemModel;
 };

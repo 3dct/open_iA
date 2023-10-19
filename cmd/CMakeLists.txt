@@ -32,6 +32,8 @@ if (openiA_TESTING_ENABLED)
 	if (MSVC)
 		# use the created .bat which makes sure all required dll's are in the path:
 		set(TEST_CMD_Binary "${CMAKE_BINARY_DIR}/x64/open_iA_cmd_Release.bat" PARENT_SCOPE)
+	elseif(APPLE)
+		set(TEST_CMD_Binary "${CMAKE_BINARY_DIR}/x64/open_iA_cmd" PARENT_SCOPE)
 	else()
 		set(TEST_CMD_Binary "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${EXECUTABLE_NAME}" PARENT_SCOPE)
 	endif()

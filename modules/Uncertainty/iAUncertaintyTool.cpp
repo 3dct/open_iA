@@ -90,7 +90,7 @@ void iAUncertaintyTool::toggleSettings()
 
 void iAUncertaintyTool::loadState(QSettings& projectFile, QString const& fileName)
 {
-	m_ensembleFile = QSharedPointer<iAEnsembleDescriptorFile>::create(projectFile, fileName);
+	m_ensembleFile = std::make_shared<iAEnsembleDescriptorFile>(projectFile, fileName);
 	if (!m_ensembleFile->good())
 	{
 		LOG(lvlError, "Ensemble: Given data file could not be read.");
@@ -153,7 +153,7 @@ void iAUncertaintyTool::calculateNewSubEnsemble()
 		LOG(lvlError, "No members selected!");
 		return;
 	}
-	QSharedPointer<iAEnsemble> mainEnsemble = m_ensembleView->Ensembles()[0];
+	std::shared_ptr<iAEnsemble> mainEnsemble = m_ensembleView->Ensembles()[0];
 	QString cachePath;
 	int subEnsembleID;
 	do
@@ -162,7 +162,7 @@ void iAUncertaintyTool::calculateNewSubEnsemble()
 		cachePath = mainEnsemble->CachePath() + QString("/sub%1").arg(subEnsembleID);
 		++m_newSubEnsembleID;
 	} while (QDir(cachePath).exists());
-	QSharedPointer<iAEnsemble> newEnsemble = mainEnsemble->AddSubEnsemble(memberIDs, subEnsembleID);
+	std::shared_ptr<iAEnsemble> newEnsemble = mainEnsemble->AddSubEnsemble(memberIDs, subEnsembleID);
 	mainEnsemble->EnsembleFile()->addSubEnsemble(subEnsembleID, memberIDs);
 	m_ensembleView->AddEnsemble(QString("Subset: Members %1").arg(joinNumbersAsString(memberIDs, ",")), newEnsemble);
 }
@@ -182,7 +182,7 @@ void iAUncertaintyTool::memberSelected(int memberIdx)
 }
 
 
-void iAUncertaintyTool::ensembleSelected(QSharedPointer<iAEnsemble> ensemble)
+void iAUncertaintyTool::ensembleSelected(std::shared_ptr<iAEnsemble> ensemble)
 {
 	m_currentEnsemble = ensemble;
 	m_scatterplotView->SetDatasets(ensemble);
@@ -209,7 +209,7 @@ void iAUncertaintyTool::ensembleSelected(QSharedPointer<iAEnsemble> ensemble)
 		m_labelLut->SetTableValue(i, rgba);
 	}
 	m_labelLut->Build();
-	QSharedPointer<iALookupTable> labelLookup(new iALookupTable(m_labelLut));
+	auto labelLookup = std::make_shared<iALookupTable>(m_labelLut);
 	m_labelDistributionView->AddChart("Label", labelDistributionHistogram, iAUncertaintyColors::LabelDistributionBase, labelLookup);
 	m_uncertaintyDistributionView->Clear();
 	auto entropyHistogram = iAHistogramData::create("Frequency (Pixels)", iAValueType::Continuous,

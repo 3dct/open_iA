@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVolumeViewer.h"
 
-#include "iADataSet.h"
+#include "iAImageData.h"
 #include "iAProgress.h"
 
-#include "defines.h"        // for NotExistingChannel
+#include "iAChannelID.h"        // for NotExistingChannel
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
 #include "iADataSetListWidget.h"
@@ -156,7 +156,7 @@ void iAVolumeViewer::prepare(iAProgress* p)
 	double range[2];
 	if (m_dataSet->hasMetaData(ImageRange))
 	{
-		stringToArray<double>(m_dataSet->metaData(ImageRange).toString(), range, 2);
+		stringToArray<double>(m_dataSet->metaData(ImageRange).toString(), range, 2, ArrayValueSeparator);
 	}
 	else
 	{
@@ -194,6 +194,7 @@ void iAVolumeViewer::prepare(iAProgress* p)
 			{
 				readValidTF = false;
 			}
+			m_transfer->ensureValidity(range);
 		}
 	}
 	auto numCmp = img->GetNumberOfScalarComponents();
@@ -294,7 +295,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	int numCmp = img->GetNumberOfScalarComponents();
 	for (int c = 0; c < numCmp; ++c)
 	{
-		auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(m_histogramData[c], plotColor(c, numCmp) );
+		auto histogramPlot = std::make_shared<iABarGraphPlot>(m_histogramData[c], plotColor(c, numCmp) );
 		m_histogram->addPlot(histogramPlot);
 	}
 	m_histogram->setTransferFunction(m_transfer.get());
@@ -303,7 +304,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	//     - better unique widget name!
 	//     - option to put combined histograms of multiple datasets into one view
 	static int histoNum = -1;
-	m_dwHistogram = QSharedPointer<iADockWidgetWrapper>::create(m_histogram, histoName, QString("Histogram%1").arg(++histoNum));
+	m_dwHistogram = std::make_shared<iADockWidgetWrapper>(m_histogram, histoName, QString("Histogram%1").arg(++histoNum));
 	connect(m_dwHistogram.get(), &QDockWidget::visibilityChanged, this, [this](bool visible)
 	{
 		QSignalBlocker sb(m_histogramAction);
@@ -357,11 +358,11 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 		end[i] = start[i] + (dim[i] - 1) * spacing[i];
 	}
 	// TODO NEWIO: check if we can do this differently; and if we should maybe not do this if this was already set when the profile of another dataset was initialized!
-	child->setProfilePoints(start, end);
+	child->initProfilePoints(start, end);
 	m_profileProbe->updateProbe(0, start);
 	m_profileProbe->updateProbe(1, end);
 	m_profileChart = new iAChartWidget(nullptr, "Greyvalue", "Distance");
-	m_dwProfile = QSharedPointer<iADockWidgetWrapper>::create(m_profileChart, "Profile Plot", "Profile");
+	m_dwProfile = std::make_shared<iADockWidgetWrapper>(m_profileChart, "Profile Plot", "Profile");
 	child->splitDockWidget(child->renderDockWidget(), m_dwProfile.get(), Qt::Vertical);
 	if (visibleProfile)
 	{
@@ -420,7 +421,7 @@ void iAVolumeViewer::applyAttributes(QVariantMap const& values)
 				auto numCmp = img->GetNumberOfScalarComponents();
 				for (int c = 0; c < numCmp; ++c)
 				{
-					auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(m_histogramData[c], plotColor(c, numCmp));
+					auto histogramPlot = std::make_shared<iABarGraphPlot>(m_histogramData[c], plotColor(c, numCmp));
 					m_histogram->addPlot(histogramPlot);
 				}
 				m_histogram->update();
@@ -480,7 +481,7 @@ std::shared_ptr<iADataSetRenderer> iAVolumeViewer::createRenderer(vtkRenderer* r
 	return std::make_shared<iAVolumeRenderer>(ren, img, transfer(), overrideValues);
 }
 
-QSharedPointer<iAHistogramData> iAVolumeViewer::histogramData(int component) const
+std::shared_ptr<iAHistogramData> iAVolumeViewer::histogramData(int component) const
 {
 	return m_histogramData[component];
 }
@@ -501,7 +502,7 @@ void iAVolumeViewer::updateProfilePlot()
 	m_profileProbe->updateData();
 	m_profileChart->clearPlots();
 	auto scalars = m_profileProbe->scalars();
-	auto profilePlotData = QSharedPointer<iAXYPlotData>::create(
+	auto profilePlotData = std::make_shared<iAXYPlotData>(
 		QString("Profile %1").arg(m_dataSet->name()),
 		iAValueType::Continuous,
 		m_profileProbe->numberOfPoints());
@@ -510,7 +511,7 @@ void iAVolumeViewer::updateProfilePlot()
 	{
 		profilePlotData->addValue(p * stepWidth, scalars->GetTuple1(p) );
 	}
-	m_profileChart->addPlot(QSharedPointer<iALinePlot>::create(profilePlotData, ProfileColor));
+	m_profileChart->addPlot(std::make_shared<iALinePlot>(profilePlotData, ProfileColor));
 	m_profileChart->update();
 }
 

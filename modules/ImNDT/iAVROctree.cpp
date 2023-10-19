@@ -3,12 +3,7 @@
 #include "iAVROctree.h"
 
 #include <vtkPolyDataMapper.h>
-#include "vtkPointData.h"
-#include "vtkActor.h"
-#include "vtkProperty.h"
-#include "vtkIdTypeArray.h"
-#include <iALog.h>
-
+#include <vtkProperty.h>
 
 iAVROctree::iAVROctree(vtkRenderer* ren, vtkDataSet* dataSet):m_renderer(ren),m_dataSet(dataSet),m_actor(vtkSmartPointer<vtkActor>::New()),
 m_octree(vtkSmartPointer<vtkOctreePointLocator>::New())
@@ -366,7 +361,7 @@ void iAVROctree::mapFibersToRegion(std::unordered_map<vtkIdType, vtkIdType>* poi
 
 			for (vtkIdType i = 0; i < points->GetSize(); i++)
 			{
-				vtkIdType fiberiD;
+				vtkIdType fiberiD = -1;
 				if (pointIDToCsvIndex->find(points->GetValue(i)) != pointIDToCsvIndex->end())
 				{
 					fiberiD = pointIDToCsvIndex->at(points->GetValue(i));

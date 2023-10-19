@@ -3,9 +3,10 @@
 #pragma once
 
 #include "iASpline.h"
-#include <vtkDiskSource.h>
 
-typedef std::vector<iADiskData*> disc_vector;
+#include <iAvtkSourcePoly.h>
+
+typedef std::vector<iAvtkSourcePoly<vtkDiskSource>*> disc_vector;
 
 //! Visualize a snake spline (for snake slicer - currently not fully working!) across the slicer.
 class iASnakeSpline
@@ -33,9 +34,11 @@ public:
 	void addPoint(double x, double y)
 	{
 		// create spline point source, mapper and actor
-		iADiskData * snakeDisk = new iADiskData;
+		auto snakeDisk = new iAvtkSourcePoly<vtkDiskSource>();
 
 		// create point source
+		snakeDisk->source->SetInnerRadius(0.0);
+		snakeDisk->source->SetCircumferentialResolution(20);
 		snakeDisk->source->SetOuterRadius(m_radius);
 		snakeDisk->source->Update();
 

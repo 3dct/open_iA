@@ -18,10 +18,10 @@
 
 const QString iASingleResult::ValueSplitString(",");
 
-QSharedPointer<iASingleResult> iASingleResult::create(
+std::shared_ptr<iASingleResult> iASingleResult::create(
 	QString const & line,
 	iASamplingResults const & sampling,
-	QSharedPointer<iAAttributes> attributes,
+	std::shared_ptr<iAAttributes> attributes,
 	bool showErrorOutput)
 {
 	QStringList tokens = line.split(ValueSplitString);
@@ -40,14 +40,14 @@ QSharedPointer<iASingleResult> iASingleResult::create(
 			{
 				LOG(lvlError, QString("Invalid result ID: %1").arg(tokens[0]));
 			}
-			return QSharedPointer<iASingleResult>();
+			return std::shared_ptr<iASingleResult>();
 		}
 		else
 		{
 			LOG(lvlWarn, "Legacy format .sps/.chr files detected, consider replacing ' ' by ',' in those files!");
 		}
 	}
-	QSharedPointer<iASingleResult> result(new iASingleResult(
+	std::shared_ptr<iASingleResult> result(new iASingleResult(
 		id,
 		sampling
 	));
@@ -57,7 +57,7 @@ QSharedPointer<iASingleResult> iASingleResult::create(
 		{
 			LOG(lvlError, QString("Invalid token count(=%1), expected %2").arg(tokens.size()).arg(attributes->size() + 1));
 		}
-		return QSharedPointer<iASingleResult>();
+		return std::shared_ptr<iASingleResult>();
 	}
 	for (int i = 0; i < attributes->size(); ++i)
 	{
@@ -86,7 +86,7 @@ QSharedPointer<iASingleResult> iASingleResult::create(
 				LOG(lvlError, QString("Could not parse attribute value # %1: '%2' (type=%3).")
 					.arg(i).arg(curToken).arg(ValueType2Str(valueType)));
 			}
-			return QSharedPointer<iASingleResult>();
+			return std::shared_ptr<iASingleResult>();
 		}
 		result->m_attributeValues.push_back(value);
 	}
@@ -101,19 +101,19 @@ QSharedPointer<iASingleResult> iASingleResult::create(
 	return result;
 }
 
-QSharedPointer<iASingleResult> iASingleResult::create(
+std::shared_ptr<iASingleResult> iASingleResult::create(
 	int id,
 	iASamplingResults const & sampling,
 	QVector<QVariant> const & parameter,
 	QString const & fileName)
 {
-	QSharedPointer<iASingleResult> result(new iASingleResult(id, sampling));
+	std::shared_ptr<iASingleResult> result(new iASingleResult(id, sampling));
 	result->m_attributeValues = parameter;
 	result->m_fileName = fileName;
 	return result;
 }
 
-QString iASingleResult::toString(QSharedPointer<iAAttributes> attributes, int type)
+QString iASingleResult::toString(std::shared_ptr<iAAttributes> attributes, int type)
 {
 	QString result;
 	if (attributes->size() != m_attributeValues.size())
@@ -294,7 +294,7 @@ int iASingleResult::datasetID() const
 	return m_sampling.id();
 }
 
-QSharedPointer<iAAttributes> iASingleResult::attributes() const
+std::shared_ptr<iAAttributes> iASingleResult::attributes() const
 {
 	return m_sampling.attributes();
 }

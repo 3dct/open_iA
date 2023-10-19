@@ -31,13 +31,13 @@ iAImageClusterer::iAImageClusterer(int labelCount, QString const& outputDirector
 }
 
 
-void iAImageClusterer::AddImage(QSharedPointer<iASingleResult> singleResult)
+void iAImageClusterer::AddImage(std::shared_ptr<iASingleResult> singleResult)
 {
-	m_images.push_back(QSharedPointer<iAImageTreeLeaf>::create(singleResult, m_labelCount));
+	m_images.push_back(std::make_shared<iAImageTreeLeaf>(singleResult, m_labelCount));
 }
 
 
-QSharedPointer<iAImageTree > iAImageClusterer::GetResult()
+std::shared_ptr<iAImageTree > iAImageClusterer::GetResult()
 {
 	return m_tree;
 }
@@ -341,7 +341,7 @@ void iAImageClusterer::run()
 	m_perfTimer.start();
 	m_progress->setStatus("Hierarchical clustering.");
 	assert(m_images.size() > 0);
-	QSharedPointer<iAImageTreeNode> lastNode = m_images[0];
+	std::shared_ptr<iAImageTreeNode> lastNode = m_images[0];
 	int clusterID = m_remainingNodes;
 	while (m_remainingNodes > 1 && !m_aborted) // we need to do n-1 merges
 	{
@@ -358,7 +358,7 @@ void iAImageClusterer::run()
 				LOG(lvlError, QString("Premature exit with %1 nodes remaining: ").arg(m_remainingNodes));
 				for (int i=0; i<m_images.size(); ++i)
 				{
-					if (!m_images[i].isNull())
+					if (m_images[i])
 					{
 						IsEmpty(distances, i, m_images.size());
 					}
@@ -379,7 +379,7 @@ void iAImageClusterer::run()
 			LOG(lvlError, QString("Premature exit with %1 nodes remaining!").arg(m_remainingNodes));
 			for (int i=0; i<m_images.size(); ++i)
 			{
-				if (!m_images[i].isNull())
+				if (m_images[i])
 				{
 					IsEmpty(distances, i, m_images.size());
 				}
@@ -387,7 +387,7 @@ void iAImageClusterer::run()
 			break;
 		}
 		// create merged node:
-		lastNode = QSharedPointer<iAImageTreeInternalNode>::create(
+		lastNode = std::make_shared<iAImageTreeInternalNode>(
 			m_images[idx.first], m_images[idx.second],
 			m_labelCount,
 			m_outputDirectory,
@@ -428,9 +428,9 @@ void iAImageClusterer::run()
 #endif
 		// remove from matrix & list:
 		distances.Remove(idx.first);
-		m_images[idx.first] = QSharedPointer<iAImageTreeNode>();
+		m_images[idx.first] = std::shared_ptr<iAImageTreeNode>();
 		distances.Remove(idx.second);
-		m_images[idx.second] = QSharedPointer<iAImageTreeNode>();
+		m_images[idx.second] = std::shared_ptr<iAImageTreeNode>();
 
 		--m_remainingNodes;
 		m_progress->emitProgress(
@@ -440,7 +440,7 @@ void iAImageClusterer::run()
 	}
 	if (!m_aborted)
 	{
-		m_tree = QSharedPointer<iAImageTree>::create(lastNode, m_labelCount);
+		m_tree = std::make_shared<iAImageTree>(lastNode, m_labelCount);
 	}
 }
 

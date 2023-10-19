@@ -7,37 +7,34 @@
 #include "iACompHistogramTableData.h"
 
 //vtk
-#include "vtkCamera.h"
-#include "vtkRenderWindow.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkScalarBarActor.h"
-#include "vtkRenderer.h"
-#include "vtkTextActor.h"
-#include "vtkTextProperty.h"
-#include "vtkLookupTable.h"
-#include "vtkActor.h"
-#include "vtkColorTransferFunction.h"
-
-#include "vtkPlaneSource.h"
-#include "vtkPolyDataMapper.h"
-#include "vtkCellData.h"
-#include "vtkProperty.h"
-#include "vtkMapper.h"
-#include "vtkDataSet.h"
-#include "vtkPointData.h"
-#include "vtkAlgorithmOutput.h"
-#include "vtkAlgorithm.h"
-#include "vtkDoubleArray.h"
-#include "vtkProgrammableGlyphFilter.h"
-
-#include "vtkSelectionNode.h"
-#include "vtkSelection.h"
-#include "vtkExtractSelection.h"
-#include "vtkUnstructuredGrid.h"
-#include "vtkDataSetMapper.h"
-#include "vtkUnsignedCharArray.h"
-#include "vtkVertexGlyphFilter.h"
-#include "vtkPlaneSource.h"
+#include <vtkActor.h>
+#include <vtkAlgorithm.h>
+#include <vtkAlgorithmOutput.h>
+#include <vtkCamera.h>
+#include <vtkCellData.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkDataSet.h>
+#include <vtkDataSetMapper.h>
+#include <vtkDoubleArray.h>
+#include <vtkExtractSelection.h>
+#include <vtkLookupTable.h>
+#include <vtkMapper.h>
+#include <vtkPlaneSource.h>
+#include <vtkPointData.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProgrammableGlyphFilter.h>
+#include <vtkProperty.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkRenderer.h>
+#include <vtkScalarBarActor.h>
+#include <vtkSelection.h>
+#include <vtkSelectionNode.h>
+#include <vtkTextActor.h>
+#include <vtkTextProperty.h>
+#include <vtkUnsignedCharArray.h>
+#include <vtkUnstructuredGrid.h>
+#include <vtkVertexGlyphFilter.h>
 
 iACompVariableTable::iACompVariableTable(iACompHistogramVis* vis, iACompBayesianBlocksData* bayesianBlocksData, iACompNaturalBreaksData* naturalBreaksData):
 	iACompTable(vis),

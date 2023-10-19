@@ -4,15 +4,15 @@
 
 #include <iALog.h>
 
-iAViewHandler::iAViewHandler()
+iAViewHandler::iAViewHandler(QString const & id): m_id(id)
 {
-	timer = new QTimer(this);
-	timer->setSingleShot(true);
-	connect(timer, &QTimer::timeout, [=]() -> void {
+	m_timer.setSingleShot(true);
+	connect(&m_timer, &QTimer::timeout, [=]() -> void
+	{
 		//LOG(lvlDebug, "TIMER");
-		createImage(id, 100);
+		emit createImage(m_id, 100);
 	});
-	m_StoppWatch.start();
+	m_stopWatch.start();
 }
 
 void iAViewHandler::vtkCallbackFunc(vtkObject* caller, long unsigned int evId, void* callData)
@@ -21,16 +21,23 @@ void iAViewHandler::vtkCallbackFunc(vtkObject* caller, long unsigned int evId, v
 	Q_UNUSED(evId);
 	Q_UNUSED(callData);
 	//LOG(lvlDebug, QString("DIRECT time check %1, time %2").arg(id).arg(m_StoppWatch.elapsed()));
-
-	if ((m_StoppWatch.elapsed() > waitTimeRendering) && (m_StoppWatch.elapsed() >50))
+	const int MinWaitTime = 50;
+	const int FinalUpdateTime = 250;
+	const int ReducedQuality = 20;   // reduce resolution as well?
+	
+	if ((m_stopWatch.elapsed() > std::max(m_waitTimeRendering, MinWaitTime)))
 	{
-		m_StoppWatch.restart();
-		timer->stop();
-		timer->start(250);
+		m_stopWatch.restart();
+		m_timer.stop();
+		m_timer.start(FinalUpdateTime);
 
-		createImage(id, quality);
-		timeRendering = m_StoppWatch.elapsed();
-		waitTimeRendering = waitTimeRendering + (timeRendering - waitTimeRendering + 12)/4;
-		//LOG(lvlDebug, QString("DIRECT %1, time %2 wait %3").arg(id).arg(timeRendering).arg(waitTimeRendering));
+		emit createImage(m_id, ReducedQuality);
+		m_timeRendering = m_stopWatch.elapsed();
+		m_waitTimeRendering = m_waitTimeRendering + (m_timeRendering - m_waitTimeRendering + 12)/4;  // magic numbers -> gradual adaptation
+		LOG(lvlDebug, QString("DIRECT %1, time %2 ms; wait %3 ms").arg(m_id).arg(m_timeRendering).arg(m_waitTimeRendering));
+	}
+	else
+	{
+		LOG(lvlDebug, "vtk callback ignored!");
 	}
 }

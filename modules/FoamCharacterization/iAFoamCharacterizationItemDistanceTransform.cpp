@@ -5,7 +5,7 @@
 #include "iAFoamCharacterizationItemBinarization.h"
 #include "iAFoamCharacterizationDialogDistanceTransform.h"
 
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iAProgress.h>
 
 #include <itkDanielssonDistanceMapImageFilter.h>

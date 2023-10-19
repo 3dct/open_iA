@@ -14,7 +14,7 @@ set(Segmentation_PRECOMPILE_INCLUDES
 <iAVectorDistanceImpl.h>
 <iAVectorType.h>
 <iAVectorTypeImpl.h>
-<QSharedPointer>
+<memory>
 <QString>
 <QVector>
 <utility>

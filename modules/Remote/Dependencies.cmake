@@ -1,29 +1,29 @@
-if (NOT Qt${QT_VERSION_MAJOR}WebSockets_DIR)
-	set(Qt${QT_VERSION_MAJOR}WebSockets_DIR "${Qt${QT_VERSION_MAJOR}_DIR}WebSockets" CACHE PATH "" FORCE)
+if (NOT Qt6WebSockets_DIR)
+	set(Qt6WebSockets_DIR "${Qt6_DIR}WebSockets" CACHE PATH "" FORCE)
 endif()
-if (NOT Qt${QT_VERSION_MAJOR}HttpServer_DIR)
-	set(Qt${QT_VERSION_MAJOR}HttpServer_DIR "${Qt${QT_VERSION_MAJOR}_DIR}HttpServer" CACHE PATH "" FORCE)
+if (NOT Qt6HttpServer_DIR)
+	set(Qt6HttpServer_DIR "${Qt6_DIR}HttpServer" CACHE PATH "" FORCE)
 endif()
-find_package(Qt${QT_VERSION_MAJOR}WebSockets REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR}HttpServer)
+find_package(Qt6WebSockets REQUIRED)
+find_package(Qt6HttpServer)
 
 set(DEPENDENCIES_LIBRARIES
 	iA::guibase
 	iA::slicer
-	Qt${QT_VERSION_MAJOR}::WebSockets
+	Qt::WebSockets
 )
 
 set(DEPENDENCIES_MODULES
 	Labelling
 )
 
-if (Qt${QT_VERSION_MAJOR}HttpServer_FOUND)
-	list(APPEND DEPENDENCIES_LIBRARIES Qt${QT_VERSION_MAJOR}::HttpServer)
-	set(Qt${QT_VERSION_MAJOR}HttpServer_FOUND 1 PARENT_SCOPE) # required to have it available in enabled.cmake!
+if (Qt6HttpServer_FOUND)
+	list(APPEND DEPENDENCIES_LIBRARIES Qt::HttpServer)
+	set(Qt6HttpServer_FOUND 1 PARENT_SCOPE) # required to have it available in enabled.cmake!
 endif()
 
 if (CUDAToolkit_FOUND)
-	list(APPEND DEPENDENCIES_LIBRARIES CUDA::cudart CUDA::nvjpeg)
+	list(APPEND DEPENDENCIES_LIBRARIES CUDA::cudart CUDA::nvjpeg CUDA::nppc CUDA::nppig)
 endif()
 
 #set(VTK_REQUIRED_LIBS_PUBLIC

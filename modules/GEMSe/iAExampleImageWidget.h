@@ -6,9 +6,10 @@
 #include <iAITKIO.h> // TODO: replace?
 
 #include <QGridLayout>
-#include <QSharedPointer>
 #include <QVector>
 #include <QWidget>
+
+#include <memory>
 
 class iAImageTreeLeaf;
 class iAImageTreeNode;
@@ -27,7 +28,7 @@ class iAExampleImageWidget: public QWidget
 public:
 	//! aspectRatio = height/width
 	iAExampleImageWidget(double aspectRatio, iAPreviewWidgetPool* previewPool, ClusterImageType nullImage);
-	void SetSelectedNode(QSharedPointer<iAImageTreeNode> node);
+	void SetSelectedNode(std::shared_ptr<iAImageTreeNode> node);
 	void SetSelectedImage(iAImageTreeLeaf * leaf);
 	void FilterUpdated();
 public slots:
@@ -47,7 +48,7 @@ private:
 	QGridLayout* m_layout;
 	int m_width;
 	int m_height;
-	QSharedPointer<iAImageTreeNode> m_rootNode;
+	std::shared_ptr<iAImageTreeNode> m_rootNode;
 	double m_aspectRatio;
 	iAPreviewWidgetPool * m_previewPool;
 	ExampleGrid* m_gridWidget;

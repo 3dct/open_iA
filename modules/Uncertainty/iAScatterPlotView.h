@@ -14,7 +14,7 @@ class iAScatterPlotView: public QWidget
 	Q_OBJECT
 public:
 	iAScatterPlotView();
-	void SetDatasets(QSharedPointer<iAUncertaintyImages> imgs);
+	void SetDatasets(std::shared_ptr<iAUncertaintyImages> imgs);
 	vtkImagePointer GetSelectionImage();
 	void ToggleSettings();
 private slots:
@@ -24,7 +24,7 @@ private slots:
 signals:
 	void SelectionChanged();
 private:
-	QSharedPointer<iAUncertaintyImages> m_imgs;
+	std::shared_ptr<iAUncertaintyImages> m_imgs;
 
 	vtkSmartPointer<iAvtkImageData> m_selectionImg;
 	size_t m_voxelCount;

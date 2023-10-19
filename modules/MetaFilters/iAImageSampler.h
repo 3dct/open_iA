@@ -12,8 +12,9 @@
 #include <iAPerformanceHelper.h>
 
 #include <QMap>
-#include <QSharedPointer>
 #include <QThread>
+
+#include <memory>
 
 class iADerivedOutputCalculator;
 class iASampleOperation;
@@ -31,16 +32,16 @@ public:
 	iAImageSampler(
 		std::map<size_t, std::shared_ptr<iADataSet>> datasets,
 		QVariantMap const & parameters,
-		QSharedPointer<iAAttributes> parameterRanges,
-		QSharedPointer<iAAttributes> parameterSpecs,
-		QSharedPointer<iASamplingMethod> samplingMethod,
+		std::shared_ptr<iAAttributes> parameterRanges,
+		std::shared_ptr<iAAttributes> parameterSpecs,
+		std::shared_ptr<iASamplingMethod> samplingMethod,
 		QString const & parameterRangeFile,
 		QString const & parameterSetFile,
 		QString const & derivedOutputFile,
 		int samplingID,
 		iALogger * logger,
 		iAProgress * progress);
-	QSharedPointer<iASamplingResults> results();
+	std::shared_ptr<iASamplingResults> results();
 	void start();
 	double elapsed() const override;
 	double estimatedTimeRemaining(double percent) const override;
@@ -53,9 +54,9 @@ private:
 	//! input
 	std::map<size_t, std::shared_ptr<iADataSet>> m_dataSets;
 	QVariantMap const& m_parameters;
-	QSharedPointer<iAAttributes> m_parameterRanges;
-	QSharedPointer<iAAttributes> m_parameterSpecs;
-	QSharedPointer<iASamplingMethod> m_samplingMethod;
+	std::shared_ptr<iAAttributes> m_parameterRanges;
+	std::shared_ptr<iAAttributes> m_parameterSpecs;
+	std::shared_ptr<iASamplingMethod> m_samplingMethod;
 	QString m_parameterRangeFile;
 	QString m_parameterSetFile;
 	QString m_derivedOutputFile;
@@ -75,9 +76,9 @@ private:
 	// intention: running several sampled algorithms in parallel
 	// downside: seems to slow down rather than speed up overall process
 	QMap<iASampleOperation*, int > m_runningComputation;
-	QMap<iADerivedOutputCalculator*, QSharedPointer<iASingleResult> > m_runningDerivedOutput;
+	QMap<iADerivedOutputCalculator*, std::shared_ptr<iASingleResult> > m_runningDerivedOutput;
 
-	QSharedPointer<iASamplingResults> m_results;
+	std::shared_ptr<iASamplingResults> m_results;
 	int m_parameterCount;
 	int m_samplingID;
 	

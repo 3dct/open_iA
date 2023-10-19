@@ -5,15 +5,7 @@
 //CompVis
 #include "iACompTableInteractorStyle.h"
 
-//vtk
-#include "vtkSmartPointer.h"
-#include "vtkActor.h"
-
 class iACompCurve;
-
-//vtk
-class vtkRenderer;
-class vtkPropPicker;
 
 class iACompCurveInteractorStyle : public iACompTableInteractorStyle
 {

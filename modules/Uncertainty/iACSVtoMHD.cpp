@@ -4,12 +4,11 @@
 
 #include <defines.h>          // for DIM
 #include <iAConnector.h>
+#include <iAImageData.h>
 #include <iALog.h>
 #include <iAProgress.h>
 #include <iAToolsVTK.h>
 #include <iAVtkDraw.h>
-
-#include <vtkImageData.h>
 
 #include <QFile>
 #include <QTextStream>
@@ -117,7 +116,7 @@ void iACSVtoMHD::performWork(QVariantMap const & parameters)
 		}
 	}
 	in.close();
-	addOutput(img);
+	addOutput(std::make_shared<iAImageData>(img));
 	QString outputFileName = parameters["Output fileName"].toString();
 	if (!outputFileName.isEmpty())
 	{

@@ -48,13 +48,11 @@ std::vector<double> derivative(std::vector<double> const & func)
 	if (func.size() <= 1)
 		return func;
 	std::vector<double> deriv;
-	for (size_t i = 0; i < func.size(); ++i)
+	deriv.resize(func.size());
+	deriv[0] = func[1] - func[0];   // avoid conditional in loop
+	for (size_t i = 1; i < func.size(); ++i)
 	{
-		double derivValue = ((i > 0) ? (func[i] - func[i - 1])
-			: func[i+1]-func[i]);
-			// calculate as average of(difference between prev and current) and (difference between current and next) ?
-			//(i < func.size()-1) ? (func[i+1] - func[i])
-		deriv.push_back(derivValue);
+		deriv[i] = func[i] - func[i - 1];
 	}
 	return deriv;
 }

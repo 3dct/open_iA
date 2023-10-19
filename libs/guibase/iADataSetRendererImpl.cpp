@@ -2,16 +2,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iADataSetRendererImpl.h"
 
-#include "iADataSet.h"
 #include "iAMainWindow.h"
 #include "iAValueTypeVectorHelpers.h"
 
-#include "iAAABB.h"
+#include <iAPolyData.h>
+#include <iAAABB.h>
 #ifndef NDEBUG
-#include "iAMathUtility.h"    // for dblApproxEqual
+#include <iAMathUtility.h>    // for dblApproxEqual
 #endif
 
 // ---------- iAGraphRenderer ----------
+
 
 #include <vtkActor.h>
 #include <vtkCallbackCommand.h>

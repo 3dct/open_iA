@@ -17,8 +17,8 @@
 #ifndef _itkRemovePeaksOtsuThresholdImageCalculator_txx
 #define _itkRemovePeaksOtsuThresholdImageCalculator_txx
 
-#include "itkImageRegionConstIteratorWithIndex.h"
-#include "itkMinimumMaximumImageCalculator.h"
+#include <itkImageRegionConstIteratorWithIndex.h>
+#include <itkMinimumMaximumImageCalculator.h>
 
 #include "vnl/vnl_math.h"
 

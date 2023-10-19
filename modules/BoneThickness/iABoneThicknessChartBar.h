@@ -6,7 +6,7 @@
 
 #include <QWidget>
 
-#include <memory>    // for unique_ptr
+#include <memory>
 
 class vtkDoubleArray;
 

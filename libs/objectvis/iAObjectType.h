@@ -19,3 +19,17 @@ enum iAObjectType
 iAobjectvis_API QString MapObjectTypeToString(int objectType);
 //! Map a string value to the corresponding iAObjectType.
 iAobjectvis_API iAObjectType MapStringToObjectType(QString const& objectTypeName);
+
+enum class iAObjectVisType
+{
+	UseVolume,
+	Line,
+	Cylinder,
+	Ellipsoid,
+	None,
+	Count //must be last element
+}; //!< what visualization to use for the objects. Should match the entries of VisualizationTypeName iACsvConfig.cpp
+
+//! Map an object visualization type to string
+iAobjectvis_API QString MapVisType2Str(iAObjectVisType visType);
+iAobjectvis_API iAObjectVisType MapStr2VisType(QString const & name);

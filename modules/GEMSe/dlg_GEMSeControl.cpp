@@ -24,8 +24,8 @@
 #include <iAAttributeDescriptor.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
-#include <iADataSet.h>
 #include <iAFileUtils.h>    // for getLocalEncodingFileName
+#include <iAImageData.h>
 #include <iAJobListView.h>
 #include <iALog.h>
 #include <iAMdiChild.h>
@@ -184,7 +184,7 @@ void dlg_GEMSeControl::startSampling()
 		}
 		samplingMethod->setSampleCount(m_samplingSettings[spnNumberOfSamples].toInt(), m_dlgSamplingSettings->parameterRanges());
 		iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
-		m_sampler = QSharedPointer<iAImageSampler>::create(
+		m_sampler = std::make_shared<iAImageSampler>(
 			mdiChild->dataSetMap(),
 			m_samplingSettings,
 			m_dlgSamplingSettings->parameterRanges(),
@@ -197,8 +197,8 @@ void dlg_GEMSeControl::startSampling()
 			iALog::get(),
 			&m_progress
 		);
-		iAJobListView::get()->addJob("Sampling Progress", &m_progress, m_sampler.data(), m_sampler.data());
-		connect(m_sampler.data(), &iAImageSampler::finished, this, &dlg_GEMSeControl::samplingFinished);
+		iAJobListView::get()->addJob("Sampling Progress", &m_progress, m_sampler.get(), m_sampler.get());
+		connect(m_sampler.get(), &iAImageSampler::finished, this, &dlg_GEMSeControl::samplingFinished);
 
 		// trigger parameter set creation & sampling (in foreground with progress bar for now)
 		m_sampler->start();
@@ -240,7 +240,7 @@ bool dlg_GEMSeControl::loadSampling(QString const & fileName, int labelCount, in
 		LOG(lvlError, "No filename given, not loading.");
 		return false;
 	}
-	QSharedPointer<iASamplingResults> samplingResults = iASamplingResults::load(fileName, datasetID);
+	std::shared_ptr<iASamplingResults> samplingResults = iASamplingResults::load(fileName, datasetID);
 	if (!samplingResults)
 	{
 		LOG(lvlError, "Loading Sampling failed.");
@@ -256,14 +256,14 @@ bool dlg_GEMSeControl::loadSampling(QString const & fileName, int labelCount, in
 void dlg_GEMSeControl::samplingFinished()
 {
 	// retrieve results from sampler
-	QSharedPointer<iASamplingResults> samplingResults = m_sampler->results();
+	std::shared_ptr<iASamplingResults> samplingResults = m_sampler->results();
 
 	if (!samplingResults || m_sampler->isAborted())
 	{
-		m_sampler.clear();
+		m_sampler.reset();
 		return;
 	}
-	m_sampler.clear();
+	m_sampler.reset();
 	m_dlgSamplings->Add(samplingResults);
 	samplingResults->store(
 		m_outputFolder + "/" + iASEAFile::DefaultSMPFileName,
@@ -299,7 +299,7 @@ bool dlg_GEMSeControl::loadClustering(QString const & fileName)
 	}
 	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 	auto originalImage = mdiChild->firstImageData();
-	QSharedPointer<iAImageTree> tree = iAImageTree::Create(
+	std::shared_ptr<iAImageTree> tree = iAImageTree::Create(
 		fileName,
 		m_dlgSamplings->GetSamplings(),
 		m_simpleLabelInfo->count()
@@ -333,7 +333,7 @@ bool dlg_GEMSeControl::loadClustering(QString const & fileName)
 		tree,
 		originalImage,
 		imgDataSets, transfer,
-		m_simpleLabelInfo.data(),
+		m_simpleLabelInfo.get(),
 		m_dlgSamplings->GetSamplings()
 	);
 	EnableClusteringDependantUI();
@@ -364,17 +364,17 @@ void dlg_GEMSeControl::calculateClustering()
 		LOG(lvlError, QString("Can't create representative directory %1!").arg(cacheDir));
 		return;
 	}
-	m_clusterer = QSharedPointer<iAImageClusterer>::create(m_simpleLabelInfo->count(), cacheDir, &m_progress);
-	iAJobListView::get()->addJob("Clustering Progress", &m_progress, m_clusterer.data(), m_clusterer.data());
+	m_clusterer = std::make_shared<iAImageClusterer>(m_simpleLabelInfo->count(), cacheDir, &m_progress);
+	iAJobListView::get()->addJob("Clustering Progress", &m_progress, m_clusterer.get(), m_clusterer.get());
 	for (int samplingIdx=0; samplingIdx<m_dlgSamplings->SamplingCount(); ++samplingIdx)
 	{
-		QSharedPointer<iASamplingResults> sampling = m_dlgSamplings->GetSampling(samplingIdx);
+		std::shared_ptr<iASamplingResults> sampling = m_dlgSamplings->GetSampling(samplingIdx);
 		for (int sampleIdx = 0; sampleIdx < sampling->size(); ++sampleIdx)
 		{
 			m_clusterer->AddImage(sampling->get(sampleIdx));
 		}
 	}
-	connect(m_clusterer.data(), &iAImageClusterer::finished, this, &dlg_GEMSeControl::clusteringFinished);
+	connect(m_clusterer.get(), &iAImageClusterer::finished, this, &dlg_GEMSeControl::clusteringFinished);
 	m_clusterer->start();
 }
 
@@ -383,7 +383,7 @@ void dlg_GEMSeControl::clusteringFinished()
 	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 	auto originalImage = mdiChild->firstImageData();
 
-	QSharedPointer<iAImageTree> tree = m_clusterer->GetResult();
+	std::shared_ptr<iAImageTree> tree = m_clusterer->GetResult();
 	assert(m_dlgGEMSe);
 	if (!m_dlgGEMSe)
 	{
@@ -422,7 +422,7 @@ void dlg_GEMSeControl::clusteringFinished()
 		m_clusterer->GetResult(),
 		originalImage,
 		imgDataSets, transfer,
-		m_simpleLabelInfo.data(),
+		m_simpleLabelInfo.get(),
 		m_dlgSamplings->GetSamplings()
 	);
 	EnableClusteringDependantUI();
@@ -462,7 +462,7 @@ void dlg_GEMSeControl::saveAll()
 void dlg_GEMSeControl::saveGEMSeProject(QString const & fileName, QString const & hiddenCharts)
 {
 	QMap<int, QString> samplingFilenames;
-	for (QSharedPointer<iASamplingResults> sampling : *m_dlgSamplings->GetSamplings())
+	for (std::shared_ptr<iASamplingResults> sampling : *m_dlgSamplings->GetSamplings())
 	{
 		samplingFilenames.insert(sampling->id(), sampling->fileName());
 	}
@@ -485,7 +485,7 @@ void dlg_GEMSeControl::saveProject(QSettings & metaFile, QString const & fileNam
 {
 	// TODO: remove duplication between saveProject and saveGEMSeProject!
 	QMap<int, QString> samplingFilenames;
-	for (QSharedPointer<iASamplingResults> sampling : *m_dlgSamplings->GetSamplings())
+	for (std::shared_ptr<iASamplingResults> sampling : *m_dlgSamplings->GetSamplings())
 	{
 		samplingFilenames.insert(sampling->id(), sampling->fileName());
 	}
@@ -537,9 +537,9 @@ void dlg_GEMSeControl::dataSetSelected(size_t dataSetIdx)
 	m_dlgGEMSe->ShowImage(imgData);
 }
 
-void ExportClusterIDs(QSharedPointer<iAImageTreeNode> node, std::ostream & out)
+void ExportClusterIDs(std::shared_ptr<iAImageTreeNode> node, std::ostream & out)
 {
-	VisitLeafs(node.data(), [&](iAImageTreeLeaf const * leaf)
+	VisitLeafs(node.get(), [&](iAImageTreeLeaf const * leaf)
 	{
 		//static int curr = 0;
 		out << leaf->GetDatasetID() << "\t" << leaf->GetID() << "\n";
@@ -555,7 +555,7 @@ void dlg_GEMSeControl::exportIDs()
 	{
 		return;
 	}
-	QSharedPointer<iAImageTreeNode> cluster = m_dlgGEMSe->GetCurrentCluster();
+	std::shared_ptr<iAImageTreeNode> cluster = m_dlgGEMSe->GetCurrentCluster();
 	std::ofstream out( getLocalEncodingFileName(fileName) );
 	ExportClusterIDs(cluster, out);
 }
@@ -570,7 +570,7 @@ void dlg_GEMSeControl::setColorTheme(int index)
 	QString const themeName = cbColorThemes->itemText(index);
 	iAColorTheme const * theme = iAColorThemeManager::instance().theme(themeName);
 	m_simpleLabelInfo->setColorTheme(theme);
-	m_dlgGEMSe->setColorTheme(theme, m_simpleLabelInfo.data());
+	m_dlgGEMSe->setColorTheme(theme, m_simpleLabelInfo.get());
 }
 
 void dlg_GEMSeControl::setRepresentative(int index)
@@ -657,7 +657,7 @@ void dlg_GEMSeControl::saveDerivedOutputSlot()
 void dlg_GEMSeControl::saveDerivedOutput(
 	QString const & derivedOutputFileName,
 	QString const & attributeDescriptorOutputFileName,
-	QSharedPointer<iASamplingResults> results)
+	std::shared_ptr<iASamplingResults> results)
 {
 
 	// TODO: update smp file with all attribute descriptors
@@ -669,7 +669,7 @@ void dlg_GEMSeControl::saveDerivedOutput(
 		return;
 	}
 	QTextStream out(&paramRangeFile);
-	storeAttributes(out, *results->attributes().data());
+	storeAttributes(out, *results->attributes().get());
 
 	// store derived output:
 	results->storeAttributes(iAAttributeDescriptor::DerivedOutput, derivedOutputFileName, false);

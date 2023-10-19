@@ -2,23 +2,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompVisOptions.h"
 
-//Debug
-#include <iALog.h>
+//vtk
+#include <vtkActor.h>
+#include <vtkDoubleArray.h>
+#include <vtkImageData.h>
+#include <vtkMapper.h>
+#include <vtkPointData.h>
+#include <vtkPolyData.h>
+#include <vtkTexture.h>
 
 //Qt
-#include "qstring.h"
-
-//vtk
-#include "vtkUnsignedCharArray.h"
-#include "vtkDoubleArray.h"
-#include "vtkTexture.h"
-#include "vtkImageData.h"
-#include "vtkPolyData.h"
-#include "vtkActor.h"
-#include "vtkMapper.h"
-#include "vtkPointData.h"
-
-#include <vector>
+#include <QString>
 
 namespace iACompVisOptions
 {

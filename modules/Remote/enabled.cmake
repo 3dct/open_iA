@@ -1,7 +1,7 @@
 set(MODULE_NAME Remote)
 
 set(WebServerConfigured OFF)
-if (Qt${QT_VERSION_MAJOR}HttpServer_FOUND)
+if (Qt6HttpServer_FOUND)
 	find_program(NPM_PROGRAM npm)
 	if (NPM_PROGRAM)
 		target_compile_definitions(${MODULE_NAME} PRIVATE QT_HTTPSERVER)

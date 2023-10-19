@@ -32,7 +32,7 @@ namespace
 class iAJob
 {
 public:
-	iAJob(QString n, iAProgress* p, QObject* o, iAAbortListener* a, QSharedPointer<iADurationEstimator> e) :
+	iAJob(QString n, iAProgress* p, QObject* o, iAAbortListener* a, std::shared_ptr<iADurationEstimator> e) :
 		name(n), progress(p), object(o), abortListener(a), estimator(e)
 	{
 	}
@@ -42,7 +42,7 @@ public:
 	iAProgress* progress;
 	QObject* object;
 	iAAbortListener* abortListener;
-	QSharedPointer<iADurationEstimator> estimator;
+	std::shared_ptr<iADurationEstimator> estimator;
 };
 
 //! Simple estimator: starts the clock as soon as it is created,
@@ -147,7 +147,7 @@ bool iAJobListView::isAnyJobRunning() const
 	return !m_jobs.isEmpty() || !m_pendingJobs.isEmpty();
 }
 
-QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
+QWidget* iAJobListView::addJobWidget(std::shared_ptr<iAJob> j)
 {
 	{
 		std::lock_guard<std::mutex> guard(jobsMutex);
@@ -207,7 +207,7 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 	
 	if (!j->estimator)
 	{
-		j->estimator = QSharedPointer<iAPercentBasedEstimator>::create();
+		j->estimator = std::make_shared<iAPercentBasedEstimator>();
 	}
 	QTimer* timer = new QTimer(jobWidget);
 	connect(timer, &QTimer::timeout, jobWidget, [elapsedLabel, j] {
@@ -217,7 +217,7 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 
 	if (j->progress)
 	{
-		QWeakPointer<iADurationEstimator> estim(j->estimator);	// reduce scope of captured var & don't capture shared pointer (-> mem leak)
+		std::weak_ptr<iADurationEstimator> estim(j->estimator);	// reduce scope of captured var & don't capture shared pointer (-> mem leak)
 		connect(j->progress, &iAProgress::progress, jobWidget, [progressBar, estim, remainingLabel](double value)
 			{
 				progressBar->setValue(value*10);
@@ -254,7 +254,7 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 
 void iAJobListView::newJobSlot()
 {
-	QSharedPointer<iAJob> j;
+	std::shared_ptr<iAJob> j;
 	{
 		std::lock_guard<std::mutex> guard(pendingJobsMutex);
 		j = m_pendingJobs.pop();
@@ -288,11 +288,11 @@ void iAJobListView::newJobSlot()
 }
 
 void iAJobListView::addJob(QString name, iAProgress* p, QObject* t, iAAbortListener* abortListener,
-	QSharedPointer<iADurationEstimator> estimator)
+	std::shared_ptr<iADurationEstimator> estimator)
 {
 	{
 		std::lock_guard<std::mutex> guard(pendingJobsMutex);
-		m_pendingJobs.push(QSharedPointer<iAJob>::create(name, p, t, abortListener, estimator));
+		m_pendingJobs.push(std::make_shared<iAJob>(name, p, t, abortListener, estimator));
 	}
 	emit newJobSignal();
 	QEventLoop loop;
@@ -306,11 +306,11 @@ void iAJobListView::addJob(QString name, iAProgress* p, QObject* t, iAAbortListe
 	loop.exec();
 }
 
-QSharedPointer<QObject> iAJobListView::addJob(QString name, iAProgress* p,
-	iAAbortListener* abortListener,	QSharedPointer<iADurationEstimator> estimator)
+std::shared_ptr<QObject> iAJobListView::addJob(QString name, iAProgress* p,
+	iAAbortListener* abortListener,	std::shared_ptr<iADurationEstimator> estimator)
 {
-	QSharedPointer<QObject> result(new QObject);
-	addJob(name, p, result.data(), abortListener, estimator);
+	std::shared_ptr<QObject> result(new QObject);
+	addJob(name, p, result.get(), abortListener, estimator);
 	return result;
 }
 

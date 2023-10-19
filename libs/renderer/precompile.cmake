@@ -3,15 +3,14 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iALog.h>
 <iARenderObserver.h>
 <iAToolsVTK.h>
+<iAvtkSourcePoly.h>
 <QColor>
-<QObject>
 <vector>
 <vtkCamera.h>
 <vtkCommand.h>
-<vtkImageData.h>
+<vtkCubeSource.h>
 <vtkPlane.h>
 <vtkRenderer.h>
 <vtkRenderWindowInteractor.h>
 <vtkSmartPointer.h>
-<vtkTransform.h>
 )

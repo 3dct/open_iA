@@ -7,21 +7,10 @@
 #include "iAHistogramAbstract.h"
 #include "iABCoord.h"
 
-#include <iASlicerMode.h>
-
-#include <vtkSmartPointer.h>
-
-#include <array>
-
 class iABarycentricTriangleWidget;
 class iABarycentricContextRenderer;
 
-class iAChartWithFunctionsWidget;
-class iATransferFunction;
 class iAMdiChild;
-
-class vtkColorTransferFunction;
-class vtkPiecewiseFunction;
 
 class QComboBox;
 class QLabel;

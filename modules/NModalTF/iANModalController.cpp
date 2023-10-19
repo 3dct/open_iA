@@ -10,8 +10,8 @@
 
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
-#include <iADataSet.h>
 #include <iADataSetRenderer.h>
+#include <iAImageData.h>
 #include <iAMdiChild.h>
 #include <iAPreferences.h>
 #include <iARenderer.h>
@@ -148,8 +148,7 @@ void iANModalController::initializeHistogram(size_t dataSetIdx)
 		LOG(lvlWarn, QString("No display data found for dataset %1!").arg(dataSetName));
 		return;
 	}
-	auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(viewer->histogramData(0), QColor(70, 70, 70, 255));
-
+	auto histogramPlot = std::make_shared<iABarGraphPlot>(viewer->histogramData(0), QColor(70, 70, 70, 255));
 	auto histogram = new iAChartWithFunctionsWidget(m_mdiChild, dataSetName + " grey value", "Frequency");
 	histogram->addPlot(histogramPlot);
 	histogram->setTransferFunction(viewer->transfer());
@@ -415,7 +414,7 @@ void iANModalController::setDataSets(const QList<std::shared_ptr<iAImageData>>& 
 			LOG(lvlWarn, QString("No display data found for dataset %1!").arg(dataSet->name()));
 			continue;
 		}
-		m_tfs.append(QSharedPointer<iANModalTFManager>::create(viewer->transfer()));
+		m_tfs.append(std::make_shared<iANModalTFManager>(viewer->transfer()));
 		resetTf(dataSetIdx);
 	}
 }

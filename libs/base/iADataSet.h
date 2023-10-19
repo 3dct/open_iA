@@ -5,20 +5,9 @@
 #include "iabase_export.h"
 
 #include "iADataSetType.h"
-#include "iALog.h"
 
-#include <vtkSmartPointer.h>
-
-#include <QFlags>
-#include <QMap>
 #include <QString>
 #include <QVariant>    // for QVariantMap (at least under Qt 5.15.2)
-
-class iAConnector;
-class iAProgress;
-
-class vtkPolyData;
-class vtkImageData;
 
 //! Abstract interface for datasets.
 class iAbase_API iADataSet
@@ -62,65 +51,6 @@ private:
 	Q_DISABLE_COPY_MOVE(iADataSet);
 	iADataSetType m_type;      //!< type of data in this dataset
 	QVariantMap m_metaData;    //!< (optional) additional metadata that is required to load the file, or that came along with the dataset
-};
-
-//! a class for vtk polydata mesh datasets
-class iAbase_API iAPolyData : public iADataSet
-{
-public:
-	iAPolyData(vtkSmartPointer<vtkPolyData> mesh);
-	vtkSmartPointer<vtkPolyData> poly() const;
-	QString info() const override;
-	std::array<double, 3> unitDistance() const override;
-
-private:
-	iAPolyData(iAPolyData const & other) = delete;
-	iAPolyData& operator=(iAPolyData const& other) = delete;
-	vtkSmartPointer<vtkPolyData> m_mesh;
-};
-
-//! a graph dataset
-//! merge with iAPolyData ?
-class iAbase_API iAGraphData : public iADataSet
-{
-public:
-	iAGraphData(vtkSmartPointer<vtkPolyData> mesh,
-		QStringList const & vertexValueNames,
-		QStringList const & edgeValueNames);
-	vtkSmartPointer<vtkPolyData> poly() const;
-	QString info() const override;
-	//std::array<double, 3> unitDistance() const override;
-	QStringList const & vertexValueNames() const;
-	QStringList const& edgeValueNames() const;
-
-private:
-	iAGraphData(iAGraphData const& other) = delete;
-	iAGraphData& operator=(iAGraphData const& other) = delete;
-
-	vtkSmartPointer<vtkPolyData> m_mesh;
-	QStringList m_vertexValueNames, m_edgeValueNames;
-};
-
-#include <itkImageBase.h>
-
-//! an image (/volume) dataset
-class iAbase_API iAImageData : public iADataSet
-{
-public:
-	iAImageData(vtkSmartPointer<vtkImageData> img);
-	iAImageData(itk::ImageBase<3>* itkImg);
-	~iAImageData();
-	vtkSmartPointer<vtkImageData> vtkImage() const;
-	itk::ImageBase<3>* itkImage() const;
-	QString info() const override;
-	std::array<double, 3> unitDistance() const override;
-	unsigned long long voxelCount() const;
-
-private:
-	iAImageData(iAImageData const& other) = delete;
-	iAImageData& operator=(iAImageData const& other) = delete;
-	vtkSmartPointer<vtkImageData> m_img;
-	mutable iAConnector* m_con;
 };
 
 class QSettings;

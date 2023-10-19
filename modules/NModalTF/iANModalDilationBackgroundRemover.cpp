@@ -7,7 +7,7 @@
 #include "iANModalProgressWidget.h"
 
 #include <iAConnector.h>
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iAProgress.h>
 #include <iASlicer.h>
 #include <iAToolsITK.h>

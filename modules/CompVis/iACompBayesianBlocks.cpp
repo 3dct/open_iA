@@ -90,7 +90,7 @@ void iACompBayesianBlocks::calculateBins()
 		LOG(lvlDebug, " ");*/
 		//////////////////////////////////////////////////////////////////////////////////////
 		
-		int datasetInd = static_cast<int>(values.size());
+		//int datasetInd = static_cast<int>(values.size());
 
 		//check for every value inside a dataset for the corresponding bin	
 		for (int v = 0; v < static_cast<int>(values.size()); v++)
@@ -124,7 +124,7 @@ void iACompBayesianBlocks::calculateBins()
 				}
 			}
 
-			datasetInd--;
+			//datasetInd--;
 		}
 
 		binData->push_back(bins);

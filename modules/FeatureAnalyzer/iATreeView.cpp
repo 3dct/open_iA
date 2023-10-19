@@ -646,11 +646,7 @@ bool iATreeView::eventFilter( QObject *obj, QEvent *event )
 		QMouseEvent * me = (QMouseEvent*)event;
 		if (me->button() == Qt::RightButton)
 		{
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 			m_contextMenu->exec(me->globalPosition().toPoint());
-#else
-			m_contextMenu->exec(me->globalPos());
-#endif
 		}
 	}
 

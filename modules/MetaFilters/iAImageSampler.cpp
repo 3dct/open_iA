@@ -32,9 +32,9 @@ iAPerformanceTimer m_computationTimer;
 iAImageSampler::iAImageSampler(
 		std::map<size_t, std::shared_ptr<iADataSet>> dataSets,
 		QVariantMap const & parameters,
-		QSharedPointer<iAAttributes> parameterRanges,
-		QSharedPointer<iAAttributes> parameterSpecs,
-		QSharedPointer<iASamplingMethod> samplingMethod,
+		std::shared_ptr<iAAttributes> parameterRanges,
+		std::shared_ptr<iAAttributes> parameterSpecs,
+		std::shared_ptr<iASamplingMethod> samplingMethod,
 		QString const & parameterRangeFile,
 		QString const & parameterSetFile,
 		QString const & derivedOutputFile,
@@ -220,32 +220,32 @@ void iAImageSampler::start()
 		}
 	}
 	LOG(lvlInfo, QString("Parameter combinations that will be sampled (%1):").arg(m_parameterSets->size()));
-	for (auto parameterSet: *m_parameterSets.data())
+	for (auto parameterSet: *m_parameterSets.get())
 	{
 		LOG(lvlInfo, QString(joinQVariantAsString(parameterSet, ",")));
 	}
 
-	m_parameterCount = countAttributes(*m_parameterRanges.data(), iAAttributeDescriptor::Parameter);
+	m_parameterCount = countAttributes(*m_parameterRanges.get(), iAAttributeDescriptor::Parameter);
 
 	m_additionalArgumentList = splitPossiblyQuotedString(m_parameters[spnAdditionalArguments].toString());
-	if (findAttribute(*m_parameterRanges.data(), "Performance") == -1)
+	if (findAttribute(*m_parameterRanges.get(), "Performance") == -1)
 	{
-		QSharedPointer<iAAttributeDescriptor> timeAttr(
+		std::shared_ptr<iAAttributeDescriptor> timeAttr(
 			new iAAttributeDescriptor("Performance", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 		m_parameterRanges->push_back(timeAttr);
 		if (m_parameters[spnComputeDerivedOutput].toBool())
 		{
 			// add derived output to the attributes (which we want to set during sampling):
-			QSharedPointer<iAAttributeDescriptor> objectCountAttr(
+			std::shared_ptr<iAAttributeDescriptor> objectCountAttr(
 				new iAAttributeDescriptor("Object Count", iAAttributeDescriptor::DerivedOutput, iAValueType::Discrete));
-			QSharedPointer<iAAttributeDescriptor> avgUncertaintyAttr(new iAAttributeDescriptor(
+			std::shared_ptr<iAAttributeDescriptor> avgUncertaintyAttr(new iAAttributeDescriptor(
 				"Average Uncertainty", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 			m_parameterRanges->push_back(objectCountAttr);
 			m_parameterRanges->push_back(avgUncertaintyAttr);
 		}
 	}
 
-	m_results = QSharedPointer<iASamplingResults>::create(
+	m_results = std::make_shared<iASamplingResults>(
 		m_parameterRanges,
 		m_samplingMethod->name(),
 		m_parameters[spnOutputFolder].toString(),
@@ -307,7 +307,7 @@ void iAImageSampler::computationFinished()
 	}
 	QString outputFile(getOutputFileName(outputFolder, m_parameters[spnBaseName].toString(),
 		m_parameters[spnSubfolderPerSample].toBool(), id, m_numDigits));
-	QSharedPointer<iASingleResult> result = iASingleResult::create(id, *m_results.data(), param,
+	std::shared_ptr<iASingleResult> result = iASingleResult::create(id, *m_results.get(), param,
 		outputFile);
 
 	result->setAttribute(m_parameterCount, computationTime);
@@ -352,7 +352,7 @@ void iAImageSampler::derivedOutputFinished()
 		return;
 	}
 
-	QSharedPointer<iASingleResult> result = m_runningDerivedOutput[charactCalc];
+	std::shared_ptr<iASingleResult> result = m_runningDerivedOutput[charactCalc];
 	m_results->attributes()->at(m_parameterCount+1)->adjustMinMax(result->attribute(m_parameterCount+1));
 	m_results->attributes()->at(m_parameterCount+2)->adjustMinMax(result->attribute(m_parameterCount+2));
 
@@ -385,7 +385,7 @@ double iAImageSampler::estimatedTimeRemaining(double percent) const
 	;
 }
 
-QSharedPointer<iASamplingResults> iAImageSampler::results()
+std::shared_ptr<iASamplingResults> iAImageSampler::results()
 {
 	return m_results;
 }

@@ -2,21 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-//vtk
-#include "vtkInteractorStyleTrackballCamera.h"
-#include "vtkIdTypeArray.h"
+//CompVis
 #include "iACsvDataStorage.h"
 #include "iACompHistogramTableData.h"
 
-//Debug
-#include "iALog.h"
+//vtk
+#include <vtkInteractorStyleTrackballCamera.h>
 
 //C++
 #include <map>
 #include <vector>
-
-//Qt
-#include <QString>
 
 //CompVis
 class iACompHistogramVis;

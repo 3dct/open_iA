@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include <qcolor.h>
+#include <QColor>
 #include <QString>
 
-#include "vtkSmartPointer.h"
+#include <vtkSmartPointer.h>
 
 #include <vector>
 

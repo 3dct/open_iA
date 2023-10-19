@@ -11,7 +11,7 @@ class iASingleResult;
 class iAImageTreeLeaf : public iAImageTreeNode
 {
 public:
-	iAImageTreeLeaf(QSharedPointer<iASingleResult> img, int labelCount);
+	iAImageTreeLeaf(std::shared_ptr<iASingleResult> img, int labelCount);
 	virtual int GetChildCount() const;
 	virtual int GetClusterSize() const;
 	virtual int GetFilteredSize() const;
@@ -24,7 +24,7 @@ public:
 	virtual ClusterIDType GetID() const;
 	virtual bool IsLeaf() const { return true; }
 	virtual void GetExampleImages(QVector<iAImageTreeLeaf *> & result, int amount);
-	virtual QSharedPointer<iAImageTreeNode > GetChild(int idx) const;
+	virtual std::shared_ptr<iAImageTreeNode > GetChild(int idx) const;
 	virtual double GetAttribute(int) const;
 	virtual void GetMinMax(int chartID, double & min, double & max,
 		iAChartAttributeMapper const & chartAttrMap) const;
@@ -34,12 +34,12 @@ public:
 	virtual CombinedProbPtr UpdateProbabilities() const;
 	double GetProbabilityValue(int l, double x, double y, double z) const;
 	int GetDatasetID() const;
-	QSharedPointer<iAAttributes> GetAttributes() const;
-	virtual void GetSelection(QVector<QSharedPointer<iASingleResult> > & result) const;
+	std::shared_ptr<iAAttributes> GetAttributes() const;
+	virtual void GetSelection(QVector<std::shared_ptr<iASingleResult> > & result) const;
 private:
 	bool m_filtered;
 	int m_labelCount;
-	QSharedPointer<iASingleResult> m_singleResult;
+	std::shared_ptr<iASingleResult> m_singleResult;
 };
 
 template<typename VisitorFn>
@@ -49,7 +49,7 @@ void VisitLeafs(iAImageTreeNode const * node, VisitorFn visitor)
 	{
 		for (int i = 0; i<node->GetChildCount(); ++i)
 		{
-			VisitLeafs(node->GetChild(i).data(), visitor);
+			VisitLeafs(node->GetChild(i).get(), visitor);
 		}
 	}
 	else

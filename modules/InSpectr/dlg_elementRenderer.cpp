@@ -8,20 +8,13 @@
 
 #include <vtkColorTransferFunction.h>
 #include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkImageData.h>
-#include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
-#include <vtkPolyData.h>
-#include <vtkRendererCollection.h>
-#include <vtkTransform.h>
 
 dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 	dlg_elemRendererContainer(parent),
 	m_renderer( new iARendererImpl(this, dynamic_cast<vtkGenericOpenGLRenderWindow*>(renContainer->renderWindow()) )),
-	m_axesTransform( vtkSmartPointer<vtkTransform>::New() ),
 	m_indexInReferenceLib(std::numeric_limits<size_t>::max())
 {
-	m_renderer->setAxesTransform(m_axesTransform);
 	m_renderer->showAxesCube(false);
 	m_renderer->showOriginIndicator(false);
 	connect(renContainer, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARendererImpl::mouseRightButtonReleasedSlot);
@@ -30,8 +23,8 @@ dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 
 void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf )
 {
-	m_transferFunction = QSharedPointer<iATransferFunctionPtrs>::create(ctf, otf);
-	m_volumeRenderer = QSharedPointer<iAVolumeRenderer>::create(m_renderer->renderer(), imgData, m_transferFunction.data());
+	m_transferFunction = std::make_shared<iATransferFunctionPtrs>(ctf, otf);
+	m_volumeRenderer = std::make_shared<iAVolumeRenderer>(m_renderer->renderer(), imgData, m_transferFunction.get());
 	m_volumeRenderer->setVisible(true);
 }
 

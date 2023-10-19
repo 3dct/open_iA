@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAImNDTMain.h"
 
-#include "iA3DColoredPolyObjectVis.h"
+#include "iAColoredPolyObjectVis.h"
 #include "iAImNDTInteractorStyle.h"
 #include "iAVR3DText.h"
 #include "iAVRColorLegend.h"
@@ -17,15 +17,13 @@
 #include <iALog.h>
 
 #include <vtkActor.h>
+#include <vtkAssembly.h>
 #include <vtkCamera.h>
 #include <vtkInteractorStyle3D.h>
-#include <vtkIntersectionPolyDataFilter.h>
-#include <vtkLineSource.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProp3D.h>
 #include <vtkProperty.h>
-#include <vtkRenderer.h>
 #include <vtkVertexGlyphFilter.h>
 
 #include <QColor>
@@ -37,7 +35,7 @@
 #define OCTREE_COLOR QColor(126, 0, 223, 255)
 //#define OCTREE_COLOR QColor(130, 10, 10, 255)
 
-iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig) :
+iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig) :
 	m_vrEnv(vrEnv), m_interactions(vrEnv->backend(), this), m_polyObject(polyObject), m_objectTable(objectTable), m_io(io), m_arViewer(createARViewer(vrEnv))
 {
 
@@ -172,15 +170,10 @@ iAImNDTMain::~iAImNDTMain() =default;
 
 void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4])
 {
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 1, 0)
 	auto touchPos = m_interactions.getTrackPadPos(device->GetDevice());
 	m_touchPadPosition[0] = touchPos.c[0];
 	m_touchPadPosition[1] = touchPos.c[1];
 	m_touchPadPosition[2] = 0.0;
-#else
-	m_vrEnv->interactor()->GetTouchPadPosition(device->GetDevice(), device->GetInput(), m_touchPadPosition);
-#endif
-
 	int deviceID = static_cast<int>(device->GetDevice()); // Device
 	int inputID = static_cast<int>(device->GetInput());  // Input Method
 	int actioniD = static_cast<int>(device->GetAction()); // Action of Input Method

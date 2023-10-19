@@ -219,6 +219,7 @@ MSKFCMClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
   // type and their memberships are set to -1. Background memberships are used
   // for background values in the resulting membership image.
   CentroidType backgroundPixelAsCentroid;
+  backgroundPixelAsCentroid.Fill(0);
   MembershipImagePixelType backgroundMembershipPixel;
   if (this->m_IgnoreBackgroundPixels)
     {

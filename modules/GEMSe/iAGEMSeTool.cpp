@@ -40,12 +40,12 @@ void iAGEMSeTool::loadState(QSettings & projectFile, QString const & fileName)
 	auto gemseModule = m_mainWindow->moduleDispatcher().module<iAGEMSeModuleInterface>();
 	gemseModule->setupToolbar();
 		
-	auto seaFile = QSharedPointer<iASEAFile>::create(projectFile, fileName);
+	auto seaFile = std::make_shared<iASEAFile>(projectFile, fileName);
 
 	if (!seaFile->good())
 	{
 		LOG(lvlError, QString("GEMSe data in file '%1' could not be read.").arg(seaFile->fileName()));
-		seaFile.clear();
+		seaFile.reset();
 		return;
 	}
 	// load sampling data:

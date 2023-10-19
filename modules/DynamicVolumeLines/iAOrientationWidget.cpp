@@ -32,7 +32,7 @@ QSize iAOrientationWidget::minimumSizeHint() const
 void iAOrientationWidget::initializeGL()
 {
 	initializeOpenGLFunctions();
-	glClearColor(0.3, 0.3, 0.3, 1.0);
+	glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
 }
 
 void iAOrientationWidget::update(QCustomPlot* plot, double lowerX, double upperX,

@@ -44,12 +44,12 @@ public:
 	int PaddingLeft();
 	static const int TextPadding;
 	iAScatterPlotWidget();
-	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool columnSelection = false);
+	iAScatterPlotWidget(std::shared_ptr<iASPLOMData> data, bool columnSelection = false);
 	void initWidget();
 	iASPLOMData * data();
-	void setData(QSharedPointer<iASPLOMData> data);
-	void setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIdx);
-	QSharedPointer<iALookupTable> lookupTable() const;
+	void setData(std::shared_ptr<iASPLOMData> data);
+	void setLookupTable(std::shared_ptr<iALookupTable> lut, size_t paramIdx);
+	std::shared_ptr<iALookupTable> lookupTable() const;
 	void setPlotColor(QColor const & c, double rangeMin, double rangeMax);
 	void setSelectionColor(QColor const & c);
 	void setSelectionMode(iAScatterPlot::SelectionMode mode);
@@ -57,7 +57,7 @@ public:
 	void setPointRadius(double pointRadius);
 	void setFixPointsEnabled(bool enabled);
 	void setShowToolTips(bool enabled);
-	void setPointInfo(QSharedPointer<iAScatterPlotPointInfo> pointInfo);
+	void setPointInfo(std::shared_ptr<iAScatterPlotPointInfo> pointInfo);
 	void toggleHighlightedPoint(size_t curPoint, Qt::KeyboardModifiers modifiers);
 	void setHighlightColor(QColor hltCol);
 	void setHighlightColorTheme(iAColorTheme const* theme);
@@ -85,7 +85,7 @@ public:
 	void setYBounds(double yMin, double yMax);
 	void resetYBounds();
 
-	QSharedPointer<iAScatterPlotViewData> viewData();
+	std::shared_ptr<iAScatterPlotViewData> viewData();
 	const size_t* paramIndices() const;  //!< Get column indices of visible X and Y parameters in data table
 protected:
 #ifdef CHART_OPENGL
@@ -106,15 +106,15 @@ private:
 	void drawTooltip(QPainter& painter);
 	void currentPointUpdated(size_t index);  //!< When hovered over a new point.
 
-	QSharedPointer<iAScatterPlot> m_scatterplot;
-	QSharedPointer<iASPLOMData> m_data;
-	QSharedPointer<iAScatterPlotViewData> m_viewData;
+	std::shared_ptr<iAScatterPlot> m_scatterplot;
+	std::shared_ptr<iASPLOMData> m_data;
+	std::shared_ptr<iAScatterPlotViewData> m_viewData;
 	int m_fontHeight = 0,
 		m_maxTickLabelWidth = 0;
 	bool m_fixPointsEnabled = false,
 		m_columnSelection = false,
 		m_showTooltip = true;
-	QSharedPointer<iAScatterPlotPointInfo> m_pointInfo;
+	std::shared_ptr<iAScatterPlotPointInfo> m_pointInfo;
 	QMenu *m_contextMenu = nullptr,    //!< the context menu for picking the two visible parameters
 		*m_xMenu = nullptr,
 		*m_yMenu = nullptr;

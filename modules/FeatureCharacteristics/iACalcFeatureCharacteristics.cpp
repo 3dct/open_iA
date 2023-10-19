@@ -9,9 +9,9 @@ IAFILTER_DEFAULT_CLASS(iACalcFeatureCharacteristics);
 #include <iAProgress.h>
 
 // base
-#include <iADataSet.h>
-#include <iATypedCallHelper.h>
 #include <iAFileUtils.h>
+#include <iAImageData.h>
+#include <iATypedCallHelper.h>
 
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkLabelGeometryImageFilter.h>

@@ -46,7 +46,7 @@ public:
 	//! Get all functions currently defined in this chart.
 	std::vector<iAChartFunction*> &functions();
 	//! Set whether the user is allowed to reset the transfer function.
-	void setAllowTrfReset(bool allow);
+	void setAllowTFReset(bool allow);
 	//! Set whether the user can add additional functions (Bezier and Gaussian curves), in addition to the standard transfer function.
 	void setEnableAdditionalFunctions(bool enable);
 
@@ -61,12 +61,7 @@ protected:
 	void mouseReleaseEvent(QMouseEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mouseDoubleClickEvent(QMouseEvent *event) override;
-
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	void enterEvent(QEvent* event) override;
-#else
 	void enterEvent(QEnterEvent* event) override;
-#endif
 	void keyPressEvent(QKeyEvent *event) override;
 	//! @}
 
@@ -90,28 +85,30 @@ signals:
 	void updateTFTable();
 	void transferFunctionChanged();
 
-public slots:
-	int deletePoint();
-	void changeColor(QMouseEvent *event = nullptr);
-	void resetTrf();
-	void loadTransferFunction();
-	void loadTransferFunction(QDomNode functionsNode);
-	void saveTransferFunction();
-	void addBezierFunction();
-	void addGaussianFunction();
-	void loadFunctions();
-	void saveFunctions();
-	void removeFunction();
-	void showTFTable();
-	void tfTableIsFinished();
-
 private slots:
 	void selectFunction(size_t functionIndex);
+	void loadFunctions();
+	void saveFunctions();
+	void copyProbabilityFunctions();
+	void pasteProbabilityFunctions();
+	void showTFTable();
+	void tfTableIsFinished();
+	void saveTransferFunction();
+	void loadTransferFunction();
+	void copyTransferFunction();
+	void pasteTransferFunction();
+	void addBezierFunction();
+	void addGaussianFunction();
+	void removeFunction();
+	int deletePoint();
+	void changeColor(QMouseEvent* event = nullptr);
+	void resetTF();
 
 private:
-	bool m_allowTrfReset;
+	bool m_allowTFReset;
 	bool m_enableAdditionalFunctions;
 	iATFTableDlg* m_TFTable;
 
 	void newTransferFunction();
+	void loadTransferFunction(QDomNode functionsNode);
 };

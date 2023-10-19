@@ -4,6 +4,8 @@
 
 #include <iALog.h>
 
+#include <vtkTable.h>
+
 iAVROctreeMetrics::iAVROctreeMetrics(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees) : iAVRMetrics(objectTable, io,
 	octrees)
 {

@@ -6,8 +6,6 @@
 
 #include "iAPlotData.h"
 
-#include <QSharedPointer>
-
 #include <utility> // for pair
 #include <vector>
 
@@ -29,7 +27,7 @@ public:
 	//! Adds a new x/y pair. Note that entries need to be added in order of their x component
 	void addValue(DataType x, DataType y);
 	//! Create an empty data object
-	static QSharedPointer<iAXYPlotData> create(QString const& name, iAValueType type, size_t reservedSize);
+	static std::shared_ptr<iAXYPlotData> create(QString const& name, iAValueType type, size_t reservedSize);
 
 private:
 	std::vector<std::pair<DataType, DataType>> m_values;

@@ -53,19 +53,19 @@ double iAFakeTreeNode::GetAttribute(int) const
 {
 	assert(false);
 }
- void iAFakeTreeNode::SetParent(QSharedPointer<iAImageTreeNode > /*parent*/)
+ void iAFakeTreeNode::SetParent(std::shared_ptr<iAImageTreeNode > /*parent*/)
 {
 	assert(false);
 }
- QSharedPointer<iAImageTreeNode > iAFakeTreeNode::GetParent() const
+ std::shared_ptr<iAImageTreeNode > iAFakeTreeNode::GetParent() const
 {
 	assert(false);
-	return QSharedPointer<iAImageTreeNode >();
+	return std::shared_ptr<iAImageTreeNode >();
 }
- QSharedPointer<iAImageTreeNode > iAFakeTreeNode::GetChild(int /*idx*/) const
+ std::shared_ptr<iAImageTreeNode > iAFakeTreeNode::GetChild(int /*idx*/) const
 {
 	assert(false);
-	return QSharedPointer<iAImageTreeNode >();
+	return std::shared_ptr<iAImageTreeNode >();
 }
  void iAFakeTreeNode::DiscardDetails() const
 {
@@ -92,7 +92,7 @@ ClusterImageType const iAFakeTreeNode::GetLargeImage() const
 {
 	assert(false);
 }
- void iAFakeTreeNode::GetSelection(QVector<QSharedPointer<iASingleResult> > & /*result*/) const
+ void iAFakeTreeNode::GetSelection(QVector<std::shared_ptr<iASingleResult> > & /*result*/) const
 {
 
 }

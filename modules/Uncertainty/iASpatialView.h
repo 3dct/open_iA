@@ -41,7 +41,7 @@ class iASpatialView: public QWidget
 	Q_OBJECT
 public:
 	iASpatialView();
-	void SetDatasets(QSharedPointer<iAUncertaintyImages> imgs, vtkSmartPointer<vtkLookupTable> labelImgLut);
+	void SetDatasets(std::shared_ptr<iAUncertaintyImages> imgs, vtkSmartPointer<vtkLookupTable> labelImgLut);
 	void AddMemberImage(QString const & caption, vtkImagePointer img, bool keep);
 	void ToggleSettings();
 	void SetupSelection(vtkImagePointer selectionImg);
@@ -69,7 +69,7 @@ private:
 	QVector<QToolButton*> slicerModeButton;
 	vtkSmartPointer<vtkLookupTable> m_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
-	QSharedPointer<iAChannelData> m_selectionData;
+	std::shared_ptr<iAChannelData> m_selectionData;
 	int m_curMode;
 	QVector<QToolButton*> m_memberButtons;
 	QWidget* m_settings;

@@ -1,8 +1,7 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include <iADataSet.h>
 #include <iAFilterDefault.h>
-#include <iAITKIO.h>
+#include <iAImageData.h>
 #include <iATypedCallHelper.h>
 
 #include <itkImage.h>
@@ -53,7 +52,7 @@ void pca(iAFilter* filter, QVariantMap const & parameters)
 		scaler->SetConstant(sv_n);
 		scaler->SetInput(pcaFilter->GetOutput(o));
 		scaler->Update();
-		filter->addOutput(scaler->GetOutput());
+		filter->addOutput(std::make_shared<iAImageData>(scaler->GetOutput()));
 	}
 }
 

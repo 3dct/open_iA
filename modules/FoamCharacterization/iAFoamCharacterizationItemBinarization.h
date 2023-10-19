@@ -4,8 +4,6 @@
 
 #include "iAFoamCharacterizationItem.h"
 
-#include <vtkSmartPointer.h>
-
 class QFile;
 
 class iAFoamCharacterizationItemBinarization : public iAFoamCharacterizationItem

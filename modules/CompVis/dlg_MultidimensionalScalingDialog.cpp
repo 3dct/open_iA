@@ -6,10 +6,10 @@
 #include "iALog.h"
 
 //QT
-#include "qbuttongroup.h"
-#include "qstringlist.h"
+#include <QButtonGroup>
+#include <QStringList>
 #include <QHeaderView>
-#include "qstring.h"
+#include <QString>
 
 dlg_MultidimensionalScalingDialog::dlg_MultidimensionalScalingDialog(QList<csvFileData>* data, iAMultidimensionalScaling* mds) :
 	QDialog(),

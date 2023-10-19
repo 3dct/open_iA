@@ -4,20 +4,22 @@
 
 #include "iACompVisOptions.h"
 #include "iACompHistogramTableData.h"
+#include "iACompTableInteractorStyle.h"
 
 //vtk
-#include "vtkSmartPointer.h"
+#include <vtkSmartPointer.h>
 
 //C++
 #include <map>
  
 //CompVis
-#include "iACompTableInteractorStyle.h"
 class iACompHistogramVis;
 
 //vtk
 class vtkColorTransferFunction;
+class vtkDoubleArray;
 class vtkLookupTable;
+class vtkPoints;
 class vtkRenderer;
 class vtkPlaneSource;
 class vtkTextActor;

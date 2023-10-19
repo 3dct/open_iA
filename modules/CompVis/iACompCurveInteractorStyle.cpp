@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompCurveInteractorStyle.h"
 
-#include <vtkObjectFactory.h> //for macro!
-
 #include "iACompCurve.h"
+
+#include <vtkObjectFactory.h> //for macro!
 
 vtkStandardNewMacro(iACompCurveInteractorStyle);
 

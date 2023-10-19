@@ -58,13 +58,8 @@ void iAPaintWidget::paintEvent(QPaintEvent * /*event*/)
 
 void iAPaintWidget::mouseReleaseEvent ( QMouseEvent * event )
 {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 	lastX = (int)(((double)event->position().x())/m_scale - m_offset[0]);
 	lastY = (int)(((double)event->position().y())/m_scale - m_offset[1]);
-#else
-	lastX = (int)(((double)event->x()) / m_scale - m_offset[0]);
-	lastY = (int)(((double)event->y()) / m_scale - m_offset[1]);
-#endif
 	mouseReleaseEventSignal();
 	if (event->button() & Qt::LeftButton && !(event->buttons() & Qt::RightButton))
 	{
@@ -74,17 +69,10 @@ void iAPaintWidget::mouseReleaseEvent ( QMouseEvent * event )
 
 void iAPaintWidget::mousePressEvent ( QMouseEvent * event )
 {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 	m_lastMoveX = event->position().x();
 	m_lastMoveY = event->position().y();
 	lastMoveX = (int)(((double)event->position().x())/m_scale - m_offset[0]);
 	lastMoveY = (int)(((double)event->position().y())/m_scale - m_offset[1]);
-#else
-	m_lastMoveX = event->x();
-	m_lastMoveY = event->y();
-	lastMoveX = (int)(((double)event->x()) / m_scale - m_offset[0]);
-	lastMoveY = (int)(((double)event->y()) / m_scale - m_offset[1]);
-#endif
 	mousePressEventSignal();
 }
 
@@ -92,11 +80,7 @@ void iAPaintWidget::mouseMoveEvent ( QMouseEvent * event )
 {
 	if(event->buttons()&Qt::RightButton && event->buttons()&Qt::LeftButton)//scaling
 	{
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		double delta = scaleCoef * ((double)event->position().y() - (double)m_lastMoveY);
-#else
-		double delta = scaleCoef * ((double)event->y() - (double)m_lastMoveY);
-#endif
 		//m_offset[0] += (double)geometry().width()/m_scale - (double)geometry().width()/(m_scale+delta);
 		//m_offset[1] += (double)geometry().height()/m_scale - (double)geometry().height()/(m_scale+delta);
 		m_scale += delta;
@@ -107,28 +91,16 @@ void iAPaintWidget::mouseMoveEvent ( QMouseEvent * event )
 	}
 	else if(event->buttons()&Qt::RightButton)//moving
 	{
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		m_offset[0] += ((double)event->position().x()-m_lastMoveX)/m_scale;
 		m_offset[1] += ((double)event->position().y()-m_lastMoveY)/m_scale;
-#else
-		m_offset[0] += ((double)event->x() - m_lastMoveX) / m_scale;
-		m_offset[1] += ((double)event->y() - m_lastMoveY) / m_scale;
-#endif
 		checkOffset();
 		update();
 		ChangedSignal(m_scale, m_offset[0], m_offset[1]);
 	}
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 	m_lastMoveX = event->position().x();
 	m_lastMoveY = event->position().y();
 	lastMoveX = (int)(((double)event->position().x())/m_scale - m_offset[0]);
 	lastMoveY = (int)(((double)event->position().y()) / m_scale - m_offset[1]);
-#else
-	m_lastMoveX = event->x();
-	m_lastMoveY = event->y();
-	lastMoveX = (int)(((double)event->x()) / m_scale - m_offset[0]);
-	lastMoveY = (int)(((double)event->y()) / m_scale - m_offset[1]);
-#endif
 	mouseMoveEventSignal();
 }
 void iAPaintWidget::checkOffset()

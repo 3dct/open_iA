@@ -5,8 +5,9 @@
 #include <vtkSmartPointer.h>
 
 #include <QMultiMap>
-#include <QSharedPointer>
 #include <QWidget>
+
+#include <memory>
 
 class iAHistogramData;
 class iABarGraphPlot;
@@ -40,8 +41,8 @@ signals:
 	void selectionModified( vtkIdTypeArray * );
 
 private:
-	QSharedPointer<iAHistogramData> m_rangeSliderData;
-	QSharedPointer<iABarGraphPlot> m_rangeSliderDiagramDrawer;
+	std::shared_ptr<iAHistogramData> m_rangeSliderData;
+	std::shared_ptr<iABarGraphPlot> m_rangeSliderDiagramDrawer;
 	QList<double> m_data;
 	QList<vtkSmartPointer<vtkPiecewiseFunction> > m_oTFList;
 	QList<vtkSmartPointer<vtkColorTransferFunction> > m_cTFList;

@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASlicerImpl.h"
 
-#include <defines.h>    // for NotExistingChannel, DefaultMagicLensSize
 #include <iAAbortListener.h>
+#include <iAChannelID.h>    // for NotExistingChannel
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iAConnector.h>
@@ -12,6 +12,7 @@
 #include <iAJobListView.h>
 #include <iALog.h>
 #include <iAMagicLens.h>
+#include <iAMagicLensConstants.h> // for DefaultMagicLensSize
 #include <iAMathUtility.h>
 #include <iAMovieHelper.h>
 #include <iAParameterDlg.h>
@@ -277,6 +278,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_actionLinearInterpolation = m_contextMenu->addAction(tr("Linear Interpolation"), this, &iASlicerImpl::toggleLinearInterpolation);
 	m_actionLinearInterpolation->setCheckable(true);
 	m_actionShowTooltip = m_contextMenu->addAction(tr("Show Tooltip"), this, &iASlicerImpl::toggleShowTooltip);
+	m_actionShowTooltip->setCheckable(true);
 	
 	m_contextMenu->addSeparator();
 	m_actionToggleNormalInteraction = new QAction(tr("Click+Drag: disabled"), m_contextMenu);
@@ -302,7 +304,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 
 	if (magicLensAvailable)
 	{
-		m_magicLens = QSharedPointer<iAMagicLens>::create();
+		m_magicLens = std::make_shared<iAMagicLens>();
 		m_magicLens->setRenderWindow(m_renWin);
 		// setup context menu for the magic lens view options
 		m_contextMenu->addSeparator();
@@ -338,21 +340,6 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 		m_scalarBarWidget = vtkSmartPointer<vtkScalarBarWidget>::New();
 		m_textProperty = vtkSmartPointer<vtkTextProperty>::New();
 
-		m_positionMarkerSrc = vtkSmartPointer<vtkCubeSource>::New();
-		m_positionMarkerMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		m_positionMarkerActor = vtkSmartPointer<vtkActor>::New();
-
-		m_lineSource = vtkSmartPointer<vtkLineSource>::New();
-		m_lineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		m_lineActor = vtkSmartPointer<vtkActor>::New();
-		m_diskSource = vtkSmartPointer<vtkDiskSource>::New();
-		m_diskMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		m_diskActor = vtkSmartPointer<vtkActor>::New();
-
-		m_roiSource = vtkSmartPointer<vtkCubeSource>::New();
-		m_roiMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		m_roiActor = vtkSmartPointer<vtkActor>::New();
-
 		for (int i = 0; i < 2; ++i)
 		{
 			m_axisTransform[i] = vtkSmartPointer<vtkTransform>::New();
@@ -377,38 +364,29 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 		m_scalarBarWidget->SetResizable(true);
 		m_scalarBarWidget->SetInteractor(m_renWin->GetInteractor());
 
-		m_positionMarkerMapper->SetInputConnection(m_positionMarkerSrc->GetOutputPort());
-		m_positionMarkerActor->SetMapper(m_positionMarkerMapper);
-		m_positionMarkerActor->GetProperty()->SetColor(0, 1, 0);
-		m_positionMarkerActor->GetProperty()->SetOpacity(1);
-		m_positionMarkerActor->GetProperty()->SetRepresentation(VTK_WIREFRAME);
-		m_positionMarkerActor->SetVisibility(false);
+		m_posMarker.actor->GetProperty()->SetColor(0, 1, 0);
+		m_posMarker.actor->GetProperty()->SetOpacity(1);
+		m_posMarker.actor->GetProperty()->SetRepresentation(VTK_WIREFRAME);
+		m_posMarker.actor->SetVisibility(false);
 
-		m_lineSource->SetPoint1(0.0, 0.0, 0.0);
-		m_lineSource->SetPoint2(10.0, 10.0, 0.0);
-		m_lineSource->Update();
-		m_lineMapper->SetInputConnection(m_lineSource->GetOutputPort());
-		m_lineActor->SetMapper(m_lineMapper);
-		m_lineActor->GetProperty()->SetColor(1.0, 1.0, 1.0);
-		m_lineActor->GetProperty()->SetOpacity(1);
-		m_lineActor->SetVisibility(false);
+		m_measureLine.source->SetPoint1(0.0, 0.0, 0.0);
+		m_measureLine.source->SetPoint2(10.0, 10.0, 0.0);
+		m_measureLine.source->Update();
+		m_measureLine.actor->GetProperty()->SetColor(1.0, 1.0, 1.0);
+		m_measureLine.actor->GetProperty()->SetOpacity(1);
+		m_measureLine.actor->SetVisibility(false);
+		m_measureDisk.source->SetCircumferentialResolution(50);
+		m_measureDisk.source->Update();
+		m_measureDisk.actor->GetProperty()->SetColor(1.0, 1.0, 1.0);
+		m_measureDisk.actor->GetProperty()->SetOpacity(1);
+		m_measureDisk.actor->SetVisibility(false);
+		m_measureDisk.actor->GetProperty()->SetRepresentation(VTK_WIREFRAME);
 
-		m_diskSource->SetCircumferentialResolution(50);
-		m_diskSource->Update();
-		m_diskMapper->SetInputConnection(m_diskSource->GetOutputPort());
-		m_diskActor->SetMapper(m_diskMapper);
-		m_diskActor->GetProperty()->SetColor(1.0, 1.0, 1.0);
-		m_diskActor->GetProperty()->SetOpacity(1);
-		m_diskActor->SetVisibility(false);
-		m_diskActor->GetProperty()->SetRepresentation(VTK_WIREFRAME);
-
-		m_roiMapper->SetInputConnection(m_roiSource->GetOutputPort());
-		m_roiActor->SetVisibility(false);
-		m_roiActor->SetMapper(m_roiMapper);
-		m_roiActor->GetProperty()->SetColor(1, 0, 0);
-		m_roiActor->GetProperty()->SetOpacity(1);
-		m_roiMapper->Update();
-		m_roiActor->GetProperty()->SetRepresentation(VTK_WIREFRAME);
+		m_roi.actor->SetVisibility(false);
+		m_roi.actor->GetProperty()->SetColor(1, 0, 0);
+		m_roi.actor->GetProperty()->SetOpacity(1);
+		m_roi.actor->GetProperty()->SetRepresentation(VTK_WIREFRAME);
+		m_roi.mapper->Update();
 
 		m_axisTextActor[0]->SetInput(axisName(mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)).toStdString().c_str());
 		m_axisTextActor[1]->SetInput(axisName(mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)).toStdString().c_str());
@@ -436,10 +414,10 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 		m_rulerWidget->GetScalarBarRepresentation()->GetPositionCoordinate()->SetValue(0.333, 0.05);
 		m_rulerWidget->GetScalarBarRepresentation()->GetPosition2Coordinate()->SetValue(0.333, 0.051);
 
-		m_ren->AddActor(m_positionMarkerActor);
-		m_ren->AddActor(m_lineActor);
-		m_ren->AddActor(m_diskActor);
-		m_ren->AddActor(m_roiActor);
+		m_ren->AddActor(m_posMarker.actor);
+		m_ren->AddActor(m_measureLine.actor);
+		m_ren->AddActor(m_measureDisk.actor);
+		m_ren->AddActor(m_roi.actor);
 	}
 	m_renWin->SetNumberOfLayers(3);
 	m_camera->SetParallelProjection(true);
@@ -568,7 +546,7 @@ void iASlicerImpl::setSliceNumber( int sliceNumber )
 	xyz[sliceAxis] = sliceNumber;
 	if (m_roiActive)
 	{
-		m_roiActor->SetVisibility(m_roiSlice[0] <= m_sliceNumber && m_sliceNumber < (m_roiSlice[1]));
+		m_roi.actor->SetVisibility(m_roiSlice[0] <= m_sliceNumber && m_sliceNumber < (m_roiSlice[1]));
 	}
 	double const * spacing = m_channels[m_sliceNumberChannel]->input()->GetSpacing();
 	double const * origin = m_channels[m_sliceNumberChannel]->input()->GetOrigin();
@@ -654,7 +632,7 @@ iAMagicLens * iASlicerImpl::magicLens()
 		LOG(lvlWarn, "SetMagicLensEnabled called on slicer which doesn't have a magic lens!");
 		return nullptr;
 	}
-	return m_magicLens.data();
+	return m_magicLens.get();
 }
 
 void iASlicerImpl::setMagicLensSize(int newSize)
@@ -831,7 +809,7 @@ void iASlicerImpl::setROIVisible(bool visible)
 		return;
 	}
 	m_roiActive = visible;
-	m_roiActor->SetVisibility(visible);
+	m_roi.actor->SetVisibility(visible);
 }
 
 void iASlicerImpl::updateROI(int const roi[6])
@@ -853,9 +831,9 @@ void iASlicerImpl::updateROI(int const roi[6])
 	       yMin = (roi[sliceYAxis] - 0.5)  * spacing[sliceYAxis];
 	double xMax = xMin + roi[sliceXAxis+3] * spacing[sliceXAxis],
 	       yMax = yMin + roi[sliceYAxis+3] * spacing[sliceYAxis];
-	m_roiSource->SetBounds(xMin, xMax, yMin, yMax, 0, 0);
-	m_roiActor->SetVisibility(m_roiSlice[0] <= m_sliceNumber && m_sliceNumber < m_roiSlice[1]);
-	m_roiMapper->Update();
+	m_roi.source->SetBounds(xMin, xMax, yMin, yMax, 0, 0);
+	m_roi.actor->SetVisibility(m_roiSlice[0] <= m_sliceNumber && m_sliceNumber < m_roiSlice[1]);
+	m_roi.mapper->Update();
 	m_renWin->GetInteractor()->Render();
 }
 
@@ -886,11 +864,11 @@ void iASlicerImpl::setPositionMarkerCenter(double x, double y, double z)
 		// but we also want to make the position marker easy to spot;
 		// so we scale the size of the position marker inversely to the distance to the current slice
 		double scale = 1.0 / std::max(1.0, (std::abs(z / spacing[zIdx] - m_sliceNumber) - (m_slabThickness/2)) / 3 ) * m_positionMarkerSize;
-		m_positionMarkerSrc->SetXLength(scale * spacing[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)]);
-		m_positionMarkerSrc->SetYLength(scale * spacing[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
-		m_positionMarkerActor->SetVisibility(true);
-		m_positionMarkerSrc->SetCenter(x, y, 0);
-		m_positionMarkerMapper->Update();
+		m_posMarker.source->SetXLength(scale * spacing[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)]);
+		m_posMarker.source->SetYLength(scale * spacing[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
+		m_posMarker.actor->SetVisibility(true);
+		m_posMarker.source->SetCenter(x, y, 0);
+		m_posMarker.mapper->Update();
 		update();
 	}
 }
@@ -1173,15 +1151,15 @@ void iASlicerImpl::saveImageStack()
 void iASlicerImpl::updatePositionMarkerExtent()
 {
 	auto channelID = firstVisibleChannel();
-	if (channelID == NotExistingChannel || !m_positionMarkerSrc)
+	if (channelID == NotExistingChannel || !m_decorations)
 	{
 		return;
 	}
 	// TODO: how to choose spacing? currently fixed from first image? should be relative to voxels somehow...
 	auto imageData = m_channels[channelID]->input();
-	m_positionMarkerSrc->SetXLength(m_positionMarkerSize * imageData->GetSpacing()[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)]);
-	m_positionMarkerSrc->SetYLength(m_positionMarkerSize * imageData->GetSpacing()[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
-	m_positionMarkerSrc->SetZLength(0);
+	m_posMarker.source->SetXLength(m_positionMarkerSize * imageData->GetSpacing()[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)]);
+	m_posMarker.source->SetYLength(m_positionMarkerSize * imageData->GetSpacing()[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
+	m_posMarker.source->SetZLength(0);
 }
 
 void iASlicerImpl::setPositionMarkerSize(int size)
@@ -1254,7 +1232,7 @@ void iASlicerImpl::execute(vtkObject * /*caller*/, unsigned long eventId, void *
 		}
 		if (m_decorations)
 		{
-			m_positionMarkerActor->SetVisibility(false);
+			m_posMarker.actor->SetVisibility(false);
 			printVoxelInformation();
 		}
 		if (m_leftMouseDrag)
@@ -1429,24 +1407,25 @@ void iASlicerImpl::printVoxelInformation()
 	}
 
 	// if requested calculate distance and show actor
-	if (m_lineActor && m_lineActor->GetVisibility())
+	if (m_measureLine.actor->GetVisibility())
 	{
 		double distance = std::sqrt(std::pow((m_startMeasurePoint[0] - m_slicerPt[0]), 2) +
 			std::pow((m_startMeasurePoint[1] - m_slicerPt[1]), 2));
-		m_lineSource->SetPoint2(m_slicerPt[0], m_slicerPt[1], 0.0);
-		m_diskSource->SetOuterRadius(distance);
-		m_diskSource->SetInnerRadius(distance);
-		m_diskSource->Update();
+		m_measureLine.source->SetPoint2(m_slicerPt[0], m_slicerPt[1], 0.0);
+		m_measureDisk.source->SetOuterRadius(distance);
+		m_measureDisk.source->SetInnerRadius(distance);
+		m_measureDisk.source->Update();
 		infoAvailable = true;
 		strDetails += QString("%1: %2\n").arg(padOrTruncate("Distance", MaxNameLength)).arg(distance);
 	}
 	if (infoAvailable)
 	{
-		// Update the info text with pixel coordinates/value if requested.
-		m_textInfo->setPosition(m_renWin->GetInteractor()->GetEventPosition()[0] + 10,
-			m_renWin->GetInteractor()->GetEventPosition()[1] + 10);
+		int x, y;
+		const int TextOfs = 10;
+		m_renWin->GetInteractor()->GetEventPosition(x, y);
+		m_textInfo->setPosition(x + TextOfs, y + TextOfs);
 		m_textInfo->setText(strDetails.toStdString().c_str());
-		m_positionMarkerMapper->Update();
+		m_posMarker.mapper->Update();
 	}
 	bool visibilityChange = infoAvailable != m_textInfo->isShown();
 	if (visibilityChange)
@@ -1461,8 +1440,8 @@ void iASlicerImpl::printVoxelInformation()
 
 void iASlicerImpl::setMeasurementVisibility(bool visible)
 {
-	m_lineActor->SetVisibility(visible);
-	m_diskActor->SetVisibility(visible);
+	m_measureLine.actor->SetVisibility(visible);
+	m_measureDisk.actor->SetVisibility(visible);
 	printVoxelInformation();
 }
 
@@ -1478,11 +1457,11 @@ void iASlicerImpl::executeKeyPressEvent()
 			// does not work reliably (often snaps to positions not the highest gradient close to the current position)
 			// and causes access to pixels outside of the image:
 			//snapToHighGradient(m_startMeasurePoint[0], m_startMeasurePoint[1]);
-			bool newVisibility = !m_lineActor->GetVisibility();
+			bool newVisibility = !m_measureLine.actor->GetVisibility();
 			if (newVisibility)
 			{
-				m_lineSource->SetPoint1(m_startMeasurePoint[0], m_startMeasurePoint[1], 0.0);
-				m_diskActor->SetPosition(m_startMeasurePoint[0], m_startMeasurePoint[1], 0.0);
+				m_measureLine.source->SetPoint1(m_startMeasurePoint[0], m_startMeasurePoint[1], 0.0);
+				m_measureDisk.actor->SetPosition(m_startMeasurePoint[0], m_startMeasurePoint[1], 0.0);
 			}
 			setMeasurementVisibility(newVisibility);
 		}
@@ -1689,6 +1668,11 @@ void iASlicerImpl::setShowTooltip(bool isVisible)
 {
 	m_settings[iASlicerImpl::ShowTooltip] = isVisible;
 	m_textInfo->show(isVisible);
+	if (isVisible)
+	{
+		printVoxelInformation();
+	}
+	m_renWin->GetInteractor()->Render();
 }
 
 void iASlicerImpl::enableChannel(uint id, bool enabled)
@@ -1743,14 +1727,14 @@ uint iASlicerImpl::firstVisibleChannel() const
 	return NotExistingChannel;
 }
 
-QSharedPointer<iAChannelSlicerData> iASlicerImpl::createChannel(uint id, iAChannelData const & chData)
+std::shared_ptr<iAChannelSlicerData> iASlicerImpl::createChannel(uint id, iAChannelData const & chData)
 {
 	if (m_channels.contains(id))
 	{
 		throw std::runtime_error(QString("iASlicer: Channel with ID %1 already exists!").arg(id).toStdString());
 	}
 
-	QSharedPointer<iAChannelSlicerData> newData(new iAChannelSlicerData(chData, m_mode));
+	std::shared_ptr<iAChannelSlicerData> newData(new iAChannelSlicerData(chData, m_mode));
 	newData->setInterpolate(m_settings[iASlicerImpl::LinearInterpolation].toBool());
 	newData->setSlabNumberOfSlices(m_slabThickness);
 	newData->setSlabMode(m_slabCompositeMode);
@@ -1766,7 +1750,7 @@ iAChannelSlicerData * iASlicerImpl::channel(uint id)
 	{
 		return nullptr;
 	}
-	return m_channels.find(id)->data();
+	return m_channels.find(id)->get();
 }
 
 void iASlicerImpl::removeChannel(uint id)
@@ -2111,23 +2095,33 @@ void iASlicerImpl::mouseMoveEvent(QMouseEvent *event)
 	{
 		updateRawProfile(m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
 	}
-	if (m_profileHandlesEnabled)
+	if (m_profileHandlesEnabled && m_decorations && hasChannel(0))
 	{
 		int profilePointIdx = m_profileHandles->pointIdx();
-		if (event->modifiers() == Qt::NoModifier && profilePointIdx >= 0)
+		if (event->modifiers() == Qt::NoModifier && profilePointIdx >= 0 && event->buttons().testFlag(Qt::LeftButton))
 		{
-			if (event->buttons() & Qt::LeftButton)
+			double const * ptPos = m_profileHandles->position(profilePointIdx);
+			const int zind = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+			double globalPos[3];
+			std::copy(m_globalPt, m_globalPt + 3, globalPos);
+			globalPos[zind] = ptPos[zind];
+			// TODO NEWIO: clamp to range of selected channel / all channels?
+			auto imageData = channel(0)->input();
+			double* spacing = imageData->GetSpacing();
+			double* origin = imageData->GetOrigin();
+			int* dimensions = imageData->GetDimensions();
+			for (int i = 0; i < 3; ++i)
 			{
-				double const * ptPos = m_profileHandles->position(profilePointIdx);
-				const int zind = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
-				double globalPos[3];
-				std::copy(m_globalPt, m_globalPt + 3, globalPos);
-				globalPos[zind] = ptPos[zind];
-
-				if (setProfilePointWithClamp(profilePointIdx, globalPos, true))
-				{
-					emit profilePointChanged(profilePointIdx, globalPos);
-				}
+				globalPos[i] = clamp(origin[i], origin[i] + (dimensions[i] - 1) * spacing[i], globalPos[i]);
+			}
+			if (ptPos[0] != globalPos[0] || ptPos[1] != globalPos[1] || ptPos[2] != globalPos[2])
+			{
+				setProfilePointInternal(profilePointIdx, globalPos);
+				emit profilePointChanged(profilePointIdx, globalPos);
+			}
+			else
+			{
+				LOG(lvlDebug, "No profile position change!");
 			}
 		}
 	}
@@ -2222,41 +2216,20 @@ void iASlicerImpl::updateRawProfile(double posY)
 	renderWindow()->GetInteractor()->Render();
 }
 
-bool iASlicerImpl::setProfilePoint(int pointIdx, double const* globalPos)
-{
-	return setProfilePointWithClamp(pointIdx, globalPos, false);
-}
-
-bool iASlicerImpl::setProfilePointWithClamp(int pointIdx, double const * globalPos, bool doClamp)
+void iASlicerImpl::setProfilePoint(int pointIdx, double const * globalPos)
 {
 	if (!m_decorations || !hasChannel(0))
 	{
-		return false;
+		return;
 	}
-	// TODO NEWIO: slice profile on selected/current channel
-	auto imageData = channel(0)->input();
-	double newPos[3];
-	if (doClamp)
-	{
-		double * spacing = imageData->GetSpacing();
-		double * origin = imageData->GetOrigin();
-		int * dimensions = imageData->GetDimensions();
-		for (int i = 0; i < 3; ++i)
-		{
-			newPos[i] = clamp(origin[i], origin[i] + (dimensions[i] - 1) * spacing[i], globalPos[i]);
-		}
-	}
-	else
-	{
-		std::copy(globalPos, globalPos + 3, newPos);
-	}
-	double profileCoord2d[2] = { newPos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], newPos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)] };
-	if (!m_profileHandles->setup(pointIdx, newPos, profileCoord2d, channel(0)->output()))
-	{
-		return false;
-	}
+	setProfilePointInternal(pointIdx, globalPos);
+}
+
+void iASlicerImpl::setProfilePointInternal(int pointIdx, double const * globalPos)
+{
+	double profileCoord2d[2] = { globalPos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], globalPos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)] };
+	m_profileHandles->setup(pointIdx, globalPos, profileCoord2d, channel(0)->output());
 	renderWindow()->GetInteractor()->Render();
-	return true;
 }
 
 void iASlicerImpl::movePoint(size_t selectedPointIndex, double xPos, double yPos, double zPos)

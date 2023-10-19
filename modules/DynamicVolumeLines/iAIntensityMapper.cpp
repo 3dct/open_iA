@@ -37,15 +37,15 @@ void getIntensities(iAProgress &imp, PathID m_pathID, iAITKIO::ImagePointer &ima
 			{
 				QVector<unsigned int> coord(QVector<unsigned int>(3));
 				auto size = input->GetLargestPossibleRegion().GetSize();
-				unsigned int HilbertCnt = size[0] * size[1] * size[2];
+				long long HilbertCnt = size[0] * size[1] * size[2];
 				int nbOfBitsPerDim[DIM];
 				for (int i = 0; i < DIM; ++i)
 				{
 					nbOfBitsPerDim[i] = std::ceil(std::sqrt((size[i] - 1)));
 				}
 
-				#pragma omp parallel for 
-				for (long h = 0; h < HilbertCnt; ++h)
+				#pragma omp parallel for
+				for (long long h = 0; h < HilbertCnt; ++h)
 				{
 					CFixBitVec *coordPtr = new CFixBitVec[DIM];
 					CFixBitVec compHilbertIdx;

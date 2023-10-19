@@ -1,5 +1,4 @@
 set(FeatureAnalyzerComputation_PRECOMPILE_INCLUDES
-<defines.h>
 <FeatureAnalyzerHelpers.h>
 <iAFeatureAnalyzerComputationModuleInterface.h>
 <iAITKIO.h>

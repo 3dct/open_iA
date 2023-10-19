@@ -5,12 +5,17 @@
 
 #include <iALog.h>
 
-#include <vtkPolyData.h>
+#include <vtkActor.h>
+#include <vtkAssembly.h>
 #include <vtkCellData.h>
+#include <vtkLookupTable.h>
+#include <vtkPlaneSource.h>
+#include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
+#include <vtkRenderer.h>
+#include <vtkTextActor3D.h>
 #include <vtkTextProperty.h>
-#include <vtkPlaneSource.h>
 
 iAVRColorLegend::iAVRColorLegend(vtkRenderer* renderer) :m_renderer(renderer)
 {

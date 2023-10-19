@@ -4,8 +4,9 @@
 
 // TODO: Replace by more generic way of executing filter-based derived output computations!
 
-#include <QSharedPointer>
 #include <QThread>
+
+#include <memory>
 
 class iASingleResult;
 
@@ -15,14 +16,14 @@ class iADerivedOutputCalculator : public QThread
 {
 public:
 	iADerivedOutputCalculator(
-		QSharedPointer<iASingleResult> result,
+		std::shared_ptr<iASingleResult> result,
 		int objCountIdx,
 		int avgUncIdx,
 		int labelCount);
 	bool success();
 
 private:
-	QSharedPointer<iASingleResult> m_result;
+	std::shared_ptr<iASingleResult> m_result;
 	int m_objCountIdx;
 	int m_avgUncIdx;
 	bool m_success;

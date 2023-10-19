@@ -7,10 +7,13 @@
 
 #include <memory>
 
+class iAJPGImage;
 class iAViewHandler;
 class iAWebsocketAPI;
 
 class vtkRenderWindow;
+
+class QThread;
 
 class iARemoteRenderer: public QObject
 {
@@ -18,22 +21,27 @@ Q_OBJECT
 
 public:
 	iARemoteRenderer(int port);
-
+	~iARemoteRenderer();
 	void addRenderWindow(vtkRenderWindow* window, QString const& viewID);
 	void removeRenderWindow(QString const& viewID);
 	vtkRenderWindow* renderWindow(QString const& viewID);
 
-	std::unique_ptr<iAWebsocketAPI> m_websocket;
+	std::unique_ptr<iAWebsocketAPI> m_wsAPI;
 
 private:
 	QMap<QString, vtkRenderWindow*> m_renderWindows;
-	long long Lastrendered=0;
-	int timeRendering;
 	QMap<QString, iAViewHandler*> views;
+	std::unique_ptr<QThread> m_wsThread;
 
-public Q_SLOTS: 
-	void createImage(QString const& ViewID, int Quality );
+public slots:
+	void createImage(QString const& viewID, int quality );
 
-Q_SIGNALS:
-	void imageHasChanged(QByteArray Image, QString ViewID);
+signals:
+	//! Called when image for a view changes;
+	//! used to communicate with web socket server thread
+	bool setRenderedImage(std::shared_ptr<iAJPGImage> img, QString viewID);
+	//! Called when image for a view changes;
+	//! used to communicate with web socket server thread
+	void imageHasChanged(std::shared_ptr<iAJPGImage> img, QString viewID);
+	void finished();
 };

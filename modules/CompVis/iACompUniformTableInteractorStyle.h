@@ -7,13 +7,13 @@
 #include "iACompHistogramTableData.h"
 
 //vtk
-#include "vtkSmartPointer.h"
-#include "vtkActor.h"
+#include <vtkSmartPointer.h>
 
 //CompVis
 class iACompUniformTable;
 
 //vtk
+class vtkActor;
 class vtkRenderer;
 class vtkPropPicker;
 

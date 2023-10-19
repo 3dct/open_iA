@@ -47,7 +47,7 @@ public:
 			m_refSpectraItemModel->setItem(static_cast<int>(i), item);
 		}
 	}
-	QSharedPointer<QStandardItemModel> getItemModel()
+	std::shared_ptr<QStandardItemModel> getItemModel()
 	{
 		return m_refSpectraItemModel;
 	}
@@ -88,5 +88,5 @@ public:
 	}
 	std::vector<iAElementSpectralInfo> spectra;
 private:
-	QSharedPointer<QStandardItemModel> m_refSpectraItemModel;
+	std::shared_ptr<QStandardItemModel> m_refSpectraItemModel;
 };

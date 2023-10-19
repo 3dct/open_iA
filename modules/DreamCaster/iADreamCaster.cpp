@@ -62,6 +62,8 @@
 #include <QElapsedTimer>
 #include <QFileDialog>
 
+#include <omp.h>
+
 #include <algorithm>    // for std::fill
 
 #define DEG_IN_PI  180
@@ -69,13 +71,6 @@
 
 std::vector<iAwald_tri> wald;
 std::vector<iABSPNode> nodes;
-
-// OpenMP
-#ifndef __APPLE__
-#ifndef __MACOSX
-	#include <omp.h>
-#endif
-#endif
 
 namespace
 {
@@ -1044,7 +1039,7 @@ void iADreamCaster::UpdateHistogramSlot()
 	}
 	hist->clearPlots();
 	auto histData = iAHistogramData::create("Frequency", iAValueType::Continuous, values, numBins, min_x, max_x);
-	auto histPlot = QSharedPointer<iABarGraphPlot>::create(histData, QColor(0, 0, 255, 255));
+	auto histPlot = std::make_shared<iABarGraphPlot>(histData, QColor(0, 0, 255, 255));
 	hist->addPlot(histPlot);
 	hist->update();
 }
@@ -3286,10 +3281,9 @@ double iADreamCaster::RandonSpaceAnalysis()
 	float torusRadius = std::fabs(0.5f*stngs.ORIGIN_Z);
 	float bad_area = 0.f;
 	float good_area = 0.f;
-	int i;
 
-	#pragma omp parallel for private(i, abscos, triNorm, d) reduction(+: bad_area, good_area)
-	for (i = 0; i < numTriangles; i++ )
+	#pragma omp parallel for private(abscos, triNorm, d) reduction(+: bad_area, good_area)
+	for (int i = 0; i < numTriangles; i++ )
 	{
 		tri = tracer->scene()->getTriangle(trisInsideAoI[i]);
 		triNorm = tri->normal();
@@ -3379,11 +3373,7 @@ bool iADreamCaster::eventFilter(QObject *obj, QEvent *event)
 		if (event->type() == QEvent::MouseButtonDblClick)
 		{
 			QMouseEvent * mevent = static_cast<QMouseEvent*>(event);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 			int pcoords[2] = {static_cast<int>(mevent->position().x()), static_cast<int>(qvtkPlot3d->height() - mevent->position().y())};
-#else
-			int pcoords[2] = {mevent->x(), qvtkPlot3d->height() - mevent->y()};
-#endif
 			Pick(pcoords);
 		}
 	}

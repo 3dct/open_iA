@@ -65,9 +65,6 @@ iASEAFile::iASEAFile(QString const & fileName):
 		return;
 	}
 	QSettings metaFile(fileName, QSettings::IniFormat );
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	metaFile.setIniCodec("UTF-8");
-#endif
 	load(metaFile, fileName, true);
 }
 
@@ -188,9 +185,6 @@ void iASEAFile::load(QSettings const & metaFile, QString const & fileName, bool 
 void iASEAFile::save(QString const & fileName)
 {
 	QSettings metaFile(fileName, QSettings::IniFormat);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	metaFile.setIniCodec("UTF-8");
-#endif
 	metaFile.setValue(ModalitiesKey, MakeRelative(QFileInfo(fileName).absolutePath(), m_modalityFileName));
 	save(metaFile, fileName);
 }

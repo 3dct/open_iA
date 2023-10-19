@@ -74,7 +74,7 @@ void SetAttitude(iAImageTreeNode * node, iAImageTreeNode::Attitude att, int id)
 	}
 	for (int i = 0; i<node->GetChildCount(); ++i)
 	{
-		SetAttitude(node->GetChild(i).data(), att, id);
+		SetAttitude(node->GetChild(i).get(), att, id);
 	}
 }
 

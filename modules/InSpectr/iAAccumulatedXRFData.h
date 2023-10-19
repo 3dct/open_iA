@@ -7,8 +7,7 @@
 
 #include <iAPlotData.h>
 
-#include <QSharedPointer>
-
+#include <memory>
 #include <vector>
 
 class iAXRFData;
@@ -31,7 +30,7 @@ public:
 
 		fctDefault = fctMax,
 	};
-	iAAccumulatedXRFData(QSharedPointer<iAXRFData> data, double minEnergy, double maxEnergy);
+	iAAccumulatedXRFData(std::shared_ptr<iAXRFData> data, double minEnergy, double maxEnergy);
 	// { remove if merged with iAHistogramData:
 	double const * xBounds() const override;
 	DataType const * yBounds() const override;
@@ -57,7 +56,7 @@ private:
 	void createSpectrumFunctions();
 	std::vector<iAFunction<size_t, unsigned int> *> const & spectrumFunctions();
 
-	QSharedPointer<iAXRFData> m_xrfData;
+	std::shared_ptr<iAXRFData> m_xrfData;
 	CountType* m_minimum;
 	CountType* m_maximum;
 	CountType* m_average;
@@ -66,5 +65,5 @@ private:
 	DataType m_yBounds[2];
 	FunctionalBoxPlot* m_functionalBoxplotData;
 	std::vector<iAFunction<size_t, unsigned int> *> m_spectrumFunctions;
-	QSharedPointer<iASpectraHistograms>	m_spectraHistograms;
+	std::shared_ptr<iASpectraHistograms>	m_spectraHistograms;
 };

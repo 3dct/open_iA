@@ -79,7 +79,7 @@ namespace
 		iACsvConfig config = iACsvConfig::getFCPFiberFormat("");
 		config.skipLinesStart = 0;
 		config.containsHeader = false;
-		config.visType = iACsvConfig::Cylinders;
+		config.visType = iAObjectVisType::Cylinder;
 		return config;
 	}
 
@@ -100,7 +100,7 @@ namespace
 		config.computeCenter = false;
 		config.computeStartEnd = true;
 		std::fill_n(config.offset, 3, SimpleConfigCoordShift);
-		config.visType = iACsvConfig::Cylinders;
+		config.visType = iAObjectVisType::Cylinder;
 		config.currentHeaders = QStringList() <<
 			"ID" << "CenterX" << "CenterY" << "CenterZ" << "Phi" << "Theta" << "Length";
 		config.selectedHeaders = config.currentHeaders;
@@ -129,7 +129,7 @@ namespace
 	}
 	iAFiberData createFiberData(iAFiberResult const& result, size_t fiberID)
 	{
-		auto const& mapping = *result.mapping.data();
+		auto const& mapping = *result.mapping.get();
 		auto it = result.curveInfo.find(fiberID);
 		return iAFiberData(
 			result.table, fiberID, mapping, (it != result.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
@@ -657,7 +657,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 	return !abort;
 }
 
-iAFiberResultsLoader::iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollection> results,
+iAFiberResultsLoader::iAFiberResultsLoader(std::shared_ptr<iAFiberResultsCollection> results,
 	QString const & path, iACsvConfig const & config, double stepShift):
 	m_results(results),
 	m_path(path),

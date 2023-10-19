@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <defines.h>    // for DIM
 #include <iAAutoRegistration.h>
-#include <iADataSet.h>
 #include <iAFilter.h>
 #include <iAFilterRegistry.h>
-//#include <iAITKIO.h>
+#include <iAImageData.h>
 #include <iALog.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
@@ -70,7 +69,7 @@ namespace
 			indexSelectionFilter->SetIndex(p);
 			indexSelectionFilter->SetInput(vectorImg);
 			indexSelectionFilter->Update();
-			filter->addOutput(indexSelectionFilter->GetOutput());
+			filter->addOutput(std::make_shared<iAImageData>(indexSelectionFilter->GetOutput()));
 		}
 	}
 
@@ -159,7 +158,7 @@ void fcm(iAFilter* filter, QVariantMap const & params)
 	auto probs = classifier->GetOutput();
 	auto labelClass = TLabelClassifier::New();
 	labelClass->SetInput(probs);
-	filter->addOutput(labelClass->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(labelClass->GetOutput()));
 	setProbabilities(probs, filter);
 }
 
@@ -258,7 +257,7 @@ void kfcm(iAFilter* filter, QVariantMap const & parameters)
 	TLabelClassifier::Pointer labelClass = TLabelClassifier::New();
 	labelClass->SetInput(probs);
 	labelClass->Update();
-	filter->addOutput(labelClass->GetOutput());
+	filter->addOutput(std::make_shared<iAImageData>(labelClass->GetOutput()));
 	setProbabilities(probs, filter);
 }
 

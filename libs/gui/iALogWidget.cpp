@@ -24,6 +24,18 @@ void iALogWidget::log(iALogLevel lvl, QString const & text)
 	}
 }
 
+void iALogWidget::addText(int lvl, QString const text)
+{
+	QString msg = QString("%1 %2 %3\n")
+		.arg(QLocale().toString(QTime::currentTime(), "hh:mm:ss.zzz"))
+		.arg(logLevelToString(static_cast<iALogLevel>(lvl)).left(1))
+		.arg(text);
+	auto prevCursor = logTextEdit->textCursor();
+	logTextEdit->moveCursor(QTextCursor::End);
+	logTextEdit->insertPlainText(msg);
+	logTextEdit->setTextCursor(prevCursor);
+}
+
 void iALogWidget::logSlot(int lvl, QString const & text)
 {
 	// The log window prevents the whole application from shutting down
@@ -36,17 +48,12 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 		{
 			show();
 		}
-		QString msg = QString("%1 %2 %3")
-			.arg(QLocale().toString(QTime::currentTime(), "hh:mm:ss"))
-			.arg(logLevelToString(static_cast<iALogLevel>(lvl)).left(1))
-			.arg(text);
-		msg = QString("<span style=\"color:%1\">%2</span>").arg((lvl == lvlError)?"red":"black").arg(msg);
-		logTextEdit->append(msg);
+		addText(lvl, text);
 	}
 	if (m_logToFile && lvl >= m_fileLogLevel)
 	{
 		QString msg = QString("%1 %2 %3")
-			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+			.arg(QLocale().toString(QDateTime::currentDateTime(), "yyyy-MM-dd hh:mm:ss.zzz"))
 			.arg(logLevelToString(static_cast<iALogLevel>(lvl)))
 			.arg(text);
 		std::ofstream logfile( getLocalEncodingFileName(m_logFileName).c_str(), std::ofstream::out | std::ofstream::app);
@@ -57,7 +64,7 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 		{
 			if (!m_closed)
 			{
-				logTextEdit->append(QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName));
+				addText(lvlError, QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName));
 			}
 			m_fileLogError = true;
 			m_logToFile = false;

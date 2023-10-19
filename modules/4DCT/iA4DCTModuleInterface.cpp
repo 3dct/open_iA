@@ -36,29 +36,17 @@ void iA4DCTModuleInterface::Initialize( )
 	QMenu* menu4DCT = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("4DCT"), false);
 
 	QAction * newProj = new QAction(tr("New 4DCT project"), m_mainWnd);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	newProj->setShortcut(QKeySequence(Qt::ALT + Qt::Key_4, Qt::Key_N));
-#else
 	newProj->setShortcut(QKeySequence(QKeyCombination(Qt::ALT, Qt::Key_4), QKeyCombination(Qt::Key_N)));
-#endif
 	connect( newProj, &QAction::triggered, this, &iA4DCTModuleInterface::newProj);
 	menu4DCT->addAction( newProj );
 
 	QAction * openProj = new QAction(tr("Open 4DCT project"), m_mainWnd);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	openProj->setShortcut(QKeySequence(Qt::ALT + Qt::Key_4, Qt::Key_O));
-#else
 	openProj->setShortcut(QKeySequence(QKeyCombination(Qt::ALT, Qt::Key_4), QKeyCombination(Qt::Key_O)));
-#endif
 	connect( openProj, &QAction::triggered, this, &iA4DCTModuleInterface::openProj);
 	menu4DCT->addAction( openProj );
 
 	QAction* saveProj = new QAction(tr("Save 4DCT project"), m_mainWnd);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	saveProj->setShortcut(QKeySequence(Qt::ALT + Qt::Key_4, Qt::Key_S));
-#else
 	saveProj->setShortcut(QKeySequence(QKeyCombination(Qt::ALT, Qt::Key_4), QKeyCombination(Qt::Key_S)));
-#endif
 	connect( saveProj, &QAction::triggered, this, &iA4DCTModuleInterface::saveProj);
 	menu4DCT->addAction( saveProj );
 

@@ -5,13 +5,23 @@
 #include "iAFoamCharacterizationDialogFilter.h"
 #include "iAFoamCharacterizationTable.h"
 
-#include <iADataSet.h>
+#include <iAImageData.h>
 #include <iAProgress.h>
 #include <iAToolsVTK.h>
 
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkGradientAnisotropicDiffusionImageFilter.h>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#ifdef __clang__
+#if __clang_major__ > 10
+#pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
+#else
+#pragma clang diagnostic ignored "-Wimplicit-int-float-conversion"
+#endif
+#endif
 #include <itkMedianImageFilter.h>
+#pragma GCC diagnostic pop
 #include <itkPatchBasedDenoisingImageFilter.h>
 
 #include <vtkImageData.h>
@@ -184,7 +194,7 @@ std::shared_ptr<iADataSet> iAFoamCharacterizationItemFilter::executeMedianFX(std
 	const unsigned int uiThread(QThread::idealThreadCount());
 	const unsigned int uiThread_1 (uiThread - 1);
 
-	QVector<QSharedPointer<QtRunnableMedian>> vRunnableMedian (uiThread);
+	QVector<std::shared_ptr<QtRunnableMedian>> vRunnableMedian (uiThread);
 
 	unsigned short* pDataRead ((unsigned short*) pImageDataRead->GetScalarPointer());
 	unsigned short* pDataWrite ((unsigned short*)output->GetScalarPointer());
@@ -197,7 +207,7 @@ std::shared_ptr<iADataSet> iAFoamCharacterizationItemFilter::executeMedianFX(std
 														 )
 								  );
 
-		pThreadPool->start(vRunnableMedian[ui].data());
+		pThreadPool->start(vRunnableMedian[ui].get());
 	}
 
 	executeMedianFX1(pDataRead, pDataWrite, ni, nj, nk, uiStrideJ, uiStrideK, nk * uiThread_1 / uiThread, nk);

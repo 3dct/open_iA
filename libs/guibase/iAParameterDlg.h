@@ -9,10 +9,11 @@
 
 #include <QDialog>
 #include <QMap>
-#include <QSharedPointer>
 #include <QStringList>
 #include <QVariant>
 #include <QVector>
+
+#include <memory>
 
 class iAAttributeDescriptor;
 class iAMainWindow;
