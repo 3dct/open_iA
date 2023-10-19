@@ -9,6 +9,10 @@
 #include <iAProgress.h>
 #include <iAToolsVTK.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkGradientAnisotropicDiffusionImageFilter.h>
 #pragma GCC diagnostic push
@@ -23,6 +27,9 @@
 #include <itkMedianImageFilter.h>
 #pragma GCC diagnostic pop
 #include <itkPatchBasedDenoisingImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic push
+#endif
 
 #include <vtkImageData.h>
 

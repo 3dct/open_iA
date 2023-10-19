@@ -6,10 +6,17 @@
 
 #include <iAImageData.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkLabelMap.h>
 #include <itkLabelGeometryImageFilter.h>
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkShapeLabelObject.h>
+#ifdef __clang__
+#pragma clang diagnostic push
+#endif
 
 #include <QApplication>
 #include <QGridLayout>

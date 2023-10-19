@@ -4,10 +4,17 @@
 #include <iAImageData.h>
 #include <iATypedCallHelper.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkImage.h>
 #include <itkMultiplyImageFilter.h>
 #include <itkImagePCAShapeModelEstimator.h>
 #include <itkNumericSeriesFileNames.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 IAFILTER_DEFAULT_CLASS(iAPCA);
 

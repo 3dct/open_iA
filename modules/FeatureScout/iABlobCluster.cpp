@@ -4,9 +4,16 @@
 
 #include "iABlobImplicitFunction.h"
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkImageToVTKImageFilter.h>
 #include <itkVTKImageToImageFilter.h>
 #include <itkDiscreteGaussianImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic push
+#endif
 
 #include <vtkActor.h>
 #include <vtkCaptionActor2D.h>
