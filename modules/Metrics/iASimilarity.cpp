@@ -9,6 +9,10 @@
 #include <iATypedCallHelper.h>
 #include <iAValueTypeVectorHelpers.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkImageRegionConstIterator.h>
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -26,6 +30,9 @@
 #include <itkNormalizedCorrelationImageToImageMetric.h>
 #include <itkMeanSquaresImageToImageMetric.h>
 #include <itkTranslationTransform.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #include <vtkImageData.h>
 

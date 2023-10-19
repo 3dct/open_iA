@@ -5,10 +5,17 @@
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkDanielssonDistanceMapImageFilter.h>
 #include <itkImageRegionIterator.h>
 #include <itkRescaleIntensityImageFilter.h>
 #include <itkSignedMaurerDistanceMapImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 IAFILTER_DEFAULT_CLASS(iASignedMaurerDistanceMap);
 IAFILTER_DEFAULT_CLASS(iADanielssonDistanceMap);

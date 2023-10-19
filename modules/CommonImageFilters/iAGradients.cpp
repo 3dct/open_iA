@@ -6,12 +6,19 @@
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkDerivativeImageFilter.h>
 #ifdef ITKHigherOrderGradient
 #include <itkHigherOrderAccurateDerivativeImageFilter.h>       // HigherOrderAccurateGradient ITK Module
 #endif
 #include <itkGradientMagnitudeImageFilter.h>
 #include <itkGradientMagnitudeRecursiveGaussianImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 IAFILTER_DEFAULT_CLASS(iADerivative);
 IAFILTER_DEFAULT_CLASS(iAGradientMagnitude);

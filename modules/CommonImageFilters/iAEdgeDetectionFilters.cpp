@@ -6,8 +6,15 @@
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkCannyEdgeDetectionImageFilter.h>
 #include <itkSobelEdgeDetectionImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 IAFILTER_DEFAULT_CLASS(iACannyEdgeDetection);
 IAFILTER_DEFAULT_CLASS(iASobelEdgeDetection);

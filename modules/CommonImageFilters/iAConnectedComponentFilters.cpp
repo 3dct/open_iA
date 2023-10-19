@@ -8,9 +8,16 @@
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkConnectedComponentImageFilter.h>
 #include <itkScalarConnectedComponentImageFilter.h>
 #include <itkRelabelComponentImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 IAFILTER_DEFAULT_CLASS(iAConnectedComponents);
 IAFILTER_DEFAULT_CLASS(iAScalarConnectedComponents);

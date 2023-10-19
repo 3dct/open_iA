@@ -8,6 +8,10 @@
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkBilateralImageFilter.h>
 #include <itkCurvatureAnisotropicDiffusionImageFilter.h>
 #include <itkCurvatureFlowImageFilter.h>
@@ -29,6 +33,10 @@
 #include <itkGPUGradientAnisotropicDiffusionImageFilterFactory.h>
 #endif
 #endif
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+
 
 #if (!defined(ITKNOGPU) && (ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(5,1,0) && ITK_VERSION_NUMBER < ITK_VERSION_CHECK(5,2,0)))
 #ifndef _MSC_VER

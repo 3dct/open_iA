@@ -6,12 +6,19 @@
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkCastImageFilter.h>
 #include <itkHessianRecursiveGaussianImageFilter.h>
 #include <itkImageAdaptor.h>
 #include <itkLaplacianRecursiveGaussianImageFilter.h>
 #include <itkLaplacianImageFilter.h>
 #include <itkSymmetricEigenAnalysisImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 IAFILTER_DEFAULT_CLASS(iAHessianEigenanalysis);
 IAFILTER_DEFAULT_CLASS(iALaplacian);
