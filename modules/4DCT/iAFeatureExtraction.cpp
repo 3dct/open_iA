@@ -6,9 +6,16 @@
 
 #include <iAFileUtils.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkImage.h>
 #include <itkImageFileReader.h>
 #include <itkLabelGeometryImageFilter2.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #include <fstream>
 #include <vector>

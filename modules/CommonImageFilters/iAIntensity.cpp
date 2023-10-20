@@ -7,6 +7,10 @@
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkAdaptiveHistogramEqualizationImageFilter.h>
 #include <itkAddImageFilter.h>
 #include <itkHistogramMatchingImageFilter.h>
@@ -22,6 +26,9 @@
 #include <itkSubtractImageFilter.h>
 #include <itkTestingComparisonImageFilter.h>
 #include <itkThresholdImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 // Filters requiring 1 input image:
 IAFILTER_DEFAULT_CLASS(iAAdaptiveHistogramEqualization);

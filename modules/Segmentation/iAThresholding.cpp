@@ -12,7 +12,11 @@
 #include <iAMaximumDistanceFilter.h>                  // MaximumDistance
 #include <iARemovePeaksOtsuThresholdImageFilter.h>    // RemovePeakOtsu
 
-#if __clang__
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
+#ifdef __clang__
 #pragma clang diagnostic push
 #if __clang_major__ > 10
 #pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
@@ -21,12 +25,17 @@
 #endif
 #endif
 #include <itkAdaptiveOtsuThresholdImageFilter.h>
-#if __clang__
+#ifdef __clang__
 #pragma clang diagnostic pop
 #endif
 #include <itkBinaryThresholdImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkGradientMagnitudeImageFilter.h>
-#if __clang__
+#ifdef __clang__
+#pragma clang diagnostic pop
 #pragma clang diagnostic push
 #if __clang_major__ > 10
 #pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
@@ -35,7 +44,7 @@
 #endif
 #endif
 #include <itkHuangThresholdImageFilter.h>
-#if __clang__
+#ifdef __clang__
 #pragma clang diagnostic pop
 #endif
 #include <itkIntermodesThresholdImageFilter.h>
@@ -52,6 +61,9 @@
 #include <itkThresholdLabelerImageFilter.h>
 #include <itkTriangleThresholdImageFilter.h>
 #include <itkYenThresholdImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 IAFILTER_DEFAULT_CLASS(iABinaryThreshold)
 IAFILTER_DEFAULT_CLASS(iAMultiThreshold)

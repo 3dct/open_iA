@@ -6,6 +6,10 @@
 #include <iALog.h>
 #include <iATypedCallHelper.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #if __clang_major__ >= 10 || __GNUC__ >= 9
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-copy"
@@ -13,6 +17,9 @@
 #include <itkLabelOverlapMeasuresImageFilter.h>
 #if __clang_major__ >= 10 || __GNUC__ >= 9
 #pragma GCC diagnostic pop
+#endif
+#ifdef __clang__
+#pragma clang diagnostic pop
 #endif
 
 template <typename ImagePixelType>

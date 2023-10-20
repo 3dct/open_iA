@@ -13,10 +13,17 @@
 #include <iALog.h>
 #include <iAToolsITK.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkImageFileWriter.h>
 #include <itkRelabelComponentImageFilter.h>
 #include <itkScalarConnectedComponentImageFilter.h>
 #include <itkStatisticsImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #include <QString>
 

@@ -24,6 +24,7 @@
 
 #include <itkImage.h>
 #ifdef __clang__
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
 #pragma clang diagnostic push
 #if __clang_major__ > 10
 #pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"

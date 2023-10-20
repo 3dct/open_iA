@@ -9,6 +9,10 @@
 #include <iAToolsVTK.h>    // for VTKDataTypeList
 #include <iATypedCallHelper.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>
 #include <itkImageIterator.h>
@@ -17,6 +21,9 @@
 #include <itkRGBPixel.h>
 #include <itkRGBAPixel.h>
 #include <itkStatisticsImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #include <QStringList>
 

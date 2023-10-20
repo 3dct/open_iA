@@ -1,14 +1,22 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include <itkLaplacianSegmentationLevelSetImageFilter.h>
-#include <itkCannySegmentationLevelSetImageFilter.h>
-#include <itkZeroCrossingImageFilter.h>
 
 #include <defines.h>    // for DIM
 #include <iAImageData.h>
 #include <iAFilterDefault.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
+#include <itkLaplacianSegmentationLevelSetImageFilter.h>
+#include <itkCannySegmentationLevelSetImageFilter.h>
+#include <itkZeroCrossingImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 IAFILTER_DEFAULT_CLASS(iACannySegmentationLevelSet);
 IAFILTER_DEFAULT_CLASS(iALaplacianSegmentationLevelSet);

@@ -6,10 +6,17 @@
 
 #include <iAFileUtils.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 #include <itkMinimumMaximumImageCalculator.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #include <vtkActor.h>
 #include <vtkCellArray.h>

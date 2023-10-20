@@ -9,6 +9,10 @@
 
 #ifdef __clang__
 #pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
+#ifdef __clang__
+#pragma clang diagnostic push
 #if __clang_major__ > 10
 #pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
 #else
@@ -25,6 +29,9 @@
 //#include <itkKLMRegionGrowImageFilter.h>
 #include <itkNeighborhoodConnectedImageFilter.h>
 //#include <itkVectorConfidenceConnectedImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 IAFILTER_DEFAULT_CLASS(iAConfidenceConnectedRegionGrow)
 IAFILTER_DEFAULT_CLASS(iAConnectedThresholdRegionGrow)

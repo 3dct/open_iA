@@ -12,6 +12,10 @@
 // from Maximum Distance Toolkit
 #include <iAMaximumDistanceFilter.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkAndImageFilter.h>
 #include <itkBilateralImageFilter.h>
 #include <itkBinaryContourImageFilter.h>
@@ -75,6 +79,9 @@
 #include <itkThresholdImageFilter.h>
 #include <itkTriangleThresholdImageFilter.h>
 #include <itkYenThresholdImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic push
+#endif
 
 #include <QDateTime>
 #include <QDebug>

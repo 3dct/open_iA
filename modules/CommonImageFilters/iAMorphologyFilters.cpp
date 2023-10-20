@@ -8,6 +8,9 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-overflow"
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkBinaryBallStructuringElement.h>
 #include <itkBinaryFillholeImageFilter.h>
 #include <itkBinaryThinningImageFilter.h>
