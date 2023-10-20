@@ -9,12 +9,19 @@
 #include "iAToolsITK.h"
 #include "iATypedCallHelper.h"
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkGDCMImageIO.h>
 #include <itkGDCMSeriesFileNames.h>
 #include <itkImage.h>
 #include <itkImageSeriesReader.h>
 #include <itkImageSeriesWriter.h>
 #include <itkNumericSeriesFileNames.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #include <vtkImageData.h>
 

@@ -4,8 +4,6 @@
 
 #include "iAFoamCharacterizationItem.h"
 
-#include <itkPatchBasedDenoisingBaseImageFilter.h>
-
 #include <QRunnable>
 
 class QFile;

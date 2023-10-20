@@ -11,6 +11,10 @@
 #include <iAToolsITK.h>    // for getStatistics
 #include <iAITKIO.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 //#include <itkExtractImageFilter.h>
 #include <itkImageDuplicator.h>
 //#include <itkImageFileWriter.h>
@@ -28,6 +32,9 @@
 #endif
 #include <itkRescaleIntensityImageFilter.h>
 //#include <itkStatisticsImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #include <QDir>
 #include <QDebug>

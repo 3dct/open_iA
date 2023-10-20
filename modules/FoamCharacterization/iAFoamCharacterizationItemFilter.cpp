@@ -28,7 +28,7 @@
 #pragma GCC diagnostic pop
 #include <itkPatchBasedDenoisingImageFilter.h>
 #ifdef __clang__
-#pragma clang diagnostic push
+#pragma clang diagnostic pop
 #endif
 
 #include <vtkImageData.h>

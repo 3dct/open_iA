@@ -137,6 +137,11 @@ class QCPBars;
 #  define Q_DECL_OVERRIDE
 #endif
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
+
 /*!
   The QCP Namespace contains general enums, QFlags and functions used throughout the QCustomPlot
   library.
@@ -6674,5 +6679,8 @@ Q_DECLARE_METATYPE(QCPItemBracket::BracketStyle)
 
 /* end of 'src/items/item-bracket.h' */
 
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #endif // QCUSTOMPLOT_H

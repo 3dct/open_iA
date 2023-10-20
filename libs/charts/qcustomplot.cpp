@@ -28,6 +28,10 @@
 #if (defined(_MSC_VER))
 #pragma warning (disable : 4996 ) // to disable warnings regarding QWeakPointer.
 #endif
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 // ToDo: find proper fix for this warning!
 
 /* including file 'src/vector2d.cpp', size 7340                              */
@@ -30303,3 +30307,7 @@ QPen QCPItemBracket::mainPen() const
     return mSelected ? mSelectedPen : mPen;
 }
 /* end of 'src/items/item-bracket.cpp' */
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif

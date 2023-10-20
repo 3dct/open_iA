@@ -16,7 +16,7 @@
 #include <itkGradientMagnitudeImageFilter.h>
 #include <itkWatershedImageFilter.h>
 #ifdef __clang__
-#pragma clang diagnostic push
+#pragma clang diagnostic pop
 #endif
 
 #include <vtkImageData.h>

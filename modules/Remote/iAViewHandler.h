@@ -17,7 +17,6 @@ public:
 
 private:
 	QString m_id;
-	int m_timeRendering =0;
 	int m_waitTimeRendering = 50;
 	QTimer m_timer;
 	QElapsedTimer m_stopWatch;
