@@ -22,11 +22,19 @@
 #include "itkRBFKernelInducedDistanceMetric.h"
 #include "itkFlatStructuringElement.h"
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include "itkMacro.h"
 #include "itkVector.h"
 #include "itkArray.h"
 #include "itkConstShapedNeighborhoodIterator.h"
 #include "itkNumericTraits.h"
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+
 #if ITK_VERSION_MAJOR < 5
 #include "itkFastMutexLock.h"
 #else

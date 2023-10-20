@@ -18,10 +18,17 @@
 #ifndef __itkRBFKernelInducedDistanceMetric_h
 #define __itkRBFKernelInducedDistanceMetric_h
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include "itkNumericTraits.h"
 #include "itkDistanceMetric.h"
 #include "itkMeasurementVectorTraits.h"
 #include "itkMacro.h"
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #include "itkKernelInducedDistanceMetric.h"
 

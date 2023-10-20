@@ -19,10 +19,17 @@
 
 #include "iAMaskingLabelOverlapMeasuresImageFilter.h"
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkConfigure.h>    // for ITK_VERSION...
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionConstIteratorWithIndex.h>
 #include <itkProgressReporter.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 template<typename TLabelImage>
 iAMaskingLabelOverlapMeasuresImageFilter<TLabelImage>

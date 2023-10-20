@@ -2,7 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkImageToImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 enum VotingRule
 {

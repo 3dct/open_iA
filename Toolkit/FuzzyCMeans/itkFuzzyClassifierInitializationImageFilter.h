@@ -18,6 +18,10 @@
 #ifndef __itkFuzzyClassifierInitializationImageFilter_h
 #define __itkFuzzyClassifierInitializationImageFilter_h
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include "itkImage.h"
 #include "itkVectorImage.h"
 #include "itkImageToImageFilter.h"
@@ -33,6 +37,10 @@
 #else
 #include "itkMultiThreaderBase.h"
 #endif
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+
 #include <vector>
 
 namespace itk

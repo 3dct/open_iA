@@ -13,6 +13,10 @@
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkBinaryBallStructuringElement.h>
 #include <itkBinaryDilateImageFilter.h>
 #include <itkBinaryErodeImageFilter.h>
@@ -20,6 +24,9 @@
 #include <itkConnectedComponentImageFilter.h>
 #include <itkInvertIntensityImageFilter.h>
 #include <itkMultiplyImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #include <vtkImageCast.h>
 #include <vtkImageData.h>
