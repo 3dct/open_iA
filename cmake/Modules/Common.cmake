@@ -458,9 +458,9 @@ endif()
 
 
 # OpenCL
-find_package(OpenCLHeaders REQUIRED)
-find_package(OpenCLHeadersCpp REQUIRED)
-find_package(OpenCLICDLoader REQUIRED)
+find_package(OpenCLHeaders)
+find_package(OpenCLHeadersCpp)
+find_package(OpenCLICDLoader)
 if (OpenCLICDLoader_FOUND)
 	set(openiA_OPENCL_VERSION_OPTIONS "1.1.0" "1.2.0" "2.0.0" "2.1.0"  "2.2.0")
 	list (FIND openiA_OPENCL_VERSION_OPTIONS "${openiA_OPENCL_VERSION}" opencl_version_index)
