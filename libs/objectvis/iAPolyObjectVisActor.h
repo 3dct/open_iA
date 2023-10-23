@@ -30,7 +30,7 @@ public:
 	//! show the object
 	void show() override;
 	//! hide the object
-	void hide();
+	void hide() override;
 	//! whether the object is currently shown
 	bool visible() const;
 	//! show the object's bounding box

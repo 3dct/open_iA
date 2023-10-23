@@ -4,6 +4,7 @@
 #include "iAvtkTubeFilter.h"
 
 #include "iACsvConfig.h"
+#include "iAObjectsData.h"
 
 #include <vtkDoubleArray.h>
 #include <vtkFloatArray.h>
@@ -13,9 +14,9 @@
 #include <vtkTable.h>
 
 
-iACylinderObjectVis::iACylinderObjectVis(std::shared_ptr<iAObjectsData> data,
-	QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, int numberOfCylinderSides, size_t segmentSkip):
-	iALineObjectVis(data, color, curvedFiberData, segmentSkip),
+iACylinderObjectVis::iACylinderObjectVis(iAObjectsData const* data,
+	QColor const & color, int numberOfCylinderSides, size_t segmentSkip):
+	iALineObjectVis(data, color, segmentSkip),
 	m_tubeFilter(vtkSmartPointer<iAvtkTubeFilter>::New()),
 	m_contextFactors(nullptr),
 	m_objectCount(data->m_table->GetNumberOfRows()),
@@ -158,13 +159,13 @@ std::vector<vtkSmartPointer<vtkPolyData>> iACylinderObjectVis::extractSelectedOb
 		const int ExtractedID = 1;
 		tmpTbl->SetValue(0, 0, ExtractedID);
 		std::map<size_t, std::vector<iAVec3f>> tmpCurvedFiberData;
-		auto it = m_curvedFiberData.find(labelID);
-		if (it != m_curvedFiberData.end())
+		auto tmpData = std::make_shared<iAObjectsData>(iAObjectVisType::Cylinder, tmpTbl.GetPointer(), m_data->m_colMapping);
+		auto it = m_data->m_curvedFiberData.find(labelID);
+		if (it != m_data->m_curvedFiberData.end())
 		{	// Note: curved fiber data currently does not use LabelID, but starts from 0!
-			tmpCurvedFiberData.insert(std::make_pair(ExtractedID-1, it->second));
+			tmpData->m_curvedFiberData.insert(std::make_pair(ExtractedID-1, it->second));
 		}
-		auto tmpData = std::make_shared<iAObjectsData>( tmpTbl.GetPointer(), m_data->m_colMapping );
-		iACylinderObjectVis tmpVis(tmpData, color.isValid() ? color : QColor(0, 0, 0), tmpCurvedFiberData);
+		iACylinderObjectVis tmpVis(tmpData.get(), color.isValid() ? color : QColor(0, 0, 0));
 		auto pd = tmpVis.finalPolyData();
 		result.push_back(pd);
 	}

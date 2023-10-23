@@ -12,6 +12,7 @@
 #include <dlg_CSVInput.h>
 #include <iACsvConfig.h>
 #include <iACsvVtkTableCreator.h>
+#include <iAObjectsData.h>
 #include <iAObjectVisFactory.h>
 
 // FeatureScout
@@ -100,20 +101,16 @@ void iAXVRAModuleInterface::startXVRA()
 		return;
 	}
 
-	std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo;
+	m_objData = std::make_shared<iAObjectsData>(csvConfig.visType, creator.table(), io.getOutputMapping());
 
 	if (csvConfig.visType == iAObjectVisType::Cylinder || csvConfig.visType == iAObjectVisType::Line)
 	{
-		if (!readCurvedFiberInfo(csvConfig.curvedFiberFileName, curvedFiberInfo))
-		{
-			curvedFiberInfo = std::map<size_t, std::vector<iAVec3f>>();
-		}
+		readCurvedFiberInfo(csvConfig.curvedFiberFileName, m_objData->m_curvedFiberData);
 	}
-	vtkSmartPointer<vtkTable> m_objectTable = creator.table();
 
 	// Create PolyObject visualization
 	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(create3DObjectVis(
-		csvConfig.visType, m_objectTable, io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo));
+		m_objData.get(), QColor(140, 140, 140, 255), 12, 1, nullptr, nullptr, nullptr));
 	if (!m_polyObject)
 	{
 		LOG(lvlError, "Invalid 3D object visualization!");
@@ -122,15 +119,14 @@ void iAXVRAModuleInterface::startXVRA()
 
 	// Start VR
 	auto vrMain = m_mainWnd->moduleDispatcher().module<iAImNDTModuleInterface>();
-	if (!vrMain->ImNDT(m_polyObject, m_objectTable, io, csvConfig))
+	if (!vrMain->ImNDT(m_objData, m_polyObject, io, csvConfig))
 	{
 		return;
 	}
 
 	// Start FeatureScout (after VR, since starting VR could fail due to VR already running!)
 	auto child = m_mainWnd->createMdiChild(false);
-	m_fsMain = new dlg_FeatureScout(child, csvConfig.objectType, csvConfig.fileName, creator.table(),
-		csvConfig.visType, io.getOutputMapping(), m_polyObject);
+	m_fsMain = new dlg_FeatureScout(child, csvConfig.objectType, csvConfig.fileName, m_objData.get(), m_polyObject);
 	iAFeatureScoutToolbar::addForChild(m_mainWnd, child);
 
 	// Add Camera Frustum visualizations:

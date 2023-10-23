@@ -2,22 +2,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAObjectVisFactory.h"
 
+#include "iACylinderObjectVis.h"
+#include "iAEllipsoidObjectVis.h"
 #include "iALabeledVolumeVis.h"
 #include "iALineObjectVis.h"
-#include "iACylinderObjectVis.h"
 #include "iANoObjectVis.h"
-#include "iAEllipsoidObjectVis.h"
-#include "iACsvConfig.h"
+#include "iAObjectsData.h"
 
 #include <iALog.h>
 
-std::shared_ptr<iAObjectVis> create3DObjectVis(iAObjectVisType visType, vtkTable* table,
-	std::shared_ptr<QMap<uint, uint>> columnMapping, QColor const& color,
-	std::map<size_t, std::vector<iAVec3f>>& curvedFiberInfo, int numberOfCylinderSides, size_t segmentSkip,
+std::shared_ptr<iAObjectVis> create3DObjectVis(iAObjectsData const * data, QColor const& color,
+	int numberOfCylinderSides, size_t segmentSkip,
 	vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf, double const* bounds)
 {
-	auto data = std::make_shared<iAObjectsData>(table, columnMapping);
-	switch (visType)
+	switch (data->m_visType)
 	{
 	default:
 	case iAObjectVisType::UseVolume:
@@ -28,10 +26,9 @@ std::shared_ptr<iAObjectVis> create3DObjectVis(iAObjectVisType visType, vtkTable
 		}
 		return std::make_shared<iALabeledVolumeVis>(ctf, otf, data, bounds);
 	case iAObjectVisType::Line:
-		return std::make_shared<iALineObjectVis>(data, color, curvedFiberInfo, segmentSkip);
+		return std::make_shared<iALineObjectVis>(data, color, segmentSkip);
 	case iAObjectVisType::Cylinder:
-		return std::make_shared<iACylinderObjectVis>(
-			data, color, curvedFiberInfo, numberOfCylinderSides, segmentSkip);
+		return std::make_shared<iACylinderObjectVis>(data, color, numberOfCylinderSides, segmentSkip);
 	case iAObjectVisType::Ellipsoid:
 		return std::make_shared<iAEllipsoidObjectVis>(data, color);
 	case iAObjectVisType::None:

@@ -9,7 +9,6 @@
 //iA
 #include "iAMainWindow.h"
 #include "iAQVTKWidget.h"
-#include "iACsvIO.h"
 #include "iACsvConfig.h"
 
 #include <vtkRenderer.h>

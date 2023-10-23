@@ -3,6 +3,7 @@
 #include "iAObjectVis.h"
 
 #include "iACsvConfig.h"
+#include "iAObjectsData.h"
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
@@ -12,13 +13,7 @@
 #include <QColor>
 #include <QtMath>
 
-iAObjectsData::iAObjectsData(vtkTable* table, std::shared_ptr<QMap<uint, uint>> colMapping) :
-	iADataSet(iADataSetType::Objects),
-	m_table(table),
-	m_colMapping(colMapping)
-{}
-
-iAObjectVis::iAObjectVis(std::shared_ptr<iAObjectsData> data):
+iAObjectVis::iAObjectVis(iAObjectsData const* data):
 	m_data(data)
 {}
 
@@ -61,6 +56,9 @@ void iAObjectVisActor::updateRenderer()
 }
 
 void iAObjectVisActor::show()
+{}
+
+void iAObjectVisActor::hide()
 {}
 
 void iAObjectVisActor::clearRenderer()

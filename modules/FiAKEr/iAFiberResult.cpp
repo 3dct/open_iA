@@ -129,10 +129,10 @@ namespace
 	}
 	iAFiberData createFiberData(iAFiberResult const& result, size_t fiberID)
 	{
-		auto const& mapping = *result.mapping.get();
-		auto it = result.curveInfo.find(fiberID);
+		auto const& mapping = *result.objData->m_colMapping.get();
+		auto it = result.objData->m_curvedFiberData.find(fiberID);
 		return iAFiberData(
-			result.table, fiberID, mapping, (it != result.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
+			result.objData->m_table, fiberID, mapping, (it != result.objData->m_curvedFiberData.end()) ? it->second : std::vector<iAVec3f>());
 	}
 
 	iAAABB boundingBoxForFiber(iAFiberData const& fiberData)
@@ -263,15 +263,15 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		}
 
 		iAFiberResult curData;
-		curData.table = tableCreator.table();
-		curData.fiberCount = curData.table->GetNumberOfRows();
+		curData.objData->m_table = tableCreator.table();
+		curData.fiberCount = curData.objData->m_table->GetNumberOfRows();
 		totalFiberCount += curData.fiberCount;
 		if (curData.fiberCount > std::numeric_limits<int>::max())
 		{
 			LOG(lvlError, QString("Large number of objects (%1) detected - currently only up to %2 objects are supported!")
 				.arg(curData.fiberCount).arg(std::numeric_limits<int>::max()));
 		}
-		curData.mapping = io.getOutputMapping();
+		curData.objData->m_colMapping = io.getOutputMapping();
 		curData.fileName = csvFile;
 		if (curData.fiberCount < minFiberCount)
 		{
@@ -292,11 +292,11 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		else
 		{
 			// Check if output mapping is the same (it must be)!
-			for (auto key : result[0].mapping->keys())
+			for (auto key : result[0].objData->m_colMapping->keys())
 			{
-				if (curData.mapping->value(key) != result[0].mapping->value(key))
+				if (curData.objData->m_colMapping->value(key) != result[0].objData->m_colMapping->value(key))
 				{
-					LOG(lvlError, QString("Mapping does not match for result %1, column %2!").arg(csvFile).arg(curData.mapping->value(key)));
+					LOG(lvlError, QString("Mapping does not match for result %1, column %2!").arg(csvFile).arg(curData.objData->m_colMapping->value(key)));
 					return false;
 				}
 			}
@@ -426,7 +426,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 						stepValues[9] = phi;
 						stepValues[10] = theta;
 						stepValues[11] = values[5].toDouble();
-						stepValues[12] = curData.table->GetValue(curFiber, (*curData.mapping)[iACsvConfig::Diameter]).ToDouble();
+						stepValues[12] = curData.objData->m_table->GetValue(curFiber, (*curData.objData->m_colMapping)[iACsvConfig::Diameter]).ToDouble();
 						/*
 						LOG(lvlInfo, QString("Fiber %1, step %2: Start (%3, %4, %5) - End (%6, %7, %8)")
 							.arg(curFiber)
@@ -554,7 +554,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		}
 
 		QString curvedFileName(QFileInfo(csvFile).absolutePath() + "/curved/" + QFileInfo(csvFile).completeBaseName() + "-CurvedFibrePoints.csv");
-		if (readCurvedFiberInfo(curvedFileName, curData.curveInfo))
+		if (readCurvedFiberInfo(curvedFileName, curData.objData->m_curvedFiberData))
 		{
 			curData.curvedFileName = curvedFileName;
 		}
@@ -611,16 +611,16 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 	for (size_t resultID=0; resultID < result.size() && !abort; ++resultID)
 	{
 		auto & curData = result[resultID];
-		vtkIdType numTableColumns = curData.table->GetNumberOfColumns();
+		vtkIdType numTableColumns = curData.objData->m_table->GetNumberOfColumns();
 
-		addColumn(curData.table, resultID, spmData->parameterName(m_resultIDColumn).toStdString().c_str(), curData.fiberCount);
-		addColumn(curData.table, resultID, spmData->parameterName(m_projectionErrorColumn).toStdString().c_str(), curData.fiberCount);
+		addColumn(curData.objData->m_table, resultID, spmData->parameterName(m_resultIDColumn).toStdString().c_str(), curData.fiberCount);
+		addColumn(curData.objData->m_table, resultID, spmData->parameterName(m_projectionErrorColumn).toStdString().c_str(), curData.fiberCount);
 		for (size_t fiberID = 0; fiberID < curData.fiberCount; ++fiberID)
 		{
 			//size_t spmFiberID = spmStartIdx + fiberID;
 			for (vtkIdType col = 0; col < numTableColumns; ++col)
 			{
-				double value = curData.table->GetValue(fiberID, col).ToDouble();
+				double value = curData.objData->m_table->GetValue(fiberID, col).ToDouble();
 				spmData->data()[col].push_back(value);
 			}
 			spmData->data()[m_resultIDColumn].push_back(resultID);
@@ -630,8 +630,8 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 					: 0;
 			spmData->data()[m_projectionErrorColumn].push_back(projErrorRed);
 
-			curData.table->SetValue(fiberID, m_resultIDColumn, resultID);
-			curData.table->SetValue(fiberID, m_projectionErrorColumn, projErrorRed);
+			curData.objData->m_table->SetValue(fiberID, m_resultIDColumn, resultID);
+			curData.objData->m_table->SetValue(fiberID, m_projectionErrorColumn, projErrorRed);
 		}
 		// TODO: reuse spmData also for 3d visualization?
 		//spmStartIdx += curData.fiberCount;

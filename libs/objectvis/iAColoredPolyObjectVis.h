@@ -21,7 +21,7 @@ class iAobjectvis_API iAColoredPolyObjectVis : public iAObjectVis
 public:
 	static const int DefaultContextOpacity = 8;
 	static const int DefaultSelectionOpacity = 128;
-	iAColoredPolyObjectVis(std::shared_ptr<iAObjectsData> data, QColor const & neutralColor);
+	iAColoredPolyObjectVis(iAObjectsData const*, QColor const & neutralColor);
 
 	//! @{ "legacy" methods for various selection/coloring options, specific to FeatureScout module
 	void renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem) override;

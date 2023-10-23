@@ -5,7 +5,6 @@
 #include "iaguibase_export.h"
 
 #include "iADataSetRenderer.h"
-#include "iADefaultSettings.h"
 
 #include <vtkSmartPointer.h>
 

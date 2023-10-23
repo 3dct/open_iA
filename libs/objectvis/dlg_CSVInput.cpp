@@ -150,7 +150,7 @@ void dlg_CSVInput::connectSignals()
 {
 	connect(m_ui->btn_SelectFile, &QPushButton::clicked, this, &dlg_CSVInput::selectFileBtnClicked);
 	connect(m_ui->cmbbox_FileName, &QComboBox::currentTextChanged, this, &dlg_CSVInput::fileNameChanged);
-	connect(m_ui->cb_CurvedFiberInfo, &QCheckBox::stateChanged, this, &dlg_CSVInput::curvedFiberInfoChanged);
+	connect(m_ui->cb_CurvedFiberInfo, &QCheckBox::stateChanged, this, &dlg_CSVInput::curvedFiberDataChanged);
 	connect(m_ui->btn_SelectCurvedFile, &QPushButton::clicked, this, &dlg_CSVInput::selectCurvedFileBtnClicked);
 	connect(m_ui->btn_SaveFormat, &QPushButton::clicked, this, &dlg_CSVInput::saveFormatBtnClicked);
 	connect(m_ui->btn_DeleteFormat, &QPushButton::clicked, this, &dlg_CSVInput::deleteFormatBtnClicked);
@@ -568,7 +568,7 @@ void dlg_CSVInput::selectCurvedFileBtnClicked()
 	m_ui->ed_CurvedFileName->setText(fileName);
 }
 
-void dlg_CSVInput::curvedFiberInfoChanged()
+void dlg_CSVInput::curvedFiberDataChanged()
 {
 	m_ui->ed_CurvedFileName->setEnabled(m_ui->cb_CurvedFiberInfo->isChecked());
 	m_ui->btn_SelectCurvedFile->setEnabled(m_ui->cb_CurvedFiberInfo->isChecked());

@@ -22,6 +22,7 @@ public:
 	std::shared_ptr<iAPolyObjectVisActor> mini3DActor;
 	std::shared_ptr<iAColoredPolyObjectVis> main3DVis;
 	std::shared_ptr<iAPolyObjectVisActor> main3DActor;
+	std::shared_ptr<iAObjectsData> main3DObjData;
 	iAChartWidget* histoChart;
 	iAStackedBarChart* stackedBars;
 	iAFixedAspectWidget* previewWidget = nullptr;

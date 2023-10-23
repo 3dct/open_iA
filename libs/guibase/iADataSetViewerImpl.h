@@ -56,3 +56,9 @@ using iADataSetViewerCreateFuncPtr = std::shared_ptr<iADataSetViewer>(*)(iADataS
 iAguibase_API std::map<iADataSetType, iADataSetViewerCreateFuncPtr>& dataSetViewerFactoryMap();
 
 iAguibase_API std::shared_ptr<iADataSetViewer> createDataSetViewer(iADataSet* dataSet);
+
+template <class ViewerType>
+std::shared_ptr<iADataSetViewer> createFunc(iADataSet* ds)
+{
+	return std::make_shared<ViewerType>(ds);
+}

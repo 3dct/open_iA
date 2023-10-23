@@ -17,6 +17,7 @@
 #include <vector>
 
 class dlg_FeatureScout;
+class iAObjectsData;
 
 class vtkTable;
 
@@ -55,9 +56,9 @@ public:
 
 private:
 	bool initFromConfig(iAMdiChild* child, iACsvConfig const& csvConfig);
-	void init(int filterID, QString const& fileName, vtkSmartPointer<vtkTable> csvtbl, iAObjectVisType visType,
-		std::shared_ptr<QMap<uint, uint>> columnMapping, std::map<size_t, std::vector<iAVec3f>>& curvedFiberInfo,
+	void init(int objectType, QString const& fileName, std::shared_ptr<iAObjectsData> objData,
 		int cylinderQuality, size_t segmentSkip);
 	iACsvConfig m_config;
 	dlg_FeatureScout * m_featureScout;
+	std::shared_ptr<iAObjectsData> m_objData;    // for the case of labelled volume data (for which the viewer cannot be created automatically), we need to store data ourselves
 };

@@ -40,7 +40,7 @@ private slots:
 	//! On button click for selecting curved CSV file
 	void selectCurvedFileBtnClicked();
 	//! when checkbox for curved fiber info
-	void curvedFiberInfoChanged();
+	void curvedFiberDataChanged();
 	//! handles a click on the OK button
 	void okBtnClicked();
 	//! load format based on selected input format (ex. mavi/ vg, ...)

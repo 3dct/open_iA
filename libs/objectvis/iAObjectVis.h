@@ -5,9 +5,6 @@
 #include "iaobjectvis_export.h"
 
 #include "iAObjectVisActor.h"
-#include "iAObjectType.h"
-
-#include <iADataSet.h>
 
 #include <vtkType.h>
 
@@ -17,6 +14,8 @@
 #include <memory>
 #include <vector>
 
+class iAObjectsData;
+
 class vtkColorTransferFunction;
 class vtkFloatArray;
 class vtkImageData;
@@ -25,17 +24,6 @@ class vtkTable;
 
 class QColor;
 class QStandardItem;
-
-//! dataset type containing data about a list of objects of same type
-class iAobjectvis_API iAObjectsData : public iADataSet
-{
-public:
-	iAObjectsData(vtkTable* m_table, std::shared_ptr<QMap<uint, uint>> m_colMapping);
-	vtkTable* m_table;
-	std::shared_ptr<QMap<uint, uint>> m_colMapping;
-	iAObjectVisType m_visType;
-	// maybe also store csv config?
-};
 
 //! Base class for 3D visualizations of objects (e.g. fibers or pores) defined in a table.
 //!
@@ -48,7 +36,7 @@ public:
 	//! (Implementation Note: if vtkTable is replaced by something else, e.g. SPMData or a general table class, this might need to be adapted)
 	typedef vtkIdType IndexType;
 	static const QColor SelectedColor;
-	iAObjectVis(std::shared_ptr<iAObjectsData> data);
+	iAObjectVis(iAObjectsData const* data);
 	virtual ~iAObjectVis();
 	virtual void renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem ) =0;
 	virtual void renderSingle(IndexType selectedObjID, int classID, QColor const & classColor, QStandardItem* activeClassItem ) =0;
@@ -66,5 +54,5 @@ protected:
 	QColor getOrientationColor( vtkImageData* oi, IndexType objID ) const;
 	QColor getLengthColor( vtkColorTransferFunction* ctFun, IndexType objID ) const;
 
-	std::shared_ptr<iAObjectsData> m_data;
+	iAObjectsData const* m_data;
 };

@@ -8,19 +8,17 @@
 
 #include <iAGUIModuleInterface.h>
 
-#include <vtkSmartPointer.h>
-
 #include <memory>
 
 class iAImNDTMain;
 class iAVREnvironment;
 
+class iAObjectsData;
 class iAColoredPolyObjectVis;
 
 class iADataSetRenderer;
 
 class vtkRenderer;
-class vtkTable;
 
 class QAction;
 
@@ -29,8 +27,7 @@ class ImNDT_API iAImNDTModuleInterface : public iAGUIModuleInterface{
 public:
 	~iAImNDTModuleInterface();
 	void Initialize() override;
-	bool ImNDT(std::shared_ptr<iAColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io,
-		iACsvConfig csvConfig);
+	bool ImNDT(std::shared_ptr<iAObjectsData> objData, std::shared_ptr<iAColoredPolyObjectVis> polyObject, iACsvIO io, iACsvConfig csvConfig);
 	vtkRenderer* getRenderer();
 
 signals:
@@ -50,7 +47,7 @@ private:
 	std::shared_ptr<iAImNDTMain> m_vrMain;
 	iACsvConfig m_csvConfig;
 	iACsvIO m_io;
-	vtkSmartPointer<vtkTable> m_objectTable;
+	std::shared_ptr<iAObjectsData> m_objData;
 	//! @}
 	QAction *m_actionVRStartAnalysis;
 

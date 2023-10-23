@@ -3,6 +3,7 @@
 #include "iALineObjectVis.h"
 
 #include "iACsvConfig.h"
+#include "iAObjectsData.h"
 
 #include <iALog.h>
 
@@ -12,22 +13,20 @@
 #include <vtkPolyLine.h>
 #include <vtkTable.h>
 
-iALineObjectVis::iALineObjectVis(std::shared_ptr<iAObjectsData> data, QColor const& color,
-	std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, size_t segmentSkip):
+iALineObjectVis::iALineObjectVis(iAObjectsData const* data, QColor const& color, size_t segmentSkip):
 	iAColoredPolyObjectVis(data, color),
 	m_linePolyData(vtkSmartPointer<vtkPolyData>::New()),
 	m_points(vtkSmartPointer<vtkPoints>::New()),
-	m_curvedFiberData(curvedFiberData),
 	m_totalNumOfSegments(0)
 {
 	auto lines = vtkSmartPointer<vtkCellArray>::New();
 	for (vtkIdType row = 0; row < m_data->m_table->GetNumberOfRows(); ++row)
 	{
 		//int labelID = m_data->m_table->GetValue(row, 0).ToInt();
-		auto it = curvedFiberData.find(row);
+		auto it = data->m_curvedFiberData.find(row);
 		IndexType numberOfPts;
 		IndexType totalNumOfPtsBefore = m_points->GetNumberOfPoints();
-		if (it != curvedFiberData.end())
+		if (it != data->m_curvedFiberData.end())
 		{
 			auto line = vtkSmartPointer<vtkPolyLine>::New();
 			size_t availNumOfSegs = it->second.size();

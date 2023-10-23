@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iANoObjectVis.h"
 
-iANoObjectVis::iANoObjectVis(): iAObjectVis(std::shared_ptr<iAObjectsData>())
+iANoObjectVis::iANoObjectVis(): iAObjectVis(nullptr)
 {
 	std::fill(m_dummyBounds, m_dummyBounds + 3, 0);
 	std::fill(m_dummyBounds +3, m_dummyBounds + 6, 1);

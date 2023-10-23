@@ -3,6 +3,7 @@
 #pragma once
 
 #include "iACsvConfig.h"
+#include "iAObjectsData.h"
 
 #include <iAAABB.h>
 #include <iAAbortListener.h>
@@ -68,11 +69,8 @@ QDataStream &operator>>(QDataStream &in, iARefDiffFiberData &s);
 class iAFiberResult
 {
 public:
-	//! the fiber data as vtkTable, mainly for the 3d visualization
-	// TODO: deduplicate data here and in iAFiberResultsCollection::spmData
-	vtkSmartPointer<vtkTable> table;
-	//! mapping of the columns in m_resultTable
-	std::shared_ptr<QMap<uint, uint> > mapping;
+	//! objects table, column mapping, curved fiber data
+	std::shared_ptr<iAObjectsData> objData;
 	//! name of the csv file this result was loaded from
 	QString fileName;
 	//! name of the csv file the curved info for this file was loaded from
@@ -82,8 +80,6 @@ public:
 	StepDataType stepData;
 	//! values for all steps, stored as: step, fiber, fibervalues
 	std::vector<std::vector<std::vector<double> > > stepValues;
-	//! information on curved fibers; fiber_id (size_t) maps to list of points along fiber
-	std::map<size_t, std::vector<iAVec3f> > curveInfo;
 	//! projection error stored as fiber, step, global projection error
 	std::vector<QVector<double > > projectionError;
 	//! number of fibers in the dataset:

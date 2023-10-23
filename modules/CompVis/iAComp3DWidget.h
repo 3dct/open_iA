@@ -14,15 +14,13 @@
 //vtk
 #include <vtkSmartPointer.h>
 
-
-//CompVis
-class iAMainWindow;
-
-//iA
-class iAQVTKWidget;
 struct iACsvConfig;
 class iAColoredPolyObjectVis;
+class iAObjectsData;
 class iAPolyObjectVisActor;
+
+class iAQVTKWidget;
+class iAMainWindow;
 
 //vtk
 class vtkTable;
@@ -62,6 +60,7 @@ private:
 	/*** Rendering ***/
 	std::shared_ptr<iAColoredPolyObjectVis> m_3dvisData;
 	std::shared_ptr<iAPolyObjectVisActor> m_3dvisActor;
+	std::shared_ptr<iAObjectsData> m_objData;
 
 	iAQVTKWidget* m_qvtkWidget;
 	vtkSmartPointer<vtkRenderer> m_renderer;

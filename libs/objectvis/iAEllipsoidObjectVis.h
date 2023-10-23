@@ -17,7 +17,7 @@ class iAobjectvis_API iAEllipsoidObjectVis : public iAColoredPolyObjectVis
 public:
 	static const int DefaultPhiRes = 10;
 	static const int DefaultThetaRes = 10;
-	iAEllipsoidObjectVis(std::shared_ptr<iAObjectsData> data,
+	iAEllipsoidObjectVis(iAObjectsData const* data,
 		QColor const & color, int phiRes = DefaultPhiRes, int thetaRes = DefaultThetaRes);
 	double const * bounds() override;
 	vtkPolyData* polyData() override;

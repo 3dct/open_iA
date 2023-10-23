@@ -235,8 +235,9 @@ private:
 	//! column index for the columns of the result list:
 	int m_nameActionColumn, m_previewColumn, m_histogramColumn, m_stackedBarColumn;
 
-	std::shared_ptr<iACylinderObjectVis> m_nearestReferenceVis;
-	std::shared_ptr<iAPolyObjectVisActor> m_nearestReferenceActor;
+	std::shared_ptr<iACylinderObjectVis> m_nearestRefObjVis;
+	std::shared_ptr<iAPolyObjectVisActor> m_nearestRefObjActor;
+	std::shared_ptr<iAObjectsData> m_nearestRefObjData;
 
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;

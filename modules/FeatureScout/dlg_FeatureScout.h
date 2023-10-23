@@ -27,6 +27,7 @@ class iARenderer;
 class iAMdiChild;
 class iAQVTKWidget;
 
+class iAObjectsData;
 class iAObjectVis;
 class iAObjectVisActor;
 
@@ -74,9 +75,8 @@ class FeatureScout_API dlg_FeatureScout : public QDockWidget
 public:
 	static const QString DlgObjectName;
 	static const QString UnclassifiedColorName;
-	dlg_FeatureScout(iAMdiChild *parent, iAObjectType fid, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl,
-		iAObjectVisType visType, std::shared_ptr<QMap<uint, uint>> columnMapping,
-		std::shared_ptr<iAObjectVis> objvis);
+	dlg_FeatureScout(iAMdiChild *parent, iAObjectType objectType, QString const & fileName,
+		iAObjectsData const* objData, std::shared_ptr<iAObjectVis> objvis);
 	~dlg_FeatureScout();
 	void showPCSettings();            //!< show settings dialog for parallel coordinates
 	void showScatterPlot();           //!< show the scatter plot matrix
@@ -170,12 +170,12 @@ private:
 	//! @}
 
 	int m_elementCount;                             //!< Number of elements(=columns) in csv inputTable
-	int m_objectCount;                             //!< Number of objects in the specimen
-	iAObjectType m_filterID;            //!< Type of objects that are shown
+	int m_objectCount;                              //!< Number of objects in the specimen
+	iAObjectType m_objectType;                      //!< Type of objects that are shown
 	bool m_draw3DPolarPlot;                         //!< Whether the polar plot is drawn in 3D, set only in constructor, default false
 	int m_renderMode;                               //!< Indicates what is currently shown: single classes, or special rendering (multi-class, orientation, ...)
 	bool m_singleObjectSelected;                    //!< Indicates whether a single object or a whole class is selected (if m_renderMode is rmSingleClass)
-	iAObjectVisType m_visualization;                //!< 3D visualization being used
+	iAObjectVisType m_visType;                      //!< 3D visualization being used
 	const QString m_sourcePath;                     //!< folder of file currently opened
 
 	//! Input csv table with all objects.

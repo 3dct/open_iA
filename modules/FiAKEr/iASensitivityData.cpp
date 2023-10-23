@@ -315,7 +315,7 @@ void iASensitivityData::compute(iAProgress* progress)
 			std::vector<double> fiberData(r.fiberCount);
 			for (size_t fiberID = 0; fiberID < r.fiberCount; ++fiberID)
 			{
-				fiberData[fiberID] = r.table->GetValue(fiberID, charIdx).ToDouble();
+				fiberData[fiberID] = r.objData->m_table->GetValue(fiberID, charIdx).ToDouble();
 			}
 			auto histogram = createHistogram(fiberData, m_histogramBins, rangeMin, rangeMax);
 			m_charHistograms[static_cast<qvectorsizetype>(rIdx)].push_back(histogram);
@@ -812,7 +812,7 @@ void iASensitivityData::compute(iAProgress* progress)
 		for (int r1 = 0; r1 < resultCount && !m_aborted; ++r1)
 		{
 			auto& res1 = m_data->result[r1];
-			auto const& mapping = *res1.mapping.get();
+			auto const& mapping = *res1.objData->m_colMapping.get();
 			// TODO: only center -> should use bounding box instead!
 			double const* cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
 				* cyr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterY]),
@@ -1161,8 +1161,8 @@ double oneSidedCharacteristicsDifference(int charIdx, iAResultPairInfo const& ma
 		// compute difference in characteristic charIdx
 		size_t f1 = matches[measureIdx][0]
 						.index;  // best match to fiber f0 in result r1 with dissimilarity measure measureIdx
-		double f0Val = r0.table->GetValue(f0, charIdx).ToDouble();
-		double f1Val = r1.table->GetValue(f1, charIdx).ToDouble();
+		double f0Val = r0.objData->m_table->GetValue(f0, charIdx).ToDouble();
+		double f1Val = r1.objData->m_table->GetValue(f1, charIdx).ToDouble();
 		double diff = std::abs(f0Val - f1Val);
 		diffSum += diff;
 		if (diff > diffMax)
