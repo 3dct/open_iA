@@ -6,7 +6,6 @@
 #include <iAAutoRegistration.h>
 #include <iAFilter.h>
 #include <iAFilterRegistry.h>
-#include <iAFilterRunnerGUI.h>
 
 class iADataSet;
 class iAImageSampler;
@@ -32,10 +31,3 @@ private:
 	iAImageSampler * m_sampler;
 };
 
-class iASampleFilterRunnerGUI : public iAFilterRunnerGUI
-{
-public:
-	static std::shared_ptr<iAFilterRunnerGUI> create();
-	bool askForParameters(std::shared_ptr<iAFilter> filter, QVariantMap& paramValues,
-		iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool askForAdditionalInput) override;
-};

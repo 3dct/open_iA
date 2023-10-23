@@ -3,10 +3,8 @@
 #pragma once
 
 #include <iAFilterDefault.h>
-#include "iAFilterRunnerGUI.h"
-
-IAFILTER_DEFAULT_CLASS(iAASTRAForwardProject);
-IAFILTER_DEFAULT_CLASS(iAASTRAReconstruct);
+IAFILTER_DEFAULT_CLASS(iAAstraForwardProject);
+IAFILTER_DEFAULT_CLASS(iAAstraReconstruct);
 
 enum AstraReconstructionMethods
 {
@@ -16,12 +14,38 @@ enum AstraReconstructionMethods
 	CGLS3D
 };
 
-
-class iAASTRAFilterRunner : public iAFilterRunnerGUI
+//! Container for constant names for parameters to Astra algorithms
+class AstraParameters
 {
 public:
-	static std::shared_ptr<iAFilterRunnerGUI> create();
-	void run(std::shared_ptr<iAFilter> filter, iAMainWindow* mainWnd) override;
-	bool askForParameters(std::shared_ptr<iAFilter> filter, QVariantMap & paramValues,
-		iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool askForAdditionalInput) override;
+	// names of all parameters (to avoid ambiguous strings)
+	static const QString ProjGeometry;
+	static const QString DetSpcX;
+	static const QString DetSpcY;
+	static const QString ProjAngleStart;
+	static const QString ProjAngleEnd;
+	static const QString ProjAngleCnt;
+	static const QString DetRowCnt;
+	static const QString DetColCnt;
+	static const QString ProjAngleDim;
+	static const QString DetRowDim;
+	static const QString DetColDim;
+	static const QString DstOrigDet;
+	static const QString DstOrigSrc;
+	static const QString CenterOfRotCorr;
+	static const QString CenterOfRotOfs;
+	static const QString InitWithFDK;
+	static const QString VolDimX;
+	static const QString VolDimY;
+	static const QString VolDimZ;
+	static const QString VolSpcX;
+	static const QString VolSpcY;
+	static const QString VolSpcZ;
+	static const QString AlgoType;
+	static const QString NumberOfIterations;
+
+	static QStringList algorithmStrings();
+	static int mapAlgoStringToIndex(QString const& algo);
+	static QString mapAlgoIndexToString(int astraIndex);
 };
+

@@ -2,13 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAAstraAlgorithm.h"
 
-#include "dlg_ProjectionParameters.h"
-
-#include <iACudaHelper.h>
 #include <iAImageData.h>
 #include <iALog.h>
-#include <iAMainWindow.h>
-#include <iAMdiChild.h>
 #include <iAToolsVTK.h>
 #include <iATypedCallHelper.h>
 #include <iAVec3.h>
@@ -19,42 +14,40 @@
 #include <astra/CudaSirtAlgorithm3D.h>
 #include <astra/CudaForwardProjectionAlgorithm3D.h>
 #include <astra/CudaProjector3D.h>
-#include <astra/Logging.h>
 
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>
 
-#include <QMessageBox>
 #include <QtMath>  // for qDegreesToRadians
+
+// names of all parameters (to avoid ambiguous strings)
+const QString AstraParameters::ProjGeometry("Projection Geometry");
+const QString AstraParameters::DetSpcX("Detector Spacing X");
+const QString AstraParameters::DetSpcY("Detector Spacing Y");
+const QString AstraParameters::ProjAngleStart("Projection Angle Start");
+const QString AstraParameters::ProjAngleEnd("Projection Angle End");
+const QString AstraParameters::ProjAngleCnt("Projection Angle Count");
+const QString AstraParameters::DetRowCnt("Detector Row Count");
+const QString AstraParameters::DetColCnt("Detector Column Count");
+const QString AstraParameters::ProjAngleDim("Projection Angle Dimension");
+const QString AstraParameters::DetRowDim("Detector Row Dimension");
+const QString AstraParameters::DetColDim("Detector Column Dimension");
+const QString AstraParameters::DstOrigDet("Distance Origin-Detector");
+const QString AstraParameters::DstOrigSrc("Distance Origin-Source");
+const QString AstraParameters::CenterOfRotCorr("Center of Rotation Correction");
+const QString AstraParameters::CenterOfRotOfs("Center of Rotation Offset");
+const QString AstraParameters::InitWithFDK("Initialize with FDK");
+const QString AstraParameters::VolDimX("Volume Dimension X");
+const QString AstraParameters::VolDimY("Volume Dimension Y");
+const QString AstraParameters::VolDimZ("Volume Dimension Z");
+const QString AstraParameters::VolSpcX("Volume Spacing X");
+const QString AstraParameters::VolSpcY("Volume Spacing Y");
+const QString AstraParameters::VolSpcZ("Volume Spacing Z");
+const QString AstraParameters::AlgoType("Algorithm Type");
+const QString AstraParameters::NumberOfIterations("Number of Iterations");
 
 namespace
 {
-	// names of all parameters (to avoid ambiguous strings)
-	QString ProjGeometry = "Projection Geometry";
-	QString DetSpcX = "Detector Spacing X";
-	QString DetSpcY = "Detector Spacing Y";
-	QString ProjAngleStart = "Projection Angle Start";
-	QString ProjAngleEnd = "Projection Angle End";
-	QString ProjAngleCnt = "Projection Angle Count";
-	QString DetRowCnt = "Detector Row Count";
-	QString DetColCnt = "Detector Column Count";
-	QString ProjAngleDim = "Projection Angle Dimension";
-	QString DetRowDim = "Detector Row Dimension";
-	QString DetColDim = "Detector Column Dimension";
-	QString DstOrigDet = "Distance Origin-Detector";
-	QString DstOrigSrc = "Distance Origin-Source";
-	QString CenterOfRotCorr = "Center of Rotation Correction";
-	QString CenterOfRotOfs = "Center of Rotation Offset";
-	QString InitWithFDK = "Initialize with FDK";
-	QString VolDimX = "Volume Dimension X";
-	QString VolDimY = "Volume Dimension Y";
-	QString VolDimZ = "Volume Dimension Z";
-	QString VolSpcX = "Volume Spacing X";
-	QString VolSpcY = "Volume Spacing Y";
-	QString VolSpcZ = "Volume Spacing Z";
-	QString AlgoType = "Algorithm Type";
-	QString NumberOfIterations = "Number of Iterations";
-
 	QString linspace(double projAngleStart, double projAngleEnd, int projAnglesCount)
 	{
 		QString result;
@@ -71,16 +64,16 @@ namespace
 	{
 		astra::XMLNode projGeomNode = projectorConfig.self.addChildNode("ProjectionGeometry");
 		projGeomNode.addAttribute("type", "cone");
-		projGeomNode.addChildNode("DetectorSpacingX", parameters[DetSpcX].toDouble());
-		projGeomNode.addChildNode("DetectorSpacingY", parameters[DetSpcY].toDouble());
+		projGeomNode.addChildNode("DetectorSpacingX", parameters[AstraParameters::DetSpcX].toDouble());
+		projGeomNode.addChildNode("DetectorSpacingY", parameters[AstraParameters::DetSpcY].toDouble());
 		projGeomNode.addChildNode("DetectorRowCount", detRowCnt);
 		projGeomNode.addChildNode("DetectorColCount", detColCnt);
 		projGeomNode.addChildNode("ProjectionAngles", linspace(
-			qDegreesToRadians(parameters[ProjAngleStart].toDouble()),
-			qDegreesToRadians(parameters[ProjAngleEnd].toDouble()),
+			qDegreesToRadians(parameters[AstraParameters::ProjAngleStart].toDouble()),
+			qDegreesToRadians(parameters[AstraParameters::ProjAngleEnd].toDouble()),
 			projAngleCnt).toStdString());
-		projGeomNode.addChildNode("DistanceOriginDetector", parameters[DstOrigDet].toDouble());
-		projGeomNode.addChildNode("DistanceOriginSource",   parameters[DstOrigSrc].toDouble());
+		projGeomNode.addChildNode("DistanceOriginDetector", parameters[AstraParameters::DstOrigDet].toDouble());
+		projGeomNode.addChildNode("DistanceOriginSource",   parameters[AstraParameters::DstOrigSrc].toDouble());
 	}
 
 
@@ -89,24 +82,24 @@ namespace
 		QString vectors;
 		for (size_t i = 0; i<projAngleCnt; ++i)
 		{
-			double curAngle = qDegreesToRadians(parameters[ProjAngleStart].toDouble()) +
-				i*(qDegreesToRadians(parameters[ProjAngleEnd].toDouble())
-					- qDegreesToRadians(parameters[ProjAngleStart].toDouble())) /
+			double curAngle = qDegreesToRadians(parameters[AstraParameters::ProjAngleStart].toDouble()) +
+				i*(qDegreesToRadians(parameters[AstraParameters::ProjAngleEnd].toDouble())
+					- qDegreesToRadians(parameters[AstraParameters::ProjAngleStart].toDouble())) /
 				(projAngleCnt - 1);
 			iAVec3f sourcePos(
-				std::sin(curAngle) * parameters[DstOrigSrc].toDouble(),
-				-std::cos(curAngle) * parameters[DstOrigSrc].toDouble(),
+				std::sin(curAngle) * parameters[AstraParameters::DstOrigSrc].toDouble(),
+				-std::cos(curAngle) * parameters[AstraParameters::DstOrigSrc].toDouble(),
 				0);
 			iAVec3f detectorCenter(
-				-std::sin(curAngle) * parameters[DstOrigDet].toDouble(),
-				std::cos(curAngle) * parameters[DstOrigDet].toDouble(),
+				-std::sin(curAngle) * parameters[AstraParameters::DstOrigDet].toDouble(),
+				std::cos(curAngle) * parameters[AstraParameters::DstOrigDet].toDouble(),
 				0);
 			iAVec3f detectorPixelHorizVec(				// vector from detector pixel(0, 0) to(0, 1)
-				std::cos(curAngle) * parameters[DetSpcX].toDouble(),
-				std::sin(curAngle) * parameters[DetSpcX].toDouble(),
+				std::cos(curAngle) * parameters[AstraParameters::DetSpcX].toDouble(),
+				std::sin(curAngle) * parameters[AstraParameters::DetSpcX].toDouble(),
 				0);
-			iAVec3f detectorPixelVertVec(0, 0, parameters[DetSpcY].toDouble()); // vector from detector pixel(0, 0) to(1, 0)
-			iAVec3f shiftVec = detectorPixelHorizVec.normalized() * parameters[CenterOfRotOfs].toDouble();
+			iAVec3f detectorPixelVertVec(0, 0, parameters[AstraParameters::DetSpcY].toDouble()); // vector from detector pixel(0, 0) to(1, 0)
+			iAVec3f shiftVec = detectorPixelHorizVec.normalized() * parameters[AstraParameters::CenterOfRotOfs].toDouble();
 			sourcePos += shiftVec;
 			detectorCenter += shiftVec;
 
@@ -175,63 +168,65 @@ namespace
 		}
 	}
 
-	QStringList algorithmStrings()
-	{
-		static QStringList algorithms;
-		if (algorithms.empty())
-		{
-			algorithms << "BP" << "FDK" << "SIRT" << "CGLS";
-		}
-		return algorithms;
-	}
-
-	int mapAlgoStringToIndex(QString const & algo)
-	{
-		if (algorithmStrings().indexOf(algo) == -1)
-		{
-			LOG(lvlWarn, QString("Invalid algorithm string - "
-				"%1 is not in the list of valid algorithms (%2)!")
-				.arg(algo).arg(algorithmStrings().join(", ")) );
-			return FDK3D;
-		}
-		return algorithmStrings().indexOf(algo);
-	}
-
-	QString mapAlgoIndexToString(int astraIndex)
-	{
-		if (astraIndex < 0 || astraIndex >= algorithmStrings().size())
-		{
-			LOG(lvlWarn, QString("Invalid algorithm index - "
-				"%1 is not in the valid range (0..%2)!")
-				.arg(astraIndex).arg(algorithmStrings().size()-1));
-			return "Invalid";
-		}
-		return algorithmStrings()[astraIndex];
-	}
-
 	void addCommonForwardReconstructParams(iAFilter* filter)
 	{
 		QStringList projectionGeometries; projectionGeometries << "cone";
-		filter->addParameter(ProjGeometry, iAValueType::Categorical, projectionGeometries);
-		filter->addParameter(DetSpcX, iAValueType::Continuous, 1.0, 0.0);
-		filter->addParameter(DetSpcY, iAValueType::Continuous, 1.0, 0.0);
-		filter->addParameter(ProjAngleStart, iAValueType::Continuous, 0.0);
-		filter->addParameter(ProjAngleEnd, iAValueType::Continuous, 359.0);
-		filter->addParameter(DstOrigDet, iAValueType::Continuous, 1.0);
-		filter->addParameter(DstOrigSrc, iAValueType::Continuous, 1.0);
+		filter->addParameter(AstraParameters::ProjGeometry, iAValueType::Categorical, projectionGeometries);
+		filter->addParameter(AstraParameters::DetSpcX, iAValueType::Continuous, 1.0, 0.0);
+		filter->addParameter(AstraParameters::DetSpcY, iAValueType::Continuous, 1.0, 0.0);
+		filter->addParameter(AstraParameters::ProjAngleStart, iAValueType::Continuous, 0.0);
+		filter->addParameter(AstraParameters::ProjAngleEnd, iAValueType::Continuous, 359.0);
+		filter->addParameter(AstraParameters::DstOrigDet, iAValueType::Continuous, 1.0);
+		filter->addParameter(AstraParameters::DstOrigSrc, iAValueType::Continuous, 1.0);
 	}
 }
 
 
 
-iAASTRAForwardProject::iAASTRAForwardProject() :
+QStringList AstraParameters::algorithmStrings()
+{
+	static QStringList algorithms;
+	if (algorithms.empty())
+	{
+		algorithms << "BP" << "FDK" << "SIRT" << "CGLS";
+	}
+	return algorithms;
+}
+
+int AstraParameters::mapAlgoStringToIndex(QString const& algo)
+{
+	if (algorithmStrings().indexOf(algo) == -1)
+	{
+		LOG(lvlWarn, QString("Invalid algorithm string - "
+			"%1 is not in the list of valid algorithms (%2)!")
+			.arg(algo).arg(algorithmStrings().join(", ")));
+		return FDK3D;
+	}
+	return algorithmStrings().indexOf(algo);
+}
+
+QString AstraParameters::mapAlgoIndexToString(int astraIndex)
+{
+	if (astraIndex < 0 || astraIndex >= algorithmStrings().size())
+	{
+		LOG(lvlWarn, QString("Invalid algorithm index - "
+			"%1 is not in the valid range (0..%2)!")
+			.arg(astraIndex).arg(algorithmStrings().size() - 1));
+		return "Invalid";
+	}
+	return algorithmStrings()[astraIndex];
+}
+
+
+
+iAAstraForwardProject::iAAstraForwardProject() :
 	iAFilter("ASTRA Forward Projection", "Reconstruction/ASTRA Toolbox",
 		"Forward Projection with the ASTRA Toolbox")
 {
 	addCommonForwardReconstructParams(this);
-	addParameter(DetRowCnt, iAValueType::Discrete, 512);
-	addParameter(DetColCnt, iAValueType::Discrete, 512);
-	addParameter(ProjAngleCnt, iAValueType::Discrete, 360);
+	addParameter(AstraParameters::DetRowCnt, iAValueType::Discrete, 512);
+	addParameter(AstraParameters::DetColCnt, iAValueType::Discrete, 512);
+	addParameter(AstraParameters::ProjAngleCnt, iAValueType::Discrete, 360);
 }
 
 class CPPAstraCustomMemory: public astra::CFloat32CustomMemory
@@ -247,7 +242,7 @@ public:
 	}
 };
 
-void iAASTRAForwardProject::performWork(QVariantMap const & parameters)
+void iAAstraForwardProject::performWork(QVariantMap const & parameters)
 {
 	vtkSmartPointer<vtkImageData> volImg = imageInput(0)->vtkImage();
 	int * volDim = volImg->GetDimensions();
@@ -263,7 +258,7 @@ void iAASTRAForwardProject::performWork(QVariantMap const & parameters)
 	"DetectorSuperSampling"
 	"DensityWeighting"
 	*/
-	createConeProjGeom(projectorConfig, parameters, parameters[DetRowCnt].toUInt(), parameters[DetColCnt].toUInt(), parameters[ProjAngleCnt].toUInt());
+	createConeProjGeom(projectorConfig, parameters, parameters[AstraParameters::DetRowCnt].toUInt(), parameters[AstraParameters::DetColCnt].toUInt(), parameters[AstraParameters::ProjAngleCnt].toUInt());
 
 	astra::XMLNode volGeomNode = projectorConfig.self.addChildNode("VolumeGeometry");
 	fillVolumeGeometryNode(volGeomNode, volDim, volImg->GetSpacing());
@@ -280,20 +275,20 @@ void iAASTRAForwardProject::performWork(QVariantMap const & parameters)
 	algorithm->run();
 
 	int projDim[3] = {
-		parameters[DetColCnt].toInt(),
-		parameters[DetRowCnt].toInt(),
-		parameters[ProjAngleCnt].toInt() };
+		parameters[AstraParameters::DetColCnt].toInt(),
+		parameters[AstraParameters::DetRowCnt].toInt(),
+		parameters[AstraParameters::ProjAngleCnt].toInt() };
 	double projSpacing[3] = {
-		parameters[DetSpcX].toDouble(),
-		parameters[DetSpcY].toDouble(),
+		parameters[AstraParameters::DetSpcX].toDouble(),
+		parameters[AstraParameters::DetSpcY].toDouble(),
 		// "normalize" z spacing with projections count to make sinograms with different counts more easily comparable:
-		parameters[DetSpcX].toDouble() * 180 / parameters[ProjAngleCnt].toDouble() };
+		parameters[AstraParameters::DetSpcX].toDouble() * 180 / parameters[AstraParameters::ProjAngleCnt].toDouble() };
 	auto projImg = allocateImage(VTK_FLOAT, projDim, projSpacing);
 	float* projImgBuf = static_cast<float*>(projImg->GetScalarPointer());
 	astra::float32* projData = projectionData->getData();
 	size_t imgIndex = 0;
-	unsigned int projAngleCount = parameters[ProjAngleCnt].toUInt();
-	unsigned int detectorColCnt = parameters[DetColCnt].toUInt();
+	unsigned int projAngleCount = parameters[AstraParameters::ProjAngleCnt].toUInt();
+	unsigned int detectorColCnt = parameters[AstraParameters::DetColCnt].toUInt();
 	for (size_t z = 0; z < static_cast<size_t>(projDim[2]); ++z)
 	{
 		for (int y = 0; y < projDim[1]; ++y)
@@ -319,28 +314,28 @@ void iAASTRAForwardProject::performWork(QVariantMap const & parameters)
 
 
 
-iAASTRAReconstruct::iAASTRAReconstruct() :
+iAAstraReconstruct::iAAstraReconstruct() :
 	iAFilter("ASTRA Reconstruction", "Reconstruction/ASTRA Toolbox",
 		"Reconstruction with the ASTRA Toolbox")
 {
 	addCommonForwardReconstructParams(this);
-	addParameter(DetRowDim, iAValueType::Discrete, 1, 0, 5);
-	addParameter(DetColDim, iAValueType::Discrete, 3, 0, 5);
-	addParameter(ProjAngleDim, iAValueType::Discrete, 5, 0, 5);
+	addParameter(AstraParameters::DetRowDim, iAValueType::Discrete, 1, 0, 5);
+	addParameter(AstraParameters::DetColDim, iAValueType::Discrete, 3, 0, 5);
+	addParameter(AstraParameters::ProjAngleDim, iAValueType::Discrete, 5, 0, 5);
 
-	addParameter(VolDimX, iAValueType::Discrete, 512, 1);
-	addParameter(VolDimY, iAValueType::Discrete, 512, 1);
-	addParameter(VolDimZ, iAValueType::Discrete, 512, 1);
-	addParameter(VolSpcX, iAValueType::Continuous, 1.0);
-	addParameter(VolSpcY, iAValueType::Continuous, 1.0);
-	addParameter(VolSpcZ, iAValueType::Continuous, 1.0);
+	addParameter(AstraParameters::VolDimX, iAValueType::Discrete, 512, 1);
+	addParameter(AstraParameters::VolDimY, iAValueType::Discrete, 512, 1);
+	addParameter(AstraParameters::VolDimZ, iAValueType::Discrete, 512, 1);
+	addParameter(AstraParameters::VolSpcX, iAValueType::Continuous, 1.0);
+	addParameter(AstraParameters::VolSpcY, iAValueType::Continuous, 1.0);
+	addParameter(AstraParameters::VolSpcZ, iAValueType::Continuous, 1.0);
 
-	addParameter(AlgoType, iAValueType::Categorical, algorithmStrings());
+	addParameter(AstraParameters::AlgoType, iAValueType::Categorical, AstraParameters::algorithmStrings());
 
-	addParameter(NumberOfIterations, iAValueType::Discrete, 100, 0);
-	addParameter(CenterOfRotCorr, iAValueType::Boolean, false);
-	addParameter(CenterOfRotOfs, iAValueType::Continuous, 0.0);
-	addParameter(InitWithFDK, iAValueType::Boolean, true);
+	addParameter(AstraParameters::NumberOfIterations, iAValueType::Discrete, 100, 0);
+	addParameter(AstraParameters::CenterOfRotCorr, iAValueType::Boolean, false);
+	addParameter(AstraParameters::CenterOfRotOfs, iAValueType::Continuous, 0.0);
+	addParameter(AstraParameters::InitWithFDK, iAValueType::Boolean, true);
 }
 
 
@@ -374,7 +369,7 @@ void swapDimensions(vtkSmartPointer<vtkImageData> img, astra::float32* buf, int 
 }
 
 
-void iAASTRAReconstruct::performWork(QVariantMap const & parameters)
+void iAAstraReconstruct::performWork(QVariantMap const & parameters)
 {
 	vtkSmartPointer<vtkImageData> projImg = imageInput(0)->vtkImage();
 	int * projDim = projImg->GetDimensions();
@@ -383,22 +378,22 @@ void iAASTRAReconstruct::performWork(QVariantMap const & parameters)
 		LOG(lvlError, "File not fully loaded or invalid, at least one side is reported to have size 0.");
 		return;
 	}
-	if (parameters[DetRowDim].toUInt() % 3 == parameters[DetColDim].toUInt() % 3 ||
-		parameters[DetRowDim].toUInt() % 3 == parameters[ProjAngleDim].toUInt() % 3 ||
-		parameters[ProjAngleDim].toUInt() % 3 == parameters[DetColDim].toUInt() % 3)
+	if (parameters[AstraParameters::DetRowDim].toUInt() % 3 == parameters[AstraParameters::DetColDim].toUInt() % 3 ||
+		parameters[AstraParameters::DetRowDim].toUInt() % 3 == parameters[AstraParameters::ProjAngleDim].toUInt() % 3 ||
+		parameters[AstraParameters::ProjAngleDim].toUInt() % 3 == parameters[AstraParameters::DetColDim].toUInt() % 3)
 	{
 		LOG(lvlError, "Invalid parameters: One dimension referenced multiple times!");
 		return;
 	}
-	size_t detRowCnt = projDim[parameters[DetRowDim].toUInt() % 3];
-	size_t detColCnt = projDim[parameters[DetColDim].toUInt() % 3];
-	size_t projAngleCnt = projDim[parameters[ProjAngleDim].toUInt() % 3];
+	size_t detRowCnt = projDim[parameters[AstraParameters::DetRowDim].toUInt() % 3];
+	size_t detColCnt = projDim[parameters[AstraParameters::DetColDim].toUInt() % 3];
+	size_t projAngleCnt = projDim[parameters[AstraParameters::ProjAngleDim].toUInt() % 3];
 	CPPAstraCustomMemory * projBuf = new CPPAstraCustomMemory(static_cast<size_t>(projDim[0]) * projDim[1] * projDim[2]);
 	//VTK_TYPED_CALL(swapDimensions, img->GetScalarType(), img, buf, m_detColDim, m_detRowDim, m_projAngleDim, m_detRowCnt, m_detColCnt, m_projAnglesCount);
 	VTK_TYPED_CALL(swapDimensions, projImg->GetScalarType(), projImg, projBuf->m_fPtr,
-		parameters[DetColDim].toUInt(),
-		parameters[DetRowDim].toUInt(),
-		parameters[ProjAngleDim].toUInt());
+		parameters[AstraParameters::DetColDim].toUInt(),
+		parameters[AstraParameters::DetRowDim].toUInt(),
+		parameters[AstraParameters::ProjAngleDim].toUInt());
 
 	// create XML configuration:
 	astra::Config projectorConfig;
@@ -406,8 +401,8 @@ void iAASTRAReconstruct::performWork(QVariantMap const & parameters)
 	astra::XMLNode gpuIndexOption = projectorConfig.self.addChildNode("Option");
 	gpuIndexOption.addAttribute("key", "GPUIndex");
 	gpuIndexOption.addAttribute("value", "0");
-	assert(parameters[ProjGeometry].toString() == "cone");
-	if (parameters[CenterOfRotCorr].toBool())
+	assert(parameters[AstraParameters::ProjGeometry].toString() == "cone");
+	if (parameters[AstraParameters::CenterOfRotCorr].toBool())
 	{
 		createConeVecProjGeom(projectorConfig, parameters, detRowCnt, detColCnt, projAngleCnt);
 	}
@@ -417,14 +412,14 @@ void iAASTRAReconstruct::performWork(QVariantMap const & parameters)
 	}
 	astra::XMLNode volGeomNode = projectorConfig.self.addChildNode("VolumeGeometry");
 	double volSpacing[3] = {
-		parameters[VolSpcX].toDouble(),
-		parameters[VolSpcY].toDouble(),
-		parameters[VolSpcZ].toDouble()
+		parameters[AstraParameters::VolSpcX].toDouble(),
+		parameters[AstraParameters::VolSpcY].toDouble(),
+		parameters[AstraParameters::VolSpcZ].toDouble()
 	};
 	int volDim[3] = {
-		parameters[VolDimX].toInt(),
-		parameters[VolDimY].toInt(),
-		parameters[VolDimZ].toInt()
+		parameters[AstraParameters::VolDimX].toInt(),
+		parameters[AstraParameters::VolDimY].toInt(),
+		parameters[AstraParameters::VolDimZ].toInt()
 	};
 	fillVolumeGeometryNode(volGeomNode, volDim, volSpacing);
 
@@ -433,8 +428,8 @@ void iAASTRAReconstruct::performWork(QVariantMap const & parameters)
 	projector->initialize(projectorConfig);
 	astra::CFloat32ProjectionData3DMemory * projectionData = new astra::CFloat32ProjectionData3DMemory(projector->getProjectionGeometry(), projBuf);
 	astra::CFloat32VolumeData3DMemory * volumeData = new astra::CFloat32VolumeData3DMemory(projector->getVolumeGeometry(), 0.0f);
-	int algo = mapAlgoStringToIndex(parameters[AlgoType].toString());
-	if ((algo == SIRT3D || SIRT3D == CGLS3D) && parameters[InitWithFDK].toBool())
+	int algo = AstraParameters::mapAlgoStringToIndex(parameters[AstraParameters::AlgoType].toString());
+	if ((algo == SIRT3D || SIRT3D == CGLS3D) && parameters[AstraParameters::InitWithFDK].toBool())
 	{
 		astra::CCudaFDKAlgorithm3D* fdkalgo = new astra::CCudaFDKAlgorithm3D();
 		fdkalgo->initialize(projector, projectionData, volumeData);
@@ -460,14 +455,14 @@ void iAASTRAReconstruct::performWork(QVariantMap const & parameters)
 		case SIRT3D: {
 			astra::CCudaSirtAlgorithm3D* sirtalgo = new astra::CCudaSirtAlgorithm3D();
 			sirtalgo->initialize(projector, projectionData, volumeData);
-			sirtalgo->run(parameters[NumberOfIterations].toInt());
+			sirtalgo->run(parameters[AstraParameters::NumberOfIterations].toInt());
 			delete sirtalgo;
 			break;
 		}
 		case CGLS3D: {
 			astra::CCudaCglsAlgorithm3D* cglsalgo = new astra::CCudaCglsAlgorithm3D();
 			cglsalgo->initialize(projector, projectionData, volumeData);
-			cglsalgo->run(parameters[NumberOfIterations].toInt());
+			cglsalgo->run(parameters[AstraParameters::NumberOfIterations].toInt());
 			delete cglsalgo;
 			break;
 		}
@@ -499,145 +494,4 @@ void iAASTRAReconstruct::performWork(QVariantMap const & parameters)
 	delete volumeData;
 	delete projectionData;
 	delete projector;
-}
-
-
-IAFILTER_RUNNER_CREATE(iAASTRAFilterRunner);
-
-namespace
-{
-	void astraLogCallback(const char *msg, size_t len)
-	{
-		char * allMsg = new char[len + 1];
-		std::memcpy(allMsg, msg, len);
-		allMsg[len] = 0;
-		QString qtStr(allMsg);
-		LOG(lvlInfo, qtStr.trimmed());
-	}
-}
-
-void iAASTRAFilterRunner::run(std::shared_ptr<iAFilter> filter, iAMainWindow* mainWnd)
-{
-	if (!isCUDAAvailable())
-	{
-		QMessageBox::warning(mainWnd, "ASTRA",
-			"ASTRA toolbox operations require a CUDA-capable device, but no CUDA device was found."
-			"In case this machine has an NVidia card, it might help to install the latest driver!");
-		return;
-	}
-	astra::CLogger::setOutputScreen(1, astra::LOG_INFO);
-	bool success = astra::CLogger::setCallbackScreen(astraLogCallback);
-	if (!success)
-	{
-		LOG(lvlWarn, "Setting Astra log callback failed!");
-	}
-	iAFilterRunnerGUI::run(filter, mainWnd);
-}
-
-bool iAASTRAFilterRunner::askForParameters(std::shared_ptr<iAFilter> filter, QVariantMap & parameters,
-	iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool /*askForAdditionalInput*/)
-{
-	dlg_ProjectionParameters dlg;
-	dlg.setWindowTitle(filter->name());
-	auto img = sourceMdi->firstImageData();
-	if (!img)
-	{
-		return false;
-	}
-	int const * inputDim = img->GetDimensions();
-	if (filter->name() == "ASTRA Forward Projection")
-	{
-		dlg.fillProjectionGeometryValues(
-			parameters[ProjGeometry].toString(),
-			parameters[DetSpcX].toDouble(),
-			parameters[DetSpcY].toDouble(),
-			parameters[DetRowCnt].toUInt(),
-			parameters[DetColCnt].toUInt(),
-			parameters[ProjAngleStart].toDouble(),
-			parameters[ProjAngleEnd].toDouble(),
-			parameters[ProjAngleCnt].toUInt(),
-			parameters[DstOrigDet].toDouble(),
-			parameters[DstOrigSrc].toDouble());
-	}
-	else
-	{
-		dlg.fillProjectionGeometryValues(
-			parameters[ProjGeometry].toString(),
-			parameters[DetSpcX].toDouble(),
-			parameters[DetSpcY].toDouble(),
-			parameters[ProjAngleStart].toDouble(),
-			parameters[ProjAngleEnd].toDouble(),
-			parameters[DstOrigDet].toDouble(),
-			parameters[DstOrigSrc].toDouble());
-		int volDim[3] = {
-			parameters[VolDimX].toInt(),
-			parameters[VolDimY].toInt(),
-			parameters[VolDimZ].toInt()
-		};
-		double volSpacing[3] = {
-			parameters[VolSpcX].toDouble(),
-			parameters[VolSpcY].toDouble(),
-			parameters[VolSpcZ].toDouble()
-		};
-		dlg.fillVolumeGeometryValues(volDim, volSpacing);
-		dlg.fillProjInputMapping(parameters[DetRowDim].toInt(),
-			parameters[DetColDim].toInt(),
-			parameters[ProjAngleDim].toInt(),
-			inputDim);
-		if (parameters[AlgoType].toString().isEmpty())
-		{
-			parameters[AlgoType] = algorithmStrings()[1];
-		}
-		dlg.fillAlgorithmValues(mapAlgoStringToIndex(parameters[AlgoType].toString()),
-			parameters[NumberOfIterations].toUInt(),
-			parameters[InitWithFDK].toBool());
-		dlg.fillCorrectionValues(parameters[CenterOfRotCorr].toBool(),
-			parameters[CenterOfRotOfs].toDouble());
-	}
-	if (dlg.exec() != QDialog::Accepted)
-	{
-		return false;
-	}
-
-	parameters[ProjGeometry] = dlg.cbProjGeomType->currentText();
-	parameters[DetSpcX] = dlg.dsbProjGeomDetectorSpacingX->value();
-	parameters[DetSpcY] = dlg.dsbProjGeomDetectorSpacingY->value();
-	parameters[ProjAngleStart] = dlg.dsbProjGeomProjAngleStart->value();
-	parameters[ProjAngleEnd] = dlg.dsbProjGeomProjAngleEnd->value();
-	parameters[DstOrigDet] = dlg.dsbProjGeomDistOriginDetector->value();
-	parameters[DstOrigSrc] = dlg.dsbProjGeomDistOriginSource->value();
-	if (filter->name() == "ASTRA Forward Projection")
-	{
-		parameters[DetRowCnt] = dlg.sbProjGeomDetectorPixelsY->value();
-		parameters[DetColCnt] = dlg.sbProjGeomDetectorPixelsX->value();
-		parameters[ProjAngleCnt] = dlg.sbProjGeomProjCount->value();
-	}
-	else    // Reconstruction:
-	{
-		int detRowDim = dlg.cbProjInputDetectorRowDim->currentIndex();
-		int detColDim = dlg.cbProjInputDetectorColDim->currentIndex();
-		int projAngleDim = dlg.cbProjInputProjAngleDim->currentIndex();
-		parameters[VolDimX] = dlg.sbVolGeomDimensionX->value();
-		parameters[VolDimY] = dlg.sbVolGeomDimensionY->value();
-		parameters[VolDimZ] = dlg.sbVolGeomDimensionZ->value();
-		parameters[VolSpcX] = dlg.dsbVolGeomSpacingX->value();
-		parameters[VolSpcY] = dlg.dsbVolGeomSpacingY->value();
-		parameters[VolSpcZ] = dlg.dsbVolGeomSpacingZ->value();
-		parameters[AlgoType] = mapAlgoIndexToString(dlg.cbAlgorithmType->currentIndex());
-		parameters[NumberOfIterations] = dlg.sbAlgorithmIterations->value();
-		parameters[InitWithFDK] = dlg.cbInitWithFDK->isChecked();
-		parameters[CenterOfRotCorr] = dlg.cbCorrectCenterOfRotation->isChecked();
-		parameters[CenterOfRotOfs] = dlg.dsbCorrectCenterOfRotationOffset->value();
-		if ((detColDim % 3) == (detRowDim % 3) || (detColDim % 3) == (projAngleDim % 3) || (detRowDim % 3) == (projAngleDim % 3))
-		{
-			QMessageBox::warning(mainWnd, "ASTRA", "One of the axes (x, y, z) has been specified for more than one usage out of "
-				"(detector row / detector column / projection angle) dimensions. "
-				"Make sure each axis is used exactly for one dimension!");
-			return false;
-		}
-		parameters[DetRowDim] = detRowDim;
-		parameters[DetColDim] = detColDim;
-		parameters[ProjAngleDim] = projAngleDim;
-	}
-	return true;
 }
