@@ -10,7 +10,14 @@
 #include <QString>
 #include <QVector>
 
+#include <memory>
+
 class QSettings;
+
+//! Type used for mapping specific characteristics to column indices (see iACsvConfig::MappedColumn for characteristics constants)
+using ColMapT = QMap<uint, uint>;
+//! pointer to a column mapping
+using ColMapP = std::shared_ptr<ColMapT>;
 
 //! Holds the configuration parameters for loading a specific csv file format.
 struct iAobjectvis_API iACsvConfig
@@ -49,7 +56,7 @@ struct iAobjectvis_API iACsvConfig
 	iAObjectVisType visType;                //! how to visualize the given objects
 	int cylinderQuality;                    //! how much sides are used for the cylinder visualization; the higher the number, the worse the quality (default=12)
 	size_t segmentSkip;                     //! curved fiber optimization: if 1, all points along the fiber will be used; if larger, points will be skipped
-	QMap<uint, uint> columnMapping;         //! map a specific value (denoted by an ID from MappedColumn) to the number of the column where it's stored
+	ColMapT columnMapping;                  //! map a specific value (denoted by an ID from MappedColumn) to the number of the column where it's stored
 	double offset[3];                       //! offset to apply to all coordinates (start, end, center)
 	bool isDiameterFixed;                   //! whether to insert a fixed diameter (given by fixedDiameterValue)
 	double fixedDiameterValue;              //! value to use as diameter for all objects

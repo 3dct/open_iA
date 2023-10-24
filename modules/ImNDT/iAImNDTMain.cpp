@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAImNDTMain.h"
 
-#include "iAColoredPolyObjectVis.h"
 #include "iAImNDTInteractorStyle.h"
 #include "iAVR3DText.h"
 #include "iAVRColorLegend.h"
@@ -13,6 +12,9 @@
 #include "iAVRObjectModel.h"
 #include "iAVROctree.h"
 #include "iAVRSlider.h"
+
+#include <iAColoredPolyObjectVis.h>
+#include <iAObjectsData.h>
 
 #include <iALog.h>
 
@@ -35,8 +37,8 @@
 #define OCTREE_COLOR QColor(126, 0, 223, 255)
 //#define OCTREE_COLOR QColor(130, 10, 10, 255)
 
-iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig) :
-	m_vrEnv(vrEnv), m_interactions(vrEnv->backend(), this), m_polyObject(polyObject), m_objectTable(objectTable), m_io(io), m_arViewer(createARViewer(vrEnv))
+iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAColoredPolyObjectVis* polyObject, iAObjectsData const * objData, iACsvConfig csvConfig) :
+	m_vrEnv(vrEnv), m_interactions(vrEnv->backend(), this), m_polyObject(polyObject), m_arViewer(createARViewer(vrEnv))
 {
 
 	// For true TranslucentGeometry
@@ -49,7 +51,7 @@ iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAColoredPolyObjectVis* polyObj
 
 	//Initialize Cube Vis
 	m_modelInMiniature = new iAVRModelInMiniature(m_vrEnv->renderer());
-	m_volume = new iAVRObjectModel(m_vrEnv->renderer(), m_polyObject, m_objectTable, m_io, csvConfig);
+	m_volume = new iAVRObjectModel(m_vrEnv->renderer(), m_polyObject);
 
 	//Define Octree
 	currentOctreeLevel = 0;
@@ -64,11 +66,11 @@ iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAColoredPolyObjectVis* polyObj
 
 	//Initialize Metrics class
 	currentFeature = 1;
-	fiberMetrics = new iAVROctreeMetrics(m_objectTable, m_io, m_octrees);
-	histogramMetrics = new iAVRHistogramMetric(m_objectTable, m_io, m_octrees);
+	fiberMetrics = new iAVROctreeMetrics(objData->m_table, m_octrees);
+	histogramMetrics = new iAVRHistogramMetric(objData->m_table, m_octrees);
 
 	//Fiber Coverage
-	m_fiberCoverageCalc = new iAVRObjectCoverage(m_objectTable, m_io, csvConfig, m_octrees, m_volume);
+	m_fiberCoverageCalc = new iAVRObjectCoverage(objData->m_table, objData->m_colMapping, csvConfig, m_octrees, m_volume);
 	m_fiberCoverageCalc->calculateObjectCoverage();
 
 
@@ -101,7 +103,7 @@ iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAColoredPolyObjectVis* polyObj
 
 	//Initialize Distribution Vis
 	m_networkGraphMode = false;
-	m_distributionVis = new iAVRHistogramPairVis(m_vrEnv->renderer(),histogramMetrics, fiberMetrics, m_objectTable, m_io);
+	m_distributionVis = new iAVRHistogramPairVis(m_vrEnv->renderer(), histogramMetrics, fiberMetrics, objData->m_table);
 
 	//Display Volume
 	m_volume->createCubeModel();

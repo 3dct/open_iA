@@ -27,3 +27,8 @@ public:
 	std::map<size_t, std::vector<iAVec3f>> m_curvedFiberData; // maybe use separate derived object to store this? 
 	// maybe also store csv config?
 };
+
+struct iACsvConfig;
+
+//! load a given iACsvConfig into a new iAObjectsData object (TODO: use iAFileIO structure?)
+iAobjectvis_API std::shared_ptr<iAObjectsData> loadObjectsCSV(iACsvConfig const& csvConfig);

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "iAVRCubicVis.h"
-#include "iACsvIO.h"
+#include "iACsvConfig.h"
 
 #include <vtkTable.h>
 #include <vtkRenderWindowInteractor.h>
@@ -20,7 +20,7 @@ class QStandardItem;
 class iAVRObjectModel: public iAVRCubicVis
 {
 public:
-	iAVRObjectModel(vtkRenderer* ren, iAColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig);
+	iAVRObjectModel(vtkRenderer* ren, iAColoredPolyObjectVis* polyObject);
 	void resetVolume();
 	void showVolume();
 	void hideVolume();
@@ -49,11 +49,7 @@ private:
 	vtkSmartPointer<vtkActor> m_RegionNodesActor;
 	iAColoredPolyObjectVis* m_polyObject;
 	vtkSmartPointer<vtkPoints> m_initialPoints;
-	//std::shared_ptr<> m_PolyObjectActor;
-	vtkSmartPointer<vtkTable> m_objectTable;
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
-	iACsvIO m_io;
-	iACsvConfig m_csvConfig;
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	vtkSmartPointer<vtkDoubleArray> nodeGlyphScales;
 	vtkSmartPointer<vtkUnsignedCharArray> linkGlyphColor;

@@ -11,10 +11,11 @@
 #include <memory>
 #include <vector>
 
-class iACsvIO;
 struct iACsvConfig;
+class iAObjectsData;
+
 class iACompHistogramTableData;
-class dlg_CSVInput;
+
 class vtkTable;
 
 namespace csvDataType
@@ -97,8 +98,7 @@ class iACsvDataStorage
 	void setMDSData(csvDataType::ArrayType* mdsData);
 
 	/*** 3D Rendering ***/
-	std::vector<vtkSmartPointer<vtkTable>> const & getObjectTables();
-	std::vector<std::shared_ptr<QMap<uint, uint>>> const & getOutputMappings();
+	std::vector<std::shared_ptr<iAObjectsData>> const & getObjectData();
 	std::vector<iACsvConfig> const & getCsvConfigs();
 
    private:
@@ -127,8 +127,7 @@ class iACsvDataStorage
 	csvDataType::ArrayType* m_MDSData;
 
 	/*** Initialization for Rendering with iAobjectvis***/
-	std::vector<vtkSmartPointer<vtkTable>> m_objectTables;
-	std::vector<std::shared_ptr<QMap<uint, uint>>> m_outputMappings;
+	std::vector<std::shared_ptr<iAObjectsData>> m_objectData;
 	std::vector<iACsvConfig> m_csvConfigs;
 
 	//minimum value of all distributions/csv files

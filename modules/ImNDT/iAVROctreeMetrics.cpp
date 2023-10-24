@@ -6,8 +6,7 @@
 
 #include <vtkTable.h>
 
-iAVROctreeMetrics::iAVROctreeMetrics(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees) : iAVRMetrics(objectTable, io,
-	octrees)
+iAVROctreeMetrics::iAVROctreeMetrics(vtkTable* objectTable,	std::vector<iAVROctree*>* octrees) : iAVRMetrics(objectTable, octrees)
 {
 	//Initialize vectors
 	isAlreadyCalculated = new std::vector<std::vector<bool>>(m_octrees->size(), std::vector<bool>(numberOfFeatures, false));

@@ -94,24 +94,14 @@ void iAXVRAModuleInterface::startXVRA()
 		return;
 	}
 	iACsvConfig csvConfig = dlg.getConfig();
-
-	iACsvVtkTableCreator creator;
-	iACsvIO io;
-	if (!io.loadCSV(creator, csvConfig))
+	auto objData = loadObjectsCSV(csvConfig);
+	if (!objData)
 	{
 		return;
 	}
-
-	m_objData = std::make_shared<iAObjectsData>(QFileInfo(csvConfig.fileName).completeBaseName(), csvConfig.visType, creator.table(), io.getOutputMapping());
-
-	if (csvConfig.visType == iAObjectVisType::Cylinder || csvConfig.visType == iAObjectVisType::Line)
-	{
-		readCurvedFiberInfo(csvConfig.curvedFiberFileName, m_objData->m_curvedFiberData);
-	}
-
 	// Create PolyObject visualization
-	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(createObjectVis(m_objData.get(), QColor(140, 140, 140, 255), 12, 1));
-	if (!m_polyObject)
+	auto polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(createObjectVis(objData.get(), QColor(140, 140, 140, 255), csvConfig.cylinderQuality, csvConfig.segmentSkip));
+	if (!polyObject)
 	{
 		LOG(lvlError, "Invalid 3D object visualization!");
 		return;
@@ -119,7 +109,7 @@ void iAXVRAModuleInterface::startXVRA()
 
 	// Start VR
 	auto vrMain = m_mainWnd->moduleDispatcher().module<iAImNDTModuleInterface>();
-	if (!vrMain->ImNDT(m_objData, m_polyObject, io, csvConfig))
+	if (!vrMain->ImNDT(objData, polyObject, csvConfig))
 	{
 		return;
 	}
@@ -127,7 +117,7 @@ void iAXVRAModuleInterface::startXVRA()
 	// Start FeatureScout (after VR, since starting VR could fail due to VR already running!)
 	auto child = m_mainWnd->createMdiChild(false);
 	// TODO: use iAFeatureScoutTool instead of dlg_FeatureScout directly?
-	m_fsMain = new dlg_FeatureScout(child, csvConfig.objectType, csvConfig.fileName, m_objData.get(), m_polyObject.get());
+	m_fsMain = new dlg_FeatureScout(child, csvConfig.objectType, csvConfig.fileName, objData.get(), m_polyObject.get());
 	iAFeatureScoutToolbar::addForChild(m_mainWnd, child);
 
 	// Add Camera Frustum visualizations:

@@ -28,3 +28,25 @@ QString iAObjectsData::info() const
 	// maybe column mapping?
 	return infoStr;
 }
+
+
+#include <iACsvIO.h>
+#include <iACsvVtkTableCreator.h>
+
+#include <QFileInfo>
+
+std::shared_ptr<iAObjectsData> loadObjectsCSV(iACsvConfig const& csvConfig)
+{
+	iACsvVtkTableCreator creator;
+	iACsvIO io;
+	if (!io.loadCSV(creator, csvConfig))
+	{
+		return std::shared_ptr<iAObjectsData>();
+	}
+	auto objData = std::make_shared<iAObjectsData>(QFileInfo(csvConfig.fileName).completeBaseName(), csvConfig.visType, creator.table(), io.outputMapping());
+	if (!csvConfig.curvedFiberFileName.isEmpty())
+	{
+		readCurvedFiberInfo(csvConfig.curvedFiberFileName, objData->m_curvedFiberData);
+	}
+	return objData;
+}

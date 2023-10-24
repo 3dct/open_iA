@@ -6,8 +6,6 @@
 #include "iAFeatureScoutToolbar.h"
 
 #include <iACsvConfig.h>
-#include <iACsvIO.h>
-#include <iACsvVtkTableCreator.h>
 #include "iALabeledVolumeVis.h"
 #include <iAObjectsData.h>
 #include <iAObjectsViewer.h>
@@ -26,7 +24,6 @@
 
 #include <vtkImageData.h>
 #include <vtkSmartVolumeMapper.h>
-#include <vtkTable.h>
 
 #include <QFileInfo>
 #include <QSettings>
@@ -134,16 +131,10 @@ void iAFeatureScoutTool::saveState(QSettings& projectFile, QString const& fileNa
 
 bool iAFeatureScoutTool::initFromConfig(iAMdiChild* child, iACsvConfig const& csvConfig)
 {
-	iACsvVtkTableCreator creator;
-	iACsvIO io;
-	if (!io.loadCSV(creator, csvConfig))
+	auto objData = loadObjectsCSV(csvConfig);
+	if (!objData)
 	{
 		return false;
-	}
-	auto objData = std::make_shared<iAObjectsData>(QFileInfo(csvConfig.fileName).completeBaseName(), csvConfig.visType, creator.table(), io.getOutputMapping());
-	if (!csvConfig.curvedFiberFileName.isEmpty())
-	{
-		readCurvedFiberInfo(csvConfig.curvedFiberFileName, objData->m_curvedFiberData);
 	}
 	init(csvConfig.objectType, csvConfig.fileName, objData, csvConfig.cylinderQuality, csvConfig.segmentSkip);
 

@@ -6,10 +6,9 @@
 #include "iACompVisOptions.h"
 
 //iAobjectvis
-#include "dlg_CSVInput.h"
-#include "iACsvConfig.h"
-#include "iACsvIO.h"
-#include "iACsvVtkTableCreator.h"
+#include <dlg_CSVInput.h>
+#include <iACsvConfig.h>
+#include <iAObjectsData.h>
 
 //QT
 #include <QMessageBox>
@@ -70,19 +69,13 @@ void iACsvDataStorage::initializeObjectTableFor3DRendering()
 	{
 		return;
 	}
-	
 	iACsvConfig csvConfig = dlg->getConfig();
-	iACsvVtkTableCreator creator;
-	iACsvIO* io = new iACsvIO();
-	
-	if (!io->loadCSV(creator, csvConfig))
+	auto data = loadObjectsCSV(csvConfig);
+	if (!data)
 	{
 		return;
 	}
-
-	vtkSmartPointer<vtkTable> objectTable = creator.table();
-	m_objectTables.push_back(objectTable);
-	m_outputMappings.push_back(io->getOutputMapping());
+	m_objectData.push_back(data);
 	m_csvConfigs.push_back(csvConfig);
 }
 
@@ -253,14 +246,9 @@ void iACsvDataStorage::setMaxVal(double maxVal)
 }
 
 /*********************** 3D Rendering ******************************************/
-std::vector<vtkSmartPointer<vtkTable>> const & iACsvDataStorage::getObjectTables()
+std::vector<std::shared_ptr<iAObjectsData>> const & iACsvDataStorage::getObjectData()
 {
-	return m_objectTables;
-}
-
-std::vector<std::shared_ptr<QMap<uint, uint>>> const & iACsvDataStorage::getOutputMappings()
-{
-	return m_outputMappings;
+	return m_objectData;
 }
 
 std::vector<iACsvConfig> const & iACsvDataStorage::getCsvConfigs()

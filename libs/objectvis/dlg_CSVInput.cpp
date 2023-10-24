@@ -303,7 +303,7 @@ void dlg_CSVInput::exportTable()
 	{
 		ts << origCSVInfo[i] + "\n";
 	}
-	QStringList outputHeaders = io.getOutputHeaders();
+	QStringList outputHeaders = io.outputHeaders();
 	outputHeaders.removeLast();	// without ClassID
 	ts << outputHeaders.join(",") + ",\n";
 	for (size_t r=0; r < creator.table()[0].size(); ++r)
@@ -721,7 +721,7 @@ bool dlg_CSVInput::loadFilePreview()
 	{
 		return false;
 	}
-	m_confParams.currentHeaders = io.getFileHeaders();
+	m_confParams.currentHeaders = io.fileHeaders();
 	showColumnHeaders();
 	return true;
 }

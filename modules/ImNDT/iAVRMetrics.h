@@ -5,8 +5,6 @@
 #include "iAVROctree.h"
 #include "iAVR3DText.h"
 
-#include "iACsvIO.h"
-
 #include <QString>
 
 class vtkTable;
@@ -15,7 +13,7 @@ class vtkTable;
 class iAVRMetrics
 {
 public:
-	iAVRMetrics(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees);
+	iAVRMetrics(vtkTable* objectTable, std::vector<iAVROctree*>* octrees);
 	void setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage);
 	int getNumberOfFeatures();
 	QString getFeatureName(int feature);
@@ -32,7 +30,6 @@ protected:
 
 	//Stores for the [octree level] in an [octree region] a map of its fiberIDs with their coverage
 	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* m_fiberCoverage;
-	iACsvIO m_io;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	std::vector<iAVROctree*>* m_octrees;
 

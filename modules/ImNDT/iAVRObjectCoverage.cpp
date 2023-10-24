@@ -3,13 +3,15 @@
 
 #include "iAVRObjectCoverage.h"
 
+#include <iAColoredPolyObjectVis.h>
+
 #include <iALog.h>
+
 #include <vtkPointData.h>
 #include <vtkMath.h>
 
-#include "iAColoredPolyObjectVis.h"
-
-iAVRObjectCoverage::iAVRObjectCoverage(vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::vector<iAVROctree*>* octrees, iAVRObjectModel* volume) : m_objectTable(objectTable), m_io(io), m_csvConfig(csvConfig), m_octrees(octrees), m_volume(volume)
+iAVRObjectCoverage::iAVRObjectCoverage(vtkTable* objectTable, ColMapP mapping, iACsvConfig csvConfig, std::vector<iAVROctree*>* octrees, iAVRObjectModel* volume)
+	: m_objectTable(objectTable), m_mapping(mapping), m_csvConfig(csvConfig), m_octrees(octrees), m_volume(volume)
 {
 	m_objectCoverage = new std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>();
 	initialize();
@@ -87,8 +89,8 @@ void iAVRObjectCoverage::calculateLineCoverage()
 		double startPos[3]{}, endPos[3]{};
 		for (int k = 0; k < 3; ++k)
 		{
-			startPos[k] = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(iACsvConfig::StartX + k)).ToFloat();
-			endPos[k] = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(iACsvConfig::EndX + k)).ToFloat();
+			startPos[k] = m_objectTable->GetValue(row, m_mapping->value(iACsvConfig::StartX + k)).ToFloat();
+			endPos[k] = m_objectTable->GetValue(row, m_mapping->value(iACsvConfig::EndX + k)).ToFloat();
 		}
 
 		//For every Octree Level
@@ -103,7 +105,7 @@ void iAVRObjectCoverage::calculateLineCoverage()
 			}
 			else
 			{
-				double lineLength = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(iACsvConfig::Length)).ToFloat();
+				double lineLength = m_objectTable->GetValue(row, m_mapping->value(iACsvConfig::Length)).ToFloat();
 
 				getOctreeFiberCoverage(startPos, endPos, level, row, lineLength);
 
@@ -144,7 +146,7 @@ void iAVRObjectCoverage::calculateCurvedLineCoverage()
 				}
 				else
 				{
-					lineLength = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(iACsvConfig::Length)).ToFloat();
+					lineLength = m_objectTable->GetValue(row, m_mapping->value(iACsvConfig::Length)).ToFloat();
 				}
 
 				auto endPointID = m_volume->getPolyObject()->objectStartPointIdx(row) + m_volume->getPolyObject()->objectPointCount(row);

@@ -261,9 +261,8 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			LOG(lvlError, QString("Could not load file '%1' - probably it's in a wrong format; skipping!").arg(csvFile));
 			continue;
 		}
-
 		iAFiberResult curData;
-		curData.objData->m_table = tableCreator.table();
+		curData.objData = std::make_shared<iAObjectsData>(QFileInfo(csvFile).completeBaseName(), objectType, tableCreator.table(), io.outputMapping());
 		curData.fiberCount = curData.objData->m_table->GetNumberOfRows();
 		totalFiberCount += curData.fiberCount;
 		if (curData.fiberCount > std::numeric_limits<int>::max())
@@ -271,7 +270,6 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			LOG(lvlError, QString("Large number of objects (%1) detected - currently only up to %2 objects are supported!")
 				.arg(curData.fiberCount).arg(std::numeric_limits<int>::max()));
 		}
-		curData.objData->m_colMapping = io.getOutputMapping();
 		curData.fileName = csvFile;
 		if (curData.fiberCount < minFiberCount)
 		{
@@ -284,9 +282,9 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 
 		if (result.empty())
 		{
-			for (int h = 0; h < io.getOutputHeaders().size(); ++h)
+			for (int h = 0; h < io.outputHeaders().size(); ++h)
 			{
-				paramNames.push_back(io.getOutputHeaders()[h]);
+				paramNames.push_back(io.outputHeaders()[h]);
 			}
 		}
 		else

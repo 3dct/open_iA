@@ -4,8 +4,9 @@
 
 #include <vtkSmartPointer.h>
 
-#include "iACsvIO.h"
 #include "iAVR3DText.h"
+
+#include <iAVec3.h>
 
 #include <QColor>
 
@@ -27,7 +28,7 @@ class iAVROctreeMetrics;
 class iAVRHistogramPairVis
 {
 public:
-	iAVRHistogramPairVis(vtkRenderer* ren, iAVRHistogramMetric* histogramMetric, iAVROctreeMetrics* octreeMetric, vtkTable* objectTable, iACsvIO io);
+	iAVRHistogramPairVis(vtkRenderer* ren, iAVRHistogramMetric* histogramMetric, iAVROctreeMetrics* octreeMetric, vtkTable* objectTable);
 	void createVisualization(double* pos, double visSize, double offset, int level, std::vector<vtkIdType>* regions, std::vector<int> const & featureList);
 	vtkSmartPointer<vtkAssembly> getVisAssembly();
 	void show();
@@ -56,7 +57,6 @@ private:
 	std::vector<std::vector<std::vector<iAVR3DText>>>* m_axisLabelActor;
 	//Stores for an [axis] its title
 	std::vector<iAVR3DText>* m_axisTitleActor;
-	iACsvIO m_io;
 	//Stores the [axis] polydata with the 3 points which create a X axis and the y axis
 	std::vector<vtkSmartPointer<vtkPolyData>>* m_axesPoly;
 	//Stores for every [axis] and [direction] (x,y) the polydata with 2 points for each mark on an axis

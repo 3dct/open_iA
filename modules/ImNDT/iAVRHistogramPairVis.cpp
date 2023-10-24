@@ -35,8 +35,8 @@
 #include <iALog.h>
 #include <iAVec3.h>
 
-iAVRHistogramPairVis::iAVRHistogramPairVis(vtkRenderer* ren, iAVRHistogramMetric* histogramMetric, iAVROctreeMetrics* octreeMetric, vtkTable* objectTable, iACsvIO io) :m_renderer(ren), 
-m_histogramMetric(histogramMetric), m_octreeMetric(octreeMetric), m_objectTable(objectTable), m_sphereActor(vtkSmartPointer<vtkActor>::New()), m_io(io)
+iAVRHistogramPairVis::iAVRHistogramPairVis(vtkRenderer* ren, iAVRHistogramMetric* histogramMetric, iAVROctreeMetrics* octreeMetric, vtkTable* objectTable) :m_renderer(ren), 
+m_histogramMetric(histogramMetric), m_octreeMetric(octreeMetric), m_objectTable(objectTable), m_sphereActor(vtkSmartPointer<vtkActor>::New())
 {
 	initialize();
 }

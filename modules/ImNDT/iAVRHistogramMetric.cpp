@@ -28,7 +28,8 @@
 
 
 
-iAVRHistogramMetric::iAVRHistogramMetric(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees) : iAVRMetrics(objectTable, io, octrees)
+iAVRHistogramMetric::iAVRHistogramMetric(vtkTable* objectTable, std::vector<iAVROctree*>* octrees)
+	: iAVRMetrics(objectTable, octrees)
 {
 
 }

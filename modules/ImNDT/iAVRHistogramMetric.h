@@ -27,7 +27,7 @@
 class iAVRHistogramMetric: public iAVRMetrics
 {
 public:
-	iAVRHistogramMetric(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees);
+	iAVRHistogramMetric(vtkTable* objectTable, std::vector<iAVROctree*>* octrees);
 	iAVRHistogram getHistogram(std::vector<double> values, int observations);
 	iAVRHistogram getHistogram(std::vector<double> values, double min, double max, int observations);
 	int determineNumberOfBins(int observations, int method);

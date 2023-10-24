@@ -9,13 +9,9 @@
 
 #include <iAVec3.h>
 
-#include <QMap>
-#include <QString>
 #include <QStringList>
-#include <QVector>
 
 #include <map>
-#include <memory>
 #include <vector>
 
 class QTextStream;
@@ -42,19 +38,19 @@ public:
 	bool loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & params,
 		size_t const rowCount = std::numeric_limits<size_t>::max());
 	//! get the list of columns/headers as it is in the file
-	const QStringList & getFileHeaders() const;
+	const QStringList & fileHeaders() const;
 	//! get list of all headers in result table (including computed columns)
-	const QStringList & getOutputHeaders() const;
+	const QStringList & outputHeaders() const;
 	//! get mapping in which fields the important values are stored.
 	//! This is basically the column mapping of the iACsvConfig used to load the dataset,
 	//! but adapted / extended to match the created output: When an auto-id is inserted as first column,
 	//! all indices shift by one to the back; also for computed columns, mappings are inserted.
-	std::shared_ptr<QMap<uint, uint>> getOutputMapping() const;
+	ColMapP outputMapping() const;
 private:
 	QStringList m_fileHeaders;          //!< list of column header names in file
 	QStringList m_outputHeaders;        //!< list of column header names in result table
 	iACsvConfig m_csvConfig;            //!< settings used for reading the csv
-	std::shared_ptr<QMap<uint, uint>> m_outputMapping;   //!< maps a value identifier (given as a value out of the iACsvConfig::MappedColumn enum) to the index of the column in the output which contains this value
+	ColMapP m_outputMapping;            //!< maps a value identifier (given as a value out of the iACsvConfig::MappedColumn enum) to the index of the column in the output which contains this value
 
 	//! determine the header columns used in the output
 	void determineOutputHeaders(QVector<uint> const & selectedCols);

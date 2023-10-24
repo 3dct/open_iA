@@ -27,9 +27,9 @@
 #include <algorithm>
 
 
-iAComp3DWidget::iAComp3DWidget(
-	iAMainWindow* parent, vtkSmartPointer<vtkTable> objectTable, std::shared_ptr<QMap<uint, uint>> columnMapping, const iACsvConfig& csvConfig) :
+iAComp3DWidget::iAComp3DWidget(iAMainWindow* parent, std::shared_ptr<iAObjectsData> objData, const iACsvConfig& csvConfig) :
 	QDockWidget(parent),
+	m_objData(objData),
 	m_objectColor(QColor(140, 140, 140, 255)),
 	m_interactionStyle(vtkSmartPointer<iAComp3DWidgetInteractionStyle>::New())
 {
@@ -48,7 +48,7 @@ iAComp3DWidget::iAComp3DWidget(
 	initializeInteraction();
 
 	//rendering
-	create3DVis(objectTable, columnMapping, csvConfig);
+	create3DVis(csvConfig);
 }
 
 /*************** Rendering ****************************/
@@ -88,10 +88,9 @@ void iAComp3DWidget::removeAllRendererFromWidget()
 }
 
 /*************** Initialization ****************************/
-void iAComp3DWidget::create3DVis(vtkSmartPointer<vtkTable> objectTable, std::shared_ptr<QMap<uint, uint>> columnMapping, const iACsvConfig& csvConfig)
+void iAComp3DWidget::create3DVis(const iACsvConfig& csvConfig)
 {
-	m_objData = std::make_shared<iAObjectsData>("Cylinders", csvConfig.visType, objectTable, columnMapping);
-	if (csvConfig.visType == iAObjectVisType::Cylinder)
+	if (m_objData->m_visType == iAObjectVisType::Cylinder)
 	{
 		int cylinderQuality = csvConfig.cylinderQuality;
 		size_t segmentSkip = csvConfig.segmentSkip;
@@ -100,7 +99,7 @@ void iAComp3DWidget::create3DVis(vtkSmartPointer<vtkTable> objectTable, std::sha
 			cylinderQuality,
 			segmentSkip);
 	}
-	else if (csvConfig.visType == iAObjectVisType::Ellipsoid)
+	else if (m_objData->m_visType == iAObjectVisType::Ellipsoid)
 	{
 		m_3dvisData = std::make_shared<iAEllipsoidObjectVis>(m_objData.get(), m_objectColor);
 	}

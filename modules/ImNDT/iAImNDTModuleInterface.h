@@ -4,7 +4,7 @@
 
 #include "imndt_export.h"
 
-#include "iACsvIO.h"
+#include <iACsvConfig.h>
 
 #include <iAGUIModuleInterface.h>
 
@@ -13,8 +13,8 @@
 class iAImNDTMain;
 class iAVREnvironment;
 
-class iAObjectsData;
 class iAColoredPolyObjectVis;
+class iAObjectsData;
 
 class iADataSetRenderer;
 
@@ -27,7 +27,7 @@ class ImNDT_API iAImNDTModuleInterface : public iAGUIModuleInterface{
 public:
 	~iAImNDTModuleInterface();
 	void Initialize() override;
-	bool ImNDT(std::shared_ptr<iAObjectsData> objData, std::shared_ptr<iAColoredPolyObjectVis> polyObject, iACsvIO io, iACsvConfig csvConfig);
+	bool ImNDT(std::shared_ptr<iAObjectsData> objData, std::shared_ptr<iAColoredPolyObjectVis> polyObject, iACsvConfig csvConfig);
 	vtkRenderer* getRenderer();
 
 signals:
@@ -44,10 +44,9 @@ private:
 	std::shared_ptr<iAVREnvironment> m_vrEnv;
 	//! @{ for ImNDT
 	std::shared_ptr<iAColoredPolyObjectVis> m_polyObject;
+	std::shared_ptr<iAObjectsData> m_objData;
 	std::shared_ptr<iAImNDTMain> m_vrMain;
 	iACsvConfig m_csvConfig;
-	iACsvIO m_io;
-	std::shared_ptr<iAObjectsData> m_objData;
 	//! @}
 	QAction *m_actionVRStartAnalysis;
 
