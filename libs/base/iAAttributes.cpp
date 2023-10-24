@@ -45,6 +45,15 @@ int findAttribute(iAAttributes const& attributes, QString const & name)
 	return -1;
 }
 
+void removeAttribute(iAAttributes& attributes, QString const& name)
+{
+	auto idx = findAttribute(attributes, name);
+	if (idx != -1)
+	{
+		attributes.remove(idx);
+	}
+}
+
 int countAttributes(iAAttributes const& attributes, iAAttributeDescriptor::iAAttributeType type)
 {
 	int count = 0;

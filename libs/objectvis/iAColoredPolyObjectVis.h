@@ -41,7 +41,7 @@ public:
 	void setColor(QColor const & color);
 	void setLookupTable(std::shared_ptr<iALookupTable> lut, size_t paramIndex);
 	void updateColorSelectionRendering();
-	virtual QString visualizationStatistics() const =0;
+	virtual QString visualizationStatistics() const = 0;
 	//! extract one mesh per selected object
 	virtual std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects(QColor c = QColor()) const = 0;
 	//! Get the index of the first point of a given object.
