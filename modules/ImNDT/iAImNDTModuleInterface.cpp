@@ -528,7 +528,7 @@ bool iAImNDTModuleInterface::loadImNDT()
 	{
 		readCurvedFiberInfo(m_csvConfig.curvedFiberFileName, m_objData->m_curvedFiberData);
 	}
-	auto objVis = create3DObjectVis(m_objData.get(), QColor(140, 140, 140, 255), 12, 1, nullptr, nullptr, nullptr);
+	auto objVis = createObjectVis(m_objData.get(), QColor(140, 140, 140, 255), 12, 1);
 	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(objVis);
 	if (!m_polyObject)
 	{

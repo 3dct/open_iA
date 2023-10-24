@@ -19,7 +19,7 @@ namespace
 
 iAObjectsViewer::iAObjectsViewer(iADataSet* dataSet) :
 	iADataSetViewer(dataSet),
-	m_objVis(create3DObjectVis(dynamic_cast<iAObjectsData const*>(m_dataSet), DefaultColor, 12, 1, nullptr, nullptr, nullptr))
+	m_objVis(createObjectVis(dynamic_cast<iAObjectsData const*>(m_dataSet), DefaultColor, 12, 1))
 {
 }
 

@@ -8,6 +8,7 @@
 #include <iACsvConfig.h>
 #include <iACsvIO.h>
 #include <iACsvVtkTableCreator.h>
+#include "iALabeledVolumeVis.h"
 #include <iAObjectsData.h>
 #include <iAObjectsViewer.h>
 #include <iAObjectVisFactory.h>
@@ -191,7 +192,7 @@ void iAFeatureScoutTool::init(int objectType, QString const& fileName, std::shar
 		bounds = dynamic_cast<iAImageData*>(m_child->dataSet(idx).get())->vtkImage()->GetBounds();
 		m_objData = objData;
 		QColor defaultColor(dlg_FeatureScout::UnclassifiedColorName);
-		m_objVis = create3DObjectVis(objData.get(), defaultColor, cylinderQuality, segmentSkip, ctf, otf, bounds);
+		m_objVis = std::make_shared<iALabeledVolumeVis>(ctf, otf, objData.get(), bounds);
 		objVis = m_objVis.get();
 	}
 	else

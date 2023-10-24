@@ -9,7 +9,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iALabeledVolumeVis.h>
 <iALineObjectVis.h>
 <iALog.h>
-<iANoObjectVis.h>
 <iAObjectType.h>
 <iAObjectVis.h>
 <iAObjectVisActor.h>

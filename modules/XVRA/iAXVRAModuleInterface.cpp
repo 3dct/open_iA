@@ -110,8 +110,7 @@ void iAXVRAModuleInterface::startXVRA()
 	}
 
 	// Create PolyObject visualization
-	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(create3DObjectVis(
-		m_objData.get(), QColor(140, 140, 140, 255), 12, 1, nullptr, nullptr, nullptr));
+	m_polyObject = createObjectVis(m_objData.get(), QColor(140, 140, 140, 255), 12, 1);
 	if (!m_polyObject)
 	{
 		LOG(lvlError, "Invalid 3D object visualization!");
