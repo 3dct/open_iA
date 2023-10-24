@@ -9,6 +9,7 @@
 #include <iACsvIO.h>
 #include <iACsvVtkTableCreator.h>
 #include <iAObjectsData.h>
+#include <iAObjectsViewer.h>
 #include <iAObjectVisFactory.h>
 
 #include <iAMainWindow.h>
@@ -138,7 +139,7 @@ bool iAFeatureScoutTool::initFromConfig(iAMdiChild* child, iACsvConfig const& cs
 	{
 		return false;
 	}
-	auto objData = std::make_shared<iAObjectsData>(csvConfig.visType, creator.table(), io.getOutputMapping());
+	auto objData = std::make_shared<iAObjectsData>(QFileInfo(csvConfig.fileName).completeBaseName(), csvConfig.visType, creator.table(), io.getOutputMapping());
 	if (!csvConfig.curvedFiberFileName.isEmpty())
 	{
 		readCurvedFiberInfo(csvConfig.curvedFiberFileName, objData->m_curvedFiberData);
@@ -175,6 +176,7 @@ void iAFeatureScoutTool::init(int objectType, QString const& fileName, std::shar
 	vtkColorTransferFunction* ctf = nullptr;
 	vtkPiecewiseFunction* otf = nullptr;
 	double* bounds = nullptr;
+	iAObjectVis* objVis = nullptr;
 	if (objData->m_visType == iAObjectVisType::UseVolume)
 	{
 		auto idx = m_child->firstImageDataSetIdx();
@@ -188,13 +190,16 @@ void iAFeatureScoutTool::init(int objectType, QString const& fileName, std::shar
 		otf = tf->opacityTF();
 		bounds = dynamic_cast<iAImageData*>(m_child->dataSet(idx).get())->vtkImage()->GetBounds();
 		m_objData = objData;
+		QColor defaultColor(dlg_FeatureScout::UnclassifiedColorName);
+		m_objVis = create3DObjectVis(objData.get(), defaultColor, cylinderQuality, segmentSkip, ctf, otf, bounds);
+		objVis = m_objVis.get();
 	}
 	else
 	{
-		auto objDataIdx = m_child->addDataSet(objData);
+		auto objDataSetIdx = m_child->addDataSet(objData);
+		auto viewer = dynamic_cast<iAObjectsViewer*>(m_child->dataSetViewer(objDataSetIdx));
+		objVis = viewer->objectVis();
 	}
-	QColor defaultColor(dlg_FeatureScout::UnclassifiedColorName);
-	auto objVis = create3DObjectVis(objData.get(), defaultColor, cylinderQuality, segmentSkip, ctf, otf, bounds);
 	m_featureScout = new dlg_FeatureScout(m_child, static_cast<iAObjectType>(objectType), fileName, objData.get(), objVis);
 }
 

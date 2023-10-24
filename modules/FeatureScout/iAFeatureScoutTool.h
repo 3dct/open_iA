@@ -8,8 +8,6 @@
 #include <iATool.h>
 #include <iAVec3.h>
 
-#include <vtkSmartPointer.h>
-
 #include <QObject>
 
 #include <map>
@@ -18,8 +16,7 @@
 
 class dlg_FeatureScout;
 class iAObjectsData;
-
-class vtkTable;
+class iAObjectVis;
 
 class QSettings;
 
@@ -60,5 +57,8 @@ private:
 		int cylinderQuality, size_t segmentSkip);
 	iACsvConfig m_config;
 	dlg_FeatureScout * m_featureScout;
-	std::shared_ptr<iAObjectsData> m_objData;    // for the case of labelled volume data (for which the viewer cannot be created automatically), we need to store data ourselves
+	//! @{ for the case of labelled volume data (for which the viewer cannot be created automatically), we need to store data ourselves
+	std::shared_ptr<iAObjectsData> m_objData;
+	std::shared_ptr<iAObjectVis> m_objVis;
+	//! @}
 };

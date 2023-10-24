@@ -1490,7 +1490,7 @@ void iAFiAKErController::ensureMain3DViewCreated(size_t resultID)
 	auto& ui = m_resultUIs[resultID];
 	if (!ui.main3DVis)
 	{
-		ui.main3DObjData = std::make_shared<iAObjectsData>(d.objData->m_visType, d.objData->m_table, d.objData->m_colMapping);
+		ui.main3DObjData = std::make_shared<iAObjectsData>(QFileInfo(d.fileName).completeBaseName(), d.objData->m_visType, d.objData->m_table, d.objData->m_colMapping);
 		ui.main3DObjData->m_curvedFiberData =
 			(m_useStepData && d.stepData == iAFiberResult::CurvedStepData) ?
 			getCurvedStepInfo(d) : d.objData->m_curvedFiberData;
@@ -2626,7 +2626,7 @@ void iAFiAKErController::changeReferenceDisplay()
 
 	m_refVisTable->SetNumberOfRows(referenceIDsToShow.size());
 
-	m_nearestRefObjData = std::make_shared<iAObjectsData>(iAObjectVisType::Cylinder, m_refVisTable, m_data->result[m_referenceID].objData->m_colMapping);
+	m_nearestRefObjData = std::make_shared<iAObjectsData>("Nearest Reference Object(s)", iAObjectVisType::Cylinder, m_refVisTable, m_data->result[m_referenceID].objData->m_colMapping);
 	auto refTable = m_data->result[m_referenceID].objData->m_table;
 	auto refCurveInfo = m_data->result[m_referenceID].objData->m_curvedFiberData;
 	for (size_t fiberIdx=0; fiberIdx<referenceIDsToShow.size(); ++fiberIdx)

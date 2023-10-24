@@ -90,7 +90,7 @@ void iAComp3DWidget::removeAllRendererFromWidget()
 /*************** Initialization ****************************/
 void iAComp3DWidget::create3DVis(vtkSmartPointer<vtkTable> objectTable, std::shared_ptr<QMap<uint, uint>> columnMapping, const iACsvConfig& csvConfig)
 {
-	m_objData = std::make_shared<iAObjectsData>(csvConfig.visType, objectTable, columnMapping);
+	m_objData = std::make_shared<iAObjectsData>("Cylinders", csvConfig.visType, objectTable, columnMapping);
 	if (csvConfig.visType == iAObjectVisType::Cylinder)
 	{
 		int cylinderQuality = csvConfig.cylinderQuality;

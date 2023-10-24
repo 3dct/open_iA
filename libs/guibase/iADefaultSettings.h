@@ -32,6 +32,8 @@ public:
 //! explicitly call some registration function within the class; the iASettingsManager
 //! takes care of loading stored previous values at application start, and of storing the
 //! values at application end.
+//! **Note** the class deriving from iASettingsObject needs to be marked as "exported"
+//! from the shared library it is contained in, otherwise auto-registration will not work!
 template <const char* Name, class Obj>
 class iASettingsObject
 {

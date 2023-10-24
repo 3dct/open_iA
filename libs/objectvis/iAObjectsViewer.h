@@ -4,17 +4,17 @@
 #include <iADataSetRenderer.h>
 #include <iADataSetViewer.h>
 
-#include "iagui_export.h"
+#include "iaobjectvis_export.h"
 
 class iAObjectsData;
 class iAObjectVis;
 class iAObjectVisActor;
 
 //! 3D Renderer for objects data in the iADataSetViewer framework
-class iAgui_API iAObjectsRenderer : public iADataSetRenderer
+class iAobjectvis_API iAObjectsRenderer : public iADataSetRenderer
 {
 public:
-	iAObjectsRenderer(vtkRenderer* renderer, iAObjectsData const * data, QVariantMap const& overrideValues);
+	iAObjectsRenderer(vtkRenderer* renderer, iAObjectVis* objVis, QVariantMap const& overrideValues);
 	~iAObjectsRenderer();
 	void applyAttributes(QVariantMap const& values) override;
 	virtual iAAABB bounds() override;
@@ -30,17 +30,20 @@ private:
 	void hideDataSet() override;
 	iAAttributes const& attributes() const override;
 	Q_DISABLE_COPY(iAObjectsRenderer);
-
-	std::shared_ptr<iAObjectVis> m_objVis;
+	iAObjectVis* m_objVis;
 	std::shared_ptr<iAObjectVisActor> m_objActor;
 };
 
 //! Viewer for objects data in the iADataSetViewer framework
-class iAgui_API iAObjectsViewer : public iADataSetViewer
+class iAobjectvis_API iAObjectsViewer : public iADataSetViewer
 {
 public:
 	iAObjectsViewer(iADataSet* dataSet);
 	std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren, QVariantMap const& paramValues) override;
+	QString information() const override;
+	//! Access to the object visualization class itself
+	iAObjectVis* objectVis();
 private:
 	static bool s_registered;
+	std::shared_ptr<iAObjectVis> m_objVis;
 };

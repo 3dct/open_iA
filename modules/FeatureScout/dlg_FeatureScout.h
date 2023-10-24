@@ -76,7 +76,7 @@ public:
 	static const QString DlgObjectName;
 	static const QString UnclassifiedColorName;
 	dlg_FeatureScout(iAMdiChild *parent, iAObjectType objectType, QString const & fileName,
-		iAObjectsData const* objData, std::shared_ptr<iAObjectVis> objvis);
+		iAObjectsData const* objData, iAObjectVis* objvis);
 	~dlg_FeatureScout();
 	void showPCSettings();            //!< show settings dialog for parallel coordinates
 	void showScatterPlot();           //!< show the scatter plot matrix
@@ -245,7 +245,7 @@ private:
 	std::shared_ptr<QMap<uint, uint>> m_columnMapping;
 
 	std::shared_ptr<iAFeatureScoutSPLOM> m_splom;
-	std::shared_ptr<iAObjectVis> m_3dvis;
+	iAObjectVis* m_3dvis;    // the object visualization; FeatureScout is NOT the owner (typically, the dataset viewer is)
 	std::shared_ptr<iAObjectVisActor> m_3dactor;
 	std::shared_ptr<iAMeanObject> m_meanObject;
 };

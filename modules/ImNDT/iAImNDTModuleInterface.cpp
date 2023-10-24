@@ -33,6 +33,7 @@
 #include <vtkTable.h>
 
 #include <QAction>
+#include <QFileInfo>
 #include <QMenu>
 #include <QMessageBox>
 
@@ -521,7 +522,8 @@ bool iAImNDTModuleInterface::loadImNDT()
 		return false;
 	}
 
-	m_objData = std::make_shared<iAObjectsData>(m_csvConfig.visType, creator.table(), m_io.getOutputMapping());
+	m_objData = std::make_shared<iAObjectsData>(QFileInfo(m_csvConfig.fileName).completeBaseName(),
+		m_csvConfig.visType, creator.table(), m_io.getOutputMapping());
 	if (m_csvConfig.visType == iAObjectVisType::Cylinder || m_csvConfig.visType == iAObjectVisType::Line)
 	{
 		readCurvedFiberInfo(m_csvConfig.curvedFiberFileName, m_objData->m_curvedFiberData);

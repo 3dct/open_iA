@@ -14,7 +14,9 @@ class vtkTable;
 class iAobjectvis_API iAObjectsData : public iADataSet
 {
 public:
-	iAObjectsData(iAObjectVisType visType, vtkSmartPointer<vtkTable> m_table, std::shared_ptr<QMap<uint, uint>> m_colMapping);
+	iAObjectsData(QString const& name, iAObjectVisType visType, vtkSmartPointer<vtkTable> m_table, std::shared_ptr<QMap<uint, uint>> m_colMapping);
+	QString info() const override;
+
 	//! one row per object to visualize
 	vtkSmartPointer<vtkTable> m_table;
 	//! mapping of columns (see the respective visualization classes which mappings are required)

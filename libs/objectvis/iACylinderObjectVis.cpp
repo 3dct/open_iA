@@ -159,7 +159,7 @@ std::vector<vtkSmartPointer<vtkPolyData>> iACylinderObjectVis::extractSelectedOb
 		const int ExtractedID = 1;
 		tmpTbl->SetValue(0, 0, ExtractedID);
 		std::map<size_t, std::vector<iAVec3f>> tmpCurvedFiberData;
-		auto tmpData = std::make_shared<iAObjectsData>(iAObjectVisType::Cylinder, tmpTbl.GetPointer(), m_data->m_colMapping);
+		auto tmpData = std::make_shared<iAObjectsData>("Temp. cylinders", iAObjectVisType::Cylinder, tmpTbl.GetPointer(), m_data->m_colMapping);
 		auto it = m_data->m_curvedFiberData.find(labelID);
 		if (it != m_data->m_curvedFiberData.end())
 		{	// Note: curved fiber data currently does not use LabelID, but starts from 0!

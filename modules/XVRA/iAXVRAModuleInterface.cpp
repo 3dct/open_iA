@@ -28,6 +28,7 @@
 #include <vtkTable.h>    // required to avoid error C2440: 'static_cast': cannot convert from 'vtkObjectBase *const ' to 'T *'
 
 #include <QAction>
+#include <QFileInfo>
 #include <QMenu>
 #include <QMessageBox>
 
@@ -101,7 +102,7 @@ void iAXVRAModuleInterface::startXVRA()
 		return;
 	}
 
-	m_objData = std::make_shared<iAObjectsData>(csvConfig.visType, creator.table(), io.getOutputMapping());
+	m_objData = std::make_shared<iAObjectsData>(QFileInfo(csvConfig.fileName).completeBaseName(), csvConfig.visType, creator.table(), io.getOutputMapping());
 
 	if (csvConfig.visType == iAObjectVisType::Cylinder || csvConfig.visType == iAObjectVisType::Line)
 	{
@@ -126,7 +127,8 @@ void iAXVRAModuleInterface::startXVRA()
 
 	// Start FeatureScout (after VR, since starting VR could fail due to VR already running!)
 	auto child = m_mainWnd->createMdiChild(false);
-	m_fsMain = new dlg_FeatureScout(child, csvConfig.objectType, csvConfig.fileName, m_objData.get(), m_polyObject);
+	// TODO: use iAFeatureScoutTool instead of dlg_FeatureScout directly?
+	m_fsMain = new dlg_FeatureScout(child, csvConfig.objectType, csvConfig.fileName, m_objData.get(), m_polyObject.get());
 	iAFeatureScoutToolbar::addForChild(m_mainWnd, child);
 
 	// Add Camera Frustum visualizations:

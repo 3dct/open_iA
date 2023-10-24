@@ -4,20 +4,39 @@
 
 #include <iAAABB.h>
 
+#include <iAColoredPolyObjectVis.h>
 #include <iAObjectsData.h>
+#include <iAObjectVisFactory.h>
 
-#include "iADefaultSettings.h"
+#include <iADefaultSettings.h>
 #include <iADataSetViewerImpl.h>    // for dataSetViewerFactoryMap
 
+namespace
+{
+	QColor DefaultColor(64, 64, 64);
+	const QString ColorParam("Color");
+}
+
 iAObjectsViewer::iAObjectsViewer(iADataSet* dataSet) :
-	iADataSetViewer(dataSet)
+	iADataSetViewer(dataSet),
+	m_objVis(create3DObjectVis(dynamic_cast<iAObjectsData const*>(m_dataSet), DefaultColor, 12, 1, nullptr, nullptr, nullptr))
 {
 }
 
 std::shared_ptr<iADataSetRenderer> iAObjectsViewer::createRenderer(vtkRenderer* ren, QVariantMap const& paramValues)
 {
-	auto objData = dynamic_cast<iAObjectsData const*>(m_dataSet);
-	return std::make_shared<iAObjectsRenderer>(ren, objData, paramValues);
+	return std::make_shared<iAObjectsRenderer>(ren, m_objVis.get(), paramValues);
+}
+
+QString iAObjectsViewer::information() const
+{
+	auto polyObj = dynamic_cast<iAColoredPolyObjectVis*>(m_objVis.get());
+	return m_dataSet->info() + (polyObj ? "\n" + polyObj->visualizationStatistics() : "");
+}
+
+iAObjectVis* iAObjectsViewer::objectVis()
+{
+	return m_objVis.get();
 }
 
 bool iAObjectsViewer::s_registered = []() {
@@ -28,17 +47,16 @@ bool iAObjectsViewer::s_registered = []() {
 
 
 #include <iAObjectVis.h>
-#include <iAObjectVisFactory.h>
 #include <iAPolyObjectVisActor.h>
 
 #include <vtkActor.h>
 
-iAObjectsRenderer::iAObjectsRenderer(vtkRenderer* renderer, iAObjectsData const* data, QVariantMap const& overrideValues):
+iAObjectsRenderer::iAObjectsRenderer(vtkRenderer* renderer, iAObjectVis* objVis, QVariantMap const& overrideValues):
 	iADataSetRenderer(renderer),
-	m_objVis(create3DObjectVis(data, QColor(255, 0, 0), 12, 1, nullptr, nullptr, nullptr)),
-	m_objActor(m_objVis->createActor(renderer))
+	m_objVis(objVis),
+	m_objActor(objVis->createActor(renderer))
 {
-	Q_UNUSED(overrideValues)
+	setDefaultAttributes(defaultAttributes(), overrideValues);
 }
 
 iAObjectsRenderer::~iAObjectsRenderer()
@@ -47,7 +65,11 @@ iAObjectsRenderer::~iAObjectsRenderer()
 
 void iAObjectsRenderer::applyAttributes(QVariantMap const& values)
 {
-	// apply color!
+	auto colorObj = dynamic_cast<iAColoredPolyObjectVis*>(m_objVis);
+	if (colorObj)
+	{
+		colorObj->setColor(variantToColor(values[ColorParam]));
+	}
 }
 
 iAAABB iAObjectsRenderer::bounds()
@@ -83,7 +105,7 @@ vtkProp3D* iAObjectsRenderer::vtkProp()
 
 constexpr const char ObjectsRendererName[] = "Default Settings/Dataset Renderer: Objects";
 
-class iAObjectsRendererSettings : iASettingsObject<ObjectsRendererName, iAObjectsRendererSettings>
+class iAobjectvis_API iAObjectsRendererSettings : iASettingsObject<ObjectsRendererName, iAObjectsRendererSettings>
 {
 public:
 	static iAAttributes& defaultAttributes()
@@ -91,7 +113,7 @@ public:
 		static iAAttributes attr;
 		if (attr.isEmpty())
 		{
-			addAttr(attr, "Color", iAValueType::Color, QColor(255, 0, 0));
+			addAttr(attr, ColorParam, iAValueType::Color, DefaultColor);
 		}
 		return attr;
 	}

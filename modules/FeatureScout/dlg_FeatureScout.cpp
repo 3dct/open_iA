@@ -174,7 +174,7 @@ const QString dlg_FeatureScout::DlgObjectName("FeatureScoutMainDlg");
 const QString dlg_FeatureScout::UnclassifiedColorName("darkGray");
 
 dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType objectType, QString const& fileName,
-	iAObjectsData const * objData, std::shared_ptr<iAObjectVis> objvis) :
+	iAObjectsData const * objData, iAObjectVis* objVis) :
 	QDockWidget(parent),
 	m_activeChild(parent),
 	m_elementCount(objData->m_table->GetNumberOfColumns()),
@@ -204,7 +204,7 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType objectType, 
 	m_ui(new Ui_FeatureScoutCE),
 	m_columnMapping(objData->m_colMapping),
 	m_splom(new iAFeatureScoutSPLOM()),
-	m_3dvis(objvis)
+	m_3dvis(objVis)
 {
 	m_ui->setupUi(this);
 	setObjectName(DlgObjectName);
@@ -325,7 +325,7 @@ void dlg_FeatureScout::spParameterVisibilityChanged(size_t paramIndex, bool enab
 
 void dlg_FeatureScout::renderLUTChanges(std::shared_ptr<iALookupTable> lut, size_t colInd)
 {
-	iALineObjectVis* lov = dynamic_cast<iALineObjectVis*>(m_3dvis.get());
+	iALineObjectVis* lov = dynamic_cast<iALineObjectVis*>(m_3dvis);
 	if (lov)
 	{
 		lov->setLookupTable(lut, colInd);
@@ -851,7 +851,7 @@ void dlg_FeatureScout::renderOrientation()
 
 void dlg_FeatureScout::selectionChanged3D()
 {
-	auto vis = dynamic_cast<iAColoredPolyObjectVis*>(m_3dvis.get());
+	auto vis = dynamic_cast<iAColoredPolyObjectVis*>(m_3dvis);
 	if (!vis)
 	{
 		LOG(lvlError, "Invalid VIS for 3D selection change!");
@@ -1921,7 +1921,7 @@ void dlg_FeatureScout::saveMesh()
 		QMessageBox::warning(this, "FeatureScout", "Cannot export mesh for labelled volume visualization!");
 		return;
 	}
-	auto polyVis = dynamic_cast<iAColoredPolyObjectVis*>(m_3dvis.get());
+	auto polyVis = dynamic_cast<iAColoredPolyObjectVis*>(m_3dvis);
 	if (!polyVis)
 	{
 		return;
