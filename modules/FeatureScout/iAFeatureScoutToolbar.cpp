@@ -2,12 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFeatureScoutToolbar.h"
 
+#include "dlg_FeatureScout.h"
+#include "iAFeatureScoutTool.h"
+
 #include <iALog.h>
 
 #include "iAMainWindow.h"
 #include "iAMdiChild.h"
-
-#include "dlg_FeatureScout.h"
 
 #include "ui_FeatureScoutToolBar.h"
 
@@ -43,6 +44,13 @@ void iAFeatureScoutToolbar::addForChild(iAMainWindow* mainWnd, iAMdiChild* child
 		tlbFeatureScout->childChanged();
 	}
 	connect(child, &iAMdiChild::closed, tlbFeatureScout, &iAFeatureScoutToolbar::childClosed);
+	connect(child, &iAMdiChild::toolRemoved, [] (QString const& key)
+		{
+			if (key == iAFeatureScoutTool::ID)
+			{
+				iAFeatureScoutToolbar::tlbFeatureScout->childClosed(nullptr);
+			}
+		});
 }
 
 iAFeatureScoutToolbar::iAFeatureScoutToolbar(iAMainWindow* mainWnd) :

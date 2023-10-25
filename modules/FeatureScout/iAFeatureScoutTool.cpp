@@ -189,6 +189,12 @@ void iAFeatureScoutTool::init(int objectType, QString const& fileName, std::shar
 	else
 	{
 		auto objDataSetIdx = m_child->addDataSet(objData);
+		connect(m_child, &iAMdiChild::dataSetRemoved, [this, objDataSetIdx](size_t removedDataSetIdx) {
+			if (objDataSetIdx == removedDataSetIdx)
+			{   // FeatureScout will not work if object dataset is removed, it depends on object visualization being available
+				m_child->removeTool(iAFeatureScoutTool::ID);
+			}
+			});
 		auto viewer = dynamic_cast<iAObjectsViewer*>(m_child->dataSetViewer(objDataSetIdx));
 		objVis = viewer->objectVis();
 	}
