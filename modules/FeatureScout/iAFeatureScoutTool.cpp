@@ -15,6 +15,7 @@
 #include <iAMdiChild.h>
 #include <iAModuleDispatcher.h>
 #include <iAVolumeViewer.h>
+#include <iAVolumeRenderer.h>
 
 #include <iAFileUtils.h>
 #include <iAImageData.h>
@@ -136,23 +137,22 @@ bool iAFeatureScoutTool::initFromConfig(iAMdiChild* child, iACsvConfig const& cs
 	{
 		return false;
 	}
-	init(csvConfig.objectType, csvConfig.fileName, objData, csvConfig.cylinderQuality, csvConfig.segmentSkip);
+	init(csvConfig.objectType, csvConfig.fileName, objData);
 
 	iAFeatureScoutToolbar::addForChild(m_mainWindow, child);
 	LOG(lvlInfo, QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
 	if (csvConfig.visType == iAObjectVisType::UseVolume)
 	{
 		QVariantMap renderSettings;
-		// ToDo: Remove duplication with string constants from iADataSetRenderer!
-		renderSettings["Shading"] = true;
-		renderSettings["Linear interpolation"] = false;
-		renderSettings["Diffuse lighting"] = 1.6;
-		renderSettings["Specular lighting"] = 0.0;
+		renderSettings[iADataSetRenderer::Shading] = true;
+		renderSettings[iADataSetRenderer::DiffuseLighting] = 1.6;
+		renderSettings[iADataSetRenderer::SpecularLighting] = 0.0;
+		renderSettings[iAVolumeRenderer::Interpolation] = iAVolumeRenderer::InterpolateLinear;
 		for (auto key: RenderModeMap().keys())
 		{
 			if (RenderModeMap()[key] == vtkSmartVolumeMapper::RayCastRenderMode)
 			{
-				renderSettings["Renderer type"] = key;
+				renderSettings[iAVolumeRenderer::RendererType] = key;
 				break;
 			}
 		}
@@ -163,7 +163,7 @@ bool iAFeatureScoutTool::initFromConfig(iAMdiChild* child, iACsvConfig const& cs
 	return true;
 }
 
-void iAFeatureScoutTool::init(int objectType, QString const& fileName, std::shared_ptr<iAObjectsData> objData, int cylinderQuality, size_t segmentSkip)
+void iAFeatureScoutTool::init(int objectType, QString const& fileName, std::shared_ptr<iAObjectsData> objData)
 {
 	vtkColorTransferFunction* ctf = nullptr;
 	vtkPiecewiseFunction* otf = nullptr;

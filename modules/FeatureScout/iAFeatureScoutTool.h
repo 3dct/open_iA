@@ -53,8 +53,7 @@ public:
 
 private:
 	bool initFromConfig(iAMdiChild* child, iACsvConfig const& csvConfig);
-	void init(int objectType, QString const& fileName, std::shared_ptr<iAObjectsData> objData,
-		int cylinderQuality, size_t segmentSkip);
+	void init(int objectType, QString const& fileName, std::shared_ptr<iAObjectsData> objData);
 	iACsvConfig m_config;
 	dlg_FeatureScout * m_featureScout;
 	//! @{ for the case of labelled volume data (for which the viewer cannot be created automatically), we need to store data ourselves
