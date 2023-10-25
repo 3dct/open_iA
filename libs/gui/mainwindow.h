@@ -10,6 +10,7 @@
 #include "iARawFileParameters.h"
 
 #include <QMdiArea>
+#include <QPointer>
 
 #include <memory>
 
@@ -128,7 +129,6 @@ private slots:
 	void updateWindowMenu();
 	void setActiveSubWindow(QWidget *window);
 	void toggleMdiViewMode();
-	void removeActionIcon();
 
 private:
 	//! internal retriever for MdiChild object (instead of iAMdiChild interface)
@@ -191,6 +191,6 @@ private:
 	//! whether the job list should be automatically shown when a new job is added to the list:
 	bool m_openJobListOnNewJob;
 
-	//! list of actions and their associated icon name:
-	QMap<QAction*, QString> m_actionIcons;
+	//! list of actions and their associated icon name
+	std::vector<std::pair<QPointer<QAction>, QString>> m_actionIcons;
 };

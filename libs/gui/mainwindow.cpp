@@ -328,10 +328,6 @@ MainWindow::~MainWindow()
 	QSettings settings;
 	settings.setValue("geometry", saveGeometry());
 	settings.setValue("state", saveState());
-	for (auto a : m_actionIcons.keys())
-	{   // to prevent invalid access when QActions are deleted
-		disconnect(a, &QObject::destroyed, this, &MainWindow::removeActionIcon);
-	}
 	m_moduleDispatcher->SaveModulesSettings();
 	iASettingsManager::store();
 }
@@ -1683,10 +1679,13 @@ void MainWindow::applyQSS()
 		p.setColor(QPalette::WindowText,      brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
 		QApplication::setPalette(p);
 #endif
-
-		for (auto a : m_actionIcons.keys())
+		// TODO: remove items with unset QPointers? But m_actionIcons will probably never grow really large anyway
+		for (auto a : m_actionIcons)
 		{
-			a->setIcon(iAThemeHelper::icon(m_actionIcons[a]));
+			if (a.first)
+			{
+				a.first->setIcon(iAThemeHelper::icon(a.second));
+			}
 		}
 		emit styleChanged();
 	}
@@ -1700,14 +1699,8 @@ bool MainWindow::brightMode() const
 void MainWindow::addActionIcon(QAction* action, QString const& iconName)
 {
 	assert(action);
-	m_actionIcons.insert(action, iconName);
+	m_actionIcons.push_back(std::make_pair(QPointer<QAction>(action), iconName));
 	action->setIcon(iAThemeHelper::icon(iconName));
-	connect(action, &QObject::destroyed, this, &MainWindow::removeActionIcon);
-}
-
-void MainWindow::removeActionIcon()
-{
-	m_actionIcons.remove(qobject_cast<QAction*>(sender()));
 }
 
 void MainWindow::saveLayout()
