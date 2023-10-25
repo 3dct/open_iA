@@ -2,11 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAColMap.h"
+#include <iAColMap.h>
 
-#include "iAVec3.h"
-
-#include <QMap>
+#include <iAVec3.h>
 
 #include <vector>
 

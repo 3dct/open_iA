@@ -3,15 +3,14 @@
 #pragma once
 
 #include "featurescout_export.h"
-#include "iAColMap.h"
-#include "iAObjectType.h"
+
+#include <iAColMap.h>
+#include <iAObjectType.h>
 
 #include <vtkSmartPointer.h>
 
 #include <QDockWidget>
-#include <QMap>
 
-#include <memory>
 #include <vector>
 
 class dlg_blobVisualization;
