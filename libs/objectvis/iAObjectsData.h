@@ -1,6 +1,7 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
+#include "iAColMap.h"
 #include "iAObjectType.h"
 
 #include <iADataSet.h>
@@ -14,13 +15,13 @@ class vtkTable;
 class iAobjectvis_API iAObjectsData : public iADataSet
 {
 public:
-	iAObjectsData(QString const& name, iAObjectVisType visType, vtkSmartPointer<vtkTable> m_table, std::shared_ptr<QMap<uint, uint>> m_colMapping);
+	iAObjectsData(QString const& name, iAObjectVisType visType, vtkSmartPointer<vtkTable> m_table, iAColMapP m_colMapping);
 	QString info() const override;
 
 	//! one row per object to visualize
 	vtkSmartPointer<vtkTable> m_table;
 	//! mapping of columns (see the respective visualization classes which mappings are required)
-	std::shared_ptr<QMap<uint, uint>> m_colMapping;
+	iAColMapP m_colMapping;
 	//! type of visualization to create
 	iAObjectVisType m_visType;
 	//! optional (if non-empty vector) information on curved fiber objects

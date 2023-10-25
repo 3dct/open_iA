@@ -3,6 +3,7 @@
 #pragma once
 
 #include "featurescout_export.h"
+#include "iAColMap.h"
 #include "iAObjectType.h"
 
 #include <vtkSmartPointer.h>
@@ -242,7 +243,7 @@ private:
 	iAPolarPlotWidget* m_dwPP;
 	const std::unique_ptr<Ui_FeatureScoutCE> m_ui;
 
-	std::shared_ptr<QMap<uint, uint>> m_columnMapping;
+	iAColMapP m_columnMapping;
 
 	std::shared_ptr<iAFeatureScoutSPLOM> m_splom;
 	iAObjectVis* m_3dvis;    // the object visualization; FeatureScout is NOT the owner (typically, the dataset viewer is)

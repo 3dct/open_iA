@@ -10,7 +10,7 @@
 #include <vtkPointData.h>
 #include <vtkMath.h>
 
-iAVRObjectCoverage::iAVRObjectCoverage(vtkTable* objectTable, ColMapP mapping, iACsvConfig csvConfig, std::vector<iAVROctree*>* octrees, iAVRObjectModel* volume)
+iAVRObjectCoverage::iAVRObjectCoverage(vtkTable* objectTable, iAColMapP mapping, iACsvConfig csvConfig, std::vector<iAVROctree*>* octrees, iAVRObjectModel* volume)
 	: m_objectTable(objectTable), m_mapping(mapping), m_csvConfig(csvConfig), m_octrees(octrees), m_volume(volume)
 {
 	m_objectCoverage = new std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>();

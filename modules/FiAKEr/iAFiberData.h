@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#include "iAColMap.h"
+
 #include "iAVec3.h"
 
 #include <QMap>
@@ -26,7 +28,7 @@ struct iAFiberData
 	std::vector<iAVec3f> curvedPoints;
 	iAFiberData();
 	//! generate fiber data from given table, mapping, and optional curved points
-	iAFiberData(vtkTable* table, size_t fiberID, QMap<uint, uint> const & mapping, std::vector<iAVec3f> curvedPts /*= std::vector<iAVec3f>()*/);
+	iAFiberData(vtkTable* table, size_t fiberID, iAColMapT const & mapping, std::vector<iAVec3f> curvedPts /*= std::vector<iAVec3f>()*/);
 	//! generate from a vector containing start, middle end points (each 3 coordinates), phi, theta, length and diameter (i.e. 13 values overall)
 	iAFiberData(std::vector<double> const & data);
 	static iAFiberData getOrientationCorrected(iAFiberData const & source, iAFiberData const & other);

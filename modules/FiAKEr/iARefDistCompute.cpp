@@ -104,7 +104,7 @@ bool iARefDistCompute::setMeasuresToCompute(std::vector<std::pair<int, bool>> co
 }
 
 void getBestMatches(iAFiberData const& fiber,
-	QMap<uint, uint> const& mapping,
+	iAColMapT const& mapping,
 	vtkTable* refTable,
 	QVector<QVector<iAFiberSimilarity> >& bestMatches,
 	std::map<size_t, std::vector<iAVec3f> > const& refCurveInfo,

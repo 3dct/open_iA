@@ -4,7 +4,7 @@
 
 #include <vtkTable.h>
 
-iAObjectsData::iAObjectsData(QString const & name, iAObjectVisType visType, vtkSmartPointer<vtkTable> table, std::shared_ptr<QMap<uint, uint>> colMapping) :
+iAObjectsData::iAObjectsData(QString const & name, iAObjectVisType visType, vtkSmartPointer<vtkTable> table, iAColMapP colMapping) :
 	iADataSet(iADataSetType::Objects),
 	m_table(table),
 	m_colMapping(colMapping),

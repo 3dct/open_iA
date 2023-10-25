@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAObjectType.h"
 #include "iACsvConfig.h"
 
 #include "iaobjectvis_export.h"
@@ -45,12 +44,12 @@ public:
 	//! This is basically the column mapping of the iACsvConfig used to load the dataset,
 	//! but adapted / extended to match the created output: When an auto-id is inserted as first column,
 	//! all indices shift by one to the back; also for computed columns, mappings are inserted.
-	ColMapP outputMapping() const;
+	iAColMapP outputMapping() const;
 private:
 	QStringList m_fileHeaders;          //!< list of column header names in file
 	QStringList m_outputHeaders;        //!< list of column header names in result table
 	iACsvConfig m_csvConfig;            //!< settings used for reading the csv
-	ColMapP m_outputMapping;            //!< maps a value identifier (given as a value out of the iACsvConfig::MappedColumn enum) to the index of the column in the output which contains this value
+	iAColMapP m_outputMapping;          //!< maps a value identifier (given as a value out of the iACsvConfig::MappedColumn enum) to the index of the column in the output which contains this value
 
 	//! determine the header columns used in the output
 	void determineOutputHeaders(QVector<uint> const & selectedCols);

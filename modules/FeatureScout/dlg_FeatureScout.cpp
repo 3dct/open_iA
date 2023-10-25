@@ -13,10 +13,9 @@
 #include "ui_FeatureScoutPolarPlot.h"
 
 // objectvis:
-#include "iALineObjectVis.h"
 #include "iACsvIO.h"
+#include "iALineObjectVis.h"
 #include "iAObjectsData.h"
-#include "iAObjectType.h"
 #include "iAObjectVis.h"
 
 // guibase:

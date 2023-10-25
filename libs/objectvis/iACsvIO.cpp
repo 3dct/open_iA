@@ -91,7 +91,7 @@ namespace
 }
 
 iACsvIO::iACsvIO():
-	m_outputMapping(new QMap<uint, uint>)
+	m_outputMapping(std::make_shared<iAColMapT>())
 {}
 
 bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_params, size_t const rowCount)
@@ -457,7 +457,7 @@ const QStringList & iACsvIO::outputHeaders() const
 	return m_outputHeaders;
 }
 
-ColMapP iACsvIO::outputMapping() const
+iAColMapP iACsvIO::outputMapping() const
 {
 	return m_outputMapping;
 }
