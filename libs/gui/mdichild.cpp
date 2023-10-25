@@ -1151,7 +1151,8 @@ void MdiChild::closeEvent(QCloseEvent* event)
 			return;
 		}
 	}
-	emit closed();
+	LOG(lvlDebug, QString("Closing window %1.").arg(m_curFile));
+	emit closed(this);
 	event->accept();
 }
 

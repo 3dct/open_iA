@@ -87,11 +87,11 @@ iAFeatureScoutToolbar::iAFeatureScoutToolbar(iAMainWindow* mainWnd) :
 
 iAFeatureScoutToolbar::~iAFeatureScoutToolbar() = default;
 
-void iAFeatureScoutToolbar::childClosed()
+void iAFeatureScoutToolbar::childClosed(iAMdiChild* closingChild)
 {
 	for (auto mdiChild: m_mainWnd->mdiChildList())
 	{
-		if (getFSFromChild(mdiChild))
+		if (mdiChild != closingChild && getFSFromChild(mdiChild))
 		{	// if there's at least one current child with a FeatureScout widget, keep toolbar
 			return;
 		}

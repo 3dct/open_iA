@@ -209,8 +209,11 @@ public:
 	virtual void updatePositionMarkerSize() = 0;
 
 signals:
-	//! emitted when the child is about to be closed
-	void closed();
+	//! Emitted when this child window is about to be closed; the closing child will still be
+	//! within the lists of open windows, e.g. iAMainWindow::mdiChildList
+	//! @param child the window to be closed (to be able identify the closing one if catching
+	//!     the closed signals from more than one child)
+	void closed(iAMdiChild* child);
 
 	//! emitted when the file data is loaded; the initialization operations are not fully
 	//! done yet then - use dataSetRendered instead if you require the file to be fully loaded!

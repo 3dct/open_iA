@@ -21,7 +21,7 @@ public:
 	static void addForChild(iAMainWindow* mainWnd, iAMdiChild* child);
 
 private slots:
-	void childClosed();
+	void childClosed(iAMdiChild* closingChild);
 	void childChanged();
 
 private:
