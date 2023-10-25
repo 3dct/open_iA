@@ -1620,7 +1620,7 @@ vtkSmartPointer<vtkImageData> MdiChild::firstImageData() const
 			return imgData->vtkImage();
 		}
 	}
-	LOG(lvlError, "No image/volume data loaded!");
+	LOG(lvlDebug, "No image/volume data loaded!");
 	return nullptr;
 }
 
