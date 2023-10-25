@@ -23,8 +23,8 @@ QString iAObjectsData::info() const
 		case iAObjectVisType::Ellipsoid: infoStr += "Ellipsoids"; break;
 		default:        infoStr += "Unknown"; break;
 	}
-	infoStr += "\nNumber of objects: " + m_table->GetNumberOfRows();
-	infoStr += "\nNumber of characteristics: " + m_table->GetNumberOfColumns();
+	infoStr += QString("\nNumber of objects: %1").arg(m_table->GetNumberOfRows());
+	infoStr += QString("\nNumber of characteristics: %1").arg(m_table->GetNumberOfColumns());
 	// maybe column mapping?
 	return infoStr;
 }
