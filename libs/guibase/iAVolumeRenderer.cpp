@@ -22,8 +22,6 @@ namespace
 	constexpr const char* Spacing = "Spacing";
 	constexpr const char* FinalColorLevel = "Final Color Level";
 	constexpr const char* FinalColorWindow = "Final Color Window";
-	constexpr const char* InterpolateNearest = "Nearest";
-	constexpr const char* InterpolateLinear = "Linear";
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
 	constexpr const char* GlobalIlluminationReach = "Global Illumination Reach";
 	constexpr const char* VolumetricScatteringBlending = "Volumetric Scattering Blending";
@@ -43,8 +41,8 @@ public:
 		{
 			attr = cloneAttributes(iADataSetRenderer::defaultAttributes());
 			// volumes properties:
-			QStringList volInterpolationTypes = QStringList() << InterpolateNearest << InterpolateLinear;
-			selectOption(volInterpolationTypes, InterpolateLinear);
+			QStringList volInterpolationTypes = QStringList() << iAVolumeRenderer::InterpolateNearest << iAVolumeRenderer::InterpolateLinear;
+			selectOption(volInterpolationTypes, iAVolumeRenderer::InterpolateLinear);
 			addAttr(attr, iAVolumeRenderer::Interpolation, iAValueType::Categorical, volInterpolationTypes);
 			addAttr(attr, iAVolumeRenderer::Shading, iAValueType::Boolean, true);
 			addAttr(attr, iAVolumeRenderer::ScalarOpacityUnitDistance, iAValueType::Continuous, -1.0);
