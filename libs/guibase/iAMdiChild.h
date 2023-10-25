@@ -251,6 +251,9 @@ signals:
 	void dataSetRemoved(size_t dataSetIdx);
 	// }
 
+	//! emitted when a tool is removed from this child
+	void toolRemoved(QString const& id);
+
 public slots:
 	//! Updates all views (slicers, renderers)
 	virtual void updateViews() = 0;
