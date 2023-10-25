@@ -252,6 +252,10 @@ dlg_FeatureScout::~dlg_FeatureScout()
 	delete m_blobManager;
 	delete m_elementTableModel;
 	delete m_classTreeModel;
+	delete m_dwPC;
+	delete m_dwDV;
+	delete m_dwSPM;
+	delete m_dwPP;
 }
 
 std::vector<size_t> dlg_FeatureScout::getPCSelection()
