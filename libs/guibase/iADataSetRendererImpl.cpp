@@ -5,6 +5,7 @@
 #include "iAMainWindow.h"
 #include "iAValueTypeVectorHelpers.h"
 
+#include "iADefaultSettings.h"
 #include <iAPolyData.h>
 #include <iAAABB.h>
 #ifndef NDEBUG

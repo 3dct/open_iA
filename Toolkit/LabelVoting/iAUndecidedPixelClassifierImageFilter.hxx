@@ -7,11 +7,18 @@
 #include <iALog.h>
 #include <iAMathUtility.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkImageRegionIterator.h>
 #include <itkConstNeighborhoodIterator.h>
 #include <itkMath.h>
 #include <itkProgressReporter.h>
 #include <itkStatisticsImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #include <QString>
 

@@ -44,11 +44,18 @@
 #include <iALog.h>
 #include <iAMathUtility.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkImageBase.h>
 #include <itkImage.h>
 #include <itkIdentityTransform.h>
 #include <itkMutualInformationImageToImageMetric.h>
 #include <itkLinearInterpolateImageFunction.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #include <vtkColorTransferFunction.h>
 #include <vtkDiscretizableColorTransferFunction.h>

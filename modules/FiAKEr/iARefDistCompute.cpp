@@ -104,7 +104,7 @@ bool iARefDistCompute::setMeasuresToCompute(std::vector<std::pair<int, bool>> co
 }
 
 void getBestMatches(iAFiberData const& fiber,
-	QMap<uint, uint> const& mapping,
+	iAColMapT const& mapping,
 	vtkTable* refTable,
 	QVector<QVector<iAFiberSimilarity> >& bestMatches,
 	std::map<size_t, std::vector<iAVec3f> > const& refCurveInfo,
@@ -177,7 +177,7 @@ void iARefDistCompute::run()
 		"and the difference between consecutive steps.");
 	auto & ref = m_data->result[m_referenceID];
 
-	auto const & mapping = *ref.mapping.get();
+	auto const & mapping = *ref.objData->m_colMapping.get();
 	/*
 	std::array<size_t, iAFiberResult::FiberValueCount> diffCols = {
 		mapping[iACsvConfig::StartX],  mapping[iACsvConfig::StartY],  mapping[iACsvConfig::StartZ],
@@ -228,15 +228,15 @@ void iARefDistCompute::run()
 		}
 		writeResultCache[resultID] = true;
 		recomputeAverages = true; // if any result is not loaded from cache, we have to recompute averages
-		qint64 const fiberCount = d.table->GetNumberOfRows();
+		qint64 const fiberCount = d.objData->m_table->GetNumberOfRows();
 		d.refDiffFiber.resize(fiberCount);
 #pragma omp parallel for
 		for (qint64 fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
-			auto it = d.curveInfo.find(fiberID);
+			auto it = d.objData->m_curvedFiberData.find(fiberID);
 			// find the best-matching fibers in reference & compute difference:
-			iAFiberData fiber(d.table, fiberID, mapping, (it != d.curveInfo.end())? it->second : std::vector<iAVec3f>());
-			getBestMatches(fiber, mapping, ref.table, d.refDiffFiber[fiberID].dist, ref.curveInfo,
+			iAFiberData fiber(d.objData->m_table, fiberID, mapping, (it != d.objData->m_curvedFiberData.end())? it->second : std::vector<iAVec3f>());
+			getBestMatches(fiber, mapping, ref.objData->m_table, d.refDiffFiber[fiberID].dist, ref.objData->m_curvedFiberData,
 				m_diagonalLength, m_maxLength, m_measuresToCompute, m_optimizationMeasureIdx);
 		}
 /*
@@ -295,7 +295,7 @@ void iARefDistCompute::run()
 		auto & d = m_data->result[resultID];
 		for (size_t m = 0; m < m_measuresToCompute.size(); ++m)
 		{
-			addColumn(d.table, 0, measureNames[m_measuresToCompute[m].first].toStdString().c_str(), d.fiberCount);
+			addColumn(d.objData->m_table, 0, measureNames[m_measuresToCompute[m].first].toStdString().c_str(), d.fiberCount);
 		}
 		/*
 		if (resultID == m_referenceID)
@@ -333,7 +333,7 @@ void iARefDistCompute::run()
 				}
 				size_t tableColumnID = m_columnsBefore + measureID;
 				m_data->spmData->data()[tableColumnID][spmID] = dissimilarity;
-				d.table->SetValue(fiberID, tableColumnID, dissimilarity); // required for coloring 3D view by these similarities + used below for average!
+				d.objData->m_table->SetValue(fiberID, tableColumnID, dissimilarity); // required for coloring 3D view by these similarities + used below for average!
 			}
 			++spmID;
 		}
@@ -365,7 +365,7 @@ void iARefDistCompute::run()
 			}
 		}
 		//size_t colID = m_data->result[m_referenceID].table->GetNumberOfColumns();
-		addColumn(m_data->result[m_referenceID].table, 0, "AvgSimilarity", ref.fiberCount);
+		addColumn(m_data->result[m_referenceID].objData->m_table, 0, "AvgSimilarity", ref.fiberCount);
 		m_data->avgRefFiberMatch.resize(static_cast<int>(ref.fiberCount));
 		for (size_t fiberID = 0; fiberID < ref.fiberCount; ++fiberID)
 		{
@@ -392,7 +392,7 @@ void iARefDistCompute::run()
 				for (iARefDistCompute::ContainerSizeType diffID = 0; diffID < diffCount; ++diffID)
 				{
 					size_t tableColumnID = m_columnsBefore + diffID;
-					double value = std::abs(d.table->GetValue(fiberID, tableColumnID).ToDouble());
+					double value = std::abs(d.objData->m_table->GetValue(fiberID, tableColumnID).ToDouble());
 					d.avgDifference[diffID] += value;
 				}
 			}
@@ -419,10 +419,10 @@ void iARefDistCompute::run()
 		writeResultRefComparison(cacheFile, resultID);
 	}
 
-	size_t colID = m_data->result[m_referenceID].table->GetNumberOfColumns() -1 ;
+	size_t colID = m_data->result[m_referenceID].objData->m_table->GetNumberOfColumns() -1 ;
 	for (int fiberID = 0; fiberID < static_cast<int>(ref.fiberCount); ++fiberID)
 	{
-		m_data->result[m_referenceID].table->SetValue(fiberID, colID, m_data->avgRefFiberMatch[fiberID]);
+		m_data->result[m_referenceID].objData->m_table->SetValue(fiberID, colID, m_data->avgRefFiberMatch[fiberID]);
 		//LOG(lvlInfo, QString("Fiber %1: matches=%2, similarity sum=%3, average=%4")
 		//	.arg(fiberID).arg(refDistSum[fiberID]).arg(refMatchCount[fiberID]).arg(value));
 	}

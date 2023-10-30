@@ -12,6 +12,7 @@
 #include <dlg_CSVInput.h>
 #include <iACsvConfig.h>
 #include <iACsvVtkTableCreator.h>
+#include <iAObjectsData.h>
 #include <iAObjectVisFactory.h>
 
 // FeatureScout
@@ -27,6 +28,7 @@
 #include <vtkTable.h>    // required to avoid error C2440: 'static_cast': cannot convert from 'vtkObjectBase *const ' to 'T *'
 
 #include <QAction>
+#include <QFileInfo>
 #include <QMenu>
 #include <QMessageBox>
 
@@ -92,29 +94,14 @@ void iAXVRAModuleInterface::startXVRA()
 		return;
 	}
 	iACsvConfig csvConfig = dlg.getConfig();
-
-	iACsvVtkTableCreator creator;
-	iACsvIO io;
-	if (!io.loadCSV(creator, csvConfig))
+	auto objData = loadObjectsCSV(csvConfig);
+	if (!objData)
 	{
 		return;
 	}
-
-	std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo;
-
-	if (csvConfig.visType == iAObjectVisType::Cylinder || csvConfig.visType == iAObjectVisType::Line)
-	{
-		if (!readCurvedFiberInfo(csvConfig.curvedFiberFileName, curvedFiberInfo))
-		{
-			curvedFiberInfo = std::map<size_t, std::vector<iAVec3f>>();
-		}
-	}
-	vtkSmartPointer<vtkTable> m_objectTable = creator.table();
-
 	// Create PolyObject visualization
-	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(create3DObjectVis(
-		csvConfig.visType, m_objectTable, io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo));
-	if (!m_polyObject)
+	auto polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(createObjectVis(objData.get(), QColor(140, 140, 140, 255), csvConfig.cylinderQuality, csvConfig.segmentSkip));
+	if (!polyObject)
 	{
 		LOG(lvlError, "Invalid 3D object visualization!");
 		return;
@@ -122,15 +109,15 @@ void iAXVRAModuleInterface::startXVRA()
 
 	// Start VR
 	auto vrMain = m_mainWnd->moduleDispatcher().module<iAImNDTModuleInterface>();
-	if (!vrMain->ImNDT(m_polyObject, m_objectTable, io, csvConfig))
+	if (!vrMain->ImNDT(objData, polyObject, csvConfig))
 	{
 		return;
 	}
 
 	// Start FeatureScout (after VR, since starting VR could fail due to VR already running!)
 	auto child = m_mainWnd->createMdiChild(false);
-	m_fsMain = new dlg_FeatureScout(child, csvConfig.objectType, csvConfig.fileName, creator.table(),
-		csvConfig.visType, io.getOutputMapping(), m_polyObject);
+	// TODO: use iAFeatureScoutTool instead of dlg_FeatureScout directly?
+	m_fsMain = new dlg_FeatureScout(child, csvConfig.objectType, csvConfig.fileName, objData.get(), m_polyObject.get());
 	iAFeatureScoutToolbar::addForChild(m_mainWnd, child);
 
 	// Add Camera Frustum visualizations:

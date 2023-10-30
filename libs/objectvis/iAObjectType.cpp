@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAObjectType.h"
 
-
-
 namespace
 {
 	const char * VisualizationTypeName[static_cast<int>(iAObjectVisType::Count)] =
@@ -34,7 +32,6 @@ iAObjectType MapStringToObjectType(QString const & objectTypeName)
 	else
 		return iAObjectType::InvalidObjectType;
 }
-
 
 
 QString MapVisType2Str(iAObjectVisType visType)

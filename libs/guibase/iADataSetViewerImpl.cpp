@@ -150,12 +150,6 @@ void iAProjectViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 
 #include "iAVolumeViewer.h"
 
-template <class ViewerType>
-std::shared_ptr<iADataSetViewer> createFunc(iADataSet* ds)
-{
-	return std::make_shared<ViewerType>(ds);
-}
-
 std::map<iADataSetType, iADataSetViewerCreateFuncPtr>& dataSetViewerFactoryMap()
 {
 	static std::map<iADataSetType, iADataSetViewerCreateFuncPtr> m;

@@ -1151,7 +1151,8 @@ void MdiChild::closeEvent(QCloseEvent* event)
 			return;
 		}
 	}
-	emit closed();
+	LOG(lvlDebug, QString("Closing window %1.").arg(m_curFile));
+	emit closed(this);
 	event->accept();
 }
 
@@ -1619,7 +1620,7 @@ vtkSmartPointer<vtkImageData> MdiChild::firstImageData() const
 			return imgData->vtkImage();
 		}
 	}
-	LOG(lvlError, "No image/volume data loaded!");
+	LOG(lvlDebug, "No image/volume data loaded!");
 	return nullptr;
 }
 
@@ -1784,6 +1785,7 @@ void MdiChild::addTool(QString const& key, std::shared_ptr<iATool> tool)
 void MdiChild::removeTool(QString const& key)
 {
 	m_tools.remove(key);
+	emit toolRemoved(key);
 }
 
 QMap<QString, std::shared_ptr<iATool>> const& MdiChild::tools()

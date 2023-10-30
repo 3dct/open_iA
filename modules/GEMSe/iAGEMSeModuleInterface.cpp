@@ -82,15 +82,15 @@ void iAGEMSeModuleInterface::setupToolbar()
 	m_toolbar = new iAGEMSeToolbar("GEMSe ToolBar", m_mainWnd);
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
 
-	auto toolbarCallback = [this](auto thisfunc) {
+	auto toolbarCallback = [this](auto thisfunc)
+	{
 		auto t = getTool<iAGEMSeTool>(m_mainWnd->activeMdiChild());
 		if (!t)
 		{
 			LOG(lvlError, "ERROR: GEMSE tool is not available!");
 			return;
 		}
-		(t->*thisfunc)();
-		//std::invoke(thisfunc, t);    // use once we have switched to C++17
+		std::invoke(thisfunc, t);
 	};
 	connect(m_toolbar->action_ResetFilter, &QAction::triggered, this, [toolbarCallback]() {
 		toolbarCallback(&iAGEMSeTool::resetFilter);

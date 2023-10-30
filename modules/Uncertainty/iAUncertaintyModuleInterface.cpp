@@ -54,8 +54,7 @@ void iAUncertaintyModuleInterface::setupToolBar()
 			LOG(lvlError, "Uncertainty exploration was not loaded properly!");
 			return;
 		}
-		(tool->*toolBarAction)();
-		//std::invoke(toolBarAction, tool);    // use once we have switched to C++17
+		std::invoke(toolBarAction, tool);
 	};
 	connect(m_toolbar->action_ToggleTitleBar, &QAction::triggered, this, [toolAction]() {
 		toolAction(&iAUncertaintyTool::toggleDockWidgetTitleBars);

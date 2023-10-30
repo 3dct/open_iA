@@ -10,6 +10,7 @@
 #include <iAColoredPolyObjectVis.h>
 #include <iACsvConfig.h>
 #include <iACsvVtkTableCreator.h>
+#include <iAObjectsData.h>
 #include <iAObjectVisFactory.h>
 
 #include <iADataSetRenderer.h>
@@ -32,6 +33,7 @@
 #include <vtkTable.h>
 
 #include <QAction>
+#include <QFileInfo>
 #include <QMenu>
 #include <QMessageBox>
 
@@ -399,7 +401,7 @@ void iAImNDTModuleInterface::startAnalysis()
 {
 	if (!m_vrMain)
 	{
-		if (!loadImNDT() || !ImNDT(m_polyObject, m_objectTable, m_io, m_csvConfig))
+		if (!loadImNDT() || !ImNDT(m_objData, m_polyObject, m_csvConfig))
 		{
 			return;
 		}
@@ -479,7 +481,7 @@ bool iAImNDTModuleInterface::setupVREnvironment()
 }
 
 // Start ImNDT with pre-loaded data
-bool iAImNDTModuleInterface::ImNDT(std::shared_ptr<iAColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io, iACsvConfig csvConfig)
+bool iAImNDTModuleInterface::ImNDT(std::shared_ptr<iAObjectsData> objData, std::shared_ptr<iAColoredPolyObjectVis> polyObject, iACsvConfig csvConfig)
 {
 	if (!setupVREnvironment())
 	{
@@ -490,8 +492,8 @@ bool iAImNDTModuleInterface::ImNDT(std::shared_ptr<iAColoredPolyObjectVis> polyO
 	//Create VR Main
 	//TODO: CHECK IF PolyObject is not Volume OR NoVis
 	m_polyObject = polyObject;
-	m_objectTable = objectTable;
-	m_vrMain = std::make_shared<iAImNDTMain>(m_vrEnv.get(), m_polyObject.get(), m_objectTable, io, csvConfig);
+	m_objData = objData;
+	m_vrMain = std::make_shared<iAImNDTMain>(m_vrEnv.get(), m_polyObject.get(), m_objData.get(), csvConfig);
 	connect(m_vrMain.get(), &iAImNDTMain::selectionChanged, this, &iAImNDTModuleInterface::selectionChanged);
 
 	// Start Render Loop HERE!
@@ -512,31 +514,17 @@ bool iAImNDTModuleInterface::loadImNDT()
 		return false;
 	}
 	m_csvConfig = dlg.getConfig();
-
-	iACsvVtkTableCreator creator;
-
-	if (!m_io.loadCSV(creator, m_csvConfig))
+	m_objData = loadObjectsCSV(m_csvConfig);
+	if (!m_objData)
 	{
 		return false;
 	}
-
-	std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo;
-
-	if (m_csvConfig.visType == iAObjectVisType::Cylinder || m_csvConfig.visType == iAObjectVisType::Line)
-	{
-		if (!readCurvedFiberInfo(m_csvConfig.curvedFiberFileName, curvedFiberInfo))
-		{
-			curvedFiberInfo = std::map<size_t, std::vector<iAVec3f>>();
-		}
-	}
-	m_objectTable = creator.table();
-	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(create3DObjectVis(
-		m_csvConfig.visType, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo));
+	auto objVis = createObjectVis(m_objData.get(), QColor(140, 140, 140, 255), m_csvConfig.cylinderQuality, m_csvConfig.segmentSkip);
+	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(objVis);
 	if (!m_polyObject)
 	{
 		LOG(lvlError, "Invalid 3D object visualization!");
 		return false;
 	}
-
 	return true;
 }

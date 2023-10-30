@@ -3,7 +3,7 @@
 #include "iAEllipsoidObjectVis.h"
 
 #include "iACsvConfig.h"
-
+#include "iAObjectsData.h"
 #include "vtkEllipsoidSource.h"
 
 #include <vtkAppendPolyData.h>
@@ -11,7 +11,7 @@
 #include <vtkPointData.h>
 #include <vtkTable.h>
 
-iAEllipsoidObjectVis::iAEllipsoidObjectVis(std::shared_ptr<iAObjectsData> data,
+iAEllipsoidObjectVis::iAEllipsoidObjectVis(iAObjectsData const* data,
 	QColor const & color, int phiRes, int thetaRes) :
 	iAColoredPolyObjectVis(data, color),
 	m_pointsPerEllipse((phiRes - 2) * thetaRes + 2)

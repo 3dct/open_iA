@@ -8,13 +8,12 @@
 #include "iAVRObjectCoverage.h"
 #include "iAVROctreeMetrics.h"
 
-#include <iACsvIO.h>
-
 #include <vtkEventData.h>
 #include <vtkSmartPointer.h>
-#include <vtkTable.h>
 
 #include <unordered_map>
+
+class iAObjectsData;
 
 class iAVR3DText;
 class iAVRColorLegend;
@@ -62,7 +61,7 @@ class iAImNDTMain: public QObject
 {
 	Q_OBJECT
 public:
-	iAImNDTMain(iAVREnvironment* vrEnv, iAColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig);
+	iAImNDTMain(iAVREnvironment* vrEnv, iAColoredPolyObjectVis* polyObject, iAObjectsData const * data, iACsvConfig csvConfig);
 	// required to be able to forward-declare for unique_ptr on clang:
 	~iAImNDTMain();
 	//! Defines the action executed for specific controller inputs
@@ -85,7 +84,6 @@ private:
 	vtkSmartPointer<vtkPolyData> m_extendedCylinderVisData; // Data extended with additional intersection points
 	iAImNDTInteractions m_interactions;
 	iAColoredPolyObjectVis* m_polyObject;
-	vtkSmartPointer<vtkTable> m_objectTable;
 
 	bool m_networkGraphMode;
 	std::vector<iAVR3DText*>* m_3DTextLabels;
@@ -93,7 +91,6 @@ private:
 	iAVRSlider* m_slider;
 	iAVRColorLegend* m_MiMColorLegend;
 	iAVRMip* m_MiMMip;
-	iACsvIO m_io;
 	iAVROctreeMetrics* fiberMetrics;
 	iAVRHistogramMetric* histogramMetrics;
 	iAVRHistogramPairVis* m_distributionVis;

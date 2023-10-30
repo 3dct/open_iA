@@ -5,15 +5,17 @@
 #include "dlg_FeatureScout.h"
 #include "iAFeatureScoutToolbar.h"
 
-#include <iAObjectVisFactory.h>
 #include <iACsvConfig.h>
-#include <iACsvIO.h>
-#include <iACsvVtkTableCreator.h>
+#include "iALabeledVolumeVis.h"
+#include <iAObjectsData.h>
+#include <iAObjectsViewer.h>
+#include <iAObjectVisFactory.h>
 
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
 #include <iAModuleDispatcher.h>
 #include <iAVolumeViewer.h>
+#include <iAVolumeRenderer.h>
 
 #include <iAFileUtils.h>
 #include <iAImageData.h>
@@ -23,7 +25,6 @@
 
 #include <vtkImageData.h>
 #include <vtkSmartVolumeMapper.h>
-#include <vtkTable.h>
 
 #include <QFileInfo>
 #include <QSettings>
@@ -131,35 +132,27 @@ void iAFeatureScoutTool::saveState(QSettings& projectFile, QString const& fileNa
 
 bool iAFeatureScoutTool::initFromConfig(iAMdiChild* child, iACsvConfig const& csvConfig)
 {
-	iACsvVtkTableCreator creator;
-	iACsvIO io;
-	if (!io.loadCSV(creator, csvConfig))
+	auto objData = loadObjectsCSV(csvConfig);
+	if (!objData)
 	{
 		return false;
 	}
-	std::map<size_t, std::vector<iAVec3f>> curvedFiberInfo;
-	if (!csvConfig.curvedFiberFileName.isEmpty())
-	{
-		readCurvedFiberInfo(csvConfig.curvedFiberFileName, curvedFiberInfo);
-	}
-	init(csvConfig.objectType, csvConfig.fileName, creator.table(), csvConfig.visType, io.getOutputMapping(),
-		curvedFiberInfo, csvConfig.cylinderQuality, csvConfig.segmentSkip);
+	init(csvConfig.objectType, csvConfig.fileName, objData);
 
 	iAFeatureScoutToolbar::addForChild(m_mainWindow, child);
 	LOG(lvlInfo, QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
 	if (csvConfig.visType == iAObjectVisType::UseVolume)
 	{
 		QVariantMap renderSettings;
-		// ToDo: Remove duplication with string constants from iADataSetRenderer!
-		renderSettings["Shading"] = true;
-		renderSettings["Linear interpolation"] = false;
-		renderSettings["Diffuse lighting"] = 1.6;
-		renderSettings["Specular lighting"] = 0.0;
+		renderSettings[iADataSetRenderer::Shading] = true;
+		renderSettings[iADataSetRenderer::DiffuseLighting] = 1.6;
+		renderSettings[iADataSetRenderer::SpecularLighting] = 0.0;
+		renderSettings[iAVolumeRenderer::Interpolation] = iAVolumeRenderer::InterpolateLinear;
 		for (auto key: RenderModeMap().keys())
 		{
 			if (RenderModeMap()[key] == vtkSmartVolumeMapper::RayCastRenderMode)
 			{
-				renderSettings["Renderer type"] = key;
+				renderSettings[iAVolumeRenderer::RendererType] = key;
 				break;
 			}
 		}
@@ -170,14 +163,13 @@ bool iAFeatureScoutTool::initFromConfig(iAMdiChild* child, iACsvConfig const& cs
 	return true;
 }
 
-void iAFeatureScoutTool::init(int filterID, QString const& fileName, vtkSmartPointer<vtkTable> csvtbl,
-	iAObjectVisType visType, std::shared_ptr<QMap<uint, uint> > columnMapping, std::map<size_t,
-	std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip)
+void iAFeatureScoutTool::init(int objectType, QString const& fileName, std::shared_ptr<iAObjectsData> objData)
 {
 	vtkColorTransferFunction* ctf = nullptr;
 	vtkPiecewiseFunction* otf = nullptr;
 	double* bounds = nullptr;
-	if (visType == iAObjectVisType::UseVolume)
+	iAObjectVis* objVis = nullptr;
+	if (objData->m_visType == iAObjectVisType::UseVolume)
 	{
 		auto idx = m_child->firstImageDataSetIdx();
 		if (idx == iAMdiChild::NoDataSet)
@@ -189,13 +181,24 @@ void iAFeatureScoutTool::init(int filterID, QString const& fileName, vtkSmartPoi
 		ctf = tf->colorTF();
 		otf = tf->opacityTF();
 		bounds = dynamic_cast<iAImageData*>(m_child->dataSet(idx).get())->vtkImage()->GetBounds();
+		m_objData = objData;
+		QColor defaultColor(dlg_FeatureScout::UnclassifiedColorName);
+		m_objVis = std::make_shared<iALabeledVolumeVis>(ctf, otf, objData.get(), bounds);
+		objVis = m_objVis.get();
 	}
-	auto objvis = create3DObjectVis(visType, csvtbl, columnMapping,
-		QColor(dlg_FeatureScout::UnclassifiedColorName), curvedFiberInfo, cylinderQuality, segmentSkip,
-		ctf, otf, bounds);
-	m_featureScout = new dlg_FeatureScout(
-		m_child, static_cast<iAObjectType>(filterID),
-		fileName, csvtbl, visType, columnMapping, objvis);
+	else
+	{
+		auto objDataSetIdx = m_child->addDataSet(objData);
+		connect(m_child, &iAMdiChild::dataSetRemoved, [this, objDataSetIdx](size_t removedDataSetIdx) {
+			if (objDataSetIdx == removedDataSetIdx)
+			{   // FeatureScout will not work if object dataset is removed, it depends on object visualization being available
+				m_child->removeTool(iAFeatureScoutTool::ID);
+			}
+			});
+		auto viewer = dynamic_cast<iAObjectsViewer*>(m_child->dataSetViewer(objDataSetIdx));
+		objVis = viewer->objectVis();
+	}
+	m_featureScout = new dlg_FeatureScout(m_child, static_cast<iAObjectType>(objectType), fileName, objData.get(), objVis);
 }
 
 void iAFeatureScoutTool::setOptions(iACsvConfig const& config)

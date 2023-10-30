@@ -3,6 +3,7 @@
 #include "iALabeledVolumeVis.h"
 
 #include "iACsvConfig.h"
+#include "iAObjectsData.h"
 #include "iAObjectType.h"
 
 #include <vtkColorTransferFunction.h>
@@ -13,7 +14,7 @@
 #include <QStandardItem>
 
 iALabeledVolumeVis::iALabeledVolumeVis(vtkColorTransferFunction* color, vtkPiecewiseFunction* opac,
-	std::shared_ptr<iAObjectsData> data, double const* bounds) :
+	iAObjectsData const* data, double const* bounds) :
 	iAObjectVis(data),
 	oTF(opac),
 	cTF(color)

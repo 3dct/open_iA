@@ -14,7 +14,7 @@
 #include <random>
 
 
-iAFiberData::iAFiberData(vtkTable* table, size_t fiberID, QMap<uint, uint> const & mapping, std::vector<iAVec3f> curvedPts):
+iAFiberData::iAFiberData(vtkTable* table, size_t fiberID, iAColMapT const & mapping, std::vector<iAVec3f> curvedPts):
 	pts(3),
 	curvedPoints(curvedPts)
 {

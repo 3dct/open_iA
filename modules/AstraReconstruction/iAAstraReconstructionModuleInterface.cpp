@@ -3,8 +3,9 @@
 #include "iAAstraReconstructionModuleInterface.h"
 
 #include "iAAstraAlgorithm.h"
+#include "iAAstraFilterRunner.h"
 
-#include "iAFilterRunnerRegistry.h"
+#include <iAFilterRunnerRegistry.h>
 
 void iAAstraReconstructionModuleInterface::Initialize( )
 {
@@ -12,6 +13,6 @@ void iAAstraReconstructionModuleInterface::Initialize( )
 	{
 		return;
 	}
-	iAFilterRunnerRegistry::add(iAFilterRegistry::filterID(iAASTRAForwardProject().name()), iAASTRAFilterRunner::create);
-	iAFilterRunnerRegistry::add(iAFilterRegistry::filterID(iAASTRAReconstruct().name()), iAASTRAFilterRunner::create);
+	iAFilterRunnerRegistry::add(iAFilterRegistry::filterID(iAAstraForwardProject().name()), iAAstraFilterRunner::create);
+	iAFilterRunnerRegistry::add(iAFilterRegistry::filterID(iAAstraReconstruct().name()), iAAstraFilterRunner::create);
 }

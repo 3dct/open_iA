@@ -8,7 +8,7 @@
 class iAVROctreeMetrics : public iAVRMetrics
 {
 public:
-	iAVROctreeMetrics(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees);
+	iAVROctreeMetrics(vtkTable* objectTable, std::vector<iAVROctree*>* octrees);
 	std::vector<std::vector<std::vector<double>>>* getRegionAverage(vtkIdType octreeLevel, vtkIdType feature);
 	std::vector<std::vector<std::vector<vtkIdType>>>* getMaxCoverageFiberPerRegion();
 	std::vector<double> getMinMaxAvgRegionValues(vtkIdType octreeLevel, vtkIdType feature);

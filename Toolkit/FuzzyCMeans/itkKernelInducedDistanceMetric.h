@@ -18,9 +18,16 @@
 #ifndef __itkKernelInducedDistanceMetric_h
 #define __itkKernelInducedDistanceMetric_h
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include "itkNumericTraits.h"
 #include "itkDistanceMetric.h"
 #include "itkMeasurementVectorTraits.h"
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 namespace itk
 {

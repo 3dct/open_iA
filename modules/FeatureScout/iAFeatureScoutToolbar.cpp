@@ -2,12 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFeatureScoutToolbar.h"
 
+#include "dlg_FeatureScout.h"
+#include "iAFeatureScoutTool.h"
+
 #include <iALog.h>
 
 #include "iAMainWindow.h"
 #include "iAMdiChild.h"
-
-#include "dlg_FeatureScout.h"
 
 #include "ui_FeatureScoutToolBar.h"
 
@@ -43,6 +44,13 @@ void iAFeatureScoutToolbar::addForChild(iAMainWindow* mainWnd, iAMdiChild* child
 		tlbFeatureScout->childChanged();
 	}
 	connect(child, &iAMdiChild::closed, tlbFeatureScout, &iAFeatureScoutToolbar::childClosed);
+	connect(child, &iAMdiChild::toolRemoved, [] (QString const& key)
+		{
+			if (key == iAFeatureScoutTool::ID)
+			{
+				iAFeatureScoutToolbar::tlbFeatureScout->childClosed(nullptr);
+			}
+		});
 }
 
 iAFeatureScoutToolbar::iAFeatureScoutToolbar(iAMainWindow* mainWnd) :
@@ -51,15 +59,15 @@ iAFeatureScoutToolbar::iAFeatureScoutToolbar(iAMainWindow* mainWnd) :
 	m_mainWnd(mainWnd)
 {
 	m_ui->setupUi(this);
-	auto toolbarCallback = [this](auto thisfunc) {
+	auto toolbarCallback = [this](auto thisfunc)
+	{
 		auto fs = getFSFromChild(m_mainWnd->activeMdiChild());
 		if (!fs)
 		{
 			LOG(lvlInfo, "No FeatureScout tool open in current iAMdiChild!");
 			return;
 		}
-		(fs->*thisfunc)();
-		//std::invoke(thisfunc, fs);    // use once we have switched to C++17
+		std::invoke(thisfunc, fs);
 	};
 	connect(m_mainWnd, &iAMainWindow::childChanged, this, &iAFeatureScoutToolbar::childChanged);
 	m_mainWnd->addActionIcon(m_ui->actionMultiRendering, "layers");
@@ -87,11 +95,11 @@ iAFeatureScoutToolbar::iAFeatureScoutToolbar(iAMainWindow* mainWnd) :
 
 iAFeatureScoutToolbar::~iAFeatureScoutToolbar() = default;
 
-void iAFeatureScoutToolbar::childClosed()
+void iAFeatureScoutToolbar::childClosed(iAMdiChild* closingChild)
 {
 	for (auto mdiChild: m_mainWnd->mdiChildList())
 	{
-		if (getFSFromChild(mdiChild))
+		if (mdiChild != closingChild && getFSFromChild(mdiChild))
 		{	// if there's at least one current child with a FeatureScout widget, keep toolbar
 			return;
 		}

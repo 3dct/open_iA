@@ -17,6 +17,7 @@ class iAobjectvis_API iAObjectVisActor : public QObject
 public:
 	iAObjectVisActor(vtkRenderer* ren);
 	virtual void show();
+	virtual void hide();
 	virtual void updateRenderer();
 	void clearRenderer();
 signals:

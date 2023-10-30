@@ -1,7 +1,7 @@
 set(DEPENDENCIES_LIBRARIES
 	iA::base
 )
-if (OPENCL_FOUND)
+if (OpenCLICDLoader_FOUND)
 	list(APPEND DEPENDENCIES_LIBRARIES OpenCLDefines)    # not ideal - only required for TARGET_VERSION defines
 endif()
 #set(DEPENDENCIES_ITK_MODULES
@@ -27,7 +27,7 @@ endif()
 #	ITKTestKernel                # for PipelineMonitorImageFilter
 #	ITKTransform                 # for Transform, dependency of ResampleImageFilter
 #)
-#if (ITK_VERSION VERSION_LESS "5.0.0" AND OPENCL_FOUND)
+#if (ITK_VERSION VERSION_LESS "5.0.0" AND OpenCLICDLoader_FOUND)
 #	list(APPEND DEPENDENCIES_ITK_MODULES
 #		ITKGPUCommon               # for itkGPUImage.h, required by iASmoothing
 #		ITKGPUAnisotropicSmoothing # for itkGPUGradientAnisotropicDiffusionImageFilter

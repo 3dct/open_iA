@@ -24,6 +24,8 @@ class iAguibase_API iAVolumeRenderer : public iADataSetRenderer
 {
 public:
 	static constexpr const char Interpolation[] = "Interpolation";
+	static constexpr const char InterpolateNearest[] = "Nearest";
+	static constexpr const char InterpolateLinear[] = "Linear";
 	static constexpr const char ScalarOpacityUnitDistance[] = "Scalar Opacity Unit Distance";
 	static constexpr const char RendererType[] = "Renderer Type";
 	static constexpr const char SampleDistance[] = "Sample Distance";

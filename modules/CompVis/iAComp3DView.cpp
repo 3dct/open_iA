@@ -9,7 +9,6 @@
 //iA
 #include "iAMainWindow.h"
 #include "iAQVTKWidget.h"
-#include "iACsvIO.h"
 #include "iACsvConfig.h"
 
 #include <vtkRenderer.h>
@@ -22,13 +21,12 @@ iAComp3DView::iAComp3DView(iAMainWindow* parent, iACsvDataStorage* dataStorage) 
 	m_dataStorage(dataStorage), 
 	m_dockWidgets(new std::vector<iAComp3DWidget*>())
 {
-	auto const & objectTables = m_dataStorage->getObjectTables();
-	auto const & outputMappings = m_dataStorage->getOutputMappings();
+	auto const & objData = m_dataStorage->getObjectData();
 	auto const & csvConfigs = m_dataStorage->getCsvConfigs();
 
-	for (int i = 0; i < static_cast<int>(outputMappings.size()); i++)
+	for (size_t i = 0; i < objData.size(); i++)
 	{
-		iAComp3DWidget* widget = new iAComp3DWidget(parent, objectTables[i], outputMappings[i], csvConfigs[i]);
+		iAComp3DWidget* widget = new iAComp3DWidget(parent, objData[i], csvConfigs[i]);
 		widget->setWindowTitle(iACompVisOptions::getLabel(m_dataStorage->getDatasetNames()->at(i)));
 		m_dockWidgets->push_back(widget);
 	}
@@ -38,9 +36,9 @@ iAComp3DView::iAComp3DView(iAMainWindow* parent, iACsvDataStorage* dataStorage) 
 {
 	int row = 0;
 	int col = 0;
-	for (int i = 0; i < static_cast<int>(m_dockWidgets->size()); i++)
+	for (size_t i = 0; i < m_dockWidgets->size(); i++)
 	{
-		if ((i == (static_cast<int>(m_dockWidgets->size())-1)) && ((i%2) == 0))
+		if ((i == (m_dockWidgets->size()-1)) && ((i%2) == 0))
 		{
 			layout->addWidget(m_dockWidgets->at(i), row, col , 1, col);
 		}
@@ -102,7 +100,7 @@ void iAComp3DView::update3DViews(
 
  void iAComp3DView::reset3DViews()
 {
-	 for (int i = 0; i < static_cast<int>(m_dockWidgets->size()); i++)
+	 for (size_t i = 0; i < m_dockWidgets->size(); i++)
 	 {
 		 m_dockWidgets->at(i)->resetWidget();
 	 }

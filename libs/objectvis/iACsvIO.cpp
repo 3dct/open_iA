@@ -70,7 +70,7 @@ namespace
 			return value.toDouble();
 		}
 	}
-	double getValueAsDouble(QStringList const & values, uint index, iACsvConfig const & config)
+	double valueAsDouble(QStringList const & values, uint index, iACsvConfig const & config)
 	{
 		if (index > static_cast<uint>(std::numeric_limits<int>::max()) ||
 			static_cast<int>(index) > values.size())
@@ -84,14 +84,14 @@ namespace
 		}
 		return transformValue(value, index, config);
 	}
-	size_t getLineNumberForRow(iACsvConfig const& cfg, size_t row)
+	size_t lineNumberForRow(iACsvConfig const& cfg, size_t row)
 	{
 		return cfg.skipLinesStart + (cfg.containsHeader ? 1 : 0) + row;
 	}
 }
 
 iACsvIO::iACsvIO():
-	m_outputMapping(new QMap<uint, uint>)
+	m_outputMapping(std::make_shared<iAColMapT>())
 {}
 
 bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_params, size_t const rowCount)
@@ -113,7 +113,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 	QStringConverter::Encoding enc = encOpt.has_value() ? encOpt.value() : QStringConverter::Utf8;
 	in.setEncoding(enc);
 	size_t effectiveRowCount = std::min(rowCount,
-		calcRowCount(in, getLineNumberForRow(m_csvConfig, 0), m_csvConfig.skipLinesEnd));
+		calcRowCount(in, lineNumberForRow(m_csvConfig, 0), m_csvConfig.skipLinesEnd));
 	if (effectiveRowCount <= 0)
 	{
 		LOG(lvlError, QString("Unable to open csv file '%1': No rows to load in the csv file!")
@@ -158,7 +158,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		if (values.size() < m_csvConfig.currentHeaders.size())
 		{
 			LOG(lvlWarn, QString("Line %1 in file '%2' (row %3 of data) only contains %4 entries, expected %5. Skipping...")
-				.arg(getLineNumberForRow(m_csvConfig, row)).arg(m_csvConfig.fileName).arg(row)
+				.arg(lineNumberForRow(m_csvConfig, row)).arg(m_csvConfig.fileName).arg(row)
 				.arg(values.size()).arg(m_csvConfig.currentHeaders.size()));
 			continue;
 		}
@@ -168,7 +168,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 				"(i.e. the values are not ordered as required, the ID values need to be consecutive, starting at 1)! "
 				"Please either fix the data in the CSV or use the 'Create ID' feature!")
 				.arg(values[0].toULongLong()).arg(row+1)
-				.arg(getLineNumberForRow(m_csvConfig, row)).arg(m_csvConfig.fileName));
+				.arg(lineNumberForRow(m_csvConfig, row)).arg(m_csvConfig.fileName));
 			return false;
 		}
 		for (int valIdx : selectedColIdx)
@@ -188,12 +188,12 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		if (m_csvConfig.computeStartEnd)
 		{
 			double center[3];
-			center[0] = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::CenterX], m_csvConfig);
-			center[1] = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::CenterY], m_csvConfig);
-			center[2] = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::CenterZ], m_csvConfig);
-			double phi = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Phi], m_csvConfig);
-			double theta = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Theta], m_csvConfig);
-			double radius = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Length], m_csvConfig) * 0.5;
+			center[0] = valueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::CenterX], m_csvConfig);
+			center[1] = valueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::CenterY], m_csvConfig);
+			center[2] = valueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::CenterZ], m_csvConfig);
+			double phi    = valueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Phi], m_csvConfig);
+			double theta  = valueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Theta], m_csvConfig);
+			double radius = valueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Length], m_csvConfig) * 0.5;
 			double dir[3];
 			dir[0] = radius * std::sin(phi) * std::cos(theta);
 			dir[1] = radius * std::sin(phi) * std::sin(theta);
@@ -214,12 +214,12 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		double phi = 0.0, theta = 0.0;
 		if (m_csvConfig.computeLength || m_csvConfig.computeAngles || m_csvConfig.computeCenter)
 		{
-			double x1 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::StartX], m_csvConfig);
-			double y1 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::StartY], m_csvConfig);
-			double z1 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::StartZ], m_csvConfig);
-			double x2 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::EndX], m_csvConfig);
-			double y2 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::EndY], m_csvConfig);
-			double z2 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::EndZ], m_csvConfig);
+			double x1 = valueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::StartX], m_csvConfig);
+			double y1 = valueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::StartY], m_csvConfig);
+			double z1 = valueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::StartZ], m_csvConfig);
+			double x2 = valueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::EndX], m_csvConfig);
+			double y2 = valueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::EndY], m_csvConfig);
+			double z2 = valueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::EndZ], m_csvConfig);
 			double dx = x1 - x2;
 			double dy = y1 - y2;
 			double dz = z1 - z2;
@@ -274,8 +274,8 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		{
 			if (!m_csvConfig.computeAngles)
 			{
-				phi = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Phi], m_csvConfig);
-				theta = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Theta], m_csvConfig);
+				phi = valueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Phi], m_csvConfig);
+				theta = valueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Theta], m_csvConfig);
 			}
 			double rad_phi = vtkMath::RadiansFromDegrees(phi);
 			double rad_theta = vtkMath::RadiansFromDegrees(theta);
@@ -447,17 +447,17 @@ size_t iACsvIO::calcRowCount(QTextStream& in, const size_t skipLinesStart, const
 	return rowCount - skipLinesEnd;
 }
 
-const QStringList & iACsvIO::getFileHeaders() const
+const QStringList & iACsvIO::fileHeaders() const
 {
 	return m_fileHeaders;
 }
 
-const QStringList & iACsvIO::getOutputHeaders() const
+const QStringList & iACsvIO::outputHeaders() const
 {
 	return m_outputHeaders;
 }
 
-std::shared_ptr<QMap<uint, uint>> iACsvIO::getOutputMapping() const
+iAColMapP iACsvIO::outputMapping() const
 {
 	return m_outputMapping;
 }

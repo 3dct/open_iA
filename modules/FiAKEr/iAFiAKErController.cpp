@@ -524,15 +524,13 @@ QWidget* iAFiAKErController::setupOptimStepView()
 
 namespace
 {
-	std::shared_ptr<iAColoredPolyObjectVis> create3DVis(
-		vtkSmartPointer<vtkTable> table, std::shared_ptr<QMap<uint, uint> > mapping, QColor const & color, iAObjectVisType objectType,
-		std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData)
+	std::shared_ptr<iAColoredPolyObjectVis> create3DVis(iAObjectsData* const objData, QColor const & color)
 	{
-		switch (objectType)
+		switch (objData->m_visType)
 		{
-		case iAObjectVisType::Ellipsoid: return std::make_shared<iAEllipsoidObjectVis>(std::make_shared<iAObjectsData>(table, mapping), color);
+		case iAObjectVisType::Ellipsoid: return std::make_shared<iAEllipsoidObjectVis>(objData, color);
 		default: [[fallthrough]];
-		case iAObjectVisType::Cylinder: return std::make_shared<iACylinderObjectVis>(std::make_shared<iAObjectsData>(table, mapping), color, curvedFiberData, CylinderSides, SegmentSkip);
+		case iAObjectVisType::Cylinder: return std::make_shared<iACylinderObjectVis>(objData, color, CylinderSides, SegmentSkip);
 		}
 	}
 }
@@ -629,7 +627,7 @@ QWidget* iAFiAKErController::setupResultListView()
 	}
 	m_distributionChoice->addItems(paramNames);
 	m_distributionChoice->addItem("Match Quality");
-	m_distributionChoice->setCurrentIndex(static_cast<int>((*m_data->result[0].mapping)[iACsvConfig::Length]));
+	m_distributionChoice->setCurrentIndex(static_cast<int>((*m_data->result[0].objData->m_colMapping)[iACsvConfig::Length]));
 	connect(m_distributionChoice, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::distributionChoiceChanged);
 	m_distributionChoice->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	m_colorByDistribution = new QCheckBox("Color by");
@@ -700,9 +698,12 @@ QWidget* iAFiAKErController::setupResultListView()
 
 		m_resultListSorting.insert(resultID, static_cast<int>(resultID));
 
+		/*
+		// ignore curved fibers for preview
 		std::map<size_t, std::vector<iAVec3f> > const & curveInfo =
 			(m_useStepData && d.stepData == iAFiberResult::CurvedStepData) ?
-			getCurvedStepInfo(d) : d.curveInfo;
+			getCurvedStepInfo(d) : d.objData->m_curvedFiberData;
+		*/
 		QColor resultColor(getResultColor(resultID));
 
 		if (m_showPreviews)
@@ -717,7 +718,7 @@ QWidget* iAFiAKErController::setupResultListView()
 			ren->SetMaximumNumberOfPeels(10);
 			renWin->AddRenderer(ren);
 			ui.vtkWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
-			ui.mini3DVis = create3DVis(d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
+			ui.mini3DVis = create3DVis(d.objData.get(), resultColor);
 			ui.mini3DVis->setColor(resultColor);
 			ui.mini3DActor = ui.mini3DVis->createPolyActor(ren);
 			ui.mini3DActor->show();
@@ -750,7 +751,7 @@ QWidget* iAFiAKErController::setupResultListView()
 
 	resultList->setLayout(m_resultsListLayout);
 	addStackedBar(0);
-	changeDistributionSource((*m_data->result[0].mapping)[iACsvConfig::Length]);
+	changeDistributionSource((*m_data->result[0].objData->m_colMapping)[iACsvConfig::Length]);
 
 	// to add 1 pixel margin on the left:
 	auto outerWidget = new QWidget();
@@ -1108,7 +1109,7 @@ void iAFiAKErController::changeDistributionSource(int index)
 		for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
 		{
 			fiberData[fiberID] = matchQualityVisActive() ? m_data->avgRefFiberMatch[fiberID]
-				: d.table->GetValue(fiberID, index).ToDouble();
+				: d.objData->m_table->GetValue(fiberID, index).ToDouble();
 		}
 		auto histogramData = iAHistogramData::create("Frequency", iAValueType::Continuous, fiberData, m_histogramBins, range[0], range[1]);
 		std::shared_ptr<iAPlot> histogramPlot =
@@ -1489,11 +1490,12 @@ void iAFiAKErController::ensureMain3DViewCreated(size_t resultID)
 	auto& ui = m_resultUIs[resultID];
 	if (!ui.main3DVis)
 	{
-		std::map<size_t, std::vector<iAVec3f> > const& curveInfo =
+		ui.main3DObjData = std::make_shared<iAObjectsData>(QFileInfo(d.fileName).completeBaseName(), d.objData->m_visType, d.objData->m_table, d.objData->m_colMapping);
+		ui.main3DObjData->m_curvedFiberData =
 			(m_useStepData && d.stepData == iAFiberResult::CurvedStepData) ?
-			getCurvedStepInfo(d) : d.curveInfo;
+			getCurvedStepInfo(d) : d.objData->m_curvedFiberData;
 		QColor resultColor(getResultColor(resultID));
-		ui.main3DVis = create3DVis(d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
+		ui.main3DVis = create3DVis(ui.main3DObjData.get(), resultColor);
 		ui.main3DActor = ui.main3DVis->createPolyActor(m_ren);
 		ui.nameActions->setToolTip(ui.nameActions->toolTip() +
 			"Visualization details: " + ui.main3DVis->visualizationStatistics());
@@ -2157,7 +2159,7 @@ void iAFiAKErController::updateFiberContext()
 			for (size_t selectionID = 0; selectionID < m_selection[resultID].size(); ++selectionID)
 			{
 				size_t fiberID = m_selection[resultID][selectionID];
-				double diameter = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::Diameter)).ToFloat();
+				double diameter = d.objData->m_table->GetValue(fiberID, d.objData->m_colMapping->value(iACsvConfig::Diameter)).ToFloat();
 				double radius = diameter / 2;
 				if (!m_mergeContextBoxes)
 				{
@@ -2166,8 +2168,8 @@ void iAFiAKErController::updateFiberContext()
 				}
 				for (int i = 0; i < 3; ++i)
 				{
-					double startI = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::StartX + i)).ToFloat();
-					double endI = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::EndX + i)).ToFloat();
+					double startI = d.objData->m_table->GetValue(fiberID, d.objData->m_colMapping->value(iACsvConfig::StartX + i)).ToFloat();
+					double endI = d.objData->m_table->GetValue(fiberID, d.objData->m_colMapping->value(iACsvConfig::EndX + i)).ToFloat();
 
 					if ((startI - radius - m_contextSpacing) < minCoord[i])
 					{
@@ -2497,7 +2499,7 @@ void iAFiAKErController::showSpatialOverview()
 	auto ref3D = m_resultUIs[m_referenceID].main3DVis;
 	QSignalBlocker cbBlock(m_showResultVis[m_referenceID]);
 	m_showResultVis[m_referenceID]->setChecked(true);
-	size_t colID = m_data->result[m_referenceID].table->GetNumberOfColumns()-1;
+	size_t colID = m_data->result[m_referenceID].objData->m_table->GetNumberOfColumns()-1;
 	ref3D->setLookupTable(lut, colID);
 	ref3D->updateColorSelectionRendering();
 	setClippingPlanes(m_resultUIs[m_referenceID].main3DActor);
@@ -2565,11 +2567,12 @@ void iAFiAKErController::changeReferenceDisplay()
 	bool showRef = m_chkboxShowReference->isChecked();
 	int refCount = std::min(iARefDistCompute::MaxNumberOfCloseFibers, m_spnboxReferenceCount->value());
 
-	if (m_nearestReferenceActor)
+	if (m_nearestRefObjActor)
 	{
-		m_nearestReferenceActor->hide();
-		m_nearestReferenceActor.reset();
-		m_nearestReferenceVis.reset();
+		m_nearestRefObjActor->hide();
+		m_nearestRefObjActor.reset();
+		m_nearestRefObjVis.reset();
+		m_nearestRefObjData.reset();
 	}
 
 	if (m_refLineActor)
@@ -2590,12 +2593,12 @@ void iAFiAKErController::changeReferenceDisplay()
 	m_refVisTable->Initialize();
 	// ID column (int):
 	vtkSmartPointer<vtkIntArray> arrID = vtkSmartPointer<vtkIntArray>::New();
-	arrID->SetName(m_data->result[m_referenceID].table->GetColumnName(0));
+	arrID->SetName(m_data->result[m_referenceID].objData->m_table->GetColumnName(0));
 	m_refVisTable->AddColumn(arrID);
 	// other columns (float):
-	for (int col = 1; col < m_data->result[m_referenceID].table->GetNumberOfColumns() - 1; ++col)
+	for (int col = 1; col < m_data->result[m_referenceID].objData->m_table->GetNumberOfColumns() - 1; ++col)
 	{
-		addColumn(m_refVisTable, 0, m_data->result[m_referenceID].table->GetColumnName(col), 0);
+		addColumn(m_refVisTable, 0, m_data->result[m_referenceID].objData->m_table->GetColumnName(col), 0);
 	}
 
 	std::vector<iAFiberSimilarity> referenceIDsToShow;
@@ -2622,10 +2625,10 @@ void iAFiAKErController::changeReferenceDisplay()
 	}
 
 	m_refVisTable->SetNumberOfRows(referenceIDsToShow.size());
-	std::map<size_t, std::vector<iAVec3f> > refCurvedFiberInfo;
 
-	auto refTable = m_data->result[m_referenceID].table;
-	auto refCurveInfo = m_data->result[m_referenceID].curveInfo;
+	m_nearestRefObjData = std::make_shared<iAObjectsData>("Nearest Reference Object(s)", iAObjectVisType::Cylinder, m_refVisTable, m_data->result[m_referenceID].objData->m_colMapping);
+	auto refTable = m_data->result[m_referenceID].objData->m_table;
+	auto refCurveInfo = m_data->result[m_referenceID].objData->m_curvedFiberData;
 	for (size_t fiberIdx=0; fiberIdx<referenceIDsToShow.size(); ++fiberIdx)
 	{
 		size_t refFiberID = referenceIDsToShow[fiberIdx].index;
@@ -2640,22 +2643,20 @@ void iAFiAKErController::changeReferenceDisplay()
 		auto it = refCurveInfo.find(refFiberID);
 		if (it != refCurveInfo.end())
 		{
-			refCurvedFiberInfo.insert(std::make_pair(fiberIdx, it->second));
+			m_nearestRefObjData->m_curvedFiberData.insert(std::make_pair(fiberIdx, it->second));
 		}
 	}
 
-	m_nearestReferenceVis = std::make_shared<iACylinderObjectVis>(
-		std::make_shared<iAObjectsData>(m_refVisTable, m_data->result[m_referenceID].mapping),
-		QColor(0,0,0), refCurvedFiberInfo);
-	m_nearestReferenceActor = m_nearestReferenceVis->createPolyActor(m_ren);
+	m_nearestRefObjVis = std::make_shared<iACylinderObjectVis>(m_nearestRefObjData.get(), QColor(0, 0, 0));
+	m_nearestRefObjActor = m_nearestRefObjVis->createPolyActor(m_ren);
 	/*
 	std::shared_ptr<iALookupTable> lut(new iALookupTable);
 	*lut.data() = iALUT::Build(m_data->spmData->paramRange(m_data->spmData->numParams()-iARefDistCompute::EndColumns-iARefDistCompute::SimilarityMeasureCount+similarityMeasure),
 		m_colorByThemeName, 256, SelectionOpacity);
 	*/
-	m_nearestReferenceActor->show();
+	m_nearestRefObjActor->show();
 	// for now, color by reference result color:
-	m_nearestReferenceVis->setColor(getResultColor(m_referenceID));
+	m_nearestRefObjVis->setColor(getResultColor(m_referenceID));
 	// ... and set up color coding by it!
 	//m_nearestReferenceVis->setLookupTable(lut, refTable->GetNumberOfColumns()-2);
 	// TODO: show similarity color map somewhere!!!
@@ -2708,9 +2709,9 @@ void iAFiAKErController::changeReferenceDisplay()
 					}
 					else
 					{
-						start1[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::StartX + i)).ToFloat();
+						start1[i] = d.objData->m_table->GetValue(fiberID, d.objData->m_colMapping->value(iACsvConfig::StartX + i)).ToFloat();
 					}
-					end1[i] = ref.table->GetValue(refFiberID, ref.mapping->value(iACsvConfig::StartX + i)).ToFloat();
+					end1[i] = ref.objData->m_table->GetValue(refFiberID, ref.objData->m_colMapping->value(iACsvConfig::StartX + i)).ToFloat();
 				}
 				for (int i = 0; i < 3; ++i)
 				{
@@ -2720,9 +2721,9 @@ void iAFiAKErController::changeReferenceDisplay()
 					}
 					else
 					{
-						start2[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::EndX + i)).ToFloat();
+						start2[i] = d.objData->m_table->GetValue(fiberID, d.objData->m_colMapping->value(iACsvConfig::EndX + i)).ToFloat();
 					}
-					end2[i] = ref.table->GetValue(refFiberID, ref.mapping->value(iACsvConfig::EndX + i)).ToFloat();
+					end2[i] = ref.objData->m_table->GetValue(refFiberID, ref.objData->m_colMapping->value(iACsvConfig::EndX + i)).ToFloat();
 				}
 				if ((start1 - start2).length() > (start1 - end2).length() && (end1 - end2).length() > (end1 - start2).length())
 				{
@@ -2822,10 +2823,10 @@ void iAFiAKErController::visualizeCylinderSamplePoints()
 	hideSamplePointsPrivate();
 
 	auto & d = m_data->result[resultID];
-	auto const & mapping = *d.mapping.get();
+	auto const & mapping = *d.objData->m_colMapping.get();
 	std::vector<iAVec3f> sampledPoints;
-	auto it = d.curveInfo.find(fiberID);
-	iAFiberData sampleFiber(d.table, fiberID, mapping, it != d.curveInfo.end() ? it->second : std::vector<iAVec3f>());
+	auto it = d.objData->m_curvedFiberData.find(fiberID);
+	iAFiberData sampleFiber(d.objData->m_table, fiberID, mapping, it != d.objData->m_curvedFiberData.end() ? it->second : std::vector<iAVec3f>());
 	samplePoints(sampleFiber, sampledPoints);
 	auto sampleData = vtkSmartPointer<vtkPolyData>::New();
 	auto points = vtkSmartPointer<vtkPoints>::New();

@@ -179,7 +179,7 @@ void iASpatialFeatureSummary::performWork(QVariantMap const & parameters)
 		LOG(lvlError, QString("Error loading csv file %1!").arg(csvFileName));
 		return;
 	}
-	auto headers = io.getOutputHeaders();
+	auto headers = io.outputHeaders();
 	auto csvTable = tableCreator.table();
 
 	// compute overall bounding box:

@@ -8,8 +8,6 @@
 #include <iATool.h>
 #include <iAVec3.h>
 
-#include <vtkSmartPointer.h>
-
 #include <QObject>
 
 #include <map>
@@ -17,8 +15,8 @@
 #include <vector>
 
 class dlg_FeatureScout;
-
-class vtkTable;
+class iAObjectsData;
+class iAObjectVis;
 
 class QSettings;
 
@@ -55,9 +53,11 @@ public:
 
 private:
 	bool initFromConfig(iAMdiChild* child, iACsvConfig const& csvConfig);
-	void init(int filterID, QString const& fileName, vtkSmartPointer<vtkTable> csvtbl, iAObjectVisType visType,
-		std::shared_ptr<QMap<uint, uint>> columnMapping, std::map<size_t, std::vector<iAVec3f>>& curvedFiberInfo,
-		int cylinderQuality, size_t segmentSkip);
+	void init(int objectType, QString const& fileName, std::shared_ptr<iAObjectsData> objData);
 	iACsvConfig m_config;
 	dlg_FeatureScout * m_featureScout;
+	//! @{ for the case of labelled volume data (for which the viewer cannot be created automatically), we need to store data ourselves
+	std::shared_ptr<iAObjectsData> m_objData;
+	std::shared_ptr<iAObjectVis> m_objVis;
+	//! @}
 };

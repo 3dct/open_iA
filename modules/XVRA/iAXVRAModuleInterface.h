@@ -3,14 +3,14 @@
 #pragma once
 #include <iAGUIModuleInterface.h>
 
-// FeatureScout
 #include "iAColoredPolyObjectVis.h"
 
 #include <QTimer>
 
 class dlg_FeatureScout;
-class iAImNDTModuleInterface;
 class iAFrustumActor;
+class iAImNDTModuleInterface;
+class iAObjectData;
 
 class iAXVRAModuleInterface : public iAGUIModuleInterface
 {

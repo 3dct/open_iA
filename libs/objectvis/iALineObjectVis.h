@@ -17,8 +17,7 @@ class iAobjectvis_API iALineObjectVis : public iAColoredPolyObjectVis
 {
 public:
 	// TODO: unify curved fiber data between here and updateValues!
-	iALineObjectVis(std::shared_ptr<iAObjectsData> data,
-		QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, size_t segmentSkip );
+	iALineObjectVis(iAObjectsData const* data, QColor const & color, size_t segmentSkip);
 	void updateValues( std::vector<std::vector<double> > const & values, int straightOrCurved);
 	vtkPolyData* polyData() override;
 	vtkPolyData* finalPolyData() override;
@@ -30,7 +29,6 @@ public:
 protected:
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	vtkSmartPointer<vtkPoints> m_points;
-	std::map<size_t, std::vector<iAVec3f>> m_curvedFiberData;
 
 private:
 	//! maps the object ID to (first=) the first index in the points array that belongs to this object, and (second=) the number of points

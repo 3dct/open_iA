@@ -13,9 +13,8 @@ class iAobjectvis_API iACylinderObjectVis : public iALineObjectVis
 {
 public:
 	static const int DefaultNumberOfCylinderSides = 12;
-	iACylinderObjectVis(std::shared_ptr<iAObjectsData> data,
-		QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData,
-		int numberOfCylinderSides = DefaultNumberOfCylinderSides, size_t segmentSkip = 1);
+	iACylinderObjectVis(iAObjectsData const* data,
+		QColor const & color, int numberOfCylinderSides = DefaultNumberOfCylinderSides, size_t segmentSkip = 1);
 	virtual ~iACylinderObjectVis();
 	void setDiameterFactor(double diameterFactor);
 	void setContextDiameterFactor(double contextDiameterFactor);

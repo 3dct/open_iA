@@ -150,7 +150,7 @@ void dlg_CSVInput::connectSignals()
 {
 	connect(m_ui->btn_SelectFile, &QPushButton::clicked, this, &dlg_CSVInput::selectFileBtnClicked);
 	connect(m_ui->cmbbox_FileName, &QComboBox::currentTextChanged, this, &dlg_CSVInput::fileNameChanged);
-	connect(m_ui->cb_CurvedFiberInfo, &QCheckBox::stateChanged, this, &dlg_CSVInput::curvedFiberInfoChanged);
+	connect(m_ui->cb_CurvedFiberInfo, &QCheckBox::stateChanged, this, &dlg_CSVInput::curvedFiberDataChanged);
 	connect(m_ui->btn_SelectCurvedFile, &QPushButton::clicked, this, &dlg_CSVInput::selectCurvedFileBtnClicked);
 	connect(m_ui->btn_SaveFormat, &QPushButton::clicked, this, &dlg_CSVInput::saveFormatBtnClicked);
 	connect(m_ui->btn_DeleteFormat, &QPushButton::clicked, this, &dlg_CSVInput::deleteFormatBtnClicked);
@@ -303,7 +303,7 @@ void dlg_CSVInput::exportTable()
 	{
 		ts << origCSVInfo[i] + "\n";
 	}
-	QStringList outputHeaders = io.getOutputHeaders();
+	QStringList outputHeaders = io.outputHeaders();
 	outputHeaders.removeLast();	// without ClassID
 	ts << outputHeaders.join(",") + ",\n";
 	for (size_t r=0; r < creator.table()[0].size(); ++r)
@@ -568,7 +568,7 @@ void dlg_CSVInput::selectCurvedFileBtnClicked()
 	m_ui->ed_CurvedFileName->setText(fileName);
 }
 
-void dlg_CSVInput::curvedFiberInfoChanged()
+void dlg_CSVInput::curvedFiberDataChanged()
 {
 	m_ui->ed_CurvedFileName->setEnabled(m_ui->cb_CurvedFiberInfo->isChecked());
 	m_ui->btn_SelectCurvedFile->setEnabled(m_ui->cb_CurvedFiberInfo->isChecked());
@@ -721,7 +721,7 @@ bool dlg_CSVInput::loadFilePreview()
 	{
 		return false;
 	}
-	m_confParams.currentHeaders = io.getFileHeaders();
+	m_confParams.currentHeaders = io.fileHeaders();
 	showColumnHeaders();
 	return true;
 }

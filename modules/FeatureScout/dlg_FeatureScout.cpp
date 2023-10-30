@@ -13,10 +13,10 @@
 #include "ui_FeatureScoutPolarPlot.h"
 
 // objectvis:
-#include "iAObjectVis.h"
-#include "iALineObjectVis.h"
 #include "iACsvIO.h"
-#include "iAObjectType.h"
+#include "iALineObjectVis.h"
+#include "iAObjectsData.h"
+#include "iAObjectVis.h"
 
 // guibase:
 #include <iADockWidgetWrapper.h>
@@ -172,20 +172,19 @@ const int dlg_FeatureScout::PCMinTicksCount = 2;
 const QString dlg_FeatureScout::DlgObjectName("FeatureScoutMainDlg");
 const QString dlg_FeatureScout::UnclassifiedColorName("darkGray");
 
-dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString const& fileName,
-	vtkSmartPointer<vtkTable> csvtbl, iAObjectVisType visType, std::shared_ptr<QMap<uint, uint>> columnMapping,
-	std::shared_ptr<iAObjectVis> objvis) :
+dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType objectType, QString const& fileName,
+	iAObjectsData const * objData, iAObjectVis* objVis) :
 	QDockWidget(parent),
 	m_activeChild(parent),
-	m_elementCount(csvtbl->GetNumberOfColumns()),
-	m_objectCount(csvtbl->GetNumberOfRows()),
-	m_filterID(fid),
+	m_elementCount(objData->m_table->GetNumberOfColumns()),
+	m_objectCount(objData->m_table->GetNumberOfRows()),
+	m_objectType(objectType),
 	m_draw3DPolarPlot(false),
 	m_renderMode(rmSingleClass),
 	m_singleObjectSelected(false),
-	m_visualization(visType),
+	m_visType(objData->m_visType),
 	m_sourcePath(parent->filePath()),
-	m_csvTable(csvtbl),
+	m_csvTable(objData->m_table),
 	m_chartTable(vtkSmartPointer<vtkTable>::New()),
 	m_multiClassLUT(vtkSmartPointer<vtkLookupTable>::New()),
 	m_classTreeModel(new QStandardItemModel()),
@@ -202,9 +201,9 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	m_dwSPM(nullptr),
 	m_dwPP(nullptr),
 	m_ui(new Ui_FeatureScoutCE),
-	m_columnMapping(columnMapping),
+	m_columnMapping(objData->m_colMapping),
 	m_splom(new iAFeatureScoutSPLOM()),
-	m_3dvis(objvis)
+	m_3dvis(objVis)
 {
 	m_ui->setupUi(this);
 	setObjectName(DlgObjectName);
@@ -222,12 +221,12 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	setupModel();
 	setupConnections();
 
-	if (visType != iAObjectVisType::UseVolume && m_activeChild->dataSetMap().empty())
+	if (objData->m_visType != iAObjectVisType::UseVolume && m_activeChild->dataSetMap().empty())
 	{
 		parent->setWindowTitleAndFile(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
-			.arg(MapObjectTypeToString(m_filterID)));
+			.arg(MapObjectTypeToString(m_objectType)));
 	}
-	if (visType == iAObjectVisType::UseVolume)
+	if (objData->m_visType == iAObjectVisType::UseVolume)
 	{
 		SingleRendering();
 	}
@@ -252,6 +251,10 @@ dlg_FeatureScout::~dlg_FeatureScout()
 	delete m_blobManager;
 	delete m_elementTableModel;
 	delete m_classTreeModel;
+	delete m_dwPC;
+	delete m_dwDV;
+	delete m_dwSPM;
+	delete m_dwPP;
 }
 
 std::vector<size_t> dlg_FeatureScout::getPCSelection()
@@ -325,7 +328,7 @@ void dlg_FeatureScout::spParameterVisibilityChanged(size_t paramIndex, bool enab
 
 void dlg_FeatureScout::renderLUTChanges(std::shared_ptr<iALookupTable> lut, size_t colInd)
 {
-	iALineObjectVis* lov = dynamic_cast<iALineObjectVis*>(m_3dvis.get());
+	iALineObjectVis* lov = dynamic_cast<iALineObjectVis*>(m_3dvis);
 	if (lov)
 	{
 		lov->setLookupTable(lut, colInd);
@@ -348,7 +351,7 @@ void dlg_FeatureScout::initColumnVisibility()
 {
 	m_columnVisibility.resize(m_elementCount);
 	std::fill(m_columnVisibility.begin(), m_columnVisibility.end(), false);
-	if (m_filterID == iAObjectType::Fibers) // Fibers - (a11, a22, a33,) theta, phi, xm, ym, zm, straightlength, diameter(, volume)
+	if (m_objectType == iAObjectType::Fibers) // Fibers - (a11, a22, a33,) theta, phi, xm, ym, zm, straightlength, diameter(, volume)
 	{
 		m_columnVisibility[(*m_columnMapping)[iACsvConfig::Theta]] =
 			m_columnVisibility[(*m_columnMapping)[iACsvConfig::Phi]] =
@@ -358,7 +361,7 @@ void dlg_FeatureScout::initColumnVisibility()
 			m_columnVisibility[(*m_columnMapping)[iACsvConfig::Length]] =
 			m_columnVisibility[(*m_columnMapping)[iACsvConfig::Diameter]] = true;
 	}
-	else if (m_filterID == iAObjectType::Voids) // Pores - (volume, dimx, dimy, dimz,) posx, posy, posz(, shapefactor)
+	else if (m_objectType == iAObjectType::Voids) // Pores - (volume, dimx, dimy, dimz,) posx, posy, posz(, shapefactor)
 	{
 		m_columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] =
 			m_columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] =
@@ -736,7 +739,7 @@ void dlg_FeatureScout::RenderSelection(std::vector<size_t> const& selInds)
 
 void dlg_FeatureScout::renderMeanObject()
 {
-	if (m_visualization != iAObjectVisType::UseVolume)
+	if (m_visType != iAObjectVisType::UseVolume)
 	{
 		QMessageBox::warning(this, "FeatureScout", "Mean objects feature only available for the Labeled Volume visualization at the moment!");
 		return;
@@ -757,7 +760,7 @@ void dlg_FeatureScout::renderMeanObject()
 	{
 		classNames.push_back(m_classTreeModel->invisibleRootItem()->child(c, 0)->text());
 	}
-	m_meanObject->render(classNames, m_tableList, m_filterID,
+	m_meanObject->render(classNames, m_tableList, m_objectType,
 		m_dwSPM ? m_dwSPM : (m_dwDV ? m_dwDV : m_dwPC), m_renderer->renderer()->GetActiveCamera(),
 		m_colorList);
 }
@@ -851,7 +854,7 @@ void dlg_FeatureScout::renderOrientation()
 
 void dlg_FeatureScout::selectionChanged3D()
 {
-	auto vis = dynamic_cast<iAColoredPolyObjectVis*>(m_3dvis.get());
+	auto vis = dynamic_cast<iAColoredPolyObjectVis*>(m_3dvis);
 	if (!vis)
 	{
 		LOG(lvlError, "Invalid VIS for 3D selection change!");
@@ -874,7 +877,7 @@ void dlg_FeatureScout::renderLengthDistribution()
 	auto length = vtkDataArray::SafeDownCast(m_csvTable->GetColumn(m_columnMapping->value(iACsvConfig::Length)));
 	QString title = QString("%1 Frequency Distribution").arg(m_csvTable->GetColumnName(m_columnMapping->value(iACsvConfig::Length)));
 	m_dwPP->setWindowTitle(title);
-	int numberOfBins = (m_filterID == iAObjectType::Fibers) ? 8 : 3;  // TODO: setting?
+	int numberOfBins = (m_objectType == iAObjectType::Fibers) ? 8 : 3;  // TODO: setting?
 
 	length->GetRange(range);
 	if (range[0] == range[1])
@@ -929,7 +932,7 @@ void dlg_FeatureScout::renderLengthDistribution()
 	//Create a transfer function mapping scalar value to color
 	auto cTFun = vtkSmartPointer<vtkColorTransferFunction>::New();
 	cTFun->SetColorSpaceToRGB();
-	if (m_filterID == iAObjectType::Fibers)
+	if (m_objectType == iAObjectType::Fibers)
 	{
 		cTFun->AddRGBPoint(range[0], 1.0, 0.6, 0.0);	//orange
 		cTFun->AddRGBPoint(extents->GetValue(0) + halfInc, 1.0, 0.0, 0.0); //red
@@ -944,7 +947,7 @@ void dlg_FeatureScout::renderLengthDistribution()
 		cTFun->AddRGBPoint(extents->GetValue(2) + halfInc, 0.0, 1.0, 0.7); //cyan
 	}
 
-	m_3dvis->renderLengthDistribution(cTFun, extents, halfInc, m_filterID, range);
+	m_3dvis->renderLengthDistribution(cTFun, extents, halfInc, m_objectType, range);
 
 	m_dwPP->colorMapSelection->hide();
 	showLengthDistribution(true, cTFun);
@@ -953,7 +956,7 @@ void dlg_FeatureScout::renderLengthDistribution()
 	// plot length distribution
 	auto chart = vtkSmartPointer<vtkChartXY>::New();
 	chart->SetTitle(title.toUtf8().constData());
-	chart->GetTitleProperties()->SetFontSize((m_filterID == iAObjectType::Fibers) ? 15 : 12); // TODO: setting?
+	chart->GetTitleProperties()->SetFontSize((m_objectType == iAObjectType::Fibers) ? 15 : 12); // TODO: setting?
 	vtkPlot* plot = chart->AddPlot(vtkChartXY::BAR);
 	plot->SetInputData(fldTable, 0, 1);
 	plot->GetXAxis()->SetTitle("Length in microns");
@@ -1085,7 +1088,7 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 	//check if it is a class item
 	if (m_classTreeModel->invisibleRootItem()->hasChildren())
 	{
-		if (m_filterID == iAObjectType::Fibers)
+		if (m_objectType == iAObjectType::Fibers)
 		{
 			writer->writeStartElement("FibreClasses"); //start FibreClasses tag
 
@@ -1145,7 +1148,7 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 			}
 			writer->writeEndElement(); //end FibreClasses tag
 		}
-		else if (m_filterID == iAObjectType::Voids)
+		else if (m_objectType == iAObjectType::Voids)
 		{
 			writer->writeStartElement("VoidClasses"); //start FibreClasses tag
 
@@ -1454,7 +1457,7 @@ void dlg_FeatureScout::WisetexSaveButton()
 void dlg_FeatureScout::ExportClassButton()
 {
 	// if no volume loaded, then exit
-	if (m_visualization != iAObjectVisType::UseVolume)
+	if (m_visType != iAObjectVisType::UseVolume)
 	{
 		if (m_activeChild->firstImageData() == nullptr)
 		{
@@ -1658,7 +1661,7 @@ void dlg_FeatureScout::loadClassesXML(QXmlStreamReader& reader)
 	// checking xml file correctness
 	reader.readNext();  // skip xml tag?
 	reader.readNext();  // read IFV_Class_Tree element
-	QString IDColumnName = (m_filterID == iAObjectType::Fibers) ? LabelAttribute : LabelAttributePore;
+	QString IDColumnName = (m_objectType == iAObjectType::Fibers) ? LabelAttribute : LabelAttributePore;
 	if (reader.name() == IFVTag)
 	{
 		// if the object number is not correct, stop the load process
@@ -1916,12 +1919,12 @@ void dlg_FeatureScout::showPCSettings()
 void dlg_FeatureScout::saveMesh()
 {
 	// TODO: instad, make objectvis available in datasets!
-	if (m_visualization == iAObjectVisType::UseVolume)
+	if (m_visType == iAObjectVisType::UseVolume)
 	{
 		QMessageBox::warning(this, "FeatureScout", "Cannot export mesh for labelled volume visualization!");
 		return;
 	}
-	auto polyVis = dynamic_cast<iAColoredPolyObjectVis*>(m_3dvis.get());
+	auto polyVis = dynamic_cast<iAColoredPolyObjectVis*>(m_3dvis);
 	if (!polyVis)
 	{
 		return;
@@ -2526,7 +2529,7 @@ void dlg_FeatureScout::EnableBlobRendering()
 	QColor color = m_colorList.at(m_activeClassItem->index().row());
 	const double count = m_activeClassItem->rowCount();
 	const double percentage = 100.0 * count / m_objectCount;
-	blob->SetObjectType(MapObjectTypeToString(m_filterID));
+	blob->SetObjectType(MapObjectTypeToString(m_objectType));
 	blob->SetCluster(objects);
 	blob->SetName(m_activeClassItem->text());
 	blob->SetBlobColor(color);
@@ -3097,7 +3100,7 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPC);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPP);
 	m_dwPP->colorMapSelection->hide();
-	if (m_filterID == iAObjectType::Voids)
+	if (m_objectType == iAObjectType::Voids)
 	{
 		m_dwPP->hide();
 	}

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAObjectType.h"
 #include "featurescout_export.h"
 
 #include <iAGUIModuleInterface.h>

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAColoredPolyObjectVis.h"
 
+#include "iAObjectsData.h"
 #include "iAPolyObjectVisActor.h"
 
 #include <iALog.h>
@@ -18,7 +19,7 @@ namespace
 	const int TransparentAlpha = 32;
 }
 
-iAColoredPolyObjectVis::iAColoredPolyObjectVis(std::shared_ptr<iAObjectsData> data, QColor const & color) :
+iAColoredPolyObjectVis::iAColoredPolyObjectVis(iAObjectsData const* data, QColor const & color) :
 	iAObjectVis(data),
 	m_colors(vtkSmartPointer<vtkUnsignedCharArray>::New()),
 	m_contextAlpha(DefaultContextOpacity),
