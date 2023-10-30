@@ -129,54 +129,54 @@ public:
 					.arg(action->ctrlKey)
 					.arg(action->altKey)
 				);
-			int vtkEventID;
+				int vtkEventID;
 				if (action->action == iARemoteAction::MouseWheel || action->action == iARemoteAction::StartMouseWheel)
-			{
+				{
 					vtkEventID = (action->spinY < 0) ? vtkCommand::MouseWheelForwardEvent : vtkCommand::MouseWheelBackwardEvent;
-			}
-			else    // mouse button press or move
-			{
-				vtkEventID = vtkCommand::MouseMoveEvent;
+				}
+				else    // mouse button press or move
+				{
+					vtkEventID = vtkCommand::MouseMoveEvent;
 					bool curDown = (action->action == iARemoteAction::ButtonDown);
 					bool nextDown = (cur < actions.size() - 1 &&
 						actions[cur + 1]->action == iARemoteAction::ButtonDown);
 					// TODO: check whether left/middle/right button matches?
-				if (lastDown != curDown)
-				{
+					if (lastDown != curDown)
+					{
 						//LOG(lvlDebug, QString("Processing mouse up/down x=%1, y=%2").arg(action->x).arg(action->y));
-					lastDown = curDown;
-					vtkEventID = curDown ? vtkCommand::LeftButtonPressEvent : vtkCommand::LeftButtonReleaseEvent;
-				}
+						lastDown = curDown;
+						vtkEventID = curDown ? vtkCommand::LeftButtonPressEvent : vtkCommand::LeftButtonReleaseEvent;
+					}
 					else if (curDown&& nextDown)
 					{   // next action is also a mouse move, skip this one!
 						//LOG(lvlDebug, QString("Skipping mouse move x=%1, y=%2").arg(action->x).arg(action->y));
 						continue;
-			}
+					}
 					else
 					{
 						//LOG(lvlDebug, QString("Processing mouse move x=%1, y=%2").arg(action->x).arg(action->y));
 					}
 				}
 				auto renWin = m_remoteRenderer->renderWindow(action->viewID);
-			if (!renWin)
-			{
+				if (!renWin)
+				{
 					LOG(lvlError, QString("No render window for view %1").arg(action->viewID));
-				return;
-			}
-			auto interactor = renWin->GetInteractor();
+					return;
+				}
+				auto interactor = renWin->GetInteractor();
 				interactor->SetControlKey(action->ctrlKey);
 				interactor->SetShiftKey(action->shiftKey);
 				interactor->SetAltKey(action->altKey);
-			int const* size = renWin->GetSize();
+				int const* size = renWin->GetSize();
 				int pos[] = {static_cast<int>(size[0] * action->x), static_cast<int>(size[1] * action->y)};
-			//LOG(lvlDebug, QString("event id: %1; x: %2, y: %3").arg(vtkEventID).arg(pos[0]).arg(pos[1]));
+				//LOG(lvlDebug, QString("event id: %1; x: %2, y: %3").arg(vtkEventID).arg(pos[0]).arg(pos[1]));
 
-			interactor->SetEventPosition(pos);
-			//interactor->SetKeyCode(static_cast<char>(action.keyCode));
-			//interactor->SetRepeatCount(repeatCount);
-			//interactor->SetKeySym(keySym);
+				interactor->SetEventPosition(pos);
+				//interactor->SetKeyCode(static_cast<char>(action.keyCode));
+				//interactor->SetRepeatCount(repeatCount);
+				//interactor->SetKeySym(keySym);
 
-			interactor->InvokeEvent(vtkEventID, nullptr);
+				interactor->InvokeEvent(vtkEventID, nullptr);
 				delete action;    // clean up action;
 			}
 		});
@@ -271,7 +271,6 @@ private:
 };
 
 const QString iARemoteTool::Name("NDTflix");
-
 
 void iARemoteModuleInterface::Initialize()
 {
