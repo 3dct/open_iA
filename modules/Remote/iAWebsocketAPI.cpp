@@ -28,8 +28,8 @@ iAWebsocketAPI::iAWebsocketAPI(quint16 port):
 	m_port(port),
 	m_count(0), // possibly use a separate counter per client?
 	m_clientID(0)
-	{
-	}
+{
+}
 
 void iAWebsocketAPI::init()
 {
@@ -50,7 +50,7 @@ bool iAWebsocketAPI::setRenderedImage(std::shared_ptr<iAJPGImage> img, QString v
 	{
 		LOG(lvlDebug, "Setting same image again, ignoring!");
 		return false;
-}
+	}
 	images.insert(viewID, img);
 	return true;
 }
@@ -182,7 +182,7 @@ void iAWebsocketAPI::commandAddObserver(QJsonDocument request, QWebSocket* clien
 		{"result", viewIDResponse}
 	};
 	sendTextMessage(QJsonDocument{ addObserverResponse }.toJson(), client);
-	 
+
 	if (subscriptions.contains(viewIDString))
 	{
 		subscriptions[viewIDString].append(client);
@@ -285,7 +285,7 @@ QList<iARemoteAction*> iAWebsocketAPI::getQueuedActions()
 	for (auto a : m_actions)
 	{
 		result.push_back(a);
-}
+	}
 	m_actions.clear();
 	return result;
 }
@@ -299,7 +299,7 @@ void iAWebsocketAPI::sendImage(QWebSocket* client, QString viewID)
 		{"args", QJsonArray{ imgIDString } }
 	};
 	sendTextMessage(QJsonDocument{ imgHeaderObj }.toJson(), client);
-	
+
 	QByteArray const & ba = images[viewID]->data;
 	int width  = images[viewID]->width;
 	int height = images[viewID]->height;
@@ -337,7 +337,7 @@ void iAWebsocketAPI::sendViewIDUpdate(std::shared_ptr<iAJPGImage> img, QString v
 		return;
 	}
 	if (subscriptions.contains(viewID))
-		{
+	{
 		for (auto client : subscriptions[viewID])
 		{
 			sendImage(client, viewID);
@@ -350,7 +350,7 @@ void iAWebsocketAPI::processBinaryMessage(QByteArray message)
 {
 	QWebSocket* client = qobject_cast<QWebSocket*>(sender());
 	LOG(lvlDebug, QString("Binary Message received!"));
-	}
+}
 */
 
 void iAWebsocketAPI::socketDisconnected()
@@ -362,10 +362,10 @@ void iAWebsocketAPI::socketDisconnected()
 		return;
 	}
 	LOG(lvlDebug, QString("Client disconnected: %1 (local %2)").arg(client->peerAddress().toString()).arg(client->localAddress().toString()));
-		for (auto &x : subscriptions)
-		{
+	for (auto &x : subscriptions)
+	{
 		x.removeAll(client);
-		}
+	}
 	auto it = findClient(m_clients, client);
 	client->deleteLater();
 	if (it == m_clients.end())

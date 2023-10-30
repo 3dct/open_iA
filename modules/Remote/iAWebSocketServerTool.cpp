@@ -56,11 +56,9 @@ public:
 							//auto match = re.match(message);
 							//double pos[3] = { match.captured(0).toDouble(), match.captured(1).toDouble(), match.captured(2).toDouble() };
 							//double angle[3] = { match.captured(3).toDouble(), match.captured(4).toDouble(), match.captured(5).toDouble() };
-							// 
 							auto values = message.split(",");
 							double pos[3] = { values[0].remove("(").toDouble(), values[1].toDouble(), values[2].remove(")").toDouble()};
 							double angle[3] = { values[3].remove("(").toDouble(), values[4].toDouble(), values[5].remove(")").toDouble() };
-							// 
 							//double x = match.captured(3).toDouble(),
 							//	y = match.captured(4).toDouble(),
 							//	z = match.captured(5).toDouble(),
