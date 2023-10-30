@@ -97,6 +97,10 @@ public:
 
 			//connect(m_pWebSocketServer, &QWebSocketServer::closed, this, );
 		}
+		else
+		{
+			LOG(lvlError, QString("WebSocketServer: Listening failed (error code: %1)!").arg(m_wsServer->error()));
+		}
 	}
 
 	void stop()
@@ -104,6 +108,7 @@ public:
 		m_wsServer->close();
 		m_serverThread.quit();
 		m_serverThread.wait();
+		LOG(lvlInfo, "WebSocketServer STOP");
 	}
 };
 
@@ -113,12 +118,10 @@ iAWebSocketServerTool::iAWebSocketServerTool(iAMainWindow* mainWnd, iAMdiChild* 
 	iATool(mainWnd, child),
 	m_impl(std::make_unique<iAWSSToolImpl>(Port, child))
 {
-	LOG(lvlInfo, "WebSocketServer START");
 }
 
 
 iAWebSocketServerTool::~iAWebSocketServerTool()
 {
 	m_impl->stop();
-	LOG(lvlInfo, "WebSocketServer STOP");
 }
