@@ -59,15 +59,15 @@ iAFeatureScoutToolbar::iAFeatureScoutToolbar(iAMainWindow* mainWnd) :
 	m_mainWnd(mainWnd)
 {
 	m_ui->setupUi(this);
-	auto toolbarCallback = [this](auto thisfunc) {
+	auto toolbarCallback = [this](auto thisfunc)
+	{
 		auto fs = getFSFromChild(m_mainWnd->activeMdiChild());
 		if (!fs)
 		{
 			LOG(lvlInfo, "No FeatureScout tool open in current iAMdiChild!");
 			return;
 		}
-		(fs->*thisfunc)();
-		//std::invoke(thisfunc, fs);    // use once we have switched to C++17
+		std::invoke(thisfunc, fs);
 	};
 	connect(m_mainWnd, &iAMainWindow::childChanged, this, &iAFeatureScoutToolbar::childChanged);
 	m_mainWnd->addActionIcon(m_ui->actionMultiRendering, "layers");
