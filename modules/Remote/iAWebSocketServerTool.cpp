@@ -50,7 +50,7 @@ public:
 					LOG(lvlInfo, QString("Client connected: %1:%2").arg(client->peerAddress().toString()).arg(client->peerPort()));
 					connect(client, &QWebSocket::textMessageReceived, this, [this, child](QString message)
 						{
-							LOG(lvlInfo, QString("WebSocketServer: Text message received: %1").arg(message));
+							//LOG(lvlInfo, QString("WebSocketServer: Text message received: %1").arg(message));
 							// TODO: differentiate message protocols, types, ...
 							//QRegularExpression re("Tracker Position: \\((-?\\d+[.]\\d+), (-?\\d+[.]\\d+), (-?\\d+[.]\\d+)\\); rotation: \\((-?\\d+[.]\\d+), (-?\\d+[.]\\d+), (-?\\d+[.]\\d+), (-?\\d+[.]\\d+)\\)");
 							//auto match = re.match(message);
@@ -59,6 +59,24 @@ public:
 							auto values = message.split(",");
 							double pos[3] = { values[0].remove("(").toDouble(), values[1].toDouble(), values[2].remove(")").toDouble()};
 							double angle[3] = { values[3].remove("(").toDouble(), values[4].toDouble(), values[5].remove(")").toDouble() };
+							double q[4] = { values[6].remove("(").toDouble(), values[7].toDouble(), values[8].toDouble(), values[9].remove(")").toDouble() };
+							for (int a = 0; a < 3; ++a)
+							{   // round to nearest 5 degrees:
+								angle[a] = std::round(angle[a] / 5) * 5;
+							}
+							double ayterm = 2 * (q[3] * q[1] - q[0] * q[2]);
+							double a2[3] = {
+								vtkMath::DegreesFromRadians(std::atan2(2 * (q[3] * q[0] + q[1] * q[2]), 1 - 2 * (q[0] * q[0] + q[1] * q[1]))),
+								vtkMath::DegreesFromRadians(-vtkMath::Pi() / 2 + 2 * std::atan2( std::sqrt(1 + ayterm), std::sqrt(1 - ayterm))),
+								vtkMath::DegreesFromRadians(std::atan2(2 * (q[3] * q[2] + q[0] * q[1]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])))
+							};
+
+							for (int a = 0; a < 3; ++a)
+							{   // round to nearest 5 degrees:
+								angle[a] = std::round(angle[a] / 5) * 5;
+								a2[a] = std::round(a2[a] / 5) * 5;
+							}
+
 							//double x = match.captured(3).toDouble(),
 							//	y = match.captured(4).toDouble(),
 							//	z = match.captured(5).toDouble(),
@@ -74,11 +92,27 @@ public:
 							//double cosy_cosp = 1 - 2 * (y * y + z * z);
 							//double angleZ = std::atan2(siny_cosp, cosy_cosp);
 							auto prop = child->dataSetViewer(child->firstImageDataSetIdx())->renderer()->vtkProp();
-							LOG(lvlInfo, QString("position: %1, %2, %3; angle: %4, %5, %6")
-								.arg(pos[0]).arg(pos[1]).arg(pos[2])
-								.arg(angle[0]).arg(angle[1]).arg(angle[2]));
-							prop->SetOrientation(angle[0], angle[1], angle[2]);
-							prop->SetPosition(pos);
+							LOG(lvlInfo, QString(
+									//"position: %1, %2, %3; "
+									"angle: %4, %5, %6 (self-converted: %7, %8, %9)"
+								)
+								//.arg(pos[0]).arg(pos[1]).arg(pos[2])
+								.arg(angle[0]).arg(angle[1]).arg(angle[2])
+								.arg(a2[0]).arg(a2[1]).arg(a2[2])
+							);
+							//vtkNew<vtkTransform> tr;
+							//tr->PostMultiply();
+							//float c[3] = { };
+							//tr->Translate(-c[0], -c[1], -c[2] );
+							//tr->RotateX(a2[0]);
+							//tr->RotateY(a2[1]);
+							//tr->RotateZ(a2[2]);
+							//tr->Translate(c[0],  c[1],  c[2] );
+							//prop->SetUserTransform(tr);
+
+							//prop->SetOrientation(angle[0], angle[1], angle[2]);
+							prop->SetOrientation(a2[0], a2[2], a2[1]);
+							//prop->SetPosition(pos);
 							child->updateRenderer();
 						});
 					connect(client, &QWebSocket::binaryMessageReceived, this, [this](QByteArray message)
