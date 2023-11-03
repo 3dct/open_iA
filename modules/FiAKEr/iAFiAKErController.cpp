@@ -469,9 +469,9 @@ void iAFiAKErController::setupSettingsView()
 	connect(m_settingsView->cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::showBoundingBoxChanged);
 	connect(m_settingsView->cbShowWireFrame, &QCheckBox::stateChanged, this, &iAFiAKErController::showWireFrameChanged);
 	connect(m_settingsView->cbShowLines, &QCheckBox::stateChanged, this, &iAFiAKErController::showLinesChanged);
-	connect(m_settingsView->pbSampleSelectedFiber, &QPushButton::pressed, this, &iAFiAKErController::visualizeCylinderSamplePoints);
-	connect(m_settingsView->pbHideSamplePoints, &QPushButton::pressed, this, &iAFiAKErController::hideSamplePoints);
-	connect(m_settingsView->pbSpatialOverview, &QPushButton::pressed, this, &iAFiAKErController::showSpatialOverviewButton);
+	connect(m_settingsView->pbSampleSelectedFiber, &QAbstractButton::clicked, this, &iAFiAKErController::visualizeCylinderSamplePoints);
+	connect(m_settingsView->pbHideSamplePoints, &QAbstractButton::clicked, this, &iAFiAKErController::hideSamplePoints);
+	connect(m_settingsView->pbSpatialOverview, &QAbstractButton::clicked, this, &iAFiAKErController::showSpatialOverviewButton);
 	connect(m_settingsView->cmbboxSelectionMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::selectionModeChanged);
 	connect(m_settingsView->cmbboxSimilarityMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::showReferenceMeasureChanged);
 	connect(m_playTimer, &QTimer::timeout, this, &iAFiAKErController::playTimer);
@@ -504,7 +504,7 @@ QWidget* iAFiAKErController::setupOptimStepView()
 	m_currentOptimStepLabel->setText(QString::number(static_cast<int>(m_data->optimStepMax) - 1));
 	connect(m_optimStepSlider, &QSlider::valueChanged, this, &iAFiAKErController::optimStepSliderChanged);
 	QPushButton* playPauseButton = new QPushButton("Play");
-	connect(playPauseButton, &QPushButton::pressed, this, &iAFiAKErController::playPauseOptimSteps);
+	connect(playPauseButton, &QAbstractButton::clicked, this, &iAFiAKErController::playPauseOptimSteps);
 
 	QWidget* optimStepsCtrls = new QWidget();
 	optimStepsCtrls->setLayout(new QHBoxLayout());

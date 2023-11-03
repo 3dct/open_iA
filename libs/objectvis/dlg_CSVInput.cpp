@@ -365,7 +365,7 @@ QString dlg_CSVInput::askForFormatName(bool forLocalSave)
 	dlg.layout()->setSpacing(4);
 	dlg.layout()->addWidget(line);
 	dlg.layout()->addWidget(buttonBox);
-	connect(okBtn, &QPushButton::pressed, this,
+	connect(okBtn, &QAbstractButton::clicked, this,
 		[&] {
 			if (forLocalSave)
 			{
@@ -396,7 +396,7 @@ QString dlg_CSVInput::askForFormatName(bool forLocalSave)
 			}
 			dlg.accept();
 		});
-	connect(cancelBtn, &QPushButton::pressed, &dlg, &QDialog::close);
+	connect(cancelBtn, &QAbstractButton::clicked, &dlg, &QDialog::close);
 	return (dlg.exec() == QDialog::Accepted) ? edit->text() : "";
 }
 

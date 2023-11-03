@@ -14,7 +14,6 @@
 // iASlicer-based solution:
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
-#include <iASlicerSettings.h>
 
 #include <iASlicerImpl.h>
 

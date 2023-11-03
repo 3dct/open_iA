@@ -16,7 +16,6 @@ class iADataSet;
 class iADataSetRenderer;
 class iAMdiChild;
 class iAOutlineImpl;
-class iAPreferences;
 class iAProgress;
 
 class vtkPlane;

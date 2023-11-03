@@ -13,7 +13,6 @@ class iAChartWithFunctionsWidget;
 class iADockWidgetWrapper;
 class iAImageData;
 class iAHistogramData;
-class iAPreferences;
 struct iAProfileProbe;
 class iAProgress;
 class iASlicer;

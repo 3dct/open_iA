@@ -502,7 +502,7 @@ public:
 		connect(rbBar, &QRadioButton::toggled, sensInf, &iASensitivityInfo::histoChartTypeToggled);
 		connect(rbLines, &QRadioButton::toggled, sensInf, &iASensitivityInfo::histoChartTypeToggled);
 
-		connect(pbRecomputeMDS, &QPushButton::pressed, sensInf, &iASensitivityInfo::updateDissimilarity);
+		connect(pbRecomputeMDS, &QAbstractButton::clicked, sensInf, &iASensitivityInfo::updateDissimilarity);
 
 		m_rgChartType.push_back(rbBar);
 		m_rgChartType.push_back(rbLines);
