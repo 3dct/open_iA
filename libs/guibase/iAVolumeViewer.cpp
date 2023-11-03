@@ -248,6 +248,8 @@ void iAVolumeViewer::prepare(iAProgress* p)
 				.arg(c < numCmp - 1 ? "; " : "");
 		}
 	}
+	// the number of histogram bins could have beeen adapted during creation, see finalNumBin, or determined via loading:
+	m_attribValues[HistogramBins] = m_histogramData[0]->valueCount();
 	p->emitProgress(100);
 	
 }
@@ -405,8 +407,16 @@ void iAVolumeViewer::applyAttributes(QVariantMap const& values)
 	auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
 	size_t newBinCount = iAHistogramData::finalNumBin(img, values[HistogramBins].toUInt());
 	m_histogram->setYMappingMode( values[HistogramLogarithmicYAxis].toBool() ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
+	m_attribValues[HistogramBins] = newBinCount;
+	constexpr char const FinalNumBinDescr[] = "For discrete-valued datasets, the nearest appropriate value is determined "
+		"as the nearest integer divisor of the data value range (the maximum being the full data value range)";
 	if (m_histogramData[0]->valueCount() != newBinCount)
 	{
+		if (newBinCount != values[HistogramBins].toUInt())
+		{
+			LOG(lvlInfo, QString("Changed number of bins from desired %1 to the next appropriate value %2. %3")
+				.arg(values[HistogramBins].toUInt()).arg(newBinCount).arg(FinalNumBinDescr));
+		}
 		auto fw = runAsync(
 			[this, newBinCount, img]
 			{
@@ -415,7 +425,7 @@ void iAVolumeViewer::applyAttributes(QVariantMap const& values)
 					m_histogramData[c] = iAHistogramData::create(plotName(c, newBinCount), img, newBinCount, nullptr, c);
 				}
 			},
-				[this, img]
+			[this, img]
 			{
 				m_histogram->clearPlots();
 				auto numCmp = img->GetNumberOfScalarComponents();
@@ -426,9 +436,15 @@ void iAVolumeViewer::applyAttributes(QVariantMap const& values)
 				}
 				m_histogram->update();
 			},
-				this);
+			this);
 		iAJobListView::get()->addJob(
-			QString("Computing histogram for dataset %1").arg(m_dataSet->name()), nullptr, fw);
+			QString("Computing histogram for dataset %1 (%2 bins)").arg(m_dataSet->name()).arg(newBinCount), nullptr, fw);
+	}
+	else if (newBinCount != values[HistogramBins].toUInt())
+	{
+		LOG(lvlInfo, QString("You tried to change the number of bins to %1, but the determined nearest appropriate value %2 "
+			"is exactly the one that was set before already; no new histogram will be computed. %3")
+			.arg(values[HistogramBins].toUInt()).arg(newBinCount).arg(FinalNumBinDescr));
 	}
 }
 

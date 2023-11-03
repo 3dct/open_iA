@@ -142,11 +142,6 @@ size_t iAHistogramData::finalNumBin(vtkImageData* img, size_t desiredBins)
 	auto newBinCount = desiredBins;
 	if (desiredBins > std::numeric_limits<int>::max())
 	{
-		LOG(lvlWarn,
-			QString("iAHistogramData::create: Only up to %1 bins supported, but requested %2! Bin number will be set "
-					"to %1!")
-				.arg(std::numeric_limits<int>::max())
-				.arg(desiredBins));
 		newBinCount = std::numeric_limits<int>::max();
 	}
 	if (isVtkIntegerImage(img))	// for images with discrete pixel data types...
