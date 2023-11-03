@@ -14,6 +14,10 @@ class iAObjectVisActor;
 class iAobjectvis_API iAObjectsRenderer : public iADataSetRenderer
 {
 public:
+	static constexpr const char Name[] = "Default Settings/Dataset Renderer: Objects";
+	static const QString Color;
+	static const QString SegmentSkip;
+	static const QString NumOfCylinderSides;
 	iAObjectsRenderer(vtkRenderer* renderer, iAObjectVis* objVis, QVariantMap const& overrideValues);
 	~iAObjectsRenderer();
 	void applyAttributes(QVariantMap const& values) override;

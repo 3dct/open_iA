@@ -43,15 +43,9 @@ void iASettingsManager::init()
 		auto editArgsAction = new QAction(name);
 		auto mainWnd = iAMainWindow::get();
 		QObject::connect(editArgsAction, &QAction::triggered, mainWnd,
-			[attrPtr, mainWnd, name]
+			[fullName, mainWnd]
 			{
-				iAParameterDlg dlg(mainWnd, name, *attrPtr);
-				if (dlg.exec() != QDialog::Accepted)
-				{
-					return;
-				}
-				auto newDefaultValues = dlg.parameterValues();
-				setDefaultValues(*attrPtr, newDefaultValues);
+				iASettingsManager::editDefaultSettings(mainWnd, fullName);
 			});
 		QMenu* settingsMenu = mainWnd->editMenu();
 		QStringList categories = catName.sliced(0, catName.size() - 1);
@@ -63,6 +57,18 @@ void iASettingsManager::init()
 		addToMenuSorted(settingsMenu, editArgsAction);
 		settings.endGroup();
 	}
+}
+
+void iASettingsManager::editDefaultSettings(QWidget* parent, QString const& fullName)
+{
+	auto attrPtr = getMap()[fullName];
+	iAParameterDlg dlg(parent, fullName, *attrPtr);
+	if (dlg.exec() != QDialog::Accepted)
+	{
+		return;
+	}
+	auto newDefaultValues = dlg.parameterValues();
+	setDefaultValues(*attrPtr, newDefaultValues);
 }
 
 void iASettingsManager::store()

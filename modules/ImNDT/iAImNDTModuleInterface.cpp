@@ -519,7 +519,7 @@ bool iAImNDTModuleInterface::loadImNDT()
 	{
 		return false;
 	}
-	auto objVis = createObjectVis(m_objData.get(), QColor(140, 140, 140, 255), m_csvConfig.cylinderQuality, m_csvConfig.segmentSkip);
+	auto objVis = createObjectVis(m_objData.get(), QColor(140, 140, 140, 255));
 	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(objVis);
 	if (!m_polyObject)
 	{

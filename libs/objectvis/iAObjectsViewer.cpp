@@ -14,14 +14,13 @@
 namespace
 {
 	QColor DefaultColor("darkGray");    // for consistency with FeatureScout's default color
-	const QString ParamColor("Color");
-	const QString ParamSegmentSkip("Segment Skip");
-	const QString ParamNumOfCylinderSides("Number of cylinder sides");
 }
 
-constexpr const char ObjectsRendererName[] = "Default Settings/Dataset Renderer: Objects";
+const QString iAObjectsRenderer::Color("Color");
+const QString iAObjectsRenderer::SegmentSkip("Segment Skip");
+const QString iAObjectsRenderer::NumOfCylinderSides("Number of cylinder sides");
 
-class iAobjectvis_API iAObjectsRendererSettings : iASettingsObject<ObjectsRendererName, iAObjectsRendererSettings>
+class iAobjectvis_API iAObjectsRendererSettings : iASettingsObject<iAObjectsRenderer::Name, iAObjectsRendererSettings>
 {
 public:
 	static iAAttributes& defaultAttributes()
@@ -29,9 +28,9 @@ public:
 		static iAAttributes attr;
 		if (attr.isEmpty())
 		{
-			addAttr(attr, ParamColor, iAValueType::Color, DefaultColor);
-			addAttr(attr, ParamSegmentSkip, iAValueType::Discrete, 1, 1, 1000);
-			addAttr(attr, ParamNumOfCylinderSides, iAValueType::Discrete, 12, 3, 10000);
+			addAttr(attr, iAObjectsRenderer::Color, iAValueType::Color, DefaultColor);
+			addAttr(attr, iAObjectsRenderer::SegmentSkip, iAValueType::Discrete, 1, 1, 1000);
+			addAttr(attr, iAObjectsRenderer::NumOfCylinderSides, iAValueType::Discrete, 12, 3, 10000);
 		}
 		return attr;
 	}
@@ -40,10 +39,7 @@ public:
 iAObjectsViewer::iAObjectsViewer(iADataSet* dataSet) :
 	iADataSetViewer(dataSet)
 {
-	auto const & attr = iAObjectsRendererSettings::defaultAttributes();
-	auto numOfCylinderSides = attr[findAttribute(attr, ParamNumOfCylinderSides)]->defaultValue().toInt();
-	auto segmentSkip = attr[findAttribute(attr, ParamSegmentSkip)]->defaultValue().toULongLong();
-	m_objVis = createObjectVis(dynamic_cast<iAObjectsData const*>(m_dataSet), DefaultColor,	numOfCylinderSides, segmentSkip);
+	m_objVis = createObjectVis(dynamic_cast<iAObjectsData const*>(m_dataSet), DefaultColor);
 }
 
 std::shared_ptr<iADataSetRenderer> iAObjectsViewer::createRenderer(vtkRenderer* ren, QVariantMap const& paramValues)
@@ -92,7 +88,7 @@ void iAObjectsRenderer::applyAttributes(QVariantMap const& values)
 	auto colorObj = dynamic_cast<iAColoredPolyObjectVis*>(m_objVis);
 	if (colorObj)
 	{
-		colorObj->setColor(variantToColor(values[ParamColor]));
+		colorObj->setColor(variantToColor(values[iAObjectsRenderer::Color]));
 	}
 	// apply segment skip and number of cylinder sides as well? but this requires recreating object vis...
 }
@@ -151,9 +147,9 @@ iAAttributes const& iAObjectsRenderer::attributes() const
 		attr = cloneAttributes(iAObjectsRenderer::defaultAttributes());
 		// TODO: if we could re-apply those parameters to existing object vis, we wouldn't need to remove them here:
 		//if (!dynamic_cast<iALineObjectVis*>(m_objVis))
-			removeAttribute(attr, ParamSegmentSkip);
+			removeAttribute(attr, iAObjectsRenderer::SegmentSkip);
 		//if (!dynamic_cast<iACylinderObjectVis*>(m_objVis))
-			removeAttribute(attr, ParamNumOfCylinderSides);
+			removeAttribute(attr, iAObjectsRenderer::NumOfCylinderSides);
 	}
 	return attr;
 }

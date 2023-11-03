@@ -55,8 +55,6 @@ iACsvConfig::iACsvConfig() :
 	computeCenter(false),
 	computeStartEnd(false),
 	visType(iAObjectVisType::UseVolume),
-	cylinderQuality(12),
-	segmentSkip(1),
 	isDiameterFixed(false),
 	fixedDiameterValue(0.0),
 	addClassID(true)
