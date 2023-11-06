@@ -18,7 +18,6 @@
 #endif
 
 class iAFilterRunnerGUI;
-class iALogger;
 class iAMainWindow;
 
 class QFileInfo;
@@ -50,7 +49,7 @@ public:
 	iAModuleDispatcher( iAMainWindow * mainWnd );
 	iAModuleDispatcher(QString const & rootPath);
 	~iAModuleDispatcher();
-	void InitializeModules(iALogger* logger);
+	void InitializeModules();
 	void SaveModulesSettings() const;
 	template <typename T> T* module();
 private slots:

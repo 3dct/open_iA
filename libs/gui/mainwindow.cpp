@@ -283,7 +283,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	applyQSS();
 
 	showSplashMsg(splashScreen, "Initializing modules...");
-	m_moduleDispatcher->InitializeModules(iALogWidget::get());
+	m_moduleDispatcher->InitializeModules();
 
 	showSplashMsg(splashScreen, "Finalizing user interface...");
 	updateMenus();

@@ -9,7 +9,6 @@
 #include <QVector>
 
 class iADataSet;
-class iALogger;
 
 class iASampleBuiltInFilterOperation : public iASampleOperation
 {
@@ -21,8 +20,7 @@ public:
 		bool overwriteOutput,
 		QVariantMap parameters,
 		std::map<size_t, std::shared_ptr<iADataSet>> input,
-		QString const& outputFileName,
-		iALogger * logger);
+		QString const& outputFileName);
 	QString output() const override;
 private:
 	void performWork() override;
@@ -32,5 +30,4 @@ private:
 	QVariantMap m_parameters;
 	std::map<size_t, std::shared_ptr<iADataSet>> m_input;
 	QString m_outputFileName;
-	iALogger * m_logger;
 };

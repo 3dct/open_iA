@@ -152,7 +152,6 @@ namespace
 					.arg(fi.absolutePath()).toStdString());
 			}
 		}
-		filter->setLogger(patchFilter->logger());
 		// iterate over all patches:
 		itk::Index<DIM> outIdx; outIdx[0] = 0;
 		for (size_t x = 0; x < size[0] && !patchFilter->isAborted(); x += stepSize[0])

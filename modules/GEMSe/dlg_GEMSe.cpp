@@ -26,7 +26,6 @@
 
 #include <iAAttributeDescriptor.h>
 #include <iALog.h>
-#include <iALogger.h>
 #include <iAMathUtility.h>
 #include <iAToolsITK.h>
 
@@ -36,7 +35,6 @@
 
 dlg_GEMSe::dlg_GEMSe(
 	QWidget *parent,
-	iALogger * logger,
 	iAColorTheme const * colorTheme)
 :
 	dlg_GEMSeUI(parent),
@@ -50,7 +48,6 @@ dlg_GEMSe::dlg_GEMSe(
 	m_scatterplot(nullptr),
 	m_probingWidget(nullptr),
 	m_colorTheme(colorTheme),
-	m_logger(logger),
 	m_previewWidgetPool(nullptr),
 	m_representativeType(iARepresentativeType::Difference)
 {

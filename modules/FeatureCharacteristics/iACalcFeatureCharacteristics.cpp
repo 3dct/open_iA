@@ -6,6 +6,7 @@
 IAFILTER_DEFAULT_CLASS(iACalcFeatureCharacteristics);
 
 #include <defines.h>          // for DIM
+#include <iALog.h>
 #include <iAProgress.h>
 
 // base
@@ -334,5 +335,5 @@ void iACalcFeatureCharacteristics::performWork(QVariantMap const & parameters)
 	QString pathCSV = parameters["Output CSV filename"].toString();
 	ITK_TYPED_CALL(calcFeatureCharacteristics, inputScalarType(), imageInput(0)->itkImage(), progress(), pathCSV,
 		parameters["Calculate Feret Diameter"].toBool(), parameters["Calculate advanced void parameters"].toBool(), parameters["Calculate roundness"].toBool());
-	addMsg(QString("Feature csv file created in: %1").arg(pathCSV));
+	LOG(lvlInfo, QString("Feature csv file created in: %1").arg(pathCSV));
 }

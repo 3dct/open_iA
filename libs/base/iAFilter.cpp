@@ -44,7 +44,6 @@ namespace
 iAFilter::iAFilter(QString const & name, QString const & category, QString const & description,
 	unsigned int requiredInputs, unsigned int outputCount, bool supportsAbort) :
 	m_progress(std::make_unique<iAProgress>()),
-	m_log(iALog::get()),
 	m_name(name),
 	m_category(category),
 	m_description(description),
@@ -192,11 +191,6 @@ size_t iAFilter::inputCount() const
 iAITKIO::ScalarType iAFilter::inputScalarType() const
 {
 	return mapVTKtoITKPixelType(imageInput(0)->vtkImage()->GetScalarType());
-}
-
-void iAFilter::setLogger(iALogger* log)
-{
-	m_log = log;
 }
 
 bool iAFilter::run(QVariantMap const & parameters)
@@ -362,17 +356,12 @@ bool iAFilter::defaultParameterCheck(std::shared_ptr<iAAttributeDescriptor> para
 
 void iAFilter::addMsg(QString const & msg)
 {
-	m_log->log(lvlInfo, msg);
+	LOG(lvlError, msg);
 }
 
 iAProgress* iAFilter::progress()
 {
 	return m_progress.get();
-}
-
-iALogger* iAFilter::logger()
-{
-	return m_log;
 }
 
 QString iAFilter::inputName(unsigned int i) const

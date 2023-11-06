@@ -139,7 +139,6 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 			file.close();
 		}
 	}
-	filter->setLogger(logger());
 
 	QStringList filters = parameters["File mask"].toString().split(";");
 

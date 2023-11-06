@@ -18,15 +18,13 @@ iASampleBuiltInFilterOperation::iASampleBuiltInFilterOperation(
 	bool overwriteOutput,
 	QVariantMap parameters,
 	std::map<size_t, std::shared_ptr<iADataSet>> input,
-	QString const& outputFileName,
-	iALogger* logger) :
+	QString const& outputFileName) :
 	m_filterName(filterName),
 	m_compressOutput(compressOutput),
 	m_overwriteOutput(overwriteOutput),
 	m_parameters(parameters),
 	m_input(input),
-	m_outputFileName(outputFileName),
-	m_logger(logger)
+	m_outputFileName(outputFileName)
 {
 }
 
@@ -48,7 +46,6 @@ void iASampleBuiltInFilterOperation::performWork()
 	{
 		filter->addInput(d.second);
 	}
-	filter->setLogger(m_logger);
 	filter->run(m_parameters);
 	// adapted from iACommandLineProcessor; maybe this could be merged?
 	for (size_t o = 0; o < filter->finalOutputCount(); ++o)

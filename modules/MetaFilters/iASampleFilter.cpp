@@ -71,7 +71,6 @@ void iASampleFilter::performWork(QVariantMap const& parameters)
 		m_parameterSetFile,
 		m_derivedOutFile,
 		m_samplingID,
-		logger(),
 		progress()
 	);
 	QEventLoop loop;

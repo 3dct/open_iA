@@ -22,7 +22,6 @@ class iASamplingResults;
 class iASingleResult;
 
 class iADataSet;
-class iALogger;
 class iAProgress;
 
 class MetaFilters_API iAImageSampler: public QObject, public iADurationEstimator, public iAAbortListener
@@ -39,7 +38,6 @@ public:
 		QString const & parameterSetFile,
 		QString const & derivedOutputFile,
 		int samplingID,
-		iALogger * logger,
 		iAProgress * progress);
 	std::shared_ptr<iASamplingResults> results();
 	void start();
@@ -84,7 +82,6 @@ private:
 	
 	QStringList m_additionalArgumentList;
 	int m_numDigits;
-	iALogger* m_logger;
 	iAProgress* m_progress;
 
 	void newSamplingRun();
