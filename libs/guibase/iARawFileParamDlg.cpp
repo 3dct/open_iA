@@ -46,7 +46,7 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 	m_inputDlg->layout()->addWidget(fileNameLabel);
 	auto guessFromFileNameButton = new QPushButton("Guess parameters from filename");
 	m_inputDlg->layout()->addWidget(guessFromFileNameButton);
-	connect(guessFromFileNameButton, &QPushButton::pressed, this, [this, fileName]{
+	connect(guessFromFileNameButton, &QAbstractButton::clicked, this, [this, fileName]{
 		guessParameters(fileName);
 	});
 

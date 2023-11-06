@@ -92,12 +92,7 @@ void iAComp3DWidget::create3DVis(const iACsvConfig& csvConfig)
 {
 	if (m_objData->m_visType == iAObjectVisType::Cylinder)
 	{
-		int cylinderQuality = csvConfig.cylinderQuality;
-		size_t segmentSkip = csvConfig.segmentSkip;
-		m_3dvisData = std::make_shared<iACylinderObjectVis>(m_objData.get(),
-			m_objectColor,
-			cylinderQuality,
-			segmentSkip);
+		m_3dvisData = std::make_shared<iACylinderObjectVis>(m_objData.get(), m_objectColor);
 	}
 	else if (m_objData->m_visType == iAObjectVisType::Ellipsoid)
 	{

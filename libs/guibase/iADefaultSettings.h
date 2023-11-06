@@ -23,6 +23,8 @@ public:
 	static void init();
 	//! Store default settings
 	static void store();
+	//! edit the default settings for a given name
+	static void editDefaultSettings(QWidget* parent, QString const& fullName);
 };
 
 //! Helper for registering collections of settings with the iASettingsManager.

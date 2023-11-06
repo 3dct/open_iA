@@ -17,11 +17,9 @@
 #include <iALog.h>
 #include <iAMdiChild.h>
 //#include <iAPerformanceHelper.h>
-#include <iAPreferences.h>
 #include <iARenderer.h>
 #include <iASlicer.h>
 #include <iASlicerMode.h>   // for slicerModeString
-#include <iASlicerSettings.h>
 #include <iAToolsVTK.h>
 #include <iATransferFunctionOwner.h>
 #include <iAVolumeRenderer.h>    // for default volume settings

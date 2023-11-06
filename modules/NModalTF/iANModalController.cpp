@@ -13,11 +13,9 @@
 #include <iADataSetRenderer.h>
 #include <iAImageData.h>
 #include <iAMdiChild.h>
-#include <iAPreferences.h>
 #include <iARenderer.h>
 #include <iASlicer.h>
 #include <iASlicerImpl.h>
-#include <iASlicerSettings.h>
 #include <iAToolsVTK.h>
 #include <iATransferFunction.h>
 #include <iATypedCallHelper.h>

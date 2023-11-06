@@ -6,7 +6,11 @@
 #include "iACsvConfig.h"
 #include "iACsvQTableCreator.h"
 #include "iACsvVectorTableCreator.h"
+#include "iAObjectsViewer.h"
 #include "ui_CsvInput.h"
+
+#include <iADefaultSettings.h>
+#include <iAThemeHelper.h>
 
 #include <iALog.h>
 
@@ -59,6 +63,11 @@ dlg_CSVInput::dlg_CSVInput(bool volumeDataAvailable, QWidget * parent/* = 0,*/, 
 	m_ui(new Ui_CsvInput())
 {
 	m_ui->setupUi(this);
+	m_ui->btn_VisSettings->setIcon(iAThemeHelper::icon("settings"));
+	connect(m_ui->btn_VisSettings, &QAbstractButton::clicked, this, [this]
+	{
+		iASettingsManager::editDefaultSettings(this, iAObjectsRenderer::Name);
+	});
 	// combo boxes involved in column mapping (in the same order as in iACsvConfig::MappedColumn):
 	m_mappingBoxes.push_back(m_ui->cmbbox_col_PosStartX);
 	m_mappingBoxes.push_back(m_ui->cmbbox_col_PosStartY);
@@ -248,8 +257,6 @@ void dlg_CSVInput::updatePreview()
 void dlg_CSVInput::visualizationTypeChanged(int newTypeInt)
 {
 	auto newType = static_cast<iAObjectVisType>(newTypeInt);
-	m_ui->sb_CylinderQuality->setEnabled(newType == iAObjectVisType::Cylinder);
-	m_ui->sb_SegmentSkip->setEnabled(newType == iAObjectVisType::Cylinder || newType == iAObjectVisType::Line);
 	if (newType != iAObjectVisType::Cylinder && newType != iAObjectVisType::Line)
 	{
 		m_ui->cb_CurvedFiberInfo->setChecked(false);
@@ -358,7 +365,7 @@ QString dlg_CSVInput::askForFormatName(bool forLocalSave)
 	dlg.layout()->setSpacing(4);
 	dlg.layout()->addWidget(line);
 	dlg.layout()->addWidget(buttonBox);
-	connect(okBtn, &QPushButton::pressed, this,
+	connect(okBtn, &QAbstractButton::clicked, this,
 		[&] {
 			if (forLocalSave)
 			{
@@ -389,7 +396,7 @@ QString dlg_CSVInput::askForFormatName(bool forLocalSave)
 			}
 			dlg.accept();
 		});
-	connect(cancelBtn, &QPushButton::pressed, &dlg, &QDialog::close);
+	connect(cancelBtn, &QAbstractButton::clicked, &dlg, &QDialog::close);
 	return (dlg.exec() == QDialog::Accepted) ? edit->text() : "";
 }
 
@@ -583,10 +590,9 @@ void dlg_CSVInput::showConfigParams()
 		ctblock(m_ui->cb_ComputeTensors), ccblock(m_ui->cb_ComputeCenter), chblock(m_ui->cb_ContainsHeader),
 		cseblock(m_ui->cb_ComputeStartEnd), cfdblock(m_ui->cb_FixedDiameter), dsblock(m_ui->sb_FixedDiameter);
 	if (m_confParams.skipLinesStart > std::numeric_limits<int>::max() ||
-		m_confParams.skipLinesEnd > std::numeric_limits<int>::max() ||
-		m_confParams.segmentSkip > std::numeric_limits<int>::max())
+		m_confParams.skipLinesEnd > std::numeric_limits<int>::max())
 	{
-		LOG(lvlWarn, "Skip Line start/end or segment skip number is too high to be displayed in this dialog!");
+		LOG(lvlWarn, "Skip Line start/end number is too high to be displayed in this dialog!");
 	}
 	int index = m_ui->cmbbox_ObjectType->findText(MapObjectTypeToString(m_confParams.objectType), Qt::MatchContains);
 	m_ui->cmbbox_ObjectType->setCurrentIndex(index);
@@ -609,8 +615,6 @@ void dlg_CSVInput::showConfigParams()
 	m_ui->sb_OfsZ->setValue(m_confParams.offset[2]);
 	m_ui->cmbbox_VisualizeAs->setCurrentText(MapVisType2Str(m_confParams.visType));
 	visualizationTypeChanged(static_cast<int>(m_confParams.visType));
-	m_ui->sb_SegmentSkip->setValue(static_cast<int>(m_confParams.segmentSkip));
-	m_ui->sb_CylinderQuality->setValue(m_confParams.cylinderQuality);
 	m_ui->cb_FixedDiameter->setChecked(m_confParams.isDiameterFixed);
 	m_ui->sb_FixedDiameter->setValue(m_confParams.fixedDiameterValue);
 	updateColumnMappingInputs();
@@ -639,8 +643,6 @@ void dlg_CSVInput::assignFormatSettings()
 	m_confParams.offset[2] = m_ui->sb_OfsZ->value();
 	m_confParams.containsHeader = m_ui->cb_ContainsHeader->isChecked();
 	m_confParams.visType = static_cast<iAObjectVisType>(m_ui->cmbbox_VisualizeAs->currentIndex());
-	m_confParams.cylinderQuality = m_ui->sb_CylinderQuality->value();
-	m_confParams.segmentSkip = m_ui->sb_SegmentSkip->value();
 	m_confParams.isDiameterFixed = m_ui->cb_FixedDiameter->isChecked();
 	m_confParams.fixedDiameterValue = m_ui->sb_FixedDiameter->value();
 	if (!m_columnMappingChoiceSet)
