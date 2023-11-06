@@ -25,6 +25,8 @@ else()
 		message(WARNING "You did not specify a DirectML library to use! If you build a release, the AI segmentation will not work. Download a DirectML runtime package from https://www.nuget.org/packages/Microsoft.AI.DirectML, extract it somewhere and specify the path to the DirectML.dll (typically in the bin/x64-win subfolder) in the DIRECTML_LIBRARY variable!")
 	else()
 		install(FILES ${DIRECTML_LIBRARY} DESTINATION .)
+		get_filename_component(DIRECTML_LIB_DIR "${DIRECTML_LIBRARY}" DIRECTORY)
+		set(WinDLLPaths "${DIRECTML_LIB_DIR};${WinDLLPaths}" PARENT_SCOPE)
 	endif()
 endif()
 
