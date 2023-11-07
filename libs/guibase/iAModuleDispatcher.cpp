@@ -8,7 +8,7 @@
 #include "iAFilterRunnerGUI.h"
 #include "iAFilterSelectionDlg.h"
 #include "iAGUIModuleInterface.h"
-#include "iALogger.h"
+#include "iALog.h"
 #include "iAMainWindow.h"
 
 #include <QCoreApplication>
@@ -186,7 +186,7 @@ iAModuleInterface* iAModuleDispatcher::loadModuleAndInterface(QFileInfo fi, QStr
 	return m;
 }
 
-void iAModuleDispatcher::InitializeModules(iALogger* logger)
+void iAModuleDispatcher::InitializeModules()
 {
 	QFileInfoList fList = GetLibraryList(m_rootPath);
 	QFileInfoList failed;
@@ -207,7 +207,7 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 	} while (fList.size() != 0 && someNewLoaded);
 	for (auto msg : loadErrorMessages)
 	{
-		logger->log(lvlError, msg);
+		LOG(lvlError, msg);
 	}
 	if (!m_mainWnd)	// all non-GUI related stuff already done
 	{

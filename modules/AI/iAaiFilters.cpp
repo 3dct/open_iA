@@ -362,7 +362,7 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 
 	iAProgress *progressPrediction = filter->progress();
 	int count = 0;
-
+	const double TotalCount = static_cast<double>(sizeX) * sizeY * sizeZ / (static_cast<double>(sizeDNNout) * sizeDNNout * sizeDNNout);
 	for (int x = 0; x <= sizeX; x = x + sizeDNNout)
 	{
 		for (int y = 0; y <= sizeY; y = y + sizeDNNout)
@@ -418,8 +418,6 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 							outputChannel++;
 						}
 						count++;
-						double progress = count * 100.0 / (sizeX / sizeDNNout * sizeY / sizeDNNout * sizeZ / sizeDNNout);
-						progressPrediction->emitProgress(progress);
 					}
 				}
 				catch (const std::exception& e)
@@ -431,6 +429,8 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 			{
 				throw std::runtime_error(joinStdString(errors, ", "));
 			}
+			double progress = count * 100.0 / TotalCount;
+			progressPrediction->emitProgress(progress);
 		}
 	}
 	for (auto outputImage : outputs)
@@ -447,10 +447,10 @@ void iAai::performWork(QVariantMap const & parameters)
 
 iAai::iAai() :
 	iAFilter("AI", "Segmentation",
-		"Uses deep learning model for segmentation<br/>"
-		"ONNX Runtime is used for execution of the net"
-		"<a href=\"https://github.com/microsoft/onnxruntime\">"
-		"GPU select gpu should be used by DirectML (0 -> Default GPU)")
+		"Use a pre-trained deep learning model (onnx format) for segmentation.<br/>"
+		"Microsoft's <a href=\"https://github.com/microsoft/onnxruntime\">ONNX runtime</a> "
+		"is used for execution of the net. "
+		"GPU - select the GPU that should be used by DirectML (0 -> Default GPU).")
 {
 
 	addParameter("OnnxFile", iAValueType::FileNameOpen);

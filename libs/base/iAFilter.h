@@ -16,7 +16,6 @@
 
 class iADataSet;
 class iAImageData;
-class iALogger;
 class iAProgress;
 
 class QVariant;
@@ -75,8 +74,6 @@ public:
 	QString description() const;
 	//! Retrieve a list of the filter parameters.
 	iAAttributes const & parameters() const;
-	//! Set the logger to be used for status output / error messages.
-	void setLogger(iALogger* logger);
 	//! if required, adapt (loaded/default) parameters to image
 	//! only used from GUI for the moment
 	//! if feature is implemented where parameters can be omitted (on command line),
@@ -165,14 +162,12 @@ public:
 	void addOutput(std::shared_ptr<iADataSet> dataSet);
 	//! The planned number of outputs the filter will produce.
 	unsigned int plannedOutputCount() const;
-	//! Adds some message to the targeted output place for this filter.
+	//! Adds some (error) message to the targeted output place for this filter.
 	//! Typically this will go into the log window of the result MdiChild
 	//! @param msg the message to print
 	void addMsg(QString const & msg);
 	//! Retrieve the progress reporting object for this filter.
 	iAProgress* progress();
-	//! Retrieve the logger used for log messages emitted by the filter.
-	iALogger* logger();
 	//! Retrieve the name of the input image with given index.
 	QString inputName(unsigned int i) const;
 	//! Retrieve the name of the output image with given index.
@@ -214,8 +209,6 @@ private:
 	//! The class that is watched for progress.
 	//! Typically you will call m_progress->observe(someItkFilter) to set up the progress observation
 	std::unique_ptr<iAProgress> m_progress;
-	//! The logger.
-	iALogger* m_log;
 	//! Describes the parameters of the algorithm.
 	iAAttributes m_parameters;
 	//! Names for the output values of the algorithm.

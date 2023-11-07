@@ -26,7 +26,7 @@ iAGEMSeTool::iAGEMSeTool(iAMainWindow* mainWnd, iAMdiChild* child):
 	iATool(mainWnd, child),
 	m_dummyTitleWidget(new QWidget()),
 	m_dlgSamplings(new dlg_samplings()),
-	m_dlgGEMSe(new dlg_GEMSe(child, iALog::get(), iAColorThemeManager::instance().theme(defaultThemeName))),
+	m_dlgGEMSe(new dlg_GEMSe(child, iAColorThemeManager::instance().theme(defaultThemeName))),
 	m_dlgGEMSeControl(new dlg_GEMSeControl(child, m_dlgGEMSe, m_dlgSamplings,
 		iAColorThemeManager::instance().theme(defaultThemeName)))
 {

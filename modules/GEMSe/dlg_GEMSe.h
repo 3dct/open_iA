@@ -30,7 +30,6 @@ class iAImageTreeLeaf;
 class iAImageTreeView;
 class iAExampleImageWidget;
 class iALabelInfo;
-class iALogger;
 class iAPreviewWidgetPool;
 class iAProbingWidget;
 class iASamplingResults;
@@ -45,7 +44,7 @@ class dlg_GEMSe: public dlg_GEMSeUI
 {
 	Q_OBJECT
 public:
-	dlg_GEMSe(QWidget *parent, iALogger * logger, iAColorTheme const * colorTheme);
+	dlg_GEMSe(QWidget *parent, iAColorTheme const * colorTheme);
 	void SetTree(std::shared_ptr<iAImageTree> imageTree,
 		vtkSmartPointer<vtkImageData> originalImage,
 		std::vector<std::shared_ptr<iADataSet>> const& dataSets,
@@ -133,7 +132,6 @@ private:
 	iAGEMSeScatterplot * m_scatterplot;
 	iAProbingWidget * m_probingWidget;
 	iAColorTheme const* m_colorTheme;
-	iALogger* m_logger;
 	iAPreviewWidgetPool* m_previewWidgetPool;
 	ClusterImageType m_nullImage;
 	iARepresentativeType m_representativeType;

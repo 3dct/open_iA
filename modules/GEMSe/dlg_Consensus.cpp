@@ -1000,7 +1000,6 @@ void dlg_Consensus::LoadConfig()
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,
 			lastSamplingID+s,
-			iALog::get(),
 			&m_progress
 		);
 		m_queuedSamplers.push_back(sampler);

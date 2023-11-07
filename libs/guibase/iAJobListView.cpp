@@ -263,7 +263,7 @@ void iAJobListView::newJobSlot()
 	LOG(lvlDebug, QString("Job started: %1.").arg(j->name));
 	connect(j->object, &QObject::destroyed, [this, jobWidget, j]()
 	{
-		LOG(lvlDebug, QString("Job done: '%1'.").arg(j->name));
+		LOG(lvlDebug, QString("Job done: %1.").arg(j->name));
 		int remainingJobs = 0;
 		{
 			std::lock_guard<std::mutex> guard(jobsMutex);

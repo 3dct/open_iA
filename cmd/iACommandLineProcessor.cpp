@@ -493,7 +493,7 @@ namespace
 int ProcessCommandLine(int argc, char const * const * argv, const char * version)
 {
 	auto dispatcher = new iAModuleDispatcher(QFileInfo(argv[0]).absolutePath());
-	dispatcher->InitializeModules(iALoggerStdOut::get());
+	dispatcher->InitializeModules();
 	if (argc > 1 && QString(argv[1]) == "-l")
 	{
 		PrintListOfAvailableFilters(argc > 2 ? QString(argv[2]) : QString("name") );

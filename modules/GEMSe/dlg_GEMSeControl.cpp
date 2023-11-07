@@ -194,7 +194,6 @@ void dlg_GEMSeControl::startSampling()
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,
 			m_dlgSamplings->GetSamplings()->size(),
-			iALog::get(),
 			&m_progress
 		);
 		iAJobListView::get()->addJob("Sampling Progress", &m_progress, m_sampler.get(), m_sampler.get());
