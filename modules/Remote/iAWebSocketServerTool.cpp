@@ -24,8 +24,11 @@ namespace
 {
 	const int Port = 9042;
 
-	template <typename T> int sgn(T val) {
-		return (T(0) < val) - (val < T(0));
+	float toFloat(QByteArray const& arr, size_t ofs)
+	{
+		//static_assert(std::numeric_limits<float>::is_iec559, "Only supports IEC 559 (IEEE 754) float");
+		const float* val = reinterpret_cast<const float*>(&arr.constData()[ofs]);
+		return *val;
 	}
 }
 
@@ -47,70 +50,78 @@ public:
 		{
 			LOG(lvlInfo, QString("WebSocketServer listening on %1:%2").arg(m_wsServer->serverAddress().toString()).arg(m_wsServer->serverPort()));
 			connect(m_wsServer, &QWebSocketServer::newConnection, this, [this, child]
+			{
+				QWebSocket* client = m_wsServer->nextPendingConnection();
+				LOG(lvlInfo, QString("Client connected: %1:%2").arg(client->peerAddress().toString()).arg(client->peerPort()));
+				connect(client, &QWebSocket::textMessageReceived, this, [this, child](QString message)
 				{
-					QWebSocket* client = m_wsServer->nextPendingConnection();
-					LOG(lvlInfo, QString("Client connected: %1:%2").arg(client->peerAddress().toString()).arg(client->peerPort()));
-					connect(client, &QWebSocket::textMessageReceived, this, [this, child](QString message)
-						{
-							//LOG(lvlInfo, QString("WebSocketServer: Text message received: %1").arg(message));
-							// TODO: differentiate message protocols, types, ...
-							auto values = message.split(",");
-							iAVec3d pos { values[0].remove("(").toDouble(), values[1].toDouble(), values[2].remove(")").toDouble() };
-							double q[4] = { values[3].remove("(").toDouble(), values[4].toDouble(), values[5].toDouble(), values[6].remove(")").toDouble() };
-							double ayterm = 2 * (q[3] * q[1] - q[0] * q[2]);
-							double a2[3] = {
-								vtkMath::DegreesFromRadians(std::atan2(2 * (q[3] * q[0] + q[1] * q[2]), 1 - 2 * (q[0] * q[0] + q[1] * q[1]))),
-								vtkMath::DegreesFromRadians(-vtkMath::Pi() / 2 + 2 * std::atan2( std::sqrt(1 + ayterm), std::sqrt(1 - ayterm))),
-								vtkMath::DegreesFromRadians(std::atan2(2 * (q[3] * q[2] + q[0] * q[1]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])))
-							};
-
-							for (int a = 0; a < 3; ++a)
-							{   // round to nearest X degrees:
-								const double RoundDegrees = 2;
-								a2[a] = std::round(a2[a] / RoundDegrees) * RoundDegrees;
-							}
-							auto renderer = child->dataSetViewer(child->firstImageDataSetIdx())->renderer();
-							auto prop = renderer->vtkProp();
-							LOG(lvlInfo, QString(
-									"position: %1, %2, %3; "
-									"angle: %4, %5, %6"
-								)
-								.arg(pos[0]).arg(pos[1]).arg(pos[2])
-								.arg(a2[0]).arg(a2[1]).arg(a2[2])
-							);
-
-							auto bounds = renderer->bounds();
-
-							pos *= (bounds.maxCorner() - bounds.minCorner()).length() / 2;
-							auto center = (bounds.maxCorner() - bounds.minCorner()) / 2;
-							vtkNew<vtkTransform> tr;
-							tr->PostMultiply();
-							tr->Translate(-center[0], -center[1], -center[2] );
-							// rotation: order x-z-y, reverse direction of y
-							tr->RotateX(a2[0]);
-							tr->RotateZ(-a2[1]);
-							tr->RotateY(a2[2]);
-							// translation: y, z flipped; x, y reversed:
-							tr->Translate(center[0] - pos[0], center[1] - pos[2], center[2] + pos[1]);
-							prop->SetUserTransform(tr);
-							//prop->SetPosition(pos);
-							child->updateRenderer();
-						});
-					connect(client, &QWebSocket::binaryMessageReceived, this, [this](QByteArray message)
-						{
-							LOG(lvlInfo, QString("WebSocketServer: Binary message received: %1").arg(message));
-						});
-					connect(client, &QWebSocket::disconnected, this, [this]
-						{
-							QWebSocket* client = qobject_cast<QWebSocket*>(sender());
-							LOG(lvlInfo, QString("Client %1:%2 disconnected!").arg(client->peerAddress().toString()).arg(client->peerPort()));
-							m_clients.removeAll(client);
-							client->deleteLater();
-						});
-					m_clients << client;
+					//LOG(lvlInfo, QString("WebSocketServer: Text message received: %1").arg(message));
 				});
+				connect(client, &QWebSocket::binaryMessageReceived, this, [this, child](QByteArray data)
+				{
+					auto type = static_cast<int>(data[0]);
+					auto obj  = static_cast<int>(data[1]);
+					// TODO: differentiate message protocols, types, ...
 
-			//connect(m_pWebSocketServer, &QWebSocketServer::closed, this, );
+					iAVec3d pos;
+					using FloatType = float;
+					const size_t PosOfs = 2;
+					const size_t FloatSize = sizeof(FloatType);
+					const size_t PosSize = 3;
+					const size_t QuatOfs = PosOfs + PosSize * FloatSize;
+					const size_t QuatSize = 4;
+					for (size_t i = 0; i < PosSize; ++i) { pos[i] = toFloat(data, PosOfs + i * FloatSize); }
+					double q[QuatSize];
+					for (size_t i = 0; i < QuatSize; ++i) { q[i] = toFloat(data, QuatOfs + i * FloatSize); }
+					double ayterm = 2 * (q[3] * q[1] - q[0] * q[2]);
+					double a2[3] = {
+						vtkMath::DegreesFromRadians(std::atan2(2 * (q[3] * q[0] + q[1] * q[2]), 1 - 2 * (q[0] * q[0] + q[1] * q[1]))),
+						vtkMath::DegreesFromRadians(-vtkMath::Pi() / 2 + 2 * std::atan2(std::sqrt(1 + ayterm), std::sqrt(1 - ayterm))),
+						vtkMath::DegreesFromRadians(std::atan2(2 * (q[3] * q[2] + q[0] * q[1]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])))
+					};
+
+					for (int a = 0; a < 3; ++a)
+					{   // round to nearest X degrees:
+						const double RoundDegrees = 2;
+						a2[a] = std::round(a2[a] / RoundDegrees) * RoundDegrees;
+					}
+					auto renderer = child->dataSetViewer(child->firstImageDataSetIdx())->renderer();
+					auto prop = renderer->vtkProp();
+
+					LOG(lvlInfo, QString("WebSocketServer: Binary message received "
+						"(type: %1; obj: %2; pos = (%3, %4, %5); rot = (%6, %7, %8, %9)")
+						.arg(type)
+						.arg(obj)
+						.arg(pos[0]).arg(pos[1]).arg(pos[2])
+						.arg(q[0]).arg(q[1]).arg(q[2]).arg(q[3])
+					);
+					LOG(lvlInfo, QString("angle: %1, %2, %3").arg(a2[0]).arg(a2[1]).arg(a2[2]));
+
+					auto bounds = renderer->bounds();
+					pos *= (bounds.maxCorner() - bounds.minCorner()).length() / 2;
+					auto center = (bounds.maxCorner() - bounds.minCorner()) / 2;
+
+					vtkNew<vtkTransform> tr;
+					tr->PostMultiply();
+					tr->Translate(-center[0], -center[1], -center[2]);
+					// rotation: order x-z-y, reverse direction of y
+					tr->RotateX(a2[0]);
+					tr->RotateZ(-a2[1]);
+					tr->RotateY(a2[2]);
+					// translation: y, z flipped; x, y reversed:
+					tr->Translate(center[0] - pos[0], center[1] - pos[2], center[2] + pos[1]);
+					prop->SetUserTransform(tr);
+					child->updateRenderer();
+				});
+				connect(client, &QWebSocket::disconnected, this, [this]
+				{
+					QWebSocket* client = qobject_cast<QWebSocket*>(sender());
+					LOG(lvlInfo, QString("Client %1:%2 disconnected!").arg(client->peerAddress().toString()).arg(client->peerPort()));
+					m_clients.removeAll(client);
+					client->deleteLater();
+				});
+				m_clients << client;
+			});
 		}
 		else
 		{
