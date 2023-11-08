@@ -15,6 +15,7 @@
 namespace
 {
 	constexpr const char Separator[] = ",";
+	constexpr const char FallbackSeparator[] = " ";
 }
 
 //! Set any indexed type from a iAValueType::Vector3 stored in a QVariant (as in the QVariantMap used throughout open_iA)
@@ -38,6 +39,10 @@ template <typename T>
 QVector<T> variantToVector(QVariant const& src)
 {
 	auto values = src.toString().split(Separator);
+	if (values.size() == 1)  // fallback to try " " as separator (used in older versions)
+	{
+		values = src.toString().split(FallbackSeparator);
+	}
 	QVector<T> result(values.size());
 	for (int i = 0; i < values.size(); ++i)
 	{
