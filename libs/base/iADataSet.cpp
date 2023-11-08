@@ -8,6 +8,7 @@
 
 const QString iADataSet::NameKey("Name");
 const QString iADataSet::FileNameKey("File");
+const QString iADataSet::SkipSaveKey("SkipSave");
 
 QString boundsStr(double const* bds)
 {

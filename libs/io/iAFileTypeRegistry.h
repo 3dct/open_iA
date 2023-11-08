@@ -30,6 +30,9 @@ public:
 	//! Get the default extension for datasets of the given type
 	static QString defaultExtension(iADataSetType type);
 
+	//! Whether a default extension for datasets of the given type is available
+	static bool defaultExtAvailable(iADataSetType type);
+
 	//! Get the filter string for the default extension for a given dataset type.
 	//! To be used in file open dialog, same string returned for that filetype as part of the result of registeredFileTypes
 	static QString defaultExtFilterString(iADataSetType type);
