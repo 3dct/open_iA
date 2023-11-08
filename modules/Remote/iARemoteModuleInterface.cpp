@@ -270,6 +270,76 @@ private:
 	}
 };
 
+#include <iAAABB.h>
+#include <iADataSetRenderer.h>
+#include <iADataSetViewer.h>
+
+#include <vtkCallbackCommand.h>
+#include <vtkPlaneWidget.h>
+#include <vtkPlane.h>
+
+#include <QMessageBox>
+
+class iAPlaneSliceTool : public iATool
+{
+public:
+	static const QString Name;
+	iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
+		iATool(mainWnd, child),
+		m_sliceWidget(new iAQVTKWidget(child)),
+		m_dw( new iADockWidgetWrapper(m_sliceWidget, "Slice", "ArbitrarySliceViewer") ),
+		m_planeWidget(vtkSmartPointer<vtkPlaneWidget>::New())
+
+	{
+		auto ds = child->firstImageDataSetIdx();
+		if (ds == iAMdiChild::NoDataSet)
+		{
+			QMessageBox::warning(mainWnd, "Arbitrary slicing tool", "No image dataset loaded!");
+			return;
+		}
+		child->splitDockWidget(child->slicerDockWidget(iASlicerMode::XY), m_dw, Qt::Horizontal);
+
+		auto bounds = child->dataSetViewer(ds)->renderer()->bounds();
+		m_planeWidget->PlaceWidget(
+			bounds.minCorner().x(), bounds.maxCorner().x(),
+			bounds.minCorner().y(), bounds.maxCorner().y(),
+			bounds.minCorner().z(), bounds.maxCorner().z()
+		);
+
+		vtkNew<vtkCallbackCommand> modifiedCallback;
+		modifiedCallback->SetCallback(
+			[](vtkObject* vtkNotUsed(caller), long unsigned int vtkNotUsed(eventId), void* clientData,
+				void* vtkNotUsed(callData))
+			{
+				auto tool = reinterpret_cast<iAPlaneSliceTool*>(clientData);
+				double center[3], normal[3];
+				tool->m_planeWidget->GetCenter(center);
+				tool->m_planeWidget->GetNormal(normal);
+				//vtkNew<vtkPlane> p;
+				//tool->m_planeWidget->GetPlane(p);
+				//p->GetNormal(normal);
+				LOG(lvlInfo, QString("Plane changed: center=(%1, %2, %3), normal=(%4, %5, %6)")
+					.arg(center[0]).arg(center[1]).arg(center[2])
+					.arg(normal[0]).arg(normal[1]).arg(normal[2])
+				);
+			});
+		modifiedCallback->SetClientData(this);
+		m_planeWidget->AddObserver(vtkCommand::InteractionEvent, modifiedCallback);
+		m_planeWidget->SetInteractor(child->renderer()->interactor());
+		m_planeWidget->On();
+	}
+	~iAPlaneSliceTool()
+	{
+		delete m_dw;
+	}
+private:
+	iAQVTKWidget* m_sliceWidget;
+	iADockWidgetWrapper* m_dw;
+	vtkSmartPointer<vtkPlaneWidget> m_planeWidget;
+};
+
+const QString iAPlaneSliceTool::Name("Arbitrary Slice Plane");
+
 const QString iARemoteTool::Name("NDTflix");
 
 void iARemoteModuleInterface::Initialize()
@@ -304,4 +374,12 @@ void iARemoteModuleInterface::Initialize()
 		});
 	m_mainWnd->makeActionChildDependent(actionWS);
 	addToMenuSorted(m_mainWnd->toolsMenu(), actionWS);
+
+	QAction* actionSlice = new QAction(iAPlaneSliceTool::Name, m_mainWnd);
+	connect(actionSlice, &QAction::triggered, this, [this]()
+		{
+			addToolToActiveMdiChild<iAPlaneSliceTool>(iAPlaneSliceTool::Name, m_mainWnd);
+		});
+	m_mainWnd->makeActionChildDependent(actionSlice);
+	addToMenuSorted(m_mainWnd->toolsMenu(), actionSlice);
 }
