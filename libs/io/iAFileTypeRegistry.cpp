@@ -85,9 +85,14 @@ bool iAFileTypeRegistry::add(iAFileIOCreateFuncPtr c)
 	return true;
 }
 
+bool iAFileTypeRegistry::defaultExtAvailable(iADataSetType type)
+{
+	return defaultExtensions().contains(type);
+}
+
 void iAFileTypeRegistry::addDefaultExtension(iADataSetType type, QString ext)
 {
-	if (defaultExtensions().contains(type))
+	if (defaultExtAvailable(type))
 	{
 		LOG(lvlWarn, QString("For type %1, when trying to register extension %2 as default:"
 			" There is already a default extension registered (%3)!").arg(static_cast<int>(type))
@@ -95,12 +100,11 @@ void iAFileTypeRegistry::addDefaultExtension(iADataSetType type, QString ext)
 			.arg(defaultExtensions()[type]));
 	}
 	defaultExtensions().insert(type, ext);
-
 }
 
 QString iAFileTypeRegistry::defaultExtension(iADataSetType type)
 {
-	if (!defaultExtensions().contains(type))
+	if (!defaultExtAvailable(type))
 	{
 		LOG(lvlError, QString("No default extension registered for dataset type %1!").arg(static_cast<int>(type)));
 		return {};
@@ -110,7 +114,7 @@ QString iAFileTypeRegistry::defaultExtension(iADataSetType type)
 
 QString iAFileTypeRegistry::defaultExtFilterString(iADataSetType type)
 {
-	if (!defaultExtensions().contains(type))
+	if (!defaultExtAvailable(type))
 	{
 		LOG(lvlError, QString("No default extension registered for dataset type %1!").arg(static_cast<int>(type)));
 		return {};

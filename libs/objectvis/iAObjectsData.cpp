@@ -11,6 +11,7 @@ iAObjectsData::iAObjectsData(QString const & name, iAObjectVisType visType, vtkS
 	m_visType(visType)
 {
 	setMetaData(iADataSet::NameKey, name);
+	setMetaData(iADataSet::SkipSaveKey, true);
 }
 
 QString iAObjectsData::info() const

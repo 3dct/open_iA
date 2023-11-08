@@ -1698,10 +1698,11 @@ void MdiChild::loadSettings(QSettings const& settings)
 
 bool MdiChild::doSaveProject(QString const & projectFileName)
 {
-	QVector<size_t> unsavedDataSets;
+	QVector<size_t> unsavedDataSets;  // dataset currently unsaved
 	for (auto d: m_dataSets)
 	{
-		if (!d.second->hasMetaData(iADataSet::FileNameKey))
+		if (!d.second->hasMetaData(iADataSet::SkipSaveKey) &&
+		    !d.second->hasMetaData(iADataSet::FileNameKey))
 		{
 			unsavedDataSets.push_back(d.first);
 		}
@@ -1711,17 +1712,17 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 		bool defaultExtAvailable = true;
 		for (size_t dataSetIdx : unsavedDataSets)
 		{
-			if (iAFileTypeRegistry::defaultExtension(m_dataSets[dataSetIdx]->type()).isEmpty())
+			if (iAFileTypeRegistry::defaultExtAvailable(m_dataSets[dataSetIdx]->type()))
 			{
 				defaultExtAvailable = false;
 				break;
 			}
 		}
-		auto result = defaultExtAvailable ?
+		auto autoNameUnsaved = defaultExtAvailable ?
 			QMessageBox::question(m_mainWnd, "Unsaved datasets",
 			"Before saving as a project, some unsaved datasets need to be saved first. Should I choose a filename automatically (in same folder as project file)?",
 			QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes) : QMessageBox::No;
-		if (result == QMessageBox::Cancel)
+		if (autoNameUnsaved == QMessageBox::Cancel)
 		{
 			return false;
 		}
@@ -1730,7 +1731,7 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 		{
 			bool saveSuccess = true;
 			bool saved = false;
-			if (result == QMessageBox::Yes)
+			if (autoNameUnsaved == QMessageBox::Yes)
 			{
 				// try auto-creating; but if file exists, let user choose!
 				auto defaultExt = iAFileTypeRegistry::defaultExtension(m_dataSets[dataSetIdx]->type());
@@ -1758,10 +1759,18 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 	auto dataSets = std::make_shared<iADataCollection>(m_dataSets.size(), s);
 	for (auto v : m_dataSetViewers)
 	{
+		if (m_dataSets[v.first]->hasMetaData(iADataSet::SkipSaveKey))
+		{
+			continue;
+		}
 		v.second->storeState();
 	}
 	for (auto d : m_dataSets)
 	{
+		if (d.second->hasMetaData(iADataSet::SkipSaveKey))
+		{
+			continue;
+		}
 		dataSets->addDataSet(d.second);
 	}
 	io.save(projectFileName, dataSets, QVariantMap());

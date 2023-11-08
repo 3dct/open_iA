@@ -18,6 +18,7 @@ public:
 
 	static const QString NameKey;         //!< metadata key for name of the dataset
 	static const QString FileNameKey;     //!< metadata key for filename of the dataset
+	static const QString SkipSaveKey;     //!< metadata key to mark datasets that should not be stored (e.g. in projects)
 	//! convenience method for accessing value for NameKey in m_metaData
 	QString name() const;
 	//! a sensible unit distance for this dataset (e.g. the spacing of a single voxel, for volume datasets)
