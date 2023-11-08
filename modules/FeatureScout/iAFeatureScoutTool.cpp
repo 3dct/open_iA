@@ -165,8 +165,6 @@ bool iAFeatureScoutTool::initFromConfig(iAMdiChild* child, iACsvConfig const& cs
 
 void iAFeatureScoutTool::init(int objectType, QString const& fileName, std::shared_ptr<iAObjectsData> objData)
 {
-	vtkColorTransferFunction* ctf = nullptr;
-	vtkPiecewiseFunction* otf = nullptr;
 	double* bounds = nullptr;
 	iAObjectVis* objVis = nullptr;
 	if (objData->m_visType == iAObjectVisType::UseVolume)
@@ -178,12 +176,10 @@ void iAFeatureScoutTool::init(int objectType, QString const& fileName, std::shar
 			return;
 		}
 		auto tf = dynamic_cast<iAVolumeViewer*>(m_child->dataSetViewer(idx))->transfer();
-		ctf = tf->colorTF();
-		otf = tf->opacityTF();
 		bounds = dynamic_cast<iAImageData*>(m_child->dataSet(idx).get())->vtkImage()->GetBounds();
 		m_objData = objData;
 		QColor defaultColor(dlg_FeatureScout::UnclassifiedColorName);
-		m_objVis = std::make_shared<iALabeledVolumeVis>(ctf, otf, objData.get(), bounds);
+		m_objVis = std::make_shared<iALabeledVolumeVis>(tf->colorTF(), tf->opacityTF(), objData.get(), bounds);
 		objVis = m_objVis.get();
 	}
 	else
