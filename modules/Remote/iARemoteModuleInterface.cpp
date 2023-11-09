@@ -273,11 +273,22 @@ private:
 #include <iAAABB.h>
 #include <iADataSetRenderer.h>
 #include <iADataSetViewer.h>
+#include <iAVolumeViewer.h>
+#include <iATransferFunction.h>
 
 #include <vtkCallbackCommand.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkImageData.h>
+#include <vtkImageProperty.h>
+#include <vtkImageResliceMapper.h>
+#include <vtkImageSlice.h>
+#include <vtkInteractorStyleImage.h>
 #include <vtkPlaneWidget.h>
 #include <vtkPlane.h>
+#include <vtkRenderer.h>
+#include <vtkRendererCollection.h>
 
+#include <QApplication>
 #include <QMessageBox>
 
 class iAPlaneSliceTool : public iATool
@@ -287,9 +298,10 @@ public:
 	iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 		iATool(mainWnd, child),
 		m_sliceWidget(new iAQVTKWidget(child)),
-		m_dw( new iADockWidgetWrapper(m_sliceWidget, "Slice", "ArbitrarySliceViewer") ),
-		m_planeWidget(vtkSmartPointer<vtkPlaneWidget>::New())
-
+		m_dw(new iADockWidgetWrapper(m_sliceWidget, "Arbitrary Slice", "ArbitrarySliceViewer")),
+		m_planeWidget(vtkSmartPointer<vtkPlaneWidget>::New()),
+		m_reslicer(vtkSmartPointer<vtkImageResliceMapper>::New()),
+		m_imageSlice(vtkSmartPointer<vtkImageSlice>::New())
 	{
 		auto ds = child->firstImageDataSetIdx();
 		if (ds == iAMdiChild::NoDataSet)
@@ -299,12 +311,41 @@ public:
 		}
 		child->splitDockWidget(child->slicerDockWidget(iASlicerMode::XY), m_dw, Qt::Horizontal);
 
+		//m_planeWidget->SetDefaultRenderer(child->renderer()->renderer());
+		m_planeWidget->SetInteractor(child->renderer()->interactor());
+		m_planeWidget->On();
+
 		auto bounds = child->dataSetViewer(ds)->renderer()->bounds();
-		m_planeWidget->PlaceWidget(
-			bounds.minCorner().x(), bounds.maxCorner().x(),
-			bounds.minCorner().y(), bounds.maxCorner().y(),
-			bounds.minCorner().z(), bounds.maxCorner().z()
-		);
+		auto objCenter = (bounds.maxCorner() - bounds.minCorner()) / 2;
+		// set to middle of object in z direction (i.e. xy slice default position):
+		m_planeWidget->SetOrigin(bounds.minCorner().x(), bounds.minCorner().y(), objCenter.z());
+		m_planeWidget->SetPoint1(bounds.maxCorner().x(), bounds.minCorner().y(), objCenter.z());
+		m_planeWidget->SetPoint2(bounds.minCorner().x(), bounds.maxCorner().y(), objCenter.z());
+
+		m_reslicer->SetInputData(child->firstImageData());
+		vtkNew<vtkPlane> p;
+		m_planeWidget->GetPlane(p);
+		m_reslicer->SetSlicePlane(p);
+		// not sure about their effects:
+		//m_reslicer->SetSliceFacesCamera(false);
+		//m_reslicer->SetSliceAtFocalPoint(false);
+		
+		auto imgProp = m_imageSlice->GetProperty();
+		auto tf = dynamic_cast<iAVolumeViewer*>(m_child->dataSetViewer(ds))->transfer();
+		imgProp->SetLookupTable(tf->colorTF());
+		m_imageSlice->SetMapper(m_reslicer);
+		m_imageSlice->SetProperty(imgProp);
+		vtkNew<vtkRenderer> ren;
+		ren->AddViewProp(m_imageSlice);
+		ren->ResetCamera();
+		auto bgc = QApplication::palette().color(QPalette::Window);
+		ren->SetBackground(bgc.redF(), bgc.greenF(), bgc.blueF());
+
+		m_sliceWidget->renderWindow()->AddRenderer(ren);
+		vtkNew<vtkInteractorStyleImage> style;
+		m_sliceWidget->renderWindow()->GetInteractor()->SetInteractorStyle(style);
+		//m_planeWidget->SetHandleSize(0.1); // no effect, plane widget automatically sets handle sizes
+		child->updateRenderer();
 
 		vtkNew<vtkCallbackCommand> modifiedCallback;
 		modifiedCallback->SetCallback(
@@ -313,20 +354,38 @@ public:
 			{
 				auto tool = reinterpret_cast<iAPlaneSliceTool*>(clientData);
 				double center[3], normal[3];
+
 				tool->m_planeWidget->GetCenter(center);
 				tool->m_planeWidget->GetNormal(normal);
-				//vtkNew<vtkPlane> p;
-				//tool->m_planeWidget->GetPlane(p);
-				//p->GetNormal(normal);
+
+				vtkNew<vtkPlane> p;
+				tool->m_planeWidget->GetPlane(p);
+				
+				tool->m_reslicer->SetSlicePlane(p);
+				
+				auto cam = tool->m_sliceWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+				//tool->m_planeWidget->Get
+
+				//tool->m_sliceWidget->renderWindow()->GetInteractor()->SetImageOrientation()
+
+				//tool->m_sliceWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->Render();
+				///tool->m_sliceWidget->renderWindow()->Render();
+				tool->m_sliceWidget->interactor()->Render();
+				tool->m_sliceWidget->update();
+
 				LOG(lvlInfo, QString("Plane changed: center=(%1, %2, %3), normal=(%4, %5, %6)")
 					.arg(center[0]).arg(center[1]).arg(center[2])
 					.arg(normal[0]).arg(normal[1]).arg(normal[2])
 				);
+				auto p1 = tool->m_planeWidget->GetPoint1();
+				auto p2 = tool->m_planeWidget->GetPoint2();
+				LOG(lvlInfo, QString("               pos1=(%1, %2, %3), pos2=(%4, %5, %6)")
+					.arg(p1[0]).arg(p1[1]).arg(p1[2])
+					.arg(p2[0]).arg(p2[1]).arg(p2[2])
+				);
 			});
 		modifiedCallback->SetClientData(this);
 		m_planeWidget->AddObserver(vtkCommand::InteractionEvent, modifiedCallback);
-		m_planeWidget->SetInteractor(child->renderer()->interactor());
-		m_planeWidget->On();
 	}
 	~iAPlaneSliceTool()
 	{
@@ -336,6 +395,8 @@ private:
 	iAQVTKWidget* m_sliceWidget;
 	iADockWidgetWrapper* m_dw;
 	vtkSmartPointer<vtkPlaneWidget> m_planeWidget;
+	vtkSmartPointer<vtkImageResliceMapper> m_reslicer;
+	vtkSmartPointer<vtkImageSlice> m_imageSlice;
 };
 
 const QString iAPlaneSliceTool::Name("Arbitrary Slice Plane");
