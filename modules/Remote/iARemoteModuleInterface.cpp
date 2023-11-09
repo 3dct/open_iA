@@ -277,6 +277,7 @@ private:
 #include <iATransferFunction.h>
 
 #include <vtkCallbackCommand.h>
+#include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
 #include <vtkImageProperty.h>
@@ -290,6 +291,27 @@ private:
 
 #include <QApplication>
 #include <QMessageBox>
+
+namespace
+{
+	void updateSlice(vtkCamera * cam, vtkPlaneWidget * planeWidget)
+	{
+		//vtkNew<vtkPlane> p; tool->m_planeWidget->GetPlane(p); tool->m_reslicer->SetSlicePlane(p); -> leads to vtkImageSlice also rotating around
+		// instead, we need to change the camera's parameters to adapt where we slice, instead of setting the slice plane in resliceMapper directly;
+		// see https://vtkusers.public.kitware.narkive.com/N0oCzOND/setcutplane-not-working-in-vtkimagereslicemapper
+		iAVec3d center(planeWidget->GetCenter());
+		iAVec3d origin(planeWidget->GetOrigin());
+		iAVec3d normal(planeWidget->GetNormal());
+		iAVec3d p1(planeWidget->GetPoint1());
+		iAVec3d p2(planeWidget->GetPoint2());
+		auto distance = cam->GetDistance();
+		auto position = center + distance * normal;
+		auto viewUp = p1 - origin;
+		cam->SetFocalPoint(center.data());
+		cam->SetPosition(position.data());
+		cam->SetViewUp(viewUp.data());
+	}
+}
 
 class iAPlaneSliceTool : public iATool
 {
@@ -323,12 +345,8 @@ public:
 		m_planeWidget->SetPoint2(bounds.minCorner().x(), bounds.maxCorner().y(), objCenter.z());
 
 		m_reslicer->SetInputData(child->firstImageData());
-		vtkNew<vtkPlane> p;
-		m_planeWidget->GetPlane(p);
-		m_reslicer->SetSlicePlane(p);
-		// not sure about their effects:
-		//m_reslicer->SetSliceFacesCamera(false);
-		//m_reslicer->SetSliceAtFocalPoint(false);
+		m_reslicer->SetSliceFacesCamera(true);
+		m_reslicer->SetSliceAtFocalPoint(true);
 		
 		auto imgProp = m_imageSlice->GetProperty();
 		auto tf = dynamic_cast<iAVolumeViewer*>(m_child->dataSetViewer(ds))->transfer();
@@ -345,6 +363,8 @@ public:
 		vtkNew<vtkInteractorStyleImage> style;
 		m_sliceWidget->renderWindow()->GetInteractor()->SetInteractorStyle(style);
 		//m_planeWidget->SetHandleSize(0.1); // no effect, plane widget automatically sets handle sizes
+
+		updateSlice(m_sliceWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera(), m_planeWidget);
 		child->updateRenderer();
 
 		vtkNew<vtkCallbackCommand> modifiedCallback;
@@ -353,36 +373,9 @@ public:
 				void* vtkNotUsed(callData))
 			{
 				auto tool = reinterpret_cast<iAPlaneSliceTool*>(clientData);
-				double center[3], normal[3];
-
-				tool->m_planeWidget->GetCenter(center);
-				tool->m_planeWidget->GetNormal(normal);
-
-				vtkNew<vtkPlane> p;
-				tool->m_planeWidget->GetPlane(p);
-				
-				tool->m_reslicer->SetSlicePlane(p);
-				
 				auto cam = tool->m_sliceWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
-				//tool->m_planeWidget->Get
-
-				//tool->m_sliceWidget->renderWindow()->GetInteractor()->SetImageOrientation()
-
-				//tool->m_sliceWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->Render();
-				///tool->m_sliceWidget->renderWindow()->Render();
+				updateSlice(cam, tool->m_planeWidget);
 				tool->m_sliceWidget->interactor()->Render();
-				tool->m_sliceWidget->update();
-
-				LOG(lvlInfo, QString("Plane changed: center=(%1, %2, %3), normal=(%4, %5, %6)")
-					.arg(center[0]).arg(center[1]).arg(center[2])
-					.arg(normal[0]).arg(normal[1]).arg(normal[2])
-				);
-				auto p1 = tool->m_planeWidget->GetPoint1();
-				auto p2 = tool->m_planeWidget->GetPoint2();
-				LOG(lvlInfo, QString("               pos1=(%1, %2, %3), pos2=(%4, %5, %6)")
-					.arg(p1[0]).arg(p1[1]).arg(p1[2])
-					.arg(p2[0]).arg(p2[1]).arg(p2[2])
-				);
 			});
 		modifiedCallback->SetClientData(this);
 		m_planeWidget->AddObserver(vtkCommand::InteractionEvent, modifiedCallback);
