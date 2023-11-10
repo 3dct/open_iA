@@ -231,7 +231,7 @@ void iAModuleDispatcher::InitializeModules()
 		{
 			m_mainWnd->makeActionChildDependent(filterAction);
 		}
-		filterAction->setData(static_cast<qulonglong>(i));
+		filterAction->setData(static_cast<quint64>(i));
 		connect(filterAction, &QAction::triggered, this, &iAModuleDispatcher::executeFilter);
 	}
 	// enable Tools and Filters only if any modules were loaded that put something into them:

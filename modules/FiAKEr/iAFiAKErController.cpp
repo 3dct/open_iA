@@ -359,7 +359,7 @@ void iAFiAKErController::addChartCB()
 	auto cb = new QCheckBox(diffName(m_chartCount-1));
 	cb->setChecked(false);
 	cb->setEnabled(true);
-	cb->setProperty("chartID", static_cast<qulonglong>(m_chartCount - 1));
+	cb->setProperty("chartID", static_cast<quint64>(m_chartCount - 1));
 	connect(cb, &QCheckBox::stateChanged, this, &iAFiAKErController::optimDataToggled);
 	m_settingsView->checkboxContainer->layout()->addWidget(cb);
 	m_chartCB.push_back(cb);
@@ -663,10 +663,10 @@ QWidget* iAFiAKErController::setupResultListView()
 
 		m_showResultVis[resultID] = new QCheckBox(name);
 		m_showResultVis[resultID]->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		m_showResultVis[resultID]->setProperty("resultID", static_cast<qulonglong>(resultID));
+		m_showResultVis[resultID]->setProperty("resultID", static_cast<quint64>(resultID));
 		m_showResultBox[resultID] = new QCheckBox("Box");
 		m_showResultBox[resultID]->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		m_showResultBox[resultID]->setProperty("resultID", static_cast<qulonglong>(resultID));
+		m_showResultBox[resultID]->setProperty("resultID", static_cast<quint64>(resultID));
 
 		ui.nameActions = new iASignallingWidget();
 		ui.nameActions->setAutoFillBackground(true);
@@ -717,13 +717,13 @@ QWidget* iAFiAKErController::setupResultListView()
 			ren->SetUseDepthPeeling(true);
 			ren->SetMaximumNumberOfPeels(10);
 			renWin->AddRenderer(ren);
-			ui.vtkWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
+			ui.vtkWidget->setProperty("resultID", static_cast<quint64>(resultID));
 			ui.mini3DVis = create3DVis(d.objData.get(), resultColor);
 			ui.mini3DVis->setColor(resultColor);
 			ui.mini3DActor = ui.mini3DVis->createPolyActor(ren);
 			ui.mini3DActor->show();
 			ren->ResetCamera();
-			ui.previewWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
+			ui.previewWidget->setProperty("resultID", static_cast<quint64>(resultID));
 			connect(ui.previewWidget, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 			//connect(ui.previewWidget, &iASignallingWidget::clicked, this, &iAFiAKErController::previewMouseClick);
 			connect(ui.mini3DActor.get(), &iAObjectVisActor::updated, ui.vtkWidget, &iAQVTKWidget::updateAll);
@@ -735,13 +735,13 @@ QWidget* iAFiAKErController::setupResultListView()
 		ui.nameActions->setToolTip(bboxText + "\n"
 			"Filename: " + d.fileName + "\n");
 
-		ui.stackedBars->setProperty("resultID", static_cast<qulonglong>(resultID));
+		ui.stackedBars->setProperty("resultID", static_cast<quint64>(resultID));
 		if (m_showCharts)
 		{
-			ui.histoChart->setProperty("resultID", static_cast<qulonglong>(resultID));
+			ui.histoChart->setProperty("resultID", static_cast<quint64>(resultID));
 			connect(ui.histoChart, &iAChartWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 		}
-		ui.nameActions->setProperty("resultID", static_cast<qulonglong>(resultID));
+		ui.nameActions->setProperty("resultID", static_cast<quint64>(resultID));
 		connect(ui.stackedBars, &iAStackedBarChart::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(ui.nameActions, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(m_showResultVis[resultID], &QCheckBox::stateChanged, this, &iAFiAKErController::toggleVis);

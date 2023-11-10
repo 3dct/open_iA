@@ -1771,7 +1771,7 @@ void iAQSplom::saveSettings(QSettings & iniFile) const
 	iniFile.setValue(CfgKeyColorRangeMode, settings.colorRangeMode);
 	iniFile.setValue(CfgKeyColorCodingMin, colorCodingMin);
 	iniFile.setValue(CfgKeyColorCodingMax, colorCodingMax);
-	iniFile.setValue(CfgKeyColorLookupParam, static_cast<qulonglong>(m_colorLookupParam));
+	iniFile.setValue(CfgKeyColorLookupParam, static_cast<quint64>(m_colorLookupParam));
 	iniFile.setValue(CfgKeyVisibleParameters, joinNumbersAsString(m_visibleIndices, ","));
 	if (m_maximizedPlot)
 	{
@@ -1891,7 +1891,7 @@ void iAQSplom::loadSettings(QVariantMap const & config)
 	settings.colorRangeMode = static_cast<ColorRangeMode>(config.value(CfgKeyColorRangeMode, settings.colorRangeMode).toInt());
 	m_settingsDlg->cbColorRangeMode->setCurrentIndex(settings.colorRangeMode);
 
-	auto tmpColorLookupParam = config.value(CfgKeyColorLookupParam, static_cast<qulonglong>(m_colorLookupParam)).toULongLong();
+	auto tmpColorLookupParam = config.value(CfgKeyColorLookupParam, static_cast<quint64>(m_colorLookupParam)).toULongLong();
 	if (tmpColorLookupParam < m_splomData->numParams())
 	{
 		m_colorLookupParam = tmpColorLookupParam;

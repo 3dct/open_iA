@@ -222,7 +222,7 @@ public:
 		auto dw = new iADockWidgetWrapper(m_clientList, "Clients", "RemoteClientList");
 		child->splitDockWidget(child->renderDockWidget(), dw, Qt::Vertical);
 
-		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::clientConnected, this, [this](qulonglong id)
+		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::clientConnected, this, [this](quint64 id)
 			{
 				int row = m_clientList->rowCount();
 				m_clientList->insertRow(row);
@@ -232,13 +232,13 @@ public:
 				m_clientList->setItem(row, 3, new QTableWidgetItem(QString::number(0)));
 				m_clientList->resizeColumnsToContents();
 			});
-		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::clientDisconnected, this, [this](qulonglong id)
+		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::clientDisconnected, this, [this](quint64 id)
 			{
 				int row = findClientRow(id);
 				m_clientList->item(row, 1)->setText("disconnected");
 				m_clientList->resizeColumnsToContents();
 			});
-		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::clientTransferUpdated, this, [this](qulonglong id, qulonglong rcvd, qulonglong sent)
+		connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::clientTransferUpdated, this, [this](quint64 id, quint64 rcvd, quint64 sent)
 			{
 				int row = findClientRow(id);
 				m_clientList->item(row, 2)->setText(dblToStringWithUnits(sent)+"B");
@@ -255,7 +255,7 @@ private:
 #endif
 	QTableWidget* m_clientList;
 
-	int findClientRow(qulonglong clientID)
+	int findClientRow(quint64 clientID)
 	{
 		for (int row = 0; row < m_clientList->rowCount(); ++row)
 		{

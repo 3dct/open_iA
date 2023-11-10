@@ -169,7 +169,7 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 	m_ui->m_table->insertRow(row);
 	auto colorItem = new QTableWidgetItem();
 	colorItem->setData(Qt::DecorationRole, col);
-	colorItem->setData(Qt::UserRole, static_cast<qulonglong>(id));
+	colorItem->setData(Qt::UserRole, static_cast<quint64>(id));
 	m_ui->m_table->setItem(row, 0, colorItem);
 	m_ui->m_table->setItem(row, 1, new QTableWidgetItem(name));
 	m_ui->m_table->setItem(row, 2, new QTableWidgetItem(coord.toString()));
