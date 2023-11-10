@@ -88,7 +88,7 @@ void iAComp3DWidget::removeAllRendererFromWidget()
 }
 
 /*************** Initialization ****************************/
-void iAComp3DWidget::create3DVis(const iACsvConfig& csvConfig)
+void iAComp3DWidget::create3DVis(const iACsvConfig& /*csvConfig*/)
 {
 	if (m_objData->m_visType == iAObjectVisType::Cylinder)
 	{
