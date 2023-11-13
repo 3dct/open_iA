@@ -130,7 +130,7 @@ public:
 	QVector<double> maxAvgDifference;
 
 	//! IDs of the computed dissimilarity measures (ref. to position in getAvailableDissimilarityMeasures / switch in getDissimilarity
-	QVector<qulonglong> m_measures;
+	QVector<quint64> m_measures;
 
 	//! mapping for the resultID and projection error column:
 	uint m_resultIDColumn, m_projectionErrorColumn;

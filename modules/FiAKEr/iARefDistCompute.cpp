@@ -472,7 +472,7 @@ bool iARefDistCompute::readResultRefComparison(QFile& cacheFile, size_t resultID
 	}
 	if (first)
 	{
-		QVector<qulonglong> cachedMeasures;
+		QVector<quint64> cachedMeasures;
 		if (version <= 2)
 		{
 			for (int m = 0; m < CacheFileVersion2NumberOfMeasures; ++m)
@@ -505,7 +505,7 @@ bool iARefDistCompute::readResultRefComparison(QFile& cacheFile, size_t resultID
 	}
 	else if (version > 2)
 	{
-		QVector<qulonglong> cachedMeasures;
+		QVector<quint64> cachedMeasures;
 		in >> cachedMeasures;
 	}
 	auto & d = m_data->result[resultID];

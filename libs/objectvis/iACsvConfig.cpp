@@ -262,8 +262,8 @@ QStringList iACsvConfig::getListFromRegistry()
 void iACsvConfig::save(QSettings & settings, QString const & formatName)
 {
 	settings.beginGroup(iACsvConfig::getFormatKey(formatName));
-	settings.setValue(CfgKeySkipLinesStart, static_cast<qulonglong>(skipLinesStart));
-	settings.setValue(CfgKeySkipLinesEnd, static_cast<qulonglong>(skipLinesEnd));
+	settings.setValue(CfgKeySkipLinesStart, static_cast<quint64>(skipLinesStart));
+	settings.setValue(CfgKeySkipLinesEnd, static_cast<quint64>(skipLinesEnd));
 	settings.setValue(CfgKeyColSeparator, columnSeparator);
 	settings.setValue(CfgKeyDecimalSeparator, decimalSeparator);
 	settings.setValue(CfgKeyObjectType, MapObjectTypeToString(objectType));
@@ -300,8 +300,8 @@ bool iACsvConfig::load(QSettings const & settings, const QString & formatName)
 {
 	QString prefix(iACsvConfig::getFormatKey(formatName)+"/");
 	iACsvConfig defaultConfig;
-	skipLinesStart = settings.value(prefix+CfgKeySkipLinesStart, static_cast<qulonglong>(defaultConfig.skipLinesStart)).toULongLong();
-	skipLinesEnd = settings.value(prefix+CfgKeySkipLinesEnd, static_cast<qulonglong>(defaultConfig.skipLinesEnd)).toULongLong();
+	skipLinesStart = settings.value(prefix+CfgKeySkipLinesStart, static_cast<quint64>(defaultConfig.skipLinesStart)).toULongLong();
+	skipLinesEnd = settings.value(prefix+CfgKeySkipLinesEnd, static_cast<quint64>(defaultConfig.skipLinesEnd)).toULongLong();
 	columnSeparator = settings.value(prefix+CfgKeyColSeparator, defaultConfig.columnSeparator).toString();
 	decimalSeparator = settings.value(prefix+CfgKeyDecimalSeparator, defaultConfig.decimalSeparator).toString();
 	objectType = MapStringToObjectType(settings.value(prefix+CfgKeyObjectType, MapObjectTypeToString(defaultConfig.objectType)).toString());

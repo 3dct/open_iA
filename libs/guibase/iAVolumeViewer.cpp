@@ -249,7 +249,7 @@ void iAVolumeViewer::prepare(iAProgress* p)
 		}
 	}
 	// the number of histogram bins could have beeen adapted during creation, see finalNumBin, or determined via loading:
-	m_attribValues[HistogramBins] = m_histogramData[0]->valueCount();
+	m_attribValues[HistogramBins] = static_cast<quint32>(m_histogramData[0]->valueCount());
 	p->emitProgress(100);
 	
 }
@@ -407,7 +407,7 @@ void iAVolumeViewer::applyAttributes(QVariantMap const& values)
 	auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
 	size_t newBinCount = iAHistogramData::finalNumBin(img, values[HistogramBins].toUInt());
 	m_histogram->setYMappingMode( values[HistogramLogarithmicYAxis].toBool() ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
-	m_attribValues[HistogramBins] = newBinCount;
+	m_attribValues[HistogramBins] = static_cast<quint32>(newBinCount);
 	constexpr char const FinalNumBinDescr[] = "For discrete-valued datasets, the nearest appropriate value is determined "
 		"as the nearest integer divisor of the data value range (the maximum being the full data value range)";
 	if (m_histogramData[0]->valueCount() != newBinCount)

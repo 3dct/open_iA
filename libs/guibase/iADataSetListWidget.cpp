@@ -76,7 +76,7 @@ void iADataSetListWidget::addDataSet(iADataSet const* dataset, size_t dataSetIdx
 	QSignalBlocker blockList(m_dataList);
 	auto nameItem = new QTableWidgetItem(dataset->name());
 	nameItem->setToolTip(dataset->info());
-	nameItem->setData(Qt::UserRole, static_cast<qulonglong>(dataSetIdx));
+	nameItem->setData(Qt::UserRole, static_cast<quint64>(dataSetIdx));
 	int row = m_dataList->rowCount();
 	m_dataList->insertRow(row);
 	m_dataList->setItem(row, NameColumn, nameItem);

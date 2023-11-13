@@ -24,8 +24,8 @@ class iAWSClient
 public:
 	QWebSocket* ws;   //!< the websocket connection
 	int id;    //!< internal id of the client
-	qulonglong rcvd;  //!< bytes received
-	qulonglong sent;  //!< bytes sent
+	quint64 rcvd;  //!< bytes received
+	quint64 sent;  //!< bytes sent
 };
 
 class iAWebsocketAPI : public QObject
@@ -58,7 +58,7 @@ Q_SIGNALS:
 
 	void clientConnected(int clientID);
 	void clientDisconnected(int clientID);
-	void clientTransferUpdated(int clientID, qulonglong rcvd, qulonglong sent);
+	void clientTransferUpdated(int clientID, quint64 rcvd, quint64 sent);
 	
 private Q_SLOTS:
 	void onNewConnection();
