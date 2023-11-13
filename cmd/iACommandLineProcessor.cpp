@@ -427,11 +427,11 @@ namespace
 			iACommandLineProgressIndicator progressIndicator(50, quiet);
 			QObject::connect(filter->progress(), &iAProgress::progress, &progressIndicator, &iACommandLineProgressIndicator::Progress);
 			if (!filter->checkParameters(parameters))
-			{   // output already happened in CheckParameters via logger
+			{   // output already happened in checkParameters via logger
 				return 1;
 			}
 			if (!filter->run(parameters))
-			{	// output already happened in Run via logger
+			{	// output already happened in run via logger
 				return 1;
 			}
 			// write output file(s)
