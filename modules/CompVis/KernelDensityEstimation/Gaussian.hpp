@@ -3,16 +3,17 @@
 
 #include <KernelDensityEstimation/KernelDensityEstimation>
 
+#include <vtkMath.h>
+
 namespace kde
 {
-
     template<typename realScalarType>
     realScalarType GaussPDF(realScalarType const& x,
         realScalarType const& mu, realScalarType const& sigma)
     {
         realScalarType z = (x - mu)/sigma;
         return std::exp(-realScalarType(0.5)*z*z)
-            /(sigma*std::sqrt( realScalarType(2.)*M_PI));
+            /(sigma*std::sqrt( realScalarType(2.)*vtkMath::Pi()));
     }
 
     /**

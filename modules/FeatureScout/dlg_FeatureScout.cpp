@@ -810,7 +810,7 @@ void dlg_FeatureScout::renderOrientation()
 	{
 		for (int theta = 0; theta < 91; ++theta)
 		{
-			angle = phi * M_PI / 180.0;
+			angle = phi * vtkMath::Pi() / 180.0;
 			xx = theta * std::cos(angle);
 			yy = theta * std::sin(angle);
 			points->InsertNextPoint(xx, yy, 0.0);
@@ -2732,7 +2732,7 @@ void dlg_FeatureScout::drawAnnotations(vtkRenderer* renderer)
 
 	for (vtkIdType i = 0; i < 12; ++i)
 	{
-		double phi = i * re * M_PI / 180.0;
+		double phi = i * re * vtkMath::Pi() / 180.0;
 		double rx = 100.0;
 
 		if (i < 2)
@@ -2752,7 +2752,7 @@ void dlg_FeatureScout::drawAnnotations(vtkRenderer* renderer)
 	// annotation for theta
 	for (vtkIdType i = 12; i < numPoints; ++i)
 	{
-		double phi = 270.0 * M_PI / 180.0;
+		double phi = 270.0 * vtkMath::Pi() / 180.0;
 		double rx = (numPoints - i) * 15.0;
 		x[0] = rx * std::cos(phi);
 		x[1] = rx * std::sin(phi);
@@ -2796,7 +2796,7 @@ void dlg_FeatureScout::drawPolarPlotMesh(vtkRenderer* renderer)
 
 	for (int i = 0; i < ap; ++i)
 	{
-		double phi = i * re * M_PI / 180.0;
+		double phi = i * re * vtkMath::Pi() / 180.0;
 
 		for (int j = 0; j < at; ++j)
 		{
@@ -2887,7 +2887,7 @@ void dlg_FeatureScout::updatePolarPlotView(vtkTable* it)
 
 		for (int y = 0; y < m_gPhi; ++y)
 		{
-			double phi = y * m_PolarPlotPhiResolution * M_PI / 180.0;
+			double phi = y * m_PolarPlotPhiResolution * vtkMath::Pi() / 180.0;
 			double xx = rx * std::cos(phi);
 			double yy = rx * std::sin(phi);
 			double zz = table->GetValue(y, x).ToDouble();

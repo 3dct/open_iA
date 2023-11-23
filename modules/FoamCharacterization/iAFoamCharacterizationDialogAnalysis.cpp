@@ -18,6 +18,8 @@
 #pragma clang diagnostic push
 #endif
 
+#include <vtkMath.h>
+
 #include <QApplication>
 #include <QGridLayout>
 #include <QStyle>
@@ -69,7 +71,7 @@ void iAFoamCharacterizationDialogAnalysis::analyse(iAImageData const* dataSet)
 			const double* pCenter((double*)lptCenter.GetDataPointer());
 
 			const double dVolume ((double)pLabelGeometryImageFilter->GetVolume(ltLabel));
-			const double dDiameter (2.0 * qPow(3.0 * dVolume / M_PI / 4.0, 1.0 / 3.0));
+			const double dDiameter (2.0 * qPow(3.0 * dVolume / vtkMath::Pi() / 4.0, 1.0 / 3.0));
 
 			const auto pBoundingBox(pLabelGeometryImageFilter->GetBoundingBox(ltLabel));
 			m_pTable->setRow ( i++
