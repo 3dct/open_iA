@@ -16,7 +16,7 @@ class iAguibase_API iASettingsManager
 public:
 	using iASettingsMap = QMap<QString, iAAttributes*>;
 	//! Register a new list of default settings
-	static void add(QString const& name, iAAttributes* attributes);
+	static bool add(QString const& name, iAAttributes* attributes);
 	//! Retrieve a map of all registered default settings
 	static iASettingsMap const& getMap();
 	//! Initialize default settings (load stored values, and create menu entry for modifying them)
@@ -25,6 +25,8 @@ public:
 	static void store();
 	//! edit the default settings for a given name
 	static void editDefaultSettings(QWidget* parent, QString const& fullName);
+private:
+	static bool m_initialized;
 };
 
 //! Helper for registering collections of settings with the iASettingsManager.
@@ -39,11 +41,6 @@ public:
 template <const char* Name, class Obj>
 class iASettingsObject
 {
-	static bool registerDefaultAttributes()
-	{
-		iASettingsManager::add(Name, &Obj::defaultAttributes());
-		return true;
-	}
 	static bool m_sDefaultAttr;
 	// initialization needs to be outside class, since this is not working:
 	// ... m_sDefaultAttr = iASettingsObject<Name, Obj>::registerDefaultAttributes();
@@ -60,4 +57,4 @@ public:
 };
 
 template <const char* Name, class Obj>
-bool iASettingsObject<Name, Obj>::m_sDefaultAttr = iASettingsObject<Name, Obj>::registerDefaultAttributes();
+bool iASettingsObject<Name, Obj>::m_sDefaultAttr = iASettingsManager::add(Name, &Obj::defaultAttributes());
