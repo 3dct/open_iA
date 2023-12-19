@@ -16,7 +16,7 @@
 std::shared_ptr<iAObjectVis> createObjectVis(iAObjectsData const * data, QColor const& color)
 {
 	// TODO: take config values from data, only take default values if no values there
-	auto const & attr = *iASettingsManager::getMap()[iAObjectsRenderer::Name];
+	auto const & attr = iAObjectsRenderer::defaultAttributes();
 	auto numOfCylinderSides = attr[findAttribute(attr, iAObjectsRenderer::NumOfCylinderSides)]->defaultValue().toInt();
 	auto segmentSkip = attr[findAttribute(attr, iAObjectsRenderer::SegmentSkip)]->defaultValue().toULongLong();
 	switch (data->m_visType)
