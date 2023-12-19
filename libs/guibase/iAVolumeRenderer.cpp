@@ -7,7 +7,8 @@
 #include <iATransferFunction.h>
 #include <iAValueTypeVectorHelpers.h>
 
-#include <iAMainWindow.h>    // for default volume settings
+#include "iADefaultSettings.h"
+#include "iAMainWindow.h"    // for default volume settings
 
 #include <vtkCallbackCommand.h>
 #include <vtkImageData.h>

@@ -9,6 +9,7 @@
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
 #include "iADataSetListWidget.h"
+#include "iADefaultSettings.h"
 #include "iADockWidgetWrapper.h"
 #include "iAFileUtils.h"    // for MakeAbsolute
 #include "iAJobListView.h"
