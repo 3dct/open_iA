@@ -32,29 +32,26 @@ private:
 //! Helper for registering collections of settings with the iASettingsManager.
 //! Adds a settings collection, available via the given class `Obj`'s static `defaultAttributes`
 //! method to iASettingsManager under the given `Name`.
-//! Simplifies running the registration automatically at "program startup" without having to
-//! explicitly call some registration function within the class; the iASettingsManager
-//! takes care of loading stored previous values at application start, and of storing the
+//! Simplifies running the registration semi-automatically at program startup. The registering
+//! class just has to call the selfRegister() method, which registers the setting with the
+//! iASettingsManager, which takes care of loading stored previous values, and of storing the
 //! values at application end.
-//! **Note** the class deriving from iASettingsObject needs to be marked as "exported"
-//! from the shared library it is contained in, otherwise auto-registration will not work!
 template <const char* Name, class Obj>
 class iASettingsObject
 {
-	static bool m_sDefaultAttr;
-	// initialization needs to be outside class, since this is not working:
-	// ... m_sDefaultAttr = iASettingsObject<Name, Obj>::registerDefaultAttributes();
-	// error C2131: expression did not evaluate to a constant
 public:
-	// required for clang; without this, no self registration there (optimized away?)
-	iASettingsObject()
+	static void selfRegister()
 	{
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-value"
-		m_sDefaultAttr;
+               s_registered;
 #pragma GCC diagnostic pop
 	}
+private:
+	static bool s_registered;
+	// initialization needs to be outside class, otherwise:
+	// error C2131: expression did not evaluate to a constant
 };
 
 template <const char* Name, class Obj>
-bool iASettingsObject<Name, Obj>::m_sDefaultAttr = iASettingsManager::add(Name, &Obj::defaultAttributes());
+bool iASettingsObject<Name, Obj>::s_registered = iASettingsManager::add(Name, &Obj::defaultAttributes());

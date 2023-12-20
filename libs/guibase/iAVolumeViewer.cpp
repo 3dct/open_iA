@@ -80,9 +80,8 @@ namespace
 
 constexpr const char VolumeViewerSettingsName[] = "Default Settings/Volume Viewer";
 //! Encapsulates the specifics of the settings of a volume viewer.
-//! Handles auto-registration of the settings with iASettingsManager (via deriving from iASettingsObject),
-//! and thus avoids having to expose users of iAVolumeViewer to the settings auto-registration.
-class iAguibase_API iAVolumeViewerSettings : iASettingsObject<VolumeViewerSettingsName, iAVolumeViewerSettings>
+//! Handles registration of the settings with iASettingsManager (via deriving from iASettingsObject).
+class iAVolumeViewerSettings : iASettingsObject<VolumeViewerSettingsName, iAVolumeViewerSettings>
 {
 public:
 	static iAAttributes& defaultAttributes() {
@@ -91,6 +90,7 @@ public:
 		{
 			addAttr(attr, HistogramBins, iAValueType::Discrete, 256, 2);
 			addAttr(attr, HistogramLogarithmicYAxis, iAValueType::Boolean, false);
+			selfRegister();
 		}
 		return attr;
 	}

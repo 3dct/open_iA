@@ -56,7 +56,7 @@ namespace
 
 constexpr const char RendererSettingsName[] = "Default Settings/View: 3D Renderer";
 //! Settings applicable to a single slicer window.
-class iArenderer_API iARendererSettings : iASettingsObject<RendererSettingsName, iARendererSettings>
+class iARendererSettings : iASettingsObject<RendererSettingsName, iARendererSettings>
 {
 public:
 	static iAAttributes& defaultAttributes()
@@ -88,6 +88,7 @@ public:
 			addAttr(attr, iARendererImpl::SSAOBias, iAValueType::Continuous, 0.01);                 // SSAO: The bias when comparing samples
 			addAttr(attr, iARendererImpl::SSAOKernelSize, iAValueType::Discrete, 32);               // SSAO: The number of samples
 			addAttr(attr, iARendererImpl::SSAOBlur, iAValueType::Boolean, false);                   // SSAO: Whether the ambient occlusion should be blurred (can help to improve the result if samples number is low).
+			selfRegister();
 		}
 		return attr;
 	}
