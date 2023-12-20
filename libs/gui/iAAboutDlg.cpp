@@ -74,16 +74,16 @@ void iAAboutDlg::show(QWidget* parent, QPixmap const & aboutImg, QString const &
 		tableWidth += table->columnWidth(c);
 	}
 	auto screenHeightThird = screenHeight / 3;
-	if (imgLabel->height() > screenHeightThird)
+	if (aboutImg.height() > screenHeightThird)
 	{
 		imgLabel->setFixedSize(
-			screenHeightThird * static_cast<double>(imgLabel->width()) / imgLabel->height(),
+			screenHeightThird * static_cast<double>(aboutImg.width()) / aboutImg.height(),
 			screenHeightThird);
 	}
 
 	imgLabel->setScaledContents(true);
 	// make sure about dialog isn't higher than roughly 2/3 the screen size:
-	tableWidth = std::max(tableWidth, imgLabel->width());
+	tableWidth = std::max(tableWidth, aboutImg.width());
 	const int MinTableHeight = 50;
 	auto newTableHeight = std::max(MinTableHeight, std::min(tableHeight, screenHeightThird));
 	table->setMinimumWidth(tableWidth + 20); // + 20 for approximation of scrollbar width; verticalScrollBar()->height is wildly inaccurate before first show (100 or so)
