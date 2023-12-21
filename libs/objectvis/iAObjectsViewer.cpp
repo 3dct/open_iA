@@ -16,10 +16,6 @@ namespace
 	QColor DefaultColor("darkGray");    // for consistency with FeatureScout's default color
 }
 
-const QString iAObjectsRenderer::Color("Color");
-const QString iAObjectsRenderer::SegmentSkip("Segment Skip");
-const QString iAObjectsRenderer::NumOfCylinderSides("Number of cylinder sides");
-
 //! Display settings for object visualizations.
 class iAObjectsRendererSettings : iASettingsObject<iAObjectsRenderer::Name, iAObjectsRendererSettings>
 {
