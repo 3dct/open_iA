@@ -68,8 +68,8 @@ namespace
 	const QChar RenderProfileFlag('P');
 
 	const QString TransferFunction = "TransferFunction";
-	const QString HistogramBins = "Histogram Bins";
-	const QString HistogramLogarithmicYAxis = "Histogram Logarithmic y axis";
+	constexpr const char HistogramBins[] = "Histogram Bins";
+	constexpr const char HistogramLogarithmicYAxis[] = "Histogram Logarithmic y axis";
 
 	const QString Histogram = "Histogram";
 	const QString ImageStatistics = "ImageStatistics";
