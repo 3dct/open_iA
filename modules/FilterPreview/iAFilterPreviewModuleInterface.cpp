@@ -5,7 +5,6 @@
 #include "iAChannelData.h"
 #include "iAMainWindow.h"
 #include "iAMdiChild.h"
-#include "iAFilter.h"
 #include "iAFilterRegistry.h"
 #include "iATransferFunction.h"
 #include "iAVolumeViewer.h"
@@ -22,7 +21,7 @@
 #include <QMessageBox>
 #include <QVBoxLayout>
 #include <QInputDialog>
-
+#include <QPushButton>
 
 
 void iAFilterPreviewModuleInterface::Initialize()
@@ -38,33 +37,84 @@ void iAFilterPreviewModuleInterface::Initialize()
 }
 
 //apply filter
+void iAFilterPreviewModuleInterface::updateFilterAndSlicer(iASlicerImpl* slicer)
+{
+	if (!currentFilter)
+	{
+		return;  // No filter set
+	}
+
+	QVariantMap paramValues;
+	for (int i = 0; i < parameterNames.size(); ++i)
+	{
+		double mappedValue = minValues[i] + (maxValues[i] - minValues[i]) * (double(sliders[i]->value()) / 100);
+		paramValues[parameterNames[i]] = mappedValue;
+	}
+
+	
+	currentFilter->run(paramValues);  // Run the filter with new parameters
+
+	for (auto o : currentFilter->outputs())
+	{
+		child->addDataSet(o);  // Assuming 'child' is accessible here
+	}
+
+	iAChannelData* channelMod = new iAChannelData("", child->firstImageData(),
+		dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))->transfer()->colorTF());
+
+	slicer->updateChannel(0, *channelMod);  // Update the slicer
+}
+
+void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
+{
+	if (dialog)
+	{
+		dialog->close();
+	}
+
+	QDialog* splitViewDialog = new QDialog(m_mainWnd);
+	splitViewDialog->setWindowTitle(tr("Detailed Filter View"));
+
+	QVBoxLayout* imageLayout = new QVBoxLayout;
+	QLabel* imageLabel = new QLabel(splitViewDialog);
+	imageLabel->setAlignment(Qt::AlignCenter);
+	imageLabel->setText("IMAGE PREVIEW");
+
+	// Assuming slicer is configured correctly before this point
+	imageLayout->addWidget(slicer);
+	imageLayout->addWidget(imageLabel);
+
+	QVBoxLayout* sliderLayout = new QVBoxLayout;
+	sliders.clear();  // Use a list to hold all the sliders for later access
+
+	for (int i = 0; i < parameterNames.size(); ++i)
+	{
+		
+		QSlider* slider = new QSlider(Qt::Horizontal, splitViewDialog);
+		slider->setRange(1, 99);  // Range of the slider
+		slider->setValue(50);     // Default value
+		sliders.append(slider);
+
+		sliderLayout->addWidget(new QLabel(parameterNames[i], splitViewDialog));
+		sliderLayout->addWidget(slider);
+
+		// Connect slider signal to a slot to adjust filter parameters and update slicer
+		connect(
+			slider, &QSlider::valueChanged, [this, slicer]() { this->updateFilterAndSlicer(slicer); });
+	}
+
+	QHBoxLayout* mainLayout = new QHBoxLayout(splitViewDialog);
+	mainLayout->addLayout(imageLayout);
+	mainLayout->addLayout(sliderLayout);
+
+	splitViewDialog->setLayout(mainLayout);
+	splitViewDialog->exec();
+}
+
 
 void iAFilterPreviewModuleInterface::filterPreview()
 {
-	QMessageBox::information(m_mainWnd, "Filter with preview", "You will be able to run image filters with a preview here soon!");
-
-	// list available filters:
-	auto const& filterFactories = iAFilterRegistry::filterFactories();
-	QStringList filterNames;
-	for (auto factory : filterFactories)
-	{
-		auto filter = factory();
-		QString filterName = filter->name();
-		filterNames.append(filter->name());
-
-		/*QStringList parameterNames;
-		for (auto const& p : filter->parameters())
-		{
-			parameterNames.append(p->name());
-		}*/
-		/*LOG(lvlDebug, QString("------FILTER NAME------: %1").arg(filterName));
-		LOG(lvlDebug, QString("Available Parameters: %1").arg(parameterNames.join(",")));
-		LOG(lvlDebug, QString("------END  FILTER------"));*/
-
-		//LOG(lvlDebug,QString("------FILTER NAME------: %1; Available Parameters: %2; ------END  FILTER------").arg(filterName).arg(parameterNames.join(",")));
-
-	}
-	//LOG(lvlDebug, QString("Available filters: %1").arg(filterNames.join(",")));
+	//QMessageBox::information(m_mainWnd, "Filter with preview", "You will be able to run image filters with a preview here soon!");
 
 	QStringList validParameterNames = {"Alpha", "Beta", "Radius", "Number of histogram bins", "Samples", "Levels",
 		"Control points", "Spline order", "Mean", "Standard deviation", "Range sigma", "Domain sigma",
@@ -80,6 +130,29 @@ void iAFilterPreviewModuleInterface::filterPreview()
 		"Upper Z padding", "Value", "Sigma", "Output Minimum", "Output Maximum", "Probability", "Distance Threshold",
 		"Shift", "Scale", "Scale", "Sigma", "Level", "Threshold", "Background value", "Foreground value"};
 
+	// list available filters:
+	auto const& filterFactories = iAFilterRegistry::filterFactories();
+	QStringList filterNames;
+	for (auto factory : filterFactories)
+	{
+		auto filter = factory();
+		QStringList filterParameterNames;
+
+		for (auto const& p : filter->parameters())
+		{
+			if (validParameterNames.contains(p->name()))
+			{
+				filterParameterNames.append(p->name());
+			}
+		}
+
+		if (!filterParameterNames.isEmpty())
+		{
+			// Only add the filter name if it has valid parameters
+			filterNames.append(filter->name());
+		}
+	}
+
 	bool ok;
 	QString filterName =
 		QInputDialog::getItem(m_mainWnd, tr("Select filter"), tr("Filter:"), filterNames, 0, false, &ok);
@@ -90,17 +163,24 @@ void iAFilterPreviewModuleInterface::filterPreview()
 
 	// run a specific filter:
 	//auto filter = iAFilterRegistry::filter("Discrete Gaussian");
-	auto filter = iAFilterRegistry::filter(filterName);
-	auto child = m_mainWnd->activeMdiChild();
-
-	//Choose only slider-capable parameters 
+	currentFilter = iAFilterRegistry::filter(filterName);
+	child = m_mainWnd->activeMdiChild();
+	
+	currentFilter->addInput(child->dataSet(child->firstImageDataSetIdx()));
 	
 
-	QStringList parameterNames;
-	QList<double> minValues;  // List to store the minimum values of the parameters
-	QList<double> maxValues;  // List to store the maximum values of the parameters
+	if (filterName.isEmpty())
+	{
+		QMessageBox::critical(m_mainWnd, "Error", "No filter selected");
+		return;
+	}
 
-	for (auto const& p : filter->parameters())
+	// Clear previous values
+	parameterNames.clear();
+	minValues.clear();
+	maxValues.clear();
+
+	for (auto const& p : currentFilter->parameters())
 	{
 		if (validParameterNames.contains(p->name()))
 		{
@@ -112,86 +192,86 @@ void iAFilterPreviewModuleInterface::filterPreview()
 			}
 			else
 			{
-				
 				minValues.append(defaultVal == 0 ? -1 : defaultVal / 2);
 			}
 
-			
 			if (p->max() != std::numeric_limits<double>::max())
 			{
 				maxValues.append(p->max());
 			}
 			else
 			{
-				maxValues.append(defaultVal == 0 ? 1 : defaultVal*3 / 2);
+				maxValues.append(defaultVal == 0 ? 1 : defaultVal * 3 / 2);
 			}
-			
 			
 		}
 	}
 
-	if (parameterNames.isEmpty())
+
+	dialog = new QDialog(m_mainWnd);
+	dialog->setWindowTitle(filterName + tr(" Filter Preview"));
+
+	// Create a grid layout to hold the preview slicers
+	QGridLayout* gridLayout = new QGridLayout;
+
+	// Get the size of the main window and calculate the relative size for the slicers
+	QSize mainWindowSize = m_mainWnd->size();
+	int slicerWidth = mainWindowSize.width() / 5;    
+	int slicerHeight = mainWindowSize.height() / 5;  
+
+
+	// Generate the 3x3 matrix of slicers
+	for (int row = 0; row < 3; ++row)
 	{
-		QMessageBox::critical(m_mainWnd, "Error", "No valid parameters were found for the chosen filter.");
-		return;
+		for (int col = 0; col < 3; ++col)
+		{
+			QWidget* container = new QWidget(dialog);
+			QVBoxLayout* layout = new QVBoxLayout(container);
+
+			iASlicerImpl* slicer = new iASlicerImpl(container, iASlicerMode::XY, false);
+			iAChannelData* channel = new iAChannelData("", child->firstImageData(),
+				dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))->transfer()->colorTF());
+
+			slicer->addChannel(0, *channel, true);
+			slicer->setMinimumSize(QSize(slicerWidth, slicerHeight));  // Set a minimum size for visibility
+			slicer->resetCamera();
+
+			// Overlay the TransparentClickableWidget on top of the slicer
+			QPushButton* selectButton = new QPushButton("Select", container);
+			connect(selectButton, &QPushButton::clicked, [this, slicer]() { this->openSplitView(slicer); });
+
+			layout->addWidget(slicer);
+			layout->addWidget(selectButton);  // Add the "Select" button below the slicer
+
+			gridLayout->addWidget(container, row, col);
+
+
+			
+		}
 	}
 
+	// Set the layout of the dialog to the grid layout
+	dialog->setLayout(gridLayout);
+
+	// Show the dialog
+	dialog->exec();
+
+
+
+
+
+
+
+
+
+
+
+	/*
 	
 	filter->addInput(child->dataSet(child->firstImageDataSetIdx()));
 	
 
-
-
-	//QWidget* mainContentWidget = new QWidget(m_mainWnd);
-	//mainContentWidget->setWindowTitle(filterName + tr(" Filter Preview"));
-	//QGroupBox* mainGroup = new QGroupBox(mainContentWidget);
-	//mainGroup->setTitle(tr("Affine Transformations"));
-
-	//
-
- //   QGroupBox* rotateGroup = new QGroupBox(mainGroup);
-	//rotateGroup->setTitle(tr("Rotate"));
-	//QSlider* rotateSlider = new QSlider(Qt::Horizontal, rotateGroup);
-	//rotateSlider->setRange(0, 3600);
-	//rotateSlider->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-
-	//QGroupBox* scaleGroup = new QGroupBox(mainGroup);
-	//scaleGroup->setTitle(tr("Scale"));
-	//QSlider* scaleSlider = new QSlider(Qt::Horizontal, scaleGroup);
-	//scaleSlider->setRange(1, 4000);
-	//scaleSlider->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-
-	//QGroupBox* shearGroup = new QGroupBox(mainGroup);
-	//shearGroup->setTitle(tr("Shear"));
-	//QSlider* shearSlider = new QSlider(Qt::Horizontal, shearGroup);
-	//shearSlider->setRange(-990, 990);
-	//shearSlider->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-
-	//QVBoxLayout* rotateGroupLayout = new QVBoxLayout(rotateGroup);
-	//rotateGroupLayout->addWidget(rotateSlider);
-
-	//QVBoxLayout* scaleGroupLayout = new QVBoxLayout(scaleGroup);
-	//scaleGroupLayout->addWidget(scaleSlider);
-
-	//QVBoxLayout* shearGroupLayout = new QVBoxLayout(shearGroup);
-	//shearGroupLayout->addWidget(shearSlider);
-
-	//QVBoxLayout* mainGroupLayout = new QVBoxLayout(mainGroup);
-	//mainGroupLayout->addWidget(rotateGroup);
-	//mainGroupLayout->addWidget(scaleGroup);
-	//mainGroupLayout->addWidget(shearGroup);
-	//mainGroupLayout->addStretch(1);
-
-	//mainGroup->setLayout(mainGroupLayout);
-
-
-
-	//mainContentWidget->show();
-
-
-
-	QDialog* dialog = new QDialog(m_mainWnd);
-	dialog->setWindowTitle(filterName + tr(" Filter Preview"));
+	
 
 	QLabel* imageLabel = new QLabel(dialog);
 	imageLabel->setAlignment(Qt::AlignCenter);
@@ -209,33 +289,7 @@ void iAFilterPreviewModuleInterface::filterPreview()
 	QVBoxLayout* imageLayout = new QVBoxLayout;
 	imageLayout->addWidget(slicer);
 	imageLayout->addWidget(imageLabel);
-	//imageLayout->
 
-
-
-	/*QSlider* slider1 = new QSlider(Qt::Horizontal, dialog);
-	slider1->setRange(0, 10);
-	slider1->setValue(5);
-
-	QSlider* slider2 = new QSlider(Qt::Horizontal, dialog);
-	slider2->setRange(1, 99);
-	slider2->setValue(50);
-
-	QSlider* slider3 = new QSlider(Qt::Horizontal, dialog);
-	slider3->setRange(0, 10);
-	slider3->setValue(50);
-
-	QVBoxLayout* sliderLayout = new QVBoxLayout;
-	sliderLayout->addWidget(new QLabel(tr("Parameter 1:"), dialog));
-	sliderLayout->addWidget(slider1);
-	sliderLayout->addWidget(new QLabel(tr("Parameter 2:"), dialog));
-	sliderLayout->addWidget(slider2);
-	sliderLayout->addWidget(new QLabel(tr("Parameter 3:"), dialog));
-	sliderLayout->addWidget(slider3);
-
-	QHBoxLayout* mainLayout = new QHBoxLayout(dialog);
-	mainLayout->addLayout(imageLayout);
-	mainLayout->addLayout(sliderLayout);*/
 
 	QVBoxLayout* sliderLayout = new QVBoxLayout;
 	QList<QSlider*> sliders;  // Use a list to hold all the sliders for later access
@@ -255,33 +309,6 @@ void iAFilterPreviewModuleInterface::filterPreview()
 	QHBoxLayout* mainLayout = new QHBoxLayout(dialog);
 	mainLayout->addLayout(imageLayout);
 	mainLayout->addLayout(sliderLayout);
-
-
-	//		QVariantMap paramValues
-
-	//connect(slider1, &QSlider::valueChanged, this,
-	//	[=](int value)
-	//	{
-	//		QVariantMap paramValues = {{"Parameter 1", value}};
-	//		applyFilter(filter, child, imageLabel, paramValues, slicer);
-	//	});
-
-	//connect(slider2, &QSlider::valueChanged, this,
-	//	[=](int value)
-	//	{
-	//		QVariantMap paramValues = {{"Parameter 2", value}};
-	//		applyFilter(filter, child, imageLabel, paramValues);
-	//	});
-
-	//connect(slider3, &QSlider::valueChanged, this,
-	//	[=](int value)
-	//	{
-	//		QVariantMap paramValues = {{"Parameter 3", value}};
-	//		applyFilter(filter, child, imageLabel, paramValues);
-	//	});
-
-	//QVariantMap initialParamValues = {{"Parameter 1", 50}, {"Parameter 2", 50}, {"Parameter 3", 50}};
-	//applyFilter(filter, child, imageLabel, initialParamValues);
 
 	dialog->exec();
 
@@ -323,21 +350,10 @@ void iAFilterPreviewModuleInterface::filterPreview()
 
 	//slicer->addChannel(0, *channelMod, true);
 	slicer->updateChannel(0, *channelMod);
-	imageLabel->setText("IMAGE PREVIEW DONE!");
+	imageLabel->setText("IMAGE PREVIEW DONE!");*/
 	
 	
 
-	/*filter->addInput(child->dataSet(child->firstImageDataSetIdx()));
-	QVariantMap paramValues;
-	paramValues["Variance"] = 5;
-	paramValues["Maximum error"] = 0.01;
-	paramValues["Convert back to input type"] = false;
-	filter->run(paramValues);
-	
-	for (auto o : filter->outputs())
-	{
-		child->addDataSet(o);
-	}*/
 }
 
 
