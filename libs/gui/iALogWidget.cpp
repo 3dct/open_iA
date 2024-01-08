@@ -15,24 +15,30 @@
 #include <cassert>
 #include <fstream>
 
+namespace
+{
+	QString formatMsg(iALogLevel lvl, QString const& text)
+	{
+		return QString("%1 %2 %3")
+			.arg(QLocale().toString(QTime::currentTime(), "hh:mm:ss.zzz"))
+			.arg(logLevelToString(static_cast<iALogLevel>(lvl)).left(1))
+			.arg(text);
+	}
+}
 
 void iALogWidget::log(iALogLevel lvl, QString const & text)
 {
 	if (lvl >= m_logLevel || lvl >= m_fileLogLevel)
 	{
-		emit logSignal(lvl, text);
+		emit logSignal(lvl, formatMsg(lvl, text));
 	}
 }
 
-void iALogWidget::addText(int lvl, QString const text)
+void iALogWidget::addText(QString const text)
 {
-	QString msg = QString("%1 %2 %3\n")
-		.arg(QLocale().toString(QTime::currentTime(), "hh:mm:ss.zzz"))
-		.arg(logLevelToString(static_cast<iALogLevel>(lvl)).left(1))
-		.arg(text);
 	auto prevCursor = logTextEdit->textCursor();
 	logTextEdit->moveCursor(QTextCursor::End);
-	logTextEdit->insertPlainText(msg);
+	logTextEdit->insertPlainText(text+"\n");
 	logTextEdit->setTextCursor(prevCursor);
 }
 
@@ -48,23 +54,19 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 		{
 			show();
 		}
-		addText(lvl, text);
+		addText(text);
 	}
 	if (m_logToFile && lvl >= m_fileLogLevel)
 	{
-		QString msg = QString("%1 %2 %3")
-			.arg(QLocale().toString(QDateTime::currentDateTime(), "yyyy-MM-dd hh:mm:ss.zzz"))
-			.arg(logLevelToString(static_cast<iALogLevel>(lvl)))
-			.arg(text);
 		std::ofstream logfile( getLocalEncodingFileName(m_logFileName).c_str(), std::ofstream::out | std::ofstream::app);
-		logfile << msg.toStdString() << std::endl;
+		logfile << text.toStdString() << std::endl;
 		logfile.flush();
 		logfile.close();
 		if (logfile.bad())
 		{
 			if (!m_closed)
 			{
-				addText(lvlError, QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName));
+				addText(formatMsg(static_cast<iALogLevel>(lvl), QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName)));
 			}
 			m_fileLogError = true;
 			m_logToFile = false;
