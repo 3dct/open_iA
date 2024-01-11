@@ -3,7 +3,9 @@
 #include "iAFilterPreviewModuleInterface.h"
 
 #include "iAChannelData.h"
+#include "iAImageData.h"
 #include "iAMainWindow.h"
+#include "iAMathUtility.h"
 #include "iAMdiChild.h"
 #include "iAFilterRegistry.h"
 #include "iATransferFunction.h"
@@ -11,8 +13,11 @@
 #include "iASlicerImpl.h"
 #include <iALog.h>
 
+#include <iAToolsITK.h>
+#include <iAToolsVTK.h>
 
-#include "vtkColorTransferFunction.h"
+#include <vtkColorTransferFunction.h>
+#include <vtkImageData.h>
 
 #include <QAction>
 #include <QLabel>
@@ -39,6 +44,8 @@ void iAFilterPreviewModuleInterface::Initialize()
 //apply filter
 void iAFilterPreviewModuleInterface::updateFilterAndSlicer(iASlicerImpl* slicer)
 {
+	
+
 	if (!currentFilter)
 	{
 		return;  // No filter set
@@ -48,21 +55,33 @@ void iAFilterPreviewModuleInterface::updateFilterAndSlicer(iASlicerImpl* slicer)
 	for (int i = 0; i < parameterNames.size(); ++i)
 	{
 		double mappedValue = minValues[i] + (maxValues[i] - minValues[i]) * (double(sliders[i]->value()) / 100);
+		//double mappedValue = mapValue(1, 99, minValues[i], maxValues[i], sliders[i]->value());
 		paramValues[parameterNames[i]] = mappedValue;
+		//LOG(lvlDebug, QString("%1 (min=%2, max=%3): %4").arg(parameterNames[i]).arg(minValues[i]).arg(maxValues[i]).arg(mappedValue));
 	}
-
 	
 	currentFilter->run(paramValues);  // Run the filter with new parameters
 
-	for (auto o : currentFilter->outputs())
+	// check if there is at least one output available:
+	if (currentFilter->outputs().size() < 1)
 	{
-		child->addDataSet(o);  // Assuming 'child' is accessible here
+		return;
 	}
+	auto outDataSet = currentFilter->outputs()[0];
+	filterOutputs.push_back(outDataSet);
+	auto imgData = dynamic_cast<iAImageData*>(outDataSet.get());
+	//storeImage(imgData->vtkImage(), "C:/Users/p41143/Desktop/test.mhd", false);
+	// output might not be an image:
+	if (!imgData)
+	{
+		return;
+	}
+	auto ctf = dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))->transfer()->colorTF();
+	auto newChannelData = std::make_shared<iAChannelData>("", imgData->vtkImage(), ctf);
+	slicer->updateChannel(0, *newChannelData);  // Update the slicer
+	channelData = newChannelData;
 
-	iAChannelData* channelMod = new iAChannelData("", child->firstImageData(),
-		dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))->transfer()->colorTF());
-
-	slicer->updateChannel(0, *channelMod);  // Update the slicer
+	slicer->update();
 }
 
 void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
@@ -110,6 +129,20 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
 	splitViewDialog->setLayout(mainLayout);
 	splitViewDialog->exec();
 }
+
+
+
+#include <iAQSplom.h>
+#include <iASPLOMData.h>
+
+
+#include <vtkContextScene.h>
+#include <vtkContextView.h>
+#include <vtkFloatArray.h>
+#include <vtkScatterPlotMatrix.h>
+#include <vtkSmartPointer.h>
+#include <vtkRenderer.h>
+#include <vtkTable.h>
 
 
 void iAFilterPreviewModuleInterface::filterPreview()
@@ -165,9 +198,24 @@ void iAFilterPreviewModuleInterface::filterPreview()
 	//auto filter = iAFilterRegistry::filter("Discrete Gaussian");
 	currentFilter = iAFilterRegistry::filter(filterName);
 	child = m_mainWnd->activeMdiChild();
-	
-	currentFilter->addInput(child->dataSet(child->firstImageDataSetIdx()));
-	
+
+	// extract a region of maximum size 10x10x10 from image:
+	auto inImgLarge = dynamic_cast<iAImageData*>(child->dataSet(child->firstImageDataSetIdx()).get());
+	int dim[3];
+	inImgLarge->vtkImage()->GetDimensions(dim);
+	const int MinDim = 25;
+	if (dim[0] > MinDim || dim[1] > MinDim || dim[2] > MinDim)
+	{
+		size_t idx[3] = { 0, 0, 0 };
+		size_t size[3] = { std::min(dim[0], MinDim), std::min(dim[1], MinDim), std::min(dim[2], MinDim) };
+		auto img = extractImage(inImgLarge->itkImage(), idx, size);
+		inputImg = std::make_shared<iAImageData>(img);
+	}
+	else
+	{
+		inputImg = child->dataSet(child->firstImageDataSetIdx());
+	}
+	currentFilter->addInput(inputImg);
 
 	if (filterName.isEmpty())
 	{
@@ -192,7 +240,7 @@ void iAFilterPreviewModuleInterface::filterPreview()
 			}
 			else
 			{
-				minValues.append(defaultVal == 0 ? -1 : defaultVal / 2);
+				minValues.append(defaultVal == 0 ? -1 : defaultVal / 5);
 			}
 
 			if (p->max() != std::numeric_limits<double>::max())
@@ -201,7 +249,7 @@ void iAFilterPreviewModuleInterface::filterPreview()
 			}
 			else
 			{
-				maxValues.append(defaultVal == 0 ? 1 : defaultVal * 3 / 2);
+				maxValues.append(defaultVal == 0 ? 1 : defaultVal * 5);
 			}
 			
 		}
@@ -229,7 +277,7 @@ void iAFilterPreviewModuleInterface::filterPreview()
 			QVBoxLayout* layout = new QVBoxLayout(container);
 
 			iASlicerImpl* slicer = new iASlicerImpl(container, iASlicerMode::XY, false);
-			iAChannelData* channel = new iAChannelData("", child->firstImageData(),
+			iAChannelData* channel = new iAChannelData("", dynamic_cast<iAImageData*>(inputImg.get())->vtkImage(),
 				dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))->transfer()->colorTF());
 
 			slicer->addChannel(0, *channel, true);
@@ -249,6 +297,65 @@ void iAFilterPreviewModuleInterface::filterPreview()
 			
 		}
 	}
+
+	iAQSplom* chartsSpmWidget = new iAQSplom();
+	auto chartsSpmData = std::make_shared<iASPLOMData>();
+	std::vector<QString> paramNames;
+	paramNames.push_back("Param 1");
+	paramNames.push_back("Param 2");
+	paramNames.push_back("Param 3");
+	chartsSpmData->setParameterNames(paramNames);   // also sets number of columns, so that the "column vectors" below are available; 3 param names, therefore 0..2 are available:
+	chartsSpmData->data()[0].push_back(1);
+	chartsSpmData->data()[0].push_back(1.1);
+	chartsSpmData->data()[0].push_back(1.5);
+	chartsSpmData->data()[1].push_back(2);
+	chartsSpmData->data()[1].push_back(3);
+	chartsSpmData->data()[1].push_back(5);
+	chartsSpmData->data()[2].push_back(15);
+	chartsSpmData->data()[2].push_back(10);
+	chartsSpmData->data()[2].push_back(5);
+	chartsSpmData->updateRanges();
+	std::vector<char> columnVisibility = { true, true, true };
+	chartsSpmWidget->showAllPlots(false);
+	chartsSpmWidget->setData(chartsSpmData, columnVisibility);
+	gridLayout->addWidget(chartsSpmWidget, 3, 0);
+	
+	auto vtkSpmWidget = new iAQVTKWidget();
+	auto vtkSpmData = vtkSmartPointer<vtkTable>::New();
+	vtkSpmData->Initialize();
+	auto arr1 = vtkSmartPointer<vtkFloatArray>::New();
+	arr1->SetName("Param 1");
+	vtkSpmData->AddColumn(arr1);
+	auto arr2 = vtkSmartPointer<vtkFloatArray>::New();
+	arr2->SetName("Param 2");
+	vtkSpmData->AddColumn(arr2);
+	auto arr3 = vtkSmartPointer<vtkFloatArray>::New();
+	arr3->SetName("Param 3");
+	vtkSpmData->AddColumn(arr3);
+	vtkSpmData->SetNumberOfRows(3);
+	vtkSpmData->SetValue(0, 0, 1);
+	vtkSpmData->SetValue(1, 0, 1.1);
+	vtkSpmData->SetValue(2, 0, 1.5);
+	vtkSpmData->SetValue(0, 1, 2);
+	vtkSpmData->SetValue(1, 1, 3);
+	vtkSpmData->SetValue(2, 1, 5);
+	vtkSpmData->SetValue(0, 2, 15);
+	vtkSpmData->SetValue(1, 2, 10);
+	vtkSpmData->SetValue(2, 2, 5);
+	vtkNew<vtkContextView> view;
+	view->SetRenderWindow(vtkSpmWidget->renderWindow());
+	view->SetInteractor(vtkSpmWidget->interactor());
+	vtkNew<vtkScatterPlotMatrix> matrix;
+	view->GetScene()->AddItem(matrix);
+	matrix->SetInput(vtkSpmData);
+	matrix->SetNumberOfBins(10);
+	matrix->SetSelectionMode(vtkContextScene::SELECTION_DEFAULT);
+	matrix->SetNumberOfFrames(2);
+	//matrix->GetMainChart()->SetActionToButton(vtkChart::SELECT_POLYGON, vtkContextMouseEvent::RIGHT_BUTTON);
+	view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
+	gridLayout->addWidget(vtkSpmWidget, 3, 1);
+
+	//gridLayout->addWidget(qtSpmWidget, 3, 2);
 
 	// Set the layout of the dialog to the grid layout
 	dialog->setLayout(gridLayout);

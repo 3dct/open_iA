@@ -15,6 +15,9 @@ class iAFilterPreviewModuleInterface : public iAGUIModuleInterface
 	QList<double> minValues;  // Store the minimum and maximum values of the parameters
 	QList<double> maxValues;
 	std::shared_ptr<iAFilter> currentFilter;
+	std::vector<std::shared_ptr<iADataSet>> filterOutputs;
+	std::shared_ptr<iAChannelData> channelData;
+	std::shared_ptr<iADataSet> inputImg;
 	QList<QSlider*> sliders; 
 	iAMdiChild* child;
 
