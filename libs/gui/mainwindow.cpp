@@ -1201,21 +1201,26 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionSubWindows, &QAction::triggered, this, &MainWindow::toggleMdiViewMode);
 
 	// "Help" menu entries:
-	static QMap<QString, QString> linkMap{
-		{"Core user guide", "https://github.com/3dct/open_iA/wiki/Core"},
-		{"Filters user guide", "https://github.com/3dct/open_iA/wiki/Filters"},
-		{"Tools user guide", "https://github.com/3dct/open_iA/wiki/Tools"},
-		{"Available releases", "https://github.com/3dct/open_iA/releases"},
-		{"Found a bug?", "https://github.com/3dct/open_iA/issues"}
+	static std::map<QString, std::pair<QString, QString>> linkMap{
+		{"Available releases", std::make_pair("https://github.com/3dct/open_iA/releases",
+			"Opens a list of available open_iA releases in your default web browser")},
+		{"Bug Tracker", std::make_pair("https://github.com/3dct/open_iA/issues",
+			"Opens the open_iA bug tracker in your default web browser")},
+		{"Core user guide", std::make_pair("https://github.com/3dct/open_iA/wiki/Core",
+			"Opens the online open_iA core user guide (explaining the core user interface elements) in your default web browser")},
+		{"Filters user guide", std::make_pair("https://github.com/3dct/open_iA/wiki/Filters",
+			"Opens the online open_iA filters user guide (explaining dataset processing in your default web browser")},
+		{"Tools user guide", std::make_pair("https://github.com/3dct/open_iA/wiki/Tools",
+			"Opens the online open_iA tools user guide in your default web browser")},
 	};
-	for (auto linkText : linkMap.keys())
+	for (auto l : linkMap)
 	{
-		auto a = new QAction(linkText, m_ui->menuHelp);
+		auto a = new QAction(l.first, m_ui->menuHelp);
+		a->setToolTip(linkMap[l.first].second);
 		connect(a, &QAction::triggered, this, [this]()
 		{
-			auto s = QObject::sender();
-			auto act = qobject_cast<QAction*>(s);
-			QDesktopServices::openUrl(QUrl(linkMap[act->text()]));
+			auto act = qobject_cast<QAction*>(QObject::sender());
+			QDesktopServices::openUrl(QUrl(linkMap[act->text()].first));
 		});
 		m_ui->menuHelp->insertAction(m_ui->actionAbout, a);
 	}
