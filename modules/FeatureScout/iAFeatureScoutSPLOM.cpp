@@ -22,7 +22,7 @@ namespace
 {
 	std::shared_ptr<iASPLOMData> createSPLOMData(vtkTable* table)
 	{
-		std::shared_ptr<iASPLOMData> result(new iASPLOMData());
+		auto result = std::make_shared<iASPLOMData>();
 		std::vector<QString> paramNames;
 		for (vtkIdType col = 0; col < table->GetNumberOfColumns(); ++col)
 		{
