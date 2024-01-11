@@ -109,13 +109,13 @@ QString dblToStringWithUnits(double value, double switchFactor)
 
 
 // source: https://stackoverflow.com/a/12155571
-iAbase_API std::string joinStdString(std::vector<std::string>& vec, std::string const& joinStr)
+std::string joinStdString(std::vector<std::string> const & vec, std::string const& joinStr)
 {
 	return vec.empty() ? "" :           // leave early if there are no items in the list
 		std::accumulate(                // otherwise, accumulate
 			++vec.begin(), vec.end(),   // the range 2nd to after-last
 			*vec.begin(),               // and start accumulating with the first item
-			[joinStr](auto& a, auto& b) { return a + joinStr + b; });
+			[joinStr](auto const & a, auto const & b) { return a + joinStr + b; });
 }
 
 QString joinQVariantAsString(QVector<QVariant> const& vec, QString const& joinStr)

@@ -204,7 +204,7 @@ iAbase_API QString stripHTML(QString const & html);
 iAbase_API QString dblToStringWithUnits(double value, double switchFactor = 999);
 
 //! join a vector of std::strings into one single string
-iAbase_API std::string joinStdString(std::vector<std::string>& vec, std::string const& joinStr = ",");
+iAbase_API std::string joinStdString(std::vector<std::string> const & vec, std::string const& joinStr = ",");
 
 //! join any list as string - the conversion of the single items happens via the passed-in lambda
 //! FnType is something like a function taking an Element parameter and has a QString(-compatible)
