@@ -410,6 +410,9 @@ void iAQSplom::createScatterPlot(size_t y, size_t x, bool initial)
 	s->settings.backgroundColor = settings.backgroundColor;
 	connect(s, &iAScatterPlot::transformModified, this, &iAQSplom::transformUpdated);
 	connect(s, &iAScatterPlot::currentPointModified, this, &iAQSplom::currentPointUpdated);
+	connect(s, &iAScatterPlot::chartClick, this, [this, x, y](double xVal, double yVal, Qt::KeyboardModifiers modifiers) {
+		emit chartClick(x, y, xVal, yVal, modifiers);
+	});
 	s->setData(x, y, m_splomData);
 	s->setSelectionColor(settings.selectionColor);
 	s->setPointRadius(settings.pointRadius);
@@ -884,6 +887,9 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 		plotInds[(settings.flipAxes) ? 1 : 0],
 		plotInds[(settings.flipAxes) ? 0 : 1]
 	};
+	connect(m_maximizedPlot, &iAScatterPlot::chartClick, this, [this, actualPlotInds](double xVal, double yVal, Qt::KeyboardModifiers modifiers) {
+		emit chartClick(actualPlotInds[0], actualPlotInds[1], xVal, yVal, modifiers);
+	});
 	m_maximizedPlot->setData(actualPlotInds[0], actualPlotInds[1], m_splomData);
 	m_maximizedPlot->setLookupTable(m_lut, m_colorLookupParam);
 	m_maximizedPlot->setSelectionColor(settings.selectionColor);

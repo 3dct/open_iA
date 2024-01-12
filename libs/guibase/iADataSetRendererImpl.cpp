@@ -88,12 +88,12 @@ namespace
 	}
 }
 
+
 constexpr const char GraphRendererName[] = "Default Settings/Dataset Renderer: Graph";
 
 //! Encapsulates the specifics of the settings of a graph renderer.
-//! Handles auto-registration of the settings with iASettingsManager (via deriving from iASettingsObject),
-//! and thus avoids having to expose users of iAGraphRenderer to the settings auto-registration.
-class iAguibase_API iAGraphRendererSettings : iASettingsObject<GraphRendererName, iAGraphRendererSettings>
+//! Handles auto-registration of the settings with iASettingsManager (via deriving from iASettingsObject).
+class iAGraphRendererSettings : iASettingsObject<GraphRendererName, iAGraphRendererSettings>
 {
 public:
 	static iAAttributes& defaultAttributes()
@@ -120,6 +120,7 @@ public:
 			addAttr(attr, QString(LinePrefix) + iADataSetRenderer::DiffuseLighting, iAValueType::Continuous, 0.5);
 			addAttr(attr, QString(LinePrefix) + iADataSetRenderer::SpecularLighting, iAValueType::Continuous, 0.7);
 			addAttr(attr, QString(LinePrefix) + iADataSetRenderer::SpecularPower, iAValueType::Continuous, 10.0);
+			selfRegister();
 		}
 		return attr;
 	}
@@ -319,12 +320,11 @@ vtkProp3D* iAGraphRenderer::vtkProp()
 
 
 // ---------- iAMeshRenderer ----------
+constexpr const char SurfaceRendererName[] = "Default Settings/Dataset Renderer: Surface";
 
 //! Encapsulates the specifics of the settings of a surface mesh renderer.
-//! Handles auto-registration of the settings with iASettingsManager (via deriving from iASettingsObject),
-//! and thus avoids having to expose users of iAPolyDataRenderer/iAGeometricObjectRenderer to the settings auto-registration.
-constexpr const char SurfaceRendererName[] = "Default Settings/Dataset Renderer: Surface";
-class iAguibase_API iAPolyActorRendererSettings : iASettingsObject<SurfaceRendererName, iAPolyActorRendererSettings>
+//! Handles auto-registration of the settings with iASettingsManager (via deriving from iASettingsObject).
+class iAPolyActorRendererSettings : iASettingsObject<SurfaceRendererName, iAPolyActorRendererSettings>
 {
 public:
 	static iAAttributes& defaultAttributes()
@@ -338,6 +338,7 @@ public:
 			addAttr(attr, PolyColor, iAValueType::Color, "#FFFFFF");
 			addAttr(attr, PolyOpacity, iAValueType::Continuous, 1.0, 0.0, 1.0);
 			addAttr(attr, PolyWireframe, iAValueType::Boolean, false);
+			selfRegister();
 		}
 		return attr;
 	}

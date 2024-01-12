@@ -102,7 +102,7 @@ private:
 
 constexpr const char SlicerSettingsName[] = "Default Settings/View: Slicer";
 //! Settings applicable to a single slicer window.
-class iAslicer_API iASingleSlicerSettings : iASettingsObject<SlicerSettingsName, iASingleSlicerSettings>
+class iASingleSlicerSettings : iASettingsObject<SlicerSettingsName, iASingleSlicerSettings>
 {
 public:
 	static iAAttributes& defaultAttributes()
@@ -135,6 +135,7 @@ public:
 			addAttr(attr, iASlicerImpl::MinIsoValue, iAValueType::Continuous, 20000);    // should probably be dependent on the value range of the image ...?
 			addAttr(attr, iASlicerImpl::MaxIsoValue, iAValueType::Continuous, 40000);    // should probably be dependent on the value range of the image ...?
 			// }
+			selfRegister();
 		}
 		return attr;
 	}

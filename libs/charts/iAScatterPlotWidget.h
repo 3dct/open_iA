@@ -134,7 +134,7 @@ signals:
 	void highlightChanged();
 	void selectionModified();
 	void visibleParamChanged();
-	void chartClicked(double x, double y, Qt::KeyboardModifiers	modifiers);  //!< Emitted when a point in the chart is clicked (and no selection or fixed point selection happened)
+	void chartPress(double x, double y, Qt::KeyboardModifiers modifiers);  //!< Emitted when the mouse is pressed in the chart (and no selection or fixed point selection happened)
 private slots:
 	void xParamChanged();
 	void yParamChanged();

@@ -141,7 +141,8 @@ signals:
 	void selectionModified();                                        //!< Emitted when selected points changed
 	void transformModified( double scale, QPointF deltaOffset );     //!< Emitted when user transforms (scales, translates)
 	void currentPointModified( size_t index );                       //!< Emitted when hovered over new point
-	void chartClicked(double x, double y, Qt::KeyboardModifiers modifiers); //!< Emitted when a point in the chart is clicked (and no selection or fixed point selection happened)
+	void chartPress(double x, double y, Qt::KeyboardModifiers modifiers); //!< Emitted when the mouse is pressed in the chart (and no selection or fixed point selection happened)
+	void chartClick(double x, double y, Qt::KeyboardModifiers modifiers); //!< Emitted when the mouse button is clicked in the chart
 
 private slots:
 	void dataChanged(size_t paramIndex);

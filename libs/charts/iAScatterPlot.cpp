@@ -396,7 +396,7 @@ void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
 	}
 	else if (event->buttons() & Qt::LeftButton)
 	{
-		emit chartClicked(x2p(locPos.x()), y2p(locPos.y()), event->modifiers());
+		emit chartPress(x2p(locPos.x()), y2p(locPos.y()), event->modifiers());
 	}
 }
 
@@ -405,6 +405,11 @@ void iAScatterPlot::SPLOMMouseReleaseEvent( QMouseEvent * event )
 	if (m_dragging)
 	{
 		m_dragging = false;
+	}
+	else if (event->button() == Qt::LeftButton && m_selPoly.isEmpty())
+	{
+		QPoint locPos = getLocalPos(event->pos());
+		emit chartClick(x2p(locPos.x()), y2p(locPos.y()), event->modifiers());
 	}
 	else if ( event->button() == Qt::LeftButton && settings.selectionEnabled)
 	{

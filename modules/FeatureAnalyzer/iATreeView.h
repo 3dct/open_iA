@@ -73,7 +73,6 @@ signals:
 	void loadAllDatasetsByIndicesSignal( QStringList sel_datasets, QList<int> indices );
 	void selectionModified( QList<QTreeWidgetItem*>* );
 	void clearOldRSDViewSignal();
-	void displayMessage( QString );
 
 public slots:
 	void loadSelectionToSPM();

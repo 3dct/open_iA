@@ -49,7 +49,6 @@ private slots:
 	void ShowTreeView( bool checked );
 	void selectionLoaded( iASelection * sel );
 	void tabChanged( int index );
-	void message( QString text );
 
 private:
 	void LoadData();
