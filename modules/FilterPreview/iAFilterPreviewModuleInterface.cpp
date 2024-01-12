@@ -10,6 +10,8 @@
 #include "iAVolumeViewer.h"
 #include "iASlicerImpl.h"
 #include <iALog.h>
+#include <iAQSplom.h>
+#include <iASPLOMData.h>
 
 
 #include "vtkColorTransferFunction.h"
@@ -79,37 +81,61 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
 	QLabel* imageLabel = new QLabel(splitViewDialog);
 	imageLabel->setAlignment(Qt::AlignCenter);
 	imageLabel->setText("IMAGE PREVIEW");
-
-	// Assuming slicer is configured correctly before this point
 	imageLayout->addWidget(slicer);
 	imageLayout->addWidget(imageLabel);
 
-	QVBoxLayout* sliderLayout = new QVBoxLayout;
-	sliders.clear();  // Use a list to hold all the sliders for later access
+	// Create scatter plot matrix widget and set up data iAQSplom* chartsSpmWidget = new iAQSplom();
+	iAQSplom* chartsSpmWidget = new iAQSplom();
+	auto chartsSpmData = std::make_shared<iASPLOMData>();
 
+	// Convert QStringList to std::vector<QString>
+	std::vector<QString> paramNamesVector;
+	for (const QString& paramName : parameterNames)
+	{
+		paramNamesVector.push_back(paramName);
+	}
+	chartsSpmData->setParameterNames(paramNamesVector);
+
+	//// Here you would dynamically add your actual parameter data
+	//// Initialize the data vectors for each parameter
+	//for (int i = 0; i < parameterNames.size(); ++i)
+	//{
+	//	std::vector<double> dataVector;  // Replace with actual data
+	//	chartsSpmData->data().push_back(dataVector);
+	//}
+
+	// Populate the data vectors with actual parameter values
+	// This is just an example, and you would replace it with the actual parameter values
 	for (int i = 0; i < parameterNames.size(); ++i)
 	{
-		
-		QSlider* slider = new QSlider(Qt::Horizontal, splitViewDialog);
-		slider->setRange(1, 99);  // Range of the slider
-		slider->setValue(50);     // Default value
-		sliders.append(slider);
-
-		sliderLayout->addWidget(new QLabel(parameterNames[i], splitViewDialog));
-		sliderLayout->addWidget(slider);
-
-		// Connect slider signal to a slot to adjust filter parameters and update slicer
-		connect(
-			slider, &QSlider::valueChanged, [this, slicer]() { this->updateFilterAndSlicer(slicer); });
+		chartsSpmData->data()[i].clear();  // Clear the previous data
+		chartsSpmData->data()[i].push_back(minValues[i]);
+		chartsSpmData->data()[i].push_back(maxValues[i]);
 	}
 
+	chartsSpmData->updateRanges();
+	std::vector<char> columnVisibility(parameterNames.size(), true);
+	chartsSpmWidget->showAllPlots(false);
+	chartsSpmWidget->setData(chartsSpmData, columnVisibility);
+	chartsSpmWidget->setHistogramVisible(false);
+	chartsSpmWidget->setPointRadius(2);
+	chartsSpmWidget->setMinimumWidth(400);
+	chartsSpmWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+	// Add scatter plot matrix widget to layout
+	QVBoxLayout* controlLayout = new QVBoxLayout;
+	controlLayout->addWidget(chartsSpmWidget);
+
+	// Set up the main layout
 	QHBoxLayout* mainLayout = new QHBoxLayout(splitViewDialog);
 	mainLayout->addLayout(imageLayout);
-	mainLayout->addLayout(sliderLayout);
+	mainLayout->addLayout(controlLayout);
 
 	splitViewDialog->setLayout(mainLayout);
 	splitViewDialog->exec();
 }
+
+
 
 
 void iAFilterPreviewModuleInterface::filterPreview()
