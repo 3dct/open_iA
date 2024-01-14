@@ -81,8 +81,9 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
 	QLabel* imageLabel = new QLabel(splitViewDialog);
 	imageLabel->setAlignment(Qt::AlignCenter);
 	imageLabel->setText("IMAGE PREVIEW");
-	imageLayout->addWidget(slicer);
-	imageLayout->addWidget(imageLabel);
+	/*imageLabel->setMinimumSize(200, 200);*/
+	imageLayout->addWidget(slicer,9);
+	imageLayout->addWidget(imageLabel,1);
 
 	// Create scatter plot matrix widget and set up data iAQSplom* chartsSpmWidget = new iAQSplom();
 	iAQSplom* chartsSpmWidget = new iAQSplom();
@@ -95,14 +96,6 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
 		paramNamesVector.push_back(paramName);
 	}
 	chartsSpmData->setParameterNames(paramNamesVector);
-
-	//// Here you would dynamically add your actual parameter data
-	//// Initialize the data vectors for each parameter
-	//for (int i = 0; i < parameterNames.size(); ++i)
-	//{
-	//	std::vector<double> dataVector;  // Replace with actual data
-	//	chartsSpmData->data().push_back(dataVector);
-	//}
 
 	// Populate the data vectors with actual parameter values
 	// This is just an example, and you would replace it with the actual parameter values
@@ -121,6 +114,10 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
 	chartsSpmWidget->setPointRadius(2);
 	chartsSpmWidget->setMinimumWidth(400);
 	chartsSpmWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	
+	connect(chartsSpmWidget, &iAQSplom::chartClick, this,
+		[this](size_t paramX, size_t paramY, double x, double y, Qt::KeyboardModifiers modifiers)
+		{ LOG(lvlInfo, QString("params : %1...%2").arg(x).arg(y)); });
 
 	// Add scatter plot matrix widget to layout
 	QVBoxLayout* controlLayout = new QVBoxLayout;
@@ -128,14 +125,12 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
 
 	// Set up the main layout
 	QHBoxLayout* mainLayout = new QHBoxLayout(splitViewDialog);
-	mainLayout->addLayout(imageLayout);
-	mainLayout->addLayout(controlLayout);
+	mainLayout->addLayout(imageLayout,5);
+	mainLayout->addLayout(controlLayout,5);
 
 	splitViewDialog->setLayout(mainLayout);
 	splitViewDialog->exec();
 }
-
-
 
 
 void iAFilterPreviewModuleInterface::filterPreview()
