@@ -135,7 +135,7 @@ bool iASystemThemeWatcher::isBrightTheme()
 	// in contrast to below, here even the standard palette seems to get overwritten, that's why setPalette is disabled (see mainwindow.cpp)
 	auto bg = qApp->palette().color(QPalette::Active, QPalette::Window);
 	constexpr int OSX_LIGHT_MODE = 236;   //constexpr int OSX_DARK_MODE  = 50;
-	LOG(lvlDebug, QString("iASystemThemeWatcher: lightness: %1").arg(bg.lightness()));
+	//LOG(lvlDebug, QString("iASystemThemeWatcher: lightness: %1").arg(bg.lightness()));
 	auto bright = (bg.lightness() == OSX_LIGHT_MODE);
 #else
 	// inspired from comment on https://stackoverflow.com/a/69705673
