@@ -255,7 +255,7 @@ if (RenderingOpenVR IN_LIST VTK_AVAILABLE_COMPONENTS)
 		ExtractVersion("${OpenVR_INCLUDE_DIR}/openvr.h" "k_nSteamVRVersionBuild" OpenVR_VERSION_PATCH)
 	endif()
 	message(STATUS "    OpenVR: ${OpenVR_VERSION_MAJOR}.${OpenVR_VERSION_MINOR}.${OpenVR_VERSION_PATCH} in ${OpenVR_INCLUDE_DIR} (include dir)")
-	string(REGEX REPLACE "/headers" "" OPENVR_PATH ${OpenVR_INCLUDE_DIR})
+	string(REPLACE "/headers" "" OPENVR_PATH ${OpenVR_INCLUDE_DIR})
 	if (WIN32)
 		set(OPENVR_LIB_PATH "${OPENVR_PATH}/bin/win64")
 	else()
@@ -273,7 +273,7 @@ if (VTK_VERSION VERSION_GREATER_EQUAL "9.2.0")
 		list(APPEND VTK_COMPONENTS RenderingOpenXR)
 		find_package(OpenXR)    # basically only required for OpenXR_VERSION...
 		message(STATUS "    OpenXR: ${OpenXR_VERSION_MAJOR}.${OpenXR_VERSION_MINOR}.${OpenXR_VERSION_PATCH} in ${OpenXR_INCLUDE_DIR} (include dir)")
-		string(REGEX REPLACE "/include/" "" OPENXR_PATH ${OpenXR_INCLUDE_DIR})
+		string(REPLACE "/include/" "" OPENXR_PATH ${OpenXR_INCLUDE_DIR})
 		set(OPENXR_LIB_PATH "${OPENXR_PATH}/x64/bin")
 		list(APPEND BUNDLE_DIRS "${OPENXR_LIB_PATH}")
 	else()
@@ -349,8 +349,8 @@ set(BUILD_INFO "${BUILD_INFO}    \"Qt	${Qt6_VERSION}\\n\"\n")
 #	message(FATAL_ERROR "Your Qt version is too old. Please use Qt >= 6.0.0")
 #endif()
 
-string(REGEX REPLACE "/lib/cmake/Qt6" "" Qt_BASEDIR ${Qt6_DIR})
-string(REGEX REPLACE "/cmake/Qt6" "" Qt_BASEDIR ${Qt_BASEDIR})	# on linux, lib is omitted if installed from package repos
+string(REPLACE "/lib/cmake/Qt6" "" Qt_BASEDIR ${Qt6_DIR})
+string(REPLACE "/cmake/Qt6" "" Qt_BASEDIR ${Qt_BASEDIR})	# on linux, lib is omitted if installed from package repos
 
 if (WIN32)
 	set(QT_LIB_DIR "${Qt_BASEDIR}/bin")
