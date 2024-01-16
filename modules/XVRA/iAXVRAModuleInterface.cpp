@@ -100,8 +100,8 @@ void iAXVRAModuleInterface::startXVRA()
 		return;
 	}
 	// Create PolyObject visualization
-	auto polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(createObjectVis(objData.get(), QColor(140, 140, 140, 255)));
-	if (!polyObject)
+	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(createObjectVis(objData.get(), QColor(140, 140, 140, 255)));
+	if (!m_polyObject)
 	{
 		LOG(lvlError, "Invalid 3D object visualization!");
 		return;
@@ -109,7 +109,7 @@ void iAXVRAModuleInterface::startXVRA()
 
 	// Start VR
 	auto vrMain = m_mainWnd->moduleDispatcher().module<iAImNDTModuleInterface>();
-	if (!vrMain->ImNDT(objData, polyObject, csvConfig))
+	if (!vrMain->ImNDT(objData, m_polyObject, csvConfig))
 	{
 		return;
 	}
