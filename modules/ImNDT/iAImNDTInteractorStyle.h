@@ -9,8 +9,6 @@ class iAImNDTMain;
 
 class vtkInteractorStyle3D;
 
-using inputScheme = std::vector<std::vector<std::vector<std::vector<int>>>>;
-
 //! Enumeration for Touchpad positions
 enum class iAVRTouchpadPosition {
 	Unknown = -1,
@@ -37,13 +35,6 @@ class iAImNDTInteractions
 public:
 	iAImNDTInteractions(iAvtkVR::Backend backend, iAImNDTMain* vrMain);
 	~iAImNDTInteractions();
-
-	//! Returns a vector for the input scheme (operation definition)
-	//! For every [device] an [inputID] and its [action] on an selection [option] a specific interaction is specified
-	inputScheme* getInputScheme();
-
-	//! if >0 then has an action applied
-	std::vector<int>* getActiveInput();
 
 	//! encapsulate a 2D vector to avoid returning a pointer to const double
 	struct iAVec2d {	double c[2];	};

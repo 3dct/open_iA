@@ -77,6 +77,8 @@ signals:
 	void selectionChanged();
 
 private:
+	using InputScheme = std::vector<std::vector<std::vector<std::vector<int>>>>;
+
 	iAVREnvironment* m_vrEnv;
 	std::vector<iAVROctree*>* m_octrees;
 	iAVRModelInMiniature* m_modelInMiniature;
@@ -84,6 +86,8 @@ private:
 	vtkSmartPointer<vtkPolyData> m_extendedCylinderVisData; // Data extended with additional intersection points
 	iAImNDTInteractions m_interactions;
 	iAColoredPolyObjectVis* m_polyObject;
+	InputScheme m_inputScheme;
+	std::vector<int> m_activeInput;
 
 	bool m_networkGraphMode;
 	std::vector<iAVR3DText*>* m_3DTextLabels;
@@ -107,8 +111,6 @@ private:
 	int viewDirection;
 	//! Current touchpad Position
 	float m_touchPadPosition[3];
-	//! Active Input Saves the current applied Input in case Multiinput is requires
-	std::vector<int>* activeInput;
 	//! Map Actors to iAVRInteractionOptions
 	std::unordered_map<vtkProp3D*, int> m_ActorToOptionID;
 	//! True if the corresponding actor is visible

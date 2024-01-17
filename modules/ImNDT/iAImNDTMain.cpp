@@ -38,7 +38,15 @@
 //#define OCTREE_COLOR QColor(130, 10, 10, 255)
 
 iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAColoredPolyObjectVis* polyObject, iAObjectsData const * objData, iACsvConfig csvConfig) :
-	m_vrEnv(vrEnv), m_interactions(vrEnv->backend(), this), m_polyObject(polyObject), m_arViewer(createARViewer(vrEnv))
+	m_vrEnv(vrEnv), m_interactions(vrEnv->backend(), this), m_polyObject(polyObject),
+	m_inputScheme(
+		static_cast<size_t>(vtkEventDataDevice::NumberOfDevices),
+		std::vector<std::vector<std::vector<int>>>(static_cast<size_t>(vtkEventDataDeviceInput::NumberOfInputs),
+			std::vector<std::vector<int>>(static_cast<size_t>(vtkEventDataAction::NumberOfActions),
+				std::vector<int>(static_cast<size_t>(iAVRInteractionOptions::NumberOfInteractionOptions), 0))
+			)),
+	m_activeInput(static_cast<size_t>(vtkEventDataDevice::NumberOfDevices), -1),
+	m_arViewer(createARViewer(vrEnv))
 {
 
 	// For true TranslucentGeometry
@@ -82,8 +90,7 @@ iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAColoredPolyObjectVis* polyObj
 
 	//Add InteractorStyle
 	m_vrEnv->interactor()->SetInteractorStyle(m_interactions.style());
-	// Active Input Saves the current applied Input in case Multiinput is requires
-	activeInput = m_interactions.getActiveInput();
+
 	multiPickIDs = new std::vector<vtkIdType>();
 
 	//Initialize Text Lables vector
@@ -180,7 +187,7 @@ void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pick
 	int inputID = static_cast<int>(device->GetInput());  // Input Method
 	int actioniD = static_cast<int>(device->GetAction()); // Action of Input Method
 	int optionID = getOptionForObject(pickedProp);
-	int operation = m_interactions.getInputScheme()->at(deviceID).at(inputID).at(actioniD).at(optionID);
+	int operation = m_inputScheme.at(deviceID).at(inputID).at(actioniD).at(optionID);
 
 	switch (iAVROperations(operation))
 	{
@@ -199,7 +206,7 @@ void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pick
 		this->pickMimRegion(eventPosition, eventOrientation);
 		break;
 	case iAVROperations::MultiPickMiMRegion:	
-		activeInput->at(deviceID) = static_cast<int>(iAVROperations::MultiPickMiMRegion); // For Multitouch
+		m_activeInput.at(deviceID) = static_cast<int>(iAVROperations::MultiPickMiMRegion); // For Multitouch
 		//m_modelInMiniature->removeHighlightedGlyphs();
 		multiPickIDs->clear();
 		break;
@@ -213,7 +220,7 @@ void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pick
 		this->pressLeftTouchpad();
 		break;
 	case iAVROperations::ChangeMiMDisplacementType:
-		if (activeInput->at(deviceID) == 1)
+		if (m_activeInput.at(deviceID) == 1)
 		{
 			this->toggleArView();
 		}
@@ -229,11 +236,11 @@ void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pick
 		this->pressLeftTouchpad();
 		break;
 	case iAVROperations::FlipHistoBookPages:
-		activeInput->at(deviceID) = static_cast<int>(iAVROperations::FlipHistoBookPages);
+		m_activeInput.at(deviceID) = static_cast<int>(iAVROperations::FlipHistoBookPages);
 		this->flipDistributionVis();
 		break;
 	case iAVROperations::LeftGrid:
-		activeInput->at(deviceID) = 1;
+		m_activeInput.at(deviceID) = 1;
 		break;
 	default:
 		LOG(lvlDebug, QString("Start Operation %1 is not defined").arg(operation));
@@ -250,7 +257,7 @@ void iAImNDTMain::endInteraction(vtkEventDataDevice3D* device, vtkProp3D* picked
 	int inputID = static_cast<int>(device->GetInput());  // Input Method
 	int actioniD = static_cast<int>(device->GetAction()); // Action of Input Method
 	int optionID = getOptionForObject(pickedProp);
-	int operation = m_interactions.getInputScheme()->at(deviceID).at(inputID).at(actioniD).at(optionID);
+	int operation = m_inputScheme.at(deviceID).at(inputID).at(actioniD).at(optionID);
 
 	switch (iAVROperations(operation))
 	{
@@ -258,18 +265,18 @@ void iAImNDTMain::endInteraction(vtkEventDataDevice3D* device, vtkProp3D* picked
 		LOG(lvlDebug,QString("Unknown Operation!"));
 		break;
 	case iAVROperations::None:
-		//activeInput->at(deviceID) = static_cast<int>(iAVROperations::None); // For Multitouch
+		//m_activeInput.at(deviceID) = static_cast<int>(iAVROperations::None); // For Multitouch
 		break;
 	case iAVROperations::MultiPickMiMRegion:
-		activeInput->at(deviceID) = 0; // For Multitouch
+		m_activeInput.at(deviceID) = 0; // For Multitouch
 		multiPickMiMRegion();
 		break;
 	case iAVROperations::FlipHistoBookPages:
 		this->flipDistributionVis();
-		activeInput->at(deviceID) = 0;
+		m_activeInput.at(deviceID) = 0;
 		break;
 	case iAVROperations::LeftGrid:
-		activeInput->at(deviceID) = 0;
+		m_activeInput.at(deviceID) = 0;
 		break;
 	default:
 		LOG(lvlDebug, QString("End Operation %1 is not defined").arg(operation));
@@ -375,7 +382,7 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 		m_3DTextLabels->at(0)->setLabelPos(rcPos);
 		m_3DTextLabels->at(0)->moveInEyeDir(initialScale * 0.04, initialScale * 0.04, initialScale * 0.04);
 
-		if(activeInput->at(deviceID) == static_cast<int>(iAVROperations::FlipHistoBookPages))
+		if(m_activeInput.at(deviceID) == static_cast<int>(iAVROperations::FlipHistoBookPages))
 		{
 			double controllerPath[3]{};
 			double crossPro[3]{};
@@ -402,18 +409,16 @@ void iAImNDTMain::onZoom()
 
 void iAImNDTMain::setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, iAVRInteractionOptions options, iAVROperations operation)
 {
-	inputScheme* scheme = m_interactions.getInputScheme();
-
 	if(options == iAVRInteractionOptions::Anywhere) //Apply Operation for every Interaction Option
 	{
 		for(int i=0; i < static_cast<int>(iAVRInteractionOptions::NumberOfInteractionOptions); i++)
 		{
-			scheme->at(static_cast<int>(device)).at(static_cast<int>(input)).at(static_cast<int>(action)).at(static_cast<int>(i)) = static_cast<int>(operation);
+			m_inputScheme.at(static_cast<int>(device)).at(static_cast<int>(input)).at(static_cast<int>(action)).at(static_cast<int>(i)) = static_cast<int>(operation);
 		}
 	}
 	else
 	{
-		scheme->at(static_cast<int>(device)).at(static_cast<int>(input)).at(static_cast<int>(action)).at(static_cast<int>(options)) = static_cast<int>(operation);
+		m_inputScheme.at(static_cast<int>(device)).at(static_cast<int>(input)).at(static_cast<int>(action)).at(static_cast<int>(options)) = static_cast<int>(operation);
 	}
 	
 }
@@ -650,7 +655,7 @@ void iAImNDTMain::pickMimRegion(double eventPosition[3], double eventOrientation
 		m_volume->highlightGlyphs(multiPickIDs);
 
 		// If multitouch Key is not pressed render the single region it in the Volume
-		if(activeInput->at(static_cast<int>(vtkEventDataDevice::RightController)) != static_cast<int>(iAVROperations::MultiPickMiMRegion)){
+		if (m_activeInput.at(static_cast<int>(vtkEventDataDevice::RightController)) != static_cast<int>(iAVROperations::MultiPickMiMRegion)){
 			pickFibersinRegion(multiPickIDs->at(0));
 			multiPickIDs->clear();
 		}
