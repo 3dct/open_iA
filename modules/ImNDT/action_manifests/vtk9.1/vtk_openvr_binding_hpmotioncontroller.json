@@ -84,7 +84,7 @@
   "category": "steamvr_input",
   "controller_type": "hpmotioncontroller",
   "description": "",
-  "name": "Bindings for VTK using a hpmotion controller",
+  "name": "Bindings for open_iA application using a hpmotion controller",
   "options": {},
   "simulated_actions": []
 }

@@ -8,7 +8,8 @@ endif()
 
 set(VR_INSTALL_SRC_SUBDIRS images)
 set(VR_INSTALL_DST_SUBDIRS VR-skybox)
-list(APPEND VR_INSTALL_SRC_SUBDIRS action_manifests)
+set(VTK_VERSION_MAJMIN "${VTK_VERSION_MAJOR}.${VTK_VERSION_MINOR}")
+list(APPEND VR_INSTALL_SRC_SUBDIRS action_manifests/vtk${VTK_VERSION_MAJMIN})
 list(APPEND VR_INSTALL_DST_SUBDIRS VR-input-manifests)
 list(LENGTH VR_INSTALL_SRC_SUBDIRS VR_INSTALL_DIRS_COUNT)
 math(EXPR VR_INSTALL_DIRS_COUNT "${VR_INSTALL_DIRS_COUNT} - 1") # subtract one since foreach loop includes end index
