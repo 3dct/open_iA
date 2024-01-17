@@ -227,19 +227,23 @@ void iAImNDTOpenXRInteractorStyle::SetInteractor(vtkRenderWindowInteractor* iren
 	auto oiren = vtkOpenXRRenderWindowInteractor::SafeDownCast(iren);
 	assert(oiren);
 	// works in conjunction with the actions defined in the action manifest specified via interactor->SetActionManifestFileName in iAVRMainThread!
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9,3,0)
+	oiren->AddAction("complexgestureaction",
+#else
 	oiren->AddAction("leftgripaction",
 		[this](vtkEventData* edata)
 		{
-			// for some reason, the input ID is not set; set it to the proper Application Menu
+			// for some reason, the input ID is not set; set it to the proper value
 			vtkEventDataDevice3D* edd = edata->GetAsEventDataDevice3D();
 			assert(edd);
 			edd->SetInput(vtkEventDataDeviceInput::Grip);
 			OnButton3D(edata);
 		});
 	oiren->AddAction("rightgripaction",
+#endif
 		[this](vtkEventData* edata)
 		{
-			// for some reason, the input ID is not set; set it to the proper Application Menu
+			// for some reason, the input ID is not set; set it to the proper value
 			vtkEventDataDevice3D* edd = edata->GetAsEventDataDevice3D();
 			assert(edd);
 			edd->SetInput(vtkEventDataDeviceInput::Grip);
@@ -258,7 +262,7 @@ void iAImNDTOpenXRInteractorStyle::SetInteractor(vtkRenderWindowInteractor* iren
 	oiren->AddAction("showmenuleft",
 		[this](vtkEventData* edata)
 		{
-			// for some reason, the input ID is not set; set it to the proper Application Menu
+			// for some reason, the input ID is not set; set it to the proper value
 			vtkEventDataDevice3D* edd = edata->GetAsEventDataDevice3D();
 			assert(edd);
 			edd->SetInput(vtkEventDataDeviceInput::ApplicationMenu);
@@ -400,19 +404,23 @@ void iAImNDTOpenVRInteractorStyle::SetInteractor(vtkRenderWindowInteractor* iren
 	auto oiren = vtkOpenVRRenderWindowInteractor::SafeDownCast(iren);
 	assert(oiren);
 	// works in conjunction with the actions defined in the action manifest specified via interactor->SetActionManifestFileName in iAVRMainThread!
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 3, 0)
+	oiren->AddAction("/actions/vtk/in/complexgestureaction", false,
+#else
 	oiren->AddAction("/actions/vtk/in/leftgripaction", false,
 		[this](vtkEventData* edata)
 		{
-			// for some reason, the input ID is not set; set it to the proper Application Menu
+			// for some reason, the input ID is not set; set it to the proper value
 			vtkEventDataDevice3D* edd = edata->GetAsEventDataDevice3D();
 			assert(edd);
 			edd->SetInput(vtkEventDataDeviceInput::Grip);
 			OnButton3D(edata);
 		});
 	oiren->AddAction("/actions/vtk/in/rightgripaction", false,
+#endif
 		[this](vtkEventData* edata)
 		{
-			// for some reason, the input ID is not set; set it to the proper Application Menu
+			// for some reason, the input ID is not set; set it to the proper value
 			vtkEventDataDevice3D* edd = edata->GetAsEventDataDevice3D();
 			assert(edd);
 			edd->SetInput(vtkEventDataDeviceInput::Grip);
@@ -431,7 +439,7 @@ void iAImNDTOpenVRInteractorStyle::SetInteractor(vtkRenderWindowInteractor* iren
 	oiren->AddAction("/actions/vtk/in/ShowMenuLeft", false,
 		[this](vtkEventData* edata)
 		{
-			// for some reason, the input ID is not set; set it to the proper Application Menu
+			// for some reason, the input ID is not set; set it to the proper value
 			vtkEventDataDevice3D* edd = edata->GetAsEventDataDevice3D();
 			assert(edd);
 			edd->SetInput(vtkEventDataDeviceInput::ApplicationMenu);
