@@ -23,7 +23,9 @@ if (RenderingOpenXR IN_LIST VTK_COMPONENTS)
 	list(APPEND DEPENDENCIES_COMPILE_DEFINITIONS OPENXR_AVAILABLE)
 	# list(APPEND DEPENDENCIES_LIBRARIES ${OpenXR_LIBRARY}) # added by RenderingOpenXR
 	list(APPEND DEPENDENCIES_VTK_MODULES RenderingOpenXR)
-	list(APPEND DEPENDENCIES_INCLUDE_DIRS ${OpenXR_INCLUDE_DIR}/openxr) # not sure why this is NOT added (properly) by VTK's RenderingOpenXR module
+	if (VTK_VERSION VERSION_LESS_EQUAL "9.3.0")
+		list(APPEND DEPENDENCIES_INCLUDE_DIRS ${OpenXR_INCLUDE_DIR}/openxr) # not sure why this is NOT added (properly) by VTK's RenderingOpenXR module
+	endif()
 	# failing to add this causes compilation error in vtkOpenXR.h for `#include <openxr.h>`; maybe VTK forgets to export the OpenXR include directory?
 endif()
 
