@@ -32,18 +32,18 @@ class iAImNDTInteractionsImpl
 public:
 	iAImNDTInteractionsImpl(iAvtkVR::Backend backend, iAImNDTMain* vrMain):
 		m_style(createInteractorStyle(backend, this)),
+		m_activeInput(NUMBER_OF_DEVICES, -1),
 		m_backend(backend),
 		m_vrMain(vrMain)
 	{
 		// Initialize with 0 = None
 		std::vector<int> a(NUMBER_OF_OPTIONS, 0);
 		std::vector<std::vector<int>> b(NUMBER_OF_ACTIONS, a);
-		std::vector < std::vector<std::vector<int>>> c(NUMBER_OF_INPUTS, b);
-		m_inputScheme = new std::vector < std::vector < std::vector<std::vector<int>>>>(NUMBER_OF_DEVICES, c);
-		m_activeInput = new std::vector<int>(NUMBER_OF_DEVICES, -1);
+		std::vector<std::vector<std::vector<int>>> c(NUMBER_OF_INPUTS, b);
+		m_inputScheme = new std::vector<std::vector<std::vector<std::vector<int>>>>(NUMBER_OF_DEVICES, c);
 	}
 	inputScheme* m_inputScheme;
-	std::vector<int>* m_activeInput;
+	std::vector<int> m_activeInput;
 	vtkSmartPointer<vtkInteractorStyle3D> m_style;
 	iAImNDTInteractions::iAVec2d m_leftTrackPadPos, m_rightTrackPadPos;
 	iAvtkVR::Backend m_backend;
@@ -556,7 +556,7 @@ inputScheme* iAImNDTInteractions::getInputScheme()
 
 std::vector<int>* iAImNDTInteractions::getActiveInput()
 {
-	return m_impl->m_activeInput;
+	return &m_impl->m_activeInput;
 }
 
 //! retrieve the position of the last interaction with the trackpad (since it's not available on a click in the event directly)
