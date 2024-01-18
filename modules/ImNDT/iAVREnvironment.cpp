@@ -82,7 +82,7 @@ void iAVREnvironment::start()
 
 	m_vrMainThread = new iAVRMainThread(m_renderWindow, m_interactor, m_backend);
 	connect(m_vrMainThread, &QThread::finished, this, &iAVREnvironment::vrDone);
-	m_vrMainThread->setObjectName("ImNDTRenderThread");
+	m_vrMainThread->setObjectName("VRMainThread");
 	m_vrMainThread->start();
 
 	//TODO: Wait for thread to finish or the rendering might not have started yet
