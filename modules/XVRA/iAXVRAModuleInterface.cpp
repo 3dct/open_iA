@@ -36,8 +36,7 @@
 iAXVRAModuleInterface::iAXVRAModuleInterface() :
 	m_fsMain(nullptr),
 	fsFrustum(nullptr),
-	vrFrustum(nullptr),
-	m_updateRequired(false)
+	vrFrustum(nullptr)
 {
 }
 
@@ -129,17 +128,17 @@ void iAXVRAModuleInterface::startXVRA()
 	vrFrustum = new iAFrustumActor(vrMain->getRenderer(), fsCam, maxSize/10);  // frustum of featurescout shown in vr
 	fsFrustum = new iAFrustumActor(m_mainWnd->activeMdiChild()->renderer()->renderer(), vrCam, maxSize / 10);  // frustum of vr shown in featurescout
 
-	m_updateRenderer.callOnTimeout([this, child]()
+	connect(fsFrustum, &iAFrustumActor::updateRequired, this, [this, child]()
 	{
-		if (m_updateRequired)
-		{	// trigger an update to renderer if camera indicator has changed
-			child->updateRenderer();
-		}
-		m_updateRequired = false;
+		// trigger an update to renderer if camera indicator has changed
+		fsFrustum->updateSource();
+		child->updateRenderer();
 	});
-	m_updateRenderer.setInterval(200);	// maximum update interval
-	connect(fsFrustum, &iAFrustumActor::updateRequired, [this]() { m_updateRequired = true; });
-	m_updateRenderer.start();
+	connect(vrFrustum, &iAFrustumActor::updateRequired, vrMain, [this, vrMain]()
+	{
+		vrMain->queueTask([this]() { vrFrustum->updateSource();  });
+	});
+
 	vrFrustum->show();
 	fsFrustum->show();
 

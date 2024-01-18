@@ -23,8 +23,6 @@ private:
 	dlg_FeatureScout* m_fsMain;
 	iAFrustumActor* fsFrustum;
 	iAFrustumActor* vrFrustum;
-	QTimer m_updateRenderer;
-	bool m_updateRequired;
 
 private slots:
 	void info();
