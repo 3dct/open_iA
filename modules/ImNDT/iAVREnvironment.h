@@ -8,7 +8,6 @@
 
 #include <QObject>
 
-class iADataSetRenderer;
 class iAVRMainThread;
 
 class vtkRenderer;
@@ -38,7 +37,8 @@ public:
 	void hideFloor();
 	double getInitialWorldScale();
 	bool isRunning() const;
-	void removeRenderer(std::shared_ptr<iADataSetRenderer> renderer);
+	//! queue a task to be executed within the main VR thread
+	void queueTask(std::function<void()> task);
 	iAvtkVR::Backend backend() const;
 private slots:
 	void vrDone();

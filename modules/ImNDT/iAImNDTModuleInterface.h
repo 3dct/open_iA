@@ -29,6 +29,8 @@ public:
 	void Initialize() override;
 	bool ImNDT(std::shared_ptr<iAObjectsData> objData, std::shared_ptr<iAColoredPolyObjectVis> polyObject, iACsvConfig csvConfig);
 	vtkRenderer* getRenderer();
+	//! queue a task to be executed in the VR main thread
+	void queueTask(std::function<void()> fn);
 
 signals:
 	void selectionChanged();

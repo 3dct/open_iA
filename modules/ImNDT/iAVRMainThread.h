@@ -19,12 +19,13 @@ public:
 	void run() override;
 	void stop();
 	QString message() const;
-	void removeRenderer(std::shared_ptr<iADataSetRenderer> renderer);
+	//! queue a task to be executed within the main VR thread
+	void queueTask(std::function<void()> task);
 private:
 	iAvtkVRRenderWindow* m_renderWindow;
 	iAvtkVRRenderWindowInteractor* m_interactor;
-	std::vector<std::shared_ptr<iADataSetRenderer>> m_renderersToRemove;
-	std::mutex m_removeMutex;
+	std::vector<std::function<void()>> m_tasks;
+	std::mutex m_tasksMutex;
 	QString m_msg;
 	iAvtkVR::Backend m_backend;
 	volatile bool m_done;

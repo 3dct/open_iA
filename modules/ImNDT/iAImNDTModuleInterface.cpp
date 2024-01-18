@@ -80,7 +80,7 @@ void iAImNDTModuleInterface::Initialize()
 	{
 		auto key = std::make_pair(child, dataSetIdx);
 		auto vrRen = m_vrRenderers.at(key);
-		m_vrEnv->removeRenderer(vrRen);
+		m_vrEnv->queueTask([vrRen] { vrRen->setVisible(false); });
 		m_vrRenderers.erase(key);
 		if (m_vrRenderers.empty() && m_vrEnv)    // VR might already be finished due to errors (e.g. headset currently not available)
 		{
@@ -504,6 +504,16 @@ bool iAImNDTModuleInterface::ImNDT(std::shared_ptr<iAObjectsData> objData, std::
 vtkRenderer* iAImNDTModuleInterface::getRenderer()
 {
 	return m_vrEnv->renderer();
+}
+
+
+void iAImNDTModuleInterface::queueTask(std::function<void()> task)
+{
+	if (!m_vrEnv)
+	{
+		return;
+	}
+	m_vrEnv->queueTask(task);
 }
 
 bool iAImNDTModuleInterface::loadImNDT()

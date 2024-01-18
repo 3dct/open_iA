@@ -226,13 +226,13 @@ bool iAVREnvironment::isRunning() const
 	return m_vrMainThread;
 }
 
-void iAVREnvironment::removeRenderer(std::shared_ptr<iADataSetRenderer> renderer)
+void iAVREnvironment::queueTask(std::function<void()> task)
 {
 	if (!m_vrMainThread)
 	{
 		return;
 	}
-	m_vrMainThread->removeRenderer(renderer);
+	m_vrMainThread->queueTask(task);
 }
 
 iAvtkVR::Backend iAVREnvironment::backend() const
