@@ -226,11 +226,6 @@
     <property name="toolTipsVisible">
      <bool>true</bool>
     </property>
-    <addaction name="actionUserGuideCore"/>
-    <addaction name="actionUserGuideFilters"/>
-    <addaction name="actionUserGuideTools"/>
-    <addaction name="actionReleases"/>
-    <addaction name="actionBug"/>
     <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuFile"/>
@@ -728,46 +723,6 @@
    </property>
    <property name="shortcutContext">
     <enum>Qt::ApplicationShortcut</enum>
-   </property>
-  </action>
-  <action name="actionUserGuideCore">
-   <property name="text">
-    <string>Core user guide</string>
-   </property>
-   <property name="toolTip">
-    <string>Opens a link to the open_iA core user guide (e.g. renderer, slicers)  in your default web browser</string>
-   </property>
-  </action>
-  <action name="actionUserGuideFilters">
-   <property name="text">
-    <string>Filters user guide</string>
-   </property>
-   <property name="toolTip">
-    <string>Opens a link to the open_iA filters user guide in your default web browser</string>
-   </property>
-  </action>
-  <action name="actionUserGuideTools">
-   <property name="text">
-    <string>Tools user guide</string>
-   </property>
-   <property name="toolTip">
-    <string>Opens a link to the open_iA tools user guide in your default web browser</string>
-   </property>
-  </action>
-  <action name="actionReleases">
-   <property name="text">
-    <string>Available releases</string>
-   </property>
-   <property name="toolTip">
-    <string>Opens a link to the available open_iA releases in your default web browser</string>
-   </property>
-  </action>
-  <action name="actionBug">
-   <property name="text">
-    <string>Found a bug?</string>
-   </property>
-   <property name="toolTip">
-    <string>Opens a link to the open_iA bug tracker in your default web browser</string>
    </property>
   </action>
   <action name="actionFullScreenMode">

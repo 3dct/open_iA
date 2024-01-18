@@ -29,7 +29,6 @@ void iADreamCasterModuleInterface::dreamcasterOpenFile()
 		iADreamCaster *child = new iADreamCaster( m_mainWnd );
 		m_mainWnd->addSubWindow( child );
 		child->loadFile( fileName );
-		m_mainWnd->statusBar()->showMessage( tr( "File loaded" ), 5000 );
 		child->show();
 	}
 }

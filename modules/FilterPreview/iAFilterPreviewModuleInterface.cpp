@@ -12,6 +12,8 @@
 #include "iAVolumeViewer.h"
 #include "iASlicerImpl.h"
 #include <iALog.h>
+#include <iAQSplom.h>
+#include <iASPLOMData.h>
 
 #include <iAToolsITK.h>
 #include <iAToolsVTK.h>
@@ -95,36 +97,76 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
 	splitViewDialog->setWindowTitle(tr("Detailed Filter View"));
 
 	QVBoxLayout* imageLayout = new QVBoxLayout;
-	QLabel* imageLabel = new QLabel(splitViewDialog);
+	QLabel* imageLabel = new QLabel();
 	imageLabel->setAlignment(Qt::AlignCenter);
 	imageLabel->setText("IMAGE PREVIEW");
+	/*imageLabel->setMinimumSize(200, 200);*/
+	imageLayout->addWidget(slicer,9);
+	imageLayout->addWidget(imageLabel,1);
 
-	// Assuming slicer is configured correctly before this point
-	imageLayout->addWidget(slicer);
-	imageLayout->addWidget(imageLabel);
+	// Create scatter plot matrix widget and set up data iAQSplom* chartsSpmWidget = new iAQSplom();
+	iAQSplom* chartsSpmWidget = new iAQSplom();
+	auto chartsSpmData = std::make_shared<iASPLOMData>();
 
-	QVBoxLayout* sliderLayout = new QVBoxLayout;
-	sliders.clear();  // Use a list to hold all the sliders for later access
+	// Convert QStringList to std::vector<QString>
+	std::vector<QString> paramNamesVector;
+	for (const QString& paramName : parameterNames)
+	{
+		paramNamesVector.push_back(paramName);
+	}
+	chartsSpmData->setParameterNames(paramNamesVector);
 
+	// Populate the data vectors with actual parameter values
+	// This is just an example, and you would replace it with the actual parameter values
 	for (int i = 0; i < parameterNames.size(); ++i)
 	{
-		
-		QSlider* slider = new QSlider(Qt::Horizontal, splitViewDialog);
-		slider->setRange(1, 99);  // Range of the slider
-		slider->setValue(50);     // Default value
-		sliders.append(slider);
-
-		sliderLayout->addWidget(new QLabel(parameterNames[i], splitViewDialog));
-		sliderLayout->addWidget(slider);
-
-		// Connect slider signal to a slot to adjust filter parameters and update slicer
-		connect(
-			slider, &QSlider::valueChanged, [this, slicer]() { this->updateFilterAndSlicer(slicer); });
+		chartsSpmData->data()[i].clear();  // Clear the previous data
+		chartsSpmData->data()[i].push_back(minValues[i]);
+		chartsSpmData->data()[i].push_back(maxValues[i]);
 	}
 
-	QHBoxLayout* mainLayout = new QHBoxLayout(splitViewDialog);
-	mainLayout->addLayout(imageLayout);
-	mainLayout->addLayout(sliderLayout);
+	chartsSpmData->updateRanges();
+	std::vector<char> columnVisibility(parameterNames.size(), true);
+	chartsSpmWidget->showAllPlots(false);
+	chartsSpmWidget->setData(chartsSpmData, columnVisibility);
+	chartsSpmWidget->setHistogramVisible(false);
+	chartsSpmWidget->setPointRadius(2);
+	chartsSpmWidget->setMinimumWidth(400);
+	chartsSpmWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	
+	connect(chartsSpmWidget, &iAQSplom::chartClick, this,
+		[this](size_t paramX, size_t paramY, double x, double y, Qt::KeyboardModifiers modifiers)
+		{ LOG(lvlInfo, QString("params : %1...%2").arg(x).arg(y)); });
+
+	// Add scatter plot matrix widget to layout
+	QVBoxLayout* controlLayout = new QVBoxLayout;
+	controlLayout->addWidget(chartsSpmWidget);
+
+	// Set up the main layout
+	/*QHBoxLayout* mainLayout = new QHBoxLayout(splitViewDialog);
+	mainLayout->addLayout(imageLayout,5);
+	mainLayout->addLayout(controlLayout,5);*/
+
+	QHBoxLayout* splitLayout = new QHBoxLayout;
+	splitLayout->addLayout(imageLayout, 5);
+	splitLayout->addLayout(controlLayout, 5);
+
+
+	QHBoxLayout* imageListLayout = new QHBoxLayout;
+
+	for (int i = 0; i < 5; ++i)
+	{
+		QLabel* placeholderLabel = new QLabel();
+		placeholderLabel->setAlignment(Qt::AlignCenter);
+		placeholderLabel->setText(QString("Placeholder %1").arg(i + 1));  // Numbered placeholders from 1 to 5
+		placeholderLabel->setMinimumSize(100, 100);                       // Set a minimum size for the label
+
+		imageListLayout->addWidget(placeholderLabel, 2);
+	}
+
+	QVBoxLayout* mainLayout = new QVBoxLayout;
+	mainLayout->addLayout(splitLayout,7);
+	mainLayout->addLayout(imageListLayout,3);
 
 	splitViewDialog->setLayout(mainLayout);
 	splitViewDialog->exec();

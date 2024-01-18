@@ -807,7 +807,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		//	double parPad = (parMax - parMin) / 100.0; // add 1% of range on both sides to make sure all markers will be visible
 		//parChart->setXBounds(parMin - parPad, parMax + parPad);
 		//connect(parChart, &iAChartWidget::axisChanged, this, &iAParameterInfluenceView::paramChartAxisChanged);
-		connect(parChart, &iAScatterPlotWidget::chartClicked, this, &iAParameterInfluenceView::paramChartClicked);
+		connect(parChart, &iAScatterPlotWidget::chartPress, this, &iAParameterInfluenceView::paramChartClicked);
 		//parChart->setMinimumHeight(80);
 		for (size_t i=0; i<selectedResults.size(); ++i)
 		{

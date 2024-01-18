@@ -72,7 +72,7 @@ private:
 	~iALogWidget();
 	Q_DISABLE_COPY_MOVE(iALogWidget);
 	void closeEvent(QCloseEvent* event) override;
-	void addText(int lvl, QString const text);
+	void addText(QString const text);
 
 	QString m_logFileName;
 	bool m_logToFile;

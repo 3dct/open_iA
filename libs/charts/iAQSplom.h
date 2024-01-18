@@ -147,6 +147,7 @@ signals:
 	void currentPointModified(size_t index);                         //!< Emitted when hovered over a new point.
 	void parameterVisibilityChanged(size_t paramIndex, bool visible);//!< Emitted when the visibility of a parameter has changed (from within SPLOM, not triggered if it was set from the outside via setParameterVisibility).
 	void lookupTableChanged();                                       //!< Emitted when the lookup table has changed
+	void chartClick(size_t paramX, size_t paramY, double x, double y, Qt::KeyboardModifiers modifiers);  //!< Emitted when a point in the chart is clicked (and no selection or fixed point selection happened)
 protected:
 	void clear();                                                    //!< Clear all scatter plots in the SPLOM.
 #ifdef CHART_OPENGL
