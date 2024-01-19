@@ -25,6 +25,10 @@
 #include <QInputDialog>
 #include <QPushButton>
 
+#include <vector>
+#include <random>
+#include <algorithm>
+
 
 void iAFilterPreviewModuleInterface::Initialize()
 {
@@ -65,6 +69,29 @@ void iAFilterPreviewModuleInterface::updateFilterAndSlicer(iASlicerImpl* slicer)
 		dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))->transfer()->colorTF());
 
 	slicer->updateChannel(0, *channelMod);  // Update the slicer
+}
+
+void iAFilterPreviewModuleInterface::generateLatinHypercubeSamples(int numSamples, std::vector<std::vector<double>>& samplesMatrix)
+{
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> dis(0.0, 1.0);
+
+	int dimensions = minValues.size();
+
+	samplesMatrix.resize(dimensions, std::vector<double>(numSamples));
+
+	for (int i = 0; i < dimensions; ++i)
+	{
+		for (int j = 0; j < numSamples; ++j)
+		{
+			// Example of using member variables minValues and maxValues
+			double range = maxValues[i] - minValues[i];
+			samplesMatrix[i][j] = minValues[i] + range * ((j + dis(gen)) / numSamples);
+			LOG(lvlDebug, QString("Sample [%1][%2] = %3").arg(i).arg(j).arg(samplesMatrix[i][j]));
+		}
+		std::shuffle(samplesMatrix[i].begin(), samplesMatrix[i].end(), gen);
+	}
 }
 
 void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
@@ -240,7 +267,9 @@ void iAFilterPreviewModuleInterface::filterPreview()
 	int slicerWidth = mainWindowSize.width() / 5;    
 	int slicerHeight = mainWindowSize.height() / 5;  
 
-
+	int numSamples = 9;
+	std::vector<std::vector<double>> lhsSamples;
+	generateLatinHypercubeSamples(numSamples, lhsSamples);
 	// Generate the 3x3 matrix of slicers
 	for (int row = 0; row < 3; ++row)
 	{
