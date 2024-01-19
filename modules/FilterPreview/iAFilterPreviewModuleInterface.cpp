@@ -105,7 +105,7 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
 	splitViewDialog->setWindowTitle(tr("Detailed Filter View"));
 
 	QVBoxLayout* imageLayout = new QVBoxLayout;
-	QLabel* imageLabel = new QLabel(splitViewDialog);
+	QLabel* imageLabel = new QLabel();
 	imageLabel->setAlignment(Qt::AlignCenter);
 	imageLabel->setText("IMAGE PREVIEW");
 	/*imageLabel->setMinimumSize(200, 200);*/
@@ -151,9 +151,30 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
 	controlLayout->addWidget(chartsSpmWidget);
 
 	// Set up the main layout
-	QHBoxLayout* mainLayout = new QHBoxLayout(splitViewDialog);
+	/*QHBoxLayout* mainLayout = new QHBoxLayout(splitViewDialog);
 	mainLayout->addLayout(imageLayout,5);
-	mainLayout->addLayout(controlLayout,5);
+	mainLayout->addLayout(controlLayout,5);*/
+
+	QHBoxLayout* splitLayout = new QHBoxLayout;
+	splitLayout->addLayout(imageLayout, 5);
+	splitLayout->addLayout(controlLayout, 5);
+
+
+	QHBoxLayout* imageListLayout = new QHBoxLayout;
+
+	for (int i = 0; i < 5; ++i)
+	{
+		QLabel* placeholderLabel = new QLabel();
+		placeholderLabel->setAlignment(Qt::AlignCenter);
+		placeholderLabel->setText(QString("Placeholder %1").arg(i + 1));  // Numbered placeholders from 1 to 5
+		placeholderLabel->setMinimumSize(100, 100);                       // Set a minimum size for the label
+
+		imageListLayout->addWidget(placeholderLabel, 2);
+	}
+
+	QVBoxLayout* mainLayout = new QVBoxLayout;
+	mainLayout->addLayout(splitLayout,7);
+	mainLayout->addLayout(imageListLayout,3);
 
 	splitViewDialog->setLayout(mainLayout);
 	splitViewDialog->exec();
