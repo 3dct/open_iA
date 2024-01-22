@@ -8,6 +8,7 @@
 #include "iAFilterRegistry.h"
 #include "iATransferFunction.h"
 #include "iAVolumeViewer.h"
+#include "iAImageData.h"
 #include "iASlicerImpl.h"
 #include <iALog.h>
 #include <iAQSplom.h>
@@ -292,6 +293,7 @@ void iAFilterPreviewModuleInterface::filterPreview()
 	std::vector<std::vector<double>> lhsSamples;
 	generateLatinHypercubeSamples(numSamples, lhsSamples);
 	// Generate the 3x3 matrix of slicers
+	int counter = 0;
 	for (int row = 0; row < 3; ++row)
 	{
 		for (int col = 0; col < 3; ++col)
@@ -300,10 +302,32 @@ void iAFilterPreviewModuleInterface::filterPreview()
 			QVBoxLayout* layout = new QVBoxLayout(container);
 
 			iASlicerImpl* slicer = new iASlicerImpl(container, iASlicerMode::XY, false);
-			iAChannelData* channel = new iAChannelData("", child->firstImageData(),
-				dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))->transfer()->colorTF());
 
-			slicer->addChannel(0, *channel, true);
+			
+
+			QVariantMap paramValues;
+			for (int i = 0; i < parameterNames.size(); ++i)
+			{
+				paramValues[parameterNames[i]] =
+					lhsSamples[i][counter];  // Map the parameter to its corresponding value
+				LOG(lvlDebug, QString("Param Name: %1").arg(parameterNames[i]));
+				LOG(lvlDebug, QString("Sample [%1][%2] = %3").arg(counter).arg(i).arg(lhsSamples[i][counter]));
+
+				//paramValues[parameterNames[i]] = sliders[i]->value();
+			}
+
+			currentFilter->run(paramValues);
+			auto outDataSet = currentFilter->outputs()[0];
+
+			auto imgData = dynamic_cast<iAImageData*>(outDataSet.get());
+			auto newChannelData = std::make_shared<iAChannelData>("",
+				imgData->vtkImage(),  // get image data directly from filter
+				// color transfer function still the one from the analysis window:
+				dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))
+					->transfer()
+					->colorTF());
+
+			slicer->addChannel(0, *newChannelData, true);
 			slicer->setMinimumSize(QSize(slicerWidth, slicerHeight));  // Set a minimum size for visibility
 			slicer->resetCamera();
 
@@ -316,7 +340,7 @@ void iAFilterPreviewModuleInterface::filterPreview()
 
 			gridLayout->addWidget(container, row, col);
 
-
+			counter++;
 			
 		}
 	}
