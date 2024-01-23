@@ -6,6 +6,7 @@
 #include <iAVec3.h>
 
 #include <vtkCamera.h>
+#include <vtkVersionMacros.h>
 #include <vtkTextProperty.h>
 
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)

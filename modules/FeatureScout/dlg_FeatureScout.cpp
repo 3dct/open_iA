@@ -88,6 +88,7 @@
 #include <vtkTable.h>
 #include <vtkTextProperty.h>
 #include <vtkVariantArray.h>
+#include <vtkVersionMacros.h>
 
 #include <QFileDialog>
 #include <QFileInfo>

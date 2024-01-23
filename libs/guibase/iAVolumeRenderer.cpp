@@ -14,7 +14,7 @@
 #include <vtkImageData.h>
 #include <vtkRenderer.h>
 #include <vtkSmartVolumeMapper.h>
-#include <vtkVersion.h>
+#include <vtkVersionMacros.h>
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 

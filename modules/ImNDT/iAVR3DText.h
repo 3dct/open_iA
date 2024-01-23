@@ -5,7 +5,7 @@
 #include <vtkBillboardTextActor3D.h>
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
-#include <vtkVersion.h>
+#include <vtkVersionMacros.h>
 
 #include <QString>
 

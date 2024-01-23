@@ -3,9 +3,7 @@
 #pragma once
 
 #include <vtkSmartPointer.h>
-#include <vtkVersion.h>
-
-#include <QString>
+#include <vtkVersionMacros.h>
 
 #include <vtkVRCamera.h>
 #include <vtkVRRenderer.h>
@@ -20,6 +18,8 @@ using iAvtkVRRenderWindow = vtkVRRenderWindow;
 #include <vtkOpenVRRenderWindowInteractor.h>
 	using iAvtkVRRenderWindowInteractor = vtkOpenVRRenderWindowInteractor;
 #endif
+
+#include <QString>
 
 class iAvtkVR
 {

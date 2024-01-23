@@ -7,7 +7,7 @@
 
 #include <iALog.h>
 
-#include <vtkVersion.h>
+#include <vtkVersionMacros.h>
 
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
 #include <vtkCullerCollection.h>
