@@ -299,11 +299,10 @@ void iAFilterPreviewModuleInterface::filterPreview()
 		for (int col = 0; col < 3; ++col)
 		{
 			QWidget* container = new QWidget(dialog);
-			QVBoxLayout* layout = new QVBoxLayout(container);
+			QVBoxLayout* layout = new QVBoxLayout(container); //main layout
+			QHBoxLayout* hLayout = new QHBoxLayout(); // This will contain the slicer and the parameter values
 
 			iASlicerImpl* slicer = new iASlicerImpl(container, iASlicerMode::XY, false);
-
-			
 
 			QVariantMap paramValues;
 			for (int i = 0; i < parameterNames.size(); ++i)
@@ -317,6 +316,17 @@ void iAFilterPreviewModuleInterface::filterPreview()
 			}
 
 			currentFilter->run(paramValues);
+
+			// Create a string to display the parameter values
+			QString paramDisplay;
+			for (const auto& paramName : parameterNames)
+			{
+				paramDisplay += paramName + ": " + QString::number(paramValues[paramName].toDouble()) + "\n";
+			}
+
+			// Create a label to show the parameter values
+			QLabel* paramLabel = new QLabel(paramDisplay, container);
+
 			auto outDataSet = currentFilter->outputs()[0];
 
 			auto imgData = dynamic_cast<iAImageData*>(outDataSet.get());
@@ -335,7 +345,10 @@ void iAFilterPreviewModuleInterface::filterPreview()
 			QPushButton* selectButton = new QPushButton("Select", container);
 			connect(selectButton, &QPushButton::clicked, [this, slicer]() { this->openSplitView(slicer); });
 
-			layout->addWidget(slicer);
+			hLayout->addWidget(slicer);      // Add the slicer to the horizontal layout
+			hLayout->addWidget(paramLabel);  // Add the label to the horizontal layout
+
+			layout->addLayout(hLayout);
 			layout->addWidget(selectButton);  // Add the "Select" button below the slicer
 
 			gridLayout->addWidget(container, row, col);
