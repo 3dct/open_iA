@@ -41,6 +41,50 @@ void iAFilterPreviewModuleInterface::Initialize()
 	connect(actionPreview, &QAction::triggered, this, &iAFilterPreviewModuleInterface::filterPreview);
 	m_mainWnd->makeActionChildDependent(actionPreview);
 	addToMenuSorted(m_mainWnd->toolsMenu(), actionPreview);
+
+
+	QAction* actionFindFilter = new QAction(tr("Find filter with properties"), m_mainWnd);
+	connect(actionFindFilter, &QAction::triggered, this, [this]() {
+		auto const& filterFactories = iAFilterRegistry::filterFactories();
+		for (auto factory : filterFactories)
+		{
+			auto filter = factory();
+			if (filter->requiredImages() != 1 || filter->inputCount() > 1 || filter->plannedOutputCount() != 1)
+			{
+				continue;
+			}
+			QString filterStr = filter->name() + " (";
+			auto pcount = filter->parameters().size();
+			int validParams = 0;
+			for (int pi = 0; pi < pcount; ++pi)
+			{
+				auto const& p = filter->parameters()[pi];
+				bool numeric = p->valueType() == iAValueType::Discrete || p->valueType() == iAValueType::Continuous;
+				QString type = p->valueType() == iAValueType::Discrete ? "int" :
+					((p->valueType() == iAValueType::Continuous) ? "float" : "other");
+				QString range = numeric ?
+					"[" +
+						(dblApproxEqual(p->min(), std::numeric_limits<double>::lowest()) ? "-inf" : QString::number(p->min())) + ".." +
+						(dblApproxEqual(p->max(), std::numeric_limits<double>::max()) ? "+inf" : QString::number(p->max())) +
+					"]"
+					: "";
+				QString value = p->defaultValue().toString();
+				QString paramStr = p->name() + ": " + type + range + " = " + value + ((pi < pcount - 1) ? ", " : "");
+				filterStr += paramStr;
+				if (p->valueType() == iAValueType::Discrete || p->valueType() == iAValueType::Continuous)
+				{
+					validParams += 1;
+				}
+			}
+			if (validParams < 3)
+			{
+				continue;
+			}
+			filterStr += ")";
+			LOG(lvlDebug, filterStr);
+		}
+	});
+	addToMenuSorted(m_mainWnd->toolsMenu(), actionFindFilter);
 }
 
 //apply filter
@@ -135,8 +179,18 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
 	chartsSpmWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	
 	connect(chartsSpmWidget, &iAQSplom::chartClick, this,
-		[this](size_t paramX, size_t paramY, double x, double y, Qt::KeyboardModifiers modifiers)
-		{ LOG(lvlInfo, QString("params : %1...%2").arg(x).arg(y)); });
+		[this, chartsSpmData, chartsSpmWidget, columnVisibility](size_t paramX, size_t paramY, double x, double y, Qt::KeyboardModifiers modifiers)
+		{
+			LOG(lvlInfo, QString("params : %1...%2").arg(x).arg(y));
+			for (int i = 0; i < chartsSpmData->numParams(); ++i)
+			{
+				chartsSpmData->data()[i].push_back(
+					(i == paramX) ? x :
+					((i == paramY) ? y : 0)
+				);
+			}
+			chartsSpmWidget->setData(chartsSpmData, columnVisibility);
+		});
 
 	// Add scatter plot matrix widget to layout
 	QVBoxLayout* controlLayout = new QVBoxLayout;
