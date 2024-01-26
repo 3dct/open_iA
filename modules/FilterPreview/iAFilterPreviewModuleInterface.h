@@ -27,4 +27,5 @@ private slots:
 	void filterPreview();
 	void openSplitView(iASlicerImpl* slicer);
 	void updateFilterAndSlicer(iASlicerImpl* slicer);  // Method to update filter and slicer
+	void generateLatinHypercubeSamples(int samples, std::vector<std::vector<double>>& samplesMatrix);
 };

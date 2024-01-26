@@ -10,6 +10,7 @@
 #include "iAFilterRegistry.h"
 #include "iATransferFunction.h"
 #include "iAVolumeViewer.h"
+#include "iAImageData.h"
 #include "iASlicerImpl.h"
 #include <iALog.h>
 #include <iAQSplom.h>
@@ -29,6 +30,10 @@
 #include <QVBoxLayout>
 #include <QInputDialog>
 #include <QPushButton>
+
+#include <vector>
+#include <random>
+#include <algorithm>
 
 
 void iAFilterPreviewModuleInterface::Initialize()
@@ -128,6 +133,29 @@ void iAFilterPreviewModuleInterface::updateFilterAndSlicer(iASlicerImpl* slicer)
 	channelData = newChannelData;
 
 	slicer->update();
+}
+
+void iAFilterPreviewModuleInterface::generateLatinHypercubeSamples(int numSamples, std::vector<std::vector<double>>& samplesMatrix)
+{
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> dis(0.0, 1.0);
+
+	int dimensions = minValues.size();
+
+	samplesMatrix.resize(dimensions, std::vector<double>(numSamples));
+
+	for (int i = 0; i < dimensions; ++i)
+	{
+		for (int j = 0; j < numSamples; ++j)
+		{
+			// Example of using member variables minValues and maxValues
+			double range = maxValues[i] - minValues[i];
+			samplesMatrix[i][j] = minValues[i] + range * ((j + dis(gen)) / numSamples);
+			LOG(lvlDebug, QString("Sample [%1][%2] = %3").arg(i).arg(j).arg(samplesMatrix[i][j]));
+		}
+		std::shuffle(samplesMatrix[i].begin(), samplesMatrix[i].end(), gen);
+	}
 }
 
 void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
@@ -363,20 +391,57 @@ void iAFilterPreviewModuleInterface::filterPreview()
 	int slicerWidth = mainWindowSize.width() / 5;    
 	int slicerHeight = mainWindowSize.height() / 5;  
 
-
+	int numSamples = 9;
+	std::vector<std::vector<double>> lhsSamples;
+	generateLatinHypercubeSamples(numSamples, lhsSamples);
 	// Generate the 3x3 matrix of slicers
+	int counter = 0;
 	for (int row = 0; row < 3; ++row)
 	{
 		for (int col = 0; col < 3; ++col)
 		{
 			QWidget* container = new QWidget(dialog);
-			QVBoxLayout* layout = new QVBoxLayout(container);
+			QVBoxLayout* layout = new QVBoxLayout(container); //main layout
+			QHBoxLayout* hLayout = new QHBoxLayout(); // This will contain the slicer and the parameter values
 
 			iASlicerImpl* slicer = new iASlicerImpl(container, iASlicerMode::XY, false);
 			iAChannelData* channel = new iAChannelData("", dynamic_cast<iAImageData*>(inputImg.get())->vtkImage(),
 				dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))->transfer()->colorTF());
 
-			slicer->addChannel(0, *channel, true);
+			QVariantMap paramValues;
+			for (int i = 0; i < parameterNames.size(); ++i)
+			{
+				paramValues[parameterNames[i]] =
+					lhsSamples[i][counter];  // Map the parameter to its corresponding value
+				LOG(lvlDebug, QString("Param Name: %1").arg(parameterNames[i]));
+				LOG(lvlDebug, QString("Sample [%1][%2] = %3").arg(counter).arg(i).arg(lhsSamples[i][counter]));
+
+				//paramValues[parameterNames[i]] = sliders[i]->value();
+			}
+
+			currentFilter->run(paramValues);
+
+			// Create a string to display the parameter values
+			QString paramDisplay;
+			for (const auto& paramName : parameterNames)
+			{
+				paramDisplay += paramName + ": " + QString::number(paramValues[paramName].toDouble()) + "\n";
+			}
+
+			// Create a label to show the parameter values
+			QLabel* paramLabel = new QLabel(paramDisplay, container);
+
+			auto outDataSet = currentFilter->outputs()[0];
+
+			auto imgData = dynamic_cast<iAImageData*>(outDataSet.get());
+			auto newChannelData = std::make_shared<iAChannelData>("",
+				imgData->vtkImage(),  // get image data directly from filter
+				// color transfer function still the one from the analysis window:
+				dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))
+					->transfer()
+					->colorTF());
+
+			slicer->addChannel(0, *newChannelData, true);
 			slicer->setMinimumSize(QSize(slicerWidth, slicerHeight));  // Set a minimum size for visibility
 			slicer->resetCamera();
 
@@ -384,13 +449,16 @@ void iAFilterPreviewModuleInterface::filterPreview()
 			QPushButton* selectButton = new QPushButton("Select", container);
 			connect(selectButton, &QPushButton::clicked, [this, slicer]() { this->openSplitView(slicer); });
 
-			layout->addWidget(slicer);
+			hLayout->addWidget(slicer);      // Add the slicer to the horizontal layout
+			hLayout->addWidget(paramLabel);  // Add the label to the horizontal layout
+
+			layout->addLayout(hLayout);
 			layout->addWidget(selectButton);  // Add the "Select" button below the slicer
 
 			gridLayout->addWidget(container, row, col);
 
+			counter++;
 
-			
 		}
 	}
 
