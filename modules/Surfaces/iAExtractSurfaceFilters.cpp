@@ -418,7 +418,7 @@ void iASimplifyMeshQuadricDecimation::performWork(QVariantMap const& parameters)
 
 iASmoothMeshWindowedSinc::iASmoothMeshWindowedSinc() :
 	iAFilter("Mesh Smoothing (Windowed Sinc)", "Extract Surface",
-		"Smooth mesh. <br/>Uses <a href=\"https://vtk.org/doc/nightly/html/classvtkWindowedSincPolyDataFilter.html\">VTK'swindowed sinc poly filter</a>.", 0)
+		"Smooth mesh.<br/>Uses <a href=\"https://vtk.org/doc/nightly/html/classvtkWindowedSincPolyDataFilter.html\">VTK's windowed sinc poly filter</a>.", 0)
 {
 	setRequiredMeshInputs(1);
 	addParameter("Number of Iterations", iAValueType::Discrete, 15);
@@ -467,8 +467,8 @@ void iAFillHoles::performWork(QVariantMap const& parameters)
 
 iADelauny3D::iADelauny3D() :
 	iAFilter("Delauny 3D", "Extract Surface",
-		"Create a triangulation surface by means of the Delaunay3D-Algorithm for the given polygon."
-		"See <a href=\"https://vtk.org/doc/nightly/html/classvtkDelaunay3D.html\">VTK documentation on Delaunay3D</a>.", 0)
+		"Create a triangulation surface by means of the Delaunay3D-Algorithm for the given polygon.<br/>"
+		"See <a href=\"https://vtk.org/doc/nightly/html/classvtkDelaunay3D.html\">VTK's documentation on Delaunay 3D</a>.", 0)
 {
 	addParameter("Alpha", iAValueType::Continuous, 0);
 	addParameter("Triangles for non-zero alpha values", iAValueType::Boolean, true);

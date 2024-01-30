@@ -78,7 +78,7 @@ void iACopy::performWork(QVariantMap const& /*parameters*/)
 
 iACopy::iACopy() :
 	iAFilter("Copy", "",
-		"Copy the input image to output."
+		"Copy the input image to output.<br/>"
 		"That is, this filter simply directly returns a copy of the input, without any modifications.")
 {
 }
