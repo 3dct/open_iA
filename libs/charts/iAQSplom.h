@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -104,8 +104,8 @@ public:
 	iAQSplom(QWidget * parent = nullptr);
 	~iAQSplom();
 
-	void setData(std::shared_ptr<iASPLOMData> data, std::vector<char> const & visibility);                  //! set SPLOM data directly.
-	std::shared_ptr<iASPLOMData> data();                              //! retrieve SPLOM data
+	void setData(std::shared_ptr<iASPLOMData> data, std::vector<char> const & visibility); //!< set SPLOM data directly.
+	std::shared_ptr<iASPLOMData> data();                             //!< retrieve SPLOM data
 	void setLookupTable( vtkLookupTable * lut, const QString & paramName ); //!< Set lookup table from VTK (vtkLookupTable) given the name of a parameter to color-code.
 	void setLookupTable( iALookupTable &lut, size_t paramIndex );    //!< Set lookup table given the index of a parameter to color-code.
 	void setColorParam( const QString & paramName );                 //!< Set the parameter to color code, lookup table will be auto-determined (By Parameter)
@@ -129,7 +129,7 @@ public:
 	void showDefaultMaxizimedPlot();                                 //!< maximize plot in upper left corner
 	void addContextMenuAction(QAction* action);                      //!< add an additional option to the context menu
 	size_t colorLookupParam() const;                                 //!< parameter currently used for color lookup
-	std::shared_ptr<iALookupTable> lookupTable() const;               //!< get lookup table
+	std::shared_ptr<iALookupTable> lookupTable() const;              //!< get lookup table
 	ColorMode colorMode() const;                                     //!< get current coloring mode
 	void saveSettings(QSettings & iniFile) const;                    //!< store current settings into given object
 	void loadSettings(QVariantMap const & iniFile);                  //!< load settings from given object
@@ -147,6 +147,7 @@ signals:
 	void currentPointModified(size_t index);                         //!< Emitted when hovered over a new point.
 	void parameterVisibilityChanged(size_t paramIndex, bool visible);//!< Emitted when the visibility of a parameter has changed (from within SPLOM, not triggered if it was set from the outside via setParameterVisibility).
 	void lookupTableChanged();                                       //!< Emitted when the lookup table has changed
+	void chartClick(size_t paramX, size_t paramY, double x, double y, Qt::KeyboardModifiers modifiers); //!< Emitted when a point in the chart is clicked (and no selection or fixed point selection happened)
 protected:
 	void clear();                                                    //!< Clear all scatter plots in the SPLOM.
 #ifdef CHART_OPENGL

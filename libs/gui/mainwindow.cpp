@@ -1,9 +1,10 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "mainwindow.h"
 
 // gui
 #include "dlg_datatypeconversion.h"
+#include "iAAboutDlg.h"
 #include "iACheckOpenGL.h"
 #include "iAFileParamDlg.h"
 #include "iALogWidget.h"
@@ -51,11 +52,11 @@
 #include <QActionGroup>
 #include <QCloseEvent>
 #include <QDate>
+#include <QDesktopServices>
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QComboBox>
 #include <QFileDialog>
-#include <QHeaderView>
 #include <QMessageBox>
 #include <QMimeData>
 #include <QMdiSubWindow>
@@ -63,12 +64,10 @@
 #include <QSettings>
 #include <QSpacerItem>
 #include <QSplashScreen>
-#include <QTableWidget>
 #include <QtConcurrent>
 #include <QTextStream>
 #include <QTimer>
 #include <QtXml/QDomDocument>
-#include <QDesktopServices>
 
 const int MainWindow::MaxRecentFiles;
 
@@ -983,123 +982,6 @@ void MainWindow::loadCameraSettings()
 	LOG(lvlInfo, QString("Loaded camera settings from %1").arg(fileName));
 }
 
-void MainWindow::about()
-{
-	QDialog dlg(this);
-	dlg.setWindowTitle("About open_iA");
-	dlg.setLayout(new QVBoxLayout());
-	
-	auto imgLabel = new QLabel();
-	imgLabel->setPixmap(m_splashScreenImg);
-	// to center image:
-	auto imgWidget = new QWidget();
-	imgWidget->setLayout(new QHBoxLayout());
-	imgWidget->layout()->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
-	imgWidget->layout()->addWidget(imgLabel);
-	imgWidget->layout()->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
-
-	dlg.layout()->addWidget(imgWidget);
-
-	auto linkLabel = new QLabel("<a href=\"https://3dct.github.io/open_iA/\">3dct.github.io/open_iA</a>");
-	linkLabel->setTextFormat(Qt::RichText);
-	linkLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
-	linkLabel->setOpenExternalLinks(true);
-	linkLabel->setAlignment(Qt::AlignRight);
-	dlg.layout()->addWidget(linkLabel);
-
-	auto buildInfoLabel = new QLabel("Build information:");
-	buildInfoLabel->setIndent(0);
-	buildInfoLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-	dlg.layout()->addWidget(buildInfoLabel);
-	
-	auto rows = m_buildInformation.count('\n') + 1;
-	auto table = new QTableWidget(rows, 2, this);
-	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	table->setItem(0, 0, new QTableWidgetItem("Version"));
-	table->setItem(0, 1, new QTableWidgetItem(m_gitVersion));
-	auto lines = m_buildInformation.split("\n");
-	int row = 1;
-	for (auto line: lines)
-	{
-		auto tokens = line.split("\t");
-		if (tokens.size() != 2)
-		{
-			continue;
-		}
-		table->setItem(row, 0, new QTableWidgetItem(tokens[0]));
-		table->setItem(row, 1, new QTableWidgetItem(tokens[1]));
-		++row;
-	}
-	table->resizeColumnsToContents();
-	table->verticalHeader()->hide();
-	table->horizontalHeader()->hide();
-	// set fixed table height:
-	auto tableHeight = 0;
-	for (int r = 0; r < table->rowCount(); ++r)
-	{
-		tableHeight += table->rowHeight(r);
-	}
-	// +2 to avoid minor scrolling when clicking on the left/right- up/bottom-most cell in the table:
-	tableHeight += 2;
-	auto tableWidth = 0;
-	for (int c=0; c < table->columnCount(); ++c)
-	{
-		tableWidth += table->columnWidth(c);
-	}
-	auto screenHeightThird = screen()->geometry().height() / 3;
-	if (imgLabel->height() > screenHeightThird)
-	{
-		imgLabel->setFixedSize(
-			screenHeightThird * static_cast<double>(imgLabel->width()) / imgLabel->height(),
-			screenHeightThird);
-	}
-
-	imgLabel->setScaledContents(true);
-	// make sure about dialog isn't higher than roughly 2/3 the screen size:
-	tableWidth = std::max(tableWidth, imgLabel->width());
-	const int MinTableHeight = 50;
-	auto newTableHeight = std::max(MinTableHeight, std::min(tableHeight, screenHeightThird));
-	table->setMinimumWidth(tableWidth + 20); // + 20 for approximation of scrollbar width; verticalScrollBar()->height is wildly inaccurate before first show (100 or so)
-	table->setMinimumHeight(newTableHeight);
-	//table->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	table->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	table->setAlternatingRowColors(true);
-	table->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-	table->horizontalHeader()->setStretchLastSection(true);
-	dlg.layout()->addWidget(table);
-
-	auto okBtn = new QPushButton("Ok");
-	connect(okBtn, &QPushButton::clicked, &dlg, &QDialog::accept);
-	dlg.layout()->addWidget(okBtn);
-
-	dlg.exec();
-}
-
-void MainWindow::wiki()
-{
-	auto act = qobject_cast<QAction*>(QObject::sender());
-	if (act->text().contains("Core"))
-	{
-		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Core"));
-	}
-	else if (act->text().contains("Filters"))
-	{
-		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Filters"));
-	}
-	else if (act->text().contains("Tools"))
-	{
-		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Tools"));
-	}
-	else if (act->text().contains("releases"))
-	{
-		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/releases"));
-	}
-	else if (act->text().contains("bug"))
-	{
-		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/issues"));
-	}
-}
-
 void MainWindow::createRecentFileActions()
 {
 	m_separatorAct = m_ui->menuFile->addSeparator();
@@ -1319,12 +1201,31 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionSubWindows, &QAction::triggered, this, &MainWindow::toggleMdiViewMode);
 
 	// "Help" menu entries:
-	connect(m_ui->actionUserGuideCore, &QAction::triggered, this, &MainWindow::wiki);
-	connect(m_ui->actionUserGuideFilters, &QAction::triggered, this, &MainWindow::wiki);
-	connect(m_ui->actionUserGuideTools, &QAction::triggered, this, &MainWindow::wiki);
-	connect(m_ui->actionReleases, &QAction::triggered, this, &MainWindow::wiki);
-	connect(m_ui->actionBug, &QAction::triggered, this, &MainWindow::wiki);
-	connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
+	static std::map<QString, std::pair<QString, QString>> linkMap{
+		{"Available releases", std::make_pair("https://github.com/3dct/open_iA/releases",
+			"Opens a list of available open_iA releases in your default web browser")},
+		{"Bug Tracker", std::make_pair("https://github.com/3dct/open_iA/issues",
+			"Opens the open_iA bug tracker in your default web browser")},
+		{"Core user guide", std::make_pair("https://github.com/3dct/open_iA/wiki/Core",
+			"Opens the online open_iA core user guide (explaining the core user interface elements) in your default web browser")},
+		{"Filters user guide", std::make_pair("https://github.com/3dct/open_iA/wiki/Filters",
+			"Opens the online open_iA filters user guide (explaining dataset processing in your default web browser")},
+		{"Tools user guide", std::make_pair("https://github.com/3dct/open_iA/wiki/Tools",
+			"Opens the online open_iA tools user guide in your default web browser")},
+	};
+	for (auto l : linkMap)
+	{
+		auto a = new QAction(l.first, m_ui->menuHelp);
+		a->setToolTip(linkMap[l.first].second);
+		connect(a, &QAction::triggered, this, [this]()
+		{
+			auto act = qobject_cast<QAction*>(QObject::sender());
+			QDesktopServices::openUrl(QUrl(linkMap[act->text()].first));
+		});
+		m_ui->menuHelp->insertAction(m_ui->actionAbout, a);
+	}
+	connect(m_ui->actionAbout, &QAction::triggered, this, [this]
+		{ iAAboutDlg::show(this, m_splashScreenImg, m_buildInformation, m_gitVersion, screen()->geometry().height()); });
 
 	// Renderer toolbar:
 	connect(m_ui->actionViewXDirectionInRaycaster, &QAction::triggered,  this, [childCall] { childCall(&MdiChild::setPredefCamPos, iACameraPosition::PX); });

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAObjectsViewer.h"
 
@@ -16,11 +16,8 @@ namespace
 	QColor DefaultColor("darkGray");    // for consistency with FeatureScout's default color
 }
 
-const QString iAObjectsRenderer::Color("Color");
-const QString iAObjectsRenderer::SegmentSkip("Segment Skip");
-const QString iAObjectsRenderer::NumOfCylinderSides("Number of cylinder sides");
-
-class iAobjectvis_API iAObjectsRendererSettings : iASettingsObject<iAObjectsRenderer::Name, iAObjectsRendererSettings>
+//! Display settings for object visualizations.
+class iAObjectsRendererSettings : iASettingsObject<iAObjectsRenderer::Name, iAObjectsRendererSettings>
 {
 public:
 	static iAAttributes& defaultAttributes()
@@ -31,6 +28,7 @@ public:
 			addAttr(attr, iAObjectsRenderer::Color, iAValueType::Color, DefaultColor);
 			addAttr(attr, iAObjectsRenderer::SegmentSkip, iAValueType::Discrete, 1, 1, 1000);
 			addAttr(attr, iAObjectsRenderer::NumOfCylinderSides, iAValueType::Discrete, 12, 3, 10000);
+			selfRegister();
 		}
 		return attr;
 	}

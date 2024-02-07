@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFeatureAnalyzer.h"
 
@@ -84,7 +84,6 @@ iAFeatureAnalyzer::iAFeatureAnalyzer(iAMainWindow* mWnd, const QString& resDir, 
 	connect( rangeSliderDiagramView, &iARangeSliderDiagramView::selectionModified, m_spmView, &iASPMView::setRSDSelection);
 	connect( m_treeView, &iATreeView::clearOldRSDViewSignal, rangeSliderDiagramView, &iARangeSliderDiagramView::clearOldRSDView);
 	connect( this, &iAFeatureAnalyzer::runsOffsetChanged, m_ssView, &iASSView::setRunsOffset);
-	connect( m_treeView, &iATreeView::displayMessage, this, &iAFeatureAnalyzer::message);
 	connect( m_treeView, &iATreeView::loadDatasetsToPreviewSignal, m_prvSplomView, &iAPreviewSPLOMView::SetDatasets);
 	connect( m_treeView, &iATreeView::loadAllDatasetsByIndicesSignal, m_spmView, &iASPMView::setDatasetsByIndices);
 	connect( m_spmView, &iASPMView::previewSliceChanged, m_prvSplomView, &iAPreviewSPLOMView::SetSlice);
@@ -384,11 +383,6 @@ void iAFeatureAnalyzer::selectionLoaded( iASelection * sel )
 void iAFeatureAnalyzer::tabChanged( int /*index*/ )
 {
 	//emit loadTreeDataToViews();
-}
-
-void iAFeatureAnalyzer::message( QString text )
-{
-	statusBar()->showMessage( text );
 }
 
 bool iAFeatureAnalyzer::doSaveProject(QString const& projectFileName)

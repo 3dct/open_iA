@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -73,7 +73,6 @@ signals:
 	void loadAllDatasetsByIndicesSignal( QStringList sel_datasets, QList<int> indices );
 	void selectionModified( QList<QTreeWidgetItem*>* );
 	void clearOldRSDViewSignal();
-	void displayMessage( QString );
 
 public slots:
 	void loadSelectionToSPM();

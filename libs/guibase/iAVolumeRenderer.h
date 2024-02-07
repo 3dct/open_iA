@@ -1,11 +1,10 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 #include "iaguibase_export.h"
 
 #include "iADataSetRenderer.h"
-#include "iADefaultSettings.h"
 
 #include <vtkSmartPointer.h>
 

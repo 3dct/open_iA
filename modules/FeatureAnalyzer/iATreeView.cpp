@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iATreeView.h"
 
@@ -506,7 +506,7 @@ void iATreeView::loadSelectionToRSD( QList<QTreeWidgetItem*> selectedItems )
 	//Currently only one algo + one dataset
 	if ( m_lastSelectedItems.size() > 1 )
 	{
-		emit displayMessage( "'Parameter Range Slider' only can show one pipeline/dataset combination at the same time." );
+		LOG(lvlError, "Parameter Range Slider only can show one pipeline/dataset combination at the same time." );
 		emit clearOldRSDViewSignal();
 		return;
 	}
@@ -522,7 +522,7 @@ void iATreeView::loadSelectionToRSD( QList<QTreeWidgetItem*> selectedItems )
 	//Parameter-free algorithms in Parameter Range Slider View makes no sense
 	if ( header.size() < 1 )
 	{
-		emit displayMessage( "A parameter-free algorithm can not be shown in the Parameter Range Slider View." );
+		LOG(lvlError, "A parameter-free algorithm can not be shown in the Parameter Range Slider View." );
 		return;
 	}
 

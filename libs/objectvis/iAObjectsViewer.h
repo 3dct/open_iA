@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 #include <iADataSetRenderer.h>
@@ -15,9 +15,9 @@ class iAobjectvis_API iAObjectsRenderer : public iADataSetRenderer
 {
 public:
 	static constexpr const char Name[] = "Default Settings/Dataset Renderer: Objects";
-	static const QString Color;
-	static const QString SegmentSkip;
-	static const QString NumOfCylinderSides;
+	static constexpr const char Color[] = "Color";
+	static constexpr const char SegmentSkip[] = "Segment Skip";
+	static constexpr const char NumOfCylinderSides[] = "Number of cylinder sides";
 	iAObjectsRenderer(vtkRenderer* renderer, iAObjectVis* objVis, QVariantMap const& overrideValues);
 	~iAObjectsRenderer();
 	void applyAttributes(QVariantMap const& values) override;

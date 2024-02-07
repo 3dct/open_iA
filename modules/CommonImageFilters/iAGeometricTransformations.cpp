@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <defines.h>          // for DIM
 #include <iAFilterDefault.h>
@@ -78,7 +78,7 @@ void iACopy::performWork(QVariantMap const& /*parameters*/)
 
 iACopy::iACopy() :
 	iAFilter("Copy", "",
-		"Copy the input image to output."
+		"Copy the input image to output.<br/>"
 		"That is, this filter simply directly returns a copy of the input, without any modifications.")
 {
 }

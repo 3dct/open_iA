@@ -1,8 +1,7 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFrustumActor.h"
 
-#include "iAVec3.h"
 
 #include <vtkActor.h>
 #include <vtkCamera.h>
@@ -44,24 +43,37 @@ iAFrustumActor::iAFrustumActor(vtkRenderer* ren, vtkCamera* cam, double size) :
 
 void iAFrustumActor::Execute(vtkObject*, unsigned long, void*)
 {
-	const int UpdateIntervalMS = 40;
+	const int UpdateIntervalMS = 250;
 	if (m_lastUpdate.elapsed() < UpdateIntervalMS)
 	{	// rate-limit the update to 25 fps
 		return;
 		// TODO: what if it's last update in a row?
 	}
-	iAVec3d pos(m_cam->GetPosition());
-	iAVec3d dir(m_cam->GetDirectionOfProjection());
+	iAVec3d pos;
+	iAVec3d dir;
+	{
+		std::lock_guard l(m_mutex);
+		pos = iAVec3d(m_cam->GetPosition());
+		dir = iAVec3d(m_cam->GetDirectionOfProjection());
+	}
 	dir.normalize();
-	iAVec3d dirVecPos(pos + dir * m_size * 5);
-	
-	m_camPosSource->SetCenter(pos.data());
-	m_camDirSource->SetPoint1(pos.data());
-	m_camDirSource->SetPoint2(dirVecPos.data());
-	
+	if (pos == m_pos && dir == m_dir)
+	{
+		return;
+	}
+	m_pos = pos;
+	m_dir = dir;
 	m_lastUpdate.start();
-
 	emit updateRequired();
+}
+
+void iAFrustumActor::updateSource()
+{
+	std::lock_guard l(m_mutex);
+	iAVec3d dirVecPos(m_pos + m_dir * m_size * 5);
+	m_camPosSource->SetCenter(m_pos.data());
+	m_camDirSource->SetPoint1(m_pos.data());
+	m_camDirSource->SetPoint2(dirVecPos.data());
 }
 
 void iAFrustumActor::show()

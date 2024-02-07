@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAScatterPlotWidget.h"
 
@@ -127,7 +127,7 @@ void iAScatterPlotWidget::setData(std::shared_ptr<iASPLOMData> d)
 	connect(m_viewData.get(), &iAScatterPlotViewData::filterChanged, this, &iAScatterPlotWidget::updateFilter);
 	connect(m_scatterplot.get(), &iAScatterPlot::currentPointModified, this, &iAScatterPlotWidget::currentPointUpdated);
 	connect(m_scatterplot.get(), &iAScatterPlot::selectionModified, this, &iAScatterPlotWidget::selectionModified);
-	connect(m_scatterplot.get(), &iAScatterPlot::chartClicked, this, &iAScatterPlotWidget::chartClicked);
+	connect(m_scatterplot.get(), &iAScatterPlot::chartPress, this, &iAScatterPlotWidget::chartPress);
 	update();
 }
 

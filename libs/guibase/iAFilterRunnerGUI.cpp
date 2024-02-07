@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFilterRunnerGUI.h"
 
@@ -273,12 +273,6 @@ void iAFilterRunnerGUI::run(std::shared_ptr<iAFilter> filter, iAMainWindow* main
 	QString newTitle(filter->outputName(0) + " " + oldTitle);
 	filterGUIPreparations(filter, sourceMdi, mainWnd, paramValues);
 	auto thread = new iAFilterRunnerGUIThread(filter, paramValues, sourceMdi);
-	if (!thread)
-	{
-		mainWnd->statusBar()->showMessage("Cannot create result calculation thread!", 5000);
-		emit finished();
-		return;
-	}
 	if (sourceMdi)
 	{
 		auto dataSets = sourceMdi->dataSetMap();
@@ -316,7 +310,6 @@ void iAFilterRunnerGUI::run(std::shared_ptr<iAFilter> filter, iAMainWindow* main
 	}
 	connect(thread, &QThread::finished, this, &iAFilterRunnerGUI::filterFinished);
 	iAJobListView::get()->addJob(filter->name(), filter->progress(), thread, filter->canAbort() ? thread : nullptr);
-	mainWnd->statusBar()->showMessage(filter->name(), 5000);
 	thread->start();
 }
 

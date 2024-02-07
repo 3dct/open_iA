@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <defines.h>          // for DIM
 #include <iAFilterDefault.h>
@@ -306,11 +306,11 @@ iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization() :
 		"mean subtraction).<br/>"
 		"<em>Alpha</em> controls how much the filter acts like the "
 		"classical histogram equalization method (Alpha=0) to how much the "
-		"filter acts like an unsharp mask (Alpha=1). The parameter <em>Beta</em> "
+		"filter acts like an unsharp mask (Alpha=1).<br/>The parameter <em>Beta</em> "
 		"controls how much the filter acts like an unsharp mask (Beta=0) to "
-		"how much the filter acts like pass through (Beta=1, with Alpha=1)."
+		"how much the filter acts like pass through (Beta=1, with Alpha=1).<br/>"
 		"<em>Radius</em> specifies the size of the region (in voxels) around "
-		"the current voxel used for filtering."
+		"the current voxel used for filtering.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1AdaptiveHistogramEqualizationImageFilter.html\">"
 		"Adaptive Histogram Equalization Filter</a> in the ITK documentation.")

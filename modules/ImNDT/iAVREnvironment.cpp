@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVREnvironment.h"
 
@@ -7,7 +7,7 @@
 
 #include <iALog.h>
 
-#include <vtkVersion.h>
+#include <vtkVersionMacros.h>
 
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
 #include <vtkCullerCollection.h>
@@ -68,21 +68,22 @@ void iAVREnvironment::start()
 	}
 	m_renderWindow->AddRenderer(m_renderer);
 	// MultiSamples needs to be set to 0 to make Volume Rendering work:
-	// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
+	// https://vtkusers.public.kitware.narkive.com/xVSi4EaU/problems-in-rendering-volume-with-vtkopenvr
 	//m_renderWindow->SetMultiSamples(0);
 	m_interactor->SetRenderWindow(m_renderWindow);
 	m_renderer->SetActiveCamera(iAvtkVR::createCamera(m_backend) );
 	m_renderer->ResetCamera();
 	m_renderer->ResetCameraClippingRange();
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
-	// workaround for dysfunctional culler culling right eye in VTK >= 9.2:
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0) && VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 3, 20240101)
+	// workaround for dysfunctional culler culling right eye in VTK >= 9.2;
+	// see also https://discourse.vtk.org/t/openvr-problems-with-vtk-9-2/10992
 	m_renderer->RemoveCuller(m_renderer->GetCullers()->GetLastItem());
 #endif
 	m_interactor->GetPickingManager()->EnabledOn();
 
 	m_vrMainThread = new iAVRMainThread(m_renderWindow, m_interactor, m_backend);
 	connect(m_vrMainThread, &QThread::finished, this, &iAVREnvironment::vrDone);
-	m_vrMainThread->setObjectName("ImNDTRenderThread");
+	m_vrMainThread->setObjectName("VRMainThread");
 	m_vrMainThread->start();
 
 	//TODO: Wait for thread to finish or the rendering might not have started yet
@@ -226,13 +227,13 @@ bool iAVREnvironment::isRunning() const
 	return m_vrMainThread;
 }
 
-void iAVREnvironment::removeRenderer(std::shared_ptr<iADataSetRenderer> renderer)
+void iAVREnvironment::queueTask(std::function<void()> task)
 {
 	if (!m_vrMainThread)
 	{
 		return;
 	}
-	m_vrMainThread->removeRenderer(renderer);
+	m_vrMainThread->queueTask(task);
 }
 
 iAvtkVR::Backend iAVREnvironment::backend() const

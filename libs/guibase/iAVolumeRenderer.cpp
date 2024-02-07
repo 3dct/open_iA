@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVolumeRenderer.h"
 
@@ -7,13 +7,14 @@
 #include <iATransferFunction.h>
 #include <iAValueTypeVectorHelpers.h>
 
-#include <iAMainWindow.h>    // for default volume settings
+#include "iADefaultSettings.h"
+#include "iAMainWindow.h"    // for default volume settings
 
 #include <vtkCallbackCommand.h>
 #include <vtkImageData.h>
 #include <vtkRenderer.h>
 #include <vtkSmartVolumeMapper.h>
-#include <vtkVersion.h>
+#include <vtkVersionMacros.h>
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 
@@ -30,9 +31,8 @@ namespace
 
 constexpr const char VolumeRendererName[] = "Default Settings/Dataset Renderer: Volume";
 //! Encapsulates the specifics of the settings of a volume renderer.
-//! Handles auto-registration of the settings with iASettingsManager (via deriving from iASettingsObject),
-//! and thus avoids having to expose users of iAVolumeRenderer to the settings auto-registration.
-class iAguibase_API iAVolumeRendererSettings : iASettingsObject<VolumeRendererName, iAVolumeRendererSettings>
+//! Handles auto-registration of the settings with iASettingsManager (via deriving from iASettingsObject).
+class iAVolumeRendererSettings : iASettingsObject<VolumeRendererName, iAVolumeRendererSettings>
 {
 public:
 	static iAAttributes& defaultAttributes() {
@@ -61,6 +61,7 @@ public:
 			addAttr(attr, GlobalIlluminationReach, iAValueType::Continuous, 0.0, 0.0, 1.0);
 			addAttr(attr, VolumetricScatteringBlending, iAValueType::Continuous, -1.0, 0.0, 2.0);
 #endif
+			selfRegister();
 		}
 		return attr;
 	}

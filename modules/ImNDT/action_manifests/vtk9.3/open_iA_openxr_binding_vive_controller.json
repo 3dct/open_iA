@@ -29,7 +29,7 @@
               "output": "movement"
             }
           },
-          "path": "/user/hand/right/input/joystick"
+          "path": "/user/hand/right/input/trackpad"
         },
         {
           "inputs": {
@@ -40,12 +40,12 @@
               "output": "trackpadleftmove"
             }
           },
-          "path": "/user/hand/left/input/joystick"
+          "path": "/user/hand/left/input/trackpad"
         },
         {
           "inputs": {
             "click": {
-              "output": "rightgripaction"
+              "output": "complexgestureaction"
             }
           },
           "path": "/user/hand/right/input/squeeze"
@@ -53,7 +53,7 @@
         {
           "inputs": {
             "click": {
-              "output": "leftgripaction"
+              "output": "complexgestureaction"
             }
           },
           "path": "/user/hand/left/input/squeeze"
@@ -64,7 +64,7 @@
               "output": "showmenu"
             }
           },
-          "path": "/user/hand/right/input/a"
+          "path": "/user/hand/right/input/menu"
         },
         {
           "inputs": {
@@ -72,23 +72,7 @@
               "output": "showmenuleft"
             }
           },
-          "path": "/user/hand/left/input/x"
-        },
-        {
-          "inputs": {
-            "click": {
-              "output": "secondbuttonright"
-            }
-          },
-          "path": "/user/hand/right/input/b"
-        },
-        {
-          "inputs": {
-            "click": {
-              "output": "secondbuttonleft"
-            }
-          },
-          "path": "/user/hand/left/input/y"
+          "path": "/user/hand/left/input/menu"
         },
         {
           "inputs": {
@@ -101,7 +85,7 @@
         {
           "inputs": {
             "click": {
-              "output": "^triggeraction"
+              "output": "triggeraction"
             }
           },
           "path": "/user/hand/right/input/trigger"
@@ -109,10 +93,4 @@
       ]
     }
   },
-  "category": "steamvr_input",
-  "controller_type": "oculus_touch",
-  "description": "",
-  "name": "Bindings for VTK applications for Oculus Touch Controllers",
-  "options": {},
-  "simulated_actions": []
 }

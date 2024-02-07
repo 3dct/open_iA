@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVR3DText.h"
 
@@ -6,6 +6,7 @@
 #include <iAVec3.h>
 
 #include <vtkCamera.h>
+#include <vtkVersionMacros.h>
 #include <vtkTextProperty.h>
 
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)

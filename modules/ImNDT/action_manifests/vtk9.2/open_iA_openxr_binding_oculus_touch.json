@@ -1,113 +1,112 @@
 {
-  "action_manifest_version": 0,
-  "alias_info": {},
-  "app_key": "system.generated.open_iA.exe",
+  "interaction_profile": "/interaction_profiles/oculus/touch",
+
   "bindings": {
-    "/actions/vtk": {
+    "vtk-actions": {
       "sources": [
         {
           "inputs": {
-            "click": {
-              "output": "/actions/vtk/in/startmovement"
-            },
-            "position": {
-              "output": "/actions/vtk/in/movement"
+            "pose": {
+              "output": "handpose"
             }
           },
-          "mode": "joystick",
+          "path": "/user/hand/left/input/aim"
+        },
+        {
+          "inputs": {
+            "pose": {
+              "output": "handpose"
+            }
+          },
+          "path": "/user/hand/right/input/aim"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "startmovement"
+            },
+            "position": {
+              "output": "movement"
+            }
+          },
           "path": "/user/hand/right/input/joystick"
         },
         {
           "inputs": {
             "click": {
-              "output": "/actions/vtk/in/trackpadleftclick"
+              "output": "trackpadleftclick"
             },
             "position": {
-              "output": "/actions/vtk/in/trackpadleftmove"
+              "output": "trackpadleftmove"
             }
           },
-          "mode": "joystick",
           "path": "/user/hand/left/input/joystick"
         },
         {
           "inputs": {
             "click": {
-              "output": "/actions/vtk/in/rightgripaction"
+              "output": "rightgripaction"
             }
           },
-          "mode": "button",
-          "path": "/user/hand/right/input/grip"
+          "path": "/user/hand/right/input/squeeze"
         },
         {
           "inputs": {
             "click": {
-              "output": "/actions/vtk/in/leftgripaction"
+              "output": "leftgripaction"
             }
           },
-          "mode": "button",
-          "path": "/user/hand/left/input/grip"
+          "path": "/user/hand/left/input/squeeze"
         },
         {
           "inputs": {
             "click": {
-              "output": "/actions/vtk/in/showmenu"
+              "output": "showmenu"
             }
           },
-          "mode": "button",
           "path": "/user/hand/right/input/a"
         },
         {
           "inputs": {
             "click": {
-              "output": "/actions/vtk/in/showmenuleft"
+              "output": "showmenuleft"
             }
           },
-          "mode": "button",
           "path": "/user/hand/left/input/x"
         },
         {
           "inputs": {
             "click": {
-              "output": "/actions/vtk/in/secondbuttonright"
+              "output": "secondbuttonright"
             }
           },
-          "mode": "button",
           "path": "/user/hand/right/input/b"
         },
         {
           "inputs": {
             "click": {
-              "output": "/actions/vtk/in/secondbuttonleft"
+              "output": "secondbuttonleft"
             }
           },
-          "mode": "button",
           "path": "/user/hand/left/input/y"
         },
         {
           "inputs": {
             "click": {
-              "output": "/actions/vtk/in/nextcamerapose"
+              "output": "nextcamerapose"
             }
           },
-          "mode": "trigger",
           "path": "/user/hand/left/input/trigger"
         },
         {
           "inputs": {
             "click": {
-              "output": "/actions/vtk/in/triggeraction"
+              "output": "^triggeraction"
             }
           },
-          "mode": "trigger",
           "path": "/user/hand/right/input/trigger"
         }
       ]
     }
   },
-  "category": "steamvr_input",
-  "controller_type": "oculus_touch",
-  "description": "",
-  "name": "Bindings for VTK applications for Oculus Touch Controllers",
-  "options": {},
-  "simulated_actions": []
 }

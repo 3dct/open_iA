@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -29,6 +29,8 @@ public:
 	void Initialize() override;
 	bool ImNDT(std::shared_ptr<iAObjectsData> objData, std::shared_ptr<iAColoredPolyObjectVis> polyObject, iACsvConfig csvConfig);
 	vtkRenderer* getRenderer();
+	//! queue a task to be executed in the VR main thread
+	void queueTask(std::function<void()> fn);
 
 signals:
 	void selectionChanged();

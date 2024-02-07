@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iADreamCasterModuleInterface.h"
 
@@ -29,7 +29,6 @@ void iADreamCasterModuleInterface::dreamcasterOpenFile()
 		iADreamCaster *child = new iADreamCaster( m_mainWnd );
 		m_mainWnd->addSubWindow( child );
 		child->loadFile( fileName );
-		m_mainWnd->statusBar()->showMessage( tr( "File loaded" ), 5000 );
 		child->show();
 	}
 }

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <QOpenGLFunctions>
 #include <QString>
@@ -10,12 +10,8 @@ bool checkOpenGLVersion(QString & msg)
 	{
 		QWindow test;
 		QSurfaceFormat fmt;
-#if defined(__APPLE__) && defined(__MACH__)
 		fmt.setVersion(3, 2);
 		fmt.setProfile(QSurfaceFormat::CoreProfile);
-#else
-		fmt.setVersion(1, 0);
-#endif
 		test.setSurfaceType(QWindow::OpenGLSurface);
 		test.setFormat(fmt);
 		auto context = new QOpenGLContext(&test);

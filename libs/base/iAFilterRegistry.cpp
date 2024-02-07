@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFilterRegistry.h"
 
@@ -6,7 +6,7 @@
 #include "iAFilter.h"
 
 namespace
-{// if the data structures here would be members of iAFilterRegistry, we would run into the "Static Initialization Order Fiasco"!
+{	// if the data structures here would be members of iAFilterRegistry, we would run into the "Static Initialization Order Fiasco"!
 	std::vector<iAFilterCreateFuncPtr> & filters()
 	{
 		static std::vector<iAFilterCreateFuncPtr> filterList;

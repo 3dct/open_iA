@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAXVRAModuleInterface.h"
 
@@ -36,8 +36,7 @@
 iAXVRAModuleInterface::iAXVRAModuleInterface() :
 	m_fsMain(nullptr),
 	fsFrustum(nullptr),
-	vrFrustum(nullptr),
-	m_updateRequired(false)
+	vrFrustum(nullptr)
 {
 }
 
@@ -100,8 +99,8 @@ void iAXVRAModuleInterface::startXVRA()
 		return;
 	}
 	// Create PolyObject visualization
-	auto polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(createObjectVis(objData.get(), QColor(140, 140, 140, 255)));
-	if (!polyObject)
+	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(createObjectVis(objData.get(), QColor(140, 140, 140, 255)));
+	if (!m_polyObject)
 	{
 		LOG(lvlError, "Invalid 3D object visualization!");
 		return;
@@ -109,7 +108,7 @@ void iAXVRAModuleInterface::startXVRA()
 
 	// Start VR
 	auto vrMain = m_mainWnd->moduleDispatcher().module<iAImNDTModuleInterface>();
-	if (!vrMain->ImNDT(objData, polyObject, csvConfig))
+	if (!vrMain->ImNDT(objData, m_polyObject, csvConfig))
 	{
 		return;
 	}
@@ -129,17 +128,17 @@ void iAXVRAModuleInterface::startXVRA()
 	vrFrustum = new iAFrustumActor(vrMain->getRenderer(), fsCam, maxSize/10);  // frustum of featurescout shown in vr
 	fsFrustum = new iAFrustumActor(m_mainWnd->activeMdiChild()->renderer()->renderer(), vrCam, maxSize / 10);  // frustum of vr shown in featurescout
 
-	m_updateRenderer.callOnTimeout([this, child]()
+	connect(fsFrustum, &iAFrustumActor::updateRequired, this, [this, child]()
 	{
-		if (m_updateRequired)
-		{	// trigger an update to renderer if camera indicator has changed
-			child->updateRenderer();
-		}
-		m_updateRequired = false;
+		// trigger an update to renderer if camera indicator has changed
+		fsFrustum->updateSource();
+		child->updateRenderer();
 	});
-	m_updateRenderer.setInterval(200);	// maximum update interval
-	connect(fsFrustum, &iAFrustumActor::updateRequired, [this]() { m_updateRequired = true; });
-	m_updateRenderer.start();
+	connect(vrFrustum, &iAFrustumActor::updateRequired, vrMain, [this, vrMain]()
+	{
+		vrMain->queueTask([this]() { vrFrustum->updateSource();  });
+	});
+
 	vrFrustum->show();
 	fsFrustum->show();
 

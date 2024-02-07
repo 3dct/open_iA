@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "dlg_FeatureScout.h"
 
@@ -88,6 +88,7 @@
 #include <vtkTable.h>
 #include <vtkTextProperty.h>
 #include <vtkVariantArray.h>
+#include <vtkVersionMacros.h>
 
 #include <QFileDialog>
 #include <QFileInfo>
