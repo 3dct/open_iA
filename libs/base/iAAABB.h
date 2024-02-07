@@ -18,7 +18,11 @@
 class iAbase_API iAAABB
 {
 public:
+	//! construct an "empty" bounding box, ready to be adjusted to new points via addPointToBox
+	//! All 3 maximum coordinates are set to the minimum possible double value,
+	//! all 3 minimum coordinates are set to the maximum possible double value.
 	iAAABB();
+	//! construct bounding box from 6 double values (xmin, xmax, ymin, ymax, zmin, zmax)
 	iAAABB(double const* b);
 	//! add a point that should fit into the bounding box; if the current box does not contain this point, it is enlarged
 	void addPointToBox(iAVec3d const& pt);
@@ -28,7 +32,9 @@ public:
 	bool contains(iAVec3d const& pt) const;
 	//! return true if the given other bounding box has intersecting space with this
 	bool intersects(iAAABB const& other) const;
+	//! Retrieve the minimum of each of the 3 coordinates as point vector
 	iAVec3d const& minCorner() const;
+	//! Retrieve the maximum of each of the 3 coordinates as point vector
 	iAVec3d const& maxCorner() const;
 
 private:
