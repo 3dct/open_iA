@@ -44,32 +44,36 @@ void iAFilterPreviewModuleInterface::Initialize()
 }
 
 //apply filter
-void iAFilterPreviewModuleInterface::updateFilterAndSlicer(iASlicerImpl* slicer)
+void iAFilterPreviewModuleInterface::updateFilterAndSlicer(iASlicerImpl* slicer, QVariantMap& paramValues)
 {
 	if (!currentFilter)
 	{
 		return;  // No filter set
 	}
 
-	QVariantMap paramValues;
-	for (int i = 0; i < parameterNames.size(); ++i)
-	{
-		double mappedValue = minValues[i] + (maxValues[i] - minValues[i]) * (double(sliders[i]->value()) / 100);
-		paramValues[parameterNames[i]] = mappedValue;
-	}
-
-	
 	currentFilter->run(paramValues);  // Run the filter with new parameters
 
-	for (auto o : currentFilter->outputs())
-	{
-		child->addDataSet(o);  // Assuming 'child' is accessible here
-	}
+	auto outDataSet = currentFilter->outputs()[0];
 
-	iAChannelData* channelMod = new iAChannelData("", child->firstImageData(),
+	auto imgData = dynamic_cast<iAImageData*>(outDataSet.get());
+	auto newChannelData = std::make_shared<iAChannelData>("",
+		imgData->vtkImage(),  // get image data directly from filter
+		// color transfer function still the one from the analysis window:
 		dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))->transfer()->colorTF());
 
-	slicer->updateChannel(0, *channelMod);  // Update the slicer
+	if (slicer->hasChannel(0))
+	{
+		// Channel with ID 0 exists, so update it
+		slicer->updateChannel(0, *newChannelData);
+	}
+	else
+	{
+		// Channel with ID 0 does not exist, so add it
+		slicer->addChannel(0, *newChannelData, true);
+	}
+
+	slicer->setMinimumSize(QSize(slicerWidth, slicerHeight));  // Set a minimum size for visibility
+	slicer->resetCamera();    // Update the slicer
 }
 
 void iAFilterPreviewModuleInterface::generateLatinHypercubeSamples(int numSamples, std::vector<std::vector<double>>& samplesMatrix)
@@ -95,7 +99,7 @@ void iAFilterPreviewModuleInterface::generateLatinHypercubeSamples(int numSample
 	}
 }
 
-void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
+void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const QVariantMap& originalParamValues)
 {
 	if (dialog)
 	{
@@ -142,11 +146,29 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
 	chartsSpmWidget->setPointRadius(2);
 	chartsSpmWidget->setMinimumWidth(400);
 	chartsSpmWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+	QVariantMap paramValues = originalParamValues; //Make a copy of the parameter values to allow modifications
 	
 	connect(chartsSpmWidget, &iAQSplom::chartClick, this,
-		[this](size_t paramX, size_t paramY, double x, double y, Qt::KeyboardModifiers modifiers)
-		{ LOG(lvlInfo, QString("params : %1...%2").arg(x).arg(y)); });
+		[this,slicer, chartsSpmData, chartsSpmWidget, columnVisibility, &paramValues](
+			size_t paramX, size_t paramY, double x, double y, Qt::KeyboardModifiers modifiers)
+		{
+			LOG(lvlInfo,
+				QString("params : %1...%2")
+					.arg(paramValues[parameterNames[paramX]].toString())
+					.arg(paramValues[parameterNames[paramY]].toString()));
+			paramValues[parameterNames[paramX]] = x;
+			chartsSpmData->data()[paramX][1] = x;
+			paramValues[parameterNames[paramY]] = y;
+			chartsSpmData->data()[paramY][1] = y;
+			chartsSpmWidget->setData(chartsSpmData, columnVisibility);
 
+			this->updateFilterAndSlicer(slicer, paramValues);
+
+		});
+
+	
+	
 	// Add scatter plot matrix widget to layout
 	QVBoxLayout* controlLayout = new QVBoxLayout;
 	controlLayout->addWidget(chartsSpmWidget);
@@ -177,7 +199,28 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
 	mainLayout->addLayout(splitLayout,7);
 	mainLayout->addLayout(imageListLayout,3);
 
-	splitViewDialog->setLayout(mainLayout);
+	QHBoxLayout* mainLayoutWithParams = new QHBoxLayout;
+
+	// This will only be useful for debugging, afterwards, it will be deleted
+
+	QString paramDisplay;
+	for (const auto& paramName : parameterNames)
+	{
+		if (paramValues.contains(paramName))  // Make sure the parameter is in paramValues
+		{
+			paramDisplay += paramName + ": " + QString::number(paramValues[paramName].toDouble()) + "\n";
+		}
+	}
+
+	// Create a label for displaying the parameter values
+	QLabel* paramLabel = new QLabel(paramDisplay);
+	mainLayoutWithParams->addLayout(mainLayout, 5);
+	mainLayoutWithParams->addWidget(paramLabel, 5);  // Use controlsAndParamsLayout here
+
+
+
+
+	splitViewDialog->setLayout(mainLayoutWithParams);
 	splitViewDialog->exec();
 }
 
@@ -285,9 +328,9 @@ void iAFilterPreviewModuleInterface::filterPreview()
 	QGridLayout* gridLayout = new QGridLayout;
 
 	// Get the size of the main window and calculate the relative size for the slicers
-	QSize mainWindowSize = m_mainWnd->size();
-	int slicerWidth = mainWindowSize.width() / 5;    
-	int slicerHeight = mainWindowSize.height() / 5;  
+	mainWindowSize = m_mainWnd->size();
+	slicerWidth = mainWindowSize.width() / 5;    
+	slicerHeight = mainWindowSize.height() / 5;  
 
 	int numSamples = 9;
 	std::vector<std::vector<double>> lhsSamples;
@@ -327,23 +370,11 @@ void iAFilterPreviewModuleInterface::filterPreview()
 			// Create a label to show the parameter values
 			QLabel* paramLabel = new QLabel(paramDisplay, container);
 
-			auto outDataSet = currentFilter->outputs()[0];
-
-			auto imgData = dynamic_cast<iAImageData*>(outDataSet.get());
-			auto newChannelData = std::make_shared<iAChannelData>("",
-				imgData->vtkImage(),  // get image data directly from filter
-				// color transfer function still the one from the analysis window:
-				dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))
-					->transfer()
-					->colorTF());
-
-			slicer->addChannel(0, *newChannelData, true);
-			slicer->setMinimumSize(QSize(slicerWidth, slicerHeight));  // Set a minimum size for visibility
-			slicer->resetCamera();
+			updateFilterAndSlicer(slicer, paramValues);
 
 			// Overlay the TransparentClickableWidget on top of the slicer
 			QPushButton* selectButton = new QPushButton("Select", container);
-			connect(selectButton, &QPushButton::clicked, [this, slicer]() { this->openSplitView(slicer); });
+			connect(selectButton, &QPushButton::clicked, [this, slicer, paramValues]() { this->openSplitView(slicer, paramValues); });
 
 			hLayout->addWidget(slicer);      // Add the slicer to the horizontal layout
 			hLayout->addWidget(paramLabel);  // Add the label to the horizontal layout
