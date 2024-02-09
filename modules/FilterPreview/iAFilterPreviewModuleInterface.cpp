@@ -157,10 +157,14 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 	// using a "qualitative" color scheme, i.e., distinct colors for each integer value:
 	chartsSpmWidget->setColorParameterMode(iAQSplom::pmQualitative);
 	// using the "Accent" color scheme from Color Brewer (https://colorbrewer2.org/)
-	auto ColorTheme = "Brewer Accent (max. 8)";
+	auto ColorThemeName = "Brewer Accent (max. 8)";
 	// for a list of other available color themes, see libs/base/iAColorTheme.cpp:
 	// the themes are defined in the iAColorThemeManager constructor
-	auto colorThemeIdx = iAColorThemeManager::instance().availableThemes().indexOf(ColorTheme);
+	// to use the colors elsewhere, use:
+	//   auto colorTheme = iAColorThemeManager::instance().theme(ColorThemeName);
+	//   colorTheme->color(1);
+	//   colorTheme->color(2);
+	auto colorThemeIdx = iAColorThemeManager::instance().availableThemes().indexOf(ColorThemeName);
 	chartsSpmWidget->setColorThemeQual(colorThemeIdx);
 	// improve point visibilility:
 	// since we have only two points, set them to fully opaque
