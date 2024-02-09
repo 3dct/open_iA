@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFilterPreviewModuleInterface.h"
 
+#include <iAColorTheme.h>
+
 #include "iAChannelData.h"
 #include "iAMainWindow.h"
 #include "iAMdiChild.h"
@@ -13,7 +15,6 @@
 #include <iALog.h>
 #include <iAQSplom.h>
 #include <iASPLOMData.h>
-
 
 #include "vtkColorTransferFunction.h"
 
@@ -127,6 +128,7 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 	{
 		paramNamesVector.push_back(paramName);
 	}
+	paramNamesVector.push_back("Color");
 	chartsSpmData->setParameterNames(paramNamesVector);
 
 	// Populate the data vectors with actual parameter values
@@ -137,14 +139,35 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 		chartsSpmData->data()[i].push_back(minValues[i]);
 		chartsSpmData->data()[i].push_back(maxValues[i]);
 	}
+	// one distinct value for each data point:
+	chartsSpmData->data()[parameterNames.size()].push_back(1);
+	chartsSpmData->data()[parameterNames.size()].push_back(2);
 
 	chartsSpmData->updateRanges();
-	std::vector<char> columnVisibility(parameterNames.size(), true);
+	// there is an additional column now, make space for it in the visibility vector as well:
+	std::vector<char> columnVisibility(parameterNames.size()+1, true);
+	columnVisibility[parameterNames.size()] = false;  // and make sure the "color" data is not visible
 	chartsSpmWidget->showAllPlots(false);
 	chartsSpmWidget->setData(chartsSpmData, columnVisibility);
 	chartsSpmWidget->setHistogramVisible(false);
 	chartsSpmWidget->setPointRadius(2);
 	chartsSpmWidget->setMinimumWidth(400);
+	// set up a color theme based on the "Color" value:
+	chartsSpmWidget->setColorParam("Color");
+	// using a "qualitative" color scheme, i.e., distinct colors for each integer value:
+	chartsSpmWidget->setColorParameterMode(iAQSplom::pmQualitative);
+	// using the "Accent" color scheme from Color Brewer (https://colorbrewer2.org/)
+	auto ColorTheme = "Brewer Accent (max. 8)";
+	// for a list of other available color themes, see libs/base/iAColorTheme.cpp:
+	// the themes are defined in the iAColorThemeManager constructor
+	auto colorThemeIdx = iAColorThemeManager::instance().availableThemes().indexOf(ColorTheme);
+	chartsSpmWidget->setColorThemeQual(colorThemeIdx);
+	// improve point visibilility:
+	// since we have only two points, set them to fully opaque
+	chartsSpmWidget->setPointOpacity(1.0);
+	// and increase the point size
+	chartsSpmWidget->setPointRadius(4.0);
+
 	chartsSpmWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
 	QVariantMap paramValues = originalParamValues; //Make a copy of the parameter values to allow modifications
