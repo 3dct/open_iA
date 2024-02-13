@@ -217,6 +217,12 @@ void iADataSetRenderer::setBoundsVisible(bool visible)
 	m_outline->setVisible(visible);
 }
 
+
+vtkRenderer* iADataSetRenderer::vtkRen() const
+{
+	return m_renderer;
+}
+
 /*
 void iADataSetRenderer::addAttribute(
 	QString const& name, iAValueType valueType, QVariant defaultValue, double min, double max)
