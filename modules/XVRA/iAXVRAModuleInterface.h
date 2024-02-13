@@ -3,14 +3,12 @@
 #pragma once
 #include <iAGUIModuleInterface.h>
 
-#include "iAColoredPolyObjectVis.h"
+#include <memory>
 
-#include <QTimer>
-
-class dlg_FeatureScout;
+class iAFeatureScoutTool;
 class iAFrustumActor;
-class iAImNDTModuleInterface;
-class iAObjectData;
+
+class QAction;
 
 class iAXVRAModuleInterface : public iAGUIModuleInterface
 {
@@ -19,8 +17,7 @@ public:
 	iAXVRAModuleInterface();
 	void Initialize() override;
 private:
-	std::shared_ptr<iAColoredPolyObjectVis> m_polyObject;
-	dlg_FeatureScout* m_fsMain;
+	QAction* m_actionXVRAStart;
 	iAFrustumActor* fsFrustum;
 	iAFrustumActor* vrFrustum;
 

@@ -87,8 +87,10 @@ void iAImNDTModuleInterface::Initialize()
 			m_vrEnv->stop();  // no more VR renderers -> stop VR environment
 		}
 	};
+
+	// on every child window, listen to new datasets, and if one becomes available add action to add VR renderer
 	connect(m_mainWnd, &iAMainWindow::childCreated, this, [this, removeRenderer](iAMdiChild* child)
-	{   // on every child window, listen to new datasets, and if one becomes available add action to add VR renderer
+	{
 		connect(child, &iAMdiChild::dataSetRendered, this, [this, removeRenderer, child](size_t dataSetIdx)
 		{
 			auto viewer = child->dataSetViewer(dataSetIdx);
@@ -401,7 +403,7 @@ void iAImNDTModuleInterface::startAnalysis()
 {
 	if (!m_vrMain)
 	{
-		if (!loadImNDT() || !ImNDT(m_objData, m_polyObject, m_csvConfig))
+		if (!loadImNDT() || !ImNDT(m_objData, m_csvConfig))
 		{
 			return;
 		}
@@ -480,19 +482,30 @@ bool iAImNDTModuleInterface::setupVREnvironment()
 	return true;
 }
 
-// Start ImNDT with pre-loaded data
-bool iAImNDTModuleInterface::ImNDT(std::shared_ptr<iAObjectsData> objData, std::shared_ptr<iAColoredPolyObjectVis> polyObject, iACsvConfig csvConfig)
+bool iAImNDTModuleInterface::ImNDT(std::shared_ptr<iAObjectsData> objData, iACsvConfig csvConfig)
 {
 	if (!setupVREnvironment())
 	{
 		return false;
 	}
+	if (csvConfig.visType == iAObjectVisType::UseVolume || csvConfig.visType == iAObjectVisType::None)
+	{
+		LOG(lvlError, "Invalid visualization type!");
+		return false;
+	}
+	m_objData = objData;
+
+	auto objVis = createObjectVis(m_objData.get(), QColor(140, 140, 140, 255));
+	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(objVis);
+	if (!m_polyObject)
+	{
+		LOG(lvlError, "Invalid 3D object visualization!");
+		return false;
+	}
+
 	LOG(lvlInfo, QString("Starting ImNDT analysis of %1").arg(csvConfig.fileName));
 
 	//Create VR Main
-	//TODO: CHECK IF PolyObject is not Volume OR NoVis
-	m_polyObject = polyObject;
-	m_objData = objData;
 	m_vrMain = std::make_shared<iAImNDTMain>(m_vrEnv.get(), m_polyObject.get(), m_objData.get(), csvConfig);
 	connect(m_vrMain.get(), &iAImNDTMain::selectionChanged, this, &iAImNDTModuleInterface::selectionChanged);
 
@@ -506,7 +519,6 @@ vtkRenderer* iAImNDTModuleInterface::getRenderer()
 	return m_vrEnv->renderer();
 }
 
-
 void iAImNDTModuleInterface::queueTask(std::function<void()> task)
 {
 	if (!m_vrEnv)
@@ -514,6 +526,26 @@ void iAImNDTModuleInterface::queueTask(std::function<void()> task)
 		return;
 	}
 	m_vrEnv->queueTask(task);
+}
+
+bool iAImNDTModuleInterface::isVRRunning() const
+{
+	return m_vrEnv && m_vrEnv->isRunning();
+}
+
+void iAImNDTModuleInterface::stopVR()
+{
+	m_vrEnv->stop();
+}
+
+void iAImNDTModuleInterface::setSelection(std::vector<size_t> selection)
+{
+	m_polyObject->setSelection(selection, true);
+}
+
+std::vector<size_t> iAImNDTModuleInterface::selection()
+{
+	return m_polyObject->selection();
 }
 
 bool iAImNDTModuleInterface::loadImNDT()
@@ -527,13 +559,6 @@ bool iAImNDTModuleInterface::loadImNDT()
 	m_objData = loadObjectsCSV(m_csvConfig);
 	if (!m_objData)
 	{
-		return false;
-	}
-	auto objVis = createObjectVis(m_objData.get(), QColor(140, 140, 140, 255));
-	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(objVis);
-	if (!m_polyObject)
-	{
-		LOG(lvlError, "Invalid 3D object visualization!");
 		return false;
 	}
 	return true;

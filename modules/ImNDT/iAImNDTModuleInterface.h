@@ -27,14 +27,24 @@ class ImNDT_API iAImNDTModuleInterface : public iAGUIModuleInterface{
 public:
 	~iAImNDTModuleInterface();
 	void Initialize() override;
-	bool ImNDT(std::shared_ptr<iAObjectsData> objData, std::shared_ptr<iAColoredPolyObjectVis> polyObject, iACsvConfig csvConfig);
+	//! start ImNDT (the VR objects visualization) tool with pre-loaded data
+	bool ImNDT(std::shared_ptr<iAObjectsData> objData, iACsvConfig csvConfig);
+	//! retrieve the VTK renderer used for rendering stuff in VR
 	vtkRenderer* getRenderer();
 	//! queue a task to be executed in the VR main thread
 	void queueTask(std::function<void()> fn);
+	//! whether currently the VR environment is running
+	bool isVRRunning() const;
+	//! stop the VR environment
+	void stopVR();
+	//! set a selection from the outside
+	void setSelection(std::vector<size_t> selection);
+	//! retrieve the current selected objects
+	std::vector<size_t> selection();
 
 signals:
+	//! fires whenever the selection of the associated 3D object visualization is changed
 	void selectionChanged();
-	void arViewToggled();
 
 private:
 	bool vrAvailable();
