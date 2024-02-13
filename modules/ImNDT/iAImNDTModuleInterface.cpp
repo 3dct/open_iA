@@ -80,12 +80,9 @@ void iAImNDTModuleInterface::Initialize()
 	{
 		auto key = std::make_pair(child, dataSetIdx);
 		auto vrRen = m_vrRenderers.at(key);
-		m_vrEnv->queueTask([vrRen] { vrRen->setVisible(false); });
 		m_vrRenderers.erase(key);
-		if (m_vrRenderers.empty() && m_vrEnv)    // VR might already be finished due to errors (e.g. headset currently not available)
-		{
-			m_vrEnv->stop();  // no more VR renderers -> stop VR environment
-		}
+		m_vrEnv->queueTask([vrRen] { vrRen->setVisible(false); });
+		checkStopVR();
 	};
 
 	// on every child window, listen to new datasets, and if one becomes available add action to add VR renderer
@@ -401,25 +398,39 @@ void iAImNDTModuleInterface::openXRInfo()
 
 void iAImNDTModuleInterface::startAnalysis()
 {
+	if (m_vrMain)
+	{
+		stopImNDT();
+		return;
+	}
+	dlg_CSVInput dlg(false);
+	if (dlg.exec() != QDialog::Accepted)
+	{
+		return;
+	}
+	auto csvConfig = dlg.getConfig();
+	auto objData = loadObjectsCSV(csvConfig);
+	if (!objData)
+	{
+		return;
+	}
+	if (!startImNDT(objData, csvConfig))
+	{
+		return;
+	}
+}
+
+void iAImNDTModuleInterface::stopImNDT()
+{
 	if (!m_vrMain)
 	{
-		if (!loadImNDT() || !ImNDT(m_objData, m_csvConfig))
-		{
-			return;
-		}
-		connect(m_vrEnv.get(), &iAVREnvironment::finished, this, [this]
-		{
-			m_vrMain.reset();
-			m_actionVRStartAnalysis->setText("Start Analysis");
-			m_vrEnv.reset();
-		});
-		m_actionVRStartAnalysis->setText("Stop Analysis");
+		return;
 	}
-	else
-	{
-		LOG(lvlInfo, "Stopping ImNDT analysis.");
-		m_vrEnv->stop();
-	}
+	emit analysisStopped();
+	LOG(lvlInfo, "Stopping ImNDT analysis.");
+	m_vrMain.reset();
+	checkStopVR();
+	m_actionVRStartAnalysis->setText("Start Analysis");
 }
 
 bool iAImNDTModuleInterface::vrAvailable()
@@ -482,7 +493,15 @@ bool iAImNDTModuleInterface::setupVREnvironment()
 	return true;
 }
 
-bool iAImNDTModuleInterface::ImNDT(std::shared_ptr<iAObjectsData> objData, iACsvConfig csvConfig)
+void iAImNDTModuleInterface::checkStopVR()
+{
+	if (m_vrRenderers.empty() && !m_vrMain && m_vrEnv)    // check m_vrEnv because VR might already be finished due to errors (e.g. headset currently not available)
+	{
+		m_vrEnv->stop();  // no more VR renderers and no objects analysis -> stop VR environment
+	}
+}
+
+bool iAImNDTModuleInterface::startImNDT(std::shared_ptr<iAObjectsData> objData, iACsvConfig csvConfig)
 {
 	if (!setupVREnvironment())
 	{
@@ -511,6 +530,11 @@ bool iAImNDTModuleInterface::ImNDT(std::shared_ptr<iAObjectsData> objData, iACsv
 
 	// Start Render Loop HERE!
 	m_vrEnv->start();
+	connect(m_vrEnv.get(), &iAVREnvironment::finished, this, [this]
+	{
+		stopImNDT();
+	});
+	m_actionVRStartAnalysis->setText("Stop Analysis");
 	return true;
 }
 
@@ -533,11 +557,6 @@ bool iAImNDTModuleInterface::isVRRunning() const
 	return m_vrEnv && m_vrEnv->isRunning();
 }
 
-void iAImNDTModuleInterface::stopVR()
-{
-	m_vrEnv->stop();
-}
-
 void iAImNDTModuleInterface::setSelection(std::vector<size_t> selection)
 {
 	m_polyObject->setSelection(selection, true);
@@ -546,20 +565,4 @@ void iAImNDTModuleInterface::setSelection(std::vector<size_t> selection)
 std::vector<size_t> iAImNDTModuleInterface::selection()
 {
 	return m_polyObject->selection();
-}
-
-bool iAImNDTModuleInterface::loadImNDT()
-{
-	dlg_CSVInput dlg(false);
-	if (dlg.exec() != QDialog::Accepted)
-	{
-		return false;
-	}
-	m_csvConfig = dlg.getConfig();
-	m_objData = loadObjectsCSV(m_csvConfig);
-	if (!m_objData)
-	{
-		return false;
-	}
-	return true;
 }

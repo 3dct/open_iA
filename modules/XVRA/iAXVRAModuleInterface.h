@@ -18,8 +18,8 @@ public:
 	void Initialize() override;
 private:
 	QAction* m_actionXVRAStart;
-	iAFrustumActor* fsFrustum;
-	iAFrustumActor* vrFrustum;
+	iAFrustumActor* m_fsFrustum;
+	iAFrustumActor* m_vrFrustum;
 
 private slots:
 	void info();

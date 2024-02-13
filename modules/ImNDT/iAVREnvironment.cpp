@@ -94,7 +94,7 @@ void iAVREnvironment::stop()
 {
 	if (!m_vrMainThread)
 	{
-		LOG(lvlWarn, "VR Environment not running!");
+		LOG(lvlInfo, "VR Environment: stop not necessary, not running.");
 		return;
 	}
 	m_vrMainThread->stop();

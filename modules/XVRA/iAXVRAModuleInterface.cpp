@@ -57,8 +57,8 @@ private:
 
 
 iAXVRAModuleInterface::iAXVRAModuleInterface() :
-	fsFrustum(nullptr),
-	vrFrustum(nullptr)
+	m_fsFrustum(nullptr),
+	m_vrFrustum(nullptr)
 {
 }
 
@@ -110,7 +110,7 @@ void iAXVRAModuleInterface::startXVRA()
 	auto vrMain = m_mainWnd->moduleDispatcher().module<iAImNDTModuleInterface>();
 	if (vrMain->isVRRunning())
 	{
-		vrMain->stopVR();
+		vrMain->stopImNDT();
 		m_actionXVRAStart->setText("Start XVRA");
 		return;
 	}
@@ -129,7 +129,7 @@ void iAXVRAModuleInterface::startXVRA()
 	}
 
 	// Start ImNDT first, since starting new VR environment could fail (e.g. due to no headset available)
-	if (!vrMain->ImNDT(objData,  csvConfig))
+	if (!vrMain->startImNDT(objData,  csvConfig))
 	{
 		return;
 	}
@@ -158,10 +158,11 @@ void iAXVRAModuleInterface::startXVRA()
 			bounds.maxCorner().y() - bounds.minCorner().y(),
 			bounds.maxCorner().z() - bounds.minCorner().z(),
 		});
-		vrFrustum = new iAFrustumActor(vrMain->getRenderer(), fsCam, maxSize/10);  // frustum of featurescout shown in vr
-		fsFrustum = new iAFrustumActor(m_mainWnd->activeMdiChild()->renderer()->renderer(), vrCam, maxSize / 10);  // frustum of vr shown in featurescout
+		m_vrFrustum = new iAFrustumActor(vrMain->getRenderer(), fsCam, maxSize/10);  // frustum of featurescout shown in vr
+		m_fsFrustum = new iAFrustumActor(m_mainWnd->activeMdiChild()->renderer()->renderer(), vrCam, maxSize / 10);  // frustum of vr shown in featurescout
 
-		auto fsFrustumUpdate = [this, child, dataSetIdx]()
+		// set up rendering updates for frustum changes:
+		connect(m_fsFrustum, &iAFrustumActor::updateRequired, this, [this, child, dataSetIdx]()
 		{
 			// trigger an update to renderer if camera indicator has changed
 			static auto lastUpdate = QDateTime::currentDateTime();
@@ -178,41 +179,42 @@ void iAXVRAModuleInterface::startXVRA()
 			if (updating)
 			{
 				lastUpdate = now;
-				fsFrustum->updateSource();
+				m_fsFrustum->updateSource();
 				child->updateRenderer();
 			}
-		};
-		connect(fsFrustum, &iAFrustumActor::updateRequired, this, fsFrustumUpdate);
-		connect(child, &iAMdiChild::closed, this, [vrMain/*,this, fsFrustumUpdate*/]()
-		{
-			// cannot convert argument 2 from 'void (__cdecl iAFrustumActor::* )(void)' to 'const QMetaMethod &'
-			// ???
-			// disconnect(fsFrustum, &iAFrustumActor::updateRequired, this, fsFrustumUpdate);
-			// why does connect... then work?
-			vrMain->stopVR();
 		});
-
-		connect(vrFrustum, &iAFrustumActor::updateRequired, vrMain, [this, vrMain]()
+		connect(m_vrFrustum, &iAFrustumActor::updateRequired, vrMain, [this, vrMain]()
 		{
-			vrMain->queueTask([this]() { vrFrustum->updateSource();  });
+			vrMain->queueTask([this]() { m_vrFrustum->updateSource();  });
 		});
-
-		vrFrustum->show();
-		fsFrustum->show();
+		m_vrFrustum->show();
+		m_fsFrustum->show();
 
 		/// set up selection propagation between FeatureScout and VR:
 		connect(fsTool, &iAFeatureScoutTool::selectionChanged, vrMain, [vrMain, fsTool]()
-			{
-				auto sel = fsTool->selection();
-				QSignalBlocker block(vrMain);
-				vrMain->setSelection(sel);
-			});
+		{
+			auto sel = fsTool->selection();
+			QSignalBlocker block(vrMain);
+			vrMain->setSelection(sel);
+		});
 		connect(vrMain, &iAImNDTModuleInterface::selectionChanged, fsTool, [vrMain, fsTool]()
-			{
-				auto sel = vrMain->selection();
-				QSignalBlocker block(fsTool);
-				fsTool->setSelection(sel);
-			});
+		{
+			auto sel = vrMain->selection();
+			QSignalBlocker block(fsTool);
+			fsTool->setSelection(sel);
+		});
+
+		// set up close / shut down handler for both child and VR environment:
+		connect(child, &iAMdiChild::closed, this, [vrMain, this]()
+		{
+			disconnect(m_fsFrustum);
+			vrMain->stopImNDT();
+		});
+		connect(vrMain, &iAImNDTModuleInterface::analysisStopped, [this, vrMain]()
+		{
+			disconnect(vrMain);
+			m_actionXVRAStart->setText("Start XVRA");
+		});
 	});
 
 	m_actionXVRAStart->setText("Stop Analysis");
