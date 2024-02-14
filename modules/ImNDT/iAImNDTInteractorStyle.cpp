@@ -401,6 +401,10 @@ iAImNDTOpenVRInteractorStyle::iAImNDTOpenVRInteractorStyle()
 void iAImNDTOpenVRInteractorStyle::SetInteractor(vtkRenderWindowInteractor* iren)
 {
 	this->Superclass::SetInteractor(iren);
+	if (!iren)    // needed for shutdown: on setting another interactor style, the interactor calls SetInteractor(nullptr)
+	{
+		return;
+	}
 	auto oiren = vtkOpenVRRenderWindowInteractor::SafeDownCast(iren);
 	assert(oiren);
 	// works in conjunction with the actions defined in the action manifest specified via interactor->SetActionManifestFileName in iAVRMainThread!
@@ -602,4 +606,22 @@ iAVRViewDirection iAImNDTInteractions::getViewDirection(double viewDir[3])
 	if (maxDir == 2 && viewDir[maxDir] < 0) return iAVRViewDirection::Forward;
 
 	return iAVRViewDirection::Unknown;
+}
+
+vtkSmartPointer<vtkInteractorStyle3D> defaultVRinteractorStyle(iAvtkVR::Backend backend)
+{
+#ifdef OPENXR_AVAILABLE
+	if (backend == iAvtkVR::OpenXR)
+	{
+		return vtkSmartPointer<vtkOpenXRInteractorStyle>::New();
+	}
+#endif
+#ifdef OPENVR_AVAILABLE
+	if (backend == iAvtkVR::OpenVR)
+	{
+		return vtkSmartPointer<vtkOpenVRInteractorStyle>::New();
+	}
+#endif
+	LOG(lvlError, "defaultVRInteractor: Invalid/unavailable backend!");
+	return vtkSmartPointer<vtkInteractorStyle3D>();
 }

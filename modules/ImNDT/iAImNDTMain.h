@@ -62,7 +62,7 @@ class iAImNDTMain: public QObject
 	Q_OBJECT
 public:
 	iAImNDTMain(iAVREnvironment* vrEnv, iAColoredPolyObjectVis* polyObject, iAObjectsData const * data, iACsvConfig csvConfig);
-	// required to be able to forward-declare for unique_ptr on clang:
+	//! Destructor, required to be able to forward-declare for unique_ptr on clang:
 	~iAImNDTMain();
 	//! Defines the action executed for specific controller inputs
 	//! Position and Orientation are in WorldCoordinates and Orientation is in Degree
@@ -71,13 +71,17 @@ public:
 	void onMove(vtkEventDataDevice3D* device, double movePosition[3], double eventOrientation[4]); //Movement
 	//! Corrects the size of elements based on the new physical scale of the environment
 	void onZoom();
-	vtkIdType currentOctreeLevel;
+	//! shut down object rendering
+	void stop();
 
 signals:
 	void selectionChanged();
+	void finished();
 
 private:
 	using InputScheme = std::vector<std::vector<std::vector<std::vector<int>>>>;
+
+	vtkIdType currentOctreeLevel;
 
 	iAVREnvironment* m_vrEnv;
 	std::vector<iAVROctree*>* m_octrees;
@@ -129,19 +133,26 @@ private:
 	//! Returns which InteractionOption is for the currently picked Object available 
 	int getOptionForObject(vtkProp3D* pickedProp);
 	void addPropToOptionID(vtkProp3D* prop, iAVRInteractionOptions iD);
-	void drawPoint(std::vector<double*>* pos, QColor color);
+	//! Generates octrees until maxLevel is reached or no more leafNodes are added through later levels
 	void generateOctrees(int maxLevel, int maxPointsPerRegion, vtkPolyData* dataSet);
 	void calculateMetrics();
+	//! Updates the data (Octree, Metrics,...) and the position for the current MiM
 	void updateModelInMiniatureData();
 	void colorMiMCubes(std::vector<vtkIdType>* regionIDs);
+	//! Returns the difference between the intial world scaling and the current scaling
 	double calculateWorldScaleFactor();
 
 	//# Methods for interaction #//
+
+	//! Increases/Decreases the current octree level and feature. Recalculates the Model in Miniature Object.
 	void changeOctreeAndMetric();
 	void pickSingleFiber(double eventPosition[3]);
+	//! Picks all fibers in the region clicked by the user.
 	void pickFibersinRegion(double eventPosition[3], double eventOrientation[4]);
+	//! Picks all fibers in the octree region defined by the leaf node ID.
 	void pickFibersinRegion(int leafRegion);
 	void pickMimRegion(double eventPosition[3], double eventOrientation[4]);
+	//! Methods ends the multi picking mode and renders selection
 	void multiPickMiMRegion();
 	void resetSelection();
 	void spawnModelInMiniature(double eventPosition[3], bool hide);

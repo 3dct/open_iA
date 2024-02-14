@@ -309,32 +309,6 @@ void iAVRCubicVis::calculateStartPoints()
 	m_cubePolyData->GetPointData()->SetScalars(glyphScales);
 }
 
-//! Test method inserts colored point at given Position
-void iAVRCubicVis::drawPoint(std::vector<double*>* pos, QColor color)
-{
-	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-
-	for (size_t i = 0; i < pos->size(); i++)
-	{
-		points->InsertNextPoint(pos->at(i));
-	}
-
-	vtkSmartPointer<vtkPolyData> pointsPolydata = vtkSmartPointer<vtkPolyData>::New();
-	pointsPolydata->SetPoints(points);
-
-	vtkSmartPointer<vtkVertexGlyphFilter> vertexGlyphFilter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
-	vertexGlyphFilter->AddInputData(pointsPolydata);
-	vertexGlyphFilter->Update();
-
-	vtkSmartPointer<vtkPolyDataMapper> pointsMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	pointsMapper->SetInputConnection(vertexGlyphFilter->GetOutputPort());
-	vtkSmartPointer<vtkActor> pointsActor = vtkSmartPointer<vtkActor>::New();
-	pointsActor->SetMapper(pointsMapper);
-	pointsActor->GetProperty()->SetPointSize(8);
-	pointsActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
-	m_renderer->AddActor(pointsActor);
-}
-
 //! Applies a linear shift: All regions are displaced by the same factor, regardless of their 
 //! distance from the center of the fiber model. This Method calculates the direction from 
 //! the center to its single cubes and shifts the cubes linear from the center away

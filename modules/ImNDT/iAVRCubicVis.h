@@ -66,5 +66,4 @@ protected:
 	double defaultActorSize[3]; // Initial resize of all cube
 
 	void calculateStartPoints();
-	void drawPoint(std::vector<double*>* pos, QColor color);
 };

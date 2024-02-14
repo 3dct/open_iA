@@ -107,10 +107,10 @@ void iAXVRAModuleInterface::info()
 void iAXVRAModuleInterface::startXVRA()
 {
 	// If VR environment is currently running, stop it first (maybe reuse?)
-	auto vrMain = m_mainWnd->moduleDispatcher().module<iAImNDTModuleInterface>();
-	if (vrMain->isVRRunning())
+	auto vrModule = m_mainWnd->moduleDispatcher().module<iAImNDTModuleInterface>();
+	if (vrModule->isImNDTRunning())
 	{
-		vrMain->stopImNDT();
+		vrModule->stopImNDT();
 		m_actionXVRAStart->setText("Start XVRA");
 		return;
 	}
@@ -129,7 +129,7 @@ void iAXVRAModuleInterface::startXVRA()
 	}
 
 	// Start ImNDT first, since starting new VR environment could fail (e.g. due to no headset available)
-	if (!vrMain->startImNDT(objData,  csvConfig))
+	if (!vrModule->startImNDT(objData, csvConfig))
 	{
 		return;
 	}
@@ -140,17 +140,18 @@ void iAXVRAModuleInterface::startXVRA()
 	{
 		return;
 	}
-	connect(child, &iAMdiChild::dataSetRendered, this, [this, vrMain, child](size_t dataSetIdx)
+	connect(child, &iAMdiChild::dataSetRendered, this, [this, vrModule, child](size_t dataSetIdx)
 	{
 		auto fsTool = dynamic_cast<iAFeatureScoutTool*>(child->tools()[iAFeatureScoutTool::ID].get());
 		if (dataSetIdx != fsTool->visDataSetIdx())
 		{
 			return;
 		}
+		disconnect(child, &iAMdiChild::dataSetRendered, this, nullptr);
 
 		// Add Camera Frustum visualizations:
 		vtkSmartPointer<vtkCamera> fsCam = m_mainWnd->activeMdiChild()->renderer()->camera(); // camera from FeatureScout
-		vtkSmartPointer<vtkCamera> vrCam = vrMain->getRenderer()->GetActiveCamera();          // camera from VR
+		vtkSmartPointer<vtkCamera> vrCam = vrModule->getRenderer()->GetActiveCamera();          // camera from VR
 
 		auto bounds = child->dataSetViewer(dataSetIdx)->renderer()->bounds();
 		double maxSize = std::max({
@@ -158,7 +159,7 @@ void iAXVRAModuleInterface::startXVRA()
 			bounds.maxCorner().y() - bounds.minCorner().y(),
 			bounds.maxCorner().z() - bounds.minCorner().z(),
 		});
-		m_vrFrustum = new iAFrustumActor(vrMain->getRenderer(), fsCam, maxSize/10);  // frustum of featurescout shown in vr
+		m_vrFrustum = new iAFrustumActor(vrModule->getRenderer(), fsCam, maxSize/10);  // frustum of featurescout shown in vr
 		m_fsFrustum = new iAFrustumActor(m_mainWnd->activeMdiChild()->renderer()->renderer(), vrCam, maxSize / 10);  // frustum of vr shown in featurescout
 
 		// set up rendering updates for frustum changes:
@@ -183,36 +184,36 @@ void iAXVRAModuleInterface::startXVRA()
 				child->updateRenderer();
 			}
 		});
-		connect(m_vrFrustum, &iAFrustumActor::updateRequired, vrMain, [this, vrMain]()
+		connect(m_vrFrustum, &iAFrustumActor::updateRequired, vrModule, [this, vrModule]()
 		{
-			vrMain->queueTask([this]() { m_vrFrustum->updateSource();  });
+			vrModule->queueTask([this]() { m_vrFrustum->updateSource();  });
 		});
 		m_vrFrustum->show();
 		m_fsFrustum->show();
 
 		/// set up selection propagation between FeatureScout and VR:
-		connect(fsTool, &iAFeatureScoutTool::selectionChanged, vrMain, [vrMain, fsTool]()
+		connect(fsTool, &iAFeatureScoutTool::selectionChanged, vrModule, [vrModule, fsTool]()
 		{
 			auto sel = fsTool->selection();
-			QSignalBlocker block(vrMain);
-			vrMain->setSelection(sel);
+			QSignalBlocker block(vrModule);
+			vrModule->setSelection(sel);
 		});
-		connect(vrMain, &iAImNDTModuleInterface::selectionChanged, fsTool, [vrMain, fsTool]()
+		connect(vrModule, &iAImNDTModuleInterface::selectionChanged, fsTool, [vrModule, fsTool]()
 		{
-			auto sel = vrMain->selection();
+			auto sel = vrModule->selection();
 			QSignalBlocker block(fsTool);
 			fsTool->setSelection(sel);
 		});
 
 		// set up close / shut down handler for both child and VR environment:
-		connect(child, &iAMdiChild::closed, this, [vrMain, this]()
+		connect(child, &iAMdiChild::closed, this, [vrModule, this]()
 		{
 			disconnect(m_fsFrustum);
-			vrMain->stopImNDT();
+			vrModule->stopImNDT();
 		});
-		connect(vrMain, &iAImNDTModuleInterface::analysisStopped, [this, vrMain]()
+		connect(vrModule, &iAImNDTModuleInterface::analysisStopped, this, [this, vrModule]()
 		{
-			disconnect(vrMain);
+			disconnect(vrModule, &iAImNDTModuleInterface::analysisStopped, this, nullptr);
 			m_actionXVRAStart->setText("Start XVRA");
 		});
 	});

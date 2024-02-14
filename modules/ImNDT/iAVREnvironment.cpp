@@ -63,7 +63,6 @@ void iAVREnvironment::start()
 	if (m_vrMainThread)
 	{
 		LOG(lvlWarn, "Cannot start more than one VR session in parallel!");
-		emit finished();
 		return;
 	}
 	m_renderWindow->AddRenderer(m_renderer);

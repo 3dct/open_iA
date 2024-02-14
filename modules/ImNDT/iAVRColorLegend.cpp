@@ -67,7 +67,7 @@ QColor iAVRColorLegend::getColor(double value)
 //! Returns a rgba coloring vector for the current LUT for every region in the given octree level for a given feature
 std::vector<QColor>* iAVRColorLegend::getColors(int octreeLevel, int feature, std::vector<std::vector<std::vector<double>>>* calculatedValues)
 {
-	std::vector<QColor>* colors = new std::vector<QColor>(calculatedValues->at(octreeLevel).at(feature).size(), QColor());
+	auto colors = new std::vector<QColor>(calculatedValues->at(octreeLevel).at(feature).size(), QColor());
 
 	for (size_t region = 0; region < calculatedValues->at(octreeLevel).at(feature).size(); region++)
 	{

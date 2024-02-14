@@ -50,3 +50,5 @@ public:
 private:
 	std::unique_ptr<iAImNDTInteractionsImpl> m_impl;
 };
+
+vtkSmartPointer<vtkInteractorStyle3D> defaultVRinteractorStyle(iAvtkVR::Backend backend);

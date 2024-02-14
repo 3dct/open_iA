@@ -100,21 +100,9 @@ void iAImNDTModuleInterface::Initialize()
 						removeRenderer(child, dataSetIdx);
 						return;
 					}
-					if (!m_vrEnv)
+					if (!ensureVREnvironment())
 					{
-						if (!setupVREnvironment())
-						{
-							return;
-						}
-						connect(m_vrEnv.get(), &iAVREnvironment::finished, this, [this]
-						{
-							m_vrEnv.reset();
-							m_vrRenderers.clear();
-							for (auto vrAction : m_vrActions)
-							{
-								vrAction->setChecked(false);
-							}
-						});
+						return;
 					}
 					auto vrRen = viewer->createRenderer(m_vrEnv->renderer());
 					vrRen->setAttributes(viewer->attributeValues());
@@ -398,7 +386,7 @@ void iAImNDTModuleInterface::openXRInfo()
 
 void iAImNDTModuleInterface::startAnalysis()
 {
-	if (m_vrMain)
+	if (m_imNDT)
 	{
 		stopImNDT();
 		return;
@@ -422,43 +410,50 @@ void iAImNDTModuleInterface::startAnalysis()
 
 void iAImNDTModuleInterface::stopImNDT()
 {
-	if (!m_vrMain)
+	if (!m_imNDT)
 	{
 		return;
 	}
-	emit analysisStopped();
 	LOG(lvlInfo, "Stopping ImNDT analysis.");
-	m_vrMain.reset();
-	checkStopVR();
+	connect(m_imNDT.get(), &iAImNDTMain::finished, this, [this]()
+	{
+		m_imNDT.reset();
+		checkStopVR();
+		emit analysisStopped();
+	});
+	queueTask([this] { m_imNDT->stop(); });
 	m_actionVRStartAnalysis->setText("Start Analysis");
 }
 
-bool iAImNDTModuleInterface::vrAvailable()
+namespace
 {
-#ifdef OPENXR_AVAILABLE
-#else
-	if (!vr::VR_IsRuntimeInstalled())
+	bool backendAvailable(iAvtkVR::Backend backend)
 	{
-		LOG(lvlWarn, "VR runtime not found. Please install Steam and SteamVR!");
-		QMessageBox::warning(m_mainWnd, "VR", "VR runtime not found. Please install Steam and SteamVR!");
-		return false;
-	}
-	if (!vr::VR_IsHmdPresent())
-	{
-		LOG(lvlWarn, "No VR device found. Make sure your HMD device is plugged in and turned on!");
-		QMessageBox::warning(m_mainWnd, "VR", "No VR device found. Make sure your HMD device is plugged in and turned on!");
-		return false;
-	}
+		// only OpenVR currently provides a way to check for runtime/HMD presence without starting the environment:
+		if (backend != iAvtkVR::OpenVR)
+		{
+			return true;
+		}
+#ifdef OPENVR_AVAILABLE
+		if (!vr::VR_IsRuntimeInstalled())
+		{
+			LOG(lvlWarn, "OpenVR: Runtime not found. Please install Steam and SteamVR!");
+			//QMessageBox::warning(m_mainWnd, "VR", "VR runtime not found. Please install Steam and SteamVR!");
+			return false;
+		}
+		if (!vr::VR_IsHmdPresent())
+		{
+			LOG(lvlWarn, "OpenVR: No VR device found. Make sure your HMD device is plugged in and turned on!");
+			//QMessageBox::warning(m_mainWnd, "VR", "No VR device found. Make sure your HMD device is plugged in and turned on!");
+			return false;
+		}
 #endif
-	return true;
+		return true;
+	}
 }
 
 bool iAImNDTModuleInterface::setupVREnvironment()
 {
-	if (!vrAvailable())
-	{
-		return false;
-	}
 	if (m_vrEnv && m_vrEnv->isRunning())
 	{
 		QString msg("VR environment is currently running! Please stop the ongoing VR analysis before starting a new one!");
@@ -469,7 +464,9 @@ bool iAImNDTModuleInterface::setupVREnvironment()
 	auto backends = iAvtkVR::availableBackends();
 	if (backends.size() < 1)
 	{
-		LOG(lvlError, "No VR backend available!");
+		QString msg("Invalid configuration: VR module built without without VR backends; please report this in our issue tracker (https://github.com/3dct/open_iA/issues)!");
+		QMessageBox::information(m_mainWnd, "VR", msg);
+		LOG(lvlError, msg);
 		return false;
 	}
 	auto backend = backends[0];
@@ -489,13 +486,43 @@ bool iAImNDTModuleInterface::setupVREnvironment()
 		}
 		backend = (dlg.parameterValues()["Backend"].toString() == iAvtkVR::backendName(iAvtkVR::OpenVR)) ? iAvtkVR::OpenVR : iAvtkVR::OpenXR;
 	}
+	if (!backendAvailable(backend))
+	{
+		QString msg("Backend is currently unavailable! Please see additional messages in the log for how to fix, or try a different backend.");
+		QMessageBox::information(m_mainWnd, "VR", msg);
+		LOG(lvlWarn, msg);
+		return false;
+	}
 	m_vrEnv = std::make_shared<iAVREnvironment>(backend);
+	return true;
+}
+
+bool iAImNDTModuleInterface::ensureVREnvironment()
+{
+	if (m_vrEnv)
+	{
+		return true;
+	}
+	if (!setupVREnvironment())
+	{
+		return false;
+	}
+	connect(m_vrEnv.get(), &iAVREnvironment::finished, this, [this]
+	{
+		m_vrEnv.reset();
+		m_imNDT.reset();
+		m_vrRenderers.clear();
+		for (auto vrAction : m_vrActions)
+		{
+			vrAction->setChecked(false);
+		}
+	});
 	return true;
 }
 
 void iAImNDTModuleInterface::checkStopVR()
 {
-	if (m_vrRenderers.empty() && !m_vrMain && m_vrEnv)    // check m_vrEnv because VR might already be finished due to errors (e.g. headset currently not available)
+	if (m_vrRenderers.empty() && !m_imNDT && m_vrEnv)    // check m_vrEnv because VR might already be finished due to errors (e.g. headset currently not available)
 	{
 		m_vrEnv->stop();  // no more VR renderers and no objects analysis -> stop VR environment
 	}
@@ -503,17 +530,12 @@ void iAImNDTModuleInterface::checkStopVR()
 
 bool iAImNDTModuleInterface::startImNDT(std::shared_ptr<iAObjectsData> objData, iACsvConfig csvConfig)
 {
-	if (!setupVREnvironment())
-	{
-		return false;
-	}
 	if (csvConfig.visType == iAObjectVisType::UseVolume || csvConfig.visType == iAObjectVisType::None)
 	{
 		LOG(lvlError, "Invalid visualization type!");
 		return false;
 	}
 	m_objData = objData;
-
 	auto objVis = createObjectVis(m_objData.get(), QColor(140, 140, 140, 255));
 	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(objVis);
 	if (!m_polyObject)
@@ -521,20 +543,18 @@ bool iAImNDTModuleInterface::startImNDT(std::shared_ptr<iAObjectsData> objData, 
 		LOG(lvlError, "Invalid 3D object visualization!");
 		return false;
 	}
-
 	LOG(lvlInfo, QString("Starting ImNDT analysis of %1").arg(csvConfig.fileName));
-
-	//Create VR Main
-	m_vrMain = std::make_shared<iAImNDTMain>(m_vrEnv.get(), m_polyObject.get(), m_objData.get(), csvConfig);
-	connect(m_vrMain.get(), &iAImNDTMain::selectionChanged, this, &iAImNDTModuleInterface::selectionChanged);
-
-	// Start Render Loop HERE!
-	m_vrEnv->start();
-	connect(m_vrEnv.get(), &iAVREnvironment::finished, this, [this]
+	if (!ensureVREnvironment())
 	{
-		stopImNDT();
-	});
+		return false;
+	}
+	m_imNDT = std::make_shared<iAImNDTMain>(m_vrEnv.get(), m_polyObject.get(), m_objData.get(), csvConfig);
+	connect(m_imNDT.get(), &iAImNDTMain::selectionChanged, this, &iAImNDTModuleInterface::selectionChanged);
 	m_actionVRStartAnalysis->setText("Stop Analysis");
+	if (!m_vrEnv->isRunning())
+	{
+		m_vrEnv->start();
+	}
 	return true;
 }
 
@@ -555,6 +575,11 @@ void iAImNDTModuleInterface::queueTask(std::function<void()> task)
 bool iAImNDTModuleInterface::isVRRunning() const
 {
 	return m_vrEnv && m_vrEnv->isRunning();
+}
+
+bool iAImNDTModuleInterface::isImNDTRunning() const
+{
+	return isVRRunning() && m_imNDT;
 }
 
 void iAImNDTModuleInterface::setSelection(std::vector<size_t> selection)

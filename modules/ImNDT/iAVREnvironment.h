@@ -41,6 +41,7 @@ public:
 	bool isRunning() const;
 	//! queue a task to be executed within the main VR thread
 	void queueTask(std::function<void()> task);
+	//! retrieve the currently used VR backend
 	iAvtkVR::Backend backend() const;
 private slots:
 	void vrDone();

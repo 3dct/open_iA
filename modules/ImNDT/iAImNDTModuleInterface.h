@@ -22,7 +22,8 @@ class vtkRenderer;
 
 class QAction;
 
-class ImNDT_API iAImNDTModuleInterface : public iAGUIModuleInterface{
+class ImNDT_API iAImNDTModuleInterface : public iAGUIModuleInterface
+{
 	Q_OBJECT
 public:
 	~iAImNDTModuleInterface();
@@ -37,8 +38,8 @@ public:
 	void queueTask(std::function<void()> fn);
 	//! whether currently the VR environment is running
 	bool isVRRunning() const;
-	//! checks whether anyone is still using the VR environment, and if not, closes it
-	void checkStopVR();
+	//! whether the ImNDT tool is currently running
+	bool isImNDTRunning() const;
 	//! set a selection from the outside
 	void setSelection(std::vector<size_t> selection);
 	//! retrieve the current selected objects
@@ -47,12 +48,16 @@ public:
 signals:
 	//! fires whenever the selection of the associated 3D object visualization is changed
 	void selectionChanged();
-	//! fires immediately before the ImNDT analysis is stopped
+	//! fires after the ImNDT analysis is stopped
 	void analysisStopped();
 
 private:
-	bool vrAvailable();
+	//! start VR environment
 	bool setupVREnvironment();
+	//! ensure that there is a VR environment (starts one if it isn't already running)
+	bool ensureVREnvironment();
+	//! checks whether anyone is still using the VR environment, and if not, closes it
+	void checkStopVR();
 	//! The VR environment. Currently deleted every time when the environment is stopped.
 	//! Could be re-used, but that would require all features using it to cleanly remove
 	//! all elements from the VR renderer before exiting!
@@ -60,7 +65,7 @@ private:
 	//! @{ for ImNDT
 	std::shared_ptr<iAColoredPolyObjectVis> m_polyObject;
 	std::shared_ptr<iAObjectsData> m_objData;
-	std::shared_ptr<iAImNDTMain> m_vrMain;
+	std::shared_ptr<iAImNDTMain> m_imNDT;
 	//! @}
 	QAction *m_actionVRStartAnalysis;
 
