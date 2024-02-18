@@ -65,6 +65,8 @@ void iAFilterPreviewModuleInterface::updateFilterAndSlicer(iASlicerImpl* slicer,
 	{
 		// Channel with ID 0 exists, so update it
 		slicer->updateChannel(0, *newChannelData);
+		slicer->update();
+		LOG(lvlInfo, QString("Channel Updated"));
 	}
 	else
 	{
@@ -72,6 +74,7 @@ void iAFilterPreviewModuleInterface::updateFilterAndSlicer(iASlicerImpl* slicer,
 		slicer->addChannel(0, *newChannelData, true);
 	}
 
+	slicer->setSliceNumber(0);
 	slicer->setMinimumSize(QSize(slicerWidth, slicerHeight));  // Set a minimum size for visibility
 	slicer->resetCamera();    // Update the slicer
 }
@@ -149,25 +152,6 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 
 	QVariantMap paramValues = originalParamValues; //Make a copy of the parameter values to allow modifications
 	
-	connect(chartsSpmWidget, &iAQSplom::chartClick, this,
-		[this,slicer, chartsSpmData, chartsSpmWidget, columnVisibility, &paramValues](
-			size_t paramX, size_t paramY, double x, double y, Qt::KeyboardModifiers modifiers)
-		{
-			LOG(lvlInfo,
-				QString("params : %1...%2")
-					.arg(paramValues[parameterNames[paramX]].toString())
-					.arg(paramValues[parameterNames[paramY]].toString()));
-			paramValues[parameterNames[paramX]] = x;
-			chartsSpmData->data()[paramX][1] = x;
-			paramValues[parameterNames[paramY]] = y;
-			chartsSpmData->data()[paramY][1] = y;
-			chartsSpmWidget->setData(chartsSpmData, columnVisibility);
-
-			this->updateFilterAndSlicer(slicer, paramValues);
-
-		});
-
-	
 	
 	// Add scatter plot matrix widget to layout
 	QVBoxLayout* controlLayout = new QVBoxLayout;
@@ -185,42 +169,141 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 
 	QHBoxLayout* imageListLayout = new QHBoxLayout;
 
+	std::vector<iASlicerImpl*> slicerCopies; //Define a container for slicer copies
+
 	for (int i = 0; i < 5; ++i)
 	{
-		QLabel* placeholderLabel = new QLabel();
-		placeholderLabel->setAlignment(Qt::AlignCenter);
-		placeholderLabel->setText(QString("Placeholder %1").arg(i + 1));  // Numbered placeholders from 1 to 5
-		placeholderLabel->setMinimumSize(100, 100);                       // Set a minimum size for the label
+		iASlicerImpl* slicerCopy = new iASlicerImpl(splitViewDialog, slicer->mode(), false);
+	
+		//QLabel* placeholderLabel = new QLabel();
+		//placeholderLabel->setAlignment(Qt::AlignCenter);
+		//placeholderLabel->setText(QString("Placeholder %1").arg(i + 1));  // Numbered placeholders from 1 to 5
+		//placeholderLabel->setMinimumSize(100, 100);                       // Set a minimum size for the label
+		
+		for (int j = 0; j < parameterNames.size(); ++j)
+		{
+			if (i == 0)
+			{
+				// Use minValues for the first slicer
+				paramValues[parameterNames[j]] = minValues[j];
+			}
+			else if (i == 4)
+			{
+				// Use maxValues for the last slicer
+				paramValues[parameterNames[j]] = maxValues[j];
+			}
+			else
+			{
+				// Use the midpoint between minValues and maxValues for other slicers
+				auto midpointValue = (maxValues[j] - minValues[j]) / 2;
+				paramValues[parameterNames[j]] = midpointValue;
+			}
+		}
 
-		imageListLayout->addWidget(placeholderLabel, 2);
+		updateFilterAndSlicer(slicerCopy, paramValues);
+		slicerCopies.push_back(slicerCopy);
+		imageListLayout->addWidget(slicerCopy, 1);
 	}
+
+	
+	
+	connect(chartsSpmWidget, &iAQSplom::chartClick, this,
+		[this, slicer, &slicerCopies, chartsSpmData, chartsSpmWidget, columnVisibility, &paramValues](
+			size_t paramX, size_t paramY, double x, double y, Qt::KeyboardModifiers modifiers)
+		{
+			LOG(lvlInfo,
+				QString("params : %1...%2")
+					.arg(paramValues[parameterNames[paramX]].toString())
+					.arg(paramValues[parameterNames[paramY]].toString()));
+
+			QVariantMap paramOldValues = paramValues;
+
+			paramValues[parameterNames[paramX]] = x;
+			double x_previous = chartsSpmData->data()[paramX][1];
+			chartsSpmData->data()[paramX][0] = x_previous;  //Update points in the chart
+			chartsSpmData->data()[paramX][1] = x;
+			paramValues[parameterNames[paramY]] = y;
+			double y_previous = chartsSpmData->data()[paramY][1];
+			chartsSpmData->data()[paramY][0] = y_previous;
+			chartsSpmData->data()[paramY][1] = y;
+			chartsSpmWidget->setData(chartsSpmData, columnVisibility);
+
+			this->updateFilterAndSlicer(slicer, paramValues);
+
+			if (!slicerCopies.empty())
+			{
+
+				for (int i = 0; i < slicerCopies.size(); ++i)
+				{
+					iASlicerImpl* slicerCopy = slicerCopies[i];  // Access the slicer copy by index
+
+					if (i == 0)
+					{
+						// Now, update the slicerCopy with the new paramValues
+						updateFilterAndSlicer(slicerCopy, paramOldValues);
+					}
+					else if (i == 4)
+					{
+						updateFilterAndSlicer(slicerCopy, paramValues);
+					}
+					else
+					{
+						// Interpolate or adjust values for slicers in between
+						QVariantMap interpolatedParamValues;
+						for (const QString& paramName : parameterNames)
+						{
+							bool isIncreasing = paramValues[paramName].toDouble() >
+								paramOldValues[paramName].toDouble();
+							double startValue = paramOldValues[paramName].toDouble();
+							double endValue = paramValues[paramName].toDouble();
+							double range = std::abs(endValue - startValue);
+							double step = range /
+								4;  // Assuming 5 steps (0 to 4), adjust the denominator according to your total steps
+
+							double interpolatedValue;
+							if (isIncreasing)
+							{
+								interpolatedValue = startValue + step * i;  // For increasing values
+							}
+							else
+							{
+								interpolatedValue = startValue - step * i;  // For decreasing values
+							}
+
+							// Ensure interpolatedValue does not exceed the bounds
+							if (isIncreasing)
+							{
+								interpolatedValue = std::min(interpolatedValue, endValue);
+							}
+							else
+							{
+								interpolatedValue = std::max(interpolatedValue, endValue);
+							}
+
+							interpolatedParamValues[paramName] = interpolatedValue;
+						}
+
+						// Now, update the slicerCopy with the interpolated paramValues
+						updateFilterAndSlicer(slicerCopy, interpolatedParamValues);						
+						
+					}
+
+					
+				}
+
+			}
+
+		});
+
 
 	QVBoxLayout* mainLayout = new QVBoxLayout;
 	mainLayout->addLayout(splitLayout,7);
 	mainLayout->addLayout(imageListLayout,3);
 
-	QHBoxLayout* mainLayoutWithParams = new QHBoxLayout;
-
-	// This will only be useful for debugging, afterwards, it will be deleted
-
-	QString paramDisplay;
-	for (const auto& paramName : parameterNames)
-	{
-		if (paramValues.contains(paramName))  // Make sure the parameter is in paramValues
-		{
-			paramDisplay += paramName + ": " + QString::number(paramValues[paramName].toDouble()) + "\n";
-		}
-	}
-
-	// Create a label for displaying the parameter values
-	QLabel* paramLabel = new QLabel(paramDisplay);
-	mainLayoutWithParams->addLayout(mainLayout, 5);
-	mainLayoutWithParams->addWidget(paramLabel, 5);  // Use controlsAndParamsLayout here
 
 
 
-
-	splitViewDialog->setLayout(mainLayoutWithParams);
+	splitViewDialog->setLayout(mainLayout);
 	splitViewDialog->exec();
 }
 
@@ -346,7 +429,7 @@ void iAFilterPreviewModuleInterface::filterPreview()
 			QHBoxLayout* hLayout = new QHBoxLayout(); // This will contain the slicer and the parameter values
 
 			iASlicerImpl* slicer = new iASlicerImpl(container, iASlicerMode::XY, false);
-
+			
 			QVariantMap paramValues;
 			for (int i = 0; i < parameterNames.size(); ++i)
 			{
@@ -357,7 +440,7 @@ void iAFilterPreviewModuleInterface::filterPreview()
 
 				//paramValues[parameterNames[i]] = sliders[i]->value();
 			}
-
+		
 			currentFilter->run(paramValues);
 
 			// Create a string to display the parameter values
