@@ -8,28 +8,21 @@
 #include <vtkActor.h>
 #include <vtkAppendPolyData.h>
 #include <vtkAssembly.h>
-#include <vtkCellData.h>
 #include <vtkCubeSource.h>
 #include <vtkDoubleArray.h>
 #include <vtkGlyph3DMapper.h>
 #include <vtkLine.h>
-#include <vtkMapper.h>
 #include <vtkMath.h>
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
-#include <vtkProp3DCollection.h>
 #include <vtkRegularPolygonSource.h>
 #include <vtkRenderer.h>
 #include <vtkSphereSource.h>
-#include <vtkStringArray.h>
 #include <vtkTable.h>
-#include <vtkTextActor3D.h>
-#include <vtkTextProperty.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
-#include <vtkTransformFilter.h>
 #include <vtkUnsignedCharArray.h>
 
 #include <iALog.h>
@@ -72,9 +65,9 @@ void iAVRHistogramPairVis::initialize()
 	barColorR2 = QColor(208, 28, 139);
 }
 
-void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, double offset, int level, std::vector<vtkIdType>* regions, std::vector<int> const& featureList)
+void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, double offset, int level, std::vector<vtkIdType> const & regions, std::vector<int> const& featureList)
 {
-	if (regions->size() < 2)
+	if (regions.size() < 2)
 	{
 		LOG(lvlDebug, "Too few regions selected!");
 		return;
@@ -134,8 +127,8 @@ void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, doub
 	{
 		//LOG(lvlImportant, QString("\n Feature: %1 (%2)").arg(feature).arg(m_octreeMetric->getFeatureName(feature)));
 
-		auto val01 = m_octreeMetric->getRegionValues(level, regions->at(0), feature);
-		auto val02 = m_octreeMetric->getRegionValues(level, regions->at(1), feature);
+		auto val01 = m_octreeMetric->getRegionValues(level, regions.at(0), feature);
+		auto val02 = m_octreeMetric->getRegionValues(level, regions.at(1), feature);
 		auto minMax = m_octreeMetric->getMinMaxFromVec(val01, val02);
 
 		m_histogram01.push_back(m_histogramMetric->getHistogram(val01, minMax.at(0), minMax.at(1), m_octreeMetric->getMaxNumberOfFibersInRegion(level)));
@@ -275,17 +268,12 @@ void iAVRHistogramPairVis::rotateVisualization(double y)
 			transformFilter->Update();
 			m_histogramBars->at(i) = transformFilter->GetOutput();
 
-			auto currentTitleLabel = m_axisTitleActor->at(i).getTextActor();
-			currentTitleLabel->SetPosition(transform->TransformPoint(currentTitleLabel->GetPosition()));
-			currentTitleLabel->Modified();
-
+			m_axisTitleActor->at(i).transformPosition(transform);
 			for (size_t k = 0; k < m_axisLabelActor->at(i).size(); k++)
 			{
 				for (size_t j = 0; j < m_axisLabelActor->at(i).at(k).size(); j++)
 				{
-					auto currentLabel = m_axisLabelActor->at(i).at(k).at(j).getTextActor();
-					currentLabel->SetPosition(transform->TransformPoint(currentLabel->GetPosition()));
-					currentLabel->Modified();
+					m_axisLabelActor->at(i).at(k).at(j).transformPosition(transform);
 				}
 			}
 		}
@@ -343,17 +331,12 @@ void iAVRHistogramPairVis::flipThroughHistograms(double flipDir)
 			transformFilter->Update();
 			m_histogramBars->at(i) = transformFilter->GetOutput();
 
-			auto currentTitleLabel = m_axisTitleActor->at(i).getTextActor();
-			currentTitleLabel->SetPosition(transformFront->TransformPoint(currentTitleLabel->GetPosition()));
-			currentTitleLabel->Modified();
-
+			m_axisTitleActor->at(i).transformPosition(transformFront);
 			for (size_t k = 0; k < m_axisLabelActor->at(i).size(); k++)
 			{
 				for (size_t j = 0; j < m_axisLabelActor->at(i).at(k).size(); j++)
 				{
-					auto currentLabel = m_axisLabelActor->at(i).at(k).at(j).getTextActor();
-					currentLabel->SetPosition(transformFront->TransformPoint(currentLabel->GetPosition()));
-					currentLabel->Modified();
+					m_axisLabelActor->at(i).at(k).at(j).transformPosition(transformFront);
 				}
 			}
 		}
@@ -382,17 +365,12 @@ void iAVRHistogramPairVis::flipThroughHistograms(double flipDir)
 			transformFilter->Update();
 			m_histogramBars->at(i) = transformFilter->GetOutput();
 
-			auto currentTitleLabel = m_axisTitleActor->at(i).getTextActor();
-			currentTitleLabel->SetPosition(transform->TransformPoint(currentTitleLabel->GetPosition()));
-			currentTitleLabel->Modified();
-
+			m_axisTitleActor->at(i).transformPosition(transform);
 			for (size_t k = 0; k < m_axisLabelActor->at(i).size(); k++)
 			{
 				for (size_t j = 0; j < m_axisLabelActor->at(i).at(k).size(); j++)
 				{
-					auto currentLabel = m_axisLabelActor->at(i).at(k).at(j).getTextActor();
-					currentLabel->SetPosition(transform->TransformPoint(currentLabel->GetPosition()));
-					currentLabel->Modified();
+					m_axisLabelActor->at(i).at(k).at(j).transformPosition(transform);
 				}
 			}
 		}
@@ -411,12 +389,12 @@ void iAVRHistogramPairVis::flipThroughHistograms(double flipDir)
 	drawHistogram(m_axisInView);
 }
 
-double iAVRHistogramPairVis::getRadius()
+double iAVRHistogramPairVis::getRadius() const
 {
 	return m_radius;
 }
 
-std::vector<QColor> iAVRHistogramPairVis::getBarColors()
+std::vector<QColor> iAVRHistogramPairVis::getBarColors() const
 {
 	std::vector<QColor> barCol = std::vector<QColor>();
 	barCol.push_back(barColorR1);
@@ -905,7 +883,7 @@ void iAVRHistogramPairVis::calculateBarsWithCubes(double* markPos, double* cubeS
 
 //! Calculates the cube (x,z) size based on the axis length and number of x bins
 //! X and Z are the same
-double iAVRHistogramPairVis::getXZCubeSize()
+double iAVRHistogramPairVis::getXZCubeSize() const
 {
 	return (m_axisLength / m_numberOfXBins) / 2.2;
 }

@@ -4,38 +4,39 @@
 
 #include <iALog.h>
 
-//#include "iAVR3DText.h"
-
+#include <vtkActor.h>
 #include <vtkCellPicker.h>
 #include <vtkCubeSource.h>
+#include <vtkDoubleArray.h>
+#include <vtkGlyph3D.h>
 #include <vtkIdTypeArray.h>
 #include <vtkMatrix4x4.h>
+#include <vtkOctreePointLocator.h>
 #include <vtkPointData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
-#include <vtkVertexGlyphFilter.h>
+#include <vtkRenderer.h>
 
 iAVRCubicVis::iAVRCubicVis(vtkRenderer* ren) :m_renderer(ren), m_actor(vtkSmartPointer<vtkActor>::New()), m_activeActor(vtkSmartPointer<vtkActor>::New())
 {
-	defaultColor = QColor(0, 0, 200, 255);
+	m_defaultColor = QColor(0, 0, 200, 255);
+	m_activeRegions = std::vector<vtkIdType>();
+	m_activeColors = std::vector<QColor>();
 
-	activeRegions = std::vector<vtkIdType>();
-	activeColors = std::vector<QColor>();
-
-	defaultActorSize[0] = 1;
-	defaultActorSize[1] = 1;
-	defaultActorSize[2] = 1;
+	m_defaultActorSize[0] = 1;
+	m_defaultActorSize[1] = 1;
+	m_defaultActorSize[2] = 1;
 
 	m_visible = false;
 	m_highlightVisible = false;
 
-	glyphColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
-	glyphColor->SetName("colors");
-	glyphColor->SetNumberOfComponents(4);
+	m_glyphColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	m_glyphColor->SetName("colors");
+	m_glyphColor->SetNumberOfComponents(4);
 
-	glyphScales = vtkSmartPointer<vtkDoubleArray>::New();
-	glyphScales->SetName("scales");
-	glyphScales->SetNumberOfComponents(3);
+	m_glyphScales = vtkSmartPointer<vtkDoubleArray>::New();
+	m_glyphScales->SetName("scales");
+	m_glyphScales->SetNumberOfComponents(3);
 }
 
 void iAVRCubicVis::setOctree(iAVROctree* octree)
@@ -46,8 +47,10 @@ void iAVRCubicVis::setOctree(iAVROctree* octree)
 void iAVRCubicVis::createCubeModel()
 {
 	//RESET TO DEFAULT VALUES
-	if (m_actor->GetUserMatrix() != NULL)
+	if (m_actor->GetUserMatrix())
+	{
 		m_actor->GetUserMatrix()->Identity();
+	}
 	m_actor->GetMatrix()->Identity();
 	m_actor->SetOrientation(0, 0, 0);
 	m_actor->SetScale(1, 1, 1);
@@ -65,18 +68,18 @@ void iAVRCubicVis::createCubeModel()
 
 	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
 
-	glyph3D = vtkSmartPointer<vtkGlyph3D>::New();
-	glyph3D->GeneratePointIdsOn();
-	glyph3D->SetSourceConnection(cubeSource->GetOutputPort());
-	glyph3D->SetInputData(m_cubePolyData);
-	glyph3D->SetScaleModeToScaleByScalar();
+	m_glyph3D = vtkSmartPointer<vtkGlyph3D>::New();
+	m_glyph3D->GeneratePointIdsOn();
+	m_glyph3D->SetSourceConnection(cubeSource->GetOutputPort());
+	m_glyph3D->SetInputData(m_cubePolyData);
+	m_glyph3D->SetScaleModeToScaleByScalar();
 
 	// Create a mapper and actor
 	vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	glyphMapper->SetInputConnection(glyph3D->GetOutputPort());
+	glyphMapper->SetInputConnection(m_glyph3D->GetOutputPort());
 
 	m_actor->SetMapper(glyphMapper);
-	m_actor->GetProperty()->SetColor(defaultColor.redF(), defaultColor.greenF(), defaultColor.blueF());
+	m_actor->GetProperty()->SetColor(m_defaultColor.redF(), m_defaultColor.greenF(), m_defaultColor.blueF());
 }
 
 void iAVRCubicVis::show()
@@ -126,12 +129,12 @@ vtkIdType iAVRCubicVis::getClosestCellID(double pos[3], double eventOrientation[
 
 	if (cellPicker->Pick3DRay(pos, eventOrientation, m_renderer) >= 0)
 	{
-		if (!glyph3D)
+		if (!m_glyph3D)
 		{
 			LOG(lvlDebug, "Glyph not set (yet)!");
 			return -1;
 		}
-		auto inputPointIDs = dynamic_cast<vtkIdTypeArray*>(glyph3D->GetOutput()->GetPointData()->GetArray("InputPointIds"));
+		auto inputPointIDs = dynamic_cast<vtkIdTypeArray*>(m_glyph3D->GetOutput()->GetPointData()->GetArray("InputPointIds"));
 		if (!inputPointIDs)
 		{
 			LOG(lvlDebug, "Input point IDs not set!");
@@ -150,50 +153,50 @@ void iAVRCubicVis::setCubeColor(QColor col, int regionID)
 {
 	unsigned char rgb[4] = { static_cast<unsigned char>(col.red()), static_cast<unsigned char>(col.green()), static_cast<unsigned char>(col.blue()), static_cast<unsigned char>(col.alpha()) };
 
-	glyphColor->SetTuple4(regionID, rgb[0], rgb[1], rgb[2], rgb[3]);
+	m_glyphColor->SetTuple4(regionID, rgb[0], rgb[1], rgb[2], rgb[3]);
 
-	m_cubePolyData->GetPointData()->AddArray(glyphColor);
+	m_cubePolyData->GetPointData()->AddArray(m_glyphColor);
 }
 
 //! Colors the whole miniature model with the given vector of rgba values ( between 0.0 and 1.0)
 //! Resets the current color of all cubes with the new colors!
-void iAVRCubicVis::applyHeatmapColoring(std::vector<QColor>* colorPerRegion)
+void iAVRCubicVis::applyHeatmapColoring(std::vector<QColor> const & colorPerRegion)
 {
 	//Remove possible highlights
 	removeHighlightedGlyphs();
 
-	glyphColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
-	glyphColor->SetName("colors");
-	glyphColor->SetNumberOfComponents(4);
+	m_glyphColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	m_glyphColor->SetName("colors");
+	m_glyphColor->SetNumberOfComponents(4);
 
-	for (size_t i = 0; i < colorPerRegion->size(); i++)
+	for (size_t i = 0; i < colorPerRegion.size(); i++)
 	{
-		glyphColor->InsertNextTuple4(colorPerRegion->at(i).red(), colorPerRegion->at(i).green(), colorPerRegion->at(i).blue(), colorPerRegion->at(i).alpha());
+		m_glyphColor->InsertNextTuple4(colorPerRegion.at(i).red(), colorPerRegion.at(i).green(), colorPerRegion.at(i).blue(), colorPerRegion.at(i).alpha());
 	}
 
-	m_cubePolyData->GetPointData()->AddArray(glyphColor);
+	m_cubePolyData->GetPointData()->AddArray(m_glyphColor);
 }
 
-//! Creates colored border around the given Cubes. If no/empty color vector or too few colors are given the additional border are black
-void iAVRCubicVis::highlightGlyphs(std::vector<vtkIdType>* regionIDs, std::vector<QColor>* colorPerRegion)
+//! Creates colored border around the given Cubes. If no/empty color vector or too few colors are given the additional borders are black
+void iAVRCubicVis::highlightGlyphs(std::vector<vtkIdType> const & regionIDs, std::vector<QColor> colorPerRegion)
 {
-	if (!regionIDs->empty())
+	if (!regionIDs.empty())
 	{
 		//Add black color if too few colors are given
-		if (regionIDs->size() > colorPerRegion->size())
+		if (regionIDs.size() > colorPerRegion.size())
 		{
-			for (size_t i = 0; i < colorPerRegion->size() - regionIDs->size(); i++)
+			for (size_t i = 0; i < colorPerRegion.size() - regionIDs.size(); i++)
 			{
-				colorPerRegion->push_back(QColor(0, 0, 0));
+				colorPerRegion.push_back(QColor(0, 0, 0));
 			}
 		}
 
-		activeRegions = *regionIDs;
-		activeColors = *colorPerRegion;
+		m_activeRegions = regionIDs;
+		m_activeColors = colorPerRegion;
 
 		vtkSmartPointer<vtkPolyData> activeData = vtkSmartPointer<vtkPolyData>::New();
 		vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-		activeGlyph3D = vtkSmartPointer<vtkGlyph3D>::New();
+		m_activeGlyph3D = vtkSmartPointer<vtkGlyph3D>::New();
 
 		vtkSmartPointer<vtkUnsignedCharArray> activeGlyphColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
 		activeGlyphColor->SetName("highlightColor");
@@ -203,14 +206,14 @@ void iAVRCubicVis::highlightGlyphs(std::vector<vtkIdType>* regionIDs, std::vecto
 		activeGlyphScales->SetName("scales");
 		activeGlyphScales->SetNumberOfComponents(3);
 
-		for (size_t i = 0; i < regionIDs->size(); i++)
+		for (size_t i = 0; i < regionIDs.size(); i++)
 		{
-			int iD = regionIDs->at(i);
+			int iD = regionIDs.at(i);
 			points->InsertNextPoint(m_cubePolyData->GetPoint(iD));
 
-			double* regionSize = glyphScales->GetTuple3(iD);
+			double* regionSize = m_glyphScales->GetTuple3(iD);
 			activeGlyphScales->InsertNextTuple3(regionSize[0], regionSize[1], regionSize[2]);
-			activeGlyphColor->InsertNextTuple3(colorPerRegion->at(i).red(), colorPerRegion->at(i).green(), colorPerRegion->at(i).blue());
+			activeGlyphColor->InsertNextTuple3(colorPerRegion.at(i).red(), colorPerRegion.at(i).green(), colorPerRegion.at(i).blue());
 		}
 		activeData->SetPoints(points);
 		activeData->GetPointData()->SetScalars(activeGlyphScales);
@@ -218,13 +221,13 @@ void iAVRCubicVis::highlightGlyphs(std::vector<vtkIdType>* regionIDs, std::vecto
 
 		vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
 
-		activeGlyph3D->SetSourceConnection(cubeSource->GetOutputPort());
-		activeGlyph3D->SetInputData(activeData);
-		activeGlyph3D->SetScaleModeToScaleByScalar();
+		m_activeGlyph3D->SetSourceConnection(cubeSource->GetOutputPort());
+		m_activeGlyph3D->SetInputData(activeData);
+		m_activeGlyph3D->SetScaleModeToScaleByScalar();
 
 		// Create a mapper and actor
 		vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		glyphMapper->SetInputConnection(activeGlyph3D->GetOutputPort());
+		glyphMapper->SetInputConnection(m_activeGlyph3D->GetOutputPort());
 
 		m_activeActor->SetMapper(glyphMapper);
 		m_activeActor->GetMapper()->ScalarVisibilityOn();//Use scalars for color
@@ -251,20 +254,20 @@ void iAVRCubicVis::removeHighlightedGlyphs()
 		return;
 	}
 	m_renderer->RemoveActor(m_activeActor);
-	activeRegions.clear();
-	activeColors.clear();
+	m_activeRegions.clear();
+	m_activeColors.clear();
 	m_highlightVisible = false;
 }
 
 //! Redraw the borders of the last selection in black color
 void iAVRCubicVis::redrawHighlightedGlyphs()
 {
-	highlightGlyphs(&activeRegions, &activeColors);
+	highlightGlyphs(m_activeRegions, m_activeColors);
 }
 
 double* iAVRCubicVis::getDefaultActorSize()
 {
-	return defaultActorSize;
+	return m_defaultActorSize;
 }
 
 //! This Method iterates through all leaf regions of the octree and stores its center point in an vtkPolyData
@@ -275,9 +278,9 @@ void iAVRCubicVis::calculateStartPoints()
 	vtkSmartPointer<vtkPoints> cubeStartPoints = vtkSmartPointer<vtkPoints>::New();
 	m_cubePolyData = vtkSmartPointer<vtkPolyData>::New();
 
-	glyphScales = vtkSmartPointer<vtkDoubleArray>::New();
-	glyphScales->SetName("scales");
-	glyphScales->SetNumberOfComponents(3);
+	m_glyphScales = vtkSmartPointer<vtkDoubleArray>::New();
+	m_glyphScales->SetName("scales");
+	m_glyphScales->SetNumberOfComponents(3);
 
 	int leafNodes = m_octree->getOctree()->GetNumberOfLeafNodes();
 
@@ -295,18 +298,18 @@ void iAVRCubicVis::calculateStartPoints()
 		if (!m_fiberCoverage->at(m_octree->getLevel()).at(i)->empty()) {
 			double regionSize[3];
 			m_octree->calculateOctreeRegionSize(i, regionSize);
-			glyphScales->InsertNextTuple3(regionSize[0], regionSize[1], regionSize[2]);
+			m_glyphScales->InsertNextTuple3(regionSize[0], regionSize[1], regionSize[2]);
 			//count++;
 		}
 		else
 		{
-			glyphScales->InsertNextTuple3(0, 0, 0);
+			m_glyphScales->InsertNextTuple3(0, 0, 0);
 		}
 		cubeStartPoints->InsertNextPoint(centerPoint[0], centerPoint[1], centerPoint[2]);
 	}
 
 	m_cubePolyData->SetPoints(cubeStartPoints);
-	m_cubePolyData->GetPointData()->SetScalars(glyphScales);
+	m_cubePolyData->GetPointData()->SetScalars(m_glyphScales);
 }
 
 //! Applies a linear shift: All regions are displaced by the same factor, regardless of their 
@@ -325,16 +328,16 @@ void iAVRCubicVis::applyRadialDisplacement(double offset)
 	m_octree->calculateOctreeCenterPos(centerPoint);
 	iAVec3d centerPos = iAVec3d(centerPoint);
 
-	for (vtkIdType i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
+	for (vtkIdType i = 0; i < m_glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
 	{
-		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
+		iAVec3d currentPoint = iAVec3d(m_glyph3D->GetPolyDataInput(0)->GetPoint(i));
 		iAVec3d normDirection = currentPoint - centerPos;
 		normDirection.normalize();
 
 		iAVec3d move = normDirection * offset;
 		iAVec3d newPoint = currentPoint + move;
 
-		glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
+		m_glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
 	}
 	m_cubePolyData->GetPoints()->GetData()->Modified();
 	redrawHighlightedGlyphs();
@@ -359,18 +362,18 @@ void iAVRCubicVis::applySPDisplacement(double offset)
 	iAVec3d centerPos = iAVec3d(centerPoint);
 
 	// Get max length
-	for (vtkIdType i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
+	for (vtkIdType i = 0; i < m_glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
 	{
-		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
+		iAVec3d currentPoint = iAVec3d(m_glyph3D->GetPolyDataInput(0)->GetPoint(i));
 		iAVec3d direction = currentPoint - centerPos;
 		double length = direction.length();
 
 		if (length > maxLength) maxLength = length;
 	}
 
-	for (vtkIdType i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
+	for (vtkIdType i = 0; i < m_glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
 	{
-		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
+		iAVec3d currentPoint = iAVec3d(m_glyph3D->GetPolyDataInput(0)->GetPoint(i));
 		iAVec3d normDirection = currentPoint - centerPos;
 		double currentLength = normDirection.length();
 		normDirection.normalize();
@@ -378,7 +381,7 @@ void iAVRCubicVis::applySPDisplacement(double offset)
 		iAVec3d move = normDirection * offset * (currentLength / maxLength);
 		iAVec3d newPoint = currentPoint + move;
 
-		glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
+		m_glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
 	}
 	m_cubePolyData->GetPoints()->GetData()->Modified();
 	redrawHighlightedGlyphs();
@@ -401,9 +404,9 @@ void iAVRCubicVis::applyOctantDisplacement(double offset)
 	iAVec3d centerPos = iAVec3d(centerPoint);
 	iAVec3d newPoint;
 
-	for (vtkIdType i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
+	for (vtkIdType i = 0; i < m_glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
 	{
-		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
+		iAVec3d currentPoint = iAVec3d(m_glyph3D->GetPolyDataInput(0)->GetPoint(i));
 		newPoint = currentPoint;
 
 		// X
@@ -433,7 +436,7 @@ void iAVRCubicVis::applyOctantDisplacement(double offset)
 		{
 			newPoint[2] = currentPoint[2] + offset;
 		}
-		glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
+		m_glyph3D->GetPolyDataInput(0)->GetPoints()->SetPoint(i, newPoint.data());
 	}
 	m_cubePolyData->GetPoints()->GetData()->Modified();
 	redrawHighlightedGlyphs();

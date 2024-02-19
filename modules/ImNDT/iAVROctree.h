@@ -5,15 +5,17 @@
 #include <iAVec3.h>
 
 #include <vtkSmartPointer.h>
-#include <vtkRenderer.h>
-#include <vtkDataSet.h>
-#include <vtkOctreePointLocator.h>
-#include <vtkPolyData.h>
 
 #include <QColor>
 
-#include <unordered_map>
 #include <forward_list>
+#include <unordered_map>
+
+class vtkActor;
+class vtkDataSet;
+class vtkOctreePointLocator;
+class vtkPolyData;
+class vtkRenderer;
 
 //! Class for calculation of a 3D Octree 
 class iAVROctree
@@ -30,19 +32,19 @@ public:
 	void createOctreeBoundingBoxPlanes(int regionID, std::vector<std::vector<iAVec3d>>* planePoints);
 	void createOctreeBoundingBoxPlanes(std::vector<std::vector<iAVec3d>>* planePoints);
 	void movePointInsideRegion(double point[3], double movedPoint[3]);
-	vtkIdType getNumberOfLeafeNodes();
+	vtkIdType getNumberOfLeafNodes() const;
 	double getMaxDistanceOctCenterToRegionCenter();
 	double getMaxDistanceOctCenterToFiber();
-	std::vector<std::unordered_map<vtkIdType, double>*>* getfibersInRegionMapping(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex);
-	int getLevel();
+	std::vector<std::unordered_map<vtkIdType, double>*> const & getFibersInRegionMapping(std::unordered_map<vtkIdType, vtkIdType> const & pointIDToCsvIndex);
+	int getLevel() const;
 	vtkSmartPointer<vtkPolyData> getBoundingBoxes();
 	void show();
 	void hide();
 	vtkActor* getActor();
-	std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>>* getRegionsInLineOfRay();
+	std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>> const & getRegionsInLineOfRay();
 
 private:
-	vtkIdType numberOfLeaveNodes;
+	vtkIdType m_numberOfLeafNodes;
 	double m_maxDistanceOctCenterToRegionCenter;
 	double m_maxDistanceOctCenterToFiber;
 	bool m_visible;
@@ -53,11 +55,11 @@ private:
 	vtkSmartPointer<vtkOctreePointLocator> m_octree;
 	vtkSmartPointer<vtkPolyData> m_boundingBoxes;
 	//Saves the octree [region] and a  map of its fiber IDs [iD] with their coverage (0.0-1.0)
-	std::vector<std::unordered_map<vtkIdType, double>*>* m_fibersInRegion;
+	std::vector<std::unordered_map<vtkIdType, double>*> m_fibersInRegion;
 	//Saves a 2D side view of an [direction] (x,y,z) of all regions which get hit by a ray traversing through every row/column [column][row] (2^level x 2^level Grid)
-	std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>>* m_regionsInLine;
+	std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>> m_regionsInLine;
 
-	void mapFibersToRegion(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex);
+	void mapFibersToRegion(std::unordered_map<vtkIdType, vtkIdType> const & pointIDToCsvIndex);
 	double calculateDistanceOctCenterToRegionCenter();
 	double calculateDistanceOctCenterToFiber();
 	void calculateRayThroughCubeRow();

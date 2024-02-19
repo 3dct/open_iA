@@ -2,27 +2,33 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAImNDTInteractorStyle.h"
-#include "iAVREnvironment.h"
-#include "iAVRHistogramMetric.h"
-#include "iAVRObjectCoverage.h"
-#include "iAVROctreeMetrics.h"
+#include "iAImNDTInteractorStyle.h"    // for iAImNDTInteractions
+
+#include <iACsvConfig.h>
 
 #include <vtkEventData.h>
 #include <vtkSmartPointer.h>
 
+#include <QObject>
+
 #include <unordered_map>
 
+class iAColoredPolyObjectVis;
 class iAObjectsData;
 
 class iAVR3DText;
 class iAVRColorLegend;
+class iAVREnvironment;
 class iAVRFrontCamera;
+class iAVRHistogramMetric;
 class iAVRHistogramPairVis;
 class iAVRMip;
 class iAVRModelInMiniature;
+class iAVRObjectCoverage;
 class iAVRObjectModel;
 class iAVROctree;
+class iAVROctreeMetrics;
+class vtkPolyData;
 class iAVRSlider;
 
 // Enumeration of different interaction options for different Objects
@@ -81,10 +87,10 @@ signals:
 private:
 	using InputScheme = std::vector<std::vector<std::vector<std::vector<int>>>>;
 
-	vtkIdType currentOctreeLevel;
+	vtkIdType m_currentOctreeLevel;
 
 	iAVREnvironment* m_vrEnv;
-	std::vector<iAVROctree*>* m_octrees;
+	std::vector<iAVROctree*> m_octrees;
 	iAVRModelInMiniature* m_modelInMiniature;
 	iAVRObjectModel* m_volume;
 	vtkSmartPointer<vtkPolyData> m_extendedCylinderVisData; // Data extended with additional intersection points
@@ -94,37 +100,37 @@ private:
 	std::vector<int> m_activeInput;
 
 	bool m_networkGraphMode;
-	std::vector<iAVR3DText*>* m_3DTextLabels;
+	std::vector<iAVR3DText*> m_3DTextLabels;
 	iAVRObjectCoverage* m_fiberCoverageCalc;
 	iAVRSlider* m_slider;
 	iAVRColorLegend* m_MiMColorLegend;
 	iAVRMip* m_MiMMip;
-	iAVROctreeMetrics* fiberMetrics;
-	iAVRHistogramMetric* histogramMetrics;
+	iAVROctreeMetrics* m_fiberMetrics;
+	iAVRHistogramMetric* m_histogramMetrics;
 	iAVRHistogramPairVis* m_distributionVis;
-	int currentFeature;
-	int currentMiMDisplacementType;
-	std::vector<vtkIdType>* multiPickIDs;
+	int m_currentFeature;
+	int m_currentMiMDisplacementType;
+	std::vector<vtkIdType> m_multiPickIDs;
 	//! Current Device Position
-	double cPos[vtkEventDataNumberOfDevices][3];
+	double m_cPos[vtkEventDataNumberOfDevices][3];
 	//! Current Device Orientation
-	double cOrie[vtkEventDataNumberOfDevices][4];
+	double m_cOrie[vtkEventDataNumberOfDevices][4];
 	//! Current Focal Point
-	double focalPoint[3];
+	double m_focalPoint[3];
 	//! Current view direction of the head
-	int viewDirection;
+	int m_viewDirection;
 	//! Current touchpad Position
 	float m_touchPadPosition[3];
 	//! Map Actors to iAVRInteractionOptions
 	std::unordered_map<vtkProp3D*, int> m_ActorToOptionID;
 	//! True if the corresponding actor is visible
-	bool modelInMiniatureActive = false;
+	bool m_modelInMiniatureActive = false;
 	//! True if the MIP Panels should be visible
 	bool m_MIPPanelsVisible = false;
 	double m_rotationOfDisVis;
-	double controllerTravelledDistance;
-	int sign;
-	vtkSmartPointer<vtkActor> pointsActor;
+	double m_controllerTravelledDistance;
+	int m_sign;
+	vtkSmartPointer<vtkActor> m_pointsActor;
 
 	std::unique_ptr<iAVRFrontCamera> m_arViewer;
 	bool m_arEnabled = false;
@@ -138,7 +144,7 @@ private:
 	void calculateMetrics();
 	//! Updates the data (Octree, Metrics,...) and the position for the current MiM
 	void updateModelInMiniatureData();
-	void colorMiMCubes(std::vector<vtkIdType>* regionIDs);
+	void colorMiMCubes(std::vector<vtkIdType> const & regionIDs);
 	//! Returns the difference between the intial world scaling and the current scaling
 	double calculateWorldScaleFactor();
 

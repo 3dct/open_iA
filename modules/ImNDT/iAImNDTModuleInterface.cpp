@@ -79,7 +79,7 @@ void iAImNDTModuleInterface::Initialize()
 	auto removeRenderer = [this](iAMdiChild* child, size_t dataSetIdx)
 	{
 		auto key = std::make_pair(child, dataSetIdx);
-		auto vrRen = m_vrRenderers.at(key);
+		auto const & vrRen = m_vrRenderers.at(key);
 		m_vrRenderers.erase(key);
 		m_vrEnv->queueTask([vrRen] { vrRen->setVisible(false); });
 		checkStopVR();
@@ -121,7 +121,7 @@ void iAImNDTModuleInterface::Initialize()
 					{
 						return;
 					}
-					auto vrRen = m_vrRenderers.at(key);
+					auto const& vrRen = m_vrRenderers.at(key);
 					vrRen->setAttributes(viewer->attributeValues());
 				});
 				connect(viewer, &iADataSetViewer::removeDataSet, this, [child, removeRenderer](size_t dataSetIdx)
@@ -396,7 +396,7 @@ void iAImNDTModuleInterface::startAnalysis()
 	{
 		return;
 	}
-	auto csvConfig = dlg.getConfig();
+	auto const& csvConfig = dlg.getConfig();
 	auto objData = loadObjectsCSV(csvConfig);
 	if (!objData)
 	{
@@ -461,7 +461,7 @@ bool iAImNDTModuleInterface::setupVREnvironment()
 		QMessageBox::information(m_mainWnd, "VR", msg);
 		return false;
 	}
-	auto backends = iAvtkVR::availableBackends();
+	auto const& backends = iAvtkVR::availableBackends();
 	if (backends.size() < 1)
 	{
 		QString msg("Invalid configuration: VR module built without without VR backends; please report this in our issue tracker (https://github.com/3dct/open_iA/issues)!");

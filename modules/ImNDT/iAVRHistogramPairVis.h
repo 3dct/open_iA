@@ -16,6 +16,7 @@ class vtkActor;
 class vtkAssembly;
 class vtkGlyph3DMapper;
 class vtkPoints;
+class vtkPolyData;
 class vtkRenderer;
 class vtkTable;
 class vtkUnsignedCharArray;
@@ -29,15 +30,15 @@ class iAVRHistogramPairVis
 {
 public:
 	iAVRHistogramPairVis(vtkRenderer* ren, iAVRHistogramMetric* histogramMetric, iAVROctreeMetrics* octreeMetric, vtkTable* objectTable);
-	void createVisualization(double* pos, double visSize, double offset, int level, std::vector<vtkIdType>* regions, std::vector<int> const & featureList);
+	void createVisualization(double* pos, double visSize, double offset, int level, std::vector<vtkIdType> const & regions, std::vector<int> const & featureList);
 	vtkSmartPointer<vtkAssembly> getVisAssembly();
 	void show();
 	void hide();
 	void determineHistogramInView(double* viewDir);
 	void rotateVisualization(double y);
 	void flipThroughHistograms(double flipDir);
-	double getRadius();
-	std::vector<QColor> getBarColors();
+	double getRadius() const;
+	std::vector<QColor> getBarColors() const;
 
 private:
 	vtkSmartPointer<vtkRenderer> m_renderer;
@@ -97,7 +98,7 @@ private:
 	void createAxisLabels(size_t axis);
 	void calculateAxesViewPoint(size_t axis);
 	void calculateBarsWithCubes(double* markPos, double* cubeSize, int stackSize, vtkPoints* barPoints, vtkUnsignedCharArray* colorArray, QColor barColor);
-	double getXZCubeSize();
+	double getXZCubeSize() const;
 	int getMaxBinOccurrences(size_t axis);
 	double getMinYCubeSize(size_t axis);
 

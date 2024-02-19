@@ -15,13 +15,11 @@
 #include <vtkImageData.h>
 #include <vtkOpenVRRenderer.h>
 #include <vtkOpenVRRenderWindow.h>
-#include <vtkPNGWriter.h>
-#include <vtkProperty.h>
-#include <vtkRenderer.h>
+//#include <vtkPNGWriter.h>
+//#include <vtkProperty.h>
+//#include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
 #include <vtkTexture.h>
-
-#include <QString>
 
 class vtkFloatArray;
 

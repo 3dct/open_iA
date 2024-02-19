@@ -2,18 +2,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAVROctree.h"
-#include "iAVR3DText.h"
+#include <vtkType.h>
+
+#include <vtkSmartPointer.h>
 
 #include <QString>
 
 class vtkTable;
 
+class iAVROctree;
+
 //!This class contains basic data structures/values for metrics calculation
 class iAVRMetrics
 {
 public:
-	iAVRMetrics(vtkTable* objectTable, std::vector<iAVROctree*>* octrees);
+	iAVRMetrics(vtkTable* objectTable, std::vector<iAVROctree*> const & octrees);
 	void setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage);
 	int getNumberOfFeatures();
 	QString getFeatureName(int feature);
@@ -31,7 +34,7 @@ protected:
 	//Stores for the [octree level] in an [octree region] a map of its fiberIDs with their coverage
 	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* m_fiberCoverage;
 	vtkSmartPointer<vtkTable> m_objectTable;
-	std::vector<iAVROctree*>* m_octrees;
+	std::vector<iAVROctree*> const & m_octrees;
 
 private:
 	void storeMinMaxValues();

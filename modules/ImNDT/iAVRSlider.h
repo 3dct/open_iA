@@ -3,16 +3,14 @@
 #pragma once
 
 #include <vtkSmartPointer.h>
-#include <vtkRenderer.h>
-#include <vtkSliderWidget.h>
-#include <vtkSliderRepresentation3D.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkProp3D.h>
-
-#include <iALog.h>
 
 #include <QString>
 
+class vtkProp;
+class vtkRenderer;
+class vtkRenderWindowInteractor;
+class vtkSliderRepresentation3D;
+class vtkSliderWidget;
 
 //class vtkSliderCallback : public vtkCommand
 //{
@@ -42,14 +40,14 @@ class iAVRSlider
 {
 public:
 	iAVRSlider(vtkRenderer* ren, vtkRenderWindowInteractor* interactor);
-	void createSlider(double minValue, double maxValue, QString title = "Slider");
+	void createSlider(double minValue, double maxValue, QString const& title = "Slider");
 	void show();
 	void hide();
 	vtkSmartPointer<vtkProp> getSlider();
 	void setSliderLength(double length);
 	void setPosition(double x, double y, double z);
 	void setOrientation(double y);
-	void setTitel(QString title);
+	void setTitel(QString const& title);
 	void setValue(double val);
 	double getValue();
 

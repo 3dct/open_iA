@@ -10,24 +10,22 @@
 #include <vtkCellData.h>
 #include <vtkLookupTable.h>
 #include <vtkPlaneSource.h>
-#include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkTextActor3D.h>
 #include <vtkTextProperty.h>
 
-iAVRColorLegend::iAVRColorLegend(vtkRenderer* renderer) :m_renderer(renderer)
+iAVRColorLegend::iAVRColorLegend(vtkRenderer* renderer):
+	m_renderer(renderer),
+	m_colorBarLegend(vtkSmartPointer<vtkActor>::New()),
+	m_legend(vtkSmartPointer<vtkAssembly>::New()),
+	m_textSource(vtkSmartPointer<vtkTextActor3D>::New()),
+	m_titleTextSource(vtkSmartPointer<vtkTextActor3D>::New()),
+	m_colorLegendVisible(false)
 {
-	titleTextSource = vtkSmartPointer<vtkTextActor3D>::New();
-	textSource = vtkSmartPointer<vtkTextActor3D>::New();
-	m_colorBarLegend = vtkSmartPointer<vtkActor>::New();
-	m_legend = vtkSmartPointer<vtkAssembly>::New();
-
 	//Initialize LUT for min/max = 0
 	createLut(0, 0, 1);
-
-	m_colorLegendVisible = false;
 }
 
 //! Creates a LUT with a choosen colorScheme and min/max values
@@ -65,18 +63,18 @@ QColor iAVRColorLegend::getColor(double value)
 }
 
 //! Returns a rgba coloring vector for the current LUT for every region in the given octree level for a given feature
-std::vector<QColor>* iAVRColorLegend::getColors(int octreeLevel, int feature, std::vector<std::vector<std::vector<double>>>* calculatedValues)
+std::vector<QColor> iAVRColorLegend::getColors(int octreeLevel, int feature, std::vector<std::vector<std::vector<double>>> const & calculatedValues)
 {
-	auto colors = new std::vector<QColor>(calculatedValues->at(octreeLevel).at(feature).size(), QColor());
+	std::vector<QColor> colors(calculatedValues.at(octreeLevel).at(feature).size(), QColor());
 
-	for (size_t region = 0; region < calculatedValues->at(octreeLevel).at(feature).size(); region++)
+	for (size_t region = 0; region < calculatedValues.at(octreeLevel).at(feature).size(); region++)
 	{
 		double rgba[3] = { 0,0,0 };
 		//double val = histogramNormalization(m_calculatedAverage->at(octreeLevel).at(feature).at(region),0,1,min,max);
-		double val = calculatedValues->at(octreeLevel).at(feature).at(region);
+		double val = calculatedValues.at(octreeLevel).at(feature).at(region);
 		m_lut->GetColor(val, rgba);
 
-		colors->at(region).setRgbF(rgba[0], rgba[1], rgba[2], m_lut->GetOpacity(val));
+		colors.at(region).setRgbF(rgba[0], rgba[1], rgba[2], m_lut->GetOpacity(val));
 	}
 
 	return colors;
@@ -146,42 +144,41 @@ void iAVRColorLegend::calculateLegend(double physicalScale)
 	m_colorBarLegend->GetProperty()->SetLineWidth(3);
 
 	//title
-	titleTextSource = vtkSmartPointer<vtkTextActor3D>::New();
-	titleTextSource->GetTextProperty()->SetColor(0, 0, 0);
-	titleTextSource->GetTextProperty()->SetBackgroundColor(0.6, 0.6, 0.6);
-	titleTextSource->GetTextProperty()->SetBackgroundOpacity(1.0);
-	titleTextSource->GetTextProperty()->SetFontSize(30);
+	m_titleTextSource = vtkSmartPointer<vtkTextActor3D>::New();
+	m_titleTextSource->GetTextProperty()->SetColor(0, 0, 0);
+	m_titleTextSource->GetTextProperty()->SetBackgroundColor(0.6, 0.6, 0.6);
+	m_titleTextSource->GetTextProperty()->SetBackgroundOpacity(1.0);
+	m_titleTextSource->GetTextProperty()->SetFontSize(30);
 
 	// Create text
-	textSource = vtkSmartPointer<vtkTextActor3D>::New();
-	textSource->SetInput(text.toUtf8());
-	textSource->GetTextProperty()->SetColor(0, 0, 0);
-	textSource->GetTextProperty()->SetBackgroundColor(0.6, 0.6, 0.6);
-	textSource->GetTextProperty()->SetBackgroundOpacity(1.0);
-	textSource->GetTextProperty()->SetFontSize(19);
+	m_textSource = vtkSmartPointer<vtkTextActor3D>::New();
+	m_textSource->SetInput(text.toUtf8());
+	m_textSource->GetTextProperty()->SetColor(0, 0, 0);
+	m_textSource->GetTextProperty()->SetBackgroundColor(0.6, 0.6, 0.6);
+	m_textSource->GetTextProperty()->SetBackgroundOpacity(1.0);
+	m_textSource->GetTextProperty()->SetFontSize(19);
 
 	double actorBounds[6];
 	m_colorBarLegend->GetBounds(actorBounds);
 
-	initialTextOffset = physicalScale * 0.001;// 0.000021;
+	m_initialTextOffset = physicalScale * 0.001;// 0.000021;
 
-	textSource->SetPosition(actorBounds[1] + initialTextOffset, actorBounds[2] + initialTextOffset, actorBounds[4]);
-	textSource->SetScale(physicalScale * 0.0005, physicalScale * 0.001, 1);
+	m_textSource->SetPosition(actorBounds[1] + m_initialTextOffset, actorBounds[2] + m_initialTextOffset, actorBounds[4]);
+	m_textSource->SetScale(physicalScale * 0.0005, physicalScale * 0.001, 1);
 
-	titleTextSource->SetPosition(actorBounds[0], actorBounds[3] + initialTextOffset, actorBounds[4]);
-	titleTextSource->SetScale(physicalScale * 0.0008, physicalScale * 0.00085, 1);
-
+	m_titleTextSource->SetPosition(actorBounds[0], actorBounds[3] + m_initialTextOffset, actorBounds[4]);
+	m_titleTextSource->SetScale(physicalScale * 0.0008, physicalScale * 0.00085, 1);
 	
 	for(int i = 0; i < 3; i++)
 	{
-		titleFieldScale[i] = titleTextSource->GetScale()[i];
-		textFieldScale[i] = textSource->GetScale()[i];
+		m_titleFieldScale[i] = m_titleTextSource->GetScale()[i];
+		m_textFieldScale[i] = m_textSource->GetScale()[i];
 	}
 
 	m_legend = vtkSmartPointer<vtkAssembly>::New();
 	m_legend->AddPart(m_colorBarLegend);
-	m_legend->AddPart(titleTextSource);
-	m_legend->AddPart(textSource);
+	m_legend->AddPart(m_titleTextSource);
+	m_legend->AddPart(m_textSource);
 	m_legend->Modified();
 }
 
@@ -228,7 +225,7 @@ void iAVRColorLegend::setScale(double scale)
 //! Sets the title for the header of the color bar legend
 void iAVRColorLegend::setTitle(QString title)
 {
-	titleTextSource->SetInput(title.toUtf8());
+	m_titleTextSource->SetInput(title.toUtf8());
 }
 
 //! Calculates the Lookuptable (LUT) based on the range from min to max and a given color scheme
@@ -256,7 +253,7 @@ vtkSmartPointer<vtkLookupTable> iAVRColorLegend::calculateLUT(double min, double
 // Predefined 8 color diverging Scheme: https://colorbrewer2.org/?type=diverging&scheme=RdYlBu&n=8
 std::vector<QColor> iAVRColorLegend::colorScheme01()
 {
-	std::vector<QColor> colorScheme = std::vector<QColor>(8, QColor());
+	std::vector<QColor> colorScheme(8, QColor());
 
 	colorScheme.at(0).setRgb(215, 48, 39, 255);
 	colorScheme.at(1).setRgb(244, 109, 67, 255);
@@ -273,7 +270,7 @@ std::vector<QColor> iAVRColorLegend::colorScheme01()
 // Predefined 4 color qualitative Scheme: https://colorbrewer2.org/?type=diverging&scheme=RdYlBu&n=8#type=qualitative&scheme=Set1&n=4
 std::vector<QColor> iAVRColorLegend::colorScheme02()
 {
-	std::vector<QColor> colorScheme = std::vector<QColor>(4, QColor());
+	std::vector<QColor> colorScheme(4, QColor());
 
 	colorScheme.at(0).setRgb(228, 26, 28, 255);
 	colorScheme.at(1).setRgb(55, 126, 184, 255);

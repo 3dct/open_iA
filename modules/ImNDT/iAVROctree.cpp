@@ -2,18 +2,23 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVROctree.h"
 
+#include <vtkActor.h>
+#include <vtkIdTypeArray.h>
+#include <vtkOctreePointLocator.h>
+#include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
+#include <vtkRenderer.h>
 
 iAVROctree::iAVROctree(vtkRenderer* ren, vtkDataSet* dataSet):m_renderer(ren),m_dataSet(dataSet),m_actor(vtkSmartPointer<vtkActor>::New()),
-m_octree(vtkSmartPointer<vtkOctreePointLocator>::New())
+	m_numberOfLeafNodes(0),
+	m_maxDistanceOctCenterToRegionCenter(-1),
+	m_maxDistanceOctCenterToFiber(-1),
+	m_visible(false),
+	m_octree(vtkSmartPointer<vtkOctreePointLocator>::New()),
+	m_fibersInRegion(),
+	m_regionsInLine()
 {
-	m_visible = false;
-	numberOfLeaveNodes = 0;
-	m_maxDistanceOctCenterToRegionCenter = -1;
-	m_maxDistanceOctCenterToFiber = -1;
-	m_fibersInRegion = new std::vector<std::unordered_map<vtkIdType, double>*>();
-	m_regionsInLine = new std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>>();
 }
 
 void iAVROctree::generateOctreeRepresentation(int level, QColor col)
@@ -40,7 +45,7 @@ void iAVROctree::calculateOctree(int level, int pointsPerRegion)
 	m_octree->SetDataSet(m_dataSet);
 	m_octree->BuildLocator();
 
-	numberOfLeaveNodes = m_octree->GetNumberOfLeafNodes();
+	m_numberOfLeafNodes = m_octree->GetNumberOfLeafNodes();
 	m_level = level;
 	m_boundingBoxes = vtkSmartPointer<vtkPolyData>::New();
 	m_octree->GenerateRepresentation(m_level, m_boundingBoxes);
@@ -248,9 +253,9 @@ void iAVROctree::movePointInsideRegion(double point[3], double movedPoint[3])
 	}
 }
 
-vtkIdType iAVROctree::getNumberOfLeafeNodes()
+vtkIdType iAVROctree::getNumberOfLeafNodes() const
 {
-	return numberOfLeaveNodes;
+	return m_numberOfLeafNodes;
 }
 
 //! Returns the maximum lenght from the octree center to any of its regions. Gets calculated at first call
@@ -282,9 +287,9 @@ double iAVROctree::getMaxDistanceOctCenterToFiber()
 
 //! Returns which fibers (ID) lie in which region with coverage of 1. Gets calculated on the first call.
 //! They all lie (independent of their real coverage) to 100% inside the region
-std::vector<std::unordered_map<vtkIdType, double>*>* iAVROctree::getfibersInRegionMapping(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex)
+std::vector<std::unordered_map<vtkIdType, double>*> const & iAVROctree::getFibersInRegionMapping(std::unordered_map<vtkIdType, vtkIdType> const & pointIDToCsvIndex)
 {
-	if(!m_fibersInRegion->empty())
+	if(!m_fibersInRegion.empty())
 	{
 		return m_fibersInRegion;
 	}
@@ -295,7 +300,7 @@ std::vector<std::unordered_map<vtkIdType, double>*>* iAVROctree::getfibersInRegi
 	}
 }
 
-int iAVROctree::getLevel()
+int iAVROctree::getLevel() const
 {
 	return m_level;
 }
@@ -334,9 +339,9 @@ vtkActor* iAVROctree::getActor()
 //! Grid size is 2^L x 2^L x 2^L (L = Level of Octree).
 //! For each cell a list of all traversed cubes is stored. Attention: In case a cube could not be splitted in later octree levels 
 //! the list will contain this region multiple times.
-std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>>* iAVROctree::getRegionsInLineOfRay()
+std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>> const & iAVROctree::getRegionsInLineOfRay()
 {
-	if (!m_regionsInLine->empty())
+	if (!m_regionsInLine.empty())
 	{
 		return m_regionsInLine;
 	}
@@ -350,9 +355,9 @@ std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>>* iAVROctree:
 //! Stores which fibers lie in which region. Therfore all pointIds inside a region are taken and mapped to its fiber ID. 
 //! They all lie (independent of their real coverage) to 100% inside the region
 //! Regions without fibers have no entry
-void iAVROctree::mapFibersToRegion(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex)
+void iAVROctree::mapFibersToRegion(std::unordered_map<vtkIdType, vtkIdType> const & pointIDToCsvIndex)
 {
-	for(int region = 0; region < numberOfLeaveNodes; region++)
+	for(int region = 0; region < m_numberOfLeafNodes; region++)
 	{
 		vtkIdTypeArray* points = m_octree->GetPointsInRegion(region);
 		std::unordered_map<vtkIdType, double>* tempMap = new std::unordered_map<vtkIdType, double>();
@@ -362,14 +367,14 @@ void iAVROctree::mapFibersToRegion(std::unordered_map<vtkIdType, vtkIdType>* poi
 			for (vtkIdType i = 0; i < points->GetSize(); i++)
 			{
 				vtkIdType fiberiD = -1;
-				if (pointIDToCsvIndex->find(points->GetValue(i)) != pointIDToCsvIndex->end())
+				if (pointIDToCsvIndex.find(points->GetValue(i)) != pointIDToCsvIndex.end())
 				{
-					fiberiD = pointIDToCsvIndex->at(points->GetValue(i));
+					fiberiD = pointIDToCsvIndex.at(points->GetValue(i));
 				}
 				tempMap->insert(std::make_pair(fiberiD, 1));
 			}
 		}
-		m_fibersInRegion->push_back(tempMap);
+		m_fibersInRegion.push_back(tempMap);
 	}
 }
 
@@ -381,7 +386,7 @@ double iAVROctree::calculateDistanceOctCenterToRegionCenter()
 	calculateOctreeCenterPos(centerPoint);
 	iAVec3d centerPos = iAVec3d(centerPoint);
 
-	for (vtkIdType region = 0; region < getNumberOfLeafeNodes(); region++)
+	for (vtkIdType region = 0; region < getNumberOfLeafNodes(); region++)
 	{
 		calculateOctreeRegionCenterPos(region, regionCenterPoint);
 
@@ -428,7 +433,7 @@ void iAVROctree::calculateRayThroughCubeRow()
 	int rowSizeMinus1 = rowSize - 1;
 	std::vector<std::forward_list<vtkIdType>> row = std::vector<std::forward_list<vtkIdType>>(rowSize);
 	std::vector<std::vector<std::forward_list<vtkIdType>>> column = std::vector<std::vector<std::forward_list<vtkIdType>>>(rowSize, row);
-	m_regionsInLine = new std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>>(3, column);
+	m_regionsInLine.resize(3, column);
 
 	double xMin = bounds[0];
 	double xMax = bounds[1];
@@ -458,11 +463,11 @@ void iAVROctree::calculateRayThroughCubeRow()
 				vtkIdType region = m_octree->GetRegionContainingPoint(x - (xSteps / 2), y - (ySteps / 2), z - (zSteps / 2));
 
 				//x direction
-				m_regionsInLine->at(0).at(columnCount).at(rowCount).push_front(region); 
+				m_regionsInLine.at(0).at(columnCount).at(rowCount).push_front(region); 
 				//y direction
-				m_regionsInLine->at(1).at(rowSizeMinus1 - rowCount).at(rowSizeMinus1 - depthCount).push_front(region); 
+				m_regionsInLine.at(1).at(rowSizeMinus1 - rowCount).at(rowSizeMinus1 - depthCount).push_front(region); 
 				//z direction
-				m_regionsInLine->at(2).at(columnCount).at(rowSizeMinus1 - depthCount).push_front(region);
+				m_regionsInLine.at(2).at(columnCount).at(rowSizeMinus1 - depthCount).push_front(region);
 				depthCount++;
 			}	
 			rowCount++;

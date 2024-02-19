@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAVRMetrics.h"
 #include "iAVRHistogram.h"
+#include "iAVRMetrics.h"
 
 //struct HistogramParametersOLD
 //{
@@ -27,7 +27,7 @@
 class iAVRHistogramMetric: public iAVRMetrics
 {
 public:
-	iAVRHistogramMetric(vtkTable* objectTable, std::vector<iAVROctree*>* octrees);
+	iAVRHistogramMetric(vtkTable* objectTable, std::vector<iAVROctree*> const & octrees);
 	iAVRHistogram getHistogram(std::vector<double> values, int observations);
 	iAVRHistogram getHistogram(std::vector<double> values, double min, double max, int observations);
 	int determineNumberOfBins(int observations, int method);

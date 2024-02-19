@@ -13,7 +13,6 @@
 #include <vtkCullerCollection.h>
 #endif
 #include <vtkImageFlip.h>
-#include <vtkLight.h>
 #include <vtkLightKit.h>
 #include <vtkPickingManager.h>
 #include <vtkPNGReader.h>

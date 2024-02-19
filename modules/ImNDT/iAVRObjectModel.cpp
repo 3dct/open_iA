@@ -3,28 +3,29 @@
 #include "iAVRObjectModel.h"
 
 #include <iAColoredPolyObjectVis.h>
-#include <iALog.h>
 #include <iAVROctreeMetrics.h>
 
+#include <vtkActor.h>
 #include <vtkCellArray.h>
 #include <vtkCubeSource.h>
 #include <vtkDataSet.h>
 #include <vtkDoubleArray.h>
 #include <vtkFloatArray.h>
+#include <vtkGlyph3D.h>
 #include <vtkLine.h>
-#include <vtkMapper.h>
+#include <vtkLookupTable.h>
+#include <vtkPointData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
+#include <vtkRenderer.h>
 #include <vtkTubeFilter.h>
 #include <vtkUnsignedCharArray.h>
 #include <vtkVariantArray.h>
-#include <vtkPointData.h>
-
 
 iAVRObjectModel::iAVRObjectModel(vtkRenderer* ren, iAColoredPolyObjectVis* polyObject):
 	iAVRCubicVis{ ren }, m_polyObject(polyObject)
 {
-	defaultColor = QColor(126, 0, 223, 255);
+	m_defaultColor = QColor(126, 0, 223, 255);
 	m_volumeActor = vtkSmartPointer<vtkActor>::New();
 	m_RegionLinksActor = vtkSmartPointer<vtkActor>::New();
 	m_RegionNodesActor = vtkSmartPointer<vtkActor>::New();
@@ -136,7 +137,7 @@ double iAVRObjectModel::getCubeSize(int region)
 
 //! Colors the cube nodes with the given region IDs with a given color
 //! Both vectors must have equal length
-void iAVRObjectModel::setNodeColor(std::vector<vtkIdType> regions, std::vector<QColor> color)
+void iAVRObjectModel::setNodeColor(std::vector<vtkIdType> const & regions, std::vector<QColor> const & color)
 {
 	if (nodeGlyphResetColor->GetNumberOfTuples() >0)
 	{
@@ -171,10 +172,10 @@ void iAVRObjectModel::createCubeModel()
 	m_actor->GetMapper()->SetScalarModeToUsePointFieldData();
 	m_actor->GetMapper()->SelectColorArray("colors");
 
-	std::vector<QColor>* color = new std::vector<QColor>(m_octree->getNumberOfLeafeNodes(), defaultColor);
+	std::vector<QColor> color(m_octree->getNumberOfLeafNodes(), m_defaultColor);
 	applyHeatmapColoring(color);
 	
-	m_actor->GetProperty()->SetColor(defaultColor.redF(), defaultColor.greenF(), defaultColor.blueF());
+	m_actor->GetProperty()->SetColor(m_defaultColor.redF(), m_defaultColor.greenF(), m_defaultColor.blueF());
 	m_actor->GetProperty()->SetRepresentationToWireframe();
 	m_actor->GetProperty()->SetRenderLinesAsTubes(true);
 	m_actor->GetProperty()->SetLineWidth(2);
@@ -189,32 +190,32 @@ void iAVRObjectModel::renderSelection(std::vector<size_t> const& sortedSelInds, 
 
 //! Moves all fibers from the octree center away.
 //! The fibers belong to the region in which they have their maximum coverage
-//! The flag relativMovement decides if the offset is applied to the relative (radial) octree region postion 
+//! The flag relativeMovement decides if the offset is applied to the relative (radial) octree region postion 
 //! or linear (SP)
 //! Should only be called if the mappers are set!
-void iAVRObjectModel::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset, bool relativMovement)
+void iAVRObjectModel::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>> const & m_maxCoverage, double offset, bool relativeMovement)
 {
 	double maxLength = 0; // m_octree->getMaxDistanceOctCenterToRegionCenter();// m_octree->getMaxDistanceOctCenterToFiber();
 	double centerPoint[3]{};
 	m_octree->calculateOctreeCenterPos(centerPoint);
 	iAVec3d centerPos = iAVec3d(centerPoint);
 
-	if(relativMovement)
+	if(relativeMovement)
 	{
-		for (vtkIdType region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
+		for (vtkIdType region = 0; region < m_octree->getNumberOfLeafNodes(); region++)
 		{
-			iAVec3d regionCenterPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(region));
+			iAVec3d regionCenterPoint = iAVec3d(m_glyph3D->GetPolyDataInput(0)->GetPoint(region));
 			iAVec3d direction = regionCenterPoint - centerPos;
 			double length = direction.length();
 			if (length > maxLength) maxLength = length;		// Get max length
 		}
 	}
 
-	for (vtkIdType region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
+	for (vtkIdType region = 0; region < m_octree->getNumberOfLeafNodes(); region++)
 	{
-		iAVec3d regionCenterPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(region));
+		iAVec3d regionCenterPoint = iAVec3d(m_glyph3D->GetPolyDataInput(0)->GetPoint(region));
 
-		for (auto fiberID : m_maxCoverage->at(m_octree->getLevel()).at(region))
+		for (auto fiberID : m_maxCoverage.at(m_octree->getLevel()).at(region))
 		{
 			auto endPointID = m_polyObject->finalObjectStartPointIdx(fiberID) + m_polyObject->finalObjectPointCount(fiberID);
 
@@ -225,12 +226,8 @@ void iAVRObjectModel::moveFibersByMaxCoverage(std::vector<std::vector<std::vecto
 				iAVec3d normDirection = currentRegionCenterPoint - centerPos;
 				double currentLength = normDirection.length();
 				normDirection.normalize();
-
-				iAVec3d move;
-				if (relativMovement) move = normDirection * offset * (currentLength / maxLength);
-				else move = normDirection * offset;
+				iAVec3d move = normDirection * offset * ( (relativeMovement)? (currentLength / maxLength) : 1 );
 				iAVec3d newPoint = currentPoint + move;
-
 				m_polyObject->finalPolyData()->GetPoints()->SetPoint(pointID, newPoint.data());
 			}
 		}
@@ -251,25 +248,22 @@ void iAVRObjectModel::moveFibersbyAllCoveredRegions(double offset, bool relativM
 
 	if(relativMovement)
 	{
-		for (vtkIdType region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
+		for (vtkIdType region = 0; region < m_octree->getNumberOfLeafNodes(); region++)
 		{
-			iAVec3d regionCenterPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(region));
+			iAVec3d regionCenterPoint = iAVec3d(m_glyph3D->GetPolyDataInput(0)->GetPoint(region));
 			iAVec3d direction = regionCenterPoint - centerPos;
 			double length = direction.length();
 			if (length > maxLength) maxLength = length;		// Get max length
 		}
 	}
 
-
-	for (vtkIdType region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
+	for (vtkIdType region = 0; region < m_octree->getNumberOfLeafNodes(); region++)
 	{
-
-		for (auto element : *m_fiberCoverage->at(m_octree->getLevel()).at(region))
+		for (auto const & element : *m_fiberCoverage->at(m_octree->getLevel()).at(region))
 		{
-
 			iAVec3d currentPoint = iAVec3d(m_polyObject->finalPolyData()->GetPoint(element.first));
 
-			iAVec3d regionCenterPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(region));
+			iAVec3d regionCenterPoint = iAVec3d(m_glyph3D->GetPolyDataInput(0)->GetPoint(region));
 			iAVec3d normDirection = regionCenterPoint - centerPos;
 			double currentLength = normDirection.length();
 			normDirection.normalize();
@@ -281,7 +275,6 @@ void iAVRObjectModel::moveFibersbyAllCoveredRegions(double offset, bool relativM
 			iAVec3d newPoint = currentPoint + move;
 
 			m_polyObject->finalPolyData()->GetPoints()->SetPoint(element.first, newPoint.data());
-
 		}
 	}
 	m_polyObject->finalPolyData()->GetPoints()->GetData()->Modified();
@@ -289,15 +282,15 @@ void iAVRObjectModel::moveFibersbyAllCoveredRegions(double offset, bool relativM
 
 //! Moves all fibers from the octree center away.
 //! The fibers belong to the region in which they have their maximum coverage and are moved based on the octant displacement
-void iAVRObjectModel::moveFibersbyOctant(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset)
+void iAVRObjectModel::moveFibersbyOctant(std::vector<std::vector<std::vector<vtkIdType>>> const & m_maxCoverage, double offset)
 {
 	double centerPoint[3]{};
 	m_octree->calculateOctreeCenterPos(centerPoint);
 	iAVec3d centerPos = iAVec3d(centerPoint);
 
-	for (vtkIdType region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
+	for (vtkIdType region = 0; region < m_octree->getNumberOfLeafNodes(); region++)
 	{
-		iAVec3d currentRegion = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(region));
+		iAVec3d currentRegion = iAVec3d(m_glyph3D->GetPolyDataInput(0)->GetPoint(region));
 		iAVec3d move = iAVec3d(0,0,0);
 
 		// X
@@ -328,29 +321,27 @@ void iAVRObjectModel::moveFibersbyOctant(std::vector<std::vector<std::vector<vtk
 			move[2] = + offset;
 		}
 		
-		for (auto fiberID : m_maxCoverage->at(m_octree->getLevel()).at(region))
+		for (auto fiberID : m_maxCoverage.at(m_octree->getLevel()).at(region))
 		{
 			auto endPointID = m_polyObject->finalObjectStartPointIdx(fiberID) + m_polyObject->finalObjectPointCount(fiberID);
 			for (auto pointID = m_polyObject->finalObjectStartPointIdx(fiberID); pointID < endPointID; ++pointID)
 			{
 				iAVec3d currentPoint = iAVec3d(m_polyObject->finalPolyData()->GetPoint(pointID));
 				iAVec3d newPoint = currentPoint + move;
-
 				m_polyObject->finalPolyData()->GetPoints()->SetPoint(pointID, newPoint.data());
 			}
 		}
-		
 	}
 	m_polyObject->finalPolyData()->GetPoints()->GetData()->Modified();
 }
 
-void iAVRObjectModel::createSimilarityNetwork(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions, double worldSize)
+void iAVRObjectModel::createSimilarityNetwork(std::vector<std::vector<std::vector<double>>> const & similarityMetric, double maxFibersInRegions, double worldSize)
 {
 	createRegionLinks(similarityMetric, worldSize);
 	createRegionNodes(maxFibersInRegions, worldSize);
 }
 
-void iAVRObjectModel::createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric, double worldSize)
+void iAVRObjectModel::createRegionLinks(std::vector<std::vector<std::vector<double>>> const & similarityMetric, double worldSize)
 {
 	vtkSmartPointer<vtkPoints> linePoints = vtkSmartPointer<vtkPoints>::New();
 	m_linePolyData = vtkSmartPointer<vtkPolyData>::New();
@@ -379,7 +370,7 @@ void iAVRObjectModel::createRegionLinks(std::vector<std::vector<std::vector<doub
 		double radius = 0.0;
 		for (vtkIdType j = i + 1; j < numbPoints; j++)
 		{
-			radius = similarityMetric->at(m_octree->getLevel()).at(i).at(j);
+			radius = similarityMetric.at(m_octree->getLevel()).at(i).at(j);
 			
 			if (radius > m_regionLinkDrawRadius)
 			{
@@ -551,7 +542,7 @@ void iAVRObjectModel::filterRegionLinks(int sign)
 	if (m_regionLinkDrawRadius - 0.0 <= 0.00001) m_regionLinkDrawRadius = 0.0;
 }
 
-double iAVRObjectModel::getJaccardFilterVal()
+double iAVRObjectModel::getJaccardFilterVal() const
 {
 	return m_regionLinkDrawRadius;
 }

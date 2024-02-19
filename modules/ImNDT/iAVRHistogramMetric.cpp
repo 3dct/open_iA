@@ -3,8 +3,6 @@
 
 #include "iAVRHistogramMetric.h"
 
-//#include "iALog.h"
-
 #include <algorithm>           // std::for_each
 //#include <functional>          // std::ref
 
@@ -28,7 +26,7 @@
 
 
 
-iAVRHistogramMetric::iAVRHistogramMetric(vtkTable* objectTable, std::vector<iAVROctree*>* octrees)
+iAVRHistogramMetric::iAVRHistogramMetric(vtkTable* objectTable, std::vector<iAVROctree*> const & octrees)
 	: iAVRMetrics(objectTable, octrees)
 {
 

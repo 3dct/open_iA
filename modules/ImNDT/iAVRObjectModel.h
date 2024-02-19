@@ -3,14 +3,10 @@
 #pragma once
 
 #include "iAVRCubicVis.h"
-#include "iACsvConfig.h"
 
-#include <vtkTable.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkLookupTable.h>
-
-
+class vtkLookupTable;
 class vtkPointData;
+class vtkPoints;
 class iAColoredPolyObjectVis;
 class iAPolyObjectVisActor;
 
@@ -30,18 +26,18 @@ public:
 	vtkSmartPointer<vtkActor> getVolumeActor();
 	double* getCubePos(int region);
 	double getCubeSize(int region);
-	void setNodeColor(std::vector<vtkIdType> regions, std::vector<QColor> color);
+	void setNodeColor(std::vector<vtkIdType> const & regions, std::vector<QColor> const & color);
 	void resetNodeColor();
 	iAColoredPolyObjectVis* getPolyObject();
-	void renderSelection(std::vector<size_t> const& sortedSelInds, int classID, QColor const& classColor, QStandardItem* activeClassItem);
-	void moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset, bool relativMovement);
+	void renderSelection(std::vector<size_t> const& sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem);
+	void moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>> const & m_maxCoverage, double offset, bool relativMovement);
 	void moveFibersbyAllCoveredRegions(double offset, bool relativMovement);
-	void moveFibersbyOctant(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset);
+	void moveFibersbyOctant(std::vector<std::vector<std::vector<vtkIdType>>> const & m_maxCoverage, double offset);
 	
-	void createSimilarityNetwork(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions, double worldSize);
+	void createSimilarityNetwork(std::vector<std::vector<std::vector<double>>> const & similarityMetric, double maxFibersInRegions, double worldSize);
 	
 	void filterRegionLinks(int sign);
-	double getJaccardFilterVal();
+	double getJaccardFilterVal() const;
 
 private:
 	vtkSmartPointer<vtkActor> m_volumeActor;
@@ -60,7 +56,7 @@ private:
 	bool m_regionLinksVisible;
 	double m_regionLinkDrawRadius;
 
-	void createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric, double worldSize);
+	void createRegionLinks(std::vector<std::vector<std::vector<double>>> const & similarityMetric, double worldSize);
 	void createRegionNodes(double maxFibersInRegions, double worldSize);
 	void calculateNodeLUT(double min, double max, int colorScheme);
 };

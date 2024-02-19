@@ -12,16 +12,14 @@ class vtkLookupTable;
 class vtkRenderer;
 class vtkTextActor3D;
 
-/*
-* This class calculates color transfer functions and LUT for Metrics and allows the display of a color legend
-*/
+//! This class calculates color transfer functions and LUT for Metrics and allows the display of a color legend
 class iAVRColorLegend
 {
 public:
 	iAVRColorLegend(vtkRenderer* renderer);
 	vtkSmartPointer<vtkLookupTable> createLut(double min, double max, int colorScheme);
 	QColor getColor(double value);
-	std::vector<QColor>* getColors(int octreeLevel, int feature, std::vector<std::vector<std::vector<double>>>* calculatedValues);
+	std::vector<QColor> getColors(int octreeLevel, int feature, std::vector<std::vector<std::vector<double>>> const & calculatedValues);
 	void calculateLegend(double physicalScale);
 	void show();
 	void hide();
@@ -35,11 +33,11 @@ private:
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	vtkSmartPointer<vtkActor> m_colorBarLegend;
 	vtkSmartPointer<vtkAssembly> m_legend;
-	vtkSmartPointer<vtkTextActor3D> textSource;
-	vtkSmartPointer<vtkTextActor3D> titleTextSource;
-	double initialTextOffset;
-	double titleFieldScale[3];
-	double textFieldScale[3];
+	vtkSmartPointer<vtkTextActor3D> m_textSource;
+	vtkSmartPointer<vtkTextActor3D> m_titleTextSource;
+	double m_initialTextOffset;
+	double m_titleFieldScale[3];
+	double m_textFieldScale[3];
 	bool m_colorLegendVisible;
 
 	vtkSmartPointer<vtkLookupTable> calculateLUT(double min, double max, std::vector<QColor> colorScheme);

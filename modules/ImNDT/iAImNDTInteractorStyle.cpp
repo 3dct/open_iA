@@ -37,7 +37,7 @@ public:
 	double m_eventOrientation[4];
 	double m_movePosition[3];
 
-	iAImNDTInteractions::iAVec2d getTrackPadPos(vtkEventDataDevice device)
+	iAImNDTInteractions::iAVec2d getTrackPadPos(vtkEventDataDevice device) const
 	{
 		return device == vtkEventDataDevice::LeftController ? m_leftTrackPadPos : m_rightTrackPadPos;
 	}
@@ -546,7 +546,7 @@ iAImNDTInteractions::iAImNDTInteractions(iAvtkVR::Backend backend, iAImNDTMain* 
 iAImNDTInteractions::~iAImNDTInteractions() = default;    // required for enabling unique_ptr member
 
 //! retrieve the position of the last interaction with the trackpad (since it's not available on a click in the event directly)
-iAImNDTInteractions::iAVec2d iAImNDTInteractions::getTrackPadPos(vtkEventDataDevice device)
+iAImNDTInteractions::iAVec2d iAImNDTInteractions::getTrackPadPos(vtkEventDataDevice device) const
 {
 	return m_impl->getTrackPadPos(device);
 }
