@@ -6,11 +6,11 @@
 #include <vtkVariant.h>
 
 iAVROctreeMetrics::iAVROctreeMetrics(vtkTable* objectTable,	std::vector<iAVROctree*> const & octrees) : iAVRMetrics(objectTable, octrees),
-	m_isAlreadyCalculated(m_octrees.size(), std::vector<bool>(numberOfFeatures, false)),
-	m_calculatedAverage(m_octrees.size(), std::vector<std::vector<double>>(numberOfFeatures, std::vector<double>())),
 	m_maxCoverage(),
+	m_calculatedAverage(m_octrees.size(), std::vector<std::vector<double>>(numberOfFeatures, std::vector<double>())),
 	m_jaccardValues(m_octrees.size()),
-	m_maxNumberOfFibersInRegions()
+	m_maxNumberOfFibersInRegions(),
+	m_isAlreadyCalculated(m_octrees.size(), std::vector<bool>(numberOfFeatures, false))
 {
 }
 

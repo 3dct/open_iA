@@ -10,11 +10,15 @@
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 
-iAVROctree::iAVROctree(vtkRenderer* ren, vtkDataSet* dataSet):m_renderer(ren),m_dataSet(dataSet),m_actor(vtkSmartPointer<vtkActor>::New()),
+iAVROctree::iAVROctree(vtkRenderer* ren, vtkDataSet* dataSet):
 	m_numberOfLeafNodes(0),
 	m_maxDistanceOctCenterToRegionCenter(-1),
 	m_maxDistanceOctCenterToFiber(-1),
 	m_visible(false),
+	m_level(-1),
+	m_renderer(ren),
+	m_dataSet(dataSet),
+	m_actor(vtkSmartPointer<vtkActor>::New()),
 	m_octree(vtkSmartPointer<vtkOctreePointLocator>::New()),
 	m_fibersInRegion(),
 	m_regionsInLine()
