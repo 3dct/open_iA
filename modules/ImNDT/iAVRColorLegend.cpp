@@ -28,7 +28,6 @@ iAVRColorLegend::iAVRColorLegend(vtkRenderer* renderer):
 	createLut(0, 0, 1);
 }
 
-//! Creates a LUT with a choosen colorScheme and min/max values
 vtkSmartPointer<vtkLookupTable> iAVRColorLegend::createLut(double min, double max, int colorScheme)
 {
 	std::vector<QColor> scheme;
@@ -50,7 +49,6 @@ vtkSmartPointer<vtkLookupTable> iAVRColorLegend::createLut(double min, double ma
 	return calculateLUT(min, max, scheme);
 }
 
-//! Returns for a value its color in the current LUT
 QColor iAVRColorLegend::getColor(double value)
 {
 	double rgba[3] = { 0,0,0 };
@@ -62,7 +60,6 @@ QColor iAVRColorLegend::getColor(double value)
 	return color;
 }
 
-//! Returns a rgba coloring vector for the current LUT for every region in the given octree level for a given feature
 std::vector<QColor> iAVRColorLegend::getColors(int octreeLevel, int feature, std::vector<std::vector<std::vector<double>>> const & calculatedValues)
 {
 	std::vector<QColor> colors(calculatedValues.at(octreeLevel).at(feature).size(), QColor());
@@ -80,8 +77,6 @@ std::vector<QColor> iAVRColorLegend::getColors(int octreeLevel, int feature, std
 	return colors;
 }
 
-//! Creates a color bar which acts as legend for the current LUT. The color Bar is sized based on the world physicalScale and gets
-//! calculated as plane with uniform division based on the available colors in the LUT. The function also creates the labels for the color sections.
 void iAVRColorLegend::calculateLegend(double physicalScale)
 {
 	auto width = physicalScale * 0.05; //5%
@@ -115,8 +110,6 @@ void iAVRColorLegend::calculateLegend(double physicalScale)
 		double value = max - (subRange * i);
 
 		//Text Label
-		//m_3DLabels->push_back(new iAVR3DText(m_renderer));
-		//m_3DLabels->at(i)->create3DLabel(QString("- %1").arg(value));
 		if (i == m_lut->GetNumberOfAvailableColors() - 1)
 		{
 			text.append(QString("- %1").arg(value));
@@ -182,7 +175,6 @@ void iAVRColorLegend::calculateLegend(double physicalScale)
 	m_legend->Modified();
 }
 
-//! Displays the color bar legend and its value labels
 void iAVRColorLegend::show()
 {
 	if (m_colorLegendVisible)
@@ -193,7 +185,6 @@ void iAVRColorLegend::show()
 	m_colorLegendVisible = true;
 }
 
-//! Hides the color bar legend and its value labels
 void iAVRColorLegend::hide()
 {
 	if (!m_colorLegendVisible)
@@ -204,31 +195,26 @@ void iAVRColorLegend::hide()
 	m_colorLegendVisible = false;
 }
 
-//! Moves the color legend and its value labels to the given pos
 void iAVRColorLegend::setPosition(double* pos)
 {
 	m_legend->SetPosition(pos);
 }
 
-//! Sets the orientation of the color legend and its value labels to the given coordinates
 void iAVRColorLegend::setOrientation(double x, double y, double z)
 {
 	m_legend->SetOrientation(x, y, z);
 }
 
-//! Resizes the color bar legend and its value labels based on the given scale
 void iAVRColorLegend::setScale(double scale)
 {
 	m_legend->SetScale(scale);
 }
 
-//! Sets the title for the header of the color bar legend
 void iAVRColorLegend::setTitle(QString title)
 {
 	m_titleTextSource->SetInput(title.toUtf8());
 }
 
-//! Calculates the Lookuptable (LUT) based on the range from min to max and a given color scheme
 vtkSmartPointer<vtkLookupTable> iAVRColorLegend::calculateLUT(double min, double max, std::vector<QColor> colorScheme)
 {
 	auto schemeSize = colorScheme.size();
