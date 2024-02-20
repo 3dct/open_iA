@@ -85,7 +85,7 @@ void iAVRColorLegend::calculateLegend(double physicalScale)
 	//Remove old colorBar
 	hide();
 
-	vtkSmartPointer<vtkPlaneSource> colorBarPlane = vtkSmartPointer<vtkPlaneSource>::New();
+	vtkNew<vtkPlaneSource> colorBarPlane;
 	colorBarPlane->SetXResolution(1);
 	colorBarPlane->SetYResolution(m_lut->GetNumberOfAvailableColors());
 
@@ -94,7 +94,7 @@ void iAVRColorLegend::calculateLegend(double physicalScale)
 	colorBarPlane->SetPoint2(0, height, 0.0); // height
 	colorBarPlane->Update();
 
-	vtkSmartPointer<vtkUnsignedCharArray> colorData = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	vtkNew<vtkUnsignedCharArray> colorData;
 	colorData->SetName("colors");
 	colorData->SetNumberOfComponents(4);
 
@@ -126,7 +126,7 @@ void iAVRColorLegend::calculateLegend(double physicalScale)
 	colorBarPlane->GetOutput()->GetCellData()->SetScalars(colorData);
 	colorBarPlane->Update();
 
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	vtkNew<vtkPolyDataMapper> mapper;
 	mapper->SetInputConnection(colorBarPlane->GetOutputPort());
 	mapper->SetScalarModeToUseCellData();
 	mapper->Update();

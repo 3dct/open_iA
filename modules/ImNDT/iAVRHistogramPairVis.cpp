@@ -41,8 +41,8 @@ void iAVRHistogramPairVis::initialize()
 	m_inactiveAxisActor = vtkSmartPointer<vtkActor>::New();
 	m_activeHistogramActor = vtkSmartPointer<vtkActor>::New();
 	m_inactiveHistogramActor = vtkSmartPointer<vtkActor>::New();
-	visualizationActor = vtkSmartPointer<vtkAssembly>::New();
-	outlineActor = vtkSmartPointer<vtkActor>::New();
+	m_visualizationActor = vtkSmartPointer<vtkAssembly>::New();
+	m_outlineActor = vtkSmartPointer<vtkActor>::New();
 
 	m_radius = 400;
 	m_numberOfXBins = 6;
@@ -107,8 +107,8 @@ void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, doub
 
 	vtkNew<vtkPolyDataMapper> outlineMapper;
 	outlineMapper->SetInputConnection(boundingSphere->GetOutputPort());
-	outlineActor->SetMapper(outlineMapper);
-	outlineActor->GetProperty()->SetOpacity(0.0001);
+	m_outlineActor->SetMapper(outlineMapper);
+	m_outlineActor->GetProperty()->SetOpacity(0.0001);
 
 	m_axesPoly.clear();
 	m_axesMarksPoly.clear();
@@ -154,9 +154,9 @@ void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, doub
 	}
 }
 
-vtkSmartPointer<vtkAssembly> iAVRHistogramPairVis::getVisAssembly()
+vtkAssembly* iAVRHistogramPairVis::getVisAssembly()
 {
-	return visualizationActor;
+	return m_visualizationActor;
 }
 
 void iAVRHistogramPairVis::show()
@@ -167,7 +167,7 @@ void iAVRHistogramPairVis::show()
 	}
 
 	mergeActors();
-	m_renderer->AddActor(visualizationActor);
+	m_renderer->AddActor(m_visualizationActor);
 
 	m_visible = true;
 }
@@ -178,7 +178,7 @@ void iAVRHistogramPairVis::hide()
 	{
 		return;
 	}
-	m_renderer->RemoveActor(visualizationActor);
+	m_renderer->RemoveActor(m_visualizationActor);
 
 	for (size_t i = 0; i < m_axisLabelActor.size(); i++)
 	{
@@ -333,13 +333,13 @@ std::vector<QColor> iAVRHistogramPairVis::getBarColors() const
 
 void iAVRHistogramPairVis::mergeActors()
 {
-	visualizationActor->AddPart(m_sphereActor);
-	visualizationActor->AddPart(outlineActor);
-	visualizationActor->AddPart(m_activeAxisActor);
-	visualizationActor->AddPart(m_inactiveAxisActor);
-	visualizationActor->AddPart(m_activeHistogramActor);
-	visualizationActor->AddPart(m_inactiveHistogramActor);
-	visualizationActor->Modified();
+	m_visualizationActor->AddPart(m_sphereActor);
+	m_visualizationActor->AddPart(m_outlineActor);
+	m_visualizationActor->AddPart(m_activeAxisActor);
+	m_visualizationActor->AddPart(m_inactiveAxisActor);
+	m_visualizationActor->AddPart(m_activeHistogramActor);
+	m_visualizationActor->AddPart(m_inactiveHistogramActor);
+	m_visualizationActor->Modified();
 }
 
 void iAVRHistogramPairVis::showHistogramInView()
@@ -372,7 +372,7 @@ void iAVRHistogramPairVis::showHistogramInView()
 			}
 		}
 
-		visualizationActor->Modified();
+		m_visualizationActor->Modified();
 	}
 	currentlyShownAxis = m_axisInView;
 }
@@ -392,8 +392,8 @@ void iAVRHistogramPairVis::drawAxes(int visibleAxis)
 {
 	if (visibleAxis != -1)
 	{
-		vtkSmartPointer<vtkAppendPolyData> appendActiveFilter = vtkSmartPointer<vtkAppendPolyData>::New();
-		vtkSmartPointer<vtkAppendPolyData> appendInactiveFilter = vtkSmartPointer<vtkAppendPolyData>::New();
+		vtkNew<vtkAppendPolyData> appendActiveFilter;
+		vtkNew<vtkAppendPolyData> appendInactiveFilter;
 
 		for (size_t axisPoly = 0; axisPoly < m_axesPoly.size(); axisPoly++)
 		{
@@ -438,8 +438,8 @@ void iAVRHistogramPairVis::drawHistogram(int visibleAxis)
 {
 	if (visibleAxis != -1)
 	{
-		vtkSmartPointer<vtkAppendPolyData> appendActiveFilter = vtkSmartPointer<vtkAppendPolyData>::New();
-		vtkSmartPointer<vtkAppendPolyData> appendInactiveFilter = vtkSmartPointer<vtkAppendPolyData>::New();
+		vtkNew<vtkAppendPolyData> appendActiveFilter;
+		vtkNew<vtkAppendPolyData> appendInactiveFilter;
 
 		for (int axis = 0; axis < static_cast<int>(m_histogramBars.size()); axis++)
 		{
@@ -456,10 +456,10 @@ void iAVRHistogramPairVis::drawHistogram(int visibleAxis)
 		appendActiveFilter->Update();
 		appendInactiveFilter->Update();
 
-		vtkSmartPointer<vtkGlyph3DMapper> activeHistogramGlyphs = vtkSmartPointer<vtkGlyph3DMapper>::New();
+		vtkNew<vtkGlyph3DMapper> activeHistogramGlyphs;
 		activeHistogramGlyphs->SetInputData(appendActiveFilter->GetOutput());
 
-		vtkSmartPointer<vtkGlyph3DMapper> inactiveHistogramGlyphs = vtkSmartPointer<vtkGlyph3DMapper>::New();
+		vtkNew<vtkGlyph3DMapper> inactiveHistogramGlyphs;
 		inactiveHistogramGlyphs->SetInputData(appendInactiveFilter->GetOutput());
 
 		//Create active and inactive GlyphMappers
@@ -482,7 +482,7 @@ void iAVRHistogramPairVis::drawHistogram(int visibleAxis)
 
 void iAVRHistogramPairVis::createHistogramMapper(vtkSmartPointer<vtkGlyph3DMapper> glyphMapper)
 {
-	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
+	vtkNew<vtkCubeSource> cubeSource;
 	cubeSource->SetXLength(1);
 	cubeSource->SetYLength(1);
 	cubeSource->SetZLength(1);
@@ -497,18 +497,18 @@ void iAVRHistogramPairVis::createHistogramMapper(vtkSmartPointer<vtkGlyph3DMappe
 
 void iAVRHistogramPairVis::calculateHistogram(size_t axis)
 {
-	vtkSmartPointer<vtkPoints> barPoints = vtkSmartPointer<vtkPoints>::New();
-	vtkSmartPointer<vtkPolyData> bars = vtkSmartPointer<vtkPolyData>::New();
+	vtkNew<vtkPoints> barPoints;
+	vtkNew<vtkPolyData> bars;
 
-	vtkSmartPointer<vtkDoubleArray> glyphScale = vtkSmartPointer<vtkDoubleArray>::New();
+	vtkNew<vtkDoubleArray> glyphScale;
 	glyphScale->SetName("scale");
 	glyphScale->SetNumberOfComponents(3);
 
-	vtkSmartPointer<vtkDoubleArray> glyphRotation = vtkSmartPointer<vtkDoubleArray>::New();
+	vtkNew<vtkDoubleArray> glyphRotation;
 	glyphRotation->SetName("rotate");
 	glyphRotation->SetNumberOfComponents(3);
 
-	vtkSmartPointer<vtkUnsignedCharArray> glyphColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	vtkNew<vtkUnsignedCharArray> glyphColor;
 	glyphColor->SetName("colors");
 	glyphColor->SetNumberOfComponents(4);
 
@@ -563,15 +563,15 @@ void iAVRHistogramPairVis::calculateHistogram(size_t axis)
 void iAVRHistogramPairVis::calculateAxis(double pos1[3], double pos2[3])
 {
 	m_axesPoly.push_back(vtkSmartPointer<vtkPolyData>::New());
-	vtkSmartPointer<vtkPoints> axesPoints = vtkSmartPointer<vtkPoints>::New();
-	vtkSmartPointer<vtkCellArray> axesLines = vtkSmartPointer<vtkCellArray>::New();
+	vtkNew<vtkPoints> axesPoints;
+	vtkNew<vtkCellArray> axesLines;
 
 	axesPoints->InsertNextPoint(pos1);
 	axesPoints->InsertNextPoint(pos2);
 	auto yAxisLength = m_radius - m_offsetFromCenter;
 	axesPoints->InsertNextPoint(pos2[0], pos2[1] + yAxisLength, pos2[2]); // y Axis
 
-	auto l = vtkSmartPointer<vtkLine>::New();
+	vtkNew<vtkLine> l;
 	//x Axis
 	l->GetPointIds()->SetId(0, 0);
 	l->GetPointIds()->SetId(1, 1);
@@ -638,11 +638,11 @@ void iAVRHistogramPairVis::createAxisMarks(size_t axis)
 	double markLengthYInside = rangeX * 1;
 	double markLengthYOutside = rangeX * 1.05;
 
-	vtkSmartPointer<vtkPoints> markPoints = vtkSmartPointer<vtkPoints>::New();
-	vtkSmartPointer<vtkCellArray> markLines = vtkSmartPointer<vtkCellArray>::New();
-	vtkSmartPointer<vtkPolyData> markPoly = vtkSmartPointer<vtkPolyData>::New();
+	vtkNew<vtkPoints> markPointsX;
+	vtkNew<vtkCellArray> markLinesX;
+	vtkNew<vtkPolyData> markPolyX;
 	//double markLengthX = rangeX * 0.02;
-	vtkIdType pointID = 0;
+	vtkIdType xPointID = 0;
 
 	for (int x = 0; x < m_numberOfXBins; x++)
 	{
@@ -650,26 +650,26 @@ void iAVRHistogramPairVis::createAxisMarks(size_t axis)
 		iAVec3d mark = pos1 + move;
 
 		//markPoints->InsertNextPoint(mark[0], mark[1] + markLengthX, mark[2]); // upperPoint
-		markPoints->InsertNextPoint(mark[0], mark[1] + markLengthXInside, mark[2]); // upperPoint ON Line
-		markPoints->InsertNextPoint(mark[0], mark[1] - markLengthXOutside, mark[2]); // lowerPoint
+		markPointsX->InsertNextPoint(mark[0], mark[1] + markLengthXInside, mark[2]); // upperPoint ON Line
+		markPointsX->InsertNextPoint(mark[0], mark[1] - markLengthXOutside, mark[2]); // lowerPoint
 
-		auto l = vtkSmartPointer<vtkLine>::New();
+		vtkNew<vtkLine> l;
 		//x Axis
-		l->GetPointIds()->SetId(0, pointID);
-		l->GetPointIds()->SetId(1, pointID + 1);
-		markLines->InsertNextCell(l);
-		pointID += 2;
+		l->GetPointIds()->SetId(0, xPointID);
+		l->GetPointIds()->SetId(1, xPointID + 1);
+		markLinesX->InsertNextCell(l);
+		xPointID += 2;
 	}
 	//Store X
-	markPoly->SetPoints(markPoints);
-	markPoly->SetLines(markLines);
-	m_axesMarksPoly.at(axis).push_back(markPoly);
+	markPolyX->SetPoints(markPointsX);
+	markPolyX->SetLines(markLinesX);
+	m_axesMarksPoly.at(axis).push_back(markPolyX);
 
-	markPoints = vtkSmartPointer<vtkPoints>::New();
-	markLines = vtkSmartPointer<vtkCellArray>::New();
-	markPoly = vtkSmartPointer<vtkPolyData>::New();
+	vtkNew<vtkPoints> markPointsY;
+	vtkNew<vtkCellArray> markLinesY;
+	vtkNew<vtkPolyData> markPolyY;
 	//double markLengthY = rangeY * 0.02;
-	pointID = 0;
+	vtkIdType yPointID = 0;
 
 	//Because Y Range starts at 0 we have +1 step in Y
 	int numberOfDrawnYBins = m_numberOfYBins + 1;
@@ -682,23 +682,23 @@ void iAVRHistogramPairVis::createAxisMarks(size_t axis)
 		double a[3] = { markLengthYInside ,markLengthYInside ,markLengthYInside };
 		double b[3] = { markLengthYOutside ,markLengthYOutside ,markLengthYOutside };
 
-		markPoints->InsertNextPoint(applyShiftToVector(iAVec3d(pos1[0], mark[1], pos1[2]).data(), mark.data(), a).data()); // leftPoint
-		markPoints->InsertNextPoint(applyShiftToVector(mark.data(), iAVec3d(pos1[0], mark[1], pos1[2]).data(), b).data()); // rightPoint
+		markPointsY->InsertNextPoint(applyShiftToVector(iAVec3d(pos1[0], mark[1], pos1[2]).data(), mark.data(), a).data()); // leftPoint
+		markPointsY->InsertNextPoint(applyShiftToVector(mark.data(), iAVec3d(pos1[0], mark[1], pos1[2]).data(), b).data()); // rightPoint
 		//markPoints->InsertNextPoint(mark[0] - markLengthYInside, mark[1], mark[2]); // leftPoint
 		//markPoints->InsertNextPoint(mark[0] + markLengthOutside, mark[1], mark[2]); // rightPoint
 
-		auto l = vtkSmartPointer<vtkLine>::New();
+		vtkNew<vtkLine> l;
 		//y Axis
-		l->GetPointIds()->SetId(0, pointID);
-		l->GetPointIds()->SetId(1, pointID + 1);
-		markLines->InsertNextCell(l);
-		pointID += 2;
+		l->GetPointIds()->SetId(0, yPointID);
+		l->GetPointIds()->SetId(1, yPointID + 1);
+		markLinesY->InsertNextCell(l);
+		yPointID += 2;
 	}
 
 	//Store Y
-	markPoly->SetPoints(markPoints);
-	markPoly->SetLines(markLines);
-	m_axesMarksPoly.at(axis).push_back(markPoly);
+	markPolyY->SetPoints(markPointsY);
+	markPolyY->SetLines(markLinesY);
+	m_axesMarksPoly.at(axis).push_back(markPolyY);
 }
 
 void iAVRHistogramPairVis::createAxisLabels(size_t axis)

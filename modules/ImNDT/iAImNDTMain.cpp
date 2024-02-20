@@ -283,7 +283,7 @@ void iAImNDTMain::endInteraction(vtkEventDataDevice3D* device, vtkProp3D* picked
 
 void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], double eventOrientation[4])
 {
-	vtkSmartPointer<vtkCamera> cam = m_vrEnv->renderer()->GetActiveCamera();
+	vtkCamera* cam = m_vrEnv->renderer()->GetActiveCamera();
 	double initialScale = m_vrEnv->interactor()->GetPhysicalScale();
 	//Currently moved controller
 	int deviceID = static_cast<int>(device->GetDevice());

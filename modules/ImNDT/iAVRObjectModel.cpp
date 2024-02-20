@@ -30,7 +30,7 @@ iAVRObjectModel::iAVRObjectModel(vtkRenderer* ren, iAColoredPolyObjectVis* polyO
 	m_RegionLinksActor = vtkSmartPointer<vtkActor>::New();
 	m_RegionNodesActor = vtkSmartPointer<vtkActor>::New();
 	m_lut = vtkSmartPointer<vtkLookupTable>::New();
-	nodeGlyphResetColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	m_nodeGlyphResetColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	m_initialPoints = vtkSmartPointer<vtkPoints>::New();
 
 	m_volumeVisible = false;
@@ -39,11 +39,7 @@ iAVRObjectModel::iAVRObjectModel(vtkRenderer* ren, iAColoredPolyObjectVis* polyO
 
 	// Initial Volume
 	// Copy of m_polyObject's data
-	// Other way of copying?:  vtkDataSet->CopyData()
-	// Like in objectvis\iAvtkTubeFilter.cpp
 	m_initialPoints->DeepCopy(polyObject->finalPolyData()->GetPoints());
-	//m_PolyObjectActor = m_polyObject->createPolyActor(m_renderer);
-	//m_volumeActor = m_PolyObjectActor->actor();
 
 	vtkNew<vtkPolyDataMapper> mapper;
 	mapper->SetInputData(m_polyObject->finalPolyData());
@@ -56,9 +52,6 @@ iAVRObjectModel::iAVRObjectModel(vtkRenderer* ren, iAColoredPolyObjectVis* polyO
 //Resets to the initial volume
 void iAVRObjectModel::resetVolume()
 {
-	// vtkSmartPointer<vtkPoints> temp = vtkSmartPointer<vtkPoints>::New();
-	// temp->DeepCopy(m_initialPoints);
-	// m_polyObject->polyData()->SetPoints(temp);
 	m_polyObject->finalPolyData()->GetPoints()->DeepCopy(m_initialPoints);
 
 	vtkNew<vtkPolyDataMapper> mapper;
@@ -67,15 +60,10 @@ void iAVRObjectModel::resetVolume()
 	mapper->ScalarVisibilityOn();
 	mapper->SelectColorArray("Colors");
 	m_volumeActor->SetMapper(mapper);
-	//m_PolyObjectActor->updated();
-	//m_PolyObjectActor = m_polyObject->createPolyActor(m_renderer);
-	//m_volumeActor = m_PolyObjectActor->actor();
 }
 
 void iAVRObjectModel::showVolume()
 {
-	//m_PolyObjectActor->show();
-
 	if (m_volumeVisible)
 	{
 		return;
@@ -86,8 +74,6 @@ void iAVRObjectModel::showVolume()
 
 void iAVRObjectModel::hideVolume()
 {
-	//m_PolyObjectActor->hide();
-
 	if (!m_volumeVisible)
 	{
 		return;
@@ -120,10 +106,8 @@ void iAVRObjectModel::hideRegionLinks()
 
 vtkSmartPointer<vtkActor> iAVRObjectModel::getVolumeActor()
 {
-	//return m_PolyObjectActor->actor();
 	return m_volumeActor;
 }
-
 
 double* iAVRObjectModel::getCubePos(int region)
 {
@@ -132,29 +116,27 @@ double* iAVRObjectModel::getCubePos(int region)
 
 double iAVRObjectModel::getCubeSize(int region)
 {
-	return nodeGlyphScales->GetTuple3(region)[0];
+	return m_nodeGlyphScales->GetTuple3(region)[0];
 }
 
-//! Colors the cube nodes with the given region IDs with a given color
-//! Both vectors must have equal length
 void iAVRObjectModel::setNodeColor(std::vector<vtkIdType> const & regions, std::vector<QColor> const & color)
 {
-	if (nodeGlyphResetColor->GetNumberOfTuples() >0)
+	if (m_nodeGlyphResetColor->GetNumberOfTuples() >0)
 	{
 		for (size_t i = 0; i < regions.size(); i++)
 		{
-			nodeGlyphColor->SetTuple3(regions.at(i), color.at(i).red(), color.at(i).green(), color.at(i).blue());
-			nodeGlyph3D->Modified();
+			m_nodeGlyphColor->SetTuple3(regions.at(i), color.at(i).red(), color.at(i).green(), color.at(i).blue());
+			m_nodeGlyph3D->Modified();
 		}
 	}
 }
 
 void iAVRObjectModel::resetNodeColor()
 {
-	if (nodeGlyphResetColor->GetNumberOfTuples() > 0)
+	if (m_nodeGlyphResetColor->GetNumberOfTuples() > 0)
 	{
-		nodeGlyphColor->DeepCopy(nodeGlyphResetColor);
-		nodeGlyph3D->Modified();
+		m_nodeGlyphColor->DeepCopy(m_nodeGlyphResetColor);
+		m_nodeGlyph3D->Modified();
 	}
 }
 
@@ -188,11 +170,6 @@ void iAVRObjectModel::renderSelection(std::vector<size_t> const& sortedSelInds, 
 	m_polyObject->renderSelection(sortedSelInds, classID, classColor, activeClassItem);
 }
 
-//! Moves all fibers from the octree center away.
-//! The fibers belong to the region in which they have their maximum coverage
-//! The flag relativeMovement decides if the offset is applied to the relative (radial) octree region postion
-//! or linear (SP)
-//! Should only be called if the mappers are set!
 void iAVRObjectModel::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>> const & m_maxCoverage, double offset, bool relativeMovement)
 {
 	double maxLength = 0; // m_octree->getMaxDistanceOctCenterToRegionCenter();// m_octree->getMaxDistanceOctCenterToFiber();
@@ -236,17 +213,14 @@ void iAVRObjectModel::moveFibersByMaxCoverage(std::vector<std::vector<std::vecto
 	m_polyObject->finalPolyData()->GetPoints()->GetData()->Modified();
 }
 
-//! Moves all fibers from the octree center away.
-//! The fibers belong to every region in which they have a coverage
-//! Should only be called if the mappers are set!
-void iAVRObjectModel::moveFibersbyAllCoveredRegions(double offset, bool relativMovement)
+void iAVRObjectModel::moveFibersbyAllCoveredRegions(double offset, bool relativeMovement)
 {
 	double maxLength = 0;
 	double centerPoint[3];
 	m_octree->calculateOctreeCenterPos(centerPoint);
 	iAVec3d centerPos = iAVec3d(centerPoint);
 
-	if(relativMovement)
+	if (relativeMovement)
 	{
 		for (vtkIdType region = 0; region < m_octree->getNumberOfLeafNodes(); region++)
 		{
@@ -269,9 +243,9 @@ void iAVRObjectModel::moveFibersbyAllCoveredRegions(double offset, bool relativM
 			normDirection.normalize();
 
 			//Offset gets smaller with coverage
-			iAVec3d move;
-			if (relativMovement) move = normDirection * offset * element.second * (currentLength / maxLength);
-			else move = normDirection * offset * element.second;
+			iAVec3d move = (relativeMovement)
+				? normDirection * offset * element.second * (currentLength / maxLength)
+				: normDirection * offset * element.second;
 			iAVec3d newPoint = currentPoint + move;
 
 			m_polyObject->finalPolyData()->GetPoints()->SetPoint(element.first, newPoint.data());
@@ -343,9 +317,9 @@ void iAVRObjectModel::createSimilarityNetwork(std::vector<std::vector<std::vecto
 
 void iAVRObjectModel::createRegionLinks(std::vector<std::vector<std::vector<double>>> const & similarityMetric, double worldSize)
 {
-	vtkSmartPointer<vtkPoints> linePoints = vtkSmartPointer<vtkPoints>::New();
+	vtkNew<vtkPoints> linePoints;
 	m_linePolyData = vtkSmartPointer<vtkPolyData>::New();
-	vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
+	vtkNew<vtkCellArray> lines;
 
 	vtkIdType numbPoints = m_cubePolyData->GetNumberOfPoints();
 	auto minRadius = worldSize * 0.00084;
@@ -358,9 +332,9 @@ void iAVRObjectModel::createRegionLinks(std::vector<std::vector<std::vector<doub
 	tubeRadius->SetNumberOfComponents(1);
 	tubeRadius->SetName("TubeRadius");
 
-	linkGlyphColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
-	linkGlyphColor->SetName("linkColor");
-	linkGlyphColor->SetNumberOfComponents(3);
+	m_linkGlyphColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	m_linkGlyphColor->SetName("linkColor");
+	m_linkGlyphColor->SetNumberOfComponents(3);
 
 	vtkIdType pointID = 0;
 	double rgb[3] = { 0,0,0 };
@@ -377,7 +351,7 @@ void iAVRObjectModel::createRegionLinks(std::vector<std::vector<std::vector<doub
 				linePoints->InsertNextPoint(m_cubePolyData->GetPoint(i));
 				linePoints->InsertNextPoint(m_cubePolyData->GetPoint(j));
 
-				auto l = vtkSmartPointer<vtkLine>::New();
+				vtkNew<vtkLine> l;
 				l->GetPointIds()->SetId(0, pointID);
 				l->GetPointIds()->SetId(1, pointID+1);
 				lines->InsertNextCell(l);
@@ -387,8 +361,8 @@ void iAVRObjectModel::createRegionLinks(std::vector<std::vector<std::vector<doub
 				tubeRadius->InsertNextTuple1(lineThicknessLog);
 
 				m_lut->GetColor(lineThicknessLog, rgb);
-				linkGlyphColor->InsertNextTuple3(rgb[0] * 255, rgb[1] * 255, rgb[2] * 255);
-				linkGlyphColor->InsertNextTuple3(rgb[0] * 255, rgb[1] * 255, rgb[2] * 255);
+				m_linkGlyphColor->InsertNextTuple3(rgb[0] * 255, rgb[1] * 255, rgb[2] * 255);
+				m_linkGlyphColor->InsertNextTuple3(rgb[0] * 255, rgb[1] * 255, rgb[2] * 255);
 
 				pointID+= 2;
 			}
@@ -400,10 +374,10 @@ void iAVRObjectModel::createRegionLinks(std::vector<std::vector<std::vector<doub
 
 	m_linePolyData->GetPointData()->AddArray(tubeRadius);
 	//m_linePolyData->GetCellData()->AddArray(linkGlyphColor);
-	m_linePolyData->GetPointData()->AddArray(linkGlyphColor);
+	m_linePolyData->GetPointData()->AddArray(m_linkGlyphColor);
 	m_linePolyData->GetPointData()->SetActiveScalars("TubeRadius");
 
-	vtkSmartPointer<vtkTubeFilter> tubeFilter =	vtkSmartPointer<vtkTubeFilter>::New();
+	vtkNew<vtkTubeFilter> tubeFilter;
 	tubeFilter->SetInputData(m_linePolyData);
 	tubeFilter->SetNumberOfSides(8);
 	//tubeFilter->SetRadius(0.01);
@@ -414,7 +388,7 @@ void iAVRObjectModel::createRegionLinks(std::vector<std::vector<std::vector<doub
 	//tubeFilter->Update();
 
 	// Create a mapper and actor
-	vtkSmartPointer<vtkPolyDataMapper> lineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	vtkNew<vtkPolyDataMapper> lineMapper;
 	lineMapper->SetInputConnection(tubeFilter->GetOutputPort());
 	lineMapper->ScalarVisibilityOff();
 
@@ -428,49 +402,49 @@ void iAVRObjectModel::createRegionLinks(std::vector<std::vector<std::vector<doub
 
 void iAVRObjectModel::createRegionNodes(double maxFibersInRegions, double worldSize)
 {
-	vtkSmartPointer<vtkPolyData> regionNodes = vtkSmartPointer<vtkPolyData>::New();
+	vtkNew<vtkPolyData> regionNodes;
 	regionNodes->ShallowCopy(m_cubePolyData);
 
 	auto min = worldSize * 0.01;
 	auto max = worldSize * 0.077;
 	calculateNodeLUT(min, max, 1);
 
-	nodeGlyphColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
-	nodeGlyphColor->SetName("nodeColor");
-	nodeGlyphColor->SetNumberOfComponents(3);
+	m_nodeGlyphColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	m_nodeGlyphColor->SetName("nodeColor");
+	m_nodeGlyphColor->SetNumberOfComponents(3);
 
-	nodeGlyphScales = vtkSmartPointer<vtkDoubleArray>::New();
-	nodeGlyphScales->SetName("scales");
-	nodeGlyphScales->SetNumberOfComponents(3);
+	m_nodeGlyphScales = vtkSmartPointer<vtkDoubleArray>::New();
+	m_nodeGlyphScales->SetName("scales");
+	m_nodeGlyphScales->SetNumberOfComponents(3);
 
 	for (vtkIdType p = 0; p < regionNodes->GetNumberOfPoints(); p++)
 	{
 		double fibersInRegion = (double)(m_fiberCoverage->at(m_octree->getLevel()).at(p)->size());
 		double sizeLog = 0;
 		double rgb[3] = { 0,0,0 };
-		if(fibersInRegion > 0)
+		if (fibersInRegion > 0)
 		{
 			sizeLog = iAVROctreeMetrics::histogramNormalizationExpo(fibersInRegion, min, max, 1, maxFibersInRegions);
 			m_lut->GetColor(sizeLog, rgb);
 		}
-		nodeGlyphScales->InsertNextTuple3(sizeLog, sizeLog, sizeLog);
-		nodeGlyphColor->InsertNextTuple3(rgb[0] * 255, rgb[1] * 255, rgb[2] * 255);
+		m_nodeGlyphScales->InsertNextTuple3(sizeLog, sizeLog, sizeLog);
+		m_nodeGlyphColor->InsertNextTuple3(rgb[0] * 255, rgb[1] * 255, rgb[2] * 255);
 	}
-	nodeGlyphResetColor->DeepCopy(nodeGlyphColor);
+	m_nodeGlyphResetColor->DeepCopy(m_nodeGlyphColor);
 
-	regionNodes->GetPointData()->SetScalars(nodeGlyphScales);
-	regionNodes->GetPointData()->AddArray(nodeGlyphColor);
+	regionNodes->GetPointData()->SetScalars(m_nodeGlyphScales);
+	regionNodes->GetPointData()->AddArray(m_nodeGlyphColor);
 
-	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
+	vtkNew<vtkCubeSource> cubeSource;
 
-	nodeGlyph3D = vtkSmartPointer<vtkGlyph3D>::New();
-	nodeGlyph3D->SetSourceConnection(cubeSource->GetOutputPort());
-	nodeGlyph3D->SetInputData(regionNodes);
-	nodeGlyph3D->SetScaleModeToScaleByScalar();
+	m_nodeGlyph3D = vtkSmartPointer<vtkGlyph3D>::New();
+	m_nodeGlyph3D->SetSourceConnection(cubeSource->GetOutputPort());
+	m_nodeGlyph3D->SetInputData(regionNodes);
+	m_nodeGlyph3D->SetScaleModeToScaleByScalar();
 
 	// Create a mapper and actor
-	vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	glyphMapper->SetInputConnection(nodeGlyph3D->GetOutputPort());
+	vtkNew<vtkPolyDataMapper> glyphMapper;
+	glyphMapper->SetInputConnection(m_nodeGlyph3D->GetOutputPort());
 
 	m_RegionNodesActor->SetMapper(glyphMapper);
 	m_RegionNodesActor->GetMapper()->ScalarVisibilityOn();
@@ -482,7 +456,6 @@ void iAVRObjectModel::createRegionNodes(double maxFibersInRegions, double worldS
 	m_RegionNodesActor->Modified();
 }
 
-//! Calculates the LUT for the regionLinks (0) and the regionNodes (1)
 void iAVRObjectModel::calculateNodeLUT(double min, double max, int colorScheme)
 {
 	QColor a;
@@ -527,8 +500,6 @@ void iAVRObjectModel::calculateNodeLUT(double min, double max, int colorScheme)
 	m_lut->SetTableRange(min, max);
 }
 
-//! Cycles between values from 0.95 to 0
-//! The sign defines if the values are increased/decreased
 void iAVRObjectModel::filterRegionLinks(int sign)
 {
 	double step = 0.05;

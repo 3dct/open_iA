@@ -374,7 +374,7 @@ void iAOpenVRFrontCamera::createLeftAndRightEyeImage()
 {
 	const int* dims = m_sourceImage->GetDimensions();
 
-	vtkSmartPointer<vtkExtractVOI> extractLeftImage = vtkSmartPointer<vtkExtractVOI>::New();
+	vtkNew<vtkExtractVOI> extractLeftImage;
 	extractLeftImage->SetInputData(m_sourceImage);
 	extractLeftImage->SetVOI(0, dims[0] - 1, 0, std::floor(((double)dims[1] - 1.0) / 2.0), 0, dims[2] - 1);
 	extractLeftImage->Update();
@@ -383,7 +383,7 @@ void iAOpenVRFrontCamera::createLeftAndRightEyeImage()
 	//auto yr = std::floor(((double)dims[1] - 1.0) / 2.0);
 	//m_rightImage->CopyAndCastFrom(m_sourceImage, 0, dims[0] -1, 0, std::floor(((double)dims[1]-1.0) / 2.0), 0, dims[2]-1);
 
-	vtkSmartPointer<vtkExtractVOI> extractRightImage = vtkSmartPointer<vtkExtractVOI>::New();
+	vtkNew<vtkExtractVOI> extractRightImage;
 	extractRightImage->SetInputData(m_sourceImage);
 	extractRightImage->SetVOI(0, dims[0] - 1, std::ceil(((double)dims[1] - 1.0) / 2.0), dims[1] - 1, 0, dims[2] - 1);
 	extractRightImage->Update();

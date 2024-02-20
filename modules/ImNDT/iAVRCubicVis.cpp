@@ -66,7 +66,7 @@ void iAVRCubicVis::createCubeModel()
 
 	calculateStartPoints();
 
-	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
+	vtkNew<vtkCubeSource> cubeSource;
 
 	m_glyph3D = vtkSmartPointer<vtkGlyph3D>::New();
 	m_glyph3D->GeneratePointIdsOn();
@@ -75,7 +75,7 @@ void iAVRCubicVis::createCubeModel()
 	m_glyph3D->SetScaleModeToScaleByScalar();
 
 	// Create a mapper and actor
-	vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	vtkNew<vtkPolyDataMapper> glyphMapper;
 	glyphMapper->SetInputConnection(m_glyph3D->GetOutputPort());
 
 	m_actor->SetMapper(glyphMapper);
@@ -119,7 +119,7 @@ vtkSmartPointer<vtkPolyData> iAVRCubicVis::getDataSet()
 
 vtkIdType iAVRCubicVis::getClosestCellID(double pos[3], double eventOrientation[3])
 {
-	vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
+	vtkNew<vtkCellPicker> cellPicker;
 	cellPicker->AddPickList(m_actor);
 	cellPicker->PickFromListOn();
 
@@ -185,15 +185,15 @@ void iAVRCubicVis::highlightGlyphs(std::vector<vtkIdType> const & regionIDs, std
 		m_activeRegions = regionIDs;
 		m_activeColors = colorPerRegion;
 
-		vtkSmartPointer<vtkPolyData> activeData = vtkSmartPointer<vtkPolyData>::New();
-		vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+		vtkNew<vtkPolyData> activeData;
+		vtkNew<vtkPoints> points;
 		m_activeGlyph3D = vtkSmartPointer<vtkGlyph3D>::New();
 
-		vtkSmartPointer<vtkUnsignedCharArray> activeGlyphColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
+		vtkNew<vtkUnsignedCharArray> activeGlyphColor;
 		activeGlyphColor->SetName("highlightColor");
 		activeGlyphColor->SetNumberOfComponents(3);
 
-		vtkSmartPointer<vtkDoubleArray> activeGlyphScales = vtkSmartPointer<vtkDoubleArray>::New();
+		vtkNew<vtkDoubleArray> activeGlyphScales;
 		activeGlyphScales->SetName("scales");
 		activeGlyphScales->SetNumberOfComponents(3);
 
@@ -210,14 +210,14 @@ void iAVRCubicVis::highlightGlyphs(std::vector<vtkIdType> const & regionIDs, std
 		activeData->GetPointData()->SetScalars(activeGlyphScales);
 		activeData->GetPointData()->AddArray(activeGlyphColor);
 
-		vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
+		vtkNew<vtkCubeSource> cubeSource;
 
 		m_activeGlyph3D->SetSourceConnection(cubeSource->GetOutputPort());
 		m_activeGlyph3D->SetInputData(activeData);
 		m_activeGlyph3D->SetScaleModeToScaleByScalar();
 
 		// Create a mapper and actor
-		vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		vtkNew<vtkPolyDataMapper> glyphMapper;
 		glyphMapper->SetInputConnection(m_activeGlyph3D->GetOutputPort());
 
 		m_activeActor->SetMapper(glyphMapper);
@@ -262,7 +262,7 @@ double* iAVRCubicVis::getDefaultActorSize()
 void iAVRCubicVis::calculateStartPoints()
 {
 	//int count = 0;
-	vtkSmartPointer<vtkPoints> cubeStartPoints = vtkSmartPointer<vtkPoints>::New();
+	vtkNew<vtkPoints> cubeStartPoints;
 	m_cubePolyData = vtkSmartPointer<vtkPolyData>::New();
 
 	m_glyphScales = vtkSmartPointer<vtkDoubleArray>::New();

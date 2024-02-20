@@ -20,14 +20,11 @@ iAVRMip::iAVRMip(vtkRenderer* renderer, std::vector<iAVROctree*> const & octrees
 {
 }
 
-//! Adds a colorLegend for the LUT information
 void iAVRMip::addColorLegend(iAVRColorLegend* colorLegend)
 {
 	m_colorLegend = colorLegend;
 }
 
-//! Creates a plane for every possible MIP Projection (six planes)
-//! The plane cells start at the lower left cell depending on the origin Point of the Plane
 void iAVRMip::createMIPPanels(int octreeLevel, int feature, std::vector<std::vector<std::vector<double>>> const & calculatedValues)
 {
 	int gridSize = pow(2, octreeLevel);
@@ -37,11 +34,11 @@ void iAVRMip::createMIPPanels(int octreeLevel, int feature, std::vector<std::vec
 	std::vector<std::vector<iAVec3d>> planePoints;
 	m_octrees.at(octreeLevel)->createOctreeBoundingBoxPlanes(planePoints);
 
-	vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
+	vtkNew<vtkAppendPolyData> appendFilter;
 
 	for (int i = 0; i < 6; i++)
 	{
-		vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();
+		vtkNew<vtkPlaneSource> plane;
 		plane->SetXResolution(gridSize);
 		plane->SetYResolution(gridSize);
 		plane->SetOrigin(planePoints.at(i).at(0).data());
@@ -50,7 +47,7 @@ void iAVRMip::createMIPPanels(int octreeLevel, int feature, std::vector<std::vec
 		plane->Push(620 * direction[i]);
 		plane->Update();
 
-		vtkSmartPointer<vtkUnsignedCharArray> colorData = vtkSmartPointer<vtkUnsignedCharArray>::New();
+		vtkNew<vtkUnsignedCharArray> colorData;
 		colorData->SetName("colors");
 		colorData->SetNumberOfComponents(4);
 
@@ -67,7 +64,7 @@ void iAVRMip::createMIPPanels(int octreeLevel, int feature, std::vector<std::vec
 		appendFilter->AddInputData(plane->GetOutput());
 	}
 
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	vtkNew<vtkPolyDataMapper> mapper;
 	mapper->SetInputConnection(appendFilter->GetOutputPort());
 
 	m_mipPanel = vtkSmartPointer<vtkActor>::New();
@@ -80,8 +77,6 @@ void iAVRMip::createMIPPanels(int octreeLevel, int feature, std::vector<std::vec
 	m_renderer->AddActor(m_mipPanel);
 }
 
-//! Creates a plane for the MIP Projection for the current viewed direction
-//! The plane cells start at the lower left cell depending on the origin Point of the Plane
 void iAVRMip::createSingleMIPPanel(int octreeLevel, int feature, int viewDir, double physicalScale, std::vector<std::vector<std::vector<double>>> const & calculatedValues)
 {
 	hideMIPPanels();
@@ -94,7 +89,7 @@ void iAVRMip::createSingleMIPPanel(int octreeLevel, int feature, int viewDir, do
 	std::vector<std::vector<iAVec3d>> planePoints;
 	m_octrees.at(octreeLevel)->createOctreeBoundingBoxPlanes(planePoints);
 
-	vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();
+	vtkNew<vtkPlaneSource> plane;
 	plane->SetXResolution(gridSize);
 	plane->SetYResolution(gridSize);
 	plane->SetOrigin(planePoints.at(viewDir).at(0).data());
@@ -103,7 +98,7 @@ void iAVRMip::createSingleMIPPanel(int octreeLevel, int feature, int viewDir, do
 	plane->Push(planeOffset * direction[viewDir]);
 	plane->Update();
 
-	vtkSmartPointer<vtkUnsignedCharArray> colorData = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	vtkNew<vtkUnsignedCharArray> colorData;
 	colorData->SetName("colors");
 	colorData->SetNumberOfComponents(4);
 
@@ -118,7 +113,7 @@ void iAVRMip::createSingleMIPPanel(int octreeLevel, int feature, int viewDir, do
 
 	m_mipPlanes.push_back(plane->GetOutput());
 
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	vtkNew<vtkPolyDataMapper> mapper;
 	mapper->SetInputData(plane->GetOutput());
 
 	m_mipPanel = vtkSmartPointer<vtkActor>::New();
@@ -131,14 +126,11 @@ void iAVRMip::createSingleMIPPanel(int octreeLevel, int feature, int viewDir, do
 	m_renderer->AddActor(m_mipPanel);
 }
 
-//! Hides the MIP panels from the user
 void iAVRMip::hideMIPPanels()
 {
 	m_renderer->RemoveActor(m_mipPanel);
 }
 
-//! Calculates the maximum Intensity Projection for the chosen feature and direction (x = 0, y = 1, z = 2)
-//! Saves the color for the maximum value found by shooting a parallel ray through a cube row.
 std::vector<QColor> iAVRMip::calculateMIPColoring(int direction, int level, int feature, std::vector<std::vector<std::vector<double>>> const & calculatedValues)
 {
 	size_t gridSize = pow(2, level);
@@ -161,6 +153,5 @@ std::vector<QColor> iAVRMip::calculateMIPColoring(int direction, int level, int 
 			mipColors.push_back(m_colorLegend->getColor(val));
 		}
 	}
-
 	return mipColors;
 }

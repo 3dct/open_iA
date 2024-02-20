@@ -31,7 +31,7 @@ class iAVRHistogramPairVis
 public:
 	iAVRHistogramPairVis(vtkRenderer* ren, iAVRHistogramMetric* histogramMetric, iAVROctreeMetrics* octreeMetric, vtkTable* objectTable);
 	void createVisualization(double* pos, double visSize, double offset, int level, std::vector<vtkIdType> const & regions, std::vector<int> const & featureList);
-	vtkSmartPointer<vtkAssembly> getVisAssembly();
+	vtkAssembly* getVisAssembly();
 	void show();
 	void hide();
 	//! Determine which histogram is currently viewed by comparing the focal point and the direction of the histogram (plane)
@@ -53,8 +53,8 @@ private:
 	vtkSmartPointer<vtkActor> m_inactiveHistogramActor;
 	vtkSmartPointer<vtkActor> m_activeAxisActor;
 	vtkSmartPointer<vtkActor> m_inactiveAxisActor;
-	vtkSmartPointer<vtkAssembly> visualizationActor;
-	vtkSmartPointer<vtkActor> outlineActor;
+	vtkSmartPointer<vtkAssembly> m_visualizationActor;
+	vtkSmartPointer<vtkActor> m_outlineActor;
 	//! Stores for an [axis] the bars (points) for the histogram
 	std::vector<vtkSmartPointer<vtkPolyData>> m_histogramBars;
 	//! Stores for an [axis] and a [direction] (x,y) the different 3D TextLabels of the axis pair
