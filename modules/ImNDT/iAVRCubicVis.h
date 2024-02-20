@@ -29,7 +29,7 @@ public:
 	void show();
 	//! Hides the cubes
 	void hide();
-	void setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage);
+	void setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>> const * fiberCoverage);
 	vtkSmartPointer<vtkActor> getActor();
 	vtkSmartPointer<vtkPolyData> getDataSet();
 	vtkIdType getClosestCellID(double pos[3], double eventOrientation[3]);
@@ -54,7 +54,7 @@ protected:
 	vtkSmartPointer<vtkDoubleArray> m_glyphScales;
 	vtkSmartPointer<vtkUnsignedCharArray> m_glyphColor;
 	//Stores for the [octree level] in an [octree region] a map of its fiberIDs with their coverage
-	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* m_fiberCoverage;
+	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>> const * m_fiberCoverage;
 	//Currently selected cubes
 	std::vector<vtkIdType> m_activeRegions;
 	std::vector<QColor> m_activeColors;

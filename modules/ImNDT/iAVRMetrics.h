@@ -17,7 +17,7 @@ class iAVRMetrics
 {
 public:
 	iAVRMetrics(vtkTable* objectTable, std::vector<iAVROctree*> const & octrees);
-	void setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage);
+	void setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>> const * fiberCoverage);
 	int getNumberOfFeatures();
 	QString getFeatureName(int feature);
 	std::vector<double> getMinMaxFiberValues(int feature);
@@ -32,7 +32,7 @@ protected:
 	static std::vector<std::vector<double>>* m_minMaxValues;
 
 	//Stores for the [octree level] in an [octree region] a map of its fiberIDs with their coverage
-	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* m_fiberCoverage;
+	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>> const * m_fiberCoverage;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	std::vector<iAVROctree*> const & m_octrees;
 

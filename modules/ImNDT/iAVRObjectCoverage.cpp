@@ -43,7 +43,7 @@ void iAVRObjectCoverage::calculateObjectCoverage()
 	//printObjectCoverage();
 }
 
-std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* iAVRObjectCoverage::getObjectCoverage()
+std::vector<std::vector<std::unordered_map<vtkIdType, double>*>> const * iAVRObjectCoverage::getObjectCoverage()
 {
 	return &m_objectCoverage;
 }

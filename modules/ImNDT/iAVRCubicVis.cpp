@@ -103,7 +103,7 @@ void iAVRCubicVis::hide()
 }
 
 //! Sets the fiber coverage data, which is a vector for every octree level and each region, in which every fiber is stored with its coverage in that particular region.
-void iAVRCubicVis::setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage)
+void iAVRCubicVis::setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>> const * fiberCoverage)
 {
 	m_fiberCoverage = fiberCoverage;
 }

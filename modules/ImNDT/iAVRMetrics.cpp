@@ -28,7 +28,7 @@ iAVRMetrics::iAVRMetrics(vtkTable* objectTable, std::vector<iAVROctree*> const &
 
 //! Has to be called *before* getting any Metric data
 //! Sets the fiber coverage data, which is a vector for every octree level and each region, in which every fiber is stored with its coverage in that particular region.
-void iAVRMetrics::setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage)
+void iAVRMetrics::setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>> const * fiberCoverage)
 {
 	m_fiberCoverage = fiberCoverage;
 }

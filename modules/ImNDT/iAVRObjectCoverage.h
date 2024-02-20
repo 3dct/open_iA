@@ -22,7 +22,7 @@ class iAVRObjectCoverage
 public:
 	iAVRObjectCoverage(vtkTable* objectTable, iAColMapP colMapping, iACsvConfig csvConfig, std::vector<iAVROctree*> const & octrees, iAVRObjectModel* volume);
 	void calculateObjectCoverage();
-	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* getObjectCoverage();
+	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>> const * getObjectCoverage();
 	vtkIdType getObjectiD(vtkIdType polyPoint);
 
 private:
