@@ -102,25 +102,21 @@ void iAVRCubicVis::hide()
 	m_visible = false;
 }
 
-//! Sets the fiber coverage data, which is a vector for every octree level and each region, in which every fiber is stored with its coverage in that particular region.
 void iAVRCubicVis::setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>> const * fiberCoverage)
 {
 	m_fiberCoverage = fiberCoverage;
 }
 
-//! Returns the Actor for the glyphs
 vtkSmartPointer<vtkActor> iAVRCubicVis::getActor()
 {
 	return m_actor;
 }
 
-//! Returns the vtkPolyData for the center points of the glyphs
 vtkSmartPointer<vtkPolyData> iAVRCubicVis::getDataSet()
 {
 	return m_cubePolyData;
 }
 
-//! This Method returns the closest cell of the Cube which gets intersected by a ray
 vtkIdType iAVRCubicVis::getClosestCellID(double pos[3], double eventOrientation[3])
 {
 	vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
@@ -147,8 +143,6 @@ vtkIdType iAVRCubicVis::getClosestCellID(double pos[3], double eventOrientation[
 	return -1;
 }
 
-//! Sets the color (rgba) of one cube in the Miniature Model. The other colors stay the same.
-//! The region ID of the octree is used
 void iAVRCubicVis::setCubeColor(QColor col, int regionID)
 {
 	unsigned char rgb[4] = { static_cast<unsigned char>(col.red()), static_cast<unsigned char>(col.green()), static_cast<unsigned char>(col.blue()), static_cast<unsigned char>(col.alpha()) };
@@ -158,8 +152,6 @@ void iAVRCubicVis::setCubeColor(QColor col, int regionID)
 	m_cubePolyData->GetPointData()->AddArray(m_glyphColor);
 }
 
-//! Colors the whole miniature model with the given vector of rgba values ( between 0.0 and 1.0)
-//! Resets the current color of all cubes with the new colors!
 void iAVRCubicVis::applyHeatmapColoring(std::vector<QColor> const & colorPerRegion)
 {
 	//Remove possible highlights
@@ -177,7 +169,6 @@ void iAVRCubicVis::applyHeatmapColoring(std::vector<QColor> const & colorPerRegi
 	m_cubePolyData->GetPointData()->AddArray(m_glyphColor);
 }
 
-//! Creates colored border around the given Cubes. If no/empty color vector or too few colors are given the additional borders are black
 void iAVRCubicVis::highlightGlyphs(std::vector<vtkIdType> const & regionIDs, std::vector<QColor> colorPerRegion)
 {
 	if (!regionIDs.empty())
@@ -246,7 +237,6 @@ void iAVRCubicVis::highlightGlyphs(std::vector<vtkIdType> const & regionIDs, std
 	}
 }
 
-//! Removes the colored border around selected Cubes.
 void iAVRCubicVis::removeHighlightedGlyphs()
 {
 	if (!m_highlightVisible)
@@ -259,7 +249,6 @@ void iAVRCubicVis::removeHighlightedGlyphs()
 	m_highlightVisible = false;
 }
 
-//! Redraw the borders of the last selection in black color
 void iAVRCubicVis::redrawHighlightedGlyphs()
 {
 	highlightGlyphs(m_activeRegions, m_activeColors);
@@ -270,8 +259,6 @@ double* iAVRCubicVis::getDefaultActorSize()
 	return m_defaultActorSize;
 }
 
-//! This Method iterates through all leaf regions of the octree and stores its center point in an vtkPolyData
-//! It also calculates the region size and adds the scalar array for it
 void iAVRCubicVis::calculateStartPoints()
 {
 	//int count = 0;
@@ -312,10 +299,6 @@ void iAVRCubicVis::calculateStartPoints()
 	m_cubePolyData->GetPointData()->SetScalars(m_glyphScales);
 }
 
-//! Applies a linear shift: All regions are displaced by the same factor, regardless of their
-//! distance from the center of the fiber model. This Method calculates the direction from
-//! the center to its single cubes and shifts the cubes linear from the center away
-//! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
 void iAVRCubicVis::applyRadialDisplacement(double offset)
 {
 	if (m_cubePolyData == nullptr)
@@ -343,11 +326,6 @@ void iAVRCubicVis::applyRadialDisplacement(double offset)
 	redrawHighlightedGlyphs();
 }
 
-//! The structure preserving displacement (SP) increases the distance to the center
-//! and the regions, but the relative distances between the regions remain the same.
-//! The shifts is scaled relative to the maximal length from the center to one cube and
-//! shifts all cubes from the center away
-//! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
 void iAVRCubicVis::applySPDisplacement(double offset)
 {
 	if (m_cubePolyData == nullptr)
@@ -387,10 +365,6 @@ void iAVRCubicVis::applySPDisplacement(double offset)
 	redrawHighlightedGlyphs();
 }
 
-//! The octant displacement shifts the regions to the nearest octant out of 8 possible octants.
-//! The center of the fiber model is the origin of the three - dimensional Euclidean coordinate
-//! system, which forms eight octants through the three axial planes X, Y, and Z.
-//! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
 void iAVRCubicVis::applyOctantDisplacement(double offset)
 {
 	if (m_cubePolyData == nullptr)
