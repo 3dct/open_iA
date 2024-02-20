@@ -52,17 +52,17 @@ private:
 	vtkSmartPointer<vtkActor> m_inactiveAxisActor;
 	vtkSmartPointer<vtkAssembly> visualizationActor;
 	vtkSmartPointer<vtkActor> outlineActor;
-	//Stores for an [axis] the bars (points) for the histogram
+	//! Stores for an [axis] the bars (points) for the histogram
 	std::vector<vtkSmartPointer<vtkPolyData>>* m_histogramBars;
-	//Stores for an [axis] and a [direction] (x,y) the different 3D TextLabels of the axis pair
+	//! Stores for an [axis] and a [direction] (x,y) the different 3D TextLabels of the axis pair
 	std::vector<std::vector<std::vector<iAVR3DText>>>* m_axisLabelActor;
-	//Stores for an [axis] its title
+	//! Stores for an [axis] its title
 	std::vector<iAVR3DText>* m_axisTitleActor;
-	//Stores the [axis] polydata with the 3 points which create a X axis and the y axis
+	//! Stores the [axis] polydata with the 3 points which create a X axis and the y axis
 	std::vector<vtkSmartPointer<vtkPolyData>>* m_axesPoly;
-	//Stores for every [axis] and [direction] (x,y) the polydata with 2 points for each mark on an axis
+	//! Stores for every [axis] and [direction] (x,y) the polydata with 2 points for each mark on an axis
 	std::vector<std::vector<vtkSmartPointer<vtkPolyData>>>* m_axesMarksPoly;
-	//Stores for each Axis its view direction
+	//! Stores for each Axis its view direction
 	std::unordered_map<vtkIdType, iAVec3d>* m_AxesViewDir;
 	bool m_visible;
 	int m_numberOfXBins;

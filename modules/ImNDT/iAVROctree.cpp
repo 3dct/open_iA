@@ -37,7 +37,6 @@ void iAVROctree::generateOctreeRepresentation(int level, QColor col)
 	//m_actor->PickableOff();
 }
 
-//! The Method calculates the octree for the current level with the given amount of max points in a region
 void iAVROctree::calculateOctree(int level, int pointsPerRegion)
 {
 	m_octree->SetMaximumPointsPerRegion(pointsPerRegion); // The maximum number of points in a region/octant before it is subdivided
@@ -60,7 +59,6 @@ vtkOctreePointLocator * iAVROctree::getOctree()
 	return m_octree;
 }
 
-//! Calculates the size of Octree leaf node
 void iAVROctree::calculateOctreeRegionSize(int regionID, double size[3])
 {
 	if (m_octree->GetNumberOfLeafNodes() >= regionID)
@@ -73,7 +71,6 @@ void iAVROctree::calculateOctreeRegionSize(int regionID, double size[3])
 	}
 }
 
-//! This Method calculates the center point between max and min bound of the whole octree.
 void iAVROctree::calculateOctreeCenterPos(double centerPoint[3])
 {
 	double bounds[6];
@@ -83,7 +80,6 @@ void iAVROctree::calculateOctreeCenterPos(double centerPoint[3])
 	centerPoint[2] = bounds[4] + ((bounds[5] - bounds[4]) / 2);
 }
 
-//! This Method calculates the center point between max and min bound of a leaf region.
 void iAVROctree::calculateOctreeRegionCenterPos(int regionID, double centerPoint[3])
 {
 	double bounds[6];
@@ -93,8 +89,6 @@ void iAVROctree::calculateOctreeRegionCenterPos(int regionID, double centerPoint
 	centerPoint[2] = bounds[4] + ((bounds[5] - bounds[4]) / 2);
 }
 
-//! Creates the six Planes defines by the octree bounds of the given leaf region.
-//! The vec is defined as six [planes] (0-5) with respectively 3 points (origin, point 1, point 2)
 void iAVROctree::createOctreeBoundingBoxPlanes(int regionID, std::vector<std::vector<iAVec3d>> & planePoints)
 {
 	double bounds[6];
@@ -153,8 +147,6 @@ void iAVROctree::createOctreeBoundingBoxPlanes(int regionID, std::vector<std::ve
 	planePoints.push_back(tempPos);
 }
 
-//! This Method creates the six Planes defined by the bounds of the whole octree .
-//! The vec is defined as six [planes] (0-5) with respectively 3 points (origin, point 1, point 2)
 void iAVROctree::createOctreeBoundingBoxPlanes(std::vector<std::vector<iAVec3d>> & planePoints)
 {
 	double bounds[6];
@@ -213,7 +205,6 @@ void iAVROctree::createOctreeBoundingBoxPlanes(std::vector<std::vector<iAVec3d>>
 	planePoints.push_back(tempPos);
 }
 
-//! Used for points which are just *barely* outside the bounds of the region. Moves that point so that it is just barely *inside* the bounds
 void iAVROctree::movePointInsideRegion(double point[3], double movedPoint[3])
 {
 	double outerBounds[6];
@@ -254,7 +245,6 @@ vtkIdType iAVROctree::getNumberOfLeafNodes() const
 	return m_numberOfLeafNodes;
 }
 
-//! Returns the maximum lenght from the octree center to any of its regions. Gets calculated at first call
 double iAVROctree::getMaxDistanceOctCenterToRegionCenter()
 {
 	if(m_maxDistanceOctCenterToRegionCenter != -1)
@@ -281,8 +271,6 @@ double iAVROctree::getMaxDistanceOctCenterToFiber()
 	}
 }
 
-//! Returns which fibers (ID) lie in which region with coverage of 1. Gets calculated on the first call.
-//! They all lie (independent of their real coverage) to 100% inside the region
 std::vector<std::unordered_map<vtkIdType, double>*> const & iAVROctree::getFibersInRegionMapping(std::unordered_map<vtkIdType, vtkIdType> const & pointIDToCsvIndex)
 {
 	if(!m_fibersInRegion.empty())
@@ -331,10 +319,6 @@ vtkActor* iAVROctree::getActor()
 	return m_actor;
 }
 
-//! Returns a vector for each projection on an plane (x,y,z) and each grid cell beginning on lower left cell (0,0).
-//! Grid size is 2^L x 2^L x 2^L (L = Level of Octree).
-//! For each cell a list of all traversed cubes is stored. Attention: In case a cube could not be splitted in later octree levels
-//! the list will contain this region multiple times.
 std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>> const & iAVROctree::getRegionsInLineOfRay()
 {
 	if (!m_regionsInLine.empty())
@@ -348,9 +332,6 @@ std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>> const & iAVR
 	}
 }
 
-//! Stores which fibers lie in which region. Therfore all pointIds inside a region are taken and mapped to its fiber ID.
-//! They all lie (independent of their real coverage) to 100% inside the region
-//! Regions without fibers have no entry
 void iAVROctree::mapFibersToRegion(std::unordered_map<vtkIdType, vtkIdType> const & pointIDToCsvIndex)
 {
 	for(int region = 0; region < m_numberOfLeafNodes; region++)
@@ -415,11 +396,6 @@ double iAVROctree::calculateDistanceOctCenterToFiber()
 	return maxLength;
 }
 
-//! Calculates which cubes a ray would traverse in x, y, z direction in an straight line
-//! The corresponding vector consists of an vector for each projection on an plane (x,y,z) and each grid cell.
-//! The start grid cells depend on the origin Point of the Plane drawn in iAVROctreeMetrics.
-//! For each cell a list of all traversed cubes is stored. Attention: In case a cube could not be splitted in later octree levels
-//! the list will contain this region multiple times.
 void iAVROctree::calculateRayThroughCubeRow()
 {
 	double bounds[6];

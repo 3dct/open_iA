@@ -37,7 +37,7 @@ public:
 	void hideFloor();
 	//! retrieve the scale of the world that was set when this function was first called
 	double getInitialWorldScale();
-	//! @return whether the environment's main event loop is set (=currently running)
+	//! @return whether the environment's main event loop is currently running
 	bool isRunning() const;
 	//! queue a task to be executed within the main VR thread
 	void queueTask(std::function<void()> task);
