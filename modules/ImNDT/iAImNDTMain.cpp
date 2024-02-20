@@ -88,9 +88,9 @@ iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAColoredPolyObjectVis* polyObj
 	m_fiberMetrics->getMaxCoverageFiberPerRegion();
 
 	//Initialize Text Lables vector
-	m_3DTextLabels.push_back(new iAVR3DText(m_vrEnv->renderer()));// [0] for Octree level change
-	m_3DTextLabels.push_back(new iAVR3DText(m_vrEnv->renderer()));// [1] for feature change
-	m_3DTextLabels.push_back(new iAVR3DText(m_vrEnv->renderer()));// [2] for Alerts
+	m_3DTextLabels.push_back(iAVR3DText(m_vrEnv->renderer(), "Octree level"));// [0] for Octree level change
+	m_3DTextLabels.push_back(iAVR3DText(m_vrEnv->renderer(), "Feature"));// [1] for feature change
+	//m_3DTextLabels.push_back(iAVR3DText(m_vrEnv->renderer(), "Alert"));// [2] for Alerts
 
 	//Initialize ColorLegend
 	m_MiMColorLegend = new iAVRColorLegend(m_vrEnv->renderer());
@@ -317,7 +317,7 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 		m_focalPoint[1] = tempFocalPos[1];
 		m_focalPoint[2] = tempFocalPos[2];
 
-		m_3DTextLabels.at(2)->setLabelPos(tempFocalPos);
+		//m_3DTextLabels.at(2).setLabelPos(tempFocalPos);
 
 		double* tempViewDirection = cam->GetDirectionOfProjection();
 		m_viewDirection = static_cast<int>(iAImNDTInteractions::getViewDirection(tempViewDirection));
@@ -365,8 +365,8 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 		}
 
 		double lcPos[3] = { m_cPos[deviceID][0], m_cPos[deviceID][1] - (initialScale * 0.03), m_cPos[deviceID][2]};
-		m_3DTextLabels.at(1)->setLabelPos(lcPos);
-		m_3DTextLabels.at(1)->moveInEyeDir(initialScale * 0.04, initialScale * 0.04, initialScale * 0.04);
+		m_3DTextLabels.at(1).setLabelPos(lcPos);
+		m_3DTextLabels.at(1).moveInEyeDir(initialScale * 0.04, initialScale * 0.04, initialScale * 0.04);
 
 		m_slider->setPosition(lcPos[0], lcPos[1] - (initialScale * 0.04), lcPos[2] + (initialScale * 0.07));
 	}
@@ -375,8 +375,8 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 	if (deviceID == static_cast<int>(vtkEventDataDevice::RightController))
 	{
 		double rcPos[3] = { m_cPos[deviceID][0], m_cPos[deviceID][1] - (initialScale * 0.03), m_cPos[deviceID][2]};
-		m_3DTextLabels.at(0)->setLabelPos(rcPos);
-		m_3DTextLabels.at(0)->moveInEyeDir(initialScale * 0.04, initialScale * 0.04, initialScale * 0.04);
+		m_3DTextLabels.at(0).setLabelPos(rcPos);
+		m_3DTextLabels.at(0).moveInEyeDir(initialScale * 0.04, initialScale * 0.04, initialScale * 0.04);
 
 		if(m_activeInput.at(deviceID) == static_cast<int>(iAVROperations::FlipHistoBookPages))
 		{
@@ -418,7 +418,7 @@ void iAImNDTMain::stop()
 	m_distributionVis->hide();
 	for (auto t: m_3DTextLabels)
 	{
-		t->hide();
+		t.hide();
 	}
 	emit finished();
 }
@@ -547,9 +547,9 @@ void iAImNDTMain::changeOctreeAndMetric()
 		}
 
 		QString text = QString("Octree Level %1").arg(m_currentOctreeLevel);
-		m_3DTextLabels.at(0)->create3DLabel(text);
-		m_3DTextLabels.at(0)->show();
-		m_3DTextLabels.at(1)->hide();
+		m_3DTextLabels.at(0).setText(text);
+		m_3DTextLabels.at(0).show();
+		m_3DTextLabels.at(1).hide();
 
 		m_volume->setOctree(m_octrees.at(m_currentOctreeLevel));
 		m_volume->createCubeModel();
@@ -576,7 +576,7 @@ void iAImNDTMain::changeOctreeAndMetric()
 			//m_octrees.at(currentOctreeLevel)->hide();
 		}
 
-		m_3DTextLabels.at(0)->hide();
+		m_3DTextLabels.at(0).hide();
 	}
 	updateModelInMiniatureData();
 }
@@ -792,7 +792,7 @@ void iAImNDTMain::pressLeftTouchpad()
 
 		if (touchpadPos == iAVRTouchpadPosition::Up || touchpadPos == iAVRTouchpadPosition::Down)
 		{
-			m_3DTextLabels.at(1)->show();
+			m_3DTextLabels.at(1).show();
 
 			if (touchpadPos == iAVRTouchpadPosition::Up)
 			{
@@ -859,18 +859,18 @@ void iAImNDTMain::changeMiMDisplacementType()
 	switch (m_currentMiMDisplacementType)
 	{
 	case 0:
-		m_3DTextLabels.at(1)->create3DLabel(QString("SP displacement"));
+		m_3DTextLabels.at(1).setText(QString("SP displacement"));
 		break;
 	case 1:
-		m_3DTextLabels.at(1)->create3DLabel(QString("Radial displacement"));
+		m_3DTextLabels.at(1).setText(QString("Radial displacement"));
 		break;
 	case 2:
-		m_3DTextLabels.at(1)->create3DLabel(QString("Octant displacement"));
+		m_3DTextLabels.at(1).setText(QString("Octant displacement"));
 		break;
 	}
 
-	m_3DTextLabels.at(1)->show();
-	m_3DTextLabels.at(0)->hide();
+	m_3DTextLabels.at(1).show();
+	m_3DTextLabels.at(0).hide();
 }
 
 void iAImNDTMain::flipDistributionVis()

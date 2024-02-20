@@ -16,10 +16,27 @@
 #include <vtkOpenVRControlsHelper.h>
 #endif
 
-iAVR3DText::iAVR3DText(vtkRenderer* ren): m_renderer(ren)
+iAVR3DText::iAVR3DText(vtkRenderer* ren, QString const& text, bool small):
+	m_renderer(ren),
+	m_textActor3D(vtkSmartPointer<vtkBillboardTextActor3D>::New()),
+	m_visible(false)
 {
-	m_textActor3D = vtkSmartPointer<vtkBillboardTextActor3D>::New();
-	m_visible = false;
+	m_textActor3D->SetScale(1, 1, 1);
+	m_textActor3D->SetInput(text.toUtf8());
+	m_textActor3D->PickableOff();
+
+	m_textActor3D->GetTextProperty()->SetJustificationToCentered();
+	m_textActor3D->GetTextProperty()->SetFrame(1);
+	m_textActor3D->GetTextProperty()->SetFrameColor(0.6, 0.6, 0.6);
+	m_textActor3D->GetTextProperty()->SetFrameWidth(small ? 2 : 4);
+	m_textActor3D->GetTextProperty()->SetBackgroundOpacity(1.0);
+	m_textActor3D->GetTextProperty()->SetBackgroundColor(0.4, 0.4, 0.4);
+	m_textActor3D->GetTextProperty()->SetFontSize(small ? 14 : 32);
+}
+
+void iAVR3DText::setText(QString const& text)
+{
+	m_textActor3D->SetInput(text.toUtf8());
 }
 
 void iAVR3DText::show()
@@ -40,37 +57,6 @@ void iAVR3DText::hide()
 	}
 	m_renderer->RemoveActor(m_textActor3D);
 	m_visible = false;
-}
-
-void iAVR3DText::create3DLabel(QString const & text)
-{
-	m_textActor3D->SetScale(1,1,1);
-	m_textActor3D->SetInput(text.toUtf8());
-	m_textActor3D->PickableOff();
-
-	m_textActor3D->GetTextProperty()->SetJustificationToCentered();
-	m_textActor3D->GetTextProperty()->SetFrame(1);
-	m_textActor3D->GetTextProperty()->SetFrameColor(0.6, 0.6, 0.6);
-	m_textActor3D->GetTextProperty()->SetFrameWidth(4);
-	m_textActor3D->GetTextProperty()->SetBackgroundOpacity(1.0);
-	m_textActor3D->GetTextProperty()->SetBackgroundColor(0.4, 0.4, 0.4);
-	m_textActor3D->GetTextProperty()->SetFontSize(32);
-}
-
-void iAVR3DText::createSmall3DLabel(QString const& text)
-{
-	m_textActor3D->SetScale(1, 1, 1);
-	m_textActor3D->SetInput(text.toUtf8());
-	m_textActor3D->PickableOff();
-
-	m_textActor3D->GetTextProperty()->SetJustificationToCentered();
-	m_textActor3D->GetTextProperty()->SetFrame(1);
-	m_textActor3D->GetTextProperty()->SetFrameColor(0.6, 0.6, 0.6);
-	m_textActor3D->GetTextProperty()->SetFrameWidth(2);
-	m_textActor3D->GetTextProperty()->SetBackgroundOpacity(1.0);
-	m_textActor3D->GetTextProperty()->SetBackgroundColor(0.4, 0.4, 0.4);
-	m_textActor3D->GetTextProperty()->SetFontSize(14);
-
 }
 
 void iAVR3DText::setLabelPos(double pos[3])

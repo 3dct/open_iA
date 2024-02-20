@@ -100,7 +100,7 @@ private:
 	std::vector<int> m_activeInput;
 
 	bool m_networkGraphMode;
-	std::vector<iAVR3DText*> m_3DTextLabels;
+	std::vector<iAVR3DText> m_3DTextLabels;
 	iAVRObjectCoverage* m_fiberCoverageCalc;
 	iAVRSlider* m_slider;
 	iAVRColorLegend* m_MiMColorLegend;

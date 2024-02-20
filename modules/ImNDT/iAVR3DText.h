@@ -24,9 +24,8 @@ using iAvtkVRControlsHelper = vtkOpenVRControlsHelper;
 class iAVR3DText
 {
 public:
-	iAVR3DText(vtkRenderer* ren);
-	void create3DLabel(QString const& text);
-	void createSmall3DLabel(QString const& text);
+	iAVR3DText(vtkRenderer* ren, QString const& text, bool small = false);
+	void setText(QString const& text);
 	void setLabelPos(double pos[3]);
 	void moveInEyeDir(double x, double y, double z);
 	void transformPosition(vtkTransform* transform);
@@ -34,7 +33,7 @@ public:
 	void hide();
 
 private:
-	vtkSmartPointer<vtkRenderer> m_renderer;
+	vtkRenderer* m_renderer;
 	vtkSmartPointer<vtkBillboardTextActor3D> m_textActor3D;
 	bool m_visible;
 };

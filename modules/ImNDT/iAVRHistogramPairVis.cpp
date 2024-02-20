@@ -703,7 +703,6 @@ void iAVRHistogramPairVis::createAxisMarks(size_t axis)
 
 void iAVRHistogramPairVis::createAxisLabels(size_t axis)
 {
-	m_axisTitleActor.push_back(iAVR3DText(m_renderer));
 	m_axisLabelActor.push_back(std::vector<std::vector<iAVR3DText>>());
 
 	double offsetXAxis = m_radius * 0.04;
@@ -720,9 +719,8 @@ void iAVRHistogramPairVis::createAxisLabels(size_t axis)
 		if (loopCount % 2 == 0) pos[1] -= offsetXAxis; //Add offset to y
 		else pos[1] -= offsetXAxis * 2.1;
 
-		auto tempText = iAVR3DText(m_renderer);
 		QString textLabel = QString("%1-%2").arg(minVal, 0, 'f', 2).arg(minVal + (m_histogram01.at(axis).m_histogramParameters.binWidth), 0, 'f', 2);
-		tempText.createSmall3DLabel(textLabel);
+		iAVR3DText tempText(m_renderer, textLabel, true);
 		tempText.setLabelPos(pos);
 		m_axisLabelActor.at(axis).at(0).push_back(tempText);
 		minVal += m_histogram01.at(axis).m_histogramParameters.binWidth;
@@ -739,8 +737,7 @@ void iAVRHistogramPairVis::createAxisLabels(size_t axis)
 
 		auto occurence = (((double)getMaxBinOccurrences(axis)) / ((double)m_numberOfYBins)) * (double)count;
 
-		auto tempText = iAVR3DText(m_renderer);
-		tempText.createSmall3DLabel(QString("%1").arg(round(occurence)));
+		iAVR3DText tempText(m_renderer, QString("%1").arg(round(occurence)), true);
 		tempText.setLabelPos(pos);
 
 		m_axisLabelActor.at(axis).at(1).push_back(tempText);
@@ -753,7 +750,7 @@ void iAVRHistogramPairVis::createAxisLabels(size_t axis)
 	titlePos[0] = m_axesMarksPoly.at(axis).at(0)->GetPoint(m_axesMarksPoly.at(axis).at(0)->GetNumberOfPoints() / 2)[0];
 	titlePos[1] = height + (0.05 * height);
 	titlePos[2] = m_axesMarksPoly.at(axis).at(0)->GetPoint(m_axesMarksPoly.at(axis).at(0)->GetNumberOfPoints() / 2)[2];
-	m_axisTitleActor.at(axis).create3DLabel(QString("%1").arg(m_histogramMetric->getFeatureName(m_histogram01.at(axis).m_histogramParameters.featureID)));
+	m_axisTitleActor.push_back(iAVR3DText(m_renderer, QString("%1").arg(m_histogramMetric->getFeatureName(m_histogram01.at(axis).m_histogramParameters.featureID))));
 	m_axisTitleActor.at(axis).setLabelPos(titlePos);
 }
 
