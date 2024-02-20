@@ -42,6 +42,7 @@ public:
 	iAVRHistogram();
 	HistogramParameters m_histogramParameters;
 
+	//! Returns a pointer to the boost::histogram structure
 	regularStatic1DHistogram* getHistogram();
 
 private:

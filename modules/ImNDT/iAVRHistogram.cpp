@@ -8,12 +8,10 @@ iAVRHistogram::iAVRHistogram()
 	initializeDataStructure();
 }
 
-//! Returns a pointer to the boost::histogram structure
 regularStatic1DHistogram* iAVRHistogram::getHistogram()
 {
 	return &m_histogram;
 }
-
 
 void iAVRHistogram::initializeDataStructure()
 {
