@@ -105,10 +105,10 @@ private:
 	//stores the coefficient of variation for all values of all datasets in original order
 	//according to the order of the attributes in the csv
 	std::vector<double>* coefficientsUnordered;
-	
+
 	//width of the original bars --> not 1, otherwise there would be no space between them
 	const double m_barWidth = 0.8;
-	
+
 
 	vtkSmartPointer<vtkPropItem> m_originalBarChart;
 	vtkSmartPointer<vtkPropItem> m_originalBarChartRepositioned;
@@ -116,7 +116,7 @@ private:
 
 	//stores the last interaction that was performed to make a reinitialization after minimizing etc. possible
 	iACompVisOptions::lastState m_lastState;
-	
+
 	//inner class
 	class BarChartInteractorStyle : public vtkContextInteractorStyle
 	{

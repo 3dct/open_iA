@@ -26,7 +26,7 @@ private:
 
 	QString m_baseDirectory;
 	iAMdiChild* m_child;
-	
+
 	std::shared_ptr<iADataCollection> m_result;
 	double m_spacing[3];
 	double m_origin[3];

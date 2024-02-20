@@ -193,7 +193,7 @@ QList<bin::BinType*>* bin::DeepCopy(QList<bin::BinType*>* input)
 {
 	QList<bin::BinType*>* output = new QList<bin::BinType*>();
 
-	for (int binInd = 0; binInd < input->size(); binInd++) 
+	for (int binInd = 0; binInd < input->size(); binInd++)
 	{
 		bin::BinType* curBin = input->at(binInd);
 		bin::BinType* newBin = initialize(static_cast<int>(curBin->size()));

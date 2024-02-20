@@ -58,7 +58,7 @@ private:
 	int m_numberOfActivePlots;
 	int m_propertyXId;
 	int m_propertyYId;
-	
+
 	std::vector<QSlider*> m_slider;
 	std::vector<iAQVTKWidget*> m_widgets;
 	std::vector<vtkSmartPointer<vtkContextView>> m_contextViews;

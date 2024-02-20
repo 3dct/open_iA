@@ -34,7 +34,7 @@ void iAVRMip::createMIPPanels(int octreeLevel, int feature, std::vector<std::vec
 	double direction[6] = { 1,1,-1,-1,-1,1 }; //normals
 	int viewPlane[6] = { 0,2,0,2,1,1 }; //x,y,z
 
-	std::vector<std::vector<iAVec3d>>* planePoints = new std::vector<std::vector<iAVec3d>>();
+	std::vector<std::vector<iAVec3d>> planePoints;
 	m_octrees.at(octreeLevel)->createOctreeBoundingBoxPlanes(planePoints);
 
 	vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
@@ -44,9 +44,9 @@ void iAVRMip::createMIPPanels(int octreeLevel, int feature, std::vector<std::vec
 		vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();
 		plane->SetXResolution(gridSize);
 		plane->SetYResolution(gridSize);
-		plane->SetOrigin(planePoints->at(i).at(0).data());
-		plane->SetPoint1(planePoints->at(i).at(1).data());
-		plane->SetPoint2(planePoints->at(i).at(2).data());
+		plane->SetOrigin(planePoints.at(i).at(0).data());
+		plane->SetPoint1(planePoints.at(i).at(1).data());
+		plane->SetPoint2(planePoints.at(i).at(2).data());
 		plane->Push(620 * direction[i]);
 		plane->Update();
 
@@ -91,15 +91,15 @@ void iAVRMip::createSingleMIPPanel(int octreeLevel, int feature, int viewDir, do
 	double direction[6] = { 1,1,-1,-1,-1,1 }; //normals
 	int viewPlane[6] = { 0,2,0,2,1,1 }; //x,y,z
 
-	std::vector<std::vector<iAVec3d>>* planePoints = new std::vector<std::vector<iAVec3d>>();
+	std::vector<std::vector<iAVec3d>> planePoints;
 	m_octrees.at(octreeLevel)->createOctreeBoundingBoxPlanes(planePoints);
 
 	vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();
 	plane->SetXResolution(gridSize);
 	plane->SetYResolution(gridSize);
-	plane->SetOrigin(planePoints->at(viewDir).at(0).data());
-	plane->SetPoint1(planePoints->at(viewDir).at(1).data());
-	plane->SetPoint2(planePoints->at(viewDir).at(2).data());
+	plane->SetOrigin(planePoints.at(viewDir).at(0).data());
+	plane->SetPoint1(planePoints.at(viewDir).at(1).data());
+	plane->SetPoint2(planePoints.at(viewDir).at(2).data());
 	plane->Push(planeOffset * direction[viewDir]);
 	plane->Update();
 

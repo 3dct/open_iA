@@ -23,10 +23,10 @@ iAVROctree::iAVROctree(vtkRenderer* ren, vtkDataSet* dataSet):m_renderer(ren),m_
 
 void iAVROctree::generateOctreeRepresentation(int level, QColor col)
 {
-	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
+	vtkNew<vtkPolyData> polydata;
 	m_octree->GenerateRepresentation(level, polydata);
 
-	vtkSmartPointer<vtkPolyDataMapper> octreeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	vtkNew<vtkPolyDataMapper> octreeMapper;
 	octreeMapper->SetInputData(polydata);
 
 	m_actor->SetMapper(octreeMapper);
@@ -44,7 +44,6 @@ void iAVROctree::calculateOctree(int level, int pointsPerRegion)
 	m_octree->SetMaxLevel(level);
 	m_octree->SetDataSet(m_dataSet);
 	m_octree->BuildLocator();
-
 	m_numberOfLeafNodes = m_octree->GetNumberOfLeafNodes();
 	m_level = level;
 	m_boundingBoxes = vtkSmartPointer<vtkPolyData>::New();
@@ -64,10 +63,9 @@ vtkOctreePointLocator * iAVROctree::getOctree()
 //! Calculates the size of Octree leaf node
 void iAVROctree::calculateOctreeRegionSize(int regionID, double size[3])
 {
-	double bounds[6];
-
 	if (m_octree->GetNumberOfLeafNodes() >= regionID)
 	{
+		double bounds[6];
 		m_octree->GetRegionBounds(regionID, bounds);
 		size[0] = abs(bounds[1] - bounds[0]);
 		size[1] = abs(bounds[3] - bounds[2]);
@@ -79,7 +77,6 @@ void iAVROctree::calculateOctreeRegionSize(int regionID, double size[3])
 void iAVROctree::calculateOctreeCenterPos(double centerPoint[3])
 {
 	double bounds[6];
-
 	m_octree->GetBounds(bounds);
 	centerPoint[0] = bounds[0] + ((bounds[1] - bounds[0]) / 2);
 	centerPoint[1] = bounds[2] + ((bounds[3] - bounds[2]) / 2);
@@ -90,16 +87,15 @@ void iAVROctree::calculateOctreeCenterPos(double centerPoint[3])
 void iAVROctree::calculateOctreeRegionCenterPos(int regionID, double centerPoint[3])
 {
 	double bounds[6];
-
 	m_octree->GetRegionBounds(regionID, bounds);
 	centerPoint[0] = bounds[0] + ((bounds[1] - bounds[0]) / 2);
 	centerPoint[1] = bounds[2] + ((bounds[3] - bounds[2]) / 2);
 	centerPoint[2] = bounds[4] + ((bounds[5] - bounds[4]) / 2);
 }
 
-//! This Method creates the six Planes defines by the octree bounds of the given leaf region.
+//! Creates the six Planes defines by the octree bounds of the given leaf region.
 //! The vec is defined as six [planes] (0-5) with respectively 3 points (origin, point 1, point 2)
-void iAVROctree::createOctreeBoundingBoxPlanes(int regionID, std::vector<std::vector<iAVec3d>>* planePoints)
+void iAVROctree::createOctreeBoundingBoxPlanes(int regionID, std::vector<std::vector<iAVec3d>> & planePoints)
 {
 	double bounds[6];
 	m_octree->GetRegionBounds(regionID, bounds);
@@ -111,55 +107,55 @@ void iAVROctree::createOctreeBoundingBoxPlanes(int regionID, std::vector<std::ve
 	double zMin = bounds[4];
 	double zMax = bounds[5];
 
-	auto tempPos = std::vector<iAVec3d>();
+	std::vector<iAVec3d> tempPos;
 	tempPos.reserve(3);
-	planePoints->reserve(6);
+	planePoints.reserve(6);
 
 	//Plane 1
 	tempPos.push_back(iAVec3d(xMin, yMin, zMax)); //origin
 	tempPos.push_back(iAVec3d(xMax, yMin, zMax)); //point 1
-	tempPos.push_back(iAVec3d(xMin, yMax, zMax)); //point 2 
-	planePoints->push_back(tempPos);
+	tempPos.push_back(iAVec3d(xMin, yMax, zMax)); //point 2
+	planePoints.push_back(tempPos);
 	tempPos.clear();
 
 	//Plane 2
 	tempPos.push_back(iAVec3d(xMax, yMin, zMax)); //origin
 	tempPos.push_back(iAVec3d(xMax, yMin, zMin)); //point 1
-	tempPos.push_back(iAVec3d(xMax, yMax, zMax)); //point 2 
-	planePoints->push_back(tempPos);
+	tempPos.push_back(iAVec3d(xMax, yMax, zMax)); //point 2
+	planePoints.push_back(tempPos);
 	tempPos.clear();
 
 	//Plane 3
 	tempPos.push_back(iAVec3d(xMin, yMin, zMin)); //origin
 	tempPos.push_back(iAVec3d(xMax, yMin, zMin)); //point 1
-	tempPos.push_back(iAVec3d(xMin, yMax, zMin)); //point 2 
-	planePoints->push_back(tempPos);
+	tempPos.push_back(iAVec3d(xMin, yMax, zMin)); //point 2
+	planePoints.push_back(tempPos);
 	tempPos.clear();
 
 	//Plane 4
 	tempPos.push_back(iAVec3d(xMin, yMin, zMax)); //origin
 	tempPos.push_back(iAVec3d(xMin, yMin, zMin)); //point 1
-	tempPos.push_back(iAVec3d(xMin, yMax, zMax)); //point 2 
-	planePoints->push_back(tempPos);
+	tempPos.push_back(iAVec3d(xMin, yMax, zMax)); //point 2
+	planePoints.push_back(tempPos);
 	tempPos.clear();
 
 	//Plane 5
 	tempPos.push_back(iAVec3d(xMax, yMin, zMax)); //origin
 	tempPos.push_back(iAVec3d(xMax, yMin, zMin)); //point 1
-	tempPos.push_back(iAVec3d(xMin, yMin, zMax)); //point 2 
-	planePoints->push_back(tempPos);
+	tempPos.push_back(iAVec3d(xMin, yMin, zMax)); //point 2
+	planePoints.push_back(tempPos);
 	tempPos.clear();
 
 	//Plane 6
 	tempPos.push_back(iAVec3d(xMax, yMax, zMax)); //origin
 	tempPos.push_back(iAVec3d(xMax, yMax, zMin)); //point 1
-	tempPos.push_back(iAVec3d(xMin, yMax, zMax)); //point 2 
-	planePoints->push_back(tempPos);
+	tempPos.push_back(iAVec3d(xMin, yMax, zMax)); //point 2
+	planePoints.push_back(tempPos);
 }
 
 //! This Method creates the six Planes defined by the bounds of the whole octree .
 //! The vec is defined as six [planes] (0-5) with respectively 3 points (origin, point 1, point 2)
-void iAVROctree::createOctreeBoundingBoxPlanes(std::vector<std::vector<iAVec3d>>* planePoints)
+void iAVROctree::createOctreeBoundingBoxPlanes(std::vector<std::vector<iAVec3d>> & planePoints)
 {
 	double bounds[6];
 	m_octree->GetBounds(bounds);
@@ -171,50 +167,50 @@ void iAVROctree::createOctreeBoundingBoxPlanes(std::vector<std::vector<iAVec3d>>
 	double zMin = bounds[4];
 	double zMax = bounds[5];
 
-	auto tempPos = std::vector<iAVec3d>();
+	std::vector<iAVec3d> tempPos;
 	tempPos.reserve(3);
-	planePoints->reserve(6);
+	planePoints.reserve(6);
 
 	//Plane 1
 	tempPos.push_back(iAVec3d(xMin, yMin, zMax)); //origin
 	tempPos.push_back(iAVec3d(xMax, yMin, zMax)); //point 1
-	tempPos.push_back(iAVec3d(xMin, yMax, zMax)); //point 2 
-	planePoints->push_back(tempPos);
+	tempPos.push_back(iAVec3d(xMin, yMax, zMax)); //point 2
+	planePoints.push_back(tempPos);
 	tempPos.clear();
 
 	//Plane 2
 	tempPos.push_back(iAVec3d(xMax, yMin, zMax)); //origin
 	tempPos.push_back(iAVec3d(xMax, yMin, zMin)); //point 1
-	tempPos.push_back(iAVec3d(xMax, yMax, zMax)); //point 2 
-	planePoints->push_back(tempPos);
+	tempPos.push_back(iAVec3d(xMax, yMax, zMax)); //point 2
+	planePoints.push_back(tempPos);
 	tempPos.clear();
 
 	//Plane 3
 	tempPos.push_back(iAVec3d(xMin, yMin, zMin)); //origin
 	tempPos.push_back(iAVec3d(xMax, yMin, zMin)); //point 1
-	tempPos.push_back(iAVec3d(xMin, yMax, zMin)); //point 2 
-	planePoints->push_back(tempPos);
+	tempPos.push_back(iAVec3d(xMin, yMax, zMin)); //point 2
+	planePoints.push_back(tempPos);
 	tempPos.clear();
 
 	//Plane 4
 	tempPos.push_back(iAVec3d(xMin, yMin, zMax)); //origin
 	tempPos.push_back(iAVec3d(xMin, yMin, zMin)); //point 1
-	tempPos.push_back(iAVec3d(xMin, yMax, zMax)); //point 2 
-	planePoints->push_back(tempPos);
+	tempPos.push_back(iAVec3d(xMin, yMax, zMax)); //point 2
+	planePoints.push_back(tempPos);
 	tempPos.clear();
 
 	//Plane 5
 	tempPos.push_back(iAVec3d(xMax, yMin, zMax)); //origin
 	tempPos.push_back(iAVec3d(xMax, yMin, zMin)); //point 1
-	tempPos.push_back(iAVec3d(xMin, yMin, zMax)); //point 2 
-	planePoints->push_back(tempPos);
+	tempPos.push_back(iAVec3d(xMin, yMin, zMax)); //point 2
+	planePoints.push_back(tempPos);
 	tempPos.clear();
 
 	//Plane 6
 	tempPos.push_back(iAVec3d(xMax, yMax, zMax)); //origin
 	tempPos.push_back(iAVec3d(xMax, yMax, zMin)); //point 1
-	tempPos.push_back(iAVec3d(xMin, yMax, zMax)); //point 2 
-	planePoints->push_back(tempPos);
+	tempPos.push_back(iAVec3d(xMin, yMax, zMax)); //point 2
+	planePoints.push_back(tempPos);
 }
 
 //! Used for points which are just *barely* outside the bounds of the region. Moves that point so that it is just barely *inside* the bounds
@@ -269,7 +265,7 @@ double iAVROctree::getMaxDistanceOctCenterToRegionCenter()
 	{
 		m_maxDistanceOctCenterToRegionCenter = calculateDistanceOctCenterToRegionCenter();
 		return m_maxDistanceOctCenterToRegionCenter;
-	}	
+	}
 }
 
 double iAVROctree::getMaxDistanceOctCenterToFiber()
@@ -337,7 +333,7 @@ vtkActor* iAVROctree::getActor()
 
 //! Returns a vector for each projection on an plane (x,y,z) and each grid cell beginning on lower left cell (0,0).
 //! Grid size is 2^L x 2^L x 2^L (L = Level of Octree).
-//! For each cell a list of all traversed cubes is stored. Attention: In case a cube could not be splitted in later octree levels 
+//! For each cell a list of all traversed cubes is stored. Attention: In case a cube could not be splitted in later octree levels
 //! the list will contain this region multiple times.
 std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>> const & iAVROctree::getRegionsInLineOfRay()
 {
@@ -352,7 +348,7 @@ std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>> const & iAVR
 	}
 }
 
-//! Stores which fibers lie in which region. Therfore all pointIds inside a region are taken and mapped to its fiber ID. 
+//! Stores which fibers lie in which region. Therfore all pointIds inside a region are taken and mapped to its fiber ID.
 //! They all lie (independent of their real coverage) to 100% inside the region
 //! Regions without fibers have no entry
 void iAVROctree::mapFibersToRegion(std::unordered_map<vtkIdType, vtkIdType> const & pointIDToCsvIndex)
@@ -422,7 +418,7 @@ double iAVROctree::calculateDistanceOctCenterToFiber()
 //! Calculates which cubes a ray would traverse in x, y, z direction in an straight line
 //! The corresponding vector consists of an vector for each projection on an plane (x,y,z) and each grid cell.
 //! The start grid cells depend on the origin Point of the Plane drawn in iAVROctreeMetrics.
-//! For each cell a list of all traversed cubes is stored. Attention: In case a cube could not be splitted in later octree levels 
+//! For each cell a list of all traversed cubes is stored. Attention: In case a cube could not be splitted in later octree levels
 //! the list will contain this region multiple times.
 void iAVROctree::calculateRayThroughCubeRow()
 {
@@ -463,13 +459,13 @@ void iAVROctree::calculateRayThroughCubeRow()
 				vtkIdType region = m_octree->GetRegionContainingPoint(x - (xSteps / 2), y - (ySteps / 2), z - (zSteps / 2));
 
 				//x direction
-				m_regionsInLine.at(0).at(columnCount).at(rowCount).push_front(region); 
+				m_regionsInLine.at(0).at(columnCount).at(rowCount).push_front(region);
 				//y direction
-				m_regionsInLine.at(1).at(rowSizeMinus1 - rowCount).at(rowSizeMinus1 - depthCount).push_front(region); 
+				m_regionsInLine.at(1).at(rowSizeMinus1 - rowCount).at(rowSizeMinus1 - depthCount).push_front(region);
 				//z direction
 				m_regionsInLine.at(2).at(columnCount).at(rowSizeMinus1 - depthCount).push_front(region);
 				depthCount++;
-			}	
+			}
 			rowCount++;
 		}
 		columnCount++;

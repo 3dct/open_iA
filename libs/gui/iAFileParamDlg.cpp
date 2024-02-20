@@ -380,7 +380,7 @@ class iAHDF5FileLoadParamDlg: public iAFileParamDlg
 				if (!(okX && okY && okZ))
 				{
 					msg += "One of the spacing values is invalid (these have to be valid floating point numbers)!";
-					
+
 				}
 				if (msg.isEmpty())
 				{

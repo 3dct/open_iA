@@ -18,9 +18,9 @@
 
 vtkStandardNewMacro(iACompVariableTableInteractorStyle);
 
-iACompVariableTableInteractorStyle::iACompVariableTableInteractorStyle() : 
-	iACompTableInteractorStyle(), 
-	m_visualization(nullptr), 
+iACompVariableTableInteractorStyle::iACompVariableTableInteractorStyle() :
+	iACompTableInteractorStyle(),
+	m_visualization(nullptr),
 	m_picker(vtkSmartPointer<vtkCellPicker>::New())
 {
 }
@@ -54,7 +54,7 @@ void iACompVariableTableInteractorStyle::OnLeftButtonDown()
 		m_picked->clear();
 		return;
 	}
-	
+
 	if (cellPicked != INFINITY && this->GetInteractor()->GetShiftKey() && m_picker->GetActor()!= NULL)
 	{
 		if (m_picked->empty())
@@ -73,7 +73,7 @@ void iACompVariableTableInteractorStyle::OnLeftButtonDown()
 void iACompVariableTableInteractorStyle::OnMouseWheelForward()
 {
 	iACompTableInteractorStyle::OnMouseWheelForward();
-	
+
 	//camera zoom
 	generalZoomIn();
 }
@@ -81,7 +81,7 @@ void iACompVariableTableInteractorStyle::OnMouseWheelForward()
 void iACompVariableTableInteractorStyle::OnMouseWheelBackward()
 {
 	iACompTableInteractorStyle::OnMouseWheelBackward();
-	
+
 	//camera zoom
 	generalZoomOut();
 }
@@ -102,7 +102,7 @@ void iACompVariableTableInteractorStyle::OnKeyRelease()
 	{
 		if (m_picked->size() >= 1)
 		{
-			
+
 			//forward update to all other charts & histogram table
 			updateCharts();
 
@@ -112,7 +112,7 @@ void iACompVariableTableInteractorStyle::OnKeyRelease()
 			m_picked->clear();
 
 			m_visualization->renderWidget();
-			
+
 		}
 	}
 }
@@ -163,9 +163,9 @@ void iACompVariableTableInteractorStyle::updateOtherCharts(
 {
 	//std::vector<int>* indexOfPickedRows = m_visualization->getIndexOfPickedRows();
 	csvDataType::ArrayType* selectedData = formatPickedObjects(selectedObjectAttributes);
-	
+
 	std::map<int, std::vector<double>>* pickStatistic = calculatePickedObjects(m_zoomedRowData);
-	
+
 	m_main->updateOtherCharts(selectedData, pickStatistic);
 }
 

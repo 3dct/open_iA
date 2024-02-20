@@ -37,16 +37,16 @@ iACompHistogramCalculation::iACompHistogramCalculation(iACsvDataStorage* dataSto
 	}
 	else
 	{ //data originates from univariate distributions
-		
+
 		QList<csvFileData>* datasets = dataStorage->getData();
-		
+
 		//set datasets which stores the values for the binning calculations
 		m_datasets = new bin::BinType();
 
 		for (int i = 0; i < datasets->size(); i++)
 		{
 			csvFileData dataset = datasets->at(i);
-			
+
 			std::vector<double> distribution = std::vector<double>();
 
 			for (int row = 0; row < static_cast<int>(dataset.values->size()); row++)
@@ -61,7 +61,7 @@ iACompHistogramCalculation::iACompHistogramCalculation(iACsvDataStorage* dataSto
 
 		m_amountObjectsEveryDataset = csvFileData::getAmountObjectsEveryDataset(m_dataStorage->getData());
 	}
-	 
+
 	auto result = std::minmax_element(histbinlist->begin(), histbinlist->end());
 
 	m_maxVal = *result.second;
@@ -103,7 +103,7 @@ void iACompHistogramCalculation::calculateUniformBinning()
 	m_uniformBinning->setDataStructure(m_uniformBinningData);
 	m_uniformBinning->setCurrentNumberOfBins(m_uniformBinningData->getInitialNumberOfBins());
 	m_uniformBinning->calculateBins();
-	
+
 	//evaluate binning
 	LOG(lvlDebug, "Uniform Binning");
 	m_uniformBinning->calculateSilhouetteCoefficient(m_uniformBinningData);
@@ -157,7 +157,7 @@ void iACompHistogramCalculation::calculateNaturalBreaks()
 	m_naturalBreaksData->setMaxVal(m_maxVal);
 	m_naturalBreaksData->setAmountObjectsEveryDataset(m_amountObjectsEveryDataset);
 	m_naturalBreaksData->setMaxAmountInAllBins(m_uniformBinningData->getMaxAmountInAllBins());
-	
+
 	m_naturalBreaks = new iACompNaturalBreaks(m_dataStorage, m_datasets);
 	m_naturalBreaks->setDataStructure(m_naturalBreaksData);
 	m_naturalBreaks->calculateBins();

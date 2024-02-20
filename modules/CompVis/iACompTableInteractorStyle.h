@@ -75,13 +75,13 @@ protected:
 
 	/*** Interaction Picking ***/
 	virtual void storePickedActorAndCell(vtkSmartPointer<vtkActor> pickedA, vtkIdType id);
-	
+
 	virtual std::map<int, std::vector<double>>* calculatePickedObjects(QList<bin::BinType*>* zoomedRowData) = 0;
-	
+
 	std::map<int, std::vector<double>>* calculateStatisticsForDatasets(
 		QList<bin::BinType*>* zoomedRowData, std::vector<int>* indexOfPickedRows,
 		std::vector<int>* amountObjectsEveryDataset, std::map<int, std::vector<double>>* result);
-	
+
 	csvDataType::ArrayType* formatPickedObjects(QList<std::vector<csvDataType::ArrayType*>*>* zoomedRowData);
 
 	iACompHistogramVis* m_main;

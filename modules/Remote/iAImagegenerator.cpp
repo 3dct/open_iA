@@ -13,7 +13,7 @@
 #include <vtkUnsignedCharArray.h>
 #include <vtkWindowToImageFilter.h>
 
-#include <QElapsedTimer> 
+#include <QElapsedTimer>
 
 #ifdef CUDA_AVAILABLE
 #include <iACudaHelper.h>
@@ -97,7 +97,7 @@ namespace
 			checkCuda("malloc", cudaMalloc(reinterpret_cast<void**>(& pCudaBuffer), width * height * NVJPEG_MAX_COMPONENT));
 
 			auto inputImageBytes = width * height * 3;
-		
+
 			checkCuda("memCpy", cudaMemcpy(pCudaBuffer, buffer, inputImageBytes, cudaMemcpyHostToDevice));
 
 			if (width % 2 == 0 && height % 2 == 0)   // for npp mirror operation, both width and height need to be even

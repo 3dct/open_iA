@@ -90,7 +90,7 @@ void dlg_ProjectionParameters::fillAlgorithmValues(int algorithmType, int number
 
 
 void dlg_ProjectionParameters::fillCorrectionValues(bool correctCenterOfRotation, double correctCenterOfRotationOffset)
-{	
+{
 	cbCorrectCenterOfRotation->setChecked(correctCenterOfRotation);
 	dsbCorrectCenterOfRotationOffset->setValue(correctCenterOfRotationOffset);
 	centerOfRotationEnabled(correctCenterOfRotation ? Qt::Checked : Qt::Unchecked);

@@ -76,7 +76,7 @@ bool itk2tensor(typename ImageType::Pointer itk_img, std::vector<float> &tensor_
 	//typename ImageType::Pointer itk_img_normalized = Normalize(itk_img);
 
 	typename ImageType::RegionType region = itk_img->GetLargestPossibleRegion();
-	
+
 
 	ImageType::RegionType inputRegion;
 
@@ -131,7 +131,7 @@ bool tensor2itk(std::vector<Ort::Value> &tensor_img, typename ImageType::Pointer
 
 	for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter)
 	{
-		
+
 		count = count+offset;
 		float val = floatarr[count];
 		iter.Set(val);
@@ -187,7 +187,7 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 
 	// If onnxruntime.dll is built with CUDA enabled, we can uncomment out this line to use CUDA for this
 	// session (we also need to include cuda_provider_factory.h above which defines it)
-	
+
 	if (parameters["use GPU"].toBool())
 	{
 #ifdef ONNX_CUDA
@@ -335,7 +335,7 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 
 	ImageType::SizeType size = region.GetSize();
 
-	std::list<ImageType::Pointer> outputs; 
+	std::list<ImageType::Pointer> outputs;
 
 	Ort::TypeInfo type_info = session.GetOutputTypeInfo(0);
 	auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
@@ -444,5 +444,5 @@ iAai::iAai() :
 	addParameter("OnnxFile", iAValueType::FileNameOpen);
 	addParameter("use GPU", iAValueType::Boolean, true);
 	addParameter("GPU", iAValueType::Discrete,0);
-	
+
 }

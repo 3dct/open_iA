@@ -76,7 +76,7 @@ class iACompUniformTableInteractorStyle : public iACompTableInteractorStyle
 
 	//set the picklist for the propPicker to only pick original row actors
 	void setPickList(std::vector<vtkSmartPointer<vtkActor>>* originalRowActors);
-	
+
 	/**
 	 * @brief The bar chart, showing the number of objects for each dataset, is removed from the table visualization, if one exists.
 	 * @return bool that is true when the bar chart was removed, false when no bar chart was present beforehand

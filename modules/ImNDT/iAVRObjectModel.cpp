@@ -37,10 +37,10 @@ iAVRObjectModel::iAVRObjectModel(vtkRenderer* ren, iAColoredPolyObjectVis* polyO
 	m_regionLinksVisible = false;
 	m_regionLinkDrawRadius = 0.5;
 
-	// Initial Volume 
-	// Copy of m_polyObject's data 
+	// Initial Volume
+	// Copy of m_polyObject's data
 	// Other way of copying?:  vtkDataSet->CopyData()
-	// Like in objectvis\iAvtkTubeFilter.cpp 
+	// Like in objectvis\iAvtkTubeFilter.cpp
 	m_initialPoints->DeepCopy(polyObject->finalPolyData()->GetPoints());
 	//m_PolyObjectActor = m_polyObject->createPolyActor(m_renderer);
 	//m_volumeActor = m_PolyObjectActor->actor();
@@ -75,7 +75,7 @@ void iAVRObjectModel::resetVolume()
 void iAVRObjectModel::showVolume()
 {
 	//m_PolyObjectActor->show();
-	
+
 	if (m_volumeVisible)
 	{
 		return;
@@ -87,7 +87,7 @@ void iAVRObjectModel::showVolume()
 void iAVRObjectModel::hideVolume()
 {
 	//m_PolyObjectActor->hide();
-	
+
 	if (!m_volumeVisible)
 	{
 		return;
@@ -174,7 +174,7 @@ void iAVRObjectModel::createCubeModel()
 
 	std::vector<QColor> color(m_octree->getNumberOfLeafNodes(), m_defaultColor);
 	applyHeatmapColoring(color);
-	
+
 	m_actor->GetProperty()->SetColor(m_defaultColor.redF(), m_defaultColor.greenF(), m_defaultColor.blueF());
 	m_actor->GetProperty()->SetRepresentationToWireframe();
 	m_actor->GetProperty()->SetRenderLinesAsTubes(true);
@@ -190,7 +190,7 @@ void iAVRObjectModel::renderSelection(std::vector<size_t> const& sortedSelInds, 
 
 //! Moves all fibers from the octree center away.
 //! The fibers belong to the region in which they have their maximum coverage
-//! The flag relativeMovement decides if the offset is applied to the relative (radial) octree region postion 
+//! The flag relativeMovement decides if the offset is applied to the relative (radial) octree region postion
 //! or linear (SP)
 //! Should only be called if the mappers are set!
 void iAVRObjectModel::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>> const & m_maxCoverage, double offset, bool relativeMovement)
@@ -232,7 +232,7 @@ void iAVRObjectModel::moveFibersByMaxCoverage(std::vector<std::vector<std::vecto
 			}
 		}
 	}
-	
+
 	m_polyObject->finalPolyData()->GetPoints()->GetData()->Modified();
 }
 
@@ -320,7 +320,7 @@ void iAVRObjectModel::moveFibersbyOctant(std::vector<std::vector<std::vector<vtk
 		{
 			move[2] = + offset;
 		}
-		
+
 		for (auto fiberID : m_maxCoverage.at(m_octree->getLevel()).at(region))
 		{
 			auto endPointID = m_polyObject->finalObjectStartPointIdx(fiberID) + m_polyObject->finalObjectPointCount(fiberID);
@@ -371,7 +371,7 @@ void iAVRObjectModel::createRegionLinks(std::vector<std::vector<std::vector<doub
 		for (vtkIdType j = i + 1; j < numbPoints; j++)
 		{
 			radius = similarityMetric.at(m_octree->getLevel()).at(i).at(j);
-			
+
 			if (radius > m_regionLinkDrawRadius)
 			{
 				linePoints->InsertNextPoint(m_cubePolyData->GetPoint(i));
@@ -393,7 +393,7 @@ void iAVRObjectModel::createRegionLinks(std::vector<std::vector<std::vector<doub
 				pointID+= 2;
 			}
 		}
-		
+
 	}
 	m_linePolyData->SetPoints(linePoints);
 	m_linePolyData->SetLines(lines);
@@ -445,7 +445,7 @@ void iAVRObjectModel::createRegionNodes(double maxFibersInRegions, double worldS
 
 	for (vtkIdType p = 0; p < regionNodes->GetNumberOfPoints(); p++)
 	{
-		double fibersInRegion = (double)(m_fiberCoverage->at(m_octree->getLevel()).at(p)->size());	
+		double fibersInRegion = (double)(m_fiberCoverage->at(m_octree->getLevel()).at(p)->size());
 		double sizeLog = 0;
 		double rgb[3] = { 0,0,0 };
 		if(fibersInRegion > 0)
@@ -462,7 +462,7 @@ void iAVRObjectModel::createRegionNodes(double maxFibersInRegions, double worldS
 	regionNodes->GetPointData()->AddArray(nodeGlyphColor);
 
 	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
-	
+
 	nodeGlyph3D = vtkSmartPointer<vtkGlyph3D>::New();
 	nodeGlyph3D->SetSourceConnection(cubeSource->GetOutputPort());
 	nodeGlyph3D->SetInputData(regionNodes);
@@ -491,7 +491,7 @@ void iAVRObjectModel::calculateNodeLUT(double min, double max, int colorScheme)
 	QColor d;
 	QColor e;
 	QColor f;
-	
+
 	if(colorScheme == 0)
 	{
 		a = QColor(255,177,105);

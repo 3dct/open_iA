@@ -17,7 +17,7 @@ public:
 
 	/*** Initialization ***/
 	void setVisualization(iAComp3DWidget* visualization);
-	
+
 
 	/*** Interaction ***/
 	virtual void OnLeftButtonDown() override;
@@ -26,7 +26,7 @@ public:
 
 protected:
 	iAComp3DWidgetInteractionStyle();
-	
+
 private:
 
 	iAComp3DWidget* m_visualization;

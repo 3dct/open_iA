@@ -37,7 +37,7 @@ class iACompVariableTableInteractorStyle : public iACompTableInteractorStyle
 
 
 	protected:
-		
+
 		iACompVariableTableInteractorStyle();
 
 		virtual iACompTable* getVisualization() override;

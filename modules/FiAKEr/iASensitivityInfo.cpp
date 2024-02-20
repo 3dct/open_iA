@@ -128,7 +128,7 @@ namespace
 	const float dpR = 1.0; // ToDO: this should be set automatically according to current device scale, but devicePixelRatio doesn't seem to do it...
 	const int VTKFontSize = 14;
 
-	
+
 	vtkSmartPointer<vtkTextWidget> createVTKTextWidget(double x, double y, double w, double h, const char* text, vtkRenderWindowInteractor* interactor, float devicePixelRatio)
 	{
 		auto result = vtkSmartPointer<vtkTextWidget>::New();
@@ -743,7 +743,7 @@ public:
 	iAParameterInfluenceView* m_paramInfluenceView;
 	iADockWidgetWrapper* m_dwParamInfluence;
 	//! @}
-	
+
 	iAAlgorithmInfo* m_algoInfo;
 
 	//! @{ Fiber Difference View
@@ -1089,7 +1089,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_settings = new iASensitivitySettingsView(this);
 	auto dwSettings = new iADockWidgetWrapper(m_gui->m_settings, "Sensitivity Settings", "foeSensitivitySettings");
 	m_child->splitDockWidget(m_nextToDW, dwSettings, Qt::Horizontal);
-	
+
 	//////////// Parameter Influence View                   ////////////
 	QColor headerColor(QApplication::palette().color(QPalette::Button));
 	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(m_data, m_gui, headerColor, headerColor /*ParamColor, OutputColor*/);
@@ -1900,7 +1900,7 @@ void iASensitivityInfo::updateDifferenceView()
 		if (i > 0 && m_currentFiberSelection[hp[0]].size() > 0 && m_currentFiberSelection[rID].size() > 0)
 		{
 			auto refResID = hp[0];
-			
+
 			// TODO:
 			//  - compare to "matching" fiber in "reference" (result hp[0])
 			//  - highlight hp[0] somehow special?

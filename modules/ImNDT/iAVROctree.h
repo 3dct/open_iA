@@ -17,7 +17,7 @@ class vtkOctreePointLocator;
 class vtkPolyData;
 class vtkRenderer;
 
-//! Class for calculation of a 3D Octree 
+//! Class for calculation of a 3D Octree
 class iAVROctree
 {
 public:
@@ -29,8 +29,8 @@ public:
 	void calculateOctreeRegionSize(int regionID, double size[3]);
 	void calculateOctreeCenterPos(double centerPoint[3]);
 	void calculateOctreeRegionCenterPos(int regionID, double centerPoint[3]);
-	void createOctreeBoundingBoxPlanes(int regionID, std::vector<std::vector<iAVec3d>>* planePoints);
-	void createOctreeBoundingBoxPlanes(std::vector<std::vector<iAVec3d>>* planePoints);
+	void createOctreeBoundingBoxPlanes(int regionID, std::vector<std::vector<iAVec3d>> & planePoints);
+	void createOctreeBoundingBoxPlanes(std::vector<std::vector<iAVec3d>> & planePoints);
 	void movePointInsideRegion(double point[3], double movedPoint[3]);
 	vtkIdType getNumberOfLeafNodes() const;
 	double getMaxDistanceOctCenterToRegionCenter();

@@ -309,7 +309,7 @@ private:
 	QMap<uint, std::shared_ptr<iAChannelData> > m_channels;
 	uint m_nextChannelID;
 	uint m_magicLensChannel;
-	
+
 	QByteArray m_initialLayoutState;
 	QString m_layout;
 

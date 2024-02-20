@@ -66,7 +66,7 @@ void writeDeformationImage(iAFilter* filter, QString dirname, bool loadTransform
 }
 
 void writeFullJacobian(iAFilter* filter, QString dirname, bool loadTransformixResult) {
-	
+
 	QString fullJacobianImagePath = dirname + "/fullSpatialJacobian.mhd";
 	//Split jacobian
 
@@ -87,8 +87,8 @@ void createOutput(iAFilter* filter, QString dirname, bool tranformixActive, bool
 
 	QString resulImagePath = dirname + "/result.0.mhd";
 	QString jacobianImagePath = dirname + "/spatialJacobian.mhd";
-	
-	
+
+
 
 
 
@@ -96,8 +96,8 @@ void createOutput(iAFilter* filter, QString dirname, bool tranformixActive, bool
 	resulImage->SetFileName(resulImagePath.toStdString());
 	resulImage->Update();
 	filter->addOutput(std::make_shared<iAImageData>(resulImage->GetOutput()));
-	
-	
+
+
 	if (tranformixActive) {
 		ReaderType::Pointer jacobianImage = ReaderType::New();
 		jacobianImage->SetFileName(jacobianImagePath.toStdString());
@@ -177,7 +177,7 @@ void runTransformix(QString dirname, QString executablePath, int timeout = 30000
 		throw  std::runtime_error("Error execute Transformix");
 }
 
-template<class T> 
+template<class T>
 void derivative(iAFilter* filter, QVariantMap const & params)
 {
 
@@ -217,7 +217,7 @@ void derivative(iAFilter* filter, QVariantMap const & params)
 	}
 	catch (itk::ExceptionObject & /*err*/)
 	{
-		
+
 		throw  std::runtime_error(("Exception save temp files in directory" + dirname).toStdString());
 
 	}
@@ -271,7 +271,7 @@ iAElastixRegistration::iAElastixRegistration() :
 
 	addParameter("Load Files", iAValueType::Boolean, true);
 	addParameter("Run Transformix", iAValueType::Boolean, true);
-	
+
 
 
 	setInputName(1u, "Moving Image");

@@ -111,37 +111,37 @@ void iACompUniformTableInteractorStyle::OnLeftButtonDown()
 	}
 
 	int is = m_actorPicker->Pick(pos[0], pos[1], 0, this->CurrentRenderer);
-	if (is == 0) 
+	if (is == 0)
 	{
 		resetHistogramTable();
 		m_picked->clear();
-		return; 
+		return;
 	}
-	
+
 	vtkSmartPointer<vtkActor> pickedA = m_actorPicker->GetActor();
 
 	this->GrabFocus(this->EventCallbackCommand);
 
 	//select rows & bins which should be zoomed
 	if (pickedA != NULL && this->GetInteractor()->GetShiftKey())
-	{	
+	{
 		vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
 		cellPicker->Pick(pos[0], pos[1], 0, m_visualization->getRenderer());
 		cellPicker->SetTolerance(0.0);
 
 		vtkIdType id = cellPicker->GetCellId();
 		storePickedActorAndCell(pickedA, id);
-				
+
 		//color selected bin
 		m_visualization->highlightSelectedCell(pickedA, id);
 		m_zoomOn = true;
-		
+
 	}
 	else if(pickedA != NULL)
 	{
 		if(m_pointRepresentationOn || m_controlBinsInZoomedRows)
 		{//when non-linear zoom is active --> do nothing
-			
+
 		}else
 		{ //manual reordering only working when NO non-linear zoom is active
 			m_currentlyPickedActor = pickedA;
@@ -168,7 +168,7 @@ void iACompUniformTableInteractorStyle::OnMouseMove()
 		vtkInteractorStyleTrackballCamera::OnMouseMove();
 		return;
 	}
-	
+
 	//move row of histogram table to new position
 	int x = this->Interactor->GetEventPosition()[0];
 	int y = this->Interactor->GetEventPosition()[1];
@@ -201,7 +201,7 @@ void iACompUniformTableInteractorStyle::manualTableRelocatingStop()
 				m_visualization->drawReorderedHistogramTable();
 				m_panActive = false;
 			}
-			
+
 			break;
 	}
 
@@ -218,7 +218,7 @@ void iACompUniformTableInteractorStyle::Pan()
 		vtkInteractorStyleTrackballCamera::Pan();
 		return;
 	}
-	
+
 	//move row of histogram table to new position
 	m_panActive = true;
 
@@ -293,7 +293,7 @@ void iACompUniformTableInteractorStyle::resetHistogramTable()
 
 	m_controlBinsInZoomedRows = false;
 	m_pointRepresentationOn = false;
-	
+
 	m_visualization->clearRenderer();
 	m_visualization->drawHistogramTable(m_visualization->getBins());
 
@@ -384,10 +384,10 @@ void iACompUniformTableInteractorStyle::OnMouseWheelForward()
 		m_recomputeUBCurve = false;
 	}
 	iACompTableInteractorStyle::OnMouseWheelForward();
-	
+
 	//camera zoom
 	bool zoomed = generalZoomIn();
-	
+
 	if (m_DButtonPressed == false && !zoomed)
 	{
 		//histogram zoom in

@@ -213,7 +213,7 @@ public:
 
 	//! image for holding overview over variation per voxel
 	vtkSmartPointer<vtkImageData> m_spatialOverview;
-	
+
 	vtkSmartPointer<vtkImageData> m_averageFiberVoxel;
 
 private:

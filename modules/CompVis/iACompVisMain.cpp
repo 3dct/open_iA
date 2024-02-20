@@ -128,7 +128,7 @@ void iACompVisMain::initializeMDS()
 	m_mds = new iAMultidimensionalScaling(m_dataStorage->getData());
 }
 
-void iACompVisMain::initializeVariationCoefficient() 
+void iACompVisMain::initializeVariationCoefficient()
 {
 	m_cofVar = new iACoefficientOfVariation(m_dataStorage);
 }
@@ -139,7 +139,7 @@ void iACompVisMain::initializeCorrelationCoefficient()
 }
 
 void iACompVisMain::reinitializeCharts(iACsvDataStorage* storage)
-{	
+{
 	//reinitialize histogram table
 	m_HistogramTableDockWidget->setDataStorage(storage);
 	m_HistogramTableDockWidget->reinitializeHistogramTable();
@@ -202,7 +202,7 @@ void iACompVisMain::updateOtherCharts(csvDataType::ArrayType* selectedData, std:
 {
 	// Bar Chart
 	updateBarChart(selectedData, pickStatistic);
-	 
+
 	//Box Plot
 	updateBoxPlot(selectedData);
 
@@ -242,7 +242,7 @@ void iACompVisMain::updateBoxPlot(csvDataType::ArrayType* selectedData)
 void iACompVisMain::resetOtherCharts()
 {
 	resetBarChart();
-	resetBoxPlot(); 
+	resetBoxPlot();
 	resetCorrelationMap();
 
 	//3D View

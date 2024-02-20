@@ -70,7 +70,7 @@ void iAVR3DText::createSmall3DLabel(QString const& text)
 	m_textActor3D->GetTextProperty()->SetBackgroundOpacity(1.0);
 	m_textActor3D->GetTextProperty()->SetBackgroundColor(0.4, 0.4, 0.4);
 	m_textActor3D->GetTextProperty()->SetFontSize(14);
-	
+
 }
 
 void iAVR3DText::setLabelPos(double pos[3])

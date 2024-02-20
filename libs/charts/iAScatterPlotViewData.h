@@ -59,7 +59,7 @@ public:
 	void addLine(SelectionType const& linePoints, QColor const& color, int lineWidth);
 	void clearLines();
 	//! @}
-	
+
 	//! @{
 	//! Filtering for data items (matching values)
 	bool matchesFilter(std::shared_ptr<iASPLOMData> splomData, size_t ind) const; //!< Returns true if point with given index matches current filter

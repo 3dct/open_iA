@@ -29,8 +29,8 @@ void dlg_MultidimensionalScalingDialog::setupWeigthTable()
 {
 	QStringList elems = *(m_data->at(0).header);
 	elems.removeFirst(); //neglect label row
-	int amountElems = elems.size(); 
-	
+	int amountElems = elems.size();
+
 	QList<QTableWidgetItem*>* tableItems = new QList<QTableWidgetItem*>();
 
 	//init tableWidget
@@ -49,9 +49,9 @@ void dlg_MultidimensionalScalingDialog::setupWeigthTable()
 	//std::vector<double>* indivWeight;
 	if (m_weights->size() == 0)
 	{
-		m_weights = new std::vector<double>(amountElems, 100 / (amountElems)); 
+		m_weights = new std::vector<double>(amountElems, 100 / (amountElems));
 	}
-	
+
 	//start with second argument --> neglect label
 	for (int ind = 0; ind < amountElems; ind++)
 	{
@@ -85,7 +85,7 @@ void dlg_MultidimensionalScalingDialog::onCellChanged(int row, int column)
 void dlg_MultidimensionalScalingDialog::setupProximityBox()
 {
 	int amount = static_cast<int>(MDS::ProximityMetric::NumberOfProximityMetrics);
-	
+
 	m_proxiGroup = new QButtonGroup(box_Proximity);
 	m_proxiGroup->setExclusive(true);
 
@@ -94,12 +94,12 @@ void dlg_MultidimensionalScalingDialog::setupProximityBox()
 		QCheckBox* dynamic = new QCheckBox(MDS::proximityMetric_to_string(i));
 		layoutProximityMetric->addWidget(dynamic);
 		m_proxiGroup->addButton(dynamic);
-	
+
 		//check the first checkbox
 		if (i == 0)
 		{
 			dynamic->setChecked(true);
-		}	
+		}
 	}
 }
 

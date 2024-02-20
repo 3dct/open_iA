@@ -36,7 +36,7 @@ class iACompHistogramVis : public QDockWidget, public Ui_CompHistogramTable
 
 public:
 	iACompHistogramVis(iACompHistogramTable* table, iAMainWindow* parent, int amountDatasets, bool MDSComputedFlag);
-	
+
 	void showEvent(QShowEvent* event);
 	void reinitialize();
 
@@ -137,7 +137,7 @@ private:
 
 	//create the histogramTable visualization
 	void initializeVisualization();
-	
+
 	//initialize in which drawing area the a row with specified y coordinates belongs to
 	//stores for each y-area = [minY,maxY] to which drawing position it belongs to
 	void determineRowAreas();

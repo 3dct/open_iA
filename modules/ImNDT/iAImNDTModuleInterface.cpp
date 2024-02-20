@@ -199,7 +199,7 @@ void iAImNDTModuleInterface::openVRInfo()
 void iAImNDTModuleInterface::openXRInfo()
 {
 	// errors encountered in API calls so far:
-	
+
 	// XR_ERROR_RUNTIME_FAILURE = -2,           when no HMD connected / vive connection box not turned on (?)
 	// XR_ERROR_API_VERSION_UNSUPPORTED = -4    when type member wasn't properly set in passed-in struct (?) - but xrGetSystemProperty crashed in this case with an access violation!
 	// XR_ERROR_SIZE_INSUFFICIENT = -11         when space in data structure not sufficient to store all results of xrEnumerate... call

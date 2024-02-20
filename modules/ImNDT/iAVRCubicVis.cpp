@@ -312,8 +312,8 @@ void iAVRCubicVis::calculateStartPoints()
 	m_cubePolyData->GetPointData()->SetScalars(m_glyphScales);
 }
 
-//! Applies a linear shift: All regions are displaced by the same factor, regardless of their 
-//! distance from the center of the fiber model. This Method calculates the direction from 
+//! Applies a linear shift: All regions are displaced by the same factor, regardless of their
+//! distance from the center of the fiber model. This Method calculates the direction from
 //! the center to its single cubes and shifts the cubes linear from the center away
 //! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
 void iAVRCubicVis::applyRadialDisplacement(double offset)
@@ -343,9 +343,9 @@ void iAVRCubicVis::applyRadialDisplacement(double offset)
 	redrawHighlightedGlyphs();
 }
 
-//! The structure preserving displacement (SP) increases the distance to the center 
+//! The structure preserving displacement (SP) increases the distance to the center
 //! and the regions, but the relative distances between the regions remain the same.
-//! The shifts is scaled relative to the maximal length from the center to one cube and 
+//! The shifts is scaled relative to the maximal length from the center to one cube and
 //! shifts all cubes from the center away
 //! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
 void iAVRCubicVis::applySPDisplacement(double offset)
@@ -388,7 +388,7 @@ void iAVRCubicVis::applySPDisplacement(double offset)
 }
 
 //! The octant displacement shifts the regions to the nearest octant out of 8 possible octants.
-//! The center of the fiber model is the origin of the three - dimensional Euclidean coordinate 
+//! The center of the fiber model is the origin of the three - dimensional Euclidean coordinate
 //! system, which forms eight octants through the three axial planes X, Y, and Z.
 //! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
 void iAVRCubicVis::applyOctantDisplacement(double offset)

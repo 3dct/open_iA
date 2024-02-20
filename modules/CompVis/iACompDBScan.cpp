@@ -5,7 +5,7 @@
 
 iACompDBScan::iACompDBScan(
 	iACsvDataStorage* dataStorage, bin::BinType* datasets) :
-	iACompBinning(dataStorage, datasets), 
+	iACompBinning(dataStorage, datasets),
 	m_dbData(nullptr)
 {
 	//test();

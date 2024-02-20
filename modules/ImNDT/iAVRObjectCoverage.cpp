@@ -21,7 +21,7 @@ iAVRObjectCoverage::iAVRObjectCoverage(vtkTable* objectTable, iAColMapP mapping,
 	initialize();
 }
 
-//! Computes the coverage of objects in every octree level and region. 
+//! Computes the coverage of objects in every octree level and region.
 //! The coverage, depending on its shape, is calculated from the ratio of the length of each part in the respective region to the objects total size
 void iAVRObjectCoverage::calculateObjectCoverage()
 {
@@ -200,7 +200,7 @@ void iAVRObjectCoverage::calculateEllipsoidCoverage()
 			}
 			else
 			{
-				
+
 				double xMinus[3] = { center[0] - radius[0], center[1], center[2] };
 				double xPlus[3] = { center[0] + radius[0], center[1], center[2] };
 				double yMinus[3] = { center[0], center[1] - radius[1], center[2] };
@@ -269,7 +269,7 @@ vtkSmartPointer<vtkPoints> iAVRObjectCoverage::getOctreeFiberCoverage(double sta
 		double lastIntersection[3] = { -1, -1, -1 };
 		int pointsInRegion = 0;
 		double bounds[6];
-		//std::vector<std::vector<iAVec3d>>* planePoints = new std::vector<std::vector<iAVec3d>>();
+		//std::vector<std::vector<iAVec3d>> planePoints;
 		//m_octrees.at(octreeLevel)->createOctreeBoundingBoxPlanes(region, planePoints);
 		m_octrees.at(octreeLevel)->getOctree()->GetRegionBounds(region, bounds);
 
@@ -503,7 +503,7 @@ void iAVRObjectCoverage::createPlanePoint(int plane, double bounds[6], iAVec3d* 
 	case 0:
 		//Plane 1
 		*planeOrigin = iAVec3d(xMin, yMin, zMax);
-		*planeP1 = iAVec3d(xMax, yMin, zMax); 
+		*planeP1 = iAVec3d(xMax, yMin, zMax);
 		*planeP2 = iAVec3d(xMin, yMax, zMax);
 		break;
 	case 1:
@@ -561,7 +561,7 @@ void iAVRObjectCoverage::printObjectCoverage()
 					output.append(QString("  > Region %1 -- %2 \n").arg(region).arg(it->second));
 				}
 			}
-			
+
 		}
 	}
 	LOG(lvlImportant, output);

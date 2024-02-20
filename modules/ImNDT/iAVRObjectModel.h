@@ -33,9 +33,9 @@ public:
 	void moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>> const & m_maxCoverage, double offset, bool relativMovement);
 	void moveFibersbyAllCoveredRegions(double offset, bool relativMovement);
 	void moveFibersbyOctant(std::vector<std::vector<std::vector<vtkIdType>>> const & m_maxCoverage, double offset);
-	
+
 	void createSimilarityNetwork(std::vector<std::vector<std::vector<double>>> const & similarityMetric, double maxFibersInRegions, double worldSize);
-	
+
 	void filterRegionLinks(int sign);
 	double getJaccardFilterVal() const;
 

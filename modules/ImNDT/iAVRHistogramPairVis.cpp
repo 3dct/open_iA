@@ -28,7 +28,7 @@
 #include <iALog.h>
 #include <iAVec3.h>
 
-iAVRHistogramPairVis::iAVRHistogramPairVis(vtkRenderer* ren, iAVRHistogramMetric* histogramMetric, iAVROctreeMetrics* octreeMetric, vtkTable* objectTable) :m_renderer(ren), 
+iAVRHistogramPairVis::iAVRHistogramPairVis(vtkRenderer* ren, iAVRHistogramMetric* histogramMetric, iAVROctreeMetrics* octreeMetric, vtkTable* objectTable) :m_renderer(ren),
 m_histogramMetric(histogramMetric), m_octreeMetric(octreeMetric), m_objectTable(objectTable), m_sphereActor(vtkSmartPointer<vtkActor>::New())
 {
 	initialize();
@@ -612,7 +612,7 @@ void iAVRHistogramPairVis::calculateHistogram(size_t axis)
 		double markPosShiftedRight[3]{};
 		vtkMath::Subtract(markPos, (direction).data(), markPosShiftedRight);
 		vtkMath::Add(markPos, (direction).data(), markPosShiftedLeft);
-		
+
 
 		//double ySizeR1 = minYBarSize * (double)(m_histogram->histogramRegion1.at(axis).at(binCount));
 		//double ySizeR2 = minYBarSize * (double)(m_histogram->histogramRegion2.at(axis).at(binCount));

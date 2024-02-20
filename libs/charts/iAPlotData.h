@@ -42,7 +42,7 @@ public:
 	//! @return the index (such as can be passed to xValue/yValue) of the datapoint closest to dataX
 	//!         calling xValue on the returned index will always give a value lower than or equal to dataX.
 	virtual size_t nearestIdx(DataType dataX) const = 0;
-	
+
 	//! The tooltip text for this data when the user is currently hovering over the given x position.
 	//! Note that currently only the x axis position of the user is considered.
 	//! @param dataX the value (on the x axis) the user currently is hovering over.

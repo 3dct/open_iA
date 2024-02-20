@@ -163,7 +163,7 @@ namespace
 void iASpatialFeatureSummary::performWork(QVariantMap const & parameters)
 {
 	QString csvFileName = parameters[CsvFileName].toString();
-	
+
 	QVector<int> columns;
 	if (!parameters[Columns].toString().isEmpty())
 	{
@@ -216,7 +216,7 @@ void iASpatialFeatureSummary::performWork(QVariantMap const & parameters)
 		QString("spacing: %1, %2, %3; ").arg(metaSpacing[0]).arg(metaSpacing[1]).arg(metaSpacing[2]) +
 		QString("origin: %1, %2, %3; ").arg(metaOrigin[0]).arg(metaOrigin[1]).arg(metaOrigin[2]));
 
-	
+
 	// determine number of fibers in each cell:
 	auto numberOfFibersImage = allocateImage(VTK_INT, metaDim.data(), metaSpacing.data());
 	auto numberOfPointsImage = allocateImage(VTK_INT, metaDim.data(), metaSpacing.data());

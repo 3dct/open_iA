@@ -82,7 +82,7 @@ private:
 	iAMultidimensionalScaling* m_mds;
 	iACoefficientOfVariation* m_cofVar;
 	iACorrelationCoefficient* m_corCoeff;
-	
+
 	iACompBarChart* m_BarChartDockWidget;
 	iACompHistogramTable* m_HistogramTableDockWidget;
 	iACompBoxPlot* m_BoxPlotDockWidget;

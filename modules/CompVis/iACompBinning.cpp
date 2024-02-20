@@ -10,7 +10,7 @@
 iACompBinning::iACompBinning(iACsvDataStorage* dataStorage, bin::BinType* datasets) :
 	m_datasets(datasets),
 	m_dataStorage(dataStorage)
-	
+
 {};
 
 bool iACompBinning::checkRange(double value, double low, double high)
@@ -47,15 +47,15 @@ std::vector<double>* iACompBinning::calculateSilhouetteCoefficient(iACompHistogr
 			double binID = getPointsFromCluster(clusters, thisPoint);
 			cluster_points = &clusters->at(binID);
 			averageDist = getASilhouette(cluster_points, thisPoint);
-			
+
 			//Get closest cluster to p
 			std::vector<double> clusterBoundaries = datastructure->getBinBoundaries()->at(datasetID);
-			
+
 			double nearestClusterID = getNearestCluster(clusterBoundaries, thisPoint, datastructure->getMaxVal());
 			nearest_cluster_points = &clusters->at(nearestClusterID);
 			minAverageDist = getASilhouette(nearest_cluster_points, thisPoint);
 
-			
+
 
 			if ( (averageDist == 0 && minAverageDist == 0) )
 			{ //capture NANs
@@ -73,7 +73,6 @@ std::vector<double>* iACompBinning::calculateSilhouetteCoefficient(iACompHistogr
 					LOG(lvlDebug, "nearestClusterID " + QString::number(nearestClusterID));
 				}
 			}
-			
 		}
 
 		 resultPerDataset->push_back(silhouette / allPoints.size());
@@ -87,7 +86,7 @@ std::vector<double>* iACompBinning::calculateSilhouetteCoefficient(iACompHistogr
 	}
 
 	return resultPerDataset;
-	
+
 }
 
 double iACompBinning::getPointsFromCluster(bin::BinType* clusters, double point)
@@ -108,7 +107,7 @@ double iACompBinning::getPointsFromCluster(bin::BinType* clusters, double point)
 double iACompBinning::getNearestCluster(std::vector<double> clusterBoundaries, double point, double maxUpperBoundary)
 {
 	double min_dist = INFINITY;
-	
+
 	double nearestBinID = -1;
 	double currBinID = 0;
 
@@ -125,7 +124,7 @@ double iACompBinning::getNearestCluster(std::vector<double> clusterBoundaries, d
 		{
 			maxBoundary = maxUpperBoundary;
 		}
-		
+
 		double binCentroid = minBoundary + ((minBoundary + maxBoundary) * 0.5);
 		double distCentroid = abs(binCentroid - point);
 

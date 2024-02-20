@@ -37,7 +37,7 @@ public:
 	//! @}
 	//! Get the spacing (the witdh of a bin)
 	iAPlotData::DataType spacing() const;
-	
+
 	//! Set the value for a given bin index.
 	//! Also updates y bounds
 	//! @param binIdx the index of the bin that should be changed

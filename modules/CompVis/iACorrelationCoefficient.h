@@ -33,7 +33,7 @@ private:
 
 	vtkSmartPointer<vtkTable> toVtkTable(QList<csvFileData>* data);
 
-	
+
 
 	//stores the table with all object for all datasets
 	vtkSmartPointer<vtkTable> m_inputTable;

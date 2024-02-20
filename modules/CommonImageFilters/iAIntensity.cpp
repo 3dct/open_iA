@@ -323,7 +323,7 @@ iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization() :
 
 // iAReplaceValueFilter
 
-template<class T> 
+template<class T>
 void replaceAndShift(iAFilter* filter, QVariantMap const & params)
 {
 	using ImageType = itk::Image<T, DIM>;

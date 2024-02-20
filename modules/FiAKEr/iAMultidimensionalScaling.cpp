@@ -171,13 +171,13 @@ std::vector<std::vector<double>> computeMDS(std::vector<std::vector<double>> con
 
 	//X - configuration of points in Euclidean space
 	//initialize X with one vector filled with random values between [0,1]
-	
+
 	auto numElems = distanceMatrix.size();
 	assert(numElems > 2 && numElems == distanceMatrix[0].size()); // at least 3 elements and quadratic matrix
 	iAMatrixType X;
 	initializeOutput(X, numElems, outputDimensions, initRandom);
 	//LOG(lvlDebug, QString("init X: %1").arg(matrixToString(X)));
-		
+
 	//LOG(lvlDebug, QString("init X:\n%1").arg(matrixToString(X)));
 
 	// mean value of distance matrix
@@ -239,7 +239,7 @@ std::vector<std::vector<double>> computeMDS(std::vector<std::vector<double>> con
 		//LOG(lvlDebug, QString("Z: %1").arg(matrixToString(Z)));
 
 		// X = B*Z/size(D,1);
-		for (size_t r = 0; r < X.size(); r++)	
+		for (size_t r = 0; r < X.size(); r++)
 		{
 			for (size_t xCols = 0; xCols < X[0].size(); xCols++)
 			{

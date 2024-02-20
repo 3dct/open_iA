@@ -137,7 +137,7 @@ void iAVRColorLegend::calculateLegend(double physicalScale)
 	mapper->SetInputConnection(colorBarPlane->GetOutputPort());
 	mapper->SetScalarModeToUseCellData();
 	mapper->Update();
-	
+
 	m_colorBarLegend = vtkSmartPointer<vtkActor>::New();
 	m_colorBarLegend->SetMapper(mapper);
 	m_colorBarLegend->GetProperty()->EdgeVisibilityOn();
@@ -168,7 +168,7 @@ void iAVRColorLegend::calculateLegend(double physicalScale)
 
 	m_titleTextSource->SetPosition(actorBounds[0], actorBounds[3] + m_initialTextOffset, actorBounds[4]);
 	m_titleTextSource->SetScale(physicalScale * 0.0008, physicalScale * 0.00085, 1);
-	
+
 	for(int i = 0; i < 3; i++)
 	{
 		m_titleFieldScale[i] = m_titleTextSource->GetScale()[i];

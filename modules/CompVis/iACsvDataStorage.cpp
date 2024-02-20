@@ -38,11 +38,11 @@ iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles, int headerLineNumber) 
 			LOG(lvlError, QString("Unable to read file '%1'").arg(m_filenames->at(ind)));
 			return;
 		}
-		
+
 		//create data structure for MDS and CompVis
 		storeCSVToVectorArray(list, headerLineNumber);
 
-	
+
 		//create data structure for 3DVis for library iAobjectvis
 		if (iACompVisOptions::getShow3DViews())
 		{
@@ -161,10 +161,10 @@ void iACsvDataStorage::initializeValueArray(
 
 			std::vector<double> vec = std::vector<double>();
 			vec.reserve(attrCount);
-			
+
 			vec.push_back(row); //add id
 			vec.push_back(list->at(row).at(0).toDouble()); //add value
-			
+
 			//store the feature's values
 			values->push_back(vec);
 		}
@@ -277,7 +277,7 @@ std::vector<int>* csvFileData::getAmountObjectsEveryDataset(QList<csvFileData>* 
 	{
 		result->at(i) = static_cast<int>(data->at(i).values->size());
 	}
-	
+
 	return result;
 }
 
@@ -374,7 +374,7 @@ csvDataType::ArrayType* csvDataType::copy(ArrayType* input)
 	int cols = getColumns(input);
 	int rows = getRows(input);
 
-	ArrayType* result = new ArrayType(); 
+	ArrayType* result = new ArrayType();
 	initialize(rows, cols, result);
 
 	for (int r = 0; r < rows; r++)
@@ -410,7 +410,7 @@ csvDataType::ArrayType* csvDataType::elementCopy(ArrayType* input)
 	int rows = getRows(input);
 	ArrayType* result = new ArrayType();
 	initialize(rows, cols, result);
-	
+
 	for (int r = 0; r < rows; r++)
 	{
 		for (int c = 0; c < cols; c++)

@@ -38,13 +38,13 @@
 
 iACompVariableTable::iACompVariableTable(iACompHistogramVis* vis, iACompBayesianBlocksData* bayesianBlocksData, iACompNaturalBreaksData* naturalBreaksData):
 	iACompTable(vis),
-	m_bbData(bayesianBlocksData), 
+	m_bbData(bayesianBlocksData),
 	m_nbData(naturalBreaksData),
 	m_interactionStyle(vtkSmartPointer<iACompVariableTableInteractorStyle>::New()),
 	m_originalRowActors(new std::vector<vtkSmartPointer<vtkActor>>())
 {
 	m_activeData = m_nbData;
-	
+
 	//initialize interaction
 	initializeInteraction();
 
@@ -120,7 +120,7 @@ void iACompVariableTable::initializeTable()
 	initializeLegend();
 
 	//init camera
-	initializeCamera();	
+	initializeCamera();
 }
 
 void iACompVariableTable::initializeInteraction()
@@ -200,7 +200,7 @@ void iACompVariableTable::drawRow(int currDataInd, int currentColumn, double off
 	originArray->SetName("originArray");
 	originArray->SetNumberOfComponents(3);
 	originArray->SetNumberOfTuples(numberOfBins);
-	
+
 	vtkSmartPointer<vtkDoubleArray> point1Array = vtkSmartPointer<vtkDoubleArray>::New();
 	point1Array->SetName("point1Array");
 	point1Array->SetNumberOfComponents(3);
@@ -222,7 +222,7 @@ void iACompVariableTable::drawRow(int currDataInd, int currentColumn, double off
 	polydata->GetPointData()->AddArray(originArray);
 	polydata->GetPointData()->AddArray(point1Array);
 	polydata->GetPointData()->AddArray(point2Array);
-	polydata->GetCellData()->AddArray(colorArray); 
+	polydata->GetCellData()->AddArray(colorArray);
 	polydata->GetCellData()->SetActiveScalars("colorArray");
 
 	vtkSmartPointer<vtkPlaneSource> planeSource = vtkSmartPointer<vtkPlaneSource>::New();
@@ -263,7 +263,7 @@ void iACompVariableTable::drawRow(int currDataInd, int currentColumn, double off
 	m_originalRowActors->push_back(actor);
 	//store row and for each row the index which dataset it is showing
 	m_rowDataIndexPair->insert({actor, currDataInd});
-	
+
 	//add name of dataset/row
 	double y = (m_vis->getColSize() * currentColumn) + offset;
 	double pos[3] = {-(m_vis->getRowSize()) * 0.05, y + (m_vis->getColSize() * 0.5), 0.0};
@@ -341,10 +341,10 @@ void iACompVariableTable::drawHistogramTableInOriginalOrder()
 	m_useDarkerLut = true;
 
 	drawHistogramTable();
-	
+
 	std::vector<int> amountObjectsEveryDataset = *(m_activeData->getAmountObjectsEveryDataset());
 	drawBarChartShowingAmountOfObjects(amountObjectsEveryDataset);
-	
+
 	renderWidget();
 }
 
@@ -362,7 +362,7 @@ void iACompVariableTable::drawBarChartShowingAmountOfObjects(std::vector<int> am
 		vtkSmartPointer<vtkPolyData> polyData = vtkProgrammableGlyphFilter::SafeDownCast(
 			currAct->GetMapper()->GetInputConnection(0, 0)->GetProducer())
 			->GetPolyDataInput(0);
-		
+
 		vtkSmartPointer<vtkDoubleArray> originArray = vtkDoubleArray::SafeDownCast(polyData->GetPointData()->GetArray("originArray"));
 		vtkSmartPointer<vtkDoubleArray> point1Array = vtkDoubleArray::SafeDownCast(polyData->GetPointData()->GetArray("point1Array"));
 		vtkSmartPointer<vtkDoubleArray> point2Array = vtkDoubleArray::SafeDownCast(polyData->GetPointData()->GetArray("point2Array"));
@@ -395,7 +395,7 @@ void iACompVariableTable::highlightSelectedCell(vtkSmartPointer<vtkActor> picked
 	planeSource->SetPoint1(polyData->GetPointData()->GetArray("point1Array")->GetTuple3(pickedCellId));
 	planeSource->SetPoint2(polyData->GetPointData()->GetArray("point2Array")->GetTuple3(pickedCellId));
 	planeSource->Update();
-	
+
 	vtkSmartPointer<vtkUnsignedCharArray> selectedColorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	selectedColorArray->SetName("selectedColorArray");
 	selectedColorArray->SetNumberOfComponents(3);

@@ -53,7 +53,7 @@ void iANModalTFModuleInterface::modalitySPLOM()
 	for (auto ds: child->dataSetMap())
 	{
 		auto imgDS = dynamic_cast<iAImageData*>(ds.second.get());
-		if (imgDS) 
+		if (imgDS)
 		{
 			dataSets.push_back(imgDS);
 		}

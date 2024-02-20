@@ -396,7 +396,7 @@ iASimplifyMeshQuadricDecimation::iASimplifyMeshQuadricDecimation() :
 	// should be there according to nightly doc but aren't there in 9.1.0.... added since?
 	//addParameter("Regularize", iAValueType::Boolean, false);
 	//addParameter("Regularization", iAValueType::Continuous, 0.0);
-	
+
 	// lots of other parameters available!
 }
 

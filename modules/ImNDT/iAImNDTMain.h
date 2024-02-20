@@ -136,7 +136,7 @@ private:
 	bool m_arEnabled = false;
 
 	void setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, iAVRInteractionOptions options, iAVROperations operation);
-	//! Returns which InteractionOption is for the currently picked Object available 
+	//! Returns which InteractionOption is for the currently picked Object available
 	int getOptionForObject(vtkProp3D* pickedProp);
 	void addPropToOptionID(vtkProp3D* prop, iAVRInteractionOptions iD);
 	//! Generates octrees until maxLevel is reached or no more leafNodes are added through later levels

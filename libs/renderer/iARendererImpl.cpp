@@ -168,7 +168,7 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_roiActor->SetPickable(false);
 	m_roiActor->SetDragable(false);
 	m_roiActor->SetVisibility(false);
-	
+
 	// set up annotated axis cube:
 	m_annotatedCubeActor->SetPickable(1);
 	m_annotatedCubeActor->SetXPlusFaceText("+X");

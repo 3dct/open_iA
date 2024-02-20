@@ -193,7 +193,7 @@ public:
 	void OnMenu3D(vtkEventData* edata) override;
 	void Dolly3D(vtkEventData* edata) override;
 	void OnViewerMovement3D(vtkEventData* edata) override;
-	
+
 	// !Is called when a Controller moves. Forwards the event to the main class
 	void OnMove3D(vtkEventData* edata) override
 	{

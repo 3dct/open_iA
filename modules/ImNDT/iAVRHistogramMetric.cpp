@@ -64,7 +64,7 @@ int iAVRHistogramMetric::determineNumberOfBins(int observations, int method)
 	default:
 		return calculateSturgesRule(observations);
 		break;
-	case 0: 
+	case 0:
 		return calculateSturgesRule(observations);
 		break;
 	}
@@ -128,7 +128,7 @@ iAVRHistogram iAVRHistogramMetric::calculate1DHistogram(QString label, int bins,
 std::vector<int> iAVRHistogramMetric::getObservationsInBin(iAVRHistogram* histogram)
 {
 	using namespace boost::histogram; // strip the boost::histogram prefix
-	
+
 	// Create Vector
 	std::vector<int> vec;
 

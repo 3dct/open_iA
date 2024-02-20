@@ -9,7 +9,7 @@
 
 
 dlg_VisMainWindow::dlg_VisMainWindow(iACsvDataStorage* dataStorage, iAMultidimensionalScaling* mds, iAMainWindow* parent, iACompVisMain* main, bool computeMDSFlag) :
-	QMainWindow(parent), 
+	QMainWindow(parent),
 	m_main(main),
 	m_data(dataStorage->getData()),
 	m_mds(mds),
@@ -21,7 +21,7 @@ dlg_VisMainWindow::dlg_VisMainWindow(iACsvDataStorage* dataStorage, iAMultidimen
 	parent->addSubWindow(this);
 	setupUi(this);
 
-	
+
 	if (m_computeMDSFlag)
 	{
 		//start mds dialog
@@ -33,7 +33,7 @@ dlg_VisMainWindow::dlg_VisMainWindow(iACsvDataStorage* dataStorage, iAMultidimen
 		//when univariate data is loaded, MDSbutton is deactivated
 		menuMDS->setDisabled(true);
 	}
-	
+
 	//finish iAMainWindow setup
 	createMenu();
 	this->showMaximized();
@@ -54,7 +54,7 @@ void dlg_VisMainWindow::recalculateMDS()
 	startMDSDialog();
 
 	m_dataStorage->setMDSData(m_mds->getResultMatrix());
-	
+
 	//reset all charts
 	m_main->reinitializeCharts(m_dataStorage);
 }
@@ -78,7 +78,7 @@ void dlg_VisMainWindow::createMenu()
 {
 	//activate MDS recalculation
 	connect(actionRecalculateMDS, &QAction::triggered, this, &dlg_VisMainWindow::recalculateMDS);
-	
+
 	//activate ordering in histogram table
 	connect(actionAscending_to_Number_of_Objects, &QAction::triggered, this, &dlg_VisMainWindow::reorderHistogramTableAscending);
 	connect(actionDescending_to_Number_of_Objects, &QAction::triggered, this, &dlg_VisMainWindow::reorderHistogramTableDescending);

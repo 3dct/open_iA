@@ -17,7 +17,7 @@
 //	std::vector<double> histogramWidth;
 //	//Amount of bins for current histogram
 //	int bins = 0;
-//	
+//
 //	//Stores for every [feature] the occurency in every [bin]
 //	std::vector<std::vector<int>> histogramRegion1;
 //	std::vector<std::vector<int>> histogramRegion2;
@@ -32,7 +32,7 @@ public:
 	iAVRHistogram getHistogram(std::vector<double> values, double min, double max, int observations);
 	int determineNumberOfBins(int observations, int method);
 	void setHistogramFeatureID(iAVRHistogram* histogram, int ID);
-	
+
 
 private:
 
@@ -50,5 +50,5 @@ private:
 	double calculateKurtosis(std::vector<double> values);
 	int calculateModality(std::vector<double> values);
 
-	
+
 };

@@ -17,7 +17,7 @@ namespace FishersNaturalBreaks
 	typedef std::pair<double, CountType> ValueCountPair;
 	typedef std::vector<double>          LimitsContainer;
 	typedef std::vector<ValueCountPair>  ValueCountPairContainer;
-	
+
 	// helper funcs
 	template <typename T> T Min(T a, T b) { return (a < b) ? a : b; }
 
@@ -189,7 +189,7 @@ namespace FishersNaturalBreaks
 			return lhs.first < rhs.first;
 		}
 	};
-	
+
 	void GetCountsDirect(ValueCountPairContainer& vcpc, const double* values, SizeT size);
 	void MergeToLeft(ValueCountPairContainer& vcpcLeft, const ValueCountPairContainer& vcpcRight, ValueCountPairContainer& vcpcDummy);
 	void GetValueCountPairs(ValueCountPairContainer& vcpc, const double* values, SizeT n);
@@ -223,7 +223,7 @@ private:
 	iACompNaturalBreaksData* m_naturalBreaksData;
 
 	//Goodness Of Variance Fit has a value from 0 to 1 where 0 = No Fit and 1 = Perfect Fit.
-	//GFVLIMIT is the limit the gfv has to have before stopping the computation of a good number of Breaks/Bins/Classes 
+	//GFVLIMIT is the limit the gfv has to have before stopping the computation of a good number of Breaks/Bins/Classes
 	const double GFVLIMIT = 0.99;
 
 };

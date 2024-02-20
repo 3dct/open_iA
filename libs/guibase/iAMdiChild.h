@@ -82,7 +82,7 @@ public:
 	virtual void updateLayout() = 0;
 	//! Apply the "multiview" layout (i.e. where not only one dock widget but multiple are shown)
 	virtual void multiview() = 0;
-	
+
 	// Settings:
 	//virtual iARenderSettings const& renderSettings() const = 0;
 	virtual iASlicerSettings const& slicerSettings() const = 0;

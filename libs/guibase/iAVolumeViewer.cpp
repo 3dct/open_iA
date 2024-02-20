@@ -153,7 +153,7 @@ void iAVolumeViewer::prepare(iAProgress* p)
 {
 	p->setStatus(QString("%1: Computing scalar range").arg(m_dataSet->name()));
 	auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
-	
+
 	double range[2];
 	if (m_dataSet->hasMetaData(ImageRange))
 	{
@@ -252,7 +252,7 @@ void iAVolumeViewer::prepare(iAProgress* p)
 	// the number of histogram bins could have beeen adapted during creation, see finalNumBin, or determined via loading:
 	m_attribValues[HistogramBins] = static_cast<quint32>(m_histogramData[0]->valueCount());
 	p->emitProgress(100);
-	
+
 }
 
 void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)

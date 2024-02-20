@@ -42,7 +42,7 @@
 vtkStandardNewMacro(iACompBoxPlot::BoxPlotChart);
 vtkStandardNewMacro(iACompBoxPlot::BoxPlot);
 
-iACompBoxPlot::iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage) : 
+iACompBoxPlot::iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage) :
 	QDockWidget(parent),
 	m_dataStorage(dataStorage),
 	m_qvtkWidget(new iAQVTKWidget(this)),
@@ -58,7 +58,7 @@ iACompBoxPlot::iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage
 	normalizedTable(nullptr),
 	reorderedNormalizedTable(nullptr),
 	currentQuartileTable(vtkSmartPointer<vtkTable>::New()),
-	
+
 	m_chartOriginal(nullptr),
 	m_boxOriginal(nullptr),
 	lutOriginal(nullptr),
@@ -169,7 +169,7 @@ void iACompBoxPlot::initializeData()
 	QList<csvFileData>* dataPoints = m_dataStorage->getData();
 	QStringList* attrNames = m_dataStorage->getAttributeNamesWithoutLabel();
 	m_numberOfAttr = attrNames->size(); //amount of attributes
-	
+
 	// Set the labels
 	labels->Initialize();
 
@@ -186,7 +186,7 @@ void iACompBoxPlot::initializeData()
 
 		vtkSmartPointer<vtkDoubleArray> arrIndex2 = vtkSmartPointer<vtkDoubleArray>::New();
 		arrIndex2->SetName(attrNames->at(i).toStdString().c_str());
-		
+
 		originalValuesTable->AddColumn(arrIndex1);
 		m_originalOrderTable->AddColumn(arrIndex2);
 	}
@@ -213,7 +213,7 @@ void iACompBoxPlot::initializeData()
 
 				int col = attrInd - 1;
 				double val = dataPoints->at(i).values->at(dataInd).at(m_orderedPositions->at(col) + 1);
-				
+
 				originalValuesTable->SetValue(row, col, vtkVariant(val));
 
 				double valOriginalOrder = dataPoints->at(i).values->at(dataInd).at(attrInd);
@@ -261,10 +261,10 @@ void iACompBoxPlot::initializeAxes(vtkSmartPointer<BoxPlotChart> chart, bool axe
 	axisLeft->GetTitleProperties()->SetFontFamilyToArial();
 	axisLeft->GetTitleProperties()->SetFontSize(iACompVisOptions::FONTSIZE_TEXT);
 	axisLeft->GetTitleProperties()->SetLineOffset(-20);
-	axisLeft->GetTitleProperties()->SetOrientation(90); 
+	axisLeft->GetTitleProperties()->SetOrientation(90);
 	axisLeft->GetTitleProperties()->SetVerticalJustification(VTK_TEXT_CENTERED);
 	axisLeft->GetTitleProperties()->SetJustification(VTK_TEXT_CENTERED);
-	
+
 	axisLeft->SetNumberOfTicks(5);
 	axisLeft->SetMinimum(0.0);
 	axisLeft->SetMaximum(1.0);
@@ -297,7 +297,7 @@ void iACompBoxPlot::initializeLutForOriginalBoxPlot()
 	lutOriginal = vtkSmartPointer<vtkLookupTable>::New();
 	lutOriginal->SetNumberOfColors(m_numberOfAttr);
 	lutOriginal->Build();
-	
+
 	double col[3];
 	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, col);
 
@@ -327,7 +327,7 @@ void iACompBoxPlot::initializeLegend(vtkSmartPointer<BoxPlotChart> chart)
 	//for each column draw a legend
 	double offset = 1.0;
 	double factor;
-	
+
 	if (m_numberOfAttr == 1)
 	{
 		factor = offset;
@@ -337,7 +337,7 @@ void iACompBoxPlot::initializeLegend(vtkSmartPointer<BoxPlotChart> chart)
 	}
 
 	offset = offset - factor;
-	
+
 	for (int i = 0; i < m_numberOfAttr; i++)
 	{
 		vtkSmartPointer<vtkTextActor> legend = vtkSmartPointer<vtkTextActor>::New();
@@ -361,8 +361,8 @@ void iACompBoxPlot::initializeLegend(vtkSmartPointer<BoxPlotChart> chart)
 		}
 		else {
 			legendProperty->SetOrientation(30);//use with unemployment data
-		}		
-		
+		}
+
 		legendProperty->SetFontSize(iACompVisOptions::FONTSIZE_TEXT);
 		legendProperty->SetJustification(VTK_TEXT_RIGHT);
 		legendProperty->SetVerticalJustificationToTop();
@@ -435,7 +435,7 @@ std::vector<double>* iACompBoxPlot::calcualteQuartiles(std::vector<double> v)
 	auto it_first_half = it_second_half;
 	if ((v.size() % 2) == 0) --it_first_half;
 
-	
+
 	double q1 = median(v.begin(), it_first_half);
 	double q2 = median(v.begin(), v.end());
 	double q3 = median(it_second_half, v.end());
@@ -491,7 +491,7 @@ vtkSmartPointer<vtkTable> iACompBoxPlot::normalizeTableSelected(vtkSmartPointer<
 			double newV = iACompVisOptions::histogramNormalization(v.ToDouble(), 0.0, 1.0, originalMin, originalMax);
 
 			//catch numerical errors for 0
-			if (newV - 0.0 < 1e-7) { 
+			if (newV - 0.0 < 1e-7) {
 				newV = 0.0;
 			};
 
@@ -510,7 +510,7 @@ vtkSmartPointer<vtkTable> iACompBoxPlot::normalizeTableSelected(vtkSmartPointer<
 /******************************************  Update Methods  **********************************/
 
 void iACompBoxPlot::updateBoxPlot(csvDataType::ArrayType* selectedData, std::vector<double>* selected_orderedPositions)
-{	
+{
 	//reset box plot
 	m_view->GetScene()->RemoveItem(m_chartSelected);
 	removeSelectedMessage();
@@ -538,7 +538,7 @@ void iACompBoxPlot::updateBoxPlot(csvDataType::ArrayType* selectedData, std::vec
 
 	if(selectedData->size() == 0 || selectedData->at(0).size() == 0 || selectedData->at(0).size() == 1 || selectedData->at(0).size() == 2)
 	{// no data -> draw empty box plot
-		
+
 		drawNotEnoughObjectsSelectedMessage();
 		renderWidget();
 
@@ -762,28 +762,28 @@ void iACompBoxPlot::BoxPlotChart::SetTooltipInfo(const vtkContextMouseEvent& mou
 	vtkIdType segmentIndex)
 {
 	if (!this->Tooltip)
-	  {
+	{
 		return;
-	  }
+	}
 
 	if (seriesIndex == -1 && plot == nullptr && segmentIndex == -1)
-	  {
+	{
 		return;
-	  }
-	
+	}
+
 	std::vector<std::string> tokens;
-	
+
 	for (vtkIdType r = 0; r < m_outerClass->currentQuartileTable->GetNumberOfRows(); r++)
 	{
 		vtkVariant v = m_outerClass->currentQuartileTable->GetValue(r, plotPos.GetX());
 		tokens.push_back(v.ToString());
 	}
 
-	vtkStdString tooltipLabel = 
+	vtkStdString tooltipLabel =
 		"Minimum = " + tokens.at(0) + "\n" +
-		"First quartile = " + tokens.at(1) + "\n" + 
-		"Median = " + tokens.at(2) + "\n" + 
-		"Third quartile = " + tokens.at(3) + "\n" + 
+		"First quartile = " + tokens.at(1) + "\n" +
+		"Median = " + tokens.at(2) + "\n" +
+		"Third quartile = " + tokens.at(3) + "\n" +
 		"Maximum = " + tokens.at(4);
 
   // Set the tooltip
@@ -798,7 +798,7 @@ void iACompBoxPlot::BoxPlotChart::Update()
 		this->SetPoint1(m_outerClass->m_qvtkWidget->width()*0.0, (m_outerClass->m_qvtkWidget->height()*0.3));
 		this->SetPoint2(m_outerClass->m_qvtkWidget->width()*0.75, (m_outerClass->m_qvtkWidget->height())*0.85);
 	}
-	
+
 	vtkChartBox::Update();
 }
 
@@ -819,8 +819,8 @@ public:
 	Private() = default;
 };
 
-iACompBoxPlot::BoxPlot::BoxPlot() : 
-	m_outerClass(nullptr), 
+iACompBoxPlot::BoxPlot::BoxPlot() :
+	m_outerClass(nullptr),
 	m_numberOfColumns(0)
 {
 }

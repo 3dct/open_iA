@@ -55,7 +55,7 @@ iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAColoredPolyObjectVis* polyObj
 	//m_vrEnv->renderer()->SetUseDepthPeeling(true);
 	//m_vrEnv->renderer()->SetMaximumNumberOfPeels(2);
 	//m_vrEnv->renderer()->SetUseFXAA(true);
-	
+
 	m_currentMiMDisplacementType = 0;
 
 	//Initialize Cube Vis
@@ -161,7 +161,7 @@ iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAColoredPolyObjectVis* polyObj
 	addPropToOptionID(vtkProp3D::SafeDownCast(m_volume->getVolumeActor()), iAVRInteractionOptions::Volume);
 
 	//addPropToOptionID(m_slider->getSlider(), iAVRInteractionOptions::Histogram);
-	
+
 	for(size_t i = 0; i < m_octrees.size(); i++)
 	{
 		addPropToOptionID(vtkProp3D::SafeDownCast(m_octrees.at(i)->getActor()), iAVRInteractionOptions::Volume); //Octree counts as Volume
@@ -201,7 +201,7 @@ void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pick
 	case iAVROperations::PickMiMRegion:
 		this->pickMimRegion(eventPosition, eventOrientation);
 		break;
-	case iAVROperations::MultiPickMiMRegion:	
+	case iAVROperations::MultiPickMiMRegion:
 		m_activeInput.at(deviceID) = static_cast<int>(iAVROperations::MultiPickMiMRegion); // For Multitouch
 		//m_modelInMiniature->removeHighlightedGlyphs();
 		m_multiPickIDs.clear();
@@ -504,7 +504,7 @@ void iAImNDTMain::colorMiMCubes(std::vector<vtkIdType> const & regionIDs)
 	auto rgba = m_MiMColorLegend->getColors(m_currentOctreeLevel, m_currentFeature, m_fiberMetrics->getRegionAverage(m_currentOctreeLevel, m_currentFeature));
 	m_MiMColorLegend->calculateLegend(m_vrEnv->getInitialWorldScale());
 	m_modelInMiniature->applyHeatmapColoring(rgba); //Reset Color
-	
+
 	for (size_t i = 0; i < regionIDs.size(); i++)
 	{
 		m_modelInMiniature->setCubeColor(OCTREE_COLOR, regionIDs.at(i));
@@ -641,7 +641,7 @@ void iAImNDTMain::pickMimRegion(double eventPosition[3], double eventOrientation
 		{
 			m_multiPickIDs.push_back(cellID);
 		}
-		
+
 		m_modelInMiniature->highlightGlyphs(m_multiPickIDs);
 		m_volume->highlightGlyphs(m_multiPickIDs);
 
@@ -655,7 +655,7 @@ void iAImNDTMain::pickMimRegion(double eventPosition[3], double eventOrientation
 }
 
 void iAImNDTMain::multiPickMiMRegion()
-{	
+{
 	if(!m_multiPickIDs.empty())
 	{
 		std::vector<size_t> selection = std::vector<size_t>();
@@ -695,9 +695,9 @@ void iAImNDTMain::multiPickMiMRegion()
 			auto cubePos = m_volume->getCubePos(m_multiPickIDs.at(0));
 			auto cubeSize = m_volume->getCubeSize(m_multiPickIDs.at(0));
 			auto visSize = m_vrEnv->interactor()->GetPhysicalScale() * 0.33; //33%
-			
+
 			m_distributionVis->createVisualization(cubePos, visSize, ceil(cubeSize), m_currentOctreeLevel, m_multiPickIDs, featureList); //
-			m_distributionVis->show(); 
+			m_distributionVis->show();
 			m_distributionVis->rotateVisualization(180); //Initial Rotation
 			m_volume->removeHighlightedGlyphs();
 			m_volume->hideVolume();
@@ -706,7 +706,7 @@ void iAImNDTMain::multiPickMiMRegion()
 			auto coloring = m_distributionVis->getBarColors();
 			m_volume->setNodeColor(m_multiPickIDs, coloring);
 			m_modelInMiniature->highlightGlyphs(m_multiPickIDs, coloring);
-			
+
 			addPropToOptionID(vtkProp3D::SafeDownCast(m_distributionVis->getVisAssembly()), iAVRInteractionOptions::Histogram);//
 		}
 		m_multiPickIDs.clear();
@@ -734,10 +734,10 @@ void iAImNDTMain::resetSelection()
 void iAImNDTMain::updateModelInMiniatureData()
 {
 	int controllerID = static_cast<int>(vtkEventDataDevice::LeftController);
-	
+
 	m_modelInMiniature->setOctree(m_octrees.at(m_currentOctreeLevel));
 	m_modelInMiniature->createCubeModel(); //Here a new MiM is calculated
-	
+
 	//m_networkGraphMode = false;
 	resetSelection();
 
@@ -755,7 +755,7 @@ void iAImNDTMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 		updateModelInMiniatureData();
 		onZoom(); //reset to current zoom
 		m_modelInMiniature->show();
-	
+
 		m_MiMColorLegend->setPosition(eventPosition);
 		m_MiMColorLegend->show();
 	}
@@ -870,7 +870,7 @@ void iAImNDTMain::changeMiMDisplacementType()
 	}
 
 	m_3DTextLabels.at(1)->show();
-	m_3DTextLabels.at(0)->hide();	
+	m_3DTextLabels.at(0)->hide();
 }
 
 void iAImNDTMain::flipDistributionVis()

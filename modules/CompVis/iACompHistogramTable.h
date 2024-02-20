@@ -14,7 +14,7 @@ class iAMainWindow;
 class iACompVisMain;
 class iACompUniformBinningData;
 
-class iACompHistogramTable 
+class iACompHistogramTable
 {
 
    public:

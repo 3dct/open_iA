@@ -28,7 +28,7 @@ class dlg_MultidimensionalScalingDialog : public QDialog, public Ui_Multidimensi
 	void setupWeigthTable();
 	void setupProximityBox();
 	void setupDistanceBox();
-	
+
 
 	QList<csvFileData>* m_data;
 	std::vector<double>* m_weights;
@@ -37,5 +37,5 @@ class dlg_MultidimensionalScalingDialog : public QDialog, public Ui_Multidimensi
 	QButtonGroup* m_proxiGroup;
 	QButtonGroup* m_disGroup;
 
-	
+
 };

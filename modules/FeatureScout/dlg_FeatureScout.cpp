@@ -1205,7 +1205,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	QModelIndexList indexes = m_elementTableView->selectionModel()->selection().indexes();
 	QList<ushort> characteristicsList;
 
-	
+
 	iAAttributes params;
 	addAttr(params, "Save file", iAValueType::Boolean, false);
 	addAttr(params, "Show histograms", iAValueType::Boolean, true);
@@ -1508,7 +1508,7 @@ void dlg_FeatureScout::CreateLabelledOutputMask(std::shared_ptr<iAConnector> con
 		descr = "NOTE: In order to select a single class, you need to select one in the class list first. Currently, there is no class selected!";
 	}
 	addAttr(params, ParamClasses, iAValueType::Categorical, classModes);
-	
+
 	const QString ParamValues = "Value to use";
 	const QString modeFiberID = "Fiber ID";
 	const QString modeClassID = "Class ID";
@@ -1906,10 +1906,10 @@ void dlg_FeatureScout::showPCSettings()
 	m_pcOpacity   = values["Opacity"].toInt();
 	m_pcTickCount = values["Tick Count"].toInt();
 	m_pcFontSize  = values["Font Size"].toInt();
-		
+
 	m_pcChart->GetPlot(0)->GetPen()->SetOpacity(m_pcOpacity);
 	m_pcChart->GetPlot(0)->SetWidth(m_pcLineWidth);
-	
+
 	updateAxisProperties();
 
 	m_pcView->Update();
