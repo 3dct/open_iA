@@ -221,17 +221,18 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 
 		// Capture i by value to know which slicer's parameters to update
 		connect(selectButton, &QPushButton::clicked,
-			[this, i, chartsSpmData, chartsSpmWidget, columnVisibility, slicer, &slicerCopies, &slicerParameters, &paramValues]()
+			[this, i, chartsSpmData, chartsSpmWidget, columnVisibility, slicer, &slicerCopies, &slicerParameters,
+				&paramValues]()
 			{
 				// Assume slicerParamOldValues accurately represents the old parameter state
-				QVariantMap slicerParamOldValues;  // Last slicer's parameters as "old" values
-				QVariantMap& selectedSlicerParamValues = slicerParameters[i];
+				QVariantMap paramOldValues = paramValues;  // Last slicer's parameters as "old" values
+				paramValues = slicerParameters[i];
 
 				// Direct comparison for simplicity; refine as needed
 				bool isDifferent = false;
-				for (const QString& key : selectedSlicerParamValues.keys())
+				for (const QString& key : paramValues.keys())
 				{
-					if (selectedSlicerParamValues[key] != slicerParamOldValues.value(key))
+					if (paramValues[key] != paramOldValues.value(key))
 					{
 						isDifferent = true;
 						break;
@@ -248,35 +249,33 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 				for (int j = 0; j < parameterNames.size(); ++j)
 				{
 					const QString& paramName = parameterNames[j];
-					if (selectedSlicerParamValues.contains(paramName))
+					if (paramValues.contains(paramName))
 					{
-						double value = selectedSlicerParamValues[paramName].toDouble();
+						double value = paramValues[paramName].toDouble();
 						chartsSpmData->data()[j][0] = chartsSpmData->data()[j][1];
-						slicerParamOldValues[paramName] = chartsSpmData->data()[j][1];
 						chartsSpmData->data()[j][1] = value;
 					}
 				}
 				chartsSpmWidget->setData(chartsSpmData, columnVisibility);
 
-
-				this->updateFilterAndSlicer(slicer, selectedSlicerParamValues);
+				this->updateFilterAndSlicer(slicer, paramValues);
 
 				if (!slicerCopies.empty())
 				{
 					for (int k = 0; k < slicerCopies.size(); ++k)
 					{
-						iASlicerImpl* slicerCopy = slicerCopies[i];  // Access the slicer copy by index
+						iASlicerImpl* slicerCopy = slicerCopies[k];  // Access the slicer copy by index
 
 						if (k == 0)
 						{
 							// Now, update the slicerCopy with the new paramValues
-							updateFilterAndSlicer(slicerCopy, slicerParamOldValues);
-							slicerParameters[k] = slicerParamOldValues;
+							updateFilterAndSlicer(slicerCopy, paramOldValues);
+							slicerParameters[k] = paramOldValues;
 						}
 						else if (k == 4)
 						{
-							updateFilterAndSlicer(slicerCopy, selectedSlicerParamValues);
-							slicerParameters[k] = selectedSlicerParamValues;
+							updateFilterAndSlicer(slicerCopy, paramValues);
+							slicerParameters[k] = paramValues;
 						}
 						else
 						{
@@ -284,10 +283,10 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 							QVariantMap interpolatedParamValues;
 							for (const QString& paramName : parameterNames)
 							{
-								bool isIncreasing = selectedSlicerParamValues[paramName].toDouble() >
-									slicerParamOldValues[paramName].toDouble();
-								double startValue = slicerParamOldValues[paramName].toDouble();
-								double endValue = selectedSlicerParamValues[paramName].toDouble();
+								bool isIncreasing = paramValues[paramName].toDouble() >
+									paramOldValues[paramName].toDouble();
+								double startValue = paramOldValues[paramName].toDouble();
+								double endValue = paramValues[paramName].toDouble();
 								double range = std::abs(endValue - startValue);
 								double step = range /
 									4;  // Assuming 5 steps (0 to 4), adjust the denominator according to your total steps
@@ -321,9 +320,6 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 						}
 					}
 				}
-
-
-
 			});
 
 		// Now add the container to your overall layout
