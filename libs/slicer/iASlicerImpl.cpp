@@ -80,6 +80,8 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QString>
+#include <QEvent>
+#include <QHoverEvent>
 
 #include <cassert>
 
