@@ -13,6 +13,7 @@
 #include <iALog.h>
 #include <iAQSplom.h>
 #include <iASPLOMData.h>
+#include <iAColorTheme.h>
 
 
 #include "vtkColorTransferFunction.h"
@@ -143,13 +144,34 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 		chartsSpmData->data()[i].push_back(maxValues[i]);
 	}
 
-	chartsSpmData->updateRanges();
+	chartsSpmData->updateRanges();  // Update the ranges for the data
+
 	std::vector<char> columnVisibility(parameterNames.size(), true);
+	columnVisibility[parameterNames.size()] = false;  // Hide the last column
 	chartsSpmWidget->showAllPlots(false);
 	chartsSpmWidget->setData(chartsSpmData, columnVisibility);
 	chartsSpmWidget->setHistogramVisible(false);
-	chartsSpmWidget->setPointRadius(2);
+	chartsSpmWidget->setColorParam("Color");// using a "qualitative" color scheme, i.e., distinct colors for each integer value:
+	chartsSpmWidget->setColorParameterMode(iAQSplom::pmQualitative);
+	// using the "Accent" color scheme from Color Brewer (https://colorbrewer2.org/)
+	auto ColorThemeName = "Brewer Accent (max. 8)";
+	// for a list of other available color themes, see libs/base/iAColorTheme.cpp:
+	// the themes are defined in the iAColorThemeManager constructor
+	// to use the colors elsewhere, use:
+	//   auto colorTheme = iAColorThemeManager::instance().theme(ColorThemeName);
+	//   colorTheme->color(1);
+	//   colorTheme->color(2);
+	auto colorThemeIdx = iAColorThemeManager::instance().availableThemes().indexOf(ColorThemeName);
+	chartsSpmWidget->setColorThemeQual(colorThemeIdx);
+	// improve point visibilility:
+	// since we have only two points, set them to fully opaque
+
+	chartsSpmWidget->setPointOpacity(1.0);
+	chartsSpmWidget->setPointRadius(4.0);
 	chartsSpmWidget->setMinimumWidth(400);
+
+
+
 	chartsSpmWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
 	QVariantMap paramValues = originalParamValues; //Make a copy of the parameter values to allow modifications
