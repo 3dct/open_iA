@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFilterPreviewModuleInterface.h"
 
+#include <iAColorTheme.h>
+
 #include "iAChannelData.h"
 #include "iAMainWindow.h"
 #include "iAMdiChild.h"
@@ -14,7 +16,6 @@
 #include <iAQSplom.h>
 #include <iASPLOMData.h>
 #include <iAColorTheme.h>
-
 
 #include "vtkColorTransferFunction.h"
 
@@ -133,6 +134,7 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 	{
 		paramNamesVector.push_back(paramName);
 	}
+	paramNamesVector.push_back("Color");
 	chartsSpmData->setParameterNames(paramNamesVector);
 
 	// Populate the data vectors with actual parameter values
@@ -143,11 +145,14 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 		chartsSpmData->data()[i].push_back(minValues[i]);
 		chartsSpmData->data()[i].push_back(maxValues[i]);
 	}
+	// one distinct value for each data point:
+	chartsSpmData->data()[parameterNames.size()].push_back(1);
+	chartsSpmData->data()[parameterNames.size()].push_back(2);
 
-	chartsSpmData->updateRanges();  // Update the ranges for the data
-
-	std::vector<char> columnVisibility(parameterNames.size(), true);
-	columnVisibility[parameterNames.size()] = false;  // Hide the last column
+	chartsSpmData->updateRanges();
+	// there is an additional column now, make space for it in the visibility vector as well:
+	std::vector<char> columnVisibility(parameterNames.size()+1, true);
+	columnVisibility[parameterNames.size()] = false;  // and make sure the "color" data is not visible
 	chartsSpmWidget->showAllPlots(false);
 	chartsSpmWidget->setData(chartsSpmData, columnVisibility);
 	chartsSpmWidget->setHistogramVisible(false);

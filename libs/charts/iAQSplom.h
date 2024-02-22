@@ -129,8 +129,9 @@ public:
 	void showDefaultMaxizimedPlot();                                 //!< maximize plot in upper left corner
 	void addContextMenuAction(QAction* action);                      //!< add an additional option to the context menu
 	size_t colorLookupParam() const;                                 //!< parameter currently used for color lookup
-	std::shared_ptr<iALookupTable> lookupTable() const;               //!< get lookup table
+	std::shared_ptr<iALookupTable> lookupTable() const;              //!< get lookup table
 	ColorMode colorMode() const;                                     //!< get current coloring mode
+	void setColorParameterMode(ColorParameterMode paramMode);        //!< Set mode how colors are applied from parameter
 	void saveSettings(QSettings & iniFile) const;                    //!< store current settings into given object
 	void loadSettings(QVariantMap const & iniFile);                  //!< load settings from given object
 public slots:
@@ -194,7 +195,6 @@ private:
 	void updateHistograms();                                         //!< Updates all histograms when data or filter changes
 	void updateHistogram(size_t paramIndex);                         //!< Updates the histogram of the given parameter
 	void setColorMode(ColorMode colorMode);                          //!< Set color mode (method how points are colored)
-	void setColorParameterMode(ColorParameterMode paramMode);        //!< Set mode how colors are applied from parameter
 	void setColorRangeMode(ColorRangeMode rangeMode);                //!< Set how parameter range is determined if points colored by parameter
 	void applyLookupTable();                                         //!< Apply lookup table to all the scatter plots.
 	void createScatterPlot(size_t y, size_t x, bool initial);        //!< Creates a single scatter plot at location y, y
