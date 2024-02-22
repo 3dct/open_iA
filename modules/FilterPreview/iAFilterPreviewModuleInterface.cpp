@@ -163,9 +163,7 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 	// for a list of other available color themes, see libs/base/iAColorTheme.cpp:
 	// the themes are defined in the iAColorThemeManager constructor
 	// to use the colors elsewhere, use:
-	//   auto colorTheme = iAColorThemeManager::instance().theme(ColorThemeName);
-	//   colorTheme->color(1);
-	//   colorTheme->color(2);
+	auto colorTheme = iAColorThemeManager::instance().theme(ColorThemeName);
 	auto colorThemeIdx = iAColorThemeManager::instance().availableThemes().indexOf(ColorThemeName);
 	chartsSpmWidget->setColorThemeQual(colorThemeIdx);
 	// improve point visibilility:
@@ -192,8 +190,8 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 	mainLayout->addLayout(controlLayout,5);*/
 
 	QHBoxLayout* splitLayout = new QHBoxLayout;
-	splitLayout->addLayout(imageLayout, 5);
-	splitLayout->addLayout(controlLayout, 5);
+	splitLayout->addLayout(imageLayout, 1);
+	splitLayout->addLayout(controlLayout, 3);
 
 
 	QHBoxLayout* imageListLayout = new QHBoxLayout;
@@ -351,7 +349,11 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 
 		// Now add the container to your overall layout
 		imageListLayout->addWidget(container);
-	}	
+	}
+
+	slicerCopies[0]->setBackground(colorTheme->color(1));  
+	slicerCopies[4]->setBackground(colorTheme->color(2));  
+
 
 	
 	connect(chartsSpmWidget, &iAQSplom::chartClick, this,
