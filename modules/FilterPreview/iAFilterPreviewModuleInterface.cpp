@@ -355,6 +355,7 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 			&paramValues](
 			size_t paramX, size_t paramY, double x, double y, Qt::KeyboardModifiers modifiers)
 		{
+			Q_UNUSED(modifiers);
 			LOG(lvlInfo,
 				QString("params : %1...%2")
 					.arg(paramValues[parameterNames[paramX]].toString())
