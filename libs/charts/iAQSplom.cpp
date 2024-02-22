@@ -1602,16 +1602,17 @@ void iAQSplom::updateLookupTable()
 			break;
 		}
 		case cmByParameter:
-			if (m_settingsDlg->rbContinuous->isChecked())
+			if (settings.colorParameterMode == pmContinuous)
 			{
 				*m_lut.get() = iALUT::Build(lutRange, settings.colorThemeName, 256, alpha);
 			}
-			else if (m_settingsDlg->rbQualitative->isChecked())
+			else if (settings.colorParameterMode == pmQualitative)
 			{
 				m_lut->setRange(lutRange);
-				m_lut->allocate(lutRange[1] - lutRange[0]);
+				size_t numColors = static_cast<int>(std::ceil(lutRange[1] - lutRange[0])) + 1;
+				m_lut->allocate(numColors);
 				auto theme = iAColorThemeManager::instance().theme(settings.colorThemeQualName);
-				for (size_t colorIdx = 0; colorIdx < lutRange[1] - lutRange[0]; ++colorIdx)
+				for (size_t colorIdx = 0; colorIdx < numColors; ++colorIdx)
 				{
 					m_lut->setColor(colorIdx, theme->color(colorIdx % theme->size()));
 				}
@@ -2009,6 +2010,9 @@ void iAQSplom::setColorMode(ColorMode colorMode)
 void iAQSplom::setColorParameterMode(ColorParameterMode paramMode)
 {
 	settings.colorParameterMode = paramMode;
+	QSignalBlocker blockRBContinuous(m_settingsDlg->rbContinuous), blockRBQualitative(m_settingsDlg->rbQualitative);
+	m_settingsDlg->rbContinuous->setChecked(settings.colorParameterMode == pmContinuous);
+	m_settingsDlg->rbQualitative->setChecked(settings.colorParameterMode == pmQualitative);
 	updateColorControls();
 }
 
