@@ -46,7 +46,7 @@ class dlg_FeatureScout;
 class iAImNDTModuleInterface;
 class iAObjectData;
 
-
+/*
 class iAXVRATool : public iATool
 {
 private:
@@ -54,7 +54,7 @@ private:
 	iAFrustumActor* fsFrustum;
 	iAFrustumActor* vrFrustum;
 };
-
+*/
 
 iAXVRAModuleInterface::iAXVRAModuleInterface() :
 	m_fsFrustum(nullptr),
