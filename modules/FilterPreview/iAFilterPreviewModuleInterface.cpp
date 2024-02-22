@@ -146,8 +146,8 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 		chartsSpmData->data()[i].push_back(maxValues[i]);
 	}
 	// one distinct value for each data point:
+	chartsSpmData->data()[parameterNames.size()].push_back(0);
 	chartsSpmData->data()[parameterNames.size()].push_back(1);
-	chartsSpmData->data()[parameterNames.size()].push_back(2);
 
 	chartsSpmData->updateRanges();
 	// there is an additional column now, make space for it in the visibility vector as well:
@@ -156,10 +156,11 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 	chartsSpmWidget->showAllPlots(false);
 	chartsSpmWidget->setData(chartsSpmData, columnVisibility);
 	chartsSpmWidget->setHistogramVisible(false);
+	//chartsSpmWidget->settings.enableColorSettings = true;  // to be able to see and change color settings also from settings dialog
 	chartsSpmWidget->setColorParam("Color");// using a "qualitative" color scheme, i.e., distinct colors for each integer value:
 	chartsSpmWidget->setColorParameterMode(iAQSplom::pmQualitative);
-	// using the "Accent" color scheme from Color Brewer (https://colorbrewer2.org/)
-	auto ColorThemeName = "Brewer Accent (max. 8)";
+	// using the "Set1" color scheme from Color Brewer (https://colorbrewer2.org/)
+	auto ColorThemeName = "Brewer Set1 (max. 9)";
 	// for a list of other available color themes, see libs/base/iAColorTheme.cpp:
 	// the themes are defined in the iAColorThemeManager constructor
 	// to use the colors elsewhere, use:
@@ -346,11 +347,9 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 		imageListLayout->addWidget(container);
 	}
 
-	slicerCopies[0]->setBackground(colorTheme->color(1));  
-	slicerCopies[4]->setBackground(colorTheme->color(2));  
+	slicerCopies[0]->setBackground(colorTheme->color(0));
+	slicerCopies[4]->setBackground(colorTheme->color(1));
 
-
-	
 	connect(chartsSpmWidget, &iAQSplom::chartClick, this,
 		[this, slicer, &slicerCopies, &slicerParameters, chartsSpmData, chartsSpmWidget, columnVisibility,
 			&paramValues](
