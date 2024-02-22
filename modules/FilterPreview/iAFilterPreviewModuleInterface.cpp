@@ -164,22 +164,17 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 	// the themes are defined in the iAColorThemeManager constructor
 	// to use the colors elsewhere, use:
 	auto colorTheme = iAColorThemeManager::instance().theme(ColorThemeName);
-	auto colorThemeIdx = iAColorThemeManager::instance().availableThemes().indexOf(ColorThemeName);
-	chartsSpmWidget->setColorThemeQual(colorThemeIdx);
+	chartsSpmWidget->setColorThemeQual(ColorThemeName);
+	
 	// improve point visibilility:
-	// since we have only two points, set them to fully opaque
-
-	chartsSpmWidget->setPointOpacity(1.0);
-	chartsSpmWidget->setPointRadius(4.0);
+	chartsSpmWidget->setPointOpacity(1.0);  // since we have only two points, set them to fully opaque
+	chartsSpmWidget->setPointRadius(4.0);   // and make them a little larger
 	chartsSpmWidget->setMinimumWidth(400);
-
-
 
 	chartsSpmWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
 	QVariantMap paramValues = originalParamValues; //Make a copy of the parameter values to allow modifications
-	
-	
+
 	// Add scatter plot matrix widget to layout
 	QVBoxLayout* controlLayout = new QVBoxLayout;
 	controlLayout->addWidget(chartsSpmWidget);
