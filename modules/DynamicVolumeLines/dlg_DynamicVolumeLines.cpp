@@ -59,7 +59,7 @@ class iAMulti3DRendererView : public iAQTtoUIConnector<QDockWidget, Ui_Multi3DRe
 
 const double impInitValue = 0.025;
 const double offsetY = 1000;
-const QString plotColor = "DVL-Metro Colors (max. 17)";	// Brewer Qualitaive 1 (max. 8) // DVL-Metro Colors (max. 17)
+const QString plotColor = "DVL-Metro Colors (max. 17)";	// Brewer Qualitative 1 (max. 8) // DVL-Metro Colors (max. 17)
 
 void winModCallback(vtkObject *caller, long unsigned int vtkNotUsed(eventId),
 	void* vtkNotUsed(client), void* vtkNotUsed(callData))

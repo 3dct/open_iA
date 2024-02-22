@@ -1175,7 +1175,7 @@ void iASlicerImpl::updateBackground()
 {
 	if (m_backgroundColor.isValid())
 	{
-		m_ren->SetBackground(m_backgroundColor.redF(), m_backgroundColor.blueF(), m_backgroundColor.greenF());
+		m_ren->SetBackground(m_backgroundColor.redF(), m_backgroundColor.greenF(), m_backgroundColor.blueF());
 		return;
 	}
 	switch (m_mode)
