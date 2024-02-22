@@ -559,8 +559,8 @@ void iAFilterPreviewModuleInterface::filterPreview()
 
 	// Get the size of the main window and calculate the relative size for the slicers
 	mainWindowSize = m_mainWnd->size();
-	slicerWidth = mainWindowSize.width() / 5;    
-	slicerHeight = mainWindowSize.height() / 5;  
+	slicerWidth = mainWindowSize.width() / 10;
+	slicerHeight = mainWindowSize.height() / 10;
 
 	int numSamples = 9;
 	std::vector<std::vector<double>> lhsSamples;
