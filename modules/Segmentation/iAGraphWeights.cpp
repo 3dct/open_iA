@@ -51,7 +51,7 @@ std::shared_ptr<iAGraphWeights> CalculateGraphWeights(
 	iAVectorArray const & voxelData,
 	iAVectorDistance const & distanceFunc)
 {
-	std::shared_ptr<iAGraphWeights> result(new iAGraphWeights(graph.edgeCount()));
+	auto result = std::make_shared<iAGraphWeights>(graph.edgeCount());
 	for (iAEdgeIndexType i=0; i<graph.edgeCount(); ++i)
 	{
 		iAEdgeType edge = graph.edge(i);

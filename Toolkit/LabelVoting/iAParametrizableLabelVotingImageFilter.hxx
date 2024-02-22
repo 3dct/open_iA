@@ -81,7 +81,7 @@ iAParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 	typedef itk::ImageRegionConstIterator<TInputImage> IteratorType;
 	for (size_t i = 0; i < numberOfInputFiles; ++i)
 	{
-		const InputImageType *inputImage = this->GetInput(i);
+		const InputImageType *inputImage = this->GetInput(static_cast<unsigned int>(i));
 		IteratorType          it(inputImage, inputImage->GetBufferedRegion());
 		for (it.GoToBegin(); !it.IsAtEnd(); ++it)
 		{
@@ -179,13 +179,13 @@ void iAParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::Threaded
 	std::vector<std::vector<ConstDblIt> > probIt;
 	for (size_t i = 0; i < numberOfInputFiles; ++i)
 	{
-		it.push_back(IteratorType(this->GetInput(i), outputRegionForThread));
+		it.push_back(IteratorType(this->GetInput(static_cast<unsigned int>(i)), outputRegionForThread));
 		if (m_MaxPixelEntropy >= 0 || m_weightType == Certainty || m_weightType == FBGSBGDiff)
 		{
 			probIt.push_back(std::vector<ConstDblIt>());
 			for (size_t l = 0; l < m_TotalLabelCount; ++l)
 			{
-				probIt[i].push_back(ConstDblIt(m_probImgs[i][l], outputRegionForThread));
+				probIt[i].push_back(ConstDblIt(m_probImgs[static_cast<int>(i)][l], outputRegionForThread));
 				probIt[i][l].GoToBegin();
 			}
 		}
@@ -295,7 +295,7 @@ void iAParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::Threaded
 			if (votesByLabel[l] > firstBestGuessVotes)
 			{
 				firstBestGuessVotes = votesByLabel[l];
-				firstBestGuessLabel = l;
+				firstBestGuessLabel = static_cast<unsigned int>(l);
 				out.Set(static_cast<OutputPixelType>(l));
 			} else if (votesByLabel[l] == firstBestGuessVotes)
 			{

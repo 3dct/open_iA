@@ -19,7 +19,6 @@ class iAvtkPixelVectorArray: public iAVectorArray
 {
 public:
 	iAvtkPixelVectorArray(int const * dim);
-	iAvtkPixelVectorArray(size_t width, size_t height, size_t depth);
 	size_t size() const override;
 	size_t channelCount() const override;
 	std::shared_ptr<iAVectorType const> get(size_t voxelIdx) const override;

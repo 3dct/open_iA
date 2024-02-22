@@ -237,6 +237,8 @@ namespace iAImagegenerator
 				cudaWorking = false;           // if it fails once, disable future use of nvJPEG for this run of open_iA
 			}
 		}
+#else
+		Q_UNUSED(viewID);
 #endif
 		return vtkTurboJPEGCreateImage(window, quality);
 	}
