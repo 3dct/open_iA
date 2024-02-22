@@ -148,7 +148,7 @@ iARemovePeaksOtsuThresholdImageCalculator<TInputImage>
 #else
     vnl_math::sqr( meanLeft - meanRight );
 #endif
-  int maxBinNumber = 0;
+  size_t maxBinNumber = 0;
 
   double freqLeftOld = freqLeft;
   double meanLeftOld = meanLeft;

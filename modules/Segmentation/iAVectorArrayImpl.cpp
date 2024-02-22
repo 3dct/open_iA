@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVectorArrayImpl.h"
 
@@ -7,13 +7,7 @@ iAVectorArray::~iAVectorArray()
 
 iAvtkPixelVectorArray::iAvtkPixelVectorArray(int const * dim):
 	m_coordConv(dim[0], dim[1], dim[2])
-{
-}
-
-iAvtkPixelVectorArray::iAvtkPixelVectorArray(size_t width, size_t height, size_t depth):
-	m_coordConv(width, height, depth)
-{
-}
+{}
 
 void iAvtkPixelVectorArray::AddImage(vtkSmartPointer<vtkImageData> img)
 {

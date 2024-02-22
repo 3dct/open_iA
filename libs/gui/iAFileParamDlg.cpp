@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <iAFileParamDlg.h>
 
@@ -380,7 +380,7 @@ class iAHDF5FileLoadParamDlg: public iAFileParamDlg
 				if (!(okX && okY && okZ))
 				{
 					msg += "One of the spacing values is invalid (these have to be valid floating point numbers)!";
-					
+
 				}
 				if (msg.isEmpty())
 				{

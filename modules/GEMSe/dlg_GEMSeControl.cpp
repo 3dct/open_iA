@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "dlg_GEMSeControl.h"
 
@@ -139,7 +139,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(cbCorrectnessUncertainty, &QCheckBox::stateChanged, this, &dlg_GEMSeControl::setCorrectnessUncertainty);
 
 	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
-	// TODO NEWIO: listen to viewer 
+	// TODO NEWIO: listen to viewer
 	//connect(mdiChild, &iAMdiChild::transferFunctionChanged, this, &dlg_GEMSeControl::dataTFChanged);
 	connect(mdiChild, &iAMdiChild::dataSetRendered, this, &dlg_GEMSeControl::dataAvailable);
 	connect(mdiChild, &iAMdiChild::dataSetSelected, this, &dlg_GEMSeControl::dataSetSelected);

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "dlg_CSVInput.h"
 
@@ -26,7 +26,7 @@ namespace
 	const QString DefaultFormat = "DefaultFormat";
 	const QString AdvancedMode = "AdvancedMode";
 
-	
+
 	const QString CfgKeyPreviousCSVs("PreviousCSVFiles");
 	const QString CfgKeyLRU("LRU%1");
 	constexpr int MaxLRU = 25;

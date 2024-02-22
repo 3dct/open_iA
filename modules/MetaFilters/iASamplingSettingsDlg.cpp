@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASamplingSettingsDlg.h"
 
@@ -172,7 +172,7 @@ namespace
 		QString const& pName,
 		std::shared_ptr<iAAttributeDescriptor> descriptor,
 		QGridLayout* gridLay,
-		int curGridLine, 
+		int curGridLine,
 		iASamplingSettingsDlg* eventHandler)
 	{
 		std::shared_ptr<iAParameterInputs> result;
@@ -482,7 +482,7 @@ void iASamplingSettingsDlg::getValues(QVariantMap& values) const
 	{
 		values[spnFilter] = "";
 	}
-	
+
 	for (int i = 0; i < m_paramInputs.size(); ++i)
 	{
 		m_paramInputs[i]->retrieveInputValues(values);

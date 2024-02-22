@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 #include "iAPlotData.h"
@@ -37,7 +37,7 @@ public:
 	//! @}
 	//! Get the spacing (the witdh of a bin)
 	iAPlotData::DataType spacing() const;
-	
+
 	//! Set the value for a given bin index.
 	//! Also updates y bounds
 	//! @param binIdx the index of the bin that should be changed

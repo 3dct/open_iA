@@ -26,7 +26,7 @@ foreach(libdir ${children})
 		if (APPLE)  # suppress duplicate libraries warning on Apple Clang:
 			target_link_options(${libname} PUBLIC LINKER:-no_warn_duplicate_libraries)
 		endif()
-		
+
 		set(VTK_REQUIRED_LIBS_PUBLIC)
 		set(VTK_REQUIRED_LIBS_PRIVATE)
 		#set(ITK_REQUIRED_LIBS_PUBLIC)
@@ -67,7 +67,7 @@ foreach(libdir ${children})
 		if (openiA_USE_IDE_FOLDERS)
 			SET_PROPERTY(TARGET ${libname} PROPERTY FOLDER "Libraries")
 		endif()
-		
+
 		if (APPLE)
 			include_directories( /System/Library/Frameworks )
 			find_library(COCOA_LIBRARY Cocoa)
@@ -80,7 +80,7 @@ foreach(libdir ${children})
 			target_link_libraries(${libname} PRIVATE ${EXTRA_LIBS})
 			#MESSAGE(STATUS "Extra Core: ${EXTRA_LIBS}")
 		endif()
-		
+
 		# Installation
 		if (WIN32)
 			install(TARGETS ${libname} RUNTIME DESTINATION .)

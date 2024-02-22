@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompBarChart.h"
 
@@ -53,7 +53,7 @@
 vtkStandardNewMacro(iACompBarChart::BarChartInteractorStyle);
 
 iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* coeffVar, iACsvDataStorage* dataStorage) :
-	QDockWidget(parent), 
+	QDockWidget(parent),
 	m_dataStorage(dataStorage),
 	m_coeffVar(coeffVar),
 	m_qvtkWidget(new iAQVTKWidget(this)),
@@ -78,9 +78,9 @@ iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* c
 	style = vtkSmartPointer<BarChartInteractorStyle>::New();
 	style->setOuterClass(this);
 	style->initializeBarChartInteractorStyle();
-	
+
 	m_view = vtkSmartPointer<vtkContextView>::New();
-	
+
 	m_qvtkWidget->interactor()->SetInteractorStyle(style);
 
 	m_view->SetRenderWindow(m_qvtkWidget->renderWindow());
@@ -110,7 +110,7 @@ void iACompBarChart::showEvent(QShowEvent* event)
 	else if (m_lastState == iACompVisOptions::lastState::Defined)
 	{
 		renderWidget();
-	}	
+	}
 }
 
 void iACompBarChart::initializeBarChart()
@@ -160,7 +160,7 @@ void iACompBarChart::initializeBarChart()
 	double col[3];
 	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, col);
 	m_originalBarChart = addBars(polyData, colorArrayName, scaleArrayName, 1, col);
-	
+
 	m_view->GetScene()->AddItem(m_area);
 	m_view->GetRenderWindow()->SetMultiSamples(0);
 	m_view->Update();
@@ -202,7 +202,7 @@ void iACompBarChart::initializeAxes(std::vector<double>* orderedPos)
 
 	axisBottom->SetCustomTickPositions(labelInd, labelStrings);
 	axisBottom->GetLabelProperties()->SetLineOffset(10);
-	
+
 
 	if (coefficients->size() < 20)
 	{
@@ -297,7 +297,7 @@ vtkSmartPointer<vtkPropItem> iACompBarChart::addBars(vtkSmartPointer<vtkPolyData
 
 std::vector<double>* iACompBarChart::changeInterval(std::vector<double>* input, double newMax, double newMin, double oldMax, double oldMin)
 {
-	
+
 	std::vector<double>* result = new std::vector<double>(input->size(), 0);
 
 	/*LOG(lvlDebug,"oldMin = " + QString::number(oldMin));
@@ -312,7 +312,7 @@ std::vector<double>* iACompBarChart::changeInterval(std::vector<double>* input, 
 
 	return result;
 }
-	
+
 vtkSmartPointer<vtkIntArray> iACompBarChart::getIndexArray(std::vector<double>* input, const char* name)
 {
 	vtkSmartPointer<vtkIntArray> result = vtkSmartPointer<vtkIntArray>::New();
@@ -405,7 +405,7 @@ void iACompBarChart::updateBarChart(std::vector<double>* coefficientsOriginal, s
 
 	updateOriginalBarChart();
 	updateLabels();
-	
+
 	//double maxVal = coefficientsSelected->at(0); //first value is the biggest
 	double maxNumberObjects = m_dataStorage->getTotalNumberOfObjects();
 	double selectedNumberObjects = 0;
@@ -419,7 +419,7 @@ void iACompBarChart::updateBarChart(std::vector<double>* coefficientsOriginal, s
 	int numberOfBars = static_cast<int>(coefficientsSelected->size());
 
 	vtkSmartPointer<vtkPoints> barPositionsSelected = vtkSmartPointer<vtkPoints>::New();
-	
+
 	vtkSmartPointer<vtkFloatArray> scales = vtkSmartPointer<vtkFloatArray>::New();
 	std::string scaleArrayName = "ScalesArraySelected";
 	scales->SetName(scaleArrayName.c_str());
@@ -433,7 +433,7 @@ void iACompBarChart::updateBarChart(std::vector<double>* coefficientsOriginal, s
 	for (int i = 0; i < numberOfBars; i++)
 	{
 		double xi = i + 1;
-		double yi = 0; 
+		double yi = 0;
 
 		//set position
 		double xiSelected = xi - (m_barWidth * 0.5) + (width * 0.5);
@@ -631,7 +631,7 @@ void iACompBarChart::BarChartInteractorStyle::buildPointLocatorOriginal(vtkSmart
 		double xMax = xMiddle + (width*0.5);
 		double yMin = 0;
 		double yMax = height;
-			
+
 		positions.at(0) = xMin;
 		positions.at(1) = xMax;
 		positions.at(2) = yMin;
@@ -728,7 +728,7 @@ void iACompBarChart::BarChartInteractorStyle::OnLeftButtonDown()
 	vtkVector2f posInSceneCoords = m_outerClass->m_area->GetDrawAreaItem()->MapFromScene(posVec);
 
 	double posInScene[3] = { posInSceneCoords[0], 0.0, 0.0 };
-	
+
 	if(m_selectedPointLocatorEmpty)
 	{
 		pointLocatorOriginal->FindClosestNPoints(1, posInScene, result);

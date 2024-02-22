@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -44,7 +44,7 @@ public:
 
 	iATransferFunction* tf();
 	void setTF(iATransferFunction* tf);
-	
+
 	void triggerOnChange();
 
 	// TODO: remove / move to iAFilterChart/iARangeSliderDiagramWidget!
@@ -57,7 +57,7 @@ private:
 	void setPointColor(int selectedPoint, double chartX, double red, double green, double blue);
 	void setPointOpacity(int selectedPoint, int pixelX, int pixelY);
 	void setPointOpacity(int selectedPoint, int pixelY);
-	
+
 	//! convert from pixel coordinate on chart [0..maxDiagPixelHeight] to opacity [0..1]
 	double pixelY2Opacity(int pixelY) const;
 

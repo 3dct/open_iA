@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASensitivityData.h"
 
@@ -327,7 +327,7 @@ void iASensitivityData::compute(iAProgress* progress)
 	}
 
 	// According to https://math.stackexchange.com/questions/302160:
-	// it is popular to use the centered finite differences when possible: ( x_(t+1) - x_(t-1) ) / 2 delta t ) 
+	// it is popular to use the centered finite differences when possible: ( x_(t+1) - x_(t-1) ) / 2 delta t )
 	// at boundary, use forward or backward difference
 
 	// for each characteristic

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "mdichild.h"
 
@@ -166,6 +166,10 @@ void MdiChild::connectSignalsToSlots()
 		{
 			m_dwSlicer[i]->showBorder(m_renderer->isShowSlicePlanes());
 		}
+		auto s = m_renderer->settings()[iARendererImpl::MagicLensSize].toInt();
+		auto fw = m_renderer->settings()[iARendererImpl::MagicLensFrameWidth].toInt();
+		m_dwRenderer->vtkWidgetRC->setLensSize(s, s);
+		m_dwRenderer->vtkWidgetRC->setFrameWidth(fw);
 	};
 	connect(m_renderer, &iARendererImpl::settingsChanged, this, adaptSlicerBorders);
 	adaptSlicerBorders();

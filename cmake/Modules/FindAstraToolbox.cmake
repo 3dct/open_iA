@@ -79,7 +79,7 @@ if (ASTRA_TOOLBOX_FOUND)
 		ERROR_VARIABLE astra_describe_err
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
 	if (${astra_describe_res} EQUAL 0)
-		STRING(REGEX REPLACE "v" "" ASTRA_VERSION ${astra_describe_out})
+		STRING(REPLACE "v" "" ASTRA_VERSION ${astra_describe_out})
 	else ()
 		set(ASTRA_VERSION "unknown")
 		string(FIND "${ASTRA_TOOLBOX_DIR}" "-" ASTRA_DASH_POS REVERSE)

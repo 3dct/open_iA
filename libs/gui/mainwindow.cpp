@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "mainwindow.h"
 
@@ -998,7 +998,7 @@ void MainWindow::updateMenus()  // (and toolbars)
 {
 	bool hasMdiChild = activeMdiChild();
 	auto child = activeMDI();
-	
+
 	// File Menu: / toolbar
 	m_ui->actionSaveDataSet->setEnabled(hasMdiChild);
 	m_ui->actionSaveProject->setEnabled(activeChild<iASavableProject>());
@@ -1290,7 +1290,7 @@ void MainWindow::readSettings()
 		m_layoutNames.push_back("3");
 	}
 	m_defaultPreferences.PositionMarkerSize = settings.value("Preferences/prefStatExt", defaultPrefs.PositionMarkerSize).toInt();
-	
+
 	// Logging-related:
 	bool prefLogToFile = settings.value("Preferences/prefLogToFile", false).toBool();
 	QString logFileName = settings.value("Preferences/prefLogFile", "debug.log").toString();
@@ -1331,7 +1331,7 @@ void MainWindow::readSettings()
 	{
 		m_ui->actionTabbed->setChecked(true);
 	}
-	
+
 	// performance:
 	m_defaultPreferences.LimitForAuto3DRender = settings.value("Preferences/prefLimitForAuto3DRender", defaultPrefs.LimitForAuto3DRender).toInt();
 
@@ -1392,7 +1392,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Slicer/ssLinkViews", m_defaultSlicerSettings.LinkViews);
 	settings.setValue("Slicer/ssLinkMDIs", m_defaultSlicerSettings.LinkMDIs);
 	settings.setValue("Slicer/ssSnakeSlices", m_defaultSlicerSettings.SnakeSlices);
-	
+
 	settings.setValue("Parameters/loadSavePreferences", m_loadSavePreferences);
 	settings.setValue("Parameters/loadSaveSlicerSettings", m_loadSaveSlicerSettings);
 	settings.setValue("Parameters/settingsToLoadSave", m_settingsToLoadSave);

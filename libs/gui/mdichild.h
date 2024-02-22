@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -309,7 +309,7 @@ private:
 	QMap<uint, std::shared_ptr<iAChannelData> > m_channels;
 	uint m_nextChannelID;
 	uint m_magicLensChannel;
-	
+
 	QByteArray m_initialLayoutState;
 	QString m_layout;
 

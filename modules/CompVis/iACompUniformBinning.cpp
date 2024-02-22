@@ -1,11 +1,11 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompUniformBinning.h"
 
 #include "iACompUniformBinningData.h"
 
 iACompUniformBinning::iACompUniformBinning(iACsvDataStorage* dataStorage, bin::BinType* datasets) :
-	iACompBinning(dataStorage, datasets), 
+	iACompBinning(dataStorage, datasets),
 	m_maxAmountInAllBins(-1),
 	m_uniformBinningData(nullptr),
 	m_currentNumberOfBins(-1)
@@ -36,7 +36,7 @@ void iACompUniformBinning::calculateBins()
 
 		std::vector<double> values = m_datasets->at(i);
 		bin::BinType* bins = bin::initialize(m_currentNumberOfBins);
-		
+
 		//initalize
 		std::vector<csvDataType::ArrayType*>* binsWithFiberIds = new std::vector<csvDataType::ArrayType*>();
 		for (int k = 0; k < m_currentNumberOfBins; k++)
@@ -123,7 +123,7 @@ std::vector<double> iACompUniformBinning::calculateBinBoundaries(
 		double lowerBound = minVal + (binLength * b);
 		bins.push_back(lowerBound);
 	}
-	
+
 	return bins;
 }
 

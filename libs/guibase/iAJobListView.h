@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -55,7 +55,7 @@ public:
 	//! end of the method, the job will be removed automatically from the list.
 	//! Example:
 	//!
-	//! 
+	//!
 	//!     #include "iAJobListView.h"
 	//!     #include "iAProgress.h"
 	//!     ...

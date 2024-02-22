@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iADataSetRendererImpl.h"
 
@@ -261,7 +261,7 @@ void iAGraphRenderer::applyAttributes(QVariantMap const& values)
 		m_lineMapper->SelectColorArray("EdgeColors");
 	}
 	//m_lineActor->GetProperty()->SetLineWidth(values[LineWidth].toFloat());
-	
+
 	if (values[LineWidthVaryBy].toString() != VaryModeFixed)
 	{
 		m_data->poly()->GetPointData()->SetActiveScalars(values[LineWidthVaryBy].toString().toStdString().c_str());
@@ -270,7 +270,7 @@ void iAGraphRenderer::applyAttributes(QVariantMap const& values)
 		? VTK_VARY_RADIUS_OFF
 		: VTK_VARY_RADIUS_BY_SCALAR);
 	m_tubeFilter->SetRadius(values[LineWidth].toDouble());
-	
+
 	applyActorProperties(m_pointActor, values, PointPrefix);
 	applyActorProperties(m_lineActor, values, LinePrefix);
 	m_lineActor->SetPickable(values[Pickable].toBool());

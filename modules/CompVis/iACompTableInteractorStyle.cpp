@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompTableInteractorStyle.h"
 
@@ -47,11 +47,11 @@ namespace Pick
 	};
 }
 
-iACompTableInteractorStyle::iACompTableInteractorStyle() : 
+iACompTableInteractorStyle::iACompTableInteractorStyle() :
 	vtkInteractorStyleTrackballCamera(),
-	m_main(nullptr), 
-	m_zoomLevel(1), 
-	m_zoomOn(true), 
+	m_main(nullptr),
+	m_zoomLevel(1),
+	m_zoomOn(true),
 	m_picked(new Pick::PickedMap()),
 	m_pickedOld(new Pick::PickedMap()),
 	m_zoomedRowData(nullptr),

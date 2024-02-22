@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -8,7 +8,6 @@
 
 #include <QObject>
 
-class iADataSetRenderer;
 class iAVRMainThread;
 
 class vtkRenderer;
@@ -36,9 +35,13 @@ public:
 	void hideSkybox();
 	void showFloor();
 	void hideFloor();
+	//! retrieve the scale of the world that was set when this function was first called
 	double getInitialWorldScale();
+	//! @return whether the environment's main event loop is currently running
 	bool isRunning() const;
-	void removeRenderer(std::shared_ptr<iADataSetRenderer> renderer);
+	//! queue a task to be executed within the main VR thread
+	void queueTask(std::function<void()> task);
+	//! retrieve the currently used VR backend
 	iAvtkVR::Backend backend() const;
 private slots:
 	void vrDone();

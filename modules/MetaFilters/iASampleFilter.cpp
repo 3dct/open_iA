@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASampleFilter.h"
 
@@ -36,7 +36,7 @@ iASampleFilter::iASampleFilter() :
 	addParameter(spnContinueOnError, iAValueType::Boolean, false);
 	addParameter(spnCompressOutput, iAValueType::Boolean, true);
 	addParameter(spnNumberOfLabels, iAValueType::Discrete, 2);
-	
+
 	samplingMethods.removeAll(iASamplingMethodName::GlobalSensitivity);
 	// parameters only required for "Global sensitivity (star)" sampling:
 	addParameter(spnBaseSamplingMethod, iAValueType::Categorical, samplingMethods);

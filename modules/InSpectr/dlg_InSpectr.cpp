@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "dlg_InSpectr.h"
 
@@ -714,7 +714,7 @@ void dlg_InSpectr::loadDecomposition()
 		auto imgDS = dynamic_cast<iAImageData*>(ds.get());
 		list.push_back(imgDS->vtkImage());
 	}
-	
+
 	QString elementNames = collection->metaData(ElementNamesKey).toString();
 	QStringList elements = elementNames.split(",");
 

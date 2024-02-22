@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompUniformTable.h"
 
@@ -28,7 +28,7 @@
 #include <vtkUnsignedCharArray.h>
 
 iACompUniformTable::iACompUniformTable(iACompHistogramVis* vis, iACompUniformBinningData* uniformBinningData) :
-	iACompTable(vis), 
+	iACompTable(vis),
 	m_uniformBinningData(uniformBinningData),
 	m_originalPlaneActors(new std::vector<vtkSmartPointer<vtkActor>>()),
 	m_zoomedPlaneActors(new std::vector<vtkSmartPointer<vtkActor>>()),
@@ -93,14 +93,14 @@ void iACompUniformTable::setActive()
 		m_interactionStyle->reinitializeState();
 
 		drawHistogramTable(m_bins);
-		
+
 		//m_mainRenderer->ResetCamera();
 		renderWidget();
 	}
 	else if (m_lastState == iACompVisOptions::lastState::Changed)
 	{
 		drawHistogramTable(m_bins);
-		
+
 		//m_mainRenderer->ResetCamera();
 		renderWidget();
 	}
@@ -137,7 +137,7 @@ void iACompUniformTable::drawReorderedHistogramTable()
 void iACompUniformTable::drawHistogramTable(int bins)
 {
 	m_vis->calculateRowWidthAndHeight(m_vis->getWindowWidth(),m_vis->getWindowHeight(),m_vis->getAmountDatasets());
-	
+
 	if (m_mainRenderer->GetViewProps()->GetNumberOfItems() > 0)
 	{
 		m_mainRenderer->RemoveAllViewProps();
@@ -558,7 +558,7 @@ std::vector<vtkSmartPointer<vtkPolyData>>* iACompUniformTable::drawZoomedRow(int
 
 	for (int i = 0; i < static_cast<int>(cellIdsOriginalPlane->size()); i++)
 	{
-		vtkSmartPointer<vtkPolyData> plane = drawZoomedPlane(amountOfBins, startX, startY, endX, endY, i, currentData); 
+		vtkSmartPointer<vtkPolyData> plane = drawZoomedPlane(amountOfBins, startX, startY, endX, endY, i, currentData);
 		if (plane == nullptr)
 		{
 			continue;
@@ -625,7 +625,7 @@ void iACompUniformTable::drawZoomForZoomedRow(
 	bin::BinType* binData = m_uniformBinningData->getZoomedBinData();
 
 	if (binData == nullptr) return;
-	
+
 	std::vector<double>* min_max = bin::getMinimumAndMaximum(binData);
 	double minValueInBin = min_max->at(0);
 	double maxValueInBin = min_max->at(1);
@@ -641,10 +641,10 @@ void iACompUniformTable::drawZoomForZoomedRow(
 
 	double point1Zoomed[3];
 	point1A->GetTuple(point1A->GetNumberOfTuples() - 1, point1Zoomed);
-	
+
 	double point2Zoomed[3];
 	point2A->GetTuple(0, point2Zoomed);
-	
+
 	double startX = originZoomed[0];
 	double startY = originZoomed[1];
 	double endX = point1Zoomed[0];
@@ -718,7 +718,7 @@ void iACompUniformTable::drawZoomForZoomedRow(
 	glyphMapper->SetScalarModeToUseCellData();
 	glyphMapper->GetInput()->GetCellData()->SetScalars(colorArray);
 	glyphMapper->ScalarVisibilityOn();
-	
+
 	zoomedRowActor->SetMapper(glyphMapper);
 	zoomedRowActor->Modified();
 }
@@ -732,7 +732,7 @@ vtkSmartPointer<vtkPolyData> iACompUniformTable::drawZoomedPlane(
 
 	std::vector<double> pickedBinData = currentData->at(currBinIndex);
 	std::sort(pickedBinData.begin(), pickedBinData.end());
-	
+
 	m_vis->calculateSpecificBins(iACompVisOptions::binningType::Uniform, currentData, currBinIndex, bins);
 	bin::BinType* binData = m_uniformBinningData->getZoomedBinData();
 
@@ -756,7 +756,7 @@ vtkSmartPointer<vtkPolyData> iACompUniformTable::drawZoomedPlane(
 		minValueInBin = pickedBinData.at(0);
 		maxValueInBin = pickedBinData.at(pickedBinData.size() - 1);
 	}
-	
+
 	std::vector<double> binBoundaries = iACompVisOptions::calculateBinBoundaries(minValueInBin, maxValueInBin, bins);
 
 	//compute visual encoding - zoomed planes
@@ -778,12 +778,12 @@ vtkSmartPointer<vtkPolyData> iACompUniformTable::drawZoomedPlane(
 			maxBoundary = binBoundaries.at(i+1);
 		}
 		double xMax = iACompVisOptions::histogramNormalization(maxBoundary, startX, endX, minValueInBin, maxValueInBin);
-		
+
 		//set position coordinates for each bin glyph
 		originArray->InsertTuple3(i, xMin, startY, 0.0);
 		point1Array->InsertTuple3(i, xMax, startY, 0.0);  //width
 		point2Array->InsertTuple3(i, xMin, endY, 0.0);    //height
-		
+
 		//set color for each bin glyph
 		if (binData == nullptr)
 		{
@@ -901,7 +901,7 @@ void iACompUniformTable::drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPoin
 
 		drawLine(p0, p1, col, iACompVisOptions::LINE_WIDTH);
 
-		//right line from selected cell to the right outer point of the zoomed row 
+		//right line from selected cell to the right outer point of the zoomed row
 		double p2[3];
 		p2[0] = xMaxO;
 		p2[1] = p0[1];
@@ -1414,8 +1414,8 @@ void iACompUniformTable::highlightSelectedCell(vtkSmartPointer<vtkActor> pickedA
 	points->InsertNextPoint(origin);
 
 	double col[3];
-	iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN, col);	
-	
+	iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN, col);
+
 	vtkSmartPointer<vtkActor> selectedActor = drawPolyLine(points, col, iACompVisOptions::LINE_WIDTH);
 
 	m_highlighingActors->push_back(selectedActor);

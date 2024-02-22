@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <defines.h> // for DIM
 #include <iAFilterDefault.h>
@@ -207,7 +207,7 @@ void iADiscreteGaussian::performWork(QVariantMap const & parameters)
 iADiscreteGaussian::iADiscreteGaussian() :
 	iAFilter("Discrete Gaussian", "Smoothing/Blurring",
 		"Performs a discrete gaussian blurring using the given <em>Variance</em> and <em>Maximum Error</em>.<br/>"
-		"Note that the variance needs to be given in image coordinates (i.e. considering the spacing)."
+		"Note that the variance needs to be given in image coordinates (i.e. considering the spacing).<br/>"
 		"If <em>convert back to input type</em> is enabled, the resulting image "
 		"will have the same type as the input image; if it is not enabled, the result "
 		"will be a single precision floating point image.<br/>"
@@ -215,8 +215,8 @@ iADiscreteGaussian::iADiscreteGaussian() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1DiscreteGaussianImageFilter.html\">"
 		"Discrete Gaussian Filter</a> in the ITK documentation.")
 {
-	addParameter("Variance", iAValueType::Continuous, 0);
-	addParameter("Maximum error", iAValueType::Continuous, 0.01, 0 + std::numeric_limits<double>::epsilon(), 1 - std::numeric_limits<double>::epsilon());
+	addParameter("Variance", iAValueType::Continuous, 0, std::numeric_limits<double>::epsilon(), 1 - std::numeric_limits<double>::epsilon());
+	addParameter("Maximum error", iAValueType::Continuous, 0.01, std::numeric_limits<double>::epsilon(), 1 - std::numeric_limits<double>::epsilon());
 	addParameter("Convert back to input type", iAValueType::Boolean, false);
 }
 
@@ -323,7 +323,7 @@ iAGradientAnisotropicDiffusion::iAGradientAnisotropicDiffusion() :
 		"<em>Time step</em> sets the time step to be used for each iteration (update). The time "
 		"step is constrained at run-time to keep the solution stable. In general, the time step "
 		"should be at or below PixelSpacing / 2^(N+1), where N is the dimensionality of the image.<br/>"
-		"<em>Conductance</em> governs the sensitivity of the conductance equation."
+		"<em>Conductance</em> governs the sensitivity of the conductance equation.<br/>"
 		"If <em>convert back to input type</em> is enabled, the resulting image "
 		"will have the same type as the input image; if it is not enabled, the result "
 		"will be a single precision floating point image.<br/>"
@@ -383,7 +383,10 @@ iAGPUEdgePreservingSmoothing::iAGPUEdgePreservingSmoothing() :
 		"<em>Time step</em> sets the time step to be used for each iteration (update). The time "
 		"step is constrained at run-time to keep the solution stable. In general, the time step "
 		"should be at or below PixelSpacing / 2^(N+1), where N is the dimensionality of the image.<br/>"
-		"<em>Conductance</em> governs the sensitivity of the conductance equation."
+		"<em>Conductance</em> governs the sensitivity of the conductance equation.<br/>"
+		"If <em>convert back to input type</em> is enabled, the resulting image "
+		"will have the same type as the input image; if it is not enabled, the result "
+		"will be a single precision floating point image.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GPUGradientAnisotropicDiffusionImageFilter.html\">"
 		"GPU Gradient Anisotropic Diffusion Filter</a> in the ITK documentation.")
@@ -434,7 +437,7 @@ iACurvatureAnisotropicDiffusion::iACurvatureAnisotropicDiffusion() :
 		"<em>Time step</em> sets the time step to be used for each iteration (update). The time "
 		"step is constrained at run-time to keep the solution stable. In general, the time step "
 		"should be at or below PixelSpacing / 2^(N+1), where N is the dimensionality of the image.<br/>"
-		"<em>Conductance</em> governs the sensitivity of the conductance equation."
+		"<em>Conductance</em> governs the sensitivity of the conductance equation.<br/>"
 		"If <em>convert back to input type</em> is enabled, the resulting image "
 		"will have the same type as the input image; if it is not enabled, the result "
 		"will be a single precision floating point image.<br/>"

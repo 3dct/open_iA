@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACoefficientOfVariation.h"
 
@@ -8,9 +8,9 @@ iACoefficientOfVariation::iACoefficientOfVariation(iACsvDataStorage* dataStorage
 	m_coeffOfVar(new std::vector<double>()),
 	m_maxValForEachAttr(new std::vector<double>()),
 	m_minValForEachAttr(new std::vector<double>()),
-	m_attributeArray(new csvDataType::ArrayType()), 
+	m_attributeArray(new csvDataType::ArrayType()),
 	m_inputData(dataStorage->getData())
-	
+
 {
 	initializeAttributeArray(m_inputData, m_attributeArray);
 	m_coeffOfVar = calculateVariationCoefficient(m_attributeArray);
@@ -57,13 +57,13 @@ void iACoefficientOfVariation::initializeAttributeArray(QList<csvFileData>* inpu
 }
 
 std::vector<double>* iACoefficientOfVariation::calculateVariationCoefficient(csvDataType::ArrayType* arrayOfAttributes)
-{	
+{
 	std::vector<double>* resultCoeff = new std::vector<double>();
 
 	for (int attrInd = 0; attrInd < ((int)arrayOfAttributes->size()); attrInd++)
 	{
 		double variationCoeffEmpirical;
-		
+
 		if (arrayOfAttributes->at(attrInd).size() == 0)
 		{//there are no values
 			variationCoeffEmpirical = 0.0;
@@ -93,7 +93,7 @@ std::vector<double>* iACoefficientOfVariation::calculateVariationCoefficient(csv
 				variationCoeffEmpirical = variationCoeff / std::sqrt(arrayOfAttributes->at(attrInd).size());
 			}
 		}
-	
+
 		resultCoeff->push_back(variationCoeffEmpirical);
 	}
 

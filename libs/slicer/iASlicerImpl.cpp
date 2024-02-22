@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASlicerImpl.h"
 
@@ -228,7 +228,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 			int endX   = std::max(slicePixelPos[0].x(), slicePixelPos[1].x());
 			int startY = std::min(slicePixelPos[0].y(), slicePixelPos[1].y());
 			int endY   = std::max(slicePixelPos[0].y(), slicePixelPos[1].y());
-			
+
 			// extract image part, get minimum/maximum intensity value:
 			double minVal = std::numeric_limits<double>::max();
 			double maxVal = std::numeric_limits<double>::lowest();
@@ -282,7 +282,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_actionLinearInterpolation->setCheckable(true);
 	m_actionShowTooltip = m_contextMenu->addAction(tr("Show Tooltip"), this, &iASlicerImpl::toggleShowTooltip);
 	m_actionShowTooltip->setCheckable(true);
-	
+
 	m_contextMenu->addSeparator();
 	m_actionToggleNormalInteraction = new QAction(tr("Click+Drag: disabled"), m_contextMenu);
 	m_actionToggleNormalInteraction->setCheckable(true);
@@ -2691,7 +2691,7 @@ void iASlicerImpl::updateMagicLens()
 	lensSz = (std::min)(static_cast<qreal>(lensSz),
 		(std::min)(pixelWidth, pixelHeight));  // restrict size to size of smallest side
 	qreal lensSzHalf = 0.5*lensSz;
-	// clamp to image, round to int (=pixels)	
+	// clamp to image, round to int (=pixels)
 	dpos[0] = clamp(lensSzHalf, pixelWidth - lensSzHalf - 1, dpos[0]);
 	dpos[1] = clamp(lensSzHalf, pixelHeight - lensSzHalf - 1, dpos[1]);
 	dpos[2] = qRound(dpos[2]);

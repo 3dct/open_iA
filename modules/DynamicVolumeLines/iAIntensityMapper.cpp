@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "iAIntensityMapper.h"
@@ -60,7 +60,7 @@ void getIntensities(iAProgress &imp, PathID m_pathID, iAITKIO::ImagePointer &ima
 						{
 							coord[i] = coordPtr[i].rack();
 						}
-					
+
 						delete[] coordPtr;
 						coordList.append(coord);
 						if (coordList.size() % 64 == 0)

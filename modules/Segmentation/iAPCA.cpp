@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <iAFilterDefault.h>
 #include <iAImageData.h>
@@ -42,17 +42,17 @@ void pca(iAFilter* filter, QVariantMap const & parameters)
 	typedef itk::ImagePCAShapeModelEstimator<ImageType, ImageType>  EstimatorType;
 
 	auto pcaFilter = EstimatorType::New();
-	pcaFilter->SetNumberOfTrainingImages(filter->inputCount());
+	pcaFilter->SetNumberOfTrainingImages(static_cast<unsigned int>(filter->inputCount()));
 	pcaFilter->SetNumberOfPrincipalComponentsRequired(parameters["Cutoff"].toUInt());
-	for (size_t k = 0; k < filter->inputCount(); k++)
+	for (unsigned int k = 0; k < static_cast<unsigned int>(filter->inputCount()); ++k)
 	{
-		pcaFilter->SetInput(static_cast<unsigned int>(k), dynamic_cast<ImageType*>(filter->imageInput(k)->itkImage()));
+		pcaFilter->SetInput(k, dynamic_cast<ImageType*>(filter->imageInput(k)->itkImage()));
 	}
 	pcaFilter->Update();
 	auto scaler = ScaleType::New();
 	auto v = pcaFilter->GetEigenValues();
 	double sv_mean = std::sqrt(v[0]);
-	for (size_t o = 0; o < static_cast<size_t>(parameters["Cutoff"].toUInt() + 1); ++o)
+	for (unsigned int o = 0; o < parameters["Cutoff"].toUInt() + 1; ++o)
 	{
 		double sv = std::sqrt(v[o]);
 		double sv_n = sv / sv_mean;

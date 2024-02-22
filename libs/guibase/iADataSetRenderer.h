@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -72,7 +72,11 @@ public:
 	//! Set orientation of this dataset in scene
 	virtual void setOrientation(double ori[3]) = 0;
 
+	//! Retrieve the vtk prop (=root object in the scene) used for rendering this dataset
 	virtual vtkProp3D* vtkProp() = 0;
+
+	//! Retrieve the vtk renderer used for rendering this dataset
+	vtkRenderer* vtkRen() const;
 
 	//! optional additional control widget needed for additional settings in the renderer
 	//virtual QWidget* controlWidget();

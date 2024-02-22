@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 #include "featurescout_export.h"
@@ -36,6 +36,8 @@ public:
 	static bool addToChild(iAMdiChild* child, const QString& csvFileName);
 	//! add FeatureScout to the given child window, using the given configuration to set up
 	static bool addToChild(iAMdiChild* child, iACsvConfig const& csvConfig);
+	//! add FeatureScout to the given child window, using the given data and config to set up
+	static bool addToChild(iAMdiChild* child, iACsvConfig const& csvConfig, std::shared_ptr<iAObjectsData> objData);
 
 	iAFeatureScoutTool(iAMainWindow* mainWnd, iAMdiChild* child);
 
@@ -51,13 +53,26 @@ public:
 
 	static iAObjectType guessFeatureType(QString const& csvFileName);
 
+	//! the index of the dataset used for visualizations
+	size_t visDataSetIdx() const;
+
+	//! set a selection from the outside
+	void setSelection(std::vector<size_t> const & selection);
+	//! retrieve the current selected objects
+	std::vector<size_t> selection();
+
+signals:
+	//! fires whenever the selection of the associated 3D object visualization is changed
+	void selectionChanged();
+
 private:
 	bool initFromConfig(iAMdiChild* child, iACsvConfig const& csvConfig);
-	void init(int objectType, QString const& fileName, std::shared_ptr<iAObjectsData> objData);
+	bool init(iAMdiChild* child, iACsvConfig const& csvConfig, std::shared_ptr<iAObjectsData> objData);
 	iACsvConfig m_config;
 	dlg_FeatureScout * m_featureScout;
 	//! @{ for the case of labelled volume data (for which the viewer cannot be created automatically), we need to store data ourselves
 	std::shared_ptr<iAObjectsData> m_objData;
 	std::shared_ptr<iAObjectVis> m_objVis;
 	//! @}
+	size_t m_objDataSetIdx;
 };

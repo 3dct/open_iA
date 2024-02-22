@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iANModalTFModuleInterface.h"
 
@@ -53,7 +53,7 @@ void iANModalTFModuleInterface::modalitySPLOM()
 	for (auto ds: child->dataSetMap())
 	{
 		auto imgDS = dynamic_cast<iAImageData*>(ds.second.get());
-		if (imgDS) 
+		if (imgDS)
 		{
 			dataSets.push_back(imgDS);
 		}

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompBayesianBlocks.h"
 
@@ -19,7 +19,7 @@
 
 iACompBayesianBlocks::iACompBayesianBlocks(
 	iACsvDataStorage* dataStorage, bin::BinType* datasets) :
-	iACompBinning(dataStorage, datasets), 
+	iACompBinning(dataStorage, datasets),
 	m_bayesianBlocksData(nullptr)
 {
 }
@@ -28,7 +28,7 @@ void iACompBayesianBlocks::setDataStructure(iACompHistogramTableData* datastore)
 {
 	m_bayesianBlocksData = static_cast<iACompBayesianBlocksData*>(datastore);
 }
-	
+
 void iACompBayesianBlocks::calculateBins()
 {
 	QList<bin::BinType*>* binData = new QList<bin::BinType*>;  //stores MDS values
@@ -36,10 +36,10 @@ void iACompBayesianBlocks::calculateBins()
 		new QList<std::vector<csvDataType::ArrayType*>*>;  //stores data of selected objects attributes
 
 	double maxVal = m_bayesianBlocksData->getMaxVal();
-	
+
 
 	QList<std::vector<double>>* binningStrategies = new QList<std::vector<double>>;
-	
+
 	for (int i = 0; i < static_cast<int>(m_bayesianBlocksData->getAmountObjectsEveryDataset()->size()); i++)
 	{  // do for every dataset
 
@@ -59,17 +59,17 @@ void iACompBayesianBlocks::calculateBins()
 			binningValues.insert(binningValues.begin(), minVal);
 			LOG(lvlDebug, "added min: " + QString::number(minVal));
 		}
-			
+
 		if (std::find(binningValues.begin(), binningValues.end(), maxVal) == binningValues.end())
 		{
 			binningValues.push_back(maxVal);
 			LOG(lvlDebug, "added max: " + QString::number(maxVal));
 		}
 		*/
-		
+
 		//calculate for each dataset the adaptive histogram according to its lower bounds of each bin
 		auto currBinningStrategy = BayesianBlocks::blocks(binningValues, 0.01, false, true);
-		
+
 		int currentNumberOfBins = static_cast<int>(currBinningStrategy.size());
 		bin::BinType* bins = bin::initialize(currentNumberOfBins);
 		std::vector<csvDataType::ArrayType*>* binsWithFiberIds = new std::vector<csvDataType::ArrayType*>();
@@ -89,16 +89,16 @@ void iACompBayesianBlocks::calculateBins()
 
 		LOG(lvlDebug, " ");*/
 		//////////////////////////////////////////////////////////////////////////////////////
-		
+
 		//int datasetInd = static_cast<int>(values.size());
 
-		//check for every value inside a dataset for the corresponding bin	
+		//check for every value inside a dataset for the corresponding bin
 		for (int v = 0; v < static_cast<int>(values.size()); v++)
 		{
 			for (int b = 0; b < currentNumberOfBins; b++)
 			{
 				bool inside;
-				
+
 				if (b < currentNumberOfBins-1)
 				{
 					inside = checkRange(values.at(v), currBinningStrategy.at(b), currBinningStrategy.at(b + 1));
@@ -106,7 +106,7 @@ void iACompBayesianBlocks::calculateBins()
 				else
 				{
 					bool inside1 = checkRange(values.at(v), currBinningStrategy.at(b), maxVal);
-					bool inside2 = (abs(maxVal - values.at(v)) < 1e-16); 
+					bool inside2 = (abs(maxVal - values.at(v)) < 1e-16);
 					inside = inside1 || inside2;
 				}
 
@@ -156,7 +156,7 @@ void iACompBayesianBlocks::calculateBins()
 		 {
 			 LOG(lvlDebug, "value at " + QString::number(j) + " = " + QString::number(r.at(j)));
 		 }
-	*/	
+	*/
 	}
 
 	m_bayesianBlocksData->setBinData(binData);
@@ -175,7 +175,7 @@ bin::BinType* iACompBayesianBlocks::calculateBins(bin::BinType* , int )
 
 namespace BayesianBlocks
 {
-	
+
 	bb::array blocks(bb::data_array data, bb::weights_array weights, const double p, bool counter, bool benchmark)
 	{
 		auto start = bb::clock::now();

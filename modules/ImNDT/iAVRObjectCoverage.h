@@ -1,37 +1,38 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAVRObjectModel.h"
-#include "iAVROctree.h"
-
 #include <iACsvConfig.h>
 
+#include <iAVec3.h>
+
 #include <vtkSmartPointer.h>
-#include <vtkIdTypeArray.h>
-#include <vtkTable.h>
 
 #include <unordered_map>
 
-/*
-* This class calculates the coverage of objects inside octree regions
-*/
+class iAVRObjectModel;
+class iAVROctree;
+
+class vtkPoints;
+class vtkTable;
+
+//! Calculates the coverage of objects inside octree regions.
 class iAVRObjectCoverage
 {
 public:
-	iAVRObjectCoverage(vtkTable* objectTable, iAColMapP colMapping, iACsvConfig csvConfig, std::vector<iAVROctree*>* octrees, iAVRObjectModel* volume);
+	iAVRObjectCoverage(vtkTable* objectTable, iAColMapP colMapping, iACsvConfig csvConfig, std::vector<iAVROctree*> const & octrees, iAVRObjectModel* volume);
 	void calculateObjectCoverage();
-	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* getObjectCoverage();
+	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>> const * getObjectCoverage();
 	vtkIdType getObjectiD(vtkIdType polyPoint);
 
 private:
 	vtkSmartPointer<vtkTable> m_objectTable;
 	iAColMapP m_mapping;
 	iACsvConfig m_csvConfig;
-	std::vector<iAVROctree*>* m_octrees;
+	std::vector<iAVROctree*> const & m_octrees;
 	iAVRObjectModel* m_volume;
 	//Stores for the [octree level] in an [octree region] a map of its objectIDs with their coverage
-	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* m_objectCoverage;
+	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>> m_objectCoverage;
 
 	void initialize();
 	void calculateLineCoverage();

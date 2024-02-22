@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -38,15 +38,15 @@ namespace iACompVisOptions
 	};
 
 	/*************** Active Visualization ****************************/
-	enum class activeVisualization 
+	enum class activeVisualization
 	{	Undefined,
-		UniformTable, 
-		VariableTable, 
-		CombTable, 
+		UniformTable,
+		VariableTable,
+		CombTable,
 		CurveVisualization,
 		WhiteCurveVisualization
 	};
-	
+
 	/*************** Rendering ****************************/
 	const unsigned char BACKGROUNDCOLOR_BLACK[3] = {0, 0, 0};
 	const unsigned char BACKGROUNDCOLOR_GREY[3] = { 25, 25, 25 };//{128, 128, 128 };

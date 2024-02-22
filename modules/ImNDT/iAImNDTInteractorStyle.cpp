@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAImNDTInteractorStyle.h"
 
@@ -14,15 +14,8 @@
 #include <vtkObjectFactory.h>
 #include <vtkProperty.h>
 
-#include "iAImNDTMain.h"
-
 #include <vtkEventData.h>
 #include <vtkSmartPointer.h>
-
-#define NUMBER_OF_DEVICES static_cast<int>(vtkEventDataDevice::NumberOfDevices)
-#define NUMBER_OF_INPUTS static_cast<int>(vtkEventDataDeviceInput::NumberOfInputs)
-#define NUMBER_OF_ACTIONS static_cast<int>(vtkEventDataAction::NumberOfActions)
-#define NUMBER_OF_OPTIONS static_cast<int>(iAVRInteractionOptions::NumberOfInteractionOptions)
 
 vtkSmartPointer<vtkInteractorStyle3D> createInteractorStyle(iAvtkVR::Backend backend, iAImNDTInteractionsImpl* impl);
 
@@ -34,16 +27,7 @@ public:
 		m_style(createInteractorStyle(backend, this)),
 		m_backend(backend),
 		m_vrMain(vrMain)
-	{
-		// Initialize with 0 = None
-		std::vector<int> a(NUMBER_OF_OPTIONS, 0);
-		std::vector<std::vector<int>> b(NUMBER_OF_ACTIONS, a);
-		std::vector < std::vector<std::vector<int>>> c(NUMBER_OF_INPUTS, b);
-		m_inputScheme = new std::vector < std::vector < std::vector<std::vector<int>>>>(NUMBER_OF_DEVICES, c);
-		m_activeInput = new std::vector<int>(NUMBER_OF_DEVICES, -1);
-	}
-	inputScheme* m_inputScheme;
-	std::vector<int>* m_activeInput;
+	{}
 	vtkSmartPointer<vtkInteractorStyle3D> m_style;
 	iAImNDTInteractions::iAVec2d m_leftTrackPadPos, m_rightTrackPadPos;
 	iAvtkVR::Backend m_backend;
@@ -53,7 +37,7 @@ public:
 	double m_eventOrientation[4];
 	double m_movePosition[3];
 
-	iAImNDTInteractions::iAVec2d getTrackPadPos(vtkEventDataDevice device)
+	iAImNDTInteractions::iAVec2d getTrackPadPos(vtkEventDataDevice device) const
 	{
 		return device == vtkEventDataDevice::LeftController ? m_leftTrackPadPos : m_rightTrackPadPos;
 	}
@@ -209,7 +193,7 @@ public:
 	void OnMenu3D(vtkEventData* edata) override;
 	void Dolly3D(vtkEventData* edata) override;
 	void OnViewerMovement3D(vtkEventData* edata) override;
-	
+
 	// !Is called when a Controller moves. Forwards the event to the main class
 	void OnMove3D(vtkEventData* edata) override
 	{
@@ -243,19 +227,23 @@ void iAImNDTOpenXRInteractorStyle::SetInteractor(vtkRenderWindowInteractor* iren
 	auto oiren = vtkOpenXRRenderWindowInteractor::SafeDownCast(iren);
 	assert(oiren);
 	// works in conjunction with the actions defined in the action manifest specified via interactor->SetActionManifestFileName in iAVRMainThread!
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9,3,0)
+	oiren->AddAction("complexgestureaction",
+#else
 	oiren->AddAction("leftgripaction",
 		[this](vtkEventData* edata)
 		{
-			// for some reason, the input ID is not set; set it to the proper Application Menu
+			// for some reason, the input ID is not set; set it to the proper value
 			vtkEventDataDevice3D* edd = edata->GetAsEventDataDevice3D();
 			assert(edd);
 			edd->SetInput(vtkEventDataDeviceInput::Grip);
 			OnButton3D(edata);
 		});
 	oiren->AddAction("rightgripaction",
+#endif
 		[this](vtkEventData* edata)
 		{
-			// for some reason, the input ID is not set; set it to the proper Application Menu
+			// for some reason, the input ID is not set; set it to the proper value
 			vtkEventDataDevice3D* edd = edata->GetAsEventDataDevice3D();
 			assert(edd);
 			edd->SetInput(vtkEventDataDeviceInput::Grip);
@@ -274,7 +262,7 @@ void iAImNDTOpenXRInteractorStyle::SetInteractor(vtkRenderWindowInteractor* iren
 	oiren->AddAction("showmenuleft",
 		[this](vtkEventData* edata)
 		{
-			// for some reason, the input ID is not set; set it to the proper Application Menu
+			// for some reason, the input ID is not set; set it to the proper value
 			vtkEventDataDevice3D* edd = edata->GetAsEventDataDevice3D();
 			assert(edd);
 			edd->SetInput(vtkEventDataDeviceInput::ApplicationMenu);
@@ -413,22 +401,30 @@ iAImNDTOpenVRInteractorStyle::iAImNDTOpenVRInteractorStyle()
 void iAImNDTOpenVRInteractorStyle::SetInteractor(vtkRenderWindowInteractor* iren)
 {
 	this->Superclass::SetInteractor(iren);
+	if (!iren)    // needed for shutdown: on setting another interactor style, the interactor calls SetInteractor(nullptr)
+	{
+		return;
+	}
 	auto oiren = vtkOpenVRRenderWindowInteractor::SafeDownCast(iren);
 	assert(oiren);
 	// works in conjunction with the actions defined in the action manifest specified via interactor->SetActionManifestFileName in iAVRMainThread!
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 3, 0)
+	oiren->AddAction("/actions/vtk/in/complexgestureaction", false,
+#else
 	oiren->AddAction("/actions/vtk/in/leftgripaction", false,
 		[this](vtkEventData* edata)
 		{
-			// for some reason, the input ID is not set; set it to the proper Application Menu
+			// for some reason, the input ID is not set; set it to the proper value
 			vtkEventDataDevice3D* edd = edata->GetAsEventDataDevice3D();
 			assert(edd);
 			edd->SetInput(vtkEventDataDeviceInput::Grip);
 			OnButton3D(edata);
 		});
 	oiren->AddAction("/actions/vtk/in/rightgripaction", false,
+#endif
 		[this](vtkEventData* edata)
 		{
-			// for some reason, the input ID is not set; set it to the proper Application Menu
+			// for some reason, the input ID is not set; set it to the proper value
 			vtkEventDataDevice3D* edd = edata->GetAsEventDataDevice3D();
 			assert(edd);
 			edd->SetInput(vtkEventDataDeviceInput::Grip);
@@ -447,7 +443,7 @@ void iAImNDTOpenVRInteractorStyle::SetInteractor(vtkRenderWindowInteractor* iren
 	oiren->AddAction("/actions/vtk/in/ShowMenuLeft", false,
 		[this](vtkEventData* edata)
 		{
-			// for some reason, the input ID is not set; set it to the proper Application Menu
+			// for some reason, the input ID is not set; set it to the proper value
 			vtkEventDataDevice3D* edd = edata->GetAsEventDataDevice3D();
 			assert(edd);
 			edd->SetInput(vtkEventDataDeviceInput::ApplicationMenu);
@@ -549,18 +545,8 @@ iAImNDTInteractions::iAImNDTInteractions(iAvtkVR::Backend backend, iAImNDTMain* 
 
 iAImNDTInteractions::~iAImNDTInteractions() = default;    // required for enabling unique_ptr member
 
-inputScheme* iAImNDTInteractions::getInputScheme()
-{
-	return m_impl->m_inputScheme;
-}
-
-std::vector<int>* iAImNDTInteractions::getActiveInput()
-{
-	return m_impl->m_activeInput;
-}
-
 //! retrieve the position of the last interaction with the trackpad (since it's not available on a click in the event directly)
-iAImNDTInteractions::iAVec2d iAImNDTInteractions::getTrackPadPos(vtkEventDataDevice device)
+iAImNDTInteractions::iAVec2d iAImNDTInteractions::getTrackPadPos(vtkEventDataDevice device) const
 {
 	return m_impl->getTrackPadPos(device);
 }
@@ -620,4 +606,22 @@ iAVRViewDirection iAImNDTInteractions::getViewDirection(double viewDir[3])
 	if (maxDir == 2 && viewDir[maxDir] < 0) return iAVRViewDirection::Forward;
 
 	return iAVRViewDirection::Unknown;
+}
+
+vtkSmartPointer<vtkInteractorStyle3D> defaultVRinteractorStyle(iAvtkVR::Backend backend)
+{
+#ifdef OPENXR_AVAILABLE
+	if (backend == iAvtkVR::OpenXR)
+	{
+		return vtkSmartPointer<vtkOpenXRInteractorStyle>::New();
+	}
+#endif
+#ifdef OPENVR_AVAILABLE
+	if (backend == iAvtkVR::OpenVR)
+	{
+		return vtkSmartPointer<vtkOpenVRInteractorStyle>::New();
+	}
+#endif
+	LOG(lvlError, "defaultVRInteractor: Invalid/unavailable backend!");
+	return vtkSmartPointer<vtkInteractorStyle3D>();
 }

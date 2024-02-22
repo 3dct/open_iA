@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompTable.h"
 
@@ -65,7 +65,7 @@ void iACompTable::makeLUTFromCTF()
 {
 	vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
 	ctf->SetColorSpaceToRGB();
-	
+
 	//Black Body Radiation
 	//QColor c1 = QColor(103, 21, 45);
 	//QColor c2 = QColor(128, 0, 38);
@@ -77,7 +77,7 @@ void iACompTable::makeLUTFromCTF()
 	//QColor c8 = QColor(254, 217, 118);
 	//QColor c9 = QColor(255, 237, 160);
 	//QColor c10 = QColor(255, 255, 204);
-	
+
 	//Virdis: dark blue to yellow
 	QColor c10 = QColor(68, 1, 84);
 	QColor c9 = QColor(72, 40, 120);
@@ -89,8 +89,8 @@ void iACompTable::makeLUTFromCTF()
 	QColor c3 = QColor(110, 206, 88);
 	QColor c2 = QColor(181, 222, 43);
 	QColor c1 = QColor(253, 231, 37);
-	
-	
+
+
 	ctf->AddRGBPoint(1.0, c1.redF(), c1.greenF(), c1.blueF());
 	ctf->AddRGBPoint(0.9, c1.redF(), c1.greenF(), c1.blueF());
 	ctf->AddRGBPoint(0.8, c2.redF(), c2.greenF(), c2.blueF());
@@ -102,34 +102,34 @@ void iACompTable::makeLUTFromCTF()
 	ctf->AddRGBPoint(0.2, c8.redF(), c8.greenF(), c8.blueF());
 	ctf->AddRGBPoint(0.1, c9.redF(), c9.greenF(), c9.blueF());
 	ctf->AddRGBPoint(0.0, c10.redF(), c10.greenF(), c10.blueF());
-	
+
 	m_lut->SetNumberOfTableValues(m_tableSize);
 	m_lut->Build();
-	
+
 	double min = 0;
 	double max = 0;
 	int startVal = 1;
-	
-	
+
+
 	for (int i = 0; i < m_tableSize; i++)
 	{
 		double* rgb;
 		rgb = ctf->GetColor(static_cast<double>(i) / (double)m_tableSize);
 		m_lut->SetTableValue(i, rgb);
-	
+
 		//make format of annotations
 		double low = round_up(startVal + (i * m_BinRangeLength), 2);
 		double high = round_up(startVal + ((i + 1) * m_BinRangeLength), 2);
-	
+
 		std::string sLow = std::to_string(low);
 		std::string sHigh = std::to_string(high);
-	
+
 		std::string lowerString = initializeLegendLabels(sLow);
 		std::string upperString = initializeLegendLabels(sHigh);
-	
+
 		//position description in the middle of each color bar in the scalarBar legend
 		m_lut->SetAnnotation(low + ((high - low) * 0.5), lowerString + " - " + upperString);
-	
+
 		//store min and max value of the dataset
 		if (i == 0)
 		{
@@ -140,14 +140,14 @@ void iACompTable::makeLUTFromCTF()
 			max = high;
 		}
 	}
-	
+
 	m_lut->SetTableRange(min, max);
-	
+
 	double col[3];
 	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col);
 	m_lut->SetBelowRangeColor(col[0], col[1], col[2], 1);
 	m_lut->UseBelowRangeColorOn();
-	
+
 	double* colAbove = ctf->GetColor(1);
 	m_lut->SetAboveRangeColor(colAbove[0], colAbove[1], colAbove[2], 1);
 	m_lut->UseAboveRangeColorOn();
@@ -193,33 +193,33 @@ void iACompTable::makeLUTDarker()
 	ctf->AddRGBPoint(0.2, c8.redF(), c8.greenF(), c8.blueF());
 	ctf->AddRGBPoint(0.1, c9.redF(), c9.greenF(), c9.blueF());
 	ctf->AddRGBPoint(0.0, c10.redF(), c10.greenF(), c10.blueF());
-	
+
 	m_lutDarker->SetNumberOfTableValues(m_tableSize);
 	m_lutDarker->Build();
-	
+
 	double min = 0;
 	double max = 0;
 	int startVal = 1;
-	
+
 	for (int i = 0; i < m_tableSize; i++)
 	{
 		double* rgb;
 		rgb = ctf->GetColor(static_cast<double>(i) / (double)m_tableSize);
 		m_lutDarker->SetTableValue(i, rgb);
-	
+
 		//make format of annotations
 		double low = round_up(startVal + (i * m_BinRangeLength), 2);
 		double high = round_up(startVal + ((i + 1) * m_BinRangeLength), 2);
-	
+
 		std::string sLow = std::to_string(low);
 		std::string sHigh = std::to_string(high);
-	
+
 		std::string lowerString = initializeLegendLabels(sLow);
 		std::string upperString = initializeLegendLabels(sHigh);
-	
+
 		//position description in the middle of each color bar in the scalarBar legend
 		m_lut->SetAnnotation(low + ((high - low) * 0.5), lowerString + " - " + upperString);
-	
+
 		//store min and max value of the dataset
 		if (i == 0)
 		{
@@ -230,21 +230,21 @@ void iACompTable::makeLUTDarker()
 			max = high;
 		}
 	}
-	
+
 	m_lutDarker->SetTableRange(min, max);
-	
+
 	double col[3];
 	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col);
 	m_lutDarker->SetBelowRangeColor(col[0], col[1], col[2], 1);
 	m_lutDarker->UseBelowRangeColorOff();
-	
+
 	double* colAbove = ctf->GetColor(1);
 	m_lutDarker->SetAboveRangeColor(colAbove[0], colAbove[1], colAbove[2], 1);
-	m_lutDarker->UseBelowRangeColorOff();  
+	m_lutDarker->UseBelowRangeColorOff();
 }
 
 double iACompTable::getBinRangeLength()
-{ 
+{
 	return m_BinRangeLength;
 }
 
@@ -283,7 +283,7 @@ void iACompTable::constructBins(iACompHistogramTableData* data, bin::BinType* cu
 			// 0.9999 required for correct drawing of vtkPlaneSource, when the bin only contains 1 value
 			upperBoundary = binBoundaries.at(i + 1) * 0.999999;
 		}
-	
+
 		double percentUpperBoundary = iACompVisOptions::calculatePercentofRange(upperBoundary, minVal, maxVal);
 
 		//calculate min & max position for each bin
@@ -461,7 +461,7 @@ void iACompTable::drawXAxis(double drawingDimensions[4])
 
 		double yheight = min_y + ((max_y - min_y) * 0.5);
 		double tickLength = yheight * 0.5;
-	
+
 		//draw x-Axis at the bottom of the visualization
 		vtkSmartPointer<vtkLineSource> lineSource = vtkSmartPointer<vtkLineSource>::New();
 		lineSource->SetPoint1(min_x, yheight, 0.0);
@@ -559,7 +559,7 @@ void iACompTable::addTickLabels(
 		std::string name = nameTooLong.substr(0, nameTooLong.find(".", 0)+3);
 
 		double* position = tickPoints->GetPoint(i);
-		 
+
 		vtkSmartPointer<vtkTextActor> legend = vtkSmartPointer<vtkTextActor>::New();
 		legend->SetTextScaleModeToNone();
 		legend->SetInput(name.c_str());
@@ -604,14 +604,14 @@ void iACompTable::createBarChart(vtkSmartPointer<vtkPolyData> currPolyData, int 
 	double maxHeight = point2[1] - origin[1];
 	double height25 = origin[1] + (maxHeight * 0.25);
 	double height75 = origin[1] + (maxHeight * 0.75);
-	
+
 	//calculate width of bar
 	double maxWidth = point1[0] - origin[0];
 	double percent = ((double)currAmountObjects) / ((double)maxAmountObjects);
 	double correctWidth = maxWidth * percent;
 	double correctX = origin[0] + correctWidth;
 
-	double positions[4] = 
+	double positions[4] =
 	{
 		origin[0], correctX,  //x_min, x_max
 		height25, height75    //y_min, y_max
@@ -634,7 +634,7 @@ void iACompTable::createBarChart(double* positions, int currAmountObjects, int m
 	double x_max = positions[1];
 	double y_min = positions[2];
 	double y_max = positions[3];
-	
+
 	//calculate height of bar
 	double maxHeight = y_max - y_min;
 	double height25 = y_min + (maxHeight * 0.25);
@@ -790,13 +790,13 @@ void iACompTable::initializeLegend()
 	scalarBar->GetTitleTextProperty()->BoldOn();
 	scalarBar->GetTitleTextProperty()->SetFontSize(
 		iACompVisOptions::FONTSIZE_TITLE);
-	
+
 	double col1[3];
 	iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TITLE, col1);
 	scalarBar->GetTitleTextProperty()
 		->SetColor(col1);
 	scalarBar->GetTitleTextProperty()->SetVerticalJustificationToTop();
-	
+
 	double col2[3];
 	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col2);
 	scalarBar->GetTitleTextProperty()->SetBackgroundColor(col2);
@@ -831,7 +831,7 @@ void iACompTable::initializeLegend()
 	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col5);
 	m_rendererColorLegend->SetBackground(col5);
 	m_rendererColorLegend->AddActor2D(scalarBar);
-	
+
 	m_rendererColorLegend->ResetCamera();
 }
 

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAComp3DWidget.h"
 
@@ -55,7 +55,7 @@ iAComp3DWidget::iAComp3DWidget(iAMainWindow* parent, std::shared_ptr<iAObjectsDa
 void iAComp3DWidget::showEvent(QShowEvent* event)
 {
 	QDockWidget::showEvent(event);
-	
+
 	renderWidget();
 }
 

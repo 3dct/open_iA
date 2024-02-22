@@ -178,7 +178,7 @@ foreach (indx RANGE ${len} )
 		# set up debugging command / environment dll paths
 		set_target_properties(${module_name} PROPERTIES VS_DEBUGGER_COMMAND "${CMAKE_BINARY_DIR}\\$(Platform)\\$(Configuration)\\${GUI_EXECUTABLE_FILE}")
 		set_target_properties(${module_name} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${WinDLLPaths};%PATH%\nSCIFIO_PATH=${SCIFIO_PATH}")
-		
+
 		if (openiA_MODULE_GUI_DEPENDENCY)
 			add_dependencies(${module_name} ${GUI_EXECUTABLE_TARGET})       # dependency to GUI executable for triggering rebuild when starting module
 		endif()

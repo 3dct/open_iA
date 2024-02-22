@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompKernelDensityEstimation.h"
 
@@ -112,8 +112,8 @@ void iACompKernelDensityEstimation::calculateKDE(std::vector<double>* dataIn, kd
 	{
 		realVectorType samp(1);
 		realScalarType xi = xMin + i * dx;
-		samp(0) = xi; 
-		
+		samp(0) = xi;
+
 		double kdeValue = kde.computePDF(samp);
 
 		kdeData::kdePair pair = {xi, kdeValue};
@@ -121,7 +121,7 @@ void iACompKernelDensityEstimation::calculateKDE(std::vector<double>* dataIn, kd
 
 		if (kdeValue >= m_maxKDE)
 		{
-			m_maxKDE = kdeValue;		
+			m_maxKDE = kdeValue;
 		}
 
 		if (kdeValue < m_minKDE)
@@ -139,9 +139,9 @@ void iACompKernelDensityEstimation::calculateKDEBinning(
 {
 	for (int pairId = 0; pairId < static_cast<int>(input->size()); pairId++)
 	{
-		kdeData::kdePair pair = input->at(pairId); 
+		kdeData::kdePair pair = input->at(pairId);
 		double mdsVal = pair[0];
-		
+
 		for (int bin = 0; bin < static_cast<int>(binBoundaries->size()); bin++)
 		{  //look for the boundaries of each bin
 
@@ -161,7 +161,7 @@ void iACompKernelDensityEstimation::calculateKDEBinning(
 
 			bool greaterLowerBorder = false;
 			bool smallerUpperBorder = false;
-			
+
 			if (mdsVal >= lowerBorder) greaterLowerBorder = true;
 			if (mdsVal < upperBorder) smallerUpperBorder = true;
 
@@ -185,7 +185,7 @@ void iACompKernelDensityEstimation::calculateKDEBinning(
 		}
 
 	}
-	
+
 	//Debug
 	//kdeData::debug(result);
 }

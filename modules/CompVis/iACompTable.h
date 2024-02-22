@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -11,7 +11,7 @@
 
 //C++
 #include <map>
- 
+
 //CompVis
 class iACompHistogramVis;
 
@@ -44,7 +44,7 @@ public:
 	void setInteractorStyleToWidget(vtkSmartPointer<iACompTableInteractorStyle> interactorStyle);
 	void renderWidget();
 	void clearRenderer();
-	
+
 	//get the length/range of the bin, which is depending on the bin storing the highest number of objects
 	double getBinRangeLength();
 	//set the length/range of the bin, which is depending on the bin storing the highest number of objects
@@ -94,7 +94,7 @@ protected:
 
 	//define the range of the color map bins for the visualization
 	virtual void calculateBinRange() = 0;
-	
+
 
 	//initialize the camera. The camera set by vtk in iACompUniformTable and will be given to all other tables.
 	virtual void initializeCamera() = 0;
@@ -120,13 +120,13 @@ protected:
 	//draw ticks for every dataset
 	vtkSmartPointer<vtkPoints> drawXTicks(
 		double drawingDimensions[4], double yheigth, double tickLength);
-	
+
 	/*** Rendering ***/
 	virtual void constructBins(iACompHistogramTableData* data, bin::BinType* currRowData,
 		vtkSmartPointer<vtkDoubleArray> originArray,
 		vtkSmartPointer<vtkDoubleArray> point1Array, vtkSmartPointer<vtkDoubleArray> point2Array, vtkSmartPointer<vtkUnsignedCharArray> colorArray, int currDataInd,
 		int currentColumn, double offset);
-	
+
 	/*** Ordering/Ranking ***/
 	//draws the bar chart for showing the number of objects for each dataset
 	virtual void drawBarChartShowingAmountOfObjects(std::vector<int> amountObjectsEveryDataset) = 0;
@@ -146,7 +146,7 @@ protected:
 	//round the value to a certain decimal
 	double round_up(double value, int decimal_places);
 
-	
+
 	iACompHistogramVis* m_vis;
 
 	/*** Coloring ***/
@@ -159,11 +159,11 @@ protected:
 	//amount of colors
 	int m_tableSize;
 
-	
+
 	/*** Rendering ***/
 	//renderer for the color legend at the right side of the widget
 	vtkSmartPointer<vtkRenderer> m_rendererColorLegend;
-	
+
 	//renderer for the color legend at the right side of the widget
 	vtkSmartPointer<vtkRenderer> m_mainRenderer;
 
@@ -173,14 +173,14 @@ protected:
 
 	//number of ticks of the x-axis
 	double m_numberOfTicks;
-	
+
 	/*** Ordering ***/
 	//stores the bar actors drawn to show the number of objects for each dataset
 	std::vector<vtkSmartPointer<vtkActor>>* m_barActors;
 	//stores the text actors drawn to show the number of objects for each dataset
 	std::vector<vtkSmartPointer<vtkTextActor>>* m_barTextActors;
 
-	
+
 	/*** Interaction ***/
 	//stores the actors added to display the border of the selected cells
 	//have to be removed before any calculation for zooming can take place!
@@ -208,7 +208,7 @@ protected:
 	double m_BinRangeLength;
 
 private:
-	
+
 	//creates the planes for the bar chart
 	//positions contains the positions [x_min, x_max, y_min, y_max] (in exactly this order) of the related dataset row
 	void createBars(double* positions);
@@ -216,5 +216,5 @@ private:
 	//positions contains the positions [x_min, y_min, y_max] (in exactly this order) of the related dataset row
 	//currAmountObjects contains the number of objects/features in the dataset
 	void createAmountOfObjectsText(double positions[3], int currAmountObjects);
-	
+
 };

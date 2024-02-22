@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAGraphFileIO.h"
 
@@ -158,7 +158,7 @@ std::shared_ptr<iADataSet> iAGraphFileIO::loadData(QString const& fileName, QVar
 	myPolyData->SetPoints(pts);
 	LOG(lvlInfo, QString("%1 points in box %3").arg(pts->GetNumberOfPoints()).arg(toStr(bbox)));
 
-	// parse edge values: 
+	// parse edge values:
 	line = in.readLine();
 	QStringList edgeHeader = line.split("\t");
 	int edgeIDIdx = edgeHeader.indexOf("id");

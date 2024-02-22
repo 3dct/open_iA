@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAHistogramTriangle.h"
 
@@ -124,7 +124,7 @@ void iAHistogramTriangle::forwardMouseEvent(QMouseEvent *event, MouseEventType e
 	WidgetType widgetType = NONE;
 	QPoint transformed = QPoint();
 	QWidget *target = nullptr;
-	
+
 	// TODO NEWIO: create copy of event with adapted pos
 	//QMouseEvent* newEvent = new QMouseEvent(event->type(), event->localPos(), event->button(), event->buttons(), event->modifiers(), event->source());
 	if (m_draggedType == HISTOGRAM)

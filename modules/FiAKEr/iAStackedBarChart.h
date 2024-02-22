@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -58,7 +58,7 @@ private:
 	void mouseReleaseEvent(QMouseEvent* ev) override;
 	void mouseMoveEvent(QMouseEvent* ev) override;
 	//! @}
-	
+
 	void drawBar(QPainter& painter, size_t barID, int left, int top, int barHeight);
 	void updateBars();
 	size_t getBarAt(int x) const;

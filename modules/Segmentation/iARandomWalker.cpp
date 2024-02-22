@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAGraphWeights.h"
 #include "iAImageGraph.h"
@@ -65,8 +65,8 @@ namespace
 	void CreateLabelImage(
 		int const dim[3],
 		double const spacing[3],
-		QVector<iAITKIO::ImagePointer> const & probabilityImages, 
-		int labelCount, 
+		QVector<iAITKIO::ImagePointer> const & probabilityImages,
+		int labelCount,
 		iAITKIO::ImagePointer& labelImgP)
 	{
 		typedef itk::Image<T, DIM> ProbImageType;

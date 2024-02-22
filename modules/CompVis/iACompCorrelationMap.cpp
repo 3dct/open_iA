@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompCorrelationMap.h"
 #include <vtkObjectFactory.h> //for macro!
@@ -123,7 +123,7 @@ void iACompCorrelationMap::showEvent(QShowEvent* event)
 	else if (m_lastState == iACompVisOptions::lastState::Defined)
 	{
 		renderWidget();
-	}	
+	}
 }
 
 void iACompCorrelationMap::renderWidget()
@@ -177,7 +177,7 @@ void iACompCorrelationMap::initializeVertices(QStringList attrNames)
 	for (int i = 0; i < attrNames.size(); i++)
 	{
 		vtkIdType currV = m_graph->AddVertex();
-		
+
 		scales->InsertNextValue(2.5);
 		vertexColors->InsertNextValue(0);
 		vertexIDs->InsertNextValue((" " + attrNames.at(i).toStdString() + "\n").c_str());
@@ -205,7 +205,7 @@ void iACompCorrelationMap::initializeVertices(QStringList attrNames)
 	//set representation
 	vtkRenderedGraphRepresentation* representation = dynamic_cast<vtkRenderedGraphRepresentation*>(m_graphLayoutView->GetRepresentation());
 	representation->SetGlyphType(vtkGraphToGlyphs::CIRCLE);
-	
+
 	//set text representation for labels
 	vtkSmartPointer<vtkTextProperty> labelText = representation->GetVertexLabelTextProperty();
 	//labelText->SetLineOffset(-30); not working with vtkViewTheme
@@ -219,8 +219,8 @@ void iACompCorrelationMap::initializeVertices(QStringList attrNames)
 	labelText->SetJustificationToCentered(); //SetJustificationToLeft();
 	labelText->SetColor(0,0,0);
 	labelText->Modified();
-	
-	m_theme->SetPointTextProperty(labelText); 
+
+	m_theme->SetPointTextProperty(labelText);
 }
 
 void iACompCorrelationMap::initializeLutForVertices()
@@ -251,7 +251,7 @@ void iACompCorrelationMap::initializeEdges()
 		{
 			m_graph->AddEdge(currV, nextV);
 			double colorInd = colorEdges(currV, nextV, m_corrCalculation->getCorrelationCoefficients(), m_vertices);
-			
+
 			edgeColors->InsertNextValue(colorInd);
 			weights->InsertNextValue(colorInd);
 		}
@@ -264,7 +264,7 @@ void iACompCorrelationMap::initializeEdges()
 	//display hover text
 	m_graph->GetEdgeData()->AddArray(weights);
 	m_graphLayoutView->SetEdgeLabelArrayName("Weights");
-	
+
 	vtkRenderedGraphRepresentation* representation = dynamic_cast<vtkRenderedGraphRepresentation*>(m_graphLayoutView->GetRepresentation());
 	representation->SetEdgeHoverArrayName("Weights");
 	m_graphLayoutView->DisplayHoverTextOn();
@@ -298,8 +298,8 @@ double iACompCorrelationMap::colorEdges(vtkIdType startVertex, vtkIdType endVert
 	if (pos1 == map.end()) return 0.0;
 
 	//LOG(lvlDebug,nameStartV  + " to " + nameEndV + " with: " + QString::number(pos1->second));
-	
-	return pos1->second;	
+
+	return pos1->second;
 }
 
 void iACompCorrelationMap::initializeLutForEdges()
@@ -327,13 +327,13 @@ void iACompCorrelationMap::initializeLutForEdges()
 	m_lutForEdges->SetNumberOfTableValues(tableSize);
 	m_lutForEdges->Build();
 
-	m_lutForEdges->SetTableValue(0, c1.redF(), c1.greenF(), c1.blueF(), 1); 
-	m_lutForEdges->SetTableValue(1, c2.redF(), c2.greenF(), c2.blueF(), 1); 
-	m_lutForEdges->SetTableValue(2, c3.redF(), c3.greenF(), c3.blueF(), 1); 
+	m_lutForEdges->SetTableValue(0, c1.redF(), c1.greenF(), c1.blueF(), 1);
+	m_lutForEdges->SetTableValue(1, c2.redF(), c2.greenF(), c2.blueF(), 1);
+	m_lutForEdges->SetTableValue(2, c3.redF(), c3.greenF(), c3.blueF(), 1);
 	m_lutForEdges->SetTableValue(3, c4.redF(), c4.greenF(), c4.blueF(), 0); //transparency ON
-	m_lutForEdges->SetTableValue(4, c5.redF(), c5.greenF(), c5.blueF(), 1); 
-	m_lutForEdges->SetTableValue(5, c6.redF(), c6.greenF(), c6.blueF(), 1); 
-	m_lutForEdges->SetTableValue(6, c7.redF(), c7.greenF(), c7.blueF(), 1); 
+	m_lutForEdges->SetTableValue(4, c5.redF(), c5.greenF(), c5.blueF(), 1);
+	m_lutForEdges->SetTableValue(5, c6.redF(), c6.greenF(), c6.blueF(), 1);
+	m_lutForEdges->SetTableValue(6, c7.redF(), c7.greenF(), c7.blueF(), 1);
 
 	//initialize annotation
 	int startVal = -1.0;
@@ -372,7 +372,7 @@ void iACompCorrelationMap::initializeLegend(vtkScalarBarWidget* widget)
 	scalarBar->SetTitle("");
 	scalarBar->SetNumberOfLabels(0);
 	scalarBar->SetTextPositionToPrecedeScalarBar();
-	
+
 	//text properties
 	vtkSmartPointer<vtkTextProperty> propL = scalarBar->GetAnnotationTextProperty();
 	propL->SetFontSize(iACompVisOptions::FONTSIZE_TEXT);
@@ -496,7 +496,7 @@ void iACompCorrelationMap::initializeArcs()
 		//store for each arc how many percent it is
 		arcPercentPair->insert({ arcActors->at(arcActors->size() - 1), objectsPerDataset->at(i)/sum });
 		outerArcWithInnerArcs->insert({ arcActors->at(arcActors->size() - 1) , std::vector<vtkSmartPointer<vtkActor>>() });
-		
+
 		//store for each arc to which dataset it belongs to and that it is an outer arc
 		std::map<int, double>* dataIndexWithArcType = new std::map<int, double>();
 		dataIndexWithArcType->insert({i, 0.0});
@@ -580,7 +580,7 @@ void iACompCorrelationMap::drawLegend(vtkSmartPointer<vtkPoints> positions, QStr
 
 		double x = positions->GetPoint(i)[0];
 		double y = positions->GetPoint(i)[1];
-		
+
 		vtkSmartPointer<vtkTextProperty> legendProperty = legend->GetTextProperty();
 		legendProperty->BoldOff();
 		legendProperty->ItalicOff();
@@ -679,7 +679,7 @@ std::map<vtkSmartPointer<vtkActor>, vtkSmartPointer<vtkTextActor>>* iACompCorrel
 void iACompCorrelationMap::updateCorrelationMap(std::map<QString, Correlation::CorrelationStore>* correlations, std::map<int, std::vector<double>>* pickStatistic)
 {
 	removeOldActors();
-	
+
 	//draw new arcs
 	updateArcs(pickStatistic);
 
@@ -744,7 +744,7 @@ void iACompCorrelationMap::updateArcs(std::map<int, std::vector<double>>* pickSt
 	double phi = 0.0;
 	double angle = 0.0;
 	double percent = 0.0;
-	
+
 	for (std::map<int, std::vector<double>>::const_iterator it = pickStatistic->begin(); it != pickStatistic->end(); ++it)
 	{
 		std::vector<double> container = it->second;
@@ -768,10 +768,10 @@ void iACompCorrelationMap::updateArcs(std::map<int, std::vector<double>>* pickSt
 
 		double* col = m_lutForArcs->GetTableValue(2);
 		drawArc(resAngle, pos, col, 9, false, 0, 0);
-		
+
 		//store for each arc how many percent it is
 		arcPercentPair->insert({ arcActors->at(arcActors->size() - 1), container.at(0) / sum });
-		
+
 		//store for arc to which dataset it belongs to and that it is an outer arc
 		std::map<int, double>* dataIndexWithArcType = new std::map<int, double>();
 		dataIndexWithArcType->insert({ it->first, 0.0 });
@@ -787,7 +787,7 @@ void iACompCorrelationMap::updateArcs(std::map<int, std::vector<double>>* pickSt
 
 		//draw inner arc
 		drawInnerArc(container, pos, theta, phi, resAngle, arcLength, it->first);
-		
+
 		//store outer arc with its inner arcs
 		std::vector<vtkSmartPointer<vtkActor>> innerArcs = std::vector<vtkSmartPointer<vtkActor>>();
 		innerArcs.push_back(arcActors->at(arcActors->size() - 2));
@@ -842,7 +842,7 @@ void iACompCorrelationMap::drawInnerArc(std::vector<double> dataPoints, double* 
 	double* col1 = m_lutForArcs->GetTableValue(3);
 	double angleSelected = parentAngle - resAngle;
 	drawArc(angleSelected, posSelected, col1, 7, false, 0, 0);
-	
+
 	//store for each arc how many percent it is
 	arcPercentPair->insert({ arcActors->at(arcActors->size() - 1), std::abs(1.0 - percentNotPicked) });
 	//store for inner arc to which dataset it belongs to and that it is an inner selected arc
@@ -945,7 +945,7 @@ void iACompCorrelationMap::GraphInteractorStyle::OnLeftButtonDown()
 		{
 			//reset previously picked actor
 			resetOldPickedActor();
-			
+
 			//draw selection of actor
 			std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>>::iterator arcIterator = m_baseClass->outerArcWithInnerArcs->find(pickedA);
 
@@ -971,12 +971,12 @@ void iACompCorrelationMap::GraphInteractorStyle::OnLeftButtonDown()
 				{
 					std::vector<vtkSmartPointer<vtkActor>> innerArcs = innerArcIter->second;
 
-					for (int i = 0; i < ((int)innerArcs.size()); i++) 
+					for (int i = 0; i < ((int)innerArcs.size()); i++)
 					{
 						if(innerArcs.at(i) == pickedA)
 						{
 							drawSelectedArc(innerArcIter->first);
-							
+
 							for (int k = 0; k < ((int)innerArcs.size()); k++)
 							{
 								drawSelectedArc(innerArcs.at(k));
@@ -988,7 +988,7 @@ void iACompCorrelationMap::GraphInteractorStyle::OnLeftButtonDown()
 					}
 				}
 
-			}	
+			}
 
 			//update Histogram Table
 			std::map< vtkSmartPointer<vtkActor>, std::map<int, double>*>::iterator iter = m_baseClass->m_arcDataIndxTypePair->find(pickedA);
@@ -1026,7 +1026,7 @@ void iACompCorrelationMap::GraphInteractorStyle::moveLabel(vtkSmartPointer<vtkAc
 	if (iter == outerArcsWithLegend->end()) { return; }
 
 	vtkSmartPointer<vtkTextActor> labelActor = iter->second;
-	
+
 	labelActor->GetPositionCoordinate()->SetCoordinateSystemToWorld();
 	double* pos = labelActor->GetPositionCoordinate()->GetValue();
 
@@ -1221,7 +1221,7 @@ void iACompCorrelationMap::GraphInteractorStyle::drawPercentLabel(vtkSmartPointe
 	{
 		legendProperty->SetVerticalJustification(VTK_TEXT_BOTTOM);
 	}
-	
+
 
 	if (x < -0.1)
 	{
@@ -1268,8 +1268,8 @@ bool iACompCorrelationMap::GraphInteractorStyle::setPickList()
 
 void iACompCorrelationMap::GraphInteractorStyle::OnMiddleButtonDown() { vtkInteractorStyleRubberBand2D::OnMiddleButtonDown(); }
 
-void iACompCorrelationMap::GraphInteractorStyle::OnRightButtonDown() 
-{ 
+void iACompCorrelationMap::GraphInteractorStyle::OnRightButtonDown()
+{
 	//activate/deactivate if all edge labels should be shown
 	if(!edgeLabelsShown)
 	{
@@ -1403,8 +1403,6 @@ iACompCorrelationMap::CorrelationGraphLayout::CorrelationGraphLayout()
 	this->RandomInitialPoints = true;
 	this->v = nullptr;
 	this->e = nullptr;
-
-	
 }
 
 iACompCorrelationMap::CorrelationGraphLayout::~CorrelationGraphLayout() {
@@ -1746,7 +1744,7 @@ void iACompCorrelationMap::CorrelationGraphLayout::Layout()
 					diff[1] = v[j].x[1] - v[l].x[1];
 					diff[2] = v[j].x[2] - v[l].x[2];
 					norm = vtkMath::Normalize(diff);
-				
+
 					//LOG(lvlDebug,"norm: " + QString::number(norm));
 
 					if (norm > 2 * maxDist)
@@ -1810,7 +1808,7 @@ void iACompCorrelationMap::CorrelationGraphLayout::Layout()
 				fr = forceRepulse(norm, maxDist, weight);
 			}
 
-			//set displacement		
+			//set displacement
 			v[e[j].u].d[0] -= diff[0] * fr;
 			v[e[j].u].d[1] -= diff[1] * fr;
 			v[e[j].u].d[2] -= diff[2] * fr;

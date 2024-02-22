@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -17,7 +17,7 @@ public:
 
 	/*** Initialization ***/
 	void setVisualization(iAComp3DWidget* visualization);
-	
+
 
 	/*** Interaction ***/
 	virtual void OnLeftButtonDown() override;
@@ -26,7 +26,7 @@ public:
 
 protected:
 	iAComp3DWidgetInteractionStyle();
-	
+
 private:
 
 	iAComp3DWidget* m_visualization;

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -26,7 +26,7 @@ public:
 	virtual void closeMdiChild(iAMdiChild* child) = 0;
 	//! Close all child windows (with a question whether sure if a child has modified data)
 	virtual void closeAllSubWindows() = 0;
-	
+
 	//! Provides access to the currently active mdi child, if such is available.
 	//! @return pointer to the currently active mdi child, or nullptr if no child is currently open
 	virtual iAMdiChild* activeMdiChild() = 0;
