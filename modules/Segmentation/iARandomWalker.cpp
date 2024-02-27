@@ -66,7 +66,7 @@ namespace
 		int const dim[3],
 		double const spacing[3],
 		QVector<iAITKIO::ImagePointer> const & probabilityImages,
-		int labelCount,
+		size_t labelCount,
 		iAITKIO::ImagePointer& labelImgP)
 	{
 		typedef itk::Image<T, DIM> ProbImageType;
@@ -74,7 +74,7 @@ namespace
 		labelImgP = allocateImage(dim, spacing, iAITKIO::ScalarType::UCHAR);
 		LabelImageType* labelImg = dynamic_cast<LabelImageType*>(labelImgP.GetPointer());
 		QVector<ProbImageType*> probImgs;
-		for (int i = 0; i < labelCount; ++i)
+		for (size_t i = 0; i < labelCount; ++i)
 		{
 			probImgs.push_back(dynamic_cast<ProbImageType*>(probabilityImages[i].GetPointer()));
 		}
@@ -91,7 +91,7 @@ namespace
 					idx[0] = x;
 					idx[1] = y;
 					idx[2] = z;
-					for (int l = 0; l < labelCount; ++l)
+					for (size_t l = 0; l < labelCount; ++l)
 					{
 						double prob = probImgs[l]->GetPixel(idx);
 						if (prob >= maxProb)
@@ -574,7 +574,7 @@ void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 	// perf.time("ERW: solver compute done");
 
 	QVector<iAITKIO::ImagePointer> probImgs;
-	for (int i=0; i<labelCount; ++i)
+	for (size_t i=0; i<labelCount; ++i)
 	{
 		VectorType priorForLabel(vertexCount);
 		// fill from image
@@ -611,7 +611,7 @@ void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(CreateLabelImage, inputScalarType(), dim, spc, probImgs, labelCount, labelImg);
 	addOutput(std::make_shared<iAImageData>(labelImg));
 	setOutputName(0u, "Label Image");
-	for (int i = 0; i < labelCount; ++i)
+	for (size_t i = 0; i < labelCount; ++i)
 	{
 		addOutput(std::make_shared<iAImageData>(probImgs[i]));
 		setOutputName(static_cast<unsigned int>(1 + i), QString("Probability image label %1").arg(i));
