@@ -38,7 +38,7 @@ public:
 
 	iAEdgeIndexType edgeCount() const;
 	iAEdgeType const & edge(iAEdgeIndexType idx) const;
-	bool containsEdge(iAVoxelIndexType voxel1, iAVoxelIndexType voxel2);
+	bool containsEdge(iAFlatIndexType voxel1, iAFlatIndexType voxel2);
 	bool containsEdge(iAImageCoordinate voxel1, iAImageCoordinate voxel2);
 	iAImageCoordConverter const & converter() const;
 private:

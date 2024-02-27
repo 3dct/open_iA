@@ -14,8 +14,8 @@ class Segmentation_API iAVectorType
 public:
 	virtual ~iAVectorType();
 	typedef size_t IndexType;
-	virtual iAVectorDataType operator[](size_t channelIdx) const;
-	virtual iAVectorDataType get(size_t channelIdx) const = 0;
+	virtual iAVectorDataType operator[](IndexType channelIdx) const;
+	virtual iAVectorDataType get(IndexType channelIdx) const = 0;
 	virtual IndexType size() const = 0;
 	virtual std::shared_ptr<iAVectorType const> normalized() const;
 };

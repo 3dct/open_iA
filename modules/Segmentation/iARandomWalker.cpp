@@ -642,7 +642,7 @@ void iAMaximumDecisionRule::performWork(QVariantMap const & /*parameters*/)
 		probImgs.push_back(imageInput(i)->itkImage());
 	}
 	iAITKIO::ImagePointer labelImg;
-	ITK_TYPED_CALL(CreateLabelImage, inputScalarType(), dim, spc, probImgs, inputCount(), labelImg);
+	ITK_TYPED_CALL(CreateLabelImage, inputScalarType(), dim, spc, probImgs, static_cast<int>(inputCount()), labelImg);
 	addOutput(std::make_shared<iAImageData>(labelImg));
 }
 
