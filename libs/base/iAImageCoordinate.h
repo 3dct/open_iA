@@ -4,7 +4,8 @@
 
 #include "iabase_export.h"
 
-// why is this not unsigned int?
+#include <cstddef> // for size_t
+
 typedef int iAVoxelIndexType;
 typedef size_t iAFlatIndexType;
 
