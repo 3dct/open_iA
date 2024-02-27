@@ -48,7 +48,7 @@ namespace
 iADataSetListWidget::iADataSetListWidget()
 {
 	m_dataList = new QTableWidget;
-	m_dataList->setColumnCount(columnNames.size());
+	m_dataList->setColumnCount(static_cast<int>(columnNames.size()));
 	m_dataList->setHorizontalHeaderLabels(columnNames);
 	m_dataList->verticalHeader()->hide();
 	m_dataList->setSelectionBehavior(QAbstractItemView::SelectRows);

@@ -16,7 +16,7 @@ void iACsvQTableCreator::initialize(QStringList const & headers, size_t const ro
 	{
 		LOG(lvlWarn, QString("iACsvQTableCreator: More rows (%1) than I can handle (%2)").arg(rowCount).arg(std::numeric_limits<int>::max()));
 	}
-	m_table->setColumnCount(headers.size());
+	m_table->setColumnCount(static_cast<int>(headers.size()));
 	m_table->setRowCount(static_cast<int>(rowCount));
 	m_table->setHorizontalHeaderLabels(headers);
 }

@@ -116,7 +116,7 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 	auto containerLayout = new QGridLayout(m_container);
 	containerLayout->setObjectName("containerLayout");
 
-	for (int i = 0; i < parameters.size(); ++i)
+	for (qsizetype i = 0; i < parameters.size(); ++i)
 	{
 		auto p = parameters[i];
 		QLabel* label = new QLabel(m_container);
@@ -346,7 +346,7 @@ void iAParameterDlg::selectFilter()
 	if (dlg.exec())
 	{
 		QString filterName = dlg.selectedFilterName();
-		int idx = m_widgetList.indexOf(sender);
+		auto idx = m_widgetList.indexOf(sender);
 		if (idx < m_widgetList.size() - 1 && m_filterWithParameters.indexOf(idx) != -1 &&
 			m_sourceMdiChild)	// TODO: if possible, get rid of sourceMdi?
 		{

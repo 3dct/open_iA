@@ -325,15 +325,15 @@ void iACsvIO::determineOutputHeaders(QVector<uint> const & selectedCols)
 
 	for (uint key : m_csvConfig.columnMapping.keys())
 	{
-		int outIdx = selectedCols.indexOf(m_csvConfig.columnMapping[key]);
+		auto outIdx = static_cast<uint16_t>(selectedCols.indexOf(m_csvConfig.columnMapping[key]));
 		if (outIdx < 0)
 		{
 			LOG(lvlWarn, QString("Mapped column (ID=%1, input col=%2) not selected for output.").arg(key).arg(m_csvConfig.columnMapping[key]));
 		}
 		else
 		{
-			int fullOutIdx = (m_csvConfig.addAutoID ? 1 : 0) + outIdx;
-			m_outputMapping->insert(key, fullOutIdx);
+			auto fullOutIdx = static_cast<uint16_t>(m_csvConfig.addAutoID ? 1 : 0) + outIdx;
+			m_outputMapping->insert(key,  fullOutIdx);
 		}
 	}
 
