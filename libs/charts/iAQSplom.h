@@ -228,9 +228,8 @@ public:
 	struct Settings
 	{
 		Settings();
-		long plotsSpacing;
-		long tickLabelsOffset;
-		long maxRectExtraOffset;
+		int plotsSpacing;
+		int tickLabelsOffset;
 		QPoint tickOffsets;
 		QColor backgroundColor;
 		bool maximizedLinked;
