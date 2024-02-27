@@ -25,7 +25,7 @@ iAGraphFileIO::iAGraphFileIO() : iAFileIO(iADataSetType::Graph, iADataSetType::N
 }
 
 
-void createValueNamesAndArrays(QStringList& header, QSet<int> mappedIndices, QStringList& valNames, std::vector<vtkSmartPointer<vtkDoubleArray>>& allVals, std::vector<int>& valIndices)
+void createValueNamesAndArrays(QStringList& header, QSet<qsizetype> mappedIndices, QStringList& valNames, std::vector<vtkSmartPointer<vtkDoubleArray>>& allVals, std::vector<int>& valIndices)
 {
 	for (int v = 0; v < header.size(); ++v)
 	{
@@ -68,16 +68,16 @@ std::shared_ptr<iADataSet> iAGraphFileIO::loadData(QString const& fileName, QVar
 	// current line contains vertex column headers:
 	QStringList vertexHeader = line.split("\t");
 	// determine column mapping for coordinates:
-	int vertexIDIdx = vertexHeader.indexOf("id");
-	int xIdx = vertexHeader.indexOf("x");
-	int yIdx = vertexHeader.indexOf("y");
-	int zIdx = vertexHeader.indexOf("z");
-	int vertexColorIdx = vertexHeader.indexOf("color");
+	auto vertexIDIdx = vertexHeader.indexOf("id");
+	auto xIdx = vertexHeader.indexOf("x");
+	auto yIdx = vertexHeader.indexOf("y");
+	auto zIdx = vertexHeader.indexOf("z");
+	auto vertexColorIdx = vertexHeader.indexOf("color");
 	if (xIdx == -1 || yIdx == -1 || zIdx == -1 || vertexColorIdx == -1)
 	{
 		throw std::runtime_error("An expected column (x, y, z or color) was not found!");
 	}
-	QSet<int> mappedVertexIndices{ vertexIDIdx, xIdx, yIdx, zIdx, vertexColorIdx };
+	QSet<qsizetype> mappedVertexIndices{ vertexIDIdx, xIdx, yIdx, zIdx, vertexColorIdx };
 	QStringList vertexValueNames;
 	std::vector<vtkSmartPointer<vtkDoubleArray>> allVertexValues;
 	std::vector<int> vertexValIdx;
@@ -161,11 +161,11 @@ std::shared_ptr<iADataSet> iAGraphFileIO::loadData(QString const& fileName, QVar
 	// parse edge values:
 	line = in.readLine();
 	QStringList edgeHeader = line.split("\t");
-	int edgeIDIdx = edgeHeader.indexOf("id");
-	int pt1Idx = edgeHeader.indexOf("Vert_1");
-	int pt2Idx = edgeHeader.indexOf("Vert_2");
-	int edgeColorIdx = edgeHeader.indexOf("color");
-	QSet<int> mappedEdgeIndices{ edgeIDIdx, pt1Idx, pt2Idx, edgeColorIdx };
+	auto edgeIDIdx = edgeHeader.indexOf("id");
+	auto pt1Idx = edgeHeader.indexOf("Vert_1");
+	auto pt2Idx = edgeHeader.indexOf("Vert_2");
+	auto edgeColorIdx = edgeHeader.indexOf("color");
+	QSet<qsizetype> mappedEdgeIndices{ edgeIDIdx, pt1Idx, pt2Idx, edgeColorIdx };
 	QStringList edgeValueNames;
 	std::vector<vtkSmartPointer<vtkDoubleArray>> allEdgeValues;
 	std::vector<int> edgeValIdx;
