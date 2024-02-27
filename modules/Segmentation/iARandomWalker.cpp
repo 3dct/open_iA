@@ -297,7 +297,7 @@ void iARandomWalker::performWork(QVariantMap const & parameters)
 		seedMap.insert(imageGraph.converter().indexFromCoordinates(seeds->at(seedIdx).first), seedIdx);
 		labelSet.insert(seeds->at(seedIdx).second);
 	}
-	int labelCount = labelSet.size();
+	int labelCount = static_cast<int>(labelSet.size());
 	if (maxLabel != labelCount - 1)
 	{
 		addMsg("Labels must be consecutive from 0 .. maxLabel !");
@@ -338,7 +338,7 @@ void iARandomWalker::performWork(QVariantMap const & parameters)
 			++newIdx;
 		}
 	}
-	int seedCount = seedMap.size();
+	auto seedCount = seedMap.size();
 
 	MatrixType A(vertexCount - seedCount, vertexCount - seedCount);
 	CreateLaplacianPart(A, unlabeledMap, unlabeledMap, imageGraph, finalWeight, vertexWeightSum, vertexCount);
@@ -508,7 +508,7 @@ void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 	// add priors into vertexWeightSum:
 	// if my thinking is correct it should be enough to add the weight factor to each entry,
 	// since for one voxel, the probabilities for all labels should add up to 1!
-	int labelCount = priorModel.size();
+	auto labelCount = priorModel.size();
 	for (iAVoxelIndexType voxelIdx = 0; static_cast<unsigned int>(voxelIdx) < vertexCount; ++voxelIdx)
 	{
 		double sum = 0;
@@ -520,7 +520,7 @@ void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 		idx[1] = coord.y;
 		idx[2] = coord.z;
 		*/
-		for (int labelIdx = 0; labelIdx < labelCount; ++labelIdx)
+		for (size_t labelIdx = 0; labelIdx < labelCount; ++labelIdx)
 		{
 			//sum += (*m_priorModel)[labelIdx]->GetPixel(idx);
 			double value = priorModel[labelIdx]->vtkImage()->GetScalarComponentAsDouble(coord.x, coord.y, coord.z, 0);
