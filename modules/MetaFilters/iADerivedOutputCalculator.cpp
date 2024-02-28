@@ -63,7 +63,7 @@ void iADerivedOutputCalculator::run()
 		relabel->SetInput(connected->GetOutput());
 		//relabel->SetSortByObjectSize(false);
 		relabel->Update();
-		int objCount = relabel->GetNumberOfObjects();
+		auto objCount = relabel->GetNumberOfObjects();
 		m_result->setAttribute(m_objCountIdx, objCount);
 
 		if (m_result->probabilityAvailable())

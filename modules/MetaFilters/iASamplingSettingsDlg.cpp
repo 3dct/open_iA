@@ -499,7 +499,7 @@ std::vector<int> iASamplingSettingsDlg::numOfSamplesPerParameter() const
 		auto desc = m_paramInputs[l]->currentDescriptor();
 		if (desc->valueType() == iAValueType::Categorical || desc->valueType() == iAValueType::Boolean)
 		{
-			result[l] = s[desc->name()].toString().split(",").size();
+			result[l] = static_cast<int>(s[desc->name()].toString().split(",").size());
 		}
 		else if (desc->valueType() == iAValueType::Continuous || desc->valueType() == iAValueType::Discrete)
 		{
@@ -582,7 +582,7 @@ void iASamplingSettingsDlg::loadSettings()
 	while (!in.atEnd())
 	{
 		QString line = in.readLine();
-		int sepPos = line.indexOf(KeyValueSeparator);
+		auto sepPos = line.indexOf(KeyValueSeparator);
 		if (sepPos == -1)
 		{
 			LOG(lvlError, QString("Invalid line '%1'").arg(line));

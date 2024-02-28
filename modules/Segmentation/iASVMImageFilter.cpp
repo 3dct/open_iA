@@ -81,7 +81,7 @@ void iASVMImageFilter::performWork(QVariantMap const & parameters)
 	svm_problem problem;
 	typedef svm_node* p_svm_node;
 
-	problem.l = seeds->size();
+	problem.l = static_cast<int>(seeds->size());
 	problem.x = new p_svm_node[seeds->size()];
 	problem.y = new double[seeds->size()];
 	size_t xspacesize = seeds->size() * (inputCount() + 1);

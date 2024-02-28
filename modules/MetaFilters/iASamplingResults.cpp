@@ -257,7 +257,7 @@ bool iASamplingResults::loadInternal(QString const & parameterSetFileName, QStri
 }
 
 
-int iASamplingResults::size() const
+qsizetype iASamplingResults::size() const
 {
 	return m_results.size();
 }

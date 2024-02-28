@@ -333,10 +333,10 @@ iAParameterSetsPointer iALatinHypercubeSamplingMethod::parameterSets(std::shared
 			}
 			else
 			{
-				int maxOptIdx = options.size();
+				auto maxOptIdx = options.size();
 				for (int s = 0; s < sampleCount(); ++s)
 				{
-					int optIdx = s % maxOptIdx;
+					auto optIdx = s % maxOptIdx;
 					sampleValues[p].push_back(options[optIdx]);
 				}
 			}
