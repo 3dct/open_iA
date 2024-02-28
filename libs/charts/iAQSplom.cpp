@@ -1225,6 +1225,10 @@ void iAQSplom::updatePlotGridParams()
 		static_cast<int>(( plotsRect[0] - ( visParamCnt - 1 ) * spc - ((m_separationIdx != -1) ? settings.separationMargin : 0) ) / ( (double)visParamCnt )),
 		static_cast<int>(( plotsRect[1] - ( visParamCnt - 1 ) * spc - ((m_separationIdx != -1) ? settings.separationMargin : 0) ) / ( (double)visParamCnt ))
 	);
+	if (visibleParametersCount() == 2)
+	{
+		m_scatPlotSize = QPoint(plotsRect[0], plotsRect[1]);
+	}
 	if (settings.quadraticPlots)
 	{
 		if (m_scatPlotSize.x() < m_scatPlotSize.y())
