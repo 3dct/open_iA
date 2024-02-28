@@ -316,23 +316,23 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 	return true;
 }
 
-void iACsvIO::determineOutputHeaders(QVector<uint> const & selectedCols)
+void iACsvIO::determineOutputHeaders(QVector<iAColIdxT> const & selectedCols)
 {
 	m_outputHeaders.clear();
 	m_outputMapping->clear();
 
 	//m_outputMapping.insert(iACsvConfig::ID, 0); // for now, ID is fixed to be in column 0
 
-	for (uint key : m_csvConfig.columnMapping.keys())
+	for (iAColIdxT key : m_csvConfig.columnMapping.keys())
 	{
-		auto outIdx = static_cast<uint16_t>(selectedCols.indexOf(m_csvConfig.columnMapping[key]));
+		auto outIdx = static_cast<iAColIdxT>(selectedCols.indexOf(m_csvConfig.columnMapping[key]));
 		if (outIdx < 0)
 		{
 			LOG(lvlWarn, QString("Mapped column (ID=%1, input col=%2) not selected for output.").arg(key).arg(m_csvConfig.columnMapping[key]));
 		}
 		else
 		{
-			auto fullOutIdx = static_cast<uint16_t>(m_csvConfig.addAutoID ? 1 : 0) + outIdx;
+			auto fullOutIdx = static_cast<iAColIdxT>(m_csvConfig.addAutoID ? 1 : 0) + outIdx;
 			m_outputMapping->insert(key,  fullOutIdx);
 		}
 	}
@@ -404,17 +404,17 @@ void iACsvIO::determineOutputHeaders(QVector<uint> const & selectedCols)
 	}
 }
 
-QVector<uint> iACsvIO::computeSelectedColIdx()
+QVector<iAColIdxT> iACsvIO::computeSelectedColIdx()
 {
 	QStringList selectedHeaders = (m_csvConfig.selectedHeaders.isEmpty()) ? m_fileHeaders : m_csvConfig.selectedHeaders;
-	QVector<uint> result;
+	QVector<iAColIdxT> result;
 
 	for (QString colName: selectedHeaders)
 	{
-		int idx = m_fileHeaders.indexOf(colName);
+		auto idx = m_fileHeaders.indexOf(colName);
 		if (idx >= 0)
 		{
-			result.append(idx);
+			result.append(static_cast<iAColIdxT>(idx));
 		}
 		else
 		{
@@ -497,9 +497,9 @@ bool readCurvedFiberInfo(QString const & fileName, std::map<size_t, std::vector<
 		}
 		// TODO: better solution for Label (1..N) <-> internal fiber ID (0..N-1) mapping!!!
 		size_t fiberID = valueStrList[0].toInt() - 1;
-		int numOfPoints = (valueStrList.size() - 1) / 3;
+		auto numOfPoints = (valueStrList.size() - 1) / 3;
 		std::vector<iAVec3f> points(numOfPoints);
-		for (int i = 0; i < numOfPoints; ++i)
+		for (qsizetype i = 0; i < numOfPoints; ++i)
 		{
 			int baseIdx = 1 + (i * 3);
 			bool ok1, ok2, ok3;

@@ -121,7 +121,7 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 		auto p = parameters[i];
 		QLabel* label = new QLabel(m_container);
 		label->setText(p->name());
-		containerLayout->addWidget(label, i, 0);
+		containerLayout->addWidget(label, static_cast<int>(i), 0);
 		QWidget* newWidget = nullptr;
 
 		switch (p->valueType())
@@ -243,7 +243,7 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 		}
 		newWidget->setObjectName(p->name());	// required for ROI (parses object name)
 		m_widgetList[i] = newWidget;
-		containerLayout->addWidget(newWidget, i, 1);
+		containerLayout->addWidget(newWidget, static_cast<int>(i), 1);
 	}
 
 	// Try to resize dialog so that all controls are visible without scrolling; but use at most 2/3 of screen width and height

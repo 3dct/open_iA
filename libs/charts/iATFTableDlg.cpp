@@ -58,7 +58,7 @@ iATFTableDlg::iATFTableDlg(QWidget* parent, iAChartFunction* func) :
 	addPnt->setShortcut(Qt::Key_Space);
 	addAction(addPnt);
 	table->addAction(removePnt);
-	table->setColumnCount(columnNames.size());
+	table->setColumnCount(static_cast<int>(columnNames.size()));
 	table->setHorizontalHeaderLabels(columnNames);
 	table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 	table->verticalHeader()->setDefaultSectionSize(25);
