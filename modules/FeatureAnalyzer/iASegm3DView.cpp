@@ -287,7 +287,7 @@ void iASegm3DViewData::LoadAndApplySettings()
 
 	bool showVolume = settings.value("FeatureAnalyzer/GUI/ShowVolume", false).toBool();
 	m_volumeRenderer->setVisible(showVolume);
-	
+
 	m_polyDataRenderer->setVisible( settings.value( "FeatureAnalyzer/GUI/ShowSurface", false ).toBool() );
 	m_wireActor->SetVisibility( settings.value( "FeatureAnalyzer/GUI/ShowWireframe", false ).toBool() );
 

@@ -41,7 +41,7 @@ void iAGraphWeights::Normalize(std::shared_ptr<iANormalizer> normalizeFunc)
 	}
 }
 
-int iAGraphWeights::GetEdgeCount() const
+qsizetype iAGraphWeights::GetEdgeCount() const
 {
 	return m_weights.size();
 }
@@ -51,7 +51,7 @@ std::shared_ptr<iAGraphWeights> CalculateGraphWeights(
 	iAVectorArray const & voxelData,
 	iAVectorDistance const & distanceFunc)
 {
-	std::shared_ptr<iAGraphWeights> result(new iAGraphWeights(graph.edgeCount()));
+	auto result = std::make_shared<iAGraphWeights>(graph.edgeCount());
 	for (iAEdgeIndexType i=0; i<graph.edgeCount(); ++i)
 	{
 		iAEdgeType edge = graph.edge(i);
@@ -68,7 +68,7 @@ std::shared_ptr<iAGraphWeights const> CombineGraphWeights(
 {
 	assert(graphWeights.size() > 0);
 	assert(graphWeights.size() == weight.size());
-	int edgeCount = graphWeights[0]->GetEdgeCount();
+	auto edgeCount = graphWeights[0]->GetEdgeCount();
 	std::shared_ptr<iAGraphWeights> result(new iAGraphWeights(edgeCount));
 	for (int edgeIdx=0; edgeIdx<edgeCount; ++edgeIdx)
 	{

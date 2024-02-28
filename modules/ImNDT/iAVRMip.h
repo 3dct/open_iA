@@ -3,29 +3,40 @@
 #pragma once
 
 #include <vtkSmartPointer.h>
-#include <vtkRenderer.h>
-#include <vtkActor.h>
-#include <iAVRColorLegend.h>
-#include <iAVROctree.h>
 
-/*
-* This class calculates and displays the Maximum Intensity Projection (MIP)
-*/
+#include <QColor>
+
+class vtkActor;
+class vtkPolyData;
+class vtkRenderer;
+
+class iAVRColorLegend;
+class iAVROctree;
+
+//! Calculates and displays the Maximum Intensity Projection (MIP)
 class iAVRMip
 {
 public:
-	iAVRMip(vtkRenderer* renderer, std::vector<iAVROctree*>* octrees, iAVRColorLegend* colorLegend);
+	iAVRMip(vtkRenderer* renderer, std::vector<iAVROctree*> const & octrees, iAVRColorLegend* colorLegend);
+	//! Adds a colorLegend for the LUT information
 	void addColorLegend(iAVRColorLegend* colorLegend);
-	void createMIPPanels(int octreeLevel, int feature, std::vector<std::vector<std::vector<double>>>* calculatedValues);
-	void createSingleMIPPanel(int octreeLevel, int feature, int viewDir, double physicalScale, std::vector<std::vector<std::vector<double>>>* calculatedValues);
+	//! Creates a plane for every possible MIP Projection (six planes)
+	//! The plane cells start at the lower left cell depending on the origin Point of the Plane
+	void createMIPPanels(int octreeLevel, int feature, std::vector<std::vector<std::vector<double>>> const & calculatedValues);
+	//! Creates a plane for the MIP Projection for the current viewed direction
+	//! The plane cells start at the lower left cell depending on the origin Point of the Plane
+	void createSingleMIPPanel(int octreeLevel, int feature, int viewDir, double physicalScale, std::vector<std::vector<std::vector<double>>> const & calculatedValues);
+	//! Hides the MIP panels from the user
 	void hideMIPPanels();
 
 private:
 	vtkSmartPointer<vtkRenderer> m_renderer;
-	std::vector<iAVROctree*>* m_octrees;
+	std::vector<iAVROctree*> const & m_octrees;
 	iAVRColorLegend* m_colorLegend;
-	vtkSmartPointer<vtkActor> mipPanel;
-	std::vector<vtkPolyData*> mipPlanes;
+	vtkSmartPointer<vtkActor> m_mipPanel;
+	std::vector<vtkPolyData*> m_mipPlanes;
 
-	std::vector<QColor>* calculateMIPColoring(int direction, int level, int feature, std::vector<std::vector<std::vector<double>>>* calculatedValues);
+	//! Calculates the maximum Intensity Projection for the chosen feature and direction (x = 0, y = 1, z = 2)
+	//! Saves the color for the maximum value found by shooting a parallel ray through a cube row.
+	std::vector<QColor> calculateMIPColoring(int direction, int level, int feature, std::vector<std::vector<std::vector<double>>> const & calculatedValues);
 };

@@ -251,7 +251,7 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
 	logger.startLogging();
 #endif
 	QPainter painter(this);
-	
+
 	QColor bgColor(QApplication::palette().color(QWidget::backgroundRole()));
 #if (defined(CHART_OPENGL))
 	painter.beginNativePainting();

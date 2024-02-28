@@ -33,7 +33,7 @@ private:
 	void initializeMaxAmountInBins(bin::BinType* bins, int initialNumberBins);
 
 	double computeIntervalLength(double minVal, double maxVal);
-	
+
 
 	//maximum amount of numbers in a bin (calculated for all bins)
 	int m_maxAmountInAllBins;

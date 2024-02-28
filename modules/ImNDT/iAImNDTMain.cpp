@@ -5,12 +5,16 @@
 #include "iAImNDTInteractorStyle.h"
 #include "iAVR3DText.h"
 #include "iAVRColorLegend.h"
+#include "iAVREnvironment.h"
 #include "iAVRFrontCamera.h"
+#include "iAVRHistogramMetric.h"
 #include "iAVRHistogramPairVis.h"
 #include "iAVRMip.h"
 #include "iAVRModelInMiniature.h"
+#include "iAVRObjectCoverage.h"
 #include "iAVRObjectModel.h"
 #include "iAVROctree.h"
+#include "iAVROctreeMetrics.h"
 #include "iAVRSlider.h"
 
 #include <iAColoredPolyObjectVis.h>
@@ -18,15 +22,13 @@
 
 #include <iALog.h>
 
-#include <vtkActor.h>
 #include <vtkAssembly.h>
 #include <vtkCamera.h>
 #include <vtkInteractorStyle3D.h>
+#include <vtkOctreePointLocator.h>
 #include <vtkPolyData.h>
-#include <vtkPolyDataMapper.h>
 #include <vtkProp3D.h>
-#include <vtkProperty.h>
-#include <vtkVertexGlyphFilter.h>
+#include <vtkTable.h>
 
 #include <QColor>
 
@@ -48,61 +50,52 @@ iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAColoredPolyObjectVis* polyObj
 	m_activeInput(static_cast<size_t>(vtkEventDataDevice::NumberOfDevices), -1),
 	m_arViewer(createARViewer(vrEnv))
 {
-
 	// For true TranslucentGeometry
 	//https://vtk.org/Wiki/VTK/Examples/Cxx/Visualization/CorrectlyRenderTranslucentGeometry#CorrectlyRenderTranslucentGeometry.cxx
 	//m_vrEnv->renderer()->SetUseDepthPeeling(true);
 	//m_vrEnv->renderer()->SetMaximumNumberOfPeels(2);
 	//m_vrEnv->renderer()->SetUseFXAA(true);
-	
-	currentMiMDisplacementType = 0;
+
+	m_currentMiMDisplacementType = 0;
 
 	//Initialize Cube Vis
 	m_modelInMiniature = new iAVRModelInMiniature(m_vrEnv->renderer());
 	m_volume = new iAVRObjectModel(m_vrEnv->renderer(), m_polyObject);
 
 	//Define Octree
-	currentOctreeLevel = 0;
-	m_octrees = new std::vector<iAVROctree*>();
+	m_currentOctreeLevel = 0;
 	generateOctrees(OCTREE_MAX_LEVEL, OCTREE_POINTS_PER_REGION, m_volume->getPolyObject()->polyData());
-	//m_octrees->at(currentOctreeLevel)->generateOctreeRepresentation(currentOctreeLevel, OCTREE_COLOR);
-	//m_octrees->at(currentOctreeLevel)->show();
+	//m_octrees.at(currentOctreeLevel)->generateOctreeRepresentation(currentOctreeLevel, OCTREE_COLOR);
+	//m_octrees.at(currentOctreeLevel)->show();
 
 	//Set Octree
-	m_modelInMiniature->setOctree(m_octrees->at(OCTREE_MIN_LEVEL));
-	m_volume->setOctree(m_octrees->at(OCTREE_MIN_LEVEL));
+	m_modelInMiniature->setOctree(m_octrees.at(OCTREE_MIN_LEVEL));
+	m_volume->setOctree(m_octrees.at(OCTREE_MIN_LEVEL));
 
 	//Initialize Metrics class
-	currentFeature = 1;
-	fiberMetrics = new iAVROctreeMetrics(objData->m_table, m_octrees);
-	histogramMetrics = new iAVRHistogramMetric(objData->m_table, m_octrees);
+	m_currentFeature = 1;
+	m_fiberMetrics = new iAVROctreeMetrics(objData->m_table, m_octrees);
+	m_histogramMetrics = new iAVRHistogramMetric(objData->m_table, m_octrees);
 
 	//Fiber Coverage
 	m_fiberCoverageCalc = new iAVRObjectCoverage(objData->m_table, objData->m_colMapping, csvConfig, m_octrees, m_volume);
 	m_fiberCoverageCalc->calculateObjectCoverage();
 
-
 	m_volume->setFiberCoverageData(m_fiberCoverageCalc->getObjectCoverage());
 	m_modelInMiniature->setFiberCoverageData(m_fiberCoverageCalc->getObjectCoverage());
-	fiberMetrics->setFiberCoverageData(m_fiberCoverageCalc->getObjectCoverage());
-	histogramMetrics->setFiberCoverageData(m_fiberCoverageCalc->getObjectCoverage());
-	fiberMetrics->getMaxCoverageFiberPerRegion();
-
-	//Add InteractorStyle
-	m_vrEnv->interactor()->SetInteractorStyle(m_interactions.style());
-
-	multiPickIDs = new std::vector<vtkIdType>();
+	m_fiberMetrics->setFiberCoverageData(m_fiberCoverageCalc->getObjectCoverage());
+	m_histogramMetrics->setFiberCoverageData(m_fiberCoverageCalc->getObjectCoverage());
+	m_fiberMetrics->getMaxCoverageFiberPerRegion();
 
 	//Initialize Text Lables vector
-	m_3DTextLabels = new std::vector<iAVR3DText*>();
-	m_3DTextLabels->push_back(new iAVR3DText(m_vrEnv->renderer()));// [0] for Octree level change
-	m_3DTextLabels->push_back(new iAVR3DText(m_vrEnv->renderer()));// [1] for feature change
-	m_3DTextLabels->push_back(new iAVR3DText(m_vrEnv->renderer()));// [2] for Alerts
+	m_3DTextLabels.push_back(iAVR3DText(m_vrEnv->renderer(), "Octree level"));// [0] for Octree level change
+	m_3DTextLabels.push_back(iAVR3DText(m_vrEnv->renderer(), "Feature"));// [1] for feature change
+	//m_3DTextLabels.push_back(iAVR3DText(m_vrEnv->renderer(), "Alert"));// [2] for Alerts
 
 	//Initialize ColorLegend
 	m_MiMColorLegend = new iAVRColorLegend(m_vrEnv->renderer());
 
-	//Initialize ColorLegend
+	//Initialize Maximum Intensity Projection
 	m_MiMMip = new iAVRMip(m_vrEnv->renderer(), m_octrees, m_MiMColorLegend);
 
 	//Initialize Slider
@@ -110,7 +103,7 @@ iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAColoredPolyObjectVis* polyObj
 
 	//Initialize Distribution Vis
 	m_networkGraphMode = false;
-	m_distributionVis = new iAVRHistogramPairVis(m_vrEnv->renderer(), histogramMetrics, fiberMetrics, objData->m_table);
+	m_distributionVis = new iAVRHistogramPairVis(m_vrEnv->renderer(), m_histogramMetrics, m_fiberMetrics, objData->m_table);
 
 	//Display Volume
 	m_volume->createCubeModel();
@@ -168,11 +161,14 @@ iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAColoredPolyObjectVis* polyObj
 	addPropToOptionID(vtkProp3D::SafeDownCast(m_volume->getVolumeActor()), iAVRInteractionOptions::Volume);
 
 	//addPropToOptionID(m_slider->getSlider(), iAVRInteractionOptions::Histogram);
-	
-	for(size_t i = 0; i < m_octrees->size(); i++)
+
+	for(size_t i = 0; i < m_octrees.size(); i++)
 	{
-		addPropToOptionID(vtkProp3D::SafeDownCast(m_octrees->at(i)->getActor()), iAVRInteractionOptions::Volume); //Octree counts as Volume
+		addPropToOptionID(vtkProp3D::SafeDownCast(m_octrees.at(i)->getActor()), iAVRInteractionOptions::Volume); //Octree counts as Volume
 	}
+
+	//Add InteractorStyle
+	m_vrEnv->interactor()->SetInteractorStyle(m_interactions.style());
 }
 
 iAImNDTMain::~iAImNDTMain() =default;
@@ -197,7 +193,7 @@ void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pick
 	case iAVROperations::None:
 		break;
 	case iAVROperations::SpawnModelInMiniature:
-		this->spawnModelInMiniature(eventPosition, modelInMiniatureActive);
+		this->spawnModelInMiniature(eventPosition, m_modelInMiniatureActive);
 		break;
 	case iAVROperations::PickFibersinRegion:
 		this->pickFibersinRegion(eventPosition, eventOrientation);
@@ -205,10 +201,10 @@ void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pick
 	case iAVROperations::PickMiMRegion:
 		this->pickMimRegion(eventPosition, eventOrientation);
 		break;
-	case iAVROperations::MultiPickMiMRegion:	
+	case iAVROperations::MultiPickMiMRegion:
 		m_activeInput.at(deviceID) = static_cast<int>(iAVROperations::MultiPickMiMRegion); // For Multitouch
 		//m_modelInMiniature->removeHighlightedGlyphs();
-		multiPickIDs->clear();
+		m_multiPickIDs.clear();
 		break;
 	case iAVROperations::ChangeOctreeAndMetric:
 		this->changeOctreeAndMetric();
@@ -287,26 +283,26 @@ void iAImNDTMain::endInteraction(vtkEventDataDevice3D* device, vtkProp3D* picked
 
 void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], double eventOrientation[4])
 {
-	vtkSmartPointer<vtkCamera> cam = m_vrEnv->renderer()->GetActiveCamera();
+	vtkCamera* cam = m_vrEnv->renderer()->GetActiveCamera();
 	double initialScale = m_vrEnv->interactor()->GetPhysicalScale();
 	//Currently moved controller
 	int deviceID = static_cast<int>(device->GetDevice());
 
 	//TODO Initialize only after first call or they are filled wrong!
-	int oldViewDirection = viewDirection;
+	int oldViewDirection = m_viewDirection;
 	//double oldFocalPoint[3] = {focalPoint[0], focalPoint[1], focalPoint[2]};
-	double oldcPos[3] = { cPos[deviceID][0], cPos[deviceID][1], cPos[deviceID][2]};
+	double oldcPos[3] = { m_cPos[deviceID][0], m_cPos[deviceID][1], m_cPos[deviceID][2]};
 	//double oldcOrie[4] = { cOrie[deviceID][0], cOrie[deviceID][1], cOrie[deviceID][2], cOrie[deviceID][3]}; //W,X,Y,Z
 
 	for (vtkIdType i = 0; i < 3; i++)
 	{
 		//Save Current Pos
-		cPos[deviceID][i] = movePosition[i];
+		m_cPos[deviceID][i] = movePosition[i];
 
 		//Save Current Pos
-		cOrie[deviceID][i] = eventOrientation[i];
+		m_cOrie[deviceID][i] = eventOrientation[i];
 	}
-	cOrie[deviceID][3] = eventOrientation[3];
+	m_cOrie[deviceID][3] = eventOrientation[3];
 
 	//Movement of Head
 	if (deviceID == static_cast<int>(vtkEventDataDevice::HeadMountedDisplay))
@@ -317,14 +313,14 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 		}
 
 		double* tempFocalPos = cam->GetFocalPoint();
-		focalPoint[0] = tempFocalPos[0];
-		focalPoint[1] = tempFocalPos[1];
-		focalPoint[2] = tempFocalPos[2];
+		m_focalPoint[0] = tempFocalPos[0];
+		m_focalPoint[1] = tempFocalPos[1];
+		m_focalPoint[2] = tempFocalPos[2];
 
-		m_3DTextLabels->at(2)->setLabelPos(tempFocalPos);
+		//m_3DTextLabels.at(2).setLabelPos(tempFocalPos);
 
 		double* tempViewDirection = cam->GetDirectionOfProjection();
-		viewDirection = static_cast<int>(iAImNDTInteractions::getViewDirection(tempViewDirection));
+		m_viewDirection = static_cast<int>(iAImNDTInteractions::getViewDirection(tempViewDirection));
 
 		if (m_networkGraphMode)
 		{
@@ -338,13 +334,13 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 		}
 
 		//Create MIP panel in View direction
-		if(oldViewDirection != viewDirection)
+		if(oldViewDirection != m_viewDirection)
 		{
-			if (modelInMiniatureActive)
+			if (m_modelInMiniatureActive)
 			{
 				if(m_MIPPanelsVisible)
 				{
-					m_MiMMip->createSingleMIPPanel(currentOctreeLevel, currentFeature, viewDirection, m_vrEnv->getInitialWorldScale(), fiberMetrics->getRegionAverage(currentOctreeLevel, currentFeature));
+					m_MiMMip->createSingleMIPPanel(m_currentOctreeLevel, m_currentFeature, m_viewDirection, m_vrEnv->getInitialWorldScale(), m_fiberMetrics->getRegionAverage(m_currentOctreeLevel, m_currentFeature));
 				}
 			}
 		}
@@ -354,23 +350,23 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 	if(deviceID == static_cast<int>(vtkEventDataDevice::LeftController))
 	{
 		//For active Model in Minature MiM
-		if(modelInMiniatureActive)
+		if(m_modelInMiniatureActive)
 		{
-			m_modelInMiniature->setPos(cPos[deviceID][0] - (initialScale * 0.08), cPos[deviceID][1] + (initialScale * 0.075), cPos[deviceID][2] - (initialScale * 0.085));
+			m_modelInMiniature->setPos(m_cPos[deviceID][0] - (initialScale * 0.08), m_cPos[deviceID][1] + (initialScale * 0.075), m_cPos[deviceID][2] - (initialScale * 0.085));
 
-			double colorLegendlcPos[3] = { cPos[deviceID][0] + (initialScale * 0.04), cPos[deviceID][1] - (initialScale * 0.2), cPos[deviceID][2]};
+			double colorLegendlcPos[3] = { m_cPos[deviceID][0] + (initialScale * 0.04), m_cPos[deviceID][1] - (initialScale * 0.2), m_cPos[deviceID][2]};
 
 			m_MiMColorLegend->setPosition(colorLegendlcPos);
 			//Rotate legend around y
 			m_MiMColorLegend->setOrientation(0, -cam->GetOrientation()[1], 0);
 
-			m_MiMColorLegend->setTitle(QString(" %1 ").arg(fiberMetrics->getFeatureName(currentFeature)).toUtf8());
+			m_MiMColorLegend->setTitle(QString(" %1 ").arg(m_fiberMetrics->getFeatureName(m_currentFeature)).toUtf8());
 			m_MiMColorLegend->show();
 		}
 
-		double lcPos[3] = { cPos[deviceID][0], cPos[deviceID][1] - (initialScale * 0.03), cPos[deviceID][2]};
-		m_3DTextLabels->at(1)->setLabelPos(lcPos);
-		m_3DTextLabels->at(1)->moveInEyeDir(initialScale * 0.04, initialScale * 0.04, initialScale * 0.04);
+		double lcPos[3] = { m_cPos[deviceID][0], m_cPos[deviceID][1] - (initialScale * 0.03), m_cPos[deviceID][2]};
+		m_3DTextLabels.at(1).setLabelPos(lcPos);
+		m_3DTextLabels.at(1).moveInEyeDir(initialScale * 0.04, initialScale * 0.04, initialScale * 0.04);
 
 		m_slider->setPosition(lcPos[0], lcPos[1] - (initialScale * 0.04), lcPos[2] + (initialScale * 0.07));
 	}
@@ -378,23 +374,21 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 	//Movement of Right controller
 	if (deviceID == static_cast<int>(vtkEventDataDevice::RightController))
 	{
-		double rcPos[3] = { cPos[deviceID][0], cPos[deviceID][1] - (initialScale * 0.03), cPos[deviceID][2]};
-		m_3DTextLabels->at(0)->setLabelPos(rcPos);
-		m_3DTextLabels->at(0)->moveInEyeDir(initialScale * 0.04, initialScale * 0.04, initialScale * 0.04);
+		double rcPos[3] = { m_cPos[deviceID][0], m_cPos[deviceID][1] - (initialScale * 0.03), m_cPos[deviceID][2]};
+		m_3DTextLabels.at(0).setLabelPos(rcPos);
+		m_3DTextLabels.at(0).moveInEyeDir(initialScale * 0.04, initialScale * 0.04, initialScale * 0.04);
 
 		if(m_activeInput.at(deviceID) == static_cast<int>(iAVROperations::FlipHistoBookPages))
 		{
 			double controllerPath[3]{};
 			double crossPro[3]{};
-			vtkMath::Subtract(oldcPos,cPos[deviceID], controllerPath);
-			vtkMath::Cross(oldcPos, cPos[deviceID], crossPro);
+			vtkMath::Subtract(oldcPos, m_cPos[deviceID], controllerPath);
+			vtkMath::Cross(oldcPos, m_cPos[deviceID], crossPro);
 			iAVec3d length = iAVec3d(controllerPath);
-			controllerTravelledDistance = length.length();
-
-			m_rotationOfDisVis = vtkMath::DegreesFromRadians(2 * asin(controllerTravelledDistance / (2 * m_distributionVis->getRadius())));
-			sign = crossPro[1] < 0 ? -1 : 1;
-			m_rotationOfDisVis *= sign;
-
+			m_controllerTravelledDistance = length.length();
+			m_rotationOfDisVis = vtkMath::DegreesFromRadians(2 * asin(m_controllerTravelledDistance / (2 * m_distributionVis->getRadius())));
+			m_sign = crossPro[1] < 0 ? -1 : 1;
+			m_rotationOfDisVis *= m_sign;
 		}
 	}
 }
@@ -402,9 +396,31 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 void iAImNDTMain::onZoom()
 {
 	auto scaleDiff = (1.0 / calculateWorldScaleFactor());
-
 	m_modelInMiniature->setScale(scaleDiff, scaleDiff, scaleDiff);
 	m_MiMColorLegend->setScale(scaleDiff);
+}
+
+void iAImNDTMain::stop()
+{
+	// restore interactor:
+	m_vrEnv->interactor()->SetInteractorStyle(defaultVRinteractorStyle(m_vrEnv->backend()));
+
+	// hide all renderings:
+	m_modelInMiniature->hide();
+	m_modelInMiniature->removeHighlightedGlyphs();
+	m_volume->hide();
+	m_volume->hideRegionLinks();
+	m_volume->hideVolume();
+	m_volume->removeHighlightedGlyphs();
+	m_MiMMip->hideMIPPanels();
+	m_MiMColorLegend->hide();
+	m_slider->hide();
+	m_distributionVis->hide();
+	for (auto t: m_3DTextLabels)
+	{
+		t.hide();
+	}
+	emit finished();
 }
 
 void iAImNDTMain::setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, iAVRInteractionOptions options, iAVROperations operation)
@@ -420,7 +436,6 @@ void iAImNDTMain::setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceIn
 	{
 		m_inputScheme.at(static_cast<int>(device)).at(static_cast<int>(input)).at(static_cast<int>(action)).at(static_cast<int>(options)) = static_cast<int>(operation);
 	}
-	
 }
 
 int iAImNDTMain::getOptionForObject(vtkProp3D* pickedProp)
@@ -444,37 +459,6 @@ void iAImNDTMain::addPropToOptionID(vtkProp3D* prop, iAVRInteractionOptions iD)
 	m_ActorToOptionID.insert(std::make_pair(prop, static_cast<int>(iD)));
 }
 
-//! Test method inserts colored point at given Position
-void iAImNDTMain::drawPoint(std::vector<double*>* pos, QColor color)
-{
-	m_vrEnv->renderer()->RemoveActor(pointsActor);
-
-	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-
-	for(size_t i=0; i<pos->size(); i++)
-	{
-		points->InsertNextPoint(pos->at(i));
-	}
-
-	vtkSmartPointer<vtkPolyData> pointsPolydata = vtkSmartPointer<vtkPolyData>::New();
-	pointsPolydata->SetPoints(points);
-
-	vtkSmartPointer<vtkVertexGlyphFilter> vertexGlyphFilter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
-	vertexGlyphFilter->AddInputData(pointsPolydata);
-	vertexGlyphFilter->Update();
-
-	vtkSmartPointer<vtkPolyDataMapper> pointsMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	pointsMapper->SetInputConnection(vertexGlyphFilter->GetOutputPort());
-	
-	pointsActor = vtkSmartPointer<vtkActor>::New();
-	pointsActor->SetMapper(pointsMapper);
-	pointsActor->GetProperty()->SetPointSize(9);
-	pointsActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
-	m_vrEnv->renderer()->AddActor(pointsActor);
-
-}
-
-//! Generates octrees until maxLevel is reached or no more leafNodes are added through later levels
 void iAImNDTMain::generateOctrees(int maxLevel, int maxPointsPerRegion, vtkPolyData* dataSet)
 {
 	int lastLeafNodeAmount = 0;
@@ -483,53 +467,50 @@ void iAImNDTMain::generateOctrees(int maxLevel, int maxPointsPerRegion, vtkPolyD
 		iAVROctree* tempOctree = new iAVROctree(m_vrEnv->renderer(), dataSet);
 		tempOctree->calculateOctree(level, maxPointsPerRegion);
 		// Check if leafNodes have been added, if not stop creating deeper levels
-		if (tempOctree->getNumberOfLeafeNodes() <= lastLeafNodeAmount) break;
-		lastLeafNodeAmount = tempOctree->getNumberOfLeafeNodes();
+		if (tempOctree->getNumberOfLeafNodes() <= lastLeafNodeAmount)
+		{
+			break;
+		}
+		lastLeafNodeAmount = tempOctree->getNumberOfLeafNodes();
 
-		m_octrees->push_back(tempOctree);
+		m_octrees.push_back(tempOctree);
 	}
-	if(m_octrees->empty()) LOG(lvlDebug, QString("NO OCTREE GENERATED"));
+	if(m_octrees.empty()) LOG(lvlDebug, QString("NO OCTREE GENERATED"));
 }
 
 void iAImNDTMain::calculateMetrics()
 {
-
 	m_MiMColorLegend->hide();
 	m_MiMMip->hideMIPPanels();
 
-	// NEW //
-	auto minMax = fiberMetrics->getMinMaxAvgRegionValues(currentOctreeLevel, currentFeature);
+	auto minMax = m_fiberMetrics->getMinMaxAvgRegionValues(m_currentOctreeLevel, m_currentFeature);
 	m_MiMColorLegend->createLut(minMax.at(0), minMax.at(1), 1);
-	std::vector<QColor>* rgba = m_MiMColorLegend->getColors(currentOctreeLevel, currentFeature, fiberMetrics->getRegionAverage(currentOctreeLevel, currentFeature));
+	std::vector<QColor> rgba = m_MiMColorLegend->getColors(m_currentOctreeLevel, m_currentFeature, m_fiberMetrics->getRegionAverage(m_currentOctreeLevel, m_currentFeature));
 	m_MiMColorLegend->calculateLegend(m_vrEnv->getInitialWorldScale());
 
-	if (modelInMiniatureActive) 
+	if (m_modelInMiniatureActive)
 	{
 		m_modelInMiniature->applyHeatmapColoring(rgba); // Only call when model is calculated (poly data has to be accessible)
 
-		m_MiMColorLegend->setTitle(QString(" %1 ").arg(fiberMetrics->getFeatureName(currentFeature)).toUtf8());
+		m_MiMColorLegend->setTitle(QString(" %1 ").arg(m_fiberMetrics->getFeatureName(m_currentFeature)).toUtf8());
 
 		m_MIPPanelsVisible = true;
-		m_MiMMip->createSingleMIPPanel(currentOctreeLevel, currentFeature,viewDirection, m_vrEnv->getInitialWorldScale(), fiberMetrics->getRegionAverage(currentOctreeLevel, currentFeature));
+		m_MiMMip->createSingleMIPPanel(m_currentOctreeLevel, m_currentFeature, m_viewDirection, m_vrEnv->getInitialWorldScale(), m_fiberMetrics->getRegionAverage(m_currentOctreeLevel, m_currentFeature));
 	}
-	
 }
 
-void iAImNDTMain::colorMiMCubes(std::vector<vtkIdType>* regionIDs)
+void iAImNDTMain::colorMiMCubes(std::vector<vtkIdType> const & regionIDs)
 {
-
-	std::vector<QColor>* rgba = m_MiMColorLegend->getColors(currentOctreeLevel, currentFeature, fiberMetrics->getRegionAverage(currentOctreeLevel, currentFeature));
+	auto rgba = m_MiMColorLegend->getColors(m_currentOctreeLevel, m_currentFeature, m_fiberMetrics->getRegionAverage(m_currentOctreeLevel, m_currentFeature));
 	m_MiMColorLegend->calculateLegend(m_vrEnv->getInitialWorldScale());
 	m_modelInMiniature->applyHeatmapColoring(rgba); //Reset Color
-	
-	for (size_t i = 0; i < regionIDs->size(); i++)
+
+	for (size_t i = 0; i < regionIDs.size(); i++)
 	{
-		m_modelInMiniature->setCubeColor(OCTREE_COLOR, regionIDs->at(i));
+		m_modelInMiniature->setCubeColor(OCTREE_COLOR, regionIDs.at(i));
 	}
-	
 }
 
-//! Returns the difference between the intial world scaling and the current scaling
 double iAImNDTMain::calculateWorldScaleFactor()
 {
 	double currentScale = m_vrEnv->interactor()->GetPhysicalScale();
@@ -538,7 +519,6 @@ double iAImNDTMain::calculateWorldScaleFactor()
 	return temp;
 }
 
-//! Increases/Decreases the current octree level and feature. Recalculates the Model in Miniature Object.
 void iAImNDTMain::changeOctreeAndMetric()
 {
 	iAVRTouchpadPosition touchpadPos = iAImNDTInteractions::getTouchedPadSide(m_touchPadPosition);
@@ -550,47 +530,53 @@ void iAImNDTMain::changeOctreeAndMetric()
 
 	if (touchpadPos == iAVRTouchpadPosition::Up || touchpadPos == iAVRTouchpadPosition::Down) {
 
-		//m_octrees->at(currentOctreeLevel)->hide(); // Hide old octree
+		//m_octrees.at(currentOctreeLevel)->hide(); // Hide old octree
 		m_volume->hide();
 		m_volume->hideRegionLinks();
 		m_volume->hideVolume();
 		m_volume->resetVolume();
 		addPropToOptionID(vtkProp3D::SafeDownCast(m_volume->getVolumeActor()), iAVRInteractionOptions::Volume);
 
-		if (touchpadPos == iAVRTouchpadPosition::Up && currentOctreeLevel < static_cast<int>(m_octrees->size()) - 1)
+		if (touchpadPos == iAVRTouchpadPosition::Up && m_currentOctreeLevel < static_cast<int>(m_octrees.size()) - 1)
 		{
-			currentOctreeLevel++;
+			m_currentOctreeLevel++;
 		}
-		if (touchpadPos == iAVRTouchpadPosition::Down && currentOctreeLevel > OCTREE_MIN_LEVEL)
+		if (touchpadPos == iAVRTouchpadPosition::Down && m_currentOctreeLevel > OCTREE_MIN_LEVEL)
 		{
-			currentOctreeLevel--;
+			m_currentOctreeLevel--;
 		}
 
-		QString text = QString("Octree Level %1").arg(currentOctreeLevel);
-		m_3DTextLabels->at(0)->create3DLabel(text);
-		m_3DTextLabels->at(0)->show();
-		m_3DTextLabels->at(1)->hide();
+		QString text = QString("Octree Level %1").arg(m_currentOctreeLevel);
+		m_3DTextLabels.at(0).setText(text);
+		m_3DTextLabels.at(0).show();
+		m_3DTextLabels.at(1).hide();
 
-		m_volume->setOctree(m_octrees->at(currentOctreeLevel));
+		m_volume->setOctree(m_octrees.at(m_currentOctreeLevel));
 		m_volume->createCubeModel();
 		m_volume->show();
 		m_volume->showVolume();
 		m_networkGraphMode = false;
 	}
-	else if (touchpadPos == iAVRTouchpadPosition::Right || touchpadPos == iAVRTouchpadPosition::Left){
-	
+	else if (touchpadPos == iAVRTouchpadPosition::Right || touchpadPos == iAVRTouchpadPosition::Left)
+	{
 		if (touchpadPos == iAVRTouchpadPosition::Right)
 		{
-			if (currentFeature < fiberMetrics->getNumberOfFeatures() - 1)	currentFeature++;
-			//m_octrees->at(currentOctreeLevel)->show();
+			if (m_currentFeature < m_fiberMetrics->getNumberOfFeatures() - 1)
+			{
+				m_currentFeature++;
+			}
+			//m_octrees.at(currentOctreeLevel)->show();
 		}
 		if (touchpadPos == iAVRTouchpadPosition::Left)
 		{
-			if (currentFeature > 0)	currentFeature--;
-			//m_octrees->at(currentOctreeLevel)->hide();
+			if (m_currentFeature > 0)
+			{
+				m_currentFeature--;
+			}
+			//m_octrees.at(currentOctreeLevel)->hide();
 		}
 
-		m_3DTextLabels->at(0)->hide();
+		m_3DTextLabels.at(0).hide();
 	}
 	updateModelInMiniatureData();
 }
@@ -599,7 +585,7 @@ void iAImNDTMain::pickSingleFiber(double eventPosition[3])
 {
 	std::vector<size_t> selection = std::vector<size_t>();
 	// Find the closest points to TestPoint
-	vtkIdType iD = m_octrees->at(currentOctreeLevel)->getOctree()->FindClosestPoint(eventPosition);
+	vtkIdType iD = m_octrees.at(m_currentOctreeLevel)->getOctree()->FindClosestPoint(eventPosition);
 
 	vtkIdType rowiD = m_fiberCoverageCalc->getObjectiD(iD);
 	selection.push_back(rowiD);
@@ -608,34 +594,33 @@ void iAImNDTMain::pickSingleFiber(double eventPosition[3])
 	emit selectionChanged();
 }
 
-//! Picks all fibers in the region clicked by the user.
 void iAImNDTMain::pickFibersinRegion(double eventPosition[3], double eventOrientation[4])
 {
 	vtkIdType cellID = m_volume->getClosestCellID(eventPosition, eventOrientation);
-
-	if (cellID >= 0 && cellID <= m_octrees->at(currentOctreeLevel)->getNumberOfLeafeNodes())
+	if (cellID >= 0 && cellID <= m_octrees.at(m_currentOctreeLevel)->getNumberOfLeafNodes())
 	{
 		pickFibersinRegion(cellID);
 	}
 }
 
-//! Picks all fibers in the octree region defined by the leaf node ID.
 void iAImNDTMain::pickFibersinRegion(int leafRegion)
 {
 	std::vector<size_t> selection = std::vector<size_t>();
-
-	
-	for (auto fiber : *m_fiberCoverageCalc->getObjectCoverage()->at(currentOctreeLevel).at(leafRegion)) {
+	for (auto const & fiber : *m_fiberCoverageCalc->getObjectCoverage()->at(m_currentOctreeLevel).at(leafRegion))
+	{
 		//LOG(lvlImportant,QString("Nr. [%1]").arg(fiber.first));
 		selection.push_back(fiber.first);
 	}
 	std::sort(selection.begin(), selection.end());
 
-	multiPickIDs->push_back(leafRegion);
-	if(modelInMiniatureActive) m_modelInMiniature->highlightGlyphs(multiPickIDs);
-	m_volume->highlightGlyphs(multiPickIDs);
+	m_multiPickIDs.push_back(leafRegion);
+	if (m_modelInMiniatureActive)
+	{
+		m_modelInMiniature->highlightGlyphs(m_multiPickIDs);
+	}
+	m_volume->highlightGlyphs(m_multiPickIDs);
 
-	multiPickIDs->clear();
+	m_multiPickIDs.clear();
 	m_volume->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
 	emit selectionChanged();
 }
@@ -646,33 +631,39 @@ void iAImNDTMain::pickMimRegion(double eventPosition[3], double eventOrientation
 
 	if (cellID >= 0)
 	{
-		auto keyPos = std::find(multiPickIDs->begin(), multiPickIDs->end(), cellID);
+		auto keyPos = std::find(m_multiPickIDs.begin(), m_multiPickIDs.end(), cellID);
 		//If the currently selected Region is already selected, then remove it (UNDO)
-		if (keyPos != multiPickIDs->end()) multiPickIDs->erase(keyPos);
-		else multiPickIDs->push_back(cellID);
-		
-		m_modelInMiniature->highlightGlyphs(multiPickIDs);
-		m_volume->highlightGlyphs(multiPickIDs);
+		if (keyPos != m_multiPickIDs.end())
+		{
+			m_multiPickIDs.erase(keyPos);
+		}
+		else
+		{
+			m_multiPickIDs.push_back(cellID);
+		}
+
+		m_modelInMiniature->highlightGlyphs(m_multiPickIDs);
+		m_volume->highlightGlyphs(m_multiPickIDs);
 
 		// If multitouch Key is not pressed render the single region it in the Volume
-		if (m_activeInput.at(static_cast<int>(vtkEventDataDevice::RightController)) != static_cast<int>(iAVROperations::MultiPickMiMRegion)){
-			pickFibersinRegion(multiPickIDs->at(0));
-			multiPickIDs->clear();
+		if (m_activeInput.at(static_cast<int>(vtkEventDataDevice::RightController)) != static_cast<int>(iAVROperations::MultiPickMiMRegion))
+		{
+			pickFibersinRegion(m_multiPickIDs.at(0));
+			m_multiPickIDs.clear();
 		}
 	}
-
 }
 
-//! Methods ends the multi picking mode and renders selection
 void iAImNDTMain::multiPickMiMRegion()
-{	
-	if(!multiPickIDs->empty())
+{
+	if(!m_multiPickIDs.empty())
 	{
 		std::vector<size_t> selection = std::vector<size_t>();
 
-		for (size_t i = 0; i < multiPickIDs->size(); i++)
+		for (size_t i = 0; i < m_multiPickIDs.size(); i++)
 		{
-			for (auto fiber : *m_fiberCoverageCalc->getObjectCoverage()->at(currentOctreeLevel).at(multiPickIDs->at(i))) {
+			for (auto const & fiber : *m_fiberCoverageCalc->getObjectCoverage()->at(m_currentOctreeLevel).at(m_multiPickIDs.at(i)))
+			{
 				selection.push_back(fiber.first);
 			}
 		}
@@ -689,7 +680,7 @@ void iAImNDTMain::multiPickMiMRegion()
 		else
 		{
 			m_distributionVis->hide();
-			multiPickIDs->resize(2); //only two regions allowed
+			m_multiPickIDs.resize(2); //only two regions allowed
 
 			std::vector<int> featureList;
 			//featureList->push_back(currentFeature); //
@@ -701,24 +692,24 @@ void iAImNDTMain::multiPickMiMRegion()
 			featureList.push_back(17);
 			featureList.push_back(7);
 
-			auto cubePos = m_volume->getCubePos(multiPickIDs->at(0));
-			auto cubeSize = m_volume->getCubeSize(multiPickIDs->at(0));
+			auto cubePos = m_volume->getCubePos(m_multiPickIDs.at(0));
+			auto cubeSize = m_volume->getCubeSize(m_multiPickIDs.at(0));
 			auto visSize = m_vrEnv->interactor()->GetPhysicalScale() * 0.33; //33%
-			
-			m_distributionVis->createVisualization(cubePos, visSize, ceil(cubeSize), currentOctreeLevel, multiPickIDs, featureList); //
-			m_distributionVis->show(); 
+
+			m_distributionVis->createVisualization(cubePos, visSize, ceil(cubeSize), m_currentOctreeLevel, m_multiPickIDs, featureList); //
+			m_distributionVis->show();
 			m_distributionVis->rotateVisualization(180); //Initial Rotation
 			m_volume->removeHighlightedGlyphs();
 			m_volume->hideVolume();
 			m_modelInMiniature->removeHighlightedGlyphs();
 
 			auto coloring = m_distributionVis->getBarColors();
-			m_volume->setNodeColor(*multiPickIDs, coloring);
-			m_modelInMiniature->highlightGlyphs(multiPickIDs, &coloring);
-			
+			m_volume->setNodeColor(m_multiPickIDs, coloring);
+			m_modelInMiniature->highlightGlyphs(m_multiPickIDs, coloring);
+
 			addPropToOptionID(vtkProp3D::SafeDownCast(m_distributionVis->getVisAssembly()), iAVRInteractionOptions::Histogram);//
 		}
-		multiPickIDs->clear();
+		m_multiPickIDs.clear();
 	}
 }
 
@@ -727,9 +718,9 @@ void iAImNDTMain::resetSelection()
 	m_volume->renderSelection(std::vector<size_t>(), 0, QColor(140, 140, 140, 255), nullptr);
 	emit selectionChanged();
 	m_volume->removeHighlightedGlyphs();
-	if(modelInMiniatureActive)
+	if (m_modelInMiniatureActive)
 	{
-		std::vector<QColor>* rgba = m_MiMColorLegend->getColors(currentOctreeLevel, currentFeature, fiberMetrics->getRegionAverage(currentOctreeLevel, currentFeature));
+		std::vector<QColor> rgba = m_MiMColorLegend->getColors(m_currentOctreeLevel, m_currentFeature, m_fiberMetrics->getRegionAverage(m_currentOctreeLevel, m_currentFeature));
 		m_MiMColorLegend->calculateLegend(m_vrEnv->getInitialWorldScale());
 		onZoom();
 		m_modelInMiniature->applyHeatmapColoring(rgba); //Reset Color
@@ -740,18 +731,17 @@ void iAImNDTMain::resetSelection()
 	m_distributionVis->hide();
 }
 
-//! Updates the data (Octree, Metrics,...) and the position for the current MiM
 void iAImNDTMain::updateModelInMiniatureData()
 {
 	int controllerID = static_cast<int>(vtkEventDataDevice::LeftController);
-	
-	m_modelInMiniature->setOctree(m_octrees->at(currentOctreeLevel));
+
+	m_modelInMiniature->setOctree(m_octrees.at(m_currentOctreeLevel));
 	m_modelInMiniature->createCubeModel(); //Here a new MiM is calculated
-	
+
 	//m_networkGraphMode = false;
 	resetSelection();
 
-	m_modelInMiniature->getActor()->SetPosition(cPos[controllerID][0], cPos[controllerID][1], cPos[controllerID][2]);
+	m_modelInMiniature->getActor()->SetPosition(m_cPos[controllerID][0], m_cPos[controllerID][1], m_cPos[controllerID][2]);
 
 	calculateMetrics();
 	onZoom();
@@ -761,17 +751,17 @@ void iAImNDTMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 {
 	if(!hide)
 	{
-		modelInMiniatureActive = true;
+		m_modelInMiniatureActive = true;
 		updateModelInMiniatureData();
 		onZoom(); //reset to current zoom
 		m_modelInMiniature->show();
-	
+
 		m_MiMColorLegend->setPosition(eventPosition);
 		m_MiMColorLegend->show();
 	}
 	else
 	{
-		modelInMiniatureActive = false;
+		m_modelInMiniatureActive = false;
 		m_MIPPanelsVisible = false;
 		m_modelInMiniature->hide();
 		m_modelInMiniature->removeHighlightedGlyphs();
@@ -795,15 +785,14 @@ void iAImNDTMain::pressLeftTouchpad()
 		return;
 	}
 
-	if (modelInMiniatureActive && currentOctreeLevel > 0)
+	if (m_modelInMiniatureActive && m_currentOctreeLevel > 0)
 	{
 		m_MIPPanelsVisible = false;
 		m_MiMMip->hideMIPPanels();
 
-
 		if (touchpadPos == iAVRTouchpadPosition::Up || touchpadPos == iAVRTouchpadPosition::Down)
 		{
-			m_3DTextLabels->at(1)->show();
+			m_3DTextLabels.at(1).show();
 
 			if (touchpadPos == iAVRTouchpadPosition::Up)
 			{
@@ -815,7 +804,7 @@ void iAImNDTMain::pressLeftTouchpad()
 				offsetVol = offsetVol * -1;
 			}
 
-			switch (currentMiMDisplacementType)
+			switch (m_currentMiMDisplacementType)
 			{
 			case -1:
 				LOG(lvlDebug, QString("Unknown Displacement!"));
@@ -823,17 +812,17 @@ void iAImNDTMain::pressLeftTouchpad()
 			case 0:
 				m_modelInMiniature->applySPDisplacement(offsetMiM);
 				m_volume->applySPDisplacement(offsetVol);
-				m_volume->moveFibersByMaxCoverage(fiberMetrics->getMaxCoverageFiberPerRegion(), offsetVol, true);
+				m_volume->moveFibersByMaxCoverage(m_fiberMetrics->getMaxCoverageFiberPerRegion(), offsetVol, true);
 				break;
 			case 1:
 				m_modelInMiniature->applyRadialDisplacement(offsetMiM);
 				m_volume->applyRadialDisplacement(offsetVol);
-				m_volume->moveFibersByMaxCoverage(fiberMetrics->getMaxCoverageFiberPerRegion(), offsetVol, false);
+				m_volume->moveFibersByMaxCoverage(m_fiberMetrics->getMaxCoverageFiberPerRegion(), offsetVol, false);
 				break;
 			case 2:
 				m_modelInMiniature->applyOctantDisplacement(offsetMiM);
 				m_volume->applyOctantDisplacement(offsetVol);
-				m_volume->moveFibersbyOctant(fiberMetrics->getMaxCoverageFiberPerRegion(), offsetVol);
+				m_volume->moveFibersbyOctant(m_fiberMetrics->getMaxCoverageFiberPerRegion(), offsetVol);
 				break;
 			}
 
@@ -854,49 +843,48 @@ void iAImNDTMain::pressLeftTouchpad()
 			}
 		}
 
-		if (m_networkGraphMode)	m_volume->createSimilarityNetwork(fiberMetrics->getJaccardIndex(currentOctreeLevel), fiberMetrics->getMaxNumberOfFibersInRegion(currentOctreeLevel), initWorldScale);
+		if (m_networkGraphMode)	m_volume->createSimilarityNetwork(m_fiberMetrics->getJaccardIndex(m_currentOctreeLevel), m_fiberMetrics->getMaxNumberOfFibersInRegion(m_currentOctreeLevel), initWorldScale);
 	}
 }
 
 void iAImNDTMain::changeMiMDisplacementType()
 {
-	currentMiMDisplacementType++;
+	m_currentMiMDisplacementType++;
 
-	if(currentMiMDisplacementType > 2)
+	if(m_currentMiMDisplacementType > 2)
 	{
-		currentMiMDisplacementType = 0;
+		m_currentMiMDisplacementType = 0;
 	}
 
-	switch (currentMiMDisplacementType)
+	switch (m_currentMiMDisplacementType)
 	{
 	case 0:
-		m_3DTextLabels->at(1)->create3DLabel(QString("SP displacement"));
+		m_3DTextLabels.at(1).setText(QString("SP displacement"));
 		break;
 	case 1:
-		m_3DTextLabels->at(1)->create3DLabel(QString("Radial displacement"));
+		m_3DTextLabels.at(1).setText(QString("Radial displacement"));
 		break;
 	case 2:
-		m_3DTextLabels->at(1)->create3DLabel(QString("Octant displacement"));
+		m_3DTextLabels.at(1).setText(QString("Octant displacement"));
 		break;
 	}
 
-	m_3DTextLabels->at(1)->show();
-	m_3DTextLabels->at(0)->hide();	
+	m_3DTextLabels.at(1).show();
+	m_3DTextLabels.at(0).hide();
 }
 
 void iAImNDTMain::flipDistributionVis()
 {
-	m_distributionVis->flipThroughHistograms(sign);
+	m_distributionVis->flipThroughHistograms(m_sign);
 }
 
 void iAImNDTMain::displayNodeLinkD()
 {
-
 	if (!m_networkGraphMode)
 	{
 		m_volume->hide();
 		m_volume->hideVolume();
-		m_volume->createSimilarityNetwork(fiberMetrics->getJaccardIndex(currentOctreeLevel), fiberMetrics->getMaxNumberOfFibersInRegion(currentOctreeLevel), m_vrEnv->getInitialWorldScale());
+		m_volume->createSimilarityNetwork(m_fiberMetrics->getJaccardIndex(m_currentOctreeLevel), m_fiberMetrics->getMaxNumberOfFibersInRegion(m_currentOctreeLevel), m_vrEnv->getInitialWorldScale());
 		m_volume->showRegionLinks();
 
 		m_slider->createSlider(0.0, 1.0, QString("Jaccard Index").toUtf8());

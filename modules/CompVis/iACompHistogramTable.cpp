@@ -85,7 +85,7 @@
 
 iACompHistogramTable::iACompHistogramTable(
 	iAMainWindow* parent, iACsvDataStorage* dataStorage, iACompVisMain* main, bool MDSComputedFlag) :
-	m_main(main), 
+	m_main(main),
 	m_dataStorage(dataStorage),
 	m_inputData(dataStorage->getData())
 {
@@ -106,15 +106,15 @@ void iACompHistogramTable::initializeBinCalculation(bool mdsComputedFlag)
 	histogramCalculation->calculateBayesianBlocks();
 	histogramCalculation->calculateNaturalBreaks();
 	histogramCalculation->calculateDensityEstimation();
-	
+
 	//add new binning methods here
 }
 
 void iACompHistogramTable::reinitializeHistogramTable()
-{ 
+{
 	//reinitialize datastructure
 	initializeBinCalculation(true);
-	
+
 	//reinitalize visualization
 	histogramVis->reinitialize();
 	drawUniformTable();
@@ -180,13 +180,13 @@ iACompHistogramTableData* iACompHistogramTable::recalculateBinning(iACompVisOpti
 	}
 	else if (iACompVisOptions::binningType::JenksNaturalBreaks == binningType)
 	{ // TODO: Implement
-	
+
 	}
 	else if (iACompVisOptions::binningType::BayesianBlocks == binningType)
 	{ // TODO: Implement
-	
+
 	}
-	
+
 	return nullptr;
 }
 
@@ -213,7 +213,7 @@ iACompHistogramTableData* iACompHistogramTable::calculateSpecificBins(
 
 	return nullptr;
 }
-	
+
 void iACompHistogramTable::drawDatasetsInAscendingOrder()
 {
 	histogramVis->drawDatasetsInAscendingOrder();

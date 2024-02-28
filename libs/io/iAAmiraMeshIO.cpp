@@ -129,9 +129,9 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	//Type of the field: scalar, vector
 	int NumComponents(0);
 
-	int latticePos = header.indexOf("Lattice {");
-	int nextLineBreakPos = header.indexOf("\n", latticePos);
-	int lineSize = nextLineBreakPos - latticePos;
+	auto latticePos = header.indexOf("Lattice {");
+	auto nextLineBreakPos = header.indexOf("\n", latticePos);
+	auto lineSize = nextLineBreakPos - latticePos;
 	QString latticeLine = header.mid(latticePos, lineSize );
 	QStringList latticeTokens = latticeLine.split(" ", Qt::SkipEmptyParts);
 
@@ -169,10 +169,10 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 		{
 			LOG(lvlWarn, QString("Expected at least 6 tokens in lattice line, only found %1.").arg(latticeTokens.size()));
 		}
-		int pos = latticeTokens[5].indexOf(RLEMarker);
+		auto pos = latticeTokens[5].indexOf(RLEMarker);
 		//int latticeLength = latticeTokens[5].length();
-		int sizePos = pos + RLEMarker.length() + 1;
-		int sizeLen = latticeTokens[5].length() - pos - RLEMarker.length() - 2;
+		auto sizePos = pos + RLEMarker.length() + 1;
+		auto sizeLen = latticeTokens[5].length() - pos - RLEMarker.length() - 2;
 		QString dataLenStr = latticeTokens[5].mid(sizePos, sizeLen);
 		rawDataSize = dataLenStr.toInt();
 		LOG(lvlInfo, QString("RLE encoded (%1 compressed bytes)").arg(rawDataSize));

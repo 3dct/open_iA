@@ -74,7 +74,7 @@ iATFTableDlg::iATFTableDlg(QWidget* parent, iAChartFunction* func) :
 	connect(table, &QTableWidget::cellChanged, this, &iATFTableDlg::cellValueChanged);
 
 	updateTable();
-	resize(table->columnWidth(0) * columnNames.size(), table->rowHeight(0) * 13);
+	resize(table->columnWidth(0) * static_cast<int>(columnNames.size()), table->rowHeight(0) * 13);
 }
 
 void iATFTableDlg::updateTable()
@@ -203,7 +203,7 @@ void iATFTableDlg::cellValueChanged(int changedRow, int changedColumn)
 {
 	double val = table->item(changedRow, changedColumn)->data(Qt::DisplayRole).toDouble();
 	QSignalBlocker b(table);
-	if ( (changedColumn == 0 && !isValueXValid(val, changedRow)) || 
+	if ( (changedColumn == 0 && !isValueXValid(val, changedRow)) ||
 		 (changedColumn == 1 && (val < 0.0 || val > 1.0)) )
 	{
 		table->item(changedRow, changedColumn)->setData(Qt::DisplayRole, QString::number(m_oldItemValue));

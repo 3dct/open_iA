@@ -155,8 +155,3 @@ bool iASlicerProfile::updatePosition(double posY, vtkImageData * imgData)
 
 	return true;
 }
-
-void iASlicerProfile::point(vtkIdType id, double pos_out[3])
-{
-	m_profileLine.point(id, pos_out);
-}

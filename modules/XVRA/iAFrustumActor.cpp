@@ -43,9 +43,10 @@ iAFrustumActor::iAFrustumActor(vtkRenderer* ren, vtkCamera* cam, double size) :
 
 void iAFrustumActor::Execute(vtkObject*, unsigned long, void*)
 {
-	const int UpdateIntervalMS = 250;
+	// rate-limit the update to 10 fps:
+	const int UpdateIntervalMS = 100;
 	if (m_lastUpdate.elapsed() < UpdateIntervalMS)
-	{	// rate-limit the update to 25 fps
+	{
 		return;
 		// TODO: what if it's last update in a row?
 	}

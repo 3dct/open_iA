@@ -40,7 +40,7 @@ public:
 	struct iAVec2d {	double c[2];	};
 
 	//! retrieve the position of the last interaction with the trackpad (since it's not available on a click in the event directly)
-	iAVec2d getTrackPadPos(vtkEventDataDevice device);
+	iAVec2d getTrackPadPos(vtkEventDataDevice device) const;
 
 	vtkInteractorStyle3D* style();
 
@@ -50,3 +50,5 @@ public:
 private:
 	std::unique_ptr<iAImNDTInteractionsImpl> m_impl;
 };
+
+vtkSmartPointer<vtkInteractorStyle3D> defaultVRinteractorStyle(iAvtkVR::Backend backend);

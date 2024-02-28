@@ -2,29 +2,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVROctreeMetrics.h"
 
-#include <iALog.h>
-
 #include <vtkTable.h>
+#include <vtkVariant.h>
 
-iAVROctreeMetrics::iAVROctreeMetrics(vtkTable* objectTable,	std::vector<iAVROctree*>* octrees) : iAVRMetrics(objectTable, octrees)
+iAVROctreeMetrics::iAVROctreeMetrics(vtkTable* objectTable,	std::vector<iAVROctree*> const & octrees) : iAVRMetrics(objectTable, octrees),
+	m_maxCoverage(),
+	m_calculatedAverage(m_octrees.size(), std::vector<std::vector<double>>(numberOfFeatures, std::vector<double>())),
+	m_jaccardValues(m_octrees.size()),
+	m_maxNumberOfFibersInRegions(),
+	m_isAlreadyCalculated(m_octrees.size(), std::vector<bool>(numberOfFeatures, false))
 {
-	//Initialize vectors
-	isAlreadyCalculated = new std::vector<std::vector<bool>>(m_octrees->size(), std::vector<bool>(numberOfFeatures, false));
-
-	std::vector<double> region = std::vector<double>();
-	std::vector<std::vector<double>> feature = std::vector<std::vector<double>>(numberOfFeatures, region);
-	m_calculatedAverage = new std::vector<std::vector<std::vector<double>>>(m_octrees->size(), feature);
-	m_maxCoverage = new std::vector<std::vector<std::vector<vtkIdType>>>();
-	m_jaccardValues = new std::vector<std::vector<std::vector<double>>>(m_octrees->size());
-	m_maxNumberOffibersInRegions = new std::vector<double>();
 }
 
-//! Calculates the weighted average of every octree region for a given feature at a given octree level.
-//! In the first call the metric has to calculate the values, for later calls the metric is saved
-//! Calculates:  1/N * SUM[N]( Attribut * weight)  with N = all Fibers in the region
 void iAVROctreeMetrics::calculateWeightedAverage(vtkIdType octreeLevel, vtkIdType feature)
 {
-	if (!isAlreadyCalculated->at(octreeLevel).at(feature)) {
+	if (!m_isAlreadyCalculated.at(octreeLevel).at(feature)) {
 		//LOG(lvlDebug,QString("Possible Regions: %1\n").arg(m_objectCoverage->at(octreeLevel).size()));
 
 		for (size_t region = 0; region < m_fiberCoverage->at(octreeLevel).size(); region++)
@@ -33,7 +25,7 @@ void iAVROctreeMetrics::calculateWeightedAverage(vtkIdType octreeLevel, vtkIdTyp
 			int fibersInRegion = 0;
 			//LOG(lvlDebug,QString(">>> REGION %1 <<<\n").arg(region));
 
-			for (auto element : *m_fiberCoverage->at(octreeLevel).at(region))
+			for (auto const & element : *m_fiberCoverage->at(octreeLevel).at(region))
 			{
 				//LOG(lvlDebug,QString("[%1] --- %2 \%").arg(element.first).arg(element.second));
 
@@ -51,25 +43,23 @@ void iAVROctreeMetrics::calculateWeightedAverage(vtkIdType octreeLevel, vtkIdTyp
 
 			//LOG(lvlDebug,QString("Region [%1] --- %2 \%\n").arg(region).arg(metricResultPerRegion / fibersInRegion));
 
-			m_calculatedAverage->at(octreeLevel).at(feature).push_back(metricResultPerRegion / fibersInRegion);
+			m_calculatedAverage.at(octreeLevel).at(feature).push_back(metricResultPerRegion / fibersInRegion);
 		}
-		isAlreadyCalculated->at(octreeLevel).at(feature) = true;
+		m_isAlreadyCalculated.at(octreeLevel).at(feature) = true;
 	}
 }
 
-//! Returns the average of each region (in the octree) for a feature as vector
-//! Vector stores for an [octree level] for choosen [feature] for every [octree region] the metric value
-std::vector<std::vector<std::vector<double>>>* iAVROctreeMetrics::getRegionAverage(vtkIdType octreeLevel, vtkIdType feature)
+std::vector<std::vector<std::vector<double>>> const & iAVROctreeMetrics::getRegionAverage(vtkIdType octreeLevel, vtkIdType feature)
 {
 	calculateWeightedAverage(octreeLevel, feature);
 
 	return m_calculatedAverage;
 }
 
-//! Returns the fiber with the maximum coverage of each region (in every octree level)
-std::vector<std::vector<std::vector<vtkIdType>>>* iAVROctreeMetrics::getMaxCoverageFiberPerRegion()
+std::vector<std::vector<std::vector<vtkIdType>>> const & iAVROctreeMetrics::getMaxCoverageFiberPerRegion()
 {
-	if (m_maxCoverage->empty()) {
+	if (m_maxCoverage.empty())
+	{
 		calculateMaxCoverageFiberPerRegion();
 		return m_maxCoverage;
 	}
@@ -79,28 +69,24 @@ std::vector<std::vector<std::vector<vtkIdType>>>* iAVROctreeMetrics::getMaxCover
 	}
 }
 
-//! Returns the min and max average for all regions (in one octree level and feature)
-//! Vector stores min [0] and max [1] value of the given feature.
 std::vector<double> iAVROctreeMetrics::getMinMaxAvgRegionValues(vtkIdType octreeLevel, vtkIdType feature)
 {
 	std::vector<double> minMax = std::vector<double>(2);
 	//If Level is not calculated do computation
 	getRegionAverage(octreeLevel, feature);
-	auto minMaxElem = std::minmax_element(m_calculatedAverage->at(octreeLevel).at(feature).begin(), m_calculatedAverage->at(octreeLevel).at(feature).end());
+	auto minMaxElem = std::minmax_element(m_calculatedAverage.at(octreeLevel).at(feature).begin(), m_calculatedAverage.at(octreeLevel).at(feature).end());
 	minMax.at(0) = *minMaxElem.first;
 	minMax.at(1) = *minMaxElem.second;
 
 	return minMax;
 }
 
-//! Returns the values of a feature for all fibers in the given region
-//! Vector stores all instances (values) of the choosen feature
 std::vector<double> iAVROctreeMetrics::getRegionValues(vtkIdType octreeLevel, vtkIdType region, vtkIdType feature)
 {
 	auto fibersInRegion = m_fiberCoverage->at(octreeLevel).at(region);
 	std::vector<double> values = std::vector<double>();
 
-	for (auto fiber : *fibersInRegion)
+	for (auto const & fiber : *fibersInRegion)
 	{
 		auto value = m_objectTable->GetValue(fiber.first, feature).ToFloat();
 		values.push_back(value);
@@ -109,10 +95,9 @@ std::vector<double> iAVROctreeMetrics::getRegionValues(vtkIdType octreeLevel, vt
 	return values;
 }
 
-//! Returns the jaccard index of an octree level. Stores previously computed level.
-std::vector<std::vector<std::vector<double>>>* iAVROctreeMetrics::getJaccardIndex(vtkIdType octreeLevel)
+std::vector<std::vector<std::vector<double>>> const & iAVROctreeMetrics::getJaccardIndex(vtkIdType octreeLevel)
 {
-	if (m_jaccardValues->at(octreeLevel).empty())
+	if (m_jaccardValues.at(octreeLevel).empty())
 	{
 		calculateJaccardIndex(octreeLevel);
 		return m_jaccardValues;
@@ -123,31 +108,28 @@ std::vector<std::vector<std::vector<double>>>* iAVROctreeMetrics::getJaccardInde
 	}
 }
 
-//! Returns amount of fibers for the region with the most fibers (of a given octree level)
 double iAVROctreeMetrics::getMaxNumberOfFibersInRegion(vtkIdType octreeLevel)
 {
-	if (m_maxNumberOffibersInRegions->empty())
+	if (m_maxNumberOfFibersInRegions.empty())
 	{
 		calculateMaxNumberOfFibersInRegion();
 	}
 
-	return m_maxNumberOffibersInRegions->at(octreeLevel);
+	return m_maxNumberOfFibersInRegions.at(octreeLevel);
 }
 
-//! Returns a vector which stores for each fiber its region with the strongest coverage fo every level
-//! So every fiber is only stored once for a level!
 void iAVROctreeMetrics::calculateMaxCoverageFiberPerRegion()
 {
 	//Initialize new Vectors
 	for (size_t level = 0; level < m_fiberCoverage->size(); level++)
 	{
 		//Initialize the region vec for every level
-		m_maxCoverage->push_back(std::vector<std::vector<vtkIdType>>());
+		m_maxCoverage.push_back(std::vector<std::vector<vtkIdType>>());
 
 		for (size_t region = 0; region < m_fiberCoverage->at(level).size(); region++)
 		{
 			//Initialize a vec of IDs for every region
-			m_maxCoverage->at(level).push_back(std::vector<vtkIdType>());
+			m_maxCoverage.at(level).push_back(std::vector<vtkIdType>());
 		}
 	}
 
@@ -160,7 +142,6 @@ void iAVROctreeMetrics::calculateMaxCoverageFiberPerRegion()
 	}
 }
 
-//! Returns the biggest coverage value for a specific fiber over all regions at the given octree level
 void iAVROctreeMetrics::findBiggestCoverage(vtkIdType level, vtkIdType fiber)
 {
 	double currentMaxCoverage = -1.0;
@@ -183,20 +164,19 @@ void iAVROctreeMetrics::findBiggestCoverage(vtkIdType level, vtkIdType fiber)
 		}
 	}
 
-	m_maxCoverage->at(level).at(regionWithMaxCoverage).push_back(fiber);
+	m_maxCoverage.at(level).at(regionWithMaxCoverage).push_back(fiber);
 }
 
-//! Iterates through all permutations of region pairs and calculates the jaccard index (calls calculateJaccardIndex with two distinct regions)
 void iAVROctreeMetrics::calculateJaccardIndex(vtkIdType level)
 {
 	for (size_t region = 0; region < m_fiberCoverage->at(level).size(); region++)
 	{
-		m_jaccardValues->at(level).push_back(std::vector<double>());
+		m_jaccardValues.at(level).push_back(std::vector<double>());
 
 		// If only one Region
 		if (m_fiberCoverage->at(level).size() == 1)
 		{
-			m_jaccardValues->at(level).at(region).push_back(1);
+			m_jaccardValues.at(level).at(region).push_back(1);
 			return;
 		}
 
@@ -206,7 +186,7 @@ void iAVROctreeMetrics::calculateJaccardIndex(vtkIdType level)
 
 			index = calculateJaccardIndex(level, region, region2);
 
-			m_jaccardValues->at(level).at(region).push_back(index);
+			m_jaccardValues.at(level).at(region).push_back(index);
 
 			//LOG(lvlDebug,QString("jaccardValue for [%1][%2] is %3").arg(region).arg(region2).arg(test));
 			//LOG(lvlDebug,QString("Weighted jaccardValue for [%1][%2] is %3\n").arg(region).arg(region2).arg(m_jaccardValues->at(level).at(region).at(region2)));
@@ -214,9 +194,6 @@ void iAVROctreeMetrics::calculateJaccardIndex(vtkIdType level)
 	}
 }
 
-//! Calculates the size of the intersection divided by the size of the union of the chosen regions
-//! Gets calculated from the fiber intersection data. Value lies between 0 and 1.
-//! Returns 1 if the region are the same
 double iAVROctreeMetrics::calculateJaccardIndex(vtkIdType level, vtkIdType region1, vtkIdType region2)
 {
 	if (region1 == region2) return 1.0;
@@ -231,7 +208,7 @@ double iAVROctreeMetrics::calculateJaccardIndex(vtkIdType level, vtkIdType regio
 
 	double sizeintersection = 0;
 
-	for (auto fiber : *fibersInRegion1)
+	for (auto const & fiber : *fibersInRegion1)
 	{
 		if (fibersInRegion2->count(fiber.first) == 1)
 		{
@@ -244,9 +221,6 @@ double iAVROctreeMetrics::calculateJaccardIndex(vtkIdType level, vtkIdType regio
 	return jaccard_index;
 }
 
-//! Calculates the size of the intersection divided by the size of the union of the chosen regions
-//! Uses the coverage of each fiber from the intersection data as weights. Value lies between 0 and 1.
-//! Returns 1 if the region are the same
 double iAVROctreeMetrics::calculateWeightedJaccardIndex(vtkIdType level, vtkIdType region1, vtkIdType region2)
 {
 	if (region1 == region2) return 1.0;
@@ -265,7 +239,7 @@ double iAVROctreeMetrics::calculateWeightedJaccardIndex(vtkIdType level, vtkIdTy
 	double sharedfibers = 0;
 
 	//Count in region 1 the shared fibers (to region2), save them combined and individual and then delete them...
-	for (auto fiber : *fibersInRegion1)
+	for (auto const & fiber : *fibersInRegion1)
 	{
 		fibersOfRegion1 += fiber.second;
 
@@ -280,7 +254,7 @@ double iAVROctreeMetrics::calculateWeightedJaccardIndex(vtkIdType level, vtkIdTy
 	if (sharedfibers == 0) return 0.0; // nothing in common
 
 	//.. then sum up the remaining
-	for (auto fiber : *fibersInRegion2)
+	for (auto const & fiber : *fibersInRegion2)
 	{
 		fibersOfRegion2 += fiber.second;
 	}
@@ -296,16 +270,14 @@ double iAVROctreeMetrics::calculateWeightedJaccardIndex(vtkIdType level, vtkIdTy
 	return weightedJaccard_index;
 }
 
-//! Measures the dissimilarity (1 - jaccard index)
 double iAVROctreeMetrics::calculateJaccardDistance(vtkIdType level, vtkIdType region1, vtkIdType region2)
 {
 	return 1 - calculateJaccardIndex(level, region1, region2);
 }
 
-//! Iterates through all regions in all level and counts the amount of fibers. The maximum amount of fibers in a region (in a level) is stored.
 void iAVROctreeMetrics::calculateMaxNumberOfFibersInRegion()
 {
-	for (size_t level = 0; level < m_octrees->size(); level++)
+	for (size_t level = 0; level < m_octrees.size(); level++)
 	{
 		double numberOfFibers = 0;
 
@@ -315,6 +287,6 @@ void iAVROctreeMetrics::calculateMaxNumberOfFibersInRegion()
 
 			if (numberOfFibers < fibers) numberOfFibers = fibers;
 		}
-		m_maxNumberOffibersInRegions->push_back(numberOfFibers);
+		m_maxNumberOfFibersInRegions.push_back(numberOfFibers);
 	}
 }

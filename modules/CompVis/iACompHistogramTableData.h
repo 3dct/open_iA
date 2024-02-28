@@ -27,7 +27,7 @@ struct bin
 	static bin::BinType* copyCells(bin::BinType* input, std::vector<vtkIdType>* indexOfCellsToCopy);
 	//returns the minimum and maximum value contained in the BinyType object
 	static std::vector<double>* getMinimumAndMaximum(bin::BinType* input);
-	
+
 };
 
 //data structure used to draw the histogram table
@@ -44,7 +44,7 @@ class iACompHistogramTableData
 
 	//get the for each dataset for each bin the number of objects contained
 	virtual QList<std::vector<double>>* getNumberOfObjectsPerBinAllDatasets();
-	
+
 	//returns the value of the maximum value in the whole dataset
 	double getMaxVal();
 	//returns the value of the minimum value in the whole dataset
@@ -81,23 +81,23 @@ class iACompHistogramTableData
 	QList<vtkSmartPointer<vtkPolyData>>* getBinPolyData();
 
    protected:
-	
+
 	//maximum value in all datasets
 	double m_maxVal;
 	//minimum value in all datasets
 	double m_minVal;
-	
+
 	//vector that stores the number of elements for every dataset
 	//i.e. dataset_1 stores 10 objects...
 	std::vector<int>* amountObjectsEveryDataset;
-	
+
 	//stores the bin data for all datasets
 	//contains the values of the MDS
 	QList<bin::BinType*>* binData;
 
 	//stores selected data points, which have been divided into bins again
 	bin::BinType* zoomedBinData;
-	
+
 	//stores the fiber ids for all datasets according to their bin
 	//contains the attributes of the selected objects (fibers,...) like Id,...
 	QList<std::vector<csvDataType::ArrayType*>*>* binDataObjects;

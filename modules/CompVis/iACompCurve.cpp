@@ -26,7 +26,7 @@
 
 iACompCurve::iACompCurve(
 	iACompHistogramVis* vis, iACompKernelDensityEstimationData* kdeData, double lineWidth, double opacity) :
-	iACompTable(vis), 
+	iACompTable(vis),
 	m_opacity(opacity),
 	m_lineWidth(lineWidth),
 	m_kdeData(kdeData),
@@ -139,7 +139,7 @@ void iACompCurve::makeLUTFromCTF()
 	QColor c3 = QColor(110, 206, 88);
 	QColor c2 = QColor(181, 222, 43);
 	QColor c1 = QColor(253, 231, 37);
-	
+
 	//define main lut
 	vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
 	ctf->SetColorSpaceToRGB();
@@ -498,7 +498,7 @@ void iACompCurve::drawRow(int currDataInd, int currentColumn, double offset)
 
 	//draw curve and polygons
 	drawCurveAndPolygon(drawingDimensions, currDataset, getActiveBinPolyData()->at(currentColumn), currDataInd, currentColumn, offset);
-	
+
 	//add name of dataset/row
 	double pos[3] = {-(m_vis->getRowSize()) * 0.05, min_y + (m_vis->getColSize() * 0.5), 0.0};
 	addDatasetName(currDataInd, pos);
@@ -773,7 +773,7 @@ void iACompCurve::drawPolygon(vtkSmartPointer<vtkPoints> curvePoints, vtkSmartPo
 
 	for (unsigned int i = 0; i < curvePoints->GetNumberOfPoints()-1; i++)
 	{ //compute each bin individually
-		
+
 		int numberOfPointsFormingBin = 5;
 
 		//compute color array of bin
@@ -786,11 +786,11 @@ void iACompCurve::drawPolygon(vtkSmartPointer<vtkPoints> curvePoints, vtkSmartPo
 		{
 			currBinColorArray->InsertTuple3(j, color[0], color[1], color[2]);
 		}
-		
+
 		//compute points of bin
 		vtkSmartPointer<vtkPoints> currBinCurvePoints = vtkSmartPointer<vtkPoints>::New();
 		currBinCurvePoints->SetNumberOfPoints(numberOfPointsFormingBin);
-		
+
 		double currPoint[3];
 		curvePoints->GetPoint(i, currPoint);
 		double nextPoint[3];
@@ -817,10 +817,10 @@ void iACompCurve::drawPolygon(vtkSmartPointer<vtkPoints> curvePoints, vtkSmartPo
 		curvePolyData->SetPoints(currBinCurvePoints);
 		curvePolyData->SetPolys(cells.Get());
 		curvePolyData->GetCellData()->SetScalars(currBinColorArray);
-		
+
 		appendFilter->AddInputData(curvePolyData.Get());
 	}
-	
+
 	appendFilter->Update();
 
 	// Remove any duplicate points.
@@ -981,7 +981,7 @@ void iACompCurve::drawTicks(double numberOfTicks, double drawingDimensions[4])
 	// Setup actor and mapper
 	vtkNew<vtkPolyDataMapper> mapper;
 	mapper->SetInputConnection(appendFilter->GetOutputPort());
-	
+
 	vtkNew<vtkActor> actor;
 	actor->SetMapper(mapper.Get());
 

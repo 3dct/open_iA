@@ -35,7 +35,6 @@ void iAVRMainThread::run()
 			}
 			m_tasks.clear();
 		}
-
 		m_interactor->ProcessEvents();
 		if (m_interactor->GetDone())
 		{

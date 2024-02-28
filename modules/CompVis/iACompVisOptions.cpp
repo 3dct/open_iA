@@ -232,6 +232,6 @@ namespace iACompVisOptions
 	}
 	bool getShow3DViews()
 	{
-		return show3DViews; 
+		return show3DViews;
 	}
 }

@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVRSlider.h"
 
-#include <iALog.h>
-
-#include <vtkProperty.h>
 #include <vtkPropCollection.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkSliderRepresentation3D.h>
+#include <vtkSliderWidget.h>
 
 iAVRSlider::iAVRSlider(vtkRenderer* ren, vtkRenderWindowInteractor* interactor) : m_renderer(ren), m_interactor(interactor)
 {
@@ -22,7 +23,7 @@ iAVRSlider::iAVRSlider(vtkRenderer* ren, vtkRenderWindowInteractor* interactor) 
 	m_visible = false;
 }
 
-void iAVRSlider::createSlider(double minValue, double maxValue, QString title)
+void iAVRSlider::createSlider(double minValue, double maxValue, QString const& title)
 {
 	m_sliderRep->SetMinimumValue(minValue);
 	m_sliderRep->SetMaximumValue(maxValue);
@@ -87,7 +88,7 @@ void iAVRSlider::setOrientation(double x)
 	m_sliderRep->SetRotation(x);
 }
 
-void iAVRSlider::setTitel(QString title)
+void iAVRSlider::setTitel(QString const& title)
 {
 	m_sliderRep->SetTitleText(title.toUtf8());
 }

@@ -180,7 +180,7 @@ protected:
 
   double Radius; //!< minimum radius of tube
   int VaryRadius; //!< controls radius variation
-  int NumberOfSides; //!< number of sides to create tube
+  vtkIdType NumberOfSides; //!< number of sides to create tube
   double RadiusFactor; //!< maximum allowable radius
   double DefaultNormal[3];
   vtkTypeBool UseDefaultNormal;

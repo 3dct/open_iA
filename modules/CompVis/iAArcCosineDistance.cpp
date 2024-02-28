@@ -31,7 +31,7 @@ csvDataType::ArrayType* iAArcCosineDistance::calculateProximityDistance()
 	{
 		for (int pass2 = 0; pass2 < m_amountOfElems; pass2++)
 		{
-	
+
 			/*LOG(lvlDebug,"");*/
 
 			double counter = calculateCounter(m_matrix->at(pass1), m_matrix->at(pass2));
@@ -69,7 +69,7 @@ csvDataType::ArrayType* iAArcCosineDistance::calculateProximityDistance()
 double iAArcCosineDistance::calculateCounter(std::vector<double> const& e1, std::vector<double> const& e2)
 {
 	double result = 0.0;
-	
+
 	for (int col = 0; col < m_amountOfCharas; col++)
 	{
 	/*	LOG(lvlDebug,"m_weights->at(col) = " + QString::number(m_weights->at(col)));*/
@@ -77,7 +77,7 @@ double iAArcCosineDistance::calculateCounter(std::vector<double> const& e1, std:
 		double w = std::pow(m_weights->at(col), 2);
 
 	/*	LOG(lvlDebug,"w = " + QString::number(w));
-		
+
 
 		LOG(lvlDebug,"e1.at( " + QString::number(col) + " ) = " + QString::number(e1.at(col)));
 		LOG(lvlDebug,"e2.at( " + QString::number(col) + " ) = " + QString::number(e2.at(col)));

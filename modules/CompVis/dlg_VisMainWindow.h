@@ -51,7 +51,7 @@ class dlg_VisMainWindow : public QMainWindow, public Ui_CompVisMainWindow
 	QList<csvFileData>* m_data;
 	iAMultidimensionalScaling* m_mds;
 	dlg_MultidimensionalScalingDialog* m_MDSD;
-	
+
 	iACsvDataStorage* m_dataStorage;
 
 	bool m_computeMDSFlag;

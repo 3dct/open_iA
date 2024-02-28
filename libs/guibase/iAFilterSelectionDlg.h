@@ -35,6 +35,6 @@ public slots:
 private:
 	//! check whether one (shown) item is selected, and if it is, show its description and enable OK button.
 	void updateOKAndDescription();
-	int m_curMatches;
+	qsizetype m_curMatches;
 	const std::unique_ptr<Ui_FilterSelectionDlg> m_ui;
 };

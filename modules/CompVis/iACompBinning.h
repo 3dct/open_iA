@@ -19,18 +19,18 @@ public:
 
 	//calculate the binning for the data points
 	virtual void calculateBins() = 0;
-	
+
 	//calculates the bin datastructure for (a) specifically selected bin(s)
 	virtual bin::BinType* calculateBins(bin::BinType* data, int currData) = 0;
 
 	virtual void setDataStructure(iACompHistogramTableData* datastructure) = 0;
 
-	
+
 	/*** Internal evaluation methods ***/
 
 	/**
 	 * @brief The silhouette coefficient is the most common way to combine the metrics of cohesion and separation of a clustering algorithm in a single measure.
-	 * It is defined in the interval [-1; 1] for each example in our data set. 
+	 * It is defined in the interval [-1; 1] for each example in our data set.
 	 * Value beetwen -1 and 1 where 1 means that the object is assigned to the best possible group,
 	 * 0 - the object is located between two groups, and -1 - wrong assignment of the object
 	 * ["Evaluation Metrics for Unsupervised Learning Algorithms" by Palacio & Nino, 2019]

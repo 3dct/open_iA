@@ -8,7 +8,7 @@
 
 vtkStandardNewMacro(iACompCurveInteractorStyle);
 
-iACompCurveInteractorStyle::iACompCurveInteractorStyle() : 
+iACompCurveInteractorStyle::iACompCurveInteractorStyle() :
 	iACompTableInteractorStyle(),
 	m_visualization(nullptr)
 {

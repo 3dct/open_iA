@@ -30,10 +30,10 @@ public:
 
 	/************************** Bayesian Blocks ***************************************/
 	iACompBayesianBlocksData* getBayesianBlocksData();
-	
+
 	void calculateBayesianBlocks();
 
-	
+
 	/************************** Jenks Natural Breaks ***************************************/
 	iACompNaturalBreaksData* getNaturalBreaksData();
 
@@ -69,7 +69,7 @@ private:
 	iACompUniformBinningData* m_uniformBinningData;
 	iACompUniformBinning* m_uniformBinning;
 
-	
+
 	iACompBayesianBlocksData* m_bayesianBlocksData;
 	iACompBayesianBlocks* m_bayesianBlocks;
 

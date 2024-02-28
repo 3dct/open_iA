@@ -55,7 +55,7 @@ iAComp3DWidget::iAComp3DWidget(iAMainWindow* parent, std::shared_ptr<iAObjectsDa
 void iAComp3DWidget::showEvent(QShowEvent* event)
 {
 	QDockWidget::showEvent(event);
-	
+
 	renderWidget();
 }
 

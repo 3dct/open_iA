@@ -64,7 +64,7 @@ public:
 	void setInteractionMode(InteractionMode mode);
 	bool leftButtonDown() const;
 	InteractionMode interactionMode() const;
-	
+
 	iASlicerInteractionEvents const & qtEventObject() const;
 
 	//! @}

@@ -346,7 +346,7 @@ void iACompCombiTable::drawBins(QList<vtkSmartPointer<vtkPolyData>>* binPolyData
 			iACompVisOptions::getColorArray4(rgba, ucrgb);
 			colorArray->InsertTuple4(i, rgb[0], rgb[1], rgb[2], ucrgb[3]);
 		}
-		
+
 		polydata->GetCellData()->AddArray(colorArray);
 		polydata->GetCellData()->SetActiveScalars("colorArray");
 

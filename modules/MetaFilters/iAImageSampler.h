@@ -79,7 +79,7 @@ private:
 	std::shared_ptr<iASamplingResults> m_results;
 	int m_parameterCount;
 	int m_samplingID;
-	
+
 	QStringList m_additionalArgumentList;
 	int m_numDigits;
 	iAProgress* m_progress;

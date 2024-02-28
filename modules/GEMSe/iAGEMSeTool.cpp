@@ -39,7 +39,7 @@ void iAGEMSeTool::loadState(QSettings & projectFile, QString const & fileName)
 {
 	auto gemseModule = m_mainWindow->moduleDispatcher().module<iAGEMSeModuleInterface>();
 	gemseModule->setupToolbar();
-		
+
 	auto seaFile = std::make_shared<iASEAFile>(projectFile, fileName);
 
 	if (!seaFile->good())

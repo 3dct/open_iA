@@ -91,8 +91,8 @@ private:
 
 	//stores the actors that contain the original rows
 	std::vector<vtkSmartPointer<vtkActor>>* m_originalRowActors;
-	
 
 
-	
+
+
 };

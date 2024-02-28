@@ -13,7 +13,6 @@
 #include <vtkCullerCollection.h>
 #endif
 #include <vtkImageFlip.h>
-#include <vtkLight.h>
 #include <vtkLightKit.h>
 #include <vtkPickingManager.h>
 #include <vtkPNGReader.h>
@@ -63,7 +62,6 @@ void iAVREnvironment::start()
 	if (m_vrMainThread)
 	{
 		LOG(lvlWarn, "Cannot start more than one VR session in parallel!");
-		emit finished();
 		return;
 	}
 	m_renderWindow->AddRenderer(m_renderer);
@@ -94,7 +92,7 @@ void iAVREnvironment::stop()
 {
 	if (!m_vrMainThread)
 	{
-		LOG(lvlWarn, "VR Environment not running!");
+		LOG(lvlInfo, "VR Environment: stop not necessary, not running.");
 		return;
 	}
 	m_vrMainThread->stop();
@@ -143,7 +141,7 @@ void iAVREnvironment::hideFloor()
 
 void iAVREnvironment::createLightKit()
 {
-	vtkSmartPointer<vtkLightKit> light = vtkSmartPointer<vtkLightKit>::New();
+	vtkNew<vtkLightKit> light;
 	light->SetKeyLightIntensity(0.88);
 	light->AddLightsToRenderer(m_renderer);
 }
@@ -200,20 +198,20 @@ vtkSmartPointer<vtkTexture> iAVREnvironment::ReadCubeMap(std::string const& fold
 		std::cerr << "ReadCubeMap(): invalid key, unable to continue." << std::endl;
 		std::exit(EXIT_FAILURE);
 	}
-	auto texture = vtkSmartPointer<vtkTexture>::New();
+	vtkNew<vtkTexture> texture;
 	texture->CubeMapOn();
 	// Build the file names.
 	std::for_each(fns.begin(), fns.end(),
 		[&folderPath, &fileRoot, &ext](std::string& f) {
 			f = folderPath + fileRoot + f + ext;
 		});
-	auto i = 0;
+	int i = 0;
 	for (auto const& fn : fns)
 	{
-		auto imgReader = vtkSmartPointer<vtkPNGReader>::New();
+		vtkNew<vtkPNGReader> imgReader;
 		imgReader->SetFileName(fn.c_str());
 
-		auto flip = vtkSmartPointer<vtkImageFlip>::New();
+		vtkNew<vtkImageFlip> flip;
 		flip->SetInputConnection(imgReader->GetOutputPort());
 		flip->SetFilteredAxis(1); // flip y axis
 		texture->SetInputConnection(i, flip->GetOutputPort(0));

@@ -34,13 +34,13 @@ class iACompBoxPlot : public QDockWidget, public Ui_CompHistogramTable
 	Q_OBJECT
    public:
 	iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage);
-	
+
 	void showEvent(QShowEvent* event);
-	
+
 	void renderWidget();
-	
+
 	void updateLegend();
-	
+
 	void setOrderedPositions(std::vector<double>* orderedPositions);
 
 	void updateBoxPlot(csvDataType::ArrayType* selectedData, std::vector<double>* selected_orderedPositions);
@@ -81,7 +81,7 @@ private:
 		iACompBoxPlot* m_outerClass;
 	};
 
-	//inner class 
+	//inner class
 	class BoxPlot : public vtkPlotBox
 	{
 	public:

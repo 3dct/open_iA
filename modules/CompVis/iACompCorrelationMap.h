@@ -62,7 +62,7 @@ private:
 
 	void initializeLutForVertices();
 	void initializeVertices(QStringList attrNames);
-	
+
 	void initializeLutForEdges();
 	void initializeLegend(vtkScalarBarWidget* widget);
 	void initializeEdges();
@@ -98,7 +98,7 @@ private:
 
 	//stores for every vertex its name
 	std::map<vtkIdType, QString>* m_vertices;
-	
+
 	QStringList m_attrNames;
 	int m_numberOfAttr;
 	double m_radius = 0.75;
@@ -322,13 +322,13 @@ private:
 			void moveLabel(vtkSmartPointer<vtkActor> arcActor);
 
 			void initializeLutForEdgesWithLabel();
-			
+
 
 			iACompCorrelationMap* m_baseClass;
 			vtkSmartPointer<vtkPropPicker> m_actorPicker;
 			vtkSmartPointer<vtkGraphLayoutView> m_graphLayoutView;
 			vtkSmartPointer<vtkTextActor> m_percentLegend;
-			
+
 			std::vector<vtkSmartPointer<vtkActor>>* m_oldPickedActors;
 			//for each oldPickedActor the first 3 positions of the vector are the old position, and the 4th position is the lineWidth
 			std::map<vtkSmartPointer<vtkActor>, std::vector<double>>* m_oldAttributesForOldPickedActors;
@@ -359,9 +359,9 @@ private:
 	std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>>* outerArcWithInnerArcs;
 	std::map<vtkSmartPointer<vtkActor>, vtkSmartPointer<vtkTextActor>>* outerArcWithLegend;
 
-	//for each arc actor store to which dataset it belong by storing the dataIndex and whether it is 
+	//for each arc actor store to which dataset it belong by storing the dataIndex and whether it is
 	//a selected inner-arc, non-selected inner-arc or an outer arc
-	//outer-arc = 0; selected inner arc = 1; not-selected inner arc = 2, 
+	//outer-arc = 0; selected inner arc = 1; not-selected inner arc = 2,
 	std::map< vtkSmartPointer<vtkActor>, std::map<int, double>*>* m_arcDataIndxTypePair;
 
 	std::vector<vtkSmartPointer<vtkActor>>* glyphActors;

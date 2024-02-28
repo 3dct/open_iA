@@ -33,7 +33,7 @@ namespace iAITKIO
 	//! @param[in] fileName the name of the file to read
 	//! @param[out] pixelType set to the pixel type of the file that has been read
 	//! @param[out] pixelType set to the scalar type of pixel values in the file that has been read
-	//! @param[in] releaseFlag whether or not to set the release flag on the file reader 
+	//! @param[in] releaseFlag whether or not to set the release flag on the file reader
 	//! @param[in] progress optional progress reporting capabilities via iAProgress
 	iAbase_API ImagePointer readFile(QString const& fileName, PixelType& pixelType, ScalarType& scalarType, bool releaseFlag, iAProgress const * progress = nullptr);
 	//! Use ITK's file IO to write an image to a file

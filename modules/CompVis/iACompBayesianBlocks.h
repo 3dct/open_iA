@@ -32,8 +32,8 @@ namespace BayesianBlocks
 	// COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 	// IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 	// CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-	
-	
+
+
 	// handy aliases
 	namespace bb
 	{
@@ -51,12 +51,12 @@ namespace BayesianBlocks
 
 	//implements the core functionality of bayesian blocks
 	// returns an array of the low-edges for each bin
-	//This array has a size of numberOfBins + 1 
+	//This array has a size of numberOfBins + 1
 	bb::array blocks(bb::data_array data, bb::weights_array weights, const double p = 0.01, bool counter = false,
 		bool benchmark = false);
 
 	// returns an array of the low-edges for each bin
-	//This array has a size of numberOfBins + 1 
+	//This array has a size of numberOfBins + 1
 	bb::array blocks(bb::data_array data, const double p = 0.01, bool counter = false, bool benchmark = false);
 }
 

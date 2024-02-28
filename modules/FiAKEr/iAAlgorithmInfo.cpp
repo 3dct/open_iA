@@ -24,7 +24,7 @@ namespace
 	const int TextHPadding = 3;
 	const int TextVPadding = 1;
 	const int ArrowMinBottomDist = 1;
-	
+
 	const int DefaultMaxLineWidth = 5;
 
 	const int LegendLineWidth = 15;

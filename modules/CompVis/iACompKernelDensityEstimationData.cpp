@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompKernelDensityEstimationData.h"
 
-iACompKernelDensityEstimationData::iACompKernelDensityEstimationData() : 
+iACompKernelDensityEstimationData::iACompKernelDensityEstimationData() :
 	m_maxVal(-1),
-	m_minVal(-1), 
+	m_minVal(-1),
 	m_maxKDEVal(-1),
 	m_minKDEVal(-1),
-	amountObjectsEveryDataset(new std::vector<int>()), 
+	amountObjectsEveryDataset(new std::vector<int>()),
 	kdeDataUniform(nullptr),
 	kdeDataNB(nullptr),
 	kdeDataBB(nullptr),
@@ -178,7 +178,7 @@ void iACompKernelDensityEstimationData::setBoundariesUB(QList<std::vector<double
 }
 
 QList<std::vector<double>>* iACompKernelDensityEstimationData::getBoundariesNB()
-{ 
+{
 	return m_BoundariesBinNB;
 }
 void iACompKernelDensityEstimationData::setBoundariesNB(QList<std::vector<double>>* boundariesNB)

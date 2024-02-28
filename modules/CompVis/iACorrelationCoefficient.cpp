@@ -156,7 +156,7 @@ std::map<QString, Correlation::CorrelationStore>* iACorrelationCoefficient::calc
 
 		vtkSmartPointer<vtkDoubleArray> arrIndex = vtkSmartPointer<vtkDoubleArray>::New();
 		arrIndex->SetName(attrNames.at(i).toStdString().c_str());
-		
+
 		table->AddColumn(arrIndex);
 	}
 

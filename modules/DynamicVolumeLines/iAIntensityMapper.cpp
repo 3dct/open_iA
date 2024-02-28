@@ -60,7 +60,7 @@ void getIntensities(iAProgress &imp, PathID m_pathID, iAITKIO::ImagePointer &ima
 						{
 							coord[i] = coordPtr[i].rack();
 						}
-					
+
 						delete[] coordPtr;
 						coordList.append(coord);
 						if (coordList.size() % 64 == 0)

@@ -6,7 +6,7 @@
 
 /*
 Formula implemented according to: " Lopes, A. M.; Machado, J. A. T. & Galhano, A. M.
-Computational Comparison and Visualization of Viruses in the Perspective of Clinical Information 
+Computational Comparison and Visualization of Viruses in the Perspective of Clinical Information
 Interdisciplinary Sciences: Computational Life Sciences, Springer Science and Business Media LLC, 2017, 11, 86-94. "
 */
 class iAArcCosineDistance : public iAProximityDistance

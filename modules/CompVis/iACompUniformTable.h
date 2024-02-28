@@ -63,7 +63,7 @@ public:
 	void drawPointRepresentation();
 
 	/******************************************  Interaction  **********************************************/
-	
+
 	//dehighlihgte the selcted row
 	bool removeHighlightedRow();
 	//highlight the selected cells with an outline
@@ -105,7 +105,7 @@ public:
 	/******************************************  Update THIS  **********************************************/
 	virtual void showSelectionOfCorrelationMap(std::map<int, double>* dataIndxSelectedType) override;
 	virtual void removeSelectionOfCorrelationMap() override;
-	
+
 protected:
 
 	virtual void initializeTable() override;
@@ -135,19 +135,19 @@ private:
 	//offset contains: the offset by how much the zoomed plane will be drawn above the previous plane
 	std::vector<vtkSmartPointer<vtkPolyData>>* drawZoomedRow(int currentColumn, int amountOfBins,
 		bin::BinType* currentData, double offsetHeight, std::vector<vtkIdType>* cellIdsOriginalPlane);
-	
+
 	//draw the individual zoomed row for a cell that was selected in its original row
 	vtkSmartPointer<vtkPolyData> drawZoomedPlane(
 		int bins, double startX, double startY, double endX, double endY, int currBinIndex, bin::BinType* currentData);
-	
+
 	//draw the line from each selected cell of the original row plane to the zoomed row plane and border the bins in the zoomed row accrodingly
 	void drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPointer<vtkPolyData>>* zoomedRowPlanes,
 		vtkSmartPointer<vtkPolyData> originalRowPlane, std::vector<vtkIdType>* cellIdsOriginalPlane);
-	
+
 	//draw a line from start- to endPoint with a certain color and width
 	vtkSmartPointer<vtkActor> drawLine(double* startPoint, double* endPoint, double lineColor[3], double lineWidth);
 	void drawStippledTexture(double* origin, double* point1, double* point2, double* color);
-	
+
 	//color the planes according to the colors and the amount of elements each bin stores
 	void colorRow(vtkUnsignedCharArray* colors, int currDataset, int numberOfBins);
 	void colorBinOfRow(vtkUnsignedCharArray* colors, int position, double numberOfObjectsInBin);
@@ -156,7 +156,7 @@ private:
 
 	//draw a polyline according to specified points with a certain color and width
 	vtkSmartPointer<vtkActor> drawPolyLine(vtkSmartPointer<vtkPoints> points, double lineColor[3], double lineWidth);
-	
+
 	vtkSmartPointer<vtkActor> drawPoints(
 		vtkSmartPointer<vtkPoints> points, double color[3], double radius, double lineColor[3], double lineWidth);
 

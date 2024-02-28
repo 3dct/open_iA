@@ -47,11 +47,11 @@ namespace Pick
 	};
 }
 
-iACompTableInteractorStyle::iACompTableInteractorStyle() : 
+iACompTableInteractorStyle::iACompTableInteractorStyle() :
 	vtkInteractorStyleTrackballCamera(),
-	m_main(nullptr), 
-	m_zoomLevel(1), 
-	m_zoomOn(true), 
+	m_main(nullptr),
+	m_zoomLevel(1),
+	m_zoomOn(true),
 	m_picked(new Pick::PickedMap()),
 	m_pickedOld(new Pick::PickedMap()),
 	m_zoomedRowData(nullptr),

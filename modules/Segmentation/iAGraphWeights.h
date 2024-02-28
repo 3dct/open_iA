@@ -21,7 +21,7 @@ public:
 	iAEdgeWeightType GetMaxWeight() const;
 	iAEdgeWeightType GetWeight(iAEdgeIndexType edgeIdx) const;
 	void SetWeight(iAEdgeIndexType edgeIdx, iAEdgeWeightType weight);
-	int GetEdgeCount() const;
+	qsizetype GetEdgeCount() const;
 private:
 	QVector<iAEdgeWeightType> m_weights;
 };

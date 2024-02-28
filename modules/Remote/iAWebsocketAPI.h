@@ -29,7 +29,7 @@ public:
 };
 
 class iAWebsocketAPI : public QObject
-{ 
+{
 	Q_OBJECT
 public:
 	iAWebsocketAPI(quint16 port);
@@ -46,7 +46,7 @@ public Q_SLOTS:
 	//! call when a new image is available which doesn't need to be sent out immediately (called by sendViewIDUpdate internally)
 	//! @return true if passed in image is new, false if passed in image is the same as was cached in previous call
 	bool setRenderedImage(std::shared_ptr<iAJPGImage> img, QString viewID);
-	 
+
 Q_SIGNALS:
 	void closed();
 	void controlCommand();
@@ -59,7 +59,7 @@ Q_SIGNALS:
 	void clientConnected(int clientID);
 	void clientDisconnected(int clientID);
 	void clientTransferUpdated(int clientID, quint64 rcvd, quint64 sent);
-	
+
 private Q_SLOTS:
 	void onNewConnection();
 	void processTextMessage(QString message);
@@ -68,7 +68,7 @@ private Q_SLOTS:
 
 	void captionSubscribe(QWebSocket* client);
 	void sendCaptionUpdate();
-	
+
 private:
 	quint16 m_port;
 	QWebSocketServer* m_wsServer;
@@ -93,7 +93,7 @@ private:
 
 	void sendSuccess(QJsonDocument request, QWebSocket* client);
 	void sendImage(QWebSocket* client, QString viewID);
-	
+
 	void sendTextMessage(QByteArray const& data, QWebSocket* client);
 	void sendBinaryMessage(QByteArray const& data, QWebSocket* client);
 };

@@ -63,7 +63,7 @@ iAFeatureAnalyzer::iAFeatureAnalyzer(iAMainWindow* mWnd, const QString& resDir, 
 	const int defaultPopupSizePercentage = 20;
 	m_prvSplomView->sliderPreviewSize->setValue( defaultPopupSizePercentage );
 	m_spmView->setSPLOMPreviewSize(defaultPopupSizePercentage);
-	
+
 	iARangeSliderDiagramView * rangeSliderDiagramView = new iARangeSliderDiagramView(parent);
 
 	connect( m_treeView, &iATreeView::loadSelectionToSPMSignal, m_spmView, &iASPMView::setData);

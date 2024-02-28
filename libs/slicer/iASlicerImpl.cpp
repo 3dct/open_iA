@@ -226,7 +226,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 			int endX   = std::max(slicePixelPos[0].x(), slicePixelPos[1].x());
 			int startY = std::min(slicePixelPos[0].y(), slicePixelPos[1].y());
 			int endY   = std::max(slicePixelPos[0].y(), slicePixelPos[1].y());
-			
+
 			// extract image part, get minimum/maximum intensity value:
 			double minVal = std::numeric_limits<double>::max();
 			double maxVal = std::numeric_limits<double>::lowest();
@@ -280,7 +280,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_actionLinearInterpolation->setCheckable(true);
 	m_actionShowTooltip = m_contextMenu->addAction(tr("Show Tooltip"), this, &iASlicerImpl::toggleShowTooltip);
 	m_actionShowTooltip->setCheckable(true);
-	
+
 	m_contextMenu->addSeparator();
 	m_actionToggleNormalInteraction = new QAction(tr("Click+Drag: disabled"), m_contextMenu);
 	m_actionToggleNormalInteraction->setCheckable(true);
@@ -2526,8 +2526,10 @@ void iASlicerImpl::updateFisheyeTransform(double focalPt[3], vtkImageReslice* re
 	double bounds[6];
 	reslicer->GetInformationInput()->GetBounds(bounds);
 
-	m_pointsTarget->SetNumberOfPoints(32); // already set above!
-	m_pointsSource->SetNumberOfPoints(32);
+	const vtkIdType FixPoints = 8;
+	const vtkIdType NumPoints = 4 * FixPoints;
+	m_pointsTarget->SetNumberOfPoints(NumPoints); // already set above!
+	m_pointsSource->SetNumberOfPoints(NumPoints);
 	int sn = sliceNumber();
 
 	switch (m_mode)
@@ -2565,19 +2567,17 @@ void iASlicerImpl::updateFisheyeTransform(double focalPt[3], vtkImageReslice* re
 	default:
 		break;
 	}
-
-	for (int i = 0; i < m_pointsTarget->GetNumberOfPoints() - (m_pointsTarget->GetNumberOfPoints() - 8); ++i)
+	for (vtkIdType i = 0; i < FixPoints; ++i)
 	{
 		m_pointsSource->SetPoint(i, m_pointsTarget->GetPoint(i));
 	}
-	int fixPoints = 8;
 	// outer circle 1
 	double fixRadiusX;
 	double fixRadiusY;
-	for (int fix = m_pointsTarget->GetNumberOfPoints() - 8 - 8 - 8; fix < m_pointsTarget->GetNumberOfPoints() - 8 - 8; fix++)
+	for (auto fix = FixPoints; fix < 2*FixPoints; ++fix)
 	{
-		fixRadiusX = (lensRadius + 15.0)* std::cos(fix * (360 / fixPoints) * vtkMath::Pi() / 180) * spacing[0];
-		fixRadiusY = (lensRadius + 15.0)* std::sin(fix * (360 / fixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		fixRadiusX = (lensRadius + 15.0)* std::cos(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		fixRadiusY = (lensRadius + 15.0)* std::sin(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
 
 		switch (m_mode)
 		{
@@ -2598,11 +2598,10 @@ void iASlicerImpl::updateFisheyeTransform(double focalPt[3], vtkImageReslice* re
 		}
 	}
 	// outer circle 2
-	fixPoints = 8;
-	for (int fix = m_pointsTarget->GetNumberOfPoints() - 8 - 8; fix < m_pointsTarget->GetNumberOfPoints() - 8; fix++)
+	for (auto fix = 2*FixPoints; fix < 3*FixPoints; ++fix)
 	{
-		fixRadiusX = (lensRadius + 80.0)* std::cos(fix * (360 / fixPoints) * vtkMath::Pi() / 180) * spacing[0];
-		fixRadiusY = (lensRadius + 80.0)* std::sin(fix * (360 / fixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		fixRadiusX = (lensRadius + 80.0)* std::cos(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		fixRadiusY = (lensRadius + 80.0)* std::sin(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
 
 		switch (m_mode)
 		{
@@ -2623,28 +2622,27 @@ void iASlicerImpl::updateFisheyeTransform(double focalPt[3], vtkImageReslice* re
 		}
 	}
 
-	int pointsCount = 8;
-	for (int i = m_pointsTarget->GetNumberOfPoints() - pointsCount; i < m_pointsTarget->GetNumberOfPoints(); ++i)
+	for (auto fix = 3*FixPoints; fix < NumPoints; ++fix)
 	{
-		double xCoordCircle1 = (innerLensRadius)* std::cos(i * (360 / pointsCount) * vtkMath::Pi() / 180) * spacing[0];
-		double yCoordCircle1 = (innerLensRadius)* std::sin(i * (360 / pointsCount) * vtkMath::Pi() / 180) * spacing[0];
+		double xCoordCircle1 = (innerLensRadius)* std::cos(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		double yCoordCircle1 = (innerLensRadius)* std::sin(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
 
-		double xCoordCircle2 = (lensRadius)* std::cos(i * (360 / pointsCount) * vtkMath::Pi() / 180) * spacing[0];
-		double yCoordCircle2 = (lensRadius)* std::sin(i * (360 / pointsCount) * vtkMath::Pi() / 180) * spacing[0];
+		double xCoordCircle2 = (lensRadius)* std::cos(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		double yCoordCircle2 = (lensRadius)* std::sin(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
 
 		switch (m_mode)
 		{
 		case iASlicerMode::YZ:
-			m_pointsTarget->SetPoint(i, sn * spacing[0], focalPt[0] + xCoordCircle1, focalPt[1] + yCoordCircle1);
-			m_pointsSource->SetPoint(i, sn * spacing[0], focalPt[0] + xCoordCircle2, focalPt[1] + yCoordCircle2);
+			m_pointsTarget->SetPoint(fix, sn * spacing[0], focalPt[0] + xCoordCircle1, focalPt[1] + yCoordCircle1);
+			m_pointsSource->SetPoint(fix, sn * spacing[0], focalPt[0] + xCoordCircle2, focalPt[1] + yCoordCircle2);
 			break;
 		case iASlicerMode::XZ:
-			m_pointsTarget->SetPoint(i, focalPt[0] + xCoordCircle1, sn * spacing[1], focalPt[1] + yCoordCircle1);
-			m_pointsSource->SetPoint(i, focalPt[0] + xCoordCircle2, sn * spacing[1], focalPt[1] + yCoordCircle2);
+			m_pointsTarget->SetPoint(fix, focalPt[0] + xCoordCircle1, sn * spacing[1], focalPt[1] + yCoordCircle1);
+			m_pointsSource->SetPoint(fix, focalPt[0] + xCoordCircle2, sn * spacing[1], focalPt[1] + yCoordCircle2);
 			break;
 		case iASlicerMode::XY:
-			m_pointsTarget->SetPoint(i, focalPt[0] + xCoordCircle1, focalPt[1] + yCoordCircle1, sn * spacing[2]);
-			m_pointsSource->SetPoint(i, focalPt[0] + xCoordCircle2, focalPt[1] + yCoordCircle2, sn * spacing[2]);
+			m_pointsTarget->SetPoint(fix, focalPt[0] + xCoordCircle1, focalPt[1] + yCoordCircle1, sn * spacing[2]);
+			m_pointsSource->SetPoint(fix, focalPt[0] + xCoordCircle2, focalPt[1] + yCoordCircle2, sn * spacing[2]);
 			break;
 		default:
 			break;
@@ -2652,7 +2650,7 @@ void iASlicerImpl::updateFisheyeTransform(double focalPt[3], vtkImageReslice* re
 	}
 
 	// Set position and text for green circle1 actors
-	for (int i = 0; i < m_pointsTarget->GetNumberOfPoints(); ++i)
+	for (vtkIdType i = 0; i < NumPoints; ++i)
 	{
 		int idx1 = (m_mode == iASlicerMode::YZ) ? 1 : 0;
 		int idx2 = (m_mode == iASlicerMode::XY) ? 1 : 2;
@@ -2689,7 +2687,7 @@ void iASlicerImpl::updateMagicLens()
 	lensSz = (std::min)(static_cast<qreal>(lensSz),
 		(std::min)(pixelWidth, pixelHeight));  // restrict size to size of smallest side
 	qreal lensSzHalf = 0.5*lensSz;
-	// clamp to image, round to int (=pixels)	
+	// clamp to image, round to int (=pixels)
 	dpos[0] = clamp(lensSzHalf, pixelWidth - lensSzHalf - 1, dpos[0]);
 	dpos[1] = clamp(lensSzHalf, pixelHeight - lensSzHalf - 1, dpos[1]);
 	dpos[2] = qRound(dpos[2]);

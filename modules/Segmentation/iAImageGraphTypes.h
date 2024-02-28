@@ -10,10 +10,10 @@
 
 
 
-typedef unsigned int iAEdgeIndexType;
-typedef unsigned int iAVertexIndexType;
+typedef qsizetype iAEdgeIndexType;
+typedef qsizetype iAVertexIndexType;
 typedef int iALabelType;
 typedef double iAEdgeWeightType;
-typedef std::pair<iAVoxelIndexType, iAVoxelIndexType> iAEdgeType;
+typedef std::pair<iAFlatIndexType, iAFlatIndexType> iAEdgeType;
 
 typedef QVector<iALabelType> iALabelData;

@@ -79,16 +79,15 @@ void iAImNDTModuleInterface::Initialize()
 	auto removeRenderer = [this](iAMdiChild* child, size_t dataSetIdx)
 	{
 		auto key = std::make_pair(child, dataSetIdx);
-		auto vrRen = m_vrRenderers.at(key);
-		m_vrEnv->queueTask([vrRen] { vrRen->setVisible(false); });
+		auto const & vrRen = m_vrRenderers.at(key);
 		m_vrRenderers.erase(key);
-		if (m_vrRenderers.empty() && m_vrEnv)    // VR might already be finished due to errors (e.g. headset currently not available)
-		{
-			m_vrEnv->stop();  // no more VR renderers -> stop VR environment
-		}
+		m_vrEnv->queueTask([vrRen] { vrRen->setVisible(false); });
+		checkStopVR();
 	};
+
+	// on every child window, listen to new datasets, and if one becomes available add action to add VR renderer
 	connect(m_mainWnd, &iAMainWindow::childCreated, this, [this, removeRenderer](iAMdiChild* child)
-	{   // on every child window, listen to new datasets, and if one becomes available add action to add VR renderer
+	{
 		connect(child, &iAMdiChild::dataSetRendered, this, [this, removeRenderer, child](size_t dataSetIdx)
 		{
 			auto viewer = child->dataSetViewer(dataSetIdx);
@@ -101,21 +100,9 @@ void iAImNDTModuleInterface::Initialize()
 						removeRenderer(child, dataSetIdx);
 						return;
 					}
-					if (!m_vrEnv)
+					if (!ensureVREnvironment())
 					{
-						if (!setupVREnvironment())
-						{
-							return;
-						}
-						connect(m_vrEnv.get(), &iAVREnvironment::finished, this, [this]
-						{
-							m_vrEnv.reset();
-							m_vrRenderers.clear();
-							for (auto vrAction : m_vrActions)
-							{
-								vrAction->setChecked(false);
-							}
-						});
+						return;
 					}
 					auto vrRen = viewer->createRenderer(m_vrEnv->renderer());
 					vrRen->setAttributes(viewer->attributeValues());
@@ -134,7 +121,7 @@ void iAImNDTModuleInterface::Initialize()
 					{
 						return;
 					}
-					auto vrRen = m_vrRenderers.at(key);
+					auto const& vrRen = m_vrRenderers.at(key);
 					vrRen->setAttributes(viewer->attributeValues());
 				});
 				connect(viewer, &iADataSetViewer::removeDataSet, this, [child, removeRenderer](size_t dataSetIdx)
@@ -212,7 +199,7 @@ void iAImNDTModuleInterface::openVRInfo()
 void iAImNDTModuleInterface::openXRInfo()
 {
 	// errors encountered in API calls so far:
-	
+
 	// XR_ERROR_RUNTIME_FAILURE = -2,           when no HMD connected / vive connection box not turned on (?)
 	// XR_ERROR_API_VERSION_UNSUPPORTED = -4    when type member wasn't properly set in passed-in struct (?) - but xrGetSystemProperty crashed in this case with an access violation!
 	// XR_ERROR_SIZE_INSUFFICIENT = -11         when space in data structure not sufficient to store all results of xrEnumerate... call
@@ -399,53 +386,74 @@ void iAImNDTModuleInterface::openXRInfo()
 
 void iAImNDTModuleInterface::startAnalysis()
 {
-	if (!m_vrMain)
+	if (m_imNDT)
 	{
-		if (!loadImNDT() || !ImNDT(m_objData, m_polyObject, m_csvConfig))
-		{
-			return;
-		}
-		connect(m_vrEnv.get(), &iAVREnvironment::finished, this, [this]
-		{
-			m_vrMain.reset();
-			m_actionVRStartAnalysis->setText("Start Analysis");
-			m_vrEnv.reset();
-		});
-		m_actionVRStartAnalysis->setText("Stop Analysis");
+		stopImNDT();
+		return;
 	}
-	else
+	dlg_CSVInput dlg(false);
+	if (dlg.exec() != QDialog::Accepted)
 	{
-		LOG(lvlInfo, "Stopping ImNDT analysis.");
-		m_vrEnv->stop();
+		return;
+	}
+	auto const& csvConfig = dlg.getConfig();
+	auto objData = loadObjectsCSV(csvConfig);
+	if (!objData)
+	{
+		return;
+	}
+	if (!startImNDT(objData, csvConfig))
+	{
+		return;
 	}
 }
 
-bool iAImNDTModuleInterface::vrAvailable()
+void iAImNDTModuleInterface::stopImNDT()
 {
-#ifdef OPENXR_AVAILABLE
-#else
-	if (!vr::VR_IsRuntimeInstalled())
+	if (!m_imNDT)
 	{
-		LOG(lvlWarn, "VR runtime not found. Please install Steam and SteamVR!");
-		QMessageBox::warning(m_mainWnd, "VR", "VR runtime not found. Please install Steam and SteamVR!");
-		return false;
+		return;
 	}
-	if (!vr::VR_IsHmdPresent())
+	LOG(lvlInfo, "Stopping ImNDT analysis.");
+	connect(m_imNDT.get(), &iAImNDTMain::finished, this, [this]()
 	{
-		LOG(lvlWarn, "No VR device found. Make sure your HMD device is plugged in and turned on!");
-		QMessageBox::warning(m_mainWnd, "VR", "No VR device found. Make sure your HMD device is plugged in and turned on!");
-		return false;
-	}
+		m_imNDT.reset();
+		checkStopVR();
+		emit analysisStopped();
+	});
+	queueTask([this] { m_imNDT->stop(); });
+	m_actionVRStartAnalysis->setText("Start Analysis");
+}
+
+namespace
+{
+	bool backendAvailable(iAvtkVR::Backend backend)
+	{
+		// only OpenVR currently provides a way to check for runtime/HMD presence without starting the environment:
+		if (backend != iAvtkVR::OpenVR)
+		{
+			return true;
+		}
+#ifdef OPENVR_AVAILABLE
+		if (!vr::VR_IsRuntimeInstalled())
+		{
+			LOG(lvlWarn, "OpenVR: Runtime not found. Please install Steam and SteamVR!");
+			//QMessageBox::warning(m_mainWnd, "VR", "VR runtime not found. Please install Steam and SteamVR!");
+			return false;
+		}
+		if (!vr::VR_IsHmdPresent())
+		{
+			LOG(lvlWarn, "OpenVR: No VR device found. Make sure your HMD device is plugged in and turned on!");
+			//QMessageBox::warning(m_mainWnd, "VR", "No VR device found. Make sure your HMD device is plugged in and turned on!");
+			return false;
+		}
 #endif
-	return true;
+		return true;
+	}
 }
 
 bool iAImNDTModuleInterface::setupVREnvironment()
 {
-	if (!vrAvailable())
-	{
-		return false;
-	}
 	if (m_vrEnv && m_vrEnv->isRunning())
 	{
 		QString msg("VR environment is currently running! Please stop the ongoing VR analysis before starting a new one!");
@@ -453,10 +461,12 @@ bool iAImNDTModuleInterface::setupVREnvironment()
 		QMessageBox::information(m_mainWnd, "VR", msg);
 		return false;
 	}
-	auto backends = iAvtkVR::availableBackends();
+	auto const& backends = iAvtkVR::availableBackends();
 	if (backends.size() < 1)
 	{
-		LOG(lvlError, "No VR backend available!");
+		QString msg("Invalid configuration: VR module built without without VR backends; please report this in our issue tracker (https://github.com/3dct/open_iA/issues)!");
+		QMessageBox::information(m_mainWnd, "VR", msg);
+		LOG(lvlError, msg);
 		return false;
 	}
 	auto backend = backends[0];
@@ -476,28 +486,75 @@ bool iAImNDTModuleInterface::setupVREnvironment()
 		}
 		backend = (dlg.parameterValues()["Backend"].toString() == iAvtkVR::backendName(iAvtkVR::OpenVR)) ? iAvtkVR::OpenVR : iAvtkVR::OpenXR;
 	}
+	if (!backendAvailable(backend))
+	{
+		QString msg("Backend is currently unavailable! Please see additional messages in the log for how to fix, or try a different backend.");
+		QMessageBox::information(m_mainWnd, "VR", msg);
+		LOG(lvlWarn, msg);
+		return false;
+	}
 	m_vrEnv = std::make_shared<iAVREnvironment>(backend);
 	return true;
 }
 
-// Start ImNDT with pre-loaded data
-bool iAImNDTModuleInterface::ImNDT(std::shared_ptr<iAObjectsData> objData, std::shared_ptr<iAColoredPolyObjectVis> polyObject, iACsvConfig csvConfig)
+bool iAImNDTModuleInterface::ensureVREnvironment()
 {
+	if (m_vrEnv)
+	{
+		return true;
+	}
 	if (!setupVREnvironment())
 	{
 		return false;
 	}
-	LOG(lvlInfo, QString("Starting ImNDT analysis of %1").arg(csvConfig.fileName));
+	connect(m_vrEnv.get(), &iAVREnvironment::finished, this, [this]
+	{
+		m_vrEnv.reset();
+		m_imNDT.reset();
+		m_vrRenderers.clear();
+		for (auto vrAction : m_vrActions)
+		{
+			vrAction->setChecked(false);
+		}
+	});
+	return true;
+}
 
-	//Create VR Main
-	//TODO: CHECK IF PolyObject is not Volume OR NoVis
-	m_polyObject = polyObject;
+void iAImNDTModuleInterface::checkStopVR()
+{
+	if (m_vrRenderers.empty() && !m_imNDT && m_vrEnv)    // check m_vrEnv because VR might already be finished due to errors (e.g. headset currently not available)
+	{
+		m_vrEnv->stop();  // no more VR renderers and no objects analysis -> stop VR environment
+	}
+}
+
+bool iAImNDTModuleInterface::startImNDT(std::shared_ptr<iAObjectsData> objData, iACsvConfig csvConfig)
+{
+	if (csvConfig.visType == iAObjectVisType::UseVolume || csvConfig.visType == iAObjectVisType::None)
+	{
+		LOG(lvlError, "Invalid visualization type!");
+		return false;
+	}
 	m_objData = objData;
-	m_vrMain = std::make_shared<iAImNDTMain>(m_vrEnv.get(), m_polyObject.get(), m_objData.get(), csvConfig);
-	connect(m_vrMain.get(), &iAImNDTMain::selectionChanged, this, &iAImNDTModuleInterface::selectionChanged);
-
-	// Start Render Loop HERE!
-	m_vrEnv->start();
+	auto objVis = createObjectVis(m_objData.get(), QColor(140, 140, 140, 255));
+	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(objVis);
+	if (!m_polyObject)
+	{
+		LOG(lvlError, "Invalid 3D object visualization!");
+		return false;
+	}
+	LOG(lvlInfo, QString("Starting ImNDT analysis of %1").arg(csvConfig.fileName));
+	if (!ensureVREnvironment())
+	{
+		return false;
+	}
+	m_imNDT = std::make_shared<iAImNDTMain>(m_vrEnv.get(), m_polyObject.get(), m_objData.get(), csvConfig);
+	connect(m_imNDT.get(), &iAImNDTMain::selectionChanged, this, &iAImNDTModuleInterface::selectionChanged);
+	m_actionVRStartAnalysis->setText("Stop Analysis");
+	if (!m_vrEnv->isRunning())
+	{
+		m_vrEnv->start();
+	}
 	return true;
 }
 
@@ -505,7 +562,6 @@ vtkRenderer* iAImNDTModuleInterface::getRenderer()
 {
 	return m_vrEnv->renderer();
 }
-
 
 void iAImNDTModuleInterface::queueTask(std::function<void()> task)
 {
@@ -516,25 +572,22 @@ void iAImNDTModuleInterface::queueTask(std::function<void()> task)
 	m_vrEnv->queueTask(task);
 }
 
-bool iAImNDTModuleInterface::loadImNDT()
+bool iAImNDTModuleInterface::isVRRunning() const
 {
-	dlg_CSVInput dlg(false);
-	if (dlg.exec() != QDialog::Accepted)
-	{
-		return false;
-	}
-	m_csvConfig = dlg.getConfig();
-	m_objData = loadObjectsCSV(m_csvConfig);
-	if (!m_objData)
-	{
-		return false;
-	}
-	auto objVis = createObjectVis(m_objData.get(), QColor(140, 140, 140, 255));
-	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(objVis);
-	if (!m_polyObject)
-	{
-		LOG(lvlError, "Invalid 3D object visualization!");
-		return false;
-	}
-	return true;
+	return m_vrEnv && m_vrEnv->isRunning();
+}
+
+bool iAImNDTModuleInterface::isImNDTRunning() const
+{
+	return isVRRunning() && m_imNDT;
+}
+
+void iAImNDTModuleInterface::setSelection(std::vector<size_t> selection)
+{
+	m_polyObject->setSelection(selection, true);
+}
+
+std::vector<size_t> iAImNDTModuleInterface::selection()
+{
+	return m_polyObject->selection();
 }

@@ -10,7 +10,7 @@
 
 vtkStandardNewMacro(iAComp3DWidgetInteractionStyle);
 
-iAComp3DWidgetInteractionStyle::iAComp3DWidgetInteractionStyle(): 
+iAComp3DWidgetInteractionStyle::iAComp3DWidgetInteractionStyle():
 	m_visualization(nullptr)
 {
 

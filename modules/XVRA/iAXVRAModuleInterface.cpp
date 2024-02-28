@@ -2,7 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAXVRAModuleInterface.h"
 
+#include <iAAABB.h>
 #include <iALog.h>
+
+// guibase
+#include <iADataSetRenderer.h>
+#include <iADataSetViewer.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
 #include <iAModuleDispatcher.h>
@@ -16,11 +21,12 @@
 #include <iAObjectVisFactory.h>
 
 // FeatureScout
-#include <dlg_FeatureScout.h>
-#include <iAFeatureScoutToolbar.h>
+#include <iAFeatureScoutTool.h>
 
 // ImNDT
 #include <iAImNDTModuleInterface.h>
+
+// XVRA
 #include <iAFrustumActor.h>
 
 #include <vtkCamera.h>
@@ -33,10 +39,26 @@
 #include <QMessageBox>
 
 
+
+#include "iAColoredPolyObjectVis.h"
+
+class dlg_FeatureScout;
+class iAImNDTModuleInterface;
+class iAObjectData;
+
+/*
+class iAXVRATool : public iATool
+{
+private:
+	iAFeatureScoutTool* fsTool;
+	iAFrustumActor* fsFrustum;
+	iAFrustumActor* vrFrustum;
+};
+*/
+
 iAXVRAModuleInterface::iAXVRAModuleInterface() :
-	m_fsMain(nullptr),
-	fsFrustum(nullptr),
-	vrFrustum(nullptr)
+	m_fsFrustum(nullptr),
+	m_vrFrustum(nullptr)
 {
 }
 
@@ -49,13 +71,12 @@ void iAXVRAModuleInterface::Initialize()
 	QAction* actionXVRAInfo = new QAction(tr("Info"), m_mainWnd);
 	connect(actionXVRAInfo, &QAction::triggered, this, &iAXVRAModuleInterface::info);
 
-	QAction * actionXVRAStart = new QAction(tr("Start XVRA"), m_mainWnd);
-	connect(actionXVRAStart, &QAction::triggered, this, &iAXVRAModuleInterface::startXVRA);
-
+	m_actionXVRAStart = new QAction(tr("Start XVRA"), m_mainWnd);
+	connect(m_actionXVRAStart, &QAction::triggered, this, &iAXVRAModuleInterface::startXVRA);
 
 	QMenu* vrMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("XVRA"), false);
 	vrMenu->addAction(actionXVRAInfo);
-	vrMenu->addAction(actionXVRAStart);
+	vrMenu->addAction(m_actionXVRAStart);
 
 }
 
@@ -85,8 +106,16 @@ void iAXVRAModuleInterface::info()
 
 void iAXVRAModuleInterface::startXVRA()
 {
-	/***** Start csv dialog (-> PolyObject) *****/
+	// If VR environment is currently running, stop it first (maybe reuse?)
+	auto vrModule = m_mainWnd->moduleDispatcher().module<iAImNDTModuleInterface>();
+	if (vrModule->isImNDTRunning())
+	{
+		vrModule->stopImNDT();
+		m_actionXVRAStart->setText("Start XVRA");
+		return;
+	}
 
+	// Start csv dialog (-> PolyObject)
 	dlg_CSVInput dlg(false);
 	if (dlg.exec() != QDialog::Accepted)
 	{
@@ -98,51 +127,96 @@ void iAXVRAModuleInterface::startXVRA()
 	{
 		return;
 	}
-	// Create PolyObject visualization
-	m_polyObject = std::dynamic_pointer_cast<iAColoredPolyObjectVis>(createObjectVis(objData.get(), QColor(140, 140, 140, 255)));
-	if (!m_polyObject)
-	{
-		LOG(lvlError, "Invalid 3D object visualization!");
-		return;
-	}
 
-	// Start VR
-	auto vrMain = m_mainWnd->moduleDispatcher().module<iAImNDTModuleInterface>();
-	if (!vrMain->ImNDT(objData, m_polyObject, csvConfig))
+	// Start ImNDT first, since starting new VR environment could fail (e.g. due to no headset available)
+	if (!vrModule->startImNDT(objData, csvConfig))
 	{
 		return;
 	}
 
-	// Start FeatureScout (after VR, since starting VR could fail due to VR already running!)
+	// Start FeatureScout
 	auto child = m_mainWnd->createMdiChild(false);
-	// TODO: use iAFeatureScoutTool instead of dlg_FeatureScout directly?
-	m_fsMain = new dlg_FeatureScout(child, csvConfig.objectType, csvConfig.fileName, objData.get(), m_polyObject.get());
-	iAFeatureScoutToolbar::addForChild(m_mainWnd, child);
-
-	// Add Camera Frustum visualizations:
-	vtkSmartPointer<vtkCamera> fsCam = m_mainWnd->activeMdiChild()->renderer()->camera(); // camera from FeatureScout
-	vtkSmartPointer<vtkCamera> vrCam = vrMain->getRenderer()->GetActiveCamera();          // camera from VR
-
-	double const* bounds = m_polyObject->bounds();
-	double maxSize = std::max({bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4]});
-	vrFrustum = new iAFrustumActor(vrMain->getRenderer(), fsCam, maxSize/10);  // frustum of featurescout shown in vr
-	fsFrustum = new iAFrustumActor(m_mainWnd->activeMdiChild()->renderer()->renderer(), vrCam, maxSize / 10);  // frustum of vr shown in featurescout
-
-	connect(fsFrustum, &iAFrustumActor::updateRequired, this, [this, child]()
+	if (!iAFeatureScoutTool::addToChild(child, csvConfig, objData))
 	{
-		// trigger an update to renderer if camera indicator has changed
-		fsFrustum->updateSource();
-		child->updateRenderer();
-	});
-	connect(vrFrustum, &iAFrustumActor::updateRequired, vrMain, [this, vrMain]()
+		return;
+	}
+	connect(child, &iAMdiChild::dataSetRendered, this, [this, vrModule, child](size_t dataSetIdx)
 	{
-		vrMain->queueTask([this]() { vrFrustum->updateSource();  });
+		auto fsTool = dynamic_cast<iAFeatureScoutTool*>(child->tools()[iAFeatureScoutTool::ID].get());
+		if (dataSetIdx != fsTool->visDataSetIdx())
+		{
+			return;
+		}
+		disconnect(child, &iAMdiChild::dataSetRendered, this, nullptr);
+
+		// Add Camera Frustum visualizations:
+		vtkSmartPointer<vtkCamera> fsCam = m_mainWnd->activeMdiChild()->renderer()->camera(); // camera from FeatureScout
+		vtkSmartPointer<vtkCamera> vrCam = vrModule->getRenderer()->GetActiveCamera();          // camera from VR
+
+		auto bounds = child->dataSetViewer(dataSetIdx)->renderer()->bounds();
+		double maxSize = std::max({
+			bounds.maxCorner().x() - bounds.minCorner().x(),
+			bounds.maxCorner().y() - bounds.minCorner().y(),
+			bounds.maxCorner().z() - bounds.minCorner().z(),
+		});
+		m_vrFrustum = new iAFrustumActor(vrModule->getRenderer(), fsCam, maxSize/10);  // frustum of featurescout shown in vr
+		m_fsFrustum = new iAFrustumActor(m_mainWnd->activeMdiChild()->renderer()->renderer(), vrCam, maxSize / 10);  // frustum of vr shown in featurescout
+
+		// set up rendering updates for frustum changes:
+		connect(m_fsFrustum, &iAFrustumActor::updateRequired, this, [this, child, dataSetIdx]()
+		{
+			// trigger an update to renderer if camera indicator has changed
+			static auto lastUpdate = QDateTime::currentDateTime();
+			auto lastRenTime = child->dataSetViewer(dataSetIdx)->renderer()->vtkRen()->GetLastRenderTimeInSeconds();
+			auto now = QDateTime::currentDateTime();
+			auto secDiff = lastUpdate.msecsTo(now) / 1000.0;
+			// rate-limit updates to only do it in twice the interval of a single rendering run:
+			auto updating = secDiff > 8 * lastRenTime;
+			//LOG(lvlDebug, QString("Update triggered; lastRenTime: %1 fps: %2; secDiff: %3, updating: %4")
+			//	.arg(lastRenTime)
+			//	.arg(1 / lastRenTime)
+			//	.arg(secDiff)
+			//	.arg(updating));
+			if (updating)
+			{
+				lastUpdate = now;
+				m_fsFrustum->updateSource();
+				child->updateRenderer();
+			}
+		});
+		connect(m_vrFrustum, &iAFrustumActor::updateRequired, vrModule, [this, vrModule]()
+		{
+			vrModule->queueTask([this]() { m_vrFrustum->updateSource();  });
+		});
+		m_vrFrustum->show();
+		m_fsFrustum->show();
+
+		/// set up selection propagation between FeatureScout and VR:
+		connect(fsTool, &iAFeatureScoutTool::selectionChanged, vrModule, [vrModule, fsTool]()
+		{
+			auto sel = fsTool->selection();
+			QSignalBlocker block(vrModule);
+			vrModule->setSelection(sel);
+		});
+		connect(vrModule, &iAImNDTModuleInterface::selectionChanged, fsTool, [vrModule, fsTool]()
+		{
+			auto sel = vrModule->selection();
+			QSignalBlocker block(fsTool);
+			fsTool->setSelection(sel);
+		});
+
+		// set up close / shut down handler for both child and VR environment:
+		connect(child, &iAMdiChild::closed, this, [vrModule, this]()
+		{
+			disconnect(m_fsFrustum);
+			vrModule->stopImNDT();
+		});
+		connect(vrModule, &iAImNDTModuleInterface::analysisStopped, this, [this, vrModule]()
+		{
+			disconnect(vrModule, &iAImNDTModuleInterface::analysisStopped, this, nullptr);
+			m_actionXVRAStart->setText("Start XVRA");
+		});
 	});
 
-	vrFrustum->show();
-	fsFrustum->show();
-
-	// set up selection propagation from VR to FeatureScout
-	connect(vrMain, &iAImNDTModuleInterface::selectionChanged, m_fsMain, &dlg_FeatureScout::selectionChanged3D);
-
+	m_actionXVRAStart->setText("Stop Analysis");
 }

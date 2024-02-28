@@ -55,7 +55,7 @@ public:
 	//! end of the method, the job will be removed automatically from the list.
 	//! Example:
 	//!
-	//! 
+	//!
 	//!     #include "iAJobListView.h"
 	//!     #include "iAProgress.h"
 	//!     ...

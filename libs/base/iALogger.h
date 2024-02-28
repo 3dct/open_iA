@@ -22,12 +22,12 @@ enum iALogLevel
 	//! effects the user should be aware of (example: some parameter was
 	//! outside of its valid range and was reset to its default value)
 	lvlWarn  = 3,
-	
+
 	//! A problematic situation the user should be aware of, and which
 	//! probably aborts the current operation, but the program can keep on
 	//! running (example: file could not be opened)
 	lvlError = 4,
-	
+
 	//! A situation that requires the program to stop (example: no more memory
 	//! available)
 	lvlFatal = 5,

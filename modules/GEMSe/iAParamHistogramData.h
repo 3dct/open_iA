@@ -56,6 +56,6 @@ private:
 		std::shared_ptr<iAParamHistogramData> data,
 		int chartID,
 		iAChartAttributeMapper const & chartAttrMap);
-	
+
 	bool m_log;
 };
