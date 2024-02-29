@@ -33,7 +33,7 @@ void iACoefficientOfVariation::initializeAttributeArray(QList<csvFileData>* inpu
 		return;
 	}
 
-	int amountDatasets = input->size();
+	auto amountDatasets = input->size();
 	//is for all datasets & objects the same
 	int amountAttributes = input->at(0).header->size();
 
@@ -41,9 +41,9 @@ void iACoefficientOfVariation::initializeAttributeArray(QList<csvFileData>* inpu
 	{
 		std::vector<double> attr = std::vector<double>();
 
-		for (int datasetInd = 0; datasetInd < amountDatasets; datasetInd++)
+		for (qsizetype datasetInd = 0; datasetInd < amountDatasets; datasetInd++)
 		{ //for all datasets
-			size_t amountObjects = input->at(datasetInd).values->size();
+			auto amountObjects = input->at(datasetInd).values->size();
 
 			for (size_t objInd = 0; objInd < amountObjects; objInd++)
 			{ //for all objects in each dataset

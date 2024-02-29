@@ -212,7 +212,7 @@ public:
 
 		m_clientList = new QTableWidget(child);
 		QStringList columnNames = { "id", "status", "sent", "received" };
-		m_clientList->setColumnCount(columnNames.size());
+		m_clientList->setColumnCount(static_cast<int>(columnNames.size()));
 		m_clientList->setHorizontalHeaderLabels(columnNames);
 		m_clientList->verticalHeader()->hide();
 		//m_clientList->setSelectionBehavior(QAbstractItemView::SelectRows);

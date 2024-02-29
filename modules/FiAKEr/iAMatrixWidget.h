@@ -127,7 +127,7 @@ private:
 		int cellPixel = std::max(1,
 			std::min((geometry().height() - axisSize) / static_cast<int>(m_data.size()),
 				(geometry().width() - fullScalarBarWidth - axisSize) / static_cast<int>(m_data.size())));
-		QRect matrixRect(axisSize, axisSize, m_data.size() * cellPixel, m_data.size() * cellPixel);
+		QRect matrixRect(axisSize, axisSize, static_cast<int>(m_data.size() * cellPixel), static_cast<int>(m_data.size() * cellPixel));
 		for (iADissimilarityMatrixType::size_type x = 0; x < m_data.size(); ++x)
 		{
 			for (iADissimilarityMatrixType::size_type y = 0; y < m_data[x].size(); ++y)

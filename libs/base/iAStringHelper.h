@@ -246,10 +246,10 @@ iAbase_API QString joinQVariantAsString(QVector<QVariant> const& vec, QString co
 
 //! Find the (length of the) greatest common prefix of the two given strings.
 //! example: str1 ="BaseMethod", str2="BaseMember" => result: "BaseMe"
-iAbase_API int greatestCommonPrefixLength(QString const & str1, QString const & str2);
+iAbase_API qsizetype greatestCommonPrefixLength(QString const & str1, QString const & str2);
 iAbase_API QString greatestCommonPrefix(QString const & str1, QString const & str2);
 
-iAbase_API int greatestCommonSuffixLength(QString const & str1, QString const & str2);
+iAbase_API qsizetype greatestCommonSuffixLength(QString const & str1, QString const & str2);
 iAbase_API QString greatestCommonSuffix(QString const & str1, QString const & str2);
 
 //! Get the number of digits required for the given number (before the comma).

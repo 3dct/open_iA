@@ -161,7 +161,7 @@ private slots:
 	void selectFibersFromSensitivity(SelectionType const& selection);
 private:
 	bool loadReferenceInternal(QVariantMap settings);
-	void changeDistributionSource(int index);
+	void changeDistributionSource(size_t index);
 	void updateHistogramColors();
 	QColor getResultColor(size_t resultID);
 	void getResultFiberIDFromSpmID(size_t spmID, size_t & resultID, size_t & fiberID);
@@ -169,7 +169,7 @@ private:
 	void newSelection(QString const & source);
 	size_t selectionSize() const;
 	void showSelectionInPlots();
-	void showSelectionInPlot(int chartID);
+	void showSelectionInPlot(size_t chartID);
 	void showSelectionIn3DViews();
 	void showSelectionInSPM();
 	bool isAnythingSelected() const;

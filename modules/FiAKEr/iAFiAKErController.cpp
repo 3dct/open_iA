@@ -567,7 +567,7 @@ QWidget* iAFiAKErController::setupResultListView()
 		m_histogramColumn  = 1;
 		m_stackedBarColumn = 2;
 	}
-	int commonPrefixLength = 0, commonSuffixLength = 0;
+	qsizetype commonPrefixLength = 0, commonSuffixLength = 0;
 	QString baseName0;
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
@@ -683,7 +683,7 @@ QWidget* iAFiAKErController::setupResultListView()
 		ui.nameActions->layout()->addWidget(m_showResultBox[resultID]);
 		ui.nameActions->layout()->addWidget(ui.bottomFiller);
 
-		ui.stackedBars = new iAStackedBarChart(colorTheme, m_resultsListLayout, 1 + resultID, m_stackedBarColumn);
+		ui.stackedBars = new iAStackedBarChart(colorTheme, m_resultsListLayout, static_cast<int>(1 + resultID), m_stackedBarColumn);
 		ui.stackedBars->setMinimumWidth(StackedBarMinWidth);
 		ui.stackedBars->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		connect(m_stackedBarsHeaders, &iAStackedBarChart::weightsChanged, ui.stackedBars, &iAStackedBarChart::setWeights);
@@ -926,7 +926,7 @@ void iAFiAKErController::setSPMColorByResult()
 void iAFiAKErController::stackedColSelect()
 {
 	auto source = qobject_cast<QAction*>(QObject::sender());
-	size_t colID = source->property("colID").toULongLong();
+	int colID = source->property("colID").toInt();
 	QString title = stackedBarColName(colID);
 	if (source->isChecked())
 	{
@@ -1072,7 +1072,7 @@ void iAFiAKErController::stackedBarColorThemeChanged(int index)
 	}
 }
 
-void iAFiAKErController::changeDistributionSource(int index)
+void iAFiAKErController::changeDistributionSource(size_t index)
 {
 	if (!m_showCharts)
 	{
@@ -1109,7 +1109,7 @@ void iAFiAKErController::changeDistributionSource(int index)
 		for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
 		{
 			fiberData[fiberID] = matchQualityVisActive() ? m_data->avgRefFiberMatch[fiberID]
-				: d.objData->m_table->GetValue(fiberID, index).ToDouble();
+				: d.objData->m_table->GetValue(fiberID, static_cast<vtkIdType>(index)).ToDouble();
 		}
 		auto histogramData = iAHistogramData::create("Frequency", iAValueType::Continuous, fiberData, m_histogramBins, range[0], range[1]);
 		std::shared_ptr<iAPlot> histogramPlot =
@@ -1269,7 +1269,7 @@ void iAFiAKErController::exportDissimilarities()
 		}
 		else
 		{
-			for (int m = avgMeasure.size() - m_data->m_measures.size();
+			for (qsizetype m = avgMeasure.size() - m_data->m_measures.size();
 				m >= 0 && m < avgMeasure.size(); ++m)
 			{
 				out << "," << avgMeasure[m];
@@ -1397,7 +1397,8 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 		}
 		m_optimStepChart[chartID] = new iAChartWidget(nullptr, "Optimization Step", diffName(chartID));
 		m_optimStepChart[chartID]->setDrawXAxisAtZero(true);
-		size_t plotsBefore = 0, curIdx = 0;
+		int plotsBefore = 0;
+		size_t curIdx = 0;
 		while (curIdx < chartID)
 		{  // TODO: check invisible plots?
 			if (m_optimStepChart[curIdx])
@@ -1748,7 +1749,7 @@ void iAFiAKErController::showSelectionInPlots()
 	}
 }
 
-void iAFiAKErController::showSelectionInPlot(int chartID)
+void iAFiAKErController::showSelectionInPlot(size_t chartID)
 {
 	auto chart = m_optimStepChart[chartID];
 	if (!chart || !chart->isVisible())
@@ -2449,23 +2450,23 @@ void iAFiAKErController::refDistAvailable()
 
 	for (size_t spmParamIdx = startIdx; spmParamIdx < m_data->spmData->numParams(); ++spmParamIdx)
 	{
-		size_t measureIdx = m_data->m_measures.size() - (m_data->spmData->numParams() - spmParamIdx);
+		int measureIdx = static_cast<int>(m_data->m_measures.size() - (m_data->spmData->numParams() - spmParamIdx));
 		auto diffAvgAction = new QAction(m_data->spmData->parameterName(spmParamIdx), nullptr);
-		diffAvgAction->setProperty("colID", static_cast<unsigned long long>(measureIdx+1)); // 0 is Fiber Count
+		diffAvgAction->setProperty("colID", measureIdx+1); // 0 is Fiber Count
 		diffAvgAction->setCheckable(true);
 		diffAvgAction->setChecked(false);
 		connect(diffAvgAction, &QAction::triggered, this, &iAFiAKErController::stackedColSelect);
 		m_stackedBarsHeaders->contextMenu()->addAction(diffAvgAction);
 	}
-	size_t measureStartIdx = m_data->m_measures.size() - (m_data->spmData->numParams() - startIdx);
+	qsizetype measureStartIdx = m_data->m_measures.size() - static_cast<qsizetype>(m_data->spmData->numParams() - startIdx);
 	auto measureNames = getAvailableDissimilarityMeasureNames();
-	for (int measureIdx = measureStartIdx; measureIdx < m_data->m_measures.size(); ++measureIdx)
+	for (qsizetype measureIdx = measureStartIdx; measureIdx < m_data->m_measures.size(); ++measureIdx)
 	{
 		m_settingsView->cmbboxSimilarityMeasure->addItem(measureNames[m_data->m_measures[measureIdx]]);
 	}
 
 	QSignalBlocker cblock(m_distributionChoice);
-	m_distributionChoice->setCurrentIndex(m_data->spmData->numParams() - 1);
+	m_distributionChoice->setCurrentIndex(static_cast<int>(m_data->spmData->numParams()) - 1);
 	QSignalBlocker cbColorByBlock(m_colorByDistribution);
 	m_colorByDistribution->setChecked(true);
 	showMainVis(m_referenceID, true);
