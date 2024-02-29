@@ -155,7 +155,7 @@ void iATLGICTLoader::run()
 			QString numStr = imgFileName.mid(baseLength, imgFileName.length() - baseLength - completeSuffix.length() - 1);
 			if (digits == -1)
 			{
-				digits = numStr.length();
+				digits = static_cast<int>(numStr.length());
 			}
 
 			int num = numStr.toInt(&ok);

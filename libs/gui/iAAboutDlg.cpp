@@ -39,7 +39,7 @@ void iAAboutDlg::show(QWidget* parent, QPixmap const & aboutImg, QString const &
 	buildInfoLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	dlg.layout()->addWidget(buildInfoLabel);
 
-	auto rows = buildInfo.count('\n') + 1;
+	int rows = static_cast<int>(buildInfo.count('\n')) + 1;
 	auto table = new QTableWidget(rows, 2, &dlg);
 	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	table->setItem(0, 0, new QTableWidgetItem("Version"));

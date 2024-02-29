@@ -70,7 +70,7 @@ void iAEntropyImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(const
 	IteratorType *it = new IteratorType[numberOfInputFiles];
 	for (typename Self::DataObjectPointerArraySizeType i = 0; i < numberOfInputFiles; ++i)
 	{
-		it[i] = IteratorType(this->GetInput(i),	outputRegionForThread);
+		it[i] = IteratorType(this->GetInput(static_cast<int>(i)), outputRegionForThread);
 		it[i].GoToBegin();
 	}
 	

@@ -501,7 +501,7 @@ bool readCurvedFiberInfo(QString const & fileName, std::map<size_t, std::vector<
 		std::vector<iAVec3f> points(numOfPoints);
 		for (qsizetype i = 0; i < numOfPoints; ++i)
 		{
-			int baseIdx = 1 + (i * 3);
+			auto baseIdx = 1 + (i * 3);
 			bool ok1, ok2, ok3;
 			iAVec3f p(valueStrList[baseIdx].toFloat(&ok1), valueStrList[baseIdx + 1].toFloat(&ok2), valueStrList[baseIdx + 2].toFloat(&ok3));
 			if (!ok1 || !ok2 || !ok3)

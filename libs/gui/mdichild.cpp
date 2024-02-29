@@ -604,7 +604,7 @@ void MdiChild::saveMovRC()
 	}
 	auto pVals = dlg.parameterValues();
 	QString mode = pVals["Rotation mode"].toString();
-	auto imode = modes.indexOf(mode);
+	auto imode = static_cast<int>(modes.indexOf(mode));
 	auto quality = pVals["Video quality"].toInt();
 	auto fps = pVals["Frame rate"].toInt();
 	auto steps = pVals["Steps"].toInt();
