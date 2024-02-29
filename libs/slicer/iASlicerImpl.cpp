@@ -517,11 +517,50 @@ void iASlicerImpl::saveMovie()
 		QMessageBox::information( this, "Movie Export", "This version of open_iA was built without movie export support!");
 		return;
 	}
+	auto channelID = firstVisibleChannel();
+	if (channelID == NotExistingChannel)
+	{
+		return;
+	}
 	QString fileName = QFileDialog::getSaveFileName( this,
 		tr( "Export as a movie" ),
 		"", // TODO: get directory of file?
 		movie_file_types );
-	saveSliceMovie( fileName );
+	if (fileName.isEmpty())
+	{
+		return;
+	}
+	int const* imgExtent = m_channels[channelID]->input()->GetExtent();
+	int const sliceZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+	int const sliceFrom = imgExtent[sliceZAxisIdx * 2];
+	int const sliceTo = imgExtent[sliceZAxisIdx * 2 + 1];
+	iAAttributes params;
+	addAttr(params, "Start slice", iAValueType::Discrete, sliceFrom, sliceFrom, sliceTo);
+	addAttr(params, "End slice", iAValueType::Discrete, sliceTo, sliceFrom, sliceTo);
+	addAttr(params, "Video quality", iAValueType::Discrete, 2, 0, 2);
+	addAttr(params, "Frame rate", iAValueType::Discrete, 25, 1, 1000);
+	iAParameterDlg dlg(this, "Save movie options", params,
+		"Creates a movie by slicing through the object.<br>"
+		"The <em>start slice</em> defines the number of the first slice shown in the video. "
+		"The <em>end slice</em> defines the number of the last slice shown in the video. "
+		"The <em>video quality</em> specifies the quality of the output video (range: 0..2, 0 - worst, 2 - best; default: 2). "
+		"The <em>frame rate</em> specifies the frames per second (default: 25). ");
+	if (dlg.exec() != QDialog::Accepted)
+	{
+		return;
+	}
+	auto pVals = dlg.parameterValues();
+	auto start = pVals["Start slice"].toInt();
+	auto end = pVals["End slice"].toInt();
+	if (start == end)
+	{
+		QMessageBox::information(this, "Movie Export", "Start slice is the same as end slice! To export a single slice, please use the image export!");
+		return;
+	}
+	auto quality = pVals["Video quality"].toInt();
+	auto fps = pVals["Frame rate"].toInt();
+
+	saveSliceMovie(fileName, start, end, quality, fps);
 }
 
 void iASlicerImpl::setSliceNumber( int sliceNumber )
@@ -895,7 +934,7 @@ void iASlicerImpl::showPosition(bool s)
 	m_showPositionMarker = s;
 }
 
-void iASlicerImpl::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
+void iASlicerImpl::saveSliceMovie(QString const& fileName, int sliceFrom, int sliceTo, int qual, int fps)
 {
 	// TODO: select channel / for all channels?
 	auto channelID = firstVisibleChannel();
@@ -909,7 +948,7 @@ void iASlicerImpl::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 		QMessageBox::information(this, "Movie Export", "This version of open_iA was built without movie export support!");
 		return;
 	}
-	auto movieWriter = GetMovieWriter(fileName, qual);
+	auto movieWriter = GetMovieWriter(fileName, qual, fps);
 	if (movieWriter.GetPointer() == nullptr)
 	{
 		return;
@@ -938,7 +977,6 @@ void iASlicerImpl::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 	movieWriter->SetInputConnection(windowToImage->GetOutputPort());
 	movieWriter->Start();
 
-	int const * imgExtent = m_channels[channelID]->input()->GetExtent();
 	double const * imgOrigin = m_channels[channelID]->input()->GetOrigin();
 	double const * imgSpacing = m_channels[channelID]->input()->GetSpacing();
 
@@ -951,9 +989,8 @@ void iASlicerImpl::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 		movingOrigin[i] = imgOrigin[i];
 	}
 	int const sliceZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
-	int const sliceFrom = imgExtent[sliceZAxisIdx * 2];
-	int const sliceTo = imgExtent[sliceZAxisIdx * 2 + 1];
-	for (int slice = sliceFrom; slice <= sliceTo && !aborter.isAborted(); slice++)
+	auto sliceIncr = (sliceTo - sliceFrom) > 0 ? 1 : -1;
+	for (int slice = sliceFrom; slice != (sliceTo+sliceIncr) && !aborter.isAborted(); slice += sliceIncr)
 	{
 		movingOrigin[sliceZAxisIdx] = imgOrigin[sliceZAxisIdx] + slice * imgSpacing[sliceZAxisIdx];
 		m_channels[channelID]->setResliceAxesOrigin(movingOrigin[0], movingOrigin[1], movingOrigin[2]);

@@ -605,16 +605,17 @@ void iABlobManager::SaveMovie( QWidget *activeChild,
 							   const double /*overlapThreshold*/[2],
 							   const double /*gaussianBlurVariance*/[2],
 							   const int /*dimX*/[2], const int /*dimY*/[2], const int /*dimZ*/[2],
-							   const QString& fileName, int mode, int qual )
+							   const QString& fileName, int mode, int qual, int fps)
 {
-	if ( numberOfFrames <= 1 )
+	if (numberOfFrames <= 1)
+	{
 		return;
-
-	vtkSmartPointer<vtkGenericMovieWriter> movieWriter = GetMovieWriter( fileName, qual );
-
-	if ( movieWriter.GetPointer() == nullptr )
+	}
+	vtkSmartPointer<vtkGenericMovieWriter> movieWriter = GetMovieWriter( fileName, qual, fps );
+	if (movieWriter.GetPointer() == nullptr)
+	{
 		return;
-
+	}
 	//interactor->Disable();
 
 	vtkSmartPointer<vtkWindowToImageFilter> w2if = vtkSmartPointer<vtkWindowToImageFilter>::New();

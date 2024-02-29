@@ -3042,8 +3042,14 @@ void dlg_FeatureScout::SaveBlobMovie()
 	addAttr(params, "Dimension Y to:" , iAValueType::Discrete, m_blobManager->GetDimensions()[1]);
 	addAttr(params, "Dimension Z from", iAValueType::Discrete, m_blobManager->GetDimensions()[2]);
 	addAttr(params, "Dimension Z to:" , iAValueType::Discrete, m_blobManager->GetDimensions()[2]);
+	addAttr(params, "Video quality", iAValueType::Discrete, 2, 0, 2);
+	addAttr(params, "Frame rate", iAValueType::Discrete, 25, 1, 1000);
 
-	iAParameterDlg dlg(this, "Blob movie rendering options", params);
+	iAParameterDlg dlg(this, "Blob movie rendering options", params,
+		"Creates a movie of the blob, rotating around it. "
+		"The <em>video quality</em> specifies the quality of the output video "
+			"(range: 0..2, 0 - worst, 2 - best; default: 2). "
+		"The <em>frame rate</em> specifies the frames per second (default: 25). ");
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
@@ -3066,7 +3072,8 @@ void dlg_FeatureScout::SaveBlobMovie()
 	int dimX[2] = {values["Dimension X from"].toInt(), values["Dimension X to"].toInt()};
 	int dimY[2] = {values["Dimension Y from"].toInt(), values["Dimension Y to"].toInt()};
 	int dimZ[2] = {values["Dimension Z from"].toInt(), values["Dimension Z to"].toInt()};
-
+	auto quality = values["Video quality"].toInt();
+	auto rate = values["Frame rate"].toInt();
 	QFileInfo fileInfo = m_activeChild->fileInfo();
 
 	m_blobManager->SaveMovie(m_activeChild,
@@ -3085,7 +3092,9 @@ void dlg_FeatureScout::SaveBlobMovie()
 			this,
 			tr("Export movie %1").arg(mode),
 			fileInfo.absolutePath() + "/" + ((mode.isEmpty()) ? fileInfo.baseName() : fileInfo.baseName() + "_" + mode), movie_file_types),
-		imode
+		imode,
+		quality,
+		rate
 	);
 }
 
