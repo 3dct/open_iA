@@ -71,8 +71,8 @@ void iANModalPCADataSetReducer::itkPCA(std::vector<iAConnector>& c)
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::ImagePCAShapeModelEstimator<ImageType, ImageType> PCASMEType;
 
-	int inputSize = c.size();
-	int outputSize = std::min((int)c.size(), maxOutputLength());
+	uint inputSize = static_cast<uint>(c.size());
+	uint outputSize = std::min(static_cast<uint>(c.size()), maxOutputLength());
 
 	auto pca = PCASMEType::New();
 	pca->SetNumberOfTrainingImages(inputSize);
@@ -152,37 +152,37 @@ void iANModalPCADataSetReducer::ownPCA(std::vector<iAConnector>& c)
 
 	iATimeGuard tg("Perform PCA");
 
-	size_t numInputs = c.size();
-	size_t numOutputs = std::min((int)c.size(), maxOutputLength());
-
 	auto itkImg0 = c[0].itkImage();
 
 	auto size = itkImg0->GetBufferedRegion().GetSize();
-	size_t numVoxels = 1;
+	size_t numVoxels64 = 1;
 	for (unsigned int dim_i = 0; dim_i < DIM; dim_i++)
 	{
-		numVoxels *= size[dim_i];
+		numVoxels64 *= size[dim_i];
 	}
-	if (numVoxels >= std::numeric_limits<int>::max())
+	if (numVoxels64 >= std::numeric_limits<int>::max())
 	{
 		LOG(lvlWarn, QString("Input image (number of voxels: %1) exceeds size that can be handled "
-			"(current voxel number maximum: %2)!").arg(numVoxels).arg(std::numeric_limits<int>::max()));
+			"(current voxel number maximum: %2)!").arg(numVoxels64).arg(std::numeric_limits<int>::max()));
 	}
-	if (numInputs >= std::numeric_limits<int>::max())
+	uint numVoxels = static_cast<uint>(numVoxels64);
+	if (c.size() >= std::numeric_limits<int>::max())
 	{
 		LOG(lvlWarn, QString("Number of input images (%1) exceeds size that can be handled "
-			"(current limit: %2)!").arg(numInputs).arg(std::numeric_limits<int>::max()));
+			"(current limit: %2)!").arg(c.size()).arg(std::numeric_limits<int>::max()));
 	}
+	uint numInputs = static_cast<uint>(c.size());
+	uint numOutputs = std::min(static_cast<uint>(c.size()), maxOutputLength());
 
 	// Set up input matrix
 	vnl_matrix<double> inputs(numInputs, numVoxels);
-	for (size_t row_i = 0; row_i < numInputs; row_i++)
+	for (uint row_i = 0; row_i < numInputs; row_i++)
 	{
 		auto input = dynamic_cast<const ImageType*>(c[row_i].itkImage());
 		auto iterator = itk::ImageRegionConstIterator<ImageType>(input, input->GetBufferedRegion());
 		iterator.GoToBegin();
 
-		for (size_t col_i = 0; col_i < numVoxels; col_i++)
+		for (uint col_i = 0; col_i < numVoxels; col_i++)
 		{
 			inputs[row_i][col_i] = iterator.Get();
 			++iterator;
@@ -226,7 +226,7 @@ void iANModalPCADataSetReducer::ownPCA(std::vector<iAConnector>& c)
 #pragma omp parallel
 	{
 		// Calculate means
-		for (size_t img_i = 0; img_i < numInputs; img_i++)
+		for (uint img_i = 0; img_i < numInputs; img_i++)
 		{
 			double mean = 0;
 			// TODO: Use omp reduction?
@@ -252,9 +252,9 @@ void iANModalPCADataSetReducer::ownPCA(std::vector<iAConnector>& c)
 #endif
 
 		// Calculate inner product (lower triangle) (for covariance matrix)
-		for (size_t ix = 0; ix < numInputs; ix++)
+		for (uint ix = 0; ix < numInputs; ix++)
 		{
-			for (size_t iy = 0; iy <= ix; iy++)
+			for (uint iy = 0; iy <= ix; iy++)
 			{
 				double innerProd_thread = 0;
 #pragma omp for nowait
@@ -277,7 +277,7 @@ void iANModalPCADataSetReducer::ownPCA(std::vector<iAConnector>& c)
 #pragma omp for
 		for (int ix = 0; ix < static_cast<int>(numInputs - 1); ix++)
 		{
-			for (size_t iy = ix + 1; iy < numInputs; iy++)
+			for (uint iy = ix + 1; iy < numInputs; iy++)
 			{
 				innerProd[ix][iy] = innerProd[iy][ix];
 			}
@@ -322,7 +322,7 @@ void iANModalPCADataSetReducer::ownPCA(std::vector<iAConnector>& c)
 		}
 
 		// Initialize the reconstructed matrix (with zeros)
-		for (size_t row_i = 0; row_i < numOutputs; row_i++)
+		for (uint row_i = 0; row_i < numOutputs; row_i++)
 		{
 #pragma omp for nowait
 			for (int col_i = 0; col_i < static_cast<int>(numVoxels); col_i++)
@@ -334,9 +334,9 @@ void iANModalPCADataSetReducer::ownPCA(std::vector<iAConnector>& c)
 #pragma omp barrier
 
 		// Transform images to principal components
-		for (size_t row_i = 0; row_i < numInputs; row_i++)
+		for (uint row_i = 0; row_i < numInputs; row_i++)
 		{
-			for (size_t vec_i = 0; vec_i < numOutputs; vec_i++)
+			for (uint vec_i = 0; vec_i < numOutputs; vec_i++)
 			{
 				auto evec_elem = evecs_innerProd[row_i][vec_i];
 				//double reconstructed_thread = 0;
@@ -352,7 +352,7 @@ void iANModalPCADataSetReducer::ownPCA(std::vector<iAConnector>& c)
 #pragma omp barrier
 
 		// Normalize row-wise (i.e. image-wise) to range 0..1
-		for (size_t vec_i = 0; vec_i < numOutputs; vec_i++)
+		for (uint vec_i = 0; vec_i < numOutputs; vec_i++)
 		{
 			double max_thread = -DBL_MAX;
 			double min_thread = DBL_MAX;
@@ -387,7 +387,7 @@ void iANModalPCADataSetReducer::ownPCA(std::vector<iAConnector>& c)
 
 	// Reshape reconstructed vectors into image
 	c.resize(numOutputs);
-	for (size_t out_i = 0; out_i < numOutputs; out_i++)
+	for (uint out_i = 0; out_i < numOutputs; out_i++)
 	{
 		auto recvec = reconstructed.get_row(out_i);
 

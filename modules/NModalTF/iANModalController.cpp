@@ -428,7 +428,7 @@ void iANModalController::setMask(vtkSmartPointer<vtkImageData> mask)
 	FOR_VTKIMG_PIXELS(mask, x, y, z)
 	{
 		int ijk[3] = {x, y, z};
-		int id = mask->ComputePointId(ijk);
+		auto id = mask->ComputePointId(ijk);
 		ptr[id] *= 255;
 	}
 
@@ -471,10 +471,8 @@ void iANModalController::addSeeds(const QList<iANModalSeed>& seeds, const iANMod
 	{
 		auto dataSet = m_mapOverlayImageId2dataSet.value(seed.overlayImageId);
 		unsigned int x = dataSet->vtkImage()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
-		int i = m_dataSets.lastIndexOf(dataSet);
-
+		auto i = m_dataSets.lastIndexOf(dataSet);
 		assert(m_tfs.size() > 0);
-
 		auto tf = m_tfs[i];
 		tf->addControlPoint(x, label);
 	}
@@ -493,7 +491,7 @@ void iANModalController::removeSeeds(const QList<iANModalSeed>& seeds)
 	{
 		auto dataSet = m_mapOverlayImageId2dataSet.value(seed.overlayImageId);
 		unsigned int x = dataSet->vtkImage()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
-		int i = m_dataSets.lastIndexOf(dataSet);
+		auto i = m_dataSets.lastIndexOf(dataSet);
 		auto tf = m_tfs[i];
 		tf->removeControlPoint(x);
 	}
@@ -706,7 +704,7 @@ void iANModalController::updateMainSlicers()
 		{
 #ifdef iANModal_USE_GETSCALARPOINTER
 			int ijk[3] = {x, y, z};
-			int id_scalar = sliceImg2D_out->ComputePointId(ijk);
+			vtkIdType id_scalar = sliceImg2D_out->ComputePointId(ijk);
 			int id_rgba = id_scalar * 4;
 
 #ifndef NDEBUG
@@ -724,7 +722,7 @@ void iANModalController::updateMainSlicers()
 				//int ijk_3D[3] = { x + indexAddends[0], y + indexAddends[2], z + indexAddends[1] }; // X,Z,Y -> 0,2,1
 				int ijk_3D[3];
 				convert_2d_to_3d(ijk, mainSlicerIndex, sliceNum, ijk_3D);
-				int id_scalar =
+				vtkIdType id_scalar =
 					m_mask->ComputePointId(ijk_3D);  // Shadow id_scalar from previous scope to work with macro
 				unsigned char maskValue = iANModal_GET_SCALAR(m_mask, maskPtr);
 #ifndef NDEBUG

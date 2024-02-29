@@ -285,8 +285,8 @@ void iAPDMView::UpdateTable()
 	tableWidget->setRowCount( 0 );
 	if( !m_filters->isEmpty() && !m_datasets->isEmpty() )
 	{
-		tableWidget->setColumnCount( m_filters->size() + 1 );
-		tableWidget->setRowCount( m_datasets->size() + 1 );
+		tableWidget->setColumnCount( static_cast<int>(m_filters->size() + 1) );
+		tableWidget->setRowCount( static_cast<int>(m_datasets->size() + 1) );
 		tableWidget->setItem( 0, 0, new QTableWidgetItem( "Filter/Dataset" ) );
 	}
 	for ( int i = 0; i < m_filters->size(); ++i )
