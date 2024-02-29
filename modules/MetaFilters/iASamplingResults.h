@@ -29,7 +29,7 @@ public:
 	bool store(QString const& rangeFileName, QString const& parameterSetFileName,
 		QString const& derivedOutputFileName);
 	qsizetype size() const;
-	std::shared_ptr<iASingleResult> get(int i) const;
+	std::shared_ptr<iASingleResult> get(qsizetype i) const;
 	void addResult(std::shared_ptr<iASingleResult> result);
 	QVector<std::shared_ptr<iASingleResult> > const & members() const;
 	void setMembers(QVector<std::shared_ptr<iASingleResult> > const& members);

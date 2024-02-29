@@ -245,17 +245,17 @@ QString const & iAEnsembleDescriptorFile::colorTheme() const
 	return m_ColorTheme;
 }
 
-int iAEnsembleDescriptorFile::subEnsembleCount() const
+qsizetype iAEnsembleDescriptorFile::subEnsembleCount() const
 {
 	return m_subEnsembles.size();
 }
 
-QVector<int> iAEnsembleDescriptorFile::subEnsemble(int idx) const
+QVector<int> iAEnsembleDescriptorFile::subEnsemble(qsizetype idx) const
 {
 	return m_subEnsembles[idx];
 }
 
-int iAEnsembleDescriptorFile::subEnsembleID(int idx) const
+int iAEnsembleDescriptorFile::subEnsembleID(qsizetype idx) const
 {
 	return m_subEnsembleID[idx];
 }

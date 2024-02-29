@@ -263,7 +263,7 @@ qsizetype iASamplingResults::size() const
 }
 
 
-std::shared_ptr<iASingleResult> iASamplingResults::get(int i) const
+std::shared_ptr<iASingleResult> iASamplingResults::get(qsizetype i) const
 {
 	return m_results[i];
 }
