@@ -47,7 +47,7 @@ private:
 	size_t m_referenceID;
 	std::vector<std::pair<int, bool>> m_measuresToCompute;  //!< index of measure to compute along with flag whether to use optimized computation
 	size_t m_columnsBefore;
-	int m_optimizationMeasureIdx,
+	qsizetype m_optimizationMeasureIdx,
 		m_bestMeasure;
 
 	//! @{ internal computation caches:
@@ -61,4 +61,4 @@ void getBestMatches(iAFiberData const& fiber,
 	QVector<QVector<iAFiberSimilarity> >& bestMatches,
 	std::map<size_t, std::vector<iAVec3f> > const& refCurveInfo,
 	double diagonalLength, double maxLength,
-	std::vector<std::pair<int, bool>>& measuresToCompute, int optimizationMeasureIdx);
+	std::vector<std::pair<int, bool>>& measuresToCompute, qsizetype optimizationMeasureIdx);

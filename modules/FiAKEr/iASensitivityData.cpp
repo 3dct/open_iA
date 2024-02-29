@@ -289,7 +289,7 @@ void iASensitivityData::compute(iAProgress* progress)
 	// TODO: common storage for that in data!
 	m_charHistograms.resize(static_cast<int>(m_data->result.size()));
 
-	int numCharSelected = m_charSelected.size();
+	auto numCharSelected = m_charSelected.size();
 	/*
 	for (auto selCharIdx = 0; selCharIdx < m_charSelected.size(); ++selCharIdx)
 	{
@@ -343,7 +343,7 @@ void iASensitivityData::compute(iAProgress* progress)
 	paramStep.fill(0.0, m_variedParams.size());
 	sensitivityField.resize(numCharSelected);
 	aggregatedSensitivities.resize(numCharSelected);
-	for (int charIdx = 0; charIdx < numCharSelected && !m_aborted; ++charIdx)
+	for (qsizetype charIdx = 0; charIdx < numCharSelected && !m_aborted; ++charIdx)
 	{
 		progress->emitProgress(100 * charIdx / numCharSelected);
 		//int charactID = m_charSelected[charIdx];
@@ -351,7 +351,7 @@ void iASensitivityData::compute(iAProgress* progress)
 		//LOG(lvlDebug, QString("Characteristic %1 (%2):").arg(charIdx).arg(charactName));
 		sensitivityField[charIdx].resize(m_charDiffMeasure.size());
 		aggregatedSensitivities[charIdx].resize(m_charDiffMeasure.size());
-		for (int diffMeasureIdx = 0; diffMeasureIdx < m_charDiffMeasure.size(); ++diffMeasureIdx)
+		for (qsizetype diffMeasureIdx = 0; diffMeasureIdx < m_charDiffMeasure.size(); ++diffMeasureIdx)
 		{
 			//LOG(lvlDebug, QString("    Difference Measure %1 (%2)").arg(diffMeasure).arg(DistributionDifferenceMeasureNames()[diffMeasure]));
 			auto& field = sensitivityField[charIdx][diffMeasureIdx];

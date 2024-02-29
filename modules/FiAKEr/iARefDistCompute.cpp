@@ -109,10 +109,10 @@ void getBestMatches(iAFiberData const& fiber,
 	QVector<QVector<iAFiberSimilarity> >& bestMatches,
 	std::map<size_t, std::vector<iAVec3f> > const& refCurveInfo,
 	double diagonalLength, double maxLength,
-	std::vector<std::pair<int, bool>>& measuresToCompute, int optimizationMeasureIdx)
+	std::vector<std::pair<int, bool>>& measuresToCompute, qsizetype optimizationMeasureIdx)
 {
 	iARefDistCompute::ContainerSizeType refFiberCount = refTable->GetNumberOfRows();
-	int bestMatchesStartIdx = bestMatches.size();
+	auto bestMatchesStartIdx = bestMatches.size();
 	assert(measuresToCompute.size() < std::numeric_limits<int>::max());
 	assert(bestMatchesStartIdx + measuresToCompute.size() < std::numeric_limits<int>::max());
 	int numOfNewMeasures = static_cast<int>(measuresToCompute.size());

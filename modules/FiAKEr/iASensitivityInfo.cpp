@@ -355,7 +355,7 @@ std::shared_ptr<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 		sens->data().m_charSelected = charSelected;
 		sens->data().m_charDiffMeasure = charDiffMeasure;
 	}
-	for (int j = sens->data().m_charSelected.size() - 1; j >= 0; --j)
+	for (auto j = sens->data().m_charSelected.size() - 1; j >= 0; --j)
 	{
 		int charIdx = sens->data().m_charSelected[j];
 		// make sure of all histograms for the same characteristic have the same range
@@ -1576,7 +1576,7 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 	if (state)
 	{	// add fibers matching the selection in m_baseFiberSelection to current selection:
 		auto it = std::find(m_data->m_resultDissimMeasures.begin(), m_data->m_resultDissimMeasures.end(), std::make_pair(7, true));
-		int measIdx = (it != m_data->m_resultDissimMeasures.end()) ? it - m_data->m_resultDissimMeasures.begin() : 0;
+		auto measIdx = (it != m_data->m_resultDissimMeasures.end()) ? it - m_data->m_resultDissimMeasures.begin() : 0;
 		for (size_t rSel = 0; rSel < m_baseFiberSelection.size(); ++rSel)
 		{
 			if (m_baseFiberSelection[rSel].size() == 0)
