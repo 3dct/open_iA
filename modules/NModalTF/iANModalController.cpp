@@ -585,7 +585,7 @@ namespace
 #ifdef iANModal_USE_GETSCALARPOINTER
 namespace
 {
-	inline void setRgba(unsigned char* ptr, const int& id, const Rgb& color, const float& alpha = 255)
+	inline void setRgba(unsigned char* ptr, size_t id, const Rgb& color, const unsigned char alpha = 255)
 	{
 		ptr[id + 0] = color[0];
 		ptr[id + 1] = color[1];
@@ -596,7 +596,7 @@ namespace
 	}
 
 	template <typename T>
-	inline double getScalar(T* ptr, const int& id)
+	inline double getScalar(T* ptr, size_t id)
 	{
 		return ptr[id];
 	}
@@ -607,11 +607,11 @@ namespace
 #else
 namespace
 {
-	inline double getScalar(const vtkSmartPointer<vtkImageData>& img, const int& x, const int& y, const int& z)
+	inline double getScalar(const vtkSmartPointer<vtkImageData> img, const int x, const int y, const int z)
 	{
 		return img->GetScalarComponentAsDouble(x, y, z, 0);
 	}
-	inline void setRgba(const vtkSmartPointer<vtkImageData>& img, const int& x, const int& y, const int& z,
+	inline void setRgba(const vtkSmartPointer<vtkImageData> img, const int x, const int y, const int z,
 		const Rgb& color, const float& alpha = 255)
 	{
 		for (int i = 0; i < 3; ++i) img->SetScalarComponentFromFloat(x, y, z, i, color[i]);
@@ -705,7 +705,7 @@ void iANModalController::updateMainSlicers()
 #ifdef iANModal_USE_GETSCALARPOINTER
 			int ijk[3] = {x, y, z};
 			vtkIdType id_scalar = sliceImg2D_out->ComputePointId(ijk);
-			int id_rgba = id_scalar * 4;
+			auto id_rgba = id_scalar * 4;
 
 #ifndef NDEBUG
 			{

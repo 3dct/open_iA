@@ -121,7 +121,7 @@ void iATLGICTLoader::run()
 				fileNameBase = greatestCommonPrefix(fileNameBase, imgFileInfo.absoluteFilePath());
 			}
 		}
-		int baseLength = fileNameBase.length();
+		auto baseLength = fileNameBase.length();
 		// determine index range:
 		int min = std::numeric_limits<int>::max();
 		int max = std::numeric_limits<int>::min();

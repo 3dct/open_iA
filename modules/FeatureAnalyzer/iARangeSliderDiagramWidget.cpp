@@ -100,11 +100,7 @@ void iARangeSliderDiagramWidget::mousePressEvent( QMouseEvent *event )
 		// mouse event plus CTRL above X-axis
 		if ( ( event->modifiers() & Qt::ControlModifier ) == Qt::ControlModifier )
 		{
-			if (getBin(event) == -1)
-			{
-				return;
-			}
-
+			// TODO: check if outside range: getBin always clamps to valid bins!
 			m_selectionOrigin = event->pos();
 			m_selectionRubberBand->setGeometry( QRect( m_selectionOrigin, QSize() ) );
 			m_selectionRubberBand->show();
@@ -285,7 +281,7 @@ int iARangeSliderDiagramWidget::getBin( QMouseEvent *event )
 				  .arg( m_xLabel )
 				  .arg( (m_data->spacing() * nthBin + xBounds()[0] ) ) );
 	QToolTip::showText(event->globalPosition().toPoint(), text, this);
-	return nthBin;
+	return static_cast<int>(nthBin);
 }
 
 void iARangeSliderDiagramWidget::setupSelectionDrawer()

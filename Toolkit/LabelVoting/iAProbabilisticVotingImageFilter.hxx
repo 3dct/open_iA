@@ -190,7 +190,7 @@ void iAProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenera
 		}
 
 		// with probabilities, set output (TODO: also output probabilities?)
-		out.Set(finalLabel);
+		out.Set(static_cast<int>(finalLabel));
 
 		// advance to next pixel:
 		for (size_t c = 0; c < m_numberOfClassifiers; ++c)

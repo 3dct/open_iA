@@ -165,7 +165,7 @@ void iACompHistogramTableData::debugBinDataObjects()
 
 /************************** bin methods ***************************************/
 
-bin::BinType* bin::initialize(int amountBins)
+bin::BinType* bin::initialize(size_t amountBins)
 {
 	return new bin::BinType(amountBins);
 }

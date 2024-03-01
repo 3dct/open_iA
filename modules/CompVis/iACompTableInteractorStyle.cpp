@@ -327,7 +327,7 @@ csvDataType::ArrayType* iACompTableInteractorStyle::formatPickedObjects(
 	}
 	LOG(lvlDebug,"++++++++++++++++++++++++");*/
 
-	int amountDatasets = zoomedRowData->size();
+	auto amountDatasets = zoomedRowData->size();
 
 	if (amountDatasets == 0 || (zoomedRowData->at(0)->size() == 0) || (zoomedRowData->at(0)->at(0)->size() == 0))
 	{  //when selecting empty cell
@@ -340,7 +340,7 @@ csvDataType::ArrayType* iACompTableInteractorStyle::formatPickedObjects(
 	{  //for all attributes
 		std::vector<double> attr = std::vector<double>();
 
-		for (int datasetInd = 0; datasetInd < amountDatasets; datasetInd++)
+		for (qsizetype datasetInd = 0; datasetInd < amountDatasets; datasetInd++)
 		{  //for the datasets that were picked
 			int amountBins = static_cast<int>(zoomedRowData->at(datasetInd)->size());
 

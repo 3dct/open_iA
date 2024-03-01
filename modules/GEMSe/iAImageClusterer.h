@@ -38,7 +38,7 @@ private:
 	int m_labelCount;
 	bool m_aborted;
 	iAPerformanceTimer m_perfTimer;
-	int m_remainingNodes;
+	qsizetype m_remainingNodes;
 	int m_currImage;
 	iAPerformanceTimer::DurationType m_imageDistCalcDuration;
 	QString m_outputDirectory;

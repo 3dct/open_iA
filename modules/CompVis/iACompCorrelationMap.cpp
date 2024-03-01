@@ -48,8 +48,247 @@
 
 #include <QBoxLayout>
 
-vtkStandardNewMacro(iACompCorrelationMap::CorrelationGraphLayout);
-vtkStandardNewMacro(iACompCorrelationMap::GraphInteractorStyle);
+
+//class copied from vtkForceDirectedLayoutStrategy with changed methods:
+// CoolDown(), forceAttract(), forceRepulse()
+class iACorrelationGraphLayout : public vtkGraphLayoutStrategy
+{
+public:
+	static iACorrelationGraphLayout* New();
+	vtkTypeMacro(iACorrelationGraphLayout, vtkGraphLayoutStrategy);
+
+	//@{
+	/**
+	* Seed the random number generator used to jitter point positions.
+	* This has a significant effect on their final positions when
+	* the layout is complete.
+	*/
+	vtkSetClampMacro(RandomSeed, int, 0, VTK_INT_MAX);
+	vtkGetMacro(RandomSeed, int);
+	//@}
+
+	//@{
+	/**
+	 * Set / get the region in space in which to place the final graph.
+	 * The GraphBounds only affects the results if AutomaticBoundsComputation
+	 * is off.
+	 */
+	vtkSetVector6Macro(GraphBounds, double);
+	vtkGetVectorMacro(GraphBounds, double, 6);
+	//@}
+
+	//@{
+	/**
+	 * Turn on/off automatic graph bounds calculation. If this
+	 * boolean is off, then the manually specified GraphBounds is used.
+	 * If on, then the input's bounds us used as the graph bounds.
+	 */
+	vtkSetMacro(AutomaticBoundsComputation, vtkTypeBool);
+	vtkGetMacro(AutomaticBoundsComputation, vtkTypeBool);
+	vtkBooleanMacro(AutomaticBoundsComputation, vtkTypeBool);
+	//@}
+
+	//@{
+	/**
+	 * Set/Get the maximum number of iterations to be used.
+	 * The higher this number, the more iterations through the algorithm
+	 * is possible, and thus, the more the graph gets modified.
+	 * The default is '50' for no particular reason
+	 */
+	vtkSetClampMacro(MaxNumberOfIterations, int, 0, VTK_INT_MAX);
+	vtkGetMacro(MaxNumberOfIterations, int);
+	//@}
+
+	//@{
+	/**
+	 * Set/Get the number of iterations per layout.
+	 * The only use for this ivar is for the application
+	 * to do visualizations of the layout before it's complete.
+	 * The default is '50' to match the default 'MaxNumberOfIterations'
+	 */
+	vtkSetClampMacro(IterationsPerLayout, int, 0, VTK_INT_MAX);
+	vtkGetMacro(IterationsPerLayout, int);
+	//@}
+
+	//@{
+	/**
+	 * Set/Get the Cool-down rate.
+	 * The higher this number is, the longer it will take to "cool-down",
+	 * and thus, the more the graph will be modified.
+	 */
+	vtkSetClampMacro(CoolDownRate, double, 0.01, VTK_DOUBLE_MAX);
+	vtkGetMacro(CoolDownRate, double);
+	//@}
+
+	//@{
+	/**
+	 * Turn on/off layout of graph in three dimensions. If off, graph
+	 * layout occurs in two dimensions. By default, three dimensional
+	 * layout is off.
+	 */
+	vtkSetMacro(ThreeDimensionalLayout, vtkTypeBool);
+	vtkGetMacro(ThreeDimensionalLayout, vtkTypeBool);
+	vtkBooleanMacro(ThreeDimensionalLayout, vtkTypeBool);
+	//@}
+
+	//@{
+	/**
+	 * Turn on/off use of random positions within the graph bounds as initial points.
+	 */
+	vtkSetMacro(RandomInitialPoints, vtkTypeBool);
+	vtkGetMacro(RandomInitialPoints, vtkTypeBool);
+	vtkBooleanMacro(RandomInitialPoints, vtkTypeBool);
+	//@}
+
+	//@{
+	/**
+	 * Set the initial temperature.  If zero (the default) , the initial temperature
+	 * will be computed automatically.
+	 */
+	vtkSetClampMacro(InitialTemperature, float, 0.0, VTK_FLOAT_MAX);
+	vtkGetMacro(InitialTemperature, float);
+	//@}
+
+	/**
+	 * This strategy sets up some data structures
+	 * for faster processing of each Layout() call
+	 */
+	void Initialize() override;
+
+	/**
+	 * This is the layout method where the graph that was
+	 * set in SetGraph() is laid out. The method can either
+	 * entirely layout the graph or iteratively lay out the
+	 * graph. If you have an iterative layout please implement
+	 * the IsLayoutComplete() method.
+	 */
+	void Layout() override;
+
+	/**
+	 * I'm an iterative layout so this method lets the caller
+	 * know if I'm done laying out the graph
+	 */
+	int IsLayoutComplete() override { return this->LayoutComplete; }
+
+	void setCorrelations(std::map<QString, Correlation::CorrelationStore>* correlations);
+	void setVertices(std::map<vtkIdType, QString>* vertices);
+	double getWeightForEdge(vtkIdType startV, vtkIdType endV);
+
+protected:
+	iACorrelationGraphLayout();
+	~iACorrelationGraphLayout() override;
+
+	double forceRepulse(double x, double k, double weight);
+	double forceAttract(double x, double k, double weight);
+	double CoolDown(double t, double r);
+
+	double calculateHooksLaw(double displacement);
+
+	double GraphBounds[6];
+	vtkTypeBool   AutomaticBoundsComputation;  //Boolean controls automatic bounds calc.
+	int   MaxNumberOfIterations;  //Maximum number of iterations.
+	double CoolDownRate;  //Cool-down rate.  Note:  Higher # = Slower rate.
+	double InitialTemperature;
+	vtkTypeBool   ThreeDimensionalLayout;  //Boolean for a third dimension.
+	vtkTypeBool RandomInitialPoints; //Boolean for having random points
+private:
+
+	// A vertex contains a position and a displacement.
+	typedef struct
+	{
+		double x[3];
+		double d[3];
+	} vtkLayoutVertex;
+
+	// An edge consists of two vertices joined together.
+	// This struct acts as a "pointer" to those two vertices.
+	typedef struct
+	{
+		vtkIdType t;
+		vtkIdType u;
+	} vtkLayoutEdge;
+
+	int RandomSeed;
+	int IterationsPerLayout;
+	int TotalIterations;
+	int LayoutComplete;
+	double Temp;
+	double optDist;
+	vtkLayoutVertex* v;
+	vtkLayoutEdge* e;
+
+	std::map<vtkIdType, QString>* m_vertices;
+	std::map<QString, Correlation::CorrelationStore>* m_correlations;
+
+	const int K = 1;
+	//const double MASS = 1;
+
+	double minDist;
+	double maxDist;
+
+};
+
+class iAGraphInteractorStyle : public vtkInteractorStyleRubberBand2D
+{
+public:
+	static iAGraphInteractorStyle* New();
+	vtkTypeMacro(iAGraphInteractorStyle, vtkInteractorStyleRubberBand2D);
+
+	void setGraphLayoutView(vtkSmartPointer<vtkGraphLayoutView> graphLayoutView);
+	void setBaseClass(iACompCorrelationMap* baseClass);
+	bool setPickList();
+
+	void removeHighlighting();
+	void resetEdgeVisualization();
+
+	virtual void OnLeftButtonDown() override;
+	virtual void OnMiddleButtonDown() override;
+	virtual void OnRightButtonDown() override;
+	virtual void OnMouseWheelForward() override;
+	virtual void OnMouseWheelBackward() override;
+	virtual void OnKeyPress() override;
+	virtual void OnKeyRelease() override;
+
+protected:
+	iAGraphInteractorStyle();
+
+private:
+
+	void drawSelectedArc(vtkSmartPointer<vtkActor> arcActor);
+	void drawPercentLabel(vtkSmartPointer<vtkActor> arcActor);
+	void storePickedActor(vtkSmartPointer<vtkActor> arcActor, double* position, double lineWidth);
+	//resets old arcs to get back to their initial position/linewidth,...
+	void resetOldPickedActor();
+	//adds highlighting arc below picked arc
+	void addHighlightingBelow(vtkSmartPointer<vtkActor> arcActor);
+	//moves label when according arc was picked
+	void moveLabel(vtkSmartPointer<vtkActor> arcActor);
+
+	void initializeLutForEdgesWithLabel();
+
+
+	iACompCorrelationMap* m_baseClass;
+	vtkSmartPointer<vtkPropPicker> m_actorPicker;
+	vtkSmartPointer<vtkGraphLayoutView> m_graphLayoutView;
+	vtkSmartPointer<vtkTextActor> m_percentLegend;
+
+	std::vector<vtkSmartPointer<vtkActor>>* m_oldPickedActors;
+	//for each oldPickedActor the first 3 positions of the vector are the old position, and the 4th position is the lineWidth
+	std::map<vtkSmartPointer<vtkActor>, std::vector<double>>* m_oldAttributesForOldPickedActors;
+	//stores the yellow arc for highlighting
+	vtkSmartPointer<vtkActor> highlightingActor;
+	//stores all moved labels, which were moved when according arc was picked
+	std::vector <vtkSmartPointer<vtkTextActor>>* movedLabels;
+	//stores for each moved label its old position
+	std::map<vtkSmartPointer<vtkTextActor>, std::vector<double>>* m_oldLabelPositionInWorldCoords;
+
+
+	bool edgeLabelsShown;
+	vtkSmartPointer<vtkLookupTable> lutForLabels;
+};
+
+vtkStandardNewMacro(iACorrelationGraphLayout);
+vtkStandardNewMacro(iAGraphInteractorStyle);
 
 iACompCorrelationMap::iACompCorrelationMap(iAMainWindow* parent, iACorrelationCoefficient* corrCalculation, iACsvDataStorage* dataStorage, iACompVisMain* main) :
 	QDockWidget(parent),
@@ -89,7 +328,7 @@ iACompCorrelationMap::iACompCorrelationMap(iAMainWindow* parent, iACorrelationCo
 	m_graphLayoutView->SetRenderWindow(m_qvtkWidget->renderWindow());
 	m_graphLayoutView->SetInteractor(m_qvtkWidget->interactor());
 
-	style = vtkSmartPointer<GraphInteractorStyle>::New();
+	style = vtkSmartPointer<iAGraphInteractorStyle>::New();
 	style->setGraphLayoutView(m_graphLayoutView);
 	style->setBaseClass(this);
 	m_graphLayoutView->GetInteractor()->SetInteractorStyle(style);
@@ -103,7 +342,6 @@ iACompCorrelationMap::iACompCorrelationMap(iAMainWindow* parent, iACorrelationCo
 	m_theme->SetBackgroundColor2(col2);
 
 	m_attrNames = *m_dataStorage->getAttributeNamesWithoutLabel();
-	m_numberOfAttr = m_attrNames.size(); //amount of attributes
 
 	initializeCorrelationMap();
 	initializeArcs();
@@ -143,7 +381,7 @@ void iACompCorrelationMap::initializeCorrelationMap()
 	initializeEdges();
 
 	//m_graphLayoutView->SetLayoutStrategyToSimple2D();
-	m_graphLayout = vtkSmartPointer<CorrelationGraphLayout>::New();
+	m_graphLayout = vtkSmartPointer<iACorrelationGraphLayout>::New();
 	m_graphLayout->setVertices(m_vertices);
 	m_graphLayout->setCorrelations(m_corrCalculation->getCorrelationCoefficients());
 	m_graphLayout->SetRandomInitialPoints(true);
@@ -910,8 +1148,8 @@ void iACompCorrelationMap::resetCorrelationMap()
 	renderWidget();
 }
 
-/************************* INNER CLASS GraphInteractorStyle *******************************************/
-iACompCorrelationMap::GraphInteractorStyle::GraphInteractorStyle() :
+/*************************  iAGraphInteractorStyle *******************************************/
+iAGraphInteractorStyle::iAGraphInteractorStyle() :
 	m_actorPicker(vtkSmartPointer<vtkPropPicker>::New()),
 	m_graphLayoutView(vtkSmartPointer<vtkGraphLayoutView>::New()),
 	m_percentLegend(vtkSmartPointer<vtkTextActor>::New()),
@@ -926,7 +1164,7 @@ iACompCorrelationMap::GraphInteractorStyle::GraphInteractorStyle() :
 	initializeLutForEdgesWithLabel();
 }
 
-void iACompCorrelationMap::GraphInteractorStyle::OnLeftButtonDown()
+void iAGraphInteractorStyle::OnLeftButtonDown()
 {
 	bool working = setPickList();
 	if (!working) { return; }
@@ -1019,7 +1257,7 @@ void iACompCorrelationMap::GraphInteractorStyle::OnLeftButtonDown()
 	m_baseClass->renderWidget();
 }
 
-void iACompCorrelationMap::GraphInteractorStyle::moveLabel(vtkSmartPointer<vtkActor> arcActor)
+void iAGraphInteractorStyle::moveLabel(vtkSmartPointer<vtkActor> arcActor)
 {
 	std::map<vtkSmartPointer<vtkActor>, vtkSmartPointer<vtkTextActor>>* outerArcsWithLegend = m_baseClass->getOuterArcsWithLegends();
 	std::map<vtkSmartPointer<vtkActor>, vtkSmartPointer<vtkTextActor>>::iterator iter = outerArcsWithLegend->find(arcActor);
@@ -1051,7 +1289,7 @@ void iACompCorrelationMap::GraphInteractorStyle::moveLabel(vtkSmartPointer<vtkAc
 	m_oldLabelPositionInWorldCoords->insert({ labelActor , oldLabelPos });
 }
 
-void iACompCorrelationMap::GraphInteractorStyle::addHighlightingBelow(vtkSmartPointer<vtkActor> arcActor)
+void iAGraphInteractorStyle::addHighlightingBelow(vtkSmartPointer<vtkActor> arcActor)
 {
 	vtkSmartPointer<vtkAlgorithm> algorithm = arcActor->GetMapper()->GetInputConnection(0, 0)->GetProducer();
 	vtkSmartPointer<vtkArcSource> arc = vtkArcSource::SafeDownCast(algorithm);
@@ -1086,7 +1324,7 @@ void iACompCorrelationMap::GraphInteractorStyle::addHighlightingBelow(vtkSmartPo
 	drawPercentLabel(arcActor);
 }
 
-void iACompCorrelationMap::GraphInteractorStyle::resetOldPickedActor()
+void iAGraphInteractorStyle::resetOldPickedActor()
 {
 	//reset the picked arcs
 	for(int i= 0; i < ((int)m_oldPickedActors->size()); i++)
@@ -1138,7 +1376,7 @@ void iACompCorrelationMap::GraphInteractorStyle::resetOldPickedActor()
 	movedLabels->clear();
 }
 
-void iACompCorrelationMap::GraphInteractorStyle::storePickedActor(vtkSmartPointer<vtkActor> arcActor, double* position, double lineWidth)
+void iAGraphInteractorStyle::storePickedActor(vtkSmartPointer<vtkActor> arcActor, double* position, double lineWidth)
 {
 	//store picked actor
 	m_oldPickedActors->push_back(arcActor);
@@ -1153,7 +1391,7 @@ void iACompCorrelationMap::GraphInteractorStyle::storePickedActor(vtkSmartPointe
 	m_oldAttributesForOldPickedActors->insert({arcActor, characteristics });
 }
 
-void iACompCorrelationMap::GraphInteractorStyle::drawSelectedArc(vtkSmartPointer<vtkActor> arcActor)
+void iAGraphInteractorStyle::drawSelectedArc(vtkSmartPointer<vtkActor> arcActor)
 {
 	double oldPosition[3] = { 0,0,0 };
 
@@ -1181,7 +1419,7 @@ void iACompCorrelationMap::GraphInteractorStyle::drawSelectedArc(vtkSmartPointer
 	storePickedActor(arcActor, oldPosition, oldLineWidth);
 }
 
-void iACompCorrelationMap::GraphInteractorStyle::drawPercentLabel(vtkSmartPointer<vtkActor> arcActor)
+void iAGraphInteractorStyle::drawPercentLabel(vtkSmartPointer<vtkActor> arcActor)
 {
 	std::map<vtkSmartPointer<vtkActor>, double>* thisArcPercentPair = m_baseClass->getArcPercentPairs();
 	std::map<vtkSmartPointer<vtkActor>, double>::iterator iter = thisArcPercentPair->find(arcActor);
@@ -1245,7 +1483,7 @@ void iACompCorrelationMap::GraphInteractorStyle::drawPercentLabel(vtkSmartPointe
 	m_graphLayoutView->GetRenderer()->AddActor(m_percentLegend);
 }
 
-bool iACompCorrelationMap::GraphInteractorStyle::setPickList()
+bool iAGraphInteractorStyle::setPickList()
 {
 	m_actorPicker->InitializePickList();
 
@@ -1266,9 +1504,9 @@ bool iACompCorrelationMap::GraphInteractorStyle::setPickList()
 	return true;
 }
 
-void iACompCorrelationMap::GraphInteractorStyle::OnMiddleButtonDown() { vtkInteractorStyleRubberBand2D::OnMiddleButtonDown(); }
+void iAGraphInteractorStyle::OnMiddleButtonDown() { vtkInteractorStyleRubberBand2D::OnMiddleButtonDown(); }
 
-void iACompCorrelationMap::GraphInteractorStyle::OnRightButtonDown()
+void iAGraphInteractorStyle::OnRightButtonDown()
 {
 	//activate/deactivate if all edge labels should be shown
 	if(!edgeLabelsShown)
@@ -1299,7 +1537,7 @@ void iACompCorrelationMap::GraphInteractorStyle::OnRightButtonDown()
 	edgeLabelsShown = (!edgeLabelsShown);
 }
 
-void iACompCorrelationMap::GraphInteractorStyle::resetEdgeVisualization()
+void iAGraphInteractorStyle::resetEdgeVisualization()
 {
 	m_baseClass->m_graphLayoutView->SetEdgeLabelVisibility(false);
 
@@ -1313,7 +1551,7 @@ void iACompCorrelationMap::GraphInteractorStyle::resetEdgeVisualization()
 	edgeLabelsShown = (!edgeLabelsShown);
 }
 
-void iACompCorrelationMap::GraphInteractorStyle::initializeLutForEdgesWithLabel()
+void iAGraphInteractorStyle::initializeLutForEdgesWithLabel()
 {
 	// blue to white to red
 	QColor c1 = QColor(33, 102, 172); //blue
@@ -1358,29 +1596,29 @@ void iACompCorrelationMap::GraphInteractorStyle::initializeLutForEdgesWithLabel(
 	lutForLabels->SetNanColor(0, 0, 0, 0);
 }
 
-void iACompCorrelationMap::GraphInteractorStyle::OnMouseWheelForward() { vtkInteractorStyleRubberBand2D::OnMouseWheelForward(); }
-void iACompCorrelationMap::GraphInteractorStyle::OnMouseWheelBackward() { vtkInteractorStyleRubberBand2D::OnMouseWheelBackward(); }
-void iACompCorrelationMap::GraphInteractorStyle::OnKeyPress() { vtkInteractorStyleRubberBand2D::OnKeyPress(); }
-void iACompCorrelationMap::GraphInteractorStyle::OnKeyRelease() { vtkInteractorStyleRubberBand2D::OnKeyRelease(); }
+void iAGraphInteractorStyle::OnMouseWheelForward() { vtkInteractorStyleRubberBand2D::OnMouseWheelForward(); }
+void iAGraphInteractorStyle::OnMouseWheelBackward() { vtkInteractorStyleRubberBand2D::OnMouseWheelBackward(); }
+void iAGraphInteractorStyle::OnKeyPress() { vtkInteractorStyleRubberBand2D::OnKeyPress(); }
+void iAGraphInteractorStyle::OnKeyRelease() { vtkInteractorStyleRubberBand2D::OnKeyRelease(); }
 
-void iACompCorrelationMap::GraphInteractorStyle::setGraphLayoutView(vtkSmartPointer<vtkGraphLayoutView> graphLayoutView)
+void iAGraphInteractorStyle::setGraphLayoutView(vtkSmartPointer<vtkGraphLayoutView> graphLayoutView)
 {
 	m_graphLayoutView = graphLayoutView;
 }
 
-void iACompCorrelationMap::GraphInteractorStyle::setBaseClass(iACompCorrelationMap* baseClass)
+void iAGraphInteractorStyle::setBaseClass(iACompCorrelationMap* baseClass)
 {
 	m_baseClass = baseClass;
 }
 
-void iACompCorrelationMap::GraphInteractorStyle::removeHighlighting()
+void iAGraphInteractorStyle::removeHighlighting()
 {
 	m_graphLayoutView->GetRenderer()->RemoveActor(highlightingActor);
 	m_graphLayoutView->GetRenderer()->RemoveActor2D(m_percentLegend);
 }
 
-/************************* INNER CLASS CorrelationGraphLayout *******************************************/
-iACompCorrelationMap::CorrelationGraphLayout::CorrelationGraphLayout()
+/************************* iACorrelationGraphLayout *******************************************/
+iACorrelationGraphLayout::iACorrelationGraphLayout()
 {
 	this->TotalIterations = 0;
 	this->Temp = 0.0;
@@ -1405,27 +1643,27 @@ iACompCorrelationMap::CorrelationGraphLayout::CorrelationGraphLayout()
 	this->e = nullptr;
 }
 
-iACompCorrelationMap::CorrelationGraphLayout::~CorrelationGraphLayout() {
+iACorrelationGraphLayout::~iACorrelationGraphLayout() {
 	delete[] this->v;
 	delete[] this->e;
 }
 
-void iACompCorrelationMap::CorrelationGraphLayout::setVertices(std::map<vtkIdType, QString>* vertices)
+void iACorrelationGraphLayout::setVertices(std::map<vtkIdType, QString>* vertices)
 {
 	m_vertices = vertices;
 }
 
-void iACompCorrelationMap::CorrelationGraphLayout::setCorrelations(std::map<QString, Correlation::CorrelationStore>* correlations)
+void iACorrelationGraphLayout::setCorrelations(std::map<QString, Correlation::CorrelationStore>* correlations)
 {
 	m_correlations = correlations;
 }
 
-double iACompCorrelationMap::CorrelationGraphLayout::CoolDown(double t, double r){
+double iACorrelationGraphLayout::CoolDown(double t, double r){
 	if (t < .01) return .01;
 	return t - (t / r);
 }
 
-double iACompCorrelationMap::CorrelationGraphLayout::forceAttract(double x, double k, double weight)
+double iACorrelationGraphLayout::forceAttract(double x, double k, double weight)
 {
 	double coefficient = std::abs(weight);
 	//LOG(lvlDebug,"coefficient = " + QString::number(coefficient));
@@ -1435,7 +1673,7 @@ double iACompCorrelationMap::CorrelationGraphLayout::forceAttract(double x, doub
 	return ((x * x) / k) * coefficient; //(coefficient/100);
 }
 
-double iACompCorrelationMap::CorrelationGraphLayout::forceRepulse(double x, double k,  double weight)
+double iACorrelationGraphLayout::forceRepulse(double x, double k,  double weight)
 {
 	double coefficient = 1-std::abs(weight);
 
@@ -1450,7 +1688,7 @@ double iACompCorrelationMap::CorrelationGraphLayout::forceRepulse(double x, doub
 	}
 }
 
-double iACompCorrelationMap::CorrelationGraphLayout::calculateHooksLaw(double displacement)
+double iACorrelationGraphLayout::calculateHooksLaw(double displacement)
 {
 	return -K * displacement;
 }
@@ -1459,7 +1697,7 @@ double iACompCorrelationMap::CorrelationGraphLayout::calculateHooksLaw(double di
 // structures, etc... so that Layout doesn't have to
 // do that every time it's called
 
-void iACompCorrelationMap::CorrelationGraphLayout::Initialize()
+void iACorrelationGraphLayout::Initialize()
 {
 	vtkPoints* pts = this->Graph->GetPoints();
 	vtkIdType numVertices = this->Graph->GetNumberOfVertices();
@@ -1585,7 +1823,7 @@ void iACompCorrelationMap::CorrelationGraphLayout::Initialize()
 };
 
 /*
-void iACompCorrelationMap::CorrelationGraphLayout::Initialize()
+void iACorrelationGraphLayout::Initialize()
 {
 	vtkPoints* pts = this->Graph->GetPoints();
 	vtkIdType numVertices = this->Graph->GetNumberOfVertices();
@@ -1714,7 +1952,7 @@ void iACompCorrelationMap::CorrelationGraphLayout::Initialize()
 
 // ForceDirected graph layout method
 
-void iACompCorrelationMap::CorrelationGraphLayout::Layout()
+void iACorrelationGraphLayout::Layout()
 {
 	vtkIdType numVertices = this->Graph->GetNumberOfVertices();
 	vtkIdType numEdges = this->Graph->GetNumberOfEdges();
@@ -1885,7 +2123,7 @@ void iACompCorrelationMap::CorrelationGraphLayout::Layout()
 	}
 }
 
-double iACompCorrelationMap::CorrelationGraphLayout::getWeightForEdge(vtkIdType startV, vtkIdType endV)
+double iACorrelationGraphLayout::getWeightForEdge(vtkIdType startV, vtkIdType endV)
 {
 	//find name of startVertex
 	std::map<vtkIdType, QString >::const_iterator vertexIter = m_vertices->find(startV);

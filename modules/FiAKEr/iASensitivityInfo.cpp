@@ -1294,7 +1294,7 @@ void iASensitivityInfo::showSpatialOverview()
 	}
 }
 
-void iASensitivityInfo::setSpatialOverviewTF(int dataSetIdx)
+void iASensitivityInfo::setSpatialOverviewTF(size_t dataSetIdx)
 {
 	if (m_spatialOverviewDataSets.find(dataSetIdx) == m_spatialOverviewDataSets.end())
 	{   // ignore datasets other than spatial overview images

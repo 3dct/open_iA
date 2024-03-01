@@ -40,5 +40,5 @@ int iAFoamCharacterizationComboBoxMask::itemMask() const
 
 void iAFoamCharacterizationComboBoxMask::setItemMask(const int& _iItemMask)
 {
-	setCurrentIndex(m_vItemMask.indexOf(_iItemMask));
+	setCurrentIndex(static_cast<int>(m_vItemMask.indexOf(_iItemMask)));
 }

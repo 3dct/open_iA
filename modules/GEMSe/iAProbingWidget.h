@@ -33,5 +33,5 @@ private:
 	QVector<std::shared_ptr<iAPlot>> m_drawers;
 	iAImageTreeNode const * m_selectedNode;
 	QLabel* m_lbInfo;
-	int m_probChartStart;
+	qsizetype m_probChartStart;
 };

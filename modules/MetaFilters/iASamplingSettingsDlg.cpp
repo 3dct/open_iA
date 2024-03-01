@@ -65,7 +65,7 @@ public:
 
 
 iASamplingSettingsDlg::iASamplingSettingsDlg(QWidget *parentWdgt,
-	int inputImageCount,
+	size_t inputImageCount,
 	QVariantMap const & values):
 	QDialog(parentWdgt),
 	m_inputImageCount(inputImageCount),
@@ -770,7 +770,7 @@ void iASamplingSettingsDlg::setParameters(std::shared_ptr<iAAttributes> params)
 		QString pName(p->name());
 		if (pName.startsWith("Mod "))
 		{
-			for (int m = 0; m < m_inputImageCount; ++m)
+			for (size_t m = 0; m < m_inputImageCount; ++m)
 			{
 				std::shared_ptr<iAParameterInputs> pInput = createParameterLine(QString("Mod %1 ").arg(m) +
 					pName.right(pName.length() - 4),

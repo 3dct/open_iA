@@ -77,7 +77,7 @@ void iANModalPCADataSetReducer::itkPCA(std::vector<iAConnector>& c)
 	auto pca = PCASMEType::New();
 	pca->SetNumberOfTrainingImages(inputSize);
 	pca->SetNumberOfPrincipalComponentsRequired(outputSize);
-	for (int i = 0; i < inputSize; i++)
+	for (uint i = 0; i < inputSize; i++)
 	{
 #ifndef NDEBUG
 		//storeImage2(c[i].itkImage(), "pca_input_itk_" + QString::number(i) + ".mhd", true);
@@ -112,35 +112,36 @@ void iANModalPCADataSetReducer::itkPCA(std::vector<iAConnector>& c)
 }
 
 #ifndef NDEBUG
-#define DEBUG_LOG_MATRIX(matrix, string)                  \
-	{                                                     \
-		QString str = string;                             \
-		str += "\n";                                      \
-		for (int i = 0; i < numInputs; i++)               \
-		{                                                 \
-			auto row = matrix.get_row(i);                 \
-			for (int j = 0; j < row.size(); j++)          \
-			{                                             \
-				str += QString::number(row[j]) + "     "; \
-			}                                             \
-			str += "\n";                                  \
-		}                                                 \
-		LOG(lvlDebug, str);                               \
+void DebugLogMatrix(vnl_matrix<double> const & matrix, QString const & string)
+{
+	QString str = string;
+	str += "\n";
+	for (unsigned int i = 0; i < matrix.rows(); i++)
+	{
+		auto row = matrix.get_row(i);
+		for (size_t j = 0; j < row.size(); j++)
+		{
+			str += QString::number(row[j]) + "     ";
+		}
+		str += "\n";
 	}
-#define DEBUG_LOG_VECTOR(vector, string)                 \
-	{                                                    \
-		QString str = string;                            \
-		str += "\n";                                     \
-		for (int i = 0; i < vector.size(); i++)          \
-		{                                                \
-			str += QString::number(vector[i]) + "     "; \
-		}                                                \
-		str += "\n";                                     \
-		LOG(lvlDebug, str);                              \
+	LOG(lvlDebug, str);
+}
+
+void DebugLogVector(vnl_vector<double> const & vector, QString const & string)
+{
+	QString str = string;
+	str += "\n";
+	for (size_t i = 0; i < vector.size(); i++)
+	{
+		str += QString::number(vector[i]) + "     ";
 	}
+	str += "\n";
+	LOG(lvlDebug, str);
+}
 #else
-#define DEBUG_LOG_MATRIX(matrix, string)
-#define DEBUG_LOG_VECTOR(vector, string)
+#define DebugLogMatrix(vnl_matrix<double> const & matrix, QString const & string)
+#define DebugLogVector(vnl_vector<double> const & vector, QString const & string)
 #endif
 
 template <class T>
@@ -248,7 +249,7 @@ void iANModalPCADataSetReducer::ownPCA(std::vector<iAConnector>& c)
 
 #ifndef NDEBUG
 #pragma omp single
-		DEBUG_LOG_VECTOR(means, "Means");
+		DebugLogVector(means, "Means");
 #endif
 
 		// Calculate inner product (lower triangle) (for covariance matrix)
@@ -285,7 +286,7 @@ void iANModalPCADataSetReducer::ownPCA(std::vector<iAConnector>& c)
 
 #ifndef NDEBUG
 #pragma omp single
-		DEBUG_LOG_MATRIX(innerProd, "Inner product");
+		DebugLogMatrix(innerProd, "Inner product");
 #endif
 
 #pragma omp single
@@ -301,13 +302,13 @@ void iANModalPCADataSetReducer::ownPCA(std::vector<iAConnector>& c)
 			}
 
 #ifndef NDEBUG
-			DEBUG_LOG_MATRIX(innerProd, "Covariance matrix");
+			DebugLogMatrix(innerProd, "Covariance matrix");
 #endif
 
 			// Solve eigenproblem
 			vnl_matrix<double> eye(numInputs, numInputs);  // (eye)dentity matrix
 			eye.set_identity();
-			//DEBUG_LOG_MATRIX(eye, "Identity");
+			//DebugLogMatrix(eye, "Identity");
 			vnl_generalized_eigensystem evecs_evals_innerProd(innerProd, eye);
 			evecs_innerProd = evecs_evals_innerProd.V;
 			evecs_innerProd.fliplr();  // Flipped because VNL sorts eigenvectors in ascending order
@@ -316,8 +317,8 @@ void iANModalPCADataSetReducer::ownPCA(std::vector<iAConnector>& c)
 				//auto evals_innerProd = evecs_evals_innerProd.D.diagonal();
 
 #ifndef NDEBUG
-			DEBUG_LOG_MATRIX(evecs_innerProd, "Eigenvectors");
-			DEBUG_LOG_VECTOR(evecs_evals_innerProd.D.diagonal(), "Eigenvalues");
+			DebugLogMatrix(evecs_innerProd, "Eigenvectors");
+			DebugLogVector(evecs_evals_innerProd.D.diagonal(), "Eigenvalues");
 #endif
 		}
 

@@ -467,7 +467,7 @@ std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*>
 			//look for the selected cells in the current row
 			for (int i = 0; i < static_cast<int>(pickedCells->size()); i++)
 			{
-				int currBin = pickedCells->at(i);
+				auto currBin = pickedCells->at(i);
 				newRowIds->push_back(currRowIds->at(currBin));
 				newRowMDS->push_back(currRowMDS->at(currBin));
 			}

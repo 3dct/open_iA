@@ -93,7 +93,7 @@ void iAClusterAttribChart::RemoveFilterData()
 	}
 }
 
-QColor iAClusterAttribChart::GetClusterColor(int nr) const
+QColor iAClusterAttribChart::GetClusterColor(qsizetype nr) const
 {
 	assert(nr < MaxSelectedClusters);
 	return DefaultColors::ClusterChartColor[nr];

@@ -172,7 +172,7 @@ int iAvtkTubeFilter::RequestData(
   newNormals->SetNumberOfComponents(3);
   newNormals->Allocate(3*numNewPts);
   newStrips = vtkCellArray::New();
-  newStrips->Allocate(newStrips->EstimateSize(1,numNewPts));
+  newStrips->Allocate(newStrips->EstimateSize(1, static_cast<int>(numNewPts)));
   vtkCellArray *singlePolyline = vtkCellArray::New();
 
   // Point data: copy scalars, vectors, tcoords. Normals may be computed here.

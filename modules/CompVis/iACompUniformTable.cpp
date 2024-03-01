@@ -589,7 +589,7 @@ std::vector<vtkSmartPointer<vtkPolyData>>* iACompUniformTable::drawZoomedRow(int
 
 void iACompUniformTable::zoomInZoomedRow(int selectedBinNumber)
 {
-	int rowId = m_zoomedRowData->size() - 1;
+	auto rowId = m_zoomedRowData->size() - 1;
 	int cellId = 0;
 	for (int zoomedRowDataInd = 0; zoomedRowDataInd < static_cast<int>(m_zoomedPlaneActors->size()); zoomedRowDataInd++)
 	{  //for all zoomed planes
@@ -1026,7 +1026,7 @@ vtkSmartPointer<vtkActor> iACompUniformTable::drawLine(
 void iACompUniformTable::drawPointRepresentation()
 {
 	std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>*>::iterator it;
-	int zoomedRowDataInd = m_zoomedRowData->size() - 1;
+	auto zoomedRowDataInd = m_zoomedRowData->size() - 1;
 
 	//find max-min val of each dataset and same bin to enable comparison of the same bins in different datasets
 	std::map<int, std::vector<double>*> minMaxPerBin = std::map<int, std::vector<double>*>();
@@ -1346,7 +1346,7 @@ std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*>
 			//look for the selected cells in the current row
 			for (int i = 0; i < static_cast<int>(pickedCells->size()); i++)
 			{
-				int currBin = pickedCells->at(i);
+				auto currBin = pickedCells->at(i);
 				newRowIds->push_back(currRowIds->at(currBin));
 				newRowMDS->push_back(currRowMDS->at(currBin));
 			}
@@ -1606,7 +1606,7 @@ void iACompUniformTable::calculateOldDrawingPositionOfMovingActor(vtkSmartPointe
 	//get oldPosition of the moving actor
 	std::vector<vtkSmartPointer<vtkActor>>::iterator it =
 		std::find(m_originalPlaneActors->begin(), m_originalPlaneActors->end(), movingActor);
-	m_oldDrawingPosition = std::distance(m_originalPlaneActors->begin(), it);
+	m_oldDrawingPosition = static_cast<int>(std::distance(m_originalPlaneActors->begin(), it));
 }
 
 void iACompUniformTable::removeBarCharShowingAmountOfObjects()

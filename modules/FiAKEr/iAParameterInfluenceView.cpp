@@ -898,7 +898,7 @@ void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 		m_table[rowIdx]->par.remove(barIdx);
 		delete pw;
 		auto paramName = m_data->m_paramNames[m_data->m_variedParams[m_sort[rowIdx]]];
-		qsizetype newNumBars = static_cast<qsizetype>(m_table[rowIdx]->bars->numberOfBars());
+		auto newNumBars = static_cast<qsizetype>(m_table[rowIdx]->bars->numberOfBars());
 		if (newNumBars > 0)
 		{
 			//m_table[rowIdx]->out[0]->setYCaption("Var. from " + paramName);  // to make sure if first chart is removed that new first gets caption

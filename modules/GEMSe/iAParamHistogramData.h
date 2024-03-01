@@ -24,7 +24,7 @@ public:
 		double minX, double maxX,
 		bool log,
 		iAChartAttributeMapper const & chartAttrMap,
-		int numBin);
+		size_t numBin);
 	static std::shared_ptr<iAParamHistogramData> create(iAImageTreeNode const * ,
 		int chartID,
 		iAValueType rangeType,
@@ -32,7 +32,7 @@ public:
 		bool log,
 		iAChartAttributeMapper const & chartAttrMap,
 		iAChartFilter const & attributeFilter,
-		int numBin);
+		size_t numBin);
 	iAParamHistogramData(size_t numBin,
 		double minX, double maxX, bool log,
 		iAValueType type);

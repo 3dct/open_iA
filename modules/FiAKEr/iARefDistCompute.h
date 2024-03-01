@@ -27,7 +27,7 @@ class iARefDistCompute : public QThread
 	Q_OBJECT
 public:
 	//! type for containers - but since we mix QVector and std::vector usages, it doesn't really help!
-	typedef int ContainerSizeType;
+	typedef qsizetype ContainerSizeType;
 	static ContainerSizeType MaxNumberOfCloseFibers;
 	iARefDistCompute(std::shared_ptr<iAFiberResultsCollection> data, size_t referenceID);
 	bool setMeasuresToCompute(std::vector<std::pair<int, bool>> const& measuresToCompute, int optimizationMeasure, int bestMeasure);

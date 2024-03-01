@@ -954,7 +954,7 @@ void dlg_DynamicVolumeLines::syncLinearXAxis(QCPRange nonlinearXRange)
 
 	auto lower = std::lower_bound(m_nonlinearMappingVec.begin(),
 		m_nonlinearMappingVec.end(), nonlinearXRange.lower);
-	int lowerIdx = lower - m_nonlinearMappingVec.begin() - 1;
+	int lowerIdx = static_cast<int>(lower - m_nonlinearMappingVec.begin() - 1);
 	if (lowerIdx < 0)
 	{
 		lowerIdx = 0;
@@ -970,7 +970,7 @@ void dlg_DynamicVolumeLines::syncLinearXAxis(QCPRange nonlinearXRange)
 
 	auto upper = std::lower_bound(m_nonlinearMappingVec.begin(),
 		m_nonlinearMappingVec.end(), nonlinearXRange.upper);
-	int upperIdx = upper - m_nonlinearMappingVec.begin();
+	int upperIdx = static_cast<int>(upper - m_nonlinearMappingVec.begin());
 	double upperDistToNextPoint = 0.0, upperDistToCurrPoint = 0.0;
 	if (upperIdx < m_nonlinearMappingVec.size())
 	{
@@ -979,7 +979,7 @@ void dlg_DynamicVolumeLines::syncLinearXAxis(QCPRange nonlinearXRange)
 	}
 	else
 	{
-		upperIdx = m_nonlinearMappingVec.size() - 1;
+		upperIdx = static_cast<int>(m_nonlinearMappingVec.size() - 1);
 		upperDistToNextPoint = 1.0;
 		upperDistToCurrPoint = 1.0;
 		nonlinearXRange.upper = m_nonlinearMappingVec.last();
@@ -1188,7 +1188,7 @@ void dlg_DynamicVolumeLines::mouseMove(QMouseEvent* e)
 			QPoint(e->pos().x() + 5, e->pos().y() - 15));
 
 		auto v = std::lower_bound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), x);
-		int hilbertIdx = v - m_nonlinearMappingVec.begin() - 1;
+		auto hilbertIdx = v - m_nonlinearMappingVec.begin() - 1;
 		if (v - m_nonlinearMappingVec.begin() == 0)
 		{
 			hilbertIdx = 0;
@@ -1475,7 +1475,7 @@ void dlg_DynamicVolumeLines::setFBPTransparency(int value)
 {
 	double alpha = std::round(value * 255 / 100.0);
 	QPen p; QColor c; QBrush b;
-	for (int i = m_DatasetIntensityMap.size(); i < m_nonlinearScaledPlot->graphCount(); ++i)
+	for (auto i = m_DatasetIntensityMap.size(); i < m_nonlinearScaledPlot->graphCount(); ++i)
 	{
 		p = m_nonlinearScaledPlot->graph(i)->pen();
 		c = m_nonlinearScaledPlot->graph(i)->pen().color();
@@ -1599,7 +1599,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 	auto histoXBounds = imgDataViewer->histogram()->xBounds();
 	for (int i = 0; i < visSelGraphList.size(); ++i)
 	{
-		int datasetIdx = datasetsList.indexOf(visSelGraphList[i]->name());
+		auto datasetIdx = datasetsList.indexOf(visSelGraphList[i]->name());
 		auto selHilbertIndices = visSelGraphList[i]->selection().dataRanges();
 		auto pathSteps = m_DatasetIntensityMap[datasetIdx].second.size();
 		auto pathData = m_DatasetIntensityMap[datasetIdx].second;

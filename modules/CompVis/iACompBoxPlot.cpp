@@ -168,7 +168,7 @@ void iACompBoxPlot::initializeData()
 
 	QList<csvFileData>* dataPoints = m_dataStorage->getData();
 	QStringList* attrNames = m_dataStorage->getAttributeNamesWithoutLabel();
-	m_numberOfAttr = attrNames->size(); //amount of attributes
+	m_numberOfAttr = static_cast<int>(attrNames->size()); //amount of attributes
 
 	// Set the labels
 	labels->Initialize();
@@ -333,7 +333,7 @@ void iACompBoxPlot::initializeLegend(vtkSmartPointer<BoxPlotChart> chart)
 		factor = offset;
 	}else
 	{
-		factor = offset / ((double)(m_numberOfAttr));
+		factor = offset / (static_cast<double>(m_numberOfAttr));
 	}
 
 	offset = offset - factor;
@@ -413,7 +413,7 @@ void iACompBoxPlot::setOrderedPositions(std::vector<double>* orderedPositions)
 
 double iACompBoxPlot::median(std::vector<double>::const_iterator begin, std::vector<double>::const_iterator end)
 {
-	int len = end - begin;
+	auto len = end - begin;
 	auto it = begin + len / 2;
 	double m = *it;
 

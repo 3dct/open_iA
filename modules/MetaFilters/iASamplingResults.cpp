@@ -109,8 +109,8 @@ std::shared_ptr<iASamplingResults> iASamplingResults::load(QString const & smpFi
 	}
 
 	std::shared_ptr<iAAttributes> attributes = createAttributes(in);
-	std::shared_ptr<iASamplingResults> result(new iASamplingResults(
-		attributes, samplingMethod, fileInfo.absolutePath(), executable, additionalArguments, name, datasetID));
+	auto result = std::make_shared<iASamplingResults>(attributes, samplingMethod,
+		fileInfo.absolutePath(), executable, additionalArguments, name, datasetID);
 	file.close();
 	if (result->loadInternal(MakeAbsolute(fileInfo.absolutePath(), parameterSetFileName),
 		MakeAbsolute(fileInfo.absolutePath(), derivedOutputFileName)))

@@ -70,7 +70,7 @@ iAVolumePlayerWidget::iAVolumePlayerWidget(iAMdiChild *child, std::vector<iAVolu
 	m_isBlendingOn = m_ui->blending->isChecked();
 	setSpeed();
 
-	m_ui->volumeSlider->setMaximum(m_volumeViewers.size() - 1);
+	m_ui->volumeSlider->setMaximum(static_cast<int>(m_volumeViewers.size() - 1));
 	m_ui->volumeSlider->setMinimum(0);
 
 	connect(m_ui->volumeSlider, &QSlider::valueChanged, this, &iAVolumePlayerWidget::sliderChanged);

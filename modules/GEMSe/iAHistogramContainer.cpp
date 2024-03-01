@@ -272,7 +272,7 @@ void iAHistogramContainer::ChartSelected(bool selected)
 	}
 	else
 	{
-		int idx = m_selected.indexOf(id);
+		auto idx = m_selected.indexOf(id);
 		assert(idx != -1);
 		if (idx != -1)
 		{
@@ -311,7 +311,7 @@ void iAHistogramContainer::UpdateAttributeRangeAttitude()
 		{
 			continue;
 		}
-		int numBin = m_charts[chartID]->GetNumBin();
+		auto numBin = m_charts[chartID]->GetNumBin();
 		AttributeHistogram likeHist(numBin);
 		GetHistData(likeHist, chartID, m_charts[chartID], likes, numBin, m_chartAttributeMapper);
 		AttributeHistogram hateHist(numBin);
@@ -369,13 +369,13 @@ void iAHistogramContainer::ExportAttributeRangeRanking(QString const &fileName)
 }
 
 
-int iAHistogramContainer::GetSelectedCount()
+qsizetype iAHistogramContainer::GetSelectedCount()
 {
 	return m_selected.size();
 }
 
 
-int iAHistogramContainer::GetSelectedChartID(int selectionIdx)
+int iAHistogramContainer::GetSelectedChartID(qsizetype selectionIdx)
 {
 	return m_selected[selectionIdx];
 }

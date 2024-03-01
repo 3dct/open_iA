@@ -137,7 +137,7 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 		// Calculating start and and point of the pore's major principal axis
 		auto eigenvalue = labelGeometryImageFilter->GetEigenvalues(labelValue);
 		auto maxEigenvalue = std::max_element( std::begin( eigenvalue ), std::end( eigenvalue ) );
-		int maxEigenvaluePos = std::distance( std::begin( eigenvalue ), maxEigenvalue );
+		auto maxEigenvaluePos = std::distance( std::begin( eigenvalue ), maxEigenvalue );
 
 		std::vector<double> eigenvector(3);
 		eigenvector[0] = labelGeometryImageFilter->GetEigenvectors( labelValue )[0][maxEigenvaluePos];
@@ -205,9 +205,9 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 		}
 		double majorlength = labelGeometryImageFilter->GetMajorAxisLength( labelValue );
 		double minorlength = labelGeometryImageFilter->GetMinorAxisLength( labelValue );
-		int dimX = std::abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[0] - labelGeometryImageFilter->GetBoundingBox( labelValue )[1] ) + 1;
-		int dimY = std::abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[2] - labelGeometryImageFilter->GetBoundingBox( labelValue )[3] ) + 1;
-		int dimZ = std::abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[4] - labelGeometryImageFilter->GetBoundingBox( labelValue )[5] ) + 1;
+		auto dimX = std::abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[0] - labelGeometryImageFilter->GetBoundingBox( labelValue )[1] ) + 1;
+		auto dimY = std::abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[2] - labelGeometryImageFilter->GetBoundingBox( labelValue )[3] ) + 1;
+		auto dimZ = std::abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[4] - labelGeometryImageFilter->GetBoundingBox( labelValue )[5] ) + 1;
 
 		// Calculation of other pore characteristics and writing the csv file
 		ShapeLabelObjectType *labelObject = labelMap->GetNthLabelObject( labelValue -1); // debug -1 delated	// labelMap index contaions first pore at 0

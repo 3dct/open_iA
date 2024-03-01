@@ -203,7 +203,7 @@ namespace iACompVisOptions
 
 	QString getLabel(QString input)
 	{
-		int ind = input.lastIndexOf('/');
+		auto ind = input.lastIndexOf('/');
 		QString newLow = input.mid(ind+1,input.size());
 
 		QString result = newLow.replace(".csv", "");

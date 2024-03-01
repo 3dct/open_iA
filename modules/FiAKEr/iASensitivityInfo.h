@@ -117,7 +117,7 @@ private slots:
 	void spPointHighlighted(size_t resultIdx, bool state);
 	void spVisibleParamChanged();
 	void parResultSelected(size_t resultIdx, Qt::KeyboardModifiers modifiers);
-	void setSpatialOverviewTF(int dataSetIdx);
+	void setSpatialOverviewTF(size_t dataSetIdx);
 	void spatialOverviewVisibilityChanged(bool visible);
 	void setSPParameterColorMap(QString const& colorMapName);
 };

@@ -100,7 +100,7 @@ std::shared_ptr<iAParamHistogramData> iAParamHistogramData::create(iAImageTreeNo
 	iAValueType rangeType,
 	double min, double max, bool log,
 	iAChartAttributeMapper const & chartAttrMap,
-	int numBin)
+	size_t numBin)
 {
 	auto result = std::make_shared<iAParamHistogramData>(numBin, min, max, log, rangeType);
 	visitNode(tree, result, chartID, chartAttrMap);
@@ -113,7 +113,7 @@ std::shared_ptr<iAParamHistogramData> iAParamHistogramData::create(iAImageTreeNo
 	double min, double max, bool log,
 	iAChartAttributeMapper const & chartAttrMap,
 	iAChartFilter const & attributeFilter,
-	int numBin)
+	size_t numBin)
 {
 	auto result = std::make_shared<iAParamHistogramData>(numBin, min, max, log, rangeType);
 	visitNode(tree, result, chartID, chartAttrMap, attributeFilter);

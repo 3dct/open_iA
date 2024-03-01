@@ -2434,7 +2434,7 @@ void iAFiAKErController::refDistAvailable()
 	}
 	m_data->spmData->updateRanges(changedSpmColumns);
 	m_referenceID = m_refDistCompute->referenceID();
-	m_spnboxReferenceCount->setMaximum(std::min(iARefDistCompute::MaxNumberOfCloseFibers, static_cast<int>(m_data->result[m_referenceID].fiberCount)));
+	m_spnboxReferenceCount->setMaximum(std::min(iARefDistCompute::MaxNumberOfCloseFibers, static_cast<iARefDistCompute::ContainerSizeType>(m_data->result[m_referenceID].fiberCount)));
 	std::vector<char> v(m_data->spmData->numParams(), false);
 	v[0] = v[1] = v[2] = true;
 	m_spm->setData(m_data->spmData, v);
@@ -2566,7 +2566,7 @@ void iAFiAKErController::changeReferenceDisplay()
 	size_t similarityMeasure =
 		clamp(0, static_cast<int>(m_data->m_measures.size()), m_settingsView->cmbboxSimilarityMeasure->currentIndex());
 	bool showRef = m_chkboxShowReference->isChecked();
-	int refCount = std::min(iARefDistCompute::MaxNumberOfCloseFibers, m_spnboxReferenceCount->value());
+	auto refCount = std::min(iARefDistCompute::MaxNumberOfCloseFibers, static_cast<iARefDistCompute::ContainerSizeType>(m_spnboxReferenceCount->value()));
 
 	if (m_nearestRefObjActor)
 	{
@@ -2614,7 +2614,7 @@ void iAFiAKErController::changeReferenceDisplay()
 		for (size_t fiberIdx = 0; fiberIdx < m_selection[resultID].size(); ++fiberIdx)
 		{
 			size_t fiberID = m_selection[resultID][fiberIdx];
-			for (int n=0; n<refCount; ++n)
+			for (qsizetype n=0; n<refCount; ++n)
 			{
 				referenceIDsToShow.push_back(m_data->result[resultID].refDiffFiber[fiberID].dist[similarityMeasure][n]);
 			}

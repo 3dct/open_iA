@@ -12,7 +12,7 @@
 #include <QFile>
 #include <QTextStream>
 
-AttributeHistogram::AttributeHistogram(int numBins) :
+AttributeHistogram::AttributeHistogram(size_t numBins) :
 	data(new int[numBins])
 {
 	std::fill(data, data + numBins, 0);
@@ -25,7 +25,7 @@ AttributeHistogram::~AttributeHistogram()
 
 
 void AddClusterData(AttributeHistogram & hist,
-	iAImageTreeNode const * node, int chartID, iAClusterAttribChart* chart, int numBin,
+	iAImageTreeNode const * node, int chartID, iAClusterAttribChart* chart, size_t numBin,
 	iAChartAttributeMapper const & chartAttrMap)
 {
 	VisitLeafs(node, [&](iAImageTreeLeaf const* leaf)
@@ -36,14 +36,14 @@ void AddClusterData(AttributeHistogram & hist,
 		}
 		int attributeID = chartAttrMap.GetAttributeID(chartID, leaf->GetDatasetID());
 		double value = leaf->GetAttribute(attributeID);
-		int bin = clamp(0, numBin - 1, static_cast<int>(chart->mapValueToBin(value)));
+		auto bin = clamp(static_cast<size_t>(0), numBin - 1, static_cast<size_t>(chart->mapValueToBin(value)));
 		hist.data[bin]++;
 	});
 }
 
 // re-use existing histograms?
 void GetHistData(AttributeHistogram & hist,
-	int chartID, iAClusterAttribChart* chart, QVector<iAImageTreeNode const *> const & nodes, int numBin,
+	int chartID, iAClusterAttribChart* chart, QVector<iAImageTreeNode const *> const & nodes, size_t numBin,
 	iAChartAttributeMapper const & chartAttrMap)
 {
 	for (int l = 0; l < nodes.size(); ++l)

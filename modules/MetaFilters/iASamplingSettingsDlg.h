@@ -34,7 +34,7 @@ class MetaFilters_API iASamplingSettingsDlg : public QDialog
 {
 	Q_OBJECT
 public:
-	iASamplingSettingsDlg(QWidget* parentWdgt, int inputImageCount,
+	iASamplingSettingsDlg(QWidget* parentWdgt, size_t inputImageCount,
 		QVariantMap const & values);
 	std::shared_ptr<iAAttributes> parameterRanges();
 	std::shared_ptr<iAAttributes> parameterSpecs();
@@ -67,7 +67,7 @@ private:
 	void updateActualNumSamples();
 
 	int m_startLine;
-	int m_inputImageCount;
+	size_t m_inputImageCount;
 	QString m_lastParamsFileName, m_lastFilterName;
 	QVector<std::shared_ptr<iAParameterInputs> > m_paramInputs;
 	iAWidgetMap m_widgetMap;

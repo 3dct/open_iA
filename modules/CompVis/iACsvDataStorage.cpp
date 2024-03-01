@@ -119,7 +119,7 @@ void iACsvDataStorage::storeCSVToVectorArray(QList<QStringList>* list, int heade
 
 	customizeCSVFile(list, headerLineNumber);
 	initializeHeader(list, file.header, headerLineNumber);
-	initializeValueArray(list, file.header->size(), file.values);
+	initializeValueArray(list, static_cast<int>(file.header->size()), file.values);
 
 	m_data->append(file);
 }
@@ -150,8 +150,8 @@ void iACsvDataStorage::initializeHeader(QList<QStringList>* list, QStringList* h
 void iACsvDataStorage::initializeValueArray(
 	QList<QStringList>* list, int const attrCount, csvDataType::ArrayType* values)
 {
-	int colNumber = list->at(0).size();
-	int rowNumber = list->size();
+	int colNumber = static_cast<int>(list->at(0).size());
+	int rowNumber = static_cast<int>(list->size());
 
 	if (colNumber == 1)
 	{
@@ -270,10 +270,10 @@ void iACsvDataStorage::setMDSData(csvDataType::ArrayType* mdsData)
 /*********************** csvFileData methods ******************************************/
 std::vector<int>* csvFileData::getAmountObjectsEveryDataset(QList<csvFileData>* data)
 {
-	int amountDatasets = data->size();
+	auto amountDatasets = data->size();
 	std::vector<int>* result = new std::vector<int>(amountDatasets);
 
-	for (int i = 0; i < amountDatasets; i++)
+	for (qsizetype i = 0; i < amountDatasets; i++)
 	{
 		result->at(i) = static_cast<int>(data->at(i).values->size());
 	}
@@ -489,7 +489,7 @@ void csvDataType::debugArrayType(ArrayType* input)
 			{
 				number += ".000000";
 			}
-			int pos = number.lastIndexOf(QChar('.'));
+			auto pos = number.lastIndexOf(QChar('.'));
 			output += number.left(pos + 7) + ", ";
 		}
 

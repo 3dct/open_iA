@@ -262,8 +262,8 @@ std::vector<size_t> dlg_FeatureScout::getPCSelection()
 {
 	std::vector<size_t> selectedIndices;
 	auto pcSelection = m_pcChart->GetPlot(0)->GetSelection();
-	int countSelection = pcSelection->GetNumberOfValues();
-	for (int idx = 0; idx < countSelection; ++idx)
+	vtkIdType countSelection = pcSelection->GetNumberOfValues();
+	for (vtkIdType idx = 0; idx < countSelection; ++idx)
 	{
 		size_t objID = pcSelection->GetVariantValue(idx).ToUnsignedLongLong();
 		selectedIndices.push_back(objID);
@@ -323,7 +323,7 @@ void dlg_FeatureScout::updateVisibility(QStandardItem* item)
 
 void dlg_FeatureScout::spParameterVisibilityChanged(size_t paramIndex, bool enabled)
 {
-	m_elementTableModel->item(paramIndex, 0)->setCheckState(enabled ? Qt::Checked : Qt::Unchecked);
+	m_elementTableModel->item(static_cast<int>(paramIndex), 0)->setCheckState(enabled ? Qt::Checked : Qt::Unchecked);
 	// itemChanged signal from elementTableModel takes care about updating PC (see updatePCColumnValues slot)
 }
 
@@ -975,7 +975,7 @@ void dlg_FeatureScout::renderLengthDistribution()
 void dlg_FeatureScout::ClassAddButton()
 {
 	vtkIdTypeArray* pcSelection = m_pcChart->GetPlot(0)->GetSelection();
-	int CountObject = pcSelection->GetNumberOfTuples();
+	auto CountObject = pcSelection->GetNumberOfTuples();
 	if (CountObject <= 0)
 	{
 		QMessageBox::warning(this, "FeatureScout", "No object was selected!");
@@ -1978,7 +1978,7 @@ void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const& selInds)
 
 void dlg_FeatureScout::setPCSelection(std::vector<size_t> const& sortedSelInds)
 {
-	int countSelection = sortedSelInds.size();
+	auto countSelection = sortedSelInds.size();
 	auto vtk_selInd = vtkSmartPointer<vtkIdTypeArray>::New();
 	vtk_selInd->Allocate(countSelection);
 	vtk_selInd->SetNumberOfValues(countSelection);
@@ -2474,9 +2474,9 @@ void dlg_FeatureScout::recalculateChartTable(QStandardItem* item)
 
 void dlg_FeatureScout::updateLookupTable(double alpha)
 {
-	int lutNum = m_colorList.size();
+	auto lutNum = m_colorList.size();
 	m_multiClassLUT->SetNumberOfTableValues(lutNum);
-	for (int i = 0; i < lutNum; ++i)
+	for (vtkIdType i = 0; i < lutNum; ++i)
 	{
 		m_multiClassLUT->SetTableValue(i,
 			m_colorList.at(i).red() / 255.0,
@@ -2676,7 +2676,7 @@ int dlg_FeatureScout::calcOrientationProbability(vtkTable* t, vtkTable* ot)
 	ot->Initialize();
 	int maxF = 0;
 	double fp, ft;
-	int ip, it, tt, length;
+	int ip, it, tt;
 
 	for (int i = 0; i < m_gThe; ++i)
 	{
@@ -2689,9 +2689,9 @@ int dlg_FeatureScout::calcOrientationProbability(vtkTable* t, vtkTable* ot)
 		}
 	}
 
-	length = t->GetNumberOfRows();
+	auto length = t->GetNumberOfRows();
 
-	for (int k = 0; k < length; ++k)
+	for (vtkIdType k = 0; k < length; ++k)
 	{
 		fp = t->GetValue(k, m_columnMapping->value(iACsvConfig::Phi)).ToDouble() / m_PolarPlotPhiResolution;
 		ft = t->GetValue(k, m_columnMapping->value(iACsvConfig::Theta)).ToDouble() / m_PolarPlotThetaResolution;
@@ -2751,9 +2751,9 @@ void dlg_FeatureScout::drawAnnotations(vtkRenderer* renderer)
 	}
 
 	// annotation for theta
+	constexpr double phi = 270.0 * vtkMath::Pi() / 180.0;
 	for (vtkIdType i = 12; i < numPoints; ++i)
 	{
-		double phi = 270.0 * vtkMath::Pi() / 180.0;
 		double rx = (numPoints - i) * 15.0;
 		x[0] = rx * std::cos(phi);
 		x[1] = rx * std::sin(phi);
@@ -2783,17 +2783,15 @@ void dlg_FeatureScout::drawPolarPlotMesh(vtkRenderer* renderer)
 {
 	auto actor = vtkSmartPointer<vtkActor>::New();
 
-	double xx, yy;
-	double re = 15.0;
-	int ap = 25;
-	int at = 7;
+	const double re = 15.0;
+	const int ap = 25;
+	const int at = 7;
 
 	auto sGrid = vtkSmartPointer<vtkStructuredGrid>::New();
 	sGrid->SetDimensions(at, ap, 1);
-	int anzP = sGrid->GetNumberOfPoints();
 
 	auto points = vtkSmartPointer<vtkPoints>::New();
-	points->Allocate(anzP);
+	points->Allocate(sGrid->GetNumberOfPoints());
 
 	for (int i = 0; i < ap; ++i)
 	{
@@ -2802,8 +2800,8 @@ void dlg_FeatureScout::drawPolarPlotMesh(vtkRenderer* renderer)
 		for (int j = 0; j < at; ++j)
 		{
 			double rx = j * re;
-			xx = rx * std::cos(phi);
-			yy = rx * std::sin(phi);
+			double xx = rx * std::cos(phi);
+			double yy = rx * std::sin(phi);
 			points->InsertNextPoint(xx, yy, 0.0);
 		}
 	}
@@ -3056,7 +3054,7 @@ void dlg_FeatureScout::SaveBlobMovie()
 	}
 	auto values = dlg.parameterValues();
 	QString mode = values["Rotation mode"].toString();
-	int imode = modes.indexOf(mode);
+	auto imode = static_cast<int>(modes.indexOf(mode));
 	m_blobManager->SetShowBlob(values["Blob body:"].toBool());
 	m_blobManager->SetSilhouettes(values["Silhouettes:"].toBool());
 	m_blobManager->SetLabeling(values["3D labels:"].toBool());
@@ -3142,10 +3140,9 @@ void dlg_FeatureScout::loadProject(QSettings const & projectFile)
 
 void dlg_FeatureScout::updateAxisProperties()
 {
-	int axis_count = m_pcChart->GetNumberOfAxes();
 	m_pcTickCount = (m_pcTickCount < PCMinTicksCount) ? PCMinTicksCount : m_pcTickCount;
 	int visibleColIdx = 0;
-	for (int i = 0; i < axis_count; i++)
+	for (int i = 0; i < static_cast<int>(m_pcChart->GetNumberOfAxes()); i++)
 	{
 		while (!m_columnVisibility[visibleColIdx])
 		{

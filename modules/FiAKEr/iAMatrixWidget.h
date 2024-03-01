@@ -152,8 +152,8 @@ private:
 			// draw y axis line:
 			p.drawLine(axisPos, axisSize, axisPos, axisSize + matrixRect.height());
 
-			const size_t NoRangeStart = std::numeric_limits<size_t>::max();
-			const double NoValue = std::numeric_limits<double>::infinity();
+			constexpr size_t NoRangeStart = std::numeric_limits<size_t>::max();
+			constexpr double NoValue = std::numeric_limits<double>::infinity();
 			double prevValue = NoValue;
 			size_t rangeStart = NoRangeStart;
 			auto const& pv = m_paramValues[m_sortParam];

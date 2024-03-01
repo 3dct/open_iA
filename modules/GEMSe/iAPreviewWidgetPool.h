@@ -29,7 +29,7 @@ public:
 	//! update all views
 	void updateViews();
 	//! retrieve the number of currently available widgets
-	int capacity();
+	qsizetype capacity();
 	void setColorTheme(iAColorTheme const * colorTheme);
 private:
 	QVector<iAImagePreviewWidget*> m_pool;

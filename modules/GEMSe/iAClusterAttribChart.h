@@ -47,7 +47,7 @@ private slots:
 	void SelectionChanged();
 private:
 	void SetAdditionalDrawer(std::shared_ptr<iAPlot>& drawer, std::shared_ptr<iAPlot> newDrawer);
-	QColor GetClusterColor(int nr) const;
+	QColor GetClusterColor(qsizetype nr) const;
 
 	iAFilterChart*  m_charts;
 	QCheckBox*     m_checkbox;

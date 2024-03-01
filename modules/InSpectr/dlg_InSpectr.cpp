@@ -530,7 +530,7 @@ void dlg_InSpectr::updateFunctionalBoxplot(int show)
 	if (show)
 	{
 		m_functionalBoxplotImage = drawFunctionalBoxplot(m_accumulatedXRF->functionalBoxPlot(),
-			m_xrfData->size(),
+			static_cast<int>(m_xrfData->size()),
 			m_accumulatedXRF->yBounds()[1]);
 		m_spectrumDiagram->addImageOverlay(m_functionalBoxplotImage);
 	}
@@ -634,7 +634,7 @@ void dlg_InSpectr::decomposeElements()
 	m_decomposeSelectedElements.clear();
 	iAJobListView::get()->addJob("Computing elemental decomposition",
 		m_decompositionCalculator->progress(), m_decompositionCalculator.get());
-	for (size_t i=0; i<m_refSpectraLib->spectra.size(); ++i)
+	for (int i=0; i<static_cast<int>(m_refSpectraLib->spectra.size()); ++i)
 	{
 		if (m_refSpectraLib->getItemModel()->item(i)->checkState() == Qt::Checked)
 		{
@@ -642,7 +642,7 @@ void dlg_InSpectr::decomposeElements()
 			m_decompositionCalculator->AddElement(&m_refSpectraLib->spectra[i]);
 		}
 	}
-	if (m_decompositionCalculator->ElementCount() == 0)
+	if (m_decompositionCalculator->NoElements())
 	{
 		m_decompositionCalculator.reset();
 		LOG(lvlWarn, tr("You have to select at least one element from the reference spectra list!"));
@@ -784,7 +784,7 @@ void dlg_InSpectr::combinedElementMaps(int show)
 	}
 
 	m_enabledChannels = 0;
-	for (size_t i=0; i < m_refSpectraLib->spectra.size() &&
+	for (int i=0; i < static_cast<int>(m_refSpectraLib->spectra.size()) &&
 		m_enabledChannels < iAChannelData::Maximum3DChannels;
 		++i)
 	{
@@ -941,7 +941,7 @@ void dlg_InSpectr::showLinkedElementMaps( int show )
 	}
 
 	bool isFirst = true;
-	for (size_t i=0; i<m_refSpectraLib->spectra.size(); ++i)
+	for (int i=0; i<static_cast<int>(m_refSpectraLib->spectra.size()); ++i)
 	{
 		if (m_refSpectraLib->getItemModel()->item(i)->checkState() != Qt::Checked ||
 			m_decomposeSelectedElements.indexOf(i) == -1)
@@ -963,7 +963,7 @@ void dlg_InSpectr::showLinkedElementMaps( int show )
 	}
 }
 
-void dlg_InSpectr::InitElementRenderer( dlg_elementRenderer * elemRend, size_t index )
+void dlg_InSpectr::InitElementRenderer( dlg_elementRenderer * elemRend, int index )
 {
 	//Derive data needed for visualization
 	vtkSmartPointer<vtkImageData> chImgData = m_elementConcentrations->getImage(m_decomposeSelectedElements.indexOf(index));
@@ -1028,7 +1028,7 @@ void dlg_InSpectr::showRefSpectraChanged( int show )
 	{
 		RemoveReferenceSpectrum(GetModelIdx(m_periodicTable->GetCurrentElement()));
 	}
-	for (size_t i=0; i<m_refSpectraLib->spectra.size(); ++i)
+	for (int i=0; i<static_cast<int>(m_refSpectraLib->spectra.size()); ++i)
 	{
 		if (m_refSpectraLib->getItemModel()->item(i)->checkState() == Qt::Checked)
 		{
@@ -1238,9 +1238,9 @@ void dlg_InSpectr::updateDecompositionGUI( QStringList elementsNames )
 
 	size_t colorIdx = 0;
 	iAColorTheme const * theme = iAColorThemeManager::instance().theme( "Brewer Set1 (max. 9)" );
-	for ( size_t i = 0; i < m_refSpectraLib->spectra.size(); ++i )
+	for ( int i = 0; i < static_cast<int>(m_refSpectraLib->spectra.size()); ++i )
 	{
-		int pos = elementsNames.indexOf( m_refSpectraLib->spectra[i].name() );
+		auto pos = elementsNames.indexOf( m_refSpectraLib->spectra[i].name() );
 		if ( pos != -1 )
 		{
 			m_decomposeSelectedElements[pos] = i;
@@ -1361,7 +1361,7 @@ int dlg_InSpectr::GetModelIdx(int elemIdx) const
 
 int dlg_InSpectr::GetModelIdx(QString const & symbol) const
 {
-	for (size_t i=0; i<m_refSpectraLib->spectra.size(); ++i)
+	for (int i=0; i<static_cast<int>(m_refSpectraLib->spectra.size()); ++i)
 	{
 		if (m_refSpectraLib->spectra[i].GetSymbol() == symbol)
 		{

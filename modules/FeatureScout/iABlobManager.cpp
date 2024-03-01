@@ -204,10 +204,11 @@ QList<iABlobCluster*>* iABlobManager::GetListObBlobClusters( void )
 
 bool iABlobManager::SmartOverlapping( void )
 {
-	int size = m_blobsList.count();
-
-	if ( size == 0 )
+	auto size = m_blobsList.count();
+	if (size == 0)
+	{
 		return false;
+	}
 
 	// we propose that all blobs have same data type
 	int extent[6];
@@ -219,12 +220,13 @@ bool iABlobManager::SmartOverlapping( void )
 	// 	}
 	//GaussianBlurMask ();
 
-
-	for ( int i = 0; i < size; i++ )
+	for (qsizetype i = 0; i < size; i++)
+	{
 		m_blobsList[i]->GaussianBlur();
+	}
 
 	//smart separation
-	const double infinity = std::numeric_limits<double>::max(); //m_range + 10;
+	constexpr double infinity = std::numeric_limits<double>::max(); //m_range + 10;
 	if ( size > 1 )
 	{
 		for ( int x = extent[0]; x <= extent[1]; x++ )
