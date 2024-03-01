@@ -213,12 +213,12 @@ void iASpatialView::SlicerModeButtonClicked(bool /*checked*/)
 	{
 		return;
 	}
+	m_curMode = static_cast<iASlicerMode>(modeIdx);
 	for (int id : m_guiElements.keys())
 	{
-		m_guiElements[id].imageWidget->SetMode(modeIdx);
+		m_guiElements[id].imageWidget->SetMode(m_curMode);
 		m_sliceControl->setMaximum(m_guiElements[id].imageWidget->GetSliceCount() - 1);
 	}
-	m_curMode = modeIdx;
 }
 
 

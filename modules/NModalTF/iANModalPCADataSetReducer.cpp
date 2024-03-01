@@ -140,8 +140,8 @@ void DebugLogVector(vnl_vector<double> const & vector, QString const & string)
 	LOG(lvlDebug, str);
 }
 #else
-void DebugLogMatrix(vnl_matrix<double> const & matrix, QString const & string) {}
-void DebugLogVector(vnl_vector<double> const& vector, QString const& string) {}
+void DebugLogMatrix(vnl_matrix<double> const& /*matrix*/, QString const& /*string*/) {}
+void DebugLogVector(vnl_vector<double> const& /*vector*/, QString const& /*string*/) {}
 #endif
 
 template <class T>

@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#include <iASlicerMode.h>
+
 #include <vtkSmartPointer.h>
 
 #include <QWidget>
@@ -16,7 +18,7 @@ class iAImageWidget: public QWidget
 public:
 	iAImageWidget(vtkSmartPointer<vtkImageData> img, vtkSmartPointer<vtkScalarsToColors> lut);
 	void StyleChanged();
-	void SetMode(int slicerMode);
+	void SetMode(iASlicerMode slicerMode);
 	void SetSlice(int sliceNumber);
 	int GetSliceCount() const;
 	iASlicer* GetSlicer();
