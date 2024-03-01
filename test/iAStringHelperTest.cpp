@@ -105,10 +105,10 @@ BEGIN_TEST
 	TestEqual(QString("0.5, 1.222, 5, 3.33443"), joinNumbersAsString(vecDbl, ", "));
 	TestEqual(QString("0.5,1.2,5,3.3"), joinAsString(vecDbl, ",", [](double v) { return QString::number(v, 'g', 2);  }));
 
-	TestEqual(0, greatestCommonPrefixLength("", "TEST"));
-	TestEqual(0, greatestCommonPrefixLength("TEST", ""));
-	TestEqual(0, greatestCommonPrefixLength("TEST", "test"));
-	TestEqual(3, greatestCommonPrefixLength("abcDEFGHIJ", "abcdeFGHIJ"));
-	TestEqual(5, greatestCommonSuffixLength("abcDEFGHIJ", "abcdeFGHIJ"));
-	TestEqual(4, greatestCommonPrefixLength("TEST", "TEST"));
+	TestEqual(0ll, greatestCommonPrefixLength("", "TEST"));
+	TestEqual(0ll, greatestCommonPrefixLength("TEST", ""));
+	TestEqual(0ll, greatestCommonPrefixLength("TEST", "test"));
+	TestEqual(3ll, greatestCommonPrefixLength("abcDEFGHIJ", "abcdeFGHIJ"));
+	TestEqual(5ll, greatestCommonSuffixLength("abcDEFGHIJ", "abcdeFGHIJ"));
+	TestEqual(4ll, greatestCommonPrefixLength("TEST", "TEST"));
 END_TEST
