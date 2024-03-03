@@ -36,7 +36,7 @@ public:
 	void SetSpanValues(double minValue, double maxValue);
 	void ResetSpan();
 	double mapValueToBin(double value) const;
-	void SetBinColor(int bin, QColor const & color);
+	void SetBinColor(size_t bin, QColor const& color);
 	void UpdateChart();
 	void ResetMaxYAxisValue();
 signals:

@@ -317,7 +317,7 @@ void iAHistogramContainer::UpdateAttributeRangeAttitude()
 		AttributeHistogram hateHist(numBin);
 		GetHistData(hateHist, chartID, m_charts[chartID], hates, numBin, m_chartAttributeMapper);
 
-		for (int b = 0; b < numBin; ++b)
+		for (size_t b = 0; b < numBin; ++b)
 		{
 			QColor color(0, 0, 0, 0);
 			double attitude = (likeHist.data[b] + hateHist.data[b]) == 0 ? 0 :

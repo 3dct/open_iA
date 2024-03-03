@@ -179,7 +179,7 @@ double iAClusterAttribChart::mapValueToBin(double value) const
 	return m_charts->mapValueToBin(value);
 }
 
-void iAClusterAttribChart::SetBinColor(int bin, QColor const & color)
+void iAClusterAttribChart::SetBinColor(size_t bin, QColor const& color)
 {
 	m_charts->SetBinColor(bin, color);
 }
