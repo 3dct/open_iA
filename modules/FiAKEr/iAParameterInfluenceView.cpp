@@ -898,12 +898,12 @@ void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 		m_table[rowIdx]->par.remove(barIdx);
 		delete pw;
 		auto paramName = m_data->m_paramNames[m_data->m_variedParams[m_sort[rowIdx]]];
-		auto newNumBars = static_cast<qsizetype>(m_table[rowIdx]->bars->numberOfBars());
+		auto newNumBars = static_cast<int>(m_table[rowIdx]->bars->numberOfBars());
 		if (newNumBars > 0)
 		{
 			//m_table[rowIdx]->out[0]->setYCaption("Var. from " + paramName);  // to make sure if first chart is removed that new first gets caption
 			//m_table[rowIdx]->par[0]->setYCaption("Sensitivity"/*" + m_table[rowIdx]->bars->barName(0)*/);
-			for (qsizetype i = barIdx; i < newNumBars; ++i)
+			for (int i = barIdx; i < newNumBars; ++i)
 			{  // addWidget automatically removes it from position where it was before
 				m_paramListLayout->addWidget(
 					m_table[rowIdx]->out[i], 1 + RowsPerParam * rowIdx + RowOutputChart, colStackedBar + i);

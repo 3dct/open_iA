@@ -2434,7 +2434,8 @@ void iAFiAKErController::refDistAvailable()
 	}
 	m_data->spmData->updateRanges(changedSpmColumns);
 	m_referenceID = m_refDistCompute->referenceID();
-	m_spnboxReferenceCount->setMaximum(std::min(iARefDistCompute::MaxNumberOfCloseFibers, static_cast<iARefDistCompute::ContainerSizeType>(m_data->result[m_referenceID].fiberCount)));
+	m_spnboxReferenceCount->setMaximum(std::min(static_cast<int>(iARefDistCompute::MaxNumberOfCloseFibers),
+		static_cast<int>(m_data->result[m_referenceID].fiberCount)));
 	std::vector<char> v(m_data->spmData->numParams(), false);
 	v[0] = v[1] = v[2] = true;
 	m_spm->setData(m_data->spmData, v);
