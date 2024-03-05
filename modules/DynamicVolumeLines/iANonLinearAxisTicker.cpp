@@ -40,7 +40,7 @@ QVector<double> iANonLinearAxisTicker::createSubTickVector(int subTickCount,
 	Q_UNUSED(subTickCount)
 	QVector<double> result;
 	auto start = std::lower_bound(m_tickVector.begin(), m_tickVector.end(), ticks.first());
-	int startIdx = start - m_tickVector.begin();
+	auto startIdx = start - m_tickVector.begin();
 	auto end = std::lower_bound(m_tickVector.begin(), m_tickVector.end(), ticks.last());
 	auto endIdx = end - m_tickVector.begin();
 	qsizetype indicesAfterLastMajorTick = 0;

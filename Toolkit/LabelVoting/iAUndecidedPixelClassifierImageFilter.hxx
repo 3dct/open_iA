@@ -111,7 +111,7 @@ void iAUndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedG
 		probIt.push_back(std::vector<DblConstNeighborIt>());
 		for (size_t l = 0; l < m_labelCount; ++l)
 		{
-			probIt[i].push_back(DblConstNeighborIt(m_radius, m_probImgs[i][l], outputRegionForThread));
+			probIt[i].push_back(DblConstNeighborIt(m_radius, m_probImgs[static_cast<int>(i)][l], outputRegionForThread));
 			probIt[i][l].GoToBegin();
 		}
 	}

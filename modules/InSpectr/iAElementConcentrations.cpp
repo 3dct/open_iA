@@ -58,7 +58,7 @@ iAElementConcentrations::ImageListType& iAElementConcentrations::getImageList()
 }
 
 
-iAElementConcentrations::ImagePointerType iAElementConcentrations::getImage(int idx)
+iAElementConcentrations::ImagePointerType iAElementConcentrations::getImage(size_t idx)
 {
 	return m_ElementConcentration[idx];
 }

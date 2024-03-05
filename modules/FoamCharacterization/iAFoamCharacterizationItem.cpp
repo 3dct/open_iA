@@ -98,7 +98,7 @@ QString iAFoamCharacterizationItem::fileRead(QFile* _pFileOpen)
 
 void iAFoamCharacterizationItem::fileWrite(QFile* _pFileSave, const QString& _sText)
 {
-	const int iText(_sText.length());
+	const int iText(static_cast<int>(_sText.length()));
 	_pFileSave->write((char*)&iText, sizeof(iText));
 
 	_pFileSave->write((char*)_sText.toStdString().c_str(), iText);

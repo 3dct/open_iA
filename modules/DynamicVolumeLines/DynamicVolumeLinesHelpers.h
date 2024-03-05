@@ -69,7 +69,7 @@ inline void updateLegendAndGraphVisibility(QCPPlottableLegendItem *ptliU, QCusto
 	plotP->graph(legendPItemIdx)->setVisible(visibility);
 }
 
-inline QPen getDatasetPen(int datasetIdx, int datasetCnt, int penWidth, QString themeName)
+inline QPen getDatasetPen(qsizetype datasetIdx, qsizetype datasetCnt, int penWidth, QString themeName)
 {
 	auto theme = iAColorThemeManager::instance().theme(themeName);
 	QPen datasetPen; datasetPen.setWidth(penWidth);

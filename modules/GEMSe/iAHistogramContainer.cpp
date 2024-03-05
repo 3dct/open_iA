@@ -86,8 +86,8 @@ void iAHistogramContainer::CreateCharts()
 		//		- square root of number of values (https://en.wikipedia.org/wiki/Histogram#Number_of_bins_and_width)
 		//      - adapting to width of histogram?
 		//      - if discrete or categorical values: limit by range
-		size_t maxBin = std::min(static_cast<size_t>(std::sqrt(m_root->GetClusterSize())), HistogramBinCount);
-		int numBin = (attrib->min() == attrib->max()) ? 1 :
+		auto maxBin = std::min(static_cast<size_t>(std::sqrt(m_root->GetClusterSize())), HistogramBinCount);
+		auto numBin = (attrib->min() == attrib->max()) ? 1 :
 			(attrib->valueType() == iAValueType::Discrete || attrib->valueType() == iAValueType::Categorical) ?
 			std::min(static_cast<size_t>(attrib->max() - attrib->min() + 1), maxBin) :
 			maxBin;

@@ -674,7 +674,7 @@ void dlg_DynamicVolumeLines::generateSegmentTree()
 		//TODO: refactoring -> move to helper class (also see sync functions above)
 		auto lower = std::lower_bound(m_nonlinearMappingVec.begin(),
 			m_nonlinearMappingVec.end(), (xBinNumber - 1)*m_stepSize);
-		int nonlinearLowerIdx = lower - m_nonlinearMappingVec.begin() - 1;
+		auto nonlinearLowerIdx = lower - m_nonlinearMappingVec.begin() - 1;
 		if (nonlinearLowerIdx < 0)
 		{
 			nonlinearLowerIdx = 0.0;
@@ -689,7 +689,7 @@ void dlg_DynamicVolumeLines::generateSegmentTree()
 		}
 		auto upper = std::lower_bound(m_nonlinearMappingVec.begin(),
 			m_nonlinearMappingVec.end(), xBinNumber*m_stepSize);
-		int nonlinearUpperIdx = upper - m_nonlinearMappingVec.begin();
+		auto nonlinearUpperIdx = upper - m_nonlinearMappingVec.begin();
 		double upperDistToNextPoint = 0.0, upperDistToCurrPoint = 0.0;
 		if (nonlinearUpperIdx < m_nonlinearMappingVec.size())
 		{
@@ -709,7 +709,7 @@ void dlg_DynamicVolumeLines::generateSegmentTree()
 		int linearUpperIdx = std::floor(linearUpperDbl);
 
 		double sum = 0.0, avg = 0.0;
-		for (int i = nonlinearLowerIdx; i <= nonlinearUpperIdx; ++i)
+		for (qsizetype i = nonlinearLowerIdx; i <= nonlinearUpperIdx; ++i)
 		{
 			sum += m_impFunctVec[i];
 		}
@@ -1176,7 +1176,7 @@ void dlg_DynamicVolumeLines::mouseMove(QMouseEvent* e)
 		distList.append(plot->graph(i)->selectTest(QPoint(e->pos().x(), e->pos().y()), true));
 	}
 	auto minDist = std::min_element(distList.begin(), distList.end());
-	auto idx = minDist - distList.begin();
+	int idx = static_cast<int>(minDist - distList.begin());
 	auto x = plot->xAxis->pixelToCoord(e->pos().x());
 	auto y = plot->yAxis->pixelToCoord(e->pos().y());
 
@@ -1475,7 +1475,7 @@ void dlg_DynamicVolumeLines::setFBPTransparency(int value)
 {
 	double alpha = std::round(value * 255 / 100.0);
 	QPen p; QColor c; QBrush b;
-	for (auto i = m_DatasetIntensityMap.size(); i < m_nonlinearScaledPlot->graphCount(); ++i)
+	for (int i = static_cast<int>(m_DatasetIntensityMap.size()); i < m_nonlinearScaledPlot->graphCount(); ++i)
 	{
 		p = m_nonlinearScaledPlot->graph(i)->pen();
 		c = m_nonlinearScaledPlot->graph(i)->pen().color();

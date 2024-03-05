@@ -100,13 +100,13 @@ void iABlobManager::Update( void )
 	else
 	{
 		vtkPolyData ** blobs_pd;
-		const int blobCount = m_blobsList.count();
+		const auto blobCount = m_blobsList.count();
 		blobs_pd = new vtkPolyData*[blobCount];
 		m_appendedBlobsPD->RemoveAllInputs();
 		m_blobsLT->SetNumberOfTableValues( blobCount );
 		m_blobsLT->SetTableRange( 0, blobCount );
 		m_blobsLT->Build();
-		for ( int i = 0; i < blobCount; i++ )
+		for (qsizetype i = 0; i < blobCount; i++ )
 		{
 			m_blobsList[i]->Update();
 
@@ -133,7 +133,7 @@ void iABlobManager::Update( void )
 			unsigned char val;
 			for ( int cellInd = 0; cellInd < blobs_pd[i]->GetNumberOfPoints(); ++cellInd )
 			{
-				val = i;
+				val = static_cast<unsigned char>(i);
 				colIDs->InsertNextTypedTuple(&val);
 			}
 			blobs_pd[i]->GetPointData()->SetScalars( colIDs );

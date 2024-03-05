@@ -30,7 +30,7 @@ public:
 
 	ImageListType& getImageList();
 
-	ImagePointerType getImage(int idx);
+	ImagePointerType getImage(size_t idx);
 
 	VoxelConcentrationType getConcentrationForVoxel(int x, int y, int z);
 	VoxelConcentrationType const & getAvgConcentration();

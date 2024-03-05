@@ -407,7 +407,7 @@ void dlg_FeatureScout::setupModel()
 void dlg_FeatureScout::setupViews()
 {
 	// declare element table model
-	m_elementTableModel = new QStandardItemModel(m_elementCount - 1, 4, this);
+	m_elementTableModel = new QStandardItemModel(static_cast<int>(m_elementCount - 1), 4, this);
 	m_elementTable = vtkSmartPointer<vtkTable>::New();
 
 	//init Distribution View

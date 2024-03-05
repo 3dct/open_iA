@@ -1057,7 +1057,7 @@ void dlg_InSpectr::showRefLineChanged( int show )
 	}
 	for (size_t i=0; i<m_refSpectraLib->spectra.size(); ++i)
 	{
-		if (m_refSpectraLib->getItemModel()->item(i)->checkState() == Qt::Checked)
+		if (m_refSpectraLib->getItemModel()->item(static_cast<int>(i))->checkState() == Qt::Checked)
 		{
 			if(show)
 			{
