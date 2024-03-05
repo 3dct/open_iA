@@ -123,13 +123,11 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 	i2l->Update();
 
 	LabelMapType *labelMap = i2l->GetOutput();
-	typename LabelGeometryImageFilterType::LabelsType allLabels = labelGeometryImageFilter->GetLabels();
-	typename LabelGeometryImageFilterType::LabelsType::iterator allLabelsIt;
+	auto allLabels = labelGeometryImageFilter->GetLabels();
 
 	// Pore Characteristics calculation
-	for ( allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++ )
+	for (auto labelValue: allLabels)
 	{
-		typename LabelGeometryImageFilterType::LabelPixelType labelValue = *allLabelsIt;
 		if ( labelValue == 0 )	// label 0 = background
 		{
 			continue;
