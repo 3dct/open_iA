@@ -388,17 +388,8 @@ void iARendererImpl::setPlaneNormals(vtkTransform* tr)
 	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
 	{
 		auto normVec = slicerNormal(s);
-		LOG(lvlInfo, QString("Plane: origin: %1, %2, %3; normal: %4, %5, %6")
-		//	.arg(m_slicePlaneOrigin[s][0]).arg(m_slicePlaneOrigin[s][1]).arg(m_slicePlaneOrigin[s][2])
-			.arg(normVec[0]).arg(normVec[1]).arg(normVec[2]));
 		tr->TransformVector(normVec.data(), normVec.data());
-		//double transformedOrigin[3];
-		//tr->TransformVector(m_slicePlaneOrigin[s].data(), transformedOrigin);
-		LOG(lvlInfo, QString("Transformed: origin: %1, %2, %3; normal: %4, %5, %6")
-		//	.arg(transformedOrigin[0]).arg(transformedOrigin[1]).arg(transformedOrigin[2])
-			.arg(normVec[0]).arg(normVec[1]).arg(normVec[2]));
 		m_slicePlanes[s]->SetNormal(normVec.data());
-		//m_slicePlanes[s]->SetOrigin(transformedOrigin);
 		m_slicePlaneViews[s].actor->SetUserTransform(tr);
 	}
 	update();
