@@ -763,18 +763,6 @@ void iANModalController::updateMainSlicers()
 
 			Rgb combinedColor;
 			combineColors(colors, opacities, combinedColor);
-
-			/*unsigned char aaa = index % 2 == 0 ? 255 : 127;
-			switch(omp_get_thread_num()) {
-			case 0: combinedColor = { aaa, 0, 0 }; break;
-			case 1: combinedColor = { 0, aaa, 0 }; break;
-			case 2: combinedColor = { 0, 0, aaa }; break;
-			case 3: combinedColor = { aaa, aaa, 0 }; break;
-			case 4: combinedColor = { aaa, 0, aaa }; break;
-			case 5: combinedColor = { 0, aaa, aaa }; break;
-			case 6: combinedColor = { aaa, aaa, aaa }; break;
-			default: combinedColor = { 0, 0, 0 }; break;
-			}*/
 			setRgba(
 #ifdef iANModal_USE_GETSCALARPOINTER
 				ptr, id_rgba,
