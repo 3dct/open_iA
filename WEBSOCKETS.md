@@ -189,7 +189,7 @@ Change the rotation axis by setting one of the following values:
 - Y - 1
 - Z - 2
 
-|0x5|0x6|Object ID (64-Bit)|Axis (2-Bit)|Value (32-Bit)|
+|0x5|0x6|Object ID (64-Bit)|Axis (8-Bit)|Value (32-Bit)|
 |-|-|-|-|-|
 
 ## Snapshots
@@ -260,7 +260,7 @@ Client &rarr; Server
 OR  
 Server &rarr; Client
 
-|0x6|0x4|Snapshot ID (64-Bit)|Axis (2-Bit)|Value (32-Bit)|
+|0x6|0x4|Snapshot ID (64-Bit)|Axis (8-Bit)|Value (32-Bit)|
 |-|-|-|-|-|
 
 The server broadcasts the command to all clients in all cases.
@@ -281,9 +281,9 @@ The server broadcasts the command to all clients in all cases.
 |0x5|0x3|Object ID (64-Bit), X (32-Bit), Y (32-Bit), Z (32-Bit)|Object Translation|
 |0x5|0x4|Object ID (64-Bit), X (32-Bit), Y (32-Bit), Z (32-Bit)|Object Scale|
 |0x5|0x5|Object ID (64-Bit), X (32-Bit), Y (32-Bit), Z (32-Bit), W (32-Bit)|Object Rotation (Quaternion)|
-|0x5|0x6|Object ID (64-Bit), Axis (2-Bit), Value (32-Bit)|Object Rotation (Euler)|
+|0x5|0x6|Object ID (64-Bit), Axis (8-Bit), Value (32-Bit)|Object Rotation (Euler)|
 |0x6|0x0|Position XYZ (96-Bit), Rotation Quaternion XYZW (128-Bit)|Snapshot Creation (Client)|
 |0x6|0x0|Snapshot ID (64-Bit), Position XYZ (96-Bit), Rotation Quaternion XYZW (128-Bit)|Snapshot Creation (Server)|
 |0x6|0x2|Snapshot ID (64-Bit)|Snapshot Removal|
 |0x6|0x3||Clear Snapshots|
-|0x6|0x4|Snapshot ID (64-Bit), Axis (2-Bit), Value (32-Bit)|Snapshot Slice Position Edit|
+|0x6|0x4|Snapshot ID (64-Bit), Axis (8-Bit), Value (32-Bit)|Snapshot Slice Position Edit|
