@@ -196,7 +196,6 @@ private:
 			QRect colorBarRect(topLeft.x(), topLeft.y(),
 				scalarBarWidth, height() - 2 * scalarBarPadding);
 			QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y() + colorBarRect.height());
-			QMap<double, QColor>::iterator it;
 			for (size_t i = 0; i < m_lut.numberOfValues(); ++i)
 			{
 				double rgba[4];

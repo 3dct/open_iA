@@ -445,7 +445,7 @@ std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*>
 		vtkSmartPointer<vtkActor> currAct = m_originalRowActors->at(rowId);
 
 		//set dataIndex
-		std::map<vtkSmartPointer<vtkActor>, int>::iterator it = m_rowDataIndexPair->find(currAct);
+		auto it = m_rowDataIndexPair->find(currAct);
 		if (it == m_rowDataIndexPair->end())
 			continue;
 		int dataIndex = it->second;

@@ -1185,9 +1185,9 @@ void iAGraphInteractorStyle::OnLeftButtonDown()
 			resetOldPickedActor();
 
 			//draw selection of actor
-			std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>>::iterator arcIterator = m_baseClass->outerArcWithInnerArcs->find(pickedA);
+			auto arcIterator = m_baseClass->outerArcWithInnerArcs->find(pickedA);
 
-			if(arcIterator != m_baseClass->outerArcWithInnerArcs->end())
+			if (arcIterator != m_baseClass->outerArcWithInnerArcs->end())
 			{ //selected arc is outer arc
 
 				drawSelectedArc(pickedA);
@@ -1203,9 +1203,8 @@ void iAGraphInteractorStyle::OnLeftButtonDown()
 			}
 			else
 			{ //selected arc is inner arc
-				std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>>::iterator innerArcIter;
 
-				for (innerArcIter = m_baseClass->outerArcWithInnerArcs->begin(); innerArcIter != m_baseClass->outerArcWithInnerArcs->end(); innerArcIter++)
+				for (auto innerArcIter = m_baseClass->outerArcWithInnerArcs->begin(); innerArcIter != m_baseClass->outerArcWithInnerArcs->end(); innerArcIter++)
 				{
 					std::vector<vtkSmartPointer<vtkActor>> innerArcs = innerArcIter->second;
 
@@ -1229,7 +1228,7 @@ void iAGraphInteractorStyle::OnLeftButtonDown()
 			}
 
 			//update Histogram Table
-			std::map< vtkSmartPointer<vtkActor>, std::map<int, double>*>::iterator iter = m_baseClass->m_arcDataIndxTypePair->find(pickedA);
+			auto iter = m_baseClass->m_arcDataIndxTypePair->find(pickedA);
 			if (iter != m_baseClass->m_arcDataIndxTypePair->end())
 			{
 				m_baseClass->m_main->updateHistogramTableFromCorrelationMap(iter->second);
@@ -1259,8 +1258,8 @@ void iAGraphInteractorStyle::OnLeftButtonDown()
 
 void iAGraphInteractorStyle::moveLabel(vtkSmartPointer<vtkActor> arcActor)
 {
-	std::map<vtkSmartPointer<vtkActor>, vtkSmartPointer<vtkTextActor>>* outerArcsWithLegend = m_baseClass->getOuterArcsWithLegends();
-	std::map<vtkSmartPointer<vtkActor>, vtkSmartPointer<vtkTextActor>>::iterator iter = outerArcsWithLegend->find(arcActor);
+	auto outerArcsWithLegend = m_baseClass->getOuterArcsWithLegends();
+	auto iter = outerArcsWithLegend->find(arcActor);
 	if (iter == outerArcsWithLegend->end()) { return; }
 
 	vtkSmartPointer<vtkTextActor> labelActor = iter->second;
@@ -1329,9 +1328,8 @@ void iAGraphInteractorStyle::resetOldPickedActor()
 	//reset the picked arcs
 	for(int i= 0; i < ((int)m_oldPickedActors->size()); i++)
 	{
-		vtkSmartPointer<vtkActor> currAct = m_oldPickedActors->at(i);
-
-		std::map<vtkSmartPointer<vtkActor>, std::vector<double>>::iterator iter = m_oldAttributesForOldPickedActors->find(currAct);
+		auto currAct = m_oldPickedActors->at(i);
+		auto iter = m_oldAttributesForOldPickedActors->find(currAct);
 		if (iter == m_oldAttributesForOldPickedActors->end()) { continue;  }
 
 		double oldPos[3] = { 0,0,0 };
@@ -1341,8 +1339,8 @@ void iAGraphInteractorStyle::resetOldPickedActor()
 
 		double oldLineWidth = iter->second[3];
 
-		vtkSmartPointer<vtkAlgorithm> algorithm = currAct->GetMapper()->GetInputConnection(0, 0)->GetProducer();
-		vtkSmartPointer<vtkArcSource> arc = vtkArcSource::SafeDownCast(algorithm);
+		auto algorithm = currAct->GetMapper()->GetInputConnection(0, 0)->GetProducer();
+		auto arc = vtkArcSource::SafeDownCast(algorithm);
 		arc->SetPolarVector(oldPos);
 		arc->Modified();
 
@@ -1354,16 +1352,15 @@ void iAGraphInteractorStyle::resetOldPickedActor()
 	//reset label position & textproperty belonging to the picked arcs
 	for(int i = 0; i < ((int)movedLabels->size()); i++)
 	{
-		vtkSmartPointer<vtkTextActor> labelActor = movedLabels->at(i);
-
-		std::map<vtkSmartPointer<vtkTextActor>, std::vector<double>>::iterator iter = m_oldLabelPositionInWorldCoords->find(labelActor);
+		auto labelActor = movedLabels->at(i);
+		auto iter = m_oldLabelPositionInWorldCoords->find(labelActor);
 		if (iter == m_oldLabelPositionInWorldCoords->end()) { continue; }
 
-		std::vector<double> pos = iter->second;
+		auto pos = iter->second;
 		labelActor->GetPositionCoordinate()->SetCoordinateSystemToWorld();
 		labelActor->GetPositionCoordinate()->SetValue(pos.at(0), pos.at(1), pos.at(2));
 
-		vtkSmartPointer<vtkTextProperty> legendProperty = labelActor->GetTextProperty();
+		auto legendProperty = labelActor->GetTextProperty();
 		legendProperty->BoldOff();
 		legendProperty->Modified();
 
@@ -1421,13 +1418,13 @@ void iAGraphInteractorStyle::drawSelectedArc(vtkSmartPointer<vtkActor> arcActor)
 
 void iAGraphInteractorStyle::drawPercentLabel(vtkSmartPointer<vtkActor> arcActor)
 {
-	std::map<vtkSmartPointer<vtkActor>, double>* thisArcPercentPair = m_baseClass->getArcPercentPairs();
-	std::map<vtkSmartPointer<vtkActor>, double>::iterator iter = thisArcPercentPair->find(arcActor);
+	auto thisArcPercentPair = m_baseClass->getArcPercentPairs();
+	auto iter = thisArcPercentPair->find(arcActor);
 	if (iter == thisArcPercentPair->end())
 		return;
 
-	vtkSmartPointer<vtkAlgorithm> algorithm = arcActor->GetMapper()->GetInputConnection(0, 0)->GetProducer();
-	vtkSmartPointer<vtkArcSource> arc = vtkArcSource::SafeDownCast(algorithm);
+	auto algorithm = arcActor->GetMapper()->GetInputConnection(0, 0)->GetProducer();
+	auto arc = vtkArcSource::SafeDownCast(algorithm);
 
 	double x = (arc->GetPolarVector()[0] / (m_baseClass->m_radius * 1.1)) * (m_baseClass->m_radius * 1.2);
 	double y = (arc->GetPolarVector()[1] / (m_baseClass->m_radius * 1.1)) * (m_baseClass->m_radius * 1.2);
@@ -1487,7 +1484,7 @@ bool iAGraphInteractorStyle::setPickList()
 {
 	m_actorPicker->InitializePickList();
 
-	std::vector<vtkSmartPointer<vtkActor>>* actors = m_baseClass->getArcActors();
+	auto actors = m_baseClass->getArcActors();
 
 	if(actors == nullptr)
 	{

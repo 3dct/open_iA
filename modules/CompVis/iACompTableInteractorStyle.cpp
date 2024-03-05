@@ -17,11 +17,10 @@ namespace Pick
 {
 	void copyPickedMap(PickedMap* input, PickedMap* result)
 	{
-		for (PickedMap::iterator it = input->begin(); it != input->end(); it++)
+		for (auto it = input->begin(); it != input->end(); it++)
 		{
-			vtkSmartPointer<vtkActor> currAc = it->first;
-			std::vector<vtkIdType>* currVec = it->second;
-
+			auto currAc = it->first;
+			auto currVec = it->second;
 			result->insert({currAc, currVec});
 		}
 	};
@@ -32,15 +31,14 @@ namespace Pick
 		LOG(lvlDebug, "");
 		LOG(lvlDebug, "size = " + QString::number(input->size()));
 
-		std::map<vtkSmartPointer<vtkActor>, std::vector<vtkIdType>*>::iterator it;
 		int count = 0;
-		for (it = input->begin(); it != input->end(); it++)
+		for (auto it = input->begin(); it != input->end(); it++)
 		{
-			vtkSmartPointer<vtkActor> currAc = it->first;
-			std::vector<vtkIdType>* currVec = it->second;
+			auto currAc = it->first;
+			auto currVec = it->second;
 
 			LOG(lvlDebug,
-				"Actor " + QString::number(count) + " has " + QString::number(currVec->size()) + " picked cells");
+				"Actor " + QString::number(count++) + " has " + QString::number(currVec->size()) + " picked cells");
 		}
 		LOG(lvlDebug, "");
 		LOG(lvlDebug, "#######################################################");

@@ -149,16 +149,13 @@ int iAChartFunctionBezier::selectPoint(int mouseX, int mouseY)
 int iAChartFunctionBezier::addPoint(int mouseX, int mouseY)
 {
 	double xf = m_chart->mouse2DataX(mouseX);
-
 	int index = 0;
-
-	std::vector<QPointF>::iterator it = m_realPoints.begin();
+	auto it = m_realPoints.begin();
 	while(it != m_realPoints.end() && it->x() < xf)
 	{
 		++index;
 		it+=3;
 	}
-
 	insert(index, mouseX, mouseY);
 
 	m_selectedPoint = index*3;
@@ -168,17 +165,15 @@ int iAChartFunctionBezier::addPoint(int mouseX, int mouseY)
 
 void iAChartFunctionBezier::removePoint(int index)
 {
-	std::vector<QPointF>::iterator it;
-
 	for (int i = 0; i < 3; i++)
 	{
-		it = m_realPoints.begin();
-		it += (index-1);
-		m_realPoints.erase(it);
+		auto itR = m_realPoints.begin();
+		itR += (index-1);
+		m_realPoints.erase(itR);
 
-		it = m_viewPoints.begin();
-		it += (index-1);
-		m_viewPoints.erase(it);
+		auto itV = m_viewPoints.begin();
+		itV += (index-1);
+		m_viewPoints.erase(itV);
 	}
 }
 

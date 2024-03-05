@@ -248,12 +248,9 @@ namespace FishersNaturalBreaks
 
 		std::merge(vcpcRight.begin(), vcpcRight.end(), vcpcDummy.begin(), vcpcDummy.end(), vcpcLeft.begin(), CompareFirst());
 
-		ValueCountPairContainer::iterator
-			currPair = vcpcLeft.begin(),
-			lastPair = vcpcLeft.end();
-
-
-		ValueCountPairContainer::iterator index = currPair + 1;
+		auto currPair = vcpcLeft.begin();
+		auto lastPair = vcpcLeft.end();
+		auto index = currPair + 1;
 		while (index != lastPair && currPair->first < index->first)
 		{
 			currPair = index;
@@ -261,7 +258,7 @@ namespace FishersNaturalBreaks
 		}
 
 		double currValue = currPair->first;
-		SizeT     currCount = currPair->second;
+		SizeT  currCount = currPair->second;
 		for (; index != lastPair; ++index)
 		{
 			if (currValue < index->first)

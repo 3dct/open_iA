@@ -50,9 +50,8 @@ void iAFeatureExtraction::run(QString inputImgPath, QString outputImgPath)
 	labelGeometryImageFilter->Update();
 
 	LabelGeometryImageFilterType::LabelsType allLabels = labelGeometryImageFilter->GetLabels();
-	LabelGeometryImageFilterType::LabelsType::iterator allLabelsIt;
 	std::vector<iAFeature> features;
-	for( allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++ )
+	for(auto allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++ )
 	{
 		LabelGeometryImageFilterType::LabelPixelType labelValue = *allLabelsIt;
 		iAFeature f;
