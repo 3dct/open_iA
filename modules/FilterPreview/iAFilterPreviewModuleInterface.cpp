@@ -2,43 +2,34 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFilterPreviewModuleInterface.h"
 
+#include <iAChannelData.h>
 #include <iAColorTheme.h>
-
-#include "iAChannelData.h"
-#include "iAImageData.h"
-#include "iAMainWindow.h"
-#include "iAMathUtility.h"
-#include "iAMdiChild.h"
-#include "iAFilterRegistry.h"
-#include "iATransferFunction.h"
-#include "iAVolumeViewer.h"
-#include "iAImageData.h"
-#include "iASlicerImpl.h"
+#include <iAFilter.h>
+#include <iAFilterRegistry.h>
+#include <iAImageData.h>
 #include <iALog.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 #include <iAQSplom.h>
+#include <iASlicerImpl.h>
 #include <iASPLOMData.h>
-#include <iAColorTheme.h>
-
 #include <iAToolsITK.h>
-#include <iAToolsVTK.h>
+#include <iATransferFunction.h>
+#include <iAVolumeViewer.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
 
 #include <QAction>
-#include <QLabel>
-#include <QSlider>
-#include <QGroupBox>
-#include <QMessageBox>
-#include <QVBoxLayout>
 #include <QInputDialog>
+#include <QLabel>
+#include <QMessageBox>
 #include <QPushButton>
-#include <QEvent>
-#include <QHoverEvent>
+#include <QVBoxLayout>
 
+#include <algorithm>
 #include <vector>
 #include <random>
-#include <algorithm>
 
 
 void iAFilterPreviewModuleInterface::Initialize()
@@ -51,53 +42,8 @@ void iAFilterPreviewModuleInterface::Initialize()
 	connect(actionPreview, &QAction::triggered, this, &iAFilterPreviewModuleInterface::filterPreview);
 	m_mainWnd->makeActionChildDependent(actionPreview);
 	addToMenuSorted(m_mainWnd->toolsMenu(), actionPreview);
-
-
-	QAction* actionFindFilter = new QAction(tr("Find filter with properties"), m_mainWnd);
-	connect(actionFindFilter, &QAction::triggered, this, [this]() {
-		auto const& filterFactories = iAFilterRegistry::filterFactories();
-		for (auto factory : filterFactories)
-		{
-			auto filter = factory();
-			if (filter->requiredImages() != 1 || filter->inputCount() > 1 || filter->plannedOutputCount() != 1)
-			{
-				continue;
-			}
-			QString filterStr = filter->name() + " (";
-			auto pcount = filter->parameters().size();
-			int validParams = 0;
-			for (int pi = 0; pi < pcount; ++pi)
-			{
-				auto const& p = filter->parameters()[pi];
-				bool numeric = p->valueType() == iAValueType::Discrete || p->valueType() == iAValueType::Continuous;
-				QString type = p->valueType() == iAValueType::Discrete ? "int" :
-					((p->valueType() == iAValueType::Continuous) ? "float" : "other");
-				QString range = numeric ?
-					"[" +
-						(dblApproxEqual(p->min(), std::numeric_limits<double>::lowest()) ? "-inf" : QString::number(p->min())) + ".." +
-						(dblApproxEqual(p->max(), std::numeric_limits<double>::max()) ? "+inf" : QString::number(p->max())) +
-					"]"
-					: "";
-				QString value = p->defaultValue().toString();
-				QString paramStr = p->name() + ": " + type + range + " = " + value + ((pi < pcount - 1) ? ", " : "");
-				filterStr += paramStr;
-				if (p->valueType() == iAValueType::Discrete || p->valueType() == iAValueType::Continuous)
-				{
-					validParams += 1;
-				}
-			}
-			if (validParams < 3)
-			{
-				continue;
-			}
-			filterStr += ")";
-			LOG(lvlDebug, filterStr);
-		}
-	});
-	addToMenuSorted(m_mainWnd->toolsMenu(), actionFindFilter);
 }
 
-//apply filter
 void iAFilterPreviewModuleInterface::updateFilterAndSlicer(iASlicerImpl* slicer, QVariantMap& paramValues)
 {
 	if (!currentFilter)
@@ -230,15 +176,9 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 	QVBoxLayout* controlLayout = new QVBoxLayout;
 	controlLayout->addWidget(chartsSpmWidget);
 
-	// Set up the main layout
-	/*QHBoxLayout* mainLayout = new QHBoxLayout(splitViewDialog);
-	mainLayout->addLayout(imageLayout,5);
-	mainLayout->addLayout(controlLayout,5);*/
-
 	QHBoxLayout* splitLayout = new QHBoxLayout;
 	splitLayout->addLayout(imageLayout, 1);
 	splitLayout->addLayout(controlLayout, 3);
-
 
 	QHBoxLayout* imageListLayout = new QHBoxLayout;
 
@@ -254,11 +194,6 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 		QWidget* container = new QWidget();
 		QVBoxLayout* containerLayout = new QVBoxLayout(container);  // Use QVBoxLayout to stack the slicer and button
 	
-		//QLabel* placeholderLabel = new QLabel();
-		//placeholderLabel->setAlignment(Qt::AlignCenter);
-		//placeholderLabel->setText(QString("Placeholder %1").arg(i + 1));  // Numbered placeholders from 1 to 5
-		//placeholderLabel->setMinimumSize(100, 100);                       // Set a minimum size for the label
-		
 		for (int j = 0; j < parameterNames.size(); ++j)
 		{
 			if (i == 0)
@@ -282,7 +217,6 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 		updateFilterAndSlicer(slicerCopy, slicerParamValues);
 		slicerCopies.push_back(slicerCopy);
 		slicerParameters.push_back(slicerParamValues);  // Store the corresponding parameters
-		//imageListLayout->addWidget(slicerCopy, 1);
 
 		containerLayout->addWidget(slicerCopy);
 
@@ -479,26 +413,17 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 
 							interpolatedParamValues[paramName] = interpolatedValue;
 						}
-
 						// Now, update the slicerCopy with the interpolated paramValues
 						updateFilterAndSlicer(slicerCopy, interpolatedParamValues);	
 						slicerParameters[i] = interpolatedParamValues;
-						
 					}
-										
 				}
-
 			}
-
 		});
-
 
 	QVBoxLayout* mainLayout = new QVBoxLayout;
 	mainLayout->addLayout(splitLayout,7);
 	mainLayout->addLayout(imageListLayout,3);
-
-
-
 
 	splitViewDialog->setLayout(mainLayout);
 	splitViewDialog->exec();
@@ -508,8 +433,6 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 
 void iAFilterPreviewModuleInterface::filterPreview()
 {
-	//QMessageBox::information(m_mainWnd, "Filter with preview", "You will be able to run image filters with a preview here soon!");
-
 	QStringList validParameterNames = {"Alpha", "Beta", "Radius", "Number of histogram bins", "Samples", "Levels",
 		"Control points", "Spline order", "Mean", "Standard deviation", "Range sigma", "Domain sigma",
 		"Lower threshold", "Upper threshold", "Outside value", "Inside value", "Variance", "Maximum error",
@@ -560,10 +483,13 @@ void iAFilterPreviewModuleInterface::filterPreview()
 	currentFilter = iAFilterRegistry::filter(filterName);
 	child = m_mainWnd->activeMdiChild();
 
-	// extract a region of maximum size 10x10x10 from image:
+	// extract a region from the image:
 	auto inImgLarge = dynamic_cast<iAImageData*>(child->dataSet(child->firstImageDataSetIdx()).get());
 	int dim[3];
 	inImgLarge->vtkImage()->GetDimensions(dim);
+	// Potential for future improvements:
+	//     - Adapt the initial size of the region such that the filter runs in under ~100ms or so
+	//     - Allow adaptation of the image region (input fields, or even better, region selection in the image)
 	const int MinDim = 25;
 	if (dim[0] > MinDim || dim[1] > MinDim || dim[2] > MinDim)
 	{
@@ -616,7 +542,6 @@ void iAFilterPreviewModuleInterface::filterPreview()
 		}
 	}
 
-
 	dialog = new QDialog(m_mainWnd);
 	dialog->setWindowTitle(filterName + tr(" Filter Preview"));
 
@@ -624,7 +549,7 @@ void iAFilterPreviewModuleInterface::filterPreview()
 	QGridLayout* gridLayout = new QGridLayout;
 
 	// Get the size of the main window and calculate the relative size for the slicers
-	mainWindowSize = m_mainWnd->size();
+	auto mainWindowSize = m_mainWnd->size();
 	slicerWidth = mainWindowSize.width() / 10;
 	slicerHeight = mainWindowSize.height() / 10;
 
@@ -680,115 +605,8 @@ void iAFilterPreviewModuleInterface::filterPreview()
 			gridLayout->addWidget(container, row, col);
 
 			counter++;
-
 		}
 	}
-
-	// Set the layout of the dialog to the grid layout
 	dialog->setLayout(gridLayout);
-
-	// Show the dialog
 	dialog->exec();
-
-
-
-
-
-
-
-
-
-
-
-	/*
-	
-	filter->addInput(child->dataSet(child->firstImageDataSetIdx()));
-	
-
-	
-
-	QLabel* imageLabel = new QLabel(dialog);
-	imageLabel->setAlignment(Qt::AlignCenter);
-	//imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-	imageLabel->setText("IMAGE PREVIEW");
-
-	iASlicerImpl* slicer = new iASlicerImpl(dialog, iASlicerMode::XY);
-	iAChannelData* channel =
-		new iAChannelData("", child->firstImageData(), dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))->transfer()->colorTF());
-
-	slicer->addChannel(0,*channel, true);
-	slicer->resetCamera();
-	slicer->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-
-	QVBoxLayout* imageLayout = new QVBoxLayout;
-	imageLayout->addWidget(slicer);
-	imageLayout->addWidget(imageLabel);
-
-
-	QVBoxLayout* sliderLayout = new QVBoxLayout;
-	QList<QSlider*> sliders;  // Use a list to hold all the sliders for later access
-
-	for (int i = 0; i < parameterNames.size(); ++i)
-	{
-		QSlider* slider = new QSlider(Qt::Horizontal, dialog);
-
-		slider->setRange(1, 99);  // All sliders will have the same 0 to 100 range
-		slider->setValue(50);      // All sliders will start at the midpoint
-		sliders.append(slider);
-
-		sliderLayout->addWidget(new QLabel(parameterNames[i], dialog));  // Use the parameter name as label
-		sliderLayout->addWidget(slider);
-	}
-
-	QHBoxLayout* mainLayout = new QHBoxLayout(dialog);
-	mainLayout->addLayout(imageLayout);
-	mainLayout->addLayout(sliderLayout);
-
-	dialog->exec();
-
-	//QVariantMap paramValues;
-	//paramValues["Variance"] = slider1->value();
-	//double slide2Val = slider2->value();
-	//paramValues["Maximum error"] = double(slide2Val / 100);
-	//paramValues["Convert back to input type"] = false;
-	//filter->run(paramValues);
-
-	//filter->parameters();
-
-	//Apply parameter values to filter
-
-	QVariantMap paramValues;
-	for (int i = 0; i < parameterNames.size(); ++i)
-	{
-		// Map the slider value (from 0 to 100) to the parameter's range (from min to max)
-		double mappedValue = minValues[i] + (maxValues[i] - minValues[i]) * (double(sliders[i]->value()) / 100);
-		paramValues[parameterNames[i]] = mappedValue;  // Map the parameter to its corresponding value
-		LOG(lvlDebug, QString("Param Name: %1").arg(parameterNames[i]));
-		LOG(lvlDebug, QString("Param Mapped Value: %1").arg(mappedValue));
-		LOG(lvlDebug, QString("Min Value: %1").arg(minValues[i]));
-		LOG(lvlDebug, QString("Max Value: %1").arg(maxValues[i]));
-
-		//paramValues[parameterNames[i]] = sliders[i]->value();
-	}
-
-	filter->run(paramValues);
-
-
-	for (auto o : filter->outputs())
-	{
-		child->addDataSet(o);
-	}
-	
-	iAChannelData* channelMod = new iAChannelData("", child->firstImageData(),
-		dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))->transfer()->colorTF());
-
-	//slicer->addChannel(0, *channelMod, true);
-	slicer->updateChannel(0, *channelMod);
-	imageLabel->setText("IMAGE PREVIEW DONE!");*/
-	
-	
-
 }
-
-
-
