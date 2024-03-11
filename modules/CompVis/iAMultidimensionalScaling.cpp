@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAMultidimensionalScaling.h"
 
@@ -120,7 +120,7 @@ void iAMultidimensionalScaling::setDistanceMetric(MDS::DistanceMetric disName)
 void iAMultidimensionalScaling::initializeMatrixUNormalized()
 {
 	// initialize matrixUNormalized --> different size of different input datasets
-	m_amountOfCharas = m_inputData->at(0).header->size();
+	m_amountOfCharas = static_cast<int>(m_inputData->at(0).header->size());
 	std::vector<double> vec(m_amountOfCharas - 1);
 
 	for (int k = 0; k < m_inputData->size(); k++)
@@ -135,7 +135,7 @@ void iAMultidimensionalScaling::normalizeMatrix()
 {
 	std::vector<double> maxValsForCols(m_amountOfCharas - 1);
 
-	//skip first column & row, since these are only label numbers	
+	//skip first column & row, since these are only label numbers
 	for (int col = 0; col < m_amountOfCharas - 1; col++)
 	{
 		maxValsForCols[col] = -std::numeric_limits<double>::infinity();
@@ -155,7 +155,7 @@ void iAMultidimensionalScaling::normalizeMatrix()
 				}
 			}
 		}
-	
+
 		//normalize column according to maxVal
 		int rowU = 0;
 		for (int ind = 0; ind < ((int)m_inputData->count()); ind++)
@@ -230,7 +230,7 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	//initialize X with one vector filled with random values between [0,1]
 	csvDataType::ArrayType* X = new csvDataType::ArrayType();
 	csvDataType::initializeRandom(amountRowsProxM, dim, X);
-		
+
 	////DEBUG
 	/*LOG(lvlDebug," \n init X");
 	csvDataType::debugArrayType(X);*/
@@ -277,7 +277,7 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 		csvDataType::debugArrayType(B);*/
 
 		// B = calc_B(D_,D);
-		for (int r = 0; r < amountRowsProxM; r++)	
+		for (int r = 0; r < amountRowsProxM; r++)
 		{
 			for (int c = 0; c < amountColsProxM; c++)
 			{
@@ -315,7 +315,7 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 		csvDataType::debugArrayType(Z);*/
 
 		// X = B*Z/size(D,1);
-		for (int r = 0; r < csvDataType::getRows(X); r++)	
+		for (int r = 0; r < csvDataType::getRows(X); r++)
 		{
 			for (int xCols = 0; xCols < csvDataType::getColumns(X); xCols++)
 			{
@@ -352,7 +352,7 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	}
 
 	m_configuration = X;
-	
+
 	////DEBUG
 	//LOG(lvlDebug,"\n m_configuration");
 	//csvDataType::debugArrayType(m_configuration);

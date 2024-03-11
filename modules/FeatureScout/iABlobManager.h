@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -86,7 +86,7 @@ public:
 				const double overlapThreshold[2],
 				const double gaussianBlurVariance[2],
 				const int dimX[2], const int dimY[2], const int dimZ[2],
-				const QString& fileName, int mode, int qual = 2
+				const QString& fileName, int mode, int qual, int fps
 			);
 	void	UpdateBlobSettings(iABlobCluster* blob);
 private:

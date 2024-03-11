@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iA4DCTVisWin.h"
 
@@ -354,8 +354,7 @@ void iA4DCTVisWin::updateVisualizations( )
 {
 	QList<iAVisModuleItem *> modules = m_visModules.getModules( );
 	for( auto m : modules ) {
-		int index = m->stages.indexOf( m_currentStage );
-		if( index != -1 ) {
+		if (m->stages.indexOf(m_currentStage) != -1 ) {
 			m->module->enable( );
 			if( m_isVirgin ) { m_isVirgin = false; m_mainRen->ResetCamera( ); }
 		} else {

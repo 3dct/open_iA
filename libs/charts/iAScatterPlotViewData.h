@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -59,7 +59,7 @@ public:
 	void addLine(SelectionType const& linePoints, QColor const& color, int lineWidth);
 	void clearLines();
 	//! @}
-	
+
 	//! @{
 	//! Filtering for data items (matching values)
 	bool matchesFilter(std::shared_ptr<iASPLOMData> splomData, size_t ind) const; //!< Returns true if point with given index matches current filter

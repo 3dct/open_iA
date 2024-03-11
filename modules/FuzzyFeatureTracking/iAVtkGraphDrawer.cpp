@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVtkGraphDrawer.h"
 
@@ -58,11 +58,10 @@ void iAVtkGraphDrawer::fillGraph(vtkMutableDirectedGraph* graph)
 
 void iAVtkGraphDrawer::locatePoints(vtkPoints* points, int* windowsSize, size_t numRanks)
 {
-	std::map<vtkIdType, iAGraph::idType>::iterator it;
 	float maxPosY, minPosY;
 	//maxPosY = minPosY = this->getVertex(m_vertMapFromVtk.at(0))->positionY;
 	maxPosY = minPosY = m_graph.getVertices()->at(m_vertMapFromVtk.at(0)).posX;
-	for (it = m_vertMapFromVtk.begin(); it != m_vertMapFromVtk.end(); it++)
+	for (auto it = m_vertMapFromVtk.begin(); it != m_vertMapFromVtk.end(); it++)
 	{
 		if (maxPosY < m_graph.getVertices()->at(it->second).posX)
 		{
@@ -78,7 +77,7 @@ void iAVtkGraphDrawer::locatePoints(vtkPoints* points, int* windowsSize, size_t 
 	divisions[0] = (float)windowsSize[0] / numRanks;
 	divisions[1] = (float)windowsSize[1] / (maxPosY - minPosY + 1);
 
-	for (it = m_vertMapFromVtk.begin(); it != m_vertMapFromVtk.end(); it++)
+	for (auto it = m_vertMapFromVtk.begin(); it != m_vertMapFromVtk.end(); it++)
 	{
 		points->InsertNextPoint(divisions[0] / 2 + divisions[0] * m_graph.getVertices()->at(it->second).posX,
 			divisions[1] / 2 + divisions[1] * (m_graph.getVertices()->at(it->second).posY * 0.3 - minPosY), 0);

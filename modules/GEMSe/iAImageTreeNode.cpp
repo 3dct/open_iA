@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAImageTreeNode.h"
 
@@ -101,9 +101,9 @@ vtkSmartPointer<vtkImageData> iAImageTreeNode::GetCorrectnessEntropyImage(LabelI
 	}
 
 	int dim[3];
-	dim[0] = entropyImg->GetLargestPossibleRegion().GetSize(0);
-	dim[1] = entropyImg->GetLargestPossibleRegion().GetSize(1);
-	dim[2] = entropyImg->GetLargestPossibleRegion().GetSize(2);
+	dim[0] = static_cast<int>(entropyImg->GetLargestPossibleRegion().GetSize(0));
+	dim[1] = static_cast<int>(entropyImg->GetLargestPossibleRegion().GetSize(1));
+	dim[2] = static_cast<int>(entropyImg->GetLargestPossibleRegion().GetSize(2));
 	double spacing[3];
 	spacing[0] = entropyImg->GetSpacing()[0];
 	spacing[1] = entropyImg->GetSpacing()[1];
@@ -121,11 +121,11 @@ vtkSmartPointer<vtkImageData> iAImageTreeNode::GetCorrectnessEntropyImage(LabelI
 				double entropy = entropyImg->GetPixel(idx);
 				for (int i = 0; i < 3; ++i)
 				{
-					correctnessEntropyImg->SetScalarComponentFromDouble(idx[0], idx[1], idx[2], i, correctness * 255);
+					correctnessEntropyImg->SetScalarComponentFromDouble(static_cast<int>(idx[0]), static_cast<int>(idx[1]), static_cast<int>(idx[2]), i, correctness * 255);
 				}
 				// entropy = 0 -> low uncertainty
 				// entropy = 1 -> high uncertainty
-				correctnessEntropyImg->SetScalarComponentFromDouble(idx[0], idx[1], idx[2], 3,
+				correctnessEntropyImg->SetScalarComponentFromDouble(static_cast<int>(idx[0]), static_cast<int>(idx[1]), static_cast<int>(idx[2]), 3,
 					(correctness == 0) ?
 						((1-entropy)*255) : // where the algorithm was wrong, we want to highlight regions were it also was sure   about the result
 						(entropy * 255) );  //                         right,												unsure

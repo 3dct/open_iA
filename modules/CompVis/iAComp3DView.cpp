@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAComp3DView.h"
 
@@ -17,8 +17,8 @@
 // Qt
 #include <QGridLayout>
 
-iAComp3DView::iAComp3DView(iAMainWindow* parent, iACsvDataStorage* dataStorage) : 
-	m_dataStorage(dataStorage), 
+iAComp3DView::iAComp3DView(iAMainWindow* parent, iACsvDataStorage* dataStorage) :
+	m_dataStorage(dataStorage),
 	m_dockWidgets(new std::vector<iAComp3DWidget*>())
 {
 	auto const & objData = m_dataStorage->getObjectData();
@@ -86,10 +86,10 @@ void iAComp3DView::update3DViews(
 		for (int objectId = 0; objectId < numberOfObjectsPicked; objectId++)
 		{
 			size_t labelId = allObjectLables.at(indexInSelectedData);
-			 
+
 			selectedIds.push_back(labelId);
-				 
-				 
+
+
 			indexInSelectedData++;
 		}
 

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -23,7 +23,6 @@ class iASlicerProfile
 public:
 	iASlicerProfile();
 	void setVisibility ( bool isVisible );
-	void point ( vtkIdType id, double pos_out[3] );
 	void addToRenderer (vtkRenderer * ren);
 	bool updatePosition( double posY, vtkImageData * imgData );
 

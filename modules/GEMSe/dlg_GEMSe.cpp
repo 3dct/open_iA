@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "dlg_GEMSe.h"
 
@@ -201,7 +201,7 @@ void dlg_GEMSe::CreateMapper()
 			}
 		}
 	}
-	m_MeasureChartIDStart = m_chartAttributes->size();
+	m_MeasureChartIDStart = static_cast<int>(m_chartAttributes->size());
 }
 
 void dlg_GEMSe::ClusterNodeClicked(std::shared_ptr<iAImageTreeNode> node)
@@ -618,16 +618,16 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 			measures.push_back(std::make_shared<iAAttributeDescriptor>(
 				QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 		}
-		m_MeasureChartIDStart = m_chartAttributes->size();
+		m_MeasureChartIDStart = static_cast<int>(m_chartAttributes->size());
 		for (std::shared_ptr<iAAttributeDescriptor> measure : measures)
 		{
-			int chartID = m_chartAttributes->size();
+			int chartID = static_cast<int>(m_chartAttributes->size());
 			m_chartAttributes->push_back(measure);
 			// add mappings:
 			for (int sampleIdx = 0; sampleIdx < m_samplings->size(); ++sampleIdx)
 			{
 				std::shared_ptr<iAAttributes> attribs = m_samplings->at(sampleIdx)->attributes();
-				int attributeID = attribs->size();
+				int attributeID = static_cast<int>(attribs->size());
 				int datasetID = m_samplings->at(sampleIdx)->id();
 				attribs->push_back(measure);
 				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);

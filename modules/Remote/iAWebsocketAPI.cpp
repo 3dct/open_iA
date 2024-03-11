@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAWebsocketAPI.h"
 
@@ -83,7 +83,7 @@ void iAWebsocketAPI::processTextMessage(QString message)
 
 	auto request = QJsonDocument::fromJson(message.toLatin1());
 	if (request["method"].toString() == "wslink.hello")
-	{ 
+	{
 		commandWslinkHello(request, client);
 	}
 	else if (request["method"].toString() == "viewport.image.push.observer.add")
@@ -115,7 +115,7 @@ void iAWebsocketAPI::processTextMessage(QString message)
 		commandControls(request, client);
 	}
 
-	//Captions API 
+	//Captions API
 	else if (request["method"].toString() == "subscribe.captions")
 	{
 		captionSubscribe(client);

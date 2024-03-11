@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -18,6 +18,7 @@ class vtkUnsignedCharArray;
 //! Base class for polydata-based object visualizations that can be colored.
 class iAobjectvis_API iAColoredPolyObjectVis : public iAObjectVis
 {
+	Q_OBJECT
 public:
 	static const int DefaultContextOpacity = 8;
 	static const int DefaultSelectionOpacity = 128;
@@ -81,6 +82,9 @@ public:
 
 	std::vector<size_t> const& selection() const;
 
+signals:
+	void selectionChanged();
+
 protected:
 	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
 	int m_contextAlpha;
@@ -99,7 +103,6 @@ protected:
 	void setupColors();
 
 private:
-
 	std::shared_ptr<iALookupTable> m_lut;
 	IndexType m_colorParamIdx;
 	bool m_selectionActive;

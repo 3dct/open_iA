@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASensitivityInfo.h"
 
@@ -128,7 +128,7 @@ namespace
 	const float dpR = 1.0; // ToDO: this should be set automatically according to current device scale, but devicePixelRatio doesn't seem to do it...
 	const int VTKFontSize = 14;
 
-	
+
 	vtkSmartPointer<vtkTextWidget> createVTKTextWidget(double x, double y, double w, double h, const char* text, vtkRenderWindowInteractor* interactor, float devicePixelRatio)
 	{
 		auto result = vtkSmartPointer<vtkTextWidget>::New();
@@ -355,7 +355,7 @@ std::shared_ptr<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 		sens->data().m_charSelected = charSelected;
 		sens->data().m_charDiffMeasure = charDiffMeasure;
 	}
-	for (int j = sens->data().m_charSelected.size() - 1; j >= 0; --j)
+	for (auto j = sens->data().m_charSelected.size() - 1; j >= 0; --j)
 	{
 		int charIdx = sens->data().m_charSelected[j];
 		// make sure of all histograms for the same characteristic have the same range
@@ -641,7 +641,6 @@ private:
 
 		QRect colorBarRect(topLeft.x(), topLeft.y(), scalarBarWidth, height() - 2 * ScalarBarPadding);
 		QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y() + colorBarRect.height());
-		QMap<double, QColor>::iterator it;
 		for (size_t i = 0; i < m_lut->numberOfValues(); ++i)
 		{
 			double rgba[4];
@@ -743,7 +742,7 @@ public:
 	iAParameterInfluenceView* m_paramInfluenceView;
 	iADockWidgetWrapper* m_dwParamInfluence;
 	//! @}
-	
+
 	iAAlgorithmInfo* m_algoInfo;
 
 	//! @{ Fiber Difference View
@@ -1089,7 +1088,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_settings = new iASensitivitySettingsView(this);
 	auto dwSettings = new iADockWidgetWrapper(m_gui->m_settings, "Sensitivity Settings", "foeSensitivitySettings");
 	m_child->splitDockWidget(m_nextToDW, dwSettings, Qt::Horizontal);
-	
+
 	//////////// Parameter Influence View                   ////////////
 	QColor headerColor(QApplication::palette().color(QPalette::Button));
 	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(m_data, m_gui, headerColor, headerColor /*ParamColor, OutputColor*/);
@@ -1294,7 +1293,7 @@ void iASensitivityInfo::showSpatialOverview()
 	}
 }
 
-void iASensitivityInfo::setSpatialOverviewTF(int dataSetIdx)
+void iASensitivityInfo::setSpatialOverviewTF(size_t dataSetIdx)
 {
 	if (m_spatialOverviewDataSets.find(dataSetIdx) == m_spatialOverviewDataSets.end())
 	{   // ignore datasets other than spatial overview images
@@ -1576,7 +1575,7 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 	if (state)
 	{	// add fibers matching the selection in m_baseFiberSelection to current selection:
 		auto it = std::find(m_data->m_resultDissimMeasures.begin(), m_data->m_resultDissimMeasures.end(), std::make_pair(7, true));
-		int measIdx = (it != m_data->m_resultDissimMeasures.end()) ? it - m_data->m_resultDissimMeasures.begin() : 0;
+		auto measIdx = (it != m_data->m_resultDissimMeasures.end()) ? it - m_data->m_resultDissimMeasures.begin() : 0;
 		for (size_t rSel = 0; rSel < m_baseFiberSelection.size(); ++rSel)
 		{
 			if (m_baseFiberSelection[rSel].size() == 0)
@@ -1900,7 +1899,7 @@ void iASensitivityInfo::updateDifferenceView()
 		if (i > 0 && m_currentFiberSelection[hp[0]].size() > 0 && m_currentFiberSelection[rID].size() > 0)
 		{
 			auto refResID = hp[0];
-			
+
 			// TODO:
 			//  - compare to "matching" fiber in "reference" (result hp[0])
 			//  - highlight hp[0] somehow special?

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -33,7 +33,7 @@ private:
 	std::vector<std::string> split(const std::string &s, char delim);
 	vtkSmartPointer<vtkTable> readTableFromFile(const QString &filename, int dataLineOffset);
 	void sortCorrespondencesByOverlap(std::vector<iAFeatureTrackingCorrespondence> &correspondences);
-	std::vector<iAFeatureTrackingCorrespondence>& getCorrespondences(const vtkVariantArray &row, vtkTable &table, int maxSearchValue, bool useZ);
+	std::vector<iAFeatureTrackingCorrespondence> getCorrespondences(const vtkVariantArray &row, vtkTable &table, int maxSearchValue, bool useZ);
 	void ComputeOverallMatchingPercentage();
 
 public:

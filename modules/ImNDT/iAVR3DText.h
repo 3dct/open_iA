@@ -1,16 +1,16 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include <vtkBillboardTextActor3D.h>
-#include <vtkRenderer.h>
+#include <vtkEventData.h>    // for vtkEventDataNumberOfDevices
 #include <vtkSmartPointer.h>
-#include <vtkVersion.h>
+#include <vtkVersionMacros.h>
 
 #include <QString>
 
-#include <vtkEventData.h>    // for vtkEventDataNumberOfDevices
-
+class vtkBillboardTextActor3D;
+class vtkRenderer;
+class vtkTransform;
 
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
 class vtkVRControlsHelper;
@@ -24,20 +24,16 @@ using iAvtkVRControlsHelper = vtkOpenVRControlsHelper;
 class iAVR3DText
 {
 public:
-	iAVR3DText(vtkRenderer* ren);
-	void create3DLabel(QString text);
-	void createSmall3DLabel(QString text);
+	iAVR3DText(vtkRenderer* ren, QString const& text, bool small = false);
+	void setText(QString const& text);
 	void setLabelPos(double pos[3]);
 	void moveInEyeDir(double x, double y, double z);
-	vtkSmartPointer<vtkBillboardTextActor3D> getTextActor();
-	void showInputTooltip();
-	void updateInputTooltip();
+	void transformPosition(vtkTransform* transform);
 	void show();
 	void hide();
 
 private:
-	vtkSmartPointer<vtkRenderer> m_renderer;
+	vtkRenderer* m_renderer;
 	vtkSmartPointer<vtkBillboardTextActor3D> m_textActor3D;
-	iAvtkVRControlsHelper* ControlsHelpers[vtkEventDataNumberOfDevices][vtkEventDataNumberOfInputs];    // TODO: CHECK! Doesn't seem to get set anywhere!
 	bool m_visible;
 };

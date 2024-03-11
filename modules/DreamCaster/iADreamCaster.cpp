@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iADreamCaster.h"
 
@@ -603,7 +603,7 @@ void iADreamCaster::RenderViewsSlot()
 	{
 		cutFigList->item(i)->Write2File(fptr);
 	}
-	int totalTime=0;
+	qint64 totalTime=0;
 	QElapsedTimer totalQTime;
 	totalQTime.start();
 	//int totalStart = GetTickCount();
@@ -787,7 +787,7 @@ void iADreamCaster::RenderViewsSlot()
 					return;
 				}
 
-				int ftime = localTime.elapsed();//GetTickCount() - fstart;
+				auto ftime = localTime.elapsed();//GetTickCount() - fstart;
 				char t[] = "00:00.000";
 				Time2Char(ftime, t);
 				ui.TimeLabel->setText(t);
@@ -911,7 +911,7 @@ void iADreamCaster::RenderViewsSlot()
 					QElapsedTimer localTime;
 					localTime.start();//int fstart = GetTickCount();
 					Render(vp_corners, vp_delta, &o, true);
-					int ftime = localTime.elapsed();// GetTickCount() - fstart;
+					auto ftime = localTime.elapsed();// GetTickCount() - fstart;
 					char t[] = "00:00.000";
 					Time2Char(ftime, t);
 					ui.TimeLabel->setText(t);
@@ -3184,15 +3184,15 @@ void iADreamCaster::ColorBadAngles()
 	da->SetNumberOfComponents(1);
 	da->SetNumberOfTuples(0);
 	double val=0.0;
-	unsigned int numTris = mapper->GetInput()->GetNumberOfPolys();
+	auto numTris = mapper->GetInput()->GetNumberOfPolys();
 	double * scalars = new double[numTris];
-	for (unsigned int i=0; i<numTris; i++)
+	for (vtkIdType i=0; i<numTris; i++)
 	{
 		da->InsertNextTuple1(val);
 		scalars[i]=0;
 	}
 	//
-	const unsigned int numTriangles = tracer->scene()->getNrTriangles();//curRender->intersections.size();
+	const auto numTriangles = tracer->scene()->getNrTriangles();//curRender->intersections.size();
 	iAVec3f o; // rays' origin point
 	iAVec3f vp_corners[2];// plane's corners in 3d
 	iAVec3f vp_delta[2];// plane's x and y axes' directions in 3D
@@ -3249,7 +3249,7 @@ void iADreamCaster::ColorBadAngles()
 			good_area+=cur_area;
 		}
 	}*/
-	for (unsigned int i = 0; i < numTris; ++i)
+	for (vtkIdType i = 0; i < numTris; ++i)
 	{
 		da->SetTuple1(i, scalars[i]);
 	}

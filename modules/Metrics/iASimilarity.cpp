@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASimilarity.h"
 
@@ -42,10 +42,10 @@ template<class ImageType>
 double computeEqualPixelRate(typename ImageType::Pointer img, typename ImageType::Pointer ref)
 {
 	typename ImageType::RegionType reg = ref->GetLargestPossibleRegion();
-	int size = reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2];
+	auto size = static_cast<long long>(reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2]);
 	double sumEqual = 0.0f;
 #pragma omp parallel for reduction(+:sumEqual)
-	for (int i = 0; i < size; ++i)
+	for (long long i = 0; i < size; ++i)
 	{
 		if (img->GetBufferPointer()[i] != 0 &&
 			img->GetBufferPointer()[i] == ref->GetBufferPointer()[i])

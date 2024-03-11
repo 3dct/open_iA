@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "dlg_Consensus.h"
 
@@ -220,7 +220,7 @@ namespace
 		else return -1;
 	}
 
-	vtkSmartPointer<vtkTable> CreateVTKTable(int rowCount, QVector<QString> const & columnNames)
+	vtkSmartPointer<vtkTable> CreateVTKTable(vtkIdType rowCount, QVector<QString> const & columnNames)
 	{
 		auto result = vtkSmartPointer<vtkTable>::New();
 		for (int i = 0; i < columnNames.size(); ++i)
@@ -914,7 +914,7 @@ void dlg_Consensus::LoadConfig()
 			}
 		}
 	}
-	int lastSamplingID = m_dlgSamplings->GetSamplings()->size();
+	int lastSamplingID = static_cast<int>(m_dlgSamplings->GetSamplings()->size());
 	QVector<QSet<int> > bestParameterSetIDs(samplings.size()),
 		mvParameterSetIDs(samplings.size());
 	AddParameterSets(bestParameterSetIDs, bestParameterSetsList);
@@ -945,11 +945,11 @@ void dlg_Consensus::LoadConfig()
 				// ToDo: check if parameters already exist in current samplings!
 				if (bestParameterSetIDs[s].contains(i))
 				{
-					m_comparisonBestIDs[s].push_back(parameterSets->size());
+					m_comparisonBestIDs[s].push_back(static_cast<int>(parameterSets->size()));
 				}
 				if (mvParameterSetIDs[s].contains(i))
 				{
-					m_comparisonMVIDs[s].push_back(parameterSets->size());
+					m_comparisonMVIDs[s].push_back(static_cast<int>(parameterSets->size()));
 				}
 				QVector<QVariant> singleParameterSet;
 				for (int p = 0; p < samplingResults->attributes()->size(); ++p)

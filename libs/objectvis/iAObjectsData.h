@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -26,7 +26,7 @@ public:
 	//! type of visualization to create
 	iAObjectVisType m_visType;
 	//! optional (if non-empty vector) information on curved fiber objects
-	std::map<size_t, std::vector<iAVec3f>> m_curvedFiberData; // maybe use separate derived object to store this? 
+	std::map<size_t, std::vector<iAVec3f>> m_curvedFiberData; // maybe use separate derived object to store this?
 	// maybe also store csv config?
 };
 

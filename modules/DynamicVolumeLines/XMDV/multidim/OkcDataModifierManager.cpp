@@ -33,9 +33,8 @@ OkcDataModifierManager::OkcDataModifierManager(OkcData* okcdata)
 
 OkcDataModifierManager::~OkcDataModifierManager()
 {
-	std::map<XmdvTool::MODIFIERTYPE, OkcDataModifier*>::iterator it;
 	// release the memory occupied by all of modifiers
-	for ( it=m_modifiers.begin(); it != m_modifiers.end(); it++ )
+	for (auto it=m_modifiers.begin(); it != m_modifiers.end(); it++ )
 	{
 		// We only release the memory occupied by those non-reference modifier.
 		if ( !m_modifierRefFlag[ (*it).first ] ) {
@@ -101,11 +100,10 @@ int OkcDataModifierManager::getOrigLine(int line) {
 void OkcDataModifierManager::copyFrom(const OkcDataModifierManager* copy) {
 	m_okcdata = copy->m_okcdata;
 	m_modifiers.clear();
-	std::map<XmdvTool::MODIFIERTYPE, OkcDataModifier*>::iterator it;
 	std::map<XmdvTool::MODIFIERTYPE, OkcDataModifier*> copymap;
 	copymap = copy->m_modifiers;
 	// copy each modifier
-	for ( it=copymap.begin(); it!=copymap.end(); it++) {
+	for (auto it=copymap.begin(); it!=copymap.end(); it++) {
 		m_modifiers[ (*it).first ] = copymap[ (*it).first ];
 		m_modifierRefFlag[ (*it).first ] = true;
 	}

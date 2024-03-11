@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFilter.h"
 
@@ -42,7 +42,7 @@ namespace
 }
 
 iAFilter::iAFilter(QString const & name, QString const & category, QString const & description,
-	unsigned int requiredInputs, unsigned int outputCount, bool supportsAbort) :
+	size_t requiredInputs, size_t outputCount, bool supportsAbort) :
 	m_progress(std::make_unique<iAProgress>()),
 	m_name(name),
 	m_category(category),
@@ -85,22 +85,22 @@ iAAttributes const & iAFilter::parameters() const
 	return m_parameters;
 }
 
-unsigned int iAFilter::requiredImages() const
+size_t iAFilter::requiredImages() const
 {
 	return m_requiredImages;
 }
 
-unsigned int iAFilter::requiredMeshes() const
+size_t iAFilter::requiredMeshes() const
 {
 	return m_requiredMeshes;
 }
 
-unsigned int iAFilter::firstInputChannels() const
+size_t iAFilter::firstInputChannels() const
 {
 	return m_firstInputChannels;
 }
 
-void iAFilter::setFirstInputChannels(unsigned int c)
+void iAFilter::setFirstInputChannels(size_t c)
 {
 	m_firstInputChannels = c;
 }
@@ -152,7 +152,7 @@ std::vector<std::shared_ptr<iADataSet>> iAFilter::outputs()
 	return m_output;
 }
 
-unsigned int iAFilter::plannedOutputCount() const
+size_t iAFilter::plannedOutputCount() const
 {
 	return m_outputCount;
 }
@@ -364,7 +364,7 @@ iAProgress* iAFilter::progress()
 	return m_progress.get();
 }
 
-QString iAFilter::inputName(unsigned int i) const
+QString iAFilter::inputName(size_t i) const
 {
 	if (m_inputNames.contains(i))
 	{
@@ -376,12 +376,12 @@ QString iAFilter::inputName(unsigned int i) const
 	}
 }
 
-void iAFilter::setInputName(unsigned int i, QString const & name)
+void iAFilter::setInputName(size_t i, QString const & name)
 {
 	m_inputNames.insert(i, name);
 }
 
-QString iAFilter::outputName(unsigned int i) const
+QString iAFilter::outputName(size_t i) const
 {
 	return m_outputNames.contains(i) ?
 		m_outputNames[i] :
@@ -405,12 +405,12 @@ bool iAFilter::isAborted() const
 	return m_isAborted;
 }
 
-void iAFilter::setOutputName(unsigned int i, QString const & name)
+void iAFilter::setOutputName(size_t i, QString const & name)
 {
 	m_outputNames.insert(i, name);
 }
 
-void iAFilter::setRequiredMeshInputs(unsigned int i)
+void iAFilter::setRequiredMeshInputs(size_t i)
 {
 	m_requiredMeshes = i;
 }

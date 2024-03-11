@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -178,7 +178,7 @@ public:
 	void setMouseCursor(QString const & s);
 
 	void showPosition(bool s);
-	void saveSliceMovie(QString const & fileName, int qual = 2);
+	void saveSliceMovie(QString const & fileName, int start, int end, int qual, int fps);
 
 	void execute(vtkObject* caller, unsigned long eventId, void* callData) override;
 

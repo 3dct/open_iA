@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -41,7 +41,7 @@ public:
 	virtual void drawHistogramTableInOriginalOrder() override;
 	//draws the bar chart for showing the number of objects for each dataset
 	virtual void drawBarChartShowingAmountOfObjects(std::vector<int> amountObjectsEveryDataset) override;
-	
+
 	/*** Rendering ***/
 	//draw initial Histogram Table
 	virtual void drawHistogramTable();
@@ -142,7 +142,7 @@ protected:
 	bool m_drawWhiteCurves;
 
 private:
-	
+
 	/*** Interaction ***/
 	vtkSmartPointer<iACompCurveInteractorStyle> m_interactionStyle;
 };

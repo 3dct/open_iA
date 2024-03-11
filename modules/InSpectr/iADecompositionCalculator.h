@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -23,7 +23,7 @@ public:
 		iAXRFData const * xrfData,
 		iAAccumulatedXRFData const * accumulatedXRF);
 	void AddElement(iAElementSpectralInfo* element);
-	int ElementCount() const;
+	bool NoElements() const;
 	void Stop();
 	virtual void run();
 	iAProgress* progress();

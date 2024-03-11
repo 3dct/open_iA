@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "iANonLinearAxisTicker.h"
@@ -40,17 +40,17 @@ QVector<double> iANonLinearAxisTicker::createSubTickVector(int subTickCount,
 	Q_UNUSED(subTickCount)
 	QVector<double> result;
 	auto start = std::lower_bound(m_tickVector.begin(), m_tickVector.end(), ticks.first());
-	int startIdx = start - m_tickVector.begin();
+	auto startIdx = start - m_tickVector.begin();
 	auto end = std::lower_bound(m_tickVector.begin(), m_tickVector.end(), ticks.last());
-	int endIdx = end - m_tickVector.begin();
-	int indicesAfterLastMajorTick = 0;
+	auto endIdx = end - m_tickVector.begin();
+	qsizetype indicesAfterLastMajorTick = 0;
 
 	if ((endIdx + m_tickStep) > m_tickVector.size() - 1)
 	{
 		indicesAfterLastMajorTick = m_tickVector.size() - 1 - endIdx;
 	}
 
-	for (int i = startIdx; i <= endIdx + indicesAfterLastMajorTick; ++i)
+	for (qsizetype i = startIdx; i <= endIdx + indicesAfterLastMajorTick; ++i)
 	{
 		if ((i % m_tickStep) != 0)
 		{
@@ -86,7 +86,7 @@ QVector<QString> iANonLinearAxisTicker::createLabelVector(const QVector<double> 
 		}
 		prev = 1;
 		auto start = std::lower_bound(m_tickVector.begin(), m_tickVector.end(), ticks[i]);
-		int startIdx = start - m_tickVector.begin();
+		auto startIdx = start - m_tickVector.begin();
 		result.append(QCPAxisTicker::getTickLabel(startIdx,	locale, formatChar, precision));
 	}
 	return result;

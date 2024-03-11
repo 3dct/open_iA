@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAParameterNames.h"
 
@@ -29,9 +29,9 @@ IAFILTER_DEFAULT_CLASS(iAPatchFilter)
 
 namespace
 {
-	size_t getRequiredParts(size_t size, size_t partSize)
+	int getRequiredParts(size_t size, size_t partSize)
 	{
-		return size / partSize + ((size % partSize == 0) ? 0 : 1);
+		return static_cast<int>(size / partSize + ((size % partSize == 0) ? 0 : 1));
 	}
 
 	size_t getLeft(size_t x, size_t patchSizeHalf, bool center)
@@ -39,7 +39,7 @@ namespace
 		return center ? std::max(static_cast<size_t>(0), x - patchSizeHalf) : x;
 	}
 
-	int getSize(size_t x, size_t left, size_t size, size_t patchSizeHalf, size_t patchSize, bool center)
+	size_t getSize(size_t x, size_t left, size_t size, size_t patchSizeHalf, size_t patchSize, bool center)
 	{
 		return center ? (
 			(x < patchSizeHalf) ?

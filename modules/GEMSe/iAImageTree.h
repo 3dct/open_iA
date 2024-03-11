@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -30,8 +30,8 @@ private:
 		QTextStream & in,
 		std::shared_ptr<QVector<std::shared_ptr<iASamplingResults> > > samplings,
 		int labelCount,
-		QString const & outputDirectory,
-		int & lastClusterID);
+		QString const & outputDirectory
+		/*, int& lastClusterID*/);
 	int m_labelCount;
 };
 

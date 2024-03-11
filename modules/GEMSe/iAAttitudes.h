@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -12,14 +12,14 @@ class iAChartAttributeMapper;
 struct AttributeHistogram
 {
 	int * data;
-	AttributeHistogram(int numBins);
+	AttributeHistogram(size_t numBins);
 	~AttributeHistogram();
 	AttributeHistogram(const AttributeHistogram & other) = delete;
 	AttributeHistogram & operator=(const AttributeHistogram & other) = delete;
 };
 
 void GetHistData(AttributeHistogram & hist,
-	int chartID, iAClusterAttribChart* chart, QVector<iAImageTreeNode const *> const & nodes, int numBin,
+	int chartID, iAClusterAttribChart* chart, QVector<iAImageTreeNode const *> const & nodes, size_t numBin,
 	iAChartAttributeMapper const & chartAttrMap);
 
 void FindByAttitude(iAImageTreeNode const * node, iAImageTreeNode::Attitude att, QVector<iAImageTreeNode const *> & nodeList);

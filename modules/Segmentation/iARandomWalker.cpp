@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAGraphWeights.h"
 #include "iAImageGraph.h"
@@ -57,24 +57,24 @@ IAFILTER_DEFAULT_CLASS(iALabelImageToSeeds);
 
 namespace
 {
-	typedef itk::Image<unsigned char, DIM> LabelImageType;
-	typedef QMap<iAVertexIndexType, iAVertexIndexType> IndexMap;
-
+	using LabelPixelType = unsigned char;
+	using LabelImageType = itk::Image<LabelPixelType, DIM>;
+	using IndexMap = QMap<iAVertexIndexType, iAVertexIndexType>;
 
 	template <class T>
 	void CreateLabelImage(
 		int const dim[3],
 		double const spacing[3],
-		QVector<iAITKIO::ImagePointer> const & probabilityImages, 
-		int labelCount, 
+		QVector<iAITKIO::ImagePointer> const & probabilityImages,
+		size_t labelCount,
 		iAITKIO::ImagePointer& labelImgP)
 	{
-		typedef itk::Image<T, DIM> ProbImageType;
+		using ProbImageType = itk::Image<T, DIM>;
 		// create labelled image (as value at k = arg l max(p_l^k) for each pixel k)
 		labelImgP = allocateImage(dim, spacing, iAITKIO::ScalarType::UCHAR);
 		LabelImageType* labelImg = dynamic_cast<LabelImageType*>(labelImgP.GetPointer());
 		QVector<ProbImageType*> probImgs;
-		for (int i = 0; i < labelCount; ++i)
+		for (size_t i = 0; i < labelCount; ++i)
 		{
 			probImgs.push_back(dynamic_cast<ProbImageType*>(probabilityImages[i].GetPointer()));
 		}
@@ -86,18 +86,18 @@ namespace
 				for (int z = 0; z < dim[2]; ++z)
 				{
 					double maxProb = 0;
-					int maxProbLabel = -1;
+					LabelPixelType maxProbLabel = 0;
 					typename ProbImageType::IndexType idx;
 					idx[0] = x;
 					idx[1] = y;
 					idx[2] = z;
-					for (int l = 0; l < labelCount; ++l)
+					for (size_t l = 0; l < labelCount; ++l)
 					{
 						double prob = probImgs[l]->GetPixel(idx);
 						if (prob >= maxProb)
 						{
 							maxProb = prob;
-							maxProbLabel = l;
+							maxProbLabel = static_cast<LabelPixelType>(l);
 						}
 					}
 					labelImg->SetPixel(idx, maxProbLabel);
@@ -297,7 +297,7 @@ void iARandomWalker::performWork(QVariantMap const & parameters)
 		seedMap.insert(imageGraph.converter().indexFromCoordinates(seeds->at(seedIdx).first), seedIdx);
 		labelSet.insert(seeds->at(seedIdx).second);
 	}
-	int labelCount = labelSet.size();
+	int labelCount = static_cast<int>(labelSet.size());
 	if (maxLabel != labelCount - 1)
 	{
 		addMsg("Labels must be consecutive from 0 .. maxLabel !");
@@ -338,7 +338,7 @@ void iARandomWalker::performWork(QVariantMap const & parameters)
 			++newIdx;
 		}
 	}
-	int seedCount = seedMap.size();
+	auto seedCount = seedMap.size();
 
 	MatrixType A(vertexCount - seedCount, vertexCount - seedCount);
 	CreateLaplacianPart(A, unlabeledMap, unlabeledMap, imageGraph, finalWeight, vertexWeightSum, vertexCount);
@@ -508,7 +508,7 @@ void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 	// add priors into vertexWeightSum:
 	// if my thinking is correct it should be enough to add the weight factor to each entry,
 	// since for one voxel, the probabilities for all labels should add up to 1!
-	int labelCount = priorModel.size();
+	auto labelCount = priorModel.size();
 	for (iAVoxelIndexType voxelIdx = 0; static_cast<unsigned int>(voxelIdx) < vertexCount; ++voxelIdx)
 	{
 		double sum = 0;
@@ -520,7 +520,7 @@ void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 		idx[1] = coord.y;
 		idx[2] = coord.z;
 		*/
-		for (int labelIdx = 0; labelIdx < labelCount; ++labelIdx)
+		for (size_t labelIdx = 0; labelIdx < labelCount; ++labelIdx)
 		{
 			//sum += (*m_priorModel)[labelIdx]->GetPixel(idx);
 			double value = priorModel[labelIdx]->vtkImage()->GetScalarComponentAsDouble(coord.x, coord.y, coord.z, 0);
@@ -574,7 +574,7 @@ void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 	// perf.time("ERW: solver compute done");
 
 	QVector<iAITKIO::ImagePointer> probImgs;
-	for (int i=0; i<labelCount; ++i)
+	for (size_t i=0; i<labelCount; ++i)
 	{
 		VectorType priorForLabel(vertexCount);
 		// fill from image
@@ -611,7 +611,7 @@ void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 	ITK_TYPED_CALL(CreateLabelImage, inputScalarType(), dim, spc, probImgs, labelCount, labelImg);
 	addOutput(std::make_shared<iAImageData>(labelImg));
 	setOutputName(0u, "Label Image");
-	for (int i = 0; i < labelCount; ++i)
+	for (size_t i = 0; i < labelCount; ++i)
 	{
 		addOutput(std::make_shared<iAImageData>(probImgs[i]));
 		setOutputName(static_cast<unsigned int>(1 + i), QString("Probability image label %1").arg(i));
@@ -642,7 +642,7 @@ void iAMaximumDecisionRule::performWork(QVariantMap const & /*parameters*/)
 		probImgs.push_back(imageInput(i)->itkImage());
 	}
 	iAITKIO::ImagePointer labelImg;
-	ITK_TYPED_CALL(CreateLabelImage, inputScalarType(), dim, spc, probImgs, inputCount(), labelImg);
+	ITK_TYPED_CALL(CreateLabelImage, inputScalarType(), dim, spc, probImgs, static_cast<int>(inputCount()), labelImg);
 	addOutput(std::make_shared<iAImageData>(labelImg));
 }
 

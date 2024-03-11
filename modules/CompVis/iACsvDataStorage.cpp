@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACsvDataStorage.h"
 
@@ -38,11 +38,11 @@ iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles, int headerLineNumber) 
 			LOG(lvlError, QString("Unable to read file '%1'").arg(m_filenames->at(ind)));
 			return;
 		}
-		
+
 		//create data structure for MDS and CompVis
 		storeCSVToVectorArray(list, headerLineNumber);
 
-	
+
 		//create data structure for 3DVis for library iAobjectvis
 		if (iACompVisOptions::getShow3DViews())
 		{
@@ -119,7 +119,7 @@ void iACsvDataStorage::storeCSVToVectorArray(QList<QStringList>* list, int heade
 
 	customizeCSVFile(list, headerLineNumber);
 	initializeHeader(list, file.header, headerLineNumber);
-	initializeValueArray(list, file.header->size(), file.values);
+	initializeValueArray(list, static_cast<int>(file.header->size()), file.values);
 
 	m_data->append(file);
 }
@@ -150,8 +150,8 @@ void iACsvDataStorage::initializeHeader(QList<QStringList>* list, QStringList* h
 void iACsvDataStorage::initializeValueArray(
 	QList<QStringList>* list, int const attrCount, csvDataType::ArrayType* values)
 {
-	int colNumber = list->at(0).size();
-	int rowNumber = list->size();
+	int colNumber = static_cast<int>(list->at(0).size());
+	int rowNumber = static_cast<int>(list->size());
 
 	if (colNumber == 1)
 	{
@@ -161,10 +161,10 @@ void iACsvDataStorage::initializeValueArray(
 
 			std::vector<double> vec = std::vector<double>();
 			vec.reserve(attrCount);
-			
+
 			vec.push_back(row); //add id
 			vec.push_back(list->at(row).at(0).toDouble()); //add value
-			
+
 			//store the feature's values
 			values->push_back(vec);
 		}
@@ -270,14 +270,14 @@ void iACsvDataStorage::setMDSData(csvDataType::ArrayType* mdsData)
 /*********************** csvFileData methods ******************************************/
 std::vector<int>* csvFileData::getAmountObjectsEveryDataset(QList<csvFileData>* data)
 {
-	int amountDatasets = data->size();
+	auto amountDatasets = data->size();
 	std::vector<int>* result = new std::vector<int>(amountDatasets);
 
-	for (int i = 0; i < amountDatasets; i++)
+	for (qsizetype i = 0; i < amountDatasets; i++)
 	{
 		result->at(i) = static_cast<int>(data->at(i).values->size());
 	}
-	
+
 	return result;
 }
 
@@ -374,7 +374,7 @@ csvDataType::ArrayType* csvDataType::copy(ArrayType* input)
 	int cols = getColumns(input);
 	int rows = getRows(input);
 
-	ArrayType* result = new ArrayType(); 
+	ArrayType* result = new ArrayType();
 	initialize(rows, cols, result);
 
 	for (int r = 0; r < rows; r++)
@@ -410,7 +410,7 @@ csvDataType::ArrayType* csvDataType::elementCopy(ArrayType* input)
 	int rows = getRows(input);
 	ArrayType* result = new ArrayType();
 	initialize(rows, cols, result);
-	
+
 	for (int r = 0; r < rows; r++)
 	{
 		for (int c = 0; c < cols; c++)
@@ -489,7 +489,7 @@ void csvDataType::debugArrayType(ArrayType* input)
 			{
 				number += ".000000";
 			}
-			int pos = number.lastIndexOf(QChar('.'));
+			auto pos = number.lastIndexOf(QChar('.'));
 			output += number.left(pos + 7) + ", ";
 		}
 

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -28,8 +28,8 @@ public:
 	static std::shared_ptr<iASamplingResults> load(QString const & metaFileName, int datasetID);
 	bool store(QString const& rangeFileName, QString const& parameterSetFileName,
 		QString const& derivedOutputFileName);
-	int size() const;
-	std::shared_ptr<iASingleResult> get(int i) const;
+	qsizetype size() const;
+	std::shared_ptr<iASingleResult> get(qsizetype i) const;
 	void addResult(std::shared_ptr<iASingleResult> result);
 	QVector<std::shared_ptr<iASingleResult> > const & members() const;
 	void setMembers(QVector<std::shared_ptr<iASingleResult> > const& members);

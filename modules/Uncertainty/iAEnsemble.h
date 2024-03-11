@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -40,10 +40,10 @@ public:
 	int LabelCount() const;
 	double * EntropyHistogram() const;
 	int EntropyBinCount() const;
-	std::shared_ptr<iASingleResult> const Member(size_t memberIdx) const;
+	std::shared_ptr<iASingleResult> const Member(qsizetype memberIdx) const;
 	size_t MemberCount() const;
 	std::vector<double> const & MemberAttribute(size_t idx) const;
-	std::shared_ptr<iASamplingResults> Sampling(size_t idx) const;
+	std::shared_ptr<iASamplingResults> Sampling(qsizetype idx) const;
 	QString const & CachePath() const;
 	std::shared_ptr<iAEnsemble> AddSubEnsemble(QVector<int> memberIDs, int newEnsembleID);
 	QVector<std::shared_ptr<iAEnsemble> > SubEnsembles() const;

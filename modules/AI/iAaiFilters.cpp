@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <defines.h> // for DIM
 #include <iAFilterDefault.h>
@@ -76,7 +76,7 @@ bool itk2tensor(typename ImageType::Pointer itk_img, std::vector<float> &tensor_
 	//typename ImageType::Pointer itk_img_normalized = Normalize(itk_img);
 
 	typename ImageType::RegionType region = itk_img->GetLargestPossibleRegion();
-	
+
 
 	ImageType::RegionType inputRegion;
 
@@ -131,7 +131,7 @@ bool tensor2itk(std::vector<Ort::Value> &tensor_img, typename ImageType::Pointer
 
 	for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter)
 	{
-		
+
 		count = count+offset;
 		float val = floatarr[count];
 		iter.Set(val);
@@ -187,7 +187,7 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 
 	// If onnxruntime.dll is built with CUDA enabled, we can uncomment out this line to use CUDA for this
 	// session (we also need to include cuda_provider_factory.h above which defines it)
-	
+
 	if (parameters["use GPU"].toBool())
 	{
 #ifdef ONNX_CUDA
@@ -228,9 +228,7 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 
 	// print number of model input nodes
 	size_t num_input_nodes = session.GetInputCount();
-#ifdef ONNX_NEWNAMEFUNCTIONS
 	std::vector<Ort::AllocatedStringPtr> input_node_names_smartptrs;
-#endif
 	std::vector<const char*> input_node_names(num_input_nodes);
 	std::vector<int64_t> input_node_dims;  // simplify... this model has only 1 input node {1, 3, 224, 224}.
 										   // Otherwise need vector<vector<>>
@@ -241,12 +239,8 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 	for (size_t i = 0; i < num_input_nodes; i++)
 	{
 		// print input node names
-#ifdef ONNX_NEWNAMEFUNCTIONS
 		input_node_names_smartptrs.emplace_back(session.GetInputNameAllocated(i, allocator));
 		auto input_name = input_node_names_smartptrs[i].get();
-#else
-		char* input_name = session.GetInputName(i, allocator);
-#endif
 		LOG(lvlInfo, QString("Input %1 : name=%2").arg(i).arg(input_name));
 		input_node_names[i] = input_name;
 
@@ -272,9 +266,7 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 
 	// print number of model input nodes
 	size_t num_output_nodes = session.GetOutputCount();
-#if ONNX_NEWNAMEFUNCTIONS
 	std::vector<Ort::AllocatedStringPtr> output_node_names_smartptrs;
-#endif
 	std::vector<const char*> output_node_names(num_output_nodes);
 	std::vector<int64_t> output_node_dims;  // simplify... this model has only 1 input node {1, 3, 224, 224}.
 										   // Otherwise need vector<vector<>>
@@ -285,12 +277,8 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 	for (size_t i = 0; i < num_output_nodes; i++)
 	{
 		// print input node names
-#if ONNX_NEWNAMEFUNCTIONS
 		output_node_names_smartptrs.emplace_back(session.GetOutputNameAllocated(i, allocator));
 		auto output_name = output_node_names_smartptrs[i].get();
-#else
-		char* output_name = session.GetOutputName(i, allocator);
-#endif
 		LOG(lvlInfo, QString("Output %1 : name=%2").arg(i).arg(output_name));
 		output_node_names[i] = output_name;
 
@@ -347,7 +335,7 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 
 	ImageType::SizeType size = region.GetSize();
 
-	std::list<ImageType::Pointer> outputs; 
+	std::list<ImageType::Pointer> outputs;
 
 	Ort::TypeInfo type_info = session.GetOutputTypeInfo(0);
 	auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
@@ -456,5 +444,5 @@ iAai::iAai() :
 	addParameter("OnnxFile", iAValueType::FileNameOpen);
 	addParameter("use GPU", iAValueType::Boolean, true);
 	addParameter("GPU", iAValueType::Discrete,0);
-	
+
 }

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "dlg_ProjectionParameters.h"
 
@@ -90,7 +90,7 @@ void dlg_ProjectionParameters::fillAlgorithmValues(int algorithmType, int number
 
 
 void dlg_ProjectionParameters::fillCorrectionValues(bool correctCenterOfRotation, double correctCenterOfRotationOffset)
-{	
+{
 	cbCorrectCenterOfRotation->setChecked(correctCenterOfRotation);
 	dsbCorrectCenterOfRotationOffset->setValue(correctCenterOfRotationOffset);
 	centerOfRotationEnabled(correctCenterOfRotation ? Qt::Checked : Qt::Unchecked);

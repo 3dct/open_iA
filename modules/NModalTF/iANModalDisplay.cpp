@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "iANModalDisplay.h"
@@ -219,7 +219,7 @@ void iANModalDisplay::setModalitySelected(std::shared_ptr<iAImageData> ds, QAbst
 
 bool iANModalDisplay::isSelectionValid()
 {
-	int len = selection().size();
+	int len = static_cast<int>(selection().size());
 	return len < m_minSelection || (m_maxSelection > 0 && len > m_maxSelection);
 }
 

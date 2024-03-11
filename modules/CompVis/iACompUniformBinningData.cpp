@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompUniformBinningData.h"
 
@@ -38,8 +38,8 @@ int iACompUniformBinningData::computeSturgesRule()
 {
 	//compute sturges rule according to dataset with the most elements in it
 	std::vector<int>* numberOfObjectsAllDatasets = this->getAmountObjectsEveryDataset();
-	auto result = std::minmax_element(std::begin(*numberOfObjectsAllDatasets), std::end(*numberOfObjectsAllDatasets));  
-	int n = *result.second; 
+	auto result = std::minmax_element(std::begin(*numberOfObjectsAllDatasets), std::end(*numberOfObjectsAllDatasets));
+	int n = *result.second;
 
 	m_bins = 1 + std::log2(n);
 

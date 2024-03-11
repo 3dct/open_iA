@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAViewHandler.h"
 
@@ -24,7 +24,7 @@ void iAViewHandler::vtkCallbackFunc(vtkObject* caller, long unsigned int evId, v
 	const int MinWaitTime = 50;
 	const int FinalUpdateTime = 250;
 	const int ReducedQuality = 20;   // reduce resolution as well?
-	
+
 	if ((m_stopWatch.elapsed() > std::max(m_waitTimeRendering, MinWaitTime)))
 	{
 		m_stopWatch.restart();

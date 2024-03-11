@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -44,7 +44,7 @@ public:
 	typedef itk::Image<double, 3>                 DoubleImg;
 	typedef itk::ImageRegionConstIterator<DoubleImg> ConstDblIt;
 
-	void SetProbabilityImages(int inputIdx, std::vector<DoubleImg::Pointer> const & probImgs)
+	void SetProbabilityImages(size_t inputIdx, std::vector<DoubleImg::Pointer> const & probImgs)
 	{
 		m_probImgs.insert(std::make_pair(inputIdx, probImgs));
 	}
@@ -87,7 +87,7 @@ private:
 	iAProbabilisticVotingImageFilter(const Self &) =delete;
 	void operator=(const Self &) =delete;
 
-	std::map<int, std::vector<DoubleImg::Pointer> > m_probImgs;
+	std::map<size_t, std::vector<DoubleImg::Pointer> > m_probImgs;
 	std::vector<double> m_weights;
 	VotingRule m_votingRule;
 	size_t m_labelCount;

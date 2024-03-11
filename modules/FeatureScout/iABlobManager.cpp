@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iABlobManager.h"
 
@@ -100,13 +100,13 @@ void iABlobManager::Update( void )
 	else
 	{
 		vtkPolyData ** blobs_pd;
-		const int blobCount = m_blobsList.count();
+		const auto blobCount = m_blobsList.count();
 		blobs_pd = new vtkPolyData*[blobCount];
 		m_appendedBlobsPD->RemoveAllInputs();
 		m_blobsLT->SetNumberOfTableValues( blobCount );
 		m_blobsLT->SetTableRange( 0, blobCount );
 		m_blobsLT->Build();
-		for ( int i = 0; i < blobCount; i++ )
+		for (qsizetype i = 0; i < blobCount; i++ )
 		{
 			m_blobsList[i]->Update();
 
@@ -133,7 +133,7 @@ void iABlobManager::Update( void )
 			unsigned char val;
 			for ( int cellInd = 0; cellInd < blobs_pd[i]->GetNumberOfPoints(); ++cellInd )
 			{
-				val = i;
+				val = static_cast<unsigned char>(i);
 				colIDs->InsertNextTypedTuple(&val);
 			}
 			blobs_pd[i]->GetPointData()->SetScalars( colIDs );
@@ -204,10 +204,11 @@ QList<iABlobCluster*>* iABlobManager::GetListObBlobClusters( void )
 
 bool iABlobManager::SmartOverlapping( void )
 {
-	int size = m_blobsList.count();
-
-	if ( size == 0 )
+	auto size = m_blobsList.count();
+	if (size == 0)
+	{
 		return false;
+	}
 
 	// we propose that all blobs have same data type
 	int extent[6];
@@ -219,12 +220,13 @@ bool iABlobManager::SmartOverlapping( void )
 	// 	}
 	//GaussianBlurMask ();
 
-
-	for ( int i = 0; i < size; i++ )
+	for (qsizetype i = 0; i < size; i++)
+	{
 		m_blobsList[i]->GaussianBlur();
+	}
 
 	//smart separation
-	const double infinity = std::numeric_limits<double>::max(); //m_range + 10;
+	constexpr double infinity = std::numeric_limits<double>::max(); //m_range + 10;
 	if ( size > 1 )
 	{
 		for ( int x = extent[0]; x <= extent[1]; x++ )
@@ -605,16 +607,17 @@ void iABlobManager::SaveMovie( QWidget *activeChild,
 							   const double /*overlapThreshold*/[2],
 							   const double /*gaussianBlurVariance*/[2],
 							   const int /*dimX*/[2], const int /*dimY*/[2], const int /*dimZ*/[2],
-							   const QString& fileName, int mode, int qual )
+							   const QString& fileName, int mode, int qual, int fps)
 {
-	if ( numberOfFrames <= 1 )
+	if (numberOfFrames <= 1)
+	{
 		return;
-
-	vtkSmartPointer<vtkGenericMovieWriter> movieWriter = GetMovieWriter( fileName, qual );
-
-	if ( movieWriter.GetPointer() == nullptr )
+	}
+	vtkSmartPointer<vtkGenericMovieWriter> movieWriter = GetMovieWriter( fileName, qual, fps );
+	if (movieWriter.GetPointer() == nullptr)
+	{
 		return;
-
+	}
 	//interactor->Disable();
 
 	vtkSmartPointer<vtkWindowToImageFilter> w2if = vtkSmartPointer<vtkWindowToImageFilter>::New();

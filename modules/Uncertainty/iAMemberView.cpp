@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAMemberView.h"
 
@@ -63,10 +63,10 @@ void iAMemberView::SetEnsemble(std::shared_ptr<iAEnsemble> ensemble)
 	QVector<double> meanData;
 
 	size_t cnt = 0;
-	for (double idx : m_sortedIndices)
+	for (auto idx : m_sortedIndices)
 	{
 		ticks << cnt;
-		labels << QString::number(static_cast<int>(ensemble->Member(idx)->id()));
+		labels << QString::number(ensemble->Member(idx)->id());
 		meanData << ensemble->MemberAttribute(iAEnsemble::UncertaintyMean)[idx];
 		++cnt;
 	}

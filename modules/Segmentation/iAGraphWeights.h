@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -21,7 +21,7 @@ public:
 	iAEdgeWeightType GetMaxWeight() const;
 	iAEdgeWeightType GetWeight(iAEdgeIndexType edgeIdx) const;
 	void SetWeight(iAEdgeIndexType edgeIdx, iAEdgeWeightType weight);
-	int GetEdgeCount() const;
+	qsizetype GetEdgeCount() const;
 private:
 	QVector<iAEdgeWeightType> m_weights;
 };

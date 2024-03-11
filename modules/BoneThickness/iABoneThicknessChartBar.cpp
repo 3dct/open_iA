@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iABoneThicknessChartBar.h"
 
@@ -137,8 +137,8 @@ void iABoneThicknessChartBar::drawData(QPainter* _pPainter)
 
 		for (; i < m_idSelected; ++i, ++ii)
 		{
-			const int iRectX((vtkIdType)iAxisXW * i / idThickness);
-			const int iRectW((vtkIdType)iAxisXW * ii / idThickness - iRectX);
+			const int iRectX(static_cast<int>(iAxisXW * i / idThickness));
+			const int iRectW(static_cast<int>(iAxisXW * ii / idThickness - iRectX));
 
 			const int iRectY(valueToScreenY(m_daThickness->GetValue(i)));
 			const int iRectH(m_iAxisY1 - iRectY);
@@ -151,8 +151,8 @@ void iABoneThicknessChartBar::drawData(QPainter* _pPainter)
 			_pPainter->setBrush(m_cBar2);
 			_pPainter->setPen((bPen) ? m_cPen1 : _pPainter->brush().color());
 
-			const int iRectX((vtkIdType)iAxisXW * i / idThickness);
-			const int iRectW((vtkIdType)iAxisXW * ii / idThickness - iRectX);
+			const int iRectX(static_cast<int>(iAxisXW * i / idThickness));
+			const int iRectW(static_cast<int>(iAxisXW * ii / idThickness - iRectX));
 
 			const int iRectY(valueToScreenY(m_daThickness->GetValue(i)));
 			const int iRectH(m_iAxisY1 - iRectY);
@@ -168,8 +168,8 @@ void iABoneThicknessChartBar::drawData(QPainter* _pPainter)
 
 		for (; i < idThickness; ++i, ++ii)
 		{
-			const int iRectX((vtkIdType)iAxisXW * i / idThickness);
-			const int iRectW((vtkIdType)iAxisXW * ii / idThickness - iRectX);
+			const int iRectX(static_cast<int>(iAxisXW * i / idThickness));
+			const int iRectW(static_cast<int>(iAxisXW * ii / idThickness - iRectX));
 
 			const int iRectY(valueToScreenY(m_daThickness->GetValue(i)));
 			const int iRectH(m_iAxisY1 - iRectY);
@@ -237,7 +237,7 @@ double iABoneThicknessChartBar::screenToValueY(const int& _iValueY) const
 	return m_dAxisY1 + (m_dAxisY2 - m_dAxisY1) * (double)(_iValueY - m_iAxisY1) / (double)(m_iAxisY2 - m_iAxisY1);
 }
 
-int iABoneThicknessChartBar::selected(const int& _iX, const int& _iY) const
+vtkIdType iABoneThicknessChartBar::selected(const int& _iX, const int& _iY) const
 {
 	if ((_iX > m_iAxisX1) && (_iX < m_iAxisX2))
 	{

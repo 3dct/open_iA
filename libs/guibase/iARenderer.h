@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -28,7 +28,7 @@ class iAguibase_API iARenderer: public QObject
 public:
 	iARenderer(QObject* parent) : QObject(parent) {}
 	virtual ~iARenderer() {}
-	
+
 	//! @{ Get/Set the VTK camera object (shared by main and label renderer)
 	virtual vtkCamera* camera() = 0;
 	virtual void setCamera(vtkCamera* c) = 0;
@@ -71,7 +71,7 @@ public:
 	virtual iARenderObserver * getRenderObserver() = 0;
 
 	//! set the bounds of the scene to the given bounding box;
-	//! adapts axes markers, plane indicators etc. to be properly visible for a scene 
+	//! adapts axes markers, plane indicators etc. to be properly visible for a scene
 	//! where all datasets fit within the given bounding box
 	virtual void setSceneBounds(iAAABB const & boundingBox) = 0;
 

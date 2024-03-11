@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAQSplom.h"
 
@@ -77,7 +77,6 @@ public:
 iAQSplom::Settings::Settings() :
 	plotsSpacing(7),
 	tickLabelsOffset(5),
-	maxRectExtraOffset(20),
 	tickOffsets(45, 45),
 	maximizedLinked(false),
 	flipAxes(false),
@@ -297,7 +296,7 @@ iAQSplom::iAQSplom(QWidget * parent):
 	m_settingsDlg->cbColorThemeQual->addItems(iAColorThemeManager::instance().availableThemes());
 	m_settingsDlg->cbColorThemeQual->setCurrentIndex(1); // to avoid "Black" default theme
 	connect(m_settingsDlg->cbColorTheme, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeFromComboBox);
-	connect(m_settingsDlg->cbColorThemeQual, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeQual);
+	connect(m_settingsDlg->cbColorThemeQual, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeQualFromComboBox);
 	m_columnPickMenu = m_contextMenu->addMenu("Columns");
 	connect(m_viewData.get(), &iAScatterPlotViewData::updateRequired, this, QOverload<>::of(&iAChartParentWidget::update));
 	connect(m_viewData.get(), &iAScatterPlotViewData::filterChanged, this, &iAQSplom::updateFilter);
@@ -1052,7 +1051,6 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 	QRect colorBarRect(topLeft.x(), topLeft.y(),
 		barWidth, height() - topLeft.y() - settings.plotsSpacing);
 	QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y()+colorBarRect.height() );
-	QMap<double, QColor>::iterator it;
 	for (size_t i = 0; i < m_lut->numberOfValues(); ++i)
 	{
 		double rgba[4];
@@ -1216,15 +1214,19 @@ void iAQSplom::resizeEvent( QResizeEvent * event )
 
 void iAQSplom::updatePlotGridParams()
 {
-	long plotsRect[2] = {
+	int plotsRect[2] = {
 		width() - settings.tickOffsets.x(),
 		height() - settings.tickOffsets.y() };
-	long visParamCnt = visibleParametersCount();
+	auto visParamCnt = visibleParametersCount();
 	int spc = settings.plotsSpacing;
 	m_scatPlotSize = QPoint(
 		static_cast<int>(( plotsRect[0] - ( visParamCnt - 1 ) * spc - ((m_separationIdx != -1) ? settings.separationMargin : 0) ) / ( (double)visParamCnt )),
 		static_cast<int>(( plotsRect[1] - ( visParamCnt - 1 ) * spc - ((m_separationIdx != -1) ? settings.separationMargin : 0) ) / ( (double)visParamCnt ))
 	);
+	if (visibleParametersCount() == 2)
+	{
+		m_scatPlotSize = QPoint(plotsRect[0], plotsRect[1]);
+	}
 	if (settings.quadraticPlots)
 	{
 		if (m_scatPlotSize.x() < m_scatPlotSize.y())
@@ -1250,7 +1252,7 @@ QRect iAQSplom::getPlotRectByIndex( int x, int y )
 
 QRect iAQSplom::getMaxRect()
 {
-	long visParamCnt = visibleParametersCount();
+	auto visParamCnt = visibleParametersCount();
 	QRect topLeftPlot = getPlotRectByIndex(0, visParamCnt - 1);
 	QRect bottomRightPlot = getPlotRectByIndex(visParamCnt - 1, 0);
 	// default top left for max plot is in the middle of the chart area:
@@ -1475,7 +1477,7 @@ void iAQSplom::changeActivePlot( iAScatterPlot * s )
 int iAQSplom::getMaxTickLabelWidth(QList<QString> const & textX, QFontMetrics & fm) const
 {
 	int maxLength = 0;
-	for (long i = 0; i < textX.size(); ++i)
+	for (qsizetype i = 0; i < textX.size(); ++i)
 	{
 		maxLength = std::max(fm.horizontalAdvance(textX[i]), maxLength);
 	}
@@ -1538,14 +1540,14 @@ void iAQSplom::drawTicks( QPainter & painter, QList<double> const & ticksX, QLis
 	//painter.setPen( m_visiblePlots[1][0]->settings.tickLabelColor );
 	painter.setPen(QApplication::palette().color(QPalette::Text));
 	QPoint * tOfs = &settings.tickOffsets;
-	long tSpc = settings.tickLabelsOffset;
-	for( long i = 0; i < ticksY.size(); ++i )
+	auto tSpc = settings.tickLabelsOffset;
+	for(qsizetype i = 0; i < ticksY.size(); ++i )
 	{
 		double t = ticksY[i]; QString text = textY[i];
 		painter.drawText( QRectF( 0, t - tOfs->y(), tOfs->x() - tSpc, 2 * tOfs->y() ), Qt::AlignRight | Qt::AlignVCenter, text );
 	}
 	painter.rotate( -90 );
-	for( long i = 0; i < ticksX.size(); ++i )
+	for(qsizetype i = 0; i < ticksX.size(); ++i )
 	{
 		double t = ticksX[i]; QString text = textX[i];
 		painter.drawText( QRectF( -tOfs->y() + tSpc, t - tOfs->x(), tOfs->y() - tSpc, 2 * tOfs->x() ), Qt::AlignLeft | Qt::AlignVCenter, text );
@@ -1602,16 +1604,17 @@ void iAQSplom::updateLookupTable()
 			break;
 		}
 		case cmByParameter:
-			if (m_settingsDlg->rbContinuous->isChecked())
+			if (settings.colorParameterMode == pmContinuous)
 			{
 				*m_lut.get() = iALUT::Build(lutRange, settings.colorThemeName, 256, alpha);
 			}
-			else if (m_settingsDlg->rbQualitative->isChecked())
+			else if (settings.colorParameterMode == pmQualitative)
 			{
 				m_lut->setRange(lutRange);
-				m_lut->allocate(lutRange[1] - lutRange[0]);
+				size_t numColors = static_cast<int>(std::ceil(lutRange[1] - lutRange[0])) + 1;
+				m_lut->allocate(numColors);
 				auto theme = iAColorThemeManager::instance().theme(settings.colorThemeQualName);
-				for (size_t colorIdx = 0; colorIdx < lutRange[1] - lutRange[0]; ++colorIdx)
+				for (size_t colorIdx = 0; colorIdx < numColors; ++colorIdx)
 				{
 					m_lut->setColor(colorIdx, theme->color(colorIdx % theme->size()));
 				}
@@ -2009,6 +2012,9 @@ void iAQSplom::setColorMode(ColorMode colorMode)
 void iAQSplom::setColorParameterMode(ColorParameterMode paramMode)
 {
 	settings.colorParameterMode = paramMode;
+	QSignalBlocker blockRBContinuous(m_settingsDlg->rbContinuous), blockRBQualitative(m_settingsDlg->rbQualitative);
+	m_settingsDlg->rbContinuous->setChecked(settings.colorParameterMode == pmContinuous);
+	m_settingsDlg->rbQualitative->setChecked(settings.colorParameterMode == pmQualitative);
 	updateColorControls();
 }
 
@@ -2081,9 +2087,13 @@ void iAQSplom::setColorTheme(QString const & themeName)
 	}
 }
 
-void iAQSplom::setColorThemeQual(int index)
+void iAQSplom::setColorThemeQualFromComboBox(int index)
 {
-	QString const themeName = m_settingsDlg->cbColorThemeQual->itemText(index);
+	setColorThemeQual(m_settingsDlg->cbColorThemeQual->itemText(index));
+}
+
+void iAQSplom::setColorThemeQual(QString const & themeName)
+{
 	settings.colorThemeQualName = themeName;
 	if (m_settingsDlg->cbColorThemeQual->currentText() != themeName)
 	{

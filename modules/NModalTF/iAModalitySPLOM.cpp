@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAModalitySPLOM.h"
 
@@ -113,7 +113,7 @@ void iteratePixels(vtkSmartPointer<vtkImageData> img, const int step[3], std::fu
 		{
 			for (coord[2]=extent[4]; coord[2]<=extent[5]; coord[2] += step[2])
 			{
-				int voxelIdx = img->ComputePointId(coord);
+				vtkIdType voxelIdx = img->ComputePointId(coord);
 				pixelVisitor(coord, imgData[voxelIdx]);
 			}
 		}

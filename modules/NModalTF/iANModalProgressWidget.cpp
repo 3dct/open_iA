@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iANModalProgressWidget.h"
 
@@ -27,7 +27,7 @@ int iANModalProgressWidget::addProgressBar(
 	QProgressBar* pb = new QProgressBar(this);
 	addWidget(pb, label, 0);
 
-	int id = m_bars.size();
+	int id = static_cast<int>(m_bars.size());
 
 	m_bars.append(pb);
 	m_barLabels.append(label);

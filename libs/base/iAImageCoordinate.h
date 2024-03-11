@@ -1,11 +1,13 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 #include "iabase_export.h"
 
-// why is this not unsigned int?
+#include <cstddef> // for size_t
+
 typedef int iAVoxelIndexType;
+typedef size_t iAFlatIndexType;
 
 //! Helper for storing 3D image coordinates.
 //! @todo Maybe use iAVec3i instead?
@@ -34,16 +36,16 @@ public:
 		iAVoxelIndexType depth=1,
 		iAImageCoordinate::iAIndexOrdering ordering=iAImageCoordinate::RowColDepMajor
 	);
-	iAImageCoordinate coordinatesFromIndex(iAVoxelIndexType index) const;
-	iAVoxelIndexType indexFromCoordinates(iAImageCoordinate coords) const;
-	iAVoxelIndexType vertexCount() const;
+	iAImageCoordinate coordinatesFromIndex(iAFlatIndexType index) const;
+	iAFlatIndexType indexFromCoordinates(iAImageCoordinate coords) const;
+	iAFlatIndexType vertexCount() const;
 	static iAImageCoordinate coordinatesFromIndex(
-		iAVoxelIndexType index,
+		iAFlatIndexType index,
 		iAVoxelIndexType width,
 		iAVoxelIndexType height,
 		iAVoxelIndexType depth,
 		iAImageCoordinate::iAIndexOrdering ordering);
-	static iAVoxelIndexType indexFromCoordinates(
+	static iAFlatIndexType indexFromCoordinates(
 		iAImageCoordinate coords,
 		iAVoxelIndexType width,
 		iAVoxelIndexType height,

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -35,6 +35,6 @@ public slots:
 private:
 	//! check whether one (shown) item is selected, and if it is, show its description and enable OK button.
 	void updateOKAndDescription();
-	int m_curMatches;
+	qsizetype m_curMatches;
 	const std::unique_ptr<Ui_FilterSelectionDlg> m_ui;
 };

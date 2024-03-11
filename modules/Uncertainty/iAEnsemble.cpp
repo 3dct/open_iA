@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAEnsemble.h"
 
@@ -237,7 +237,7 @@ namespace
 		{
 			LOG(lvlWarn, "Different histogram bin count than anticipated, readjusting buffer size.");
 			delete[] destination;
-			binCount = lines.size();
+			binCount = static_cast<int>(lines.size());
 			destination = new double[binCount];
 		}
 		size_t cur = 0;
@@ -600,8 +600,9 @@ void iAEnsemble::writeFullDataFile(QString const & filename, bool writeIntensiti
 					{
 						//for (size_t c = 0; c < dataSets[m]->componentCount(); ++c)
 						//{
-						auto img = dynamic_cast<iAImageData*>(dataSets[m].get())->vtkImage();;
-						line += QString::number(++curFeature) + ":" + QString::number(img->GetScalarComponentAsDouble(idx[0], idx[1], idx[2], 0)) + " ";
+						auto img = dynamic_cast<iAImageData*>(dataSets[m].get())->vtkImage();
+						line += QString::number(++curFeature) + ":" +
+							QString::number(img->GetScalarComponentAsDouble(static_cast<int>(idx[0]), static_cast<int>(idx[1]), static_cast<int>(idx[2]), 0)) + " ";
 						//}
 					}
 				}
@@ -630,7 +631,8 @@ void iAEnsemble::writeFullDataFile(QString const & filename, bool writeIntensiti
 					// all uncertainty / entropy images:
 					for (int e = 0; e < SourceCount; ++e)
 					{
-						line += QString::number(++curFeature) + ":" + QString::number(m_entropy[e]->GetScalarComponentAsDouble(idx[0], idx[1], idx[2], 0)) + " ";
+						line += QString::number(++curFeature) + ":" +
+							QString::number(m_entropy[e]->GetScalarComponentAsDouble(static_cast<int>(idx[0]), static_cast<int>(idx[1]), static_cast<int>(idx[2]), 0)) + " ";
 					}
 				}
 				       // cut last space:
@@ -725,12 +727,12 @@ size_t iAEnsemble::MemberCount() const
 	return m_memberEntropyAvg.size();
 }
 
-std::shared_ptr<iASingleResult> const iAEnsemble::Member(size_t memberIdx) const
+std::shared_ptr<iASingleResult> const iAEnsemble::Member(qsizetype memberIdx) const
 {
-	for (int s=0; s<m_samplings.size(); ++s)
+	for (qsizetype s=0; s<m_samplings.size(); ++s)
 	{
 		assert(m_samplings[s]->size() > 0);
-		if (memberIdx < static_cast<size_t>(m_samplings[s]->size()))
+		if (memberIdx < m_samplings[s]->size())
 		{
 			return m_samplings[s]->get(memberIdx);
 		}
@@ -749,7 +751,7 @@ std::vector<double> const & iAEnsemble::MemberAttribute(size_t idx) const
 	}
 }
 
-std::shared_ptr<iASamplingResults> iAEnsemble::Sampling(size_t idx) const
+std::shared_ptr<iASamplingResults> iAEnsemble::Sampling(qsizetype idx) const
 {
 	return m_samplings[idx];
 }

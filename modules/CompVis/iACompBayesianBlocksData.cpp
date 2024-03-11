@@ -1,10 +1,10 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompBayesianBlocksData.h"
 
-iACompBayesianBlocksData::iACompBayesianBlocksData() : 
-	iACompHistogramTableData(), 
-	m_numberOfObjectsPerBin(nullptr), 
+iACompBayesianBlocksData::iACompBayesianBlocksData() :
+	iACompHistogramTableData(),
+	m_numberOfObjectsPerBin(nullptr),
 	m_binsBoundaries(nullptr)
 {
 }
@@ -14,13 +14,13 @@ void iACompBayesianBlocksData::calculateNumberOfObjectsInEachBin(
 {
 	auto numberOfDatasets = thisBinDataObjects->size();
 	m_numberOfObjectsPerBin = bin::initialize(numberOfDatasets);
-	
+
 	for (int v = 0; v < numberOfDatasets; v++)
 	{//check for every dataset
 
 		auto currDataset = thisBinDataObjects->at(v);
 		auto currentNumberOfBins = static_cast<int>(currDataset->size());
-		
+
 		std::vector<double> bins;
 
 		for (int b = 0; b < currentNumberOfBins; b++)

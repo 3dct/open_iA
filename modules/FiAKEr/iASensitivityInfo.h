@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -117,7 +117,7 @@ private slots:
 	void spPointHighlighted(size_t resultIdx, bool state);
 	void spVisibleParamChanged();
 	void parResultSelected(size_t resultIdx, Qt::KeyboardModifiers modifiers);
-	void setSpatialOverviewTF(int dataSetIdx);
+	void setSpatialOverviewTF(size_t dataSetIdx);
 	void spatialOverviewVisibilityChanged(bool visible);
 	void setSPParameterColorMap(QString const& colorMapName);
 };

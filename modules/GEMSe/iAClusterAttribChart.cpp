@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAClusterAttribChart.h"
 
@@ -93,7 +93,7 @@ void iAClusterAttribChart::RemoveFilterData()
 	}
 }
 
-QColor iAClusterAttribChart::GetClusterColor(int nr) const
+QColor iAClusterAttribChart::GetClusterColor(qsizetype nr) const
 {
 	assert(nr < MaxSelectedClusters);
 	return DefaultColors::ClusterChartColor[nr];
@@ -179,7 +179,7 @@ double iAClusterAttribChart::mapValueToBin(double value) const
 	return m_charts->mapValueToBin(value);
 }
 
-void iAClusterAttribChart::SetBinColor(int bin, QColor const & color)
+void iAClusterAttribChart::SetBinColor(size_t bin, QColor const& color)
 {
 	m_charts->SetBinColor(bin, color);
 }

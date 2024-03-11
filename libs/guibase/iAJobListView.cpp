@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAJobListView.h"
 
@@ -111,7 +111,7 @@ iAJobListView* iAJobListView::get()
 iAJobListView::iAJobListView():
 	m_insideLayout(new QVBoxLayout)
 {
-	
+
 	auto insideWidget = new QWidget();
 	insideWidget->setLayout(m_insideLayout);
 	m_insideLayout->setContentsMargins(4, 4, 4, 4);
@@ -203,8 +203,8 @@ QWidget* iAJobListView::addJobWidget(std::shared_ptr<iAJob> j)
 	jobWidget->layout()->addWidget(statusWidget);
 	jobWidget->layout()->addWidget(abortButton);
 
-	m_insideLayout->insertWidget(m_jobs.size()-1, jobWidget);
-	
+	m_insideLayout->insertWidget(static_cast<int>(m_jobs.size()-1), jobWidget);
+
 	if (!j->estimator)
 	{
 		j->estimator = std::make_shared<iAPercentBasedEstimator>();
@@ -264,7 +264,7 @@ void iAJobListView::newJobSlot()
 	connect(j->object, &QObject::destroyed, [this, jobWidget, j]()
 	{
 		LOG(lvlDebug, QString("Job done: %1.").arg(j->name));
-		int remainingJobs = 0;
+		qsizetype remainingJobs = 0;
 		{
 			std::lock_guard<std::mutex> guard(jobsMutex);
 			auto idx = m_jobs.indexOf(j);
@@ -328,7 +328,7 @@ iADurationEstimator::~iADurationEstimator()
 // requires includes:
 #include "iAProgress.h"
 #include "iARunAsync.h"
-	
+
 auto createSimpleJob = new QAction("Add job");
 connect(createSimpleJob, &QAction::triggered, this, [this] {
 		static int simpleJobCounter = 0;

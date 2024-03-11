@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -190,7 +190,7 @@ void iAProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenera
 		}
 
 		// with probabilities, set output (TODO: also output probabilities?)
-		out.Set(finalLabel);
+		out.Set(static_cast<int>(finalLabel));
 
 		// advance to next pixel:
 		for (size_t c = 0; c < m_numberOfClassifiers; ++c)

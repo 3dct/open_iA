@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "dlg_DynamicVolumeLines.h"
 #include "iAIntensityMapper.h"
@@ -59,7 +59,7 @@ class iAMulti3DRendererView : public iAQTtoUIConnector<QDockWidget, Ui_Multi3DRe
 
 const double impInitValue = 0.025;
 const double offsetY = 1000;
-const QString plotColor = "DVL-Metro Colors (max. 17)";	// Brewer Qualitaive 1 (max. 8) // DVL-Metro Colors (max. 17)
+const QString plotColor = "DVL-Metro Colors (max. 17)";	// Brewer Qualitative 1 (max. 8) // DVL-Metro Colors (max. 17)
 
 void winModCallback(vtkObject *caller, long unsigned int vtkNotUsed(eventId),
 	void* vtkNotUsed(client), void* vtkNotUsed(callData))
@@ -674,7 +674,7 @@ void dlg_DynamicVolumeLines::generateSegmentTree()
 		//TODO: refactoring -> move to helper class (also see sync functions above)
 		auto lower = std::lower_bound(m_nonlinearMappingVec.begin(),
 			m_nonlinearMappingVec.end(), (xBinNumber - 1)*m_stepSize);
-		int nonlinearLowerIdx = lower - m_nonlinearMappingVec.begin() - 1;
+		auto nonlinearLowerIdx = lower - m_nonlinearMappingVec.begin() - 1;
 		if (nonlinearLowerIdx < 0)
 		{
 			nonlinearLowerIdx = 0.0;
@@ -689,7 +689,7 @@ void dlg_DynamicVolumeLines::generateSegmentTree()
 		}
 		auto upper = std::lower_bound(m_nonlinearMappingVec.begin(),
 			m_nonlinearMappingVec.end(), xBinNumber*m_stepSize);
-		int nonlinearUpperIdx = upper - m_nonlinearMappingVec.begin();
+		auto nonlinearUpperIdx = upper - m_nonlinearMappingVec.begin();
 		double upperDistToNextPoint = 0.0, upperDistToCurrPoint = 0.0;
 		if (nonlinearUpperIdx < m_nonlinearMappingVec.size())
 		{
@@ -709,7 +709,7 @@ void dlg_DynamicVolumeLines::generateSegmentTree()
 		int linearUpperIdx = std::floor(linearUpperDbl);
 
 		double sum = 0.0, avg = 0.0;
-		for (int i = nonlinearLowerIdx; i <= nonlinearUpperIdx; ++i)
+		for (qsizetype i = nonlinearLowerIdx; i <= nonlinearUpperIdx; ++i)
 		{
 			sum += m_impFunctVec[i];
 		}
@@ -954,7 +954,7 @@ void dlg_DynamicVolumeLines::syncLinearXAxis(QCPRange nonlinearXRange)
 
 	auto lower = std::lower_bound(m_nonlinearMappingVec.begin(),
 		m_nonlinearMappingVec.end(), nonlinearXRange.lower);
-	int lowerIdx = lower - m_nonlinearMappingVec.begin() - 1;
+	int lowerIdx = static_cast<int>(lower - m_nonlinearMappingVec.begin() - 1);
 	if (lowerIdx < 0)
 	{
 		lowerIdx = 0;
@@ -970,7 +970,7 @@ void dlg_DynamicVolumeLines::syncLinearXAxis(QCPRange nonlinearXRange)
 
 	auto upper = std::lower_bound(m_nonlinearMappingVec.begin(),
 		m_nonlinearMappingVec.end(), nonlinearXRange.upper);
-	int upperIdx = upper - m_nonlinearMappingVec.begin();
+	int upperIdx = static_cast<int>(upper - m_nonlinearMappingVec.begin());
 	double upperDistToNextPoint = 0.0, upperDistToCurrPoint = 0.0;
 	if (upperIdx < m_nonlinearMappingVec.size())
 	{
@@ -979,7 +979,7 @@ void dlg_DynamicVolumeLines::syncLinearXAxis(QCPRange nonlinearXRange)
 	}
 	else
 	{
-		upperIdx = m_nonlinearMappingVec.size() - 1;
+		upperIdx = static_cast<int>(m_nonlinearMappingVec.size() - 1);
 		upperDistToNextPoint = 1.0;
 		upperDistToCurrPoint = 1.0;
 		nonlinearXRange.upper = m_nonlinearMappingVec.last();
@@ -1176,7 +1176,7 @@ void dlg_DynamicVolumeLines::mouseMove(QMouseEvent* e)
 		distList.append(plot->graph(i)->selectTest(QPoint(e->pos().x(), e->pos().y()), true));
 	}
 	auto minDist = std::min_element(distList.begin(), distList.end());
-	auto idx = minDist - distList.begin();
+	int idx = static_cast<int>(minDist - distList.begin());
 	auto x = plot->xAxis->pixelToCoord(e->pos().x());
 	auto y = plot->yAxis->pixelToCoord(e->pos().y());
 
@@ -1188,7 +1188,7 @@ void dlg_DynamicVolumeLines::mouseMove(QMouseEvent* e)
 			QPoint(e->pos().x() + 5, e->pos().y() - 15));
 
 		auto v = std::lower_bound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), x);
-		int hilbertIdx = v - m_nonlinearMappingVec.begin() - 1;
+		auto hilbertIdx = v - m_nonlinearMappingVec.begin() - 1;
 		if (v - m_nonlinearMappingVec.begin() == 0)
 		{
 			hilbertIdx = 0;
@@ -1475,7 +1475,7 @@ void dlg_DynamicVolumeLines::setFBPTransparency(int value)
 {
 	double alpha = std::round(value * 255 / 100.0);
 	QPen p; QColor c; QBrush b;
-	for (int i = m_DatasetIntensityMap.size(); i < m_nonlinearScaledPlot->graphCount(); ++i)
+	for (int i = static_cast<int>(m_DatasetIntensityMap.size()); i < m_nonlinearScaledPlot->graphCount(); ++i)
 	{
 		p = m_nonlinearScaledPlot->graph(i)->pen();
 		c = m_nonlinearScaledPlot->graph(i)->pen().color();
@@ -1599,7 +1599,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 	auto histoXBounds = imgDataViewer->histogram()->xBounds();
 	for (int i = 0; i < visSelGraphList.size(); ++i)
 	{
-		int datasetIdx = datasetsList.indexOf(visSelGraphList[i]->name());
+		auto datasetIdx = datasetsList.indexOf(visSelGraphList[i]->name());
 		auto selHilbertIndices = visSelGraphList[i]->selection().dataRanges();
 		auto pathSteps = m_DatasetIntensityMap[datasetIdx].second.size();
 		auto pathData = m_DatasetIntensityMap[datasetIdx].second;

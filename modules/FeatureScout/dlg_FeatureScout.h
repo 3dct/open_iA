@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -169,8 +169,8 @@ private:
 	iAMdiChild* m_activeChild;
 	//! @}
 
-	int m_elementCount;                             //!< Number of elements(=columns) in csv inputTable
-	int m_objectCount;                              //!< Number of objects in the specimen
+	vtkIdType m_elementCount;                       //!< Number of elements(=columns) in csv inputTable
+	vtkIdType m_objectCount;                        //!< Number of objects in the specimen
 	iAObjectType m_objectType;                      //!< Type of objects that are shown
 	bool m_draw3DPolarPlot;                         //!< Whether the polar plot is drawn in 3D, set only in constructor, default false
 	int m_renderMode;                               //!< Indicates what is currently shown: single classes, or special rendering (multi-class, orientation, ...)

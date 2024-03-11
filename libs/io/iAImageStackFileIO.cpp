@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAImageStackFileIO.h"
 
@@ -296,7 +296,7 @@ void iAImageStackFileIO::saveData(QString const& fileName, std::shared_ptr<iADat
 		maxIdx = paramValues[iAFileStackParams::MaximumIndex].toInt();
 	int axisIdx = axisName2Idx(paramValues[AxisOption].toString());
 	auto ext = vtkImg->GetExtent();
-	int numDigits = QString::number(ext[axisIdx * 2 + 1]).size();  // number of digits in z size number string
+	int numDigits = static_cast<int>(QString::number(ext[axisIdx * 2 + 1]).size());  // number of digits in z size number string
 	if (axisIdx == iAAxisIndex::Z)
 	{
 		iAConnector con;

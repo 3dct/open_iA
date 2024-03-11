@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -60,7 +60,7 @@ public:
 	//!     is by checking the boolean flag accessible via isAbort, but derived classes
 	//!     can implement custom abort listeners through overriding the abort() function
 	iAFilter(QString const & name, QString const & category, QString const & description = "",
-		unsigned int requiredImages = 1, unsigned int outputCount = 1, bool supportsAbort = false);
+		size_t requiredImages = 1, size_t outputCount = 1, bool supportsAbort = false);
 	//! virtual destructor, to enable proper destruction in derived classes and to avoid warnings
 	virtual ~iAFilter();
 	//! Retrieve the filter name.
@@ -114,9 +114,9 @@ public:
 	//! Returns the number of input images required by this filter.
 	//! For typical image filters, this returns 1.
 	//! @return the number of images required as input
-	unsigned int requiredImages() const;
+	size_t requiredImages() const;
 	//! Returns the number of input meshes required by this filter.
-	unsigned int requiredMeshes() const;
+	size_t requiredMeshes() const;
 
 	//! Get input with the given index.
 	//! @see inputCount for the number of available inputs
@@ -141,9 +141,9 @@ public:
 	//! (no check is performed whether that dataset actually contains an image!)
 	iAITKIO::ScalarType inputScalarType() const;
 	//! returns the number of input channels from the first input image.
-	unsigned int firstInputChannels() const;
+	size_t firstInputChannels() const;
 	//! sets the first input channels.
-	void setFirstInputChannels(unsigned int c);
+	void setFirstInputChannels(size_t c);
 	//! retrieve a list of output values.
 	QVector<QPair<QString, QVariant> > const & outputValues() const;
 	//! Retrieve a list of names of the output values that this filter can produce.
@@ -161,7 +161,7 @@ public:
 	//! adds an output dataset
 	void addOutput(std::shared_ptr<iADataSet> dataSet);
 	//! The planned number of outputs the filter will produce.
-	unsigned int plannedOutputCount() const;
+	size_t plannedOutputCount() const;
 	//! Adds some (error) message to the targeted output place for this filter.
 	//! Typically this will go into the log window of the result MdiChild
 	//! @param msg the message to print
@@ -169,9 +169,9 @@ public:
 	//! Retrieve the progress reporting object for this filter.
 	iAProgress* progress();
 	//! Retrieve the name of the input image with given index.
-	QString inputName(unsigned int i) const;
+	QString inputName(size_t i) const;
 	//! Retrieve the name of the output image with given index.
-	QString outputName(unsigned int i) const;
+	QString outputName(size_t i) const;
 	//! Abort the filter.
 	void abort() override;
 	//! Whether the filter supports aborting
@@ -181,13 +181,13 @@ public:
 
 protected:
 	//! Set the name of the input with the given index.
-	void setInputName(unsigned int i, QString const & name);
+	void setInputName(size_t i, QString const & name);
 
 	//! Set the name of the output with the given index.
-	void setOutputName(unsigned int i, QString const & name);
+	void setOutputName(size_t i, QString const & name);
 
 	//! Set the number of required mesh inputs (0 by default)
-	void setRequiredMeshInputs(unsigned int i);
+	void setRequiredMeshInputs(size_t i);
 
 	//! "Writable" list of the filter parameters.
 	iAAttributes & paramsWritable();
@@ -214,19 +214,19 @@ private:
 	//! Names for the output values of the algorithm.
 	QVector<QString> m_outputValueNames;
 	//! Names for the input images of the algorithm.
-	QMap<unsigned int, QString> m_inputNames;
+	QMap<size_t, QString> m_inputNames;
 	//! Names for the output images of the algorithm.
-	QMap<unsigned int, QString> m_outputNames;
+	QMap<size_t, QString> m_outputNames;
 	//! Name, category and description of the filter.
 	QString m_name, m_category, m_description;
 	//! Number of input images required by the filter.
-	unsigned int m_requiredImages;
+	size_t m_requiredImages;
 	//! Number of output images produced by the filter.
-	unsigned int m_outputCount;
+	size_t m_outputCount;
 	//! Number of input meshes required by the filter (default: 0)
-	unsigned int m_requiredMeshes;
+	size_t m_requiredMeshes;
 	//! In case this filter requires two "kinds" of inputs, this marks the number of inputs belonging to the first kind.
-	unsigned int m_firstInputChannels;
+	size_t m_firstInputChannels;
 	//! flag storing whether the filter supports aborting
 	bool m_canAbort;
 	//! flag storing whether the filter was aborted by the user

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -89,7 +89,7 @@ public:
 	QVector<iARefDiffFiberData> refDiffFiber;
 	//! for each similarity measure, the average over all fibers
 	QVector<double> avgDifference;  // rename -> avgDissimilarity
-	
+
 	//! overall bounding box
 	iAAABB bbox;
 	//! bounding box per fiber:

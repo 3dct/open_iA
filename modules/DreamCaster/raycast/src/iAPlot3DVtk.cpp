@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "../include/iAPlot3DVtk.h"
 #include "../include/iADreamCasterCommon.h"
@@ -252,8 +252,8 @@ void iAPlot3DVtk::Pick( double xpos, double ypos)
 			m_picker->GetPickPosition(pickData.pos);
 			pickData.pntnum = m_picker->GetPointId();
 			//div by number of cube facets
-			pickData.xInd = (pickData.pntnum)%m_sizeX;
-			pickData.zInd = (pickData.pntnum)/m_sizeX;
+			pickData.xInd = static_cast<unsigned int>((pickData.pntnum)%m_sizeX);
+			pickData.zInd = static_cast<unsigned int>((pickData.pntnum)/m_sizeX);
 			HighlightPickedPoint();
 			lastPickSuccessful = 1;
 			return;
@@ -391,7 +391,7 @@ void iAPlot3DVtk::loadFromData( double * plotData, double * scalars, int cntX, i
 	Update();
 }
 
-int iAPlot3DVtk::GetNumberOfLookupTableValues()
+long long iAPlot3DVtk::GetNumberOfLookupTableValues()
 {
 	return m_lookupTable->GetNumberOfTableValues();
 }

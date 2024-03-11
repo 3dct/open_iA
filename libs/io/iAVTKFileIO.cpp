@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVTKFileIO.h"
 
@@ -56,7 +56,7 @@ std::shared_ptr<iADataSet> iAVTKFileIO::loadData(QString const& fileName, QVaria
 		for (int i = 0; i < NumDimensions; ++i)
 		{
 			int numComp = coords[i]->GetNumberOfComponents();
-			int numValues = coords[i]->GetNumberOfValues();
+			int numValues = static_cast<int>(coords[i]->GetNumberOfValues());
 			int extentSize = extent[i * 2 + 1] - extent[i * 2] + 1;
 			if (numComp != 1 || numValues != extentSize)
 			{

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -24,7 +24,7 @@ public:
 		double minX, double maxX,
 		bool log,
 		iAChartAttributeMapper const & chartAttrMap,
-		int numBin);
+		size_t numBin);
 	static std::shared_ptr<iAParamHistogramData> create(iAImageTreeNode const * ,
 		int chartID,
 		iAValueType rangeType,
@@ -32,7 +32,7 @@ public:
 		bool log,
 		iAChartAttributeMapper const & chartAttrMap,
 		iAChartFilter const & attributeFilter,
-		int numBin);
+		size_t numBin);
 	iAParamHistogramData(size_t numBin,
 		double minX, double maxX, bool log,
 		iAValueType type);
@@ -56,6 +56,6 @@ private:
 		std::shared_ptr<iAParamHistogramData> data,
 		int chartID,
 		iAChartAttributeMapper const & chartAttrMap);
-	
+
 	bool m_log;
 };

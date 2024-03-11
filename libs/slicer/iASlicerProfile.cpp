@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASlicerProfile.h"
 
@@ -154,9 +154,4 @@ bool iASlicerProfile::updatePosition(double posY, vtkImageData * imgData)
 	m_plotActor->SetPosition(0, origin[1], ZCoord);
 
 	return true;
-}
-
-void iASlicerProfile::point(vtkIdType id, double pos_out[3])
-{
-	m_profileLine.point(id, pos_out);
 }

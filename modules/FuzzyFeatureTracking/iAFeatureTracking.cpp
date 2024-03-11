@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFeatureTracking.h"
 
@@ -101,41 +101,27 @@ vtkSmartPointer<vtkTable> iAFeatureTracking::readTableFromFile(const QString& fi
 
 void iAFeatureTracking::sortCorrespondencesByOverlap(std::vector<iAFeatureTrackingCorrespondence>& correspondences)
 {
-	iAFeatureTrackingCorrespondence* temp;
 	for (size_t i = correspondences.size(); i > 1; i--)
 	{
 		for (size_t j = 0; j < i - 1; j++)
 		{
 			if (correspondences.at(j).overlap < correspondences.at(j + 1).overlap)
 			{
-				temp = new iAFeatureTrackingCorrespondence(correspondences.at(j));
+				iAFeatureTrackingCorrespondence temp(correspondences.at(j));
 				correspondences.at(j) = correspondences.at(j + 1);
-				correspondences.at(j + 1) = *temp;
+				correspondences.at(j + 1) = temp;
 			}
 		}
 	}
 }
 
-int nrOfOccurences(std::vector<int>& v, int occurence)
-{
-	int result = 0;
-	for (size_t i = 0; i < v.size(); ++i)
-	{
-		if (v[i] == occurence)
-		{
-			++result;
-		}
-	}
-	return result;
-}
-
-std::vector<iAFeatureTrackingCorrespondence>& iAFeatureTracking::getCorrespondences(
+std::vector<iAFeatureTrackingCorrespondence> iAFeatureTracking::getCorrespondences(
 	const vtkVariantArray& row,
 	vtkTable& table,
 	int maxSearchValue,
 	bool useZ)
 {
-	auto correspondences = new std::vector<iAFeatureTrackingCorrespondence>();
+	std::vector<iAFeatureTrackingCorrespondence> correspondences;
 
 	int inputCenterX = row.GetValue(1).ToInt();
 	int inputCenterY = row.GetValue(2).ToInt();
@@ -231,7 +217,7 @@ std::vector<iAFeatureTrackingCorrespondence>& iAFeatureTracking::getCorresponden
 			{
 				overlap = xOverlap * yOverlap;
 			}
-			correspondences->push_back(
+			correspondences.push_back(
 				*new iAFeatureTrackingCorrespondence(i + 1,
 					overlap,
 					inputVolume / (float)currentVolume,
@@ -241,8 +227,8 @@ std::vector<iAFeatureTrackingCorrespondence>& iAFeatureTracking::getCorresponden
 			);
 		}
 	}
-	sortCorrespondencesByOverlap(*correspondences);
-	return *correspondences;
+	sortCorrespondencesByOverlap(correspondences);
+	return correspondences;
 }
 
 // public methods
@@ -311,8 +297,7 @@ void iAFeatureTracking::TrackFeatures()
 	for (int i = 0; i < u->GetNumberOfRows(); i++)
 	{
 		u->GetRow(i, row);
-		auto result = &getCorrespondences(*row, *v, m_maxSearchValue, true);
-		uToV->push_back(std::make_pair(i + 1, *result));
+		uToV->push_back(std::make_pair(i + 1, getCorrespondences(*row, *v, m_maxSearchValue, true)));
 	}
 
 	// compute vToU out of uToV ======================================================================================
@@ -614,18 +599,18 @@ void iAFeatureTracking::TrackFeatures()
 	}
 
 	// finally compute all out of the left pores in continuatedAfterMergeTest
-	auto occurences = new std::vector<int>();
+	std::vector<vtkIdType> occurences;
 	for (auto p = continuatedAfterMergeTest->begin(); p != continuatedAfterMergeTest->end(); p++)
 	{
 		for (auto c = p->second.begin(); c != p->second.end(); c++)
 		{
-			occurences->push_back(c->id);
+			occurences.push_back(c->id);
 		}
 	}
 
 	for (auto p = continuatedAfterMergeTest->begin(); p != continuatedAfterMergeTest->end(); p++)
 	{
-		if (nrOfOccurences(*occurences, p->second.at(0).id) == 1)
+		if (std::count(occurences.begin(), occurences.end(), p->second.at(0).id) == 1)
 		{
 			// Continuation
 			auto vec = new std::vector<iAFeatureTrackingCorrespondence>();

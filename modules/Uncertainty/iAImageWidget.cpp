@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAImageWidget.h"
 
@@ -72,7 +72,7 @@ void iAImageWidget::StyleChanged()
 }
 
 
-void iAImageWidget::SetMode(int slicerMode)
+void iAImageWidget::SetMode(iASlicerMode slicerMode)
 {
 	m_slicer->setMode(static_cast<iASlicerMode>(slicerMode));
 	m_slicer->update();

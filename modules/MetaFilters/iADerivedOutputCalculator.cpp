@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iADerivedOutputCalculator.h"
 
@@ -63,7 +63,7 @@ void iADerivedOutputCalculator::run()
 		relabel->SetInput(connected->GetOutput());
 		//relabel->SetSortByObjectSize(false);
 		relabel->Update();
-		int objCount = relabel->GetNumberOfObjects();
+		auto objCount = relabel->GetNumberOfObjects();
 		m_result->setAttribute(m_objCountIdx, objCount);
 
 		if (m_result->probabilityAvailable())

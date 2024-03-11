@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -22,22 +22,42 @@ class vtkRenderer;
 
 class QAction;
 
-class ImNDT_API iAImNDTModuleInterface : public iAGUIModuleInterface{
+class ImNDT_API iAImNDTModuleInterface : public iAGUIModuleInterface
+{
 	Q_OBJECT
 public:
 	~iAImNDTModuleInterface();
 	void Initialize() override;
-	bool ImNDT(std::shared_ptr<iAObjectsData> objData, std::shared_ptr<iAColoredPolyObjectVis> polyObject, iACsvConfig csvConfig);
+	//! start ImNDT (the VR objects visualization) tool with pre-loaded data
+	bool startImNDT(std::shared_ptr<iAObjectsData> objData, iACsvConfig csvConfig);
+	//! stop the ImNDT (VR objects visualization) tool
+	void stopImNDT();
+	//! retrieve the VTK renderer used for rendering stuff in VR
 	vtkRenderer* getRenderer();
+	//! queue a task to be executed in the VR main thread
+	void queueTask(std::function<void()> fn);
+	//! whether currently the VR environment is running
+	bool isVRRunning() const;
+	//! whether the ImNDT tool is currently running
+	bool isImNDTRunning() const;
+	//! set a selection from the outside
+	void setSelection(std::vector<size_t> selection);
+	//! retrieve the current selected objects
+	std::vector<size_t> selection();
 
 signals:
+	//! fires whenever the selection of the associated 3D object visualization is changed
 	void selectionChanged();
-	void arViewToggled();
+	//! fires after the ImNDT analysis is stopped
+	void analysisStopped();
 
 private:
-	bool vrAvailable();
-	bool loadImNDT();
+	//! start VR environment
 	bool setupVREnvironment();
+	//! ensure that there is a VR environment (starts one if it isn't already running)
+	bool ensureVREnvironment();
+	//! checks whether anyone is still using the VR environment, and if not, closes it
+	void checkStopVR();
 	//! The VR environment. Currently deleted every time when the environment is stopped.
 	//! Could be re-used, but that would require all features using it to cleanly remove
 	//! all elements from the VR renderer before exiting!
@@ -45,8 +65,7 @@ private:
 	//! @{ for ImNDT
 	std::shared_ptr<iAColoredPolyObjectVis> m_polyObject;
 	std::shared_ptr<iAObjectsData> m_objData;
-	std::shared_ptr<iAImNDTMain> m_vrMain;
-	iACsvConfig m_csvConfig;
+	std::shared_ptr<iAImNDTMain> m_imNDT;
 	//! @}
 	QAction *m_actionVRStartAnalysis;
 
@@ -55,6 +74,7 @@ private:
 
 private slots:
 	void info();
+	//! start a new ImNDT analysis (including selecting an objects file)
 	void startAnalysis();
 #ifdef OPENVR_AVAILABLE
 	void openVRInfo();

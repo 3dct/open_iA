@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASamplingResults.h"
 
@@ -109,8 +109,8 @@ std::shared_ptr<iASamplingResults> iASamplingResults::load(QString const & smpFi
 	}
 
 	std::shared_ptr<iAAttributes> attributes = createAttributes(in);
-	std::shared_ptr<iASamplingResults> result(new iASamplingResults(
-		attributes, samplingMethod, fileInfo.absolutePath(), executable, additionalArguments, name, datasetID));
+	auto result = std::make_shared<iASamplingResults>(attributes, samplingMethod,
+		fileInfo.absolutePath(), executable, additionalArguments, name, datasetID);
 	file.close();
 	if (result->loadInternal(MakeAbsolute(fileInfo.absolutePath(), parameterSetFileName),
 		MakeAbsolute(fileInfo.absolutePath(), derivedOutputFileName)))
@@ -257,13 +257,13 @@ bool iASamplingResults::loadInternal(QString const & parameterSetFileName, QStri
 }
 
 
-int iASamplingResults::size() const
+qsizetype iASamplingResults::size() const
 {
 	return m_results.size();
 }
 
 
-std::shared_ptr<iASingleResult> iASamplingResults::get(int i) const
+std::shared_ptr<iASingleResult> iASamplingResults::get(qsizetype i) const
 {
 	return m_results[i];
 }

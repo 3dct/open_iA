@@ -1,16 +1,18 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "iAVRMetrics.h"
 
+#include <vtkMath.h>
 #include <vtkTable.h>
+#include <vtkVariant.h>
 
 int iAVRMetrics::numberOfFeatures = 0;
 std::vector<std::vector<double>>* iAVRMetrics::m_minMaxValues = nullptr;
 
-iAVRMetrics::iAVRMetrics(vtkTable* objectTable, std::vector<iAVROctree*>* octrees) :
+iAVRMetrics::iAVRMetrics(vtkTable* objectTable, std::vector<iAVROctree*> const & octrees) :
 	m_objectTable(objectTable),
-m_octrees(octrees)
+	m_octrees(octrees)
 {
 	// Initialize these values only once
 	if (numberOfFeatures == 0)
@@ -25,8 +27,8 @@ m_octrees(octrees)
 }
 
 //! Has to be called *before* getting any Metric data
-//! Sets the fiber coverage data, which is a vector for every octree level and each region, in which every fiber is stored with its coverage in that particular region. 
-void iAVRMetrics::setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage)
+//! Sets the fiber coverage data, which is a vector for every octree level and each region, in which every fiber is stored with its coverage in that particular region.
+void iAVRMetrics::setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>> const * fiberCoverage)
 {
 	m_fiberCoverage = fiberCoverage;
 }

@@ -1,12 +1,14 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVR3DText.h"
 
-#include <iALog.h>
 #include <iAVec3.h>
 
+#include <vtkBillboardTextActor3D.h>
 #include <vtkCamera.h>
+#include <vtkRenderer.h>
 #include <vtkTextProperty.h>
+#include <vtkTransform.h>
 
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
 #include <vtkVRControlsHelper.h>
@@ -14,18 +16,27 @@
 #include <vtkOpenVRControlsHelper.h>
 #endif
 
-iAVR3DText::iAVR3DText(vtkRenderer* ren): m_renderer(ren)
+iAVR3DText::iAVR3DText(vtkRenderer* ren, QString const& text, bool small):
+	m_renderer(ren),
+	m_textActor3D(vtkSmartPointer<vtkBillboardTextActor3D>::New()),
+	m_visible(false)
 {
-	m_textActor3D = vtkSmartPointer<vtkBillboardTextActor3D>::New();
-	m_visible = false;
+	m_textActor3D->SetScale(1, 1, 1);
+	m_textActor3D->SetInput(text.toUtf8());
+	m_textActor3D->PickableOff();
 
-	for (int d = 0; d < vtkEventDataNumberOfDevices; ++d)
-	{
-		for (int i = 0; i < vtkEventDataNumberOfInputs; i++)
-		{
-			this->ControlsHelpers[d][i] = nullptr;
-		}
-	}
+	m_textActor3D->GetTextProperty()->SetJustificationToCentered();
+	m_textActor3D->GetTextProperty()->SetFrame(1);
+	m_textActor3D->GetTextProperty()->SetFrameColor(0.6, 0.6, 0.6);
+	m_textActor3D->GetTextProperty()->SetFrameWidth(small ? 2 : 4);
+	m_textActor3D->GetTextProperty()->SetBackgroundOpacity(1.0);
+	m_textActor3D->GetTextProperty()->SetBackgroundColor(0.4, 0.4, 0.4);
+	m_textActor3D->GetTextProperty()->SetFontSize(small ? 14 : 32);
+}
+
+void iAVR3DText::setText(QString const& text)
+{
+	m_textActor3D->SetInput(text.toUtf8());
 }
 
 void iAVR3DText::show()
@@ -48,37 +59,6 @@ void iAVR3DText::hide()
 	m_visible = false;
 }
 
-void iAVR3DText::create3DLabel(QString text)
-{
-	m_textActor3D->SetScale(1,1,1);
-	m_textActor3D->SetInput(text.toUtf8());
-	m_textActor3D->PickableOff();
-
-	m_textActor3D->GetTextProperty()->SetJustificationToCentered();
-	m_textActor3D->GetTextProperty()->SetFrame(1);
-	m_textActor3D->GetTextProperty()->SetFrameColor(0.6, 0.6, 0.6);
-	m_textActor3D->GetTextProperty()->SetFrameWidth(4);
-	m_textActor3D->GetTextProperty()->SetBackgroundOpacity(1.0);
-	m_textActor3D->GetTextProperty()->SetBackgroundColor(0.4, 0.4, 0.4);
-	m_textActor3D->GetTextProperty()->SetFontSize(32);
-}
-
-void iAVR3DText::createSmall3DLabel(QString text)
-{
-	m_textActor3D->SetScale(1, 1, 1);
-	m_textActor3D->SetInput(text.toUtf8());
-	m_textActor3D->PickableOff();
-
-	m_textActor3D->GetTextProperty()->SetJustificationToCentered();
-	m_textActor3D->GetTextProperty()->SetFrame(1);
-	m_textActor3D->GetTextProperty()->SetFrameColor(0.6, 0.6, 0.6);
-	m_textActor3D->GetTextProperty()->SetFrameWidth(2);
-	m_textActor3D->GetTextProperty()->SetBackgroundOpacity(1.0);
-	m_textActor3D->GetTextProperty()->SetBackgroundColor(0.4, 0.4, 0.4);
-	m_textActor3D->GetTextProperty()->SetFontSize(14);
-	
-}
-
 void iAVR3DText::setLabelPos(double pos[3])
 {
 	m_textActor3D->SetPosition(pos);
@@ -94,39 +74,8 @@ void iAVR3DText::moveInEyeDir(double x, double y, double z)
 	m_textActor3D->AddPosition(normDir[0] *x, normDir[1] * y, normDir[2] * z);
 }
 
-vtkSmartPointer<vtkBillboardTextActor3D> iAVR3DText::getTextActor()
+void iAVR3DText::transformPosition(vtkTransform* transform)
 {
-	return m_textActor3D;
-}
-
-void iAVR3DText::showInputTooltip()
-{
-	for (int d = 0; d < vtkEventDataNumberOfDevices; ++d)
-	{
-		for (int i = 0; i < vtkEventDataNumberOfInputs; i++)
-		{
-			if(ControlsHelpers[d][i] != nullptr)
-			{
-				ControlsHelpers[d][i]->SetRenderer(m_renderer);
-				ControlsHelpers[d][i]->BuildRepresentation();
-				m_renderer->AddViewProp(ControlsHelpers[d][i]);
-				ControlsHelpers[d][i]->SetEnabled(true);
-			}
-		}
-	}
-	
-}
-
-void iAVR3DText::updateInputTooltip()
-{
-	for (int d = 0; d < vtkEventDataNumberOfDevices; ++d)
-	{
-		for (int i = 0; i < vtkEventDataNumberOfInputs; i++)
-		{
-			if (ControlsHelpers[d][i] != nullptr)
-			{
-				ControlsHelpers[d][i]->UpdateRepresentation();
-			}
-		}
-	}
+	m_textActor3D->SetPosition(transform->TransformPoint(m_textActor3D->GetPosition()));
+	m_textActor3D->Modified();
 }

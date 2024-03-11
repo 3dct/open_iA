@@ -1,23 +1,27 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-
 #include "iAVRObjectCoverage.h"
+
+#include "iAVRObjectModel.h"
+#include "iAVROctree.h"
 
 #include <iAColoredPolyObjectVis.h>
 
 #include <iALog.h>
 
+#include <vtkOctreePointLocator.h>
 #include <vtkPointData.h>
-#include <vtkMath.h>
+#include <vtkPoints.h>
+#include <vtkPolyData.h>
+#include <vtkTable.h>
 
-iAVRObjectCoverage::iAVRObjectCoverage(vtkTable* objectTable, iAColMapP mapping, iACsvConfig csvConfig, std::vector<iAVROctree*>* octrees, iAVRObjectModel* volume)
-	: m_objectTable(objectTable), m_mapping(mapping), m_csvConfig(csvConfig), m_octrees(octrees), m_volume(volume)
+iAVRObjectCoverage::iAVRObjectCoverage(vtkTable* objectTable, iAColMapP mapping, iACsvConfig csvConfig, std::vector<iAVROctree*> const & octrees, iAVRObjectModel* volume)
+	: m_objectTable(objectTable), m_mapping(mapping), m_csvConfig(csvConfig), m_octrees(octrees), m_volume(volume), m_objectCoverage()
 {
-	m_objectCoverage = new std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>();
 	initialize();
 }
 
-//! Computes the coverage of objects in every octree level and region. 
+//! Computes the coverage of objects in every octree level and region.
 //! The coverage, depending on its shape, is calculated from the ratio of the length of each part in the respective region to the objects total size
 void iAVRObjectCoverage::calculateObjectCoverage()
 {
@@ -39,9 +43,9 @@ void iAVRObjectCoverage::calculateObjectCoverage()
 	//printObjectCoverage();
 }
 
-std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* iAVRObjectCoverage::getObjectCoverage()
+std::vector<std::vector<std::unordered_map<vtkIdType, double>*>> const * iAVRObjectCoverage::getObjectCoverage()
 {
-	return m_objectCoverage;
+	return &m_objectCoverage;
 }
 
 //! Returns the iD (row of csv) of the fiber corresponding to the polyObject ID
@@ -66,15 +70,15 @@ vtkIdType iAVRObjectCoverage::getObjectiD(vtkIdType polyPoint)
 void iAVRObjectCoverage::initialize()
 {
 	//Initialize new Vectors
-	for (size_t level = 0; level < m_octrees->size(); level++)
+	for (size_t level = 0; level < m_octrees.size(); level++)
 	{
 		//Initialize the region vec for every level
-		m_objectCoverage->push_back(std::vector<std::unordered_map<vtkIdType, double>*>());
+		m_objectCoverage.push_back(std::vector<std::unordered_map<vtkIdType, double>*>());
 
-		for (vtkIdType i = 0; i < m_octrees->at(level)->getNumberOfLeafeNodes(); i++)
+		for (vtkIdType i = 0; i < m_octrees.at(level)->getNumberOfLeafNodes(); i++)
 		{
 			//Initialize a vec of Maps for every region
-			m_objectCoverage->at(level).push_back(new std::unordered_map<vtkIdType, double>());
+			m_objectCoverage.at(level).push_back(new std::unordered_map<vtkIdType, double>());
 		}
 	}
 }
@@ -95,13 +99,13 @@ void iAVRObjectCoverage::calculateLineCoverage()
 
 		//For every Octree Level
 		//for (int level = OCTREE_MIN_LEVEL; level <= 1; level++)
-		for (size_t level = 0; level < m_octrees->size(); level++)
+		for (size_t level = 0; level < m_octrees.size(); level++)
 		{
 			//Skip intersection test on lowest Octree level
 			if (level == 0)
 			{
 				//Every fiber is 100% in the one region
-				m_objectCoverage->at(0).at(0)->insert(std::make_pair(row, 1.0));
+				m_objectCoverage.at(0).at(0)->insert(std::make_pair(row, 1.0));
 			}
 			else
 			{
@@ -113,9 +117,9 @@ void iAVRObjectCoverage::calculateLineCoverage()
 		}
 	}
 
-	for (size_t level = 1; level < m_octrees->size(); level++)
+	for (size_t level = 1; level < m_octrees.size(); level++)
 	{
-		m_octrees->at(level)->getRegionsInLineOfRay();
+		m_octrees.at(level)->getRegionsInLineOfRay();
 	}
 }
 
@@ -127,13 +131,13 @@ void iAVRObjectCoverage::calculateCurvedLineCoverage()
 	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
 	{
 		//For every Octree Level
-		for (size_t level = 0; level < m_octrees->size(); level++)
+		for (size_t level = 0; level < m_octrees.size(); level++)
 		{
 			//Skip intersection test on lowest Octree level
 			if (level == 0)
 			{
 				//Every fiber is 100% in the one region
-				m_objectCoverage->at(0).at(0)->insert(std::make_pair(row, 1.0));
+				m_objectCoverage.at(0).at(0)->insert(std::make_pair(row, 1.0));
 			}
 			else
 			{
@@ -163,9 +167,9 @@ void iAVRObjectCoverage::calculateCurvedLineCoverage()
 		}
 	}
 
-	for (size_t level = 1; level < m_octrees->size(); level++)
+	for (size_t level = 1; level < m_octrees.size(); level++)
 	{
-		m_octrees->at(level)->getRegionsInLineOfRay();
+		m_octrees.at(level)->getRegionsInLineOfRay();
 	}
 }
 
@@ -186,17 +190,17 @@ void iAVRObjectCoverage::calculateEllipsoidCoverage()
 		}
 
 		//For every Octree Level
-		for (size_t level = 0; level < m_octrees->size(); level++)
+		for (size_t level = 0; level < m_octrees.size(); level++)
 		{
 			//Skip intersection test on lowest Octree level
 			if (level == 0)
 			{
 				//Every fiber is 100% in the one region
-				m_objectCoverage->at(0).at(0)->insert(std::make_pair(row, 1.0));
+				m_objectCoverage.at(0).at(0)->insert(std::make_pair(row, 1.0));
 			}
 			else
 			{
-				
+
 				double xMinus[3] = { center[0] - radius[0], center[1], center[2] };
 				double xPlus[3] = { center[0] + radius[0], center[1], center[2] };
 				double yMinus[3] = { center[0], center[1] - radius[1], center[2] };
@@ -231,9 +235,9 @@ void iAVRObjectCoverage::calculateEllipsoidCoverage()
 		}
 	}
 
-	for (size_t level = 1; level < m_octrees->size(); level++)
+	for (size_t level = 1; level < m_octrees.size(); level++)
 	{
-		m_octrees->at(level)->getRegionsInLineOfRay();
+		m_octrees.at(level)->getRegionsInLineOfRay();
 	}
 }
 
@@ -243,21 +247,21 @@ vtkSmartPointer<vtkPoints> iAVRObjectCoverage::getOctreeFiberCoverage(double sta
 	vtkSmartPointer<vtkPoints> additionalIntersectionPoints = vtkSmartPointer<vtkPoints>::New();
 
 	//m_octree->calculateOctree(octreeLevel, OCTREE_POINTS_PER_REGION);
-	vtkIdType leafNodes = m_octrees->at(octreeLevel)->getNumberOfLeafeNodes();
-	vtkIdType startPointInsideRegion = m_octrees->at(octreeLevel)->getOctree()->GetRegionContainingPoint(startPoint[0], startPoint[1], startPoint[2]);
-	vtkIdType endPointInsideRegion = m_octrees->at(octreeLevel)->getOctree()->GetRegionContainingPoint(endPoint[0], endPoint[1], endPoint[2]);
+	vtkIdType leafNodes = m_octrees.at(octreeLevel)->getNumberOfLeafNodes();
+	vtkIdType startPointInsideRegion = m_octrees.at(octreeLevel)->getOctree()->GetRegionContainingPoint(startPoint[0], startPoint[1], startPoint[2]);
+	vtkIdType endPointInsideRegion = m_octrees.at(octreeLevel)->getOctree()->GetRegionContainingPoint(endPoint[0], endPoint[1], endPoint[2]);
 	// Sometimes Point is *barely* outside the bounds of the region ->move them in to check region
 	if (startPointInsideRegion == -1)
 	{
 		double insideStartPoint[3];
-		m_octrees->at(octreeLevel)->movePointInsideRegion(startPoint, insideStartPoint);
-		startPointInsideRegion = m_octrees->at(octreeLevel)->getOctree()->GetRegionContainingPoint(insideStartPoint[0], insideStartPoint[1], insideStartPoint[2]);
+		m_octrees.at(octreeLevel)->movePointInsideRegion(startPoint, insideStartPoint);
+		startPointInsideRegion = m_octrees.at(octreeLevel)->getOctree()->GetRegionContainingPoint(insideStartPoint[0], insideStartPoint[1], insideStartPoint[2]);
 	}
 	if (endPointInsideRegion == -1)
 	{
 		double insideEndPoint[3];
-		m_octrees->at(octreeLevel)->movePointInsideRegion(endPoint, insideEndPoint);
-		endPointInsideRegion = m_octrees->at(octreeLevel)->getOctree()->GetRegionContainingPoint(insideEndPoint[0], insideEndPoint[1], insideEndPoint[2]);
+		m_octrees.at(octreeLevel)->movePointInsideRegion(endPoint, insideEndPoint);
+		endPointInsideRegion = m_octrees.at(octreeLevel)->getOctree()->GetRegionContainingPoint(insideEndPoint[0], insideEndPoint[1], insideEndPoint[2]);
 	}
 
 	for (vtkIdType region = 0; region < leafNodes; region++)
@@ -265,9 +269,9 @@ vtkSmartPointer<vtkPoints> iAVRObjectCoverage::getOctreeFiberCoverage(double sta
 		double lastIntersection[3] = { -1, -1, -1 };
 		int pointsInRegion = 0;
 		double bounds[6];
-		//std::vector<std::vector<iAVec3d>>* planePoints = new std::vector<std::vector<iAVec3d>>();
-		//m_octrees->at(octreeLevel)->createOctreeBoundingBoxPlanes(region, planePoints);
-		m_octrees->at(octreeLevel)->getOctree()->GetRegionBounds(region, bounds);
+		//std::vector<std::vector<iAVec3d>> planePoints;
+		//m_octrees.at(octreeLevel)->createOctreeBoundingBoxPlanes(region, planePoints);
+		m_octrees.at(octreeLevel)->getOctree()->GetRegionBounds(region, bounds);
 
 		//The ray between start to endpoint can only intersect 2 times with one octree region bounding box
 		while (pointsInRegion < 2)
@@ -445,14 +449,14 @@ double iAVRObjectCoverage::calculateLineCoverageRatio(double startPoint[3], doub
 //! If the object has already a coverage in that specific region it gets summed up
 void iAVRObjectCoverage::storeObjectCoverage(vtkIdType octreeLevel, vtkIdType region, vtkIdType fiber, double coverage)
 {
-	auto it = m_objectCoverage->at(octreeLevel).at(region)->find(fiber);
-	if(it != m_objectCoverage->at(octreeLevel).at(region)->end())
+	auto it = m_objectCoverage.at(octreeLevel).at(region)->find(fiber);
+	if(it != m_objectCoverage.at(octreeLevel).at(region)->end())
 	{
 		it->second = it->second + coverage; // add additional coverage of this object in this region
 	}
 	else
 	{
-		m_objectCoverage->at(octreeLevel).at(region)->insert(std::make_pair(fiber, coverage)); // first coverage
+		m_objectCoverage.at(octreeLevel).at(region)->insert(std::make_pair(fiber, coverage)); // first coverage
 	}
 
 	//TODO CHECK if <1 ?
@@ -499,7 +503,7 @@ void iAVRObjectCoverage::createPlanePoint(int plane, double bounds[6], iAVec3d* 
 	case 0:
 		//Plane 1
 		*planeOrigin = iAVec3d(xMin, yMin, zMax);
-		*planeP1 = iAVec3d(xMax, yMin, zMax); 
+		*planeP1 = iAVec3d(xMax, yMin, zMax);
 		*planeP2 = iAVec3d(xMin, yMax, zMax);
 		break;
 	case 1:
@@ -544,20 +548,20 @@ void iAVRObjectCoverage::printObjectCoverage()
 	{
 		output.append("###################### \n");
 		output.append(QString("Object %1: \n").arg(row));
-		for (size_t level = 0; level < m_octrees->size(); level++)
+		for (size_t level = 0; level < m_octrees.size(); level++)
 		{
 			output.append(QString(" Octree Level %1: \n").arg(level));
 
-			for (size_t region = 0; region < m_objectCoverage->at(level).size(); region++)
+			for (size_t region = 0; region < m_objectCoverage.at(level).size(); region++)
 			{
-				auto it = m_objectCoverage->at(level).at(region)->find(row);
+				auto it = m_objectCoverage.at(level).at(region)->find(row);
 
-				if (it != m_objectCoverage->at(level).at(region)->end())
+				if (it != m_objectCoverage.at(level).at(region)->end())
 				{
 					output.append(QString("  > Region %1 -- %2 \n").arg(region).arg(it->second));
 				}
 			}
-			
+
 		}
 	}
 	LOG(lvlImportant, output);

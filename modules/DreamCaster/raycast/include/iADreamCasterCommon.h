@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -119,7 +119,7 @@ struct iADreamCasterSettings
 //! @param settings struct where the options will be stored
 int ParseConfigFile(iADreamCasterSettings * settings);
 
-inline void Time2Char(int ftime, char *t)
+inline void Time2Char(qint64 ftime, char *t)
 {
 	t[6] = (ftime / 100) % 10 + '0';
 	t[7] = (ftime / 10) % 10 + '0';

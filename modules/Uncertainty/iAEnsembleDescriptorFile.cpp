@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAEnsembleDescriptorFile.h"
 
@@ -245,17 +245,17 @@ QString const & iAEnsembleDescriptorFile::colorTheme() const
 	return m_ColorTheme;
 }
 
-int iAEnsembleDescriptorFile::subEnsembleCount() const
+qsizetype iAEnsembleDescriptorFile::subEnsembleCount() const
 {
 	return m_subEnsembles.size();
 }
 
-QVector<int> iAEnsembleDescriptorFile::subEnsemble(int idx) const
+QVector<int> iAEnsembleDescriptorFile::subEnsemble(qsizetype idx) const
 {
 	return m_subEnsembles[idx];
 }
 
-int iAEnsembleDescriptorFile::subEnsembleID(int idx) const
+int iAEnsembleDescriptorFile::subEnsembleID(qsizetype idx) const
 {
 	return m_subEnsembleID[idx];
 }

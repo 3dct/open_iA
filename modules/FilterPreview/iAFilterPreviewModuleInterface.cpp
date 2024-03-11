@@ -1,6 +1,8 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFilterPreviewModuleInterface.h"
+
+#include <iAColorTheme.h>
 
 #include "iAChannelData.h"
 #include "iAImageData.h"
@@ -15,6 +17,7 @@
 #include <iALog.h>
 #include <iAQSplom.h>
 #include <iASPLOMData.h>
+#include <iAColorTheme.h>
 
 #include <iAToolsITK.h>
 #include <iAToolsVTK.h>
@@ -30,6 +33,8 @@
 #include <QVBoxLayout>
 #include <QInputDialog>
 #include <QPushButton>
+#include <QEvent>
+#include <QHoverEvent>
 
 #include <vector>
 #include <random>
@@ -93,46 +98,39 @@ void iAFilterPreviewModuleInterface::Initialize()
 }
 
 //apply filter
-void iAFilterPreviewModuleInterface::updateFilterAndSlicer(iASlicerImpl* slicer)
+void iAFilterPreviewModuleInterface::updateFilterAndSlicer(iASlicerImpl* slicer, QVariantMap& paramValues)
 {
-	
-
 	if (!currentFilter)
 	{
 		return;  // No filter set
 	}
 
-	QVariantMap paramValues;
-	for (int i = 0; i < parameterNames.size(); ++i)
-	{
-		double mappedValue = minValues[i] + (maxValues[i] - minValues[i]) * (double(sliders[i]->value()) / 100);
-		//double mappedValue = mapValue(1, 99, minValues[i], maxValues[i], sliders[i]->value());
-		paramValues[parameterNames[i]] = mappedValue;
-		//LOG(lvlDebug, QString("%1 (min=%2, max=%3): %4").arg(parameterNames[i]).arg(minValues[i]).arg(maxValues[i]).arg(mappedValue));
-	}
-	
 	currentFilter->run(paramValues);  // Run the filter with new parameters
 
-	// check if there is at least one output available:
-	if (currentFilter->outputs().size() < 1)
-	{
-		return;
-	}
 	auto outDataSet = currentFilter->outputs()[0];
-	filterOutputs.push_back(outDataSet);
-	auto imgData = dynamic_cast<iAImageData*>(outDataSet.get());
-	//storeImage(imgData->vtkImage(), "C:/Users/p41143/Desktop/test.mhd", false);
-	// output might not be an image:
-	if (!imgData)
-	{
-		return;
-	}
-	auto ctf = dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))->transfer()->colorTF();
-	auto newChannelData = std::make_shared<iAChannelData>("", imgData->vtkImage(), ctf);
-	slicer->updateChannel(0, *newChannelData);  // Update the slicer
-	channelData = newChannelData;
 
-	slicer->update();
+	auto imgData = dynamic_cast<iAImageData*>(outDataSet.get());
+	auto newChannelData = std::make_shared<iAChannelData>("",
+		imgData->vtkImage(),  // get image data directly from filter
+		// color transfer function still the one from the analysis window:
+		dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))->transfer()->colorTF());
+
+	if (slicer->hasChannel(0))
+	{
+		// Channel with ID 0 exists, so update it
+		slicer->updateChannel(0, *newChannelData);
+		slicer->update();
+		LOG(lvlInfo, QString("Channel Updated"));
+	}
+	else
+	{
+		// Channel with ID 0 does not exist, so add it
+		slicer->addChannel(0, *newChannelData, true);
+	}
+
+	slicer->setSliceNumber(0);
+	slicer->setMinimumSize(QSize(slicerWidth, slicerHeight));  // Set a minimum size for visibility
+	slicer->resetCamera();    // Update the slicer
 }
 
 void iAFilterPreviewModuleInterface::generateLatinHypercubeSamples(int numSamples, std::vector<std::vector<double>>& samplesMatrix)
@@ -158,7 +156,7 @@ void iAFilterPreviewModuleInterface::generateLatinHypercubeSamples(int numSample
 	}
 }
 
-void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
+void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const QVariantMap& originalParamValues)
 {
 	if (dialog)
 	{
@@ -186,6 +184,7 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
 	{
 		paramNamesVector.push_back(paramName);
 	}
+	paramNamesVector.push_back("Color");
 	chartsSpmData->setParameterNames(paramNamesVector);
 
 	// Populate the data vectors with actual parameter values
@@ -196,29 +195,36 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
 		chartsSpmData->data()[i].push_back(minValues[i]);
 		chartsSpmData->data()[i].push_back(maxValues[i]);
 	}
+	// one distinct value for each data point:
+	chartsSpmData->data()[parameterNames.size()].push_back(0);
+	chartsSpmData->data()[parameterNames.size()].push_back(1);
 
 	chartsSpmData->updateRanges();
-	std::vector<char> columnVisibility(parameterNames.size(), true);
+	// there is an additional column now, make space for it in the visibility vector as well:
+	std::vector<char> columnVisibility(parameterNames.size()+1, true);
+	columnVisibility[parameterNames.size()] = false;  // and make sure the "color" data is not visible
 	chartsSpmWidget->showAllPlots(false);
 	chartsSpmWidget->setData(chartsSpmData, columnVisibility);
 	chartsSpmWidget->setHistogramVisible(false);
-	chartsSpmWidget->setPointRadius(2);
-	chartsSpmWidget->setMinimumWidth(400);
-	chartsSpmWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	//chartsSpmWidget->settings.enableColorSettings = true;  // to be able to see and change color settings also from settings dialog
+	chartsSpmWidget->setColorParam("Color");// using a "qualitative" color scheme, i.e., distinct colors for each integer value:
+	chartsSpmWidget->setColorParameterMode(iAQSplom::pmQualitative);
+	// using the "Set1" color scheme from Color Brewer (https://colorbrewer2.org/)
+	auto ColorThemeName = "Brewer Set1 (max. 9)";
+	// for a list of other available color themes, see libs/base/iAColorTheme.cpp:
+	// the themes are defined in the iAColorThemeManager constructor
+	// to use the colors elsewhere, use:
+	auto colorTheme = iAColorThemeManager::instance().theme(ColorThemeName);
+	chartsSpmWidget->setColorThemeQual(ColorThemeName);
 	
-	connect(chartsSpmWidget, &iAQSplom::chartClick, this,
-		[this, chartsSpmData, chartsSpmWidget, columnVisibility](size_t paramX, size_t paramY, double x, double y, Qt::KeyboardModifiers modifiers)
-		{
-			LOG(lvlInfo, QString("params : %1...%2").arg(x).arg(y));
-			for (int i = 0; i < chartsSpmData->numParams(); ++i)
-			{
-				chartsSpmData->data()[i].push_back(
-					(i == paramX) ? x :
-					((i == paramY) ? y : 0)
-				);
-			}
-			chartsSpmWidget->setData(chartsSpmData, columnVisibility);
-		});
+	// improve point visibilility:
+	chartsSpmWidget->setPointOpacity(1.0);  // since we have only two points, set them to fully opaque
+	chartsSpmWidget->setPointRadius(4.0);   // and make them a little larger
+	chartsSpmWidget->setMinimumWidth(400);
+
+	chartsSpmWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+	QVariantMap paramValues = originalParamValues; //Make a copy of the parameter values to allow modifications
 
 	// Add scatter plot matrix widget to layout
 	QVBoxLayout* controlLayout = new QVBoxLayout;
@@ -230,43 +236,274 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer)
 	mainLayout->addLayout(controlLayout,5);*/
 
 	QHBoxLayout* splitLayout = new QHBoxLayout;
-	splitLayout->addLayout(imageLayout, 5);
-	splitLayout->addLayout(controlLayout, 5);
+	splitLayout->addLayout(imageLayout, 1);
+	splitLayout->addLayout(controlLayout, 3);
 
 
 	QHBoxLayout* imageListLayout = new QHBoxLayout;
 
+	std::vector<iASlicerImpl*> slicerCopies; //Define a container for slicer copies
+	std::vector<QVariantMap> slicerParameters;  // New container for parameters
+
 	for (int i = 0; i < 5; ++i)
 	{
-		QLabel* placeholderLabel = new QLabel();
-		placeholderLabel->setAlignment(Qt::AlignCenter);
-		placeholderLabel->setText(QString("Placeholder %1").arg(i + 1));  // Numbered placeholders from 1 to 5
-		placeholderLabel->setMinimumSize(100, 100);                       // Set a minimum size for the label
+		iASlicerImpl* slicerCopy = new iASlicerImpl(splitViewDialog, slicer->mode(), false);
+		QVariantMap slicerParamValues = paramValues;
 
-		imageListLayout->addWidget(placeholderLabel, 2);
+		// Container to hold both the slicer and the button
+		QWidget* container = new QWidget();
+		QVBoxLayout* containerLayout = new QVBoxLayout(container);  // Use QVBoxLayout to stack the slicer and button
+	
+		//QLabel* placeholderLabel = new QLabel();
+		//placeholderLabel->setAlignment(Qt::AlignCenter);
+		//placeholderLabel->setText(QString("Placeholder %1").arg(i + 1));  // Numbered placeholders from 1 to 5
+		//placeholderLabel->setMinimumSize(100, 100);                       // Set a minimum size for the label
+		
+		for (int j = 0; j < parameterNames.size(); ++j)
+		{
+			if (i == 0)
+			{
+				// Use minValues for the first slicer
+				slicerParamValues[parameterNames[j]] = minValues[j];
+			}
+			else if (i == 4)
+			{
+				// Use maxValues for the last slicer
+				slicerParamValues[parameterNames[j]] = maxValues[j];
+			}
+			else
+			{
+				// Use the midpoint between minValues and maxValues for other slicers
+				auto midpointValue = minValues[j] + (maxValues[j] - minValues[j]) / 2.0;
+				slicerParamValues[parameterNames[j]] = midpointValue;
+			}
+		}
+
+		updateFilterAndSlicer(slicerCopy, slicerParamValues);
+		slicerCopies.push_back(slicerCopy);
+		slicerParameters.push_back(slicerParamValues);  // Store the corresponding parameters
+		//imageListLayout->addWidget(slicerCopy, 1);
+
+		containerLayout->addWidget(slicerCopy);
+
+		// Create a button and add it to the container's layout
+		QPushButton* selectButton = new QPushButton("Select", container);
+		containerLayout->addWidget(selectButton);  // This adds the button below the slicer in the container
+
+		// Capture i by value to know which slicer's parameters to update
+		connect(selectButton, &QPushButton::clicked,
+			[this, i, chartsSpmData, chartsSpmWidget, columnVisibility, slicer, &slicerCopies, &slicerParameters,
+				&paramValues]()
+			{
+				// Assume slicerParamOldValues accurately represents the old parameter state
+				QVariantMap paramOldValues = paramValues;  // Last slicer's parameters as "old" values
+				paramValues = slicerParameters[i];
+
+				// Direct comparison for simplicity; refine as needed
+				bool isDifferent = false;
+				for (const QString& key : paramValues.keys())
+				{
+					if (paramValues[key] != paramOldValues.value(key))
+					{
+						isDifferent = true;
+						break;
+					}
+				}
+
+				if (!isDifferent)
+				{
+					return;  // No changes detected, so do nothing
+				}
+
+				// Changes detected; proceed with updates
+
+				for (int j = 0; j < parameterNames.size(); ++j)
+				{
+					const QString& paramName = parameterNames[j];
+					if (paramValues.contains(paramName))
+					{
+						double value = paramValues[paramName].toDouble();
+						chartsSpmData->data()[j][0] = chartsSpmData->data()[j][1];
+						chartsSpmData->data()[j][1] = value;
+					}
+				}
+				chartsSpmWidget->setData(chartsSpmData, columnVisibility);
+
+				this->updateFilterAndSlicer(slicer, paramValues);
+
+				if (!slicerCopies.empty())
+				{
+					for (int k = 0; k < slicerCopies.size(); ++k)
+					{
+						iASlicerImpl* slicerCopy = slicerCopies[k];  // Access the slicer copy by index
+
+						if (k == 0)
+						{
+							// Now, update the slicerCopy with the new paramValues
+							updateFilterAndSlicer(slicerCopy, paramOldValues);
+							slicerParameters[k] = paramOldValues;
+						}
+						else if (k == 4)
+						{
+							updateFilterAndSlicer(slicerCopy, paramValues);
+							slicerParameters[k] = paramValues;
+						}
+						else
+						{
+							// Interpolate or adjust values for slicers in between
+							QVariantMap interpolatedParamValues;
+							for (const QString& paramName : parameterNames)
+							{
+								bool isIncreasing = paramValues[paramName].toDouble() >
+									paramOldValues[paramName].toDouble();
+								double startValue = paramOldValues[paramName].toDouble();
+								double endValue = paramValues[paramName].toDouble();
+								double range = std::abs(endValue - startValue);
+								double step = range /
+									4;  // Assuming 5 steps (0 to 4), adjust the denominator according to your total steps
+
+								double interpolatedValue;
+								if (isIncreasing)
+								{
+									interpolatedValue = startValue + step * k;  // For increasing values
+								}
+								else
+								{
+									interpolatedValue = startValue - step * k;  // For decreasing values
+								}
+
+								// Ensure interpolatedValue does not exceed the bounds
+								if (isIncreasing)
+								{
+									interpolatedValue = std::min(interpolatedValue, endValue);
+								}
+								else
+								{
+									interpolatedValue = std::max(interpolatedValue, endValue);
+								}
+
+								interpolatedParamValues[paramName] = interpolatedValue;
+							}
+
+							// Now, update the slicerCopy with the interpolated paramValues
+							updateFilterAndSlicer(slicerCopy, interpolatedParamValues);
+							slicerParameters[k] = interpolatedParamValues;
+						}
+					}
+				}
+			});
+
+		// Now add the container to your overall layout
+		imageListLayout->addWidget(container);
 	}
+
+	slicerCopies[0]->setBackground(colorTheme->color(0));
+	slicerCopies[4]->setBackground(colorTheme->color(1));
+
+	connect(chartsSpmWidget, &iAQSplom::chartClick, this,
+		[this, slicer, &slicerCopies, &slicerParameters, chartsSpmData, chartsSpmWidget, columnVisibility,
+			&paramValues](
+			size_t paramX, size_t paramY, double x, double y, Qt::KeyboardModifiers modifiers)
+		{
+			Q_UNUSED(modifiers);
+			LOG(lvlInfo,
+				QString("params : %1...%2")
+					.arg(paramValues[parameterNames[paramX]].toString())
+					.arg(paramValues[parameterNames[paramY]].toString()));
+
+			QVariantMap paramOldValues = paramValues;
+
+			paramValues[parameterNames[paramX]] = x;
+			double x_previous = chartsSpmData->data()[paramX][1];
+			chartsSpmData->data()[paramX][0] = x_previous;  //Update points in the chart
+			chartsSpmData->data()[paramX][1] = x;
+			paramValues[parameterNames[paramY]] = y;
+			double y_previous = chartsSpmData->data()[paramY][1];
+			chartsSpmData->data()[paramY][0] = y_previous;
+			chartsSpmData->data()[paramY][1] = y;
+			chartsSpmWidget->setData(chartsSpmData, columnVisibility);
+
+			this->updateFilterAndSlicer(slicer, paramValues);
+
+			if (!slicerCopies.empty())
+			{
+
+				for (int i = 0; i < slicerCopies.size(); ++i)
+				{
+					iASlicerImpl* slicerCopy = slicerCopies[i];  // Access the slicer copy by index
+
+					if (i == 0)
+					{
+						// Now, update the slicerCopy with the new paramValues
+						updateFilterAndSlicer(slicerCopy, paramOldValues);
+						slicerParameters[i] = paramOldValues;
+					}
+					else if (i == 4)
+					{
+						updateFilterAndSlicer(slicerCopy, paramValues);
+						slicerParameters[i] = paramValues;
+					}
+					else
+					{
+						// Interpolate or adjust values for slicers in between
+						QVariantMap interpolatedParamValues;
+						for (const QString& paramName : parameterNames)
+						{
+							bool isIncreasing = paramValues[paramName].toDouble() >
+								paramOldValues[paramName].toDouble();
+							double startValue = paramOldValues[paramName].toDouble();
+							double endValue = paramValues[paramName].toDouble();
+							double range = std::abs(endValue - startValue);
+							double step = range /
+								4;  // Assuming 5 steps (0 to 4), adjust the denominator according to your total steps
+
+							double interpolatedValue;
+							if (isIncreasing)
+							{
+								interpolatedValue = startValue + step * i;  // For increasing values
+							}
+							else
+							{
+								interpolatedValue = startValue - step * i;  // For decreasing values
+							}
+
+							// Ensure interpolatedValue does not exceed the bounds
+							if (isIncreasing)
+							{
+								interpolatedValue = std::min(interpolatedValue, endValue);
+							}
+							else
+							{
+								interpolatedValue = std::max(interpolatedValue, endValue);
+							}
+
+							interpolatedParamValues[paramName] = interpolatedValue;
+						}
+
+						// Now, update the slicerCopy with the interpolated paramValues
+						updateFilterAndSlicer(slicerCopy, interpolatedParamValues);	
+						slicerParameters[i] = interpolatedParamValues;
+						
+					}
+										
+				}
+
+			}
+
+		});
+
 
 	QVBoxLayout* mainLayout = new QVBoxLayout;
 	mainLayout->addLayout(splitLayout,7);
 	mainLayout->addLayout(imageListLayout,3);
 
+
+
+
 	splitViewDialog->setLayout(mainLayout);
 	splitViewDialog->exec();
 }
 
-
-
-#include <iAQSplom.h>
-#include <iASPLOMData.h>
-
-
-#include <vtkContextScene.h>
-#include <vtkContextView.h>
-#include <vtkFloatArray.h>
-#include <vtkScatterPlotMatrix.h>
-#include <vtkSmartPointer.h>
-#include <vtkRenderer.h>
-#include <vtkTable.h>
 
 
 void iAFilterPreviewModuleInterface::filterPreview()
@@ -331,7 +568,7 @@ void iAFilterPreviewModuleInterface::filterPreview()
 	if (dim[0] > MinDim || dim[1] > MinDim || dim[2] > MinDim)
 	{
 		size_t idx[3] = { 0, 0, 0 };
-		size_t size[3] = { std::min(dim[0], MinDim), std::min(dim[1], MinDim), std::min(dim[2], MinDim) };
+		size_t size[3] = { static_cast<size_t>(std::min(dim[0], MinDim)), static_cast<size_t>(std::min(dim[1], MinDim)), static_cast<size_t>(std::min(dim[2], MinDim)) };
 		auto img = extractImage(inImgLarge->itkImage(), idx, size);
 		inputImg = std::make_shared<iAImageData>(img);
 	}
@@ -387,9 +624,9 @@ void iAFilterPreviewModuleInterface::filterPreview()
 	QGridLayout* gridLayout = new QGridLayout;
 
 	// Get the size of the main window and calculate the relative size for the slicers
-	QSize mainWindowSize = m_mainWnd->size();
-	int slicerWidth = mainWindowSize.width() / 5;    
-	int slicerHeight = mainWindowSize.height() / 5;  
+	mainWindowSize = m_mainWnd->size();
+	slicerWidth = mainWindowSize.width() / 10;
+	slicerHeight = mainWindowSize.height() / 10;
 
 	int numSamples = 9;
 	std::vector<std::vector<double>> lhsSamples;
@@ -405,9 +642,6 @@ void iAFilterPreviewModuleInterface::filterPreview()
 			QHBoxLayout* hLayout = new QHBoxLayout(); // This will contain the slicer and the parameter values
 
 			iASlicerImpl* slicer = new iASlicerImpl(container, iASlicerMode::XY, false);
-			iAChannelData* channel = new iAChannelData("", dynamic_cast<iAImageData*>(inputImg.get())->vtkImage(),
-				dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))->transfer()->colorTF());
-
 			QVariantMap paramValues;
 			for (int i = 0; i < parameterNames.size(); ++i)
 			{
@@ -431,23 +665,11 @@ void iAFilterPreviewModuleInterface::filterPreview()
 			// Create a label to show the parameter values
 			QLabel* paramLabel = new QLabel(paramDisplay, container);
 
-			auto outDataSet = currentFilter->outputs()[0];
-
-			auto imgData = dynamic_cast<iAImageData*>(outDataSet.get());
-			auto newChannelData = std::make_shared<iAChannelData>("",
-				imgData->vtkImage(),  // get image data directly from filter
-				// color transfer function still the one from the analysis window:
-				dynamic_cast<iAVolumeViewer*>(child->dataSetViewer(child->firstImageDataSetIdx()))
-					->transfer()
-					->colorTF());
-
-			slicer->addChannel(0, *newChannelData, true);
-			slicer->setMinimumSize(QSize(slicerWidth, slicerHeight));  // Set a minimum size for visibility
-			slicer->resetCamera();
+			updateFilterAndSlicer(slicer, paramValues);
 
 			// Overlay the TransparentClickableWidget on top of the slicer
 			QPushButton* selectButton = new QPushButton("Select", container);
-			connect(selectButton, &QPushButton::clicked, [this, slicer]() { this->openSplitView(slicer); });
+			connect(selectButton, &QPushButton::clicked, [this, slicer, paramValues]() { this->openSplitView(slicer, paramValues); });
 
 			hLayout->addWidget(slicer);      // Add the slicer to the horizontal layout
 			hLayout->addWidget(paramLabel);  // Add the label to the horizontal layout
@@ -461,65 +683,6 @@ void iAFilterPreviewModuleInterface::filterPreview()
 
 		}
 	}
-
-	iAQSplom* chartsSpmWidget = new iAQSplom();
-	auto chartsSpmData = std::make_shared<iASPLOMData>();
-	std::vector<QString> paramNames;
-	paramNames.push_back("Param 1");
-	paramNames.push_back("Param 2");
-	paramNames.push_back("Param 3");
-	chartsSpmData->setParameterNames(paramNames);   // also sets number of columns, so that the "column vectors" below are available; 3 param names, therefore 0..2 are available:
-	chartsSpmData->data()[0].push_back(1);
-	chartsSpmData->data()[0].push_back(1.1);
-	chartsSpmData->data()[0].push_back(1.5);
-	chartsSpmData->data()[1].push_back(2);
-	chartsSpmData->data()[1].push_back(3);
-	chartsSpmData->data()[1].push_back(5);
-	chartsSpmData->data()[2].push_back(15);
-	chartsSpmData->data()[2].push_back(10);
-	chartsSpmData->data()[2].push_back(5);
-	chartsSpmData->updateRanges();
-	std::vector<char> columnVisibility = { true, true, true };
-	chartsSpmWidget->showAllPlots(false);
-	chartsSpmWidget->setData(chartsSpmData, columnVisibility);
-	gridLayout->addWidget(chartsSpmWidget, 3, 0);
-	
-	auto vtkSpmWidget = new iAQVTKWidget();
-	auto vtkSpmData = vtkSmartPointer<vtkTable>::New();
-	vtkSpmData->Initialize();
-	auto arr1 = vtkSmartPointer<vtkFloatArray>::New();
-	arr1->SetName("Param 1");
-	vtkSpmData->AddColumn(arr1);
-	auto arr2 = vtkSmartPointer<vtkFloatArray>::New();
-	arr2->SetName("Param 2");
-	vtkSpmData->AddColumn(arr2);
-	auto arr3 = vtkSmartPointer<vtkFloatArray>::New();
-	arr3->SetName("Param 3");
-	vtkSpmData->AddColumn(arr3);
-	vtkSpmData->SetNumberOfRows(3);
-	vtkSpmData->SetValue(0, 0, 1);
-	vtkSpmData->SetValue(1, 0, 1.1);
-	vtkSpmData->SetValue(2, 0, 1.5);
-	vtkSpmData->SetValue(0, 1, 2);
-	vtkSpmData->SetValue(1, 1, 3);
-	vtkSpmData->SetValue(2, 1, 5);
-	vtkSpmData->SetValue(0, 2, 15);
-	vtkSpmData->SetValue(1, 2, 10);
-	vtkSpmData->SetValue(2, 2, 5);
-	vtkNew<vtkContextView> view;
-	view->SetRenderWindow(vtkSpmWidget->renderWindow());
-	view->SetInteractor(vtkSpmWidget->interactor());
-	vtkNew<vtkScatterPlotMatrix> matrix;
-	view->GetScene()->AddItem(matrix);
-	matrix->SetInput(vtkSpmData);
-	matrix->SetNumberOfBins(10);
-	matrix->SetSelectionMode(vtkContextScene::SELECTION_DEFAULT);
-	matrix->SetNumberOfFrames(2);
-	//matrix->GetMainChart()->SetActionToButton(vtkChart::SELECT_POLYGON, vtkContextMouseEvent::RIGHT_BUTTON);
-	view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
-	gridLayout->addWidget(vtkSpmWidget, 3, 1);
-
-	//gridLayout->addWidget(qtSpmWidget, 3, 2);
 
 	// Set the layout of the dialog to the grid layout
 	dialog->setLayout(gridLayout);

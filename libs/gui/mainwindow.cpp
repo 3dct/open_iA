@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "mainwindow.h"
 
@@ -68,8 +68,6 @@
 #include <QTextStream>
 #include <QTimer>
 #include <QtXml/QDomDocument>
-
-const int MainWindow::MaxRecentFiles;
 
 namespace
 {
@@ -985,7 +983,7 @@ void MainWindow::loadCameraSettings()
 void MainWindow::createRecentFileActions()
 {
 	m_separatorAct = m_ui->menuFile->addSeparator();
-	for (int i = 0; i < MaxRecentFiles; ++i)
+	for (qsizetype i = 0; i < MaxRecentFiles; ++i)
 	{
 		m_recentFileActs[i] = new QAction(this);
 		m_recentFileActs[i]->setVisible(false);
@@ -998,7 +996,7 @@ void MainWindow::updateMenus()  // (and toolbars)
 {
 	bool hasMdiChild = activeMdiChild();
 	auto child = activeMDI();
-	
+
 	// File Menu: / toolbar
 	m_ui->actionSaveDataSet->setEnabled(hasMdiChild);
 	m_ui->actionSaveProject->setEnabled(activeChild<iASavableProject>());
@@ -1155,7 +1153,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionLoadSettings, &QAction::triggered, this, &MainWindow::loadSettings);
 	connect(m_ui->actionSaveSettings, &QAction::triggered, this, &MainWindow::saveSettings);
 	connect(m_ui->actionExit, &QAction::triggered, qApp, &QApplication::closeAllWindows);
-	for (int i = 0; i < MaxRecentFiles; ++i)
+	for (qsizetype i = 0; i < MaxRecentFiles; ++i)
 	{
 		connect(m_recentFileActs[i], &QAction::triggered, this, &MainWindow::openRecentFile);
 	}
@@ -1290,7 +1288,7 @@ void MainWindow::readSettings()
 		m_layoutNames.push_back("3");
 	}
 	m_defaultPreferences.PositionMarkerSize = settings.value("Preferences/prefStatExt", defaultPrefs.PositionMarkerSize).toInt();
-	
+
 	// Logging-related:
 	bool prefLogToFile = settings.value("Preferences/prefLogToFile", false).toBool();
 	QString logFileName = settings.value("Preferences/prefLogFile", "debug.log").toString();
@@ -1331,7 +1329,7 @@ void MainWindow::readSettings()
 	{
 		m_ui->actionTabbed->setChecked(true);
 	}
-	
+
 	// performance:
 	m_defaultPreferences.LimitForAuto3DRender = settings.value("Preferences/prefLimitForAuto3DRender", defaultPrefs.LimitForAuto3DRender).toInt();
 
@@ -1392,7 +1390,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Slicer/ssLinkViews", m_defaultSlicerSettings.LinkViews);
 	settings.setValue("Slicer/ssLinkMDIs", m_defaultSlicerSettings.LinkMDIs);
 	settings.setValue("Slicer/ssSnakeSlices", m_defaultSlicerSettings.SnakeSlices);
-	
+
 	settings.setValue("Parameters/loadSavePreferences", m_loadSavePreferences);
 	settings.setValue("Parameters/loadSaveSlicerSettings", m_loadSaveSlicerSettings);
 	settings.setValue("Parameters/settingsToLoadSave", m_settingsToLoadSave);
@@ -1479,16 +1477,16 @@ void MainWindow::updateRecentFileActions()
 	}
 	settings.setValue("recentFileList", files);
 
-	int numRecentFiles = qMin(files.size(), MaxRecentFiles);
+	auto numRecentFiles = std::min(files.size(), MaxRecentFiles);
 
-	for (int i = 0; i < numRecentFiles; ++i)
+	for (qsizetype i = 0; i < numRecentFiles; ++i)
 	{
 		QString text = tr("&%1 %2").arg(i + 1).arg(QFileInfo(files[i]).fileName());
 		m_recentFileActs[i]->setText(text);
 		m_recentFileActs[i]->setData(files[i]);
 		m_recentFileActs[i]->setVisible(true);
 	}
-	for (int j = numRecentFiles; j < MaxRecentFiles; ++j)
+	for (qsizetype j = numRecentFiles; j < MaxRecentFiles; ++j)
 	{
 		m_recentFileActs[j]->setVisible(false);
 	}
@@ -1799,14 +1797,14 @@ void MainWindow::loadArguments(int argc, char** argv)
 {
 	QStringList filesToLoad;
 	bool doQuit = false;
-	quint64 quitMS = 0;
+	int quitMS = 0;
 	for (int a = 1; a < argc; ++a)
 	{
 		if (QString(argv[a]).startsWith("--quit"))
 		{
 			++a;
 			bool ok;
-			quitMS = QString(argv[a]).toULongLong(&ok);
+			quitMS = QString(argv[a]).toInt(&ok);
 			doQuit = ok;
 			if (!ok)
 			{

@@ -1,9 +1,9 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAMathUtility.h"
 
 // TODO: on switch to C++20, replace vtkMath::Pi usage with std::numbers::pi
-// see https://stackoverflow.com/a/57285400/671366
+// see https://stackoverflow.com/a/57285400
 // would make linking to vtk libraries in test also superfluous, see also other refs to vtkMath::Pi() throughout codebase!
 #include <vtkMath.h>
 

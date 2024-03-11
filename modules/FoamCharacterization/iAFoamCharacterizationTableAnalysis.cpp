@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFoamCharacterizationTableAnalysis.h"
 
@@ -106,7 +106,7 @@ void iAFoamCharacterizationTableAnalysis::setRow ( const int& _iRow
 
 	const QModelIndex miValue0(pModel->index(_iRow, 0));
 	pModel->setData(miValue0, Qt::AlignCenter, Qt::TextAlignmentRole);
-	int label = _lLabel;
+	int label = static_cast<int>(_lLabel);
 	pModel->setData(miValue0, label, Qt::DisplayRole);
 
 	const QModelIndex miValue1(pModel->index(_iRow, 1));

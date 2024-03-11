@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASegmentTree.h"
 
@@ -16,7 +16,7 @@ iASegmentTree::iASegmentTree(const std::vector<int> &input, int binCnt, int lowe
 	m_inputElemCnt(0)
 {
 	//NOTE: Currently only hist is needed, others can be disabled
-	m_inputElemCnt = input.size();
+	m_inputElemCnt = static_cast<int>(input.size());
 	/*m_avg.resize(2 * m_inputElemCnt);
 	m_min.resize(2 * m_inputElemCnt);
 	m_max.resize(2 * m_inputElemCnt);*/

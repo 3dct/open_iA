@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iARefDistCompute.h"
 
@@ -109,10 +109,10 @@ void getBestMatches(iAFiberData const& fiber,
 	QVector<QVector<iAFiberSimilarity> >& bestMatches,
 	std::map<size_t, std::vector<iAVec3f> > const& refCurveInfo,
 	double diagonalLength, double maxLength,
-	std::vector<std::pair<int, bool>>& measuresToCompute, int optimizationMeasureIdx)
+	std::vector<std::pair<int, bool>>& measuresToCompute, qsizetype optimizationMeasureIdx)
 {
 	iARefDistCompute::ContainerSizeType refFiberCount = refTable->GetNumberOfRows();
-	int bestMatchesStartIdx = bestMatches.size();
+	auto bestMatchesStartIdx = bestMatches.size();
 	assert(measuresToCompute.size() < std::numeric_limits<int>::max());
 	assert(bestMatchesStartIdx + measuresToCompute.size() < std::numeric_limits<int>::max());
 	int numOfNewMeasures = static_cast<int>(measuresToCompute.size());
@@ -136,7 +136,7 @@ void getBestMatches(iAFiberData const& fiber,
 			{
 				auto it = refCurveInfo.find(refFiberID);
 				iAFiberData refFiber(refTable, refFiberID, mapping, (it != refCurveInfo.end()) ? it->second : std::vector<iAVec3f>());
-				similarities[refFiberID].index = refFiberID;
+				similarities[refFiberID].index = static_cast<quint32>(refFiberID);
 				double curDissimilarity = getDissimilarity(fiber, refFiber, measuresToCompute[d].first, diagonalLength, maxLength);
 				if (std::isnan(curDissimilarity))
 				{

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFilterChart.h"
 
@@ -114,9 +114,9 @@ void iAFilterChart::drawAxes(QPainter& painter)
 	iAChartWidget::drawAxes(painter);
 }
 
-void iAFilterChart::SetBinColor(int bin, QColor const & color)
+void iAFilterChart::SetBinColor(size_t bin, QColor const& color)
 {
-	assert(bin >= 0 && static_cast<size_t>(bin) < m_data->valueCount());
+	assert(bin < m_data->valueCount());
 	m_binColors[bin] = color;
 }
 

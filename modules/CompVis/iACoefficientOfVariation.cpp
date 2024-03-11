@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACoefficientOfVariation.h"
 
@@ -8,9 +8,9 @@ iACoefficientOfVariation::iACoefficientOfVariation(iACsvDataStorage* dataStorage
 	m_coeffOfVar(new std::vector<double>()),
 	m_maxValForEachAttr(new std::vector<double>()),
 	m_minValForEachAttr(new std::vector<double>()),
-	m_attributeArray(new csvDataType::ArrayType()), 
+	m_attributeArray(new csvDataType::ArrayType()),
 	m_inputData(dataStorage->getData())
-	
+
 {
 	initializeAttributeArray(m_inputData, m_attributeArray);
 	m_coeffOfVar = calculateVariationCoefficient(m_attributeArray);
@@ -33,17 +33,17 @@ void iACoefficientOfVariation::initializeAttributeArray(QList<csvFileData>* inpu
 		return;
 	}
 
-	int amountDatasets = input->size();
+	auto amountDatasets = input->size();
 	//is for all datasets & objects the same
-	int amountAttributes = input->at(0).header->size();
+	auto amountAttributes = static_cast<size_t>(input->at(0).header->size());
 
-	for (int attrInd = 0; attrInd < amountAttributes; attrInd++)
+	for (size_t attrInd = 0; attrInd < amountAttributes; attrInd++)
 	{
 		std::vector<double> attr = std::vector<double>();
 
-		for (int datasetInd = 0; datasetInd < amountDatasets; datasetInd++)
+		for (qsizetype datasetInd = 0; datasetInd < amountDatasets; datasetInd++)
 		{ //for all datasets
-			size_t amountObjects = input->at(datasetInd).values->size();
+			auto amountObjects = input->at(datasetInd).values->size();
 
 			for (size_t objInd = 0; objInd < amountObjects; objInd++)
 			{ //for all objects in each dataset
@@ -57,13 +57,13 @@ void iACoefficientOfVariation::initializeAttributeArray(QList<csvFileData>* inpu
 }
 
 std::vector<double>* iACoefficientOfVariation::calculateVariationCoefficient(csvDataType::ArrayType* arrayOfAttributes)
-{	
+{
 	std::vector<double>* resultCoeff = new std::vector<double>();
 
 	for (int attrInd = 0; attrInd < ((int)arrayOfAttributes->size()); attrInd++)
 	{
 		double variationCoeffEmpirical;
-		
+
 		if (arrayOfAttributes->at(attrInd).size() == 0)
 		{//there are no values
 			variationCoeffEmpirical = 0.0;
@@ -93,7 +93,7 @@ std::vector<double>* iACoefficientOfVariation::calculateVariationCoefficient(csv
 				variationCoeffEmpirical = variationCoeff / std::sqrt(arrayOfAttributes->at(attrInd).size());
 			}
 		}
-	
+
 		resultCoeff->push_back(variationCoeffEmpirical);
 	}
 

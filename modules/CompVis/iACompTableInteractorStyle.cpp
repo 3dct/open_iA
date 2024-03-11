@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompTableInteractorStyle.h"
 
@@ -17,11 +17,10 @@ namespace Pick
 {
 	void copyPickedMap(PickedMap* input, PickedMap* result)
 	{
-		for (PickedMap::iterator it = input->begin(); it != input->end(); it++)
+		for (auto it = input->begin(); it != input->end(); it++)
 		{
-			vtkSmartPointer<vtkActor> currAc = it->first;
-			std::vector<vtkIdType>* currVec = it->second;
-
+			auto currAc = it->first;
+			auto currVec = it->second;
 			result->insert({currAc, currVec});
 		}
 	};
@@ -32,26 +31,25 @@ namespace Pick
 		LOG(lvlDebug, "");
 		LOG(lvlDebug, "size = " + QString::number(input->size()));
 
-		std::map<vtkSmartPointer<vtkActor>, std::vector<vtkIdType>*>::iterator it;
 		int count = 0;
-		for (it = input->begin(); it != input->end(); it++)
+		for (auto it = input->begin(); it != input->end(); it++)
 		{
-			vtkSmartPointer<vtkActor> currAc = it->first;
-			std::vector<vtkIdType>* currVec = it->second;
+			auto currAc = it->first;
+			auto currVec = it->second;
 
 			LOG(lvlDebug,
-				"Actor " + QString::number(count) + " has " + QString::number(currVec->size()) + " picked cells");
+				"Actor " + QString::number(count++) + " has " + QString::number(currVec->size()) + " picked cells");
 		}
 		LOG(lvlDebug, "");
 		LOG(lvlDebug, "#######################################################");
 	};
 }
 
-iACompTableInteractorStyle::iACompTableInteractorStyle() : 
+iACompTableInteractorStyle::iACompTableInteractorStyle() :
 	vtkInteractorStyleTrackballCamera(),
-	m_main(nullptr), 
-	m_zoomLevel(1), 
-	m_zoomOn(true), 
+	m_main(nullptr),
+	m_zoomLevel(1),
+	m_zoomOn(true),
 	m_picked(new Pick::PickedMap()),
 	m_pickedOld(new Pick::PickedMap()),
 	m_zoomedRowData(nullptr),
@@ -327,7 +325,7 @@ csvDataType::ArrayType* iACompTableInteractorStyle::formatPickedObjects(
 	}
 	LOG(lvlDebug,"++++++++++++++++++++++++");*/
 
-	int amountDatasets = zoomedRowData->size();
+	auto amountDatasets = zoomedRowData->size();
 
 	if (amountDatasets == 0 || (zoomedRowData->at(0)->size() == 0) || (zoomedRowData->at(0)->at(0)->size() == 0))
 	{  //when selecting empty cell
@@ -340,7 +338,7 @@ csvDataType::ArrayType* iACompTableInteractorStyle::formatPickedObjects(
 	{  //for all attributes
 		std::vector<double> attr = std::vector<double>();
 
-		for (int datasetInd = 0; datasetInd < amountDatasets; datasetInd++)
+		for (qsizetype datasetInd = 0; datasetInd < amountDatasets; datasetInd++)
 		{  //for the datasets that were picked
 			int amountBins = static_cast<int>(zoomedRowData->at(datasetInd)->size());
 

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAMeanObject.h"
 
@@ -96,7 +96,7 @@ iAMeanObject::iAMeanObject(iAMdiChild* activeChild, QString const& sourcePath) :
 void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<vtkTable>> const& tableList,
 	int filterID, QDockWidget* nextToDW, vtkCamera* commonCamera, QList<QColor> const& classColor)
 {
-	int classCount = classNames.size();
+	auto classCount = classNames.size();
 	if (classCount <= 1)
 	{
 		QMessageBox::warning(m_activeChild, "MObjects", "You need to define at least one class for Mean Objects to be computed!");
@@ -219,7 +219,7 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 		addImage->SetOrigin(addoutputOrigin);
 		addImage->Allocate();
 
-		for (int currClass = 1; currClass < classCount; ++currClass)
+		for (qsizetype currClass = 1; currClass < classCount; ++currClass)
 		{
 			std::map<int, int> meanObjectIds;
 			for (int j = 0; j < tableList[currClass]->GetNumberOfRows(); ++j)
@@ -411,7 +411,7 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 		m_meanObjectWidget->renderWindow()->GetRenderers()->RemoveAllItems();
 
 		// Define viewport variables
-		int numberOfMeanObjectVolumes = m_MOData->moVolumesList.size();
+		auto numberOfMeanObjectVolumes = m_MOData->moVolumesList.size();
 		float viewportColumns = numberOfMeanObjectVolumes < 3 ? fmod(numberOfMeanObjectVolumes, 3.0) : 3.0;
 		float viewportRows = std::ceil(numberOfMeanObjectVolumes / viewportColumns);
 		float fieldLengthX = 1.0 / viewportColumns, fieldLengthY = 1.0 / viewportRows;

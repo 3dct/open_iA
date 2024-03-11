@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "dlg_CSVInput.h"
 
@@ -26,7 +26,7 @@ namespace
 	const QString DefaultFormat = "DefaultFormat";
 	const QString AdvancedMode = "AdvancedMode";
 
-	
+
 	const QString CfgKeyPreviousCSVs("PreviousCSVFiles");
 	const QString CfgKeyLRU("LRU%1");
 	constexpr int MaxLRU = 25;
@@ -596,7 +596,7 @@ void dlg_CSVInput::showConfigParams()
 	}
 	int index = m_ui->cmbbox_ObjectType->findText(MapObjectTypeToString(m_confParams.objectType), Qt::MatchContains);
 	m_ui->cmbbox_ObjectType->setCurrentIndex(index);
-	m_ui->cmbbox_ColSeparator->setCurrentIndex(ColumnSeparators().indexOf(m_confParams.columnSeparator));
+	m_ui->cmbbox_ColSeparator->setCurrentIndex(static_cast<int>(ColumnSeparators().indexOf(m_confParams.columnSeparator)));
 	m_ui->cmbbox_DecimalSeparator->setCurrentText(m_confParams.decimalSeparator);
 	m_ui->ed_SkipLinesStart->setValue(static_cast<int>(m_confParams.skipLinesStart));
 	m_ui->ed_SkipLinesEnd->setValue(static_cast<int>(m_confParams.skipLinesEnd));
@@ -764,10 +764,10 @@ void dlg_CSVInput::showSelectedCols()
 	m_ui->list_ColumnSelection->clearSelection();
 	for ( auto &selected: m_confParams.selectedHeaders)
 	{
-		int idx = m_confParams.currentHeaders.indexOf(selected);
+		auto idx = m_confParams.currentHeaders.indexOf(selected);
 		if (idx >= 0 && idx < m_ui->list_ColumnSelection->count())
 		{
-			m_ui->list_ColumnSelection->item(idx)->setSelected(true);
+			m_ui->list_ColumnSelection->item(static_cast<int>(idx))->setSelected(true);
 		}
 		else
 		{

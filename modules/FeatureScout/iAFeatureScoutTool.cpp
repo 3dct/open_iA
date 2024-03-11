@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFeatureScoutTool.h"
 
@@ -6,7 +6,8 @@
 #include "iAFeatureScoutToolbar.h"
 
 #include <iACsvConfig.h>
-#include "iALabeledVolumeVis.h"
+#include <iAColoredPolyObjectVis.h>
+#include <iALabeledVolumeVis.h>
 #include <iAObjectsData.h>
 #include <iAObjectsViewer.h>
 #include <iAObjectVisFactory.h>
@@ -67,6 +68,17 @@ bool iAFeatureScoutTool::addToChild(iAMdiChild* child, iACsvConfig const& csvCon
 {
 	auto tool = std::make_shared<iAFeatureScoutTool>(iAMainWindow::get(), child);
 	auto result = tool->initFromConfig(child, csvConfig);
+	if (result)
+	{
+		child->addTool(iAFeatureScoutTool::ID, tool);
+	}
+	return result;
+}
+
+bool iAFeatureScoutTool::addToChild(iAMdiChild* child, iACsvConfig const& csvConfig, std::shared_ptr<iAObjectsData> objData)
+{
+	auto tool = std::make_shared<iAFeatureScoutTool>(iAMainWindow::get(), child);
+	auto result = tool->init(child, csvConfig, objData);
 	if (result)
 	{
 		child->addTool(iAFeatureScoutTool::ID, tool);
@@ -137,7 +149,50 @@ bool iAFeatureScoutTool::initFromConfig(iAMdiChild* child, iACsvConfig const& cs
 	{
 		return false;
 	}
-	init(csvConfig.objectType, csvConfig.fileName, objData);
+	return init(child, csvConfig, objData);
+}
+
+bool iAFeatureScoutTool::init(iAMdiChild* child, iACsvConfig const& csvConfig, std::shared_ptr<iAObjectsData> objData)
+{
+	double* bounds = nullptr;
+	iAObjectVis* objVis = nullptr;
+	if (objData->m_visType == iAObjectVisType::UseVolume)
+	{
+		m_objDataSetIdx = m_child->firstImageDataSetIdx();
+		if (m_objDataSetIdx == iAMdiChild::NoDataSet)
+		{
+			LOG(lvlError, "No image data set loaded!");
+			return false;
+		}
+		auto tf = dynamic_cast<iAVolumeViewer*>(m_child->dataSetViewer(m_objDataSetIdx))->transfer();
+		bounds = dynamic_cast<iAImageData*>(m_child->dataSet(m_objDataSetIdx).get())->vtkImage()->GetBounds();
+		m_objData = objData;
+		QColor defaultColor(dlg_FeatureScout::UnclassifiedColorName);
+		m_objVis = std::make_shared<iALabeledVolumeVis>(tf->colorTF(), tf->opacityTF(), objData.get(), bounds);
+		objVis = m_objVis.get();
+	}
+	else
+	{
+		m_objDataSetIdx = m_child->addDataSet(objData);
+		connect(m_child, &iAMdiChild::dataSetRemoved, [this](size_t removedDataSetIdx) {
+			if (m_objDataSetIdx == removedDataSetIdx)
+			{   // FeatureScout will not work if object dataset is removed, it depends on object visualization being available
+				m_child->removeTool(iAFeatureScoutTool::ID);
+			}
+			});
+		auto viewer = dynamic_cast<iAObjectsViewer*>(m_child->dataSetViewer(m_objDataSetIdx));
+		objVis = viewer->objectVis();
+		auto colorPolyObjVis = dynamic_cast<iAColoredPolyObjectVis*>(objVis);
+		if (colorPolyObjVis)
+		{
+			connect(colorPolyObjVis, &iAColoredPolyObjectVis::selectionChanged, this, &iAFeatureScoutTool::selectionChanged);
+		}
+		else
+		{
+			LOG(lvlWarn, "FeatureScout: No colored poly object vis encountered where one was expected");
+		}
+	}
+	m_featureScout = new dlg_FeatureScout(m_child, csvConfig.objectType, csvConfig.fileName, objData.get(), objVis);
 
 	iAFeatureScoutToolbar::addForChild(m_mainWindow, child);
 	LOG(lvlInfo, QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
@@ -148,7 +203,7 @@ bool iAFeatureScoutTool::initFromConfig(iAMdiChild* child, iACsvConfig const& cs
 		renderSettings[iADataSetRenderer::DiffuseLighting] = 1.6;
 		renderSettings[iADataSetRenderer::SpecularLighting] = 0.0;
 		renderSettings[iAVolumeRenderer::Interpolation] = iAVolumeRenderer::InterpolateLinear;
-		for (auto key: RenderModeMap().keys())
+		for (auto key : RenderModeMap().keys())
 		{
 			if (RenderModeMap()[key] == vtkSmartVolumeMapper::RayCastRenderMode)
 			{
@@ -156,45 +211,11 @@ bool iAFeatureScoutTool::initFromConfig(iAMdiChild* child, iACsvConfig const& cs
 				break;
 			}
 		}
-		
+
 		child->dataSetViewer(child->firstImageDataSetIdx())->setAttributes(renderSettings);
 	}
 	setOptions(csvConfig);
 	return true;
-}
-
-void iAFeatureScoutTool::init(int objectType, QString const& fileName, std::shared_ptr<iAObjectsData> objData)
-{
-	double* bounds = nullptr;
-	iAObjectVis* objVis = nullptr;
-	if (objData->m_visType == iAObjectVisType::UseVolume)
-	{
-		auto idx = m_child->firstImageDataSetIdx();
-		if (idx == iAMdiChild::NoDataSet)
-		{
-			LOG(lvlError, "No image data set loaded!");
-			return;
-		}
-		auto tf = dynamic_cast<iAVolumeViewer*>(m_child->dataSetViewer(idx))->transfer();
-		bounds = dynamic_cast<iAImageData*>(m_child->dataSet(idx).get())->vtkImage()->GetBounds();
-		m_objData = objData;
-		QColor defaultColor(dlg_FeatureScout::UnclassifiedColorName);
-		m_objVis = std::make_shared<iALabeledVolumeVis>(tf->colorTF(), tf->opacityTF(), objData.get(), bounds);
-		objVis = m_objVis.get();
-	}
-	else
-	{
-		auto objDataSetIdx = m_child->addDataSet(objData);
-		connect(m_child, &iAMdiChild::dataSetRemoved, [this, objDataSetIdx](size_t removedDataSetIdx) {
-			if (objDataSetIdx == removedDataSetIdx)
-			{   // FeatureScout will not work if object dataset is removed, it depends on object visualization being available
-				m_child->removeTool(iAFeatureScoutTool::ID);
-			}
-			});
-		auto viewer = dynamic_cast<iAObjectsViewer*>(m_child->dataSetViewer(objDataSetIdx));
-		objVis = viewer->objectVis();
-	}
-	m_featureScout = new dlg_FeatureScout(m_child, static_cast<iAObjectType>(objectType), fileName, objData.get(), objVis);
 }
 
 void iAFeatureScoutTool::setOptions(iACsvConfig const& config)
@@ -215,4 +236,30 @@ iAObjectType iAFeatureScoutTool::guessFeatureType(QString const& csvFileName)
 	QString item = in.readLine();
 	file.close();
 	return (item == "Voids") ? Voids : Fibers;
+}
+
+size_t iAFeatureScoutTool::visDataSetIdx() const
+{
+	return m_objDataSetIdx;
+}
+
+void iAFeatureScoutTool::setSelection(std::vector<size_t> const & selection)
+{
+	auto viewer = dynamic_cast<iAObjectsViewer*>(m_child->dataSetViewer(m_objDataSetIdx));
+	auto objVis = viewer ? dynamic_cast<iAColoredPolyObjectVis*>(viewer->objectVis()) : nullptr;
+	if (objVis)
+	{
+		objVis->setSelection(selection, true);
+	}
+	else
+	{
+		LOG(lvlWarn, "FeatureScout: set selection called, but no colored poly object vis in use!");
+	}
+}
+
+std::vector<size_t> iAFeatureScoutTool::selection()
+{
+	auto viewer = dynamic_cast<iAObjectsViewer*>(m_child->dataSetViewer(m_objDataSetIdx));
+	auto objVis = viewer ? dynamic_cast<iAColoredPolyObjectVis*>(viewer->objectVis()) : nullptr;
+	return objVis ? objVis->selection(): std::vector<size_t>();
 }

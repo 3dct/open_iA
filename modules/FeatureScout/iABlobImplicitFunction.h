@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -55,8 +55,7 @@ protected:
 	void Resize (const vtkIdType ext);
 
 	LineInfo* mb;
-	unsigned int mbCount, mbSize;
-	unsigned int mbExt;
+	vtkIdType mbCount, mbSize, mbExt;
 	double	m_center[3];
 
 	iABlobManager* m_blobManager;

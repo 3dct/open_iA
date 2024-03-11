@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -48,7 +48,7 @@ public:
 	vtkRenderer * GetRenderer(){ return m_renderer;}
 	void SetAxesParams(int showaxes, int showlabels, double color[3], long fontfactor);
 	void HighlightPickedPoint();
-	int GetNumberOfLookupTableValues();
+	long long GetNumberOfLookupTableValues();
 	//! return false if points not set
 	bool setPicked(int indX, int indZ);
 private:

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -143,7 +143,7 @@ private:
 	void updateComposition(QVector<double> const & concentration);
 	void updateSelection();
 	void enableControlsNeedingDecompositionData();
-	void InitElementRenderer(dlg_elementRenderer * elemRend, size_t index);
+	void InitElementRenderer(dlg_elementRenderer * elemRend, int index);
 	void InitCommonGUI();
 
 	std::shared_ptr<QImage>                        m_spectraHistogramImage;

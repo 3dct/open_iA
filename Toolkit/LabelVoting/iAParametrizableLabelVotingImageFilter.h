@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 /*
  This file was originally released as part of the ITK project,
@@ -201,7 +201,7 @@ public:
 	//! set probabilities for each label for one input
 	//! in order for probability-related functionality to work, this method needs to be
 	//! called once with each input idx
-	void SetProbabilityImages(int inputIdx, std::vector<DoubleImg::Pointer> const & probImgs)
+	void SetProbabilityImages(size_t inputIdx, std::vector<DoubleImg::Pointer> const & probImgs)
 	{
 		m_probImgs.insert(std::make_pair(inputIdx, probImgs));
 	}
@@ -303,7 +303,7 @@ private:
 	typename DoubleImg::Pointer m_imgMinDiffPerc;
 	typename DoubleImg::Pointer m_imgMinRatio;
 	typename DoubleImg::Pointer m_imgPixelEntropy;
-	std::map<int, std::vector<DoubleImg::Pointer> > m_probImgs;
+	std::map<size_t, std::vector<DoubleImg::Pointer> > m_probImgs;
 	std::set<std::pair<int, int> > m_inputLabelVotersSet;
 	std::map<std::pair<int, int>, double> m_inputLabelWeightMap;
 	WeightType       m_weightType;

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -51,7 +51,7 @@ private slots:
 private:
 	QWidget * m_container;
 	int m_roi[6];
-	QVector<int> m_filterWithParameters;
+	QVector<qsizetype> m_filterWithParameters;
 	iAMdiChild * m_sourceMdiChild;
 	iAMainWindow * m_mainWnd;
 	bool m_sourceMdiChildClosed;

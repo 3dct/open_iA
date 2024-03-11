@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAScatterPlot.h"
 
@@ -716,7 +716,7 @@ size_t iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
 		for (int y = yrange[0]; y < yrange[1]; ++y)
 		{
 			binInd = getBinIndex(x, y);
-			for (int indx = m_pointsGrid[binInd].size() - 1; indx >= 0; --indx)
+			for (auto indx = m_pointsGrid[binInd].size() - 1; indx >= 0; --indx)
 			{
 				size_t ptIdx = m_pointsGrid[binInd][indx];
 				double pixelX = p2x(m_splomData->paramData(m_paramIndices[0])[ptIdx]);
@@ -889,7 +889,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 				g.setColorAt(1, m_lut->getQColor(m_splomData->paramData(m_colInd)[std::get<0>(line)[ptIdx+1]]));
 				painter.setPen(QPen(QBrush(g), std::get<2>(line)));
 			}
-			
+
 			// TODO: cut off lines at borders!
 			painter.drawLine(x1, y1, x2, y2);
 		}
@@ -957,7 +957,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	glDrawArrays( GL_POINTS, 0, static_cast<GLsizei>(m_curVisiblePts) );//glDrawElements( GL_POINTS, m_pointsBuffer->size(), GL_UNSIGNED_INT, 0 );
 	glDisableClientState( GL_COLOR_ARRAY );
 
-	// Draw selection:	
+	// Draw selection:
 	glColor3f( settings.selectionColor.red() / 255.0, settings.selectionColor.green() / 255.0, settings.selectionColor.blue() / 255.0 );
 	auto const& selInds = m_viewData->filteredSelection(m_splomData);
 	std::vector<uint> uintSelInds;

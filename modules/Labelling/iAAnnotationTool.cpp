@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAAnnotationTool.h"
 
@@ -58,7 +58,7 @@ public:
 												<< "Name"
 												<< "Coordinates"
 												<< "Show";
-		m_table->setColumnCount(columnNames.size());
+		m_table->setColumnCount(static_cast<int>(columnNames.size()));
 		m_table->setHorizontalHeaderLabels(columnNames);
 		m_table->verticalHeader()->hide();
 		m_table->setSelectionBehavior(QAbstractItemView::SelectRows);

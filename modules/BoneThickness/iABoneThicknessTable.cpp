@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iABoneThicknessTable.h"
 
@@ -76,5 +76,5 @@ void iABoneThicknessTable::set(iABoneThickness* _pBoneThickness, iABoneThickness
 
 void iABoneThicknessTable::setSelected(const vtkIdType& _idSelected)
 {
-	selectRow(_idSelected);
+	selectRow(static_cast<int>(_idSelected));
 }

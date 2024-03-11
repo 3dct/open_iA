@@ -1,11 +1,11 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompDBScan.h"
 #include "iACompDBScanData.h"
 
 iACompDBScan::iACompDBScan(
 	iACsvDataStorage* dataStorage, bin::BinType* datasets) :
-	iACompBinning(dataStorage, datasets), 
+	iACompBinning(dataStorage, datasets),
 	m_dbData(nullptr)
 {
 	//test();

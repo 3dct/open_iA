@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -26,7 +26,7 @@ typedef iAFunctionalBoxplot< unsigned int, double> FunctionalBoxPlot;
 struct icData
 {
 	icData(double i, itk::Index<DIM> coord ) :
-		intensity(i), x(coord[0]), y(coord[1]), z(coord[2]) {}
+		intensity(i), x(static_cast<unsigned int>(coord[0])), y(static_cast<unsigned int>(coord[1])), z(static_cast<unsigned int>(coord[2])) {}
 
 	double intensity;
 	unsigned int x;
@@ -69,7 +69,7 @@ inline void updateLegendAndGraphVisibility(QCPPlottableLegendItem *ptliU, QCusto
 	plotP->graph(legendPItemIdx)->setVisible(visibility);
 }
 
-inline QPen getDatasetPen(int datasetIdx, int datasetCnt, int penWidth, QString themeName)
+inline QPen getDatasetPen(qsizetype datasetIdx, qsizetype datasetCnt, int penWidth, QString themeName)
 {
 	auto theme = iAColorThemeManager::instance().theme(themeName);
 	QPen datasetPen; datasetPen.setWidth(penWidth);
@@ -108,7 +108,7 @@ inline void hideGraphandRemoveFromLegend(QCustomPlot *nonlinearPlot, QCustomPlot
 }
 
 inline void switchFBPMode(QString FBPMode, QCustomPlot *nonlinearPlot, QCustomPlot *linearPlot,
-	int datasetsCnt, QSlider *sl_FBPTransparency)
+	qsizetype datasetsCnt, QSlider *sl_FBPTransparency)
 {
 	if (FBPMode == "only")
 	{

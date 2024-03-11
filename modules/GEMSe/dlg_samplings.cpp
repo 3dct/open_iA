@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "dlg_samplings.h"
 
@@ -8,7 +8,7 @@
 
 dlg_samplings::dlg_samplings():
 	m_itemModel(new QStandardItemModel()),
-	m_samplings(new QVector<SamplingResultPtr>())
+	m_samplings(std::make_shared<QVector<SamplingResultPtr>>())
 {
 	connect(pbAdd, &QPushButton::clicked, this, &dlg_samplings::AddSampling);
 	connect(pbRemove, &QPushButton::clicked, this, &dlg_samplings::Remove);
@@ -16,7 +16,7 @@ dlg_samplings::dlg_samplings():
 	lvSamplings->setModel(m_itemModel);
 }
 
-std::shared_ptr<iASamplingResults> dlg_samplings::GetSampling(int idx)
+std::shared_ptr<iASamplingResults> dlg_samplings::GetSampling(qsizetype idx)
 {
 	return m_samplings->at(idx);
 }
@@ -45,7 +45,7 @@ void dlg_samplings::Remove()
 	m_samplings->erase(m_samplings->begin() + curRow);
 }
 
-int dlg_samplings::SamplingCount() const
+qsizetype dlg_samplings::SamplingCount() const
 {
 	return m_samplings->size();
 }

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -104,8 +104,8 @@ public:
 	iAQSplom(QWidget * parent = nullptr);
 	~iAQSplom();
 
-	void setData(std::shared_ptr<iASPLOMData> data, std::vector<char> const & visibility);                  //! set SPLOM data directly.
-	std::shared_ptr<iASPLOMData> data();                              //! retrieve SPLOM data
+	void setData(std::shared_ptr<iASPLOMData> data, std::vector<char> const & visibility); //!< set SPLOM data directly.
+	std::shared_ptr<iASPLOMData> data();                             //!< retrieve SPLOM data
 	void setLookupTable( vtkLookupTable * lut, const QString & paramName ); //!< Set lookup table from VTK (vtkLookupTable) given the name of a parameter to color-code.
 	void setLookupTable( iALookupTable &lut, size_t paramIndex );    //!< Set lookup table given the index of a parameter to color-code.
 	void setColorParam( const QString & paramName );                 //!< Set the parameter to color code, lookup table will be auto-determined (By Parameter)
@@ -129,10 +129,12 @@ public:
 	void showDefaultMaxizimedPlot();                                 //!< maximize plot in upper left corner
 	void addContextMenuAction(QAction* action);                      //!< add an additional option to the context menu
 	size_t colorLookupParam() const;                                 //!< parameter currently used for color lookup
-	std::shared_ptr<iALookupTable> lookupTable() const;               //!< get lookup table
+	std::shared_ptr<iALookupTable> lookupTable() const;              //!< get lookup table
 	ColorMode colorMode() const;                                     //!< get current coloring mode
+	void setColorParameterMode(ColorParameterMode paramMode);        //!< Set mode how colors are applied from parameter
 	void saveSettings(QSettings & iniFile) const;                    //!< store current settings into given object
 	void loadSettings(QVariantMap const & iniFile);                  //!< load settings from given object
+	void setColorThemeQual(QString const & themeName);               //!< Call to adapt color theme used for coloring by a qualitative parameter
 public slots:
 	void setHistogramVisible(bool visible);                          //!< set visibility of histograms
 	void setFlipAxes(bool flip);                                     //!< set whether to flip parameters in large scatterplot
@@ -140,14 +142,13 @@ public slots:
 	void showSettings();                                             //!< Show the settings dialog
 	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode
 	void setColorTheme(QString const & themeName);                   //!< Call to adapt color theme used for coloring by a continuous parameter
-	void setColorThemeQual(int index);                               //!< Call to adapt color theme used for coloring by a qualitative parameter
 	void rangeFromParameter();                                       //!< Call when color range should be determined from parameter
 signals:
 	void selectionModified(iAScatterPlotViewData::SelectionType const & selInds); //!< Emitted when new data points are selected. Contains a list of selected data points.
 	void currentPointModified(size_t index);                         //!< Emitted when hovered over a new point.
 	void parameterVisibilityChanged(size_t paramIndex, bool visible);//!< Emitted when the visibility of a parameter has changed (from within SPLOM, not triggered if it was set from the outside via setParameterVisibility).
 	void lookupTableChanged();                                       //!< Emitted when the lookup table has changed
-	void chartClick(size_t paramX, size_t paramY, double x, double y, Qt::KeyboardModifiers modifiers);  //!< Emitted when a point in the chart is clicked (and no selection or fixed point selection happened)
+	void chartClick(size_t paramX, size_t paramY, double x, double y, Qt::KeyboardModifiers modifiers); //!< Emitted when a point in the chart is clicked (and no selection or fixed point selection happened)
 protected:
 	void clear();                                                    //!< Clear all scatter plots in the SPLOM.
 #ifdef CHART_OPENGL
@@ -186,7 +187,6 @@ protected:
 	void contextMenuEvent(QContextMenuEvent *event) override;
 	//! @}
 protected slots:
-	void setColorThemeFromComboBox(int index);                       //!< Called when color theme changed via combobox in settings dialog
 	virtual void currentPointUpdated(size_t index);                  //!< When hovered over a new point.
 private:
 	void dataChanged(std::vector<char> visibleParams);               //!< handles changes of the internal data
@@ -194,7 +194,6 @@ private:
 	void updateHistograms();                                         //!< Updates all histograms when data or filter changes
 	void updateHistogram(size_t paramIndex);                         //!< Updates the histogram of the given parameter
 	void setColorMode(ColorMode colorMode);                          //!< Set color mode (method how points are colored)
-	void setColorParameterMode(ColorParameterMode paramMode);        //!< Set mode how colors are applied from parameter
 	void setColorRangeMode(ColorRangeMode rangeMode);                //!< Set how parameter range is determined if points colored by parameter
 	void applyLookupTable();                                         //!< Apply lookup table to all the scatter plots.
 	void createScatterPlot(size_t y, size_t x, bool initial);        //!< Creates a single scatter plot at location y, y
@@ -221,6 +220,8 @@ private slots:
 	void setContinousParamMode();
 	void setQualitativeParamMode();
 	void colorRangeModeChanged();
+	void setColorThemeFromComboBox(int index);                       //!< Called when color theme is changed via combobox in settings dialog
+	void setColorThemeQualFromComboBox(int index);                   //!< Called when qualitative color theme is changed via combobox in settings dialog
 
 // Members:
 public:
@@ -228,9 +229,8 @@ public:
 	struct Settings
 	{
 		Settings();
-		long plotsSpacing;
-		long tickLabelsOffset;
-		long maxRectExtraOffset;
+		int plotsSpacing;
+		int tickLabelsOffset;
 		QPoint tickOffsets;
 		QColor backgroundColor;
 		bool maximizedLinked;

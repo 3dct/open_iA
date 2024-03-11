@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAEnergySpectrumWidget.h"
 
@@ -96,8 +96,8 @@ void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 		QRect selectionRect(selectionRubberBand->geometry());     // height-y because we are drawing reversed from actual y direction
 		diagramRect.setTop(    yMapper().dstToSrc(chartHeight() - selectionRect.bottom()) );
 		diagramRect.setBottom( yMapper().dstToSrc(chartHeight() - selectionRect.top()   ) );
-		diagramRect.setLeft(   screenX2DataBin(selectionRect.left()  ) );
-		diagramRect.setRight(  screenX2DataBin(selectionRect.right() ) );
+		diagramRect.setLeft(   static_cast<int>(screenX2DataBin(selectionRect.left()  )) );
+		diagramRect.setRight(  static_cast<int>(screenX2DataBin(selectionRect.right() )) );
 		diagramRect = diagramRect.normalized();
 
 		if (diagramRect.top() < 0)

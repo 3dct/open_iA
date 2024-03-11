@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -114,7 +114,7 @@ private:
 	int m_representativeType;
 	LabelImagePointer m_refImg;
 
-	int m_magicLensDataSetIdx;
+	size_t m_magicLensDataSetIdx;
 	bool m_magicLensEnabled;
 	int m_magicLensCount;
 	iAColorTheme const * m_colorTheme;

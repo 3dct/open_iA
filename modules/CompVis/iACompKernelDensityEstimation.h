@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -32,7 +32,7 @@ public:
 
 	//compute the curve for all datasets
 	void calculateCurve(iACompUniformBinningData* uData, iACompBayesianBlocksData* bbData, iACompNaturalBreaksData* nbData);
-	
+
 	//compute the curve only for the uniform binning
 	void calculateCurveUB(iACompUniformBinningData* uData);
 
@@ -40,7 +40,7 @@ private:
 
 	//compute the KDE for an individual dataset
 	void calculateKDE(std::vector<double>* dataIn, kdeData::kdeBin* results);
-	
+
 	//order kde data according to the binning of the given data
 	//if a uniform binBoundaries are given, then the data is ordered according to the uniform binning
 	//if bayesian blocks binBoundaries are given, then the data is ordered according to the bayesian blocks binning
@@ -62,5 +62,5 @@ private:
 
 	//stores the minimal kde value for all datasets
 	double m_minKDE;
-	
+
 };

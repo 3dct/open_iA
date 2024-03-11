@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -46,8 +46,8 @@ public:
 	//! The default implementation creates a 3D renderer (via createRenderer method) and adds an entry
 	//! to the dataset list. If you want these things to happen, but additionally some other things,
 	//! call this function from the derived method (i.e. iADataSetViewer::createGUI).
-	//! Sometimes, you might not want these things to happen (as e.g. the iAProjectViewer does, since it does not need a 3D 
-	//! viewer nor a dataset list entry), 
+	//! Sometimes, you might not want these things to happen (as e.g. the iAProjectViewer does, since it does not need a 3D
+	//! viewer nor a dataset list entry),
 	virtual void createGUI(iAMdiChild* child, size_t dataSetIdx);
 	//! Get information to display about the dataset
 	virtual QString information() const;
@@ -84,7 +84,7 @@ public:
 	//! to the dataset list. Actions are shown in reverse order to call to this function, since we want to show
 	//! the ones common to all viewers first, but these are only created in createGUI of this base class
 	QAction* addViewAction(QString const& name, QString const& iconName, bool checked, std::function<void(bool)> handler);
-	
+
 	//! Called to create a 3D renderer for the dataset. Override in derived class; used for both the "normal" 3D renderer and the magic lens renderer.
 	//! @param ren the vtk renderer to attach the created renderer to
 	//! @param overrideValues (optional) parameter values for creating the renderer, overriding the default values that can be configured via Edit menu / iASettingsMananger

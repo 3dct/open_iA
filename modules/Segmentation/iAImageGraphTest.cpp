@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAImageGraph.h"
 
@@ -146,29 +146,29 @@ BEGIN_TEST
 	TestEqual(iAImageCoordinate(width-1,height-1,depth-1), test2x3x4Conv.coordinatesFromIndex(width*height*depth-1));
 
 	iAImageCoordConverter test2x2Conv(2, 2);
-	TestEqual( static_cast<iAVoxelIndexType>(0), test2x2Conv.indexFromCoordinates(iAImageCoordinate(0, 0, 0)));
-	TestEqual( static_cast<iAVoxelIndexType>(1), test2x2Conv.indexFromCoordinates(iAImageCoordinate(1, 0, 0)));
-	TestEqual( static_cast<iAVoxelIndexType>(2), test2x2Conv.indexFromCoordinates(iAImageCoordinate(0, 1, 0)));
-	TestEqual( static_cast<iAVoxelIndexType>(3), test2x2Conv.indexFromCoordinates(iAImageCoordinate(1, 1, 0)));
+	TestEqual( static_cast<iAFlatIndexType>(0), test2x2Conv.indexFromCoordinates(iAImageCoordinate(0, 0, 0)));
+	TestEqual( static_cast<iAFlatIndexType>(1), test2x2Conv.indexFromCoordinates(iAImageCoordinate(1, 0, 0)));
+	TestEqual( static_cast<iAFlatIndexType>(2), test2x2Conv.indexFromCoordinates(iAImageCoordinate(0, 1, 0)));
+	TestEqual( static_cast<iAFlatIndexType>(3), test2x2Conv.indexFromCoordinates(iAImageCoordinate(1, 1, 0)));
 
 	iAImageCoordConverter test2x2x2Conv(2, 2, 2);
-	TestEqual( static_cast<iAVoxelIndexType>(0), test2x2x2Conv.indexFromCoordinates(iAImageCoordinate(0, 0, 0)));
-	TestEqual( static_cast<iAVoxelIndexType>(1), test2x2x2Conv.indexFromCoordinates(iAImageCoordinate(1, 0, 0)));
-	TestEqual( static_cast<iAVoxelIndexType>(2), test2x2x2Conv.indexFromCoordinates(iAImageCoordinate(0, 1, 0)));
-	TestEqual( static_cast<iAVoxelIndexType>(3), test2x2x2Conv.indexFromCoordinates(iAImageCoordinate(1, 1, 0)));
-	TestEqual( static_cast<iAVoxelIndexType>(4), test2x2x2Conv.indexFromCoordinates(iAImageCoordinate(0, 0, 1)));
-	TestEqual( static_cast<iAVoxelIndexType>(5), test2x2x2Conv.indexFromCoordinates(iAImageCoordinate(1, 0, 1)));
-	TestEqual( static_cast<iAVoxelIndexType>(6), test2x2x2Conv.indexFromCoordinates(iAImageCoordinate(0, 1, 1)));
-	TestEqual( static_cast<iAVoxelIndexType>(7), test2x2x2Conv.indexFromCoordinates(iAImageCoordinate(1, 1, 1)));
+	TestEqual( static_cast<iAFlatIndexType>(0), test2x2x2Conv.indexFromCoordinates(iAImageCoordinate(0, 0, 0)));
+	TestEqual( static_cast<iAFlatIndexType>(1), test2x2x2Conv.indexFromCoordinates(iAImageCoordinate(1, 0, 0)));
+	TestEqual( static_cast<iAFlatIndexType>(2), test2x2x2Conv.indexFromCoordinates(iAImageCoordinate(0, 1, 0)));
+	TestEqual( static_cast<iAFlatIndexType>(3), test2x2x2Conv.indexFromCoordinates(iAImageCoordinate(1, 1, 0)));
+	TestEqual( static_cast<iAFlatIndexType>(4), test2x2x2Conv.indexFromCoordinates(iAImageCoordinate(0, 0, 1)));
+	TestEqual( static_cast<iAFlatIndexType>(5), test2x2x2Conv.indexFromCoordinates(iAImageCoordinate(1, 0, 1)));
+	TestEqual( static_cast<iAFlatIndexType>(6), test2x2x2Conv.indexFromCoordinates(iAImageCoordinate(0, 1, 1)));
+	TestEqual( static_cast<iAFlatIndexType>(7), test2x2x2Conv.indexFromCoordinates(iAImageCoordinate(1, 1, 1)));
 
 	iAImageCoordConverter test2x2x5Conv(2, 2, 5);
-	for (iAVoxelIndexType t=0; t<test2x2x5Conv.vertexCount(); ++t)
+	for (iAFlatIndexType t=0; t<test2x2x5Conv.vertexCount(); ++t)
 	{
 		TestEqual( t, test2x2x5Conv.indexFromCoordinates(test2x2x5Conv.coordinatesFromIndex(t)) );
 	}
 
 	iAImageCoordConverter test3x4x5Conv(3, 4, 5);
-	for (iAVoxelIndexType t=0; t<test3x4x5Conv.vertexCount(); ++t)
+	for (iAFlatIndexType t=0; t<test3x4x5Conv.vertexCount(); ++t)
 	{
 		TestEqual( t, test3x4x5Conv.indexFromCoordinates(test3x4x5Conv.coordinatesFromIndex(t)) );
 	}
@@ -184,20 +184,20 @@ BEGIN_TEST
 	TestEqual(iAImageCoordinate(width-1,height-1,depth-1), test2x3x4ColConv.coordinatesFromIndex(width*height*depth-1));
 
 	iAImageCoordConverter test2x2ColConv(2, 2, 1, iAImageCoordinate::ColRowDepMajor);
-	TestEqual( static_cast<iAVoxelIndexType>(0), test2x2ColConv.indexFromCoordinates(iAImageCoordinate(0, 0, 0)));
-	TestEqual( static_cast<iAVoxelIndexType>(1), test2x2ColConv.indexFromCoordinates(iAImageCoordinate(0, 1, 0)));
-	TestEqual( static_cast<iAVoxelIndexType>(2), test2x2ColConv.indexFromCoordinates(iAImageCoordinate(1, 0, 0)));
-	TestEqual( static_cast<iAVoxelIndexType>(3), test2x2ColConv.indexFromCoordinates(iAImageCoordinate(1, 1, 0)));
+	TestEqual( static_cast<iAFlatIndexType>(0), test2x2ColConv.indexFromCoordinates(iAImageCoordinate(0, 0, 0)));
+	TestEqual( static_cast<iAFlatIndexType>(1), test2x2ColConv.indexFromCoordinates(iAImageCoordinate(0, 1, 0)));
+	TestEqual( static_cast<iAFlatIndexType>(2), test2x2ColConv.indexFromCoordinates(iAImageCoordinate(1, 0, 0)));
+	TestEqual( static_cast<iAFlatIndexType>(3), test2x2ColConv.indexFromCoordinates(iAImageCoordinate(1, 1, 0)));
 
 	iAImageCoordConverter test2x2x2ColConv(2, 2, 2, iAImageCoordinate::ColRowDepMajor);
-	TestEqual( static_cast<iAVoxelIndexType>(0), test2x2x2ColConv.indexFromCoordinates(iAImageCoordinate(0, 0, 0)));
-	TestEqual( static_cast<iAVoxelIndexType>(1), test2x2x2ColConv.indexFromCoordinates(iAImageCoordinate(0, 1, 0)));
-	TestEqual( static_cast<iAVoxelIndexType>(2), test2x2x2ColConv.indexFromCoordinates(iAImageCoordinate(1, 0, 0)));
-	TestEqual( static_cast<iAVoxelIndexType>(3), test2x2x2ColConv.indexFromCoordinates(iAImageCoordinate(1, 1, 0)));
-	TestEqual( static_cast<iAVoxelIndexType>(4), test2x2x2ColConv.indexFromCoordinates(iAImageCoordinate(0, 0, 1)));
-	TestEqual( static_cast<iAVoxelIndexType>(5), test2x2x2ColConv.indexFromCoordinates(iAImageCoordinate(0, 1, 1)));
-	TestEqual( static_cast<iAVoxelIndexType>(6), test2x2x2ColConv.indexFromCoordinates(iAImageCoordinate(1, 0, 1)));
-	TestEqual( static_cast<iAVoxelIndexType>(7), test2x2x2ColConv.indexFromCoordinates(iAImageCoordinate(1, 1, 1)));
+	TestEqual( static_cast<iAFlatIndexType>(0), test2x2x2ColConv.indexFromCoordinates(iAImageCoordinate(0, 0, 0)));
+	TestEqual( static_cast<iAFlatIndexType>(1), test2x2x2ColConv.indexFromCoordinates(iAImageCoordinate(0, 1, 0)));
+	TestEqual( static_cast<iAFlatIndexType>(2), test2x2x2ColConv.indexFromCoordinates(iAImageCoordinate(1, 0, 0)));
+	TestEqual( static_cast<iAFlatIndexType>(3), test2x2x2ColConv.indexFromCoordinates(iAImageCoordinate(1, 1, 0)));
+	TestEqual( static_cast<iAFlatIndexType>(4), test2x2x2ColConv.indexFromCoordinates(iAImageCoordinate(0, 0, 1)));
+	TestEqual( static_cast<iAFlatIndexType>(5), test2x2x2ColConv.indexFromCoordinates(iAImageCoordinate(0, 1, 1)));
+	TestEqual( static_cast<iAFlatIndexType>(6), test2x2x2ColConv.indexFromCoordinates(iAImageCoordinate(1, 0, 1)));
+	TestEqual( static_cast<iAFlatIndexType>(7), test2x2x2ColConv.indexFromCoordinates(iAImageCoordinate(1, 1, 1)));
 
 
 	// TEST Moore Neighbourhood:

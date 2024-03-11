@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASegmentationMetrics.h"
 
@@ -55,7 +55,7 @@ void CalculateSegmentationMetrics(iAFilter* filter)
 		{
 			continue;
 		}
-		int label = (*it).first;
+		auto label = (*it).first;
 		filter->addOutputValue(QString("Label %1 Target Overlap").arg(label), diceFilter->GetTargetOverlap(label));
 		filter->addOutputValue(QString("Label %1 Union Overlap").arg(label), diceFilter->GetUnionOverlap(label));
 		filter->addOutputValue(QString("Label %1 Mean Overlap").arg(label), diceFilter->GetMeanOverlap(label));

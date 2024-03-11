@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompVisOptions.h"
 
@@ -203,7 +203,7 @@ namespace iACompVisOptions
 
 	QString getLabel(QString input)
 	{
-		int ind = input.lastIndexOf('/');
+		auto ind = input.lastIndexOf('/');
 		QString newLow = input.mid(ind+1,input.size());
 
 		QString result = newLow.replace(".csv", "");
@@ -232,6 +232,6 @@ namespace iACompVisOptions
 	}
 	bool getShow3DViews()
 	{
-		return show3DViews; 
+		return show3DViews;
 	}
 }

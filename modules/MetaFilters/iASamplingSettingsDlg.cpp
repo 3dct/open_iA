@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASamplingSettingsDlg.h"
 
@@ -65,7 +65,7 @@ public:
 
 
 iASamplingSettingsDlg::iASamplingSettingsDlg(QWidget *parentWdgt,
-	int inputImageCount,
+	size_t inputImageCount,
 	QVariantMap const & values):
 	QDialog(parentWdgt),
 	m_inputImageCount(inputImageCount),
@@ -172,7 +172,7 @@ namespace
 		QString const& pName,
 		std::shared_ptr<iAAttributeDescriptor> descriptor,
 		QGridLayout* gridLay,
-		int curGridLine, 
+		int curGridLine,
 		iASamplingSettingsDlg* eventHandler)
 	{
 		std::shared_ptr<iAParameterInputs> result;
@@ -482,7 +482,7 @@ void iASamplingSettingsDlg::getValues(QVariantMap& values) const
 	{
 		values[spnFilter] = "";
 	}
-	
+
 	for (int i = 0; i < m_paramInputs.size(); ++i)
 	{
 		m_paramInputs[i]->retrieveInputValues(values);
@@ -499,7 +499,7 @@ std::vector<int> iASamplingSettingsDlg::numOfSamplesPerParameter() const
 		auto desc = m_paramInputs[l]->currentDescriptor();
 		if (desc->valueType() == iAValueType::Categorical || desc->valueType() == iAValueType::Boolean)
 		{
-			result[l] = s[desc->name()].toString().split(",").size();
+			result[l] = static_cast<int>(s[desc->name()].toString().split(",").size());
 		}
 		else if (desc->valueType() == iAValueType::Continuous || desc->valueType() == iAValueType::Discrete)
 		{
@@ -582,7 +582,7 @@ void iASamplingSettingsDlg::loadSettings()
 	while (!in.atEnd())
 	{
 		QString line = in.readLine();
-		int sepPos = line.indexOf(KeyValueSeparator);
+		auto sepPos = line.indexOf(KeyValueSeparator);
 		if (sepPos == -1)
 		{
 			LOG(lvlError, QString("Invalid line '%1'").arg(line));
@@ -770,7 +770,7 @@ void iASamplingSettingsDlg::setParameters(std::shared_ptr<iAAttributes> params)
 		QString pName(p->name());
 		if (pName.startsWith("Mod "))
 		{
-			for (int m = 0; m < m_inputImageCount; ++m)
+			for (size_t m = 0; m < m_inputImageCount; ++m)
 			{
 				std::shared_ptr<iAParameterInputs> pInput = createParameterLine(QString("Mod %1 ").arg(m) +
 					pName.right(pName.length() - 4),

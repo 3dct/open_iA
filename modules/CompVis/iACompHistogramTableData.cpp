@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompHistogramTableData.h"
 
@@ -165,7 +165,7 @@ void iACompHistogramTableData::debugBinDataObjects()
 
 /************************** bin methods ***************************************/
 
-bin::BinType* bin::initialize(int amountBins)
+bin::BinType* bin::initialize(size_t amountBins)
 {
 	return new bin::BinType(amountBins);
 }
@@ -193,7 +193,7 @@ QList<bin::BinType*>* bin::DeepCopy(QList<bin::BinType*>* input)
 {
 	QList<bin::BinType*>* output = new QList<bin::BinType*>();
 
-	for (int binInd = 0; binInd < input->size(); binInd++) 
+	for (int binInd = 0; binInd < input->size(); binInd++)
 	{
 		bin::BinType* curBin = input->at(binInd);
 		bin::BinType* newBin = initialize(static_cast<int>(curBin->size()));

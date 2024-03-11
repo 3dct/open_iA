@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAParameterDlg.h"
 
@@ -116,12 +116,12 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 	auto containerLayout = new QGridLayout(m_container);
 	containerLayout->setObjectName("containerLayout");
 
-	for (int i = 0; i < parameters.size(); ++i)
+	for (qsizetype i = 0; i < parameters.size(); ++i)
 	{
 		auto p = parameters[i];
 		QLabel* label = new QLabel(m_container);
 		label->setText(p->name());
-		containerLayout->addWidget(label, i, 0);
+		containerLayout->addWidget(label, static_cast<int>(i), 0);
 		QWidget* newWidget = nullptr;
 
 		switch (p->valueType())
@@ -243,7 +243,7 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 		}
 		newWidget->setObjectName(p->name());	// required for ROI (parses object name)
 		m_widgetList[i] = newWidget;
-		containerLayout->addWidget(newWidget, i, 1);
+		containerLayout->addWidget(newWidget, static_cast<int>(i), 1);
 	}
 
 	// Try to resize dialog so that all controls are visible without scrolling; but use at most 2/3 of screen width and height
@@ -346,7 +346,7 @@ void iAParameterDlg::selectFilter()
 	if (dlg.exec())
 	{
 		QString filterName = dlg.selectedFilterName();
-		int idx = m_widgetList.indexOf(sender);
+		auto idx = m_widgetList.indexOf(sender);
 		if (idx < m_widgetList.size() - 1 && m_filterWithParameters.indexOf(idx) != -1 &&
 			m_sourceMdiChild)	// TODO: if possible, get rid of sourceMdi?
 		{

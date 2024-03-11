@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompCombiTable.h"
 
@@ -346,7 +346,7 @@ void iACompCombiTable::drawBins(QList<vtkSmartPointer<vtkPolyData>>* binPolyData
 			iACompVisOptions::getColorArray4(rgba, ucrgb);
 			colorArray->InsertTuple4(i, rgb[0], rgb[1], rgb[2], ucrgb[3]);
 		}
-		
+
 		polydata->GetCellData()->AddArray(colorArray);
 		polydata->GetCellData()->SetActiveScalars("colorArray");
 

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iADetailView.h"
 
@@ -513,7 +513,9 @@ void iADetailView::setImage()
 	m_spacing[0] = img->GetSpacing()[0]; m_spacing[1] = img->GetSpacing()[1]; m_spacing[2] = img->GetSpacing()[2];
 	itk::ImageRegion<3> region = img->GetLargestPossibleRegion();
 	itk::Size<3> size = region.GetSize();
-	m_dimensions[0] = size[0]; m_dimensions[1] = size[1]; m_dimensions[2] = size[2];
+	m_dimensions[0] = static_cast<int>(size[0]);
+	m_dimensions[1] = static_cast<int>(size[1]);
+	m_dimensions[2] = static_cast<int>(size[2]);
 	// }
 	m_previewWidget->setImage(img ?
 		img : m_nullImage,

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -30,7 +30,7 @@ public:
 
 	ImageListType& getImageList();
 
-	ImagePointerType getImage(int idx);
+	ImagePointerType getImage(size_t idx);
 
 	VoxelConcentrationType getConcentrationForVoxel(int x, int y, int z);
 	VoxelConcentrationType const & getAvgConcentration();
@@ -41,7 +41,7 @@ public:
 		iAAccumulatedXRFData const * accumulatedXRF);
 	bool hasAvgConcentration() const;
 private:
-	void initImages(int elemCount, int extent[6], double spacing[3], double origin[3]);
+	void initImages(qsizetype elemCount, int extent[6], double spacing[3], double origin[3]);
 	std::shared_ptr<QVector<std::shared_ptr<iAEnergySpectrum> > > GetAdaptedSpectra(
 		iAXRFData const * xrfData,
 		QVector<iAElementSpectralInfo*> const & elements);

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "iANModalDilationBackgroundRemover.h"
@@ -106,7 +106,9 @@ void iANModalIterativeDilationThread::itkDilateAndCountConnectedComponents(
 	m_mask = connCompFilter->GetOutput();
 	//m_mask = dilationFilter->GetOutput();
 
-	connectedComponentsOut = connCompFilter->GetObjectCount();
+	auto x = connCompFilter->GetObjectCount();
+	assert(x < std::numeric_limits<int>::max());
+	connectedComponentsOut = static_cast<int>(x);
 }
 
 void iANModalIterativeDilationThread::itkCountConnectedComponents(ImagePointer itkImgPtr, int& connectedComponentsOut)
@@ -634,8 +636,8 @@ void iANModalIterativeDilationPlot::paintEvent(QPaintEvent* event)
 	int bottom = h - mar - (2 * (textHeight - textSep));
 
 	int wAvailable = right - left;                    // available width
-	int wSeparators = (sep * (m_values.size() - 1));  // width occupied by separators
-	int barWidth = (int)((float)(wAvailable - wSeparators) / (float)m_values.size());
+	auto wSeparators = (sep * (m_values.size() - 1));  // width occupied by separators
+	int barWidth = static_cast<int>(static_cast<float>(wAvailable - wSeparators) / m_values.size());
 
 	int hAvailable = bottom - top;  // available height
 
@@ -643,7 +645,7 @@ void iANModalIterativeDilationPlot::paintEvent(QPaintEvent* event)
 	{
 		int v = m_values[i];
 
-		int barHeight = v == 0 ? 0 : (int)((float)(hAvailable * v) / (float)(m_max));
+		int barHeight = v == 0 ? 0 : static_cast<int>(static_cast<float>(hAvailable * v) / m_max);
 		int barLeft = left + ((barWidth + sep) * i);
 		int barTop = bottom - barHeight;
 

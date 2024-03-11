@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAImagegenerator.h"
 
@@ -13,7 +13,7 @@
 #include <vtkUnsignedCharArray.h>
 #include <vtkWindowToImageFilter.h>
 
-#include <QElapsedTimer> 
+#include <QElapsedTimer>
 
 #ifdef CUDA_AVAILABLE
 #include <iACudaHelper.h>
@@ -97,7 +97,7 @@ namespace
 			checkCuda("malloc", cudaMalloc(reinterpret_cast<void**>(& pCudaBuffer), width * height * NVJPEG_MAX_COMPONENT));
 
 			auto inputImageBytes = width * height * 3;
-		
+
 			checkCuda("memCpy", cudaMemcpy(pCudaBuffer, buffer, inputImageBytes, cudaMemcpyHostToDevice));
 
 			if (width % 2 == 0 && height % 2 == 0)   // for npp mirror operation, both width and height need to be even
@@ -237,6 +237,8 @@ namespace iAImagegenerator
 				cudaWorking = false;           // if it fails once, disable future use of nvJPEG for this run of open_iA
 			}
 		}
+#else
+		Q_UNUSED(viewID);
 #endif
 		return vtkTurboJPEGCreateImage(window, quality);
 	}

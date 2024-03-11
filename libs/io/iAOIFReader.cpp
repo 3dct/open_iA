@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAOIFReader.h"
 
@@ -669,7 +669,7 @@ void iAOIFReaderHelper::ReadOifLine(std::wstring oneline)
 			if (str1 == L"LightType") {
 				light_type = str2;
 				if (light_type.find(str3) != std::wstring::npos) {
-					for (int i = m_excitation_wavelength_list.size() - 1; i >= 0; i--) {
+					for (int i = static_cast<int>(m_excitation_wavelength_list.size()) - 1; i >= 0; i--) {
 						if (m_excitation_wavelength_list.at(i).chan_num == cur_chan) {
 							m_excitation_wavelength_list.at(i).wavelength = -1;
 							break;
@@ -799,7 +799,8 @@ void iAOIFReaderHelper::Read(int t, int c, bool /*get_max*/)
 	spacing[2] = m_zspc / 1000;
 	ResultImgType::RegionType region(origin, size);
 	m_result.push_back(iAOIFReaderHelper::ResultImgType::New());
-	int curIdx = m_result.size() - 1;
+	int curIdx = static_cast<int>(m_result.size()) - 1;
+	assert(curIdx >= 0);
 	m_result[curIdx]->SetRegions(region);
 	m_result[curIdx]->SetSpacing(spacing);
 	m_result[curIdx]->Allocate();

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAImageCoordinate.h"
 
@@ -28,30 +28,30 @@ iAImageCoordConverter::iAImageCoordConverter(
 	assert(m_width >= 0 && m_height >= 0 && m_depth >= 0);
 }
 
-iAVoxelIndexType iAImageCoordConverter::vertexCount() const
+iAFlatIndexType iAImageCoordConverter::vertexCount() const
 {
-	return m_width*m_height*m_depth;
+	return static_cast<iAFlatIndexType>(m_width)*m_height*m_depth;
 }
 
-iAImageCoordinate iAImageCoordConverter::coordinatesFromIndex(iAVoxelIndexType index) const
+iAImageCoordinate iAImageCoordConverter::coordinatesFromIndex(iAFlatIndexType index) const
 {
 	return iAImageCoordConverter::coordinatesFromIndex(index, m_width, m_height, m_depth, m_ordering);
 }
 
-iAVoxelIndexType iAImageCoordConverter::indexFromCoordinates(iAImageCoordinate coords) const
+iAFlatIndexType iAImageCoordConverter::indexFromCoordinates(iAImageCoordinate coords) const
 {
 	return iAImageCoordConverter::indexFromCoordinates(coords, m_width, m_height, m_depth, m_ordering);
 }
 
 iAImageCoordinate iAImageCoordConverter::coordinatesFromIndex(
-		iAVoxelIndexType index,
-		iAVoxelIndexType width,
-		iAVoxelIndexType height,
-		iAVoxelIndexType /*depth*/,
-		iAImageCoordinate::iAIndexOrdering ordering)
+	iAFlatIndexType index,
+	iAVoxelIndexType width,
+	iAVoxelIndexType height,
+	iAVoxelIndexType /*depth*/,
+	iAImageCoordinate::iAIndexOrdering ordering)
 {
 	iAImageCoordinate result;
-	result.z = index / (width*height);
+	result.z = static_cast<iAVoxelIndexType>(index / (static_cast<iAFlatIndexType>(width)*height));
 	switch (ordering)
 	{
 		default:
@@ -66,7 +66,7 @@ iAImageCoordinate iAImageCoordConverter::coordinatesFromIndex(
 	return result;
 }
 
-iAVoxelIndexType iAImageCoordConverter::indexFromCoordinates(
+iAFlatIndexType iAImageCoordConverter::indexFromCoordinates(
 		iAImageCoordinate coords,
 		iAVoxelIndexType width,
 		iAVoxelIndexType height,

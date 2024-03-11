@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAPDMView.h"
 
@@ -285,8 +285,8 @@ void iAPDMView::UpdateTable()
 	tableWidget->setRowCount( 0 );
 	if( !m_filters->isEmpty() && !m_datasets->isEmpty() )
 	{
-		tableWidget->setColumnCount( m_filters->size() + 1 );
-		tableWidget->setRowCount( m_datasets->size() + 1 );
+		tableWidget->setColumnCount( static_cast<int>(m_filters->size() + 1) );
+		tableWidget->setRowCount( static_cast<int>(m_datasets->size() + 1) );
 		tableWidget->setItem( 0, 0, new QTableWidgetItem( "Filter/Dataset" ) );
 	}
 	for ( int i = 0; i < m_filters->size(); ++i )

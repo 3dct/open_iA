@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAAlgorithmInfo.h"
 
@@ -24,7 +24,7 @@ namespace
 	const int TextHPadding = 3;
 	const int TextVPadding = 1;
 	const int ArrowMinBottomDist = 1;
-	
+
 	const int DefaultMaxLineWidth = 5;
 
 	const int LegendLineWidth = 15;
@@ -101,7 +101,7 @@ void iAAlgorithmInfo::addShownOut(int outIdx)
 
 void iAAlgorithmInfo::removeShownOut(int outIdx)
 {
-	int idx = m_shownOut.indexOf(outIdx);
+	auto idx = m_shownOut.indexOf(outIdx);
 	if (idx == -1)
 	{
 		LOG(lvlWarn, QString("removeShownOut called for outIdx not currently shown (%1)!").arg(outIdx));
@@ -398,8 +398,8 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 			p.setPen(QApplication::palette().color(QWidget::foregroundRole()));
 			if (m_mergeHighlight)
 			{
-				QVector<int>::size_type startIdx = 0;
-				while (startIdx < m_shownOut.size())
+				int startIdx = 0;
+				while (startIdx < static_cast<int>(m_shownOut.size()))
 				{
 					int startColIdx = m_shownOut[startIdx];
 					int endIdx = startIdx + 1;
@@ -473,8 +473,11 @@ QSize iAAlgorithmInfo::sizeHint() const
 {
 	return (m_displayMode == Box)
 		? QSize(m_inWidth + m_outWidth + m_boxMinWidth,
-				oneEntryHeight() * std::max(m_inNames.size(), m_outNames.size()))
-		: QSize(m_inWidth + m_outNames.size() * MatrixMinBoxSize, m_outWidth + m_inNames.size() * MatrixMinBoxSize);
+				oneEntryHeight() * static_cast<int>(std::max(m_inNames.size(), m_outNames.size())))
+		: QSize(
+			static_cast<int>(m_inWidth + m_outNames.size() * MatrixMinBoxSize),
+			static_cast<int>(m_outWidth + m_inNames.size() * MatrixMinBoxSize)
+		);
 }
 
 void iAAlgorithmInfo::setMatrix(iAMatrixType const& matrix)

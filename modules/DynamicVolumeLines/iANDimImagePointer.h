@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -48,7 +48,7 @@ namespace std {
 			size_t retVal = 0;
 			for (unsigned int j = 0; j < k._size; j++)
 			{
-				retVal = retVal * 31 + (hash<int>()(k.indizes[j]));
+				retVal = retVal * 31 + (hash<int>()(static_cast<int>(k.indizes[j])));
 			}
 
 			return retVal;

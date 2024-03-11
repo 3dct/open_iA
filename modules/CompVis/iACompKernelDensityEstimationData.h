@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -14,7 +14,7 @@
 struct kdeData
 {
 	using kdePair = std::array<double, 2>; //<mdsValue, kdeValue>
-	using kdeBin = std::vector<kdePair>; // 
+	using kdeBin = std::vector<kdePair>; //
 	using kdeBins = std::vector<kdeBin>;
 
 	static kdeBins* initializeBins(int numberOfBins);
@@ -133,7 +133,7 @@ protected:
 	QList<std::vector<double>>* m_BoundariesBinNB;
 	//stores for each dataset the lower boundary of each bin (bayesian blocks binning)
 	QList<std::vector<double>>* m_BoundariesBinBB;
-	
+
 	//maximum amount of numbers in a bin (calculated for all bins)
 	//calculated through the uniform binning appraoch!
 	int m_maxAmountInAllBins;

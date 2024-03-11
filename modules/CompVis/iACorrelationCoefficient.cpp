@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACorrelationCoefficient.h"
 
@@ -91,7 +91,7 @@ vtkSmartPointer<vtkTable> iACorrelationCoefficient::toVtkTable(QList<csvFileData
 {
 	// data preparation
 	QStringList attrNames = *m_dataStorage->getAttributeNamesWithoutLabel();
-	m_numberOfAttr = attrNames.size(); //amount of attributes
+	m_numberOfAttr = static_cast<int>(attrNames.size()); //amount of attributes
 
 
 	m_inputTable = vtkSmartPointer<vtkTable>::New();
@@ -156,7 +156,7 @@ std::map<QString, Correlation::CorrelationStore>* iACorrelationCoefficient::calc
 
 		vtkSmartPointer<vtkDoubleArray> arrIndex = vtkSmartPointer<vtkDoubleArray>::New();
 		arrIndex->SetName(attrNames.at(i).toStdString().c_str());
-		
+
 		table->AddColumn(arrIndex);
 	}
 

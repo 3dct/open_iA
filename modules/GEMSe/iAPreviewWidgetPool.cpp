@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAPreviewWidgetPool.h"
 
@@ -49,7 +49,7 @@ void iAPreviewWidgetPool::returnWidget(iAImagePreviewWidget* widget)
 {
 	widget->hide();
 	widget->setParent(0);
-	int idx = m_visible.lastIndexOf(widget);
+	auto idx = m_visible.lastIndexOf(widget);
 	assert( idx != -1 );
 	if (idx != -1)
 	{
@@ -75,7 +75,7 @@ void iAPreviewWidgetPool::setSlicerMode(iASlicerMode mode, int sliceNr, vtkCamer
 	}
 }
 
-int iAPreviewWidgetPool::capacity()
+qsizetype iAPreviewWidgetPool::capacity()
 {
 	return m_pool.size();
 }

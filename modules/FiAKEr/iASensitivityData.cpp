@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASensitivityData.h"
 
@@ -86,12 +86,12 @@ namespace
 		QVector<QVector<iAFiberSimilarity>>& bestMatches, std::vector<size_t> const& candidates, double diagonalLength,
 		double maxLength, std::vector<std::pair<int, bool>>& measuresToCompute)
 	{
-		int bestMatchesStartIdx = bestMatches.size();
+		auto bestMatchesStartIdx = bestMatches.size();
 		assert(measuresToCompute.size() < std::numeric_limits<int>::max());
 		assert(bestMatchesStartIdx + measuresToCompute.size() < std::numeric_limits<int>::max());
 		int numOfNewMeasures = static_cast<int>(measuresToCompute.size());
 		bestMatches.resize(bestMatchesStartIdx + numOfNewMeasures);
-		auto maxNumberOfCloseFibers = std::min(static_cast<int>(candidates.size()),
+		auto maxNumberOfCloseFibers = std::min(static_cast<iARefDistCompute::ContainerSizeType>(candidates.size()),
 			std::min(iARefDistCompute::MaxNumberOfCloseFibers,
 				static_cast<iARefDistCompute::ContainerSizeType>(otherFibers.size())));
 		for (int d = 0; d < numOfNewMeasures; ++d)
@@ -289,7 +289,7 @@ void iASensitivityData::compute(iAProgress* progress)
 	// TODO: common storage for that in data!
 	m_charHistograms.resize(static_cast<int>(m_data->result.size()));
 
-	int numCharSelected = m_charSelected.size();
+	auto numCharSelected = m_charSelected.size();
 	/*
 	for (auto selCharIdx = 0; selCharIdx < m_charSelected.size(); ++selCharIdx)
 	{
@@ -327,7 +327,7 @@ void iASensitivityData::compute(iAProgress* progress)
 	}
 
 	// According to https://math.stackexchange.com/questions/302160:
-	// it is popular to use the centered finite differences when possible: ( x_(t+1) - x_(t-1) ) / 2 delta t ) 
+	// it is popular to use the centered finite differences when possible: ( x_(t+1) - x_(t-1) ) / 2 delta t )
 	// at boundary, use forward or backward difference
 
 	// for each characteristic
@@ -343,7 +343,7 @@ void iASensitivityData::compute(iAProgress* progress)
 	paramStep.fill(0.0, m_variedParams.size());
 	sensitivityField.resize(numCharSelected);
 	aggregatedSensitivities.resize(numCharSelected);
-	for (int charIdx = 0; charIdx < numCharSelected && !m_aborted; ++charIdx)
+	for (qsizetype charIdx = 0; charIdx < numCharSelected && !m_aborted; ++charIdx)
 	{
 		progress->emitProgress(100 * charIdx / numCharSelected);
 		//int charactID = m_charSelected[charIdx];
@@ -351,7 +351,7 @@ void iASensitivityData::compute(iAProgress* progress)
 		//LOG(lvlDebug, QString("Characteristic %1 (%2):").arg(charIdx).arg(charactName));
 		sensitivityField[charIdx].resize(m_charDiffMeasure.size());
 		aggregatedSensitivities[charIdx].resize(m_charDiffMeasure.size());
-		for (int diffMeasureIdx = 0; diffMeasureIdx < m_charDiffMeasure.size(); ++diffMeasureIdx)
+		for (qsizetype diffMeasureIdx = 0; diffMeasureIdx < m_charDiffMeasure.size(); ++diffMeasureIdx)
 		{
 			//LOG(lvlDebug, QString("    Difference Measure %1 (%2)").arg(diffMeasure).arg(DistributionDifferenceMeasureNames()[diffMeasure]));
 			auto& field = sensitivityField[charIdx][diffMeasureIdx];

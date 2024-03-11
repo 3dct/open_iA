@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFoamCharacterizationItem.h"
 
@@ -98,7 +98,7 @@ QString iAFoamCharacterizationItem::fileRead(QFile* _pFileOpen)
 
 void iAFoamCharacterizationItem::fileWrite(QFile* _pFileSave, const QString& _sText)
 {
-	const int iText(_sText.length());
+	const int iText(static_cast<int>(_sText.length()));
 	_pFileSave->write((char*)&iText, sizeof(iText));
 
 	_pFileSave->write((char*)_sText.toStdString().c_str(), iText);

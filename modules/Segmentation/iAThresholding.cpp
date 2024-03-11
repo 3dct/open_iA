@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <defines.h>    // for DIM
 #include <iAAttributeDescriptor.h>
@@ -464,7 +464,7 @@ namespace
 
 	int MapMethodNameToID(QString const & name)
 	{
-		return GetParameterlessThresholdingNames().indexOf(name);
+		return static_cast<int>(GetParameterlessThresholdingNames().indexOf(name));
 	}
 }
 

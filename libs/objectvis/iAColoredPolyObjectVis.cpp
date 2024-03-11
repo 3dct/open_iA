@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAColoredPolyObjectVis.h"
 
@@ -65,6 +65,7 @@ void iAColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sortedS
 		}
 	}
 	emit dataChanged();
+	emit selectionChanged();
 }
 
 void iAColoredPolyObjectVis::renderSingle(IndexType selectedObjID, int classID, QColor const & constClassColor, QStandardItem* /*activeClassItem*/)
@@ -198,6 +199,7 @@ void iAColoredPolyObjectVis::setSelection(std::vector<size_t> const & sortedSelI
 	m_selection = sortedSelInds;
 	m_selectionActive = selectionActive;
 	updateColorSelectionRendering();
+	emit selectionChanged();
 }
 
 std::vector<size_t> const& iAColoredPolyObjectVis::selection() const

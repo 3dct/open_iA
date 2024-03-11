@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -38,9 +38,9 @@ public:
 	QString const & labelNames() const;
 	QString const & colorTheme() const;
 
-	int subEnsembleCount() const;
-	QVector<int> subEnsemble(int idx) const;
-	int subEnsembleID(int idx) const;
+	qsizetype subEnsembleCount() const;
+	QVector<int> subEnsemble(qsizetype idx) const;
+	int subEnsembleID(qsizetype idx) const;
 
 	void addSubEnsemble(int id, QVector<int> const & members);
 

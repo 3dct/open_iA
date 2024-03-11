@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iARendererImpl.h"
 
@@ -168,7 +168,7 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_roiActor->SetPickable(false);
 	m_roiActor->SetDragable(false);
 	m_roiActor->SetVisibility(false);
-	
+
 	// set up annotated axis cube:
 	m_annotatedCubeActor->SetPickable(1);
 	m_annotatedCubeActor->SetXPlusFaceText("+X");
@@ -388,17 +388,8 @@ void iARendererImpl::setPlaneNormals(vtkTransform* tr)
 	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
 	{
 		auto normVec = slicerNormal(s);
-		LOG(lvlInfo, QString("Plane: origin: %1, %2, %3; normal: %4, %5, %6")
-		//	.arg(m_slicePlaneOrigin[s][0]).arg(m_slicePlaneOrigin[s][1]).arg(m_slicePlaneOrigin[s][2])
-			.arg(normVec[0]).arg(normVec[1]).arg(normVec[2]));
 		tr->TransformVector(normVec.data(), normVec.data());
-		//double transformedOrigin[3];
-		//tr->TransformVector(m_slicePlaneOrigin[s].data(), transformedOrigin);
-		LOG(lvlInfo, QString("Transformed: origin: %1, %2, %3; normal: %4, %5, %6")
-		//	.arg(transformedOrigin[0]).arg(transformedOrigin[1]).arg(transformedOrigin[2])
-			.arg(normVec[0]).arg(normVec[1]).arg(normVec[2]));
 		m_slicePlanes[s]->SetNormal(normVec.data());
-		//m_slicePlanes[s]->SetOrigin(transformedOrigin);
 		m_slicePlaneViews[s].actor->SetUserTransform(tr);
 	}
 	update();
@@ -457,9 +448,9 @@ void iARendererImpl::setSlicePlaneOpacity(float opc)
 	m_slicePlaneOpacity = opc;
 }
 
-void iARendererImpl::saveMovie(const QString& fileName, int mode, int qual /*= 2*/)
+void iARendererImpl::saveMovie(const QString& fileName, int mode, int qual, int fps, int numSteps)
 {
-	auto movieWriter = GetMovieWriter(fileName, qual);
+	auto movieWriter = GetMovieWriter(fileName, qual, fps);
 
 	if (movieWriter.GetPointer() == nullptr)
 	{
@@ -492,13 +483,12 @@ void iARendererImpl::saveMovie(const QString& fileName, int mode, int qual /*= 2
 	movieWriter->SetInputConnection(windowToImage->GetOutputPort());
 	movieWriter->Start();
 
-	int numRenderings = 360;  //TODO
 	auto rot = vtkSmartPointer<vtkTransform>::New();
 	m_cam->SetFocalPoint(0, 0, 0);
 	double view[3];
 	double point[3];
 	if (mode == 0)
-	{  // YZ
+	{  // YZ  "Rotate Z"
 		double _view[3] = {0, 0, -1};
 		double _point[3] = {1, 0, 0};
 		for (int ind = 0; ind < 3; ind++)
@@ -506,10 +496,10 @@ void iARendererImpl::saveMovie(const QString& fileName, int mode, int qual /*= 2
 			view[ind] = _view[ind];
 			point[ind] = _point[ind];
 		}
-		rot->RotateZ(360 / numRenderings);
+		rot->RotateZ(360.0 / numSteps);
 	}
 	else if (mode == 1)
-	{  // XY
+	{  // XY  "Rotate X"
 		double _view[3] = {0, 0, -1};
 		double _point[3] = {0, 1, 0};
 		for (int ind = 0; ind < 3; ind++)
@@ -517,10 +507,10 @@ void iARendererImpl::saveMovie(const QString& fileName, int mode, int qual /*= 2
 			view[ind] = _view[ind];
 			point[ind] = _point[ind];
 		}
-		rot->RotateX(360 / numRenderings);
+		rot->RotateX(360.0 / numSteps);
 	}
 	else if (mode == 2)
-	{  // XZ
+	{  // XZ  "Rotate Y"
 		double _view[3] = {0, 1, 0};
 		double _point[3] = {0, 0, 1};
 		for (int ind = 0; ind < 3; ind++)
@@ -528,11 +518,11 @@ void iARendererImpl::saveMovie(const QString& fileName, int mode, int qual /*= 2
 			view[ind] = _view[ind];
 			point[ind] = _point[ind];
 		}
-		rot->RotateY(360 / numRenderings);
+		rot->RotateY(360.0 / numSteps);
 	}
 	m_cam->SetViewUp(view);
 	m_cam->SetPosition(point);
-	for (int i = 0; i < numRenderings && !aborter.isAborted(); i++)
+	for (int i = 0; i < numSteps && !aborter.isAborted(); i++)
 	{
 		m_ren->ResetCamera();
 		m_renWin->Render();
@@ -544,7 +534,7 @@ void iARendererImpl::saveMovie(const QString& fileName, int mode, int qual /*= 2
 			LOG(lvlError, movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 			break;
 		}
-		p.emitProgress((i + 1) * 100.0 / numRenderings);
+		p.emitProgress((i + 1) * 100.0 / numSteps);
 		m_cam->ApplyTransform(rot);
 		QCoreApplication::processEvents();
 	}

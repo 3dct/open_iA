@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAExampleImageWidget.h"
 
@@ -28,7 +28,7 @@ public:
 		m_selectedIndex(NoImageSelected)
 	{}
 	QVector<iAImagePreviewWidget*> m_previews;
-	int m_selectedIndex;
+	qsizetype m_selectedIndex;
 protected:
 	virtual void paintEvent(QPaintEvent * /*e*/)
 	{
@@ -186,7 +186,7 @@ void iAExampleImageWidget::ImageClicked()
 		LOG(lvlError, "ExampleWidget click: sender not an image widget!\n");
 		return;
 	}
-	int idx = m_gridWidget->m_previews.indexOf(imgWdgt);
+	auto idx = m_gridWidget->m_previews.indexOf(imgWdgt);
 	assert(idx != -1);
 	if (idx == -1)
 	{
@@ -211,7 +211,7 @@ void iAExampleImageWidget::ImageRightClicked()
 		LOG(lvlError, "ExampleWidget click: sender not an image widget!\n");
 		return;
 	}
-	int idx = m_gridWidget->m_previews.indexOf(imgWdgt);
+	auto idx = m_gridWidget->m_previews.indexOf(imgWdgt);
 	assert(idx != -1);
 	if (idx == -1)
 	{
@@ -229,7 +229,7 @@ void iAExampleImageWidget::ImageRightClicked()
 
 void iAExampleImageWidget::SetSelectedImage(iAImageTreeLeaf * leaf)
 {
-	int idx = m_nodes.indexOf(leaf);
+	auto idx = m_nodes.indexOf(leaf);
 	if (idx == -1)
 	{
 		//DebugOut() << "ExampleWidget: Requested Image not currently shown!" << std::endl;
@@ -248,7 +248,7 @@ void iAExampleImageWidget::ImageHovered()
 		// something wrong...
 		return;
 	}
-	int idx = m_gridWidget->m_previews.indexOf(imgWdgt);
+	auto idx = m_gridWidget->m_previews.indexOf(imgWdgt);
 	assert(idx != -1);
 	if (idx == -1)
 	{

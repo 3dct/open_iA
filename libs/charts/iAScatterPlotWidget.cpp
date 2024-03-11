@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAScatterPlotWidget.h"
 
@@ -251,7 +251,7 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
 	logger.startLogging();
 #endif
 	QPainter painter(this);
-	
+
 	QColor bgColor(QApplication::palette().color(QWidget::backgroundRole()));
 #if (defined(CHART_OPENGL))
 	painter.beginNativePainting();

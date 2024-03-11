@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACommandLineProcessor.h"
 
@@ -58,7 +58,7 @@ namespace
 {
 	QString AbbreviateDesc(QString desc)
 	{
-		int brpos = desc.indexOf("<br/>");
+		auto brpos = desc.indexOf("<br/>");
 		return brpos != -1 ? desc.left(brpos) : desc;
 	}
 
@@ -325,7 +325,7 @@ namespace
 					case Output:    outputFiles << args[a]; break;
 					case Parameter:
 						{
-							int paramIdx = parameters.size();
+							auto paramIdx = parameters.size();
 							if (paramIdx >= filter->parameters().size())
 							{
 								std::cout << QString("More parameters (%1) given than expected(%2)!")

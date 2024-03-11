@@ -1,13 +1,11 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iADataSetListWidget.h"
 
 #include "iADataSet.h"
-#include "iALog.h"
-#include "iAParameterDlg.h"
 
 #include <QHeaderView>
-#include <QVBoxLayout>
+#include <QBoxLayout>
 #include <QTableWidget>
 #include <QToolButton>
 
@@ -28,7 +26,7 @@ namespace
 		auto tb = new QToolButton( w );
 		tb->setDefaultAction(a);
 		w->layout()->addWidget(tb);
-		int minWidth = IconWidth * w->children().size();
+		int minWidth = static_cast<int>(IconWidth * w->children().size());
 		if (tw->columnWidth(col) < minWidth)
 		{   // auto-adjust width of column if necessary:
 			tw->setColumnWidth(col, minWidth);
@@ -48,7 +46,7 @@ namespace
 iADataSetListWidget::iADataSetListWidget()
 {
 	m_dataList = new QTableWidget;
-	m_dataList->setColumnCount(columnNames.size());
+	m_dataList->setColumnCount(static_cast<int>(columnNames.size()));
 	m_dataList->setHorizontalHeaderLabels(columnNames);
 	m_dataList->verticalHeader()->hide();
 	m_dataList->setSelectionBehavior(QAbstractItemView::SelectRows);

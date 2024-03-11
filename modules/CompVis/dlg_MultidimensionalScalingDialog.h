@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 //CompVis
@@ -28,7 +28,7 @@ class dlg_MultidimensionalScalingDialog : public QDialog, public Ui_Multidimensi
 	void setupWeigthTable();
 	void setupProximityBox();
 	void setupDistanceBox();
-	
+
 
 	QList<csvFileData>* m_data;
 	std::vector<double>* m_weights;
@@ -37,5 +37,5 @@ class dlg_MultidimensionalScalingDialog : public QDialog, public Ui_Multidimensi
 	QButtonGroup* m_proxiGroup;
 	QButtonGroup* m_disGroup;
 
-	
+
 };

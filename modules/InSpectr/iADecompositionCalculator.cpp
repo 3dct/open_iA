@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iADecompositionCalculator.h"
 
@@ -25,9 +25,9 @@ void iADecompositionCalculator::AddElement(iAElementSpectralInfo* element)
 	m_elements.push_back(element);
 }
 
-int iADecompositionCalculator::ElementCount() const
+bool iADecompositionCalculator::NoElements() const
 {
-	return m_elements.size();
+	return m_elements.isEmpty();
 }
 
 void iADecompositionCalculator::Stop()

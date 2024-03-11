@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -10,10 +10,10 @@
 
 
 
-typedef unsigned int iAEdgeIndexType;
-typedef unsigned int iAVertexIndexType;
+typedef qsizetype iAEdgeIndexType;
+typedef qsizetype iAVertexIndexType;
 typedef int iALabelType;
 typedef double iAEdgeWeightType;
-typedef std::pair<iAVoxelIndexType, iAVoxelIndexType> iAEdgeType;
+typedef std::pair<iAFlatIndexType, iAFlatIndexType> iAEdgeType;
 
 typedef QVector<iALabelType> iALabelData;

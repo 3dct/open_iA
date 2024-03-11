@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -29,7 +29,7 @@ public:
 	//! update all views
 	void updateViews();
 	//! retrieve the number of currently available widgets
-	int capacity();
+	qsizetype capacity();
 	void setColorTheme(iAColorTheme const * colorTheme);
 private:
 	QVector<iAImagePreviewWidget*> m_pool;

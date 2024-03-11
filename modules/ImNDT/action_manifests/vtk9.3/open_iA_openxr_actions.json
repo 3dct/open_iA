@@ -1,0 +1,112 @@
+{
+  "actions": [
+    {
+      "name": "elevation",
+      "type": "vector2"
+    },
+    {
+      "name": "handpose",
+      "type": "pose"
+    },
+    {
+      "name": "handposegrip",
+      "type": "pose"
+    },
+    {
+      "name": "complexgestureaction",
+      "type": "boolean"
+    },
+    {
+      "name": "nextcamerapose",
+      "type": "boolean"
+    },
+    {
+      "name": "triggeraction",
+      "type": "boolean"
+    },
+    {
+      "name": "positionprop",
+      "type": "boolean"
+    },
+    {
+      "name": "showmenu",
+      "type": "boolean"
+    },
+    {
+      "name": "showmenuleft",
+      "type": "boolean"
+    },
+    {
+      "name": "secondbuttonright",
+      "type": "boolean"
+    },
+    {
+      "name": "secondbuttonleft",
+      "type": "boolean"
+    },
+    {
+      "name": "startmovement",
+      "type": "boolean"
+    },
+    {
+      "name": "movement",
+      "type": "vector2"
+    },
+	{
+      "name": "trackpadleftclick",
+      "type": "boolean"
+    },
+    {
+      "name": "trackpadleftmove",
+      "type": "vector2"
+    },
+  ],
+  "default_bindings": [
+    {
+      "binding_url": "open_iA_openxr_binding_khr_simple_controller.json",
+      "controller_type": "khr_simple"
+    },
+    {
+      "binding_url": "open_iA_openxr_binding_vive_controller.json",
+      "controller_type": "vive_controller"
+    },
+    {
+      "binding_url": "open_iA_openxr_binding_oculus_touch.json",
+      "controller_type": "oculus_touch"
+    },
+    {
+      "binding_url": "open_iA_openxr_binding_hp_mixed_reality.json",
+      "controller_type": "mixed_reality"
+    },
+    {
+      "binding_url": "open_iA_openxr_binding_microsoft_hand_interaction.json",
+      "controller_type": "microsoft_hand_interaction"
+    }
+  ],
+  "action_sets": [
+    {
+      "name": "vtk-actions",
+      "localizedName": "VTK actions"
+    }
+  ],
+  "localization": [
+    {
+      "elevation": "Elevation",
+      "handpose": "Hand Pose",
+      "handposegrip": "Hand Pose Grip",
+      "complexgestureaction": "Complex Gesture Action",
+      "movement": "Right Trackpad/Joystick Click Action",
+      "startmovement": "Right Trackpad/Joystick Move Action",
+      "trackpadleftclick": "Left Trackpad/Joystick Click Action",
+      "trackpadleftmove": "Left Trackpad/Joystick Move Action",
+      "showmenu": "Right Controller Menu Action",
+      "showmenuleft": "Left Controller Menu Action",
+      "nextcamerapose": "Left Trigger Action",
+      "triggeraction": "Right Trigger Action",
+      "secondbuttonright": "Right Second Button Action",
+      "secondbuttonleft": "Left Second Button Action",
+      "positionprop": "Position Prop",
+      "language_tag": "en_US"
+    }
+  ]
+}

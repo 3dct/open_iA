@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVolumePlayerWidget.h"
 
@@ -70,7 +70,7 @@ iAVolumePlayerWidget::iAVolumePlayerWidget(iAMdiChild *child, std::vector<iAVolu
 	m_isBlendingOn = m_ui->blending->isChecked();
 	setSpeed();
 
-	m_ui->volumeSlider->setMaximum(m_volumeViewers.size() - 1);
+	m_ui->volumeSlider->setMaximum(static_cast<int>(m_volumeViewers.size() - 1));
 	m_ui->volumeSlider->setMinimum(0);
 
 	connect(m_ui->volumeSlider, &QSlider::valueChanged, this, &iAVolumePlayerWidget::sliderChanged);
@@ -92,7 +92,7 @@ iAVolumePlayerWidget::iAVolumePlayerWidget(iAMdiChild *child, std::vector<iAVolu
 	m_ui->sbSpeed->setMaximum(TimerMaxFPS);
 
 	m_ui->dataTable->setShowGrid(true);
-	m_ui->dataTable->setRowCount(m_volumeViewers.size());
+	m_ui->dataTable->setRowCount(static_cast<int>(m_volumeViewers.size()));
 	m_ui->dataTable->setColumnCount(NumberOfColumns);
 	auto headers = QStringList() <<"Select All"<<"Dim"<<"Spacing"<<"Filename";
 	m_ui->dataTable->setHorizontalHeaderLabels(headers);
@@ -110,15 +110,15 @@ iAVolumePlayerWidget::iAVolumePlayerWidget(iAMdiChild *child, std::vector<iAVolu
 		cb->setObjectName(QString("check%1").arg(i));
 		cb->setChecked(true);
 		m_checkBoxes.push_back(cb);
-		m_ui->dataTable->setCellWidget(i, m_checkColumn, cb);
+		m_ui->dataTable->setCellWidget(static_cast<int>(i), m_checkColumn, cb);
 		connect(cb, &QCheckBox::stateChanged, this, &iAVolumePlayerWidget::enableVolume);
-		m_ui->dataTable->setRowHeight(i, 17);
+		m_ui->dataTable->setRowHeight(static_cast<int>(i), 17);
 		auto const dim = m_volumeViewers[i]->volume()->vtkImage()->GetDimensions();
-		m_ui->dataTable->setItem(i, m_dimColumn, new QTableWidgetItem(QString("%1, %2, %3").arg(dim[0]).arg(dim[1]).arg(dim[2])));
+		m_ui->dataTable->setItem(static_cast<int>(i), m_dimColumn, new QTableWidgetItem(QString("%1, %2, %3").arg(dim[0]).arg(dim[1]).arg(dim[2])));
 		auto const spc = m_volumeViewers[i]->volume()->vtkImage()->GetSpacing();
-		m_ui->dataTable->setItem(i, m_spacColumn,new QTableWidgetItem(QString("%1, %2, %3")	.arg(spc[0]).arg(spc[1]).arg(spc[2])));
-		m_ui->dataTable->setItem(i, m_fileColumn,new QTableWidgetItem(m_volumeViewers[i]->volume()->metaData(iADataSet::FileNameKey).toString()));
-		m_ui->dataTable->setItem(i, m_sortColumn,new QTableWidgetItem(QString("%1").arg(0)));
+		m_ui->dataTable->setItem(static_cast<int>(i), m_spacColumn,new QTableWidgetItem(QString("%1, %2, %3")	.arg(spc[0]).arg(spc[1]).arg(spc[2])));
+		m_ui->dataTable->setItem(static_cast<int>(i), m_fileColumn,new QTableWidgetItem(m_volumeViewers[i]->volume()->metaData(iADataSet::FileNameKey).toString()));
+		m_ui->dataTable->setItem(static_cast<int>(i), m_sortColumn,new QTableWidgetItem(QString("%1").arg(0)));
 	}
 	m_old_r=1;
 

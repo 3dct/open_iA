@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "iALinearColorGradientBar.h"
@@ -96,8 +96,7 @@ void iALinearColorGradientBar::paintEvent(QPaintEvent *e)
 	Q_UNUSED(e);
 	QPainter painter(this);
 	QLinearGradient grad(0.0, 0.0, width(), 0.0);
-	QMap<double, QColor>::iterator it;
-	for (it = m_colormap.begin(); it != m_colormap.end(); ++it)
+	for (auto it = m_colormap.begin(); it != m_colormap.end(); ++it)
 	{
 		grad.setColorAt(it.key(), it.value());
 	}

@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "dlg_eventExplorer.h"
 
@@ -204,7 +204,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 			}
 		}*/
 
-		int numberOfRows = (t > 0) ? u->GetNumberOfRows() : v->GetNumberOfRows();
+		auto numberOfRows = (t > 0) ? u->GetNumberOfRows() : v->GetNumberOfRows();
 
 		LOG(lvlInfo, QString("%1 rows\n").arg(numberOfRows));
 
@@ -225,7 +225,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 
 				vtkSmartPointer<vtkVariantArray> arr = vtkSmartPointer<vtkVariantArray>::New();
 				arr->SetNumberOfValues(12);
-				
+
 				int newEventType = -1;
 				if (t > 0)
 				{

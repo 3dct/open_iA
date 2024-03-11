@@ -1,11 +1,11 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompNaturalBreaks.h"
 
 #include "iACompNaturalBreaksData.h"
 
 iACompNaturalBreaks::iACompNaturalBreaks(iACsvDataStorage* dataStorage, bin::BinType* datasets) :
-	iACompBinning(dataStorage, datasets), 
+	iACompBinning(dataStorage, datasets),
 	m_naturalBreaksData(nullptr)
 {
 	//test();
@@ -39,7 +39,7 @@ void iACompNaturalBreaks::calculateBins()
 		std::vector<csvDataType::ArrayType*>* bestBinsWithFiberIds = new std::vector<csvDataType::ArrayType*>();
 		FishersNaturalBreaks::LimitsContainer currBinningStrategy;
 		FishersNaturalBreaks::LimitsContainer bestCurrBinningStrategy;
-		
+
 		//compute best number of bins by using goodness of variance fit
 		int currentNumberOfBins = 1;
 		double gvf = 0.0;  //value from 0 to 1 where 0 = No Fit and 1 = Perfect Fit.
@@ -54,7 +54,7 @@ void iACompNaturalBreaks::calculateBins()
 
 			FishersNaturalBreaks::ClassifyJenksFisherFromValueCountPairs(
 				currBinningStrategy, currentNumberOfBins, sortedUniqueValueCounts);
-	
+
 			//Debug Output
 			/*LOG(lvlDebug, "Results of Natural Breaks: ");
 			for (double breakValue : currBinningStrategy) LOG(lvlDebug, QString::number(breakValue));*/
@@ -115,7 +115,7 @@ void iACompNaturalBreaks::calculateBins()
 				bestBinsWithFiberIds = binsWithFiberIds;
 				bestCurrBinningStrategy = currBinningStrategy;
 			}
-			
+
 		} while (gvf < GFVLIMIT && currBinningStrategy.size() < values.size());
 
 		binData->push_back(bestBins);
@@ -136,7 +136,7 @@ double iACompNaturalBreaks::computeGoodnessOfVarianceFit(
 	std::vector<double> values, FishersNaturalBreaks::LimitsContainer currBinningStrategy, bin::BinType* bins)
 {
 	double gvf = 0.0;  //value from 0 to 1 where 0 = No Fit and 1 = Perfect Fit.
-	
+
 	//compute squared deviations from the values (array) mean(SDAM)
 	std::sort(values.begin(), values.end());
 	double valuesMean = 0.0;
@@ -248,12 +248,9 @@ namespace FishersNaturalBreaks
 
 		std::merge(vcpcRight.begin(), vcpcRight.end(), vcpcDummy.begin(), vcpcDummy.end(), vcpcLeft.begin(), CompareFirst());
 
-		ValueCountPairContainer::iterator
-			currPair = vcpcLeft.begin(),
-			lastPair = vcpcLeft.end();
-
-
-		ValueCountPairContainer::iterator index = currPair + 1;
+		auto currPair = vcpcLeft.begin();
+		auto lastPair = vcpcLeft.end();
+		auto index = currPair + 1;
 		while (index != lastPair && currPair->first < index->first)
 		{
 			currPair = index;
@@ -261,7 +258,7 @@ namespace FishersNaturalBreaks
 		}
 
 		double currValue = currPair->first;
-		SizeT     currCount = currPair->second;
+		SizeT  currCount = currPair->second;
 		for (; index != lastPair; ++index)
 		{
 			if (currValue < index->first)

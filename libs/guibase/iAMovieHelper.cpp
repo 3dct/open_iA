@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAMovieHelper.h"
 
@@ -24,7 +24,7 @@
 #include <QString>
 
 
-vtkSmartPointer<vtkGenericMovieWriter> GetMovieWriter(QString const & fileName, int quality)
+vtkSmartPointer<vtkGenericMovieWriter> GetMovieWriter(QString const & fileName, int quality, int fps)
 {
 	std::string encodedFileName = getLocalEncodingFileName(fileName);
 	if (encodedFileName.empty())
@@ -36,7 +36,7 @@ vtkSmartPointer<vtkGenericMovieWriter> GetMovieWriter(QString const & fileName, 
 		vtkSmartPointer<vtkOggTheoraWriter> oggwriter;
 		oggwriter = vtkSmartPointer<vtkOggTheoraWriter>::New();
 		oggwriter->SetQuality(quality);
-		oggwriter->SetRate(25);
+		oggwriter->SetRate(fps);
 		movieWriter = oggwriter;
 	}
 #endif
@@ -45,7 +45,7 @@ vtkSmartPointer<vtkGenericMovieWriter> GetMovieWriter(QString const & fileName, 
 		vtkSmartPointer<vtkAVIWriter> aviwriter;
 		aviwriter = vtkSmartPointer<vtkAVIWriter>::New();
 		aviwriter->SetCompressorFourCC("XVID");
-		aviwriter->SetRate(25);
+		aviwriter->SetRate(fps);
 		//aviwriter->PromptCompressionOptionsOn();
 		aviwriter->SetQuality(quality);
 		movieWriter = aviwriter;

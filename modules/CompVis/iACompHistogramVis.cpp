@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACompHistogramVis.h"
 
@@ -52,7 +52,7 @@ iACompHistogramVis::iACompHistogramVis(
 
 	//3. initialize GUI
 	setupUi(this);
-	
+
 	QVBoxLayout* layout = new QVBoxLayout;
 	dockWidgetContents->setLayout(layout);
 
@@ -154,7 +154,7 @@ void iACompHistogramVis::determineRowAreas()
 	{
 		double ymin = m_colSize * drawingPosition;
 		double ymax = ymin + m_colSize;
-		
+
 		std::vector<double> yInterval = std::vector<double>(2, 0);
 		yInterval.at(0) = ymin;
 		yInterval.at(1) = ymax;
@@ -173,7 +173,7 @@ void iACompHistogramVis::initializeVisualization()
 	m_variableTable = new iACompVariableTable(this, m_main->getBayesianBlocksData(), m_main->getNaturalBreaksData());
 
 	m_curveTable = new iACompCurve(this, m_main->getKernelDensityEstimationData(), m_lineWidth,m_AreaOpacity);
-	
+
 	m_combiTable = new iACompCombiTable(this, m_main->getKernelDensityEstimationData(), m_lineWidth, m_AreaOpacity);
 
 	//add additional visualizations
@@ -275,7 +275,7 @@ void iACompHistogramVis::showCombiTable()
 }
 
 void iACompHistogramVis::showCurve()
-{  
+{
 	//remove the other visualization
 	removeAllRendererFromWidget();
 	//m_variableTable->setInactive();
@@ -343,14 +343,14 @@ int iACompHistogramVis::getAmountDatasets()
 	return m_amountDatasets;
 }
 
-double iACompHistogramVis::getWindowHeight() 
-{ 
-	return m_windowHeight; 
+double iACompHistogramVis::getWindowHeight()
+{
+	return m_windowHeight;
 }
 
-double iACompHistogramVis::getWindowWidth() 
-{ 
-	return m_windowWidth; 
+double iACompHistogramVis::getWindowWidth()
+{
+	return m_windowWidth;
 }
 
 double iACompHistogramVis::getRowSize()
@@ -487,7 +487,7 @@ void iACompHistogramVis::drawDatasetsInAscendingOrder()
 		m_uniformTable->drawHistogramTableInAscendingOrder();
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::VariableTable)
-	{  
+	{
 		m_variableTable->drawHistogramTableInAscendingOrder();
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::CombTable)
@@ -505,7 +505,7 @@ void iACompHistogramVis::drawDatasetsInDescendingOrder()
 		m_uniformTable->drawHistogramTableInDescendingOrder();
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::VariableTable)
-	{ 
+	{
 		m_variableTable->drawHistogramTableInDescendingOrder();
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::CombTable)
@@ -523,7 +523,7 @@ void iACompHistogramVis::drawDatasetsInOriginalOrder()
 		m_uniformTable->drawHistogramTableInOriginalOrder();
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::VariableTable)
-	{  
+	{
 		m_variableTable->drawHistogramTableInOriginalOrder();
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::CombTable)

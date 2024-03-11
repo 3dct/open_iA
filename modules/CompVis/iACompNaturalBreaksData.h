@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
@@ -7,7 +7,7 @@
 class iACompNaturalBreaksData : public iACompHistogramTableData
 {
 
-public: 
+public:
 
     iACompNaturalBreaksData();
 
@@ -21,7 +21,7 @@ public:
     void calculateNumberOfObjectsInEachBin(QList<std::vector<csvDataType::ArrayType*>*>* thisBinDataObjects);
 
 private:
-    
+
     //stores for each dataset how many objects are located in each bin
     bin::BinType* m_numberOfObjectsPerBin;
 };

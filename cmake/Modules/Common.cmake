@@ -151,7 +151,8 @@ endif()
 find_package(ITK COMPONENTS ${ITK_COMPONENTS})
 # apparently ITK (at least v5.0.0) adapts CMAKE_MODULE_PATH (bug?), reset it:
 set(CMAKE_MODULE_PATH "${SAVED_CMAKE_MODULE_PATH}")
-include(${ITK_USE_FILE}) # <- maybe avoid by using include/link commands on targets instead? -> ITK build system would have to be updated for that first, 5.x does not support it!
+include(${ITK_USE_FILE}) # <- maybe avoid by using include/link commands on targets instead?
+# -> ITK build system would have to be updated for that first, 5.x does not support it!
 # problem: also does some factory initialization (IO), which cannot easily be called separately
 set(ITK_BASE_DIR "${ITK_DIR}")
 if (MSVC)
@@ -164,7 +165,6 @@ else()
 		set(ITK_LIB_DIR "${ITK_BASE_DIR}/lib")
 	endif()
 endif()
-message(STATUS "    ITK_LIB_DIR: ${ITK_LIB_DIR}")
 list(APPEND BUNDLE_DIRS "${ITK_LIB_DIR}")
 set(ITK_SCIFIO_INFO "off")
 if (SCIFIO_LOADED)
@@ -191,7 +191,8 @@ set(ITK_GPU_INFO "on")
 if (${ITK_USE_GPU} STREQUAL "OFF")
 	set(ITK_GPU_INFO "off")
 	if (NOT APPLE)  # ITK_USE_GPU not working anyway under Mac OS (see https://github.com/InsightSoftwareConsortium/ITK/issues/3821)
-		message(WARNING "ITK is built without GPU support (flag ITK_USE_GPU disabled). Some GPU-optimized functionality (e.g. GPU-based anisotropic filter) will not be available!")
+		message(WARNING "ITK is built without GPU support (flag ITK_USE_GPU disabled). "
+			"Some GPU-optimized functionality (e.g. GPU-based anisotropic filter) will not be available!")
 	endif()
 else()
 	message(STATUS "    GPU-accelerated filters (ITK_USE_GPU) enabled")
@@ -256,7 +257,7 @@ if (RenderingOpenVR IN_LIST VTK_AVAILABLE_COMPONENTS)
 		ExtractVersion("${OpenVR_INCLUDE_DIR}/openvr.h" "k_nSteamVRVersionBuild" OpenVR_VERSION_PATCH)
 	endif()
 	message(STATUS "    OpenVR: ${OpenVR_VERSION_MAJOR}.${OpenVR_VERSION_MINOR}.${OpenVR_VERSION_PATCH} in ${OpenVR_INCLUDE_DIR} (include dir)")
-	string(REGEX REPLACE "/headers" "" OPENVR_PATH ${OpenVR_INCLUDE_DIR})
+	string(REPLACE "/headers" "" OPENVR_PATH ${OpenVR_INCLUDE_DIR})
 	if (WIN32)
 		set(OPENVR_LIB_PATH "${OPENVR_PATH}/bin/win64")
 	else()
@@ -266,21 +267,21 @@ if (RenderingOpenVR IN_LIST VTK_AVAILABLE_COMPONENTS)
 else()
 	set(BUILD_INFO_VTK_OPENVR "off")
 	set(VTK_VR_OPTION_NAME "VTK_MODULE_ENABLE_VTK_RenderingOpenVR")
-	message(STATUS "    RenderingOpenVR: NOT available! Enable ${VTK_VR_OPTION_NAME} in VTK to make it available.")
+	message(STATUS "    OpenVR: NOT available! Enable ${VTK_VR_OPTION_NAME} in VTK to make it available.")
 endif()
 if (VTK_VERSION VERSION_GREATER_EQUAL "9.2.0")
 	if (RenderingOpenXR IN_LIST VTK_AVAILABLE_COMPONENTS)
 		set(BUILD_INFO_VTK_OPENXR "on")
 		list(APPEND VTK_COMPONENTS RenderingOpenXR)
-		find_package(OpenXR)    # basically only required for OpenXR_VERSION...
+		find_package(OpenXR QUIET)    # basically only required for OpenXR_VERSION...
 		message(STATUS "    OpenXR: ${OpenXR_VERSION_MAJOR}.${OpenXR_VERSION_MINOR}.${OpenXR_VERSION_PATCH} in ${OpenXR_INCLUDE_DIR} (include dir)")
-		string(REGEX REPLACE "/include/" "" OPENXR_PATH ${OpenXR_INCLUDE_DIR})
+		string(REPLACE "/include/" "" OPENXR_PATH ${OpenXR_INCLUDE_DIR})
 		set(OPENXR_LIB_PATH "${OPENXR_PATH}/x64/bin")
 		list(APPEND BUNDLE_DIRS "${OPENXR_LIB_PATH}")
 	else()
 		set(BUILD_INFO_VTK_OPENXR "off")
 		set(VTK_VR_OPTION_NAME "VTK_MODULE_ENABLE_VTK_RenderingOpenXR")
-		message(STATUS "    RenderingOpenXR: NOT available! Enable ${VTK_VR_OPTION_NAME} in VTK to make it available.")
+		message(STATUS "    OpenXR: NOT available! Enable ${VTK_VR_OPTION_NAME} in VTK to make it available.")
 	endif()
 else()
 	set(BUILD_INFO_VTK_OPENXR "N/A")
@@ -304,7 +305,6 @@ else()
 		set(VTK_LIB_DIR "${VTK_DIR}/../../../lib")
 	endif()
 endif()
-message(STATUS "    VTK_LIB_DIR: ${VTK_LIB_DIR}")
 list(APPEND BUNDLE_DIRS "${VTK_LIB_DIR}")
 option(VTK_USE_AVIWRITER "Enable usage of *.avi (an old Windows movie file format) writer. Note that enabling this might cause linker errors, since we cannot reliably determine whether VTK builds the required parts or not." OFF)
 if ( vtkoggtheora_LOADED OR vtkogg_LOADED OR
@@ -350,8 +350,8 @@ set(BUILD_INFO "${BUILD_INFO}    \"Qt	${Qt6_VERSION}\\n\"\n")
 #	message(FATAL_ERROR "Your Qt version is too old. Please use Qt >= 6.0.0")
 #endif()
 
-string(REGEX REPLACE "/lib/cmake/Qt6" "" Qt_BASEDIR ${Qt6_DIR})
-string(REGEX REPLACE "/cmake/Qt6" "" Qt_BASEDIR ${Qt_BASEDIR})	# on linux, lib is omitted if installed from package repos
+string(REPLACE "/lib/cmake/Qt6" "" Qt_BASEDIR ${Qt6_DIR})
+string(REPLACE "/cmake/Qt6" "" Qt_BASEDIR ${Qt_BASEDIR})	# on linux, lib is omitted if installed from package repos
 
 if (WIN32)
 	set(QT_LIB_DIR "${Qt_BASEDIR}/bin")
@@ -379,12 +379,17 @@ else()
 	INSTALL (FILES "$<TARGET_FILE:Qt6::QSvgPlugin>" DESTINATION imageformats)
 	list(APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt6::QSvgPlugin>")
 endif()
-# on windows, windows platform and vista style plugins are required:
+# on windows, windows platform and style plugins are required:
 if (WIN32)
 	find_package(Qt6QWindowsIntegrationPlugin REQUIRED PATHS ${Qt6Gui_DIR})
-	find_package(Qt6QWindowsVistaStylePlugin REQUIRED PATHS ${Qt6Widgets_DIR})
+	if (Qt6_VERSION VERSION_LESS "6.7")
+		find_package(Qt6QWindowsVistaStylePlugin REQUIRED PATHS ${Qt6Widgets_DIR})
+		INSTALL (FILES "$<TARGET_FILE:Qt6::QWindowsVistaStylePlugin>" DESTINATION styles)
+	else()
+		find_package(Qt6QModernWindowsStylePlugin REQUIRED PATHS ${Qt6Widgets_DIR})
+		INSTALL (FILES "$<TARGET_FILE:Qt6::QModernWindowsStylePlugin>" DESTINATION styles)
+	endif()
 	INSTALL (FILES "$<TARGET_FILE:Qt6::QWindowsIntegrationPlugin>" DESTINATION platforms)
-	INSTALL (FILES "$<TARGET_FILE:Qt6::QWindowsVistaStylePlugin>" DESTINATION styles)
 endif()
 # on linux/unix, xcb platform plugin, and its plugins egl and glx are required:
 if (UNIX AND NOT APPLE AND NOT FLATPAK_BUILD)
@@ -568,7 +573,7 @@ if (MSVC)
 	if (MSVC_VERSION GREATER_EQUAL 1925)  # Strict preprocessor available from VS 2019 16.5 - https://learn.microsoft.com/en-us/cpp/build/reference/zc-preprocessor
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor")
 	endif()
-	
+
 	if (MSVC_VERSION GREATER_EQUAL 1929)  #  Address sanitizer available from VS 2019 16.9 - https://learn.microsoft.com/en-us/cpp/build/reference/fsanitize#
 		option(openiA_ENABLE_ASAN  "Whether to enable the address sanitizer. Default: disabled." OFF)
 		if (openiA_ENABLE_ASAN)
@@ -605,7 +610,7 @@ if (MSVC)
 		add_compile_options(/arch:${openiA_AVX_SUPPORT})
 	endif()
 	add_compile_definitions(_CRT_SECURE_NO_WARNINGS _SCL_SECURE_NO_WARNINGS)
-	
+
 	# enable all warnings, disable selected:
 	add_compile_options(/W4 /wd4068 /wd4127 /wd4251 /wd4515)
 	# disabled: C4068 - "unknown pragma - ignoring a pragma"
@@ -660,7 +665,7 @@ if (MSVC)
 	cmake_path(NATIVE_PATH ITK_DIR ITK_WIN_DIR)
 	cmake_path(NATIVE_PATH QT_LIB_DIR Qt_WIN_DIR)
 	set(WinDLLPaths "${VTK_WIN_DIR}\\bin\\$(Configuration);${ITK_WIN_DIR}\\bin\\$(Configuration);${Qt_WIN_DIR}")
-	
+
 	if (OpenCLICDLoader_FOUND AND EXISTS "${OpenCL_DLL_DIR}")
 		cmake_path(NATIVE_PATH OpenCL_DLL_DIR OpenCL_WIN_DIR)
 		set(WinDLLPaths "${OpenCL_WIN_DIR};${WinDLLPaths}")
@@ -720,7 +725,7 @@ if (MSVC)
 	endif()
 
 	cmake_path(NATIVE_PATH CMAKE_BINARY_DIR CMAKE_BINARY_WIN_DIR)
-	
+
 	# Path to use in test environments (; has to be escaped)
 	string(REPLACE ";" "\\;" TestDllTmp "${WinDLLPaths}")
 	string(REPLACE "$(Configuration)" "Release" TestDllPaths "${TestDllTmp}")

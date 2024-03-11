@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFilterRunnerGUI.h"
 
@@ -220,7 +220,7 @@ bool iAFilterRunnerGUI::askForParameters(std::shared_ptr<iAFilter> filter, QVari
 		for (unsigned int i = 1; i < filter->requiredImages(); ++i)
 		{
 			QString selectedFile = paramValues[QString("%1").arg(filter->inputName(i))].toString();
-			int const mdiIdx = mdiChildrenNames.indexOf(selectedFile);
+			auto mdiIdx = mdiChildrenNames.indexOf(selectedFile);
 			for (auto d: otherMdis[mdiIdx]->dataSetMap())
 			{
 				// TODO: polydata input / ...
@@ -280,7 +280,7 @@ void iAFilterRunnerGUI::run(std::shared_ptr<iAFilter> filter, iAMainWindow* main
 		{	// check which (type of) datasets the filter expects, and only add these!
 			thread->addInput(d.second);
 		}
-		filter->setFirstInputChannels(dataSets.size());
+		filter->setFirstInputChannels(static_cast<unsigned int>(dataSets.size()));
 	}
 	for (size_t a=0; a < m_additionalInput.size(); ++a)
 	{

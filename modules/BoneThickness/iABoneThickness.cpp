@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iABoneThickness.h"
 
@@ -220,10 +220,12 @@ void iABoneThickness::calculate()
 			// Calculate distances:
 			// Landmark to first intersection
 			// Thickness of mesh: intersection1 to intersection2
-			if (flag1 == -1) {
+			if (flag1 == -1)
+			{
 				setResults(id, std::sqrt(vtkMath::Distance2BetweenPoints(x1, x2)), -std::sqrt(vtkMath::Distance2BetweenPoints(pStart, x1)));
 			}
-			else {
+			else
+			{
 				setResults(id, std::sqrt(vtkMath::Distance2BetweenPoints(x1, x2)), std::sqrt(vtkMath::Distance2BetweenPoints(pStart, x1)));
 			}
 
@@ -240,7 +242,8 @@ void iABoneThickness::calculate()
 		// Calculate mean thickness
 		m_dThicknessMean = 0.0;
 
-		for (int i = 0; i < m_daThickness->GetNumberOfTuples(); ++i) {
+		for (vtkIdType i = 0; i < m_daThickness->GetNumberOfTuples(); ++i)
+		{
 			m_dThicknessMean += m_daThickness->GetValue(i);
 		}
 		m_dThicknessMean /= m_daThickness->GetNumberOfTuples();
@@ -248,7 +251,8 @@ void iABoneThickness::calculate()
 		// Calculate STD of thickness
 		m_dThicknessSTD = 0.0;
 
-		for (int i = 0; i < m_daThickness->GetNumberOfTuples(); ++i) {
+		for (vtkIdType i = 0; i < m_daThickness->GetNumberOfTuples(); ++i)
+		{
 			m_dThicknessSTD += (m_daThickness->GetValue(i) - m_dThicknessMean) * (m_daThickness->GetValue(i) - m_dThicknessMean);
 		}
 		m_dThicknessSTD /= m_daThickness->GetNumberOfTuples() - 1;
@@ -511,7 +515,7 @@ void iABoneThickness::setSelected(const vtkIdType& _idSelected)
 			double pColor[3];
 			getSphereColor(idSelectedBack, dRadius, pColor);
 
-			vtkActor* pActor1((vtkActor*)m_pSpheres->GetItemAsObject(idSelectedBack));
+			vtkActor* pActor1((vtkActor*)m_pSpheres->GetItemAsObject(static_cast<int>(idSelectedBack)));
 			pActor1->GetProperty()->SetColor(pColor);
 		}
 
@@ -522,7 +526,7 @@ void iABoneThickness::setSelected(const vtkIdType& _idSelected)
 			double pColor[3];
 			getSphereColor(m_idSelected, dRadius, pColor);
 
-			vtkActor* pActor2((vtkActor*)m_pSpheres->GetItemAsObject(m_idSelected));
+			vtkActor* pActor2((vtkActor*)m_pSpheres->GetItemAsObject(static_cast<int>(m_idSelected)));
 			pActor2->GetProperty()->SetColor(pColor);
 		}
 
@@ -605,7 +609,7 @@ void iABoneThickness::setTable(iABoneThicknessTable* _iABoneThicknessTable)
 	}
 }
 
-void iABoneThickness::setResults(const int& _iPoint, const double& _dThickness, const double& _dSurfaceDistance)
+void iABoneThickness::setResults(vtkIdType const _iPoint, const double& _dThickness, const double& _dSurfaceDistance)
 {
 	if ((m_dSurfaceDistanceMaximum < FloatTolerance) || (_dSurfaceDistance < m_dSurfaceDistanceMaximum)) {
 
