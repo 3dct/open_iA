@@ -29,7 +29,8 @@ void dlg_MultidimensionalScalingDialog::setupWeigthTable()
 {
 	QStringList elems = *(m_data->at(0).header);
 	elems.removeFirst(); //neglect label row
-	int amountElems = elems.size();
+	assert(elems.size() < std::numeric_limits<int>::max());
+	int amountElems = static_cast<int>(elems.size());
 
 	QList<QTableWidgetItem*>* tableItems = new QList<QTableWidgetItem*>();
 

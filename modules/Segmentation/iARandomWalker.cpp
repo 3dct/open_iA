@@ -57,9 +57,9 @@ IAFILTER_DEFAULT_CLASS(iALabelImageToSeeds);
 
 namespace
 {
-	typedef itk::Image<unsigned char, DIM> LabelImageType;
-	typedef QMap<iAVertexIndexType, iAVertexIndexType> IndexMap;
-
+	using LabelPixelType = unsigned char;
+	using LabelImageType = itk::Image<LabelPixelType, DIM>;
+	using IndexMap = QMap<iAVertexIndexType, iAVertexIndexType>;
 
 	template <class T>
 	void CreateLabelImage(
@@ -69,7 +69,7 @@ namespace
 		size_t labelCount,
 		iAITKIO::ImagePointer& labelImgP)
 	{
-		typedef itk::Image<T, DIM> ProbImageType;
+		using ProbImageType = itk::Image<T, DIM>;
 		// create labelled image (as value at k = arg l max(p_l^k) for each pixel k)
 		labelImgP = allocateImage(dim, spacing, iAITKIO::ScalarType::UCHAR);
 		LabelImageType* labelImg = dynamic_cast<LabelImageType*>(labelImgP.GetPointer());
@@ -86,7 +86,7 @@ namespace
 				for (int z = 0; z < dim[2]; ++z)
 				{
 					double maxProb = 0;
-					int maxProbLabel = -1;
+					LabelPixelType maxProbLabel = 0;
 					typename ProbImageType::IndexType idx;
 					idx[0] = x;
 					idx[1] = y;
@@ -97,7 +97,7 @@ namespace
 						if (prob >= maxProb)
 						{
 							maxProb = prob;
-							maxProbLabel = l;
+							maxProbLabel = static_cast<LabelPixelType>(l);
 						}
 					}
 					labelImg->SetPixel(idx, maxProbLabel);

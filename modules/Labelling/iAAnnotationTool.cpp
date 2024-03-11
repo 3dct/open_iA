@@ -58,7 +58,7 @@ public:
 												<< "Name"
 												<< "Coordinates"
 												<< "Show";
-		m_table->setColumnCount(columnNames.size());
+		m_table->setColumnCount(static_cast<int>(columnNames.size()));
 		m_table->setHorizontalHeaderLabels(columnNames);
 		m_table->verticalHeader()->hide();
 		m_table->setSelectionBehavior(QAbstractItemView::SelectRows);

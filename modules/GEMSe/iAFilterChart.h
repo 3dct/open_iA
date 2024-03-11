@@ -27,7 +27,7 @@ public:
 	virtual iAValueType GetRangeType() const;
 	double GetMinVisibleBin() const;
 	double GetMaxVisibleBin() const;
-	void SetBinColor(int bin, QColor const & color);
+	void SetBinColor(size_t bin, QColor const & color);
 	double GetMinSliderPos();
 	double GetMaxSliderPos();
 	void SetMinMaxSlider(double min, double max);

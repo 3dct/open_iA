@@ -92,8 +92,7 @@ std::shared_ptr<iASingleResult> findResultWithID(QVector<std::shared_ptr<iASingl
 std::shared_ptr<iAImageTreeNode> iAImageTree::ReadNode(QTextStream & in,
 	std::shared_ptr<QVector<std::shared_ptr<iASamplingResults>>> samplingResults,
 	int labelCount,
-	QString const & outputDirectory,
-	int & lastClusterID)
+	QString const & outputDirectory /*, int& lastClusterID*/)
 {
 	if (in.atEnd())
 	{
@@ -126,8 +125,8 @@ std::shared_ptr<iAImageTreeNode> iAImageTree::ReadNode(QTextStream & in,
 	else
 	{
 		float diff = strs[2].toFloat();
-		std::shared_ptr<iAImageTreeNode> child1(iAImageTree::ReadNode(in, samplingResults, labelCount, outputDirectory, lastClusterID));
-		std::shared_ptr<iAImageTreeNode> child2(iAImageTree::ReadNode(in, samplingResults, labelCount, outputDirectory, lastClusterID));
+		std::shared_ptr<iAImageTreeNode> child1(iAImageTree::ReadNode(in, samplingResults, labelCount, outputDirectory/*, lastClusterID*/));
+		std::shared_ptr<iAImageTreeNode> child2(iAImageTree::ReadNode(in, samplingResults, labelCount, outputDirectory/*, lastClusterID*/));
 		std::shared_ptr<iAImageTreeNode> result(new iAImageTreeInternalNode(child1, child2,
 			labelCount,
 			outputDirectory,
@@ -159,13 +158,13 @@ std::shared_ptr<iAImageTree> iAImageTree::Create(QString const & fileName,
 	{
 		LOG(lvlError, "Can't create representative directory!");
 	}
-	int lastClusterID = -1;
+	qsizetype lastClusterID = -1;
 	for (int i=0; i<samplingResults->size(); ++i)
 	{
 		lastClusterID = std::max(lastClusterID, samplingResults->at(i)->size());
 	}
 	result =  std::shared_ptr<iAImageTree>(new iAImageTree(ReadNode(in, samplingResults, labelCount,
-		dir, lastClusterID), labelCount));
+		dir/*, lastClusterID */), labelCount));
 	file.close();
 	return result;
 }

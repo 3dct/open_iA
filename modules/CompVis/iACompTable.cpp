@@ -396,7 +396,7 @@ void buildGlyphRepresentation(void* arg)
 	double point1[3];
 	double point2[3];
 
-	int pid = glyphFilter->GetPointId();
+	auto pid = glyphFilter->GetPointId();
 	glyphFilter->GetPointData()->GetArray("originArray")->GetTuple(pid, origin);
 	glyphFilter->GetPointData()->GetArray("point1Array")->GetTuple(pid, point1);
 	glyphFilter->GetPointData()->GetArray("point2Array")->GetTuple(pid, point2);

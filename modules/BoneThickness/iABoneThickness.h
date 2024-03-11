@@ -122,6 +122,6 @@ private:
 	void setSphereOpacity(const double& _dSphereOpacity);
 	void setSurfaceOpacity(const double& _dSurfaceOpacity);
 
-	void setResults(const int& _iPoint, const double& _dThickness, const double& _dSurfaceDistance);
+	void setResults(vtkIdType const _iPoint, const double& _dThickness, const double& _dSurfaceDistance);
 	void setTranslucent();
 };

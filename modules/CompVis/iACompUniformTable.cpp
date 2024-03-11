@@ -334,7 +334,7 @@ void iACompUniformTable::drawHistogramTableAccordingToSimilarity(vtkSmartPointer
 	QList<bin::BinType*>* binData = m_uniformBinningData->getBinData();
 
 	//set dataIndex
-	std::map<vtkSmartPointer<vtkActor>, int>::iterator it = m_rowDataIndexPair->find(referenceData);
+	auto it = m_rowDataIndexPair->find(referenceData);
 	if (it == m_rowDataIndexPair->end())
 	{
 		return;
@@ -376,14 +376,14 @@ void iACompUniformTable::drawHistogramTableAccordingToCellSimilarity(Pick::Picke
 	std::vector<vtkIdType>* indexOfCells = new std::vector<vtkIdType>();
 
 	//is only run once, since the map can only contain 1 actor with its selected cells
-	for (Pick::PickedMap::iterator it = m_picked->begin(); it != m_picked->end(); ++it)
+	for (auto it = m_picked->begin(); it != m_picked->end(); ++it)
 	{
 		referenceData = it->first;
 		indexOfCells = it->second;
 	}
 
 	//set dataIndex
-	std::map<vtkSmartPointer<vtkActor>, int>::iterator it = m_rowDataIndexPair->find(referenceData);
+	auto it = m_rowDataIndexPair->find(referenceData);
 	if (it == m_rowDataIndexPair->end())
 	{
 		return;
@@ -451,7 +451,7 @@ void iACompUniformTable::drawNonLinearZoom(
 
 	m_vis->calculateRowWidthAndHeight(windowWidth, newHeight, m_vis->getAmountDatasets() + map->size());
 
-	std::vector<vtkSmartPointer<vtkPolyData>>* zoomedPlanes = new std::vector<vtkSmartPointer<vtkPolyData>>();
+	auto zoomedPlanes = new std::vector<vtkSmartPointer<vtkPolyData>>();
 	vtkSmartPointer<vtkPolyData> originalPlane;
 
 	for (int counter = 0; counter < m_vis->getAmountDatasets(); counter++)
@@ -459,7 +459,7 @@ void iACompUniformTable::drawNonLinearZoom(
 		int indData = m_vis->getOrderOfIndicesDatasets()->at(counter);
 
 		//check for additional row
-		std::vector<int>::iterator it = std::find(m_indexOfPickedRow->begin(), m_indexOfPickedRow->end(), indData);
+		auto it = std::find(m_indexOfPickedRow->begin(), m_indexOfPickedRow->end(), indData);
 		if (it != m_indexOfPickedRow->end())
 		{
 			if (currCol != 0 && !offsetAlreadyAdded)
@@ -589,7 +589,7 @@ std::vector<vtkSmartPointer<vtkPolyData>>* iACompUniformTable::drawZoomedRow(int
 
 void iACompUniformTable::zoomInZoomedRow(int selectedBinNumber)
 {
-	int rowId = m_zoomedRowData->size() - 1;
+	auto rowId = m_zoomedRowData->size() - 1;
 	int cellId = 0;
 	for (int zoomedRowDataInd = 0; zoomedRowDataInd < static_cast<int>(m_zoomedPlaneActors->size()); zoomedRowDataInd++)
 	{  //for all zoomed planes
@@ -1025,8 +1025,7 @@ vtkSmartPointer<vtkActor> iACompUniformTable::drawLine(
 
 void iACompUniformTable::drawPointRepresentation()
 {
-	std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>*>::iterator it;
-	int zoomedRowDataInd = m_zoomedRowData->size() - 1;
+	auto zoomedRowDataInd = m_zoomedRowData->size() - 1;
 
 	//find max-min val of each dataset and same bin to enable comparison of the same bins in different datasets
 	std::map<int, std::vector<double>*> minMaxPerBin = std::map<int, std::vector<double>*>();
@@ -1070,7 +1069,7 @@ void iACompUniformTable::drawPointRepresentation()
 	{
 		int indData = m_vis->getOrderOfIndicesDatasets()->at(counter);
 
-		it = originalPlaneZoomedPlanePair->find(m_originalPlaneActors->at(counter));
+		auto it = originalPlaneZoomedPlanePair->find(m_originalPlaneActors->at(counter));
 
 		if (it != originalPlaneZoomedPlanePair->end())
 		{  //row
@@ -1324,7 +1323,7 @@ std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*>
 		vtkSmartPointer<vtkActor> currAct = m_originalPlaneActors->at(rowId);
 
 		//set dataIndex
-		std::map<vtkSmartPointer<vtkActor>, int>::iterator it = m_rowDataIndexPair->find(currAct);
+		auto it = m_rowDataIndexPair->find(currAct);
 		if (it == m_rowDataIndexPair->end())
 			continue;
 		int dataIndex = it->second;
@@ -1346,7 +1345,7 @@ std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*>
 			//look for the selected cells in the current row
 			for (int i = 0; i < static_cast<int>(pickedCells->size()); i++)
 			{
-				int currBin = pickedCells->at(i);
+				auto currBin = pickedCells->at(i);
 				newRowIds->push_back(currRowIds->at(currBin));
 				newRowMDS->push_back(currRowMDS->at(currBin));
 			}
@@ -1515,8 +1514,8 @@ int iACompUniformTable::calculateCurrentPosition(vtkSmartPointer<vtkActor> movin
 {
 	double yPos = movingActor->GetCenter()[1];
 
-	std::map<int, std::vector<double>>* drawingPositionForRegions = m_vis->getDrawingPositionForRegions();
-	std::map<int, std::vector<double>>::iterator iter = drawingPositionForRegions->begin();
+	auto drawingPositionForRegions = m_vis->getDrawingPositionForRegions();
+	auto iter = drawingPositionForRegions->begin();
 
 	double minPossibleY = INFINITY;
 	double maxPossibleY = -INFINITY;
@@ -1604,9 +1603,8 @@ void iACompUniformTable::removePointRepresentation()
 void iACompUniformTable::calculateOldDrawingPositionOfMovingActor(vtkSmartPointer<vtkActor> movingActor)
 {
 	//get oldPosition of the moving actor
-	std::vector<vtkSmartPointer<vtkActor>>::iterator it =
-		std::find(m_originalPlaneActors->begin(), m_originalPlaneActors->end(), movingActor);
-	m_oldDrawingPosition = std::distance(m_originalPlaneActors->begin(), it);
+	auto it = std::find(m_originalPlaneActors->begin(), m_originalPlaneActors->end(), movingActor);
+	m_oldDrawingPosition = static_cast<int>(std::distance(m_originalPlaneActors->begin(), it));
 }
 
 void iACompUniformTable::removeBarCharShowingAmountOfObjects()
@@ -1763,13 +1761,11 @@ void iACompUniformTable::showSelectionOfCorrelationMap(std::map<int, double>* da
 	//remove the old selection
 	removeSelectionOfCorrelationMap();
 
-	for (std::map<int, double>::iterator iter = dataIndxSelectedType->begin(); iter != dataIndxSelectedType->end();
+	for (auto iter = dataIndxSelectedType->begin(); iter != dataIndxSelectedType->end();
 		 iter++)
 	{
 		int selectedDataInd = iter->first;
-
-		std::map<vtkSmartPointer<vtkActor>, int>::iterator iterActor;
-		for (iterActor = m_rowDataIndexPair->begin(); iterActor != m_rowDataIndexPair->end(); iterActor++)
+		for (auto iterActor = m_rowDataIndexPair->begin(); iterActor != m_rowDataIndexPair->end(); iterActor++)
 		{  //find actor according to dataIndex
 
 			int dataInd = iterActor->second;
@@ -1808,8 +1804,7 @@ void iACompUniformTable::showSelectionOfCorrelationMap(std::map<int, double>* da
 				else if (iter->second == 1.0)
 				{  // is selected inner arc --> highlight selected cells
 
-					std::map<int, std::vector<vtkIdType>*>::iterator pos =
-						m_pickedCellsforPickedRow->find(selectedDataInd);
+					auto pos = m_pickedCellsforPickedRow->find(selectedDataInd);
 					if (pos != m_pickedCellsforPickedRow->end())
 					{
 						std::vector<vtkIdType>* cells = pos->second;
@@ -1833,12 +1828,10 @@ void iACompUniformTable::showSelectionOfCorrelationMap(std::map<int, double>* da
 				}
 				else
 				{  //is not-selected inner arc --> highlight all other cells (not the selected ones)
-					std::map<int, std::vector<vtkIdType>*>::iterator pos =
-						m_pickedCellsforPickedRow->find(selectedDataInd);
+					auto pos = m_pickedCellsforPickedRow->find(selectedDataInd);
 					if (pos != m_pickedCellsforPickedRow->end())
 					{
-						std::vector<vtkIdType>* cells = pos->second;
-						std::vector<vtkIdType>::iterator cellIterator;
+						auto cells = pos->second;
 
 						for (int i = 0; i < m_bins; i++)
 						{
@@ -1849,7 +1842,7 @@ void iACompUniformTable::showSelectionOfCorrelationMap(std::map<int, double>* da
 							double point2[3];
 							point2Array->GetTuple(i, point2);
 
-							cellIterator = std::find(cells->begin(), cells->end(), i);
+							auto cellIterator = std::find(cells->begin(), cells->end(), i);
 							if (cellIterator == cells->end())
 							{  //when the cell is not one of the selected ones
 								double col[3];

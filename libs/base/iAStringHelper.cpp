@@ -137,9 +137,9 @@ QString joinQVariantAsString(QVector<QVariant> const& vec, QString const& joinSt
 	return result;
 }
 
-int greatestCommonPrefixLength(QString const & str1, QString const & str2)
+qsizetype greatestCommonPrefixLength(QString const & str1, QString const & str2)
 {
-	int pos = 0;
+	qsizetype pos = 0;
 	while (pos < str1.size() && pos < str2.size() && str1.at(pos) == str2.at(pos))
 	{
 		++pos;
@@ -147,9 +147,9 @@ int greatestCommonPrefixLength(QString const & str1, QString const & str2)
 	return pos;
 }
 
-int greatestCommonSuffixLength(QString const & str1, QString const & str2)
+qsizetype greatestCommonSuffixLength(QString const & str1, QString const & str2)
 {
-	int pos = 0;
+	qsizetype pos = 0;
 	while (pos < str1.size() && pos < str2.size()
 		   && str1.at(str1.size()-1-pos) == str2.at(str2.size()-1-pos))
 	{

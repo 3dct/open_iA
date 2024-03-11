@@ -120,7 +120,7 @@ void iAMultidimensionalScaling::setDistanceMetric(MDS::DistanceMetric disName)
 void iAMultidimensionalScaling::initializeMatrixUNormalized()
 {
 	// initialize matrixUNormalized --> different size of different input datasets
-	m_amountOfCharas = m_inputData->at(0).header->size();
+	m_amountOfCharas = static_cast<int>(m_inputData->at(0).header->size());
 	std::vector<double> vec(m_amountOfCharas - 1);
 
 	for (int k = 0; k < m_inputData->size(); k++)

@@ -33,7 +33,7 @@ private:
 	std::vector<std::string> split(const std::string &s, char delim);
 	vtkSmartPointer<vtkTable> readTableFromFile(const QString &filename, int dataLineOffset);
 	void sortCorrespondencesByOverlap(std::vector<iAFeatureTrackingCorrespondence> &correspondences);
-	std::vector<iAFeatureTrackingCorrespondence>& getCorrespondences(const vtkVariantArray &row, vtkTable &table, int maxSearchValue, bool useZ);
+	std::vector<iAFeatureTrackingCorrespondence> getCorrespondences(const vtkVariantArray &row, vtkTable &table, int maxSearchValue, bool useZ);
 	void ComputeOverallMatchingPercentage();
 
 public:

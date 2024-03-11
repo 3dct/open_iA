@@ -39,18 +39,17 @@ void dlg_CSVReader::btnAddFilesClicked()
 
 void dlg_CSVReader::btnDeleteFileClicked()
 {
-	foreach (const QModelIndex &index, listView->selectionModel()->selectedIndexes())
+	for (const QModelIndex &index: listView->selectionModel()->selectedIndexes())
 	{
 		QString name = listView->model()->data(index).toString();
 		if (m_filenames.contains(name))
 		{
-			int ind = m_filenames.indexOf(name);
-			m_filenames.removeAt(ind);
+			m_filenames.removeAt(m_filenames.indexOf(name));
 		}
 	}
 
 	QVector<QItemSelectionRange> ranges = listView->selectionModel()->selection().toVector();
-	foreach (const QItemSelectionRange &range, ranges)
+	for (const QItemSelectionRange &range: ranges)
 	{
 		listView->model()->removeRows(range.top(), range.height());
 	}

@@ -127,7 +127,7 @@ private:
 		int cellPixel = std::max(1,
 			std::min((geometry().height() - axisSize) / static_cast<int>(m_data.size()),
 				(geometry().width() - fullScalarBarWidth - axisSize) / static_cast<int>(m_data.size())));
-		QRect matrixRect(axisSize, axisSize, m_data.size() * cellPixel, m_data.size() * cellPixel);
+		QRect matrixRect(axisSize, axisSize, static_cast<int>(m_data.size() * cellPixel), static_cast<int>(m_data.size() * cellPixel));
 		for (iADissimilarityMatrixType::size_type x = 0; x < m_data.size(); ++x)
 		{
 			for (iADissimilarityMatrixType::size_type y = 0; y < m_data[x].size(); ++y)
@@ -152,8 +152,8 @@ private:
 			// draw y axis line:
 			p.drawLine(axisPos, axisSize, axisPos, axisSize + matrixRect.height());
 
-			const size_t NoRangeStart = std::numeric_limits<size_t>::max();
-			const double NoValue = std::numeric_limits<double>::infinity();
+			constexpr size_t NoRangeStart = std::numeric_limits<size_t>::max();
+			constexpr double NoValue = std::numeric_limits<double>::infinity();
 			double prevValue = NoValue;
 			size_t rangeStart = NoRangeStart;
 			auto const& pv = m_paramValues[m_sortParam];
@@ -196,7 +196,6 @@ private:
 			QRect colorBarRect(topLeft.x(), topLeft.y(),
 				scalarBarWidth, height() - 2 * scalarBarPadding);
 			QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y() + colorBarRect.height());
-			QMap<double, QColor>::iterator it;
 			for (size_t i = 0; i < m_lut.numberOfValues(); ++i)
 			{
 				double rgba[4];

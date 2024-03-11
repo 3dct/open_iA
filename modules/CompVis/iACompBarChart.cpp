@@ -409,7 +409,7 @@ void iACompBarChart::updateBarChart(std::vector<double>* coefficientsOriginal, s
 	//double maxVal = coefficientsSelected->at(0); //first value is the biggest
 	double maxNumberObjects = m_dataStorage->getTotalNumberOfObjects();
 	double selectedNumberObjects = 0;
-	for (std::map<int, std::vector<double>>::iterator iter = pickStatistic->begin(); iter != pickStatistic->end(); ++iter)
+	for (auto iter = pickStatistic->begin(); iter != pickStatistic->end(); ++iter)
 	{
 		selectedNumberObjects += ((double) iter->second.at(1));
 	}
@@ -732,7 +732,7 @@ void iACompBarChart::BarChartInteractorStyle::OnLeftButtonDown()
 	if(m_selectedPointLocatorEmpty)
 	{
 		pointLocatorOriginal->FindClosestNPoints(1, posInScene, result);
-		std::map<int, std::vector<double>>::iterator iter = m_barIndexPositionPairOriginal->find(result->GetId(0));
+		auto iter = m_barIndexPositionPairOriginal->find(result->GetId(0));
 		if (iter != m_barIndexPositionPairOriginal->end())
 		{
 			setTooltipTextOriginalBarChart(iter->second);
@@ -742,8 +742,8 @@ void iACompBarChart::BarChartInteractorStyle::OnLeftButtonDown()
 	else
 	{
 		pointLocatorSelected->FindClosestNPoints(1, posInScene, result);
-		std::map<int, std::vector<double>>::iterator iterOri = m_barIndexPositionPairOriginalRepositioned->find(result->GetId(0));
-		std::map<int, std::vector<double>>::iterator iter = m_barIndexPositionPairSelected->find(result->GetId(0));
+		auto iterOri = m_barIndexPositionPairOriginalRepositioned->find(result->GetId(0));
+		auto iter = m_barIndexPositionPairSelected->find(result->GetId(0));
 		if ((iterOri != m_barIndexPositionPairOriginalRepositioned->end()) && (iter != m_barIndexPositionPairSelected->end()))
 		{
 			setTooltipTextSelectedBarChart(iter->second, iterOri->second);

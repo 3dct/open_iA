@@ -76,5 +76,5 @@ void iABoneThicknessTable::set(iABoneThickness* _pBoneThickness, iABoneThickness
 
 void iABoneThicknessTable::setSelected(const vtkIdType& _idSelected)
 {
-	selectRow(_idSelected);
+	selectRow(static_cast<int>(_idSelected));
 }

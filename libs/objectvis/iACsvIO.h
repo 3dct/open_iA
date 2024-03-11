@@ -52,12 +52,12 @@ private:
 	iAColMapP m_outputMapping;          //!< maps a value identifier (given as a value out of the iACsvConfig::MappedColumn enum) to the index of the column in the output which contains this value
 
 	//! determine the header columns used in the output
-	void determineOutputHeaders(QVector<uint> const & selectedCols);
+	void determineOutputHeaders(QVector<iAColIdxT> const & selectedCols);
 	//! determine how man actual data rows the result table will have
 	size_t calcRowCount(QTextStream& in, size_t const skipLinesStart,
 		size_t const skipLinesEnd);
 	//! determine the indices of the selected columns
-	QVector<uint> computeSelectedColIdx();
+	QVector<iAColIdxT> computeSelectedColIdx();
 };
 
 //! read the curved fiber info file

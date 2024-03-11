@@ -102,7 +102,7 @@ private:
 public:
 	iACategoryRandom(QStringList const & options):
 		m_options(options),
-		m_intRandom(0, options.size(), false)
+		m_intRandom(0, static_cast<int>(options.size()), false)
 	{}
 	QVariant next() override
 	{
@@ -333,10 +333,10 @@ iAParameterSetsPointer iALatinHypercubeSamplingMethod::parameterSets(std::shared
 			}
 			else
 			{
-				int maxOptIdx = options.size();
+				auto maxOptIdx = options.size();
 				for (int s = 0; s < sampleCount(); ++s)
 				{
-					int optIdx = s % maxOptIdx;
+					auto optIdx = s % maxOptIdx;
 					sampleValues[p].push_back(options[optIdx]);
 				}
 			}
@@ -392,7 +392,7 @@ void iACartesianGridSamplingMethod::setSampleCount(int targetedSampleCount, std:
 		}
 		else if ((t == iAValueType::Categorical || t == iAValueType::Boolean) && p->defaultValue().toStringList().size() > 1)
 		{
-			m_samplesPerParameter[pIdx] = p->defaultValue().toStringList().size();
+			m_samplesPerParameter[pIdx] = static_cast<int>(p->defaultValue().toStringList().size());
 			actualSampleCount *= m_samplesPerParameter[pIdx];
 		}
 		else

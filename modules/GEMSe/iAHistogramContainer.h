@@ -38,8 +38,8 @@ public:
 	void ResetFilters();
 	void UpdateAttributeRangeAttitude();
 	void ExportAttributeRangeRanking(QString const & fileName);
-	int GetSelectedCount();
-	int GetSelectedChartID(int selectionIdx);
+	qsizetype GetSelectedCount();
+	int GetSelectedChartID(qsizetype selectionIdx);
 	void SetMarker(int chartID, double value);
 	void RemoveMarker(int chartID);
 	void SetSpanValues(int chartID, double min, double max);

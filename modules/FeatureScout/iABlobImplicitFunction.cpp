@@ -78,17 +78,17 @@ void iABlobImplicitFunction::AddObjectInfo (double point1[3], double point2[3], 
 	}
 
 	// calc other params
-	this->mb[this->mbCount].point1[0] = point1[0];
-	this->mb[this->mbCount].point1[1] = point1[1];
-	this->mb[this->mbCount].point1[2] = point1[2];
+	mb[mbCount].point1[0] = point1[0];
+	mb[mbCount].point1[1] = point1[1];
+	mb[mbCount].point1[2] = point1[2];
 
-	this->mb[this->mbCount].point2[0] = point2[0];
-	this->mb[this->mbCount].point2[1] = point2[1];
-	this->mb[this->mbCount].point2[2] = point2[2];
+	mb[mbCount].point2[0] = point2[0];
+	mb[mbCount].point2[1] = point2[1];
+	mb[mbCount].point2[2] = point2[2];
 
-	this->mb[this->mbCount].strength = g;
+	mb[mbCount].strength = g;
 
-	this->mbCount++;
+	++mbCount;
 }
 
 void iABlobImplicitFunction::AddObjectInfo (double x1, double y1, double z1, double x2, double y2, double z2, double g)
@@ -102,20 +102,16 @@ double iABlobImplicitFunction::JustEvaluateFunction (double x[3])
 	LineInfo* line;
 	double value = 0;
 	double pDist;
-	if (this->mbCount == 0)
+	if (mbCount == 0)
 	{
 		return 0;
 	}
 
-	line = this->mb;
-	for (unsigned int i = 0; i < this->mbCount; i++, line++)
+	line = mb;
+	for (vtkIdType i = 0; i < mbCount; i++, line++)
 	{
 		pDist = DistancePointToLine (line->point1, line->point2, x);
-		if (0 == i)
-		{
-			value = pDist;
-		}
-		else if (pDist <= value)
+		if (i == 0 || pDist <= value)
 		{
 			value = pDist;
 		}
@@ -156,11 +152,13 @@ void iABlobImplicitFunction::EvaluateGradient (double x[3], double n[3])
 //	double pPoint[3];
 	n[1] = n[2] = n[0] = 0;
 
-	if (this->mbCount == 0)
+	if (mbCount == 0)
+	{
 		return;
+	}
 
-	line = this->mb;
-	for (unsigned int i = 0; i < this->mbCount; i++, line++)
+	line = mb;
+	for (vtkIdType i = 0; i < mbCount; i++, line++)
 	{
 		pValue = line->strength;
 		n[0] += (pValue / ( (x[0] - line->point1[0]) * (x[0] - line->point1[0])));
@@ -171,7 +169,7 @@ void iABlobImplicitFunction::EvaluateGradient (double x[3], double n[3])
 
 void iABlobImplicitFunction::PrintSelf (ostream& os, vtkIndent indent)
 {
-	this->Superclass::PrintSelf (os, indent);
+	Superclass::PrintSelf (os, indent);
 }
 
 double iABlobImplicitFunction::DistancePointToLine (double l1[3],

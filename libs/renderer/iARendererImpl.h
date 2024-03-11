@@ -136,7 +136,7 @@ public:
 	//! Visibility of the ROI indicator
 	void setROIVisible(bool visible);
 
-	void saveMovie(const QString& fileName, int mode, int qual = 2);	//!< move out of here
+	void saveMovie(const QString& fileName, int mode, int qual, int fps, int numSteps);	//!< move out of here
 	iARenderObserver * getRenderObserver() override;
 	void addRenderer(vtkRenderer* renderer) override;
 	//! apply the given settings to the renderer

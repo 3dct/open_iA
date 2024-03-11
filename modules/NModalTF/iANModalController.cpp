@@ -428,7 +428,7 @@ void iANModalController::setMask(vtkSmartPointer<vtkImageData> mask)
 	FOR_VTKIMG_PIXELS(mask, x, y, z)
 	{
 		int ijk[3] = {x, y, z};
-		int id = mask->ComputePointId(ijk);
+		auto id = mask->ComputePointId(ijk);
 		ptr[id] *= 255;
 	}
 
@@ -471,10 +471,8 @@ void iANModalController::addSeeds(const QList<iANModalSeed>& seeds, const iANMod
 	{
 		auto dataSet = m_mapOverlayImageId2dataSet.value(seed.overlayImageId);
 		unsigned int x = dataSet->vtkImage()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
-		int i = m_dataSets.lastIndexOf(dataSet);
-
+		auto i = m_dataSets.lastIndexOf(dataSet);
 		assert(m_tfs.size() > 0);
-
 		auto tf = m_tfs[i];
 		tf->addControlPoint(x, label);
 	}
@@ -493,7 +491,7 @@ void iANModalController::removeSeeds(const QList<iANModalSeed>& seeds)
 	{
 		auto dataSet = m_mapOverlayImageId2dataSet.value(seed.overlayImageId);
 		unsigned int x = dataSet->vtkImage()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
-		int i = m_dataSets.lastIndexOf(dataSet);
+		auto i = m_dataSets.lastIndexOf(dataSet);
 		auto tf = m_tfs[i];
 		tf->removeControlPoint(x);
 	}
@@ -556,13 +554,16 @@ namespace
 		iASlicerMode::XZ   // Y
 	};
 
-	constexpr int slicerAxes[NUM_SLICERS] = {0, 2, 1};  // X, Z, Y (compatible with layout of slicerModes array)
+#define iANModal_USE_GETSCALARPOINTER
+#ifdef iANModal_USE_GETSCALARPOINTER
+
+	constexpr int slicerAxes[NUM_SLICERS] = { 0, 2, 1 };  // X, Z, Y (compatible with layout of slicerModes array)
 
 #ifndef NDEBUG
-	constexpr int slicerCoordSwapIndices[NUM_SLICERS][NUM_SLICERS] = {{2, 0, 1}, {0, 1, 2}, {0, 2, 1}};
+	constexpr int slicerCoordSwapIndices[NUM_SLICERS][NUM_SLICERS] = { {2, 0, 1}, {0, 1, 2}, {0, 2, 1} };
 #endif
 
-	inline void swapIndices(const int (&xyz_orig)[3], int mainSlicerIndex, int (&xyz_out)[3])
+	inline void swapIndices(const int(&xyz_orig)[3], int mainSlicerIndex, int(&xyz_out)[3])
 	{
 #ifdef NDEBUG
 		Q_UNUSED(xyz_orig);
@@ -576,54 +577,38 @@ namespace
 		assert(xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][2]] == xyz_out[2]);
 	}
 
-	inline void convert_2d_to_3d(const int (&xyz_orig)[3], int mainSlicerIndex, int sliceNum, int (&xyz_out)[3])
+	inline void convert_2d_to_3d(const int(&xyz_orig)[3], int mainSlicerIndex, int sliceNum, int(&xyz_out)[3])
 	{
 		swapIndices(xyz_orig, mainSlicerIndex, xyz_out);
 		xyz_out[slicerAxes[mainSlicerIndex]] += sliceNum;
 	}
-}
 
-#define iANModal_USE_GETSCALARPOINTER
-#ifdef iANModal_USE_GETSCALARPOINTER
-namespace
-{
-	inline void setRgba(unsigned char* ptr, const int& id, const Rgb& color, const float& alpha = 255)
+	inline void setRgba(unsigned char* ptr, size_t id, const Rgb& color, const unsigned char alpha = 255)
 	{
 		ptr[id + 0] = color[0];
 		ptr[id + 1] = color[1];
 		ptr[id + 2] = color[2];
 		ptr[id + 3] = alpha;
-		//unsigned char rgba[4] = { color[0], color[1], color[2], alpha };
-		//memcpy(&ptr[id], rgba, 4 * sizeof(unsigned char));
 	}
 
 	template <typename T>
-	inline double getScalar(T* ptr, const int& id)
+	inline double getScalar(T* ptr, size_t id)
 	{
 		return ptr[id];
 	}
-}
-#define iANModal_IF_USE_GETSCALARPOINTER(a) a
-#define iANModal_GET_SCALAR(img, ptr) getScalar(ptr, id_scalar)
-#define iANModal_SET_COLOR(img, ptr, color, alpha) setRgba(ptr, id_rgba, color, alpha)
 #else
-namespace
-{
-	inline double getScalar(const vtkSmartPointer<vtkImageData>& img, const int& x, const int& y, const int& z)
-	{
-		return img->GetScalarComponentAsDouble(x, y, z, 0);
-	}
-	inline void setRgba(const vtkSmartPointer<vtkImageData>& img, const int& x, const int& y, const int& z,
+	inline void setRgba(const vtkSmartPointer<vtkImageData> img, const int x, const int y, const int z,
 		const Rgb& color, const float& alpha = 255)
 	{
 		for (int i = 0; i < 3; ++i) img->SetScalarComponentFromFloat(x, y, z, i, color[i]);
 		img->SetScalarComponentFromFloat(x, y, z, 3, alpha);
 	}
-}
-#define iANModal_IF_USE_GETSCALARPOINTER(a)
-#define iANModal_GET_SCALAR(img, ptr) getScalar(img, x, y, z)
-#define iANModal_SET_COLOR(img, ptr, color, alpha) setRgba(img, x, y, z, color, alpha)
+	inline double getScalar(const vtkSmartPointer<vtkImageData> img, const int x, const int y, const int z)
+	{
+		return img->GetScalarComponentAsDouble(x, y, z, 0);
+	}
 #endif
+}
 
 void iANModalController::updateHistograms()
 {
@@ -653,10 +638,11 @@ void iANModalController::updateMainSlicers()
 
 		auto slicerMode = slicerModes[mainSlicerIndex];
 		auto slicer = m_mdiChild->slicer(slicerMode);
-		int sliceNum = slicer->sliceNumber();
-
 		std::vector<vtkSmartPointer<vtkImageData>> sliceImgs2D(numDataSets);
-		iANModal_IF_USE_GETSCALARPOINTER(std::vector<PixelType*> sliceImgs2D_ptrs(numDataSets));
+#ifdef iANModal_USE_GETSCALARPOINTER
+		int sliceNum = slicer->sliceNumber();
+		std::vector<PixelType*> sliceImgs2D_ptrs(numDataSets);
+#endif
 		std::vector<vtkScalarsToColors*> sliceColorTf(numDataSets);
 		std::vector<vtkPiecewiseFunction*> sliceOpacityTf(numDataSets);
 
@@ -672,15 +658,12 @@ void iANModalController::updateMainSlicers()
 
 			// Get the 2D slice image
 			auto sliceImg2D = channel->reslicer()->GetOutput();
-#ifndef NDEBUG
-			auto dim = sliceImg2D->GetDimensions();
-			assert(dim[0] == 1 || dim[1] == 1 || dim[2] == 1);
-#endif
 
 			// Save 2D slice image and transfer functions for future processing
 			sliceImgs2D[dataSetIndex] = sliceImg2D;
-			iANModal_IF_USE_GETSCALARPOINTER(
-				sliceImgs2D_ptrs[dataSetIndex] = static_cast<PixelType*>(sliceImg2D->GetScalarPointer()));
+#ifdef iANModal_USE_GETSCALARPOINTER
+			sliceImgs2D_ptrs[dataSetIndex] = static_cast<PixelType*>(sliceImg2D->GetScalarPointer());
+#endif
 			sliceColorTf[dataSetIndex] = channel->colorTF();
 			sliceOpacityTf[dataSetIndex] = channel->opacityTF();
 
@@ -695,52 +678,41 @@ void iANModalController::updateMainSlicers()
 #ifdef iANModal_USE_GETSCALARPOINTER
 		auto ptr = static_cast<unsigned char*>(sliceImg2D_out->GetScalarPointer());
 		unsigned char* maskPtr = m_mask ? static_cast<unsigned char*>(m_mask->GetScalarPointer()) : nullptr;
-#ifndef NDEBUG
-		int numVoxels = sliceImg2D_out->GetDimensions()[0] * sliceImg2D_out->GetDimensions()[1] *
-			sliceImg2D_out->GetDimensions()[2];
 #endif
-#endif
-
 		//#pragma omp parallel for
 		FOR_VTKIMG_PIXELS(sliceImg2D_out, x, y, z)
 		{
 #ifdef iANModal_USE_GETSCALARPOINTER
 			int ijk[3] = {x, y, z};
-			int id_scalar = sliceImg2D_out->ComputePointId(ijk);
-			int id_rgba = id_scalar * 4;
-
-#ifndef NDEBUG
-			{
-				assert(id_scalar < numVoxels);
-				unsigned char* ptr_test1 = &ptr[id_rgba];
-				unsigned char* ptr_test2 = static_cast<unsigned char*>(sliceImg2D_out->GetScalarPointer(x, y, z));
-				assert(ptr_test1 == ptr_test2);
-			}
+			vtkIdType ijk_scalar = sliceImg2D_out->ComputePointId(ijk);
+			auto id_rgba = ijk_scalar * 4;
 #endif
-#endif
-
 			if (m_mask)
 			{
 				//int ijk_3D[3] = { x + indexAddends[0], y + indexAddends[2], z + indexAddends[1] }; // X,Z,Y -> 0,2,1
+#ifdef iANModal_USE_GETSCALARPOINTER
 				int ijk_3D[3];
 				convert_2d_to_3d(ijk, mainSlicerIndex, sliceNum, ijk_3D);
-				int id_scalar =
-					m_mask->ComputePointId(ijk_3D);  // Shadow id_scalar from previous scope to work with macro
-				unsigned char maskValue = iANModal_GET_SCALAR(m_mask, maskPtr);
-#ifndef NDEBUG
-				{
-					unsigned char* ptr_mask_test1 = &maskPtr[id_scalar];
-					unsigned char* ptr_mask_test2 = static_cast<unsigned char*>(m_mask->GetScalarPointer(ijk_3D));
-					assert(ptr_mask_test1 == ptr_mask_test2);
-					unsigned char maskValue_test =
-						m_mask->GetScalarComponentAsDouble(ijk_3D[0], ijk_3D[1], ijk_3D[2], 0);
-					assert(maskValue == maskValue_test);
-				}
+				vtkIdType mask_scalar = m_mask->ComputePointId(ijk_3D);
 #endif
+				unsigned char maskValue = getScalar(
+#ifdef iANModal_USE_GETSCALARPOINTER
+					maskPtr, mask_scalar
+#else
+					m_mask, x, y, z
+#endif
+				);
 				if (maskValue == 0)
 				{
 					static constexpr Rgb black = {0, 0, 0};
-					iANModal_SET_COLOR(sliceImg2D_out, ptr, black, 0);
+					setRgba(
+#ifdef iANModal_USE_GETSCALARPOINTER
+						ptr, id_rgba,
+#else
+						sliceImg2D_out, x, y, z,
+#endif
+						black, 0
+					);
 					continue;
 				}
 			}
@@ -752,32 +724,13 @@ void iANModalController::updateMainSlicers()
 			// Gather the colors and opacities for this voxel xyz (for each dataset)
 			for (int ds_i = 0; ds_i < numDataSets; ++ds_i)
 			{
+				PixelType scalar = getScalar(
 #ifdef iANModal_USE_GETSCALARPOINTER
-				PixelType* ptr2 = sliceImgs2D_ptrs[ds_i];
-
-#ifndef NDEBUG
-				{
-					int id_scalar_test = sliceImgs2D[ds_i]->ComputePointId(ijk);
-					assert(id_scalar == id_scalar_test);
-					PixelType* ptr2_test1 = &ptr2[id_scalar_test];
-					PixelType* ptr2_test2 = static_cast<PixelType*>(sliceImgs2D[ds_i]->GetScalarPointer(x, y, z));
-					assert(ptr2_test1 == ptr2_test2);
-				}
-#endif
-
-				PixelType scalar = getScalar(ptr2, id_scalar);
-
-#ifndef NDEBUG
-				{
-					PixelType scalar_test = sliceImgs2D[ds_i]->GetScalarComponentAsDouble(x, y, z, 0);
-					assert(scalar == scalar_test);
-				}
-#endif
-
+					sliceImgs2D_ptrs[ds_i], ijk_scalar
 #else
-				float scalar = getScalar(sliceImgs2D[ds_i], x, y, z);
+					sliceImgs2D[ds_i], x, y, z
 #endif
-
+				);
 				ta_color.resume();
 				const unsigned char* color = sliceColorTf[ds_i]->MapValue(scalar);  // 4 bytes (RGBA)
 				ta_color.pause();
@@ -810,21 +763,14 @@ void iANModalController::updateMainSlicers()
 
 			Rgb combinedColor;
 			combineColors(colors, opacities, combinedColor);
-
-			/*unsigned char aaa = index % 2 == 0 ? 255 : 127;
-			switch(omp_get_thread_num()) {
-			case 0: combinedColor = { aaa, 0, 0 }; break;
-			case 1: combinedColor = { 0, aaa, 0 }; break;
-			case 2: combinedColor = { 0, 0, aaa }; break;
-			case 3: combinedColor = { aaa, aaa, 0 }; break;
-			case 4: combinedColor = { aaa, 0, aaa }; break;
-			case 5: combinedColor = { 0, aaa, aaa }; break;
-			case 6: combinedColor = { aaa, aaa, aaa }; break;
-			default: combinedColor = { 0, 0, 0 }; break;
-			}*/
-
-			iANModal_SET_COLOR(sliceImg2D_out, ptr, combinedColor, 255);
-
+			setRgba(
+#ifdef iANModal_USE_GETSCALARPOINTER
+				ptr, id_rgba,
+#else
+				sliceImg2D_out, x, y, z,
+#endif
+				combinedColor, 255
+			);
 		}  // end of FOR_VTKIMG_PIXELS
 
 		testSlice.time("All voxels processed");

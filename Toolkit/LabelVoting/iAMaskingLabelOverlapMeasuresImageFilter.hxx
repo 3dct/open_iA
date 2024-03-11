@@ -144,7 +144,7 @@ void
 	itk::ImageRegionConstIterator<LabelImageType> itT(this->GetTargetImage(),
 		outputRegionForThread);
 
-	auto size = this->GetSourceImage()->GetLargestPossibleRegion().GetSize();
+	auto const & size = this->GetSourceImage()->GetLargestPossibleRegion().GetSize();
 
 	// support progress methods/callbacks
 	itk::ProgressReporter progress(this, threadId,

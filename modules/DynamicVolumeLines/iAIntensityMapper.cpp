@@ -35,7 +35,7 @@ void getIntensities(iAProgress &imp, PathID m_pathID, iAITKIO::ImagePointer &ima
 		{
 			if (coordList.size() == 0)
 			{
-				QVector<unsigned int> coord(QVector<unsigned int>(3));
+				QVector<unsigned int> coord(3);
 				auto size = input->GetLargestPossibleRegion().GetSize();
 				long long HilbertCnt = size[0] * size[1] * size[2];
 				int nbOfBitsPerDim[DIM];
@@ -58,7 +58,7 @@ void getIntensities(iAProgress &imp, PathID m_pathID, iAITKIO::ImagePointer &ima
 					{
 						for (int i = 0; i < DIM; i++)
 						{
-							coord[i] = coordPtr[i].rack();
+							coord[i] = static_cast<unsigned int>(coordPtr[i].rack());
 						}
 
 						delete[] coordPtr;

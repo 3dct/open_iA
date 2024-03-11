@@ -217,7 +217,7 @@ void iAFractureVisModule::calculateMap( MapType* map, QString fileName, MapName 
 				PixelType pixel = image->GetPixel( ind );
 				if( pixel > 0 )
 				{
-					ray.push_back( ind[2] );
+					ray.push_back( static_cast<uint>(ind[2]) );
 				}
 			}
 
@@ -270,14 +270,15 @@ void iAFractureVisModule::calculatePoints( vtkPoints* points, MapType* heightmap
 	MapType::SizeType heightmapSize = bluredHeightmap->GetLargestPossibleRegion( ).GetSize( );
 	MapType::IndexType heightmapInd;
 
-	int xSteps = heightmapSize[0] / Step;
-	int ySteps = heightmapSize[1] / Step;
+	auto xSteps = heightmapSize[0] / Step;
+	auto ySteps = heightmapSize[1] / Step;
 
-	for( int i = 0; i < xSteps; i++ )
+	for(uint64_t i = 0; i < xSteps; i++ )
 	{
-		for( int j = 0; j < ySteps; j++ )
+		for(uint64_t j = 0; j < ySteps; j++ )
 		{
-			heightmapInd[0] = i * Step; heightmapInd[1] = j * Step;
+			heightmapInd[0] = i * Step;
+			heightmapInd[1] = j * Step;
 			double val = bluredHeightmap->GetPixel( heightmapInd );
 			double pos[3];
 			pos[0] = size[0] * heightmapInd[0] / heightmapSize[0] * SCENE_SCALE;
@@ -295,17 +296,17 @@ void iAFractureVisModule::calculatePolys( vtkCellArray* polys, MapType* heightma
 	MapType::IndexType heightmapInd;
 	MapType::SizeType heightmapSize = heightmap->GetLargestPossibleRegion( ).GetSize( );
 
-	int xSteps = heightmapSize[0] / Step;
-	int ySteps = heightmapSize[1] / Step;
+	auto xSteps = heightmapSize[0] / Step;
+	auto ySteps = heightmapSize[1] / Step;
 	int skip[3] = { 60, 30 };
 
-	for( int i = skip[0]; i < xSteps - 1 - skip[0]; i++ )
+	for (vtkIdType i = skip[0]; i < static_cast<vtkIdType>(xSteps - 1 - skip[0]); ++i )
 	{
-		for( int j = skip[1]; j < ySteps - 1 - skip[1]; j++ )
+		for (vtkIdType j = skip[1]; j < static_cast<vtkIdType>(ySteps - 1 - skip[1]); ++j )
 		{
 			heightmapInd[0] = i * Step; heightmapInd[1] = j * Step;
 
-			int ind[4];
+			vtkIdType ind[4];
 			ind[0] = i      * ySteps + j;
 			ind[1] = i      * ySteps + j + 1;
 			ind[2] = ( i + 1 ) * ySteps + j;
@@ -334,8 +335,8 @@ void iAFractureVisModule::calculateColors( vtkUnsignedCharArray* colors, MapType
 	MapType::SizeType colormapSize = colormap->GetLargestPossibleRegion( ).GetSize( );
 	MapType::IndexType heightmapInd, colormapInd;
 
-	int xSteps = heightmapSize[0] / Step;
-	int ySteps = heightmapSize[1] / Step;
+	auto xSteps = heightmapSize[0] / Step;
+	auto ySteps = heightmapSize[1] / Step;
 
 	typedef itk::MinimumMaximumImageCalculator<MapType> ImageCalculatorFilterType;
 	ImageCalculatorFilterType::Pointer imageCalcFilter = ImageCalculatorFilterType::New( );
@@ -343,14 +344,15 @@ void iAFractureVisModule::calculateColors( vtkUnsignedCharArray* colors, MapType
 	imageCalcFilter->Compute( );
 	double colorRange = imageCalcFilter->GetMaximum( ) - imageCalcFilter->GetMinimum( );
 
-	for( int i = 0; i < xSteps; i++ )
+	for(uint64_t i = 0; i < xSteps; ++i)
 	{
-		for( int j = 0; j < ySteps; j++ )
+		for(uint64_t j = 0; j < ySteps; ++j)
 		{
-			heightmapInd[0] = i * Step; heightmapInd[1] = j * Step;
+			heightmapInd[0] = i * Step;
+			heightmapInd[1] = j * Step;
 			unsigned char col[3];
-			colormapInd[0] = (double)heightmapInd[0] / heightmapSize[0] * colormapSize[0];
-			colormapInd[1] = (double)heightmapInd[1] / heightmapSize[1] * colormapSize[1];
+			colormapInd[0] = static_cast<double>(heightmapInd[0]) / heightmapSize[0] * colormapSize[0];
+			colormapInd[1] = static_cast<double>(heightmapInd[1]) / heightmapSize[1] * colormapSize[1];
 			double colorVal = colormap->GetPixel( colormapInd );
 			double coeff = colorVal / colorRange;
 			col[0] = interpolate( m_lowIntensity.red( ), m_highIntensity.red( ), coeff );

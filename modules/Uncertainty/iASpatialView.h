@@ -4,7 +4,7 @@
 
 #include "iAUncertaintyImages.h"  // for vtkImagePointer
 
-#include <iAImageCoordinate.h>
+#include <iASlicerMode.h>
 
 #include <QMap>
 #include <QWidget>
@@ -52,10 +52,6 @@ private slots:
 	void SlicerModeButtonClicked(bool checked);
 	void SliceChanged(int);
 	void ImageButtonClicked();
-/*
-signals:
-	void ROISelected(iAImageCoordinate topLeftFront, iAImageCoordinate bottomRightBack);
-*/
 private:
 	QToolButton* AddImage(QString const & caption, vtkImagePointer img);
 	void AddImageDisplay(int idx);
@@ -70,7 +66,7 @@ private:
 	vtkSmartPointer<vtkLookupTable> m_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
 	std::shared_ptr<iAChannelData> m_selectionData;
-	int m_curMode;
+	iASlicerMode m_curMode;
 	QVector<QToolButton*> m_memberButtons;
 	QWidget* m_settings;
 	int m_slice;

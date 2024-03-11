@@ -1051,7 +1051,6 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 	QRect colorBarRect(topLeft.x(), topLeft.y(),
 		barWidth, height() - topLeft.y() - settings.plotsSpacing);
 	QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y()+colorBarRect.height() );
-	QMap<double, QColor>::iterator it;
 	for (size_t i = 0; i < m_lut->numberOfValues(); ++i)
 	{
 		double rgba[4];

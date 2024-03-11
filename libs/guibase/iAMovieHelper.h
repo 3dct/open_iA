@@ -13,5 +13,5 @@ class vtkGenericMovieWriter;
 class QString;
 
 iAguibase_API QString GetAvailableMovieFormats();
-iAguibase_API vtkSmartPointer<vtkGenericMovieWriter> GetMovieWriter(QString const & fileName, int quality);
+iAguibase_API vtkSmartPointer<vtkGenericMovieWriter> GetMovieWriter(QString const & fileName, int quality, int fps);
 iAguibase_API void printFinalLogMessage(vtkGenericMovieWriter* movieWriter, iASimpleAbortListener const& abortListener);

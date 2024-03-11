@@ -14,7 +14,7 @@ public:
 	virtual ~iANModalDataSetReducer(){}
 	virtual QList<std::shared_ptr<iAImageData>> reduce(const QList<
 		std::shared_ptr<iAImageData>>&) = 0;  // TODO: make input and output std::vector<vtkSmartPointer<vtkImageData>>
-	virtual int maxOutputLength() final
+	virtual uint maxOutputLength() final
 	{
 		return 4;
 	}

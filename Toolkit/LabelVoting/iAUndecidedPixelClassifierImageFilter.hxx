@@ -111,7 +111,7 @@ void iAUndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedG
 		probIt.push_back(std::vector<DblConstNeighborIt>());
 		for (size_t l = 0; l < m_labelCount; ++l)
 		{
-			probIt[i].push_back(DblConstNeighborIt(m_radius, m_probImgs[i][l], outputRegionForThread));
+			probIt[i].push_back(DblConstNeighborIt(m_radius, m_probImgs[static_cast<int>(i)][l], outputRegionForThread));
 			probIt[i][l].GoToBegin();
 		}
 	}
@@ -151,11 +151,11 @@ void iAUndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedG
 					if (probValue > probIt[i][fbgLabel].GetCenterPixel())
 					{
 						sbgLabel = fbgLabel;
-						fbgLabel = l;
+						fbgLabel = static_cast<int>(l);
 					}
 					else if (sbgLabel == -1 || probValue > probIt[i][sbgLabel].GetCenterPixel())
 					{
-						sbgLabel = l;
+						sbgLabel = static_cast<int>(l);
 					}
 				}
 				entropy = clamp(0.0, 1.0, -entropy*normalizeFactor);
@@ -186,7 +186,7 @@ void iAUndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedG
 						if (isInBounds && curProb > maxProb)
 						{
 							maxProb = curProb;
-							label = l;
+							label = static_cast<int>(l);
 							selectedNeighbor = n;
 						}
 					}
@@ -220,11 +220,11 @@ void iAUndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedG
 				if (fbgLabelFreq[l] > fbgLabelFreq[fgCand])
 				{
 					sgCand = fgCand;
-					fgCand = l;
+					fgCand = static_cast<int>(l);
 				}
 				else if ((sgCand == -1 && fbgLabelFreq[l] > 0) || (sgCand != -1 && fbgLabelFreq[l] > fbgLabelFreq[sgCand]))
 				{
-					sgCand = l;
+					sgCand = static_cast<int>(l);
 				}
 			}
 			std::vector<int> candidateLabels;
@@ -240,7 +240,7 @@ void iAUndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedG
 				// what if another label has the same frequency?
 				if (neiLabelFreq[l] > neiLabelFreq[neCand])
 				{
-					neCand = l;
+					neCand = static_cast<int>(l);
 				}
 			}
 			if (std::find(candidateLabels.begin(), candidateLabels.end(), neCand) == candidateLabels.end())

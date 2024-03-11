@@ -23,7 +23,7 @@ public:
 		iAXRFData const * xrfData,
 		iAAccumulatedXRFData const * accumulatedXRF);
 	void AddElement(iAElementSpectralInfo* element);
-	int ElementCount() const;
+	bool NoElements() const;
 	void Stop();
 	virtual void run();
 	iAProgress* progress();

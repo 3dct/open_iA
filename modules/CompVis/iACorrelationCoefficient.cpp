@@ -91,7 +91,7 @@ vtkSmartPointer<vtkTable> iACorrelationCoefficient::toVtkTable(QList<csvFileData
 {
 	// data preparation
 	QStringList attrNames = *m_dataStorage->getAttributeNamesWithoutLabel();
-	m_numberOfAttr = attrNames.size(); //amount of attributes
+	m_numberOfAttr = static_cast<int>(attrNames.size()); //amount of attributes
 
 
 	m_inputTable = vtkSmartPointer<vtkTable>::New();

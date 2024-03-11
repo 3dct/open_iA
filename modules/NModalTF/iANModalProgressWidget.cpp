@@ -27,7 +27,7 @@ int iANModalProgressWidget::addProgressBar(
 	QProgressBar* pb = new QProgressBar(this);
 	addWidget(pb, label, 0);
 
-	int id = m_bars.size();
+	int id = static_cast<int>(m_bars.size());
 
 	m_bars.append(pb);
 	m_barLabels.append(label);
