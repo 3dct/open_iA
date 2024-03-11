@@ -402,6 +402,9 @@ void iARemoteModuleInterface::Initialize()
 	{
 		return;
 	}
+
+	auto submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Remote"), false);
+
 	QAction* actionRemote = new QAction(tr("Remote Render Server"), m_mainWnd);
 	connect(actionRemote, &QAction::triggered, this,[this]()
 		{
@@ -419,15 +422,15 @@ void iARemoteModuleInterface::Initialize()
 			addToolToActiveMdiChild<iARemoteTool>(iARemoteTool::Name, m_mainWnd);
 		});
 	m_mainWnd->makeActionChildDependent(actionRemote);
-	addToMenuSorted(m_mainWnd->toolsMenu(), actionRemote);
+	addToMenuSorted(submenu, actionRemote);
 
-	QAction* actionWS = new QAction("WebSocket Server", m_mainWnd);
+	QAction* actionWS = new QAction("Unity Connection Server", m_mainWnd);
 	connect(actionWS, &QAction::triggered, this, [this]()
 		{
 			addToolToActiveMdiChild<iAWebSocketServerTool>(iAWebSocketServerTool::Name, m_mainWnd);
 		});
 	m_mainWnd->makeActionChildDependent(actionWS);
-	addToMenuSorted(m_mainWnd->toolsMenu(), actionWS);
+	addToMenuSorted(submenu, actionWS);
 
 	QAction* actionSlice = new QAction(iAPlaneSliceTool::Name, m_mainWnd);
 	connect(actionSlice, &QAction::triggered, this, [this]()
@@ -435,5 +438,5 @@ void iARemoteModuleInterface::Initialize()
 			addToolToActiveMdiChild<iAPlaneSliceTool>(iAPlaneSliceTool::Name, m_mainWnd);
 		});
 	m_mainWnd->makeActionChildDependent(actionSlice);
-	addToMenuSorted(m_mainWnd->toolsMenu(), actionSlice);
+	addToMenuSorted(submenu, actionSlice);
 }
