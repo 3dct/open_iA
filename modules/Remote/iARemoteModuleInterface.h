@@ -3,7 +3,6 @@
 #pragma once
 
 #include <iAGUIModuleInterface.h>
-#include <iAAnnotationTool.h>
 
 class iARemoteModuleInterface : public iAGUIModuleInterface
 {
