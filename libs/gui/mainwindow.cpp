@@ -749,6 +749,7 @@ void MainWindow::prefs()
 	styleNames.insert(Sys, SystemTheme);
 	styleNames.insert("Dark", DarkThemeQss);
 	styleNames.insert("Bright", BrightThemeQss);
+	styleNames.insert("None", "");
 	for (QString key: styleNames.keys())
 	{
 		looks.append(QString("%1%2")
@@ -1549,50 +1550,61 @@ QList<iAMdiChild*> MainWindow::mdiChildList()
 
 void MainWindow::applyQSS()
 {
-	// Load an application style
-	QFile styleFile(m_qssName);
-	if (styleFile.open( QFile::ReadOnly ))
+	QString style;
+	if (!m_qssName.isEmpty())
 	{
-		QTextStream styleIn(&styleFile);
-		QString style = styleIn.readAll();
-		styleFile.close();
-		qApp->setStyleSheet(style);
-
-#if (!__APPLE__)   // would prevent automatic recognition of bright/light mode on Mac OS, and doesn't change much there anyway:
-		QPalette p = QApplication::palette();
-		p.setColor(QPalette::Window,          brightMode() ? QColor(255, 255, 255) : QColor(  0,   0,   0));
-		p.setColor(QPalette::Base,            brightMode() ? QColor(255, 255, 255) : QColor(  0,   0,   0));
-		p.setColor(QPalette::ToolTipBase,     brightMode() ? QColor(255, 255, 255) : QColor(  0,   0,   0));
-		p.setColor(QPalette::Light,           brightMode() ? QColor(255, 255, 255) : QColor(  0,   0,   0));
-		p.setColor(QPalette::Midlight,        brightMode() ? QColor(240, 240, 240) : QColor( 15,  15,  15));
-		p.setColor(QPalette::AlternateBase,   brightMode() ? QColor(240, 240, 240) : QColor( 30,  30,  30));  // dark seems (to me, BF) to need a bit more contrast to be visible well
-		p.setColor(QPalette::Button,          brightMode() ? QColor(215, 215, 215) : QColor( 40,  40,  40));
-		p.setColor(QPalette::Mid,             brightMode() ? QColor(200, 200, 200) : QColor( 55,  55,  55));
-		p.setColor(QPalette::Dark,            brightMode() ? QColor(180, 180, 180) : QColor( 75,  75,  75));
-		p.setColor(QPalette::Shadow,          brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
-		//p.setColor(QPalette::Highlight,       brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));  // TODO: determine proper highlight colors
-		p.setColor(QPalette::HighlightedText, brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
-		p.setColor(QPalette::Text,            brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
-		p.setColor(QPalette::ToolTipText,     brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
-		p.setColor(QPalette::PlaceholderText, brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
-		p.setColor(QPalette::WindowText,      brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
-		QApplication::setPalette(p);
-#endif
-		// TODO: remove items with unset QPointers? But m_actionIcons will probably never grow really large anyway
-		for (auto a : m_actionIcons)
+		QFile styleFile(m_qssName);
+		if (!styleFile.open(QFile::ReadOnly))
 		{
-			if (a.first)
-			{
-				a.first->setIcon(iAThemeHelper::icon(a.second));
-			}
+			return;
 		}
-		emit styleChanged();
+		QTextStream styleIn(&styleFile);
+		style = styleIn.readAll();
+		styleFile.close();
 	}
+	QFile buttonIconFile(QString(":") + (brightMode() ? "bright" : "dark") + "-button-icons.qss");
+	if (!buttonIconFile.open(QFile::ReadOnly))
+	{
+		return;
+	}
+	QTextStream buttonIconsIn(&buttonIconFile);
+	style += buttonIconsIn.readAll();
+	buttonIconFile.close();
+	qApp->setStyleSheet(style);
+#if (!__APPLE__)   // would prevent automatic recognition of bright/light mode on Mac OS, and doesn't change much there anyway:
+	QPalette p = QApplication::palette();
+	p.setColor(QPalette::Window,          brightMode() ? QColor(255, 255, 255) : QColor(  0,   0,   0));
+	p.setColor(QPalette::Base,            brightMode() ? QColor(255, 255, 255) : QColor(  0,   0,   0));
+	p.setColor(QPalette::ToolTipBase,     brightMode() ? QColor(255, 255, 255) : QColor(  0,   0,   0));
+	p.setColor(QPalette::Light,           brightMode() ? QColor(255, 255, 255) : QColor(  0,   0,   0));
+	p.setColor(QPalette::Midlight,        brightMode() ? QColor(240, 240, 240) : QColor( 15,  15,  15));
+	p.setColor(QPalette::AlternateBase,   brightMode() ? QColor(240, 240, 240) : QColor( 30,  30,  30));  // dark seems (to me, BF) to need a bit more contrast to be visible well
+	p.setColor(QPalette::Button,          brightMode() ? QColor(215, 215, 215) : QColor( 40,  40,  40));
+	p.setColor(QPalette::Mid,             brightMode() ? QColor(200, 200, 200) : QColor( 55,  55,  55));
+	p.setColor(QPalette::Dark,            brightMode() ? QColor(180, 180, 180) : QColor( 75,  75,  75));
+	p.setColor(QPalette::Shadow,          brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
+	//p.setColor(QPalette::Highlight,       brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));  // TODO: determine proper highlight colors
+	p.setColor(QPalette::HighlightedText, brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
+	p.setColor(QPalette::Text,            brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
+	p.setColor(QPalette::ToolTipText,     brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
+	p.setColor(QPalette::PlaceholderText, brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
+	p.setColor(QPalette::WindowText,      brightMode() ? QColor(  0,   0,   0) : QColor(255, 255, 255));
+	QApplication::setPalette(p);
+#endif
+	// TODO: remove items with unset QPointers? But m_actionIcons will probably never grow really large anyway
+	for (auto a : m_actionIcons)
+	{
+		if (a.first)
+		{
+			a.first->setIcon(iAThemeHelper::icon(a.second));
+		}
+	}
+	emit styleChanged();
 }
 
 bool MainWindow::brightMode() const
 {
-	return m_qssName.contains("bright");
+	return m_qssName.isEmpty() || m_qssName.contains("bright");
 }
 
 void MainWindow::addActionIcon(QAction* action, QString const& iconName)

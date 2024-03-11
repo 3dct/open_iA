@@ -264,58 +264,6 @@ QPushButton
 	{
 		background-color: rgba(0, 0, 0, 255);
 	}
-	/*****************************************************************************/
-	/* Button icons (data dialog, FeatureScout class list, FeatureAnalyzer
-       computations module, annotations list, etc.)                              */
-	QToolButton[objectName="add_class"],
-	QToolButton[objectName="pbAdd"],
-	QPushButton[objectName="pbAdd"]  { qproperty-icon: url(:/images/plus_light.svg);  }
-	QToolButton[objectName="delete_class"],
-	QToolButton[objectName="pbRemove"],
-	QPushButton[objectName="pbRemove"] { qproperty-icon: url(:/images/minus_light.svg); }
-	QToolButton[objectName="tbEdit"] { qproperty-icon: url(:/images/edit_light.svg);  }
-	QToolButton[objectName="pushPX"] { qproperty-icon: url(:/images/px_light.svg); }
-	QToolButton[objectName="pushPY"] { qproperty-icon: url(:/images/py_light.svg); }
-	QToolButton[objectName="pushPZ"] { qproperty-icon: url(:/images/pz_light.svg); }
-	QToolButton[objectName="pushMX"] { qproperty-icon: url(:/images/mx_light.svg); }
-	QToolButton[objectName="pushMY"] { qproperty-icon: url(:/images/my_light.svg); }
-	QToolButton[objectName="pushMZ"] { qproperty-icon: url(:/images/mz_light.svg); }
-	QToolButton[objectName="pushIso"] { qproperty-icon: url(:/images/iso_light.svg); }
-	QToolButton[objectName="pbToggleInteraction"] { qproperty-icon: url(:/images/mouse-dot_light.svg); }
-	QToolButton[objectName="push3DView"],
-	QToolButton[objectName="pushRaycast"],
-	QToolButton[objectName="pushStability"],
-	QToolButton[objectName="pushPlacements"],
-	QToolButton[objectName="pushMaxTab"],
-	QToolButton[objectName="tbMax"] { qproperty-icon: url(:/images/zoom-in_light.svg); }
-	QToolButton[objectName="tb_opends"],
-	QToolButton[objectName="load_class"],
-	QToolButton[objectName="tbLoadTable"] { qproperty-icon: url(:/images/load_light.svg); }
-	QToolButton[objectName="tb_specifyds"],
-	QToolButton[objectName="save_class"],
-	QToolButton[objectName="tbSave"],
-	QToolButton[objectName="tb_saveVolume"],
-	QToolButton[objectName="tb_saveStl"],
-	QToolButton[objectName="tbSaveSettings"],
-	QToolButton[objectName="tbSaveTable"] { qproperty-icon: url(:/images/save_light.svg); }
-	QToolButton[objectName="pbSaveStack"] { qproperty-icon: url(:/images/save-all_light.svg); }
-	QToolButton[objectName="export_class"],
-	QToolButton[objectName="pbSaveScreen"] { qproperty-icon: url(:/images/image_light.svg); }
-	QToolButton[objectName="tbReload"],
-	QToolButton[objectName="updateEvents"] { qproperty-icon: url(:/images/update_light.svg); }
-	QToolButton[objectName="pbSaveMovie"] { qproperty-icon: url(:/images/movie_light.svg); }
-	QToolButton[objectName="pbAbort"] { qproperty-icon: url(:/images/close_light.svg); }
-	QToolButton[objectName="tbAddPoint"] { qproperty-icon: url(:/images/function-point-add_light.svg); }
-	QToolButton[objectName="tbRemovePoint"] { qproperty-icon: url(:/images/function-point-remove_light.svg); }
-	QToolButton[objectName="distributionCSV"] { qproperty-icon: url(:/images/histogram_light.svg); }
-	QToolButton[objectName="savexml"] { qproperty-icon: url(:/images/xml-save_light.svg); }
-	QToolButton[objectName="tb_ModTF"] { qproperty-icon: url(:/images/histogram-tf_light.svg); }
-	QToolButton[objectName="tbPlay"]  { qproperty-icon: url(:/images/media-play_light.svg); }
-	QToolButton[objectName="tbPause"]  { qproperty-icon: url(:/images/media-pause_light.svg); }
-	QToolButton[objectName="tbStop"]  { qproperty-icon: url(:/images/media-stop_light.svg); }
-	QToolButton[objectName="tbPrev"]  { qproperty-icon: url(:/images/media-prev_light.svg); }
-	QToolButton[objectName="tbNext"]  { qproperty-icon: url(:/images/media-next_light.svg); }
-
 /****************************************************************************
 QTabWidget
 QTabBar

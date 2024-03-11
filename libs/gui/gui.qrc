@@ -2,6 +2,8 @@
   <qresource prefix="/">
     <file>bright.qss</file>
     <file>dark.qss</file>
+    <file>bright-button-icons.qss</file>
+    <file>dark-button-icons.qss</file>
     <file>images/Crosshair thick.png</file>
     <file>images/Crosshair thin.png</file>
     <file>images/Xmas.png</file>
