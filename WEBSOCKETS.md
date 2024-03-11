@@ -122,6 +122,13 @@ stateDiagram-v2
 
 > [!IMPORTANT]
 > All transformation operations currently take **floats**. If **double** operations are needed, we can add them later.
+
+Current List of fixed IDs:
+|ID|Object|
+|-|-|
+|0|Object|
+|1|Slicing Plane|
+
 <!---
 
 ### Register Object
