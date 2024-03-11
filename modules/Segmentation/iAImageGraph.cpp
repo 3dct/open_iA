@@ -136,7 +136,7 @@ iAImageGraph::iAImageGraph(iAVoxelIndexType width, iAVoxelIndexType height, iAVo
 	}
 }
 
-bool iAImageGraph::containsEdge(iAVoxelIndexType voxel1, iAVoxelIndexType voxel2)
+bool iAImageGraph::containsEdge(iAFlatIndexType voxel1, iAFlatIndexType voxel2)
 {
 	for (int i=0; i<m_edges.size(); ++i)
 	{
@@ -152,8 +152,8 @@ bool iAImageGraph::containsEdge(iAVoxelIndexType voxel1, iAVoxelIndexType voxel2
 
 bool iAImageGraph::containsEdge(iAImageCoordinate voxel1, iAImageCoordinate voxel2)
 {
-	iAVoxelIndexType idx1 = m_converter.indexFromCoordinates(voxel1);
-	iAVoxelIndexType idx2 = m_converter.indexFromCoordinates(voxel2);
+	auto idx1 = m_converter.indexFromCoordinates(voxel1);
+	auto idx2 = m_converter.indexFromCoordinates(voxel2);
 	return containsEdge(idx1, idx2);
 }
 
@@ -169,8 +169,8 @@ iAEdgeType const & iAImageGraph::edge(iAEdgeIndexType idx) const
 
 void iAImageGraph::addEdge(iAImageCoordinate voxel1, iAImageCoordinate voxel2)
 {
-	iAVoxelIndexType idx1 = m_converter.indexFromCoordinates(voxel1);
-	iAVoxelIndexType idx2 = m_converter.indexFromCoordinates(voxel2);
+	auto idx1 = m_converter.indexFromCoordinates(voxel1);
+	auto idx2 = m_converter.indexFromCoordinates(voxel2);
 	/*
 	assert (!ContainsEdge(idx1, idx2));
 	assert (!ContainsEdge(idx2, idx1));

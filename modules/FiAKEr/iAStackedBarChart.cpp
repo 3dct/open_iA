@@ -279,7 +279,7 @@ int iAStackedBarChart::barIndex(QString const& name) const
 {
 	auto it = std::find_if(m_bars.begin(), m_bars.end(),
 		[name](std::shared_ptr<iABarData> d) { return d->name == name; });
-	return it == m_bars.end() ? -1 : it - m_bars.begin();
+	return it == m_bars.end() ? -1 : static_cast<int>(it - m_bars.begin());
 }
 
 void iAStackedBarChart::setColorTheme(iAColorTheme const * theme)

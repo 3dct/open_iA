@@ -80,7 +80,7 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	{
 		layout->addWidget(m_charts[c]);
 	}
-	contentWidget->setMinimumHeight((m_charts.size()) * 100);
+	contentWidget->setMinimumHeight(static_cast<int>(m_charts.size()) * 100);
 	this->setWidget(contentWidget);
 }
 

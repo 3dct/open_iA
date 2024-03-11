@@ -72,7 +72,7 @@ private:
 	double screenToValueX(const int& _iValueX) const;
 	double screenToValueY(const int& _iValueY) const;
 
-	int selected(const int& _iX, const int& _iY) const;
+	vtkIdType selected(const int& _iX, const int& _iY) const;
 
 	int valueToScreenX(const double& _dValueX) const;
 	int valueToScreenY(const double& _dValueY) const;

@@ -69,10 +69,9 @@ void iARangeSliderDiagramWidget::mouseDoubleClickEvent( QMouseEvent * /*event*/ 
 {
 }
 
-void iARangeSliderDiagramWidget::mousePressEvent( QMouseEvent *event )
+void iARangeSliderDiagramWidget::mousePressEvent(QMouseEvent* event)
 {
-	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
-	iAChartFunction *func = *( it + m_selectedFunction );
+	auto func = m_functions[m_selectedFunction];
 	int mouseX = event->position().x() - leftMargin();
 	int selectedPoint = func->selectPoint(mouseX, chartHeight() - event->position().y());
 
@@ -100,11 +99,7 @@ void iARangeSliderDiagramWidget::mousePressEvent( QMouseEvent *event )
 		// mouse event plus CTRL above X-axis
 		if ( ( event->modifiers() & Qt::ControlModifier ) == Qt::ControlModifier )
 		{
-			if (getBin(event) == -1)
-			{
-				return;
-			}
-
+			// TODO: check if outside range: getBin always clamps to valid bins!
 			m_selectionOrigin = event->pos();
 			m_selectionRubberBand->setGeometry( QRect( m_selectionOrigin, QSize() ) );
 			m_selectionRubberBand->show();
@@ -146,9 +141,7 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 {
 	if ( event->button() == Qt::RightButton )
 	{
-		std::vector<iAChartFunction*>::iterator it = m_functions.begin();
-		iAChartFunction *func = *( it + m_selectedFunction );
-		func->selectPoint(event->position().x() - leftMargin(), chartHeight() - event->position().y());
+		m_functions[m_selectedFunction]->selectPoint(event->position().x() - leftMargin(), chartHeight() - event->position().y());
 		update();
 	}
 	else if ( event->button() == Qt::LeftButton )
@@ -160,8 +153,7 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 			m_selectionRubberBand->hide();
 			m_lastSelectedBin = getBin( event );
 
-			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
-			iAChartFunction* func = *(it + m_selectedFunction);
+			auto func = m_functions[m_selectedFunction];
 			int mouseX = event->position().x() - leftMargin();
 			int selectedPoint = func->selectPoint(mouseX, chartHeight() - event->position().y());
 
@@ -198,10 +190,8 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 				emit selected();
 			}
 
-			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
-			iAChartFunction *func = *( it + m_selectedFunction );
-
 			//Handle snap
+			auto func = m_functions[m_selectedFunction];
 			if (func->getSelectedPoint() == 1)
 			{
 				func->moveSelectedPoint(dataBin2ScreenX(m_firstSelectedBin) - m_xMapper->srcToDst(m_xShift), 0);
@@ -230,8 +220,7 @@ void iARangeSliderDiagramWidget::mouseMoveEvent( QMouseEvent *event )
 		else if ( event->position().y() > geometry().height() - bottomMargin() - m_translationY
 		  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) )	// mouse event below X-axis
 		{
-			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
-			iAChartFunction *func = *( it + m_selectedFunction );
+			auto func = m_functions[m_selectedFunction];
 			int x = event->position().x() - leftMargin();
 			int selectedPoint = func->getSelectedPoint();
 
@@ -278,14 +267,14 @@ void iARangeSliderDiagramWidget::contextMenuEvent( QContextMenuEvent * /*event*/
 
 int iARangeSliderDiagramWidget::getBin( QMouseEvent *event )
 {
-	int nthBin = m_data->nearestIdx(mouse2DataX(event->position().x() - leftMargin()));
+	auto nthBin = m_data->nearestIdx(mouse2DataX(event->position().x() - leftMargin()));
 	QString text( tr( "%1: %2 %\n%3: %4" )
 				  .arg( m_yLabel )
 				  .arg( m_data->yValue(nthBin) )
 				  .arg( m_xLabel )
 				  .arg( (m_data->spacing() * nthBin + xBounds()[0] ) ) );
 	QToolTip::showText(event->globalPosition().toPoint(), text, this);
-	return nthBin;
+	return static_cast<int>(nthBin);
 }
 
 void iARangeSliderDiagramWidget::setupSelectionDrawer()

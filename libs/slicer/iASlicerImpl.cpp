@@ -519,11 +519,50 @@ void iASlicerImpl::saveMovie()
 		QMessageBox::information( this, "Movie Export", "This version of open_iA was built without movie export support!");
 		return;
 	}
+	auto channelID = firstVisibleChannel();
+	if (channelID == NotExistingChannel)
+	{
+		return;
+	}
 	QString fileName = QFileDialog::getSaveFileName( this,
 		tr( "Export as a movie" ),
 		"", // TODO: get directory of file?
 		movie_file_types );
-	saveSliceMovie( fileName );
+	if (fileName.isEmpty())
+	{
+		return;
+	}
+	int const* imgExtent = m_channels[channelID]->input()->GetExtent();
+	int const sliceZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+	int const sliceFrom = imgExtent[sliceZAxisIdx * 2];
+	int const sliceTo = imgExtent[sliceZAxisIdx * 2 + 1];
+	iAAttributes params;
+	addAttr(params, "Start slice", iAValueType::Discrete, sliceFrom, sliceFrom, sliceTo);
+	addAttr(params, "End slice", iAValueType::Discrete, sliceTo, sliceFrom, sliceTo);
+	addAttr(params, "Video quality", iAValueType::Discrete, 2, 0, 2);
+	addAttr(params, "Frame rate", iAValueType::Discrete, 25, 1, 1000);
+	iAParameterDlg dlg(this, "Save movie options", params,
+		"Creates a movie by slicing through the object.<br>"
+		"The <em>start slice</em> defines the number of the first slice shown in the video. "
+		"The <em>end slice</em> defines the number of the last slice shown in the video. "
+		"The <em>video quality</em> specifies the quality of the output video (range: 0..2, 0 - worst, 2 - best; default: 2). "
+		"The <em>frame rate</em> specifies the frames per second (default: 25). ");
+	if (dlg.exec() != QDialog::Accepted)
+	{
+		return;
+	}
+	auto pVals = dlg.parameterValues();
+	auto start = pVals["Start slice"].toInt();
+	auto end = pVals["End slice"].toInt();
+	if (start == end)
+	{
+		QMessageBox::information(this, "Movie Export", "Start slice is the same as end slice! To export a single slice, please use the image export!");
+		return;
+	}
+	auto quality = pVals["Video quality"].toInt();
+	auto fps = pVals["Frame rate"].toInt();
+
+	saveSliceMovie(fileName, start, end, quality, fps);
 }
 
 void iASlicerImpl::setSliceNumber( int sliceNumber )
@@ -897,7 +936,7 @@ void iASlicerImpl::showPosition(bool s)
 	m_showPositionMarker = s;
 }
 
-void iASlicerImpl::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
+void iASlicerImpl::saveSliceMovie(QString const& fileName, int sliceFrom, int sliceTo, int qual, int fps)
 {
 	// TODO: select channel / for all channels?
 	auto channelID = firstVisibleChannel();
@@ -911,7 +950,7 @@ void iASlicerImpl::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 		QMessageBox::information(this, "Movie Export", "This version of open_iA was built without movie export support!");
 		return;
 	}
-	auto movieWriter = GetMovieWriter(fileName, qual);
+	auto movieWriter = GetMovieWriter(fileName, qual, fps);
 	if (movieWriter.GetPointer() == nullptr)
 	{
 		return;
@@ -940,7 +979,6 @@ void iASlicerImpl::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 	movieWriter->SetInputConnection(windowToImage->GetOutputPort());
 	movieWriter->Start();
 
-	int const * imgExtent = m_channels[channelID]->input()->GetExtent();
 	double const * imgOrigin = m_channels[channelID]->input()->GetOrigin();
 	double const * imgSpacing = m_channels[channelID]->input()->GetSpacing();
 
@@ -953,9 +991,8 @@ void iASlicerImpl::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 		movingOrigin[i] = imgOrigin[i];
 	}
 	int const sliceZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
-	int const sliceFrom = imgExtent[sliceZAxisIdx * 2];
-	int const sliceTo = imgExtent[sliceZAxisIdx * 2 + 1];
-	for (int slice = sliceFrom; slice <= sliceTo && !aborter.isAborted(); slice++)
+	auto sliceIncr = (sliceTo - sliceFrom) > 0 ? 1 : -1;
+	for (int slice = sliceFrom; slice != (sliceTo+sliceIncr) && !aborter.isAborted(); slice += sliceIncr)
 	{
 		movingOrigin[sliceZAxisIdx] = imgOrigin[sliceZAxisIdx] + slice * imgSpacing[sliceZAxisIdx];
 		m_channels[channelID]->setResliceAxesOrigin(movingOrigin[0], movingOrigin[1], movingOrigin[2]);
@@ -2528,8 +2565,10 @@ void iASlicerImpl::updateFisheyeTransform(double focalPt[3], vtkImageReslice* re
 	double bounds[6];
 	reslicer->GetInformationInput()->GetBounds(bounds);
 
-	m_pointsTarget->SetNumberOfPoints(32); // already set above!
-	m_pointsSource->SetNumberOfPoints(32);
+	const vtkIdType FixPoints = 8;
+	const vtkIdType NumPoints = 4 * FixPoints;
+	m_pointsTarget->SetNumberOfPoints(NumPoints); // already set above!
+	m_pointsSource->SetNumberOfPoints(NumPoints);
 	int sn = sliceNumber();
 
 	switch (m_mode)
@@ -2567,19 +2606,17 @@ void iASlicerImpl::updateFisheyeTransform(double focalPt[3], vtkImageReslice* re
 	default:
 		break;
 	}
-
-	for (int i = 0; i < m_pointsTarget->GetNumberOfPoints() - (m_pointsTarget->GetNumberOfPoints() - 8); ++i)
+	for (vtkIdType i = 0; i < FixPoints; ++i)
 	{
 		m_pointsSource->SetPoint(i, m_pointsTarget->GetPoint(i));
 	}
-	int fixPoints = 8;
 	// outer circle 1
 	double fixRadiusX;
 	double fixRadiusY;
-	for (int fix = m_pointsTarget->GetNumberOfPoints() - 8 - 8 - 8; fix < m_pointsTarget->GetNumberOfPoints() - 8 - 8; fix++)
+	for (auto fix = FixPoints; fix < 2*FixPoints; ++fix)
 	{
-		fixRadiusX = (lensRadius + 15.0)* std::cos(fix * (360 / fixPoints) * vtkMath::Pi() / 180) * spacing[0];
-		fixRadiusY = (lensRadius + 15.0)* std::sin(fix * (360 / fixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		fixRadiusX = (lensRadius + 15.0)* std::cos(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		fixRadiusY = (lensRadius + 15.0)* std::sin(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
 
 		switch (m_mode)
 		{
@@ -2600,11 +2637,10 @@ void iASlicerImpl::updateFisheyeTransform(double focalPt[3], vtkImageReslice* re
 		}
 	}
 	// outer circle 2
-	fixPoints = 8;
-	for (int fix = m_pointsTarget->GetNumberOfPoints() - 8 - 8; fix < m_pointsTarget->GetNumberOfPoints() - 8; fix++)
+	for (auto fix = 2*FixPoints; fix < 3*FixPoints; ++fix)
 	{
-		fixRadiusX = (lensRadius + 80.0)* std::cos(fix * (360 / fixPoints) * vtkMath::Pi() / 180) * spacing[0];
-		fixRadiusY = (lensRadius + 80.0)* std::sin(fix * (360 / fixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		fixRadiusX = (lensRadius + 80.0)* std::cos(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		fixRadiusY = (lensRadius + 80.0)* std::sin(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
 
 		switch (m_mode)
 		{
@@ -2625,28 +2661,27 @@ void iASlicerImpl::updateFisheyeTransform(double focalPt[3], vtkImageReslice* re
 		}
 	}
 
-	int pointsCount = 8;
-	for (int i = m_pointsTarget->GetNumberOfPoints() - pointsCount; i < m_pointsTarget->GetNumberOfPoints(); ++i)
+	for (auto fix = 3*FixPoints; fix < NumPoints; ++fix)
 	{
-		double xCoordCircle1 = (innerLensRadius)* std::cos(i * (360 / pointsCount) * vtkMath::Pi() / 180) * spacing[0];
-		double yCoordCircle1 = (innerLensRadius)* std::sin(i * (360 / pointsCount) * vtkMath::Pi() / 180) * spacing[0];
+		double xCoordCircle1 = (innerLensRadius)* std::cos(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		double yCoordCircle1 = (innerLensRadius)* std::sin(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
 
-		double xCoordCircle2 = (lensRadius)* std::cos(i * (360 / pointsCount) * vtkMath::Pi() / 180) * spacing[0];
-		double yCoordCircle2 = (lensRadius)* std::sin(i * (360 / pointsCount) * vtkMath::Pi() / 180) * spacing[0];
+		double xCoordCircle2 = (lensRadius)* std::cos(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		double yCoordCircle2 = (lensRadius)* std::sin(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
 
 		switch (m_mode)
 		{
 		case iASlicerMode::YZ:
-			m_pointsTarget->SetPoint(i, sn * spacing[0], focalPt[0] + xCoordCircle1, focalPt[1] + yCoordCircle1);
-			m_pointsSource->SetPoint(i, sn * spacing[0], focalPt[0] + xCoordCircle2, focalPt[1] + yCoordCircle2);
+			m_pointsTarget->SetPoint(fix, sn * spacing[0], focalPt[0] + xCoordCircle1, focalPt[1] + yCoordCircle1);
+			m_pointsSource->SetPoint(fix, sn * spacing[0], focalPt[0] + xCoordCircle2, focalPt[1] + yCoordCircle2);
 			break;
 		case iASlicerMode::XZ:
-			m_pointsTarget->SetPoint(i, focalPt[0] + xCoordCircle1, sn * spacing[1], focalPt[1] + yCoordCircle1);
-			m_pointsSource->SetPoint(i, focalPt[0] + xCoordCircle2, sn * spacing[1], focalPt[1] + yCoordCircle2);
+			m_pointsTarget->SetPoint(fix, focalPt[0] + xCoordCircle1, sn * spacing[1], focalPt[1] + yCoordCircle1);
+			m_pointsSource->SetPoint(fix, focalPt[0] + xCoordCircle2, sn * spacing[1], focalPt[1] + yCoordCircle2);
 			break;
 		case iASlicerMode::XY:
-			m_pointsTarget->SetPoint(i, focalPt[0] + xCoordCircle1, focalPt[1] + yCoordCircle1, sn * spacing[2]);
-			m_pointsSource->SetPoint(i, focalPt[0] + xCoordCircle2, focalPt[1] + yCoordCircle2, sn * spacing[2]);
+			m_pointsTarget->SetPoint(fix, focalPt[0] + xCoordCircle1, focalPt[1] + yCoordCircle1, sn * spacing[2]);
+			m_pointsSource->SetPoint(fix, focalPt[0] + xCoordCircle2, focalPt[1] + yCoordCircle2, sn * spacing[2]);
 			break;
 		default:
 			break;
@@ -2654,7 +2689,7 @@ void iASlicerImpl::updateFisheyeTransform(double focalPt[3], vtkImageReslice* re
 	}
 
 	// Set position and text for green circle1 actors
-	for (int i = 0; i < m_pointsTarget->GetNumberOfPoints(); ++i)
+	for (vtkIdType i = 0; i < NumPoints; ++i)
 	{
 		int idx1 = (m_mode == iASlicerMode::YZ) ? 1 : 0;
 		int idx2 = (m_mode == iASlicerMode::XY) ? 1 : 2;

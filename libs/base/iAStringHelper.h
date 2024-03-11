@@ -164,12 +164,12 @@ void valuesFromString(T& val, QString const & str, QString const & sep = " ")
 }
 
 template <typename ContainerT, typename ElementT>
-ContainerT stringToVector(QString const& listAsString, QString const& separator=",", int maxItems=std::numeric_limits<int>::max(),
+ContainerT stringToVector(QString const& listAsString, QString const& separator=",", qsizetype maxItems=std::numeric_limits<qsizetype>::max(),
 	bool warnWhenInvalid = true)
 {
 	QStringList strList = listAsString.split(separator);
-	ContainerT result(std::min(static_cast<int>(strList.size()), maxItems));
-	for (auto i = 0; i < strList.size() && i < maxItems; ++i)
+	ContainerT result(std::min(strList.size(), maxItems));
+	for (qsizetype i = 0; i < strList.size() && i < maxItems; ++i)
 	{
 		bool ok;
 		result[i] = iAConverter<ElementT>::toT(strList[i], &ok);
@@ -246,10 +246,10 @@ iAbase_API QString joinQVariantAsString(QVector<QVariant> const& vec, QString co
 
 //! Find the (length of the) greatest common prefix of the two given strings.
 //! example: str1 ="BaseMethod", str2="BaseMember" => result: "BaseMe"
-iAbase_API int greatestCommonPrefixLength(QString const & str1, QString const & str2);
+iAbase_API qsizetype greatestCommonPrefixLength(QString const & str1, QString const & str2);
 iAbase_API QString greatestCommonPrefix(QString const & str1, QString const & str2);
 
-iAbase_API int greatestCommonSuffixLength(QString const & str1, QString const & str2);
+iAbase_API qsizetype greatestCommonSuffixLength(QString const & str1, QString const & str2);
 iAbase_API QString greatestCommonSuffix(QString const & str1, QString const & str2);
 
 //! Get the number of digits required for the given number (before the comma).

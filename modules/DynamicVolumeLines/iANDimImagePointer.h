@@ -48,7 +48,7 @@ namespace std {
 			size_t retVal = 0;
 			for (unsigned int j = 0; j < k._size; j++)
 			{
-				retVal = retVal * 31 + (hash<int>()(k.indizes[j]));
+				retVal = retVal * 31 + (hash<int>()(static_cast<int>(k.indizes[j])));
 			}
 
 			return retVal;

@@ -63,12 +63,12 @@ iAvtkTubeFilter::iAvtkTubeFilter()
 
 void iAvtkTubeFilter::SetIndividualFactors(float* indivFactors)
 {
-	this->IndividualFactors = indivFactors;
+  this->IndividualFactors = indivFactors;
 }
 
 std::vector<std::pair<vtkIdType, vtkIdType>> iAvtkTubeFilter::GetFinalObjectPointMap()
 {
-	return m_finalObjectPointMap;
+  return m_finalObjectPointMap;
 }
 
 
@@ -172,7 +172,7 @@ int iAvtkTubeFilter::RequestData(
   newNormals->SetNumberOfComponents(3);
   newNormals->Allocate(3*numNewPts);
   newStrips = vtkCellArray::New();
-  newStrips->Allocate(newStrips->EstimateSize(1,numNewPts));
+  newStrips->Allocate(newStrips->EstimateSize(1, static_cast<int>(numNewPts)));
   vtkCellArray *singlePolyline = vtkCellArray::New();
 
   // Point data: copy scalars, vectors, tcoords. Normals may be computed here.
@@ -297,8 +297,8 @@ int iAvtkTubeFilter::RequestData(
       continue; //skip tubing this polyline
     }
 
-	//Store number of final points for each line
-	m_finalObjectPointMap.push_back(std::make_pair(offset, newPts->GetNumberOfPoints() - offset));
+    //Store number of final points for each line
+    m_finalObjectPointMap.push_back(std::make_pair(offset, newPts->GetNumberOfPoints() - offset));
 
     // Generate the strips for this polyline (including caps)
     //
@@ -488,8 +488,8 @@ int iAvtkTubeFilter::GeneratePoints(vtkIdType offset,
               this->VaryRadius == VTK_VARY_RADIUS_BY_ABSOLUTE_SCALAR )
     {
       sFactor = inScalars->GetComponent(pts[j],0) * this->RadiusFactor;
-	  if (this->IndividualFactors)
-		sFactor *= this->IndividualFactors[pts[j]];
+      if (this->IndividualFactors)
+        sFactor *= this->IndividualFactors[pts[j]];
       if (sFactor < 0.0)
       {
         vtkWarningMacro(<<"Scalar value less than zero, skipping line");
@@ -549,7 +549,7 @@ int iAvtkTubeFilter::GeneratePoints(vtkIdType offset,
   //Produce end points for cap. They are placed at tail end of points.
   if (this->Capping)
   {
-    int numCapSides = this->NumberOfSides;
+    auto numCapSides = this->NumberOfSides;
     int capIncr = 1;
     if ( ! this->SidesShareVertices )
     {
@@ -567,7 +567,7 @@ int iAvtkTubeFilter::GeneratePoints(vtkIdType offset,
       ptId++;
     }
     //the end cap
-    int endOffset = offset + (npts-1)*this->NumberOfSides;
+    auto endOffset = offset + (npts-1)*this->NumberOfSides;
     if ( ! this->SidesShareVertices )
     {
       endOffset = offset + 2*(npts-1)*this->NumberOfSides;
@@ -591,22 +591,18 @@ void iAvtkTubeFilter::GenerateStrips(vtkIdType offset, vtkIdType npts,
                                    vtkCellData *cd, vtkCellData *outCD,
                                    vtkCellArray *newStrips)
 {
-  vtkIdType i, outCellId;
-  int k;
-  int i1, i2, i3;
-
   if (this->SidesShareVertices)
   {
-    for (k=this->Offset; k<(this->NumberOfSides+this->Offset);
+    for (vtkIdType k=this->Offset; k<(this->NumberOfSides+this->Offset);
          k+=this->OnRatio)
     {
-      i1 = k % this->NumberOfSides;
-      i2 = (k+1) % this->NumberOfSides;
-      outCellId = newStrips->InsertNextCell(npts*2);
+      vtkIdType i1 = k % this->NumberOfSides;
+      vtkIdType i2 = (k+1) % this->NumberOfSides;
+      vtkIdType outCellId = newStrips->InsertNextCell(static_cast<int>(npts*2));
       outCD->CopyData(cd,inCellId,outCellId);
-      for (i=0; i < npts; i++)
+      for (vtkIdType i=0; i < npts; i++)
       {
-        i3 = i*this->NumberOfSides;
+        vtkIdType i3 = i*this->NumberOfSides;
         newStrips->InsertCellPoint(offset+i2+i3);
         newStrips->InsertCellPoint(offset+i1+i3);
       }
@@ -614,16 +610,16 @@ void iAvtkTubeFilter::GenerateStrips(vtkIdType offset, vtkIdType npts,
   }
   else
   {
-    for (k=this->Offset; k<(this->NumberOfSides+this->Offset);
+    for (vtkIdType k=this->Offset; k<(this->NumberOfSides+this->Offset);
          k+=this->OnRatio)
     {
-      i1 = 2*(k % this->NumberOfSides) + 1;
-      i2 = 2*((k+1) % this->NumberOfSides);
-      outCellId = newStrips->InsertNextCell(npts*2);
+      vtkIdType i1 = 2*(k % this->NumberOfSides) + 1;
+      vtkIdType i2 = 2*((k+1) % this->NumberOfSides);
+      vtkIdType outCellId = newStrips->InsertNextCell(static_cast<int>(npts*2));
       outCD->CopyData(cd,inCellId,outCellId);
-      for (i=0; i < npts; i++)
+      for (vtkIdType i=0; i < npts; i++)
       {
-        i3 = i*2*this->NumberOfSides;
+        vtkIdType i3 = i*2*this->NumberOfSides;
         newStrips->InsertCellPoint(offset+i2+i3);
         newStrips->InsertCellPoint(offset+i1+i3);
       }
@@ -643,11 +639,11 @@ void iAvtkTubeFilter::GenerateStrips(vtkIdType offset, vtkIdType npts,
     }
 
     //The start cap
-    outCellId = newStrips->InsertNextCell(this->NumberOfSides);
+    vtkIdType outCellId = newStrips->InsertNextCell(static_cast<int>(this->NumberOfSides));
     outCD->CopyData(cd,inCellId,outCellId);
     newStrips->InsertCellPoint(startIdx);
     newStrips->InsertCellPoint(startIdx+1);
-    for (i1=this->NumberOfSides-1, i2=2, k=0; k<(this->NumberOfSides-2); k++)
+    for (vtkIdType i1=this->NumberOfSides-1, i2=2, k=0; k<(this->NumberOfSides-2); k++)
     {
       if ( (k%2) )
       {
@@ -665,11 +661,11 @@ void iAvtkTubeFilter::GenerateStrips(vtkIdType offset, vtkIdType npts,
 
     //The end cap - reversed order to be consistent with normal
     startIdx += this->NumberOfSides;
-    outCellId = newStrips->InsertNextCell(this->NumberOfSides);
+    outCellId = newStrips->InsertNextCell(static_cast<int>(this->NumberOfSides));
     outCD->CopyData(cd,inCellId,outCellId);
     newStrips->InsertCellPoint(startIdx);
     newStrips->InsertCellPoint(startIdx+this->NumberOfSides-1);
-    for (i1=this->NumberOfSides-2, i2=1, k=0; k<(this->NumberOfSides-2); k++)
+    for (vtkIdType i1=this->NumberOfSides-2, i2=1, k=0; k<(this->NumberOfSides-2); k++)
     {
       if ( (k%2) )
       {
@@ -693,11 +689,9 @@ void iAvtkTubeFilter::GenerateTextureCoords(vtkIdType offset,
                                           vtkDataArray *inScalars,
                                           vtkFloatArray *newTCoords)
 {
-  vtkIdType i;
-  int k;
   double tc=0.0;
 
-  int numSides = this->NumberOfSides;
+  vtkIdType numSides = this->NumberOfSides;
   if ( ! this->SidesShareVertices )
   {
     numSides = 2 * this->NumberOfSides;
@@ -707,11 +701,11 @@ void iAvtkTubeFilter::GenerateTextureCoords(vtkIdType offset,
   if ( this->GenerateTCoords == VTK_TCOORDS_FROM_SCALARS )
   {
     s0 = inScalars->GetTuple1(pts[0]);
-    for (i=0; i < npts; i++)
+    for (vtkIdType i=0; i < npts; i++)
     {
       s = inScalars->GetTuple1(pts[i]);
       tc = (s - s0) / this->TextureLength;
-      for ( k=0; k < numSides; k++)
+      for (vtkIdType k=0; k < numSides; k++)
       {
         double tcy = static_cast<double>(k) / (numSides - 1);
         newTCoords->InsertTuple2(offset + i * numSides + k, tc, tcy);
@@ -722,12 +716,12 @@ void iAvtkTubeFilter::GenerateTextureCoords(vtkIdType offset,
   {
     double xPrev[3], x[3], len=0.0;
     inPts->GetPoint(pts[0],xPrev);
-    for (i=0; i < npts; i++)
+    for (vtkIdType i=0; i < npts; i++)
     {
       inPts->GetPoint(pts[i],x);
       len += sqrt(vtkMath::Distance2BetweenPoints(x, xPrev));
       tc = len / this->TextureLength;
-      for ( k=0; k < numSides; k++)
+      for (vtkIdType k=0; k < numSides; k++)
       {
         double tcy = static_cast<double>(k) / (numSides - 1);
         newTCoords->InsertTuple2(offset + i * numSides + k, tc, tcy);
@@ -740,7 +734,7 @@ void iAvtkTubeFilter::GenerateTextureCoords(vtkIdType offset,
   {
     double xPrev[3], x[3], length=0.0, len=0.0;
     inPts->GetPoint(pts[0],xPrev);
-    for (i=0; i < npts; i++)
+    for (vtkIdType i=0; i < npts; i++)
     {
       inPts->GetPoint(pts[i],x);
       length += sqrt(vtkMath::Distance2BetweenPoints(x,xPrev));
@@ -748,12 +742,12 @@ void iAvtkTubeFilter::GenerateTextureCoords(vtkIdType offset,
     }
 
     inPts->GetPoint(pts[0],xPrev);
-    for (i=0; i < npts; i++)
+    for (vtkIdType i=0; i < npts; i++)
     {
       inPts->GetPoint(pts[i],x);
       len += sqrt(vtkMath::Distance2BetweenPoints(x,xPrev));
       tc = len / length;
-      for ( k=0; k < numSides; k++)
+      for (vtkIdType k=0; k < numSides; k++)
       {
         double tcy = static_cast<double>(k) / (numSides - 1);
         newTCoords->InsertTuple2(offset + i * numSides + k, tc, tcy);
@@ -765,17 +759,16 @@ void iAvtkTubeFilter::GenerateTextureCoords(vtkIdType offset,
   // Capping, set the endpoints as appropriate
   if ( this->Capping )
   {
-    int ik;
     vtkIdType startIdx = offset + npts*numSides;
 
     //start cap
-    for (ik=0; ik < this->NumberOfSides; ik++)
+    for (vtkIdType ik=0; ik < this->NumberOfSides; ik++)
     {
       newTCoords->InsertTuple2(startIdx+ik,0.0,0.0);
     }
 
     //end cap
-    for (ik=0; ik < this->NumberOfSides; ik++)
+    for (vtkIdType ik=0; ik < this->NumberOfSides; ik++)
     {
       newTCoords->InsertTuple2(startIdx+this->NumberOfSides+ik,tc,0.0);
     }

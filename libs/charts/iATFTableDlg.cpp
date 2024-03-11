@@ -58,7 +58,7 @@ iATFTableDlg::iATFTableDlg(QWidget* parent, iAChartFunction* func) :
 	addPnt->setShortcut(Qt::Key_Space);
 	addAction(addPnt);
 	table->addAction(removePnt);
-	table->setColumnCount(columnNames.size());
+	table->setColumnCount(static_cast<int>(columnNames.size()));
 	table->setHorizontalHeaderLabels(columnNames);
 	table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 	table->verticalHeader()->setDefaultSectionSize(25);
@@ -74,7 +74,7 @@ iATFTableDlg::iATFTableDlg(QWidget* parent, iAChartFunction* func) :
 	connect(table, &QTableWidget::cellChanged, this, &iATFTableDlg::cellValueChanged);
 
 	updateTable();
-	resize(table->columnWidth(0) * columnNames.size(), table->rowHeight(0) * 13);
+	resize(table->columnWidth(0) * static_cast<int>(columnNames.size()), table->rowHeight(0) * 13);
 }
 
 void iATFTableDlg::updateTable()

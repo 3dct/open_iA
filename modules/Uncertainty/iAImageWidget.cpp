@@ -72,7 +72,7 @@ void iAImageWidget::StyleChanged()
 }
 
 
-void iAImageWidget::SetMode(int slicerMode)
+void iAImageWidget::SetMode(iASlicerMode slicerMode)
 {
 	m_slicer->setMode(static_cast<iASlicerMode>(slicerMode));
 	m_slicer->update();

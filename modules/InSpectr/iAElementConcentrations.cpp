@@ -58,15 +58,15 @@ iAElementConcentrations::ImageListType& iAElementConcentrations::getImageList()
 }
 
 
-iAElementConcentrations::ImagePointerType iAElementConcentrations::getImage(int idx)
+iAElementConcentrations::ImagePointerType iAElementConcentrations::getImage(size_t idx)
 {
 	return m_ElementConcentration[idx];
 }
 
 
-void iAElementConcentrations::initImages(int elemCount, int extent[6], double spacing[3], double origin[3])
+void iAElementConcentrations::initImages(qsizetype elemCount, int extent[6], double spacing[3], double origin[3])
 {
-	for (int i=0; i<elemCount; ++i)
+	for (qsizetype i=0; i<elemCount; ++i)
 	{
 		ImagePointerType newImage(ImagePointerType::New());
 		newImage->SetSpacing(spacing);
@@ -118,7 +118,7 @@ std::shared_ptr<QVector<std::shared_ptr<iAEnergySpectrum> > > iAElementConcentra
 		double minRefEnergy = elements[i]->GetEnergyData()[0];
 		double maxRefEnergy = elements[i]->GetEnergyData()[elements[i]->GetEnergyData().size()-1];
 
-		int refSpectrumSize = elements[i]->GetEnergyData().size();
+		auto refSpectrumSize = elements[i]->GetEnergyData().size();
 		for (int objChannel=0; objChannel < objSpectrumSize; ++objChannel)
 		{
 			double energy = mapNormTo(minObjEnergy, maxObjEnergy, mapToNorm(0, objSpectrumSize-1, objChannel));
@@ -129,7 +129,7 @@ std::shared_ptr<QVector<std::shared_ptr<iAEnergySpectrum> > > iAElementConcentra
 			else
 			{
 				// TODO: interpolate?
-				int refIdx = mapNormTo(0, refSpectrumSize, mapToNorm(minRefEnergy, maxRefEnergy, energy));
+				auto refIdx = mapNormTo(static_cast<qsizetype>(0), refSpectrumSize, mapToNorm(minRefEnergy, maxRefEnergy, energy));
 				(*spectrum)[objChannel] = elements[i]->GetCountsData()[refIdx];
 			}
 		}

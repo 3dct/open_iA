@@ -118,7 +118,7 @@ void determineStackParameters(QString const& fullFileName,
 		//}
 	}
 	//LOG(lvlInfo, QString("FINAL prefix=%1, suffix=%2").arg(m_fileNamesBase).arg(m_extension));
-	digits = fi.absoluteFilePath().length();
+	digits = static_cast<int>(fi.absoluteFilePath().length());
 	range[0] = std::numeric_limits<int>::max();
 	range[1] = std::numeric_limits<int>::min();
 	if (prefix == fi.absoluteFilePath() || suffix == fi.absoluteFilePath())
@@ -136,13 +136,13 @@ void determineStackParameters(QString const& fullFileName,
 		for (QFileInfo imgFileInfo : imgFiles)
 		{
 			QString imgFileName = imgFileInfo.absoluteFilePath();
-			int len = imgFileName.length() - prefix.length() - suffix.length();
-			if (!imgFileName.startsWith(prefix) || !imgFileName.endsWith(suffix) || len <= 0)
+			auto prefixSuffixLen = prefix.length() + suffix.length();
+			if (!imgFileName.startsWith(prefix) || !imgFileName.endsWith(suffix) || prefixSuffixLen >= imgFileName.length())
 			{
 				//LOG(lvlInfo, QString("  File %1: does not match prefix(%2) or suffix(%3); or length of extracted number (%4) string would be <= 0").arg(imgFileName).arg(m_fileNamesBase).arg(m_extension).arg(len));
 				continue;
 			}
-			QString numStr = imgFileName.mid(prefix.length(), len);
+			QString numStr = imgFileName.mid(prefix.length(), imgFileName.length() - prefixSuffixLen);
 			//LOG(lvlInfo, QString("  File %1: numStr=%2 (start=%3, len=%4)").arg(imgFileName).arg(numStr).arg(prefix.length()).arg(len));
 			digits = std::min(static_cast<int>(numStr.length()), digits);
 			bool ok;

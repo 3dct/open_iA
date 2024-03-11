@@ -204,7 +204,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 			}
 		}*/
 
-		int numberOfRows = (t > 0) ? u->GetNumberOfRows() : v->GetNumberOfRows();
+		auto numberOfRows = (t > 0) ? u->GetNumberOfRows() : v->GetNumberOfRows();
 
 		LOG(lvlInfo, QString("%1 rows\n").arg(numberOfRows));
 

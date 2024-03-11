@@ -25,9 +25,9 @@ void iADecompositionCalculator::AddElement(iAElementSpectralInfo* element)
 	m_elements.push_back(element);
 }
 
-int iADecompositionCalculator::ElementCount() const
+bool iADecompositionCalculator::NoElements() const
 {
-	return m_elements.size();
+	return m_elements.isEmpty();
 }
 
 void iADecompositionCalculator::Stop()

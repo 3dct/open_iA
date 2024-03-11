@@ -114,7 +114,7 @@ private:
 	int m_representativeType;
 	LabelImagePointer m_refImg;
 
-	int m_magicLensDataSetIdx;
+	size_t m_magicLensDataSetIdx;
 	bool m_magicLensEnabled;
 	int m_magicLensCount;
 	iAColorTheme const * m_colorTheme;

@@ -20,12 +20,12 @@
 
 #include "itkFuzzyClassifierInitializationImageFilter.h"
 #include "itkRBFKernelInducedDistanceMetric.h"
-#include "itkFlatStructuringElement.h"
-
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshorten-64-to-32"
 #endif
+#include "itkFlatStructuringElement.h"
+
 #include "itkMacro.h"
 #include "itkVector.h"
 #include "itkArray.h"

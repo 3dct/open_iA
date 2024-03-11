@@ -69,8 +69,6 @@
 #include <QTimer>
 #include <QtXml/QDomDocument>
 
-const int MainWindow::MaxRecentFiles;
-
 namespace
 {
 	const QString DarkThemeQss(":/dark.qss");
@@ -985,7 +983,7 @@ void MainWindow::loadCameraSettings()
 void MainWindow::createRecentFileActions()
 {
 	m_separatorAct = m_ui->menuFile->addSeparator();
-	for (int i = 0; i < MaxRecentFiles; ++i)
+	for (qsizetype i = 0; i < MaxRecentFiles; ++i)
 	{
 		m_recentFileActs[i] = new QAction(this);
 		m_recentFileActs[i]->setVisible(false);
@@ -1155,7 +1153,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionLoadSettings, &QAction::triggered, this, &MainWindow::loadSettings);
 	connect(m_ui->actionSaveSettings, &QAction::triggered, this, &MainWindow::saveSettings);
 	connect(m_ui->actionExit, &QAction::triggered, qApp, &QApplication::closeAllWindows);
-	for (int i = 0; i < MaxRecentFiles; ++i)
+	for (qsizetype i = 0; i < MaxRecentFiles; ++i)
 	{
 		connect(m_recentFileActs[i], &QAction::triggered, this, &MainWindow::openRecentFile);
 	}
@@ -1479,16 +1477,16 @@ void MainWindow::updateRecentFileActions()
 	}
 	settings.setValue("recentFileList", files);
 
-	int numRecentFiles = qMin(files.size(), MaxRecentFiles);
+	auto numRecentFiles = std::min(files.size(), MaxRecentFiles);
 
-	for (int i = 0; i < numRecentFiles; ++i)
+	for (qsizetype i = 0; i < numRecentFiles; ++i)
 	{
 		QString text = tr("&%1 %2").arg(i + 1).arg(QFileInfo(files[i]).fileName());
 		m_recentFileActs[i]->setText(text);
 		m_recentFileActs[i]->setData(files[i]);
 		m_recentFileActs[i]->setVisible(true);
 	}
-	for (int j = numRecentFiles; j < MaxRecentFiles; ++j)
+	for (qsizetype j = numRecentFiles; j < MaxRecentFiles; ++j)
 	{
 		m_recentFileActs[j]->setVisible(false);
 	}
@@ -1799,14 +1797,14 @@ void MainWindow::loadArguments(int argc, char** argv)
 {
 	QStringList filesToLoad;
 	bool doQuit = false;
-	quint64 quitMS = 0;
+	int quitMS = 0;
 	for (int a = 1; a < argc; ++a)
 	{
 		if (QString(argv[a]).startsWith("--quit"))
 		{
 			++a;
 			bool ok;
-			quitMS = QString(argv[a]).toULongLong(&ok);
+			quitMS = QString(argv[a]).toInt(&ok);
 			doQuit = ok;
 			if (!ok)
 			{

@@ -623,7 +623,7 @@ void iALabelsDlg::setSeedsTracking(bool enabled)
 
 int iALabelsDlg::chooseOverlayImage(QString title)
 {
-	int size = m_mapId2image.size();
+	auto size = m_mapId2image.size();
 	if (size == 0)
 	{
 		return -1;
@@ -877,7 +877,7 @@ void iALabelsDlg::storeImage()
 
 bool haveAllSeeds(QVector<int> const& label2SeedCounts, std::vector<int> const& requiredNumOfSeedsPerLabel)
 {
-	for (int i = 0; i < label2SeedCounts.size(); ++i)
+	for (qsizetype i = 0; i < label2SeedCounts.size(); ++i)
 	{
 		if (label2SeedCounts[i] < requiredNumOfSeedsPerLabel[i])
 		{

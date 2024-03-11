@@ -151,7 +151,8 @@ endif()
 find_package(ITK COMPONENTS ${ITK_COMPONENTS})
 # apparently ITK (at least v5.0.0) adapts CMAKE_MODULE_PATH (bug?), reset it:
 set(CMAKE_MODULE_PATH "${SAVED_CMAKE_MODULE_PATH}")
-include(${ITK_USE_FILE}) # <- maybe avoid by using include/link commands on targets instead? -> ITK build system would have to be updated for that first, 5.x does not support it!
+include(${ITK_USE_FILE}) # <- maybe avoid by using include/link commands on targets instead?
+# -> ITK build system would have to be updated for that first, 5.x does not support it!
 # problem: also does some factory initialization (IO), which cannot easily be called separately
 set(ITK_BASE_DIR "${ITK_DIR}")
 if (MSVC)
@@ -190,7 +191,8 @@ set(ITK_GPU_INFO "on")
 if (${ITK_USE_GPU} STREQUAL "OFF")
 	set(ITK_GPU_INFO "off")
 	if (NOT APPLE)  # ITK_USE_GPU not working anyway under Mac OS (see https://github.com/InsightSoftwareConsortium/ITK/issues/3821)
-		message(WARNING "ITK is built without GPU support (flag ITK_USE_GPU disabled). Some GPU-optimized functionality (e.g. GPU-based anisotropic filter) will not be available!")
+		message(WARNING "ITK is built without GPU support (flag ITK_USE_GPU disabled). "
+			"Some GPU-optimized functionality (e.g. GPU-based anisotropic filter) will not be available!")
 	endif()
 else()
 	message(STATUS "    GPU-accelerated filters (ITK_USE_GPU) enabled")
@@ -571,7 +573,7 @@ if (MSVC)
 	if (MSVC_VERSION GREATER_EQUAL 1925)  # Strict preprocessor available from VS 2019 16.5 - https://learn.microsoft.com/en-us/cpp/build/reference/zc-preprocessor
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor")
 	endif()
-	
+
 	if (MSVC_VERSION GREATER_EQUAL 1929)  #  Address sanitizer available from VS 2019 16.9 - https://learn.microsoft.com/en-us/cpp/build/reference/fsanitize#
 		option(openiA_ENABLE_ASAN  "Whether to enable the address sanitizer. Default: disabled." OFF)
 		if (openiA_ENABLE_ASAN)
@@ -608,7 +610,7 @@ if (MSVC)
 		add_compile_options(/arch:${openiA_AVX_SUPPORT})
 	endif()
 	add_compile_definitions(_CRT_SECURE_NO_WARNINGS _SCL_SECURE_NO_WARNINGS)
-	
+
 	# enable all warnings, disable selected:
 	add_compile_options(/W4 /wd4068 /wd4127 /wd4251 /wd4515)
 	# disabled: C4068 - "unknown pragma - ignoring a pragma"
@@ -663,7 +665,7 @@ if (MSVC)
 	cmake_path(NATIVE_PATH ITK_DIR ITK_WIN_DIR)
 	cmake_path(NATIVE_PATH QT_LIB_DIR Qt_WIN_DIR)
 	set(WinDLLPaths "${VTK_WIN_DIR}\\bin\\$(Configuration);${ITK_WIN_DIR}\\bin\\$(Configuration);${Qt_WIN_DIR}")
-	
+
 	if (OpenCLICDLoader_FOUND AND EXISTS "${OpenCL_DLL_DIR}")
 		cmake_path(NATIVE_PATH OpenCL_DLL_DIR OpenCL_WIN_DIR)
 		set(WinDLLPaths "${OpenCL_WIN_DIR};${WinDLLPaths}")
@@ -723,7 +725,7 @@ if (MSVC)
 	endif()
 
 	cmake_path(NATIVE_PATH CMAKE_BINARY_DIR CMAKE_BINARY_WIN_DIR)
-	
+
 	# Path to use in test environments (; has to be escaped)
 	string(REPLACE ";" "\\;" TestDllTmp "${WinDLLPaths}")
 	string(REPLACE "$(Configuration)" "Release" TestDllPaths "${TestDllTmp}")

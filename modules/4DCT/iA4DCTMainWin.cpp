@@ -111,7 +111,7 @@ void iA4DCTMainWin::openVisualizationWin( )
 	iAMainWindow* mainWin = qobject_cast<iAMainWindow*>(QApplication::activeWindow());
 	iA4DCTVisWin* visWin = new iA4DCTVisWin( this );
 	visWin->setImageSize( m_size );
-	visWin->setNumberOfStages( m_stages.size( ) );
+	visWin->setNumberOfStages( static_cast<int>(m_stages.size()) );
 	mainWin->addSubWindow( visWin );
 	visWin->showMaximized( );
 }

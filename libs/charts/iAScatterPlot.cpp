@@ -716,7 +716,7 @@ size_t iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
 		for (int y = yrange[0]; y < yrange[1]; ++y)
 		{
 			binInd = getBinIndex(x, y);
-			for (int indx = m_pointsGrid[binInd].size() - 1; indx >= 0; --indx)
+			for (auto indx = m_pointsGrid[binInd].size() - 1; indx >= 0; --indx)
 			{
 				size_t ptIdx = m_pointsGrid[binInd][indx];
 				double pixelX = p2x(m_splomData->paramData(m_paramIndices[0])[ptIdx]);

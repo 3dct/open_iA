@@ -35,7 +35,7 @@ public:
 
 	virtual int size() const
 	{
-		return m_names.size();
+		return static_cast<int>(m_names.size());
 	}
 private:
 	QStringList m_names;

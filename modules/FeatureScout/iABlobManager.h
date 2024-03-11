@@ -86,7 +86,7 @@ public:
 				const double overlapThreshold[2],
 				const double gaussianBlurVariance[2],
 				const int dimX[2], const int dimY[2], const int dimZ[2],
-				const QString& fileName, int mode, int qual = 2
+				const QString& fileName, int mode, int qual, int fps
 			);
 	void	UpdateBlobSettings(iABlobCluster* blob);
 private:

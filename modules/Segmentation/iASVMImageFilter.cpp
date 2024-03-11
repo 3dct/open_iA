@@ -81,7 +81,7 @@ void iASVMImageFilter::performWork(QVariantMap const & parameters)
 	svm_problem problem;
 	typedef svm_node* p_svm_node;
 
-	problem.l = seeds->size();
+	problem.l = static_cast<int>(seeds->size());
 	problem.x = new p_svm_node[seeds->size()];
 	problem.y = new double[seeds->size()];
 	size_t xspacesize = seeds->size() * (inputCount() + 1);
@@ -150,7 +150,7 @@ void iASVMImageFilter::performWork(QVariantMap const & parameters)
 	{
 		for (size_t m = 0; m < inputCount(); ++m)
 		{
-			node[m].index = m;
+			node[m].index = static_cast<int>(m);
 			node[m].value = imageInput(m)->vtkImage()->GetScalarComponentAsDouble(x, y, z, 0);
 		}
 		/*double label =*/ svm_predict_probability(model, node, prob_estimates);

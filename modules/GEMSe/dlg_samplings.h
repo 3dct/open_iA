@@ -19,8 +19,8 @@ public:
 	typedef std::shared_ptr<iASamplingResults> SamplingResultPtr;
 	dlg_samplings();
 	void Add(SamplingResultPtr samplingResults);
-	SamplingResultPtr GetSampling(int idx);
-	int SamplingCount() const;
+	SamplingResultPtr GetSampling(qsizetype idx);
+	qsizetype SamplingCount() const;
 	std::shared_ptr<QVector<SamplingResultPtr> > GetSamplings();
 public slots:
 	void Remove();

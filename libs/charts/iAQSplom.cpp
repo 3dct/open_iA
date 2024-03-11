@@ -77,7 +77,6 @@ public:
 iAQSplom::Settings::Settings() :
 	plotsSpacing(7),
 	tickLabelsOffset(5),
-	maxRectExtraOffset(20),
 	tickOffsets(45, 45),
 	maximizedLinked(false),
 	flipAxes(false),
@@ -1052,7 +1051,6 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 	QRect colorBarRect(topLeft.x(), topLeft.y(),
 		barWidth, height() - topLeft.y() - settings.plotsSpacing);
 	QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y()+colorBarRect.height() );
-	QMap<double, QColor>::iterator it;
 	for (size_t i = 0; i < m_lut->numberOfValues(); ++i)
 	{
 		double rgba[4];
@@ -1216,10 +1214,10 @@ void iAQSplom::resizeEvent( QResizeEvent * event )
 
 void iAQSplom::updatePlotGridParams()
 {
-	long plotsRect[2] = {
+	int plotsRect[2] = {
 		width() - settings.tickOffsets.x(),
 		height() - settings.tickOffsets.y() };
-	long visParamCnt = visibleParametersCount();
+	auto visParamCnt = visibleParametersCount();
 	int spc = settings.plotsSpacing;
 	m_scatPlotSize = QPoint(
 		static_cast<int>(( plotsRect[0] - ( visParamCnt - 1 ) * spc - ((m_separationIdx != -1) ? settings.separationMargin : 0) ) / ( (double)visParamCnt )),
@@ -1254,7 +1252,7 @@ QRect iAQSplom::getPlotRectByIndex( int x, int y )
 
 QRect iAQSplom::getMaxRect()
 {
-	long visParamCnt = visibleParametersCount();
+	auto visParamCnt = visibleParametersCount();
 	QRect topLeftPlot = getPlotRectByIndex(0, visParamCnt - 1);
 	QRect bottomRightPlot = getPlotRectByIndex(visParamCnt - 1, 0);
 	// default top left for max plot is in the middle of the chart area:
@@ -1479,7 +1477,7 @@ void iAQSplom::changeActivePlot( iAScatterPlot * s )
 int iAQSplom::getMaxTickLabelWidth(QList<QString> const & textX, QFontMetrics & fm) const
 {
 	int maxLength = 0;
-	for (long i = 0; i < textX.size(); ++i)
+	for (qsizetype i = 0; i < textX.size(); ++i)
 	{
 		maxLength = std::max(fm.horizontalAdvance(textX[i]), maxLength);
 	}
@@ -1542,14 +1540,14 @@ void iAQSplom::drawTicks( QPainter & painter, QList<double> const & ticksX, QLis
 	//painter.setPen( m_visiblePlots[1][0]->settings.tickLabelColor );
 	painter.setPen(QApplication::palette().color(QPalette::Text));
 	QPoint * tOfs = &settings.tickOffsets;
-	long tSpc = settings.tickLabelsOffset;
-	for( long i = 0; i < ticksY.size(); ++i )
+	auto tSpc = settings.tickLabelsOffset;
+	for(qsizetype i = 0; i < ticksY.size(); ++i )
 	{
 		double t = ticksY[i]; QString text = textY[i];
 		painter.drawText( QRectF( 0, t - tOfs->y(), tOfs->x() - tSpc, 2 * tOfs->y() ), Qt::AlignRight | Qt::AlignVCenter, text );
 	}
 	painter.rotate( -90 );
-	for( long i = 0; i < ticksX.size(); ++i )
+	for(qsizetype i = 0; i < ticksX.size(); ++i )
 	{
 		double t = ticksX[i]; QString text = textX[i];
 		painter.drawText( QRectF( -tOfs->y() + tSpc, t - tOfs->x(), tOfs->y() - tSpc, 2 * tOfs->x() ), Qt::AlignLeft | Qt::AlignVCenter, text );

@@ -30,8 +30,8 @@ private:
 		QTextStream & in,
 		std::shared_ptr<QVector<std::shared_ptr<iASamplingResults> > > samplings,
 		int labelCount,
-		QString const & outputDirectory,
-		int & lastClusterID);
+		QString const & outputDirectory
+		/*, int& lastClusterID*/);
 	int m_labelCount;
 };
 

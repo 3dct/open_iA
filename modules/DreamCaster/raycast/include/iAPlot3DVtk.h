@@ -48,7 +48,7 @@ public:
 	vtkRenderer * GetRenderer(){ return m_renderer;}
 	void SetAxesParams(int showaxes, int showlabels, double color[3], long fontfactor);
 	void HighlightPickedPoint();
-	int GetNumberOfLookupTableValues();
+	long long GetNumberOfLookupTableValues();
 	//! return false if points not set
 	bool setPicked(int indX, int indZ);
 private:

@@ -100,7 +100,7 @@ int iAQFlowLayout::verticalSpacing() const
 
 int iAQFlowLayout::count() const
 {
-	return itemList.size();
+	return static_cast<int>(itemList.size());
 }
 
 QLayoutItem *iAQFlowLayout::itemAt(int index) const

@@ -46,14 +46,14 @@ std::shared_ptr<QImage> CalculateSpectraHistogramImage(
 	{
 		for(int y = 0; y < numBin; ++y)
 		{
-			int inv_y = numBin - y - 1;
+			long inv_y = numBin - y - 1;
 			double val = (double)histData[y + x*numBin];
 			double normVal = val / maxHistVal;
 			double *rgb = colormapLUT->GetColor(val);
 			QColor color(255.0*rgb[0], 255.0*rgb[1], 255.0*rgb[2]);
 			if( normVal < opacThreshold )
 				smoothFade ? color.setAlpha( 255.0 * normVal / opacThreshold ) : color.setAlpha( 0.0 );
-			result->setPixel( std::abs(static_cast<int>(x)), inv_y, color.rgba());
+			result->setPixel( std::abs(static_cast<int>(x)), static_cast<int>(inv_y), color.rgba());
 		}
 	}
 	return result;

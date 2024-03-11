@@ -71,8 +71,7 @@ void iASegm3DView::SetDataToVisualize( QList<vtkImageData*> imgData, QList<vtkPo
 	}
 	m_containerList.clear();
 
-	int sz = imgData.size();
-	for (int i = 0; i < sz; ++i)
+	for (qsizetype i = 0; i < imgData.size(); ++i)
 	{
 		QWidget * container = new QWidget( wgtContainer );
 		QVBoxLayout *  containerLayout = new QVBoxLayout( container );
@@ -103,8 +102,7 @@ void iASegm3DView::SetDataToVisualize( QList<vtkImageData*> imgData, QList<vtkPo
 void iASegm3DView::SetPolyData( QList<vtkPolyData*> polyData )
 {
 	m_range = 0.0;
-	int sz = polyData.size();
-	for( int i = 0; i < sz; ++i )
+	for (qsizetype i = 0; i < polyData.size(); ++i)
 	{
 		iASegm3DViewData * sd = m_data[i];
 		sd->SetPolyData( polyData[i] );

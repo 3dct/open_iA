@@ -55,8 +55,7 @@ protected:
 	void Resize (const vtkIdType ext);
 
 	LineInfo* mb;
-	unsigned int mbCount, mbSize;
-	unsigned int mbExt;
+	vtkIdType mbCount, mbSize, mbExt;
 	double	m_center[3];
 
 	iABlobManager* m_blobManager;

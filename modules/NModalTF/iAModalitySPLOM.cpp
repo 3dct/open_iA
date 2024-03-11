@@ -113,7 +113,7 @@ void iteratePixels(vtkSmartPointer<vtkImageData> img, const int step[3], std::fu
 		{
 			for (coord[2]=extent[4]; coord[2]<=extent[5]; coord[2] += step[2])
 			{
-				int voxelIdx = img->ComputePointId(coord);
+				vtkIdType voxelIdx = img->ComputePointId(coord);
 				pixelVisitor(coord, imgData[voxelIdx]);
 			}
 		}

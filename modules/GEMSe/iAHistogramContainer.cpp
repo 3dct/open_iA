@@ -86,8 +86,8 @@ void iAHistogramContainer::CreateCharts()
 		//		- square root of number of values (https://en.wikipedia.org/wiki/Histogram#Number_of_bins_and_width)
 		//      - adapting to width of histogram?
 		//      - if discrete or categorical values: limit by range
-		size_t maxBin = std::min(static_cast<size_t>(std::sqrt(m_root->GetClusterSize())), HistogramBinCount);
-		int numBin = (attrib->min() == attrib->max()) ? 1 :
+		auto maxBin = std::min(static_cast<size_t>(std::sqrt(m_root->GetClusterSize())), HistogramBinCount);
+		auto numBin = (attrib->min() == attrib->max()) ? 1 :
 			(attrib->valueType() == iAValueType::Discrete || attrib->valueType() == iAValueType::Categorical) ?
 			std::min(static_cast<size_t>(attrib->max() - attrib->min() + 1), maxBin) :
 			maxBin;
@@ -272,7 +272,7 @@ void iAHistogramContainer::ChartSelected(bool selected)
 	}
 	else
 	{
-		int idx = m_selected.indexOf(id);
+		auto idx = m_selected.indexOf(id);
 		assert(idx != -1);
 		if (idx != -1)
 		{
@@ -311,13 +311,13 @@ void iAHistogramContainer::UpdateAttributeRangeAttitude()
 		{
 			continue;
 		}
-		int numBin = m_charts[chartID]->GetNumBin();
+		auto numBin = m_charts[chartID]->GetNumBin();
 		AttributeHistogram likeHist(numBin);
 		GetHistData(likeHist, chartID, m_charts[chartID], likes, numBin, m_chartAttributeMapper);
 		AttributeHistogram hateHist(numBin);
 		GetHistData(hateHist, chartID, m_charts[chartID], hates, numBin, m_chartAttributeMapper);
 
-		for (int b = 0; b < numBin; ++b)
+		for (size_t b = 0; b < numBin; ++b)
 		{
 			QColor color(0, 0, 0, 0);
 			double attitude = (likeHist.data[b] + hateHist.data[b]) == 0 ? 0 :
@@ -369,13 +369,13 @@ void iAHistogramContainer::ExportAttributeRangeRanking(QString const &fileName)
 }
 
 
-int iAHistogramContainer::GetSelectedCount()
+qsizetype iAHistogramContainer::GetSelectedCount()
 {
 	return m_selected.size();
 }
 
 
-int iAHistogramContainer::GetSelectedChartID(int selectionIdx)
+int iAHistogramContainer::GetSelectedChartID(qsizetype selectionIdx)
 {
 	return m_selected[selectionIdx];
 }

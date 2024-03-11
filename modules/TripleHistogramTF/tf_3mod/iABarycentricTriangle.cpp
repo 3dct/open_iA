@@ -142,9 +142,9 @@ bool iABarycentricTriangle::contains(double x, double y)
 
 QRect iABarycentricTriangle::getBounds()
 {
-	int minx = qMin(m_xa, qMin(m_xb, m_xc));
-	int maxx = qMax(m_xa, qMax(m_xb, m_xc));
-	int miny = qMin(m_ya, qMin(m_yb, m_yc));
-	int maxy = qMax(m_ya, qMax(m_yb, m_yc));
+	int minx = std::min({ m_xa, m_xb, m_xc });
+	int maxx = std::max({ m_xa, m_xb, m_xc });
+	int miny = std::min({ m_ya, m_yb, m_yc });
+	int maxy = std::max({ m_ya, m_yb, m_yc });
 	return QRect(minx, miny, maxx - minx, maxy - miny);
 }

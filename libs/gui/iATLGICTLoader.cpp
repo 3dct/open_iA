@@ -121,7 +121,7 @@ void iATLGICTLoader::run()
 				fileNameBase = greatestCommonPrefix(fileNameBase, imgFileInfo.absoluteFilePath());
 			}
 		}
-		int baseLength = fileNameBase.length();
+		auto baseLength = fileNameBase.length();
 		// determine index range:
 		int min = std::numeric_limits<int>::max();
 		int max = std::numeric_limits<int>::min();
@@ -155,7 +155,7 @@ void iATLGICTLoader::run()
 			QString numStr = imgFileName.mid(baseLength, imgFileName.length() - baseLength - completeSuffix.length() - 1);
 			if (digits == -1)
 			{
-				digits = numStr.length();
+				digits = static_cast<int>(numStr.length());
 			}
 
 			int num = numStr.toInt(&ok);

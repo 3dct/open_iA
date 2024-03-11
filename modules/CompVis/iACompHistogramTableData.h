@@ -18,7 +18,7 @@ struct bin
 	using BinType = std::vector<std::vector<double>>;
 
 	//initialize with a certain amount of bins
-	static BinType* initialize(int amountBins);
+	static BinType* initialize(size_t amountBins);
 	//creates a deep copy of the list of bintypes
 	static QList<bin::BinType*>* DeepCopy(QList<bin::BinType*>* input);
 	//outputs the content of the bintype

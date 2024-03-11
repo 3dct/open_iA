@@ -77,7 +77,7 @@ double CalcDistance(ClusterImageType img1, ClusterImageType img2)
 	return 1-meanOverlap;
 }
 
-int triangularNumber(int num)
+qsizetype triangularNumber(qsizetype num)
 {
 	return ((num-1)*num)/2;
 }
@@ -88,17 +88,17 @@ template <typename ValueType>
 class DiagonalMatrix
 {
 public:
-	DiagonalMatrix(int side):
+	DiagonalMatrix(qsizetype side):
 		m_side(side),
 		m_storageSize(triangularNumber(side)),
 		m_values(new ValueType[m_storageSize])
 	{
-		for (int i=0; i<m_storageSize; ++i)
+		for (qsizetype i=0; i<m_storageSize; ++i)
 		{
 			m_values[i] = std::numeric_limits<ValueType>::max();
 		}
 	}
-	bool checkIndex(int x, int y)
+	bool checkIndex(qsizetype x, qsizetype y)
 	{
 		if (x < 0 || x >= m_side || y < 0 || y > m_side)
 		{
@@ -116,7 +116,7 @@ public:
 		}
 		return true;
 	}
-	void SetValue(int x, int y, ValueType value)
+	void SetValue(qsizetype x, qsizetype y, ValueType value)
 	{
 		if (!checkIndex(x, y))
 		{
@@ -126,7 +126,7 @@ public:
 		m_values[translate(x, y)] = value;
 	}
 
-	ValueType GetValue(int x, int y)
+	ValueType GetValue(qsizetype x, qsizetype y)
 	{
 		if (!checkIndex(x, y))
 		{
@@ -136,7 +136,7 @@ public:
 		return m_values[translate(x, y)];
 	}
 
-	void Remove(int idx)
+	void Remove(qsizetype idx)
 	{
 		if (idx < 0 || idx >= m_side)
 		{
@@ -147,10 +147,10 @@ public:
 		}
 		assert(idx >= 0 && idx < m_side);
 		//bool anyNotMax = false;
-		for (int i=0; i<m_side; ++i)
+		for (qsizetype i=0; i<m_side; ++i)
 		{
 			if (i == idx) continue;
-			int diagIdx = translate(idx, i);
+			auto diagIdx = translate(idx, i);
 			//anyNotMax |= (m_values[diagIdx] != std::numeric_limits<ValueType>::max());
 			m_values[diagIdx] = std::numeric_limits<ValueType>::max();
 		}
@@ -161,13 +161,13 @@ public:
 		}
 		*/
 	}
-	std::pair<int, int> GetMinimum()
+	std::pair<qsizetype, qsizetype> GetMinimum()
 	{
-		std::pair<int, int> minIdx;
+		std::pair<qsizetype, qsizetype> minIdx;
 		ValueType min1 = std::numeric_limits<ValueType>::max();
-		for (int x=0; x<m_side-1; ++x)
+		for (qsizetype x=0; x<m_side-1; ++x)
 		{
-			for (int y=x+1; y<m_side; ++y)
+			for (qsizetype y=x+1; y<m_side; ++y)
 			{
 				ValueType dist = GetValue(x, y);
 				if (dist < min1)
@@ -187,7 +187,7 @@ public:
 
 	void print()
 	{
-		for (int i=0; i<m_storageSize; ++i)
+		for (qsizetype i=0; i<m_storageSize; ++i)
 		{
 			if (m_values[i] == std::numeric_limits<ValueType>::max())
 			{
@@ -202,9 +202,9 @@ public:
 	}
 	void prettyPrint()
 	{
-		for (int y=0; y<m_side; ++y)
+		for (qsizetype y=0; y<m_side; ++y)
 		{
-			for (int x=0; x<m_side; ++x)
+			for (qsizetype x=0; x<m_side; ++x)
 			{
 				if (x == y)
 				{
@@ -225,18 +225,18 @@ public:
 private:
 	DiagonalMatrix(const DiagonalMatrix& that) = delete;
 	// source: http://www.codeguru.com/cpp/cpp/algorithms/general/article.php/c11211/TIP-Half-Size-Triangular-Matrix.htm
-	int translate(int x, int y)
+	qsizetype translate(qsizetype x, qsizetype y)
 	{
 		assert(x != y);
 		if (y<x)
 			std::swap(x, y);
 
-		int result = x*(m_side-1) - (x-1)*((x-1) + 1)/2 + y - x - 1;
+		qsizetype result = x*(m_side-1) - (x-1)*((x-1) + 1)/2 + y - x - 1;
 		return result;
 	}
 private:
-	int m_side;
-	int m_storageSize;
+	qsizetype m_side;
+	qsizetype m_storageSize;
 	ValueType* m_values;
 };
 
@@ -244,21 +244,21 @@ namespace {
 	const double FullProgress = 100;
 	const double SplitFactorDistanceCalc = 50;
 
-	long sumUpTo(int n)
+	qsizetype sumUpTo(qsizetype n)
 	{
-		return static_cast<long>(n)*(n+1) / 2;
+		return n*(n+1) / 2;
 	}
-	long sumUpToDiff(int n1, int n2)
+	qsizetype sumUpToDiff(qsizetype n1, qsizetype n2)
 	{
 		return sumUpTo(n1) - sumUpTo(n1-n2);
 	}
 }
 
-bool IsEmpty(DiagonalMatrix<float> & distances, int idx, int cnt)
+bool IsEmpty(DiagonalMatrix<float> & distances, qsizetype idx, qsizetype cnt)
 {
 	bool result = true;
 	LOG(lvlInfo, QString("%1 -> ").arg(idx));
-	for (int i=0; i<cnt; ++i)
+	for (qsizetype i=0; i<cnt; ++i)
 	{
 		if (i == idx) continue;
 		if (distances.GetValue(i, idx) != std::numeric_limits<float>::max())
@@ -282,7 +282,7 @@ void iAImageClusterer::run()
 	m_remainingNodes = m_images.size();
 	m_perfTimer.start();
 	m_progress->setStatus("Calculating distances for all image pairs");
-	DiagonalMatrix<float> distances((m_images.size()*2)-1);
+	DiagonalMatrix<float> distances(m_images.size()*2-1);
 #ifdef CLUSTER_DEBUGGING
 	std::ofstream distFile("cluster-debugging.txt");
 #endif
@@ -342,7 +342,7 @@ void iAImageClusterer::run()
 	m_progress->setStatus("Hierarchical clustering.");
 	assert(m_images.size() > 0);
 	std::shared_ptr<iAImageTreeNode> lastNode = m_images[0];
-	int clusterID = m_remainingNodes;
+	int clusterID = static_cast<int>(m_remainingNodes);
 	while (m_remainingNodes > 1 && !m_aborted) // we need to do n-1 merges
 	{
 		m_progress->setStatus(
@@ -356,7 +356,7 @@ void iAImageClusterer::run()
 			if (idx.first == 0)
 			{
 				LOG(lvlError, QString("Premature exit with %1 nodes remaining: ").arg(m_remainingNodes));
-				for (int i=0; i<m_images.size(); ++i)
+				for (qsizetype i=0; i<m_images.size(); ++i)
 				{
 					if (m_images[i])
 					{
@@ -402,7 +402,7 @@ void iAImageClusterer::run()
 		m_images.push_back(lastNode);
 
 		// recalculate distances:
-		int newItemIdx = m_images.size()-1;
+		auto newItemIdx = m_images.size()-1;
 #ifdef CLUSTER_DEBUGGING
 		std::ostringstream distFileLine;
 		distFileLine << newItemIdx << "("<<idx.first<<","<<idx.second<<"):";

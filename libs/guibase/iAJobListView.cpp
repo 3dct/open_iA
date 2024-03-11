@@ -203,7 +203,7 @@ QWidget* iAJobListView::addJobWidget(std::shared_ptr<iAJob> j)
 	jobWidget->layout()->addWidget(statusWidget);
 	jobWidget->layout()->addWidget(abortButton);
 
-	m_insideLayout->insertWidget(m_jobs.size()-1, jobWidget);
+	m_insideLayout->insertWidget(static_cast<int>(m_jobs.size()-1), jobWidget);
 
 	if (!j->estimator)
 	{
@@ -264,7 +264,7 @@ void iAJobListView::newJobSlot()
 	connect(j->object, &QObject::destroyed, [this, jobWidget, j]()
 	{
 		LOG(lvlDebug, QString("Job done: %1.").arg(j->name));
-		int remainingJobs = 0;
+		qsizetype remainingJobs = 0;
 		{
 			std::lock_guard<std::mutex> guard(jobsMutex);
 			auto idx = m_jobs.indexOf(j);

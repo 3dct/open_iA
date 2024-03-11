@@ -64,13 +64,13 @@ void iAEntropyImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(const
 	typename TOutputImage::Pointer output = this->GetOutput();
 
 	// Record the number of input files.
-	const size_t numberOfInputFiles = this->GetNumberOfIndexedInputs();
+	const auto numberOfInputFiles = this->GetNumberOfIndexedInputs();
 
 	//  create and initialize all input image iterators
 	IteratorType *it = new IteratorType[numberOfInputFiles];
-	for (size_t i = 0; i < numberOfInputFiles; ++i)
+	for (typename Self::DataObjectPointerArraySizeType i = 0; i < numberOfInputFiles; ++i)
 	{
-		it[i] = IteratorType(this->GetInput(i),	outputRegionForThread);
+		it[i] = IteratorType(this->GetInput(static_cast<int>(i)), outputRegionForThread);
 		it[i].GoToBegin();
 	}
 	

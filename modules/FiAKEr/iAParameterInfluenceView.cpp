@@ -514,7 +514,7 @@ void iAParameterInfluenceView::paramChartClicked(double x, double /* y */, Qt::K
 		return std::abs(a - x) < std::abs(b - x);
 	});
 	// select the result that is closest to the currently selected one in the other parameters!
-	int resultIdx = minDistElem - paramValues.begin();
+	auto resultIdx = minDistElem - paramValues.begin();
 	emit resultSelected(resultIdx, modifiers);
 }
 
@@ -879,7 +879,7 @@ void iAParameterInfluenceView::charactChartAxisChanged()
 void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 {
 	setActionChecked(outType, outIdx, false);
-	int visibleIdx = m_visibleCharacts.indexOf(qMakePair(outType, outIdx));
+	auto visibleIdx = m_visibleCharacts.indexOf(qMakePair(outType, outIdx));
 	if (visibleIdx == -1)
 	{
 		LOG(lvlError, QString("Invalid state - called remove on non-added bar (outType=%1, outIdx=%2").arg(outType).arg(outIdx));
@@ -887,7 +887,7 @@ void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 	m_visibleCharacts.remove(visibleIdx);
 	auto title(columnName(outType, outIdx));
 	LOG(lvlDebug, QString("Removing stacked bar for characteristic %1").arg(title));
-	for (int rowIdx = 0; rowIdx < m_table.size(); ++rowIdx)
+	for (qsizetype rowIdx = 0; rowIdx < m_table.size(); ++rowIdx)
 	{
 		m_table[rowIdx]->head->removeBar(title);
 		int barIdx = m_table[rowIdx]->bars->removeBar(title);
@@ -898,7 +898,7 @@ void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 		m_table[rowIdx]->par.remove(barIdx);
 		delete pw;
 		auto paramName = m_data->m_paramNames[m_data->m_variedParams[m_sort[rowIdx]]];
-		int newNumBars = m_table[rowIdx]->bars->numberOfBars();
+		auto newNumBars = static_cast<int>(m_table[rowIdx]->bars->numberOfBars());
 		if (newNumBars > 0)
 		{
 			//m_table[rowIdx]->out[0]->setYCaption("Var. from " + paramName);  // to make sure if first chart is removed that new first gets caption
@@ -910,7 +910,7 @@ void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 				m_paramListLayout->addWidget(
 					m_table[rowIdx]->par[i], 1 + RowsPerParam * rowIdx + RowParamChart, colStackedBar + i);
 			}
-			for (int b = 0; b < newNumBars; ++b)
+			for (qsizetype b = 0; b < newNumBars; ++b)
 			{
 				m_table[rowIdx]->out[b]->resetYBounds();
 				m_table[rowIdx]->par[b]->resetYBounds();

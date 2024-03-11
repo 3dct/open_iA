@@ -587,20 +587,39 @@ void MdiChild::saveMovRC()
 	QStringList modes = (QStringList() << tr("Rotate Z") << tr("Rotate X") << tr("Rotate Y"));
 	iAAttributes params;
 	addAttr(params, "Rotation mode", iAValueType::Categorical, modes);
+	addAttr(params, "Steps", iAValueType::Discrete, 360, 2, 36000);
+	addAttr(params, "Video quality", iAValueType::Discrete, 2, 0, 2);
+	addAttr(params, "Frame rate", iAValueType::Discrete, 25, 1, 1000);
 	iAParameterDlg dlg(this, "Save movie options", params,
-		"Creates a movie by rotating the object around a user-defined axis in the 3D renderer.");
+		"Creates a movie by rotating the object around a user-defined axis in the 3D renderer.<br>"
+		"The <em>rotation mode</em> defines the axis around which the object will be rotated in the exported video. "
+		"The <em>steps</em> parameter defines into how many angle steps the rotation will be split, "
+			"and therefore also determines the number of images in the resulting video (default: 360). "
+		"The <em>video quality</em> specifies the quality of the output video "
+			"(range: 0..2, 0 - worst, 2 - best; default: 2). "
+		"The <em>frame rate</em> specifies the frames per second (default: 25). ");
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-	QString mode = dlg.parameterValues()["Rotation mode"].toString();
-	auto imode = modes.indexOf(mode);
+	auto pVals = dlg.parameterValues();
+	QString mode = pVals["Rotation mode"].toString();
+	auto imode = static_cast<int>(modes.indexOf(mode));
+	auto quality = pVals["Video quality"].toInt();
+	auto fps = pVals["Frame rate"].toInt();
+	auto steps = pVals["Steps"].toInt();
 
 	// Show standard save file dialog using available movie file types.
-	m_renderer->saveMovie(QFileDialog::getSaveFileName(this, tr("Export movie %1").arg(mode),
-							m_fileInfo.absolutePath() + "/" +
-								((mode.isEmpty()) ? m_fileInfo.baseName() : m_fileInfo.baseName() + "_" + mode),
-							movie_file_types), imode);
+	auto fileName = QFileDialog::getSaveFileName(this, tr("Export movie %1").arg(mode),
+		m_fileInfo.absolutePath() + "/" +
+		((mode.isEmpty()) ? m_fileInfo.baseName() : m_fileInfo.baseName() + "_" + mode),
+		movie_file_types);
+	if (fileName.isEmpty())
+	{
+		return;
+	}
+
+	m_renderer->saveMovie(fileName, imode, quality, fps, steps);
 }
 
 void MdiChild::setPredefCamPos(int pos)

@@ -24,7 +24,7 @@ add_subdirectory(modules)
 
 # modules might have added something to BUILD_INFO:
 configure_file("${CMAKE_SOURCE_DIR}/cmake/version.h.in" "${CMAKE_BINARY_DIR}/version.h" @ONLY)
-	
+
 add_subdirectory(gui)
 
 if (openiA_TESTING_ENABLED)

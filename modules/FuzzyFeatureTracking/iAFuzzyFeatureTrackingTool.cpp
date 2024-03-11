@@ -73,7 +73,7 @@ iAFuzzyFeatureTrackingTool::iAFuzzyFeatureTrackingTool( iAMainWindow * mainWnd, 
 			throw std::runtime_error(QString( "The file \"%1\" is missing").arg(file[1]).toStdString());
 		}
 
-		int lastIndex = file[1].lastIndexOf( QString( "/" ) );
+		auto lastIndex = file[1].lastIndexOf( QString( "/" ) );
 		QString outputFileName = file[1].left( lastIndex + 1 ) + "outF" + QString::number(i) + ".txt";
 
 		const float	dissipationThreshold = 0.02f;

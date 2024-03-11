@@ -93,11 +93,8 @@ void iAChartWithFunctionsWidget::drawAfterPlots(QPainter & painter)
 void iAChartWithFunctionsWidget::drawFunctions(QPainter &painter)
 {
 	size_t counter = 0;
-	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
-	while (it != m_functions.end())
+	for (auto func: m_functions)
 	{
-		iAChartFunction *func = (*it);
-
 		if (counter == m_selectedFunction)
 		{
 			func->draw(painter, iAChartFunction::DefaultColor, iAChartFunction::LineWidthSelected);
@@ -106,15 +103,11 @@ void iAChartWithFunctionsWidget::drawFunctions(QPainter &painter)
 		{
 			func->draw(painter);
 		}
-		++it;
 		++counter;
 	}
-	it = m_functions.begin();
-	while (it != m_functions.end())
+	for (auto func: m_functions)
 	{
-		iAChartFunction *func = (*it);
 		func->drawOnTop(painter);
-		++it;
 	}
 }
 
@@ -153,9 +146,7 @@ void iAChartWithFunctionsWidget::mousePressEvent(QMouseEvent *event)
 			{
 				return;
 			}
-			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
-			iAChartFunction *func = *(it + m_selectedFunction);
-			int selectedPoint = func->selectPoint(event->position().x() - leftMargin(), chartHeight() - event->position().y());
+			int selectedPoint = m_functions[m_selectedFunction]->selectPoint(event->position().x() - leftMargin(), chartHeight() - event->position().y());
 			if (selectedPoint == -1)
 			{
 				emit noPointSelected();
@@ -169,15 +160,14 @@ void iAChartWithFunctionsWidget::mousePressEvent(QMouseEvent *event)
 	}
 }
 
-void iAChartWithFunctionsWidget::mouseReleaseEvent(QMouseEvent *event)
+void iAChartWithFunctionsWidget::mouseReleaseEvent(QMouseEvent* event)
 {
 	if (!m_showFunctions)
 	{
 		iAChartWidget::mouseReleaseEvent(event);
 		return;
 	}
-	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
-	iAChartFunction *func = *(it + m_selectedFunction);
+	auto func = m_functions[m_selectedFunction];
 	if (event->button() == Qt::LeftButton)
 	{
 		if (m_mode == MOVE_NEW_POINT_MODE)
@@ -211,9 +201,7 @@ void iAChartWithFunctionsWidget::mouseMoveEvent(QMouseEvent *event)
 			int mouseY = geometry().height() - event->position().y() - bottomMargin();
 			if (m_showFunctions)
 			{
-				std::vector<iAChartFunction*>::iterator it = m_functions.begin();
-				iAChartFunction *func = *(it + m_selectedFunction);
-				func->moveSelectedPoint(mouseX, mouseY);
+				m_functions[m_selectedFunction]->moveSelectedPoint(mouseX, mouseY);
 				update();
 				emit updateTFTable();
 			}
@@ -264,8 +252,7 @@ void iAChartWithFunctionsWidget::addContextMenuEntries(QMenu* contextMenu)
 {
 	if (m_showFunctions)
 	{
-		std::vector<iAChartFunction*>::iterator it = m_functions.begin();
-		iAChartFunction *func = *(it + m_selectedFunction);
+		auto func = m_functions[m_selectedFunction];
 		if (func->getSelectedPoint() != -1)
 		{
 			if (func->isColored())
@@ -337,8 +324,7 @@ void iAChartWithFunctionsWidget::changeMode(int newMode, QMouseEvent *event)
 			{
 				return;
 			}
-			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
-			iAChartFunction *func = *(it + m_selectedFunction);
+			auto func = m_functions[m_selectedFunction];
 			int mouseX = event->position().x() - leftMargin();
 			int mouseY = chartHeight() - event->position().y();
 			int selectedPoint = func->selectPoint(mouseX, mouseY);
@@ -394,8 +380,7 @@ void iAChartWithFunctionsWidget::changeMode(int newMode, QMouseEvent *event)
 
 int iAChartWithFunctionsWidget::deletePoint()
 {
-	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
-	iAChartFunction *func = *(it + m_selectedFunction);
+	auto func = m_functions[m_selectedFunction];
 	if (!func->isDeletable(func->getSelectedPoint()))
 	{
 		return -1;
@@ -414,8 +399,7 @@ void iAChartWithFunctionsWidget::changeColor(QMouseEvent *event)
 	{
 		return;
 	}
-	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
-	iAChartFunction *func = *(it + m_selectedFunction);
+	auto func = m_functions[m_selectedFunction];
 	if (event != nullptr)
 	{
 		func->selectPoint(event->position().x() - leftMargin(), chartHeight() - event->position().y());
@@ -428,9 +412,7 @@ void iAChartWithFunctionsWidget::changeColor(QMouseEvent *event)
 
 void iAChartWithFunctionsWidget::resetTF()
 {
-	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
-	iAChartFunction *func = *(it + m_selectedFunction);
-	func->reset();
+	m_functions[m_selectedFunction]->reset();
 	update();
 	emit updateTFTable();
 }
@@ -669,15 +651,11 @@ void iAChartWithFunctionsWidget::saveProbabilityFunctions(iAXmlSettings &xml)
 		{
 			QDomElement bezierElement = xml.createElement("bezier", functionsNode);
 			auto bezier = dynamic_cast<iAChartFunctionBezier*>(m_functions[f]);
-			std::vector<QPointF> points = bezier->getPoints();
-			std::vector<QPointF>::iterator it = points.begin();
-			while (it != points.end())
+			for (auto const & point: bezier->getPoints())
 			{
-				QPointF point = *it;
 				QDomElement nodeElement = xml.createElement("node", bezierElement);
 				nodeElement.setAttribute("value", tr("%1").arg(point.x()));
 				nodeElement.setAttribute("fktValue", tr("%1").arg(point.y()));
-				++it;
 			}
 		}
 		else if (dynamic_cast<iAChartFunctionGaussian*>(m_functions[f]))
@@ -711,8 +689,8 @@ void iAChartWithFunctionsWidget::removeFunction()
 	{
 		return;
 	}
-	std::vector<iAChartFunction*>::iterator it = m_functions.begin() + m_selectedFunction;
-	iAChartFunction *function = *it;
+	auto it = m_functions.begin() + m_selectedFunction;
+	auto function = *it;
 	m_functions.erase(it);
 	delete function;
 	m_selectedFunction--;

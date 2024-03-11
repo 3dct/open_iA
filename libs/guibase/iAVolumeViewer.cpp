@@ -227,7 +227,7 @@ void iAVolumeViewer::prepare(iAProgress* p)
 					computeHistograms = true;
 					break;
 				}
-				m_histogramData[c] = iAHistogramData::create(plotName(c, numCmp), iAValueType::Discrete, range[0], range[1], values);
+				m_histogramData[c] = iAHistogramData::create(plotName(static_cast<int>(c), numCmp), iAValueType::Discrete, range[0], range[1], values);
 			}
 		}
 	}
@@ -423,7 +423,7 @@ void iAVolumeViewer::applyAttributes(QVariantMap const& values)
 			{
 				for (int c = 0; c < img->GetNumberOfScalarComponents(); ++c)
 				{
-					m_histogramData[c] = iAHistogramData::create(plotName(c, newBinCount), img, newBinCount, nullptr, c);
+					m_histogramData[c] = iAHistogramData::create(plotName(c, static_cast<int>(newBinCount)), img, newBinCount, nullptr, c);
 				}
 			},
 			[this, img]

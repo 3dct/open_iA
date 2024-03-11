@@ -464,7 +464,7 @@ namespace
 
 	int MapMethodNameToID(QString const & name)
 	{
-		return GetParameterlessThresholdingNames().indexOf(name);
+		return static_cast<int>(GetParameterlessThresholdingNames().indexOf(name));
 	}
 }
 
