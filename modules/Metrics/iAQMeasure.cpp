@@ -471,7 +471,7 @@ void iASNR::performWork(QVariantMap const & parameters)
 
 iACNR::iACNR() :
 	iAFilter("Contrast-to-Noise Ratio", "Metrics",
-		"Computes the Contrast-to-noise ratio as (mean(region2) - mean(region1)) / stddev(region2).<br/>"
+		"Computes the Contrast-to-noise ratio as (mean(region2) - mean(region1)) / stddev(region1).<br/>"
 		"Region 1 should typically contain a homogeneous area of surroundings (air), "
 		"while region 2 should typically contain a homogeneous region of material", 1, 0)
 {
@@ -491,8 +491,8 @@ void iACNR::performWork(QVariantMap const & parameters)
 	setFromVectorVariant<int>(size,  parameters["Region 2 Size"]);
 	setFromVectorVariant<int>(index, parameters["Region 2 Index"]);
 	auto extractImg2 = extractImage(imageInput(0)->itkImage(), index, size);
-	double mean1, mean2, stddev2;
-	getStatistics(extractImg1, nullptr, nullptr, &mean1, nullptr);
-	getStatistics(extractImg2, nullptr, nullptr, &mean2, &stddev2);
-	addOutputValue("Contrast-to-Noise Ratio", (mean2 - mean1) / stddev2);
+	double mean1, mean2, stddev1;
+	getStatistics(extractImg1, nullptr, nullptr, &mean1, &stddev1);
+	getStatistics(extractImg2, nullptr, nullptr, &mean2, nullptr);
+	addOutputValue("Contrast-to-Noise Ratio", (mean2 - mean1) / stddev1);
 }
