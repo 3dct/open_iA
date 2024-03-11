@@ -1,4 +1,4 @@
-# WebSocket Server Protocol V1 - Draft
+# WebSocket Server Protocol V1
 
 Through WebSockets external applications are able to communicate with the openIA server and vice versa. All messages are sent in a binary format. In case Text is transmitted, it will be sent in UTF-8.
 
