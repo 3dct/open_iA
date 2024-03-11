@@ -122,6 +122,7 @@ stateDiagram-v2
 
 > [!IMPORTANT]
 > All transformation operations currently take **floats**. If **double** operations are needed, we can add them later.
+<!---
 
 ### Register Object
 
@@ -141,6 +142,8 @@ The server responds with an ID. The ID generating algorithm is not specified, bu
 
 > [!NOTE]
 > 0x5 0x1 is currently reserved for deregistering objects.
+
+--->
 
 ### Set Matrix of Object
 
@@ -275,8 +278,8 @@ The server broadcasts the command to all clients in all cases.
 |0x3||Client ID (64-bit)|Client Login Response|
 |0x4|0x0||Reset|
 |0x4|0x1|Name Length (32-Bit), Name (x-Bits)|Load Dataset|
-|0x5|0x0|Name Length (32-Bit), Name (x-Bits)|Object Registration (Client) (UNSUPPORTED!)|
-|0x5|0x0|Object ID (64-Bit)|Object Registration ID Response (Server) (UNSUPPORTED!)|
+|0x5|0x0||Reserved|
+|0x5|0x1||Reserved|
 |0x5|0x2|Object ID (64-Bit), Matrix (512-Bit)|Set Object-Matrix 4x4|
 |0x5|0x3|Object ID (64-Bit), X (32-Bit), Y (32-Bit), Z (32-Bit)|Object Translation|
 |0x5|0x4|Object ID (64-Bit), X (32-Bit), Y (32-Bit), Z (32-Bit)|Object Scale|
