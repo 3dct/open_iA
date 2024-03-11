@@ -4,7 +4,7 @@
 
 #include "iARemoteTool.h"
 #include "iAPlaneSliceTool.h"
-#include "iAWebSocketServerTool.h"
+#include "iAOpenXRTrackerServerTool.h"
 
 #include <iALog.h>
 #include <iAMainWindow.h>
@@ -39,10 +39,10 @@ void iARemoteModuleInterface::Initialize()
 	m_mainWnd->makeActionChildDependent(actionRemote);
 	addToMenuSorted(submenu, actionRemote);
 
-	QAction* actionWS = new QAction("Unity Connection Server", m_mainWnd);
+	QAction* actionWS = new QAction(iAOpenXRTrackerServerTool::Name, m_mainWnd);
 	connect(actionWS, &QAction::triggered, this, [this]()
 		{
-			addToolToActiveMdiChild<iAWebSocketServerTool>(iAWebSocketServerTool::Name, m_mainWnd);
+			addToolToActiveMdiChild<iAOpenXRTrackerServerTool>(iAOpenXRTrackerServerTool::Name, m_mainWnd);
 		});
 	m_mainWnd->makeActionChildDependent(actionWS);
 	addToMenuSorted(submenu, actionWS);

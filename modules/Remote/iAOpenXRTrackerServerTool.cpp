@@ -1,6 +1,6 @@
 // Copyright 2016-2023, the open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "iAWebSocketServerTool.h"
+#include "iAOpenXRTrackerServerTool.h"
 
 #include "iAAABB.h"
 #include "iALog.h"
@@ -32,7 +32,7 @@ namespace
 	}
 }
 
-class iAWSSToolImpl: public QObject
+class iAOpenXRTrackerServerToolImpl: public QObject
 {
 public:
 
@@ -40,22 +40,24 @@ public:
 	QList<QWebSocket*> m_clients;
 	QThread m_serverThread;
 
-	iAWSSToolImpl(int port, iAMdiChild* child):
-		m_wsServer(new QWebSocketServer(QStringLiteral("iAWebSocketServer"), QWebSocketServer::NonSecureMode, this))
+	iAOpenXRTrackerServerToolImpl(int port, iAMdiChild* child):
+		m_wsServer(new QWebSocketServer(QStringLiteral("iAWebSocketServerTool::Name"), QWebSocketServer::NonSecureMode, this))
 	{
 		m_wsServer->moveToThread(&m_serverThread);
 		m_serverThread.start();
 
 		if (m_wsServer->listen(QHostAddress::Any, port))
 		{
-			LOG(lvlInfo, QString("WebSocketServer listening on %1:%2").arg(m_wsServer->serverAddress().toString()).arg(m_wsServer->serverPort()));
+			LOG(lvlInfo, QString("%1: Listening on %2:%3")
+				.arg(iAOpenXRTrackerServerTool::Name).arg(m_wsServer->serverAddress().toString()).arg(m_wsServer->serverPort()));
 			connect(m_wsServer, &QWebSocketServer::newConnection, this, [this, child]
 			{
 				QWebSocket* client = m_wsServer->nextPendingConnection();
-				LOG(lvlInfo, QString("Client connected: %1:%2").arg(client->peerAddress().toString()).arg(client->peerPort()));
+				LOG(lvlInfo, QString("%1: Client connected: %2:%3")
+					.arg(iAOpenXRTrackerServerTool::Name).arg(client->peerAddress().toString()).arg(client->peerPort()));
 				connect(client, &QWebSocket::textMessageReceived, this, [this, child](QString message)
 				{
-					//LOG(lvlInfo, QString("WebSocketServer: Text message received: %1").arg(message));
+					//LOG(lvlInfo, QString("%1: Text message received: %2").arg(iAWebSocketServerTool::Name).arg(message));
 				});
 				connect(client, &QWebSocket::binaryMessageReceived, this, [this, child](QByteArray data)
 				{
@@ -88,14 +90,16 @@ public:
 					auto renderer = child->dataSetViewer(child->firstImageDataSetIdx())->renderer();
 					auto prop = renderer->vtkProp();
 
-					LOG(lvlInfo, QString("WebSocketServer: Binary message received "
-						"(type: %1; obj: %2; pos = (%3, %4, %5); rot = (%6, %7, %8, %9)")
+					LOG(lvlInfo, QString("%1: Binary message received "
+						"(type: %2; obj: %3; pos: (%4, %5, %6); ")
+						.arg(iAOpenXRTrackerServerTool::Name)
 						.arg(type)
 						.arg(obj)
 						.arg(pos[0]).arg(pos[1]).arg(pos[2])
-						.arg(q[0]).arg(q[1]).arg(q[2]).arg(q[3])
 					);
-					LOG(lvlInfo, QString("angle: %1, %2, %3").arg(a2[0]).arg(a2[1]).arg(a2[2]));
+					LOG(lvlInfo, QString("    rot: (%1, %2, %3, %4), angle: (%5, %6, %7)")
+						.arg(q[0]).arg(q[1]).arg(q[2]).arg(q[3])
+						.arg(a2[0]).arg(a2[1]).arg(a2[2]));
 
 					auto bounds = renderer->bounds();
 					pos *= (bounds.maxCorner() - bounds.minCorner()).length() / 2;
@@ -116,7 +120,7 @@ public:
 				connect(client, &QWebSocket::disconnected, this, [this]
 				{
 					QWebSocket* client = qobject_cast<QWebSocket*>(sender());
-					LOG(lvlInfo, QString("Client %1:%2 disconnected!").arg(client->peerAddress().toString()).arg(client->peerPort()));
+					LOG(lvlInfo, QString("%1: Client %2:%3 disconnected!").arg(iAOpenXRTrackerServerTool::Name).arg(client->peerAddress().toString()).arg(client->peerPort()));
 					m_clients.removeAll(client);
 					client->deleteLater();
 				});
@@ -125,7 +129,7 @@ public:
 		}
 		else
 		{
-			LOG(lvlError, QString("WebSocketServer: Listening failed (error: %1)!").arg(m_wsServer->errorString()));
+			LOG(lvlError, QString("%1: Listening failed (error: %2)!").arg(iAOpenXRTrackerServerTool::Name).arg(m_wsServer->errorString()));
 		}
 	}
 
@@ -134,20 +138,19 @@ public:
 		m_wsServer->close();
 		m_serverThread.quit();
 		m_serverThread.wait();
-		LOG(lvlInfo, "WebSocketServer STOP");
+		LOG(lvlInfo, QString("%1 STOP").arg(iAOpenXRTrackerServerTool::Name));
 	}
 };
 
-const QString iAWebSocketServerTool::Name("WebSocketServer");
+const QString iAOpenXRTrackerServerTool::Name("OpenXR Tracker");
 
-iAWebSocketServerTool::iAWebSocketServerTool(iAMainWindow* mainWnd, iAMdiChild* child) :
+iAOpenXRTrackerServerTool::iAOpenXRTrackerServerTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iATool(mainWnd, child),
-	m_impl(std::make_unique<iAWSSToolImpl>(Port, child))
+	m_impl(std::make_unique<iAOpenXRTrackerServerToolImpl>(Port, child))
 {
 }
 
-
-iAWebSocketServerTool::~iAWebSocketServerTool()
+iAOpenXRTrackerServerTool::~iAOpenXRTrackerServerTool()
 {
 	m_impl->stop();
 }
