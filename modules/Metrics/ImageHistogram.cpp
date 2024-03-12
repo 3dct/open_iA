@@ -318,7 +318,9 @@ float cImageHistogram::CalcQ(std::vector<int> thrsh_IDX, std::vector<ClassMeasur
 		}
 
 		// mean
-		count = 0, sum = 0, nval = 0;
+		count = 0;
+		sum = 0;
+		nval = 0;
 		for (int i = CStart; i < CEnd; i++)
 		{
 			count += hist_y[i];

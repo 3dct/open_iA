@@ -57,9 +57,9 @@ inline void computeBBox(std::vector<iAtriangle*> & /*stlMesh*/, std::vector<iAVe
 		(*vertices[i]) = matrix*(*vertices[i]);
 	}
 	//
-	x1=vertices[0]->operator[](0), x2=vertices[0]->operator[](0);
-	y1=vertices[0]->operator[](1), y2=vertices[0]->operator[](1);
-	z1=vertices[0]->operator[](2), z2=vertices[0]->operator[](2);
+	x1 = vertices[0]->operator[](0); x2 = vertices[0]->operator[](0);
+	y1 = vertices[0]->operator[](1); y2 = vertices[0]->operator[](1);
+	z1 = vertices[0]->operator[](2); z2 = vertices[0]->operator[](2);
 	for (unsigned int i=0; i<vertices.size(); i++)
 	{
 		if(x1>vertices[i]->operator[](0))

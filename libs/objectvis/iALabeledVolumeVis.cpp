@@ -58,7 +58,9 @@ void iALabeledVolumeVis::renderSelection( std::vector<size_t> const & sortedSelI
 			if (hid-1 == sortedSelInds[selectionIndex] )
 			{
 				hid_isASelection = true;
-				red = SelectedColor.redF(), green = SelectedColor.greenF(), blue = SelectedColor.blueF();
+				red = SelectedColor.redF();
+				green = SelectedColor.greenF();
+				blue = SelectedColor.blueF();
 
 				if ( selectionIndex + 1 < sortedSelInds.size() )
 					selectionIndex++;
