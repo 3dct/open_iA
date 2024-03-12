@@ -14,7 +14,5 @@ void iAVolumePlayerModuleInterface::Initialize()
 	{
 		return;
 	}
-	QString toolName("VolumePlayer");
-	m_mainWnd->toolsMenu()->addAction(toolName,
-		[this, toolName] { addToolToActiveMdiChild<iAVolumePlayerTool>(toolName, m_mainWnd); });
+	addToolAction<iAVolumePlayerTool>(m_mainWnd, m_mainWnd->toolsMenu());
 }
