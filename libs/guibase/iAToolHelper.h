@@ -21,9 +21,17 @@ T* addToolToActiveMdiChild(QString const & name, iAMainWindow* mainWnd, bool uni
 		LOG(lvlWarn, QString("Tool %1: Already attached to the current window, only one instance allowed!").arg(name));
 		return nullptr;
 	}
-	auto t = std::make_shared<T>(mainWnd, child);
-	child->addTool(name, t);
-	return t.get();
+	try
+	{
+		auto t = std::make_shared<T>(mainWnd, child);
+		child->addTool(name, t);
+		return t.get();
+	}
+	catch (std::exception const& e)
+	{
+		LOG(lvlError, QString("While starting tool %1, an error occurred: %2").arg(name).arg(e.what()));
+	}
+	return nullptr;
 }
 
 template <class ToolType>
