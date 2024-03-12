@@ -39,7 +39,7 @@ public:
 	QThread m_serverThread;
 
 	iAOpenXRTrackerServerToolImpl(iAMdiChild* child):
-		m_wsServer(new QWebSocketServer(QStringLiteral("iAWebSocketServerTool::Name"), QWebSocketServer::NonSecureMode, this))
+		m_wsServer(new QWebSocketServer(iAOpenXRTrackerServerTool::Name, QWebSocketServer::NonSecureMode, this))
 	{
 		m_wsServer->moveToThread(&m_serverThread);
 		m_serverThread.start();
@@ -140,7 +140,7 @@ public:
 	}
 };
 
-const QString iAOpenXRTrackerServerTool::Name("OpenXR Tracker");
+const QString iAOpenXRTrackerServerTool::Name("OpenXRTracker");
 
 iAOpenXRTrackerServerTool::iAOpenXRTrackerServerTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iATool(mainWnd, child),
