@@ -238,7 +238,7 @@ void iADatasetInfo::calculateInfo()
 					generateInfo<unsigned long long>(datasetPath, datasetName, image, m_pmi, totalFInfoNbToCreate, currentFInfoNb); break;
 #if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(5, 1, 0)
 				case iAITKIO::ScalarType::LDOUBLE:
-					throw std::runtime_error("Invalid component type (LDOUBLE)"); break;
+					throw std::runtime_error("Invalid component type (LDOUBLE)");
 #endif
 				case iAITKIO::ScalarType::UNKNOWNCOMPONENTTYPE:
 					//

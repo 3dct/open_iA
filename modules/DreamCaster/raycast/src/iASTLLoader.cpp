@@ -227,65 +227,62 @@ int readSTLFile(QString const & filename, std::vector<iAtriangle*> & stlMesh, st
 		computeBBox(stlMesh, vertices, box, scale_coef, translate3f);
 		return 0;
 	}
+
 	// HERE FOR THE BINARY VERSION
-	else
+	iATri item;
+	FILE *fptr = fopen(getLocalEncodingFileName(filename).c_str(),"rb");
+	if(!fptr)	return 1;
+	unsigned char header[80];
+	if (fread(&header, sizeof(char), 80, fptr) != 80)
 	{
-		iATri item;
-		FILE *fptr = fopen(getLocalEncodingFileName(filename).c_str(),"rb");
-		if(!fptr)	return 1;
-		unsigned char header[80];
-		if (fread(&header, sizeof(char), 80, fptr) != 80)
-		{
-			dcast->log(QString("Error! Cannot read .STL file header of %1.\n").arg(filename));
-			return 4;
-		}
-		unsigned long noOfFacets;
-		if (fread(&noOfFacets, sizeof(unsigned long), 1, fptr) != 1)
-		{
-			dcast->log(QString("Error! Cannot read .STL file header of %1.\n").arg(filename));
-			return 4;
-		}
-
-		unsigned short zero;
-
-		// long count = 0;
-		for (unsigned long i=0;i<noOfFacets;i++)
-		{
-			if ((fread(&item,sizeof(item),1,fptr) != 1) ||				// reads triangle
-				(fread(&zero,sizeof(unsigned short),1,fptr) != 1))		// reads an unsigned short present after every triangle
-			{
-				dcast->log(QString("Error! Cannot read .STL file content of %1.\n").arg(filename));
-				return 4;
-			}
-
-			copy = new iAtriangle;
-
-			copy->N = iAVec3f(item.normal1, item.normal2, item.normal3 );
-
-			iAVec3f helper_vec3(item.vertex1X, item.vertex1Y, item.vertex1Z );
-			copy->vertices[0] = new iAVec3f(helper_vec3);
-			vertices.push_back(copy->vertices[0]);
-
-			helper_vec3 = iAVec3f(item.vertex2X, item.vertex2Y, item.vertex2Z );
-			copy->vertices[1] = new iAVec3f(helper_vec3);
-			vertices.push_back(copy->vertices[1]);
-
-			helper_vec3 = iAVec3f(item.vertex3X, item.vertex3Y, item.vertex3Z );
-			copy->vertices[2] = new iAVec3f(helper_vec3);
-			vertices.push_back(copy->vertices[2]);
-
-			// RESETTING THE NORMAL HERE
-			copy->N =  (*copy->vertices[2]-*copy->vertices[1])
-						^(*copy->vertices[0]-*copy->vertices[2]);
-			copy->N.normalize();
-
-			//count++;
-
-			stlMesh.push_back( copy );
-		}
-		fclose(fptr);
-		computeBBox(stlMesh, vertices, box, scale_coef, translate3f);
-		return 0;
+		dcast->log(QString("Error! Cannot read .STL file header of %1.\n").arg(filename));
+		return 4;
 	}
-	return 3;
+	unsigned long noOfFacets;
+	if (fread(&noOfFacets, sizeof(unsigned long), 1, fptr) != 1)
+	{
+		dcast->log(QString("Error! Cannot read .STL file header of %1.\n").arg(filename));
+		return 4;
+	}
+
+	unsigned short zero;
+
+	// long count = 0;
+	for (unsigned long i=0;i<noOfFacets;i++)
+	{
+		if ((fread(&item,sizeof(item),1,fptr) != 1) ||				// reads triangle
+			(fread(&zero,sizeof(unsigned short),1,fptr) != 1))		// reads an unsigned short present after every triangle
+		{
+			dcast->log(QString("Error! Cannot read .STL file content of %1.\n").arg(filename));
+			return 4;
+		}
+
+		copy = new iAtriangle;
+
+		copy->N = iAVec3f(item.normal1, item.normal2, item.normal3 );
+
+		iAVec3f helper_vec3(item.vertex1X, item.vertex1Y, item.vertex1Z );
+		copy->vertices[0] = new iAVec3f(helper_vec3);
+		vertices.push_back(copy->vertices[0]);
+
+		helper_vec3 = iAVec3f(item.vertex2X, item.vertex2Y, item.vertex2Z );
+		copy->vertices[1] = new iAVec3f(helper_vec3);
+		vertices.push_back(copy->vertices[1]);
+
+		helper_vec3 = iAVec3f(item.vertex3X, item.vertex3Y, item.vertex3Z );
+		copy->vertices[2] = new iAVec3f(helper_vec3);
+		vertices.push_back(copy->vertices[2]);
+
+		// RESETTING THE NORMAL HERE
+		copy->N =  (*copy->vertices[2]-*copy->vertices[1])
+					^(*copy->vertices[0]-*copy->vertices[2]);
+		copy->N.normalize();
+
+		//count++;
+
+		stlMesh.push_back( copy );
+	}
+	fclose(fptr);
+	computeBBox(stlMesh, vertices, box, scale_coef, translate3f);
+	return 0;
 }

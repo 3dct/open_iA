@@ -767,18 +767,18 @@ iAOIFReaderHelper::TiffImgPtr iAOIFReaderHelper::ReadTiffImage(QString const & f
 	auto pixelType = imageIO->GetComponentType();
 	switch (pixelType)
 	{
-	case iAITKIO::ScalarType::UCHAR:     return read_image_template(file_name, static_cast<unsigned char>(0));      break;
-	case iAITKIO::ScalarType::CHAR:      return read_image_template(file_name, static_cast<char>(0));               break;
-	case iAITKIO::ScalarType::USHORT:    return read_image_template(file_name, static_cast<unsigned short>(0));     break;
-	case iAITKIO::ScalarType::SHORT:     return read_image_template(file_name, static_cast<short>(0));              break;
-	case iAITKIO::ScalarType::UINT:      return read_image_template(file_name, static_cast<unsigned int>(0));       break;
-	case iAITKIO::ScalarType::INT:       return read_image_template(file_name, static_cast<int>(0));                break;
-	case iAITKIO::ScalarType::ULONG:     return read_image_template(file_name, static_cast<unsigned long>(0));      break;
-	case iAITKIO::ScalarType::LONG:      return read_image_template(file_name, static_cast<long>(0));               break;
-	case iAITKIO::ScalarType::ULONGLONG: return read_image_template(file_name, static_cast<unsigned long long>(0)); break;
-	case iAITKIO::ScalarType::LONGLONG:  return read_image_template(file_name, static_cast<long long>(0));          break;
-	case iAITKIO::ScalarType::FLOAT:     return read_image_template(file_name, static_cast<float>(0));              break;
-	case iAITKIO::ScalarType::DOUBLE:    return read_image_template(file_name, static_cast<double>(0));             break;
+	case iAITKIO::ScalarType::UCHAR:     return read_image_template(file_name, static_cast<unsigned char>(0));
+	case iAITKIO::ScalarType::CHAR:      return read_image_template(file_name, static_cast<char>(0));
+	case iAITKIO::ScalarType::USHORT:    return read_image_template(file_name, static_cast<unsigned short>(0));
+	case iAITKIO::ScalarType::SHORT:     return read_image_template(file_name, static_cast<short>(0));
+	case iAITKIO::ScalarType::UINT:      return read_image_template(file_name, static_cast<unsigned int>(0));
+	case iAITKIO::ScalarType::INT:       return read_image_template(file_name, static_cast<int>(0));
+	case iAITKIO::ScalarType::ULONG:     return read_image_template(file_name, static_cast<unsigned long>(0));
+	case iAITKIO::ScalarType::LONG:      return read_image_template(file_name, static_cast<long>(0));
+	case iAITKIO::ScalarType::ULONGLONG: return read_image_template(file_name, static_cast<unsigned long long>(0));
+	case iAITKIO::ScalarType::LONGLONG:  return read_image_template(file_name, static_cast<long long>(0));
+	case iAITKIO::ScalarType::FLOAT:     return read_image_template(file_name, static_cast<float>(0));
+	case iAITKIO::ScalarType::DOUBLE:    return read_image_template(file_name, static_cast<double>(0));
 	case iAITKIO::ScalarType::UNKNOWNCOMPONENTTYPE:
 	default:
 		throw std::runtime_error(QString("OIF Reader: Unknown component type (%1)").arg(static_cast<int>(pixelType)).toStdString());

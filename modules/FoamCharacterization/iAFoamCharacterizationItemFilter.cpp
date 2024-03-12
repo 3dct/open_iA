@@ -457,22 +457,12 @@ QString iAFoamCharacterizationItemFilter::itemFilterTypeString() const
 {
 	switch (m_eItemFilterType)
 	{
-		case iftAnisotropic:
-		return "A";
-		break;
-
-		case iftGauss:
-		return "G";
-		break;
-
-		case iftMedian:
-		return "M";
-		break;
-
-		default:
-		return "N";
-		break;
+		case iftAnisotropic:   return "A";
+		case iftGauss:         return "G";
+		case iftMedian:        return "M";
+		case iftNonLocalMeans: return "N";
 	}
+	return "I";
 }
 
 unsigned int iAFoamCharacterizationItemFilter::medianRadius() const
