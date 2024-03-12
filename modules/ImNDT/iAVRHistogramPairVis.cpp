@@ -93,7 +93,7 @@ void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, doub
 	polygonSource->SetNormal(0, 1, 0);
 
 	vtkNew<vtkPolyDataMapper> mapper;
-	mapper->SetInputConnection(polygonSource->GetOutputPort());;
+	mapper->SetInputConnection(polygonSource->GetOutputPort());
 
 	m_sphereActor = vtkSmartPointer<vtkActor>::New();
 	m_sphereActor->SetMapper(mapper);

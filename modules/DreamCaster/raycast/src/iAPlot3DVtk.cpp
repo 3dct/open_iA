@@ -181,7 +181,7 @@ void iAPlot3DVtk::SetGridCellNumbers( long *data )
 void iAPlot3DVtk::SetAutoScalarRange()
 {
 	m_Smin = 0;
-	m_Smax = m_lookupTable->GetNumberOfTableValues();;
+	m_Smax = m_lookupTable->GetNumberOfTableValues();
 
 	m_lookupTable->SetTableRange(m_Smin, m_Smax);
 	m_mapper->SetLookupTable(m_lookupTable);

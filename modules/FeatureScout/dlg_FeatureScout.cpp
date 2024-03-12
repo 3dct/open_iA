@@ -1857,7 +1857,7 @@ void dlg_FeatureScout::showScatterPlot()
 		QMessageBox::information(this, "FeatureScout", "Scatterplot Matrix already created.");
 		return;
 	}
-	QSignalBlocker spmBlock(m_splom.get()); //< no need to trigger updates while we're creating SPM
+	QSignalBlocker spmBlock(m_splom.get()); // no need to trigger updates while we're creating SPM
 	m_splom->initScatterPlot(m_csvTable, m_columnVisibility);
 	m_dwSPM = new iADockWidgetWrapper(m_splom->matrixWidget(), "Scatter Plot Matrix", "FeatureScoutSPM");
 	m_activeChild->splitDockWidget(m_activeChild->renderDockWidget(), m_dwSPM, Qt::Vertical);
@@ -2010,7 +2010,7 @@ void dlg_FeatureScout::pcRightButtonReleased(vtkObject* obj, unsigned long, void
 	int* mouseReleasePos = iren->GetLastEventPosition();
 	if (mouseReleasePos[0] == m_mousePressPos[0] && mouseReleasePos[1] == m_mousePressPos[1])
 	{
-		command->AbortFlagOn();    //< Consume event so the interactor style doesn't get it
+		command->AbortFlagOn();    // Consume event so the interactor style doesn't get it
 		QMenu popupMenu;
 		auto addClass = popupMenu.addAction("Add class");
 		addClass->setIcon(iAThemeHelper::icon("plus"));

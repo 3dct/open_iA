@@ -96,9 +96,9 @@ struct iATri
 
 int readSTLFile(QString const & filename, std::vector<iAtriangle*> & stlMesh, std::vector<iAVec3f*> & vertices, iAaabb & box)
 {
-	float scale_coef;///< loaded mesh's scale coefficient
-	float translate3f[3];///< loaded mesh's axes offsets
-	std::ifstream reader;///< reader used to load mesh from stl file
+	float scale_coef;      // loaded mesh's scale coefficient
+	float translate3f[3];  // loaded mesh's axes offsets
+	std::ifstream reader;  // reader used to load mesh from stl file
 	//clear prev model data
 	for (unsigned int i=0; i<vertices.size(); i++)
 	{

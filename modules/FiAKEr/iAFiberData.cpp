@@ -152,7 +152,9 @@ namespace
 	}
 
 	//! determine the distance from the given point to the closest point on the given line segment
-	//! @param
+	//! @param point the point for which the distance is computed
+	//! @param lineStart the starting point of the line segment
+	//! @param lineEnd the end point of the line segment
 	double distanceToLineSegment(iAVec3f const & point, iAVec3f const & lineStart, iAVec3f const & lineEnd)
 	{
 		double dist;

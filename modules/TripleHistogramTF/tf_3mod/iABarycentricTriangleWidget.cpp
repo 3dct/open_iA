@@ -454,7 +454,7 @@ void iABarycentricTriangleWidget::paintContext(QPainter &p)
 		}
 		else
 		{
-			p.drawImage(rect, *img, img->rect());;
+			p.drawImage(rect, *img, img->rect());
 		}
 	}
 }

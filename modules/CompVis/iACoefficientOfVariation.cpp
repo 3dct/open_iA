@@ -18,7 +18,7 @@ iACoefficientOfVariation::iACoefficientOfVariation(iACsvDataStorage* dataStorage
 
 std::vector<double>* iACoefficientOfVariation::recalculateCoefficentOfVariation(csvDataType::ArrayType* selectedData)
 {
-	return calculateVariationCoefficient(selectedData);;
+	return calculateVariationCoefficient(selectedData);
 }
 
 void iACoefficientOfVariation::initializeAttributeArray(csvDataType::ArrayType* selectedData)

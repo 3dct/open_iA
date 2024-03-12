@@ -340,7 +340,7 @@ void iARangeSliderDiagramView::setupDiagrams()
 		m_rangeSliderData = createRangeSliderData(mapIt.value(), min, max);
 		m_rangeSliderDiagramDrawer = std::make_shared<iABarGraphPlot>(m_rangeSliderData, QColor(70, 70, 70, 255));
 		vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
-		vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();;
+		vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
 		// Adds two end points to set up a propper transfer function
 		oTF->AddPoint( m_rangeSliderData->xBounds()[0], 0 );
 		oTF->AddPoint( m_rangeSliderData->xBounds()[1], 0 );

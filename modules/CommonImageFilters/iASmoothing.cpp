@@ -257,7 +257,7 @@ iANonLocalMeans::iANonLocalMeans() :
 		"<em>Number of iterations</em> determines how many iterations to perform (default=1). "
 		"<em>Kernel bandwidth estimation</em> determines whether kernel-bandwidth should be "
 		"estimated automatically from the image data (default=false). <br/>"
-		//<em>Noise Sigma</em> specifies the sigma of the noise model, where appropriate (in percent of the image intensity range)."
+		// <em>Noise Sigma</em> specifies the sigma of the noise model, where appropriate (in percent of the image intensity range)."
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1PatchBasedDenoisingImageFilter.html\">"
 		"Patch Based Denoising Filter</a> in the ITK documentation.", 1u, 1u, true),

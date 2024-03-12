@@ -2474,7 +2474,7 @@ void iADreamCaster::ViewsReset()
 
 void iADreamCaster::TopPlacementsChangedSlot()
 {
-	float curParam = 0;;
+	float curParam = 0;
 	double max_param=-1000;
 	double min_param=100000;
 	for (int x = 0; x < renderCntX; x++)

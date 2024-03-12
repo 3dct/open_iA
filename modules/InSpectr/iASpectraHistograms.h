@@ -23,13 +23,13 @@ private:
 	void computeMaximumVal();
 
 private:
-	long	m_numBins;			///< number of bins in a histogram
-	size_t	m_numHistograms;	///< number of energy bins is the number of histograms
-	double	m_countRange[2];	///< range of XRF
+	long	m_numBins;                    //!< number of bins in a histogram
+	size_t	m_numHistograms;              //!< number of energy bins is the number of histograms
+	double	m_countRange[2];              //!< range of XRF
 
-	double			m_binWidth;			///< width of a histogram bin
-	CountType	*	m_histData;			///< raw data containing a 2D array, first dimension - histograms, second - bins
+	double			m_binWidth;           //!< width of a histogram bin
+	CountType	*	m_histData;           //!< raw data containing a 2D array, first dimension - histograms, second - bins
 
-	std::shared_ptr<iAXRFData> m_xrfData;	///< pointer to the input xrf data set
-	CountType	m_maxValue;			///< maximum value of all histograms' bins
+	std::shared_ptr<iAXRFData> m_xrfData; //!< pointer to the input xrf data set
+	CountType	m_maxValue;               //!< maximum value of all histograms' bins
 };

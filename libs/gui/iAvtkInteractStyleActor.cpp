@@ -550,6 +550,7 @@ void iAvtkInteractStyleActor::rotateReslicerXYZ(vtkSmartPointer<vtkTransform> tr
 		transform->RotateX(rotXYZ[0]);
 		transform->RotateY(rotXYZ[1]);
 		transform->RotateZ(rotXYZ[2]);
+		break;
 	default:
 		break;
 	}

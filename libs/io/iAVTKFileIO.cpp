@@ -96,7 +96,7 @@ std::shared_ptr<iADataSet> iAVTKFileIO::loadData(QString const& fileName, QVaria
 
 		//		for (
 		int i = 0; // i < numOfArrays; ++i)
-		if (numOfArrays > 0) //< remove this if enabling for loop
+		if (numOfArrays > 0) // remove this if enabling for loop
 		{
 			auto arrayData = rectilinearGrid->GetPointData()->GetAbstractArray(rectilinearGrid->GetPointData()->GetArrayName(i));
 			int dataType = arrayData->GetDataType();

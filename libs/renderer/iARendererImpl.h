@@ -139,11 +139,10 @@ public:
 	void saveMovie(const QString& fileName, int mode, int qual, int fps, int numSteps);	//!< move out of here
 	iARenderObserver * getRenderObserver() override;
 	void addRenderer(vtkRenderer* renderer) override;
-	//! apply the given settings to the renderer
-	//! @param settings data holder for all settings.
-	//! @param slicePlaneVisibility initial visibility of the single slice planes (can be modified independently via showSlicePlanes as well).
+	//! Apply the given settings to the renderer.
+	//! @param paramValues values for all settings.
 	void applySettings(QVariantMap const & paramValues) override;
-	//! access to current settings.
+	//! Access to current settings.
 	QVariantMap const& settings() const;
 	void editSettings();
 

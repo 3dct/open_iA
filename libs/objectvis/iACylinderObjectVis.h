@@ -13,6 +13,13 @@ class iAobjectvis_API iACylinderObjectVis : public iALineObjectVis
 {
 public:
 	static const int DefaultNumberOfCylinderSides = 12;
+	//! Creates a cylinder object visualization.
+	//! @param data the data of the objects
+	//! @param numberOfCylinderSides quality parameter for cylinder visualization (lower values lead to faster
+	//!        rendering but also less quality; minimum value that makes sense is 3 (then you get a triangular tube)
+	//! @param segmentSkip quality parameter for cylinder visualization (how many segments for curved fibers are
+	//!        skipped; higher values lead to faster rendering but also less accurate representation of curved fibers
+	//!        the default value of 1 means don't skip; larger values skip curved fiber segments
 	iACylinderObjectVis(iAObjectsData const* data,
 		QColor const & color, int numberOfCylinderSides = DefaultNumberOfCylinderSides, size_t segmentSkip = 1);
 	virtual ~iACylinderObjectVis();

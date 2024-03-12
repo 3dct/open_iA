@@ -17,8 +17,8 @@ class iAobjectvis_API iALabeledVolumeVis : public iAObjectVis
 public:
 	//! Create a labeled object visualization
 	//! @param data the table with the characteristics of the objects
-	//! @param ctf color transfer function used for displaying the labeled volume dataset (will be modified to reflect selections, colorings, etc.)
-	//! @param otf opacity transfer function used for displaying the labeled volume dataset (will be modified to reflect selections, colorings, etc.)
+	//! @param color color transfer function used for displaying the labeled volume dataset (will be modified to reflect selections, colorings, etc.)
+	//! @param opac opacity transfer function used for displaying the labeled volume dataset (will be modified to reflect selections, colorings, etc.)
 	//! @param bounds bounds of the labeled volume dataset (used to be able to report the bounds of this visualization)
 	iALabeledVolumeVis(vtkColorTransferFunction* color, vtkPiecewiseFunction* opac,
 		iAObjectsData const * data, double const * bounds );

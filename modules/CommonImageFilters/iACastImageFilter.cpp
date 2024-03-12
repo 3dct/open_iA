@@ -202,12 +202,12 @@ void convertToRGB(iAFilter * filter, QVariantMap const & params)
 	}
 	labelToRGBFilter->Update();
 
-	RGBImageType::RegionType region;
-	region.SetSize(labelToRGBFilter->GetOutput()->GetLargestPossibleRegion().GetSize());
-	region.SetIndex(labelToRGBFilter->GetOutput()->GetLargestPossibleRegion().GetIndex());
+	RGBImageType::RegionType regions;
+	regions.SetSize(labelToRGBFilter->GetOutput()->GetLargestPossibleRegion().GetSize());
+	regions.SetIndex(labelToRGBFilter->GetOutput()->GetLargestPossibleRegion().GetIndex());
 
 	RGBAImageType::Pointer rgbaImage = RGBAImageType::New();
-	rgbaImage->SetRegions(region);
+	rgbaImage->SetRegions(regions);
 	rgbaImage->SetSpacing(labelToRGBFilter->GetOutput()->GetSpacing());
 	rgbaImage->Allocate();
 
