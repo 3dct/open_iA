@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iARemoteModuleInterface.h"
 
-#include "iARemoteTool.h"
-#include "iAPlaneSliceTool.h"
 #include "iAOpenXRTrackerServerTool.h"
+#include "iAPlaneSliceTool.h"
+#include "iARemoteTool.h"
+#include "iAUnityWebsocketServerTool.h"
 
 #include <iALog.h>
 #include <iAMainWindow.h>
@@ -41,4 +42,5 @@ void iARemoteModuleInterface::Initialize()
 
 	addToolAction<iAOpenXRTrackerServerTool>(m_mainWnd, submenu);
 	addToolAction<iAPlaneSliceTool>(m_mainWnd, submenu);
+	addToolAction<iAUnityWebsocketServerTool>(m_mainWnd, submenu);
 }
