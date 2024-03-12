@@ -22,8 +22,6 @@
 
 namespace
 {
-	const int Port = 9042;
-
 	float toFloat(QByteArray const& arr, size_t ofs)
 	{
 		//static_assert(std::numeric_limits<float>::is_iec559, "Only supports IEC 559 (IEEE 754) float");
@@ -40,13 +38,13 @@ public:
 	QList<QWebSocket*> m_clients;
 	QThread m_serverThread;
 
-	iAOpenXRTrackerServerToolImpl(int port, iAMdiChild* child):
+	iAOpenXRTrackerServerToolImpl(iAMdiChild* child):
 		m_wsServer(new QWebSocketServer(QStringLiteral("iAWebSocketServerTool::Name"), QWebSocketServer::NonSecureMode, this))
 	{
 		m_wsServer->moveToThread(&m_serverThread);
 		m_serverThread.start();
 
-		if (m_wsServer->listen(QHostAddress::Any, port))
+		if (m_wsServer->listen(QHostAddress::Any))
 		{
 			LOG(lvlInfo, QString("%1: Listening on %2:%3")
 				.arg(iAOpenXRTrackerServerTool::Name).arg(m_wsServer->serverAddress().toString()).arg(m_wsServer->serverPort()));
@@ -146,7 +144,7 @@ const QString iAOpenXRTrackerServerTool::Name("OpenXR Tracker");
 
 iAOpenXRTrackerServerTool::iAOpenXRTrackerServerTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iATool(mainWnd, child),
-	m_impl(std::make_unique<iAOpenXRTrackerServerToolImpl>(Port, child))
+	m_impl(std::make_unique<iAOpenXRTrackerServerToolImpl>(child))
 {
 }
 
