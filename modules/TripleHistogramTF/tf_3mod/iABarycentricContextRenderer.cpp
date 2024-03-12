@@ -11,7 +11,7 @@
 #include <cmath>
 
 static const QImage::Format IMAGE_FORMAT = QImage::Format::Format_Grayscale8;
-static const int ONE_DIV_THREE = 1.0 / 3.0;
+static const double ONE_DIV_THREE = 1.0 / 3.0;
 static const int GRAY_VALUE_MIN = 48;
 static const int GRAY_VALUE_INTERVAL = 255 - GRAY_VALUE_MIN;
 static const int TIMER_HEATMAP_WAIT = 2000; // in milliseconds
