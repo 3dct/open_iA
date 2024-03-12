@@ -317,9 +317,9 @@ QString attrValueStr(double value, std::shared_ptr<iAAttributes> attributes, int
 {
 	switch(attributes->at(id)->valueType())
 	{
-		case iAValueType::Discrete:    return QString::number(static_cast<int>(value)); break;
-		case iAValueType::Categorical: return attributes->at(id)->nameMapper()->name(static_cast<int>(value)); break;
-		default:          return QString::number(value); break;
+		case iAValueType::Discrete:    return QString::number(static_cast<int>(value));
+		case iAValueType::Categorical: return attributes->at(id)->nameMapper()->name(static_cast<int>(value));
+		default:                       return QString::number(value);
 	}
 }
 

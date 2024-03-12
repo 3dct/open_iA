@@ -94,6 +94,5 @@ void iASegmentationMetrics::performWork(QVariantMap const & /*parameters*/)
 	default:
 		throw itk::ExceptionObject(__FILE__, __LINE__,
 			"Segmentation Metrics: Only Integer image types are allowed as input!");
-		break;
 	}
 }
