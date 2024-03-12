@@ -2,14 +2,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+// PRIVATE IMPLEMENTATION:
+
 #include <iostream>
 #include <cmath>
 
-int simpleTesterTestsPassed = 0;
-int simpleTesterTestsFailed = 0;
+namespace
+{
+	int simpleTesterTestsPassed = 0;
+	int simpleTesterTestsFailed = 0;
 
-char const * TestPassed = "Test passed. ";
-char const * TestNotPassed = "Test NOT passed";
+	char const* TestPassed = "Test passed. ";
+	char const* TestNotPassed = "Test NOT passed";
 
 void PrivateTestAssert(bool expression, char const * expressionStr)
 {
@@ -44,7 +48,7 @@ void PrivateTestEqual(T const & expected, T const & actual, char const * expecte
 		std::cout << TestNotPassed << " (" << expectedStr << " = " << actualStr << ") "
 			<< " got " << expected << " != " << actual << " instead " << std::endl;
 	}
-	PrivateTestAssert(equal, 0);
+	PrivateTestAssert(equal, nullptr);
 }
 
 const double MyEpsilon = 0.00001;
@@ -63,8 +67,11 @@ void PrivateTestEqualFloatingPoint(T const & expected, T const & actual, char co
 		std::cout << TestNotPassed << " (" << expectedStr << " = " << actualStr << ") "
 			<< " got " << expected << " != " << actual << " instead " << std::endl;
 	}
-	PrivateTestAssert(equal, 0);
+	PrivateTestAssert(equal, nullptr);
 }
+}
+
+// PUBLIC-FACING API:
 
 #define TestAssert(expression) \
 	PrivateTestAssert(expression, #expression)
