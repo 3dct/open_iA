@@ -13,9 +13,9 @@ double gaussian(double x, double sigma)
 		std::exp(-std::pow(x, 2.0) / (2 * std::pow(sigma, 2.0)));
 }
 
-std::vector<double> gaussianKernel(double kernelSigma, size_t kernelSteps)
+FuncType gaussianKernel(double kernelSigma, size_t kernelSteps)
 {
-	std::vector<double> kernel;
+	FuncType kernel;
 	for (size_t i = 0; i < kernelSteps + 1; ++i)
 	{
 		kernel.push_back(gaussian(i, kernelSigma));
@@ -23,9 +23,9 @@ std::vector<double> gaussianKernel(double kernelSigma, size_t kernelSteps)
 	return kernel;
 }
 
-std::vector<double> gaussianSmoothing(std::vector<double> const & data, double kernelSigma, int kernelSteps)
+FuncType gaussianSmoothing(FuncType const & data, double kernelSigma, int kernelSteps)
 {
-	std::vector<double> smoothed;
+	FuncType smoothed;
 	auto kernel = gaussianKernel(kernelSigma, kernelSteps);
 	for (size_t i = 0; i < data.size(); ++i)
 	{
@@ -43,11 +43,11 @@ std::vector<double> gaussianSmoothing(std::vector<double> const & data, double k
 	return smoothed;
 }
 
-std::vector<double> derivative(std::vector<double> const & func)
+FuncType derivative(FuncType const & func)
 {
 	if (func.size() <= 1)
 		return func;
-	std::vector<double> deriv;
+	FuncType deriv;
 	deriv.resize(func.size());
 	deriv[0] = func[1] - func[0];   // avoid conditional in loop
 	for (size_t i = 1; i < func.size(); ++i)

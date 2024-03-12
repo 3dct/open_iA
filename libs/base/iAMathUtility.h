@@ -40,7 +40,7 @@ bool inRange(T const* range, T const value)
 //! @param maxVal array with numVal entries, will hold the maximum value for each component in given val1/val2 array
 //! @param val1 array with numVal entries
 //! @param val2 array with numVal entries
-//! @param size
+//! @param size the maximum value for min and max results (must also be an array with numVal entries); min and max are clamped to interval 0..size[c] (with c the index of respective component)
 //! @param numVal number of values in minVal, maxVal, val1, val2, and size
 template <typename T>
 void computeMinMax(T* minVal, T* maxVal, T const* val1, T const* val2, T const * size, int numVal)
@@ -192,7 +192,7 @@ T frac(T val)
 	return val - std::trunc(val);
 }
 
-typedef std::vector<double> FuncType;
+using FuncType = std::vector<double>;
 
 //! Compute Gaussian function for the given value x and parameter sigma (mean = 0).
 iAbase_API double gaussian(double x, double sigma);
