@@ -23,7 +23,9 @@ public:
 	//! all 3 minimum coordinates are set to the maximum possible double value.
 	iAAABB();
 	//! construct bounding box from 6 double values (xmin, xmax, ymin, ymax, zmin, zmax)
-	iAAABB(double const* b);
+	explicit iAAABB(double const b[6]);
+	//! construct bounding box from 6 double values
+	explicit iAAABB(double xmin, double xmax, double ymin, double ymax, double zmin, double zmax);
 	//! add a point that should fit into the bounding box; if the current box does not contain this point, it is enlarged
 	void addPointToBox(iAVec3d const& pt);
 	//! merge another bounding box to this one, enlarging it if necessary

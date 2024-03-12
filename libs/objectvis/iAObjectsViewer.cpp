@@ -68,10 +68,10 @@ bool iAObjectsViewer::s_registered = []() {
 
 #include <vtkActor.h>
 
-iAObjectsRenderer::iAObjectsRenderer(vtkRenderer* renderer, iAObjectVis* objVis, QVariantMap const& overrideValues):
+iAObjectsRenderer::iAObjectsRenderer(vtkRenderer* renderer, iAObjectVis* objVis, QVariantMap const& overrideValues) :
 	iADataSetRenderer(renderer),
 	m_objVis(objVis),
-	m_objActor(objVis->createActor(renderer))
+	m_objActor(objVis ? objVis->createActor(renderer) : nullptr)
 {
 	setDefaultAttributes(defaultAttributes(), overrideValues);
 }
@@ -93,26 +93,55 @@ void iAObjectsRenderer::applyAttributes(QVariantMap const& values)
 
 iAAABB iAObjectsRenderer::bounds()
 {
-	return m_objVis->bounds();
+	if (!m_objVis)
+	{
+		static iAAABB bb{ 0,1, 0,1, 0,1 };
+		return bb;
+	}
+	return iAAABB(m_objVis->bounds());
 }
 
 double const* iAObjectsRenderer::orientation() const
 {
+	if (m_objActor)
+	{
 	return dynamic_cast<iAPolyObjectVisActor*>(m_objActor.get())->actor()->GetOrientation();
+	}
+	else
+	{
+		static double pos[3] = { 0, 0, 0 };
+		return pos;
+	}
 }
 
 double const* iAObjectsRenderer::position() const
 {
-	return dynamic_cast<iAPolyObjectVisActor*>(m_objActor.get())->actor()->GetPosition();
+	if (m_objActor)
+	{
+		return dynamic_cast<iAPolyObjectVisActor*>(m_objActor.get())->actor()->GetPosition();
+	}
+	else
+	{
+		static double pos[3] = { 0, 0, 0 };
+		return pos;
+	}
 }
 
 void iAObjectsRenderer::setPosition(double pos[3])
 {
+	if (!m_objActor)
+	{
+		return;
+	}
 	dynamic_cast<iAPolyObjectVisActor*>(m_objActor.get())->actor()->SetPosition(pos);
 }
 
 void iAObjectsRenderer::setOrientation(double ori[3])
 {
+	if (!m_objActor)
+	{
+		return;
+	}
 	dynamic_cast<iAPolyObjectVisActor*>(m_objActor.get())->actor()->SetOrientation(ori);
 }
 
@@ -129,12 +158,18 @@ iAAttributes& iAObjectsRenderer::defaultAttributes()
 
 void iAObjectsRenderer::showDataSet()
 {
-	m_objActor->show();
+	if (m_objActor)
+	{
+		m_objActor->show();
+	}
 }
 
 void iAObjectsRenderer::hideDataSet()
 {
-	m_objActor->hide();
+	if (m_objActor)
+	{
+		m_objActor->hide();
+	}
 }
 
 iAAttributes const& iAObjectsRenderer::attributes() const
