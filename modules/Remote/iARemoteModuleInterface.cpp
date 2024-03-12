@@ -39,19 +39,6 @@ void iARemoteModuleInterface::Initialize()
 	m_mainWnd->makeActionChildDependent(actionRemote);
 	addToMenuSorted(submenu, actionRemote);
 
-	QAction* actionWS = new QAction(iAOpenXRTrackerServerTool::Name, m_mainWnd);
-	connect(actionWS, &QAction::triggered, this, [this]()
-		{
-			addToolToActiveMdiChild<iAOpenXRTrackerServerTool>(iAOpenXRTrackerServerTool::Name, m_mainWnd);
-		});
-	m_mainWnd->makeActionChildDependent(actionWS);
-	addToMenuSorted(submenu, actionWS);
-
-	QAction* actionSlice = new QAction(iAPlaneSliceTool::Name, m_mainWnd);
-	connect(actionSlice, &QAction::triggered, this, [this]()
-		{
-			addToolToActiveMdiChild<iAPlaneSliceTool>(iAPlaneSliceTool::Name, m_mainWnd);
-		});
-	m_mainWnd->makeActionChildDependent(actionSlice);
-	addToMenuSorted(submenu, actionSlice);
+	addToolAction<iAOpenXRTrackerServerTool>(m_mainWnd, submenu);
+	addToolAction<iAPlaneSliceTool>(m_mainWnd, submenu);
 }
