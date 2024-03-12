@@ -68,7 +68,7 @@ private:
 	vtkScalarBarWidget *m_scalarBarWidget;
 	//vtkDepthSortPolyData *m_depthSort;
 	vtkPointPicker *m_picker;
-	vtkCubeAxesActor2D *m_cubeAxes;;
+	vtkCubeAxesActor2D *m_cubeAxes;
 	vtkPolyDataMapper *m_pickedMapper;
 	vtkActor *m_pickedActor;
 	double m_Smin;

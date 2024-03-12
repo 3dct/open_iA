@@ -39,7 +39,7 @@ namespace threshold_defs
 			return m_globalMax;
 		}
 	private:
-		double m_lokalMax; //<!Air peak
+		double m_lokalMax; //!< Air peak
 		double m_globalMax;
 	};
 

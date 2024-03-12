@@ -699,7 +699,7 @@ void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptInde
 
 	if (normal[0] == 0 && normal[1] == 0)
 	{
-		//Move the point to origin Translation
+		// Move the point to origin Translation
 		double PointToOrigin_matrix[16] = { 1, 0, 0, point1[0],
 			0, 1, 0, point1[1],
 			0, 0, 1, point1[2],
@@ -707,7 +707,7 @@ void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptInde
 		vtkMatrix4x4* PointToOrigin_Translation = vtkMatrix4x4::New();
 		PointToOrigin_Translation->DeepCopy(PointToOrigin_matrix);
 
-		//Move the origin to point Translation
+		// Move the origin to point Translation
 		double OriginToPoint_matrix[16] = { 1, 0, 0, -point1[0],
 			0, 1, 0, -point1[1],
 			0, 0, 1, -point1[2],
@@ -715,7 +715,7 @@ void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptInde
 		vtkMatrix4x4* OriginToPoint_Translation = vtkMatrix4x4::New();
 		OriginToPoint_Translation->DeepCopy(OriginToPoint_matrix);
 
-		///multiplication of transformation matics
+		// Nultiplication of transformation matrices
 		vtkMatrix4x4* Transformation_4 = vtkMatrix4x4::New();
 		vtkMatrix4x4::Multiply4x4(PointToOrigin_Translation, OriginToPoint_Translation, Transformation_4);
 
@@ -724,7 +724,7 @@ void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptInde
 	}
 	else
 	{
-		//Move the point to origin Translation
+		// Move the point to origin Translation
 		double PointToOrigin_matrix[16] = { 1, 0, 0, point1[0],
 			0, 1, 0, point1[1],
 			0, 0, 1, point1[2],

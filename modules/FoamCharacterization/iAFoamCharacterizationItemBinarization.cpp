@@ -57,7 +57,7 @@ std::shared_ptr<iADataSet> iAFoamCharacterizationItemBinarization::execute(std::
 		executeOtzu(dataSet);
 	if (m_bIsMask)
 	{
-		m_mask = result;;
+		m_mask = result;
 	}
 
 	m_dExecuteTime = 0.001 * (double)t.elapsed();

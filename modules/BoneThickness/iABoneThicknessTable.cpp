@@ -44,14 +44,14 @@ void iABoneThicknessTable::mousePressEvent(QMouseEvent* e)
 	QTableView::mousePressEvent(e);
 }
 
-void iABoneThicknessTable::selectionChanged(const QItemSelection& _Selected, const QItemSelection& _Deselected)
+void iABoneThicknessTable::selectionChanged(const QItemSelection& sel, const QItemSelection& desel)
 {
 	const int iSelected(selected());
 
 	if (m_pBoneThickness) m_pBoneThickness->setSelected(iSelected);
 	if (m_pBoneThicknessChartBar) m_pBoneThicknessChartBar->setSelected(iSelected);
 
-	QTableView::selectionChanged(_Selected, _Deselected);
+	QTableView::selectionChanged(sel, desel);
 }
 
 int iABoneThicknessTable::selected() const

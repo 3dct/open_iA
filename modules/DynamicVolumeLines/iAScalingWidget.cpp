@@ -132,7 +132,8 @@ void iAScalingWidget::paintGL()
 			(m_nonlinearScalingVec[m_nonlinearUpperIdx] - m_nonlinearUpperRest -
 			(m_nonlinearScalingVec[m_nonlinearLowerIdx] + m_nonlinearLowerRest));
 		painter.setRenderHint(QPainter::Antialiasing, true);
-		m_prevNonlinearBarStartPosX = 0.0, m_prevLinearBarStartPosX = 0.0;
+		m_prevNonlinearBarStartPosX = 0.0;
+		m_prevLinearBarStartPosX = 0.0;
 
 		for (int hIdx = m_nonlinearLowerIdx + 1; hIdx <= m_nonlinearUpperIdx; ++hIdx)
 		{
@@ -234,7 +235,8 @@ void iAScalingWidget::paintGL()
 		double nonlinearVisibleDblWidth = (m_nonlinearUpperIdx - m_nonlinearLowerIdx + m_nonlinearLowerRest + m_nonlinearUpperRest);
 		double nonlinearScalingFactor = m_nonlinearAxis->axisRect()->width() / nonlinearVisibleDblWidth;
 		painter.setRenderHint(QPainter::Antialiasing, true);
-		m_prevNonlinearBarStartPosX = 0.0, m_prevLinearBarStartPosX = 0.0;
+		m_prevNonlinearBarStartPosX = 0.0;
+		m_prevLinearBarStartPosX = 0.0;
 
 		for (int histBinNbr = m_nonlinearLowerIdx - 1; histBinNbr < m_nonlinearUpperIdx; ++histBinNbr)
 		{

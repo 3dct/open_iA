@@ -153,22 +153,12 @@ QString iAFoamCharacterizationItem::itemTypeStr() const
 {
 	switch (m_eItemType)
 	{
-	case itBinarization:
-		return "Binarization";
-		break;
-
-	case itDistanceTransform:
-		return "Distance transform";
-		break;
-
-	case itFilter:
-		return "Filter";
-		break;
-
-	default:
-		return "Watershed";
-		break;
+	case itBinarization:      return "Binarization";
+	case itDistanceTransform: return "Distance transform";
+	case itFilter:            return "Filter";
+	case itWatershed:         return "Watershed";
 	}
+	return "Invalid";
 }
 
 bool iAFoamCharacterizationItem::modified() const

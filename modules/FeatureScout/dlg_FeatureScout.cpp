@@ -231,15 +231,18 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType objectType, 
 	{
 		SingleRendering();
 	}
-	m_3dactor = m_3dvis->createActor(parent->renderer()->renderer());
-	m_3dactor->show();
-	connect(m_3dactor.get(), &iAObjectVisActor::updated, m_activeChild, &iAMdiChild::updateRenderer);
-	parent->renderer()->renderer()->ResetCamera();
-	m_blobManager->SetRenderers(parent->renderer()->renderer(), m_renderer->labelRenderer());
-	m_blobManager->SetBounds(m_3dvis->bounds());
-	m_blobManager->SetProtrusion(1.5);
-	int dimens[3] = { 50, 50, 50 };
-	m_blobManager->SetDimensions(dimens);
+	if (m_3dvis)
+	{
+		m_3dactor = m_3dvis->createActor(parent->renderer()->renderer());
+		m_3dactor->show();
+		connect(m_3dactor.get(), &iAObjectVisActor::updated, m_activeChild, &iAMdiChild::updateRenderer);
+		parent->renderer()->renderer()->ResetCamera();
+		m_blobManager->SetRenderers(parent->renderer()->renderer(), m_renderer->labelRenderer());
+		m_blobManager->SetBounds(m_3dvis->bounds());
+		m_blobManager->SetProtrusion(1.5);
+		int dimens[3] = { 50, 50, 50 };
+		m_blobManager->SetDimensions(dimens);
+	}
 	// set first column of the classTreeView to minimal (not stretched)
 	m_classTreeView->resizeColumnToContents(0);
 	m_classTreeView->header()->setStretchLastSection(false);
@@ -687,6 +690,10 @@ void dlg_FeatureScout::setupConnections()
 
 void dlg_FeatureScout::multiClassRendering()
 {
+	if (!m_3dvis)
+	{
+		return;
+	}
 	showOrientationDistribution();
 	QStandardItem* rootItem = m_classTreeModel->invisibleRootItem();
 	int classCount = rootItem->rowCount();
@@ -735,7 +742,10 @@ void dlg_FeatureScout::RenderSelection(std::vector<size_t> const& selInds)
 
 	int selectedClassID = m_activeClassItem->index().row();
 	QColor classColor = m_colorList.at(selectedClassID);
-	m_3dvis->renderSelection(sortedSelInds, selectedClassID, classColor, m_activeClassItem);
+	if (m_3dvis)
+	{
+		m_3dvis->renderSelection(sortedSelInds, selectedClassID, classColor, m_activeClassItem);
+	}
 }
 
 void dlg_FeatureScout::renderMeanObject()
@@ -768,6 +778,10 @@ void dlg_FeatureScout::renderMeanObject()
 
 void dlg_FeatureScout::renderOrientation()
 {
+	if (!m_3dvis)
+	{
+		return;
+	}
 	m_renderMode = rmOrientation;
 	setPCChartData(true);
 	m_splom->enableSelection(false);
@@ -869,6 +883,10 @@ void dlg_FeatureScout::selectionChanged3D()
 
 void dlg_FeatureScout::renderLengthDistribution()
 {
+	if (!m_3dvis)
+	{
+		return;
+	}
 	m_renderMode = rmLengthDistribution;
 	setPCChartData(true);
 	m_splom->enableSelection(false);
@@ -1857,7 +1875,7 @@ void dlg_FeatureScout::showScatterPlot()
 		QMessageBox::information(this, "FeatureScout", "Scatterplot Matrix already created.");
 		return;
 	}
-	QSignalBlocker spmBlock(m_splom.get()); //< no need to trigger updates while we're creating SPM
+	QSignalBlocker spmBlock(m_splom.get()); // no need to trigger updates while we're creating SPM
 	m_splom->initScatterPlot(m_csvTable, m_columnVisibility);
 	m_dwSPM = new iADockWidgetWrapper(m_splom->matrixWidget(), "Scatter Plot Matrix", "FeatureScoutSPM");
 	m_activeChild->splitDockWidget(m_activeChild->renderDockWidget(), m_dwSPM, Qt::Vertical);
@@ -2010,7 +2028,7 @@ void dlg_FeatureScout::pcRightButtonReleased(vtkObject* obj, unsigned long, void
 	int* mouseReleasePos = iren->GetLastEventPosition();
 	if (mouseReleasePos[0] == m_mousePressPos[0] && mouseReleasePos[1] == m_mousePressPos[1])
 	{
-		command->AbortFlagOn();    //< Consume event so the interactor style doesn't get it
+		command->AbortFlagOn();    // Consume event so the interactor style doesn't get it
 		QMenu popupMenu;
 		auto addClass = popupMenu.addAction("Add class");
 		addClass->setIcon(iAThemeHelper::icon("plus"));

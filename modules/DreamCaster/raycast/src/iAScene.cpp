@@ -110,7 +110,7 @@ int iATriPrim::Intersect(iAaabb &/*a_aabb*/, iAVec3f & a_BoxCentre, iAVec3f & a_
 	v0 = *a_V0 - a_BoxCentre;
 	v1 = *a_V1 - a_BoxCentre;
 	v2 = *a_V2 - a_BoxCentre;
-	e0 = v1 - v0, e1 = v2 - v1, e2 = v0 - v2;
+	e0 = v1 - v0; e1 = v2 - v1; e2 = v0 - v2;
 	fex = fabsf( e0.x() );
 	fey = fabsf( e0.y() );
 	fez = fabsf( e0.z() );

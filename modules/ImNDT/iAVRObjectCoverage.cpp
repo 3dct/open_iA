@@ -209,8 +209,8 @@ void iAVRObjectCoverage::calculateEllipsoidCoverage()
 				double zPlus[3] = { center[0], center[1], center[2] + radius[2] };
 
 				double xSize = calculateLineCoverageRatio(xMinus, xPlus, 1.0);
-				double ySize = calculateLineCoverageRatio(yMinus, yPlus, 1.0);;
-				double zSize = calculateLineCoverageRatio(zMinus, zPlus, 1.0);;
+				double ySize = calculateLineCoverageRatio(yMinus, yPlus, 1.0);
+				double zSize = calculateLineCoverageRatio(zMinus, zPlus, 1.0);
 				double ellipseSize = xSize + ySize + zSize;
 
 				//Only if at least one radius is > 0

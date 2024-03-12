@@ -225,9 +225,9 @@ void iAChartTransferFunction::addColorPoint(int x, double red, double green, dou
 		double secondWeight = (secondPos == firstPos) ? 1.0 : (pos-firstPos)/(secondPos-firstPos);
 		double firstWeight = 1.0-secondWeight;
 
-		red = (firstColor.red()*firstWeight +secondColor.red()*secondWeight)/255.0;
-		green = (firstColor.green()*firstWeight +secondColor.green()*secondWeight)/255.0;
-		blue = (firstColor.blue()*firstWeight +secondColor.blue()*secondWeight)/255.0;
+		red   = firstColor.redF()  *firstWeight + secondColor.redF()  * secondWeight;
+		green = firstColor.greenF()*firstWeight + secondColor.greenF()* secondWeight;
+		blue  = firstColor.blueF() *firstWeight + secondColor.blueF() * secondWeight;
 	}
 	m_tf->colorTF()->AddRGBPoint(m_chart->mouse2DataX(x) - xOfs(), red, green, blue);
 	m_tf->colorTF()->Build();
@@ -340,7 +340,7 @@ void iAChartTransferFunction::mouseReleaseEventAfterNewPoint(QMouseEvent *)
 	if (colorDlg.exec() == QDialog::Accepted)
 	{
 		QColor col = colorDlg.selectedColor();
-		setPointColor(m_selectedPoint, colorTFValue[0], (double)col.red()/255.0, (double)col.green()/255.0, (double)col.blue()/255.0 );
+		setPointColor(m_selectedPoint, colorTFValue[0], col.redF(), col.greenF(), col.blueF());
 	}
 	else if (m_selectedPoint > 0 && m_selectedPoint < m_tf->opacityTF()->GetSize()-1)
 	{

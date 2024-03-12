@@ -83,7 +83,7 @@ void iAGEMSeTool::saveState(QSettings & projectFile, QString const & fileName)
 
 std::shared_ptr<iATool> iAGEMSeTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
 {
-	return std::make_shared<iAGEMSeTool>(mainWnd, child);;
+	return std::make_shared<iAGEMSeTool>(mainWnd, child);
 }
 
 bool iAGEMSeTool::loadSampling(QString const& smpFileName, int labelCount, int datasetID)

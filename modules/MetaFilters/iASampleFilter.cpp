@@ -75,8 +75,8 @@ void iASampleFilter::performWork(QVariantMap const& parameters)
 	);
 	QEventLoop loop;
 	QObject::connect(m_sampler, &iAImageSampler::finished, &loop, &QEventLoop::quit);
-	m_sampler->start();  //< returns as soon as first sampling run is started,
-	loop.exec();	     //< so wait for finished event
+	m_sampler->start();  // returns as soon as first sampling run is started,
+	loop.exec();	     // so wait for finished event
 }
 
 bool iASampleFilter::checkParameters(QVariantMap const& paramValues)

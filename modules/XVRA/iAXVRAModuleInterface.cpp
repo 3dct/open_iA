@@ -191,7 +191,7 @@ void iAXVRAModuleInterface::startXVRA()
 		m_vrFrustum->show();
 		m_fsFrustum->show();
 
-		/// set up selection propagation between FeatureScout and VR:
+		// set up selection propagation between FeatureScout and VR:
 		connect(fsTool, &iAFeatureScoutTool::selectionChanged, vrModule, [vrModule, fsTool]()
 		{
 			auto sel = fsTool->selection();

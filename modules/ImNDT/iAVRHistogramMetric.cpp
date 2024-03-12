@@ -45,15 +45,8 @@ iAVRHistogram iAVRHistogramMetric::getHistogram(std::vector<double> values, doub
 
 int iAVRHistogramMetric::determineNumberOfBins(int observations, int method)
 {
-	switch (method)
-	{
-	default:
-		return calculateSturgesRule(observations);
-		break;
-	case 0:
-		return calculateSturgesRule(observations);
-		break;
-	}
+	Q_UNUSED(method);
+	return calculateSturgesRule(observations);
 }
 
 void iAVRHistogramMetric::setHistogramFeatureID(iAVRHistogram* histogram, int ID)

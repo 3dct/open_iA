@@ -622,22 +622,18 @@ else()
 	add_compile_options(-Wall -Wextra) # with -Wpedantic, lots of warnings about extra ';' in VTK/ITK code...
 endif()
 
-# check: are CMAKE_C_FLAGS really required or are CMAKE_CXX_FLAGS alone enough?
 if (CMAKE_COMPILER_IS_GNUCXX)
 	if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb3")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ggdb3")
 	endif()
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -fpermissive -fopenmp -march=core2 -O2 -msse4.2")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe -fopenmp -march=core2 -O2 -msse4.2")
 
 	if (NOT "${openiA_AVX_SUPPORT}" STREQUAL "${openiA_AVX_SUPPORT_DISABLED}")
 		string(TOLOWER "${openiA_AVX_SUPPORT}" openiA_AVX_SUPPORT_LOWER)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m${openiA_AVX_SUPPORT_LOWER}")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m${openiA_AVX_SUPPORT_LOWER}")
 	endif()
 
 	# we do need to set the RPATH to make lib load path recursive also be able to load dependent libraries from the rpath specified in the executables:
@@ -645,6 +641,10 @@ if (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	# strictly speaking, this is only needed for running the executables from the project folder
 	# (as in an install, the RPATH of all installed executables and libraries is adapted anyway)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
+endif()
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	add_compile_options(-Wfloat-zero-conversion -Wimplicit-fallthrough -Wnewline-eof -Wshorten-64-to-32 -Wsuggest-override -Wzero-as-null-pointer-constant -Wcomma -Wunreachable-code-break -Wunreachable-code-return)
 endif()
 
 if (APPLE)

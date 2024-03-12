@@ -136,7 +136,7 @@ void iARegionVisModule::setImage( QString fileName )
 	//calculateDensityMap( fileName, this );
 
 	typedef itk::Image<double, 3> DensityMapImageType;
-	DensityMapImageType::Pointer image = DensityMapImageType::New( );;
+	DensityMapImageType::Pointer image = DensityMapImageType::New( );
 	{
 		typedef itk::ImageFileReader<DensityMapImageType> ReaderType;
 		ReaderType::Pointer reader = ReaderType::New( );

@@ -47,7 +47,7 @@ std::shared_ptr<iADataSet> iAMetaFileIO::loadData(QString const& fileName, QVari
 #else
 	Q_UNUSED(progress);
 	auto img = vtkSmartPointer<vtkImageData>::New();
-	readImage(fileName, true, img);    //< using iAToolsVTK
+	readImage(fileName, true, img);    // using iAToolsVTK
 	// duration: ~400ms
 #endif
 

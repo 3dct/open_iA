@@ -10,9 +10,12 @@ iAAABB::iAAABB()
 	box[1].fill(std::numeric_limits<double>::lowest());
 }
 
-iAAABB::iAAABB(double const* b) : box{ iAVec3d(b[0], b[2], b[4]), iAVec3d(b[1], b[3], b[5]) }
-{
-}
+iAAABB::iAAABB(double const b[6]) : box{ iAVec3d(b[0], b[2], b[4]), iAVec3d(b[1], b[3], b[5]) }
+{}
+
+iAAABB::iAAABB(double xmin, double xmax, double ymin, double ymax, double zmin, double zmax)
+	: box{ iAVec3d(xmin, ymin, zmin), iAVec3d(xmax, ymax, zmax) }
+{}
 
 void iAAABB::addPointToBox(iAVec3d const& pt)
 {

@@ -76,7 +76,8 @@ void iAEngine::SetTarget( unsigned int* a_Dest)
 	m_Width = s->RFRAME_W;
 	m_Height = s->RFRAME_H;
 	// screen plane in world space coordinates
-	m_WX1 = -s->PLANE_H_W, m_WX2 = s->PLANE_H_W, m_WY1 = s->PLANE_H_H, m_WY2 = -s->PLANE_H_H;
+	m_WX1 = -s->PLANE_H_W; m_WX2 =  s->PLANE_H_W;
+	m_WY1 =  s->PLANE_H_H; m_WY2 = -s->PLANE_H_H;
 	m_PLANE_Z = s->PLANE_Z;
 	m_ORIGIN_Z = s->ORIGIN_Z;
 	// calculate deltas for interpolation

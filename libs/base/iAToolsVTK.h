@@ -128,7 +128,7 @@ iAbase_API iAVec3i mapWorldCoordsToIndex(vtkImageData* img, double const* worldC
 //!        or 0 if it's an unknown type
 iAbase_API size_t mapVTKTypeToSize(int vtkType);
 //! Returns a human-readable list of available data types for a single pixel/voxel.
-//! @param withLongLongTypes
+//! @param withLongLongTypes whether to include 64 bit signed/unsigned integer types
 iAbase_API QStringList const & readableDataTypeList(bool withLongLongTypes);
 //! Maps a given data type string to the corresponding VTK type identifier.
 //! Reverse of mapVTKTypeToReadableDataType
