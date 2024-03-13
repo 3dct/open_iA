@@ -13,7 +13,6 @@
 #include <vtkProp3D.h>
 #include <vtkTransform.h>
 
-#include <qendian.h>
 #include <QRegularExpression>
 #include <QThread>
 #include <QWebSocket>
@@ -23,12 +22,26 @@
 
 namespace
 {
-	template <typename T>
-	T extractT(QByteArray const& arr, size_t ofs)
+	template<typename EnumType>
+	constexpr inline decltype(auto) enumToIntegral(EnumType enumValue)
 	{
-		//static_assert(std::numeric_limits<float>::is_iec559, "Only supports IEC 559 (IEEE 754) float");
-		const T* val = reinterpret_cast<const T*>(&arr.constData()[ofs]);
-		return qFromBigEndian(*val);
+		static_assert(std::is_enum<EnumType>::value, "Enum type required");
+		using EnumValueType = std::underlying_type_t<EnumType>;
+		return static_cast<EnumValueType>(enumValue);
+	}
+
+	template <typename EnumType>
+	constexpr inline bool isInEnum(int val)
+	{
+		static_assert(std::is_enum<EnumType>::value, "Enum type required");
+		bool result = 0 <= val && val < enumToIntegral(EnumType::Count);
+		if (!result)
+		{
+			LOG(lvlWarn, QString("%1 outside of valid range 0..%2")
+				.arg(val)
+				.arg(static_cast<int>(EnumType::Count)));
+		}
+		return result;
 	}
 
 	const quint64 ServerProtocolVersion = 1;
@@ -46,7 +59,35 @@ namespace
 		Count
 	};
 
-	constexpr auto MessageTypeCount = static_cast<int>(MessageType::Count);
+	enum class CommandType : quint8
+	{
+		Reset,
+		LoadDataset,
+		// must be last:
+		Count
+	};
+
+	enum class ObjectCommandType : quint8
+	{
+		SetMatrix,
+		Translate,
+		Scale,
+		RotateQuaternion,
+		RotateEuler,
+		// must be last:
+		Count
+	};
+
+	enum class SnapshotCommandType : quint8
+	{
+		CreateClient,
+		CreateServer,
+		Remove,
+		ClearAll,
+		ChangeSlicePosition,
+		// must be last:
+		Count
+	};
 
 	enum class ClientState
 	{
@@ -59,15 +100,15 @@ namespace
 	{
 		// if (t == MessageType::ACK || t == MessageType::NAK)
 		QByteArray b;
-		b.append(static_cast<quint8>(t));
+		b.append(enumToIntegral(t));
 		s->sendBinaryMessage(b);
 	}
 	void sendClientID(QWebSocket* s, quint64 clientID)
 	{
 		QByteArray b;
-		b.append(static_cast<quint8>(MessageType::ClientID));
 		QDataStream stream(&b, QIODevice::WriteOnly);
-		stream << qToBigEndian(clientID);
+		stream << enumToIntegral(MessageType::ClientID);
+		stream << clientID;    // QDataStream does Big Endian conversions automatically
 		s->sendBinaryMessage(b);
 	}
 }
@@ -107,16 +148,20 @@ public:
 				});
 				connect(client, &QWebSocket::binaryMessageReceived, this, [this, child, clientID](QByteArray data)
 				{
-					if (data[0] >= MessageTypeCount)
+					if (data.size() < 1)
 					{
-						LOG(lvlError, QString("Invalid message from client %1: type %2 outside of valid range 0..%3; ignoring message!")
-							.arg(clientID)
-							.arg(data[0])
-							.arg(MessageTypeCount));
+						LOG(lvlError, QString("Invalid message of length 0 received from client %1; ignoring message!").arg(clientID));
 						return;
 					}
-					auto type = static_cast<MessageType>(data[0]);
-
+					if (!isInEnum<MessageType>(data[0]))
+					{
+						LOG(lvlError, QString("Invalid message from client %1: invalid type; ignoring message!").arg(clientID));
+						return;
+					}
+					QDataStream stream(&data, QIODevice::ReadOnly);
+					MessageType type;
+					stream >> type;
+					LOG(lvlInfo, QString("Received message of type %1").arg(static_cast<int>(type)));
 					switch (m_clientState[clientID])
 					{
 					case ClientState::AwaitingProtocolNegotiation:
@@ -128,13 +173,19 @@ public:
 								.arg(data[0]));
 							return;
 						}
-						auto clientProtocolVersion = extractT<quint64>(data, 1);
+						quint64 clientProtocolVersion;
+						stream >> clientProtocolVersion;
 						if (clientProtocolVersion > ServerProtocolVersion)
 						{
+							LOG(lvlWarn, QString("Client advertised unsupported protocol version %1 (we only support up to version %2), sending NAK...")
+								.arg(clientProtocolVersion)
+								.arg(ServerProtocolVersion));
 							sendMessage(m_clientSocket[clientID], MessageType::NAK);
 						}
 						else
 						{
+							LOG(lvlInfo, QString("Client advertised supported protocol version %1, sending ACK...")
+								.arg(clientProtocolVersion));
 							sendMessage(m_clientSocket[clientID], MessageType::ACK);
 							sendClientID(m_clientSocket[clientID], clientID);
 							m_clientState[clientID] = ClientState::Idle;
@@ -143,6 +194,39 @@ public:
 					}
 					case ClientState::Idle:
 					{
+						switch (type)
+						{
+						case MessageType::Command:
+						{
+							if (data.size() < 2)
+							{
+								LOG(lvlInfo, QString("Invalid command: missing subcommand; ignoring message!"));
+								return;
+							}
+							if (!isInEnum<CommandType>(data[1]))
+							{   // encountered value and valid range output already in isInEnum!
+								LOG(lvlInfo, QString("Invalid command: subcommand not in valid range; ignoring message!"));
+								return;
+							}
+							auto subcommand = static_cast<CommandType>(data[1]);
+							if (subcommand == CommandType::Reset)
+							{
+								LOG(lvlInfo, QString("  Reset"));
+							}
+							else // CommandType::LoadDataset:
+							{
+								LOG(lvlInfo, QString("  Sub-Command: %1").arg(subcommand == CommandType::Reset ? "Reset" : "Load Dataset"));
+							}
+						}
+						case MessageType::Object:
+						{
+							break;
+						}
+						case MessageType::Snapshot:
+						{
+							break;
+						}
+						}
 						// react on:
 						//    - Reset
 						//    - Load Dataset
@@ -152,7 +236,7 @@ public:
 					}
 					case ClientState::LoadDataset:
 					{
-
+						break;
 					}
 					}
 
