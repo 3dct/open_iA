@@ -62,7 +62,7 @@ signals:
 	void ViewUpdated();
 	void SelectionChanged();
 protected:
-	virtual void paintEvent(QPaintEvent * );
+	void paintEvent(QPaintEvent * ) override;
 private slots:
 	void ExpandNodeSlot(bool expand);
 	void NodeClicked();

@@ -1179,7 +1179,7 @@ void iAGraphInteractorStyle::OnLeftButtonDown()
 	{
 		vtkSmartPointer<vtkActor> pickedA = m_actorPicker->GetActor();
 
-		if (pickedA != NULL)
+		if (pickedA != nullptr)
 		{
 			//reset previously picked actor
 			resetOldPickedActor();

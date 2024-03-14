@@ -123,7 +123,7 @@ void iACompUniformTableInteractorStyle::OnLeftButtonDown()
 	this->GrabFocus(this->EventCallbackCommand);
 
 	//select rows & bins which should be zoomed
-	if (pickedA != NULL && this->GetInteractor()->GetShiftKey())
+	if (pickedA != nullptr && this->GetInteractor()->GetShiftKey())
 	{
 		vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
 		cellPicker->Pick(pos[0], pos[1], 0, m_visualization->getRenderer());
@@ -137,7 +137,7 @@ void iACompUniformTableInteractorStyle::OnLeftButtonDown()
 		m_zoomOn = true;
 
 	}
-	else if(pickedA != NULL)
+	else if(pickedA != nullptr)
 	{
 		if(m_pointRepresentationOn || m_controlBinsInZoomedRows)
 		{//when non-linear zoom is active --> do nothing
@@ -348,7 +348,7 @@ void iACompUniformTableInteractorStyle::OnRightButtonDown()
 	}
 
 	vtkSmartPointer<vtkActor> pickedA = m_actorPicker->GetActor();
-	if (pickedA == NULL)
+	if (pickedA == nullptr)
 	{
 		return;
 	}

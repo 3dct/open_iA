@@ -43,7 +43,7 @@ class iACompBarChart : public QDockWidget, public Ui_CompBarChart
    public:
 	iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* coeffVar, iACsvDataStorage* dataStorage);
 
-	void showEvent(QShowEvent* event);
+	void showEvent(QShowEvent* event) override;
 	void renderWidget();
 
 	//update the bar chart visualization with the selected objects

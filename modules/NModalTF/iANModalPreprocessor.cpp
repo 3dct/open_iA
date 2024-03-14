@@ -26,14 +26,14 @@ namespace
 	iANModalBackgroundRemover::Mask MASK_NONE = {nullptr, iANModalBackgroundRemover::MaskMode::NONE};
 	class PassthroughReducer : public iANModalDataSetReducer
 	{
-		QList<std::shared_ptr<iAImageData>> reduce(const QList<std::shared_ptr<iAImageData>>& inputDataSets)
+		QList<std::shared_ptr<iAImageData>> reduce(const QList<std::shared_ptr<iAImageData>>& inputDataSets) override
 		{
 			return inputDataSets;
 		}
 	};
 	class PassthroughBackgroundRemover : public iANModalBackgroundRemover
 	{
-		iANModalBackgroundRemover::Mask removeBackground(const QList<std::shared_ptr<iAImageData>>&)
+		iANModalBackgroundRemover::Mask removeBackground(const QList<std::shared_ptr<iAImageData>>&) override
 		{
 			return MASK_NONE;
 		}

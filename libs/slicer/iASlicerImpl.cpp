@@ -92,7 +92,7 @@ public:
 	iAObserverRedirect(iASlicer* redirect) : m_redirect(redirect)
 	{}
 private:
-	void Execute(vtkObject * caller, unsigned long eventId, void * callData)
+	void Execute(vtkObject * caller, unsigned long eventId, void * callData) override
 	{
 		m_redirect->execute(caller, eventId, callData);
 	}

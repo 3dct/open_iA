@@ -35,7 +35,7 @@ public:
 
 	iAComp3DWidget(iAMainWindow* parent, std::shared_ptr<iAObjectsData> objData, const iACsvConfig& csvConfig);
 
-	void showEvent(QShowEvent* event);
+	void showEvent(QShowEvent* event) override;
 
 	/*** Initialization ***/
 	void initializeInteraction();

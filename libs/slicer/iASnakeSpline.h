@@ -15,7 +15,7 @@ public:
 	static const disc_vector::size_type NoPointSelected = std::numeric_limits<disc_vector::size_type>::max();
 
 	iASnakeSpline()
-	  : m_selectedPntInd(NoPointSelected), m_ren(0), m_radius(RADIUS)
+	  : m_selectedPntInd(NoPointSelected), m_ren(nullptr), m_radius(RADIUS)
 	{}
 
 	void initialize(vtkRenderer * ren, double imageSpacing)

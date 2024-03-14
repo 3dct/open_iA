@@ -563,7 +563,7 @@ public:
 		QMutexLocker locker(&mutex);
 		m_waitTimeMS = 0;
 	}
-	void run()
+	void run() override
 	{
 		const int WaitTime = 10;
 		while (m_waitTimeMS < m_delayMS)
@@ -595,7 +595,7 @@ void iADetailView::SlicerClicked(double x, double y, double z)
 
 void iADetailView::TriggerResultFilterUpdate()
 {
-	m_resultFilterTriggerThread = 0;
+	m_resultFilterTriggerThread = nullptr;
 	emit ResultFilterUpdate();
 }
 

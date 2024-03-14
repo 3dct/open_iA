@@ -8,10 +8,10 @@
 
 class iAMinkowskiDistance : public iASimilarityDistance
 {
-   public:
+public:
 	iAMinkowskiDistance();
 
-	void calculateSimilarityDistance(csvDataType::ArrayType* dataMatrix, csvDataType::ArrayType* distanceMatrix);
+	void calculateSimilarityDistance(csvDataType::ArrayType* dataMatrix, csvDataType::ArrayType* distanceMatrix) override;
 
 	//set the order p of the metric
 	//p = 1 corresponds to the Manhattan distance, p = 2 corresponds to the Euclidean distance

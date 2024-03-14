@@ -1,7 +1,7 @@
 # Required to use CTest / CDash
 # enabled via ENABLE_TESTING() / INCLUDE(CTest) in CMakeLists.txt (in cmake/Modules/Common.cmake in our case)
 set(CTEST_PROJECT_NAME "open_iA")
-set(CTEST_NIGHTLY_START_TIME "21:00:00 UTC")
+set(CTEST_NIGHTLY_START_TIME "14:00:00 UTC")
 
 set(CTEST_DROP_METHOD "https")
 set(CTEST_DROP_SITE "cdash3.3dct.at")

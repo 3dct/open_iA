@@ -30,7 +30,7 @@ public:
 	QVector<iAImagePreviewWidget*> m_previews;
 	qsizetype m_selectedIndex;
 protected:
-	virtual void paintEvent(QPaintEvent * /*e*/)
+	void paintEvent(QPaintEvent * /*e*/) override
 	{
 		if (m_selectedIndex != NoImageSelected)
 		{

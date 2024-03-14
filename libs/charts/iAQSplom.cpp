@@ -911,12 +911,12 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 void iAQSplom::removeMaximizedPlot()
 {
 	delete m_maximizedPlot;
-	m_maximizedPlot = 0;
-	m_activePlot = 0;
+	m_maximizedPlot = nullptr;
+	m_activePlot = nullptr;
 	if( m_previewPlot )
 	{
 		m_previewPlot->setPreviewState( false );
-		m_previewPlot = 0;
+		m_previewPlot = nullptr;
 	}
 }
 
@@ -1190,7 +1190,7 @@ iAScatterPlot * iAQSplom::getScatterplotAt( QPoint pos )
 		(offsetPos.y() - ind[1] * grid.y() >= m_scatPlotSize.y());
 	ind[1] = invert( ind[1] );	// indexing is bottom to top -> invert index Y
 	//get the resulting plot
-	iAScatterPlot * s = isBetween ? 0 : m_visiblePlots[ind[1]][ind[0]];
+	iAScatterPlot * s = isBetween ? nullptr : m_visiblePlots[ind[1]][ind[0]];
 	//check if we hit the maximized plot if necessary
 	if( ( smUpperHalf == m_mode ) && !s )
 	{

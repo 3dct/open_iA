@@ -10,8 +10,7 @@ class iASetPathWidget : public QWidget
 	Q_OBJECT
 public:
 	enum Mode { openFile, saveFile, directory };
-
-				iASetPathWidget(QWidget* parent = 0);
+				iASetPathWidget(QWidget* parent);
 				~iASetPathWidget();
 	void		setOptions(Mode mode, QString caption, QString filter, QString uniqueKey);
 

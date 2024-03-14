@@ -900,7 +900,7 @@ void iAFeatureTracking::TrackFeatures()
 std::vector<iAFeatureTrackingCorrespondence> iAFeatureTracking::FromUtoV(unsigned int uId)
 {
 	std::vector<iAFeatureTrackingCorrespondence> result;
-	if (allUtoV != 0 && uId > 0 && uId <= allUtoV->size() && allUtoV->at(uId - 1).second.size() > 0)
+	if (allUtoV && uId > 0 && uId <= allUtoV->size() && allUtoV->at(uId - 1).second.size() > 0)
 	{
 		for (auto c = allUtoV->at(uId - 1).second.begin(); c != allUtoV->at(uId - 1).second.end(); c++)
 		{
@@ -913,7 +913,7 @@ std::vector<iAFeatureTrackingCorrespondence> iAFeatureTracking::FromUtoV(unsigne
 std::vector<iAFeatureTrackingCorrespondence> iAFeatureTracking::FromVtoU(unsigned int vId)
 {
 	std::vector<iAFeatureTrackingCorrespondence> result;
-	if (allVtoU != 0 && vId > 0 && vId <= allVtoU->size() && allVtoU->at(vId - 1).second.size() > 0)
+	if (allVtoU && vId > 0 && vId <= allVtoU->size() && allVtoU->at(vId - 1).second.size() > 0)
 	{
 		for (auto c = allVtoU->at(vId - 1).second.begin(); c != allVtoU->at(vId - 1).second.end(); c++)
 		{

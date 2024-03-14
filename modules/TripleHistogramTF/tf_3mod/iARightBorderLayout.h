@@ -53,19 +53,19 @@ public:
 	{}
 	BorderLayoutItemWrapper(iAIBorderLayoutItem* rbli) : m_rbi(rbli), m_layoutItem(rbli->layoutItem())
 	{}
-	bool hasWidthForHeight()
+	bool hasWidthForHeight() override
 	{
 		return m_rbi->hasWidthForHeight();
 	}
-	int getWidthForHeight(int height)
+	int getWidthForHeight(int height) override
 	{
 		return m_rbi->getWidthForHeight(height);
 	}
-	bool hasHeightForWidth()
+	bool hasHeightForWidth() override
 	{
 		return m_rbi->hasHeightForWidth();
 	}
-	int getHeightForWidth(int width)
+	int getHeightForWidth(int width) override
 	{
 		return m_rbi->getHeightForWidth(width);
 	}

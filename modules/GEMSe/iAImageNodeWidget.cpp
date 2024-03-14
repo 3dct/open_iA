@@ -98,7 +98,7 @@ void iAImageNodeWidget::ReturnPreview()
 	disconnect(m_imageView, &iAImagePreviewWidget::rightClicked, this, &iAImageNodeWidget::ImageRightClicked);
 	disconnect(m_imageView, &iAImagePreviewWidget::updated, this, &iAImageNodeWidget::updated);
 	m_previewPool->returnWidget(m_imageView);
-	m_imageView = 0;
+	m_imageView = nullptr;
 	m_cluster->DiscardDetails();
 }
 

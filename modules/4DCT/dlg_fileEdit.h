@@ -12,7 +12,7 @@ class dlg_fileEdit : public QDialog, public Ui::FileEditDialog
 {
 	Q_OBJECT
 public:
-				dlg_fileEdit( QWidget* parent = 0 );
+				dlg_fileEdit( QWidget* parent );
 				~dlg_fileEdit( );
 
 	QString		getFilePath( );

@@ -49,7 +49,7 @@ class iACompCorrelationMap : public QDockWidget, public Ui_CompHistogramTable
 	Q_OBJECT
    public:
 	iACompCorrelationMap(iAMainWindow* parent, iACorrelationCoefficient* corrCalculation, iACsvDataStorage* dataStorage, iACompVisMain* main);
-	void showEvent(QShowEvent* event);
+	void showEvent(QShowEvent* event) override;
 
 	void updateCorrelationMap(std::map<QString, Correlation::CorrelationStore>* correlations, std::map<int, std::vector<double>>* pickStatistic);
 	void resetCorrelationMap();

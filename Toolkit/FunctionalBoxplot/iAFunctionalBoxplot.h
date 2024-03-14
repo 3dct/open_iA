@@ -209,7 +209,7 @@ public:
 	double calculate(iAFunction<ArgType, ValType> const & curFunc,
 		iAFunction<ArgType, ValType> const & limFunc1,
 		iAFunction<ArgType, ValType> const & limFunc2,
-		ArgType argMin, ArgType argMax, ArgType argStepSize)
+		ArgType argMin, ArgType argMax, ArgType argStepSize) override
 	{
 		for (int a=argMin; a<argMax; a += argStepSize)
 		{
@@ -231,7 +231,7 @@ class iAModifiedDepthMeasure: public iADepthMeasure<ArgType, ValType>
 public:
 	double calculate(iAFunction<ArgType, ValType> const & curFunc,
 		iAFunction<ArgType, ValType> const & limFunc1,
-		iAFunction<ArgType, ValType> const & limFunc2)
+		iAFunction<ArgType, ValType> const & limFunc2) override
 	{
 		double result = 0;
 

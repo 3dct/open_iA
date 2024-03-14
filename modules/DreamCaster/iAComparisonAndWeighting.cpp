@@ -47,7 +47,7 @@ int iAParamWidget::AllocateBuffer(int width, int height)
 	if(buffer)
 	{
 		delete [] buffer;
-		buffer = 0;
+		buffer = nullptr;
 	}
 	int s = width*height;
 	buffer = new unsigned int[s];

@@ -14,7 +14,7 @@ FileTypePair FileTypes[ ] = { std::make_pair( "regular file", "" ),
 							  std::make_pair( "extracted curved fibers", S_4DCT_EXTRACTED_CURVED_FIBERS ),
 							  std::make_pair( "extracted fiber image", S_4DCT_EXTRACTED_FIBER_IMAGE ) };
 
-dlg_fileEdit::dlg_fileEdit( QWidget* parent /*= 0*/ ) :
+dlg_fileEdit::dlg_fileEdit( QWidget* parent) :
 	QDialog( parent )
 {
 	setupUi( this );
@@ -29,7 +29,7 @@ dlg_fileEdit::dlg_fileEdit( QWidget* parent /*= 0*/ ) :
 }
 
 dlg_fileEdit::~dlg_fileEdit( )
-{ /* not implemented yet*/ }
+{}
 
 void dlg_fileEdit::onBrowseButtonClick( )
 {

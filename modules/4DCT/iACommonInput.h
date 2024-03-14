@@ -9,7 +9,7 @@
 class iACommonInput : public QDialog
 {
 public:
-				iACommonInput(QWidget* parent = 0);
+				iACommonInput(QWidget* parent);
 				~iACommonInput();
 	QString		openFile(QString caption, QString filter);
 	QString		saveFile(QString caption, QString filter);

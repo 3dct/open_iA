@@ -24,18 +24,18 @@ enum NormalizeModes
 class iANoNormalizer: public iANormalizer
 {
 public:
-	virtual iADistanceType Normalize(iADistanceType d) const;
-	virtual void SetMaxValue(iADistanceType d);
-	virtual char const * name() const;
+	iADistanceType Normalize(iADistanceType d) const override;
+	void SetMaxValue(iADistanceType d) override;
+	char const * name() const override;
 };
 
 class iALinearNormalizer: public iANormalizer
 {
 public:
 	iALinearNormalizer();
-	virtual iADistanceType Normalize(iADistanceType d) const;
-	virtual void SetMaxValue(iADistanceType d);
-	virtual char const * name() const;
+	iADistanceType Normalize(iADistanceType d) const override;
+	void SetMaxValue(iADistanceType d) override;
+	char const * name() const override;
 private:
 	iADistanceType m_normalizeFactor;
 };
@@ -44,9 +44,9 @@ class iAGaussianNormalizer: public iANormalizer
 {
 public:
 	iAGaussianNormalizer();
-	virtual iADistanceType Normalize(iADistanceType d) const;
-	virtual void SetMaxValue(iADistanceType d);
-	virtual char const * name() const;
+	iADistanceType Normalize(iADistanceType d) const override;
+	void SetMaxValue(iADistanceType d) override;
+	char const * name() const override;
 	void SetBeta(double beta);
 private:
 	double m_beta;

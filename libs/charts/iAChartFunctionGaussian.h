@@ -28,7 +28,7 @@ public:
 	bool isEndPoint(int) const override { return true; }
 	bool isDeletable(int) const override { return false; }
 	void reset() override;
-	virtual QString name() const override;
+	QString name() const override;
 	size_t numPoints() const override;
 
 	void setMean(double mean)   { m_mean = mean; }

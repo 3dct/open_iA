@@ -37,7 +37,7 @@ class iACompHistogramVis : public QDockWidget, public Ui_CompHistogramTable
 public:
 	iACompHistogramVis(iACompHistogramTable* table, iAMainWindow* parent, int amountDatasets, bool MDSComputedFlag);
 
-	void showEvent(QShowEvent* event);
+	void showEvent(QShowEvent* event) override;
 	void reinitialize();
 
 	/*** Rendering ****/

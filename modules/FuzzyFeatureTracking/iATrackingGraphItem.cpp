@@ -33,10 +33,10 @@ iATrackingGraphItem::~iATrackingGraphItem()
 //----------------------------------------------------------------------------
 vtkColor4ub iATrackingGraphItem::VertexColor(vtkIdType vertex)
 {
-	if (this->GetGraph()->GetVertexData()->GetAbstractArray("ColorR") != 0 &&
-		this->GetGraph()->GetVertexData()->GetAbstractArray("ColorG") != 0 &&
-		this->GetGraph()->GetVertexData()->GetAbstractArray("ColorB") != 0 &&
-		this->GetGraph()->GetVertexData()->GetAbstractArray("Uncertainty") != 0)
+	if (this->GetGraph()->GetVertexData()->GetAbstractArray("ColorR") &&
+		this->GetGraph()->GetVertexData()->GetAbstractArray("ColorG") &&
+		this->GetGraph()->GetVertexData()->GetAbstractArray("ColorB") &&
+		this->GetGraph()->GetVertexData()->GetAbstractArray("Uncertainty") 0)
 	{
 		return vtkColor4ub(this->GetGraph()->GetVertexData()->GetAbstractArray("ColorR")->GetVariantValue(vertex).ToInt(),
 			this->GetGraph()->GetVertexData()->GetAbstractArray("ColorG")->GetVariantValue(vertex).ToInt(),
@@ -64,10 +64,10 @@ vtkColor4ub iATrackingGraphItem::EdgeColor(vtkIdType edgeIdx, vtkIdType pointIdx
 	else
 		vert = this->GetGraph()->GetTargetVertex(edgeIdx);
 
-	if (this->GetGraph()->GetVertexData()->GetAbstractArray("ColorR") != 0 &&
-		this->GetGraph()->GetVertexData()->GetAbstractArray("ColorG") != 0 &&
-		this->GetGraph()->GetVertexData()->GetAbstractArray("ColorB") != 0 &&
-		this->GetGraph()->GetVertexData()->GetAbstractArray("Uncertainty") != 0)
+	if (this->GetGraph()->GetVertexData()->GetAbstractArray("ColorR") &&
+		this->GetGraph()->GetVertexData()->GetAbstractArray("ColorG") &&
+		this->GetGraph()->GetVertexData()->GetAbstractArray("ColorB") &&
+		this->GetGraph()->GetVertexData()->GetAbstractArray("Uncertainty"))
 	{
 		return vtkColor4ub(this->GetGraph()->GetVertexData()->GetAbstractArray("ColorR")->GetVariantValue(vert).ToInt(),
 			this->GetGraph()->GetVertexData()->GetAbstractArray("ColorG")->GetVariantValue(vert).ToInt(),
@@ -112,7 +112,7 @@ bool iATrackingGraphItem::MouseMoveEvent(const vtkContextMouseEvent &/*event*/)
 
 vtkStdString iATrackingGraphItem::VertexTooltip(vtkIdType vertex)
 {
-	if (this->GetGraph()->GetVertexData()->GetAbstractArray("Label") == 0)
+	if (!this->GetGraph()->GetVertexData()->GetAbstractArray("Label"))
 	{
 		return "N/A";
 	}

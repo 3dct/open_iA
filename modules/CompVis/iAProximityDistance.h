@@ -10,12 +10,12 @@ This class represents the original distance matrix
 */
 class iAProximityDistance
 {
-   public:
+public:
 	iAProximityDistance(std::vector<double>* weights, csvDataType::ArrayType* data, int amountOfCharas, int amountOfElems);
 
 	virtual csvDataType::ArrayType* calculateProximityDistance() = 0;
 
-   protected:
+protected:
 	//user defined weights in the range of [0,1]
 	std::vector<double>* m_weights;
 	//matrix for which the calculation will be done

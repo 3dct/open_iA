@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAColorTheme.h"
 
+#include "iALog.h"
+
 #include <limits>
 
 iAColorTheme::iAColorTheme(QString const & name):
@@ -335,7 +337,10 @@ iAColorTheme const * iAColorThemeManager::theme(QString const & name) const
 	QMap<QString, iAColorTheme*>::const_iterator it = m_themes.find(name);
 	if (it == m_themes.end())
 	{
-		return m_themes[0];
+		auto t = *m_themes.begin();
+		LOG(lvlWarn, QString("iAColorThemeManager: Did not find requested theme '%1'; returning first available theme '%2' instead.")
+			.arg(name).arg(t->name()));
+		return t;
 	}
 	return *it;
 }

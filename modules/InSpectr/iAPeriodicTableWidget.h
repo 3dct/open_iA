@@ -22,8 +22,8 @@ public:
 	void setListener(std::shared_ptr<iAElementSelectionListener> listener);
 	int GetCurrentElement() const;
 protected:
-	void paintEvent(QPaintEvent *);
-	void mouseMoveEvent(QMouseEvent *);
+	void paintEvent(QPaintEvent *) override;
+	void mouseMoveEvent(QMouseEvent *) override;
 private:
 	void drawElement(QPainter& painter, QPoint const & elemPos, int elemWidth, int elemHeight, int elemIdx);
 	QColor getPenColor(QPainter const & painter);

@@ -59,10 +59,10 @@ public:
 	QLabel* getLabel(QString name);
 
 protected:
-	void dragEnterEvent(QDragEnterEvent *event);
-	void dragMoveEvent(QDragMoveEvent *event);
-	void dropEvent(QDropEvent *event);
-	void mousePressEvent(QMouseEvent *event);
+	void dragEnterEvent(QDragEnterEvent *event) override;
+	void dragMoveEvent(QDragMoveEvent *event) override;
+	void dropEvent(QDropEvent *event) override;
+	void mousePressEvent(QMouseEvent *event) override;
 	QPixmap	mergeOnTop( const QPixmap& pix, QString txt );
 
 private:

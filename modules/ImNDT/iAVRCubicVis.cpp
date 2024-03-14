@@ -199,7 +199,7 @@ void iAVRCubicVis::highlightGlyphs(std::vector<vtkIdType> const & regionIDs, std
 
 		for (size_t i = 0; i < regionIDs.size(); i++)
 		{
-			int iD = regionIDs.at(i);
+			auto iD = regionIDs.at(i);
 			points->InsertNextPoint(m_cubePolyData->GetPoint(iD));
 
 			double* regionSize = m_glyphScales->GetTuple3(iD);

@@ -21,6 +21,4 @@ public:
 	virtual void Initialize() = 0;
 	//! Override to store custom settings of this module; called when program is shut down.
 	virtual void SaveSettings() const;
-	//! Called whenever an MdiChild object is created. Override to react on this.
-
 };
