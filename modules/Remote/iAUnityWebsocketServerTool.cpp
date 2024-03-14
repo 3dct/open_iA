@@ -5,6 +5,7 @@
 #include "iAAABB.h"
 #include "iALog.h"
 
+#include <iAImageData.h>
 #include <iAMdiChild.h>
 #include <iADataSetViewer.h>
 #include <iADataSetRenderer.h>
@@ -13,6 +14,7 @@
 #include <vtkProp3D.h>
 #include <vtkTransform.h>
 
+#include <QFileInfo>
 #include <QRegularExpression>
 #include <QThread>
 #include <QWebSocket>
@@ -37,7 +39,7 @@ namespace
 		bool result = 0 <= val && val < enumToIntegral(EnumType::Count);
 		if (!result)
 		{
-			LOG(lvlWarn, QString("%1 outside of valid range 0..%2")
+			LOG(lvlError, QString("%1 outside of valid range 0..%2")
 				.arg(val)
 				.arg(static_cast<int>(EnumType::Count)));
 		}
@@ -89,11 +91,20 @@ namespace
 		Count
 	};
 
-	enum class ClientState
+	enum class ClientState : int
 	{
 		AwaitingProtocolNegotiation,  // client just connected and hasn't sent a protocol negotiation message with an acceptable protocol version yet
 		Idle,                         // currently, no ongoing "special" conversation
-		LoadDataset                   // initiated the load of a dataset, server is in the process of checking availability
+		PendingDatasetAck,            // load dataset has been initiated; server has checked availability on his end and has sent out load dataset messages
+		DatasetAcknowledged           // client has confirmed availability of dataset
+	};
+
+	enum class DataState : int
+	{
+		NoDataset,
+		PendingClientAck,
+		//LoadingDataset,
+		DatasetLoaded
 	};
 
 	void sendMessage(QWebSocket* s, MessageType t)
@@ -117,12 +128,6 @@ class iAUnityWebsocketServerToolImpl: public QObject
 {
 public:
 
-	QWebSocketServer* m_wsServer;
-	std::map<quint64, QWebSocket*> m_clientSocket;
-	std::map<quint64, ClientState> m_clientState;
-	quint64 m_clientID;
-	QThread m_serverThread;
-
 	iAUnityWebsocketServerToolImpl(iAMdiChild* child):
 		m_wsServer(new QWebSocketServer(iAUnityWebsocketServerTool::Name, QWebSocketServer::NonSecureMode, this)),
 		m_clientID(1)
@@ -130,7 +135,7 @@ public:
 		m_wsServer->moveToThread(&m_serverThread);
 		m_serverThread.start();
 
-		if (m_wsServer->listen(QHostAddress::Any))
+		if (m_wsServer->listen(QHostAddress::Any, 50505))
 		{
 			LOG(lvlInfo, QString("%1: Listening on %2:%3")
 				.arg(iAUnityWebsocketServerTool::Name).arg(m_wsServer->serverAddress().toString()).arg(m_wsServer->serverPort()));
@@ -144,79 +149,98 @@ public:
 				m_clientState[clientID] = ClientState::AwaitingProtocolNegotiation;
 				connect(client, &QWebSocket::textMessageReceived, this, [this, child](QString message)
 				{
-					//LOG(lvlInfo, QString("%1: Text message received: %2").arg(iAWebSocketServerTool::Name).arg(message));
+					LOG(lvlInfo, QString("%1: TEXT MESSAGE received: %2").arg(iAUnityWebsocketServerTool::Name).arg(message));
 				});
-				connect(client, &QWebSocket::binaryMessageReceived, this, [this, child, clientID](QByteArray data)
+				connect(client, &QWebSocket::binaryMessageReceived, this, [this, child, clientID](QByteArray rcvData)
 				{
-					if (data.size() < 1)
+					if (rcvData.size() < 1)
 					{
 						LOG(lvlError, QString("Invalid message of length 0 received from client %1; ignoring message!").arg(clientID));
 						return;
 					}
-					if (!isInEnum<MessageType>(data[0]))
+					if (!isInEnum<MessageType>(rcvData[0]))
 					{
 						LOG(lvlError, QString("Invalid message from client %1: invalid type; ignoring message!").arg(clientID));
 						return;
 					}
-					QDataStream stream(&data, QIODevice::ReadOnly);
+					QDataStream rcvStream(&rcvData, QIODevice::ReadOnly);
 					MessageType type;
-					stream >> type;
+					rcvStream >> type;
 					LOG(lvlInfo, QString("Received message of type %1").arg(static_cast<int>(type)));
+
+					if (m_clientState[clientID] == ClientState::AwaitingProtocolNegotiation)
+					{
+						handleVersionNegotiation(type, clientID, rcvStream); // no need to handle return type (yet)
+						return;
+					}
+					// when waiting on feedback for load dataset message, only (above) protocol negotiation for new clients is permitted
+					if (m_dataState == DataState::PendingClientAck)
+					{
+						if (type != MessageType::NAK && type != MessageType::ACK)
+						{
+							LOG(lvlError, QString("  Invalid message from client %1: We are currently waiting for client acknowledgements. "
+								"Only ACK or NAK are permissible; ignoring message!").arg(clientID));
+							return;
+							// current protocol: (we must) silently ignore:
+							//     NAK is only permitted as response to protocol negotiation or as part of dataset loading procedure
+						}
+						handleClientDataResponse(clientID, type);
+						return;
+					}
+
 					switch (m_clientState[clientID])
 					{
-					case ClientState::AwaitingProtocolNegotiation:
-					{
-						if (type != MessageType::ProtocolVersion)
-						{
-							LOG(lvlError, QString("Invalid message from client %1: Awaiting protocol negotiation message, but got message of type %2; ignoring message!")
-								.arg(clientID)
-								.arg(data[0]));
-							return;
-						}
-						quint64 clientProtocolVersion;
-						stream >> clientProtocolVersion;
-						if (clientProtocolVersion > ServerProtocolVersion)
-						{
-							LOG(lvlWarn, QString("Client advertised unsupported protocol version %1 (we only support up to version %2), sending NAK...")
-								.arg(clientProtocolVersion)
-								.arg(ServerProtocolVersion));
-							sendMessage(m_clientSocket[clientID], MessageType::NAK);
-						}
-						else
-						{
-							LOG(lvlInfo, QString("Client advertised supported protocol version %1, sending ACK...")
-								.arg(clientProtocolVersion));
-							sendMessage(m_clientSocket[clientID], MessageType::ACK);
-							sendClientID(m_clientSocket[clientID], clientID);
-							m_clientState[clientID] = ClientState::Idle;
-						}
-						break;
-					}
 					case ClientState::Idle:
 					{
 						switch (type)
 						{
 						case MessageType::Command:
 						{
-							if (data.size() < 2)
+							if (rcvData.size() < 2)
 							{
 								LOG(lvlInfo, QString("Invalid command: missing subcommand; ignoring message!"));
 								return;
 							}
-							if (!isInEnum<CommandType>(data[1]))
+							if (!isInEnum<CommandType>(rcvData[1]))
 							{   // encountered value and valid range output already in isInEnum!
 								LOG(lvlInfo, QString("Invalid command: subcommand not in valid range; ignoring message!"));
 								return;
 							}
-							auto subcommand = static_cast<CommandType>(data[1]);
+							CommandType subcommand;
+							rcvStream >> subcommand;
 							if (subcommand == CommandType::Reset)
 							{
-								LOG(lvlInfo, QString("  Reset"));
+								LOG(lvlInfo, QString("  Reset received"));
+
+								clearScreenshots();
+								resetObjects();
 							}
 							else // CommandType::LoadDataset:
 							{
-								LOG(lvlInfo, QString("  Sub-Command: %1").arg(subcommand == CommandType::Reset ? "Reset" : "Load Dataset"));
+								LOG(lvlInfo, QString("  Load Dataset received"));
+								// https://forum.qt.io/topic/89832/reading-char-array-from-qdatastream
+								quint32 fnLen;
+								rcvStream >> fnLen;
+								QByteArray fnBytes;
+								fnBytes.resize(fnLen);
+								auto readBytes = rcvStream.readRawData(fnBytes.data(), fnLen);
+								if (static_cast<quint32>(readBytes) != fnLen)
+								{
+									LOG(lvlInfo, QString("    Invalid message: expected length %1, actually read %2 bytes").arg(fnLen).arg(readBytes));
+									return;
+								}
+								QString fileName = QString::fromUtf8(fnBytes);
+								LOG(lvlInfo, QString("  Client requested loading dataset from filename '%1' (len=%2).").arg(fileName).arg(fnLen));
+
+								if (!dataSetExists(fileName, child))
+								{
+									LOG(lvlWarn, "  Requested dataset does not exist, sending NAK!");
+									sendMessage(m_clientSocket[clientID], MessageType::NAK);
+									return;
+								}
+								sendDataLoadingRequest(fileName);
 							}
+							return;
 						}
 						case MessageType::Object:
 						{
@@ -233,11 +257,13 @@ public:
 						//    - Object manipulation
 						//    - 
 						break;
-					}
-					case ClientState::LoadDataset:
+					}/*
+					 // implicitly handled through m_dataState code above switch
+					case ClientState::PendingDatasetAck:
 					{
 						break;
 					}
+					*/
 					}
 
 					/*
@@ -313,6 +339,18 @@ public:
 					m_clientSocket.erase(clientID);
 					m_clientState.erase(clientID);
 					client->deleteLater();
+					if (m_dataState == DataState::PendingClientAck) // special handling for if a dataset loading procedure is pending:
+					{
+						if (!m_clientSocket.empty())
+						{   // if there are other clients connected, check if now all (still connected) clients have sent their ACK
+							checkAllClientConfirmedData();
+						}
+						else
+						{   // if the disconnected client was the last one, simply switch to "No dataset loaded" mode
+							m_dataState = DataState::NoDataset;
+							m_dataSetFileName = "";
+						}
+					}
 				});
 			});
 		}
@@ -329,6 +367,147 @@ public:
 		m_serverThread.wait();
 		LOG(lvlInfo, QString("%1 STOP").arg(iAUnityWebsocketServerTool::Name));
 	}
+
+private:
+
+	void clearScreenshots()
+	{
+
+	}
+
+	void resetObjects()
+	{
+
+	}
+
+	void loadDataSet()
+	{
+
+	}
+
+	bool dataSetExists(QString const& fileName, iAMdiChild* child)
+	{
+		auto childFileName = child->dataSet(child->firstImageDataSetIdx())->metaData(iADataSet::FileNameKey).toString();
+		return fileName == childFileName || fileName == QFileInfo(childFileName).fileName();
+	}
+
+	void sendDataLoadingRequest(QString const & fileName)
+	{
+		LOG(lvlWarn, QString("  Sending data loading request to all clients; filename: %1").arg(fileName));
+		QByteArray fnBytes = fileName.toUtf8();
+		quint32 fnLen = fnBytes.size();
+		m_dataState = DataState::PendingClientAck;
+		m_dataSetFileName = fileName;
+		QByteArray outData;
+		QDataStream outStream(&outData, QIODevice::WriteOnly);
+		outStream << MessageType::Command << CommandType::LoadDataset << fnLen;
+		outStream.writeRawData(fnBytes, fnLen);
+		for (auto c : m_clientSocket)
+		{
+			c.second->sendBinaryMessage(outData);
+			m_clientState[c.first] = ClientState::PendingDatasetAck;
+		}
+	}
+
+	void handleClientDataResponse(quint64 clientID, MessageType type)
+	{
+		if (type == MessageType::NAK)
+		{
+			LOG(lvlInfo, QString("  Received NAK from client %1, aborting data loading by broadcasting NAK.").arg(clientID));
+			// broadcast NAK:
+			for (auto s : m_clientSocket)
+			{
+				sendMessage(s.second, MessageType::NAK);
+				m_clientState[s.first] = ClientState::Idle;
+			}
+			m_dataState = DataState::NoDataset;  // maybe switch back to previous dataset if there is any?
+			m_dataSetFileName = "";
+		}
+		else
+		{
+			if (m_clientState[clientID] != ClientState::PendingDatasetAck)
+			{
+				LOG(lvlError, QString("Invalid state: client sent ACK for dataset loading, but its state (%1) indicates we're not waiting for his ACK (anymore?).")
+					.arg(enumToIntegral(m_clientState[clientID])));
+				return;
+			}
+			m_clientState[clientID] = ClientState::DatasetAcknowledged;
+			checkAllClientConfirmedData();
+		}
+	}
+
+	void checkAllClientConfirmedData()
+	{
+		if (m_dataState != DataState::PendingClientAck)
+		{
+			LOG(lvlError, QString("  Invalid state: check for whether all clients confirmed dataset loading was triggered outside of dataset loading procedure (data state: %1)").arg(enumToIntegral(m_dataState)));
+			return;
+		}
+		bool allACK = true;
+		for (auto state : m_clientState)
+		{
+			if (state.second != ClientState::DatasetAcknowledged)
+			{
+				allACK = false;
+				LOG(lvlInfo, QString("  Not all clients have sent an ACK yet - missing at least one from %1.").arg(state.first));
+				break;
+			}
+		}
+		if (allACK)
+		{   // send ACK to all clients, finally load dataset
+			LOG(lvlInfo, QString("  All clients have ACK'ed the dataset loading; ready to go ahead with actually loading the data, broadcasting ACK!"));
+			for (auto s : m_clientSocket)
+			{
+				sendMessage(s.second, MessageType::ACK);
+				m_clientState[s.first] = ClientState::Idle;
+			}
+			// TODO: actual data loading
+			loadDataSet();
+			m_dataState = DataState::DatasetLoaded;
+		}
+	}
+
+	void handleVersionNegotiation(MessageType type, quint64 clientID, QDataStream& stream)
+	{
+		if (type != MessageType::ProtocolVersion)
+		{
+			LOG(lvlError, QString("Invalid message from client %1: Awaiting protocol negotiation message, but got message of type %2; ignoring message!")
+				.arg(clientID)
+				.arg(static_cast<quint8>(type)));
+		}
+		quint64 clientProtocolVersion;
+		stream >> clientProtocolVersion;
+		if (clientProtocolVersion > ServerProtocolVersion)
+		{
+			LOG(lvlWarn, QString("Client advertised unsupported protocol version %1 (we only support up to version %2), sending NAK...")
+				.arg(clientProtocolVersion)
+				.arg(ServerProtocolVersion));
+			sendMessage(m_clientSocket[clientID], MessageType::NAK);
+		}
+		else
+		{
+			LOG(lvlInfo, QString("Client advertised supported protocol version %1, sending ACK...")
+				.arg(clientProtocolVersion));
+			sendMessage(m_clientSocket[clientID], MessageType::ACK);
+			sendClientID(m_clientSocket[clientID], clientID);
+			m_clientState[clientID] = ClientState::Idle;
+
+			if (m_dataState == DataState::DatasetLoaded)
+			{
+				// send dataset info ? -> m_dataSetFileName
+				// requires separate "state" where we just wait for the ACK of this one client
+			}
+		}
+	}
+
+	QWebSocketServer* m_wsServer;
+	std::map<quint64, QWebSocket*> m_clientSocket;
+	std::map<quint64, ClientState> m_clientState;
+	quint64 m_clientID;
+	QThread m_serverThread;
+	//! dataset state: currently a dataset is (1) not loaded (2) being loaded (3) loaded and sent out to clients
+	DataState m_dataState;
+	QString m_dataSetFileName;
 };
 
 const QString iAUnityWebsocketServerTool::Name("UnityWebSocketServer");
