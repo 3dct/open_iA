@@ -4,7 +4,7 @@
 
 const QString S_FEATUREEXTRACTION_LAST_DIR = "LastDirFeatureExtraction";
 
-iAFeatureExtractionDialog::iAFeatureExtractionDialog(QWidget* parent /* = 0 */)
+iAFeatureExtractionDialog::iAFeatureExtractionDialog(QWidget* parent)
 	: iACommonInput(parent)
 {
 	ui.setupUi(this);

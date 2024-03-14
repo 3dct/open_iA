@@ -11,8 +11,8 @@ iAPaintWidget::iAPaintWidget(QPixmap *a_pxmp, QWidget *parent): QWidget(parent)
 	m_maxScale = 20.f;
 	highlightCount=0;
 	highlightPenWidth=1.f;
-	m_highlightX=0;
-	m_highlightY=0;
+	m_highlightX=nullptr;
+	m_highlightY=nullptr;
 	QPainter painter;
 }
 

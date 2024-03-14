@@ -55,7 +55,7 @@ void iACompVariableTableInteractorStyle::OnLeftButtonDown()
 		return;
 	}
 
-	if (cellPicked != INFINITY && this->GetInteractor()->GetShiftKey() && m_picker->GetActor()!= NULL)
+	if (cellPicked != INFINITY && this->GetInteractor()->GetShiftKey() && m_picker->GetActor()!= nullptr)
 	{
 		if (m_picked->empty())
 		{ //when it is the first time of a new picking time --> remove the highlight from the last one

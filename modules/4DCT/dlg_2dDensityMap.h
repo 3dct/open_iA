@@ -13,7 +13,7 @@ class dlg_2dDensityMap : public QDialog, public Ui::DensityMapDialog
 {
 	Q_OBJECT
 public:
-				dlg_2dDensityMap( QWidget * parent = 0 );
+				dlg_2dDensityMap( QWidget * parent );
 				~dlg_2dDensityMap( );
 	void		setVisWin( iA4DCTVisWin * visWin );
 

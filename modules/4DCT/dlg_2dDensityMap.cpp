@@ -5,7 +5,7 @@
 #include "iA4DCTVisWin.h"
 #include "iA4DCTFileData.h"
 
-dlg_2dDensityMap::dlg_2dDensityMap( QWidget * parent /*= 0 */ )
+dlg_2dDensityMap::dlg_2dDensityMap( QWidget * parent )
 	: QDialog( parent )
 {
 	setupUi(this);

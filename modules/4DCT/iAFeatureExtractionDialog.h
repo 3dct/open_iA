@@ -10,7 +10,7 @@ class iAFeatureExtractionDialog : public iACommonInput
 {
 	Q_OBJECT
 public:
-				iAFeatureExtractionDialog(QWidget* parent = 0);
+				iAFeatureExtractionDialog(QWidget* parent = nullptr);
 				~iAFeatureExtractionDialog();
 
 	QString		getInputImg();

@@ -6,7 +6,7 @@
 #include <QDir>
 #include <QSettings>
 
-iACommonInput::iACommonInput(QWidget* parent /*= 0*/)
+iACommonInput::iACommonInput(QWidget* parent)
 	: QDialog(parent)
 { /* not implemented */ }
 

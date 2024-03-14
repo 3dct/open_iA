@@ -59,15 +59,18 @@ int ParseConfigFile(iADreamCasterSettings * s)
 iAMat4 ScaleAndCentreBBox(iAaabb &box, float *scale_coef_out, float* translate3f_out)
 {
 	float scale_coeff = 1.0f;
-	if(scale_coef_out!=0)
-		(*scale_coef_out) = scale_coeff;
+	if (scale_coef_out)
+	{
+		*scale_coef_out = scale_coeff;
+	}
 
-	if(translate3f_out!=0)
-		for (unsigned int i = 0; i<3; i++)
+	if (translate3f_out)
+	{
+		for (unsigned int i = 0; i < 3; i++)
 		{
 			translate3f_out[i] = -box.center()[i];
 		}
-
+	}
 	return scale(iAVec3f(scale_coeff,scale_coeff,scale_coeff))*translate(-box.center());
 }
 

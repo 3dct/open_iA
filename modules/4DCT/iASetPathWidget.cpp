@@ -6,7 +6,7 @@
 #include <QDir>
 #include <QSettings>
 
-iASetPathWidget::iASetPathWidget(QWidget* parent/* = 0*/)
+iASetPathWidget::iASetPathWidget(QWidget* parent)
 	: QWidget(parent)
 {
 	ui.setupUi(this);
@@ -14,7 +14,7 @@ iASetPathWidget::iASetPathWidget(QWidget* parent/* = 0*/)
 }
 
 iASetPathWidget::~iASetPathWidget()
-{ /* not implemented yet */ }
+{}
 
 void iASetPathWidget::setOptions(Mode mode, QString caption, QString filter, QString uniqueKey)
 {
