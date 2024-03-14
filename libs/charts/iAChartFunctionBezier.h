@@ -31,7 +31,7 @@ public:
 	bool isEndPoint(int index) const override;
 	bool isDeletable(int index) const override;
 	void reset() override;
-	virtual QString name() const override;
+	QString name() const override;
 	size_t numPoints() const override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
 

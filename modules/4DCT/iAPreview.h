@@ -15,8 +15,8 @@ public:
 	QLabel*		getBigPreview( );
 
 protected:
-	void		mousePressEvent( QMouseEvent* event );
-	void		mouseReleaseEvent( QMouseEvent* event );
+	void		mousePressEvent( QMouseEvent* event ) override;
+	void		mouseReleaseEvent( QMouseEvent* event ) override;
 
 private:
 	QLabel*		m_smallPreview;
