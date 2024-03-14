@@ -14,12 +14,12 @@ public:
 	iAListNameMapper(QStringList const & names) :
 		m_names(names)
 	{}
-	virtual QString name(int idx) const
+	QString name(int idx) const override
 	{
 		return m_names[idx];
 	}
 
-	virtual int GetIdx(QString const & name, bool & ok) const
+	int GetIdx(QString const & name, bool & ok) const override
 	{
 		for (int i = 0; i < m_names.size(); ++i)
 		{
@@ -33,7 +33,7 @@ public:
 		return -1;
 	}
 
-	virtual int size() const
+	int size() const override
 	{
 		return static_cast<int>(m_names.size());
 	}

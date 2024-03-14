@@ -24,9 +24,9 @@ public:
 	//! Called by the module dispatcher on module initialization. There should be no need to call this method from user code
 	void SetMainWindow( iAMainWindow * mainWnd );
 	//! Override to add references to the module in the core code, for example menu entries.
-	virtual void Initialize() = 0;		// TODO: split up into GUI part and other?
+	void Initialize() override = 0;		// TODO: split up into GUI part and other?
 	//! Override to store custom settings of this module; called when program is shut down.
-	virtual void SaveSettings() const;
+	void SaveSettings() const override;
 
 protected:
 	iAMainWindow * m_mainWnd;            //!< access to the main window

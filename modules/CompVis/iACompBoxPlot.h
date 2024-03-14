@@ -35,7 +35,7 @@ class iACompBoxPlot : public QDockWidget, public Ui_CompHistogramTable
    public:
 	iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage);
 
-	void showEvent(QShowEvent* event);
+	void showEvent(QShowEvent* event) override;
 
 	void renderWidget();
 

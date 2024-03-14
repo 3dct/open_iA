@@ -13,7 +13,7 @@ class iAArcCosineDistance : public iAProximityDistance
 {
 public:
 	iAArcCosineDistance(std::vector<double>* weights, csvDataType::ArrayType* data, int amountOfCharas, int amountOfElems);
-	virtual csvDataType::ArrayType* calculateProximityDistance();
+	csvDataType::ArrayType* calculateProximityDistance() override;
 
 private:
 	double calculateCounter(std::vector<double> const& e1, std::vector<double> const& e2);

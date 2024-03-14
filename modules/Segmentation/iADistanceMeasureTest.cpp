@@ -11,19 +11,19 @@ class TestVectorArray: public iAVectorArray
 private:
 	std::vector<std::vector<iAVectorDataType> > m_data;
 public:
-	virtual size_t size() const
+	size_t size() const override
 	{
 		return m_data.size();
 	}
-	virtual size_t channelCount() const
+	size_t channelCount() const override
 	{
 		return m_data[0].size();
 	}
-	virtual std::shared_ptr<iAVectorType const> get(size_t voxelIdx) const
+	std::shared_ptr<iAVectorType const> get(size_t voxelIdx) const override
 	{
 		return std::shared_ptr<iAVectorType const>(new iAPixelVector(*this, voxelIdx));
 	}
-	virtual iAVectorDataType get(size_t voxelIdx, size_t channelIdx) const
+	iAVectorDataType get(size_t voxelIdx, size_t channelIdx) const override
 	{
 		return m_data[voxelIdx][channelIdx];
 	}

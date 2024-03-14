@@ -9,7 +9,7 @@
 
 class iAEuclideanDistance : public iASimilarityDistance
 {
-   public:
+public:
 	iAEuclideanDistance();
-	void calculateSimilarityDistance(csvDataType::ArrayType* dataMatrix, csvDataType::ArrayType* distanceMatrix);
+	void calculateSimilarityDistance(csvDataType::ArrayType* dataMatrix, csvDataType::ArrayType* distanceMatrix) override;
 };

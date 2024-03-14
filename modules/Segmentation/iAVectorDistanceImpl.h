@@ -31,110 +31,110 @@ std::shared_ptr<iAVectorDistance> GetDistanceMeasureFromShortName(QString const 
 class Segmentation_API iASpectralAngularDistance: public iAVectorDistance
 {
 public:
-	virtual char const * name() const;
-	virtual char const * GetShortName() const;
-	virtual double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const;
+	char const * name() const override;
+	char const * GetShortName() const override;
+	double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const override;
 };
 
 class Segmentation_API iAL1NormDistance: public iAVectorDistance
 {
 public:
-	virtual char const * name() const;
-	virtual char const * GetShortName() const;
-	virtual double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const;
+	char const * name() const override;
+	char const * GetShortName() const override;
+	double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const override;
 };
 
 class Segmentation_API iAL2NormDistance: public iAVectorDistance
 {
 public:
-	virtual char const * name() const;
-	virtual char const * GetShortName() const;
-	virtual double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const;
+	char const * name() const override;
+	char const * GetShortName() const override;
+	double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const override;
 };
 
 class Segmentation_API iALInfNormDistance: public iAVectorDistance
 {
 public:
-	virtual char const * name() const;
-	virtual char const * GetShortName() const;
-	virtual double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const;
+	char const * name() const override;
+	char const * GetShortName() const override;
+	double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const override;
 };
 
 class Segmentation_API iAJensenShannonDistance : public iAVectorDistance
 {
 public:
-	virtual char const * name() const;
-	virtual char const * GetShortName() const;
-	virtual double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const;
+	char const * name() const override;
+	char const * GetShortName() const override;
+	double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const override;
 };
 
 class Segmentation_API iAKullbackLeiblerDivergence : public iAVectorDistance
 {
 public:
-	virtual char const * name() const;
-	virtual char const * GetShortName() const;
-	virtual double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const;
-	virtual bool isSymmetric() const {return false; }
+	char const * name() const override;
+	char const * GetShortName() const override;
+	double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const override;
+	bool isSymmetric() const  override {return false; }
 };
 
 class Segmentation_API iAChiSquareDistance: public iAVectorDistance
 {
 public:
-	virtual char const * name() const;
-	virtual char const * GetShortName() const;
-	virtual double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const;
+	char const * name() const override;
+	char const * GetShortName() const override;
+	double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const override;
 };
 
 class Segmentation_API iAEarthMoversDistance: public iAVectorDistance
 {
 public:
-	virtual char const * name() const;
-	virtual char const * GetShortName() const;
-	virtual double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const;
+	char const * name() const override;
+	char const * GetShortName() const override;
+	double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const override;
 };
 
 class Segmentation_API iASquaredDistance: public iAVectorDistance
 {
 public:
-	virtual char const * name() const;
-	virtual char const * GetShortName() const;
-	virtual double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const;
+	char const * name() const override;
+	char const * GetShortName() const override;
+	double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const override;
 };
 
 class Segmentation_API iANullDistance: public iAVectorDistance
 {
 public:
-	virtual char const * name() const { return "Null Dist."; }
-	virtual char const * GetShortName() const { return "null"; }
-	virtual double GetDistance(std::shared_ptr<iAVectorType const> /*spec1*/, std::shared_ptr<iAVectorType const> /*spec2*/) const { return 0; }
+	char const * name() const override { return "Null Dist."; }
+	char const * GetShortName() const  override { return "null"; }
+	double GetDistance(std::shared_ptr<iAVectorType const> /*spec1*/, std::shared_ptr<iAVectorType const> /*spec2*/) const override { return 0; }
 };
 
 /*
 class iAMutualInformation : public iAVectorDistance
 {
 public:
-	virtual double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2);
-	virtual bool isSymmetric() {return true; }
+	double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const override;
+	bool isSymmetric() const override {return true; }
 };
 
 class iACrossCorrelation : public iAVectorDistance
 {
 public:
-	virtual double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2);
-	virtual bool isSymmetric() {return true; }
+	double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const override;
+	bool isSymmetric() const override {return true; }
 };
 
 class iAMahalanobisDistance : public iAVectorDistance
 {
 public:
-	virtual double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2);
-	virtual bool isSymmetric() {return true; }
+	double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const override;
+	bool isSymmetric() {return true; }
 };
 
 class iAHausdorffDistance : public iAVectorDistance
 {
 public:
-	virtual double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2);
-	virtual bool isSymmetric() {return true; }
+	double GetDistance(std::shared_ptr<iAVectorType const> spec1, std::shared_ptr<iAVectorType const> spec2) const override;
+	bool isSymmetric() const override {return true; }
 };
 */

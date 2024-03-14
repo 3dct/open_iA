@@ -21,7 +21,7 @@ public:
 	void observe(vtkAlgorithm* caller);
 	iAProgress* progressObject();
 private:
-	virtual void Execute(vtkObject *caller, unsigned long, void*);
+	void Execute(vtkObject *caller, unsigned long, void*) override;
 	double m_currentStep;
 	double m_overallSteps;
 	iAProgress m_progress;

@@ -20,7 +20,7 @@ const QStringList columnNames = QStringList() << "X" << "Y" << "Color";
 class iATFTableWidgetItem : public QTableWidgetItem
 {
 public:
-	bool operator<(const QTableWidgetItem& other) const
+	bool operator<(const QTableWidgetItem& other) const override
 	{
 		return text().toDouble() < other.text().toDouble();
 	}

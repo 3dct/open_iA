@@ -22,9 +22,9 @@ signals:
 	void			colorChanged( const QColor & col );
 
 protected:
-	void			mouseDoubleClickEvent( QMouseEvent * event );
-	void			paintEvent( QPaintEvent * );
+	void			mouseDoubleClickEvent( QMouseEvent * event ) override;
+	void			paintEvent( QPaintEvent * ) override;
 
-	private slots:
+private slots:
 	void			onCurrentColorChanged( const QColor & col );
 };
