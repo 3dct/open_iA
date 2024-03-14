@@ -120,8 +120,8 @@ void iAGEMSeScatterplot::SetDataSource(
 		return;
 	}
 	m_chart->ClearPlots();
-	m_singlePlot = 0;
-	m_clusterPlot = 0;
+	m_singlePlot = nullptr;
+	m_clusterPlot = nullptr;
 	auto xAxis = m_chart->GetAxis(vtkAxis::BOTTOM);
 	auto yAxis = m_chart->GetAxis(vtkAxis::LEFT);
 	xAxis->SetTitle(m_chart1Name.toStdString());
@@ -161,7 +161,7 @@ void iAGEMSeScatterplot::Update(
 	if (plot)
 	{
 		m_chart->RemovePlotInstance(plot);
-		plot = 0;
+		plot = nullptr;
 	}
 	if (!node)
 	{

@@ -30,7 +30,7 @@ iAImagePreviewWidget* iAPreviewWidgetPool::getWidget(QWidget* parent, bool /*mag
 #if _DEBUG
 		LOG(lvlError, "No more slicer widgets available!\n");
 #endif
-		return 0;
+		return nullptr;
 	}
 	iAImagePreviewWidget* result = m_pool[m_pool.size()-1];
 	m_pool.remove(m_pool.size()-1);
@@ -48,7 +48,7 @@ iAImagePreviewWidget* iAPreviewWidgetPool::getWidget(QWidget* parent, bool /*mag
 void iAPreviewWidgetPool::returnWidget(iAImagePreviewWidget* widget)
 {
 	widget->hide();
-	widget->setParent(0);
+	widget->setParent(nullptr);
 	auto idx = m_visible.lastIndexOf(widget);
 	assert( idx != -1 );
 	if (idx != -1)

@@ -59,11 +59,11 @@ private slots:
 	void onSpinBoxValueChanged_3(int newValue);
 
 protected:
-	void paintEvent(QPaintEvent* event);
-	void resizeEvent(QResizeEvent* event);
-	void mousePressEvent(QMouseEvent* event);
-	void mouseMoveEvent(QMouseEvent* event);
-	void mouseReleaseEvent(QMouseEvent* event);
+	void paintEvent(QPaintEvent* event) override;
+	void resizeEvent(QResizeEvent* event) override;
+	void mousePressEvent(QMouseEvent* event) override;
+	void mouseMoveEvent(QMouseEvent* event) override;
+	void mouseReleaseEvent(QMouseEvent* event) override;
 
 private:
 	iABarycentricTriangle m_triangle;

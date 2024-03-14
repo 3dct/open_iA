@@ -346,7 +346,7 @@ void iAHistogramContainer::ExportAttributeRangeRanking(QString const &fileName)
 	QFile f(fileName);
 	if (!f.open(QIODevice::WriteOnly))
 	{
-		QMessageBox::warning(0, "GEMSe", "Couldn't open CSV file for writing attribute range rankings!");
+		QMessageBox::warning(nullptr, "GEMSe", "Couldn't open CSV file for writing attribute range rankings!");
 		return;
 	}
 	QTextStream t(&f);

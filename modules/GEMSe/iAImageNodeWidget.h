@@ -45,8 +45,8 @@ public:
 	bool UpdateRepresentative(LabelImagePointer refImg);
 	bool SetRepresentativeType(int representativeType, LabelImagePointer refImg);
 protected:
-	virtual void paintEvent(QPaintEvent * );
-	virtual void mouseReleaseEvent(QMouseEvent * ev);
+	void paintEvent(QPaintEvent * ) override;
+	void mouseReleaseEvent(QMouseEvent * ev) override;
 signals:
 	void Expand(bool expand);
 	void clicked();

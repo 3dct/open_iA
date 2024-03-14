@@ -14,8 +14,8 @@ public:
 signals:
 	void clicked();
 protected:
-	virtual void paintEvent(QPaintEvent* ev);
-	virtual void mouseReleaseEvent(QMouseEvent * ev);
+	void paintEvent(QPaintEvent* ev) override;
+	void mouseReleaseEvent(QMouseEvent * ev) override;
 private:
 	bool m_expanded;
 };

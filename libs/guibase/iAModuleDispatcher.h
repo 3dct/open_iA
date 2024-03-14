@@ -78,5 +78,5 @@ template <typename T> T* iAModuleDispatcher::module()
 			return ptr;
 		}
 	}
-	return 0;
+	return nullptr;
 }

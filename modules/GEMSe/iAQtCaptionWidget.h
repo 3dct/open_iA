@@ -11,7 +11,7 @@ class iAQtCaptionWidget : public QWidget
 public:
 	iAQtCaptionWidget(QWidget* parent, QString const & name);
 private:
-	virtual void paintEvent(QPaintEvent* ev);
+	void paintEvent(QPaintEvent* ev) override;
 	QString m_name;
 	int m_height;
 };

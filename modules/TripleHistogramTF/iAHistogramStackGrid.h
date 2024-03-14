@@ -28,7 +28,7 @@ public:
 		adjustStretch(size().width());
 	}
 protected:
-	void resizeEvent(QResizeEvent* event);
+	void resizeEvent(QResizeEvent* event) override;
 private:
 	void adjustStretch(int w);
 	QGridLayout *m_gridLayout;

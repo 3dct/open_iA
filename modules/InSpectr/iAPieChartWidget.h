@@ -25,7 +25,7 @@ public:
 	void addPiece(QString name, double percentage, QColor color);
 	bool empty() const;
 protected:
-	void paintEvent(QPaintEvent *);
+	void paintEvent(QPaintEvent *) override;
 private:
 	QVector<iAPiePiece> m_pieces;
 };

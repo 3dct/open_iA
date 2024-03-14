@@ -42,7 +42,7 @@ signals:
 	void Hovered(iAImageTreeLeaf *);
 	void ViewUpdated();
 protected:
-	virtual void resizeEvent(QResizeEvent *);
+	virtual void resizeEvent(QResizeEvent *) override;
 private:
 	QVector<iAImageTreeLeaf *> m_nodes;
 	QGridLayout* m_layout;
