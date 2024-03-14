@@ -644,7 +644,7 @@ if (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-	add_compile_options(-Wfloat-zero-conversion -Wimplicit-fallthrough -Wnewline-eof -Wshorten-64-to-32 -Wsuggest-override -Wzero-as-null-pointer-constant -Wcomma -Wunreachable-code-break -Wunreachable-code-return)
+	add_compile_options(-Wcast-qual -Wfloat-zero-conversion -Wimplicit-fallthrough -Wmissing-variable-declarations -Wnewline-eof -Wshorten-64-to-32 -Wsuggest-override -Wzero-as-null-pointer-constant -Wcomma -Wunreachable-code-break -Wunreachable-code-return)
 endif()
 
 if (APPLE)
