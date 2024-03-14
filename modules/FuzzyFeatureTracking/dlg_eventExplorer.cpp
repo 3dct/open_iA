@@ -493,7 +493,7 @@ void dlg_eventExplorer::chartSelectionChanged(vtkObject* /*obj*/)
 			{
 				vtkIdTypeArray *ids = m_charts.at(i)->GetPlot(currentPlot)->GetSelection();
 
-				if (ids != 0)
+				if (ids)
 				{
 					LOG(lvlInfo, QString("  Plot[%1] is active. %2 selected.").arg(j).arg(ids->GetNumberOfTuples()));
 

@@ -108,9 +108,8 @@ iAOpenVRFrontCamera::iAOpenVRFrontCamera(iAVREnvironment* env)
 	: m_vrEnv(env)
 {
 	m_pHMD = nullptr;
-	m_VRTrackedCamera = 0;
+	m_VRTrackedCamera = nullptr;
 	m_VRTrackedCameraHandle = 0;
-	m_sourceImage = 0;
 
 	m_cameraFrameWidth = 0;
 	m_cameraFrameHeight = 0;

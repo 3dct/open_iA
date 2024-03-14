@@ -87,7 +87,7 @@ void iAVRColorLegend::calculateLegend(double physicalScale)
 
 	vtkNew<vtkPlaneSource> colorBarPlane;
 	colorBarPlane->SetXResolution(1);
-	colorBarPlane->SetYResolution(m_lut->GetNumberOfAvailableColors());
+	colorBarPlane->SetYResolution(static_cast<int>(m_lut->GetNumberOfAvailableColors()));
 
 	colorBarPlane->SetOrigin(0, 0, 0.0);
 	colorBarPlane->SetPoint1(width, 0, 0.0); //width
