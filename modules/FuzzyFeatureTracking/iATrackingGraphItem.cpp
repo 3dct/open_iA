@@ -36,7 +36,7 @@ vtkColor4ub iATrackingGraphItem::VertexColor(vtkIdType vertex)
 	if (this->GetGraph()->GetVertexData()->GetAbstractArray("ColorR") &&
 		this->GetGraph()->GetVertexData()->GetAbstractArray("ColorG") &&
 		this->GetGraph()->GetVertexData()->GetAbstractArray("ColorB") &&
-		this->GetGraph()->GetVertexData()->GetAbstractArray("Uncertainty") 0)
+		this->GetGraph()->GetVertexData()->GetAbstractArray("Uncertainty"))
 	{
 		return vtkColor4ub(this->GetGraph()->GetVertexData()->GetAbstractArray("ColorR")->GetVariantValue(vertex).ToInt(),
 			this->GetGraph()->GetVertexData()->GetAbstractArray("ColorG")->GetVariantValue(vertex).ToInt(),
