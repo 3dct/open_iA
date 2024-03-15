@@ -83,19 +83,18 @@ public:
 	//! @param cutAABBList the list of cut AABB's
 	void SetCutAABBList(std::vector<iAaabb*> * cutAABBList)
 	{
-		if(cutAABBList==0)
+		m_cutAABBList = cutAABBList;
+		if (!cutAABBList)
 		{
-			m_cutAABBList = 0;
 			m_cutAABBListSize = 0;
 		}
 		else
 		{
-			m_cutAABBList = cutAABBList;
-			m_cutAABBListSize = (unsigned int) m_cutAABBList->size();
-			if(m_cut_AABBs)
+			m_cutAABBListSize = static_cast<unsigned int>(m_cutAABBList->size());
+			if (m_cut_AABBs)
 			{
 				delete [] m_cut_AABBs;
-				m_cut_AABBs = 0;
+				m_cut_AABBs = nullptr;
 			}
 			m_cut_AABBs = new iAaabb[m_cutAABBListSize];
 			for (unsigned int i=0; i<m_cutAABBListSize; i++)
@@ -189,8 +188,8 @@ public:
 		e = a_engine;
 	};
 	iARaycastingThread(){
-		e = 0;
-		rays = 0;
+		e = nullptr;
+		rays = nullptr;
 	};
 	~iARaycastingThread(){
 	};
@@ -217,7 +216,7 @@ public:
 		return &intersections;
 	}
 	//! Runs thread, executes raycasting of thread's tile.
-	void run();
+	void run() override;
 	void stop()
 	{
 		stopped = true;

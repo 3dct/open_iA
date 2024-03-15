@@ -14,7 +14,7 @@ class dlg_blobVisualization : public QDialog
 {
 	Q_OBJECT
 public:
-	dlg_blobVisualization (QWidget* parent = 0);
+	dlg_blobVisualization();
 	~dlg_blobVisualization (void);
 
 	bool	GetOverlapping (void) const;

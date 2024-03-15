@@ -106,7 +106,7 @@ void iASpectraHistograms::compute( long numBins, double maxCount, double minCoun
 	if(doReallocate)
 	{
 		m_numHistograms = m_xrfData->size();
-		delete [] m_histData; m_histData = 0;
+		delete [] m_histData;
 		m_histData = new CountType[m_numHistograms*m_numBins];
 	}
 

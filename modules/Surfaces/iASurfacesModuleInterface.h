@@ -8,7 +8,7 @@ class iASurfacesModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:
-	void Initialize();
+	void Initialize() override;
 private slots:
 	void addObject();
 };

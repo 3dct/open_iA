@@ -58,7 +58,7 @@ class iADropPipelineWidget : public QWidget
 	Q_OBJECT
 
 public:
-	explicit iADropPipelineWidget( int imageSize, int totalPipelineSlots, QString datasetDir, QWidget *parent = 0 );
+	explicit iADropPipelineWidget( int imageSize, int totalPipelineSlots, QString datasetDir, QWidget *parent);
 
 	QList<QList<QString>> getPipeline();
 	int pieceSize() const;

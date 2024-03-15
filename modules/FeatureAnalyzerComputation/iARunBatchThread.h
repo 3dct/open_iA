@@ -16,13 +16,13 @@ class iARunBatchThread : public QThread
 {
 	Q_OBJECT
 public:
-	iARunBatchThread( QObject * parent = 0 ) : QThread( parent ) {};
+	iARunBatchThread( QObject * parent) : QThread( parent ) {};
 	void Init(iAFeatureAnalyzerComputationModuleInterface* pmi,
 		QString datasetsDescriptionFile,
 		bool rbNewPipelineDataNoPores,
 		bool rbNewPipelineData);
 protected:
-	virtual void run();
+	void run() override;
 	void executeNewBatches( QTableWidget & settingsCSV, QMap<int, bool> & isBatchNew );
 	void executeBatch( const QList<PorosityFilterID> & filterIds, QString datasetName, QString batchDir, QTableWidget * settingsCSV, int row );
 	void initRunsCSVFile( QTableWidget & runsCSV, QString batchDir, const QList<ParamNameType> & paramNames );

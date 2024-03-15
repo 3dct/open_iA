@@ -652,5 +652,5 @@ QLabel* iADragFilterWidget::getLabel( QString name )
 		if ( m_labelList[i]->objectName() == name )
 			return ( m_labelList[i] );
 	}
-	return 0;
+	return nullptr;
 }

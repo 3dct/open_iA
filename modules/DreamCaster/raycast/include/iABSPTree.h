@@ -353,10 +353,10 @@ struct iATraverseStack
 	}
 	~iATraverseStack()
 	{
-		if(t)
+		if (t)
 		{
 			delete [] t;
-			t=0;
+			t = nullptr;
 		}
 	}
 	void push(iATrace& node)
@@ -394,7 +394,7 @@ class iABSPTree
 public:
 	iABSPTree()
 	{
-		root = 0;
+		root = nullptr;
 	}
 	~iABSPTree()
 	{

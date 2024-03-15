@@ -13,7 +13,7 @@ class iADatasetInfo : public QThread
 	Q_OBJECT
 
 public:
-	iADatasetInfo(iAFeatureAnalyzerComputationModuleInterface* pmi, QObject* parent = 0);
+	iADatasetInfo(iAFeatureAnalyzerComputationModuleInterface* pmi);
 	QStringList getNewGeneratedInfoFiles();
 
 protected:

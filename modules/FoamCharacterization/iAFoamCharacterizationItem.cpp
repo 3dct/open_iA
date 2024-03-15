@@ -88,7 +88,7 @@ QString iAFoamCharacterizationItem::executeTimeString() const
 QString iAFoamCharacterizationItem::fileRead(QFile* _pFileOpen)
 {
 	int iText;
-	_pFileOpen->read((char*)&iText, sizeof(iText));
+	_pFileOpen->read(reinterpret_cast<char*>(&iText), sizeof(iText));
 
 	QScopedArrayPointer<char> pText(new char[iText]);
 	_pFileOpen->read(pText.data(), iText);
@@ -99,9 +99,8 @@ QString iAFoamCharacterizationItem::fileRead(QFile* _pFileOpen)
 void iAFoamCharacterizationItem::fileWrite(QFile* _pFileSave, const QString& _sText)
 {
 	const int iText(static_cast<int>(_sText.length()));
-	_pFileSave->write((char*)&iText, sizeof(iText));
-
-	_pFileSave->write((char*)_sText.toStdString().c_str(), iText);
+	_pFileSave->write(reinterpret_cast<const char*>(&iText), sizeof(iText));
+	_pFileSave->write(_sText.toStdString().c_str(), iText);
 }
 
 QColor iAFoamCharacterizationItem::itemIconColor(EItemType eItemType)
@@ -194,11 +193,11 @@ void iAFoamCharacterizationItem::reset()
 
 void iAFoamCharacterizationItem::save(QFile* _pFileSave)
 {
-	_pFileSave->write((char*)&m_eItemType, sizeof(m_eItemType));
+	_pFileSave->write(reinterpret_cast<const char*>(&m_eItemType), sizeof(m_eItemType));
 
 	fileWrite(_pFileSave, m_sName);
 
-	_pFileSave->write((char*)&m_bItemEnabled, sizeof(m_bItemEnabled));
+	_pFileSave->write(reinterpret_cast<const char*>(&m_bItemEnabled), sizeof(m_bItemEnabled));
 }
 
 void iAFoamCharacterizationItem::setExecuting(const bool& _bExecuting)

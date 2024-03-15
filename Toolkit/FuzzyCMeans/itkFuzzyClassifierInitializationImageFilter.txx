@@ -176,7 +176,7 @@ FuzzyClassifierInitializationImageFilter< TInputImage, TProbabilityPrecision,
   unsigned int i;
 
   vnl_vector< InputImagePixelValueType > tmp(InputImagePixelDimension);
-  tmp.set( (InputImagePixelValueType *) &pixel );
+  tmp.set( static_cast<InputImagePixelValueType const *>(&pixel) );
 
   for (i = 0; i < InputImagePixelDimension; i++)
     {

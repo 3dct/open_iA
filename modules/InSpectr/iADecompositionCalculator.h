@@ -25,7 +25,7 @@ public:
 	void AddElement(iAElementSpectralInfo* element);
 	bool NoElements() const;
 	void Stop();
-	virtual void run();
+	void run() override;
 	iAProgress* progress();
 private:
 	std::shared_ptr<iAElementConcentrations> m_data;

@@ -181,7 +181,7 @@ public:
 		{
 			return m_Tri.vertices[i];
 		}
-		return 0;
+		return nullptr;
 	}
 	float &d() {return m_d;}
 	int Intersect(iARay& a_Ray, float& a_Dist ) const;

@@ -16,18 +16,21 @@
 #include <QPainter>
 #include <QRubberBand>
 
-const char * EnergyLineNames[9] =
+namespace
 {
-	"Kα1",
-	"Kα2",
-	"Kß1",
-	"Lα1",
-	"Lα2",
-	"Lß1",
-	"Lß2",
-	"Lγ1",
-	"Mα1"
-};
+	const char * EnergyLineNames[9] =
+	{
+		"Kα1",
+		"Kα2",
+		"Kß1",
+		"Lα1",
+		"Lα2",
+		"Lß1",
+		"Lß2",
+		"Lγ1",
+		"Mα1"
+	};
+	}
 
 iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent,
 		std::shared_ptr<iAAccumulatedXRFData> data,

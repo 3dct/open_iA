@@ -18,7 +18,7 @@ class dlg_SimilarityMap : public dlg_SimilarityMapContainer
 {
 	Q_OBJECT
 public:
-	dlg_SimilarityMap( QWidget *parentWidget = 0 );
+	dlg_SimilarityMap( QWidget *parentWidget);
 	void connectToXRF( dlg_InSpectr* dlgXRF );
 protected:
 	void connectSignalsToSlots();

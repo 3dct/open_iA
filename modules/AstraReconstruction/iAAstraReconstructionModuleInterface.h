@@ -7,5 +7,5 @@
 class iAAstraReconstructionModuleInterface : public iAGUIModuleInterface
 {
 public:
-	void Initialize();
+	void Initialize() override;
 };
