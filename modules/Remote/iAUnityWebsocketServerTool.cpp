@@ -82,8 +82,7 @@ namespace
 
 	enum class SnapshotCommandType : quint8
 	{
-		CreateClient,
-		CreateServer,
+		Create,
 		Remove,
 		ClearAll,
 		ChangeSlicePosition,
@@ -107,6 +106,13 @@ namespace
 		DatasetLoaded
 	};
 
+	enum class ObjectID : quint64
+	{
+		Dataset,
+		SlicingPlane
+		//Camera
+	};
+
 	void sendMessage(QWebSocket* s, MessageType t)
 	{
 		// if (t == MessageType::ACK || t == MessageType::NAK)
@@ -124,13 +130,20 @@ namespace
 	}
 }
 
+class iASnapshotInfo
+{
+	std::array<float, 3> position;
+	std::array<float, 4> rotation;
+
+};
+
 class iAUnityWebsocketServerToolImpl: public QObject
 {
 public:
 
 	iAUnityWebsocketServerToolImpl(iAMdiChild* child):
 		m_wsServer(new QWebSocketServer(iAUnityWebsocketServerTool::Name, QWebSocketServer::NonSecureMode, this)),
-		m_clientID(1)
+		m_nextClientID(1)
 	{
 		m_wsServer->moveToThread(&m_serverThread);
 		m_serverThread.start();
@@ -144,7 +157,7 @@ public:
 				auto client = m_wsServer->nextPendingConnection();
 				LOG(lvlInfo, QString("%1: Client connected: %2:%3")
 					.arg(iAUnityWebsocketServerTool::Name).arg(client->peerAddress().toString()).arg(client->peerPort()));
-				auto clientID = m_clientID++;  // simplest possible ID assignment: next free ID. Maybe random?
+				auto clientID = m_nextClientID++;  // simplest possible ID assignment: next free ID. Maybe random?
 				m_clientSocket[clientID] = client;
 				m_clientState[clientID] = ClientState::AwaitingProtocolNegotiation;
 				connect(client, &QWebSocket::textMessageReceived, this, [this, child](QString message)
@@ -188,6 +201,11 @@ public:
 						return;
 					}
 
+					if (rcvData.size() < 2)
+					{
+						LOG(lvlInfo, QString("Invalid command: missing subcommand; ignoring message!"));
+						return;
+					}
 					switch (m_clientState[clientID])
 					{
 					case ClientState::Idle:
@@ -196,11 +214,6 @@ public:
 						{
 						case MessageType::Command:
 						{
-							if (rcvData.size() < 2)
-							{
-								LOG(lvlInfo, QString("Invalid command: missing subcommand; ignoring message!"));
-								return;
-							}
 							if (!isInEnum<CommandType>(rcvData[1]))
 							{   // encountered value and valid range output already in isInEnum!
 								LOG(lvlInfo, QString("Invalid command: subcommand not in valid range; ignoring message!"));
@@ -244,18 +257,46 @@ public:
 						}
 						case MessageType::Object:
 						{
+							if (!isInEnum<ObjectCommandType>(rcvData[1]))
+							{  // encountered value and valid range output already in isInEnum!
+								LOG(lvlInfo,
+									QString("Invalid object message: subcommand not in valid range; ignoring message!"));
+								return;
+							}
+							ObjectCommandType objCommand;
+							rcvStream >> objCommand;
+
 							break;
 						}
 						case MessageType::Snapshot:
 						{
+							if (!isInEnum<SnapshotCommandType>(rcvData[1]))
+							{  // encountered value and valid range output already in isInEnum!
+								LOG(lvlInfo,
+									QString(
+										"Invalid object message: subcommand not in valid range; ignoring message!"));
+								return;
+							}
+							SnapshotCommandType snapshotCommand;
+							rcvStream >> snapshotCommand;
+							switch (snapshotCommand)
+							{
+							case SnapshotCommandType::Create:
+							{
+								auto snapshotID = m_nextSnapshotID++;
+
+								break;
+							}
+							case SnapshotCommandType::Remove:
+								break;
+							case SnapshotCommandType::ClearAll:
+								clearScreenshots();
+								break;
+							}
+
 							break;
 						}
 						}
-						// react on:
-						//    - Reset
-						//    - Load Dataset
-						//    - Object manipulation
-						//    - 
 						break;
 					}/*
 					 // implicitly handled through m_dataState code above switch
@@ -372,7 +413,15 @@ private:
 
 	void clearScreenshots()
 	{
-
+		LOG(lvlWarn, QString("  Sending clear Screenshots request to all clients."));
+		QByteArray outData;
+		QDataStream outStream(&outData, QIODevice::WriteOnly);
+		outStream << MessageType::Command << SnapshotCommandType::ClearAll;
+		for (auto c : m_clientSocket)
+		{
+			c.second->sendBinaryMessage(outData);
+		}
+		
 	}
 
 	void resetObjects()
@@ -393,7 +442,7 @@ private:
 
 	void sendDataLoadingRequest(QString const & fileName)
 	{
-		LOG(lvlWarn, QString("  Sending data loading request to all clients; filename: %1").arg(fileName));
+		LOG(lvlWarn, QString("  Broadcasting data loading request to all clients; filename: %1").arg(fileName));
 		QByteArray fnBytes = fileName.toUtf8();
 		quint32 fnLen = fnBytes.size();
 		m_dataState = DataState::PendingClientAck;
@@ -503,7 +552,9 @@ private:
 	QWebSocketServer* m_wsServer;
 	std::map<quint64, QWebSocket*> m_clientSocket;
 	std::map<quint64, ClientState> m_clientState;
-	quint64 m_clientID;
+	std::map<quint64, iASnapshotInfo> m_snapshots;
+	quint64 m_nextClientID;
+	quint64 m_nextSnapshotID;
 	QThread m_serverThread;
 	//! dataset state: currently a dataset is (1) not loaded (2) being loaded (3) loaded and sent out to clients
 	DataState m_dataState;
