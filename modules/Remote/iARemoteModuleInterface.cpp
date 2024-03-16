@@ -10,7 +10,7 @@
 #include <iALog.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
-#include <iAToolHelper.h>    // for addToolToActiveMdiChild
+#include <iAToolHelper.h>    // for addToolToActiveMdiChild, addToolAction
 
 void iARemoteModuleInterface::Initialize()
 {

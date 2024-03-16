@@ -123,4 +123,28 @@ iAPlaneSliceTool::~iAPlaneSliceTool()
 	delete m_dw;
 }
 
+quint64 iAPlaneSliceTool::addSnapshot(iASnapshotInfo info)
+{
+	auto id = m_nextSnapshotID++;
+	m_snapshots[id] = info;
+	return id;
+}
+
+void iAPlaneSliceTool::removeSnapshot(quint64 id)
+{
+	m_snapshots.erase(id);
+}
+
+void iAPlaneSliceTool::clearSnapshots()
+{
+	m_snapshots.clear();
+}
+
+void iAPlaneSliceTool::moveSlice(quint64 id, iAMoveAxis axis, float value)
+{
+	auto& s = m_snapshots[id];
+	// apply shift
+}
+
+
 const QString iAPlaneSliceTool::Name("Arbitrary Slice Plane");

@@ -2,13 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAUnityWebsocketServerTool.h"
 
-#include "iAAABB.h"
-#include "iALog.h"
+#include "iAPlaneSliceTool.h"
 
+#include <iADataSetRenderer.h>
+#include <iADataSetViewer.h>
 #include <iAImageData.h>
 #include <iAMdiChild.h>
-#include <iADataSetViewer.h>
-#include <iADataSetRenderer.h>
+#include <iAToolHelper.h>
+
+#include <iAAABB.h>
+#include <iALog.h>
 
 #include <vtkMath.h>
 #include <vtkProp3D.h>
@@ -128,31 +131,41 @@ namespace
 		stream << clientID;    // QDataStream does Big Endian conversions automatically
 		s->sendBinaryMessage(b);
 	}
+	template <std::size_t N>
+	void readArray(QDataStream& stream, std::array<float, N> a)
+	{
+		stream.readRawData(reinterpret_cast<char*>(a.data()), sizeof(float) * N);
+	}
+	template <std::size_t N>
+	void writeArray(QDataStream& stream, std::array<float, N> a)
+	{
+		stream.writeRawData(reinterpret_cast<char*>(a.data()), sizeof(float) * N);
+	}
 }
-
-class iASnapshotInfo
-{
-	std::array<float, 3> position;
-	std::array<float, 4> rotation;
-
-};
 
 class iAUnityWebsocketServerToolImpl: public QObject
 {
 public:
 
-	iAUnityWebsocketServerToolImpl(iAMdiChild* child):
+	iAUnityWebsocketServerToolImpl(iAMainWindow* mainWnd, iAMdiChild* child) :
 		m_wsServer(new QWebSocketServer(iAUnityWebsocketServerTool::Name, QWebSocketServer::NonSecureMode, this)),
 		m_nextClientID(1)
 	{
 		m_wsServer->moveToThread(&m_serverThread);
 		m_serverThread.start();
 
+		m_planeSliceTool = getTool<iAPlaneSliceTool>(child);
+		if (!m_planeSliceTool)
+		{
+			m_planeSliceTool = addToolToActiveMdiChild<iAPlaneSliceTool>(iAPlaneSliceTool::Name, mainWnd, true);
+		}
+
 		if (m_wsServer->listen(QHostAddress::Any, 50505))
 		{
 			LOG(lvlInfo, QString("%1: Listening on %2:%3")
 				.arg(iAUnityWebsocketServerTool::Name).arg(m_wsServer->serverAddress().toString()).arg(m_wsServer->serverPort()));
-			connect(m_wsServer, &QWebSocketServer::newConnection, this, [this, child]
+			connect(m_wsServer, &QWebSocketServer::newConnection, this,
+				[this, child]
 			{
 				auto client = m_wsServer->nextPendingConnection();
 				LOG(lvlInfo, QString("%1: Client connected: %2:%3")
@@ -225,7 +238,7 @@ public:
 							{
 								LOG(lvlInfo, QString("  Reset received"));
 
-								clearScreenshots();
+								clearSnapshots();
 								resetObjects();
 							}
 							else // CommandType::LoadDataset:
@@ -283,17 +296,34 @@ public:
 							{
 							case SnapshotCommandType::Create:
 							{
-								auto snapshotID = m_nextSnapshotID++;
-
+								iASnapshotInfo info{};
+								readArray(rcvStream, info.position);
+								readArray(rcvStream, info.rotation);
+								addSnapshot(info);
 								break;
 							}
 							case SnapshotCommandType::Remove:
-								break;
-							case SnapshotCommandType::ClearAll:
-								clearScreenshots();
+							{
+								quint64 snapshotID;
+								rcvStream >> snapshotID;
+								removeSnapshot(snapshotID);
 								break;
 							}
-
+							case SnapshotCommandType::ClearAll:
+								clearSnapshots();
+								break;
+							case SnapshotCommandType::ChangeSlicePosition:
+							{
+								quint64 snapshotID;
+								iAMoveAxis axis;
+								float value;
+								rcvStream >> snapshotID;
+								rcvStream >> axis;
+								rcvStream >> value;
+								moveSnapshot(snapshotID, axis, value);
+								break;
+							}
+							}
 							break;
 						}
 						}
@@ -411,17 +441,56 @@ public:
 
 private:
 
-	void clearScreenshots()
+	void broadcastMsg(QByteArray const& b)
 	{
-		LOG(lvlWarn, QString("  Sending clear Screenshots request to all clients."));
+		for (auto c : m_clientSocket)
+		{
+			c.second->sendBinaryMessage(b);
+		}
+	}
+
+	void addSnapshot(iASnapshotInfo info)
+	{
+		auto snapshotID = m_planeSliceTool->addSnapshot(info);
+		LOG(lvlWarn, QString("  New snapshot, ID=%1.").arg(snapshotID));
+		QByteArray outData;
+		QDataStream stream(&outData, QIODevice::WriteOnly);
+		stream << MessageType::Snapshot << SnapshotCommandType::Create << snapshotID;
+		writeArray(stream, info.position);
+		writeArray(stream, info.rotation);
+		broadcastMsg(outData);
+	}
+
+	void removeSnapshot(quint64 snapshotID)
+	{
+		LOG(lvlWarn, QString("  Removing snapshot with ID=%1.").arg(snapshotID));
+		m_planeSliceTool->removeSnapshot(snapshotID);
+		QByteArray outData;
+		QDataStream stream(&outData, QIODevice::WriteOnly);
+		stream << MessageType::Snapshot << SnapshotCommandType::Remove << snapshotID;
+		broadcastMsg(outData);
+	}
+
+	void clearSnapshots()
+	{
+		LOG(lvlWarn, QString("  Clearing all snapshots."));
+		m_planeSliceTool->clearSnapshots();
 		QByteArray outData;
 		QDataStream outStream(&outData, QIODevice::WriteOnly);
 		outStream << MessageType::Command << SnapshotCommandType::ClearAll;
-		for (auto c : m_clientSocket)
-		{
-			c.second->sendBinaryMessage(outData);
-		}
-		
+		broadcastMsg(outData);
+	}
+
+	void moveSnapshot(quint64 id, iAMoveAxis axis, float value)
+	{
+		LOG(lvlWarn, QString("  Moving snapshot (ID=%1, axis=%2, value=%3).")
+			.arg(id).arg(static_cast<int>(axis)).arg(value));
+		m_planeSliceTool->moveSlice(id, axis, value);
+		QByteArray outData;
+		QDataStream outStream(&outData, QIODevice::WriteOnly);
+		outStream << MessageType::Command << SnapshotCommandType::ChangeSlicePosition
+			<< id << axis << value;
+		broadcastMsg(outData);
 	}
 
 	void resetObjects()
@@ -451,9 +520,9 @@ private:
 		QDataStream outStream(&outData, QIODevice::WriteOnly);
 		outStream << MessageType::Command << CommandType::LoadDataset << fnLen;
 		outStream.writeRawData(fnBytes, fnLen);
+		broadcastMsg(outData);
 		for (auto c : m_clientSocket)
 		{
-			c.second->sendBinaryMessage(outData);
 			m_clientState[c.first] = ClientState::PendingDatasetAck;
 		}
 	}
@@ -552,20 +621,19 @@ private:
 	QWebSocketServer* m_wsServer;
 	std::map<quint64, QWebSocket*> m_clientSocket;
 	std::map<quint64, ClientState> m_clientState;
-	std::map<quint64, iASnapshotInfo> m_snapshots;
 	quint64 m_nextClientID;
-	quint64 m_nextSnapshotID;
 	QThread m_serverThread;
 	//! dataset state: currently a dataset is (1) not loaded (2) being loaded (3) loaded and sent out to clients
 	DataState m_dataState;
 	QString m_dataSetFileName;
+	iAPlaneSliceTool* m_planeSliceTool;
 };
 
 const QString iAUnityWebsocketServerTool::Name("UnityWebSocketServer");
 
 iAUnityWebsocketServerTool::iAUnityWebsocketServerTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iATool(mainWnd, child),
-	m_impl(std::make_unique<iAUnityWebsocketServerToolImpl>(child))
+	m_impl(std::make_unique<iAUnityWebsocketServerToolImpl>(mainWnd, child))
 {
 }
 
