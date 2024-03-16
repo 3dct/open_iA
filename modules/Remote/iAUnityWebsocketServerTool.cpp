@@ -74,6 +74,8 @@ namespace
 
 	enum class ObjectCommandType : quint8
 	{
+		Create,  // Reserved, not yet implemented
+		Remove,  // Reserved, not yet implemented
 		SetMatrix,
 		Translate,
 		Scale,
@@ -278,7 +280,27 @@ public:
 							}
 							ObjectCommandType objCommand;
 							rcvStream >> objCommand;
-
+							quint64 objID;
+							rcvStream >> objID;
+							LOG(lvlInfo, QString("Object subcommand %1 for ID %2")
+								.arg(static_cast<int>(objCommand)).arg(objID));
+							switch (objCommand)
+							{
+							case ObjectCommandType::SetMatrix:
+								break;
+							case ObjectCommandType::Translate:
+								break;
+							case ObjectCommandType::Scale:
+								break;
+							case ObjectCommandType::RotateQuaternion:
+								break;
+							case ObjectCommandType::RotateEuler:
+								break;
+							default:
+								LOG(lvlWarn, QString("Object subcommand %1 not implemented!")
+									.arg(static_cast<int>(objCommand)));
+								break;
+							}
 							break;
 						}
 						case MessageType::Snapshot:
