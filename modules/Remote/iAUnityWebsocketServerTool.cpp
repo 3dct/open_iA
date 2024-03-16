@@ -287,6 +287,9 @@ public:
 							switch (objCommand)
 							{
 							case ObjectCommandType::SetMatrix:
+								std::array<float, 16> matrix;
+								readArray(rcvStream, matrix);
+								objectSetMatrix(objID, matrix);
 								break;
 							case ObjectCommandType::Translate:
 								break;
@@ -471,6 +474,17 @@ private:
 		}
 	}
 
+	void objectSetMatrix(quint64 objID, std::array<float, 16> const& matrix)
+	{
+		LOG(lvlWarn, QString("  Object: Set matrix of object ID=%1.").arg(objID));
+		// TODO: handle locally...
+		QByteArray outData;
+		QDataStream stream(&outData, QIODevice::WriteOnly);
+		stream << MessageType::Object << ObjectCommandType::SetMatrix << objID;
+		writeArray(stream, matrix);
+		broadcastMsg(outData);
+	}
+
 	void addSnapshot(iASnapshotInfo info)
 	{
 		auto snapshotID = m_planeSliceTool->addSnapshot(info);
@@ -517,12 +531,12 @@ private:
 
 	void resetObjects()
 	{
-
+		// TODO: handle locally...
 	}
 
 	void loadDataSet()
 	{
-
+		// TODO: handle locally...
 	}
 
 	bool dataSetExists(QString const& fileName, iAMdiChild* child)
