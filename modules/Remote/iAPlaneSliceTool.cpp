@@ -102,6 +102,24 @@ namespace
 			a2[a] = std::round(a2[a] / RoundDegrees) * RoundDegrees;
 		}
 	}
+
+	std::array<float, 4> eulerAnglesToQuaternion(std::array<float, 3> a)
+	{
+		// from https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+		float cr = std::cos(a[0] * 0.5);
+		float sr = std::sin(a[0] * 0.5);
+		float cp = std::cos(a[1] * 0.5);
+		float sp = std::sin(a[1] * 0.5);
+		float cy = std::cos(a[2] * 0.5);
+		float sy = std::sin(a[2] * 0.5);
+		return std::array<float, 4>
+		{
+			cr * cp * cy + sr * sp * sy,
+			sr * cp * cy - cr * sp * sy,
+			cr * sp * cy + sr * cp * sy,
+			cr * cp * sy - sr * sp * cy
+		};
+	}
 	void logValues(vtkPlaneWidget* planeWidget)
 	{
 		double const * center = planeWidget->GetCenter();
