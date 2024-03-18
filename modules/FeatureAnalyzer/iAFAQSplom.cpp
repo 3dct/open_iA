@@ -265,7 +265,7 @@ void iAFAQSplom::updatePreviewPixmap()
 	size_t curInd = m_activePlot->getCurrentPoint();
 	if( curInd == iASPLOMData::NoDataIdx && m_fixedPointInd == iASPLOMData::NoDataIdx )
 	{
-		emit maskHovered( 0, -1 );
+		emit maskHovered( nullptr, -1 );
 		return;
 	}
 

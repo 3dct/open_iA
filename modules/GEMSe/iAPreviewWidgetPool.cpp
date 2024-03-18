@@ -15,7 +15,7 @@ iAPreviewWidgetPool::iAPreviewWidgetPool(int maxWidgets, vtkCamera* camera, iASl
 	for (int i=0; i<maxWidgets; ++i)
 	{
 		iAImagePreviewWidget* newW = new iAImagePreviewWidget(QString("SlicerView")+QString::number(i),
-				0, true, m_commonCamera, m_slicerMode, m_labelCount, true);
+				nullptr, true, m_commonCamera, m_slicerMode, m_labelCount, true);
 		newW->setColorTheme(m_colorTheme);
 		newW->hide();
 		m_pool.push_back(newW);

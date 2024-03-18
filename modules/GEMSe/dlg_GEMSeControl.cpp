@@ -49,7 +49,7 @@ private:
 public:
 	iASimpleLabelInfo() :
 		m_labelCount(-1),
-		m_theme(0)
+		m_theme(nullptr)
 	{}
 	virtual ~iASimpleLabelInfo()
 	{}
@@ -203,7 +203,7 @@ void dlg_GEMSeControl::startSampling()
 		m_sampler->start();
 	}
 	delete m_dlgSamplingSettings;
-	m_dlgSamplingSettings = 0;
+	m_dlgSamplingSettings = nullptr;
 }
 
 void dlg_GEMSeControl::loadSamplingSlot()

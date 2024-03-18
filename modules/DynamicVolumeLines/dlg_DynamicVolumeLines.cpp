@@ -723,7 +723,7 @@ void dlg_DynamicVolumeLines::generateSegmentTree()
 			unsigned int nonlinear_sum = 0, linear_sum = 0;
 			for (int treeNumber = 0; treeNumber < m_segmTreeList.size(); ++treeNumber)
 			{
-				nonlinear_sum += m_segmTreeList[treeNumber]->hist_query(nonlinearLowerIdx, nonlinearUpperIdx)[yBinNumber];
+				nonlinear_sum += m_segmTreeList[treeNumber]->hist_query(static_cast<int>(nonlinearLowerIdx), static_cast<int>(nonlinearUpperIdx))[yBinNumber];
 				linear_sum += m_segmTreeList[treeNumber]->hist_query(linearLowerIdx, linearUpperIdx)[yBinNumber];
 			}
 

@@ -17,6 +17,7 @@ iABoxPlotData::iABoxPlotData( double q25_v, double med_v, double q75_v, double m
 	range[1] = max;
 }
 
+// TODO: remove duplication with FeatureAnalyzer/iAHistogramPlotData
 int iABoxPlotData::cmp( const void *px, const void *py )
 {
 	auto x = *static_cast<const double*>(px);

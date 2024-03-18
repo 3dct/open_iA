@@ -306,7 +306,7 @@ void iASSSlicer::update()
 
 vtkPolyData * iASSSlicer::GetDeviationPolyData( int deviationMode )
 {
-	vtkPolyData * res = 0;
+	vtkPolyData * res = nullptr;
 	switch( deviationMode )
 	{
 		case 0://maximum

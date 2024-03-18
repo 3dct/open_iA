@@ -46,7 +46,7 @@ protected:
 	QStringList getAllDatasets( const QList<QTreeWidgetItem *> & items ) const;
 	QStringList getAllFilterNames( const QList<QTreeWidgetItem *> & items ) const;
 	QStringList getAllUniqueEntries( const QList<QTreeWidgetItem *> & items, int col ) const;
-	virtual bool eventFilter( QObject *obj, QEvent *event );
+	bool eventFilter( QObject *obj, QEvent *event ) override;
 	bool updateSelectedRunsData();
 	bool calculatedSelectedRunsData( QList<QTreeWidgetItem*> selectedItems );
 	bool updateSelectedPCData();

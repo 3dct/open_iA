@@ -64,9 +64,9 @@ void OkcData::copyFrom(const OkcData* okcData)
 			dim_min[i] = okcData->dim_min[i];
 			dim_max[i] = okcData->dim_max[i];
 			cardinality[i] = okcData->cardinality[i];
-			if (okcData->names[i]==0) {
+			if (!okcData->names[i]) {
 				// For some virtual OkcData, such as brush storage, names[i]=0
-				names[i] = 0;
+				names[i] = nullptr;
 			} else {
 				names[i] = new char[strlen(okcData->names[i])+1];
 				strcpy(names[i], okcData->names[i]);
@@ -122,7 +122,7 @@ void OkcData::setBaseFlag(bool baseFlag) {
 
 const char * OkcData::read_till(FILE *fp,
 		const char *delimiters = "\n",
-		char *which_delimiter = 0)
+		char *which_delimiter = nullptr)
 {
 	static char str[500];
 	int k = 0;

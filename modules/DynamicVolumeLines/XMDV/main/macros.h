@@ -18,8 +18,8 @@
 #define CLAMP(A,L,H) (((A)<(L))?(L):( ((A)>(H))?(H):A ))
 
 // Anil - [2/9/2004]
-#define SAFE_DELETE(x)		{if(x) delete (x); x= 0;}
-#define SAFE_DELETE_ARR(x)	{if(x) delete [] (x); x= 0;}
+#define SAFE_DELETE(x)		{if(x) delete (x); x = nullptr;}
+#define SAFE_DELETE_ARR(x)	{if(x) delete [] (x); x = nullptr;}
 
 // The margin width of canvas
 #define CANVAS_BORD 0.1

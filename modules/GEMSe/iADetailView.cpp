@@ -338,7 +338,8 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 	m_detailText->setMinimumWidth(50);
 	if (node->IsLeaf())
 	{
-		iAImageTreeLeaf* leaf = (iAImageTreeLeaf*)node;
+		auto leaf = dynamic_cast<iAImageTreeLeaf const *>(node);
+		assert(node);
 		m_detailText->append(QString("ID: %1-%2").arg(leaf->GetDatasetID()).arg(node->GetID()));
 		std::shared_ptr<iAAttributes> attributes = leaf->GetAttributes();
 		for (int attributeID = 0; attributeID < attributes->size(); ++attributeID)

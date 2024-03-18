@@ -160,7 +160,7 @@ void iASegm3DView::ShowWireframe( bool visible )
 
 
 iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
-	m_observedRenderer( 0 ),
+	m_observedRenderer( nullptr ),
 	m_tag( 0 ),
 	m_wgt( new iAFast3DMagicLensWidget ),
 	m_renderer(new iARendererImpl(parent, dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_wgt->renderWindow()) )),

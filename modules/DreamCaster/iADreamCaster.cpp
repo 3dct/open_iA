@@ -85,12 +85,6 @@ namespace
 	{
 		return ((float)(slider->value() - slider->minimum())) / ((float)(slider->maximum() - slider->minimum()));
 	}
-
-	inline void SetSliderNormalizedValue(QSlider* slider, float val)
-	{
-		int value = (int)(slider->minimum() + (slider->maximum() - slider->minimum()) * val);
-		slider->setValue(value);
-	}
 }
 
 iADreamCaster* dcast;  //!< used just for logging, to call log() method; used as extern in iABSPTree, iASTLLoader

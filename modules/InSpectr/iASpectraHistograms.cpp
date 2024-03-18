@@ -28,7 +28,7 @@ iASpectraHistograms::iASpectraHistograms(std::shared_ptr<iAXRFData> xrfData, lon
 iASpectraHistograms::~iASpectraHistograms()
 {
 	delete [] m_histData;
-	m_histData = 0;
+	m_histData = nullptr;
 }
 
 template <typename T>

@@ -33,7 +33,7 @@ private:
 
 public:
 	// return the modifier type
-	XmdvTool::MODIFIERTYPE getModifierType();
+	XmdvTool::MODIFIERTYPE getModifierType() override;
 
 	// return the pointer to the instance of class DimOOOMap
 	DimOOOMap* getDimOOOMap();

@@ -100,7 +100,7 @@ void iAPDMView::UpdateTableDeviation()
 	{
 		for (int j = 0; j < m_datasets->size(); ++j)
 		{
-			QWidget* wgt = new QWidget(0);
+			auto wgt = new QWidget();
 
 			QString datasetName = (*m_datasets)[j];
 			double gt = (*m_gtPorosityMap).find(datasetName).value();// Ground truth
@@ -125,7 +125,7 @@ void iAPDMView::UpdateTableBoxPlot()
 	{
 		for (int j = 0; j < m_datasets->size(); ++j)
 		{
-			QCustomPlot* customPlot = new QCustomPlot(0);
+			auto customPlot = new QCustomPlot();
 			// create empty statistical box plottables:
 			QCPStatisticalBox* sample1 = new QCPStatisticalBox(customPlot->yAxis, customPlot->xAxis);
 			QBrush boxBrush(QColor(60, 60, 255, 100));
@@ -227,7 +227,7 @@ void iAPDMView::UpdateTableHistogram()
 			*/
 
 			// Create histogram plot
-			QCustomPlot * customPlot = new QCustomPlot( 0 );
+			auto customPlot = new QCustomPlot();
 			customPlot->setInteractions( QCP::iRangeDrag | QCP::iRangeZoom );
 			customPlot->setMinimumWidth( 250 );
 			customPlot->setMinimumHeight( 120 );

@@ -34,8 +34,7 @@ iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> or
 	m_slicerMode(InitialSlicerMode)
 {
 	QWidget* miniSlicerContainer = new QWidget;
-	QGridLayout * gridLay = 0;
-	gridLay = new QGridLayout;
+	QGridLayout * gridLay = new QGridLayout;
 	gridLay->setSpacing(CameraSpacing);
 	QLabel * zLabel1 = new QLabel("z");
 	QFont f(zLabel1->font());
@@ -60,7 +59,7 @@ iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> or
 	{
 		QString caption(slicerModeString(i));
 		m_sliceViews[i] = new iAImagePreviewWidget(QString("CameraView")+caption,
-			0, false, 0, static_cast<iASlicerMode>(i), labelCount);
+			nullptr, false, nullptr, static_cast<iASlicerMode>(i), labelCount);
 		m_sliceViews[i]->setImage(originalData, false, false);
 		m_sliceViews[i]->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		/*
