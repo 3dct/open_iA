@@ -3,6 +3,7 @@
 #include "iAPlaneSliceTool.h"
 
 #include <iAAABB.h>
+#include <iALog.h>
 
 // guibase
 #include <iADataSetRenderer.h>
@@ -19,6 +20,7 @@
 #include <vtkCallbackCommand.h>
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
+#include <vtkConeSource.h>
 #include <vtkImageData.h>
 #include <vtkImageProperty.h>
 #include <vtkImageResliceMapper.h>
@@ -26,12 +28,45 @@
 #include <vtkInteractorStyleImage.h>
 #include <vtkPlaneWidget.h>
 #include <vtkPlane.h>
+#include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRendererCollection.h>
+#include <vtkSphereSource.h>
 
 #include <QApplication>
 #include <QMessageBox>
+
+class iAvtkPlaneWidget : public vtkPlaneWidget
+{
+public:
+	vtkTypeMacro(iAvtkPlaneWidget, vtkPlaneWidget);
+	static iAvtkPlaneWidget* New();
+
+	//! The "automatic" handle size from vtkPlaneWidget somehow doesn't work at all for us - it produces far too small handles for large planes.
+	//! Also, it completely ignores the user-settable "HandleSize" and only uses the (internal) HandleSizeFactor for resizing
+	//! Workaround: specify a fixed handle size in relation to the dataset size.
+	void SizeHandles() override
+	{		
+		for (int i = 0; i < 4; i++)
+		{
+			this->HandleGeometry[i]->SetRadius(m_handleRadius);
+		}
+		// Set the height and radius of the cone
+		this->ConeSource->SetHeight(2.0 * m_handleRadius);
+		this->ConeSource->SetRadius(m_handleRadius);
+		this->ConeSource2->SetHeight(2.0 * m_handleRadius);
+		this->ConeSource2->SetRadius(m_handleRadius);
+	}
+	void setHandleRadius(double radius)
+	{
+		m_handleRadius = radius;
+	}
+private:
+	double m_handleRadius;
+};
+
+vtkStandardNewMacro(iAvtkPlaneWidget);
 
 namespace
 {
@@ -52,13 +87,40 @@ namespace
 		cam->SetPosition(position.data());
 		cam->SetViewUp(viewUp.data());
 	}
+
+	std::array<float, 3> quaternionToEulerAngles(std::array<float, 4> q)
+	{
+		double ayterm = 2 * (q[3] * q[1] - q[0] * q[2]);
+		double a2[3] = {
+			vtkMath::DegreesFromRadians(std::atan2(2 * (q[3] * q[0] + q[1] * q[2]), 1 - 2 * (q[0] * q[0] + q[1] * q[1]))),
+			vtkMath::DegreesFromRadians(-vtkMath::Pi() / 2 + 2 * std::atan2(std::sqrt(1 + ayterm), std::sqrt(1 - ayterm))),
+			vtkMath::DegreesFromRadians(std::atan2(2 * (q[3] * q[2] + q[0] * q[1]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])))
+		};
+		for (int a = 0; a < 3; ++a)
+		{   // round to nearest X degrees (for smoothing):
+			const double RoundDegrees = 2;
+			a2[a] = std::round(a2[a] / RoundDegrees) * RoundDegrees;
+		}
+	}
+	void logValues(vtkPlaneWidget* planeWidget)
+	{
+		double const * center = planeWidget->GetCenter();
+		double const * normal = planeWidget->GetNormal();
+		//vtkNew<vtkPlane> plane;
+		//planeWidget->GetPlane(plane);
+		//auto t = plane->GetTransform();
+		//t->Get
+		LOG(lvlInfo, QString("Plane: center=(%1, %2, %3), normal=(%4, %5, %6)")
+			.arg(center[0]).arg(center[1]).arg(center[2])
+			.arg(normal[0]).arg(normal[1]).arg(normal[2]));
+	}
 }
 
 iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iATool(mainWnd, child),
 	m_sliceWidget(new iAQVTKWidget(child)),
 	m_dw(new iADockWidgetWrapper(m_sliceWidget, "Arbitrary Slice", "ArbitrarySliceViewer")),
-	m_planeWidget(vtkSmartPointer<vtkPlaneWidget>::New()),
+	m_planeWidget(vtkSmartPointer<iAvtkPlaneWidget>::New()),
 	m_reslicer(vtkSmartPointer<vtkImageResliceMapper>::New()),
 	m_imageSlice(vtkSmartPointer<vtkImageSlice>::New())
 {
@@ -71,15 +133,27 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	child->splitDockWidget(child->slicerDockWidget(iASlicerMode::XY), m_dw, Qt::Horizontal);
 
 	//m_planeWidget->SetDefaultRenderer(child->renderer()->renderer());
-	m_planeWidget->SetInteractor(child->renderer()->interactor());
-	m_planeWidget->On();
-
+	
 	auto bounds = child->dataSetViewer(ds)->renderer()->bounds();
+	auto lengths = bounds.maxCorner() - bounds.minCorner();
+	auto maxSideLen = std::max(std::max(lengths.x(), lengths.y()), lengths.z());
+	auto handleSize = maxSideLen / 40.0;
 	auto objCenter = (bounds.maxCorner() - bounds.minCorner()) / 2;
-	// set to middle of object in z direction (i.e. xy slice default position):
+	LOG(lvlInfo, QString("handle size: %1").arg(handleSize));
 	m_planeWidget->SetOrigin(bounds.minCorner().x(), bounds.minCorner().y(), objCenter.z());
 	m_planeWidget->SetPoint1(bounds.maxCorner().x(), bounds.minCorner().y(), objCenter.z());
 	m_planeWidget->SetPoint2(bounds.minCorner().x(), bounds.maxCorner().y(), objCenter.z());
+	m_planeWidget->SetInteractor(child->renderer()->interactor());
+	m_planeWidget->SetRepresentationToSurface();
+	m_planeWidget->On();
+	
+	// set to middle of object in z direction (i.e. xy slice default position):
+	// set handle size to a 20th of the longest dataset size:
+	//m_planeWidget->GetHandleProperty()->
+	m_planeWidget->setHandleRadius(handleSize);
+	m_planeWidget->SizeHandles();
+
+	logValues(m_planeWidget);
 
 	m_reslicer->SetInputData(child->firstImageData());
 	m_reslicer->SetSliceFacesCamera(true);
@@ -113,6 +187,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 			auto cam = tool->m_sliceWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
 			updateSlice(cam, tool->m_planeWidget);
 			tool->m_sliceWidget->interactor()->Render();
+			logValues(tool->m_planeWidget);
 		});
 	modifiedCallback->SetClientData(this);
 	m_planeWidget->AddObserver(vtkCommand::InteractionEvent, modifiedCallback);

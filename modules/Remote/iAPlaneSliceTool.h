@@ -11,7 +11,7 @@
 #include <array>
 #include <map>
 
-class vtkPlaneWidget;
+class iAvtkPlaneWidget;
 class vtkImageResliceMapper;
 class vtkImageSlice;
 
@@ -47,7 +47,7 @@ public:
 private:
 	iAQVTKWidget* m_sliceWidget;
 	iADockWidgetWrapper* m_dw;
-	vtkSmartPointer<vtkPlaneWidget> m_planeWidget;
+	vtkSmartPointer<iAvtkPlaneWidget> m_planeWidget;
 	vtkSmartPointer<vtkImageResliceMapper> m_reslicer;
 	vtkSmartPointer<vtkImageSlice> m_imageSlice;
 	std::map<quint64, iASnapshotInfo> m_snapshots;
