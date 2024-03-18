@@ -1,4 +1,4 @@
-// Copyright 2016-2023, the open_iA contributors
+// Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAUnityWebsocketServerTool.h"
 
@@ -77,10 +77,10 @@ namespace
 		Create,  // Reserved, not yet implemented
 		Remove,  // Reserved, not yet implemented
 		SetMatrix,
-		Translate,
-		Scale,
-		RotateQuaternion,
-		RotateEuler,
+		AddTranslation,
+		AddScaling,
+		AddRotationQuaternion,
+		AddRotationEuler,
 		// must be last:
 		Count
 	};
@@ -147,6 +147,28 @@ namespace
 
 class iAUnityWebsocketServerToolImpl: public QObject
 {
+private:
+	template <std::size_t N>
+	void processObjectTransform(QDataStream& rcvStream, quint64 objID, ObjectCommandType objCmdType)
+	{
+		std::array<float, N> values{};
+		readArray(rcvStream, values);
+		QString valueStr;
+		for (int n=0; n<values.size(); ++n)
+		{
+			valueStr += QString::number(values[n]);
+			if (n < values.size() - 1) { valueStr += ","; }
+		}
+		LOG(lvlInfo, QString("  Object command=%1 recieved for object ID=%2 with values of %3.")
+			.arg(static_cast<int>(objCmdType)).arg(objID).arg(valueStr));
+		QByteArray outData;
+		QDataStream outStream(&outData, QIODevice::WriteOnly);
+		outStream << MessageType::Object << objCmdType << objID;
+		writeArray<N>(outStream, values);
+		broadcastMsg(outData);
+		// TODO: local application!
+	}
+
 public:
 
 	iAUnityWebsocketServerToolImpl(iAMainWindow* mainWnd, iAMdiChild* child) :
@@ -287,18 +309,32 @@ public:
 							switch (objCommand)
 							{
 							case ObjectCommandType::SetMatrix:
-								std::array<float, 16> matrix;
-								readArray(rcvStream, matrix);
-								objectSetMatrix(objID, matrix);
+								processObjectTransform<16>(rcvStream, objID, objCommand);
 								break;
-							case ObjectCommandType::Translate:
+							case ObjectCommandType::AddTranslation:
+								processObjectTransform<3>(rcvStream, objID, objCommand);
 								break;
-							case ObjectCommandType::Scale:
+							case ObjectCommandType::AddScaling:
+								processObjectTransform<3>(rcvStream, objID, objCommand);
 								break;
-							case ObjectCommandType::RotateQuaternion:
+							case ObjectCommandType::AddRotationQuaternion:
+								processObjectTransform<4>(rcvStream, objID, objCommand);
 								break;
-							case ObjectCommandType::RotateEuler:
+							case ObjectCommandType::AddRotationEuler:
+							{
+								quint8 axis;
+								rcvStream >> axis;
+								float value;
+								rcvStream >> value;
+								LOG(lvlInfo, QString("  Object command=AddRotation (Euler Angles) recieved for object ID=%1 with axis=%3, value=%4.")
+									.arg(static_cast<int>(objCommand)).arg(objID).arg(axis).arg(value));
+								QByteArray outData;
+								QDataStream outStream(&outData, QIODevice::WriteOnly);
+								outStream << MessageType::Object << objCommand << objID << axis << value;
+								broadcastMsg(outData);
+								// TODO: local application!
 								break;
+							}
 							default:
 								LOG(lvlWarn, QString("Object subcommand %1 not implemented!")
 									.arg(static_cast<int>(objCommand)));
@@ -362,68 +398,6 @@ public:
 					*/
 					}
 
-					/*
-					auto obj  = static_cast<int>(data[1]);
-					// TODO: differentiate message protocols, types, ...
-
-					iAVec3d pos;
-					using FloatType = float;
-					const size_t PosOfs = 2;
-					const size_t FloatSize = sizeof(FloatType);
-					const size_t PosSize = 3;
-					const size_t QuatOfs = PosOfs + PosSize * FloatSize;
-					const size_t QuatSize = 4;
-					for (size_t i = 0; i < PosSize; ++i)
-					{
-						pos[i] = extractT<float>(data, PosOfs + i * FloatSize);
-					}
-					double q[QuatSize];
-					for (size_t i = 0; i < QuatSize; ++i) 
-					{
-						q[i] = extractT<float>(data, QuatOfs + i * FloatSize);
-					}
-					double ayterm = 2 * (q[3] * q[1] - q[0] * q[2]);
-					double a2[3] = {
-						vtkMath::DegreesFromRadians(std::atan2(2 * (q[3] * q[0] + q[1] * q[2]), 1 - 2 * (q[0] * q[0] + q[1] * q[1]))),
-						vtkMath::DegreesFromRadians(-vtkMath::Pi() / 2 + 2 * std::atan2(std::sqrt(1 + ayterm), std::sqrt(1 - ayterm))),
-						vtkMath::DegreesFromRadians(std::atan2(2 * (q[3] * q[2] + q[0] * q[1]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])))
-					};
-
-					for (int a = 0; a < 3; ++a)
-					{   // round to nearest X degrees:
-						const double RoundDegrees = 2;
-						a2[a] = std::round(a2[a] / RoundDegrees) * RoundDegrees;
-					}
-					auto renderer = child->dataSetViewer(child->firstImageDataSetIdx())->renderer();
-					auto prop = renderer->vtkProp();
-
-					LOG(lvlInfo, QString("%1: Binary message received "
-						"(type: %2; obj: %3; pos: (%4, %5, %6); ")
-						.arg(iAUnityWebsocketServerTool::Name)
-						.arg(type)
-						.arg(obj)
-						.arg(pos[0]).arg(pos[1]).arg(pos[2])
-					);
-					LOG(lvlInfo, QString("    rot: (%1, %2, %3, %4), angle: (%5, %6, %7)")
-						.arg(q[0]).arg(q[1]).arg(q[2]).arg(q[3])
-						.arg(a2[0]).arg(a2[1]).arg(a2[2]));
-
-					auto bounds = renderer->bounds();
-					pos *= (bounds.maxCorner() - bounds.minCorner()).length() / 2;
-					auto center = (bounds.maxCorner() - bounds.minCorner()) / 2;
-
-					vtkNew<vtkTransform> tr;
-					tr->PostMultiply();
-					tr->Translate(-center[0], -center[1], -center[2]);
-					// rotation: order x-z-y, reverse direction of y
-					tr->RotateX(a2[0]);
-					tr->RotateZ(-a2[1]);
-					tr->RotateY(a2[2]);
-					// translation: y, z flipped; x, y reversed:
-					tr->Translate(center[0] - pos[0], center[1] - pos[2], center[2] + pos[1]);
-					prop->SetUserTransform(tr);
-					child->updateRenderer();
-					*/
 				});
 				connect(client, &QWebSocket::disconnected, this, [this, client, clientID]
 				{
