@@ -58,7 +58,10 @@ iATriPrim::iATriPrim( iAVec3f* a_V1, iAVec3f* a_V2, iAVec3f* a_V3, unsigned int 
 	precompute();
 }
 
-unsigned int modulo[] = { 0, 1, 2, 0, 1 };
+namespace
+{
+	const unsigned int modulo[] = {0, 1, 2, 0, 1};
+}
 int iATriPrim::Intersect( iARay& a_Ray, float& a_Dist ) const
 {
 	#define ku modulo[m_WaldTri.k + 1]
