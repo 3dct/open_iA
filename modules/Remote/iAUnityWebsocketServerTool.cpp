@@ -18,6 +18,7 @@
 #include <vtkTransform.h>
 
 #include <QFileInfo>
+#include <QMetaEnum>
 #include <QRegularExpression>
 #include <QThread>
 #include <QWebSocket>
@@ -42,7 +43,7 @@ namespace
 		bool result = 0 <= val && val < enumToIntegral(EnumType::Count);
 		if (!result)
 		{
-			LOG(lvlError, QString("%1 outside of valid range 0..%2")
+			LOG(lvlError, QString("  %1 outside of valid range 0..%2")
 				.arg(val)
 				.arg(static_cast<int>(EnumType::Count)));
 		}
@@ -134,14 +135,38 @@ namespace
 		s->sendBinaryMessage(b);
 	}
 	template <std::size_t N>
-	void readArray(QDataStream& stream, std::array<float, N> a)
+	void readArray(QDataStream& stream, std::array<float, N>& a)
 	{
-		stream.readRawData(reinterpret_cast<char*>(a.data()), sizeof(float) * N);
+		int expectedBytes = static_cast<int>(sizeof(float) * N);
+		auto actualBytes = stream.readRawData(reinterpret_cast<char*>(a.data()), expectedBytes);
+		if (actualBytes != expectedBytes)
+		{
+			LOG(lvlWarn, QString("  Expected %1 but read %2 bytes!").arg(expectedBytes).arg(actualBytes));
+		}
 	}
 	template <std::size_t N>
-	void writeArray(QDataStream& stream, std::array<float, N> a)
+	void writeArray(QDataStream& stream, std::array<float, N>const & a)
 	{
-		stream.writeRawData(reinterpret_cast<char*>(a.data()), sizeof(float) * N);
+		int expectedBytes = static_cast<int>(sizeof(float) * N);
+		auto actualBytes = stream.writeRawData(reinterpret_cast<const char*>(a.data()), expectedBytes);
+		if (actualBytes != expectedBytes)
+		{
+			LOG(lvlWarn, QString("  Expected %1 but wrote %2 bytes!").arg(expectedBytes).arg(actualBytes));
+		}
+	}
+	template <size_t N>
+	QString array2string(std::array<float, N> ar)
+	{
+		QString result;
+		for (int i = 0; i < N; ++i)
+		{
+			result += QString::number(ar[i]);
+			if (i < N - 1)
+			{
+				result += ", ";
+			}
+		}
+		return result;
 	}
 }
 
@@ -153,14 +178,8 @@ private:
 	{
 		std::array<float, N> values{};
 		readArray(rcvStream, values);
-		QString valueStr;
-		for (int n=0; n<values.size(); ++n)
-		{
-			valueStr += QString::number(values[n]);
-			if (n < values.size() - 1) { valueStr += ","; }
-		}
-		LOG(lvlInfo, QString("  Object command=%1 recieved for object ID=%2 with values of %3.")
-			.arg(static_cast<int>(objCmdType)).arg(objID).arg(valueStr));
+		LOG(lvlInfo, QString("  Object command=%1 received for object ID=%2 with values of %3; broadcasting!")
+			.arg(static_cast<int>(objCmdType)).arg(objID).arg(array2string(values)));
 		QByteArray outData;
 		QDataStream outStream(&outData, QIODevice::WriteOnly);
 		outStream << MessageType::Object << objCmdType << objID;
@@ -173,7 +192,8 @@ public:
 
 	iAUnityWebsocketServerToolImpl(iAMainWindow* mainWnd, iAMdiChild* child) :
 		m_wsServer(new QWebSocketServer(iAUnityWebsocketServerTool::Name, QWebSocketServer::NonSecureMode, this)),
-		m_nextClientID(1)
+		m_nextClientID(1),
+		m_dataState(DataState::NoDataset)
 	{
 		m_wsServer->moveToThread(&m_serverThread);
 		m_serverThread.start();
@@ -197,26 +217,52 @@ public:
 				auto clientID = m_nextClientID++;  // simplest possible ID assignment: next free ID. Maybe random?
 				m_clientSocket[clientID] = client;
 				m_clientState[clientID] = ClientState::AwaitingProtocolNegotiation;
-				connect(client, &QWebSocket::textMessageReceived, this, [this, child](QString message)
+				connect(client, &QWebSocket::stateChanged, this, [clientID](QAbstractSocket::SocketState state)
 				{
-					LOG(lvlInfo, QString("%1: TEXT MESSAGE received: %2").arg(iAUnityWebsocketServerTool::Name).arg(message));
+					LOG(lvlDebug, QString("%1: Client (ID=%2): socket state changed to %3")
+						.arg(iAUnityWebsocketServerTool::Name).arg(clientID)
+						.arg(QMetaEnum::fromType<QAbstractSocket::SocketState>().valueToKey(state)));
+				});
+				connect(client, &QWebSocket::errorOccurred, this, [clientID](QAbstractSocket::SocketError error)
+				{
+					LOG(lvlDebug, QString("%1: Client (ID=%2): error occurred: %3")
+						.arg(iAUnityWebsocketServerTool::Name).arg(clientID)
+						.arg(QMetaEnum::fromType<QAbstractSocket::SocketError>().valueToKey(error)));
+				});
+				connect(client, &QWebSocket::pong, this, [clientID](quint64 elapsedTime, const QByteArray& payload)
+				{
+					LOG(lvlDebug, QString("%1: Client (ID=%2): pong received; elapsed: %3 ms.")
+						.arg(iAUnityWebsocketServerTool::Name).arg(clientID)
+						.arg(elapsedTime));
+				});
+				connect(client, &QWebSocket::textMessageReceived, this, [this, clientID](QString message)
+				{
+					LOG(lvlInfo, QString("%1: Client (ID=%2): TEXT MESSAGE received: %3.")
+						.arg(iAUnityWebsocketServerTool::Name).arg(clientID).arg(message));
 				});
 				connect(client, &QWebSocket::binaryMessageReceived, this, [this, child, clientID](QByteArray rcvData)
 				{
 					if (rcvData.size() < 1)
 					{
-						LOG(lvlError, QString("Invalid message of length 0 received from client %1; ignoring message!").arg(clientID));
+						LOG(lvlError, QString("%1: Invalid message of length 0 received from client %2; ignoring message!")
+							.arg(iAUnityWebsocketServerTool::Name)
+							.arg(clientID));
 						return;
 					}
 					if (!isInEnum<MessageType>(rcvData[0]))
 					{
-						LOG(lvlError, QString("Invalid message from client %1: invalid type; ignoring message!").arg(clientID));
+						LOG(lvlError, QString("%1: Invalid message from client %2: invalid type; ignoring message!")
+							.arg(iAUnityWebsocketServerTool::Name)
+							.arg(clientID));
 						return;
 					}
 					QDataStream rcvStream(&rcvData, QIODevice::ReadOnly);
 					MessageType type;
 					rcvStream >> type;
-					LOG(lvlInfo, QString("Received message of type %1").arg(static_cast<int>(type)));
+					LOG(lvlInfo, QString("%1: Received message of type %2 from client ID=%3:")
+						.arg(iAUnityWebsocketServerTool::Name)
+						.arg(static_cast<int>(type))
+						.arg(clientID));
 
 					if (m_clientState[clientID] == ClientState::AwaitingProtocolNegotiation)
 					{
@@ -240,7 +286,7 @@ public:
 
 					if (rcvData.size() < 2)
 					{
-						LOG(lvlInfo, QString("Invalid command: missing subcommand; ignoring message!"));
+						LOG(lvlError, QString("  Invalid command: missing subcommand; ignoring message!"));
 						return;
 					}
 					switch (m_clientState[clientID])
@@ -253,7 +299,7 @@ public:
 						{
 							if (!isInEnum<CommandType>(rcvData[1]))
 							{   // encountered value and valid range output already in isInEnum!
-								LOG(lvlInfo, QString("Invalid command: subcommand not in valid range; ignoring message!"));
+								LOG(lvlError, QString("  Invalid command: subcommand not in valid range; ignoring message!"));
 								return;
 							}
 							CommandType subcommand;
@@ -276,7 +322,7 @@ public:
 								auto readBytes = rcvStream.readRawData(fnBytes.data(), fnLen);
 								if (static_cast<quint32>(readBytes) != fnLen)
 								{
-									LOG(lvlInfo, QString("    Invalid message: expected length %1, actually read %2 bytes").arg(fnLen).arg(readBytes));
+									LOG(lvlError, QString("    Invalid message: expected length %1, actually read %2 bytes").arg(fnLen).arg(readBytes));
 									return;
 								}
 								QString fileName = QString::fromUtf8(fnBytes);
@@ -296,15 +342,14 @@ public:
 						{
 							if (!isInEnum<ObjectCommandType>(rcvData[1]))
 							{  // encountered value and valid range output already in isInEnum!
-								LOG(lvlInfo,
-									QString("Invalid object message: subcommand not in valid range; ignoring message!"));
+								LOG(lvlError, QString("  Invalid object message: subcommand not in valid range; ignoring message!"));
 								return;
 							}
 							ObjectCommandType objCommand;
 							rcvStream >> objCommand;
 							quint64 objID;
 							rcvStream >> objID;
-							LOG(lvlInfo, QString("Object subcommand %1 for ID %2")
+							LOG(lvlInfo, QString("  Object subcommand %1 for ID %2")
 								.arg(static_cast<int>(objCommand)).arg(objID));
 							switch (objCommand)
 							{
@@ -326,7 +371,7 @@ public:
 								rcvStream >> axis;
 								float value;
 								rcvStream >> value;
-								LOG(lvlInfo, QString("  Object command=AddRotation (Euler Angles) recieved for object ID=%1 with axis=%3, value=%4.")
+								LOG(lvlInfo, QString("  Object command=AddRotation (Euler Angles) received for object ID=%1 with axis=%3, value=%4.")
 									.arg(static_cast<int>(objCommand)).arg(objID).arg(axis).arg(value));
 								QByteArray outData;
 								QDataStream outStream(&outData, QIODevice::WriteOnly);
@@ -336,7 +381,7 @@ public:
 								break;
 							}
 							default:
-								LOG(lvlWarn, QString("Object subcommand %1 not implemented!")
+								LOG(lvlWarn, QString("  Object subcommand %1 not implemented!")
 									.arg(static_cast<int>(objCommand)));
 								break;
 							}
@@ -346,9 +391,7 @@ public:
 						{
 							if (!isInEnum<SnapshotCommandType>(rcvData[1]))
 							{  // encountered value and valid range output already in isInEnum!
-								LOG(lvlInfo,
-									QString(
-										"Invalid object message: subcommand not in valid range; ignoring message!"));
+								LOG(lvlError, QString("  Invalid snapshot message: subcommand not in valid range; ignoring message!"));
 								return;
 							}
 							SnapshotCommandType snapshotCommand;
@@ -448,21 +491,11 @@ private:
 		}
 	}
 
-	void objectSetMatrix(quint64 objID, std::array<float, 16> const& matrix)
-	{
-		LOG(lvlWarn, QString("  Object: Set matrix of object ID=%1.").arg(objID));
-		// TODO: handle locally...
-		QByteArray outData;
-		QDataStream stream(&outData, QIODevice::WriteOnly);
-		stream << MessageType::Object << ObjectCommandType::SetMatrix << objID;
-		writeArray(stream, matrix);
-		broadcastMsg(outData);
-	}
-
 	void addSnapshot(iASnapshotInfo info)
 	{
 		auto snapshotID = m_planeSliceTool->addSnapshot(info);
-		LOG(lvlWarn, QString("  New snapshot, ID=%1.").arg(snapshotID));
+		LOG(lvlInfo, QString("  New snapshot, ID=%1; position=%2, rotation=%3")
+			.arg(snapshotID).arg(array2string(info.position)).arg(array2string(info.rotation)));
 		QByteArray outData;
 		QDataStream stream(&outData, QIODevice::WriteOnly);
 		stream << MessageType::Snapshot << SnapshotCommandType::Create << snapshotID;
@@ -473,7 +506,7 @@ private:
 
 	void removeSnapshot(quint64 snapshotID)
 	{
-		LOG(lvlWarn, QString("  Removing snapshot with ID=%1.").arg(snapshotID));
+		LOG(lvlInfo, QString("  Removing snapshot with ID=%1.").arg(snapshotID));
 		m_planeSliceTool->removeSnapshot(snapshotID);
 		QByteArray outData;
 		QDataStream stream(&outData, QIODevice::WriteOnly);
@@ -483,7 +516,7 @@ private:
 
 	void clearSnapshots()
 	{
-		LOG(lvlWarn, QString("  Clearing all snapshots."));
+		LOG(lvlInfo, QString("  Clearing all snapshots."));
 		m_planeSliceTool->clearSnapshots();
 		QByteArray outData;
 		QDataStream outStream(&outData, QIODevice::WriteOnly);
@@ -493,7 +526,7 @@ private:
 
 	void moveSnapshot(quint64 id, iAMoveAxis axis, float value)
 	{
-		LOG(lvlWarn, QString("  Moving snapshot (ID=%1, axis=%2, value=%3).")
+		LOG(lvlInfo, QString("  Moving snapshot (ID=%1, axis=%2, value=%3).")
 			.arg(id).arg(static_cast<int>(axis)).arg(value));
 		m_planeSliceTool->moveSlice(id, axis, value);
 		QByteArray outData;
@@ -521,15 +554,19 @@ private:
 
 	void sendDataLoadingRequest(QString const & fileName)
 	{
-		LOG(lvlWarn, QString("  Broadcasting data loading request to all clients; filename: %1").arg(fileName));
+		LOG(lvlInfo, QString("  Broadcasting data loading request to all clients; filename: %1").arg(fileName));
 		QByteArray fnBytes = fileName.toUtf8();
-		quint32 fnLen = fnBytes.size();
+		quint32 fnLen = static_cast<int>(fnBytes.size());
 		m_dataState = DataState::PendingClientAck;
 		m_dataSetFileName = fileName;
 		QByteArray outData;
 		QDataStream outStream(&outData, QIODevice::WriteOnly);
 		outStream << MessageType::Command << CommandType::LoadDataset << fnLen;
-		outStream.writeRawData(fnBytes, fnLen);
+		auto bytesWritten = outStream.writeRawData(fnBytes, fnLen);
+		if (bytesWritten != fnLen)
+		{
+			LOG(lvlWarn, QString("Expected %1 but wrote %2 bytes!").arg(bytesWritten).arg(fnLen));
+		}
 		broadcastMsg(outData);
 		for (auto c : m_clientSocket)
 		{
@@ -553,12 +590,19 @@ private:
 		}
 		else
 		{
+			if (type != MessageType::ACK)
+			{
+				LOG(lvlError, QString("Invalid state: client (id=%1, state=%2) sent message other than NAK or ACK (type: %3) as answer to dataset loading!")
+					.arg(clientID).arg(enumToIntegral(m_clientState[clientID])).arg(static_cast<int>(type)));
+				return;
+			}
 			if (m_clientState[clientID] != ClientState::PendingDatasetAck)
 			{
 				LOG(lvlError, QString("Invalid state: client sent ACK for dataset loading, but its state (%1) indicates we're not waiting for his ACK (anymore?).")
 					.arg(enumToIntegral(m_clientState[clientID])));
 				return;
 			}
+			LOG(lvlInfo, QString("  Client %1 sent ACK answer to dataset loading.").arg(clientID));
 			m_clientState[clientID] = ClientState::DatasetAcknowledged;
 			checkAllClientConfirmedData();
 		}

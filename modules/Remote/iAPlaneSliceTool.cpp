@@ -17,6 +17,7 @@
 #include <iAVolumeViewer.h>
 #include <iATransferFunction.h>
 
+#include <vtkAbstractTransform.h>
 #include <vtkCallbackCommand.h>
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
@@ -87,7 +88,6 @@ namespace
 		cam->SetPosition(position.data());
 		cam->SetViewUp(viewUp.data());
 	}
-
 	std::array<float, 3> quaternionToEulerAngles(std::array<float, 4> q)
 	{
 		double ayterm = 2 * (q[3] * q[1] - q[0] * q[2]);
@@ -140,7 +140,8 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	m_dw(new iADockWidgetWrapper(m_sliceWidget, "Arbitrary Slice", "ArbitrarySliceViewer")),
 	m_planeWidget(vtkSmartPointer<iAvtkPlaneWidget>::New()),
 	m_reslicer(vtkSmartPointer<vtkImageResliceMapper>::New()),
-	m_imageSlice(vtkSmartPointer<vtkImageSlice>::New())
+	m_imageSlice(vtkSmartPointer<vtkImageSlice>::New()),
+	m_nextSnapshotID(1)
 {
 	auto ds = child->firstImageDataSetIdx();
 	if (ds == iAMdiChild::NoDataSet)
@@ -162,7 +163,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	m_planeWidget->SetPoint1(bounds.maxCorner().x(), bounds.minCorner().y(), objCenter.z());
 	m_planeWidget->SetPoint2(bounds.minCorner().x(), bounds.maxCorner().y(), objCenter.z());
 	m_planeWidget->SetInteractor(child->renderer()->interactor());
-	m_planeWidget->SetRepresentationToSurface();
+	//m_planeWidget->SetRepresentationToSurface();
 	m_planeWidget->On();
 	
 	// set to middle of object in z direction (i.e. xy slice default position):
