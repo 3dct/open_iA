@@ -154,20 +154,6 @@ namespace
 			LOG(lvlWarn, QString("  Expected %1 but wrote %2 bytes!").arg(expectedBytes).arg(actualBytes));
 		}
 	}
-	template <size_t N>
-	QString array2string(std::array<float, N> ar)
-	{
-		QString result;
-		for (int i = 0; i < N; ++i)
-		{
-			result += QString::number(ar[i]);
-			if (i < N - 1)
-			{
-				result += ", ";
-			}
-		}
-		return result;
-	}
 }
 
 class iAUnityWebsocketServerToolImpl: public QObject
@@ -307,7 +293,7 @@ public:
 							if (subcommand == CommandType::Reset)
 							{
 								LOG(lvlInfo, QString("  Reset received"));
-
+								m_planeSliceTool->clearSnapshots();
 								clearSnapshots();
 								resetObjects();
 							}
@@ -403,17 +389,20 @@ public:
 								iASnapshotInfo info{};
 								readArray(rcvStream, info.position);
 								readArray(rcvStream, info.rotation);
-								addSnapshot(info);
+								auto snapshotID = m_planeSliceTool->addSnapshot(info);
+								addSnapshot(snapshotID, info);
 								break;
 							}
 							case SnapshotCommandType::Remove:
 							{
 								quint64 snapshotID;
 								rcvStream >> snapshotID;
+								m_planeSliceTool->removeSnapshot(snapshotID);
 								removeSnapshot(snapshotID);
 								break;
 							}
 							case SnapshotCommandType::ClearAll:
+								m_planeSliceTool->clearSnapshots();
 								clearSnapshots();
 								break;
 							case SnapshotCommandType::ChangeSlicePosition:
@@ -491,9 +480,8 @@ private:
 		}
 	}
 
-	void addSnapshot(iASnapshotInfo info)
+	void addSnapshot(quint64 snapshotID, iASnapshotInfo info)
 	{
-		auto snapshotID = m_planeSliceTool->addSnapshot(info);
 		LOG(lvlInfo, QString("  New snapshot, ID=%1; position=%2, rotation=%3")
 			.arg(snapshotID).arg(array2string(info.position)).arg(array2string(info.rotation)));
 		QByteArray outData;
@@ -507,7 +495,6 @@ private:
 	void removeSnapshot(quint64 snapshotID)
 	{
 		LOG(lvlInfo, QString("  Removing snapshot with ID=%1.").arg(snapshotID));
-		m_planeSliceTool->removeSnapshot(snapshotID);
 		QByteArray outData;
 		QDataStream stream(&outData, QIODevice::WriteOnly);
 		stream << MessageType::Snapshot << SnapshotCommandType::Remove << snapshotID;
@@ -517,10 +504,9 @@ private:
 	void clearSnapshots()
 	{
 		LOG(lvlInfo, QString("  Clearing all snapshots."));
-		m_planeSliceTool->clearSnapshots();
 		QByteArray outData;
 		QDataStream outStream(&outData, QIODevice::WriteOnly);
-		outStream << MessageType::Command << SnapshotCommandType::ClearAll;
+		outStream << MessageType::Snapshot << SnapshotCommandType::ClearAll;
 		broadcastMsg(outData);
 	}
 
@@ -531,7 +517,7 @@ private:
 		m_planeSliceTool->moveSlice(id, axis, value);
 		QByteArray outData;
 		QDataStream outStream(&outData, QIODevice::WriteOnly);
-		outStream << MessageType::Command << SnapshotCommandType::ChangeSlicePosition
+		outStream << MessageType::Snapshot << SnapshotCommandType::ChangeSlicePosition
 			<< id << axis << value;
 		broadcastMsg(outData);
 	}
