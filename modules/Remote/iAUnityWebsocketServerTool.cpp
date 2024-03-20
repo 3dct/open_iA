@@ -189,6 +189,10 @@ public:
 		{
 			m_planeSliceTool = addToolToActiveMdiChild<iAPlaneSliceTool>(iAPlaneSliceTool::Name, mainWnd, true);
 		}
+		using Self = iAUnityWebsocketServerToolImpl;
+		connect(m_planeSliceTool, &iAPlaneSliceTool::snapshotAdded,   this, &Self::addSnapshot);
+		connect(m_planeSliceTool, &iAPlaneSliceTool::snapshotRemoved, this, &Self::removeSnapshot);
+		connect(m_planeSliceTool, &iAPlaneSliceTool::snapshotsCleared, this, &Self::clearSnapshots);
 
 		if (m_wsServer->listen(QHostAddress::Any, 50505))
 		{
