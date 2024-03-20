@@ -146,8 +146,8 @@ void iAFavoriteWidget::Remove(iAImageTreeNode const * node)
 		LOG(lvlError, "Favorites: remove called for unset widget\n");
 		return;
 	}
-	m_favorites[idx].node = 0;
-	m_favorites[idx].widget = 0;
+	m_favorites[idx].node = nullptr;
+	m_favorites[idx].widget = nullptr;
 	m_favorites.remove(idx);
 	disconnect(widget, &iAImagePreviewWidget::clicked, this, &iAFavoriteWidget::FavoriteClicked);
 	disconnect(widget, &iAImagePreviewWidget::rightClicked, this, &iAFavoriteWidget::FavoriteRightClicked);
@@ -210,7 +210,7 @@ iAImageTreeNode * iAFavoriteWidget::GetNodeForWidget(iAImagePreviewWidget* widge
 			return fav.node;
 		}
 	}
-	return 0;
+	return nullptr;
 }
 
 

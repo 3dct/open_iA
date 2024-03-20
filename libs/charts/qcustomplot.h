@@ -140,7 +140,9 @@ class QCPBars;
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
 #endif
+// ToDo: find proper fix for these warnings!
 
 /*!
   The QCP Namespace contains general enums, QFlags and functions used throughout the QCustomPlot

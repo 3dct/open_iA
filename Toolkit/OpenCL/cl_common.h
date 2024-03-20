@@ -103,7 +103,6 @@ inline QString readFile(QString filename)
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) 
 	{
 		throw itk::ExceptionObject(__FILE__, __LINE__, "Cannot open OpenCL source file!");
-		return 0;
 	}
 
 	QByteArray total;

@@ -131,8 +131,7 @@ private:
 	int cmpTime(const struct tm* time_a, const struct tm* time_b);
 
 public:
-	// This function overrides the virtual function in the base class
-	QStringList toStringList();
+	QStringList toStringList() override;
 
 	/*
 	// apparently these functions are not used!

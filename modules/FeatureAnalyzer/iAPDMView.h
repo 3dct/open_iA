@@ -50,7 +50,7 @@ protected:
 	void UpdateTableBoxPlot();
 	void UpdateTableHistogram();
 	void UpdateTableDeviation();
-	virtual bool eventFilter( QObject * obj, QEvent * event );
+	bool eventFilter( QObject * obj, QEvent * event ) override;
 	void addWidgetToTable( int r, int c, QWidget * plot );
 	void ShowDeviationControls( bool visible );
 	void ShowPorosityRangeControls( bool visible );

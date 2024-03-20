@@ -212,7 +212,7 @@ bool iASamplingResults::loadInternal(QString const & parameterSetFileName, QStri
 		charac = false;
 	}
 	QTextStream paramIn(&paramFile);
-	QTextStream* characIn = 0;
+	QTextStream* characIn = nullptr;
 	if (charac)
 	{
 		characIn = new QTextStream(&characFile);

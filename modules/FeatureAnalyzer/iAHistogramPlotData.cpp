@@ -11,14 +11,17 @@ iAHistogramPlotData::iAHistogramPlotData()
 {
 }
 
+// TODO: remove duplication with guibase/iABoxPlotData!
 int iAHistogramPlotData::cmp( const void *px, const void *py )
 {
-	const double *x = (double*) px, *y = (double*) py;
-	return ( *x > *y ) - ( *x < *y );
+	auto x = *static_cast<const double*>(px);
+	auto y = *static_cast<const double*>(py);
+	return (x > y) - (x < y);
 }
 
 void iAHistogramPlotData::CalculateHistogramPlot( double * data, int dataSize )
 {
+	// TODO: rewrite using modern C++!
 	double * buf_data = new double[dataSize];
 	memcpy( buf_data, data, sizeof( double )*dataSize );
 	qsort( (void *) buf_data, (size_t) dataSize, sizeof( double ), &iAHistogramPlotData::cmp );

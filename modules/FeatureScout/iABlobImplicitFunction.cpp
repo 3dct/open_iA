@@ -12,7 +12,7 @@ vtkStandardNewMacro (iABlobImplicitFunction);
 // Construct sphere with center at (0,0,0) and radius=0.5.
 iABlobImplicitFunction::iABlobImplicitFunction()
 {
-	m_blobManager = 0;
+	m_blobManager = nullptr;
 
 	mb = nullptr;
 	mbSize = 0;
@@ -125,7 +125,7 @@ double iABlobImplicitFunction::EvaluateFunction (double x[3])
 {
 	double value = JustEvaluateFunction (x);
 
-	if (m_blobManager != nullptr)
+	if (m_blobManager)
 	{
 		QList<iABlobCluster*>* list = m_blobManager->GetListObBlobClusters();
 		double otherVal;

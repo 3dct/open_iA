@@ -22,7 +22,7 @@ private:
 
 public:
 	ReadOkcException(std::string strError) throw();
-	const char* what() const throw();
+	const char* what() const throw() override;
 };
 
 #endif /* READOKCEXCEPTION_H_ */

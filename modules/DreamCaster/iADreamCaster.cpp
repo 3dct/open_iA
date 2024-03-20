@@ -69,34 +69,28 @@
 #define DEG_IN_PI  180
 #define DEG2RAD M_PI/DEG_IN_PI
 
-std::vector<iAwald_tri> wald;
-std::vector<iABSPNode> nodes;
-
 namespace
 {
+	std::vector<iAwald_tri> wald;
+	std::vector<iABSPNode> nodes;
 	const QString SettingsWindowStateKey = "DreamCaster/windowState";
+
+	const int CutAABSkipedSize = iACutAAB::getSkipedSizeInFile();
+	const int RenderFromPositionSkipedSize = iARenderFromPosition::getSkipedSizeInFile();
+
+	const QColor qcolBlack = QColor(0, 0, 0);
+	const QColor qcolYellow = QColor(255, 255, 0);
+
+	inline float GetSliderNormalizedValue(QSlider* slider)
+	{
+		return ((float)(slider->value() - slider->minimum())) / ((float)(slider->maximum() - slider->minimum()));
+	}
 }
 
-const int CutAABSkipedSize = iACutAAB::getSkipedSizeInFile();
-const int RenderFromPositionSkipedSize = iARenderFromPosition::getSkipedSizeInFile();
+iADreamCaster* dcast;  //!< used just for logging, to call log() method; used as extern in iABSPTree, iASTLLoader
 
 #define PLATE_HEIGHT 20./stngs.SCALE_COEF
 extern QApplication * app;
-
-iADreamCaster* dcast;//!< used just for logging, to call log() method
-
-const QColor qcolBlack = QColor(0, 0, 0);
-const QColor qcolYellow = QColor(255, 255, 0);
-inline float GetSliderNormalizedValue(QSlider * slider)
-{
-	return ((float)(slider->value() - slider->minimum())) / ((float)(slider->maximum() - slider->minimum()));
-}
-
-inline void SetSliderNormalizedValue(QSlider * slider, float val)
-{
-	int value = (int)(slider->minimum() + (slider->maximum() - slider->minimum())*val);
-	slider->setValue(value);
-}
 
 iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	: QMainWindow(parent, flags),
@@ -123,9 +117,9 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	isOneWidgetMaximized = 0;
 	CutFigParametersChangedOFF = false;
 	scrBuffer = new iAScreenBuffer( stngs.RFRAME_W, stngs.RFRAME_H );
-	tracer = 0;
-	cuda_avpl_buff = 0;
-	cuda_dipang_buff = 0;
+	tracer = nullptr;
+	cuda_avpl_buff = nullptr;
+	cuda_dipang_buff = nullptr;
 
 	isStopped = false;
 
@@ -205,7 +199,7 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	plateActor = vtkActor::New();
 	cutAABMapper = vtkPolyDataMapper::New();
 	cutAABActor = vtkActor::New();
-	depthSort = 0;
+	depthSort = nullptr;
 	vtkInteractorStyleSwitch *style = vtkInteractorStyleSwitch::New();
 	style->SetCurrentStyleToTrackballCamera();
 	qvtkWidget->interactor()->SetInteractorStyle(style);
@@ -561,7 +555,7 @@ void iADreamCaster::RenderViewsSlot()
 	if(viewsBuffer)
 	{
 		delete [] viewsBuffer;
-		viewsBuffer = 0;
+		viewsBuffer = nullptr;
 	}
 	int s = renderCntX* renderCntZ;
 	viewsBuffer = new unsigned int[s];
@@ -980,7 +974,7 @@ void iADreamCaster::RenderViewsSlot()
 		ui.simulationProgress->setValue(100);
 		ui.l_ttime->setText( QString(t2));
 	}
-	tracer->SetCutAABBList(0);
+	tracer->SetCutAABBList(nullptr);
 	datasetOpened = true;
 	fclose(fptr);
 	UpdatePlotSlot();
@@ -1482,11 +1476,11 @@ void iADreamCaster::ShowRangeRays()
 
 void iADreamCaster::HideRays()
 {
-	if (depthSort!=0)
+	if (depthSort)
 	{
 		mapper->SetInputData((vtkPolyData*)depthSort->GetInput());
 		depthSort->Delete();
-		depthSort = 0;
+		depthSort = nullptr;
 		mapper->Update();
 	}
 	actor->GetProperty()->SetOpacity(1.0);
@@ -1605,7 +1599,7 @@ void iADreamCaster::UpdatePlotSlot()
 	if(viewsBuffer)
 	{
 		delete [] viewsBuffer;
-		viewsBuffer = 0;
+		viewsBuffer = nullptr;
 	}
 	int s = renderCntX * renderCntZ;
 	viewsBuffer = new unsigned int[s];
@@ -2321,18 +2315,18 @@ void iADreamCaster::ClearPrevData()
 		}
 		delete [] rotations;
 	}
-	if(placementsParams)
+	if (placementsParams)
 	{
 		for (int x=0; x< renderCntX; x++)
 		{
-			if(placementsParams[x])
+			if (placementsParams[x])
 				delete [] placementsParams[x];
-			placementsParams[x] = 0;
+			placementsParams[x] = nullptr;
 		}
 		delete [] placementsParams;
-		placementsParams=0;
+		placementsParams = nullptr;
 	}
-	if(weightedParams)
+	if (weightedParams)
 	{
 		for (int x=0; x< renderCntX; x++)
 		{
@@ -2340,10 +2334,10 @@ void iADreamCaster::ClearPrevData()
 			{
 				delete[] weightedParams[x];
 			}
-			weightedParams[x] = 0;
+			weightedParams[x] = nullptr;
 		}
 		delete [] weightedParams;
-		weightedParams=0;
+		weightedParams = nullptr;
 	}
 }
 

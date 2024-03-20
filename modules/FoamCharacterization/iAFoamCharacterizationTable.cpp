@@ -460,11 +460,11 @@ void iAFoamCharacterizationTable::save(const QString& _sFilename)
 	{
 		const int n(rowCount());
 
-		pFileSave->write((char*) &n, sizeof(n));
+		pFileSave->write(reinterpret_cast<const char*>(&n), sizeof(n));
 
-		for (int i(0); i < n; ++i)
+		for (int i = 0; i < n; ++i)
 		{
-			((iAFoamCharacterizationItem*)item(i, 0))->save(pFileSave.data());
+			dynamic_cast<iAFoamCharacterizationItem*>(item(i, 0))->save(pFileSave.data());
 		}
 
 		pFileSave->close();

@@ -19,7 +19,7 @@ struct FavoriteData
 	iAImageTreeNode * node;
 	iAImagePreviewWidget* widget;
 	FavoriteData():
-		node(0), widget(0) {}
+		node(nullptr), widget(nullptr) {}
 	FavoriteData(iAImageTreeNode *l, iAImagePreviewWidget* w):
 		node(l), widget(w) {}
 };

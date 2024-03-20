@@ -23,7 +23,7 @@
 
 OkcDataModifierManager::OkcDataModifierManager()
 {
-	m_okcdata = 0;
+	m_okcdata = nullptr;
 }
 
 OkcDataModifierManager::OkcDataModifierManager(OkcData* okcdata)
@@ -47,7 +47,7 @@ OkcDataModifierManager::~OkcDataModifierManager()
 OkcDataModifier* OkcDataModifierManager::getOkcDataModifier(XmdvTool::MODIFIERTYPE modifierType) {
 	if (m_modifiers.find(modifierType)==m_modifiers.end()) {
 		// the specified modifier type does not exist
-		return 0;
+		return nullptr;
 	} else {
 		return m_modifiers[modifierType];
 	}

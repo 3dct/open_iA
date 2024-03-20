@@ -66,7 +66,7 @@ int steepestGradientPos( int x, int y, int dx, int dy, iASimilarityMapWidget::Im
 	return curPos[1];
 }
 
-iASimilarityMapWidget::iASimilarityMapWidget( QWidget *parent /*= 0 */ )
+iASimilarityMapWidget::iASimilarityMapWidget( QWidget *parent)
 : QWidget( parent ), m_numBins( 0 ), m_mapWidth( 0 )
 {
 	m_peakPos[0] = m_peakPos[1] = 0;

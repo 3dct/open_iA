@@ -31,8 +31,9 @@
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
 #endif
-// ToDo: find proper fix for this warning!
+// ToDo: find proper fix for these warnings!
 
 /* including file 'src/vector2d.cpp', size 7340                              */
 /* commit ce344b3f96a62e5f652585e55f1ae7c7883cd45b 2018-06-25 01:03:39 +0200 */

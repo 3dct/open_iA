@@ -8,7 +8,7 @@ class iACompVisModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:
-	void Initialize();
+	void Initialize() override;
 private slots:
 	void CompVis();
 };

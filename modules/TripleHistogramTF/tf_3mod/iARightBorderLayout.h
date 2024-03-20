@@ -69,7 +69,7 @@ public:
 	{
 		return m_rbi->getHeightForWidth(width);
 	}
-	QLayoutItem* layoutItem()
+	QLayoutItem* layoutItem() override
 	{
 		return m_layoutItem;
 	}
@@ -116,7 +116,7 @@ private:
 	void setCenterItem(QLayoutItem *item);
 	void setBorderItem(BorderLayoutItemWrapper *item); // TODO: should really be a pointer?
 
-	QLayoutItem *m_centerItem;
-	BorderLayoutItemWrapper *m_borderItem;
+	QLayoutItem* m_centerItem = nullptr;
+	BorderLayoutItemWrapper *m_borderItem = nullptr;
 	Position m_pos;
 };

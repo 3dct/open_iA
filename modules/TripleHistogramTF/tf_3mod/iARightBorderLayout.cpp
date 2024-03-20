@@ -51,9 +51,7 @@ bool iARightBorderLayout::hasHeightForWidth() const
 
 int iARightBorderLayout::count() const
 {
-	return m_centerItem != 0 ? 1 : 0
-		+
-		m_borderItem != 0 ? 1 : 0;
+	return (m_centerItem ? 1 : 0) + (m_borderItem ? 1 : 0);
 }
 
 QLayoutItem *iARightBorderLayout::itemAt(int index) const
@@ -76,10 +74,10 @@ QLayoutItem *iARightBorderLayout::itemAt(int index) const
 		}
 		else
 		{
-			return 0;
+			return nullptr;
 		}
 	default:
-		return 0;
+		return nullptr;
 	}
 }
 
@@ -141,7 +139,7 @@ QLayoutItem *iARightBorderLayout::takeAt(int index)
 	{
 		return itemAt(index);
 	}
-	return 0;
+	return nullptr;
 }
 
 void iARightBorderLayout::setCenterItem(QLayoutItem* item)

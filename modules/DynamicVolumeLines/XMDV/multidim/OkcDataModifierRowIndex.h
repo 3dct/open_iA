@@ -40,7 +40,7 @@ private:
 
 public:
 	// return the modifier type
-	XmdvTool::MODIFIERTYPE getModifierType();
+	XmdvTool::MODIFIERTYPE getModifierType() override;
 
 	// Initialize the highlighted array,
 	// its length is data_size of the OkcData

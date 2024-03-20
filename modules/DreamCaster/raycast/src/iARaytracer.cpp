@@ -39,8 +39,8 @@ iAEngine::iAEngine(iADreamCasterSettings * settings, float * dc_cuda_avpl_buff, 
 	//renders = a_renders;
 	position[0] = position[1] = position[2] = 0.0f;
 	curBatchRenders = new iARenderFromPosition[m_batchSize];
-	m_cut_AABBs = 0;
-	m_cutAABBList = 0;
+	m_cut_AABBs = nullptr;
+	m_cutAABBList = nullptr;
 	m_cutAABBListSize = 0;
 	s = settings;
 	InitOpenCL();
@@ -145,7 +145,7 @@ int iAEngine::DepthRaytrace(iARay& a_Ray, iAVec3f & a_Acc, int a_Depth, float /*
 		if( intersections[i+1]->tri->GetIndex() == intersections[i]->tri->GetIndex() )
 		{
 			delete intersections[i]; // Remove the object
-			intersections[i]=0;
+			intersections[i] = nullptr;
 			intersections.erase(intersections.begin() + i);
 		}
 		else
@@ -613,32 +613,30 @@ void iAEngine::AllocateOpenCLBuffers()
 	const size_t out_size = s->RFRAME_W * s->RFRAME_H * s->BATCH_SIZE;
 
 	cl_int error;
-	nodes = cl::Buffer( m_context, CL_MEM_READ_ONLY, nodes_count*sizeof(iABSPNode), 0, &error );
+	nodes = cl::Buffer(m_context, CL_MEM_READ_ONLY, nodes_count * sizeof(iABSPNode), nullptr, &error);
 	itk_clSafeCall( error );
-	tris = cl::Buffer( m_context, CL_MEM_READ_ONLY, tri_count*sizeof(iAwald_tri), 0, &error );
+	tris = cl::Buffer(m_context, CL_MEM_READ_ONLY, tri_count * sizeof(iAwald_tri), nullptr, &error);
 	itk_clSafeCall( error );
-	ids = cl::Buffer( m_context, CL_MEM_READ_ONLY, id_count*sizeof(unsigned int), 0, &error );
+	ids = cl::Buffer(m_context, CL_MEM_READ_ONLY, id_count * sizeof(unsigned int), nullptr, &error);
 	itk_clSafeCall( error );
 
 
 	//in
-	os = cl::Buffer( m_context, CL_MEM_READ_ONLY, batchSize * 3*sizeof(cl_float), 0, &error );
+	os = cl::Buffer(m_context, CL_MEM_READ_ONLY, batchSize * 3 * sizeof(cl_float), nullptr, &error);
 	itk_clSafeCall( error );
-	cs = cl::Buffer( m_context, CL_MEM_READ_ONLY, batchSize * 3*sizeof(cl_float), 0, &error );
+	cs = cl::Buffer(m_context, CL_MEM_READ_ONLY, batchSize * 3 * sizeof(cl_float), nullptr, &error);
 	itk_clSafeCall( error );
-	dxs = cl::Buffer( m_context, CL_MEM_READ_ONLY, batchSize * 3*sizeof(cl_float), 0, &error );
+	dxs = cl::Buffer(m_context, CL_MEM_READ_ONLY, batchSize * 3 * sizeof(cl_float), nullptr, &error);
 	itk_clSafeCall( error );
-	dys = cl::Buffer( m_context, CL_MEM_READ_ONLY, batchSize * 3*sizeof(cl_float), 0, &error );
+	dys = cl::Buffer(m_context, CL_MEM_READ_ONLY, batchSize * 3 * sizeof(cl_float), nullptr, &error);
 	itk_clSafeCall( error );
-	cl_aabb = cl::Buffer(m_context, CL_MEM_READ_ONLY, sizeof(iAaabb), 0, &error );
+	cl_aabb = cl::Buffer(m_context, CL_MEM_READ_ONLY, sizeof(iAaabb), nullptr, &error);
 	itk_clSafeCall( error );
 
 	//out
-	device_out_data = cl::Buffer(m_context, CL_MEM_READ_WRITE,
-		out_size*sizeof(float), 0, &error );
+	device_out_data = cl::Buffer(m_context, CL_MEM_READ_WRITE, out_size * sizeof(float), nullptr, &error);
 	itk_clSafeCall( error );
-	device_out_dip = cl::Buffer(m_context, CL_MEM_READ_WRITE,
-		out_size*sizeof(float), 0, &error );
+	device_out_dip = cl::Buffer(m_context, CL_MEM_READ_WRITE, out_size * sizeof(float), nullptr, &error);
 	itk_clSafeCall( error );
 }
 
@@ -683,28 +681,16 @@ void iAEngine::raycast_batch(
  	cl_int error;
  	size_t out_size = w*h*batchSize;
 	//in
-	itk_clSafeCall(
-		m_queue.enqueueWriteBuffer(	os, cl_bool(true), 0, batchSize * 3*sizeof(cl_float), (void*)a_o )
-	);
-	itk_clSafeCall(
-		m_queue.enqueueWriteBuffer(	cs, cl_bool(true), 0, batchSize * 3*sizeof(cl_float), (void*)a_c )
-	);
-	itk_clSafeCall(
-		m_queue.enqueueWriteBuffer(	dxs, cl_bool(true), 0, batchSize * 3*sizeof(cl_float), (void*)a_dx )
-	);
-	itk_clSafeCall(
-		m_queue.enqueueWriteBuffer(	dys, cl_bool(true), 0, batchSize * 3*sizeof(cl_float), (void*)a_dy )
-	);
-	itk_clSafeCall(
-		m_queue.enqueueWriteBuffer(	cl_aabb, cl_bool(true), 0, sizeof(iAaabb), (void*)a_aabb )
-	);
+	itk_clSafeCall(m_queue.enqueueWriteBuffer(os, cl_bool(true), 0, batchSize * 3*sizeof(cl_float), a_o ));
+	itk_clSafeCall(m_queue.enqueueWriteBuffer(cs, cl_bool(true), 0, batchSize * 3*sizeof(cl_float), a_c ));
+	itk_clSafeCall(m_queue.enqueueWriteBuffer(	dxs, cl_bool(true), 0, batchSize * 3*sizeof(cl_float), a_dx));
+	itk_clSafeCall(m_queue.enqueueWriteBuffer(	dys, cl_bool(true), 0, batchSize * 3*sizeof(cl_float), a_dy));
+	itk_clSafeCall(m_queue.enqueueWriteBuffer(	cl_aabb, cl_bool(true), 0, sizeof(iAaabb), a_aabb));
 	if(a_cut_aabbs_count > 0)
 	{
-		cut_aabbs = cl::Buffer(m_context, CL_MEM_READ_ONLY, a_cut_aabbs_count*sizeof(iAaabb), 0, &error );
+		cut_aabbs = cl::Buffer(m_context, CL_MEM_READ_ONLY, a_cut_aabbs_count*sizeof(iAaabb), nullptr, &error );
 		itk_clSafeCall( error );
-		itk_clSafeCall(
-			m_queue.enqueueWriteBuffer(	cut_aabbs, cl_bool(true), 0, a_cut_aabbs_count*sizeof(iAaabb), (void*)a_cut_aabbs )
-			);
+		itk_clSafeCall(m_queue.enqueueWriteBuffer(cut_aabbs, cl_bool(true), 0, a_cut_aabbs_count*sizeof(iAaabb), a_cut_aabbs));
 	}
 	itk_clSafeCall( m_queue.finish() );
 

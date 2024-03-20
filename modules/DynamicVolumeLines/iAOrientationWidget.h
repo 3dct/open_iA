@@ -12,7 +12,7 @@ class iAOrientationWidget : public QOpenGLWidget, public QOpenGLFunctions
 	Q_OBJECT
 
 public:
-	iAOrientationWidget(QWidget* parent = 0);
+	iAOrientationWidget(QWidget* parent);
 
 	void update(QCustomPlot* plot, double lowerX, double upperX, double lowerY, double upperY);
 

@@ -35,7 +35,7 @@ iATreeView::iATreeView(QWidget* parent) :
 	m_selectedPCData( new QTableWidget() ),
 	m_selectedRSDData( new QTableWidget() ),
 	m_selectedSSData( new QTableWidget() ),
-	m_dataExternal( 0 )
+	m_dataExternal( nullptr )
 {
 	treeWidget->setSelectionMode( QAbstractItemView::ExtendedSelection );
 	treeWidget->viewport()->installEventFilter( this );

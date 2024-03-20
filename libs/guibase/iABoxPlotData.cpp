@@ -17,14 +17,17 @@ iABoxPlotData::iABoxPlotData( double q25_v, double med_v, double q75_v, double m
 	range[1] = max;
 }
 
+// TODO: remove duplication with FeatureAnalyzer/iAHistogramPlotData
 int iABoxPlotData::cmp( const void *px, const void *py )
 {
-	const double *x = (double*)px, *y = (double*)py;
-	return (*x > *y) - (*x < *y);
+	auto x = *static_cast<const double*>(px);
+	auto y = *static_cast<const double*>(py);
+	return (x > y) - (x < y);
 }
 
 void iABoxPlotData::CalculateBoxPlot( double * data, int dataSize, bool removeOutliers /*= false*/, double k /*= 1.5 */ )
 {
+	// TODO: rewrite using modern C++!
 	assert(dataSize > 0);
 	if (dataSize == 0)
 		return;
@@ -33,7 +36,7 @@ void iABoxPlotData::CalculateBoxPlot( double * data, int dataSize, bool removeOu
 	qsort( (void *)buf_data, dataSize, sizeof( double ), &iABoxPlotData::cmp );
 	min = buf_data[0]; max = buf_data[dataSize-1];
 	double ind = 0.5*dataSize;
-	if( ind != (double)( (int) ind) )
+	if( ind != (double)( (int) ind) )  // dataSize % 2 == 0 would be more efficient and more clean!
 		med = 0.5*(buf_data[(int)ind] + buf_data[(int)ind + 1]);
 	else
 		med = buf_data[(int)ind];

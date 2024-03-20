@@ -12,6 +12,6 @@ private:
 	dlg_InSpectr* m_dlgXRF;
 public:
 	iAPeriodicTableListener(dlg_InSpectr* dlgXRF);
-	virtual void ElementEnter(int elementIdx);
-	virtual void ElementLeave(int elementIdx);
+	void ElementEnter(int elementIdx) override;
+	void ElementLeave(int elementIdx) override;
 };

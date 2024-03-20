@@ -33,7 +33,7 @@ std::shared_ptr<QImage> CalculateSpectraHistogramImage(
 	double sensVal, double sensMax, double threshVal, double threshMax,
 	bool smoothFade)
 {
-	CountType * histData = 0;
+	CountType * histData = nullptr;
 	CountType maxHistVal;
 	size_t numHist;
 	accData->retrieveHistData(numBin, histData, numHist, maxHistVal);

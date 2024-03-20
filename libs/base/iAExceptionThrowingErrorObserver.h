@@ -13,9 +13,9 @@ public:
 	{
 		return new iAExceptionThrowingErrorObserver;
 	}
-	virtual void Execute(vtkObject *vtkNotUsed(caller),
+	void Execute(vtkObject *vtkNotUsed(caller),
 		unsigned long /*event*/,
-		void *calldata)
+		void *calldata) override
 	{
 		//assert(event == vtkCommand::ErrorEvent);
 		throw std::runtime_error(static_cast<char *>(calldata));

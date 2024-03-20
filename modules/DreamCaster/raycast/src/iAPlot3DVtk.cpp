@@ -29,8 +29,8 @@ iAPlot3DVtk::iAPlot3DVtk():
 					m_correctTransparency(0),
 					lastPickSuccessful(0)
 {
-	m_points = 0;
-	m_cellScalars = 0;
+	m_points = nullptr;
+	m_cellScalars = nullptr;
 	//m_depthSort = 0;
 	m_renderer = vtkRenderer::New();
 	m_grid = vtkPolyData::New();
@@ -112,23 +112,23 @@ iAPlot3DVtk::iAPlot3DVtk():
 
 iAPlot3DVtk::~iAPlot3DVtk()
 {
-	if (m_points!=0) m_points->Delete();
-	if (m_grid!=0) m_grid->Delete();
-	if (m_cellScalars!=0) m_cellScalars->Delete();
-	if (m_cellNumbers!=0) m_cellNumbers->Delete();
-	if (m_mapper!=0) m_mapper->Delete();
-	if (m_wireMapper!=0) m_wireMapper->Delete();
-	if (m_actor!=0) m_actor->Delete();
-	if (m_wireActor!=0) m_wireActor->Delete();
-	if (m_lookupTable!=0) m_lookupTable->Delete();
-	if (m_scalarBarActor!=0) m_scalarBarActor->Delete();
-	if (m_scalarBarWidget!=0) m_scalarBarWidget->Delete();
-	//if (m_depthSort!=0) m_depthSort->Delete();
-	if (m_renderer!=0) m_renderer->Delete();
-	if (m_picker!=0) m_picker->Delete();
-	if (m_cubeAxes!=0) m_cubeAxes->Delete();
-	if (m_pickedMapper!=0) m_pickedMapper->Delete();
-	if (m_pickedActor!=0) m_pickedActor->Delete();
+	if (m_points) m_points->Delete();
+	if (m_grid) m_grid->Delete();
+	if (m_cellScalars) m_cellScalars->Delete();
+	if (m_cellNumbers) m_cellNumbers->Delete();
+	if (m_mapper) m_mapper->Delete();
+	if (m_wireMapper) m_wireMapper->Delete();
+	if (m_actor) m_actor->Delete();
+	if (m_wireActor) m_wireActor->Delete();
+	if (m_lookupTable) m_lookupTable->Delete();
+	if (m_scalarBarActor) m_scalarBarActor->Delete();
+	if (m_scalarBarWidget) m_scalarBarWidget->Delete();
+	//if (m_depthSort) m_depthSort->Delete();
+	if (m_renderer) m_renderer->Delete();
+	if (m_picker) m_picker->Delete();
+	if (m_cubeAxes) m_cubeAxes->Delete();
+	if (m_pickedMapper) m_pickedMapper->Delete();
+	if (m_pickedActor) m_pickedActor->Delete();
 }
 
 void iAPlot3DVtk::SetSolidColor(double r, double g, double b)
@@ -160,7 +160,7 @@ void iAPlot3DVtk::Update()
 	m_wireMapper->SetInputData(m_grid);
 	m_wireMapper->Update();
 	//m_pickedMapper->SetInput(m_pickedGrid);
-	if(m_pickedMapper->GetInput() != 0)//otherwise some vtk warnings do appear
+	if (m_pickedMapper->GetInput())//otherwise some vtk warnings do appear
 		m_pickedMapper->Update();
 	m_scalarBarActor->SetLookupTable(m_lookupTable);
 }
@@ -243,7 +243,7 @@ void iAPlot3DVtk::Pick( double xpos, double ypos)
 {
 	//empty
 	m_picker->Pick(xpos, ypos, 0, m_renderer);
-	if(m_picker->GetMapper()==0)
+	if (!m_picker->GetMapper())
 		return;
 	if (m_picker->GetMapper()->IsA("vtkPolyDataMapper"))
 	{
@@ -342,10 +342,10 @@ void iAPlot3DVtk::loadFromData( double * plotData, double * scalars, int cntX, i
 	vtkNew<vtkQuad> GridQuad;
 	vtkNew<vtkCellArray> gridCells;
 	m_sizeX = cntX; m_sizeZ = cntZ;
-	if (m_points!=0) m_points->Delete();
+	if (m_points) m_points->Delete();
 	m_points = vtkPoints::New();
 	float offs = -1.0;
-	if (m_cellScalars!=0)
+	if (m_cellScalars)
 		m_cellScalars->Delete();
 	m_cellScalars = vtkFloatArray::New();
 	m_cellScalars->SetNumberOfComponents(1);

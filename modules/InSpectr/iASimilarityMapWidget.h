@@ -16,7 +16,7 @@ class iASimilarityMapWidget : public QWidget
 {
 	Q_OBJECT
 public:
-	iASimilarityMapWidget( QWidget * parent = 0 );
+	iASimilarityMapWidget( QWidget * parent );
 	void setImageData( vtkImageData * image );
 	void setWindowing( double lowerVal, double upperVal );
 	void load( QString const & filename );

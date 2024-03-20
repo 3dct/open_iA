@@ -26,6 +26,9 @@
 #if __clang_major__ > 12 || (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5))
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #endif
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
+#endif
 #include <Eigen/Sparse>
 #pragma GCC diagnostic pop
 typedef Eigen::SparseMatrix<double, Eigen::ColMajor> MatrixType;

@@ -102,7 +102,7 @@ void iAPreviewSPLOMView::clear()
 	m_sliceNumberLst.clear();
 	QSignalBlocker blockcbDatasetsSignals(cbDatasets);
 	cbDatasets->clear();
-	m_preview->SetPixmap( 0 );
+	m_preview->SetPixmap( nullptr );
 }
 
 void iAPreviewSPLOMView::UpdatePixmap()
@@ -155,7 +155,7 @@ void iAPreviewSPLOMView::SetMask( const QPixmap * mask, int datasetIndex )
 	else if( dsInd == datasetIndex )
 		m_preview->SetMask( mask );
 	else
-		m_preview->SetMask( 0 );
+		m_preview->SetMask( nullptr );
 }
 
 void iAPreviewSPLOMView::ROIChangedSlot( QRectF roi )

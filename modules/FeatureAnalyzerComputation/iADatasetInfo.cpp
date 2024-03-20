@@ -40,8 +40,8 @@
 #include <QDebug>
 
 
-iADatasetInfo::iADatasetInfo(iAFeatureAnalyzerComputationModuleInterface* pmi, QObject* parent) :
-	QThread(parent),
+iADatasetInfo::iADatasetInfo(iAFeatureAnalyzerComputationModuleInterface* pmi) :
+	QThread(nullptr),
 	m_pmi(pmi)
 {}
 

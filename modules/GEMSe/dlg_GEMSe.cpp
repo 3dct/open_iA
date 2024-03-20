@@ -82,7 +82,7 @@ void dlg_GEMSe::SetTree(
 		return;
 	}
 	m_selectedCluster = imageTree->m_root;
-	m_selectedLeaf = 0;
+	m_selectedLeaf = nullptr;
 	m_cameraWidget = new iACameraWidget(this, originalImage, imageTree->labelCount(), iACameraWidget::GridLayout);
 	wdCamera->layout()->addWidget(m_cameraWidget);
 
@@ -234,7 +234,7 @@ void dlg_GEMSe::ClusterNodeImageClicked(std::shared_ptr<iAImageTreeNode> node)
 void dlg_GEMSe::SelectCluster(std::shared_ptr<iAImageTreeNode> node)
 {
 	m_selectedCluster = node;
-	m_selectedLeaf = 0;
+	m_selectedLeaf = nullptr;
 	bool clear = !QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
 	m_treeView->AddSelectedNode(node, clear);
 	m_exampleView->SetSelectedNode(node);

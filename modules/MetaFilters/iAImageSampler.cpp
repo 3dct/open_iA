@@ -24,10 +24,10 @@
 #include <QMap>
 #include <QTextStream>
 
-const int CONCURRENT_COMPUTATION_RUNS = 1;
-
-
-iAPerformanceTimer m_computationTimer;
+namespace
+{
+	const int CONCURRENT_COMPUTATION_RUNS = 1;
+}
 
 iAImageSampler::iAImageSampler(
 		std::map<size_t, std::shared_ptr<iADataSet>> dataSets,

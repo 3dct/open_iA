@@ -353,7 +353,7 @@ void iASSView::SetDataTo3D()
 	for (iASSSlicer* s : m_slicerViews)
 	{
 		imgData.push_back( s->masksChan->imgData );
-		vtkPolyData * pd = 0;
+		vtkPolyData * pd = nullptr;
 		if (NeedsDistances())
 		{
 			pd = s->GetDeviationPolyData(m_deviationMode);
@@ -401,7 +401,7 @@ void iASSView::UpdatePolyData()
 	QList<vtkPolyData*> polyData;
 	for (iASSSlicer* s : m_slicerViews)
 	{
-		vtkPolyData * pd = 0;
+		vtkPolyData * pd = nullptr;
 		if (NeedsDistances())
 		{
 			pd = s->GetDeviationPolyData(m_deviationMode);

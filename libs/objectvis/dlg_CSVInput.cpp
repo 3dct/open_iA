@@ -30,7 +30,6 @@ namespace
 	const QString CfgKeyPreviousCSVs("PreviousCSVFiles");
 	const QString CfgKeyLRU("LRU%1");
 	constexpr int MaxLRU = 25;
-}
 
 	QStringList const & ColumnSeparators()
 	{
@@ -55,6 +54,7 @@ namespace
 		}
 		return itemsInComboBox;
 	}
+}
 
 dlg_CSVInput::dlg_CSVInput(bool volumeDataAvailable, QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/)
 	: QDialog(parent, f),

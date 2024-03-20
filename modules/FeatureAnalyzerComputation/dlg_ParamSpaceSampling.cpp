@@ -261,7 +261,6 @@ dlg_ParamSpaceSampling::dlg_ParamSpaceSampling(QWidget *parent, QString winTitle
 					label->setFont( font );
 					continue;
 				}
-					break;
 			}
 
 			m_widgetList.insert( i, tempStr );

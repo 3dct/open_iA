@@ -54,8 +54,8 @@ class iADragFilterWidget : public QFrame
 {
 
 public:
-	iADragFilterWidget( QString datasetDir, QStringList datasetNameList, int d_f_switch, QWidget *parent = 0 );
-	void updateDatasetTooltip( QStringList filesToUpdateList );
+	iADragFilterWidget(QString datasetDir, QStringList datasetNameList, int d_f_switch, QWidget *parent);
+	void updateDatasetTooltip(QStringList filesToUpdateList);
 	QLabel* getLabel(QString name);
 
 protected:
@@ -63,14 +63,14 @@ protected:
 	void dragMoveEvent(QDragMoveEvent *event) override;
 	void dropEvent(QDropEvent *event) override;
 	void mousePressEvent(QMouseEvent *event) override;
-	QPixmap	mergeOnTop( const QPixmap& pix, QString txt );
+	QPixmap	mergeOnTop(const QPixmap& pix, QString txt);
 
 private:
 	int m_d_f_switch;
 	QString m_datasetDir;
 	QStringList m_datasetList;
 
-	QString generateDatasetTooltip( QString dataset );
+	QString generateDatasetTooltip(QString dataset);
 
 	QList<QLabel *> m_labelList;
 };

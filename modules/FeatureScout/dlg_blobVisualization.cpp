@@ -15,7 +15,7 @@
 #define DEFAULT_RESOLUTION 50
 #define DEFAULT_OVERLAPPING true
 
-dlg_blobVisualization::dlg_blobVisualization (QWidget* parent) : QDialog (parent)
+dlg_blobVisualization::dlg_blobVisualization() : QDialog()
 {
 	// initialize layout
 	QVBoxLayout* mainLayout = new QVBoxLayout (this);

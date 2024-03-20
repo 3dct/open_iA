@@ -608,7 +608,7 @@ int iAQSplom::visibleParametersCount() const
 void iAQSplom::clear()
 {
 	removeMaximizedPlot();
-	m_activePlot = 0;
+	m_activePlot = nullptr;
 	for (auto & row: m_matrix)
 	{
 		for (auto s: row)

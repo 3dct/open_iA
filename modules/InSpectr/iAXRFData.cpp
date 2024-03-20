@@ -85,7 +85,7 @@ public:
 		xrfData(xrfData),
 		colorTransferEnergies(colorTransferEnergies)
 	{}
-	void run()
+	void run() override
 	{
 		if (xrfData.begin() == xrfData.end())
 		{
