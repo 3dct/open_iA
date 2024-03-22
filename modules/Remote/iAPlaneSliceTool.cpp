@@ -2,9 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAPlaneSliceTool.h"
 
-#include <iAAABB.h>
-#include <iALog.h>
-
 // guibase
 #include <iADataSetRenderer.h>
 #include <iADataSetViewer.h>
@@ -16,6 +13,11 @@
 #include <iASlicerMode.h>
 #include <iAVolumeViewer.h>
 #include <iATransferFunction.h>
+
+// base
+#include <iAAABB.h>
+#include <iALog.h>
+#include <iAStringHelper.h>
 
 #include <vtkAbstractTransform.h>
 #include <vtkCallbackCommand.h>
@@ -30,6 +32,7 @@
 #include <vtkPlaneWidget.h>
 #include <vtkPlane.h>
 #include <vtkProperty.h>
+#include <vtkQuaternion.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRendererCollection.h>
@@ -52,7 +55,7 @@ public:
 	//! Also, it completely ignores the user-settable "HandleSize" and only uses the (internal) HandleSizeFactor for resizing
 	//! Workaround: specify a fixed handle size in relation to the dataset size.
 	void SizeHandles() override
-	{		
+	{
 		for (int i = 0; i < 4; i++)
 		{
 			this->HandleGeometry[i]->SetRadius(m_handleRadius);
@@ -75,7 +78,7 @@ vtkStandardNewMacro(iAvtkPlaneWidget);
 
 namespace
 {
-	void updateSlice(vtkCamera* cam, vtkPlaneWidget* planeWidget)
+	void transferPlaneParamsToCamera(vtkCamera* cam, vtkPlaneWidget* planeWidget)
 	{
 		//vtkNew<vtkPlane> p; tool->m_planeWidget->GetPlane(p); tool->m_reslicer->SetSlicePlane(p); -> leads to vtkImageSlice also rotating around
 		// instead, we need to change the camera's parameters to adapt where we slice, instead of setting the slice plane in resliceMapper directly;
@@ -124,19 +127,6 @@ namespace
 			cr * cp * sy - sr * sp * cy
 		};
 	}
-	void logValues(vtkPlaneWidget* planeWidget)
-	{
-		double const * center = planeWidget->GetCenter();
-		double const * normal = planeWidget->GetNormal();
-		//vtkNew<vtkPlane> plane;
-		//planeWidget->GetPlane(plane);
-		//auto t = plane->GetTransform();
-		//t->Get
-		LOG(lvlInfo, QString("Plane: center=(%1, %2, %3), normal=(%4, %5, %6)")
-			.arg(center[0]).arg(center[1]).arg(center[2])
-			.arg(normal[0]).arg(normal[1]).arg(normal[2]));
-	}
-
 	enum class TableColumn: int
 	{
 		ID,
@@ -169,6 +159,39 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	m_snapshotTable->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
 	m_snapshotTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_snapshotTable->resizeColumnsToContents();
+	connect(m_snapshotTable, &QTableWidget::itemSelectionChanged, this, [this, child]()
+	{
+		auto row = m_snapshotTable->currentIndex().row();
+		auto posItem = m_snapshotTable->item(row, static_cast<int>(TableColumn::Position));
+		std::array<double, 3> pos;
+		if (!stringToArray<double>(posItem->text(), pos, 3, ", "))
+		{
+			LOG(lvlWarn, QString("Invalid pos %1 in row %2!").arg(posItem->text()).arg(row));
+		}
+		auto rotItem = m_snapshotTable->item(row, static_cast<int>(TableColumn::Rotation));
+		std::array<double, 4> quat;
+		if (!stringToArray<double>(rotItem->text(), quat, 4, ", "))
+		{
+			LOG(lvlWarn, QString("Invalid rotation %1 in row %2!").arg(rotItem->text()).arg(row));
+		}
+		double normIn[3] = { 0, 0, 1 };
+		vtkQuaternion<double> vtkQuat;
+		vtkQuat.Set(quat.data());
+		double axis[3];
+		auto angle = vtkQuat.GetRotationAngleAndAxis(axis);
+		double q[4] = { angle, axis[0], axis[1], axis[2] };
+		double normOut[3];
+		vtkMath::RotateVectorByWXYZ(normIn, q, normOut);
+		LOG(lvlInfo, QString("Setting plane to position=%1, normal=%2 (angle=%3, axis=%4).")
+			.arg(array2string(pos))
+			.arg(arrayToString<double>(normOut, 3))
+			.arg(angle)
+			.arg(arrayToString<double>(axis, 3)));
+		m_planeWidget->SetCenter(pos.data());
+		m_planeWidget->SetNormal(normOut);
+		child->updateRenderer();
+		updateSlice();
+	});
 	m_listContainerWidget->layout()->addWidget(m_snapshotTable);
 
 	auto buttonContainer = new QWidget();
@@ -217,6 +240,8 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 			{
 				info.rotation[i] = quat[i];
 			}
+
+			LOG(lvlInfo, QString("Plane: normal=(%2)").arg(arrayToString<double>(normal2, 3)));
 			auto id = addSnapshot(info);
 			emit snapshotAdded(id, info);
 		});
@@ -272,8 +297,6 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	m_planeWidget->setHandleRadius(handleSize);
 	m_planeWidget->SizeHandles();
 
-	logValues(m_planeWidget);
-
 	m_reslicer->SetInputData(child->firstImageData());
 	m_reslicer->SetSliceFacesCamera(true);
 	m_reslicer->SetSliceAtFocalPoint(true);
@@ -294,7 +317,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	m_sliceWidget->renderWindow()->GetInteractor()->SetInteractorStyle(style);
 	//m_planeWidget->SetHandleSize(0.1); // no effect, plane widget automatically sets handle sizes
 
-	updateSlice(m_sliceWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera(), m_planeWidget);
+	transferPlaneParamsToCamera(m_sliceWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera(), m_planeWidget);
 	child->updateRenderer();
 
 	vtkNew<vtkCallbackCommand> modifiedCallback;
@@ -303,10 +326,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 			void* vtkNotUsed(callData))
 		{
 			auto tool = reinterpret_cast<iAPlaneSliceTool*>(clientData);
-			auto cam = tool->m_sliceWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
-			updateSlice(cam, tool->m_planeWidget);
-			tool->m_sliceWidget->interactor()->Render();
-			logValues(tool->m_planeWidget);
+			tool->updateSlice();
 		});
 	modifiedCallback->SetClientData(this);
 	m_planeWidget->AddObserver(vtkCommand::InteractionEvent, modifiedCallback);
@@ -349,7 +369,7 @@ quint64 iAPlaneSliceTool::addSnapshot(iASnapshotInfo info)
 	w->layout()->addWidget(removeButton);
 
 	m_snapshotTable->setCellWidget(row, static_cast<int>(TableColumn::Delete), w);
-
+	m_snapshotTable->selectRow(row);
 	m_snapshotTable->resizeColumnsToContents();
 	return id;
 }
@@ -377,6 +397,13 @@ void iAPlaneSliceTool::moveSlice(quint64 /*id*/, iAMoveAxis /*axis*/, float /*va
 {
 	//auto& s = m_snapshots[id];
 	// apply shift
+}
+
+void iAPlaneSliceTool::updateSlice()
+{
+	auto cam = m_sliceWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+	transferPlaneParamsToCamera(cam, m_planeWidget);
+	m_sliceWidget->interactor()->Render();
 }
 
 

@@ -57,6 +57,8 @@ signals:
 	void snapshotAdded(quint64 id, iASnapshotInfo const & info);
 	void snapshotsCleared();
 private:
+	void updateSlice();
+
 	iAQVTKWidget* m_sliceWidget;
 	QWidget* m_listContainerWidget;
 	QTableWidget* m_snapshotTable;
@@ -69,8 +71,8 @@ private:
 };
 
 // TODO: generalize / move to e.g. iAStringHelper? 
-template <size_t N>
-QString array2string(std::array<float, N> ar)
+template <typename T, size_t N>
+QString array2string(std::array<T, N> ar)
 {
 	QString result;
 	for (int i = 0; i < N; ++i)

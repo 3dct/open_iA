@@ -114,7 +114,7 @@ iAbase_API QString quoteString(QString const & str);
 
 //! Convert a given string representation to an array of given type with given number of elements
 template <typename ValT, typename ContainerT>
-bool stringToArray(QString const & str, ContainerT arr, int expectedSize, QString const & sep = " ")
+bool stringToArray(QString const & str, ContainerT& arr, int expectedSize, QString const & sep = " ")
 {
 	QStringList list = str.split(sep);
 	for (QStringList::size_type i = 0; i < expectedSize && i < list.size(); ++i)
