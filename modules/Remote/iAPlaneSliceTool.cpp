@@ -377,14 +377,7 @@ quint64 iAPlaneSliceTool::addSnapshot(iASnapshotInfo info)
 void iAPlaneSliceTool::removeSnapshot(quint64 id)
 {
 	m_snapshots.erase(id);
-	for (int row = 0; row < m_snapshotTable->rowCount(); ++row)
-	{
-		if (m_snapshotTable->item(row, 0)->data(Qt::UserRole).toULongLong() == id)
-		{
-			m_snapshotTable->removeRow(row);
-			break;
-		}
-	}
+	removeTableEntry(m_snapshotTable, id);
 }
 
 void iAPlaneSliceTool::clearSnapshots()
@@ -408,3 +401,19 @@ void iAPlaneSliceTool::updateSlice()
 
 
 const QString iAPlaneSliceTool::Name("Arbitrary Slice Plane");
+
+
+
+// TODO: better generalization / move to some common qt table widget helper file:
+bool removeTableEntry(QTableWidget* tw, quint64 id)
+{
+	for (int row = 0; row < tw->rowCount(); ++row)
+	{
+		if (tw->item(row, 0)->data(Qt::UserRole).toULongLong() == id)
+		{
+			tw->removeRow(row);
+			return true;
+		}
+	}
+	return false;
+}

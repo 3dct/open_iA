@@ -85,3 +85,6 @@ QString array2string(std::array<T, N> ar)
 	}
 	return result;
 }
+
+// TODO: better generalization / move to some common qt table widget helper file:
+bool removeTableEntry(QTableWidget* tw, quint64 id);

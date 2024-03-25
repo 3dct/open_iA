@@ -6,6 +6,7 @@
 
 #include <iADataSetRenderer.h>
 #include <iADataSetViewer.h>
+#include <iADockWidgetWrapper.h>
 #include <iAImageData.h>
 #include <iAMdiChild.h>
 #include <iAToolHelper.h>
@@ -17,10 +18,15 @@
 #include <vtkProp3D.h>
 #include <vtkTransform.h>
 
+#include <QBoxLayout>
 #include <QFileInfo>
+#include <QHeaderView>
+#include <QLabel>
 #include <QMetaEnum>
 #include <QRegularExpression>
+#include <QTableWidget>
 #include <QThread>
+#include <QToolButton>
 #include <QWebSocket>
 #include <QWebSocketServer>
 
@@ -160,7 +166,7 @@ class iAUnityWebsocketServerToolImpl: public QObject
 {
 private:
 	template <std::size_t N>
-	void processObjectTransform(QDataStream& rcvStream, quint64 objID, ObjectCommandType objCmdType)
+	void processObjectTransform(QDataStream& rcvStream, quint64 clientID, quint64 objID, ObjectCommandType objCmdType)
 	{
 		std::array<float, N> values{};
 		readArray(rcvStream, values);
@@ -171,15 +177,30 @@ private:
 		outStream << MessageType::Object << objCmdType << objID;
 		writeArray<N>(outStream, values);
 		broadcastMsg(outData);
-		// TODO: local application!
+
+		if (clientID == m_syncedClientID)	// if sync enabled, apply to local objects:
+		{
+			// TODO: local application!
+		}
 	}
+
+	enum iAClientTableColumn
+	{
+		ID,
+		Address,
+		Actions
+	};
 
 public:
 
 	iAUnityWebsocketServerToolImpl(iAMainWindow* mainWnd, iAMdiChild* child) :
 		m_wsServer(new QWebSocketServer(iAUnityWebsocketServerTool::Name, QWebSocketServer::NonSecureMode, this)),
 		m_nextClientID(1),
-		m_dataState(DataState::NoDataset)
+		m_dataState(DataState::NoDataset),
+		m_clientListContainer(new QWidget(child)),
+		m_clientTable(new QTableWidget(m_clientListContainer)),
+		m_clientListDW(new iADockWidgetWrapper(m_clientListContainer, "Client List", "ClientList")),
+		m_syncedClientID(-1)
 	{
 		m_wsServer->moveToThread(&m_serverThread);
 		m_serverThread.start();
@@ -198,6 +219,21 @@ public:
 		{
 			LOG(lvlInfo, QString("%1: Listening on %2:%3")
 				.arg(iAUnityWebsocketServerTool::Name).arg(m_wsServer->serverAddress().toString()).arg(m_wsServer->serverPort()));
+
+			child->splitDockWidget(child->renderDockWidget(), m_clientListDW, Qt::Vertical);
+			m_clientListContainer->setLayout(new QVBoxLayout);
+			m_clientListContainer->layout()->setContentsMargins(0, 0, 0, 0);
+			m_clientListContainer->layout()->setSpacing(1);
+			m_clientListContainer->layout()->addWidget(new QLabel(QString("Listening on %1:%2").
+				arg(m_wsServer->serverAddress().toString()).arg(m_wsServer->serverPort())));
+			QStringList columnNames = QStringList() << "ID" << "Client address" << "Actions";
+			m_clientTable->setColumnCount(static_cast<int>(columnNames.size()));
+			m_clientTable->setHorizontalHeaderLabels(columnNames);
+			m_clientTable->verticalHeader()->hide();
+			//m_clientTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+			m_clientTable->setSelectionMode(QAbstractItemView::SelectionMode::NoSelection);
+			m_clientTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+			m_clientListContainer->layout()->addWidget(m_clientTable);
 			connect(m_wsServer, &QWebSocketServer::newConnection, this,
 				[this, child]
 			{
@@ -205,6 +241,62 @@ public:
 				LOG(lvlInfo, QString("%1: Client connected: %2:%3")
 					.arg(iAUnityWebsocketServerTool::Name).arg(client->peerAddress().toString()).arg(client->peerPort()));
 				auto clientID = m_nextClientID++;  // simplest possible ID assignment: next free ID. Maybe random?
+
+				int clientRow = m_clientTable->rowCount();
+				m_clientTable->insertRow(clientRow);
+				auto idItem = new QTableWidgetItem(QString::number(clientID));
+				idItem->setData(Qt::UserRole, clientID);
+				m_clientTable->setItem(clientRow, iAClientTableColumn::ID, idItem);
+				m_clientTable->setItem(clientRow, iAClientTableColumn::Address, new QTableWidgetItem(client->peerAddress().toString()));
+
+				auto w = new QWidget();
+				w->setLayout(new QHBoxLayout);
+				w->layout()->setContentsMargins(0, 0, 0, 0);
+				w->layout()->setSpacing(1);
+
+				auto syncAction = new QAction("Sync");
+				syncAction->setToolTip("Synchronize Views between this client and this window.");
+				syncAction->setCheckable(true);
+				syncAction->setChecked(false);
+				m_syncActions.insert(std::make_pair(clientID, syncAction));
+				QObject::connect(syncAction, &QAction::toggled, m_clientTable,
+					[this, clientID, syncAction]()
+					{
+						bool checked = syncAction->isChecked();
+						m_syncedClientID = (checked) ? clientID : - 1;
+						for (auto s : m_syncActions)
+						{
+							// disable other actions:
+							if (s.first == clientID)
+							{
+								continue;
+							}
+							QSignalBlocker b(s.second);
+							s.second->setChecked(false);
+						}
+						// trigger sync of last known camera? or just wait for next update...
+					});
+				iAMainWindow::get()->addActionIcon(syncAction, "update");
+				auto syncButton = new QToolButton(w);
+				syncButton->setDefaultAction(syncAction);
+
+				auto disconnectAction = new QAction("Sync");
+				disconnectAction->setToolTip("Synchronize Views between this client and this window.");
+				disconnectAction->setCheckable(true);
+				disconnectAction->setChecked(false);
+				QObject::connect(disconnectAction, &QAction::triggered, m_clientTable,
+				[this, clientID, disconnectAction]()
+				{
+					m_clientSocket[clientID]->close(QWebSocketProtocol::CloseCodeNormal, "Server user manually requested client disconnect.");
+				});
+				iAMainWindow::get()->addActionIcon(disconnectAction, "close");
+				auto disconnectButton = new QToolButton(w);
+				disconnectButton->setDefaultAction(disconnectAction);
+
+				w->layout()->addWidget(syncButton);
+				w->layout()->addWidget(disconnectButton);
+				m_clientTable->setCellWidget(clientRow, iAClientTableColumn::Actions, w);
+
 				m_clientSocket[clientID] = client;
 				m_clientState[clientID] = ClientState::AwaitingProtocolNegotiation;
 				connect(client, &QWebSocket::stateChanged, this, [clientID](QAbstractSocket::SocketState state)
@@ -344,16 +436,16 @@ public:
 							switch (objCommand)
 							{
 							case ObjectCommandType::SetMatrix:
-								processObjectTransform<16>(rcvStream, objID, objCommand);
+								processObjectTransform<16>(rcvStream, clientID, objID, objCommand);
 								break;
 							case ObjectCommandType::AddTranslation:
-								processObjectTransform<3>(rcvStream, objID, objCommand);
+								processObjectTransform<3>(rcvStream, clientID, objID, objCommand);
 								break;
 							case ObjectCommandType::AddScaling:
-								processObjectTransform<3>(rcvStream, objID, objCommand);
+								processObjectTransform<3>(rcvStream, clientID, objID, objCommand);
 								break;
 							case ObjectCommandType::AddRotationQuaternion:
-								processObjectTransform<4>(rcvStream, objID, objCommand);
+								processObjectTransform<4>(rcvStream, clientID, objID, objCommand);
 								break;
 							case ObjectCommandType::AddRotationEuler:
 							{
@@ -444,6 +536,8 @@ public:
 						.arg(client->peerAddress().toString()).arg(client->peerPort()));
 					m_clientSocket.erase(clientID);
 					m_clientState.erase(clientID);
+					m_syncActions.erase(clientID);
+					removeTableEntry(m_clientTable, clientID);
 					client->deleteLater();
 					if (m_dataState == DataState::PendingClientAck) // special handling for if a dataset loading procedure is pending:
 					{
@@ -665,12 +759,21 @@ private:
 	QWebSocketServer* m_wsServer;
 	std::map<quint64, QWebSocket*> m_clientSocket;
 	std::map<quint64, ClientState> m_clientState;
+	std::map<quint64, QAction*> m_syncActions;
 	quint64 m_nextClientID;
 	QThread m_serverThread;
 	//! dataset state: currently a dataset is (1) not loaded (2) being loaded (3) loaded and sent out to clients
 	DataState m_dataState;
 	QString m_dataSetFileName;
 	iAPlaneSliceTool* m_planeSliceTool;
+
+	// for object handling
+//	QTableWidget* m_objectTable;
+
+	QWidget* m_clientListContainer;
+	QTableWidget* m_clientTable;
+	iADockWidgetWrapper* m_clientListDW;
+	int m_syncedClientID;
 };
 
 const QString iAUnityWebsocketServerTool::Name("UnityWebSocketServer");
