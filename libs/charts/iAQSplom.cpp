@@ -296,7 +296,7 @@ iAQSplom::iAQSplom(QWidget * parent):
 	m_settingsDlg->cbColorThemeQual->addItems(iAColorThemeManager::instance().availableThemes());
 	m_settingsDlg->cbColorThemeQual->setCurrentIndex(1); // to avoid "Black" default theme
 	connect(m_settingsDlg->cbColorTheme, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeFromComboBox);
-	connect(m_settingsDlg->cbColorThemeQual, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeQual);
+	connect(m_settingsDlg->cbColorThemeQual, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeQualFromComboBox);
 	m_columnPickMenu = m_contextMenu->addMenu("Columns");
 	connect(m_viewData.get(), &iAScatterPlotViewData::updateRequired, this, QOverload<>::of(&iAChartParentWidget::update));
 	connect(m_viewData.get(), &iAScatterPlotViewData::filterChanged, this, &iAQSplom::updateFilter);
@@ -1223,6 +1223,10 @@ void iAQSplom::updatePlotGridParams()
 		static_cast<int>(( plotsRect[0] - ( visParamCnt - 1 ) * spc - ((m_separationIdx != -1) ? settings.separationMargin : 0) ) / ( (double)visParamCnt )),
 		static_cast<int>(( plotsRect[1] - ( visParamCnt - 1 ) * spc - ((m_separationIdx != -1) ? settings.separationMargin : 0) ) / ( (double)visParamCnt ))
 	);
+	if (visibleParametersCount() == 2)
+	{
+		m_scatPlotSize = QPoint(plotsRect[0], plotsRect[1]);
+	}
 	if (settings.quadraticPlots)
 	{
 		if (m_scatPlotSize.x() < m_scatPlotSize.y())
@@ -1600,16 +1604,17 @@ void iAQSplom::updateLookupTable()
 			break;
 		}
 		case cmByParameter:
-			if (m_settingsDlg->rbContinuous->isChecked())
+			if (settings.colorParameterMode == pmContinuous)
 			{
 				*m_lut.get() = iALUT::Build(lutRange, settings.colorThemeName, 256, alpha);
 			}
-			else if (m_settingsDlg->rbQualitative->isChecked())
+			else if (settings.colorParameterMode == pmQualitative)
 			{
 				m_lut->setRange(lutRange);
-				m_lut->allocate(lutRange[1] - lutRange[0]);
+				size_t numColors = static_cast<int>(std::ceil(lutRange[1] - lutRange[0])) + 1;
+				m_lut->allocate(numColors);
 				auto theme = iAColorThemeManager::instance().theme(settings.colorThemeQualName);
-				for (size_t colorIdx = 0; colorIdx < lutRange[1] - lutRange[0]; ++colorIdx)
+				for (size_t colorIdx = 0; colorIdx < numColors; ++colorIdx)
 				{
 					m_lut->setColor(colorIdx, theme->color(colorIdx % theme->size()));
 				}
@@ -2007,6 +2012,9 @@ void iAQSplom::setColorMode(ColorMode colorMode)
 void iAQSplom::setColorParameterMode(ColorParameterMode paramMode)
 {
 	settings.colorParameterMode = paramMode;
+	QSignalBlocker blockRBContinuous(m_settingsDlg->rbContinuous), blockRBQualitative(m_settingsDlg->rbQualitative);
+	m_settingsDlg->rbContinuous->setChecked(settings.colorParameterMode == pmContinuous);
+	m_settingsDlg->rbQualitative->setChecked(settings.colorParameterMode == pmQualitative);
 	updateColorControls();
 }
 
@@ -2079,9 +2087,13 @@ void iAQSplom::setColorTheme(QString const & themeName)
 	}
 }
 
-void iAQSplom::setColorThemeQual(int index)
+void iAQSplom::setColorThemeQualFromComboBox(int index)
 {
-	QString const themeName = m_settingsDlg->cbColorThemeQual->itemText(index);
+	setColorThemeQual(m_settingsDlg->cbColorThemeQual->itemText(index));
+}
+
+void iAQSplom::setColorThemeQual(QString const & themeName)
+{
 	settings.colorThemeQualName = themeName;
 	if (m_settingsDlg->cbColorThemeQual->currentText() != themeName)
 	{
