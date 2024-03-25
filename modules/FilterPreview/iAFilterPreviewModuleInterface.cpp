@@ -483,6 +483,9 @@ void iAFilterPreviewModuleInterface::filterPreview()
 	currentFilter = iAFilterRegistry::filter(filterName);
 	child = m_mainWnd->activeMdiChild();
 
+	currentFilter->addInput(child->dataSet(child->firstImageDataSetIdx()));
+	/*
+	OPTIONAL:
 	// extract a region from the image:
 	auto inImgLarge = dynamic_cast<iAImageData*>(child->dataSet(child->firstImageDataSetIdx()).get());
 	int dim[3];
@@ -503,6 +506,7 @@ void iAFilterPreviewModuleInterface::filterPreview()
 		inputImg = child->dataSet(child->firstImageDataSetIdx());
 	}
 	currentFilter->addInput(inputImg);
+	*/
 
 	if (filterName.isEmpty())
 	{
