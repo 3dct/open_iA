@@ -1,28 +1,30 @@
 // Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
+
 #include <iAGUIModuleInterface.h>
-#include <QWidget>
-#include "iASlicerImpl.h"
-#include "iAFilter.h" 
-#include <QSlider>
+
+class iADataSet;
+class iAFilter;
+class iASlicerImpl;
+
+class QDialog;
 
 class iAFilterPreviewModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
+public:
+	void Initialize() override;
+private:
 	QDialog* dialog;  // Add this line to declare 'dialog' as a member variable
 	QStringList parameterNames;
 	QList<double> minValues;  // Store the minimum and maximum values of the parameters
 	QList<double> maxValues;
-	QSize mainWindowSize;  // Stores the size of the main window
 	int slicerWidth;       // Stores the calculated width for slicers
 	int slicerHeight;      // Stores the calculated height for slicers
 	std::shared_ptr<iAFilter> currentFilter;
-	QList<QSlider*> sliders; 
+	std::shared_ptr<iADataSet> inputImg;
 	iAMdiChild* child;
-
-public:
-	void Initialize() override;
 private slots:
 	void filterPreview();
 	void openSplitView(iASlicerImpl* slicer, const QVariantMap& originalParamValues);
