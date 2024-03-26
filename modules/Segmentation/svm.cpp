@@ -2046,9 +2046,11 @@ static double predict_one_class_probability(const svm_model *model, double dec_v
 
 static int compare_double(const void *a, const void *b)
 {
-	if(*(double *)a > *(double *)b)
+	auto x = *static_cast<double const *>(a);
+	auto y = *static_cast<double const *>(b);
+	if (x > y)
 		return 1;
-	else if(*(double *)a < *(double *)b)
+	else if (x < y)
 		return -1;
 	return 0;
 }
