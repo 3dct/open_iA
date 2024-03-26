@@ -11,6 +11,7 @@ This draft was created with the assumption that message lengths are not known.
 ## Byte Order
 
 If not specified otherwise, values in a column are **8-bit**.  
+If not specified otherwise, values are unsigned.  
 All bytes are sent in **Big Endian**, because most programming languages, independent of hardware, represent multi-byte types (integer, long, etc.) in Big Endian to the programmer.
 
 Example:  
@@ -56,6 +57,9 @@ A protocol advertisement message looks as follows:
 ## Client Login
 
 When a Client connects, the Server must assign them an ID. The ID generation algorithm is up to the Server, altought it has to be unique for all currently connected clients.
+
+> [!NOTE]
+> Client ID is not yet used anywhere.
 
 Server &rarr; Client
 
@@ -115,6 +119,22 @@ stateDiagram-v2
     L --> [*]
 ```
 
+If the server sends a load dataset command, because of network latency, it is possible for the clients to send other commands of their own while not having received the load command.  
+In this case, the server will buffer these commands and replay them after the loading is done.
+
+This sequence of operations might introduce race conditions in case a new client connects, or an existing client disconnects while dataset loading is in progress.
+
+#### Client connects
+
+If a dataset is loaded or currently loading and a client tries to connect, immediately send a load dataset to the client, even if the loading is not done yet.  
+If ACK comes back, the client is synchronized.  
+IF NAK comes back, disconnect the client, as it can not synchronize and would desync the network.
+
+#### Client disconnects
+
+In case a client disconnects, it is assumed to have sent ACK, as it should not stop other clients from loading the dataset.  
+If all clients are disconnected, the server is on its own and will always assume ACK. The server can then operate offline.
+
 ## Objects
 
 > [!WARNING]
@@ -122,6 +142,8 @@ stateDiagram-v2
 
 > [!IMPORTANT]
 > All transformation operations currently take **floats**. If **double** operations are needed, we can add them later.
+
+Manipulation of position, rotation and scale values of objects, are sent to the server which sends it to all other clients (not to the sending client). The sending client does not wait for a response.
 
 Current List of fixed IDs:
 |ID|Object|
