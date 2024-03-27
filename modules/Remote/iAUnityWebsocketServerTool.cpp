@@ -210,7 +210,7 @@ class iAUnityWebsocketServerToolImpl: public QObject
 {
 private:
 	template <std::size_t N>
-	void processObjectTransform(QDataStream& rcvStream, quint64 clientID, quint64 objID, ObjectCommandType objCmdType)
+	void processObjectTransform(QDataStream& rcvStream, quint64 clientID, quint64 objID, ObjectCommandType objCmdType, iAMdiChild* child)
 	{
 		std::array<float, N> values{};
 		readArray(rcvStream, values);
@@ -220,11 +220,69 @@ private:
 		QDataStream outStream(&outData, QIODevice::WriteOnly);
 		outStream << MessageType::Object << objCmdType << objID;
 		writeArray<N>(outStream, values);
-		broadcastMsg(outData);
+		broadcastMsg(outData, clientID);
 
 		if (clientID == m_syncedClientID)	// if sync enabled, apply to local objects:
 		{
-			// TODO: local application!
+			// hard-coded object IDs for now:
+			if (objID == 0)    // 0 -> Object (dataset)
+			{
+				auto renderer = child->dataSetViewer(child->firstImageDataSetIdx())->renderer();
+				auto prop = renderer->vtkProp();
+				switch (objCmdType)
+				{
+				case ObjectCommandType::SetMatrix:
+				{
+					vtkNew<vtkTransform> tr;
+					assert(N == 16);
+					std::array<double, N> matrix;
+					std::copy(values.begin(), values.end(), matrix.begin());
+					tr->SetMatrix(matrix.data());
+					prop->SetUserTransform(tr);
+					break;
+				}
+				case ObjectCommandType::AddScaling:
+				{
+					double scale[3];
+					prop->GetScale(scale);
+					for (int i = 0; i < 3; ++i)
+					{
+						scale[i] += values[i];
+					}
+					prop->SetScale(scale);
+					break;
+				}
+				case ObjectCommandType::AddTranslation:
+				{
+					double pos[3];
+					prop->GetPosition(pos);
+					for (int i = 0; i < 3; ++i)
+					{
+						pos[i] += values[i];
+					}
+					prop->SetPosition(pos);
+					break;
+				}
+				case ObjectCommandType::AddRotationEuler:
+				{
+					double angles[3];
+					prop->GetOrientation(angles);
+					for (int i = 0; i < 3; ++i)
+					{
+						angles[i] += values[i];
+					}
+					prop->SetOrientation(angles);
+					break;
+				}
+				}
+			}
+			// objID = 1 -> Slicing plane
+			else
+			{
+			//	m_planeSliceTool->setMatrix(values); ???
+			}
+
+			child->updateRenderer();
 		}
 	}
 
@@ -480,16 +538,16 @@ public:
 							switch (objCommand)
 							{
 							case ObjectCommandType::SetMatrix:
-								processObjectTransform<16>(rcvStream, clientID, objID, objCommand);
+								processObjectTransform<16>(rcvStream, clientID, objID, objCommand, child);
 								break;
 							case ObjectCommandType::AddTranslation:
-								processObjectTransform<3>(rcvStream, clientID, objID, objCommand);
+								processObjectTransform<3>(rcvStream, clientID, objID, objCommand, child);
 								break;
 							case ObjectCommandType::AddScaling:
-								processObjectTransform<3>(rcvStream, clientID, objID, objCommand);
+								processObjectTransform<3>(rcvStream, clientID, objID, objCommand, child);
 								break;
 							case ObjectCommandType::AddRotationQuaternion:
-								processObjectTransform<4>(rcvStream, clientID, objID, objCommand);
+								processObjectTransform<4>(rcvStream, clientID, objID, objCommand, child);
 								break;
 							case ObjectCommandType::AddRotationEuler:
 							{
@@ -502,7 +560,7 @@ public:
 								QByteArray outData;
 								QDataStream outStream(&outData, QIODevice::WriteOnly);
 								outStream << MessageType::Object << objCommand << objID << axis << value;
-								broadcastMsg(outData);
+								broadcastMsg(outData, clientID);
 								// TODO: local application!
 								break;
 							}
@@ -616,10 +674,14 @@ public:
 
 private:
 
-	void broadcastMsg(QByteArray const& b)
+	void broadcastMsg(QByteArray const& b, quint64 exceptClientID = -1)
 	{
 		for (auto c : m_clientSocket)
 		{
+			if (c.first == exceptClientID)
+			{
+				continue;
+			}
 			c.second->sendBinaryMessage(b);
 		}
 	}
