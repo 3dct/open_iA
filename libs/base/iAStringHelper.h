@@ -78,6 +78,20 @@ struct iAConverter<double>
 	}
 };
 
+//! Converts float to and from QString.
+template <>
+struct iAConverter<float>
+{
+	static float toT(QString str, bool* ok)
+	{
+		return str.toFloat(ok);
+	}
+	static QString toString(float n)
+	{
+		return QString::number(n);
+	}
+};
+
 //! Converts bool to and from QString.
 template <>
 struct iAConverter<bool>
@@ -138,6 +152,21 @@ QString arrayToString(T const * arr, size_t size, QString const & sep = " ")
 	{
 		result += iAConverter<T>::toString(arr[i]);
 		if (i < size - 1)
+		{
+			result += sep;
+		}
+	}
+	return result;
+}
+
+template <typename T, size_t N>
+QString arrayToString(std::array<T, N> ar, QString const& sep = ", ")
+{
+	QString result;
+	for (int i = 0; i < N; ++i)
+	{
+		result += QString::number(ar[i]);
+		if (i < N - 1)
 		{
 			result += sep;
 		}
