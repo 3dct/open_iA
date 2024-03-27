@@ -7,10 +7,17 @@
 #include "iATypedCallHelper.h"
 #include "iAExtendedTypedCallHelper.h"
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
+#endif
 #include <itkImage.h>
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 #include <itkImageIOFactory.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #include <QString>
 

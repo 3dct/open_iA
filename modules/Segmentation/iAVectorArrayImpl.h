@@ -8,7 +8,14 @@
 
 #include <iAImageCoordinate.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
+#endif
 #include <itkImage.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>
