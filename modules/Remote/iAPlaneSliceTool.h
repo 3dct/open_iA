@@ -29,7 +29,7 @@ class iASnapshotInfo
 {
 public:
 	std::array<float, 3> position;
-	std::array<float, 4> rotation;
+	std::array<float, 3> normal;
 };
 
 Q_DECLARE_METATYPE(iASnapshotInfo);
@@ -69,22 +69,6 @@ private:
 	std::map<quint64, iASnapshotInfo> m_snapshots;
 	quint64 m_nextSnapshotID;
 };
-
-// TODO: generalize / move to e.g. iAStringHelper? 
-template <typename T, size_t N>
-QString array2string(std::array<T, N> ar)
-{
-	QString result;
-	for (int i = 0; i < N; ++i)
-	{
-		result += QString::number(ar[i]);
-		if (i < N - 1)
-		{
-			result += QString(", ");
-		}
-	}
-	return result;
-}
 
 // TODO: better generalization / move to some common qt table widget helper file:
 bool removeTableEntry(QTableWidget* tw, quint64 id);

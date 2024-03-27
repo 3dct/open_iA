@@ -13,9 +13,11 @@
 
 #include <iAAABB.h>
 #include <iALog.h>
+#include <iAStringHelper.h>
 
 #include <vtkMath.h>
 #include <vtkProp3D.h>
+#include <vtkQuaternion.h>
 #include <vtkTransform.h>
 
 #include <QBoxLayout>
@@ -160,6 +162,48 @@ namespace
 			LOG(lvlWarn, QString("  Expected %1 but wrote %2 bytes!").arg(expectedBytes).arg(actualBytes));
 		}
 	}
+
+	template <typename T>
+	std::array<T, 3> applyRotationToVector(std::array<T, 3> vec, std::array<T, 4> quatData)
+	{
+		vtkQuaternion<T> quat;
+		quat.Set(quatData.data());
+		auto normQuat = quat.Normalized();
+		std::array<T, 3> result;
+		vtkMath::RotateVectorByNormalizedQuaternion(vec.data(), normQuat.GetData(), result.data());
+		return result;
+	}
+
+	template <typename T>
+	std::array<T, 4> getRotationQuaternionFromVectors(std::array<T, 3> vec1, std::array<T, 3> vec2)
+	{
+		// source: https://public.kitware.com/pipermail/vtkusers/2011-December/071790.html
+		T vec[3];
+		vtkMath::Cross(vec1, vec2, vec);
+		T costheta = vtkMath::Dot(vec1, vec2);
+		T sintheta = vtkMath::Norm(vec);
+		T theta = atan2(sintheta, costheta);
+		if (sintheta != 0)
+		{
+			vec[0] /= sintheta;
+			vec[1] /= sintheta;
+			vec[2] /= sintheta;
+		}
+		// convert to quaternion
+		costheta = cos(0.5 * theta);
+		sintheta = sin(0.5 * theta);
+		std::array<T, 4> quat = {
+			costheta,
+			vec[0] * sintheta, vec[1] * sintheta, vec[2] * sintheta
+		};
+		LOG(lvlInfo, QString("Plane: normal=(%2), quat=%3")
+			.arg(arrayToString(vec2))
+			.arg(arrayToString(quat))
+		);
+		return quat;
+	}
+
+	std::array<float, 3> DefaultPlaneNormal = { 0, 0, 1 };
 }
 
 class iAUnityWebsocketServerToolImpl: public QObject
@@ -171,7 +215,7 @@ private:
 		std::array<float, N> values{};
 		readArray(rcvStream, values);
 		LOG(lvlInfo, QString("  Object command=%1 received for object ID=%2 with values of %3; broadcasting!")
-			.arg(static_cast<int>(objCmdType)).arg(objID).arg(array2string(values)));
+			.arg(static_cast<int>(objCmdType)).arg(objID).arg(arrayToString(values)));
 		QByteArray outData;
 		QDataStream outStream(&outData, QIODevice::WriteOnly);
 		outStream << MessageType::Object << objCmdType << objID;
@@ -484,7 +528,9 @@ public:
 							{
 								iASnapshotInfo info{};
 								readArray(rcvStream, info.position);
-								readArray(rcvStream, info.rotation);
+								std::array<float, 4> rotation;
+								readArray(rcvStream, rotation);
+								info.normal = applyRotationToVector(DefaultPlaneNormal, rotation);
 								auto snapshotID = m_planeSliceTool->addSnapshot(info);
 								addSnapshot(snapshotID, info);
 								break;
@@ -580,13 +626,14 @@ private:
 
 	void addSnapshot(quint64 snapshotID, iASnapshotInfo info)
 	{
-		LOG(lvlInfo, QString("  New snapshot, ID=%1; position=%2, rotation=%3")
-			.arg(snapshotID).arg(array2string(info.position)).arg(array2string(info.rotation)));
+		LOG(lvlInfo, QString("  New snapshot, ID=%1; position=%2, normal=%3")
+			.arg(snapshotID).arg(arrayToString(info.position)).arg(arrayToString(info.normal)));
 		QByteArray outData;
 		QDataStream stream(&outData, QIODevice::WriteOnly);
 		stream << MessageType::Snapshot << SnapshotCommandType::Create << snapshotID;
 		writeArray(stream, info.position);
-		writeArray(stream, info.rotation);
+		auto quat = getRotationQuaternionFromVectors(DefaultPlaneNormal, info.normal);
+		writeArray(stream, quat);
 		broadcastMsg(outData);
 	}
 
