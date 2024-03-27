@@ -41,6 +41,7 @@
 #include <QBoxLayout>
 #include <QHeaderView>
 #include <QMessageBox>
+#include <QSettings>
 #include <QTableWidget>
 #include <QToolButton>
 
@@ -101,6 +102,11 @@ namespace
 		Normal,
 		Delete
 	};
+}
+
+std::shared_ptr<iATool> iAPlaneSliceTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
+{
+	return std::make_shared<iAPlaneSliceTool>(mainWnd, child);
 }
 
 iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
@@ -259,6 +265,52 @@ iAPlaneSliceTool::~iAPlaneSliceTool()
 {
 	delete m_listDW;
 	delete m_sliceDW;
+}
+
+namespace
+{
+	QString const ProjectSnapshotCount("SnapshotCount");
+	QString const ProjectSnapshotBase("Snapshot%1");
+	QString const ProjectValuesSeparator(";");
+}
+
+void iAPlaneSliceTool::loadState(QSettings& projectFile, QString const& fileName)
+{
+	Q_UNUSED(fileName);
+	auto count = projectFile.value(ProjectSnapshotCount, 0).toInt();
+	for (int s = 0; s < count; ++s)
+	{
+		auto key = ProjectSnapshotBase.arg(s);
+		auto str = projectFile.value(key, "").toString();
+		auto parts = str.split(ProjectValuesSeparator);
+		if (parts.size() != 3)
+		{
+			LOG(lvlError, QString("Invalid snapshot spec in entry %1: %2").arg(s).arg(str));
+			continue;
+		}
+		// ID (parts[0]) currently ignored
+		iASnapshotInfo info;
+		if (!stringToArray(parts[1], info.position) || !stringToArray(parts[2], info.normal))
+		{
+			LOG(lvlError, QString("Invalid snapshot spec in entry %1: %2 - could not extract position or rotation array!").arg(s).arg(str));
+			continue;
+		}
+		addSnapshot(info);
+	}
+}
+
+void iAPlaneSliceTool::saveState(QSettings& projectFile, QString const& fileName)
+{
+	Q_UNUSED(fileName);
+	projectFile.setValue(ProjectSnapshotCount, m_snapshots.size());
+	int storeID = 0;
+	for (auto const & s: m_snapshots)
+	{
+		projectFile.setValue(ProjectSnapshotBase.arg(storeID),
+			QString::number(s.first) + ProjectValuesSeparator + arrayToString(s.second.position) + ProjectValuesSeparator + arrayToString(s.second.normal)
+		);
+		++storeID;
+	}
 }
 
 quint64 iAPlaneSliceTool::addSnapshot(iASnapshotInfo info)

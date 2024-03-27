@@ -46,16 +46,22 @@ class iAPlaneSliceTool : public QObject, public iATool
 	Q_OBJECT
 public:
 	static const QString Name;
+	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child);
 	iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child);
+	~iAPlaneSliceTool();
+	void loadState(QSettings& projectFile, QString const& fileName) override;
+	void saveState(QSettings& projectFile, QString const& fileName) override;
+
 	quint64 addSnapshot(iASnapshotInfo info);
 	void removeSnapshot(quint64 id);
 	void clearSnapshots();
 	void moveSlice(quint64 id, iAMoveAxis axis, float value);
-	~iAPlaneSliceTool();
+
 signals:
 	void snapshotRemoved(quint64 id);
 	void snapshotAdded(quint64 id, iASnapshotInfo const & info);
 	void snapshotsCleared();
+
 private:
 	void updateSlice();
 
