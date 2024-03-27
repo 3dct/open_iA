@@ -348,6 +348,7 @@ quint64 iAPlaneSliceTool::addSnapshot(iASnapshotInfo info)
 	w->layout()->addWidget(removeButton);
 
 	m_snapshotTable->setCellWidget(row, static_cast<int>(TableColumn::Delete), w);
+	QSignalBlocker b(m_snapshotTable);
 	m_snapshotTable->selectRow(row);
 	m_snapshotTable->resizeColumnsToContents();
 	return id;
