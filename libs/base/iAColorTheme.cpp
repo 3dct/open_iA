@@ -312,7 +312,7 @@ iAColorThemeManager::iAColorThemeManager()
 	DVLColors->addColor(QColor(160, 82, 45));
 	m_themes.insert(DVLColors->name(), DVLColors);
 
-	iAVectorColorTheme* brewerQual1 = new iAVectorColorTheme("Brewer Qualitaive 1 (max. 8)");
+	iAVectorColorTheme* brewerQual1 = new iAVectorColorTheme("Brewer Qualitative 1 (max. 8)");
 	brewerQual1->addColor(QColor(27, 158, 119));
 	brewerQual1->addColor(QColor(217, 95, 2));
 	brewerQual1->addColor(QColor(117, 112, 179));

@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-// Qt
-#include <QFile>
+#include <QString>
 
 class iAMhdFileInfo
 {
@@ -15,7 +14,6 @@ public:
 protected:
 	void		parseFile( QString fileName );
 
-	QFile		m_file;
 	double		m_dimSize[3];
 	double		m_elemSpacing[3];
 };

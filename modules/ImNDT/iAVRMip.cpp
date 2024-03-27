@@ -25,6 +25,7 @@ void iAVRMip::addColorLegend(iAVRColorLegend* colorLegend)
 	m_colorLegend = colorLegend;
 }
 
+/*
 void iAVRMip::createMIPPanels(int octreeLevel, int feature, std::vector<std::vector<std::vector<double>>> const & calculatedValues)
 {
 	int gridSize = pow(2, octreeLevel);
@@ -76,8 +77,9 @@ void iAVRMip::createMIPPanels(int octreeLevel, int feature, std::vector<std::vec
 
 	m_renderer->AddActor(m_mipPanel);
 }
+*/
 
-void iAVRMip::createSingleMIPPanel(int octreeLevel, int feature, int viewDir, double physicalScale, std::vector<std::vector<std::vector<double>>> const & calculatedValues)
+void iAVRMip::createSingleMIPPanel(vtkIdType octreeLevel, vtkIdType feature, int viewDir, double physicalScale, std::vector<std::vector<std::vector<double>>> const & calculatedValues)
 {
 	hideMIPPanels();
 
@@ -131,7 +133,7 @@ void iAVRMip::hideMIPPanels()
 	m_renderer->RemoveActor(m_mipPanel);
 }
 
-std::vector<QColor> iAVRMip::calculateMIPColoring(int direction, int level, int feature, std::vector<std::vector<std::vector<double>>> const & calculatedValues)
+std::vector<QColor> iAVRMip::calculateMIPColoring(int direction, vtkIdType level, vtkIdType feature, std::vector<std::vector<std::vector<double>>> const & calculatedValues)
 {
 	size_t gridSize = pow(2, level);
 	std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>> const & regionsInLine = m_octrees.at(level)->getRegionsInLineOfRay();

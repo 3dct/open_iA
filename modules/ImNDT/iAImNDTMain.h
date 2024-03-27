@@ -108,7 +108,7 @@ private:
 	iAVROctreeMetrics* m_fiberMetrics;
 	iAVRHistogramMetric* m_histogramMetrics;
 	iAVRHistogramPairVis* m_distributionVis;
-	int m_currentFeature;
+	vtkIdType m_currentFeature;
 	int m_currentMiMDisplacementType;
 	std::vector<vtkIdType> m_multiPickIDs;
 	//! Current Device Position
@@ -156,7 +156,7 @@ private:
 	//! Picks all fibers in the region clicked by the user.
 	void pickFibersinRegion(double eventPosition[3], double eventOrientation[4]);
 	//! Picks all fibers in the octree region defined by the leaf node ID.
-	void pickFibersinRegion(int leafRegion);
+	void pickFibersinRegion(vtkIdType leafRegion);
 	void pickMimRegion(double eventPosition[3], double eventOrientation[4]);
 	//! Methods ends the multi picking mode and renders selection
 	void multiPickMiMRegion();

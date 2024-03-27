@@ -24,8 +24,8 @@ public:
 	void showRegionLinks();
 	void hideRegionLinks();
 	vtkSmartPointer<vtkActor> getVolumeActor();
-	double* getCubePos(int region);
-	double getCubeSize(int region);
+	double* getCubePos(vtkIdType region);
+	double getCubeSize(vtkIdType region);
 	//! Colors the cube nodes with the given region IDs with a given color
 	//! Both vectors must have equal length
 	void setNodeColor(std::vector<vtkIdType> const & regions, std::vector<QColor> const & color);

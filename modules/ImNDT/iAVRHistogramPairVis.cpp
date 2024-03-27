@@ -59,7 +59,7 @@ void iAVRHistogramPairVis::initialize()
 	barColorR2 = QColor(208, 28, 139);
 }
 
-void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, double offset, int level, std::vector<vtkIdType> const & regions, std::vector<int> const& featureList)
+void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, double offset, vtkIdType level, std::vector<vtkIdType> const & regions, std::vector<int> const& featureList)
 {
 	if (regions.size() < 2)
 	{
