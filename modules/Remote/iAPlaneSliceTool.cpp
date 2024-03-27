@@ -40,6 +40,7 @@
 #include <QApplication>
 #include <QBoxLayout>
 #include <QHeaderView>
+#include <QLabel>
 #include <QMessageBox>
 #include <QSettings>
 #include <QTableWidget>
@@ -109,21 +110,33 @@ std::shared_ptr<iATool> iAPlaneSliceTool::create(iAMainWindow* mainWnd, iAMdiChi
 	return std::make_shared<iAPlaneSliceTool>(mainWnd, child);
 }
 
+template<typename Layout>
+QWidget* createContainerWidget(int spacing)
+{
+	auto w = new QWidget();
+	w->setLayout(new Layout);
+	w->layout()->setContentsMargins(0, 0, 0, 0);
+	w->layout()->setSpacing(spacing);
+	return w;
+}
+
 iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iATool(mainWnd, child),
 	m_sliceWidget(new iAQVTKWidget(child)),
-	m_listContainerWidget(new QWidget(child)),
+	m_snapshotTable(new QTableWidget),
+	m_curPosLabel(new QLabel),
 	m_sliceDW(new iADockWidgetWrapper(m_sliceWidget, "Arbitrary Slice", "ArbitrarySliceViewer")),
-	m_listDW(new iADockWidgetWrapper(m_listContainerWidget, "Snapshot List", "SnapshotList")),
+	
 	m_planeWidget(vtkSmartPointer<iAvtkPlaneWidget>::New()),
 	m_reslicer(vtkSmartPointer<vtkImageResliceMapper>::New()),
 	m_imageSlice(vtkSmartPointer<vtkImageSlice>::New()),
 	m_nextSnapshotID(1)
 {
-	m_listContainerWidget->setLayout(new QHBoxLayout);
-	m_listContainerWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	m_listContainerWidget->layout()->setSpacing(1);
-	m_snapshotTable = new QTableWidget;
+	auto dwWidget = createContainerWidget<QVBoxLayout>(1);
+	m_listDW = new iADockWidgetWrapper(dwWidget, "Snapshot List", "SnapshotList");
+	dwWidget->layout()->addWidget(m_curPosLabel);
+	auto listWidget = createContainerWidget<QHBoxLayout>(1);
+
 	QStringList columnNames = QStringList() << "ID" << "Position" << "Normal" << "Delete";
 	m_snapshotTable->setColumnCount(static_cast<int>(columnNames.size()));
 	m_snapshotTable->setHorizontalHeaderLabels(columnNames);
@@ -134,7 +147,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	m_snapshotTable->resizeColumnsToContents();
 	connect(m_snapshotTable, &QTableWidget::itemSelectionChanged, this, [this, child]()
 	{
-		auto row = m_snapshotTable->currentIndex().row();
+		auto row = m_snapshotTable->currentRow();
 		if (row < 0)
 		{
 			return;
@@ -151,13 +164,12 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 		{
 			LOG(lvlWarn, QString("Invalid normal %1 in row %2!").arg(normItem->text()).arg(row));
 		}
-		LOG(lvlInfo, QString("Setting plane to position=%1, normal=%2.").arg(arrayToString(pos)).arg(arrayToString(norm)));
 		m_planeWidget->SetCenter(pos.data());
 		m_planeWidget->SetNormal(norm.data());
 		child->updateRenderer();
 		updateSlice();
 	});
-	m_listContainerWidget->layout()->addWidget(m_snapshotTable);
+	listWidget->layout()->addWidget(m_snapshotTable);
 
 	auto buttonContainer = new QWidget();
 	buttonContainer->setLayout(new QVBoxLayout);
@@ -199,7 +211,8 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	buttonContainer->layout()->addWidget(clearButton);
 	buttonContainer->setMinimumWidth(20);
 
-	m_listContainerWidget->layout()->addWidget(buttonContainer);
+	listWidget->layout()->addWidget(buttonContainer);
+	dwWidget->layout()->addWidget(listWidget);
 
 	auto ds = child->firstImageDataSetIdx();
 	if (ds == iAMdiChild::NoDataSet)
@@ -259,7 +272,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 			void* vtkNotUsed(callData))
 		{
 			auto tool = reinterpret_cast<iAPlaneSliceTool*>(clientData);
-			tool->updateSlice();
+			tool->updateSliceFromUser();
 		});
 	modifiedCallback->SetClientData(this);
 	m_planeWidget->AddObserver(vtkCommand::InteractionEvent, modifiedCallback);
@@ -330,10 +343,7 @@ quint64 iAPlaneSliceTool::addSnapshot(iASnapshotInfo info)
 	m_snapshotTable->setItem(row, static_cast<int>(TableColumn::Position), new QTableWidgetItem(arrayToString(info.position)));
 	m_snapshotTable->setItem(row, static_cast<int>(TableColumn::Normal), new QTableWidgetItem(arrayToString(info.normal)));
 
-	auto w = new QWidget();
-	w->setLayout(new QHBoxLayout);
-	w->layout()->setContentsMargins(0, 0, 0, 0);
-	w->layout()->setSpacing(1);
+	auto actionContainer = createContainerWidget<QHBoxLayout>(1);
 	auto removeAction = new QAction("Remove");
 	removeAction->setToolTip("Remove snapshot.");
 	QObject::connect(removeAction, &QAction::triggered, m_snapshotTable,
@@ -343,11 +353,11 @@ quint64 iAPlaneSliceTool::addSnapshot(iASnapshotInfo info)
 			emit snapshotRemoved(id);
 		});
 	iAMainWindow::get()->addActionIcon(removeAction, "delete");
-	auto removeButton = new QToolButton(w);
+	auto removeButton = new QToolButton(actionContainer);
 	removeButton->setDefaultAction(removeAction);
-	w->layout()->addWidget(removeButton);
+	actionContainer->layout()->addWidget(removeButton);
 
-	m_snapshotTable->setCellWidget(row, static_cast<int>(TableColumn::Delete), w);
+	m_snapshotTable->setCellWidget(row, static_cast<int>(TableColumn::Delete), actionContainer);
 	QSignalBlocker b(m_snapshotTable);
 	m_snapshotTable->selectRow(row);
 	m_snapshotTable->resizeColumnsToContents();
@@ -375,10 +385,23 @@ void iAPlaneSliceTool::moveSlice(quint64 /*id*/, iAMoveAxis /*axis*/, float /*va
 void iAPlaneSliceTool::updateSlice()
 {
 	auto cam = m_sliceWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+	std::array<double, 3> pos, normal;
+	m_planeWidget->GetCenter(pos.data());
+	m_planeWidget->GetNormal(normal.data());
+	m_curPosLabel->setText(QString("Plane position=(%1), normal=(%2)").arg(arrayToString(pos)).arg(arrayToString(normal)));
 	transferPlaneParamsToCamera(cam, m_planeWidget);
 	m_sliceWidget->interactor()->Render();
 }
 
+void iAPlaneSliceTool::updateSliceFromUser()
+{
+	updateSlice();
+	if (m_snapshotTable->currentRow() != -1)
+	{
+		QSignalBlocker b(m_snapshotTable);
+		m_snapshotTable->setCurrentCell(-1, -1);
+	}
+}
 
 const QString iAPlaneSliceTool::Name("Arbitrary Slice Plane");
 

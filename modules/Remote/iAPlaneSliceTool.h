@@ -22,6 +22,7 @@ class iAMainWindow;
 class iAMdiChild;
 class iAQVTKWidget;
 
+class QLabel;
 class QTableWidget;
 class QWidget;
 
@@ -64,10 +65,11 @@ signals:
 
 private:
 	void updateSlice();
+	void updateSliceFromUser();
 
 	iAQVTKWidget* m_sliceWidget;
-	QWidget* m_listContainerWidget;
 	QTableWidget* m_snapshotTable;
+	QLabel* m_curPosLabel;
 	iADockWidgetWrapper * m_sliceDW, * m_listDW;
 	vtkSmartPointer<iAvtkPlaneWidget> m_planeWidget;
 	vtkSmartPointer<vtkImageResliceMapper> m_reslicer;
