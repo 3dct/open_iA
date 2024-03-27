@@ -128,7 +128,7 @@ iAbase_API QString quoteString(QString const & str);
 
 //! Convert a given string representation to an array of given type with given number of elements
 template <typename ValT, typename ContainerT>
-bool stringToArray(QString const & str, ContainerT& arr, int expectedSize, QString const & sep = " ")
+bool stringToArray(QString const & str, ContainerT arr, int expectedSize, QString const & sep = " ")
 {
 	QStringList list = str.split(sep);
 	for (QStringList::size_type i = 0; i < expectedSize && i < list.size(); ++i)
@@ -160,18 +160,15 @@ QString arrayToString(T const * arr, size_t size, QString const & sep = " ")
 }
 
 template <typename T, size_t N>
-QString arrayToString(std::array<T, N> ar, QString const& sep = ", ")
+bool stringToArray(QString const& str, std::array<T, N>& ar, QString const& sep = ", ")
 {
-	QString result;
-	for (int i = 0; i < N; ++i)
-	{
-		result += QString::number(ar[i]);
-		if (i < N - 1)
-		{
-			result += sep;
-		}
-	}
-	return result;
+	return stringToArray<T>(str, ar.data(), N, sep);
+}
+
+template <typename T, size_t N>
+QString arrayToString(std::array<T, N> const & ar, QString const& sep = ", ")
+{
+	return arrayToString(ar.data(), N, sep);
 }
 
 //! Split a string with multiple values, and put values into a container.
