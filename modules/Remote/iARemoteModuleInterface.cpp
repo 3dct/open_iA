@@ -7,10 +7,12 @@
 #include "iARemoteTool.h"
 #include "iAUnityWebsocketServerTool.h"
 
-#include <iALog.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
 #include <iAToolHelper.h>    // for addToolToActiveMdiChild, addToolAction
+#include <iAToolRegistry.h>
+
+#include <iALog.h>
 
 void iARemoteModuleInterface::Initialize()
 {
@@ -18,6 +20,7 @@ void iARemoteModuleInterface::Initialize()
 	{
 		return;
 	}
+	iAToolRegistry::addTool(iAPlaneSliceTool::Name, iAPlaneSliceTool::create);
 
 	auto submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Remote"), false);
 
