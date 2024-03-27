@@ -7,7 +7,7 @@
 #include <vtkTable.h>
 #include <vtkVariant.h>
 
-int iAVRMetrics::numberOfFeatures = 0;
+vtkIdType iAVRMetrics::numberOfFeatures = 0;
 std::vector<std::vector<double>>* iAVRMetrics::m_minMaxValues = nullptr;
 
 iAVRMetrics::iAVRMetrics(vtkTable* objectTable, std::vector<iAVROctree*> const & octrees) :
@@ -34,7 +34,7 @@ void iAVRMetrics::setFiberCoverageData(std::vector<std::vector<std::unordered_ma
 }
 
 //! Returns the number of features stored in the .csv
-int iAVRMetrics::getNumberOfFeatures()
+vtkIdType iAVRMetrics::getNumberOfFeatures()
 {
 	return numberOfFeatures;
 }
@@ -67,7 +67,7 @@ void iAVRMetrics::storeMinMaxValues()
 
 	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
 	{
-		for (int feature = 0; feature < numberOfFeatures; feature++)
+		for (vtkIdType feature = 0; feature < numberOfFeatures; feature++)
 		{
 			//double currentValue = m_objectTable->GetColumn(feature)->GetVariantValue(row).ToFloat();
 			//double currentValue = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(feature)).ToFloat();
@@ -89,7 +89,7 @@ void iAVRMetrics::storeMinMaxValues()
 			}
 		}
 	}
-	for (int feature = 0; feature < numberOfFeatures; feature++)
+	for (vtkIdType feature = 0; feature < numberOfFeatures; feature++)
 	{
 		std::vector<double> tempVec = std::vector<double>();
 		tempVec.push_back(minAttribute[feature]);

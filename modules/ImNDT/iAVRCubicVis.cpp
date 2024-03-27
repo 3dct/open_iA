@@ -143,7 +143,7 @@ vtkIdType iAVRCubicVis::getClosestCellID(double pos[3], double eventOrientation[
 	return -1;
 }
 
-void iAVRCubicVis::setCubeColor(QColor col, int regionID)
+void iAVRCubicVis::setCubeColor(QColor col, vtkIdType regionID)
 {
 	unsigned char rgb[4] = { static_cast<unsigned char>(col.red()), static_cast<unsigned char>(col.green()), static_cast<unsigned char>(col.blue()), static_cast<unsigned char>(col.alpha()) };
 

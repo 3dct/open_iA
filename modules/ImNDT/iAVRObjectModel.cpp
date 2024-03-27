@@ -109,12 +109,12 @@ vtkSmartPointer<vtkActor> iAVRObjectModel::getVolumeActor()
 	return m_volumeActor;
 }
 
-double* iAVRObjectModel::getCubePos(int region)
+double* iAVRObjectModel::getCubePos(vtkIdType region)
 {
 	return m_cubePolyData->GetPoint(region);
 }
 
-double iAVRObjectModel::getCubeSize(int region)
+double iAVRObjectModel::getCubeSize(vtkIdType region)
 {
 	return m_nodeGlyphScales->GetTuple3(region)[0];
 }

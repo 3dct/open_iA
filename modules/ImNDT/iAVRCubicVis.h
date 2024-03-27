@@ -39,7 +39,7 @@ public:
 	vtkIdType getClosestCellID(double pos[3], double eventOrientation[3]);
 	//! Sets the color (rgba) of one cube in the Miniature Model. The other colors stay the same.
 	//! The region ID of the octree is used
-	void setCubeColor(QColor col, int regionID);
+	void setCubeColor(QColor col, vtkIdType regionID);
 	//! Colors the whole miniature model with the given vector of rgba values ( between 0.0 and 1.0)
 	//! Resets the current color of all cubes with the new colors!
 	void applyHeatmapColoring(std::vector<QColor> const & colorPerRegion);

@@ -461,7 +461,7 @@ void iAImNDTMain::addPropToOptionID(vtkProp3D* prop, iAVRInteractionOptions iD)
 
 void iAImNDTMain::generateOctrees(int maxLevel, int maxPointsPerRegion, vtkPolyData* dataSet)
 {
-	int lastLeafNodeAmount = 0;
+	vtkIdType lastLeafNodeAmount = 0;
 	for(auto level = 0; level <= maxLevel; level++)
 	{
 		iAVROctree* tempOctree = new iAVROctree(m_vrEnv->renderer(), dataSet);
@@ -603,7 +603,7 @@ void iAImNDTMain::pickFibersinRegion(double eventPosition[3], double eventOrient
 	}
 }
 
-void iAImNDTMain::pickFibersinRegion(int leafRegion)
+void iAImNDTMain::pickFibersinRegion(vtkIdType leafRegion)
 {
 	std::vector<size_t> selection = std::vector<size_t>();
 	for (auto const & fiber : *m_fiberCoverageCalc->getObjectCoverage()->at(m_currentOctreeLevel).at(leafRegion))

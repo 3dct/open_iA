@@ -30,7 +30,7 @@ class iAVRHistogramPairVis
 {
 public:
 	iAVRHistogramPairVis(vtkRenderer* ren, iAVRHistogramMetric* histogramMetric, iAVROctreeMetrics* octreeMetric, vtkTable* objectTable);
-	void createVisualization(double* pos, double visSize, double offset, int level, std::vector<vtkIdType> const & regions, std::vector<int> const & featureList);
+	void createVisualization(double* pos, double visSize, double offset, vtkIdType level, std::vector<vtkIdType> const & regions, std::vector<int> const & featureList);
 	vtkAssembly* getVisAssembly();
 	void show();
 	void hide();
