@@ -135,6 +135,10 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	connect(m_snapshotTable, &QTableWidget::itemSelectionChanged, this, [this, child]()
 	{
 		auto row = m_snapshotTable->currentIndex().row();
+		if (row < 0)
+		{
+			return;
+		}
 		auto posItem = m_snapshotTable->item(row, static_cast<int>(TableColumn::Position));
 		std::array<double, 3> pos;
 		if (!stringToArray(posItem->text(), pos))
