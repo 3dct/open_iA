@@ -8,6 +8,7 @@
 #include <iADockWidgetWrapper.h>
 #include <iAMdiChild.h>
 #include <iAMainWindow.h>
+#include <iAQCropLabel.h>
 #include <iAQVTKWidget.h>
 #include <iARenderer.h>
 #include <iASlicerMode.h>
@@ -40,7 +41,6 @@
 #include <QApplication>
 #include <QBoxLayout>
 #include <QHeaderView>
-#include <QLabel>
 #include <QMessageBox>
 #include <QSettings>
 #include <QTableWidget>
@@ -124,7 +124,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iATool(mainWnd, child),
 	m_sliceWidget(new iAQVTKWidget(child)),
 	m_snapshotTable(new QTableWidget),
-	m_curPosLabel(new QLabel),
+	m_curPosLabel(new iAQCropLabel),
 	m_sliceDW(new iADockWidgetWrapper(m_sliceWidget, "Arbitrary Slice", "ArbitrarySliceViewer")),
 	
 	m_planeWidget(vtkSmartPointer<iAvtkPlaneWidget>::New()),

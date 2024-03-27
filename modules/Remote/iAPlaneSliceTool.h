@@ -20,9 +20,9 @@ class vtkImageSlice;
 class iADockWidgetWrapper;
 class iAMainWindow;
 class iAMdiChild;
+class iAQCropLabel;
 class iAQVTKWidget;
 
-class QLabel;
 class QTableWidget;
 class QWidget;
 
@@ -69,7 +69,7 @@ private:
 
 	iAQVTKWidget* m_sliceWidget;
 	QTableWidget* m_snapshotTable;
-	QLabel* m_curPosLabel;
+	iAQCropLabel* m_curPosLabel;
 	iADockWidgetWrapper * m_sliceDW, * m_listDW;
 	vtkSmartPointer<iAvtkPlaneWidget> m_planeWidget;
 	vtkSmartPointer<vtkImageResliceMapper> m_reslicer;
