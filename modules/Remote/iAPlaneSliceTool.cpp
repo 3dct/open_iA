@@ -289,6 +289,7 @@ namespace
 	QString const ProjectSnapshotCount("SnapshotCount");
 	QString const ProjectSnapshotBase("Snapshot%1");
 	QString const ProjectValuesSeparator(";");
+	QString const ProjectPlaneParameters("PlaneParameters");
 }
 
 void iAPlaneSliceTool::loadState(QSettings& projectFile, QString const& fileName)
@@ -314,6 +315,27 @@ void iAPlaneSliceTool::loadState(QSettings& projectFile, QString const& fileName
 		}
 		addSnapshot(info);
 	}
+
+	auto planeParamStr = projectFile.value(ProjectPlaneParameters, "").toString();
+	auto planeParams = planeParamStr.split(ProjectValuesSeparator);
+	const int ExpectedPlaneParamParts = 2;
+	if (planeParams.size() != ExpectedPlaneParamParts)
+	{
+		LOG(lvlError, QString("Invalid plane parameter spec: %1: Expected %2 but got %3 parts!")
+			.arg(planeParamStr).arg(ExpectedPlaneParamParts).arg(planeParams.size()) );
+		return;
+	}
+	std::array<double, 3> orig, normal;
+	if (!stringToArray(planeParams[0], orig) ||
+		!stringToArray(planeParams[1], normal))
+	{
+		LOG(lvlError, QString("Invalid plane parameter spec: %1: Could not parse an array!")
+			.arg(planeParamStr).arg(ExpectedPlaneParamParts).arg(planeParams.size()));
+		return;
+	}
+	m_planeWidget->SetOrigin(orig.data());
+	m_planeWidget->SetNormal(normal.data());
+	updateSliceFromUser();
 }
 
 void iAPlaneSliceTool::saveState(QSettings& projectFile, QString const& fileName)
@@ -323,11 +345,17 @@ void iAPlaneSliceTool::saveState(QSettings& projectFile, QString const& fileName
 	int storeID = 0;
 	for (auto const & s: m_snapshots)
 	{
-		projectFile.setValue(ProjectSnapshotBase.arg(storeID),
-			QString::number(s.first) + ProjectValuesSeparator + arrayToString(s.second.position) + ProjectValuesSeparator + arrayToString(s.second.normal)
-		);
+		auto snapshotStr = QString::number(s.first) + ProjectValuesSeparator +
+			arrayToString(s.second.position) + ProjectValuesSeparator +
+			arrayToString(s.second.normal);
+		projectFile.setValue(ProjectSnapshotBase.arg(storeID), snapshotStr);
 		++storeID;
 	}
+	std::array<double, 3> orig, normal;
+	m_planeWidget->GetOrigin(orig.data());
+	m_planeWidget->GetNormal(normal.data());
+	auto planeParamStr = arrayToString(orig) + ProjectValuesSeparator + arrayToString(normal);
+	projectFile.setValue(ProjectPlaneParameters, planeParamStr);
 }
 
 quint64 iAPlaneSliceTool::addSnapshot(iASnapshotInfo info)
