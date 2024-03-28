@@ -22,7 +22,7 @@ public:
 	//! Returns for a value its color in the current LUT
 	QColor getColor(double value);
 	//! Returns a rgba coloring vector for the current LUT for every region in the given octree level for a given feature
-	std::vector<QColor> getColors(vtkIdType octreeLevel, int feature, std::vector<std::vector<std::vector<double>>> const & calculatedValues);
+	std::vector<QColor> getColors(vtkIdType octreeLevel, vtkIdType feature, std::vector<std::vector<std::vector<double>>> const & calculatedValues);
 	//! Creates a color bar which acts as legend for the current LUT. The color Bar is sized based on the world physicalScale and gets
 	//! calculated as plane with uniform division based on the available colors in the LUT. The function also creates the labels for the color sections.
 	void calculateLegend(double physicalScale);

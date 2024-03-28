@@ -60,7 +60,7 @@ QColor iAVRColorLegend::getColor(double value)
 	return color;
 }
 
-std::vector<QColor> iAVRColorLegend::getColors(vtkIdType octreeLevel, int feature, std::vector<std::vector<std::vector<double>>> const & calculatedValues)
+std::vector<QColor> iAVRColorLegend::getColors(vtkIdType octreeLevel, vtkIdType feature, std::vector<std::vector<std::vector<double>>> const & calculatedValues)
 {
 	std::vector<QColor> colors(calculatedValues.at(octreeLevel).at(feature).size(), QColor());
 

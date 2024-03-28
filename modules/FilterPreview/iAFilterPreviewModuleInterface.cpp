@@ -85,11 +85,11 @@ void iAFilterPreviewModuleInterface::generateLatinHypercubeSamples(int numSample
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<> dis(0.0, 1.0);
 
-	int dimensions = minValues.size();
+	auto dimensions = minValues.size();
 
 	samplesMatrix.resize(dimensions, std::vector<double>(numSamples));
 
-	for (int i = 0; i < dimensions; ++i)
+	for (qsizetype i = 0; i < dimensions; ++i)
 	{
 		for (int j = 0; j < numSamples; ++j)
 		{

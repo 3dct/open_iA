@@ -19,8 +19,7 @@ public:
 	iAVRMetrics(vtkTable* objectTable, std::vector<iAVROctree*> const & octrees);
 	void setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>> const * fiberCoverage);
 	vtkIdType getNumberOfFeatures();
-	QString getFeatureName(int feature);
-	std::vector<double> getMinMaxFiberValues(int feature);
+	QString getFeatureName(vtkIdType feature);
 
 	static std::vector<double> getMinMaxFromVec(std::vector<double> val01, std::vector<double> val02);
 	static double histogramNormalization(double value, double newMin, double newMax, double oldMin, double oldMax);

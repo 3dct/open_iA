@@ -42,7 +42,6 @@ void iASetPathWidget::onBrowseButtonClicked()
 		break;
 	case Mode::directory:
 		path = QFileDialog::getExistingDirectory(this, m_caption, settings.value(m_uniqueKey + m_dirPostfix).toString());
-	default:
 		break;
 	}
 
