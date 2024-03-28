@@ -33,5 +33,6 @@ void iAQCropLabel::setup(QString const& text)
 
 void iAQCropLabel::setText(QString const& text)
 {
+	setFixedHeight(m_label->height());
 	m_label->setText(text);
 }
