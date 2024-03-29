@@ -256,7 +256,7 @@ private:
 	{
 		std::array<float, N> values{};
 		readArray(rcvStream, values);
-		LOG(lvlInfo, QString("    values=%3; broadcasting!").arg(arrayToString(values)));
+		LOG(lvlInfo, QString("    values=%1; broadcasting!").arg(arrayToString(values)));
 		QByteArray outData;
 		QDataStream outStream(&outData, QIODevice::WriteOnly);
 		outStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
@@ -302,6 +302,7 @@ private:
 					{
 						pos[i] = values[i]; // += for AddTranslation!
 					}
+					LOG(lvlInfo, QString("  Applying pos = (%1)").arg(arrayToString(pos)));
 					prop->SetPosition(pos.data());
 					break;
 				}
@@ -319,10 +320,10 @@ private:
 				case ObjectCommandType::SetRotationQuaternion:
 				{
 					const size_t QuatSize = 4;
-					double q[QuatSize];
+					std::array<double, QuatSize> q;
 					for (size_t i = 0; i < QuatSize; ++i) { q[i] = values[i]; }
 					double ayterm = 2 * (q[3] * q[1] - q[0] * q[2]);
-					double a2[3] = {
+					std::array<double, 3> angles = {
 						vtkMath::DegreesFromRadians(std::atan2(2 * (q[3] * q[0] + q[1] * q[2]), 1 - 2 * (q[0] * q[0] + q[1] * q[1]))),
 						vtkMath::DegreesFromRadians(-vtkMath::Pi() / 2 + 2 * std::atan2(std::sqrt(1 + ayterm), std::sqrt(1 - ayterm))),
 						vtkMath::DegreesFromRadians(std::atan2(2 * (q[3] * q[2] + q[0] * q[1]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])))
@@ -330,11 +331,9 @@ private:
 					for (int a = 0; a < 3; ++a)
 					{   // round to nearest X degrees:
 						const double RoundDegrees = 2;
-						a2[a] = std::round(a2[a] / RoundDegrees) * RoundDegrees;
+						angles[a] = std::round(angles[a] / RoundDegrees) * RoundDegrees;
 					}
-					LOG(lvlInfo, QString("%1: Rotation msg: rot: (%1, %2, %3, %4), angle: (%5, %6, %7)")
-						.arg(q[0]).arg(q[1]).arg(q[2]).arg(q[3])
-						.arg(a2[0]).arg(a2[1]).arg(a2[2]));
+					LOG(lvlInfo, QString("  Applying rotatation: quat = (%1), angle = (%2)").arg(arrayToString(q)).arg(arrayToString(angles)));
 					auto bounds = renderer->bounds();
 					auto center = (bounds.maxCorner() - bounds.minCorner()) / 2;
 					double pos[3];
@@ -343,13 +342,13 @@ private:
 					tr->PostMultiply();
 					tr->Translate(-center[0], -center[1], -center[2]);
 					// rotation: order x-z-y, reverse direction of y
-					tr->RotateX(a2[0]);
-					tr->RotateZ(-a2[1]);
-					tr->RotateY(a2[2]);
+					tr->RotateX(angles[0]);
+					tr->RotateZ(-angles[1]);
+					tr->RotateY(angles[2]);
 					// translation: y, z flipped; x, y reversed:
 					tr->Translate(center[0] - pos[0], center[1] - pos[2], center[2] + pos[1]);
 					prop->SetUserTransform(tr);
-					child->updateRenderer();
+					break;
 				}
 				}
 			}
@@ -358,7 +357,6 @@ private:
 			{
 			//	m_planeSliceTool->setMatrix(values); ???
 			}
-
 			child->updateRenderer();
 		}
 	}
