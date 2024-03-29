@@ -16,7 +16,7 @@ class vtkImageData;
 class iAbase_API iAConnector
 {
 public:
-	typedef itk::ProcessObject::Pointer			ProcessObjectPointer;
+	using ProcessObjectPointer = itk::ProcessObject::Pointer;
 
 	iAConnector();
 

@@ -23,10 +23,7 @@ void extractChannels(typename itk::VectorImage<InPixelType, DIM>::Pointer vector
 	typedef itk::VectorImage<InPixelType, DIM> VectorImageType;
 	typedef itk::Image<InPixelType, DIM> OutImageType;
 	typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, OutImageType> IndexSelectionType;
-
 	typedef itk::Image<float, DIM> OutputImageType;
-	typedef  itk::ImageFileWriter< OutputImageType  > WriterType;
-
 
 	for (unsigned int p = 0; p < vectorImg->GetVectorLength(); ++p)
 	{
@@ -37,35 +34,34 @@ void extractChannels(typename itk::VectorImage<InPixelType, DIM>::Pointer vector
 
 		QString path = dir + "/"+ Name + "_" + Dimension[p] + ".mhd";
 
-		WriterType::Pointer imageWriter = WriterType::New();
+		auto imageWriter = itk::ImageFileWriter<OutputImageType>::New();
 		imageWriter->SetFileName(path.toStdString());
 		imageWriter->SetInput(dynamic_cast<OutputImageType *>(indexSelectionFilter->GetOutput()));
 		imageWriter->Update();
 
-		if (loadTransformixResult) {
+		if (loadTransformixResult)
+		{
 			filter->addOutput(std::make_shared<iAImageData>(indexSelectionFilter->GetOutput()));
 		}
 	}
 }
 
-void writeDeformationImage(iAFilter* filter, QString dirname, bool loadTransformixResult) {
+void writeDeformationImage(iAFilter* filter, QString dirname, bool loadTransformixResult)
+{
 
 	QString deformationImagePath = dirname + "/deformationField.mhd";
-	typedef itk::VectorImage<float, DIM> deformationInputImageType;
-	typedef itk::ImageFileReader<deformationInputImageType> deformationReaderType;
+	typedef itk::VectorImage<float, DIM> InputImageType;
 
 	//split deformation
-
-	auto deformationImage = deformationReaderType::New();
+	auto deformationImage = itk::ImageFileReader<InputImageType>::New();
 	deformationImage->SetFileName(deformationImagePath.toStdString());
 	deformationImage->Update();
-
-
 
 	extractChannels<float>(deformationImage->GetOutput(), filter, dirname, "Deformationfield", { "X", "y", "Z" }, loadTransformixResult);
 }
 
-void writeFullJacobian(iAFilter* filter, QString dirname, bool loadTransformixResult) {
+void writeFullJacobian(iAFilter* filter, QString dirname, bool loadTransformixResult)
+{
 
 	QString fullJacobianImagePath = dirname + "/fullSpatialJacobian.mhd";
 	//Split jacobian
@@ -80,38 +76,34 @@ void writeFullJacobian(iAFilter* filter, QString dirname, bool loadTransformixRe
 	extractChannels<float>(fullJacobianImage->GetOutput(), filter, dirname, "Jacobian", { "11", "12", "13", "21", "22", "23", "31", "32", "33" }, loadTransformixResult);
 }
 
-void createOutput(iAFilter* filter, QString dirname, bool tranformixActive, bool loadTransformixResult) {
+void createOutput(iAFilter* filter, QString dirname, bool tranformixActive, bool loadTransformixResult)
+{
 	typedef itk::Image<float, DIM> InputImageType;
 	typedef itk::ImageFileReader<InputImageType> ReaderType;
-
 
 	QString resulImagePath = dirname + "/result.0.mhd";
 	QString jacobianImagePath = dirname + "/spatialJacobian.mhd";
 
-
-
-
-
-	ReaderType::Pointer resulImage = ReaderType::New();
+	auto resulImage = ReaderType::New();
 	resulImage->SetFileName(resulImagePath.toStdString());
 	resulImage->Update();
 	filter->addOutput(std::make_shared<iAImageData>(resulImage->GetOutput()));
 
-
-	if (tranformixActive) {
-		ReaderType::Pointer jacobianImage = ReaderType::New();
+	if (tranformixActive)
+	{
+		auto jacobianImage = ReaderType::New();
 		jacobianImage->SetFileName(jacobianImagePath.toStdString());
 		jacobianImage->Update();
 		filter->addOutput(std::make_shared<iAImageData>(jacobianImage->GetOutput()));
 
 		writeDeformationImage(filter, dirname, loadTransformixResult);
-
 		writeFullJacobian(filter, dirname, loadTransformixResult);
 	}
 }
 
 
-void runElastix(QString dirname, QString fixedImagePath, QString movingImagePath, QString parameterPath, QString executablePath, int timeout=300000) {
+void runElastix(QString dirname, QString fixedImagePath, QString movingImagePath, QString parameterPath, QString executablePath, int timeout=300000)
+{
 	QStringList argumentsElastix;
 
 	argumentsElastix.append("-f");
@@ -126,19 +118,18 @@ void runElastix(QString dirname, QString fixedImagePath, QString movingImagePath
 	argumentsElastix.append("-out");
 	argumentsElastix.append(dirname);
 
-
-
 	QProcess elastix;
 	elastix.setProgram(executablePath + "/elastix.exe");
 	elastix.setArguments(argumentsElastix);
 	elastix.setProcessChannelMode(QProcess::MergedChannels);
 	elastix.start();
 
-	if (!elastix.waitForStarted()) {
+	if (!elastix.waitForStarted())
+	{
 		throw  std::runtime_error("Error Start Elastix");
 	}
-
-	if (!elastix.waitForFinished(timeout)) {
+	if (!elastix.waitForFinished(timeout))
+	{
 		throw  std::runtime_error("Error Execute Finish");
 	}
 }
@@ -200,13 +191,13 @@ void derivative(iAFilter* filter, QVariantMap const & params)
 	QString fixedImagePath = dirname + "/fixed.mhd";
 	QString movingImagePath = dirname + "/moving.mhd";
 
-	typedef itk::Image<T, DIM> OutputImageType;
-	typedef  itk::ImageFileWriter< OutputImageType  > WriterType;
-	typename WriterType::Pointer fixedWriter = WriterType::New();
+	using OutputImageType = itk::Image<T, DIM>;
+	using WriterType = itk::ImageFileWriter<OutputImageType>;
+	auto fixedWriter = WriterType::New();
 	fixedWriter->SetFileName(fixedImagePath.toStdString());
 	fixedWriter->SetInput(dynamic_cast<OutputImageType *>(filter->imageInput(0)->itkImage()));
 
-	typename WriterType::Pointer movingWriter = WriterType::New();
+	auto movingWriter = WriterType::New();
 	movingWriter->SetFileName(movingImagePath.toStdString());
 	movingWriter->SetInput(dynamic_cast<OutputImageType *>(filter->imageInput(1)->itkImage()));
 
@@ -217,9 +208,7 @@ void derivative(iAFilter* filter, QVariantMap const & params)
 	}
 	catch (itk::ExceptionObject & /*err*/)
 	{
-
 		throw  std::runtime_error(("Exception save temp files in directory" + dirname).toStdString());
-
 	}
 
 	int timeoutSec = params["Timeout[sec]"].toInt() * 1000;
@@ -236,10 +225,8 @@ void derivative(iAFilter* filter, QVariantMap const & params)
 	}
 	catch(itk::ImageFileReaderException & /*err*/)
 	{
-
 		throw std::runtime_error( "Error reading files please set a Outputdir and check Elastix/Transformix logs for more information");
 	}
-
 }
 
 
@@ -271,7 +258,6 @@ iAElastixRegistration::iAElastixRegistration() :
 
 	addParameter("Load Files", iAValueType::Boolean, true);
 	addParameter("Run Transformix", iAValueType::Boolean, true);
-
 
 
 	setInputName(1u, "Moving Image");

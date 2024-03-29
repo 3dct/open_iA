@@ -100,7 +100,7 @@ template <class T> void extractSliceImage(typename itk::Image<T, 3>::Pointer itk
 	extractsize[2] = 1;
 	extractregion.SetSize(extractsize);
 
-	typename TwoDInputImageType::Pointer twodimage = TwoDInputImageType::New();
+	auto twodimage = TwoDInputImageType::New();
 	twodimage->SetRegions(extractregion);
 	twodimage->SetSpacing(extractspacing);
 	twodimage->SetOrigin(extractpoint);
@@ -143,13 +143,11 @@ template <class T> void extractSliceImage(typename itk::Image<T, 3>::Pointer itk
 		SliceIter.NextSlice();
 	}
 
-	typedef itk::NormalizeImageFilter<TwoDInputImageType, TwoDInputImageType> NIFTYpe;
-	typename NIFTYpe::Pointer normalizefilter = NIFTYpe::New();
+	auto normalizefilter = itk::NormalizeImageFilter<TwoDInputImageType, TwoDInputImageType>::New();
 	normalizefilter->SetInput(twodimage);
 	normalizefilter->Update();
 
-	typedef itk::RescaleIntensityImageFilter<TwoDInputImageType, TwoDInputImageType> RIIFType;
-	typename RIIFType::Pointer rescalefilter = RIIFType::New();
+	auto rescalefilter = itk::RescaleIntensityImageFilter<TwoDInputImageType, TwoDInputImageType>::New();
 	rescalefilter->SetInput(normalizefilter->GetOutput());
 	rescalefilter->SetOutputMinimum(0);
 	rescalefilter->SetOutputMaximum(65535);
@@ -168,7 +166,7 @@ template<class T> void DataTypeConversion_template(QString const & filename, iAR
 	LOG(lvlInfo, QString("Reading file '%1':").arg(filename));
 	FILE * pFile = openFile(filename);
 
-	typename InputImageType::Pointer itkimage = InputImageType::New();
+	auto itkimage = InputImageType::New();
 
 	// create itk image
 	typename InputImageType::SpacingType itkspacing;
@@ -260,7 +258,7 @@ template<class T> void DataTypeConversionROI_template(QString const & filename, 
 
 	FILE * pFile = openFile(filename);
 
-	typename InputImageType::Pointer itkimage = InputImageType::New();
+	auto itkimage = InputImageType::New();
 
 	// create itk image
 	//float itkz = std::floor((float)((p.m_size[2]-1)/zSkip)+1);
@@ -304,8 +302,8 @@ template<class T> void DataTypeConversionROI_template(QString const & filename, 
 	}
 	fclose(pFile);
 
-	typedef itk::ExtractImageFilter< InputImageType, InputImageType > EIFType;
-	typename EIFType::Pointer filter = EIFType::New();
+	using EIFType = itk::ExtractImageFilter<InputImageType, InputImageType>;
+	auto filter = EIFType::New();
 
 	typename EIFType::InputImageRegionType::SizeType size; size[0] = roi[1]; size[1] = roi[3]; size[2] = roi[5];
 	typename EIFType::InputImageRegionType::IndexType index; index[0] = roi[0]; index[1] = roi[2]; index[2] = roi[4];

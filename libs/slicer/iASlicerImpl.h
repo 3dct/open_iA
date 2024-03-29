@@ -88,7 +88,7 @@ public:
 	//! @param transform if specified, a transform shared between slicers (e.g. for sharing rotation)
 	//! @param snakeSlicerPoints the array of points in the snake slicer (leave at default nullptr if you don't require snake slicer).
 	iASlicerImpl(QWidget * parent, const iASlicerMode mode, bool decorations = true, bool magicLensAvailable = true,
-		auto transform = vtkSmartPointer<vtkTransform>(), vtkPoints* snakeSlicerPoints = nullptr);
+		vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>(), vtkPoints* snakeSlicerPoints = nullptr);
 	void applySettings(QVariantMap const & settings) override;
 	virtual ~iASlicerImpl();
 

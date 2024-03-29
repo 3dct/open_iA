@@ -1155,9 +1155,9 @@ void dlg_InSpectr::computeSimilarityMap()
 		{
 			try
 			{
-				MetricType::Pointer metric = MetricType::New();
-				InterpolatorType::Pointer interpolator = InterpolatorType::New();
-				TransformType::Pointer transform = TransformType::New();
+				auto metric = MetricType::New();
+				auto interpolator = InterpolatorType::New();
+				auto transform = TransformType::New();
 				TransformType::ParametersType params(transform->GetNumberOfParameters());
 
 				similarityData[i + i * numEBins] = 1.0f;

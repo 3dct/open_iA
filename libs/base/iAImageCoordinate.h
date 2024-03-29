@@ -6,8 +6,8 @@
 
 #include <cstddef> // for size_t
 
-typedef int iAVoxelIndexType;
-typedef size_t iAFlatIndexType;
+using iAVoxelIndexType = int;
+using iAFlatIndexType = size_t;
 
 //! Helper for storing 3D image coordinates.
 //! @todo Maybe use iAVec3i instead?

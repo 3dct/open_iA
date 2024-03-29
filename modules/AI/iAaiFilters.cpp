@@ -43,13 +43,9 @@ namespace
 
 typename ImageType::Pointer Normalize(typename ImageType::Pointer itk_img)
 {
-	typedef itk::NormalizeImageFilter< ImageType, ImageType > NormalizeFilterType;
-
-	auto normalizeFilter = NormalizeFilterType::New();
+	auto normalizeFilter = itk::NormalizeImageFilter<ImageType, ImageType>::New();
 	normalizeFilter->SetInput(itk_img);
-
 	normalizeFilter->Update();
-
 	return normalizeFilter->GetOutput();
 }
 
@@ -61,8 +57,7 @@ typename ImageType::Pointer AddPadding(typename ImageType::Pointer itk_img, int 
 	ImageType::SizeType upperExtendRegion;
 	upperExtendRegion.Fill(paddingSize);
 
-	using FilterType = itk::MirrorPadImageFilter<ImageType, ImageType>;
-	typename FilterType::Pointer filter = FilterType::New();
+	auto filter = itk::MirrorPadImageFilter<ImageType, ImageType>::New();
 	filter->SetInput(itk_img);
 	filter->SetPadLowerBound(lowerExtendRegion);
 	filter->SetPadUpperBound(upperExtendRegion);
@@ -74,9 +69,7 @@ typename ImageType::Pointer AddPadding(typename ImageType::Pointer itk_img, int 
 bool itk2tensor(typename ImageType::Pointer itk_img, std::vector<float> &tensor_img, int offsetX, int offsetY, int offsetZ, int sizeDNNin)
 {
 	//typename ImageType::Pointer itk_img_normalized = Normalize(itk_img);
-
 	typename ImageType::RegionType region = itk_img->GetLargestPossibleRegion();
-
 
 	ImageType::RegionType inputRegion;
 
@@ -169,14 +162,10 @@ template<class T>
 void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image<T, DIM> InputImageType;
-
-	using FilterType = itk::CastImageFilter<InputImageType, ImageType>;
-	typename FilterType::Pointer castFilter = FilterType::New();
+	auto castFilter = itk::CastImageFilter<InputImageType, ImageType>::New();
 	castFilter->SetInput(dynamic_cast<InputImageType *>(filter->imageInput(0)->itkImage()));
 	castFilter->Update();
 	auto itk_img = castFilter->GetOutput();
-
-
 
 	// initialize  enviroment...one enviroment per process
 	// enviroment maintains thread pools and other state info
@@ -399,7 +388,7 @@ void executeDNN(iAFilter* filter, QVariantMap const & parameters)
 						assert(result.size() == 1 && result.front().IsTensor());
 
 						int outputChannel = 0;
-						//ImageType::Pointer outputImage = ImageType::New();
+						//auto outputImage = ImageType::New();
 						for (auto outputImage : outputs)
 						{
 							tensor2itk(result, outputImage, tempX, tempY, tempZ, sizeDNNout,outputChannel,outputs.size());

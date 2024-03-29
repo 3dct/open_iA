@@ -55,14 +55,14 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin * parent /*= 0*/ )
 
 	// setup renderer
 	m_renderWindow = dynamic_cast<vtkGenericOpenGLRenderWindow*>(qvtkWidget->renderWindow());
-	m_mainRen = vtkSmartPointer<vtkRenderer>::New( );
+	m_mainRen = vtkSmartPointer<vtkRenderer>::New();
 	m_mainRen->SetLayer( 0 );
 	m_mainRen->SetBackground( 0.5, 0.5, 0.5 );
 	m_mainRen->InteractiveOn( );
 	m_renderWindow->AddRenderer(m_mainRen);
 	m_magicLensRen = qvtkWidget->getLensRenderer( );
 
-	m_renList = vtkSmartPointer<vtkRendererCollection>::New( );
+	m_renList = vtkSmartPointer<vtkRendererCollection>::New();
 
 	setOrientationWidgetEnabled( true );
 
@@ -159,7 +159,7 @@ void iA4DCTVisWin::setNumberOfStages( int number )
 
 	for( int i = 0; i < number; i++ )
 	{
-		auto ren = vtkSmartPointer<vtkRenderer>::New( );
+		auto ren = vtkSmartPointer<vtkRenderer>::New();
 		ren->SetLayer( 0 );
 		ren->SetBackground( 0.5, 0.5, 0.5 );
 		ren->InteractiveOn( );
@@ -515,8 +515,8 @@ void iA4DCTVisWin::setOrientationWidgetEnabled( bool enabled )
 	{
 		if( m_orientWidget ) return;
 
-		auto axes = vtkSmartPointer<vtkAxesActor>::New( );
-		m_orientWidget = vtkSmartPointer<vtkOrientationMarkerWidget>::New( );
+		auto axes = vtkSmartPointer<vtkAxesActor>::New();
+		m_orientWidget = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
 		m_orientWidget->SetOutlineColor( 0.9300, 0.5700, 0.1300 );
 		m_orientWidget->SetOrientationMarker( axes );
 		m_orientWidget->SetInteractor( m_renderWindow->GetInteractor( ) );
@@ -548,10 +548,10 @@ void iA4DCTVisWin::enableSideBySideView( bool enabled )
 		double width = 1. / m_renList->GetNumberOfItems( );
 		double start = 0.;
 
-		auto screenRen = vtkSmartPointer<vtkRenderer>::New( );
+		auto screenRen = vtkSmartPointer<vtkRenderer>::New();
 		qvtkWidget->renderWindow()->AddRenderer(screenRen);
 
-		auto cam = vtkSmartPointer<vtkCamera>::New( );
+		auto cam = vtkSmartPointer<vtkCamera>::New();
 		cam->ShallowCopy( m_mainRen->GetActiveCamera( ) );
 
 		m_renList->InitTraversal( );

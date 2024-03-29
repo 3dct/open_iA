@@ -34,9 +34,7 @@ IAFILTER_DEFAULT_CLASS(iAConvertToRGBAFilter);
 template <class InT, class OutT> void castImage(iAFilter* filter)
 {
 	typedef itk::Image<InT, DIM > InputImageType;
-	typedef itk::Image<OutT, DIM> OutputImageType;
-	typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
-	typename OTIFType::Pointer castFilter = OTIFType::New();
+	auto castFilter = itk::CastImageFilter<InputImageType, itk::Image<OutT, DIM>>::New();
 	castFilter->SetInput(dynamic_cast<InputImageType *>(filter->imageInput(0)->itkImage()));
 	filter->progress()->observe(castFilter);
 	castFilter->Update();
@@ -181,8 +179,7 @@ void convertToRGB(iAFilter * filter, QVariantMap const & params)
 	typedef itk::RGBAPixel< unsigned char > RGBAPixelType;
 	typedef itk::Image< RGBAPixelType, DIM>  RGBAImageType;
 
-	typedef itk::LabelToRGBImageFilter<LongImageType, RGBImageType> RGBFilterType;
-	RGBFilterType::Pointer labelToRGBFilter = RGBFilterType::New();
+	auto labelToRGBFilter = itk::LabelToRGBImageFilter<LongImageType, RGBImageType>::New();
 	labelToRGBFilter->SetInput(dynamic_cast<LongImageType *>(input.GetPointer()));
 	RGBPixelType bgPixel;
 	QColor bgColor(params["Background color"].toString());
@@ -206,13 +203,13 @@ void convertToRGB(iAFilter * filter, QVariantMap const & params)
 	regions.SetSize(labelToRGBFilter->GetOutput()->GetLargestPossibleRegion().GetSize());
 	regions.SetIndex(labelToRGBFilter->GetOutput()->GetLargestPossibleRegion().GetIndex());
 
-	RGBAImageType::Pointer rgbaImage = RGBAImageType::New();
+	auto rgbaImage = RGBAImageType::New();
 	rgbaImage->SetRegions(regions);
 	rgbaImage->SetSpacing(labelToRGBFilter->GetOutput()->GetSpacing());
 	rgbaImage->Allocate();
 
 	auto rgbImage = labelToRGBFilter->GetOutput();
-	itk::MultiThreaderBase::Pointer mt = itk::MultiThreaderBase::New();
+	auto mt = itk::MultiThreaderBase::New();
 	mt->ParallelizeImageRegion<3>(
 		rgbImage->GetBufferedRegion(),
 		[rgbImage, rgbaImage, &params](const RGBImageType::RegionType & region)

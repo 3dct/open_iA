@@ -373,8 +373,7 @@ LabelPixelHistPtr iAImageTreeInternalNode::UpdateLabelDistribution() const
 	LabelImageType::SizeType size = child1Img->GetLargestPossibleRegion().GetSize();
 	for (int l = 0; l < m_differenceMarkerValue; ++l)
 	{
-		typedef itk::AddImageFilter<LabelImageType> AddImgFilterType;
-		AddImgFilterType::Pointer addImgFilter = AddImgFilterType::New();
+		auto addImgFilter = itk::AddImageFilter<LabelImageType>::New();
 		addImgFilter->SetInput1(childResult1->hist.at(l));
 		addImgFilter->SetInput2(childResult2->hist.at(l));
 		addImgFilter->Update();
@@ -442,8 +441,7 @@ CombinedProbPtr iAImageTreeInternalNode::UpdateProbabilities() const
 	{
 		if (childResult1->prob.at(l) && childResult2->prob.at(l))
 		{
-			typedef itk::AddImageFilter<ProbabilityImageType> AddImgFilterType;
-			AddImgFilterType::Pointer addImgFilter = AddImgFilterType::New();
+			auto addImgFilter = itk::AddImageFilter<ProbabilityImageType>::New();
 			addImgFilter->SetInput1(childResult1->prob.at(l));
 			addImgFilter->SetInput2(childResult2->prob.at(l));
 			addImgFilter->Update();

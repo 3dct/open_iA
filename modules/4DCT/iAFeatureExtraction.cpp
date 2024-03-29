@@ -26,10 +26,10 @@ void iAFeatureExtraction::run(QString inputImgPath, QString outputImgPath)
 {
 	std::cout << "Feature extracted started\n";
 
-	ImageType::Pointer labelImage = ImageType::New();
+	auto labelImage = ImageType::New();
 
 	typedef itk::ImageFileReader<ImageType> ImageReaderType;
-	ImageReaderType::Pointer labelReader = ImageReaderType::New();
+	auto labelReader = ImageReaderType::New();
 	labelReader->SetFileName( getLocalEncodingFileName(inputImgPath) );
 	labelReader->Update();
 
@@ -39,7 +39,7 @@ void iAFeatureExtraction::run(QString inputImgPath, QString outputImgPath)
 	labelImage->SetOrigin(origin);
 
 	typedef itk::LabelGeometryImageFilter2<ImageType> LabelGeometryImageFilterType;
-	LabelGeometryImageFilterType::Pointer labelGeometryImageFilter = LabelGeometryImageFilterType::New();
+	auto labelGeometryImageFilter = LabelGeometryImageFilterType::New();
 	labelGeometryImageFilter->SetInput(labelImage);
 
 	// These generate optional outputs.

@@ -62,10 +62,9 @@ iAConnectedComponents::iAConnectedComponents() :
 template<class T>
 void scalarConnectedComponentFilter(iAFilter* filter, QVariantMap const & parameters)
 {
-	typedef itk::Image<T, DIM>   InputImageType;
-	typedef itk::Image<long, DIM>   OutputImageType;
-	typedef itk::ScalarConnectedComponentImageFilter< InputImageType, OutputImageType > SCCIFType;
-	typename SCCIFType::Pointer sccFilter = SCCIFType::New();
+	using InputImageType = itk::Image<T, DIM>;
+	using OutputImageType = itk::Image<long, DIM>;
+	auto sccFilter = itk::ScalarConnectedComponentImageFilter<InputImageType, OutputImageType>::New();
 	sccFilter->SetInput( dynamic_cast<InputImageType *>(filter->imageInput(0)->itkImage()) );
 	sccFilter->SetDistanceThreshold(parameters["Distance Threshold"].toDouble());
 	filter->progress()->observe(sccFilter);
@@ -96,7 +95,7 @@ void relabelComponentImageFilter(iAFilter* filter, QVariantMap const & parameter
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<long, DIM>   OutputImageType;
 	typedef itk::RelabelComponentImageFilter< InputImageType, OutputImageType > RCIFType;
-	typename RCIFType::Pointer rccFilter = RCIFType::New();
+	auto rccFilter = RCIFType::New();
 	rccFilter->SetInput( dynamic_cast< InputImageType * >(filter->imageInput(0)->itkImage()) );
 	rccFilter->SetMinimumObjectSize(parameters["Minimum object size"].toInt());
 	filter->progress()->observe(rccFilter);

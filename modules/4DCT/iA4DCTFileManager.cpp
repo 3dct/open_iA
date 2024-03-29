@@ -27,7 +27,7 @@ iA4DCTFileManager::ReaderType iA4DCTFileManager::findOrCreateImage( iA4DCTFileDa
 	std::string key = file.Name.toStdString( );
 	if( m_map.find( key ) == m_map.end( ) )
 	{	// the key does not exist
-		ReaderType reader = ReaderType::New( );
+		ReaderType reader = ReaderType::New();
 		reader->SetFileName( getLocalEncodingFileName(file.Path).c_str( ) );
 		reader->Update( );
 		m_map[ key ] = reader;

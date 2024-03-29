@@ -52,12 +52,12 @@ public:
 };
 #endif
 
-typedef double ProbabilityPixelType;
-typedef itk::VectorImage<ProbabilityPixelType, DIM> VectorImageType;
-typedef unsigned int LabelPixelType;
-typedef itk::Image<ProbabilityPixelType, DIM> ScalarProbabilityImageType;
-typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarProbabilityImageType> IndexSelectionType;
-typedef itk::FuzzyClassifierImageFilter<VectorImageType, LabelPixelType> TLabelClassifier;
+using ProbabilityPixelType = double;
+using VectorImageType = itk::VectorImage<ProbabilityPixelType, DIM>;
+using LabelPixelType = unsigned int;
+using ScalarProbabilityImageType = itk::Image<ProbabilityPixelType, DIM>;
+using IndexSelectionType = itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarProbabilityImageType>;
+using TLabelClassifier = itk::FuzzyClassifierImageFilter<VectorImageType, LabelPixelType>;
 
 namespace
 {
@@ -254,7 +254,7 @@ void kfcm(iAFilter* filter, QVariantMap const & parameters)
 	classifier->SetInput(dynamic_cast<InputImageType *>(filter->imageInput(0)->itkImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
-	TLabelClassifier::Pointer labelClass = TLabelClassifier::New();
+	auto labelClass = TLabelClassifier::New();
 	labelClass->SetInput(probs);
 	labelClass->Update();
 	filter->addOutput(std::make_shared<iAImageData>(labelClass->GetOutput()));

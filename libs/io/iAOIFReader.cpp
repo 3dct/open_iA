@@ -749,7 +749,7 @@ template<typename T>
 typename iAOIFReaderHelper::TiffImgPtr read_image_template(QString const & f, T)
 {
 	typedef itk::ImageFileReader<iAOIFReaderHelper::TiffImgType> ReaderType;
-	typename ReaderType::Pointer reader = ReaderType::New();
+	auto reader = ReaderType::New();
 	reader->SetFileName(getLocalEncodingFileName(f));
 	reader->Update();
 	return reader->GetOutput();

@@ -20,14 +20,14 @@
 class MouseInteractorStylePP : public vtkInteractorStyleTrackballCamera
 {
 public:
-	static MouseInteractorStylePP* New( );
+	static MouseInteractorStylePP* New();
 	vtkTypeMacro( MouseInteractorStylePP, vtkInteractorStyleTrackballCamera );
 
 	void OnLeftButtonDown( ) override
 	{
 		if( m_lCntrlIsPressed && m_rm )
 		{
-			auto pointPicker = vtkSmartPointer<vtkCellPicker>::New( );
+			auto pointPicker = vtkSmartPointer<vtkCellPicker>::New();
 			int pos[2]; this->Interactor->GetEventPosition( pos );
 			if( pointPicker->Pick( pos[0], pos[1], 0, this->Interactor->GetRenderWindow( )->GetRenderers( )->GetFirstRenderer( ) ) )
 			{
@@ -80,9 +80,9 @@ iA4DCTRegionMarkerModule::iA4DCTRegionMarkerModule( )
 
 void iA4DCTRegionMarkerModule::show( )
 {
-	auto pointPicker = vtkSmartPointer<vtkPointPicker>::New( );
+	auto pointPicker = vtkSmartPointer<vtkPointPicker>::New();
 	m_renderer->GetRenderWindow( )->GetInteractor( )->SetPicker( pointPicker );
-	auto style = vtkSmartPointer<MouseInteractorStylePP>::New( );
+	auto style = vtkSmartPointer<MouseInteractorStylePP>::New();
 	style->SetRegionMarker( this );
 	m_renderer->GetRenderWindow( )->GetInteractor( )->SetInteractorStyle( style );
 }
@@ -92,12 +92,12 @@ void iA4DCTRegionMarkerModule::hide( )
 
 void iA4DCTRegionMarkerModule::addRegion( double* pos )
 {
-	auto sphereSrc = vtkSmartPointer<vtkSphereSource>::New( );
+	auto sphereSrc = vtkSmartPointer<vtkSphereSource>::New();
 	sphereSrc->SetRadius( 3 );
-	vtkSmartPointer<vtkPolyDataMapper> m_sphereMapper = vtkSmartPointer<vtkPolyDataMapper>::New( );
+	vtkSmartPointer<vtkPolyDataMapper> m_sphereMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	m_sphereMapper->SetInputConnection( sphereSrc->GetOutputPort( ) );
 
-	auto sphere = vtkSmartPointer<vtkActor>::New( );
+	auto sphere = vtkSmartPointer<vtkActor>::New();
 	sphere->SetMapper( m_sphereMapper );
 	sphere->GetProperty( )->SetColor( 1, 0, 0 );
 	sphere->GetProperty( )->SetAmbient( 0.3 );

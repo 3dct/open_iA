@@ -685,8 +685,7 @@ void dlg_ParamSpaceSampling::computeSmoothHisto()
 	// DiscreteGaussianImageFilter, works but the delta parameter is hard
 	// to set then, therefore median filter
 
-	typedef itk::MedianImageFilter< ImageType1D, ImageType1D >  SmoothingFilterType;
-	SmoothingFilterType::Pointer smoothingFilter = SmoothingFilterType::New();
+	auto smoothingFilter = itk::MedianImageFilter<ImageType1D, ImageType1D>::New();
 	smoothingFilter->SetRadius( m_sigma );
 	smoothingFilter->SetInput( image1D );
 	smoothingFilter->Update();

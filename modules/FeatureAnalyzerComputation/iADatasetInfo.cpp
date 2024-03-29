@@ -15,9 +15,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshorten-64-to-32"
 #endif
-//#include <itkExtractImageFilter.h>
 #include <itkImageDuplicator.h>
-//#include <itkImageFileWriter.h>
 #ifdef __clang__
 #pragma clang diagnostic push
 #if __clang_major__ > 10
@@ -31,7 +29,6 @@
 #pragma clang diagnostic pop
 #endif
 #include <itkRescaleIntensityImageFilter.h>
-//#include <itkStatisticsImageFilter.h>
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
@@ -54,8 +51,7 @@ template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString
 	//typedef itk::Image<unsigned char, 2>  OutputImageType;
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 
-	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
-	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	auto duplicator = itk::ImageDuplicator<InputImageType>::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
 
@@ -73,7 +69,7 @@ template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString
 	upperBound.Fill( maxIntensity );
 	typename ImageToHistogramFilterType::HistogramType::SizeType		h_size( MeasurementVectorSize );
 	h_size.Fill( binsPerDimension );
-	typename ImageToHistogramFilterType::Pointer imageToHistogramFilter = ImageToHistogramFilterType::New();
+	auto imageToHistogramFilter = ImageToHistogramFilterType::New();
 	imageToHistogramFilter->SetInput( duplicator->GetOutput() );
 	imageToHistogramFilter->SetHistogramBinMinimum( lowerBound );
 	imageToHistogramFilter->SetHistogramBinMaximum( upperBound );
@@ -108,8 +104,7 @@ template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString
 	//Create png file from middle Z-slice
 	try
 	{
-		typedef itk::RescaleIntensityImageFilter<InputImageType, uCharInputImageType> RescalerType;
-		typename RescalerType::Pointer rescaler = RescalerType::New();
+		auto rescaler = itk::RescaleIntensityImageFilter<InputImageType, uCharInputImageType>::New();
 		rescaler->SetOutputMinimum( 0 );
 		rescaler->SetOutputMaximum( 255 );
 		rescaler->SetInput( duplicator->GetOutput() );
@@ -153,26 +148,6 @@ template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString
 			.arg( err.GetLine() );
 		pmi->log( tolog );
 	}
-// 	typedef itk::ExtractImageFilter< uCharInputImageType, OutputImageType > ExtracterType;
-// 	ExtracterType::Pointer extracter = ExtracterType::New();
-// 	extracter->InPlaceOn();
-// 	extracter->SetDirectionCollapseToIdentity();
-// 	MaskImageType::RegionType inputRegion = duplicator->GetOutput()->GetLargestPossibleRegion();
-// 	MaskImageType::SizeType m_size = inputRegion.GetSize();
-// 	m_size[2] = 0;	//Z slice
-// 	MaskImageType::IndexType start = inputRegion.GetIndex();
-// 	const unsigned int sliceNumber = inputRegion.GetSize()[2] / 2;
-// 	start[2] = sliceNumber;
-// 	MaskImageType::RegionType desiredRegion;
-// 	desiredRegion.SetSize( m_size );
-// 	desiredRegion.SetIndex( start );
-// 	extracter->SetExtractionRegion( desiredRegion );
-// 	extracter->SetInput( rescaler->GetOutput() );
-// 	typedef itk::ImageFileWriter< OutputImageType > WriterType;
-// 	WriterType::Pointer writer = WriterType::New();
-// 	writer->SetFileName( getLocalEncodingFileName(fileName) );
-// 	writer->SetInput( extracter->GetOutput() );
-// 	writer->Update();
 }
 
 void iADatasetInfo::run()

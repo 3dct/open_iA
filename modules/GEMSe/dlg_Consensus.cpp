@@ -1423,9 +1423,9 @@ void dlg_Consensus::SampledItemClicked(QTableWidgetItem * item)
 }
 
 
-typedef itk::Image<unsigned int, 3> UIntImage;
-typedef itk::CastImageFilter<LabelImageType, UIntImage> CastIntToUInt;
-typedef itk::CastImageFilter<UIntImage, LabelImageType> CastUIntToInt;
+using UIntImage = itk::Image<unsigned int, 3>;
+using CastIntToUInt = itk::CastImageFilter<LabelImageType, UIntImage>;
+using CastUIntToInt = itk::CastImageFilter<UIntImage, LabelImageType>;
 
 void dlg_Consensus::CalcSTAPLE()
 {
@@ -1436,18 +1436,17 @@ void dlg_Consensus::CalcSTAPLE()
 		LOG(lvlError, "Please select a cluster from the tree!");
 		return;
 	}
-	typedef itk::MultiLabelSTAPLEImageFilter<UIntImage, UIntImage> STAPLEFilter;
-	STAPLEFilter::Pointer filter = STAPLEFilter::New();
+	auto filter = itk::MultiLabelSTAPLEImageFilter<UIntImage, UIntImage>::New();
 	for (int i = 0; i < selection.size(); ++i)
 	{
-		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(selection[i]->labelImage().GetPointer());
-		CastIntToUInt::Pointer caster = CastIntToUInt::New();
+		auto lblImg = dynamic_cast<LabelImageType*>(selection[i]->labelImage().GetPointer());
+		auto caster = CastIntToUInt::New();
 		caster->SetInput(lblImg);
 		caster->Update();
 		filter->SetInput(i, caster->GetOutput());
 	}
 	filter->Update();
-	CastUIntToInt::Pointer castback = CastUIntToInt::New();
+	auto castback = CastUIntToInt::New();
 	castback->SetInput(filter->GetOutput());
 	castback->Update();
 	m_lastMVResult = castback->GetOutput();
@@ -1465,17 +1464,17 @@ void dlg_Consensus::CalcMajorityVote()
 		LOG(lvlError, "Please select a cluster from the tree!");
 		return;
 	}
-	itk::LabelVotingImageFilter<UIntImage>::Pointer filter = itk::LabelVotingImageFilter<UIntImage>::New();
+	auto filter = itk::LabelVotingImageFilter<UIntImage>::New();
 	for (int i = 0; i < selection.size(); ++i)
 	{
-		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(selection[i]->labelImage().GetPointer());
-		CastIntToUInt::Pointer caster = CastIntToUInt::New();
+		auto lblImg = dynamic_cast<LabelImageType*>(selection[i]->labelImage().GetPointer());
+		auto caster = CastIntToUInt::New();
 		caster->SetInput(lblImg);
 		caster->Update();
 		filter->SetInput(i, caster->GetOutput());
 	}
 	filter->Update();
-	CastUIntToInt::Pointer castback = CastUIntToInt::New();
+	auto castback = CastUIntToInt::New();
 	castback->SetInput(filter->GetOutput());
 	castback->Update();
 	m_lastMVResult = castback->GetOutput();

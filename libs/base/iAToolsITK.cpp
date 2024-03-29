@@ -163,10 +163,8 @@ iAITKIO::PixelType itkPixelType( iAITKIO::ImagePointer image )
 template <class T>
 void alloc_image_tmpl(iAITKIO::ImagePointer otherImg, iAITKIO::ImagePointer & result)
 {
-	typedef itk::Image<T, iAITKIO::Dim > ImageType;
-	typedef typename ImageType::Pointer ImagePointer;
-
-	ImagePointer image = ImageType::New();
+	using ImageType = itk::Image<T, iAITKIO::Dim>;
+	auto image = ImageType::New();
 	typename ImageType::RegionType reg(
 		otherImg->GetLargestPossibleRegion().GetIndex(),
 		otherImg->GetLargestPossibleRegion().GetSize()
@@ -189,10 +187,8 @@ iAITKIO::ImagePointer allocateImage(iAITKIO::ImagePointer img)
 template <class T>
 void alloc_image_tmpl2(int const size[iAITKIO::Dim], double const spacing[iAITKIO::Dim], iAITKIO::ImagePointer & result)
 {
-	typedef itk::Image<T, iAITKIO::Dim > ImageType;
-	typedef typename ImageType::Pointer ImagePointer;
-
-	ImagePointer image = ImageType::New();
+	using ImageType = itk::Image<T, iAITKIO::Dim>;
+	auto image = ImageType::New();
 	typename ImageType::IndexType idx;
 	idx[0] = idx[1] = idx[2] = 0;
 	typename ImageType::SizeType tsize;
@@ -259,8 +255,7 @@ void itkPixel2(double & result, TImage* image, typename TImage::IndexType idx)
 template <class T>
 void itkPixel(double & result, iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx)
 {
-	typedef itk::Image<T, iAITKIO::Dim > ImageType;
-	itkPixel2(result, dynamic_cast<ImageType*>(img.GetPointer()), idx);
+	itkPixel2(result, dynamic_cast<itk::Image<T, iAITKIO::Dim>*>(img.GetPointer()), idx);
 }
 
 
@@ -280,8 +275,7 @@ void setITKPixel2(double value, TImage* image, typename TImage::IndexType idx)
 template <class T>
 void setITKPixel(double value, iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx)
 {
-	typedef itk::Image<T, iAITKIO::Dim > ImageType;
-	setITKPixel2(value, dynamic_cast<ImageType*>(img.GetPointer()), idx);
+	setITKPixel2(value, dynamic_cast<itk::Image<T, iAITKIO::Dim>*>(img.GetPointer()), idx);
 }
 
 
@@ -294,9 +288,9 @@ void setITKPixel(iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType id
 template <typename T>
 void internalExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::Dim], size_t const sizeArr[iAITKIO::Dim], iAITKIO::ImagePointer & outImg)
 {
-	typedef itk::Image< T, iAITKIO::Dim > ImageType;
+	using ImageType = itk::Image< T, iAITKIO::Dim>;
 	auto typedImg = dynamic_cast<ImageType *>(inImg.GetPointer());
-	typedef itk::ExtractImageFilter< ImageType, ImageType > ExtractType;
+	using ExtractType = itk::ExtractImageFilter<ImageType, ImageType>;
 	auto extractor = ExtractType::New();
 	auto size = typedImg->GetLargestPossibleRegion().GetSize();
 	typename ExtractType::InputImageRegionType::IndexType index;
@@ -324,7 +318,7 @@ iAITKIO::ImagePointer extractImage(iAITKIO::ImagePointer inImg, size_t const ind
 template <typename T>
 void internalGetStatistics(iAITKIO::ImagePointer img, double* min, double* max, double* mean, double* stddev, double* vari, double* sum)
 {
-	typedef itk::Image< T, iAITKIO::Dim > ImageType;
+	using ImageType = itk::Image<T, iAITKIO::Dim>;
 	auto statisticsImageFilter = itk::StatisticsImageFilter<ImageType>::New();
 	statisticsImageFilter->SetInput(dynamic_cast<ImageType*>(img.GetPointer()));
 	statisticsImageFilter->Update();

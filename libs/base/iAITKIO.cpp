@@ -27,9 +27,7 @@ namespace iAITKIO
 template <class T>
 void read_image_template(QString const& f, ImagePointer& image, bool releaseFlag, iAProgress const * progress)
 {
-	typedef itk::Image<T, Dim> InputImageType;
-	typedef itk::ImageFileReader<InputImageType> ReaderType;
-	typename ReaderType::Pointer reader = ReaderType::New();
+	auto reader = itk::ImageFileReader<itk::Image<T, Dim>>::New();
 	if (releaseFlag)
 	{
 		reader->ReleaseDataFlagOn();
