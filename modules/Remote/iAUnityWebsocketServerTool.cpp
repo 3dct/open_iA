@@ -86,9 +86,9 @@ namespace
 		Create,  // Reserved, not yet implemented
 		Remove,  // Reserved, not yet implemented
 		SetMatrix,
-		AddTranslation,
+		SetTranslation,
 		AddScaling,
-		AddRotationQuaternion,
+		SetRotationQuaternion,
 		AddRotationEuler,
 		// must be last:
 		Count
@@ -126,21 +126,17 @@ namespace
 		SlicingPlane
 		//Camera
 	};
-
-	void sendMessage(QWebSocket* s, MessageType t)
+	
+	template <typename T>
+	T readVal(QDataStream& stream)
 	{
-		// if (t == MessageType::ACK || t == MessageType::NAK)
-		QByteArray b;
-		b.append(enumToIntegral(t));
-		s->sendBinaryMessage(b);
-	}
-	void sendClientID(QWebSocket* s, quint64 clientID)
-	{
-		QByteArray b;
-		QDataStream stream(&b, QIODevice::WriteOnly);
-		stream << enumToIntegral(MessageType::ClientID);
-		stream << clientID;    // QDataStream does Big Endian conversions automatically
-		s->sendBinaryMessage(b);
+		T t;
+		stream >> t;
+		if (stream.status() != QDataStream::Ok)
+		{
+			throw std::runtime_error(QString("Tried to read %1 bytes, but got status %2 instead of OK!").arg(sizeof(T)).arg(stream.status()).toStdString());
+		}
+		return t;
 	}
 	template <std::size_t N>
 	void readArray(QDataStream& stream, std::array<float, N>& a)
@@ -149,7 +145,7 @@ namespace
 		auto actualBytes = stream.readRawData(reinterpret_cast<char*>(a.data()), expectedBytes);
 		if (actualBytes != expectedBytes)
 		{
-			LOG(lvlWarn, QString("  Expected %1 but read %2 bytes!").arg(expectedBytes).arg(actualBytes));
+			throw std::runtime_error(QString("readArray: Expected %1 but read %2 bytes!").arg(expectedBytes).arg(actualBytes).toStdString());
 		}
 	}
 	template <std::size_t N>
@@ -159,7 +155,7 @@ namespace
 		auto actualBytes = stream.writeRawData(reinterpret_cast<const char*>(a.data()), expectedBytes);
 		if (actualBytes != expectedBytes)
 		{
-			LOG(lvlWarn, QString("  Expected %1 but wrote %2 bytes!").arg(expectedBytes).arg(actualBytes));
+			throw std::runtime_error(QString("writeArray: Expected %1 but wrote %2 bytes!").arg(expectedBytes).arg(actualBytes).toStdString());
 		}
 	}
 
@@ -203,7 +199,53 @@ namespace
 		return quat;
 	}
 
+	std::array<float, 3> quaternionToEulerAngles(std::array<float, 4> q)
+	{
+		double ayterm = 2 * (q[3] * q[1] - q[0] * q[2]);
+		double a2[3] = {
+			vtkMath::DegreesFromRadians(std::atan2(2 * (q[3] * q[0] + q[1] * q[2]), 1 - 2 * (q[0] * q[0] + q[1] * q[1]))),
+			vtkMath::DegreesFromRadians(-vtkMath::Pi() / 2 + 2 * std::atan2(std::sqrt(1 + ayterm), std::sqrt(1 - ayterm))),
+			vtkMath::DegreesFromRadians(std::atan2(2 * (q[3] * q[2] + q[0] * q[1]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])))
+		};
+		for (int a = 0; a < 3; ++a)
+		{   // round to nearest X degrees (for smoothing):
+			const double RoundDegrees = 2;
+			a2[a] = std::round(a2[a] / RoundDegrees) * RoundDegrees;
+		}
+	}
+
+	std::array<float, 4> eulerAnglesToQuaternion(std::array<float, 3> a)
+	{
+		// from https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+		float cr = std::cos(a[0] * 0.5);
+		float sr = std::sin(a[0] * 0.5);
+		float cp = std::cos(a[1] * 0.5);
+		float sp = std::sin(a[1] * 0.5);
+		float cy = std::cos(a[2] * 0.5);
+		float sy = std::sin(a[2] * 0.5);
+		return std::array<float, 4>
+		{
+			cr* cp* cy + sr * sp * sy,
+				sr* cp* cy - cr * sp * sy,
+				cr* sp* cy + sr * cp * sy,
+				cr* cp* sy - sr * sp * cy
+		};
+	}
+
 	std::array<float, 3> DefaultPlaneNormal = { 0, 0, 1 };
+
+	QString toHexStr(QByteArray const & ba)
+	{
+		QString result;
+		for (auto b : ba)
+		{
+			result += QString("%1%2 ")
+				.arg((b & 0xF0) >> 4, 0, 16)
+				.arg((b & 0x0F), 0, 16);
+		}
+		return result;
+		//
+	}
 }
 
 class iAUnityWebsocketServerToolImpl: public QObject
@@ -214,10 +256,10 @@ private:
 	{
 		std::array<float, N> values{};
 		readArray(rcvStream, values);
-		LOG(lvlInfo, QString("  Object command=%1 received for object ID=%2 with values of %3; broadcasting!")
-			.arg(static_cast<int>(objCmdType)).arg(objID).arg(arrayToString(values)));
+		LOG(lvlInfo, QString("    values=%3; broadcasting!").arg(arrayToString(values)));
 		QByteArray outData;
 		QDataStream outStream(&outData, QIODevice::WriteOnly);
+		outStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 		outStream << MessageType::Object << objCmdType << objID;
 		writeArray<N>(outStream, values);
 		broadcastMsg(outData, clientID);
@@ -252,14 +294,14 @@ private:
 					prop->SetScale(scale);
 					break;
 				}
-				case ObjectCommandType::AddTranslation:
+				case ObjectCommandType::SetTranslation:
 				{
 					double pos[3];
 					prop->GetPosition(pos);
-					for (int i = 0; i < 3; ++i)
-					{
-						pos[i] += values[i];
-					}
+					//for (int i = 0; i < 3; ++i)
+					//{
+					//	pos[i] += values[i];
+					//}
 					prop->SetPosition(pos);
 					break;
 				}
@@ -273,6 +315,41 @@ private:
 					}
 					prop->SetOrientation(angles);
 					break;
+				}
+				case ObjectCommandType::SetRotationQuaternion:
+				{
+					const size_t QuatSize = 4;
+					double q[QuatSize];
+					for (size_t i = 0; i < QuatSize; ++i) { q[i] = values[i]; }
+					double ayterm = 2 * (q[3] * q[1] - q[0] * q[2]);
+					double a2[3] = {
+						vtkMath::DegreesFromRadians(std::atan2(2 * (q[3] * q[0] + q[1] * q[2]), 1 - 2 * (q[0] * q[0] + q[1] * q[1]))),
+						vtkMath::DegreesFromRadians(-vtkMath::Pi() / 2 + 2 * std::atan2(std::sqrt(1 + ayterm), std::sqrt(1 - ayterm))),
+						vtkMath::DegreesFromRadians(std::atan2(2 * (q[3] * q[2] + q[0] * q[1]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])))
+					};
+					for (int a = 0; a < 3; ++a)
+					{   // round to nearest X degrees:
+						const double RoundDegrees = 2;
+						a2[a] = std::round(a2[a] / RoundDegrees) * RoundDegrees;
+					}
+					LOG(lvlInfo, QString("%1: Rotation msg: rot: (%1, %2, %3, %4), angle: (%5, %6, %7)")
+						.arg(q[0]).arg(q[1]).arg(q[2]).arg(q[3])
+						.arg(a2[0]).arg(a2[1]).arg(a2[2]));
+					auto bounds = renderer->bounds();
+					auto center = (bounds.maxCorner() - bounds.minCorner()) / 2;
+					double pos[3];
+					prop->GetPosition(pos);
+					vtkNew<vtkTransform> tr;
+					tr->PostMultiply();
+					tr->Translate(-center[0], -center[1], -center[2]);
+					// rotation: order x-z-y, reverse direction of y
+					tr->RotateX(a2[0]);
+					tr->RotateZ(-a2[1]);
+					tr->RotateY(a2[2]);
+					// translation: y, z flipped; x, y reversed:
+					tr->Translate(center[0] - pos[0], center[1] - pos[2], center[2] + pos[1]);
+					prop->SetUserTransform(tr);
+					child->updateRenderer();
 				}
 				}
 			}
@@ -317,114 +394,121 @@ public:
 		connect(m_planeSliceTool, &iAPlaneSliceTool::snapshotRemoved, this, &Self::removeSnapshot);
 		connect(m_planeSliceTool, &iAPlaneSliceTool::snapshotsCleared, this, &Self::clearSnapshots);
 
-		if (m_wsServer->listen(QHostAddress::Any, 50505))
+		if (!m_wsServer->listen(QHostAddress::Any, 50505))
 		{
-			LOG(lvlInfo, QString("%1: Listening on %2:%3")
-				.arg(iAUnityWebsocketServerTool::Name).arg(m_wsServer->serverAddress().toString()).arg(m_wsServer->serverPort()));
+			LOG(lvlError, QString("%1: Listening failed (error: %2)!").arg(iAUnityWebsocketServerTool::Name).arg(m_wsServer->errorString()));
+			return;
+		}
 
-			child->splitDockWidget(child->renderDockWidget(), m_clientListDW, Qt::Vertical);
-			m_clientListContainer->setLayout(new QVBoxLayout);
-			m_clientListContainer->layout()->setContentsMargins(0, 0, 0, 0);
-			m_clientListContainer->layout()->setSpacing(1);
-			m_clientListContainer->layout()->addWidget(new QLabel(QString("Listening on %1:%2").
-				arg(m_wsServer->serverAddress().toString()).arg(m_wsServer->serverPort())));
-			QStringList columnNames = QStringList() << "ID" << "Client address" << "Actions";
-			m_clientTable->setColumnCount(static_cast<int>(columnNames.size()));
-			m_clientTable->setHorizontalHeaderLabels(columnNames);
-			m_clientTable->verticalHeader()->hide();
-			//m_clientTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-			m_clientTable->setSelectionMode(QAbstractItemView::SelectionMode::NoSelection);
-			m_clientTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-			m_clientListContainer->layout()->addWidget(m_clientTable);
-			connect(m_wsServer, &QWebSocketServer::newConnection, this,
-				[this, child]
-			{
-				auto client = m_wsServer->nextPendingConnection();
-				LOG(lvlInfo, QString("%1: Client connected: %2:%3")
-					.arg(iAUnityWebsocketServerTool::Name).arg(client->peerAddress().toString()).arg(client->peerPort()));
-				auto clientID = m_nextClientID++;  // simplest possible ID assignment: next free ID. Maybe random?
+		LOG(lvlInfo, QString("%1: Listening on %2:%3")
+			.arg(iAUnityWebsocketServerTool::Name).arg(m_wsServer->serverAddress().toString()).arg(m_wsServer->serverPort()));
 
-				int clientRow = m_clientTable->rowCount();
-				m_clientTable->insertRow(clientRow);
-				auto idItem = new QTableWidgetItem(QString::number(clientID));
-				idItem->setData(Qt::UserRole, clientID);
-				m_clientTable->setItem(clientRow, iAClientTableColumn::ID, idItem);
-				m_clientTable->setItem(clientRow, iAClientTableColumn::Address, new QTableWidgetItem(client->peerAddress().toString()));
+		child->splitDockWidget(child->renderDockWidget(), m_clientListDW, Qt::Vertical);
+		m_clientListContainer->setLayout(new QVBoxLayout);
+		m_clientListContainer->layout()->setContentsMargins(0, 0, 0, 0);
+		m_clientListContainer->layout()->setSpacing(1);
+		m_clientListContainer->layout()->addWidget(new QLabel(QString("Listening on %1:%2").
+			arg(m_wsServer->serverAddress().toString()).arg(m_wsServer->serverPort())));
+		QStringList columnNames = QStringList() << "ID" << "Client address" << "Actions";
+		m_clientTable->setColumnCount(static_cast<int>(columnNames.size()));
+		m_clientTable->setHorizontalHeaderLabels(columnNames);
+		m_clientTable->verticalHeader()->hide();
+		//m_clientTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+		m_clientTable->setSelectionMode(QAbstractItemView::SelectionMode::NoSelection);
+		m_clientTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+		m_clientListContainer->layout()->addWidget(m_clientTable);
+		connect(m_wsServer, &QWebSocketServer::newConnection, this,
+			[this, child]
+		{
+			auto client = m_wsServer->nextPendingConnection();
+			LOG(lvlInfo, QString("%1: Client connected: %2:%3")
+				.arg(iAUnityWebsocketServerTool::Name).arg(client->peerAddress().toString()).arg(client->peerPort()));
+			auto clientID = m_nextClientID++;  // simplest possible ID assignment: next free ID. Maybe random?
 
-				auto w = new QWidget();
-				w->setLayout(new QHBoxLayout);
-				w->layout()->setContentsMargins(0, 0, 0, 0);
-				w->layout()->setSpacing(1);
+			int clientRow = m_clientTable->rowCount();
+			m_clientTable->insertRow(clientRow);
+			auto idItem = new QTableWidgetItem(QString::number(clientID));
+			idItem->setData(Qt::UserRole, clientID);
+			m_clientTable->setItem(clientRow, iAClientTableColumn::ID, idItem);
+			m_clientTable->setItem(clientRow, iAClientTableColumn::Address, new QTableWidgetItem(client->peerAddress().toString()));
 
-				auto syncAction = new QAction("Sync");
-				syncAction->setToolTip("Synchronize Views between this client and this window.");
-				syncAction->setCheckable(true);
-				syncAction->setChecked(false);
-				m_syncActions.insert(std::make_pair(clientID, syncAction));
-				QObject::connect(syncAction, &QAction::toggled, m_clientTable,
-					[this, clientID, syncAction]()
+			auto w = new QWidget();
+			w->setLayout(new QHBoxLayout);
+			w->layout()->setContentsMargins(0, 0, 0, 0);
+			w->layout()->setSpacing(1);
+
+			auto syncAction = new QAction("Sync");
+			syncAction->setToolTip("Synchronize Views between this client and this window.");
+			syncAction->setCheckable(true);
+			syncAction->setChecked(false);
+			m_syncActions.insert(std::make_pair(clientID, syncAction));
+			QObject::connect(syncAction, &QAction::toggled, m_clientTable,
+				[this, clientID, syncAction]()
+				{
+					bool checked = syncAction->isChecked();
+					m_syncedClientID = (checked) ? clientID : - 1;
+					for (auto s : m_syncActions)
 					{
-						bool checked = syncAction->isChecked();
-						m_syncedClientID = (checked) ? clientID : - 1;
-						for (auto s : m_syncActions)
+						// disable other actions:
+						if (s.first == clientID)
 						{
-							// disable other actions:
-							if (s.first == clientID)
-							{
-								continue;
-							}
-							QSignalBlocker b(s.second);
-							s.second->setChecked(false);
+							continue;
 						}
-						// trigger sync of last known camera? or just wait for next update...
-					});
-				iAMainWindow::get()->addActionIcon(syncAction, "update");
-				auto syncButton = new QToolButton(w);
-				syncButton->setDefaultAction(syncAction);
+						QSignalBlocker b(s.second);
+						s.second->setChecked(false);
+					}
+					// trigger sync of last known camera? or just wait for next update...
+				});
+			iAMainWindow::get()->addActionIcon(syncAction, "update");
+			auto syncButton = new QToolButton(w);
+			syncButton->setDefaultAction(syncAction);
 
-				auto disconnectAction = new QAction("Sync");
-				disconnectAction->setToolTip("Synchronize Views between this client and this window.");
-				disconnectAction->setCheckable(true);
-				disconnectAction->setChecked(false);
-				QObject::connect(disconnectAction, &QAction::triggered, m_clientTable,
-				[this, clientID, disconnectAction]()
-				{
-					m_clientSocket[clientID]->close(QWebSocketProtocol::CloseCodeNormal, "Server user manually requested client disconnect.");
-				});
-				iAMainWindow::get()->addActionIcon(disconnectAction, "close");
-				auto disconnectButton = new QToolButton(w);
-				disconnectButton->setDefaultAction(disconnectAction);
+			auto disconnectAction = new QAction("Sync");
+			disconnectAction->setToolTip("Synchronize Views between this client and this window.");
+			disconnectAction->setCheckable(true);
+			disconnectAction->setChecked(false);
+			QObject::connect(disconnectAction, &QAction::triggered, m_clientTable,
+			[this, clientID, disconnectAction]()
+			{
+				m_clientSocket[clientID]->close(QWebSocketProtocol::CloseCodeNormal, "Server user manually requested client disconnect.");
+			});
+			iAMainWindow::get()->addActionIcon(disconnectAction, "close");
+			auto disconnectButton = new QToolButton(w);
+			disconnectButton->setDefaultAction(disconnectAction);
 
-				w->layout()->addWidget(syncButton);
-				w->layout()->addWidget(disconnectButton);
-				m_clientTable->setCellWidget(clientRow, iAClientTableColumn::Actions, w);
+			w->layout()->addWidget(syncButton);
+			w->layout()->addWidget(disconnectButton);
+			m_clientTable->setCellWidget(clientRow, iAClientTableColumn::Actions, w);
 
-				m_clientSocket[clientID] = client;
-				m_clientState[clientID] = ClientState::AwaitingProtocolNegotiation;
-				connect(client, &QWebSocket::stateChanged, this, [clientID](QAbstractSocket::SocketState state)
-				{
-					LOG(lvlDebug, QString("%1: Client (ID=%2): socket state changed to %3")
-						.arg(iAUnityWebsocketServerTool::Name).arg(clientID)
-						.arg(QMetaEnum::fromType<QAbstractSocket::SocketState>().valueToKey(state)));
-				});
-				connect(client, &QWebSocket::errorOccurred, this, [clientID](QAbstractSocket::SocketError error)
-				{
-					LOG(lvlDebug, QString("%1: Client (ID=%2): error occurred: %3")
-						.arg(iAUnityWebsocketServerTool::Name).arg(clientID)
-						.arg(QMetaEnum::fromType<QAbstractSocket::SocketError>().valueToKey(error)));
-				});
-				connect(client, &QWebSocket::pong, this, [clientID](quint64 elapsedTime, const QByteArray& payload)
-				{
-					LOG(lvlDebug, QString("%1: Client (ID=%2): pong received; elapsed: %3 ms.")
-						.arg(iAUnityWebsocketServerTool::Name).arg(clientID)
-						.arg(elapsedTime));
-				});
-				connect(client, &QWebSocket::textMessageReceived, this, [this, clientID](QString message)
-				{
-					LOG(lvlInfo, QString("%1: Client (ID=%2): TEXT MESSAGE received: %3.")
-						.arg(iAUnityWebsocketServerTool::Name).arg(clientID).arg(message));
-				});
-				connect(client, &QWebSocket::binaryMessageReceived, this, [this, child, clientID](QByteArray rcvData)
+			m_clientSocket[clientID] = client;
+			m_clientState[clientID] = ClientState::AwaitingProtocolNegotiation;
+			connect(client, &QWebSocket::stateChanged, this, [clientID](QAbstractSocket::SocketState state)
+			{
+				LOG(lvlDebug, QString("%1: Client (ID=%2): socket state changed to %3")
+					.arg(iAUnityWebsocketServerTool::Name).arg(clientID)
+					.arg(QMetaEnum::fromType<QAbstractSocket::SocketState>().valueToKey(state)));
+			});
+			connect(client, &QWebSocket::errorOccurred, this, [clientID](QAbstractSocket::SocketError error)
+			{
+				LOG(lvlDebug, QString("%1: Client (ID=%2): error occurred: %3")
+					.arg(iAUnityWebsocketServerTool::Name).arg(clientID)
+					.arg(QMetaEnum::fromType<QAbstractSocket::SocketError>().valueToKey(error)));
+			});
+			connect(client, &QWebSocket::pong, this, [clientID](quint64 elapsedTime, const QByteArray& payload)
+			{
+				Q_UNUSED(payload);
+				LOG(lvlDebug, QString("%1: Client (ID=%2): pong received; elapsed: %3 ms.")
+					.arg(iAUnityWebsocketServerTool::Name).arg(clientID)
+					.arg(elapsedTime));
+			});
+			connect(client, &QWebSocket::textMessageReceived, this, [this, clientID](QString message)
+			{
+				LOG(lvlInfo, QString("%1: Client (ID=%2): TEXT MESSAGE received: %3.")
+					.arg(iAUnityWebsocketServerTool::Name).arg(clientID).arg(message));
+			});
+			connect(client, &QWebSocket::binaryMessageReceived, this, [this, child, clientID](QByteArray rcvData)
+			{
+				try
 				{
 					if (rcvData.size() < 1)
 					{
@@ -441,12 +525,15 @@ public:
 						return;
 					}
 					QDataStream rcvStream(&rcvData, QIODevice::ReadOnly);
+					rcvStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 					MessageType type;
 					rcvStream >> type;
-					LOG(lvlInfo, QString("%1: Received message of type %2 from client ID=%3:")
+					LOG(lvlInfo, QString("%1: Received message of type %2 from client ID=%3; (data: %4)")
 						.arg(iAUnityWebsocketServerTool::Name)
 						.arg(static_cast<int>(type))
-						.arg(clientID));
+						.arg(clientID)
+						.arg(toHexStr(rcvData))
+					);
 
 					if (m_clientState[clientID] == ClientState::AwaitingProtocolNegotiation)
 					{
@@ -499,8 +586,7 @@ public:
 							{
 								LOG(lvlInfo, QString("  Load Dataset received"));
 								// https://forum.qt.io/topic/89832/reading-char-array-from-qdatastream
-								quint32 fnLen;
-								rcvStream >> fnLen;
+								auto fnLen = readVal<quint32>(rcvStream);
 								QByteArray fnBytes;
 								fnBytes.resize(fnLen);
 								auto readBytes = rcvStream.readRawData(fnBytes.data(), fnLen);
@@ -515,7 +601,7 @@ public:
 								if (!dataSetExists(fileName, child))
 								{
 									LOG(lvlWarn, "  Requested dataset does not exist, sending NAK!");
-									sendMessage(m_clientSocket[clientID], MessageType::NAK);
+									sendMessage(clientID, MessageType::NAK);
 									return;
 								}
 								sendDataLoadingRequest(fileName);
@@ -531,34 +617,32 @@ public:
 							}
 							ObjectCommandType objCommand;
 							rcvStream >> objCommand;
-							quint64 objID;
-							rcvStream >> objID;
-							LOG(lvlInfo, QString("  Object subcommand %1 for ID %2")
+							auto objID = readVal<quint64>(rcvStream);
+							LOG(lvlInfo, QString("  Object subcommand %1 for object ID %2")
 								.arg(static_cast<int>(objCommand)).arg(objID));
 							switch (objCommand)
 							{
 							case ObjectCommandType::SetMatrix:
 								processObjectTransform<16>(rcvStream, clientID, objID, objCommand, child);
 								break;
-							case ObjectCommandType::AddTranslation:
+							case ObjectCommandType::SetTranslation:
 								processObjectTransform<3>(rcvStream, clientID, objID, objCommand, child);
 								break;
 							case ObjectCommandType::AddScaling:
 								processObjectTransform<3>(rcvStream, clientID, objID, objCommand, child);
 								break;
-							case ObjectCommandType::AddRotationQuaternion:
+							case ObjectCommandType::SetRotationQuaternion:
 								processObjectTransform<4>(rcvStream, clientID, objID, objCommand, child);
 								break;
 							case ObjectCommandType::AddRotationEuler:
 							{
-								quint8 axis;
-								rcvStream >> axis;
-								float value;
-								rcvStream >> value;
+								auto axis = readVal<quint8>(rcvStream);
+								float value = readVal<float>(rcvStream);
 								LOG(lvlInfo, QString("  Object command=AddRotation (Euler Angles) received for object ID=%1 with axis=%3, value=%4.")
 									.arg(static_cast<int>(objCommand)).arg(objID).arg(axis).arg(value));
 								QByteArray outData;
 								QDataStream outStream(&outData, QIODevice::WriteOnly);
+								outStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 								outStream << MessageType::Object << objCommand << objID << axis << value;
 								broadcastMsg(outData, clientID);
 								// TODO: local application!
@@ -595,8 +679,7 @@ public:
 							}
 							case SnapshotCommandType::Remove:
 							{
-								quint64 snapshotID;
-								rcvStream >> snapshotID;
+								auto snapshotID = readVal<quint64>(rcvStream);
 								m_planeSliceTool->removeSnapshot(snapshotID);
 								removeSnapshot(snapshotID);
 								break;
@@ -607,12 +690,9 @@ public:
 								break;
 							case SnapshotCommandType::ChangeSlicePosition:
 							{
-								quint64 snapshotID;
-								iAMoveAxis axis;
-								float value;
-								rcvStream >> snapshotID;
-								rcvStream >> axis;
-								rcvStream >> value;
+								auto snapshotID = readVal<quint64>(rcvStream);
+								auto axis = readVal<iAMoveAxis>(rcvStream);
+								auto value = readVal<float>(rcvStream);
 								moveSnapshot(snapshotID, axis, value);
 								break;
 							}
@@ -622,46 +702,45 @@ public:
 						}
 						break;
 					}/*
-					 // implicitly handled through m_dataState code above switch
+						// implicitly handled through m_dataState code above switch
 					case ClientState::PendingDatasetAck:
 					{
 						break;
 					}
 					*/
 					}
-
-				});
-				connect(client, &QWebSocket::disconnected, this, [this, client, clientID]
+				}
+				catch (std::exception& e)
 				{
-					//QWebSocket* client = qobject_cast<QWebSocket*>(sender());
-					LOG(lvlInfo, QString("%1: Client (ID=%2, %3:%4) disconnected!")
-						.arg(iAUnityWebsocketServerTool::Name)
-						.arg(clientID)
-						.arg(client->peerAddress().toString()).arg(client->peerPort()));
-					m_clientSocket.erase(clientID);
-					m_clientState.erase(clientID);
-					m_syncActions.erase(clientID);
-					removeTableEntry(m_clientTable, clientID);
-					client->deleteLater();
-					if (m_dataState == DataState::PendingClientAck) // special handling for if a dataset loading procedure is pending:
-					{
-						if (!m_clientSocket.empty())
-						{   // if there are other clients connected, check if now all (still connected) clients have sent their ACK
-							checkAllClientConfirmedData();
-						}
-						else
-						{   // if the disconnected client was the last one, simply switch to "No dataset loaded" mode
-							m_dataState = DataState::NoDataset;
-							m_dataSetFileName = "";
-						}
-					}
-				});
+					LOG(lvlError, QString("%1: Error: %2").arg(iAUnityWebsocketServerTool::Name).arg(e.what()));
+				}
 			});
-		}
-		else
-		{
-			LOG(lvlError, QString("%1: Listening failed (error: %2)!").arg(iAUnityWebsocketServerTool::Name).arg(m_wsServer->errorString()));
-		}
+			connect(client, &QWebSocket::disconnected, this, [this, client, clientID]
+			{
+				//QWebSocket* client = qobject_cast<QWebSocket*>(sender());
+				LOG(lvlInfo, QString("%1: Client (ID=%2, %3:%4) disconnected!")
+					.arg(iAUnityWebsocketServerTool::Name)
+					.arg(clientID)
+					.arg(client->peerAddress().toString()).arg(client->peerPort()));
+				m_clientSocket.erase(clientID);
+				m_clientState.erase(clientID);
+				m_syncActions.erase(clientID);
+				removeTableEntry(m_clientTable, clientID);
+				client->deleteLater();
+				if (m_dataState == DataState::PendingClientAck) // special handling for if a dataset loading procedure is pending:
+				{
+					if (!m_clientSocket.empty())
+					{   // if there are other clients connected, check if now all (still connected) clients have sent their ACK
+						checkAllClientConfirmedData();
+					}
+					else
+					{   // if the disconnected client was the last one, simply switch to "No dataset loaded" mode
+						m_dataState = DataState::NoDataset;
+						m_dataSetFileName = "";
+					}
+				}
+			});
+		});
 	}
 
 	void stop()
@@ -674,6 +753,29 @@ public:
 
 private:
 
+	void sendMessage(quint64 clientID, QByteArray const& b)
+	{
+		LOG(lvlDebug, QString("Sending message to client %1; data: %2").arg(clientID).arg(toHexStr(b)));
+		m_clientSocket[clientID]->sendBinaryMessage(b);
+	}
+
+	void sendMessage(quint64 clientID, MessageType t)
+	{
+		// if (t == MessageType::ACK || t == MessageType::NAK)
+		QByteArray b;
+		b.append(enumToIntegral(t));
+		sendMessage(clientID, b);
+	}
+
+	void sendClientID(quint64 clientID)
+	{
+		QByteArray b;
+		QDataStream stream(&b, QIODevice::WriteOnly);
+		stream << enumToIntegral(MessageType::ClientID);
+		stream << clientID;    // QDataStream does Big Endian conversions automatically
+		sendMessage(clientID, b);
+	}
+
 	void broadcastMsg(QByteArray const& b, quint64 exceptClientID = -1)
 	{
 		for (auto c : m_clientSocket)
@@ -682,7 +784,7 @@ private:
 			{
 				continue;
 			}
-			c.second->sendBinaryMessage(b);
+			sendMessage(c.first, b);
 		}
 	}
 
@@ -692,6 +794,7 @@ private:
 			.arg(snapshotID).arg(arrayToString(info.position)).arg(arrayToString(info.normal)));
 		QByteArray outData;
 		QDataStream stream(&outData, QIODevice::WriteOnly);
+		stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 		stream << MessageType::Snapshot << SnapshotCommandType::Create << snapshotID;
 		writeArray(stream, info.position);
 		auto quat = getRotationQuaternionFromVectors(DefaultPlaneNormal, info.normal);
@@ -749,16 +852,16 @@ private:
 	{
 		LOG(lvlInfo, QString("  Broadcasting data loading request to all clients; filename: %1").arg(fileName));
 		QByteArray fnBytes = fileName.toUtf8();
-		quint32 fnLen = static_cast<int>(fnBytes.size());
+		quint32 fnLen = static_cast<quint32>(fnBytes.size());
 		m_dataState = DataState::PendingClientAck;
 		m_dataSetFileName = fileName;
 		QByteArray outData;
 		QDataStream outStream(&outData, QIODevice::WriteOnly);
 		outStream << MessageType::Command << CommandType::LoadDataset << fnLen;
 		auto bytesWritten = outStream.writeRawData(fnBytes, fnLen);
-		if (bytesWritten != fnLen)
+		if (bytesWritten != static_cast<int>(fnLen))
 		{
-			LOG(lvlWarn, QString("Expected %1 but wrote %2 bytes!").arg(bytesWritten).arg(fnLen));
+			LOG(lvlWarn, QString("data loading: Expected %1 but wrote %2 bytes!").arg(bytesWritten).arg(fnLen));
 		}
 		broadcastMsg(outData);
 		for (auto c : m_clientSocket)
@@ -775,7 +878,7 @@ private:
 			// broadcast NAK:
 			for (auto s : m_clientSocket)
 			{
-				sendMessage(s.second, MessageType::NAK);
+				sendMessage(s.first, MessageType::NAK);
 				m_clientState[s.first] = ClientState::Idle;
 			}
 			m_dataState = DataState::NoDataset;  // maybe switch back to previous dataset if there is any?
@@ -823,7 +926,7 @@ private:
 			LOG(lvlInfo, QString("  All clients have ACK'ed the dataset loading; ready to go ahead with actually loading the data, broadcasting ACK!"));
 			for (auto s : m_clientSocket)
 			{
-				sendMessage(s.second, MessageType::ACK);
+				sendMessage(s.first, MessageType::ACK);
 				m_clientState[s.first] = ClientState::Idle;
 			}
 			// TODO: actual data loading
@@ -840,21 +943,21 @@ private:
 				.arg(clientID)
 				.arg(static_cast<quint8>(type)));
 		}
-		quint64 clientProtocolVersion;
-		stream >> clientProtocolVersion;
+		auto clientProtocolVersion = readVal<quint64>(stream);
+		// TODO: check whether we have read enough bytes!
 		if (clientProtocolVersion > ServerProtocolVersion)
 		{
 			LOG(lvlWarn, QString("Client advertised unsupported protocol version %1 (we only support up to version %2), sending NAK...")
 				.arg(clientProtocolVersion)
 				.arg(ServerProtocolVersion));
-			sendMessage(m_clientSocket[clientID], MessageType::NAK);
+			sendMessage(clientID, MessageType::NAK);
 		}
 		else
 		{
 			LOG(lvlInfo, QString("Client advertised supported protocol version %1, sending ACK...")
 				.arg(clientProtocolVersion));
-			sendMessage(m_clientSocket[clientID], MessageType::ACK);
-			sendClientID(m_clientSocket[clientID], clientID);
+			sendMessage(clientID, MessageType::ACK);
+			sendClientID(clientID);
 			m_clientState[clientID] = ClientState::Idle;
 
 			if (m_dataState == DataState::DatasetLoaded)
