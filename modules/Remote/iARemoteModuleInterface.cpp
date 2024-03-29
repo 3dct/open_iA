@@ -21,6 +21,7 @@ void iARemoteModuleInterface::Initialize()
 		return;
 	}
 	iAToolRegistry::addTool(iAPlaneSliceTool::Name, iAPlaneSliceTool::create);
+	iAToolRegistry::addTool(iAUnityWebsocketServerTool::Name, iAUnityWebsocketServerTool::create);
 
 	auto submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Remote"), false);
 

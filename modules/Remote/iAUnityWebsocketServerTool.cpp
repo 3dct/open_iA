@@ -887,6 +887,11 @@ private:
 
 const QString iAUnityWebsocketServerTool::Name("UnityWebSocketServer");
 
+std::shared_ptr<iATool> iAUnityWebsocketServerTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
+{
+	return std::make_shared<iAUnityWebsocketServerTool>(mainWnd, child);
+}
+
 iAUnityWebsocketServerTool::iAUnityWebsocketServerTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iATool(mainWnd, child),
 	m_impl(std::make_unique<iAUnityWebsocketServerToolImpl>(mainWnd, child))
