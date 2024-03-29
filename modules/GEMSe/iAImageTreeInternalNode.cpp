@@ -381,7 +381,7 @@ LabelPixelHistPtr iAImageTreeInternalNode::UpdateLabelDistribution() const
 	}
 	result->count = childResult1->count + childResult2->count;
 
-	ProbabilityImagePointer labelEntropy = createImage<ProbabilityImageType>(
+	auto labelEntropy = createImage<ProbabilityImageType>(
 		size,
 		child1Img->GetSpacing()
 		);
@@ -435,7 +435,7 @@ CombinedProbPtr iAImageTreeInternalNode::UpdateProbabilities() const
 		return result;
 	}
 
-	ProbabilityImagePointer child1Img = childResult1->prob.at(0);
+	auto child1Img = childResult1->prob.at(0);
 	ProbabilityImageType::SizeType size = child1Img->GetLargestPossibleRegion().GetSize();
 	for (int l = 0; l < m_differenceMarkerValue; ++l)
 	{
@@ -456,7 +456,7 @@ CombinedProbPtr iAImageTreeInternalNode::UpdateProbabilities() const
 	}
 	result->count = childResult1->count + childResult2->count;
 
-	ProbabilityImagePointer averageEntropy = createImage<ProbabilityImageType>(
+	auto averageEntropy = createImage<ProbabilityImageType>(
 		size,
 		child1Img->GetSpacing()
 		);
@@ -481,7 +481,7 @@ CombinedProbPtr iAImageTreeInternalNode::UpdateProbabilities() const
 				int label = -1;
 				for (int l = 0; l < m_differenceMarkerValue; ++l)
 				{
-					ProbabilityImagePointer img = result->prob.at(l);
+					auto img = result->prob.at(l);
 					double probSum = img->GetPixel(idx);
 					if (probSum > probMax)
 					{

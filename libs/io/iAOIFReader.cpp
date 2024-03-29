@@ -748,8 +748,7 @@ std::wstring iAOIFReaderHelper::GetCurName(int t, int c)
 template<typename T>
 typename iAOIFReaderHelper::TiffImgPtr read_image_template(QString const & f, T)
 {
-	typedef itk::ImageFileReader<iAOIFReaderHelper::TiffImgType> ReaderType;
-	auto reader = ReaderType::New();
+	auto reader = itk::ImageFileReader<iAOIFReaderHelper::TiffImgType>::New();
 	reader->SetFileName(getLocalEncodingFileName(f));
 	reader->Update();
 	return reader->GetOutput();

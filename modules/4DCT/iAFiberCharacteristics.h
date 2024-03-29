@@ -10,7 +10,7 @@
 #include <vector>
 
 class Fiber;
-typedef std::vector<Fiber> FibersData;
+using FibersData = std::vector<Fiber>;
 
 class Fiber {
 public:

@@ -6,12 +6,11 @@
 
 #include <iAvtkSourcePoly.h>
 
-typedef std::vector<iAvtkSourcePoly<vtkDiskSource>*> disc_vector;
-
 //! Visualize a snake spline (for snake slicer - currently not fully working!) across the slicer.
 class iASnakeSpline
 {
 public:
+	using disc_vector = std::vector<iAvtkSourcePoly<vtkDiskSource>*>;
 	static const disc_vector::size_type NoPointSelected = std::numeric_limits<disc_vector::size_type>::max();
 
 	iASnakeSpline()

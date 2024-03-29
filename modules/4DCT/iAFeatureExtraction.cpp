@@ -38,8 +38,7 @@ void iAFeatureExtraction::run(QString inputImgPath, QString outputImgPath)
 	double origin[3] = {0.0, 0.0, 0.0};
 	labelImage->SetOrigin(origin);
 
-	typedef itk::LabelGeometryImageFilter2<ImageType> LabelGeometryImageFilterType;
-	auto labelGeometryImageFilter = LabelGeometryImageFilterType::New();
+	auto labelGeometryImageFilter = itk::LabelGeometryImageFilter2<ImageType>::New();
 	labelGeometryImageFilter->SetInput(labelImage);
 
 	// These generate optional outputs.
@@ -49,11 +48,11 @@ void iAFeatureExtraction::run(QString inputImgPath, QString outputImgPath)
 	//labelGeometryImageFilter->CalculateOrientedIntensityRegionsOn();
 	labelGeometryImageFilter->Update();
 
-	LabelGeometryImageFilterType::LabelsType allLabels = labelGeometryImageFilter->GetLabels();
+	auto allLabels = labelGeometryImageFilter->GetLabels();
 	std::vector<iAFeature> features;
 	for(auto allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++ )
 	{
-		LabelGeometryImageFilterType::LabelPixelType labelValue = *allLabelsIt;
+		auto labelValue = *allLabelsIt;
 		iAFeature f;
 		f.id = (int)labelValue;
 		f.volume = labelGeometryImageFilter->GetVolume(labelValue);

@@ -81,8 +81,8 @@ private:
 	std::wstring m_subdir_name;
 
 	int m_type;	//!< 0-time data in a single file; 1-time data in a file sequence
-	typedef std::vector<std::wstring> ChannelInfo;  //!< slices form a channel
-	typedef std::vector<ChannelInfo> DatasetInfo;   //!< channels form dataset
+	using ChannelInfo = std::vector<std::wstring>;  //!< slices form a channel
+	using DatasetInfo = std::vector<ChannelInfo>;   //!< channels form dataset
 	struct TimeDataInfo
 	{
 		int filenumber;                    //!< if type is 1, file number for time data
