@@ -121,7 +121,7 @@ void iABlobManager::Update( void )
 
 			//scalars
 			blobs_pd[i] = m_blobsList[i]->GetBlobPolyData();
-			vtkSmartPointer<vtkUnsignedCharArray> colIDs = vtkSmartPointer<vtkUnsignedCharArray>::New();
+			auto colIDs = vtkSmartPointer<vtkUnsignedCharArray>::New();
 			colIDs->SetNumberOfComponents( 1 );
 			colIDs->SetName( "ColorIDs" );
 			unsigned char val;
@@ -607,14 +607,14 @@ void iABlobManager::SaveMovie( QWidget *activeChild,
 	{
 		return;
 	}
-	vtkSmartPointer<vtkGenericMovieWriter> movieWriter = GetMovieWriter( fileName, qual, fps );
+	auto movieWriter = GetMovieWriter( fileName, qual, fps );
 	if (movieWriter.GetPointer() == nullptr)
 	{
 		return;
 	}
 	//interactor->Disable();
 
-	vtkSmartPointer<vtkWindowToImageFilter> w2if = vtkSmartPointer<vtkWindowToImageFilter>::New();
+	auto w2if = vtkSmartPointer<vtkWindowToImageFilter>::New();
 	// 	int* rws = renWin->GetSize();
 	// 	if (rws[0] % 2 != 0) rws[0]++;
 	// 	if (rws[1] % 2 != 0) rws[1]++;
@@ -629,7 +629,7 @@ void iABlobManager::SaveMovie( QWidget *activeChild,
 
 	//emit msg(tr("MOVIE export started. Output: %1").arg(fileName));
 
-	//vtkSmartPointer<vtkTransform> rot = vtkSmartPointer<vtkTransform>::New();
+	//auto rot = vtkSmartPointer<vtkTransform>::New();
 	//double view[3];
 	//double point[3];
 	//if (mode == 1) { // YZ

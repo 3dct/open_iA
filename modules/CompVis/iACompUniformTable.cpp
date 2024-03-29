@@ -188,25 +188,25 @@ vtkSmartPointer<vtkPolyData> iACompUniformTable::drawRow(int currDataInd, int cu
 		currDataInd,
 		currentColumn, offset);
 
-	vtkSmartPointer<vtkPlaneSource> planeSource = vtkSmartPointer<vtkPlaneSource>::New();
+	auto planeSource = vtkSmartPointer<vtkPlaneSource>::New();
 	planeSource->SetOutputPointsPrecision(vtkAlgorithm::DOUBLE_PRECISION);
 	planeSource->SetCenter(0, 0, 0);
 	planeSource->Update();
 
-	vtkSmartPointer<vtkProgrammableGlyphFilter> glypher = vtkSmartPointer<vtkProgrammableGlyphFilter>::New();
+	auto glypher = vtkSmartPointer<vtkProgrammableGlyphFilter>::New();
 	glypher->SetInputData(row);
 	glypher->SetSourceData(planeSource->GetOutput());
 	glypher->SetGlyphMethod(buildGlyphRepresentation, glypher);
 	glypher->Update();
 
-	vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	glyphMapper->SetInputConnection(glypher->GetOutputPort());
 	glyphMapper->SetColorModeToDefault();
 	glyphMapper->SetScalarModeToUseCellData();
 	glyphMapper->GetInput()->GetCellData()->SetScalars(colorArray);
 	glyphMapper->ScalarVisibilityOn();
 
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	auto actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(glyphMapper);
 	if (!m_useDarkerLut)
 	{  //the edges of the cells are drawn
@@ -301,24 +301,24 @@ void iACompUniformTable::colorBinOfRow(vtkUnsignedCharArray* colorArray, int pos
 
 vtkSmartPointer<vtkActor> iACompUniformTable::drawPolyLine(vtkSmartPointer<vtkPoints> points, double lineColor[3], double lineWidth)
 {
-	vtkSmartPointer<vtkPolyLine> polyLine = vtkSmartPointer<vtkPolyLine>::New();
+	auto polyLine = vtkSmartPointer<vtkPolyLine>::New();
 	polyLine->GetPointIds()->SetNumberOfIds(points->GetNumberOfPoints());
 	for (unsigned int i = 0; i < points->GetNumberOfPoints(); i++)
 	{
 		polyLine->GetPointIds()->SetId(i, i);
 	}
 
-	vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New();
+	auto cells = vtkSmartPointer<vtkCellArray>::New();
 	cells->InsertNextCell(polyLine);
 
-	vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+	auto polyData = vtkSmartPointer<vtkPolyData>::New();
 	polyData->SetPoints(points);
 	polyData->SetLines(cells);
 
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputData(polyData);
 
-	vtkSmartPointer<vtkActor> polyLineActor = vtkSmartPointer<vtkActor>::New();
+	auto polyLineActor = vtkSmartPointer<vtkActor>::New();
 	polyLineActor->SetMapper(mapper);
 	polyLineActor->GetProperty()->SetColor(lineColor[0], lineColor[1], lineColor[2]);
 	polyLineActor->GetProperty()->SetLineWidth(lineWidth);
@@ -701,18 +701,18 @@ void iACompUniformTable::drawZoomForZoomedRow(
 		row->Modified();
 	}
 
-	vtkSmartPointer<vtkPlaneSource> planeSource = vtkSmartPointer<vtkPlaneSource>::New();
+	auto planeSource = vtkSmartPointer<vtkPlaneSource>::New();
 	planeSource->SetOutputPointsPrecision(vtkAlgorithm::DOUBLE_PRECISION);
 	planeSource->SetCenter(0, 0, 0);
 	planeSource->Update();
 
-	vtkSmartPointer<vtkProgrammableGlyphFilter> glypher = vtkSmartPointer<vtkProgrammableGlyphFilter>::New();
+	auto glypher = vtkSmartPointer<vtkProgrammableGlyphFilter>::New();
 	glypher->SetInputData(row);
 	glypher->SetSourceData(planeSource->GetOutput());
 	glypher->SetGlyphMethod(buildGlyphRepresentation, glypher);
 	glypher->Update();
 
-	vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	glyphMapper->SetInputConnection(glypher->GetOutputPort());
 	glyphMapper->SetColorModeToDefault();
 	glyphMapper->SetScalarModeToUseCellData();
@@ -806,25 +806,25 @@ vtkSmartPointer<vtkPolyData> iACompUniformTable::drawZoomedPlane(
 		row->Modified();
 	}
 
-	vtkSmartPointer<vtkPlaneSource> planeSource = vtkSmartPointer<vtkPlaneSource>::New();
+	auto planeSource = vtkSmartPointer<vtkPlaneSource>::New();
 	planeSource->SetOutputPointsPrecision(vtkAlgorithm::DOUBLE_PRECISION);
 	planeSource->SetCenter(0, 0, 0);
 	planeSource->Update();
 
-	vtkSmartPointer<vtkProgrammableGlyphFilter> glypher = vtkSmartPointer<vtkProgrammableGlyphFilter>::New();
+	auto glypher = vtkSmartPointer<vtkProgrammableGlyphFilter>::New();
 	glypher->SetInputData(row);
 	glypher->SetSourceData(planeSource->GetOutput());
 	glypher->SetGlyphMethod(buildGlyphRepresentation, glypher);
 	glypher->Update();
 
-	vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	glyphMapper->SetInputConnection(glypher->GetOutputPort());
 	glyphMapper->SetColorModeToDefault();
 	glyphMapper->SetScalarModeToUseCellData();
 	glyphMapper->GetInput()->GetCellData()->SetScalars(colorArray);
 	glyphMapper->ScalarVisibilityOn();
 
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	auto actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(glyphMapper);
 	actor->GetProperty()->EdgeVisibilityOn();
 	double col[3];
@@ -832,7 +832,7 @@ vtkSmartPointer<vtkPolyData> iACompUniformTable::drawZoomedPlane(
 	actor->GetProperty()->SetEdgeColor(col[0], col[1], col[2]);
 	actor->GetProperty()->SetLineWidth(1);
 
-	vtkSmartPointer<vtkNamedColors> nc = vtkSmartPointer<vtkNamedColors>::New();
+	auto nc = vtkSmartPointer<vtkNamedColors>::New();
 	actor->GetProperty()->SetColor(nc->GetColor3d("DarkGray").GetData());
 	m_mainRenderer->AddActor2D(actor);
 
@@ -923,7 +923,7 @@ void iACompUniformTable::drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPoin
 		if (i == 0)
 		{
 			//left line
-			vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+			auto points = vtkSmartPointer<vtkPoints>::New();
 			points->InsertNextPoint(leftUp);
 			points->InsertNextPoint(leftDown);
 			drawPolyLine(points, col, iACompVisOptions::LINE_WIDTH);
@@ -934,7 +934,7 @@ void iACompUniformTable::drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPoin
 				if ((currCellId + 1) != nextCellId)
 				{
 					//right line
-					vtkSmartPointer<vtkPoints> pointList = vtkSmartPointer<vtkPoints>::New();
+					auto pointList = vtkSmartPointer<vtkPoints>::New();
 					pointList->InsertNextPoint(rightUp);
 					pointList->InsertNextPoint(rightDown);
 					drawPolyLine(pointList, col, iACompVisOptions::LINE_WIDTH);
@@ -942,7 +942,7 @@ void iACompUniformTable::drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPoin
 			}
 			else
 			{  //right line
-				vtkSmartPointer<vtkPoints> pointList = vtkSmartPointer<vtkPoints>::New();
+				auto pointList = vtkSmartPointer<vtkPoints>::New();
 				pointList->InsertNextPoint(rightUp);
 				pointList->InsertNextPoint(rightDown);
 				drawPolyLine(pointList, col, iACompVisOptions::LINE_WIDTH);
@@ -951,7 +951,7 @@ void iACompUniformTable::drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPoin
 		else if (i == (static_cast<int>(cellIdsOriginalPlane->size()) - 1))
 		{
 			//right line
-			vtkSmartPointer<vtkPoints> pointList = vtkSmartPointer<vtkPoints>::New();
+			auto pointList = vtkSmartPointer<vtkPoints>::New();
 			pointList->InsertNextPoint(rightUp);
 			pointList->InsertNextPoint(rightDown);
 			drawPolyLine(pointList, col, iACompVisOptions::LINE_WIDTH);
@@ -974,7 +974,7 @@ void iACompUniformTable::drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPoin
 			if ((currCellId + 1) != nextCellId)
 			{
 				//right line
-				vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+				auto points = vtkSmartPointer<vtkPoints>::New();
 				points->InsertNextPoint(rightUp);
 				points->InsertNextPoint(rightDown);
 				drawPolyLine(points, col, iACompVisOptions::LINE_WIDTH);
@@ -983,19 +983,19 @@ void iACompUniformTable::drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPoin
 			if ((currCellId - 1) != lastCellId)
 			{
 				//left line
-				vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+				auto points = vtkSmartPointer<vtkPoints>::New();
 				points->InsertNextPoint(leftUp);
 				points->InsertNextPoint(leftDown);
 				drawPolyLine(points, col, iACompVisOptions::LINE_WIDTH);
 			}
 		}
 
-		vtkSmartPointer<vtkPoints> pointsAbove = vtkSmartPointer<vtkPoints>::New();
+		auto pointsAbove = vtkSmartPointer<vtkPoints>::New();
 		pointsAbove->InsertNextPoint(leftUp);
 		pointsAbove->InsertNextPoint(rightUp);
 		drawPolyLine(pointsAbove, col, iACompVisOptions::LINE_WIDTH);
 
-		vtkSmartPointer<vtkPoints> pointsDown = vtkSmartPointer<vtkPoints>::New();
+		auto pointsDown = vtkSmartPointer<vtkPoints>::New();
 		pointsDown->InsertNextPoint(leftDown);
 		pointsDown->InsertNextPoint(rightDown);
 		drawPolyLine(pointsDown, col, iACompVisOptions::LINE_WIDTH);
@@ -1005,14 +1005,14 @@ void iACompUniformTable::drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPoin
 vtkSmartPointer<vtkActor> iACompUniformTable::drawLine(
 	double* startPoint, double* endPoint, double lineColor[3], double lineWidth)
 {
-	vtkSmartPointer<vtkLineSource> lineSource = vtkSmartPointer<vtkLineSource>::New();
+	auto lineSource = vtkSmartPointer<vtkLineSource>::New();
 	lineSource->SetPoint1(startPoint);
 	lineSource->SetPoint2(endPoint);
 	lineSource->Update();
 
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputConnection(lineSource->GetOutputPort());
-	vtkSmartPointer<vtkActor> lineActor = vtkSmartPointer<vtkActor>::New();
+	auto lineActor = vtkSmartPointer<vtkActor>::New();
 	lineActor->SetMapper(mapper);
 
 	lineActor->GetProperty()->SetColor(lineColor[0], lineColor[1], lineColor[2]);
@@ -1112,7 +1112,7 @@ void iACompUniformTable::drawPointRepresentation()
 				}
 
 				//set plane
-				vtkSmartPointer<vtkPlaneSource> pointPlane = vtkSmartPointer<vtkPlaneSource>::New();
+				auto pointPlane = vtkSmartPointer<vtkPlaneSource>::New();
 				pointPlane->SetXResolution(1);
 				pointPlane->SetYResolution(1);
 
@@ -1121,12 +1121,12 @@ void iACompUniformTable::drawPointRepresentation()
 				pointPlane->SetPoint2(xmin, ymax, 0.0);
 				pointPlane->Update();
 
-				vtkSmartPointer<vtkPolyDataMapper> planeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+				auto planeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 				planeMapper->SetInputConnection(pointPlane->GetOutputPort());
 				planeMapper->SetScalarModeToUseCellData();
 				planeMapper->Update();
 
-				vtkSmartPointer<vtkActor> planeActor = vtkSmartPointer<vtkActor>::New();
+				auto planeActor = vtkSmartPointer<vtkActor>::New();
 				planeActor->SetMapper(planeMapper);
 				planeActor->GetProperty()->SetEdgeVisibility(true);
 				double col[3];
@@ -1179,14 +1179,14 @@ vtkSmartPointer<vtkPolyData> iACompUniformTable::initializeRow(int numberOfBins)
 {
 	//row consisting of a certain number of bins
 
-	vtkSmartPointer<vtkPoints> glyphPoints = vtkSmartPointer<vtkPoints>::New();
+	auto glyphPoints = vtkSmartPointer<vtkPoints>::New();
 	glyphPoints->SetDataTypeToDouble();
 	glyphPoints->SetNumberOfPoints(numberOfBins);
 
-	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
+	auto polydata = vtkSmartPointer<vtkPolyData>::New();
 	polydata->SetPoints(glyphPoints);
 
-	vtkSmartPointer<vtkDoubleArray> originArray = vtkSmartPointer<vtkDoubleArray>::New();
+	auto originArray = vtkSmartPointer<vtkDoubleArray>::New();
 	originArray->SetName("originArray");
 	originArray->SetNumberOfComponents(3);
 	originArray->SetNumberOfTuples(numberOfBins);
@@ -1204,7 +1204,7 @@ vtkSmartPointer<vtkPolyData> iACompUniformTable::initializeRow(int numberOfBins)
 	point2Array->SetNumberOfTuples(numberOfBins);
 	point2Array->Modified();
 
-	vtkSmartPointer<vtkUnsignedCharArray> colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	auto colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	colorArray->SetName("colorArray");
 	colorArray->SetNumberOfComponents(3);
 	colorArray->SetNumberOfTuples(numberOfBins);
@@ -1223,12 +1223,12 @@ vtkSmartPointer<vtkPolyData> iACompUniformTable::initializeRow(int numberOfBins)
 vtkSmartPointer<vtkActor> iACompUniformTable::drawPoints(
 	vtkSmartPointer<vtkPoints> points, double color[3], double radius, double lineColor[3], double lineWidth)
 {
-	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
+	auto polydata = vtkSmartPointer<vtkPolyData>::New();
 	polydata->SetPoints(points);
 
-	vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
+	auto sphereSource = vtkSmartPointer<vtkSphereSource>::New();
 	sphereSource->SetRadius(radius);
-	/*vtkSmartPointer<vtkRegularPolygonSource> polygonSource = vtkSmartPointer<vtkRegularPolygonSource>::New();
+	/*auto polygonSource = vtkSmartPointer<vtkRegularPolygonSource>::New();
 	polygonSource->SetNumberOfSides(50);
 	polygonSource->SetRadius(radius);
 	polygonSource->Update();*/
@@ -1239,11 +1239,11 @@ vtkSmartPointer<vtkActor> iACompUniformTable::drawPoints(
 	glyph2D->SetInputData(polydata);
 	glyph2D->Update();
 
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputConnection(glyph2D->GetOutputPort());
 	mapper->Update();
 
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	auto actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(mapper);
 	actor->GetProperty()->SetColor(color[0], color[1], color[2]);
 	//actor->GetProperty()->SetEdgeVisibility(true);
@@ -1271,12 +1271,12 @@ vtkSmartPointer<vtkPoints> iACompUniformTable::calculatePointPosition(
 	}
 	else if (dataPoints.size() == 1)
 	{  //min and max are the same
-		vtkSmartPointer<vtkPoints> result = vtkSmartPointer<vtkPoints>::New();
+		auto result = vtkSmartPointer<vtkPoints>::New();
 		result->InsertNextPoint(newMinX + ((newMaxX - newMinX) * 0.5), y, 0.0);
 		return result;
 	}
 
-	vtkSmartPointer<vtkPoints> result = vtkSmartPointer<vtkPoints>::New();
+	auto result = vtkSmartPointer<vtkPoints>::New();
 	auto minMax = std::minmax_element(dataPoints.begin(), dataPoints.end());
 	double min = *minMax.first;
 	double max = *minMax.second;
@@ -1405,7 +1405,7 @@ void iACompUniformTable::highlightSelectedCell(vtkSmartPointer<vtkActor> pickedA
 
 	double rightUpperPoint[3] = {xMax, yMax, 0};
 
-	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+	auto points = vtkSmartPointer<vtkPoints>::New();
 	points->InsertNextPoint(origin);
 	points->InsertNextPoint(point2);
 	points->InsertNextPoint(rightUpperPoint);
@@ -1461,7 +1461,7 @@ void iACompUniformTable::highlightSelectedRow(vtkSmartPointer<vtkActor> pickedAc
 
 	double rightUpperPoint[3] = { xMax , yMax, 0 };
 
-	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+	auto points = vtkSmartPointer<vtkPoints>::New();
 	points->InsertNextPoint(origin);
 	points->InsertNextPoint(point2);
 	points->InsertNextPoint(rightUpperPoint);
@@ -1861,7 +1861,7 @@ void iACompUniformTable::showSelectionOfCorrelationMap(std::map<int, double>* da
 
 void iACompUniformTable::drawStippledTexture(double* origin, double* point1, double* point2, double* color)
 {
-	vtkSmartPointer<vtkPlaneSource> texturePlane = vtkSmartPointer<vtkPlaneSource>::New();
+	auto texturePlane = vtkSmartPointer<vtkPlaneSource>::New();
 	texturePlane->SetXResolution(1);
 	texturePlane->SetYResolution(1);
 	texturePlane->SetOrigin(origin);
@@ -1869,11 +1869,11 @@ void iACompUniformTable::drawStippledTexture(double* origin, double* point1, dou
 	texturePlane->SetPoint2(point2);
 
 	// Setup actor and mapper
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputConnection(texturePlane->GetOutputPort());
 	mapper->Update();
 
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	auto actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(mapper);
 	actor->GetProperty()->SetLineWidth(iACompVisOptions::LINE_WIDTH);
 

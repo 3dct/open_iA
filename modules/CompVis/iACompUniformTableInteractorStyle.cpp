@@ -125,7 +125,7 @@ void iACompUniformTableInteractorStyle::OnLeftButtonDown()
 	//select rows & bins which should be zoomed
 	if (pickedA != nullptr && this->GetInteractor()->GetShiftKey())
 	{
-		vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
+		auto cellPicker = vtkSmartPointer<vtkCellPicker>::New();
 		cellPicker->Pick(pos[0], pos[1], 0, m_visualization->getRenderer());
 		cellPicker->SetTolerance(0.0);
 
@@ -356,7 +356,7 @@ void iACompUniformTableInteractorStyle::OnRightButtonDown()
 	if (this->GetInteractor()->GetShiftKey())
 	{ //order data only according to selected bins when shift is released
 
-		vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
+		auto cellPicker = vtkSmartPointer<vtkCellPicker>::New();
 		cellPicker->Pick(pos[0], pos[1], 0, currentRenderer);
 		cellPicker->SetTolerance(0.0);
 

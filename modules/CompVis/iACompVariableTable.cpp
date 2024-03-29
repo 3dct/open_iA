@@ -189,14 +189,14 @@ void iACompVariableTable::drawRow(int currDataInd, int currentColumn, double off
 	double numberOfBins = currDataset->size();
 
 	//each row consists of a certain number of bins and each bin will be drawn as glyph
-	vtkSmartPointer<vtkPoints> glyphPoints = vtkSmartPointer<vtkPoints>::New();
+	auto glyphPoints = vtkSmartPointer<vtkPoints>::New();
 	glyphPoints->SetDataTypeToDouble();
 	glyphPoints->SetNumberOfPoints(numberOfBins);
 
-	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
+	auto polydata = vtkSmartPointer<vtkPolyData>::New();
 	polydata->SetPoints(glyphPoints);
 
-	vtkSmartPointer<vtkDoubleArray> originArray = vtkSmartPointer<vtkDoubleArray>::New();
+	auto originArray = vtkSmartPointer<vtkDoubleArray>::New();
 	originArray->SetName("originArray");
 	originArray->SetNumberOfComponents(3);
 	originArray->SetNumberOfTuples(numberOfBins);
@@ -211,7 +211,7 @@ void iACompVariableTable::drawRow(int currDataInd, int currentColumn, double off
 	point2Array->SetNumberOfComponents(3);
 	point2Array->SetNumberOfTuples(numberOfBins);
 
-	vtkSmartPointer<vtkUnsignedCharArray> colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	auto colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	colorArray->SetName("colorArray");
 	colorArray->SetNumberOfComponents(3);
 	colorArray->SetNumberOfTuples(numberOfBins);
@@ -225,25 +225,25 @@ void iACompVariableTable::drawRow(int currDataInd, int currentColumn, double off
 	polydata->GetCellData()->AddArray(colorArray);
 	polydata->GetCellData()->SetActiveScalars("colorArray");
 
-	vtkSmartPointer<vtkPlaneSource> planeSource = vtkSmartPointer<vtkPlaneSource>::New();
+	auto planeSource = vtkSmartPointer<vtkPlaneSource>::New();
 	planeSource->SetOutputPointsPrecision(vtkAlgorithm::DOUBLE_PRECISION);
 	planeSource->SetCenter(0, 0, 0);
 	planeSource->Update();
 
-	vtkSmartPointer<vtkProgrammableGlyphFilter> glypher = vtkSmartPointer<vtkProgrammableGlyphFilter>::New();
+	auto glypher = vtkSmartPointer<vtkProgrammableGlyphFilter>::New();
 	glypher->SetInputData(polydata);
 	glypher->SetSourceData(planeSource->GetOutput());
 	glypher->SetGlyphMethod(buildGlyphRepresentation, glypher);
 	glypher->Update();
 
-	vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	glyphMapper->SetInputConnection(glypher->GetOutputPort());
 	glyphMapper->SetColorModeToDefault();
 	glyphMapper->SetScalarModeToUseCellData();
 	glyphMapper->GetInput()->GetCellData()->SetScalars(colorArray);
 	glyphMapper->ScalarVisibilityOn();
 
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	auto actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(glyphMapper);
 	if (!m_useDarkerLut)
 	{  //the edges of the cells are drawn
@@ -390,27 +390,27 @@ void iACompVariableTable::highlightSelectedCell(vtkSmartPointer<vtkActor> picked
 {
 	vtkSmartPointer<vtkPolyData> polyData = vtkProgrammableGlyphFilter::SafeDownCast(pickedActor->GetMapper()->GetInputConnection(0, 0)->GetProducer())->GetPolyDataInput(0);
 
-	vtkSmartPointer<vtkPlaneSource> planeSource = vtkSmartPointer<vtkPlaneSource>::New();
+	auto planeSource = vtkSmartPointer<vtkPlaneSource>::New();
 	planeSource->SetOrigin(polyData->GetPointData()->GetArray("originArray")->GetTuple3(pickedCellId));
 	planeSource->SetPoint1(polyData->GetPointData()->GetArray("point1Array")->GetTuple3(pickedCellId));
 	planeSource->SetPoint2(polyData->GetPointData()->GetArray("point2Array")->GetTuple3(pickedCellId));
 	planeSource->Update();
 
-	vtkSmartPointer<vtkUnsignedCharArray> selectedColorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	auto selectedColorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	selectedColorArray->SetName("selectedColorArray");
 	selectedColorArray->SetNumberOfComponents(3);
 	selectedColorArray->SetNumberOfTuples(1);
 	double* color = polyData->GetCellData()->GetArray("colorArray")->GetTuple3(pickedCellId);
 	selectedColorArray->InsertTuple3(0, color[0], color[1], color[2]);
 
-	vtkSmartPointer<vtkPolyDataMapper> selectedMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto selectedMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	selectedMapper->SetInputData(planeSource->GetOutput());
 	selectedMapper->GetInput()->GetCellData()->SetScalars(selectedColorArray);
 	selectedMapper->SetColorModeToDefault();
 	selectedMapper->SetScalarModeToUseCellData();
 	selectedMapper->ScalarVisibilityOn();
 
-	vtkSmartPointer<vtkActor> selectedActor = vtkSmartPointer<vtkActor>::New();
+	auto selectedActor = vtkSmartPointer<vtkActor>::New();
 	selectedActor->SetMapper(selectedMapper);
 	selectedActor->GetProperty()->EdgeVisibilityOn();
 	double col[3];

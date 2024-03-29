@@ -51,7 +51,7 @@ void iAPlaneVisModule::setSize( double * size )
 void iAPlaneVisModule::setImage( iA4DCTFileData fileName )
 {
 	double scale = (double)0xff / 0xffff;
-	vtkSmartPointer<vtkImageShiftScale> shifter = vtkSmartPointer<vtkImageShiftScale>::New( );
+	auto shifter = vtkSmartPointer<vtkImageShiftScale>::New( );
 	shifter->SetShift( 0. );
 	shifter->SetScale( scale );
 	shifter->SetOutputScalarTypeToUnsignedChar( );

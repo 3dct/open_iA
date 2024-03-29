@@ -65,12 +65,12 @@ void iARegionVisModule::hide( )
 void iARegionVisModule::setData( vtkImageData * output )
 {
 	// surface extraction
-	vtkSmartPointer<vtkMarchingCubes> surface = vtkSmartPointer<vtkMarchingCubes>::New( );
+	auto surface = vtkSmartPointer<vtkMarchingCubes>::New( );
 	surface->SetInputData( output );
 	surface->ComputeNormalsOn( );
 	surface->SetValue( 0, 0.25 );
 
-	vtkSmartPointer<vtkDepthSortPolyData> depthSort = vtkSmartPointer<vtkDepthSortPolyData>::New( );
+	auto depthSort = vtkSmartPointer<vtkDepthSortPolyData>::New( );
 	depthSort->SetInputConnection( surface->GetOutputPort( ) );
 	depthSort->SetDirectionToBackToFront( );
 	depthSort->SetVector( 1, 1, 1 );
@@ -246,7 +246,7 @@ void iARegionVisModule::calculateDensityMap( QString fileName, iARegionVisModule
 {
 	typedef itk::Image<double, 3> DoubleImageType;
 	// read image
-	vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New( );
+	auto reader = vtkSmartPointer<vtkMetaImageReader>::New( );
 	reader->SetFileName( getLocalEncodingFileName(fileName).c_str( ) );
 	reader->Update( );
 

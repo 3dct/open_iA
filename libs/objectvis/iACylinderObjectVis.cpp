@@ -143,7 +143,7 @@ std::vector<vtkSmartPointer<vtkPolyData>> iACylinderObjectVis::extractSelectedOb
 		tmpTbl->Initialize();
 		for (int c = 0; c<m_data->m_table->GetNumberOfColumns(); ++c)
 		{
-			vtkSmartPointer<vtkFloatArray> arrC = vtkSmartPointer<vtkFloatArray>::New();
+			auto arrC = vtkSmartPointer<vtkFloatArray>::New();
 			arrC->SetName(m_data->m_table->GetColumnName(c));
 			tmpTbl->AddColumn(arrC);
 		}

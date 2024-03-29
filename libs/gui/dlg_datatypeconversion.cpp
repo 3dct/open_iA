@@ -601,7 +601,7 @@ QString writeScaledImage(QString const& filename, QString const & suffix,
 	vtkImageData* inImg, int outdatatype, double minrange,
 	double maxrange, double minout, double maxout)
 {
-	vtkSmartPointer<vtkImageData> outImg = allocateImage(outdatatype, inImg->GetDimensions(), inImg->GetSpacing());
+	auto outImg = allocateImage(outdatatype, inImg->GetDimensions(), inImg->GetSpacing());
 	convertRange(inImg, outImg, minrange, maxrange, minout, maxout);
 	QString outputFileName(filename);
 	outputFileName.chop(4); // assuming current name has 3 characters...?

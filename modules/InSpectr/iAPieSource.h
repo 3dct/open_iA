@@ -79,9 +79,9 @@ protected:
 		//Set things up; allocate memory
 		vtkIdType numPts = numberOfSegments + 1;
 		vtkIdType numPolys = numberOfSegments;
-		vtkSmartPointer<vtkPoints> newPoints = vtkSmartPointer<vtkPoints>::New();
+		auto newPoints = vtkSmartPointer<vtkPoints>::New();
 		newPoints->Allocate(numPts);
-		vtkSmartPointer<vtkCellArray> newPolys = vtkSmartPointer<vtkCellArray>::New();
+		auto newPolys = vtkSmartPointer<vtkCellArray>::New();
 		newPolys->Allocate(newPolys->EstimateSize(numPolys, 3));
 
 		//Create pie

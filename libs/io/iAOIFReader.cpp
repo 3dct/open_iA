@@ -874,7 +874,7 @@ void readOIF(QString const& filename, iAConnector* con, int channel,
 		con->modified();
 		for (int i = 0; i < reader.GetChanNum(); ++i)
 		{
-			vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
+			auto image = vtkSmartPointer<vtkImageData>::New();
 			iAConnector con2;
 			con2.setImage(reader.GetResult(i));
 			image->DeepCopy(con2.vtkImage());

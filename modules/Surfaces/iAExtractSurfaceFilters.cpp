@@ -174,7 +174,7 @@ namespace
 		normalGenerator->FlipNormalsOn();
 		normalGenerator->Update();
 
-		/*vtkSmartPointer<vtkLoopSubdivisionFilter> filter = vtkSmartPointer<vtkLoopSubdivisionFilter>::New();
+		/*auto filter = vtkSmartPointer<vtkLoopSubdivisionFilter>::New();
 		filter->SetInputConnection(normalGenerator->GetOutputPort());
 		filter->Update();*/
 
@@ -257,7 +257,7 @@ void iATriangulation::performWork(QVariantMap const& parameters) {
 		return;
 	}
 
-	vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+	auto cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
 	if (parameters["Simplification Algorithm"].toString() == "None")
 	{
 		cleaner->SetInputConnection(surfaceFilter->GetOutputPort());

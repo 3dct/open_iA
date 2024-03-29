@@ -1321,7 +1321,7 @@ void iASensitivityInfo::setSpatialOverviewTF(size_t dataSetIdx)
 		}
 		imgData->vtkImage()->GetScalarRange(range);
 	}
-	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
+	auto lut = vtkSmartPointer<vtkLookupTable>::New();
 	iALUT::BuildLUT(lut, range, m_gui->m_settings->cmbboxSpatialOverviewColorMap->currentText(), 5, true);
 	auto tf = volViewer->transfer();
 	auto ctf = tf->colorTF();

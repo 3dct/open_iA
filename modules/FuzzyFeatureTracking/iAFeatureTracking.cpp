@@ -12,7 +12,7 @@
 #include <sstream>
 
 #define VTK_CREATE(type,name) \
-  vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
+  auto name = vtkSmartPointer<type>::New()
 
 std::vector<std::string>& iAFeatureTracking::split(const std::string& s, char delim, std::vector<std::string>& elems)
 {

@@ -15,18 +15,18 @@ void iACsvVtkTableCreator::initialize(QStringList const & headers, size_t const 
 {
 	m_table->Initialize();
 	// ID column (int):
-	vtkSmartPointer<vtkIntArray> arrID = vtkSmartPointer<vtkIntArray>::New();
+	auto arrID = vtkSmartPointer<vtkIntArray>::New();
 	arrID->SetName(headers[0].toUtf8().constData());
 	m_table->AddColumn(arrID);
 	// other columns (float):
 	for (int col = 1; col < headers.size() - 1; ++col)
 	{
-		vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
+		auto arrX = vtkSmartPointer<vtkFloatArray>::New();
 		arrX->SetName(headers[col].toUtf8().constData());
 		m_table->AddColumn(arrX);
 	}
 	// class column (int):
-	vtkSmartPointer<vtkIntArray> arr = vtkSmartPointer<vtkIntArray>::New();
+	auto arr = vtkSmartPointer<vtkIntArray>::New();
 	arr->SetName(headers[headers.size() - 1].toUtf8().constData());
 	m_table->AddColumn(arr);
 

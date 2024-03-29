@@ -297,7 +297,7 @@ void iASegm3DViewData::LoadAndApplySettings()
 
 	m_renderer->renderer()->ResetCamera();
 
-	vtkSmartPointer<vtkLight> light = vtkSmartPointer<vtkLight>::New();
+	auto light = vtkSmartPointer<vtkLight>::New();
 	light->SetLightTypeToSceneLight();
 	light->SetPosition( 0, 0, 1 );
 	light->SetConeAngle( 45 );

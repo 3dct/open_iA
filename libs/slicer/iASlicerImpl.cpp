@@ -2515,15 +2515,15 @@ void iASlicerImpl::initializeFisheyeLens(vtkImageReslice* reslicer)
 	for (int i = 0; i < m_pointsTarget->GetNumberOfPoints(); ++i)
 	{
 		// Create a sphere and its associated mapper and actor.
-		vtkSmartPointer<vtkRegularPolygonSource> circle = vtkSmartPointer<vtkRegularPolygonSource>::New();
+		auto circle = vtkSmartPointer<vtkRegularPolygonSource>::New();
 		circle->GeneratePolygonOff(); // Uncomment to generate only the outline of the circle
 		circle->SetNumberOfSides(50);
 		circle->SetRadius(1.0 * reslicer->GetOutput()->GetSpacing()[0]);
 
-		vtkSmartPointer<vtkPolyDataMapper> circleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		auto circleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		circleMapper->SetInputConnection(circle->GetOutputPort());
 
-		vtkSmartPointer<vtkActor> circleActor = vtkSmartPointer<vtkActor>::New();
+		auto circleActor = vtkSmartPointer<vtkActor>::New();
 		circleActor->GetProperty()->SetColor(0.0, 1.0, 0.0);
 		circleActor->GetProperty()->SetOpacity(1.0);
 		circleActor->SetMapper(circleMapper);
@@ -2536,15 +2536,15 @@ void iASlicerImpl::initializeFisheyeLens(vtkImageReslice* reslicer)
 
 	for (int i = 0; i < m_pointsSource->GetNumberOfPoints(); ++i)
 	{
-		vtkSmartPointer<vtkRegularPolygonSource> circle = vtkSmartPointer<vtkRegularPolygonSource>::New();
+		auto circle = vtkSmartPointer<vtkRegularPolygonSource>::New();
 		circle->GeneratePolygonOff(); // Uncomment to generate only the outline of the circle
 		circle->SetNumberOfSides(50);
 		circle->SetRadius(3.0 * reslicer->GetOutput()->GetSpacing()[0]);
 
-		vtkSmartPointer<vtkPolyDataMapper> circleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		auto circleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		circleMapper->SetInputConnection(circle->GetOutputPort());
 
-		vtkSmartPointer<vtkActor> circleActor = vtkSmartPointer<vtkActor>::New();
+		auto circleActor = vtkSmartPointer<vtkActor>::New();
 		circleActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 		circleActor->GetProperty()->SetOpacity(1.0);
 		circleActor->SetMapper(circleMapper);

@@ -97,7 +97,7 @@ void iAPlaneVisModule::highlightDefects( QVector<QString> defects, QVector<QColo
 	}
 
 	// read the labeled image
-	/*vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New( );
+	/*auto reader = vtkSmartPointer<vtkMetaImageReader>::New( );
 	reader->SetFileName( getLocalEncodingFileName(labeledImgPath).c_str( ) );
 	reader->Update( );
 	vtkImageData * labeledImg = reader->GetOutput( );*/
@@ -111,14 +111,14 @@ void iAPlaneVisModule::highlightDefects( QVector<QString> defects, QVector<QColo
 	}
 
 	// scalars to colors
-	vtkSmartPointer<vtkLookupTable> lookupTable = vtkSmartPointer<vtkLookupTable>::New( );
+	auto lookupTable = vtkSmartPointer<vtkLookupTable>::New( );
 	lookupTable->SetRange( 0, 255 );
 	lookupTable->SetValueRange( 0., 1. );
 	lookupTable->SetSaturationRange( 0., 0. );
 	lookupTable->SetRampToLinear( );
 	lookupTable->Build( );
 
-	vtkSmartPointer<vtkImageMapToColors> scalarValuesToColors = vtkSmartPointer<vtkImageMapToColors>::New( );
+	auto scalarValuesToColors = vtkSmartPointer<vtkImageMapToColors>::New( );
 	scalarValuesToColors->PassAlphaToOutputOn( );
 	scalarValuesToColors->SetLookupTable( lookupTable );
 	scalarValuesToColors->SetInputData( m_img );
@@ -156,7 +156,7 @@ template<typename T>
 void iAPlaneVisModule::densityMap( QString defect, QColor color, iA4DCTFileData labeledImgFile, int * size )
 {
 	// read the labeled image
-	/*vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New( );
+	/*auto reader = vtkSmartPointer<vtkMetaImageReader>::New( );
 	reader->SetFileName( getLocalEncodingFileName(labeledImgPath).c_str( ) );
 	reader->Update( );
 	vtkImageData * labeledImg = reader->GetOutput( );*/
@@ -205,14 +205,14 @@ void iAPlaneVisModule::densityMap( QString defect, QColor color, iA4DCTFileData 
 	}
 
 	// scalars to colors
-	vtkSmartPointer<vtkLookupTable> lookupTable = vtkSmartPointer<vtkLookupTable>::New( );
+	auto lookupTable = vtkSmartPointer<vtkLookupTable>::New( );
 	lookupTable->SetRange( 0, 255 );
 	lookupTable->SetValueRange( 0., 1. );
 	lookupTable->SetSaturationRange( 0., 0. );
 	lookupTable->SetRampToLinear( );
 	lookupTable->Build( );
 
-	vtkSmartPointer<vtkImageMapToColors> scalarValuesToColors = vtkSmartPointer<vtkImageMapToColors>::New( );
+	auto scalarValuesToColors = vtkSmartPointer<vtkImageMapToColors>::New( );
 	scalarValuesToColors->PassAlphaToOutputOn( );
 	scalarValuesToColors->SetLookupTable( lookupTable );
 	scalarValuesToColors->SetInputData( m_img );

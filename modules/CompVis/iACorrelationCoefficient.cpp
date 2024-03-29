@@ -97,14 +97,14 @@ vtkSmartPointer<vtkTable> iACorrelationCoefficient::toVtkTable(QList<csvFileData
 	m_inputTable = vtkSmartPointer<vtkTable>::New();
 
 	// Set the labels
-	vtkSmartPointer<vtkStringArray> labels = vtkSmartPointer<vtkStringArray>::New();
+	auto labels = vtkSmartPointer<vtkStringArray>::New();
 
 	//set amount of attributes
 	for (int i = 0; i < m_numberOfAttr; i++)
 	{
 		labels->InsertNextValue(attrNames.at(i).toStdString());
 
-		vtkSmartPointer<vtkDoubleArray> arrIndex = vtkSmartPointer<vtkDoubleArray>::New();
+		auto arrIndex = vtkSmartPointer<vtkDoubleArray>::New();
 		arrIndex->SetName(attrNames.at(i).toStdString().c_str());
 		m_inputTable->AddColumn(arrIndex);
 	}
@@ -147,14 +147,14 @@ std::map<QString, Correlation::CorrelationStore>* iACorrelationCoefficient::calc
 {
 	QStringList attrNames = *m_dataStorage->getAttributeNamesWithoutLabel();
 
-	vtkSmartPointer<vtkStringArray> labels = vtkSmartPointer<vtkStringArray>::New();
-	vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
+	auto labels = vtkSmartPointer<vtkStringArray>::New();
+	auto table = vtkSmartPointer<vtkTable>::New();
 
 	for (int i = 0; i < attrNames.size(); i++)
 	{
 		labels->InsertNextValue(attrNames.at(i).toStdString());
 
-		vtkSmartPointer<vtkDoubleArray> arrIndex = vtkSmartPointer<vtkDoubleArray>::New();
+		auto arrIndex = vtkSmartPointer<vtkDoubleArray>::New();
 		arrIndex->SetName(attrNames.at(i).toStdString().c_str());
 
 		table->AddColumn(arrIndex);

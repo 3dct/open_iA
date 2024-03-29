@@ -139,7 +139,7 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin * parent /*= 0*/ )
 	m_visModules.addModule( regionMarker, "Region marker" );
 	m_dwAllVis->updateContext( );
 
-	vtkSmartPointer<vtkLegendScaleActor> legendScaleActor = vtkSmartPointer<vtkLegendScaleActor>::New();
+	auto legendScaleActor = vtkSmartPointer<vtkLegendScaleActor>::New();
 	m_mainRen->AddActor( legendScaleActor );
 }
 
@@ -159,7 +159,7 @@ void iA4DCTVisWin::setNumberOfStages( int number )
 
 	for( int i = 0; i < number; i++ )
 	{
-		vtkSmartPointer<vtkRenderer> ren = vtkSmartPointer<vtkRenderer>::New( );
+		auto ren = vtkSmartPointer<vtkRenderer>::New( );
 		ren->SetLayer( 0 );
 		ren->SetBackground( 0.5, 0.5, 0.5 );
 		ren->InteractiveOn( );
@@ -515,7 +515,7 @@ void iA4DCTVisWin::setOrientationWidgetEnabled( bool enabled )
 	{
 		if( m_orientWidget ) return;
 
-		vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New( );
+		auto axes = vtkSmartPointer<vtkAxesActor>::New( );
 		m_orientWidget = vtkSmartPointer<vtkOrientationMarkerWidget>::New( );
 		m_orientWidget->SetOutlineColor( 0.9300, 0.5700, 0.1300 );
 		m_orientWidget->SetOrientationMarker( axes );
@@ -548,10 +548,10 @@ void iA4DCTVisWin::enableSideBySideView( bool enabled )
 		double width = 1. / m_renList->GetNumberOfItems( );
 		double start = 0.;
 
-		vtkSmartPointer<vtkRenderer> screenRen = vtkSmartPointer<vtkRenderer>::New( );
+		auto screenRen = vtkSmartPointer<vtkRenderer>::New( );
 		qvtkWidget->renderWindow()->AddRenderer(screenRen);
 
-		vtkSmartPointer<vtkCamera> cam = vtkSmartPointer<vtkCamera>::New( );
+		auto cam = vtkSmartPointer<vtkCamera>::New( );
 		cam->ShallowCopy( m_mainRen->GetActiveCamera( ) );
 
 		m_renList->InitTraversal( );

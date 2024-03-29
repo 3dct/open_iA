@@ -154,7 +154,7 @@ void iAFractureVisModule::getBounds( double * bounds )
 
 void iAFractureVisModule::setData( vtkPoints* points, vtkCellArray* polys, vtkUnsignedCharArray* colors /*= 0*/ )
 {
-	vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New( );
+	auto polyData = vtkSmartPointer<vtkPolyData>::New( );
 	polyData->SetPoints( points );
 	polyData->SetPolys( polys );
 	if( colors != nullptr )
@@ -166,7 +166,7 @@ void iAFractureVisModule::setData( vtkPoints* points, vtkCellArray* polys, vtkUn
 	{
 		m_surfMapper->SetScalarVisibility( 0 );
 	}
-	vtkSmartPointer<vtkDepthSortPolyData> depthSort = vtkSmartPointer<vtkDepthSortPolyData>::New( );
+	auto depthSort = vtkSmartPointer<vtkDepthSortPolyData>::New( );
 	depthSort->SetInputData( polyData );
 	depthSort->SetDirectionToBackToFront( );
 	depthSort->SetVector( 1, 1, 1 );

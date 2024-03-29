@@ -19,10 +19,10 @@ iADefectVisModule::iADefectVisModule( )
 {
 	m_reader = vtkSmartPointer<vtkOBJReader>::New( );
 
-	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New( );
+	auto transform = vtkSmartPointer<vtkTransform>::New( );
 	transform->Scale( SCENE_SCALE, SCENE_SCALE, SCENE_SCALE );
 
-	vtkSmartPointer<vtkTransformFilter> transformFilter = vtkSmartPointer<vtkTransformFilter>::New( );
+	auto transformFilter = vtkSmartPointer<vtkTransformFilter>::New( );
 	transformFilter->SetInputConnection( m_reader->GetOutputPort( ) );
 	transformFilter->SetTransform( transform );
 

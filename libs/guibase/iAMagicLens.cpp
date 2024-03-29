@@ -158,9 +158,9 @@ void iALensData::updateViewPort(int const mousePos[2])
 	m_guiRenderer->SetViewport(viewPort);
 
 	// update border:
-	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-	vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New();
-	vtkSmartPointer<vtkPolyLine> line = vtkSmartPointer<vtkPolyLine>::New();
+	auto points = vtkSmartPointer<vtkPoints>::New();
+	auto cells = vtkSmartPointer<vtkCellArray>::New();
+	auto line = vtkSmartPointer<vtkPolyLine>::New();
 	double fwHalf = m_frameWidth / 2;
 	double p0[3] = { fwHalf, fwHalf, 0.0 };
 	double p1[3] = { fwHalf, static_cast<double>(m_size)-fwHalf, 0.0 };
@@ -300,9 +300,9 @@ void iAMagicLens::updatePosition(vtkCamera * cam, double const lensPos[3], int c
 		m_srcWindowRenderer->SetViewport(viewPort);
 		double fwHalf = frameWidth() / 2;
 		// update border:
-		vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-		vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New();
-		vtkSmartPointer<vtkPolyLine> line = vtkSmartPointer<vtkPolyLine>::New();
+		auto points = vtkSmartPointer<vtkPoints>::New();
+		auto cells = vtkSmartPointer<vtkCellArray>::New();
+		auto line = vtkSmartPointer<vtkPolyLine>::New();
 		double p0[3] = { fwHalf, fwHalf, 0.0 };
 		double p1[3] = { fwHalf, static_cast<double>(m_size)-fwHalf, 0.0 };
 		double p2[3] = { static_cast<double>(m_size)-fwHalf, static_cast<double>(m_size)-fwHalf, 0.0 };

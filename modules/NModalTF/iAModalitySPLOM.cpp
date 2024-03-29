@@ -52,7 +52,7 @@ iAModalitySPLOM::iAModalitySPLOM():
 
 void iAModalitySPLOM::splomSelection(std::vector<size_t> const & selInds)
 {
-	vtkSmartPointer<vtkImageData> result = vtkSmartPointer<vtkImageData>::New();
+	auto result = vtkSmartPointer<vtkImageData>::New();
 	result->SetExtent(m_extent);
 	result->SetOrigin(m_origin);
 	result->SetSpacing(m_spacing);

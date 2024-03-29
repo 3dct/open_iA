@@ -128,9 +128,9 @@ namespace iACompVisOptions
 
 	void stippledLine(vtkSmartPointer<vtkActor> actor, int lineStipplePattern, int lineStippleRepeat)
 	{
-		vtkSmartPointer<vtkDoubleArray> tcoords = vtkSmartPointer<vtkDoubleArray>::New();
-		vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
-		vtkSmartPointer<vtkTexture> texture = vtkSmartPointer<vtkTexture>::New();
+		auto tcoords = vtkSmartPointer<vtkDoubleArray>::New();
+		auto image = vtkSmartPointer<vtkImageData>::New();
+		auto texture = vtkSmartPointer<vtkTexture>::New();
 
 		// Create texture
 		int dimension = 16 * lineStippleRepeat;

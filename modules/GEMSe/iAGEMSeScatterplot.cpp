@@ -72,7 +72,7 @@ vtkSmartPointer<vtkTable> iAGEMSeScatterplot::GetComparisonTable(
 	{
 		return vtkSmartPointer<vtkTable>();
 	}
-	vtkSmartPointer<vtkTable> comparisonTable = vtkSmartPointer<vtkTable>::New();
+	auto comparisonTable = vtkSmartPointer<vtkTable>::New();
 
 	int numberOfSamples = node->GetClusterSize();
 	vtkSmartPointer<vtkFloatArray> arrX(vtkSmartPointer<vtkFloatArray>::New());

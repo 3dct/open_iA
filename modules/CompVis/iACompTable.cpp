@@ -63,7 +63,7 @@ void iACompTable::initializeRenderer()
 
 void iACompTable::makeLUTFromCTF()
 {
-	vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
+	auto ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
 	ctf->SetColorSpaceToRGB();
 
 	//Black Body Radiation
@@ -155,7 +155,7 @@ void iACompTable::makeLUTFromCTF()
 
 void iACompTable::makeLUTDarker()
 {
-	vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
+	auto ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
 	ctf->SetColorSpaceToRGB();
 
 	//Black Body Radiation
@@ -374,11 +374,11 @@ void iACompTable::constructBins(iACompHistogramTableData* data, bin::BinType* cu
 	}
 
 	//store drawing coordinates of bins
-	vtkSmartPointer<vtkPoints> binPoints = vtkSmartPointer<vtkPoints>::New();
+	auto binPoints = vtkSmartPointer<vtkPoints>::New();
 	binPoints->SetDataTypeToDouble();
 	binPoints->SetNumberOfPoints(numberOfBins);
 
-	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
+	auto polydata = vtkSmartPointer<vtkPolyData>::New();
 	polydata->SetPoints(binPoints);
 	polydata->GetPointData()->AddArray(originArray);
 	polydata->GetPointData()->AddArray(point1Array);
@@ -401,7 +401,7 @@ void buildGlyphRepresentation(void* arg)
 	glyphFilter->GetPointData()->GetArray("point1Array")->GetTuple(pid, point1);
 	glyphFilter->GetPointData()->GetArray("point2Array")->GetTuple(pid, point2);
 
-	vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();
+	auto plane = vtkSmartPointer<vtkPlaneSource>::New();
 	plane->SetXResolution(1);
 	plane->SetYResolution(1);
 
@@ -423,7 +423,7 @@ void iACompTable::addDatasetName(int currDataset, double* position)
 	size_t pos = name.find(".csv");
 	name.erase(pos, name.length() - 1);
 
-	vtkSmartPointer<vtkTextActor> legend = vtkSmartPointer<vtkTextActor>::New();
+	auto legend = vtkSmartPointer<vtkTextActor>::New();
 	legend->SetTextScaleModeToNone();
 	legend->SetInput(name.c_str());
 	legend->GetPositionCoordinate()->SetCoordinateSystemToWorld();
@@ -463,10 +463,10 @@ void iACompTable::drawXAxis(double drawingDimensions[4])
 		double tickLength = yheight * 0.5;
 
 		//draw x-Axis at the bottom of the visualization
-		vtkSmartPointer<vtkLineSource> lineSource = vtkSmartPointer<vtkLineSource>::New();
+		auto lineSource = vtkSmartPointer<vtkLineSource>::New();
 		lineSource->SetPoint1(min_x, yheight, 0.0);
 		lineSource->SetPoint2(max_x, yheight, 0.0);
-		vtkSmartPointer<vtkPolyDataMapper> xAxisMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		auto xAxisMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		xAxisMapper->SetInputConnection(lineSource->GetOutputPort());
 		vtkNew<vtkActor> xAxisActor;
 		xAxisActor->SetMapper(xAxisMapper);
@@ -489,13 +489,13 @@ vtkSmartPointer<vtkPoints> iACompTable::drawXTicks(double drawingDimensions[4], 
 
 	double tickDistance = max_x / (m_numberOfTicks - 1);  //compute the regions inbetween the ticks
 
-	vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
+	auto appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
 
 	//draw ticks on x-axis line
-	vtkSmartPointer<vtkPoints> tickLabelPoints = vtkSmartPointer<vtkPoints>::New();
+	auto tickLabelPoints = vtkSmartPointer<vtkPoints>::New();
 	for (int i = 0; i < m_numberOfTicks; i++)
 	{
-		vtkSmartPointer<vtkPoints> tickPoints = vtkSmartPointer<vtkPoints>::New();
+		auto tickPoints = vtkSmartPointer<vtkPoints>::New();
 		tickPoints->InsertNextPoint(min_x + (tickDistance * i), yheigth - tickLength, 0.0);  //upper
 		tickPoints->InsertNextPoint(min_x + (tickDistance * i), yheigth + tickLength, 0.0);  //lower
 
@@ -503,7 +503,7 @@ vtkSmartPointer<vtkPoints> iACompTable::drawXTicks(double drawingDimensions[4], 
 		tickLabelPoints->InsertNextPoint(
 			min_x + (tickDistance * i), yheigth + (tickLength * 1.1), 0.0);  //lower because axis is positioned below 0!
 
-		vtkSmartPointer<vtkPolyLine> polyLine = vtkSmartPointer<vtkPolyLine>::New();
+		auto polyLine = vtkSmartPointer<vtkPolyLine>::New();
 		polyLine->GetPointIds()->SetNumberOfIds(tickPoints->GetNumberOfPoints());
 		for (unsigned int j = 0; j < tickPoints->GetNumberOfPoints(); j++)
 		{
@@ -511,10 +511,10 @@ vtkSmartPointer<vtkPoints> iACompTable::drawXTicks(double drawingDimensions[4], 
 		}
 
 		// Create a cell array to store the lines in and add the lines to it
-		vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New();
+		auto cells = vtkSmartPointer<vtkCellArray>::New();
 		cells->InsertNextCell(polyLine);
 
-		vtkSmartPointer<vtkUnsignedCharArray> colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
+		auto colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
 		colorArray->SetName("colorArray");
 		colorArray->SetNumberOfComponents(3);
 		colorArray->SetNumberOfTuples(tickPoints->GetNumberOfPoints());
@@ -525,7 +525,7 @@ vtkSmartPointer<vtkPoints> iACompTable::drawXTicks(double drawingDimensions[4], 
 		}
 
 		// Create a polydata to store everything in
-		vtkSmartPointer<vtkPolyData> tickPolyData = vtkSmartPointer<vtkPolyData>::New();
+		auto tickPolyData = vtkSmartPointer<vtkPolyData>::New();
 		tickPolyData->SetPoints(tickPoints);
 		tickPolyData->SetLines(cells);
 		tickPolyData->GetCellData()->AddArray(colorArray);
@@ -534,7 +534,7 @@ vtkSmartPointer<vtkPoints> iACompTable::drawXTicks(double drawingDimensions[4], 
 		appendFilter->AddInputData(tickPolyData);
 	}
 
-	vtkSmartPointer<vtkPolyDataMapper> xAxisMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto xAxisMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	xAxisMapper->SetInputConnection(appendFilter->GetOutputPort());
 
 	vtkNew<vtkActor> xAxisActor;
@@ -560,7 +560,7 @@ void iACompTable::addTickLabels(
 
 		double* position = tickPoints->GetPoint(i);
 
-		vtkSmartPointer<vtkTextActor> legend = vtkSmartPointer<vtkTextActor>::New();
+		auto legend = vtkSmartPointer<vtkTextActor>::New();
 		legend->SetTextScaleModeToNone();
 		legend->SetInput(name.c_str());
 		legend->GetPositionCoordinate()->SetCoordinateSystemToWorld();
@@ -664,7 +664,7 @@ void iACompTable::createBars(double* positions)
 	double y_min = positions[2];
 	double y_max = positions[3];
 
-	vtkSmartPointer<vtkPlaneSource> barPlane = vtkSmartPointer<vtkPlaneSource>::New();
+	auto barPlane = vtkSmartPointer<vtkPlaneSource>::New();
 	barPlane->SetXResolution(1);
 	barPlane->SetYResolution(1);
 	barPlane->SetOrigin(x_min, y_min, 0.0);
@@ -673,11 +673,11 @@ void iACompTable::createBars(double* positions)
 	barPlane->Update();
 
 	// Setup actor and mapper
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputConnection(barPlane->GetOutputPort());
 	mapper->Update();
 
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	auto actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(mapper);
 	double color[3];
 	iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN, color);
@@ -698,7 +698,7 @@ void iACompTable::createAmountOfObjectsText(double positions[3], int currAmountO
 	double height = y_max - y_min;
 	double y = y_min + (height * 0.5);
 
-	vtkSmartPointer<vtkTextActor> legend = vtkSmartPointer<vtkTextActor>::New();
+	auto legend = vtkSmartPointer<vtkTextActor>::New();
 	legend->SetTextScaleModeToNone();
 	legend->SetInput(std::to_string(currAmountObjects).c_str());
 
@@ -764,7 +764,7 @@ std::string iACompTable::initializeLegendLabels(std::string input)
 
 void iACompTable::initializeLegend()
 {
-	vtkSmartPointer<vtkScalarBarActor> scalarBar = vtkSmartPointer<vtkScalarBarActor>::New();
+	auto scalarBar = vtkSmartPointer<vtkScalarBarActor>::New();
 	scalarBar->SetLookupTable(m_lut);
 	scalarBar->SetHeight(0.9);  //scalarBar is set so high, that the blacckground above the title cannot be seen anymore
 	scalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
@@ -805,7 +805,7 @@ void iACompTable::initializeLegend()
 	scalarBar->GetTitleTextProperty()->Modified();
 
 	//text properties
-	vtkSmartPointer<vtkTextProperty> propL = vtkSmartPointer<vtkTextProperty>::New();
+	auto propL = vtkSmartPointer<vtkTextProperty>::New();
 	propL->SetFontSize(iACompVisOptions::FONTSIZE_TITLE);
 	double col3[3];
 	iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TEXT, col3);

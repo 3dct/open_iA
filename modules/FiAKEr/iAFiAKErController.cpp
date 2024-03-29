@@ -2594,7 +2594,7 @@ void iAFiAKErController::changeReferenceDisplay()
 	m_refVisTable = vtkSmartPointer<vtkTable>::New();
 	m_refVisTable->Initialize();
 	// ID column (int):
-	vtkSmartPointer<vtkIntArray> arrID = vtkSmartPointer<vtkIntArray>::New();
+	auto arrID = vtkSmartPointer<vtkIntArray>::New();
 	arrID->SetName(m_data->result[m_referenceID].objData->m_table->GetColumnName(0));
 	m_refVisTable->AddColumn(arrID);
 	// other columns (float):

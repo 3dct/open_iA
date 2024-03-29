@@ -222,12 +222,12 @@ void iASelectionInteractorStyle::pick()
 			continue;
 		}
 
-		vtkSmartPointer<vtkExtractGeometry> extractGeometry = vtkSmartPointer<vtkExtractGeometry>::New();
+		auto extractGeometry = vtkSmartPointer<vtkExtractGeometry>::New();
 		extractGeometry->SetImplicitFunction(frustum);
 		extractGeometry->SetInputData(m_input[resultID].first);
 		extractGeometry->Update();
 
-		vtkSmartPointer<vtkVertexGlyphFilter> glyphFilter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
+		auto glyphFilter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
 		glyphFilter->SetInputConnection(extractGeometry->GetOutputPort());
 		glyphFilter->Update();
 
@@ -390,7 +390,7 @@ void iASelectionInteractorStyle::removeInput(size_t resultID)
 
 void iASelectionInteractorStyle::assignToRenderWindow(vtkSmartPointer<vtkRenderWindow> renWin)
 {
-	vtkSmartPointer<vtkAreaPicker> areaPicker = vtkSmartPointer<vtkAreaPicker>::New();
+	auto areaPicker = vtkSmartPointer<vtkAreaPicker>::New();
 	m_renWin = renWin;
 	m_renWin->GetInteractor()->SetPicker(areaPicker);
 	m_renWin->GetInteractor()->SetInteractorStyle(this);

@@ -20,7 +20,7 @@ void iAVtkGraphDrawer::createLayout(vtkPoints* points, vtkMutableDirectedGraph* 
 
 void iAVtkGraphDrawer::fillGraph(vtkMutableDirectedGraph* graph)
 {
-	vtkSmartPointer<vtkVertexListIterator> vertIt = vtkSmartPointer<vtkVertexListIterator>::New();
+	auto vertIt = vtkSmartPointer<vtkVertexListIterator>::New();
 	graph->GetVertices(vertIt);
 	while(vertIt->HasNext())
 	{
@@ -31,7 +31,7 @@ void iAVtkGraphDrawer::fillGraph(vtkMutableDirectedGraph* graph)
 		m_vertMapFromVtk[idVtk] = id;
 	}
 
-	vtkSmartPointer<vtkEdgeListIterator> edgeIt = vtkSmartPointer<vtkEdgeListIterator>::New();
+	auto edgeIt = vtkSmartPointer<vtkEdgeListIterator>::New();
 	graph->GetEdges(edgeIt);
 	while(edgeIt->HasNext())
 	{

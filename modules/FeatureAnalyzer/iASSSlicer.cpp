@@ -73,7 +73,7 @@ const QList<QColor> brewer_RdPu = QList<QColor>() \
 
 void loadImageData( QString const & fileName, vtkSmartPointer<vtkImageData> & imgData )
 {
-	vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New();
+	auto reader = vtkSmartPointer<vtkMetaImageReader>::New();
 	reader->SetFileName( getLocalEncodingFileName(fileName).c_str() );
 	reader->Update();
 	imgData = reader->GetOutput();

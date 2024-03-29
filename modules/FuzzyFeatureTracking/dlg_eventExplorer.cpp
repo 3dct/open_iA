@@ -223,7 +223,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 					.arg(toqstr(v->GetValue(i, 4))).arg(toqstr(v->GetValue(i, 5)))
 					.arg(toqstr(v->GetValue(i, 6))).arg(toqstr(v->GetValue(i, 7))));
 
-				vtkSmartPointer<vtkVariantArray> arr = vtkSmartPointer<vtkVariantArray>::New();
+				auto arr = vtkSmartPointer<vtkVariantArray>::New();
 				arr->SetNumberOfValues(12);
 
 				int newEventType = -1;

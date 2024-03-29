@@ -122,7 +122,7 @@ public:
 			VTK_TYPED_CALL(addValues, type, colorValues, countsForEnergy->GetScalarPointer(), voxelCount, energyColor, componentMax);
 		}
 
-		vtkSmartPointer<vtkImageData> combinedVolume = vtkSmartPointer<vtkImageData>::New();
+		auto combinedVolume = vtkSmartPointer<vtkImageData>::New();
 		combinedVolume->SetExtent(extent);
 		combinedVolume->SetOrigin(origin);
 		combinedVolume->SetSpacing(spacing);
@@ -158,7 +158,7 @@ public:
 		}
 
 		// from the color map, build a color transfer function
-		vtkSmartPointer<vtkDiscretizableColorTransferFunction> colorTransfer = vtkSmartPointer<vtkDiscretizableColorTransferFunction>::New();
+		auto colorTransfer = vtkSmartPointer<vtkDiscretizableColorTransferFunction>::New();
 		colorTransfer->DiscretizeOn();
 		colorTransfer->SetNumberOfValues(colorMap.size());
 		for (std::map<unsigned long, unsigned long>::const_iterator it = colorMap.begin(); it != colorMap.end(); ++it)
@@ -241,7 +241,7 @@ bool iAXRFData::CheckFilters(int x, int y, int z, QVector<iASpectrumFilter> cons
 
 vtkSmartPointer<vtkImageData> iAXRFData::FilterSpectrum(QVector<iASpectrumFilter> const & filter, iAFilterMode mode)
 {
-	vtkSmartPointer<vtkImageData> result = vtkSmartPointer<vtkImageData>::New();
+	auto result = vtkSmartPointer<vtkImageData>::New();
 
 	if (m_data.empty())
 	{
