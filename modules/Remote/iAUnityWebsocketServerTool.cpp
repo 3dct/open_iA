@@ -296,13 +296,13 @@ private:
 				}
 				case ObjectCommandType::SetTranslation:
 				{
-					double pos[3];
-					prop->GetPosition(pos);
-					//for (int i = 0; i < 3; ++i)
-					//{
-					//	pos[i] += values[i];
-					//}
-					prop->SetPosition(pos);
+					std::array<double, 3> pos;
+					//prop->GetPosition(pos.data());
+					for (int i = 0; i < 3; ++i)
+					{
+						pos[i] = values[i]; // += for AddTranslation!
+					}
+					prop->SetPosition(pos.data());
 					break;
 				}
 				case ObjectCommandType::AddRotationEuler:
