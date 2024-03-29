@@ -8,12 +8,6 @@
 #include <iARenderer.h>
 #include <iAMdiChild.h>
 
-#include <itkImage.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
-#include <itkGaussianBlurImageFunction.h>
-#include <itkImageRegionIterator.h>
-
 #include <vtkActor.h>
 #include <vtkAppendPolyData.h>
 #include <vtkCamera.h>
