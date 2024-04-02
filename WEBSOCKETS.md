@@ -191,30 +191,34 @@ Example:
 |0x5|0x2|Object ID (64-Bit)|Matrix (512-Bit)|
 |-|-|-|-|
 
-### Add to Translation
+### Set Translation
 
-The translated values are **32-Bit floats**.
+The translated values are **32-Bit floats**.  
+Default is (0,0,0).
 
 |0x5|0x3|Object ID (64-Bit)|X (32-Bit)|Y (32-Bit)|Z (32-Bit)|
 |-|-|-|-|-|-|
 
-### Add to Scale
+### Set Scale
 
-The scale values are **32-Bit floats**.
+The scale values are **32-Bit floats**.  
+Default is (1,1,1).
 
 |0x5|0x4|Object ID (64-Bit)|X (32-Bit)|Y (32-Bit)|Z (32-Bit)|
 |-|-|-|-|-|-|
 
-### Add to Rotation (Quaternion)
+### Set Rotation (Quaternion)
 
-The rotation value is a quaternion containing **32-Bit floats**.
+The rotation value is a quaternion containing **32-Bit floats**.  
+Default is (0,0,0,1).
 
 |0x5|0x5|Object ID (64-Bit)|X (32-Bit)|Y (32-Bit)|Z (32-Bit)|W (32-Bit)|
 |-|-|-|-|-|-|-|
 
-### Add to Rotation (Euler)
+### Set Rotation (Euler)
 
 The rotation value is a **32-Bit float**.  
+Default is 0.  
 Change the rotation axis by setting one of the following values:
 
 - X - 0
