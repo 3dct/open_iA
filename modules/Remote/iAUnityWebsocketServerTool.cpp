@@ -87,9 +87,9 @@ namespace
 		Remove,  // Reserved, not yet implemented
 		SetMatrix,
 		SetTranslation,
-		AddScaling,
+		SetScaling,
 		SetRotationQuaternion,
-		AddRotationEuler,
+		SetRotationEuler,
 		// must be last:
 		Count
 	};
@@ -271,50 +271,37 @@ private:
 			{
 				auto renderer = child->dataSetViewer(child->firstImageDataSetIdx())->renderer();
 				auto prop = renderer->vtkProp();
+				std::array<double, N> dblVal;
+				std::copy(values.begin(), values.end(), dblVal.begin());
 				switch (objCmdType)
 				{
 				case ObjectCommandType::SetMatrix:
 				{
-					vtkNew<vtkTransform> tr;
 					assert(N == 16);
-					std::array<double, N> matrix;
-					std::copy(values.begin(), values.end(), matrix.begin());
-					tr->SetMatrix(matrix.data());
+					vtkNew<vtkTransform> tr;
+					tr->SetMatrix(dblVal.data());
+					LOG(lvlInfo, QString("  Setting transformation matrix = (%1)").arg(arrayToString(dblVal)));
 					prop->SetUserTransform(tr);
 					break;
 				}
-				case ObjectCommandType::AddScaling:
+				case ObjectCommandType::SetScaling:
 				{
-					double scale[3];
-					prop->GetScale(scale);
-					for (int i = 0; i < 3; ++i)
-					{
-						scale[i] += values[i];
-					}
-					prop->SetScale(scale);
+					assert(N == 3);
+					LOG(lvlInfo, QString("  Setting scale = (%1)").arg(arrayToString(dblVal)));
+					prop->SetScale(dblVal.data());
 					break;
 				}
 				case ObjectCommandType::SetTranslation:
 				{
-					std::array<double, 3> pos;
-					//prop->GetPosition(pos.data());
-					for (int i = 0; i < 3; ++i)
-					{
-						pos[i] = values[i]; // += for AddTranslation!
-					}
-					LOG(lvlInfo, QString("  Applying pos = (%1)").arg(arrayToString(pos)));
-					prop->SetPosition(pos.data());
+					assert(N == 3);
+					LOG(lvlInfo, QString("  Setting pos = (%1)").arg(arrayToString(dblVal)));
+					prop->SetPosition(dblVal.data());
 					break;
 				}
-				case ObjectCommandType::AddRotationEuler:
+				case ObjectCommandType::SetRotationEuler:
 				{
-					double angles[3];
-					prop->GetOrientation(angles);
-					for (int i = 0; i < 3; ++i)
-					{
-						angles[i] += values[i];
-					}
-					prop->SetOrientation(angles);
+					LOG(lvlInfo, QString("  Setting euler rotation = (%1)").arg(arrayToString(dblVal)));
+					prop->SetOrientation(dblVal.data());
 					break;
 				}
 				case ObjectCommandType::SetRotationQuaternion:
@@ -333,7 +320,7 @@ private:
 						const double RoundDegrees = 2;
 						angles[a] = std::round(angles[a] / RoundDegrees) * RoundDegrees;
 					}
-					LOG(lvlInfo, QString("  Applying rotatation: quat = (%1), angle = (%2)").arg(arrayToString(q)).arg(arrayToString(angles)));
+					LOG(lvlInfo, QString("  Setting rotatation: quat = (%1), angle = (%2)").arg(arrayToString(q)).arg(arrayToString(angles)));
 					auto bounds = renderer->bounds();
 					auto center = (bounds.maxCorner() - bounds.minCorner()) / 2;
 					double pos[3];
@@ -626,13 +613,13 @@ public:
 							case ObjectCommandType::SetTranslation:
 								processObjectTransform<3>(rcvStream, clientID, objID, objCommand, child);
 								break;
-							case ObjectCommandType::AddScaling:
+							case ObjectCommandType::SetScaling:
 								processObjectTransform<3>(rcvStream, clientID, objID, objCommand, child);
 								break;
 							case ObjectCommandType::SetRotationQuaternion:
 								processObjectTransform<4>(rcvStream, clientID, objID, objCommand, child);
 								break;
-							case ObjectCommandType::AddRotationEuler:
+							case ObjectCommandType::SetRotationEuler:
 							{
 								auto axis = readVal<quint8>(rcvStream);
 								float value = readVal<float>(rcvStream);
