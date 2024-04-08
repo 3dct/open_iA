@@ -564,13 +564,13 @@ void iARendererImpl::mouseLeftButtonReleasedSlot()
 	m_interactor->InvokeEvent(vtkCommand::LeftButtonReleaseEvent);
 }
 
-void iARendererImpl::setProfilePointInternal(int ptIdx, double const* coords)
+void iARendererImpl::setProfilePointInternal(int pointIdx, double const* coords)
 {
-	assert(ptIdx >= 0 && ptIdx < 2);
-	m_profileLines[0].setPoint(ptIdx, coords[0], coords[1], coords[2]);
+	assert(pointIdx >= 0 && pointIdx < 2);
+	m_profileLines[0].setPoint(pointIdx, coords[0], coords[1], coords[2]);
 	for (int i = 0; i < 3; ++i)
 	{
-		int profLineIdx = (ptIdx * 3) + 1 + i;
+		int profLineIdx = (pointIdx * 3) + 1 + i;
 		for (int ptIdx = 0; ptIdx < 2; ++ptIdx)
 		{
 			iAVec3d pt(coords);
@@ -578,7 +578,7 @@ void iARendererImpl::setProfilePointInternal(int ptIdx, double const* coords)
 			m_profileLines[profLineIdx].setPoint(ptIdx, pt[0], pt[1], pt[2]);
 		}
 	}
-	m_profileLinePoints[ptIdx].source->SetCenter(coords);
+	m_profileLinePoints[pointIdx].source->SetCenter(coords);
 }
 
 void iARendererImpl::initProfilePoints(double const* start, double const* end)
