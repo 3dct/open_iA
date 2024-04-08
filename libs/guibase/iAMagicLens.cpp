@@ -51,7 +51,7 @@ namespace
 class iALensData
 {
 public:
-	iALensData(vtkGenericOpenGLRenderWindow* renderWindow, double opacity, int size, double frameWidth, bool interpolate, bool enabled);
+	iALensData(vtkGenericOpenGLRenderWindow* renderWindow, double opacity, int size, double frameWidth, bool interpolate, bool enabled, QColor const& bgColor);
 	void setLensVisible(bool visible);
 	void setFrameWidth(double frameWidth);
 	void setOffset(int xofs, int yofs);
@@ -62,6 +62,8 @@ public:
 	void updatePosition(double const focalPt[3], double const * dir, double parallelScale, int const mousePos[2]);
 	void updateColors();
 	void render();
+	void setOpaque(bool opaque);
+	void setBackgroundColor(QColor const& color);
 private:
 	void updateViewPort(int const mousePos[2]);
 
@@ -71,6 +73,10 @@ private:
 	vtkSmartPointer<vtkPolyData> m_frameData;
 	vtkSmartPointer<vtkPolyDataMapper2D> m_frameMapper;
 	vtkSmartPointer<vtkActor2D> m_frameActor;
+	vtkSmartPointer<vtkPolyData> m_bgData;
+	vtkSmartPointer<vtkPolyDataMapper2D> m_bgMapper;
+	vtkSmartPointer<vtkActor2D> m_bgActor;
+	vtkSmartPointer<vtkRenderer> m_bgRenderer;
 	vtkSmartPointer<vtkTextActor> m_textActor;
 	vtkSmartPointer<vtkRenderer> m_guiRenderer;
 	vtkGenericOpenGLRenderWindow* m_renderWindow;
@@ -80,13 +86,17 @@ private:
 };
 
 
-iALensData::iALensData(vtkGenericOpenGLRenderWindow* renderWindow, double opacity, int size, double frameWidth, bool interpolate, bool enabled) :
+iALensData::iALensData(vtkGenericOpenGLRenderWindow* renderWindow, double opacity, int size, double frameWidth, bool interpolate, bool enabled, QColor const& bgColor) :
 	m_imageColors(vtkSmartPointer<vtkImageMapToColors>::New()),
 	m_imageActor(vtkSmartPointer<vtkImageActor>::New()),
 	m_imageRenderer(vtkSmartPointer<vtkRenderer>::New()),
 	m_frameData(vtkSmartPointer<vtkPolyData>::New()),
 	m_frameMapper(vtkSmartPointer<vtkPolyDataMapper2D>::New()),
 	m_frameActor(vtkSmartPointer<vtkActor2D>::New()),
+	m_bgData(vtkSmartPointer<vtkPolyData>::New()),
+	m_bgMapper(vtkSmartPointer<vtkPolyDataMapper2D>::New()),
+	m_bgActor(vtkSmartPointer<vtkActor2D>::New()),
+	m_bgRenderer(vtkSmartPointer<vtkRenderer>::New()),
 	m_textActor(vtkSmartPointer<vtkTextActor>::New()),
 	m_guiRenderer(vtkSmartPointer<vtkRenderer>::New()),
 	m_renderWindow(renderWindow),
@@ -100,7 +110,7 @@ iALensData::iALensData(vtkGenericOpenGLRenderWindow* renderWindow, double opacit
 	setInterpolate(interpolate);
 	m_imageRenderer->InteractiveOff();
 	m_imageRenderer->AddActor(m_imageActor);
-	m_imageRenderer->SetLayer(1);
+	m_imageRenderer->SetLayer(2);
 	m_imageRenderer->GetActiveCamera()->ParallelProjectionOn();
 
 	m_textActor->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
@@ -115,12 +125,20 @@ iALensData::iALensData(vtkGenericOpenGLRenderWindow* renderWindow, double opacit
 	setFrameWidth(frameWidth);
 	m_frameActor->SetMapper(m_frameMapper);
 
-	m_guiRenderer->SetLayer(2);
+	m_bgMapper->SetInputData(m_bgData);
+	setBackgroundColor(bgColor);
+	m_bgActor->SetMapper(m_bgMapper);
+	m_bgRenderer->SetLayer(1);
+	m_bgRenderer->AddActor(m_bgActor);
+
+	m_guiRenderer->SetLayer(3);
 	m_guiRenderer->AddActor2D(m_frameActor);
 	m_guiRenderer->AddActor2D(m_textActor);
 
 	if (enabled)
+	{
 		setLensVisible(enabled);
+	}
 }
 
 void iALensData::setLensVisible(bool enabled)
@@ -156,6 +174,7 @@ void iALensData::updateViewPort(int const mousePos[2])
 	CalculateViewPort(viewPort, windowSize, mousePos, m_size, m_offset);
 	m_imageRenderer->SetViewport(viewPort);
 	m_guiRenderer->SetViewport(viewPort);
+	m_bgRenderer->SetViewport(viewPort);
 
 	// update border:
 	auto points = vtkSmartPointer<vtkPoints>::New();
@@ -172,11 +191,15 @@ void iALensData::updateViewPort(int const mousePos[2])
 	points->InsertNextPoint(p3);
 	line->GetPointIds()->SetNumberOfIds(5);
 	for (int i = 0; i < 5; i++)
+	{
 		line->GetPointIds()->SetId(i, i % 4);
+	}
 	cells->InsertNextCell(line);
 
 	m_frameData->SetPoints(points);
 	m_frameData->SetLines(cells);
+	m_bgData->SetPoints(points);
+	m_bgData->SetPolys(cells);
 	m_frameMapper->Update();
 }
 
@@ -199,6 +222,23 @@ void iALensData::setOpacity(double opacity)
 void iALensData::setSize(int size)
 {
 	m_size = size;
+}
+
+void iALensData::setOpaque(bool opaque)
+{
+	if (opaque)
+	{
+		m_renderWindow->AddRenderer(m_bgRenderer);
+	}
+	else
+	{
+		m_renderWindow->RemoveRenderer(m_bgRenderer);
+	}
+}
+
+void iALensData::setBackgroundColor(QColor const& color)
+{
+	m_bgActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
 }
 
 void iALensData::updateContent(vtkImageReslice * reslicer, vtkScalarsToColors* cTF, QString const & name)
@@ -227,7 +267,9 @@ void iALensData::updateColors()
 void iALensData::render()
 {
 	if (!m_renderWindow)
+	{
 		return;
+	}
 	m_imageRenderer->Render();
 	m_guiRenderer->Render();
 }
@@ -235,7 +277,7 @@ void iALensData::render()
 
 // iAMagicLens
 
-iAMagicLens::iAMagicLens() :
+iAMagicLens::iAMagicLens(QColor const & bgColor) :
 	m_isEnabled(false),
 	m_isInitialized(false),
 	m_maxLensCount(1),
@@ -244,6 +286,7 @@ iAMagicLens::iAMagicLens() :
 	m_interpolate(false),
 	m_viewMode(CENTERED),
 	m_opacity(1.0),
+	m_bgColor(bgColor),
 	m_renderWindow(nullptr),
 	m_srcWindowData(vtkSmartPointer<vtkPolyData>::New()),
 	m_srcWindowMapper(vtkSmartPointer<vtkPolyDataMapper2D>::New()),
@@ -254,7 +297,7 @@ iAMagicLens::iAMagicLens() :
 	m_srcWindowActor->GetProperty()->SetColor(1., 1., 1.);
 	m_srcWindowActor->GetProperty()->SetLineWidth(m_frameWidth);
 	m_srcWindowActor->SetMapper(m_srcWindowMapper);
-	m_srcWindowRenderer->SetLayer(1);
+	m_srcWindowRenderer->SetLayer(2);
 	m_srcWindowRenderer->AddActor(m_srcWindowActor);
 }
 
@@ -263,7 +306,9 @@ void iAMagicLens::setFrameWidth(qreal frameWidth)
 	m_frameWidth = frameWidth;
 	m_srcWindowActor->GetProperty()->SetLineWidth(m_frameWidth);
 	for (auto l : m_lenses)
+	{
 		l->setFrameWidth(frameWidth);
+	}
 }
 
 qreal iAMagicLens::frameWidth() const
@@ -274,10 +319,14 @@ qreal iAMagicLens::frameWidth() const
 void iAMagicLens::setEnabled( bool isEnabled )
 {
 	m_isEnabled = isEnabled;
-	for (auto l: m_lenses)
+	for (auto l : m_lenses)
+	{
 		l->setLensVisible(m_isEnabled);
+	}
 	if (m_viewMode == OFFSET)
+	{
 		setSrcWindowEnabled(isEnabled);
+	}
 }
 
 void iAMagicLens::setRenderWindow(vtkGenericOpenGLRenderWindow* renderWindow)
@@ -290,7 +339,9 @@ void iAMagicLens::updatePosition(vtkCamera * cam, double const lensPos[3], int c
 	int const * windowSize = m_renderWindow->GetSize();
 	double scaleCoefficient = (windowSize[1] == 0) ? 1 : static_cast<double>(m_size) / windowSize[1];
 	for (auto l : m_lenses)
-		l->updatePosition(lensPos, cam->GetDirectionOfProjection(), cam->GetParallelScale()*scaleCoefficient, mousePos);
+	{
+		l->updatePosition(lensPos, cam->GetDirectionOfProjection(), cam->GetParallelScale() * scaleCoefficient, mousePos);
+	}
 
 	if (m_viewMode == OFFSET)
 	{
@@ -313,7 +364,9 @@ void iAMagicLens::updatePosition(vtkCamera * cam, double const lensPos[3], int c
 		points->InsertNextPoint(p3);
 		line->GetPointIds()->SetNumberOfIds(5);
 		for (int i = 0; i < 5; i++)
+		{
 			line->GetPointIds()->SetId(i, i % 4);
+		}
 		cells->InsertNextCell(line);
 		m_srcWindowData->SetPoints(points);
 		m_srcWindowData->SetLines(cells);
@@ -329,10 +382,15 @@ bool iAMagicLens::isEnabled()
 void iAMagicLens::setViewMode( ViewMode mode )
 {
 	if (mode != OFFSET && m_maxLensCount > 1)
+	{
 		setLensCount(1);
+	}
 	m_viewMode = mode;
 	for (auto l : m_lenses)
+	{
 		l->setOpacity(m_viewMode == OFFSET ? 1.0 : m_opacity);
+		l->setOpaque(m_viewMode == OFFSET);
+	}
 	setSrcWindowEnabled(m_viewMode == OFFSET);
 	updateOffset();
 }
@@ -340,9 +398,13 @@ void iAMagicLens::setViewMode( ViewMode mode )
 void iAMagicLens::setSrcWindowEnabled(bool enabled)
 {
 	if (enabled)
+	{
 		m_renderWindow->AddRenderer(m_srcWindowRenderer);
+	}
 	else
+	{
 		m_renderWindow->RemoveRenderer(m_srcWindowRenderer);
+	}
 }
 
 void iAMagicLens::updateOffset()
@@ -391,7 +453,7 @@ void iAMagicLens::addInput(vtkImageReslice * reslicer,  vtkScalarsToColors* cTF,
 			m_lenses[0]->setLensVisible(false);
 			m_lenses.remove(0);
 		}
-		std::shared_ptr<iALensData> l(new iALensData(m_renderWindow, m_opacity, m_size, m_frameWidth, m_interpolate, m_isEnabled));
+		std::shared_ptr<iALensData> l(new iALensData(m_renderWindow, m_opacity, m_size, m_frameWidth, m_interpolate, m_isEnabled, m_bgColor));
 		m_lenses.append(l);
 		l->updateContent(reslicer, cTF, name);
 	}
@@ -420,9 +482,14 @@ void iAMagicLens::setLensCount(int count)
 
 void iAMagicLens::updateColors()
 {
-	if (m_isInitialized)
-		for (auto l : m_lenses)
-			l->updateColors();
+	if (!m_isInitialized)
+	{
+		return;
+	}
+	for (auto l : m_lenses)
+	{
+		l->updateColors();
+	}
 }
 
 int iAMagicLens::size() const
@@ -438,14 +505,20 @@ void iAMagicLens::setSize(int newSize)
 		int const * windowSize = m_renderWindow->GetSize();
 		int maxDim = std::min(windowSize[0], windowSize[1]);
 		if (maxDim > 0)
+		{
 			maxSize = std::min(MaximumMagicLensSize, maxDim);
+		}
 	}
 	newSize = clamp(MinimumMagicLensSize, maxSize, newSize);
 	if (m_size == newSize)
+	{
 		return;
+	}
 	m_size = newSize;
 	for (auto l : m_lenses)
+	{
 		l->setSize(newSize);
+	}
 	updateOffset();
 }
 
@@ -453,16 +526,22 @@ void iAMagicLens::setInterpolate(bool on)
 {
 	m_interpolate = on;
 	for (auto l : m_lenses)
+	{
 		l->setInterpolate(on);
+	}
 }
 
 void iAMagicLens::setOpacity(double opacity)
 {
 	if (m_viewMode == OFFSET)
+	{
 		return;
+	}
 	m_opacity = opacity;
 	for (auto l : m_lenses)
+	{
 		l->setOpacity(opacity);
+	}
 }
 
 double iAMagicLens::opacity() const
@@ -473,9 +552,24 @@ double iAMagicLens::opacity() const
 void iAMagicLens::render()
 {
 	if (!m_isEnabled || !m_renderWindow)
+	{
 		return;
+	}
 	if (m_viewMode == OFFSET)
+	{
 		m_srcWindowRenderer->Render();
+	}
 	for (auto l : m_lenses)
+	{
 		l->render();
+	}
+}
+
+void iAMagicLens::setBackgroundColor(QColor const& color)
+{
+	m_bgColor = color;
+	for (auto l : m_lenses)
+	{
+		l->setBackgroundColor(color);
+	}
 }

@@ -307,7 +307,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 
 	if (magicLensAvailable)
 	{
-		m_magicLens = std::make_shared<iAMagicLens>();
+		m_magicLens = std::make_shared<iAMagicLens>(activeBGColor());
 		m_magicLens->setRenderWindow(m_renWin);
 		// setup context menu for the magic lens view options
 		m_contextMenu->addSeparator();
@@ -422,7 +422,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 		m_ren->AddActor(m_measureDisk.actor);
 		m_ren->AddActor(m_roi.actor);
 	}
-	m_renWin->SetNumberOfLayers(3);
+	m_renWin->SetNumberOfLayers(4);
 	m_camera->SetParallelProjection(true);
 
 	if (m_decorations)
@@ -1208,25 +1208,31 @@ void iASlicerImpl::setPositionMarkerSize(int size)
 	updatePositionMarkerExtent();
 }
 
-void iASlicerImpl::updateBackground()
+QColor iASlicerImpl::activeBGColor() const
 {
 	if (m_backgroundColor.isValid())
 	{
-		m_ren->SetBackground(m_backgroundColor.redF(), m_backgroundColor.greenF(), m_backgroundColor.blueF());
-		return;
+		return m_backgroundColor;
 	}
 	switch (m_mode)
 	{
-		default:
-		case iASlicerMode::YZ: m_ren->SetBackground(0.2, 0.2, 0.2); break;
-		case iASlicerMode::XY: m_ren->SetBackground(0.3, 0.3, 0.3); break;
-		case iASlicerMode::XZ: m_ren->SetBackground(0.6, 0.6, 0.6); break;
+	default:
+	case iASlicerMode::YZ: return QColor(51, 51, 51);
+	case iASlicerMode::XY: return QColor(77, 77, 77);
+	case iASlicerMode::XZ: return QColor(153, 153, 153);
 	}
+}
+
+void iASlicerImpl::updateBackground()
+{
+	QColor c = activeBGColor();
+	m_ren->SetBackground(c.redF(), c.greenF(), c.blueF());
 }
 
 void iASlicerImpl::setBackground(QColor color)
 {
 	m_backgroundColor = color;
+	m_magicLens->setBackgroundColor(activeBGColor());
 	updateBackground();
 }
 
