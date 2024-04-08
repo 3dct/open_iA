@@ -130,6 +130,7 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 					slicer->update();
 				}
 				adaptRendererSceneBounds(child);    // automatically resets scene if necessary
+				unitDistanceChanged(prevUnitDistance, child);
 			}
 			child->updateRenderer();  // currently, 3D renderer properties are changed only
 			emit dataSetChanged(dataSetIdx);
@@ -267,6 +268,12 @@ std::shared_ptr<iADataSetRenderer> iADataSetViewer::createRenderer(vtkRenderer* 
 	Q_UNUSED(ren);
 	Q_UNUSED(paramValues);
 	return {};
+}
+
+void iADataSetViewer::unitDistanceChanged(std::array<double, 3> oldUnitDist, iAMdiChild* child)
+{
+	Q_UNUSED(oldUnitDist);
+	Q_UNUSED(child);
 }
 
 QAction* iADataSetViewer::addViewAction(QString const& name, QString const& iconName, bool checked, std::function<void(bool)> handler)

@@ -2167,7 +2167,7 @@ void iASlicerImpl::mouseMoveEvent(QMouseEvent *event)
 			}
 			else
 			{
-				LOG(lvlDebug, "No profile position change!");
+				//LOG(lvlDebug, "No profile position change!");
 			}
 		}
 	}
@@ -2273,7 +2273,10 @@ void iASlicerImpl::setProfilePoint(int pointIdx, double const * globalPos)
 
 void iASlicerImpl::setProfilePointInternal(int pointIdx, double const * globalPos)
 {
-	double profileCoord2d[2] = { globalPos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], globalPos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)] };
+	double profileCoord2d[2] = {
+		globalPos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)],
+		globalPos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]
+	};
 	m_profileHandles->setup(pointIdx, globalPos, profileCoord2d, channel(0)->output());
 	renderWindow()->GetInteractor()->Render();
 }

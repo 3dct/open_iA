@@ -7,7 +7,7 @@
 #include <vtkPointData.h>
 #include <vtkProbeFilter.h>
 
-//! Data for the visualization of line profile points.
+//! Retrieves a line profile from a specified image dataset.
 struct iAProfileProbe
 {
 public:
