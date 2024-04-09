@@ -119,10 +119,13 @@ stateDiagram-v2
     L --> [*]
 ```
 
-If the server sends a load dataset command, because of network latency, it is possible for the clients to send other commands of their own while not having received the load command.  
-In this case, the server will buffer these commands and replay them after the loading is done.
+If the server sends a load dataset command, because of network latency, it is possible for a client to send other commands of their own while not yet having received the load command.  
+These commands are ignored by the server while waiting for dataset load.
 
-This sequence of operations might introduce race conditions in case a new client connects, or an existing client disconnects while dataset loading is in progress.
+* If the dataset load operation succeeds, those previous commands can simply be ignored.  
+* If the dataset load fails, the commands are lost and the server and client are no longer in sync. As both the server and client aren't expected to buffer commands to resolve such cases, the server has to send the entire state of the dataset to the client in an attempt to resynchronize.
+
+While dataset load is happening, clients might connect or disconnect:
 
 #### Client connects
 
