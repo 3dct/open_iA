@@ -109,6 +109,7 @@ namespace
 		AwaitingProtocolNegotiation,  // client just connected and hasn't sent a protocol negotiation message with an acceptable protocol version yet
 		Idle,                         // currently, no ongoing "special" conversation
 		PendingDatasetAck,            // load dataset has been initiated; server has checked availability on his end and has sent out load dataset messages
+		PendingSingleClientDatasetAck,// this client has connected when a dataset was loaded, and it should now load this dataset to achieve a synced state
 		DatasetAcknowledged           // client has confirmed availability of dataset
 	};
 
@@ -669,13 +670,10 @@ private:
 		return fileName == childFileName || fileName == QFileInfo(childFileName).fileName();
 	}
 
-	void sendDataLoadingRequest(QString const& fileName)
+	QByteArray msgDatasetLoad()
 	{
-		LOG(lvlInfo, QString("  Broadcasting data loading request to all clients; filename: %1").arg(fileName));
-		QByteArray fnBytes = fileName.toUtf8();
+		QByteArray fnBytes = m_dataSetFileName.toUtf8();
 		quint32 fnLen = static_cast<quint32>(fnBytes.size());
-		m_dataState = DataState::PendingClientAck;
-		m_dataSetFileName = fileName;
 		QByteArray outData;
 		QDataStream outStream(&outData, QIODevice::WriteOnly);
 		outStream << MessageType::Command << CommandType::LoadDataset << fnLen;
@@ -684,7 +682,15 @@ private:
 		{
 			LOG(lvlWarn, QString("data loading: Expected %1 but wrote %2 bytes!").arg(bytesWritten).arg(fnLen));
 		}
-		broadcastMsg(outData);
+		return outData;
+	}
+
+	void sendDataLoadingRequest(QString const& fileName)
+	{
+		LOG(lvlInfo, QString("  Broadcasting data loading request to all clients; filename: %1").arg(fileName));
+		m_dataState = DataState::PendingClientAck;
+		m_dataSetFileName = fileName;
+		broadcastMsg(msgDatasetLoad());
 		for (auto const & c : m_clientSocket)
 		{
 			m_clientState[c.first] = ClientState::PendingDatasetAck;
@@ -789,18 +795,31 @@ private:
 			{
 				if (type != MessageType::NAK && type != MessageType::ACK)
 				{
-					LOG(lvlError, QString("  Invalid message from client %1: We are currently waiting for client acknowledgements. "
+					LOG(lvlError, QString("  Invalid message from client %1: We are currently waiting for client response on dataset loading: "
 								"Only ACK or NAK are permissible; ignoring message!")
 							.arg(clientID));
-					m_clientSocket[clientID]->close(QWebSocketProtocol::CloseCodeProtocolError,
-						"Waited for client ACK/NAK for dataset - received other message instead!");
-					m_outOfSync.insert(clientID);
+					m_outOfSync.insert(clientID);    // add to clients currently out of sync (-> send resync if dataset loading fails)
 					return;
-					// current protocol: (we must) silently ignore:
-					//     NAK is only permitted as response to protocol negotiation or as part of dataset loading procedure
 				}
 				handleClientDataResponse(clientID, type, child);
 				return;
+			}
+			if (m_clientState[clientID] == ClientState::PendingSingleClientDatasetAck)
+			{
+				if (type != MessageType::ACK)
+				{
+					LOG(lvlError, QString("  Client %1: While waiting for client ACK of already loaded dataset, received message type %2. "
+						"Client either does not have the dataset or sent an invalid message, disconnecting to avoid de-synchronized state!")
+						.arg(clientID).arg(static_cast<int>(type)));
+					m_clientSocket[clientID]->close(QWebSocketProtocol::CloseCodeProtocolError,
+						"Waited for client ACK of dataset - received NAK or other message, so no synchronized state possible.");
+					return;
+				}
+				else    // client could load dataset! let's sync its state:
+				{
+					m_clientState[clientID] = ClientState::Idle;
+					resyncClient(clientID, child);
+				}
 			}
 
 			if (rcvData.size() < 2)
@@ -1030,12 +1049,16 @@ private:
 				.arg(clientProtocolVersion));
 			sendMessage(clientID, MessageType::ACK);
 			sendClientID(clientID);
-			m_clientState[clientID] = ClientState::Idle;
-
-			if (m_dataState == DataState::DatasetLoaded)
+			if (m_dataState == DataState::NoDataset)
 			{
-				// send dataset info ? -> m_dataSetFileName
-				// requires separate "state" where we just wait for the ACK of this one client
+				m_clientState[clientID] = ClientState::Idle;
+			}
+			else
+			{
+				m_clientSocket[clientID]->sendBinaryMessage(msgDatasetLoad());
+				m_clientState[clientID] = (m_dataState == DataState::PendingClientAck) ?
+					ClientState::PendingDatasetAck :      // dataset loading still in progress; wait for this client's response as well
+					ClientState::PendingSingleClientDatasetAck; // special state: only wait for this client's response, and disconnect it if he sends NAK
 			}
 		}
 	}
