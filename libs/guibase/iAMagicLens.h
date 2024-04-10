@@ -6,6 +6,7 @@
 
 #include <vtkSmartPointer.h>
 
+#include <QColor>
 #include <QVector>
 
 #include <memory>
@@ -40,7 +41,7 @@ public:
 	static const double DefaultFrameWidth;
 	static const int OffsetModeXOffset;
 
-	iAMagicLens();
+	iAMagicLens(QColor const& bgColor);
 	void setRenderWindow(vtkGenericOpenGLRenderWindow* renderWindow);
 	void updatePosition(vtkCamera * cam, double const lensPos[3], int const mousePos[2]);
 	void updateColors();
@@ -60,6 +61,7 @@ public:
 	double opacity() const;
 	void setSrcWindowEnabled(bool enabled);
 	void render();
+	void setBackgroundColor(QColor const& bgColor);
 
 private:
 	QVector<std::shared_ptr<iALensData>> m_lenses;
@@ -71,6 +73,7 @@ private:
 	bool m_interpolate;
 	ViewMode m_viewMode;
 	double m_opacity;
+	QColor m_bgColor;
 	vtkGenericOpenGLRenderWindow* m_renderWindow;
 	vtkSmartPointer<vtkPolyData> m_srcWindowData;
 	vtkSmartPointer<vtkPolyDataMapper2D> m_srcWindowMapper;

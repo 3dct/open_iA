@@ -192,7 +192,7 @@ iACsvConfig getCsvConfig(QString const & formatName)
 
 void addColumn(vtkSmartPointer<vtkTable> table, double value, char const * columnName, size_t numRows)
 {
-	vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
+	auto arrX = vtkSmartPointer<vtkFloatArray>::New();
 	arrX->SetName(columnName);
 	arrX->SetNumberOfValues(numRows);
 	arrX->Fill(value);

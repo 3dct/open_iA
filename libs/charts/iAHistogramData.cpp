@@ -266,7 +266,7 @@ std::shared_ptr<iAHistogramData> iAHistogramData::create(QString const& name,
 	accumulate->Update();
 	int extent[6];
 	accumulate->GetComponentExtent(extent);
-	vtkSmartPointer<vtkImageCast> caster = vtkSmartPointer<vtkImageCast>::New();
+	auto caster = vtkSmartPointer<vtkImageCast>::New();
 	caster->SetInputData(accumulate->GetOutput());
 	caster->SetOutputScalarType(iAVtkDataType<DataType>::value);
 	caster->Update();

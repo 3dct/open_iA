@@ -19,7 +19,7 @@ class iAguibase_API iAPerformanceTimer
 public:
 	//! the time resolution type to use
 	//typedef std::chrono::microseconds DurationType;
-	typedef double DurationType;
+	using DurationType = double;
 	//! factor for how many counts are one second
 	//! Has to match the DurationType!
 	static const double DurationSecondFactor;

@@ -8,7 +8,16 @@
 #include <iATypedCallHelper.h>
 #include <iAVec3.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-qual"
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
+#endif
 #include <astra/CudaBackProjectionAlgorithm3D.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 #include <astra/CudaFDKAlgorithm3D.h>
 #include <astra/CudaCglsAlgorithm3D.h>
 #include <astra/CudaSirtAlgorithm3D.h>

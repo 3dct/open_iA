@@ -40,21 +40,11 @@ vtkIdType iAVRMetrics::getNumberOfFeatures()
 }
 
 //! Returns a string with the name of a feature from the .csv
-QString iAVRMetrics::getFeatureName(int feature)
+QString iAVRMetrics::getFeatureName(vtkIdType feature)
 {
 	//QString featureName = m_objectTable->GetColumnName(m_io.getOutputMapping()->value(feature));
 	QString featureName = m_objectTable->GetColumnName(feature);
 	return featureName;
-}
-
-//! Returns the min [0] and the max [1] value of a feature as vector
-std::vector<double> iAVRMetrics::getMinMaxFiberValues(int feature)
-{
-	std::vector<double> minMax = std::vector<double>(2);
-	minMax.at(0) = m_minMaxValues->at(feature).at(0);
-	minMax.at(1) = m_minMaxValues->at(feature).at(1);
-
-	return minMax;
 }
 
 //! Iterates through all values of each feature and stores the min and max value of each feature in a vector

@@ -122,14 +122,14 @@ void iACompBarChart::initializeBarChart()
 	m_area->SetDrawAreaBounds(vtkRectd(bounds.GetBound(0), bounds.GetBound(2),
 		bounds.GetLength(0), bounds.GetLength(1)));
 
-	vtkSmartPointer<vtkPoints> barPositionsOriginal = vtkSmartPointer<vtkPoints>::New();
+	auto barPositionsOriginal = vtkSmartPointer<vtkPoints>::New();
 
-	vtkSmartPointer<vtkFloatArray> scalesOriginal = vtkSmartPointer<vtkFloatArray>::New();
+	auto scalesOriginal = vtkSmartPointer<vtkFloatArray>::New();
 	std::string scaleArrayName = "ScalesOriginal";
 	scalesOriginal->SetName(scaleArrayName.c_str());
 	scalesOriginal->SetNumberOfComponents(3);
 
-	vtkSmartPointer<vtkUnsignedCharArray> colorsOriginal = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	auto colorsOriginal = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	std::string colorArrayName = "ColorsOriginal";
 	colorsOriginal->SetName(colorArrayName.c_str());
 	colorsOriginal->SetNumberOfComponents(3);
@@ -149,7 +149,7 @@ void iACompBarChart::initializeBarChart()
 		colorsOriginal->InsertNextTypedTuple(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY);
 	}
 
-	vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+	auto polyData = vtkSmartPointer<vtkPolyData>::New();
 	polyData->SetPoints(barPositionsOriginal);
 	polyData->GetPointData()->AddArray(colorsOriginal);
 	polyData->GetPointData()->AddArray(scalesOriginal);
@@ -191,8 +191,8 @@ void iACompBarChart::initializeAxes(std::vector<double>* orderedPos)
 	axisBottom->GetTitleProperties()->SetFontSize(iACompVisOptions::FONTSIZE_TEXT);
 
 	//labels on bottom axis
-	vtkSmartPointer<vtkDoubleArray> labelInd = vtkSmartPointer<vtkDoubleArray>::New();
-	vtkSmartPointer<vtkStringArray> labelStrings = vtkSmartPointer<vtkStringArray>::New();
+	auto labelInd = vtkSmartPointer<vtkDoubleArray>::New();
+	auto labelStrings = vtkSmartPointer<vtkStringArray>::New();
 
 	for (int i = 0; i < ((int)coefficients->size()); i++)
 	{
@@ -267,9 +267,9 @@ void iACompBarChart::initializeAxes(std::vector<double>* orderedPos)
 
 vtkSmartPointer<vtkPropItem> iACompBarChart::addBars(vtkSmartPointer<vtkPolyData> polyData, std::string colorArrayName, std::string scaleArrayName, double opacity, double col[3])
 {
-	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
+	auto cubeSource = vtkSmartPointer<vtkCubeSource>::New();
 
-	vtkSmartPointer<vtkGlyph3DMapper> glyph3Dmapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
+	auto glyph3Dmapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
 	glyph3Dmapper->SetSourceConnection(cubeSource->GetOutputPort());
 	glyph3Dmapper->SetInputData(polyData);
 	glyph3Dmapper->SetScalarModeToUsePointFieldData();
@@ -278,7 +278,7 @@ vtkSmartPointer<vtkPropItem> iACompBarChart::addBars(vtkSmartPointer<vtkPolyData
 	glyph3Dmapper->SelectColorArray(colorArrayName.c_str());
 	glyph3Dmapper->Update();
 
-	vtkSmartPointer<vtkActor> glyphActor = vtkSmartPointer<vtkActor>::New();
+	auto glyphActor = vtkSmartPointer<vtkActor>::New();
 	glyphActor->SetMapper(glyph3Dmapper);
 	glyphActor->GetProperty()->SetEdgeVisibility(true);
 
@@ -287,7 +287,7 @@ vtkSmartPointer<vtkPropItem> iACompBarChart::addBars(vtkSmartPointer<vtkPolyData
 	glyphActor->GetProperty()->SetOpacity(opacity);
 	glyphActor->PickableOn();
 
-	vtkSmartPointer<vtkPropItem> propItem = vtkSmartPointer<vtkPropItem>::New();
+	auto propItem = vtkSmartPointer<vtkPropItem>::New();
 	propItem->SetPropObject(glyphActor);
 
 	m_area->GetDrawAreaItem()->AddItem(propItem);
@@ -315,7 +315,7 @@ std::vector<double>* iACompBarChart::changeInterval(std::vector<double>* input, 
 
 vtkSmartPointer<vtkIntArray> iACompBarChart::getIndexArray(std::vector<double>* input, const char* name)
 {
-	vtkSmartPointer<vtkIntArray> result = vtkSmartPointer<vtkIntArray>::New();
+	auto result = vtkSmartPointer<vtkIntArray>::New();
 	result->SetName(name);
 	for (int i = 1; i <= ((int)input->size()); i++)
 	{//start from one to draw bar not inside y-axis
@@ -327,7 +327,7 @@ vtkSmartPointer<vtkIntArray> iACompBarChart::getIndexArray(std::vector<double>* 
 
 vtkSmartPointer<vtkDoubleArray> iACompBarChart::vectorToVtkDataArray(std::vector<double>* input, const char* name)
 {
-	vtkSmartPointer<vtkDoubleArray> result = vtkSmartPointer<vtkDoubleArray>::New();
+	auto result = vtkSmartPointer<vtkDoubleArray>::New();
 	result->SetName(name);
 	for (int i = 0; i < ((int)input->size()); i++)
 	{
@@ -418,14 +418,14 @@ void iACompBarChart::updateBarChart(std::vector<double>* coefficientsOriginal, s
 	double width = (m_barWidth / maxNumberObjects) * selectedNumberObjects;
 	int numberOfBars = static_cast<int>(coefficientsSelected->size());
 
-	vtkSmartPointer<vtkPoints> barPositionsSelected = vtkSmartPointer<vtkPoints>::New();
+	auto barPositionsSelected = vtkSmartPointer<vtkPoints>::New();
 
-	vtkSmartPointer<vtkFloatArray> scales = vtkSmartPointer<vtkFloatArray>::New();
+	auto scales = vtkSmartPointer<vtkFloatArray>::New();
 	std::string scaleArrayName = "ScalesArraySelected";
 	scales->SetName(scaleArrayName.c_str());
 	scales->SetNumberOfComponents(3);
 
-	vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	std::string colorArrayName = "ColorsArraySelected";
 	colors->SetName(colorArrayName.c_str());
 	colors->SetNumberOfComponents(3);
@@ -446,7 +446,7 @@ void iACompBarChart::updateBarChart(std::vector<double>* coefficientsOriginal, s
 		colors->InsertNextTypedTuple(iACompVisOptions::HIGHLIGHTCOLOR_GREEN);
 	}
 
-	vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+	auto polyData = vtkSmartPointer<vtkPolyData>::New();
 	polyData->SetPoints(barPositionsSelected);
 	polyData->GetPointData()->AddArray(colors);
 	polyData->GetPointData()->AddArray(scales);
@@ -468,14 +468,14 @@ void iACompBarChart::updateOriginalBarChart()
 
 	int numberOfBars = static_cast<int>(coefficients->size());
 
-	vtkSmartPointer<vtkPoints> barPositionsOriginal = vtkSmartPointer<vtkPoints>::New();
+	auto barPositionsOriginal = vtkSmartPointer<vtkPoints>::New();
 
-	vtkSmartPointer<vtkFloatArray> scalesOriginal = vtkSmartPointer<vtkFloatArray>::New();
+	auto scalesOriginal = vtkSmartPointer<vtkFloatArray>::New();
 	std::string scaleArrayName = "ScalesOriginalRepositioned";
 	scalesOriginal->SetName(scaleArrayName.c_str());
 	scalesOriginal->SetNumberOfComponents(3);
 
-	vtkSmartPointer<vtkUnsignedCharArray> colorsOriginal = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	auto colorsOriginal = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	std::string colorArrayName = "ColorsOriginalRepositioned";
 	colorsOriginal->SetName(colorArrayName.c_str());
 	colorsOriginal->SetNumberOfComponents(3);
@@ -495,7 +495,7 @@ void iACompBarChart::updateOriginalBarChart()
 		colorsOriginal->InsertNextTypedTuple(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY);
 	}
 
-	vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+	auto polyData = vtkSmartPointer<vtkPolyData>::New();
 	polyData->SetPoints(barPositionsOriginal);
 	polyData->GetPointData()->AddArray(colorsOriginal);
 	polyData->GetPointData()->AddArray(scalesOriginal);
@@ -515,8 +515,8 @@ void iACompBarChart::updateLabels()
 	vtkAxis *axisBottom = m_area->GetAxis(vtkAxis::BOTTOM);
 
 	//labels on bottom axis
-	vtkSmartPointer<vtkDoubleArray> labelInd = vtkSmartPointer<vtkDoubleArray>::New();
-	vtkSmartPointer<vtkStringArray> labelStrings = vtkSmartPointer<vtkStringArray>::New();
+	auto labelInd = vtkSmartPointer<vtkDoubleArray>::New();
+	auto labelStrings = vtkSmartPointer<vtkStringArray>::New();
 
 	for (int i = 0; i < ((int)coefficients->size()); i++)
 	{
@@ -555,8 +555,8 @@ void iACompBarChart::resetLabels()
 	vtkAxis *axisBottom = m_area->GetAxis(vtkAxis::BOTTOM);
 
 	//labels on bottom axis
-	vtkSmartPointer<vtkDoubleArray> labelInd = vtkSmartPointer<vtkDoubleArray>::New();
-	vtkSmartPointer<vtkStringArray> labelStrings = vtkSmartPointer<vtkStringArray>::New();
+	auto labelInd = vtkSmartPointer<vtkDoubleArray>::New();
+	auto labelStrings = vtkSmartPointer<vtkStringArray>::New();
 
 	for (int i = 0; i < ((int)coefficients->size()); i++)
 	{

@@ -13,12 +13,12 @@
 iABoundingBoxVisModule::iABoundingBoxVisModule( )
 	: iAVisModule( )
 {
-	m_cubeSource = vtkSmartPointer<vtkCubeSource>::New( );
+	m_cubeSource = vtkSmartPointer<vtkCubeSource>::New();
 
-	m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New( );
+	m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	m_mapper->SetInputConnection( m_cubeSource->GetOutputPort( ) );
 
-	m_actor = vtkSmartPointer<vtkActor>::New( );
+	m_actor = vtkSmartPointer<vtkActor>::New();
 	m_actor->SetMapper( m_mapper );
 	m_actor->GetProperty( )->SetRepresentationToWireframe( );
 	m_actor->GetProperty( )->LightingOff( );

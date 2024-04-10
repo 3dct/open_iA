@@ -373,8 +373,7 @@ LabelPixelHistPtr iAImageTreeInternalNode::UpdateLabelDistribution() const
 	LabelImageType::SizeType size = child1Img->GetLargestPossibleRegion().GetSize();
 	for (int l = 0; l < m_differenceMarkerValue; ++l)
 	{
-		typedef itk::AddImageFilter<LabelImageType> AddImgFilterType;
-		AddImgFilterType::Pointer addImgFilter = AddImgFilterType::New();
+		auto addImgFilter = itk::AddImageFilter<LabelImageType>::New();
 		addImgFilter->SetInput1(childResult1->hist.at(l));
 		addImgFilter->SetInput2(childResult2->hist.at(l));
 		addImgFilter->Update();
@@ -382,7 +381,7 @@ LabelPixelHistPtr iAImageTreeInternalNode::UpdateLabelDistribution() const
 	}
 	result->count = childResult1->count + childResult2->count;
 
-	ProbabilityImagePointer labelEntropy = createImage<ProbabilityImageType>(
+	auto labelEntropy = createImage<ProbabilityImageType>(
 		size,
 		child1Img->GetSpacing()
 		);
@@ -436,14 +435,13 @@ CombinedProbPtr iAImageTreeInternalNode::UpdateProbabilities() const
 		return result;
 	}
 
-	ProbabilityImagePointer child1Img = childResult1->prob.at(0);
+	auto child1Img = childResult1->prob.at(0);
 	ProbabilityImageType::SizeType size = child1Img->GetLargestPossibleRegion().GetSize();
 	for (int l = 0; l < m_differenceMarkerValue; ++l)
 	{
 		if (childResult1->prob.at(l) && childResult2->prob.at(l))
 		{
-			typedef itk::AddImageFilter<ProbabilityImageType> AddImgFilterType;
-			AddImgFilterType::Pointer addImgFilter = AddImgFilterType::New();
+			auto addImgFilter = itk::AddImageFilter<ProbabilityImageType>::New();
 			addImgFilter->SetInput1(childResult1->prob.at(l));
 			addImgFilter->SetInput2(childResult2->prob.at(l));
 			addImgFilter->Update();
@@ -458,7 +456,7 @@ CombinedProbPtr iAImageTreeInternalNode::UpdateProbabilities() const
 	}
 	result->count = childResult1->count + childResult2->count;
 
-	ProbabilityImagePointer averageEntropy = createImage<ProbabilityImageType>(
+	auto averageEntropy = createImage<ProbabilityImageType>(
 		size,
 		child1Img->GetSpacing()
 		);
@@ -483,7 +481,7 @@ CombinedProbPtr iAImageTreeInternalNode::UpdateProbabilities() const
 				int label = -1;
 				for (int l = 0; l < m_differenceMarkerValue; ++l)
 				{
-					ProbabilityImagePointer img = result->prob.at(l);
+					auto img = result->prob.at(l);
 					double probSum = img->GetPixel(idx);
 					if (probSum > probMax)
 					{

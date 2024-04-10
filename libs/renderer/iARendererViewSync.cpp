@@ -74,7 +74,7 @@ bool iARendererViewSync::removeFromBundle(vtkRenderer* renderer, bool resetCamer
 	}
 	if (resetCamera && m_sharedCamera)
 	{
-		vtkSmartPointer<vtkCamera> newCam = vtkSmartPointer<vtkCamera>::New();
+		auto newCam = vtkSmartPointer<vtkCamera>::New();
 		newCam->DeepCopy(renderer->GetActiveCamera());
 		renderer->SetActiveCamera(newCam);
 	}

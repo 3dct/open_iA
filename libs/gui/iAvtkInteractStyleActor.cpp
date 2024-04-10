@@ -572,8 +572,7 @@ vtkSmartPointer<vtkTransform> iAvtkInteractStyleActor::resliceTransform(uint mod
 {
 	if (mode >= 3)
 	{
-		vtkSmartPointer<vtkTransform> test = vtkSmartPointer<vtkTransform>();
-		return test;
+		return vtkSmartPointer<vtkTransform>();
 	}
 	return m_reslicerTransform[mode];
 }

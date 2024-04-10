@@ -134,7 +134,7 @@ namespace
 
 			checkCuda("streamSync", cudaStreamSynchronize(stream));
 			std::vector<unsigned char> jpeg(length);
-			checknvj("retrieveBitstream", nvjpegEncodeRetrieveBitstream(nv_handle, nv_enc_state, jpeg.data(), &length, 0));
+			checknvj("retrieveBitstream", nvjpegEncodeRetrieveBitstream(nv_handle, nv_enc_state, jpeg.data(), &length, stream));
 
 			return jpeg;
 		}

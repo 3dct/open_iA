@@ -8,11 +8,14 @@
 #include <QFileDialog>
 #include <QString>
 
-typedef std::pair<QString, QString> FileTypePair;
-FileTypePair FileTypes[ ] = { std::make_pair( "regular file", "" ),
-							  std::make_pair( "extracted fibers", S_4DCT_EXTRACTED_FIBERS ),
-							  std::make_pair( "extracted curved fibers", S_4DCT_EXTRACTED_CURVED_FIBERS ),
-							  std::make_pair( "extracted fiber image", S_4DCT_EXTRACTED_FIBER_IMAGE ) };
+namespace
+{
+	using FileTypePair = std::pair<QString, QString>;
+	FileTypePair FileTypes[] = { std::make_pair("regular file", ""),
+								  std::make_pair("extracted fibers", S_4DCT_EXTRACTED_FIBERS),
+								  std::make_pair("extracted curved fibers", S_4DCT_EXTRACTED_CURVED_FIBERS),
+								  std::make_pair("extracted fiber image", S_4DCT_EXTRACTED_FIBER_IMAGE) };
+}
 
 dlg_fileEdit::dlg_fileEdit( QWidget* parent) :
 	QDialog( parent )

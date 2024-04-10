@@ -180,7 +180,7 @@ void iATLGICTLoader::run()
 			return;
 		}
 
-		vtkSmartPointer<vtkStringArray> fileNames = vtkSmartPointer<vtkStringArray>::New();
+		auto fileNames = vtkSmartPointer<vtkStringArray>::New();
 		for (int i = min; i <= max; i++)
 		{
 			QString temp = fileNameBase + QString("%1").arg(i, digits, 10, QChar('0')) + "." + ext;

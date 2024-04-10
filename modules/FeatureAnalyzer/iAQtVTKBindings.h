@@ -11,7 +11,7 @@
 
 inline vtkSmartPointer<vtkTable> convertQTableWidgetToVTKTable( const QTableWidget * data )
 {
-	vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
+	auto table = vtkSmartPointer<vtkTable>::New();
 
 	int columnNb = data->columnCount();
 	int rowNb = data->rowCount() - 1;

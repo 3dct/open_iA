@@ -230,7 +230,7 @@ void iAImagePreviewWidget::removeChannel()
 	{
 		if (!m_colorTheme)
 			return false;
-		vtkSmartPointer<vtkDiscretizableColorTransferFunction> ctf = vtkSmartPointer<vtkDiscretizableColorTransferFunction>::New();
+		auto ctf = vtkSmartPointer<vtkDiscretizableColorTransferFunction>::New();
 		assert(ctf);
 		ctf->RemoveAllPoints();
 		ctf->DiscretizeOn();

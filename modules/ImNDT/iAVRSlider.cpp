@@ -60,7 +60,7 @@ void iAVRSlider::hide()
 
 vtkSmartPointer<vtkProp> iAVRSlider::getSlider()
 {
-	vtkSmartPointer<vtkPropCollection> propColl = vtkSmartPointer<vtkPropCollection>::New();
+	auto propColl = vtkSmartPointer<vtkPropCollection>::New();
 	m_sliderRep->GetActors(propColl);
 	propColl->InitTraversal();
 

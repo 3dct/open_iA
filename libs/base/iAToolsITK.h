@@ -60,7 +60,7 @@ template <typename T>
 typename itk::Image<T, iAITKIO::Dim>::Pointer setIndexOffsetToZero(typename itk::Image<T, iAITKIO::Dim>::Pointer inImg)
 {
 	// change output image index offset to zero
-	typedef itk::Image<T, iAITKIO::Dim> ImageType;
+	using ImageType = itk::Image<T, iAITKIO::Dim>;
 	typename ImageType::IndexType idx; idx.Fill(0);
 	typename ImageType::PointType origin; origin.Fill(0);
 	typename ImageType::RegionType outreg;
@@ -72,8 +72,7 @@ typename itk::Image<T, iAITKIO::Dim>::Pointer setIndexOffsetToZero(typename itk:
 	refimage->SetOrigin(origin);
 	refimage->SetSpacing(inImg->GetSpacing());
 	refimage->Allocate();
-	typedef itk::ChangeInformationImageFilter<ImageType> CIIFType;
-	auto changeFilter = CIIFType::New();
+	auto changeFilter = itk::ChangeInformationImageFilter<ImageType>::New();
 	changeFilter->SetInput(inImg);
 	changeFilter->UseReferenceImageOn();
 	changeFilter->SetReferenceImage(refimage);
@@ -104,7 +103,7 @@ void deepCopy(typename TImage::Pointer input, typename TImage::Pointer output)
 template <typename TImage>
 typename TImage::Pointer createImage(typename TImage::SizeType size, typename TImage::SpacingType spacing)
 {
-	typename TImage::Pointer image = TImage::New();
+	auto image = TImage::New();
 	typename TImage::IndexType start;
 	start.Fill(0);
 	typename TImage::RegionType region(start, size);
@@ -118,7 +117,7 @@ typename TImage::Pointer createImage(typename TImage::SizeType size, typename TI
 template <typename TImage>
 typename TImage::Pointer createImage(typename TImage::Pointer otherImg)
 {
-	typename TImage::Pointer image = TImage::New();
+	auto image = TImage::New();
 	typename TImage::RegionType reg(
 		otherImg->GetLargestPossibleRegion().GetIndex(),
 		otherImg->GetLargestPossibleRegion().GetSize()
@@ -152,8 +151,7 @@ void storeImageOfType(TImage * image, QString const & filename, bool useCompress
 template<typename SourceImageType, typename ResultImageType>
 iAITKIO::ImagePointer internalCastImageTo(iAITKIO::ImagePointer img)
 {
-	typedef itk::CastImageFilter<SourceImageType, ResultImageType> CastType;
-	typename CastType::Pointer cast = CastType::New();
+	auto cast = itk::CastImageFilter<SourceImageType, ResultImageType>::New();
 	cast->SetInput(dynamic_cast<SourceImageType*>(img.GetPointer()));
 	cast->Update();
 	return cast->GetOutput();
@@ -233,8 +231,7 @@ iAITKIO::ImagePointer castImageTo(iAITKIO::ImagePointer img)
 template<typename SourceImageType, typename ResultImageType>
 iAITKIO::ImagePointer internalRescaleImageTo(iAITKIO::ImagePointer img, double min, double max)
 {
-	typedef itk::RescaleIntensityImageFilter<SourceImageType, ResultImageType> RescaleType;
-	typename RescaleType::Pointer rescale = RescaleType::New();
+	auto rescale = itk::RescaleIntensityImageFilter<SourceImageType, ResultImageType>::New();
 	rescale->SetInput(dynamic_cast<SourceImageType*>(img.GetPointer()));
 	rescale->SetOutputMinimum(min);
 	rescale->SetOutputMaximum(max);

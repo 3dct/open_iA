@@ -56,7 +56,7 @@ class iASlicerImpl;
 // base
 class iADockWidgetWrapper;
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>  dlg_renderer;
+using dlg_renderer = iAQTtoUIConnector<QDockWidget, Ui_renderer>;
 
 //! Child window of MainWindow's mdi area for showing datasets and visualizations.
 //! Most tools in the modules can be added to MdiChild to extend its functionality.

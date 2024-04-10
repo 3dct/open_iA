@@ -52,8 +52,7 @@ double CalcDistance(ClusterImageType img1, ClusterImageType img2)
 	{
 		LabelImageType * img1t = dynamic_cast<LabelImageType*>(img1.GetPointer());
 		LabelImageType * img2t = dynamic_cast<LabelImageType*>(img2.GetPointer());
-		typedef itk::LabelOverlapMeasuresImageFilter<LabelImageType > FilterType;
-		FilterType::Pointer filter = FilterType::New();
+		auto filter = itk::LabelOverlapMeasuresImageFilter<LabelImageType>::New();
 		filter->SetSourceImage(img1t);
 		filter->SetTargetImage(img2t);
 		filter->Update();

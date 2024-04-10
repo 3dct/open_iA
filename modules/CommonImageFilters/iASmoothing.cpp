@@ -129,10 +129,10 @@ void recursiveGaussian(iAFilter* filter, QVariantMap const & params)
 {
 	typedef typename itk::Image<T, DIM> InputImageType;
 	typedef itk::RecursiveGaussianImageFilter<InputImageType, RealImageType > RGSFXType;
-	typename RGSFXType::Pointer rgsfilterX = RGSFXType::New();
+	auto rgsfilterX = RGSFXType::New();
 	typedef itk::RecursiveGaussianImageFilter<RealImageType, RealImageType > RGSFYZType;
-	typename RGSFYZType::Pointer rgsfilterY = RGSFYZType::New();
-	typename RGSFYZType::Pointer rgsfilterZ = RGSFYZType::New();
+	auto rgsfilterY = RGSFYZType::New();
+	auto rgsfilterZ = RGSFYZType::New();
 	rgsfilterX->SetInput(dynamic_cast<InputImageType*>(filter->imageInput(0)->itkImage()));
 	rgsfilterY->SetInput(rgsfilterX->GetOutput());
 	rgsfilterZ->SetInput(rgsfilterY->GetOutput());
@@ -181,9 +181,8 @@ template<class T>
 void discreteGaussian(iAFilter* filter, QVariantMap const & params)
 {
 	typedef itk::Image<T, DIM> InputImageType;
-	typedef itk::DiscreteGaussianImageFilter<RealImageType, RealImageType > DGIFType;
 	auto realImage = castImageTo<RealType>(dynamic_cast<InputImageType *>(filter->imageInput(0)->itkImage()));
-	typename DGIFType::Pointer dgFilter = DGIFType::New();
+	auto dgFilter = itk::DiscreteGaussianImageFilter<RealImageType, RealImageType>::New();
 	dgFilter->SetVariance(params["Variance"].toDouble());
 	dgFilter->SetMaximumError(params["Maximum error"].toDouble());
 	dgFilter->SetInput(dynamic_cast<RealImageType*>(realImage.GetPointer()));

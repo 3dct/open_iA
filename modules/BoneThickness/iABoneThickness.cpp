@@ -126,7 +126,7 @@ void iABoneThickness::calculate()
 			// Allocate intersection variable
 			vtkSmartPointer<vtkPoints> intersectPoints1 = vtkSmartPointer<vtkPoints>::New();	// Intersection of positive normal vector
 			vtkSmartPointer<vtkPoints> intersectPoints2 = vtkSmartPointer<vtkPoints>::New();	// intersection of negative normal vector
-			vtkSmartPointer<vtkIdList> subIds = vtkSmartPointer<vtkIdList>::New();
+			auto subIds = vtkSmartPointer<vtkIdList>::New();
 
 			// start and end points of finite line to intersect with mesh
 			double pStart[3]{ pPoint[0], pPoint[1], pPoint[2] };

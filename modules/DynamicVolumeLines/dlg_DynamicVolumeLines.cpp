@@ -1656,7 +1656,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 			visSelGraphList[i]->pen().color().greenF(),
 			visSelGraphList[i]->pen().color().blueF());
 
-		vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
+		auto cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
 		auto tf = imgDataViewer->transfer();
 		cTF->ShallowCopy(tf->colorTF());
 		int index = cTF->GetSize() - 1;
@@ -1664,7 +1664,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 		cTF->GetNodeValue(index, val);
 		val[1] = 1.0;	val[2] = 0.0;	val[3] = 0.0;
 		cTF->SetNodeValue(index, val);
-		vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
+		auto oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 		oTF->ShallowCopy(tf->opacityTF());
 
 		auto ren = vtkSmartPointer<vtkRenderer>::New();

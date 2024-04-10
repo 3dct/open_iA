@@ -43,8 +43,8 @@ iAFractureVisModule::iAFractureVisModule( )
 	, m_lowIntensity( Qt::blue )
 	, m_highIntensity( Qt::red )
 {
-	m_surfMapper = vtkSmartPointer<vtkPolyDataMapper>::New( );
-	m_surfActor = vtkSmartPointer<vtkActor>::New( );
+	m_surfMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	m_surfActor = vtkSmartPointer<vtkActor>::New();
 	m_surfActor->SetMapper( m_surfMapper );
 	//m_surfActor->GetProperty()->SetOpacity(0.5);
 }
@@ -63,14 +63,13 @@ void iAFractureVisModule::hide( )
 void iAFractureVisModule::load( QString fileName )
 {
 	// load heightmap from the input file
-	typedef itk::ImageFileReader<MapType> ReaderType;
-	ReaderType::Pointer reader = ReaderType::New( );
+	auto reader = itk::ImageFileReader<MapType>::New();
 	reader->SetFileName( getLocalEncodingFileName(fileName) );
 	reader->Update( );
 	m_heightmap = reader->GetOutput( );
 	// visualize
-	m_points = vtkSmartPointer<vtkPoints>::New( );
-	m_polys = vtkSmartPointer<vtkCellArray>::New( );
+	m_points = vtkSmartPointer<vtkPoints>::New();
+	m_polys = vtkSmartPointer<vtkCellArray>::New();
 	calculatePoints( m_points, m_heightmap, m_size );
 	calculatePolys( m_polys, m_heightmap );
 	setData( m_points, m_polys );
@@ -79,8 +78,7 @@ void iAFractureVisModule::load( QString fileName )
 
 void iAFractureVisModule::save( QString fileName )
 {
-	typedef itk::ImageFileWriter<MapType> WriterType;
-	WriterType::Pointer writer = WriterType::New( );
+	auto writer = itk::ImageFileWriter<MapType>::New();
 	writer->SetInput( m_heightmap );
 	writer->SetFileName( getLocalEncodingFileName(fileName) );
 	writer->Update( );
@@ -89,11 +87,11 @@ void iAFractureVisModule::save( QString fileName )
 void iAFractureVisModule::extract( QString fileName )
 {
 	// create a new heightmap and calculate it
-	m_heightmap = MapType::New( );
+	m_heightmap = MapType::New();
 	calculateMap( m_heightmap, fileName, MapName::Heightmap );
 	// visualize
-	m_points = vtkSmartPointer<vtkPoints>::New( );
-	m_polys = vtkSmartPointer<vtkCellArray>::New( );
+	m_points = vtkSmartPointer<vtkPoints>::New();
+	m_polys = vtkSmartPointer<vtkCellArray>::New();
 	calculatePoints( m_points, m_heightmap, m_size );
 	calculatePolys( m_polys, m_heightmap );
 	setData( m_points, m_polys, m_colors );
@@ -106,10 +104,10 @@ void iAFractureVisModule::setSize( double * size )
 
 void iAFractureVisModule::setColorMap( QString fileName )
 {
-	m_colors = vtkSmartPointer<vtkUnsignedCharArray>::New( );
+	m_colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	m_colors->SetNumberOfComponents( 3 );
 	m_colors->SetName( "Colors" );
-	m_colormap = MapType::New( );
+	m_colormap = MapType::New();
 	calculateMap( m_colormap, fileName, MapName::Colormap );
 	calculateColors( m_colors, m_colormap, m_heightmap );
 	setData( m_points, m_polys, m_colors );
@@ -154,7 +152,7 @@ void iAFractureVisModule::getBounds( double * bounds )
 
 void iAFractureVisModule::setData( vtkPoints* points, vtkCellArray* polys, vtkUnsignedCharArray* colors /*= 0*/ )
 {
-	vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New( );
+	auto polyData = vtkSmartPointer<vtkPolyData>::New();
 	polyData->SetPoints( points );
 	polyData->SetPolys( polys );
 	if( colors != nullptr )
@@ -166,7 +164,7 @@ void iAFractureVisModule::setData( vtkPoints* points, vtkCellArray* polys, vtkUn
 	{
 		m_surfMapper->SetScalarVisibility( 0 );
 	}
-	vtkSmartPointer<vtkDepthSortPolyData> depthSort = vtkSmartPointer<vtkDepthSortPolyData>::New( );
+	auto depthSort = vtkSmartPointer<vtkDepthSortPolyData>::New();
 	depthSort->SetInputData( polyData );
 	depthSort->SetDirectionToBackToFront( );
 	depthSort->SetVector( 1, 1, 1 );
@@ -181,9 +179,8 @@ void iAFractureVisModule::calculateMap( MapType* map, QString fileName, MapName 
 {
 	typedef unsigned short							PixelType;
 	typedef itk::Image<PixelType, 3>				ImageType;
-	typedef itk::ImageFileReader<ImageType>			ReaderType;
 
-	ReaderType::Pointer reader = ReaderType::New( );
+	auto reader = itk::ImageFileReader<ImageType>::New();
 	reader->SetFileName( getLocalEncodingFileName(fileName) );
 	reader->Update( );
 
@@ -193,7 +190,7 @@ void iAFractureVisModule::calculateMap( MapType* map, QString fileName, MapName 
 	int minZ = 0.5 * imgSize[2];
 	int maxZ = 1. * imgSize[2];
 
-	//HeightmapType::Pointer heightmap = HeightmapType::New();
+	//auto heightmap = HeightmapType::New();
 	//map = MapType::New();
 	itk::Index<2> startInd; startInd.Fill( 0 );
 	itk::Size<2> size; size[0] = imgSize[0]; size[1] = imgSize[1];
@@ -259,8 +256,7 @@ void iAFractureVisModule::calculatePoints( vtkPoints* points, MapType* heightmap
 	//m_points = vtkSmartPointer<vtkPoints>::New();
 
 	// Create and setup a Gaussian filter
-	typedef itk::DiscreteGaussianImageFilter<MapType, MapType> GaussianImageFilterType;
-	GaussianImageFilterType::Pointer gaussianFilter = GaussianImageFilterType::New( );
+	auto gaussianFilter = itk::DiscreteGaussianImageFilter<MapType, MapType>::New();
 	gaussianFilter->SetInput( heightmap );
 	gaussianFilter->SetVariance( 200.0 );
 	gaussianFilter->SetMaximumKernelWidth( 64 );
@@ -313,8 +309,8 @@ void iAFractureVisModule::calculatePolys( vtkCellArray* polys, MapType* heightma
 			ind[3] = ( i + 1 ) * ySteps + j + 1;
 
 			vtkSmartPointer<vtkTriangle> triangle[2];
-			triangle[0] = vtkSmartPointer<vtkTriangle>::New( );
-			triangle[1] = vtkSmartPointer<vtkTriangle>::New( );
+			triangle[0] = vtkSmartPointer<vtkTriangle>::New();
+			triangle[1] = vtkSmartPointer<vtkTriangle>::New();
 			triangle[0]->GetPointIds( )->SetId( 0, ind[0] );
 			triangle[0]->GetPointIds( )->SetId( 1, ind[1] );
 			triangle[0]->GetPointIds( )->SetId( 2, ind[2] );
@@ -338,8 +334,7 @@ void iAFractureVisModule::calculateColors( vtkUnsignedCharArray* colors, MapType
 	auto xSteps = heightmapSize[0] / Step;
 	auto ySteps = heightmapSize[1] / Step;
 
-	typedef itk::MinimumMaximumImageCalculator<MapType> ImageCalculatorFilterType;
-	ImageCalculatorFilterType::Pointer imageCalcFilter = ImageCalculatorFilterType::New( );
+	auto imageCalcFilter = itk::MinimumMaximumImageCalculator<MapType>::New();
 	imageCalcFilter->SetImage( colormap );
 	imageCalcFilter->Compute( );
 	double colorRange = imageCalcFilter->GetMaximum( ) - imageCalcFilter->GetMinimum( );

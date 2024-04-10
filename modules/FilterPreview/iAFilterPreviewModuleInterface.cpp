@@ -85,11 +85,11 @@ void iAFilterPreviewModuleInterface::generateLatinHypercubeSamples(int numSample
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<> dis(0.0, 1.0);
 
-	int dimensions = minValues.size();
+	auto dimensions = minValues.size();
 
 	samplesMatrix.resize(dimensions, std::vector<double>(numSamples));
 
-	for (int i = 0; i < dimensions; ++i)
+	for (qsizetype i = 0; i < dimensions; ++i)
 	{
 		for (int j = 0; j < numSamples; ++j)
 		{
@@ -267,7 +267,7 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 
 				if (!slicerCopies.empty())
 				{
-					for (int k = 0; k < slicerCopies.size(); ++k)
+					for (size_t k = 0; k < slicerCopies.size(); ++k)
 					{
 						iASlicerImpl* slicerCopy = slicerCopies[k];  // Access the slicer copy by index
 
@@ -362,7 +362,7 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 			if (!slicerCopies.empty())
 			{
 
-				for (int i = 0; i < slicerCopies.size(); ++i)
+				for (size_t i = 0; i < slicerCopies.size(); ++i)
 				{
 					iASlicerImpl* slicerCopy = slicerCopies[i];  // Access the slicer copy by index
 

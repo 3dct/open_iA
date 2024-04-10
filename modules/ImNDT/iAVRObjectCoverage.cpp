@@ -244,7 +244,7 @@ void iAVRObjectCoverage::calculateEllipsoidCoverage()
 //! The calculated intersection points are returned as vtkPoints
 vtkSmartPointer<vtkPoints> iAVRObjectCoverage::getOctreeFiberCoverage(double startPoint[3], double endPoint[3], vtkIdType octreeLevel, vtkIdType fiber, double fiberLength)
 {
-	vtkSmartPointer<vtkPoints> additionalIntersectionPoints = vtkSmartPointer<vtkPoints>::New();
+	auto additionalIntersectionPoints = vtkSmartPointer<vtkPoints>::New();
 
 	//m_octree->calculateOctree(octreeLevel, OCTREE_POINTS_PER_REGION);
 	vtkIdType leafNodes = m_octrees.at(octreeLevel)->getNumberOfLeafNodes();

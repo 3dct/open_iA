@@ -567,7 +567,7 @@ void MdiChild::saveRC()
 	{
 		return;
 	}
-	vtkSmartPointer<vtkWindowToImageFilter> filter = vtkSmartPointer<vtkWindowToImageFilter>::New();
+	auto filter = vtkSmartPointer<vtkWindowToImageFilter>::New();
 	filter->SetInput(m_renderer->renderWindow());
 	filter->Update();
 	writeSingleSliceImage(file, filter->GetOutput());

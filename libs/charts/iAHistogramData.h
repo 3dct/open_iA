@@ -131,8 +131,15 @@ private:
 	DataType m_spacing;
 };
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
+#endif
 #include <itkImage.h>
 #include <itkImageRegionConstIterator.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 //! Specific histogram for a collection of binary images (one for each label)
 //! the created histogram has one bin per label

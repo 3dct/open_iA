@@ -200,7 +200,7 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	m_colormapRen->SetBackground(bgc.redF(), bgc.blueF(), bgc.greenF());
 
 	horizontalLayout_8->insertWidget(0, m_colormapWidget);
-	vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
+	auto style = vtkSmartPointer<vtkInteractorStyleImage>::New();
 	m_colormapWidget->renderWindow()->AddRenderer(m_colormapRen);
 	m_colormapWidget->interactor()->SetInteractorStyle(style);
 
@@ -968,12 +968,12 @@ void dlg_InSpectr::InitElementRenderer( dlg_elementRenderer * elemRend, int inde
 	//Derive data needed for visualization
 	vtkSmartPointer<vtkImageData> chImgData = m_elementConcentrations->getImage(m_decomposeSelectedElements.indexOf(index));
 
-	vtkSmartPointer<vtkColorTransferFunction> chCTF = vtkSmartPointer<vtkColorTransferFunction>::New();
+	auto chCTF = vtkSmartPointer<vtkColorTransferFunction>::New();
 	QColor color = m_refSpectraLib->getElementColor(index);
 	chCTF->AddRGBPoint(0, color.redF(), color.greenF(), color.blueF());
 	chCTF->AddRGBPoint(1, color.redF(), color.greenF(), color.blueF());
 
-	vtkSmartPointer<vtkPiecewiseFunction> chOTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
+	auto chOTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 	chOTF->AddPoint(0.4, 0);
 	chOTF->AddPoint(1, 0.1);
 
@@ -1099,7 +1099,7 @@ void dlg_InSpectr::computeSimilarityMap()
 	{
 		//init resulting similarity map
 		int numEBins = (int)m_xrfData->size();
-		vtkSmartPointer<vtkImageData> similarityImageData = vtkSmartPointer<vtkImageData>::New();
+		auto similarityImageData = vtkSmartPointer<vtkImageData>::New();
 		similarityImageData->SetDimensions(numEBins, numEBins, 1);
 		similarityImageData->AllocateScalars(VTK_DOUBLE, 1);
 
@@ -1155,9 +1155,9 @@ void dlg_InSpectr::computeSimilarityMap()
 		{
 			try
 			{
-				MetricType::Pointer metric = MetricType::New();
-				InterpolatorType::Pointer interpolator = InterpolatorType::New();
-				TransformType::Pointer transform = TransformType::New();
+				auto metric = MetricType::New();
+				auto interpolator = InterpolatorType::New();
+				auto transform = TransformType::New();
 				TransformType::ParametersType params(transform->GetNumberOfParameters());
 
 				similarityData[i + i * numEBins] = 1.0f;
@@ -1198,7 +1198,7 @@ void dlg_InSpectr::computeSimilarityMap()
 		}
 		try
 		{
-			vtkSmartPointer<vtkMetaImageWriter> writer = vtkSmartPointer<vtkMetaImageWriter>::New();
+			auto writer = vtkSmartPointer<vtkMetaImageWriter>::New();
 			writer->SetCompression(false);
 			writer->SetInputData(similarityImageData);
 			writer->SetFileName(getLocalEncodingFileName(fileName).c_str());
@@ -1472,7 +1472,7 @@ void dlg_InSpectr::updatePieGlyphs(int slicerMode)
 			continue;
 		}
 		iAChannelSlicerData * chSlicerData = child->slicer(slicerMode)->channel(m_channelIDs[chan]);
-		vtkSmartPointer<vtkImageResample> resampler = vtkSmartPointer<vtkImageResample>::New();
+		auto resampler = vtkSmartPointer<vtkImageResample>::New();
 		resampler->SetInputConnection(chSlicerData->reslicer()->GetOutputPort());
 		resampler->InterpolateOn();
 		resampler->SetAxisMagnificationFactor(0, m_pieGlyphMagFactor);

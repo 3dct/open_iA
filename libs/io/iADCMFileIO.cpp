@@ -60,13 +60,10 @@ template <typename T>
 void writeDCM_template(QString const& fileName, iAProgress const & p, iAITKIO::ImagePtr itkImgBase, bool comp)
 {
 	// TODO: some overlap to iAImageStackFileIO!
-	typedef itk::Image<T, iAITKIO::Dim> InputImageType;
-	typedef itk::Image<T, iAITKIO::Dim - 1> OutputImageType;
-	typedef itk::ImageSeriesWriter<InputImageType, OutputImageType> SeriesWriterType;
-	auto writer = SeriesWriterType::New();
-
-	typedef itk::NumericSeriesFileNames NameGeneratorType;
-	auto nameGenerator = NameGeneratorType::New();
+	using InputImageType = itk::Image<T, iAITKIO::Dim>;
+	using OutputImageType = itk::Image<T, iAITKIO::Dim - 1>;
+	auto writer = itk::ImageSeriesWriter<InputImageType, OutputImageType>::New();
+	auto nameGenerator = itk::NumericSeriesFileNames::New();
 
 	auto itkImg = dynamic_cast<InputImageType*>(itkImgBase);
 	typename InputImageType::RegionType region = itkImg->GetLargestPossibleRegion();

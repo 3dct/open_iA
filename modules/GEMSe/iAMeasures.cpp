@@ -72,8 +72,7 @@ int * colTotals(Matrix & m)
 void CalculateMeasures(LabelImagePointer refImg, LabelImagePointer curImg, int labelCount,
 	QVector<double> & measures, bool reportUndecided)
 {
-	typedef itk::LabelOverlapMeasuresImageFilter<LabelImageType > FilterType;
-	FilterType::Pointer filter = FilterType::New();
+	auto filter = itk::LabelOverlapMeasuresImageFilter<LabelImageType>::New();
 	filter->SetSourceImage(refImg);
 	filter->SetTargetImage(curImg);
 	filter->Update();

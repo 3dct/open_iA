@@ -129,6 +129,14 @@ void iAVolumeViewer::showInSlicers(bool show)
 		m_slicer[s]->enableChannel(m_slicerChannelID, show);
 	}
 }
+
+void iAVolumeViewer::unitDistanceChanged(std::array<double, 3> oldUnitDist, iAMdiChild* child)
+{
+	Q_UNUSED(oldUnitDist);
+	// maybe instead of just setting up profile points to be min and max of dataset here, translate existing ones from old to new spacing?
+	setupProfilePoints(child);
+	child->updateViews();
+}
 /*
 TODO: link to some trigger in dataset list
 void setPickable(bool pickable) override
@@ -352,18 +360,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	// profile plot:
 	bool visibleProfile = renderFlagSet(RenderProfileFlag);
 	m_profileProbe = std::make_shared<iAProfileProbe>(img);
-	auto const start = img->GetOrigin();
-	auto const dim = img->GetDimensions();
-	auto const spacing = img->GetSpacing();
-	double end[3];
-	for (int i = 0; i < 3; ++i)
-	{
-		end[i] = start[i] + (dim[i] - 1) * spacing[i];
-	}
-	// TODO NEWIO: check if we can do this differently; and if we should maybe not do this if this was already set when the profile of another dataset was initialized!
-	child->initProfilePoints(start, end);
-	m_profileProbe->updateProbe(0, start);
-	m_profileProbe->updateProbe(1, end);
+	setupProfilePoints(child);
 	m_profileChart = new iAChartWidget(nullptr, "Greyvalue", "Distance");
 	m_dwProfile = std::make_shared<iADockWidgetWrapper>(m_profileChart, "Profile Plot", "Profile");
 	child->splitDockWidget(child->renderDockWidget(), m_dwProfile.get(), Qt::Vertical);
@@ -377,6 +374,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	}
 	if (visibleSlicer)
 	{
+		auto const dim = img->GetDimensions();
 		for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
 		{
 			if (!child->slicerDockWidget(s)->isVisible() && (dim[m_slicer[s]->globalAxis(0)] > 1 && dim[m_slicer[s]->globalAxis(1)] > 1))
@@ -391,6 +389,23 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 		m_profileProbe->updateProbe(pointIdx, globalPos);
 		updateProfilePlot();
 	});
+}
+
+void iAVolumeViewer::setupProfilePoints(iAMdiChild* child)
+{
+	auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
+	auto const start = img->GetOrigin();
+	auto const dim = img->GetDimensions();
+	auto const spacing = img->GetSpacing();
+	double end[3];
+	for (int i = 0; i < 3; ++i)
+	{
+		end[i] = start[i] + (dim[i] - 1) * spacing[i];
+	}
+	// TODO NEWIO: check if we can do this differently; and if we should maybe not do this if this was already set when the profile of another dataset was initialized!
+	child->initProfilePoints(start, end);
+	m_profileProbe->updateProbe(0, start);
+	m_profileProbe->updateProbe(1, end);
 }
 
 QString iAVolumeViewer::information() const

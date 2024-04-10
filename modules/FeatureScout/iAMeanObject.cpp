@@ -25,7 +25,14 @@
 #include <iAMdiChild.h>
 
 // ITK
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
+#endif
 #include <itkAddImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkCastImageFilter.h>
 #include <itkImageToVTKImageFilter.h>
@@ -120,9 +127,8 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 		m_MOData->moImageDataList.clear();
 
 		// Casts image to long (if necessary) and convert it to an ITK image
-		typedef itk::Image<long, DIM> IType;
-		typedef itk::VTKImageToImageFilter<IType> VTKToITKConnector;
-		VTKToITKConnector::Pointer vtkToItkConverter = VTKToITKConnector::New();
+		using IType = itk::Image<long, DIM>;
+		auto vtkToItkConverter = itk::VTKImageToImageFilter<IType>::New();
 		auto img = m_activeChild->firstImageData();
 		if (!img)
 		{
@@ -145,30 +151,26 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 		IType::Pointer itkImageData = vtkToItkConverter->GetOutput();
 		itk::Size<DIM> itkImageDataSize = itkImageData->GetLargestPossibleRegion().GetSize();
 
-		typedef itk::BinaryThresholdImageFilter<IType, IType> BinaryThresholdImageFilterType;
-		BinaryThresholdImageFilterType::Pointer thresholdFilter = BinaryThresholdImageFilterType::New();
+		auto thresholdFilter = itk::BinaryThresholdImageFilter<IType, IType>::New();
 		thresholdFilter->SetInput(itkImageData);
 		thresholdFilter->SetLowerThreshold(0);
 		thresholdFilter->SetUpperThreshold(0);
 		thresholdFilter->SetInsideValue(0);
 		thresholdFilter->SetOutsideValue(1);
 		thresholdFilter->Update();
-		typedef itk::LabelObject<long, DIM> LabelObjectType;
-		typedef itk::LabelMap<LabelObjectType> LabelMapType;
-		typedef itk::LabelImageToLabelMapFilter<IType, LabelMapType> I2LType;
-		I2LType::Pointer i2l = I2LType::New();
+		using LabelMapType = itk::LabelMap<itk::LabelObject<long, DIM>>;
+		auto i2l = itk::LabelImageToLabelMapFilter<IType, LabelMapType>::New();
 		i2l->SetInput(itkImageData);
 
-		typedef itk::LabelMapMaskImageFilter<LabelMapType, IType> MaskType;
-		MaskType::Pointer mask = MaskType::New();
+		auto mask = itk::LabelMapMaskImageFilter<LabelMapType, IType>::New();
 		mask->SetInput(i2l->GetOutput());
 		mask->SetFeatureImage(thresholdFilter->GetOutput());
 		mask->SetBackgroundValue(0);
 		mask->SetCrop(true);
 
 		// Defines mean object output image
-		typedef long MObjectImagePixelType;
-		typedef itk::Image<MObjectImagePixelType, DIM> MObjectImageType;
+		using MObjectImagePixelType = long;
+		using MObjectImageType = itk::Image<MObjectImagePixelType, DIM>;
 		MObjectImageType::RegionType outputRegion;
 		MObjectImageType::RegionType::IndexType outputStart;
 		outputStart[0] = 0;
@@ -183,7 +185,7 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 		}
 		outputRegion.SetSize(moImgSize);
 		outputRegion.SetIndex(outputStart);
-		MObjectImageType::Pointer mObjectITKImage = MObjectImageType::New();
+		auto mObjectITKImage = MObjectImageType::New();
 		mObjectITKImage->SetRegions(outputRegion);
 		const MObjectImageType::SpacingType& out_spacing = itkImageData->GetSpacing();
 		const MObjectImageType::PointType& inputOrigin = itkImageData->GetOrigin();
@@ -197,19 +199,18 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 		mObjectITKImage->Allocate();
 
 		// Defines add image
-		typedef long addImagePixelType;
-		typedef itk::Image<addImagePixelType, DIM> addImageType;
-		addImageType::RegionType addoutputRegion;
-		addImageType::RegionType::IndexType addoutputStart;
+		using AddImageType = itk::Image<long, DIM>;
+		AddImageType::RegionType addoutputRegion;
+		AddImageType::RegionType::IndexType addoutputStart;
 		addoutputStart[0] = 0;
 		addoutputStart[1] = 0;
 		addoutputStart[2] = 0;
 		addoutputRegion.SetSize(moImgSize);
 		addoutputRegion.SetIndex(outputStart);
-		addImageType::Pointer addImage = addImageType::New();
+		auto addImage = AddImageType::New();
 		addImage->SetRegions(addoutputRegion);
-		const addImageType::SpacingType& addout_spacing = itkImageData->GetSpacing();
-		const addImageType::PointType& addinputOrigin = itkImageData->GetOrigin();
+		const auto& addout_spacing = itkImageData->GetSpacing();
+		const auto& addinputOrigin = itkImageData->GetOrigin();
 		double addoutputOrigin[DIM];
 		for (unsigned int i = 0; i < DIM; ++i)
 		{
@@ -235,7 +236,7 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 				mOITKImgIt.Set(0);
 			}
 
-			typedef itk::ImageRegionIterator<addImageType> IteratorType;
+			typedef itk::ImageRegionIterator<AddImageType> IteratorType;
 			IteratorType addImgIt(addImage, addoutputRegion);
 			for (addImgIt.GoToBegin(); !addImgIt.IsAtEnd(); ++addImgIt)
 			{
@@ -255,15 +256,13 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 				destinationIndex[0] = moImgCenter[0] - std::round(maskSize[0] / 2);
 				destinationIndex[1] = moImgCenter[1] - std::round(maskSize[1] / 2);
 				destinationIndex[2] = moImgCenter[2] - std::round(maskSize[2] / 2);
-				typedef itk::PasteImageFilter<IType, MObjectImageType> PasteImageFilterType;
-				PasteImageFilterType::Pointer pasteFilter = PasteImageFilterType::New();
+				auto pasteFilter = itk::PasteImageFilter<IType, MObjectImageType>::New();
 				pasteFilter->SetSourceImage(mask->GetOutput());
 				pasteFilter->SetDestinationImage(mObjectITKImage);
 				pasteFilter->SetSourceRegion(mask->GetOutput()->GetLargestPossibleRegion());
 				pasteFilter->SetDestinationIndex(destinationIndex);
 
-				typedef itk::AddImageFilter<MObjectImageType, MObjectImageType> AddImageFilterType;
-				AddImageFilterType::Pointer addFilter = AddImageFilterType::New();
+				auto addFilter = itk::AddImageFilter<MObjectImageType, MObjectImageType>::New();
 				addFilter->SetInput1(addImage);
 				addFilter->SetInput2(pasteFilter->GetOutput());
 				addFilter->Update();
@@ -277,21 +276,19 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 			}
 
 			// Normalize voxels values to 1
-			typedef itk::Image<float, DIM> moOutputImageType;
-			typedef itk::CastImageFilter<addImageType, moOutputImageType> CastFilterType;
-			CastFilterType::Pointer caster = CastFilterType::New();
+			using OutputImageType = itk::Image<float, DIM>;
+			auto caster = itk::CastImageFilter<AddImageType, OutputImageType>::New();
 			caster->SetInput(addImage);
 			caster->Update();
-			typedef itk::ImageRegionIterator<moOutputImageType> casterIteratorType;
-			casterIteratorType casterImgIt(caster->GetOutput(), caster->GetOutput()->GetLargestPossibleRegion());
+			using CasterIteratorType = itk::ImageRegionIterator<OutputImageType>;
+			CasterIteratorType casterImgIt(caster->GetOutput(), caster->GetOutput()->GetLargestPossibleRegion());
 			for (casterImgIt.GoToBegin(); !casterImgIt.IsAtEnd(); ++casterImgIt)
 			{
 				casterImgIt.Set(casterImgIt.Get() / meanObjectIds.size());
 			}
 
 			// Convert resulting MObject ITK image to an VTK image
-			typedef itk::ImageToVTKImageFilter<moOutputImageType> ITKTOVTKConverterType;
-			ITKTOVTKConverterType::Pointer itkToVTKConverter = ITKTOVTKConverterType::New();
+			auto itkToVTKConverter = itk::ImageToVTKImageFilter<OutputImageType>::New();
 			itkToVTKConverter->SetInput(caster->GetOutput());
 			itkToVTKConverter->Update();
 			auto meanObjectImage = vtkSmartPointer<vtkImageData>::New();

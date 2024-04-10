@@ -197,7 +197,7 @@ iADetailView::iADetailView(iAImagePreviewWidget* prevWdgt, iAImagePreviewWidget*
 
 vtkSmartPointer<vtkColorTransferFunction> GetDefaultCTF(vtkSmartPointer<vtkImageData> imageData)
 {
-	vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
+	auto ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
 	double const * scalarRange = imageData->GetScalarRange();
 	ctf->AddRGBPoint (scalarRange[0], 0.0, 0.0, 0.0 );
 	ctf->AddRGBPoint (scalarRange[1], 1.0, 1.0, 1.0 );

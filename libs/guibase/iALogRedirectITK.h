@@ -10,10 +10,10 @@
 class iALogRedirectITK : public itk::OutputWindow
 {
 public:
-	typedef iALogRedirectITK                Self;
-	typedef itk::OutputWindow               Superclass;
-	typedef itk::SmartPointer< Self >       Pointer;
-	typedef itk::SmartPointer< const Self > ConstPointer;
+	using Self = iALogRedirectITK;
+	using Superclass = itk::OutputWindow;
+	using Pointer = itk::SmartPointer<Self>;
+	using ConstPointer = itk::SmartPointer<const Self>;
 	itkTypeMacro(iALogRedirectITK, itk::OutputWindow);
 
 	static Pointer New()
@@ -34,7 +34,6 @@ public:
 		}
 		LOG(lvl, QString("ITK %1").arg(t));
 	}
-
 	void DisplayDebugText(const char *t) override
 	{
 		logMsg(lvlDebug, t);
@@ -55,7 +54,6 @@ public:
 	{
 		logMsg(lvlWarn, t);
 	}
-
 	void setEnabled(bool enabled)
 	{
 		m_enabled = enabled;

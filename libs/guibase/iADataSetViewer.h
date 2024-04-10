@@ -90,6 +90,9 @@ public:
 	//! @param overrideValues (optional) parameter values for creating the renderer, overriding the default values that can be configured via Edit menu / iASettingsMananger
 	virtual std::shared_ptr<iADataSetRenderer> createRenderer(vtkRenderer* ren, QVariantMap const& overrideValues = QVariantMap());
 
+	//! called when unit distance has changed due to dataset edit
+	virtual void unitDistanceChanged(std::array<double, 3> oldUnitDist, iAMdiChild* child);
+
 signals:
 	void dataSetChanged(size_t dataSetIdx);
 	void removeDataSet(size_t dataSetIdx);

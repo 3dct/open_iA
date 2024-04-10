@@ -196,43 +196,14 @@ static float calcPorosity( const MaskImageType::Pointer image, int surroundingVo
 }
 
 template<class T>
-void computeBinaryThreshold( iAITKIO::ImagePointer & image, RunInfo & results, float upThr, bool releaseData = false )
+void computeThreshold(iAITKIO::ImagePointer & image, RunInfo & results, float lwThr, float upThr, bool releaseData)
 {
 	typedef itk::Image<T, iAITKIO::Dim>   InputImageType;
-	typedef itk::BinaryThresholdImageFilter <InputImageType, MaskImageType> BinaryThresholdImageFilterType;
-	typename BinaryThresholdImageFilterType::Pointer binaryThresholdFilter = BinaryThresholdImageFilterType::New();
-	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
+	auto binaryThresholdFilter = itk::BinaryThresholdImageFilter<InputImageType, MaskImageType>::New();
+	auto input = dynamic_cast<InputImageType*>(image.GetPointer());
 
 	//Use duplicator filter because thresholding is in-place
-	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
-	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
-	duplicator->SetInputImage( input );
-	duplicator->Update();
-
-	binaryThresholdFilter->SetLowerThreshold( 0 );
-	binaryThresholdFilter->SetUpperThreshold( upThr );
-	binaryThresholdFilter->SetInsideValue( 1 );
-	binaryThresholdFilter->SetOutsideValue( 0 );
-	binaryThresholdFilter->SetInput( duplicator->GetOutput() );
-
-	binaryThresholdFilter->Update();
-	results.maskImage = binaryThresholdFilter->GetOutput();
-	results.maskImage->Modified();
-	if( releaseData )
-		binaryThresholdFilter->ReleaseDataFlagOn();
-}
-
-template<class T>
-void computeGeneralThreshold(iAITKIO::ImagePointer & image, RunInfo & results, float lwThr, float upThr, bool releaseData = false)
-{
-	typedef itk::Image<T, iAITKIO::Dim>   InputImageType;
-	typedef itk::BinaryThresholdImageFilter <InputImageType, MaskImageType> BinaryThresholdImageFilterType;
-	typename BinaryThresholdImageFilterType::Pointer binaryThresholdFilter = BinaryThresholdImageFilterType::New();
-	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
-
-	//Use duplicator filter because thresholding is in-place
-	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
-	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	auto duplicator = itk::ImageDuplicator<InputImageType>::New();
 	duplicator->SetInputImage(input);
 	duplicator->Update();
 
@@ -252,23 +223,20 @@ void computeGeneralThreshold(iAITKIO::ImagePointer & image, RunInfo & results, f
 template<class T>
 void computeRatsThreshold(iAITKIO::ImagePointer & image, RunInfo & results, float ratsThr, bool releaseData = false )
 {
-	typedef typename itk::Image< T, iAITKIO::Dim >   InputImageType;
-	typedef typename itk::Image< float, iAITKIO::Dim >   GradientImageType;
-	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
+	typedef typename itk::Image<T, iAITKIO::Dim> InputImageType;
+	typedef typename itk::Image<float, iAITKIO::Dim> GradientImageType;
+	auto input = dynamic_cast<InputImageType*>(image.GetPointer());
 
 	//Use duplicator filter because thresholding is in-place
-	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
-	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	auto duplicator = itk::ImageDuplicator<InputImageType>::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
 
-	typedef itk::GradientMagnitudeImageFilter< InputImageType, GradientImageType > GMFType;
-	typename GMFType::Pointer gmfilter = GMFType::New();
+	auto gmfilter = itk::GradientMagnitudeImageFilter<InputImageType, GradientImageType>::New();
 	gmfilter->SetInput( duplicator->GetOutput() );
 	gmfilter->Update();
 
-	typedef typename itk::RobustAutomaticThresholdImageFilter < InputImageType, GradientImageType, MaskImageType > RATIFType;
-	typename RATIFType::Pointer ratsFilter = RATIFType::New();
+	auto ratsFilter = itk::RobustAutomaticThresholdImageFilter<InputImageType, GradientImageType, MaskImageType>::New();
 	ratsFilter->SetInput( duplicator->GetOutput() );
 	ratsFilter->SetGradientImage( gmfilter->GetOutput() );
 	ratsFilter->SetOutsideValue( 1.0 );
@@ -293,20 +261,17 @@ void computeMorphWatershed(iAITKIO::ImagePointer & image, RunInfo & results, flo
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
 
 	//Use duplicator filter because thresholding is in-place
-	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
-	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	auto duplicator = itk::ImageDuplicator<InputImageType>::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
 
 	// Gradient Magnitude
-	typedef itk::GradientMagnitudeImageFilter< InputImageType, GradientImageType > GMFType;
-	typename GMFType::Pointer gmfilter = GMFType::New();
+	auto gmfilter = itk::GradientMagnitudeImageFilter<InputImageType, GradientImageType>::New();
 	gmfilter->SetInput( duplicator->GetOutput() );
 	gmfilter->Update();
 
 	// Morphological Watershed
-	typedef itk::MorphologicalWatershedImageFilter<GradientImageType, LabelImageType> MorphologicalWatershedFilterType;
-	typename MorphologicalWatershedFilterType::Pointer mWSFilter = MorphologicalWatershedFilterType::New();
+	auto mWSFilter = itk::MorphologicalWatershedImageFilter<GradientImageType, LabelImageType>::New();
 
 	if( meyer )
 		mWSFilter->MarkWatershedLineOn();
@@ -319,14 +284,12 @@ void computeMorphWatershed(iAITKIO::ImagePointer & image, RunInfo & results, flo
 	mWSFilter->Update();
 
 	// Relabel Watershed Result (background = #1label)
-	typedef itk::RelabelComponentImageFilter<LabelImageType, LabelImageType> RelabelConnectedComponentFilterType;
-	typename RelabelConnectedComponentFilterType::Pointer relabelFilter = RelabelConnectedComponentFilterType::New();
+	auto relabelFilter = itk::RelabelComponentImageFilter<LabelImageType, LabelImageType>::New();
 	relabelFilter->SetInput( mWSFilter->GetOutput() );
 	relabelFilter->Update();
 
 	// Binary Threshold
-	typedef itk::BinaryThresholdImageFilter <LabelImageType, MaskImageType> BinaryThresholdImageFilterType;
-	typename BinaryThresholdImageFilterType::Pointer binaryThresholdFilter = BinaryThresholdImageFilterType::New();
+	auto binaryThresholdFilter = itk::BinaryThresholdImageFilter<LabelImageType, MaskImageType>::New();
 	binaryThresholdFilter->SetLowerThreshold( 1 );
 	binaryThresholdFilter->SetUpperThreshold( 1 );
 	binaryThresholdFilter->SetInsideValue( 0 );
@@ -350,80 +313,65 @@ void computeParamFree(iAITKIO::ImagePointer & image, PorosityFilterID filterId, 
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
 
 	//Use duplicator filter because thresholding is in-place
-	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
-	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	auto duplicator = itk::ImageDuplicator<InputImageType>::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
 
-	typedef itk::HistogramThresholdImageFilter<InputImageType, MaskImageType> parameterFreeThrFilterType;
-	typename parameterFreeThrFilterType::Pointer filter;
+	typename itk::HistogramThresholdImageFilter<InputImageType, MaskImageType>::Pointer filter;
 
 	switch( filterId )
 	{
 		case P_OTSU_THRESHOLD:
-			typedef itk::OtsuThresholdImageFilter <InputImageType, MaskImageType> OtsuFilterType;
-			filter = OtsuFilterType::New();
+			filter = itk::OtsuThresholdImageFilter <InputImageType, MaskImageType>::New();
 			break;
 
 		case P_ISODATA_THRESHOLD:
-			typedef itk::IsoDataThresholdImageFilter <InputImageType, MaskImageType> IsoDataFilterType;
-			filter = IsoDataFilterType::New();
+			filter = itk::IsoDataThresholdImageFilter <InputImageType, MaskImageType>::New();
 			break;
 
 		case P_MAXENTROPY_THRESHOLD:
-			typedef itk::MaximumEntropyThresholdImageFilter <InputImageType, MaskImageType> MaximumEntropyFilterType;
-			filter = MaximumEntropyFilterType::New();
+			filter = itk::MaximumEntropyThresholdImageFilter <InputImageType, MaskImageType>::New();
 			break;
 
 		case P_MOMENTS_THRESHOLD:
-			typedef itk::MomentsThresholdImageFilter <InputImageType, MaskImageType> MomentsFilterType;
-			filter = MomentsFilterType::New();
+			filter = itk::MomentsThresholdImageFilter <InputImageType, MaskImageType>::New();
 			break;
 
 		case P_YEN_THRESHOLD:
-			typedef itk::YenThresholdImageFilter <InputImageType, MaskImageType> YenFilterType;
-			filter = YenFilterType::New();
+			filter = itk::YenThresholdImageFilter <InputImageType, MaskImageType>::New();
 			break;
 
 		case P_RENYI_THRESHOLD:
-			typedef itk::RenyiEntropyThresholdImageFilter <InputImageType, MaskImageType> RenyiFilterType;
-			filter = RenyiFilterType::New();
+			filter = itk::RenyiEntropyThresholdImageFilter <InputImageType, MaskImageType>::New();
 			break;
 
 		case P_SHANBHAG_THRESHOLD:
-			typedef itk::ShanbhagThresholdImageFilter <InputImageType, MaskImageType> ShanbhagFilterType;
-			filter = ShanbhagFilterType::New();
+			filter = itk::ShanbhagThresholdImageFilter <InputImageType, MaskImageType>::New();
 			break;
 
 		case P_INTERMODES_THRESHOLD:
-			typedef itk::IntermodesThresholdImageFilter <InputImageType, MaskImageType> IntermodesFilterType;
-			filter = IntermodesFilterType::New();
+			filter = itk::IntermodesThresholdImageFilter <InputImageType, MaskImageType>::New();
 			break;
 
 		case P_HUANG_THRESHOLD:
-			typedef itk::HuangThresholdImageFilter <InputImageType, MaskImageType> HuangFilterType;
-			filter = HuangFilterType::New();
+			filter = itk::HuangThresholdImageFilter <InputImageType, MaskImageType>::New();
 			break;
 
 		case P_LI_THRESHOLD:
-			typedef itk::LiThresholdImageFilter <InputImageType, MaskImageType> LiFilterType;
-			filter = LiFilterType::New();
+			filter = itk::LiThresholdImageFilter <InputImageType, MaskImageType>::New();
 			break;
 
 		case P_KITTLERILLINGWORTH_THRESHOLD:
-			typedef itk::KittlerIllingworthThresholdImageFilter <InputImageType, MaskImageType> KittlerIllingworthFilterType;
-			filter = KittlerIllingworthFilterType::New();
+			filter = itk::KittlerIllingworthThresholdImageFilter<InputImageType, MaskImageType>::New();
 			break;
 
 		case P_TRIANGLE_THRESHOLD:
-			typedef itk::TriangleThresholdImageFilter <InputImageType, MaskImageType> TriangleFilterType;
-			filter = TriangleFilterType::New();
+			filter = itk::TriangleThresholdImageFilter <InputImageType, MaskImageType>::New();
 			break;
 
 		case P_MINIMUM_THRESHOLD:
 		{
-			typedef itk::IntermodesThresholdImageFilter <InputImageType, MaskImageType> MinimumFilterType;
-			typename MinimumFilterType::Pointer minimumFilter = MinimumFilterType::New();
+			auto minimumFilter = itk::IntermodesThresholdImageFilter <InputImageType, MaskImageType>::New();
 			minimumFilter->SetUseInterMode( false );
 			filter = minimumFilter;
 			break;
@@ -437,8 +385,7 @@ void computeParamFree(iAITKIO::ImagePointer & image, PorosityFilterID filterId, 
 	filter->Update();
 
 	// Binary Threshold (fixes the no slice png image issue)
-	typedef itk::BinaryThresholdImageFilter <MaskImageType, MaskImageType> BinaryThresholdImageFilterType;
-	typename BinaryThresholdImageFilterType::Pointer binaryThresholdFilter = BinaryThresholdImageFilterType::New();
+	auto binaryThresholdFilter = itk::BinaryThresholdImageFilter<MaskImageType, MaskImageType>::New();
 	binaryThresholdFilter->SetLowerThreshold( 0 );
 	binaryThresholdFilter->SetUpperThreshold( 0 );
 	binaryThresholdFilter->SetInsideValue( 0 );
@@ -462,19 +409,17 @@ void computeConnThr(iAITKIO::ImagePointer & inputImage, iAITKIO::ImagePointer & 
 	const InputImageType * input = dynamic_cast<InputImageType*>(inputImage.GetPointer());
 
 	//we need duplicator because stupid filter utilizes in-place thresholding in its guts
-	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
-	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	auto duplicator = itk::ImageDuplicator<InputImageType>::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
 
-	typedef itk::ConnectedThresholdImageFilter< InputImageType, MaskImageType > ConnThrFilterType;
-	typename ConnThrFilterType::Pointer connThrfilter = ConnThrFilterType::New();
+	auto connThrfilter = itk::ConnectedThresholdImageFilter<InputImageType, MaskImageType>::New();
 	connThrfilter->SetInput( duplicator->GetOutput() );
 	connThrfilter->SetLower( loConnThr );
 	connThrfilter->SetUpper( upConnThr );
 	connThrfilter->SetReplaceValue( 1 );
 
-	MaskImageType * seed = dynamic_cast<MaskImageType*>(seedImage.GetPointer());
+	auto seed = dynamic_cast<MaskImageType*>(seedImage.GetPointer());
 	itk::ImageRegionConstIteratorWithIndex<MaskImageType> imageIterator( seed, seed->GetLargestPossibleRegion() );
 	while( !imageIterator.IsAtEnd() )
 	{
@@ -498,20 +443,18 @@ void computeConfiConn(iAITKIO::ImagePointer & inputImage, iAITKIO::ImagePointer 
 	InputImageType * input = dynamic_cast<InputImageType*>(inputImage.GetPointer());
 
 	//Use duplicator filter because thresholding is in-place
-	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
-	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	auto duplicator = itk::ImageDuplicator<InputImageType>::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
 
-	typedef itk::ConfidenceConnectedImageFilter< InputImageType, MaskImageType > ConfiConnFilterType;
-	typename ConfiConnFilterType::Pointer confiConnFilter = ConfiConnFilterType::New();
+	auto confiConnFilter = itk::ConfidenceConnectedImageFilter< InputImageType, MaskImageType>::New();
 	confiConnFilter->SetInput( duplicator->GetOutput() );
 	confiConnFilter->SetInitialNeighborhoodRadius( initNeighbRadius );
 	confiConnFilter->SetMultiplier( multip );
 	confiConnFilter->SetNumberOfIterations( numbIter );
 	confiConnFilter->SetReplaceValue( 1 );
 
-	MaskImageType * seed = dynamic_cast<MaskImageType*>(seedImage.GetPointer());
+	auto seed = dynamic_cast<MaskImageType*>(seedImage.GetPointer());
 	itk::ImageRegionConstIteratorWithIndex<MaskImageType> imageIterator( seed, seed->GetLargestPossibleRegion() );
 	while( !imageIterator.IsAtEnd() )
 	{
@@ -535,8 +478,7 @@ void computeNeighbConn(iAITKIO::ImagePointer & inputImage, iAITKIO::ImagePointer
 	InputImageType * input = dynamic_cast<InputImageType*>(inputImage.GetPointer());
 
 	// Use duplicator filter because thresholding is in-place
-	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
-	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	auto duplicator = itk::ImageDuplicator<InputImageType>::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
 
@@ -545,15 +487,14 @@ void computeNeighbConn(iAITKIO::ImagePointer & inputImage, iAITKIO::ImagePointer
 	radius[1] = neighbRadius;
 	radius[2] = neighbRadius;
 
-	typedef itk::NeighborhoodConnectedImageFilter< InputImageType, MaskImageType > NeighbConnFilterType;
-	typename NeighbConnFilterType::Pointer neighbConnfilter = NeighbConnFilterType::New();
+	auto neighbConnfilter = itk::NeighborhoodConnectedImageFilter<InputImageType, MaskImageType>::New();
 	neighbConnfilter->SetInput( duplicator->GetOutput() );
 	neighbConnfilter->SetLower( loConnThr );
 	neighbConnfilter->SetUpper( upConnThr );
 	neighbConnfilter->SetRadius( radius );
 	neighbConnfilter->SetReplaceValue( 1 );
 
-	MaskImageType * seed = dynamic_cast<MaskImageType*>(seedImage.GetPointer());
+	auto seed = dynamic_cast<MaskImageType*>(seedImage.GetPointer());
 	itk::ImageRegionConstIteratorWithIndex<MaskImageType> imageIterator( seed, seed->GetLargestPossibleRegion() );
 	while( !imageIterator.IsAtEnd() )
 	{
@@ -577,13 +518,12 @@ void computeMultiOtsu(iAITKIO::ImagePointer & image, PorosityFilterID /*filterId
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
 
 	// Use duplicator filter because thresholding is in-place
-	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
-	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	auto duplicator = itk::ImageDuplicator<InputImageType>::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
 
-	typedef typename itk::OtsuMultipleThresholdsImageFilter < InputImageType, MaskImageType > multiOtsuFilterType;
-	typename multiOtsuFilterType::Pointer multiOtsufilter = multiOtsuFilterType::New();
+	typedef typename itk::OtsuMultipleThresholdsImageFilter<InputImageType, MaskImageType> multiOtsuFilterType;
+	auto multiOtsufilter = multiOtsuFilterType::New();
 	multiOtsufilter->SetNumberOfThresholds( NbOfThr );
 	multiOtsufilter->SetValleyEmphasis( ValleyEmphasis );
 	multiOtsufilter->SetInput( duplicator->GetOutput() );
@@ -592,8 +532,7 @@ void computeMultiOtsu(iAITKIO::ImagePointer & image, PorosityFilterID /*filterId
 	typename multiOtsuFilterType::ThresholdVectorType thresholds = multiOtsufilter->GetThresholds();
 
 	// Binary Threshold
-	typedef itk::BinaryThresholdImageFilter <MaskImageType, MaskImageType> BinaryThresholdImageFilterType;
-	typename BinaryThresholdImageFilterType::Pointer binaryThresholdFilter = BinaryThresholdImageFilterType::New();
+	auto binaryThresholdFilter = itk::BinaryThresholdImageFilter <MaskImageType, MaskImageType>::New();
 	binaryThresholdFilter->SetLowerThreshold( 0 );
 	binaryThresholdFilter->SetUpperThreshold( 0 );
 	binaryThresholdFilter->SetInsideValue( 1 );
@@ -617,13 +556,12 @@ void computeCreateSurrounding(iAITKIO::ImagePointer & image, PorosityFilterID /*
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 
 	// We need duplicator because stupid filter utilizes in-place thresholding in its guts
-	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
-	typename DuplicatorType::Pointer duplicator1 = DuplicatorType::New();
+	auto duplicator1 = itk::ImageDuplicator<InputImageType>::New();
 	duplicator1->SetInputImage( input );
 	duplicator1->Update();
 
 	// Defines a dummy image (input size) with a white core (input size without surface border voxels )
-	MaskImageType::Pointer dummyImage = MaskImageType::New();
+	auto dummyImage = MaskImageType::New();
 	MaskImageType::RegionType region;
 	MaskImageType::RegionType::IndexType start;
 	start[0] = 0; start[1] = 0; start[2] = 0;
@@ -656,22 +594,20 @@ void computeCreateSurrounding(iAITKIO::ImagePointer & image, PorosityFilterID /*
 	}
 
 	// White surface border
-	typedef itk::InvertIntensityImageFilter <MaskImageType> InvertIntensityImageFilterType;
-	typename InvertIntensityImageFilterType::Pointer surfaceBorderMask = InvertIntensityImageFilterType::New();
+	auto surfaceBorderMask = itk::InvertIntensityImageFilter<MaskImageType>::New();
 	surfaceBorderMask->SetInput( dummyImage );
 	surfaceBorderMask->SetMaximum( 1 );
 	surfaceBorderMask->Update();
 
 	// Calculates the surrounding mask
-	typedef itk::ConnectedThresholdImageFilter< InputImageType, MaskImageType > ConnThrFilterType;
-	typename ConnThrFilterType::Pointer connThrfilter = ConnThrFilterType::New();
+	auto connThrfilter = itk::ConnectedThresholdImageFilter<InputImageType, MaskImageType>::New();
 	connThrfilter->SetInput( duplicator1->GetOutput() );
 	connThrfilter->SetLower( 0 );
 	connThrfilter->SetUpper( upSurrThr );
 	connThrfilter->SetReplaceValue( 1 );
-	typedef itk::ImageRegionConstIterator< MaskImageType > maskConstIteratorType;
+	typedef itk::ImageRegionConstIterator<MaskImageType> maskConstIteratorType;
 	maskConstIteratorType dummyImgIt( surfaceBorderMask->GetOutput(), region );
-	typedef itk::ImageRegionConstIterator< InputImageType > inputConstIteratorType;
+	typedef itk::ImageRegionConstIterator<InputImageType> inputConstIteratorType;
 	inputConstIteratorType inputImgIt( duplicator1->GetOutput(), region );
 	// Seeds points are only surface border voxels (surfaceBorderMask) which are beetween lower and upper threshold
 	for ( dummyImgIt.GoToBegin(), inputImgIt.GoToBegin(); !dummyImgIt.IsAtEnd(); ++dummyImgIt, ++inputImgIt )
@@ -701,25 +637,21 @@ void computeRemoveSurrounding(iAITKIO::ImagePointer & /*image*/, PorosityFilterI
 {
 	// Use this filter together with computeCreateSurrounding
 	MaskImageType * surMask = dynamic_cast<MaskImageType*>( results.surroundingMaskImage.GetPointer() );
-	typedef itk::ImageDuplicator< MaskImageType > DuplicatorType;
-	typename DuplicatorType::Pointer surMaskDup = DuplicatorType::New();
+	auto surMaskDup = itk::ImageDuplicator<MaskImageType>::New();
 	surMaskDup->SetInputImage( surMask );
 	surMaskDup->Update();
 
-	typedef itk::InvertIntensityImageFilter <MaskImageType> InvertIntensityImageFilterType;
-	typename InvertIntensityImageFilterType::Pointer invertedIntensityMask = InvertIntensityImageFilterType::New();
+	auto invertedIntensityMask = itk::InvertIntensityImageFilter<MaskImageType>::New();
 	invertedIntensityMask->SetInput( surMaskDup->GetOutput() );
 	invertedIntensityMask->SetMaximum( 1 );
 	invertedIntensityMask->Update();
 
-	MaskImageType * resMask = dynamic_cast<MaskImageType*>( results.maskImage.GetPointer() );
-	typedef itk::ImageDuplicator< MaskImageType > DuplicatorType;
-	typename DuplicatorType::Pointer resMaskDup = DuplicatorType::New();
+	auto resMask = dynamic_cast<MaskImageType*>( results.maskImage.GetPointer() );
+	auto resMaskDup = itk::ImageDuplicator<MaskImageType>::New();
 	resMaskDup->SetInputImage( resMask );
 	resMaskDup->Update();
 
-	typedef itk::AndImageFilter <MaskImageType> AndImageFilterType;
-	typename AndImageFilterType::Pointer andFilter = AndImageFilterType::New();
+	auto andFilter = itk::AndImageFilter<MaskImageType>::New();
 	andFilter->SetInput( 0, invertedIntensityMask->GetOutput() );
 	andFilter->SetInput( 1, resMaskDup->GetOutput() );
 	andFilter->Update();
@@ -738,21 +670,18 @@ void computeGradAnisoDiffSmooth(iAITKIO::ImagePointer & image, PorosityFilterID 
 
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 
-	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
-	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	auto duplicator = itk::ImageDuplicator<InputImageType>::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
 
-	typedef itk::GradientAnisotropicDiffusionImageFilter< InputImageType, GADSFImageType > GADSFType;
-	typename GADSFType::Pointer gadsfilter = GADSFType::New();
+	auto gadsfilter = itk::GradientAnisotropicDiffusionImageFilter<InputImageType, GADSFImageType>::New();
 	gadsfilter->SetInput( duplicator->GetOutput() );
 	gadsfilter->SetNumberOfIterations( nbOfIt );
 	gadsfilter->SetTimeStep( timeStep );
 	gadsfilter->SetConductanceParameter( condParam );
 	gadsfilter->Update();
 
-	typedef itk::CastImageFilter< GADSFImageType, InputImageType > CastFilterType;
-	typename CastFilterType::Pointer caster = CastFilterType::New();
+	auto caster = itk::CastImageFilter<GADSFImageType, InputImageType>::New();
 	caster->SetInput( gadsfilter->GetOutput() );
 	caster->Update();
 
@@ -774,21 +703,18 @@ void computeCurvAnisoDiffSmooth(iAITKIO::ImagePointer & image, PorosityFilterID 
 
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 
-	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
-	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	auto duplicator = itk::ImageDuplicator<InputImageType>::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
 
-	typedef itk::CurvatureAnisotropicDiffusionImageFilter< InputImageType, CADSFImageType > CADSFType;
-	typename CADSFType::Pointer cadsfilter = CADSFType::New();
+	auto cadsfilter = itk::CurvatureAnisotropicDiffusionImageFilter<InputImageType, CADSFImageType>::New();
 	cadsfilter->SetInput( duplicator->GetOutput() );
 	cadsfilter->SetNumberOfIterations( nbOfIt );
 	cadsfilter->SetTimeStep( timeStep );
 	cadsfilter->SetConductanceParameter( condParam );
 	cadsfilter->Update();
 
-	typedef itk::CastImageFilter< CADSFImageType, InputImageType > CastFilterType;
-	typename CastFilterType::Pointer caster = CastFilterType::New();
+	auto caster = itk::CastImageFilter<CADSFImageType, InputImageType>::New();
 	caster->SetInput( cadsfilter->GetOutput() );
 	caster->Update();
 
@@ -810,16 +736,15 @@ void computeRecursiveGaussSmooth(iAITKIO::ImagePointer & image, PorosityFilterID
 
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 
-	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
-	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	auto duplicator = itk::ImageDuplicator<InputImageType>::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
 
 	typedef itk::RecursiveGaussianImageFilter<InputImageType, RGSFImageType > RGSFXType;
-	typename RGSFXType::Pointer rgsfilterX = RGSFXType::New();
+	auto rgsfilterX = RGSFXType::New();
 	typedef itk::RecursiveGaussianImageFilter<RGSFImageType, RGSFImageType > RGSFYZType;
-	typename RGSFYZType::Pointer rgsfilterY = RGSFYZType::New();
-	typename RGSFYZType::Pointer rgsfilterZ = RGSFYZType::New();
+	auto rgsfilterY = RGSFYZType::New();
+	auto rgsfilterZ = RGSFYZType::New();
 	rgsfilterX->SetInput( duplicator->GetOutput() );
 	rgsfilterY->SetInput( rgsfilterX->GetOutput() );
 	rgsfilterZ->SetInput( rgsfilterY->GetOutput() );
@@ -837,8 +762,7 @@ void computeRecursiveGaussSmooth(iAITKIO::ImagePointer & image, PorosityFilterID
 	rgsfilterZ->SetSigma( sigma );
 	rgsfilterZ->Update();
 
-	typedef itk::CastImageFilter< RGSFImageType, InputImageType > CastFilterType;
-	typename CastFilterType::Pointer caster = CastFilterType::New();
+	auto caster = itk::CastImageFilter<RGSFImageType, InputImageType>::New();
 	caster->SetInput( rgsfilterZ->GetOutput() );
 	caster->Update();
 
@@ -862,13 +786,12 @@ void computeBilateralSmooth(iAITKIO::ImagePointer & image, PorosityFilterID /*fi
 
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 
-	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
-	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	auto duplicator = itk::ImageDuplicator<InputImageType>::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
 
 	typedef itk::BilateralImageFilter<InputImageType, BSFImageType > BSFType;
-	typename BSFType::Pointer bsfilter = BSFType::New();
+	auto bsfilter = BSFType::New();
 	bsfilter->SetInput( duplicator->GetOutput() );
 
 	double domainSigmas[iAITKIO::Dim];
@@ -879,8 +802,7 @@ void computeBilateralSmooth(iAITKIO::ImagePointer & image, PorosityFilterID /*fi
 	bsfilter->SetRangeSigma( rangeSigma );
 	bsfilter->Update();
 
-	typedef itk::CastImageFilter< BSFImageType, InputImageType > CastFilterType;
-	typename CastFilterType::Pointer caster = CastFilterType::New();
+	auto caster = itk::CastImageFilter<BSFImageType, InputImageType>::New();
 	caster->SetInput( bsfilter->GetOutput() );
 	caster->Update();
 
@@ -902,20 +824,17 @@ void computeCurvFlowSmooth(iAITKIO::ImagePointer & image, PorosityFilterID /*fil
 
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 
-	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
-	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	auto duplicator = itk::ImageDuplicator<InputImageType>::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
 
-	typedef itk::CurvatureFlowImageFilter<InputImageType, CFSFImageType > CFFType;
-	typename CFFType::Pointer cffilter = CFFType::New();
+	auto cffilter = itk::CurvatureFlowImageFilter<InputImageType, CFSFImageType>::New();
 	cffilter->SetInput( duplicator->GetOutput() );
 	cffilter->SetNumberOfIterations( nbOfIt );
 	cffilter->SetTimeStep( timeStep );
 	cffilter->Update();
 
-	typedef itk::CastImageFilter< CFSFImageType, InputImageType > CastFilterType;
-	typename CastFilterType::Pointer caster = CastFilterType::New();
+	auto caster = itk::CastImageFilter<CFSFImageType, InputImageType>::New();
 	caster->SetInput( cffilter->GetOutput() );
 	caster->Update();
 
@@ -937,13 +856,11 @@ void computeMedianSmooth(iAITKIO::ImagePointer & image, PorosityFilterID /*filte
 
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 
-	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
-	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	auto duplicator = itk::ImageDuplicator< InputImageType >::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
 
-	typedef itk::MedianImageFilter<InputImageType, MSFImageType > MSFType;
-	typename MSFType::Pointer mfilter = MSFType::New();
+	auto mfilter = itk::MedianImageFilter<InputImageType, MSFImageType>::New();
 	typename InputImageType::SizeType indexRadius;
 	indexRadius[0] = radius; // radius along x
 	indexRadius[1] = radius; // radius along y
@@ -952,8 +869,7 @@ void computeMedianSmooth(iAITKIO::ImagePointer & image, PorosityFilterID /*filte
 	mfilter->SetRadius( indexRadius );
 	mfilter->Update();
 
-	typedef itk::CastImageFilter< MSFImageType, InputImageType > CastFilterType;
-	typename CastFilterType::Pointer caster = CastFilterType::New();
+	auto caster = itk::CastImageFilter<MSFImageType, InputImageType>::New();
 	caster->SetInput( mfilter->GetOutput() );
 	caster->Update();
 
@@ -971,13 +887,11 @@ template<class T>
 void computeIsoXThreshold(iAITKIO::ImagePointer & image, PorosityFilterID /*filterId*/, RunInfo & results, int isoX, bool releaseData = false )
 {
 	typedef itk::Image< T, iAITKIO::Dim >   InputImageType;
-	typedef itk::BinaryThresholdImageFilter <InputImageType, MaskImageType> BinaryThresholdImageFilterType;
-	typename BinaryThresholdImageFilterType::Pointer binaryThresholdFilter = BinaryThresholdImageFilterType::New();
+	auto binaryThresholdFilter = itk::BinaryThresholdImageFilter<InputImageType, MaskImageType>::New();
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 
 	//Use duplicator filter because thresholding is in-place
-	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
-	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	auto duplicator = itk::ImageDuplicator< InputImageType >::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
 
@@ -1003,14 +917,12 @@ void computeFhwThreshold(iAITKIO::ImagePointer & image, PorosityFilterID /*filte
 	InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 
 	// Use duplicator filter (in-place)
-	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
-	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	auto duplicator = itk::ImageDuplicator< InputImageType >::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
 
 	// Calculate Maximum Distance Threshold
-	typedef iAMaximumDistanceFilter< InputImageType >   MaximumDistanceType;
-	typename MaximumDistanceType::Pointer maxDistFilter = MaximumDistanceType::New();
+	auto maxDistFilter = iAMaximumDistanceFilter<InputImageType>::New();
 	maxDistFilter->SetInput( duplicator->GetOutput() );
 	maxDistFilter->SetBinWidth( 10 );
 	maxDistFilter->SetCentre( airporeGV );
@@ -1020,7 +932,7 @@ void computeFhwThreshold(iAITKIO::ImagePointer & image, PorosityFilterID /*filte
 
 	// Calculate Otsu Threshold
 	typedef itk::OtsuMultipleThresholdsImageFilter <InputImageType, MaskImageType> FilterType;
-	typename FilterType::Pointer otsuMultiFilter = FilterType::New();
+	auto otsuMultiFilter = FilterType::New();
 	otsuMultiFilter->SetInput( duplicator->GetOutput() );
 	otsuMultiFilter->SetNumberOfThresholds( 1 );
 	otsuMultiFilter->ValleyEmphasisOn();
@@ -1033,8 +945,7 @@ void computeFhwThreshold(iAITKIO::ImagePointer & image, PorosityFilterID /*filte
 	fhwThr = std::round( omThr * ( fhwWeight / 100.0 ) + mdThr * ( 1.0 - ( fhwWeight / 100.0 ) ) );
 
 	// Segment image with Fhw Threshold
-	typedef itk::BinaryThresholdImageFilter <InputImageType, MaskImageType> BinaryThresholdImageFilterType;
-	typename BinaryThresholdImageFilterType::Pointer binaryThresholdFilter = BinaryThresholdImageFilterType::New();
+	auto binaryThresholdFilter = itk::BinaryThresholdImageFilter<InputImageType, MaskImageType>::New();
 	binaryThresholdFilter->SetLowerThreshold( 0 );
 	binaryThresholdFilter->SetUpperThreshold( fhwThr );
 	binaryThresholdFilter->SetInsideValue( 1 );
@@ -1063,10 +974,10 @@ void runBatch( const QList<PorosityFilterID> & filterIds, iAITKIO::ImagePointer 
 		switch( fid )
 		{
 			case P_BINARY_THRESHOLD:
-				computeBinaryThreshold<T>( curImage, results, params[pind]->asFloat(), releaseData );
+				computeThreshold<T>( curImage, results, 0, params[pind]->asFloat(), releaseData );
 				break;
 			case P_GENERAL_THRESHOLD:
-				computeGeneralThreshold<T>(curImage, results, params[pind]->asFloat(), params[pind + 1]->asFloat(), releaseData);
+				computeThreshold<T>(curImage, results, params[pind]->asFloat(), params[pind + 1]->asFloat(), releaseData);
 				break;
 			case P_RATS_THRESHOLD:
 				computeRatsThreshold<T>( curImage, results, params[pind]->asFloat(), releaseData );
@@ -1657,7 +1568,7 @@ void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMas
 
 	// Initalisation of itk::LabelGeometryImageFilter for calculating pore parameters
 	typedef itk::LabelGeometryImageFilter< LabeledImageType > LabelGeometryImageFilterType;
-	LabelGeometryImageFilterType::Pointer labelGeometryImageFilter = LabelGeometryImageFilterType::New();
+	auto labelGeometryImageFilter = LabelGeometryImageFilterType::New();
 	labelGeometryImageFilter->SetInput(connectedComponents->GetOutput());
 	labelGeometryImageFilter->Update();
 

@@ -7,6 +7,7 @@
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
 #endif
 #include <itkImageToVTKImageFilter.h>
 #include <itkVTKImageToImageFilter.h>
@@ -459,25 +460,18 @@ void iABlobCluster::GaussianBlur()
 	// http://www.itk.org/Wiki/ITK/Examples/Functions/GaussianBlurImageFunction
 	// http://www.itk.org/Wiki/ITK/Examples/Smoothing/DiscreteGaussianImageFilter
 
+	using ImageType = itk::Image<double, 3>;
 
-	typedef itk::Image<double, 3> ImageType;
-	typedef itk::VTKImageToImageFilter<ImageType> VTKImageToImageType;
-
-	VTKImageToImageType::Pointer vtkImageToImageFilter =
-		VTKImageToImageType::New();
+	auto vtkImageToImageFilter = itk::VTKImageToImageFilter<ImageType>::New();
 	vtkImageToImageFilter->SetInput( m_imageData );
 	vtkImageToImageFilter->Update();
 
-	typedef itk::DiscreteGaussianImageFilter <
-		ImageType, ImageType >  filterType;
-
 	// Create and setup a Gaussian filter
-	filterType::Pointer gaussianFilter = filterType::New();
+	auto gaussianFilter = itk::DiscreteGaussianImageFilter<ImageType, ImageType>::New();
 	gaussianFilter->SetInput( vtkImageToImageFilter->GetOutput() );
 	gaussianFilter->SetVariance( m_blurVariance );
 
-	typedef itk::ImageToVTKImageFilter<ImageType>       ConnectorType;
-	ConnectorType::Pointer connector = ConnectorType::New();
+	auto connector = itk::ImageToVTKImageFilter<ImageType>::New();
 	connector->SetInput( gaussianFilter->GetOutput() );
 	connector->Update();
 	m_imageData->DeepCopy( connector->GetOutput() );

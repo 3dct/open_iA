@@ -83,8 +83,8 @@ template<class T> void getFileMinMax(FILE* pFile, double& minVal, double& maxVal
 
 template <class T> void extractSliceImage(typename itk::Image<T, 3>::Pointer itkimage, unsigned int firstDir, unsigned int secondDir, /*int sliceNr, projectionMethod[=SUM], */iAConnector* image)
 {
-	typedef typename itk::Image<T, 3> InputImageType;
-	typedef typename itk::Image<double, 3> TwoDInputImageType;
+	using InputImageType = itk::Image<T, 3>;
+	using TwoDInputImageType = itk::Image<double, 3>;
 
 	typename TwoDInputImageType::RegionType extractregion;
 	typename TwoDInputImageType::IndexType extractindex; extractindex.Fill(0);	extractregion.SetIndex(extractindex);
@@ -100,19 +100,17 @@ template <class T> void extractSliceImage(typename itk::Image<T, 3>::Pointer itk
 	extractsize[2] = 1;
 	extractregion.SetSize(extractsize);
 
-	typename TwoDInputImageType::Pointer twodimage = TwoDInputImageType::New();
+	auto twodimage = TwoDInputImageType::New();
 	twodimage->SetRegions(extractregion);
 	twodimage->SetSpacing(extractspacing);
 	twodimage->SetOrigin(extractpoint);
 	twodimage->Allocate();
 	twodimage->FillBuffer(0);
 
-	typedef itk::ImageRegionIterator<TwoDInputImageType> twoditeratortype;
-	twoditeratortype iter(twodimage, twodimage->GetRequestedRegion());
+	itk::ImageRegionIterator<TwoDInputImageType> iter(twodimage, twodimage->GetRequestedRegion());
 
 	//create slice iterator
-	typedef itk::ImageSliceConstIteratorWithIndex<InputImageType> SliceIteratorType;
-	SliceIteratorType SliceIter(itkimage, itkimage->GetRequestedRegion());
+	itk::ImageSliceConstIteratorWithIndex<InputImageType> SliceIter(itkimage, itkimage->GetRequestedRegion());
 
 	//set direction
 	SliceIter.SetFirstDirection(firstDir);
@@ -143,13 +141,11 @@ template <class T> void extractSliceImage(typename itk::Image<T, 3>::Pointer itk
 		SliceIter.NextSlice();
 	}
 
-	typedef itk::NormalizeImageFilter<TwoDInputImageType, TwoDInputImageType> NIFTYpe;
-	typename NIFTYpe::Pointer normalizefilter = NIFTYpe::New();
+	auto normalizefilter = itk::NormalizeImageFilter<TwoDInputImageType, TwoDInputImageType>::New();
 	normalizefilter->SetInput(twodimage);
 	normalizefilter->Update();
 
-	typedef itk::RescaleIntensityImageFilter<TwoDInputImageType, TwoDInputImageType> RIIFType;
-	typename RIIFType::Pointer rescalefilter = RIIFType::New();
+	auto rescalefilter = itk::RescaleIntensityImageFilter<TwoDInputImageType, TwoDInputImageType>::New();
 	rescalefilter->SetInput(normalizefilter->GetOutput());
 	rescalefilter->SetOutputMinimum(0);
 	rescalefilter->SetOutputMaximum(65535);
@@ -163,12 +159,12 @@ template<class T> void DataTypeConversion_template(QString const & filename, iAR
 	iAPlotData::DataType * histptr, double & minVal, double & maxVal, iAConnector* xyimage, iAConnector* xzimage, iAConnector* yzimage)
 {
 	// TODO: use itk methods instead?
-	typedef itk::Image< T, 3 >   InputImageType;
+	using InputImageType = itk::Image<T, 3>;
 
 	LOG(lvlInfo, QString("Reading file '%1':").arg(filename));
 	FILE * pFile = openFile(filename);
 
-	typename InputImageType::Pointer itkimage = InputImageType::New();
+	auto itkimage = InputImageType::New();
 
 	// create itk image
 	typename InputImageType::SpacingType itkspacing;
@@ -192,8 +188,7 @@ template<class T> void DataTypeConversion_template(QString const & filename, iAR
 	double discretization = (maxVal - minVal) / numBins;
 
 	// copy the file into the buffer and create histogram:
-	typedef itk::ImageRegionIterator<InputImageType> iteratortype;
-	iteratortype iter(itkimage, itkimage->GetRequestedRegion());
+	itk::ImageRegionIterator<InputImageType> iter(itkimage, itkimage->GetRequestedRegion());
 	iter.GoToBegin();
 	bool loop = true;
 	const int elemCount = 1;
@@ -256,11 +251,11 @@ void dlg_datatypeconversion::loadPreview(QString const & filename, iARawFilePara
 //roi conversion
 template<class T> void DataTypeConversionROI_template(QString const & filename, iARawFileParameters const & p, double* roi, double & minVal, double & maxVal, iAConnector* roiimage)
 {
-	typedef itk::Image< T, 3 >   InputImageType;
+	using InputImageType = itk::Image<T, 3>;
 
 	FILE * pFile = openFile(filename);
 
-	typename InputImageType::Pointer itkimage = InputImageType::New();
+	auto itkimage = InputImageType::New();
 
 	// create itk image
 	//float itkz = std::floor((float)((p.m_size[2]-1)/zSkip)+1);
@@ -280,8 +275,7 @@ template<class T> void DataTypeConversionROI_template(QString const & filename, 
 	itkimage->FillBuffer(0);
 
 	//create itk image iterator
-	typedef itk::ImageRegionIterator<InputImageType> iteratortype;
-	iteratortype iter (itkimage, itkimage->GetRequestedRegion());
+	itk::ImageRegionIterator<InputImageType> iter(itkimage, itkimage->GetRequestedRegion());
 	iter.GoToBegin();
 
 	getFileMinMax<typename InputImageType::PixelType>(pFile, minVal, maxVal);
@@ -304,8 +298,8 @@ template<class T> void DataTypeConversionROI_template(QString const & filename, 
 	}
 	fclose(pFile);
 
-	typedef itk::ExtractImageFilter< InputImageType, InputImageType > EIFType;
-	typename EIFType::Pointer filter = EIFType::New();
+	using EIFType = itk::ExtractImageFilter<InputImageType, InputImageType>;
+	auto filter = EIFType::New();
 
 	typename EIFType::InputImageRegionType::SizeType size; size[0] = roi[1]; size[1] = roi[3]; size[2] = roi[5];
 	typename EIFType::InputImageRegionType::IndexType index; index[0] = roi[0]; index[1] = roi[2]; index[2] = roi[4];
@@ -601,7 +595,7 @@ QString writeScaledImage(QString const& filename, QString const & suffix,
 	vtkImageData* inImg, int outdatatype, double minrange,
 	double maxrange, double minout, double maxout)
 {
-	vtkSmartPointer<vtkImageData> outImg = allocateImage(outdatatype, inImg->GetDimensions(), inImg->GetSpacing());
+	auto outImg = allocateImage(outdatatype, inImg->GetDimensions(), inImg->GetSpacing());
 	convertRange(inImg, outImg, minrange, maxrange, minout, maxout);
 	QString outputFileName(filename);
 	outputFileName.chop(4); // assuming current name has 3 characters...?

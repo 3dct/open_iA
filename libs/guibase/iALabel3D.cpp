@@ -49,7 +49,7 @@ iALabel3D::iALabel3D(bool showLine) :
 	m_imageData = vtkImageData::New();
 
 	// create VTK quad representation
-	vtkSmartPointer<vtkFloatArray> texCoords =	vtkSmartPointer<vtkFloatArray>::New();
+	auto texCoords = vtkSmartPointer<vtkFloatArray>::New();
 	texCoords->SetNumberOfComponents(3);
 	texCoords->SetName("TextureCoordinates");
 	for(int i=0; i<NUM_PTS; ++i)
@@ -65,7 +65,7 @@ iALabel3D::iALabel3D(bool showLine) :
 	m_polyData->SetPolys(m_quadCell);
 	m_polyData->GetPointData()->SetTCoords(texCoords);
 
-	vtkSmartPointer<vtkVectorText> textSource = vtkSmartPointer<vtkVectorText>::New();
+	auto textSource = vtkSmartPointer<vtkVectorText>::New();
 	textSource->SetText("Hello");
 
 	// VTK mappers and actors
@@ -153,7 +153,7 @@ void iALabel3D::AttachActorsToRenderers( vtkRenderer * ren, vtkRenderer * labelR
 	ren->AddViewProp(captionActor);
 
 	// Create the actor
-	vtkSmartPointer<vtkLegendBoxActor> actor = vtkSmartPointer<vtkLegendBoxActor>::New();
+	auto actor = vtkSmartPointer<vtkLegendBoxActor>::New();
 	actor->SetNumberOfEntries(1);
 	actor->SetUseBackground(1);
 	actor->SetBackgroundColor(0.5, 0.5, 0.5);
@@ -164,7 +164,7 @@ void iALabel3D::AttachActorsToRenderers( vtkRenderer * ren, vtkRenderer * labelR
 	actor->GetPosition2Coordinate()->SetValue(0.7, 0.8);
 	double textColor[3] = { 1.0, 0.0, 0.0 };
 
-	vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
+	auto sphere = vtkSmartPointer<vtkSphereSource>::New();
 	sphere->SetRadius(10.0);
 	sphere->Update();
 	actor->SetEntry(1, sphere->GetOutput(), "tetst", textColor);
@@ -222,11 +222,11 @@ void iALabel3D::UpdateImageData()
 		QImage* img = new QImage();
 		img->load("C:/test.png");
 
-		vtkSmartPointer<vtkQImageToImageSource> qImageToVtk = vtkSmartPointer<vtkQImageToImageSource>::New();
+		auto qImageToVtk = vtkSmartPointer<vtkQImageToImageSource>::New();
 		qImageToVtk->SetQImage(img);
 		qImageToVtk->Update();
 
-		vtkSmartPointer<vtkImageDataGeometryFilter> imageDataGeometryFilter = vtkSmartPointer<vtkImageDataGeometryFilter>::New();
+		auto imageDataGeometryFilter = vtkSmartPointer<vtkImageDataGeometryFilter>::New();
 		imageDataGeometryFilter->SetInputConnection(qImageToVtk->GetOutputPort());
 		imageDataGeometryFilter->Update();
 	}

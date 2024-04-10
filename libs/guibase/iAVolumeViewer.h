@@ -43,11 +43,15 @@ public:
 	iAImageData const* volume() const;
 	//! convenience function for showing/hiding dataset in slicer:
 	void showInSlicers(bool show);
+
+	void unitDistanceChanged(std::array<double, 3> oldUnitDist, iAMdiChild* child) override;
+
 private:
 	//! updates the line profile plot
 	void updateProfilePlot();
 	void applyAttributes(QVariantMap const& values) override;
 	QVariantMap additionalState() const override;
+	void setupProfilePoints(iAMdiChild* child);
 
 	//! @{ slicer
 	uint m_slicerChannelID;

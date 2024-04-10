@@ -84,7 +84,7 @@ iASimilarityMapWidget::iASimilarityMapWidget( QWidget *parent)
 
 void iASimilarityMapWidget::load( QString const & filename )
 {
-	vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New();
+	auto reader = vtkSmartPointer<vtkMetaImageReader>::New();
 	reader->SetFileName( getLocalEncodingFileName(filename).c_str() );
 	reader->Update();
 	setImageData( reader->GetOutput() );

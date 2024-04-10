@@ -13,16 +13,15 @@
 
 // TODO: Replace with some other definition / template?
 const int Dimensions = 3;
-typedef int LabelPixelType;
-typedef itk::Image<LabelPixelType, Dimensions> LabelImageType;
-typedef LabelImageType::Pointer LabelImagePointer;
+using LabelPixelType = int;
+using LabelImageType = itk::Image<LabelPixelType, Dimensions>;
+using LabelImagePointer = LabelImageType::Pointer;
 
-typedef double ProbabilityPixelType;
-typedef itk::Image<ProbabilityPixelType, 3> ProbabilityImageType;
-typedef ProbabilityImageType::Pointer ProbabilityImagePointer;
+using ProbabilityImageType = itk::Image<double, 3>;
+using ProbabilityImagePointer = ProbabilityImageType::Pointer;
 
-typedef itk::Image<int, Dimensions> IntImage;
-typedef IntImage::Pointer IntImagePointer;
+using IntImage = itk::Image<int, Dimensions>;
+using IntImagePointer = IntImage::Pointer;
 
-typedef itk::Image<double, Dimensions> DoubleImage;
-typedef DoubleImage::Pointer DoubleImagePointer;
+using DoubleImage = itk::Image<double, Dimensions>;
+using DoubleImagePointer = DoubleImage::Pointer;

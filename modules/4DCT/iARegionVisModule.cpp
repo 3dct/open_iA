@@ -31,14 +31,14 @@ iARegionVisModule::iARegionVisModule( )
 {
 	setDensityMapDimension( 15, 5, 30 );
 
-	m_regionMapper = vtkSmartPointer<vtkPolyDataMapper>::New( );
+	m_regionMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	m_regionMapper->ScalarVisibilityOff( );
-	m_regionActor = vtkSmartPointer<vtkActor>::New( );
+	m_regionActor = vtkSmartPointer<vtkActor>::New();
 	m_regionActor->SetMapper( m_regionMapper );
 	setSurfaceOpacity( 0.15 );
 
-	m_silhouetteMapper = vtkSmartPointer<vtkPolyDataMapper>::New( );
-	m_silhouetteActor = vtkSmartPointer<vtkActor>::New( );
+	m_silhouetteMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	m_silhouetteActor = vtkSmartPointer<vtkActor>::New();
 	m_silhouetteActor->SetMapper( m_silhouetteMapper );
 	setSilhoetteColor( 0, 0, 0 );
 	setSurfaceColor( 0.7, 0.7, 0.7 );
@@ -65,12 +65,12 @@ void iARegionVisModule::hide( )
 void iARegionVisModule::setData( vtkImageData * output )
 {
 	// surface extraction
-	vtkSmartPointer<vtkMarchingCubes> surface = vtkSmartPointer<vtkMarchingCubes>::New( );
+	auto surface = vtkSmartPointer<vtkMarchingCubes>::New();
 	surface->SetInputData( output );
 	surface->ComputeNormalsOn( );
 	surface->SetValue( 0, 0.25 );
 
-	vtkSmartPointer<vtkDepthSortPolyData> depthSort = vtkSmartPointer<vtkDepthSortPolyData>::New( );
+	auto depthSort = vtkSmartPointer<vtkDepthSortPolyData>::New();
 	depthSort->SetInputConnection( surface->GetOutputPort( ) );
 	depthSort->SetDirectionToBackToFront( );
 	depthSort->SetVector( 1, 1, 1 );
@@ -80,7 +80,7 @@ void iARegionVisModule::setData( vtkImageData * output )
 
 	m_regionMapper->SetInputConnection( depthSort->GetOutputPort( ) );
 
-	m_silhouette = vtkSmartPointer<vtkPolyDataSilhouette>::New( );
+	m_silhouette = vtkSmartPointer<vtkPolyDataSilhouette>::New();
 	m_silhouette->SetInputData( surface->GetOutput( ) );
 	m_silhouette->SetCamera( m_renderer->GetActiveCamera( ) );
 	m_silhouette->SetEnableFeatureAngle( 1 );
@@ -136,10 +136,9 @@ void iARegionVisModule::setImage( QString fileName )
 	//calculateDensityMap( fileName, this );
 
 	typedef itk::Image<double, 3> DensityMapImageType;
-	DensityMapImageType::Pointer image = DensityMapImageType::New( );
+	auto image = DensityMapImageType::New();
 	{
-		typedef itk::ImageFileReader<DensityMapImageType> ReaderType;
-		ReaderType::Pointer reader = ReaderType::New( );
+		auto reader = itk::ImageFileReader<DensityMapImageType>::New();
 		reader->SetFileName( getLocalEncodingFileName(fileName) );
 		reader->Update( );
 
@@ -178,8 +177,7 @@ void iARegionVisModule::setImage( QString fileName )
 	image->SetSpacing( spacing );
 
 	// binary thrshold
-	typedef itk::BinaryThresholdImageFilter<DensityMapImageType, DensityMapImageType> DensitymapThresholdingType;
-	DensitymapThresholdingType::Pointer densitymapThresholding = DensitymapThresholdingType::New( );
+	auto densitymapThresholding = itk::BinaryThresholdImageFilter<DensityMapImageType, DensityMapImageType>::New();
 	densitymapThresholding->SetInput( image );
 	densitymapThresholding->SetLowerThreshold( m_densityVal );
 	densitymapThresholding->SetInsideValue( 1 );
@@ -196,8 +194,7 @@ void iARegionVisModule::setImage( QString fileName )
 	outputSpacing[0] = spacing[0] / 4;
 	outputSpacing[1] = spacing[1] / 4;
 	outputSpacing[2] = spacing[2] / 4;
-	typedef itk::ResampleImageFilter<DensityMapImageType, DensityMapImageType> ResampleImageFilterType;
-	ResampleImageFilterType::Pointer resample = ResampleImageFilterType::New( );
+	auto resample = itk::ResampleImageFilter<DensityMapImageType, DensityMapImageType>::New();
 	resample->SetInput( densitymapThresholding->GetOutput( ) );
 	resample->SetSize( outputSize );
 	resample->SetOutputSpacing( outputSpacing );
@@ -208,7 +205,7 @@ void iARegionVisModule::setImage( QString fileName )
 
 	// itk to vtk
 	typedef itk::ImageToVTKImageFilter<DensityMapImageType> ConnectorType;
-	ConnectorType::Pointer connector = ConnectorType::New( );
+	auto connector = ConnectorType::New();
 	connector->SetInput( resample->GetOutput( ) );
 	connector->Update( );
 
@@ -246,7 +243,7 @@ void iARegionVisModule::calculateDensityMap( QString fileName, iARegionVisModule
 {
 	typedef itk::Image<double, 3> DoubleImageType;
 	// read image
-	vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New( );
+	auto reader = vtkSmartPointer<vtkMetaImageReader>::New();
 	reader->SetFileName( getLocalEncodingFileName(fileName).c_str( ) );
 	reader->Update( );
 
@@ -269,7 +266,7 @@ void iARegionVisModule::calculateDensityMap( QString fileName, iARegionVisModule
 	size[1] = m_densityMapSize[1] + 2;
 	size[2] = m_densityMapSize[2] + 2;
 	DoubleImageType::RegionType region( index, size );
-	DoubleImageType::Pointer image = DoubleImageType::New( );
+	auto image = DoubleImageType::New();
 	image->SetRegions( region );
 	double newSpacing[3];
 	newSpacing[0] = (double)imgSize[0] * oldSpacing[0] / ( m_densityMapSize[0] - 1 ) * SCENE_SCALE;
@@ -295,14 +292,13 @@ void iARegionVisModule::calculateDensityMap( QString fileName, iARegionVisModule
 	}
 
 	typedef itk::ImageFileWriter<DoubleImageType> FileWriterType;
-	FileWriterType::Pointer writer = FileWriterType::New( );
+	auto writer = FileWriterType::New();
 	writer->SetFileName( "D:\\DensityImg.mhd" );
 	writer->SetInput( image );
 	writer->Update( );
 
 	// binary thrshold
-	typedef itk::BinaryThresholdImageFilter<DoubleImageType, DoubleImageType> DensitymapThresholdingType;
-	DensitymapThresholdingType::Pointer densitymapThresholding = DensitymapThresholdingType::New( );
+	auto densitymapThresholding = itk::BinaryThresholdImageFilter<DoubleImageType, DoubleImageType>::New();
 	densitymapThresholding->SetInput( image );
 	densitymapThresholding->SetLowerThreshold( m_densityVal * cellSize[0] * cellSize[1] * cellSize[2] );
 	densitymapThresholding->SetInsideValue( 1 );
@@ -317,16 +313,14 @@ void iARegionVisModule::calculateDensityMap( QString fileName, iARegionVisModule
 	outputSpacing[0] = newSpacing[0] / 4;
 	outputSpacing[1] = newSpacing[1] / 4;
 	outputSpacing[2] = newSpacing[2] / 4;
-	typedef itk::ResampleImageFilter<DoubleImageType, DoubleImageType> ResampleImageFilterType;
-	ResampleImageFilterType::Pointer resample = ResampleImageFilterType::New( );
+	auto resample = itk::ResampleImageFilter<DoubleImageType, DoubleImageType>::New();
 	resample->SetInput( densitymapThresholding->GetOutput( ) );
 	resample->SetSize( outputSize );
 	resample->SetOutputSpacing( outputSpacing );
 	//resample->UpdateLargestPossibleRegion();
 
 	// itk to vtk
-	typedef itk::ImageToVTKImageFilter<DoubleImageType> ConnectorType;
-	ConnectorType::Pointer connector = ConnectorType::New( );
+	auto connector = itk::ImageToVTKImageFilter<DoubleImageType>::New();
 	connector->SetInput( resample->GetOutput( ) );
 	connector->Update( );
 

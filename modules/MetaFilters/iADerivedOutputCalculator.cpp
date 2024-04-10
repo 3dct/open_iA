@@ -43,9 +43,8 @@ void iADerivedOutputCalculator::run()
 {
 	try
 	{
-		typedef itk::Image< unsigned int, 3 > OutputImageType;
-		typedef itk::ScalarConnectedComponentImageFilter <LabelImageType, OutputImageType > ConnectedComponentImageFilterType;
-		ConnectedComponentImageFilterType::Pointer connected = ConnectedComponentImageFilterType::New();
+		using OutputImageType = itk::Image< unsigned int, 3>;
+		auto connected = itk::ScalarConnectedComponentImageFilter<LabelImageType, OutputImageType>::New();
 		connected->SetDistanceThreshold(0);
 		if (m_result->labelImage().IsNull())
 		{
@@ -53,13 +52,11 @@ void iADerivedOutputCalculator::run()
 			m_success = false;
 			return;
 		}
-		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(m_result->labelImage().GetPointer());
+		auto lblImg = dynamic_cast<LabelImageType*>(m_result->labelImage().GetPointer());
 		connected->SetInput(lblImg);
 		connected->Update();
 		m_result->discardDetails();
-		typedef itk::RelabelComponentImageFilter <OutputImageType, OutputImageType >
-			RelabelFilterType;
-		RelabelFilterType::Pointer relabel = RelabelFilterType::New();
+		auto relabel = itk::RelabelComponentImageFilter<OutputImageType, OutputImageType>::New();
 		relabel->SetInput(connected->GetOutput());
 		//relabel->SetSortByObjectSize(false);
 		relabel->Update();
@@ -73,7 +70,7 @@ void iADerivedOutputCalculator::run()
 			auto entropyFilter = EntropyFilter::New();
 			for (int i = 0; i < m_labelCount; ++i)
 			{
-				ProbabilityImageType* probImg = dynamic_cast<ProbabilityImageType*>(m_result->probabilityImg(i).GetPointer());
+				auto probImg = dynamic_cast<ProbabilityImageType*>(m_result->probabilityImg(i).GetPointer());
 				entropyFilter->SetInput(i, probImg);
 			}
 			entropyFilter->SetNormalize(true);

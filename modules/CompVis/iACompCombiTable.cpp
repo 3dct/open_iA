@@ -79,7 +79,7 @@ void iACompCombiTable::drawRow(int currDataInd, int currentColumn, double offset
 	double drawingDimensions[4] = {min_x, max_x, min_y, max_y};
 
 	//draw border line
-	vtkSmartPointer<vtkPoints> linePoints = vtkSmartPointer<vtkPoints>::New();
+	auto linePoints = vtkSmartPointer<vtkPoints>::New();
 	linePoints->InsertNextPoint(min_x, min_y, 0.0);
 	linePoints->InsertNextPoint(max_x, min_y, 0.0);
 	linePoints->InsertNextPoint(max_x, max_y, 0.0);
@@ -103,7 +103,7 @@ void iACompCombiTable::drawRow(int currDataInd, int currentColumn, double offset
 	lineMapper->GetInput()->GetPointData()->SetScalars(curveData->GetPointData()->GetArray("colorArray"));
 	lineMapper->InterpolateScalarsBeforeMappingOff();
 
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	auto actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(lineMapper.Get());
 	actor->GetProperty()->SetLineWidth(m_lineWidth);
 
@@ -130,14 +130,14 @@ vtkSmartPointer<vtkPolyData> iACompCombiTable::drawCurve(double drawingDimension
 
 	int numberOfBins = static_cast<int>(currDataset.size());
 
-	vtkSmartPointer<vtkPoints> curvePoints = vtkSmartPointer<vtkPoints>::New();
+	auto curvePoints = vtkSmartPointer<vtkPoints>::New();
 	int numberOPoints = 0;
 	for (int i = 0; i < numberOfBins; i++)
 	{
 		numberOPoints = numberOPoints + static_cast<int>(currDataset.at(i).size());
 	}
 
-	vtkSmartPointer<vtkUnsignedCharArray> colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	auto colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	colorArray->SetName("colorArray");
 	colorArray->SetNumberOfComponents(3);
 
@@ -148,10 +148,10 @@ vtkSmartPointer<vtkPolyData> iACompCombiTable::drawCurve(double drawingDimension
 		double binXMin = currBinPolyData->GetPointData()->GetArray("originArray")->GetTuple3(binId)[0];
 		double binXMax = currBinPolyData->GetPointData()->GetArray("point1Array")->GetTuple3(binId)[0];
 
-		vtkSmartPointer<vtkPoints> finalBinPoints = vtkSmartPointer<vtkPoints>::New();
-		vtkSmartPointer<vtkPoints> binPoints = vtkSmartPointer<vtkPoints>::New();
+		auto finalBinPoints = vtkSmartPointer<vtkPoints>::New();
+		auto binPoints = vtkSmartPointer<vtkPoints>::New();
 
-		vtkSmartPointer<vtkUnsignedCharArray> binColorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
+		auto binColorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
 		binColorArray->SetName("binColorArray");
 		binColorArray->SetNumberOfComponents(3);
 
@@ -162,7 +162,7 @@ vtkSmartPointer<vtkPolyData> iACompCombiTable::drawCurve(double drawingDimension
 		}
 		else if (numberOfObjects == 1)
 		{
-			vtkSmartPointer<vtkPoints> point = vtkSmartPointer<vtkPoints>::New();
+			auto point = vtkSmartPointer<vtkPoints>::New();
 			double p[3] = {binXMin + ((binXMax - binXMin) * 0.5), min_y, 0.0};
 			if (currDataset.at(binId).size() != 0)
 			{
@@ -248,7 +248,7 @@ vtkSmartPointer<vtkPolyData> iACompCombiTable::drawCurve(double drawingDimension
 			//	get points of next segment
 			double nextPoint[3] = {0.0, min_y, 0.0};
 
-			vtkSmartPointer<vtkPoints> pointsOfNextSegment = vtkSmartPointer<vtkPoints>::New();
+			auto pointsOfNextSegment = vtkSmartPointer<vtkPoints>::New();
 			bool nextSegmentIsAvailable = (binId < (numberOfBins - 1.0)) && (currDataset.at(binId + 1.0).size() != 0);
 			if (nextSegmentIsAvailable)
 			{
@@ -319,20 +319,20 @@ void iACompCombiTable::drawBins(QList<vtkSmartPointer<vtkPolyData>>* binPolyData
 		double numberOfBins = binPolyData->at(dataId)->GetNumberOfPoints();
 
 		//each row consists of a certain number of bins and each bin will be drawn as glyph
-		vtkSmartPointer<vtkPoints> glyphPoints = vtkSmartPointer<vtkPoints>::New();
+		auto glyphPoints = vtkSmartPointer<vtkPoints>::New();
 		glyphPoints->SetDataTypeToDouble();
 		glyphPoints->SetNumberOfPoints(numberOfBins);
 
 		vtkSmartPointer<vtkPolyData> currDataset = binPolyData->at(dataId);
 		vtkSmartPointer<vtkDataArray> oriColorArray = currDataset->GetCellData()->GetArray("colorArray");
 
-		vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
+		auto polydata = vtkSmartPointer<vtkPolyData>::New();
 		polydata->SetPoints(glyphPoints);
 		polydata->GetPointData()->AddArray(currDataset->GetPointData()->GetArray("originArray"));
 		polydata->GetPointData()->AddArray(currDataset->GetPointData()->GetArray("point1Array"));
 		polydata->GetPointData()->AddArray(currDataset->GetPointData()->GetArray("point2Array"));
 
-		vtkSmartPointer<vtkUnsignedCharArray> colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
+		auto colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
 		colorArray->SetName("colorArray");
 		colorArray->SetNumberOfComponents(4);
 		colorArray->SetNumberOfTuples(numberOfBins);
@@ -350,25 +350,25 @@ void iACompCombiTable::drawBins(QList<vtkSmartPointer<vtkPolyData>>* binPolyData
 		polydata->GetCellData()->AddArray(colorArray);
 		polydata->GetCellData()->SetActiveScalars("colorArray");
 
-		vtkSmartPointer<vtkPlaneSource> planeSource = vtkSmartPointer<vtkPlaneSource>::New();
+		auto planeSource = vtkSmartPointer<vtkPlaneSource>::New();
 		planeSource->SetOutputPointsPrecision(vtkAlgorithm::DOUBLE_PRECISION);
 		planeSource->SetCenter(0, 0, 0);
 		planeSource->Update();
 
-		vtkSmartPointer<vtkProgrammableGlyphFilter> glypher = vtkSmartPointer<vtkProgrammableGlyphFilter>::New();
+		auto glypher = vtkSmartPointer<vtkProgrammableGlyphFilter>::New();
 		glypher->SetInputData(polydata);
 		glypher->SetSourceData(planeSource->GetOutput());
 		glypher->SetGlyphMethod(buildGlyphRepresentation, glypher);
 		glypher->Update();
 
-		vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		auto glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		glyphMapper->SetInputConnection(glypher->GetOutputPort());
 		glyphMapper->SetColorModeToDefault();
 		glyphMapper->SetScalarModeToUseCellData();
 		glyphMapper->GetInput()->GetCellData()->SetScalars(polydata->GetCellData()->GetArray("colorArray"));
 		glyphMapper->ScalarVisibilityOn();
 
-		vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+		auto actor = vtkSmartPointer<vtkActor>::New();
 		actor->SetMapper(glyphMapper);
 
 		m_mainRenderer->AddActor(actor);

@@ -45,7 +45,7 @@ namespace
 	void createOutput(QList<QList<float>> const & data, QList<float> const & maxValues, float offset[3], float spacing[3], iAFilter* filter, int indexFile)
 	{
 		using ImageType = itk::Image<float, 3>;
-		ImageType::Pointer image = ImageType::New();
+		auto image = ImageType::New();
 
 		ImageType::IndexType start;
 		start[0] = 0; // first index on X

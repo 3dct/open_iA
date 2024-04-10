@@ -289,7 +289,8 @@ namespace
 
 #include "qthelper/iAQTtoUIConnector.h"
 #include "ui_OpenHDF5.h"
-typedef iAQTtoUIConnector<QDialog, Ui_dlgOpenHDF5> OpenHDF5Dlg;
+
+using OpenHDF5Dlg = iAQTtoUIConnector<QDialog, Ui_dlgOpenHDF5>;
 
 class iAHDF5FileLoadParamDlg: public iAFileParamDlg
 {

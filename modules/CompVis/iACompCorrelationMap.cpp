@@ -397,7 +397,7 @@ void iACompCorrelationMap::initializeCorrelationMap()
 
 void iACompCorrelationMap::initializeVertices(QStringList attrNames)
 {
-	vtkSmartPointer<vtkFloatArray> scales = vtkSmartPointer<vtkFloatArray>::New();
+	auto scales = vtkSmartPointer<vtkFloatArray>::New();
 	scales->SetNumberOfComponents(1);
 	scales->SetName("Scales");
 
@@ -405,11 +405,11 @@ void iACompCorrelationMap::initializeVertices(QStringList attrNames)
 	vertexColors->SetNumberOfComponents(1);
 	vertexColors->SetName("Color");
 
-	vtkSmartPointer<vtkStringArray> vertexIDs = vtkSmartPointer<vtkStringArray>::New();
+	auto vertexIDs = vtkSmartPointer<vtkStringArray>::New();
 	vertexIDs->SetNumberOfComponents(1);
 	vertexIDs->SetName("VertexIDs");
 
-	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+	auto points = vtkSmartPointer<vtkPoints>::New();
 
 	//add for each attribute a vertex in the graph
 	for (int i = 0; i < attrNames.size(); i++)
@@ -474,11 +474,11 @@ void iACompCorrelationMap::initializeLutForVertices()
 
 void iACompCorrelationMap::initializeEdges()
 {
-	vtkSmartPointer<vtkDoubleArray> edgeColors = vtkSmartPointer<vtkDoubleArray>::New();
+	auto edgeColors = vtkSmartPointer<vtkDoubleArray>::New();
 	edgeColors->SetNumberOfComponents(1);
 	edgeColors->SetName("Color");
 
-	vtkSmartPointer<vtkDoubleArray> weights = vtkSmartPointer<vtkDoubleArray>::New();
+	auto weights = vtkSmartPointer<vtkDoubleArray>::New();
 	weights->SetNumberOfComponents(1);
 	weights->SetName("Weights");
 
@@ -622,7 +622,7 @@ void iACompCorrelationMap::initializeLegend(vtkScalarBarWidget* widget)
 	propL->Modified();
 
 	//add title & title properties
-	vtkSmartPointer<vtkTextActor> titleActor = vtkSmartPointer<vtkTextActor>::New();
+	auto titleActor = vtkSmartPointer<vtkTextActor>::New();
 	titleActor->SetInput("Correlation \n   Coefficient");
 	titleActor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
 	double* newPos = scalarBar->GetPositionCoordinate()->GetValue();
@@ -645,10 +645,10 @@ void iACompCorrelationMap::initializeLegend(vtkScalarBarWidget* widget)
 
 void iACompCorrelationMap::initializeArcLegend()
 {
-	vtkSmartPointer<vtkLegendBoxActor> legend = vtkSmartPointer<vtkLegendBoxActor>::New();
+	auto legend = vtkSmartPointer<vtkLegendBoxActor>::New();
 	legend->SetNumberOfEntries(3);
 
-	vtkSmartPointer<vtkLineSource> legendBox = vtkSmartPointer<vtkLineSource>::New();
+	auto legendBox = vtkSmartPointer<vtkLineSource>::New();
 	legendBox->Update();
 
 	double dataColor[4] = { 0, 0, 0, 1 };
@@ -692,14 +692,14 @@ void iACompCorrelationMap::initializeArcs()
 
 	std::vector<int>* objectsPerDataset = csvFileData::getAmountObjectsEveryDataset(m_dataStorage->getData());
 
-	vtkSmartPointer<vtkPoints> labelPositions = vtkSmartPointer<vtkPoints>::New();
-	vtkSmartPointer<vtkPoints> glyphPositions = vtkSmartPointer<vtkPoints>::New();
+	auto labelPositions = vtkSmartPointer<vtkPoints>::New();
+	auto glyphPositions = vtkSmartPointer<vtkPoints>::New();
 
-	vtkSmartPointer<vtkDoubleArray> glyphColors = vtkSmartPointer<vtkDoubleArray>::New();
+	auto glyphColors = vtkSmartPointer<vtkDoubleArray>::New();
 	glyphColors->SetName("colors");
 	glyphColors->SetNumberOfComponents(1);
 
-	vtkSmartPointer<vtkDoubleArray> glyphScales = vtkSmartPointer<vtkDoubleArray>::New();
+	auto glyphScales = vtkSmartPointer<vtkDoubleArray>::New();
 	glyphScales->SetName("scales");
 	glyphScales->SetNumberOfComponents(1);
 
@@ -776,12 +776,12 @@ void iACompCorrelationMap::calculateLabelPosition(vtkSmartPointer<vtkPoints> lab
 
 void iACompCorrelationMap::drawGlyphs(vtkSmartPointer<vtkPoints> positions, vtkSmartPointer<vtkDoubleArray> colors, vtkSmartPointer<vtkDoubleArray> scales)
 {
-	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
+	auto cubeSource = vtkSmartPointer<vtkCubeSource>::New();
 	cubeSource->Update();
 
 	vtkSmartPointer<vtkGlyph3D> glyph3D = vtkSmartPointer<vtkGlyph3D>::New();
 
-	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
+	auto polydata = vtkSmartPointer<vtkPolyData>::New();
 	polydata->SetPoints(positions);
 	polydata->GetPointData()->SetScalars(scales);
 	polydata->GetPointData()->AddArray(colors);
@@ -791,13 +791,13 @@ void iACompCorrelationMap::drawGlyphs(vtkSmartPointer<vtkPoints> positions, vtkS
 	glyph3D->SetScaleModeToScaleByScalar();
 	glyph3D->Update();
 
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputConnection(glyph3D->GetOutputPort());
 	mapper->SetScalarModeToUsePointFieldData();
 	mapper->SelectColorArray(1); //mapper uses color array
 	mapper->SetLookupTable(m_lutForArcs);
 
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	auto actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(mapper);
 
 	m_graphLayoutView->GetRenderer()->AddActor(actor);
@@ -812,7 +812,7 @@ void iACompCorrelationMap::drawLegend(vtkSmartPointer<vtkPoints> positions, QStr
 		std::string name = names.at(i).toLocal8Bit().constData();
 		name.erase(0, name.find_last_of("/\\") + 1);
 
-		vtkSmartPointer<vtkTextActor> legend = vtkSmartPointer<vtkTextActor>::New();
+		auto legend = vtkSmartPointer<vtkTextActor>::New();
 		legend->SetTextScaleModeToNone();
 		legend->SetInput(name.c_str());
 
@@ -872,17 +872,17 @@ void iACompCorrelationMap::initializeLutForArcs()
 
 void iACompCorrelationMap::drawArc(double lengthInDegree, double* startPos, double* color, double lineWidth, bool stippled, int lineStipplePattern, int lineStippleRepeat)
 {
-	vtkSmartPointer<vtkArcSource> source = vtkSmartPointer<vtkArcSource>::New();
+	auto source = vtkSmartPointer<vtkArcSource>::New();
 	source->SetUseNormalAndAngle(true);
 	source->SetPolarVector(startPos);
 	source->SetAngle(lengthInDegree);
 	source->SetNormal(0., 0., 1.); // z = 1 or -1
 	source->SetResolution(80);
 
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputConnection(source->GetOutputPort());
 
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	auto actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(mapper.Get());
 	actor->GetProperty()->SetLineWidth(lineWidth);
 	actor->GetProperty()->SetColor(color[0], color[1], color[2]);
@@ -965,14 +965,14 @@ void iACompCorrelationMap::updateArcs(std::map<int, std::vector<double>>* pickSt
 	QStringList allDatasetNames = *m_dataStorage->getDatasetNames();
 	QStringList names = QStringList();
 
-	vtkSmartPointer<vtkPoints> labelPositions = vtkSmartPointer<vtkPoints>::New();
-	vtkSmartPointer<vtkPoints> glyphPositions = vtkSmartPointer<vtkPoints>::New();
+	auto labelPositions = vtkSmartPointer<vtkPoints>::New();
+	auto glyphPositions = vtkSmartPointer<vtkPoints>::New();
 
-	vtkSmartPointer<vtkDoubleArray> glyphColors = vtkSmartPointer<vtkDoubleArray>::New();
+	auto glyphColors = vtkSmartPointer<vtkDoubleArray>::New();
 	glyphColors->SetName("colors");
 	glyphColors->SetNumberOfComponents(1);
 
-	vtkSmartPointer<vtkDoubleArray> glyphScales = vtkSmartPointer<vtkDoubleArray>::New();
+	auto glyphScales = vtkSmartPointer<vtkDoubleArray>::New();
 	glyphScales->SetName("scales");
 	glyphScales->SetNumberOfComponents(1);
 
@@ -1089,13 +1089,13 @@ void iACompCorrelationMap::drawInnerArc(std::vector<double> dataPoints, double* 
 	m_arcDataIndxTypePair->insert({ arcActors->at(arcActors->size() - 1), dataIndexWithSelectedArc });
 
 	//draw glyphs
-	vtkSmartPointer<vtkPoints> glyphPositions = vtkSmartPointer<vtkPoints>::New();
+	auto glyphPositions = vtkSmartPointer<vtkPoints>::New();
 
-	vtkSmartPointer<vtkDoubleArray> glyphColors = vtkSmartPointer<vtkDoubleArray>::New();
+	auto glyphColors = vtkSmartPointer<vtkDoubleArray>::New();
 	glyphColors->SetName("colors");
 	glyphColors->SetNumberOfComponents(1);
 
-	vtkSmartPointer<vtkDoubleArray> glyphScales = vtkSmartPointer<vtkDoubleArray>::New();
+	auto glyphScales = vtkSmartPointer<vtkDoubleArray>::New();
 	glyphScales->SetName("scales");
 	glyphScales->SetNumberOfComponents(1);
 
@@ -1293,7 +1293,7 @@ void iAGraphInteractorStyle::addHighlightingBelow(vtkSmartPointer<vtkActor> arcA
 	vtkSmartPointer<vtkAlgorithm> algorithm = arcActor->GetMapper()->GetInputConnection(0, 0)->GetProducer();
 	vtkSmartPointer<vtkArcSource> arc = vtkArcSource::SafeDownCast(algorithm);
 
-	vtkSmartPointer<vtkArcSource> source = vtkSmartPointer<vtkArcSource>::New();
+	auto source = vtkSmartPointer<vtkArcSource>::New();
 
 	source->SetUseNormalAndAngle(true);
 	source->SetPolarVector(arc->GetPolarVector());
@@ -1301,10 +1301,10 @@ void iAGraphInteractorStyle::addHighlightingBelow(vtkSmartPointer<vtkActor> arcA
 	source->SetNormal(arc->GetNormal());
 	source->SetResolution(arc->GetResolution());
 
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputConnection(source->GetOutputPort());
 
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	auto actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(mapper.Get());
 	actor->GetProperty()->SetLineWidth(arcActor->GetProperty()->GetLineWidth()*1.5);
 
@@ -1753,7 +1753,7 @@ void iACorrelationGraphLayout::Initialize()
 	}
 
 	// Get the edges
-	vtkSmartPointer<vtkEdgeListIterator> edges = vtkSmartPointer<vtkEdgeListIterator>::New();
+	auto edges = vtkSmartPointer<vtkEdgeListIterator>::New();
 	this->Graph->GetEdges(edges);
 	while (edges->HasNext())
 	{
@@ -1880,7 +1880,7 @@ void iACorrelationGraphLayout::Initialize()
 	}
 
 	// Get the edges
-	vtkSmartPointer<vtkEdgeListIterator> edges = vtkSmartPointer<vtkEdgeListIterator>::New();
+	auto edges = vtkSmartPointer<vtkEdgeListIterator>::New();
 	this->Graph->GetEdges(edges);
 	while (edges->HasNext())
 	{

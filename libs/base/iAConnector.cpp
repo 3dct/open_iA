@@ -34,9 +34,7 @@ void SetupPipelineVTKtoITK(
 	vtkImageExport * vtkExporter,
 	iAConnector::ProcessObjectPointer & itkImporter)
 {
-	typedef itk::Image< T, 3 >						OutputImageType;
-	typedef itk::VTKImageImport< OutputImageType >	ImageImportType;
-	typename ImageImportType::Pointer _itkImporter = ImageImportType::New();
+	auto _itkImporter = itk::VTKImageImport<itk::Image<T, 3>>::New();
 	itkImporter = _itkImporter;
 	vtkExporter->SetInputData(inputImage);
 	ConnectPipelines(vtkExporter, _itkImporter);
@@ -51,18 +49,14 @@ void SetupPipelineITKtoVTK(
 	iAConnector::ProcessObjectPointer	& exporter,
 	vtkImageImport					* importer)
 {
-	typedef itk::Image< T, 3 >					ImageType;
-	typedef itk::VTKImageExport< ImageType >	ExportFilterType;
-	typedef typename ExportFilterType::Pointer			ExportFilterPointer;
-
-
-	ImageType * image = dynamic_cast<ImageType *>(imageBase.GetPointer());
+	using ImageType = itk::Image<T, 3>;
+	auto image = dynamic_cast<ImageType *>(imageBase.GetPointer());
 	if (!image)
 	{
 		return;
 	}
 
-	ExportFilterPointer _exporter = ExportFilterType::New();
+	auto _exporter = itk::VTKImageExport<ImageType>::New();
 	_exporter->SetInput(image);
 	exporter = _exporter;
 

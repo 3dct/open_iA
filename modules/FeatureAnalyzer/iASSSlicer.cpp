@@ -18,7 +18,7 @@
 #include <itkAddImageFilter.h>
 #include <itkCastImageFilter.h>
 #include <itkImage.h>
-#include <itkImageToVTKImageFilter.h>
+//#include <itkImageToVTKImageFilter.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkDistancePolyDataFilter.h>
@@ -73,7 +73,7 @@ const QList<QColor> brewer_RdPu = QList<QColor>() \
 
 void loadImageData( QString const & fileName, vtkSmartPointer<vtkImageData> & imgData )
 {
-	vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New();
+	auto reader = vtkSmartPointer<vtkMetaImageReader>::New();
 	reader->SetFileName( getLocalEncodingFileName(fileName).c_str() );
 	reader->Update();
 	imgData = reader->GetOutput();
@@ -222,19 +222,17 @@ void iASSSlicer::initBPDChans( QString const & minFile, QString const & medFile,
 
 void iASSSlicer::computeAggregatedImageData( const QStringList & filesList )
 {
-	vtkSmartPointer<vtkImageData> imgData = masksChan->imgData;
-	typedef itk::Image< unsigned char, iAITKIO::Dim>   SumImageType;
+	auto imgData = masksChan->imgData;
+	using SumImageType = itk::Image< unsigned char, iAITKIO::Dim>;
 	//first use itk filters to compute aggregated image
-	typedef itk::AddImageFilter<SumImageType, MaskImageType, SumImageType> AddImageFilter;
 
 	iAITKIO::PixelType pixelType;
 	iAITKIO::ScalarType scalarType;
 	auto lastOutput = iAITKIO::readFile( filesList.first(), pixelType, scalarType, true);
 	assert(pixelType == iAITKIO::PixelType::SCALAR);
 	{
-		MaskImageType * castInput = dynamic_cast<MaskImageType*>(lastOutput.GetPointer());
-		typedef itk::CastImageFilter< MaskImageType, SumImageType> CastToIntFilterType;
-		CastToIntFilterType::Pointer toSumType = CastToIntFilterType::New();
+		auto castInput = dynamic_cast<MaskImageType*>(lastOutput.GetPointer());
+		auto toSumType = itk::CastImageFilter<MaskImageType, SumImageType>::New();
 		toSumType->SetInput( castInput );
 		toSumType->Update();
 		lastOutput = toSumType->GetOutput();
@@ -243,9 +241,9 @@ void iASSSlicer::computeAggregatedImageData( const QStringList & filesList )
 	{
 		auto input = iAITKIO::readFile( filesList[i], pixelType, scalarType, true);
 		assert(pixelType == iAITKIO::PixelType::SCALAR);
-		AddImageFilter::Pointer add = AddImageFilter::New();
-		SumImageType * input1 = dynamic_cast<SumImageType*>(lastOutput.GetPointer());
-		MaskImageType * input2 = dynamic_cast<MaskImageType*>(input.GetPointer());
+		auto add = itk::AddImageFilter<SumImageType, MaskImageType, SumImageType>::New();
+		auto input1 = dynamic_cast<SumImageType*>(lastOutput.GetPointer());
+		auto input2 = dynamic_cast<MaskImageType*>(input.GetPointer());
 		assert( input1 && input2 );
 		add->SetInput1( input1 );
 		add->SetInput2( input2 );
@@ -254,10 +252,9 @@ void iASSSlicer::computeAggregatedImageData( const QStringList & filesList )
 	}
 
 	//convert from itk to vtk
-	SumImageType * input = dynamic_cast<SumImageType*>(lastOutput.GetPointer());
+	auto input = dynamic_cast<SumImageType*>(lastOutput.GetPointer());
 	assert( input );
-	// 	typedef itk::ImageToVTKImageFilter<MaskImageType> ImageToVTK;
-	// 	ImageToVTK::Pointer imageToVTK = ImageToVTK::New();
+	// 	auto imageToVTK = itk::ImageToVTKImageFilter<MaskImageType>::New();
 	// 	imageToVTK->SetInput( input );
 	// 	imageToVTK->Update();
 	// 	imgData->DeepCopy( imageToVTK->GetOutput() );

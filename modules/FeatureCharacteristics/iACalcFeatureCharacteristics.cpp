@@ -32,15 +32,12 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 {
 	// Cast image to type long
 	typedef itk::Image< T, DIM > InputImageType;
-	typename InputImageType::Pointer inputImage;
-	inputImage = dynamic_cast<InputImageType *>(itkImg);
 	typedef itk::Image<long, DIM> LongImageType;
-	typename LongImageType::Pointer longImage;
-	typedef itk::CastImageFilter<InputImageType, LongImageType> CIFType;
-	typename CIFType::Pointer castfilter = CIFType::New();
+	typename InputImageType::Pointer inputImage = dynamic_cast<InputImageType *>(itkImg);
+	auto castfilter = itk::CastImageFilter<InputImageType, LongImageType>::New();
 	castfilter->SetInput( inputImage );
 	castfilter->Update();
-	longImage = castfilter->GetOutput();
+	typename LongImageType::Pointer longImage = castfilter->GetOutput();
 
 	// Writing pore csv file
 	double spacing = longImage->GetSpacing()[0];
@@ -100,8 +97,7 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 		fout << '\n';
 
 	// Initalisation of itk::LabelGeometryImageFilter for calculating pore parameters
-	typedef itk::LabelGeometryImageFilter<LongImageType> LabelGeometryImageFilterType;
-	typename LabelGeometryImageFilterType::Pointer labelGeometryImageFilter = LabelGeometryImageFilterType::New();
+	auto labelGeometryImageFilter = itk::LabelGeometryImageFilter<LongImageType>::New();
 	labelGeometryImageFilter->SetInput( longImage );
 
 	// These generate optional outputs.

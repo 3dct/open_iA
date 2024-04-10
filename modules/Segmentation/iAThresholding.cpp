@@ -79,10 +79,9 @@ IAFILTER_DEFAULT_CLASS(iAParameterlessThresholding)
 template<class T>
 void binary_threshold(iAFilter* filter, QVariantMap const & parameters)
 {
-	typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Image< T, 3 >   OutputImageType;
-	typedef itk::BinaryThresholdImageFilter<InputImageType, OutputImageType> BTIFType;
-	auto binThreshFilter = BTIFType::New();
+	using InputImageType = itk::Image<T, DIM>;
+	using OutputImageType = itk::Image<T, DIM>;
+	auto binThreshFilter = itk::BinaryThresholdImageFilter<InputImageType, OutputImageType>::New();
 	binThreshFilter->SetLowerThreshold(T(parameters["Lower threshold"].toDouble()));
 	binThreshFilter->SetUpperThreshold(T(parameters["Upper threshold"].toDouble()));
 	binThreshFilter->SetOutsideValue(T(parameters["Outside value"].toDouble()));
@@ -135,10 +134,9 @@ void multi_threshold(iAFilter* filter, QVariantMap const& parameters)
 		thresholds.push_back(iAConverter<T>::toT(numberString, &ok));
 	}
 
-	typedef itk::Image<T, 3> InputImageType;
-	typedef itk::Image<T, 3> OutputImageType;
-	typedef itk::ThresholdLabelerImageFilter<InputImageType, OutputImageType> BTIFType;
-	auto multiThreshFilter = BTIFType::New();
+	using InputImageType = itk::Image<T, DIM>;
+	using OutputImageType = itk::Image<T, DIM>;
+	auto multiThreshFilter = itk::ThresholdLabelerImageFilter<InputImageType, OutputImageType>::New();
 	multiThreshFilter->SetThresholds(thresholds);
 	multiThreshFilter->SetInput(dynamic_cast<InputImageType*>(filter->imageInput(0)->itkImage()));
 	filter->progress()->observe(multiThreshFilter);
@@ -170,24 +168,22 @@ iAMultiThreshold::iAMultiThreshold() :
 template<class T>
 void rats_threshold(iAFilter* filter, QVariantMap const & parameters)
 {
-	typedef typename itk::Image< T, 3 >   InputImageType;
-	typedef typename itk::Image< T, 3 >   OutputImageType;
-	typedef typename itk::Image< float, 3 >   GradientImageType;
-	typedef itk::GradientMagnitudeImageFilter< InputImageType, GradientImageType > GMFType;
-	typename GMFType::Pointer gmfilter = GMFType::New();
-	gmfilter->SetInput( dynamic_cast< InputImageType * >( filter->imageInput(0)->itkImage() ) );
+	using InputImageType = itk::Image<T, DIM>;
+	using OutputImageType = itk::Image<T, DIM>;
+	using GradientImageType = itk::Image< float, DIM>;
+	auto gmfilter = itk::GradientMagnitudeImageFilter<InputImageType, GradientImageType>::New();
+	gmfilter->SetInput(dynamic_cast<InputImageType *>(filter->imageInput(0)->itkImage()));
 	filter->progress()->observe( gmfilter );
 	gmfilter->Update();
-	typedef typename itk::RobustAutomaticThresholdImageFilter < InputImageType, GradientImageType, OutputImageType > RATType;
-	auto ratsFilter = RATType::New();
-	ratsFilter->SetInput( dynamic_cast< InputImageType * >( filter->imageInput(0)->itkImage() ) );
+	auto ratsFilter = itk::RobustAutomaticThresholdImageFilter<InputImageType, GradientImageType, OutputImageType>::New();
+	ratsFilter->SetInput(dynamic_cast<InputImageType *>(filter->imageInput(0)->itkImage()));
 	ratsFilter->SetGradientImage(gmfilter->GetOutput());
-	ratsFilter->SetOutsideValue( T(parameters["Outside value"].toDouble()) );
-	ratsFilter->SetInsideValue( T(parameters["Inside value"].toDouble()) );
+	ratsFilter->SetOutsideValue(static_cast<T>(parameters["Outside value"].toDouble()));
+	ratsFilter->SetInsideValue(static_cast<T>(parameters["Inside value"].toDouble()));
 	ratsFilter->SetPow( parameters["Power"].toDouble() );
 	filter->progress()->observe( ratsFilter );
 	ratsFilter->Update();
-	filter->addOutputValue("Threshold", (double)ratsFilter->GetThreshold());
+	filter->addOutputValue("Threshold", static_cast<double>(ratsFilter->GetThreshold()));
 	filter->addOutput(std::make_shared<iAImageData>(ratsFilter->GetOutput()));
 }
 
@@ -222,8 +218,8 @@ namespace
 template<class T>
 void otsu_threshold(iAFilter* filter, QVariantMap const & parameters)
 {
-	typedef typename itk::Image<T, 3> InputImageType;
-	typedef typename itk::Image<T, 3> OutputImageType; // output is always binary, so using (unsigned) char might make sense;
+	using InputImageType = itk::Image<T, DIM>;
+	using OutputImageType = itk::Image<T, DIM>; // output is always binary, so using (unsigned) char might make sense;
 	// especially for real-valued types same type as input doesn't make sense!
 
 	double numBins = parameters["Number of histogram bins"].toDouble();
@@ -254,8 +250,7 @@ void otsu_threshold(iAFilter* filter, QVariantMap const & parameters)
 	}
 	else
 	{
-		typedef typename itk::OtsuThresholdImageFilter<InputImageType, OutputImageType> OTIFType;
-		auto otsuFilter = OTIFType::New();
+		auto otsuFilter = itk::OtsuThresholdImageFilter<InputImageType, OutputImageType>::New();
 		otsuFilter->SetNumberOfHistogramBins(static_cast<unsigned int>(numBins));
 		otsuFilter->SetOutsideValue( static_cast<T>(parameters["Outside value"].toDouble()) );
 		otsuFilter->SetInsideValue(static_cast<T>(parameters["Inside value"].toDouble()));
@@ -294,12 +289,11 @@ iAOtsuThreshold::iAOtsuThreshold() :
 template<class T>
 void adaptive_otsu_threshold(iAFilter* filter, QVariantMap const & parameters)
 {
-	typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Image< T, 3 >   OutputImageType;
+	using InputImageType = itk::Image<T, DIM>;
+	using OutputImageType = itk::Image<T, DIM>;
 	typename InputImageType::SizeType radius;
 	radius.Fill(T(parameters["Radius"].toDouble()));
-	typedef itk::AdaptiveOtsuThresholdImageFilter< InputImageType, OutputImageType > AOTIFType;
-	typename AOTIFType::Pointer adotFilter = AOTIFType::New();
+	auto adotFilter = itk::AdaptiveOtsuThresholdImageFilter<InputImageType, OutputImageType>::New();
 	adotFilter->SetInput(dynamic_cast< InputImageType * >(filter->imageInput(0)->itkImage()));
 	adotFilter->SetOutsideValue(T(parameters["Outside value"].toDouble()));
 	adotFilter->SetInsideValue(T(parameters["Inside value"].toDouble()));
@@ -343,10 +337,9 @@ iAAdaptiveOtsuThreshold::iAAdaptiveOtsuThreshold() :
 template<class T>
 void otsu_multiple_threshold(iAFilter* filter, QVariantMap const & parameters)
 {
-	typedef typename itk::Image< T, 3 >   InputImageType;
-	typedef typename itk::Image< T, 3 >   OutputImageType;
-	typedef typename itk::OtsuMultipleThresholdsImageFilter < InputImageType, OutputImageType > OMTIFType;
-	auto otsumultiFilter = OMTIFType::New();
+	using InputImageType = itk::Image<T, DIM>;
+	using OutputImageType = itk::Image<T, DIM>;
+	auto otsumultiFilter = itk::OtsuMultipleThresholdsImageFilter<InputImageType, OutputImageType>::New();
 	otsumultiFilter->SetNumberOfHistogramBins( T (parameters["Number of histogram bins"].toDouble()) );
 	otsumultiFilter->SetNumberOfThresholds( T (parameters["Number of thresholds"].toDouble()) );
 	otsumultiFilter->SetInput( dynamic_cast< InputImageType * >( filter->imageInput(0)->itkImage() ) );
@@ -383,9 +376,8 @@ iAOtsuMultipleThreshold::iAOtsuMultipleThreshold() :
 template<class T>
 void maximum_distance(iAFilter* filter, QVariantMap const & parameters)
 {
-	typedef itk::Image< T, 3 >   InputImageType;
-	typedef iAMaximumDistanceFilter< InputImageType > MaximumDistanceType;
-	auto maxFilter = MaximumDistanceType::New();
+	using InputImageType = itk::Image<T, DIM>;
+	auto maxFilter = iAMaximumDistanceFilter<InputImageType>::New();
 	maxFilter->SetInput(dynamic_cast< InputImageType * >(filter->imageInput(0)->itkImage()));
 	maxFilter->SetBinWidth(parameters["Width of histogram bin"].toDouble());
 	if (parameters["Use low intensity"].toBool())
@@ -512,10 +504,9 @@ iAParameterlessThresholding::iAParameterlessThresholding() :
 template <typename T>
 void parameterless(iAFilter* filter, QVariantMap const & params)
 {
-	typedef itk::Image<T, iAITKIO::Dim> InputImageType;
-	typedef itk::Image<T, iAITKIO::Dim> MaskImageType;
-	typedef itk::HistogramThresholdImageFilter<InputImageType, MaskImageType> parameterFreeThrFilterType;
-	typename parameterFreeThrFilterType::Pointer plFilter;
+	using InputImageType = itk::Image<T, iAITKIO::Dim>;
+	using MaskImageType = itk::Image<T, iAITKIO::Dim>;
+	typename itk::HistogramThresholdImageFilter<InputImageType, MaskImageType>::Pointer plFilter;
 	switch (MapMethodNameToID(params["Method"].toString()))
 	{
 	case P_OTSU_THRESHOLD:
@@ -556,8 +547,7 @@ void parameterless(iAFilter* filter, QVariantMap const & params)
 		break;
 	case P_MINIMUM_THRESHOLD:
 	{
-		typedef itk::IntermodesThresholdImageFilter <InputImageType, MaskImageType> MinimumFilterType;
-		typename MinimumFilterType::Pointer minimumFilter = MinimumFilterType::New();
+		auto minimumFilter = itk::IntermodesThresholdImageFilter <InputImageType, MaskImageType>::New();
 		minimumFilter->SetUseInterMode(false);
 		plFilter = minimumFilter;
 		break;

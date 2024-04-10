@@ -748,8 +748,7 @@ std::wstring iAOIFReaderHelper::GetCurName(int t, int c)
 template<typename T>
 typename iAOIFReaderHelper::TiffImgPtr read_image_template(QString const & f, T)
 {
-	typedef itk::ImageFileReader<iAOIFReaderHelper::TiffImgType> ReaderType;
-	typename ReaderType::Pointer reader = ReaderType::New();
+	auto reader = itk::ImageFileReader<iAOIFReaderHelper::TiffImgType>::New();
 	reader->SetFileName(getLocalEncodingFileName(f));
 	reader->Update();
 	return reader->GetOutput();
@@ -874,7 +873,7 @@ void readOIF(QString const& filename, iAConnector* con, int channel,
 		con->modified();
 		for (int i = 0; i < reader.GetChanNum(); ++i)
 		{
-			vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
+			auto image = vtkSmartPointer<vtkImageData>::New();
 			iAConnector con2;
 			con2.setImage(reader.GetResult(i));
 			image->DeepCopy(con2.vtkImage());

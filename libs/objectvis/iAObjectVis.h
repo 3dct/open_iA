@@ -34,7 +34,7 @@ class iAobjectvis_API iAObjectVis: public QObject
 public:
 	//! the type used for indices into the data table.
 	//! (Implementation Note: if vtkTable is replaced by something else, e.g. SPMData or a general table class, this might need to be adapted)
-	typedef vtkIdType IndexType;
+	using IndexType = vtkIdType;
 	static const QColor SelectedColor;
 	iAObjectVis(iAObjectsData const* data);
 	virtual ~iAObjectVis();

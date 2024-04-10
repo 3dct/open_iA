@@ -17,18 +17,18 @@
 iADefectVisModule::iADefectVisModule( )
 	: iAVisModule( )
 {
-	m_reader = vtkSmartPointer<vtkOBJReader>::New( );
+	m_reader = vtkSmartPointer<vtkOBJReader>::New();
 
-	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New( );
+	auto transform = vtkSmartPointer<vtkTransform>::New();
 	transform->Scale( SCENE_SCALE, SCENE_SCALE, SCENE_SCALE );
 
-	vtkSmartPointer<vtkTransformFilter> transformFilter = vtkSmartPointer<vtkTransformFilter>::New( );
+	auto transformFilter = vtkSmartPointer<vtkTransformFilter>::New();
 	transformFilter->SetInputConnection( m_reader->GetOutputPort( ) );
 	transformFilter->SetTransform( transform );
 
-	m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New( );
+	m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	m_mapper->SetInputConnection( transformFilter->GetOutputPort( ) );
-	m_actor = vtkSmartPointer<vtkActor>::New( );
+	m_actor = vtkSmartPointer<vtkActor>::New();
 	m_actor->SetMapper( m_mapper );
 }
 

@@ -284,6 +284,7 @@ private:
 	void resizeEvent(QResizeEvent * event) override;
 	void wheelEvent(QWheelEvent*) override;
 
+	QColor activeBGColor() const;
 	void updateBackground();
 	void printVoxelInformation();
 	void executeKeyPressEvent();

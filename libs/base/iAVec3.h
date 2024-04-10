@@ -81,9 +81,9 @@ private:
 };
 
 // Predefined types
-typedef iAVec3T<float>   iAVec3f;
-typedef iAVec3T<double>  iAVec3d;
-typedef iAVec3T<int>     iAVec3i;
+using iAVec3f = iAVec3T<float>;
+using iAVec3d = iAVec3T<double>;
+using iAVec3i = iAVec3T<int>;
 
 //! @{
 //! Comparison operators for two vectors. Note that only two vectors of the same type can be compared

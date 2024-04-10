@@ -273,7 +273,7 @@ if (VTK_VERSION VERSION_GREATER_EQUAL "9.2.0")
 	if (RenderingOpenXR IN_LIST VTK_AVAILABLE_COMPONENTS)
 		set(BUILD_INFO_VTK_OPENXR "on")
 		list(APPEND VTK_COMPONENTS RenderingOpenXR)
-		find_package(OpenXR QUIET)    # basically only required for OpenXR_VERSION...
+		find_package(OpenXR)    # basically only required for OpenXR_VERSION...
 		message(STATUS "    OpenXR: ${OpenXR_VERSION_MAJOR}.${OpenXR_VERSION_MINOR}.${OpenXR_VERSION_PATCH} in ${OpenXR_INCLUDE_DIR} (include dir)")
 		string(REPLACE "/include/" "" OPENXR_PATH ${OpenXR_INCLUDE_DIR})
 		set(OPENXR_LIB_PATH "${OPENXR_PATH}/x64/bin")

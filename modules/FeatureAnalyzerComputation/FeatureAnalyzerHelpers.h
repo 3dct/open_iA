@@ -569,7 +569,7 @@ inline QMultiMap<double, QList<double> > calculateHistogram( QList<double> data,
 	double minmax[2] = { minX, maxX };
 	int NumberOfBins = 1000;
 
-	vtkSmartPointer<vtkDoubleArray> in = vtkSmartPointer<vtkDoubleArray>::New();
+	auto in = vtkSmartPointer<vtkDoubleArray>::New();
 	in->SetNumberOfTuples( data.count() );
 	for ( int i = 0; i < data.count(); ++i )
 		in->SetValue( i, data.at( i ) );
@@ -580,7 +580,7 @@ inline QMultiMap<double, QList<double> > calculateHistogram( QList<double> data,
 	double inc = ( minmax[1] - minmax[0] ) / (NumberOfBins) * 1.001;
 	double halfInc = inc / 2.0;
 
-	vtkSmartPointer<vtkFloatArray> extents = vtkSmartPointer<vtkFloatArray>::New();
+	auto extents = vtkSmartPointer<vtkFloatArray>::New();
 	extents->SetName( vtkStdString( "_extents" ).c_str() );
 
 	extents->SetNumberOfTuples( NumberOfBins );
@@ -589,7 +589,7 @@ inline QMultiMap<double, QList<double> > calculateHistogram( QList<double> data,
 	for ( int j = 0; j < NumberOfBins; ++j )
 		extents->SetValue( j, min + j * inc );
 
-	vtkSmartPointer<vtkIntArray> populations = vtkSmartPointer<vtkIntArray>::New();
+	auto populations = vtkSmartPointer<vtkIntArray>::New();
 	populations->SetName( vtkStdString( "_pops" ).c_str() );
 
 	populations->SetNumberOfTuples( NumberOfBins );

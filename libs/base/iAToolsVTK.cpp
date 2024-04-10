@@ -39,7 +39,7 @@ vtkStandardNewMacro(iAvtkImageData);
 
 vtkSmartPointer<vtkImageData> allocateImage(int vtkType, int const dimensions[3], double const spacing[3], int numComponents)
 {
-	vtkSmartPointer<vtkImageData> result = vtkSmartPointer<vtkImageData>::New();
+	auto result = vtkSmartPointer<vtkImageData>::New();
 	result->SetDimensions(dimensions);
 	result->AllocateScalars(vtkType, numComponents);
 	double nonConstSpc[3];

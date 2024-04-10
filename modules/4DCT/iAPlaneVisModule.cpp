@@ -15,12 +15,12 @@ iAPlaneVisModule::iAPlaneVisModule( )
 	: iAVisModule( )
 	//, m_dir(Direction::XY)
 {
-	m_plane = vtkSmartPointer<vtkPlaneSource>::New( );
+	m_plane = vtkSmartPointer<vtkPlaneSource>::New();
 	m_plane->SetResolution( 5, 5 );
-	m_texture = vtkSmartPointer<vtkTexture>::New( );
-	m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New( );
+	m_texture = vtkSmartPointer<vtkTexture>::New();
+	m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	m_mapper->SetInputConnection( m_plane->GetOutputPort( ) );
-	m_actor = vtkSmartPointer<vtkActor>::New( );
+	m_actor = vtkSmartPointer<vtkActor>::New();
 	m_actor->SetMapper( m_mapper );
 	m_actor->SetTexture( m_texture );
 	m_actor->GetProperty( )->LightingOff( );
@@ -51,7 +51,7 @@ void iAPlaneVisModule::setSize( double * size )
 void iAPlaneVisModule::setImage( iA4DCTFileData fileName )
 {
 	double scale = (double)0xff / 0xffff;
-	vtkSmartPointer<vtkImageShiftScale> shifter = vtkSmartPointer<vtkImageShiftScale>::New( );
+	auto shifter = vtkSmartPointer<vtkImageShiftScale>::New();
 	shifter->SetShift( 0. );
 	shifter->SetScale( scale );
 	shifter->SetOutputScalarTypeToUnsignedChar( );
@@ -69,7 +69,7 @@ void iAPlaneVisModule::setImage( iA4DCTFileData fileName )
 	m_imgSize[2] = extent[5] - extent[4];
 	m_img->GetSpacing( m_imgSpacing );
 
-	m_reslice = vtkSmartPointer<vtkImageReslice>::New( );
+	m_reslice = vtkSmartPointer<vtkImageReslice>::New();
 	m_reslice->SetInputData( m_img );
 
 	setSlice( 0 );
@@ -98,7 +98,7 @@ void iAPlaneVisModule::setSlice( int slice )
 		0, 1, 0, 0,
 		0, 0, 0, 1 };
 
-	vtkSmartPointer<vtkMatrix4x4> resliceAxes = vtkSmartPointer<vtkMatrix4x4>::New( );
+	vtkSmartPointer<vtkMatrix4x4> resliceAxes = vtkSmartPointer<vtkMatrix4x4>::New();
 
 	double sliceNum = 0;
 	switch( settings.Dir ) {

@@ -173,7 +173,7 @@ void iACompBoxPlot::initializeData()
 	// Set the labels
 	labels->Initialize();
 
-	vtkSmartPointer<vtkTable> originalValuesTable = vtkSmartPointer<vtkTable>::New();
+	auto originalValuesTable = vtkSmartPointer<vtkTable>::New();
 	m_originalOrderTable = vtkSmartPointer<vtkTable>::New();
 
 	//set amount of attributes
@@ -340,7 +340,7 @@ void iACompBoxPlot::initializeLegend(vtkSmartPointer<BoxPlotChart> chart)
 
 	for (int i = 0; i < m_numberOfAttr; i++)
 	{
-		vtkSmartPointer<vtkTextActor> legend = vtkSmartPointer<vtkTextActor>::New();
+		auto legend = vtkSmartPointer<vtkTextActor>::New();
 		legend->SetTextScaleModeToNone();
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9,3,0)
 		legend->SetInput(labels->GetValue(m_orderedPositions->at(i)).c_str()); //reordered positions
@@ -380,7 +380,7 @@ void iACompBoxPlot::initializeLegend(vtkSmartPointer<BoxPlotChart> chart)
 		//LOG(lvlDebug,"chart->GetXPosition(i) = (" + QString::number(chart->GetXPosition(i)) + ")");
 		//LOG(lvlDebug,"(box->GetBoxWidth()) = (" + QString::number(BoxPlot::SafeDownCast(chart->GetPlot(0))->GetBoxWidth() * offset) + ")");
 
-		//vtkSmartPointer<vtkRegularPolygonSource> point = vtkSmartPointer<vtkRegularPolygonSource>::New();
+		//auto point = vtkSmartPointer<vtkRegularPolygonSource>::New();
 		//point->SetNumberOfSides(50);
 		//point->SetRadius(1);
 		//point->SetCenter(chart->GetXPosition(i), m_qvtkWidget->height()*0.25, 0);
@@ -448,7 +448,7 @@ std::vector<double>* iACompBoxPlot::calcualteQuartiles(std::vector<double> v)
 
 vtkSmartPointer<vtkTable> iACompBoxPlot::calcualteVTKQuartiles(vtkSmartPointer<vtkTable> input)
 {
-	vtkSmartPointer<vtkComputeQuartiles> quartiles = vtkSmartPointer<vtkComputeQuartiles>::New();
+	auto quartiles = vtkSmartPointer<vtkComputeQuartiles>::New();
 	quartiles->SetInputData(vtkStatisticsAlgorithm::INPUT_DATA, input);
 	quartiles->Update();
 
@@ -457,7 +457,7 @@ vtkSmartPointer<vtkTable> iACompBoxPlot::calcualteVTKQuartiles(vtkSmartPointer<v
 
 vtkSmartPointer<vtkTable> iACompBoxPlot::normalizeTable(vtkSmartPointer<vtkTable> input)
 {
-	vtkSmartPointer<vtkTable> normalizedTableCurr = vtkSmartPointer<vtkTable>::New();
+	auto normalizedTableCurr = vtkSmartPointer<vtkTable>::New();
 	normalizedTableCurr->DeepCopy(input);
 
 	//normalize quartiles in the interval [0,1]
@@ -476,7 +476,7 @@ vtkSmartPointer<vtkTable> iACompBoxPlot::normalizeTable(vtkSmartPointer<vtkTable
 
 vtkSmartPointer<vtkTable> iACompBoxPlot::normalizeTableSelected(vtkSmartPointer<vtkTable> input, std::vector<double>* selected_orderedPositions)
 {
-	vtkSmartPointer<vtkTable> normalizedTableCurr = vtkSmartPointer<vtkTable>::New();
+	auto normalizedTableCurr = vtkSmartPointer<vtkTable>::New();
 	normalizedTableCurr->DeepCopy(input);
 
 	//normalize quartiles in the interval [0,1]
@@ -519,8 +519,8 @@ void iACompBoxPlot::updateBoxPlot(csvDataType::ArrayType* selectedData, std::vec
 	reorderOriginalData(selected_orderedPositions);
 
 	//create selected data table
-	vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
-	vtkSmartPointer<vtkTable> selectedNormalizedTable = vtkSmartPointer<vtkTable>::New();
+	auto table = vtkSmartPointer<vtkTable>::New();
+	auto selectedNormalizedTable = vtkSmartPointer<vtkTable>::New();
 
 	// Set the labels
 	QStringList* attrNames = m_dataStorage->getAttributeNamesWithoutLabel();
@@ -531,7 +531,7 @@ void iACompBoxPlot::updateBoxPlot(csvDataType::ArrayType* selectedData, std::vec
 	{
 		labels->InsertNextValue(attrNames->at(i).toStdString());
 
-		vtkSmartPointer<vtkDoubleArray> arrIndex = vtkSmartPointer<vtkDoubleArray>::New();
+		auto arrIndex = vtkSmartPointer<vtkDoubleArray>::New();
 		arrIndex->SetName(attrNames->at(i).toStdString().c_str());
 		table->AddColumn(arrIndex);
 	}
@@ -619,7 +619,7 @@ void iACompBoxPlot::reorderOriginalData(std::vector<double>* selected_orderedPos
 	//set amount of attributes
 	for (int i = 0; i < m_numberOfAttr; i++)
 	{
-		vtkSmartPointer<vtkDoubleArray> arrIndex = vtkSmartPointer<vtkDoubleArray>::New();
+		auto arrIndex = vtkSmartPointer<vtkDoubleArray>::New();
 		arrIndex->SetName(std::to_string(i).c_str());
 		reorderedNormalizedTable->AddColumn(arrIndex);
 	}
@@ -671,7 +671,7 @@ void iACompBoxPlot::resetBoxPlot()
 
 	// Set the labels
 	QStringList* attrNames = m_dataStorage->getAttributeNamesWithoutLabel();
-	vtkSmartPointer<vtkStringArray> labelNames = vtkSmartPointer<vtkStringArray>::New();
+	auto labelNames = vtkSmartPointer<vtkStringArray>::New();
 
 	for (int i = 0; i < m_numberOfAttr; i++)
 	{
