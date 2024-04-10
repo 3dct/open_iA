@@ -252,17 +252,23 @@ class iAUnityWebsocketServerToolImpl : public QObject
 {
 private:
 	template <std::size_t N>
-	void processObjectTransform(QDataStream& rcvStream, quint64 clientID, quint64 objID, ObjectCommandType objCmdType, iAMdiChild* child)
+	QByteArray msgObjectCommand(quint64 objID, ObjectCommandType objCmdType, std::array<float, N> const& values)
 	{
-		std::array<float, N> values{};
-		readArray(rcvStream, values);
-		LOG(lvlInfo, QString("    values=%1; broadcasting!").arg(arrayToString(values)));
 		QByteArray outData;
 		QDataStream outStream(&outData, QIODevice::WriteOnly);
 		outStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 		outStream << MessageType::Object << objCmdType << objID;
 		writeArray<N>(outStream, values);
-		broadcastMsg(outData, clientID);
+		return outData;
+	}
+
+	template <std::size_t N>
+	void processObjectTransform(QDataStream& rcvStream, quint64 clientID, quint64 objID, ObjectCommandType objCmdType, iAMdiChild* child)
+	{
+		std::array<float, N> values{};
+		readArray(rcvStream, values);
+		LOG(lvlInfo, QString("    values=%1; broadcasting!").arg(arrayToString(values)));
+		broadcastMsg(msgObjectCommand(objID, objCmdType, values), clientID);
 
 		if (clientID == m_syncedClientID)  // if sync enabled, apply to local objects:
 		{
@@ -443,7 +449,7 @@ public:
 			{
 				bool checked = syncAction->isChecked();
 				m_syncedClientID = (checked) ? clientID : - 1;
-				for (auto s : m_syncActions)
+				for (auto const & s : m_syncActions)
 				{
 					// disable other actions:
 					if (s.first == clientID)
@@ -592,12 +598,8 @@ private:
 		}
 	}
 
-	void addSnapshot(quint64 snapshotID, iASnapshotInfo info)
+	QByteArray msgSnapshotAdd(quint64 snapshotID, iASnapshotInfo const& info) const
 	{
-		LOG(lvlInfo, QString("  New snapshot, ID=%1; position=%2, normal=%3")
-				.arg(snapshotID)
-				.arg(arrayToString(info.position))
-				.arg(arrayToString(info.normal)));
 		QByteArray outData;
 		QDataStream stream(&outData, QIODevice::WriteOnly);
 		stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
@@ -605,7 +607,16 @@ private:
 		writeArray(stream, info.position);
 		auto quat = getRotationQuaternionFromVectors(DefaultPlaneNormal, info.normal);
 		writeArray(stream, quat);
-		broadcastMsg(outData);
+		return outData;
+	}
+
+	void addSnapshot(quint64 snapshotID, iASnapshotInfo const& info)
+	{
+		LOG(lvlInfo, QString("  New snapshot, ID=%1; position=%2, normal=%3")
+				.arg(snapshotID)
+				.arg(arrayToString(info.position))
+				.arg(arrayToString(info.normal)));
+		broadcastMsg(msgSnapshotAdd(snapshotID, info));
 	}
 
 	void removeSnapshot(quint64 snapshotID)
@@ -617,13 +628,18 @@ private:
 		broadcastMsg(outData);
 	}
 
-	void clearSnapshots()
+	QByteArray msgSnapshotsClear() const
 	{
-		LOG(lvlInfo, QString("  Clearing all snapshots."));
 		QByteArray outData;
 		QDataStream outStream(&outData, QIODevice::WriteOnly);
 		outStream << MessageType::Snapshot << SnapshotCommandType::ClearAll;
-		broadcastMsg(outData);
+		return outData;
+	}
+
+	void clearSnapshots()
+	{
+		LOG(lvlInfo, QString("  Clearing all snapshots."));
+		broadcastMsg(msgSnapshotsClear());
 	}
 
 	void moveSnapshot(quint64 id, iAMoveAxis axis, float value)
@@ -669,25 +685,65 @@ private:
 			LOG(lvlWarn, QString("data loading: Expected %1 but wrote %2 bytes!").arg(bytesWritten).arg(fnLen));
 		}
 		broadcastMsg(outData);
-		for (auto c : m_clientSocket)
+		for (auto const & c : m_clientSocket)
 		{
 			m_clientState[c.first] = ClientState::PendingDatasetAck;
 		}
 	}
 
-	void handleClientDataResponse(quint64 clientID, MessageType type)
+	std::array<float, 16> objectMatrix(quint64 objID, iAMdiChild* child) const
+	{
+		std::array<float, 16> matrix;
+		if (objID == 0)
+		{
+			auto prop = child->dataSetViewer(child->firstImageDataSetIdx())->renderer()->vtkProp();
+			std::array<double, 16> matrixDouble;
+			prop->GetMatrix(matrixDouble.data());
+			std::copy(matrixDouble.begin(), matrixDouble.end(), matrix.begin());
+		}
+		else
+		{
+			vtkNew<vtkMatrix4x4> m;m->Identity();
+			std::copy(m->GetData(), m->GetData() + 16, matrix.begin());
+		}
+
+		return matrix;
+	}
+
+	void resyncClient(quint64 clientID, iAMdiChild* child)
+	{
+		auto cs = m_clientSocket[clientID];
+		// send all object matrices:
+		for (quint64 o : {0, 1})
+		{
+			cs->sendBinaryMessage(msgObjectCommand(o, ObjectCommandType::SetMatrix, objectMatrix(o, child)));
+		}
+
+		// clear and resend all snapshots:
+		cs->sendBinaryMessage(msgSnapshotsClear());
+		for (auto s : m_planeSliceTool->snapshots())
+		{
+			cs->sendBinaryMessage(msgSnapshotAdd(s.first, s.second));
+		}
+	}
+
+	void handleClientDataResponse(quint64 clientID, MessageType type, iAMdiChild* child)
 	{
 		if (type == MessageType::NAK)
 		{
 			LOG(lvlInfo, QString("  Received NAK from client %1, aborting data loading by broadcasting NAK.").arg(clientID));
 			// broadcast NAK:
-			for (auto s : m_clientSocket)
+			for (auto const & s : m_clientSocket)
 			{
 				sendMessage(s.first, MessageType::NAK);
 				m_clientState[s.first] = ClientState::Idle;
 			}
 			m_dataState = DataState::NoDataset;  // maybe switch back to previous dataset if there is any?
 			m_dataSetFileName = "";
+			for (auto outOfSyncClientID : m_outOfSync)
+			{
+				resyncClient(outOfSyncClientID, child);
+			}
 		}
 		else
 		{
@@ -738,11 +794,12 @@ private:
 							.arg(clientID));
 					m_clientSocket[clientID]->close(QWebSocketProtocol::CloseCodeProtocolError,
 						"Waited for client ACK/NAK for dataset - received other message instead!");
+					m_outOfSync.insert(clientID);
 					return;
 					// current protocol: (we must) silently ignore:
 					//     NAK is only permitted as response to protocol negotiation or as part of dataset loading procedure
 				}
-				handleClientDataResponse(clientID, type);
+				handleClientDataResponse(clientID, type, child);
 				return;
 			}
 
@@ -939,7 +996,7 @@ private:
 		if (allACK)
 		{   // send ACK to all clients, finally load dataset
 			LOG(lvlInfo, QString("  All clients have ACK'ed the dataset loading; ready to go ahead with actually loading the data, broadcasting ACK!"));
-			for (auto s : m_clientSocket)
+			for (auto const & s : m_clientSocket)
 			{
 				sendMessage(s.first, MessageType::ACK);
 				m_clientState[s.first] = ClientState::Idle;
@@ -987,6 +1044,7 @@ private:
 	std::map<quint64, QWebSocket*> m_clientSocket;
 	std::map<quint64, ClientState> m_clientState;
 	std::map<quint64, QAction*> m_syncActions;
+	std::set<quint64> m_outOfSync;
 	quint64 m_nextClientID;
 	QThread m_serverThread;
 	//! dataset state: currently a dataset is (1) not loaded (2) being loaded (3) loaded and sent out to clients

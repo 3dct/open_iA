@@ -54,6 +54,7 @@ public:
 	void saveState(QSettings& projectFile, QString const& fileName) override;
 
 	quint64 addSnapshot(iASnapshotInfo info);
+	std::map<quint64, iASnapshotInfo> const & snapshots();
 	void removeSnapshot(quint64 id);
 	void clearSnapshots();
 	void moveSlice(quint64 id, iAMoveAxis axis, float value);

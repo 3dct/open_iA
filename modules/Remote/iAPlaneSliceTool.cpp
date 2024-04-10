@@ -392,6 +392,11 @@ quint64 iAPlaneSliceTool::addSnapshot(iASnapshotInfo info)
 	return id;
 }
 
+std::map<quint64, iASnapshotInfo> const& iAPlaneSliceTool::snapshots()
+{
+	return m_snapshots;
+}
+
 void iAPlaneSliceTool::removeSnapshot(quint64 id)
 {
 	m_snapshots.erase(id);
