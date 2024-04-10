@@ -66,6 +66,11 @@ Server &rarr; Client
 |0x3|Client ID (64-bit)|
 |-|-|
 
+New clients need to be synchronized, in case objects have already been manipulated or snapshots were created.  
+In this case, the server sends commands that replicate its current state.
+
+The commands could be replayed from all previously received commands, or the server sends its own commands equivalent to the current state. Any command is ok, as long as the state is properly synchronized.
+
 ## Commands
 
 ### Reset
