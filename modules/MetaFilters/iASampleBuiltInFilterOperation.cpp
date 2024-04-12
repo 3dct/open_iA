@@ -75,6 +75,11 @@ void iASampleBuiltInFilterOperation::performWork()
 				.arg(m_compressOutput ? "on" : "off"));
 
 		auto io = iAFileTypeRegistry::createIO(outFileName, iAFileIO::Save);
+		if (!io)
+		{
+			LOG(lvlError, QString("I/O for file name '%1' could not be created!").arg(outFileName));
+			return;
+		}
 		QVariantMap writeParamValues;    // TODO: CHECK whether I/O requires other parameters and error in that case!
 		writeParamValues[iAFileIO::CompressionStr] = m_compressOutput;
 		io->save(outFileName, filter->output(o), writeParamValues);

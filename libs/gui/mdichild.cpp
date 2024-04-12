@@ -50,7 +50,6 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
 
 // TODO: refactor methods using the following out of mdichild!
 #include <vtkCamera.h>
@@ -214,7 +213,7 @@ void MdiChild::connectSignalsToSlots()
 			{
 				return;
 			}
-			for (auto viewer: m_dataSetViewers)
+			for (auto const & viewer: m_dataSetViewers)
 			{
 				viewer.second->slicerRegionSelected(minVal, maxVal, channelID);
 			}
@@ -690,10 +689,11 @@ void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptInde
 	m_parametricSpline->Evaluate(t2, point2, nullptr);
 
 	//calculate normal
-	double normal[3];
-	normal[0] = point2[0] - point1[0];
-	normal[1] = point2[1] - point1[1];
-	normal[2] = point2[2] - point1[2];
+	double normal[3] = {
+		point2[0] - point1[0],
+		point2[1] - point1[1],
+		point2[2] - point1[2]
+	};
 
 	vtkMatrixToLinearTransform* final_transform = vtkMatrixToLinearTransform::New();
 
