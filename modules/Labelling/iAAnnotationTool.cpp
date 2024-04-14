@@ -12,8 +12,11 @@
 #include <iARenderer.h>
 #include <iASlicer.h>
 
+#include <iAStringHelper.h>
+
 #include <QCheckBox>
 #include <QHeaderView>
+#include <QSettings>
 #include <QStandardItemModel>
 #include <QTableWidget>
 #include <QToolButton>
@@ -35,7 +38,7 @@
 
 
 iAAnnotation::iAAnnotation(size_t id, iAVec3d coord, QString const& name, QColor color):
-	m_id(id), m_coord(coord), m_name(name), m_color(color), m_hide(false)
+	m_id(id), m_coord(coord), m_name(name), m_color(color), m_show(true)
 {}
 
 const QString iAAnnotationTool::Name = "Annotation";
@@ -91,8 +94,6 @@ public:
 		m_container->layout()->addWidget(buttons);
 		m_container->layout()->setContentsMargins(1, 0, 0, 0);
 		m_container->layout()->setSpacing(4);
-
-
 
 		QObject::connect(m_table, &QTableWidget::cellClicked, tool,
 			[tool, this](int row,int /*cell*/)
@@ -152,6 +153,13 @@ public:
 	QToolButton* m_addButton;
 };
 
+
+std::shared_ptr<iATool> iAAnnotationTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
+{
+	return std::make_shared<iAAnnotationTool>(mainWnd, child);
+}
+
+
 iAAnnotationTool::iAAnnotationTool(iAMainWindow* mainWnd, iAMdiChild* child):
 	iATool(mainWnd,child),
 	m_ui(std::make_shared<iAAnnotationToolUI>(this))
@@ -162,25 +170,35 @@ iAAnnotationTool::iAAnnotationTool(iAMainWindow* mainWnd, iAMdiChild* child):
 size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 {
 	static size_t id = 0;
-	QString name = QString("Annotation %1").arg(id + 1);
-	QColor col = iAColorThemeManager::instance().theme("Brewer Dark2 (max. 8)")->color(id);
-	m_ui->m_annotations.push_back(iAAnnotation(id, coord, name, col));
+	auto newID = id;
+	++id;
+	auto name = QString("Annotation %1").arg(newID);
+	QColor col = iAColorThemeManager::instance().theme("Brewer Dark2 (max. 8)")->color(newID);
+	addAnnotation(iAAnnotation(newID, coord, name, col));
+	m_child->updateViews();
+	emit annotationsUpdated(m_ui->m_annotations);
+	return newID;
+}
+
+void iAAnnotationTool::addAnnotation(iAAnnotation a)
+{
+	m_ui->m_annotations.push_back(a);
 	int row = m_ui->m_table->rowCount();
 	m_ui->m_table->insertRow(row);
 	auto colorItem = new QTableWidgetItem();
-	colorItem->setData(Qt::DecorationRole, col);
-	colorItem->setData(Qt::UserRole, static_cast<quint64>(id));
+	colorItem->setData(Qt::DecorationRole, a.m_color);
+	colorItem->setData(Qt::UserRole, static_cast<quint64>(a.m_id));
 	m_ui->m_table->setItem(row, 0, colorItem);
-	m_ui->m_table->setItem(row, 1, new QTableWidgetItem(name));
-	m_ui->m_table->setItem(row, 2, new QTableWidgetItem(coord.toString()));
+	m_ui->m_table->setItem(row, 1, new QTableWidgetItem(a.m_name));
+	m_ui->m_table->setItem(row, 2, new QTableWidgetItem(a.m_coord.toString()));
 
-	auto show = new QCheckBox();
-	show->setChecked(true);
-	show->setStyleSheet("text-align: center; margin-left:50%; margin-right:50%; unchecked{ color: red; }; checked{ color: red; } ");
-	m_ui->m_table->setCellWidget(row, 3, show);
+	auto showCB = new QCheckBox();
+	showCB->setStyleSheet("text-align: center; margin-left:50%; margin-right:50%; unchecked{ color: red; }; checked{ color: red; } ");
+	m_ui->m_table->setCellWidget(row, 3, showCB);
 	m_ui->m_table->resizeColumnsToContents();
+	adjustTableItemShown(row, a.m_show);
 
-	QObject::connect(show, &QCheckBox::clicked, this,
+	QObject::connect(showCB, &QCheckBox::clicked, this,
 		[ this]()
 		{
 			auto rows = m_ui->m_table->selectionModel()->selectedRows();
@@ -191,7 +209,7 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 			}
 			int row = rows[0].row();
 			auto annotation_id = m_ui->m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
-			hideAnnotation(annotation_id);
+			toggleAnnotation(annotation_id);
 		});
 
 	// Create a text actor.
@@ -199,9 +217,9 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 	for (int i = 0; i < 4; ++i)
 	{
 		auto txt = vtkSmartPointer<vtkCaptionActor2D>::New();
-		txt->SetCaption(name.toStdString().c_str());
+		txt->SetCaption(a.m_name.toStdString().c_str());
 		auto prop = txt->GetProperty();
-		prop->SetColor(col.redF(), col.greenF(), col.blueF());
+		prop->SetColor(a.m_color.redF(), a.m_color.greenF(), a.m_color.blueF());
 		prop->SetLineWidth(10.0); // does not work, tried 1, 10, 100
 
 
@@ -215,9 +233,9 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 		//txt->SetMaximumLeaderGlyphSize(10);
 
 		double pt[3] = {
-			coord[i < 3 ? m_child->slicer(i)->globalAxis(0) : 0],
-			coord[i < 3 ? m_child->slicer(i)->globalAxis(1) : 1],
-			i < 3 ? 0: coord[2],
+			a.m_coord[i < 3 ? m_child->slicer(i)->globalAxis(0) : 0],
+			a.m_coord[i < 3 ? m_child->slicer(i)->globalAxis(1) : 1],
+			i < 3 ? 0: a.m_coord[2],
 		};
 		txt->SetAttachmentPoint(pt);
 		txt->SetDisplayPosition(100, 100);    // position relative to attachment point
@@ -234,25 +252,20 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 		txt->GetCaptionTextProperty()->ShadowOff();
 		txt->GetCaptionTextProperty()->SetBackgroundColor(0.0, 0.0, 0.0);
 		txt->GetCaptionTextProperty()->SetBackgroundOpacity(0.2);
-		txt->GetCaptionTextProperty()->SetColor(col.redF(), col.greenF(), col.blueF());
+		txt->GetCaptionTextProperty()->SetColor(a.m_color.redF(), a.m_color.greenF(), a.m_color.blueF());
 		txt->GetCaptionTextProperty()->SetFontSize(16);
 		txt->GetCaptionTextProperty()->SetFrameWidth(2);
-		txt->GetCaptionTextProperty()->SetFrameColor(col.redF(), col.greenF(), col.blueF());
+		txt->GetCaptionTextProperty()->SetFrameColor(a.m_color.redF(), a.m_color.greenF(), a.m_color.blueF());
 		txt->GetCaptionTextProperty()->FrameOn();
 		//txt->GetCaptionTextProperty()->UseTightBoundingBoxOn();
 
 		vtkAnnot.m_txtActor[i] = txt;
-		auto renWin = (i < 3) ?
-			m_child->slicer(i)->renderWindow() :
-			m_child->renderer()->renderWindow();
-		renWin->GetRenderers()->GetFirstRenderer()->AddActor(txt);
 	}
-	m_ui->m_vtkAnnotateData[id] = vtkAnnot;
-	m_child->updateViews();
-	emit annotationsUpdated(m_ui->m_annotations);
-
-	++id;
-	return id-1;
+	m_ui->m_vtkAnnotateData[a.m_id] = vtkAnnot;
+	if (a.m_show)
+	{
+		showActors(a.m_id, true);
+	}
 }
 
 void iAAnnotationTool::renameAnnotation(size_t id, QString const& newName)
@@ -296,73 +309,76 @@ void iAAnnotationTool::removeAnnotation(size_t id)
 			m_ui->m_table->removeRow(row);
 		}
 	}
-	for (int j=0; j<3; ++j)
-	{
-		m_child->slicer(j)->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_ui->m_vtkAnnotateData[id].m_txtActor[j]);
-	}
-	m_child->renderer()->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_ui->m_vtkAnnotateData[id].m_txtActor[3]);
+	showActors(id, false);
 	m_ui->m_vtkAnnotateData.erase(id);
 	m_child->updateViews();
 	emit annotationsUpdated(m_ui->m_annotations);
 }
 
-
-void iAAnnotationTool::hideAnnotation(size_t id)
+void iAAnnotationTool::toggleAnnotation(size_t id)
 {
 	for (size_t i = 0; i < m_ui->m_annotations.size(); ++i)
 	{
 		if (m_ui->m_annotations[i].m_id == id)
 		{
-			m_ui->m_annotations[i].m_hide = !m_ui->m_annotations[i].m_hide;
+			showAnnotation(id, !m_ui->m_annotations[i].m_show);
 			break;
 		}
 	}
+}
 
-	bool hideOn = false;
+void iAAnnotationTool::showAnnotation(size_t id, bool show)
+{
+	for (size_t i = 0; i < m_ui->m_annotations.size(); ++i)
+	{
+		if (m_ui->m_annotations[i].m_id == id)
+		{
+			m_ui->m_annotations[i].m_show = show;
+			break;
+		}
+	}
 
 	for (auto row = 0; row < m_ui->m_table->rowCount(); ++row)
 	{
 		if (m_ui->m_table->item(row, 0)->data(Qt::UserRole).toULongLong() == id)
 		{
-			hideOn = m_ui->m_table->item(row, 1)->foreground().color() == QColorConstants::Gray;
-
-			auto color = hideOn ? QColorConstants::Black : QColorConstants::Gray;
-
-			m_ui->m_table->item(row, 1)->setForeground(color);
-			m_ui->m_table->item(row, 2)->setForeground(color);
-
-			QCheckBox* show = (QCheckBox*)m_ui->m_table->cellWidget(row, 3);
-			show->setChecked(hideOn);
-
+			adjustTableItemShown(row, show);
+			break;
 		}
 	}
-	for (int j = 0; j < 3; ++j)
-	{
-		if (!hideOn)
-		{
-			m_child->slicer(j)->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(
-				m_ui->m_vtkAnnotateData[id].m_txtActor[j]);
-		}
-		else
-		{
-			m_child->slicer(j)->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(
-				m_ui->m_vtkAnnotateData[id].m_txtActor[j]);
-		}
-	}
-	if (!hideOn)
-	{
-		m_child->renderer()->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(
-			m_ui->m_vtkAnnotateData[id].m_txtActor[3]);
-	}
-	else
-	{
-		m_child->renderer()->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(
-			m_ui->m_vtkAnnotateData[id].m_txtActor[3]);
-	}
+	showActors(id, show);
 	//m_ui->m_vtkAnnotateData.erase(id);
 	m_child->updateViews();
 
 	emit annotationsUpdated(m_ui->m_annotations);
+}
+
+void iAAnnotationTool::adjustTableItemShown(int row, bool show)
+{
+	auto color = show ? QColorConstants::Black : QColorConstants::Gray;
+	m_ui->m_table->item(row, 1)->setForeground(color);
+	m_ui->m_table->item(row, 2)->setForeground(color);
+	QCheckBox* checkBox = (QCheckBox*)m_ui->m_table->cellWidget(row, 3);
+	checkBox->setChecked(show);
+}
+
+void iAAnnotationTool::showActors(size_t id, bool show)
+{
+	for (int i = 0; i < 4; ++i)
+	{
+		auto renderer = ((i < 3) ? m_child->slicer(i)->renderWindow() : m_child->renderer()->renderWindow())
+							->GetRenderers()
+							->GetFirstRenderer();
+		auto actor = m_ui->m_vtkAnnotateData[id].m_txtActor[i];
+		if (show)
+		{
+			renderer->AddActor(actor);
+		}
+		else
+		{
+			renderer->RemoveActor(actor);
+		}
+	}
 }
 
 std::vector<iAAnnotation> const& iAAnnotationTool::annotations() const
@@ -370,6 +386,90 @@ std::vector<iAAnnotation> const& iAAnnotationTool::annotations() const
 	return m_ui->m_annotations;
 }
 
+namespace
+{
+	const QString PrjAnnotation("Annotation%1");
+	const QString FieldSeparator("|");
+	const int NumFields = 5;
+	QString toString(iAAnnotation const& a)
+	{
+		return QString("%1").arg(a.m_id) + FieldSeparator +
+			QString("%1").arg(arrayToString(a.m_coord.data(), 3)) + FieldSeparator +
+			QString("%1").arg(a.m_color.name()) + FieldSeparator +
+			iAConverter<bool>::toString(a.m_show) + FieldSeparator +
+			a.m_name;
+	}
+	iAAnnotation fromString(QString const& s)
+	{
+		auto t = s.split(FieldSeparator);
+		if (t.size() < NumFields)
+		{
+			throw std::runtime_error(QString("Too few fields (%1, expected %2) in annotation %3")
+				.arg(t.size()).arg(NumFields).arg(s).toStdString());
+		}
+		bool ok;
+		auto id = iAConverter<size_t>::toT(t[0], &ok);
+		if (!ok)
+		{
+			throw std::runtime_error(QString("Invalid id in annotation %1").arg(s).toStdString());
+		}
+		iAVec3d coord;
+		if (!stringToArray<double>(t[1], coord.data(), 3))
+		{
+			throw std::runtime_error(QString("Invalid coord in annotation %1").arg(s).toStdString());
+		}
+		QColor color(t[2]);
+		if (!color.isValid())
+		{
+			throw std::runtime_error(QString("Invalid color in annotation %1").arg(s).toStdString());
+		}
+		QString name = t[4];
+		// special handling if separator used in name:
+		qsizetype tIdx = 5;
+		while (tIdx < t.size())
+		{
+			name += FieldSeparator + t[tIdx];
+			tIdx += 1;
+		}
+		auto a = iAAnnotation(id, coord, name, color);
+		a.m_show = iAConverter<bool>::toT(t[3], &ok);
+		if (!ok)
+		{
+			throw std::runtime_error(QString("Invalid show value in annotation %1").arg(s).toStdString());
+		}
+		return a;
+	}
+}
+
+void iAAnnotationTool::loadState(QSettings& projectFile, QString const& fileName)
+{
+	Q_UNUSED(fileName);
+	try
+	{
+		size_t annIdx = 0;
+		while (projectFile.contains(PrjAnnotation.arg(annIdx)))
+		{
+			auto a = fromString(projectFile.value(PrjAnnotation.arg(annIdx), "").toString());
+			addAnnotation(a);
+			++annIdx;
+		}
+	}
+	catch (std::exception& e)
+	{
+		LOG(lvlError, QString("Invalid annotation information: %1").arg(e.what()));
+	}
+}
+
+void iAAnnotationTool::saveState(QSettings& projectFile, QString const& fileName)
+{
+	Q_UNUSED(fileName);
+	auto const& annList = annotations();
+	size_t annIdx = 0;
+	for (auto const& a : annList)
+	{
+		projectFile.setValue(PrjAnnotation.arg(annIdx++), toString(a));
+	}
+}
 
 void iAAnnotationTool::startAddMode()
 {
@@ -401,14 +501,10 @@ void iAAnnotationTool::focusToAnnotation(size_t id)
 			{
 				//auto test = m_child->slicer(i)->sizeIncrement();
 				//auto intTest = test.height();
+				// TODO: consider spacing!
 				m_child->slicer(i)->setSliceNumber(annotation.m_coord[i]);
 			}
 
 		}
 	}
 }
-
-//std::shared_ptr<iAAnnotationTool> iAAnnotationTool::create()
-//{
-//	return
-//}

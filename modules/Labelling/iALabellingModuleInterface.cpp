@@ -8,7 +8,7 @@
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
 #include <iAToolHelper.h>    // for addToolToActiveMdiChild
-//#include <iAToolRegistry.h>
+#include <iAToolRegistry.h>
 
 #include <QAction>
 #include <QMenu>
@@ -35,5 +35,5 @@ void iALabellingModuleInterface::Initialize()
 	menuEnsembles->addAction(actionLabelling);
 	menuEnsembles->addAction(actionAnnotation);
 
-	//iAToolRegistry::addTool(iAAnnotationTool::Name, iAAnnotationTool::create)
+	iAToolRegistry::addTool(iAAnnotationTool::Name, iAAnnotationTool::create);
 }
