@@ -67,9 +67,13 @@ Server &rarr; Client
 |-|-|
 
 New clients need to be synchronized, in case objects have already been manipulated or snapshots were created.  
-In this case, the server sends commands that replicate its current state.
+In this case, the server sends commands that replicate its current state, in this document called a sync command chain.
 
-The commands could be replayed from all previously received commands, or the server sends its own commands equivalent to the current state. Any command is ok, as long as the state is properly synchronized.
+## Sync Command Chain
+
+This is a special list of commands, only used to resynchronize clients with the current server state.
+
+The matrix of all objects is sent, followed by the add snapshot commands to replicate them as well.
 
 ## Commands
 
@@ -128,7 +132,7 @@ If the server sends a load dataset command, because of network latency, it is po
 These commands are ignored by the server while waiting for dataset load.
 
 * If the dataset load operation succeeds, those previous commands can simply be ignored.  
-* If the dataset load fails, the commands are lost and the server and client are no longer in sync. As both the server and client aren't expected to buffer commands to resolve such cases, the server has to send the entire state of the dataset to the client in an attempt to resynchronize.
+* If the dataset load fails, the commands are lost and the server and client are no longer in sync. As both the server and client aren't expected to buffer commands to resolve such cases, the server has to send the entire state of the dataset to the client in an attempt to resynchronize. See [Sync Command Chain](#sync-command-chain).
 
 While dataset load is happening, clients might connect or disconnect:
 
