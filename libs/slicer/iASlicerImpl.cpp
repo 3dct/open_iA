@@ -601,6 +601,20 @@ void iASlicerImpl::setSliceNumber( int sliceNumber )
 	emit sliceNumberChanged( m_mode, sliceNumber );
 }
 
+void iASlicerImpl::setSlicePosition(double slicePos)
+{
+	if (m_sliceNumberChannel == NotExistingChannel)
+	{
+		return;
+	}
+	int sliceAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+	double const* spacing = m_channels[m_sliceNumberChannel]->input()->GetSpacing();
+	// TODO: once all occurrences of setSliceNumber have been replaced with setSlicePosition,
+	//    move implementation from there to here, should simplify stuff a little bit
+	//    (e.g., no more spacing computations required)
+	setSliceNumber(slicePos / spacing[sliceAxis]);
+}
+
 void iASlicerImpl::setLinearInterpolation(bool enabled)
 {
 	for (auto channel: m_channels)

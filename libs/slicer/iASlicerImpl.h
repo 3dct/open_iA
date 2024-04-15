@@ -209,6 +209,7 @@ public slots:
 	//! Save a movie of a full slice-through of the specimen from top to bottom
 	void saveMovie() override;
 	void setSliceNumber(int sliceNumber) override;
+	void setSlicePosition(double slicePos) override;
 	void rotateSlice(double angle) override;
 	void setSlabThickness(int thickness);
 	void setSlabCompositeMode(int compositeMode);

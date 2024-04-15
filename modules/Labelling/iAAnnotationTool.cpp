@@ -502,9 +502,8 @@ void iAAnnotationTool::focusToAnnotation(size_t id)
 				//auto test = m_child->slicer(i)->sizeIncrement();
 				//auto intTest = test.height();
 				// TODO: consider spacing!
-				m_child->slicer(i)->setSliceNumber(annotation.m_coord[i]);
+				m_child->slicer(i)->setSlicePosition(annotation.m_coord[i]);
 			}
-
 		}
 	}
 }
