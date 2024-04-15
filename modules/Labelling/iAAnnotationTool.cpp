@@ -142,8 +142,6 @@ public:
 				auto id = m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
 				tool->removeAnnotation(id);
 			});
-
-
 	}
 	QWidget* m_container;
 	QTableWidget* m_table;
@@ -154,17 +152,39 @@ public:
 };
 
 
+
 std::shared_ptr<iATool> iAAnnotationTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
 {
 	return std::make_shared<iAAnnotationTool>(mainWnd, child);
 }
-
 
 iAAnnotationTool::iAAnnotationTool(iAMainWindow* mainWnd, iAMdiChild* child):
 	iATool(mainWnd,child),
 	m_ui(std::make_shared<iAAnnotationToolUI>(this))
 {
 	child->splitDockWidget(child->renderDockWidget(), m_ui->m_dockWidget, Qt::Vertical);
+	for (int i = 0; i < 3; ++i)
+	{
+		auto s = child->slicer(i);
+		QObject::connect(s, &iASlicer::sliceNumberChanged, this, [this, i, s]()
+		{
+			const double LinearRampFraction = 0.05;
+			for (auto& a : m_ui->m_annotations)
+			{
+				double dist = std::abs(a.m_coord[s->mode()] - s->slicePosition());
+				auto sMinMax = s->sliceRange();
+				auto sRange = (sMinMax.second - sMinMax.first) * LinearRampFraction;
+				double opacity = std::max(0.1, // at a minimum, show with opacity of 0.1
+					1 - dist / sRange);        // linearly decrease based on distance between current slice and annotation
+				auto vtkData = m_ui->m_vtkAnnotateData[a.m_id];
+				vtkData.m_txtActor[i]->GetProperty()->SetOpacity(opacity);
+				vtkData.m_txtActor[i]->GetTextActor()->GetProperty()->SetOpacity(opacity);
+				vtkData.m_txtActor[i]->GetCaptionTextProperty()->SetOpacity(opacity);
+				vtkData.m_txtActor[i]->GetCaptionTextProperty()->SetFrameWidth(opacity * 2);
+				vtkData.m_txtActor[i]->GetCaptionTextProperty()->SetBackgroundOpacity(opacity);
+			}
+		});
+	}
 }
 
 size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
@@ -220,18 +240,22 @@ void iAAnnotationTool::addAnnotation(iAAnnotation a)
 		txt->SetCaption(a.m_name.toStdString().c_str());
 		auto prop = txt->GetProperty();
 		prop->SetColor(a.m_color.redF(), a.m_color.greenF(), a.m_color.blueF());
-		prop->SetLineWidth(10.0); // does not work, tried 1, 10, 100
-
-
-		// Does not work; there seems to be a slight thickening of the tip at the moment, but no real arrow visible:
-		//vtkNew<vtkArrowSource> arrowSource;
-		//arrowSource->SetShaftRadius(10.0);
-		//arrowSource->SetTipLength(10.0);
-		//arrowSource->Update();
-		//txt->SetLeaderGlyphConnection(arrowSource->GetOutputPort());
-		//txt->SetLeaderGlyphSize(10);
-		//txt->SetMaximumLeaderGlyphSize(10);
-
+		if (i < 3)
+		{
+			prop->SetLineWidth(3.0); // only works for 2D leader
+		}
+		/*
+		else
+		{
+			// Does not work; there might be a slight thickening of the tip, but no real arrow visible:
+			vtkNew<vtkArrowSource> arrowSource;
+			arrowSource->SetShaftRadius(100.0);
+			arrowSource->SetTipLength(100.0);
+			arrowSource->Update();
+			txt->SetLeaderGlyphConnection(arrowSource->GetOutputPort());
+		}
+		*/
+		txt->SetThreeDimensionalLeader(i == 3);
 		double pt[3] = {
 			a.m_coord[i < 3 ? m_child->slicer(i)->globalAxis(0) : 0],
 			a.m_coord[i < 3 ? m_child->slicer(i)->globalAxis(1) : 1],
