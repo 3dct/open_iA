@@ -163,8 +163,11 @@ public:
 
 	//! Set the position of the position marker (in slicer coordinates).
 	void setPositionMarkerCenter(double x, double y, double z);
-	//! Get current slice number
+
 	int sliceNumber() const override;
+	double slicePosition() const override;
+	double sliceThickness() const override;
+	std::pair<double, double> sliceRange() const override;
 
 	//! Enable/disable contour lines.
 	void showIsolines(bool s);

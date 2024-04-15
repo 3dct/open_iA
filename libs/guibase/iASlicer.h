@@ -100,6 +100,12 @@ public:
 
 	//! Get current slice number
 	virtual int sliceNumber() const = 0;
+	//! Get current slice position
+	virtual double slicePosition() const = 0;
+	//! Get thickness of a single slice (typically, the voxel spacing of the dataset being sliced in slice axis direction)
+	virtual double sliceThickness() const = 0;
+	//! Retrieve minimum and maximum position of slice range
+	virtual std::pair<double, double> sliceRange() const = 0;
 
 	//! @{ set contour line parameters.
 	virtual void setContours(int numberOfContours, double contourMin, double contourMax) = 0;

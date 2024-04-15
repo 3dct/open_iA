@@ -1994,6 +1994,33 @@ int iASlicerImpl::sliceNumber() const
 	return m_sliceNumber;
 }
 
+double iASlicerImpl::slicePosition() const
+{
+	int sliceAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+	double const* origin = m_channels[m_sliceNumberChannel]->input()->GetOrigin();
+	double const* spacing = m_channels[m_sliceNumberChannel]->input()->GetSpacing();
+	return origin[sliceAxis] + (m_sliceNumber * spacing[sliceAxis]);
+}
+
+double iASlicerImpl::sliceThickness() const
+{
+	int sliceAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+	double const* spacing = m_channels[m_sliceNumberChannel]->input()->GetSpacing();
+	return spacing[sliceAxis];
+}
+
+std::pair<double, double> iASlicerImpl::sliceRange() const
+{
+	auto img = m_channels[m_sliceNumberChannel]->input();
+	int sliceAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+	double sliceOrigin = img->GetOrigin()[sliceAxis];
+	double sliceSpacing = img->GetSpacing()[sliceAxis];
+	auto const ext = img->GetExtent();
+	int minIdx = ext[sliceAxis * 2];
+	int maxIdx = ext[sliceAxis * 2 + 1];
+	return std::make_pair(sliceOrigin + (minIdx * sliceSpacing), sliceOrigin + (maxIdx * sliceSpacing));
+}
+
 void iASlicerImpl::keyPressEvent(QKeyEvent *event)
 {
 	// TODO: merge with iASlicerImpl::execute, switch branch vtkCommand::KeyPressEvent ?
