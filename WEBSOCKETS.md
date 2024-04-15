@@ -145,7 +145,7 @@ IF NAK comes back, disconnect the client, as it can not synchronize and would de
 #### Client disconnects
 
 In case a client disconnects, it is assumed to have sent ACK, as it should not stop other clients from loading the dataset.  
-If all clients are disconnected, the server is on its own and will always assume ACK. The server can then operate offline.
+If all clients are disconnected, the server is on its own and will always assume ACK. The server then operates alone.
 
 ## Objects
 
