@@ -45,7 +45,7 @@ const QString iAAnnotationTool::Name = "Annotation";
 
 namespace
 {
-	const double CaptionMinimumOpacity = 0.1;
+	const double CaptionMinimumOpacity = 0.25;
 	const double CaptionBackgroundOpacity = 0.2;
 	const int CaptionFrameWidth = 2;
 }
@@ -284,9 +284,11 @@ void iAAnnotationTool::addAnnotation(iAAnnotation a)
 	captionRep->SetFontFactor(0.6);      // necessary for the font size not to be too large (in comparison to slicers)
 	vtkAnnot.m_caption3D->SetInteractor(m_child->renderer()->renderWindow()->GetInteractor());
 	vtkAnnot.m_caption3D->SetRepresentation(captionRep);
+	vtkAnnot.m_caption3D->GetBorderRepresentation()->EnforceNormalizedViewportBoundsOn();
 	captionRep->SetPosition(0.8, 0.8);   // upper right cornder
 	//captionRep->SetPosition2(0.2, 0.2);  // should set size of annotation, but does not seem to have any affect (maybe it would with BorderOn?)
 	setupCaptionActor(captionRep->GetCaptionActor2D(), a.m_name, a.m_color);
+	// automatic scaling still done, see https://discourse.vtk.org/t/vtkcaptionwidget-and-text-scaling/13726
 	m_ui->m_vtkAnnotateData[a.m_id] = vtkAnnot;
 	if (a.m_show)
 	{
