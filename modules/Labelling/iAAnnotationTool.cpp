@@ -43,9 +43,17 @@ iAAnnotation::iAAnnotation(size_t id, iAVec3d coord, QString const& name, QColor
 
 const QString iAAnnotationTool::Name = "Annotation";
 
+namespace
+{
+	const double CaptionMinimumOpacity = 0.1;
+	const double CaptionBackgroundOpacity = 0.2;
+	const int CaptionFrameWidth = 2;
+}
+
 struct iAVtkAnnotationData
 {
-	std::array<vtkSmartPointer<vtkCaptionActor2D>, 4> m_txtActor;
+	std::array<vtkSmartPointer<vtkCaptionActor2D>, iASlicerMode::SlicerCount> m_txtActor;
+	vtkSmartPointer<vtkCaptionWidget> m_caption3D;
 };
 
 class iAAnnotationToolUI
@@ -55,13 +63,9 @@ public:
 		m_container(new QWidget),
 		m_table(new QTableWidget(m_container)),
 		m_dockWidget(new iADockWidgetWrapper(m_container, "Annotations", "dwAnnotations")),
-		m_addButton(new QToolButton()),
-		m_leaderGlyphSource(vtkSmartPointer<vtkArrowSource>::New())
+		m_addButton(new QToolButton())
 	{
-		QStringList columnNames = QStringList() << ""
-												<< "Name"
-												<< "Coordinates"
-												<< "Show";
+		auto columnNames = QStringList() << "" << "Name" << "Coordinates" << "Show";
 		m_table->setColumnCount(static_cast<int>(columnNames.size()));
 		m_table->setHorizontalHeaderLabels(columnNames);
 		m_table->verticalHeader()->hide();
@@ -150,7 +154,6 @@ public:
 	std::vector<iAAnnotation> m_annotations;
 	std::map<size_t, iAVtkAnnotationData> m_vtkAnnotateData;
 	QToolButton* m_addButton;
-	vtkSmartPointer<vtkArrowSource> m_leaderGlyphSource;
 };
 
 
@@ -165,7 +168,7 @@ iAAnnotationTool::iAAnnotationTool(iAMainWindow* mainWnd, iAMdiChild* child):
 	m_ui(std::make_shared<iAAnnotationToolUI>(this))
 {
 	child->splitDockWidget(child->renderDockWidget(), m_ui->m_dockWidget, Qt::Vertical);
-	for (int i = 0; i < 3; ++i)
+	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
 		auto s = child->slicer(i);
 		QObject::connect(s, &iASlicer::sliceNumberChanged, this, [this, i, s]()
@@ -176,14 +179,14 @@ iAAnnotationTool::iAAnnotationTool(iAMainWindow* mainWnd, iAMdiChild* child):
 				double dist = std::abs(a.m_coord[s->mode()] - s->slicePosition());
 				auto sMinMax = s->sliceRange();
 				auto sRange = (sMinMax.second - sMinMax.first) * LinearRampFraction;
-				double opacity = std::max(0.1, // at a minimum, show with opacity of 0.1
-					1 - dist / sRange);        // linearly decrease based on distance between current slice and annotation
+				double opacity = std::max(CaptionMinimumOpacity, // caption should have a minimum opacity
+					1 - dist / sRange);  // linearly decrease based on distance between current slice and annotation
 				auto vtkData = m_ui->m_vtkAnnotateData[a.m_id];
 				vtkData.m_txtActor[i]->GetProperty()->SetOpacity(opacity);
 				vtkData.m_txtActor[i]->GetTextActor()->GetProperty()->SetOpacity(opacity);
 				vtkData.m_txtActor[i]->GetCaptionTextProperty()->SetOpacity(opacity);
-				vtkData.m_txtActor[i]->GetCaptionTextProperty()->SetFrameWidth(opacity * 2);
-				vtkData.m_txtActor[i]->GetCaptionTextProperty()->SetBackgroundOpacity(opacity);
+				vtkData.m_txtActor[i]->GetCaptionTextProperty()->SetFrameWidth(opacity * CaptionFrameWidth);
+				vtkData.m_txtActor[i]->GetCaptionTextProperty()->SetBackgroundOpacity(CaptionBackgroundOpacity * (1 - dist / sRange));
 			}
 		});
 	}
@@ -200,6 +203,33 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 	m_child->updateViews();
 	emit annotationsUpdated(m_ui->m_annotations);
 	return newID;
+}
+
+void setupCaptionActor(vtkCaptionActor2D* actor, QString const & txt, QColor const & c)
+{
+	actor->SetCaption(txt.toStdString().c_str());
+	auto prop = actor->GetProperty();
+	prop->SetColor(c.redF(), c.greenF(), c.blueF());
+
+	actor->BorderOff();      // disable border, as its color cannot be changed (use frame instead, see below)
+	actor->PickableOn();
+	actor->DragableOn();
+	actor->GetTextActor()->SetTextScaleModeToNone();
+	//actor->SetPadding(10); // does not seem to have any effect (on distance text <-> frame; probably only on distance text <-> border);
+
+	auto txtProp = actor->GetCaptionTextProperty();
+	txtProp->SetFontFamily(VTK_ARIAL);
+	//txtProp->BoldOff();
+	txtProp->ItalicOff();
+	txtProp->ShadowOff();
+	txtProp->SetBackgroundColor(0.0, 0.0, 0.0);
+	txtProp->SetBackgroundOpacity(CaptionBackgroundOpacity);
+	txtProp->SetColor(c.redF(), c.greenF(), c.blueF());
+	txtProp->SetFontSize(16);
+	txtProp->SetFrameWidth(CaptionFrameWidth);
+	txtProp->SetFrameColor(c.redF(), c.greenF(), c.blueF());
+	txtProp->FrameOn();
+	txtProp->UseTightBoundingBoxOn();  // if not enabled, unevenly distributed distance to frame if text with no descenders
 }
 
 void iAAnnotationTool::addAnnotation(iAAnnotation a)
@@ -235,57 +265,33 @@ void iAAnnotationTool::addAnnotation(iAAnnotation a)
 		});
 
 	iAVtkAnnotationData vtkAnnot;
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
-		auto txt = vtkSmartPointer<vtkCaptionActor2D>::New();
-		txt->SetCaption(a.m_name.toStdString().c_str());
-		auto prop = txt->GetProperty();
-		prop->SetColor(a.m_color.redF(), a.m_color.greenF(), a.m_color.blueF());
-		if (i < 3)
-		{
-			prop->SetLineWidth(3.0); // only works for 2D leader
-		}
-		else
-		{   // works better with adaptations to vtkCaptionActor2D, but arrow is shown at least when zooming out
-			// (see https://discourse.vtk.org/t/vtkcaptionactor2d-and-the-size-of-leader-glyph/13721)
-			m_ui->m_leaderGlyphSource->SetShaftRadius(0.2);
-			m_ui->m_leaderGlyphSource->SetTipRadius(0.5);
-			m_ui->m_leaderGlyphSource->SetTipLength(0.6);
-			m_ui->m_leaderGlyphSource->Update();	
-			txt->SetLeaderGlyphConnection(m_ui->m_leaderGlyphSource->GetOutputPort());
-			txt->SetLeaderGlyphSize(1);  // unclear what values are useful here; until ~0.001 it always is roughly the "maximum ... size" pixel, and below it just gets smaller but still no apparent adaptation depending on zoom level...
-			txt->SetMaximumLeaderGlyphSize(30.0);
-		}
-		txt->SetThreeDimensionalLeader(i == 3);
+		auto actor = vtkSmartPointer<vtkCaptionActor2D>::New();
+		actor->GetProperty()->SetLineWidth(3.0); // only works for 2D leader
+		actor->SetThreeDimensionalLeader(false);
 		double pt[3] = {
-			a.m_coord[i < 3 ? m_child->slicer(i)->globalAxis(0) : 0],
-			a.m_coord[i < 3 ? m_child->slicer(i)->globalAxis(1) : 1],
-			i < 3 ? 0: a.m_coord[2],
+			a.m_coord[m_child->slicer(i)->globalAxis(0)],
+			a.m_coord[m_child->slicer(i)->globalAxis(1)],
+			0,
 		};
-		txt->SetAttachmentPoint(pt);
-		txt->SetDisplayPosition(100, 100);    // position relative to attachment point
+		actor->SetAttachmentPoint(pt);
+		actor->SetDisplayPosition(100, 100);  // position relative to attachment point
 		// todo: placement outside of object
 
-		txt->BorderOff();
-		txt->PickableOn();
-		txt->DragableOn();
-
-		txt->GetTextActor()->SetTextScaleModeToNone();
-		txt->GetCaptionTextProperty()->SetFontFamily(VTK_ARIAL);
-		//txt->GetCaptionTextProperty()->BoldOff();
-		txt->GetCaptionTextProperty()->ItalicOff();
-		txt->GetCaptionTextProperty()->ShadowOff();
-		txt->GetCaptionTextProperty()->SetBackgroundColor(0.0, 0.0, 0.0);
-		txt->GetCaptionTextProperty()->SetBackgroundOpacity(0.2);
-		txt->GetCaptionTextProperty()->SetColor(a.m_color.redF(), a.m_color.greenF(), a.m_color.blueF());
-		txt->GetCaptionTextProperty()->SetFontSize(16);
-		txt->GetCaptionTextProperty()->SetFrameWidth(2);
-		txt->GetCaptionTextProperty()->SetFrameColor(a.m_color.redF(), a.m_color.greenF(), a.m_color.blueF());
-		txt->GetCaptionTextProperty()->FrameOn();
-		//txt->GetCaptionTextProperty()->UseTightBoundingBoxOn();
-
-		vtkAnnot.m_txtActor[i] = txt;
+		setupCaptionActor(actor, a.m_name, a.m_color);
+		vtkAnnot.m_txtActor[i] = actor;
 	}
+	vtkAnnot.m_caption3D = vtkSmartPointer<vtkCaptionWidget>::New();
+	vtkNew<vtkCaptionRepresentation> captionRep;
+	captionRep->SetAnchorPosition(a.m_coord.data());
+	captionRep->GetCaptionActor2D()->SetAttachmentPoint(a.m_coord.data());
+	captionRep->SetFontFactor(0.6);      // necessary for the font size not to be too large (in comparison to slicers)
+	vtkAnnot.m_caption3D->SetInteractor(m_child->renderer()->renderWindow()->GetInteractor());
+	vtkAnnot.m_caption3D->SetRepresentation(captionRep);
+	captionRep->SetPosition(0.8, 0.8);   // upper right cornder
+	//captionRep->SetPosition2(0.2, 0.2);  // should set size of annotation, but does not seem to have any affect (maybe it would with BorderOn?)
+	setupCaptionActor(captionRep->GetCaptionActor2D(), a.m_name, a.m_color);
 	m_ui->m_vtkAnnotateData[a.m_id] = vtkAnnot;
 	if (a.m_show)
 	{
@@ -309,10 +315,11 @@ void iAAnnotationTool::renameAnnotation(size_t id, QString const& newName)
 			m_ui->m_table->item(row, 1)->setText(newName);
 		}
 	}
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < m_ui->m_vtkAnnotateData[id].m_txtActor.size(); ++i)
 	{
 		m_ui->m_vtkAnnotateData[id].m_txtActor[i]->SetCaption(newName.toStdString().c_str());
 	}
+	m_ui->m_vtkAnnotateData[id].m_caption3D->GetCaptionActor2D()->SetCaption(newName.toStdString().c_str());
 	m_child->updateViews();
 	emit annotationsUpdated(m_ui->m_annotations);
 }
@@ -387,23 +394,25 @@ void iAAnnotationTool::adjustTableItemShown(int row, bool show)
 	checkBox->setChecked(show);
 }
 
+void showActor(vtkRenderer* renderer, vtkProp* actor, bool show)
+{
+	if (show)
+	{
+		renderer->AddActor(actor);
+	}
+	else
+	{
+		renderer->RemoveActor(actor);
+	}
+}
+
 void iAAnnotationTool::showActors(size_t id, bool show)
 {
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
-		auto renderer = ((i < 3) ? m_child->slicer(i)->renderWindow() : m_child->renderer()->renderWindow())
-							->GetRenderers()
-							->GetFirstRenderer();
-		auto actor = m_ui->m_vtkAnnotateData[id].m_txtActor[i];
-		if (show)
-		{
-			renderer->AddActor(actor);
-		}
-		else
-		{
-			renderer->RemoveActor(actor);
-		}
+		showActor(m_child->slicer(i)->renderWindow()->GetRenderers()->GetFirstRenderer(), m_ui->m_vtkAnnotateData[id].m_txtActor[i], show);
 	}
+	m_ui->m_vtkAnnotateData[id].m_caption3D->SetEnabled(show);
 }
 
 std::vector<iAAnnotation> const& iAAnnotationTool::annotations() const
@@ -499,7 +508,7 @@ void iAAnnotationTool::saveState(QSettings& projectFile, QString const& fileName
 void iAAnnotationTool::startAddMode()
 {
 	m_ui->m_addButton->setDown(true);
-	for (int i = 0; i < 3; ++i)
+	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
 		connect(m_child->slicer(i), &iASlicer::leftClicked, this, &iAAnnotationTool::slicerPointClicked);
 	}
@@ -510,7 +519,7 @@ void iAAnnotationTool::slicerPointClicked(double x, double y, double z)
 	m_ui->m_addButton->setDown(false);
 	LOG(lvlInfo, QString("New Annotation: %1, %2, %3").arg(x).arg(y).arg(z));
 	addAnnotation(iAVec3d(x, y, z));
-	for (int i = 0; i < 3; ++i)
+	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
 		disconnect(m_child->slicer(i), &iASlicer::leftClicked, this, &iAAnnotationTool::slicerPointClicked);
 	}
@@ -522,13 +531,11 @@ void iAAnnotationTool::focusToAnnotation(size_t id)
 	{
 		if (annotation.m_id == id)
 		{
-			for (int i = 0; i < 3; ++i)
+			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 			{
-				//auto test = m_child->slicer(i)->sizeIncrement();
-				//auto intTest = test.height();
-				// TODO: consider spacing!
 				m_child->slicer(i)->setSlicePosition(annotation.m_coord[i]);
 			}
+			break;
 		}
 	}
 }
