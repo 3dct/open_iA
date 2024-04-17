@@ -7,6 +7,7 @@
 #include <iAMovieHelper.h>
 #include <iARenderer.h>
 #include <iAMdiChild.h>
+#include "iAvtkActorHelper.h"  // for showActor
 
 #include <vtkActor.h>
 #include <vtkAppendPolyData.h>
@@ -44,7 +45,7 @@ iABlobManager::iABlobManager( void ):
 	m_overlappingEnabled(false),
 	m_isSmoothingEnabled(true),
 	m_isGaussianBlurEnabled(true),
-	m_isSilhoetteEnabled(true),
+	m_isSilhouetteEnabled(true),
 	m_isLabelingEnabled(true),
 	m_isBlobBodyEnabled(true),
 	m_range(3000),
@@ -142,8 +143,8 @@ void iABlobManager::Update( void )
 		m_silhouetteActor->GetProperty()->SetColor( 0.0, 0.0, 0.0 );
 		m_silhouetteActor->GetProperty()->SetLineWidth( 3.0 );
 		m_silhouetteActor->GetProperty()->SetOpacity( m_silhouetteOpacity );
-		m_blobsActor->SetVisibility( true );
-		m_silhouetteActor->SetVisibility( m_isSilhoetteEnabled );
+		m_blobsActor->SetVisibility(true);
+		m_silhouetteActor->SetVisibility(m_isSilhouetteEnabled);
 
 		delete[] blobs_pd;
 	}
@@ -161,7 +162,7 @@ void iABlobManager::UpdateBlobSettings( iABlobCluster* blob )
 	blob->SetDimension( this->GetDimensions() );
 	blob->SetRange( m_range );
 	blob->SetSmoothing( m_isSmoothingEnabled );
-	blob->SetSilhouette( m_isSilhoetteEnabled );
+	blob->SetSilhouette( m_isSilhouetteEnabled );
 	blob->SetLabel( m_isLabelingEnabled );
 	blob->SetShowBlob( m_isBlobBodyEnabled );
 	blob->SetBlobOpacity( m_blobOpacity );
@@ -181,8 +182,8 @@ void iABlobManager::RemoveBlob( iABlobCluster* blob )
 		// ...we need to hide the blobs manually
 		if ( m_blobsList.count() == 0 )
 		{
-			m_blobsActor->SetVisibility( 0 );
-			m_silhouetteActor->SetVisibility( 0 );
+			m_blobsActor->SetVisibility(false);
+			m_silhouetteActor->SetVisibility(false);
 		}
 		else
 		{
@@ -478,12 +479,12 @@ bool iABlobManager::GetGaussianBlur() const
 
 void iABlobManager::SetSilhouettes( bool isOn )
 {
-	m_isSilhoetteEnabled = isOn;
+	m_isSilhouetteEnabled = isOn;
 }
 
 bool iABlobManager::GetSilhouettes() const
 {
-	return m_isSilhoetteEnabled;
+	return m_isSilhouetteEnabled;
 }
 
 void iABlobManager::SetLabeling( bool isOn )
@@ -507,35 +508,29 @@ void iABlobManager::SetRenderers( vtkRenderer* blobRenderer, vtkRenderer* labelR
 
 void iABlobManager::InitRenderers()
 {
-	if ( !m_depthPeelingEnabled )
+	if (!m_depthPeelingEnabled)
 	{
-		m_blobsDepthSort->SetInputConnection( m_appendedBlobsPD->GetOutputPort() );
+		m_blobsDepthSort->SetInputConnection(m_appendedBlobsPD->GetOutputPort());
 		m_blobsDepthSort->SetDirectionToBackToFront();
-		m_blobsDepthSort->SetVector( 1, 1, 1 );
-		m_blobsDepthSort->SetCamera( m_blobRen->GetActiveCamera() );
-		m_blobsMapper->SetInputConnection( m_blobsDepthSort->GetOutputPort() );
-		m_blobsMapper->SetLookupTable( m_blobsLT );
+		m_blobsDepthSort->SetVector(1, 1, 1);
+		m_blobsDepthSort->SetCamera(m_blobRen->GetActiveCamera());
+		m_blobsMapper->SetInputConnection(m_blobsDepthSort->GetOutputPort());
+		m_blobsMapper->SetLookupTable(m_blobsLT);
 		//m_blobsMapper->SetScalarVisibilityOn();
 		m_blobsMapper->UseLookupTableScalarRangeOff();
 		m_blobsMapper->SetColorModeToMapScalars();
-		m_blobsActor->SetMapper( m_blobsMapper );
+		m_blobsActor->SetMapper(m_blobsMapper);
 
-		m_silhouette->SetInputConnection( m_appendedBlobsPD->GetOutputPort() );
-		m_silhouette->SetCamera( m_blobRen->GetActiveCamera() );
+		m_silhouette->SetInputConnection(m_appendedBlobsPD->GetOutputPort());
+		m_silhouette->SetCamera(m_blobRen->GetActiveCamera());
 		//m_silhouetteMapper->ScalarVisibilityOff();
-		m_silhouetteMapper->SetInputConnection( m_silhouette->GetOutputPort() );
-		m_silhouetteActor->SetMapper( m_silhouetteMapper );
-
-		m_blobsActor->SetVisibility( 0 );
-		m_silhouetteActor->SetVisibility( 0 );
-		m_blobRen->AddActor( m_blobsActor );
-		m_blobRen->AddActor( m_silhouetteActor );
+		m_silhouetteMapper->SetInputConnection(m_silhouette->GetOutputPort());
+		m_silhouetteActor->SetMapper(m_silhouetteMapper);
+		m_blobsActor->SetVisibility(false);
+		m_silhouetteActor->SetVisibility(false);
 	}
-	else
-	{
-		m_blobRen->RemoveActor( m_blobsActor );
-		m_blobRen->RemoveActor( m_silhouetteActor );
-	}
+	showActor(m_blobRen, m_blobsActor, !m_depthPeelingEnabled);
+	showActor(m_blobRen, m_silhouetteActor, !m_depthPeelingEnabled);
 }
 
 void iABlobManager::SetShowBlob( bool showBlob )

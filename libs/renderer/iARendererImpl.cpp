@@ -16,6 +16,7 @@
 #include <iAStringHelper.h>
 #include <iAToolsVTK.h>    // for setCamPos
 #include <iAvtkSourcePoly.h>
+#include <iAvtkActorHelper.h>  // for showActor
 
 #include <vtkActor.h>
 #include <vtkAnnotatedCubeActor.h>
@@ -372,14 +373,10 @@ bool iARendererImpl::isShowSlicePlanes() const
 
 void iARendererImpl::showSlicePlaneActor(int axis, bool show)
 {
+	showActor(m_ren, m_slicePlaneViews[axis].actor, show);
 	if (show)
 	{
-		m_ren->AddActor(m_slicePlaneViews[axis].actor);
 		m_slicePlaneViews[axis].mapper->Update();
-	}
-	else
-	{
-		m_ren->RemoveActor(m_slicePlaneViews[axis].actor);
 	}
 }
 

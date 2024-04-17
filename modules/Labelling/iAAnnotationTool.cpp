@@ -391,18 +391,6 @@ void iAAnnotationTool::adjustTableItemShown(int row, bool show)
 	checkBox->setChecked(show);
 }
 
-void showActor(vtkRenderer* renderer, vtkProp* actor, bool show)
-{
-	if (show)
-	{
-		renderer->AddActor(actor);
-	}
-	else
-	{
-		renderer->RemoveActor(actor);
-	}
-}
-
 void iAAnnotationTool::showActors(size_t id, bool show)
 {
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
