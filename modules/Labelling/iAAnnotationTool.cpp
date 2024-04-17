@@ -55,7 +55,8 @@ public:
 		m_container(new QWidget),
 		m_table(new QTableWidget(m_container)),
 		m_dockWidget(new iADockWidgetWrapper(m_container, "Annotations", "dwAnnotations")),
-		m_addButton(new QToolButton())
+		m_addButton(new QToolButton()),
+		m_leaderGlyphSource(vtkSmartPointer<vtkArrowSource>::New())
 	{
 		QStringList columnNames = QStringList() << ""
 												<< "Name"
@@ -149,6 +150,7 @@ public:
 	std::vector<iAAnnotation> m_annotations;
 	std::map<size_t, iAVtkAnnotationData> m_vtkAnnotateData;
 	QToolButton* m_addButton;
+	vtkSmartPointer<vtkArrowSource> m_leaderGlyphSource;
 };
 
 
@@ -232,7 +234,6 @@ void iAAnnotationTool::addAnnotation(iAAnnotation a)
 			toggleAnnotation(annotation_id);
 		});
 
-	// Create a text actor.
 	iAVtkAnnotationData vtkAnnot;
 	for (int i = 0; i < 4; ++i)
 	{
@@ -244,17 +245,17 @@ void iAAnnotationTool::addAnnotation(iAAnnotation a)
 		{
 			prop->SetLineWidth(3.0); // only works for 2D leader
 		}
-		/*
 		else
-		{
-			// Does not work; there might be a slight thickening of the tip, but no real arrow visible:
-			vtkNew<vtkArrowSource> arrowSource;
-			arrowSource->SetShaftRadius(100.0);
-			arrowSource->SetTipLength(100.0);
-			arrowSource->Update();
-			txt->SetLeaderGlyphConnection(arrowSource->GetOutputPort());
+		{   // works better with adaptations to vtkCaptionActor2D, but arrow is shown at least when zooming out
+			// (see https://discourse.vtk.org/t/vtkcaptionactor2d-and-the-size-of-leader-glyph/13721)
+			m_ui->m_leaderGlyphSource->SetShaftRadius(0.2);
+			m_ui->m_leaderGlyphSource->SetTipRadius(0.5);
+			m_ui->m_leaderGlyphSource->SetTipLength(0.6);
+			m_ui->m_leaderGlyphSource->Update();	
+			txt->SetLeaderGlyphConnection(m_ui->m_leaderGlyphSource->GetOutputPort());
+			txt->SetLeaderGlyphSize(1);  // unclear what values are useful here; until ~0.001 it always is roughly the "maximum ... size" pixel, and below it just gets smaller but still no apparent adaptation depending on zoom level...
+			txt->SetMaximumLeaderGlyphSize(30.0);
 		}
-		*/
 		txt->SetThreeDimensionalLeader(i == 3);
 		double pt[3] = {
 			a.m_coord[i < 3 ? m_child->slicer(i)->globalAxis(0) : 0],
