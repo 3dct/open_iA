@@ -4,7 +4,7 @@
 
 #include <vtkRenderer.h>
 
-void showActor(vtkRenderer* renderer, vtkProp* actor, bool show);
+void showActor(vtkRenderer* renderer, vtkProp* actor, bool show)
 {
 	if (show)
 	{

@@ -4,7 +4,7 @@
 
 #include "iaguibase_export.h"
 
-class vtkActor;
+class vtkProp;
 class vtkRenderer;
 
 iAguibase_API void showActor(vtkRenderer* renderer, vtkProp* actor, bool show);

@@ -11,6 +11,7 @@
 #include <iAParameterDlg.h>
 #include <iARenderer.h>
 #include <iASlicer.h>
+#include <iAvtkActorHelper.h>  // for showActor
 
 #include <iAStringHelper.h>
 
