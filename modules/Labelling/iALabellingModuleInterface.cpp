@@ -35,5 +35,6 @@ void iALabellingModuleInterface::Initialize()
 	menuEnsembles->addAction(actionLabelling);
 	menuEnsembles->addAction(actionAnnotation);
 
-	iAToolRegistry::addTool(iAAnnotationTool::Name, iAAnnotationTool::create);
+	iAToolRegistry::addTool(iAAnnotationTool::Name, createTool<iAAnnotationTool>);
+	iAToolRegistry::addTool(iALabellingTool::Name, createTool<iALabellingTool>);
 }

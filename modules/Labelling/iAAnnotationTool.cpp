@@ -158,11 +158,6 @@ public:
 
 
 
-std::shared_ptr<iATool> iAAnnotationTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
-{
-	return std::make_shared<iAAnnotationTool>(mainWnd, child);
-}
-
 iAAnnotationTool::iAAnnotationTool(iAMainWindow* mainWnd, iAMdiChild* child):
 	iATool(mainWnd,child),
 	m_ui(std::make_shared<iAAnnotationToolUI>(this))
