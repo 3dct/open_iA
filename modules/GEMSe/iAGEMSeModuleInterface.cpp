@@ -59,7 +59,7 @@ void iAGEMSeModuleInterface::Initialize()
 	}
 	Q_INIT_RESOURCE(GEMSe);
 
-	iAToolRegistry::addTool(iAGEMSeTool::ID, iAGEMSeTool::create);
+	iAToolRegistry::addTool(iAGEMSeTool::ID, createTool<iAGEMSeTool>);
 
 	QAction * actionGEMSe = new QAction(tr("GEMSe"), m_mainWnd);
 	m_mainWnd->makeActionChildDependent(actionGEMSe);

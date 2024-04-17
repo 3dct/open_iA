@@ -27,7 +27,7 @@ void iAFeatureScoutModuleInterface::Initialize()
 	}
 	Q_INIT_RESOURCE(FeatureScout);
 
-	iAToolRegistry::addTool(iAFeatureScoutTool::ID, iAFeatureScoutTool::create);
+	iAToolRegistry::addTool(iAFeatureScoutTool::ID, createTool<iAFeatureScoutTool>);
 	QAction * actionFibreScout = new QAction(tr("FeatureScout"), m_mainWnd);
 	connect(actionFibreScout, &QAction::triggered, this, &iAFeatureScoutModuleInterface::featureScout);
 	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Feature Analysis"), true);

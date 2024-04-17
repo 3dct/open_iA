@@ -29,7 +29,6 @@ class iAUncertaintyTool: public QObject, public iATool
 	Q_OBJECT
 public:
 	iAUncertaintyTool(iAMainWindow* mainWnd, iAMdiChild* child);
-	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child);
 	void toggleDockWidgetTitleBars();
 	void toggleSettings();
 	void calculateNewSubEnsemble();

@@ -41,7 +41,7 @@ void iAFiAKErModuleInterface::Initialize()
 	{
 		return;
 	}
-	iAToolRegistry::addTool(iAFiAKErController::FIAKERToolID, iAFiAKErTool::create);
+	iAToolRegistry::addTool(iAFiAKErController::FIAKERToolID, createTool<iAFiAKErTool>);
 
 	QAction * actionFiAKEr = new QAction(tr("Start FIAKER"), m_mainWnd);
 	actionFiAKEr->setShortcut(QKeySequence(QKeyCombination(Qt::ALT, Qt::Key_R), QKeyCombination(Qt::Key_O)));
@@ -162,7 +162,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	{
 		mdiChild->setWindowTitle(QString("FIAKER (%1)").arg(m_lastPath));
 	}
-	auto tool = iAFiAKErTool::create(m_mainWnd, mdiChild);
+	auto tool = createTool<iAFiAKErTool>(m_mainWnd, mdiChild);
 	mdiChild->addTool(iAFiAKErController::FIAKERToolID, tool);
 	dynamic_cast<iAFiAKErTool*>(tool.get())->controller()->start(m_lastPath, getCsvConfig(m_lastFormat), m_lastTimeStepOffset,
 		m_lastUseStepData, m_lastShowPreviews, m_lastShowCharts);
@@ -179,7 +179,7 @@ void iAFiAKErModuleInterface::loadFiAKErProject()
 	iAMdiChild* newChild = m_mainWnd->createMdiChild(false);
 	newChild->show();
 	QSettings projectFile(fileName, QSettings::IniFormat);
-	auto tool = iAFiAKErTool::create(m_mainWnd, newChild);
+	auto tool = createTool<iAFiAKErTool>(m_mainWnd, newChild);
 	newChild->addTool(iAFiAKErController::FIAKERToolID, tool);
 	tool->loadState(projectFile, fileName);
 }

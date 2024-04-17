@@ -10,7 +10,6 @@
 #include <iACPUID.h>
 #include <iACSVToQTableWidgetConverter.h>
 #include <iAMainWindow.h>
-#include <iAToolRegistry.h>
 
 #include <QAction>
 #include <QDebug>

@@ -18,11 +18,6 @@ iAFiAKErTool::iAFiAKErTool(iAMainWindow* mainWnd, iAMdiChild* child):
 {
 }
 
-std::shared_ptr<iATool> iAFiAKErTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
-{
-	return std::make_shared<iAFiAKErTool>(mainWnd, child);
-}
-
 iAFiAKErTool::~iAFiAKErTool()
 {
 	delete m_controller;
