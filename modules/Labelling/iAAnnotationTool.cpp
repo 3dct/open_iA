@@ -304,6 +304,7 @@ void iAAnnotationTool::renameAnnotation(size_t id, QString const& newName)
 		if (a.m_id == id)
 		{
 			a.m_name = newName;
+			break;
 		}
 	}
 	for (auto row = 0; row < m_ui->m_table->rowCount(); ++row)
@@ -311,9 +312,10 @@ void iAAnnotationTool::renameAnnotation(size_t id, QString const& newName)
 		if (m_ui->m_table->item(row, 0)->data(Qt::UserRole).toULongLong() == id)
 		{
 			m_ui->m_table->item(row, 1)->setText(newName);
+			break;
 		}
 	}
-	for (int i = 0; i < m_ui->m_vtkAnnotateData[id].m_txtActor.size(); ++i)
+	for (size_t i = 0; i < m_ui->m_vtkAnnotateData[id].m_txtActor.size(); ++i)
 	{
 		m_ui->m_vtkAnnotateData[id].m_txtActor[i]->SetCaption(newName.toStdString().c_str());
 	}
@@ -337,6 +339,7 @@ void iAAnnotationTool::removeAnnotation(size_t id)
 		if (m_ui->m_table->item(row, 0)->data(Qt::UserRole).toULongLong() == id)
 		{
 			m_ui->m_table->removeRow(row);
+			break;
 		}
 	}
 	showActors(id, false);
