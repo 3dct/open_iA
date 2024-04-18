@@ -52,15 +52,15 @@ foreach (indx RANGE ${len} )
 	endif()
 
 	# Collect source files from the module directories, except potential *Test.cpp/cxx files
-	file(GLOB_RECURSE module_srcs "${module_full_path}/*.cpp" "${module_full_path}/*.cxx" )
-	file(GLOB_RECURSE module_test_srcs "${module_full_path}/*Test.cpp" "${module_full_path}/*Test.cxx" )
+	file(GLOB_RECURSE module_srcs CONFIGURE_DEPENDS "${module_full_path}/*.cpp" "${module_full_path}/*.cxx")
+	file(GLOB_RECURSE module_test_srcs CONFIGURE_DEPENDS "${module_full_path}/*Test.cpp" "${module_full_path}/*Test.cxx")
 	if (NOT "${module_test_srcs}" STREQUAL "" )
 		list(REMOVE_ITEM module_srcs ${module_test_srcs} )
 	endif()
-	file(GLOB_RECURSE module_hs "${module_full_path}/*.h" )
-	file(GLOB_RECURSE module_hpp "${module_full_path}/*.hpp" )
+	file(GLOB_RECURSE module_hs CONFIGURE_DEPENDS "${module_full_path}/*.h")
+	file(GLOB_RECURSE module_hpp CONFIGURE_DEPENDS "${module_full_path}/*.hpp")
 	list(APPEND module_hs ${module_hpp})
-	file(GLOB_RECURSE module_qrc "${module_full_path}/*.qrc" )
+	file(GLOB_RECURSE module_qrc CONFIGURE_DEPENDS "${module_full_path}/*.qrc")
 	list(APPEND module_srcs ${module_qrc})
 
 	# If there are dependencies do the check

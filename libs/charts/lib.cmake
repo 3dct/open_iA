@@ -14,17 +14,7 @@ if (openiA_OPENGL_DEBUG)
 	TARGET_COMPILE_DEFINITIONS(${libname} PRIVATE OPENGL_DEBUG)
 endif()
 
-
-set(COLORMAP_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/charts/colormaps/")
-if (CMAKE_CONFIGURATION_TYPES)
-	foreach(cfg ${CMAKE_CONFIGURATION_TYPES})
-		string (TOUPPER "${cfg}" CFG)
-		set (DESTDIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_${CFG}}/colormaps")
-		file(COPY "${COLORMAP_SRC_DIR}" DESTINATION "${DESTDIR}")
-	endforeach()
-else()
-	set (DESTDIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/colormaps")
-	file(COPY "${COLORMAP_SRC_DIR}" DESTINATION "${DESTDIR}")
-endif()
+add_custom_command(TARGET ${libname} POST_BUILD
+	COMMAND ${CMAKE_COMMAND} "-DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/charts/colormaps/" "-DTARGET_DIR=$<TARGET_FILE_DIR:${libname}>/colormaps" -P "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/copy-if-newer.cmake")
 
 install(DIRECTORY "${COLORMAP_SRC_DIR}" DESTINATION colormaps)

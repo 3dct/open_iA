@@ -14,9 +14,9 @@ foreach(libdir ${children})
 		if (openiA_DEPENDENCY_INFO)
 			message(STATUS "Library ${libdir}:")
 		endif()
-		file( GLOB_RECURSE lib_SRCS "${libdir}/*.cpp" "${libdir}/*.h" )
-		#FILE( GLOB_RECURSE lib_UI "${libdir}/*.ui" ) # not needed anymore apparently
-		file( GLOB_RECURSE lib_QRC "${libdir}/*.qrc" )
+		file(GLOB_RECURSE lib_SRCS CONFIGURE_DEPENDS "${libdir}/*.cpp" "${libdir}/*.h")
+		#file(GLOB_RECURSE lib_UI CONFIGURE_DEPENDS "${libdir}/*.ui" ) # not needed anymore apparently
+		file(GLOB_RECURSE lib_QRC CONFIGURE_DEPENDS "${libdir}/*.qrc")
 
 		set(libname "iA${libdir}")
 		# Generate core dll file / shared object:
