@@ -26,9 +26,7 @@ add_test(NAME Vec3Test COMMAND Vec3Test)
 add_executable(MathUtilTest iAMathUtilityTest.cpp ../libs/base/iAMathUtility.cpp)        # for iAbase_export.h
 target_include_directories(MathUtilTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base ${CMAKE_CURRENT_BINARY_DIR}/../libs)
 target_link_libraries(MathUtilTest PRIVATE Qt::Core)
-if (openiA_DEPENDENCY_INFO)
-	message(STATUS "MathUtilTest dependencies")
-endif()
+message(VERBOSE "MathUtilTest dependencies")
 ADD_VTK_LIBRARIES(MathUtilTest PRIVATE CommonCore)    # for vtkMath
 target_compile_definitions(MathUtilTest PRIVATE IABASE_STATIC_DEFINE)
 add_test(NAME MathUtilTest COMMAND MathUtilTest)

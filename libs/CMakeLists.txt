@@ -11,9 +11,7 @@ foreach(libdir ${children})
 	# todo: add check on whether any module requires lib (for objectvis only ATM?)
 	if (IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${libdir})
 
-		if (openiA_DEPENDENCY_INFO)
-			message(STATUS "Library ${libdir}:")
-		endif()
+		message(VERBOSE "Library ${libdir}:")
 		file(GLOB_RECURSE lib_SRCS CONFIGURE_DEPENDS "${libdir}/*.cpp" "${libdir}/*.h")
 		#file(GLOB_RECURSE lib_UI CONFIGURE_DEPENDS "${libdir}/*.ui" ) # not needed anymore apparently
 		file(GLOB_RECURSE lib_QRC CONFIGURE_DEPENDS "${libdir}/*.qrc")
