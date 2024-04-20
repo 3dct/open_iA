@@ -16,8 +16,12 @@ foreach (VR_INSTALL_DIR_IDX RANGE ${VR_INSTALL_DIRS_COUNT})
 	list(GET VR_INSTALL_SRC_SUBDIRS ${VR_INSTALL_DIR_IDX} VR_SRC_SUBDIR)
 	list(GET VR_INSTALL_DST_SUBDIRS ${VR_INSTALL_DIR_IDX} VR_DST_SUBDIR)
 	set(VR_INSTALL_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ImNDT/${VR_SRC_SUBDIR}/")
-
-	add_custom_command(TARGET ImNDT POST_BUILD
-		COMMAND ${CMAKE_COMMAND} "-DSOURCE_DIR=${VR_INSTALL_SRC_DIR}" "-DTARGET_DIR=$<TARGET_FILE_DIR:iA::guibase>/${VR_DST_SUBDIR}" -P "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/copy-if-newer.cmake")
+	set(targetname ImNDT_copy-${VR_DST_SUBDIR})
+	add_custom_target(${targetname} COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+			"${VR_INSTALL_SRC_DIR}" "$<TARGET_FILE_DIR:iA::guibase>/${VR_DST_SUBDIR}" COMMENT "Copying files")
+	add_dependencies(ImNDT ${targetname})
+	if (openiA_USE_IDE_FOLDERS)
+		SET_PROPERTY(TARGET ${targetname} PROPERTY FOLDER "_CMake")
+	endif()
 	install(DIRECTORY "${VR_INSTALL_SRC_DIR}" DESTINATION ${VR_DST_SUBDIR})
 endforeach()
