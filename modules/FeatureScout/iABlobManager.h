@@ -102,7 +102,7 @@ private:
 	double	m_overlappingEnabled;
 	bool	m_isSmoothingEnabled;
 	bool	m_isGaussianBlurEnabled;
-	bool	m_isSilhoetteEnabled;
+	bool	m_isSilhouetteEnabled;
 	bool	m_isLabelingEnabled;
 	bool	m_isBlobBodyEnabled;
 	double	m_range;

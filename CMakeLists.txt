@@ -1,9 +1,8 @@
-cmake_minimum_required(VERSION 3.21...3.27 FATAL_ERROR)
-# 3.14 required for CMAKE_POLICY CMP0087 / Generator expressions in install code|script
-# 3.21 required for install (IMPORTED_RUNTIME_ARTIFACTS...)
+cmake_minimum_required(VERSION 3.26...3.29 FATAL_ERROR)
+# 3.26 required for copy_directory_if_different
 project(open_iA LANGUAGES CXX)
 
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 set(FLATPAK_APPID at.zfp.openia)
 
 set(Toolkit_DIR "${PROJECT_SOURCE_DIR}/Toolkit")

@@ -84,20 +84,16 @@ private:
 	void updateChannels();
 	void updateChannels(int imageId);
 	void updateChannel(iASlicer*);
+	int chooseOverlayImage(QString title);
 
 	//! whether seeds are also tracked as entries in the label list
 	bool m_trackingSeeds;
-
-	int chooseOverlayImage(QString title);
 
 	iAColorTheme const* m_colorTheme;
 	QString m_fileName;
 	QList<std::shared_ptr<iALabel>> m_labels;
 	int m_nextLabelId = 0;
-	int getNextLabelId();
-
 	int m_nextId = 0;
-	int getNextId();
 	QMap<int, std::shared_ptr<iAOverlayImage>> m_mapId2image;
 	QMap<iASlicer*, std::shared_ptr<iAOverlaySlicerData>> m_mapSlicer2data;
 
@@ -105,6 +101,5 @@ private:
 	vtkSmartPointer<vtkPiecewiseFunction> m_labelOpacityTF;
 	iAMdiChild* m_mdiChild;
 	std::shared_ptr<Ui_labels> m_ui;
-
 	QStandardItemModel* m_itemModel;
 };

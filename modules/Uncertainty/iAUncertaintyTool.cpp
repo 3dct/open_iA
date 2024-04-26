@@ -69,11 +69,6 @@ iAUncertaintyTool::iAUncertaintyTool(iAMainWindow * mainWnd, iAMdiChild * child)
 	m_child->dataInfoDockWidget()->hide();
 }
 
-std::shared_ptr<iATool> iAUncertaintyTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
-{
-	return std::make_shared<iAUncertaintyTool>(mainWnd, child);
-}
-
 void iAUncertaintyTool::toggleDockWidgetTitleBars()
 {
 	for (int i = 0; i < m_dockWidgets.size(); ++i)

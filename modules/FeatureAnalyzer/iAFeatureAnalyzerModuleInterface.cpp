@@ -22,7 +22,7 @@ void iAFeatureAnalyzerModuleInterface::Initialize()
 		return;
 	}
 	Q_INIT_RESOURCE(FeatureAnalyzer);
-	iAToolRegistry::addTool(iAFeatureAnalyzerTool::ID, iAFeatureAnalyzerTool::create);
+	iAToolRegistry::addTool(iAFeatureAnalyzerTool::ID, createTool<iAFeatureAnalyzerTool>);
 
 	QAction * actionRunPA = new QAction(tr("Start FeatureAnalyzer"), m_mainWnd);
 	connect(actionRunPA, &QAction::triggered, this, &iAFeatureAnalyzerModuleInterface::launchFeatureAnalyzer);

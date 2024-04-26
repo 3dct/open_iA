@@ -19,7 +19,6 @@ class QWidget;
 class iAGEMSeTool : public iATool
 {
 public:
-	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child);
 	iAGEMSeTool(iAMainWindow* mainWnd, iAMdiChild* child);
 	static const QString ID;
 	void loadState(QSettings & projectFile, QString const & fileName) override;

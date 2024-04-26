@@ -32,7 +32,6 @@ class Labelling_API iAAnnotationTool : public QObject, public iATool
 {
 	Q_OBJECT
 public:
-	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child);
 	static const QString Name;
 	iAAnnotationTool(iAMainWindow* mainWin, iAMdiChild* child);
 	size_t addAnnotation(iAVec3d const & coord);

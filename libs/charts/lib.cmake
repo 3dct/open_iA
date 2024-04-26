@@ -13,18 +13,11 @@ endif()
 if (openiA_OPENGL_DEBUG)
 	TARGET_COMPILE_DEFINITIONS(${libname} PRIVATE OPENGL_DEBUG)
 endif()
-
-
-set(COLORMAP_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/charts/colormaps/")
-if (CMAKE_CONFIGURATION_TYPES)
-	foreach(cfg ${CMAKE_CONFIGURATION_TYPES})
-		string (TOUPPER "${cfg}" CFG)
-		set (DESTDIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_${CFG}}/colormaps")
-		file(COPY "${COLORMAP_SRC_DIR}" DESTINATION "${DESTDIR}")
-	endforeach()
-else()
-	set (DESTDIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/colormaps")
-	file(COPY "${COLORMAP_SRC_DIR}" DESTINATION "${DESTDIR}")
+add_custom_target(iAcharts_copy-colormaps COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+    "${CMAKE_CURRENT_SOURCE_DIR}/charts/colormaps/" "$<TARGET_FILE_DIR:${libname}>/colormaps"
+    COMMENT "Copying colormaps...")
+add_dependencies(${libname} iAcharts_copy-colormaps)
+if (openiA_USE_IDE_FOLDERS)
+	SET_PROPERTY(TARGET iAcharts_copy-colormaps PROPERTY FOLDER "_CMake")
 endif()
-
 install(DIRECTORY "${COLORMAP_SRC_DIR}" DESTINATION colormaps)

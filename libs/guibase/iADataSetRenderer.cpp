@@ -4,6 +4,7 @@
 
 #include "iAAABB.h"
 #include "iAValueTypeVectorHelpers.h"
+#include "iAvtkActorHelper.h"  // for showActor
 
 #include <iALog.h>
 #include <iAMainWindow.h>
@@ -40,14 +41,7 @@ public:
 	}
 	void setVisible(bool visible)
 	{
-		if (visible)
-		{
-			m_renderer->AddActor(m_actor);
-		}
-		else
-		{
-			m_renderer->RemoveActor(m_actor);
-		}
+		showActor(m_renderer, m_actor, visible);
 	}
 	void setOrientationAndPosition(QVector<double> pos, QVector<double> ori)
 	{

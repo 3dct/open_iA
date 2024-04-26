@@ -11,7 +11,6 @@ class iAFiAKErController;
 class iAFiAKErTool : public iATool
 {
 public:
-	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child);
 	iAFiAKErTool(iAMainWindow* mainWnd, iAMdiChild* child);
 	virtual ~iAFiAKErTool();
 	void loadState(QSettings& projectFile, QString const& fileName) override;

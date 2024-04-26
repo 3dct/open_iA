@@ -100,6 +100,12 @@ public:
 
 	//! Get current slice number
 	virtual int sliceNumber() const = 0;
+	//! Get current slice position
+	virtual double slicePosition() const = 0;
+	//! Get thickness of a single slice (typically, the voxel spacing of the dataset being sliced in slice axis direction)
+	virtual double sliceThickness() const = 0;
+	//! Retrieve minimum and maximum position of slice range
+	virtual std::pair<double, double> sliceRange() const = 0;
 
 	//! @{ set contour line parameters.
 	virtual void setContours(int numberOfContours, double contourMin, double contourMax) = 0;
@@ -130,7 +136,13 @@ public slots:
 	virtual void saveAsImage() = 0;
 	//! Save a movie of a full slice-through of the specimen from top to bottom
 	virtual void saveMovie() = 0;
+	//! Set the current slice of the dataset currently sliced
+	//! @param sliceNumber voxel coordinates along the slices axes determined by the mode which should be set
+	//! @deprecated use setSlicePosition instead!
 	virtual void setSliceNumber(int sliceNumber) = 0;
+	//! Set the position to slice
+	//! @param slicePos the position along the axis determined by the mode where the slicing should happen
+	virtual void setSlicePosition(double slicePos) = 0;
 	virtual void rotateSlice( double angle ) = 0;
 	virtual void update() = 0;
 
