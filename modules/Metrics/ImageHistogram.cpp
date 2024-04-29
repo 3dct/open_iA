@@ -2,10 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "ImageHistogram.h"
 
-#include <vtkMath.h> // for vtkMath::Pi()
+
+#include <numbers> // for Pi
 
 #include <algorithm>
 #include <cmath>
+#include <cassert>
 
 namespace
 {
@@ -162,7 +164,8 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 	double sum=0.0;
 	for(int i=-dknl_sz; i<=dknl_sz; i++)
 	{
-		double value=1/(std::sqrt(2*vtkMath::Pi())*gauss_sigma)*std::exp(-0.5*i*i/(gauss_sigma*gauss_sigma));
+		double value =
+			1 / (std::sqrt(2 * std::numbers::pi) * gauss_sigma) * std::exp(-0.5 * i * i / (gauss_sigma * gauss_sigma));
 		gauss_knl.push_back(value);
 		sum+=value;
 	}
@@ -242,7 +245,8 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 			sum = 0.0;
 			for(int i=-knl_sz; i<=knl_sz; i++)
 			{
-				double value = 1/(std::sqrt(2*vtkMath::Pi())* new_gauss_sigma)*std::exp(-0.5*i*i/(new_gauss_sigma * new_gauss_sigma));
+				double value = 1 / (std::sqrt(2 * std::numbers::pi) * new_gauss_sigma) *
+					std::exp(-0.5 * i * i / (new_gauss_sigma * new_gauss_sigma));
 				gauss_knl_P2P.push_back(value);
 				sum+=value;
 			}
