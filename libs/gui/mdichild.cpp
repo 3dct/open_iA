@@ -1653,9 +1653,9 @@ iADataSetViewer* MdiChild::dataSetViewer(size_t idx) const
 #if __cplusplus >= 202002L
 		m_dataSetViewers.contains(idx)
 #else
-		m_dataSetViewers.find(idx) == m_dataSetViewers.end()
+		m_dataSetViewers.find(idx) != m_dataSetViewers.end()
 #endif
-		? nullptr: m_dataSetViewers.at(idx).get();
+		? m_dataSetViewers.at(idx).get(): nullptr;
 }
 
 bool MdiChild::hasUnsavedData() const

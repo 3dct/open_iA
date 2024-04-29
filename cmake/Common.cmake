@@ -548,7 +548,7 @@ if (${avx_support_index} EQUAL -1)
 endif()
 set(BUILD_INFO "${BUILD_INFO}    \"Advanced Vector Extensions	${openiA_AVX_SUPPORT}\\n\"\n")
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 # - C++20 can cause problems with ITK 5.0.1 (apparently in some experiments it wasn't yet fully C++20 compatible; though not sure on specifics)!
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
