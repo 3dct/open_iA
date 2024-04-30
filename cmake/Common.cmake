@@ -552,6 +552,7 @@ set(CMAKE_CXX_STANDARD 20)
 # - C++20 can cause problems with ITK 5.0.1 (apparently in some experiments it wasn't yet fully C++20 compatible; though not sure on specifics)!
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_SCAN_FOR_MODULES 0)  # otherwise we get errors such as /bin/sh: line 1: CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS-NOTFOUND: command not found
 if (MSVC)
 	# /MP                enable multi-processor compilation
 	# /bigobj            increase the number of sections in .obj file (65,279 -> 2^32), exceeded by some compilations
