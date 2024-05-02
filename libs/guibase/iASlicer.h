@@ -10,7 +10,6 @@
 
 class iAChannelData;
 class iAChannelSlicerData;
-class iAMagicLens;
 class iAMdiChild;
 
 class vtkAlgorithmOutput;
@@ -42,7 +41,6 @@ public:
 	virtual double magicLensOpacity() const = 0;
 	virtual void updateMagicLensColors() = 0;
 	virtual void updateMagicLens() = 0;
-	virtual iAMagicLens* magicLens() = 0;
 	//! @}
 
 	virtual void enableInteractor(bool enabled) = 0;  //also updates widget

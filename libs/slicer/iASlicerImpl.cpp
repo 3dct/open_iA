@@ -669,7 +669,7 @@ void iASlicerImpl::setMagicLensEnabled( bool isEnabled )
 {
 	if (!m_magicLens)
 	{
-		LOG(lvlWarn, "SetMagicLensEnabled called on slicer which doesn't have a magic lens!");
+		LOG(lvlWarn, "setMagicLensEnabled called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	setCursor  (isEnabled ? Qt::BlankCursor : mouseCursor());
@@ -681,21 +681,11 @@ void iASlicerImpl::setMagicLensEnabled( bool isEnabled )
 	updateMagicLens();
 }
 
-iAMagicLens * iASlicerImpl::magicLens()
-{
-	if (!m_magicLens)
-	{
-		LOG(lvlWarn, "SetMagicLensEnabled called on slicer which doesn't have a magic lens!");
-		return nullptr;
-	}
-	return m_magicLens.get();
-}
-
 void iASlicerImpl::setMagicLensSize(int newSize)
 {
 	if (!m_magicLens)
 	{
-		LOG(lvlWarn, "SetMagicLensSize called on slicer which doesn't have a magic lens!");
+		LOG(lvlWarn, "setMagicLensSize called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	m_magicLens->setSize(newSize);
@@ -722,7 +712,7 @@ void iASlicerImpl::setMagicLensCount(int count)
 {
 	if (!m_magicLens)
 	{
-		LOG(lvlWarn, "SetMagicLensCount called on slicer which doesn't have a magic lens!");
+		LOG(lvlWarn, "setMagicLensCount called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	m_magicLens->setLensCount(count);
@@ -733,7 +723,7 @@ void iASlicerImpl::setMagicLensInput(uint id)
 {
 	if (!m_magicLens)
 	{
-		LOG(lvlWarn, "SetMagicLensInput called on slicer which doesn't have a magic lens!");
+		LOG(lvlWarn, "setMagicLensInput called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	iAChannelSlicerData * d = channel(id);
@@ -756,7 +746,7 @@ void iASlicerImpl::setMagicLensOpacity(double opacity)
 {
 	if (!m_magicLens)
 	{
-		LOG(lvlWarn, "SetMagicLensOpacity called on slicer which doesn't have a magic lens!");
+		LOG(lvlWarn, "setMagicLensOpacity called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	m_magicLens->setOpacity(opacity);

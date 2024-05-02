@@ -104,7 +104,6 @@ public:
 	double magicLensOpacity() const override;
 	void updateMagicLensColors() override;
 	void updateMagicLens() override;
-	iAMagicLens* magicLens() override;
 	//! @}
 
 	void enableInteractor(bool b) override;
