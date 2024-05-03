@@ -6,16 +6,16 @@
 #include "iAMapper.h"
 #include "iAMathUtility.h"
 
-#include <vtkMath.h>
-
 #include <QPen>
 #include <QPainter>
+
+#include <numbers>
 
 namespace
 {
 	double computeGaussValue(double mean, double sigma, double multiplier, double x)
 	{
-		return 1.0 / (sigma * std::sqrt(2 * vtkMath::Pi())) *
+		return 1.0 / (sigma * std::sqrt(2 * std::numbers::pi)) *
 			std::exp(-std::pow((x - mean) / sigma, 2) / 2) * multiplier;
 	}
 	double const SigmaHandleFactor = 2;
@@ -95,7 +95,7 @@ void iAChartFunctionGaussian::draw(QPainter &painter, QColor color, int lineWidt
 	painter.setPen(pen);
 
 	int x, lx, rx, y;
-	double meanValue = 1.0/(m_sigma*std::sqrt(2*vtkMath::Pi()))*m_multiplier;
+	double meanValue = 1.0/(m_sigma*std::sqrt(2*std::numbers::pi))*m_multiplier;
 
 	x  = m_chart->xMapper().srcToDst(m_mean);
 	lx = m_chart->xMapper().srcToDst(m_mean - SigmaHandleFactor * m_sigma);
@@ -112,7 +112,7 @@ void iAChartFunctionGaussian::draw(QPainter &painter, QColor color, int lineWidt
 
 int iAChartFunctionGaussian::selectPoint(int mouseX, int mouseY)
 {
-	double meanValue = 1.0/(m_sigma*std::sqrt(2*vtkMath::Pi()));
+	double meanValue = 1.0/(m_sigma*std::sqrt(2*std::numbers::pi));
 
 	int viewXPoint = m_chart->data2MouseX(m_mean);
 	int viewYPoint = m_chart->yMapper().srcToDst(meanValue*m_multiplier);
@@ -164,7 +164,7 @@ void iAChartFunctionGaussian::moveSelectedPoint(int mouseX, int mouseY)
 				}
 			}
 		}
-		double maxValue = 1.0/(m_sigma*std::sqrt(2*vtkMath::Pi()));
+		double maxValue = 1.0/(m_sigma*std::sqrt(2*std::numbers::pi));
 		m_multiplier  = m_chart->yMapper().dstToSrc(mouseY) / maxValue;
 	}
 }

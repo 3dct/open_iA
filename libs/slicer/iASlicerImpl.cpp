@@ -51,7 +51,6 @@
 #include <vtkImageReslice.h>
 #include <vtkLineSource.h>
 #include <vtkLookupTable.h>
-#include <vtkMath.h>
 #include <vtkMatrix4x4.h>
 #include <vtkPoints.h>
 #include <vtkPolyDataMapper.h>
@@ -84,7 +83,7 @@
 #include <QHoverEvent>
 
 #include <cassert>
-
+#include <numbers>
 
 //! observer needs to be a separate class; otherwise there is an error when destructing,
 //! as vtk deletes all its observers...
@@ -669,7 +668,7 @@ void iASlicerImpl::setMagicLensEnabled( bool isEnabled )
 {
 	if (!m_magicLens)
 	{
-		LOG(lvlWarn, "SetMagicLensEnabled called on slicer which doesn't have a magic lens!");
+		LOG(lvlWarn, "setMagicLensEnabled called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	setCursor  (isEnabled ? Qt::BlankCursor : mouseCursor());
@@ -681,21 +680,11 @@ void iASlicerImpl::setMagicLensEnabled( bool isEnabled )
 	updateMagicLens();
 }
 
-iAMagicLens * iASlicerImpl::magicLens()
-{
-	if (!m_magicLens)
-	{
-		LOG(lvlWarn, "SetMagicLensEnabled called on slicer which doesn't have a magic lens!");
-		return nullptr;
-	}
-	return m_magicLens.get();
-}
-
 void iASlicerImpl::setMagicLensSize(int newSize)
 {
 	if (!m_magicLens)
 	{
-		LOG(lvlWarn, "SetMagicLensSize called on slicer which doesn't have a magic lens!");
+		LOG(lvlWarn, "setMagicLensSize called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	m_magicLens->setSize(newSize);
@@ -722,7 +711,7 @@ void iASlicerImpl::setMagicLensCount(int count)
 {
 	if (!m_magicLens)
 	{
-		LOG(lvlWarn, "SetMagicLensCount called on slicer which doesn't have a magic lens!");
+		LOG(lvlWarn, "setMagicLensCount called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	m_magicLens->setLensCount(count);
@@ -733,7 +722,7 @@ void iASlicerImpl::setMagicLensInput(uint id)
 {
 	if (!m_magicLens)
 	{
-		LOG(lvlWarn, "SetMagicLensInput called on slicer which doesn't have a magic lens!");
+		LOG(lvlWarn, "setMagicLensInput called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	iAChannelSlicerData * d = channel(id);
@@ -756,7 +745,7 @@ void iASlicerImpl::setMagicLensOpacity(double opacity)
 {
 	if (!m_magicLens)
 	{
-		LOG(lvlWarn, "SetMagicLensOpacity called on slicer which doesn't have a magic lens!");
+		LOG(lvlWarn, "setMagicLensOpacity called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	m_magicLens->setOpacity(opacity);
@@ -2665,8 +2654,8 @@ void iASlicerImpl::updateFisheyeTransform(double focalPt[3], vtkImageReslice* re
 	double fixRadiusY;
 	for (auto fix = FixPoints; fix < 2*FixPoints; ++fix)
 	{
-		fixRadiusX = (lensRadius + 15.0)* std::cos(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
-		fixRadiusY = (lensRadius + 15.0)* std::sin(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		fixRadiusX = (lensRadius + 15.0)* std::cos(fix * (360 / FixPoints) * std::numbers::pi / 180) * spacing[0];
+		fixRadiusY = (lensRadius + 15.0)* std::sin(fix * (360 / FixPoints) * std::numbers::pi / 180) * spacing[0];
 
 		switch (m_mode)
 		{
@@ -2689,8 +2678,8 @@ void iASlicerImpl::updateFisheyeTransform(double focalPt[3], vtkImageReslice* re
 	// outer circle 2
 	for (auto fix = 2*FixPoints; fix < 3*FixPoints; ++fix)
 	{
-		fixRadiusX = (lensRadius + 80.0)* std::cos(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
-		fixRadiusY = (lensRadius + 80.0)* std::sin(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		fixRadiusX = (lensRadius + 80.0)* std::cos(fix * (360 / FixPoints) * std::numbers::pi / 180) * spacing[0];
+		fixRadiusY = (lensRadius + 80.0)* std::sin(fix * (360 / FixPoints) * std::numbers::pi / 180) * spacing[0];
 
 		switch (m_mode)
 		{
@@ -2713,11 +2702,11 @@ void iASlicerImpl::updateFisheyeTransform(double focalPt[3], vtkImageReslice* re
 
 	for (auto fix = 3*FixPoints; fix < NumPoints; ++fix)
 	{
-		double xCoordCircle1 = (innerLensRadius)* std::cos(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
-		double yCoordCircle1 = (innerLensRadius)* std::sin(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		double xCoordCircle1 = (innerLensRadius)* std::cos(fix * (360 / FixPoints) * std::numbers::pi / 180) * spacing[0];
+		double yCoordCircle1 = (innerLensRadius)* std::sin(fix * (360 / FixPoints) * std::numbers::pi / 180) * spacing[0];
 
-		double xCoordCircle2 = (lensRadius)* std::cos(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
-		double yCoordCircle2 = (lensRadius)* std::sin(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		double xCoordCircle2 = (lensRadius)* std::cos(fix * (360 / FixPoints) * std::numbers::pi / 180) * spacing[0];
+		double yCoordCircle2 = (lensRadius)* std::sin(fix * (360 / FixPoints) * std::numbers::pi / 180) * spacing[0];
 
 		switch (m_mode)
 		{

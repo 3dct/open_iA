@@ -5,8 +5,6 @@
 
 #include "iABarycentricContextRenderer.h"
 
-#include <vtkMath.h>
-
 #include <QApplication>    // TODO: really necessary? (just to get the font()!)
 #include <QDebug>    // Debug
 #include <QHBoxLayout>
@@ -17,9 +15,10 @@
 #include <QSpinBox>
 
 #include <array>
+#include <numbers>
 
 // Constants (more in the header file!)
-static const qreal RAD60 = vtkMath::Pi() / 3.0;
+static const qreal RAD60 = std::numbers::pi / 3.0;
 static const qreal SIN60 = std::sin(RAD60);
 static const qreal ONE_DIV_SIN60 = 1.0 / SIN60;
 

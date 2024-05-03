@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iaguibase_export.h"
+#include "iaslicer_export.h"
 
 #include <vtkSmartPointer.h>
 
@@ -29,9 +29,9 @@ class vtkWindowToImageFilter;
 
 class iALensData;
 
-//! Provides magic lens functionality for a given vtk render window,
+//! Provides 2D magic lens functionality for a given vtk render window,
 //! which can have up to eight lenses into other datasets.
-class iAguibase_API iAMagicLens
+class iAslicer_API iAMagicLens
 {
 public:
 	enum ViewMode{
@@ -64,6 +64,7 @@ public:
 	void setBackgroundColor(QColor const& bgColor);
 
 private:
+	Q_DISABLE_COPY_MOVE(iAMagicLens);
 	QVector<std::shared_ptr<iALensData>> m_lenses;
 	bool m_isEnabled;
 	bool m_isInitialized;

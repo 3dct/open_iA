@@ -2,14 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAMathUtility.h"
 
-// TODO: on switch to C++20, replace vtkMath::Pi usage with std::numbers::pi
-// see https://stackoverflow.com/a/57285400
-// would make linking to vtk libraries in test also superfluous, see also other refs to vtkMath::Pi() throughout codebase!
-#include <vtkMath.h>
+#include <numbers>
 
 double gaussian(double x, double sigma)
 {
-	return 1 / std::sqrt(2 * vtkMath::Pi()*std::pow(sigma, 2.0)) *
+	return 1 / std::sqrt(2 * std::numbers::pi * std::pow(sigma, 2.0)) *
 		std::exp(-std::pow(x, 2.0) / (2 * std::pow(sigma, 2.0)));
 }
 

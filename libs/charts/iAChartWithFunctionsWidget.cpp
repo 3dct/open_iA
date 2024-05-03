@@ -14,13 +14,14 @@
 #include "iAXmlSettings.h"
 
 #include <vtkColorTransferFunction.h>
-#include <vtkMath.h>
 
 #include <QClipboard>
 #include <QFileDialog>
 #include <QMenu>
 #include <QMouseEvent>
 #include <QPainter>
+
+#include <numbers>
 
 QColor* FunctionColors()
 {
@@ -509,7 +510,7 @@ void iAChartWithFunctionsWidget::addGaussianFunction()
 	double mean = mouse2DataX(contextMenuPos().x() - leftMargin());
 	double sigma = m_xMapper->dstToSrc(geometry().width() / 20) - xBounds()[0];
 	int contextYHeight = chartHeight() - contextMenuPos().y();
-	double multiplier = yMapper().dstToSrc(contextYHeight) * (sigma * std::sqrt(2 * vtkMath::Pi()));
+	double multiplier = yMapper().dstToSrc(contextYHeight) * (sigma * std::sqrt(2 * std::numbers::pi));
 	addGaussianFunction(mean, sigma, multiplier);
 }
 

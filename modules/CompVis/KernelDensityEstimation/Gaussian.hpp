@@ -3,7 +3,7 @@
 
 #include <KernelDensityEstimation/KernelDensityEstimation>
 
-#include <vtkMath.h>
+#include <numbers>
 
 namespace kde
 {
@@ -13,7 +13,7 @@ namespace kde
     {
         realScalarType z = (x - mu)/sigma;
         return std::exp(-realScalarType(0.5)*z*z)
-            /(sigma*std::sqrt( realScalarType(2.)*vtkMath::Pi()));
+            /(sigma*std::sqrt( realScalarType(2.)*std::numbers::pi));
     }
 
     /**
