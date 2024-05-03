@@ -8,11 +8,11 @@
 
 #include <iAFileUtils.h>
 
-#include <vtkMath.h>
-
-#include <fstream>
-#include <map>
 #include <chrono>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <numbers>
 
 iADefectClassifier::iADefectClassifier( )
 {
@@ -89,7 +89,7 @@ void iADefectClassifier::classify( FibersData* fibers, FeatureList* defects )
 				&& def.obbSize[1] < m_param.LengthRangeP[1]
 				&& def.obbSize[2] > m_param.WidthRangeP[0]
 				&& def.obbSize[2] < m_param.WidthRangeP[1]
-				&& defInfo.Angle < m_param.AngleP * vtkMath::Pi() / 180
+				&& defInfo.Angle < m_param.AngleP * std::numbers::pi / 180
 				&& neighborFibersP.size( ) >= 1 )
 			{
 				looksLike = DefectNames::Pulloout;
@@ -105,7 +105,7 @@ void iADefectClassifier::classify( FibersData* fibers, FeatureList* defects )
 
 		// debondings
 		if( defInfo.Elongation > m_param.ElongationD
-			&& defInfo.Angle > m_param.AngleD * vtkMath::Pi() / 180 )
+			&& defInfo.Angle > m_param.AngleD * std::numbers::pi / 180 )
 		{
 			looksLike = DefectNames::Debonding;
 		}
@@ -114,7 +114,7 @@ void iADefectClassifier::classify( FibersData* fibers, FeatureList* defects )
 		if( looksLike == DefectNames::Pulloout
 			&& neighborFibersFF.size( ) >= 2 )
 		{
-			double minAngle = 2 * vtkMath::Pi(); // maximum possible angle
+			double minAngle = 2 * std::numbers::pi; // maximum possible angle
 			for (size_t i = 0; i < neighborFibersFF.size( ); ++i)
 			{
 				for (size_t j = i + 1; j < neighborFibersFF.size( ); ++j)
@@ -130,12 +130,12 @@ void iADefectClassifier::classify( FibersData* fibers, FeatureList* defects )
 					dir[0] = iAVec3d( neighborFibersFF[i].endPoint ) - iAVec3d( neighborFibersFF[i].startPoint );
 					dir[1] = iAVec3d( neighborFibersFF[j].endPoint ) - iAVec3d( neighborFibersFF[j].startPoint );
 					double angle = angleBetween( dir[0], dir[1] );
-					angle = angle > (vtkMath::Pi()/2) ? vtkMath::Pi() - angle : angle;
+					angle = angle > (std::numbers::pi/2) ? std::numbers::pi - angle : angle;
 					if( minAngle > angle ) minAngle = angle;
 				}
 			}
 
-			if( minAngle < m_param.AngleB * vtkMath::Pi() / 180 ) looksLike = DefectNames::Breakage;
+			if( minAngle < m_param.AngleB * std::numbers::pi / 180 ) looksLike = DefectNames::Breakage;
 		}
 
 		switch( looksLike )
@@ -182,7 +182,7 @@ iADefectClassifier::ExtendedDefectInfo iADefectClassifier::calcExtendedDefectInf
 	ExtendedDefectInfo defInfo;
 	defInfo.Direction = def.eigenvectors[2].normalized( );
 	double angle = angleBetween( defInfo.Direction, iAVec3d( 0, 0, 1 ) );
-	if( angle > vtkMath::Pi()/2) angle = vtkMath::Pi() - angle;
+	if( angle > std::numbers::pi/2) angle = std::numbers::pi - angle;
 	defInfo.Angle = angle;
 	defInfo.Elongation = def.obbSize[0] / def.obbSize[1];
 	defInfo.Endpoints[0] = def.centroid + defInfo.Direction * def.obbSize[0] / 2;

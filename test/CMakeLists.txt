@@ -27,7 +27,6 @@ add_executable(MathUtilTest iAMathUtilityTest.cpp ../libs/base/iAMathUtility.cpp
 target_include_directories(MathUtilTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base ${CMAKE_CURRENT_BINARY_DIR}/../libs)
 target_link_libraries(MathUtilTest PRIVATE Qt::Core)
 message(VERBOSE "MathUtilTest dependencies")
-ADD_VTK_LIBRARIES(MathUtilTest PRIVATE CommonCore)    # for vtkMath
 target_compile_definitions(MathUtilTest PRIVATE IABASE_STATIC_DEFINE)
 add_test(NAME MathUtilTest COMMAND MathUtilTest)
 if (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")

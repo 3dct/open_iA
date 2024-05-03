@@ -11,7 +11,6 @@
 #include <vtkActor2DCollection.h>
 #include <vtkCamera.h>
 #include <vtkCellArray.h>
-#include <vtkMath.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper2D.h>
@@ -25,6 +24,8 @@
 #include <QMenu>
 #include <QMouseEvent>
 #include <QTouchEvent>
+
+#include <numbers>
 
 const double iAFast3DMagicLensWidget::OFFSET_VAL = 20.;
 
@@ -125,7 +126,7 @@ void iAFast3DMagicLensWidget::resizeEvent( QResizeEvent * event )
 
 inline double iAFast3DMagicLensWidget::calculateZ( double viewAngle )
 {
-	return -1. / std::tan( viewAngle * vtkMath::Pi() / 180. );
+	return -1. / std::tan( viewAngle * std::numbers::pi / 180. );
 }
 
 void iAFast3DMagicLensWidget::mouseReleaseEvent( QMouseEvent * event )

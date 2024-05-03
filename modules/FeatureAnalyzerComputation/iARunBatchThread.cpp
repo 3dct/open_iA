@@ -96,6 +96,7 @@
 #include <omp.h>
 
 #include <cassert>
+#include <numbers>
 
 namespace
 {
@@ -1645,8 +1646,8 @@ void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMas
 		a13 = std::cos(phi)*std::sin(theta)*std::cos(theta);
 		a23 = std::sin(phi)*std::sin(theta)*std::cos(theta);
 
-		phi = (phi*180.0f) / vtkMath::Pi();
-		theta = (theta*180.0f) / vtkMath::Pi();
+		phi = (phi*180.0f) / std::numbers::pi;
+		theta = (theta*180.0f) / std::numbers::pi;
 
 		// Locating the phi value to quadrant
 		if (dx < 0)

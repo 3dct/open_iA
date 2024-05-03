@@ -51,7 +51,6 @@
 #include <vtkImageReslice.h>
 #include <vtkLineSource.h>
 #include <vtkLookupTable.h>
-#include <vtkMath.h>
 #include <vtkMatrix4x4.h>
 #include <vtkPoints.h>
 #include <vtkPolyDataMapper.h>
@@ -84,7 +83,7 @@
 #include <QHoverEvent>
 
 #include <cassert>
-
+#include <numbers>
 
 //! observer needs to be a separate class; otherwise there is an error when destructing,
 //! as vtk deletes all its observers...
@@ -2655,8 +2654,8 @@ void iASlicerImpl::updateFisheyeTransform(double focalPt[3], vtkImageReslice* re
 	double fixRadiusY;
 	for (auto fix = FixPoints; fix < 2*FixPoints; ++fix)
 	{
-		fixRadiusX = (lensRadius + 15.0)* std::cos(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
-		fixRadiusY = (lensRadius + 15.0)* std::sin(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		fixRadiusX = (lensRadius + 15.0)* std::cos(fix * (360 / FixPoints) * std::numbers::pi / 180) * spacing[0];
+		fixRadiusY = (lensRadius + 15.0)* std::sin(fix * (360 / FixPoints) * std::numbers::pi / 180) * spacing[0];
 
 		switch (m_mode)
 		{
@@ -2679,8 +2678,8 @@ void iASlicerImpl::updateFisheyeTransform(double focalPt[3], vtkImageReslice* re
 	// outer circle 2
 	for (auto fix = 2*FixPoints; fix < 3*FixPoints; ++fix)
 	{
-		fixRadiusX = (lensRadius + 80.0)* std::cos(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
-		fixRadiusY = (lensRadius + 80.0)* std::sin(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		fixRadiusX = (lensRadius + 80.0)* std::cos(fix * (360 / FixPoints) * std::numbers::pi / 180) * spacing[0];
+		fixRadiusY = (lensRadius + 80.0)* std::sin(fix * (360 / FixPoints) * std::numbers::pi / 180) * spacing[0];
 
 		switch (m_mode)
 		{
@@ -2703,11 +2702,11 @@ void iASlicerImpl::updateFisheyeTransform(double focalPt[3], vtkImageReslice* re
 
 	for (auto fix = 3*FixPoints; fix < NumPoints; ++fix)
 	{
-		double xCoordCircle1 = (innerLensRadius)* std::cos(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
-		double yCoordCircle1 = (innerLensRadius)* std::sin(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		double xCoordCircle1 = (innerLensRadius)* std::cos(fix * (360 / FixPoints) * std::numbers::pi / 180) * spacing[0];
+		double yCoordCircle1 = (innerLensRadius)* std::sin(fix * (360 / FixPoints) * std::numbers::pi / 180) * spacing[0];
 
-		double xCoordCircle2 = (lensRadius)* std::cos(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
-		double yCoordCircle2 = (lensRadius)* std::sin(fix * (360 / FixPoints) * vtkMath::Pi() / 180) * spacing[0];
+		double xCoordCircle2 = (lensRadius)* std::cos(fix * (360 / FixPoints) * std::numbers::pi / 180) * spacing[0];
+		double yCoordCircle2 = (lensRadius)* std::sin(fix * (360 / FixPoints) * std::numbers::pi / 180) * spacing[0];
 
 		switch (m_mode)
 		{

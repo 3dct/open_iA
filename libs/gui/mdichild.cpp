@@ -54,7 +54,6 @@
 // TODO: refactor methods using the following out of mdichild!
 #include <vtkCamera.h>
 #include <vtkImageReslice.h>
-#include <vtkMath.h>
 #include <vtkMatrixToLinearTransform.h>
 #include <vtkPoints.h>
 #include <vtkTransform.h>
@@ -71,6 +70,7 @@
 #include <QSettings>
 #include <QSpinBox>
 
+#include <numbers>
 
 MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsavedChanges) :
 	m_mainWnd(mainWnd),
@@ -759,8 +759,8 @@ void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptInde
 		rotate_around_y->DeepCopy(ry_matrix);
 
 		//rotate around Z by 180 degree - to bring object correct view
-		double cos_theta_z = std::cos(vtkMath::Pi());
-		double sin_theta_z = std::sin(vtkMath::Pi());
+		double cos_theta_z = std::cos(std::numbers::pi);
+		double sin_theta_z = std::sin(std::numbers::pi);
 
 		double rz_matrix[16] = { cos_theta_z,	-sin_theta_z,	0,	0,
 			sin_theta_z,	cos_theta_z,	0,	0,

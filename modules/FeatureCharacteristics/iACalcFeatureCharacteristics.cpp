@@ -25,7 +25,8 @@ IAFILTER_DEFAULT_CLASS(iACalcFeatureCharacteristics);
 #endif
 
 #include <vtkImageData.h>
-#include <vtkMath.h>
+
+#include <numbers>
 
 template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAProgress* progress,
 	QString pathCSV, bool feretDiameter, bool calculateAdvancedChars, bool calculateRoundness)
@@ -175,8 +176,8 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 		double a13 = std::cos( phi )*std::sin( theta )*std::cos( theta );
 		double a23 = std::sin( phi )*std::sin( theta )*std::cos( theta );
 
-		phi = ( phi*180.0f ) / vtkMath::Pi();
-		theta = ( theta*180.0f ) / vtkMath::Pi();
+		phi = ( phi*180.0f ) / std::numbers::pi;
+		theta = ( theta*180.0f ) / std::numbers::pi;
 
 		// Locating the phi value to quadrant
 		if ( dx < 0 )
@@ -253,10 +254,10 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 
 		if (calculateAdvancedChars)
 		{
-			//double sphericity = std::pow(vtkMath::Pi(), 1.0 / 3.0) * std::pow(6.0 * labelGeometryImageFilter->GetVolume(labelValue) * std::pow(spacing, 3.0), 2.0 / 3.0) / perimeter;
-			//double surface = 4.0 * vtkMath::Pi() *std::pow(equivSphericalRadius/**spacing*/,2.0);
-			//double sphericalRadiusManually = std::pow((6.0 / vtkMath::Pi() * labelGeometryImageFilter->GetVolume(labelValue) * std::pow(spacing, 3.0)), 1 / 3);
-				//std::pow(labelGeometryImageFilter->GetVolume(labelValue) * std::pow(spacing, 3.0) / (4.0 / 3.0 * vtkMath::Pi()), 1.0/3.0);  // Vsphere =  4/3*pI*r^3
+			//double sphericity = std::pow(std::numbers::pi, 1.0 / 3.0) * std::pow(6.0 * labelGeometryImageFilter->GetVolume(labelValue) * std::pow(spacing, 3.0), 2.0 / 3.0) / perimeter;
+			//double surface = 4.0 * std::numbers::pi *std::pow(equivSphericalRadius/**spacing*/,2.0);
+			//double sphericalRadiusManually = std::pow((6.0 / std::numbers::pi * labelGeometryImageFilter->GetVolume(labelValue) * std::pow(spacing, 3.0)), 1 / 3);
+				//std::pow(labelGeometryImageFilter->GetVolume(labelValue) * std::pow(spacing, 3.0) / (4.0 / 3.0 * std::numbers::pi), 1.0/3.0);  // Vsphere =  4/3*pI*r^3
 			double elongation = labelGeometryImageFilter->GetElongation(labelValue);
 			double perimeter = labelObject->GetPerimeter();
 			double secondAxisLengh = 4 * std::sqrt(eigenvalue[1]); //second prinzipal axis
