@@ -17,7 +17,7 @@ void iAUncertaintyModuleInterface::Initialize()
 	{
 		return;
 	}
-	iAToolRegistry::addTool("Uncertainty", &iAUncertaintyTool::create);
+	iAToolRegistry::addTool("Uncertainty", createTool<iAUncertaintyTool>);
 
 	QAction * actionUncertainty = new QAction(tr("Uncertainty Exploration"), m_mainWnd);
 	connect(actionUncertainty, &QAction::triggered, this,

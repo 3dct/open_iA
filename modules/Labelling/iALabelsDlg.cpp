@@ -111,26 +111,10 @@ iALabelsDlg::iALabelsDlg(iAMdiChild* mdiChild, bool addMainSlicers /* = true*/) 
 	}
 }
 
-int iALabelsDlg::getNextLabelId()
-{
-	int id = m_nextLabelId;
-	m_nextLabelId++;
-	return id;
-}
-
-int iALabelsDlg::getNextId()
-{
-	int id = m_nextId;
-	m_nextId++;
-	return id;
-}
-
 int iALabelsDlg::addSlicer(iASlicer* slicer, QString name, int* extent, double* spacing, uint channelId)
 {
 	assert(!m_mapSlicer2data.contains(slicer));
-
-	int imageId = getNextId();
-
+	int imageId = m_nextId++;
 	auto labelOverlayImg = vtkSmartPointer<iAvtkImageData>::New();
 	labelOverlayImg->SetExtent(extent);
 	labelOverlayImg->SetSpacing(spacing);
@@ -306,7 +290,6 @@ void iALabelsDlg::addSeed(double cx, double cy, double cz, iASlicer* slicer)
 				int x = coord[0];
 				int y = coord[1];
 				int z = coord[2];
-				// auto imageId = m_mapSlicer2data.value(slicer)->overlayImageId; // already set above
 				auto item = addSeedItem(labelRow, coord[0], coord[1], coord[2], imageId);
 				if (item)
 				{
@@ -377,7 +360,7 @@ int iALabelsDlg::addLabelItem(QString const& labelText)
 	newRow.append(newItem);
 	newRow.append(newItemCount);
 	m_itemModel->appendRow(newRow);
-	auto id = getNextLabelId();
+	auto id = m_nextLabelId++;
 	auto label = std::shared_ptr<iALabel>(new iALabel(id, QString::number(id), color));
 	m_labels.append(label);
 	emit labelAdded(*label);

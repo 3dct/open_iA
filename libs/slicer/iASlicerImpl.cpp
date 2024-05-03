@@ -601,6 +601,20 @@ void iASlicerImpl::setSliceNumber( int sliceNumber )
 	emit sliceNumberChanged( m_mode, sliceNumber );
 }
 
+void iASlicerImpl::setSlicePosition(double slicePos)
+{
+	if (m_sliceNumberChannel == NotExistingChannel)
+	{
+		return;
+	}
+	int sliceAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+	double const* spacing = m_channels[m_sliceNumberChannel]->input()->GetSpacing();
+	// TODO: once all occurrences of setSliceNumber have been replaced with setSlicePosition,
+	//    move implementation from there to here, should simplify stuff a little bit
+	//    (e.g., no more spacing computations required)
+	setSliceNumber(slicePos / spacing[sliceAxis]);
+}
+
 void iASlicerImpl::setLinearInterpolation(bool enabled)
 {
 	for (auto channel: m_channels)
@@ -1978,6 +1992,33 @@ QCursor iASlicerImpl::mouseCursor()
 int iASlicerImpl::sliceNumber() const
 {
 	return m_sliceNumber;
+}
+
+double iASlicerImpl::slicePosition() const
+{
+	int sliceAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+	double const* origin = m_channels[m_sliceNumberChannel]->input()->GetOrigin();
+	double const* spacing = m_channels[m_sliceNumberChannel]->input()->GetSpacing();
+	return origin[sliceAxis] + (m_sliceNumber * spacing[sliceAxis]);
+}
+
+double iASlicerImpl::sliceThickness() const
+{
+	int sliceAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+	double const* spacing = m_channels[m_sliceNumberChannel]->input()->GetSpacing();
+	return spacing[sliceAxis];
+}
+
+std::pair<double, double> iASlicerImpl::sliceRange() const
+{
+	auto img = m_channels[m_sliceNumberChannel]->input();
+	int sliceAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+	double sliceOrigin = img->GetOrigin()[sliceAxis];
+	double sliceSpacing = img->GetSpacing()[sliceAxis];
+	auto const ext = img->GetExtent();
+	int minIdx = ext[sliceAxis * 2];
+	int maxIdx = ext[sliceAxis * 2 + 1];
+	return std::make_pair(sliceOrigin + (minIdx * sliceSpacing), sliceOrigin + (maxIdx * sliceSpacing));
 }
 
 void iASlicerImpl::keyPressEvent(QKeyEvent *event)

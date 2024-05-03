@@ -7,6 +7,7 @@
 
 #include <iAMainWindow.h>
 #include <iAToolHelper.h>    // for addToolAction
+#include <iAToolRegistry.h>
 
 #include <QAction>
 #include <QMenu>
@@ -18,8 +19,8 @@ void iALabellingModuleInterface::Initialize()
 		return;
 	}
 	auto submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Labelling"), false);
-	addToolAction< iALabellingTool>(m_mainWnd, submenu);
-	addToolAction< iAAnnotationTool>(m_mainWnd, submenu);
-	//iAToolRegistry::addTool(iALabellingTool::Name, iALabellingTool::create);
-	//iAToolRegistry::addTool(iAAnnotationTool::Name, iAAnnotationTool::create);
+	addToolAction<iALabellingTool>(m_mainWnd, submenu);
+	addToolAction<iAAnnotationTool>(m_mainWnd, submenu);
+	iAToolRegistry::addTool(iAAnnotationTool::Name, createTool<iAAnnotationTool>);
+	iAToolRegistry::addTool(iALabellingTool::Name, createTool<iALabellingTool>);
 }

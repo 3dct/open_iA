@@ -16,6 +16,12 @@ class QString;
 
 using iAToolCreateFuncPtr = std::shared_ptr<iATool>(*)(iAMainWindow* mainWnd, iAMdiChild* child);
 
+template <class T>
+std::shared_ptr<iATool> createTool(iAMainWindow* mainWnd, iAMdiChild* child)
+{
+	return std::make_shared<T>(mainWnd, child);
+}
+
 //! Registry for descendants of iATool.
 //! Used to identify available tools when reading a project
 class iAguibase_API iAToolRegistry

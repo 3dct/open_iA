@@ -31,11 +31,6 @@
 #include <QSettings>
 #include <QTextStream>
 
-std::shared_ptr<iATool> iAFeatureScoutTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
-{
-	return std::make_shared<iAFeatureScoutTool>(mainWnd, child);
-}
-
 iAFeatureScoutTool::iAFeatureScoutTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iATool(mainWnd, child),
 	m_featureScout(nullptr)

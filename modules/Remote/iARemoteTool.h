@@ -20,6 +20,7 @@ class iARemoteTool : public QObject, public iATool
 public:
 	static const QString Name;
 	iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child);
+	~iARemoteTool();
 
 private:
 	std::unique_ptr<iARemoteRenderer> m_remoteRenderer;

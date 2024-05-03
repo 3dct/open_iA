@@ -64,6 +64,20 @@ struct iAConverter<unsigned short>
 	}
 };
 
+//! Converts unsigned short to and from QString.
+template <>
+struct iAConverter<size_t>
+{
+	static size_t toT(QString str, bool* ok)
+	{
+		return str.toULongLong(ok);
+	}
+	static QString toString(size_t n)
+	{
+		return QString::number(n);
+	}
+};
+
 //! Converts double to and from QString.
 template <>
 struct iAConverter<double>

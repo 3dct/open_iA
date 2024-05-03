@@ -203,7 +203,7 @@ iARemoteTool::iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::removeCaption, annotTool, &iAAnnotationTool::removeAnnotation);
 	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::addMode, annotTool, &iAAnnotationTool::startAddMode);
 	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::selectCaption, annotTool, &iAAnnotationTool::focusToAnnotation);
-	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::hideCaption, annotTool, &iAAnnotationTool::hideAnnotation);
+	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::hideCaption, annotTool, &iAAnnotationTool::toggleAnnotation);
 	connect(annotTool, &iAAnnotationTool::focusedToAnnotation, m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::sendInteractionUpdate);
 
 	m_clientList = new QTableWidget(child);
@@ -254,5 +254,8 @@ iARemoteTool::iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 			m_clientList->resizeColumnsToContents();
 		});
 }
+
+
+iARemoteTool::~iARemoteTool() = default;
 
 const QString iARemoteTool::Name("NDTflix");

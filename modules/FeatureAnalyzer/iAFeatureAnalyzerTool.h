@@ -12,7 +12,6 @@ class iAFeatureAnalyzerTool : public iATool
 {
 public:
 	static QString const ID;
-	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child);
 	iAFeatureAnalyzerTool(iAMainWindow* mainWnd, iAMdiChild* child);
 	void setOptions(QString const& resultsFolder, QString const& datasetsFolder);
 	void loadState(QSettings& projectFile, QString const& fileName) override;

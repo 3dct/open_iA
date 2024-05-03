@@ -31,7 +31,6 @@ class FeatureScout_API iAFeatureScoutTool : public QObject, public iATool
 	Q_OBJECT
 public:
 	static const QString ID;
-	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child);
 	//! add FeatureScout to the given child window, guessing config parameters from the given csv file naem
 	static bool addToChild(iAMdiChild* child, const QString& csvFileName);
 	//! add FeatureScout to the given child window, using the given configuration to set up

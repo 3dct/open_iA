@@ -25,7 +25,7 @@ struct iAAnnotation
 	iAVec3d m_coord;
 	QString m_name;
 	QColor m_color;
-	bool m_hide;
+	bool m_show;
 };
 
 class Labelling_API iAAnnotationTool : public QObject, public iATool
@@ -36,13 +36,15 @@ public:
 	iAAnnotationTool(iAMainWindow* mainWin, iAMdiChild* child);
 	size_t addAnnotation(iAVec3d const & coord);
 	std::vector<iAAnnotation> const & annotations() const;
+	void loadState(QSettings& projectFile, QString const& fileName) override;
+	void saveState(QSettings& projectFile, QString const& fileName) override;
 
 public slots:
 	void startAddMode();
 	void renameAnnotation(size_t id, QString const& newName);
 	void removeAnnotation(size_t id);
 	void focusToAnnotation(size_t id);
-	void hideAnnotation(size_t id);
+	void toggleAnnotation(size_t id);
 
 signals:
 	void annotationsUpdated(std::vector<iAAnnotation> const &);
@@ -53,5 +55,9 @@ private slots:
 	void slicerPointClicked(double x, double y, double z);
 
 private:
+	void addAnnotation(iAAnnotation a);
+	void showAnnotation(size_t id, bool show);
+	void showActors(size_t id, bool show);
+	void adjustTableItemShown(int row, bool show);
 	std::shared_ptr<iAAnnotationToolUI> m_ui;
 };

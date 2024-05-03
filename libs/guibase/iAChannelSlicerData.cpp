@@ -6,6 +6,7 @@
 #include "iALog.h"
 #include "iASlicerMode.h"
 #include "iAToolsVTK.h"		// for convertTFToLUT
+#include "iAvtkActorHelper.h"  // for showActor
 
 #include <vtkActor.h>
 #include <vtkImageActor.h>
@@ -228,14 +229,7 @@ void iAChannelSlicerData::setInterpolate(bool interpolate)
 void iAChannelSlicerData::setEnabled(vtkRenderer* ren, bool enable)
 {
 	m_enabled = enable;
-	if (enable)
-	{
-		ren->AddActor(m_imageActor);
-	}
-	else
-	{
-		ren->RemoveActor(m_imageActor);
-	}
+	showActor(ren, m_imageActor, enable);
 }
 
 void iAChannelSlicerData::setSlabNumberOfSlices(int slices)
@@ -275,10 +269,7 @@ void iAChannelSlicerData::setContours(int numberOfContours, double const* contou
 
 void iAChannelSlicerData::setShowContours(vtkRenderer* ren, bool enable)
 {
-	if (enable)
-		ren->AddActor(m_contourActor);
-	else
-		ren->RemoveActor(m_contourActor);
+	showActor(ren, m_contourActor, enable);
 }
 
 void iAChannelSlicerData::setContourLineParams(double lineWidth, bool dashed)

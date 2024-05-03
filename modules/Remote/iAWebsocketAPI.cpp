@@ -388,7 +388,7 @@ void iAWebsocketAPI::updateCaptionList(std::vector<iAAnnotation> captions)
 			{"x", caption.m_coord[0]},
 			{"y", caption.m_coord[1]},
 			{"z", caption.m_coord[2]},
-			{"hide", caption.m_hide}
+			{"hide", !caption.m_show}
 		});
 	}
 	auto response = QJsonObject{
