@@ -6,10 +6,10 @@ if (Qt6HttpServer_FOUND)
 	if (NPM_PROGRAM)
 		target_compile_definitions(${MODULE_NAME} PRIVATE QT_HTTPSERVER)
 
-		set(HTTP_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${MODULE_NAME}/web")
-		set(HTTP_BIN_DIR "${CMAKE_CURRENT_BINARY_DIR}/${MODULE_NAME}.dir/web")
-		set(HTTP_INSTALL_SRC_DIR "${HTTP_BIN_DIR}/dist_angular")
 		set(HTTP_DST_SUBDIR "RemoteClient")
+		set(HTTP_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${MODULE_NAME}/web")
+		set(HTTP_BIN_DIR "${CMAKE_CURRENT_BINARY_DIR}/${MODULE_NAME}-${HTTP_DST_SUBDIR}")
+		set(HTTP_INSTALL_SRC_DIR "${HTTP_BIN_DIR}/dist_angular")
 		set(MULTI_RUNNER "")
 		if (WIN32)
 			set(MULTI_RUNNER "call")	# NPM is a .bat file under windows, therefore needs to be called with CALL
