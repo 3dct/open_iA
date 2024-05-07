@@ -293,26 +293,6 @@ Server &rarr; Client
 
 The server broadcasts the command to all clients in all cases.
 
-### Edit Snapshot Slice Position
-
-Snapshots can be edited by moving the slice position and "reslicing" the snapshot.  
-The value sent is **added** to the axis. The datatype is a **32-Bit float**.
-
-Change the axis by setting one of the following values:
-
-- X - 0
-- Y - 1
-- Z - 2
-
-Client &rarr; Server  
-OR  
-Server &rarr; Client
-
-|0x6|0x4|Snapshot ID (64-Bit)|Axis (8-Bit)|Value (32-Bit)|
-|-|-|-|-|-|
-
-The server broadcasts the command to all clients in all cases.
-
 ## Message Table
 
 |Category (8-Bit)|Subcategory (8-Bit)|Data|Description|
@@ -334,4 +314,3 @@ The server broadcasts the command to all clients in all cases.
 |0x6|0x0|Snapshot ID (64-Bit), Position XYZ (96-Bit), Rotation Quaternion XYZW (128-Bit)|Snapshot Creation (Server)|
 |0x6|0x2|Snapshot ID (64-Bit)|Snapshot Removal|
 |0x6|0x3||Clear Snapshots|
-|0x6|0x4|Snapshot ID (64-Bit), Axis (8-Bit), Value (32-Bit)|Snapshot Slice Position Edit|
