@@ -12,14 +12,8 @@
 class iASlicerSettings
 {
 public:
-	bool InteractorsEnabled,
-		LinkViews,
-		LinkMDIs;
-	int SnakeSlices;
-	iASlicerSettings() :
-		InteractorsEnabled(true),
-		LinkViews(false),
-		LinkMDIs(false),
-		SnakeSlices(100)
-	{}
+	bool InteractorsEnabled{ true },
+		LinkViews{ false },
+		LinkMDIs{ false };
+	int SnakeSlices{ 100 };
 };
