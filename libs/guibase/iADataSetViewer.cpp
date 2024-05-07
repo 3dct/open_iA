@@ -149,29 +149,29 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	iAMainWindow::get()->addActionIcon(removeAction, "delete");
 	child->dataSetListWidget()->addAction(dataSetIdx, removeAction, iADataSetListWidget::Edit);
 
-	addViewAction("3D", "3d", renderFlagSet(Render3DFlag),
-		[this, child](bool checked)
+	auto renderAction = addViewAction("3D", "3d", renderFlagSet(Render3DFlag));
+	connect(renderAction, &QAction::triggered, this, [this, child](bool checked)
 		{
 			setRenderFlag(Render3DFlag, checked);
 			m_renderer->setVisible(checked);
 			child->updateRenderer();
 		});
-	addViewAction("Box", "box_3d_edge", renderFlagSet(RenderOutlineFlag),
-		[this, child](bool checked)
+	auto boxAction = addViewAction("Box", "box_3d_edge", renderFlagSet(RenderOutlineFlag));
+	connect(boxAction, &QAction::triggered, this, [this, child](bool checked)
 		{
 			setRenderFlag(RenderOutlineFlag, checked);
 			m_renderer->setBoundsVisible(checked);
 			child->updateRenderer();
 		});
-	addViewAction("Magic Lens", "magic_lens_3d", renderFlagSet(RenderMagicLensFlag),
-		[this, child](bool checked)
+	auto magicLensAction = addViewAction("Magic Lens", "magic_lens_3d", renderFlagSet(RenderMagicLensFlag));
+	connect(magicLensAction, &QAction::triggered, this, [this, child](bool checked)
 		{
 			setRenderFlag(RenderMagicLensFlag, checked);
 			m_magicLensRenderer->setVisible(checked);
 			child->updateRenderer();
 		});
-	addViewAction("Cut Plane", "cut_plane", renderFlagSet(RenderCutPlane),
-		[this, child](bool checked)
+	auto cutPlaneAction = addViewAction("Cut Plane", "cut_plane", renderFlagSet(RenderCutPlane));
+	connect(cutPlaneAction, &QAction::triggered, this, [this, child](bool checked)
 		{
 			setRenderFlag(RenderCutPlane, checked);
 			if (checked)
@@ -200,8 +200,8 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			}
 			child->updateRenderer();
 		});
-	m_pickAction = addViewAction("Pickable", "transform-move", false,
-		[child, dataSetIdx](bool checked)
+	m_pickAction = addViewAction("Pickable", "transform-move", false);
+	connect(m_pickAction, &QAction::triggered, this, [child, dataSetIdx](bool checked)
 		{
 			Q_UNUSED(checked);
 			if (checked)
@@ -276,7 +276,7 @@ void iADataSetViewer::unitDistanceChanged(std::array<double, 3> oldUnitDist, iAM
 	Q_UNUSED(child);
 }
 
-QAction* iADataSetViewer::addViewAction(QString const& name, QString const& iconName, bool checked, std::function<void(bool)> handler)
+QAction* iADataSetViewer::addViewAction(QString const& name, QString const& iconName, bool checked)
 {
 	assert(m_child);
 	auto action = new QAction(name);
@@ -284,7 +284,6 @@ QAction* iADataSetViewer::addViewAction(QString const& name, QString const& icon
 	action->setCheckable(true);
 	action->setChecked(checked);
 	iAMainWindow::get()->addActionIcon(action, iconName);
-	connect(action, &QAction::triggered, this, handler);
 	m_child->dataSetListWidget()->addAction(m_dataSetIdx, action, iADataSetListWidget::View);
 	return action;
 }

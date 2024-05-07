@@ -83,7 +83,7 @@ public:
 	//! needs to be called before calling createGUI of this base class (which passes the view actions created so far
 	//! to the dataset list. Actions are shown in reverse order to call to this function, since we want to show
 	//! the ones common to all viewers first, but these are only created in createGUI of this base class
-	QAction* addViewAction(QString const& name, QString const& iconName, bool checked, std::function<void(bool)> handler);
+	QAction* addViewAction(QString const& name, QString const& iconName, bool checked);
 
 	//! Called to create a 3D renderer for the dataset. Override in derived class; used for both the "normal" 3D renderer and the magic lens renderer.
 	//! @param ren the vtk renderer to attach the created renderer to
