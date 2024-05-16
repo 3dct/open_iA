@@ -7,7 +7,7 @@
 iAViewHandler::iAViewHandler(QString const & id): m_id(id)
 {
 	m_timer.setSingleShot(true);
-	connect(&m_timer, &QTimer::timeout, [=]() -> void
+	connect(&m_timer, &QTimer::timeout, [this]()
 	{
 		//LOG(lvlDebug, "TIMER");
 		emit createImage(m_id, 100);

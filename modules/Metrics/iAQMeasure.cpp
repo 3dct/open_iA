@@ -330,10 +330,10 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QVariantMap
 void computeOrigQ(iAFilter* filter, iAConnector & con, QVariantMap const & params)
 {
 	// some "magic numbers"
-	unsigned int dgauss_size_BINscale = 24;
-	unsigned int gauss_size_P2Pscale = 24;
-	double threshold_x = -0.1;
-	double threshold_y = 2;						// one single voxel is no valid class
+	//unsigned int dgauss_size_BINscale = 24;
+	//unsigned int gauss_size_P2Pscale = 24;
+	//double threshold_x = -0.1;
+	//double threshold_y = 2;						// one single voxel is no valid class
 
 	iAConnector floatImage;
 	if (filter->inputScalarType() == iAITKIO::ScalarType::FLOAT)
