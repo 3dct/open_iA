@@ -5,7 +5,6 @@ target_link_libraries(${libname} PUBLIC
 	Qt::Concurrent
 )
 set(VTK_REQUIRED_LIBS_PUBLIC
-	FiltersGeometry         # for vtkImageDataGeometryFilter, used in iALabel3D
 	FiltersModeling         # for vtkOutlineFilter
 	IOMovie                 # for vtkAVIWriter, vtkGenericMovieWriter
 	IOOggTheora             # for vtkOggTheoraWriter

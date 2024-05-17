@@ -209,7 +209,7 @@ set(VTK_COMPONENTS
 	CommonColor                 # for vtkNamedColors, vtkColorSeries, used in CompVis
 	CommonComputationalGeometry # for vtkParametricSpline, used in core - iASpline/iAParametricSpline
 	FiltersExtraction           # for vtkExtractGeometry, used in FIAKER - iASelectionInteractorStyle
-	FiltersGeometry             # for vtkImageDataGeometryFilter used in iALabel3D and vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
+	FiltersGeometry             # for vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
 	FiltersHybrid               # for vtkDepthSortPolyData used in 4DCT, DreamCaster, FeatureScout, vtkPolyDataSilhouette used in FeatureScout
 	FiltersModeling             # for vtkRotationalExtrusionFilter, vtkOutlineFilter
 	FiltersStatistics           # for vtkPCAStatistics used in BoneThickness - iABoneThickness
