@@ -21,10 +21,10 @@ class QMdiSubWindow;
 class QMenu;
 class QSplashScreen;
 
-class MdiChild;
 class iADockWidgetWrapper;
 class iAFileIO;
 class iAModuleDispatcher;
+class MdiChild;
 
 class Ui_MainWindow;
 
@@ -47,9 +47,9 @@ public:
 	//! Opens multiple files in an existing or new window
 	//! @param fileNames the list of the file names of the files to load
 	//! @param child the child window to load the files into. If nullptr, a new window is created **for each file**
-	void loadFiles(QStringList fileNames, iAMdiChild* child = nullptr);
+	void loadFiles(QStringList fileNames, std::shared_ptr<iAChildSource> childSrc);
 	//! see iAMainWindow::loadFile
-	void loadFile(QString const& fileName, iAMdiChild* child = nullptr, std::shared_ptr<iAFileIO> io = nullptr) override;
+	void loadFile(QString const& fileName, std::shared_ptr<iAChildSource> childSrc, std::shared_ptr<iAFileIO> io = nullptr) override;
 
 	QMenu * fileMenu() override;
 	QMenu* editMenu() override;
