@@ -99,7 +99,6 @@ namespace
 		Create,
 		Remove,
 		ClearAll,
-		ChangeSlicePosition,
 		// must be last:
 		Count
 	};
@@ -643,17 +642,6 @@ private:
 		broadcastMsg(msgSnapshotsClear());
 	}
 
-	void moveSnapshot(quint64 id, iAMoveAxis axis, float value)
-	{
-		LOG(lvlInfo, QString("  Moving snapshot (ID=%1, axis=%2, value=%3).")
-			.arg(id).arg(static_cast<int>(axis)).arg(value));
-		m_planeSliceTool->moveSlice(id, axis, value);
-		QByteArray outData;
-		QDataStream outStream(&outData, QIODevice::WriteOnly);
-		outStream << MessageType::Snapshot << SnapshotCommandType::ChangeSlicePosition << id << axis << value;
-		broadcastMsg(outData);
-	}
-
 	void resetObjects()
 	{
 		// TODO: handle locally...
@@ -967,14 +955,6 @@ private:
 						m_planeSliceTool->clearSnapshots();
 						clearSnapshots();
 						break;
-					case SnapshotCommandType::ChangeSlicePosition:
-					{
-						auto snapshotID = readVal<quint64>(rcvStream);
-						auto axis = readVal<iAMoveAxis>(rcvStream);
-						auto value = readVal<float>(rcvStream);
-						moveSnapshot(snapshotID, axis, value);
-						break;
-					}
 					}
 					break;
 				}
