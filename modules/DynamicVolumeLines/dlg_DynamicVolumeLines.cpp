@@ -198,13 +198,13 @@ void dlg_DynamicVolumeLines::setupPlotConnections(QCustomPlot *qcp)
 	{
 		connect(qcp->xAxis, QOverload<QCPRange const &>::of(&QCPAxis::rangeChanged), this, &dlg_DynamicVolumeLines::syncLinearXAxis);
 		connect(qcp->yAxis, QOverload<QCPRange const &>::of(&QCPAxis::rangeChanged), this, &dlg_DynamicVolumeLines::syncYAxis);
-		connect(qcp, &QCustomPlot::afterReplot, [=] { m_linearScaledPlot->replot(QCustomPlot::rpRefreshHint); });
+		connect(qcp, &QCustomPlot::afterReplot, [this] { m_linearScaledPlot->replot(QCustomPlot::rpRefreshHint); });
 	}
 	else
 	{
 		connect(qcp->xAxis, QOverload<QCPRange const&>::of(&QCPAxis::rangeChanged), this, &dlg_DynamicVolumeLines::syncNonlinearXAxis);
 		connect(qcp->yAxis, QOverload<QCPRange const&>::of(&QCPAxis::rangeChanged), this, &dlg_DynamicVolumeLines::syncYAxis);
-		connect(qcp, &QCustomPlot::afterReplot, [=] { m_nonlinearScaledPlot->replot(QCustomPlot::rpRefreshHint); });
+		connect(qcp, &QCustomPlot::afterReplot, [this] { m_nonlinearScaledPlot->replot(QCustomPlot::rpRefreshHint); });
 	}
 	connect(qcp, &QCustomPlot::mousePress, this, &dlg_DynamicVolumeLines::mousePress);
 	connect(qcp, &QCustomPlot::mouseMove, this, &dlg_DynamicVolumeLines::mouseMove);

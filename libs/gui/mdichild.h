@@ -4,12 +4,7 @@
 
 #include "iagui_export.h"
 
-// TODO: get rid of ui_ includes (use ui internally only, see MainWindow::m_ui)
-#include "ui_Mdichild.h"
-#include "ui_renderer.h"
-
 // guibase
-#include "qthelper/iAQTtoUIConnector.h"
 #include "iAMdiChild.h"
 #include "iAPreferences.h"
 #include "iASavableProject.h"
@@ -23,9 +18,7 @@
 #include <QString>
 
 #include <array>
-#include <functional>
 #include <memory>
-#include <vector>
 
 class QListWidget;
 class QSpinBox;
@@ -43,12 +36,14 @@ class iADataSetViewer;
 class iAParametricSpline;
 class iAvtkInteractStyleActor;
 class MainWindow;
+class Ui_Mdichild;
 
 // guibase
 class iAChannelData;
 class iATool;
 
 // slicer / renderer
+class dlg_renderer;
 class dlg_slicer;
 class iARendererImpl;
 class iASlicerImpl;
@@ -56,11 +51,9 @@ class iASlicerImpl;
 // base
 class iADockWidgetWrapper;
 
-using dlg_renderer = iAQTtoUIConnector<QDockWidget, Ui_renderer>;
-
 //! Child window of MainWindow's mdi area for showing datasets and visualizations.
 //! Most tools in the modules can be added to MdiChild to extend its functionality.
-class iAgui_API MdiChild : public iAMdiChild, public Ui_Mdichild, public iASavableProject
+class iAgui_API MdiChild : public iAMdiChild, public iASavableProject
 {
 	Q_OBJECT
 public:
@@ -323,4 +316,6 @@ private:
 	std::map<size_t, std::shared_ptr<iADataSetViewer>> m_dataSetViewers;//!< viewer for a currently loaded dataset; manages all aspects of showing the dataset, e.g. in 3D renderer, slicer, etc.
 
 	vtkSmartPointer<iAvtkInteractStyleActor> m_manualMoveStyle[4];      //!< for syncing the manual registration between views
+
+	std::shared_ptr<Ui_Mdichild> m_ui;
 };

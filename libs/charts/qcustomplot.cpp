@@ -8798,11 +8798,11 @@ QCPAxis::AxisType QCPAxis::opposite(QCPAxis::AxisType type)
 {
   switch (type)
   {
-    case atLeft: return atRight; break;
-    case atRight: return atLeft; break;
-    case atBottom: return atTop; break;
-    case atTop: return atBottom; break;
-    default: qDebug() << Q_FUNC_INFO << "invalid axis type"; return atLeft; break;
+    case atLeft: return atRight;
+    case atRight: return atLeft;
+    case atBottom: return atTop;
+    case atTop: return atBottom;
+    default: qDebug() << Q_FUNC_INFO << "invalid axis type"; return atLeft;
   }
 }
 

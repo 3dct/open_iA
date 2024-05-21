@@ -7,12 +7,28 @@
 #include <QMainWindow>
 
 class iAFileIO;
+class iAMainWindow;
 class iAMdiChild;
 class iAModuleDispatcher;
 class iAPreferences;
 
 class QMdiSubWindow;
 class QString;
+
+//! Class used for accessing an existing or creating a new child window as needed.
+//! The goal is to defer the need to create windows to as late as possible;
+//! while making it customizable whether to create a new window each time one is requested (newWindow);
+//! or if newWindow is false, then either the the given child or the same new child is returned each time.
+class iAguibase_API iAChildSource
+{
+public:
+	static std::shared_ptr<iAChildSource> make(bool newWindow, iAMdiChild* child = nullptr);
+	iAChildSource(bool newWindow, iAMdiChild* child);
+	iAMdiChild* child(iAMainWindow* mainWin);
+private:
+	bool m_newWin;
+	iAMdiChild* m_child;
+};
 
 //! Abstract interface class for the application's main window, provides access to all global graphical user interface elements.
 class iAguibase_API iAMainWindow : public QMainWindow
@@ -48,10 +64,10 @@ public:
 
 	//! Load a file, either into an existing child window or creating a new one
 	//! @param fileName the name of the file (project or dataset) to load
-	//! @param child the child window to load the data into. If left at default value nullptr, a new child will be created
+	//! @param childSrc source for the child to put the file into; see iAChildSource
 	//! @param io the file io to be used when loading the file. If left at default value nullptr,
 	//!     the iAFileTypeRegistry will be consulted to create an io fitting for the given filename
-	virtual void loadFile(QString const& fileName, iAMdiChild* child = nullptr, std::shared_ptr<iAFileIO> io = nullptr) = 0;
+	virtual void loadFile(QString const& fileName, std::shared_ptr<iAChildSource> childSrc, std::shared_ptr<iAFileIO> io = nullptr) = 0;
 
 
 	// Access to menus:
@@ -87,7 +103,7 @@ public:
 	//! Set current directory path (the "working folder")
 	virtual void setPath(QString const& p) = 0;
 
-	//! Access to the main window (more or less singleton); implementation currently in iAModuleDispatcher.cpp
+	//! Access to the main window (more or less singleton);
 	static iAMainWindow* get();
 
 	//! add an icon to an action (and keep the action for that icon up-to-date if the style changes

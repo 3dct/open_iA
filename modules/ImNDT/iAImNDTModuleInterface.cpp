@@ -93,7 +93,8 @@ void iAImNDTModuleInterface::Initialize()
 			auto viewer = child->dataSetViewer(dataSetIdx);
 			if (viewer && viewer->renderer())    // if dataset has a renderer, add a button to view it in VR:
 			{
-				auto action = viewer->addViewAction("VR", "VR", false, [this, removeRenderer, child, viewer, dataSetIdx](bool checked)
+				auto action = viewer->addViewAction("VR", "VR", false);
+				connect(action, &QAction::triggered, this, [this, removeRenderer, child, viewer, dataSetIdx, action](bool checked)
 				{
 					if (!checked)
 					{
@@ -102,6 +103,8 @@ void iAImNDTModuleInterface::Initialize()
 					}
 					if (!ensureVREnvironment())
 					{
+						QSignalBlocker blockAction(action);
+						action->setChecked(false);
 						return;
 					}
 					auto vrRen = viewer->createRenderer(m_vrEnv->renderer());

@@ -16,7 +16,7 @@ class iAScalingWidget : public QOpenGLWidget, public QOpenGLFunctions
 	Q_OBJECT
 
 public:
-	iAScalingWidget(QWidget* parent = 0);
+	iAScalingWidget(QWidget* parent);
 
 	QSize minimumSizeHint() const override;
 	QSize sizeHint() const override;

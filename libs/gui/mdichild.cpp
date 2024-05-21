@@ -3,6 +3,9 @@
 #include "mdichild.h"
 
 #include "dlg_slicer.h"
+#include "ui_Mdichild.h"
+#include "ui_renderer.h"
+
 #include "iADataSetViewerImpl.h"
 #include "iADataSetRenderer.h"
 #include "iAVolumeViewer.h"    // TODO NEWIO: only required for changing magic lens input - move from here, e.g. to slicer
@@ -72,6 +75,16 @@
 
 #include <numbers>
 
+// avoid iQTtoUIConnector in order to avoid having to include that .h file in mdichild.h
+class dlg_renderer : public QDockWidget, public Ui_renderer
+{
+public:
+	dlg_renderer(QWidget* parent = nullptr) : QDockWidget(parent)
+	{
+		this->setupUi(this);
+	}
+};
+
 MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsavedChanges) :
 	m_mainWnd(mainWnd),
 	m_preferences(prefs),
@@ -92,13 +105,14 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_magicLensChannel(NotExistingChannel),
 	m_magicLensDataSet(0),
 	m_interactionMode(imCamera),
-	m_nextDataSetID(0)
+	m_nextDataSetID(0),
+	m_ui(std::make_shared<Ui_Mdichild>())
 {
 	setAcceptDrops(true);
 	setAttribute(Qt::WA_DeleteOnClose);
 	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
 	setWindowModified(unsavedChanges);
-	setupUi(this);
+	m_ui->setupUi(this);
 	setCentralWidget(nullptr);
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
 	m_dwRenderer = new dlg_renderer(this);
@@ -277,7 +291,7 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 	m_dataSets[dataSetIdx] = dataSet;
 	if (m_curFile.isEmpty())
 	{
-		LOG(lvlDebug, "Developer Warning - consider calling setWindowTitleAndFile directly where you first call addDataSet");
+		//LOG(lvlDebug, "Developer Warning - consider calling setWindowTitleAndFile directly where you first call addDataSet");
 		setWindowTitleAndFile(
 			dataSet->hasMetaData(iADataSet::FileNameKey) ?
 			dataSet->metaData(iADataSet::FileNameKey).toString() :
@@ -1191,7 +1205,7 @@ void MdiChild::dropEvent(QDropEvent* e)
 {
 	for (const QUrl& url : e->mimeData()->urls())
 	{
-		m_mainWnd->loadFile(url.toLocalFile(), this);
+		m_mainWnd->loadFile(url.toLocalFile(), iAChildSource::make(false, this));
 	}
 }
 

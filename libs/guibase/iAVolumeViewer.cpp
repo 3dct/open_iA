@@ -276,21 +276,21 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 		m_dataSet->setMetaData(RenderFlags, defaultRenderFlags);
 	}
 	iADataSetViewer::createGUI(child, dataSetIdx);
-	addViewAction("2D", "2d", renderFlagSet(RenderSlicerFlag),
-		[this, child](bool checked)
+	auto slicerAction = addViewAction("2D", "2d", renderFlagSet(RenderSlicerFlag));
+	connect(slicerAction, &QAction::triggered, this, [this, child](bool checked)
 		{
 			setRenderFlag(RenderSlicerFlag, checked);
 			showInSlicers(checked);
 			child->updateSlicers();
 		});
-	m_histogramAction = addViewAction("Histogram", "histogram-tf", renderFlagSet(RenderHistogramFlag),
-		[this](bool checked)
+	m_histogramAction = addViewAction("Histogram", "histogram-tf", renderFlagSet(RenderHistogramFlag));
+	connect(m_histogramAction, &QAction::triggered, this, [this](bool checked)
 		{
 			setRenderFlag(RenderHistogramFlag, checked);
 			m_dwHistogram->setVisible(checked);
 		});
-	addViewAction("Slice Profile", "profile", renderFlagSet(RenderProfileFlag),
-		[this](bool checked)
+	auto sliceProfileAction = addViewAction("Slice Profile", "profile", renderFlagSet(RenderProfileFlag));
+	connect(sliceProfileAction, &QAction::triggered, this, [this](bool checked)
 		{
 			setRenderFlag(RenderProfileFlag, checked);
 			if (checked)

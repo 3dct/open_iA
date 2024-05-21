@@ -209,7 +209,7 @@ set(VTK_COMPONENTS
 	CommonColor                 # for vtkNamedColors, vtkColorSeries, used in CompVis
 	CommonComputationalGeometry # for vtkParametricSpline, used in core - iASpline/iAParametricSpline
 	FiltersExtraction           # for vtkExtractGeometry, used in FIAKER - iASelectionInteractorStyle
-	FiltersGeometry             # for vtkImageDataGeometryFilter used in iALabel3D and vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
+	FiltersGeometry             # for vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
 	FiltersHybrid               # for vtkDepthSortPolyData used in 4DCT, DreamCaster, FeatureScout, vtkPolyDataSilhouette used in FeatureScout
 	FiltersModeling             # for vtkRotationalExtrusionFilter, vtkOutlineFilter
 	FiltersStatistics           # for vtkPCAStatistics used in BoneThickness - iABoneThickness
@@ -489,7 +489,6 @@ if (OpenCLICDLoader_FOUND)
 	else()
 		target_compile_definitions(OpenCLDefines INTERFACE CL_USE_DEPRECATED_OPENCL_1_2_APIS)
 	endif()
-	target_include_directories(OpenCLDefines INTERFACE ${Toolkit_DIR}/OpenCL)
 	target_link_libraries(OpenCLDefines INTERFACE OpenCL::Headers OpenCL::HeadersCpp OpenCL::OpenCL)
 	message(STATUS "OpenCL: ${OpenCLICDLoader_DIR}")
 	set(BUILD_INFO "${BUILD_INFO}    \"OpenCL targeted version	${openiA_OPENCL_VERSION}\\n\"\n")

@@ -2009,7 +2009,7 @@ void iAFiAKErController::diameterFactorChanged(int diameterFactorInt)
 	m_diameterFactor = m_diameterFactorMapper->dstToSrc(diameterFactorInt);
 	addInteraction(QString("Set diameter modification factor to %1.").arg(m_diameterFactor));
 	m_settingsView->lbDiameterFactorDefaultValue->setText(QString::number(m_diameterFactor, 'f', 2));
-	visitAllVisibleVis([=](std::shared_ptr<iAColoredPolyObjectVis> vis, std::shared_ptr<iAPolyObjectVisActor> /*actor*/, size_t /*resultID*/)
+	visitAllVisibleVis([this](std::shared_ptr<iAColoredPolyObjectVis> vis, std::shared_ptr<iAPolyObjectVisActor> /*actor*/, size_t /*resultID*/)
 	{
 		(dynamic_cast<iACylinderObjectVis*>(vis.get()))->setDiameterFactor(m_diameterFactor);
 	});
@@ -2024,7 +2024,7 @@ void iAFiAKErController::contextDiameterFactorChanged(int contextDiameterFactorI
 	m_contextDiameterFactor = m_diameterFactorMapper->dstToSrc(contextDiameterFactorInt);
 	addInteraction(QString("Set context diameter modification factor to %1.").arg(m_contextDiameterFactor));
 	m_settingsView->lbDiameterFactorContextValue->setText(QString::number(m_contextDiameterFactor, 'f', 2));
-	visitAllVisibleVis([=](std::shared_ptr<iAColoredPolyObjectVis> vis, std::shared_ptr<iAPolyObjectVisActor> /*actor*/, size_t /*resultID*/)
+	visitAllVisibleVis([this](std::shared_ptr<iAColoredPolyObjectVis> vis, std::shared_ptr<iAPolyObjectVisActor> /*actor*/, size_t /*resultID*/)
 	{
 		(dynamic_cast<iACylinderObjectVis*>(vis.get()))->setContextDiameterFactor(m_contextDiameterFactor);
 	});
