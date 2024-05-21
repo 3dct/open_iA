@@ -47,20 +47,28 @@
 #define ITK_LEAN_AND_MEAN
 #endif
 
-#include "itkImageToImageFilter.h"
-#include "itkOtsuThresholdCalculator.h"
-#include "itkImageRegionIterator.h"
-#include "itkImageToHistogramFilter.h"
-#include "itkNumericTraits.h"
-#include "itkVector.h"
-#include "itkPointSet.h"
-#include "itkConstNeighborhoodIterator.h"
-#include "itkImageRegionIterator.h"
-#include "itkImageRegionConstIterator.h"
-#include "itkImageRandomNonRepeatingConstIteratorWithIndex.h"
-#include "itkBSplineScatteredDataPointSetToImageFilter.h"
-#include "itkVectorIndexSelectionCastImageFilter.h"
-#include "itkRegionOfInterestImageFilter.h"
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
+#include <itkImageToImageFilter.h>
+#include <itkOtsuThresholdCalculator.h>
+#include <itkImageRegionIterator.h>
+#include <itkImageToHistogramFilter.h>
+#include <itkNumericTraits.h>
+#include <itkVector.h>
+#include <itkPointSet.h>
+#include <itkConstNeighborhoodIterator.h>
+#include <itkImageRegionIterator.h>
+#include <itkImageRegionConstIterator.h>
+#include <itkImageRandomNonRepeatingConstIteratorWithIndex.h>
+#include <itkBSplineScatteredDataPointSetToImageFilter.h>
+#include <itkVectorIndexSelectionCastImageFilter.h>
+#include <itkRegionOfInterestImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 
 template < class TInputImage, class TOutputImage >
 class iAAdaptiveOtsuThresholdImageFilter :
