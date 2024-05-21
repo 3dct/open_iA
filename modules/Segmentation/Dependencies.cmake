@@ -19,10 +19,8 @@ set(DEPENDENCIES_LIBRARIES
 #	ITKWatersheds                # for MorphologicalWatershedImageFilter, WatershedImageFilter, ...
 #)
 set(DEPENDENCIES_IA_TOOLKIT_DIRS
-	AdaptiveOtsuThreshold
-	MaximumDistance
-	RemovePeaksOtsu
 	FuzzyCMeans
+	MaximumDistance
 )
 if (EIGEN3_FOUND)
 	set(DEPENDENCIES_INCLUDE_DIRS
