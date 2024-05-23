@@ -429,7 +429,7 @@ void MainWindow::openRaw()
 		m_path,
 		"Raw File (*)"
 	);
-	loadFile(fileName, askWhichChild(), std::make_shared<iARawFileIO>());
+	loadFile(fileName, std::make_unique<iAChildSource>(false, askWhichChild()), std::make_shared<iARawFileIO>());
 }
 
 void MainWindow::openRecentFile()
@@ -440,7 +440,7 @@ void MainWindow::openRecentFile()
 		return;
 	}
 	QString fileName = action->data().toString();
-	loadFile(fileName, askWhichChild());
+	loadFile(fileName, std::make_unique<iAChildSource>(false, askWhichChild()));
 }
 
 iAMdiChild* MainWindow::askWhichChild()
@@ -457,7 +457,7 @@ iAMdiChild* MainWindow::askWhichChild()
 	return child;
 }
 
-void MainWindow::loadFile(QString const& fileName, iAMdiChild* child, std::shared_ptr<iAFileIO> io)
+void MainWindow::loadFile(QString const& fileName, std::shared_ptr<iAChildSource> childSrc, std::shared_ptr<iAFileIO> io)
 {
 	if (fileName.isEmpty())
 	{
@@ -480,7 +480,7 @@ void MainWindow::loadFile(QString const& fileName, iAMdiChild* child, std::share
 	using FutureWatcherType = QFutureWatcher<std::shared_ptr<iADataSet>>;
 	auto futureWatcher = new FutureWatcherType(this);
 	QObject::connect(futureWatcher, &FutureWatcherType::finished, this,
-		[this, child, fileName]()
+		[this, childSrc, fileName]()
 		{
 			auto watcher = dynamic_cast<FutureWatcherType*>(sender());
 			auto dataSet = watcher->result();
@@ -489,12 +489,7 @@ void MainWindow::loadFile(QString const& fileName, iAMdiChild* child, std::share
 				QMessageBox::warning(this, "Load: Error", QString("Loading %1 failed. See the log window for details.").arg(fileName));
 				return;
 			}
-			iAMdiChild* targetChild = child;
-			if (!targetChild)
-			{
-				targetChild = createMdiChild(false);
-				targetChild->setWindowTitleAndFile(fileName);
-			}
+			iAMdiChild* targetChild = childSrc->child(this);
 			addRecentFile(fileName);
 			targetChild->addDataSet(dataSet);
 		});
@@ -504,11 +499,11 @@ void MainWindow::loadFile(QString const& fileName, iAMdiChild* child, std::share
 	iAJobListView::get()->addJob(QString("Loading file '%1'").arg(fileName), p.get(), futureWatcher);
 }
 
-void MainWindow::loadFiles(QStringList fileNames, iAMdiChild* child)
+void MainWindow::loadFiles(QStringList fileNames, std::shared_ptr<iAChildSource> childSrc)
 {
 	for (int i = 0; i < fileNames.length(); i++)
 	{
-		loadFile(fileNames[i], child);
+		loadFile(fileNames[i], childSrc);
 	}
 }
 
@@ -1132,19 +1127,12 @@ void MainWindow::connectSignalsToSlots()
 	};
 	connect(m_ui->actionOpenDataSet, &QAction::triggered, this, [this, getOpenFileNames]
 	{
-		auto fileNames = getOpenFileNames();
-		if (fileNames.isEmpty())
-		{
-			return;
-		}
-		auto child = activeMdiChild();
-		if (!child) // difference between "Open dataset" and "Open in new window" (below) if no window is open: here, we only open a single window for all datasets!
-		{
-			child = createMdiChild(false);
-		}
-		loadFiles(fileNames, child);
+		loadFiles(getOpenFileNames(), iAChildSource::make(false, activeMdiChild()));
 	});
-	connect(m_ui->actionOpenInNewWindow, &QAction::triggered, this, [this, getOpenFileNames] { loadFiles(getOpenFileNames(), nullptr); });
+	connect(m_ui->actionOpenInNewWindow, &QAction::triggered, this, [this, getOpenFileNames]
+	{
+		loadFiles(getOpenFileNames(), iAChildSource::make(true));
+	});
 	connect(m_ui->actionOpenRaw, &QAction::triggered, this, &MainWindow::openRaw);
 	connect(m_ui->actionOpenWithDataTypeConversion, &QAction::triggered, this, &MainWindow::openWithDataTypeConversion);
 	connect(m_ui->actionOpenTLGICTData, &QAction::triggered, this, &MainWindow::openTLGICTData);
@@ -1810,6 +1798,7 @@ void MainWindow::loadArguments(int argc, char** argv)
 	QStringList filesToLoad;
 	bool doQuit = false;
 	int quitMS = 0;
+	bool separateWindows = false;
 	for (int a = 1; a < argc; ++a)
 	{
 		if (QString(argv[a]).startsWith("--quit"))
@@ -1823,12 +1812,16 @@ void MainWindow::loadArguments(int argc, char** argv)
 				LOG(lvlWarn, "Invalid --quit parameter; must be followed by an integer number (milliseconds) after which to quit, e.g. '--quit 1000'");
 			}
 		}
+		else if (QString(argv[a]).startsWith("--separate"))
+		{
+			separateWindows = true;
+		}
 		else
 		{
 			filesToLoad << QString::fromLocal8Bit(argv[a]);
 		}
 	}
-	loadFiles(filesToLoad);
+	loadFiles(filesToLoad, iAChildSource::make(separateWindows) );
 	if (doQuit)
 	{
 		auto quitTimer = new QTimer();
@@ -1922,7 +1915,7 @@ void MainWindow::openWithDataTypeConversion()
 				mapReadableDataTypeToVTKType(outDataType),
 				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax, roi);
 		}
-		loadFile(finalfilename, askWhichChild());
+		loadFile(finalfilename, iAChildSource::make(false, askWhichChild()));
 	}
 	catch (std::exception & e)
 	{

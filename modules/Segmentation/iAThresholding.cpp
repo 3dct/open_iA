@@ -9,8 +9,9 @@
 #include <iATypedCallHelper.h>
 
 // from Toolkit
-#include <iAMaximumDistanceFilter.h>                  // MaximumDistance
-#include <iARemovePeaksOtsuThresholdImageFilter.h>    // RemovePeakOtsu
+#include <iAAdaptiveOtsuThresholdImageFilter.h>
+#include <iAMaximumDistanceFilter.h>
+#include <iARemovePeaksOtsuThresholdImageFilter.h>
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -24,7 +25,6 @@
 #pragma clang diagnostic ignored "-Wimplicit-int-float-conversion"
 #endif
 #endif
-#include <itkAdaptiveOtsuThresholdImageFilter.h>
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
@@ -293,7 +293,7 @@ void adaptive_otsu_threshold(iAFilter* filter, QVariantMap const & parameters)
 	using OutputImageType = itk::Image<T, DIM>;
 	typename InputImageType::SizeType radius;
 	radius.Fill(T(parameters["Radius"].toDouble()));
-	auto adotFilter = itk::AdaptiveOtsuThresholdImageFilter<InputImageType, OutputImageType>::New();
+	auto adotFilter = iAAdaptiveOtsuThresholdImageFilter<InputImageType, OutputImageType>::New();
 	adotFilter->SetInput(dynamic_cast< InputImageType * >(filter->imageInput(0)->itkImage()));
 	adotFilter->SetOutsideValue(T(parameters["Outside value"].toDouble()));
 	adotFilter->SetInsideValue(T(parameters["Inside value"].toDouble()));

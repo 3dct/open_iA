@@ -291,7 +291,7 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 	m_dataSets[dataSetIdx] = dataSet;
 	if (m_curFile.isEmpty())
 	{
-		LOG(lvlDebug, "Developer Warning - consider calling setWindowTitleAndFile directly where you first call addDataSet");
+		//LOG(lvlDebug, "Developer Warning - consider calling setWindowTitleAndFile directly where you first call addDataSet");
 		setWindowTitleAndFile(
 			dataSet->hasMetaData(iADataSet::FileNameKey) ?
 			dataSet->metaData(iADataSet::FileNameKey).toString() :
@@ -1205,7 +1205,7 @@ void MdiChild::dropEvent(QDropEvent* e)
 {
 	for (const QUrl& url : e->mimeData()->urls())
 	{
-		m_mainWnd->loadFile(url.toLocalFile(), this);
+		m_mainWnd->loadFile(url.toLocalFile(), iAChildSource::make(false, this));
 	}
 }
 

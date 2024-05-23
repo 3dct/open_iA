@@ -147,19 +147,23 @@ std::shared_ptr<iADataSet> iAHDF5IO::loadData(QString const& fileName, QVariantM
 	status = H5Sclose(space);
 	if (vtkType == InvalidHDF5Type)
 	{
-		throw std::runtime_error("HDF5: Can't load a dataset of this data type!");
+		throw std::runtime_error(QString("HDF5 file %1: Can't load a dataset of data type %2!").arg(fileName).arg(hdf5Type).toStdString());
 	}
 	int dim[3];
 	for (int i = 0; i < 3; ++i)
 	{
-		dim[i] = (i < rank) ? hdf5Dims[i] : 1;
+		if (i < rank && hdf5Dims[i] > static_cast<hsize_t>(std::numeric_limits<int>::max()))
+		{
+			throw std::runtime_error(QString("HDF5 file %1: Dataset size %2 in dimension %3 is larger than what VTK image datasets can handle!").arg(fileName).arg(hdf5Dims[i]).arg(i).toStdString());
+		}
+		dim[i] = (i < rank) ? static_cast<int>(hdf5Dims[i]) : 1;
 	}
 	unsigned char* raw_data = new unsigned char[numBytes * dim[0] * dim[1] * dim[2]];
 	status = H5Dread(dataset_id, GetHDF5ReadType(hdf5Type, numBytes, sign), H5S_ALL, H5S_ALL, H5P_DEFAULT, raw_data);
 	if (status < 0)
 	{
 		hdf5PrintErrorsToConsole();
-		throw std::runtime_error("Reading dataset failed!");
+		throw std::runtime_error(QString("HDF5 file %1: Reading dataset failed!").arg(fileName).toStdString());
 	}
 	H5Dclose(dataset_id);
 	if (!hdf5Path.isEmpty())

@@ -7,6 +7,7 @@
 #include <iALog.h>
 #include <iAMathUtility.h>
 #include <iASettings.h>
+#include <iAValueTypeVectorHelpers.h>
 
 #include <iAFileStackParams.h>
 #include <iAImageStackFileIO.h>
@@ -415,7 +416,7 @@ class iAHDF5FileLoadParamDlg: public iAFileParamDlg
 		auto fullPath = hdf5Path.join("/");
 		LOG(lvlInfo, QString("Selected path (length %1): %2").arg(hdf5Path.size()).arg(fullPath));
 		values[iAHDF5IO::DataSetPathStr] = fullPath;
-		values[iAHDF5IO::SpacingStr] = QVariant::fromValue(hdf5Spacing);
+		values[iAHDF5IO::SpacingStr] = variantVector(hdf5Spacing);
 		return true;
 	}
 };

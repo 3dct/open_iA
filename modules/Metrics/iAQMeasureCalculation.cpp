@@ -14,7 +14,7 @@ std::map<std::string, double> iAQMeasureCalculation::computeOrigQ(
 
 	//float* fImage = static_cast < float*>(img->GetScalarPointer());
 	cImageHistogram curHist;
-	curHist.CreateHist(fImage, dim[0], dim[1], dim[2], HistogramBins, range[0], range[1], false, 0, 0);
+	curHist.CreateHist(fImage, dim[0], dim[1], dim[2], HistogramBins, static_cast<float>(range[0]), static_cast<float>(range[1]), false, 0, 0);
 	/*unsigned int Peaks_fnd = */ curHist.DetectPeaksValleys(
 		NumberPeaks, dgauss_size_BINscale, gauss_size_P2Pscale, threshold_x, threshold_y, false);
 

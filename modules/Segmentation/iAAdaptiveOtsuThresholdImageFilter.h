@@ -37,9 +37,7 @@
  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-
-#ifndef __itkAdaptiveOtsuThresholdImageFilter_h
-#define __itkAdaptiveOtsuThresholdImageFilter_h
+#pragma once
 
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )
@@ -49,48 +47,46 @@
 #define ITK_LEAN_AND_MEAN
 #endif
 
-#include "itkImageToImageFilter.h"
-#include "itkOtsuThresholdCalculator.h"
-#include "itkImageRegionIterator.h"
-#include "itkImageToHistogramFilter.h"
-#include "itkNumericTraits.h"
-#include "itkVector.h"
-#include "itkPointSet.h"
-#include "itkConstNeighborhoodIterator.h"
-#include "itkImageRegionIterator.h"
-#include "itkImageRegionConstIterator.h"
-#include "itkImageRandomNonRepeatingConstIteratorWithIndex.h"
-#include "itkBSplineScatteredDataPointSetToImageFilter.h"
-#include "itkVectorIndexSelectionCastImageFilter.h"
-#include "itkRegionOfInterestImageFilter.h"
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#pragma clang diagnostic ignored "-Wimplicit-const-int-float-conversion"
+#endif
+#include <itkImageToImageFilter.h>
+#include <itkOtsuThresholdCalculator.h>
+#include <itkImageRegionIterator.h>
+#include <itkImageToHistogramFilter.h>
+#include <itkNumericTraits.h>
+#include <itkVector.h>
+#include <itkPointSet.h>
+#include <itkConstNeighborhoodIterator.h>
+#include <itkImageRegionIterator.h>
+#include <itkImageRegionConstIterator.h>
+#include <itkImageRandomNonRepeatingConstIteratorWithIndex.h>
+#include <itkBSplineScatteredDataPointSetToImageFilter.h>
+#include <itkVectorIndexSelectionCastImageFilter.h>
+#include <itkRegionOfInterestImageFilter.h>
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 
-namespace itk {
-
-//! A local thresholding filter based on Otsu's method.
 template < class TInputImage, class TOutputImage >
-class AdaptiveOtsuThresholdImageFilter :
-  public ImageToImageFilter< TInputImage, TOutputImage >
+class iAAdaptiveOtsuThresholdImageFilter :
+  public itk::ImageToImageFilter< TInputImage, TOutputImage >
 {
 public:
 
-  typedef AdaptiveOtsuThresholdImageFilter                Self;
-  typedef ImageToImageFilter< TInputImage, TOutputImage > Superclass;
-  typedef SmartPointer<Self>                              Pointer;
-  typedef SmartPointer<const Self>                        ConstPointer;
-
+  typedef iAAdaptiveOtsuThresholdImageFilter                Self;
+  typedef itk::ImageToImageFilter< TInputImage, TOutputImage > Superclass;
+  typedef itk::SmartPointer<Self>                              Pointer;
+  typedef itk::SmartPointer<const Self>                        ConstPointer;
   itkStaticConstMacro(ImageDimension, unsigned int,
     TInputImage::ImageDimension);
-
-  /** Method for creation through object factory */
   itkNewMacro(Self);
+  itkTypeMacro( iAAdaptiveOtsuThresholdImageFilter, itk::ImageToImageFilter );
+  void PrintSelf( std::ostream& os, itk::Indent indent ) const override;
 
-  /** Run-time type information */
-  itkTypeMacro( AdaptiveOtsuThresholdImageFilter, ImageToImageFilter );
-
-  /** Display */
-  void PrintSelf( std::ostream& os, Indent indent ) const override;
-
-  /** Image typedef support. */
   /** Convenient typedefs for simplifying declarations. */
   typedef TInputImage                             InputImageType;
   typedef typename InputImageType::Pointer        InputImagePointer;
@@ -108,13 +104,13 @@ public:
   typedef typename OutputImageType::PixelType   OutputPixelType;
   typedef typename OutputImageType::RegionType  OutputImageRegionType;
 
-  typedef ImageRegionConstIterator< InputImageType >      InputIteratorType;
-  typedef ImageRegionIteratorWithIndex< OutputImageType > OutputIteratorType;
+  typedef itk::ImageRegionConstIterator< InputImageType >      InputIteratorType;
+  typedef itk::ImageRegionIteratorWithIndex< OutputImageType > OutputIteratorType;
 
-  typedef ImageRandomNonRepeatingConstIteratorWithIndex< InputImageType >
+  typedef itk::ImageRandomNonRepeatingConstIteratorWithIndex< InputImageType >
     RandomIteratorType;
 
-  typedef RegionOfInterestImageFilter< InputImageType, InputImageType >
+  typedef itk::RegionOfInterestImageFilter< InputImageType, InputImageType >
     ROIFilterType;
   typedef typename ROIFilterType::Pointer
     ROIFilterPointer;
@@ -124,24 +120,24 @@ public:
 
   typedef typename OtsuThresholdType::Pointer             OtsuThresholdPointer;
 
-  typedef Vector< InputCoordType, 1 >         VectorType;
-  typedef Image< VectorType, ImageDimension > VectorImageType;
+  typedef itk::Vector< InputCoordType, 1 >         VectorType;
+  typedef itk::Image< VectorType, ImageDimension > VectorImageType;
   typedef typename VectorImageType::PixelType VectorPixelType;
 
-  typedef PointSet< VectorPixelType, ImageDimension >      PointSetType;
+  typedef itk::PointSet< VectorPixelType, ImageDimension >      PointSetType;
   typedef typename PointSetType::Pointer                   PointSetPointer;
   typedef typename PointSetType::PointType                 PointSetPointType;
   typedef typename PointSetType::PointsContainerPointer    PointsContainerPointer;
   typedef typename PointSetType::PointDataContainerPointer PointDataContainerPointer;
   typedef typename PointSetType::PointDataContainer        PointDataContainer;
 
-  typedef BSplineScatteredDataPointSetToImageFilter< PointSetType,
+  typedef itk::BSplineScatteredDataPointSetToImageFilter< PointSetType,
     VectorImageType > SDAFilterType;
   typedef typename SDAFilterType::Pointer SDAFilterPointer;
 
-  typedef Image< InputCoordType, ImageDimension > CoordImageType;
+  typedef itk::Image< InputCoordType, ImageDimension > CoordImageType;
   typedef typename CoordImageType::Pointer        CoordImagePointer;
-  typedef VectorIndexSelectionCastImageFilter< VectorImageType,
+  typedef itk::VectorIndexSelectionCastImageFilter< VectorImageType,
     OutputImageType > IndexFilterType;
   typedef typename IndexFilterType::Pointer IndexFilterPointer;
 //   typedef ImageRegionIteratorWithIndex< CoordImageType > CoordIteratorType;
@@ -185,8 +181,8 @@ public:
 
 protected:
 
-  AdaptiveOtsuThresholdImageFilter();
-  ~AdaptiveOtsuThresholdImageFilter() {}
+  iAAdaptiveOtsuThresholdImageFilter();
+  ~iAAdaptiveOtsuThresholdImageFilter() {}
 
   void ComputeRandomPointSet();
   void GenerateData() override;
@@ -205,11 +201,8 @@ protected:
 
 private:
 
-  AdaptiveOtsuThresholdImageFilter( const Self&);   // intentionally not implemented
+  iAAdaptiveOtsuThresholdImageFilter( const Self&);   // intentionally not implemented
   void operator=(const Self&);          // intentionally not implemented
 };
 
-} /* namespace itk */
-
-#include "itkAdaptiveOtsuThresholdImageFilter.txx"
-#endif
+#include "iAAdaptiveOtsuThresholdImageFilter.txx"
