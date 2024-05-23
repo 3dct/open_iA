@@ -350,7 +350,6 @@ std::shared_ptr<iAHistogramData> iAHistogramData::create(QString const& name, iA
 	return result;
 }
 
-
 std::shared_ptr<iAHistogramData> iAHistogramData::create(QString const& name, iAValueType type,
 	DataType minX, DataType maxX, QVector<double> const& histoData)
 {
@@ -358,17 +357,6 @@ std::shared_ptr<iAHistogramData> iAHistogramData::create(QString const& name, iA
 	result->m_dataOwner = true;
 	return result;
 }
-
-
-// TODO: Check if this can be replaced with vtkMath::Round
-#if (defined(_MSC_VER) && _MSC_VER < 1800)
-static inline double Round(double val)
-{
-	return std::floor(val + 0.5);
-}
-#else
-#define Round std::round
-#endif
 
 std::shared_ptr<iAHistogramData> createMappedHistogramData(QString const& name,
 	iAPlotData::DataType const* data, size_t srcNumBin,
@@ -388,7 +376,7 @@ std::shared_ptr<iAHistogramData> createMappedHistogramData(QString const& name,
 	for (size_t i = 0; i < targetNumBin; ++i)
 	{
 		double sourceIdxDbl = ((i * targetSpacing) + targetMinX - srcMinX) / srcSpacing;
-		int sourceIdx = static_cast<int>(Round(sourceIdxDbl));
+		int sourceIdx = static_cast<int>(std::round(sourceIdxDbl));
 
 		result->setBin(i,
 			(sourceIdx >= 0 && static_cast<size_t>(sourceIdx) < srcNumBin)

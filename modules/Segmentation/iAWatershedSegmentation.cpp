@@ -25,8 +25,7 @@ template<class T>
 void watershed(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
-	typedef itk::WatershedImageFilter < InputImageType > WIFType;
-	auto wsFilter = WIFType::New();
+	auto wsFilter = itk::WatershedImageFilter<InputImageType>::New();
 	wsFilter->SetLevel ( parameters["Level"].toDouble() );
 	wsFilter->SetThreshold ( parameters["Threshold"].toDouble() );
 	wsFilter->SetInput( dynamic_cast< InputImageType * >( filter->imageInput(0)->itkImage() ) );
@@ -43,6 +42,23 @@ iAWatershed::iAWatershed() :
 		"Both parameters <em>Threshold</em> and <em>Level</em> are percentage "
 		"points of the maximum height value in the input (they must be in the "
 		"interval [0..1]).<br/>"
+		"The <em>Level</em> parameter controls the depth of metaphorical flooding of the image. "
+		"That is, it sets the maximum saliency value of interest in the result. Raising "
+		"and lowering the Level influences the number of segments in the basic segmentation "
+		"that are merged to produce the final output. A level of 1.0 is analogous to "
+		"flooding the image up to a depth that is 100 percent of the maximum value in the "
+		"image. A level of 0.0 produces the basic segmentation, which will typically be "
+		"very oversegmented. Level values of interest are typically low (i.e. less than "
+		"about 0.40 or 40% ), since higher values quickly start to undersegment the image."
+		"The Level parameter can be used to create a hierarchy of output images in "
+		"constant time once an initial segmentation is done.A typical scenario might go "
+		"like this: For the initial execution of the filter, set the Level to the maximum "
+		"saliency value that you anticipate might be of interest.<br/>"
+		"<em>Threshold</em> is used to set the absolute minimum height value used during processing. "
+		"Raising this threshold percentage effectively decreases the number of local minima "
+		"in the input, resulting in an initial segmentation with fewer regions. The "
+		"assumption is that the shallow regions that thresholding removes are of of less "
+		"interest.<br/>"
 		"For more information, see the article "
 		"<a href=\"https://www.insight-journal.org/browse/publication/92/\">"
 		"The watershed transform in ITK - discussion and new developments</a> "
@@ -67,8 +83,7 @@ void morph_watershed(iAFilter* filter, QVariantMap const & parameters)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef itk::Image< unsigned long, DIM > OutputImageType;
-	typedef itk::MorphologicalWatershedImageFilter<InputImageType, OutputImageType> MWIFType;
-	auto mWSFilter = MWIFType::New();
+	auto mWSFilter = itk::MorphologicalWatershedImageFilter<InputImageType, OutputImageType>::New();
 	mWSFilter->SetMarkWatershedLine(parameters["Mark WS Lines"].toBool());
 	mWSFilter->SetFullyConnected(parameters["Fully Connected"].toBool());
 	mWSFilter->SetLevel( parameters["Level"].toDouble() );

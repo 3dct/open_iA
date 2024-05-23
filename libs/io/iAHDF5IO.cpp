@@ -152,7 +152,7 @@ std::shared_ptr<iADataSet> iAHDF5IO::loadData(QString const& fileName, QVariantM
 	int dim[3];
 	for (int i = 0; i < 3; ++i)
 	{
-		if (hdf5Dims[i] > static_cast<hsize_t>(std::numeric_limits<int>::max()))
+		if (i < rank && hdf5Dims[i] > static_cast<hsize_t>(std::numeric_limits<int>::max()))
 		{
 			throw std::runtime_error(QString("HDF5 file %1: Dataset size %2 in dimension %3 is larger than what VTK image datasets can handle!").arg(fileName).arg(hdf5Dims[i]).arg(i).toStdString());
 		}
