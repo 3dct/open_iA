@@ -172,11 +172,15 @@ bool iAImageStackFileIO::isDataSetSupported(std::shared_ptr<iADataSet> dataSet, 
 	auto imgData = dynamic_cast<iAImageData*>(dataSet.get());
 	assert(imgData);
 	auto type = imgData->vtkImage()->GetScalarType();
-	return
-		iAFileIO::isDataSetSupported(dataSet, fileName, op) && (
+	auto result = iAFileIO::isDataSetSupported(dataSet, fileName, op) && (
 			type == VTK_UNSIGNED_CHAR || // supported by all file formats
 			((ext == "tif" || ext == "tiff") && (type == VTK_UNSIGNED_SHORT || type == VTK_FLOAT))
 		);
+	if (!result)
+	{
+		LOG(lvlInfo, QString("Image stack only supports unsigned char (8 bit) data type (for .tif stacks, also unsigned short (16 bit) and float (32 bit)). You need to manually convert the dataset first!"));
+	}
+	return result;
 }
 
 //#include "iASlicerMode.h"    // for iAAxisIndex -> is in iAguibase!
