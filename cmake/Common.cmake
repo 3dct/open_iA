@@ -47,6 +47,9 @@ option(openiA_OPENGL_DEBUG "Enable this to turn on debugging messages in OpenGL 
 #------------------------------
 set(BUILD_INFO "\"CMake	${CMAKE_VERSION} (Generator: ${CMAKE_GENERATOR})\\n\"\n")
 if (MSVC)
+	if (MSVC_VERSION LESS 1800)
+		message(WARNING "Your Visual Studio version is too old and not supported! Please update to a newer version (>= Visual Studio 2013 (12.0)), or you will experience problems during build!")
+	endif()
 	message(STATUS "Compiler: Visual C++ (MSVC_VERSION ${MSVC_VERSION} / ${CMAKE_CXX_COMPILER_VERSION})")
 	set(BUILD_INFO "${BUILD_INFO}    \"Compiler	Visual C++ (MSVC_VERSION ${MSVC_VERSION} / ${CMAKE_CXX_COMPILER_VERSION})\\n\"\n")
 	set(BUILD_INFO "${BUILD_INFO}    \"Windows SDK	${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}\\n\"\n")
