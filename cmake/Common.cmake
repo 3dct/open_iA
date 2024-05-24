@@ -207,7 +207,6 @@ set(VTK_LIB_PREFIX "VTK::")
 set(VTK_COMPONENTS
 	ChartsCore                  # for vtkAxis, vtkChart, vtkChartParallelCoordinates, used in FeatureScout, FuzzyFeatureTracking, GEMSE, FeatureAnalyzer
 	CommonColor                 # for vtkNamedColors, vtkColorSeries, used in CompVis
-	CommonComputationalGeometry # for vtkParametricSpline, used in core - iASpline/iAParametricSpline
 	FiltersExtraction           # for vtkExtractGeometry, used in FIAKER - iASelectionInteractorStyle
 	FiltersGeometry             # for vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
 	FiltersHybrid               # for vtkDepthSortPolyData used in 4DCT, DreamCaster, FeatureScout, vtkPolyDataSilhouette used in FeatureScout

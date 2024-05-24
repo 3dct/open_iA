@@ -11,7 +11,6 @@
 #include "iAVolumeViewer.h"    // TODO NEWIO: only required for changing magic lens input - move from here, e.g. to slicer
 #include "iAFileParamDlg.h"
 #include "iAFileUtils.h"    // for safeFileName
-#include "iAParametricSpline.h"
 #include "iAvtkInteractStyleActor.h"
 #include "mainwindow.h"
 
@@ -93,9 +92,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_isSliceProfileEnabled(false),
 	m_profileHandlesEnabled(false),
 	m_isMagicLensEnabled(false),
-	m_snakeSlicer(false),
-	m_worldSnakePoints(vtkSmartPointer<vtkPoints>::New()),
-	m_parametricSpline(vtkSmartPointer<iAParametricSpline>::New()),
 	m_slicerTransform(vtkSmartPointer<vtkTransform>::New()),
 	m_dataSetInfo(new QListWidget(this)),
 	m_dataSetListWidget(new iADataSetListWidget()),
@@ -120,7 +116,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_initialLayoutState = saveState();
 	for (int i = 0; i < 3; ++i)
 	{
-		m_slicer[i] = new iASlicerImpl(this, static_cast<iASlicerMode>(i), true, true, m_slicerTransform, m_worldSnakePoints);
+		m_slicer[i] = new iASlicerImpl(this, static_cast<iASlicerMode>(i), true, true, m_slicerTransform);
 		m_dwSlicer[i] = new dlg_slicer(m_slicer[i]);
 	}
 	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::XY], Qt::Horizontal);
@@ -132,8 +128,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	}
 	splitDockWidget(m_dwRenderer, m_dwDataSets, Qt::Vertical);
 	splitDockWidget(m_dwDataSets, m_dwInfo, Qt::Horizontal);
-
-	m_parametricSpline->SetPoints(m_worldSnakePoints);
 
 	m_renderer = new iARendererImpl(this, dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_dwRenderer->vtkWidgetRC->renderWindow()));
 
@@ -240,12 +234,7 @@ void MdiChild::connectSignalsToSlots()
 		{
 			if (s != j)	// connect each slicer's signals to the other slicer's slots, except for its own:
 			{
-				connect(m_slicer[s], &iASlicerImpl::addedPoint, m_slicer[j], &iASlicerImpl::addPoint);
-				connect(m_slicer[s], &iASlicerImpl::movedPoint, m_slicer[j], &iASlicerImpl::movePoint);
 				connect(m_slicer[s], &iASlicerImpl::profilePointChanged, m_slicer[j], &iASlicerImpl::setProfilePoint);
-				connect(m_slicer[s], &iASlicerImpl::switchedMode, m_slicer[j], &iASlicerImpl::switchInteractionMode);
-				connect(m_slicer[s], &iASlicerImpl::deletedSnakeLine, m_slicer[j], &iASlicerImpl::deleteSnakeLine);
-				connect(m_slicer[s], &iASlicerImpl::deselectedPoint, m_slicer[j], &iASlicerImpl::deselectPoint);
 			}
 		}
 	}
@@ -642,26 +631,18 @@ void MdiChild::setPredefCamPos(int pos)
 
 void MdiChild::setSlice(int mode, int s)
 {
-	if (m_snakeSlicer)
+	//Update Slicer if changed
+	if (m_dwSlicer[mode]->sbSlice->value() != s)
 	{
-		int sliceAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::Z);
-		updateSnakeSlicer(m_dwSlicer[mode]->sbSlice, m_slicer[mode], sliceAxis, s);
+		QSignalBlocker block(m_dwSlicer[mode]->sbSlice);
+		m_dwSlicer[mode]->sbSlice->setValue(s);
 	}
-	else
+	if (m_dwSlicer[mode]->verticalScrollBar->value() != s)
 	{
-		//Update Slicer if changed
-		if (m_dwSlicer[mode]->sbSlice->value() != s)
-		{
-			QSignalBlocker block(m_dwSlicer[mode]->sbSlice);
-			m_dwSlicer[mode]->sbSlice->setValue(s);
-		}
-		if (m_dwSlicer[mode]->verticalScrollBar->value() != s)
-		{
-			QSignalBlocker block(m_dwSlicer[mode]->verticalScrollBar);
-			m_dwSlicer[mode]->verticalScrollBar->setValue(s);
-		}
-		set3DSlicePlanePos(mode, s);
+		QSignalBlocker block(m_dwSlicer[mode]->verticalScrollBar);
+		m_dwSlicer[mode]->verticalScrollBar->setValue(s);
 	}
+	set3DSlicePlanePos(mode, s);
 }
 
 void MdiChild::set3DSlicePlanePos(int mode, int slice)
@@ -677,141 +658,6 @@ void MdiChild::set3DSlicePlanePos(int mode, int slice)
 	// + 0.5 to place slice plane in the middle of the sliced voxel:
 	plane[sliceAxis] = (slice + 0.5) * spacing[sliceAxis];
 	m_renderer->setSlicePlanePos(sliceAxis, plane[0], plane[1], plane[2]);
-}
-
-void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s)
-{
-	if (!firstImageData())
-	{
-		return;
-	}
-	double spacing[3];
-	firstImageData()->GetSpacing(spacing);
-
-	double splinelength = (int)m_parametricSpline->GetLength();
-	double length_percent = 100 / splinelength;
-	double mf1 = s + 1; //multiplication factor for first point
-	double mf2 = s + 2; //multiplication factor for second point
-	spinBox->setRange(0, (splinelength - 1));//set the number of slices to scroll through
-
-													//calculate the percentage for 2 points
-	double t1[3] = { length_percent * mf1 / 100, length_percent * mf1 / 100, length_percent * mf1 / 100 };
-	double t2[3] = { length_percent * mf2 / 100, length_percent * mf2 / 100, length_percent * mf2 / 100 };
-	double point1[3], point2[3];
-	//calculate the points
-	m_parametricSpline->Evaluate(t1, point1, nullptr);
-	m_parametricSpline->Evaluate(t2, point2, nullptr);
-
-	//calculate normal
-	double normal[3] = {
-		point2[0] - point1[0],
-		point2[1] - point1[1],
-		point2[2] - point1[2]
-	};
-
-	vtkMatrixToLinearTransform* final_transform = vtkMatrixToLinearTransform::New();
-
-	if (normal[0] == 0 && normal[1] == 0)
-	{
-		// Move the point to origin Translation
-		double PointToOrigin_matrix[16] = { 1, 0, 0, point1[0],
-			0, 1, 0, point1[1],
-			0, 0, 1, point1[2],
-			0, 0, 0, 1 };
-		vtkMatrix4x4* PointToOrigin_Translation = vtkMatrix4x4::New();
-		PointToOrigin_Translation->DeepCopy(PointToOrigin_matrix);
-
-		// Move the origin to point Translation
-		double OriginToPoint_matrix[16] = { 1, 0, 0, -point1[0],
-			0, 1, 0, -point1[1],
-			0, 0, 1, -point1[2],
-			0, 0, 0, 1 };
-		vtkMatrix4x4* OriginToPoint_Translation = vtkMatrix4x4::New();
-		OriginToPoint_Translation->DeepCopy(OriginToPoint_matrix);
-
-		// Nultiplication of transformation matrices
-		vtkMatrix4x4* Transformation_4 = vtkMatrix4x4::New();
-		vtkMatrix4x4::Multiply4x4(PointToOrigin_Translation, OriginToPoint_Translation, Transformation_4);
-
-		final_transform->SetInput(Transformation_4);
-		final_transform->Update();
-	}
-	else
-	{
-		// Move the point to origin Translation
-		double PointToOrigin_matrix[16] = { 1, 0, 0, point1[0],
-			0, 1, 0, point1[1],
-			0, 0, 1, point1[2],
-			0, 0, 0, 1 };
-		vtkMatrix4x4* PointToOrigin_Translation = vtkMatrix4x4::New();
-		PointToOrigin_Translation->DeepCopy(PointToOrigin_matrix);
-
-		//rotate around Z to bring the vector to XZ plane
-		double alpha = std::acos(std::pow(normal[0], 2) / (std::sqrt(std::pow(normal[0], 2)) * (std::sqrt(std::pow(normal[0], 2) + std::pow(normal[1], 2)))));
-		double cos_theta_xz = std::cos(alpha);
-		double sin_theta_xz = std::sin(alpha);
-
-		double rxz_matrix[16] = { cos_theta_xz,	-sin_theta_xz,	0,	 0,
-			sin_theta_xz,	cos_theta_xz,	0,	 0,
-			0,			0,		1,	 0,
-			0,			0,		0,	 1 };
-
-		vtkMatrix4x4* rotate_around_xz = vtkMatrix4x4::New();
-		rotate_around_xz->DeepCopy(rxz_matrix);
-
-		//rotate around Y to bring vector parallel to Z axis
-		double beta = std::acos(std::pow(normal[2], 2) / std::sqrt(std::pow(normal[2], 2)) + std::sqrt(std::pow(cos_theta_xz, 2) + std::pow(normal[2], 2)));
-		double cos_theta_y = std::cos(beta);
-		double sin_theta_y = std::sin(beta);
-
-		double ry_matrix[16] = { cos_theta_y,	0,	sin_theta_y,	0,
-			0,			1,		0,			0,
-			-sin_theta_y,	0,	cos_theta_y,	0,
-			0,			0,		0,			1 };
-
-		vtkMatrix4x4* rotate_around_y = vtkMatrix4x4::New();
-		rotate_around_y->DeepCopy(ry_matrix);
-
-		//rotate around Z by 180 degree - to bring object correct view
-		double cos_theta_z = std::cos(std::numbers::pi);
-		double sin_theta_z = std::sin(std::numbers::pi);
-
-		double rz_matrix[16] = { cos_theta_z,	-sin_theta_z,	0,	0,
-			sin_theta_z,	cos_theta_z,	0,	0,
-			0,				0,			1,	0,
-			0,				0,			0,	1 };
-
-		vtkMatrix4x4* rotate_around_z = vtkMatrix4x4::New();
-		rotate_around_z->DeepCopy(rz_matrix);
-
-		//Move the origin to point Translation
-		double OriginToPoint_matrix[16] = { 1, 0, 0, -point1[0],
-			0, 1, 0, -point1[1],
-			0, 0, 1, -point1[2],
-			0, 0, 0, 1 };
-		vtkMatrix4x4* OriginToPoint_Translation = vtkMatrix4x4::New();
-		OriginToPoint_Translation->DeepCopy(OriginToPoint_matrix);
-
-		///multiplication of transformation matics
-		vtkMatrix4x4* Transformation_1 = vtkMatrix4x4::New();
-		vtkMatrix4x4::Multiply4x4(PointToOrigin_Translation, rotate_around_xz, Transformation_1);
-
-		vtkMatrix4x4* Transformation_2 = vtkMatrix4x4::New();
-		vtkMatrix4x4::Multiply4x4(Transformation_1, rotate_around_y, Transformation_2);
-
-		vtkMatrix4x4* Transformation_3 = vtkMatrix4x4::New();
-		vtkMatrix4x4::Multiply4x4(Transformation_2, rotate_around_z, Transformation_3);
-
-		vtkMatrix4x4* Transformation_4 = vtkMatrix4x4::New();
-		vtkMatrix4x4::Multiply4x4(Transformation_3, OriginToPoint_Translation, Transformation_4);
-
-		final_transform->SetInput(Transformation_4);
-		final_transform->Update();
-	}
-
-	slicer->channel(0)->setTransform(final_transform);
-	QSignalBlocker block(slicer);
-	slicer->setSliceNumber(point1[ptIndex]);
 }
 
 void MdiChild::slicerRotationChanged(int mode, double angle)
@@ -924,15 +770,6 @@ void MdiChild::resetLayout()
 void MdiChild::applySlicerSettings(iASlicerSettings const& ss)
 {
 	m_slicerSettings = ss;
-
-	if (m_snakeSlicer)
-	{
-		// TODO: check why only XY slice here?
-		int prevMax = m_dwSlicer[iASlicerMode::XY]->sbSlice->maximum();
-		int prevValue = m_dwSlicer[iASlicerMode::XY]->sbSlice->value();
-		m_dwSlicer[iASlicerMode::XY]->sbSlice->setRange(0, ss.SnakeSlices - 1);
-		m_dwSlicer[iASlicerMode::XY]->sbSlice->setValue((double)prevValue / prevMax * (ss.SnakeSlices - 1));
-	}
 	linkViews(ss.LinkViews);
 	linkMDIs(ss.LinkMDIs);
 	emit slicerSettingsChanged();
@@ -946,114 +783,6 @@ iASlicerSettings const& MdiChild::slicerSettings() const
 iAPreferences const& MdiChild::preferences() const
 {
 	return m_preferences;
-}
-
-void MdiChild::toggleSnakeSlicer(bool isChecked)
-{
-	if (!firstImageData())
-	{
-		return;
-	}
-	m_snakeSlicer = isChecked;
-
-	if (m_snakeSlicer)
-	{
-		for (auto v : m_dataSetViewers)
-		{
-			v.second->renderer()->removeCuttingPlanes();
-		}
-
-		// save the slicer transforms
-		for (int s = 0; s < 3; ++s)
-		{
-			m_savedSlicerTransform[s] = m_slicer[s]->channel(0)->reslicer()->GetResliceTransform();
-		}
-
-		m_parametricSpline->Modified();
-		double emptyper[3]; emptyper[0] = 0; emptyper[1] = 0; emptyper[2] = 0;
-		double emptyp[3]; emptyp[0] = 0; emptyp[1] = 0; emptyp[2] = 0;
-		m_parametricSpline->Evaluate(emptyper, emptyp, nullptr);
-
-		// save the slicer transforms
-		for (int s = 0; s < 3; ++s)
-		{
-			m_savedSlicerTransform[s] = m_slicer[s]->channel(0)->reslicer()->GetResliceTransform();
-			m_slicer[s]->switchInteractionMode(iASlicerImpl::SnakeShow);
-			m_dwSlicer[s]->sbSlice->setValue(0);
-		}
-	}
-	else
-	{	// restore the slicer transforms
-		m_slicer[iASlicerMode::YZ]->channel(0)->reslicer()->SetResliceAxesDirectionCosines(0, 1, 0, 0, 0, 1, 1, 0, 0);
-		m_slicer[iASlicerMode::XZ]->channel(0)->reslicer()->SetResliceAxesDirectionCosines(1, 0, 0, 0, 0, 1, 0, -1, 0);
-		m_slicer[iASlicerMode::XY]->channel(0)->reslicer()->SetResliceAxesDirectionCosines(1, 0, 0, 0, 1, 0, 0, 0, 1);
-
-		for (int s = 0; s < 3; ++s)
-		{
-			m_dwSlicer[s]->sbSlice->setValue(firstImageData()->GetDimensions()[mapSliceToGlobalAxis(s, iAAxisIndex::Z)] >> 1);
-			m_slicer[s]->channel(0)->reslicer()->SetResliceTransform(m_savedSlicerTransform[s]);
-			m_slicer[s]->channel(0)->reslicer()->SetOutputExtentToDefault();
-			m_slicer[s]->resetCamera();
-			m_slicer[s]->renderer()->Render();
-			m_slicer[s]->switchInteractionMode(iASlicerImpl::Normal);
-		}
-		for (auto v : m_dataSetViewers)
-		{
-			if (v.second->renderFlagSet(iADataSetViewer::RenderCutPlane))
-			{
-				v.second->renderer()->setCuttingPlanes(m_renderer->slicePlanes());
-			}
-		}
-	}
-}
-
-void MdiChild::snakeNormal(int index, double point[3], double normal[3])
-{
-	if (!firstImageData())
-	{
-		return;
-	}
-	int i1 = index;
-	int i2 = index + 1;
-
-	double spacing[3];
-	firstImageData()->GetSpacing(spacing);
-
-	int snakeSlices = m_slicerSettings.SnakeSlices;
-	if (index == (snakeSlices - 1))
-	{
-		i1--;
-		i2--;
-	}
-
-	if (index >= 0 && index < snakeSlices)
-	{
-		double p1[3], p2[3];
-		double t1[3] =
-		{ (double)i1 / (snakeSlices - 1), (double)i1 / (snakeSlices - 1), (double)i1 / (snakeSlices - 1) };
-		double t2[3] = { (double)i2 / (snakeSlices - 1), (double)i2 / (snakeSlices - 1), (double)i2 / (snakeSlices - 1) };
-		m_parametricSpline->Evaluate(t1, p1, nullptr);
-		m_parametricSpline->Evaluate(t2, p2, nullptr);
-
-		//calculate the points
-		p1[0] /= spacing[0]; p1[1] /= spacing[1]; p1[2] /= spacing[2];
-		p2[0] /= spacing[0]; p2[1] /= spacing[1]; p2[2] /= spacing[2];
-
-		//calculate the vector between to points
-		if (normal)
-		{
-			normal[0] = p2[0] - p1[0];
-			normal[1] = p2[1] - p1[1];
-			normal[2] = p2[2] - p1[2];
-		}
-
-		point[0] = p1[0]; point[1] = p1[1]; point[2] = p1[2];
-	}
-}
-
-bool MdiChild::isSnakeSlicerToggled() const
-{
-	return m_snakeSlicer;
 }
 
 void MdiChild::toggleSliceProfile(bool isChecked)

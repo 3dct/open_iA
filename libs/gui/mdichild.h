@@ -23,7 +23,6 @@
 class QListWidget;
 class QSpinBox;
 
-class vtkAbstractTransform;
 class vtkImageData;
 class vtkPiecewiseFunction;
 class vtkPoints;
@@ -33,7 +32,6 @@ class vtkTransform;
 // gui
 class iADataSetListWidget;
 class iADataSetViewer;
-class iAParametricSpline;
 class iAvtkInteractStyleActor;
 class MainWindow;
 class Ui_Mdichild;
@@ -71,8 +69,6 @@ public:
 	iASlicerSettings const & slicerSettings() const override;
 	iAPreferences    const & preferences()    const override;
 
-	void toggleSnakeSlicer(bool isEnabled);
-	bool isSnakeSlicerToggled() const;
 	void toggleSliceProfile(bool isEnabled);
 	bool isSliceProfileEnabled() const;
 	void initProfilePoints(double const* start, double const* end) override;
@@ -258,8 +254,6 @@ private:
 	void maximizeDockWidget(QDockWidget * dw);
 	void demaximizeDockWidget(QDockWidget * dw);
 	void resizeDockWidget(QDockWidget * dw);
-	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
-	void snakeNormal(int index, double point[3], double normal[3]);
 	void connectSignalsToSlots();
 	void updateDataSetInfo();
 
@@ -278,13 +272,6 @@ private:
 	bool m_isSliceProfileEnabled; //!< whether slice profile, shown in slices, is enabled
 	bool m_profileHandlesEnabled; //!< whether profile handles (profile points) in renderer/slicer are enabled
 	bool m_isMagicLensEnabled;    //!< whether magic lens in slicers is enabled
-
-	//! @{ snake slicer related; move to separate tool maybe?
-	bool m_snakeSlicer;           //!< whether snake slicer is enabled
-	vtkAbstractTransform *m_savedSlicerTransform[3];
-	vtkSmartPointer<vtkPoints> m_worldSnakePoints;
-	vtkSmartPointer<iAParametricSpline> m_parametricSpline;
-	//! @}
 
 	iARendererImpl * m_renderer;       //!< access and decoration of 3D renderers
 	std::array<iASlicerImpl*, 3> m_slicer; //!< the 3 axis-aligned slicers

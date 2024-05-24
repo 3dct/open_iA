@@ -103,10 +103,6 @@
     <file>images/settings_renderer_light.svg</file>
     <file>images/settings_slicer.svg</file>
     <file>images/settings_slicer_light.svg</file>
-    <file>images/snakeslicer-delete.svg</file>
-    <file>images/snakeslicer-delete_light.svg</file>
-    <file>images/snakeslicer.svg</file>
-    <file>images/snakeslicer_light.svg</file>
     <file>images/splashscreen.png</file>
     <file>images/transform-move.svg</file>
     <file>images/transform-move_light.svg</file>

@@ -170,14 +170,12 @@ namespace
 	{
 		QDomElement slicerSettingsElement = xml.createElement(SlicerElemName);
 		slicerSettingsElement.setAttribute("linkViews", slicerSettings.LinkViews);
-		slicerSettingsElement.setAttribute("snakeSlices", slicerSettings.SnakeSlices);
 		slicerSettingsElement.setAttribute("linkMDIs", slicerSettings.LinkMDIs);
 	}
 
 	void loadSlicerSettings(QDomNode slicerSettingsNode, iASlicerSettings& slicerSettings)
 	{
 		QDomNamedNodeMap attributes = slicerSettingsNode.attributes();
-		slicerSettings.SnakeSlices = attributes.namedItem("snakeSlices").nodeValue().toDouble();
 		slicerSettings.LinkMDIs = attributes.namedItem("linkMDIs").nodeValue() == "1";
 		slicerSettings.LinkViews = attributes.namedItem("linkViews").nodeValue() == "1";
 	}
@@ -257,7 +255,6 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	connectSignalsToSlots();
 	m_slicerToolsGroup = new QActionGroup(this);
 	m_slicerToolsGroup->setExclusive(false);
-	m_slicerToolsGroup->addAction(m_ui->actionSnakeSlicer);
 	m_slicerToolsGroup->addAction(m_ui->actionRawProfile);
 	m_slicerToolsGroup->addAction(m_ui->actionEditProfilePoints);
 
@@ -305,7 +302,6 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	addActionIcon(m_ui->actionSaveProject, "save-all");
 	addActionIcon(m_ui->actionEditProfilePoints, "profile-edit");
 	addActionIcon(m_ui->actionRawProfile, "profile-raw");
-	addActionIcon(m_ui->actionSnakeSlicer, "snakeslicer");
 	addActionIcon(m_ui->actionSyncCamera, "camera-sync");
 	addActionIcon(m_ui->actionInteractionModeCamera, "camera");
 	addActionIcon(m_ui->actionLoadCameraSettings, "camera-load");
@@ -813,7 +809,6 @@ void MainWindow::slicerSettings()
 	iASlicerSettings const& slicerSettings = activeMDI() ? activeMDI()->slicerSettings() : m_defaultSlicerSettings;
 	addAttr(params, "Link Views", iAValueType::Boolean, slicerSettings.LinkViews);
 	addAttr(params, "Link MDIs", iAValueType::Boolean, slicerSettings.LinkMDIs);
-	addAttr(params, "Snake Slices", iAValueType::Discrete, slicerSettings.SnakeSlices);
 	iAParameterDlg dlg(this, dlgTitle, params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
@@ -822,7 +817,6 @@ void MainWindow::slicerSettings()
 	auto values = dlg.parameterValues();
 	m_defaultSlicerSettings.LinkViews = values["Link Views"].toBool();
 	m_defaultSlicerSettings.LinkMDIs = values["Link MDIs"].toBool();
-	m_defaultSlicerSettings.SnakeSlices = values["Snake Slices"].toInt();
 	if (activeMdiChild())
 	{
 		activeMDI()->applySlicerSettings(m_defaultSlicerSettings);
@@ -1026,11 +1020,8 @@ void MainWindow::updateMenus()  // (and toolbars)
 	m_ui->actionToggleSlicerInteraction->setChecked(activeMDI() && activeMDI()->isSlicerInteractionEnabled());
 	m_ui->actionMagicLens2D->setEnabled(hasMdiChild);
 	m_ui->actionRawProfile->setEnabled(hasMdiChild);
-	m_ui->actionSnakeSlicer->setEnabled(hasMdiChild);
 	QSignalBlocker blockSliceProfile(m_ui->actionRawProfile);
 	m_ui->actionRawProfile->setChecked(child && child->isSliceProfileEnabled());
-	QSignalBlocker blockSnakeSlicer(m_ui->actionSnakeSlicer);
-	m_ui->actionSnakeSlicer->setChecked(child && child->isSnakeSlicerToggled());
 	updateMagicLens2DCheckState(child && child->isMagicLens2DEnabled());
 	// renderer submenu / toolbar
 	QSignalBlocker renderInteractBlock(m_ui->actionToggleRendererInteraction);
@@ -1214,7 +1205,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionAbout, &QAction::triggered, this, [this]
 		{ iAAboutDlg::show(this, m_splashScreenImg, m_buildInformation, m_gitVersion, screen()->geometry().height()); });
 
-	// Renderer toolbar:
+	// Camera-related actions:
 	connect(m_ui->actionViewXDirectionInRaycaster, &QAction::triggered,  this, [childCall] { childCall(&MdiChild::setPredefCamPos, iACameraPosition::PX); });
 	connect(m_ui->actionViewmXDirectionInRaycaster, &QAction::triggered, this, [childCall] { childCall(&MdiChild::setPredefCamPos, iACameraPosition::MX); });
 	connect(m_ui->actionViewYDirectionInRaycaster, &QAction::triggered,  this, [childCall] { childCall(&MdiChild::setPredefCamPos, iACameraPosition::PY); });
@@ -1222,20 +1213,17 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionViewZDirectionInRaycaster, &QAction::triggered,  this, [childCall] { childCall(&MdiChild::setPredefCamPos, iACameraPosition::PZ); });
 	connect(m_ui->actionViewmZDirectionInRaycaster, &QAction::triggered, this, [childCall] { childCall(&MdiChild::setPredefCamPos, iACameraPosition::MZ); });
 	connect(m_ui->actionIsometricViewInRaycaster, &QAction::triggered,   this, [childCall] { childCall(&MdiChild::setPredefCamPos, iACameraPosition::Iso);});
-
-	// Camera toolbar:
 	connect(m_ui->actionSyncCamera,   &QAction::triggered, this, &MainWindow::rendererSyncCamera);
 	connect(m_ui->actionSaveCameraSettings, &QAction::triggered, this, &MainWindow::saveCameraSettings);
 	connect(m_ui->actionLoadCameraSettings, &QAction::triggered, this, &MainWindow::loadCameraSettings);
 
-	// Snake slicer toolbar
-	connect(m_ui->actionSnakeSlicer, &QAction::toggled, this, [childCall](bool checked) { childCall(&MdiChild::toggleSnakeSlicer, checked); });
+	// Profile / Magic lens:
 	connect(m_ui->actionRawProfile,   &QAction::toggled, this, [childCall](bool checked) { childCall(&MdiChild::toggleSliceProfile, checked); });
 	connect(m_ui->actionEditProfilePoints, &QAction::toggled, this, [childCall](bool checked) { childCall(&MdiChild::toggleProfileHandles, checked); });
 	connect(m_ui->actionMagicLens2D,  &QAction::toggled, this, [childCall](bool checked) { childCall(&MdiChild::toggleMagicLens2D, checked); });
 	connect(m_ui->actionMagicLens3D,  &QAction::triggered, this, [childCall](bool checked) { childCall(&MdiChild::toggleMagicLens3D, checked); });
 
-	// Layout toolbar menu entries
+	// Layout actions:
 	connect(m_ui->actionSaveLayout,   &QAction::triggered, this, &MainWindow::saveLayout);
 	connect(m_ui->actionLoadLayout,   &QAction::triggered, this, &MainWindow::loadLayout);
 	connect(m_ui->actionDeleteLayout, &QAction::triggered, this, &MainWindow::deleteLayout);
@@ -1325,7 +1313,6 @@ void MainWindow::readSettings()
 	iASlicerSettings fallbackSS;
 	m_defaultSlicerSettings.LinkViews = settings.value("Slicer/ssLinkViews", fallbackSS.LinkViews).toBool();
 	m_defaultSlicerSettings.LinkMDIs = settings.value("Slicer/ssLinkMDIs", fallbackSS.LinkMDIs).toBool();
-	m_defaultSlicerSettings.SnakeSlices = settings.value("Slicer/ssSnakeSlices", fallbackSS.SnakeSlices).toInt();
 
 	m_loadSavePreferences = settings.value("Parameters/loadSavePreferences", true).toBool();
 	m_loadSaveSlicerSettings = settings.value("Parameters/loadSaveSlicerSettings", true).toBool();
@@ -1378,7 +1365,6 @@ void MainWindow::writeSettings()
 
 	settings.setValue("Slicer/ssLinkViews", m_defaultSlicerSettings.LinkViews);
 	settings.setValue("Slicer/ssLinkMDIs", m_defaultSlicerSettings.LinkMDIs);
-	settings.setValue("Slicer/ssSnakeSlices", m_defaultSlicerSettings.SnakeSlices);
 
 	settings.setValue("Parameters/loadSavePreferences", m_loadSavePreferences);
 	settings.setValue("Parameters/loadSaveSlicerSettings", m_loadSaveSlicerSettings);

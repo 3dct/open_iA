@@ -26,7 +26,6 @@ class iAChannelSlicerData;
 class iAMagicLens;
 class iARulerWidget;
 class iASlicerInteractorStyle;
-class iASnakeSpline;
 class iAVtkText;
 class iAMdiChild;
 
@@ -75,20 +74,14 @@ public:
 	static constexpr const char NumberOfIsoLines[] = "Number of Isolines";
 	static constexpr const char MinIsoValue[] = "Minimum Iso Value";
 	static constexpr const char MaxIsoValue[] = "Maximum Iso Value";
-	enum InteractionMode {
-		Normal,
-		SnakeEdit,
-		SnakeShow
-	};
 	//! Creates a new slicer widget.
 	//! @param parent the parent widget; can be nullptr for no current parent.
 	//! @param mode determines which axis-aligned slice-plane is used for slicing.
 	//! @param decorations whether to show the scalar bar widget, the measure bar and the tooltip.
 	//! @param magicLensAvailable whether a magic lens should be available.
 	//! @param transform if specified, a transform shared between slicers (e.g. for sharing rotation)
-	//! @param snakeSlicerPoints the array of points in the snake slicer (leave at default nullptr if you don't require snake slicer).
 	iASlicerImpl(QWidget * parent, const iASlicerMode mode, bool decorations = true, bool magicLensAvailable = true,
-		vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>(), vtkPoints* snakeSlicerPoints = nullptr);
+		vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>());
 	void applySettings(QVariantMap const & settings) override;
 	virtual ~iASlicerImpl();
 
@@ -217,15 +210,6 @@ public slots:
 	void setSlabCompositeMode(int compositeMode);
 	void update() override;
 
-	//! Moves a point of the snake slicer to a new position.
-	void movePoint(size_t selectedPointIndex, double xPos, double yPos, double zPos);
-
-	//! Function to deselect points in snake slicer (necessary to avoid endless loops with signals and slots).
-	void deselectPoint();
-
-	//! Switches between interaction modi (normal, snake slicer view or editing)
-	//! @param mode mode which should be switched to  (see InteractionMode enum)
-	void switchInteractionMode(int mode);
 	//! Toggle the "raw" profile mode, i.e. whether the profile is shown on top of the slicer image
 	void setSliceProfileOn(bool isOn);
 	//! Toggle the possibility to move start and end point of the profile
@@ -233,12 +217,6 @@ public slots:
 	//! Sets coordinates for line profile
 	void setProfilePoint(int pointIdx, double const * globalPos);
 
-	//! Adds a new spline point to the end of the spline curve.
-	void addPoint(double x, double y, double z);
-	//! Deletes the current spline curve.
-	void deleteSnakeLine();
-	//! Called when the delete snake line menu is clicked.
-	void menuDeleteSnakeLine();
 	//! to synchronize angles of all modes between different slicers
 	void setAngle(int mode, double angle);
 
@@ -251,12 +229,7 @@ private slots:
 	void fisheyeLensToggled(bool enabled);
 
 signals:
-	void addedPoint(double x, double y, double z);
-	void movedPoint(size_t selectedPointIndex, double xPos, double yPos, double zPos);
 	void profilePointChanged(int pointIdx, double * globalPos);
-	void deselectedPoint();
-	void switchedMode(int mode);
-	void deletedSnakeLine();
 	//! triggered when slice was rotated
 	void sliceRotated(int mode, double angle);
 	//! triggered when the slice number range has changed; parameters are new minimum, maximum and current index
@@ -266,13 +239,10 @@ signals:
 private:
 	QAction* m_actionLinearInterpolation, * m_actionFisheyeLens,
 		* m_actionMagicLens, * m_actionMagicLensCentered, * m_actionMagicLensOffset,
-		* m_actionDeleteSnakeLine, * m_actionShowTooltip;
+		* m_actionShowTooltip;
 	QAction *m_actionToggleWindowLevelAdjust, * m_actionToggleRegionTransferFunction, * m_actionToggleNormalInteraction;
 	QActionGroup* m_actionInteractionMode;
 	QMenu *         m_contextMenu;               //!< context menu
-	InteractionMode m_interactionMode;           //!< current edit mode
-	iASnakeSpline * m_snakeSpline;				 //!< holds the visualization data for the points of the snake splicer
-	vtkPoints *     m_worldSnakePoints;          //!< points of the snake slicer (owned by mdichild, not by this slicer)
 	bool            m_isSliceProfEnabled;        //!< if slice profile mode is enabled
 	iASlicerProfile	* m_sliceProfile;            //!< a slice profile drawn directly on the slicer
 	bool            m_profileHandlesEnabled;     //!< if profile handles are enabled (shown)
@@ -281,7 +251,6 @@ private:
 	void keyPressEvent(QKeyEvent * event) override;
 	void mousePressEvent(QMouseEvent * event) override;
 	void mouseMoveEvent(QMouseEvent * event) override;
-	void mouseReleaseEvent(QMouseEvent * event) override;
 	void mouseDoubleClickEvent(QMouseEvent* event) override;
 	void contextMenuEvent(QContextMenuEvent * event) override;
 	void resizeEvent(QResizeEvent * event) override;
