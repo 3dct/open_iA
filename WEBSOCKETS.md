@@ -66,6 +66,15 @@ Server &rarr; Client
 |0x3|Client ID (64-bit)|
 |-|-|
 
+New clients need to be synchronized, in case objects have already been manipulated or snapshots were created.  
+In this case, the server sends commands that replicate its current state, in this document called a sync command chain.
+
+## Sync Command Chain
+
+This is a special list of commands, only used to resynchronize clients with the current server state.
+
+The matrix of all objects is sent, followed by the add snapshot commands to replicate them as well.
+
 ## Commands
 
 ### Reset
@@ -119,10 +128,13 @@ stateDiagram-v2
     L --> [*]
 ```
 
-If the server sends a load dataset command, because of network latency, it is possible for the clients to send other commands of their own while not having received the load command.  
-In this case, the server will buffer these commands and replay them after the loading is done.
+If the server sends a load dataset command, because of network latency, it is possible for a client to send other commands of their own while not yet having received the load command.  
+These commands are ignored by the server while waiting for dataset load.
 
-This sequence of operations might introduce race conditions in case a new client connects, or an existing client disconnects while dataset loading is in progress.
+* If the dataset load operation succeeds, those previous commands can simply be ignored.  
+* If the dataset load fails, the commands are lost and the server and client are no longer in sync. As both the server and client aren't expected to buffer commands to resolve such cases, the server has to send the entire state of the dataset to the client in an attempt to resynchronize. See [Sync Command Chain](#sync-command-chain).
+
+While dataset load is happening, clients might connect or disconnect:
 
 #### Client connects
 
@@ -133,7 +145,7 @@ IF NAK comes back, disconnect the client, as it can not synchronize and would de
 #### Client disconnects
 
 In case a client disconnects, it is assumed to have sent ACK, as it should not stop other clients from loading the dataset.  
-If all clients are disconnected, the server is on its own and will always assume ACK. The server can then operate offline.
+If all clients are disconnected, the server is on its own and will always assume ACK. The server then operates alone.
 
 ## Objects
 
@@ -281,26 +293,6 @@ Server &rarr; Client
 
 The server broadcasts the command to all clients in all cases.
 
-### Edit Snapshot Slice Position
-
-Snapshots can be edited by moving the slice position and "reslicing" the snapshot.  
-The value sent is **added** to the axis. The datatype is a **32-Bit float**.
-
-Change the axis by setting one of the following values:
-
-- X - 0
-- Y - 1
-- Z - 2
-
-Client &rarr; Server  
-OR  
-Server &rarr; Client
-
-|0x6|0x4|Snapshot ID (64-Bit)|Axis (8-Bit)|Value (32-Bit)|
-|-|-|-|-|-|
-
-The server broadcasts the command to all clients in all cases.
-
 ## Message Table
 
 |Category (8-Bit)|Subcategory (8-Bit)|Data|Description|
@@ -322,4 +314,3 @@ The server broadcasts the command to all clients in all cases.
 |0x6|0x0|Snapshot ID (64-Bit), Position XYZ (96-Bit), Rotation Quaternion XYZW (128-Bit)|Snapshot Creation (Server)|
 |0x6|0x2|Snapshot ID (64-Bit)|Snapshot Removal|
 |0x6|0x3||Clear Snapshots|
-|0x6|0x4|Snapshot ID (64-Bit), Axis (8-Bit), Value (32-Bit)|Snapshot Slice Position Edit|
