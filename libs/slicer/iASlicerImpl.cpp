@@ -28,7 +28,6 @@
 #include "iASlicerInteractorStyle.h"
 #include "iASlicerProfile.h"
 #include "iASlicerProfileHandles.h"
-#include "iASnakeSpline.h"
 #include "iAVtkText.h"
 
 // need to get rid of these dependencies:
@@ -145,12 +144,9 @@ public:
 
 
 iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
-	bool decorations /*= true*/, bool magicLensAvailable /*= true*/, vtkSmartPointer<vtkTransform> transform, vtkPoints* snakeSlicerPoints) :
+	bool decorations /*= true*/, bool magicLensAvailable /*= true*/, vtkSmartPointer<vtkTransform> transform) :
 	iASlicer(parent),
 	m_contextMenu(new QMenu(this)),
-	m_interactionMode(Normal),
-	m_snakeSpline(nullptr),
-	m_worldSnakePoints(snakeSlicerPoints),
 	m_isSliceProfEnabled(false),
 	m_sliceProfile(nullptr),
 	m_profileHandlesEnabled(false),
@@ -330,9 +326,6 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 
 	if (decorations)
 	{
-		m_snakeSpline = new iASnakeSpline;
-		m_contextMenu->addSeparator();
-		m_actionDeleteSnakeLine = m_contextMenu->addAction(iAThemeHelper::icon("snakeslicer-delete"), tr("Delete Snake Line"), this, &iASlicerImpl::menuDeleteSnakeLine);
 		m_sliceProfile = new iASlicerProfile();
 		m_sliceProfile->setVisibility(false);
 
@@ -445,7 +438,6 @@ iASlicerImpl::~iASlicerImpl()
 	}
 	if (m_decorations)
 	{
-		delete m_snakeSpline;
 		delete m_contextMenu;
 		delete m_sliceProfile;
 		delete m_profileHandles;
@@ -798,8 +790,6 @@ void iASlicerImpl::addChannel(uint id, iAChannelData const & chData, bool enable
 			// "* 10 / unitSpacing" adjusts for scaling (see above)
 			m_axisTextActor[0]->SetPosition(xHalf * 10 / unitSpacing, -20.0, 0);
 			m_axisTextActor[1]->SetPosition(-20.0, yHalf * 10 / unitSpacing, 0);
-			// TODO: fix snake spline with non-fixed slicer images
-			m_snakeSpline->initialize(m_ren, image->GetSpacing()[0]);
 		}
 	}
 	double origin[3];
@@ -2064,17 +2054,6 @@ void iASlicerImpl::keyPressEvent(QKeyEvent *event)
 			updateFisheyeTransform(m_ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
 		}
 	}
-	if (event->key() == Qt::Key_S)
-	{
-		switch (m_interactionMode)
-		{   // toggle between interaction modes:
-			case Normal   : switchInteractionMode(SnakeEdit); break;
-			case SnakeEdit: switchInteractionMode(/*SnakeShow*/Normal); break;
-			case SnakeShow: switchInteractionMode(Normal);    break;
-		}
-		// let other slice views know that interaction mode changed
-		emit switchedMode(m_interactionMode);
-	}
 	iAVtkWidget::keyPressEvent(event);
 }
 
@@ -2098,23 +2077,6 @@ void iASlicerImpl::mousePressEvent(QMouseEvent *event)
 		&& event->button() == Qt::LeftButton)  // if profile handles are shown, do all the necessary operations
 	{
 		m_profileHandles->findSelectedPointIdx(m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
-	}
-
-	if (m_decorations && m_interactionMode == SnakeEdit && event->button() == Qt::LeftButton)
-	{
-		// define a new snake slicer point:
-		const double x = m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)];
-		const double y = m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)];
-
-		// if no point is found at picked position add a new one
-		if (m_snakeSpline->CalculateSelectedPoint(x, y) == iASnakeSpline::NoPointSelected)
-		{
-			m_snakeSpline->addPoint(x, y);
-			// add the point to the world point list only once because it is a member of iAMdiChild
-			m_worldSnakePoints->InsertNextPoint(m_globalPt[0], m_globalPt[1], m_globalPt[2]);
-			// let other slices views know that a new point was created
-			emit addedPoint(m_globalPt[0], m_globalPt[1], m_globalPt[2]);
-		}
 	}
 	iAVtkWidget::mousePressEvent(event);
 }
@@ -2142,31 +2104,6 @@ void iASlicerImpl::mouseMoveEvent(QMouseEvent *event)
 	{
 		updateMagicLens();
 	}
-
-	// only do something in spline drawing mode and if a point is selected
-	if (m_decorations && m_interactionMode == SnakeEdit && m_snakeSpline->selectedPointIndex() != iASnakeSpline::NoPointSelected)
-	{
-		// Move world and slice view points
-		double const * point = m_worldSnakePoints->GetPoint(m_snakeSpline->selectedPointIndex());
-
-		double pos[3];
-		int indxs[3] = { mapSliceToGlobalAxis(m_mode, iAAxisIndex::X), mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y), mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z) };
-
-		for (int i = 0; i < 2; ++i)         // Update the two coordinates in the slice plane (slicer's x and y) from the current position in the slicer
-		{
-			pos[indxs[i]] = m_slicerPt[i];
-		}
-		pos[indxs[2]] = point[indxs[2]];	// Update the other coordinate (slicer's z) from the current global position of the point
-
-		movePoint(m_snakeSpline->selectedPointIndex(), pos[0], pos[1], pos[2]);
-
-		// update world point list only once because it is a member of iAMdiChild
-		m_worldSnakePoints->SetPoint(m_snakeSpline->selectedPointIndex(), pos[0], pos[1], pos[2]);
-
-		// let other slice views know that a point was moved
-		emit movedPoint(m_snakeSpline->selectedPointIndex(), pos[0], pos[1], pos[2]);
-	}
-
 	if (m_isSliceProfEnabled && (event->modifiers() == Qt::NoModifier) && (event->buttons() & Qt::LeftButton))
 	{
 		updateRawProfile(m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
@@ -2203,25 +2140,6 @@ void iASlicerImpl::mouseMoveEvent(QMouseEvent *event)
 	}
 }
 
-void iASlicerImpl::deselectPoint()
-{
-	if (!m_decorations)
-	{
-		return;
-	}
-	m_snakeSpline->deselectPoint();
-}
-
-void iASlicerImpl::mouseReleaseEvent(QMouseEvent *event)
-{
-	iAVtkWidget::mouseReleaseEvent(event);
-	if (m_decorations)
-	{
-		m_snakeSpline->deselectPoint();
-		emit deselectedPoint();  // let other slice views know that the point was deselected
-	}
-}
-
 void iASlicerImpl::mouseDoubleClickEvent(QMouseEvent* event)
 {
 	if (event->button() == Qt::LeftButton)
@@ -2243,38 +2161,7 @@ void iASlicerImpl::contextMenuEvent(QContextMenuEvent *event)
 		m_actionMagicLensCentered->setVisible(m_magicLens->isEnabled());
 		m_actionMagicLensOffset->setVisible(m_magicLens->isEnabled());
 	}
-	if (m_decorations)
-	{
-		m_actionDeleteSnakeLine->setVisible(m_interactionMode == SnakeEdit);
-	}
 	m_contextMenu->exec(event->globalPos());
-}
-
-void iASlicerImpl::switchInteractionMode(int mode)
-{
-	if (!m_decorations)
-	{
-		return;
-	}
-	m_interactionMode = static_cast<InteractionMode>(mode);
-	m_snakeSpline->SetVisibility(m_interactionMode == SnakeEdit);
-	m_renWin->GetInteractor()->Render();
-}
-
-void iASlicerImpl::addPoint(double xPos, double yPos, double zPos)
-{
-	if (!m_decorations)
-	{
-		return;
-	}
-	double pos[3] = { xPos, yPos, zPos };
-	double x = pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)];
-	double y = pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)];
-
-	//add point to the snake slicer spline
-	m_snakeSpline->addPoint(x, y);
-
-	renderWindow()->GetInteractor()->Render();
 }
 
 void iASlicerImpl::updateRawProfile(double posY)
@@ -2309,43 +2196,6 @@ void iASlicerImpl::setProfilePointInternal(int pointIdx, double const * globalPo
 	};
 	m_profileHandles->setup(pointIdx, globalPos, profileCoord2d, channel(0)->output());
 	renderWindow()->GetInteractor()->Render();
-}
-
-void iASlicerImpl::movePoint(size_t selectedPointIndex, double xPos, double yPos, double zPos)
-{
-	if (!m_decorations)
-	{
-		return;
-	}
-	double pos[3] = { xPos, yPos, zPos };
-	double x = pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)];
-	double y = pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)];
-
-	// move only if a point is selected
-	if (selectedPointIndex != iASnakeSpline::NoPointSelected)
-	{
-		// move only if a point is selected
-		m_snakeSpline->movePoint(selectedPointIndex, x, y);
-
-		renderWindow()->GetInteractor()->Render();
-	}
-}
-
-void iASlicerImpl::menuDeleteSnakeLine()
-{
-	deleteSnakeLine();
-	emit deletedSnakeLine();
-}
-
-void iASlicerImpl::deleteSnakeLine()
-{
-	if (!m_decorations)
-	{
-		return;
-	}
-	m_snakeSpline->deleteAllPoints();
-	m_worldSnakePoints->Reset();
-	m_renWin->GetInteractor()->Render();
 }
 
 void iASlicerImpl::setSliceProfileOn(bool isOn)

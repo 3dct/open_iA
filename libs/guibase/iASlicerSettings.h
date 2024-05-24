@@ -7,7 +7,6 @@
 // addAttr(attr, "Interaction Enabled", iAValueType::Boolean, true);
 // addAttr(attr, "Link Views", iAValueType::Boolean, false);
 // addAttr(attr, "Link MDIs", iAValueType::Boolean, false);
-// addAttr(attr, "Snake slices", iAValueType::Discrete, 100);
 
 class iASlicerSettings
 {
@@ -15,5 +14,4 @@ public:
 	bool InteractorsEnabled{ true },
 		LinkViews{ false },
 		LinkMDIs{ false };
-	int SnakeSlices{ 100 };
 };

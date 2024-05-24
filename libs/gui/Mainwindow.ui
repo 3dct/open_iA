@@ -180,7 +180,6 @@
      <addaction name="actionMagicLens2D"/>
      <addaction name="actionToggleSlicerInteraction"/>
      <addaction name="actionRawProfile"/>
-     <addaction name="actionSnakeSlicer"/>
     </widget>
     <addaction name="menuDockWidgets"/>
     <addaction name="menuFocus"/>
@@ -280,7 +279,6 @@
    <addaction name="actionMagicLens2D"/>
    <addaction name="actionEditProfilePoints"/>
    <addaction name="actionRawProfile"/>
-   <addaction name="actionSnakeSlicer"/>
   </widget>
   <widget class="QToolBar" name="rendererToolbar">
    <property name="windowTitle">
@@ -519,14 +517,6 @@
   <action name="actionSaveSettings">
    <property name="text">
     <string>Save Settings...</string>
-   </property>
-  </action>
-  <action name="actionSnakeSlicer">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Snake Slicer</string>
    </property>
   </action>
   <action name="actionToggleRendererInteraction">
