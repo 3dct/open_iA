@@ -123,8 +123,8 @@ namespace
 	enum class ObjectID : quint64
 	{
 		Dataset,
-		SlicingPlane
-		//Camera
+		SlicingPlane,
+		Camera
 	};
 
 	template <typename T>
@@ -391,6 +391,9 @@ public:
 		connect(m_planeSliceTool, &iAPlaneSliceTool::snapshotRemoved, this, &Self::removeSnapshot);
 		connect(m_planeSliceTool, &iAPlaneSliceTool::snapshotsCleared, this, &Self::clearSnapshots);
 
+		// attach to main renderer's camera, send message whenever it changes:
+		//cam->AddObserver(vtkCommand::ModifiedEvent, this);
+
 		if (!m_wsServer->listen(QHostAddress::Any, 50505))
 		{
 			LOG(lvlError, QString("%1: Listening failed (error: %2)!")
@@ -586,7 +589,7 @@ private:
 		sendMessage(clientID, b);
 	}
 
-	void broadcastMsg(QByteArray const& b, quint64 exceptClientID = -1)
+	void broadcastMsg(QByteArray const& b, quint64 exceptClientID = std::numeric_limits<quint64>::max())
 	{
 		for (auto c : m_clientSocket)
 		{
@@ -939,6 +942,8 @@ private:
 						readArray(rcvStream, info.position);
 						std::array<float, 4> rotation;
 						readArray(rcvStream, rotation);
+						LOG(lvlInfo, QString("  New Snapshot: position %1, rotation %2")
+							.arg(arrayToString(info.position)).arg(arrayToString(rotation)));
 						info.normal = applyRotationToVector(DefaultPlaneNormal, rotation);
 						auto snapshotID = m_planeSliceTool->addSnapshot(info);
 						addSnapshot(snapshotID, info);
