@@ -36,7 +36,7 @@ namespace
 	const int MatrixMinBoxSize = 3;
 
 	const QString LegendCaption("Sensitivity:");
-	const QColor SelectionColor(0, 0, 0);
+	const QColor InOutSelectionColor(0, 0, 0);
 
 	void drawVerticalText(QPainter& p, QRect const& textRect, int flags, QString const& text)
 	{
@@ -158,7 +158,7 @@ void iAAlgorithmInfo::drawInOut(QPainter& p, QRect textRect, QString const& text
 	}
 	if (selected)
 	{
-		p.setPen(SelectionColor);
+		p.setPen(InOutSelectionColor);
 		p.drawPath(path);
 	}
 	// add some inner padding:
