@@ -4,20 +4,25 @@
 
 #include "iAPlaneSliceTool.h"
 
+#include <iACameraVis.h>
 #include <iADataSetRenderer.h>
 #include <iADataSetViewer.h>
 #include <iADockWidgetWrapper.h>
 #include <iAImageData.h>
 #include <iAMdiChild.h>
+#include <iARenderer.h>
 #include <iAToolHelper.h>
 
 #include <iAAABB.h>
 #include <iALog.h>
 #include <iAStringHelper.h>
 
+#include <vtkCamera.h>
+#include <vtkCommand.h>
 #include <vtkMath.h>
 #include <vtkProp3D.h>
 #include <vtkQuaternion.h>
+#include <vtkRenderer.h>
 #include <vtkTransform.h>
 
 #include <QBoxLayout>
@@ -283,6 +288,7 @@ private:
 				{
 				case ObjectCommandType::SetMatrix:
 				{
+					// TODO: TEST / Check whether used!
 					assert(N == 16);
 					vtkNew<vtkTransform> tr;
 					tr->SetMatrix(dblVal.data());
@@ -292,6 +298,7 @@ private:
 				}
 				case ObjectCommandType::SetScaling:
 				{
+					// TODO: TEST / Check whether used!
 					assert(N == 3);
 					LOG(lvlInfo, QString("  Setting scale = (%1)").arg(arrayToString(dblVal)));
 					prop->SetScale(dblVal.data());
@@ -299,6 +306,7 @@ private:
 				}
 				case ObjectCommandType::SetTranslation:
 				{
+					// TODO: TEST / Check whether used!
 					assert(N == 3);
 					LOG(lvlInfo, QString("  Setting pos = (%1)").arg(arrayToString(dblVal)));
 					prop->SetPosition(dblVal.data());
@@ -306,12 +314,14 @@ private:
 				}
 				case ObjectCommandType::SetRotationEuler:
 				{
+					// TODO: TEST / Check whether used!
 					LOG(lvlInfo, QString("  Setting euler rotation = (%1)").arg(arrayToString(dblVal)));
 					prop->SetOrientation(dblVal.data());
 					break;
 				}
 				case ObjectCommandType::SetRotationQuaternion:
 				{
+					// TODO: TEST / Check whether used!
 					const size_t QuatSize = 4;
 					std::array<double, QuatSize> q;
 					for (size_t i = 0; i < QuatSize; ++i)
@@ -352,10 +362,109 @@ private:
 				}
 				}
 			}
-			// objID = 1 -> Slicing plane
-			else
+			// 
+			else if (objID == 1) // ->Slicing plane
 			{
 				//	m_planeSliceTool->setMatrix(values); ???
+			}
+			else if (objID == 2) // camera
+			{
+				// two options: either adapt 3D renderer directly (currently not implemented):
+				//auto cam = child->renderer()->renderer()->GetActiveCamera();
+				// or just visualize camera of other:
+				auto vis = m_clientCamVis[clientID].get();
+				std::array<double, N> dblVal;
+				std::copy(values.begin(), values.end(), dblVal.begin());
+				switch (objCmdType)
+				{
+				case ObjectCommandType::SetMatrix:
+				{
+					// TODO: TEST / Check whether used!
+					assert(N == 16);
+					vtkNew<vtkTransform> tr;
+					tr->SetMatrix(dblVal.data());
+					LOG(lvlInfo, QString("  Setting transformation matrix = (%1)").arg(arrayToString(dblVal)));
+					//cam->SetUserTransform(tr);  // probably not working as expected - this is applied _in addition_ to other settings
+					
+					break;
+				}
+				case ObjectCommandType::SetScaling:
+				{
+					// TODO: TEST / Check whether used! -> only 1 value used
+					assert(N == 3);
+					LOG(lvlInfo, QString("  Setting scale = (%1)").arg(arrayToString(dblVal)));
+					//cam->SetParallelScale(dblVal[0]);  // probably not working as expected
+					break;
+				}
+				case ObjectCommandType::SetTranslation:
+				{
+					// TODO: TEST / Check whether used!
+					assert(N == 3);
+					LOG(lvlInfo, QString("  Setting pos = (%1)").arg(arrayToString(dblVal)));
+					//cam->SetPosition(dblVal.data());
+					iAVec3d pos(dblVal.data());
+					vis->update(pos, vis->dir());
+					break;
+				}
+				case ObjectCommandType::SetRotationEuler:
+				{
+					// TODO: TEST / Check whether used!
+					LOG(lvlInfo, QString("  Setting euler rotation = (%1)").arg(arrayToString(dblVal)));
+					//cam->SetViewAngle(dblVal.data());
+					// Todo: compute correct vector direction
+					iAVec3d dir(dblVal.data());
+					vis->update(vis->pos(), dir);
+					break;
+				}
+				case ObjectCommandType::SetRotationQuaternion:
+				{
+					// TODO: TEST / Check whether used!
+					/*
+					const size_t QuatSize = 4;
+					std::array<double, QuatSize> q;
+					for (size_t i = 0; i < QuatSize; ++i)
+					{
+						q[i] = values[i];
+					}
+					double ayterm = 2 * (q[3] * q[1] - q[0] * q[2]);
+					std::array<double, 3> angles = {
+						vtkMath::DegreesFromRadians(
+							std::atan2(2 * (q[3] * q[0] + q[1] * q[2]), 1 - 2 * (q[0] * q[0] + q[1] * q[1]))),
+						vtkMath::DegreesFromRadians(
+							-vtkMath::Pi() / 2 + 2 * std::atan2(std::sqrt(1 + ayterm), std::sqrt(1 - ayterm))),
+						vtkMath::DegreesFromRadians(
+							std::atan2(2 * (q[3] * q[2] + q[0] * q[1]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])))};
+					for (int a = 0; a < 3; ++a)
+					{  // round to nearest X degrees:
+						const double RoundDegrees = 2;
+						angles[a] = std::round(angles[a] / RoundDegrees) * RoundDegrees;
+					}
+					LOG(lvlInfo,
+						QString("  Setting rotatation: quat = (%1), angle = (%2)")
+							.arg(arrayToString(q))
+							.arg(arrayToString(angles)));
+					auto bounds = renderer->bounds();
+					auto center = (bounds.maxCorner() - bounds.minCorner()) / 2;
+					double pos[3];
+					cam->GetPosition(pos);
+					vtkNew<vtkTransform> tr;
+					tr->PostMultiply();
+					tr->Translate(-center[0], -center[1], -center[2]);
+					// rotation: order x-z-y, reverse direction of y
+					tr->RotateX(angles[0]);
+					tr->RotateZ(-angles[1]);
+					tr->RotateY(angles[2]);
+					// translation: y, z flipped; x, y reversed:
+					tr->Translate(center[0] - pos[0], center[1] - pos[2], center[2] + pos[1]);
+					cam->SetUserTransform(tr);
+					*/
+					break;
+				}
+				}
+			}
+			else
+			{
+				LOG(lvlWarn, QString("Unknown object ID %1!").arg(objID));
 			}
 			child->updateRenderer();
 		}
@@ -392,7 +501,8 @@ public:
 		connect(m_planeSliceTool, &iAPlaneSliceTool::snapshotsCleared, this, &Self::clearSnapshots);
 
 		// attach to main renderer's camera, send message whenever it changes:
-		//cam->AddObserver(vtkCommand::ModifiedEvent, this);
+		auto cam = child->renderer()->renderer()->GetActiveCamera();
+		cam->AddObserver(vtkCommand::ModifiedEvent, this, &Self::camModified);
 
 		if (!m_wsServer->listen(QHostAddress::Any, 50505))
 		{
@@ -486,6 +596,15 @@ public:
 
 			m_clientSocket[clientID] = client;
 			m_clientState[clientID] = ClientState::AwaitingProtocolNegotiation;
+
+			auto bounds = child->dataSetViewer(0)->renderer()->bounds();
+			double maxSize = std::max({
+				bounds.maxCorner().x() - bounds.minCorner().x(),
+				bounds.maxCorner().y() - bounds.minCorner().y(),
+				bounds.maxCorner().z() - bounds.minCorner().z(),
+			});
+			m_clientCamVis[clientID] = std::make_unique<iACameraVis>(child->renderer()->renderer(), maxSize / 10);
+
 			connect(client, &QWebSocket::stateChanged, this, [clientID](QAbstractSocket::SocketState state)
 			{
 				LOG(lvlDebug, QString("%1: Client (ID=%2): socket state changed to %3")
@@ -1052,6 +1171,7 @@ private:
 	std::map<quint64, QWebSocket*> m_clientSocket;
 	std::map<quint64, ClientState> m_clientState;
 	std::map<quint64, QAction*> m_syncActions;
+	std::map<quint64, std::unique_ptr<iACameraVis>> m_clientCamVis;
 	std::set<quint64> m_outOfSync;
 	quint64 m_nextClientID;
 	QThread m_serverThread;
@@ -1067,6 +1187,11 @@ private:
 	QTableWidget* m_clientTable;
 	iADockWidgetWrapper* m_clientListDW;
 	int m_syncedClientID;
+private slots:
+	void camModified()
+	{
+		// TODO: broadcast to all clients; but what exact message? some kind of transform matrix? pos and dir don't exist as message currently
+	}
 };
 
 const QString iAUnityWebsocketServerTool::Name("UnityWebSocketServer");

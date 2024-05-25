@@ -18,6 +18,7 @@ public:
 	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child);
 	iAUnityWebsocketServerTool(iAMainWindow* mainWnd, iAMdiChild* child);
 	~iAUnityWebsocketServerTool();
+
 private:
 	std::unique_ptr<iAUnityWebsocketServerToolImpl> m_impl;
 };

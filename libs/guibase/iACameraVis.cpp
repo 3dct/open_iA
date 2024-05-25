@@ -77,3 +77,12 @@ void iACameraVis::updateSource()
 	m_camDirSource->SetPoint1(m_pos.data());
 	m_camDirSource->SetPoint2(dirVecPos.data());
 }
+iAVec3d iACameraVis::pos() const
+{
+	return m_pos;
+}
+
+iAVec3d iACameraVis::dir() const
+{
+	return m_dir;
+}

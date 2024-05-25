@@ -25,6 +25,8 @@ public:
 	void hide();
 	bool update(iAVec3d const & pos, iAVec3d const & dir);
 	void updateSource();
+	iAVec3d pos() const;
+	iAVec3d dir() const;
 signals:
 	void updateRequired();
 
