@@ -7,17 +7,19 @@
 #include <QStringList>
 #include <QtWidgets>
 
-const QStringList customMimeType = QStringList()\
-<< "application/x-dnditemdatafilter"\
-<< "application/x-dnditemdatadataset";
+namespace
+{
+	const QStringList customDragMimeType = QStringList() << "application/x-dnditemdatafilter"
+														 << "application/x-dnditemdatadataset";
 
-const int rowStartOffset = 25;
-const int maxColumns = 5;
-const int maxRows = 8;
-const int iconHeight = 60;
-const int iconWidth = 60;
-const int columnGutter = iconWidth + 7;
-const int rowGutter = iconHeight + 10;
+	const int rowStartOffset = 25;
+	const int maxColumns = 5;
+	const int maxRows = 8;
+	const int iconHeight = 60;
+	const int iconWidth = 60;
+	const int columnGutter = iconWidth + 7;
+	const int rowGutter = iconHeight + 10;
+}
 
 iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetList, int d_f_switch, QWidget *parent )
 	: QFrame( parent ), m_d_f_switch( d_f_switch ), m_datasetDir( datasetDir ), m_datasetList( datasetList )
@@ -498,7 +500,7 @@ QPixmap iADragFilterWidget::mergeOnTop( const QPixmap& pix, QString txt )
 
 void iADragFilterWidget::dragEnterEvent( QDragEnterEvent *event )
 {
-	if ( event->mimeData()->hasFormat( customMimeType[m_d_f_switch] ) )
+	if (event->mimeData()->hasFormat(customDragMimeType[m_d_f_switch]))
 	{
 		if ( event->source() == this )
 		{
@@ -516,7 +518,7 @@ void iADragFilterWidget::dragEnterEvent( QDragEnterEvent *event )
 
 void iADragFilterWidget::dragMoveEvent( QDragMoveEvent *event )
 {
-	if ( event->mimeData()->hasFormat( customMimeType[m_d_f_switch] ) )
+	if (event->mimeData()->hasFormat(customDragMimeType[m_d_f_switch]))
 	{
 		if ( event->source() == this )
 		{
@@ -534,7 +536,7 @@ void iADragFilterWidget::dragMoveEvent( QDragMoveEvent *event )
 
 void iADragFilterWidget::dropEvent( QDropEvent *event )
 {
-	if ( event->mimeData()->hasFormat( customMimeType[m_d_f_switch] ) )
+	if (event->mimeData()->hasFormat(customDragMimeType[m_d_f_switch]))
 	{
 		if ( event->source() == this )
 		{
@@ -569,7 +571,7 @@ void iADragFilterWidget::mousePressEvent( QMouseEvent *event )
 	dataStream << pixmap << -1 << filtername << description;
 
 	QMimeData *mimeData = new QMimeData;
-	mimeData->setData( customMimeType[filtername.startsWith( "dataset_" )], itemData );
+	mimeData->setData(customDragMimeType[filtername.startsWith("dataset_")], itemData);
 
 	QDrag *drag = new QDrag( this );
 	drag->setMimeData( mimeData );

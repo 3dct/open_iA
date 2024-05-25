@@ -14,13 +14,15 @@
 #include <QSettings>
 #include <QTextDocument>
 
-const QStringList customMimeType = QStringList()\
-<< "application/x-dnditemdatafilter"\
-<< "application/x-dnditemdatadataset"\
-<< "application/x-dnditeminternaldatafilter"\
-<< "application/x-dnditeminternaldatadataset";
+namespace
+{
+	const QStringList customDropMimeType = QStringList() << "application/x-dnditemdatafilter"
+														 << "application/x-dnditemdatadataset"
+														 << "application/x-dnditeminternaldatafilter"
+														 << "application/x-dnditeminternaldatadataset";
 
-const QString pipelinePresetsPath = "FeatureAnalyzer/PipelinePresets/";
+	const QString pipelinePresetsPath = "FeatureAnalyzer/PipelinePresets/";
+}
 
 template<class T>
 void resizeList( QList<T> & list, int newSize )
@@ -68,10 +70,10 @@ void iADropPipelineWidget::clearAllSlots()
 
 void iADropPipelineWidget::dragEnterEvent( QDragEnterEvent *event )
 {
-	if ( event->mimeData()->hasFormat( customMimeType[0] )
-		 || event->mimeData()->hasFormat( customMimeType[1] )
-		 || event->mimeData()->hasFormat( customMimeType[2] )
-		 || event->mimeData()->hasFormat( customMimeType[3] ) )
+	if ( event->mimeData()->hasFormat( customDropMimeType[0] )
+		 || event->mimeData()->hasFormat( customDropMimeType[1] )
+		 || event->mimeData()->hasFormat( customDropMimeType[2] )
+		 || event->mimeData()->hasFormat( customDropMimeType[3] ) )
 		 event->accept();
 	else
 		event->ignore();
@@ -91,16 +93,16 @@ void iADropPipelineWidget::dragMoveEvent( QDragMoveEvent *event )
 	QRect square = targetSquare( event->position().toPoint() );
 	int pipePos = square.x() / pieceSize();
 
-	if ( ( event->mimeData()->hasFormat( customMimeType[1] )
-		|| event->mimeData()->hasFormat( customMimeType[3] ) )
+	if ( ( event->mimeData()->hasFormat( customDropMimeType[1] )
+		|| event->mimeData()->hasFormat( customDropMimeType[3] ) )
 		&& pipePos == 0 )
 	{
 		highlightedRect = targetSquare( event->position().toPoint() );
 		event->setDropAction( Qt::MoveAction );
 		event->accept();
 	}
-	else if ( ( event->mimeData()->hasFormat( customMimeType[0] )
-		|| event->mimeData()->hasFormat( customMimeType[2] ) )
+	else if ( ( event->mimeData()->hasFormat( customDropMimeType[0] )
+		|| event->mimeData()->hasFormat( customDropMimeType[2] ) )
 		&& pipePos > 0
 		&& pipePos <= ( imageSize() / pieceSize() ) )
 	{
@@ -118,10 +120,10 @@ void iADropPipelineWidget::dragMoveEvent( QDragMoveEvent *event )
 
 void iADropPipelineWidget::dropEvent( QDropEvent *event )
 {
-	if ( !( event->mimeData()->hasFormat( customMimeType[0] )
-		|| event->mimeData()->hasFormat( customMimeType[1] )
-		|| event->mimeData()->hasFormat( customMimeType[2] )
-		|| event->mimeData()->hasFormat( customMimeType[3] ) ) )
+	if ( !( event->mimeData()->hasFormat( customDropMimeType[0] )
+		|| event->mimeData()->hasFormat( customDropMimeType[1] )
+		|| event->mimeData()->hasFormat( customDropMimeType[2] )
+		|| event->mimeData()->hasFormat( customDropMimeType[3] ) ) )
 	{
 		highlightedRect = QRect();
 		event->ignore();
@@ -158,8 +160,8 @@ void iADropPipelineWidget::dropEvent( QDropEvent *event )
 	highlightedRect = QRect();
 	update( square );
 
-	if ( event->mimeData()->hasFormat( customMimeType[0] )
-		 || event->mimeData()->hasFormat( customMimeType[1] ) )
+	if ( event->mimeData()->hasFormat( customDropMimeType[0] )
+		 || event->mimeData()->hasFormat( customDropMimeType[1] ) )
 		 event->setDropAction( Qt::CopyAction );
 	else
 		event->setDropAction( Qt::MoveAction );
@@ -324,9 +326,9 @@ void iADropPipelineWidget::mouseMoveEvent( QMouseEvent *event )
 			QMimeData *mimeData = new QMimeData;
 
 			if ( name.startsWith("dataset_") )
-				mimeData->setData( customMimeType[3], itemData );
+				mimeData->setData( customDropMimeType[3], itemData );
 			else
-				mimeData->setData( customMimeType[2], itemData );
+				mimeData->setData( customDropMimeType[2], itemData );
 
 			QDrag *drag = new QDrag( this );
 			drag->setMimeData( mimeData );
