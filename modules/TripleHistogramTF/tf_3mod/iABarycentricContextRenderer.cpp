@@ -10,7 +10,6 @@
 
 #include <cmath>
 
-static const QImage::Format IMAGE_FORMAT = QImage::Format::Format_Grayscale8;
 static const double ONE_DIV_THREE = 1.0 / 3.0;
 static const int GRAY_VALUE_MIN = 48;
 static const int GRAY_VALUE_INTERVAL = 255 - GRAY_VALUE_MIN;
@@ -186,7 +185,7 @@ void iABarycentricContextRenderer::drawImageNow()
 
 	// Go through every pixel and set the pixel color based on the counts 2D-vector
 	//double c = (double) GRAY_VALUE_INTERVAL / (double) max;
-	QImage *buf = new QImage(width, height, IMAGE_FORMAT);
+	QImage* buf = new QImage(width, height, QImage::Format::Format_Grayscale8);
 	buf->fill(Qt::white);
 	double k = static_cast<double>(GRAY_VALUE_INTERVAL) / std::log(max);
 	int grayValue, count;

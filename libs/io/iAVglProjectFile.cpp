@@ -1,16 +1,19 @@
 #include "iAVglProjectFile.h"
 
-#include <zlib.h>
 #include <iALog.h>
-#include <qxmlstream.h>
-#include <qdom.h>
-#include <map>
-
-#include <QSettings>
 #include <iASettings.h>
 #include <iAValueTypeVectorHelpers.h>
 #include <iARawFileIO.h>
 #include <iAToolsVTK.h>
+
+#include <zlib.h>
+#include <map>
+
+#include <qdom.h>
+#include <qxmlstream.h>
+#include <QSettings>
+#include <qfileinfo.h>
+#include <qdir.h>
 
 
 
@@ -75,33 +78,59 @@ std::shared_ptr<iADataSet> iAVglProjectFile::loadData(
 				QDomAttr attributeRAW = domElementRAW.attributeNode("name");
 				if (attributeRAW.value() == "FileName")
 				{
-					param.Filename = domElementRAW.firstChild().firstChild().nodeValue();
+					auto pathRawFile = domElementRAW.firstChild().firstChild().nodeValue();
+					;
+					QFileInfo check_file(pathRawFile);
+					if (check_file.exists())
+					{
+						param.Filename = domElementRAW.firstChild().firstChild().nodeValue();
+					}
+					else
+					{
+						auto nameOfFile = check_file.fileName();
+						QFileInfo infoVgl(fileName);
+						auto dir = infoVgl.dir(); 
+						param.Filename = dir.absolutePath() + "/" + nameOfFile;
+						
+					}
+					
 
 				}
 				else if (attributeRAW.value() == "GridSize")
 				{
 					auto arrayIntStrings = domElementRAW.firstChild().firstChild().nodeValue().split(" ");
-					param.Gridsize[0] = arrayIntStrings[0].toInt();
-					param.Gridsize[1] = arrayIntStrings[1].toInt();
-					param.Gridsize[2] = arrayIntStrings[2].toInt();
+					if (arrayIntStrings[0].toInt() != 0)
+					{
+						param.Gridsize[0] = arrayIntStrings[0].toInt();
+						param.Gridsize[1] = arrayIntStrings[1].toInt();
+						param.Gridsize[2] = arrayIntStrings[2].toInt();
+					}
 				}
 				else if (attributeRAW.value() == "SamplingDistance")
 				{
 					auto arrayIntStrings = domElementRAW.firstChild().firstChild().nodeValue().split(" ");
-					param.sampleDistance[0] = arrayIntStrings[0].toFloat();
-					param.sampleDistance[1] = arrayIntStrings[1].toFloat();
-					param.sampleDistance[2] = arrayIntStrings[2].toFloat();
+					if (param.sampleDistance[0] >= 1.0 || arrayIntStrings[0].toFloat() < 1.0)
+					{
+						param.sampleDistance[0] = arrayIntStrings[0].toFloat();
+						param.sampleDistance[1] = arrayIntStrings[1].toFloat();
+						param.sampleDistance[2] = arrayIntStrings[2].toFloat();
+					}
 				}
 				else if (attributeRAW.value() == "SampleDataType")
 				{
-					param.Datatype = domElementRAW.firstChild().firstChild().nodeValue();
+					if (readableDataTypeMapVGL().contains(domElementRAW.firstChild().firstChild().nodeValue()))
+					{
+						param.Datatype = domElementRAW.firstChild().firstChild().nodeValue();
+					}
 				}
 				else if (attributeRAW.value() == "Origin")
 				{
 					auto arrayIntStrings = domElementRAW.firstChild().firstChild().nodeValue().split(" ");
-					param.Origin[0] = arrayIntStrings[0].toFloat();
-					param.Origin[1] = arrayIntStrings[1].toFloat();
-					param.Origin[2] = arrayIntStrings[2].toFloat();
+
+						param.Origin[0] = arrayIntStrings[0].toFloat();
+						param.Origin[1] = arrayIntStrings[1].toFloat();
+						param.Origin[2] = arrayIntStrings[2].toFloat();
+
 				}
 
 			}
@@ -136,8 +165,11 @@ std::shared_ptr<iADataSet> iAVglProjectFile::loadData(
 		if (io)
 		{
 			auto currentDataSet = io->load(data.second.Filename, iAparam);
-			currentDataSet->setMetaData(iAparam);
-			result->addDataSet(currentDataSet);
+			if (currentDataSet != nullptr)
+			{
+				currentDataSet->setMetaData(iAparam);
+				result->addDataSet(currentDataSet);
+			}
 		}
 
 

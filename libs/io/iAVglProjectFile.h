@@ -1,10 +1,10 @@
 #pragma once
 
 #include "iaio_export.h"
-
 #include "iAAutoRegistration.h"
 #include "iAFileIO.h"
 #include "iAFileTypeRegistry.h"
+
 #include <vector>
 
 

@@ -10,7 +10,7 @@
 
 namespace
 {
-	const int Margin = 30;
+	const int PieMargin = 30;
 }
 
 iAPiePiece::iAPiePiece():
@@ -40,8 +40,8 @@ void iAPieChartWidget::paintEvent(QPaintEvent * e)
 
 	QPainter painter(this);
 
-	int pieWidth  = this->width() - 2*Margin;
-	int pieHeight = this->height() - 2*Margin;
+	int pieWidth = this->width() - 2 * PieMargin;
+	int pieHeight = this->height() - 2 * PieMargin;
 	int diameter  = std::min(pieWidth, pieHeight);
 	int radius    = diameter / 2.0;
 

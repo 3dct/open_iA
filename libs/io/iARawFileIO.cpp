@@ -61,7 +61,7 @@ template <class T>
 void readRawImage(QVariantMap const& params, QString const& fileName, iAConnector& image, iAProgress const& progress)
 {
 	auto io = itk::RawImageIO<T, iAITKIO::Dim>::New();
-	io->SetFileName(getLocalEncodingFileName(fileName).c_str());
+	io->SetFileName(fileName.toStdString());
 	io->SetHeaderSize(params[iARawFileIO::HeadersizeStr].toInt());
 	auto dim = variantToVector<int>(params[iARawFileIO::SizeStr]);
 	auto spc = variantToVector<double>(params[iARawFileIO::SpacingStr]);
@@ -81,7 +81,7 @@ void readRawImage(QVariantMap const& params, QString const& fileName, iAConnecto
 		io->SetByteOrderToBigEndian();
 	}
 	auto reader = itk::ImageFileReader<itk::Image<T, iAITKIO::Dim>>::New();
-	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
+	reader->SetFileName(fileName.toStdString());
 	reader->SetImageIO(io);
 	progress.observe(reader);
 	reader->Modified();

@@ -21,7 +21,7 @@ iAPeriodicTableWidget::iAPeriodicTableWidget(QWidget *parent):
 
 namespace
 {
-	const int Margin = 5;
+	const int PeriodicTableMargin = 5;
 }
 
 void iAPeriodicTableWidget::drawElement(QPainter& painter, QPoint const & upperLeft, int elementWidth, int elementHeight, int elemIdx)
@@ -70,9 +70,9 @@ void iAPeriodicTableWidget::paintEvent(QPaintEvent * e)
 	painter.setPen(getPenColor(painter));
 
 	const int width = geometry().width();
-	m_elementWidth = (width-(2*Margin)) / PeriodicTable::MaxElementsPerLine;
+	m_elementWidth = (width - (2*PeriodicTableMargin)) / PeriodicTable::MaxElementsPerLine;
 	const int height = geometry().height();
-	m_elementHeight = (height-(2*Margin)) / (PeriodicTable::LineCount + PeriodicTable::ExtraTableLines + 1);
+	m_elementHeight = (height-(2*PeriodicTableMargin)) / (PeriodicTable::LineCount + PeriodicTable::ExtraTableLines + 1);
 
 	int widthDivRemainder = width - (m_elementWidth * PeriodicTable::MaxElementsPerLine);
 	int leftMargin = widthDivRemainder / 2 + ((widthDivRemainder % 2 != 0) ? 1 : 0);
