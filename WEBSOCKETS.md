@@ -2,19 +2,19 @@
 
 Through WebSockets external applications are able to communicate with the openIA server and vice versa. All messages are sent in a binary format. In case Text is transmitted, it will be sent in UTF-8.
 
-The direction of a message is shown atop the byte representation.  
-An optional description might be present under the direction.  
+The direction of a message is shown atop the byte representation.
+An optional description might be present under the direction.
 All message content is represented as tables with bytes in hex.
 
 This draft was created with the assumption that message lengths are not known.
 
 ## Byte Order
 
-If not specified otherwise, values in a column are **8-bit**.  
-If not specified otherwise, values are unsigned.  
+If not specified otherwise, values in a column are **8-bit**.
+If not specified otherwise, values are unsigned.
 All bytes are sent in **Big Endian**, because most programming languages, independent of hardware, represent multi-byte types (integer, long, etc.) in Big Endian to the programmer.
 
-Example:  
+Example:
 32-bit integer in hex "0x12345678"
 |0x12|0x34|0x56|0x78|
 |---|---|---|---|
@@ -31,7 +31,7 @@ Negative Acknowledgement (NAK)
 
 ## Protocol Negotiation
 
-The first message is the most important, as it is used to negotiate protocol versions.  
+The first message is the most important, as it is used to negotiate protocol versions.
 Don't be alarmed by the big messages, as speed is not a priority when connecting a new client.
 
 Protocol negotiation can be displayed by the state diagram below:
@@ -50,7 +50,7 @@ stateDiagram-v2
     S --> [*]
 ```
 
-A protocol advertisement message looks as follows:  
+A protocol advertisement message looks as follows:
 |0x2|Protocol Version (64-Bit)|
 |-|-|
 
@@ -66,7 +66,7 @@ Server &rarr; Client
 |0x3|Client ID (64-bit)|
 |-|-|
 
-New clients need to be synchronized, in case objects have already been manipulated or snapshots were created.  
+New clients need to be synchronized, in case objects have already been manipulated or snapshots were created.
 In this case, the server sends commands that replicate its current state, in this document called a sync command chain.
 
 ## Sync Command Chain
@@ -91,10 +91,10 @@ When loading a new dataset, its name is required. This command can come from the
 |0x4|0x1|Name Length (32-Bit)|Name (x-Bits)|
 |-|-|-|-|
 
-If the server receives a load dataset command, it first checks if the dataset exists on the server. If not it sends a NAK back and stops.  
-The command is broadcast to all clients (even the sending one).  
-Every client checks if they can load the dataset and sends an ACK back to the server, NAK if not.  
-If all clients sent a ACK, the server broadcasts ACK, else NAK.  
+If the server receives a load dataset command, it first checks if the dataset exists on the server. If not it sends a NAK back and stops.
+The command is broadcast to all clients (even the sending one).
+Every client checks if they can load the dataset and sends an ACK back to the server, NAK if not.
+If all clients sent a ACK, the server broadcasts ACK, else NAK.
 Now the clients and the server can start loading the new dataset.
 
 ```mermaid
@@ -128,23 +128,23 @@ stateDiagram-v2
     L --> [*]
 ```
 
-If the server sends a load dataset command, because of network latency, it is possible for a client to send other commands of their own while not yet having received the load command.  
+If the server sends a load dataset command, because of network latency, it is possible for a client to send other commands of their own while not yet having received the load command.
 These commands are ignored by the server while waiting for dataset load.
 
-* If the dataset load operation succeeds, those previous commands can simply be ignored.  
+* If the dataset load operation succeeds, those previous commands can simply be ignored.
 * If the dataset load fails, the commands are lost and the server and client are no longer in sync. As both the server and client aren't expected to buffer commands to resolve such cases, the server has to send the entire state of the dataset to the client in an attempt to resynchronize. See [Sync Command Chain](#sync-command-chain).
 
 While dataset load is happening, clients might connect or disconnect:
 
 #### Client connects
 
-If a dataset is loaded or currently loading and a client tries to connect, immediately send a load dataset to the client, even if the loading is not done yet.  
-If ACK comes back, the client is synchronized.  
+If a dataset is loaded or currently loading and a client tries to connect, immediately send a load dataset to the client, even if the loading is not done yet.
+If ACK comes back, the client is synchronized.
 IF NAK comes back, disconnect the client, as it can not synchronize and would desync the network.
 
 #### Client disconnects
 
-In case a client disconnects, it is assumed to have sent ACK, as it should not stop other clients from loading the dataset.  
+In case a client disconnects, it is assumed to have sent ACK, as it should not stop other clients from loading the dataset.
 If all clients are disconnected, the server is on its own and will always assume ACK. The server then operates alone.
 
 ## Objects
@@ -170,7 +170,7 @@ Current List of fixed IDs:
 > [!CAUTION]
 > Registering Objects is not complete! Refer to the Warning above for more information!
 
-To interact with an object accross devices, it has to be registered on the server.  
+To interact with an object accross devices, it has to be registered on the server.
 The client sends a packet with a name.
 
 |0x5|0x0|Name Length (32-Bit)|Name (x-Bits)|
@@ -205,7 +205,7 @@ Example:
 
 ### Set Translation
 
-The translated values are **32-Bit floats**.  
+The translated values are **32-Bit floats**.
 Default is (0,0,0).
 
 |0x5|0x3|Object ID (64-Bit)|X (32-Bit)|Y (32-Bit)|Z (32-Bit)|
@@ -213,7 +213,7 @@ Default is (0,0,0).
 
 ### Set Scale
 
-The scale values are **32-Bit floats**.  
+The scale values are **32-Bit floats**.
 Default is (1,1,1).
 
 |0x5|0x4|Object ID (64-Bit)|X (32-Bit)|Y (32-Bit)|Z (32-Bit)|
@@ -221,7 +221,7 @@ Default is (1,1,1).
 
 ### Set Rotation (Quaternion)
 
-The rotation value is a quaternion containing **32-Bit floats**.  
+The rotation value is a quaternion containing **32-Bit floats**.
 Default is (0,0,0,1).
 
 |0x5|0x5|Object ID (64-Bit)|X (32-Bit)|Y (32-Bit)|Z (32-Bit)|W (32-Bit)|
@@ -229,8 +229,8 @@ Default is (0,0,0,1).
 
 ### Set Rotation (Euler)
 
-The rotation value is a **32-Bit float**.  
-Default is 0.  
+The rotation value is a **32-Bit float**.
+Default is 0.
 Change the rotation axis by setting one of the following values:
 
 - X - 0
@@ -244,7 +244,7 @@ Change the rotation axis by setting one of the following values:
 
 ### Create Snapshot
 
-If a client takes a snapshot, the following packet is sent to the server.  
+If a client takes a snapshot, the following packet is sent to the server.
 The server then broadcasts the snapshot (the same packet contents) to all clients with an added ID. The ID generating algorithm is not specified, but must generate unique IDs for all currently existing objects.
 
 If the server takes a snapshot, it just broadcasts the second packet with its own data.
@@ -272,20 +272,20 @@ Server &rarr; Client
 
 ### Remove Snapshot
 
-Client &rarr; Server  
-OR  
+Client &rarr; Server
+OR
 Server &rarr; Client
 
 |0x6|0x2|Snapshot ID (64-Bit)|
 |-|-|-|
 
-The server broadcasts the command to all clients in all cases.  
+The server broadcasts the command to all clients in all cases.
 No response from the clients is expected.
 
 ### Clear all Snapshots
 
-Client &rarr; Server  
-OR  
+Client &rarr; Server
+OR
 Server &rarr; Client
 
 |0x6|0x3|
