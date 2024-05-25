@@ -29,6 +29,8 @@ if (openiA_TESTING_ENABLED)
 	endif()
 endif()
 
+option(CMAKE_UNITY_BUILD "Enable unity build" OFF)
+
 #-------------------------
 # Precompiled headers
 #-------------------------
