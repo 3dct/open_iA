@@ -56,10 +56,9 @@ A protocol advertisement message looks as follows:
 
 ## Client Login
 
-When a Client connects, the Server must assign them an ID. The ID generation algorithm is up to the Server, altought it has to be unique for all currently connected clients.
+When a Client connects, the Server must assign them an ID. The ID generation algorithm is up to the Server, altought it has to be unique for all currently connected clients and objects.
 
-> [!NOTE]
-> Client ID is not yet used anywhere.
+For easier collaboration, clients should periodically send their viewing position and rotation (tickrate unspecified). They are therefore handled like objects and are assigned IDs like objects.
 
 Server &rarr; Client
 
