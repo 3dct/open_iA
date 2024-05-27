@@ -150,8 +150,8 @@ void iAXVRAModuleInterface::startXVRA()
 		disconnect(child, &iAMdiChild::dataSetRendered, this, nullptr);
 
 		// Add Camera Frustum visualizations:
-		vtkSmartPointer<vtkCamera> fsCam = m_mainWnd->activeMdiChild()->renderer()->camera(); // camera from FeatureScout
-		vtkSmartPointer<vtkCamera> vrCam = vrModule->getRenderer()->GetActiveCamera();          // camera from VR
+		auto fsCam = m_mainWnd->activeMdiChild()->renderer()->camera(); // camera from FeatureScout
+		auto vrCam = vrModule->getRenderer()->GetActiveCamera();          // camera from VR
 
 		auto bounds = child->dataSetViewer(dataSetIdx)->renderer()->bounds();
 		double maxSize = std::max({
