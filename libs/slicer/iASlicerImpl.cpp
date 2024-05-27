@@ -1132,7 +1132,11 @@ void iASlicerImpl::saveImageStack()
 	iAAttributes params;
 	addAttr(params, "From Slice Number:", iAValueType::Discrete, sliceMin, sliceMin, sliceMax);
 	addAttr(params, "To Slice Number:", iAValueType::Discrete, sliceMax, sliceMin, sliceMax);
-	iAParameterDlg dlg(this, "Save options", params);
+	iAParameterDlg dlg(this, "Save options", params, "<strong>Note:</strong> "
+		"This is intended for a screenshot-like export of slices - "
+		"that is, including the full slicer window with scale- and color bar. "
+		"If you want to export a stack of axis-aligned images in native resolution, "
+		"use File -> Save Dataset -> Image Stack instead!");
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
