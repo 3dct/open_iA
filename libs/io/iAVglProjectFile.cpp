@@ -52,6 +52,9 @@ namespace
 std::shared_ptr<iADataSet> iAVglProjectFile::loadData(
 	QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)
 {
+
+	Q_UNUSED(paramValues)
+
 	auto XMLdata = unzip(fileName);
 	QByteArray data(XMLdata.data(), XMLdata.size()); 
 
@@ -60,7 +63,7 @@ std::shared_ptr<iADataSet> iAVglProjectFile::loadData(
 
 	auto divNodeList = doc.elementsByTagName("object");
 
-	std::map<QString, parameterVGL> dataset; 
+	std::map<QString, parameterVGL> datasetMap; 
 
 	for (int i = 0; i < divNodeList.size(); ++i)
 	{
@@ -135,22 +138,23 @@ std::shared_ptr<iADataSet> iAVglProjectFile::loadData(
 
 			}
 
-			dataset[param.Filename] = param;
+			datasetMap[param.Filename] = param;
 
 		}
 	}
 
 	auto s = std::make_shared<QSettings>(fileName, QSettings::IniFormat);
-	auto result = std::make_shared<iADataCollection>(dataset.size(), s);
+	auto result = std::make_shared<iADataCollection>(datasetMap.size(), s);
 
 
+	int idx = 0;
 
-	for (auto data : dataset)
+	for (auto dataset : datasetMap)
 	{
 
 		QVariantMap iAparam;
 
-		auto param = data.second;
+		auto param = dataset.second;
 
 		iAparam.insert(
 			iARawFileIO::SizeStr, variantVector<int>({param.Gridsize[0], param.Gridsize[1], param.Gridsize[2]}));
@@ -161,10 +165,10 @@ std::shared_ptr<iADataSet> iAVglProjectFile::loadData(
 		iAparam.insert(iARawFileIO::DataTypeStr, readableDataTypeMapVGL().value(param.Datatype,""));
 		iAparam.insert(iARawFileIO::ByteOrderStr,  "Little Endian");
 
-		auto io = iAFileTypeRegistry::createIO(data.second.Filename, iAFileIO::Load);
+		auto io = iAFileTypeRegistry::createIO(dataset.second.Filename, iAFileIO::Load);
 		if (io)
 		{
-			auto currentDataSet = io->load(data.second.Filename, iAparam);
+			auto currentDataSet = io->load(dataset.second.Filename, iAparam);
 			if (currentDataSet != nullptr)
 			{
 				currentDataSet->setMetaData(iAparam);
@@ -172,7 +176,8 @@ std::shared_ptr<iADataSet> iAVglProjectFile::loadData(
 			}
 		}
 
-
+		++idx;
+		progress.emitProgress(100.0 * idx / datasetMap.size());
 	}
 
 	return result;
