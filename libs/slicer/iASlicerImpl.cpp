@@ -1132,7 +1132,11 @@ void iASlicerImpl::saveImageStack()
 	iAAttributes params;
 	addAttr(params, "From Slice Number:", iAValueType::Discrete, sliceMin, sliceMin, sliceMax);
 	addAttr(params, "To Slice Number:", iAValueType::Discrete, sliceMax, sliceMin, sliceMax);
-	iAParameterDlg dlg(this, "Save options", params);
+	iAParameterDlg dlg(this, "Save options", params, "<strong>Note:</strong> "
+		"This is intended for a screenshot-like export of slices - "
+		"that is, including the full slicer window with scale- and color bar. "
+		"If you want to export a stack of axis-aligned images in native resolution, "
+		"use File -> Save Dataset -> Image Stack instead!");
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
@@ -1153,20 +1157,27 @@ void iASlicerImpl::saveImageStack()
 	double movingOrigin[3];
 	imageData->GetOrigin(movingOrigin);
 	double const * imgOrigin = imageData->GetOrigin();
+
+	// workaround for slice 0 bug - as "warmup", switch to "from" slice already before main loop:
+	movingOrigin[sliceZAxisIdx] = imgOrigin[sliceZAxisIdx];
+	setResliceAxesOrigin(movingOrigin[0], movingOrigin[1], movingOrigin[2] + sliceFrom * imgSpacing[sliceZAxisIdx]);
+	m_channels[channelID]->updateReslicer();
+	update();
+	QCoreApplication::processEvents();
+
 	for (int slice = sliceFrom; slice <= sliceTo && !aborter.isAborted(); slice++)
 	{
 		movingOrigin[sliceZAxisIdx] = imgOrigin[sliceZAxisIdx] + slice * imgSpacing[sliceZAxisIdx];
 		setResliceAxesOrigin(movingOrigin[0], movingOrigin[1], movingOrigin[2]);
 		m_channels[channelID]->updateReslicer();
-		auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
-		iAConnector con;
-		vtkImageData* img;
 		update();
 		QCoreApplication::processEvents();
+		// windowToImage needs to be created every loop iteration, otherwise it will cache its output (despite explicitly called SetInput and Update)
+		auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
 		windowToImage->SetInput(m_renWin);
 		windowToImage->ReadFrontBufferOff();
 		windowToImage->Update();
-		img = windowToImage->GetOutput();
+		auto img = windowToImage->GetOutput();
 		p.emitProgress((slice - sliceFrom) * 100.0 / (sliceTo - sliceFrom));
 
 		QString newFileName(QString("%1%2.%3").arg(baseName).arg(slice).arg(fileInfo.suffix()));
