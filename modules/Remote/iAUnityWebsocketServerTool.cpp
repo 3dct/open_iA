@@ -102,6 +102,7 @@ namespace
 	enum class SnapshotCommandType : quint8
 	{
 		Create,
+		CreateDouble,
 		Remove,
 		ClearAll,
 		// must be last:
