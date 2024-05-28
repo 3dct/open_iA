@@ -38,6 +38,7 @@
 #include <QWebSocketServer>
 
 #include <cmath>
+#include <limits>
 
 namespace
 {
@@ -239,6 +240,7 @@ namespace
 	}
 
 	std::array<float, 3> DefaultPlaneNormal = { 0, 0, 1 };
+	std::array<float, 3> DefaultCameraViewDirection = { 0, 0, -1 };
 
 	QString toHexStr(QByteArray const & ba)
 	{
@@ -252,6 +254,9 @@ namespace
 		return result;
 		//
 	}
+
+	const quint64 NoSyncedClient = std::numeric_limits<quint64>::max();
+	const quint64 ServerID = 1000; // ID of the server (for syncing its view/camera to clients)
 }
 
 class iAUnityWebsocketServerToolImpl : public QObject
@@ -481,12 +486,13 @@ private:
 public:
 	iAUnityWebsocketServerToolImpl(iAMainWindow* mainWnd, iAMdiChild* child) :
 		m_wsServer(new QWebSocketServer(iAUnityWebsocketServerTool::Name, QWebSocketServer::NonSecureMode, this)),
-		m_nextClientID(1),
+		m_nextClientID(ServerID + 1),
 		m_dataState(DataState::NoDataset),
 		m_clientListContainer(new QWidget(child)),
 		m_clientTable(new QTableWidget(m_clientListContainer)),
 		m_clientListDW(new iADockWidgetWrapper(m_clientListContainer, "Client List", "ClientList")),
-		m_syncedClientID(-1)
+		m_syncedClientID(NoSyncedClient),
+		m_child(child)
 	{
 		m_wsServer->moveToThread(&m_serverThread);
 		m_serverThread.start();
@@ -562,7 +568,7 @@ public:
 			QObject::connect(syncAction, &QAction::toggled, m_clientTable, [this, clientID, syncAction]()
 			{
 				bool checked = syncAction->isChecked();
-				m_syncedClientID = (checked) ? clientID : - 1;
+				m_syncedClientID = (checked) ? clientID : NoSyncedClient;
 				for (auto const & s : m_syncActions)
 				{
 					// disable other actions:
@@ -1187,11 +1193,22 @@ private:
 	QWidget* m_clientListContainer;
 	QTableWidget* m_clientTable;
 	iADockWidgetWrapper* m_clientListDW;
-	int m_syncedClientID;
+	quint64 m_syncedClientID;
+	iAMdiChild* m_child;
 private slots:
 	void camModified()
 	{
-		// TODO: broadcast to all clients; but what exact message? some kind of transform matrix? pos and dir don't exist as message currently
+		auto cam = m_child->renderer()->renderer()->GetActiveCamera();
+		std::array<double, 3> posDbl;
+		cam->GetPosition(posDbl.data());
+		std::array<float, 3> posFlt{ static_cast<float>(posDbl[0]), static_cast<float>(posDbl[1]), static_cast<float>(posDbl[2]) };
+		broadcastMsg(msgObjectCommand(ServerID, ObjectCommandType::SetTranslation, posFlt));
+		std::array<double, 3> dirDbl;
+		cam->GetDirectionOfProjection(dirDbl.data());
+		std::array<float, 3> dirFlt = { static_cast<float>(dirDbl[0]), static_cast<float>(dirDbl[1]), static_cast<float>(dirDbl[2]) };
+
+		auto quat = getRotationQuaternionFromVectors(DefaultCameraViewDirection, dirFlt);
+		broadcastMsg(msgObjectCommand(ServerID, ObjectCommandType::SetRotationQuaternion, quat));
 	}
 };
 
