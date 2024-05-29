@@ -6,6 +6,7 @@
 #include "FeatureAnalyzerHelpers.h"
 
 #include <iAHistogramData.h>
+#include <iAMathUtility.h>
 
 #include <vtkIdTypeArray.h>
 

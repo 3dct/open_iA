@@ -549,20 +549,6 @@ inline QList<PorosityFilterID> parseFiltersFromString( QString algName )
 	}
 	return filterIds;
 }
-// DUPLICATED FROM iAMathUtility?
-inline double median( std::vector<double> vec )
-{
-	typedef std::vector<double>::size_type vec_sz;
-	vec_sz size = vec.size();
-	sort( vec.begin(), vec.end() );
-	vec_sz mid = size / 2;
-	return size % 2 == 0 ? ( vec[mid] + vec[mid - 1] ) / 2 : vec[mid];
-}
-
-inline double mean( std::vector<double> vec )
-{
-	return std::accumulate( vec.begin(), vec.end(), 0.0 ) / vec.size();
-}
 
 inline QMultiMap<double, QList<double> > calculateHistogram( QList<double> data, double minX = 0, double maxX = 0 )
 {

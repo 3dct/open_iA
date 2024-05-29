@@ -18,13 +18,14 @@
 #include <numbers>
 
 // Constants (more in the header file!)
-static const qreal RAD60 = std::numbers::pi / 3.0;
-static const qreal SIN60 = std::sin(RAD60);
-static const qreal ONE_DIV_SIN60 = 1.0 / SIN60;
-
-static const int CONTROL_POINT_RADIUS = 10;
-static const int MODALITY_LABEL_MARGIN = 10;
-static const int MODALITY_LABEL_MARGIN_TIMES_TWO = MODALITY_LABEL_MARGIN * 2;
+namespace BaryTriConst
+{
+	const qreal SIN60 = std::sin(std::numbers::pi / 3.0);
+	const qreal ONE_DIV_SIN60 = 1.0 / SIN60;
+	const int CONTROL_POINT_RADIUS = 10;
+	const int MODALITY_LABEL_MARGIN = 10;
+	const int MODALITY_LABEL_MARGIN_TIMES_TWO = MODALITY_LABEL_MARGIN * 2;
+}
 
 
 iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
@@ -137,24 +138,24 @@ void iABarycentricTriangleWidget::onSpinBoxValueChanged_3(int newValue)
 void iABarycentricTriangleWidget::initializeControlPointPaths()
 {
 	m_controlPointBorderPainterPath = QPainterPath();
-	m_controlPointBorderPainterPath.addEllipse(m_controlPoint, CONTROL_POINT_RADIUS, CONTROL_POINT_RADIUS);
+	m_controlPointBorderPainterPath.addEllipse(m_controlPoint, BaryTriConst::CONTROL_POINT_RADIUS, BaryTriConst::CONTROL_POINT_RADIUS);
 
 	m_controlPointCrossPainterPath = QPainterPath();
 	m_controlPointCrossPainterPath.moveTo(
-		m_controlPoint.x() - CONTROL_POINT_RADIUS,
+		m_controlPoint.x() - BaryTriConst::CONTROL_POINT_RADIUS,
 		m_controlPoint.y()
 	);
 	m_controlPointCrossPainterPath.lineTo(
-		m_controlPoint.x() + CONTROL_POINT_RADIUS,
+		m_controlPoint.x() + BaryTriConst::CONTROL_POINT_RADIUS,
 		m_controlPoint.y()
 	);
 	m_controlPointCrossPainterPath.moveTo(
 		m_controlPoint.x(),
-		m_controlPoint.y() - CONTROL_POINT_RADIUS
+		m_controlPoint.y() - BaryTriConst::CONTROL_POINT_RADIUS
 	);
 	m_controlPointCrossPainterPath.lineTo(
 		m_controlPoint.x(),
-		m_controlPoint.y() + CONTROL_POINT_RADIUS
+		m_controlPoint.y() + BaryTriConst::CONTROL_POINT_RADIUS
 	);
 }
 
@@ -192,9 +193,9 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height, bo
 {
 	int spinBoxHeight = m_spinBoxes[0]->sizeHint().height();
 
-	int triangleSpacingLeft = MODALITY_LABEL_MARGIN; // LEFT margin of BOTTOM-LEFT modality
-	int triangleSpacingTop = spinBoxHeight + MODALITY_LABEL_MARGIN_TIMES_TWO; // complete height of TOP modality
-	int triangleSpacingRight = MODALITY_LABEL_MARGIN; // RIGHT margin of BOTTOM-RIGHT modality
+	int triangleSpacingLeft = BaryTriConst::MODALITY_LABEL_MARGIN;             // LEFT margin of BOTTOM-LEFT modality
+	int triangleSpacingTop = spinBoxHeight + BaryTriConst::MODALITY_LABEL_MARGIN_TIMES_TWO; // complete height of TOP modality
+	int triangleSpacingRight = BaryTriConst::MODALITY_LABEL_MARGIN;     // RIGHT margin of BOTTOM-RIGHT modality
 	int triangleSpacingBottom = triangleSpacingTop; // complete height of BOTTOM modality
 
 	int aw = width - triangleSpacingLeft - triangleSpacingRight; // available width (for the triangle)
@@ -249,17 +250,17 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height, bo
 		if (!changeTriangle)
 		{
 			// TRIANGLE MODE
-			r1 = QRect(m_triangle.getXa() - MODALITY_LABEL_MARGIN - size1.width(), m_triangle.getYa() - size1.height(), size1.width(), size1.height());
-			r2 = QRect(m_triangle.getXb() + MODALITY_LABEL_MARGIN, m_triangle.getYb() - size2.height(), size2.width(), size2.height());
-			r3 = QRect(m_triangle.getXc() - (size3.width() / 2), m_triangle.getYc() + MODALITY_LABEL_MARGIN, size3.width(), size3.height());
+			r1 = QRect(m_triangle.getXa() - BaryTriConst::MODALITY_LABEL_MARGIN - size1.width(), m_triangle.getYa() - size1.height(), size1.width(), size1.height());
+			r2 = QRect(m_triangle.getXb() + BaryTriConst::MODALITY_LABEL_MARGIN, m_triangle.getYb() - size2.height(), size2.width(), size2.height());
+			r3 = QRect(m_triangle.getXc() - (size3.width() / 2), m_triangle.getYc() + BaryTriConst::MODALITY_LABEL_MARGIN, size3.width(), size3.height());
 
 		}
 		else
 		{
 			// STACK MODE
-			r1 = QRect(left, bottom + MODALITY_LABEL_MARGIN, size1.width(), size1.height());
-			r2 = QRect(centerX - (size2.width() / 2), top - MODALITY_LABEL_MARGIN - size2.height(), size2.width(), size2.height());
-			r3 = QRect(right - size3.width(), bottom + MODALITY_LABEL_MARGIN, size3.width(), size3.height());
+			r1 = QRect(left, bottom + BaryTriConst::MODALITY_LABEL_MARGIN, size1.width(), size1.height());
+			r2 = QRect(centerX - (size2.width() / 2), top - BaryTriConst::MODALITY_LABEL_MARGIN - size2.height(), size2.width(), size2.height());
+			r3 = QRect(right - size3.width(), bottom + BaryTriConst::MODALITY_LABEL_MARGIN, size3.width(), size3.height());
 		}
 
 		sb1->setGeometry(r1);
@@ -335,23 +336,23 @@ void iABarycentricTriangleWidget::moveControlPointTo(QPoint newPos)
 bool iABarycentricTriangleWidget::isTooWide(int width, int height)
 {
 	// TODO (line above): casting width and height - is that really the best?
-	return ((double)width / (double)height) < ONE_DIV_SIN60;
+	return ((double)width / (double)height) < BaryTriConst::ONE_DIV_SIN60;
 }
 
 bool iABarycentricTriangleWidget::isTooTall(int width, int height)
 {
 	// TODO (line above): casting width and height - is that really the best?
-	return ((double)width / (double)height) > ONE_DIV_SIN60;
+	return ((double)width / (double)height) > BaryTriConst::ONE_DIV_SIN60;
 }
 
 int iABarycentricTriangleWidget::getWidthForHeight(int height)
 {
-	return static_cast<int>(std::round(height * ONE_DIV_SIN60));
+	return static_cast<int>(std::round(height * BaryTriConst::ONE_DIV_SIN60));
 }
 
 int iABarycentricTriangleWidget::getHeightForWidth(int width)
 {
-	return static_cast<int>(std::round(width * SIN60));
+	return static_cast<int>(std::round(width * BaryTriConst::SIN60));
 }
 
 iABCoord iABarycentricTriangleWidget::getWeight()
