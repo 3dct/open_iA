@@ -664,8 +664,8 @@ if (MSVC)
 		set(WinDLLPaths "${OpenCL_WIN_DIR};${WinDLLPaths}")
 	endif()
 
-	if (CUDA_FOUND)
-		cmake_path(NATIVE_PATH CUDA_TOOLKIT_ROOT_DIR CUDA_WIN_DIR)
+	if (CUDAToolkit_FOUND)
+		cmake_path(NATIVE_PATH CUDAToolkit_BIN_DIR CUDA_WIN_DIR)
 		set(WinDLLPaths "${CUDA_WIN_DIR}\\bin;${WinDLLPaths}")
 	endif()
 
