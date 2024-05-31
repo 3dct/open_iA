@@ -666,7 +666,7 @@ if (MSVC)
 
 	if (CUDAToolkit_FOUND)
 		cmake_path(NATIVE_PATH CUDAToolkit_BIN_DIR CUDA_WIN_DIR)
-		set(WinDLLPaths "${CUDA_WIN_DIR}\\bin;${WinDLLPaths}")
+		set(WinDLLPaths "${CUDA_WIN_DIR};${WinDLLPaths}")
 	endif()
 
 	if (ITK_USE_SYSTEM_FFTW)
