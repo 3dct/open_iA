@@ -561,20 +561,19 @@ if (MSVC)
 	# /bigobj            increase the number of sections in .obj file (65,279 -> 2^32), exceeded by some compilations
 	# /Zc:__cplusplus    set correct value in __cplusplus macro (https://learn.microsoft.com/en-us/cpp/build/reference/zc-cplusplus)
 	# /Zc:inline         Remove unreferenced COMDAT (reduce .obj file size and improve linker speed, see https://learn.microsoft.com/en-us/cpp/build/reference/zc-inline-remove-unreferenced-comdat)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /bigobj /Zc:__cplusplus /Zc:inline")
+	# /utf-8             Enable using utf-8 as code page (https://learn.microsoft.com/en-us/cpp/build/reference/utf-8-set-source-and-executable-character-sets-to-utf-8?view=msvc-170)
+	add_compile_options(/MP /bigobj /Zc:__cplusplus /Zc:inline /utf-8)
 	if (MSVC_VERSION GREATER_EQUAL 1910)
 		# specify standard conformance mode (https://docs.microsoft.com/en-us/cpp/build/reference/permissive-standards-conformance)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive-")
+		add_compile_options(/permissive-)
 	endif()
 
+	########################################
 	# More standard conformance...
-
 	# Below version values deduced from https://cmake.org/cmake/help/latest/variable/MSVC_VERSION.html
-
 	if (MSVC_VERSION GREATER_EQUAL 1925)  # Strict preprocessor available from VS 2019 16.5 - https://learn.microsoft.com/en-us/cpp/build/reference/zc-preprocessor
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor")
+		add_compile_options(/Zc:preprocessor)
 	endif()
-
 	if (MSVC_VERSION GREATER_EQUAL 1929)  #  Address sanitizer available from VS 2019 16.9 - https://learn.microsoft.com/en-us/cpp/build/reference/fsanitize#
 		option(openiA_ENABLE_ASAN  "Whether to enable the address sanitizer. Default: disabled." OFF)
 		if (openiA_ENABLE_ASAN)
@@ -590,13 +589,12 @@ if (MSVC)
 			add_compile_definitions(_DISABLE_VECTOR_ANNOTATION _DISABLE_STRING_ANNOTATION)
 		endif()
 	endif()
-
 	if (MSVC_VERSION GREATER_EQUAL 1934)  # Enum type deduction available from VS 2022 17.4 - https://learn.microsoft.com/en-us/cpp/build/reference/zc-enumtypes
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:enumTypes")
+		add_compile_options(/Zc:enumTypes)
 	endif()
-
 	# ... and even more might be available, see see https://stackoverflow.com/questions/69575307 :
-	# /volatile:iso /Zc:externConstexpr /Zc:throwingNew /Zc:enumTypes /Zc:templateScope
+	# /volatile:iso /Zc:externConstexpr /Zc:throwingNew /Zc:templateScope
+	########################################
 
 	# Reduce size of .pdb files:
 	option(openiA_COMPRESS_PDB "Whether to compress .pdb files to conserve disk space. Default: enabled." ON)
@@ -623,18 +621,12 @@ else()
 	add_compile_options(-Wall -Wextra) # with -Wpedantic, lots of warnings about extra ';' in VTK/ITK code...
 endif()
 
-if (CMAKE_COMPILER_IS_GNUCXX)
-	if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb3")
-	endif()
-endif()
-
 if (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -fpermissive -fopenmp -march=core2 -O2 -msse4.2")
+	add_compile_options(-pipe -fpermissive -fopenmp -march=core2 -O2 -msse4.2)
 
 	if (NOT "${openiA_AVX_SUPPORT}" STREQUAL "${openiA_AVX_SUPPORT_DISABLED}")
 		string(TOLOWER "${openiA_AVX_SUPPORT}" openiA_AVX_SUPPORT_LOWER)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m${openiA_AVX_SUPPORT_LOWER}")
+		add_compile_options(-m${openiA_AVX_SUPPORT_LOWER})
 	endif()
 
 	# we do need to set the RPATH to make lib load path recursive also be able to load dependent libraries from the rpath specified in the executables:
