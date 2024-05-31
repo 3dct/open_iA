@@ -1215,12 +1215,12 @@ void iAChartWidget::contextMenuEvent(QContextMenuEvent *event)
 	m_contextPos = event->pos();
 	m_contextMenu->clear();
 	m_contextMenu->addAction(iAThemeHelper::icon("chart"), tr("Reset chart view"), this, &iAChartWidget::resetView);
-	QAction *showTooltipAction = new QAction(tr("Show histogram coordinates"), this);
+	QAction *showTooltipAction = new QAction(tr("Show tooltip"), this);
 	showTooltipAction->setCheckable(true);
 	showTooltipAction->setChecked(m_showTooltip);
 	connect(showTooltipAction, &QAction::toggled, this, &iAChartWidget::showTooltip);
 	m_contextMenu->addAction(showTooltipAction);
-	m_contextMenu->addAction(iAThemeHelper::icon("save"), tr("Export histogram data"), this, &iAChartWidget::exportData);
+	m_contextMenu->addAction(iAThemeHelper::icon("save"), tr("Export chart data"), this, &iAChartWidget::exportData);
 	m_contextMenu->addSeparator();
 	addContextMenuEntries(m_contextMenu);
 	m_contextMenu->exec(event->globalPos());
