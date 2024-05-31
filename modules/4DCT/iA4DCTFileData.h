@@ -7,7 +7,7 @@
 
 struct iA4DCTFileData
 {
-	iA4DCTFileData( QString path = 0, QString name = 0 ) :
+	iA4DCTFileData( QString path = QString(), QString name = QString() ) :
 		Path( path ),
 		Name( name )
 	{ /* not implemented */	}

@@ -22,8 +22,8 @@ class iABoundingBoxVisModule : public iAVisModule
 {
 public:
 				iABoundingBoxVisModule( );
-	void		show( );
-	void		hide( );
+	void		show( ) override;
+	void		hide( ) override;
 	void		setSize( double * size );
 	void		setColor( double r, double g, double b );
 	void		setPosition( double x, double y, double z );

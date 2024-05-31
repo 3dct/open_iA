@@ -16,27 +16,27 @@ public:
 		QString const & cachePath,
 		ClusterIDType id,
 		ClusterDistanceType distance);
-	virtual int GetChildCount() const;
-	virtual int GetClusterSize() const;
-	virtual int GetFilteredSize() const;
-	virtual void UpdateFilter(iAChartFilter const & filter,
+	int GetChildCount() const override;
+	int GetClusterSize() const override;
+	int GetFilteredSize() const override;
+	void UpdateFilter(iAChartFilter const & filter,
 		iAChartAttributeMapper const & chartAttrMap,
-		iAResultFilter const & resultFilter);
-	virtual bool IsLeaf() const { return false; }
-	virtual ClusterImageType const GetRepresentativeImage(int type, LabelImagePointer refImg) const;
-	virtual void DiscardDetails() const;
+		iAResultFilter const & resultFilter) override;
+	bool IsLeaf() const override { return false; }
+	ClusterImageType const GetRepresentativeImage(int type, LabelImagePointer refImg) const override;
+	void DiscardDetails() const override;
 	virtual void DiscardFilterData();
-	virtual void ClearFilterData();
-	virtual ClusterIDType GetID() const;
-	virtual void GetExampleImages(QVector<iAImageTreeLeaf *> & result, int amount);
-	virtual std::shared_ptr<iAImageTreeNode > GetChild(int idx) const;
-	virtual double GetAttribute(int) const;
-	virtual void GetMinMax(int chartID, double & min, double & max,
-		iAChartAttributeMapper const & chartAttrMap) const;
-	virtual ClusterDistanceType GetDistance() const;
-	virtual LabelPixelHistPtr UpdateLabelDistribution() const;
-	virtual CombinedProbPtr UpdateProbabilities() const;
-	virtual void GetSelection(QVector<std::shared_ptr<iASingleResult> > & result) const;
+	void ClearFilterData() override;
+	ClusterIDType GetID() const override;
+	void GetExampleImages(QVector<iAImageTreeLeaf *> & result, int amount) override;
+	std::shared_ptr<iAImageTreeNode > GetChild(int idx) const override;
+	double GetAttribute(int) const override;
+	void GetMinMax(int chartID, double & min, double & max,
+		iAChartAttributeMapper const & chartAttrMap) const override;
+	ClusterDistanceType GetDistance() const override;
+	LabelPixelHistPtr UpdateLabelDistribution() const override;
+	CombinedProbPtr UpdateProbabilities() const override;
+	void GetSelection(QVector<std::shared_ptr<iASingleResult> > & result) const override;
 private:
 	void RecalculateFilteredRepresentative(int type, LabelImagePointer refImg) const;
 	QString GetCachedFileName(int type) const;

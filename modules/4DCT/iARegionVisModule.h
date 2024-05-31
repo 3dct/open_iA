@@ -32,8 +32,8 @@ public:
 	typedef itk::Image<double, 3>		DensityMapType;
 
 				iARegionVisModule( );
-	void		show( );
-	void		hide( );
+	void		show( ) override;
+	void		hide( ) override;
 	void		setData( vtkImageData * image );
 	void		setPosition( double * position );
 	void		setSilhoetteOpacity( double opacity );

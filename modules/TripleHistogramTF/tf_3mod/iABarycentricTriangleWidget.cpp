@@ -28,7 +28,7 @@ namespace BaryTriConst
 }
 
 
-iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
+iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent, Qt::WindowFlags f) :
 	QWidget(parent, f)
 {
 	m_controlPointBorderPen.setWidth(3);

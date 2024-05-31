@@ -219,7 +219,7 @@ struct iAaabb
 	float x1,x2,y1,y2,z1,z2;
 };
 
-iAMat4 ScaleAndCentreBBox(iAaabb &box, float *scale_coef_out=0, float* translate3f_out = 0);
+iAMat4 ScaleAndCentreBBox(iAaabb &box, float *scale_coef_out = nullptr, float* translate3f_out = nullptr);
 
 class iAVertex
 {
@@ -248,9 +248,9 @@ struct iAtriangle
 	};
 	iAtriangle()
 	{
-		vertices[0] = 0;
-		vertices[1] = 0;
-		vertices[2] = 0;
+		vertices[0] = nullptr;
+		vertices[1] = nullptr;
+		vertices[2] = nullptr;
 	};
 	iAVec3f N;
 	iAVec3f *vertices[3];// 12

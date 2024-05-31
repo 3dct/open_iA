@@ -71,11 +71,6 @@ double iAFakeTreeNode::GetAttribute(int) const
 {
 	assert(false);
 }
-ClusterImageType const iAFakeTreeNode::GetLargeImage() const
-{
-	assert(false);
-	return m_img;
-}
  LabelPixelHistPtr iAFakeTreeNode::UpdateLabelDistribution() const
 {
 	assert(false);

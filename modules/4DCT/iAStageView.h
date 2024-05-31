@@ -12,7 +12,7 @@ class iAStageView : public QWidget, public Ui::StageView
 	Q_OBJECT
 
 public:
-						iAStageView( QWidget * parent = 0 );
+						iAStageView( QWidget* parent = nullptr );
 						~iAStageView( );
 	void				setData( iA4DCTStageData * data );
 	iA4DCTStageData *	getData( );

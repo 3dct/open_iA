@@ -15,8 +15,15 @@
 #include <chrono>
 #include <sstream>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
+#endif
 #include <Eigen/Core>
 #include <Eigen/Dense>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #include <KernelDensityEstimation/nanoflann.hpp>
 

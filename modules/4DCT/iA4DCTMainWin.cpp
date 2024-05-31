@@ -26,7 +26,7 @@
 #include <QStringList>
 #include <QTextStream>
 
-iA4DCTMainWin::iA4DCTMainWin( iAMainWindow* parent /*= 0*/ )
+iA4DCTMainWin::iA4DCTMainWin( iAMainWindow* parent )
 	: QMainWindow( parent )
 	, m_mainWnd( parent )
 {

@@ -406,13 +406,13 @@ struct ParameterInfo : public IParameterInfo
 			return (range[1] - range[0]) / (numSamples - 1);
 		return 0.0;
 	}
-	inline virtual void reset()
+	inline void reset() override
 	{
 		val = range[0];
 		sampleId = 0;
 		incr = getIncrement();
 	}
-	inline virtual bool increment()
+	inline bool increment() override
 	{
 		if( sampleId == (numSamples - 1) )
 			return false;
@@ -420,29 +420,29 @@ struct ParameterInfo : public IParameterInfo
 		++sampleId;
 		return true;
 	}
-	inline virtual void randomInRange()
+	inline void randomInRange() override
 	{
 		val = range[0] + QRandomGenerator::global()->bounded(range[1] - range[0]);
 	}
-	inline virtual int asInt() const
+	inline int asInt() const override
 	{
 		if( sameType<T, int>::value )
 			return val;
 		throw itk::ExceptionObject( __FILE__, __LINE__, "Error: wrong parameter type is used!" );
 	}
-	inline virtual float asFloat() const
+	inline float asFloat() const override
 	{
 		if( sameType<T, float>::value )
 			return val;
 		throw itk::ExceptionObject( __FILE__, __LINE__, "Error: wrong parameter type is used!" );
 	}
-	inline virtual double asDouble() const
+	inline double asDouble() const override
 	{
 		if( sameType<T, double>::value )
 			return val;
 		throw itk::ExceptionObject( __FILE__, __LINE__, "Error: wrong parameter type is used!" );
 	}
-	inline virtual QString asString() const
+	inline QString asString() const override
 	{
 		return QString::number( val );
 	}
