@@ -623,6 +623,7 @@ endif()
 
 if (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	add_compile_options(-pipe -fpermissive -fopenmp -march=core2 -O2 -msse4.2)
+	add_link_options(-fopenmp)
 
 	if (NOT "${openiA_AVX_SUPPORT}" STREQUAL "${openiA_AVX_SUPPORT_DISABLED}")
 		string(TOLOWER "${openiA_AVX_SUPPORT}" openiA_AVX_SUPPORT_LOWER)
