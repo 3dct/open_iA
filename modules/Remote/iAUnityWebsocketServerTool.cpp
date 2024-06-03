@@ -270,7 +270,7 @@ private:
 		assert(N == 3);
 		for (int i = 0; i < 3; ++i)
 		{
-			pos[i] *= m_maxSize / 8; // 8 -> correction factor for current 5-Segmented numbers in unity
+			pos[i] *= m_maxSize;
 		}
 	}
 	template <typename T, std::size_t N>
@@ -279,7 +279,7 @@ private:
 		assert(N == 3);
 		for (int i = 0; i < 3; ++i)
 		{
-			pos[i] *= 8 / m_maxSize; // 8 -> correction factor for current 5-Segmented numbers in unity
+			pos[i] /= m_maxSize;
 		}
 	}
 
