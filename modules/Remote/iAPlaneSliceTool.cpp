@@ -17,6 +17,7 @@
 
 // base
 #include <iAAABB.h>
+#include <iAImageData.h>
 #include <iALog.h>
 #include <iAStringHelper.h>
 
@@ -248,8 +249,11 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	m_reslicer->SetSliceAtFocalPoint(true);
 
 	auto imgProp = m_imageSlice->GetProperty();
-	auto tf = dynamic_cast<iAVolumeViewer*>(m_child->dataSetViewer(ds))->transfer();
-	imgProp->SetLookupTable(tf->colorTF());
+	auto viewer = dynamic_cast<iAVolumeViewer*>(m_child->dataSetViewer(ds));
+	auto tf = viewer->transfer();
+	auto numComp = viewer->volume()->vtkImage()->GetNumberOfScalarComponents();
+	imgProp->SetLookupTable((numComp == 1) ? tf->colorTF(): nullptr);
+
 	m_imageSlice->SetMapper(m_reslicer);
 	m_imageSlice->SetProperty(imgProp);
 	vtkNew<vtkRenderer> ren;
