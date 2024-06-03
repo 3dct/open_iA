@@ -199,10 +199,10 @@ namespace
 			costheta,
 			vec[0] * sintheta, vec[1] * sintheta, vec[2] * sintheta
 		};
-		LOG(lvlInfo, QString("Plane: normal=(%2), quat=%3")
-			.arg(arrayToString(vec2))
-			.arg(arrayToString(quat))
-		);
+		//LOG(lvlInfo, QString("Plane: normal=(%2), quat=%3")
+		//	.arg(arrayToString(vec2))
+		//	.arg(arrayToString(quat))
+		//);
 		return quat;
 	}
 
@@ -538,6 +538,15 @@ public:
 		m_clientTable->setSelectionMode(QAbstractItemView::SelectionMode::NoSelection);
 		m_clientTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 		m_clientListContainer->layout()->addWidget(m_clientTable);
+
+
+		auto bounds = child->dataSetViewer(0)->renderer()->bounds();
+		m_maxSize = std::max({
+			bounds.maxCorner().x() - bounds.minCorner().x(),
+			bounds.maxCorner().y() - bounds.minCorner().y(),
+			bounds.maxCorner().z() - bounds.minCorner().z(),
+		});
+
 		connect(m_wsServer, &QWebSocketServer::newConnection, this,
 			[this, child]
 		{
@@ -604,13 +613,7 @@ public:
 			m_clientSocket[clientID] = client;
 			m_clientState[clientID] = ClientState::AwaitingProtocolNegotiation;
 
-			auto bounds = child->dataSetViewer(0)->renderer()->bounds();
-			double maxSize = std::max({
-				bounds.maxCorner().x() - bounds.minCorner().x(),
-				bounds.maxCorner().y() - bounds.minCorner().y(),
-				bounds.maxCorner().z() - bounds.minCorner().z(),
-			});
-			m_clientCamVis[clientID] = std::make_unique<iACameraVis>(child->renderer()->renderer(), maxSize / 10);
+			m_clientCamVis[clientID] = std::make_unique<iACameraVis>(child->renderer()->renderer(), m_maxSize / 10);
 
 			connect(client, &QWebSocket::stateChanged, this, [clientID](QAbstractSocket::SocketState state)
 			{
@@ -1195,20 +1198,30 @@ private:
 	iADockWidgetWrapper* m_clientListDW;
 	quint64 m_syncedClientID;
 	iAMdiChild* m_child;
+	double m_maxSize;
+	iAVec3d m_camLastPos, m_camLastDir;
 private slots:
 	void camModified()
 	{
 		auto cam = m_child->renderer()->renderer()->GetActiveCamera();
-		std::array<double, 3> posDbl;
+		iAVec3d posDbl, dirDbl;
 		cam->GetPosition(posDbl.data());
-		std::array<float, 3> posFlt{ static_cast<float>(posDbl[0]), static_cast<float>(posDbl[1]), static_cast<float>(posDbl[2]) };
-		broadcastMsg(msgObjectCommand(ServerID, ObjectCommandType::SetTranslation, posFlt));
-		std::array<double, 3> dirDbl;
 		cam->GetDirectionOfProjection(dirDbl.data());
-		std::array<float, 3> dirFlt = { static_cast<float>(dirDbl[0]), static_cast<float>(dirDbl[1]), static_cast<float>(dirDbl[2]) };
-
-		auto quat = getRotationQuaternionFromVectors(DefaultCameraViewDirection, dirFlt);
-		broadcastMsg(msgObjectCommand(ServerID, ObjectCommandType::SetRotationQuaternion, quat));
+		const double CamChangePosEpsilon = m_maxSize * 0.001;
+		const double CamChangeRotEpsilon = 0.001;
+		if ( (posDbl - m_camLastPos).length() > CamChangePosEpsilon)
+		{
+			m_camLastPos = posDbl;
+			std::array<float, 3> posFlt{ static_cast<float>(posDbl[0]), static_cast<float>(posDbl[1]), static_cast<float>(posDbl[2]) };
+			broadcastMsg(msgObjectCommand(ServerID, ObjectCommandType::SetTranslation, posFlt));
+		}
+		if ((dirDbl.normalized() - m_camLastDir).length() > CamChangeRotEpsilon)
+		{
+			m_camLastDir = dirDbl.normalized();
+			std::array<float, 3> dirFlt = { static_cast<float>(dirDbl[0]), static_cast<float>(dirDbl[1]), static_cast<float>(dirDbl[2]) };
+			auto quat = getRotationQuaternionFromVectors(DefaultCameraViewDirection, dirFlt);
+			broadcastMsg(msgObjectCommand(ServerID, ObjectCommandType::SetRotationQuaternion, quat));
+		}
 	}
 };
 
