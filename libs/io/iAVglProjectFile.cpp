@@ -192,7 +192,7 @@ iAVglProjectFile::iAVglProjectFile(): iAFileIO(iADataSetType::Collection, iAData
 std::vector<char> iAVglProjectFile::unzip(QString filename)
 {
 	gzFile inFileZ = gzopen(filename.toLocal8Bit().data(), "rb");
-	if (inFileZ == NULL)
+	if (inFileZ == nullptr)
 	{
 		LOG(lvlError, QString("Error: Failed to gzopen %1!").arg(filename));
 		exit(0);

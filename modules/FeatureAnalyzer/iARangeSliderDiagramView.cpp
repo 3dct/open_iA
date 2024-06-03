@@ -6,6 +6,7 @@
 #include "FeatureAnalyzerHelpers.h"
 
 #include <iAHistogramData.h>
+#include <iAMathUtility.h>
 
 #include <vtkIdTypeArray.h>
 
@@ -30,7 +31,7 @@ std::shared_ptr<iAHistogramData> createRangeSliderData(QList<double> m_rangeSlid
 }
 }
 
-iARangeSliderDiagramView::iARangeSliderDiagramView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ):
+iARangeSliderDiagramView::iARangeSliderDiagramView(QWidget * parent, Qt::WindowFlags f):
 	QWidget( parent, f ),
 	m_comboBoxContainer(nullptr),
 	m_histoContainer(nullptr),

@@ -12,7 +12,7 @@
 #include <QApplication>
 #include <QStringListModel>
 
-iA4DCTListView::iA4DCTListView( QWidget* parent/*=0*/ ) :
+iA4DCTListView::iA4DCTListView( QWidget* parent ) :
 	QListView( parent )
 {
 	m_actOpen = new QAction( tr( "Open file" ), this );

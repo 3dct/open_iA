@@ -41,8 +41,8 @@ class iAPlaneVisModule : public iAVisModule
 {
 public:
 				iAPlaneVisModule( );
-	void		show( );
-	void		hide( );
+	void		show( ) override;
+	void		hide( ) override;
 	void		setSize( double * size );
 	void		setImage( iA4DCTFileData fileName );
 	void		setSlice( int slice );

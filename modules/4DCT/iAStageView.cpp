@@ -7,7 +7,7 @@
 
 #include <QPixmap>
 
-iAStageView::iAStageView( QWidget* parent /*= 0*/ )
+iAStageView::iAStageView( QWidget* parent )
 	: QWidget( parent )
 	, m_data( nullptr )
 {

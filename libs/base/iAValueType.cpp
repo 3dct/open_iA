@@ -27,7 +27,7 @@ namespace
 	const QString Vector3Str("3-component double vector");
 	const QString Vector2iStr("2-component integer vector");
 	const QString Vector3iStr("3-component integer vector");
-	const QString UnknownStr("Unknown");
+	const QString UnknownValueTypeStr("Unknown");
 }
 
 
@@ -135,7 +135,7 @@ QString ValueType2Str(iAValueType type)
 	case iAValueType::Vector3i:
 		return Vector3iStr;
 	default:
-		return UnknownStr;
+		return UnknownValueTypeStr;
 	}
 }
 

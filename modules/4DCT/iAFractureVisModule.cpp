@@ -150,7 +150,7 @@ void iAFractureVisModule::getBounds( double * bounds )
 	m_surfMapper->GetBounds( bounds );
 }
 
-void iAFractureVisModule::setData( vtkPoints* points, vtkCellArray* polys, vtkUnsignedCharArray* colors /*= 0*/ )
+void iAFractureVisModule::setData( vtkPoints* points, vtkCellArray* polys, vtkUnsignedCharArray* colors )
 {
 	auto polyData = vtkSmartPointer<vtkPolyData>::New();
 	polyData->SetPoints( points );

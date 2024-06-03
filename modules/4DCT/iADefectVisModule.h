@@ -20,8 +20,8 @@ public:
 	void	setInputFile( QString path );
 	void	setColor( double r, double g, double b );
 	void	setOpacity( double opacity );
-	void	show( );
-	void	hide( );
+	void	show( ) override;
+	void	hide( ) override;
 
 private:
 	vtkSmartPointer<vtkOBJReader>		m_reader;
