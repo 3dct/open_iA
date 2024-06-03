@@ -97,6 +97,7 @@ namespace
 		SetScaling,
 		SetRotationQuaternion,
 		SetRotationEuler,
+		SetRotationNormalUp,
 		// must be last:
 		Count
 	};
@@ -104,7 +105,7 @@ namespace
 	enum class SnapshotCommandType : quint8
 	{
 		Create,
-		CreateDouble,    // Reserved, not yet implemented
+		CreatePosNormal,
 		Remove,
 		ClearAll,
 		// must be last:
@@ -387,6 +388,12 @@ private:
 					prop->SetUserTransform(tr);
 					break;
 				}
+				case ObjectCommandType::SetRotationNormalUp:
+				{
+					// TODO: TEST / Check whether used!
+					LOG(lvlWarn, "  Setting rotation via normal and up NOT supported for object!");
+					break;
+				}
 				}
 			}
 			// 
@@ -394,8 +401,9 @@ private:
 			{
 				//	m_planeSliceTool->setMatrix(values); ???
 			}
-			else if (objID == 2) // camera
+			else //if (objID == 2) // camera
 			{
+				assert(objID == clientID);   // each client may only modify its own camera object!
 				// two options: either adapt 3D renderer directly (currently not implemented):
 				//auto cam = child->renderer()->renderer()->GetActiveCamera();
 				// or just visualize camera of other:
@@ -437,63 +445,33 @@ private:
 				case ObjectCommandType::SetRotationEuler:
 				{
 					// TODO: TEST / Check whether used!
-					LOG(lvlInfo, QString("  Setting euler rotation = (%1)").arg(arrayToString(dblVal)));
+					LOG(lvlWarn, "  Setting rotation via euler angles NOT supported for a camera!");
 					//cam->SetViewAngle(dblVal.data());
 					// Todo: compute correct vector direction
-					iAVec3d dir(dblVal.data());
-					vis->update(vis->pos(), dir);
 					break;
 				}
 				case ObjectCommandType::SetRotationQuaternion:
 				{
-					// TODO: TEST / Check whether used!
-					/*
-					const size_t QuatSize = 4;
-					std::array<double, QuatSize> q;
-					for (size_t i = 0; i < QuatSize; ++i)
-					{
-						q[i] = values[i];
-					}
-					double ayterm = 2 * (q[3] * q[1] - q[0] * q[2]);
-					std::array<double, 3> angles = {
-						vtkMath::DegreesFromRadians(
-							std::atan2(2 * (q[3] * q[0] + q[1] * q[2]), 1 - 2 * (q[0] * q[0] + q[1] * q[1]))),
-						vtkMath::DegreesFromRadians(
-							-vtkMath::Pi() / 2 + 2 * std::atan2(std::sqrt(1 + ayterm), std::sqrt(1 - ayterm))),
-						vtkMath::DegreesFromRadians(
-							std::atan2(2 * (q[3] * q[2] + q[0] * q[1]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])))};
-					for (int a = 0; a < 3; ++a)
-					{  // round to nearest X degrees:
-						const double RoundDegrees = 2;
-						angles[a] = std::round(angles[a] / RoundDegrees) * RoundDegrees;
-					}
-					LOG(lvlInfo,
-						QString("  Setting rotatation: quat = (%1), angle = (%2)")
-							.arg(arrayToString(q))
-							.arg(arrayToString(angles)));
-					auto bounds = renderer->bounds();
-					auto center = (bounds.maxCorner() - bounds.minCorner()) / 2;
-					double pos[3];
-					cam->GetPosition(pos);
-					vtkNew<vtkTransform> tr;
-					tr->PostMultiply();
-					tr->Translate(-center[0], -center[1], -center[2]);
-					// rotation: order x-z-y, reverse direction of y
-					tr->RotateX(angles[0]);
-					tr->RotateZ(-angles[1]);
-					tr->RotateY(angles[2]);
-					// translation: y, z flipped; x, y reversed:
-					tr->Translate(center[0] - pos[0], center[1] - pos[2], center[2] + pos[1]);
-					cam->SetUserTransform(tr);
-					*/
+					LOG(lvlWarn, "  Setting rotation via quaternion NOT supported for a camera!");
+					break;
+				}
+				case ObjectCommandType::SetRotationNormalUp:
+				{
+					iAVec3d dir{ dblVal[0], dblVal[1], dblVal[2] };
+					iAVec3d up { dblVal[3], dblVal[4], dblVal[5] };
+					LOG(lvlInfo, QString("  Setting rotation, normal = (%1), up = (%2) (up is currently unused)")
+						.arg(dir.toString()).arg(up.toString()));
+					vis->update(vis->pos(), dir);
 					break;
 				}
 				}
 			}
+			/*
 			else
 			{
 				LOG(lvlWarn, QString("Unknown object ID %1!").arg(objID));
 			}
+			*/
 			child->updateRenderer();
 		}
 	}
@@ -760,12 +738,13 @@ private:
 		QByteArray outData;
 		QDataStream stream(&outData, QIODevice::WriteOnly);
 		stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
-		stream << MessageType::Snapshot << SnapshotCommandType::Create << snapshotID;
+		stream << MessageType::Snapshot << SnapshotCommandType::CreatePosNormal << snapshotID;
 		std::array<float, 3> clientPos(info.position);
 		objectToUnitPos(clientPos);
 		writeArray(stream, clientPos);
-		auto quat = getRotationQuaternionFromVectors(DefaultPlaneNormal, info.normal);
-		writeArray(stream, quat);
+		//auto quat = getRotationQuaternionFromVectors(DefaultPlaneNormal, info.normal);
+		//writeArray(stream, quat);
+		writeArray(stream, info.normal);
 		return outData;
 	}
 
@@ -1103,6 +1082,18 @@ private:
 						LOG(lvlInfo, QString("  New Snapshot: position %1, rotation %2")
 							.arg(arrayToString(info.position)).arg(arrayToString(rotation)));
 						info.normal = applyRotationToVector(DefaultPlaneNormal, rotation);
+						auto snapshotID = m_planeSliceTool->addSnapshot(info);
+						addSnapshot(snapshotID, info);
+						break;
+					}
+					case SnapshotCommandType::CreatePosNormal:
+					{
+						iASnapshotInfo info{};
+						readArray(rcvStream, info.position);
+						unitToObjectPos(info.position);
+						readArray(rcvStream, info.normal);
+						LOG(lvlInfo, QString("  New Snapshot: position %1, normal %2")
+							.arg(arrayToString(info.position)).arg(arrayToString(info.normal)));
 						auto snapshotID = m_planeSliceTool->addSnapshot(info);
 						addSnapshot(snapshotID, info);
 						break;
