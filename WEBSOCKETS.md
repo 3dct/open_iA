@@ -149,10 +149,7 @@ If all clients are disconnected, the server is on its own and will always assume
 ## Objects
 
 > [!WARNING]
-> Identifying Objects accross WebSockets is not discussed yet. If we want to generate objects on the fly, we need to send models over the WebSocket. In its current form, the openIA camera, the Unity Tablet, the Slicer and the object itself should have hardcoded IDs.
-
-> [!IMPORTANT]
-> All transformation operations currently take **floats**. If **double** operations are needed, we can add them later.
+> Identifying Objects accross WebSockets is not discussed yet. If we want to generate objects on the fly, we need to send models over the WebSocket. In its current form, the open_IA camera, the Unity Tablet, the Slicer and the object itself should have hardcoded IDs.
 
 Manipulation of position, rotation and scale values of objects, are sent to the server which sends it to all other clients (not to the sending client). The sending client does not wait for a response.
 
@@ -161,29 +158,6 @@ Current List of fixed IDs:
 |-|-|
 |0|Object|
 |1|Slicing Plane|
-
-<!---
-
-### Register Object
-
-> [!CAUTION]
-> Registering Objects is not complete! Refer to the Warning above for more information!
-
-To interact with an object accross devices, it has to be registered on the server.
-The client sends a packet with a name.
-
-|0x5|0x0|Name Length (32-Bit)|Name (x-Bits)|
-|-|-|-|-|
-
-The server responds with an ID. The ID generating algorithm is not specified, but must generate unique IDs for all currently existing objects.
-
-|0x5|0x0|Object ID (64-Bit)|
-|-|-|-|
-
-> [!NOTE]
-> 0x5 0x1 is currently reserved for deregistering objects.
-
---->
 
 ### Set Matrix of Object
 
@@ -239,6 +213,14 @@ Change the rotation axis by setting one of the following values:
 |0x5|0x6|Object ID (64-Bit)|Axis (8-Bit)|Value (32-Bit)|
 |-|-|-|-|-|
 
+### Set Rotation (Normal and Up)
+
+All values are **32-Bit float**.  
+Rotation can also be set by setting the normal and the up vector.
+
+|0x5|0x7|Object ID (64-Bit)|Normal Vector XYZ (96-Bit)|Up Vector XYZ (96-Bit)|
+|-|-|-|-|-|
+
 ## Snapshots
 
 ### Create Snapshot
@@ -260,14 +242,24 @@ Server &rarr; Client
 |0x6|0x0|Snapshot ID (64-Bit)|Position XYZ (96-Bit)|Rotation Quaternion XYZW (128-Bit)|
 |-|-|-|-|-|
 
-> [!NOTE]
-> |0x6|0x1|...|
-> |-|-|-|
->
-> is reserved for taking snapshots with **double** coordinates.
-
 > [!WARNING]
 > There is currently no version planned for **euler angles** as the order of operations needs to be defined beforehand. This might be a feature for a later protocol.
+
+### Create Snapshot (Position and Normal)
+
+The same procedure as above, but with different values.
+
+All data is sent as **32-Bit floats**.
+
+Client &rarr; Server
+
+|0x6|0x1|Position XYZ (96-Bit)|Normal XYZ (96-Bit)|
+|-|-|-|-|
+
+Server &rarr; Client
+
+|0x6|0x1|Snapshot ID (64-Bit)|Position XYZ (96-Bit)|Normal XYZ (96-Bit)|
+|-|-|-|-|-|
 
 ### Remove Snapshot
 
@@ -309,7 +301,10 @@ The server broadcasts the command to all clients in all cases.
 |0x5|0x4|Object ID (64-Bit), X (32-Bit), Y (32-Bit), Z (32-Bit)|Object Scale|
 |0x5|0x5|Object ID (64-Bit), X (32-Bit), Y (32-Bit), Z (32-Bit), W (32-Bit)|Object Rotation (Quaternion)|
 |0x5|0x6|Object ID (64-Bit), Axis (8-Bit), Value (32-Bit)|Object Rotation (Euler)|
+|0x5|0x7|Object ID (64-Bit), Normal Vector XYZ (96-Bit), Up Vector XYZ (96-Bit)|Object Rotation (Normal and Up Vector)|
 |0x6|0x0|Position XYZ (96-Bit), Rotation Quaternion XYZW (128-Bit)|Snapshot Creation (Client)|
 |0x6|0x0|Snapshot ID (64-Bit), Position XYZ (96-Bit), Rotation Quaternion XYZW (128-Bit)|Snapshot Creation (Server)|
+|0x6|0x1|Position XYZ (96-Bit), Normal XYZ (96-Bit)|Snapshot Creation (Client)|
+|0x6|0x1|Snapshot ID (64-Bit), Position XYZ (96-Bit), Normal XYZ (96-Bit)|Snapshot Creation (Server)|
 |0x6|0x2|Snapshot ID (64-Bit)|Snapshot Removal|
 |0x6|0x3||Clear Snapshots|
