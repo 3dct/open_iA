@@ -19,6 +19,23 @@ Example:
 |0x12|0x34|0x56|0x78|
 |---|---|---|---|
 
+## Coordinates
+
+All position data sent has to be scaled to the size of the currently loaded model.
+
+The longest side of a loaded model always has length **1**. All other sides are scaled accordingly.
+
+The root of the model is (0, 0, 0) which is located at the bottom, right, back corner. The coordinate system follows the open_IA spec:
+
+* Up is Z+
+* Down is Z-
+* Left is X+
+* Right is X-
+* Forward (away from the camera) is Y-
+* Backward (towards the camera) is Y+
+
+Any coordinates sent in a session are based off of this coordinate system.
+
 ## Common Messages
 
 Acknowledgement (ACK)
