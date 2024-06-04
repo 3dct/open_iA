@@ -71,19 +71,41 @@ A protocol advertisement message looks as follows:
 |0x2|Protocol Version (64-Bit)|
 |-|-|
 
-## Client Login
+## Clients
+
+### Login
 
 When a Client connects, the Server must assign them an ID. The ID generation algorithm is up to the Server, altought it has to be unique for all currently connected clients and objects.
 
-For easier collaboration, clients should periodically send their viewing position and rotation (tickrate unspecified). They are therefore handled like objects and are assigned IDs like objects.
+The server sends the ID to the client with a login response packet.
 
 Server &rarr; Client
 
-|0x3|Client ID (64-bit)|
-|-|-|
+|0x3|0x0|Client ID (64-bit)|
+|-|-|-|
+
+Clients periodically send their viewing position and rotation (tickrate unspecified).
 
 New clients need to be synchronized, in case objects have already been manipulated or snapshots were created.
 In this case, the server sends commands that replicate its current state, called a [Sync Command Chain](#sync-command-chain).
+
+In case a new client connects, all other clients are informed and sent the new clients ID.
+
+Server &rarr; Client
+
+|0x3|0x1|Client ID (64-Bit)|
+|-|-|-|
+
+### Logout
+
+A client can logout of the system by simply disconnecting.
+
+The server however has to notify all other clients of the disconnect and broadcasts the ID.
+
+Server &rarr; Client
+
+|0x3|0x2|Client ID (64-Bit)|
+|-|-|-|
 
 ## Sync Command Chain
 
@@ -91,7 +113,7 @@ This is a special list of commands, only used to resynchronize clients with the 
 
 The matrix of every object is sent, followed by the add snapshot commands to replicate them as well.
 
-## Commands
+## Datasets
 
 ### Reset
 
@@ -307,7 +329,9 @@ The server broadcasts the command to all clients in all cases.
 |0x0|||ACK|
 |0x1|||NAK|
 |0x2||Protocol Version (64-Bit)|Protocol Negotiation|
-|0x3||Client ID (64-bit)|Client Login Response|
+|0x3|0x0|Client ID (64-bit)|Client Login Response|
+|0x3|0x1|Client ID (64-Bit)|New Client Broadcast|
+|0x3|0x2|Client ID (64-Bit)|Client Logout Broadcast|
 |0x4|0x0||Reset|
 |0x4|0x1|Name Length (32-Bit), Name (x-Bits)|Load Dataset|
 |0x5|0x0||Reserved|
