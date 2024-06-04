@@ -67,7 +67,7 @@ public:
 	//! @param childSrc source for the child to put the file into; see iAChildSource
 	//! @param io the file io to be used when loading the file. If left at default value nullptr,
 	//!     the iAFileTypeRegistry will be consulted to create an io fitting for the given filename
-	virtual void loadFile(QString const& fileName, std::shared_ptr<iAChildSource> childSrc, std::shared_ptr<iAFileIO> io = nullptr) = 0;
+	virtual void loadFile(QString const& fileName, std::shared_ptr<iAChildSource> childSrc = nullptr, std::shared_ptr<iAFileIO> io = nullptr) = 0;
 
 
 	// Access to menus:
