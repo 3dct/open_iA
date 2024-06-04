@@ -230,7 +230,7 @@ int readSTLFile(QString const & filename, std::vector<iAtriangle*> & stlMesh, st
 
 	// HERE FOR THE BINARY VERSION
 	iATri item;
-	FILE *fptr = fopen(getLocalEncodingFileName(filename).c_str(),"rb");
+	FILE *fptr = fopen(filename.toStdString().c_str(), "rb");
 	if(!fptr)	return 1;
 	unsigned char header[80];
 	if (fread(&header, sizeof(char), 80, fptr) != 80)

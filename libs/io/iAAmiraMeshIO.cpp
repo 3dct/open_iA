@@ -4,7 +4,6 @@
 
 // base
 #include <iALog.h>
-#include <iAFileUtils.h>
 
 #include <vtkImageData.h>
 
@@ -82,7 +81,7 @@ namespace
 
 vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 {
-	FILE* fp = fopen( getLocalEncodingFileName(fileName).c_str(), "rb");
+	FILE* fp = fopen( fileName.toStdString().c_str(), "rb");
 	if (!fp)
 	{
 		throw std::runtime_error(QString("Could not open file '%1'.").arg(fileName).toStdString());

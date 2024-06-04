@@ -20,8 +20,6 @@
 
 #include <iAQVTKWidget.h>
 
-#include <iAFileUtils.h>
-
 #include <itkMacro.h>    // for itk::ExceptionObject
 
 #include <vtkActor.h>
@@ -571,7 +569,7 @@ void iADreamCaster::RenderViewsSlot()
 	float deltaY = 2*M_PI/ renderCntY;
 	float deltaZ = (maxValZ-minValZ)/ renderCntZ;
 	//open file for writing in binary mode and write header
-	FILE *fptr = fopen( getLocalEncodingFileName(setFileName).c_str(),"wb");
+	FILE *fptr = fopen( setFileName.toStdString().c_str(), "wb");
 	if(!fptr)
 	{
 		log(QString("Error! Cannot open set file '%1' for writing.").arg(setFileName));
@@ -1121,7 +1119,7 @@ void iADreamCaster::SaveSlot()
 
 void iADreamCaster::readRenderFromBinaryFile(unsigned int x, unsigned int y, unsigned int z, iARenderFromPosition *rend)
 {
-	FILE *fptr = fopen( getLocalEncodingFileName(setFileName).c_str() ,"rb");
+	FILE *fptr = fopen(setFileName.toStdString().c_str(), "rb");
 	if(!fptr)
 	{
 		log(QString("Error! Cannot open set file '%1' for reading.").arg(setFileName));
@@ -1531,7 +1529,7 @@ void iADreamCaster::pbGrab3DSlot()
 
 void iADreamCaster::UpdatePlotSlot()
 {
-	FILE *fptr = fopen( getLocalEncodingFileName(setFileName).c_str(),"rb");
+	FILE *fptr = fopen( setFileName.toStdString().c_str(), "rb");
 	if(!fptr)
 	{
 		log(QString("Error! Cannot open set file '%1' for reading.").arg(setFileName));
