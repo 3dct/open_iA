@@ -59,18 +59,6 @@ void findFiles(QString const & directory, QStringList const & nameFilters, bool 
 	filesOut.sort();
 }
 
-std::string getLocalEncodingFileName(QString const & fileName)
-{
-	QByteArray fileNameEncoded = fileName.toLocal8Bit();
-	if (fileNameEncoded.contains('?'))
-	{
-		LOG(lvlWarn, QString("File name '%1' not convertible to a system encoding string. "
-			"Please specify a filename without special characters!").arg(fileName));
-		return std::string();
-	}
-	return std::string(fileNameEncoded.constData());
-}
-
 QString pathFileBaseName(QFileInfo const& fi)
 {
 	return fi.absolutePath() + "/" + fi.completeBaseName();

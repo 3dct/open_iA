@@ -36,10 +36,6 @@ enum FilesFolders
 iAbase_API void findFiles(QString const& directory, QStringList const& filters, bool recurse,
 	QStringList & filesOut, QFlags<FilesFolders> filesFolders);
 
-//! convert a given (utf-8 encoded) fileName in QString type to the (closest possible)
-//! string representation in local encoding used for file names)
-iAbase_API std::string getLocalEncodingFileName(QString const& fileName);
-
 //! returns the full path of the given file along with the file's basename
 //! (i.e., the file name including path, but excluding extension).
 //! e.g. if the given QFileInfo points to C:/test/data.mhd, the function would return C:/test/data
