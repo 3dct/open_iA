@@ -79,9 +79,12 @@ ImagePointer readFile(QString const& fileName, PixelType& pixelType, ScalarType&
 	scalarType = imageIO->GetComponentType();
 	pixelType  = imageIO->GetPixelType();
 	ImagePointer image;
+#ifdef _MSC_VER
 	try
 	{
+#endif
 		ITK_EXTENDED_TYPED_CALL(read_image_template, scalarType, pixelType, fileName, image, releaseFlag, progress);
+#ifdef _MSC_VER
 	}
 	catch (std::exception& e)
 	{
@@ -90,8 +93,6 @@ ImagePointer readFile(QString const& fileName, PixelType& pixelType, ScalarType&
 			throw e;
 		}
 		// potentially, the file encoding is the problem (used to be ansi, now utf-8)
-		
-		// first, check if .mhd file with -utf8 suffix exists:
 		QFileInfo fi(fileName);
 		QString testUtf8Filename = fi.canonicalPath() + "/" + fi.completeBaseName() + "-utf8.mhd";
 		if (QFile::exists(testUtf8Filename))
@@ -100,7 +101,7 @@ ImagePointer readFile(QString const& fileName, PixelType& pixelType, ScalarType&
 				.arg(fileName).arg(testUtf8Filename));
 		}
 		else
-		{   // if it doesn't, create by re-encoding the file from Ansi (Latin1?):
+		{   // if -utf8 file doesn't exist yet, create by re-encoding the file from Ansi (Latin1?):
 			QFile inFile(fileName);
 			if (!inFile.open(QFile::ReadOnly | QFile::Text))
 			{
@@ -125,6 +126,7 @@ ImagePointer readFile(QString const& fileName, PixelType& pixelType, ScalarType&
 		}
 		ITK_EXTENDED_TYPED_CALL(read_image_template, scalarType, pixelType, testUtf8Filename, image, releaseFlag, progress);
 	}
+#endif
 
 	return image;
 }
