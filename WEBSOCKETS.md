@@ -83,13 +83,13 @@ Server &rarr; Client
 |-|-|
 
 New clients need to be synchronized, in case objects have already been manipulated or snapshots were created.
-In this case, the server sends commands that replicate its current state, in this document called a sync command chain.
+In this case, the server sends commands that replicate its current state, called a [Sync Command Chain](#sync-command-chain).
 
 ## Sync Command Chain
 
 This is a special list of commands, only used to resynchronize clients with the current server state.
 
-The matrix of all objects is sent, followed by the add snapshot commands to replicate them as well.
+The matrix of every object is sent, followed by the add snapshot commands to replicate them as well.
 
 ## Commands
 
@@ -154,8 +154,8 @@ While dataset load is happening, clients might connect or disconnect:
 
 #### Client connects
 
-If a dataset is loaded or currently loading and a client tries to connect, immediately send a load dataset to the client, even if the loading is not done yet.
-If ACK comes back, the client is synchronized.
+If a dataset is loaded or currently loading and a client tries to connect, immediately send a load dataset to the client, even if the loading is not done yet.  
+If ACK comes back, the client is synchronized.  
 IF NAK comes back, disconnect the client, as it can not synchronize and would desync the network.
 
 #### Client disconnects
