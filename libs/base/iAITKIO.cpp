@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAITKIO.h"
 
+#include "iALog.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 #include "iAExtendedTypedCallHelper.h"
@@ -18,6 +19,7 @@
 #pragma clang diagnostic pop
 #endif
 
+#include <QFileInfo>
 #include <QString>
 
 namespace iAITKIO
@@ -77,7 +79,52 @@ ImagePointer readFile(QString const& fileName, PixelType& pixelType, ScalarType&
 	scalarType = imageIO->GetComponentType();
 	pixelType  = imageIO->GetPixelType();
 	ImagePointer image;
-	ITK_EXTENDED_TYPED_CALL(read_image_template, scalarType, pixelType, fileName, image, releaseFlag, progress);
+	try
+	{
+		ITK_EXTENDED_TYPED_CALL(read_image_template, scalarType, pixelType, fileName, image, releaseFlag, progress);
+	}
+	catch (std::exception& e)
+	{
+		if (!fileName.endsWith(".mhd"))
+		{
+			throw e;
+		}
+		// potentially, the file encoding is the problem (used to be ansi, now utf-8)
+		
+		// first, check if .mhd file with -utf8 suffix exists:
+		QFileInfo fi(fileName);
+		QString testUtf8Filename = fi.canonicalPath() + "/" + fi.completeBaseName() + "-utf8.mhd";
+		if (QFile::exists(testUtf8Filename))
+		{
+			LOG(lvlWarn, QString("File %1 was not readable; assuming it had the wrong encoding - a replacement utf-8 encoded .mhd file exists, trying to load that: %2")
+				.arg(fileName).arg(testUtf8Filename));
+		}
+		else
+		{   // if it doesn't, create by re-encoding the file from Ansi (Latin1?):
+			QFile inFile(fileName);
+			if (!inFile.open(QFile::ReadOnly | QFile::Text))
+			{
+				LOG(lvlWarn, QString("In an effort to check whether .mhd encoding was the problem - failed to open '%1' for reading!").arg(fileName));
+				throw e;
+			}
+			QTextStream inStream(&inFile);
+			inStream.setEncoding(QStringConverter::Latin1);
+			QString text = inStream.readAll();
+
+			QFile outFile(testUtf8Filename);
+			if (!outFile.open(QFile::WriteOnly | QFile::Text))
+			{
+				LOG(lvlWarn, QString("In an effort to check whether .mhd encoding was the problem - failed to open '%1' for writing!").arg(testUtf8Filename));
+				throw e;
+			}
+			QTextStream outStream(&outFile);
+			outStream << text;
+			outFile.close();
+			LOG(lvlWarn, QString("File %1 was not readable; assuming it had the wrong encoding - creating a replacement utf-8 encoded .mhd file and trying to load that: %2")
+				.arg(fileName).arg(testUtf8Filename));
+		}
+		ITK_EXTENDED_TYPED_CALL(read_image_template, scalarType, pixelType, testUtf8Filename, image, releaseFlag, progress);
+	}
 
 	return image;
 }
