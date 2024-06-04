@@ -207,7 +207,7 @@ iAbase_API FuncType gaussianSmoothing(FuncType const& data, double kernelSigma, 
 //! Calculate first derivative of a given function.
 iAbase_API FuncType derivative(FuncType const& func);
 
-//! Compute the mean of a function.
+//! Compute the mean of a collection of values.
 iAbase_API double mean(FuncType const& func);
 
 //! Compute the variation of a function. If known, mean can be given (to improve speed).
@@ -219,6 +219,9 @@ iAbase_API double standardDeviation(FuncType const & func, double meanVal = std:
 //! Compute covariance between two functions.
 iAbase_API double covariance(FuncType const & func1, FuncType const & func2,
 	double mean1 = std::numeric_limits<double>::infinity(), double mean2 = std::numeric_limits<double>::infinity(), bool correctDF = true);
+
+//! Compute the median of a collection of values
+iAbase_API double median(FuncType vec);
 
 //! Compute ranks for a given list of values.
 iAbase_API FuncType getNormedRanks(FuncType const& func);

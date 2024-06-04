@@ -870,6 +870,3 @@ Specific / Custom Widgets
 	{
 		font-weight: bold;
 	}
-
-/** Hack to avoid loading some implicit stuff from Qt? Without this "error" in qss syntax (open bracket), dockwidgets in background would be bright
-{

@@ -4,7 +4,7 @@
 
 #include "iAVisModule.h"
 
-iAVisModuleItem::iAVisModuleItem( iAVisModule * module, QString name, int id /*= 0*/ )
+iAVisModuleItem::iAVisModuleItem( iAVisModule * module, QString name, int id )
 {
 	this->module = module;
 	this->name = name;

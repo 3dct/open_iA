@@ -15,13 +15,13 @@ class iA4DCTListView : public QListView
 	Q_OBJECT
 
 public:
-				iA4DCTListView( QWidget* parent = 0 );
+				iA4DCTListView( QWidget* parent = nullptr );
 				~iA4DCTListView( );
 	void		setStageView( iAStageView* stageView );
 	void		updateData( );
 
 protected:
-	void		contextMenuEvent( QContextMenuEvent* event );
+	void		contextMenuEvent( QContextMenuEvent* event ) override;
 
 private slots:
 	void		openFile( );

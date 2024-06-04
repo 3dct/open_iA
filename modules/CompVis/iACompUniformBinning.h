@@ -13,12 +13,12 @@ public:
 	iACompUniformBinning(iACsvDataStorage* dataStorage, bin::BinType* datasets);
 
 	//calculate a uniform binning for the data points (there is always the same amount of bins for each dataset)
-	virtual void calculateBins();
+	void calculateBins() override;
 
 	//calculates the bin datastructure for (a) specifically selected bin(s)
-	virtual bin::BinType* calculateBins(bin::BinType* data, int currData);
+	bin::BinType* calculateBins(bin::BinType* data, int currData) override;
 
-	virtual void setDataStructure(iACompHistogramTableData* datastore);
+	void setDataStructure(iACompHistogramTableData* datastore) override;
 	//set how many bins should be computed for each dataset - has to be set before calling calculateBins()!
 	void setCurrentNumberOfBins(int currentNumberOfBins);
 

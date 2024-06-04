@@ -19,6 +19,7 @@
 
 #include <vtkCamera.h>
 #include <vtkCommand.h>
+#include <vtkImageData.h>
 #include <vtkMath.h>
 #include <vtkProp3D.h>
 #include <vtkQuaternion.h>
@@ -38,6 +39,7 @@
 #include <QWebSocketServer>
 
 #include <cmath>
+#include <limits>
 
 namespace
 {
@@ -95,6 +97,7 @@ namespace
 		SetScaling,
 		SetRotationQuaternion,
 		SetRotationEuler,
+		SetRotationNormalUp,
 		// must be last:
 		Count
 	};
@@ -102,7 +105,7 @@ namespace
 	enum class SnapshotCommandType : quint8
 	{
 		Create,
-		CreateDouble,
+		CreatePosNormal,
 		Remove,
 		ClearAll,
 		// must be last:
@@ -198,10 +201,10 @@ namespace
 			costheta,
 			vec[0] * sintheta, vec[1] * sintheta, vec[2] * sintheta
 		};
-		LOG(lvlInfo, QString("Plane: normal=(%2), quat=%3")
-			.arg(arrayToString(vec2))
-			.arg(arrayToString(quat))
-		);
+		//LOG(lvlInfo, QString("Plane: normal=(%2), quat=%3")
+		//	.arg(arrayToString(vec2))
+		//	.arg(arrayToString(quat))
+		//);
 		return quat;
 	}
 
@@ -239,6 +242,7 @@ namespace
 	}
 
 	std::array<float, 3> DefaultPlaneNormal = { 0, 0, 1 };
+	std::array<float, 3> DefaultCameraViewDirection = { 0, 0, -1 };
 
 	QString toHexStr(QByteArray const & ba)
 	{
@@ -252,11 +256,33 @@ namespace
 		return result;
 		//
 	}
+
+	const quint64 NoSyncedClient = std::numeric_limits<quint64>::max();
+	const quint64 ServerID = 1000; // ID of the server (for syncing its view/camera to clients)
 }
 
 class iAUnityWebsocketServerToolImpl : public QObject
 {
 private:
+	template <typename T, std::size_t N>
+	void unitToObjectPos(std::array<T, N>& pos) const
+	{
+		assert(N == 3);
+		for (int i = 0; i < 3; ++i)
+		{
+			pos[i] *= m_maxSize;
+		}
+	}
+	template <typename T, std::size_t N>
+	void objectToUnitPos(std::array<T, N>& pos) const
+	{
+		assert(N == 3);
+		for (int i = 0; i < 3; ++i)
+		{
+			pos[i] /= m_maxSize;
+		}
+	}
+
 	template <std::size_t N>
 	QByteArray msgObjectCommand(quint64 objID, ObjectCommandType objCmdType, std::array<float, N> const& values)
 	{
@@ -281,7 +307,7 @@ private:
 			// hard-coded object IDs for now:
 			if (objID == 0)  // 0 -> Object (dataset)
 			{
-				auto renderer = child->dataSetViewer(child->firstImageDataSetIdx())->renderer();
+				auto renderer = child->dataSetViewer(m_dataSetID)->renderer();
 				auto prop = renderer->vtkProp();
 				std::array<double, N> dblVal;
 				std::copy(values.begin(), values.end(), dblVal.begin());
@@ -309,6 +335,7 @@ private:
 				{
 					// TODO: TEST / Check whether used!
 					assert(N == 3);
+					unitToObjectPos(dblVal);
 					LOG(lvlInfo, QString("  Setting pos = (%1)").arg(arrayToString(dblVal)));
 					prop->SetPosition(dblVal.data());
 					break;
@@ -361,6 +388,12 @@ private:
 					prop->SetUserTransform(tr);
 					break;
 				}
+				case ObjectCommandType::SetRotationNormalUp:
+				{
+					// TODO: TEST / Check whether used!
+					LOG(lvlWarn, "  Setting rotation via normal and up NOT supported for object!");
+					break;
+				}
 				}
 			}
 			// 
@@ -368,8 +401,9 @@ private:
 			{
 				//	m_planeSliceTool->setMatrix(values); ???
 			}
-			else if (objID == 2) // camera
+			else //if (objID == 2) // camera
 			{
+				assert(objID == clientID);   // each client may only modify its own camera object!
 				// two options: either adapt 3D renderer directly (currently not implemented):
 				//auto cam = child->renderer()->renderer()->GetActiveCamera();
 				// or just visualize camera of other:
@@ -401,6 +435,7 @@ private:
 				{
 					// TODO: TEST / Check whether used!
 					assert(N == 3);
+					unitToObjectPos(dblVal);
 					LOG(lvlInfo, QString("  Setting pos = (%1)").arg(arrayToString(dblVal)));
 					//cam->SetPosition(dblVal.data());
 					iAVec3d pos(dblVal.data());
@@ -410,63 +445,33 @@ private:
 				case ObjectCommandType::SetRotationEuler:
 				{
 					// TODO: TEST / Check whether used!
-					LOG(lvlInfo, QString("  Setting euler rotation = (%1)").arg(arrayToString(dblVal)));
+					LOG(lvlWarn, "  Setting rotation via euler angles NOT supported for a camera!");
 					//cam->SetViewAngle(dblVal.data());
 					// Todo: compute correct vector direction
-					iAVec3d dir(dblVal.data());
-					vis->update(vis->pos(), dir);
 					break;
 				}
 				case ObjectCommandType::SetRotationQuaternion:
 				{
-					// TODO: TEST / Check whether used!
-					/*
-					const size_t QuatSize = 4;
-					std::array<double, QuatSize> q;
-					for (size_t i = 0; i < QuatSize; ++i)
-					{
-						q[i] = values[i];
-					}
-					double ayterm = 2 * (q[3] * q[1] - q[0] * q[2]);
-					std::array<double, 3> angles = {
-						vtkMath::DegreesFromRadians(
-							std::atan2(2 * (q[3] * q[0] + q[1] * q[2]), 1 - 2 * (q[0] * q[0] + q[1] * q[1]))),
-						vtkMath::DegreesFromRadians(
-							-vtkMath::Pi() / 2 + 2 * std::atan2(std::sqrt(1 + ayterm), std::sqrt(1 - ayterm))),
-						vtkMath::DegreesFromRadians(
-							std::atan2(2 * (q[3] * q[2] + q[0] * q[1]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])))};
-					for (int a = 0; a < 3; ++a)
-					{  // round to nearest X degrees:
-						const double RoundDegrees = 2;
-						angles[a] = std::round(angles[a] / RoundDegrees) * RoundDegrees;
-					}
-					LOG(lvlInfo,
-						QString("  Setting rotatation: quat = (%1), angle = (%2)")
-							.arg(arrayToString(q))
-							.arg(arrayToString(angles)));
-					auto bounds = renderer->bounds();
-					auto center = (bounds.maxCorner() - bounds.minCorner()) / 2;
-					double pos[3];
-					cam->GetPosition(pos);
-					vtkNew<vtkTransform> tr;
-					tr->PostMultiply();
-					tr->Translate(-center[0], -center[1], -center[2]);
-					// rotation: order x-z-y, reverse direction of y
-					tr->RotateX(angles[0]);
-					tr->RotateZ(-angles[1]);
-					tr->RotateY(angles[2]);
-					// translation: y, z flipped; x, y reversed:
-					tr->Translate(center[0] - pos[0], center[1] - pos[2], center[2] + pos[1]);
-					cam->SetUserTransform(tr);
-					*/
+					LOG(lvlWarn, "  Setting rotation via quaternion NOT supported for a camera!");
+					break;
+				}
+				case ObjectCommandType::SetRotationNormalUp:
+				{
+					iAVec3d dir{ dblVal[0], dblVal[1], dblVal[2] };
+					iAVec3d up { dblVal[3], dblVal[4], dblVal[5] };
+					LOG(lvlInfo, QString("  Setting rotation, normal = (%1), up = (%2) (up is currently unused)")
+						.arg(dir.toString()).arg(up.toString()));
+					vis->update(vis->pos(), dir);
 					break;
 				}
 				}
 			}
+			/*
 			else
 			{
 				LOG(lvlWarn, QString("Unknown object ID %1!").arg(objID));
 			}
+			*/
 			child->updateRenderer();
 		}
 	}
@@ -481,12 +486,13 @@ private:
 public:
 	iAUnityWebsocketServerToolImpl(iAMainWindow* mainWnd, iAMdiChild* child) :
 		m_wsServer(new QWebSocketServer(iAUnityWebsocketServerTool::Name, QWebSocketServer::NonSecureMode, this)),
-		m_nextClientID(1),
+		m_nextClientID(ServerID + 1),
 		m_dataState(DataState::NoDataset),
 		m_clientListContainer(new QWidget(child)),
 		m_clientTable(new QTableWidget(m_clientListContainer)),
 		m_clientListDW(new iADockWidgetWrapper(m_clientListContainer, "Client List", "ClientList")),
-		m_syncedClientID(-1)
+		m_syncedClientID(NoSyncedClient),
+		m_child(child)
 	{
 		m_wsServer->moveToThread(&m_serverThread);
 		m_serverThread.start();
@@ -504,6 +510,8 @@ public:
 		// attach to main renderer's camera, send message whenever it changes:
 		auto cam = child->renderer()->renderer()->GetActiveCamera();
 		cam->AddObserver(vtkCommand::ModifiedEvent, this, &Self::camModified);
+		// potential improvement: send updates every x milliseconds only on modified, and send one final update on release?
+		//child->renderer()->renderer()->AddObserver(vtkCommand::LeftButtonReleaseEvent, this, &Self::camModified);
 
 		if (!m_wsServer->listen(QHostAddress::Any, 50505))
 		{
@@ -532,6 +540,16 @@ public:
 		m_clientTable->setSelectionMode(QAbstractItemView::SelectionMode::NoSelection);
 		m_clientTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 		m_clientListContainer->layout()->addWidget(m_clientTable);
+
+		m_dataSetID = 0;
+		auto bounds = child->dataSetViewer(m_dataSetID)->renderer()->bounds();
+		m_maxSize = std::max({
+			bounds.maxCorner().x() - bounds.minCorner().x(),
+			bounds.maxCorner().y() - bounds.minCorner().y(),
+			bounds.maxCorner().z() - bounds.minCorner().z(),
+		});
+		dynamic_cast<iAImageData*>(child->dataSet(m_dataSetID).get())->vtkImage()->GetSpacing(m_spacing.data());
+
 		connect(m_wsServer, &QWebSocketServer::newConnection, this,
 			[this, child]
 		{
@@ -562,7 +580,7 @@ public:
 			QObject::connect(syncAction, &QAction::toggled, m_clientTable, [this, clientID, syncAction]()
 			{
 				bool checked = syncAction->isChecked();
-				m_syncedClientID = (checked) ? clientID : - 1;
+				m_syncedClientID = (checked) ? clientID : NoSyncedClient;
 				for (auto const & s : m_syncActions)
 				{
 					// disable other actions:
@@ -598,13 +616,7 @@ public:
 			m_clientSocket[clientID] = client;
 			m_clientState[clientID] = ClientState::AwaitingProtocolNegotiation;
 
-			auto bounds = child->dataSetViewer(0)->renderer()->bounds();
-			double maxSize = std::max({
-				bounds.maxCorner().x() - bounds.minCorner().x(),
-				bounds.maxCorner().y() - bounds.minCorner().y(),
-				bounds.maxCorner().z() - bounds.minCorner().z(),
-			});
-			m_clientCamVis[clientID] = std::make_unique<iACameraVis>(child->renderer()->renderer(), maxSize / 10);
+			m_clientCamVis[clientID] = std::make_unique<iACameraVis>(child->renderer()->renderer(), m_maxSize / 10);
 
 			connect(client, &QWebSocket::stateChanged, this, [clientID](QAbstractSocket::SocketState state)
 			{
@@ -726,10 +738,13 @@ private:
 		QByteArray outData;
 		QDataStream stream(&outData, QIODevice::WriteOnly);
 		stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
-		stream << MessageType::Snapshot << SnapshotCommandType::Create << snapshotID;
-		writeArray(stream, info.position);
-		auto quat = getRotationQuaternionFromVectors(DefaultPlaneNormal, info.normal);
-		writeArray(stream, quat);
+		stream << MessageType::Snapshot << SnapshotCommandType::CreatePosNormal << snapshotID;
+		std::array<float, 3> clientPos(info.position);
+		objectToUnitPos(clientPos);
+		writeArray(stream, clientPos);
+		//auto quat = getRotationQuaternionFromVectors(DefaultPlaneNormal, info.normal);
+		//writeArray(stream, quat);
+		writeArray(stream, info.normal);
 		return outData;
 	}
 
@@ -777,7 +792,7 @@ private:
 
 	bool dataSetExists(QString const& fileName, iAMdiChild* child)
 	{
-		auto childFileName = child->dataSet(child->firstImageDataSetIdx())->metaData(iADataSet::FileNameKey).toString();
+		auto childFileName = child->dataSet(m_dataSetID)->metaData(iADataSet::FileNameKey).toString();
 		return fileName == childFileName || fileName == QFileInfo(childFileName).fileName();
 	}
 
@@ -816,6 +831,7 @@ private:
 			auto prop = child->dataSetViewer(child->firstImageDataSetIdx())->renderer()->vtkProp();
 			std::array<double, 16> matrixDouble;
 			prop->GetMatrix(matrixDouble.data());
+			// TODO: scale to unit positions?
 			std::copy(matrixDouble.begin(), matrixDouble.end(), matrix.begin());
 		}
 		else
@@ -1060,11 +1076,24 @@ private:
 					{
 						iASnapshotInfo info{};
 						readArray(rcvStream, info.position);
+						unitToObjectPos(info.position);
 						std::array<float, 4> rotation;
 						readArray(rcvStream, rotation);
 						LOG(lvlInfo, QString("  New Snapshot: position %1, rotation %2")
 							.arg(arrayToString(info.position)).arg(arrayToString(rotation)));
 						info.normal = applyRotationToVector(DefaultPlaneNormal, rotation);
+						auto snapshotID = m_planeSliceTool->addSnapshot(info);
+						addSnapshot(snapshotID, info);
+						break;
+					}
+					case SnapshotCommandType::CreatePosNormal:
+					{
+						iASnapshotInfo info{};
+						readArray(rcvStream, info.position);
+						unitToObjectPos(info.position);
+						readArray(rcvStream, info.normal);
+						LOG(lvlInfo, QString("  New Snapshot: position %1, normal %2")
+							.arg(arrayToString(info.position)).arg(arrayToString(info.normal)));
 						auto snapshotID = m_planeSliceTool->addSnapshot(info);
 						addSnapshot(snapshotID, info);
 						break;
@@ -1187,11 +1216,38 @@ private:
 	QWidget* m_clientListContainer;
 	QTableWidget* m_clientTable;
 	iADockWidgetWrapper* m_clientListDW;
-	int m_syncedClientID;
+	quint64 m_syncedClientID;
+	iAMdiChild* m_child;
+	double m_maxSize;
+	size_t m_dataSetID;
+	std::array<double, 3> m_spacing;
+	//std::array<double, 3> m_size;
+	iAVec3d m_camLastPos, m_camLastDir;
 private slots:
 	void camModified()
 	{
-		// TODO: broadcast to all clients; but what exact message? some kind of transform matrix? pos and dir don't exist as message currently
+		auto cam = m_child->renderer()->renderer()->GetActiveCamera();
+		iAVec3d posDbl, dirDbl;
+		cam->GetPosition(posDbl.data());
+		cam->GetDirectionOfProjection(dirDbl.data());
+		const double CamChangePosEpsilon = m_maxSize * 0.01;
+		const double CamChangeRotEpsilon = 0.01;
+		if ( (posDbl - m_camLastPos).length() > CamChangePosEpsilon)
+		{
+			m_camLastPos = posDbl;
+			std::array<float, 3> posFlt{ static_cast<float>(posDbl[0]), static_cast<float>(posDbl[1]), static_cast<float>(posDbl[2]) };
+			objectToUnitPos(posFlt);
+			//LOG(lvlDebug, QString("Camera position modified; new: %1").arg(posDbl.toString()));
+			broadcastMsg(msgObjectCommand(ServerID, ObjectCommandType::SetTranslation, posFlt));
+		}
+		if ((dirDbl.normalized() - m_camLastDir).length() > CamChangeRotEpsilon)
+		{
+			m_camLastDir = dirDbl.normalized();
+			std::array<float, 3> dirFlt = { static_cast<float>(dirDbl[0]), static_cast<float>(dirDbl[1]), static_cast<float>(dirDbl[2]) };
+			//LOG(lvlDebug, QString("Camera rotation modified; new: %1").arg(dirDbl.toString()));
+			auto quat = getRotationQuaternionFromVectors(DefaultCameraViewDirection, dirFlt);
+			broadcastMsg(msgObjectCommand(ServerID, ObjectCommandType::SetRotationQuaternion, quat));
+		}
 	}
 };
 

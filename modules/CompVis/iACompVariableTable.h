@@ -17,7 +17,7 @@ class iACompVariableTable : public iACompTable
 {
 public:
 
-    iACompVariableTable(iACompHistogramVis* vis, iACompBayesianBlocksData* bayesianBlocksData, iACompNaturalBreaksData* naturalBreaksData);
+	iACompVariableTable(iACompHistogramVis* vis, iACompBayesianBlocksData* bayesianBlocksData, iACompNaturalBreaksData* naturalBreaksData);
 
 	//set the visualization is active (it will be drawn)
 	virtual void setActive() override;
@@ -81,7 +81,7 @@ private:
 	//It either stores the bayesianBlocksData or the JenksNaturalBreaksData, depending on the interaction of the user
 	iACompHistogramTableData* m_activeData;
 
-    //datastructure containing the data points binned with Bayesian Blocks Method
+	//datastructure containing the data points binned with Bayesian Blocks Method
 	iACompBayesianBlocksData* m_bbData;
 	//datastructure containing the data points binned with Natural Breaks Method
 	iACompNaturalBreaksData* m_nbData;

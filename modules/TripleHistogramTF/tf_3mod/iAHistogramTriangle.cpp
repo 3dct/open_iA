@@ -25,17 +25,20 @@
 // Debug
 #include <QDebug>
 
-const static qreal RAD60 = qDegreesToRadians(60.0);
-const static qreal SIN60 = qSin(RAD60);
-const static qreal COS60 = qCos(RAD60);
-const static int HISTOGRAM_HEIGHT = 100;
-const static int TRIANGLE_LEFT = qRound(SIN60 * HISTOGRAM_HEIGHT);
-const static int TRIANGLE_TOP = qRound(COS60 * HISTOGRAM_HEIGHT);
-const static int TRIANGLE_RIGHT = TRIANGLE_LEFT;
-const static int TRIANGLE_BOTTOM = HISTOGRAM_HEIGHT;
-const static double TRIANGLE_HEIGHT_RATIO = SIN60;
-const static double TRIANGLE_WIDTH_RATIO = 1.0 / TRIANGLE_HEIGHT_RATIO;
-const static int WIDGETS_MARGIN = 10;
+namespace HistTriConst
+{
+	const qreal RAD60 = qDegreesToRadians(60.0);
+	const qreal SIN60 = qSin(RAD60);
+	const qreal COS60 = qCos(RAD60);
+	const int HISTOGRAM_HEIGHT = 100;
+	const int TRIANGLE_LEFT = qRound(SIN60 * HISTOGRAM_HEIGHT);
+	const int TRIANGLE_TOP = qRound(COS60 * HISTOGRAM_HEIGHT);
+	const int TRIANGLE_RIGHT = TRIANGLE_LEFT;
+	const int TRIANGLE_BOTTOM = HISTOGRAM_HEIGHT;
+	const double TRIANGLE_HEIGHT_RATIO = SIN60;
+	const double TRIANGLE_WIDTH_RATIO = 1.0 / TRIANGLE_HEIGHT_RATIO;
+	const int WIDGETS_MARGIN = 10;
+}
 
 iAHistogramTriangle::iAHistogramTriangle(iATripleModalityWidget* tripleModalityWidget)
 	: m_tmw(tripleModalityWidget)
@@ -271,25 +274,25 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 
 	// Triangle positions
 	{
-		int aw  = totalWidth - TRIANGLE_LEFT - TRIANGLE_RIGHT; // Available width for the triangle
-		int ah = totalHeight - TRIANGLE_TOP - TRIANGLE_BOTTOM;
+		int aw = totalWidth - HistTriConst::TRIANGLE_LEFT - HistTriConst::TRIANGLE_RIGHT;  // Available width for the triangle
+		int ah = totalHeight - HistTriConst::TRIANGLE_TOP - HistTriConst::TRIANGLE_BOTTOM;
 
-		if ((double)aw / (double)ah < TRIANGLE_WIDTH_RATIO)
+		if ((double)aw / (double)ah < HistTriConst::TRIANGLE_WIDTH_RATIO)
 		{
 			width = aw;
-			height = qRound(aw * TRIANGLE_HEIGHT_RATIO);
+			height = qRound(aw * HistTriConst::TRIANGLE_HEIGHT_RATIO);
 		}
 		else
 		{
-			width = qRound(ah * TRIANGLE_WIDTH_RATIO);
+			width = qRound(ah * HistTriConst::TRIANGLE_WIDTH_RATIO);
 			height = ah;
 		}
 
 		// The box will bound all the elements (triangle, histograms, slices)
 		boxLeft = (aw - width) / 2;
 		boxTop = (ah - height) / 2;
-		boxRight = boxLeft + width + TRIANGLE_LEFT + TRIANGLE_RIGHT;
-		boxBottom = boxTop + height + TRIANGLE_TOP + TRIANGLE_BOTTOM;
+		boxRight = boxLeft + width + HistTriConst::TRIANGLE_LEFT + HistTriConst::TRIANGLE_RIGHT;
+		boxBottom = boxTop + height + HistTriConst::TRIANGLE_TOP + HistTriConst::TRIANGLE_BOTTOM;
 
 		// NOTE: CAREFUL with "\" -> it is the "line continuation" character
 		// -> if used at end of a single line comment line, it makes next line also a comment!
@@ -297,8 +300,8 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		//       /  \    | BIG TRIANGLE
 		//      /    \   | bounding box:
 		//     /______\  | left, top, right, bottom (, centerX)
-		left = boxLeft + TRIANGLE_LEFT;
-		top = boxTop + TRIANGLE_TOP;
+		left = boxLeft + HistTriConst::TRIANGLE_LEFT;
+		top = boxTop + HistTriConst::TRIANGLE_TOP;
 		right = left + width;
 		bottom = top + height;
 		centerX = left + (width / 2);
@@ -322,18 +325,18 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 	// Set up the histograms' transforms and resize them
 	{
 		m_transformHistograms[0].reset(); // left
-		m_transformHistograms[0].translate(left - TRIANGLE_LEFT, bottom - TRIANGLE_TOP);
+		m_transformHistograms[0].translate(left - HistTriConst::TRIANGLE_LEFT, bottom - HistTriConst::TRIANGLE_TOP);
 		m_transformHistograms[0].rotate(-60.0);
 
 		m_transformHistograms[1].reset(); // right
-		m_transformHistograms[1].translate(centerX + TRIANGLE_LEFT, top - TRIANGLE_TOP);
+		m_transformHistograms[1].translate(centerX + HistTriConst::TRIANGLE_LEFT, top - HistTriConst::TRIANGLE_TOP);
 		m_transformHistograms[1].rotate(60.0);
 
 		m_transformHistograms[2].reset(); // bottom
 		m_transformHistograms[2].translate(left, bottom);
 
-		QSize size = QSize(width, HISTOGRAM_HEIGHT);
-		m_histogramsRect = QRect(0, 0, width, HISTOGRAM_HEIGHT);
+		QSize size = QSize(width, HistTriConst::HISTOGRAM_HEIGHT);
+		m_histogramsRect = QRect(0, 0, width, HistTriConst::HISTOGRAM_HEIGHT);
 		m_tmw->w_histogram(0)->resize(size);
 		m_tmw->w_histogram(1)->resize(size);
 		m_tmw->w_histogram(2)->resize(size);
@@ -374,9 +377,9 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		qDebug() << "Slicers resized to" << size.width() << "x" << size.height();
 	}
 
-	int histoLateral1_2Y = bottom - TRIANGLE_TOP;
-	int histoTop1X = centerX - TRIANGLE_LEFT;
-	int histoTop2X = centerX + TRIANGLE_LEFT;
+	int histoLateral1_2Y = bottom - HistTriConst::TRIANGLE_TOP;
+	int histoTop1X = centerX - HistTriConst::TRIANGLE_LEFT;
+	int histoTop2X = centerX + HistTriConst::TRIANGLE_LEFT;
 
 	// Set up the clip path covering all widgets
 	{
@@ -413,16 +416,16 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		bottom = 0;
 
 		m_tmw->w_layoutComboBox()->setGeometry(QRect(0, bottom, controlsWidth, layoutTypeComboBoxHeight));
-		bottom += layoutTypeComboBoxHeight + WIDGETS_MARGIN;
+		bottom += layoutTypeComboBoxHeight + HistTriConst::WIDGETS_MARGIN;
 
 		m_tmw->w_checkBox_weightByOpacity()->setGeometry(QRect(0, bottom, controlsWidth, checkBoxWeightByOpacityHeight));
-		bottom += checkBoxWeightByOpacityHeight + WIDGETS_MARGIN;
+		bottom += checkBoxWeightByOpacityHeight + HistTriConst::WIDGETS_MARGIN;
 
 		m_tmw->w_checkBox_syncedCamera()->setGeometry(QRect(0, bottom, controlsWidth, checkBoxSyncCameraHeight));
-		bottom += checkBoxSyncCameraHeight + WIDGETS_MARGIN;
+		bottom += checkBoxSyncCameraHeight + HistTriConst::WIDGETS_MARGIN;
 
 		m_tmw->w_slicerModeLabel()->setGeometry(QRect(0, bottom, controlsWidth, layoutTypeComboBoxHeight));
-		bottom += slicerModeComboBoxHeight + WIDGETS_MARGIN;
+		bottom += slicerModeComboBoxHeight + HistTriConst::WIDGETS_MARGIN;
 
 		m_tmw->w_sliceNumberLabel()->setGeometry(QRect(0, bottom, controlsWidth, sliceNumberLabelHeight));
 

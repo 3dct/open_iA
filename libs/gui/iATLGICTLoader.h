@@ -33,7 +33,7 @@ private:
 	QFileInfoList m_subDirs;
 	iAMultiStepProgressObserver* m_multiStepObserver;
 
-	virtual void run();
+	void run() override;
 private slots:
 	void finishUp();
 };

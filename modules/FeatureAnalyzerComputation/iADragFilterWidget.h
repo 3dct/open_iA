@@ -1,7 +1,3 @@
-// Copyright (c) open_iA contributors
-// SPDX-License-Identifier: GPL-3.0-or-later
-
-
 /****************************************************************************
 **
 ** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
@@ -52,7 +48,7 @@ class QDropEvent;
 
 class iADragFilterWidget : public QFrame
 {
-
+	Q_OBJECT
 public:
 	iADragFilterWidget(QString datasetDir, QStringList datasetNameList, int d_f_switch, QWidget *parent);
 	void updateDatasetTooltip(QStringList filesToUpdateList);

@@ -20,7 +20,7 @@ class iAFoamCharacterizationTable : public QTableWidget
 	{
 	public:
 		explicit iAFoamCharacterizationTableDelegate(iAFoamCharacterizationTable* _pTable, QObject* _pParent = nullptr);
-		void paint(QPainter* _pPainter, const QStyleOptionViewItem& _sovItem, const QModelIndex& _miItem) const;
+		void paint(QPainter* _pPainter, const QStyleOptionViewItem& _sovItem, const QModelIndex& _miItem) const override;
 	private:
 		int m_iMargin = 0;
 		iAFoamCharacterizationTable* m_pTable = nullptr;

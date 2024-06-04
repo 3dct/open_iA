@@ -10,7 +10,7 @@ class iAPreview : public QLabel
 	Q_OBJECT
 
 public:
-				iAPreview( QWidget* parent = 0 );
+				iAPreview( QWidget* parent = nullptr );
 				~iAPreview( );
 	QLabel*		getBigPreview( );
 

@@ -17,10 +17,6 @@
 
 namespace
 {
-	static const QString ProjectFileVersionKey("FileVersion");
-	static const QString ProjectFileVersionValue("1.0");
-	static const QString IndexRange("Index Range");
-
 	static const QString FileKeyFileNameBase("file_names_base");
 	static const QString FileKeyExtension("extension");
 	static const QString FileKeyNumOfDigits("number_of_digits_in_index");

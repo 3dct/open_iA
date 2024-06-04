@@ -103,7 +103,6 @@
 namespace
 {
 	const int LayoutSpacing = 4;
-	const QString DefaultStackedBarColorTheme("Brewer Accent (max. 8)");
 	QStringList const& AggregationNames()
 	{
 		static QStringList Names = QStringList() << "Mean left+right" << "Left only" << "Right only" << "Mean of all neighbours in STAR";

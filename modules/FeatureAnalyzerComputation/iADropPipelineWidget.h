@@ -1,7 +1,3 @@
-// Copyright (c) open_iA contributors
-// SPDX-License-Identifier: GPL-3.0-or-later
-
-
 /****************************************************************************
 **
 ** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).

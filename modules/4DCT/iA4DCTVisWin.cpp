@@ -38,7 +38,7 @@
 #include <vtkRendererCollection.h>
 #include <vtkLegendScaleActor.h>
 
-iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin * parent /*= 0*/ )
+iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin * parent )
 	: QMainWindow( parent )
 	, m_currentStage(0)
 	, m_mainWin( parent )
