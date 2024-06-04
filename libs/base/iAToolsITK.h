@@ -14,7 +14,6 @@
 #endif
 #include <itkCastImageFilter.h>
 #include <itkChangeInformationImageFilter.h>
-#include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>

@@ -12,18 +12,17 @@
 
 #include <iAConnector.h>
 #include <iAITKIO.h>
+#include <iAToolsVTK.h>
 #include <iALog.h>
 
 #include <itkAddImageFilter.h>
 #include <itkCastImageFilter.h>
 #include <itkImage.h>
-//#include <itkImageToVTKImageFilter.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkDistancePolyDataFilter.h>
 #include <vtkImageData.h>
 #include <vtkMarchingContourFilter.h>
-#include <vtkMetaImageReader.h>
 #include <vtkPolyData.h>
 #include <vtkPointData.h>
 #include <vtkRenderer.h>
@@ -72,10 +71,7 @@ const QList<QColor> brewer_RdPu = QList<QColor>() \
 
 void loadImageData( QString const & fileName, vtkSmartPointer<vtkImageData> & imgData )
 {
-	auto reader = vtkSmartPointer<vtkMetaImageReader>::New();
-	reader->SetFileName( fileName.toStdString().c_str());
-	reader->Update();
-	imgData = reader->GetOutput();
+	imgData = readImage(fileName);
 	if (!imgData)
 	{
 		LOG(lvlError, "Image data is nullptr!");

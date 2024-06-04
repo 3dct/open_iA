@@ -40,9 +40,9 @@
 
 #include <iAColorTheme.h>
 #include <iAConnector.h>
-#include <iAFileUtils.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
+#include <iAToolsVTK.h>    // for storeImage
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -64,7 +64,6 @@
 #include <vtkInteractorStyleImage.h>
 #include <vtkLookupTable.h>
 #include <vtkMath.h>
-#include <vtkMetaImageWriter.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkProperty.h>
@@ -1198,12 +1197,7 @@ void dlg_InSpectr::computeSimilarityMap()
 		}
 		try
 		{
-			auto writer = vtkSmartPointer<vtkMetaImageWriter>::New();
-			writer->SetCompression(false);
-			writer->SetInputData(similarityImageData);
-			writer->SetFileName(getLocalEncodingFileName(fileName).c_str());
-			writer->Write();
-			writer->Update();
+			storeImage(similarityImageData, fileName, false);
 		}
 		catch (itk::ExceptionObject& excp)
 		{
