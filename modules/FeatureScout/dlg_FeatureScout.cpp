@@ -37,7 +37,6 @@
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
 #include <iAImageData.h>
-#include <iAFileUtils.h>
 #include <iALog.h>
 #include <iALookupTable.h>
 #include <iAPolyData.h>
@@ -1369,7 +1368,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 
 		if (saveFile)
 		{
-			std::ofstream file(getLocalEncodingFileName(filename).c_str(), std::ios::app);
+			std::ofstream file(filename.toStdString(), std::ios::app);
 			if (file.is_open())
 			{
 				vtkIdType tColNb = disTable->GetNumberOfColumns();

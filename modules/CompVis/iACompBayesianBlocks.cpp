@@ -132,8 +132,7 @@ void iACompBayesianBlocks::calculateBins()
 
 		binningStrategies->push_back(currBinningStrategy);
 
-/*		std::ifstream fin;
-		fin.open("C:/FHTools/open_iA/src/modules/CompVis/test.dat");
+/*		std::ifstream fin("C:/FHTools/open_iA/src/modules/CompVis/test.dat");
 		if (!fin.is_open())
 		{
 			LOG(lvlDebug, "dat not found!");

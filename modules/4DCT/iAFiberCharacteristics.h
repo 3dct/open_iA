@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include <iAFileUtils.h>
-
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -31,7 +29,7 @@ public:
 
 		const int numRows = 14;
 		const int skipRows = 5;
-		std::ifstream fileStream( getLocalEncodingFileName(fileName) );
+		std::ifstream fileStream( fileName.toStdString() );
 		std::string line;
 
 		// row skipping

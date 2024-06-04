@@ -115,8 +115,7 @@ void iAFeatureExtraction::run(QString inputImgPath, QString outputImgPath)
 		features.push_back(f);
 	}
 
-	std::ofstream file;
-	file.open( getLocalEncodingFileName(outputImgPath).c_str() );
+	std::ofstream file( outputImgPath.toStdString() );
 	for (auto f : features)
 	{
 		file << f;

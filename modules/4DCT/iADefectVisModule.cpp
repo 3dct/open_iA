@@ -4,8 +4,6 @@
 
 #include "iA4DCTVisWin.h"
 
-#include <iAFileUtils.h>
-
 #include <vtkActor.h>
 #include <vtkOBJReader.h>
 #include <vtkPolyDataMapper.h>
@@ -44,7 +42,7 @@ void iADefectVisModule::hide( )
 
 void iADefectVisModule::setInputFile( QString path )
 {
-	m_reader->SetFileName( getLocalEncodingFileName(path).c_str( ) );
+	m_reader->SetFileName( path.toStdString().c_str() );
 	m_reader->Update( );
 }
 

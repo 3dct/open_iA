@@ -1,7 +1,6 @@
 // Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <defines.h> // for DIM
-#include <iAFileUtils.h>
 #include <iAFilterDefault.h>
 #include <iAImageData.h>
 #include <iAProgress.h>
@@ -103,8 +102,7 @@ void relabelComponentImageFilter(iAFilter* filter, QVariantMap const & parameter
 	if (parameters["Write labels to file"].toBool())
 	{
 		long int no_of_Objects = rccFilter->GetNumberOfObjects();
-		std::ofstream myfile;
-		myfile.open(getLocalEncodingFileName(parameters["Label file"].toString()));
+		std::ofstream myfile( parameters["Label file"].toString().toStdString() );
 		myfile << " Total Objects " << "," << no_of_Objects << "\n";
 		myfile << "Object Number" << "," << "Object Size (PhysicalUnits)\n";
 		for (int i = 0; i < no_of_Objects; i++)

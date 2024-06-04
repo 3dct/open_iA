@@ -5,8 +5,7 @@
 #include "iAFeatureAnalyzerComputationModuleInterface.h"
 #include "FeatureAnalyzerHelpers.h"
 
-#include <defines.h>
-#include <iAFileUtils.h>
+#include <defines.h>       // for DIM
 #include <iAItkVersion.h>
 #include <iAToolsITK.h>    // for getStatistics
 #include <iAITKIO.h>
@@ -78,7 +77,7 @@ template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString
 	typename ImageToHistogramFilterType::HistogramType* histogram = imageToHistogramFilter->GetOutput();
 
 	//Write info to dataset info file
-	std::ofstream fout( getLocalEncodingFileName( datasetPath + "/" + datasetName + ".info" ).c_str(), std::ofstream::out );
+	std::ofstream fout( (datasetPath + "/" + datasetName + ".info").toStdString(), std::ofstream::out );
 	fout << "Datasetname:" << QString( datasetName ).toStdString() << '\n'
 		<< "Min:" << minIntensity << '\n'
 		<< "Max:" << maxIntensity << '\n'

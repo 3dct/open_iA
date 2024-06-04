@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAChartWidget.h"
 
-#include "iAAttributeDescriptor.h"
-#include "iAFileUtils.h"
 #include "iALog.h"
 #include "iAMapperImpl.h"
 #include "iAMathUtility.h"
@@ -1253,7 +1251,7 @@ void iAChartWidget::exportData()
 	{
 		return;
 	}
-	std::ofstream out( getLocalEncodingFileName(fileName));
+	std::ofstream out( fileName.toStdString().c_str() );
 	if (!out.is_open() || !out.good())
 	{
 		LOG(lvlError, QString("Chart export: Failed to open file %1 for writing.")
