@@ -2,9 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASimilarityMapWidget.h"
 
-//#include <iAMathUtility.h>
-#include <iAFileUtils.h>
-
 #include <vtkImageData.h>
 #include <vtkMetaImageReader.h>
 
@@ -85,7 +82,7 @@ iASimilarityMapWidget::iASimilarityMapWidget( QWidget *parent)
 void iASimilarityMapWidget::load( QString const & filename )
 {
 	auto reader = vtkSmartPointer<vtkMetaImageReader>::New();
-	reader->SetFileName( getLocalEncodingFileName(filename).c_str() );
+	reader->SetFileName( filename.toStdString().c_str());
 	reader->Update();
 	setImageData( reader->GetOutput() );
 }

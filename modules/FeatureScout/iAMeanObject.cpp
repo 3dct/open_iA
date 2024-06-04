@@ -6,7 +6,6 @@
 
 // base
 #include <defines.h>    // for DIM
-#include <iAFileUtils.h>
 #include <iALog.h>
 #include <iAToolsVTK.h>
 
@@ -553,7 +552,7 @@ void iAMeanObject::saveStl()
 			progress->setCompletedSteps(1);
 			auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
 			progress->observe(stlWriter);
-			stlWriter->SetFileName(getLocalEncodingFileName(fileName).c_str());
+			stlWriter->SetFileName(fileName.toStdString().c_str());
 			stlWriter->SetInputConnection(moSurface->GetOutputPort());
 			stlWriter->Write();
 		},

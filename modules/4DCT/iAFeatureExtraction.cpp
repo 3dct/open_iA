@@ -4,8 +4,6 @@
 
 #include "iAFeature.h"
 
-#include <iAFileUtils.h>
-
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshorten-64-to-32"
@@ -30,7 +28,7 @@ void iAFeatureExtraction::run(QString inputImgPath, QString outputImgPath)
 
 	typedef itk::ImageFileReader<ImageType> ImageReaderType;
 	auto labelReader = ImageReaderType::New();
-	labelReader->SetFileName( getLocalEncodingFileName(inputImgPath) );
+	labelReader->SetFileName( inputImgPath.toStdString());
 	labelReader->Update();
 
 	labelImage = labelReader->GetOutput();

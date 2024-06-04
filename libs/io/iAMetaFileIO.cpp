@@ -2,11 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAMetaFileIO.h"
 
-#include "iAFileUtils.h"
 #include "iAImageData.h"
 #include "iAProgress.h"
-
-#include "iAConnector.h"  // for writing
+#include "iAToolsVTK.h"   // for storeImage
 
 #include <vtkImageData.h>
 
@@ -15,9 +13,11 @@
 
 #define META_LOAD_METHOD ITK
 #if META_LOAD_METHOD == VTK
+#include <iAExceptionThrowingErrorObserver.h>
+#include <iALog.h>
+
 #include <vtkMetaImageReader.h>
-#else
-#include "iAToolsVTK.h"
+#include <vtkCommand.h>
 #endif
 
 iAMetaFileIO::iAMetaFileIO() :
@@ -32,14 +32,14 @@ std::shared_ptr<iADataSet> iAMetaFileIO::loadData(QString const& fileName, QVari
 
 #if META_LOAD_METHOD == VTK
 	vtkNew<vtkMetaImageReader> reader;
-	p->observe(reader);
+	progress.observe(reader);
 	//reader->SetFileName(m_fileName.toStdString().c_str());
-	imgReader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
-	reader->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
+	reader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
+	reader->SetFileName(fileName.toStdString().c_str());
 	reader->Update();
 	if (reader->GetErrorCode() != 0)   // doesn't seem to catch errors such as file not existing...?
 	{
-		LOG(lvlWarn, QString("While reading file %1, an error (code %2) occurred!").arg(m_fileName).arg(reader->GetErrorCode()));
+		LOG(lvlWarn, QString("While reading file %1, an error (code %2) occurred!").arg(fileName).arg(reader->GetErrorCode()));
 	}
 	reader->ReleaseDataFlagOn();
 	auto img = reader->GetOutput();
@@ -62,7 +62,6 @@ std::shared_ptr<iADataSet> iAMetaFileIO::loadData(QString const& fileName, QVari
 
 void iAMetaFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSet> dataSet, QVariantMap const& paramValues, iAProgress const& progress)
 {
-	iAConnector con;
 	auto imgData = dynamic_cast<iAImageData*>(dataSet.get());
 	if (!imgData)
 	{

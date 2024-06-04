@@ -4,7 +4,6 @@
 
 #include "iAConnector.h"
 #include "iALog.h"
-#include "iAFileUtils.h"
 
 #include <itkImage.h>
 #include <itkImageFileReader.h>
@@ -749,19 +748,19 @@ template<typename T>
 typename iAOIFReaderHelper::TiffImgPtr read_image_template(QString const & f, T)
 {
 	auto reader = itk::ImageFileReader<iAOIFReaderHelper::TiffImgType>::New();
-	reader->SetFileName(getLocalEncodingFileName(f));
+	reader->SetFileName(f.toStdString());
 	reader->Update();
 	return reader->GetOutput();
 }
 
 iAOIFReaderHelper::TiffImgPtr iAOIFReaderHelper::ReadTiffImage(QString const & file_name)
 {
-	itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(getLocalEncodingFileName(file_name).c_str(), itk::ImageIOFactory::ReadMode);
+	auto imageIO = itk::ImageIOFactory::CreateImageIO(file_name.toStdString().c_str(), itk::ImageIOFactory::ReadMode);
 	if (!imageIO)
 	{
 		throw std::runtime_error(QString("OIF Reader: Could not create IO for file %1, aborting loading.").arg(file_name).toStdString());
 	}
-	imageIO->SetFileName(getLocalEncodingFileName(file_name).c_str());
+	imageIO->SetFileName(file_name.toStdString());
 	imageIO->ReadImageInformation();
 	auto pixelType = imageIO->GetComponentType();
 	switch (pixelType)

@@ -4,7 +4,6 @@
 
 #include "iAExceptionThrowingErrorObserver.h"
 #include "iAFileStackParams.h"
-#include "iAFileUtils.h"     // for getLocalEncodingFileName
 #include "iAImageData.h"
 #include "iAMathUtility.h"   // for clamp
 #include "iAProgress.h"
@@ -59,7 +58,7 @@ namespace
 		for (int i = indexRange[0]; i <= indexRange[1]; i += stepSize)
 		{
 			QString temp = fileNameBase + QString("%1").arg(i, digitsInIndex, 10, QChar('0')) + suffix;
-			result->InsertNextValue(getLocalEncodingFileName(temp).c_str());
+			result->InsertNextValue(temp.toStdString());
 		}
 		return result;
 	}
@@ -272,7 +271,7 @@ void simpleWriteImageStack(itk::ImageBase<3>* img,
 	nameGenerator->SetStartIndex(minIdx);
 	nameGenerator->SetEndIndex(maxIdx);
 	nameGenerator->SetIncrementIndex(1);
-	nameGenerator->SetSeriesFormat(getLocalEncodingFileName(format).c_str());
+	nameGenerator->SetSeriesFormat(format.toStdString());
 	writer->SetFileNames(nameGenerator->GetFileNames());
 	writer->SetInput(dynamic_cast<InputImageType*>(img));
 	writer->SetUseCompression(comp);

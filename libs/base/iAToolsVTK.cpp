@@ -3,7 +3,6 @@
 #include "iAToolsVTK.h"
 
 #include "iAConnector.h"
-#include "iAFileUtils.h"
 #include "iAITKIO.h"
 #include "iALog.h"
 #include "iAMathUtility.h"      // for mapValue
@@ -218,7 +217,7 @@ void writeSingleSliceImage(QString const & filename, vtkImageData* img)
 		LOG(lvlError, "Could not write image: Filename has an unknown extension!");
 		return;
 	}
-	writer->SetFileName( getLocalEncodingFileName(filename).c_str() );
+	writer->SetFileName( filename.toStdString().c_str());
 	writer->SetInputData(img);
 	writer->Write();
 }

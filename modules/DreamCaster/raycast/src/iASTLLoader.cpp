@@ -3,8 +3,6 @@
 #include "../include/iASTLLoader.h"
 #include "../../iADreamCaster.h"
 
-#include <iAFileUtils.h>
-
 #include <vtksys/SystemTools.hxx>
 
 #include <QString>
@@ -116,7 +114,7 @@ int readSTLFile(QString const & filename, std::vector<iAtriangle*> & stlMesh, st
 	stlMesh.clear();
 	//
 	if( !filename.isEmpty() )
-		reader.open( getLocalEncodingFileName(filename).c_str() );
+		reader.open( filename.toStdString().c_str());
 	else
 	{
 		dcast->log("Error! Cannot open .STL file, no file name given.");
@@ -170,7 +168,7 @@ int readSTLFile(QString const & filename, std::vector<iAtriangle*> & stlMesh, st
 	//Determine the type of the file
 	int type;
 	vtksys::SystemTools::FileTypeEnum ft =
-		vtksys::SystemTools::DetectFileType(getLocalEncodingFileName(filename).c_str());
+		vtksys::SystemTools::DetectFileType(filename.toStdString().c_str());
 	switch(ft)
 	{
 	case vtksys::SystemTools::FileTypeBinary:

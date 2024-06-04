@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAITKIO.h"
 
-#include "iAFileUtils.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 #include "iAExtendedTypedCallHelper.h"
@@ -36,7 +35,7 @@ void read_image_template(QString const& f, ImagePointer& image, bool releaseFlag
 	{
 		progress->observe(reader);
 	}
-	reader->SetFileName(getLocalEncodingFileName(f));
+	reader->SetFileName(f.toStdString());
 	reader->Update();
 	image = reader->GetOutput();
 	image->Modified();
@@ -49,8 +48,7 @@ void write_image_template(bool comp, QString const& fileName, ImagePtr image, iA
 	auto writer = itk::ImageFileWriter<InputImageType>::New();
 
 	writer->ReleaseDataFlagOn();
-	std::string encodedFileName = getLocalEncodingFileName(fileName);
-	if (encodedFileName.empty())
+	if (fileName.isEmpty())
 	{
 		return;
 	}
@@ -58,7 +56,7 @@ void write_image_template(bool comp, QString const& fileName, ImagePtr image, iA
 	{
 		progress->observe(writer);
 	}
-	writer->SetFileName(encodedFileName.c_str());
+	writer->SetFileName(fileName.toStdString());
 	writer->SetInput(dynamic_cast<InputImageType*>(image));
 	writer->SetUseCompression(comp);
 	writer->Update();
@@ -66,7 +64,7 @@ void write_image_template(bool comp, QString const& fileName, ImagePtr image, iA
 
 ImagePointer readFile(QString const& fileName, PixelType& pixelType, ScalarType& scalarType, bool releaseFlag, iAProgress const * progress)
 {
-	auto imageIO = itk::ImageIOFactory::CreateImageIO(getLocalEncodingFileName(fileName).c_str(), itk::ImageIOFactory::ReadMode);
+	auto imageIO = itk::ImageIOFactory::CreateImageIO(fileName.toStdString().c_str(), itk::ImageIOFactory::ReadMode);
 
 	if (!imageIO)
 	{
@@ -74,7 +72,7 @@ ImagePointer readFile(QString const& fileName, PixelType& pixelType, ScalarType&
 			QString("Could not open file %1: ITK does not have a reader that can handle this type of file!").arg(fileName).toStdString().c_str());
 	}
 
-	imageIO->SetFileName(getLocalEncodingFileName(fileName));
+	imageIO->SetFileName(fileName.toStdString());
 	imageIO->ReadImageInformation();
 	scalarType = imageIO->GetComponentType();
 	pixelType  = imageIO->GetPixelType();

@@ -5,8 +5,6 @@
 #include "iACalculateDensityMap.h"
 #include "iA4DCTVisWin.h"	// ToDo: Scale!
 
-#include <iAFileUtils.h>
-
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkResampleImageFilter.h>
 #include <itkImageToVTKImageFilter.h>
@@ -139,7 +137,7 @@ void iARegionVisModule::setImage( QString fileName )
 	auto image = DensityMapImageType::New();
 	{
 		auto reader = itk::ImageFileReader<DensityMapImageType>::New();
-		reader->SetFileName( getLocalEncodingFileName(fileName) );
+		reader->SetFileName( fileName.toStdString() );
 		reader->Update( );
 
 		DensityMapImageType::IndexType index; index.Fill( 0 );
@@ -244,7 +242,7 @@ void iARegionVisModule::calculateDensityMap( QString fileName, iARegionVisModule
 	typedef itk::Image<double, 3> DoubleImageType;
 	// read image
 	auto reader = vtkSmartPointer<vtkMetaImageReader>::New();
-	reader->SetFileName( getLocalEncodingFileName(fileName).c_str( ) );
+	reader->SetFileName( fileName.toStdString().c_str( ) );
 	reader->Update( );
 
 	// calculate density map

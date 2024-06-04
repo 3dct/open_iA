@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAPreviewMaker.h"
 
-#include <iAFileUtils.h>
 #include <iALog.h>
 #include <iAITKIO.h>
 
@@ -15,13 +14,13 @@
 void iAPreviewMaker::makeUsingType( QString fileName, QString thumbFileName )
 {
 	itk::ImageIOBase::Pointer imageIO;
-	imageIO = itk::ImageIOFactory::CreateImageIO( getLocalEncodingFileName(fileName).c_str( ), itk::ImageIOFactory::ReadMode );
+	imageIO = itk::ImageIOFactory::CreateImageIO( fileName.toStdString().c_str( ), itk::ImageIOFactory::ReadMode );
 	if( !imageIO )
 	{
 		//std::cerr << "Could not CreateImageIO for: " << inputFilename << std::endl;
 		return;
 	}
-	imageIO->SetFileName( getLocalEncodingFileName(fileName) );
+	imageIO->SetFileName( fileName.toStdString() );
 	imageIO->ReadImageInformation( );
 
 	auto pixelType = imageIO->GetComponentType( );
@@ -53,7 +52,7 @@ void iAPreviewMaker::makeUsingType( QString filename, QString thumbFileName )
 
 	// read image
 	auto reader = itk::ImageFileReader<InputImageType>::New();
-	reader->SetFileName( getLocalEncodingFileName(filename) );
+	reader->SetFileName( filename.toStdString() );
 	reader->Update( );
 	typename InputImageType::Pointer image = reader->GetOutput( );
 
@@ -76,7 +75,7 @@ void iAPreviewMaker::makeUsingType( QString filename, QString thumbFileName )
 
 	// write
 	auto writer = itk::ImageFileWriter<OutputImageType>::New();
-	writer->SetFileName( getLocalEncodingFileName(thumbFileName) );
+	writer->SetFileName( thumbFileName.toStdString() );
 	writer->SetInput( output );
 	writer->Update( );
 }

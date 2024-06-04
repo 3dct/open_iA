@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iA4DCTFileManager.h"
 
-#include "iAFileUtils.h"
-
 #include <vtkMetaImageReader.h>
 
 iA4DCTFileManager& iA4DCTFileManager::getInstance( )
@@ -28,7 +26,7 @@ iA4DCTFileManager::ReaderType iA4DCTFileManager::findOrCreateImage( iA4DCTFileDa
 	if( m_map.find( key ) == m_map.end( ) )
 	{	// the key does not exist
 		ReaderType reader = ReaderType::New();
-		reader->SetFileName( getLocalEncodingFileName(file.Path).c_str( ) );
+		reader->SetFileName(file.Path.toStdString().c_str());
 		reader->Update( );
 		m_map[ key ] = reader;
 	}

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iADCMFileIO.h"
 
-#include "iAFileUtils.h"   // for getLocalEncodingFileName
 #include "iAImageData.h"
 #include "iAITKIO.h"       // for iAITKIO::Dim
 #include "iAProgress.h"
@@ -44,7 +43,7 @@ std::shared_ptr<iADataSet> iADCMFileIO::loadData(QString const& fileName, QVaria
 	progress.observe(reader);
 	auto nameGenerator = itk::GDCMSeriesFileNames::New();
 	nameGenerator->SetUseSeriesDetails(true);
-	nameGenerator->SetDirectory(getLocalEncodingFileName(QFileInfo(fileName).canonicalPath()));
+	nameGenerator->SetDirectory(QFileInfo(fileName).canonicalPath().toStdString());
 	auto const & seriesUID = nameGenerator->GetSeriesUIDs();
 	std::string seriesIdentifier = seriesUID.begin()->c_str();
 	auto fileNames = nameGenerator->GetFileNames(seriesIdentifier);
@@ -93,7 +92,7 @@ void writeDCM_template(QString const& fileName, iAProgress const & p, iAITKIO::I
 	QString length = QString::number(size[2]);
 	QString format(
 		fi.absolutePath() + "/" + fi.baseName() + "%0" + QString::number(length.size()) + "d." + fi.completeSuffix());
-	nameGenerator->SetSeriesFormat(getLocalEncodingFileName(format).c_str());
+	nameGenerator->SetSeriesFormat(format.toStdString());
 	writer->SetFileNames(nameGenerator->GetFileNames());
 	writer->SetInput(itkImg);
 	writer->SetUseCompression(comp);

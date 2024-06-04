@@ -11,7 +11,6 @@
 #include <iASlicerSettings.h>
 
 #include <iAConnector.h>
-#include <iAFileUtils.h>
 #include <iAITKIO.h>
 #include <iALog.h>
 
@@ -74,7 +73,7 @@ const QList<QColor> brewer_RdPu = QList<QColor>() \
 void loadImageData( QString const & fileName, vtkSmartPointer<vtkImageData> & imgData )
 {
 	auto reader = vtkSmartPointer<vtkMetaImageReader>::New();
-	reader->SetFileName( getLocalEncodingFileName(fileName).c_str() );
+	reader->SetFileName( fileName.toStdString().c_str());
 	reader->Update();
 	imgData = reader->GetOutput();
 	if (!imgData)
