@@ -174,7 +174,6 @@ Current List of fixed IDs:
 |ID|Object|
 |-|-|
 |0|Object|
-|1|Slicing Plane|
 
 ### Set Matrix of Object
 
