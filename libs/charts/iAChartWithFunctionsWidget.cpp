@@ -466,6 +466,7 @@ void iAChartWithFunctionsWidget::saveTransferFunction()
 		iAXmlSettings s;
 		s.saveTransferFunction(tf);
 		s.save(fileName);
+		LOG(lvlInfo, QString("Transfer function saved to file %1.").arg(fileName));
 	}
 }
 
@@ -494,7 +495,6 @@ void iAChartWithFunctionsWidget::pasteTransferFunction()
 		newTransferFunction();
 	}
 }
-
 
 void iAChartWithFunctionsWidget::addBezierFunction()
 {
@@ -681,6 +681,7 @@ void iAChartWithFunctionsWidget::saveFunctions()
 	iAXmlSettings xml;
 	saveProbabilityFunctions(xml);
 	xml.save(fileName);
+	LOG(lvlInfo, QString("Functions saved to file %1.").arg(fileName));
 }
 
 void iAChartWithFunctionsWidget::removeFunction()
