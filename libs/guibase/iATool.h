@@ -16,6 +16,7 @@ class QString;
 //!     <li>a new iATool-derived class is created</li>
 //!     <li>if state is available, the loadState method is called (@see loadState)</li>
 //! </ul>
+// implementation in iAToolRegistry
 class iAguibase_API iATool
 {
 public:

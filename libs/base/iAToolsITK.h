@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAFileUtils.h"    // getLocalEncodingFileName
 #include "iALog.h"
 #include "iAITKIO.h"
 
@@ -15,7 +14,6 @@
 #endif
 #include <itkCastImageFilter.h>
 #include <itkChangeInformationImageFilter.h>
-#include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>
@@ -132,10 +130,10 @@ typename TImage::Pointer createImage(typename TImage::Pointer otherImg)
 template <typename TImage>
 void storeImageOfType(TImage * image, QString const & filename, bool useCompression = true)
 {
-	typename itk::ImageFileWriter<TImage>::Pointer writer = itk::ImageFileWriter<TImage>::New();
+	auto writer = itk::ImageFileWriter<TImage>::New();
 	try
 	{
-		writer->SetFileName(getLocalEncodingFileName(filename).c_str());
+		writer->SetFileName(filename.toStdString());
 		writer->SetUseCompression(useCompression);
 		writer->SetInput(image);
 		writer->Update();

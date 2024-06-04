@@ -29,7 +29,6 @@
 
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
-#include <vtkMetaImageWriter.h>
 #include <vtkPiecewiseFunction.h>
 
 #include <QFileDialog>
@@ -850,12 +849,7 @@ void iALabelsDlg::storeImage()
 	{
 		return;
 	}
-	vtkMetaImageWriter* metaImageWriter = vtkMetaImageWriter::New();
-	metaImageWriter->SetFileName(getLocalEncodingFileName(fileName).c_str());
-	metaImageWriter->SetInputData(labelOverlayImage);
-	metaImageWriter->SetCompression(false);
-	metaImageWriter->Write();
-	metaImageWriter->Delete();
+	::storeImage(labelOverlayImage, fileName, false);
 }
 
 bool haveAllSeeds(QVector<int> const& label2SeedCounts, std::vector<int> const& requiredNumOfSeedsPerLabel)

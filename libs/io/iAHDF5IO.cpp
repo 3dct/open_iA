@@ -4,7 +4,6 @@
 
 #include "iAHDF5IO.h"
 
-#include "iAFileUtils.h"
 #include "iAImageData.h"
 #include "iAToolsITK.h"    // for storeImage, pulls in iAITKIO
 #include "iAValueTypeVectorHelpers.h"
@@ -102,7 +101,7 @@ iAHDF5IO::iAHDF5IO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volume)
 std::shared_ptr<iADataSet> iAHDF5IO::loadData(QString const& fileName, QVariantMap const& params, iAProgress const& progress)
 {
 	Q_UNUSED(progress);
-	hid_t file_id = H5Fopen(getLocalEncodingFileName(fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+	hid_t file_id = H5Fopen(fileName.toStdString().c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
 	if (hdf5IsITKImage(file_id))
 	{
 		H5Fclose(file_id);
@@ -115,6 +114,7 @@ std::shared_ptr<iADataSet> iAHDF5IO::loadData(QString const& fileName, QVariantM
 	auto hdf5Path = hdf5PathStr.split("/");
 	if (hdf5Path.size() < 1)
 	{
+		H5Fclose(file_id);
 		throw std::runtime_error(QString("HDF5 file %1: At least one path element expected, 0 given.").arg(fileName).toStdString());
 	}
 	hid_t loc_id = file_id;
@@ -125,6 +125,7 @@ std::shared_ptr<iADataSet> iAHDF5IO::loadData(QString const& fileName, QVariantM
 		loc_id = H5Gopen(file_id, groupName.toStdString().c_str(), H5P_DEFAULT);  // TODO: check which encoding HDF5 internal strings have!
 		if (loc_id < 0)
 		{
+			H5Fclose(file_id);
 			throw std::runtime_error(QString("HDF5 file %1: Could not open group %2.").arg(fileName).arg(groupName).toStdString());
 		}
 	}
@@ -133,6 +134,7 @@ std::shared_ptr<iADataSet> iAHDF5IO::loadData(QString const& fileName, QVariantM
 	int rank = H5Sget_simple_extent_ndims(space);
 	if (rank < 0)
 	{
+		H5Fclose(file_id);
 		throw std::runtime_error(QString("HDF5 file %1: Retrieving rank of dataset %2 failed.").arg(fileName).arg(dataSetName).toStdString());
 	}
 	hsize_t* hdf5Dims = new hsize_t[rank];
@@ -147,6 +149,7 @@ std::shared_ptr<iADataSet> iAHDF5IO::loadData(QString const& fileName, QVariantM
 	status = H5Sclose(space);
 	if (vtkType == InvalidHDF5Type)
 	{
+		H5Fclose(file_id);
 		throw std::runtime_error(QString("HDF5 file %1: Can't load a dataset of data type %2!").arg(fileName).arg(hdf5Type).toStdString());
 	}
 	int dim[3];
@@ -163,6 +166,7 @@ std::shared_ptr<iADataSet> iAHDF5IO::loadData(QString const& fileName, QVariantM
 	if (status < 0)
 	{
 		hdf5PrintErrorsToConsole();
+		H5Fclose(file_id);
 		throw std::runtime_error(QString("HDF5 file %1: Reading dataset failed!").arg(fileName).toStdString());
 	}
 	H5Dclose(dataset_id);

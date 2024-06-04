@@ -24,7 +24,6 @@
 #include <iAAttributeDescriptor.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
-#include <iAFileUtils.h>    // for getLocalEncodingFileName
 #include <iAImageData.h>
 #include <iAJobListView.h>
 #include <iALog.h>
@@ -555,7 +554,7 @@ void dlg_GEMSeControl::exportIDs()
 		return;
 	}
 	std::shared_ptr<iAImageTreeNode> cluster = m_dlgGEMSe->GetCurrentCluster();
-	std::ofstream out( getLocalEncodingFileName(fileName) );
+	std::ofstream out(fileName.toStdString());
 	ExportClusterIDs(cluster, out);
 }
 

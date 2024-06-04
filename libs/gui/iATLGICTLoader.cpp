@@ -7,7 +7,6 @@
 #include <iAParameterDlg.h>
 #include <iAMdiChild.h>
 
-#include <iAFileUtils.h>
 #include <iALog.h>
 #include <iAImageData.h>
 #include <iAStringHelper.h>
@@ -185,7 +184,7 @@ void iATLGICTLoader::run()
 		{
 			QString temp = fileNameBase + QString("%1").arg(i, digits, 10, QChar('0')) + "." + ext;
 			temp = temp.replace("/", "\\");
-			fileNames->InsertNextValue(getLocalEncodingFileName(temp));
+			fileNames->InsertNextValue(temp.toStdString());
 		}
 
 		// load image stack // TODO: maybe reuse iAImageStackFileIO here?

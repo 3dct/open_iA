@@ -3,7 +3,6 @@
 #include "iACSVImageFileIO.h"
 
 #include "iAImageData.h"
-#include "iAFileUtils.h"
 #include "iAProgress.h"
 #include "iAToolsVTK.h"
 
@@ -35,7 +34,7 @@ void iACSVImageFileIO::saveData(QString const& fileName, std::shared_ptr<iADataS
 	}
 	auto img = imgData->vtkImage();
 	int numberOfComponents = img->GetNumberOfScalarComponents();
-	std::ofstream out(getLocalEncodingFileName(fileName));
+	std::ofstream out(fileName.toStdString());
 	size_t voxelCount = imgData->voxelCount();
 	size_t curVoxel = 0;
 	bool coords = paramValues["Coordinates"].toBool();

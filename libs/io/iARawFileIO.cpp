@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iARawFileIO.h"
 
-#include "iAFileUtils.h"   // for getLocalEncodingFileName
 #include "iAImageData.h"
 #include "iAITKIO.h"       // for iAITKIO::Dim
 #include "iAProgress.h"
@@ -144,7 +143,7 @@ void writeRawImage(QString const& fileName, vtkImageData* img, QVariantMap param
 	using InputImageType = itk::Image<T, iAITKIO::Dim>;
 	auto writer = itk::ImageFileWriter<InputImageType>::New();
 	auto io = itk::RawImageIO<T, iAITKIO::Dim>::New();
-	io->SetFileName(getLocalEncodingFileName(fileName).c_str());
+	io->SetFileName(fileName.toStdString());
 	//io->SetHeaderSize(0);
 	//for (int i = 0; i < DIM; i++)
 	//{
@@ -161,7 +160,7 @@ void writeRawImage(QString const& fileName, vtkImageData* img, QVariantMap param
 		io->SetByteOrderToBigEndian();
 	}
 	writer->SetImageIO(io);
-	writer->SetFileName(getLocalEncodingFileName(fileName).c_str());
+	writer->SetFileName(fileName.toStdString());
 	writer->SetInput(dynamic_cast<InputImageType*>(con.itkImage()));
 	writer->SetUseCompression(paramValues[iAFileIO::CompressionStr].toBool());
 	progress.observe(writer);

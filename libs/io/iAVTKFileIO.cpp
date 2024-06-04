@@ -4,7 +4,6 @@
 
 #include <iALog.h>
 #include <iAExceptionThrowingErrorObserver.h>
-#include <iAFileUtils.h>   // for getLocalEncodingFileName
 #include <iAImageData.h>
 #include <iAPolyData.h>
 #include <iAProgress.h>
@@ -27,7 +26,7 @@ std::shared_ptr<iADataSet> iAVTKFileIO::loadData(QString const& fileName, QVaria
 {
 	Q_UNUSED(paramValues);
 	auto reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
-	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
+	reader->SetFileName(fileName.toStdString().c_str());
 	progress.observe(reader);
 	reader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 	reader->Update();

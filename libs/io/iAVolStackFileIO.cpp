@@ -6,7 +6,6 @@
 #include "iAFileTypeRegistry.h"
 #include "iASettingsFileHelper.h"    // for readSettingsFile
 
-#include <iAFileUtils.h>
 #include <iAProgress.h>
 #include <iASettings.h>    // for mapFromQSettings
 #include <iAValueTypeVectorHelpers.h>

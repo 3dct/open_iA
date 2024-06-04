@@ -6,8 +6,6 @@
 #include "iAFiberCharacteristics.h"
 #include "iA4DCTDefects.h"
 
-#include <iAFileUtils.h>
-
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -49,8 +47,7 @@ void iADefectClassifier::run( Parameters params )
 iADefectClassifier::FeatureList iADefectClassifier::readDefects( QString const & defectFile ) const
 {
 	FeatureList result;
-	std::ifstream file;
-	file.open( getLocalEncodingFileName(defectFile) );
+	std::ifstream file( defectFile.toStdString() );
 	iAFeature f;
 	while( file >> f ) result.push_back( f );
 	return result;
@@ -226,8 +223,7 @@ void iADefectClassifier::save( ) const
 	iA4DCTDefects::save( m_classification.Debondings, qOutputDir + "ids_fiber_matrix_debondings.txt" );
 	iA4DCTDefects::save( m_classification.Breakages, qOutputDir + "ids_fiber_fractures.txt" );
 
-	std::ofstream ofs;
-	ofs.open( getLocalEncodingFileName( qOutputDir + "statistics.txt" ).c_str() );
+	std::ofstream ofs( ( qOutputDir + "statistics.txt" ).toStdString() );
 	ofs << "Parameters:\n";
 	ofs << "Spacing = " << m_param.Spacing << std::endl;
 	ofs << "Fiber fracture angle = " << m_param.AngleB << std::endl;

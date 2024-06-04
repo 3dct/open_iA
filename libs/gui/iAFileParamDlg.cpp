@@ -300,7 +300,7 @@ class iAHDF5FileLoadParamDlg: public iAFileParamDlg
 		Q_UNUSED(parameters); // we know which parameters we have
 		Q_UNUSED(ioName);
 		Q_UNUSED(dataSet);
-		hid_t file_id = H5Fopen(getLocalEncodingFileName(fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+		hid_t file_id = H5Fopen(fileName.toStdString().c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
 		if (file_id < 0)
 		{
 			hdf5PrintErrorsToConsole();

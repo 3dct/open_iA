@@ -1,7 +1,7 @@
 // Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <iAExceptionThrowingErrorObserver.h>
-#include <iAFileUtils.h>
+#include <iAFileUtils.h>    // for determineStackParameters
 #include <iAFilterDefault.h>
 #include <iAImageData.h>
 #include <iALog.h>
@@ -61,7 +61,7 @@ void iAStackReaderFilter::performWork(QVariantMap const & parameters)
 	for (int i = indexRange[0]; i <= indexRange[1]; i++)
 	{
 		QString temp = prefix + QString("%1").arg(i, digits, 10, QChar('0')) + suffix;
-		fileNameArray->InsertNextValue(getLocalEncodingFileName(temp));
+		fileNameArray->InsertNextValue(temp.toStdString());
 	}
 	imgReader->SetFileNames(fileNameArray);
 	double origin[3];

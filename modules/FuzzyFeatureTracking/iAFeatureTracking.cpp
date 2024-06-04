@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFeatureTracking.h"
 
-#include <iAFileUtils.h>
 #include <iALog.h>
 
 #include <vtkTable.h>
@@ -56,7 +55,7 @@ vtkSmartPointer<vtkTable> iAFeatureTracking::readTableFromFile(const QString& fi
 	if (filename != "")
 	{
 		std::string line;
-		std::ifstream inputStream(getLocalEncodingFileName(filename));
+		std::ifstream inputStream(filename.toStdString());
 		if (inputStream.is_open())
 		{
 			for (int i = 0; i < dataLineOffset; i++)
@@ -642,8 +641,7 @@ void iAFeatureTracking::TrackFeatures()
 
 	if (outputFilename != "")
 	{
-		std::ofstream out;
-		out.open(getLocalEncodingFileName(outputFilename));
+		std::ofstream out(outputFilename.toStdString());
 		out << "Dissipation" << std::endl;
 		for (auto p = dissipated->begin(); p != dissipated->end(); p++)
 		{

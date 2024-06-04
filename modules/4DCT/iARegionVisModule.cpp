@@ -5,7 +5,7 @@
 #include "iACalculateDensityMap.h"
 #include "iA4DCTVisWin.h"	// ToDo: Scale!
 
-#include <iAFileUtils.h>
+#include <iAToolsVTK.h>
 
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkResampleImageFilter.h>
@@ -17,7 +17,6 @@
 #include <vtkDepthSortPolyData.h>
 #include <vtkImageData.h>
 #include <vtkMarchingCubes.h>
-#include <vtkMetaImageReader.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkPolyDataSilhouette.h>
 #include <vtkProperty.h>
@@ -139,7 +138,7 @@ void iARegionVisModule::setImage( QString fileName )
 	auto image = DensityMapImageType::New();
 	{
 		auto reader = itk::ImageFileReader<DensityMapImageType>::New();
-		reader->SetFileName( getLocalEncodingFileName(fileName) );
+		reader->SetFileName( fileName.toStdString() );
 		reader->Update( );
 
 		DensityMapImageType::IndexType index; index.Fill( 0 );
@@ -243,19 +242,17 @@ void iARegionVisModule::calculateDensityMap( QString fileName, iARegionVisModule
 {
 	typedef itk::Image<double, 3> DoubleImageType;
 	// read image
-	auto reader = vtkSmartPointer<vtkMetaImageReader>::New();
-	reader->SetFileName( getLocalEncodingFileName(fileName).c_str( ) );
-	reader->Update( );
+	auto img = readImage(fileName);
 
 	// calculate density map
 	//int m_densityMapSize[3] = { 15, 5, 30 };
 	std::vector<std::vector<std::vector<double>>> density;
 	double cellSize[3];
-	density = CalculateDensityMap<double, unsigned short>::Calculate( reader->GetOutput( ), m_densityMapSize, cellSize );
+	density = CalculateDensityMap<double, unsigned short>::Calculate(img, m_densityMapSize, cellSize );
 
 	// make an itk image
-	double* oldSpacing = reader->GetOutput( )->GetSpacing( );
-	int* extent = reader->GetOutput( )->GetExtent( );
+	double* oldSpacing = img->GetSpacing( );
+	int* extent = img->GetExtent( );
 	int imgSize[3];
 	imgSize[0] = extent[1] - extent[0] + 1;
 	imgSize[1] = extent[3] - extent[2] + 1;
