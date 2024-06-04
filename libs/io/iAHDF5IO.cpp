@@ -4,7 +4,6 @@
 
 #include "iAHDF5IO.h"
 
-#include "iAFileUtils.h"
 #include "iAImageData.h"
 #include "iAToolsITK.h"    // for storeImage, pulls in iAITKIO
 #include "iAValueTypeVectorHelpers.h"
@@ -102,7 +101,7 @@ iAHDF5IO::iAHDF5IO() : iAFileIO(iADataSetType::Volume, iADataSetType::Volume)
 std::shared_ptr<iADataSet> iAHDF5IO::loadData(QString const& fileName, QVariantMap const& params, iAProgress const& progress)
 {
 	Q_UNUSED(progress);
-	hid_t file_id = H5Fopen(getLocalEncodingFileName(fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+	hid_t file_id = H5Fopen(fileName.toStdString().c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
 	if (hdf5IsITKImage(file_id))
 	{
 		H5Fclose(file_id);
