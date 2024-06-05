@@ -259,6 +259,7 @@ namespace
 
 	const quint64 NoSyncedClient = std::numeric_limits<quint64>::max();
 	const quint64 ServerID = 1000; // ID of the server (for syncing its view/camera to clients)
+	const quint16 ServerPort = 8082;
 }
 
 class iAUnityWebsocketServerToolImpl : public QObject
@@ -513,7 +514,7 @@ public:
 		// potential improvement: send updates every x milliseconds only on modified, and send one final update on release?
 		//child->renderer()->renderer()->AddObserver(vtkCommand::LeftButtonReleaseEvent, this, &Self::camModified);
 
-		if (!m_wsServer->listen(QHostAddress::Any, 50505))
+		if (!m_wsServer->listen(QHostAddress::Any, ServerPort))
 		{
 			LOG(lvlError, QString("%1: Listening failed (error: %2)!")
 				.arg(iAUnityWebsocketServerTool::Name)
