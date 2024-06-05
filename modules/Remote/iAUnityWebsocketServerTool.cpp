@@ -1238,16 +1238,22 @@ private slots:
 			m_camLastPos = posDbl;
 			std::array<float, 3> posFlt{ static_cast<float>(posDbl[0]), static_cast<float>(posDbl[1]), static_cast<float>(posDbl[2]) };
 			objectToUnitPos(posFlt);
-			//LOG(lvlDebug, QString("Camera position modified; new: %1").arg(posDbl.toString()));
+			//LOG(lvlDebug, QString("Camera position modified; new: %1 (unit pos: %2)").arg(posDbl.toString()).arg(arrayToString(posFlt)));
 			broadcastMsg(msgObjectCommand(ServerID, ObjectCommandType::SetTranslation, posFlt));
 		}
 		if ((dirDbl.normalized() - m_camLastDir).length() > CamChangeRotEpsilon)
 		{
 			m_camLastDir = dirDbl.normalized();
-			std::array<float, 3> dirFlt = { static_cast<float>(dirDbl[0]), static_cast<float>(dirDbl[1]), static_cast<float>(dirDbl[2]) };
 			//LOG(lvlDebug, QString("Camera rotation modified; new: %1").arg(dirDbl.toString()));
-			auto quat = getRotationQuaternionFromVectors(DefaultCameraViewDirection, dirFlt);
-			broadcastMsg(msgObjectCommand(ServerID, ObjectCommandType::SetRotationQuaternion, quat));
+			//auto quat = getRotationQuaternionFromVectors(DefaultCameraViewDirection, dirFlt);
+			//broadcastMsg(msgObjectCommand(ServerID, ObjectCommandType::SetRotationQuaternion, quat));
+			std::array<double, 3> upDbl;
+			cam->GetViewUp(upDbl.data());
+			std::array<float, 6> data = {
+				static_cast<float>(dirDbl[0]), static_cast<float>(dirDbl[1]), static_cast<float>(dirDbl[2]),
+				static_cast<float>(upDbl[0]), static_cast<float>(upDbl[1]), static_cast<float>(upDbl[2])
+			};
+			broadcastMsg(msgObjectCommand(ServerID, ObjectCommandType::SetRotationNormalUp, data));
 		}
 	}
 };
