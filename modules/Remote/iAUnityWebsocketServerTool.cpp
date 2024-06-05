@@ -1080,11 +1080,11 @@ private:
 						unitToObjectPos(info.position);
 						std::array<float, 4> rotation;
 						readArray(rcvStream, rotation);
-						LOG(lvlInfo, QString("  New Snapshot: position %1, rotation %2")
+						LOG(lvlWarn, QString("  New Snapshot: position %1, rotation %2: Note that rotation quaternion conversion is EXPERIMENTAL!")
 							.arg(arrayToString(info.position)).arg(arrayToString(rotation)));
 						info.normal = applyRotationToVector(DefaultPlaneNormal, rotation);
-						auto snapshotID = m_planeSliceTool->addSnapshot(info);
-						addSnapshot(snapshotID, info);
+						auto snapshotIDRow = m_planeSliceTool->addSnapshot(info);
+						addSnapshot(snapshotIDRow.first, info);
 						break;
 					}
 					case SnapshotCommandType::CreatePosNormal:
@@ -1095,8 +1095,8 @@ private:
 						readArray(rcvStream, info.normal);
 						LOG(lvlInfo, QString("  New Snapshot: position %1, normal %2")
 							.arg(arrayToString(info.position)).arg(arrayToString(info.normal)));
-						auto snapshotID = m_planeSliceTool->addSnapshot(info);
-						addSnapshot(snapshotID, info);
+						auto snapshotIDRow = m_planeSliceTool->addSnapshot(info);
+						addSnapshot(snapshotIDRow.first, info);
 						break;
 					}
 					case SnapshotCommandType::Remove:

@@ -189,8 +189,10 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 			m_planeWidget->GetNormal(planeNormal.data());
 			std::copy(center.begin(), center.end(), info.position.data());
 			std::copy(planeNormal.begin(), planeNormal.end(), info.normal.data());
-			auto id = addSnapshot(info);
-			emit snapshotAdded(id, info);
+			auto idRow = addSnapshot(info);
+			QSignalBlocker b(m_snapshotTable);
+			m_snapshotTable->selectRow(idRow.second);
+			emit snapshotAdded(idRow.first, info);
 		});
 	iAMainWindow::get()->addActionIcon(addAction, "plus");
 	auto addButton = new QToolButton(buttonContainer);
@@ -280,6 +282,8 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 		});
 	modifiedCallback->SetClientData(this);
 	m_planeWidget->AddObserver(vtkCommand::InteractionEvent, modifiedCallback);
+
+	updateSlice();
 }
 
 iAPlaneSliceTool::~iAPlaneSliceTool()
@@ -362,7 +366,7 @@ void iAPlaneSliceTool::saveState(QSettings& projectFile, QString const& fileName
 	projectFile.setValue(ProjectPlaneParameters, planeParamStr);
 }
 
-quint64 iAPlaneSliceTool::addSnapshot(iASnapshotInfo info)
+std::pair<quint64, int> iAPlaneSliceTool::addSnapshot(iASnapshotInfo info)
 {
 	auto id = m_nextSnapshotID++;
 	m_snapshots[id] = info;
@@ -390,10 +394,8 @@ quint64 iAPlaneSliceTool::addSnapshot(iASnapshotInfo info)
 	actionContainer->layout()->addWidget(removeButton);
 
 	m_snapshotTable->setCellWidget(row, static_cast<int>(TableColumn::Delete), actionContainer);
-	QSignalBlocker b(m_snapshotTable);
-	m_snapshotTable->selectRow(row);
 	m_snapshotTable->resizeColumnsToContents();
-	return id;
+	return std::make_pair(id, row);
 }
 
 std::map<quint64, iASnapshotInfo> const& iAPlaneSliceTool::snapshots()
@@ -411,12 +413,6 @@ void iAPlaneSliceTool::clearSnapshots()
 {
 	m_snapshots.clear();
 	m_snapshotTable->setRowCount(0);
-}
-
-void iAPlaneSliceTool::moveSlice(quint64 /*id*/, iAMoveAxis /*axis*/, float /*value*/)
-{
-	//auto& s = m_snapshots[id];
-	// apply shift
 }
 
 void iAPlaneSliceTool::updateSlice()
