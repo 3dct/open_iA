@@ -57,7 +57,7 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 	}
 	if (m_logToFile && lvl >= m_fileLogLevel)
 	{
-		std::ofstream logfile(m_logFileName.toStdString(), std::ofstream::out | std::ofstream::app);
+		std::ofstream logfile(m_logFileName.toStdString(), std::ofstream::app);
 		logfile << text.toStdString() << std::endl;
 		logfile.flush();
 		logfile.close();

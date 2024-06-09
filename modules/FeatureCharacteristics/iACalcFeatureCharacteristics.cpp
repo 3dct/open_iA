@@ -41,7 +41,7 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 
 	// Writing pore csv file
 	double spacing = longImage->GetSpacing()[0];
-	std::ofstream fout( pathCSV.toStdString(), std::ofstream::out);
+	std::ofstream fout( pathCSV.toStdString());
 
 	// Header of pore csv file
 	fout << "Spacing" << ',' << spacing << '\n'

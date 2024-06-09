@@ -1251,7 +1251,7 @@ void iAChartWidget::exportData()
 	{
 		return;
 	}
-	std::ofstream out( fileName.toStdString().c_str() );
+	std::ofstream out(fileName.toStdString());
 	if (!out.is_open() || !out.good())
 	{
 		LOG(lvlError, QString("Chart export: Failed to open file %1 for writing.")
