@@ -300,7 +300,7 @@ private:
 	{
 		std::array<float, N> values{};
 		readArray(rcvStream, values);
-		LOG(lvlInfo, QString("    values=%1; broadcasting!").arg(arrayToString(values)));
+		LOG(lvlDebug, QString("    values=%1; broadcasting!").arg(arrayToString(values)));
 		broadcastMsg(msgObjectCommand(objID, objCmdType, values), clientID);
 
 		if (clientID == m_syncedClientID)  // if sync enabled, apply to local objects:
@@ -320,7 +320,7 @@ private:
 					assert(N == 16);
 					vtkNew<vtkTransform> tr;
 					tr->SetMatrix(dblVal.data());
-					LOG(lvlInfo, QString("  Setting transformation matrix = (%1)").arg(arrayToString(dblVal)));
+					LOG(lvlDebug, QString("  Setting transformation matrix = (%1)").arg(arrayToString(dblVal)));
 					prop->SetUserTransform(tr);
 					break;
 				}
@@ -328,7 +328,7 @@ private:
 				{
 					// TODO: TEST / Check whether used!
 					assert(N == 3);
-					LOG(lvlInfo, QString("  Setting scale = (%1)").arg(arrayToString(dblVal)));
+					LOG(lvlDebug, QString("  Setting scale = (%1)").arg(arrayToString(dblVal)));
 					prop->SetScale(dblVal.data());
 					break;
 				}
@@ -337,14 +337,14 @@ private:
 					// TODO: TEST / Check whether used!
 					assert(N == 3);
 					unitToObjectPos(dblVal);
-					LOG(lvlInfo, QString("  Setting pos = (%1)").arg(arrayToString(dblVal)));
+					LOG(lvlDebug, QString("  Setting pos = (%1)").arg(arrayToString(dblVal)));
 					prop->SetPosition(dblVal.data());
 					break;
 				}
 				case ObjectCommandType::SetRotationEuler:
 				{
 					// TODO: TEST / Check whether used!
-					LOG(lvlInfo, QString("  Setting euler rotation = (%1)").arg(arrayToString(dblVal)));
+					LOG(lvlDebug, QString("  Setting euler rotation = (%1)").arg(arrayToString(dblVal)));
 					prop->SetOrientation(dblVal.data());
 					break;
 				}
@@ -370,7 +370,7 @@ private:
 						const double RoundDegrees = 2;
 						angles[a] = std::round(angles[a] / RoundDegrees) * RoundDegrees;
 					}
-					LOG(lvlInfo, QString("  Setting rotatation: quat = (%1), angle = (%2)")
+					LOG(lvlDebug, QString("  Setting rotatation: quat = (%1), angle = (%2)")
 							.arg(arrayToString(q))
 							.arg(arrayToString(angles)));
 					auto bounds = renderer->bounds();
@@ -419,7 +419,7 @@ private:
 					assert(N == 16);
 					vtkNew<vtkTransform> tr;
 					tr->SetMatrix(dblVal.data());
-					LOG(lvlInfo, QString("  Setting transformation matrix = (%1)").arg(arrayToString(dblVal)));
+					LOG(lvlDebug, QString("  Setting transformation matrix = (%1)").arg(arrayToString(dblVal)));
 					//cam->SetUserTransform(tr);  // probably not working as expected - this is applied _in addition_ to other settings
 					
 					break;
@@ -428,7 +428,7 @@ private:
 				{
 					// TODO: TEST / Check whether used! -> only 1 value used
 					assert(N == 3);
-					LOG(lvlInfo, QString("  Setting scale = (%1)").arg(arrayToString(dblVal)));
+					LOG(lvlDebug, QString("  Setting scale = (%1)").arg(arrayToString(dblVal)));
 					//cam->SetParallelScale(dblVal[0]);  // probably not working as expected
 					break;
 				}
@@ -437,7 +437,7 @@ private:
 					// TODO: TEST / Check whether used!
 					assert(N == 3);
 					unitToObjectPos(dblVal);
-					LOG(lvlInfo, QString("  Setting pos = (%1)").arg(arrayToString(dblVal)));
+					LOG(lvlDebug, QString("  Setting pos = (%1)").arg(arrayToString(dblVal)));
 					//cam->SetPosition(dblVal.data());
 					iAVec3d pos(dblVal.data());
 					vis->update(pos, vis->dir());
@@ -460,7 +460,7 @@ private:
 				{
 					iAVec3d dir{ dblVal[0], dblVal[1], dblVal[2] };
 					iAVec3d up { dblVal[3], dblVal[4], dblVal[5] };
-					LOG(lvlInfo, QString("  Setting rotation, normal = (%1), up = (%2) (up is currently unused)")
+					LOG(lvlDebug, QString("  Setting rotation, normal = (%1), up = (%2) (up is currently unused)")
 						.arg(dir.toString()).arg(up.toString()));
 					vis->update(vis->pos(), dir);
 					break;
@@ -640,7 +640,7 @@ public:
 			});
 			connect(client, &QWebSocket::textMessageReceived, this, [this, clientID](QString message)
 			{
-				LOG(lvlInfo, QString("%1: Client (ID=%2): TEXT MESSAGE received: %3.")
+				LOG(lvlWarn, QString("%1: Client (ID=%2): TEXT MESSAGE received: %3!")
 					.arg(iAUnityWebsocketServerTool::Name).arg(clientID).arg(message));
 			});
 			connect(client, &QWebSocket::binaryMessageReceived, this, [this, child, clientID](QByteArray rcvData)
@@ -907,7 +907,7 @@ private:
 			rcvStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 			MessageType type;
 			rcvStream >> type;
-			LOG(lvlInfo, QString("%1: Received message of type %2 from client ID=%3; (data: %4)")
+			LOG(lvlDebug, QString("%1: Received message of type %2 from client ID=%3; (data: %4)")
 					.arg(iAUnityWebsocketServerTool::Name)
 					.arg(static_cast<int>(type))
 					.arg(clientID)
@@ -1013,15 +1013,13 @@ private:
 				{
 					if (!isInEnum<ObjectCommandType>(rcvData[1]))
 					{  // encountered value and valid range output already in isInEnum!
-						LOG(lvlError,
-							QString("  Invalid object message: subcommand not in valid range; ignoring message!"));
+						LOG(lvlError, QString("  Invalid object message: subcommand not in valid range; ignoring message!"));
 						return;
 					}
 					ObjectCommandType objCommand;
 					rcvStream >> objCommand;
 					auto objID = readVal<quint64>(rcvStream);
-					LOG(lvlInfo,
-						QString("  Object subcommand %1 for object ID %2").arg(static_cast<int>(objCommand)).arg(objID));
+					LOG(lvlDebug, QString("  Object subcommand %1 for object ID %2").arg(static_cast<int>(objCommand)).arg(objID));
 					switch (objCommand)
 					{
 					case ObjectCommandType::SetMatrix:
@@ -1040,7 +1038,7 @@ private:
 					{
 						auto axis = readVal<quint8>(rcvStream);
 						float value = readVal<float>(rcvStream);
-						LOG(lvlInfo,
+						LOG(lvlDebug,
 							QString("  Object command=SetRotation (Euler Angles) received for object ID=%1 with axis=%3, "
 									"value=%4.")
 								.arg(static_cast<int>(objCommand))
