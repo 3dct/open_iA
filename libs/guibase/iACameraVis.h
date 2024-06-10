@@ -10,7 +10,7 @@
 
 #include <QObject>
 
-class vtkActor;
+class vtkAssembly;
 class vtkCamera;
 class vtkConeSource;
 class vtkCylinderSource;
@@ -35,9 +35,7 @@ signals:
 
 private:
 	vtkRenderer* m_ren;
-	vtkSmartPointer<vtkActor> m_camPosActor;
-	vtkSmartPointer<vtkActor> m_camDirActor;
-	vtkSmartPointer<vtkActor> m_camUpActor;
+	vtkSmartPointer<vtkAssembly> m_assembly;
 	vtkSmartPointer<vtkSphereSource> m_camPosSource;
 	vtkSmartPointer<vtkConeSource> m_camDirSource;
 	vtkSmartPointer<vtkCylinderSource> m_camUpSource;
