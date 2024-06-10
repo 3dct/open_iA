@@ -425,7 +425,7 @@ template <typename T1, typename T2>
 T1 angleBetween(iAVec3T<T1> const & u, iAVec3T<T2> const & v)
 {
 	return (u.length() == 0 || v.length() == 0) ? 0 :
-		std::acos(dotProduct(u, v) / (u.length() * static_cast<T1>(v.length())));
+		std::acos(dotProduct(u.normalized(), v.normalized()));
 }
 
 // deprecated aliases for dot/cross product:
