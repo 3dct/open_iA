@@ -32,23 +32,23 @@ iACameraVis::iACameraVis(vtkRenderer* ren, double size) :
 	m_camPosActor->GetProperty()->SetColor(0, 128, 0);
 
 	vtkNew<vtkPolyDataMapper> camDirMapper;
-	m_camDirSource->SetHeight(0.8 * size);
-	m_camDirSource->SetRadius(0.4 * size);
+	m_camDirSource->SetHeight(1 * size);
+	m_camDirSource->SetRadius(0.5 * size);
 	m_camDirSource->SetResolution(12);
 	camDirMapper->SetInputConnection(m_camDirSource->GetOutputPort());
 	m_camDirActor->SetMapper(camDirMapper);
 	m_camDirActor->GetProperty()->SetOpacity(1.0);
-	m_camDirActor->GetProperty()->SetColor(0, 96, 0);
+	m_camDirActor->GetProperty()->SetColor(32, 96, 0);
 	m_camDirActor->GetProperty()->SetLineWidth(5);
 
 	vtkNew<vtkPolyDataMapper> camUpMapper;
-	m_camUpSource->SetHeight(0.8 * size);
-	m_camUpSource->SetRadius(0.4 * size);
+	m_camUpSource->SetHeight(1 * size);
+	m_camUpSource->SetRadius(0.5 * size);
 	m_camUpSource->SetResolution(12);
 	camUpMapper->SetInputConnection(m_camUpSource->GetOutputPort());
 	m_camUpActor->SetMapper(camUpMapper);
 	m_camUpActor->GetProperty()->SetOpacity(1.0);
-	m_camUpActor->GetProperty()->SetColor(0, 96, 0);
+	m_camUpActor->GetProperty()->SetColor(32, 96, 0);
 	m_camUpActor->GetProperty()->SetLineWidth(5);
 }
 
@@ -104,14 +104,14 @@ void iACameraVis::updateSource()
 	auto dirTheta = vtkMath::DegreesFromRadians(angleBetween(defaultDir, m_dir));
 	auto dirAxis = crossProduct(defaultDir, m_dir);
 	m_camDirActor->RotateWXYZ(dirTheta, dirAxis[0], dirAxis[1], dirAxis[2]);
-	iAVec3d dirVecPos(m_pos + m_dir * m_size * 1.35); // 1.35 because pos specifies center of cone, and cone is 0.8 size high
+	iAVec3d dirVecPos(m_pos + m_dir * m_size * 1.5); // 1.35 because pos specifies center of cone, and cone is 0.8 size high
 	LOG(lvlInfo, QString("Dir pos: %1; rot (axis=%2, theta=%3").arg(dirVecPos.toString()).arg(dirAxis.toString()).arg(dirTheta));
 	m_camDirActor->SetPosition(dirVecPos.data());     // probably we could use m_camDirSource->SetCenter instead
 
 	auto upTheta = vtkMath::DegreesFromRadians(angleBetween(defaultDir, m_up));
 	auto upAxis = crossProduct(defaultDir, m_up);
 	m_camDirActor->RotateWXYZ(upTheta, upAxis[0], upAxis[1], upAxis[2]);
-	iAVec3d upVecPos(m_pos + m_up * m_size * 1.35); // 1.35 because pos specifies center of cone, and cone is 0.8 size high
+	iAVec3d upVecPos(m_pos + m_up * m_size * 1.5); // 1.35 because pos specifies center of cone, and cone is 0.8 size high
 	LOG(lvlInfo, QString("Up pos: %1; rot (axis=%2, theta=%3").arg(upVecPos.toString()).arg(upAxis.toString()).arg(upTheta));
 	m_camUpActor->SetPosition(upVecPos.data());     // probably we could use m_camDirSource->SetCenter instead
 }
