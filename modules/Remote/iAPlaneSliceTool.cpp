@@ -179,21 +179,20 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 
 	auto addAction = new QAction("Add");
 	addAction->setToolTip("Add snapshot at current position of slicing plane.");
-	QObject::connect(addAction, &QAction::triggered, m_snapshotTable,
-		[this]()
-		{
-			iASnapshotInfo info;
-			// convert double information in plane widget to float in iASnapshotInfo
-			std::array<double, 3> center, planeNormal;
-			m_planeWidget->GetCenter(center.data());
-			m_planeWidget->GetNormal(planeNormal.data());
-			std::copy(center.begin(), center.end(), info.position.data());
-			std::copy(planeNormal.begin(), planeNormal.end(), info.normal.data());
-			auto idRow = addSnapshot(info);
-			QSignalBlocker b(m_snapshotTable);
-			m_snapshotTable->selectRow(idRow.second);
-			emit snapshotAdded(idRow.first, info);
-		});
+	QObject::connect(addAction, &QAction::triggered, m_snapshotTable, [this]()
+	{
+		iASnapshotInfo info;
+		// convert double information in plane widget to float in iASnapshotInfo
+		std::array<double, 3> center, planeNormal;
+		m_planeWidget->GetCenter(center.data());
+		m_planeWidget->GetNormal(planeNormal.data());
+		std::copy(center.begin(), center.end(), info.position.data());
+		std::copy(planeNormal.begin(), planeNormal.end(), info.normal.data());
+		auto idRow = addSnapshot(info);
+		QSignalBlocker b(m_snapshotTable);
+		m_snapshotTable->selectRow(idRow.second);
+		emit snapshotAdded(idRow.first, info);
+	});
 	iAMainWindow::get()->addActionIcon(addAction, "plus");
 	auto addButton = new QToolButton(buttonContainer);
 	addButton->setDefaultAction(addAction);
@@ -212,12 +211,11 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 
 	auto clearAction = new QAction("Clear");
 	clearAction->setToolTip("Clear (=remove all) snapshots.");
-	QObject::connect(clearAction, &QAction::triggered, m_snapshotTable,
-		[this]()
-		{
-			clearSnapshots();
-			emit snapshotsCleared();
-		});
+	QObject::connect(clearAction, &QAction::triggered, m_snapshotTable, [this]()
+	{
+		clearSnapshots();
+		emit snapshotsCleared();
+	});
 	iAMainWindow::get()->addActionIcon(clearAction, "close");
 	auto clearButton = new QToolButton(buttonContainer);
 	clearButton->setDefaultAction(clearAction);
@@ -277,13 +275,12 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	child->updateRenderer();
 
 	vtkNew<vtkCallbackCommand> modifiedCallback;
-	modifiedCallback->SetCallback(
-		[](vtkObject* vtkNotUsed(caller), long unsigned int vtkNotUsed(eventId), void* clientData,
-			void* vtkNotUsed(callData))
-		{
-			auto tool = reinterpret_cast<iAPlaneSliceTool*>(clientData);
-			tool->updateSliceFromUser();
-		});
+	modifiedCallback->SetCallback([](vtkObject* vtkNotUsed(caller), long unsigned int vtkNotUsed(eventId), void* clientData,
+		void* vtkNotUsed(callData))
+	{
+		auto tool = reinterpret_cast<iAPlaneSliceTool*>(clientData);
+		tool->updateSliceFromUser();
+	});
 	modifiedCallback->SetClientData(this);
 	m_planeWidget->AddObserver(vtkCommand::InteractionEvent, modifiedCallback);
 
@@ -386,12 +383,11 @@ std::pair<quint64, int> iAPlaneSliceTool::addSnapshot(iASnapshotInfo info)
 	auto actionContainer = createContainerWidget<QHBoxLayout>(1);
 	auto removeAction = new QAction("Remove");
 	removeAction->setToolTip("Remove snapshot.");
-	QObject::connect(removeAction, &QAction::triggered, m_snapshotTable,
-		[this, id]()
-		{
-			removeSnapshot(id);
-			emit snapshotRemoved(id);
-		});
+	QObject::connect(removeAction, &QAction::triggered, m_snapshotTable, [this, id]()
+	{
+		removeSnapshot(id);
+		emit snapshotRemoved(id);
+	});
 	iAMainWindow::get()->addActionIcon(removeAction, "delete");
 	auto removeButton = new QToolButton(actionContainer);
 	removeButton->setDefaultAction(removeAction);
