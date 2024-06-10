@@ -66,6 +66,7 @@ signals:
 private:
 	void updateSlice();
 	void updateSliceFromUser();
+	void resetPlaneParameters(iAMdiChild* child);
 
 	iAQVTKWidget* m_sliceWidget;
 	QTableWidget* m_snapshotTable;

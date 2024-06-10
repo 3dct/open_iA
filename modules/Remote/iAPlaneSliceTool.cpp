@@ -198,6 +198,18 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	auto addButton = new QToolButton(buttonContainer);
 	addButton->setDefaultAction(addAction);
 
+	auto resetAction = new QAction("Reset");
+	resetAction->setToolTip("Reset snapshot position to middle of first image dataset.");
+	QObject::connect(resetAction, &QAction::triggered, child, [this, child]()
+	{
+		resetPlaneParameters(child);
+		child->updateRenderer();
+		updateSliceFromUser();
+	});
+	iAMainWindow::get()->addActionIcon(resetAction, "update");
+	auto resetButton = new QToolButton(buttonContainer);
+	resetButton->setDefaultAction(resetAction);
+
 	auto clearAction = new QAction("Clear");
 	clearAction->setToolTip("Clear (=remove all) snapshots.");
 	QObject::connect(clearAction, &QAction::triggered, m_snapshotTable,
@@ -212,6 +224,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 
 	buttonContainer->layout()->addWidget(addButton);
 	buttonContainer->layout()->addWidget(clearButton);
+	buttonContainer->layout()->addWidget(resetButton);
 	buttonContainer->setMinimumWidth(20);
 
 	listWidget->layout()->addWidget(buttonContainer);
@@ -227,15 +240,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	child->splitDockWidget(m_sliceDW, m_listDW, Qt::Vertical);
 
 	//m_planeWidget->SetDefaultRenderer(child->renderer()->renderer());
-	
-	auto bounds = child->dataSetViewer(ds)->renderer()->bounds();
-	auto lengths = bounds.maxCorner() - bounds.minCorner();
-	auto maxSideLen = std::max(std::max(lengths.x(), lengths.y()), lengths.z());
-	auto handleSize = maxSideLen / 40.0;
-	auto objCenter = (bounds.maxCorner() - bounds.minCorner()) / 2;
-	m_planeWidget->SetOrigin(bounds.minCorner().x(), bounds.minCorner().y(), objCenter.z());
-	m_planeWidget->SetPoint1(bounds.maxCorner().x(), bounds.minCorner().y(), objCenter.z());
-	m_planeWidget->SetPoint2(bounds.minCorner().x(), bounds.maxCorner().y(), objCenter.z());
+	resetPlaneParameters(child);
 	m_planeWidget->SetInteractor(child->renderer()->interactor());
 	//m_planeWidget->SetRepresentationToSurface();
 	m_planeWidget->On();
@@ -243,7 +248,6 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	// set to middle of object in z direction (i.e. xy slice default position):
 	// set handle size to a 20th of the longest dataset size:
 	//m_planeWidget->GetHandleProperty()->
-	m_planeWidget->setHandleRadius(handleSize);
 	m_planeWidget->SizeHandles();
 
 	m_reslicer->SetInputData(child->firstImageData());
@@ -434,6 +438,20 @@ void iAPlaneSliceTool::updateSliceFromUser()
 		QSignalBlocker b(m_snapshotTable);
 		m_snapshotTable->setCurrentCell(-1, -1);
 	}
+}
+
+void iAPlaneSliceTool::resetPlaneParameters(iAMdiChild* child)
+{
+	auto bounds = child->renderer()->sceneBounds();
+	auto objCenter = (bounds.maxCorner() - bounds.minCorner()) / 2;
+	m_planeWidget->SetOrigin(bounds.minCorner().x(), bounds.minCorner().y(), objCenter.z());
+	m_planeWidget->SetPoint1(bounds.maxCorner().x(), bounds.minCorner().y(), objCenter.z());
+	m_planeWidget->SetPoint2(bounds.minCorner().x(), bounds.maxCorner().y(), objCenter.z());
+
+	auto lengths = bounds.maxCorner() - bounds.minCorner();
+	auto maxSideLen = std::max(std::max(lengths.x(), lengths.y()), lengths.z());
+	auto handleSize = maxSideLen / 40.0;
+	m_planeWidget->setHandleRadius(handleSize);
 }
 
 const QString iAPlaneSliceTool::Name("Arbitrary Slice Plane");
