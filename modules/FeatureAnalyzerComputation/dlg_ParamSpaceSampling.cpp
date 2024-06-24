@@ -461,7 +461,12 @@ void dlg_ParamSpaceSampling::createHistoSpinBoxes()
 	QObject::connect(sbDelta, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_ParamSpaceSampling::updateHistoPeaks);
 	QObject::connect(sbSigma, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_ParamSpaceSampling::updateHistoSmooth);
 	QObject::connect(m_sbIsoX, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_ParamSpaceSampling::updateIsoXPeak);
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 	QObject::connect(m_cbSHLine, &QCheckBox::stateChanged, this, &dlg_ParamSpaceSampling::updateSHLine);
+#else
+	QObject::connect(m_cbSHLine, &QCheckBox::checkStateChanged, this, &dlg_ParamSpaceSampling::updateSHLine);
+#endif
 
 	histogramBtnContainer_HBLayout->addWidget( sbDelta_Label );
 	histogramBtnContainer_HBLayout->addWidget( sbDelta );

@@ -18,7 +18,13 @@ iA4DCTPlaneDockWidget::iA4DCTPlaneDockWidget( iA4DCTVisWin * parent )
 
 	connect( sSlice, &QSlider::valueChanged, this, &iA4DCTPlaneDockWidget::changedSlice);
 	connect( sOpacity, &QSlider::valueChanged, this, &iA4DCTPlaneDockWidget::changedOpacity );
-	connect( cbShading, &QCheckBox::stateChanged, this, &iA4DCTPlaneDockWidget::enableShading);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
+	connect(cbShading, &QCheckBox::stateChanged, this, &iA4DCTPlaneDockWidget::enableShading);
+	connect(cbHighlighting, &QCheckBox::stateChanged, this, &iA4DCTPlaneDockWidget::enableHighlighting);
+#else
+	connect(cbShading, &QCheckBox::checkStateChanged, this, &iA4DCTPlaneDockWidget::enableShading);
+	connect(cbHighlighting, &QCheckBox::checkStateChanged, this, &iA4DCTPlaneDockWidget::enableHighlighting);
+#endif
 	connect( rbXY, &QRadioButton::clicked, this, &iA4DCTPlaneDockWidget::setXYDir);
 	connect( rbXZ, &QRadioButton::clicked, this, &iA4DCTPlaneDockWidget::setXZDir);
 	connect( rbYZ, &QRadioButton::clicked, this, &iA4DCTPlaneDockWidget::setYZDir);
@@ -26,7 +32,6 @@ iA4DCTPlaneDockWidget::iA4DCTPlaneDockWidget( iA4DCTVisWin * parent )
 	connect( pbDensityMap, &QPushButton::clicked, this, &iA4DCTPlaneDockWidget::densityMapButtonClicked);
 	connect( pbNext, &QPushButton::clicked, this, &iA4DCTPlaneDockWidget::nextSlice);
 	connect( pbPrevious, &QPushButton::clicked, this, &iA4DCTPlaneDockWidget::previousSlice);
-	connect( cbHighlighting, &QCheckBox::stateChanged, this, &iA4DCTPlaneDockWidget::enableHighlighting);
 }
 
 void iA4DCTPlaneDockWidget::attachTo( iAPlaneVisModule * module )

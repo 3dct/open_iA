@@ -129,6 +129,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 
 	connect(gridOpacitySlider, &QSlider::sliderMoved, this, &dlg_eventExplorer::setGridOpacity);
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 	connect(creationCheckBox, &QCheckBox::stateChanged,     [this](int c) { updateCheckBox(Creation, c == Qt::Checked); });
 	connect(continuationCheckBox, &QCheckBox::stateChanged, [this](int c) { updateCheckBox(Continuation, c == Qt::Checked); });
 	connect(splitCheckBox, &QCheckBox::stateChanged,        [this](int c) { updateCheckBox(Bifurcation, c == Qt::Checked); });
@@ -137,6 +138,17 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 
 	connect(logXCheckBox, &QCheckBox::stateChanged, [this](int c) { setChartLogScale(vtkAxis::BOTTOM, c == Qt::Checked); });
 	connect(logYCheckBox, &QCheckBox::stateChanged, [this](int c) { setChartLogScale(vtkAxis::LEFT, c == Qt::Checked); });
+#else
+	connect(creationCheckBox, &QCheckBox::checkStateChanged, [this](int c) { updateCheckBox(Creation, c == Qt::Checked); });
+	connect(continuationCheckBox, &QCheckBox::checkStateChanged, [this](int c) { updateCheckBox(Continuation, c == Qt::Checked); });
+	connect(splitCheckBox, &QCheckBox::checkStateChanged, [this](int c) { updateCheckBox(Bifurcation, c == Qt::Checked); });
+	connect(mergeCheckBox, &QCheckBox::checkStateChanged, [this](int c) { updateCheckBox(Amalgamation, c == Qt::Checked); });
+	connect(dissipationCheckBox, &QCheckBox::checkStateChanged, [this](int c) { updateCheckBox(Dissipation, c == Qt::Checked); });
+
+	connect(logXCheckBox, &QCheckBox::checkStateChanged, [this](int c) { setChartLogScale(vtkAxis::BOTTOM, c == Qt::Checked); });
+	connect(logYCheckBox, &QCheckBox::checkStateChanged, [this](int c) { setChartLogScale(vtkAxis::LEFT, c == Qt::Checked); });
+#endif
+
 
 	m_chartConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
 

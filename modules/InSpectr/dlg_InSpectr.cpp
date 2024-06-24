@@ -117,28 +117,40 @@ dlg_InSpectr::dlg_InSpectr(QWidget* parentWidget, iAPeriodicTableWidget* periodi
 
 	connect ( comB_AccumulateFunction, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_InSpectr::updateAccumulate);
 	connect ( comB_spectrumSelectionMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_InSpectr::updateSelectionMode);
-	connect ( cb_spectraLines, &QCheckBox::stateChanged, this, &dlg_InSpectr::showSpectraLines);
-	connect ( cb_spectraHistograms, &QCheckBox::stateChanged, this, &dlg_InSpectr::showSpectraHistograms);
 	connect ( tb_spectraSettings, &QToolButton::toggled, this, &dlg_InSpectr::showSpectraHistogramsSettings);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
+	connect(cb_spectraLines, &QCheckBox::stateChanged, this, &dlg_InSpectr::showSpectraLines);
+	connect(cb_spectraHistograms, &QCheckBox::stateChanged, this, &dlg_InSpectr::showSpectraHistograms);
 	connect ( cb_spectrumProbing, &QCheckBox::stateChanged, this, &dlg_InSpectr::showVoxelSpectrum);
+	connect(cb_combinedElementMaps, &QCheckBox::stateChanged, this, &dlg_InSpectr::combinedElementMaps);
+	connect(cb_smoothOpacFade, &QCheckBox::stateChanged, this, &dlg_InSpectr::smoothOpacityFadeChecked);
+	connect(cb_linkedElementMaps, &QCheckBox::stateChanged, this, &dlg_InSpectr::showLinkedElementMaps);
+	connect(cb_pieChartGlyphs, &QCheckBox::stateChanged, this, &dlg_InSpectr::pieGlyphsVisualization);
+	connect(cb_aggregatedSpectrum, &QCheckBox::stateChanged, this, &dlg_InSpectr::showAggregatedSpectrum);
+	connect(cb_functionalBoxplot, &QCheckBox::stateChanged, this, &dlg_InSpectr::updateFunctionalBoxplot);
+#else
+	connect(cb_spectraLines, &QCheckBox::checkStateChanged, this, &dlg_InSpectr::showSpectraLines);
+	connect(cb_spectraHistograms, &QCheckBox::checkStateChanged, this, &dlg_InSpectr::showSpectraHistograms);
+	connect(cb_spectrumProbing, &QCheckBox::checkStateChanged, this, &dlg_InSpectr::showVoxelSpectrum);
+	connect(cb_combinedElementMaps, &QCheckBox::checkStateChanged, this, &dlg_InSpectr::combinedElementMaps);
+	connect(cb_smoothOpacFade, &QCheckBox::checkStateChanged, this, &dlg_InSpectr::smoothOpacityFadeChecked);
+	connect(cb_linkedElementMaps, &QCheckBox::checkStateChanged, this, &dlg_InSpectr::showLinkedElementMaps);
+	connect(cb_pieChartGlyphs, &QCheckBox::checkStateChanged, this, &dlg_InSpectr::pieGlyphsVisualization);
+	connect(cb_aggregatedSpectrum, &QCheckBox::checkStateChanged, this, &dlg_InSpectr::showAggregatedSpectrum);
+	connect(cb_functionalBoxplot, &QCheckBox::checkStateChanged, this, &dlg_InSpectr::updateFunctionalBoxplot);
+#endif
 	connect ( pb_decompose, &QPushButton::clicked, this, &dlg_InSpectr::decomposeElements);
 	connect ( pb_decompositionLoad, &QPushButton::clicked, this, &dlg_InSpectr::loadDecomposition);
 	connect ( pb_decompositionStore, &QPushButton::clicked, this, &dlg_InSpectr::storeDecomposition);
-	connect ( cb_combinedElementMaps, &QCheckBox::stateChanged, this, &dlg_InSpectr::combinedElementMaps);
 	connect ( sl_specHistSensitivity, &QSlider::valueChanged, this, &dlg_InSpectr::spectraHistSensitivityChanged);
 	connect ( pb_recompute, &QPushButton::clicked, this, &dlg_InSpectr::recomputeSpectraHistograms);
-	connect ( cb_smoothOpacFade, &QCheckBox::stateChanged, this, &dlg_InSpectr::smoothOpacityFadeChecked);
 	connect ( sl_specHistOpacThreshold, &QSlider::valueChanged, this, &dlg_InSpectr::spectraOpacityThresholdChanged);
 	connect ( comB_colormap, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_InSpectr::changeColormap);
-	connect ( cb_linkedElementMaps, &QCheckBox::stateChanged, this, &dlg_InSpectr::showLinkedElementMaps);
-	connect ( cb_pieChartGlyphs, &QCheckBox::stateChanged, this, &dlg_InSpectr::pieGlyphsVisualization);
 	connect ( tb_pieGlyphSettings, &QToolButton::toggled, this, &dlg_InSpectr::showPieGlyphsSettings);
 	connect ( sl_pieGlyphsOpacity, &QSlider::valueChanged, this, &dlg_InSpectr::updatePieGlyphParameters);
 	connect ( sl_pieGlyphsSpacing, &QSlider::valueChanged, this, &dlg_InSpectr::updatePieGlyphParameters);
 	connect ( sl_pieGlyphResolution, &QSlider::valueChanged, this, &dlg_InSpectr::updatePieGlyphParameters);
 	connect ( sl_concentrationOpacity, &QSlider::valueChanged, this, &dlg_InSpectr::updateConcentrationOpacity);
-	connect ( cb_aggregatedSpectrum, &QCheckBox::stateChanged, this, &dlg_InSpectr::showAggregatedSpectrum);
-	connect ( cb_functionalBoxplot,  &QCheckBox::stateChanged, this, &dlg_InSpectr::updateFunctionalBoxplot);
 	connect ( rb_DrawMode_Log, &QToolButton::toggled, this, &dlg_InSpectr::setLogDrawMode);
 	connect ( rb_DrawMode_Lin, &QToolButton::toggled, this, &dlg_InSpectr::setLinDrawMode);
 	connect ( pb_computeSimilarityMap, &QPushButton::clicked, this, &dlg_InSpectr::computeSimilarityMap);
@@ -233,7 +245,6 @@ void dlg_InSpectr::InitCommonGUI()
 {
 	m_periodicTable->setListener(m_periodicTableListener);
 
-
 	// load reference spectra & characteristic energy lines:
 	QString rootDir(QCoreApplication::applicationDirPath() + "/refSpectra/");
 	m_refSpectraLib = std::make_shared<iAReferenceSpectraLibrary>(
@@ -243,8 +254,13 @@ void dlg_InSpectr::InitCommonGUI()
 	connect(m_refSpectra->getSpectraList(), &QListView::doubleClicked, this, &dlg_InSpectr::ReferenceSpectrumDoubleClicked, Qt::UniqueConnection);
 	connect(m_refSpectra->getSpectraList(), &QListView::clicked, this, &dlg_InSpectr::ReferenceSpectrumClicked, Qt::UniqueConnection );
 	connect(m_refSpectraLib->getItemModel().get(), &QStandardItemModel::itemChanged, this, &dlg_InSpectr::ReferenceSpectrumItemChanged, Qt::UniqueConnection);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 	connect(m_refSpectra->cb_showRefSpectra, &QCheckBox::stateChanged, this, &dlg_InSpectr::showRefSpectraChanged);
 	connect(m_refSpectra->cb_showRefLines, &QCheckBox::stateChanged, this, &dlg_InSpectr::showRefLineChanged);
+#else
+	connect(m_refSpectra->cb_showRefSpectra, &QCheckBox::checkStateChanged, this, &dlg_InSpectr::showRefSpectraChanged);
+	connect(m_refSpectra->cb_showRefLines, &QCheckBox::checkStateChanged, this, &dlg_InSpectr::showRefLineChanged);
+#endif
 
 	m_pieChart = new iAPieChartWidget(this);
 	m_pieChart->setObjectName(QString::fromUtf8("Composition"));

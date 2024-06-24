@@ -131,8 +131,13 @@ iALogWidget::iALogWidget() :
 
 	connect(pbClearLog, &QPushButton::clicked, this, &iALogWidget::clear);
 	connect(cmbboxLogLevel, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iALogWidget::setLogLevelSlot);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 	connect(cbVTK, &QCheckBox::stateChanged, this, &iALogWidget::toggleVTK);
 	connect(cbITK, &QCheckBox::stateChanged, this, &iALogWidget::toggleITK);
+#else
+	connect(cbVTK, &QCheckBox::checkStateChanged, this, &iALogWidget::toggleVTK);
+	connect(cbITK, &QCheckBox::checkStateChanged, this, &iALogWidget::toggleITK);
+#endif
 	connect(this, &iALogWidget::logSignal, this, &iALogWidget::logSlot);
 }
 
