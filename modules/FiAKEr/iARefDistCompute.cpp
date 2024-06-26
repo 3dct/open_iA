@@ -304,7 +304,7 @@ void iARefDistCompute::run()
 			continue;
 		}
 		*/
-		assert(d.fiberCount < std::numeric_limits<iARefDistCompute::ContainerSizeType>::max());
+		assert(d.fiberCount < static_cast<size_t>(std::numeric_limits<iARefDistCompute::ContainerSizeType>::max()));
 		for (iARefDistCompute::ContainerSizeType fiberID = 0; fiberID < static_cast<iARefDistCompute::ContainerSizeType>(d.fiberCount); ++fiberID)
 		{
 			//if (d.stepData == iAFiberResult::SimpleStepData) ???
@@ -323,7 +323,7 @@ void iARefDistCompute::run()
 				d.table->SetValue(fiberID, tableColumnID, lastValue); // required for coloring 3D view by these diffs + used below for average!
 			}
 			*/
-			assert(m_measuresToCompute.size() < std::numeric_limits<iARefDistCompute::ContainerSizeType>::max());
+			assert(m_measuresToCompute.size() < static_cast<size_t>(std::numeric_limits<iARefDistCompute::ContainerSizeType>::max()));
 			for (iARefDistCompute::ContainerSizeType measureID = 0; measureID < static_cast<iARefDistCompute::ContainerSizeType>(m_measuresToCompute.size()); ++measureID)
 			{
 				double dissimilarity = (resultID == m_referenceID) ? 0 : d.refDiffFiber[fiberID].dist[measureID][0].dissimilarity;
@@ -355,7 +355,7 @@ void iARefDistCompute::run()
 				continue;
 			}
 			auto & d = m_data->result[resultID];
-			assert(d.fiberCount < std::numeric_limits<iARefDistCompute::ContainerSizeType>::max());
+			assert(d.fiberCount < static_cast<size_t>(std::numeric_limits<iARefDistCompute::ContainerSizeType>::max()));
 			for (iARefDistCompute::ContainerSizeType fiberID = 0; fiberID < static_cast<int>(d.fiberCount); ++fiberID)
 			{
 				auto & bestFiberBestDist = d.refDiffFiber[fiberID].dist[m_bestMeasure][0];
