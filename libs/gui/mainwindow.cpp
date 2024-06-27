@@ -1264,9 +1264,7 @@ void MainWindow::readSettings()
 	settings.endGroup();
 	if (m_layoutNames.size() == 0)
 	{
-		m_layoutNames.push_back("1");
-		m_layoutNames.push_back("2");
-		m_layoutNames.push_back("3");
+		m_layoutNames.push_back("none");
 	}
 	m_defaultPreferences.PositionMarkerSize = settings.value("Preferences/prefStatExt", defaultPrefs.PositionMarkerSize).toInt();
 
@@ -1617,6 +1615,10 @@ void MainWindow::saveLayout()
 	}
 	if (m_layout->findText(layoutName) == -1)
 	{
+		if (m_layout->count() == 1 && m_layout->itemText(0) == "none")
+		{
+			m_layout->clear();
+		}
 		m_layout->addItem(layoutName);
 	}
 	else
