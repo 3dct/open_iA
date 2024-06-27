@@ -21,6 +21,8 @@
 #include <vtkQuadricClustering.h>
 #include <vtkSmartPointer.h>
 #include <vtkSmoothPolyDataFilter.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
 #include <vtkWindowedSincPolyDataFilter.h>
 
 IAFILTER_DEFAULT_CLASS(iAExtractSurface);
@@ -31,6 +33,7 @@ IAFILTER_DEFAULT_CLASS(iASimplifyMeshQuadricClustering);
 IAFILTER_DEFAULT_CLASS(iASimplifyMeshQuadricDecimation);
 IAFILTER_DEFAULT_CLASS(iASmoothMeshWindowedSinc);
 IAFILTER_DEFAULT_CLASS(iATriangulation);
+IAFILTER_DEFAULT_CLASS(iATransformPolyData);
 
 namespace
 {
@@ -499,4 +502,37 @@ void iADelauny3D::performWork(QVariantMap const& parameters)
 	progress()->observe(datasetSurfaceFilter);
 	datasetSurfaceFilter->Update();
 	addOutput(std::make_shared<iAPolyData>(datasetSurfaceFilter->GetOutput()));
+}
+
+
+
+iATransformPolyData::iATransformPolyData() :
+	iAFilter("Transform polydata", "Surfaces",
+		"Apply transform to polydata"
+		"See the <a href=\"https://vtk.org/doc/nightly/html/classvtkTransformPolyDataFilter.html\">"
+		"Transform PolyData filter</a> in the VTK documentation.", 0)
+{
+	addParameter("Translate", iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
+	addParameter("Rotate", iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
+	addParameter("Scale", iAValueType::Vector3, variantVector<double>({ 1.0, 1.0, 1.0 }));
+}
+
+void iATransformPolyData::performWork(QVariantMap const& parameters)
+{
+	vtkNew<vtkTransform> tr;
+	std::array<double, 3> translate, rotate, scale;
+	setFromVectorVariant<double>(translate, parameters["Translate"]);
+	setFromVectorVariant<double>(rotate, parameters["Rotate"]);
+	setFromVectorVariant<double>(scale, parameters["Scale"]);
+	tr->RotateX(rotate[0]);
+	tr->RotateY(rotate[1]);
+	tr->RotateZ(rotate[2]);
+	tr->Translate(translate.data());
+	tr->Scale(scale.data());
+	vtkNew<vtkTransformPolyDataFilter> vtkFilter;
+	vtkFilter->SetTransform(tr);
+	progress()->observe(vtkFilter);
+	vtkFilter->SetInputData(dynamic_cast<iAPolyData*>(input(0).get())->poly());
+	vtkFilter->Update();
+	addOutput(std::make_shared<iAPolyData>(vtkFilter->GetOutput()));
 }
