@@ -90,6 +90,9 @@ public:
 	//! see iARenderer
 	void setSceneBounds(iAAABB const & boundingBox) override;
 
+	//! see iARenderer
+	iAAABB sceneBounds() const override;
+
 	//! Sets one of the pre-defined camera positions
 	//! @param pos descriptor of the position, @see iACameraPosition
 	void setCamPosition(int pos);
@@ -225,8 +228,8 @@ private:
 	vtkSmartPointer<vtkPolyDataMapper> m_roiMapper;
 	vtkSmartPointer<vtkActor> m_roiActor;
 
-	//! bounding box for "stick-out" information (currently used for lines leading to profile points)
-	iAVec3d m_stickOutBox[2];
+	iAVec3d m_stickOutBox[2];   //!< bounding box for "stick-out" information (currently used for lines leading to profile points)
+	iAAABB m_sceneBB;           //!< bounding box of all shown visualizations
 
 	double m_touchStartScale;   //! for touch interaction: scale when touch started (if parallel projection used)
 	iAVec3d m_touchStartCamPos; //! for touch interaction: camera position (for non-parallel projection)

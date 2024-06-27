@@ -470,8 +470,8 @@ void iAFillHoles::performWork(QVariantMap const& parameters)
 
 iADelauny3D::iADelauny3D() :
 	iAFilter("Delauny 3D", "Surfaces",
-		"Create a triangulation surface by means of the Delaunay3D-Algorithm for the given polygon."
-		"See <a href=\"https://vtk.org/doc/nightly/html/classvtkDelaunay3D.html\">VTK documentation on Delaunay3D</a>.", 0)
+		"Create a triangulation surface by means of the Delaunay3D-Algorithm for the given polygon.<br/>"
+		"See <a href=\"https://vtk.org/doc/nightly/html/classvtkDelaunay3D.html\">VTK's documentation on Delaunay 3D</a>.", 0)
 {
 	addParameter("Alpha", iAValueType::Continuous, 0);
 	addParameter("Triangles for non-zero alpha values", iAValueType::Boolean, true);

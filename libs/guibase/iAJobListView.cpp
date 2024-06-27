@@ -7,12 +7,11 @@
 #include "iALog.h"
 #include "iAPerformanceHelper.h"    // for formatDuration
 #include "iAProgress.h"
+#include "iAQCropLabel.h"
 
 #include <QEventLoop>
-#include <QLabel>
 #include <QPainter>
 #include <QProgressBar>
-#include <QScrollArea>
 #include <QSpacerItem>
 #include <QTimer>
 #include <QToolButton>
@@ -71,37 +70,6 @@ private:
 	std::chrono::system_clock::time_point m_start;
 };
 
-//! Alternative for a QLabel which automatically cuts off text exceeding its width.
-//! This widget, in contrast to a QLabel, is resizable to widths smaller than the required with to display its full text.
-//! It does not impose any minimum width requirements on parent widgets, instead, any text text exceeding the width will
-//! just be invisible.
-class iAQShorteningLabel : public QScrollArea
-{
-public:
-	iAQShorteningLabel(QString const& text, QString const & qssClass = QString()) : m_label(new QLabel(text))
-	{
-		setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-		m_label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-		setFrameShape(QFrame::NoFrame); // this to remove borders; background-color: transparent; in qss to make background transparent
-		setWidgetResizable(true);
-		setContentsMargins(0, 0, 0, 0);
-		setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-		setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-		setWidget(m_label);
-		if (!qssClass.isEmpty())
-		{
-			m_label->setProperty("qssClass", qssClass);
-		}
-	}
-public slots:
-	void setText(QString const& text)
-	{
-		m_label->setText(text);
-	}
-private:
-	QLabel* m_label;
-};
-
 iAJobListView* iAJobListView::get()
 {
 	static iAJobListView* jobList = new iAJobListView();
@@ -153,7 +121,7 @@ QWidget* iAJobListView::addJobWidget(std::shared_ptr<iAJob> j)
 		std::lock_guard<std::mutex> guard(jobsMutex);
 		m_jobs.push_back(j);
 	}
-	auto titleLabel = new iAQShorteningLabel(j->name, "titleLabel");
+	auto titleLabel = new iAQCropLabel(j->name, "titleLabel");
 	titleLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
 	auto progressBar = new QProgressBar();
@@ -161,11 +129,11 @@ QWidget* iAJobListView::addJobWidget(std::shared_ptr<iAJob> j)
 	progressBar->setRange(0, 1000);
 	progressBar->setValue(0);
 
-	auto statusLabel = new iAQShorteningLabel("");
+	auto statusLabel = new iAQCropLabel("");
 	statusLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-	auto elapsedLabel = new iAQShorteningLabel("Elapsed: -");
+	auto elapsedLabel = new iAQCropLabel("Elapsed: -");
 	elapsedLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-	auto remainingLabel = new iAQShorteningLabel("Remaining: unknown");
+	auto remainingLabel = new iAQCropLabel("Remaining: unknown");
 	remainingLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
 	auto timesWidget = new QWidget();
@@ -244,7 +212,7 @@ QWidget* iAJobListView::addJobWidget(std::shared_ptr<iAJob> j)
 				statusLabel->setText("Aborting...");
 				if (j->progress)
 				{
-					QObject::disconnect(j->progress, &iAProgress::statusChanged, statusLabel, &iAQShorteningLabel::setText);
+					QObject::disconnect(j->progress, &iAProgress::statusChanged, statusLabel, &iAQCropLabel::setText);
 				}
 				j->abortListener->abort();
 			});

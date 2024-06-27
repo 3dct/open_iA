@@ -26,7 +26,7 @@ if (CUDAToolkit_FOUND)
 	list(APPEND DEPENDENCIES_LIBRARIES CUDA::cudart CUDA::nvjpeg CUDA::nppc CUDA::nppig)
 endif()
 
-#set(VTK_REQUIRED_LIBS_PUBLIC
+set(DEPENDENCIES_VTK_MODULES
 #	IOImage               # for image writing
-#	RenderingCore
-#)
+	RenderingImage        # for vtkImageResliceMapper
+)

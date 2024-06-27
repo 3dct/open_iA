@@ -75,6 +75,9 @@ public:
 	//! where all datasets fit within the given bounding box
 	virtual void setSceneBounds(iAAABB const & boundingBox) = 0;
 
+	// retrieve the bounds of the current "scene" (that is, all datasets)
+	virtual iAAABB sceneBounds() const = 0;
+
 	//! Set whether currently a dataset cutting is active.
 	//! If enabled, the renderer is updated on changes to the slicing planes (even if the planes themselves are not shown).
 	virtual void setCuttingActive(bool enabled) = 0;

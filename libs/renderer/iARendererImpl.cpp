@@ -283,6 +283,7 @@ iARendererImpl::~iARendererImpl(void)
 
 void iARendererImpl::setSceneBounds(iAAABB const & boundingBox)
 {
+	m_sceneBB = boundingBox;
 	iAVec3d origin(boundingBox.minCorner());
 	auto size = (boundingBox.maxCorner() - boundingBox.minCorner());
 	// for stick out size, we compute average size over all 3 dimensions; maybe use max instead?
@@ -313,6 +314,11 @@ void iARendererImpl::setSceneBounds(iAAABB const & boundingBox)
 		m_ren->ResetCamera();
 	}
 	// related: cSource size / slicePlaneSource size -> setUnitSize
+}
+
+iAAABB iARendererImpl::sceneBounds() const
+{
+	return m_sceneBB;
 }
 
 void iARendererImpl::setCuttingActive(bool enabled)
