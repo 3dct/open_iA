@@ -207,7 +207,7 @@ void iAExtractSurface::performWork(QVariantMap const & parameters)
 }
 
 iAExtractSurface::iAExtractSurface() :
-	iAFilter("Extract Surface", "Extract Surface",
+	iAFilter("Extract Surface", "Surfaces",
 		"Extracts a surface along the specified iso value.<br/>"
 		"A surface is extracted at the given Iso value, either using marching cubes or "
 		"flying edges algorithm. The mesh is subsequently simplified using either "
@@ -287,7 +287,7 @@ void iATriangulation::performWork(QVariantMap const& parameters) {
 
 
 iATriangulation::iATriangulation() :
-	iAFilter("Surface triangulation", "Extract Surface",
+	iAFilter("Surface triangulation", "Surfaces",
 		"Extracts a surface along the specified iso value.<br/>"
 		"A surface is extracted at the given Iso value, either using marching cubes or "
 		"flying edges algorithm. The mesh is subsequently simplified using either "
@@ -327,7 +327,7 @@ iATriangulation::iATriangulation() :
 
 
 iASimplifyMeshDecimatePro::iASimplifyMeshDecimatePro() :
-	iAFilter("Simplify: Decimate Pro", "Extract Surface",
+	iAFilter("Simplify: Decimate Pro", "Surfaces",
 		"Simplify mesh using the Decimate Pro algorithm.<br/>"
 		"See the <a href=\"https://vtk.org/doc/nightly/html/classvtkDecimatePro.html\">"
 		"Decimate Pro Filter</a> in the VTK documentation.", 0)
@@ -357,7 +357,7 @@ void iASimplifyMeshDecimatePro::performWork(QVariantMap const& parameters)
 
 
 iASimplifyMeshQuadricClustering::iASimplifyMeshQuadricClustering() :
-	iAFilter("Simplify: Quadric Clustering", "Extract Surface",
+	iAFilter("Simplify: Quadric Clustering", "Surfaces",
 		"Simplify mesh using quadric clustering.<br/>"
 		"See the <a href=\"https://vtk.org/doc/nightly/html/classvtkQuadricClustering.html\">"
 		"Quadric Clustering Filter</a> in the VTK documentation.", 0)
@@ -387,7 +387,7 @@ void iASimplifyMeshQuadricClustering::performWork(QVariantMap const& parameters)
 
 
 iASimplifyMeshQuadricDecimation::iASimplifyMeshQuadricDecimation() :
-	iAFilter("Simplify: Quadric Decimation", "Extract Surface",
+	iAFilter("Simplify: Quadric Decimation", "Surfaces",
 		"Simplify mesh using quadric decimation.<br/>"
 		"See the <a href=\"https://vtk.org/doc/nightly/html/classvtkQuadricDecimation.html\">"
 		"Quadric Decimation Filter</a> in the VTK documentation.", 0)
@@ -420,7 +420,7 @@ void iASimplifyMeshQuadricDecimation::performWork(QVariantMap const& parameters)
 
 
 iASmoothMeshWindowedSinc::iASmoothMeshWindowedSinc() :
-	iAFilter("Mesh Smoothing (Windowed Sinc)", "Extract Surface",
+	iAFilter("Mesh Smoothing (Windowed Sinc)", "Surfaces",
 		"Smooth mesh. <br/>Uses <a href=\"https://vtk.org/doc/nightly/html/classvtkWindowedSincPolyDataFilter.html\">VTK'swindowed sinc poly filter</a>.", 0)
 {
 	setRequiredMeshInputs(1);
@@ -450,7 +450,7 @@ void iASmoothMeshWindowedSinc::performWork(QVariantMap const& parameters)
 }
 
 iAFillHoles::iAFillHoles() :
-	iAFilter("Fill Holes", "Extract Surface",
+	iAFilter("Fill Holes", "Surfaces",
 		"Fill holes in a mesh.<br/>"
 		"Hole size is specified as a radius to the bounding circumsphere containing the hole (approximate)."
 		"Uses <a href=\"https://vtk.org/doc/nightly/html/classvtkFillHolesFilter.html\">VTK's Fill Hole filter</a>.", 0)
@@ -469,7 +469,7 @@ void iAFillHoles::performWork(QVariantMap const& parameters)
 }
 
 iADelauny3D::iADelauny3D() :
-	iAFilter("Delauny 3D", "Extract Surface",
+	iAFilter("Delauny 3D", "Surfaces",
 		"Create a triangulation surface by means of the Delaunay3D-Algorithm for the given polygon."
 		"See <a href=\"https://vtk.org/doc/nightly/html/classvtkDelaunay3D.html\">VTK documentation on Delaunay3D</a>.", 0)
 {
