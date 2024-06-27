@@ -51,7 +51,7 @@ namespace
 		if (simplifyAlgoName == "Decimate Pro")
 		{
 			// crashes sometimes - non-manifold input? large datasets?
-			auto decimatePro = vtkSmartPointer<vtkDecimatePro>::New();
+			vtkNew<vtkDecimatePro> decimatePro;
 			decimatePro->SetTargetReduction(parameters["Decimation Target"].toDouble());
 			decimatePro->SetPreserveTopology(parameters["Preserve Topology"].toBool());
 
@@ -63,7 +63,7 @@ namespace
 		}
 		else if (simplifyAlgoName == "Quadric Clustering")
 		{
-			auto quadricClustering = vtkSmartPointer<vtkQuadricClustering>::New();
+			vtkNew<vtkQuadricClustering> quadricClustering;
 			Progress->observe(quadricClustering);
 			quadricClustering->SetNumberOfXDivisions(parameters["Cluster divisions"].toUInt());
 			quadricClustering->SetNumberOfYDivisions(parameters["Cluster divisions"].toUInt());
@@ -73,7 +73,7 @@ namespace
 		}
 		else if (simplifyAlgoName == "Windowed Sinc")
 		{
-			auto windowedSinc = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+			vtkNew<vtkWindowedSincPolyDataFilter> windowedSinc;
 			windowedSinc->SetNumberOfIterations  (parameters["Number of Iterations"].toInt());     // 15
 			windowedSinc->SetBoundarySmoothing   (parameters["Boundary Smoothing"].toBool());      // false
 			windowedSinc->SetFeatureEdgeSmoothing(parameters["Feature Edge Smoothing"].toBool());  // false
@@ -103,7 +103,7 @@ namespace
 		vtkSmartPointer<vtkPolyDataAlgorithm> result;
 		if (parameters["Algorithm"].toString() == "Marching Cubes")
 		{
-			auto marchingCubes = vtkSmartPointer<vtkMarchingCubes>::New();
+			vtkNew<vtkMarchingCubes> marchingCubes;
 			marchingCubes->ComputeNormalsOn();
 			marchingCubes->ComputeGradientsOn();
 			marchingCubes->ComputeScalarsOn();
@@ -112,7 +112,7 @@ namespace
 		}
 		else
 		{
-			auto flyingEdges = vtkSmartPointer<vtkFlyingEdges3D>::New();
+			vtkSmartPointer<vtkFlyingEdges3D> flyingEdges;
 			flyingEdges->SetNumberOfContours(1);
 			flyingEdges->SetValue(0, parameters["Iso value"].toDouble());
 			flyingEdges->ComputeNormalsOn();
@@ -135,7 +135,7 @@ namespace
 			return nullptr;
 		}
 
-		auto delaunay3D = vtkSmartPointer<vtkDelaunay3D>::New();
+		vtkNew<vtkDelaunay3D> delaunay3D;
 		delaunay3D->SetInputConnection(aSurfaceFilter->GetOutputPort());
 		delaunay3D->SetAlpha(alpha);
 		delaunay3D->SetOffset(offset);
@@ -159,7 +159,7 @@ namespace
 		filter->SetNumberOfSubdivisions(3);
 		filter->Update();*/
 
-		auto smoothFilter = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
+		vtkNew<vtkSmoothPolyDataFilter> smoothFilter;
 		smoothFilter->SetInputConnection(algo->GetOutputPort());
 		smoothFilter->SetNumberOfIterations(500);
 		smoothFilter->SetRelaxationFactor(0.1);
@@ -260,7 +260,7 @@ void iATriangulation::performWork(QVariantMap const& parameters) {
 		return;
 	}
 
-	auto cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+	vtkNew<vtkCleanPolyData> cleaner;
 	if (parameters["Simplification Algorithm"].toString() == "None")
 	{
 		cleaner->SetInputConnection(surfaceFilter->GetOutputPort());
@@ -343,7 +343,7 @@ iASimplifyMeshDecimatePro::iASimplifyMeshDecimatePro() :
 void iASimplifyMeshDecimatePro::performWork(QVariantMap const& parameters)
 {
 	// crashes sometimes - non-manifold input? large datasets?
-	auto vtkFilter = vtkSmartPointer<vtkDecimatePro>::New();
+	vtkNew<vtkDecimatePro> vtkFilter;
 	vtkFilter->SetTargetReduction(parameters["Decimation Target"].toDouble());
 	vtkFilter->SetPreserveTopology(parameters["Preserve Topology"].toBool());
 	vtkFilter->SetSplitAngle(parameters["Split Angle"].toDouble());
@@ -371,7 +371,7 @@ iASimplifyMeshQuadricClustering::iASimplifyMeshQuadricClustering() :
 
 void iASimplifyMeshQuadricClustering::performWork(QVariantMap const& parameters)
 {
-	auto vtkFilter = vtkSmartPointer<vtkQuadricClustering>::New();
+	vtkNew<vtkQuadricClustering> vtkFilter;
 	progress()->observe(vtkFilter);
 	auto clusterDiv = variantToVector<int>(parameters["Cluster divisions"]);
 	assert(clusterDiv.size() == 3);
@@ -405,7 +405,7 @@ iASimplifyMeshQuadricDecimation::iASimplifyMeshQuadricDecimation() :
 
 void iASimplifyMeshQuadricDecimation::performWork(QVariantMap const& parameters)
 {
-	auto vtkFilter = vtkSmartPointer<vtkQuadricDecimation>::New();
+	vtkNew<vtkQuadricDecimation> vtkFilter;
 	progress()->observe(vtkFilter);
 	vtkFilter->SetTargetReduction(parameters["Target Reduction"].toDouble());
 	vtkFilter->SetAttributeErrorMetric(parameters["Attribute Error Metric"].toBool());
@@ -435,7 +435,7 @@ iASmoothMeshWindowedSinc::iASmoothMeshWindowedSinc() :
 
 void iASmoothMeshWindowedSinc::performWork(QVariantMap const& parameters)
 {
-	auto vtkFilter = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+	vtkNew<vtkWindowedSincPolyDataFilter> vtkFilter;
 	progress()->observe(vtkFilter);
 	vtkFilter->SetNumberOfIterations(parameters["Number of Iterations"].toInt());     // 15
 	vtkFilter->SetBoundarySmoothing(parameters["Boundary Smoothing"].toBool());      // false
@@ -460,7 +460,7 @@ iAFillHoles::iAFillHoles() :
 
 void iAFillHoles::performWork(QVariantMap const& parameters)
 {
-	auto vtkFilter = vtkSmartPointer<vtkFillHolesFilter>::New();
+	vtkNew<vtkFillHolesFilter> vtkFilter;
 	progress()->observe(vtkFilter);
 	vtkFilter->SetInputData(dynamic_cast<iAPolyData*>(input(0).get())->poly());
 	vtkFilter->SetHoleSize(parameters["Hole size"].toDouble());
@@ -484,7 +484,7 @@ iADelauny3D::iADelauny3D() :
 
 void iADelauny3D::performWork(QVariantMap const& parameters)
 {
-	auto vtkFilter = vtkSmartPointer<vtkDelaunay3D>::New();
+	vtkNew<vtkDelaunay3D> vtkFilter;
 	progress()->observe(vtkFilter);
 	vtkFilter->SetInputData(dynamic_cast<iAPolyData*>(input(0).get())->poly());
 	vtkFilter->SetAlpha(parameters["Alpha"].toDouble());
@@ -497,7 +497,7 @@ void iADelauny3D::performWork(QVariantMap const& parameters)
 	vtkFilter->Update();
 	//vtkFilter->GetOutput() // vtkUnstructuredGrid!
 
-	auto datasetSurfaceFilter = vtkSmartPointer<vtkDataSetSurfaceFilter>::New();
+	vtkNew<vtkDataSetSurfaceFilter> datasetSurfaceFilter;
 	datasetSurfaceFilter->SetInputConnection(vtkFilter->GetOutputPort());
 	progress()->observe(datasetSurfaceFilter);
 	datasetSurfaceFilter->Update();
