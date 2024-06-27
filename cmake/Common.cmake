@@ -430,16 +430,12 @@ endif()
 
 
 # HDF5
-# ToDo: Check for whether hdf5 is build as shared or static library,
-# prefer static but also enable utilization of shared?
-set(HDF5_USE_STATIC_LIBRARIES ON)
-find_package(HDF5 NAMES hdf5 COMPONENTS C NO_MODULE QUIET)
-
+find_package(HDF5 NAMES hdf5 COMPONENTS C static NO_MODULE QUIET)
 if (HDF5_FOUND)
 	message(STATUS "HDF5: ${HDF5_VERSION} in ${HDF5_DIR}")
 	set(BUILD_INFO "${BUILD_INFO}    \"HDF5	${HDF5_VERSION}\\n\"\n")
 else()
-	message(STATUS "HDF5: Not found")
+	message(STATUS "HDF5: Not found - ${HDF5_NOT_FOUND_MESSAGE}")
 endif()
 
 
