@@ -327,7 +327,7 @@ iATriangulation::iATriangulation() :
 
 
 iASimplifyMeshDecimatePro::iASimplifyMeshDecimatePro() :
-	iAFilter("Simplify: Decimate Pro", "Surfaces",
+	iAFilter("Decimate Pro", "Surfaces/Simplify",
 		"Simplify mesh using the Decimate Pro algorithm.<br/>"
 		"See the <a href=\"https://vtk.org/doc/nightly/html/classvtkDecimatePro.html\">"
 		"Decimate Pro Filter</a> in the VTK documentation.", 0)
@@ -357,7 +357,7 @@ void iASimplifyMeshDecimatePro::performWork(QVariantMap const& parameters)
 
 
 iASimplifyMeshQuadricClustering::iASimplifyMeshQuadricClustering() :
-	iAFilter("Simplify: Quadric Clustering", "Surfaces",
+	iAFilter("Quadric Clustering", "Surfaces/Simplify",
 		"Simplify mesh using quadric clustering.<br/>"
 		"See the <a href=\"https://vtk.org/doc/nightly/html/classvtkQuadricClustering.html\">"
 		"Quadric Clustering Filter</a> in the VTK documentation.", 0)
@@ -387,7 +387,7 @@ void iASimplifyMeshQuadricClustering::performWork(QVariantMap const& parameters)
 
 
 iASimplifyMeshQuadricDecimation::iASimplifyMeshQuadricDecimation() :
-	iAFilter("Simplify: Quadric Decimation", "Surfaces",
+	iAFilter("Quadric Decimation", "Surfaces/Simplify",
 		"Simplify mesh using quadric decimation.<br/>"
 		"See the <a href=\"https://vtk.org/doc/nightly/html/classvtkQuadricDecimation.html\">"
 		"Quadric Decimation Filter</a> in the VTK documentation.", 0)
