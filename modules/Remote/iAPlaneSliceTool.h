@@ -9,7 +9,6 @@
 
 #include <QObject>
 #include <QString>
-#include <qtypes.h>
 
 #include <array>
 #include <map>
