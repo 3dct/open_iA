@@ -13,6 +13,14 @@ QString axisName(int axis)
 	}
 }
 
+iAAxisIndex nameToAxis(QString const& name)
+{
+	if (name == "X" || name == "x") { return iAAxisIndex::X; }
+	if (name == "Y" || name == "y") { return iAAxisIndex::Y; }
+	if (name == "Z" || name == "z") { return iAAxisIndex::Z; }
+	else                            { return iAAxisIndex::AxisCount; }
+}
+
 QString slicerModeString(int mode)
 {
 	return axisName(mapSliceToGlobalAxis(mode, iAAxisIndex::X)) + axisName(mapSliceToGlobalAxis(mode, iAAxisIndex::Y));
