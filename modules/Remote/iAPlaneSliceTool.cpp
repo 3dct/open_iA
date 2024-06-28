@@ -8,6 +8,7 @@
 #include <iADockWidgetWrapper.h>
 #include <iAMdiChild.h>
 #include <iAMainWindow.h>
+#include <iAParameterDlg.h>
 #include <iAQCropLabel.h>
 #include <iAQVTKWidget.h>
 #include <iARenderer.h>
@@ -201,11 +202,19 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	resetAction->setToolTip("Reset snapshot position to middle of first image dataset.");
 	QObject::connect(resetAction, &QAction::triggered, child, [this, child]()
 	{
-		resetPlaneParameters(child);
+		iAAttributes params;
+		addAttr(params, "Axis", iAValueType::Categorical, QStringList() << "+X" << "-X" << "+Y" << "-Y" << "+Z" << "-Z");
+		iAParameterDlg dlg(m_sliceWidget, "Set file parameters", params);
+		if (dlg.exec() != QDialog::Accepted)
+		{
+			return;
+		}
+		auto axisStr = dlg.parameterValues()["Axis"].toString();
+		resetPlaneParameters(child, nameToAxis(axisStr.right(1)), axisStr[0] == '+');
 		child->updateRenderer();
 		updateSliceFromUser();
 	});
-	iAMainWindow::get()->addActionIcon(resetAction, "update");
+	iAMainWindow::get()->addActionIcon(resetAction, "slice-planes-gray");
 	auto resetButton = new QToolButton(buttonContainer);
 	resetButton->setDefaultAction(resetAction);
 
@@ -238,7 +247,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	child->splitDockWidget(m_sliceDW, m_listDW, Qt::Vertical);
 
 	//m_planeWidget->SetDefaultRenderer(child->renderer()->renderer());
-	resetPlaneParameters(child);
+	resetPlaneParameters(child, iAAxisIndex::Z, true);
 	m_planeWidget->SetInteractor(child->renderer()->interactor());
 	//m_planeWidget->SetRepresentationToSurface();
 	m_planeWidget->On();
@@ -436,13 +445,21 @@ void iAPlaneSliceTool::updateSliceFromUser()
 	}
 }
 
-void iAPlaneSliceTool::resetPlaneParameters(iAMdiChild* child)
+void iAPlaneSliceTool::resetPlaneParameters(iAMdiChild* child, iAAxisIndex axis, bool posSign)
 {
 	auto bounds = child->renderer()->sceneBounds();
 	auto objCenter = (bounds.maxCorner() - bounds.minCorner()) / 2;
+
 	m_planeWidget->SetOrigin(bounds.minCorner().x(), bounds.minCorner().y(), objCenter.z());
 	m_planeWidget->SetPoint1(bounds.maxCorner().x(), bounds.minCorner().y(), objCenter.z());
 	m_planeWidget->SetPoint2(bounds.minCorner().x(), bounds.maxCorner().y(), objCenter.z());
+
+	double normal[3] = {
+		axis == iAAxisIndex::X ? (posSign ? 1.0 : -1.0) : 0.0,
+		axis == iAAxisIndex::Y ? (posSign ? 1.0 : -1.0) : 0.0,
+		axis == iAAxisIndex::Z ? (posSign ? 1.0 : -1.0) : 0.0
+	};
+	m_planeWidget->SetNormal(normal);
 
 	auto lengths = bounds.maxCorner() - bounds.minCorner();
 	auto maxSideLen = std::max(std::max(lengths.x(), lengths.y()), lengths.z());

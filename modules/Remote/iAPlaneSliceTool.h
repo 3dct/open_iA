@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#include <iASlicerMode.h>    // for iAAxisIndex
 #include <iATool.h>
 
 #include <vtkSmartPointer.h>
@@ -66,7 +67,7 @@ signals:
 private:
 	void updateSlice();
 	void updateSliceFromUser();
-	void resetPlaneParameters(iAMdiChild* child);
+	void resetPlaneParameters(iAMdiChild* child, iAAxisIndex axis, bool posSign);
 
 	iAQVTKWidget* m_sliceWidget;
 	QTableWidget* m_snapshotTable;
