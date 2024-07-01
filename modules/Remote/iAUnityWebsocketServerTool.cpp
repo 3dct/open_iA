@@ -208,6 +208,7 @@ namespace
 		return quat;
 	}
 
+/*
 	std::array<float, 3> quaternionToEulerAngles(std::array<float, 4> q)
 	{
 		double ayterm = 2 * (q[3] * q[1] - q[0] * q[2]);
@@ -221,6 +222,7 @@ namespace
 			const double RoundDegrees = 2;
 			a2[a] = std::round(a2[a] / RoundDegrees) * RoundDegrees;
 		}
+		return a2;
 	}
 
 	std::array<float, 4> eulerAnglesToQuaternion(std::array<float, 3> a)
@@ -240,6 +242,7 @@ namespace
 				cr* cp* sy - sr * sp * cy
 		};
 	}
+*/
 
 	std::array<float, 3> DefaultPlaneNormal = { 0, 0, 1 };
 	std::array<float, 3> DefaultCameraViewDirection = { 0, 0, -1 };
@@ -604,7 +607,7 @@ public:
 			disconnectAction->setToolTip("Synchronize Views between this client and this window.");
 			disconnectAction->setCheckable(true);
 			disconnectAction->setChecked(false);
-			QObject::connect(disconnectAction, &QAction::triggered, m_clientTable, [this, clientID, disconnectAction]()
+			QObject::connect(disconnectAction, &QAction::triggered, m_clientTable, [this, clientID]()
 			{
 				m_clientSocket[clientID]->close(QWebSocketProtocol::CloseCodeNormal, "Server user manually requested client disconnect.");
 			});
@@ -648,7 +651,7 @@ public:
 					.arg(iAUnityWebsocketServerTool::Name).arg(clientID)
 					.arg(elapsedTime));
 			});
-			connect(client, &QWebSocket::textMessageReceived, this, [this, clientID](QString message)
+			connect(client, &QWebSocket::textMessageReceived, this, [clientID](QString message)
 			{
 				LOG(lvlWarn, QString("%1: Client (ID=%2): TEXT MESSAGE received: %3!")
 					.arg(iAUnityWebsocketServerTool::Name).arg(clientID).arg(message));
