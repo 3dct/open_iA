@@ -633,12 +633,14 @@ public:
 					.arg(iAUnityWebsocketServerTool::Name).arg(clientID)
 					.arg(QMetaEnum::fromType<QAbstractSocket::SocketState>().valueToKey(state)));
 			});
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
 			connect(client, &QWebSocket::errorOccurred, this, [clientID](QAbstractSocket::SocketError error)
 			{
 				LOG(lvlDebug, QString("%1: Client (ID=%2): error occurred: %3")
 					.arg(iAUnityWebsocketServerTool::Name).arg(clientID)
 					.arg(QMetaEnum::fromType<QAbstractSocket::SocketError>().valueToKey(error)));
 			});
+#endif
 			connect(client, &QWebSocket::pong, this, [clientID](quint64 elapsedTime, const QByteArray& payload)
 			{
 				Q_UNUSED(payload);
