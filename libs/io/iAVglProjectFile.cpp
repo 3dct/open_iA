@@ -90,10 +90,21 @@ std::shared_ptr<iADataSet> iAVglProjectFile::loadData(
 					}
 					else
 					{
-						auto nameOfFile = check_file.fileName();
-						QFileInfo infoVgl(fileName);
-						auto dir = infoVgl.dir(); 
-						param.Filename = dir.absolutePath() + "/" + nameOfFile;
+						QString pathToAdd;
+						auto list = pathRawFile.split("\\");
+						for (int i = list.size()-1; i != 0; i--)
+						{
+							pathToAdd = list[i] + "//" + pathToAdd;
+							auto nameOfFile = check_file.fileName();
+							QFileInfo infoVgl(fileName);
+							auto dir = infoVgl.dir();
+							param.Filename = dir.absolutePath() + "/" + pathToAdd;
+							QFileInfo check_NewPath(param.Filename);
+							if (check_NewPath.exists())
+							{
+								break;
+							}
+						}
 						
 					}
 					
