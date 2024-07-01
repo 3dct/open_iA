@@ -53,11 +53,13 @@ public:
 				QWebSocket* client = m_wsServer->nextPendingConnection();
 				LOG(lvlInfo, QString("%1: Client connected: %2:%3")
 					.arg(iAOpenXRTrackerServerTool::Name).arg(client->peerAddress().toString()).arg(client->peerPort()));
+/*
 				connect(client, &QWebSocket::textMessageReceived, this, [this, child](QString message)
 				{
-					//LOG(lvlInfo, QString("%1: Text message received: %2").arg(iAWebSocketServerTool::Name).arg(message));
+					LOG(lvlInfo, QString("%1: Text message received: %2").arg(iAWebSocketServerTool::Name).arg(message));
 				});
-				connect(client, &QWebSocket::binaryMessageReceived, this, [this, child](QByteArray data)
+*/
+				connect(client, &QWebSocket::binaryMessageReceived, this, [child](QByteArray data)
 				{
 					auto type = static_cast<int>(data[0]);
 					auto obj  = static_cast<int>(data[1]);
