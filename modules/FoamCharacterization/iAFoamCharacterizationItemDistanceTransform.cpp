@@ -8,9 +8,16 @@
 #include <iAImageData.h>
 #include <iAProgress.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 #include <itkDanielssonDistanceMapImageFilter.h>
 #include <itkInvertIntensityImageFilter.h>
 #include <itkMinimumMaximumImageCalculator.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #include <vtkImageData.h>
 

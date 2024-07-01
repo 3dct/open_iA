@@ -39,6 +39,12 @@ std::shared_ptr<iATool> iAToolRegistry::createTool(QString const & toolIdentifie
 }
 
 
+#include <QSettings>
+
+namespace
+{
+	QString ProjectToolActive("Active");
+}
 
 iATool::iATool(iAMainWindow* mainWnd, iAMdiChild* child):
 	m_child(child), m_mainWindow(mainWnd)
@@ -55,8 +61,8 @@ void iATool::loadState(QSettings & projectFile, QString const& fileName)
 
 void iATool::saveState(QSettings& projectFile, QString const& fileName)
 {
-	Q_UNUSED(projectFile);
 	Q_UNUSED(fileName);
+	projectFile.setValue(ProjectToolActive, "true");  // just to create the tool's section!
 }
 
 /*

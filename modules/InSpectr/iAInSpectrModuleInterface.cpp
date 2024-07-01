@@ -4,9 +4,7 @@
 
 #include "iAInSpectrTool.h"
 
-#include <iAToolHelper.h>    // for addToolToActiveMdiChild
-
-#include <QAction>
+#include <iAToolHelper.h>    // for addToolAction
 
 void iAInSpectrModuleInterface::Initialize()
 {
@@ -14,13 +12,5 @@ void iAInSpectrModuleInterface::Initialize()
 	{
 		return;
 	}
-	QAction * actionInSpectr = new QAction(tr("InSpectr"), m_mainWnd);
-	connect(actionInSpectr, &QAction::triggered, this, &iAInSpectrModuleInterface::startInSpectr);
-	m_mainWnd->makeActionChildDependent(actionInSpectr);
-	addToMenuSorted(m_mainWnd->toolsMenu(), actionInSpectr);
-}
-
-void iAInSpectrModuleInterface::startInSpectr()
-{
-	addToolToActiveMdiChild<iAInSpectrTool>(iAInSpectrTool::Name, m_mainWnd);
+	addToolAction<iAInSpectrTool>(m_mainWnd, m_mainWnd->toolsMenu());
 }

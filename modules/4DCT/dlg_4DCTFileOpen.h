@@ -23,7 +23,7 @@ public:
 	iA4DCTFileData		getFile( );
 
 public slots:
-	void				accept( );
+	void				accept( ) override;
 	void				onTreeViewDoubleClicked( const QModelIndex & index );
 
 private:

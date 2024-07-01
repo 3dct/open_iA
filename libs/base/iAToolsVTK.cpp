@@ -3,7 +3,6 @@
 #include "iAToolsVTK.h"
 
 #include "iAConnector.h"
-#include "iAFileUtils.h"
 #include "iAITKIO.h"
 #include "iALog.h"
 #include "iAMathUtility.h"      // for mapValue
@@ -178,19 +177,20 @@ void storeImage(vtkSmartPointer<vtkImageData> img, QString const & filename, boo
 	iAITKIO::writeFile(filename, con.itkImage(), con.itkScalarType(), useCompression, progress);
 }
 
-void readImage(QString const & filename, bool releaseFlag, vtkSmartPointer<vtkImageData>& ptr)
+vtkSmartPointer<vtkImageData> readImage(QString const& filename)
 {
-	ptr = vtkSmartPointer<vtkImageData>::New();
+	auto result = vtkSmartPointer<vtkImageData>::New();
 	iAConnector con;
 	iAITKIO::PixelType pixelType;
 	iAITKIO::ScalarType scalarType;
-	iAITKIO::ImagePointer img = iAITKIO::readFile(filename, pixelType, scalarType, releaseFlag);
+	iAITKIO::ImagePointer img = iAITKIO::readFile(filename, pixelType, scalarType, true);
 	//assert(pixelType == iAITKIO::PixelType::SCALAR);
 	con.setImage(img);
 	// only works with deep copy, not with returning vtkImage
 	// assumption: ITK smart pointer goes out of scope, deletes image, and
 	// invalidates "linked" vtk image
-	ptr->DeepCopy(con.vtkImage());
+	result->DeepCopy(con.vtkImage());
+	return result;
 }
 
 void writeSingleSliceImage(QString const & filename, vtkImageData* img)
@@ -218,7 +218,7 @@ void writeSingleSliceImage(QString const & filename, vtkImageData* img)
 		LOG(lvlError, "Could not write image: Filename has an unknown extension!");
 		return;
 	}
-	writer->SetFileName( getLocalEncodingFileName(filename).c_str() );
+	writer->SetFileName( filename.toStdString().c_str());
 	writer->SetInputData(img);
 	writer->Write();
 }

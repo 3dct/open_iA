@@ -11,7 +11,6 @@
 
 #include <iABoxPlotData.h>
 #include <iAChannelData.h>
-#include <iAFileUtils.h>
 #include <iALog.h>
 #include <iARenderer.h>
 #include <iASlicer.h>

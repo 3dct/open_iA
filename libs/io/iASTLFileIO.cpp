@@ -3,7 +3,6 @@
 #include "iASTLFileIO.h"
 
 #include <iAExceptionThrowingErrorObserver.h>
-#include <iAFileUtils.h>
 #include <iAPolyData.h>
 #include <iAProgress.h>
 
@@ -29,7 +28,7 @@ std::shared_ptr<iADataSet> iASTLFileIO::loadData(QString const& fileName, QVaria
 	vtkNew<vtkSTLReader> reader;
 	progress.observe(reader);
 	reader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
-	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
+	reader->SetFileName(fileName.toStdString().c_str());
 	vtkNew<vtkPolyData> polyData;
 	reader->SetOutput(polyData);
 	reader->Update();
@@ -43,7 +42,7 @@ void iASTLFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSet> d
 	progress.observe(writer);
 	writer->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 	writer->SetFileType(paramValues[FormatParam].toString() == FmtBinary ? VTK_BINARY : VTK_ASCII);
-	writer->SetFileName(getLocalEncodingFileName(fileName).c_str());
+	writer->SetFileName(fileName.toStdString().c_str());
 	writer->SetInputData(dynamic_cast<iAPolyData*>(dataSet.get())->poly());
 	writer->Write();
 }

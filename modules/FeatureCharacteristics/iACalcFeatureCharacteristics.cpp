@@ -10,7 +10,6 @@ IAFILTER_DEFAULT_CLASS(iACalcFeatureCharacteristics);
 #include <iAProgress.h>
 
 // base
-#include <iAFileUtils.h>
 #include <iAImageData.h>
 #include <iATypedCallHelper.h>
 
@@ -42,7 +41,7 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 
 	// Writing pore csv file
 	double spacing = longImage->GetSpacing()[0];
-	std::ofstream fout( getLocalEncodingFileName(pathCSV), std::ofstream::out );
+	std::ofstream fout( pathCSV.toStdString());
 
 	// Header of pore csv file
 	fout << "Spacing" << ',' << spacing << '\n'

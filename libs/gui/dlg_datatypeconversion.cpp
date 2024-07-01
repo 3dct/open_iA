@@ -13,7 +13,6 @@
 
 // base
 #include <iAConnector.h>
-#include <iAFileUtils.h>
 #include <iAMathUtility.h>
 #include <iAToolsITK.h>
 #include <iAToolsVTK.h>
@@ -53,7 +52,7 @@ namespace
 {
 	FILE* openFile(QString const & filename)
 	{
-		FILE * pFile = fopen(getLocalEncodingFileName(filename).c_str(), "rb");
+		FILE * pFile = fopen(filename.toStdString().c_str(), "rb");
 		if (pFile == nullptr)
 		{
 			QString msg(QString("Failed to open file %1!").arg(filename));

@@ -30,6 +30,9 @@ enum iASlicerMode
 //! @param axis the index of the axis (see iAAxisIndex)
 iAguibase_API QString axisName(int axis);
 
+//! Convert an axis name to the iAAxisIndex enum
+iAguibase_API iAAxisIndex nameToAxis(QString const& name);
+
 //! Get the "name" of the given slicer mode (i.e. the slicer plane, "XY" for iASlicerMode XY).
 iAguibase_API QString slicerModeString(int mode);
 

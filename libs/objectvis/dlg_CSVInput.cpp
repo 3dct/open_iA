@@ -159,7 +159,6 @@ void dlg_CSVInput::connectSignals()
 {
 	connect(m_ui->btn_SelectFile, &QPushButton::clicked, this, &dlg_CSVInput::selectFileBtnClicked);
 	connect(m_ui->cmbbox_FileName, &QComboBox::currentTextChanged, this, &dlg_CSVInput::fileNameChanged);
-	connect(m_ui->cb_CurvedFiberInfo, &QCheckBox::stateChanged, this, &dlg_CSVInput::curvedFiberDataChanged);
 	connect(m_ui->btn_SelectCurvedFile, &QPushButton::clicked, this, &dlg_CSVInput::selectCurvedFileBtnClicked);
 	connect(m_ui->btn_SaveFormat, &QPushButton::clicked, this, &dlg_CSVInput::saveFormatBtnClicked);
 	connect(m_ui->btn_DeleteFormat, &QPushButton::clicked, this, &dlg_CSVInput::deleteFormatBtnClicked);
@@ -177,6 +176,8 @@ void dlg_CSVInput::connectSignals()
 	connect(m_ui->ed_SkipLinesStart, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_CSVInput::updatePreview);
 	connect(m_ui->ed_SkipLinesEnd,   QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_CSVInput::updatePreview);
 	connect(m_ui->sb_PreviewLines,   QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_CSVInput::updatePreview);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
+	connect(m_ui->cb_CurvedFiberInfo, &QCheckBox::stateChanged, this, &dlg_CSVInput::curvedFiberDataChanged);
 	connect(m_ui->cb_ComputeStartEnd, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeStartEndChanged);
 	connect(m_ui->cb_ComputeLength, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeLengthChanged);
 	connect(m_ui->cb_ComputeAngles, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeAngleChanged);
@@ -185,8 +186,20 @@ void dlg_CSVInput::connectSignals()
 	connect(m_ui->cb_AddAutoID, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
 	connect(m_ui->cb_ContainsHeader, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
 	connect(m_ui->cb_AdvancedMode, &QCheckBox::stateChanged, this, &dlg_CSVInput::advancedModeToggled);
-	connect(m_ui->list_ColumnSelection, &QListWidget::itemSelectionChanged, this, &dlg_CSVInput::selectedColsChanged);
 	connect(m_ui->cb_FixedDiameter, &QCheckBox::stateChanged, this, &dlg_CSVInput::fixedDiameterChanged);
+#else
+	connect(m_ui->cb_CurvedFiberInfo, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::curvedFiberDataChanged);
+	connect(m_ui->cb_ComputeStartEnd, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::computeStartEndChanged);
+	connect(m_ui->cb_ComputeLength, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::computeLengthChanged);
+	connect(m_ui->cb_ComputeAngles, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::computeAngleChanged);
+	connect(m_ui->cb_ComputeTensors, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::updatePreview);
+	connect(m_ui->cb_ComputeCenter, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::computeCenterChanged);
+	connect(m_ui->cb_AddAutoID, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::updatePreview);
+	connect(m_ui->cb_ContainsHeader, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::updatePreview);
+	connect(m_ui->cb_AdvancedMode, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::advancedModeToggled);
+	connect(m_ui->cb_FixedDiameter, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::fixedDiameterChanged);
+#endif
+	connect(m_ui->list_ColumnSelection, &QListWidget::itemSelectionChanged, this, &dlg_CSVInput::selectedColsChanged);
 	connect(m_ui->sb_FixedDiameter, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &dlg_CSVInput::updatePreview);
 }
 

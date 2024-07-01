@@ -93,7 +93,7 @@ void iADerivedOutputCalculator::run()
 	}
 	/*
 	itk::ImageFileWriter<OutputImageType>::Pointer writer = itk::ImageFileWriter<OutputImageType>::New();
-	writer->SetFileName( getLocalEncodingFileName(labelOutputFileName) );
+	writer->SetFileName( labelOutputFileName.toStdString() );
 	writer->SetUseCompression(true);
 	writer->SetInput(relabel->GetOutput() );
 	writer->Update();

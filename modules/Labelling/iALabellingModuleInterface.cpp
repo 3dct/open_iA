@@ -6,8 +6,7 @@
 #include "iALabellingTool.h"
 
 #include <iAMainWindow.h>
-#include <iAMdiChild.h>
-#include <iAToolHelper.h>    // for addToolToActiveMdiChild
+#include <iAToolHelper.h>    // for addToolAction
 #include <iAToolRegistry.h>
 
 #include <QAction>
@@ -19,22 +18,9 @@ void iALabellingModuleInterface::Initialize()
 	{
 		return;
 	}
-	auto actionLabelling = new QAction(tr("Labelling"), m_mainWnd);
-	connect(actionLabelling, &QAction::triggered, this, [this]()
-		{
-			addToolToActiveMdiChild<iALabellingTool>(iALabellingTool::Name, m_mainWnd);
-		});
-
-	auto actionAnnotation = new QAction(tr("Annotations"), m_mainWnd);
-	connect(actionAnnotation, &QAction::triggered, this, [this]()
-		{
-			addToolToActiveMdiChild<iAAnnotationTool>(iAAnnotationTool::Name, m_mainWnd);
-		});
-
-	auto menuEnsembles = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Labelling"), false);
-	menuEnsembles->addAction(actionLabelling);
-	menuEnsembles->addAction(actionAnnotation);
-
+	auto submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Labelling"), false);
+	addToolAction<iALabellingTool>(m_mainWnd, submenu);
+	addToolAction<iAAnnotationTool>(m_mainWnd, submenu);
 	iAToolRegistry::addTool(iAAnnotationTool::Name, createTool<iAAnnotationTool>);
 	iAToolRegistry::addTool(iALabellingTool::Name, createTool<iALabellingTool>);
 }

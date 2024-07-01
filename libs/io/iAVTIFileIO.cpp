@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVTIFileIO.h"
 
-#include "iAFileUtils.h"
 #include "iAImageData.h"
 #include "iAProgress.h"
 
@@ -18,7 +17,7 @@ std::shared_ptr<iADataSet> iAVTIFileIO::loadData(QString const& fileName, QVaria
 	Q_UNUSED(paramValues);
 	vtkNew<vtkXMLImageDataReader> reader;
 	progress.observe(reader);
-	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
+	reader->SetFileName(fileName.toStdString().c_str());
 	reader->Update();
 	auto img = reader->GetOutput();
 	return { std::make_shared<iAImageData>(img) };
@@ -29,7 +28,7 @@ void  iAVTIFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSet> 
 	Q_UNUSED(paramValues);
 	vtkNew<vtkXMLImageDataWriter> writer;
 	progress.observe(writer);
-	writer->SetFileName(getLocalEncodingFileName(fileName).c_str());
+	writer->SetFileName(fileName.toStdString().c_str());
 	if (!dynamic_cast<iAImageData*>(dataSet.get()))
 	{
 		throw std::runtime_error("VTI volume export: Given dataset is not an image!");

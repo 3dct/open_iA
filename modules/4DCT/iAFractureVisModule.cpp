@@ -4,8 +4,6 @@
 
 #include "iA4DCTVisWin.h"
 
-#include <iAFileUtils.h>
-
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshorten-64-to-32"
@@ -64,7 +62,7 @@ void iAFractureVisModule::load( QString fileName )
 {
 	// load heightmap from the input file
 	auto reader = itk::ImageFileReader<MapType>::New();
-	reader->SetFileName( getLocalEncodingFileName(fileName) );
+	reader->SetFileName( fileName.toStdString() );
 	reader->Update( );
 	m_heightmap = reader->GetOutput( );
 	// visualize
@@ -80,7 +78,7 @@ void iAFractureVisModule::save( QString fileName )
 {
 	auto writer = itk::ImageFileWriter<MapType>::New();
 	writer->SetInput( m_heightmap );
-	writer->SetFileName( getLocalEncodingFileName(fileName) );
+	writer->SetFileName( fileName.toStdString() );
 	writer->Update( );
 }
 
@@ -150,7 +148,7 @@ void iAFractureVisModule::getBounds( double * bounds )
 	m_surfMapper->GetBounds( bounds );
 }
 
-void iAFractureVisModule::setData( vtkPoints* points, vtkCellArray* polys, vtkUnsignedCharArray* colors /*= 0*/ )
+void iAFractureVisModule::setData( vtkPoints* points, vtkCellArray* polys, vtkUnsignedCharArray* colors )
 {
 	auto polyData = vtkSmartPointer<vtkPolyData>::New();
 	polyData->SetPoints( points );
@@ -181,7 +179,7 @@ void iAFractureVisModule::calculateMap( MapType* map, QString fileName, MapName 
 	typedef itk::Image<PixelType, 3>				ImageType;
 
 	auto reader = itk::ImageFileReader<ImageType>::New();
-	reader->SetFileName( getLocalEncodingFileName(fileName) );
+	reader->SetFileName( fileName.toStdString() );
 	reader->Update( );
 
 	ImageType::Pointer image = reader->GetOutput( );

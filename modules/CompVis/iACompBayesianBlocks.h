@@ -70,12 +70,12 @@ public:
 		iACsvDataStorage* dataStorage, bin::BinType* datasets);
 
 	//calculate the binning for the data points
-	virtual void calculateBins();
+	void calculateBins() override;
 
 	//calculates the bin datastructure for (a) specifically selected bin(s)
-	virtual bin::BinType* calculateBins(bin::BinType* data, int currData);
+	bin::BinType* calculateBins(bin::BinType* data, int currData) override;
 
-	virtual void setDataStructure(iACompHistogramTableData* datastructure);
+	void setDataStructure(iACompHistogramTableData* datastructure) override;
 
 private:
 

@@ -26,6 +26,7 @@
 
 #include <cassert>
 
+const QString iAVolumePlayerTool::Name("VolumePlayer");
 
 iAVolumePlayerTool::iAVolumePlayerTool(iAMainWindow* wnd, iAMdiChild* child):
 	iATool(wnd, child)

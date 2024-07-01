@@ -4,7 +4,6 @@
 
 // base
 #include "iALog.h"
-#include "iAFileUtils.h"
 
 #include "iAAbortListener.h"
 
@@ -26,8 +25,7 @@
 
 vtkSmartPointer<vtkGenericMovieWriter> GetMovieWriter(QString const & fileName, int quality, int fps)
 {
-	std::string encodedFileName = getLocalEncodingFileName(fileName);
-	if (encodedFileName.empty())
+	if (fileName.isEmpty())
 		return vtkSmartPointer<vtkGenericMovieWriter>();
 	vtkSmartPointer<vtkGenericMovieWriter> movieWriter;
 	// Try to create proper video encoder based on given file name.
@@ -51,7 +49,7 @@ vtkSmartPointer<vtkGenericMovieWriter> GetMovieWriter(QString const & fileName, 
 		movieWriter = aviwriter;
 	}
 #endif
-	movieWriter->SetFileName(encodedFileName.c_str());
+	movieWriter->SetFileName(fileName.toStdString().c_str());
 	return movieWriter;
 }
 

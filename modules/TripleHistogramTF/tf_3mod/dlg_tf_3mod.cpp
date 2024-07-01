@@ -9,7 +9,7 @@
 
 #include <QHBoxLayout>
 
-dlg_tf_3mod::dlg_tf_3mod(iAMdiChild * mdiChild /*= 0*/, Qt::WindowFlags f /*= 0 */)
+dlg_tf_3mod::dlg_tf_3mod(iAMdiChild * mdiChild, Qt::WindowFlags f)
 	:
 	//TripleHistogramTFConnector(mdiChild, f), m_mdiChild(mdiChild)
 	QDockWidget("Triple Histogram Transfer Function", mdiChild, f)

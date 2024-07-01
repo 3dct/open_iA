@@ -391,7 +391,7 @@ void MainWindow::dropEvent(QDropEvent *e)
 {
 	for(const QUrl &url: e->mimeData()->urls())
 	{
-		loadFile(url.toLocalFile(), nullptr);
+		loadFile(url.toLocalFile(), iAChildSource::make(false));
 	}
 }
 
@@ -425,7 +425,7 @@ void MainWindow::openRaw()
 		m_path,
 		"Raw File (*)"
 	);
-	loadFile(fileName, std::make_unique<iAChildSource>(false, askWhichChild()), std::make_shared<iARawFileIO>());
+	loadFile(fileName, iAChildSource::make(false, askWhichChild()), std::make_shared<iARawFileIO>());
 }
 
 void MainWindow::openRecentFile()
@@ -436,7 +436,7 @@ void MainWindow::openRecentFile()
 		return;
 	}
 	QString fileName = action->data().toString();
-	loadFile(fileName, std::make_unique<iAChildSource>(false, askWhichChild()));
+	loadFile(fileName, iAChildSource::make(false, askWhichChild()));
 }
 
 iAMdiChild* MainWindow::askWhichChild()
@@ -466,6 +466,10 @@ void MainWindow::loadFile(QString const& fileName, std::shared_ptr<iAChildSource
 	if (!io)
 	{   // did not find an appropriate file IO; createIO already outputs a warning in that case; maybe a QMessageBox?
 		return;
+	}
+	if (!childSrc)
+	{
+		childSrc = iAChildSource::make(false);
 	}
 	QVariantMap paramValues;
 	if (!iAFileParamDlg::getParameters(this, io.get(), iAFileIO::Load, fileName, paramValues))
@@ -1260,9 +1264,7 @@ void MainWindow::readSettings()
 	settings.endGroup();
 	if (m_layoutNames.size() == 0)
 	{
-		m_layoutNames.push_back("1");
-		m_layoutNames.push_back("2");
-		m_layoutNames.push_back("3");
+		m_layoutNames.push_back("none");
 	}
 	m_defaultPreferences.PositionMarkerSize = settings.value("Preferences/prefStatExt", defaultPrefs.PositionMarkerSize).toInt();
 
@@ -1613,6 +1615,10 @@ void MainWindow::saveLayout()
 	}
 	if (m_layout->findText(layoutName) == -1)
 	{
+		if (m_layout->count() == 1 && m_layout->itemText(0) == "none")
+		{
+			m_layout->clear();
+		}
 		m_layout->addItem(layoutName);
 	}
 	else

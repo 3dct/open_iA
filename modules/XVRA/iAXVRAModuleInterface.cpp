@@ -165,6 +165,10 @@ void iAXVRAModuleInterface::startXVRA()
 		// set up rendering updates for frustum changes:
 		connect(m_fsFrustum, &iAFrustumActor::updateRequired, this, [this, child, dataSetIdx]()
 		{
+			if (!m_fsFrustum)
+			{
+				return;
+			}
 			// trigger an update to renderer if camera indicator has changed
 			static auto lastUpdate = QDateTime::currentDateTime();
 			auto lastRenTime = child->dataSetViewer(dataSetIdx)->renderer()->vtkRen()->GetLastRenderTimeInSeconds();
@@ -209,6 +213,7 @@ void iAXVRAModuleInterface::startXVRA()
 		connect(child, &iAMdiChild::closed, this, [vrModule, this]()
 		{
 			disconnect(m_fsFrustum);
+			m_fsFrustum = nullptr;
 			vrModule->stopImNDT();
 		});
 		connect(vrModule, &iAImNDTModuleInterface::analysisStopped, this, [this, vrModule]()

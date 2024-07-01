@@ -21,6 +21,8 @@
 #include <vtkQuadricClustering.h>
 #include <vtkSmartPointer.h>
 #include <vtkSmoothPolyDataFilter.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
 #include <vtkWindowedSincPolyDataFilter.h>
 
 IAFILTER_DEFAULT_CLASS(iAExtractSurface);
@@ -31,6 +33,7 @@ IAFILTER_DEFAULT_CLASS(iASimplifyMeshQuadricClustering);
 IAFILTER_DEFAULT_CLASS(iASimplifyMeshQuadricDecimation);
 IAFILTER_DEFAULT_CLASS(iASmoothMeshWindowedSinc);
 IAFILTER_DEFAULT_CLASS(iATriangulation);
+IAFILTER_DEFAULT_CLASS(iATransformPolyData);
 
 namespace
 {
@@ -48,7 +51,7 @@ namespace
 		if (simplifyAlgoName == "Decimate Pro")
 		{
 			// crashes sometimes - non-manifold input? large datasets?
-			auto decimatePro = vtkSmartPointer<vtkDecimatePro>::New();
+			vtkNew<vtkDecimatePro> decimatePro;
 			decimatePro->SetTargetReduction(parameters["Decimation Target"].toDouble());
 			decimatePro->SetPreserveTopology(parameters["Preserve Topology"].toBool());
 
@@ -60,7 +63,7 @@ namespace
 		}
 		else if (simplifyAlgoName == "Quadric Clustering")
 		{
-			auto quadricClustering = vtkSmartPointer<vtkQuadricClustering>::New();
+			vtkNew<vtkQuadricClustering> quadricClustering;
 			Progress->observe(quadricClustering);
 			quadricClustering->SetNumberOfXDivisions(parameters["Cluster divisions"].toUInt());
 			quadricClustering->SetNumberOfYDivisions(parameters["Cluster divisions"].toUInt());
@@ -70,7 +73,7 @@ namespace
 		}
 		else if (simplifyAlgoName == "Windowed Sinc")
 		{
-			auto windowedSinc = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+			vtkNew<vtkWindowedSincPolyDataFilter> windowedSinc;
 			windowedSinc->SetNumberOfIterations  (parameters["Number of Iterations"].toInt());     // 15
 			windowedSinc->SetBoundarySmoothing   (parameters["Boundary Smoothing"].toBool());      // false
 			windowedSinc->SetFeatureEdgeSmoothing(parameters["Feature Edge Smoothing"].toBool());  // false
@@ -100,7 +103,7 @@ namespace
 		vtkSmartPointer<vtkPolyDataAlgorithm> result;
 		if (parameters["Algorithm"].toString() == "Marching Cubes")
 		{
-			auto marchingCubes = vtkSmartPointer<vtkMarchingCubes>::New();
+			vtkNew<vtkMarchingCubes> marchingCubes;
 			marchingCubes->ComputeNormalsOn();
 			marchingCubes->ComputeGradientsOn();
 			marchingCubes->ComputeScalarsOn();
@@ -109,7 +112,7 @@ namespace
 		}
 		else
 		{
-			auto flyingEdges = vtkSmartPointer<vtkFlyingEdges3D>::New();
+			vtkSmartPointer<vtkFlyingEdges3D> flyingEdges;
 			flyingEdges->SetNumberOfContours(1);
 			flyingEdges->SetValue(0, parameters["Iso value"].toDouble());
 			flyingEdges->ComputeNormalsOn();
@@ -132,7 +135,7 @@ namespace
 			return nullptr;
 		}
 
-		auto delaunay3D = vtkSmartPointer<vtkDelaunay3D>::New();
+		vtkNew<vtkDelaunay3D> delaunay3D;
 		delaunay3D->SetInputConnection(aSurfaceFilter->GetOutputPort());
 		delaunay3D->SetAlpha(alpha);
 		delaunay3D->SetOffset(offset);
@@ -156,7 +159,7 @@ namespace
 		filter->SetNumberOfSubdivisions(3);
 		filter->Update();*/
 
-		auto smoothFilter = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
+		vtkNew<vtkSmoothPolyDataFilter> smoothFilter;
 		smoothFilter->SetInputConnection(algo->GetOutputPort());
 		smoothFilter->SetNumberOfIterations(500);
 		smoothFilter->SetRelaxationFactor(0.1);
@@ -204,7 +207,7 @@ void iAExtractSurface::performWork(QVariantMap const & parameters)
 }
 
 iAExtractSurface::iAExtractSurface() :
-	iAFilter("Extract Surface", "Extract Surface",
+	iAFilter("Extract Surface", "Surfaces",
 		"Extracts a surface along the specified iso value.<br/>"
 		"A surface is extracted at the given Iso value, either using marching cubes or "
 		"flying edges algorithm. The mesh is subsequently simplified using either "
@@ -257,7 +260,7 @@ void iATriangulation::performWork(QVariantMap const& parameters) {
 		return;
 	}
 
-	auto cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+	vtkNew<vtkCleanPolyData> cleaner;
 	if (parameters["Simplification Algorithm"].toString() == "None")
 	{
 		cleaner->SetInputConnection(surfaceFilter->GetOutputPort());
@@ -284,7 +287,7 @@ void iATriangulation::performWork(QVariantMap const& parameters) {
 
 
 iATriangulation::iATriangulation() :
-	iAFilter("Surface triangulation", "Extract Surface",
+	iAFilter("Surface triangulation", "Surfaces",
 		"Extracts a surface along the specified iso value.<br/>"
 		"A surface is extracted at the given Iso value, either using marching cubes or "
 		"flying edges algorithm. The mesh is subsequently simplified using either "
@@ -324,7 +327,7 @@ iATriangulation::iATriangulation() :
 
 
 iASimplifyMeshDecimatePro::iASimplifyMeshDecimatePro() :
-	iAFilter("Simplify: Decimate Pro", "Extract Surface",
+	iAFilter("Decimate Pro", "Surfaces/Simplify",
 		"Simplify mesh using the Decimate Pro algorithm.<br/>"
 		"See the <a href=\"https://vtk.org/doc/nightly/html/classvtkDecimatePro.html\">"
 		"Decimate Pro Filter</a> in the VTK documentation.", 0)
@@ -340,7 +343,7 @@ iASimplifyMeshDecimatePro::iASimplifyMeshDecimatePro() :
 void iASimplifyMeshDecimatePro::performWork(QVariantMap const& parameters)
 {
 	// crashes sometimes - non-manifold input? large datasets?
-	auto vtkFilter = vtkSmartPointer<vtkDecimatePro>::New();
+	vtkNew<vtkDecimatePro> vtkFilter;
 	vtkFilter->SetTargetReduction(parameters["Decimation Target"].toDouble());
 	vtkFilter->SetPreserveTopology(parameters["Preserve Topology"].toBool());
 	vtkFilter->SetSplitAngle(parameters["Split Angle"].toDouble());
@@ -354,7 +357,7 @@ void iASimplifyMeshDecimatePro::performWork(QVariantMap const& parameters)
 
 
 iASimplifyMeshQuadricClustering::iASimplifyMeshQuadricClustering() :
-	iAFilter("Simplify: Quadric Clustering", "Extract Surface",
+	iAFilter("Quadric Clustering", "Surfaces/Simplify",
 		"Simplify mesh using quadric clustering.<br/>"
 		"See the <a href=\"https://vtk.org/doc/nightly/html/classvtkQuadricClustering.html\">"
 		"Quadric Clustering Filter</a> in the VTK documentation.", 0)
@@ -368,7 +371,7 @@ iASimplifyMeshQuadricClustering::iASimplifyMeshQuadricClustering() :
 
 void iASimplifyMeshQuadricClustering::performWork(QVariantMap const& parameters)
 {
-	auto vtkFilter = vtkSmartPointer<vtkQuadricClustering>::New();
+	vtkNew<vtkQuadricClustering> vtkFilter;
 	progress()->observe(vtkFilter);
 	auto clusterDiv = variantToVector<int>(parameters["Cluster divisions"]);
 	assert(clusterDiv.size() == 3);
@@ -384,7 +387,7 @@ void iASimplifyMeshQuadricClustering::performWork(QVariantMap const& parameters)
 
 
 iASimplifyMeshQuadricDecimation::iASimplifyMeshQuadricDecimation() :
-	iAFilter("Simplify: Quadric Decimation", "Extract Surface",
+	iAFilter("Quadric Decimation", "Surfaces/Simplify",
 		"Simplify mesh using quadric decimation.<br/>"
 		"See the <a href=\"https://vtk.org/doc/nightly/html/classvtkQuadricDecimation.html\">"
 		"Quadric Decimation Filter</a> in the VTK documentation.", 0)
@@ -402,7 +405,7 @@ iASimplifyMeshQuadricDecimation::iASimplifyMeshQuadricDecimation() :
 
 void iASimplifyMeshQuadricDecimation::performWork(QVariantMap const& parameters)
 {
-	auto vtkFilter = vtkSmartPointer<vtkQuadricDecimation>::New();
+	vtkNew<vtkQuadricDecimation> vtkFilter;
 	progress()->observe(vtkFilter);
 	vtkFilter->SetTargetReduction(parameters["Target Reduction"].toDouble());
 	vtkFilter->SetAttributeErrorMetric(parameters["Attribute Error Metric"].toBool());
@@ -417,7 +420,7 @@ void iASimplifyMeshQuadricDecimation::performWork(QVariantMap const& parameters)
 
 
 iASmoothMeshWindowedSinc::iASmoothMeshWindowedSinc() :
-	iAFilter("Mesh Smoothing (Windowed Sinc)", "Extract Surface",
+	iAFilter("Mesh Smoothing (Windowed Sinc)", "Surfaces",
 		"Smooth mesh. <br/>Uses <a href=\"https://vtk.org/doc/nightly/html/classvtkWindowedSincPolyDataFilter.html\">VTK'swindowed sinc poly filter</a>.", 0)
 {
 	setRequiredMeshInputs(1);
@@ -432,7 +435,7 @@ iASmoothMeshWindowedSinc::iASmoothMeshWindowedSinc() :
 
 void iASmoothMeshWindowedSinc::performWork(QVariantMap const& parameters)
 {
-	auto vtkFilter = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+	vtkNew<vtkWindowedSincPolyDataFilter> vtkFilter;
 	progress()->observe(vtkFilter);
 	vtkFilter->SetNumberOfIterations(parameters["Number of Iterations"].toInt());     // 15
 	vtkFilter->SetBoundarySmoothing(parameters["Boundary Smoothing"].toBool());      // false
@@ -447,7 +450,7 @@ void iASmoothMeshWindowedSinc::performWork(QVariantMap const& parameters)
 }
 
 iAFillHoles::iAFillHoles() :
-	iAFilter("Fill Holes", "Extract Surface",
+	iAFilter("Fill Holes", "Surfaces",
 		"Fill holes in a mesh.<br/>"
 		"Hole size is specified as a radius to the bounding circumsphere containing the hole (approximate)."
 		"Uses <a href=\"https://vtk.org/doc/nightly/html/classvtkFillHolesFilter.html\">VTK's Fill Hole filter</a>.", 0)
@@ -457,7 +460,7 @@ iAFillHoles::iAFillHoles() :
 
 void iAFillHoles::performWork(QVariantMap const& parameters)
 {
-	auto vtkFilter = vtkSmartPointer<vtkFillHolesFilter>::New();
+	vtkNew<vtkFillHolesFilter> vtkFilter;
 	progress()->observe(vtkFilter);
 	vtkFilter->SetInputData(dynamic_cast<iAPolyData*>(input(0).get())->poly());
 	vtkFilter->SetHoleSize(parameters["Hole size"].toDouble());
@@ -466,9 +469,9 @@ void iAFillHoles::performWork(QVariantMap const& parameters)
 }
 
 iADelauny3D::iADelauny3D() :
-	iAFilter("Delauny 3D", "Extract Surface",
-		"Create a triangulation surface by means of the Delaunay3D-Algorithm for the given polygon."
-		"See <a href=\"https://vtk.org/doc/nightly/html/classvtkDelaunay3D.html\">VTK documentation on Delaunay3D</a>.", 0)
+	iAFilter("Delauny 3D", "Surfaces",
+		"Create a triangulation surface by means of the Delaunay3D-Algorithm for the given polygon.<br/>"
+		"See <a href=\"https://vtk.org/doc/nightly/html/classvtkDelaunay3D.html\">VTK's documentation on Delaunay 3D</a>.", 0)
 {
 	addParameter("Alpha", iAValueType::Continuous, 0);
 	addParameter("Triangles for non-zero alpha values", iAValueType::Boolean, true);
@@ -481,7 +484,7 @@ iADelauny3D::iADelauny3D() :
 
 void iADelauny3D::performWork(QVariantMap const& parameters)
 {
-	auto vtkFilter = vtkSmartPointer<vtkDelaunay3D>::New();
+	vtkNew<vtkDelaunay3D> vtkFilter;
 	progress()->observe(vtkFilter);
 	vtkFilter->SetInputData(dynamic_cast<iAPolyData*>(input(0).get())->poly());
 	vtkFilter->SetAlpha(parameters["Alpha"].toDouble());
@@ -494,9 +497,42 @@ void iADelauny3D::performWork(QVariantMap const& parameters)
 	vtkFilter->Update();
 	//vtkFilter->GetOutput() // vtkUnstructuredGrid!
 
-	auto datasetSurfaceFilter = vtkSmartPointer<vtkDataSetSurfaceFilter>::New();
+	vtkNew<vtkDataSetSurfaceFilter> datasetSurfaceFilter;
 	datasetSurfaceFilter->SetInputConnection(vtkFilter->GetOutputPort());
 	progress()->observe(datasetSurfaceFilter);
 	datasetSurfaceFilter->Update();
 	addOutput(std::make_shared<iAPolyData>(datasetSurfaceFilter->GetOutput()));
+}
+
+
+
+iATransformPolyData::iATransformPolyData() :
+	iAFilter("Transform polydata", "Surfaces",
+		"Apply transform to polydata"
+		"See the <a href=\"https://vtk.org/doc/nightly/html/classvtkTransformPolyDataFilter.html\">"
+		"Transform PolyData filter</a> in the VTK documentation.", 0)
+{
+	addParameter("Translate", iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
+	addParameter("Rotate", iAValueType::Vector3, variantVector<double>({ 0.0, 0.0, 0.0 }));
+	addParameter("Scale", iAValueType::Vector3, variantVector<double>({ 1.0, 1.0, 1.0 }));
+}
+
+void iATransformPolyData::performWork(QVariantMap const& parameters)
+{
+	vtkNew<vtkTransform> tr;
+	std::array<double, 3> translate, rotate, scale;
+	setFromVectorVariant<double>(translate, parameters["Translate"]);
+	setFromVectorVariant<double>(rotate, parameters["Rotate"]);
+	setFromVectorVariant<double>(scale, parameters["Scale"]);
+	tr->RotateX(rotate[0]);
+	tr->RotateY(rotate[1]);
+	tr->RotateZ(rotate[2]);
+	tr->Translate(translate.data());
+	tr->Scale(scale.data());
+	vtkNew<vtkTransformPolyDataFilter> vtkFilter;
+	vtkFilter->SetTransform(tr);
+	progress()->observe(vtkFilter);
+	vtkFilter->SetInputData(dynamic_cast<iAPolyData*>(input(0).get())->poly());
+	vtkFilter->Update();
+	addOutput(std::make_shared<iAPolyData>(vtkFilter->GetOutput()));
 }

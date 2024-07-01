@@ -18,7 +18,7 @@ namespace
 	const QString LinearStr("Linear");
 	const QString LogarithmicStr("Logarithmic");
 
-	const QString UnknownStr("Unknown");
+	const QString UnknownAttributeTypeStr("Unknown");
 }
 
 
@@ -48,7 +48,7 @@ QString AttribType2Str(iAAttributeDescriptor::iAAttributeType type)
 		case iAAttributeDescriptor::DerivedOutput:
 			return DerivedOutputStr;
 		default:
-			return UnknownStr;
+			return UnknownAttributeTypeStr;
 	}
 }
 

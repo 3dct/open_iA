@@ -41,6 +41,7 @@ if (MSVC)
 		endforeach()
 	endif()
 	set_target_properties(${GUI_EXECUTABLE_TARGET} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${WinDLLPaths};%PATH%\nSCIFIO_PATH=${SCIFIO_PATH}")
+	target_sources(${GUI_EXECUTABLE_TARGET} PRIVATE ${CMAKE_SOURCE_DIR}/cmake/WindowsApplicationUseUtf8.manifest)
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")

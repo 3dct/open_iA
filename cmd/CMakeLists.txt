@@ -24,6 +24,7 @@ if (MSVC)
 		endforeach()
 	endif()
 	set_target_properties(${EXECUTABLE_NAME} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${WinDLLPaths};%PATH%\nSCIFIO_PATH=${SCIFIO_PATH}")
+	target_sources(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/WindowsApplicationUseUtf8.manifest)
 endif()
 
 # Test running filters from command line

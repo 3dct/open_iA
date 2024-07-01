@@ -12,7 +12,7 @@
 #include <QApplication>
 #include <QStringListModel>
 
-iA4DCTListView::iA4DCTListView( QWidget* parent/*=0*/ ) :
+iA4DCTListView::iA4DCTListView( QWidget* parent ) :
 	QListView( parent )
 {
 	m_actOpen = new QAction( tr( "Open file" ), this );
@@ -65,7 +65,7 @@ void iA4DCTListView::openFile( )
 	iAMainWindow* win = qobject_cast<iAMainWindow*>(QApplication::activeWindow());
 	if( win)
 	{
-		win->loadFile( m_data->at( indexes[0].row( ) ).Path, nullptr);
+		win->loadFile( m_data->at( indexes[0].row( ) ).Path, iAChildSource::make(true));
 	}
 }
 

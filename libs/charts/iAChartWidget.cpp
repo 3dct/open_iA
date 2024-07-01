@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAChartWidget.h"
 
-#include "iAAttributeDescriptor.h"
-#include "iAFileUtils.h"
 #include "iALog.h"
 #include "iAMapperImpl.h"
 #include "iAMathUtility.h"
@@ -1215,12 +1213,12 @@ void iAChartWidget::contextMenuEvent(QContextMenuEvent *event)
 	m_contextPos = event->pos();
 	m_contextMenu->clear();
 	m_contextMenu->addAction(iAThemeHelper::icon("chart"), tr("Reset chart view"), this, &iAChartWidget::resetView);
-	QAction *showTooltipAction = new QAction(tr("Show histogram coordinates"), this);
+	QAction *showTooltipAction = new QAction(tr("Show tooltip"), this);
 	showTooltipAction->setCheckable(true);
 	showTooltipAction->setChecked(m_showTooltip);
 	connect(showTooltipAction, &QAction::toggled, this, &iAChartWidget::showTooltip);
 	m_contextMenu->addAction(showTooltipAction);
-	m_contextMenu->addAction(iAThemeHelper::icon("save"), tr("Export histogram data"), this, &iAChartWidget::exportData);
+	m_contextMenu->addAction(iAThemeHelper::icon("save"), tr("Export chart data"), this, &iAChartWidget::exportData);
 	m_contextMenu->addSeparator();
 	addContextMenuEntries(m_contextMenu);
 	m_contextMenu->exec(event->globalPos());
@@ -1253,7 +1251,13 @@ void iAChartWidget::exportData()
 	{
 		return;
 	}
-	std::ofstream out( getLocalEncodingFileName(fileName));
+	std::ofstream out(fileName.toStdString());
+	if (!out.is_open() || !out.good())
+	{
+		LOG(lvlError, QString("Chart export: Failed to open file %1 for writing.")
+			.arg(fileName).arg(out.is_open()).arg(out.good()));
+		return;
+	}
 	out << m_xCaption.toStdString() << "," << QString("Plot %1: %2").arg(plotIdx).arg(m_yCaption).toStdString() << "\n";
 	for (size_t idx = 0; idx < m_plots[plotIdx]->data()->valueCount(); ++idx)
 	{
@@ -1262,6 +1266,7 @@ void iAChartWidget::exportData()
 			<< "\n";
 	}
 	out.close();
+	LOG(lvlInfo, QString("Chart export to file %1 done.").arg(fileName));
 }
 
 void iAChartWidget::showTooltip(bool toggled)

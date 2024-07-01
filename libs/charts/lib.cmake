@@ -13,8 +13,9 @@ endif()
 if (openiA_OPENGL_DEBUG)
 	TARGET_COMPILE_DEFINITIONS(${libname} PRIVATE OPENGL_DEBUG)
 endif()
+set(COLORMAP_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/charts/colormaps/")
 add_custom_target(iAcharts_copy-colormaps COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
-    "${CMAKE_CURRENT_SOURCE_DIR}/charts/colormaps/" "$<TARGET_FILE_DIR:${libname}>/colormaps"
+    "${COLORMAP_SRC_DIR}" "$<TARGET_FILE_DIR:${libname}>/colormaps"
     COMMENT "Copying colormaps...")
 add_dependencies(${libname} iAcharts_copy-colormaps)
 if (openiA_USE_IDE_FOLDERS)

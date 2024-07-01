@@ -87,6 +87,14 @@ double covariance(FuncType const & func1, FuncType const & func2, double mean1, 
 	return sq_sum / (func1.size() - (correctDF ? 1 : 0) );
 }
 
+double median(FuncType vec)
+{
+	auto size = vec.size();
+	sort(vec.begin(), vec.end());
+	auto mid = size / 2;
+	return size % 2 == 0 ? (vec[mid] + vec[mid - 1]) / 2 : vec[mid];
+}
+
 double pearsonsCorrelationCoefficient(FuncType const & func1, FuncType const & func2)
 {
 	double mean1 = mean(func1), mean2 = mean(func2);

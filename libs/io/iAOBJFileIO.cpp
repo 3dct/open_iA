@@ -3,7 +3,6 @@
 #include "iAOBJFileIO.h"
 
 #include "iAExceptionThrowingErrorObserver.h"
-#include "iAFileUtils.h"
 #include "iAPolyData.h"
 #include "iAProgress.h"
 
@@ -20,7 +19,7 @@ std::shared_ptr<iADataSet> iAOBJFileIO::loadData(QString const& fileName, QVaria
 	vtkNew<vtkOBJReader> reader;
 	progress.observe(reader);
 	reader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
-	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
+	reader->SetFileName(fileName.toStdString().c_str());
 	vtkNew<vtkPolyData> polyData;
 	reader->SetOutput(polyData);
 	reader->Update();
@@ -34,7 +33,7 @@ void iAOBJFileIO::saveData(QString const& fileName, std::shared_ptr<iADataSet> d
 	vtkNew<vtkOBJWriter> writer;
 	progress.observe(writer);
 	writer->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
-	writer->SetFileName(getLocalEncodingFileName(fileName).c_str());
+	writer->SetFileName(fileName.toStdString().c_str());
 	writer->SetInputData(dynamic_cast<iAPolyData*>(dataSet.get())->poly());
 	writer->Write();
 }

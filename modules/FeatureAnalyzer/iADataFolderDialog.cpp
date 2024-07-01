@@ -6,7 +6,7 @@
 #include <QMessageBox>
 #include <QSettings>
 
-iADataFolderDialog::iADataFolderDialog( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ) : QDialog( parent, f )
+iADataFolderDialog::iADataFolderDialog( QWidget * parent, Qt::WindowFlags f ) : QDialog( parent, f )
 {
 	setupUi( this );
 

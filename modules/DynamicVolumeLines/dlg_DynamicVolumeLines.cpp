@@ -256,11 +256,16 @@ void dlg_DynamicVolumeLines::updateHistColorMap(vtkSmartPointer<vtkLookupTable> 
 void dlg_DynamicVolumeLines::setupGUIConnections()
 {
 	connect(m_ui->pB_Update, &QPushButton::clicked, this, &dlg_DynamicVolumeLines::updateDynamicVolumeLines);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 	connect(m_ui->cb_showFBP, &QCheckBox::stateChanged, this, &dlg_DynamicVolumeLines::showFBPGraphs);
+	connect(m_ui->cb_BkgrdThrLine, &QCheckBox::stateChanged, this, &dlg_DynamicVolumeLines::showBkgrdThrLine);
+#else
+	connect(m_ui->cb_showFBP, &QCheckBox::checkStateChanged, this, &dlg_DynamicVolumeLines::showFBPGraphs);
+	connect(m_ui->cb_BkgrdThrLine, &QCheckBox::checkStateChanged, this, &dlg_DynamicVolumeLines::showBkgrdThrLine);
+#endif
 	connect(m_ui->cb_FBPView, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_DynamicVolumeLines::updateFBPView);
 	connect(m_ui->sl_FBPTransparency, &QSlider::valueChanged, this, &dlg_DynamicVolumeLines::setFBPTransparency);
 	connect(m_ui->sb_BkgrdThr, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &dlg_DynamicVolumeLines::visualize);
-	connect(m_ui->cb_BkgrdThrLine, &QCheckBox::stateChanged, this, &dlg_DynamicVolumeLines::showBkgrdThrLine);
 	connect(m_ui->sb_nonlinearScalingFactor, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &dlg_DynamicVolumeLines::visualize);
 	connect(m_ui->pB_selectCompLevel, &QPushButton::clicked, this, &dlg_DynamicVolumeLines::selectCompLevel);
 	connect(m_linearScaledPlot->xAxis, QOverload<QCPRange const &>::of(&QCPAxis::rangeChanged), m_orientationWidget, QOverload<>::of(&QWidget::update));

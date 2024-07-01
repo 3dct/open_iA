@@ -57,7 +57,7 @@ iAInSpectrTool::iAInSpectrTool( iAMainWindow * mainWnd, iAMdiChild * child ) : i
 		tr( "All supported types (*.mhd *.raw *.volstack);;MetaImages (*.mhd *.mha);;RAW files (*.raw);;Volume Stack (*.volstack)" ) );
 	if (!QFile::exists(fileName))
 	{
-		throw itk::ExceptionObject(__FILE__, __LINE__, "File does not exist");
+		throw itk::ExceptionObject(__FILE__, __LINE__, QString("File '%1' does not exist").arg(fileName).toStdString());
 	}
 
 	LOG(lvlInfo, tr("Loading file '%1', please wait...").arg(fileName));
@@ -73,7 +73,7 @@ iAInSpectrTool::iAInSpectrTool( iAMainWindow * mainWnd, iAMdiChild * child ) : i
 	auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Load);
 	if (!io)
 	{
-		throw itk::ExceptionObject(__FILE__, __LINE__, "Unsupported extension");
+		throw itk::ExceptionObject(__FILE__, __LINE__, QString("Unsupported extension in filename '%1'").arg(fileName).toStdString());
 	}
 
 	auto energyRangeStr = std::make_shared<QString>();

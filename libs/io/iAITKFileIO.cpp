@@ -3,7 +3,6 @@
 #include "iAITKFileIO.h"
 
 #include <iAImageData.h>
-#include <iAFileUtils.h>   // for getLocalEncodingFileName
 #include <iAToolsITK.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>

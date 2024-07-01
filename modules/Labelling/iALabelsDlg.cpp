@@ -29,7 +29,6 @@
 
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
-#include <vtkMetaImageWriter.h>
 #include <vtkPiecewiseFunction.h>
 
 #include <QFileDialog>
@@ -91,7 +90,11 @@ iALabelsDlg::iALabelsDlg(iAMdiChild* mdiChild, bool addMainSlicers /* = true*/) 
 	connect(m_ui->pbSample, &QPushButton::clicked, this, &iALabelsDlg::sample);
 	connect(m_ui->pbClear, &QPushButton::clicked, this, &iALabelsDlg::clear);
 	connect(m_ui->cbColorTheme, &QComboBox::currentTextChanged, this, &iALabelsDlg::colorThemeChanged);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 	connect(m_ui->cbTrackSeeds, &QCheckBox::stateChanged, this, [this](int newState) { setSeedsTracking(newState == Qt::Checked); });
+#else
+	connect(m_ui->cbTrackSeeds, &QCheckBox::checkStateChanged, this, [this](int newState) { setSeedsTracking(newState == Qt::Checked); });
+#endif
 	m_ui->slOpacity->setValue(DefaultOpacity * m_ui->slOpacity->maximum());
 	connect(m_ui->slOpacity, &QSlider::valueChanged, this, &iALabelsDlg::opacityChanged);
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Label"));
@@ -850,12 +853,7 @@ void iALabelsDlg::storeImage()
 	{
 		return;
 	}
-	vtkMetaImageWriter* metaImageWriter = vtkMetaImageWriter::New();
-	metaImageWriter->SetFileName(getLocalEncodingFileName(fileName).c_str());
-	metaImageWriter->SetInputData(labelOverlayImage);
-	metaImageWriter->SetCompression(false);
-	metaImageWriter->Write();
-	metaImageWriter->Delete();
+	::storeImage(labelOverlayImage, fileName, false);
 }
 
 bool haveAllSeeds(QVector<int> const& label2SeedCounts, std::vector<int> const& requiredNumOfSeedsPerLabel)

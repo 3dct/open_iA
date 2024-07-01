@@ -1239,7 +1239,7 @@ void iASensitivityData::computeSpatialOverview(iAProgress* progress)
 	if (volPercentOutFile.exists() && QFile::exists(averageFiberVoxelCacheFileName()))
 	{
 		progress->setStatus(QString("Loading average fiber volume coverage cache from %1.").arg(averageFiberVoxelCacheFileName()));
-		readImage(averageFiberVoxelCacheFileName(), false, m_averageFiberVoxel);
+		m_averageFiberVoxel = readImage(averageFiberVoxelCacheFileName());
 	}
 	else
 	{
@@ -1266,7 +1266,7 @@ void iASensitivityData::computeSpatialOverview(iAProgress* progress)
 			QString resultCacheFileName = resultFiberCacheFileName(r);
 			if (QFile::exists(resultCacheFileName))
 			{
-				readImage(resultCacheFileName, false, resultFiberImg);
+				resultFiberImg = readImage(resultCacheFileName);
 			}
 			else
 			{
@@ -1326,7 +1326,7 @@ void iASensitivityData::computeSpatialOverview(iAProgress* progress)
 	if (QFile::exists(spatialOverviewCacheFileName()))
 	{
 		progress->setStatus(QString("Loading cached spatial overview from '%1'.").arg(spatialOverviewCacheFileName()));
-		readImage(spatialOverviewCacheFileName(), false, m_spatialOverview);
+		m_spatialOverview = readImage(spatialOverviewCacheFileName());
 		return;
 	}
 

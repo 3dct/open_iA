@@ -8,13 +8,11 @@
 #include "iA4DCTFileData.h"
 #include "iA4DCTFileManager.h"
 
-// #include <iAFileUtils.h>
 // vtk
 #include <vtkImageData.h>
 #include <vtkImageMapToColors.h>
 #include <vtkImageReslice.h>
 #include <vtkLookupTable.h>
-#include <vtkMetaImageReader.h>
 #include <vtkPlaneSource.h>
 #include <vtkSmartPointer.h>
 // Qt
@@ -41,8 +39,8 @@ class iAPlaneVisModule : public iAVisModule
 {
 public:
 				iAPlaneVisModule( );
-	void		show( );
-	void		hide( );
+	void		show( ) override;
+	void		hide( ) override;
 	void		setSize( double * size );
 	void		setImage( iA4DCTFileData fileName );
 	void		setSlice( int slice );
@@ -98,7 +96,7 @@ void iAPlaneVisModule::highlightDefects( QVector<QString> defects, QVector<QColo
 
 	// read the labeled image
 	/*auto reader = vtkSmartPointer<vtkMetaImageReader>::New();
-	reader->SetFileName( getLocalEncodingFileName(labeledImgPath).c_str( ) );
+	reader->SetFileName( labeledImgPath.toStdString().c_str( ) );
 	reader->Update( );
 	vtkImageData * labeledImg = reader->GetOutput( );*/
 	vtkImageData * labeledImg = iA4DCTFileManager::getInstance( ).getImage( labeledImgFile );
@@ -157,7 +155,7 @@ void iAPlaneVisModule::densityMap( QString defect, QColor color, iA4DCTFileData 
 {
 	// read the labeled image
 	/*auto reader = vtkSmartPointer<vtkMetaImageReader>::New();
-	reader->SetFileName( getLocalEncodingFileName(labeledImgPath).c_str( ) );
+	reader->SetFileName( labeledImgPath.toStdString().c_str( ) );
 	reader->Update( );
 	vtkImageData * labeledImg = reader->GetOutput( );*/
 	vtkImageData * labeledImg = iA4DCTFileManager::getInstance( ).getImage( labeledImgFile );

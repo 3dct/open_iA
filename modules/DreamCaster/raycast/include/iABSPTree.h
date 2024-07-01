@@ -5,8 +5,6 @@
 #include "iAScene.h"
 #include "../../iADreamCaster.h"
 
-#include <iAFileUtils.h>
-
 #include <algorithm>
 #include <cassert>
 #include <vector>
@@ -532,7 +530,7 @@ public:
 	int SaveTree(QString const & filename)
 	{
 		FILE *fptr;
-		fptr = fopen( getLocalEncodingFileName(filename).c_str(), "wb" );
+		fptr = fopen( filename.toStdString().c_str(), "wb");
 		if(!fptr)
 		{
 			dcast->log("failed(cannot open file)\n",true);
@@ -569,7 +567,7 @@ public:
 	//! @return 1 if succed , 0 - otherwise
 	int LoadTree(QString const & filename)
 	{
-		FILE *fptr = fopen( getLocalEncodingFileName(filename).c_str(),"rb");
+		FILE *fptr = fopen( filename.toStdString().c_str(), "rb");
 		if(!fptr)
 		{
 			dcast->log("failed to open file",true);

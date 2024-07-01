@@ -3,7 +3,6 @@
 #include "iALogWidget.h"
 
 // base
-#include "iAFileUtils.h"
 #include "iALogLevelMappings.h"
 
 // core
@@ -58,7 +57,7 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 	}
 	if (m_logToFile && lvl >= m_fileLogLevel)
 	{
-		std::ofstream logfile( getLocalEncodingFileName(m_logFileName).c_str(), std::ofstream::out | std::ofstream::app);
+		std::ofstream logfile(m_logFileName.toStdString(), std::ofstream::app);
 		logfile << text.toStdString() << std::endl;
 		logfile.flush();
 		logfile.close();
@@ -132,8 +131,13 @@ iALogWidget::iALogWidget() :
 
 	connect(pbClearLog, &QPushButton::clicked, this, &iALogWidget::clear);
 	connect(cmbboxLogLevel, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iALogWidget::setLogLevelSlot);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 	connect(cbVTK, &QCheckBox::stateChanged, this, &iALogWidget::toggleVTK);
 	connect(cbITK, &QCheckBox::stateChanged, this, &iALogWidget::toggleITK);
+#else
+	connect(cbVTK, &QCheckBox::checkStateChanged, this, &iALogWidget::toggleVTK);
+	connect(cbITK, &QCheckBox::checkStateChanged, this, &iALogWidget::toggleITK);
+#endif
 	connect(this, &iALogWidget::logSignal, this, &iALogWidget::logSlot);
 }
 

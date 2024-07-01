@@ -69,6 +69,7 @@ private slots:
 class iAVolumePlayerTool : public iATool
 {
 public:
+	static const QString Name;
 	iAVolumePlayerTool(iAMainWindow* wnd, iAMdiChild* child);
 private:
 	iAVolumePlayerWidget* m_volumePlayer;

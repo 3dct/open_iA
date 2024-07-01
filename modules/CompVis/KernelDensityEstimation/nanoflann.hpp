@@ -612,7 +612,7 @@ class PooledAllocator {
 
   void internal_init() {
     remaining = 0;
-    base = NULL;
+    base = nullptr;
     usedMemory = 0;
     wastedMemory = 0;
   }
@@ -633,7 +633,7 @@ public:
 
   /** Frees all allocated memory chunks */
   void free_all() {
-    while (base != NULL) {
+    while (base != nullptr) {
       void *prev =
           *(static_cast<void **>(base)); /* Get pointer to prev block. */
       ::free(base);
@@ -744,7 +744,7 @@ public:
    * buildIndex(). */
   void freeIndex(Derived &obj) {
     obj.pool.free_all();
-    obj.root_node = NULL;
+    obj.root_node = nullptr;
     obj.m_size_at_index_build = 0;
   }
 
@@ -861,7 +861,7 @@ public:
 
     /* If too few exemplars remain, then make this a leaf node. */
     if ((right - left) <= static_cast<IndexType>(obj.m_leaf_max_size)) {
-      node->child1 = node->child2 = NULL; /* Mark as leaf node. */
+      node->child1 = node->child2 = nullptr; /* Mark as leaf node. */
       node->node_type.lr.left = left;
       node->node_type.lr.right = right;
 
@@ -1023,10 +1023,10 @@ public:
 
   void save_tree(Derived &obj, FILE *stream, NodePtr tree) {
     save_value(stream, *tree);
-    if (tree->child1 != NULL) {
+    if (tree->child1 != nullptr) {
       save_tree(obj, stream, tree->child1);
     }
-    if (tree->child2 != NULL) {
+    if (tree->child2 != nullptr) {
       save_tree(obj, stream, tree->child2);
     }
   }
@@ -1034,10 +1034,10 @@ public:
   void load_tree(Derived &obj, FILE *stream, NodePtr &tree) {
     tree = obj.pool.template allocate<Node>();
     load_value(stream, *tree);
-    if (tree->child1 != NULL) {
+    if (tree->child1 != nullptr) {
       load_tree(obj, stream, tree->child1);
     }
-    if (tree->child2 != NULL) {
+    if (tree->child2 != nullptr) {
       load_tree(obj, stream, tree->child2);
     }
   }
@@ -1172,7 +1172,7 @@ public:
                            const KDTreeSingleIndexAdaptorParams &params =
                                KDTreeSingleIndexAdaptorParams())
       : dataset(inputData), index_params(params), distance(inputData) {
-    BaseClassRef::root_node = NULL;
+    BaseClassRef::root_node = nullptr;
     BaseClassRef::m_size = dataset.kdtree_get_point_count();
     BaseClassRef::m_size_at_index_build = BaseClassRef::m_size;
     BaseClassRef::dim = dimensionality;
@@ -1347,7 +1347,7 @@ public:
                    const NodePtr node, DistanceType mindistsq,
                    distance_vector_t &dists, const float epsError) const {
     /* If this is a leaf node, then do check and return. */
-    if ((node->child1 == NULL) && (node->child2 == NULL)) {
+    if ((node->child1 == nullptr) && (node->child2 == nullptr)) {
       // count_leaf += (node->lr.right-node->lr.left);  // Removed since was
       // neither used nor returned to the user.
       DistanceType worst_dist = result_set.worstDist();
@@ -1521,7 +1521,7 @@ public:
           KDTreeSingleIndexAdaptorParams())
       : dataset(inputData), index_params(params), treeIndex(treeIndex_),
         distance(inputData) {
-    BaseClassRef::root_node = NULL;
+    BaseClassRef::root_node = nullptr;
     BaseClassRef::m_size = 0;
     BaseClassRef::m_size_at_index_build = 0;
     BaseClassRef::dim = dimensionality;
@@ -1696,7 +1696,7 @@ public:
                    const NodePtr node, DistanceType mindistsq,
                    distance_vector_t &dists, const float epsError) const {
     /* If this is a leaf node, then do check and return. */
-    if ((node->child1 == NULL) && (node->child2 == NULL)) {
+    if ((node->child1 == nullptr) && (node->child2 == nullptr)) {
       // count_leaf += (node->lr.right-node->lr.left);  // Removed since was
       // neither used nor returned to the user.
       DistanceType worst_dist = result_set.worstDist();

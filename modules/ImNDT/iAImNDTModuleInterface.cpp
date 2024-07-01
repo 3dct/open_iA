@@ -79,7 +79,7 @@ void iAImNDTModuleInterface::Initialize()
 	auto removeRenderer = [this](iAMdiChild* child, size_t dataSetIdx)
 	{
 		auto key = std::make_pair(child, dataSetIdx);
-		auto const & vrRen = m_vrRenderers.at(key);
+		auto vrRen = m_vrRenderers.at(key);
 		m_vrRenderers.erase(key);
 		m_vrEnv->queueTask([vrRen] { vrRen->setVisible(false); });
 		checkStopVR();

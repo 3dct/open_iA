@@ -92,6 +92,20 @@ struct iAConverter<double>
 	}
 };
 
+//! Converts float to and from QString.
+template <>
+struct iAConverter<float>
+{
+	static float toT(QString str, bool* ok)
+	{
+		return str.toFloat(ok);
+	}
+	static QString toString(float n)
+	{
+		return QString::number(n);
+	}
+};
+
 //! Converts bool to and from QString.
 template <>
 struct iAConverter<bool>
@@ -157,6 +171,18 @@ QString arrayToString(T const * arr, size_t size, QString const & sep = " ")
 		}
 	}
 	return result;
+}
+
+template <typename T, size_t N>
+bool stringToArray(QString const& str, std::array<T, N>& ar, QString const& sep = ", ")
+{
+	return stringToArray<T>(str, ar.data(), N, sep);
+}
+
+template <typename T, size_t N>
+QString arrayToString(std::array<T, N> const & ar, QString const& sep = ", ")
+{
+	return arrayToString(ar.data(), N, sep);
 }
 
 //! Split a string with multiple values, and put values into a container.
