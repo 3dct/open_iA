@@ -359,7 +359,7 @@ void iAPlaneSliceTool::loadState(QSettings& projectFile, QString const& fileName
 void iAPlaneSliceTool::saveState(QSettings& projectFile, QString const& fileName)
 {
 	Q_UNUSED(fileName);
-	projectFile.setValue(ProjectSnapshotCount, m_snapshots.size());
+	projectFile.setValue(ProjectSnapshotCount, static_cast<quint64>(m_snapshots.size()));
 	int storeID = 0;
 	for (auto const & s: m_snapshots)
 	{
