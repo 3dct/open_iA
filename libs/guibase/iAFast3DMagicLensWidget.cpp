@@ -222,10 +222,11 @@ void iAFast3DMagicLensWidget::wheelEvent(QWheelEvent* event)
 		}
 		int newSize = std::max(MinimumMagicLensSize, static_cast<int>(m_size[0] * sizeFactor));
 		setLensSize(newSize, newSize);
+		updateGUI();
 	}
 	else if (m_magicLensEnabled && event->modifiers().testFlag(Qt::AltModifier))
 	{
-		int chg = event->angleDelta().y() / 120.0;
+		int chg = event->angleDelta().x() / 120.0;
 		double newOpacity = m_GUIActor->GetProperty()->GetOpacity() + (chg * 0.05);
 		newOpacity = std::min(1.0, std::max(0.0, newOpacity));
 		m_GUIActor->GetProperty()->SetOpacity(newOpacity);
