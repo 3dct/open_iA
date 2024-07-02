@@ -669,9 +669,10 @@ void MdiChild::slicerRotationChanged(int mode, double angle)
 	}
 }
 
-void MdiChild::linkViews(bool l)
+void MdiChild::linkSliceViews(bool l)
 {
 	m_slicerSettings.LinkViews = l;
+	emit linkSliceViewsChanged(l);
 }
 
 void MdiChild::linkMDIs(bool lm)
@@ -770,7 +771,7 @@ void MdiChild::resetLayout()
 void MdiChild::applySlicerSettings(iASlicerSettings const& ss)
 {
 	m_slicerSettings = ss;
-	linkViews(ss.LinkViews);
+	linkSliceViews(ss.LinkViews);
 	linkMDIs(ss.LinkMDIs);
 	emit slicerSettingsChanged();
 }

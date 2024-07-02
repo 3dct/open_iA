@@ -254,6 +254,9 @@ signals:
 	//! emitted when a tool is removed from this child
 	void toolRemoved(QString const& id);
 
+	//! emitted when the link slice views setting changes
+	void linkSliceViewsChanged(bool linked);
+
 public slots:
 	//! Updates all views (slicers, renderers)
 	virtual void updateViews() = 0;

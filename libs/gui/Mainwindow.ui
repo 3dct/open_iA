@@ -185,7 +185,7 @@
     <addaction name="menuFocus"/>
     <addaction name="menuLayout"/>
     <addaction name="separator"/>
-    <addaction name="actionLinkViews"/>
+    <addaction name="actionLinkSliceViews"/>
     <addaction name="actionLinkMdis"/>
     <addaction name="separator"/>
     <addaction name="menuSlicer"/>
@@ -279,6 +279,7 @@
    <addaction name="actionMagicLens2D"/>
    <addaction name="actionEditProfilePoints"/>
    <addaction name="actionRawProfile"/>
+   <addaction name="actionLinkSliceViews"/>
   </widget>
   <widget class="QToolBar" name="rendererToolbar">
    <property name="windowTitle">
@@ -484,7 +485,7 @@
     <string>Slicer settings</string>
    </property>
   </action>
-  <action name="actionLinkViews">
+  <action name="actionLinkSliceViews">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -492,7 +493,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Link views</string>
+    <string>Link slice views</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+L</string>

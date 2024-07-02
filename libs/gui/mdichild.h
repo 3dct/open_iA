@@ -164,8 +164,8 @@ public:
 	bool doSaveProject(QString const& projectFileName) override;
 	//! Whether volume data is loaded (only checks filename and volume dimensions).
 	bool isVolumeDataLoaded() const override;
-	//! Enable or disable linked slicers and 3D renderer.
-	void linkViews(bool l);
+	//! Enable or disable linked slicers.
+	void linkSliceViews(bool l);
 	//! Enable or disable linked MDI windows for this MDI child.
 	void linkMDIs(bool lm);
 

@@ -244,7 +244,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	readSettings();
 
 	showSplashMsg(splashScreen, "Setting up user interface...");
-	m_ui->actionLinkViews->setChecked(m_defaultSlicerSettings.LinkViews);//removed from readSettings, if is needed at all?
+	m_ui->actionLinkSliceViews->setChecked(m_defaultSlicerSettings.LinkViews);//removed from readSettings, if is needed at all?
 	m_ui->actionLinkMdis->setChecked(m_defaultSlicerSettings.LinkMDIs);
 	setCentralWidget(m_ui->mdiArea);
 	addDockWidget(Qt::RightDockWidgetArea, iALogWidget::get());
@@ -302,6 +302,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	addActionIcon(m_ui->actionSaveProject, "save-all");
 	addActionIcon(m_ui->actionEditProfilePoints, "profile-edit");
 	addActionIcon(m_ui->actionRawProfile, "profile-raw");
+	addActionIcon(m_ui->actionLinkSliceViews, "slicer-sync");
 	addActionIcon(m_ui->actionSyncCamera, "camera-sync");
 	addActionIcon(m_ui->actionInteractionModeCamera, "camera");
 	addActionIcon(m_ui->actionLoadCameraSettings, "camera-load");
@@ -682,8 +683,8 @@ void MainWindow::linkViews()
 	{
 		return;
 	}
-	m_defaultSlicerSettings.LinkViews = m_ui->actionLinkViews->isChecked();
-	activeMDI()->linkViews(m_defaultSlicerSettings.LinkViews);
+	m_defaultSlicerSettings.LinkViews = m_ui->actionLinkSliceViews->isChecked();
+	activeMDI()->linkSliceViews(m_defaultSlicerSettings.LinkViews);
 	LOG(lvlInfo, QString("Link Views: ").arg(iAConverter<bool>::toString(m_defaultSlicerSettings.LinkViews)));
 }
 
@@ -1154,7 +1155,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionYZ, &QAction::triggered, this, [childCall] { childCall(&MdiChild::maximizeSlicer, iASlicerMode::YZ); });
 	connect(m_ui->action3D, &QAction::triggered, this, [childCall] { childCall(&MdiChild::maximizeRenderer); } );
 	connect(m_ui->actionMultiViews, &QAction::triggered, this, [childCall] { childCall(&MdiChild::multiview); });
-	connect(m_ui->actionLinkViews, &QAction::triggered, this, &MainWindow::linkViews);
+	connect(m_ui->actionLinkSliceViews, &QAction::triggered, this, &MainWindow::linkViews);
 	connect(m_ui->actionLinkMdis, &QAction::triggered, this, &MainWindow::linkMDIs);
 	connect(m_ui->actionToggleSlicerInteraction, &QAction::triggered, this, &MainWindow::toggleSlicerInteraction);
 	connect(m_ui->actionToggleRendererInteraction, &QAction::triggered, this, [this, childCall] {
