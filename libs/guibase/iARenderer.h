@@ -86,4 +86,5 @@ signals:
 	void cellsSelected(vtkPoints* selCellPoints);
 	void noCellsSelected();
 	void onSetCamera();
+	void ctrlShiftMouseWheel(int dir);
 };

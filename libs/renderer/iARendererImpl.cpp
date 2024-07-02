@@ -18,6 +18,8 @@
 #include <iAvtkSourcePoly.h>
 #include <iAvtkActorHelper.h>  // for showActor
 
+#include <iARendererInteractorStyle.h>
+
 #include <vtkActor.h>
 #include <vtkAnnotatedCubeActor.h>
 #include <vtkAxesActor.h>
@@ -328,7 +330,9 @@ void iARendererImpl::setCuttingActive(bool enabled)
 
 void iARendererImpl::setDefaultInteractor()
 {
-	m_interactor->SetInteractorStyle(vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New());
+	vtkNew<iARendererInteractorStyle> interactorStyle;
+	connect(interactorStyle, &iARendererInteractorStyle::ctrlShiftMouseWheel, this, &iARenderer::ctrlShiftMouseWheel);
+	m_interactor->SetInteractorStyle(interactorStyle);
 }
 
 void iARendererImpl::update()
