@@ -293,6 +293,26 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	modifiedCallback->SetClientData(this);
 	m_planeWidget->AddObserver(vtkCommand::InteractionEvent, modifiedCallback);
 
+	QObject::connect(child->renderer(), &iARenderer::ctrlShiftMouseWheel, this, [ds, this](int dir)
+	{
+		auto dataset = m_child->dataSet(ds);
+		if (!dataset)
+		{
+			LOG(lvlWarn, "Wheeling along current axis: No dataset available!");
+			return;
+		}
+		auto spc = dataset->unitDistance();
+		auto minSpc = *std::min_element(spc.begin(), spc.end());
+		iAVec3d pos;
+		m_planeWidget->GetCenter(pos.data());
+		iAVec3d normal;
+		m_planeWidget->GetNormal(normal.data());
+		auto newPos = pos + (dir * minSpc * 0.5) * normal;
+		m_planeWidget->SetCenter(newPos.data());
+		m_child->updateRenderer();
+		updateSliceFromUser();
+	});
+
 	updateSlice();
 }
 
