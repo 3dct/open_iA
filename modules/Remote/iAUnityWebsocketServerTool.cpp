@@ -41,6 +41,23 @@
 #include <cmath>
 #include <limits>
 
+enum class ClientState : int
+{
+	AwaitingProtocolNegotiation,  // client just connected and hasn't sent a protocol negotiation message with an acceptable protocol version yet
+	Idle,                         // currently, no ongoing "special" conversation
+	PendingDatasetAck,            // load dataset has been initiated; server has checked availability on his end and has sent out load dataset messages
+	PendingSingleClientDatasetAck,// this client has connected when a dataset was loaded, and it should now load this dataset to achieve a synced state
+	DatasetAcknowledged           // client has confirmed availability of dataset
+};
+
+enum class DataState : int
+{
+	NoDataset,
+	PendingClientAck,
+	//LoadingDataset,
+	DatasetLoaded
+};
+
 namespace
 {
 	template<typename EnumType>
@@ -110,23 +127,6 @@ namespace
 		ClearAll,
 		// must be last:
 		Count
-	};
-
-	enum class ClientState : int
-	{
-		AwaitingProtocolNegotiation,  // client just connected and hasn't sent a protocol negotiation message with an acceptable protocol version yet
-		Idle,                         // currently, no ongoing "special" conversation
-		PendingDatasetAck,            // load dataset has been initiated; server has checked availability on his end and has sent out load dataset messages
-		PendingSingleClientDatasetAck,// this client has connected when a dataset was loaded, and it should now load this dataset to achieve a synced state
-		DatasetAcknowledged           // client has confirmed availability of dataset
-	};
-
-	enum class DataState : int
-	{
-		NoDataset,
-		PendingClientAck,
-		//LoadingDataset,
-		DatasetLoaded
 	};
 
 	enum class ObjectID : quint64

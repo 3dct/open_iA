@@ -14,10 +14,10 @@ class iAObjectVisActor;
 class iAobjectvis_API iAObjectsRenderer : public iADataSetRenderer
 {
 public:
-	static constexpr const char Name[] = "Default Settings/Dataset Renderer: Objects";
-	static constexpr const char Color[] = "Color";
-	static constexpr const char SegmentSkip[] = "Segment Skip";
-	static constexpr const char NumOfCylinderSides[] = "Number of cylinder sides";
+	static constexpr char Name[] = "Default Settings/Dataset Renderer: Objects";
+	static constexpr char Color[] = "Color";
+	static constexpr char SegmentSkip[] = "Segment Skip";
+	static constexpr char NumOfCylinderSides[] = "Number of cylinder sides";
 	iAObjectsRenderer(vtkRenderer* renderer, iAObjectVis* objVis, QVariantMap const& overrideValues);
 	~iAObjectsRenderer();
 	void applyAttributes(QVariantMap const& values) override;

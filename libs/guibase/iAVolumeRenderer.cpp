@@ -29,7 +29,7 @@ namespace
 #endif
 }
 
-constexpr const char VolumeRendererName[] = "Default Settings/Dataset Renderer: Volume";
+inline constexpr char VolumeRendererName[] = "Default Settings/Dataset Renderer: Volume";
 //! Encapsulates the specifics of the settings of a volume renderer.
 //! Handles auto-registration of the settings with iASettingsManager (via deriving from iASettingsObject).
 class iAVolumeRendererSettings : iASettingsObject<VolumeRendererName, iAVolumeRendererSettings>

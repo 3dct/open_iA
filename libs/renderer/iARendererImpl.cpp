@@ -55,7 +55,7 @@ namespace
 
 #include "iADefaultSettings.h"
 
-constexpr const char RendererSettingsName[] = "Default Settings/View: 3D Renderer";
+inline constexpr char RendererSettingsName[] = "Default Settings/View: 3D Renderer";
 //! Settings applicable to a single slicer window.
 class iARendererSettings : iASettingsObject<RendererSettingsName, iARendererSettings>
 {

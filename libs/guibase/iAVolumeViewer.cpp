@@ -78,7 +78,7 @@ namespace
 	const QString ArrayValueSeparator = ";";
 }
 
-constexpr const char VolumeViewerSettingsName[] = "Default Settings/Volume Viewer";
+inline constexpr char VolumeViewerSettingsName[] = "Default Settings/Volume Viewer";
 //! Encapsulates the specifics of the settings of a volume viewer.
 //! Handles registration of the settings with iASettingsManager (via deriving from iASettingsObject).
 class iAVolumeViewerSettings : iASettingsObject<VolumeViewerSettingsName, iAVolumeViewerSettings>

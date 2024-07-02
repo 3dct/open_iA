@@ -100,7 +100,7 @@ private:
 };
 
 
-constexpr const char SlicerSettingsName[] = "Default Settings/View: Slicer";
+inline constexpr char SlicerSettingsName[] = "Default Settings/View: Slicer";
 //! Settings applicable to a single slicer window.
 class iASingleSlicerSettings : iASettingsObject<SlicerSettingsName, iASingleSlicerSettings>
 {
