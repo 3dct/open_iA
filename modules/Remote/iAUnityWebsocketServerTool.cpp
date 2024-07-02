@@ -359,12 +359,7 @@ private:
 			{
 				assert(N == 4);
 				// TODO: TEST / Check whether used!
-				const size_t QuatSize = 4;
-				std::array<double, QuatSize> q;
-				for (size_t i = 0; i < QuatSize; ++i)
-				{
-					q[i] = values[i];
-				}
+				auto & q = values;
 				double ayterm = 2 * (q[3] * q[1] - q[0] * q[2]);
 				std::array<double, 3> angles = {
 					vtkMath::DegreesFromRadians(
