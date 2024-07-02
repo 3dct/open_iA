@@ -245,7 +245,7 @@ namespace
 */
 
 	std::array<float, 3> DefaultPlaneNormal = { 0, 0, 1 };
-	std::array<float, 3> DefaultCameraViewDirection = { 0, 0, -1 };
+//	std::array<float, 3> DefaultCameraViewDirection = { 0, 0, -1 };
 
 	QString toHexStr(QByteArray const & ba)
 	{
@@ -318,6 +318,9 @@ private:
 			std::copy(values.begin(), values.end(), dblVal.begin());
 			switch (objCmdType)
 			{
+			default:
+				LOG(lvlWarn, QString("Received unsupported/not implemented command %1!").arg(enumToIntegral(objCmdType)));
+				break;
 			case ObjectCommandType::SetMatrix:
 			{
 				// TODO: TEST / Check whether used!
@@ -354,6 +357,7 @@ private:
 			}
 			case ObjectCommandType::SetRotationQuaternion:
 			{
+				assert(N == 4);
 				// TODO: TEST / Check whether used!
 				const size_t QuatSize = 4;
 				std::array<double, QuatSize> q;
@@ -424,6 +428,9 @@ private:
 			std::copy(values.begin(), values.end(), dblVal.begin());
 			switch (objCmdType)
 			{
+			default:
+				LOG(lvlWarn, QString("Received unsupported/not implemented command %1!").arg(enumToIntegral(objCmdType)));
+				break;
 			case ObjectCommandType::SetMatrix:
 			{
 				// TODO: TEST / Check whether used!
@@ -969,174 +976,171 @@ private:
 				LOG(lvlError, QString("  Invalid command: missing subcommand; ignoring message!"));
 				return;
 			}
-			switch (m_clientState[clientID])
+			if (m_clientState[clientID] != ClientState::Idle)
 			{
-			case ClientState::Idle:
+				LOG(lvlWarn, "Received unexpected message while client not in Idle state!");
+			}
+			switch (type)
 			{
-				switch (type)
-				{
-				case MessageType::Command:
-				{
-					if (!isInEnum<CommandType>(rcvData[1]))
-					{  // encountered value and valid range output already in isInEnum!
-						LOG(lvlError, QString("  Invalid command: subcommand not in valid range; ignoring message!"));
-						return;
-					}
-					CommandType subcommand;
-					rcvStream >> subcommand;
-					if (subcommand == CommandType::Reset)
-					{
-						LOG(lvlInfo, QString("  Reset received"));
-						m_planeSliceTool->clearSnapshots();
-						clearSnapshots();
-						resetObjects();
-					}
-					else  // CommandType::LoadDataset:
-					{
-						LOG(lvlInfo, QString("  Load Dataset received"));
-						// https://forum.qt.io/topic/89832/reading-char-array-from-qdatastream
-						auto fnLen = readVal<quint32>(rcvStream);
-						QByteArray fnBytes;
-						fnBytes.resize(fnLen);
-						auto readBytes = rcvStream.readRawData(fnBytes.data(), fnLen);
-						if (static_cast<quint32>(readBytes) != fnLen)
-						{
-							LOG(lvlError,
-								QString("    Invalid message: expected length %1, actually read %2 bytes")
-									.arg(fnLen)
-									.arg(readBytes));
-							return;
-						}
-						QString fileName = QString::fromUtf8(fnBytes);
-						LOG(lvlInfo,
-							QString("  Client requested loading dataset from filename '%1' (len=%2).")
-								.arg(fileName)
-								.arg(fnLen));
-
-						if (!dataSetExists(fileName, child))
-						{
-							LOG(lvlWarn, "  Requested dataset does not exist, sending NAK!");
-							sendMessage(clientID, MessageType::NAK);
-							return;
-						}
-						sendDataLoadingRequest(fileName);
-					}
+			case MessageType::Command:
+			{
+				if (!isInEnum<CommandType>(rcvData[1]))
+				{  // encountered value and valid range output already in isInEnum!
+					LOG(lvlError, QString("  Invalid command: subcommand not in valid range; ignoring message!"));
 					return;
 				}
-				case MessageType::Object:
+				CommandType subcommand;
+				rcvStream >> subcommand;
+				if (subcommand == CommandType::Reset)
 				{
-					if (!isInEnum<ObjectCommandType>(rcvData[1]))
-					{  // encountered value and valid range output already in isInEnum!
-						LOG(lvlError, QString("  Invalid object message: subcommand not in valid range; ignoring message!"));
-						return;
-					}
-					ObjectCommandType objCommand;
-					rcvStream >> objCommand;
-					auto objID = readVal<quint64>(rcvStream);
-					LOG(lvlDebug, QString("  Object subcommand %1 for object ID %2").arg(static_cast<int>(objCommand)).arg(objID));
-					switch (objCommand)
-					{
-					case ObjectCommandType::SetMatrix:
-						processObjectTransform<16>(rcvStream, clientID, objID, objCommand, child);
-						break;
-					case ObjectCommandType::SetTranslation:
-						processObjectTransform<3>(rcvStream, clientID, objID, objCommand, child);
-						break;
-					case ObjectCommandType::SetScaling:
-						processObjectTransform<3>(rcvStream, clientID, objID, objCommand, child);
-						break;
-					case ObjectCommandType::SetRotationQuaternion:
-						processObjectTransform<4>(rcvStream, clientID, objID, objCommand, child);
-						break;
-					case ObjectCommandType::SetRotationEuler:
-					{
-						auto axis = readVal<quint8>(rcvStream);
-						float value = readVal<float>(rcvStream);
-						LOG(lvlDebug,
-							QString("  Object command=SetRotation (Euler Angles) received for object ID=%1 with axis=%3, "
-									"value=%4.")
-								.arg(static_cast<int>(objCommand))
-								.arg(objID)
-								.arg(axis)
-								.arg(value));
-						QByteArray outData;
-						QDataStream outStream(&outData, QIODevice::WriteOnly);
-						outStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
-						outStream << MessageType::Object << objCommand << objID << axis << value;
-						broadcastMsg(outData, clientID);
-						// TODO: local application!
-						break;
-					}
-					case ObjectCommandType::SetRotationNormalUp:
-						processObjectTransform<6>(rcvStream, clientID, objID, objCommand, child);
-						break;
-					default:
-						LOG(lvlWarn, QString("  Object subcommand %1 not implemented!").arg(static_cast<int>(objCommand)));
-						break;
-					}
-					break;
+					LOG(lvlInfo, QString("  Reset received"));
+					m_planeSliceTool->clearSnapshots();
+					clearSnapshots();
+					resetObjects();
 				}
-				case MessageType::Snapshot:
+				else  // CommandType::LoadDataset:
 				{
-					if (!isInEnum<SnapshotCommandType>(rcvData[1]))
-					{  // encountered value and valid range output already in isInEnum!
+					LOG(lvlInfo, QString("  Load Dataset received"));
+					// https://forum.qt.io/topic/89832/reading-char-array-from-qdatastream
+					auto fnLen = readVal<quint32>(rcvStream);
+					QByteArray fnBytes;
+					fnBytes.resize(fnLen);
+					auto readBytes = rcvStream.readRawData(fnBytes.data(), fnLen);
+					if (static_cast<quint32>(readBytes) != fnLen)
+					{
 						LOG(lvlError,
-							QString("  Invalid snapshot message: subcommand not in valid range; ignoring message!"));
+							QString("    Invalid message: expected length %1, actually read %2 bytes")
+								.arg(fnLen)
+								.arg(readBytes));
 						return;
 					}
-					SnapshotCommandType snapshotCommand;
-					rcvStream >> snapshotCommand;
-					switch (snapshotCommand)
+					QString fileName = QString::fromUtf8(fnBytes);
+					LOG(lvlInfo,
+						QString("  Client requested loading dataset from filename '%1' (len=%2).")
+							.arg(fileName)
+							.arg(fnLen));
+
+					if (!dataSetExists(fileName, child))
 					{
-					case SnapshotCommandType::Create:
-					{
-						iASnapshotInfo info{};
-						readArray(rcvStream, info.position);
-						unitToObjectPos(info.position);
-						std::array<float, 4> rotation;
-						readArray(rcvStream, rotation);
-						LOG(lvlWarn, QString("  New Snapshot: position %1, rotation %2: Note that rotation quaternion conversion is EXPERIMENTAL!")
-							.arg(arrayToString(info.position)).arg(arrayToString(rotation)));
-						info.normal = applyRotationToVector(DefaultPlaneNormal, rotation);
-						auto snapshotIDRow = m_planeSliceTool->addSnapshot(info);
-						addSnapshot(snapshotIDRow.first, info);
-						break;
+						LOG(lvlWarn, "  Requested dataset does not exist, sending NAK!");
+						sendMessage(clientID, MessageType::NAK);
+						return;
 					}
-					case SnapshotCommandType::CreatePosNormal:
-					{
-						iASnapshotInfo info{};
-						readArray(rcvStream, info.position);
-						unitToObjectPos(info.position);
-						readArray(rcvStream, info.normal);
-						LOG(lvlInfo, QString("  New Snapshot: position %1, normal %2")
-							.arg(arrayToString(info.position)).arg(arrayToString(info.normal)));
-						auto snapshotIDRow = m_planeSliceTool->addSnapshot(info);
-						addSnapshot(snapshotIDRow.first, info);
-						break;
-					}
-					case SnapshotCommandType::Remove:
-					{
-						auto snapshotID = readVal<quint64>(rcvStream);
-						m_planeSliceTool->removeSnapshot(snapshotID);
-						removeSnapshot(snapshotID);
-						break;
-					}
-					case SnapshotCommandType::ClearAll:
-						m_planeSliceTool->clearSnapshots();
-						clearSnapshots();
-						break;
-					}
+					sendDataLoadingRequest(fileName);
+				}
+				return;
+			}
+			case MessageType::Object:
+			{
+				if (!isInEnum<ObjectCommandType>(rcvData[1]))
+				{  // encountered value and valid range output already in isInEnum!
+					LOG(lvlError, QString("  Invalid object message: subcommand not in valid range; ignoring message!"));
+					return;
+				}
+				ObjectCommandType objCommand;
+				rcvStream >> objCommand;
+				auto objID = readVal<quint64>(rcvStream);
+				LOG(lvlDebug, QString("  Object subcommand %1 for object ID %2").arg(static_cast<int>(objCommand)).arg(objID));
+				switch (objCommand)
+				{
+				case ObjectCommandType::SetMatrix:
+					processObjectTransform<16>(rcvStream, clientID, objID, objCommand, child);
+					break;
+				case ObjectCommandType::SetTranslation:
+					processObjectTransform<3>(rcvStream, clientID, objID, objCommand, child);
+					break;
+				case ObjectCommandType::SetScaling:
+					processObjectTransform<3>(rcvStream, clientID, objID, objCommand, child);
+					break;
+				case ObjectCommandType::SetRotationQuaternion:
+					processObjectTransform<4>(rcvStream, clientID, objID, objCommand, child);
+					break;
+				case ObjectCommandType::SetRotationEuler:
+				{
+					auto axis = readVal<quint8>(rcvStream);
+					float value = readVal<float>(rcvStream);
+					LOG(lvlDebug,
+						QString("  Object command=SetRotation (Euler Angles) received for object ID=%1 with axis=%3, "
+								"value=%4.")
+							.arg(static_cast<int>(objCommand))
+							.arg(objID)
+							.arg(axis)
+							.arg(value));
+					QByteArray outData;
+					QDataStream outStream(&outData, QIODevice::WriteOnly);
+					outStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+					outStream << MessageType::Object << objCommand << objID << axis << value;
+					broadcastMsg(outData, clientID);
+					// TODO: local application!
 					break;
 				}
+				case ObjectCommandType::SetRotationNormalUp:
+					processObjectTransform<6>(rcvStream, clientID, objID, objCommand, child);
+					break;
+				default:
+					LOG(lvlWarn, QString("  Object subcommand %1 not implemented!").arg(static_cast<int>(objCommand)));
+					break;
 				}
 				break;
-			} /*
-							// implicitly handled through m_dataState code above switch
-						case ClientState::PendingDatasetAck:
-						{
-							break;
-						}
-						*/
+			}
+			case MessageType::Snapshot:
+			{
+				if (!isInEnum<SnapshotCommandType>(rcvData[1]))
+				{  // encountered value and valid range output already in isInEnum!
+					LOG(lvlError,
+						QString("  Invalid snapshot message: subcommand not in valid range; ignoring message!"));
+					return;
+				}
+				SnapshotCommandType snapshotCommand;
+				rcvStream >> snapshotCommand;
+				switch (snapshotCommand)
+				{
+				case SnapshotCommandType::Create:
+				{
+					iASnapshotInfo info{};
+					readArray(rcvStream, info.position);
+					unitToObjectPos(info.position);
+					std::array<float, 4> rotation;
+					readArray(rcvStream, rotation);
+					LOG(lvlWarn, QString("  New Snapshot: position %1, rotation %2: Note that rotation quaternion conversion is EXPERIMENTAL!")
+						.arg(arrayToString(info.position)).arg(arrayToString(rotation)));
+					info.normal = applyRotationToVector(DefaultPlaneNormal, rotation);
+					auto snapshotIDRow = m_planeSliceTool->addSnapshot(info);
+					addSnapshot(snapshotIDRow.first, info);
+					break;
+				}
+				case SnapshotCommandType::CreatePosNormal:
+				{
+					iASnapshotInfo info{};
+					readArray(rcvStream, info.position);
+					unitToObjectPos(info.position);
+					readArray(rcvStream, info.normal);
+					LOG(lvlInfo, QString("  New Snapshot: position %1, normal %2")
+						.arg(arrayToString(info.position)).arg(arrayToString(info.normal)));
+					auto snapshotIDRow = m_planeSliceTool->addSnapshot(info);
+					addSnapshot(snapshotIDRow.first, info);
+					break;
+				}
+				case SnapshotCommandType::Remove:
+				{
+					auto snapshotID = readVal<quint64>(rcvStream);
+					m_planeSliceTool->removeSnapshot(snapshotID);
+					removeSnapshot(snapshotID);
+					break;
+				}
+				case SnapshotCommandType::ClearAll:
+					m_planeSliceTool->clearSnapshots();
+					clearSnapshots();
+					break;
+				default:
+					LOG(lvlWarn, "Unsupported Snapshot command!");
+					break;
+				}
+				break;
+			}
+			default:
+				LOG(lvlWarn, "Unsupported Snapshot command!");
+				break;
 			}
 		}
 		catch (std::exception& e)
