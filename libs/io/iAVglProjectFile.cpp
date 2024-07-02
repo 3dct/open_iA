@@ -93,7 +93,7 @@ std::shared_ptr<iADataSet> iAVglProjectFile::loadData(
 						
 						auto list = pathRawFile.split("/");
 						QString pathToAdd("");
-						for (int pos = list.size()-1; pos != 0; pos--)
+						for (qsizetype pos = list.size()-1; pos != 0; pos--)
 						{
 							pathToAdd = "/" + list[pos] + pathToAdd;
 							auto nameOfFile = check_file.fileName();
