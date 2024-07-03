@@ -210,8 +210,6 @@ void iAFast3DMagicLensWidget::mouseMoveEvent(QMouseEvent* event)
 
 void iAFast3DMagicLensWidget::wheelEvent(QWheelEvent* event)
 {
-	// enable resizing / changing opacity of magic lens;
-	// requires also adaptations of interactor style to disable zooming when these modifiers are pressed!
 	if (m_magicLensEnabled && event->modifiers().testFlag(Qt::ControlModifier))
 	{
 		int chg = event->angleDelta().y() / 120.0;
