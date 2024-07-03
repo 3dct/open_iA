@@ -180,12 +180,12 @@
      <addaction name="actionMagicLens2D"/>
      <addaction name="actionToggleSlicerInteraction"/>
      <addaction name="actionRawProfile"/>
+     <addaction name="actionLinkSliceViews"/>
     </widget>
     <addaction name="menuDockWidgets"/>
     <addaction name="menuFocus"/>
     <addaction name="menuLayout"/>
     <addaction name="separator"/>
-    <addaction name="actionLinkSliceViews"/>
     <addaction name="actionLinkMdis"/>
     <addaction name="separator"/>
     <addaction name="menuSlicer"/>
