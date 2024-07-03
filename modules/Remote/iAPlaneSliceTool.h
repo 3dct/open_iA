@@ -66,7 +66,8 @@ signals:
 private:
 	void updateSlice();
 	void updateSliceFromUser();
-	void resetPlaneParameters(iAMdiChild* child, iAAxisIndex axis, bool posSign);
+	void resetPlaneParameters(iAAxisIndex axis, bool posSign);
+	void setAxisAligned(iAAxisIndex axis, bool posSign, double slicePos);
 
 	iAQVTKWidget* m_sliceWidget;
 	QTableWidget* m_snapshotTable;
