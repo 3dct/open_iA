@@ -1,6 +1,9 @@
 set(DEPENDENCIES_LIBRARIES
 	iA::base
 )
+if (OpenMP_CXX_FOUND)
+	list(APPEND DEPENDENCIES_LIBRARIES OpenMP::OpenMP_CXX)
+endif()
 #set(DEPENDENCIES_ITK_MODULES
 #	ITKClassifiers               # for ScalarImageKmeansImageFilter
 #	ITKConnectedComponents       # for ConnectedComponentImageFilter (dependency of MorphologicalWatershedImageFilter)
