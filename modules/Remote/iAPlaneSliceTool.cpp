@@ -109,6 +109,11 @@ namespace
 
 std::shared_ptr<iATool> iAPlaneSliceTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
 {
+	if (child->firstImageDataSetIdx() == iAMdiChild::NoDataSet)
+	{
+		QMessageBox::warning(mainWnd, "Arbitrary slicing tool", "No image dataset loaded!");
+		return nullptr;
+	}
 	return std::make_shared<iAPlaneSliceTool>(mainWnd, child);
 }
 
@@ -134,6 +139,8 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	m_imageSlice(vtkSmartPointer<vtkImageSlice>::New()),
 	m_nextSnapshotID(1)
 {
+	auto ds = child->firstImageDataSetIdx();  // we check if it's set in create method!
+
 	auto dwWidget = createContainerWidget<QVBoxLayout>(1);
 	m_listDW = new iADockWidgetWrapper(dwWidget, "Snapshot List", "SnapshotList");
 	dwWidget->layout()->addWidget(m_curPosLabel);
@@ -237,12 +244,6 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	listWidget->layout()->addWidget(buttonContainer);
 	dwWidget->layout()->addWidget(listWidget);
 
-	auto ds = child->firstImageDataSetIdx();
-	if (ds == iAMdiChild::NoDataSet)
-	{
-		QMessageBox::warning(mainWnd, "Arbitrary slicing tool", "No image dataset loaded!");
-		return;
-	}
 	child->splitDockWidget(child->slicerDockWidget(iASlicerMode::XY), m_sliceDW, Qt::Horizontal);
 	child->splitDockWidget(m_sliceDW, m_listDW, Qt::Vertical);
 
