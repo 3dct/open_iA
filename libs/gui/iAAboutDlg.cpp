@@ -39,13 +39,22 @@ void iAAboutDlg::show(QWidget* parent, QPixmap const & aboutImg, QString const &
 	buildInfoLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	dlg.layout()->addWidget(buildInfoLabel);
 
-	int rows = static_cast<int>(buildInfo.count('\n')) + 1;
-	auto table = new QTableWidget(rows, 2, &dlg);
+	const int ExtraRows = 2;
+	const int TotalRows = static_cast<int>(buildInfo.count('\n')) + ExtraRows;
+	auto table = new QTableWidget(TotalRows, 2, &dlg);
 	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	table->setItem(0, 0, new QTableWidgetItem("Version"));
 	table->setItem(0, 1, new QTableWidgetItem(gitVersion));
+	table->setItem(1, 0, new QTableWidgetItem("Configuration"));
+	table->setItem(1, 1, new QTableWidgetItem(
+#ifdef NDEBUG
+		"Release"
+#else
+		"Debug"
+#endif
+	));
 	auto lines = buildInfo.split("\n");
-	int row = 1;
+	int row = ExtraRows;
 	for (auto line : lines)
 	{
 		auto tokens = line.split("\t");
