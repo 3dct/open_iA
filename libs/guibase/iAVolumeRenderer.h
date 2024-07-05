@@ -12,7 +12,7 @@ class iATransferFunction;
 
 class vtkImageData;
 class vtkRenderer;
-class vtkSmartVolumeMapper;
+class vtkMultiBlockVolumeMapper;
 class vtkVolume;
 class vtkVolumeProperty;
 
@@ -55,6 +55,6 @@ private:
 	iAAttributes const& attributes() const override;
 	vtkSmartPointer<vtkVolume> m_volume;
 	vtkSmartPointer<vtkVolumeProperty> m_volProp;
-	vtkSmartPointer<vtkSmartVolumeMapper> m_volMapper;
+	vtkSmartPointer<vtkMultiBlockVolumeMapper> m_volMapper;
 	vtkImageData* m_image;
 };

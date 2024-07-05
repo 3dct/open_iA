@@ -11,12 +11,16 @@
 #include "iAMainWindow.h"    // for default volume settings
 
 #include <vtkCallbackCommand.h>
+#include <vtkExtractVOI.h>
 #include <vtkImageData.h>
+#include <vtkMultiBlockDataSet.h>
 #include <vtkRenderer.h>
-#include <vtkSmartVolumeMapper.h>
+#include <vtkMultiBlockVolumeMapper.h>
 #include <vtkVersionMacros.h>
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
+
+#include <iAToolsVTK.h>
 
 namespace
 {
@@ -71,14 +75,46 @@ iAVolumeRenderer::iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, 
 	iADataSetRenderer(renderer),
 	m_volume(vtkSmartPointer<vtkVolume>::New()),
 	m_volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
-	m_volMapper(vtkSmartPointer<vtkSmartVolumeMapper>::New()),
+	m_volMapper(vtkSmartPointer<vtkMultiBlockVolumeMapper>::New()),
 	m_image(vtkImg)
 {
 	m_volMapper->SetBlendModeToComposite();
 	m_volume->SetMapper(m_volMapper);
 	m_volume->SetProperty(m_volProp);
 	m_volume->SetVisibility(true);
-	m_volMapper->SetInputData(vtkImg);
+
+	vtkNew<vtkMultiBlockDataSet> mb;
+	int dim[3];
+	vtkImg->GetDimensions(dim);
+	iAVec3i halfDim{dim[0] / 2, dim[1] / 2, dim[2] / 2};
+	int ofs[3] = {dim[0] % 2, dim[1] % 2, dim[2] % 2};
+	for (int i=0; i<8; ++i)
+	{
+		iAVec3i idx{i % 2, (i / 2) % 2, i / 4};
+		vtkNew<vtkExtractVOI> extractor;
+		extractor->SetInputData(vtkImg);
+		iAVec3i start = idx * halfDim;
+		iAVec3i len = halfDim;
+		for (int j=0; j<3; ++j)
+		{
+			// for any odd dimension length we need to add the remainder of 1 to first part:
+			if (idx[j] == 0)
+			{
+				len[j] += ofs[j];
+			}
+			else
+			{
+				start[j] += ofs[j];
+			}
+		}
+		extractor->SetVOI(
+			start[0], start[0] + len[0]-1,
+			start[1], start[1] + len[1]-1,
+			start[2], start[2] + len[2]-1);
+		extractor->Update();
+		mb->SetBlock(i, extractor->GetOutput());
+	}
+	m_volMapper->SetInputDataObject(mb);
 	if (vtkImg->GetNumberOfScalarComponents() > 1)
 	{
 		m_volMapper->SetBlendModeToComposite();
@@ -141,13 +177,13 @@ void iAVolumeRenderer::applyAttributes(QVariantMap const& values)
 		m_volSettings.ScalarOpacityUnitDistance = m_volProp->GetScalarOpacityUnitDistance();
 	}
 	*/
-	m_volMapper->SetRequestedRenderMode(RenderModeMap()[values[RendererType].toString()]);
-	m_volMapper->SetInteractiveAdjustSampleDistances(values[InteractiveAdjustSampleDistance].toBool());
-	m_volMapper->SetAutoAdjustSampleDistances(values[AutoAdjustSampleDistance].toBool());
-	m_volMapper->SetSampleDistance(values[SampleDistance].toDouble());
-	m_volMapper->SetInteractiveUpdateRate(values[InteractiveUpdateRate].toDouble());
-	m_volMapper->SetFinalColorLevel(values[FinalColorLevel].toDouble());
-	m_volMapper->SetFinalColorWindow(values[FinalColorWindow].toDouble());
+	//m_volMapper->SetRequestedRenderMode(RenderModeMap()[values[RendererType].toString()]);
+	//m_volMapper->SetInteractiveAdjustSampleDistances(values[InteractiveAdjustSampleDistance].toBool());
+	//m_volMapper->SetAutoAdjustSampleDistances(values[AutoAdjustSampleDistance].toBool());
+	//m_volMapper->SetSampleDistance(values[SampleDistance].toDouble());
+	//m_volMapper->SetInteractiveUpdateRate(values[InteractiveUpdateRate].toDouble());
+	//m_volMapper->SetFinalColorLevel(values[FinalColorLevel].toDouble());
+	//m_volMapper->SetFinalColorWindow(values[FinalColorWindow].toDouble());
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
 	m_volMapper->SetGlobalIlluminationReach(values[GlobalIlluminationReach].toFloat());
 	m_volMapper->SetVolumetricScatteringBlending(values[VolumetricScatteringBlending].toFloat());
