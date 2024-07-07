@@ -23,6 +23,7 @@
 #include <vtkActor.h>
 #include <vtkAnnotatedCubeActor.h>
 #include <vtkAxesActor.h>
+#include <vtkCallbackCommand.h>
 #include <vtkCamera.h>
 #include <vtkCubeSource.h>
 #include <vtkDataSetMapper.h>
@@ -53,6 +54,7 @@
 namespace
 {
 	const double IndicatorsLenMultiplier = std::sqrt(2);
+	const unsigned long UnsetCallback = std::numeric_limits<unsigned long>::max();
 }
 
 #include "iADefaultSettings.h"
@@ -86,6 +88,7 @@ public:
 			addAttr(attr, iARendererImpl::DepthPeelsMax, iAValueType::Discrete, 4, 0);              // maximum number of depth peels to use (if enabled via UseDepthPeeling). The more the higher quality, but also slower rendering
 			addAttr(attr, iARendererImpl::MagicLensSize, iAValueType::Discrete, DefaultMagicLensSize, MinimumMagicLensSize, MaximumMagicLensSize); // size (width & height) of the 3D magic lens (in pixels / pixel-equivalent units considering scaling)
 			addAttr(attr, iARendererImpl::MagicLensFrameWidth, iAValueType::Discrete, DefaultMagicLensFrameWidth, 0); // width of the frame of the 3D magic lens
+			addAttr(attr, iARendererImpl::ShowFPS, iAValueType::Boolean, false);                    // whether to show frames per second
 			addAttr(attr, iARendererImpl::UseSSAO, iAValueType::Boolean, false);                    // whether to use Screen Space Ambient Occlusion (SSAO) - darkens some pixels to improve depth perception
 			addAttr(attr, iARendererImpl::SSAORadius, iAValueType::Continuous, 0.5);                // SSAO: The hemisphere radius
 			addAttr(attr, iARendererImpl::SSAOBias, iAValueType::Continuous, 0.01);                 // SSAO: The bias when comparing samples
@@ -116,7 +119,8 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_roiActor(vtkSmartPointer<vtkActor>::New()),
 	m_stickOutBox{ iAVec3d(0.0, 0.0, 0.0), iAVec3d(0.0, 0.0, 0.0) },
 	m_touchStartScale(1.0),
-	m_unitSize({1.0, 1.0, 1.0})
+	m_unitSize({1.0, 1.0, 1.0}),
+	m_fpsCallback(UnsetCallback)
 {
 	m_ren->SetLayer(0);
 	m_labelRen->SetLayer(1);
@@ -711,6 +715,23 @@ void iARendererImpl::applySettings(QVariantMap const& paramValues)
 		{
 			showSlicePlaneActor(i, isShowSlicePlanes() && m_slicePlaneVisible[i]);
 		}
+	}
+	if (m_settings[ShowFPS].toBool())
+	{
+		vtkNew<vtkCallbackCommand> callback;
+		callback->SetCallback(
+			[](vtkObject* vtkNotUsed(caller), long unsigned int vtkNotUsed(eventId), void* clientData, void* vtkNotUsed(callData))
+			{
+				auto ren = reinterpret_cast<iARendererImpl*>(clientData);
+				double timeInSeconds = ren->renderer()->GetLastRenderTimeInSeconds();
+				LOG(lvlDebug, QString("FPS: %1").arg(1.0 / timeInSeconds));
+			});
+		callback->SetClientData(this);
+		m_fpsCallback = m_ren->AddObserver(vtkCommand::EndEvent, callback);
+	}
+	else if (m_fpsCallback != UnsetCallback)
+	{
+		m_ren->RemoveObserver(m_fpsCallback);
 	}
 	emit settingsChanged();
 }

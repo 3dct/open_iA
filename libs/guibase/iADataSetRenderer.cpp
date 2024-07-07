@@ -10,7 +10,7 @@
 #include <iAMainWindow.h>
 
 #include <vtkActor.h>
-#include <vtkCallbackCommand.h>
+#include <vtkCommand.h>
 #include <vtkCubeSource.h>
 #include <vtkOutlineFilter.h>
 #include <vtkPolyDataMapper.h>
