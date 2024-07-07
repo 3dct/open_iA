@@ -1272,7 +1272,7 @@ private slots:
 	}
 };
 
-const QString iAUnityWebsocketServerTool::Name("UnityWebSocketServer");
+const QString iAUnityWebsocketServerTool::Name("Unity Volume Interaction Server");
 
 std::shared_ptr<iATool> iAUnityWebsocketServerTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
 {
