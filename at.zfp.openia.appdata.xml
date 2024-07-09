@@ -9,6 +9,9 @@
 		A tool for the visual analysis and processing of volumetric datasets, with a focus on industrial computed tomography.
 		</p>
 	</description>
+	<developer id="io.github.3dct">
+		<name>3DCT Vis Group Wels</name>
+	</developer>
 	<metadata_license>CC0-1.0</metadata_license>
 	<project_license>GPL-3.0-or-later</project_license>
 	<content_rating type="oars-1.0" />
@@ -59,7 +62,7 @@
 					- Move saving image stack from slicer to save dataset
 				- VR:
 					- environment sharing improvements, stop when VR is terminated
-					- more stable synchronization between VR <-> FeatureScout
+					- more stable synchronization between VR and FeatureScout
 					- user-choosable backend (OpenVR/OpenXR)
 				- Surfaces: Separate surface extraction and simplification, added mesh transformation filter
 				- Transfer function copy/paste
