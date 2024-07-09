@@ -42,6 +42,30 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="2024.7" date="2024-07-10">
+            <description>
+				- Arbitrary slice plane tool
+				- Remote:
+					- Connections to a Unity Client for volume interaction with VR and tablet
+					- Remote rendering improvements
+					- also serve fonts locally instead of via CDN
+				- IO:
+					- Improved support for special characters in filenames under Windows (full UTF-8 support)
+					- Support for loading .vgl files
+					- Support for loading/writing .obj files
+					- Project files:
+						Store/Load annotations
+						Store/Load dataset range/histogram
+					- Move saving image stack from slicer to save dataset
+				- VR:
+					- environment sharing improvements, stop when VR is terminated
+					- more stable synchronization between VR <-> FeatureScout
+					- user-choosable backend (OpenVR/OpenXR)
+				- Surfaces: Separate surface extraction and simplification, added mesh transformation filter
+				- Transfer function copy/paste
+				- Many other smaller improvements and fixes
+            </description>
+        </release>
         <release version="2023.4" date="2023-04-04">
             <description>
                 Mainly bugfixes:
