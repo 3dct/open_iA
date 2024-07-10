@@ -68,6 +68,7 @@
 				- Transfer function copy/paste
 				- Many other smaller improvements and fixes
 			</description>
+			<url>https://github.com/3dct/open_iA/releases/tag/2024.7</url>
 		</release>
 		<release version="2023.4" date="2023-04-04">
 			<description>
@@ -80,6 +81,7 @@
 					- Fix editing spacing of dataset,
 					- Slicer measurements now end on second 'm' press as well, not only on ESC
 			</description>
+			<url>https://github.com/3dct/open_iA/releases/tag/2023.04</url>
 		</release>
 		<release version="2023.02" date="2023-02-24">
 			<description>
@@ -87,29 +89,35 @@
 				Reworked, more generic dataset interface for a broader range (and better future support) of multiple dataset types.
 				Theme (bright/dark) improvements, possibility to adapt to system theme.
 			</description>
+			<url>https://github.com/3dct/open_iA/releases/tag/2023.02</url>
 		</release>
 		<release version="2022.06.22" date="2022-06-22">
 			<description>Minor release (changes required by flatpak, e.g. this manifest)</description>
+			<url>https://github.com/3dct/open_iA/releases/tag/2022.06.22</url>
 		</release>
 		<release version="2022.06" date="2022-06-21">
 			<description>
 				New tools for immersive and collaborative analysis, new comparative visualizations for multi-dimensional data, and various smaller improvements and fixes!
 			</description>
+			<url>https://github.com/3dct/open_iA/releases/tag/2022.06</url>
 		</release>
 		<release version="2021.08" date="2021-08-20">
 			<description>
 				New tools for the comparative visualization of multi-dimensional data, new tools to guide in creating a transfer function for n-modal data, improved manual labelling capabilities, improvements/fixes to fuzzy feature tracking, improved sampling
 			</description>
+			<url>https://github.com/3dct/open_iA/releases/tag/2021.08</url>
 		</release>
 		<release version="2020.09" date="2020-09-17">
 			<description>
 				New AI module, improved filter sampling capabilities; transfer function editing bugfixes, multiple other small improvements.
 			</description>
+			<url>https://github.com/3dct/open_iA/releases/tag/2020.09</url>
 		</release>
 		<release version="2020.04" date="2020-04-27">
 			<description>
 				Improvements to the data dialog, better style and colors.
 			</description>
+			<url>https://github.com/3dct/open_iA/releases/tag/2022.04</url>
 		</release>
 	</releases>
 </component>
