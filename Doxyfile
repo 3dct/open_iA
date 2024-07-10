@@ -30,13 +30,13 @@ PROJECT_NAME           = open_iA
 # This could be handy for archiving the generated documentation or 
 # if some version control system is used.
 
-PROJECT_NUMBER         = 2023.04
+PROJECT_NUMBER         = 2024.7
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description 
 # for a project that appears at the top of each page and should give viewer 
 # a quick idea about the purpose of the project. Keep the description short.
 
-PROJECT_BRIEF          = "A tool for the visual analysis and processing of volumetric datasets, with a focus on industrial computed tomography."
+PROJECT_BRIEF          = ""
 
 # With the PROJECT_LOGO tag one can specify an logo or icon that is 
 # included in the documentation. The maximum height of the logo should not 
@@ -978,7 +978,7 @@ HTML_COLORSTYLE_GAMMA  = 80
 # page will contain the date and time when the page was generated. Setting 
 # this to NO can help when comparing the output of multiple runs.
 
-HTML_TIMESTAMP         = YES
+TIMESTAMP         = YES
 
 # If the HTML_DYNAMIC_SECTIONS tag is set to YES then the generated HTML 
 # documentation will contain sections that can be hidden and shown after the 
