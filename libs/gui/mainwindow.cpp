@@ -1959,7 +1959,7 @@ public:
 		return QProxyStyle::styleHint(hint, option, widget, returnData);
 	}
 
-	//! {
+	//! @{
 	//! For drawing the MDI controls (close, float, minimize buttons) in the menu bar
 	//! when MDI children are maximized
 	void drawSubControl(QStyleOptionComplex const * opt, QPainter* p, QWidget const* widget, SubControl subControl, QString const& iconName) const
