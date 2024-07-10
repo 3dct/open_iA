@@ -15,43 +15,67 @@
     </section>
 
     <section class="main-content">
-      <h3>Latest Stable Release: 2023.04</h3>
+      <h3>Latest Stable Release: 2024.7</h3>
       <div>
         <div class="highlights"><strong>Highlights:</strong>
           <ul>
-            <li>Transfer functions: Fix resetting, loading from project files</li>
-            <li>Volume Rendering: adjust sample distance now on by default (more interactive rendering for large volumes)</li>
-            <li>Fix viewing of geometric objects</li>
-            <li>VR (ImNDT/XVRA module): Fix shutdown / enable restarting, fix potential crash on shutdown</li>
-            <li>Fix slicer position display</li>
-            <li>Fix editing spacing of dataset</li>
-            <li>Slicer measurements now end on second 'm' press as well, not only on ESC</li>
+            <li>Arbitrary slice plane tool</li>
+            <li>Remote:</li>
+              <ul>
+                <li>Connections to a Unity Client for volume interaction with VR and tablet</li>
+                <li>Remote rendering:</li>
+                <ul>
+                  <li>Client List</li>
+                  <li>Various performance improvements</li>
+                  <li>Serve fonts locally instead of via CDN</li>
+                </ul>
+              </ul>
+            <li>IO:</li>
+              <ul>
+                <li>Improved support for special characters in filenames under Windows (full UTF-8 support)</li>
+                <li>Support for loading .vgl files</li>
+                <li>Support for loading/writing .obj files</li>
+                <li>Project files:</li>
+                <ul>
+                  <li>Store/Load annotations</li>
+                  <li>Store/Load dataset range/histogram</li>
+                </ul>
+                <li>Move saving image stack from slicer to save dataset</li>
+              </ul>
+            <li>VR:</li>
+              <ul>
+                <li>Environment sharing improvements, stop when VR is terminated</li>
+                <li>More stable synchronization between VR and FeatureScout</li>
+                <li>User-choosable backend (OpenVR/OpenXR)</li>
+              <ul>
+            <li>Surfaces:</li>
+              <ul>
+                <li>Directly possible to display surfaces output from filters (previously they were just written to disk)</li>
+                <li>Separate surface extraction and simplification</li>
+                <li>Added mesh transformation filter</li>
+              </ul>
+            <li>Transfer function copy/paste</li>
+            <li>Many other smaller improvements and fixes</li>
           </ul>
         </div>
-        <div>The Windows binary releases below are available in two versions:
-        <ul>
-          <li><strong>Full</strong> includes all modules.</li>
-          <li><strong>Lite</strong> much smaller, excludes ASTRA reconstruction built on top of CUDA</li>
-        </ul>
+        <div>The Windows binary release below excludes ASTRA reconstruction built on top of CUDA; if you need to use this module, you can still use <a href="https://github.com/3dct/open_iA/releases/download/2023.04/open_iA-2023.04-with-ASTRA.zip">the pre-built version 2023.04</a>.
         <div>
           <div class="line-heading">Windows</div>
-          <a href="https://github.com/3dct/open_iA/releases/download/2023.04/open_iA-2023.04.zip" class="btn">Normal (.zip, 60.6MB)</a>
-          <a href="https://github.com/3dct/open_iA/releases/download/2023.04/open_iA-2023.04-with-ASTRA.zip" class="btn">Full (.zip, 341MB)</a>
+          <a href="https://github.com/3dct/open_iA/releases/download/2024.7/open_iA-2024.7.zip" class="btn">open_iA-2024.7.zip (67.4MB)</a>
+          <a href= class="btn">Complete (.zip, 341MB)</a>
         </div><details class="checkSumLine">
-          <summary>Checksums (SHA512)</summary>
+          <summary>Checksum (SHA512)</summary>
           <ul id="checkSumContainer">
-              <li>open_iA-2023.04.zip:
-<pre>58D0501A66BE32F646FFF11C927C5DED2B51FCAAF3977508FB244F2943131DB17574D5ACA22013FC92AC7596BA64946A59BB7DA00808F07267FB7D12739A94FB</pre></li>
-              <li>open_iA-2023.04-with-ASTRA.zip:
-<pre>A80ABEB13BE73560DB9306D7DE92636349456AB007586B2DCB1F8D84B82DBA8FD5711C08B59185F94053741D3AD856C52F97AA68E1DD109663F576DEB7AF3481</pre></li>
+              <li>open_iA-2024.7.zip:
+<pre>4F2BAC6A38443EA4F67E60C1A6168B813A3D8FE99D14EC0A08F9057E1FE9AD6ABBC408A2E85538658D4295F3D34D2951853C4BC9D5F1F0DAC132BC66D7162FEE</pre></li>
           </ul>
         </details><div>
           <div class="line-heading">Linux</div>
           <a href="https://github.com/3dct/open_iA/wiki/Flatpak" class="btn">Flatpak</a>
         </div><div>
           <div class="line-heading">Source Code</div>
-          <a href="https://github.com/3dct/open_iA/archive/refs/heads/main.zip" class="btn">Source (.zip)</a>
-          <a href="https://github.com/3dct/open_iA/archive/refs/heads/main.tar.gz" class="btn">Source (.tar.gz)</a>
+          <a href="https://github.com/3dct/open_iA/archive/refs/tags/2024.7.zip" class="btn">Source (.zip)</a>
+          <a href="https://github.com/3dct/open_iA/archive/refs/tags/2024.7.tar.gz" class="btn">Source (.tar.gz)</a>
           <a href="https://api.3dct.at/latest/index.html" class="btn">API documentation</a>
         </div>
       </div>
