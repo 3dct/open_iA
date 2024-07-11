@@ -222,7 +222,7 @@ template<class T> void calcFeatureCharacteristics(iAFilter* filter, itk::ImageBa
 	}
 	if (computeAverages)
 	{
-		filter->addOutputValue("Number of objects", labelMap->GetNumberOfLabelObjects());
+		filter->addOutputValue("Number of objects", static_cast<quint64>(labelMap->GetNumberOfLabelObjects()));
 		filter->addOutputValue("Volume average", sums[0] / labelMap->GetNumberOfLabelObjects());
 		filter->addOutputValue("Phi average", sums[1] / labelMap->GetNumberOfLabelObjects());
 		filter->addOutputValue("Theta average", sums[2] / labelMap->GetNumberOfLabelObjects());
