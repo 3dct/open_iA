@@ -40,10 +40,24 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 	castfilter->Update();
 	typename LongImageType::Pointer longImage = castfilter->GetOutput();
 
+	progress->setStatus("Computing feature maps");
+	typedef unsigned long LabelType;
+	typedef itk::ShapeLabelObject<LabelType, DIM>	ShapeLabelObjectType;
+	typedef itk::LabelMap<ShapeLabelObjectType>	LabelMapType;
+	typedef itk::LabelImageToShapeLabelMapFilter<LongImageType, LabelMapType> I2LType;
+	typename I2LType::Pointer i2l = I2LType::New();
+	i2l->SetInput( longImage );
+	i2l->SetComputePerimeter(calculateAdvancedChars);
+	i2l->SetComputeFeretDiameter(feretDiameter);
+	i2l->SetComputeOrientedBoundingBox(true);
+	progress->observe(i2l);
+	i2l->Update();
+
+	LabelMapType *labelMap = i2l->GetOutput();
+	progress->setStatus("Computing individual characteristics and writing .csv");
 	// Writing pore csv file
 	double spc = longImage->GetSpacing()[0];
-	std::ofstream fout( pathCSV.toStdString());
-
+	std::ofstream fout(pathCSV.toStdString());
 	// Header of pore csv file
 	fout << "Spacing," << spc << '\n'
 		<< "Voids\n\n\n"
@@ -58,46 +72,26 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 		<< "Roundness,"
 		<< "FeretDiam,"
 		<< "Flatness,"
-		<< "VoxDimX,"
-		<< "VoxDimY,"
-		<< "VoxDimZ,"
-		<< "MajorLength,"
-		<< "MinorLength,";
-
-		if (calculateAdvancedChars)
-		{
-			fout << "Elongation,"
-				<< "Perimeter,"
-				<< "EquivalentSphericalRadius,"
-				<< "MiddleAxisLength,"
-				<< "RatioAxisLongToAxisMiddle,"
-				<< "RatioMiddleToSmallest,"
-				<< "Dir2_X1,Dir2_Y1,Dir2_Z1,"
-				<< "Dir2_X2,Dir2_Y2,Dir2_Z2,";
-		}
-		fout << '\n';
-	typedef unsigned long LabelType;
-	typedef itk::ShapeLabelObject<LabelType, DIM>	ShapeLabelObjectType;
-	typedef itk::LabelMap<ShapeLabelObjectType>	LabelMapType;
-	typedef itk::LabelImageToShapeLabelMapFilter<LongImageType, LabelMapType> I2LType;
-	typename I2LType::Pointer i2l = I2LType::New();
-	i2l->SetInput( longImage );
-	i2l->SetComputePerimeter(calculateAdvancedChars);
-	i2l->SetComputeFeretDiameter(feretDiameter);
-	i2l->SetComputeOrientedBoundingBox(true);
-	progress->observe(i2l);
-	progress->setStatus("Computing feature maps");
-	i2l->Update();
-
-	LabelMapType *labelMap = i2l->GetOutput();
-	progress->setStatus("Computing individual characteristics");
+		<< "VoxDimX,VoxDimY,VoxDimZ,"
+		<< "MajorLength,MinorLength,";
+	if (calculateAdvancedChars)
+	{
+		fout << "Elongation,"
+			<< "Perimeter,"
+			<< "EquivalentSphericalRadius,"
+			<< "MiddleAxisLength,"
+			<< "RatioAxisLongToAxisMiddle,"
+			<< "RatioMiddleToSmallest,"
+			<< "Dir2_X1,Dir2_Y1,Dir2_Z1,"
+			<< "Dir2_X2,Dir2_Y2,Dir2_Z2,";
+	}
+	fout << '\n';
 	for (itk::SizeValueType labelValue = 0; labelValue < labelMap->GetNumberOfLabelObjects(); ++labelValue)
 	{
 		ShapeLabelObjectType* labelObject = labelMap->GetNthLabelObject(labelValue);
 		iAVec3d centroid(labelObject->GetCentroid().data());
 		auto const& bb = labelObject->GetBoundingBox();
 		auto const& obbsize = labelObject->GetOrientedBoundingBoxSize();
-		//labelObject->Get
 		double majorlength = obbsize[2];
 		double minorlength = obbsize[1];
 		auto bbsize = bb.GetSize().data();
@@ -107,13 +101,6 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 		const auto maxEVPos = 2;
 		// inverse direction to keep results comparable to results from before with LabelGeometry filter:
 		iAVec3d majDirEV(-eigenvectors[maxEVPos][0], -eigenvectors[maxEVPos][1], -eigenvectors[maxEVPos][2]);
-		LOG(lvlDebug, QString("%1 - ").arg(labelValue) +
-			QString("vec: %1, %2, %3; %4, %5, %6; %7, %8, %9")
-			.arg(eigenvectors[0][0]).arg(eigenvectors[0][1]).arg(eigenvectors[0][2])
-			.arg(eigenvectors[1][0]).arg(eigenvectors[1][1]).arg(eigenvectors[1][2])
-			.arg(eigenvectors[2][0]).arg(eigenvectors[2][1]).arg(eigenvectors[2][2]) +
-			QString("majDirEV: %1; val: %2, %3, %4").arg(majDirEV.toString())
-			.arg(eigenvalues[0]).arg(eigenvalues[1]).arg(eigenvalues[2]));
 		auto pt1 = centroid + half_length * majDirEV.normalized();
 		auto pt2 = centroid - half_length * majDirEV.normalized();
 		auto dPt = pt1 - pt2;
