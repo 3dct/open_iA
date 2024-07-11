@@ -28,8 +28,8 @@ IAFILTER_DEFAULT_CLASS(iACalcFeatureCharacteristics);
 
 #include <numbers>
 
-template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAProgress* progress,
-	QString pathCSV, bool feretDiameter, bool calculateAdvancedChars, bool calculateRoundness)
+template<class T> void calcFeatureCharacteristics(iAFilter* filter, itk::ImageBase<3>* itkImg,
+	QString pathCSV, bool feretDiameter, bool calculateAdvancedChars, bool calculateRoundness, bool computeAverages)
 {
 	// Cast image to type long
 	typedef itk::Image< T, DIM > InputImageType;
@@ -40,7 +40,7 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 	castfilter->Update();
 	typename LongImageType::Pointer longImage = castfilter->GetOutput();
 
-	progress->setStatus("Computing feature maps");
+	filter->progress()->setStatus("Computing feature maps");
 	typedef unsigned long LabelType;
 	typedef itk::ShapeLabelObject<LabelType, DIM>	ShapeLabelObjectType;
 	typedef itk::LabelMap<ShapeLabelObjectType>	LabelMapType;
@@ -50,11 +50,11 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 	i2l->SetComputePerimeter(calculateAdvancedChars);
 	i2l->SetComputeFeretDiameter(feretDiameter);
 	i2l->SetComputeOrientedBoundingBox(true);
-	progress->observe(i2l);
+	filter->progress()->observe(i2l);
 	i2l->Update();
 
 	LabelMapType *labelMap = i2l->GetOutput();
-	progress->setStatus("Computing individual characteristics and writing .csv");
+	filter->progress()->setStatus("Computing individual characteristics and writing .csv");
 	// Writing pore csv file
 	double spc = longImage->GetSpacing()[0];
 	std::ofstream fout(pathCSV.toStdString());
@@ -86,6 +86,7 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 			<< "Dir2_X2,Dir2_Y2,Dir2_Z2,";
 	}
 	fout << '\n';
+	std::array<double, 5> sums{};
 	for (itk::SizeValueType labelValue = 0; labelValue < labelMap->GetNumberOfLabelObjects(); ++labelValue)
 	{
 		ShapeLabelObjectType* labelObject = labelMap->GetNthLabelObject(labelValue);
@@ -209,8 +210,24 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 				 << p_x2 << "," << p_y2 << "," << p_z2 << ",";
 		}
 		fout << '\n';
-
-		progress->emitProgress(labelValue * 100.0 / labelMap->GetNumberOfLabelObjects());
+		if (computeAverages)
+		{
+			sums[0] += labelObject->GetPhysicalSize();
+			sums[1] += phi;
+			sums[2] += theta;
+			sums[3] += roundness;
+			sums[4] += majorlength;
+		}
+		filter->progress()->emitProgress(labelValue * 100.0 / labelMap->GetNumberOfLabelObjects());
+	}
+	if (computeAverages)
+	{
+		filter->addOutputValue("Number of objects", labelMap->GetNumberOfLabelObjects());
+		filter->addOutputValue("Volume average", sums[0] / labelMap->GetNumberOfLabelObjects());
+		filter->addOutputValue("Phi average", sums[1] / labelMap->GetNumberOfLabelObjects());
+		filter->addOutputValue("Theta average", sums[2] / labelMap->GetNumberOfLabelObjects());
+		filter->addOutputValue("Roundness average", sums[3] / labelMap->GetNumberOfLabelObjects());
+		filter->addOutputValue("Length average", sums[4] / labelMap->GetNumberOfLabelObjects());
 	}
 
 	fout.close();
@@ -220,13 +237,17 @@ iACalcFeatureCharacteristics::iACalcFeatureCharacteristics():
 	iAFilter("Calculate Feature Characteristics", "Feature Characteristics",
 		"Compute characteristics of the objects in a labelled dataset.<br/>"
 		"This filter takes a labelled image as input, and writes a table of the "
-		"characteristics of each of the features (=objects) in this image to  csv file with the given <em>Output CSV filename</em>."
+		"characteristics of each of the features (=objects) in this image to  csv "
+		"file with the given <em>Output CSV filename</em>."
 		"If you need a precise diameter, enable <em>Calculate Feret Diameter</em> "
 		"(but note that this increases computation time significantly!). "
 		"Note that the Feret Diameter is also required to compute an accurate roundness. "
 		"If you disable the Feret Diameter, an inaccurate roundness is provided (which can go over 1). "
 		"If you want to disable this roundness, disable <em>Calculate roundness</em>, "
-		"this will set roundness to 0 if no feret diameter available .<br/>"
+		"this will set roundness to 0 if no feret diameter is available.<br/>"
+		"When <em>Calculate averages</em> is enabled, the filter will also compute "
+		"average volume, phi, theta, roundness and length "
+		"and return them as output values.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1LabelImageToShapeLabelMapFilter.html\">"
 		"Label Image to Shape Label Map Filter </a> "
@@ -236,12 +257,16 @@ iACalcFeatureCharacteristics::iACalcFeatureCharacteristics():
 	addParameter("Calculate Feret Diameter", iAValueType::Boolean, false);
 	addParameter("Calculate roundness", iAValueType::Boolean, false);
 	addParameter("Calculate advanced void parameters", iAValueType::Boolean, false);
+	addParameter("Calculate averages", iAValueType::Boolean, false);
 }
 
 void iACalcFeatureCharacteristics::performWork(QVariantMap const & parameters)
 {
 	QString pathCSV = parameters["Output CSV filename"].toString();
-	ITK_TYPED_CALL(calcFeatureCharacteristics, inputScalarType(), imageInput(0)->itkImage(), progress(), pathCSV,
-		parameters["Calculate Feret Diameter"].toBool(), parameters["Calculate advanced void parameters"].toBool(), parameters["Calculate roundness"].toBool());
+	ITK_TYPED_CALL(calcFeatureCharacteristics, inputScalarType(), this, imageInput(0)->itkImage(), pathCSV,
+		parameters["Calculate Feret Diameter"].toBool(),
+		parameters["Calculate advanced void parameters"].toBool(),
+		parameters["Calculate roundness"].toBool(),
+		parameters["Calculate averages"].toBool());
 	LOG(lvlInfo, QString("Feature csv file created in: %1").arg(pathCSV));
 }
