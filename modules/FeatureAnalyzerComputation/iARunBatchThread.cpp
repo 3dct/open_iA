@@ -5,6 +5,9 @@
 #include "iACSVToQTableWidgetConverter.h"
 #include "iAFeatureAnalyzerComputationModuleInterface.h"
 
+#include <iAFilter.h>
+#include <iAFilterRegistry.h>
+#include <iAImageData.h>
 #include <iAITKIO.h>
 #include <iATypedCallHelper.h>
 
@@ -17,7 +20,6 @@
 #endif
 #include <itkAndImageFilter.h>
 #include <itkBilateralImageFilter.h>
-#include <itkBinaryContourImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkCastImageFilter.h>
 #pragma GCC diagnostic push
@@ -35,7 +37,6 @@
 #include <itkConnectedThresholdImageFilter.h>
 #include <itkCurvatureAnisotropicDiffusionImageFilter.h>
 #include <itkCurvatureFlowImageFilter.h>
-#include <itkExtractImageFilter.h>
 #include <itkGradientAnisotropicDiffusionImageFilter.h>
 #include <itkGradientMagnitudeImageFilter.h>
 #ifdef __clang__
@@ -51,19 +52,15 @@
 #pragma clang diagnostic pop
 #endif
 #include <itkImageDuplicator.h>
-#include <itkImageFileWriter.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkImageToHistogramFilter.h>
 #include <itkIntermodesThresholdImageFilter.h>
 #include <itkInvertIntensityImageFilter.h>
 #include <itkIsoDataThresholdImageFilter.h>
 #include <itkKittlerIllingworthThresholdImageFilter.h>
-#include <itkLabelGeometryImageFilter.h>
-#include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkLiThresholdImageFilter.h>
 #include <itkMaximumEntropyThresholdImageFilter.h>
 #include <itkMedianImageFilter.h>
-#include <itkMinimumMaximumImageCalculator.h>
 #include <itkMomentsThresholdImageFilter.h>
 #include <itkMorphologicalWatershedImageFilter.h>
 #include <itkNeighborhoodConnectedImageFilter.h>
@@ -72,10 +69,8 @@
 #include <itkRecursiveGaussianImageFilter.h>
 #include <itkRelabelComponentImageFilter.h>
 #include <itkRenyiEntropyThresholdImageFilter.h>
-#include <itkRescaleIntensityImageFilter.h>
 #include <itkRobustAutomaticThresholdImageFilter.h>
 #include <itkShanbhagThresholdImageFilter.h>
-#include <itkThresholdImageFilter.h>
 #include <itkTriangleThresholdImageFilter.h>
 #include <itkYenThresholdImageFilter.h>
 #ifdef __clang__
@@ -1507,9 +1502,9 @@ void iARunBatchThread::run()
 	executeNewBatches( m_settingsCSV, isBatchNew );
 }
 
-void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMaskFilePath)
+void iARunBatchThread::calcFeatureCharsForMask(RunInfo& results, QString currMaskFilePath)
 {
-	MaskImageType * mask = dynamic_cast<MaskImageType*>(results.maskImage.GetPointer());
+	MaskImageType* mask = dynamic_cast<MaskImageType*>(results.maskImage.GetPointer());
 
 	// Label image
 	typedef itk::Image<long, iAITKIO::Dim>  LabeledImageType;
@@ -1524,214 +1519,31 @@ void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMas
 	labeledMaskName.insert(currMaskFilePath.lastIndexOf("."), "_labeled");
 	iAITKIO::writeFile(labeledMaskName, connectedComponents->GetOutput(), iAITKIO::ScalarType::LONG, true);
 
-	// Save features characteristics in csv file
-	double spacing = mask->GetSpacing()[0];
-	double totalFeatureVol = 0, totalPhi = 0, totalTheta = 0, totalRoundness = 0, totalLength = 0;
-	std::ofstream fout( (currMaskFilePath.append(".csv")).toStdString() );
-
-	// Header of pore csv file
-	fout << "Spacing" << ',' << spacing << '\n'
-		<< "Voids\n"
-		<< '\n'
-		<< '\n'
-		<< "Label Id" << ','
-		<< "X1" << ','
-		<< "Y1" << ','
-		<< "Z1" << ','
-		<< "X2" << ','
-		<< "Y2" << ','
-		<< "Z2" << ','
-		<< "a11" << ','
-		<< "a22" << ','
-		<< "a33" << ','
-		<< "a12" << ','
-		<< "a13" << ','
-		<< "a23" << ','
-		<< "DimX" << ','
-		<< "DimY" << ','
-		<< "DimZ" << ','
-		<< "phi" << ','
-		<< "theta" << ','
-		<< "Xm" << ','
-		<< "Ym" << ','
-		<< "Zm" << ','
-		<< "Volume" << ','
-		<< "Roundness" << ','
-		<< "FeretDiam" << ','
-		<< "Flatness" << ','
-		<< "VoxDimX" << ','
-		<< "VoxDimY" << ','
-		<< "VoxDimZ" << ','
-		<< "MajorLength" << ','
-		<< "MinorLength" << ','
-		<< '\n';
-
-	// Initalisation of itk::LabelGeometryImageFilter for calculating pore parameters
-	typedef itk::LabelGeometryImageFilter< LabeledImageType > LabelGeometryImageFilterType;
-	auto labelGeometryImageFilter = LabelGeometryImageFilterType::New();
-	labelGeometryImageFilter->SetInput(connectedComponents->GetOutput());
-	labelGeometryImageFilter->Update();
-
-	// Initalisation of itk::LabelImageToShapeLabelMapFilter for calculating other pore parameters
-	typedef unsigned long LabelType;
-	typedef itk::ShapeLabelObject<LabelType, iAITKIO::Dim>	ShapeLabelObjectType;
-	typedef itk::LabelMap<ShapeLabelObjectType>	LabelMapType;
-	typedef itk::LabelImageToShapeLabelMapFilter<LabeledImageType, LabelMapType> I2LType;
-	I2LType::Pointer i2l = I2LType::New();
-	i2l->SetInput(connectedComponents->GetOutput());
-	i2l->SetComputePerimeter(false);
-	i2l->SetComputeFeretDiameter(false);
-	i2l->Update();
-
-	LabelMapType *labelMap = i2l->GetOutput();
-	LabelGeometryImageFilterType::LabelsType allLabels = labelGeometryImageFilter->GetLabels();
-	LabelGeometryImageFilterType::LabelsType::iterator allLabelsIt;
-
-	// Pore Characteristics calculation
-	// TODO: avoid duplication between here and FeatureCharacteristics computation!
-	for (allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++)
+	auto csvFileName = currMaskFilePath.append(".csv");
+	auto computeCharacteristics = iAFilterRegistry::filter("Calculate Feature Characteristics");
+	if (!computeCharacteristics)
 	{
-		LabelGeometryImageFilterType::LabelPixelType labelValue = *allLabelsIt;
-		if (labelValue == 0)	// label 0 = backround
-			continue;
-
-		std::vector<double> eigenvalue(3);
-		std::vector<double> eigenvector(3);
-		std::vector<double> centroid(3);
-		int dimX, dimY, dimZ;
-		double x1, x2, y1, y2, z1, z2, xm, ym, zm, phi, theta, a11, a22, a33, a12, a13, a23,
-			majorlength, minorlength, half_length, dx, dy, dz;
-
-		// Calculating start and and point of the pores's major principal axis
-		eigenvalue = labelGeometryImageFilter->GetEigenvalues(labelValue);
-		auto maxEigenvalue = std::max_element(std::begin(eigenvalue), std::end(eigenvalue));
-		int maxEigenvaluePos = std::distance(std::begin(eigenvalue), maxEigenvalue);
-
-		eigenvector[0] = labelGeometryImageFilter->GetEigenvectors(labelValue)[0][maxEigenvaluePos];
-		eigenvector[1] = labelGeometryImageFilter->GetEigenvectors(labelValue)[1][maxEigenvaluePos];
-		eigenvector[2] = labelGeometryImageFilter->GetEigenvectors(labelValue)[2][maxEigenvaluePos];
-		centroid[0] = labelGeometryImageFilter->GetCentroid(labelValue)[0];
-		centroid[1] = labelGeometryImageFilter->GetCentroid(labelValue)[1];
-		centroid[2] = labelGeometryImageFilter->GetCentroid(labelValue)[2];
-		half_length = labelGeometryImageFilter->GetMajorAxisLength(labelValue) / 2.0;
-		x1 = centroid[0] + half_length * eigenvector[0];
-		y1 = centroid[1] + half_length * eigenvector[1];
-		z1 = centroid[2] + half_length * eigenvector[2];
-		x2 = centroid[0] - half_length * eigenvector[0];
-		y2 = centroid[1] - half_length * eigenvector[1];
-		z2 = centroid[2] - half_length * eigenvector[2];
-
-		// Preparing orientation and tensor calculation
-		dx = x1 - x2;
-		dy = y1 - y2;
-		dz = z1 - z2;
-		xm = (x1 + x2) / 2.0f;
-		ym = (y1 + y2) / 2.0f;
-		zm = (z1 + z2) / 2.0f;
-
-		if (dz < 0)
-		{
-			dx = x2 - x1;
-			dy = y2 - y1;
-			dz = z2 - z1;
-		}
-
-		phi = std::asin(dy / std::sqrt(dx*dx + dy*dy));
-		theta = std::acos(dz / std::sqrt(dx*dx + dy*dy + dz*dz));
-		a11 = std::cos(phi)*std::cos(phi)*std::sin(theta)*std::sin(theta);
-		a22 = std::sin(phi)*std::sin(phi)*std::sin(theta)*std::sin(theta);
-		a33 = std::cos(theta)*std::cos(theta);
-		a12 = std::cos(phi)*std::sin(theta)*std::sin(theta)*std::sin(phi);
-		a13 = std::cos(phi)*std::sin(theta)*std::cos(theta);
-		a23 = std::sin(phi)*std::sin(theta)*std::cos(theta);
-
-		phi = (phi*180.0f) / std::numbers::pi;
-		theta = (theta*180.0f) / std::numbers::pi;
-
-		// Locating the phi value to quadrant
-		if (dx < 0)
-			phi = 180.0 - phi;
-
-		if (phi < 0.0)
-			phi = phi + 360.0;
-
-		if (dx == 0 && dy == 0)
-		{
-			phi = 0.0;
-			theta = 0.0;
-			a11 = 0.0;
-			a22 = 0.0;
-			a12 = 0.0;
-			a13 = 0.0;
-			a23 = 0.0;
-		}
-
-		majorlength = labelGeometryImageFilter->GetMajorAxisLength(labelValue);
-		minorlength = labelGeometryImageFilter->GetMinorAxisLength(labelValue);
-		dimX = std::abs(labelGeometryImageFilter->GetBoundingBox(labelValue)[0] - labelGeometryImageFilter->GetBoundingBox(labelValue)[1]) + 1;
-		dimY = std::abs(labelGeometryImageFilter->GetBoundingBox(labelValue)[2] - labelGeometryImageFilter->GetBoundingBox(labelValue)[3]) + 1;
-		dimZ = std::abs(labelGeometryImageFilter->GetBoundingBox(labelValue)[4] - labelGeometryImageFilter->GetBoundingBox(labelValue)[5]) + 1;
-
-		// Calculation of other pore characteristics and writing the csv file
-		ShapeLabelObjectType *labelObject = labelMap->GetNthLabelObject(labelValue - 1); // debug -1 delated	// labelMap index contaions first pore at 0
-
-		/* The equivalent radius is a radius of a circle with the same area as the object.
-		The feret diameter is the diameter of circumscribing circle. So this measure has a maximum of 1.0 when the object is a perfect circle.
-		http://public.kitware.com/pipermail/insight-developers/2011-April/018466.html */
-		if (labelObject->GetFeretDiameter() == 0)
-		{
-			labelObject->SetRoundness(0.0);
-		}
-		else
-		{
-			labelObject->SetRoundness(labelObject->GetEquivalentSphericalRadius()
-				/ (labelObject->GetFeretDiameter() / 2.0));
-		}
-
-		totalFeatureVol += labelGeometryImageFilter->GetVolume(labelValue) * pow(spacing, 3.0);
-		totalPhi += phi;
-		totalTheta += theta;
-		totalRoundness += labelObject->GetRoundness();
-		totalLength += majorlength * spacing;
-
-		fout << labelValue << ','
-			<< x1 * spacing << ',' 	// unit = microns
-			<< y1 * spacing << ',' 	// unit = microns
-			<< z1 * spacing << ',' 	// unit = microns
-			<< x2 * spacing << ','		// unit = microns
-			<< y2 * spacing << ','		// unit = microns
-			<< z2 * spacing << ','		// unit = microns
-			<< a11 << ','
-			<< a22 << ','
-			<< a33 << ','
-			<< a12 << ','
-			<< a13 << ','
-			<< a23 << ','
-			<< dimX * spacing << ','	// unit = microns
-			<< dimY * spacing << ','	// unit = microns
-			<< dimZ * spacing << ','	// unit = microns
-			<< phi << ','				// unit = °
-			<< theta << ','			// unit = °
-			<< xm * spacing << ',' 	// unit = microns
-			<< ym * spacing << ',' 	// unit = microns
-			<< zm * spacing << ',' 	// unit = microns
-			<< labelGeometryImageFilter->GetVolume(labelValue) * pow(spacing, 3.0) << ','	// unit = microns^3
-			<< labelObject->GetRoundness() << ','
-			<< labelObject->GetFeretDiameter() << ','	// unit = microns
-			<< labelObject->GetFlatness() << ','
-			<< dimX << ','		// unit = voxels
-			<< dimY << ','		// unit = voxels
-			<< dimZ << ','		// unit = voxels
-			<< majorlength * spacing << ',' 	// unit = microns
-			<< minorlength * spacing << ',' 	// unit = microns
-			<< '\n';
+		LOG(lvlError, "Calculate Feature Characteristics Filter is not available!");
+		throw std::runtime_error("Calculate Feature Characteristics Filter is not available!");
 	}
-	fout.close();
-
-	results.featureCnt = allLabels.size();
-	results.avgFeatureVol = totalFeatureVol / results.featureCnt;
-	results.avgFeaturePhi = totalPhi / results.featureCnt;
-	results.avgFeatureTheta = totalTheta / results.featureCnt;
-	results.avgFeatureRoundness = totalRoundness / results.featureCnt;
-	results.avgFeatureLength = totalLength / results.featureCnt;
+	auto img = std::make_shared<iAImageData>(connectedComponents->GetOutput());
+	computeCharacteristics->addInput(img);
+	QVariantMap paramValues;
+	paramValues["Output CSV filename"] = csvFileName;
+	paramValues["Calculate Feret Diameter"] = false;
+	paramValues["Calculate roundness"] = false;
+	paramValues["Calculate advanced void parameters"] = false;
+	paramValues["Calculate averages"] = true;
+	if (!computeCharacteristics->run(paramValues))
+	{
+		LOG(lvlError, "Calculate Feature Characteristics Filter failed!");
+		throw std::runtime_error("Calculate Feature Characteristics Filter failed!");
+	}
+	auto outputValues = computeCharacteristics->outputValues();
+	results.featureCnt = static_cast<long>(outputValues["Number of objects"].toULongLong());
+	results.avgFeatureVol = outputValues["Volume average"].toDouble();
+	results.avgFeaturePhi = outputValues["Phi average"].toDouble();
+	results.avgFeatureTheta = outputValues["Theta average"].toDouble();
+	results.avgFeatureRoundness = outputValues["Roundness average"].toDouble();
+	results.avgFeatureLength = outputValues["Length average"].toDouble();
 }

@@ -240,9 +240,9 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 				{
 					captions << "filename";
 				}
-				for (auto outValue : filter->outputValues())
+				for (auto outValueName : filter->outputValues().keys())
 				{
-					QString curCap(outValue.first);
+					QString curCap(outValueName);
 					curCap.replace(",", "");
 					captions << curCap;
 				}
@@ -265,7 +265,7 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 			}
 			for (auto outValue : filter->outputValues())
 			{
-				values.append(outValue.second.toString());
+				values.append(outValue.toString());
 			}
 			QString textToAdd = (outputBuffer[curLine].isEmpty() || values.empty() ? "" : ",") + values.join(",");
 			outputBuffer[curLine] += textToAdd;

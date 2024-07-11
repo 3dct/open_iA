@@ -113,10 +113,10 @@ void iAFilter::addOutputValue(QString const & name, QVariant value)
 			"in filter constructor, otherwise some filters (e.g. patch filter) "
 			"might not work as expected!").arg(name));
 	}
-	m_outputValues.push_back(qMakePair(name, value));
+	m_outputValues[name] = value;
 }
 
-QVector<QPair<QString, QVariant> > const & iAFilter::outputValues() const
+QVariantMap const & iAFilter::outputValues() const
 {
 	return m_outputValues;
 }

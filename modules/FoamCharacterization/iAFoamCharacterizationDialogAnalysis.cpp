@@ -11,7 +11,6 @@
 #pragma clang diagnostic ignored "-Wshorten-64-to-32"
 #endif
 #include <itkLabelMap.h>
-#include <itkLabelGeometryImageFilter.h>
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkShapeLabelObject.h>
 #ifdef __clang__
@@ -22,10 +21,6 @@
 
 #include <QApplication>
 #include <QGridLayout>
-#include <QStyle>
-#include <QPushButton>
-#include <QStandardItemModel>
-#include <QtMath>
 
 iAFoamCharacterizationDialogAnalysis::iAFoamCharacterizationDialogAnalysis(iAImageData const* dataSet, QWidget* _pParent) : QDialog(_pParent)
 {
@@ -46,41 +41,23 @@ void iAFoamCharacterizationDialogAnalysis::analyse(iAImageData const* dataSet)
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 	QApplication::processEvents();
 
-	typedef itk::LabelGeometryImageFilter<itk::Image<unsigned short, 3>> itkLabelGeometryImageFilterType;
-	itkLabelGeometryImageFilterType::Pointer pLabelGeometryImageFilter(itkLabelGeometryImageFilterType::New());
-	pLabelGeometryImageFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (dataSet->itkImage()));
-	pLabelGeometryImageFilter->Update();
-
-	const int iLabels(pLabelGeometryImageFilter->GetNumberOfLabels());
-
-	m_pTable->setRowCount(iLabels - 1);
-
-	auto ltLabels = pLabelGeometryImageFilter->GetLabels();
-
-	int i (0);
-
-	for (auto ltLabelsIt (ltLabels.begin())
-		; ltLabelsIt != ltLabels.end() ; ++ltLabelsIt
-		)
+	auto labelGeometryFilter = itk::LabelImageToShapeLabelMapFilter<itk::Image<unsigned short, 3>>::New();
+	labelGeometryFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (dataSet->itkImage()));
+	labelGeometryFilter->Update();
+	auto labelMap = labelGeometryFilter->GetOutput();
+	const int iLabels = labelMap->GetNumberOfLabelObjects();
+	m_pTable->setRowCount(iLabels);
+	for (itk::SizeValueType labelValue = 0; labelValue < iLabels; ++labelValue)
 	{
-		itkLabelGeometryImageFilterType::LabelPixelType ltLabel (*ltLabelsIt);
-
-		if (ltLabel > 1)
-		{
-			auto lptCenter(pLabelGeometryImageFilter->GetCentroid(ltLabel));
-			const double* pCenter((double*)lptCenter.GetDataPointer());
-
-			const double dVolume ((double)pLabelGeometryImageFilter->GetVolume(ltLabel));
-			const double dDiameter (2.0 * qPow(3.0 * dVolume / vtkMath::Pi() / 4.0, 1.0 / 3.0));
-
-			const auto pBoundingBox(pLabelGeometryImageFilter->GetBoundingBox(ltLabel));
-			m_pTable->setRow ( i++
-				             , ltLabel
-				             , pCenter[0], pCenter[1], pCenter[2]
-				             , dVolume, dDiameter
-							 , pBoundingBox
-							 );
-		}
+		auto labelObject = labelMap->GetNthLabelObject(labelValue);
+		auto lptCenter = labelObject->GetCentroid();
+		const double* pCenter = lptCenter.GetDataPointer();
+		const double dVolume = labelObject->GetPhysicalSize();
+		const double dDiameter (2.0 * qPow(3.0 * dVolume / vtkMath::Pi() / 4.0, 1.0 / 3.0));
+		const auto bb = labelObject->GetBoundingBox();
+		std::array<int64_t, 3> bbOrigin = { bb.GetIndex()[0], bb.GetIndex()[1], bb.GetIndex()[2] };
+		std::array<uint64_t, 3> bbSize = { bb.GetSize()[0] , bb.GetSize()[1], bb.GetSize()[2] };
+		m_pTable->setRow(labelValue, labelValue + 1, pCenter[0], pCenter[1], pCenter[2], dVolume, dDiameter, bbOrigin, bbSize);
 	}
 
 	QApplication::restoreOverrideCursor();

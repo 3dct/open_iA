@@ -145,7 +145,7 @@ public:
 	//! sets the first input channels.
 	void setFirstInputChannels(size_t c);
 	//! retrieve a list of output values.
-	QVector<QPair<QString, QVariant> > const & outputValues() const;
+	QVariantMap const & outputValues() const;
 	//! Retrieve a list of names of the output values that this filter can produce.
 	QVector<QString> const & outputValueNames() const;
 	//! Adds an output value name.
@@ -205,7 +205,7 @@ private:
 	// TODO: make unique_ptr: -> compile error: `attempting to reference deleted function` in iAFilterRegistry...
 	std::vector<std::shared_ptr<iADataSet>> m_output;
 	//! output values (if any).
-	QVector<QPair<QString, QVariant> > m_outputValues;
+	QMap<QString, QVariant> m_outputValues;
 	//! The class that is watched for progress.
 	//! Typically you will call m_progress->observe(someItkFilter) to set up the progress observation
 	std::unique_ptr<iAProgress> m_progress;
