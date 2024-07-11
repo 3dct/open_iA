@@ -109,7 +109,8 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 			.arg(eigenvectors[1][0]).arg(eigenvectors[1][1]).arg(eigenvectors[1][2])
 			.arg(eigenvectors[2][0]).arg(eigenvectors[2][1]).arg(eigenvectors[2][2]));
 		const auto maxEVPos = 2;
-		iAVec3d majDirEV(eigenvectors[0][maxEVPos], eigenvectors[1][maxEVPos], eigenvectors[2][maxEVPos]);
+		// inverse direction to keep results comparable to results from before with LabelGeometry filter:
+		iAVec3d majDirEV(-eigenvectors[maxEVPos][0], -eigenvectors[maxEVPos][1], -eigenvectors[maxEVPos][2]);
 		LOG(lvlDebug, QString("majDirEV: %1").arg(majDirEV.toString()));
 		auto pt1 = centroid + half_length * majDirEV.normalized();
 		auto pt2 = centroid - half_length * majDirEV.normalized();
