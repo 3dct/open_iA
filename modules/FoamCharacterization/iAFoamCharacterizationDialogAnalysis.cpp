@@ -22,10 +22,6 @@
 
 #include <QApplication>
 #include <QGridLayout>
-#include <QStyle>
-#include <QPushButton>
-#include <QStandardItemModel>
-#include <QtMath>
 
 iAFoamCharacterizationDialogAnalysis::iAFoamCharacterizationDialogAnalysis(iAImageData const* dataSet, QWidget* _pParent) : QDialog(_pParent)
 {
