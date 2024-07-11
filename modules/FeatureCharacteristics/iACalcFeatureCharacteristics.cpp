@@ -104,14 +104,16 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 		double half_length = majorlength / 2.0;
 		auto const & eigenvectors = labelObject->GetPrincipalAxes();
 		auto const& eigenvalues = labelObject->GetPrincipalMoments();
-		LOG(lvlDebug, QString("pm: %1, %2, %3; %4, %5, %6; %7, %8, %9")
-			.arg(eigenvectors[0][0]).arg(eigenvectors[0][1]).arg(eigenvectors[0][2])
-			.arg(eigenvectors[1][0]).arg(eigenvectors[1][1]).arg(eigenvectors[1][2])
-			.arg(eigenvectors[2][0]).arg(eigenvectors[2][1]).arg(eigenvectors[2][2]));
 		const auto maxEVPos = 2;
 		// inverse direction to keep results comparable to results from before with LabelGeometry filter:
 		iAVec3d majDirEV(-eigenvectors[maxEVPos][0], -eigenvectors[maxEVPos][1], -eigenvectors[maxEVPos][2]);
-		LOG(lvlDebug, QString("majDirEV: %1").arg(majDirEV.toString()));
+		LOG(lvlDebug, QString("%1 - ").arg(labelValue) +
+			QString("vec: %1, %2, %3; %4, %5, %6; %7, %8, %9")
+			.arg(eigenvectors[0][0]).arg(eigenvectors[0][1]).arg(eigenvectors[0][2])
+			.arg(eigenvectors[1][0]).arg(eigenvectors[1][1]).arg(eigenvectors[1][2])
+			.arg(eigenvectors[2][0]).arg(eigenvectors[2][1]).arg(eigenvectors[2][2]) +
+			QString("majDirEV: %1; val: %2, %3, %4").arg(majDirEV.toString())
+			.arg(eigenvalues[0]).arg(eigenvalues[1]).arg(eigenvalues[2]));
 		auto pt1 = centroid + half_length * majDirEV.normalized();
 		auto pt2 = centroid - half_length * majDirEV.normalized();
 		auto dPt = pt1 - pt2;
