@@ -2,16 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshorten-64-to-32"
-#endif
-#include <itkFixedArray.h>
-#include <itkIndex.h>
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
-
 #include <QTableView>
 
 class iAFoamCharacterizationTableAnalysis : public QTableView
@@ -23,10 +13,9 @@ class iAFoamCharacterizationTableAnalysis : public QTableView
 	public:
 		CTableAnalysisRow();
 
-		void set(const long& _lLabel
-			, const double& _dCenterX, const double& _dCenterY, const double& _dCenterZ
-			, const double& _dVolume, const double& _dDiameter
-			, const itk::FixedArray<itk::Index<3>::IndexValueType, 6> _faBoundingBox);
+		void set(const long& lLabel
+			, const double& dCenterX, const double& dCenterY, const double& dCenterZ
+			, const double& dVolume, const double& dDiameter);
 
 		long label() const;
 
@@ -37,8 +26,6 @@ class iAFoamCharacterizationTableAnalysis : public QTableView
 		double volume() const;
 		double diameter() const;
 
-		double* boundingBox();
-
 	private:
 		long m_lLabel = 0;
 
@@ -48,8 +35,6 @@ class iAFoamCharacterizationTableAnalysis : public QTableView
 
 		double m_dVolume = 0.0;
 		double m_dDiameter = 0.0;
-
-		double m_pBoundingBox[6];
 	};
 
 public:
@@ -57,10 +42,10 @@ public:
 
 	void setRowCount(const int& _iRowCount);
 
-	void setRow ( const int& _iRow, const long& _lLabel
-				, const double& _dCenterX, const double& _dCenterY, const double& _dCenterZ
-				, const double& _dVolume, const double& _dDiameter
-				, const itk::FixedArray<itk::Index<3>::IndexValueType, 6> _faBoundingBox
+	void setRow ( const int& iRow, const long& lLabel
+				, const double& centerX, const double& dCenterY, const double& dCenterZ
+				, const double& volume, const double& dDiameter
+				, std::array<int64_t, 3> bbOrigin, std::array<uint64_t, 3> bbSize
 				);
 
 private:

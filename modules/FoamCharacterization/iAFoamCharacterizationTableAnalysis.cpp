@@ -2,32 +2,27 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAFoamCharacterizationTableAnalysis.h"
 
+#include "iAStringHelper.h"
+
 #include <QHeaderView>
 #include <QStandardItemModel>
 
 iAFoamCharacterizationTableAnalysis::CTableAnalysisRow::CTableAnalysisRow()
 {
-	std::fill(m_pBoundingBox, m_pBoundingBox + 6, 0.0);
 }
 
-void iAFoamCharacterizationTableAnalysis::CTableAnalysisRow::set(const long& _lLabel
-	, const double& _dCenterX, const double& _dCenterY, const double& _dCenterZ
-	, const double& _dVolume, const double& _dDiameter
-	, const itk::FixedArray<itk::Index<3>::IndexValueType, 6> _faBoundingBox)
+void iAFoamCharacterizationTableAnalysis::CTableAnalysisRow::set(const long& lLabel
+	, const double& dCenterX, const double& dCenterY, const double& dCenterZ
+	, const double& dVolume, const double& dDiameter)
 {
-	m_lLabel = _lLabel;
+	m_lLabel = lLabel;
 
-	m_dCenterX = _dCenterX;
-	m_dCenterY = _dCenterY;
-	m_dCenterZ = _dCenterZ;
+	m_dCenterX = dCenterX;
+	m_dCenterY = dCenterY;
+	m_dCenterZ = dCenterZ;
 
-	m_dVolume = _dVolume;
-	m_dDiameter = _dDiameter;
-
-	for (int i(0); i < 6; ++i)
-	{
-		m_pBoundingBox[i] = _faBoundingBox[i];
-	}
+	m_dVolume = dVolume;
+	m_dDiameter = dDiameter;
 }
 
 long iAFoamCharacterizationTableAnalysis::CTableAnalysisRow::label() const
@@ -60,12 +55,6 @@ double iAFoamCharacterizationTableAnalysis::CTableAnalysisRow::diameter() const
 	return m_dDiameter;
 }
 
-double* iAFoamCharacterizationTableAnalysis::CTableAnalysisRow::boundingBox()
-{
-	return m_pBoundingBox;
-}
-
-
 
 iAFoamCharacterizationTableAnalysis::iAFoamCharacterizationTableAnalysis(QWidget* _pParent) : QTableView (_pParent)
 {
@@ -93,51 +82,42 @@ iAFoamCharacterizationTableAnalysis::iAFoamCharacterizationTableAnalysis(QWidget
 	setModel(pItemModel);
 }
 
-void iAFoamCharacterizationTableAnalysis::setRow ( const int& _iRow
-												 , const long& _lLabel
-	                                             , const double& _dCenterX, const double& _dCenterY, const double& _dCenterZ
-												 , const double& _dVolume, const double& _dDiameter
-												 , const itk::FixedArray<itk::Index<3>::IndexValueType, 6> _faBoundingBox
-												 )
+void iAFoamCharacterizationTableAnalysis::setRow(const int& iRow, const long& lLabel, const double& dCenterX,
+	const double& dCenterY, const double& dCenterZ, const double& dVolume, const double& dDiameter,
+	std::array<int64_t, 3> bbOrigin, std::array<uint64_t, 3> bbSize)
 {
-	m_vData[_iRow].set(_lLabel, _dCenterX, _dCenterY, _dCenterZ, _dVolume, _dDiameter, _faBoundingBox);
+	m_vData[iRow].set(lLabel, dCenterX, dCenterY, dCenterZ, dVolume, dDiameter);
 
 	QStandardItemModel* pModel ((QStandardItemModel*) model());
 
-	const QModelIndex miValue0(pModel->index(_iRow, 0));
+	const QModelIndex miValue0(pModel->index(iRow, 0));
 	pModel->setData(miValue0, Qt::AlignCenter, Qt::TextAlignmentRole);
-	int label = static_cast<int>(_lLabel);
+	int label = static_cast<int>(lLabel);
 	pModel->setData(miValue0, label, Qt::DisplayRole);
 
-	const QModelIndex miValue1(pModel->index(_iRow, 1));
+	const QModelIndex miValue1(pModel->index(iRow, 1));
 	pModel->setData(miValue1, Qt::AlignCenter, Qt::TextAlignmentRole);
-	pModel->setData(miValue1, _dCenterX, Qt::DisplayRole);
+	pModel->setData(miValue1, dCenterX, Qt::DisplayRole);
 
-	const QModelIndex miValue2(pModel->index(_iRow, 2));
+	const QModelIndex miValue2(pModel->index(iRow, 2));
 	pModel->setData(miValue2, Qt::AlignCenter, Qt::TextAlignmentRole);
-	pModel->setData(miValue2, _dCenterY, Qt::DisplayRole);
+	pModel->setData(miValue2, dCenterY, Qt::DisplayRole);
 
-	const QModelIndex miValue3(pModel->index(_iRow, 3));
+	const QModelIndex miValue3(pModel->index(iRow, 3));
 	pModel->setData(miValue3, Qt::AlignCenter, Qt::TextAlignmentRole);
-	pModel->setData(miValue3, _dCenterZ, Qt::DisplayRole);
+	pModel->setData(miValue3, dCenterZ, Qt::DisplayRole);
 
-	const QModelIndex miValue4(pModel->index(_iRow, 4));
+	const QModelIndex miValue4(pModel->index(iRow, 4));
 	pModel->setData(miValue4, Qt::AlignCenter, Qt::TextAlignmentRole);
-	pModel->setData(miValue4, _dVolume, Qt::DisplayRole);
+	pModel->setData(miValue4, dVolume, Qt::DisplayRole);
 
-	const QModelIndex miValue5(pModel->index(_iRow, 5));
+	const QModelIndex miValue5(pModel->index(iRow, 5));
 	pModel->setData(miValue5, Qt::AlignCenter, Qt::TextAlignmentRole);
-	pModel->setData(miValue5, _dDiameter, Qt::DisplayRole);
+	pModel->setData(miValue5, dDiameter, Qt::DisplayRole);
 
-	const QString sBoundingBox ( QString("(%1, %3, %5) (%2, %4, %6)").arg(_faBoundingBox[0])
-		                                                             .arg(_faBoundingBox[1])
-									 								 .arg(_faBoundingBox[2])
-									 								 .arg(_faBoundingBox[3])
-									 								 .arg(_faBoundingBox[4])
-																	 .arg(_faBoundingBox[5])
-							   );
+	const QString sBoundingBox(QString("(%1) (%2)").arg(arrayToString(bbOrigin)).arg(arrayToString(bbSize)));
 
-	const QModelIndex miValue6(pModel->index(_iRow, 6));
+	const QModelIndex miValue6(pModel->index(iRow, 6));
 	pModel->setData(miValue6, Qt::AlignCenter, Qt::TextAlignmentRole);
 	pModel->setData(miValue6, sBoundingBox, Qt::DisplayRole);
 
