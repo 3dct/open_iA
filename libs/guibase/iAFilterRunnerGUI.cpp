@@ -337,9 +337,16 @@ void iAFilterRunnerGUI::filterFinished()
 			newChild->addDataSet(dataSet);    // TODO: if it makes sense for this filter, we might want to pass in the viewer parameters (transfer function, etc.) from the old dataset (?)
 		}
 	}
-	for (auto outputValue : filter->outputValues())
+#if QT_VERSION >= QT_VERSION_CHECK(6,4,0)
+	for (auto [name, value] : filter->outputValues().asKeyValueRange())
 	{
-		LOG(lvlImportant, QString("%1: %2").arg(outputValue.first).arg(outputValue.second.toString()));
+#else
+	for (auto it = map.keyValueBegin(); it != map.keyValueEnd(); ++it)
+	{
+		auto name = it->first;
+		auto value = it->second;
+#endif
+		LOG(lvlImportant, QString("%1: %2").arg(name).arg(value.toString()));
 	}
 	thread->deleteLater();
 	emit finished();

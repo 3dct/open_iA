@@ -474,10 +474,16 @@ namespace
 				// TODO: use progress indicator here
 				io->save(outFileName, filter->outputs()[o], writeParamValues);
 			}
-			for (auto outputValue : filter->outputValues())
+#if QT_VERSION >= QT_VERSION_CHECK(6,4,0)
+			for (auto [name, value] : filter->outputValues().asKeyValueRange())
 			{
-				std::cout << outputValue.first.toStdString() << ": "
-					<< outputValue.second.toString().toStdString() << std::endl;
+#else
+			for (auto it = map.keyValueBegin(); it != map.keyValueEnd(); ++it)
+			{
+				auto name = it->first;
+				auto value = it->second;
+#endif
+				std::cout << name.toStdString() << ": " << value.toString().toStdString() << std::endl;
 			}
 
 			return 0;

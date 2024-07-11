@@ -229,9 +229,9 @@ namespace
 							{
 								QStringList captions;
 								captions << "x" << "y" << "z";
-								for (auto outValue : filter->outputValues())
+								for (auto outValueName : filter->outputValues().keys())
 								{
-									captions << outValue.first;
+									captions << outValueName;
 								}
 								outputBuffer.append(captions.join(","));
 							}
@@ -239,14 +239,16 @@ namespace
 							values << QString::number(x) << QString::number(y) << QString::number(z);
 							for (auto outValue : filter->outputValues())
 							{
-								values.append(outValue.second.toString());
+								values.append(outValue.toString());
 							}
 							outputBuffer.append(values.join(","));
 							if (doImage)
 							{
-								for (int i = 0; i < filter->outputValues().size(); ++i)
+								int i = 0;
+								for (auto value: filter->outputValues())
 								{
-									(dynamic_cast<OutputImageType*>(outputImages[i].GetPointer()))->SetPixel(outIdx, filter->outputValues()[i].second.toDouble());
+									(dynamic_cast<OutputImageType*>(outputImages[i].GetPointer()))->SetPixel(outIdx, value.toDouble());
+									++i;
 								}
 							}
 						}
