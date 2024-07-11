@@ -101,8 +101,8 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 		const auto maxEVPos = 2;
 		// inverse direction to keep results comparable to results from before with LabelGeometry filter:
 		iAVec3d majDirEV(-eigenvectors[maxEVPos][0], -eigenvectors[maxEVPos][1], -eigenvectors[maxEVPos][2]);
-		auto pt1 = centroid + half_length * majDirEV.normalized();
-		auto pt2 = centroid - half_length * majDirEV.normalized();
+		auto pt1 = centroid + half_length * majDirEV;
+		auto pt2 = centroid - half_length * majDirEV;
 		auto dPt = pt1 - pt2;
 		if ( dPt.z() < 0 )
 		{
@@ -185,9 +185,9 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 			int EWPos = 1; //should be lambda2, lambda1 < lambda2 < lambda3
 
 			//represents second principal axis
-			eigenvector_middle[0] = eigenvectors[0][EWPos];
-			eigenvector_middle[1] = eigenvectors[1][EWPos];
-			eigenvector_middle[2] = eigenvectors[2][EWPos];
+			eigenvector_middle[0] = eigenvectors[EWPos][0];
+			eigenvector_middle[1] = eigenvectors[EWPos][1];
+			eigenvector_middle[2] = eigenvectors[EWPos][2];
 
 			double half_axis2 =/* minorlength*/ secondAxisLengh / 2.0;
 
@@ -202,11 +202,11 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 			fout << elongation << ','
 				<< perimeter << ','
 				<< equivSphericalRadius << ','
-				<< secondAxisLengh * spc << ","
+				<< secondAxisLengh << ","
 				<< ratioLongestToMiddle << ","
 				<< ratioMiddleToSmallest << ",";
-			fout << p_x1*spc << "," << p_y1*spc << "," << p_z1*spc << ","
-				 << p_x2*spc << "," << p_y2*spc << "," << p_z2*spc << ",";
+			fout << p_x1 << "," << p_y1 << "," << p_z1 << ","
+				 << p_x2 << "," << p_y2 << "," << p_z2 << ",";
 		}
 		fout << '\n';
 
