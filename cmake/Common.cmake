@@ -132,7 +132,7 @@ set(ITK_COMPONENTS
 	ITKIORAW        # apparently not included in ITKImageIO
 	ITKLabelMap
 	ITKMesh
-	ITKReview       # for LabelGeometryImageFilter
+	ITKReview       # for RobustAutomaticThresholdImageFilter (Segmentation)
 	ITKTestKernel   # for PipelineMonitorImageFilter
 	ITKVtkGlue
 	ITKWatersheds)
