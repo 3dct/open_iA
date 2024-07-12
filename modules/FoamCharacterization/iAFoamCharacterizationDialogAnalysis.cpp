@@ -45,7 +45,7 @@ void iAFoamCharacterizationDialogAnalysis::analyse(iAImageData const* dataSet)
 	labelGeometryFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (dataSet->itkImage()));
 	labelGeometryFilter->Update();
 	auto labelMap = labelGeometryFilter->GetOutput();
-	const int iLabels = labelMap->GetNumberOfLabelObjects();
+	const itk::SizeValueType iLabels = labelMap->GetNumberOfLabelObjects();
 	m_pTable->setRowCount(iLabels);
 	for (itk::SizeValueType labelValue = 0; labelValue < iLabels; ++labelValue)
 	{
