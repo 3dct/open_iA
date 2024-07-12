@@ -2,11 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iACameraVis.h"
 
-#include <iALog.h>
+#include <iAMathUtility.h>    // for dblApproxEqual
 
 #include <vtkActor.h>
 #include <vtkAssembly.h>
-#include <vtkCamera.h>
 #include <vtkCylinderSource.h>
 #include <vtkConeSource.h>
 #include <vtkPolyDataMapper.h>
@@ -107,14 +106,22 @@ bool iACameraVis::update(iAVec3d const& pos, iAVec3d const& dir, iAVec3d const& 
 void iACameraVis::updateSource()
 {	
 	// compute rotations as proposed here: https://vtk.org/pipermail/vtkusers/2000-May/000942.html
-	// TODO: also use up vector
-	auto dirTheta = vtkMath::DegreesFromRadians(angleBetween(DefaultDirection, m_dir));
-	auto dirAxis = crossProduct(DefaultDirection, m_dir);
+	if (!dblApproxEqual(dotProduct(m_dir, m_up), 0.0, 0.001))
+	{
+		return;
+	}
 	vtkNew<vtkTransform> tr;
-	tr->RotateWXYZ(dirTheta, dirAxis[0], dirAxis[1], dirAxis[2]);
-	tr->Translate(m_pos.data());
+	auto perpVec = crossProduct(m_dir, m_up);
+	std::array<double, 16> matrix = {
+		m_dir[0], m_up[0], perpVec[0], m_pos[0],
+		m_dir[1], m_up[1], perpVec[1], m_pos[1],
+		m_dir[2], m_up[2], perpVec[2], m_pos[2],
+		0.0, 0.0, 0.0, 1.0
+	};
+	tr->SetMatrix(matrix.data());
 	m_assembly->SetUserTransform(tr);
 }
+
 iAVec3d iACameraVis::pos() const
 {
 	return m_pos;

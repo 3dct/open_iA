@@ -25,7 +25,7 @@ public:
 	~iACameraVis();
 	void show();
 	void hide();
-	bool update(iAVec3d const & pos, iAVec3d const & dir, iAVec3d const & up = iAVec3d(0, 0, 1));
+	bool update(iAVec3d const & pos, iAVec3d const & dir, iAVec3d const & up);
 	void updateSource();
 	iAVec3d pos() const;
 	iAVec3d dir() const;

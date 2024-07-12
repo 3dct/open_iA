@@ -28,13 +28,16 @@ void iAFrustumActor::Execute(vtkObject*, unsigned long, void*)
 	}
 	iAVec3d pos;
 	iAVec3d dir;
+	iAVec3d up;
 	{
 		std::lock_guard l(m_mutex);
 		pos = iAVec3d(m_cam->GetPosition());
 		dir = iAVec3d(m_cam->GetDirectionOfProjection());
+		up  = iAVec3d(m_cam->GetViewUp());
 	}
 	dir.normalize();
-	m_cameraVis->update(pos, dir);
+	up.normalize();
+	m_cameraVis->update(pos, dir, up);
 }
 
 void iAFrustumActor::updateSource()
