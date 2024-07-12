@@ -6,9 +6,10 @@
 
 #include <vtkCamera.h>
 
+
 iAFrustumActor::iAFrustumActor(vtkRenderer* ren, vtkCamera* cam, double size) :
 	m_cam(cam),
-	m_cameraVis(std::make_unique<iACameraVis>(ren, size))
+	m_cameraVis(std::make_unique<iACameraVis>(ren, size, QColor(0, 192, 0), QColor(0, 128, 0)))
 {
 	cam->AddObserver(vtkCommand::ModifiedEvent, this);
 	m_lastUpdate.start();

@@ -7,58 +7,58 @@
 #include <vtkActor.h>
 #include <vtkAssembly.h>
 #include <vtkCylinderSource.h>
-#include <vtkConeSource.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkSphereSource.h>
 #include <vtkTransform.h>
 
-namespace
-{
-	iAVec3d DefaultDirection(0, 1, 0);
-}
+#include <QColor>
 
-iACameraVis::iACameraVis(vtkRenderer* ren, double size) :
+iACameraVis::iACameraVis(vtkRenderer* ren, double size, QColor bodyColor, QColor vecColor) :
 	m_ren(ren),
 	m_assembly(vtkSmartPointer<vtkAssembly>::New()),
 	m_camPosSource(vtkSmartPointer<vtkSphereSource>::New()),
-	m_camDirSource(vtkSmartPointer<vtkConeSource>::New()),
+	m_camDirSource(vtkSmartPointer<vtkCylinderSource>::New()),
 	m_camUpSource(vtkSmartPointer<vtkCylinderSource>::New()),
 	m_size(size),
 	m_visible(false)
 {
+	const double ResolutionFactor = 2; // increase default resolution of meshes
+	const int DefaultSphereResolution = 8;
+	const int DefaultCylinderResolution = 6;
 	m_camPosSource->SetRadius(size);
+	m_camPosSource->SetPhiResolution(static_cast<int>(ResolutionFactor * DefaultSphereResolution));
+	m_camPosSource->SetThetaResolution(static_cast<int>(ResolutionFactor * DefaultSphereResolution));
 	vtkNew<vtkPolyDataMapper> camPosMapper;
 	camPosMapper->SetInputConnection(m_camPosSource->GetOutputPort());
 	vtkNew<vtkActor> camPosActor;
 	camPosActor->SetMapper(camPosMapper);
 	camPosActor->GetProperty()->SetOpacity(1.0);
-	camPosActor->GetProperty()->SetColor(0, 128, 0);
+	camPosActor->GetProperty()->SetColor(bodyColor.redF(), bodyColor.greenF(), bodyColor.blueF());
 
-	m_camDirSource->SetHeight(1 * size);
-	m_camDirSource->SetRadius(0.75 * size);
-	m_camDirSource->SetResolution(12);
-	m_camDirSource->SetDirection(DefaultDirection.data());
+	m_camDirSource->SetHeight(0.8 * size);
+	m_camDirSource->SetRadius(0.6 * size);
+	m_camDirSource->SetResolution(static_cast<int>(ResolutionFactor * DefaultCylinderResolution));
 	vtkNew<vtkPolyDataMapper> camDirMapper;
 	camDirMapper->SetInputConnection(m_camDirSource->GetOutputPort());
 	vtkNew<vtkActor> camDirActor;
 	camDirActor->SetMapper(camDirMapper);
 	camDirActor->GetProperty()->SetOpacity(1.0);
-	camDirActor->GetProperty()->SetColor(32, 96, 0);
-	camDirActor->SetPosition(0, 1.25 * size, 0);
+	camDirActor->GetProperty()->SetColor(vecColor.redF(), vecColor.greenF(), vecColor.blueF());
+	camDirActor->RotateZ(90);
+	camDirActor->SetPosition(1.2 * size, 0.0, 0.0);
 
-	m_camUpSource->SetHeight(size);
-	m_camUpSource->SetRadius(0.75 * size);
-	m_camUpSource->SetResolution(12);
+	m_camUpSource->SetHeight(0.25 * size);
+	m_camUpSource->SetRadius(0.4 * size);
+	m_camUpSource->SetResolution(static_cast<int>(ResolutionFactor * DefaultCylinderResolution));
 	vtkNew<vtkPolyDataMapper> camUpMapper;
 	camUpMapper->SetInputConnection(m_camUpSource->GetOutputPort());
 	vtkNew<vtkActor> camUpActor;
 	camUpActor->SetMapper(camUpMapper);
 	camUpActor->GetProperty()->SetOpacity(1.0);
-	camUpActor->GetProperty()->SetColor(32, 96, 0);
-	camUpActor->RotateX(90);
-	camUpActor->SetPosition(0, 0, 1.25*size);
+	camUpActor->GetProperty()->SetColor(vecColor.redF(), vecColor.greenF(), vecColor.blueF());
+	camUpActor->SetPosition(0.0, size, 0.0);
 
 	m_assembly->AddPart(camPosActor);
 	m_assembly->AddPart(camDirActor);
