@@ -533,22 +533,21 @@ void iAPlaneSliceTool::setAxisAligned(iAAxisIndex axis, bool posSign, double sli
 	auto p2i = mapSliceToGlobalAxis(static_cast<iASlicerMode>(axis), iAAxisIndex::X);
 	auto p1i = mapSliceToGlobalAxis(static_cast<iASlicerMode>(axis), iAAxisIndex::Y);
 
-	auto corner1 = posSign ? bounds.minCorner() : bounds.maxCorner();
-	auto corner2 = posSign ? bounds.maxCorner() : bounds.minCorner();
+	auto corner1 = bounds.minCorner();
+	auto corner2 = bounds.maxCorner();
 
-	auto origin = corner1;
+	iAVec3d origin;
+	origin[p1i] = posSign ? corner1[p1i] : corner2[p1i];
 	origin[p2i] = corner2[p2i];
 	origin[axis] = slicePos;
 	m_planeWidget->SetOrigin(origin.data());
 
-	auto pt1 = corner1;
-	pt1[axis] = slicePos;
-	pt1[p1i] = corner2[p1i];
-	pt1[p2i] = corner2[p2i];
+	auto pt1 = origin;
+	pt1[p1i] = posSign ? corner2[p1i] : corner1[p1i];
 	m_planeWidget->SetPoint1(pt1.data());
 
-	auto pt2 = corner1;
-	pt2[axis] = slicePos;
+	auto pt2 = origin;
+	pt2[p2i] = corner1[p2i];
 	m_planeWidget->SetPoint2(pt2.data());
 
 	m_child->updateRenderer();
