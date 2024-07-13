@@ -517,7 +517,7 @@ void iAPlaneSliceTool::updateSliceFromUser()
 
 void iAPlaneSliceTool::resetPlaneParameters(iAAxisIndex axis, bool posSign)
 {
-	auto bounds = m_child->renderer()->sceneBounds();
+	auto bounds = m_child->dataSetViewer(m_dataSetIdx)->renderer()->bounds();
 	auto lengths = bounds.maxCorner() - bounds.minCorner();
 
 	setAxisAligned(axis, posSign, lengths[axis] / 2);
@@ -528,7 +528,9 @@ void iAPlaneSliceTool::resetPlaneParameters(iAAxisIndex axis, bool posSign)
 
 void iAPlaneSliceTool::setAxisAligned(iAAxisIndex axis, bool posSign, double slicePos)
 {
-	auto bounds = m_child->renderer()->sceneBounds();
+	auto bounds = m_child->dataSetViewer(m_dataSetIdx)->renderer()->bounds();
+	// slicePos is local to volume dataset (without origin), but slicer expects it to be global coords -> add origin:
+	slicePos += bounds.minCorner()[axis];
 
 	auto p2i = mapSliceToGlobalAxis(static_cast<iASlicerMode>(axis), iAAxisIndex::X);
 	auto p1i = mapSliceToGlobalAxis(static_cast<iASlicerMode>(axis), iAAxisIndex::Y);
