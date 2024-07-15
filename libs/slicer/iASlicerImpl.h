@@ -32,6 +32,7 @@ class iAMdiChild;
 class vtkActor;
 class vtkAlgorithmOutput;
 class vtkCamera;
+class vtkCaptionActor2D;
 class vtkGenericOpenGLRenderWindow;
 class vtkImageActor;
 class vtkImageReslice;
@@ -43,8 +44,6 @@ class vtkRenderer;
 class vtkRenderWindowInteractor;
 class vtkScalarBarWidget;
 class vtkScalarsToColors;
-class vtkTextProperty;
-class vtkTextActor3D;
 class vtkThinPlateSplineTransform;
 class vtkTransform;
 class vtkWorldPointPicker;
@@ -320,7 +319,6 @@ private:
 	vtkSmartPointer<vtkWorldPointPicker> m_pointPicker;
 	QMap<uint, std::shared_ptr<iAChannelSlicerData> > m_channels;
 	vtkSmartPointer<vtkScalarBarWidget> m_scalarBarWidget;
-	vtkSmartPointer<vtkTextProperty> m_textProperty;
 
 	vtkSmartPointer<iAVtkText> m_textInfo;
 	vtkSmartPointer<iARulerWidget> m_rulerWidget;
@@ -339,8 +337,7 @@ private:
 	bool m_roiActive;
 	int m_roiSlice[2];
 
-	vtkSmartPointer<vtkTransform> m_axisTransform[2];
-	vtkSmartPointer<vtkTextActor3D> m_axisTextActor[2];
+	vtkSmartPointer<vtkCaptionActor2D> m_axisTextActor[2];  //! < caption for annotating slice axis directly within slicer
 
 	double m_angle[3];          //!< current rotation angle
 	QColor m_backgroundColor;   //!< background color; if invalid, indicates that user has not set a custom background
