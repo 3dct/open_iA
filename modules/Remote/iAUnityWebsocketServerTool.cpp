@@ -14,6 +14,7 @@
 #include <iAToolHelper.h>
 
 #include <iAAABB.h>
+#include <iAColorTheme.h>
 #include <iALog.h>
 #include <iAStringHelper.h>
 
@@ -31,7 +32,9 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QMetaEnum>
+#include <QPainter>
 #include <QRegularExpression>
+#include <QStyledItemDelegate>
 #include <QTableWidget>
 #include <QThread>
 #include <QToolButton>
@@ -56,6 +59,34 @@ enum class DataState : int
 	PendingClientAck,
 	//LoadingDataset,
 	DatasetLoaded
+};
+
+class iADrawBorderDelegate : public QStyledItemDelegate
+{
+public:
+	iADrawBorderDelegate(QColor color, QObject* parent = nullptr) :
+		QStyledItemDelegate(parent),
+		m_color(color)
+	{
+	}
+	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
+	{
+		painter->setPen(m_color);
+		const QRect rect(option.rect);
+		painter->drawLine(rect.topLeft(), rect.topRight());
+		painter->drawLine(rect.bottomLeft(), rect.bottomRight());
+		if (index.column() == 0)
+		{	// Draw left edge of left-most cell
+			painter->drawLine(rect.topLeft(), rect.bottomLeft());
+		}
+		if (index.column() == index.model()->columnCount() - 1)
+		{	// Draw right edge of right-most cell
+			painter->drawLine(rect.topRight(), rect.bottomRight());
+		}
+		QStyledItemDelegate::paint(painter, option, index);
+	}
+private:
+	QColor m_color;
 };
 
 namespace
@@ -574,6 +605,8 @@ public:
 			idItem->setData(Qt::UserRole, clientID);
 			m_clientTable->setItem(clientRow, iAClientTableColumn::ID, idItem);
 			m_clientTable->setItem(clientRow, iAClientTableColumn::Address, new QTableWidgetItem(client->peerAddress().toString()));
+			auto theme = iAColorThemeManager::instance().theme("Brewer Paired (max. 12)");
+			m_clientTable->setItemDelegateForRow(clientRow, new iADrawBorderDelegate( this));
 
 			auto w = new QWidget();
 			w->setLayout(new QHBoxLayout);
