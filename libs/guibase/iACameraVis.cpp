@@ -92,7 +92,8 @@ void iACameraVis::hide()
 
 bool iACameraVis::update(iAVec3d const& pos, iAVec3d const& dir, iAVec3d const& up)
 {
-	if (pos == m_pos && dir == m_dir && up == m_up)
+	if ((pos == m_pos && dir == m_dir && up == m_up) ||  // no change
+		!dblApproxEqual(dotProduct(m_dir, m_up), 0.0, 0.001))  // invalid data - dir and up need to be perpendicular
 	{
 		return false;
 	}
@@ -106,10 +107,6 @@ bool iACameraVis::update(iAVec3d const& pos, iAVec3d const& dir, iAVec3d const& 
 void iACameraVis::updateSource()
 {	
 	// compute rotations as proposed here: https://vtk.org/pipermail/vtkusers/2000-May/000942.html
-	if (!dblApproxEqual(dotProduct(m_dir, m_up), 0.0, 0.001))
-	{
-		return;
-	}
 	vtkNew<vtkTransform> tr;
 	auto perpVec = crossProduct(m_dir, m_up);
 	std::array<double, 16> matrix = {
