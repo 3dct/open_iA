@@ -32,9 +32,7 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QMetaEnum>
-#include <QPainter>
-#include <QRegularExpression>
-#include <QStyledItemDelegate>
+#include <QMessageBox>
 #include <QTableWidget>
 #include <QThread>
 #include <QToolButton>
@@ -59,34 +57,6 @@ enum class DataState : int
 	PendingClientAck,
 	//LoadingDataset,
 	DatasetLoaded
-};
-
-class iADrawBorderDelegate : public QStyledItemDelegate
-{
-public:
-	iADrawBorderDelegate(QColor color, QObject* parent = nullptr) :
-		QStyledItemDelegate(parent),
-		m_color(color)
-	{
-	}
-	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
-	{
-		painter->setPen(m_color);
-		const QRect rect(option.rect);
-		painter->drawLine(rect.topLeft(), rect.topRight());
-		painter->drawLine(rect.bottomLeft(), rect.bottomRight());
-		if (index.column() == 0)
-		{	// Draw left edge of left-most cell
-			painter->drawLine(rect.topLeft(), rect.bottomLeft());
-		}
-		if (index.column() == index.model()->columnCount() - 1)
-		{	// Draw right edge of right-most cell
-			painter->drawLine(rect.topRight(), rect.bottomRight());
-		}
-		QStyledItemDelegate::paint(painter, option, index);
-	}
-private:
-	QColor m_color;
 };
 
 namespace
@@ -293,6 +263,7 @@ namespace
 
 	const quint64 NoSyncedClient = std::numeric_limits<quint64>::max();
 	const quint64 ServerID = 1000; // ID of the server (for syncing its view/camera to clients)
+	const quint64 ClientStartID = ServerID + 1;
 	const quint16 ServerPort = 8082;
 }
 
@@ -518,6 +489,7 @@ private:
 	enum iAClientTableColumn
 	{
 		ID,
+		Color,
 		Address,
 		Actions
 	};
@@ -525,7 +497,7 @@ private:
 public:
 	iAUnityWebsocketServerToolImpl(iAMainWindow* mainWnd, iAMdiChild* child) :
 		m_wsServer(new QWebSocketServer(iAUnityWebsocketServerTool::Name, QWebSocketServer::NonSecureMode, this)),
-		m_nextClientID(ServerID + 1),
+		m_nextClientID(ClientStartID),
 		m_dataState(DataState::NoDataset),
 		m_clientListContainer(new QWidget(child)),
 		m_clientTable(new QTableWidget(m_clientListContainer)),
@@ -571,7 +543,7 @@ public:
 		m_clientListContainer->layout()->setSpacing(1);
 		m_clientListContainer->layout()->addWidget(new QLabel(QString("Listening on %1:%2")
 			.arg(m_wsServer->serverAddress().toString()).arg(m_wsServer->serverPort())));
-		QStringList columnNames = QStringList() << "ID" << "Client address" << "Actions";
+		QStringList columnNames = QStringList() << "ID" << "Color" << "Client address" << "Actions";
 		m_clientTable->setColumnCount(static_cast<int>(columnNames.size()));
 		m_clientTable->setHorizontalHeaderLabels(columnNames);
 		m_clientTable->verticalHeader()->hide();
@@ -604,14 +576,25 @@ public:
 			auto idItem = new QTableWidgetItem(QString::number(clientID));
 			idItem->setData(Qt::UserRole, clientID);
 			m_clientTable->setItem(clientRow, iAClientTableColumn::ID, idItem);
-			m_clientTable->setItem(clientRow, iAClientTableColumn::Address, new QTableWidgetItem(client->peerAddress().toString()));
-			auto theme = iAColorThemeManager::instance().theme("Brewer Paired (max. 12)");
-			m_clientTable->setItemDelegateForRow(clientRow, new iADrawBorderDelegate( this));
 
-			auto w = new QWidget();
-			w->setLayout(new QHBoxLayout);
-			w->layout()->setContentsMargins(0, 0, 0, 0);
-			w->layout()->setSpacing(1);
+			auto theme = iAColorThemeManager::instance().theme("Brewer Paired (max. 12)");
+			auto colorIdx = (2 * (clientID - ClientStartID)) % theme->size();
+			auto clientColorBody = theme->color(colorIdx);
+			auto clientColorVec = theme->color((colorIdx + 1) % theme->size());
+			auto colorWidget = new QLabel("Test", m_clientTable);
+			//colorWidget->setGeometry(0, 0, 16, 16);
+			colorWidget->setMinimumSize(16, 16);
+			colorWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+			colorWidget->setAutoFillBackground(true);
+			colorWidget->setStyleSheet(QString("background-color: %1").arg(clientColorBody.name()));
+			m_clientTable->setCellWidget(clientRow, iAClientTableColumn::Color, colorWidget);
+
+			m_clientTable->setItem(clientRow, iAClientTableColumn::Address, new QTableWidgetItem(client->peerAddress().toString()));
+
+			auto actionWidget = new QWidget();
+			actionWidget->setLayout(new QHBoxLayout);
+			actionWidget->layout()->setContentsMargins(0, 0, 0, 0);
+			actionWidget->layout()->setSpacing(1);
 
 			auto syncAction = new QAction("Sync");
 			syncAction->setToolTip("Synchronize Views between this client and this window.");
@@ -635,7 +618,7 @@ public:
 				// trigger sync of last known camera? or just wait for next update...
 			});
 			iAMainWindow::get()->addActionIcon(syncAction, "update");
-			auto syncButton = new QToolButton(w);
+			auto syncButton = new QToolButton(actionWidget);
 			syncButton->setDefaultAction(syncAction);
 
 			auto disconnectAction = new QAction("Sync");
@@ -647,17 +630,17 @@ public:
 				m_clientSocket[clientID]->close(QWebSocketProtocol::CloseCodeNormal, "Server user manually requested client disconnect.");
 			});
 			iAMainWindow::get()->addActionIcon(disconnectAction, "close");
-			auto disconnectButton = new QToolButton(w);
+			auto disconnectButton = new QToolButton(actionWidget);
 			disconnectButton->setDefaultAction(disconnectAction);
 
-			w->layout()->addWidget(syncButton);
-			w->layout()->addWidget(disconnectButton);
-			m_clientTable->setCellWidget(clientRow, iAClientTableColumn::Actions, w);
+			actionWidget->layout()->addWidget(syncButton);
+			actionWidget->layout()->addWidget(disconnectButton);
+			m_clientTable->setCellWidget(clientRow, iAClientTableColumn::Actions, actionWidget);
 
 			m_clientSocket[clientID] = client;
 			m_clientState[clientID] = ClientState::AwaitingProtocolNegotiation;
 
-			m_clientCamVis[clientID] = std::make_unique<iACameraVis>(child->renderer()->renderer(), m_maxSize / 20,	QColor(0, 192, 0), QColor(0, 128, 0) );
+			m_clientCamVis[clientID] = std::make_unique<iACameraVis>(child->renderer()->renderer(), m_maxSize / 20, clientColorBody, clientColorVec);
 			connect(m_clientCamVis[clientID].get(), &iACameraVis::updateRequired, this, [this, clientID, child]
 			{
 				m_clientCamVis[clientID]->updateSource();
