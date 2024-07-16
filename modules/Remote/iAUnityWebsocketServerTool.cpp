@@ -552,7 +552,7 @@ public:
 		m_clientTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 		m_clientListContainer->layout()->addWidget(m_clientTable);
 
-		m_dataSetID = 0;
+		m_dataSetID = child->firstImageDataSetIdx();
 		auto bounds = child->dataSetViewer(m_dataSetID)->renderer()->bounds();
 		m_maxSize = std::max({
 			bounds.maxCorner().x() - bounds.minCorner().x(),
@@ -560,9 +560,7 @@ public:
 			bounds.maxCorner().z() - bounds.minCorner().z(),
 		});
 		dynamic_cast<iAImageData*>(child->dataSet(m_dataSetID).get())->vtkImage()->GetSpacing(m_spacing.data());
-
-		connect(m_wsServer, &QWebSocketServer::newConnection, this,
-			[this, child]
+		connect(m_wsServer, &QWebSocketServer::newConnection, this, [this, child]
 		{
 			auto client = m_wsServer->nextPendingConnection();
 			LOG(lvlInfo, QString("%1: Client connected: %2:%3")
