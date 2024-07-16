@@ -1290,6 +1290,11 @@ const QString iAUnityWebsocketServerTool::Name("Unity Volume Interaction Server"
 
 std::shared_ptr<iATool> iAUnityWebsocketServerTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
 {
+	if (child->firstImageDataSetIdx() == iAMdiChild::NoDataSet || !child->dataSetViewer(child->firstImageDataSetIdx()))
+	{
+		QMessageBox::warning(mainWnd, iAUnityWebsocketServerTool::Name, "No image dataset loaded, or not fully initialized. Please try again later!");
+		return nullptr;
+	}
 	return std::make_shared<iAUnityWebsocketServerTool>(mainWnd, child);
 }
 
