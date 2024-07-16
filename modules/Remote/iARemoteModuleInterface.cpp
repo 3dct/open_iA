@@ -43,6 +43,6 @@ void iARemoteModuleInterface::Initialize()
 	m_mainWnd->makeActionChildDependent(actionRemote);
 	addToMenuSorted(submenu, actionRemote);
 
-	addToolAction<iAPlaneSliceTool>(m_mainWnd, submenu);
+	addToolAction<iAPlaneSliceTool>(m_mainWnd, m_mainWnd->toolsMenu());
 	addToolAction<iAUnityWebsocketServerTool>(m_mainWnd, submenu);
 }

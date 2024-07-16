@@ -146,11 +146,13 @@ namespace
 	};
 }
 
+// TODO: unify with addToolToActiveMdiChild somehow
+//    - either addToolToActiveMdiChild should call create to create an object
 std::shared_ptr<iATool> iAPlaneSliceTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
 {
-	if (child->firstImageDataSetIdx() == iAMdiChild::NoDataSet)
+	if (child->firstImageDataSetIdx() == iAMdiChild::NoDataSet || !child->dataSetViewer(child->firstImageDataSetIdx()))
 	{
-		QMessageBox::warning(mainWnd, "Arbitrary slicing tool", "No image dataset loaded!");
+		QMessageBox::warning(mainWnd, "Arbitrary slicing tool", "No image dataset loaded, or not fully initialized. Please try again later!");
 		return nullptr;
 	}
 	return std::make_shared<iAPlaneSliceTool>(mainWnd, child);
