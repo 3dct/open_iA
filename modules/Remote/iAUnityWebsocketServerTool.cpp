@@ -474,7 +474,7 @@ private:
 			}
 			case ObjectCommandType::SetRotationNormalUp:
 			{
-				iAVec3d dir{ dblVal[0], dblVal[1], dblVal[2] };
+				iAVec3d dir{ -dblVal[0], -dblVal[1], -dblVal[2] };
 				iAVec3d up { dblVal[3], dblVal[4], dblVal[5] };
 				LOG(lvlInfo, QString("  Setting rotation, normal = (%1), up = (%2)")
 					.arg(dir.toString()).arg(up.toString()));
