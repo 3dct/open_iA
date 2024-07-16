@@ -69,32 +69,26 @@ void iAAboutDlg::show(QWidget* parent, QPixmap const & aboutImg, QString const &
 	table->resizeColumnsToContents();
 	table->verticalHeader()->hide();
 	table->horizontalHeader()->hide();
-	// set fixed table height:
-	auto tableHeight = 0;
-	for (int r = 0; r < table->rowCount(); ++r)
-	{
-		tableHeight += table->rowHeight(r);
-	}
-	// +2 to avoid minor scrolling when clicking on the left/right- up/bottom-most cell in the table:
-	tableHeight += 2;
+	// set fixed table height; +2 to avoid minor scrolling when clicking on the left/right- up/bottom-most cell in the table:
+	auto tableHeight = table->rowCount() * table->rowHeight(0) + 2;
 	auto tableWidth = 0;
 	for (int c = 0; c < table->columnCount(); ++c)
 	{
 		tableWidth += table->columnWidth(c);
 	}
-	auto screenHeightThird = screenHeight / 3;
-	if (aboutImg.height() > screenHeightThird)
+	if (aboutImg.height() > screenHeight / 3)
 	{
 		imgLabel->setFixedSize(
-			screenHeightThird * static_cast<double>(aboutImg.width()) / aboutImg.height(),
-			screenHeightThird);
+			(screenHeight / 3) * static_cast<double>(aboutImg.width()) / aboutImg.height(),
+			screenHeight / 3);
 	}
 
 	imgLabel->setScaledContents(true);
 	// make sure about dialog isn't higher than roughly 2/3 the screen size:
 	tableWidth = std::max(tableWidth, aboutImg.width());
+	const int MaxTableHeight = screenHeight * 2 / 3;
 	const int MinTableHeight = 50;
-	auto newTableHeight = std::max(MinTableHeight, std::min(tableHeight, screenHeightThird));
+	auto newTableHeight = std::max(MinTableHeight, std::min(tableHeight, MaxTableHeight));
 	table->setMinimumWidth(tableWidth + 20); // + 20 for approximation of scrollbar width; verticalScrollBar()->height is wildly inaccurate before first show (100 or so)
 	table->setMinimumHeight(newTableHeight);
 	//table->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
