@@ -206,13 +206,13 @@ namespace
 	{
 		std::cout << "open_iA command line tool, version " << version << ".\n"
 			<< "Usage:\n"
-			<< "  > open_iA_cmd (-l [...]|-h ...|-r ...|-p ...)\n"
-			<< "Options:\n"
-			<< "     -l [name|category|fullCategory]\n"
+			<< "  > open_iA_cmd command [options]\n"
+			<< "With command one of:\n"
+			<< "     list [name|category|fullCategory]\n"
 			<< "         List available filters, sorted by name (default) or by category\n"
-			<< "     -h FilterName\n"
+			<< "     help FilterName\n"
 			<< "         Print help on a specific filter\n"
-			<< "     -r FilterName -i Input -o Output -p Parameters [-q] [-c] [-f] [-s n]\n"
+			<< "     run FilterName -i Input -o Output -p Parameters [-q] [-c] [-f] [-s n]\n"
 			<< "         Run the filter given by FilterName with Parameters on given Input, write to Output\n"
 			<< "           -q   quiet - no output except for error messages\n"
 			<< "           -c   compress output\n"
@@ -224,7 +224,7 @@ namespace
 			<< "                between 1 and 5 (1=DEBUG, ...). Default is WARN.\n"
 			<< "         Note: Only image output is written to the filename(s) specified after -o,\n"
 			<< "           filters returning one or more output values write those values to the command line.\n"
-			<< "     -p FilterName\n"
+			<< "     parameters FilterName\n"
 			<< "         Output the Parameter Descriptor for the given filter (required for sampling).\n";
 	}
 
@@ -500,15 +500,15 @@ int processCommandLine(int argc, char const * const * argv, const char * version
 {
 	auto dispatcher = new iAModuleDispatcher(QFileInfo(argv[0]).absolutePath());
 	dispatcher->InitializeModules();
-	if (argc > 1 && QString(argv[1]) == "-l")
+	if (argc > 1 && QString(argv[1]) == "list")
 	{
 		printListOfAvailableFilters(argc > 2 ? QString(argv[2]) : QString("name") );
 	}
-	else if (argc > 2 && QString(argv[1]) == "-h")
+	else if (argc > 2 && QString(argv[1]) == "help")
 	{
 		printFilterHelp(argv[2]);
 	}
-	else if (argc > 2 && QString(argv[1]) == "-r")
+	else if (argc > 2 && QString(argv[1]) == "run")
 	{
 		QStringList args;
 		for (int a = 2; a < argc; ++a)
@@ -517,7 +517,11 @@ int processCommandLine(int argc, char const * const * argv, const char * version
 		}
 		return runFilter(args);
 	}
-	else if (argc > 2 && QString(argv[1]) == "-p")
+	else if (argc > 2 && QString(argv[1]) == "parameters")
+	{
+		printParameterDescriptor(argv[2]);
+	}
+	else if (argc > 2 && QString(argv[1]) == "formatinfo")
 	{
 		printFormatInfo(argv[2]);
 	}
