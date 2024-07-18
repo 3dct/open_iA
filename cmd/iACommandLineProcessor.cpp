@@ -34,7 +34,7 @@ iACommandLineProgressIndicator::iACommandLineProgressIndicator(int numberOfSteps
 	}
 }
 
-void iACommandLineProgressIndicator::Progress(int percent)
+void iACommandLineProgressIndicator::progress(int percent)
 {
 	if (m_quiet)
 	{
@@ -56,13 +56,13 @@ void iACommandLineProgressIndicator::Progress(int percent)
 
 namespace
 {
-	QString AbbreviateDesc(QString desc)
+	QString abbreviateDesc(QString desc)
 	{
 		auto brpos = desc.indexOf("<br/>");
 		return brpos != -1 ? desc.left(brpos) : desc;
 	}
 
-	void PrintListOfAvailableFilters(QString sortBy)
+	void printListOfAvailableFilters(QString sortBy)
 	{
 		auto filterFactories = iAFilterRegistry::filterFactories();
 		std::cout << "Available filters:\n";
@@ -74,7 +74,7 @@ namespace
 			std::string category = (sortBy == "category") ? filter->category().toStdString() :
 				((sortBy == "fullCategory") ? filter->fullCategory().toStdString() : "");
 			filterMap[category].insert(std::make_pair(
-				filter->name().toStdString(), stripHTML(AbbreviateDesc(filter->description())).toStdString()));
+				filter->name().toStdString(), stripHTML(abbreviateDesc(filter->description())).toStdString()));
 		}
 		for (auto c: filterMap)
 		{
@@ -90,7 +90,7 @@ namespace
 		}
 	}
 
-	void PrintFilterHelp(QString filterName)
+	void printFilterHelp(QString filterName)
 	{
 		auto filter = iAFilterRegistry::filter(filterName);
 		if (!filter)
@@ -177,7 +177,7 @@ namespace
 		}
 	}
 
-	void PrintParameterDescriptor(QString filterName)
+	void printParameterDescriptor(QString filterName)
 	{
 		auto filter = iAFilterRegistry::filter(filterName);
 		if (!filter)
@@ -202,7 +202,7 @@ namespace
 		}
 	}
 
-	void PrintUsage(const char * version)
+	void printUsage(const char * version)
 	{
 		std::cout << "open_iA command line tool, version " << version << ".\n"
 			<< "Usage:\n"
@@ -228,9 +228,9 @@ namespace
 			<< "         Output the Parameter Descriptor for the given filter (required for sampling).\n";
 	}
 
-	enum ParseMode { None, Input, Output, Parameter, InvalidParameter, Quiet, Compress, Overwrite, InputSeparation, LogLevel };
+	enum iAParseMode { None, Input, Output, Parameter, InvalidParameter, Quiet, Compress, Overwrite, InputSeparation, LogLevel };
 
-	ParseMode GetMode(QString arg)
+	iAParseMode getMode(QString arg)
 	{
 		if (arg == "-i") return Input;
 		else if (arg == "-o") return Output;
@@ -243,7 +243,7 @@ namespace
 		else return InvalidParameter;
 	}
 
-	int RunFilter(QStringList const & args)
+	int runFilter(QStringList const & args)
 	{
 		QString filterName = args[0];
 		auto filter = iAFilterRegistry::filter(filterName);
@@ -269,7 +269,7 @@ namespace
 			case Quiet:
 			case Compress:
 			case Overwrite:
-				mode = GetMode(args[a]);
+				mode = getMode(args[a]);
 				break;
 			case InputSeparation:
 			{
@@ -315,7 +315,7 @@ namespace
 				if (args[a].startsWith("-") &&
 					(mode != Parameter || parameters.size() >= filter->parameters().size()))
 				{
-					mode = GetMode(args[a]);
+					mode = getMode(args[a]);
 				}
 				else
 				{
@@ -425,7 +425,7 @@ namespace
 				}
 			}
 			iACommandLineProgressIndicator progressIndicator(50, quiet);
-			QObject::connect(filter->progress(), &iAProgress::progress, &progressIndicator, &iACommandLineProgressIndicator::Progress);
+			QObject::connect(filter->progress(), &iAProgress::progress, &progressIndicator, &iACommandLineProgressIndicator::progress);
 			if (!filter->checkParameters(parameters))
 			{   // output already happened in checkParameters via logger
 				return 1;
@@ -496,17 +496,17 @@ namespace
 	}
 }
 
-int ProcessCommandLine(int argc, char const * const * argv, const char * version)
+int processCommandLine(int argc, char const * const * argv, const char * version)
 {
 	auto dispatcher = new iAModuleDispatcher(QFileInfo(argv[0]).absolutePath());
 	dispatcher->InitializeModules();
 	if (argc > 1 && QString(argv[1]) == "-l")
 	{
-		PrintListOfAvailableFilters(argc > 2 ? QString(argv[2]) : QString("name") );
+		printListOfAvailableFilters(argc > 2 ? QString(argv[2]) : QString("name") );
 	}
 	else if (argc > 2 && QString(argv[1]) == "-h")
 	{
-		PrintFilterHelp(argv[2]);
+		printFilterHelp(argv[2]);
 	}
 	else if (argc > 2 && QString(argv[1]) == "-r")
 	{
@@ -515,15 +515,15 @@ int ProcessCommandLine(int argc, char const * const * argv, const char * version
 		{
 			args << argv[a];
 		}
-		return RunFilter(args);
+		return runFilter(args);
 	}
 	else if (argc > 2 && QString(argv[1]) == "-p")
 	{
-		PrintParameterDescriptor(argv[2]);
+		printFormatInfo(argv[2]);
 	}
 	else
 	{
-		PrintUsage(version);
+		printUsage(version);
 	}
 	return 0;
 }
