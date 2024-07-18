@@ -62,6 +62,28 @@ namespace
 		return brpos != -1 ? desc.left(brpos) : desc;
 	}
 
+	void printAttributes(iAAttributes const & attr)
+	{
+		if (attr.isEmpty())
+		{
+			std::cout << "No parameters\n";
+		}
+		for (auto p : attr)
+		{
+			std::cout << p->name().toStdString() << "\tParameter\t" << ValueType2Str(p->valueType()).toStdString()
+					  << "\t";
+			if (p->valueType() == iAValueType::Continuous || p->valueType() == iAValueType::Discrete)
+			{
+				std::cout << p->min() << "\t" << p->max() << "\tLinear";
+			}
+			else if (p->valueType() == iAValueType::Categorical)
+			{
+				std::cout << "\t" << p->defaultValue().toStringList().join(",").toStdString();
+			}
+			std::cout << "\n";
+		}
+	}
+
 	void printListOfAvailableFilters(QString sortBy)
 	{
 		auto filterFactories = iAFilterRegistry::filterFactories();
@@ -186,20 +208,23 @@ namespace
 			return;
 		}
 		std::cout << filter->name().toStdString() << ":\n";
-		for (auto p : filter->parameters())
+		printAttributes(filter->parameters());
+	}
+
+	void printFormatInfo(QString extension)
+	{
+		if (extension[0] != '.')
 		{
-			std::cout << p->name().toStdString() << "\tParameter\t"
-			          << ValueType2Str(p->valueType()).toStdString() << "\t";
-			if (p->valueType() == iAValueType::Continuous || p->valueType() == iAValueType::Discrete)
-			{
-				std::cout << p->min() << "\t" << p->max() << "\tLinear";
-			}
-			else if (p->valueType() == iAValueType::Categorical)
-			{
-				std::cout << "\t" << p->defaultValue().toStringList().join(",").toStdString();
-			}
-			std::cout << "\n";
+			extension = "." + extension;
 		}
+		auto io = iAFileTypeRegistry::createIO("test" + extension, iAFileIO::Load);
+		std::cout << "Parameters for loading a file with extension " << extension.toStdString() << ":\n";
+		auto inAttr(io->parameter(iAFileIO::Load));
+		removeAttribute(inAttr, iADataSet::FileNameKey);
+		printAttributes(inAttr);
+		std::cout << "Parameters for saving a file with extension " << extension.toStdString() << "\n";
+		auto outAttr(io->parameter(iAFileIO::Save));
+		printAttributes(outAttr);
 	}
 
 	void printUsage(const char * version)
@@ -212,23 +237,32 @@ namespace
 			<< "         List available filters, sorted by name (default) or by category\n"
 			<< "     help FilterName\n"
 			<< "         Print help on a specific filter\n"
-			<< "     run FilterName -i Input -o Output -p Parameters [-q] [-c] [-f] [-s n]\n"
+			<< "     run FilterName -i Input -o Output -p Parameters [-q] [-c] [-f] [-s n] [-j InputParameters]\n"
 			<< "         Run the filter given by FilterName with Parameters on given Input, write to Output\n"
 			<< "           -q   quiet - no output except for error messages\n"
-			<< "           -c   compress output\n"
 			<< "           -f   overwrite output if it exists\n"
 			<< "           -s n separate input starts at nth filename given under -i\n" // (required for some filters, e.g. Extended Random Walker)
 			<< "           -v n specify the log level (how verbose output should be).\n"
 			<< "                Can be " << AvailableLogLevels().join(", ").toStdString()
-			                             << " or a numeric value (" << lvlDebug << ".." << lvlFatal << ")\n"
+			                    << " or a numeric value (" << lvlDebug << ".." << lvlFatal << ")\n"
 			<< "                between 1 and 5 (1=DEBUG, ...). Default is WARN.\n"
-			<< "         Note: Only image output is written to the filename(s) specified after -o,\n"
+			<< "           -j InputParameters for input file formats that require parameters (e.g. raw files)\n"
+			<< "                Note that -i with all input filenames needs to be specified before -j for the\n"
+			<< "                program to be able to determine the input parameters necessary for the given files.\n"
+			<< "                Specify -j once per filename that requires parameters.\n"
+			<< "           -k OutputParameters for output file formats that take parameters (e.g. compress for .mhd)\n"
+			<< "                Note that -o with all output filenames needs to be specified before -k for the\n"
+			<< "                program to be able to determine the input parameters necessary for the given files.\n"
+			<< "                Specify -k once per filename that requires parameters.\n"
+			<< "         Note: Only image and mesh output is written to the filename(s) specified after -o,\n"
 			<< "           filters returning one or more output values write those values to the command line.\n"
 			<< "     parameters FilterName\n"
-			<< "         Output the Parameter Descriptor for the given filter (required for sampling).\n";
+			<< "         Output the Parameter Descriptor for the given filter (required for sampling).\n"
+			<< "     formatinfo Extension\n"
+			<< "         Output information on which parameters a file format with the given extension (with or without leading '.') has for loading/saving.\n";
 	}
 
-	enum iAParseMode { None, Input, Output, Parameter, InvalidParameter, Quiet, Compress, Overwrite, InputSeparation, LogLevel };
+	enum iAParseMode { None, Input, Output, Parameter, InvalidParameter, Quiet, Overwrite, InputSeparation, LogLevel, InputParameters, OutputParameters };
 
 	iAParseMode getMode(QString arg)
 	{
@@ -236,11 +270,66 @@ namespace
 		else if (arg == "-o") return Output;
 		else if (arg == "-p") return Parameter;
 		else if (arg == "-q") return Quiet;
-		else if (arg == "-c") return Compress;
 		else if (arg == "-f") return Overwrite;
 		else if (arg == "-s") return InputSeparation;
 		else if (arg == "-v") return LogLevel;
+		else if (arg == "-k") return OutputParameters;
+		else if (arg == "-j") return InputParameters;
 		else return InvalidParameter;
+	}
+
+	bool addParameterValue(QVariantMap & parameters, iAAttributes const & inAttr, QString curValue, bool removeFileKey)
+	{
+		auto paramIdx = parameters.size();
+		auto attr(inAttr);
+		if (removeFileKey)
+		{
+			removeAttribute(attr, iADataSet::FileNameKey);
+		}
+		if (paramIdx >= attr.size())
+		{
+			std::cout << QString("More parameters (%1) given than expected(%2)!")
+				.arg(paramIdx + 1).arg(attr.size()).toStdString() << std::endl;
+		}
+		else
+		{
+			QString paramName = attr[paramIdx]->name();
+			QVariant value(curValue);
+			if (attr[paramIdx]->valueType() == iAValueType::Text)
+			{
+				QFile f(curValue);
+				if (!f.open(QFile::ReadOnly | QFile::Text))
+				{
+					std::cout << QString("Expected a filename as input for text parameter '%1', but could not open '%2' as a text file.")
+						.arg(paramName).arg(curValue).toStdString() << std::endl;
+					return false;
+				}
+				QTextStream in(&f);
+				value = in.readAll();
+			}
+			else if (attr[paramIdx]->valueType() == iAValueType::Boolean)
+			{
+				curValue = curValue.toLower();
+				value = curValue == "true" || curValue == "yes" || curValue == "on";
+			}
+			parameters.insert(paramName, value);
+		}
+		return true;
+	}
+
+	void getNextIdxIO(QStringList const& inputFiles, qsizetype& nextIdx, std::shared_ptr<iAFileIO>& io)
+	{
+		while (nextIdx < inputFiles.size())
+		{
+			io = iAFileTypeRegistry::createIO(inputFiles[nextIdx], iAFileIO::Load);
+			auto param = io->parameter(iAFileIO::Load);
+			qsizetype minParams = findAttribute(param, iADataSet::FileNameKey) == -1 ? 0 : 1;
+			if (param.size() > minParams)
+			{
+				break;
+			}
+			++nextIdx;
+		}
 	}
 
 	int runFilter(QStringList const & args)
@@ -256,10 +345,15 @@ namespace
 		QStringList inputFiles;
 		QStringList outputFiles;
 		QVariantMap parameters;
+		QVector<QVariantMap> inParams;
+		QVector<QVariantMap> outParams;
 		bool quiet = false;
-		bool compress = false;
 		bool overwrite = false;
 		int mode = None;
+		qsizetype curInIdx = 0;
+		qsizetype curOutIdx = 0;
+		std::shared_ptr<iAFileIO> curInIO = nullptr;
+		std::shared_ptr<iAFileIO> curOutIO = nullptr;
 		// TODO: use command line parsing library instead!
 		for (int a = 1; a < args.size(); ++a)
 		{
@@ -267,7 +361,6 @@ namespace
 			{
 			case None:
 			case Quiet:
-			case Compress:
 			case Overwrite:
 				mode = getMode(args[a]);
 				break;
@@ -312,9 +405,35 @@ namespace
 			case Input:
 			case Output:
 			case Parameter:
+			case InputParameters:
+			case OutputParameters:
 				if (args[a].startsWith("-") &&
 					(mode != Parameter || parameters.size() >= filter->parameters().size()))
 				{
+					if (mode == Input || mode == InputParameters)
+					{
+						if (mode == InputParameters)
+						{
+							++curInIdx;
+						}
+						else
+						{
+							inParams = QVector<QVariantMap>(inputFiles.size());
+						}
+						getNextIdxIO(inputFiles, curInIdx, curInIO);
+					}
+					else if (mode == Output || mode == OutputParameters)
+					{
+						if (mode == OutputParameters)
+						{
+							++curOutIdx;
+						}
+						else
+						{
+							outParams = QVector<QVariantMap>(outputFiles.size());
+						}
+						getNextIdxIO(outputFiles, curOutIdx, curOutIO);
+					}
 					mode = getMode(args[a]);
 				}
 				else
@@ -323,49 +442,40 @@ namespace
 					{
 					case Input:     inputFiles << args[a];  break;
 					case Output:    outputFiles << args[a]; break;
-					case Parameter:
+					case Parameter:        addParameterValue(parameters  , filter->parameters() , args[a], false); break;
+					case InputParameters:
+						if (curInIO)
 						{
-							auto paramIdx = parameters.size();
-							if (paramIdx >= filter->parameters().size())
-							{
-								std::cout << QString("More parameters (%1) given than expected(%2)!")
-									.arg(paramIdx + 1).arg(filter->parameters().size()).toStdString() << std::endl;
-							}
-							else
-							{
-								QString paramName = filter->parameters()[paramIdx]->name();
-								QString value(args[a]);
-								if (filter->parameters()[paramIdx]->valueType() == iAValueType::Text)
-								{
-									QFile f(value);
-									if (!f.open(QFile::ReadOnly | QFile::Text))
-									{
-										std::cout << QString("Expected a filename as input for text parameter '%1', but could not open '%2' as a text file.")
-											.arg(paramName).arg(value).toStdString() << std::endl;
-										return 1;
-									}
-									QTextStream in(&f);
-									value = in.readAll();
-								}
-								parameters.insert(paramName, value);
-							}
+							addParameterValue(inParams[curInIdx], curInIO->parameter(iAFileIO::Load), args[a], true); 
 						}
+						else
+						{
+							std::cout << "Invalid/Unexpected input parameters\n";
+						}
+						break;
+					case OutputParameters:
+
+						if (curOutIO)
+						{
+							addParameterValue(outParams[curOutIdx], curOutIO->parameter(iAFileIO::Save), args[a], true);
+						}
+						else
+						{
+							std::cout << "Invalid/Unexpected output parameters\n";
+						}
+						break;
 					}
 				}
 				break;
 			}
 			if (mode == InvalidParameter)
 			{
-				std::cout << QString("Invalid/Unexpected parameter: '%1', please check your syntax!").arg(args[a]).toStdString() << std::endl;
+				std::cout << QString("Invalid/Unexpected parameter: '%1', please check your syntax!").arg(args[a]).toStdString() << "\n";
 				return 1;
 			}
 			if (mode == Quiet)
 			{
 				quiet = true;
-			}
-			if (mode == Compress)
-			{
-				compress = true;
 			}
 			if (mode == Overwrite)
 			{
@@ -410,8 +520,8 @@ namespace
 						.arg(inputFiles[i]).toStdString() << std::endl;
 					return 1;
 				}
-				QVariantMap dummyParams;  // TODO: allow reading i/o parameters from cmd, use progress indicator
-				auto dataSet = io->load(inputFiles[i], dummyParams);
+				// TODO: use progress indicator
+				auto dataSet = io->load(inputFiles[i], inParams[i]);
 				filter->addInput(dataSet);
 			}
 
@@ -457,8 +567,7 @@ namespace
 				}
 				if (!quiet)
 				{
-					std::cout << QString("Writing output %1 to file: '%2' (compression: %3)")
-						.arg(o).arg(outFileName).arg(compress ? "on" : "off").toStdString()
+					std::cout << QString("Writing output %1 to file: '%2'").arg(o).arg(outFileName).toStdString()
 						<< std::endl;
 				}
 
@@ -469,10 +578,8 @@ namespace
 						.arg(outFileName).toStdString() << std::endl;
 					return 1;
 				}
-				QVariantMap writeParamValues;
-				writeParamValues[iAFileIO::CompressionStr] = compress;
 				// TODO: use progress indicator here
-				io->save(outFileName, filter->outputs()[o], writeParamValues);
+				io->save(outFileName, filter->outputs()[o], outParams[o]);
 			}
 #if QT_VERSION >= QT_VERSION_CHECK(6,4,0)
 			for (auto [name, value] : filter->outputValues().asKeyValueRange())
