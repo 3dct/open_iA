@@ -388,7 +388,7 @@ namespace
 					if (!ok)
 					{
 						std::cout << "Invalid value '" << args[a].toStdString()
-						          << "' for log level, expected an int between 1 and 5!\n";
+						          << "' for log level, expected an integer number between 1 and 5!\n";
 					}
 					else
 					{
