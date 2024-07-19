@@ -473,7 +473,7 @@ namespace
 						}
 						else
 						{
-							std::cout << QString("Invalid/Unexpected input parameters at position %1 (value %2)\n").arg(a).arg(args[a]).toStdString();
+							std::cout << QString("Invalid/Unexpected input parameters at position %1 (value %2) - Ignored!\n").arg(a).arg(args[a]).toStdString();
 						}
 						break;
 					case OutputParameters:
@@ -484,7 +484,7 @@ namespace
 						}
 						else
 						{
-							std::cout << QString("Invalid/Unexpected output parameters %1 (value %2)\n").arg(a).arg(args[a]).toStdString();
+							std::cout << QString("Invalid/Unexpected output parameters %1 (value %2) - Ignored!\n").arg(a).arg(args[a]).toStdString();
 						}
 						break;
 					}
