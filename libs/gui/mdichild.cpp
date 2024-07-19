@@ -11,6 +11,7 @@
 #include "iAVolumeViewer.h"    // TODO NEWIO: only required for changing magic lens input - move from here, e.g. to slicer
 #include "iAFileParamDlg.h"
 #include "iAFileUtils.h"    // for safeFileName
+#include "iAThemeHelper.h"
 #include "iAvtkInteractStyleActor.h"
 #include "mainwindow.h"
 
@@ -84,6 +85,54 @@ public:
 	}
 };
 
+
+#include <QPainter>
+
+class iAVerticalLabel: public QLabel
+{
+public:
+	explicit iAVerticalLabel(QWidget* parent = 0);
+	explicit iAVerticalLabel(const QString& text, QWidget* parent = 0);
+
+protected:
+	void paintEvent(QPaintEvent*);
+	QSize sizeHint() const;
+	QSize minimumSizeHint() const;
+};
+
+iAVerticalLabel::iAVerticalLabel(QWidget* parent)
+	: QLabel(parent)
+{
+}
+
+iAVerticalLabel::iAVerticalLabel(const QString& text, QWidget* parent)
+	: QLabel(text, parent)
+{
+}
+
+void iAVerticalLabel::paintEvent(QPaintEvent*)
+{
+	QPainter painter(this);
+	painter.translate(0, sizeHint().height());
+	painter.rotate(270);
+	painter.drawText(QRect(QPoint(0, 0), QLabel::sizeHint()), Qt::AlignCenter, text());
+	painter.drawText(0, 0, text());
+}
+
+QSize iAVerticalLabel::minimumSizeHint() const
+{
+	QSize s = QLabel::minimumSizeHint();
+	return QSize(s.height(), s.width());
+}
+
+QSize iAVerticalLabel::sizeHint() const
+{
+	QSize s = QLabel::sizeHint();
+	return QSize(s.height(), s.width());
+}
+
+
+
 MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsavedChanges) :
 	m_mainWnd(mainWnd),
 	m_preferences(prefs),
@@ -118,6 +167,16 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	{
 		m_slicer[i] = new iASlicerImpl(this, static_cast<iASlicerMode>(i), true, true, m_slicerTransform);
 		m_dwSlicer[i] = new dlg_slicer(m_slicer[i]);
+		auto titleBar = new QFrame();
+		titleBar->setFrameStyle(QFrame::Panel | QFrame::Raised);
+		titleBar->setLayout(new QVBoxLayout());
+		titleBar->setAutoFillBackground(true);
+		auto tb = new QToolButton();
+		tb->setIcon(iAThemeHelper::icon("dockwidget-close"));
+		titleBar->layout()->addWidget(tb);
+		titleBar->layout()->addItem(new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
+		titleBar->layout()->addWidget(new iAVerticalLabel(m_dwSlicer[i]->windowTitle()));
+		m_dwSlicer[i]->setTitleBarWidget(titleBar);
 	}
 	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::XY], Qt::Horizontal);
 	splitDockWidget(m_dwSlicer[iASlicerMode::XY], m_dwSlicer[iASlicerMode::XZ], Qt::Vertical);
