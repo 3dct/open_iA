@@ -444,24 +444,24 @@ namespace
 					case Output:    outputFiles << args[a]; break;
 					case Parameter:        addParameterValue(parameters  , filter->parameters() , args[a], false); break;
 					case InputParameters:
-						if (curInIO)
+						if (curInIO && curInIdx < inParams.size())
 						{
 							addParameterValue(inParams[curInIdx], curInIO->parameter(iAFileIO::Load), args[a], true); 
 						}
 						else
 						{
-							std::cout << "Invalid/Unexpected input parameters\n";
+							std::cout << QString("Invalid/Unexpected input parameters at position %1 (value %2)\n").arg(a).arg(args[a]).toStdString();
 						}
 						break;
 					case OutputParameters:
 
-						if (curOutIO)
+						if (curOutIO && curOutIdx < outParams.size())
 						{
 							addParameterValue(outParams[curOutIdx], curOutIO->parameter(iAFileIO::Save), args[a], true);
 						}
 						else
 						{
-							std::cout << "Invalid/Unexpected output parameters\n";
+							std::cout << QString("Invalid/Unexpected output parameters %1 (value %2)\n").arg(a).arg(args[a]).toStdString();
 						}
 						break;
 					}
