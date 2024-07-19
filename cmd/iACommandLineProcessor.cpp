@@ -368,10 +368,10 @@ namespace
 			{
 				bool ok;
 				int inputSeparation = args[a].toInt(&ok);
-				if (!ok)
+				if (!ok || inputSeparation <= 0)
 				{
 					std::cout << "Invalid value '" << args[a].toStdString()
-					          << "' for input separation, expected a int!\n";
+					          << "' for input separation, expected an integer number >= 1!\n";
 					return 1;
 				}
 				filter->setFirstInputChannels(inputSeparation);
