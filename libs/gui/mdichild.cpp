@@ -86,6 +86,7 @@ public:
 };
 
 
+#include <QDesktopServices>
 #include <QPainter>
 
 class iAVerticalLabel: public QLabel
@@ -115,7 +116,10 @@ void iAVerticalLabel::paintEvent(QPaintEvent*)
 	QPainter painter(this);
 	painter.translate(0, sizeHint().height());
 	painter.rotate(270);
-	painter.drawText(QRect(QPoint(0, 0), QLabel::sizeHint()), Qt::AlignCenter, text());
+	QFont f(painter.font());
+	f.setBold(true);
+	painter.setFont(f);
+	painter.drawText(QRect(QPoint(0, 0), QLabel::sizeHint()), Qt::AlignLeft | Qt::AlignVCenter, text());
 	painter.drawText(0, 0, text());
 }
 
@@ -130,6 +134,55 @@ QSize iAVerticalLabel::sizeHint() const
 	QSize s = QLabel::sizeHint();
 	return QSize(s.height(), s.width());
 }
+
+
+class iAQDockTitleWidget: public QFrame
+{
+// TODO: USE Q-OBJECT TO ENABLE STYLING DIRECTLY VIA iAQDockTitleWidget?
+public:
+	iAQDockTitleWidget(QDockWidget* parent, QString infoLink) : QFrame(parent)
+	{
+		setProperty("qssClass", "iAQDockTitleWidget");
+		setLayout(new QVBoxLayout());
+		int mw = parent->style()->pixelMetric(QStyle::PM_DockWidgetTitleMargin, nullptr, parent);
+		layout()->setContentsMargins(mw, mw, mw, mw);
+		layout()->setSpacing(2);
+		auto closeButton = new QToolButton();
+		closeButton->setProperty("qssClass", "dockwidget-close");
+		connect(closeButton, &QToolButton::clicked, this, [this]()
+		{
+			QDockWidget* q = qobject_cast<QDockWidget*>(parentWidget());
+			q->close();
+		});
+		auto floatButton = new QToolButton();
+		floatButton->setProperty("qssClass", "dockwidget-float");
+		connect(floatButton, &QToolButton::clicked, this, [this]()
+		{
+			QDockWidget* q = qobject_cast<QDockWidget*>(parentWidget());
+			q->setFloating(!q->isFloating());
+		});
+		auto infoButton = new QToolButton();
+		infoButton->setProperty("qssClass", "dockwidget-info");
+		connect(infoButton, &QToolButton::clicked, this, [this, infoLink]()
+		{
+			QDesktopServices::openUrl(QUrl(infoLink));
+		});
+		layout()->addWidget(closeButton);
+		layout()->addWidget(floatButton);
+		layout()->addWidget(infoButton);
+		layout()->addItem(new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
+		layout()->addWidget(new iAVerticalLabel(parent->windowTitle()));
+	}
+	QSize sizeHint() const override
+	{
+		QDockWidget* q = qobject_cast<QDockWidget*>(parentWidget());
+		QFontMetrics titleFontMetrics = q->fontMetrics();
+		int mw = q->style()->pixelMetric(QStyle::PM_DockWidgetTitleMargin, nullptr, q);
+		auto h = geometry().height();
+		auto w = titleFontMetrics.height() + 2 * mw;
+		return QSize(w, h);
+	}
+};
 
 
 
@@ -167,16 +220,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	{
 		m_slicer[i] = new iASlicerImpl(this, static_cast<iASlicerMode>(i), true, true, m_slicerTransform);
 		m_dwSlicer[i] = new dlg_slicer(m_slicer[i]);
-		auto titleBar = new QFrame();
-		titleBar->setFrameStyle(QFrame::Panel | QFrame::Raised);
-		titleBar->setLayout(new QVBoxLayout());
-		titleBar->setAutoFillBackground(true);
-		auto tb = new QToolButton();
-		tb->setIcon(iAThemeHelper::icon("dockwidget-close"));
-		titleBar->layout()->addWidget(tb);
-		titleBar->layout()->addItem(new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
-		titleBar->layout()->addWidget(new iAVerticalLabel(m_dwSlicer[i]->windowTitle()));
-		m_dwSlicer[i]->setTitleBarWidget(titleBar);
+		m_dwSlicer[i]->setTitleBarWidget(new iAQDockTitleWidget(m_dwSlicer[i], "https://github.com/3dct/open_iA/wiki/2D-Slicers"));
 	}
 	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::XY], Qt::Horizontal);
 	splitDockWidget(m_dwSlicer[iASlicerMode::XY], m_dwSlicer[iASlicerMode::XZ], Qt::Vertical);
