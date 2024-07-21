@@ -1344,7 +1344,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		if (!m_dwDV)
 		{
 			iAQVTKWidget* dvqvtkWidget(new iAQVTKWidget());
-			m_dwDV = new iADockWidgetWrapper(dvqvtkWidget, "Distribution View", "FeatureScoutDV");
+			m_dwDV = new iADockWidgetWrapper(dvqvtkWidget, "Distribution View", "FeatureScoutDV", "https://github.com/3dct/open_iA/wiki/FeatureScout");
 			m_dvContextView->SetRenderWindow(dvqvtkWidget->renderWindow());
 			m_dvContextView->SetInteractor(dvqvtkWidget->interactor());
 			m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwDV);
@@ -1794,7 +1794,8 @@ void dlg_FeatureScout::showScatterPlot()
 	}
 	QSignalBlocker spmBlock(m_splom.get()); // no need to trigger updates while we're creating SPM
 	m_splom->initScatterPlot(m_csvTable, m_columnVisibility);
-	m_dwSPM = new iADockWidgetWrapper(m_splom->matrixWidget(), "Scatter Plot Matrix", "FeatureScoutSPM");
+	m_dwSPM = new iADockWidgetWrapper(m_splom->matrixWidget(), "Scatter Plot Matrix", "FeatureScoutSPM",
+		"https://github.com/3dct/open_iA/wiki/FeatureScout");
 	m_activeChild->splitDockWidget(m_activeChild->renderDockWidget(), m_dwSPM, Qt::Vertical);
 	m_dwSPM->show();
 	m_dwSPM->raise();
@@ -3036,7 +3037,7 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	m_pcWidget = new iAQVTKWidget();
 	m_polarPlotWidget = new iAQVTKWidget();
 	m_lengthDistrWidget = new iAQVTKWidget();
-	m_dwPC = new iADockWidgetWrapper(m_pcWidget, "Parallel Coordinates", "FeatureScoutPC");
+	m_dwPC = new iADockWidgetWrapper(m_pcWidget, "Parallel Coordinates", "FeatureScoutPC", "https://github.com/3dct/open_iA/wiki/FeatureScout");
 	m_dwPP = new iAPolarPlotWidget(this);
 	m_dwPP->legendLayout->addWidget(m_polarPlotWidget);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, this);

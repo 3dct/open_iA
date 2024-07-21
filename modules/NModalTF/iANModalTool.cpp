@@ -10,7 +10,7 @@
 
 iANModalTFTool::iANModalTFTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iATool(mainWnd, child),
-	m_nModalDockWidget(new iADockWidgetWrapper(new iANModalWidget(child), "n-Modal Transfer Function", "nModalTF"))
+	m_nModalDockWidget(new iADockWidgetWrapper(new iANModalWidget(child), "n-Modal Transfer Function", "nModalTF", "https://github.com/3dct/open_iA/wiki/Multi-Modal-Transfer-Functions"))
 {
 	m_child->tabifyDockWidget(m_child->renderDockWidget(), m_nModalDockWidget);
 }

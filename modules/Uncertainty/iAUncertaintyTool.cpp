@@ -45,12 +45,12 @@ iAUncertaintyTool::iAUncertaintyTool(iAMainWindow * mainWnd, iAMdiChild * child)
 	m_labelDistributionView = new iAHistogramView();
 	m_uncertaintyDistributionView = new iAHistogramView();
 	m_ensembleView = new iAEnsembleView();
-	m_dockWidgets.push_back(new iADockWidgetWrapper(m_spatialView, "Spatial View", "UncSpatialView"));
-	m_dockWidgets.push_back(new iADockWidgetWrapper(m_memberView, "Member View", "UncMemberView"));
-	m_dockWidgets.push_back(new iADockWidgetWrapper(m_scatterplotView, "Scatterplot View", "UncScatterplotView"));
-	m_dockWidgets.push_back(new iADockWidgetWrapper(m_labelDistributionView, "Label Distribution", "UncLabelDistrView"));
-	m_dockWidgets.push_back(new iADockWidgetWrapper(m_uncertaintyDistributionView, "Uncertainty Distribution", "UncUncertaintyDistrView"));
-	m_dockWidgets.push_back(new iADockWidgetWrapper(m_ensembleView, "Ensemble View", "UncEnsembleView"));
+	m_dockWidgets.push_back(new iADockWidgetWrapper(m_spatialView, "Spatial View", "UncSpatialView", "https://github.com/3dct/open_iA/wiki/Uncertainty"));
+	m_dockWidgets.push_back(new iADockWidgetWrapper(m_memberView, "Member View", "UncMemberView", "https://github.com/3dct/open_iA/wiki/Uncertainty"));
+	m_dockWidgets.push_back(new iADockWidgetWrapper(m_scatterplotView, "Scatterplot View", "UncScatterplotView", "https://github.com/3dct/open_iA/wiki/Uncertainty"));
+	m_dockWidgets.push_back(new iADockWidgetWrapper(m_labelDistributionView, "Label Distribution", "UncLabelDistrView", "https://github.com/3dct/open_iA/wiki/Uncertainty"));
+	m_dockWidgets.push_back(new iADockWidgetWrapper(m_uncertaintyDistributionView, "Uncertainty Distribution", "UncUncertaintyDistrView", "https://github.com/3dct/open_iA/wiki/Uncertainty"));
+	m_dockWidgets.push_back(new iADockWidgetWrapper(m_ensembleView, "Ensemble View", "UncEnsembleView", "https://github.com/3dct/open_iA/wiki/Uncertainty"));
 	connect(mainWnd, &iAMainWindow::styleChanged, m_spatialView, &iASpatialView::StyleChanged);
 	connect(mainWnd, &iAMainWindow::styleChanged, m_memberView, &iAMemberView::StyleChanged);
 	connect(m_scatterplotView, &iAScatterPlotView::SelectionChanged, m_spatialView, &iASpatialView::UpdateSelection);

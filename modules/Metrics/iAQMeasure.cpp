@@ -456,7 +456,7 @@ void iAQMeasureRunner::filterGUIPreparations(std::shared_ptr<iAFilter> filter,
 	{
 		auto chart = new iAChartWithFunctionsWidget(mdiChild, "Intensity", "Frequency");
 		// TODO: check if exists before recreating?
-		iADockWidgetWrapper* wrapper = new iADockWidgetWrapper(chart, "Q Measure Peak Analysis", "QPeakAnalysis");
+		iADockWidgetWrapper* wrapper = new iADockWidgetWrapper(chart, "Q Measure Peak Analysis", "QPeakAnalysis", "https://github.com/3dct/open_iA/wiki/Filters");
 		mdiChild->splitDockWidget(mdiChild->renderDockWidget(), wrapper, Qt::Horizontal);
 		iAQMeasure* qfilter = dynamic_cast<iAQMeasure*>(filter.get());
 		qfilter->setupDebugGUI(chart);

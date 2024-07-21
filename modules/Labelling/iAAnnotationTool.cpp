@@ -63,7 +63,7 @@ public:
 	iAAnnotationToolUI(iAAnnotationTool* tool):
 		m_container(new QWidget),
 		m_table(new QTableWidget(m_container)),
-		m_dockWidget(new iADockWidgetWrapper(m_container, "Annotations", "dwAnnotations")),
+		m_dockWidget(new iADockWidgetWrapper(m_container, "Annotations", "dwAnnotations", "https://github.com/3dct/open_iA/wiki/Labeling")),
 		m_addButton(new QToolButton())
 	{
 		auto columnNames = QStringList() << "" << "Name" << "Coordinates" << "Show";

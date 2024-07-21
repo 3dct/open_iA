@@ -196,7 +196,7 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	m_selectedBinYDrawer = std::make_shared<iASelectedBinPlot>(m_voxelEnergy, 0, QColor(0, 0, 150, 50));
 
 	connect((iAChartTransferFunction*)(m_spectrumDiagram->functions()[0]), &iAChartTransferFunction::changed, this, &dlg_InSpectr::SpectrumTFChanged);
-	iADockWidgetWrapper* spectrumChartContainer = new iADockWidgetWrapper(m_spectrumDiagram, "Spectrum View", "SpectrumChartWidget");
+	iADockWidgetWrapper* spectrumChartContainer = new iADockWidgetWrapper(m_spectrumDiagram, "Spectrum View", "SpectrumChartWidget", "https://github.com/3dct/open_iA/wiki/InSpectr");
 	spectrumChartContainer->setContentsMargins(0, 0, 0, 0);
 
 	InitCommonGUI();
@@ -264,7 +264,7 @@ void dlg_InSpectr::InitCommonGUI()
 
 	m_pieChart = new iAPieChartWidget(this);
 	m_pieChart->setObjectName(QString::fromUtf8("Composition"));
-	m_pieChartContainer = new iADockWidgetWrapper(m_pieChart, "Element Concentration", "PieChartWidget");
+	m_pieChartContainer = new iADockWidgetWrapper(m_pieChart, "Element Concentration", "PieChartWidget", "https://github.com/3dct/open_iA/wiki/InSpectr");
 	m_pieChartContainer->setContentsMargins(0, 0, 0, 0);
 }
 

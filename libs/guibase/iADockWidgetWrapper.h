@@ -8,13 +8,16 @@
 
 class QString;
 
+class iAQDockTitleWidget;
+
 //! Wrapper to show an arbitrary widget inside of a QDockWidget.
+//! Also adds a info button to the title bar which leads to a configurable info link.
 class iAguibase_API iADockWidgetWrapper: public QDockWidget
 {
 public:
-	iADockWidgetWrapper(QWidget* widget, QString const & windowTitle, QString const & objectName);
+	iADockWidgetWrapper(QWidget* widget, QString const& windowTitle, QString const& objectName, QString const& infoLink = QString());
 	void toggleTitleBar();
 	bool isTitleBarVisible() const;
 private:
-	QWidget* m_titleBar;
+	iAQDockTitleWidget* m_titleWidget;
 };

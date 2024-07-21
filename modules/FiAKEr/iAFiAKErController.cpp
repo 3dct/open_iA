@@ -281,12 +281,12 @@ void iAFiAKErController::resultsLoaded()
 	auto selectionView = setupSelectionView();
 
 	m_views.resize(DockWidgetCount);
-	m_views[ResultListView] = new iADockWidgetWrapper(resultListView, "FIAKER Result list", "foeResultList");
-	m_views[OptimStepChart] = new iADockWidgetWrapper(optimStepsView, "FIAKER Steps", "foeSteps");
-	m_views[SPMView]        = new iADockWidgetWrapper(m_spm, "FIAKER Scatterplot Matrix", "foeSPM");
-	m_views[ProtocolView]   = new iADockWidgetWrapper(protocolView, "FIAKER Interactions", "foeInteractions");
-	m_views[SelectionView]  = new iADockWidgetWrapper(selectionView, "FIAKER Selections", "foeSelections");
-	m_views[SettingsView]   = new iADockWidgetWrapper(m_settingsView, "FIAKER Settings", "foeSettings");
+	m_views[ResultListView] = new iADockWidgetWrapper(resultListView, "FIAKER Result list", "foeResultList", "https://github.com/3dct/open_iA/wiki/FIAKER");
+	m_views[OptimStepChart] = new iADockWidgetWrapper(optimStepsView, "FIAKER Steps", "foeSteps", "https://github.com/3dct/open_iA/wiki/FIAKER");
+	m_views[SPMView]        = new iADockWidgetWrapper(m_spm, "FIAKER Scatterplot Matrix", "foeSPM", "https://github.com/3dct/open_iA/wiki/FIAKER");
+	m_views[ProtocolView]   = new iADockWidgetWrapper(protocolView, "FIAKER Interactions", "foeInteractions", "https://github.com/3dct/open_iA/wiki/FIAKER");
+	m_views[SelectionView]  = new iADockWidgetWrapper(selectionView, "FIAKER Selections", "foeSelections", "https://github.com/3dct/open_iA/wiki/FIAKER");
+	m_views[SettingsView]   = new iADockWidgetWrapper(m_settingsView, "FIAKER Settings", "foeSettings", "https://github.com/3dct/open_iA/wiki/FIAKER");
 
 	m_mdiChild->splitDockWidget(m_mdiChild->renderDockWidget(), m_views[ResultListView], Qt::Horizontal);
 	m_mdiChild->splitDockWidget(m_mdiChild->renderDockWidget(), m_views[OptimStepChart], Qt::Vertical);

@@ -10,7 +10,7 @@
 
 class iASlicerImpl;
 
-//! DockWidget container for slicers.
+//! Container for a slicer with controls for changing slice number, slab mode etc...
 class dlg_slicer : public QDockWidget, public Ui_slicer
 {
 Q_OBJECT

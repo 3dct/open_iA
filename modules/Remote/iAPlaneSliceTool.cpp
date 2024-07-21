@@ -173,7 +173,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	m_sliceWidget(new iAQVTKWidget(child)),
 	m_snapshotTable(new QTableWidget),
 	m_curPosLabel(new iAQCropLabel),
-	m_sliceDW(new iADockWidgetWrapper(m_sliceWidget, "Arbitrary Slice", "ArbitrarySliceViewer")),
+	m_sliceDW(new iADockWidgetWrapper(m_sliceWidget, "Arbitrary Slice", "ArbitrarySliceViewer", "https://github.com/3dct/open_iA/wiki/Arbitrary-Slice-Plane")),
 	
 	m_planeWidget(vtkSmartPointer<iAvtkPlaneWidget>::New()),
 	m_reslicer(vtkSmartPointer<vtkImageResliceMapper>::New()),
@@ -183,7 +183,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	m_dataSetIdx = child->firstImageDataSetIdx();  // we check if it's set in create method!
 
 	auto dwWidget = createContainerWidget<QVBoxLayout>(1);
-	m_listDW = new iADockWidgetWrapper(dwWidget, "Snapshot List", "SnapshotList");
+	m_listDW = new iADockWidgetWrapper(dwWidget, "Snapshot List", "SnapshotList", "https://github.com/3dct/open_iA/wiki/Remote");
 	dwWidget->layout()->addWidget(m_curPosLabel);
 	auto listWidget = createContainerWidget<QHBoxLayout>(1);
 

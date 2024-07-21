@@ -96,7 +96,8 @@ iAFeatureAnalyzer::iAFeatureAnalyzer(iAMainWindow* mWnd, const QString& resDir, 
 	connect( m_prvSplomView->cbDatasets, QOverload<int>::of(&QComboBox::currentIndexChanged), m_spmView, &iASPMView::reemitFixedPixmap);
 
 	m_visanMW->addDockWidget( Qt::LeftDockWidgetArea, m_pdmView );
-	auto dwRangeSliderChart = new iADockWidgetWrapper(rangeSliderDiagramView, "Parameter Range Slider", "RangeSliderDiagramView");
+	auto dwRangeSliderChart =
+		new iADockWidgetWrapper(rangeSliderDiagramView, "Parameter Range Slider", "RangeSliderDiagramView", "https://github.com/3dct/open_iA/wiki/FeatureAnalyzer");
 	m_visanMW->splitDockWidget(m_pdmView, dwRangeSliderChart, Qt::Horizontal);
 	m_visanMW->addDockWidget( Qt::RightDockWidgetArea, m_prvSplomView );
 	m_visanMW->splitDockWidget(dwRangeSliderChart, m_spmView, Qt::Vertical);

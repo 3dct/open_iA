@@ -3,20 +3,18 @@
 #pragma once
 
 // FiAKEr:
-#include "iAFiberResult.h"            // for iAFiberSimilarity -> REFACTOR!!!
+#include "iAFiberResult.h"              // for iAFiberSimilarity -> REFACTOR!!!
 #include "iAFiberResultUIData.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
 #include "ui_FiAKErSettings.h"
 
-// FeatureScout:
+// objectvis:
 #include <iACsvConfig.h>
 
 // guibase:
 #include <iAQVTKWidget.h>
 #include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iAWidgetSettingsMapper.h>
-
-// base
 
 #include <vtkSmartPointer.h>
 

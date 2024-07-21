@@ -501,7 +501,7 @@ public:
 		m_dataState(DataState::NoDataset),
 		m_clientListContainer(new QWidget(child)),
 		m_clientTable(new QTableWidget(m_clientListContainer)),
-		m_clientListDW(new iADockWidgetWrapper(m_clientListContainer, "Client List", "ClientList")),
+		m_clientListDW(new iADockWidgetWrapper(m_clientListContainer, "Client List", "ClientList", "https://github.com/3dct/open_iA/wiki/Remote")),
 		m_syncedClientID(NoSyncedClient),
 		m_child(child)
 	{

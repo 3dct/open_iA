@@ -132,7 +132,7 @@ iABoneThicknessTool::iABoneThicknessTool(iAMainWindow* mainWnd, iAMdiChild * chi
 	pGridLayout->addWidget(pBoneThicknessSplitter, 2, 0, 1, 2);
 	pGridLayout->addWidget(pGroupBoxSettings, 3, 0, 1, 2);
 
-	iADockWidgetWrapper* pDockWidgetWrapper(new iADockWidgetWrapper(pWidget, tr("Bone thickness"), "BoneThickness"));
+	iADockWidgetWrapper* pDockWidgetWrapper(new iADockWidgetWrapper(pWidget, tr("Bone thickness"), "BoneThickness", "https://github.com/3dct/open_iA/wiki/Tools"));
 	m_child->tabifyDockWidget(m_child->renderDockWidget(), pDockWidgetWrapper);
 
 	pDockWidgetWrapper->adjustSize();
