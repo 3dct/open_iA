@@ -84,7 +84,7 @@ General
 	}
 
 	QComboBox,
-	QFrame[qssClass="iAQDockTitleWidget"],
+	iAQDockTitleWidget,
 	QDockWidget::title,
 	QDoubleSpinBox,
 	QLineEdit,
@@ -786,7 +786,7 @@ QDockWidget
 		titlebar-close-icon: url(:/images/dockwidget-close_light.svg);
 		titlebar-normal-icon: url(:/images/dockwidget-float_light.svg);
 	}
-	QFrame[qssClass="iAQDockTitleWidget"],
+	iAQDockTitleWidget,
 	QDockWidget::title
 	{
 		background-color: rgba(40, 40, 40, 255);
