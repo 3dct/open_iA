@@ -10,7 +10,7 @@
 
 class iALabelsDlg;
 
-class iALabellingTool : public QObject, public iATool
+class Labelling_API iALabellingTool : public QObject, public iATool
 {
 	Q_OBJECT
 public:

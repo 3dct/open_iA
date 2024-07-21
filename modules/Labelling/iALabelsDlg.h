@@ -8,9 +8,9 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QDockWidget>
 #include <QList>
 #include <QMap>
+#include <QWidget>
 
 #include <memory>
 
@@ -31,7 +31,7 @@ class vtkPiecewiseFunction;
 struct iAOverlayImage;
 struct iAOverlaySlicerData;
 
-class Labelling_API iALabelsDlg : public QDockWidget
+class Labelling_API iALabelsDlg : public QWidget
 {
 	Q_OBJECT
 

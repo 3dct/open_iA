@@ -4,6 +4,7 @@
 
 #include "iALabelsDlg.h"
 
+#include <iADockWidgetWrapper.h>
 #include <iAMdiChild.h>
 
 const QString iALabellingTool::Name("Labelling");
@@ -11,7 +12,9 @@ const QString iALabellingTool::Name("Labelling");
 iALabellingTool::iALabellingTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iATool(mainWnd, child), m_dlgLabels(new iALabelsDlg(child))
 {
-	child->splitDockWidget(child->renderDockWidget(), m_dlgLabels, Qt::Vertical);
+	child->splitDockWidget(child->renderDockWidget(),
+		new iADockWidgetWrapper(m_dlgLabels, "Labels", "LabelsDW", "https://github.com/3dct/open_iA/wiki/Labelling"),
+		Qt::Vertical);
 }
 
 iALabelsDlg* iALabellingTool::labelsDlg()
