@@ -10,7 +10,7 @@
 #include <memory>
 
 class iAMeanObjectData;
-class iAMeanObjectDockWidget;
+class iAMeanObjectWidget;
 class iAMdiChild;
 class iAQVTKWidget;
 
@@ -33,7 +33,7 @@ private slots:
 	void saveStl();
 	void saveVolume();
 private:
-	iAMeanObjectDockWidget* m_dwMO;
+	iAMeanObjectWidget* m_dwMO;
 	QDialog* m_motfView;
 	std::shared_ptr<iAMeanObjectData> m_MOData;
 	iAQVTKWidget* m_meanObjectWidget;

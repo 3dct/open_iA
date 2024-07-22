@@ -16,6 +16,7 @@
 #include <iAObjectType.h>
 
 // guibase
+#include <iADockWidgetWrapper.h>
 #include <iAJobListView.h>
 #include <iATransferFunctionOwner.h>
 #include <iAMultiStepProgressObserver.h>
@@ -68,10 +69,10 @@
 #include <QStandardItem>
 #include <QFileDialog>
 
-class iAMeanObjectDockWidget : public QDockWidget, public Ui_FeatureScoutMO
+class iAMeanObjectWidget : public QWidget, public Ui_FeatureScoutMO
 {
 public:
-	iAMeanObjectDockWidget(QWidget* parent = nullptr) : QDockWidget(parent)
+	iAMeanObjectWidget(QWidget* parent = nullptr) : QWidget(parent)
 	{
 		setupUi(this);
 	}
@@ -378,8 +379,8 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 		// Setup Mean Object view
 		if (!m_dwMO)
 		{
-			m_dwMO = new iAMeanObjectDockWidget(m_activeChild);
-			connect(m_dwMO->pb_ModTF, &QToolButton::clicked, this, &iAMeanObject::modifyMeanObjectTF);
+			m_dwMO = new iAMeanObjectWidget(m_activeChild);
+			connect(m_dwMO->tb_ModTF, &QToolButton::clicked, this, &iAMeanObject::modifyMeanObjectTF);
 			connect(m_dwMO->tb_saveStl, &QToolButton::clicked, this, &iAMeanObject::saveStl);
 			connect(m_dwMO->tb_saveVolume, &QToolButton::clicked, this, &iAMeanObject::saveVolume);
 
@@ -392,14 +393,16 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 			auto style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
 			renderWindowInteractor->SetInteractorStyle(style);
 
-			m_dwMO->setWindowTitle(QString("%1 Mean Object View").arg(MapObjectTypeToString(filterID)));
+			auto moDW = new iADockWidgetWrapper(m_dwMO, "Mean Object", "FeatureScoutMO", "https://github.com/3dct/open_iA/wiki/MObjects");
+			moDW->setWindowTitle(QString("%1 Mean Object View").arg(MapObjectTypeToString(filterID)));
+
+			m_activeChild->tabifyDockWidget(nextToDW, moDW);
 		}
 
 		// Update MOClass comboBox
 		m_dwMO->cb_Classes->clear();       // skip the "Unclassified" class, for which no MObject was created
 		QStringList mobjectNames(classNames.begin()+1, classNames.end());
 		m_dwMO->cb_Classes->addItems(mobjectNames);
-		m_activeChild->tabifyDockWidget(nextToDW, m_dwMO);
 		m_dwMO->show();
 		m_dwMO->raise();
 
