@@ -40,8 +40,8 @@ class iAChannelData;
 class iATool;
 
 // slicer / renderer
-class dlg_renderer;
-class dlg_slicer;
+class iARendererContainer;
+class iASlicerContainer;
 class iARendererImpl;
 class iASlicerImpl;
 
@@ -279,11 +279,9 @@ private:
 	QListWidget* m_dataSetInfo;                                         //!< widget showing information on datasets
 	iADataSetListWidget* m_dataSetListWidget;                           //!< widget showing list of currently loaded datasets
 
-	//! @{ dock widgets
-	iADockWidgetWrapper * m_dwInfo, * m_dwDataSets;                     //!< dock widgets for dataset info and dataset list widgets
-	dlg_slicer * m_dwSlicer[3];
-	dlg_renderer * m_dwRenderer;
-	//! @}
+	iARendererContainer* m_rendererContainer;
+	iASlicerContainer* m_slicerContainer[3];
+	iADockWidgetWrapper * m_dwInfo, * m_dwDataSets, * m_dwRenderer, * m_dwSlicer[3];  //!< dock widgets for dataset info and dataset list widgets
 
 	QMap<uint, std::shared_ptr<iAChannelData> > m_channels;
 	uint m_nextChannelID;

@@ -6,17 +6,17 @@
 
 #include "iASlicerMode.h"
 
-#include <QDockWidget>
+#include <QWidget>
 
 class iASlicerImpl;
 
 //! Container for a slicer with controls for changing slice number, slab mode etc...
-class dlg_slicer : public QDockWidget, public Ui_slicer
+class iASlicerContainer : public QWidget, public Ui_slicer
 {
 Q_OBJECT
 
 public:
-	dlg_slicer(iASlicerImpl* slicer);
+	iASlicerContainer(iASlicerImpl* slicer);
 	void showBorder(bool show);
 private slots:
 	void setSliceSpinBox(int s);
