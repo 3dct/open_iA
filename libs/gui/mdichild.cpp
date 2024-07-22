@@ -3,7 +3,6 @@
 #include "mdichild.h"
 
 #include "dlg_slicer.h"
-#include "ui_Mdichild.h"
 #include "ui_renderer.h"
 
 #include "iADataSetViewerImpl.h"
@@ -11,7 +10,6 @@
 #include "iAVolumeViewer.h"    // TODO NEWIO: only required for changing magic lens input - move from here, e.g. to slicer
 #include "iAFileParamDlg.h"
 #include "iAFileUtils.h"    // for safeFileName
-#include "iAThemeHelper.h"
 #include "iAvtkInteractStyleActor.h"
 #include "mainwindow.h"
 
@@ -104,14 +102,14 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_magicLensChannel(NotExistingChannel),
 	m_magicLensDataSet(0),
 	m_interactionMode(imCamera),
-	m_nextDataSetID(0),
-	m_ui(std::make_shared<Ui_Mdichild>())
+	m_nextDataSetID(0)
 {
 	setAcceptDrops(true);
+	setWindowIcon(QIcon(QPixmap(":/images/iA.svg")));
 	setAttribute(Qt::WA_DeleteOnClose);
-	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
+	setTabShape(QTabWidget::Triangular);
+	setDockOptions(QMainWindow::AllowTabbedDocks | QMainWindow::AllowNestedDocks | QMainWindow::GroupedDragging);
 	setWindowModified(unsavedChanges);
-	m_ui->setupUi(this);
 	setCentralWidget(nullptr);
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
 	m_dwRenderer = new dlg_renderer(this);

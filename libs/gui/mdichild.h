@@ -34,7 +34,6 @@ class iADataSetListWidget;
 class iADataSetViewer;
 class iAvtkInteractStyleActor;
 class MainWindow;
-class Ui_Mdichild;
 
 // guibase
 class iAChannelData;
@@ -303,6 +302,4 @@ private:
 	std::map<size_t, std::shared_ptr<iADataSetViewer>> m_dataSetViewers;//!< viewer for a currently loaded dataset; manages all aspects of showing the dataset, e.g. in 3D renderer, slicer, etc.
 
 	vtkSmartPointer<iAvtkInteractStyleActor> m_manualMoveStyle[4];      //!< for syncing the manual registration between views
-
-	std::shared_ptr<Ui_Mdichild> m_ui;
 };
