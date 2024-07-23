@@ -3051,7 +3051,7 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	m_dwPC = new iADockWidgetWrapper(m_pcWidget, "Parallel Coordinates", "FeatureScoutPC", "https://github.com/3dct/open_iA/wiki/FeatureScout");
 	m_dwCE = new iADockWidgetWrapper(m_classExplorer, "Class Explorer", DlgObjectName, "https://github.com/3dct/open_iA/wiki/FeatureScout");
 	m_ppWidget = new iAPolarPlotWidget(m_activeChild);
-	m_dwPP = new iADockWidgetWrapper(m_classExplorer, "Orientation Plot", "FeatureScoutPP", "https://github.com/3dct/open_iA/wiki/FeatureScout");
+	m_dwPP = new iADockWidgetWrapper(m_ppWidget, "Orientation Plot", "FeatureScoutPP", "https://github.com/3dct/open_iA/wiki/FeatureScout");
 	m_ppWidget->legendLayout->addWidget(m_polarPlotWidget);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwCE);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPC);
