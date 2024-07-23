@@ -107,17 +107,18 @@ namespace
 			marchingCubes->SetComputeNormals(parameters["Compute Normals"].toBool());
 			marchingCubes->SetComputeGradients(parameters["Compute Gradients"].toBool());
 			marchingCubes->SetComputeScalars(parameters["Compute Scalars"].toBool());
+			marchingCubes->SetNumberOfContours(1);
 			marchingCubes->SetValue(0, parameters["Iso value"].toDouble());
 			result = marchingCubes;
 		}
 		else
 		{
 			vtkSmartPointer<vtkFlyingEdges3D> flyingEdges;
-			flyingEdges->SetNumberOfContours(1);
-			flyingEdges->SetValue(0, parameters["Iso value"].toDouble());
 			flyingEdges->SetComputeNormals(parameters["Compute Normals"].toBool());
 			flyingEdges->SetComputeGradients(parameters["Compute Gradients"].toBool());
 			flyingEdges->SetComputeScalars(parameters["Compute Scalars"].toBool());
+			flyingEdges->SetNumberOfContours(1);
+			flyingEdges->SetValue(0, parameters["Iso value"].toDouble());
 			result = flyingEdges;
 		}
 		Progress->observe(result);

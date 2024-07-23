@@ -490,11 +490,11 @@ void iAMeanObject::modifyMeanObjectTF()
 	}
 	if (m_MOData[moIndex]->tfDlg)
 	{
-		m_MOData[moIndex]->tfDlg->raise();
+		m_MOData[moIndex]->tfDlg->show();  // make sure it is visible (brings it back when closed by the user)
+		m_MOData[moIndex]->tfDlg->raise(); // make sure it is the topmost dialog (if there are other open dialogs)
 		return;
 	}
 	m_MOData[moIndex]->tfDlg = new QDialog(m_activeChild);
-	m_MOData[moIndex]->tfDlg->setAttribute(Qt::WA_DeleteOnClose);
 	m_MOData[moIndex]->tfDlg->setWindowTitle(QString("%1 Mean Object Transfer Function")
 								   .arg(m_dwMO->cb_Classes->itemText(m_dwMO->cb_Classes->currentIndex())));
 	//iAChartWithFunctionsWidget* histogram = m_activeChild->histogram();
