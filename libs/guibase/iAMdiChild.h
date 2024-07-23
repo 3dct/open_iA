@@ -270,6 +270,10 @@ public slots:
 template <typename T>
 T* getTool(iAMdiChild* child)
 {
+	if (!child)
+	{
+		return nullptr;
+	}
 	static_assert(std::is_base_of<iATool, T>::value, "getTool: given type must inherit from iATool!");
 	for (auto t : child->tools())
 	{
