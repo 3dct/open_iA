@@ -490,7 +490,7 @@ void iAMeanObject::modifyMeanObjectTF()
 	}
 	if (m_MOData[moIndex]->tfDlg)
 	{
-		m_MOData[moIndex]->tfDlg->show();
+		m_MOData[moIndex]->tfDlg->raise();
 		return;
 	}
 	m_MOData[moIndex]->tfDlg = new QDialog(m_activeChild);
