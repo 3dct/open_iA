@@ -525,7 +525,7 @@ void iAMeanObject::saveStl()
 	{
 		return;
 	}
-	int isoValue = m_dwMO->dsb_IsoValue->value();
+	double isoValue = m_dwMO->dsb_IsoValue->value();
 
 	auto progress = new iAMultiStepProgressObserver(2);
 	auto job = runAsync(
