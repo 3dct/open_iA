@@ -157,11 +157,21 @@ namespace
 	}
 }
 
-// define class here directly instead of using iAQTtoUIConnector; when using iAQTtoUIConnector we cannot forward-define because of the templates!
+//! define class here directly instead of using iAQTtoUIConnector, to be able to forward-declare
 class iAPolarPlotWidget : public QDockWidget, public Ui_FeatureScoutPP
 {
 public:
 	iAPolarPlotWidget(QWidget* parent) : QDockWidget(parent)
+	{
+		setupUi(this);
+	}
+};
+
+//! define class here directly instead of using iAQTtoUIConnector, to be able to forward-declare
+class iAClassExplorer: public QWidget, public Ui_FeatureScoutCE
+{
+public:
+	iAClassExplorer(QWidget* parent) : QWidget(parent)
 	{
 		setupUi(this);
 	}
@@ -174,7 +184,6 @@ const QString dlg_FeatureScout::UnclassifiedColorName("darkGray");
 
 dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType objectType, QString const& fileName,
 	iAObjectsData const * objData, iAObjectVis* objVis) :
-	QDockWidget(parent),
 	m_activeChild(parent),
 	m_elementCount(objData->m_table->GetNumberOfColumns()),
 	m_objectCount(objData->m_table->GetNumberOfRows()),
@@ -200,13 +209,11 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType objectType, 
 	m_dwDV(nullptr),
 	m_dwSPM(nullptr),
 	m_dwPP(nullptr),
-	m_ui(new Ui_FeatureScoutCE),
+	m_classExplorer(new iAClassExplorer(parent)),
 	m_columnMapping(objData->m_colMapping),
 	m_splom(new iAFeatureScoutSPLOM()),
 	m_3dvis(objVis)
 {
-	m_ui->setupUi(this);
-	setObjectName(DlgObjectName);
 	this->setupPolarPlotResolution(3.0);
 
 	m_chartTable->DeepCopy(m_csvTable);
@@ -258,6 +265,7 @@ dlg_FeatureScout::~dlg_FeatureScout()
 	delete m_dwDV;
 	delete m_dwSPM;
 	delete m_dwPP;
+	delete m_dwCE;
 }
 
 std::vector<size_t> dlg_FeatureScout::getPCSelection()
@@ -423,8 +431,8 @@ void dlg_FeatureScout::setupViews()
 	m_classTreeView->setContextMenuPolicy(Qt::CustomContextMenu);
 
 	// set Widgets for the table views
-	m_ui->ClassLayout->addWidget(m_classTreeView);
-	m_ui->ElementLayout->addWidget(m_elementTableView);
+	m_classExplorer->ClassLayout->addWidget(m_classTreeView);
+	m_classExplorer->ElementLayout->addWidget(m_elementTableView);
 	// set models
 	m_elementTableView->setModel(m_elementTableModel);
 	m_classTreeView->setModel(m_classTreeModel);
@@ -586,13 +594,13 @@ void dlg_FeatureScout::setupConnections()
 	connect(m_objectAdd, &QAction::triggered, this, &dlg_FeatureScout::addObject);
 	connect(m_objectDelete, &QAction::triggered, this, &dlg_FeatureScout::deleteObject);
 	connect(m_classTreeView, &QTreeView::customContextMenuRequested, this, &dlg_FeatureScout::showContextMenu);
-	connect(m_ui->add_class, &QToolButton::clicked, this, &dlg_FeatureScout::ClassAddButton);
-	connect(m_ui->save_class, &QToolButton::released, this, &dlg_FeatureScout::ClassSaveButton);
-	connect(m_ui->load_class, &QToolButton::released, this, &dlg_FeatureScout::ClassLoadButton);
-	connect(m_ui->delete_class, &QToolButton::clicked, this, &dlg_FeatureScout::ClassDeleteButton);
-	connect(m_ui->savexml, &QToolButton::released, this, &dlg_FeatureScout::WisetexSaveButton);
-	connect(m_ui->export_class, &QPushButton::clicked, this, &dlg_FeatureScout::ExportClassButton);
-	connect(m_ui->distributionCSV, &QToolButton::released, this, &dlg_FeatureScout::CsvDVSaveButton);
+	connect(m_classExplorer->add_class, &QToolButton::clicked, this, &dlg_FeatureScout::ClassAddButton);
+	connect(m_classExplorer->save_class, &QToolButton::released, this, &dlg_FeatureScout::ClassSaveButton);
+	connect(m_classExplorer->load_class, &QToolButton::released, this, &dlg_FeatureScout::ClassLoadButton);
+	connect(m_classExplorer->delete_class, &QToolButton::clicked, this, &dlg_FeatureScout::ClassDeleteButton);
+	connect(m_classExplorer->savexml, &QToolButton::released, this, &dlg_FeatureScout::WisetexSaveButton);
+	connect(m_classExplorer->export_class, &QPushButton::clicked, this, &dlg_FeatureScout::ExportClassButton);
+	connect(m_classExplorer->distributionCSV, &QToolButton::released, this, &dlg_FeatureScout::CsvDVSaveButton);
 
 	connect(m_elementTableModel, &QStandardItemModel::itemChanged, this, &dlg_FeatureScout::updateVisibility);
 	connect(m_classTreeView, &QTreeView::clicked, this, &dlg_FeatureScout::classClicked);
@@ -669,13 +677,13 @@ void dlg_FeatureScout::renderMeanObject()
 {
 	if (m_visType != iAObjectVisType::UseVolume)
 	{
-		QMessageBox::warning(this, "FeatureScout", "Mean objects feature only available for the Labeled Volume visualization at the moment!");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "Mean objects feature only available for the Labeled Volume visualization at the moment!");
 		return;
 	}
 	int classCount = m_classTreeModel->invisibleRootItem()->rowCount();
 	if (classCount < 2)	// unclassified class only
 	{
-		QMessageBox::warning(this, "FeatureScout", "No defined class (except the 'unclassified' class) - please create at least one class first!");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "No defined class (except the 'unclassified' class) - please create at least one class first!");
 		return;
 	}
 	m_renderMode = rmMeanObject;
@@ -913,17 +921,17 @@ void dlg_FeatureScout::ClassAddButton()
 	auto CountObject = pcSelection->GetNumberOfTuples();
 	if (CountObject <= 0)
 	{
-		QMessageBox::warning(this, "FeatureScout", "No object was selected!");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "No object was selected!");
 		return;
 	}
 	if (CountObject == m_activeClassItem->rowCount() && m_activeClassItem->index().row() != 0)
 	{
-		QMessageBox::warning(this, "FeatureScout", "All items in current class are selected. There is no need to create a new class out of them. Please select only a subset of items!");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "All items in current class are selected. There is no need to create a new class out of them. Please select only a subset of items!");
 		return;
 	}
 	if (m_renderMode != rmSingleClass)
 	{
-		QMessageBox::warning(this, "FeatureScout", "Cannot add a class while in a special rendering mode "
+		QMessageBox::warning(m_activeChild, "FeatureScout", "Cannot add a class while in a special rendering mode "
 			"(Multi-Class, Fiber Length/Orientation Distribution). "
 			"Please click on a class first!");
 		return;
@@ -985,13 +993,13 @@ void dlg_FeatureScout::ClassAddButton()
 	// a simple check of the selections
 	if (kIdx.isEmpty())
 	{
-		QMessageBox::information(this, "FeatureScout", "Selected objects are already classified, please make a new selection.");
+		QMessageBox::information(m_activeChild, "FeatureScout", "Selected objects are already classified, please make a new selection.");
 		return;
 	}
 
 	if (kIdx.count() != CountObject)
 	{
-		QMessageBox::warning(this, "FeatureScout", "Selection Error, please make a new selection.");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "Selection Error, please make a new selection.");
 		return;
 	}
 	m_splom->classAdded(classID);
@@ -1018,7 +1026,7 @@ void dlg_FeatureScout::ClassAddButton()
 
 void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 {
-	if (QMessageBox::warning(this, "FeatureScout",
+	if (QMessageBox::warning(m_activeChild, "FeatureScout",
 		"This functionality is only available for FCP fiber/ feature characteristics pore csv formats at the moment. Are you sure you want to proceed?",
 		QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes)
 	{
@@ -1170,11 +1178,11 @@ void dlg_FeatureScout::CsvDVSaveButton()
 
 	if (characteristicsList.count() == 0)
 	{
-		QMessageBox::information(this, "FeatureScout", "No characteristic specified in the element explorer.");
+		QMessageBox::information(m_activeChild, "FeatureScout", "No characteristic specified in the element explorer.");
 		return;
 	}
 
-	iAParameterDlg dlg(this, "Save Distribution CSV", params);
+	iAParameterDlg dlg(m_activeChild, "Save Distribution CSV", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
@@ -1184,14 +1192,14 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	bool showHistogram = values["Show histograms"].toBool();
 	if (!saveFile && !showHistogram)
 	{
-		QMessageBox::warning(this, "FeatureScout", "Please check either 'Save file' or 'Show histogram' (or both).");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "Please check either 'Save file' or 'Show histogram' (or both).");
 		return;
 	}
 
 	QString filename;
 	if (saveFile)
 	{
-		filename = QFileDialog::getSaveFileName(this, tr("Save characteristic distributions"), m_sourcePath, tr("CSV Files (*.csv *.CSV)"));
+		filename = QFileDialog::getSaveFileName(m_activeChild, tr("Save characteristic distributions"), m_sourcePath, tr("CSV Files (*.csv *.CSV)"));
 		if (filename.isEmpty())
 		{
 			return;
@@ -1366,12 +1374,12 @@ void dlg_FeatureScout::WisetexSaveButton()
 {
 	if (!m_classTreeModel->invisibleRootItem()->hasChildren())
 	{
-		QMessageBox::warning(this, "FeatureScout", "No data available!");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "No data available!");
 		return;
 	}
 
 	//XML file save path
-	QString filename = QFileDialog::getSaveFileName(this, tr("Save File"), m_sourcePath, tr("XML Files (*.xml *.XML)"));
+	QString filename = QFileDialog::getSaveFileName(m_activeChild, tr("Save File"), m_sourcePath, tr("XML Files (*.xml *.XML)"));
 	if (filename.isEmpty())
 	{
 		return;
@@ -1380,7 +1388,7 @@ void dlg_FeatureScout::WisetexSaveButton()
 	QFile file(filename);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
-		QMessageBox::warning(this, "FeatureScout", "Could not open XML file for writing.");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "Could not open XML file for writing.");
 		return;
 	}
 
@@ -1401,10 +1409,10 @@ void dlg_FeatureScout::ExportClassButton()
 	{
 		if (m_activeChild->firstImageData() == nullptr)
 		{
-			QMessageBox::information(this, "FeatureScout", "Feature only available if labeled volume is loaded!");
+			QMessageBox::information(m_activeChild, "FeatureScout", "Feature only available if labeled volume is loaded!");
 			return;
 		}
-		else if (QMessageBox::question(this, "FeatureScout", "A labeled volume is required."
+		else if (QMessageBox::question(m_activeChild, "FeatureScout", "A labeled volume is required."
 			"You are not using labeled volume visualization - are you sure a labeled volume is loaded?",
 			QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes)
 			return;
@@ -1412,7 +1420,7 @@ void dlg_FeatureScout::ExportClassButton()
 	int classCount = m_classTreeModel->invisibleRootItem()->rowCount();
 	if (classCount < 2)	// unclassified class only
 	{
-		QMessageBox::warning(this, "FeatureScout", "No defined class (except the 'unclassified' class) - please create at least one class first!");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "No defined class (except the 'unclassified' class) - please create at least one class first!");
 		return;
 	}
 	auto img = m_activeChild->firstImageData();
@@ -1452,7 +1460,7 @@ void dlg_FeatureScout::CreateLabelledOutputMask(std::shared_ptr<iAConnector> con
 	const QString modeFiberID = "Fiber ID";
 	const QString modeClassID = "Class ID";
 	addAttr(params, ParamValues, iAValueType::Categorical, QStringList() << modeFiberID << modeClassID);
-	iAParameterDlg dlg(this, "Save classification options", params, descr);
+	iAParameterDlg dlg(m_activeChild, "Save classification options", params, descr);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
@@ -1539,11 +1547,11 @@ void dlg_FeatureScout::ClassSaveButton()
 {
 	if (m_classTreeModel->invisibleRootItem()->rowCount() == 1)
 	{
-		QMessageBox::warning(this, "FeatureScout", "No classes were defined.");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "No classes were defined.");
 		return;
 	}
 
-	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), m_sourcePath, tr("XML Files (*.xml *.XML)"));
+	QString fileName = QFileDialog::getSaveFileName(m_activeChild, tr("Save File"), m_sourcePath, tr("XML Files (*.xml *.XML)"));
 	if (fileName.isEmpty())
 	{
 		return;
@@ -1552,8 +1560,7 @@ void dlg_FeatureScout::ClassSaveButton()
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
 		LOG(lvlError, QString("Could not open classes XML file (%1) for writing.").arg(fileName));
-		QMessageBox::warning(
-			this, "FeatureScout", QString("Could not open classes XML file (%1) for writing.").arg(fileName));
+		QMessageBox::warning(m_activeChild, "FeatureScout", QString("Could not open classes XML file (%1) for writing.").arg(fileName));
 		return;
 	}
 
@@ -1581,7 +1588,7 @@ void dlg_FeatureScout::saveClassesXML(QXmlStreamWriter& stream)
 
 void dlg_FeatureScout::ClassLoadButton()
 {
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Load xml file"), m_sourcePath, tr("XML Files (*.xml *.XML)"));
+	QString fileName = QFileDialog::getOpenFileName(m_activeChild, tr("Load xml file"), m_sourcePath, tr("XML Files (*.xml *.XML)"));
 	if (fileName.isEmpty())
 	{
 		return;
@@ -1589,7 +1596,7 @@ void dlg_FeatureScout::ClassLoadButton()
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly))
 	{
-		QMessageBox::warning(this, "FeatureScout", "Class load error: Could not open source xml file.");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "Class load error: Could not open source xml file.");
 		return;
 	}
 	QXmlStreamReader reader(&file);
@@ -1611,7 +1618,7 @@ void dlg_FeatureScout::loadClassesXML(QXmlStreamReader& reader)
 			QString msg = QString("Class load error: Object count in xml file (%1) does not match object count of current dataset (%2)"
 				", please check; the xml file was probably created from a different dataset.").arg(xmlObjectCount).arg(m_objectCount);
 			LOG(lvlWarn, msg);
-			QMessageBox::warning(this, "FeatureScout", msg);
+			QMessageBox::warning(m_activeChild, "FeatureScout", msg);
 			return;
 		}
 		if (reader.attributes().hasAttribute(IDColumnAttribute))
@@ -1622,7 +1629,7 @@ void dlg_FeatureScout::loadClassesXML(QXmlStreamReader& reader)
 	else // incompatible xml file
 	{
 		LOG(lvlWarn, "Class load error: xml file incompatible with FeatureScout, please check.");
-		QMessageBox::warning(this, "FeatureScout", "Class load error: xml file incompatible with FeatureScout, please check.");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "Class load error: xml file incompatible with FeatureScout, please check.");
 		return;
 	}
 
@@ -1703,7 +1710,7 @@ void dlg_FeatureScout::ClassDeleteButton()
 	QStandardItem* stammItem = rootItem->child(0);
 	if (m_activeClassItem->index().row() == 0)
 	{
-		QMessageBox::warning(this, "FeatureScout", "You are trying to delete the unclassified class, please select another class.");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "You are trying to delete the unclassified class, please select another class.");
 		return;
 	}
 
@@ -1793,7 +1800,7 @@ void dlg_FeatureScout::showScatterPlot()
 {
 	if (m_dwSPM)
 	{
-		QMessageBox::information(this, "FeatureScout", "Scatterplot Matrix already created.");
+		QMessageBox::information(m_activeChild, "FeatureScout", "Scatterplot Matrix already created.");
 		return;
 	}
 	QSignalBlocker spmBlock(m_splom.get()); // no need to trigger updates while we're creating SPM
@@ -1836,7 +1843,7 @@ void dlg_FeatureScout::showPCSettings()
 	addAttr(params, "Tick Count", iAValueType::Discrete, m_pcTickCount, 0, 255);
 	addAttr(params, "Font Size", iAValueType::Discrete, m_pcFontSize, 0, 255);
 
-	iAParameterDlg pcSettingsDlg(this, "Parallel Coordinates Settings", params);
+	iAParameterDlg pcSettingsDlg(m_activeChild, "Parallel Coordinates Settings", params);
 	if (pcSettingsDlg.exec() != QDialog::Accepted)
 	{
 		return;
@@ -1862,7 +1869,7 @@ void dlg_FeatureScout::saveMesh()
 	// TODO: instad, make objectvis available in datasets!
 	if (m_visType == iAObjectVisType::UseVolume)
 	{
-		QMessageBox::warning(this, "FeatureScout", "Cannot export mesh for labelled volume visualization!");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "Cannot export mesh for labelled volume visualization!");
 		return;
 	}
 	auto polyVis = dynamic_cast<iAColoredPolyObjectVis*>(m_3dvis);
@@ -1871,7 +1878,7 @@ void dlg_FeatureScout::saveMesh()
 		return;
 	}
 	QString defaultFilter = iAFileTypeRegistry::defaultExtFilterString(iADataSetType::Mesh);
-	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
+	QString fileName = QFileDialog::getSaveFileName(m_activeChild, tr("Save File"),
 		m_sourcePath,
 		iAFileTypeRegistry::registeredFileTypes(iAFileIO::Save, iADataSetType::Mesh),
 		&defaultFilter);
@@ -1884,14 +1891,14 @@ void dlg_FeatureScout::saveMesh()
 	if (!io || !io->isDataSetSupported(dataSet, fileName, iAFileIO::Save))
 	{
 		auto msg = QString("The chosen file format (%1) does not support this kind of dataset!").arg(io->name());
-		QMessageBox::warning(this, "Save: Error", msg);
+		QMessageBox::warning(m_activeChild, "Save: Error", msg);
 		LOG(lvlError, msg);
 	}
 	QVariantMap paramValues;
 	auto attr = io->parameter(iAFileIO::Save);
 	if (!attr.isEmpty())
 	{
-		iAParameterDlg dlg(this, "Save mesh parameters", attr);
+		iAParameterDlg dlg(m_activeChild, "Save mesh parameters", attr);
 		if (dlg.exec() != QDialog::Accepted)
 		{
 			return;
@@ -2191,13 +2198,13 @@ void dlg_FeatureScout::classClicked(const QModelIndex& index)
 	// check if unclassified class is empty
 	if (m_classTreeModel->invisibleRootItem()->child(0) == item && item->rowCount() == 0)
 	{
-		QMessageBox::information(this, "FeatureScout", "Unclassified class contains no objects, please make another selection.");
+		QMessageBox::information(m_activeChild, "FeatureScout", "Unclassified class contains no objects, please make another selection.");
 		return;
 	}
 	//MOD kMeans
 	if (item->rowCount() == 0 && item->parent()->index() == m_classTreeModel->invisibleRootItem()->index())
 	{
-		QMessageBox::information(this, "FeatureScout", "This class contains no object, please make another selection or delete the class.");
+		QMessageBox::information(m_activeChild, "FeatureScout", "This class contains no object, please make another selection or delete the class.");
 		return;
 	}
 	QStandardItem* classItem = item->hasChildren() ? item : item->parent();
@@ -2524,7 +2531,7 @@ void dlg_FeatureScout::showContextMenu(const QPoint& pnt)
 
 void dlg_FeatureScout::addObject()
 {
-	QMessageBox::warning(this, "FeatureScout", "Adding an object to the active class is not implemented yet!");
+	QMessageBox::warning(m_activeChild, "FeatureScout", "Adding an object to the active class is not implemented yet!");
 	// checking Class_ID, delete the object from the formerly class, update the corresponding class Table in Table list
 	// adding the new object to the active class, update class table, reordering the label id...
 }
@@ -2540,7 +2547,7 @@ void dlg_FeatureScout::deleteObject()
 	// if the parent item is the unclassified item
 	if (item->parent()->index() == m_classTreeModel->invisibleRootItem()->child(0)->index())
 	{
-		QMessageBox::information(this, "FeatureScout", "An object in the unclassified class can not be deleted.");
+		QMessageBox::information(m_activeChild, "FeatureScout", "An object in the unclassified class can not be deleted.");
 		return;
 	}
 
@@ -2923,7 +2930,7 @@ bool dlg_FeatureScout::OpenBlobVisDialog()
 	addAttr(params, "Dimension X", iAValueType::Discrete, blob ? blob->GetDimensions()[0] : m_blobManager->GetDimensions()[0]);
 	addAttr(params, "Dimension Y", iAValueType::Discrete, blob ? blob->GetDimensions()[1] : m_blobManager->GetDimensions()[1]);
 	addAttr(params, "Dimension Z", iAValueType::Discrete, blob ? blob->GetDimensions()[2] : m_blobManager->GetDimensions()[2]);
-	iAParameterDlg dlg(this, "Blob rendering preferences", params);
+	iAParameterDlg dlg(m_activeChild, "Blob rendering preferences", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return false;
@@ -2951,7 +2958,7 @@ void dlg_FeatureScout::SaveBlobMovie()
 	QString movie_file_types = GetAvailableMovieFormats();
 	if (movie_file_types.isEmpty())
 	{
-		QMessageBox::information(this, "Movie Export", "Sorry, but movie export support is disabled.");
+		QMessageBox::information(m_activeChild, "Movie Export", "Sorry, but movie export support is disabled.");
 		return;
 	}
 	iAAttributes params;
@@ -2983,7 +2990,7 @@ void dlg_FeatureScout::SaveBlobMovie()
 	addAttr(params, "Video quality", iAValueType::Discrete, 2, 0, 2);
 	addAttr(params, "Frame rate", iAValueType::Discrete, 25, 1, 1000);
 
-	iAParameterDlg dlg(this, "Blob movie rendering options", params,
+	iAParameterDlg dlg(m_activeChild, "Blob movie rendering options", params,
 		"Creates a movie of the blob, rotating around it. "
 		"The <em>video quality</em> specifies the quality of the output video "
 			"(range: 0..2, 0 - worst, 2 - best; default: 2). "
@@ -3027,7 +3034,7 @@ void dlg_FeatureScout::SaveBlobMovie()
 		gaussianBlurVariance,
 		dimX, dimY, dimZ,
 		QFileDialog::getSaveFileName(
-			this,
+			m_activeChild,
 			tr("Export movie %1").arg(mode),
 			fileInfo.absolutePath() + "/" + ((mode.isEmpty()) ? fileInfo.baseName() : fileInfo.baseName() + "_" + mode), movie_file_types),
 		imode,
@@ -3042,9 +3049,10 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	m_polarPlotWidget = new iAQVTKWidget();
 	m_lengthDistrWidget = new iAQVTKWidget();
 	m_dwPC = new iADockWidgetWrapper(m_pcWidget, "Parallel Coordinates", "FeatureScoutPC", "https://github.com/3dct/open_iA/wiki/FeatureScout");
-	m_dwPP = new iAPolarPlotWidget(this);
+	m_dwCE = new iADockWidgetWrapper(m_classExplorer, "Class Explorer", DlgObjectName, "https://github.com/3dct/open_iA/wiki/FeatureScout");
+	m_dwPP = new iAPolarPlotWidget(m_activeChild);
 	m_dwPP->legendLayout->addWidget(m_polarPlotWidget);
-	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, this);
+	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwCE);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPC);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPP);
 	m_dwPP->colorMapSelection->hide();

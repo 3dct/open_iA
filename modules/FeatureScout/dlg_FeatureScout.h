@@ -9,7 +9,7 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QDockWidget>
+#include <QObject>
 
 #include <vector>
 
@@ -19,7 +19,7 @@ class iABlobManager;
 class iAFeatureScoutSPLOM;
 class iAMeanObject;
 class iAPolarPlotWidget;
-class Ui_FeatureScoutCE;
+class iAClassExplorer;
 
 class iADockWidgetWrapper;
 class iAQSplom;
@@ -60,6 +60,7 @@ class vtkUnsignedCharArray;
 class vtkVolume;
 class vtkVolumeProperty;
 
+class QAction;
 class QComboBox;
 class QSettings;
 class QStandardItem;
@@ -69,7 +70,7 @@ class QTableView;
 class QXmlStreamReader;
 class QXmlStreamWriter;
 
-class FeatureScout_API dlg_FeatureScout : public QDockWidget
+class FeatureScout_API dlg_FeatureScout: public QObject
 {
 	Q_OBJECT
 public:
@@ -196,11 +197,7 @@ private:
 	QStandardItem* m_activeClassItem;               //!< Currently active class item in classTreeView/Model
 
 	//! @{ context menu actions for classTreeView
-	QAction *m_blobRendering;
-	QAction *m_blobRemoveRendering;
-	QAction *m_objectDelete;
-	QAction *m_objectAdd;
-	QAction *m_saveBlobMovie;
+	QAction *m_blobRendering,  *m_blobRemoveRendering,  *m_objectDelete, *m_objectAdd, *m_saveBlobMovie;
 	//! @}
 
 	//! @{ Parallel coordinates view
@@ -238,9 +235,9 @@ private:
 
 	int m_mousePressPos[2];
 
-	iADockWidgetWrapper* m_dwPC, *m_dwDV, *m_dwSPM;
+	iADockWidgetWrapper* m_dwPC, *m_dwDV, *m_dwSPM, *m_dwCE;
 	iAPolarPlotWidget* m_dwPP;
-	const std::unique_ptr<Ui_FeatureScoutCE> m_ui;
+	iAClassExplorer* m_classExplorer;
 
 	iAColMapP m_columnMapping;
 

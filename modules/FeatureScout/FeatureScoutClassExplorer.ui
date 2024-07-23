@@ -1,285 +1,209 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>FeatureScoutCE</class>
- <widget class="QDockWidget" name="FeatureScoutCE">
+ <widget class="QWidget" name="FeatureScoutCE">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>390</width>
-    <height>82</height>
+    <width>661</width>
+    <height>49</height>
    </rect>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>0</width>
-    <height>0</height>
-   </size>
-  </property>
-  <property name="features">
-   <set>QDockWidget::DockWidgetFeatureMask</set>
   </property>
   <property name="windowTitle">
    <string>Class Explorer</string>
   </property>
-  <widget class="QWidget" name="dockWidgetContents">
-   <property name="enabled">
-    <bool>true</bool>
+  <layout class="QVBoxLayout" name="ClassExplorerLayout">
+   <property name="spacing">
+    <number>0</number>
    </property>
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
+   <property name="leftMargin">
+    <number>1</number>
    </property>
-   <layout class="QGridLayout" name="gridLayout">
-    <property name="leftMargin">
-     <number>1</number>
-    </property>
-    <property name="topMargin">
-     <number>0</number>
-    </property>
-    <property name="rightMargin">
-     <number>1</number>
-    </property>
-    <property name="bottomMargin">
-     <number>0</number>
-    </property>
-    <property name="spacing">
-     <number>0</number>
-    </property>
-    <item row="0" column="0">
-     <widget class="QSplitter" name="splitter_3">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="handleWidth">
-       <number>2</number>
-      </property>
-      <widget class="QSplitter" name="splitter_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>1</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+     <widget class="QWidget" name="layoutWidget" native="true">
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="spacing">
+        <number>4</number>
        </property>
-       <property name="handleWidth">
-        <number>2</number>
+       <property name="leftMargin">
+        <number>0</number>
        </property>
-       <widget class="QWidget" name="layoutWidget" native="true">
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <property name="spacing">
-          <number>4</number>
-         </property>
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <layout class="QGridLayout" name="ClassLayout">
          <property name="rightMargin">
           <number>0</number>
          </property>
-         <property name="bottomMargin">
+         <property name="spacing">
           <number>0</number>
          </property>
-         <item>
-          <layout class="QGridLayout" name="ClassLayout">
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="spacing">
-            <number>0</number>
-           </property>
-          </layout>
-         </item>
-         <item>
-          <widget class="QFrame" name="ButtonFrame">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="frameShape">
-            <enum>QFrame::NoFrame</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Plain</enum>
-           </property>
-           <property name="lineWidth">
-            <number>0</number>
-           </property>
-           <layout class="QHBoxLayout" name="ButtonLayout">
-            <property name="spacing">
-             <number>4</number>
-            </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QToolButton" name="add_class">
-              <property name="toolTip">
-               <string>Add a new class</string>
-              </property>
-              <property name="text">
-               <string>Add class</string>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="delete_class">
-              <property name="toolTip">
-               <string>Delete the currently selected class</string>
-              </property>
-              <property name="text">
-               <string>Delete class</string>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="save_class">
-              <property name="toolTip">
-               <string>Save the classes and the objects stored in them in an XML file (which can later be loaded again)</string>
-              </property>
-              <property name="text">
-               <string>Save classes</string>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="load_class">
-              <property name="toolTip">
-               <string>Load classes and the objects in them from an XML file as stored via "Save classes" functionality</string>
-              </property>
-              <property name="text">
-               <string>Load classes</string>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="savexml">
-              <property name="toolTip">
-               <string>Save as Wisetex-XML</string>
-              </property>
-              <property name="text">
-               <string>wisetex_save</string>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="distributionCSV">
-              <property name="toolTip">
-               <string>Show feature distribution and save as csv-file </string>
-              </property>
-              <property name="text">
-               <string>Distribution CSV</string>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="export_class">
-              <property name="toolTip">
-               <string>Export class(es) to new labeled image</string>
-              </property>
-              <property name="text">
-               <string>Export class image</string>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>32</width>
-                <height>32</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_4">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>0</width>
-                <height>0</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </widget>
-         </item>
         </layout>
-       </widget>
-      </widget>
-      <widget class="QWidget" name="layoutWidget_2" native="true">
-       <layout class="QGridLayout" name="ElementLayout">
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
-         <number>0</number>
-        </property>
-        <property name="horizontalSpacing">
-         <number>20</number>
-        </property>
-        <property name="verticalSpacing">
-         <number>0</number>
-        </property>
-       </layout>
-      </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="ButtonFrame">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::Shape::NoFrame</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Shadow::Plain</enum>
+         </property>
+         <property name="lineWidth">
+          <number>0</number>
+         </property>
+         <layout class="QHBoxLayout" name="ButtonLayout">
+          <property name="spacing">
+           <number>4</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QToolButton" name="add_class">
+            <property name="toolTip">
+             <string>Add the selected objects to a new class</string>
+            </property>
+            <property name="text">
+             <string>Add class</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="delete_class">
+            <property name="toolTip">
+             <string>Delete the currently selected class</string>
+            </property>
+            <property name="text">
+             <string>Delete class</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="save_class">
+            <property name="toolTip">
+             <string>Save the classes and the objects stored in them in an XML file (which can later be loaded again)</string>
+            </property>
+            <property name="text">
+             <string>Save classes</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="load_class">
+            <property name="toolTip">
+             <string>Load classes and the objects in them from an XML file as stored via &quot;Save classes&quot; functionality</string>
+            </property>
+            <property name="text">
+             <string>Load classes</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="savexml">
+            <property name="toolTip">
+             <string>Save as Wisetex-XML</string>
+            </property>
+            <property name="text">
+             <string>wisetex_save</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="distributionCSV">
+            <property name="toolTip">
+             <string>Show feature distribution and save as csv-file </string>
+            </property>
+            <property name="text">
+             <string>Distribution CSV</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="export_class">
+            <property name="toolTip">
+             <string>Export class(es) to new labeled image</string>
+            </property>
+            <property name="text">
+             <string>Export class image</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
      </widget>
-    </item>
-   </layout>
-  </widget>
+     <widget class="QWidget" name="ElementLayoutWidget" native="true">
+      <layout class="QGridLayout" name="ElementLayout">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <property name="spacing">
+        <number>0</number>
+       </property>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>
