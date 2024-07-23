@@ -158,10 +158,10 @@ namespace
 }
 
 //! define class here directly instead of using iAQTtoUIConnector, to be able to forward-declare
-class iAPolarPlotWidget : public QDockWidget, public Ui_FeatureScoutPP
+class iAPolarPlotWidget : public QWidget, public Ui_FeatureScoutPP
 {
 public:
-	iAPolarPlotWidget(QWidget* parent) : QDockWidget(parent)
+	iAPolarPlotWidget(QWidget* parent) : QWidget(parent)
 	{
 		setupUi(this);
 	}
@@ -730,7 +730,7 @@ void dlg_FeatureScout::renderOrientation()
 				std::cos(theta_rad) };
 			double* p = static_cast<double*>(oi->GetScalarPointer(theta, phi, 0));
 			vtkMath::Normalize(recCoord);
-			getColorMap(m_dwPP->orientationColorMap->currentIndex())(recCoord, p);
+			getColorMap(m_ppWidget->orientationColorMap->currentIndex())(recCoord, p);
 		}
 	}
 
@@ -788,7 +788,7 @@ void dlg_FeatureScout::renderOrientation()
 	this->drawAnnotations(renderer);
 
 	m_activeChild->updateViews();
-	m_dwPP->colorMapSelection->show();
+	m_ppWidget->colorMapSelection->show();
 	renW->Render();
 }
 
@@ -893,7 +893,7 @@ void dlg_FeatureScout::renderLengthDistribution()
 
 	m_3dvis->renderLengthDistribution(cTFun, extents, halfInc, m_objectType, range);
 
-	m_dwPP->colorMapSelection->hide();
+	m_ppWidget->colorMapSelection->hide();
 	showLengthDistribution(true, cTFun);
 	m_renderer->update();
 
@@ -909,8 +909,8 @@ void dlg_FeatureScout::renderLengthDistribution()
 	m_lengthDistrView->GetScene()->AddItem(chart);
 	m_lengthDistrWidget->renderWindow()->Render();
 	m_lengthDistrWidget->update();
-	m_dwPP->legendLayout->removeWidget(m_polarPlotWidget);
-	m_dwPP->legendLayout->addWidget(m_lengthDistrWidget);
+	m_ppWidget->legendLayout->removeWidget(m_polarPlotWidget);
+	m_ppWidget->legendLayout->addWidget(m_lengthDistrWidget);
 	m_polarPlotWidget->hide();
 	m_lengthDistrWidget->show();
 }
@@ -2170,12 +2170,12 @@ void dlg_FeatureScout::showLengthDistribution(bool show, vtkScalarsToColors* lut
 	}
 	if (!show && m_lengthDistrWidget->isVisible())
 	{
-		m_dwPP->legendLayout->removeWidget(m_lengthDistrWidget);
-		m_dwPP->legendLayout->addWidget(m_polarPlotWidget);
+		m_ppWidget->legendLayout->removeWidget(m_lengthDistrWidget);
+		m_ppWidget->legendLayout->addWidget(m_polarPlotWidget);
 		m_lengthDistrWidget->hide();
 		m_polarPlotWidget->show();
 	}
-	m_dwPP->colorMapSelection->hide();
+	m_ppWidget->colorMapSelection->hide();
 }
 
 void dlg_FeatureScout::classClicked(const QModelIndex& index)
@@ -3050,17 +3050,18 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	m_lengthDistrWidget = new iAQVTKWidget();
 	m_dwPC = new iADockWidgetWrapper(m_pcWidget, "Parallel Coordinates", "FeatureScoutPC", "https://github.com/3dct/open_iA/wiki/FeatureScout");
 	m_dwCE = new iADockWidgetWrapper(m_classExplorer, "Class Explorer", DlgObjectName, "https://github.com/3dct/open_iA/wiki/FeatureScout");
-	m_dwPP = new iAPolarPlotWidget(m_activeChild);
-	m_dwPP->legendLayout->addWidget(m_polarPlotWidget);
+	m_ppWidget = new iAPolarPlotWidget(m_activeChild);
+	m_dwPP = new iADockWidgetWrapper(m_classExplorer, "Orientation Plot", "FeatureScoutPP", "https://github.com/3dct/open_iA/wiki/FeatureScout");
+	m_ppWidget->legendLayout->addWidget(m_polarPlotWidget);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwCE);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPC);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPP);
-	m_dwPP->colorMapSelection->hide();
+	m_ppWidget->colorMapSelection->hide();
 	if (m_objectType == iAObjectType::Voids)
 	{
 		m_dwPP->hide();
 	}
-	connect(m_dwPP->orientationColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_FeatureScout::renderOrientation);
+	connect(m_ppWidget->orientationColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_FeatureScout::renderOrientation);
 }
 
 void dlg_FeatureScout::saveProject(QSettings& projectFile)

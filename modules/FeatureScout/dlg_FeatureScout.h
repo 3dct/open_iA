@@ -235,8 +235,8 @@ private:
 
 	int m_mousePressPos[2];
 
-	iADockWidgetWrapper* m_dwPC, *m_dwDV, *m_dwSPM, *m_dwCE;
-	iAPolarPlotWidget* m_dwPP;
+	iADockWidgetWrapper* m_dwPC, *m_dwDV, *m_dwSPM, *m_dwCE, *m_dwPP;
+	iAPolarPlotWidget* m_ppWidget;
 	iAClassExplorer* m_classExplorer;
 
 	iAColMapP m_columnMapping;
