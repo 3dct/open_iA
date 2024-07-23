@@ -951,7 +951,7 @@ void dlg_FeatureScout::ClassAddButton()
 
 	int classID = rootItem->rowCount();
 	int objID = 0;
-	QList<int> kIdx; // list to regist the selected index of object IDs in m_activeClassItem
+	QList<int> kIdx; // list to register the selected index of object IDs in m_activeClassItem
 
 	// add new class
 	for (int i = 0; i < CountObject; ++i)
@@ -959,23 +959,27 @@ void dlg_FeatureScout::ClassAddButton()
 		// get objID from item->text()
 		vtkVariant v = pcSelection->GetVariantValue(i);
 		objID = v.ToInt() + 1;	//fibre index starting at 1 not at 0
-		objID = m_activeClassItem->child(v.ToInt())->text().toInt();
+		auto child = m_activeClassItem->child(v.ToInt());
+		if (!child)
+		{
+			LOG(lvlWarn, QString("Invalid state: Active class does not contain item (objID=%1) from selection!").arg(objID));
+			continue;
+		}
+		objID = child->text().toInt();
 
 		if (kIdx.contains(v.ToInt()))
 		{
-			LOG(lvlWarn, QString("Tried to add objID=%1, v=%2 to class which is already contained in other class!").arg(objID).arg(v.ToInt()));
+			LOG(lvlWarn, QString("Tried to add objID=%1 to class which is already contained in other class!").arg(objID));
+			continue;
 		}
-		else
-		{
-			kIdx.prepend(v.ToInt());
+		kIdx.prepend(v.ToInt());
 
-			// add item to the new class
-			QString str = QString("%1").arg(objID);
-			item = new QStandardItem(str);
-			firstLevelItem.first()->appendRow(item);
+		// add item to the new class
+		QString str = QString("%1").arg(objID);
+		item = new QStandardItem(str);
+		firstLevelItem.first()->appendRow(item);
 
-			m_csvTable->SetValue(objID - 1, m_elementCount - 1, classID); // update Class_ID column in csvTable
-		}
+		m_csvTable->SetValue(objID - 1, m_elementCount - 1, classID); // update Class_ID column in csvTable
 	}
 
 	// a simple check of the selections

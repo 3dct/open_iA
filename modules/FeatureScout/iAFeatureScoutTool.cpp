@@ -197,7 +197,7 @@ bool iAFeatureScoutTool::init(iAMdiChild* child, iACsvConfig const& csvConfig, s
 		renderSettings[iADataSetRenderer::Shading] = true;
 		renderSettings[iADataSetRenderer::DiffuseLighting] = 1.6;
 		renderSettings[iADataSetRenderer::SpecularLighting] = 0.0;
-		renderSettings[iAVolumeRenderer::Interpolation] = iAVolumeRenderer::InterpolateLinear;
+		renderSettings[iAVolumeRenderer::Interpolation] = iAVolumeRenderer::InterpolateNearest;
 		for (auto key : RenderModeMap().keys())
 		{
 			if (RenderModeMap()[key] == vtkSmartVolumeMapper::RayCastRenderMode)

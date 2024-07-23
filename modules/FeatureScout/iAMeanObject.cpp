@@ -10,7 +10,9 @@
 #include <iAToolsVTK.h>
 
 // charts
+#include <iAPlotTypes.h>
 #include <iAChartWithFunctionsWidget.h>
+#include <iAHistogramData.h>
 
 // objectvis
 #include <iAObjectType.h>
@@ -78,27 +80,28 @@ public:
 	}
 };
 
+//! data for a single mean object
 class iAMeanObjectData
 {
 public:
-	QList<iATransferFunctionOwner*> moHistogramList;
-	QList<vtkSmartPointer<vtkVolume>> moVolumesList;
-	QList<vtkSmartPointer<vtkRenderer>> moRendererList;
-	QList<vtkSmartPointer<vtkFixedPointVolumeRayCastMapper>> moVolumeMapperList;
-	QList<vtkSmartPointer<vtkVolumeProperty>> moVolumePropertyList;
-	QList<vtkSmartPointer<vtkImageData>> moImageDataList;
+	std::unique_ptr<iATransferFunctionOwner> tf;
+	vtkNew<vtkVolume> volume;
+	vtkNew<vtkFixedPointVolumeRayCastMapper> volumeMapper;
+	vtkNew<vtkVolumeProperty> volumeProperty;
+	vtkNew<vtkImageData> imageData;
+	vtkSmartPointer<vtkRenderer> renderer;
+	std::shared_ptr<iAPlot> histoPlot;
+	QDialog* tfDlg;
 };
 
 iAMeanObject::iAMeanObject(iAMdiChild* activeChild, QString const& sourcePath) :
 	m_dwMO(nullptr),
-	m_motfView(nullptr),
-	m_MOData(std::make_shared<iAMeanObjectData>()),
 	m_meanObjectWidget(nullptr),
 	m_activeChild(activeChild),
-	m_filterID(-1),
 	m_sourcePath(sourcePath)
-{
-}
+{}
+
+iAMeanObject::~iAMeanObject() = default;
 
 void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<vtkTable>> const& tableList,
 	int filterID, QDockWidget* nextToDW, vtkCamera* commonCamera, QList<QColor> const& classColor)
@@ -109,23 +112,13 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 		QMessageBox::warning(m_activeChild, "MObjects", "You need to define at least one class for Mean Objects to be computed!");
 		return;
 	}
+
+	auto p = std::make_shared<iAProgress>();
+	auto fw = runAsync([this, classNames, tableList, filterID, classCount, p]
+	{
+		m_MOData.clear();
 	try
 	{
-		m_filterID = filterID;
-		iAProgress p;
-		auto jobHandle = iAJobListView::get()->addJob("Compute Mean Object", &p);
-		// Delete old mean object data lists
-		for (int i = 0; i < m_MOData->moHistogramList.size(); ++i)
-		{
-			delete m_MOData->moHistogramList[i];
-		}
-		m_MOData->moVolumesList.clear();
-		m_MOData->moHistogramList.clear();
-		m_MOData->moRendererList.clear();
-		m_MOData->moVolumeMapperList.clear();
-		m_MOData->moVolumePropertyList.clear();
-		m_MOData->moImageDataList.clear();
-
 		// Casts image to long (if necessary) and convert it to an ITK image
 		using IType = itk::Image<long, DIM>;
 		auto vtkToItkConverter = itk::VTKImageToImageFilter<IType>::New();
@@ -222,6 +215,8 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 
 		for (qsizetype currClass = 1; currClass < classCount; ++currClass)
 		{
+				m_MOData.push_back(std::move(std::make_unique<iAMeanObjectData>()));
+				auto moData = m_MOData[m_MOData.size() - 1].get();
 			std::map<int, int> meanObjectIds;
 			for (int j = 0; j < tableList[currClass]->GetNumberOfRows(); ++j)
 			{
@@ -270,8 +265,7 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 
 				double percentage = std::round((currClass - 1) * 100.0 / (classCount - 1) +
 					(progress + 1.0) * (100.0 / (classCount - 1)) / meanObjectIds.size());
-				p.emitProgress(percentage);
-				QCoreApplication::processEvents();
+					p->emitProgress(percentage);
 				++progress;
 			}
 
@@ -291,73 +285,78 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 			auto itkToVTKConverter = itk::ImageToVTKImageFilter<OutputImageType>::New();
 			itkToVTKConverter->SetInput(caster->GetOutput());
 			itkToVTKConverter->Update();
-			auto meanObjectImage = vtkSmartPointer<vtkImageData>::New();
-			meanObjectImage->DeepCopy(itkToVTKConverter->GetOutput());
-			m_MOData->moImageDataList.append(meanObjectImage);
+				moData->imageData->DeepCopy(itkToVTKConverter->GetOutput());
 
-			// Create histogram and TFs for each MObject
-			QString moHistName = classNames[currClass];
-			moHistName.append(QString(" %1 Mean Object").arg(MapObjectTypeToString(filterID)));
-			iATransferFunctionOwner* moHistogram =
-				new iATransferFunctionOwner(m_MOData->moImageDataList[currClass - 1]->GetScalarRange());
-			m_MOData->moHistogramList.append(moHistogram);
-
-			// Create MObject default Transfer Tunctions
+				// Create MObject default Transfer functions
+				moData->tf = std::make_unique<iATransferFunctionOwner>(moData->imageData->GetScalarRange());
 			if (filterID == iAObjectType::Fibers)  // Fibers
 			{
-				m_MOData->moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
-				m_MOData->moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.01, 1.0, 1.0, 0.0);
-				m_MOData->moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.095, 1.0, 1.0, 0.0);
-				m_MOData->moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.1, 0.0, 0.0, 1.0);
-				m_MOData->moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(1.00, 0.0, 0.0, 1.0);
-				m_MOData->moHistogramList[currClass - 1]->opacityTF()->AddPoint(0.0, 0.0);
-				m_MOData->moHistogramList[currClass - 1]->opacityTF()->AddPoint(0.01, 0.01);
-				m_MOData->moHistogramList[currClass - 1]->opacityTF()->AddPoint(0.095, 0.01);
-				m_MOData->moHistogramList[currClass - 1]->opacityTF()->AddPoint(0.1, 0.05);
-				m_MOData->moHistogramList[currClass - 1]->opacityTF()->AddPoint(1.00, 0.18);
+					moData->tf->colorTF()->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
+					moData->tf->colorTF()->AddRGBPoint(0.01, 1.0, 1.0, 0.0);
+					moData->tf->colorTF()->AddRGBPoint(0.095, 1.0, 1.0, 0.0);
+					moData->tf->colorTF()->AddRGBPoint(0.1, 0.0, 0.0, 1.0);
+					moData->tf->colorTF()->AddRGBPoint(1.00, 0.0, 0.0, 1.0);
+					moData->tf->opacityTF()->AddPoint(0.0, 0.0);
+					moData->tf->opacityTF()->AddPoint(0.01, 0.01);
+					moData->tf->opacityTF()->AddPoint(0.095, 0.01);
+					moData->tf->opacityTF()->AddPoint(0.1, 0.05);
+					moData->tf->opacityTF()->AddPoint(1.00, 0.18);
 			}
 			else  // Voids
 			{
-				m_MOData->moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
-				m_MOData->moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.0001, 0.0, 0.0, 0.0);
-				m_MOData->moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.001, 1.0, 1.0, 0.0);
-				m_MOData->moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.18, 1.0, 1.0, 0.0);
-				m_MOData->moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.2, 0.0, 0.0, 1.0);
-				m_MOData->moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(1.0, 0.0, 0.0, 1.0);
-				m_MOData->moHistogramList[currClass - 1]->opacityTF()->AddPoint(0.0, 0.0);
-				m_MOData->moHistogramList[currClass - 1]->opacityTF()->AddPoint(0.0001, 0.0);
-				m_MOData->moHistogramList[currClass - 1]->opacityTF()->AddPoint(0.001, 0.005);
-				m_MOData->moHistogramList[currClass - 1]->opacityTF()->AddPoint(0.18, 0.005);
-				m_MOData->moHistogramList[currClass - 1]->opacityTF()->AddPoint(0.2, 0.08);
-				m_MOData->moHistogramList[currClass - 1]->opacityTF()->AddPoint(1.0, 0.5);
+					moData->tf->colorTF()->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
+					moData->tf->colorTF()->AddRGBPoint(0.0001, 0.0, 0.0, 0.0);
+					moData->tf->colorTF()->AddRGBPoint(0.001, 1.0, 1.0, 0.0);
+					moData->tf->colorTF()->AddRGBPoint(0.18, 1.0, 1.0, 0.0);
+					moData->tf->colorTF()->AddRGBPoint(0.2, 0.0, 0.0, 1.0);
+					moData->tf->colorTF()->AddRGBPoint(1.0, 0.0, 0.0, 1.0);
+					moData->tf->opacityTF()->AddPoint(0.0, 0.0);
+					moData->tf->opacityTF()->AddPoint(0.0001, 0.0);
+					moData->tf->opacityTF()->AddPoint(0.001, 0.005);
+					moData->tf->opacityTF()->AddPoint(0.18, 0.005);
+					moData->tf->opacityTF()->AddPoint(0.2, 0.08);
+					moData->tf->opacityTF()->AddPoint(1.0, 0.5);
 			}
 
-			// Create the property and attach the transfer functions
-			auto vProperty = vtkSmartPointer<vtkVolumeProperty>::New();
-			m_MOData->moVolumePropertyList.append(vProperty);
-			vProperty->SetColor(m_MOData->moHistogramList[currClass - 1]->colorTF());
-			vProperty->SetScalarOpacity(m_MOData->moHistogramList[currClass - 1]->opacityTF());
-			vProperty->SetInterpolationTypeToLinear();
-			vProperty->ShadeOff();
+				moData->volumeProperty->SetColor(moData->tf->colorTF());
+				moData->volumeProperty->SetScalarOpacity(moData->tf->opacityTF());
+				moData->volumeProperty->SetInterpolationTypeToLinear();
+				moData->volumeProperty->ShadeOff();
+				moData->volumeMapper->SetAutoAdjustSampleDistances(1);
+				moData->volumeMapper->SetSampleDistance(1.0);
+				moData->volumeMapper->SetInputData(moData->imageData);
+				moData->volumeMapper->Update();
+				moData->volumeMapper->UpdateDataObject();
+				moData->volume->SetProperty(moData->volumeProperty);
+				moData->volume->SetMapper(moData->volumeMapper);
+				moData->volume->Update();
 
-			// Create volume and mapper and set input for mapper
-			auto volume = vtkSmartPointer<vtkVolume>::New();
-			m_MOData->moVolumesList.append(volume);
-			auto mapper = vtkSmartPointer<vtkFixedPointVolumeRayCastMapper>::New();
-			m_MOData->moVolumeMapperList.append(mapper);
-			mapper->SetAutoAdjustSampleDistances(1);
-			mapper->SetSampleDistance(1.0);
-			mapper->SetInputData(m_MOData->moImageDataList[currClass - 1]);
-			mapper->Update();
-			mapper->UpdateDataObject();
-			volume->SetProperty(m_MOData->moVolumePropertyList[currClass - 1]);
-			volume->SetMapper(m_MOData->moVolumeMapperList[currClass - 1]);
-			volume->Update();
+				// create histogram
+				QString moHistName = classNames[currClass] + QString(" %1 Mean Object").arg(MapObjectTypeToString(filterID));
+				auto histData = iAHistogramData::create(moHistName,	moData->imageData, 512);
+				moData->histoPlot = std::make_shared<iABarGraphPlot>(histData, QApplication::palette().color(QPalette::Shadow));
 		}
+		}
+		catch (itk::ExceptionObject& excep)
+		{
+			QString msg = QString("Error in computation: %1 in File %2, Line %3.")
+				.arg(excep.GetDescription())
+				.arg(excep.GetFile())
+				.arg(excep.GetLine());
+			LOG(lvlError, QString("MObjects: %1").arg(msg));
+			QMessageBox::warning(m_activeChild, "MObjects", msg + "\nCheck whether you provided a proper labeled image!");
+		}
+		catch (std::bad_alloc& e)
+		{
+			QString msg = QString("Allocation failed: %1").arg(e.what());
+			LOG(lvlError, QString("MObjects: %1").arg(msg));
+			QMessageBox::warning(m_activeChild, "MObjects", msg + "\nCheck whether you can free some memory, operate on a smaller dataset, or use a machine with more RAM!");
+		}
+	}, [this, classNames, filterID, nextToDW, commonCamera, classColor] {
 
 		// Create the outline for volume
 		auto outline = vtkSmartPointer<vtkOutlineFilter>::New();
-		outline->SetInputData(m_MOData->moVolumesList[0]->GetMapper()->GetDataObjectInput());
+		outline->SetInputData(m_MOData[0]->volume->GetMapper()->GetDataObjectInput());
 		auto outlineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		outlineMapper->SetInputConnection(outline->GetOutputPort());
 		auto outlineActor = vtkSmartPointer<vtkActor>::New();
@@ -386,13 +385,9 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 
 			// Create a render window and an interactor for all the MObjects
 			m_meanObjectWidget = new iAQVTKWidget();
-
 			m_dwMO->verticalLayout->addWidget(m_meanObjectWidget);
-			auto renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-			renderWindowInteractor->SetRenderWindow(m_meanObjectWidget->renderWindow());
 			auto style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
-			renderWindowInteractor->SetInteractorStyle(style);
-
+			m_meanObjectWidget->renderWindow()->GetInteractor()->SetInteractorStyle(style);
 			auto moDW = new iADockWidgetWrapper(m_dwMO, "Mean Object", "FeatureScoutMO", "https://github.com/3dct/open_iA/wiki/MObjects");
 			moDW->setWindowTitle(QString("%1 Mean Object View").arg(MapObjectTypeToString(filterID)));
 
@@ -410,29 +405,28 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 		m_meanObjectWidget->renderWindow()->GetRenderers()->RemoveAllItems();
 
 		// Define viewport variables
-		auto numberOfMeanObjectVolumes = m_MOData->moVolumesList.size();
-		float viewportColumns = numberOfMeanObjectVolumes < 3 ? fmod(numberOfMeanObjectVolumes, 3.0) : 3.0;
-		float viewportRows = std::ceil(numberOfMeanObjectVolumes / viewportColumns);
+		float viewportColumns = m_MOData.size() < 3 ? fmod(m_MOData.size(), 3.0) : 3.0;
+		float viewportRows = std::ceil(m_MOData.size() / viewportColumns);
 		float fieldLengthX = 1.0 / viewportColumns, fieldLengthY = 1.0 / viewportRows;
 		int numOfViewPorts = static_cast<int>(viewportColumns * viewportRows);
 		// Set up viewports
 		for (int i = 0; i < numOfViewPorts; ++i)
 		{
 			auto renderer = vtkSmartPointer<vtkRenderer>::New();
-			m_MOData->moRendererList.append(renderer);
 			renderer->GetActiveCamera()->ParallelProjectionOn();
 			renderer->SetBackground(1.0, 1.0, 1.0);
-			m_meanObjectWidget->renderWindow()->AddRenderer(m_MOData->moRendererList[i]);
+			m_meanObjectWidget->renderWindow()->AddRenderer(renderer);
 			renderer->SetViewport(fmod(i, viewportColumns) * fieldLengthX,
 				1 - (std::ceil((i + 1.0) / viewportColumns) / viewportRows),
 				fmod(i, viewportColumns) * fieldLengthX + fieldLengthX,
 				1 - (std::ceil((i + 1.0) / viewportColumns) / viewportRows) + fieldLengthY);
 
-			if (i < m_MOData->moVolumesList.size())
+			if (i < m_MOData.size())
 			{
-				renderer->AddVolume(m_MOData->moVolumesList[i]);
-				renderer->SetActiveCamera(commonCamera);
-				renderer->GetActiveCamera()->SetParallelScale(
+				m_MOData[i]->renderer = renderer;
+				m_MOData[i]->renderer->AddVolume(m_MOData[i]->volume);
+				m_MOData[i]->renderer->SetActiveCamera(commonCamera);
+				m_MOData[i]->renderer->GetActiveCamera()->SetParallelScale(
 					maxDim);  //use maxDim for right scaling to fit the data in the viewports
 
 				auto cornerAnnotation = vtkSmartPointer<vtkCornerAnnotation>::New();
@@ -483,53 +477,45 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 				renderer->AddActor(cubeAxesActor);
 				renderer->AddActor(outlineActor);
 			}
-			m_meanObjectWidget->renderWindow()->Render();
 		}
-	}
-	catch (itk::ExceptionObject& excep)
-	{
-		QString msg = QString("Error in computation: %1 in File %2, Line %3.")
-						  .arg(excep.GetDescription())
-						  .arg(excep.GetFile())
-						  .arg(excep.GetLine());
-		LOG(lvlError, QString("MObjects: %1").arg(msg));
-		QMessageBox::warning(m_activeChild, "MObjects", msg + "\nCheck whether you provided a proper labeled image!");
-	}
-	catch (std::bad_alloc& e)
-	{
-		QString msg = QString("Allocation failed: %1").arg(e.what());
-		LOG(lvlError, QString("MObjects: %1").arg(msg));
-		QMessageBox::warning(m_activeChild, "MObjects", msg + "\nCheck whether you can free some memory, operate on a smaller dataset, or use a machine with more RAM!");
-	}
-}
+			m_meanObjectWidget->renderWindow()->Render();
+	}, this);
+	iAJobListView::get()->addJob("Compute Mean Object", p.get(), fw);
+		}
 
 void iAMeanObject::modifyMeanObjectTF()
 {
-	//delete m_motfView;	// in case it was previously open
 	int moIndex = m_dwMO->cb_Classes->currentIndex();
-	if (moIndex < 0 || moIndex >= m_MOData->moHistogramList.size())
+	if (moIndex < 0 || moIndex >= m_MOData.size())
 	{	// if outside valid range - just to be on the safe side
 		LOG(lvlError, QString("Invalid Mean Object index %1!").arg(moIndex));
 		return;
 	}
-	m_motfView = new QDialog(m_activeChild);
-	m_motfView->setWindowTitle(QString("%1 Mean Object Transfer Function")
+	if (m_MOData[moIndex]->tfDlg)
+	{
+		m_MOData[moIndex]->tfDlg->show();  // make sure it is visible (brings it back when closed by the user)
+		m_MOData[moIndex]->tfDlg->raise(); // make sure it is the topmost dialog (if there are other open dialogs)
+		return;
+	}
+	m_MOData[moIndex]->tfDlg = new QDialog(m_activeChild);
+	m_MOData[moIndex]->tfDlg->setWindowTitle(QString("%1 Mean Object Transfer Function")
 								   .arg(m_dwMO->cb_Classes->itemText(m_dwMO->cb_Classes->currentIndex())));
 	//iAChartWithFunctionsWidget* histogram = m_activeChild->histogram();
-	auto histogram = new iAChartWithFunctionsWidget(m_motfView, "Probability", "Frequency");
-	histogram->setTransferFunction(m_MOData->moHistogramList[moIndex]);
-	connect(histogram, &iAChartWithFunctionsWidget::transferFunctionChanged, this,
+	auto chart = new iAChartWithFunctionsWidget(m_MOData[moIndex]->tfDlg, "Probability", "Frequency");
+	chart->setTransferFunction(m_MOData[moIndex]->tf.get());
+	chart->addPlot(m_MOData[moIndex]->histoPlot);
+	connect(chart, &iAChartWithFunctionsWidget::transferFunctionChanged, this,
 		[this] { m_meanObjectWidget->renderWindow()->Render(); });
-	m_motfView->setLayout(new QHBoxLayout);
-	m_motfView->layout()->addWidget(histogram);
-	histogram->show();
-	m_motfView->show();
+	m_MOData[moIndex]->tfDlg->setLayout(new QHBoxLayout);
+	m_MOData[moIndex]->tfDlg->layout()->addWidget(chart);
+	m_MOData[moIndex]->tfDlg->resize(800, 300);
+	m_MOData[moIndex]->tfDlg->show();
 }
 
 void iAMeanObject::saveStl()
 {
 	int moIndex = m_dwMO->cb_Classes->currentIndex();
-	if (moIndex < 0 || moIndex >= m_MOData->moHistogramList.size())
+	if (moIndex < 0 || moIndex >= m_MOData.size())
 	{  // if outside valid range - just to be on the safe side
 		LOG(lvlError, QString("Invalid Mean Object index %1!").arg(moIndex));
 		return;
@@ -539,7 +525,7 @@ void iAMeanObject::saveStl()
 	{
 		return;
 	}
-	int isoValue = m_dwMO->dsb_IsoValue->value();
+	double isoValue = m_dwMO->dsb_IsoValue->value();
 
 	auto progress = new iAMultiStepProgressObserver(2);
 	auto job = runAsync(
@@ -547,7 +533,7 @@ void iAMeanObject::saveStl()
 		{
 			auto moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
 			progress->observe(moSurface);
-			moSurface->SetInputData(m_MOData->moImageDataList[moIndex]);
+			moSurface->SetInputData(m_MOData[moIndex]->imageData);
 			moSurface->ComputeNormalsOn();
 			moSurface->ComputeGradientsOn();
 			moSurface->SetValue(0, isoValue);
@@ -566,7 +552,7 @@ void iAMeanObject::saveStl()
 void iAMeanObject::saveVolume()
 {
 	int moIndex = m_dwMO->cb_Classes->currentIndex();
-	if (moIndex < 0 || moIndex >= m_MOData->moHistogramList.size())
+	if (moIndex < 0 || moIndex >= m_MOData.size())
 	{  // if outside valid range - just to be on the safe side
 		LOG(lvlError, QString("Invalid Mean Object index %1!").arg(moIndex));
 		return;
@@ -580,7 +566,7 @@ void iAMeanObject::saveVolume()
 	auto progress = new iAProgress;
 	auto job = runAsync([this, progress, moIndex, fileName]
 		{
-			storeImage(m_MOData->moImageDataList[moIndex], fileName);
+			storeImage(m_MOData[moIndex]->imageData, fileName);
 			progress->emitProgress(100);
 		},
 		[progress] { delete progress; }, m_dwMO);
