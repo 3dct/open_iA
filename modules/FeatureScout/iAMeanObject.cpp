@@ -385,13 +385,9 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 
 			// Create a render window and an interactor for all the MObjects
 			m_meanObjectWidget = new iAQVTKWidget();
-
 			m_dwMO->verticalLayout->addWidget(m_meanObjectWidget);
-			auto renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-			renderWindowInteractor->SetRenderWindow(m_meanObjectWidget->renderWindow());
 			auto style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
-			renderWindowInteractor->SetInteractorStyle(style);
-
+			m_meanObjectWidget->renderWindow()->GetInteractor()->SetInteractorStyle(style);
 			m_dwMO->setWindowTitle(QString("%1 Mean Object View").arg(MapObjectTypeToString(filterID)));
 		}
 
@@ -480,8 +476,9 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 				renderer->AddActor(cubeAxesActor);
 				renderer->AddActor(outlineActor);
 			}
-			m_meanObjectWidget->renderWindow()->Render();
 		}
+		m_meanObjectWidget->renderWindow()->Render();
+		m_meanObjectWidget->update();
 	}
 	catch (itk::ExceptionObject& excep)
 	{
