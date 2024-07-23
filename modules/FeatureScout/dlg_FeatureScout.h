@@ -74,7 +74,6 @@ class FeatureScout_API dlg_FeatureScout: public QObject
 {
 	Q_OBJECT
 public:
-	static const QString DlgObjectName;
 	static const QString UnclassifiedColorName;
 	dlg_FeatureScout(iAMdiChild *parent, iAObjectType objectType, QString const & fileName,
 		iAObjectsData const* objData, iAObjectVis* objvis);

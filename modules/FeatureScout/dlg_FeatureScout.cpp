@@ -178,8 +178,6 @@ public:
 };
 
 const int dlg_FeatureScout::PCMinTicksCount = 2;
-
-const QString dlg_FeatureScout::DlgObjectName("FeatureScoutMainDlg");
 const QString dlg_FeatureScout::UnclassifiedColorName("darkGray");
 
 dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType objectType, QString const& fileName,
@@ -3049,7 +3047,7 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	m_polarPlotWidget = new iAQVTKWidget();
 	m_lengthDistrWidget = new iAQVTKWidget();
 	m_dwPC = new iADockWidgetWrapper(m_pcWidget, "Parallel Coordinates", "FeatureScoutPC", "https://github.com/3dct/open_iA/wiki/FeatureScout");
-	m_dwCE = new iADockWidgetWrapper(m_classExplorer, "Class Explorer", DlgObjectName, "https://github.com/3dct/open_iA/wiki/FeatureScout");
+	m_dwCE = new iADockWidgetWrapper(m_classExplorer, "Class Explorer", "FeatureScoutMainDlg", "https://github.com/3dct/open_iA/wiki/FeatureScout");
 	m_ppWidget = new iAPolarPlotWidget(m_activeChild);
 	m_dwPP = new iADockWidgetWrapper(m_ppWidget, "Orientation Plot", "FeatureScoutPP", "https://github.com/3dct/open_iA/wiki/FeatureScout");
 	m_ppWidget->legendLayout->addWidget(m_polarPlotWidget);

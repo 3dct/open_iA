@@ -258,3 +258,8 @@ std::vector<size_t> iAFeatureScoutTool::selection()
 	auto objVis = viewer ? dynamic_cast<iAColoredPolyObjectVis*>(viewer->objectVis()) : nullptr;
 	return objVis ? objVis->selection(): std::vector<size_t>();
 }
+
+dlg_FeatureScout* iAFeatureScoutTool::featureScout()
+{
+	return m_featureScout;
+}

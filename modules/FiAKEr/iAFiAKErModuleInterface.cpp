@@ -198,7 +198,7 @@ void iAFiAKErModuleInterface::setupToolBar()
 
 void iAFiAKErModuleInterface::toggleDockWidgetTitleBars()
 {
-	iAFiAKErTool* tool = getTool<iAFiAKErTool>(m_mainWnd->activeMdiChild());
+	auto tool = getTool<iAFiAKErTool>(m_mainWnd->activeMdiChild());
 	if (!tool)
 	{
 		return;
@@ -208,7 +208,7 @@ void iAFiAKErModuleInterface::toggleDockWidgetTitleBars()
 
 void iAFiAKErModuleInterface::toggleSettings()
 {
-	iAFiAKErTool* tool = getTool<iAFiAKErTool>(m_mainWnd->activeMdiChild());
+	auto tool = getTool<iAFiAKErTool>(m_mainWnd->activeMdiChild());
 	if (!tool)
 	{
 		return;

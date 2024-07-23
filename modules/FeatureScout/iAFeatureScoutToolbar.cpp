@@ -14,25 +14,8 @@
 
 iAFeatureScoutToolbar* iAFeatureScoutToolbar::tlbFeatureScout{};
 
-namespace
-{
-	dlg_FeatureScout* getFSFromChild(iAMdiChild* child)
-	{
-		if (!child)
-		{
-			return nullptr;
-		}
-		return child->findChild<dlg_FeatureScout*>(dlg_FeatureScout::DlgObjectName);
-	}
-}
-
 void iAFeatureScoutToolbar::addForChild(iAMainWindow* mainWnd, iAMdiChild* child)
 {
-	if (!getFSFromChild(child))
-	{
-		LOG(lvlWarn, "Tried to add FeatureScout toolbar for child which does not have an open FeatureScout instance!");
-		return;
-	}
 	if (!tlbFeatureScout)
 	{
 		tlbFeatureScout = new iAFeatureScoutToolbar(mainWnd);
@@ -41,7 +24,7 @@ void iAFeatureScoutToolbar::addForChild(iAMainWindow* mainWnd, iAMdiChild* child
 	}
 	else    // make sure toolbar is enabled when FeatureScout has finished loading
 	{       // for all FeatureScout instances after the first:
-		tlbFeatureScout->childChanged();
+		tlbFeatureScout->setEnabled(true);
 	}
 	connect(child, &iAMdiChild::closed, tlbFeatureScout, &iAFeatureScoutToolbar::childClosed);
 	connect(child, &iAMdiChild::toolRemoved, [] (QString const& key)
@@ -61,13 +44,13 @@ iAFeatureScoutToolbar::iAFeatureScoutToolbar(iAMainWindow* mainWnd) :
 	m_ui->setupUi(this);
 	auto toolbarCallback = [this](auto thisfunc)
 	{
-		auto fs = getFSFromChild(m_mainWnd->activeMdiChild());
+		auto fs = getTool<iAFeatureScoutTool>(m_mainWnd->activeMdiChild());
 		if (!fs)
 		{
 			LOG(lvlInfo, "No FeatureScout tool open in current iAMdiChild!");
 			return;
 		}
-		std::invoke(thisfunc, fs);
+		std::invoke(thisfunc, fs->featureScout());
 	};
 	connect(m_mainWnd, &iAMainWindow::childChanged, this, &iAFeatureScoutToolbar::childChanged);
 	m_mainWnd->addActionIcon(m_ui->actionMultiRendering, "layers");
@@ -99,7 +82,7 @@ void iAFeatureScoutToolbar::childClosed(iAMdiChild* closingChild)
 {
 	for (auto mdiChild: m_mainWnd->mdiChildList())
 	{
-		if (mdiChild != closingChild && getFSFromChild(mdiChild))
+		if (mdiChild != closingChild && getTool<iAFeatureScoutTool>(mdiChild))
 		{	// if there's at least one current child with a FeatureScout widget, keep toolbar
 			return;
 		}
@@ -111,5 +94,5 @@ void iAFeatureScoutToolbar::childClosed(iAMdiChild* closingChild)
 
 void iAFeatureScoutToolbar::childChanged()
 {
-	setEnabled(getFSFromChild(m_mainWnd->activeMdiChild()));
+	setEnabled(getTool<iAFeatureScoutTool>(m_mainWnd->activeMdiChild()));
 }
