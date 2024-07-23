@@ -102,6 +102,12 @@
             <property name="text">
              <string>Add class</string>
             </property>
+            <property name="iconSize">
+             <size>
+              <width>24</width>
+              <height>24</height>
+             </size>
+            </property>
            </widget>
           </item>
           <item>
@@ -111,6 +117,12 @@
             </property>
             <property name="text">
              <string>Delete class</string>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>24</width>
+              <height>24</height>
+             </size>
             </property>
            </widget>
           </item>
@@ -122,6 +134,12 @@
             <property name="text">
              <string>Save classes</string>
             </property>
+            <property name="iconSize">
+             <size>
+              <width>24</width>
+              <height>24</height>
+             </size>
+            </property>
            </widget>
           </item>
           <item>
@@ -131,6 +149,12 @@
             </property>
             <property name="text">
              <string>Load classes</string>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>24</width>
+              <height>24</height>
+             </size>
             </property>
            </widget>
           </item>
@@ -142,6 +166,12 @@
             <property name="text">
              <string>wisetex_save</string>
             </property>
+            <property name="iconSize">
+             <size>
+              <width>24</width>
+              <height>24</height>
+             </size>
+            </property>
            </widget>
           </item>
           <item>
@@ -152,6 +182,12 @@
             <property name="text">
              <string>Distribution CSV</string>
             </property>
+            <property name="iconSize">
+             <size>
+              <width>24</width>
+              <height>24</height>
+             </size>
+            </property>
            </widget>
           </item>
           <item>
@@ -161,6 +197,12 @@
             </property>
             <property name="text">
              <string>Export class image</string>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>24</width>
+              <height>24</height>
+             </size>
             </property>
            </widget>
           </item>
