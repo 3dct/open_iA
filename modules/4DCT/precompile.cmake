@@ -11,7 +11,6 @@ set(4DCT_PRECOMPILE_INCLUDES
 <iABoundingBoxVisModule.h>
 <iADefectVisModule.h>
 <iAFeature.h>
-<iAFileUtils.h>
 <iAFractureVisModule.h>
 <iAMainWindow.h>
 <iAMhdFileInfo.h>
@@ -38,7 +37,6 @@ set(4DCT_PRECOMPILE_INCLUDES
 <vector>
 <vtkActor.h>
 <vtkImageData.h>
-<vtkMetaImageReader.h>
 <vtkPolyDataMapper.h>
 <vtkProperty.h>
 <vtkRenderer.h>

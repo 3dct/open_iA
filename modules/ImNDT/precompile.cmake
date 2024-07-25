@@ -1,5 +1,6 @@
 set(ImNDT_PRECOMPILE_INCLUDES
 <iAColoredPolyObjectVis.h>
+<iACsvConfig.h>
 <iAImNDTInteractorStyle.h>
 <iAImNDTMain.h>
 <iALog.h>
@@ -20,13 +21,11 @@ set(ImNDT_PRECOMPILE_INCLUDES
 <vtkActor.h>
 <vtkAssembly.h>
 <vtkCamera.h>
-<vtkCellData.h>
 <vtkCubeSource.h>
-<vtkDataSet.h>
 <vtkDoubleArray.h>
 <vtkEventData.h>
-<vtkMapper.h>
 <vtkMath.h>
+<vtkOctreePointLocator.h>
 <vtkPointData.h>
 <vtkPolyData.h>
 <vtkPolyDataMapper.h>
@@ -34,6 +33,4 @@ set(ImNDT_PRECOMPILE_INCLUDES
 <vtkRenderer.h>
 <vtkSmartPointer.h>
 <vtkTable.h>
-<vtkTextProperty.h>
-<vtkUnsignedCharArray.h>
-<vtkVersion.h>)
+<vtkVersionMacros.h>)

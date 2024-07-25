@@ -1,5 +1,4 @@
 set(FoamCharacterization_PRECOMPILE_INCLUDES
-<iADataSet.h>
 <iAFoamCharacterizationDialog.h>
 <iAFoamCharacterizationItem.h>
 <iAFoamCharacterizationItemBinarization.h>
@@ -7,6 +6,7 @@ set(FoamCharacterization_PRECOMPILE_INCLUDES
 <iAFoamCharacterizationItemFilter.h>
 <iAFoamCharacterizationItemWatershed.h>
 <iAFoamCharacterizationTable.h>
+<iAImageData.h>
 <iAProgress.h>
 <QApplication>
 <QCheckBox>
@@ -17,5 +17,4 @@ set(FoamCharacterization_PRECOMPILE_INCLUDES
 <QGridLayout>
 <QGroupBox>
 <QLabel>
-<QPushButton>
 <vtkImageData.h>)

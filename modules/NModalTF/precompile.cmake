@@ -1,6 +1,6 @@
 set(NModalTF_PRECOMPILE_INCLUDES
 <iAChannelData.h>
-<iADataSet.h>
+<iAImageData.h>
 <iALog.h>
 <iAMdiChild.h>
 <iANModalBackgroundRemover.h>

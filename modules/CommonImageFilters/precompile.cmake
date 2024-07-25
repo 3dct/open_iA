@@ -1,7 +1,7 @@
 set(CommonImageFilters_PRECOMPILE_INCLUDES
 <defines.h>
-<iADataSet.h>
 <iAFilterDefault.h>
+<iAImageData.h>
 <iAProgress.h>
 <iAToolsITK.h>
 <iATypedCallHelper.h>

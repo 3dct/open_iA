@@ -1,9 +1,9 @@
 set(Segmentation_PRECOMPILE_INCLUDES
 <cmath>
 <defines.h>
-<iADataSet.h>
 <iAFilterDefault.h>
 <iAImageCoordinate.h>
+<iAImageData.h>
 <iAImageGraph.h>
 <iALog.h>
 <iAProgress.h>
