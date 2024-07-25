@@ -6,7 +6,6 @@
 #include "iACsvDataStorage.h"
 #include "iACompVisOptions.h"
 #include "iAComp3DWidgetInteractionStyle.h"
-#include "ui_CompHistogramTable.h"
 
 //Qt
 #include <QDockWidget>
@@ -27,7 +26,7 @@ class vtkTable;
 class vtkInteractorObserver;
 class vtkRenderer;
 
-class iAComp3DWidget : public QDockWidget, public Ui_CompHistogramTable
+class iAComp3DWidget : public QDockWidget
 {
 	Q_OBJECT
 

@@ -47,6 +47,8 @@
 #include <vtkTextProperty.h>
 #include <vtkTooltipItem.h>
 
+#include <QVBoxLayout>
+
 #include <vector>
 #include <algorithm>
 
@@ -65,14 +67,11 @@ iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* c
 	m_selectedBarChart(vtkSmartPointer<vtkPropItem>::New()),
 	m_lastState(iACompVisOptions::lastState::Undefined)
 {
-	setupUi(this);
-	this->setFeatures(DockWidgetVerticalTitleBar);
-	this->setWindowTitle("Bar Chart");
-
-	QVBoxLayout* layout = new QVBoxLayout;
-	dockWidgetContents->setLayout(layout);
-
-	layout->addWidget(m_qvtkWidget);
+	setFeatures(DockWidgetVerticalTitleBar);
+	setWindowTitle("Bar Chart");
+	setWidget(new QWidget());
+	widget()->setLayout(new QVBoxLayout());
+	widget()->layout()->addWidget(m_qvtkWidget);
 
 	//initialize interaction
 	style = vtkSmartPointer<BarChartInteractorStyle>::New();
@@ -459,7 +458,7 @@ void iACompBarChart::updateBarChart(std::vector<double>* coefficientsOriginal, s
 
 	m_selectedBarChart = addBars(polyData, colorArrayName, scaleArrayName, 0.5, col);
 
-	this->renderWidget();
+	renderWidget();
 }
 
 void iACompBarChart::updateOriginalBarChart()
@@ -547,7 +546,7 @@ void iACompBarChart::resetBarChart()
 	m_area->Update();
 	m_view->Update();
 
-	this->renderWidget();
+	renderWidget();
 }
 
 void iACompBarChart::resetLabels()
@@ -584,11 +583,11 @@ void iACompBarChart::BarChartInteractorStyle::initializeBarChartInteractorStyle(
 	m_barIndexPositionPairOriginalRepositioned = new std::map<int, std::vector<double>>();
 	m_selectedPointLocatorEmpty = true;
 
-	this->m_toolTip->SetVisible(false);
-	m_outerClass->m_area->AddItem(this->m_toolTip);
+	m_toolTip->SetVisible(false);
+	m_outerClass->m_area->AddItem(m_toolTip);
 
 	//set text properties
-	vtkSmartPointer<vtkTextProperty> toolTipProperty = this->m_toolTip->GetTextProperties();
+	vtkSmartPointer<vtkTextProperty> toolTipProperty = m_toolTip->GetTextProperties();
 	toolTipProperty->BoldOff();
 	toolTipProperty->ItalicOff();
 	toolTipProperty->ShadowOff();
@@ -600,7 +599,7 @@ void iACompBarChart::BarChartInteractorStyle::initializeBarChartInteractorStyle(
 	unsigned char r = iACompVisOptions::HIGHLIGHTCOLOR_YELLOW[0];
 	unsigned char g = iACompVisOptions::HIGHLIGHTCOLOR_YELLOW[1];
 	unsigned char b = iACompVisOptions::HIGHLIGHTCOLOR_YELLOW[2];
-	this->m_toolTip->GetBrush()->SetColor(r,g,b,255);
+	m_toolTip->GetBrush()->SetColor(r,g,b,255);
 }
 
 void iACompBarChart::BarChartInteractorStyle::setOuterClass(iACompBarChart* outerClass)
@@ -716,10 +715,10 @@ void iACompBarChart::BarChartInteractorStyle::resetPointLocatorSelected()
 
 void iACompBarChart::BarChartInteractorStyle::OnLeftButtonDown()
 {
-	int* pos = this->GetInteractor()->GetEventPosition();
-	this->FindPokedRenderer(pos[0], pos[1]);
+	const int* pos = GetInteractor()->GetEventPosition();
+	FindPokedRenderer(pos[0], pos[1]);
 
-	m_picker->Pick(pos[0], pos[1], 0, this->CurrentRenderer);
+	m_picker->Pick(pos[0], pos[1], 0, CurrentRenderer);
 
 	vtkIdList* result = vtkIdList::New();
 	result->SetNumberOfIds(1);
@@ -774,8 +773,8 @@ void iACompBarChart::BarChartInteractorStyle::showToolTip(std::vector<double> po
 
 		double pos[2] = { (double)posVecInWorldCoords[0], posVecInWorldCoords[1] };
 
-		this->m_toolTip->SetPosition(pos[0], pos[1]);
-		this->m_toolTip->SetVisible(true);
+		m_toolTip->SetPosition(pos[0], pos[1]);
+		m_toolTip->SetVisible(true);
 	}
 	else
 	{
@@ -785,30 +784,30 @@ void iACompBarChart::BarChartInteractorStyle::showToolTip(std::vector<double> po
 
 void iACompBarChart::BarChartInteractorStyle::setTooltip(vtkTooltipItem* tooltip)
 {
-	if (tooltip == this->m_toolTip)
+	if (tooltip == m_toolTip)
 	{
 		// nothing to change
 		return;
 	}
 
-	if (this->m_toolTip)
+	if (m_toolTip)
 	{
 		// remove current tooltip from scene
-		m_outerClass->m_area->RemoveItem(this->m_toolTip);
+		m_outerClass->m_area->RemoveItem(m_toolTip);
 	}
 
-	this->m_toolTip = tooltip;
+	m_toolTip = tooltip;
 
-	if (this->m_toolTip)
+	if (m_toolTip)
 	{
 		// add new tooltip to scene
-		m_outerClass->m_area->AddItem(this->m_toolTip);
+		m_outerClass->m_area->AddItem(m_toolTip);
 	}
 }
 
 vtkTooltipItem* iACompBarChart::BarChartInteractorStyle::GetTooltip()
 {
-	return this->m_toolTip;
+	return m_toolTip;
 }
 
 void iACompBarChart::BarChartInteractorStyle::setTooltipTextOriginalBarChart(std::vector<double> values)
@@ -816,7 +815,7 @@ void iACompBarChart::BarChartInteractorStyle::setTooltipTextOriginalBarChart(std
 	int percent = values.at(3);
 	vtkStdString tooltipLabel = "" + std::to_string(percent) + " %";
 
-	this->m_toolTip->SetText(tooltipLabel);
+	m_toolTip->SetText(tooltipLabel);
 }
 
 void iACompBarChart::BarChartInteractorStyle::setTooltipTextSelectedBarChart(std::vector<double> valuesSelected, std::vector<double> valuesOriginal)
@@ -827,7 +826,7 @@ void iACompBarChart::BarChartInteractorStyle::setTooltipTextSelectedBarChart(std
 	vtkStdString tooltipLabel = "Selected: " + std::to_string(percentSelected) + " % \n" +
 								"Original: " + std::to_string(percentOriginal) + " %" ;
 
-	this->m_toolTip->SetText(tooltipLabel);
+	m_toolTip->SetText(tooltipLabel);
 }
 
 void iACompBarChart::BarChartInteractorStyle::hideTooltip()

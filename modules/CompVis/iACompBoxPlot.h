@@ -5,7 +5,6 @@
 //CompVis
 #include "iACsvDataStorage.h"
 #include "iACompVisOptions.h"
-#include "ui_CompHistogramTable.h"
 
 //Qt
 #include <QDockWidget>
@@ -28,8 +27,7 @@ class vtkTextActor;
 class vtkLookupTable;
 class vtkRenderer;
 
-//TODO change to ui_boxplot
-class iACompBoxPlot : public QDockWidget, public Ui_CompHistogramTable
+class iACompBoxPlot : public QDockWidget
 {
 	Q_OBJECT
    public:

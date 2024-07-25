@@ -314,13 +314,11 @@ iACompCorrelationMap::iACompCorrelationMap(iAMainWindow* parent, iACorrelationCo
 	legendActors(new std::vector<vtkSmartPointer<vtkTextActor>>()),
 	m_lastState(iACompVisOptions::lastState::Undefined)
 {
-	setupUi(this);
-	this->setWindowTitle("Correlation Widget");
-
-	QVBoxLayout* layout = new QVBoxLayout;
-	dockWidgetContents->setLayout(layout);
-
-	layout->addWidget(m_qvtkWidget);
+	setFeatures(NoDockWidgetFeatures);
+	setWindowTitle("Correlation Widget");
+	setWidget(new QWidget());
+	widget()->setLayout(new QVBoxLayout());
+	widget()->layout()->addWidget(m_qvtkWidget);
 
 	m_renderer->SetUseFXAA(true);
 

@@ -12,7 +12,6 @@
 #include "iAEllipsoidObjectVis.h"
 #include "iACylinderObjectVis.h"
 #include "iAPolyObjectVisActor.h"
-#include "iAVec3.h"
 
 #include <QVBoxLayout>
 
@@ -33,13 +32,11 @@ iAComp3DWidget::iAComp3DWidget(iAMainWindow* parent, std::shared_ptr<iAObjectsDa
 	m_objectColor(QColor(140, 140, 140, 255)),
 	m_interactionStyle(vtkSmartPointer<iAComp3DWidgetInteractionStyle>::New())
 {
-	setupUi(this);
-
-	auto layout = new QVBoxLayout;
-	dockWidgetContents->setLayout(layout);
-
+	setWidget(new QWidget);
+	widget()->setLayout(new QVBoxLayout);
+	setFeatures(NoDockWidgetFeatures);
 	m_qvtkWidget = new iAQVTKWidget(this);
-	layout->addWidget(m_qvtkWidget);
+	widget()->layout()->addWidget(m_qvtkWidget);
 
 	m_renderer = vtkSmartPointer<vtkRenderer>::New();
 	addRendererToWidget(m_renderer);

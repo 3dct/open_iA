@@ -51,13 +51,11 @@ iACompHistogramVis::iACompHistogramVis(
 	initializeVisualization();
 
 	//3. initialize GUI
-	setupUi(this);
-
-	QVBoxLayout* layout = new QVBoxLayout;
-	dockWidgetContents->setLayout(layout);
-
+	setWidget(new QWidget());
+	widget()->setLayout(new QVBoxLayout());
 	m_qvtkWidget = new iAQVTKWidget(this);
-	layout->addWidget(m_qvtkWidget);
+	widget()->layout()->addWidget(m_qvtkWidget);
+	setWindowTitle("SimilarityEnsembleExplorer");
 
 	//4.initialize x-axis when univariate datasets are drawn
 	if (!MDSComputedFlag)

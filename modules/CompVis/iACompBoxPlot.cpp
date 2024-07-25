@@ -69,16 +69,11 @@ iACompBoxPlot::iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage
 	notEnoughElementsSelectedTextActor(nullptr),
 	m_lastState(iACompVisOptions::lastState::Undefined)
 {
-	setupUi(this);
-
 	this->setFeatures(DockWidgetVerticalTitleBar);
 	this->setWindowTitle("Box Plot");
-
-	QVBoxLayout* layout = new QVBoxLayout;
-	dockWidgetContents->setLayout(layout);
-
-	layout->addWidget(m_qvtkWidget);
-
+	setWidget(new QWidget());
+	widget()->setLayout(new QVBoxLayout());
+	widget()->layout()->addWidget(m_qvtkWidget);
 	m_view = vtkSmartPointer<vtkContextView>::New();
 	m_view->SetRenderWindow(m_qvtkWidget->renderWindow());
 	m_view->SetInteractor(m_qvtkWidget->interactor());

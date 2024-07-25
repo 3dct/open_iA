@@ -64,12 +64,13 @@ iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles, int headerLineNumber) 
 
 void iACsvDataStorage::initializeObjectTableFor3DRendering()
 {
-	dlg_CSVInput* dlg = new dlg_CSVInput(false);
-	if (dlg->exec() != QDialog::Accepted)
+	dlg_CSVInput dlg(false);
+	dlg.setFileName(m_filenames->at(m_objectData.size()));
+	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-	iACsvConfig csvConfig = dlg->getConfig();
+	auto const & csvConfig = dlg.getConfig();
 	auto data = loadObjectsCSV(csvConfig);
 	if (!data)
 	{

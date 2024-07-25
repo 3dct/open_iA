@@ -4,7 +4,6 @@
 
 //CompVis
 #include "iACompVisOptions.h"
-#include "ui_CompBarChart.h"
 
 //Qt
 #include <QDockWidget>
@@ -37,7 +36,7 @@ class vtkSelectEnclosedPoints;
 class vtkPointLocator;
 class vtkPolyData;
 
-class iACompBarChart : public QDockWidget, public Ui_CompBarChart
+class iACompBarChart : public QDockWidget
 {
 	Q_OBJECT
    public:

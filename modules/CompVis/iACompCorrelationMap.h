@@ -5,7 +5,6 @@
 //CompVis
 #include "iACompVisOptions.h"
 #include "iACorrelationCoefficient.h"
-#include "ui_CompHistogramTable.h"
 
 //vtk
 #include <vtkGraphLayoutStrategy.h>
@@ -44,7 +43,7 @@ class vtkTextActor;
 class vtkUnsignedCharArray;
 class vtkViewTheme;
 
-class iACompCorrelationMap : public QDockWidget, public Ui_CompHistogramTable
+class iACompCorrelationMap : public QDockWidget
 {
 	Q_OBJECT
    public:

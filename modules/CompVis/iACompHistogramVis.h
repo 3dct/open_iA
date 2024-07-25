@@ -5,7 +5,6 @@
 //CompVis
 #include "iACompVisOptions.h"
 #include "iACompHistogramTableData.h"
-#include "ui_CompHistogramTable.h"
 
 //vtk
 #include <vtkSmartPointer.h>
@@ -31,9 +30,8 @@ class vtkRenderer;
 class vtkCamera;
 
 
-class iACompHistogramVis : public QDockWidget, public Ui_CompHistogramTable
+class iACompHistogramVis : public QDockWidget
 {
-
 public:
 	iACompHistogramVis(iACompHistogramTable* table, iAMainWindow* parent, int amountDatasets, bool MDSComputedFlag);
 
