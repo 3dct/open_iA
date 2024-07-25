@@ -9,8 +9,6 @@
 #include "iACompCurve.h"
 #include "iACompCombiTable.h"
 #include "iACompUniformBinningData.h"
-#include "iACompNaturalBreaksData.h"
-#include "iACompBayesianBlocksData.h"
 
 //iA
 #include "iAMainWindow.h"

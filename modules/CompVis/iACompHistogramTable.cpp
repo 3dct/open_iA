@@ -9,6 +9,10 @@
 #include "iACompVisOptions.h"
 #include "iACompVisMain.h"
 #include "iACompHistogramTableData.h"
+
+#include "iACsvDataStorage.h"
+#include "iACompHistogramTableData.h"
+#include "iACompHistogramVis.h"
 #include "iACompUniformBinningData.h"
 
 //iA

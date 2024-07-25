@@ -3,27 +3,26 @@
 #include "iAComp3DWidget.h"
 
 //CompVis
-#include "iAMainWindow.h"
+#include "iAComp3DWidgetInteractionStyle.h"
 
 //iA
-#include "iAQVTKWidget.h"
-#include "iACsvConfig.h"
-#include "iAObjectsData.h"
-#include "iAEllipsoidObjectVis.h"
-#include "iACylinderObjectVis.h"
-#include "iAPolyObjectVisActor.h"
-
-#include <QVBoxLayout>
+#include <iACsvConfig.h>
+#include <iACylinderObjectVis.h>
+#include <iAEllipsoidObjectVis.h>
+#include <iAMainWindow.h>
+#include <iAObjectsData.h>
+#include <iAPolyObjectVisActor.h>
+#include <iAQVTKWidget.h>
 
 #include <vtkInteractorObserver.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
 #include <vtkRenderWindow.h>
-#include <vtkTable.h>
 
-#include <map>
-#include <vector>
+#include <QVBoxLayout>
+
 #include <algorithm>
+#include <vector>
 
 
 iAComp3DWidget::iAComp3DWidget(iAMainWindow* parent, std::shared_ptr<iAObjectsData> objData, const iACsvConfig& csvConfig) :
@@ -41,10 +40,7 @@ iAComp3DWidget::iAComp3DWidget(iAMainWindow* parent, std::shared_ptr<iAObjectsDa
 	m_renderer = vtkSmartPointer<vtkRenderer>::New();
 	addRendererToWidget(m_renderer);
 
-	//interaction
 	initializeInteraction();
-
-	//rendering
 	create3DVis(csvConfig);
 }
 

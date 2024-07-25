@@ -7,8 +7,6 @@
 #include "iACorrelationCoefficient.h"
 
 //vtk
-#include <vtkGraphLayoutStrategy.h>
-#include <vtkInteractorStyleRubberBand2D.h>
 #include <vtkSmartPointer.h>
 
 //Qt

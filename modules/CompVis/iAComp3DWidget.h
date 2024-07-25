@@ -2,16 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-//CompVis
-#include "iACsvDataStorage.h"
-#include "iACompVisOptions.h"
-#include "iAComp3DWidgetInteractionStyle.h"
 
 //Qt
 #include <QDockWidget>
 
 //vtk
 #include <vtkSmartPointer.h>
+
+class iAComp3DWidgetInteractionStyle;
 
 struct iACsvConfig;
 class iAColoredPolyObjectVis;

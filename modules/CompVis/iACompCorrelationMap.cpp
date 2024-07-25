@@ -23,8 +23,10 @@
 #include <vtkFloatArray.h>
 #include <vtkGlyph3D.h>
 #include <vtkGraphLayoutView.h>
+#include <vtkGraphLayoutStrategy.h>
 #include <vtkGraphToGlyphs.h>
 #include <vtkIntArray.h>
+#include <vtkInteractorStyleRubberBand2D.h>
 #include <vtkLegendBoxActor.h>
 #include <vtkLineSource.h>
 #include <vtkLookupTable.h>

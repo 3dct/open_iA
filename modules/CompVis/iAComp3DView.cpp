@@ -12,7 +12,6 @@
 #include "iACsvConfig.h"
 
 #include <vtkRenderer.h>
-#include <vtkTable.h>
 
 // Qt
 #include <QGridLayout>
