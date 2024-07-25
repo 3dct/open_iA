@@ -156,27 +156,20 @@ foreach (indx RANGE ${len} )
 	endif()
 
 	if (MSVC)
-		install(TARGETS ${module_name} RUNTIME DESTINATION plugins)    # install dll in plugins folder
+		install(TARGETS ${module_name} RUNTIME_DEPENDENCY_SET iADependencySet RUNTIME DESTINATION plugins)    # install dll in plugins folder
 
 		# set up debugging command / environment dll paths
 		set_target_properties(${module_name} PROPERTIES VS_DEBUGGER_COMMAND "${CMAKE_BINARY_DIR}\\$(Platform)\\$(Configuration)\\${GUI_EXECUTABLE_FILE}")
 		set_target_properties(${module_name} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${WinDLLPaths};%PATH%\nSCIFIO_PATH=${SCIFIO_PATH}")
 
-		if (openiA_MODULE_GUI_DEPENDENCY)
-			add_dependencies(${module_name} ${GUI_EXECUTABLE_TARGET})       # dependency to GUI executable for triggering rebuild when starting module
-		endif()
+	elseif (FLATPAK_BUILD)
+		install(TARGETS ${module_name} LIBRARY DESTINATION bin/plugins)
 	else()
-		if (FLATPAK_BUILD)
-			install(TARGETS ${module_name} LIBRARY DESTINATION bin/plugins)
-		else()
-			install(TARGETS ${module_name} LIBRARY DESTINATION plugins)
-		endif()
+		install(TARGETS ${module_name} RUNTIME_DEPENDENCY_SET iADependencySet LIBRARY DESTINATION plugins)
 	endif()
 
-	if (FLATPAK_BUILD)
-		LIST (APPEND BUNDLE_LIBS "\${CMAKE_INSTALL_PREFIX}/bin/plugins/${CMAKE_SHARED_LIBRARY_PREFIX}${module_name}${CMAKE_SHARED_LIBRARY_SUFFIX}")
-	else()
-		LIST (APPEND BUNDLE_LIBS "\${CMAKE_INSTALL_PREFIX}/plugins/${CMAKE_SHARED_LIBRARY_PREFIX}${module_name}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+	if (openiA_MODULE_GUI_DEPENDENCY)
+		add_dependencies(${module_name} ${GUI_EXECUTABLE_TARGET})       # dependency to GUI executable for triggering rebuild when starting module
 	endif()
 
 	if (EXISTS "${module_full_path}/enabled.cmake")
@@ -184,7 +177,6 @@ foreach (indx RANGE ${len} )
 		include("${module_full_path}/enabled.cmake")
 	endif()
 endforeach()
-set(BUNDLE_LIBS "${BUNDLE_LIBS}" PARENT_SCOPE)
 
 if (openiA_BUILD_ALL_MODULES)
 	message(STATUS "Enabled all modules (openiA_BUILD_ALL_MODULES is set)")
