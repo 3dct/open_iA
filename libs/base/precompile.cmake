@@ -10,10 +10,11 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAConnector.h>
 <iADataSet.h>
 <iAExtendedTypedCallHelper.h>
-<iAFileUtils.h>
 <iAFilter.h>
 <iAFilterRegistry.h>
+<iAImageData.h>
 <iAITKIO.h>
+<iAitkTypes.h>
 <iALog.h>
 <iAMathUtility.h>
 <iAProgress.h>
@@ -28,7 +29,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAVec3.h>
 <iostream>
 <itkImageBase.h>
-<itkImageFileReader.h>
 <itkImageFileWriter.h>
 <limits>
 <memory>
@@ -50,6 +50,5 @@ set(OPENIA_PRECOMPILE_HEADERS
 <vtkImageData.h>
 <vtkLookupTable.h>
 <vtkPiecewiseFunction.h>
-<vtkPolyData.h>
 <vtkSmartPointer.h>
 )

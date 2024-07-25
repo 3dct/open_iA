@@ -26,6 +26,7 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iATFTableDlg.h>
 <iAThemeHelper.h>
 <iAToolsVTK.h>
+<numbers>
 <QAbstractTextDocumentLayout>
 <QAction>
 <QActionGroup>
@@ -54,6 +55,5 @@ set(OPENIA_PRECOMPILE_HEADERS
 <vector>
 <vtkColorTransferFunction.h>
 <vtkLookupTable.h>
-<vtkMath.h>
 <vtkPiecewiseFunction.h>
 )
