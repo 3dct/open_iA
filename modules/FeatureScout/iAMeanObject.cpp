@@ -6,6 +6,7 @@
 
 // base
 #include <defines.h>    // for DIM
+#include <iAAbortListener.h>
 #include <iALog.h>
 #include <iAToolsVTK.h>
 
@@ -109,188 +110,195 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 	auto classCount = classNames.size();
 	if (classCount <= 1)
 	{
-		QMessageBox::warning(m_activeChild, "MObjects", "You need to define at least one class for Mean Objects to be computed!");
+		QMessageBox::warning(
+			m_activeChild, "MObjects", "You need to define at least one class for Mean Objects to be computed!");
 		return;
 	}
-
+	auto aborter = std::make_shared<iASimpleAbortListener>();
 	auto p = std::make_shared<iAProgress>();
-	auto fw = runAsync([this, classNames, tableList, filterID, classCount, p]
+	auto fw = runAsync(
+		[this, classNames, tableList, filterID, classCount, p, aborter]
 	{
 		m_MOData.clear();
-	try
-	{
-		// Casts image to long (if necessary) and convert it to an ITK image
-		using IType = itk::Image<long, DIM>;
-		auto vtkToItkConverter = itk::VTKImageToImageFilter<IType>::New();
-		auto img = m_activeChild->firstImageData();
-		if (!img)
+		try
 		{
-			return;
-		}
-		if (img->GetScalarType() != 8)  // long type
-		{
-			auto cast = vtkSmartPointer<vtkImageCast>::New();
-			cast->SetInputData(img);
-			cast->SetOutputScalarTypeToLong();
-			cast->Update();
-			vtkToItkConverter->SetInput(cast->GetOutput());
-		}
-		else
-		{
-			vtkToItkConverter->SetInput(img);
-		}
-		vtkToItkConverter->Update();
+			// Casts image to long (if necessary) and convert it to an ITK image
+			using IType = itk::Image<long, DIM>;
+			auto vtkToItkConverter = itk::VTKImageToImageFilter<IType>::New();
+			auto img = m_activeChild->firstImageData();
+			if (!img)
+			{
+				return;
+			}
+			if (img->GetScalarType() != 8)  // long type
+			{
+				auto cast = vtkSmartPointer<vtkImageCast>::New();
+				cast->SetInputData(img);
+				cast->SetOutputScalarTypeToLong();
+				cast->Update();
+				vtkToItkConverter->SetInput(cast->GetOutput());
+			}
+			else
+			{
+				vtkToItkConverter->SetInput(img);
+			}
+			vtkToItkConverter->Update();
 
-		IType::Pointer itkImageData = vtkToItkConverter->GetOutput();
-		itk::Size<DIM> itkImageDataSize = itkImageData->GetLargestPossibleRegion().GetSize();
+			IType::Pointer itkImageData = vtkToItkConverter->GetOutput();
+			itk::Size<DIM> itkImageDataSize = itkImageData->GetLargestPossibleRegion().GetSize();
 
-		auto thresholdFilter = itk::BinaryThresholdImageFilter<IType, IType>::New();
-		thresholdFilter->SetInput(itkImageData);
-		thresholdFilter->SetLowerThreshold(0);
-		thresholdFilter->SetUpperThreshold(0);
-		thresholdFilter->SetInsideValue(0);
-		thresholdFilter->SetOutsideValue(1);
-		thresholdFilter->Update();
-		using LabelMapType = itk::LabelMap<itk::LabelObject<long, DIM>>;
-		auto i2l = itk::LabelImageToLabelMapFilter<IType, LabelMapType>::New();
-		i2l->SetInput(itkImageData);
+			auto thresholdFilter = itk::BinaryThresholdImageFilter<IType, IType>::New();
+			thresholdFilter->SetInput(itkImageData);
+			thresholdFilter->SetLowerThreshold(0);
+			thresholdFilter->SetUpperThreshold(0);
+			thresholdFilter->SetInsideValue(0);
+			thresholdFilter->SetOutsideValue(1);
+			thresholdFilter->Update();
+			using LabelMapType = itk::LabelMap<itk::LabelObject<long, DIM>>;
+			auto i2l = itk::LabelImageToLabelMapFilter<IType, LabelMapType>::New();
+			i2l->SetInput(itkImageData);
 
-		auto mask = itk::LabelMapMaskImageFilter<LabelMapType, IType>::New();
-		mask->SetInput(i2l->GetOutput());
-		mask->SetFeatureImage(thresholdFilter->GetOutput());
-		mask->SetBackgroundValue(0);
-		mask->SetCrop(true);
+			auto mask = itk::LabelMapMaskImageFilter<LabelMapType, IType>::New();
+			mask->SetInput(i2l->GetOutput());
+			mask->SetFeatureImage(thresholdFilter->GetOutput());
+			mask->SetBackgroundValue(0);
+			mask->SetCrop(true);
 
-		// Defines mean object output image
-		using MObjectImagePixelType = long;
-		using MObjectImageType = itk::Image<MObjectImagePixelType, DIM>;
-		MObjectImageType::RegionType outputRegion;
-		MObjectImageType::RegionType::IndexType outputStart;
-		outputStart[0] = 0;
-		outputStart[1] = 0;
-		outputStart[2] = 0;
-		itk::Size<DIM> moImgSize;
-		itk::Size<DIM> moImgCenter;
-		for (int i = 0; i < DIM; ++i)
-		{
-			itkImageDataSize[i] % 2 == 0 ? moImgSize[i] = itkImageDataSize[i] + 1 : moImgSize[i] = itkImageDataSize[i];
-			moImgCenter[i] = std::round(moImgSize[i] / 2.0);
-		}
-		outputRegion.SetSize(moImgSize);
-		outputRegion.SetIndex(outputStart);
-		auto mObjectITKImage = MObjectImageType::New();
-		mObjectITKImage->SetRegions(outputRegion);
-		const MObjectImageType::SpacingType& out_spacing = itkImageData->GetSpacing();
-		const MObjectImageType::PointType& inputOrigin = itkImageData->GetOrigin();
-		double outputOrigin[DIM];
-		for (unsigned int i = 0; i < DIM; ++i)
-		{
-			outputOrigin[i] = inputOrigin[i];
-		}
-		mObjectITKImage->SetSpacing(out_spacing);
-		mObjectITKImage->SetOrigin(outputOrigin);
-		mObjectITKImage->Allocate();
+			// Defines mean object output image
+			using MObjectImagePixelType = long;
+			using MObjectImageType = itk::Image<MObjectImagePixelType, DIM>;
+			MObjectImageType::RegionType outputRegion;
+			MObjectImageType::RegionType::IndexType outputStart;
+			outputStart[0] = 0;
+			outputStart[1] = 0;
+			outputStart[2] = 0;
+			itk::Size<DIM> moImgSize;
+			itk::Size<DIM> moImgCenter;
+			for (int i = 0; i < DIM; ++i)
+			{
+				itkImageDataSize[i] % 2 == 0 ? moImgSize[i] = itkImageDataSize[i] + 1
+											 : moImgSize[i] = itkImageDataSize[i];
+				moImgCenter[i] = std::round(moImgSize[i] / 2.0);
+			}
+			outputRegion.SetSize(moImgSize);
+			outputRegion.SetIndex(outputStart);
+			auto mObjectITKImage = MObjectImageType::New();
+			mObjectITKImage->SetRegions(outputRegion);
+			const MObjectImageType::SpacingType& out_spacing = itkImageData->GetSpacing();
+			const MObjectImageType::PointType& inputOrigin = itkImageData->GetOrigin();
+			double outputOrigin[DIM];
+			for (unsigned int i = 0; i < DIM; ++i)
+			{
+				outputOrigin[i] = inputOrigin[i];
+			}
+			mObjectITKImage->SetSpacing(out_spacing);
+			mObjectITKImage->SetOrigin(outputOrigin);
+			mObjectITKImage->Allocate();
 
-		// Defines add image
-		using AddImageType = itk::Image<long, DIM>;
-		AddImageType::RegionType addoutputRegion;
-		AddImageType::RegionType::IndexType addoutputStart;
-		addoutputStart[0] = 0;
-		addoutputStart[1] = 0;
-		addoutputStart[2] = 0;
-		addoutputRegion.SetSize(moImgSize);
-		addoutputRegion.SetIndex(outputStart);
-		auto addImage = AddImageType::New();
-		addImage->SetRegions(addoutputRegion);
-		const auto& addout_spacing = itkImageData->GetSpacing();
-		const auto& addinputOrigin = itkImageData->GetOrigin();
-		double addoutputOrigin[DIM];
-		for (unsigned int i = 0; i < DIM; ++i)
-		{
-			addoutputOrigin[i] = addinputOrigin[i];
-		}
-		addImage->SetSpacing(addout_spacing);
-		addImage->SetOrigin(addoutputOrigin);
-		addImage->Allocate();
+			// Defines add image
+			using AddImageType = itk::Image<long, DIM>;
+			AddImageType::RegionType addoutputRegion;
+			AddImageType::RegionType::IndexType addoutputStart;
+			addoutputStart[0] = 0;
+			addoutputStart[1] = 0;
+			addoutputStart[2] = 0;
+			addoutputRegion.SetSize(moImgSize);
+			addoutputRegion.SetIndex(outputStart);
+			auto addImage = AddImageType::New();
+			addImage->SetRegions(addoutputRegion);
+			const auto& addout_spacing = itkImageData->GetSpacing();
+			const auto& addinputOrigin = itkImageData->GetOrigin();
+			double addoutputOrigin[DIM];
+			for (unsigned int i = 0; i < DIM; ++i)
+			{
+				addoutputOrigin[i] = addinputOrigin[i];
+			}
+			addImage->SetSpacing(addout_spacing);
+			addImage->SetOrigin(addoutputOrigin);
+			addImage->Allocate();
 
-		for (qsizetype currClass = 1; currClass < classCount; ++currClass)
-		{
+			for (qsizetype currClass = 1; currClass < classCount && !aborter->isAborted(); ++currClass)
+			{
 				m_MOData.push_back(std::move(std::make_unique<iAMeanObjectData>()));
 				auto moData = m_MOData[m_MOData.size() - 1].get();
-			std::map<int, int> meanObjectIds;
-			for (int j = 0; j < tableList[currClass]->GetNumberOfRows(); ++j)
-			{
-				meanObjectIds[tableList[currClass]->GetValue(j, 0).ToInt()] =
-					tableList[currClass]->GetValue(j, 0).ToFloat();
-			}
+				std::map<int, int> meanObjectIds;
+				for (int j = 0; j < tableList[currClass]->GetNumberOfRows(); ++j)
+				{
+					meanObjectIds[tableList[currClass]->GetValue(j, 0).ToInt()] =
+						tableList[currClass]->GetValue(j, 0).ToFloat();
+				}
 
-			typedef itk::ImageRegionIterator<MObjectImageType> IteratorType;
-			IteratorType mOITKImgIt(mObjectITKImage, outputRegion);
-			for (mOITKImgIt.GoToBegin(); !mOITKImgIt.IsAtEnd(); ++mOITKImgIt)
-			{
-				mOITKImgIt.Set(0);
-			}
+				typedef itk::ImageRegionIterator<MObjectImageType> IteratorType;
+				IteratorType mOITKImgIt(mObjectITKImage, outputRegion);
+				for (mOITKImgIt.GoToBegin(); !mOITKImgIt.IsAtEnd(); ++mOITKImgIt)
+				{
+					mOITKImgIt.Set(0);
+				}
 
-			typedef itk::ImageRegionIterator<AddImageType> IteratorType;
-			IteratorType addImgIt(addImage, addoutputRegion);
-			for (addImgIt.GoToBegin(); !addImgIt.IsAtEnd(); ++addImgIt)
-			{
-				addImgIt.Set(0);
-			}
+				typedef itk::ImageRegionIterator<AddImageType> IteratorType;
+				IteratorType addImgIt(addImage, addoutputRegion);
+				for (addImgIt.GoToBegin(); !addImgIt.IsAtEnd(); ++addImgIt)
+				{
+					addImgIt.Set(0);
+				}
 
-			int progress = 0;
-			std::map<int, int>::const_iterator it;
-			for (it = meanObjectIds.begin(); it != meanObjectIds.end(); ++it)
-			{
-				mask->SetLabel(it->first);
-				mask->Update();
-				itk::Size<DIM> maskSize;
-				maskSize = mask->GetOutput()->GetLargestPossibleRegion().GetSize();
+				int progress = 0;
+				std::map<int, int>::const_iterator it;
+				for (it = meanObjectIds.begin(); it != meanObjectIds.end() && !aborter->isAborted(); ++it)
+				{
+					mask->SetLabel(it->first);
+					mask->Update();
+					itk::Size<DIM> maskSize;
+					maskSize = mask->GetOutput()->GetLargestPossibleRegion().GetSize();
 
-				IType::IndexType destinationIndex;
-				destinationIndex[0] = moImgCenter[0] - std::round(maskSize[0] / 2);
-				destinationIndex[1] = moImgCenter[1] - std::round(maskSize[1] / 2);
-				destinationIndex[2] = moImgCenter[2] - std::round(maskSize[2] / 2);
-				auto pasteFilter = itk::PasteImageFilter<IType, MObjectImageType>::New();
-				pasteFilter->SetSourceImage(mask->GetOutput());
-				pasteFilter->SetDestinationImage(mObjectITKImage);
-				pasteFilter->SetSourceRegion(mask->GetOutput()->GetLargestPossibleRegion());
-				pasteFilter->SetDestinationIndex(destinationIndex);
+					IType::IndexType destinationIndex;
+					destinationIndex[0] = moImgCenter[0] - std::round(maskSize[0] / 2);
+					destinationIndex[1] = moImgCenter[1] - std::round(maskSize[1] / 2);
+					destinationIndex[2] = moImgCenter[2] - std::round(maskSize[2] / 2);
+					auto pasteFilter = itk::PasteImageFilter<IType, MObjectImageType>::New();
+					pasteFilter->SetSourceImage(mask->GetOutput());
+					pasteFilter->SetDestinationImage(mObjectITKImage);
+					pasteFilter->SetSourceRegion(mask->GetOutput()->GetLargestPossibleRegion());
+					pasteFilter->SetDestinationIndex(destinationIndex);
 
-				auto addFilter = itk::AddImageFilter<MObjectImageType, MObjectImageType>::New();
-				addFilter->SetInput1(addImage);
-				addFilter->SetInput2(pasteFilter->GetOutput());
-				addFilter->Update();
-				addImage = addFilter->GetOutput();
+					auto addFilter = itk::AddImageFilter<MObjectImageType, MObjectImageType>::New();
+					addFilter->SetInput1(addImage);
+					addFilter->SetInput2(pasteFilter->GetOutput());
+					addFilter->Update();
+					addImage = addFilter->GetOutput();
 
-				double percentage = std::round((currClass - 1) * 100.0 / (classCount - 1) +
-					(progress + 1.0) * (100.0 / (classCount - 1)) / meanObjectIds.size());
+					double percentage = std::round((currClass - 1) * 100.0 / (classCount - 1) +
+						(progress + 1.0) * (100.0 / (classCount - 1)) / meanObjectIds.size());
 					p->emitProgress(percentage);
-				++progress;
-			}
+					++progress;
+				}
+				if (aborter->isAborted())
+				{
+					break;
+				}
 
-			// Normalize voxels values to 1
-			using OutputImageType = itk::Image<float, DIM>;
-			auto caster = itk::CastImageFilter<AddImageType, OutputImageType>::New();
-			caster->SetInput(addImage);
-			caster->Update();
-			using CasterIteratorType = itk::ImageRegionIterator<OutputImageType>;
-			CasterIteratorType casterImgIt(caster->GetOutput(), caster->GetOutput()->GetLargestPossibleRegion());
-			for (casterImgIt.GoToBegin(); !casterImgIt.IsAtEnd(); ++casterImgIt)
-			{
-				casterImgIt.Set(casterImgIt.Get() / meanObjectIds.size());
-			}
+				// Normalize voxels values to 1
+				using OutputImageType = itk::Image<float, DIM>;
+				auto caster = itk::CastImageFilter<AddImageType, OutputImageType>::New();
+				caster->SetInput(addImage);
+				caster->Update();
+				using CasterIteratorType = itk::ImageRegionIterator<OutputImageType>;
+				CasterIteratorType casterImgIt(caster->GetOutput(), caster->GetOutput()->GetLargestPossibleRegion());
+				for (casterImgIt.GoToBegin(); !casterImgIt.IsAtEnd(); ++casterImgIt)
+				{
+					casterImgIt.Set(casterImgIt.Get() / meanObjectIds.size());
+				}
 
-			// Convert resulting MObject ITK image to an VTK image
-			auto itkToVTKConverter = itk::ImageToVTKImageFilter<OutputImageType>::New();
-			itkToVTKConverter->SetInput(caster->GetOutput());
-			itkToVTKConverter->Update();
+				// Convert resulting MObject ITK image to an VTK image
+				auto itkToVTKConverter = itk::ImageToVTKImageFilter<OutputImageType>::New();
+				itkToVTKConverter->SetInput(caster->GetOutput());
+				itkToVTKConverter->Update();
 				moData->imageData->DeepCopy(itkToVTKConverter->GetOutput());
 
 				// Create MObject default Transfer functions
 				moData->tf = std::make_unique<iATransferFunctionOwner>(moData->imageData->GetScalarRange());
-			if (filterID == iAObjectType::Fibers)  // Fibers
-			{
+				if (filterID == iAObjectType::Fibers)  // Fibers
+				{
 					moData->tf->colorTF()->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
 					moData->tf->colorTF()->AddRGBPoint(0.01, 1.0, 1.0, 0.0);
 					moData->tf->colorTF()->AddRGBPoint(0.095, 1.0, 1.0, 0.0);
@@ -301,9 +309,9 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 					moData->tf->opacityTF()->AddPoint(0.095, 0.01);
 					moData->tf->opacityTF()->AddPoint(0.1, 0.05);
 					moData->tf->opacityTF()->AddPoint(1.00, 0.18);
-			}
-			else  // Voids
-			{
+				}
+				else  // Voids
+				{
 					moData->tf->colorTF()->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
 					moData->tf->colorTF()->AddRGBPoint(0.0001, 0.0, 0.0, 0.0);
 					moData->tf->colorTF()->AddRGBPoint(0.001, 1.0, 1.0, 0.0);
@@ -316,7 +324,7 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 					moData->tf->opacityTF()->AddPoint(0.18, 0.005);
 					moData->tf->opacityTF()->AddPoint(0.2, 0.08);
 					moData->tf->opacityTF()->AddPoint(1.0, 0.5);
-			}
+				}
 
 				moData->volumeProperty->SetColor(moData->tf->colorTF());
 				moData->volumeProperty->SetScalarOpacity(moData->tf->opacityTF());
@@ -332,28 +340,39 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 				moData->volume->Update();
 
 				// create histogram
-				QString moHistName = classNames[currClass] + QString(" %1 Mean Object").arg(MapObjectTypeToString(filterID));
-				auto histData = iAHistogramData::create(moHistName,	moData->imageData, 512);
-				moData->histoPlot = std::make_shared<iABarGraphPlot>(histData, QApplication::palette().color(QPalette::Shadow));
-		}
+				QString moHistName =
+					classNames[currClass] + QString(" %1 Mean Object").arg(MapObjectTypeToString(filterID));
+				auto histData = iAHistogramData::create(moHistName, moData->imageData, 512);
+				moData->histoPlot =
+					std::make_shared<iABarGraphPlot>(histData, QApplication::palette().color(QPalette::Shadow));
+			}
 		}
 		catch (itk::ExceptionObject& excep)
 		{
 			QString msg = QString("Error in computation: %1 in File %2, Line %3.")
-				.arg(excep.GetDescription())
-				.arg(excep.GetFile())
-				.arg(excep.GetLine());
+							  .arg(excep.GetDescription())
+							  .arg(excep.GetFile())
+							  .arg(excep.GetLine());
 			LOG(lvlError, QString("MObjects: %1").arg(msg));
-			QMessageBox::warning(m_activeChild, "MObjects", msg + "\nCheck whether you provided a proper labeled image!");
+			QMessageBox::warning(
+				m_activeChild, "MObjects", msg + "\nCheck whether you provided a proper labeled image!");
 		}
 		catch (std::bad_alloc& e)
 		{
 			QString msg = QString("Allocation failed: %1").arg(e.what());
 			LOG(lvlError, QString("MObjects: %1").arg(msg));
-			QMessageBox::warning(m_activeChild, "MObjects", msg + "\nCheck whether you can free some memory, operate on a smaller dataset, or use a machine with more RAM!");
+			QMessageBox::warning(m_activeChild, "MObjects",
+				msg +
+					"\nCheck whether you can free some memory, operate on a smaller dataset, or use a machine with "
+					"more RAM!");
 		}
-	}, [this, classNames, filterID, nextToDW, commonCamera, classColor] {
-
+	},
+		[this, classNames, filterID, nextToDW, commonCamera, classColor, aborter]
+	{
+		if (aborter->isAborted())
+		{
+			return;
+		}
 		// Create the outline for volume
 		auto outline = vtkSmartPointer<vtkOutlineFilter>::New();
 		outline->SetInputData(m_MOData[0]->volume->GetMapper()->GetDataObjectInput());
@@ -478,10 +497,10 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 				renderer->AddActor(outlineActor);
 			}
 		}
-			m_meanObjectWidget->renderWindow()->Render();
+		m_meanObjectWidget->renderWindow()->Render();
 	}, this);
-	iAJobListView::get()->addJob("Compute Mean Object", p.get(), fw);
-		}
+	iAJobListView::get()->addJob("Compute Mean Object", p.get(), fw, aborter.get());
+}
 
 void iAMeanObject::modifyMeanObjectTF()
 {
