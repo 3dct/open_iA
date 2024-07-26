@@ -616,7 +616,6 @@ QComboBox
 ****************************************************************************/
 	QComboBox
 	{
-		padding-right: 20px; /* make room for the arrows */
 		color: rgba(230, 230, 230, 255);
 	}
 	QComboBox::drop-down
