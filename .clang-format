@@ -12,6 +12,7 @@ AllowShortCaseLabelsOnASingleLine: false
 AllowShortIfStatementsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: false
 AlwaysBreakBeforeMultilineStrings: false
+AlwaysBreakTemplateDeclarations: MultiLine
 BinPackArguments: true
 BinPackParameters: true
 BreakBeforeBraces: Allman
@@ -40,11 +41,14 @@ IncludeCategories:
     Priority: 1
 IndentCaseLabels: false
 IndentWidth: 4
+KeepEmptyLinesAtEOF: false
 KeepEmptyLinesAtTheStartOfBlocks: false
+LambdaBodyIndentation: OuterScope
 MaxEmptyLinesToKeep: 1
 NamespaceIndentation: All
 PenaltyBreakAssignment: 10
 PointerAlignment: Left
+ReferenceAlignment: Left
 DerivePointerAlignment: false
 # PointerBindsToType: false # seems to be an old setting (clang < 4)
 ReflowComments: false
