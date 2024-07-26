@@ -157,7 +157,7 @@ private:
 	int calcOrientationProbability(vtkTable *t, vtkTable *ot);
 	void saveClassesXML(QXmlStreamWriter& stream);
 	void loadClassesXML(QXmlStreamReader& reader);
-	void writeClassesAndChildren(QXmlStreamWriter *writer, QStandardItem *item) const;
+	void writeClassesAndChildren(QXmlStreamWriter* writer, QStandardItem* item, bool idOnly) const;
 	void writeWisetex(QXmlStreamWriter *writer);
 	//void autoAddClass(int NbOfClasses);
 	bool OpenBlobVisDialog();

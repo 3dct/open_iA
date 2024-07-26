@@ -1591,12 +1591,20 @@ void dlg_FeatureScout::ClassSaveButton()
 		QMessageBox::warning(m_activeChild, "FeatureScout", QString("Could not open classes XML file (%1) for writing.").arg(fileName));
 		return;
 	}
-
+	iAAttributes params;
+	const QString SaveOnlyID("Save only ID");
+	addAttr(params, SaveOnlyID, iAValueType::Boolean, true);
+	iAParameterDlg dlg(m_activeChild, "Save classes XML", params, "Whether to store only IDs (<em>Save only ID</em> checked, new default) "
+		"or whether all attribute values should be stored (old default, in versions in which this dialog is not available).");
+	if (!dlg.exec())
+	{
+		return;
+	}
 	QXmlStreamWriter stream(&file);
-	saveClassesXML(stream);
+	saveClassesXML(stream, dlg.parameterValues()[SaveOnlyID].toBool());
 }
 
-void dlg_FeatureScout::saveClassesXML(QXmlStreamWriter& stream)
+void dlg_FeatureScout::saveClassesXML(QXmlStreamWriter& stream, bool idOnly)
 {
 	stream.setAutoFormatting(true);
 	stream.writeStartDocument();
@@ -1607,7 +1615,7 @@ void dlg_FeatureScout::saveClassesXML(QXmlStreamWriter& stream)
 
 	for (int i = 0; i < m_classTreeModel->invisibleRootItem()->rowCount(); ++i)
 	{
-		writeClassesAndChildren(&stream, m_classTreeModel->invisibleRootItem()->child(i));
+		writeClassesAndChildren(&stream, m_classTreeModel->invisibleRootItem()->child(i), idOnly);
 	}
 
 	stream.writeEndElement(); // ClassTree
@@ -2325,7 +2333,7 @@ double dlg_FeatureScout::calculateOpacity(QStandardItem* item)
 	return 1.0;
 }
 
-void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStandardItem* item) const
+void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStandardItem* item, bool idOnly) const
 {
 	writer->writeStartElement(ClassTag);
 	writer->writeAttribute(NameAttribute, item->text());
@@ -2338,7 +2346,7 @@ void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStanda
 	for (int i = 0; i < item->rowCount(); ++i)
 	{
 		writer->writeStartElement(ObjectTag);
-		for (int j = 0; j < m_elementCount; ++j)
+		for (int j = 0; j < m_elementCount && (!idOnly || j == 0); ++j)
 		{
 			vtkVariant v = m_csvTable->GetValue(item->child(i)->text().toInt() - 1, j);
 			vtkVariant v1 = m_elementTable->GetValue(j, 0);
@@ -3083,7 +3091,7 @@ void dlg_FeatureScout::saveProject(QSettings& projectFile)
 	}
 	QString outXML;
 	QXmlStreamWriter writer(&outXML);
-	saveClassesXML(writer);
+	saveClassesXML(writer, true);
 	projectFile.setValue(ClassesProjectFile, outXML);
 }
 
