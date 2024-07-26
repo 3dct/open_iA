@@ -203,11 +203,16 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType objectType, 
 	m_renderer(parent->renderer()),
 	m_blobManager(new iABlobManager()),
 	m_blobVisDialog(new dlg_blobVisualization()),
-	m_dwPC(nullptr),
+	m_pcWidget(new iAQVTKWidget()),
+	m_polarPlotWidget(new iAQVTKWidget()),
+	m_lengthDistrWidget(new iAQVTKWidget()),
+	m_ppWidget(new iAPolarPlotWidget(m_activeChild)),
+	m_classExplorer(new iAClassExplorer(parent)),
+	m_dwPC(new iADockWidgetWrapper(m_pcWidget, "Parallel Coordinates", "FeatureScoutPC", "https://github.com/3dct/open_iA/wiki/FeatureScout")),
+	m_dwPP(new iADockWidgetWrapper(m_ppWidget, "Orientation Plot", "FeatureScoutPP", "https://github.com/3dct/open_iA/wiki/FeatureScout")),
+	m_dwCE(new iADockWidgetWrapper(m_classExplorer, "Class Explorer", "FeatureScoutMainDlg", "https://github.com/3dct/open_iA/wiki/FeatureScout")),
 	m_dwDV(nullptr),
 	m_dwSPM(nullptr),
-	m_dwPP(nullptr),
-	m_classExplorer(new iAClassExplorer(parent)),
 	m_columnMapping(objData->m_colMapping),
 	m_splom(new iAFeatureScoutSPLOM()),
 	m_3dvis(objVis)
@@ -1149,7 +1154,6 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	// Get selected rows out of elementTable
 	QModelIndexList indexes = m_elementTableView->selectionModel()->selection().indexes();
 	QList<ushort> characteristicsList;
-
 
 	iAAttributes params;
 	addAttr(params, "Save file", iAValueType::Boolean, false);
@@ -3043,13 +3047,6 @@ void dlg_FeatureScout::SaveBlobMovie()
 
 void dlg_FeatureScout::initFeatureScoutUI()
 {
-	m_pcWidget = new iAQVTKWidget();
-	m_polarPlotWidget = new iAQVTKWidget();
-	m_lengthDistrWidget = new iAQVTKWidget();
-	m_dwPC = new iADockWidgetWrapper(m_pcWidget, "Parallel Coordinates", "FeatureScoutPC", "https://github.com/3dct/open_iA/wiki/FeatureScout");
-	m_dwCE = new iADockWidgetWrapper(m_classExplorer, "Class Explorer", "FeatureScoutMainDlg", "https://github.com/3dct/open_iA/wiki/FeatureScout");
-	m_ppWidget = new iAPolarPlotWidget(m_activeChild);
-	m_dwPP = new iADockWidgetWrapper(m_ppWidget, "Orientation Plot", "FeatureScoutPP", "https://github.com/3dct/open_iA/wiki/FeatureScout");
 	m_ppWidget->legendLayout->addWidget(m_polarPlotWidget);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwCE);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPC);

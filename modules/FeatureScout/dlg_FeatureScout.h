@@ -221,9 +221,7 @@ private:
 	float m_PolarPlotPhiResolution, m_PolarPlotThetaResolution;
 	//! @}
 
-	dlg_blobVisualization* m_blobVisDialog;
-
-	iAQVTKWidget* m_pcWidget, *m_polarPlotWidget, *m_lengthDistrWidget;
+	dlg_blobVisualization * m_blobVisDialog;
 
 	vtkSmartPointer<vtkContextView> m_dvContextView;
 
@@ -234,14 +232,15 @@ private:
 
 	int m_mousePressPos[2];
 
-	iADockWidgetWrapper* m_dwPC, *m_dwDV, *m_dwSPM, *m_dwCE, *m_dwPP;
-	iAPolarPlotWidget* m_ppWidget;
-	iAClassExplorer* m_classExplorer;
+	iAQVTKWidget *m_pcWidget, *m_polarPlotWidget, *m_lengthDistrWidget;
+	iAPolarPlotWidget * m_ppWidget;
+	iAClassExplorer * m_classExplorer;
+	iADockWidgetWrapper *m_dwPC, *m_dwPP, *m_dwCE, *m_dwDV, *m_dwSPM;
 
 	iAColMapP m_columnMapping;
 
 	std::shared_ptr<iAFeatureScoutSPLOM> m_splom;
-	iAObjectVis* m_3dvis;    // the object visualization; FeatureScout is NOT the owner (typically, the dataset viewer is)
+	iAObjectVis * m_3dvis;  //!< object visualization; FeatureScout is NOT owner (typically, dataset viewer is)
 	std::shared_ptr<iAObjectVisActor> m_3dactor;
 	std::shared_ptr<iAMeanObject> m_meanObject;
 };
