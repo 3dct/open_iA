@@ -143,6 +143,7 @@ private:
 	//! @}
 	//! @{ parallel coordinate chart related methods:
 	void setPCChartData(bool specialRendering = false);
+	void applyPCSettings(QVariantMap const& values);
 	void updatePCColumnVisibility();
 	std::vector<size_t> getPCSelection();
 	void updateAxisProperties();               //!< set properties for all axes in parallel coordinates: font size, tick count
@@ -203,11 +204,7 @@ private:
 	vtkSmartPointer<vtkContextView> m_pcView;
 	vtkSmartPointer<vtkChartParallelCoordinates> m_pcChart;
 	vtkSmartPointer<vtkEventQtSlotConnect> m_pcConnections;
-	float m_pcLineWidth;              //!< width of the line for each object in Parallel Coordinates
-	int m_pcFontSize;                 //!< current font size of titles and tick labels
-	int m_pcTickCount;                //!< current tick count
-	int m_pcOpacity;                  //!< current opacity of lines
-	static const int PCMinTicksCount; //!< minimum number of ticks
+	QVariantMap m_pcSettings;
 	//! @}
 
 	vtkSmartPointer<vtkContextView> m_lengthDistrView;

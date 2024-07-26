@@ -27,6 +27,7 @@
 #include <iAQVTKWidget.h>
 #include <iARenderer.h>
 #include <iARunAsync.h>
+#include <iADefaultSettings.h>
 #include <iAToolsITK.h>
 #include <iAThemeHelper.h>
 
@@ -177,7 +178,37 @@ public:
 	}
 };
 
-const int dlg_FeatureScout::PCMinTicksCount = 2;
+namespace
+{
+	const QString PCLineWidth = "Line Width";
+	const QString PCOpacity = "Opacity";
+	const QString PCTickCount = "Tick Count";
+	const QString PCFontSize = "Font Size";
+
+	const int PCMinTickCount = 2; //!< minimum number of ticks
+}
+
+inline constexpr char FeatureScoutPCSettingsName[] = "FeatureScout: Parallel Coordinates";
+inline constexpr char FeatureScoutPCSettingsMenu[] = "Default Settings/FeatureScout: Parallel Coordinates";
+//! a FeatureScout slicer window.
+class iAFeatureScoutPCSettings : iASettingsObject<FeatureScoutPCSettingsMenu, iAFeatureScoutPCSettings>
+{
+public:
+	static iAAttributes& defaultAttributes()
+	{
+		static iAAttributes attr;
+		if (attr.isEmpty())
+		{
+			addAttr(attr, PCLineWidth, iAValueType::Continuous, 0.1, 0.001, 100000);     //!< width of the line for each object
+			addAttr(attr, PCOpacity, iAValueType::Discrete, 90, 0, 255);                 //!< opacity of lines
+			addAttr(attr, PCTickCount, iAValueType::Discrete, 10, PCMinTickCount, 255);  //!< count of ticks per axis
+			addAttr(attr, PCFontSize, iAValueType::Discrete, 12, 0, 255);                //!< font size of titles and tick labels
+			selfRegister();
+		}
+		return attr;
+	}
+};
+
 const QString dlg_FeatureScout::UnclassifiedColorName("darkGray");
 
 dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType objectType, QString const& fileName,
@@ -196,10 +227,6 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType objectType, 
 	m_multiClassLUT(vtkSmartPointer<vtkLookupTable>::New()),
 	m_classTreeModel(new QStandardItemModel()),
 	m_elementTableModel(nullptr),
-	m_pcLineWidth(0.1f),
-	m_pcFontSize(15),
-	m_pcTickCount(10),
-	m_pcOpacity(90),
 	m_renderer(parent->renderer()),
 	m_blobManager(new iABlobManager()),
 	m_blobVisDialog(new dlg_blobVisualization()),
@@ -312,8 +339,7 @@ void dlg_FeatureScout::setPCChartData(bool specialRendering)
 	}
 	m_pcChart = vtkSmartPointer<vtkChartParallelCoordinates>::New();
 	m_pcChart->GetPlot(0)->SetInputData(m_chartTable);
-	m_pcChart->GetPlot(0)->GetPen()->SetOpacity(m_pcOpacity);
-	m_pcChart->GetPlot(0)->SetWidth(m_pcLineWidth);
+	applyPCSettings(extractValues(iAFeatureScoutPCSettings::defaultAttributes()));
 	m_pcView->GetScene()->AddItem(m_pcChart);
 	m_pcConnections->Connect(m_pcChart,
 		vtkCommand::SelectionChangedEvent,
@@ -1839,31 +1865,21 @@ void dlg_FeatureScout::showScatterPlot()
 
 void dlg_FeatureScout::showPCSettings()
 {
-	iAAttributes params;
-	addAttr(params, "Line Width", iAValueType::Continuous, QString::number(m_pcLineWidth, 'f', 2), 0.001, 100000);
-	addAttr(params, "Opacity", iAValueType::Discrete, m_pcOpacity, 0, 255);
-	addAttr(params, "Tick Count", iAValueType::Discrete, m_pcTickCount, 0, 255);
-	addAttr(params, "Font Size", iAValueType::Discrete, m_pcFontSize, 0, 255);
-
-	iAParameterDlg pcSettingsDlg(m_activeChild, "Parallel Coordinates Settings", params);
-	if (pcSettingsDlg.exec() != QDialog::Accepted)
+	if (editSettingsDialog<dlg_FeatureScout>(iAFeatureScoutPCSettings::defaultAttributes(), m_pcSettings,
+		FeatureScoutPCSettingsName, *this, &dlg_FeatureScout::applyPCSettings))
 	{
-		return;
+		updateAxisProperties();
+		m_pcView->Update();
+		m_pcView->ResetCamera();
+		m_pcView->Render();
 	}
-	auto values = pcSettingsDlg.parameterValues();
-	m_pcLineWidth = values["Line Width"].toFloat();
-	m_pcOpacity   = values["Opacity"].toInt();
-	m_pcTickCount = values["Tick Count"].toInt();
-	m_pcFontSize  = values["Font Size"].toInt();
+}
 
-	m_pcChart->GetPlot(0)->GetPen()->SetOpacity(m_pcOpacity);
-	m_pcChart->GetPlot(0)->SetWidth(m_pcLineWidth);
-
-	updateAxisProperties();
-
-	m_pcView->Update();
-	m_pcView->ResetCamera();
-	m_pcView->Render();
+void dlg_FeatureScout::applyPCSettings(QVariantMap const& values)
+{
+	m_pcSettings = values;
+	m_pcChart->GetPlot(0)->GetPen()->SetOpacity(values[PCOpacity].toDouble());
+	m_pcChart->GetPlot(0)->SetWidth(values[PCLineWidth].toDouble());
 }
 
 void dlg_FeatureScout::saveMesh()
@@ -3084,7 +3100,6 @@ void dlg_FeatureScout::loadProject(QSettings const & projectFile)
 
 void dlg_FeatureScout::updateAxisProperties()
 {
-	m_pcTickCount = (m_pcTickCount < PCMinTicksCount) ? PCMinTicksCount : m_pcTickCount;
 	int visibleColIdx = 0;
 	for (int i = 0; i < static_cast<int>(m_pcChart->GetNumberOfAxes()); i++)
 	{
@@ -3098,14 +3113,14 @@ void dlg_FeatureScout::updateAxisProperties()
 			LOG(lvlWarn, QString("Invalid axis %1 in Parallel Coordinates!").arg(i));
 			continue;
 		}
-		axis->GetLabelProperties()->SetFontSize(m_pcFontSize);
-		axis->GetTitleProperties()->SetFontSize(m_pcFontSize);
+		axis->GetLabelProperties()->SetFontSize(m_pcSettings[PCFontSize].toInt());
+		axis->GetTitleProperties()->SetFontSize(m_pcSettings[PCFontSize].toInt());
 		vtkDataArray* columnData = vtkDataArray::SafeDownCast(m_chartTable->GetColumn(visibleColIdx));
 		double* const range = columnData->GetRange();
 		if (range[0] != range[1])
 		{
 			// if min == max, then leave NumberOfTicks at default -1, otherwise there will be no ticks and no lines shown
-			axis->SetNumberOfTicks(m_pcTickCount);
+			axis->SetNumberOfTicks(m_pcSettings[PCTickCount].toInt());
 		}
 		axis->Update();
 		++visibleColIdx;
