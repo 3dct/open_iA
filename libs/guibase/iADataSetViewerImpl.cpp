@@ -75,8 +75,10 @@ iAProjectViewer::iAProjectViewer(iADataSet* dataSet) :
 }
 
 
+#include "iAJobListView.h"
 #include "iAMdiChild.h"
 #include "iAMainWindow.h"
+#include "iAProgress.h"
 #include "iATool.h"
 #include "iAToolRegistry.h"
 
@@ -103,6 +105,8 @@ void iAProjectViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			{
 				if (projectFileGroups.contains(toolKey))
 				{
+					iAProgress p;
+					auto context = iAJobListView::get()->addJob(QString("Loading %1").arg(toolKey), &p);
 					auto tool = iAToolRegistry::createTool(toolKey, iAMainWindow::get(), child);
 					settings.beginGroup(toolKey);
 					child->addTool(toolKey, tool);
