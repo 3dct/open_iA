@@ -1799,7 +1799,7 @@ void MainWindow::loadArguments(int argc, char** argv)
 		if (QString(argv[a]).startsWith("--quit"))
 		{
 			++a;
-			bool ok = a < argc-1;
+			bool ok = a < argc;
 			if (ok)
 			{
 				quitMS = QString(argv[a]).toInt(&ok);
