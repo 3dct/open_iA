@@ -181,7 +181,7 @@ std::shared_ptr<iADataSet> iAVglProjectFile::loadData(
 		if (io)
 		{
 			auto currentDataSet = io->load(dataset.second.Filename, iAparam);
-			if (currentDataSet != nullptr)
+			if (currentDataSet)
 			{
 				currentDataSet->setMetaData(iAparam);
 				result->addDataSet(currentDataSet);
