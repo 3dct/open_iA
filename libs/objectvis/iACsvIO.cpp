@@ -332,7 +332,14 @@ void iACsvIO::determineOutputHeaders(QVector<iAColIdxT> const & selectedCols)
 		}
 		else
 		{
-			auto fullOutIdx = static_cast<iAColIdxT>(m_csvConfig.addAutoID ? 1 : 0 + outIdx);
+			auto fullOutIdx = static_cast<iAColIdxT>(m_csvConfig.addAutoID ? 1 : 0) + outIdx;
+			if (m_outputMapping->values().contains(fullOutIdx))
+			{
+				LOG(lvlWarn, QString("At least two different keys map to colum %1 (one key is %2). "
+					"If you are not sure what this means and/or see some issues with the loaded .csv data "
+					"or its 3D objects visualization, please report a bug (Help -> Bug Tracker)")
+					.arg(fullOutIdx).arg(key));
+			}
 			m_outputMapping->insert(key,  fullOutIdx);
 		}
 	}
