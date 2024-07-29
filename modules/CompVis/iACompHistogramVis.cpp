@@ -52,7 +52,7 @@ iACompHistogramVis::iACompHistogramVis(
 	setWidget(new QWidget());
 	setFeatures(NoDockWidgetFeatures);
 	widget()->setLayout(new QVBoxLayout());
-	widget()->setContentsMargins(0, 0, 0, 0);
+	widget()->layout()->setContentsMargins(0, 0, 0, 0);
 	m_qvtkWidget = new iAQVTKWidget(this);
 	widget()->layout()->addWidget(m_qvtkWidget);
 	setWindowTitle("SimilarityEnsembleExplorer");

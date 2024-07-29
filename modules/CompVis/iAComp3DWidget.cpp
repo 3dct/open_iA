@@ -32,8 +32,8 @@ iAComp3DWidget::iAComp3DWidget(iAMainWindow* parent, std::shared_ptr<iAObjectsDa
 	m_interactionStyle(vtkSmartPointer<iAComp3DWidgetInteractionStyle>::New())
 {
 	setWidget(new QWidget);
-	widget()->setContentsMargins(0, 0, 0, 0);
 	widget()->setLayout(new QVBoxLayout);
+	widget()->layout()->setContentsMargins(0, 0, 0, 0);
 	setFeatures(NoDockWidgetFeatures);
 	m_qvtkWidget = new iAQVTKWidget(this);
 	widget()->layout()->addWidget(m_qvtkWidget);
