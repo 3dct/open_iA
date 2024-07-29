@@ -232,6 +232,22 @@ namespace
 		printAttributes(outAttr);
 	}
 
+	std::string prepFormatForPrint(QString const& f)
+	{
+		const QString Separator = "\n  - ";
+		auto formats = f.split(";;", Qt::SkipEmptyParts);  // skip empty (at end)
+		formats.remove(0, 1);                              // first is the "any supported" collection ...
+		return (Separator + formats.join(Separator)).toStdString();
+	}
+
+	void printFormats()
+	{
+		std::cout << "Formats available for loading:" <<
+			prepFormatForPrint(iAFileTypeRegistry::registeredFileTypes(iAFileIO::Load)) << "\n\n";
+		std::cout << "Formats available for saving:" <<
+			prepFormatForPrint(iAFileTypeRegistry::registeredFileTypes(iAFileIO::Save)) << "\n";
+	}
+
 	void printUsage(const char * version)
 	{
 		std::cout << "open_iA command line tool, version " << version << ".\n"
@@ -659,6 +675,10 @@ int processCommandLine(int argc, char const * const * argv, const char * version
 	else if (argc > 2 && QString(argv[1]) == "formatinfo")
 	{
 		printFormatInfo(argv[2]);
+	}
+	else if (argc > 1 && QString(argv[1]).toLower() == "formats")
+	{
+		printFormats();
 	}
 	else
 	{
