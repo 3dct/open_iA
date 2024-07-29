@@ -1791,14 +1791,19 @@ void MainWindow::loadArguments(int argc, char** argv)
 	bool doQuit = false;
 	int quitMS = 0;
 	bool separateWindows = false;
+	bool screenshot = false;
+	QString screenshotFileName;
 	for (int a = 1; a < argc; ++a)
 	{
 		if (QString(argv[a]).startsWith("--quit"))
 		{
 			++a;
-			bool ok;
-			quitMS = QString(argv[a]).toInt(&ok);
-			doQuit = ok;
+			bool ok = a < argc-1;
+			if (ok)
+			{
+				quitMS = QString(argv[a]).toInt(&ok);
+				doQuit = ok;
+			}
 			if (!ok)
 			{
 				LOG(lvlWarn, "Invalid --quit parameter; must be followed by an integer number (milliseconds) after which to quit, e.g. '--quit 1000'");
