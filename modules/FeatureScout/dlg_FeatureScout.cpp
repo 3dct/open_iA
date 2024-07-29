@@ -1627,8 +1627,9 @@ void dlg_FeatureScout::loadClassesXML(QXmlStreamReader& reader)
 	}
 	else // incompatible xml file
 	{
-		LOG(lvlWarn, "Class load error: xml file incompatible with FeatureScout, please check.");
-		QMessageBox::warning(m_activeChild, "FeatureScout", "Class load error: xml file incompatible with FeatureScout, please check.");
+		auto msg = QString("Class load error: xml file incompatible with FeatureScout (root element called %1 instead of %2), please check.").arg(reader.name()).arg(IFVTag);
+		LOG(lvlWarn, msg);
+		QMessageBox::warning(m_activeChild, "FeatureScout", msg);
 		return;
 	}
 
@@ -3041,8 +3042,10 @@ void dlg_FeatureScout::saveProject(QSettings& projectFile)
 	}
 	QString outXML;
 	QXmlStreamWriter writer(&outXML);
+	//writer.setAutoFormatting(false);  // apparently auto formatting is enabled by default, and cannot be disabled
 	saveClassesXML(writer, true);
-	projectFile.setValue(ClassesProjectFile, outXML);
+	auto filteredXML = outXML.replace("\n", "").replace(QRegularExpression("[ ]+"), " ");
+	projectFile.setValue(ClassesProjectFile, filteredXML);
 }
 
 void dlg_FeatureScout::loadProject(QSettings const & projectFile)
