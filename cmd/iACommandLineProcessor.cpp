@@ -363,11 +363,17 @@ namespace
 		return true;
 	}
 
-	void getNextIdxIO(QStringList const& inputFiles, qsizetype& nextIdx, std::shared_ptr<iAFileIO>& io, iAFileIO::Operation ioType)
+	bool getNextIdxIO(QStringList const& inputFiles, qsizetype& nextIdx, std::shared_ptr<iAFileIO>& io, iAFileIO::Operation ioType)
 	{
 		while (nextIdx < inputFiles.size())
 		{
 			io = iAFileTypeRegistry::createIO(inputFiles[nextIdx], ioType);
+			if (!io)
+			{
+				std::cout << QString("Could not find a reader suitable for file name %1!")
+					.arg(inputFiles[nextIdx]).toStdString() << std::endl;
+				return false;
+			}
 			auto param = io->parameter(ioType);
 			qsizetype minParams = findAttribute(param, iADataSet::FileNameKey) == -1 ? 0 : 1;
 			if (param.size() > minParams)
@@ -376,6 +382,7 @@ namespace
 			}
 			++nextIdx;
 		}
+		return true;
 	}
 
 	int runFilter(QStringList const & args)
@@ -466,7 +473,10 @@ namespace
 						{
 							inParams = QVector<QVariantMap>(inputFiles.size());
 						}
-						getNextIdxIO(inputFiles, curInIdx, curInIO, iAFileIO::Load);
+						if (!getNextIdxIO(inputFiles, curInIdx, curInIO, iAFileIO::Load))
+						{
+							return 1;
+						}
 					}
 					else if (mode == Output || mode == OutputParameters)
 					{
@@ -478,7 +488,10 @@ namespace
 						{
 							outParams = QVector<QVariantMap>(outputFiles.size());
 						}
-						getNextIdxIO(outputFiles, curOutIdx, curOutIO, iAFileIO::Save);
+						if (!getNextIdxIO(outputFiles, curOutIdx, curOutIO, iAFileIO::Save))
+						{
+							return 1;
+						}
 					}
 					mode = getMode(args[a]);
 				}
