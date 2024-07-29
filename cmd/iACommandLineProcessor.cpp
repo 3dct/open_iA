@@ -580,6 +580,11 @@ namespace
 				}
 				// TODO: use progress indicator
 				auto dataSet = io->load(inputFiles[i], inParams[i]);
+				if (!dataSet)
+				{
+					std::cout << QString("ERROR: Could not load file %1!\n").arg(inputFiles[i]).toStdString();
+					return 1;
+				}
 				filter->addInput(dataSet);
 			}
 
