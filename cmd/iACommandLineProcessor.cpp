@@ -334,8 +334,8 @@ namespace
 		}
 		if (paramIdx >= attr.size())
 		{
-			std::cout << QString("More parameters (%1) given than expected(%2)!")
-				.arg(paramIdx + 1).arg(attr.size()).toStdString() << std::endl;
+			std::cout << QString("WARNING: More parameters (%1) given than expected(%2)!\n")
+				.arg(paramIdx + 1).arg(attr.size()).toStdString();
 		}
 		else
 		{
@@ -346,8 +346,8 @@ namespace
 				QFile f(curValue);
 				if (!f.open(QFile::ReadOnly | QFile::Text))
 				{
-					std::cout << QString("Expected a filename as input for text parameter '%1', but could not open '%2' as a text file.")
-						.arg(paramName).arg(curValue).toStdString() << std::endl;
+					std::cout << QString("ERROR: Expected a filename as input for text parameter '%1', but could not open '%2' as a text file.\n")
+						.arg(paramName).arg(curValue).toStdString();
 					return false;
 				}
 				QTextStream in(&f);
@@ -370,8 +370,8 @@ namespace
 			io = iAFileTypeRegistry::createIO(inputFiles[nextIdx], ioType);
 			if (!io)
 			{
-				std::cout << QString("Could not find a reader suitable for file name %1!")
-					.arg(inputFiles[nextIdx]).toStdString() << std::endl;
+				std::cout << QString("ERROR: Could not find a reader suitable for file name %1!\n")
+					.arg(inputFiles[nextIdx]).toStdString();
 				return false;
 			}
 			auto param = io->parameter(ioType);
@@ -391,7 +391,7 @@ namespace
 		auto filter = iAFilterRegistry::filter(filterName);
 		if (!filter)
 		{
-			std::cout << QString("Filter '%1' does not exist!").arg(filterName).toStdString() << "\n"
+			std::cout << QString("ERROR: Filter '%1' does not exist!\n").arg(filterName).toStdString()
 			          << "For a full list of all available filters, execute 'open_iA_cmd -l'\n";
 			return 1;
 		}
@@ -423,7 +423,7 @@ namespace
 				int inputSeparation = args[a].toInt(&ok);
 				if (!ok || inputSeparation <= 0)
 				{
-					std::cout << "Invalid value '" << args[a].toStdString()
+					std::cout << "ERROR: Invalid value '" << args[a].toStdString()
 					          << "' for input separation, expected an integer number >= 1!\n";
 					return 1;
 				}
@@ -440,7 +440,7 @@ namespace
 					iALogLevel logLevel = stringToLogLevel(args[a], ok);
 					if (!ok)
 					{
-						std::cout << "Invalid value '" << args[a].toStdString()
+						std::cout << "ERROR: Invalid value '" << args[a].toStdString()
 						          << "' for log level, expected an integer number between 1 and 5!\n";
 					}
 					else
@@ -509,7 +509,7 @@ namespace
 						}
 						else
 						{
-							std::cout << QString("Invalid/Unexpected input parameters at position %1 (value %2) - Ignored!\n").arg(a).arg(args[a]).toStdString();
+							std::cout << QString("ERROR: Invalid/Unexpected input parameters at position %1 (value %2) - Ignored!\n").arg(a).arg(args[a]).toStdString();
 						}
 						break;
 					case OutputParameters:
@@ -520,7 +520,7 @@ namespace
 						}
 						else
 						{
-							std::cout << QString("Invalid/Unexpected output parameters %1 (value %2) - Ignored!\n").arg(a).arg(args[a]).toStdString();
+							std::cout << QString("ERROR: Invalid/Unexpected output parameters %1 (value %2) - Ignored!\n").arg(a).arg(args[a]).toStdString();
 						}
 						break;
 					}
@@ -529,7 +529,7 @@ namespace
 			}
 			if (mode == InvalidParameter)
 			{
-				std::cout << QString("Invalid/Unexpected parameter: '%1', please check your syntax!").arg(args[a]).toStdString() << "\n";
+				std::cout << QString("ERROR: Invalid/Unexpected parameter: '%1', please check your syntax!").arg(args[a]).toStdString() << "\n";
 				return 1;
 			}
 			if (mode == Quiet)
@@ -545,22 +545,21 @@ namespace
 		// Argument checks:
 		if (static_cast<unsigned int>(inputFiles.size()) != filter->requiredImages())
 		{
-			std::cout << "Incorrect number of input files: filter requires "
+			std::cout << "ERROR: Incorrect number of input files: filter requires "
 				<< filter->requiredImages() << " input files, but "
-				<< inputFiles.size() << " were specified after the -i parameter." << std::endl;
+				<< inputFiles.size() << " were specified after the -i parameter.\n";
 			return 1;
 		}
 		if (static_cast<unsigned int>(outputFiles.size()) < filter->plannedOutputCount())
 		{
-			std::cout << "Missing output files - please specify at least one after the -o parameter" << std::endl;
+			std::cout << "ERROR: Missing output files - please specify at least one after the -o parameter\n";
 			return 1;
 		}
 		if (parameters.size() != filter->parameters().size())
 		{
-			std::cout << QString("Incorrect number of parameters: %2 expected, %1 were given.")
+			std::cout << QString("ERROR: Incorrect number of parameters: %2 expected, %1 were given.\n")
 				.arg(parameters.size())
-				.arg(filter->parameters().size()).toStdString()
-				<< std::endl;
+				.arg(filter->parameters().size()).toStdString();
 			return 1;
 		}
 
@@ -570,13 +569,13 @@ namespace
 			{
 				if (!quiet)
 				{
-					std::cout << "Reading input file '" << inputFiles[i].toStdString() << "'" << std::endl;
+					std::cout << "Reading input file '" << inputFiles[i].toStdString() << "'\n";
 				}
 				auto io = iAFileTypeRegistry::createIO(inputFiles[i], iAFileIO::Load);
 				if (!io)
 				{
-					std::cout << QString("Could not find a reader suitable for file name %1!")
-						.arg(inputFiles[i]).toStdString() << std::endl;
+					std::cout << QString("ERROR: Could not find a reader suitable for file name %1!\n")
+						.arg(inputFiles[i]).toStdString();
 					return 1;
 				}
 				// TODO: use progress indicator
@@ -586,11 +585,11 @@ namespace
 
 			if (!quiet)
 			{
-				std::cout << "Running filter '" << filter->name().toStdString() << "' with parameters: " << std::endl;
+				std::cout << "Running filter '" << filter->name().toStdString() << "' with parameters: \n";
 				for (int p = 0; p < parameters.size(); ++p)
 				{
 					std::cout << "    " << filter->parameters()[p]->name().toStdString()
-					          << "=" << parameters[filter->parameters()[p]->name()].toString().toStdString() << std::endl;
+					          << "=" << parameters[filter->parameters()[p]->name()].toString().toStdString() << "\n";
 				}
 			}
 			iACommandLineProgressIndicator progressIndicator(50, quiet);
@@ -620,21 +619,19 @@ namespace
 				if (QFile(outFileName).exists() && !overwrite)
 				{
 					// TODO: check at beginning to avoid aborting after long operation? But output count might not be known then...
-					std::cout << QString("Output file '%1' already exists! Aborting. "
-						"Specify -f to overwrite existing files.").arg(outFileName).toStdString();
+					std::cout << QString("WARNING: Output file '%1' already exists! Aborting. "
+						"Specify -f to overwrite existing files.\n").arg(outFileName).toStdString();
 					return 1;
 				}
 				if (!quiet)
 				{
-					std::cout << QString("Writing output %1 to file: '%2'").arg(o).arg(outFileName).toStdString()
-						<< std::endl;
+					std::cout << QString("Writing output %1 to file: '%2'\n").arg(o).arg(outFileName).toStdString();
 				}
 
 				auto io = iAFileTypeRegistry::createIO(outFileName, iAFileIO::Save);
 				if (!io)
 				{
-					std::cout << QString("Could not find a writer suitable for file name %1!")
-						.arg(outFileName).toStdString() << std::endl;
+					std::cout << QString("ERROR: Could not find a writer suitable for file name %1!\n").arg(outFileName).toStdString();
 					return 1;
 				}
 				// TODO: use progress indicator here
@@ -649,14 +646,14 @@ namespace
 				auto name = it->first;
 				auto value = it->second;
 #endif
-				std::cout << name.toStdString() << ": " << value.toString().toStdString() << std::endl;
+				std::cout << name.toStdString() << ": " << value.toString().toStdString() << "\n";
 			}
 
 			return 0;
 		}
 		catch (std::exception & e)
 		{
-			std::cout << "ERROR: " << e.what() << std::endl;
+			std::cout << "ERROR: " << e.what() << "\n";
 			return 1;
 		}
 	}
