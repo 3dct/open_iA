@@ -303,7 +303,9 @@ namespace
 			<< "         Output the Parameter Descriptor for the given filter (required for sampling).\n"
 			<< "     formatinfo Extension\n"
 			<< "         Output information on which parameters a file format with the given extension\n"
-			<< "         (can be specified with or without leading '.') has for loading/saving.\n";
+			<< "         (can be specified with or without leading '.') has for loading/saving.\n"
+			<< "     formats\n"
+			<< "         List available file formats for loading and saving files.\n";
 	}
 
 	enum iAParseMode { None, Input, Output, Parameter, InvalidParameter, Quiet, Overwrite, InputSeparation, LogLevel, InputParameters, OutputParameters };
