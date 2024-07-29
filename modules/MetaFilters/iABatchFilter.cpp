@@ -114,8 +114,16 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 		}
 		fileName = MakeAbsolute(batchDir, fileName);
 		auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Load);
-		QVariantMap dummyParams;    // TODO: CHECK whether I/O requires other parameters and error in that case!
+		QVariantMap dummyParams;
+		if (!io || !io->checkParams(dummyParams, iAFileIO::Load, fileName))
+		{
+			throw std::runtime_error(QString("No reader available for file %1, or not the right parameters (note that specifying file input parameters is currently not possible in Batch filter)!").arg(fileName).toStdString());
+		}
 		auto dataSets = io->load(fileName, dummyParams);
+		if (!dataSets)
+		{
+			throw std::runtime_error(QString("Reading file %1 failed!").arg(fileName).toStdString());
+		}
 		inputImages.push_back(dataSets);
 	}
 
@@ -199,8 +207,16 @@ void iABatchFilter::performWork(QVariantMap const & parameters)
 				if (filter->requiredImages() > 0)
 				{
 					auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Load);
-					QVariantMap dummyParams;    // TODO: CHECK whether I/O requires other parameters and error in that case!
+					QVariantMap dummyParams;
+					if (!io || !io->checkParams(dummyParams, iAFileIO::Load, fileName))
+					{
+						throw std::runtime_error(QString("No reader available for file %1, or not the right parameters (note that specifying file input parameters is currently not possible in Batch filter)!").arg(fileName).toStdString());
+					}
 					auto dataSet = io->load(fileName, dummyParams);
+					if (!dataSet)
+					{
+						throw std::runtime_error(QString("Reading file %1 failed!").arg(fileName).toStdString());
+					}
 					filter->addInput(dataSet);
 					for (size_t i = 0; i < inputImages.size(); ++i)
 					{
