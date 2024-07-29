@@ -1807,7 +1807,7 @@ void MainWindow::loadArguments(int argc, char** argv)
 			}
 			if (!ok)
 			{
-				LOG(lvlWarn, "Invalid --quit parameter; must be followed by an integer number (milliseconds) after which to quit, e.g. '--quit 1000'");
+				LOG(lvlWarn, "Command line arguments: Invalid --quit parameter; must be followed by an integer number (milliseconds) after which to quit, e.g. '--quit 1000'");
 			}
 		}
 		else if (QString(argv[a]).startsWith("--separate"))
@@ -1819,7 +1819,7 @@ void MainWindow::loadArguments(int argc, char** argv)
 			++a;
 			if (a >= argc)
 			{
-				LOG(lvlWarn, "Invalid --screenshot parameter; must be followed by a filename for the screenshot to be stored!");
+				LOG(lvlWarn, "Command line arguments: Invalid --screenshot parameter; must be followed by a filename for the screenshot to be stored!");
 			}
 			screenshotFileName = QString(argv[a]);
 			screenshot = true;
@@ -1831,7 +1831,7 @@ void MainWindow::loadArguments(int argc, char** argv)
 	}
 	if (screenshot && !doQuit)
 	{
-		LOG(lvlWarn, "Parameters: --screenshot was specified, but that will not have any effect without --quit parameter!");
+		LOG(lvlWarn, "Command line arguments: --screenshot was specified, but that will not have any effect without --quit parameter!");
 	}
 	loadFiles(filesToLoad, iAChildSource::make(separateWindows) );
 	if (doQuit)
