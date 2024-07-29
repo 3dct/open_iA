@@ -1829,6 +1829,10 @@ void MainWindow::loadArguments(int argc, char** argv)
 			filesToLoad << QString::fromLocal8Bit(argv[a]);
 		}
 	}
+	if (screenshot && !doQuit)
+	{
+		LOG(lvlWarn, "Parameters: --screenshot was specified, but that will not have any effect without --quit parameter!");
+	}
 	loadFiles(filesToLoad, iAChildSource::make(separateWindows) );
 	if (doQuit)
 	{
@@ -1856,6 +1860,10 @@ void MainWindow::loadArguments(int argc, char** argv)
 				if (!pixmap.save(screenshotFileName))
 				{
 					LOG(lvlWarn, QString("Saving screenshot to file %1 failed!").arg(screenshotFileName));
+				}
+				else
+				{
+					LOG(lvlInfo, QString("Successfully stored screenshot to file %1.").arg(screenshotFileName));
 				}
 			}
 			LOG(lvlInfo, "Closing application because of --quit parameter");
