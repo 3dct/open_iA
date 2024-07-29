@@ -68,6 +68,7 @@
 #include <QTextStream>
 #include <QTimer>
 #include <QtXml/QDomDocument>
+#include <QWindow>
 
 namespace
 {
@@ -1813,6 +1814,16 @@ void MainWindow::loadArguments(int argc, char** argv)
 		{
 			separateWindows = true;
 		}
+		else if (QString(argv[a]).startsWith("--screenshot"))
+		{
+			++a;
+			if (a >= argc)
+			{
+				LOG(lvlWarn, "Invalid --screenshot parameter; must be followed by a filename for the screenshot to be stored!");
+			}
+			screenshotFileName = QString(argv[a]);
+			screenshot = true;
+		}
 		else
 		{
 			filesToLoad << QString::fromLocal8Bit(argv[a]);
@@ -1823,12 +1834,29 @@ void MainWindow::loadArguments(int argc, char** argv)
 	{
 		auto quitTimer = new QTimer();
 		quitTimer->setSingleShot(true);
-		auto quitFunc = [quitTimer, quitMS]()
+		auto quitFunc = [quitTimer, quitMS, screenshot, screenshotFileName, this]()
 		{
 			if (iAJobListView::get()->isAnyJobRunning())
 			{
 				quitTimer->start(quitMS);
 				return;
+			}
+			if (screenshot)
+			{
+				QScreen* screen = QGuiApplication::primaryScreen();
+				if (auto const window = windowHandle())
+				{
+					screen = windowHandle()->screen();
+				}
+				if (!screen)
+				{
+					LOG(lvlWarn, "Could not get current screen!");
+				}
+				auto pixmap = screen->grabWindow(winId());
+				if (!pixmap.save(screenshotFileName))
+				{
+					LOG(lvlWarn, QString("Saving screenshot to file %1 failed!").arg(screenshotFileName));
+				}
 			}
 			LOG(lvlInfo, "Closing application because of --quit parameter");
 			quitTimer->deleteLater();
