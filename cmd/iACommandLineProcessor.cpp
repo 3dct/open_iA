@@ -219,6 +219,11 @@ namespace
 		}
 		auto io = iAFileTypeRegistry::createIO("test" + extension, iAFileIO::Load);
 		std::cout << "Parameters for loading a file with extension " << extension.toStdString() << ":\n";
+		if (!io)
+		{
+			std::cout << "    Not a supported file format!\n";
+			return;
+		}
 		auto inAttr(io->parameter(iAFileIO::Load));
 		removeAttribute(inAttr, iADataSet::FileNameKey);
 		printAttributes(inAttr);
