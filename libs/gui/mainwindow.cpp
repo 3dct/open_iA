@@ -1818,15 +1818,15 @@ void MainWindow::loadArguments(int argc, char** argv)
 	{
 		auto quitTimer = new QTimer();
 		quitTimer->setSingleShot(true);
-		auto quitFunc = [quitTimer]()
+		auto quitFunc = [quitTimer, quitMS]()
 		{
 			if (iAJobListView::get()->isAnyJobRunning())
 			{
-				constexpr int RecheckTimeMS = 1000;
-				quitTimer->start(RecheckTimeMS);
+				quitTimer->start(quitMS);
 				return;
 			}
-			delete quitTimer;
+			LOG(lvlInfo, "Closing application because of --quit parameter");
+			quitTimer->deleteLater();
 			QApplication::closeAllWindows();
 		};
 		connect(quitTimer, &QTimer::timeout, this, quitFunc);
