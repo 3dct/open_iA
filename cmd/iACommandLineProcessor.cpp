@@ -651,15 +651,15 @@ int processCommandLine(int argc, char const * const * argv, const char * version
 {
 	auto dispatcher = new iAModuleDispatcher(QFileInfo(argv[0]).absolutePath());
 	dispatcher->InitializeModules();
-	if (argc > 1 && QString(argv[1]) == "list")
+	if (argc > 1 && QString(argv[1]).toLower() == "list")
 	{
 		printListOfAvailableFilters(argc > 2 ? QString(argv[2]) : QString("name") );
 	}
-	else if (argc > 2 && QString(argv[1]) == "help")
+	else if (argc > 2 && QString(argv[1]).toLower() == "help")
 	{
 		printFilterHelp(argv[2]);
 	}
-	else if (argc > 2 && QString(argv[1]) == "run")
+	else if (argc > 2 && QString(argv[1]).toLower() == "run")
 	{
 		QStringList args;
 		for (int a = 2; a < argc; ++a)
@@ -668,11 +668,11 @@ int processCommandLine(int argc, char const * const * argv, const char * version
 		}
 		return runFilter(args);
 	}
-	else if (argc > 2 && QString(argv[1]) == "parameters")
+	else if (argc > 2 && QString(argv[1]).toLower() == "parameters")
 	{
 		printParameterDescriptor(argv[2]);
 	}
-	else if (argc > 2 && QString(argv[1]) == "formatinfo")
+	else if (argc > 2 && QString(argv[1]).toLower() == "formatinfo")
 	{
 		printFormatInfo(argv[2]);
 	}
