@@ -30,29 +30,13 @@ class iAComp3DWidget : public QDockWidget
 
 public:
 
-	iAComp3DWidget(iAMainWindow* parent, std::shared_ptr<iAObjectsData> objData, const iACsvConfig& csvConfig);
-
+	iAComp3DWidget(iAMainWindow* parent, std::shared_ptr<iAObjectsData> objData);
 	void showEvent(QShowEvent* event) override;
-
-	/*** Initialization ***/
-	void initializeInteraction();
-
-	/*** Rendering ***/
 	void renderWidget();
-	void addRendererToWidget(vtkSmartPointer<vtkRenderer> renderer);
-	void setInteractorStyleToWidget(vtkSmartPointer<vtkInteractorObserver> style);
-	void removeAllRendererFromWidget();
-
-	/*** Update ***/
 	void resetWidget();
 	void drawSelection(std::vector<size_t> selectedIds);
 
-
 private:
-
-	/*** Initialization ***/
-	void create3DVis(const iACsvConfig& csvConfig);
-
 	/*** Rendering ***/
 	std::shared_ptr<iAColoredPolyObjectVis> m_3dvisData;
 	std::shared_ptr<iAPolyObjectVisActor> m_3dvisActor;

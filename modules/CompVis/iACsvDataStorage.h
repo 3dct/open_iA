@@ -99,7 +99,6 @@ class iACsvDataStorage
 
 	/*** 3D Rendering ***/
 	std::vector<std::shared_ptr<iAObjectsData>> const & getObjectData();
-	std::vector<iACsvConfig> const & getCsvConfigs();
 
    private:
 	//fill a list with the attribute names
@@ -128,7 +127,6 @@ class iACsvDataStorage
 
 	/*** Initialization for Rendering with iAobjectvis***/
 	std::vector<std::shared_ptr<iAObjectsData>> m_objectData;
-	std::vector<iACsvConfig> m_csvConfigs;
 
 	//minimum value of all distributions/csv files
 	double m_minVal;

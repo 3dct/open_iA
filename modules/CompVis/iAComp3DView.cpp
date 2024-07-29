@@ -21,11 +21,10 @@ iAComp3DView::iAComp3DView(iAMainWindow* parent, iACsvDataStorage* dataStorage) 
 	m_dockWidgets(new std::vector<iAComp3DWidget*>())
 {
 	auto const & objData = m_dataStorage->getObjectData();
-	auto const & csvConfigs = m_dataStorage->getCsvConfigs();
 
 	for (size_t i = 0; i < objData.size(); i++)
 	{
-		iAComp3DWidget* widget = new iAComp3DWidget(parent, objData[i], csvConfigs[i]);
+		iAComp3DWidget* widget = new iAComp3DWidget(parent, objData[i]);
 		widget->setWindowTitle(iACompVisOptions::getLabel(m_dataStorage->getDatasetNames()->at(i)));
 		m_dockWidgets->push_back(widget);
 	}
