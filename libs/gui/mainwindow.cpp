@@ -270,7 +270,6 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 			m_layout->setCurrentIndex(i);
 		}
 	}
-	m_layout->setStyleSheet("padding: 0");
 	m_layout->resize(m_layout->geometry().width(), 100);
 	m_layout->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 	m_ui->layoutToolbar->insertWidget(m_ui->actionSaveLayout, m_layout);
