@@ -24,12 +24,8 @@ void iAComp3DWidgetInteractionStyle::setVisualization(iAComp3DWidget* visualizat
 void iAComp3DWidgetInteractionStyle::OnLeftButtonDown()
 {
 	vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
-
 	vtkRenderWindowInteractor* interactor = this->GetInteractor();
-	if (interactor == nullptr) return;
-
-
-	if (interactor->GetShiftKey())
+	if (interactor && interactor->GetShiftKey())
 	{
 		m_visualization->resetWidget();
 		m_visualization->renderWidget();
