@@ -1794,6 +1794,7 @@ void MainWindow::loadArguments(int argc, char** argv)
 	bool separateWindows = false;
 	bool screenshot = false;
 	QString screenshotFileName;
+	int w = -1, h = -1;
 	for (int a = 1; a < argc; ++a)
 	{
 		if (QString(argv[a]).startsWith("--quit"))
@@ -1824,6 +1825,27 @@ void MainWindow::loadArguments(int argc, char** argv)
 			screenshotFileName = QString(argv[a]);
 			screenshot = true;
 		}
+		else if (QString(argv[a]).startsWith("--size"))
+		{
+			++a;
+			bool ok = a < argc;
+			if (ok)
+			{
+				auto size = QString(argv[a]).split("x");
+				ok = size.size() == 2;
+				if (ok)
+				{
+					bool ok1, ok2;
+					w = size[0].toInt(&ok1);
+					h = size[1].toInt(&ok2);
+					ok = ok1 && ok2;
+				}
+			}
+			if (!ok)
+			{
+				LOG(lvlWarn, "Command line arguments: Invalid --size parameter; must be followed by a size in the format WxH (where W and H are width and height)!");
+			}
+		}
 		else
 		{
 			filesToLoad << QString::fromLocal8Bit(argv[a]);
@@ -1832,6 +1854,12 @@ void MainWindow::loadArguments(int argc, char** argv)
 	if (screenshot && !doQuit)
 	{
 		LOG(lvlWarn, "Command line arguments: --screenshot was specified, but that will not have any effect without --quit parameter!");
+	}
+	if (w != -1 && h != -1)
+	{
+		// using devicePixelRatio() to get actual pixel values
+		setGeometry(0, 0, w / devicePixelRatio(), h / devicePixelRatio());
+		QGuiApplication::processEvents();
 	}
 	loadFiles(filesToLoad, iAChildSource::make(separateWindows) );
 	if (doQuit)
