@@ -58,7 +58,14 @@ if (openiA_TESTING_ENABLED)
 		# make sure the Mesa OpenGL Override version is set
 		set(FileOpenTestBinary "${CMAKE_SOURCE_DIR}/test/run_with_gl.sh" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${GUI_EXECUTABLE_TARGET}")
 	endif()
-	add_test(NAME FileOpenTest COMMAND ${FileOpenTestBinary} ${CMAKE_SOURCE_DIR}/test/data/test2x2x2.mhd --quit 100)
+
+	set(TEST_TEMPLATE_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/test/run_test_with_img_output.cmake.in")
+	set(TEST_NAME "FileOpenTest")
+	set(TEST_OUTPUT_FILE ${CMAKE_BINARY_DIR}/Testing/Temporary/${TEST_NAME}.png)
+	set(TEST_COMMAND ${FileOpenTestBinary} ${CMAKE_SOURCE_DIR}/test/data/test2x2x2.mhd --quit 100 --screenshot ${TEST_OUTPUT_FILE})
+	set(TEST_SCRIPT_NAME "${CMAKE_BINARY_DIR}/${TEST_NAME}.cmake")
+	configure_file(${TEST_TEMPLATE_SCRIPT_FILE} ${TEST_SCRIPT_NAME} @ONLY)
+	add_test(NAME ${TEST_NAME} COMMAND ${CMAKE_COMMAND} -P ${TEST_SCRIPT_NAME})
 endif()
 
 
