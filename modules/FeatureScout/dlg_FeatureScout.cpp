@@ -239,6 +239,7 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType objectType, 
 	m_elementTableModel(new QStandardItemModel(static_cast<int>(m_colCnt - 1), 4, this)),
 	m_blobManager(std::make_unique<iABlobManager>()),
 	m_blobVisDialog(new dlg_blobVisualization()),
+	m_dvContextView(vtkSmartPointer<vtkContextView>::New()),
 	m_pcWidget(new iAQVTKWidget()),
 	m_polarPlotWidget(new iAQVTKWidget()),
 	m_lengthDistrWidget(new iAQVTKWidget()),
@@ -250,8 +251,7 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType objectType, 
 	m_dwDV(nullptr),
 	m_dwSPM(nullptr),
 	m_splom(new iAFeatureScoutSPLOM()),
-	m_3dvis(objVis),
-	m_dvContextView(vtkSmartPointer<vtkContextView>::New())
+	m_3dvis(objVis)
 {
 	setupPolarPlotResolution(3.0);
 

@@ -219,7 +219,7 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 
 			for (qsizetype currClass = 1; currClass < classCount && !aborter->isAborted(); ++currClass)
 			{
-				m_MOData.push_back(std::move(std::make_unique<iAMeanObjectData>()));
+				m_MOData.push_back(std::make_unique<iAMeanObjectData>());
 				auto moData = m_MOData[m_MOData.size() - 1].get();
 				std::map<int, int> meanObjectIds;
 				for (int j = 0; j < tableList[currClass]->GetNumberOfRows(); ++j)
@@ -427,9 +427,9 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 		float viewportColumns = m_MOData.size() < 3 ? fmod(m_MOData.size(), 3.0) : 3.0;
 		float viewportRows = std::ceil(m_MOData.size() / viewportColumns);
 		float fieldLengthX = 1.0 / viewportColumns, fieldLengthY = 1.0 / viewportRows;
-		int numOfViewPorts = static_cast<int>(viewportColumns * viewportRows);
+		size_t numOfViewPorts = static_cast<size_t>(viewportColumns * viewportRows);
 		// Set up viewports
-		for (int i = 0; i < numOfViewPorts; ++i)
+		for (size_t i = 0; i < numOfViewPorts; ++i)
 		{
 			auto renderer = vtkSmartPointer<vtkRenderer>::New();
 			renderer->GetActiveCamera()->ParallelProjectionOn();

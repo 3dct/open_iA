@@ -8,6 +8,7 @@
 class iAbase_API iAAbortListener
 {
 public:
+	virtual ~iAAbortListener();
 	virtual void abort() =0;
 };
 
