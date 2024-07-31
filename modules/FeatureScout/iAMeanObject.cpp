@@ -505,7 +505,7 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 void iAMeanObject::modifyMeanObjectTF()
 {
 	int moIndex = m_dwMO->cb_Classes->currentIndex();
-	if (moIndex < 0 || moIndex >= m_MOData.size())
+	if (moIndex < 0 || static_cast<size_t>(moIndex) >= m_MOData.size())
 	{	// if outside valid range - just to be on the safe side
 		LOG(lvlError, QString("Invalid Mean Object index %1!").arg(moIndex));
 		return;
@@ -534,7 +534,7 @@ void iAMeanObject::modifyMeanObjectTF()
 void iAMeanObject::saveStl()
 {
 	int moIndex = m_dwMO->cb_Classes->currentIndex();
-	if (moIndex < 0 || moIndex >= m_MOData.size())
+	if (moIndex < 0 || static_cast<size_t>(moIndex) >= m_MOData.size())
 	{  // if outside valid range - just to be on the safe side
 		LOG(lvlError, QString("Invalid Mean Object index %1!").arg(moIndex));
 		return;
@@ -571,7 +571,7 @@ void iAMeanObject::saveStl()
 void iAMeanObject::saveVolume()
 {
 	int moIndex = m_dwMO->cb_Classes->currentIndex();
-	if (moIndex < 0 || moIndex >= m_MOData.size())
+	if (moIndex < 0 || static_cast<size_t>(moIndex) >= m_MOData.size())
 	{  // if outside valid range - just to be on the safe side
 		LOG(lvlError, QString("Invalid Mean Object index %1!").arg(moIndex));
 		return;
