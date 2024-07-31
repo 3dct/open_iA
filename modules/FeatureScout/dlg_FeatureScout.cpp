@@ -311,7 +311,7 @@ std::vector<size_t> dlg_FeatureScout::getPCSelection()
 	return selectedIndices;
 }
 
-void dlg_FeatureScout::pcViewMouseButtonCallBack(vtkObject*, unsigned long, void*, void*, vtkCommand*)
+void dlg_FeatureScout::pcSelectionChanged(vtkObject*, unsigned long, void*, void*, vtkCommand*)
 {
 	auto classSelectionIndices = getPCSelection();
 	m_splom->setFilteredSelection(classSelectionIndices);
@@ -333,17 +333,7 @@ void dlg_FeatureScout::setPCChartData(bool specialRendering)
 	{   // for the special renderings, we use all data:
 		m_chartTable->DeepCopy(m_csvTable);
 	}
-	if (m_pcView->GetScene()->GetNumberOfItems() > 0)
-	{
-		m_pcView->GetScene()->RemoveItem(0u);
-	}
 	m_pcChart->GetPlot(0)->SetInputData(m_chartTable);
-	applyPCSettings(extractValues(iAFeatureScoutPCSettings::defaultAttributes()));
-	m_pcView->GetScene()->AddItem(m_pcChart);
-	m_pcConnections->Connect(m_pcChart,
-		vtkCommand::SelectionChangedEvent,
-		this,
-		SLOT(pcViewMouseButtonCallBack(vtkObject*, unsigned long, void*, void*, vtkCommand*)));
 	updatePCColumnVisibility();
 }
 
@@ -468,6 +458,12 @@ void dlg_FeatureScout::setupViews()
 		vtkCommand::RightButtonPressEvent,
 		this,
 		SLOT(pcRightButtonPressed(vtkObject*, unsigned long, void*, void*, vtkCommand*)));
+	m_pcConnections->Connect(m_pcChart,
+		vtkCommand::SelectionChangedEvent,
+		this,
+		SLOT(pcSelectionChanged(vtkObject*, unsigned long, void*, void*, vtkCommand*)));
+	m_pcView->GetScene()->AddItem(m_pcChart);
+	applyPCSettings(extractValues(iAFeatureScoutPCSettings::defaultAttributes()));
 	setPCChartData(false);
 
 	updatePolarPlotView(m_chartTable);
@@ -1942,12 +1938,13 @@ void dlg_FeatureScout::pcRightButtonPressed(vtkObject* obj, unsigned long, void*
 void dlg_FeatureScout::pcRightButtonReleased(vtkObject* obj, unsigned long, void* client_data, void*, vtkCommand* command)
 {
 	Q_UNUSED(client_data);
+	Q_UNUSED(command);
 	// Gets the mouse button event for scatter plot matrix and opens a popup menu.
 	vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast(obj);
 	int* mouseReleasePos = iren->GetLastEventPosition();
 	if (mouseReleasePos[0] == m_mousePressPos[0] && mouseReleasePos[1] == m_mousePressPos[1])
 	{
-		command->AbortFlagOn();    // Consume event so the interactor style doesn't get it
+		//command->AbortFlagOn();  // Consume event so the interactor style doesn't get it -> not a good idea; right button somehow starts axis drag; if we consume, then axis drag mode doesn't stop!
 		QMenu popupMenu;
 		auto addClass = popupMenu.addAction("Add class");
 		addClass->setIcon(iAThemeHelper::icon("plus"));
@@ -1960,16 +1957,8 @@ void dlg_FeatureScout::pcRightButtonReleased(vtkObject* obj, unsigned long, void
 		// VTK delivers "device pixel" coordinates, while Qt expects "device independent pixel" coordinates
 		// (see https://doc.qt.io/qt-5/highdpi.html#glossary-of-high-dpi-terms); convert:
 		pt = pt / m_dwPC->devicePixelRatio();
+		// ToDo: Re-add "Suggest Classification" / "Accept Classification" functionality
 		popupMenu.exec(m_pcWidget->mapToGlobal(pt));
-	}
-	else
-	{
-		// semi-automatic classification not ported to new SPM yet
-		/*
-		QMenu* popupMenu = static_cast<QMenu*>( client_data );     // Reset to original SPM popup
-		if ( popupMenu->actions().count() > 1 )                    // Check if SPM or PC popups
-			popupMenu->actions().at( 1 )->setText( "Suggest Classification" );
-		*/
 	}
 }
 

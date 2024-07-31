@@ -117,7 +117,7 @@ private slots:
 	//! @{ parallel coordinate chart related methods:
 	void pcRightButtonPressed(vtkObject* obj, unsigned long, void* client_data, void*, vtkCommand* command);
 	void pcRightButtonReleased(vtkObject* obj, unsigned long, void* client_data, void*, vtkCommand* command);
-	void pcViewMouseButtonCallBack(vtkObject* obj, unsigned long, void* client_data, void*, vtkCommand* command);
+	void pcSelectionChanged(vtkObject* obj, unsigned long, void* client_data, void*, vtkCommand* command);
 	//! @}
 
 	void renderLUTChanges(std::shared_ptr<iALookupTable> lut, size_t colInd);

@@ -387,7 +387,7 @@ void iAFast3DMagicLensWidget::getViewportPoints(double points[4])
 }
 
 void iAFast3DMagicLensWidget::setContextMenuEnabled(bool enabled)
-{
+{   // TODO: use context menu policy instead? setContextMenuPolicy(enabled? Qt::DefaultContextMenu : Qt::PreventContextMenu)
 	m_contextMenuEnabled = enabled;
 }
 
