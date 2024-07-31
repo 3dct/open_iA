@@ -101,8 +101,8 @@ private slots:
 	void wisetexSaveButton();
 	void classExportButton();  //!< Export the defined classes to an image file
 	void csvDVSaveButton();
-	void classClicked(const QModelIndex& index);
-	void classDoubleClicked(const QModelIndex& index);
+	void itemClicked(const QModelIndex& index);  //!< called when an item in the class tree view got clicked (class or single object)
+	void itemDoubleClicked(const QModelIndex& index);  //!< called when an item in the class tree view got double-clicked (class or single object)
 	void enableBlobRendering();
 	void disableBlobRendering();
 	void showContextMenu(const QPoint& pnt);

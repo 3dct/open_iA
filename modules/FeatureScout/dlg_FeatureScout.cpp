@@ -255,7 +255,7 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType objectType, 
 	setupPolarPlotResolution(3.0);
 
 	m_chartTable->DeepCopy(m_csvTable);
-	m_tableList.push_back(m_chartTable);
+	m_tableList.push_back(m_chartTable); // at start, the unclassified class contains all objects; could be skipped if classes are loaded later...
 
 	initFeatureScoutUI();
 	m_lengthDistrWidget->hide();
@@ -593,9 +593,9 @@ void dlg_FeatureScout::setupConnections()
 	connect(m_classExplorer->distributionCSV, &QToolButton::released, this, &dlg_FeatureScout::csvDVSaveButton);
 
 	connect(m_elementTableModel, &QStandardItemModel::itemChanged, this, &dlg_FeatureScout::updateVisibility);
-	connect(m_classTreeView, &QTreeView::clicked, this, &dlg_FeatureScout::classClicked);
-	connect(m_classTreeView, &QTreeView::activated, this, &dlg_FeatureScout::classClicked);
-	connect(m_classTreeView, &QTreeView::doubleClicked, this, &dlg_FeatureScout::classDoubleClicked);
+	connect(m_classTreeView, &QTreeView::clicked, this, &dlg_FeatureScout::itemClicked);
+	connect(m_classTreeView, &QTreeView::activated, this, &dlg_FeatureScout::itemClicked);
+	connect(m_classTreeView, &QTreeView::doubleClicked, this, &dlg_FeatureScout::itemDoubleClicked);
 
 	connect(m_splom.get(), &iAFeatureScoutSPLOM::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart);
 	connect(m_splom.get(), &iAFeatureScoutSPLOM::addClass, this, &dlg_FeatureScout::classAddButton);
@@ -2057,7 +2057,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 }
 */
 
-void dlg_FeatureScout::classDoubleClicked(const QModelIndex& index)
+void dlg_FeatureScout::itemDoubleClicked(const QModelIndex& index)
 {
 	QStandardItem* item;
 	// Gets right item from ClassTreeModel to remove AccesViolationError on item double click).
@@ -2146,33 +2146,19 @@ void dlg_FeatureScout::showLengthDistribution(bool show, vtkScalarsToColors* lut
 	m_ppWidget->colorMapSelection->hide();
 }
 
-void dlg_FeatureScout::classClicked(const QModelIndex& index)
+void dlg_FeatureScout::itemClicked(const QModelIndex& index)
 {
-	showOrientationDistribution();
+	showLengthDistribution(false);
 
-	// Gets right Item from ClassTreeModel
-	QStandardItem* item;
+	// Gets right item depending on whether click was on class 'level'
+	auto item = (index.parent().row() == -1) ?
+		m_classTreeModel->item(index.row(), 0):
+		m_classTreeModel->itemFromIndex(index);
 
-	// checks if click on class 'level'
-	if (index.parent().row() == -1)
+	// Selected an empty class - nothing to render!
+	if (item->rowCount() == 0 && item->parent() == m_classTreeModel->invisibleRootItem())
 	{
-		item = m_classTreeModel->item(index.row(), 0);
-	}
-	else
-	{
-		item = m_classTreeModel->itemFromIndex(index);
-	}
-
-	// check if unclassified class is empty
-	if (m_classTreeModel->invisibleRootItem()->child(0) == item && item->rowCount() == 0)
-	{
-		QMessageBox::information(m_activeChild, "FeatureScout", "Unclassified class contains no objects, please make another selection.");
-		return;
-	}
-	//MOD kMeans
-	if (item->rowCount() == 0 && item->parent()->index() == m_classTreeModel->invisibleRootItem()->index())
-	{
-		QMessageBox::information(m_activeChild, "FeatureScout", "This class contains no object, please make another selection or delete the class.");
+		QMessageBox::information(m_activeChild, "FeatureScout", "This class contains no object, nothing to show!");
 		return;
 	}
 	QStandardItem* classItem = item->hasChildren() ? item : item->parent();
