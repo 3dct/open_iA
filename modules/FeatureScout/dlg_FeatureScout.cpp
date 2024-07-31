@@ -1607,41 +1607,30 @@ void dlg_FeatureScout::loadClassesXML(QXmlStreamReader& reader)
 	reader.readNext();  // skip xml tag?
 	reader.readNext();  // read IFV_Class_Tree element
 	QString IDColumnName = (m_objectType == iAObjectType::Fibers) ? LabelAttribute : LabelAttributePore;
-	if (reader.name() == IFVTag)
-	{
-		// if the object number is not correct, stop the load process
-		auto xmlObjectCount = reader.attributes().value(CountAllAttribute).toString().toInt();
-		if (xmlObjectCount != m_objCnt)
-		{
-			QString msg = QString("Class load error: Object count in xml file (%1) does not match object count of current dataset (%2)"
-				", please check; the xml file was probably created from a different dataset.").arg(xmlObjectCount).arg(m_objCnt);
-			LOG(lvlWarn, msg);
-			QMessageBox::warning(m_activeChild, "FeatureScout", msg);
-			return;
-		}
-		if (reader.attributes().hasAttribute(IDColumnAttribute))
-		{
-			IDColumnName = reader.attributes().value(IDColumnAttribute).toString();
-		}
-	}
-	else // incompatible xml file
+	if (reader.name() != IFVTag) // incompatible xml file
 	{
 		auto msg = QString("Class load error: xml file incompatible with FeatureScout (root element called %1 instead of %2), please check.").arg(reader.name()).arg(IFVTag);
 		LOG(lvlWarn, msg);
 		QMessageBox::warning(m_activeChild, "FeatureScout", msg);
 		return;
 	}
+	auto xmlObjectCount = reader.attributes().value(CountAllAttribute).toString().toInt();
+	if (xmlObjectCount != m_objCnt)
+	{
+		QString msg = QString("Class load error: Object count in xml file (%1) does not match object count of current dataset (%2)"
+			", please check; the xml file was probably created from a different dataset.").arg(xmlObjectCount).arg(m_objCnt);
+		LOG(lvlWarn, msg);
+		QMessageBox::warning(m_activeChild, "FeatureScout", msg);
+		return;
+	}
+	if (reader.attributes().hasAttribute(IDColumnAttribute))
+	{
+		IDColumnName = reader.attributes().value(IDColumnAttribute).toString();
+	}
 
-	m_chartTable->DeepCopy(m_csvTable); // reset charttable
 	m_tableList.clear();
-	m_tableList.push_back(m_chartTable);
 	m_colorList.clear();
-	m_classTreeModel->clear();
-
-	// init header names for class tree model
-	m_classTreeModel->setHorizontalHeaderItem(0, new QStandardItem("Class"));
-	m_classTreeModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
-	m_classTreeModel->setHorizontalHeaderItem(2, new QStandardItem("Percent"));
+	m_classTreeModel->removeRows(0, m_classTreeModel->rowCount());
 
 	int idxClass = 0;
 
@@ -1661,8 +1650,6 @@ void dlg_FeatureScout::loadClassesXML(QXmlStreamReader& reader)
 					LOG(lvlError, QString("Invalid XML: ID attribute %1 is not set!").arg(IDColumnName));
 				}
 				QStandardItem* item = new QStandardItem(label);
-
-				// add objects to firstLevelClassItem
 				activeItem->appendRow(item);
 
 				// update Class_ID number in csvTable;
@@ -1672,14 +1659,14 @@ void dlg_FeatureScout::loadClassesXML(QXmlStreamReader& reader)
 			else if (reader.name() == ClassTag)
 			{
 				// prepare the first level class items
-				const QString name = reader.attributes().value(NameAttribute).toString();
-				const QString color = reader.attributes().value(ColorAttribute).toString();
-				const QString count = reader.attributes().value(CountAttribute).toString();
-				const QString percent = reader.attributes().value(PercentAttribute).toString();
+				const auto name = reader.attributes().value(NameAttribute).toString();
+				const auto color = QColor(reader.attributes().value(ColorAttribute).toString());
+				const auto count = reader.attributes().value(CountAttribute).toString();
+				const auto percent = reader.attributes().value(PercentAttribute).toString();
 
 				QList<QStandardItem*> stammItem = prepareRow(name, count, percent);
-				stammItem.first()->setData(QColor(color), Qt::DecorationRole);
-				m_colorList.append(QColor(color));
+				stammItem.first()->setData(color, Qt::DecorationRole);
+				m_colorList.append(color);
 				rootItem->appendRow(stammItem);
 				activeItem = rootItem->child(idxClass);
 				++idxClass;
