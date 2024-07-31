@@ -628,9 +628,10 @@ void dlg_FeatureScout::multiClassRendering()
 
 	updateMultiClassLookupTable(alpha);
 	setPCChartData(true);
-	static_cast<vtkPlotParallelCoordinates*>(m_pcChart->GetPlot(0))->SetScalarVisibility(1);
-	static_cast<vtkPlotParallelCoordinates*>(m_pcChart->GetPlot(0))->SetLookupTable(m_multiClassLUT);
-	static_cast<vtkPlotParallelCoordinates*>(m_pcChart->GetPlot(0))->SelectColorArray(iACsvIO::ColNameClassID);
+	auto plot = dynamic_cast<vtkPlotParallelCoordinates*>(m_pcChart->GetPlot(0));
+	plot->SetScalarVisibility(1);
+	plot->SetLookupTable(m_multiClassLUT);
+	plot->SelectColorArray(iACsvIO::ColNameClassID);
 	m_pcChart->SetSize(m_pcChart->GetSize());
 	m_pcChart->GetPlot(0)->SetOpacity(0.8);
 	m_pcView->Render();

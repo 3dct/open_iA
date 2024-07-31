@@ -105,10 +105,8 @@ int iAvtkTubeFilter::RequestData(
   vtkInformation *outInfo = outputVector->GetInformationObject(0);
 
   // get the input and output
-  vtkPolyData *input = vtkPolyData::SafeDownCast(
-    inInfo->Get(vtkDataObject::DATA_OBJECT()));
-  vtkPolyData *output = vtkPolyData::SafeDownCast(
-    outInfo->Get(vtkDataObject::DATA_OBJECT()));
+  auto input = dynamic_cast<vtkPolyData*>(inInfo->Get(vtkDataObject::DATA_OBJECT()));
+  auto output = dynamic_cast<vtkPolyData*>(outInfo->Get(vtkDataObject::DATA_OBJECT()));
 
   vtkPointData *pd=input->GetPointData();
   vtkPointData *outPD=output->GetPointData();

@@ -86,8 +86,7 @@ int vtkEllipsoidSource::RequestData(
   vtkInformation *outInfo = outputVector->GetInformationObject(0);
 
   // get the ouptut
-  vtkPolyData *output = vtkPolyData::SafeDownCast(
-    outInfo->Get(vtkDataObject::DATA_OBJECT()));
+  auto output = dynamic_cast<vtkPolyData*>(outInfo->Get(vtkDataObject::DATA_OBJECT()));
 
   //save the center info
   double originalCenter[3];
