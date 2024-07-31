@@ -230,7 +230,6 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType objectType, 
 	m_columnVisibility(m_colCnt, false),
 	m_lengthDistrView(vtkSmartPointer<vtkContextView>::New()),
 	m_pcView(vtkSmartPointer<vtkContextView>::New()),
-	m_pcChart(vtkSmartPointer<vtkChartParallelCoordinates>::New()),
 	m_pcConnections(vtkSmartPointer<vtkEventQtSlotConnect>::New()),
 	m_multiClassLUT(vtkSmartPointer<vtkLookupTable>::New()),
 	m_classTreeView(new QTreeView()),
@@ -333,7 +332,16 @@ void dlg_FeatureScout::setPCChartData(bool specialRendering)
 	{   // for the special renderings, we use all data:
 		m_chartTable->DeepCopy(m_csvTable);
 	}
+	if (m_pcView->GetScene()->GetNumberOfItems() > 0)
+	{
+		m_pcView->GetScene()->RemoveItem(0u);
+	}
+	m_pcChart = vtkSmartPointer<vtkChartParallelCoordinates>::New();
 	m_pcChart->GetPlot(0)->SetInputData(m_chartTable);
+	applyPCSettings(m_pcSettings);
+	m_pcView->GetScene()->AddItem(m_pcChart);
+	m_pcConnections->Connect(m_pcChart, vtkCommand::SelectionChangedEvent, this,
+		SLOT(pcSelectionChanged(vtkObject*, unsigned long, void*, void*, vtkCommand*)));
 	updatePCColumnVisibility();
 }
 
@@ -458,12 +466,7 @@ void dlg_FeatureScout::setupViews()
 		vtkCommand::RightButtonPressEvent,
 		this,
 		SLOT(pcRightButtonPressed(vtkObject*, unsigned long, void*, void*, vtkCommand*)));
-	m_pcConnections->Connect(m_pcChart,
-		vtkCommand::SelectionChangedEvent,
-		this,
-		SLOT(pcSelectionChanged(vtkObject*, unsigned long, void*, void*, vtkCommand*)));
-	m_pcView->GetScene()->AddItem(m_pcChart);
-	applyPCSettings(extractValues(iAFeatureScoutPCSettings::defaultAttributes()));
+	m_pcSettings = extractValues(iAFeatureScoutPCSettings::defaultAttributes());
 	setPCChartData(false);
 
 	updatePolarPlotView(m_chartTable);
