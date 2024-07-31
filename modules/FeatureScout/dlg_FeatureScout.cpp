@@ -943,7 +943,6 @@ void dlg_FeatureScout::classAddButton()
 	m_colorList.push_back(cColor);
 	// get the root item from class tree
 	QStandardItem* rootItem = m_classTreeModel->invisibleRootItem();
-	QStandardItem* item;
 
 	// create a first level child under rootItem as new class
 	double percent = 100.0 * CountObject / m_objCnt;
@@ -977,8 +976,7 @@ void dlg_FeatureScout::classAddButton()
 
 		// add item to the new class
 		QString str = QString("%1").arg(objID);
-		item = new QStandardItem(str);
-		newClassItem.first()->appendRow(item);
+		newClassItem.first()->appendRow(new QStandardItem(str));
 
 		m_csvTable->SetValue(objID - 1, m_colCnt - 1, classID); // update Class_ID column in csvTable
 	}
@@ -1650,8 +1648,7 @@ void dlg_FeatureScout::loadClassesXML(QXmlStreamReader& reader)
 				{
 					LOG(lvlError, QString("Invalid XML: ID attribute %1 is not set!").arg(IDColumnName));
 				}
-				QStandardItem* item = new QStandardItem(label);
-				activeItem->appendRow(item);
+				activeItem->appendRow(new QStandardItem(label));
 
 				// update Class_ID number in csvTable;
 				m_csvTable->SetValue(label.toInt() - 1, m_colCnt - 1, idxClass - 1);
@@ -1686,7 +1683,6 @@ void dlg_FeatureScout::loadClassesXML(QXmlStreamReader& reader)
 	{
 		recalculateChartTable(rootItem->child(i));
 	}
-	setActiveClassItem(rootItem->child(0), 0);
 	multiClassRendering();
 }
 
