@@ -185,8 +185,8 @@ private:
 	vtkSmartPointer<vtkChartParallelCoordinates> m_pcChart;
 	vtkSmartPointer<vtkEventQtSlotConnect> m_pcConnections;
 	QVariantMap m_pcSettings;
-	vtkSmartPointer<vtkLookupTable> m_multiClassLUT;  //!< Color lookup table for multi-class rendering in PC view
-	int m_mousePressPos[2];
+	vtkSmartPointer<vtkLookupTable> m_pcMultiClassLUT;  //!< Color lookup table for multi-class rendering in PC view
+	int m_pcMousePressPos[2];
 	//! @}
 
 	//! @{ Class Explorer

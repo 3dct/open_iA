@@ -231,7 +231,7 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType objectType, 
 	m_lengthDistrView(vtkSmartPointer<vtkContextView>::New()),
 	m_pcView(vtkSmartPointer<vtkContextView>::New()),
 	m_pcConnections(vtkSmartPointer<vtkEventQtSlotConnect>::New()),
-	m_multiClassLUT(vtkSmartPointer<vtkLookupTable>::New()),
+	m_pcMultiClassLUT(vtkSmartPointer<vtkLookupTable>::New()),
 	m_classTreeView(new QTreeView()),
 	m_elementTableView(new QTableView()),
 	m_classTreeModel(new QStandardItemModel(this)),
@@ -629,7 +629,7 @@ void dlg_FeatureScout::multiClassRendering()
 	setPCChartData(true);
 	auto plot = dynamic_cast<vtkPlotParallelCoordinates*>(m_pcChart->GetPlot(0));
 	plot->SetScalarVisibility(1);
-	plot->SetLookupTable(m_multiClassLUT);
+	plot->SetLookupTable(m_pcMultiClassLUT);
 	plot->SelectColorArray(iACsvIO::ColNameClassID);
 	m_pcChart->SetSize(m_pcChart->GetSize());
 	m_pcChart->GetPlot(0)->SetOpacity(0.8);
@@ -946,8 +946,8 @@ void dlg_FeatureScout::classAddButton()
 
 	// create a first level child under rootItem as new class
 	double percent = 100.0 * CountObject / m_objCnt;
-	QList<QStandardItem*> firstLevelItem = prepareRow(cText, QString("%1").arg(CountObject), QString::number(percent, 'f', 1));
-	firstLevelItem.first()->setData(cColor, Qt::DecorationRole);
+	auto newClassItem = prepareRow(cText, QString("%1").arg(CountObject), QString::number(percent, 'f', 1));
+	newClassItem.first()->setData(cColor, Qt::DecorationRole);
 
 	int classID = rootItem->rowCount();
 	int objID = 0;
@@ -977,7 +977,7 @@ void dlg_FeatureScout::classAddButton()
 		// add item to the new class
 		QString str = QString("%1").arg(objID);
 		item = new QStandardItem(str);
-		firstLevelItem.first()->appendRow(item);
+		newClassItem.first()->appendRow(item);
 
 		m_csvTable->SetValue(objID - 1, m_colCnt - 1, classID); // update Class_ID column in csvTable
 	}
@@ -996,8 +996,7 @@ void dlg_FeatureScout::classAddButton()
 	}
 	m_splom->classAdded(classID);
 
-	// append the new class to class tree
-	rootItem->appendRow(firstLevelItem);
+	rootItem->appendRow(newClassItem);
 
 	// remove items from m_activeClassItem from table button to top, otherwise you would make a wrong delete
 	for (int i = 0; i < CountObject; ++i)
@@ -1006,12 +1005,12 @@ void dlg_FeatureScout::classAddButton()
 	}
 
 	updateClassStatistics(m_activeClassItem);
-	setActiveClassItem(firstLevelItem.first(), 1);
+	setActiveClassItem(newClassItem.first(), 1);
 	calculateElementTable();
 	initElementTableModel();
 	setPCChartData();
 	m_classTreeView->collapseAll();
-	m_classTreeView->setCurrentIndex(firstLevelItem.first()->index());
+	m_classTreeView->setCurrentIndex(newClassItem.first()->index());
 	updatePolarPlotView(m_chartTable);
 	singleRendering();
 }
@@ -1934,8 +1933,8 @@ void dlg_FeatureScout::pcRightButtonPressed(vtkObject* obj, unsigned long, void*
 {
 	// Gets the right mouse button press event for scatter plot matrix.
 	vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast(obj);
-	m_mousePressPos[0] = iren->GetEventPosition()[0];
-	m_mousePressPos[1] = iren->GetEventPosition()[1];
+	m_pcMousePressPos[0] = iren->GetEventPosition()[0];
+	m_pcMousePressPos[1] = iren->GetEventPosition()[1];
 }
 
 void dlg_FeatureScout::pcRightButtonReleased(vtkObject* obj, unsigned long, void* client_data, void*, vtkCommand* command)
@@ -1945,7 +1944,7 @@ void dlg_FeatureScout::pcRightButtonReleased(vtkObject* obj, unsigned long, void
 	// Gets the mouse button event for scatter plot matrix and opens a popup menu.
 	vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast(obj);
 	int* mouseReleasePos = iren->GetLastEventPosition();
-	if (mouseReleasePos[0] == m_mousePressPos[0] && mouseReleasePos[1] == m_mousePressPos[1])
+	if (mouseReleasePos[0] == m_pcMousePressPos[0] && mouseReleasePos[1] == m_pcMousePressPos[1])
 	{
 		//command->AbortFlagOn();  // Consume event so the interactor style doesn't get it -> not a good idea; right button somehow starts axis drag; if we consume, then axis drag mode doesn't stop!
 		QMenu popupMenu;
@@ -2404,19 +2403,19 @@ void dlg_FeatureScout::recalculateChartTable(QStandardItem* item)
 void dlg_FeatureScout::updateMultiClassLookupTable(double alpha)
 {
 	auto lutNum = m_colorList.size();
-	m_multiClassLUT->SetNumberOfTableValues(lutNum);
+	m_pcMultiClassLUT->SetNumberOfTableValues(lutNum);
 	for (vtkIdType i = 0; i < lutNum; ++i)
 	{
-		m_multiClassLUT->SetTableValue(i,
+		m_pcMultiClassLUT->SetTableValue(i,
 			m_colorList.at(i).red() / 255.0,
 			m_colorList.at(i).green() / 255.0,
 			m_colorList.at(i).blue() / 255.0,
 			m_colorList.at(i).alpha() / 255.0);
 	}
 
-	m_multiClassLUT->SetRange(0, lutNum - 1);
-	m_multiClassLUT->SetAlpha(alpha);
-	m_multiClassLUT->Build();
+	m_pcMultiClassLUT->SetRange(0, lutNum - 1);
+	m_pcMultiClassLUT->SetAlpha(alpha);
+	m_pcMultiClassLUT->Build();
 }
 
 void dlg_FeatureScout::enableBlobRendering()
