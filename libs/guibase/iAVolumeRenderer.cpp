@@ -74,14 +74,12 @@ iAVolumeRenderer::iAVolumeRenderer(vtkRenderer* renderer, vtkImageData* vtkImg, 
 	m_volMapper(vtkSmartPointer<vtkSmartVolumeMapper>::New()),
 	m_image(vtkImg)
 {
-	m_volMapper->SetBlendModeToComposite();
 	m_volume->SetMapper(m_volMapper);
 	m_volume->SetProperty(m_volProp);
 	m_volume->SetVisibility(true);
 	m_volMapper->SetInputData(vtkImg);
 	if (vtkImg->GetNumberOfScalarComponents() > 1)
 	{
-		m_volMapper->SetBlendModeToComposite();
 		m_volProp->IndependentComponentsOff();
 	}
 	else
