@@ -330,6 +330,7 @@ void dlg_FeatureScout::setPCChartData(bool specialRendering)
 	m_pcWidget->setEnabled(!specialRendering); // to disable selection
 	if (specialRendering)
 	{   // for the special renderings, we use all data:
+		m_chartTable = vtkSmartPointer<vtkTable>::New();
 		m_chartTable->DeepCopy(m_csvTable);
 	}
 	if (m_pcView->GetScene()->GetNumberOfItems() > 0)
