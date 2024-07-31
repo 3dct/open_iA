@@ -213,14 +213,14 @@ T* MainWindow::activeChild()
 }
 
 MainWindow::MainWindow(QString const & appName, QString const & version, QString const & buildInformation,
-	QString const & splashImage, QSplashScreen& splashScreen, iADockWidgetWrapper* dwJobs) :
+	QString const & splashImage, QSplashScreen& splashScreen) :
 	m_splashScreenImg(splashImage),
 	m_useSystemTheme(false),
 	m_moduleDispatcher( new iAModuleDispatcher( this ) ),
 	m_gitVersion(version),
 	m_buildInformation(buildInformation),
 	m_ui(std::make_shared<Ui_MainWindow>()),
-	m_dwJobs(dwJobs),
+	m_dwJobs(new iADockWidgetWrapper(iAJobListView::get(), "Job List", "Jobs")),
 	m_openJobListOnNewJob(false)
 {
 	assert(!m_mainWnd);
@@ -249,8 +249,8 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_ui->actionLinkMdis->setChecked(m_defaultSlicerSettings.LinkMDIs);
 	setCentralWidget(m_ui->mdiArea);
 	addDockWidget(Qt::RightDockWidgetArea, iALogWidget::get());
-	splitDockWidget(iALogWidget::get(), dwJobs, Qt::Vertical);
-	dwJobs->setFeatures(dwJobs->features() & ~QDockWidget::DockWidgetVerticalTitleBar);
+	splitDockWidget(iALogWidget::get(), m_dwJobs, Qt::Vertical);
+	m_dwJobs->setFeatures(m_dwJobs->features() & ~QDockWidget::DockWidgetVerticalTitleBar);
 
 	createRecentFileActions();
 	connectSignalsToSlots();
@@ -2119,8 +2119,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	}
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
 	iALUT::loadMaps(QCoreApplication::applicationDirPath() + "/colormaps");
-	auto dwJobs = new iADockWidgetWrapper(iAJobListView::get(), "Job List", "Jobs");
-	MainWindow mainWin(appName, version, buildInformation, splashPath, splashScreen, dwJobs);
+	MainWindow mainWin(appName, version, buildInformation, splashPath, splashScreen);
 	connect(iASystemThemeWatcher::get(), &iASystemThemeWatcher::themeChanged, &mainWin,
 		[&mainWin](bool brightTheme) {
 			if (mainWin.m_useSystemTheme)

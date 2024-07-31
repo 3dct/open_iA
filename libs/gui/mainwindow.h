@@ -35,7 +35,7 @@ class iAgui_API MainWindow : public iAMainWindow
 
 public:
 	MainWindow(QString const & appName, QString const & version, QString const& buildInformation,
-		QString const & splashImage, QSplashScreen& splashScreen, iADockWidgetWrapper* dwJobs);
+		QString const & splashImage, QSplashScreen& splashScreen);
 	~MainWindow() override;
 	static int runGUI(int argc, char * argv[], QString const & appName, QString const & version, QString const& buildInformation,
 		QString const & splashPath, QString const & iconPath);
