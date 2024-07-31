@@ -121,7 +121,8 @@ const QString PercentAttribute("PERCENT");
 const QString IDColumnAttribute("IDColumn");
 const QString LabelAttribute("Label");
 const QString LabelAttributePore("LabelId");
-const QString ClassesProjectFile("Classes");
+const QString ClassesProjectKey("Classes");
+const QString MeanObjectsProjectKey("MeanObjects");
 
 namespace
 {
@@ -2978,18 +2979,26 @@ void dlg_FeatureScout::saveProject(QSettings& projectFile)
 	//writer.setAutoFormatting(false);  // apparently auto formatting is enabled by default, and cannot be disabled
 	saveClassesXML(writer, true);
 	auto filteredXML = outXML.replace("\n", "").replace(QRegularExpression("[ ]+"), " ");
-	projectFile.setValue(ClassesProjectFile, filteredXML);
+	projectFile.setValue(ClassesProjectKey, filteredXML);
+	if (m_meanObject)
+	{
+		projectFile.setValue(MeanObjectsProjectKey, true);
+	}
 }
 
 void dlg_FeatureScout::loadProject(QSettings const & projectFile)
 {
-	if (!projectFile.contains(ClassesProjectFile))
+	if (!projectFile.contains(ClassesProjectKey))
 	{
 		return;
 	}
-	QString classesString = projectFile.value(ClassesProjectFile).toString();
+	QString classesString = projectFile.value(ClassesProjectKey).toString();
 	QXmlStreamReader reader(classesString);
 	loadClassesXML(reader);
+	if (projectFile.value(MeanObjectsProjectKey, false).toBool())
+	{
+		renderMeanObject();
+	}
 }
 
 void dlg_FeatureScout::updateAxisProperties()

@@ -410,7 +410,7 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 			auto moDW = new iADockWidgetWrapper(m_dwMO, "Mean Object", "FeatureScoutMO", "https://github.com/3dct/open_iA/wiki/MObjects");
 			moDW->setWindowTitle(QString("%1 Mean Object View").arg(MapObjectTypeToString(filterID)));
 
-			m_activeChild->tabifyDockWidget(nextToDW, moDW);
+			m_activeChild->splitDockWidget(nextToDW, moDW, Qt::Horizontal);
 		}
 
 		// Update MOClass comboBox
