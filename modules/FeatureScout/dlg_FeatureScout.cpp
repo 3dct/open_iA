@@ -946,8 +946,9 @@ void dlg_FeatureScout::classAddButton()
 
 	// create a first level child under rootItem as new class
 	double percent = 100.0 * CountObject / m_objCnt;
-	auto newClassItem = prepareRow(cText, QString("%1").arg(CountObject), QString::number(percent, 'f', 1));
-	newClassItem.first()->setData(cColor, Qt::DecorationRole);
+	auto newClassRow = prepareRow(cText, QString("%1").arg(CountObject), QString::number(percent, 'f', 1));
+	auto newClassItem = newClassRow.first();
+	newClassItem->setData(cColor, Qt::DecorationRole);
 
 	int classID = rootItem->rowCount();
 	int objID = 0;
@@ -976,7 +977,7 @@ void dlg_FeatureScout::classAddButton()
 
 		// add item to the new class
 		QString str = QString("%1").arg(objID);
-		newClassItem.first()->appendRow(new QStandardItem(str));
+		newClassItem->appendRow(new QStandardItem(str));
 
 		m_csvTable->SetValue(objID - 1, m_colCnt - 1, classID); // update Class_ID column in csvTable
 	}
@@ -995,21 +996,23 @@ void dlg_FeatureScout::classAddButton()
 	}
 	m_splom->classAdded(classID);
 
-	rootItem->appendRow(newClassItem);
+	rootItem->appendRow(newClassRow);
 
-	// remove items from m_activeClassItem from table button to top, otherwise you would make a wrong delete
+	// kIdx has indices in reverse order (from highest to lowest - see prepend above), otherwise wrong rows would be removed
 	for (int i = 0; i < CountObject; ++i)
 	{
 		m_activeClassItem->removeRow(kIdx.value(i));
 	}
 
 	updateClassStatistics(m_activeClassItem);
-	setActiveClassItem(newClassItem.first(), 1);
+	recalculateChartTable(m_activeClassItem);
+	recalculateChartTable(newClassItem);
+	setActiveClassItem(newClassItem);
 	calculateElementTable();
 	initElementTableModel();
 	setPCChartData();
 	m_classTreeView->collapseAll();
-	m_classTreeView->setCurrentIndex(newClassItem.first()->index());
+	m_classTreeView->setCurrentIndex(newClassItem->index());
 	updatePolarPlotView(m_chartTable);
 	singleRendering();
 }
@@ -1756,15 +1759,12 @@ void dlg_FeatureScout::classDeleteButton()
 		}
 	}
 
-	// update statistics for m_activeClassItem
 	updateClassStatistics(stammItem);
-
-	// update m_tableList and setup m_activeClassItem
-	setActiveClassItem(stammItem, 2);
+	recalculateChartTable(stammItem);
+	setActiveClassItem(stammItem);
 	QSignalBlocker ctvBlocker(m_classTreeView);
 	m_classTreeView->setCurrentIndex(m_classTreeView->model()->index(0, 0));
 
-	// update element view
 	setPCChartData();
 	calculateElementTable();
 	initElementTableModel();
@@ -2012,7 +2012,9 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 			m_classTreeModel->invisibleRootItem()->appendRow( firstLevelItem );
 
 			// update chartTable
-			setActiveClassItem( firstLevelItem.first(), 1 );
+			recalculateChartTable(m_activeClassItem);
+			recalculateChartTable(firstLevelItem.first());
+			setActiveClassItem(firstLevelItem.first());
 			m_classTreeView->setCurrentIndex( firstLevelItem.first()->index() );
 		}
 		else
@@ -2284,39 +2286,16 @@ void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStanda
 	writer->writeEndElement(); // end class tag
 }
 
-void dlg_FeatureScout::setActiveClassItem(QStandardItem* item, int situ)
+void dlg_FeatureScout::setActiveClassItem(QStandardItem* item)
 {
-	// check once more, if its really a class item
 	if (!item->hasChildren())
 	{
+		LOG(lvlError, "Invalid call to setActiveClassItem - given item is not a class!");
 		return;
 	}
-
-	if (situ == 0)	// class clicked
-	{
-		m_activeClassItem = item;
-		int id = item->index().row();
-		m_chartTable = m_tableList[id];
-	}
-	else if (situ == 1)	// add class
-	{
-		// recalculate the old active class
-		recalculateChartTable(m_activeClassItem);
-
-		// calculate the new class table and set up chartTable
-		recalculateChartTable(item);
-
-		m_activeClassItem = item;
-		int id = item->index().row();
-		m_chartTable = m_tableList[id];
-	}
-	else if (situ == 2)	// delete class
-	{
-		// merge the deleted class table to stamm table
-		recalculateChartTable(item);
-		m_activeClassItem = item;
-		m_chartTable = m_tableList[0];
-	}
+	m_activeClassItem = item;
+	int id = item->index().row();
+	m_chartTable = m_tableList[id];
 }
 
 void dlg_FeatureScout::recalculateChartTable(QStandardItem* item)
@@ -2351,22 +2330,14 @@ void dlg_FeatureScout::recalculateChartTable(QStandardItem* item)
 		m_csvTable->GetRow(csvID - 1, arrRow);
 		table->SetRow(j, arrRow);
 	}
-
-	// if item already exists
 	int itemID = item->index().row();
-	if (itemID + 1 <= m_tableList.size())
-	{
-		// add the new active class table to m_tableList
-		m_tableList.insert(itemID, table);
-		// delete the old active class table
-		m_tableList.removeAt(itemID + 1);
+	if (itemID < m_tableList.size())
+	{   // if item already exists, replace:
+		m_tableList[itemID] = table;
 	}
 	else
-	{
-		// add the new table to the end of the m_tableList
-		// maka a copy to chartTable
+	{   // else add the new table at the end:
 		m_tableList.push_back(table);
-		m_chartTable = m_tableList[item->index().row()];
 	}
 }
 
@@ -2527,7 +2498,7 @@ void dlg_FeatureScout::deleteObject()
 		rItem->removeRow(item->index().row());
 		updateClassStatistics(rItem);
 		recalculateChartTable(rItem);
-		setActiveClassItem(rItem, 0);
+		setActiveClassItem(rItem);
 	}
 }
 

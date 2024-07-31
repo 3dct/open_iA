@@ -132,6 +132,7 @@ private:
 	void initFeatureScoutUI();
 
 	double calculateOpacity(QStandardItem* item);
+	//! assemble a new vtkTable for the given (class) item and put it in the correct position of m_tableList
 	void recalculateChartTable(QStandardItem* item);
 	//void autoAddClass(int NbOfClasses);
 	//! @{ 3D-rendering-related methods:
@@ -192,7 +193,7 @@ private:
 	//! @{ Class Explorer
 	void setupClassExplorer();
 	void calculateElementTable();
-	void setActiveClassItem(QStandardItem* item, int situ = 0);
+	void setActiveClassItem(QStandardItem* item);     //!< set currently selected class
 	void updateClassStatistics(QStandardItem* item);
 	void saveClassesXML(QXmlStreamWriter& stream, bool idOnly);
 	void loadClassesXML(QXmlStreamReader& reader);
