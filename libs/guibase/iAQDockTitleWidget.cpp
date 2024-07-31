@@ -2,20 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAQDockTitleWidget.h"
 
+#include <QDesktopServices>
 #include <QDockWidget>
 #include <QFrame>
 #include <QLabel>
+#include <QPainter>
 #include <QStyle>
 #include <QToolButton>
 #include <QVBoxLayout>
 
-#include <QDesktopServices>
-#include <QPainter>
-
-
-
 // iAVerticalLabel
-
 
 //! a label with vertical text orientation (from bottom to top)
 //! currently only used in iAQDockTitleWidget
@@ -30,8 +26,9 @@ protected:
 	QSize minimumSizeHint() const override;
 };
 
-iAVerticalLabel::iAVerticalLabel(const QString& text): QLabel(text)
-{}
+iAVerticalLabel::iAVerticalLabel(const QString& text) : QLabel(text)
+{
+}
 
 void iAVerticalLabel::paintEvent(QPaintEvent*)
 {
@@ -56,8 +53,6 @@ QSize iAVerticalLabel::sizeHint() const
 	QSize s = QLabel::sizeHint();
 	return QSize(s.height(), s.width());
 }
-
-
 
 // iAQDockTitleWidget
 
