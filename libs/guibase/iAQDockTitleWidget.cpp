@@ -22,24 +22,16 @@
 class iAVerticalLabel : public QLabel
 {
 public:
-	explicit iAVerticalLabel(QWidget* parent = 0);
-	explicit iAVerticalLabel(const QString& text, QWidget* parent = 0);
+	explicit iAVerticalLabel(const QString& text);
 
 protected:
-	void paintEvent(QPaintEvent*);
+	void paintEvent(QPaintEvent*) override;
 	QSize sizeHint() const override;
 	QSize minimumSizeHint() const override;
 };
 
-iAVerticalLabel::iAVerticalLabel(QWidget* parent)
-	: QLabel(parent)
-{
-}
-
-iAVerticalLabel::iAVerticalLabel(const QString& text, QWidget* parent)
-	: QLabel(text, parent)
-{
-}
+iAVerticalLabel::iAVerticalLabel(const QString& text): QLabel(text)
+{}
 
 void iAVerticalLabel::paintEvent(QPaintEvent*)
 {
@@ -80,25 +72,22 @@ iAQDockTitleWidget::iAQDockTitleWidget(QDockWidget* parent, QString infoLink) : 
 	closeButton->setProperty("qssClass", "dockwidget-close");
 	closeButton->setMinimumSize(0, 10);
 	connect(closeButton, &QToolButton::clicked, this, [this]()
-		{
-			QDockWidget* q = qobject_cast<QDockWidget*>(parentWidget());
-			q->close();
-		});
+	{
+		QDockWidget* q = qobject_cast<QDockWidget*>(parentWidget());
+		q->close();
+	});
 	auto floatButton = new QToolButton();
 	floatButton->setProperty("qssClass", "dockwidget-float");
 	floatButton->setMinimumSize(0, 10);
 	connect(floatButton, &QToolButton::clicked, this, [this]()
-		{
-			QDockWidget* q = qobject_cast<QDockWidget*>(parentWidget());
-			q->setFloating(!q->isFloating());
-		});
+	{
+		QDockWidget* q = qobject_cast<QDockWidget*>(parentWidget());
+		q->setFloating(!q->isFloating());
+	});
 	auto infoButton = new QToolButton();
 	infoButton->setProperty("qssClass", "dockwidget-info");
 	infoButton->setMinimumSize(0, 10);
-	connect(infoButton, &QToolButton::clicked, this, [this, infoLink]()
-		{
-			QDesktopServices::openUrl(QUrl(infoLink));
-		});
+	connect(infoButton, &QToolButton::clicked, this, [infoLink]() { QDesktopServices::openUrl(QUrl(infoLink)); });
 	layout()->addWidget(closeButton);
 	layout()->addWidget(floatButton);
 	layout()->addWidget(infoButton);
