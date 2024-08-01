@@ -14,7 +14,6 @@ class iAbase_API iATransferFunction
 {
 public:
 	virtual ~iATransferFunction();
-	// TODO: replace with smart pointers?
 	virtual vtkPiecewiseFunction* opacityTF() =0;
 	virtual vtkColorTransferFunction* colorTF() = 0;
 	virtual void resetFunctions() = 0;

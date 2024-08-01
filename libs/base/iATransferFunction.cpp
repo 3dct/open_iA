@@ -68,6 +68,8 @@ void iATransferFunction::ensureValidity(double valueRange[2])
 	}
 	if (!dblApproxEqual(valueRange[0], ctfRange[0]) || !dblApproxEqual(valueRange[1], ctfRange[1]))
 	{
+		ctf->AdjustRange(valueRange);
+		otf->AdjustRange(valueRange);
 		LOG(lvlInfo, QString("Transfer function range (%1, %2) did not fit the value range (%3, %4), it was adapted to match!")
 			.arg(ctfRange[0]).arg(ctfRange[1])
 			.arg(valueRange[0]).arg(valueRange[1]));
