@@ -617,8 +617,7 @@ void iALabelsDlg::saveState(QSettings& projectFile)
 	QString outXML;
 	QXmlStreamWriter writer(&outXML);
 	storeXML(writer, false);
-	auto filteredXML = outXML.replace("\n", "").replace(QRegularExpression("[ ]+"), " ");
-	projectFile.setValue(LabelsProjectKey, filteredXML);
+	projectFile.setValue(LabelsProjectKey, outXML.replace("\n", ""));
 }
 
 void iALabelsDlg::loadState(QSettings const& projectFile)
