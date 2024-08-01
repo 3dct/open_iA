@@ -17,7 +17,6 @@
 #include "iAMdiChild.h"
 #include "iAPreferences.h"
 #include "iAProfileProbe.h"
-#include "iARenderer.h"
 #include "iARunAsync.h"
 #include "iASlicer.h"
 #include "iAToolsVTK.h"
@@ -26,7 +25,6 @@
 #include "iAXmlSettings.h"
 
 #include <iAChartWithFunctionsWidget.h>
-#include <iAChartFunctionTransfer.h>
 #include <iAHistogramData.h>
 #include <iAPlotTypes.h>
 #include <iAXYPlotData.h>
@@ -172,7 +170,6 @@ void iAVolumeViewer::prepare(iAProgress* p)
 		img->GetScalarRange(range);
 	}
 
-
 	bool readValidTF = false;
 	auto tfSpec = m_dataSet->hasMetaData(TransferFunction) ? m_dataSet->metaData(TransferFunction).toString(): "";
 	if (!tfSpec.isEmpty())
@@ -230,12 +227,16 @@ void iAVolumeViewer::prepare(iAProgress* p)
 			for (qsizetype c = 0; c < histos.size(); ++c)
 			{
 				auto values = stringToVector<QVector<double>, double>(histos[c], ArrayValueSeparator);
-				if (values.size() < 2)
+				auto numBins = values.size();
+				if (numBins < 2)
 				{
 					computeHistograms = true;
 					break;
 				}
-				m_histogramData[c] = iAHistogramData::create(plotName(static_cast<int>(c), numCmp), iAValueType::Discrete, range[0], range[1], values);
+				auto valueType = isVtkIntegerImage(img) ? iAValueType::Discrete : iAValueType::Continuous;
+				auto histRange = iAHistogramData::histoRange(range, numBins, valueType);
+				m_histogramData[c] = iAHistogramData::create(plotName(static_cast<int>(c), numCmp),
+					valueType, range[0], range[0] + histRange, values);
 			}
 		}
 	}
