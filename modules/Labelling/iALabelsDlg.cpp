@@ -116,7 +116,11 @@ iALabelsDlg::iALabelsDlg(iAMdiChild* mdiChild, bool addMainSlicers /* = true*/) 
 
 int iALabelsDlg::addSlicer(iASlicer* slicer, QString name, int* extent, double* spacing, uint channelId)
 {
-	assert(!m_mapSlicer2data.contains(slicer));
+	if (m_mapSlicer2data.contains(slicer))
+	{
+		LOG(lvlError, QString("Tried to add same slice twice!"));
+		return -1;
+	}
 	int imageId = m_nextId++;
 	auto labelOverlayImg = vtkSmartPointer<iAvtkImageData>::New();
 	labelOverlayImg->SetExtent(extent);
@@ -153,14 +157,13 @@ void iALabelsDlg::addSlicer(iASlicer* slicer, int imageId, uint channelId)
 		c.append(connect(slicer, &iASlicer::leftDragged, this,
 			[this, slicer](double x, double y, double z) { addSeed(x, y, z, slicer); }));
 		c.append(connect(slicer, &iASlicer::rightClicked, this,
-			[this, slicer](double x, double y, double z) {
-				removeSeed(x, y, z, slicer);
-				updateChannels(m_mapSlicer2data.value(slicer)->overlayImageId);
-			}));
-
+			[this, slicer](double x, double y, double z)
+		{
+			removeSeed(x, y, z, slicer);
+			updateChannels(m_mapSlicer2data.value(slicer)->overlayImageId);
+		}));
 		auto channelData = iAChannelData("name", oi->image, m_labelColorTF, m_labelOpacityTF);
 		slicer->addChannel(channelId, channelData, true);
-
 		m_mapSlicer2data.insert(slicer, std::make_shared<iAOverlaySlicerData>(channelData, channelId, c, id));
 	}
 	else
@@ -649,9 +652,7 @@ bool iALabelsDlg::load(QString const& filename)
 
 	clearImage<LabelPixelType>(oi->image, 0);
 
-	m_itemModel->clear();
-	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Label"));
-	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
+	m_itemModel->removeRows(0, m_itemModel->rowCount());
 	QFile file(filename);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
@@ -749,7 +750,7 @@ bool iALabelsDlg::store(QString const& filename, bool extendedFormat)
 	QFile file(filename);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
-		QMessageBox::warning(this, "GEMSe", "Seed file storing: Failed to open file '" + filename + "'!");
+		QMessageBox::warning(this, "Labels", "Seed file storing: Failed to open file '" + filename + "'!");
 		return false;
 	}
 	QFileInfo fileInfo(file);
@@ -808,7 +809,7 @@ void iALabelsDlg::loadLabels()
 	}
 	if (!load(fileName))
 	{
-		QMessageBox::warning(this, "GEMSe", "Loading seed file '" + fileName + "' failed!");
+		QMessageBox::warning(this, "Labels", "Loading seed file '" + fileName + "' failed!");
 	}
 }
 
@@ -832,7 +833,7 @@ void iALabelsDlg::storeLabels()
 	}
 	if (!store(fileName, dlg.parameterValues()[paramName].toBool()))
 	{
-		QMessageBox::warning(this, "GEMSe", "Storing seed file '" + fileName + "' failed!");
+		QMessageBox::warning(this, "Labels", "Storing seed file '" + fileName + "' failed!");
 	}
 }
 
