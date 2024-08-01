@@ -1566,12 +1566,12 @@ void dlg_FeatureScout::classSaveButton()
 		return;
 	}
 	QXmlStreamWriter stream(&file);
+	stream.setAutoFormatting(true);
 	saveClassesXML(stream, dlg.parameterValues()[SaveOnlyID].toBool());
 }
 
 void dlg_FeatureScout::saveClassesXML(QXmlStreamWriter& stream, bool idOnly)
 {
-	stream.setAutoFormatting(true);
 	stream.writeStartDocument();
 	stream.writeStartElement(IFVTag);
 	stream.writeAttribute(VersionAttribute, "1.0");
@@ -2976,10 +2976,8 @@ void dlg_FeatureScout::saveProject(QSettings& projectFile)
 	}
 	QString outXML;
 	QXmlStreamWriter writer(&outXML);
-	//writer.setAutoFormatting(false);  // apparently auto formatting is enabled by default, and cannot be disabled
 	saveClassesXML(writer, true);
-	auto filteredXML = outXML.replace("\n", "").replace(QRegularExpression("[ ]+"), " ");
-	projectFile.setValue(ClassesProjectKey, filteredXML);
+	projectFile.setValue(ClassesProjectKey, outXML.replace("\n", ""));
 	if (m_meanObject)
 	{
 		projectFile.setValue(MeanObjectsProjectKey, true);
