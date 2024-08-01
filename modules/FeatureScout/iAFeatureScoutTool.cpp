@@ -162,7 +162,7 @@ bool iAFeatureScoutTool::init(iAMdiChild* child, iACsvConfig const& csvConfig, s
 		bounds = dynamic_cast<iAImageData*>(m_child->dataSet(m_objDataSetIdx).get())->vtkImage()->GetBounds();
 		m_objData = objData;
 		QColor defaultColor(dlg_FeatureScout::UnclassifiedColorName);
-		m_objVis = std::make_shared<iALabeledVolumeVis>(tf->colorTF(), tf->opacityTF(), objData.get(), bounds);
+		m_objVis = std::make_shared<iALabeledVolumeVis>(tf, objData.get(), bounds);
 		objVis = m_objVis.get();
 	}
 	else

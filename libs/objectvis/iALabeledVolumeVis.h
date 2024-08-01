@@ -4,6 +4,8 @@
 
 #include "iAObjectVis.h"
 
+class iATransferFunction;
+
 class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
 
@@ -20,8 +22,7 @@ public:
 	//! @param color color transfer function used for displaying the labeled volume dataset (will be modified to reflect selections, colorings, etc.)
 	//! @param opac opacity transfer function used for displaying the labeled volume dataset (will be modified to reflect selections, colorings, etc.)
 	//! @param bounds bounds of the labeled volume dataset (used to be able to report the bounds of this visualization)
-	iALabeledVolumeVis(vtkColorTransferFunction* color, vtkPiecewiseFunction* opac,
-		iAObjectsData const * data, double const * bounds );
+	iALabeledVolumeVis(iATransferFunction* tf, iAObjectsData const * data, double const * bounds );
 	void renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem ) override;
 	void renderSingle(IndexType selectedObjID, int classID, QColor const & classColor, QStandardItem* activeClassItem ) override;
 	void multiClassRendering(QList<QColor> const & classColors, QStandardItem* rootItem, double alpha ) override;
@@ -31,7 +32,6 @@ public:
 	std::shared_ptr<iAObjectVisActor> createActor(vtkRenderer* ren) override;
 
 private:
-	vtkPiecewiseFunction     *oTF;
-	vtkColorTransferFunction *cTF;
+	iATransferFunction* m_tf;
 	double m_bounds[6];
 };
