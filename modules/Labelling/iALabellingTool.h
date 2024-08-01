@@ -15,6 +15,8 @@ class Labelling_API iALabellingTool : public QObject, public iATool
 	Q_OBJECT
 public:
 	iALabellingTool(iAMainWindow* mainWnd, iAMdiChild* child);
+	void loadState(QSettings& projectFile, QString const& fileName) override;
+	void saveState(QSettings& projectFile, QString const& fileName) override;
 	static const QString Name;
 	iALabelsDlg* labelsDlg();
 

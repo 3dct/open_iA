@@ -21,3 +21,15 @@ iALabelsDlg* iALabellingTool::labelsDlg()
 {
 	return m_dlgLabels;
 }
+
+void iALabellingTool::loadState(QSettings& projectFile, QString const& fileName)
+{
+	Q_UNUSED(fileName);
+	m_dlgLabels->loadState(projectFile);
+}
+
+void iALabellingTool::saveState(QSettings& projectFile, QString const& fileName)
+{
+	Q_UNUSED(fileName);
+	m_dlgLabels->saveState(projectFile);
+}
