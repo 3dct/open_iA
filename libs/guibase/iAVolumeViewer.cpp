@@ -550,10 +550,10 @@ void iAVolumeViewer::updateProfilePlot()
 QVariantMap iAVolumeViewer::additionalState() const
 {
 	QVariantMap result;
-	// TODO NEWIO: simpler encoding for transfer function?
+	// TODO: simpler encoding for transfer function?
 	iAXmlSettings s;
 	s.saveTransferFunction(m_transfer.get());
-	result.insert(TransferFunction, s.toString());
+	result.insert(TransferFunction, s.toString().replace(QRegularExpression("\n[ ]*"), ""));
 
 	QString histoStr;
 	for (size_t hidx=0; hidx < m_histogramData.size(); ++hidx)
