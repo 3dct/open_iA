@@ -27,6 +27,23 @@ namespace
 	constexpr const char* GlobalIlluminationReach = "Global Illumination Reach";
 	constexpr const char* VolumetricScatteringBlending = "Volumetric Scattering Blending";
 #endif
+
+	constexpr const char* DefaultBlendMode = "Composite";
+	QMap<QString, int> const& BlendModeMap()
+	{
+		static QMap<QString, int> blendModeMap;
+		if (blendModeMap.isEmpty())
+		{
+			blendModeMap.insert(DefaultBlendMode, vtkVolumeMapper::COMPOSITE_BLEND);
+			blendModeMap.insert("Maximum Intensity", vtkVolumeMapper::MAXIMUM_INTENSITY_BLEND);
+			blendModeMap.insert("Minimum Intensity", vtkVolumeMapper::MINIMUM_INTENSITY_BLEND);
+			blendModeMap.insert("Average Intensity", vtkVolumeMapper::AVERAGE_INTENSITY_BLEND);
+			blendModeMap.insert("Additive", vtkVolumeMapper::ADDITIVE_BLEND);
+			blendModeMap.insert("Isosurface", vtkVolumeMapper::ISOSURFACE_BLEND);
+			blendModeMap.insert("Slice", vtkVolumeMapper::SLICE_BLEND);
+		}
+		return blendModeMap;
+	}
 }
 
 QMap<QString, int> const& RenderModeMap()
@@ -71,6 +88,9 @@ public:
 			QStringList renderTypes = RenderModeMap().keys();
 			selectOption(renderTypes, renderTypes[0]);
 			addAttr(attr, iAVolumeRenderer::RendererType, iAValueType::Categorical, renderTypes);
+			QStringList blendModes = BlendModeMap().keys();
+			selectOption(blendModes, DefaultBlendMode);
+			addAttr(attr, iAVolumeRenderer::BlendMode, iAValueType::Categorical, blendModes);
 			addAttr(attr, iAVolumeRenderer::InteractiveAdjustSampleDistance, iAValueType::Boolean, true);   // maybe only enable for large datasets?
 			addAttr(attr, iAVolumeRenderer::AutoAdjustSampleDistance, iAValueType::Boolean, false);
 			addAttr(attr, iAVolumeRenderer::SampleDistance, iAValueType::Continuous, 1.0);
@@ -160,6 +180,7 @@ void iAVolumeRenderer::applyAttributes(QVariantMap const& values)
 	}
 	*/
 	m_volMapper->SetRequestedRenderMode(RenderModeMap()[values[RendererType].toString()]);
+	m_volMapper->SetBlendMode(BlendModeMap()[values[BlendMode].toString()]);
 	m_volMapper->SetInteractiveAdjustSampleDistances(values[InteractiveAdjustSampleDistance].toBool());
 	m_volMapper->SetAutoAdjustSampleDistances(values[AutoAdjustSampleDistance].toBool());
 	m_volMapper->SetSampleDistance(values[SampleDistance].toDouble());

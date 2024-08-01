@@ -27,6 +27,7 @@ public:
 	static constexpr const char InterpolateLinear[] = "Linear";
 	static constexpr const char ScalarOpacityUnitDistance[] = "Scalar Opacity Unit Distance";
 	static constexpr const char RendererType[] = "Renderer Type";
+	static constexpr const char BlendMode[] = "Blend Mode";
 	static constexpr const char SampleDistance[] = "Sample Distance";
 	static constexpr const char InteractiveAdjustSampleDistance[] = "Interactively Adjust Sample Distances";
 	static constexpr const char AutoAdjustSampleDistance[] = "Auto-Adjust Sample Distances";
