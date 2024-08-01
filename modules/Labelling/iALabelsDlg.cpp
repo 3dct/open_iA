@@ -72,7 +72,7 @@ struct iAOverlaySlicerData
 	QList<QMetaObject::Connection> connections;
 };
 
-iALabelsDlg::iALabelsDlg(iAMdiChild* mdiChild, bool addMainSlicers /* = true*/) :
+iALabelsDlg::iALabelsDlg(iAMdiChild* mdiChild) :
 	m_trackingSeeds(true),
 	m_colorTheme(iAColorThemeManager::instance().theme("Brewer Set3 (max. 12)")),
 	m_mdiChild(mdiChild),
@@ -101,16 +101,13 @@ iALabelsDlg::iALabelsDlg(iAMdiChild* mdiChild, bool addMainSlicers /* = true*/) 
 	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
 	m_ui->lvLabels->setModel(m_itemModel);
 
-	if (addMainSlicers)
+	uint channelId = m_mdiChild->createChannel();
+	auto img = m_mdiChild->firstImageData();
+	if (img)
 	{
-		uint channelId = m_mdiChild->createChannel();
-		auto img = m_mdiChild->firstImageData();
-		if (img)
-		{
-			int id = addSlicer(m_mdiChild->slicer(iASlicerMode::XY), "Main XY", img->GetExtent(), img->GetSpacing(), channelId);
-			addSlicer(m_mdiChild->slicer(iASlicerMode::XZ), id, channelId);
-			addSlicer(m_mdiChild->slicer(iASlicerMode::YZ), id, channelId);
-		}
+		int id = addSlicer(m_mdiChild->slicer(iASlicerMode::XY), "Main XY", img->GetExtent(), img->GetSpacing(), channelId);
+		addSlicer(m_mdiChild->slicer(iASlicerMode::XZ), id, channelId);
+		addSlicer(m_mdiChild->slicer(iASlicerMode::YZ), id, channelId);
 	}
 }
 

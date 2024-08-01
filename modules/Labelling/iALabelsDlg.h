@@ -36,7 +36,7 @@ class Labelling_API iALabelsDlg : public QWidget
 	Q_OBJECT
 
 public:
-	iALabelsDlg(iAMdiChild* mdiChild, bool addMainSlicer = true);
+	iALabelsDlg(iAMdiChild* mdiChild);
 	int curLabelRow() const;
 	int seedCount(int labelIdx) const;
 	bool load(QString const& filename);
