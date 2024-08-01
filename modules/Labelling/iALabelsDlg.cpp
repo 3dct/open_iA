@@ -533,6 +533,10 @@ void iALabelsDlg::removeSeed(double x, double y, double z, iASlicer* slicer)
 	iAVec3d worldCoords(x, y, z);
 	auto vxlIdx = mapWorldCoordsToIndex(image, worldCoords.data());
 	int label = static_cast<int>(image->GetScalarComponentAsFloat(vxlIdx[0], vxlIdx[1], vxlIdx[2], 0)) - 1;
+	if (label == -1) // label not set yet
+	{
+		return;
+	}
 	int seedItemRow = findSeed(m_itemModel->item(label), x, y, z, id);
 	removeSeed(vxlIdx[0], vxlIdx[1], vxlIdx[2], id, label, seedItemRow);
 }
