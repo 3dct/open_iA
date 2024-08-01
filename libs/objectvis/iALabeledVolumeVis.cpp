@@ -422,13 +422,9 @@ void iALabeledVolumeVis::multiClassRendering( QList<QColor> const & classColors,
 				m_tf->colorTF()->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 			}
 		}
-
-		if ( hid < m_data->m_table->GetNumberOfRows() )
-		{
-			m_tf->opacityTF()->AddPoint(m_data->m_table->GetNumberOfRows() + 0.3, backAlpha, 0.5, 1.0);
-			m_tf->colorTF()->AddRGBPoint(m_data->m_table->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
-		}
 	}
+	m_tf->opacityTF()->AddPoint(m_data->m_table->GetNumberOfRows()+0.3, backAlpha, 0.5, 1.0);
+	m_tf->colorTF()->AddRGBPoint(m_data->m_table->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 	m_tf->ensureValidity(prevRange);
 	emit renderRequired();
 }
