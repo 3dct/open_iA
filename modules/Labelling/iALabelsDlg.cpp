@@ -702,29 +702,28 @@ bool iALabelsDlg::loadXML(QXmlStreamReader& stream, int overlayImageId)
 
 	stream.readNext();
 	int curLabelRow = -1;
-
 	bool enableStoreBtn = false;
 	QList<QStandardItem*> items;
+	auto finalizePrevLabel = [this, &items, &curLabelRow]()
+	{
+		if (items.size() == 0)
+		{
+			return;
+		}
+		if (curLabelRow == -1)
+		{
+			LOG(lvlWarn, QString("Error loading label XML: Current label not set, cannot add to list!"));
+			return;
+		}
+		appendSeeds(curLabelRow, items);
+	};
 	while (!stream.atEnd())
 	{
 		if (stream.isStartElement())
 		{
-			if (stream.name().compare(QString("Labels")) == 0)
+			if (stream.name().compare(QString("Label")) == 0)
 			{
-				// root element, no action required
-			}
-			else if (stream.name().compare(QString("Label")) == 0)
-			{
-				if (items.size() > 0)
-				{
-					if (curLabelRow == -1)
-					{
-						LOG(lvlError, QString("Error loading label XML: Current label not set!"));
-						return false;
-					}
-					appendSeeds(curLabelRow, items);
-				}
-
+				finalizePrevLabel();
 				enableStoreBtn = true;
 				QString id = stream.attributes().value("id").toString();
 				QString name = stream.attributes().value("name").toString();
@@ -762,14 +761,15 @@ bool iALabelsDlg::loadXML(QXmlStreamReader& stream, int overlayImageId)
 		}
 		stream.readNext();
 	}
+	finalizePrevLabel();
+	m_ui->pbStore->setEnabled(enableStoreBtn);
+	reInitChannelTF();
+	updateChannels();
 	if (stream.hasError())
 	{
 		LOG(lvlError, QString("Error: Failed to parse label XML: %1").arg(stream.errorString()));
 		return false;
 	}
-	m_ui->pbStore->setEnabled(enableStoreBtn);
-	reInitChannelTF();
-	updateChannels();
 	return true;
 }
 
