@@ -33,13 +33,12 @@ iAVerticalLabel::iAVerticalLabel(const QString& text) : QLabel(text)
 void iAVerticalLabel::paintEvent(QPaintEvent*)
 {
 	QPainter painter(this);
-	painter.translate(0, sizeHint().height());
+	painter.translate(0, height());
 	painter.rotate(270);
 	QFont f(painter.font());
 	f.setBold(true);
 	painter.setFont(f);
-	painter.drawText(QRect(QPoint(0, 0), QLabel::sizeHint()), Qt::AlignLeft | Qt::AlignTop, text());
-	painter.drawText(0, 0, text());
+	painter.drawText(0, 0, height(), width(), 0, text());
 }
 
 QSize iAVerticalLabel::minimumSizeHint() const
