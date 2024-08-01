@@ -112,6 +112,9 @@ public:
 	//! compute the final bin count for a given image and desired bin count
 	static size_t finalNumBin(vtkImageData* img, size_t desiredNumBin);
 
+	//! compute the actual histogram range for the given range and number of bins
+	static double histoRange(double const range[2], size_t numBins, iAValueType valueType);
+
 private:
 	//! Set y value range from current data.
 	void updateYBounds();

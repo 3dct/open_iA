@@ -158,6 +158,24 @@ size_t iAHistogramData::finalNumBin(vtkImageData* img, size_t desiredBins)
 	return newBinCount;
 }
 
+double iAHistogramData::histoRange(double const range[2], size_t numBins, iAValueType valueType)
+{
+	auto valueRange = range[1] - range[0];
+	double histRange = valueRange;
+	if (valueType == iAValueType::Discrete)
+	{
+		double stepSize = std::max(1.0, std::round((valueRange + 1) / numBins));
+		double newMax = range[0] + static_cast<int>(stepSize * numBins);
+		histRange = newMax - range[0];
+	}
+	if (dblApproxEqual(valueRange, histRange))
+	{  // to put max values in max bin (as vtkImageAccumulate otherwise would cut off with < max)
+		const double RangeEnlargeFactor = 1 + 1e-10;
+		histRange = valueRange * RangeEnlargeFactor;
+	}
+	return histRange;
+}
+
 template <typename T>
 void computeHistogram(std::shared_ptr<iAHistogramData> histData, vtkImageData* img, iAImageStatistics* imgStatistics, int component)
 {
@@ -230,22 +248,10 @@ std::shared_ptr<iAHistogramData> iAHistogramData::create(QString const& name,
 	}
 
 	double* const scalarRange = img->GetScalarRange();
-	double valueRange = scalarRange[1] - scalarRange[0];
-	double histRange = valueRange;
 	auto valueType = isVtkIntegerImage(img) ? iAValueType::Discrete : iAValueType::Continuous;
-	auto numBin = finalNumBin(img, desiredNumBin);
-	if (valueType == iAValueType::Discrete)
-	{
-		double stepSize = std::max(1.0, std::round((valueRange + 1) / numBin));
-		double newMax = scalarRange[0] + static_cast<int>(stepSize * numBin);
-		histRange = newMax - scalarRange[0];
-	}
-	if (dblApproxEqual(valueRange, histRange))
-	{  // to put max values in max bin (as vtkImageAccumulate otherwise would cut off with < max)
-		const double RangeEnlargeFactor = 1 + 1e-10;
-		histRange = valueRange * RangeEnlargeFactor;
-	}
-	auto result = iAHistogramData::create(name, valueType, scalarRange[0], scalarRange[0] + histRange, numBin);
+	auto numBins = finalNumBin(img, desiredNumBin);
+	auto histRange = histoRange(scalarRange, numBins, valueType);
+	auto result = iAHistogramData::create(name, valueType, scalarRange[0], scalarRange[0] + histRange, numBins);
 
 	//QElapsedTimer timer;
 	//timer.start();
