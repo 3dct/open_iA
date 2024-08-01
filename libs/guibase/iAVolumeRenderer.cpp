@@ -29,6 +29,26 @@ namespace
 #endif
 }
 
+QMap<QString, int> const& RenderModeMap()
+{
+	static QMap<QString, int> renderModeMap;
+	if (renderModeMap.isEmpty())
+	{
+		renderModeMap.insert("Default (GPU if available, else Software)", vtkSmartVolumeMapper::DefaultRenderMode);
+		renderModeMap.insert("Software Ray-Casting", vtkSmartVolumeMapper::RayCastRenderMode);
+		renderModeMap.insert("GPU", vtkSmartVolumeMapper::GPURenderMode);
+#if VTK_OSPRAY_AVAILABLE
+		renderModeMap.insert("OSPRay", vtkSmartVolumeMapper::OSPRayRenderMode);
+#endif
+	}
+	return renderModeMap;
+}
+
+int mapRenderModeToEnum(QString const& modeName)
+{
+	return RenderModeMap().contains(modeName) ? RenderModeMap()[modeName] : vtkSmartVolumeMapper::DefaultRenderMode;
+}
+
 inline constexpr char VolumeRendererName[] = "Default Settings/Dataset Renderer: Volume";
 //! Encapsulates the specifics of the settings of a volume renderer.
 //! Handles auto-registration of the settings with iASettingsManager (via deriving from iASettingsObject).

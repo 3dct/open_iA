@@ -58,3 +58,11 @@ private:
 	vtkSmartPointer<vtkSmartVolumeMapper> m_volMapper;
 	vtkImageData* m_image;
 };
+
+
+// ----- Setting Details -----
+
+//! maps the names of render modes available for volumes (Smart/Volume/GPU) to their IDs
+iAguibase_API QMap<QString, int> const& RenderModeMap();
+//! map the given render mode name to the matching VTK enum value
+iAguibase_API int mapRenderModeToEnum(QString const&);

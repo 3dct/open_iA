@@ -19,7 +19,6 @@
 #include <vtkObjectFactory.h>
 #include <vtkPNGWriter.h>
 #include <vtkTIFFWriter.h>
-#include <vtkSmartVolumeMapper.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageReader.h>    // for VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN, ...
@@ -359,54 +358,6 @@ QString iAByteOrder::mapVTKTypeToString(int byteOrder)
 int iAByteOrder::mapStringToVTKType(QString const& name)
 {
 	return (name == LittleEndianStr) ? VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN : VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
-}
-
-QMap<QString, int> const & RenderModeMap()
-{
-	static QMap<QString, int> renderModeMap;
-	if (renderModeMap.isEmpty())
-	{
-		renderModeMap.insert("Default (GPU if available, else Software)", vtkSmartVolumeMapper::DefaultRenderMode);
-		renderModeMap.insert("Software Ray-Casting", vtkSmartVolumeMapper::RayCastRenderMode);
-		renderModeMap.insert("GPU", vtkSmartVolumeMapper::GPURenderMode);
-#if VTK_OSPRAY_AVAILABLE
-		renderModeMap.insert("OSPRay", vtkSmartVolumeMapper::OSPRayRenderMode);
-#endif
-	}
-	return renderModeMap;
-}
-
-int mapRenderModeToEnum(QString const & modeName)
-{
-	return RenderModeMap().contains(modeName) ? RenderModeMap()[modeName] : vtkSmartVolumeMapper::DefaultRenderMode;
-}
-
-#include <vtkRenderWindow.h>
-
-QMap<QString, int> const& StereoModeMap()
-{
-	static QMap<QString, int> stereoModes;
-	if (stereoModes.isEmpty())
-	{
-		stereoModes.insert("None", 0);
-		stereoModes.insert("Crystal Eyes", VTK_STEREO_CRYSTAL_EYES);
-		stereoModes.insert("Red/Blue", VTK_STEREO_RED_BLUE);
-		stereoModes.insert("Interlaced", VTK_STEREO_INTERLACED);
-		stereoModes.insert("Left", VTK_STEREO_LEFT);
-		stereoModes.insert("Right", VTK_STEREO_RIGHT);
-		stereoModes.insert("Dresden", VTK_STEREO_DRESDEN);
-		stereoModes.insert("Anaglyph", VTK_STEREO_ANAGLYPH);
-		stereoModes.insert("Checkerboard", VTK_STEREO_CHECKERBOARD);
-		stereoModes.insert("Split Viewport Horizontal", VTK_STEREO_SPLITVIEWPORT_HORIZONTAL);
-		stereoModes.insert("Fake", VTK_STEREO_FAKE);
-		stereoModes.insert("Emulate", VTK_STEREO_EMULATE);
-	}
-	return stereoModes;
-};
-
-int mapStereoModeToEnum(QString const& modeName)
-{
-	return StereoModeMap().contains(modeName) ? StereoModeMap()[modeName] : 0;
 }
 
 void setCamPosition(vtkCamera* cam, iACameraPosition pos)

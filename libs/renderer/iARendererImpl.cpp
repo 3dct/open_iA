@@ -35,6 +35,7 @@
 #include <vtkPlane.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
+#include <vtkRenderWindow.h>  // for VTK_STEREO... values
 #include <vtkRenderWindowInteractor.h>
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h>
@@ -55,6 +56,34 @@ namespace
 {
 	const double IndicatorsLenMultiplier = std::sqrt(2);
 	const unsigned long UnsetCallback = std::numeric_limits<unsigned long>::max();
+
+	//! maps the names of stereo modes  available for a 3D renderer (anaglyph etc.) to their IDs
+	QMap<QString, int> const& StereoModeMap()
+	{
+		static QMap<QString, int> stereoModes;
+		if (stereoModes.isEmpty())
+		{
+			stereoModes.insert("None", 0);
+			stereoModes.insert("Crystal Eyes", VTK_STEREO_CRYSTAL_EYES);
+			stereoModes.insert("Red/Blue", VTK_STEREO_RED_BLUE);
+			stereoModes.insert("Interlaced", VTK_STEREO_INTERLACED);
+			stereoModes.insert("Left", VTK_STEREO_LEFT);
+			stereoModes.insert("Right", VTK_STEREO_RIGHT);
+			stereoModes.insert("Dresden", VTK_STEREO_DRESDEN);
+			stereoModes.insert("Anaglyph", VTK_STEREO_ANAGLYPH);
+			stereoModes.insert("Checkerboard", VTK_STEREO_CHECKERBOARD);
+			stereoModes.insert("Split Viewport Horizontal", VTK_STEREO_SPLITVIEWPORT_HORIZONTAL);
+			stereoModes.insert("Fake", VTK_STEREO_FAKE);
+			stereoModes.insert("Emulate", VTK_STEREO_EMULATE);
+		}
+		return stereoModes;
+	};
+
+	//! map the given stereo mode name to the matching VTK enum value
+	int mapStereoModeToEnum(QString const& modeName)
+	{
+		return StereoModeMap().contains(modeName) ? StereoModeMap()[modeName] : 0;
+	}
 }
 
 #include "iADefaultSettings.h"
