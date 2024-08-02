@@ -144,6 +144,11 @@ size_t iAHistogramData::finalNumBin(vtkImageData* img, size_t desiredBins)
 	{
 		newBinCount = std::numeric_limits<int>::max();
 	}
+	int d[3];
+	img->GetDimensions(d);
+	auto voxelCount = static_cast<size_t>(d[0]) * d[1] * d[2];
+	auto maxNumBins = static_cast<size_t>(std::ceil(2 * std::sqrt(voxelCount))); // use a custom upper bound for bins (esp. relevant for smaller datasets)
+	newBinCount = std::min(newBinCount, maxNumBins);
 	if (isVtkIntegerImage(img))	// for images with discrete pixel data types...
 	{
 		// ...the maximum number of bins that makes sense is the number of different values
