@@ -1,11 +1,3 @@
 if (openiA_TESTING_ENABLED)
-	set(TEST_OUTPUT_DIR ${CMAKE_BINARY_DIR}/Testing/Temporary)
-	set(TEST_TEMPLATE_SCRIPT_FILE "${TEST_DATA_DIR}/../run_test_with_img_output.cmake.in")
-
-	set(TEST_NAME "LabellingLabelsTest")
-	set(TEST_OUTPUT_FILE ${TEST_OUTPUT_DIR}/${TEST_NAME}.png)
-	set(TEST_COMMAND ${TEST_GUI_EXECUTABLE} ${TEST_DATA_DIR}/Labelling-Labels.iaproj --quit 500 --screenshot ${TEST_OUTPUT_FILE} --size 1920x1080)
-	set(TEST_SCRIPT_NAME "${CMAKE_BINARY_DIR}/${TEST_NAME}.cmake")
-	configure_file(${TEST_TEMPLATE_SCRIPT_FILE} ${TEST_SCRIPT_NAME} @ONLY)
-	add_test(NAME ${TEST_NAME} COMMAND ${CMAKE_COMMAND} -P ${TEST_SCRIPT_NAME})
+	add_openfile_test(NAME "LabellingLabelsTest" FILENAME "Labelling-Labels.iaproj")
 endif()

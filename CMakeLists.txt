@@ -4,15 +4,14 @@ project(open_iA LANGUAGES CXX)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 set(FLATPAK_APPID at.zfp.openia)
-
 set(Toolkit_DIR "${PROJECT_SOURCE_DIR}/Toolkit")
 
+set(TEST_DIR "${CMAKE_SOURCE_DIR}/test")
 include(Common)
 
 #-------------------------
 # Subdirectories
 #-------------------------
-set(TEST_DATA_DIR "${CMAKE_SOURCE_DIR}/test/data")
 add_subdirectory(libs)
 
 add_subdirectory(cmd)     # Sets CMD test runner (TEST_CMD_EXECUTABLE), used in modules
