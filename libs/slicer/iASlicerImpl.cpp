@@ -584,8 +584,8 @@ void iASlicerImpl::setSliceNumber( int sliceNumber )
 		ch->setResliceAxesOrigin(origin[0] + xyz[0] * spacing[0], origin[1] + xyz[1] * spacing[1], origin[2] + xyz[2] * spacing[2]);
 	}
 	updateMagicLensColors();
-	update();
 	emit sliceNumberChanged( m_mode, sliceNumber );
+	update();
 }
 
 void iASlicerImpl::setSlicePosition(double slicePos)
