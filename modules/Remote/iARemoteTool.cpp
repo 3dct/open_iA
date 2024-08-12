@@ -30,9 +30,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
-#include <QString>
 #include <QHttpServer>
-#include <QTextStream>
 
 namespace
 {

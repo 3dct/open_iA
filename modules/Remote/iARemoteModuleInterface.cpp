@@ -7,11 +7,8 @@
 #include "iAUnityWebsocketServerTool.h"
 
 #include <iAMainWindow.h>
-#include <iAMdiChild.h>
 #include <iAToolHelper.h>    // for addToolToActiveMdiChild, addToolAction
 #include <iAToolRegistry.h>
-
-#include <iALog.h>
 
 void iARemoteModuleInterface::Initialize()
 {

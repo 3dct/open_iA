@@ -9,7 +9,6 @@
 #include <vtkCallbackCommand.h>
 #include <vtkRenderWindow.h>
 #include <vtkRendererCollection.h>
-#include <vtkUnsignedCharArray.h>
 
 #include <QThread>
 
