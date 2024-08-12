@@ -3,6 +3,7 @@
 #include "iAUnityWebsocketServerTool.h"
 
 #include "iAPlaneSliceTool.h"
+#include "iARemotePortSettings.h"
 
 #include <iACameraVis.h>
 #include <iADataSetRenderer.h>
@@ -264,7 +265,6 @@ namespace
 	const quint64 NoSyncedClient = std::numeric_limits<quint64>::max();
 	const quint64 ServerID = 1000; // ID of the server (for syncing its view/camera to clients)
 	const quint64 ClientStartID = ServerID + 1;
-	const quint16 ServerPort = 8082;
 }
 
 class iAUnityWebsocketServerToolImpl : public QObject
@@ -501,7 +501,7 @@ public:
 		m_dataState(DataState::NoDataset),
 		m_clientListContainer(new QWidget(child)),
 		m_clientTable(new QTableWidget(m_clientListContainer)),
-		m_clientListDW(new iADockWidgetWrapper(m_clientListContainer, "Client List", "ClientList", "https://github.com/3dct/open_iA/wiki/Remote")),
+		m_clientListDW(new iADockWidgetWrapper(m_clientListContainer, "Unity Clients", "ClientList", "https://github.com/3dct/open_iA/wiki/Remote")),
 		m_syncedClientID(NoSyncedClient),
 		m_child(child)
 	{
@@ -524,25 +524,21 @@ public:
 		// potential improvement: send updates every x milliseconds only on modified, and send one final update on release?
 		//child->renderer()->renderer()->AddObserver(vtkCommand::LeftButtonReleaseEvent, this, &Self::camModified);
 
-		if (!m_wsServer->listen(QHostAddress::Any, ServerPort))
+		quint16 port = getValue(iARemotePortSettings::defaultAttributes(), iARemotePortSettings::UnityPort).toInt();
+		if (!m_wsServer->listen(QHostAddress::Any, port))
 		{
 			LOG(lvlError, QString("%1: Listening failed (error: %2)!")
 				.arg(iAUnityWebsocketServerTool::Name)
 				.arg(m_wsServer->errorString()));
 			return;
 		}
-
-		LOG(lvlInfo, QString("%1: Listening on %2:%3")
-			.arg(iAUnityWebsocketServerTool::Name)
-			.arg(m_wsServer->serverAddress().toString())
-			.arg(m_wsServer->serverPort()));
-
+		auto listenMsg = QString("Listening on %1:%2").arg(m_wsServer->serverAddress().toString()).arg(m_wsServer->serverPort());
+		LOG(lvlInfo, QString("%1: %2").arg(iAUnityWebsocketServerTool::Name).arg(listenMsg));
 		child->splitDockWidget(child->renderDockWidget(), m_clientListDW, Qt::Vertical);
 		m_clientListContainer->setLayout(new QVBoxLayout);
 		m_clientListContainer->layout()->setContentsMargins(0, 0, 0, 0);
 		m_clientListContainer->layout()->setSpacing(1);
-		m_clientListContainer->layout()->addWidget(new QLabel(QString("Listening on %1:%2")
-			.arg(m_wsServer->serverAddress().toString()).arg(m_wsServer->serverPort())));
+		m_clientListContainer->layout()->addWidget(new QLabel(listenMsg));
 		QStringList columnNames = QStringList() << "ID" << "Color" << "Client address" << "Actions";
 		m_clientTable->setColumnCount(static_cast<int>(columnNames.size()));
 		m_clientTable->setHorizontalHeaderLabels(columnNames);

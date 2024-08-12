@@ -3,6 +3,7 @@
 #include "iARemoteTool.h"
 
 #include "iARemoteAction.h"
+#include "iARemotePortSettings.h"
 #include "iARemoteRenderer.h"
 #include "iAWebsocketAPI.h"
 
@@ -39,12 +40,10 @@
 namespace
 {
 	const int StandardWebSocketPort = 1234;
-	const int WebSocketPort = 6789;
-	const int HttpPort = 8080;
 
-	void addFileToServe(QString path, QString query, QString fileName, QHttpServer* server)
+	void addFileToServe(QString path, QString query, QString fileName, QHttpServer* server, quint16 wsPort)
 	{
-		auto routeCreated = server->route(query, [path, fileName](QHttpServerRequest const& request)
+		auto routeCreated = server->route(query, [path, fileName, wsPort](QHttpServerRequest const& request)
 			{
 				Q_UNUSED(request);
 				auto fileToServe = path + "/" + fileName;
@@ -62,7 +61,7 @@ namespace
 					}
 					QTextStream s1(&file);
 					auto s = s1.readAll();
-					s.replace(QString(":%1").arg(StandardWebSocketPort), QString(":%1").arg(WebSocketPort));
+					s.replace(QString(":%1").arg(StandardWebSocketPort), QString(":%1").arg(wsPort));
 					file.close();
 					const auto mimeType = QMimeDatabase().mimeTypeForFileNameAndData(fileName, s.toUtf8()).name().toUtf8();
 					return QHttpServerResponse(mimeType, s.toUtf8());
@@ -79,14 +78,14 @@ namespace
 		}
 	}
 
-	void addDirectorytoServer(QString path, QHttpServer* server)
+	void addDirectorytoServer(QString path, QHttpServer* server, quint16 wsPort)
 	{
 		QDir directory(path);
 		QStringList files = directory.entryList(QDir::Files);
-		addFileToServe(path, "/", "index.html", server);
+		addFileToServe(path, "/", "index.html", server, wsPort);
 		for (QString filename : files)
 		{
-			addFileToServe(path, "/" + filename, filename, server);
+			addFileToServe(path, "/" + filename, filename, server, wsPort);
 		}
 	}
 }
@@ -111,7 +110,8 @@ namespace
 
 iARemoteTool::iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iATool(mainWnd, child),
-	m_remoteRenderer(std::make_unique<iARemoteRenderer>(WebSocketPort))
+	m_wsPort(getValue(iARemotePortSettings::defaultAttributes(), iARemotePortSettings::RemoteWebSocketPort).toInt()),
+	m_remoteRenderer(std::make_unique<iARemoteRenderer>(m_wsPort))
 #ifdef QT_HTTPSERVER
 	, m_httpServer(std::make_unique<QHttpServer>())
 #endif
@@ -201,11 +201,9 @@ iARemoteTool::iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 #ifdef QT_HTTPSERVER
 
 	QString path = QCoreApplication::applicationDirPath() + "/RemoteClient";
-
-	addDirectorytoServer(path, m_httpServer.get());
-
-	// TODO: - find way to inject websocket port into served html? we could modify served file on the fly...
-	auto port = m_httpServer->listen(QHostAddress::Any, HttpPort);
+	addDirectorytoServer(path, m_httpServer.get(), m_wsPort);
+	quint16 port = getValue(iARemotePortSettings::defaultAttributes(), iARemotePortSettings::RemoteHTTPPort).toInt();
+	port = m_httpServer->listen(QHostAddress::Any, port);
 	if (port == 0)
 	{
 		LOG(lvlError, "Could not bind server!");

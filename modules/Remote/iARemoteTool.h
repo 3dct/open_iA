@@ -23,6 +23,7 @@ public:
 	~iARemoteTool();
 
 private:
+	quint16 m_wsPort;
 	std::unique_ptr<iARemoteRenderer> m_remoteRenderer;
 	QMap<QString, QWidget*> m_viewWidgets;
 #ifdef QT_HTTPSERVER
