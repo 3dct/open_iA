@@ -110,7 +110,6 @@ iARemoteTool::iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	}
 	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::controlCommand, this, [this]()
 		{
-			// TODO: potential for speedup: avoid dynamic allocation here!
 			auto actions = m_remoteRenderer->m_wsAPI->getQueuedActions();
 			static bool lastDown = false;
 			for (int cur = 0; cur < actions.size(); ++cur)
@@ -182,6 +181,8 @@ iARemoteTool::iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 
 	addDirectorytoServer(path, m_httpServer.get());
 
+	// TODO: - find way to inject websocket port into served html? we could modify served file on the fly...
+	//       - then we would need to modify above check to only check for current child (no sense in serving same child twice)
 	auto port = m_httpServer->listen(QHostAddress::Any, 8080);
 	if (port == 0)
 	{

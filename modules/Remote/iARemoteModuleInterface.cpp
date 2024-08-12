@@ -23,27 +23,8 @@ void iARemoteModuleInterface::Initialize()
 	iAToolRegistry::addTool(iAUnityWebsocketServerTool::Name, iAUnityWebsocketServerTool::create);
 	iAToolRegistry::addTool(iARemoteTool::Name, createTool<iARemoteTool>);
 
-	auto submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Remote"), false);
-
-	QAction* actionRemote = new QAction(tr("Remote Render Server"), m_mainWnd);
-	connect(actionRemote, &QAction::triggered, this,[this]()
-		{
-			// cannot start remote server twice - hard-coded websocket ports!
-			for (auto c : m_mainWnd->mdiChildList())
-			{
-				if (getTool<iARemoteTool>(c))
-				{
-					LOG(lvlWarn, "Remote render server already running!");
-					return;
-				}
-			}
-			// TODO: - find way to inject websocket port into served html? we could modify served file on the fly...
-			//       - then we would need to modify above check to only check for current child (no sense in serving same child twice)
-			addToolToActiveMdiChild<iARemoteTool>(iARemoteTool::Name, m_mainWnd);
-		});
-	m_mainWnd->makeActionChildDependent(actionRemote);
-	addToMenuSorted(submenu, actionRemote);
-
+	auto remoteMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Remote"), false);
 	addToolAction<iAPlaneSliceTool>(m_mainWnd, m_mainWnd->toolsMenu());
-	addToolAction<iAUnityWebsocketServerTool>(m_mainWnd, submenu);
+	addToolAction<iAUnityWebsocketServerTool>(m_mainWnd, remoteMenu);
+	addToolAction<iARemoteTool>(m_mainWnd, remoteMenu);
 }
