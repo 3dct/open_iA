@@ -35,6 +35,8 @@ public:
 	iAWebsocketAPI(quint16 port);
 	//! retrieve all queued actions, empty this object's queue in the process
 	QList<iARemoteAction*> getQueuedActions();
+	//! retrieve the address (interface / IP and port) this server listens to
+	QString listenAddress() const;
 
 public Q_SLOTS:
 	void init();

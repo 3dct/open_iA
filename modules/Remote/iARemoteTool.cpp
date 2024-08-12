@@ -9,6 +9,7 @@
 // iAguibase
 #include <iADockWidgetWrapper.h>
 #include <iAMdiChild.h>
+#include <iAQCropLabel.h>
 #include <iARenderer.h>
 #include <iASlicer.h>
 
@@ -23,6 +24,7 @@
 #include <vtkRenderWindowInteractor.h>
 
 #include <QHeaderView>
+#include <QVBoxLayout>
 #include <QTableWidget>
 
 #ifdef QT_HTTPSERVER
@@ -224,6 +226,15 @@ iARemoteTool::iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::hideCaption, annotTool, &iAAnnotationTool::toggleAnnotation);
 	connect(annotTool, &iAAnnotationTool::focusedToAnnotation, m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::sendInteractionUpdate);
 
+	auto clientContainer = new QWidget();
+	clientContainer->setLayout(new QVBoxLayout);
+	clientContainer->layout()->setContentsMargins(0, 0, 0, 0);
+	clientContainer->layout()->setSpacing(1);
+	auto listenStr = QString("Listening (websocket: %1)").arg(m_remoteRenderer->m_wsAPI->listenAddress());
+#ifdef QT_HTTPSERVER
+	listenStr += QString("; http: localhost:%1").arg(port);
+#endif
+	clientContainer->layout()->addWidget(new iAQCropLabel(listenStr));
 	m_clientList = new QTableWidget(child);
 	QStringList columnNames = { "id", "status", "sent", "received" };
 	m_clientList->setColumnCount(static_cast<int>(columnNames.size()));
@@ -233,7 +244,8 @@ iARemoteTool::iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	//m_clientList->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
 	m_clientList->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_clientList->resizeColumnsToContents();
-	auto dw = new iADockWidgetWrapper(m_clientList, "Clients", "RemoteClientList", "https://github.com/3dct/open_iA/wiki/Remote");
+	clientContainer->layout()->addWidget(m_clientList);
+	auto dw = new iADockWidgetWrapper(clientContainer, "Remote Rendering Clients", "RemoteClientList", "https://github.com/3dct/open_iA/wiki/Remote");
 	child->splitDockWidget(child->renderDockWidget(), dw, Qt::Vertical);
 
 	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::clientConnected, this, [this](quint64 id)

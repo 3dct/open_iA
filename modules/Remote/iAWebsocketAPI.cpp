@@ -290,6 +290,11 @@ QList<iARemoteAction*> iAWebsocketAPI::getQueuedActions()
 	return result;
 }
 
+QString iAWebsocketAPI::listenAddress() const
+{
+	return QString("%1:%2").arg(m_wsServer->serverAddress().toString()).arg(m_wsServer->serverPort());
+}
+
 void iAWebsocketAPI::sendImage(QWebSocket* client, QString viewID)
 {
 	auto imgIDString = QString("wslink_bin%1").arg(m_count);
