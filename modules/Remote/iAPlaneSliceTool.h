@@ -63,10 +63,13 @@ signals:
 	void snapshotAdded(quint64 id, iASnapshotInfo const & info);
 	void snapshotsCleared();
 
+public slots:
+	void moveAlongCurrentDir(int dir);
 private:
 	void updateSlice();
 	void updateSliceFromUser();
-	void resetPlaneParameters(iAMdiChild* child, iAAxisIndex axis, bool posSign);
+	void resetPlaneParameters(iAAxisIndex axis, bool posSign);
+	void setAxisAligned(iAAxisIndex axis, bool posSign, double slicePos);
 
 	iAQVTKWidget* m_sliceWidget;
 	QTableWidget* m_snapshotTable;
@@ -77,6 +80,7 @@ private:
 	vtkSmartPointer<vtkImageSlice> m_imageSlice;
 	std::map<quint64, iASnapshotInfo> m_snapshots;
 	quint64 m_nextSnapshotID;
+	size_t m_dataSetIdx;
 };
 
 // TODO: better generalization / move to some common qt table widget helper file:

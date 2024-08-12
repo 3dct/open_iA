@@ -9,8 +9,6 @@
 #include "iACompCurve.h"
 #include "iACompCombiTable.h"
 #include "iACompUniformBinningData.h"
-#include "iACompNaturalBreaksData.h"
-#include "iACompBayesianBlocksData.h"
 
 //iA
 #include "iAMainWindow.h"
@@ -51,13 +49,13 @@ iACompHistogramVis::iACompHistogramVis(
 	initializeVisualization();
 
 	//3. initialize GUI
-	setupUi(this);
-
-	QVBoxLayout* layout = new QVBoxLayout;
-	dockWidgetContents->setLayout(layout);
-
+	setWidget(new QWidget());
+	setFeatures(NoDockWidgetFeatures);
+	widget()->setLayout(new QVBoxLayout());
+	widget()->layout()->setContentsMargins(0, 0, 0, 0);
 	m_qvtkWidget = new iAQVTKWidget(this);
-	layout->addWidget(m_qvtkWidget);
+	widget()->layout()->addWidget(m_qvtkWidget);
+	setWindowTitle("SimilarityEnsembleExplorer");
 
 	//4.initialize x-axis when univariate datasets are drawn
 	if (!MDSComputedFlag)

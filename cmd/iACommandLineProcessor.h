@@ -15,11 +15,11 @@ class iACommandLineProgressIndicator : public QObject
 public:
 	iACommandLineProgressIndicator(int numberOfSteps, bool quiet);
 public slots:
-	void Progress(int percent);
+	void progress(int percent);
 private:
 	int m_lastDots;
 	int m_numberOfDots;
 	bool m_quiet;
 };
 
-int ProcessCommandLine(int argc, char const * const * argv, const char * version);
+int processCommandLine(int argc, char const * const * argv, const char * version);

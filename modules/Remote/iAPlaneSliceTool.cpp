@@ -12,7 +12,7 @@
 #include <iAQCropLabel.h>
 #include <iAQVTKWidget.h>
 #include <iARenderer.h>
-#include <iASlicerMode.h>
+#include <iASlicer.h>
 #include <iAVolumeViewer.h>
 #include <iATransferFunction.h>
 
@@ -48,6 +48,7 @@
 #include <QTableWidget>
 #include <QToolButton>
 
+//! a vtkPlaneWidget but overriding the base classes treatment of handle sizes
 class iAvtkPlaneWidget : public vtkPlaneWidget
 {
 public:
@@ -79,6 +80,44 @@ private:
 
 vtkStandardNewMacro(iAvtkPlaneWidget);
 
+//! own interactor style to be able to adapt Ctrl+Shift+Mousewheel
+class iAArbSlicerInteractorStyle : public vtkInteractorStyleImage
+{
+private:
+	vtkTypeMacro(iAArbSlicerInteractorStyle, vtkInteractorStyleImage);
+	static iAArbSlicerInteractorStyle* New();
+
+	void OnMouseWheelForward() override
+	{
+		if (GetInteractor()->GetControlKey() && GetInteractor()->GetShiftKey())
+		{
+			m_tool->moveAlongCurrentDir(+1);
+			return;
+		}
+		vtkInteractorStyleImage::OnMouseWheelForward();
+	}
+	void OnMouseWheelBackward() override
+	{
+		if (GetInteractor()->GetControlKey() && GetInteractor()->GetShiftKey())
+		{
+			m_tool->moveAlongCurrentDir(-1);
+			return;
+		}
+		vtkInteractorStyleImage::OnMouseWheelBackward();
+	}
+	void setPlaneSliceTool(iAPlaneSliceTool* tool)
+	{
+		m_tool = tool;
+	}
+private:
+	//! disable default constructor.
+	iAArbSlicerInteractorStyle() {}
+	Q_DISABLE_COPY_MOVE(iAArbSlicerInteractorStyle);
+	iAPlaneSliceTool* m_tool;
+};
+
+vtkStandardNewMacro(iAArbSlicerInteractorStyle);
+
 namespace
 {
 	void transferPlaneParamsToCamera(vtkCamera* cam, vtkPlaneWidget* planeWidget)
@@ -107,8 +146,15 @@ namespace
 	};
 }
 
+// TODO: unify with addToolToActiveMdiChild somehow
+//    - either addToolToActiveMdiChild should call create to create an object
 std::shared_ptr<iATool> iAPlaneSliceTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
 {
+	if (child->firstImageDataSetIdx() == iAMdiChild::NoDataSet || !child->dataSetViewer(child->firstImageDataSetIdx()))
+	{
+		QMessageBox::warning(mainWnd, "Arbitrary slicing tool", "No image dataset loaded, or not fully initialized. Please try again later!");
+		return nullptr;
+	}
 	return std::make_shared<iAPlaneSliceTool>(mainWnd, child);
 }
 
@@ -127,15 +173,17 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	m_sliceWidget(new iAQVTKWidget(child)),
 	m_snapshotTable(new QTableWidget),
 	m_curPosLabel(new iAQCropLabel),
-	m_sliceDW(new iADockWidgetWrapper(m_sliceWidget, "Arbitrary Slice", "ArbitrarySliceViewer")),
+	m_sliceDW(new iADockWidgetWrapper(m_sliceWidget, "Arbitrary Slice", "ArbitrarySliceViewer", "https://github.com/3dct/open_iA/wiki/Arbitrary-Slice-Plane")),
 	
 	m_planeWidget(vtkSmartPointer<iAvtkPlaneWidget>::New()),
 	m_reslicer(vtkSmartPointer<vtkImageResliceMapper>::New()),
 	m_imageSlice(vtkSmartPointer<vtkImageSlice>::New()),
 	m_nextSnapshotID(1)
 {
+	m_dataSetIdx = child->firstImageDataSetIdx();  // we check if it's set in create method!
+
 	auto dwWidget = createContainerWidget<QVBoxLayout>(1);
-	m_listDW = new iADockWidgetWrapper(dwWidget, "Snapshot List", "SnapshotList");
+	m_listDW = new iADockWidgetWrapper(dwWidget, "Snapshot List", "SnapshotList", "https://github.com/3dct/open_iA/wiki/Remote");
 	dwWidget->layout()->addWidget(m_curPosLabel);
 	auto listWidget = createContainerWidget<QHBoxLayout>(1);
 
@@ -198,26 +246,6 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	auto addButton = new QToolButton(buttonContainer);
 	addButton->setDefaultAction(addAction);
 
-	auto resetAction = new QAction("Reset");
-	resetAction->setToolTip("Reset snapshot position to middle of first image dataset.");
-	QObject::connect(resetAction, &QAction::triggered, child, [this, child]()
-	{
-		iAAttributes params;
-		addAttr(params, "Axis", iAValueType::Categorical, QStringList() << "+X" << "-X" << "+Y" << "-Y" << "+Z" << "-Z");
-		iAParameterDlg dlg(m_sliceWidget, "Set file parameters", params);
-		if (dlg.exec() != QDialog::Accepted)
-		{
-			return;
-		}
-		auto axisStr = dlg.parameterValues()["Axis"].toString();
-		resetPlaneParameters(child, nameToAxis(axisStr.right(1)), axisStr[0] == '+');
-		child->updateRenderer();
-		updateSliceFromUser();
-	});
-	iAMainWindow::get()->addActionIcon(resetAction, "slice-planes-gray");
-	auto resetButton = new QToolButton(buttonContainer);
-	resetButton->setDefaultAction(resetAction);
-
 	auto clearAction = new QAction("Clear");
 	clearAction->setToolTip("Clear (=remove all) snapshots.");
 	QObject::connect(clearAction, &QAction::triggered, m_snapshotTable, [this]()
@@ -229,32 +257,73 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	auto clearButton = new QToolButton(buttonContainer);
 	clearButton->setDefaultAction(clearAction);
 
+	auto resetAction = new QAction("Reset");
+	resetAction->setToolTip("Reset slicing position to middle of first image dataset, aligned along a selected coordinate axis.");
+	QObject::connect(resetAction, &QAction::triggered, child, [this, child]()
+	{
+		iAAttributes params;
+		addAttr(params, "Axis", iAValueType::Categorical, QStringList() << "+X" << "-X" << "+Y" << "-Y" << "+Z" << "-Z");
+		iAParameterDlg dlg(m_sliceWidget, "Set file parameters", params);
+		if (dlg.exec() != QDialog::Accepted)
+		{
+			return;
+		}
+		auto axisStr = dlg.parameterValues()["Axis"].toString();
+		resetPlaneParameters(nameToAxis(axisStr.right(1)), axisStr[0] == '+');
+		child->updateRenderer();
+		updateSliceFromUser();
+	});
+	iAMainWindow::get()->addActionIcon(resetAction, "slice-planes-gray");
+	auto resetButton = new QToolButton(buttonContainer);
+	resetButton->setDefaultAction(resetAction);
+
+	auto syncAction = new QAction("Synchronize");
+	syncAction->setCheckable(true);
+	syncAction->setToolTip("Synchronize with axis-aligned views: Whenever the slice in an axis-aligned slicer is changed, the arbitrary slice plane will be set to the same position");
+	QObject::connect(syncAction, &QAction::triggered, child, [this, syncAction]()
+	{
+		auto sliceChanged = [this](int mode, int sliceNumber)
+		{
+			auto dataset = m_child->dataSet(m_dataSetIdx);
+			if (!dataset)
+			{
+				LOG(lvlWarn, "Syncing axis-aligned slicer: Dataset not available!");
+				return;
+			}
+			setAxisAligned(static_cast<iAAxisIndex>(mode), true, sliceNumber * dataset->unitDistance()[mode]);
+		};
+		static std::map<int, QMetaObject::Connection> conn;
+		for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
+		{
+			if (syncAction->isChecked())
+			{
+				conn[s] = QObject::connect(m_child->slicer(s), &iASlicer::sliceNumberChanged, this, sliceChanged);
+			}
+			else
+			{
+				QObject::disconnect(conn[s]);
+			}
+		}
+	});
+	iAMainWindow::get()->addActionIcon(syncAction, "slicer-sync");
+	auto syncButton = new QToolButton(buttonContainer);
+	syncButton->setDefaultAction(syncAction);
+
 	buttonContainer->layout()->addWidget(addButton);
 	buttonContainer->layout()->addWidget(clearButton);
 	buttonContainer->layout()->addWidget(resetButton);
+	buttonContainer->layout()->addWidget(syncButton);
 	buttonContainer->setMinimumWidth(20);
 
 	listWidget->layout()->addWidget(buttonContainer);
 	dwWidget->layout()->addWidget(listWidget);
 
-	auto ds = child->firstImageDataSetIdx();
-	if (ds == iAMdiChild::NoDataSet)
-	{
-		QMessageBox::warning(mainWnd, "Arbitrary slicing tool", "No image dataset loaded!");
-		return;
-	}
 	child->splitDockWidget(child->slicerDockWidget(iASlicerMode::XY), m_sliceDW, Qt::Horizontal);
 	child->splitDockWidget(m_sliceDW, m_listDW, Qt::Vertical);
 
-	//m_planeWidget->SetDefaultRenderer(child->renderer()->renderer());
-	resetPlaneParameters(child, iAAxisIndex::Z, true);
 	m_planeWidget->SetInteractor(child->renderer()->interactor());
 	//m_planeWidget->SetRepresentationToSurface();
 	m_planeWidget->On();
-	
-	// set to middle of object in z direction (i.e. xy slice default position):
-	// set handle size to a 20th of the longest dataset size:
-	//m_planeWidget->GetHandleProperty()->
 	m_planeWidget->SizeHandles();
 
 	m_reslicer->SetInputData(child->firstImageData());
@@ -262,7 +331,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	m_reslicer->SetSliceAtFocalPoint(true);
 
 	auto imgProp = m_imageSlice->GetProperty();
-	auto viewer = dynamic_cast<iAVolumeViewer*>(m_child->dataSetViewer(ds));
+	auto viewer = dynamic_cast<iAVolumeViewer*>(m_child->dataSetViewer(m_dataSetIdx));
 	auto tf = viewer->transfer();
 	auto numComp = viewer->volume()->vtkImage()->GetNumberOfScalarComponents();
 	imgProp->SetLookupTable((numComp == 1) ? tf->colorTF(): nullptr);
@@ -276,9 +345,9 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	ren->SetBackground(bgc.redF(), bgc.greenF(), bgc.blueF());
 
 	m_sliceWidget->renderWindow()->AddRenderer(ren);
-	vtkNew<vtkInteractorStyleImage> style;
+	vtkNew<iAArbSlicerInteractorStyle> style;
+	style->setPlaneSliceTool(this);
 	m_sliceWidget->renderWindow()->GetInteractor()->SetInteractorStyle(style);
-	//m_planeWidget->SetHandleSize(0.1); // no effect, plane widget automatically sets handle sizes
 
 	transferPlaneParamsToCamera(m_sliceWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera(), m_planeWidget);
 	child->updateRenderer();
@@ -293,7 +362,10 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	modifiedCallback->SetClientData(this);
 	m_planeWidget->AddObserver(vtkCommand::InteractionEvent, modifiedCallback);
 
-	updateSlice();
+	QObject::connect(child->renderer(), &iARenderer::ctrlShiftMouseWheel, this, &iAPlaneSliceTool::moveAlongCurrentDir);
+
+	// set to middle of object in z direction (i.e. xy slice default position)
+	resetPlaneParameters(iAAxisIndex::Z, true);
 }
 
 iAPlaneSliceTool::~iAPlaneSliceTool()
@@ -359,7 +431,7 @@ void iAPlaneSliceTool::loadState(QSettings& projectFile, QString const& fileName
 void iAPlaneSliceTool::saveState(QSettings& projectFile, QString const& fileName)
 {
 	Q_UNUSED(fileName);
-	projectFile.setValue(ProjectSnapshotCount, m_snapshots.size());
+	projectFile.setValue(ProjectSnapshotCount, static_cast<quint64>(m_snapshots.size()));
 	int storeID = 0;
 	for (auto const & s: m_snapshots)
 	{
@@ -445,26 +517,66 @@ void iAPlaneSliceTool::updateSliceFromUser()
 	}
 }
 
-void iAPlaneSliceTool::resetPlaneParameters(iAMdiChild* child, iAAxisIndex axis, bool posSign)
+void iAPlaneSliceTool::resetPlaneParameters(iAAxisIndex axis, bool posSign)
 {
-	auto bounds = child->renderer()->sceneBounds();
-	auto objCenter = (bounds.maxCorner() - bounds.minCorner()) / 2;
-
-	m_planeWidget->SetOrigin(bounds.minCorner().x(), bounds.minCorner().y(), objCenter.z());
-	m_planeWidget->SetPoint1(bounds.maxCorner().x(), bounds.minCorner().y(), objCenter.z());
-	m_planeWidget->SetPoint2(bounds.minCorner().x(), bounds.maxCorner().y(), objCenter.z());
-
-	double normal[3] = {
-		axis == iAAxisIndex::X ? (posSign ? 1.0 : -1.0) : 0.0,
-		axis == iAAxisIndex::Y ? (posSign ? 1.0 : -1.0) : 0.0,
-		axis == iAAxisIndex::Z ? (posSign ? 1.0 : -1.0) : 0.0
-	};
-	m_planeWidget->SetNormal(normal);
-
+	auto bounds = m_child->dataSetViewer(m_dataSetIdx)->renderer()->bounds();
 	auto lengths = bounds.maxCorner() - bounds.minCorner();
+
+	setAxisAligned(axis, posSign, lengths[axis] / 2);
 	auto maxSideLen = std::max(std::max(lengths.x(), lengths.y()), lengths.z());
-	auto handleSize = maxSideLen / 40.0;
+	auto handleSize = maxSideLen / 40.0; // set handle size to a 40th of the longest dataset size:
 	m_planeWidget->setHandleRadius(handleSize);
+}
+
+void iAPlaneSliceTool::setAxisAligned(iAAxisIndex axis, bool posSign, double slicePos)
+{
+	auto bounds = m_child->dataSetViewer(m_dataSetIdx)->renderer()->bounds();
+	// slicePos is local to volume dataset (without origin), but slicer expects it to be global coords -> add origin:
+	slicePos += bounds.minCorner()[axis];
+
+	auto p2i = mapSliceToGlobalAxis(static_cast<iASlicerMode>(axis), iAAxisIndex::X);
+	auto p1i = mapSliceToGlobalAxis(static_cast<iASlicerMode>(axis), iAAxisIndex::Y);
+
+	auto corner1 = bounds.minCorner();
+	auto corner2 = bounds.maxCorner();
+
+	iAVec3d origin;
+	origin[p1i] = posSign ? corner1[p1i] : corner2[p1i];
+	origin[p2i] = corner2[p2i];
+	origin[axis] = slicePos;
+	m_planeWidget->SetOrigin(origin.data());
+
+	auto pt1 = origin;
+	pt1[p1i] = posSign ? corner2[p1i] : corner1[p1i];
+	m_planeWidget->SetPoint1(pt1.data());
+
+	auto pt2 = origin;
+	pt2[p2i] = corner1[p2i];
+	m_planeWidget->SetPoint2(pt2.data());
+
+	m_child->updateRenderer();
+	updateSliceFromUser();
+}
+
+void iAPlaneSliceTool::moveAlongCurrentDir(int dir)
+{
+	auto dataset = m_child->dataSet(m_dataSetIdx);
+	if (!dataset)
+	{
+		LOG(lvlWarn, "Wheeling along current axis: No dataset available!");
+		return;
+	}
+	auto spc = dataset->unitDistance();
+	auto minSpc = *std::min_element(spc.begin(), spc.end());
+	iAVec3d pos;
+	m_planeWidget->GetCenter(pos.data());
+	iAVec3d normal;
+	m_planeWidget->GetNormal(normal.data());
+	auto newPos = pos + (dir * minSpc * 0.5) * normal;
+	m_planeWidget->SetCenter(newPos.data());
+
+	m_child->updateRenderer();
+	updateSliceFromUser();
 }
 
 const QString iAPlaneSliceTool::Name("Arbitrary Slice Plane");

@@ -6,9 +6,10 @@
 
 #include <vtkCamera.h>
 
+
 iAFrustumActor::iAFrustumActor(vtkRenderer* ren, vtkCamera* cam, double size) :
 	m_cam(cam),
-	m_cameraVis(std::make_unique<iACameraVis>(ren, size))
+	m_cameraVis(std::make_unique<iACameraVis>(ren, size, QColor(0, 192, 0), QColor(0, 128, 0)))
 {
 	cam->AddObserver(vtkCommand::ModifiedEvent, this);
 	m_lastUpdate.start();
@@ -28,13 +29,16 @@ void iAFrustumActor::Execute(vtkObject*, unsigned long, void*)
 	}
 	iAVec3d pos;
 	iAVec3d dir;
+	iAVec3d up;
 	{
 		std::lock_guard l(m_mutex);
 		pos = iAVec3d(m_cam->GetPosition());
 		dir = iAVec3d(m_cam->GetDirectionOfProjection());
+		up  = iAVec3d(m_cam->GetViewUp());
 	}
 	dir.normalize();
-	m_cameraVis->update(pos, dir);
+	up.normalize();
+	m_cameraVis->update(pos, dir, up);
 }
 
 void iAFrustumActor::updateSource()

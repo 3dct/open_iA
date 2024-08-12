@@ -7,7 +7,6 @@ set(DEPENDENCIES_VTK_MODULES
 )
 #set(DEPENDENCIES_ITK_MODULES
 #	ITKLabelMap        # for LabelObject, LabelMap
-#	ITKReview          # for LabelGeometryImageFilter
 #	ITKSmoothing       # for DiscreteGaussianImageFilter
 #	ITKThresholding    # for BinaryThresholdImageFilter
 #	ITKTransform       # for Transform

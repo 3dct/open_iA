@@ -63,7 +63,7 @@ iAInSpectrTool::iAInSpectrTool( iAMainWindow * mainWnd, iAMdiChild * child ) : i
 	LOG(lvlInfo, tr("Loading file '%1', please wait...").arg(fileName));
 
 	auto periodicTable = new iAPeriodicTableWidget(m_child);
-	dlgPeriodicTable = new iADockWidgetWrapper(periodicTable, "Periodic Table of Elements", "PeriodicTable");
+	dlgPeriodicTable = new iADockWidgetWrapper(periodicTable, "Periodic Table of Elements", "PeriodicTable", "https://github.com/3dct/open_iA/wiki/InSpectr");
 	dlgRefSpectra = new dlg_RefSpectra( m_child );
 	m_child->splitDockWidget(m_child->slicerDockWidget(iASlicerMode::XY), dlgPeriodicTable, Qt::Horizontal);
 	m_child->splitDockWidget(m_child->slicerDockWidget(iASlicerMode::XY), dlgRefSpectra, Qt::Horizontal);

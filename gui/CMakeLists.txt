@@ -49,18 +49,8 @@ if (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 endif()
 
 if (openiA_TESTING_ENABLED)
-	if (MSVC)
-		# use the created .bat which makes sure all required dll's are in the path:
-		set(FileOpenTestBinary "${CMAKE_BINARY_DIR}/x64/open_iA_gui_Release.bat")
-	elseif(APPLE)
-		set(FileOpenTestBinary "${CMAKE_BINARY_DIR}/x64/Release/open_iA.app/Contents/MacOS/open_iA")
-	else()
-		# make sure the Mesa OpenGL Override version is set
-		set(FileOpenTestBinary "${CMAKE_SOURCE_DIR}/test/run_with_gl.sh" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${GUI_EXECUTABLE_TARGET}")
-	endif()
-	add_test(NAME FileOpenTest COMMAND ${FileOpenTestBinary} ${CMAKE_SOURCE_DIR}/test/data/test2x2x2.mhd --quit 100)
+	add_openfile_test(NAME "FileOpenTest" FILENAME "test2x2x2.mhd")
 endif()
-
 
 # Installation
 if (FLATPAK_BUILD)
@@ -71,5 +61,5 @@ if (FLATPAK_BUILD)
 elseif (APPLE)
 	install(TARGETS ${GUI_EXECUTABLE_TARGET} BUNDLE DESTINATION .)
 else()
-	install(TARGETS ${GUI_EXECUTABLE_TARGET} RUNTIME DESTINATION .)
+	install(TARGETS ${GUI_EXECUTABLE_TARGET} RUNTIME_DEPENDENCY_SET iADependencySet RUNTIME DESTINATION .)
 endif()

@@ -17,7 +17,6 @@
 #include "iAMdiChild.h"
 #include "iAPreferences.h"
 #include "iAProfileProbe.h"
-#include "iARenderer.h"
 #include "iARunAsync.h"
 #include "iASlicer.h"
 #include "iAToolsVTK.h"
@@ -26,7 +25,6 @@
 #include "iAXmlSettings.h"
 
 #include <iAChartWithFunctionsWidget.h>
-#include <iAChartFunctionTransfer.h>
 #include <iAHistogramData.h>
 #include <iAPlotTypes.h>
 #include <iAXYPlotData.h>
@@ -78,7 +76,7 @@ namespace
 	const QString ArrayValueSeparator = ";";
 }
 
-constexpr const char VolumeViewerSettingsName[] = "Default Settings/Volume Viewer";
+inline constexpr char VolumeViewerSettingsName[] = "Default Settings/Volume Viewer";
 //! Encapsulates the specifics of the settings of a volume viewer.
 //! Handles registration of the settings with iASettingsManager (via deriving from iASettingsObject).
 class iAVolumeViewerSettings : iASettingsObject<VolumeViewerSettingsName, iAVolumeViewerSettings>
@@ -172,7 +170,6 @@ void iAVolumeViewer::prepare(iAProgress* p)
 		img->GetScalarRange(range);
 	}
 
-
 	bool readValidTF = false;
 	auto tfSpec = m_dataSet->hasMetaData(TransferFunction) ? m_dataSet->metaData(TransferFunction).toString(): "";
 	if (!tfSpec.isEmpty())
@@ -230,12 +227,16 @@ void iAVolumeViewer::prepare(iAProgress* p)
 			for (qsizetype c = 0; c < histos.size(); ++c)
 			{
 				auto values = stringToVector<QVector<double>, double>(histos[c], ArrayValueSeparator);
-				if (values.size() < 2)
+				auto numBins = values.size();
+				if (numBins < 2)
 				{
 					computeHistograms = true;
 					break;
 				}
-				m_histogramData[c] = iAHistogramData::create(plotName(static_cast<int>(c), numCmp), iAValueType::Discrete, range[0], range[1], values);
+				auto valueType = isVtkIntegerImage(img) ? iAValueType::Discrete : iAValueType::Continuous;
+				auto histRange = iAHistogramData::histoRange(range, numBins, valueType);
+				m_histogramData[c] = iAHistogramData::create(plotName(static_cast<int>(c), numCmp),
+					valueType, range[0], range[0] + histRange, values);
 			}
 		}
 	}
@@ -315,7 +316,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	//     - better unique widget name!
 	//     - option to put combined histograms of multiple datasets into one view
 	static int histoNum = -1;
-	m_dwHistogram = std::make_shared<iADockWidgetWrapper>(m_histogram, histoName, QString("Histogram%1").arg(++histoNum));
+	m_dwHistogram = std::make_shared<iADockWidgetWrapper>(m_histogram, histoName, QString("Histogram%1").arg(++histoNum), "https://github.com/3dct/open_iA/wiki/Histogram");
 	connect(m_dwHistogram.get(), &QDockWidget::visibilityChanged, this, [this](bool visible)
 	{
 		QSignalBlocker sb(m_histogramAction);
@@ -362,7 +363,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	m_profileProbe = std::make_shared<iAProfileProbe>(img);
 	setupProfilePoints(child);
 	m_profileChart = new iAChartWidget(nullptr, "Greyvalue", "Distance");
-	m_dwProfile = std::make_shared<iADockWidgetWrapper>(m_profileChart, "Profile Plot", "Profile");
+	m_dwProfile = std::make_shared<iADockWidgetWrapper>(m_profileChart, "Profile Plot", "Profile", "https://github.com/3dct/open_iA/wiki/Profile-Plot");
 	child->splitDockWidget(child->renderDockWidget(), m_dwProfile.get(), Qt::Vertical);
 	if (visibleProfile)
 	{
@@ -550,10 +551,10 @@ void iAVolumeViewer::updateProfilePlot()
 QVariantMap iAVolumeViewer::additionalState() const
 {
 	QVariantMap result;
-	// TODO NEWIO: simpler encoding for transfer function?
+	// TODO: simpler encoding for transfer function?
 	iAXmlSettings s;
 	s.saveTransferFunction(m_transfer.get());
-	result.insert(TransferFunction, s.toString());
+	result.insert(TransferFunction, s.toString().replace(QRegularExpression("\n[ ]*"), ""));
 
 	QString histoStr;
 	for (size_t hidx=0; hidx < m_histogramData.size(); ++hidx)

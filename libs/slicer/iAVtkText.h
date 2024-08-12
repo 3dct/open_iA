@@ -9,13 +9,13 @@ class vtkRenderer;
 class vtkTextMapper;
 class vtkActor2D;
 
-//! Wraps the vtk classes required to display a text.
+//! Wraps the vtk classes required to display a text at a fixed position of the screen (in display coordinates).
 class iAVtkText : public vtkObject {
 
 public:
 	static iAVtkText* New();
 
-	//! Set the text to a fixed position in the scene.
+	//! Set the text to a fixed position in the scene (display coordinates).
 	void setPosition(double x, double y);
 
 	//! Add the text to the scene.

@@ -254,6 +254,9 @@ signals:
 	//! emitted when a tool is removed from this child
 	void toolRemoved(QString const& id);
 
+	//! emitted when the link slice views setting changes
+	void linkSliceViewsChanged(bool linked);
+
 public slots:
 	//! Updates all views (slicers, renderers)
 	virtual void updateViews() = 0;
@@ -267,6 +270,10 @@ public slots:
 template <typename T>
 T* getTool(iAMdiChild* child)
 {
+	if (!child)
+	{
+		return nullptr;
+	}
 	static_assert(std::is_base_of<iATool, T>::value, "getTool: given type must inherit from iATool!");
 	for (auto t : child->tools())
 	{

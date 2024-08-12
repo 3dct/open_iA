@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAAbortListener.h"
 
+iAAbortListener::~iAAbortListener()
+{}
+
 iASimpleAbortListener::iASimpleAbortListener() : m_aborted(false)
 {
 }

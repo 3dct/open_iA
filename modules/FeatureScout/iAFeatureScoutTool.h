@@ -60,6 +60,9 @@ public:
 	//! retrieve the current selected objects
 	std::vector<size_t> selection();
 
+	//! retrieve access to main featurescout class
+	dlg_FeatureScout* featureScout();
+
 signals:
 	//! fires whenever the selection of the associated 3D object visualization is changed
 	void selectionChanged();

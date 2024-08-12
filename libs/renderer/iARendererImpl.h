@@ -71,6 +71,7 @@ public:
 	static constexpr const char DepthPeelsMax[] = "Depth Peels Maximum Number";
 	static constexpr const char MagicLensSize[] = "Magic Lens size";
 	static constexpr const char MagicLensFrameWidth[] = "Magic Lens Frame Width";
+	static constexpr const char ShowFPS[] = "Show Frames Per Second";
 
 	iARendererImpl(QObject *parent, vtkGenericOpenGLRenderWindow* renderWindow);
 	virtual ~iARendererImpl( );
@@ -236,5 +237,7 @@ private:
 
 	std::array<double, 3> m_unitSize; //!< size of a single "item", e.g. the position marker; also thickness of slicing planes
 
-	QVariantMap m_settings;       //! current settings of this renderer
+	QVariantMap m_settings;     //!< current settings of this renderer
+
+	unsigned long m_fpsCallback;//!< handle for the callback that implements FPS output
 };

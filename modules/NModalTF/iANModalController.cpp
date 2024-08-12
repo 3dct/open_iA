@@ -12,10 +12,12 @@
 #include <iAChannelSlicerData.h>
 #include <iADataSetRenderer.h>
 #include <iAImageData.h>
+#include <iAMainWindow.h>
 #include <iAMdiChild.h>
 #include <iARenderer.h>
 #include <iASlicer.h>
 #include <iASlicerImpl.h>
+#include <iAToolHelper.h>    // for addToolToActiveMdiChild
 #include <iAToolsVTK.h>
 #include <iATransferFunction.h>
 #include <iATypedCallHelper.h>
@@ -50,19 +52,15 @@ vtkStandardNewMacro(iANModalSmartVolumeMapper);
 
 iANModalController::iANModalController(iAMdiChild* mdiChild) : m_mdiChild(mdiChild)
 {
-	QObject* obj = m_mdiChild->findChild<QObject*>("labels");
-	if (obj)
+	auto labelsTool = getTool<iALabellingTool>(mdiChild);
+	if (!labelsTool)
 	{
-		m_dlg_labels = static_cast<iALabelsDlg*>(obj);
-		m_dlg_labels->removeSlicer(m_mdiChild->slicer(iASlicerMode::XY));
-		m_dlg_labels->removeSlicer(m_mdiChild->slicer(iASlicerMode::XZ));
-		m_dlg_labels->removeSlicer(m_mdiChild->slicer(iASlicerMode::YZ));
+		labelsTool = addToolToActiveMdiChild<iALabellingTool>(iALabellingTool::Name, iAMainWindow::get(), true);
 	}
-	else
-	{
-		m_dlg_labels = new iALabelsDlg(mdiChild, false);
-		mdiChild->splitDockWidget(mdiChild->renderDockWidget(), m_dlg_labels, Qt::Vertical);
-	}
+	m_dlg_labels = labelsTool->labelsDlg();
+	m_dlg_labels->removeSlicer(m_mdiChild->slicer(iASlicerMode::XY));
+	m_dlg_labels->removeSlicer(m_mdiChild->slicer(iASlicerMode::XZ));
+	m_dlg_labels->removeSlicer(m_mdiChild->slicer(iASlicerMode::YZ));
 	connect(mdiChild, &iAMdiChild::dataSetRendered, this, &iANModalController::initializeHistogram);
 }
 

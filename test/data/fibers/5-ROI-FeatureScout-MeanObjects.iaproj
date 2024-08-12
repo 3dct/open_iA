@@ -1,0 +1,72 @@
+[General]
+UseMdiChild=true
+CameraPosition=509.857 509.857 509.857
+CameraFocalPoint=89.1 89.1 89.1
+CameraViewUp=0 0 1
+CameraParallelScale=188.62033294425075
+CameraParallelProjection=0
+Layout=@ByteArray(\0\0\0\xff\0\0\0\0\xfd\0\0\0\x2\0\0\0\0\0\0\0X\0\0\x5\x1f\xfc\x2\0\0\0\n\xfc\0\0\0\0\0\0\x5\x1f\0\0\0\0\0\xff\xff\xff\xfc\x2\0\0\0\x2\xfc\0\0\0\0\0\0\x5\x1f\0\0\0\0\0\xff\xff\xff\xfc\x1\0\0\0\x2\xfb\0\0\0\x1a\0\x46\0i\0\x62\0\x65\0r\0S\0\x63\0o\0u\0t\0S\0P\0M\x1\0\0\x4n\0\0\x5\x92\0\0\0\0\0\0\0\0\xfb\0\0\0\x10\0\x44\0\x61\0t\0\x61\0I\0n\0\x66\0o\0\0\0\0\x63\0\0\0_\0\0\0W\0\xff\xff\xff\xfc\0\0\x2}\0\0\x2T\0\0\0\0\0\xff\xff\xff\xfc\x1\0\0\0\x3\xfb\0\0\0\x18\0\x46\0i\0\x62\0\x65\0r\0S\0\x63\0o\0u\0t\0\x43\0\x45\x1\0\0\0\0\0\0\x3\xbf\0\0\0\0\0\0\0\0\xfb\0\0\0\x18\0\x46\0i\0\x62\0\x65\0r\0S\0\x63\0o\0u\0t\0P\0\x43\x1\0\0\x3\xc3\0\0\x5(\0\0\0\0\0\0\0\0\xfb\0\0\0\x18\0\x46\0i\0\x62\0\x65\0r\0S\0\x63\0o\0u\0t\0P\0P\x1\0\0\b\xef\0\0\x1\x11\0\0\0\0\0\0\0\0\xfb\0\0\0\xe\0s\0l\0i\0\x63\0\x65\0X\0Y\0\0\0\0\0\xff\xff\xff\xff\0\0\0.\0\xff\xff\xff\xfb\0\0\0\xe\0s\0l\0i\0\x63\0\x65\0X\0Z\0\0\0\0\0\xff\xff\xff\xff\0\0\0.\0\xff\xff\xff\xfb\0\0\0\xe\0s\0l\0i\0\x63\0\x65\0Y\0Z\0\0\0\0\0\xff\xff\xff\xff\0\0\0.\0\xff\xff\xff\xfb\0\0\0\b\0l\0o\0g\0s\0\0\0\0\0\xff\xff\xff\xff\0\0\0\0\0\0\0\0\xfb\0\0\0\x14\0m\0o\0\x64\0\x61\0l\0i\0t\0i\0\x65\0s\0\0\0\0\0\xff\xff\xff\xff\0\0\0\0\0\0\0\0\xfb\0\0\0\x1a\0I\0m\0\x61\0g\0\x65\0P\0r\0o\0p\0\x65\0r\0t\0y\0\0\0\x3\xdb\0\0\0\x80\0\0\0\0\0\0\0\0\xfb\0\0\0\x12\0H\0i\0s\0t\0o\0g\0r\0\x61\0m\0\0\0\0\0\xff\xff\xff\xff\0\0\0\0\0\0\0\0\xfb\0\0\0\xe\0P\0r\0o\0\x66\0i\0l\0\x65\0\0\0\0\0\xff\xff\xff\xff\0\0\0.\0\xff\xff\xff\xfb\0\0\0\xe\0P\0r\0o\0\x66\0i\0l\0\x65\0\0\0\0\0\xff\xff\xff\xff\0\0\0\0\0\0\0\0\0\0\0\x1\0\0\a\xd7\0\0\x5\x1f\xfc\x2\0\0\0\x3\xfc\0\0\0\0\0\0\x4\x17\0\0\0.\0\xff\xff\xff\xfc\x1\0\0\0\x2\xfc\0\0\0\0\0\0\a\xd7\0\0\x1\xfd\0\xff\xff\xff\xfc\x2\0\0\0\x4\xfc\0\0\0\0\0\0\x4\x17\0\0\0.\0\xff\xff\xff\xfc\x1\0\0\0\x2\xfb\0\0\0\x10\0r\0\x65\0n\0\x64\0\x65\0r\0\x65\0r\x1\0\0\0\0\0\0\x4\x34\0\0\0\xb2\0\xff\xff\xff\xfb\0\0\0\x1c\0\x46\0\x65\0\x61\0t\0u\0r\0\x65\0S\0\x63\0o\0u\0t\0M\0O\x1\0\0\x4\x37\0\0\x3\xa0\0\0\x1H\0\xff\xff\xff\xfb\0\0\0\x10\0\x44\0\x61\0t\0\x61\0S\0\x65\0t\0s\0\0\0\x3\xd2\0\0\0M\0\0\0\x43\0\xff\xff\xff\xfb\0\0\0\x14\0H\0i\0s\0t\0o\0g\0r\0\x61\0m\0\x32\0\0\0\x3\xf1\0\0\0.\0\0\0.\0\xff\xff\xff\xfb\0\0\0\x14\0H\0i\0s\0t\0o\0g\0r\0\x61\0m\0\x30\x1\0\0\x3\x43\0\0\0\xdc\0\0\0\0\0\0\0\0\xfb\0\0\0\x1e\0\x46\0\x65\0\x61\0t\0u\0r\0\x65\0S\0\x63\0o\0u\0t\0S\0P\0M\x1\0\0\x5\xb0\0\0\x4P\0\0\0\0\0\0\0\0\xfc\0\0\x3\x14\0\0\x1\x6\0\0\0\0\0\xff\xff\xff\xfc\x1\0\0\0\x1\xfb\0\0\0\x1c\0\x46\0\x65\0\x61\0t\0u\0r\0\x65\0S\0\x63\0o\0u\0t\0\x43\0\x45\x1\0\0\0\0\0\0\x2\xc1\0\0\0\0\0\0\0\0\xfc\0\0\x4\x1a\0\0\x1\x5\0\0\0\x64\0\xff\xff\xff\xfc\x1\0\0\0\x3\xfb\0\0\0&\0\x46\0\x65\0\x61\0t\0u\0r\0\x65\0S\0\x63\0o\0u\0t\0M\0\x61\0i\0n\0\x44\0l\0g\x1\0\0\0\0\0\0\x3v\0\0\x1\x44\0\xff\xff\xff\xfb\0\0\0\x1c\0\x46\0\x65\0\x61\0t\0u\0r\0\x65\0S\0\x63\0o\0u\0t\0P\0\x43\x1\0\0\x3y\0\0\x3*\0\0\0\x14\0\xff\xff\xff\xfb\0\0\0\x1c\0\x46\0\x65\0\x61\0t\0u\0r\0\x65\0S\0\x63\0o\0u\0t\0P\0P\x1\0\0\x6\xa6\0\0\x1\x31\0\0\0&\0\xff\xff\xff\0\0\0\0\0\0\x5\x1f\0\0\0\x4\0\0\0\x4\0\0\0\b\0\0\0\b\xfc\0\0\0\0)
+FileVersion=2
+
+[DataSet0]
+Ambient%20lighting=0.2
+Auto-Adjust%20Sample%20Distances=true
+Box%20Color=#000000
+Diffuse%20lighting=1.6
+File=5_ROI_Segmented.mhd
+Final%20Color%20Level=0.5
+Final%20Color%20Window=1
+Global%20Illumination%20Reach=0
+Histogram="901876;3483;3748;3809;1549;3823;3005;3660;2340;3626;3655;3823;3114;1366;2931;2522;3712;4261;1624;919;603;4196;4062;3259;3433;2871;749;1930;4006;3179;1473;2136;1153;1230;1719;947;885;721;602;1285;715"
+Histogram%20Bins=41
+Histogram%20Logarithmic%20y%20axis=false
+ImageRange="0;40"
+ImageStatistics="min=0, max=40, µ=1.66805, σ=6.0199"
+Interactive%20Update%20Rate=1
+Interactively%20Adjust%20Sample%20Distances=false
+Interpolation=Nearest
+Name=5_ROI_Segmented
+Orientation="0,0,0"
+Pickable=true
+Position="0,0,0"
+RenderFlags=SR
+Renderer%20Type=Software Ray-Casting
+Sample%20Distance=1
+Scalar%20Opacity%20Unit%20Distance=-1
+Shading=true
+Spacing="2,2,2"
+Specular%20lighting=0
+Specular%20power=10
+TransferFunction="<settings><functions><transfer><node blue=\"0\" green=\"0\" opacity=\"0\" red=\"0\" value=\"0\"/><node blue=\"1\" green=\"1\" opacity=\"1\" red=\"1\" value=\"40\"/></transfer></functions></settings>"
+Volumetric%20Scattering%20Blending=-1
+Blend%20Mode=Composite
+
+[FeatureScout]
+FeatureScout\CSVFormats\CSVFormat\SkipLinesStart=5
+FeatureScout\CSVFormats\CSVFormat\SkipLinesEnd=0
+FeatureScout\CSVFormats\CSVFormat\ColumnSeparator=","
+FeatureScout\CSVFormats\CSVFormat\DecimalSeparator=.
+FeatureScout\CSVFormats\CSVFormat\ObjectType=Fibers
+FeatureScout\CSVFormats\CSVFormat\AddAutoID=false
+FeatureScout\CSVFormats\CSVFormat\Unit=µm
+FeatureScout\CSVFormats\CSVFormat\Spacing=0
+FeatureScout\CSVFormats\CSVFormat\Encoding=System
+FeatureScout\CSVFormats\CSVFormat\ComputeLength=false
+FeatureScout\CSVFormats\CSVFormat\ComputeAngles=true
+FeatureScout\CSVFormats\CSVFormat\ComputeTensors=true
+FeatureScout\CSVFormats\CSVFormat\ComputeCenter=true
+FeatureScout\CSVFormats\CSVFormat\ComputeStartEnd=false
+FeatureScout\CSVFormats\CSVFormat\ContainsHeader=false
+FeatureScout\CSVFormats\CSVFormat\IsDiameterFixed=false
+FeatureScout\CSVFormats\CSVFormat\FixedDiameterValue=0
+FeatureScout\CSVFormats\CSVFormat\VisualizationType=Labelled Volume
+FeatureScout\CSVFormats\CSVFormat\Offset0=0
+FeatureScout\CSVFormats\CSVFormat\Offset1=0
+FeatureScout\CSVFormats\CSVFormat\Offset2=0
+FeatureScout\CSVFormats\CSVFormat\ColumnMappings=0:1, 1:2, 2:3, 3:4, 4:5, 5:6, 9:7, 10:9, 16:8
+FeatureScout\CSVFormats\CSVFormat\SelectedHeaders=Label, X1[µm], Y1[µm], Z1[µm], X2[µm], Y2[µm], Z2[µm], StraightLength[µm], CurvedLength[µm], Diameter[µm], Surface[µm²], Volume[µm³], SeperatedFibre, CurvedFibre
+FeatureScout\CSVFormats\CSVFormat\AllHeaders=Label, X1[µm], Y1[µm], Z1[µm], X2[µm], Y2[µm], Z2[µm], StraightLength[µm], CurvedLength[µm], Diameter[µm], Surface[µm²], Volume[µm³], SeperatedFibre, CurvedFibre
+CSVFileName=5_ROI_Segmented-FCPRev7.csv
+Layout=FeatureScout
+Classes="<?xml version=\"1.0\"?><IFV_Class_Tree Version=\"1.0\" Number_Of_Objects=\"40\" IDColumn=\"Label\"><CLASS NAME=\"Unclassified\" COLOR=\"#a9a9a9\" COUNT=\"12\" PERCENT=\"30.0\"><OBJECT Label=\"1\"/><OBJECT Label=\"3\"/><OBJECT Label=\"6\"/><OBJECT Label=\"8\"/><OBJECT Label=\"11\"/><OBJECT Label=\"12\"/><OBJECT Label=\"14\"/><OBJECT Label=\"15\"/><OBJECT Label=\"16\"/><OBJECT Label=\"25\"/><OBJECT Label=\"29\"/><OBJECT Label=\"31\"/></CLASS><CLASS NAME=\"Class 1\" COLOR=\"#6495ed\" COUNT=\"3\" PERCENT=\"7.5\"><OBJECT Label=\"7\"/><OBJECT Label=\"17\"/><OBJECT Label=\"21\"/></CLASS><CLASS NAME=\"Class 2\" COLOR=\"#ff8c00\" COUNT=\"4\" PERCENT=\"10.0\"><OBJECT Label=\"2\"/><OBJECT Label=\"5\"/><OBJECT Label=\"9\"/><OBJECT Label=\"10\"/></CLASS><CLASS NAME=\"Class 3\" COLOR=\"#7fff00\" COUNT=\"8\" PERCENT=\"20.0\"><OBJECT Label=\"19\"/><OBJECT Label=\"20\"/><OBJECT Label=\"26\"/><OBJECT Label=\"35\"/><OBJECT Label=\"36\"/><OBJECT Label=\"37\"/><OBJECT Label=\"38\"/><OBJECT Label=\"40\"/></CLASS><CLASS NAME=\"Class 4\" COLOR=\"#ffff00\" COUNT=\"9\" PERCENT=\"22.5\"><OBJECT Label=\"4\"/><OBJECT Label=\"13\"/><OBJECT Label=\"18\"/><OBJECT Label=\"27\"/><OBJECT Label=\"30\"/><OBJECT Label=\"32\"/><OBJECT Label=\"33\"/><OBJECT Label=\"34\"/><OBJECT Label=\"39\"/></CLASS><CLASS NAME=\"Class 5\" COLOR=\"#c71585\" COUNT=\"4\" PERCENT=\"10.0\"><OBJECT Label=\"22\"/><OBJECT Label=\"23\"/><OBJECT Label=\"24\"/><OBJECT Label=\"28\"/></CLASS></IFV_Class_Tree>"
+MeanObjects=true

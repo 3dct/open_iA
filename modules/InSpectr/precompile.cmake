@@ -14,6 +14,7 @@ set(InSpectr_PRECOMPILE_INCLUDES
 <iAMdiChild.h>
 <iAPeriodicTableWidget.h>
 <iASpectrumFilter.h>
+<iAToolsVTK.h>
 <iATypedCallHelper.h>
 <iAXRFData.h>
 <memory>

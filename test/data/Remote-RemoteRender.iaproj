@@ -1,0 +1,45 @@
+[General]
+UseMdiChild=true
+CameraPosition=0.0772511 0.0772511 0.0772511
+CameraFocalPoint=0.0135 0.0135 0.0135
+CameraViewUp=0 0 1
+CameraParallelScale=0.028578838324886478
+CameraParallelProjection=0
+Layout=@ByteArray(\0\0\0\xff\0\0\0\0\xfd\0\0\0\x1\0\0\0\0\0\0\a\xd7\0\0\x5\x1f\xfc\x2\0\0\0\x1\xfc\0\0\0\0\0\0\x5\x1f\0\0\0\xeb\0\xff\xff\xff\xfc\x2\0\0\0\x3\xfc\0\0\0\0\0\0\x3\xdc\0\0\0_\0\xff\xff\xff\xfc\x1\0\0\0\x2\xfc\0\0\0\0\0\0\x3\xaf\0\0\0\xf1\0\xff\xff\xff\xfc\x2\0\0\0\x2\xfb\0\0\0\x10\0r\0\x65\0n\0\x64\0\x65\0r\0\x65\0r\x1\0\0\0\0\0\0\x2$\0\0\0.\0\xff\xff\xff\xfb\0\0\0\xe\0s\0l\0i\0\x63\0\x65\0X\0Z\x1\0\0\x2'\0\0\x1\xb5\0\0\0.\0\xff\xff\xff\xfc\0\0\x3\xb2\0\0\x4%\0\0\0\xf1\0\xff\xff\xff\xfc\x2\0\0\0\x2\xfb\0\0\0\xe\0s\0l\0i\0\x63\0\x65\0X\0Y\x1\0\0\0\0\0\0\x2&\0\0\0.\0\xff\xff\xff\xfb\0\0\0\xe\0s\0l\0i\0\x63\0\x65\0Y\0Z\x1\0\0\x2)\0\0\x1\xb3\0\0\0.\0\xff\xff\xff\xfb\0\0\0\xe\0P\0r\0o\0\x66\0i\0l\0\x65\0\0\0\0\0\xff\xff\xff\xff\0\0\0.\0\xff\xff\xff\xfc\0\0\x3\xdf\0\0\x1@\0\0\0\x89\0\xff\xff\xff\xfc\x1\0\0\0\x4\xfc\0\0\0\0\0\0\x1\x82\0\0\0X\0\xff\xff\xff\xfc\x2\0\0\0\x2\xfb\0\0\0\x10\0\x44\0\x61\0t\0\x61\0S\0\x65\0t\0s\x1\0\0\x3\xdf\0\0\0\x7f\0\0\0\x43\0\xff\xff\xff\xfb\0\0\0\x10\0\x44\0\x61\0t\0\x61\0I\0n\0\x66\0o\x1\0\0\x4\x61\0\0\0\xbe\0\0\0\x43\0\xff\xff\xff\xfb\0\0\0\x1a\0\x64\0w\0\x41\0n\0n\0o\0t\0\x61\0t\0i\0o\0n\0s\x1\0\0\x1\x85\0\0\x1p\0\0\0q\0\xff\xff\xff\xfb\0\0\0 \0R\0\x65\0m\0o\0t\0\x65\0\x43\0l\0i\0\x65\0n\0t\0L\0i\0s\0t\x1\0\0\x2\xf8\0\0\0\xfd\0\0\0W\0\xff\xff\xff\xfb\0\0\0\x14\0H\0i\0s\0t\0o\0g\0r\0\x61\0m\0\x30\x1\0\0\x3\xf8\0\0\x3\xdf\0\0\0\x14\0\xff\xff\xff\0\0\0\0\0\0\x5\x1f\0\0\0\x4\0\0\0\x4\0\0\0\b\0\0\0\b\xfc\0\0\0\0)
+FileVersion=2
+
+[DataSet0]
+Ambient%20lighting=0.2
+Auto-Adjust%20Sample%20Distances=true
+Blend%20Mode=Composite
+Box%20Color=#000000
+Diffuse%20lighting=0.5
+File=test4x4x4.mhd
+Final%20Color%20Level=0.5
+Final%20Color%20Window=1
+Global%20Illumination%20Reach=0
+Histogram="13;3;0;0;0;0;0;0;0;0;0;0;0;0;13;35"
+Histogram%20Bins=16
+Histogram%20Logarithmic%20y%20axis=false
+ImageRange="0.0014223;0.997489"
+ImageStatistics="min=0.0014223, max=0.997489, µ=0.726317, σ=0.40157"
+Interactive%20Update%20Rate=1
+Interactively%20Adjust%20Sample%20Distances=false
+Interpolation=Linear
+Name=test4x4x4
+Orientation="0,0,0"
+Pickable=true
+Position="0,0,0"
+RenderFlags=SR
+Renderer%20Type="Default (GPU if available, else Software)"
+Sample%20Distance=1
+Scalar%20Opacity%20Unit%20Distance=-1
+Shading=false
+Spacing="0.01,0.01,0.01"
+Specular%20lighting=0.7
+Specular%20power=10
+TransferFunction="<settings><functions><transfer><node blue=\"0\" green=\"0\" opacity=\"0\" red=\"0\" value=\"0.0014223\"/><node blue=\"1\" green=\"1\" opacity=\"1\" red=\"1\" value=\"0.997489\"/></transfer></functions></settings>"
+Volumetric%20Scattering%20Blending=-1
+
+[NDTflix]
+Active=true

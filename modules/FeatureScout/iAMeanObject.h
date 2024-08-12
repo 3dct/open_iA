@@ -8,9 +8,10 @@
 #include <QObject>
 
 #include <memory>
+#include <vector>
 
 class iAMeanObjectData;
-class iAMeanObjectDockWidget;
+class iAMeanObjectWidget;
 class iAMdiChild;
 class iAQVTKWidget;
 
@@ -18,7 +19,6 @@ class vtkCamera;
 class vtkTable;
 
 class QColor;
-class QDialog;
 class QDockWidget;
 
 class iAMeanObject: public QObject
@@ -26,6 +26,7 @@ class iAMeanObject: public QObject
 	Q_OBJECT
 public:
 	iAMeanObject(iAMdiChild* activeChild, QString const& sourcePath);
+	~iAMeanObject();
 	void render(QStringList const & classNames, QList<vtkSmartPointer<vtkTable>> const& tableList,
 		int filterID, QDockWidget* nextToDW, vtkCamera* commonCamera, QList<QColor> const & classColor);
 private slots:
@@ -33,11 +34,9 @@ private slots:
 	void saveStl();
 	void saveVolume();
 private:
-	iAMeanObjectDockWidget* m_dwMO;
-	QDialog* m_motfView;
-	std::shared_ptr<iAMeanObjectData> m_MOData;
+	iAMeanObjectWidget* m_dwMO;
+	std::vector<std::unique_ptr<iAMeanObjectData>> m_MOData;
 	iAQVTKWidget* m_meanObjectWidget;
 	iAMdiChild* m_activeChild;
-	int m_filterID;
 	QString m_sourcePath;
 };

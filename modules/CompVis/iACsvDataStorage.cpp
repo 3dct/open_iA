@@ -64,19 +64,18 @@ iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles, int headerLineNumber) 
 
 void iACsvDataStorage::initializeObjectTableFor3DRendering()
 {
-	dlg_CSVInput* dlg = new dlg_CSVInput(false);
-	if (dlg->exec() != QDialog::Accepted)
+	dlg_CSVInput dlg(false);
+	dlg.setFileName(m_filenames->at(m_objectData.size()));
+	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-	iACsvConfig csvConfig = dlg->getConfig();
-	auto data = loadObjectsCSV(csvConfig);
+	auto data = loadObjectsCSV(dlg.getConfig());
 	if (!data)
 	{
 		return;
 	}
 	m_objectData.push_back(data);
-	m_csvConfigs.push_back(csvConfig);
 }
 
 QList<QStringList>* iACsvDataStorage::readCSV(QString csvFile)
@@ -249,11 +248,6 @@ void iACsvDataStorage::setMaxVal(double maxVal)
 std::vector<std::shared_ptr<iAObjectsData>> const & iACsvDataStorage::getObjectData()
 {
 	return m_objectData;
-}
-
-std::vector<iACsvConfig> const & iACsvDataStorage::getCsvConfigs()
-{
-	return m_csvConfigs;
 }
 
 /*********************** store data computed by MDS ******************************************/

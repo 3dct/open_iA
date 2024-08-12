@@ -84,6 +84,7 @@ General
 	}
 
 	QComboBox,
+	iAQDockTitleWidget,
 	QDockWidget::title,
 	QDoubleSpinBox,
 	QLineEdit,
@@ -615,7 +616,6 @@ QComboBox
 ****************************************************************************/
 	QComboBox
 	{
-		padding-right: 20px; /* make room for the arrows */
 		color: rgba(230, 230, 230, 255);
 	}
 	QComboBox::drop-down
@@ -785,6 +785,7 @@ QDockWidget
 		titlebar-close-icon: url(:/images/dockwidget-close_light.svg);
 		titlebar-normal-icon: url(:/images/dockwidget-float_light.svg);
 	}
+	iAQDockTitleWidget,
 	QDockWidget::title
 	{
 		background-color: rgba(40, 40, 40, 255);

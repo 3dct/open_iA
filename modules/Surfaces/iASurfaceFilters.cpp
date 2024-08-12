@@ -104,21 +104,21 @@ namespace
 		if (parameters["Algorithm"].toString() == "Marching Cubes")
 		{
 			vtkNew<vtkMarchingCubes> marchingCubes;
-			marchingCubes->ComputeNormalsOn();
-			marchingCubes->ComputeGradientsOn();
-			marchingCubes->ComputeScalarsOn();
+			marchingCubes->SetComputeNormals(parameters["Compute Normals"].toBool());
+			marchingCubes->SetComputeGradients(parameters["Compute Gradients"].toBool());
+			marchingCubes->SetComputeScalars(parameters["Compute Scalars"].toBool());
+			marchingCubes->SetNumberOfContours(1);
 			marchingCubes->SetValue(0, parameters["Iso value"].toDouble());
 			result = marchingCubes;
 		}
 		else
 		{
 			vtkSmartPointer<vtkFlyingEdges3D> flyingEdges;
+			flyingEdges->SetComputeNormals(parameters["Compute Normals"].toBool());
+			flyingEdges->SetComputeGradients(parameters["Compute Gradients"].toBool());
+			flyingEdges->SetComputeScalars(parameters["Compute Scalars"].toBool());
 			flyingEdges->SetNumberOfContours(1);
 			flyingEdges->SetValue(0, parameters["Iso value"].toDouble());
-			flyingEdges->ComputeNormalsOn();
-			flyingEdges->ComputeGradientsOn();
-			flyingEdges->ComputeScalarsOn();
-			flyingEdges->SetArrayComponent(0);
 			result = flyingEdges;
 		}
 		Progress->observe(result);
@@ -227,7 +227,11 @@ iAExtractSurface::iAExtractSurface() :
 	QStringList AlgorithmNames;
 	AlgorithmNames << "Marching Cubes" << "Flying Edges";
 	addParameter("Extraction Algorithm", iAValueType::Categorical, AlgorithmNames);
+	addParameter("Compute Normals", iAValueType::Boolean, true);
+	addParameter("Compute Gradients", iAValueType::Boolean, true);
+	addParameter("Compute Scalars", iAValueType::Boolean, true);
 	addParameter("Iso value", iAValueType::Continuous, 1);
+
 	QStringList SimplificationAlgorithms;
 	SimplificationAlgorithms << "Quadric Clustering" << "Decimate Pro" << "Windowed Sinc" << "None";
 	addParameter("Simplification Algorithm", iAValueType::Categorical, SimplificationAlgorithms);

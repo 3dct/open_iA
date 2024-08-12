@@ -10,13 +10,14 @@
 #include "dlg_VisMainWindow.h"
 #include "iACompBarChart.h"
 #include "iACompBoxPlot.h"
-#include "iACompHistogramTable.h"
 #include "iACompCorrelationMap.h"
-
-#include "iAMultidimensionalScaling.h"
+#include "iACompHistogramTable.h"
+#include "iACompHistogramVis.h"
+#include "iACsvDataStorage.h"
 #include "iACoefficientOfVariation.h"
 #include "iACorrelationCoefficient.h"
 #include "iAComp3DView.h"
+#include "iAMultidimensionalScaling.h"
 
 #include <QBoxLayout>
 

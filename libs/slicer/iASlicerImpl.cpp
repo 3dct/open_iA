@@ -37,6 +37,7 @@
 
 #include <vtkActor.h>
 #include <vtkCamera.h>
+#include <vtkCaptionActor2D.h>
 #include <vtkCommand.h>
 #include <vtkCubeSource.h>
 #include <vtkDataSetMapper.h>
@@ -61,7 +62,7 @@
 #include <vtkScalarBarActor.h>
 #include <vtkScalarBarRepresentation.h>
 #include <vtkScalarBarWidget.h>
-#include <vtkTextActor3D.h>
+#include <vtkTextActor.h>
 #include <vtkTextProperty.h>
 #include <vtkThinPlateSplineTransform.h>
 #include <vtkTransform.h>
@@ -100,7 +101,7 @@ private:
 };
 
 
-constexpr const char SlicerSettingsName[] = "Default Settings/View: Slicer";
+inline constexpr char SlicerSettingsName[] = "Default Settings/View: Slicer";
 //! Settings applicable to a single slicer window.
 class iASingleSlicerSettings : iASettingsObject<SlicerSettingsName, iASingleSlicerSettings>
 {
@@ -333,24 +334,18 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 		m_profileHandles->setVisibility(false);
 
 		m_scalarBarWidget = vtkSmartPointer<vtkScalarBarWidget>::New();
-		m_textProperty = vtkSmartPointer<vtkTextProperty>::New();
-
-		for (int i = 0; i < 2; ++i)
-		{
-			m_axisTransform[i] = vtkSmartPointer<vtkTransform>::New();
-			m_axisTextActor[i] = vtkSmartPointer<vtkTextActor3D>::New();
-		}
 		m_rulerWidget = vtkSmartPointer<iARulerWidget>::New();
 
-		m_textProperty->SetBold(1);
-		m_textProperty->SetItalic(1);
-		m_textProperty->SetColor(1, 1, 1);
-		m_textProperty->SetJustification(VTK_TEXT_CENTERED);
-		m_textProperty->SetVerticalJustification(VTK_TEXT_CENTERED);
-		m_textProperty->SetOrientation(1);
+		vtkNew<vtkTextProperty> textProperty;
+		textProperty->SetBold(1);
+		textProperty->SetItalic(1);
+		textProperty->SetColor(1, 1, 1);
+		textProperty->SetJustification(VTK_TEXT_CENTERED);
+		textProperty->SetVerticalJustification(VTK_TEXT_CENTERED);
+		textProperty->SetOrientation(1);
 		m_scalarBarWidget->GetScalarBarActor()->SetLabelFormat("%.2f");
-		m_scalarBarWidget->GetScalarBarActor()->SetTitleTextProperty(m_textProperty);
-		m_scalarBarWidget->GetScalarBarActor()->SetLabelTextProperty(m_textProperty);
+		m_scalarBarWidget->GetScalarBarActor()->SetTitleTextProperty(textProperty);
+		m_scalarBarWidget->GetScalarBarActor()->SetLabelTextProperty(textProperty);
 		m_scalarBarWidget->GetScalarBarRepresentation()->SetOrientation(1);
 		m_scalarBarWidget->GetScalarBarRepresentation()->GetPositionCoordinate()->SetValue(0.92, 0.2);
 		m_scalarBarWidget->GetScalarBarRepresentation()->GetPosition2Coordinate()->SetValue(0.06, 0.75);
@@ -383,24 +378,25 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 		m_roi.actor->GetProperty()->SetRepresentation(VTK_WIREFRAME);
 		m_roi.mapper->Update();
 
-		m_axisTextActor[0]->SetInput(axisName(mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)).toStdString().c_str());
-		m_axisTextActor[1]->SetInput(axisName(mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)).toStdString().c_str());
-
 		for (int i = 0; i < 2; ++i)
 		{
+			m_axisTextActor[i] = vtkSmartPointer<vtkCaptionActor2D>::New();
 			m_axisTextActor[i]->SetPickable(false);
-			// large font size required to make the font nicely smooth
-			m_axisTextActor[i]->GetTextProperty()->SetFontSize(100);
-			m_axisTextActor[i]->GetTextProperty()->SetFontFamilyToArial();
-			m_axisTextActor[i]->GetTextProperty()->SetColor(1.0, 1.0, 1.0);
+			m_axisTextActor[i]->SetDragable(false);
+			m_axisTextActor[i]->GetCaptionTextProperty()->SetFontFamilyToArial();
+			m_axisTextActor[i]->GetCaptionTextProperty()->SetColor(1.0, 1.0, 1.0);
+			m_axisTextActor[i]->SetBorder(false);
+			m_axisTextActor[i]->SetLeader(false);
 			m_ren->AddActor(m_axisTextActor[i]);
 			m_axisTextActor[i]->SetVisibility(false);
-			m_axisTextActor[i]->SetUserTransform(m_axisTransform[i]);
+			m_axisTextActor[i]->GetTextActor()->SetTextScaleModeToNone();
 		}
-		m_axisTextActor[0]->GetTextProperty()->SetVerticalJustificationToTop();
-		m_axisTextActor[0]->GetTextProperty()->SetJustificationToCentered();
-		m_axisTextActor[1]->GetTextProperty()->SetVerticalJustificationToCentered();
-		m_axisTextActor[1]->GetTextProperty()->SetJustificationToRight();
+		m_axisTextActor[0]->SetCaption(axisName(mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)).toStdString().c_str());
+		m_axisTextActor[0]->GetCaptionTextProperty()->SetVerticalJustificationToTop();
+		m_axisTextActor[0]->GetCaptionTextProperty()->SetJustificationToCentered();
+		m_axisTextActor[1]->SetCaption(axisName(mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)).toStdString().c_str());
+		m_axisTextActor[1]->GetCaptionTextProperty()->SetVerticalJustificationToCentered();
+		m_axisTextActor[1]->GetCaptionTextProperty()->SetJustificationToRight();
 
 		m_rulerWidget->SetInteractor(m_renWin->GetInteractor());
 		m_rulerWidget->SetEnabled(true);
@@ -588,8 +584,8 @@ void iASlicerImpl::setSliceNumber( int sliceNumber )
 		ch->setResliceAxesOrigin(origin[0] + xyz[0] * spacing[0], origin[1] + xyz[1] * spacing[1], origin[2] + xyz[2] * spacing[2]);
 	}
 	updateMagicLensColors();
-	update();
 	emit sliceNumberChanged( m_mode, sliceNumber );
+	update();
 }
 
 void iASlicerImpl::setSlicePosition(double slicePos)
@@ -642,6 +638,8 @@ void iASlicerImpl::applySettings( QVariantMap const & settings )
 	// from settings if decorations turned on:
 	m_settings[iASlicerImpl::ShowTooltip] = m_settings[iASlicerImpl::ShowTooltip].toBool() && m_decorations;
 	m_textInfo->setFontSize(settings[iASlicerImpl::ToolTipFontSize].toInt());
+	m_axisTextActor[0]->GetCaptionTextProperty()->SetFontSize(1.2 * settings[iASlicerImpl::ToolTipFontSize].toInt());
+	m_axisTextActor[1]->GetCaptionTextProperty()->SetFontSize(1.2 * settings[iASlicerImpl::ToolTipFontSize].toInt());
 	setBackground(variantToColor(settings[iASlicerImpl::BackgroundColor]));
 	m_textInfo->show(m_settings[iASlicerImpl::ShowTooltip].toBool());
 	setMagicLensFrameWidth(m_settings[iASlicerImpl::MagicLensFrameWidth].toInt());
@@ -770,26 +768,22 @@ void iASlicerImpl::addChannel(uint id, iAChannelData const & chData, bool enable
 	auto chSlicerData = createChannel(id, chData);
 	auto image = chData.image();
 	double const * imgSpc = image->GetSpacing();
-	if (m_channels.size() == 1)
+	if (m_channels.size() == 1)    // TODO: update required for new channels?
 	{
 		setSlicerRange(id);
 		if (m_decorations)
 		{
 			setScalarBarTF(chData.colorTF());
 			updatePositionMarkerExtent();
-			// TODO: update required for new channels other than to export? export all channels?
-			double unitSpacing = std::max(std::max(imgSpc[0], imgSpc[1]), imgSpc[2]);
+			// update position of axis caption:
 			double const* spc = m_channels[id]->output()->GetSpacing();
 			int    const* dim = m_channels[id]->output()->GetDimensions();
-			for (int i = 0; i < 2; ++i)
-			{	// scaling required to shrink the text to required size (because of large font size, see initialize method)
-				m_axisTransform[i]->Scale(unitSpacing / 10, unitSpacing / 10, unitSpacing / 10);
-			}
-			double xHalf = (dim[0] - 1) * spc[0] / 2.0;
-			double yHalf = (dim[1] - 1) * spc[1] / 2.0;
-			// "* 10 / unitSpacing" adjusts for scaling (see above)
-			m_axisTextActor[0]->SetPosition(xHalf * 10 / unitSpacing, -20.0, 0);
-			m_axisTextActor[1]->SetPosition(-20.0, yHalf * 10 / unitSpacing, 0);
+			std::array<double, 2> size = { dim[0]  * spc[0], dim[1] * spc[1] };
+			// 0.5 offsets probably necessary due to border on ?
+			std::array<double, 2> halfSize = { size[0] / 2.0 - 0.5 * spc[0], size[1] / 2.0 - 0.5 * spc[1] };
+			double ofs = std::max(size[0], size[1]) / 20;
+			m_axisTextActor[0]->SetAttachmentPoint(halfSize[0], -(ofs + 0.5 * spc[1]), 0);
+			m_axisTextActor[1]->SetAttachmentPoint(-(ofs + 0.5 * spc[0]), halfSize[1], 0);
 		}
 	}
 	double origin[3];

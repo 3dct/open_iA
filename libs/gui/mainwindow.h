@@ -35,7 +35,7 @@ class iAgui_API MainWindow : public iAMainWindow
 
 public:
 	MainWindow(QString const & appName, QString const & version, QString const& buildInformation,
-		QString const & splashImage, QSplashScreen& splashScreen, iADockWidgetWrapper* dwJobs);
+		QString const & splashImage, QSplashScreen& splashScreen);
 	~MainWindow() override;
 	static int runGUI(int argc, char * argv[], QString const & appName, QString const & version, QString const& buildInformation,
 		QString const & splashPath, QString const & iconPath);
@@ -46,9 +46,10 @@ public:
 	void addRecentFile(const QString &fileName);
 	//! Opens multiple files in an existing or new window
 	//! @param fileNames the list of the file names of the files to load
-	//! @param child the child window to load the files into. If nullptr, a new window is created **for each file**
+	//! @param childSrc a source for a child window to load the files into. If nullptr, a new window is created **for each file**
 	void loadFiles(QStringList fileNames, std::shared_ptr<iAChildSource> childSrc);
 	//! see iAMainWindow::loadFile
+	//! @param io determine a specific IO to use for loading the file
 	void loadFile(QString const& fileName, std::shared_ptr<iAChildSource> childSrc, std::shared_ptr<iAFileIO> io = nullptr) override;
 
 	QMenu * fileMenu() override;

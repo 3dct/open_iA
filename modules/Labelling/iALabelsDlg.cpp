@@ -34,8 +34,8 @@
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QSettings>
 #include <QStandardItemModel>
-
 #include <QStringView>
 #include <QThread>
 #include <QXmlStreamReader>
@@ -46,6 +46,7 @@ namespace
 {
 	const double DefaultOpacity = 0.5;
 	typedef int LabelPixelType;
+	const QString LabelsProjectKey = "Labels";
 }
 
 struct iAOverlayImage
@@ -72,7 +73,7 @@ struct iAOverlaySlicerData
 	QList<QMetaObject::Connection> connections;
 };
 
-iALabelsDlg::iALabelsDlg(iAMdiChild* mdiChild, bool addMainSlicers /* = true*/) :
+iALabelsDlg::iALabelsDlg(iAMdiChild* mdiChild) :
 	m_trackingSeeds(true),
 	m_colorTheme(iAColorThemeManager::instance().theme("Brewer Set3 (max. 12)")),
 	m_mdiChild(mdiChild),
@@ -101,22 +102,23 @@ iALabelsDlg::iALabelsDlg(iAMdiChild* mdiChild, bool addMainSlicers /* = true*/) 
 	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
 	m_ui->lvLabels->setModel(m_itemModel);
 
-	if (addMainSlicers)
+	uint channelId = m_mdiChild->createChannel();
+	auto img = m_mdiChild->firstImageData();
+	if (img)
 	{
-		uint channelId = m_mdiChild->createChannel();
-		auto img = m_mdiChild->firstImageData();
-		if (img)
-		{
-			int id = addSlicer(m_mdiChild->slicer(iASlicerMode::XY), "Main XY", img->GetExtent(), img->GetSpacing(), channelId);
-			addSlicer(m_mdiChild->slicer(iASlicerMode::XZ), id, channelId);
-			addSlicer(m_mdiChild->slicer(iASlicerMode::YZ), id, channelId);
-		}
+		int id = addSlicer(m_mdiChild->slicer(iASlicerMode::XY), "Main XY", img->GetExtent(), img->GetSpacing(), channelId);
+		addSlicer(m_mdiChild->slicer(iASlicerMode::XZ), id, channelId);
+		addSlicer(m_mdiChild->slicer(iASlicerMode::YZ), id, channelId);
 	}
 }
 
 int iALabelsDlg::addSlicer(iASlicer* slicer, QString name, int* extent, double* spacing, uint channelId)
 {
-	assert(!m_mapSlicer2data.contains(slicer));
+	if (m_mapSlicer2data.contains(slicer))
+	{
+		LOG(lvlError, QString("Tried to add same slice twice!"));
+		return -1;
+	}
 	int imageId = m_nextId++;
 	auto labelOverlayImg = vtkSmartPointer<iAvtkImageData>::New();
 	labelOverlayImg->SetExtent(extent);
@@ -153,14 +155,13 @@ void iALabelsDlg::addSlicer(iASlicer* slicer, int imageId, uint channelId)
 		c.append(connect(slicer, &iASlicer::leftDragged, this,
 			[this, slicer](double x, double y, double z) { addSeed(x, y, z, slicer); }));
 		c.append(connect(slicer, &iASlicer::rightClicked, this,
-			[this, slicer](double x, double y, double z) {
-				removeSeed(x, y, z, slicer);
-				updateChannels(m_mapSlicer2data.value(slicer)->overlayImageId);
-			}));
-
+			[this, slicer](double x, double y, double z)
+		{
+			removeSeed(x, y, z, slicer);
+			updateChannels(m_mapSlicer2data.value(slicer)->overlayImageId);
+		}));
 		auto channelData = iAChannelData("name", oi->image, m_labelColorTF, m_labelOpacityTF);
 		slicer->addChannel(channelId, channelData, true);
-
 		m_mapSlicer2data.insert(slicer, std::make_shared<iAOverlaySlicerData>(channelData, channelId, c, id));
 	}
 	else
@@ -533,6 +534,10 @@ void iALabelsDlg::removeSeed(double x, double y, double z, iASlicer* slicer)
 	iAVec3d worldCoords(x, y, z);
 	auto vxlIdx = mapWorldCoordsToIndex(image, worldCoords.data());
 	int label = static_cast<int>(image->GetScalarComponentAsFloat(vxlIdx[0], vxlIdx[1], vxlIdx[2], 0)) - 1;
+	if (label == -1) // label not set yet
+	{
+		return;
+	}
 	int seedItemRow = findSeed(m_itemModel->item(label), x, y, z, id);
 	removeSeed(vxlIdx[0], vxlIdx[1], vxlIdx[2], id, label, seedItemRow);
 }
@@ -607,6 +612,26 @@ void iALabelsDlg::setSeedsTracking(bool enabled)
 	}
 }
 
+void iALabelsDlg::saveState(QSettings& projectFile)
+{
+	QString outXML;
+	QXmlStreamWriter writer(&outXML);
+	storeXML(writer, false);
+	projectFile.setValue(LabelsProjectKey, outXML.replace("\n", ""));
+}
+
+void iALabelsDlg::loadState(QSettings const& projectFile)
+{
+	int overlayImageId = chooseOverlayImage("Choose an image to load onto");
+	if (overlayImageId == -1)
+	{
+		return;
+	}
+	QString labelsString = projectFile.value(LabelsProjectKey).toString();
+	QXmlStreamReader reader(labelsString);
+	loadXML(reader, overlayImageId);
+}
+
 int iALabelsDlg::chooseOverlayImage(QString title)
 {
 	auto size = m_mapId2image.size();
@@ -645,44 +670,59 @@ bool iALabelsDlg::load(QString const& filename)
 	{
 		return false;
 	}
-	std::shared_ptr<iAOverlayImage> oi = m_mapId2image.value(overlayImageId);
-
-	clearImage<LabelPixelType>(oi->image, 0);
-
-	m_itemModel->clear();
-	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Label"));
-	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
 	QFile file(filename);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
 		LOG(lvlError, QString("Seed file loading: Failed to open file '%1'!").arg(filename));
 		return false;
 	}
+
 	QXmlStreamReader stream(&file);
+	bool result = loadXML(stream, overlayImageId);
+	file.close();
+	if (file.error() != QFile::NoError)
+	{
+		LOG(lvlError, QString("Error: Cannot read file '%1': %2").arg(filename).arg(file.errorString()));
+		return false;
+	}
+	if (result)
+	{
+		QFileInfo fileInfo(file);
+		m_fileName = MakeAbsolute(fileInfo.absolutePath(), filename);
+	}
+	return result;
+}
+
+bool iALabelsDlg::loadXML(QXmlStreamReader& stream, int overlayImageId)
+{
+	std::shared_ptr<iAOverlayImage> oi = m_mapId2image.value(overlayImageId);
+	clearImage<LabelPixelType>(oi->image, 0);
+	m_itemModel->removeRows(0, m_itemModel->rowCount());
+
 	stream.readNext();
 	int curLabelRow = -1;
-
 	bool enableStoreBtn = false;
 	QList<QStandardItem*> items;
+	auto finalizePrevLabel = [this, &items, &curLabelRow]()
+	{
+		if (items.size() == 0)
+		{
+			return;
+		}
+		if (curLabelRow == -1)
+		{
+			LOG(lvlWarn, QString("Error loading label XML: Current label not set, cannot add to list!"));
+			return;
+		}
+		appendSeeds(curLabelRow, items);
+	};
 	while (!stream.atEnd())
 	{
 		if (stream.isStartElement())
 		{
-			if (stream.name().compare(QString("Labels")) == 0)
+			if (stream.name().compare(QString("Label")) == 0)
 			{
-				// root element, no action required
-			}
-			else if (stream.name().compare(QString("Label")) == 0)
-			{
-				if (items.size() > 0)
-				{
-					if (curLabelRow == -1)
-					{
-						LOG(lvlError, QString("Error loading seed file '%1': Current label not set!").arg(filename));
-					}
-					appendSeeds(curLabelRow, items);
-				}
-
+				finalizePrevLabel();
 				enableStoreBtn = true;
 				QString id = stream.attributes().value("id").toString();
 				QString name = stream.attributes().value("name").toString();
@@ -700,7 +740,7 @@ bool iALabelsDlg::load(QString const& filename)
 			{
 				if (curLabelRow == -1)
 				{
-					LOG(lvlError, QString("Error loading seed file '%1': Current label not set!").arg(filename));
+					LOG(lvlError, "Error loading label XML: Current label not set!");
 					return false;
 				}
 				int x = stream.attributes().value("x").toInt();
@@ -708,32 +748,27 @@ bool iALabelsDlg::load(QString const& filename)
 				int z = stream.attributes().value("z").toInt();
 				auto item = addSeedItem(curLabelRow, x, y, z, oi->id);
 				if (item)
+				{
 					items.append(item);
+				}
 				else
+				{   // TODO: check if triggered items are bulk-added only later (see appendSeeds above)
 					LOG(lvlWarn,
-						QString("Item %1, %2, %3, label %4 already exists!").arg(x).arg(y).arg(z).arg(curLabelRow));
+						QString("Duplicate entry for %1, %2, %3, label %4!").arg(x).arg(y).arg(z).arg(curLabelRow));
+				}
 			}
 		}
 		stream.readNext();
 	}
-
-	file.close();
-	if (stream.hasError())
-	{
-		LOG(lvlError, QString("Error: Failed to parse seed xml file '%1': %2").arg(filename).arg(stream.errorString()));
-		return false;
-	}
-	else if (file.error() != QFile::NoError)
-	{
-		LOG(lvlError, QString("Error: Cannot read file '%1': %2").arg(filename).arg(file.errorString()));
-		return false;
-	}
-
-	QFileInfo fileInfo(file);
-	m_fileName = MakeAbsolute(fileInfo.absolutePath(), filename);
+	finalizePrevLabel();
 	m_ui->pbStore->setEnabled(enableStoreBtn);
 	reInitChannelTF();
 	updateChannels();
+	if (stream.hasError())
+	{
+		LOG(lvlError, QString("Error: Failed to parse label XML: %1").arg(stream.errorString()));
+		return false;
+	}
 	return true;
 }
 
@@ -749,13 +784,20 @@ bool iALabelsDlg::store(QString const& filename, bool extendedFormat)
 	QFile file(filename);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
-		QMessageBox::warning(this, "GEMSe", "Seed file storing: Failed to open file '" + filename + "'!");
+		QMessageBox::warning(this, "Labels", "Seed file storing: Failed to open file '" + filename + "'!");
 		return false;
 	}
 	QFileInfo fileInfo(file);
 	m_fileName = MakeAbsolute(fileInfo.absolutePath(), filename);
 	QXmlStreamWriter stream(&file);
 	stream.setAutoFormatting(true);
+	storeXML(stream, extendedFormat);
+	file.close();
+	return true;
+}
+
+void iALabelsDlg::storeXML(QXmlStreamWriter& stream, bool extendedFormat)
+{
 	stream.writeStartDocument();
 	stream.writeStartElement("Labels");
 
@@ -793,8 +835,6 @@ bool iALabelsDlg::store(QString const& filename, bool extendedFormat)
 	}
 	stream.writeEndElement();
 	stream.writeEndDocument();
-	file.close();
-	return true;
 }
 
 void iALabelsDlg::loadLabels()
@@ -808,7 +848,7 @@ void iALabelsDlg::loadLabels()
 	}
 	if (!load(fileName))
 	{
-		QMessageBox::warning(this, "GEMSe", "Loading seed file '" + fileName + "' failed!");
+		QMessageBox::warning(this, "Labels", "Loading seed file '" + fileName + "' failed!");
 	}
 }
 
@@ -832,7 +872,7 @@ void iALabelsDlg::storeLabels()
 	}
 	if (!store(fileName, dlg.parameterValues()[paramName].toBool()))
 	{
-		QMessageBox::warning(this, "GEMSe", "Storing seed file '" + fileName + "' failed!");
+		QMessageBox::warning(this, "Labels", "Storing seed file '" + fileName + "' failed!");
 	}
 }
 

@@ -215,7 +215,7 @@ iARemoteTool::iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	//m_clientList->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
 	m_clientList->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_clientList->resizeColumnsToContents();
-	auto dw = new iADockWidgetWrapper(m_clientList, "Clients", "RemoteClientList");
+	auto dw = new iADockWidgetWrapper(m_clientList, "Clients", "RemoteClientList", "https://github.com/3dct/open_iA/wiki/Remote");
 	child->splitDockWidget(child->renderDockWidget(), dw, Qt::Vertical);
 
 	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::clientConnected, this, [this](quint64 id)

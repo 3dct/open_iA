@@ -210,9 +210,6 @@ void iAFast3DMagicLensWidget::mouseMoveEvent(QMouseEvent* event)
 
 void iAFast3DMagicLensWidget::wheelEvent(QWheelEvent* event)
 {
-	/*
-	// enable resizing / changing opacity of magic lens;
-	// requires also adaptations of interactor style to disable zooming when these modifiers are pressed!
 	if (m_magicLensEnabled && event->modifiers().testFlag(Qt::ControlModifier))
 	{
 		int chg = event->angleDelta().y() / 120.0;
@@ -223,19 +220,19 @@ void iAFast3DMagicLensWidget::wheelEvent(QWheelEvent* event)
 		}
 		int newSize = std::max(MinimumMagicLensSize, static_cast<int>(m_size[0] * sizeFactor));
 		setLensSize(newSize, newSize);
+		updateGUI();
 	}
 	else if (m_magicLensEnabled && event->modifiers().testFlag(Qt::AltModifier))
 	{
-		int chg = event->angleDelta().y() / 120.0;
+		int chg = event->angleDelta().x() / 120.0;
 		double newOpacity = m_GUIActor->GetProperty()->GetOpacity() + (chg * 0.05);
 		newOpacity = std::min(1.0, std::max(0.0, newOpacity));
 		m_GUIActor->GetProperty()->SetOpacity(newOpacity);
 	}
 	else
 	{
-	*/
 		iAVtkWidget::wheelEvent(event);
-	//}
+	}
 	if (m_magicLensEnabled)
 	{
 		updateLens();
@@ -390,7 +387,7 @@ void iAFast3DMagicLensWidget::getViewportPoints(double points[4])
 }
 
 void iAFast3DMagicLensWidget::setContextMenuEnabled(bool enabled)
-{
+{   // TODO: use context menu policy instead? setContextMenuPolicy(enabled? Qt::DefaultContextMenu : Qt::PreventContextMenu)
 	m_contextMenuEnabled = enabled;
 }
 

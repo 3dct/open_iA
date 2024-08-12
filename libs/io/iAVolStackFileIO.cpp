@@ -75,11 +75,15 @@ std::shared_ptr<iADataSet> iAVolStackFileIO::loadData(QString const& fileName, Q
 		}
 		if (io->parameter(iAFileIO::Load).size() != 1 || io->parameter(iAFileIO::Load)[0]->name() != iADataSet::FileNameKey)
 		{
-			throw std::runtime_error(QString("VolStack I/O: Cannot read file (%1) - reader requires other parameters !").arg(curFileName).toStdString());
+			throw std::runtime_error(QString("VolStack I/O: Cannot read file (%1) - reader requires other parameters!").arg(curFileName).toStdString());
 		}
 		iAProgress dummyProgress;
 		QVariantMap curParamValues;
 		auto dataSet = io->load(curFileName, curParamValues, dummyProgress);
+		if (!dataSet)
+		{
+			throw std::runtime_error(QString("VolStack I/O: Cannot read file (%1) - error while loading!").arg(curFileName).toStdString());
+		}
 		result->addDataSet(dataSet);
 		progress.emitProgress(100 * (i - minIdx) / (maxIdx - minIdx + 1));
 	}

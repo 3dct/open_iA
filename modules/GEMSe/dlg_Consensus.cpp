@@ -117,7 +117,7 @@ ChartWidgetData CreateChartWidget(const char * xTitle, const char * yTitle,
 	contextView->GetScene()->AddItem(result.chart);
 	iADockWidgetWrapper * w(new iADockWidgetWrapper(result.vtkWidget,
 			QString("%1 vs. %2").arg(xTitle).arg(yTitle),
-			QString("%1%2").arg(xTitle).arg(yTitle).replace(" ", "") ));
+			QString("%1%2").arg(xTitle).arg(yTitle).replace(" ", ""), "https://github.com/3dct/open_iA/wiki/GEMSe"));
 	mdiChild->splitDockWidget(mdiChild->renderDockWidget(), w, Qt::Vertical);
 	return result;
 }

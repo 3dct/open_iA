@@ -34,15 +34,14 @@ class iADataSetListWidget;
 class iADataSetViewer;
 class iAvtkInteractStyleActor;
 class MainWindow;
-class Ui_Mdichild;
 
 // guibase
 class iAChannelData;
 class iATool;
 
 // slicer / renderer
-class dlg_renderer;
-class dlg_slicer;
+class iARendererContainer;
+class iASlicerContainer;
 class iARendererImpl;
 class iASlicerImpl;
 
@@ -164,8 +163,8 @@ public:
 	bool doSaveProject(QString const& projectFileName) override;
 	//! Whether volume data is loaded (only checks filename and volume dimensions).
 	bool isVolumeDataLoaded() const override;
-	//! Enable or disable linked slicers and 3D renderer.
-	void linkViews(bool l);
+	//! Enable or disable linked slicers.
+	void linkSliceViews(bool l);
 	//! Enable or disable linked MDI windows for this MDI child.
 	void linkMDIs(bool lm);
 
@@ -280,11 +279,9 @@ private:
 	QListWidget* m_dataSetInfo;                                         //!< widget showing information on datasets
 	iADataSetListWidget* m_dataSetListWidget;                           //!< widget showing list of currently loaded datasets
 
-	//! @{ dock widgets
-	iADockWidgetWrapper * m_dwInfo, * m_dwDataSets;                     //!< dock widgets for dataset info and dataset list widgets
-	dlg_slicer * m_dwSlicer[3];
-	dlg_renderer * m_dwRenderer;
-	//! @}
+	iARendererContainer* m_rendererContainer;
+	iASlicerContainer* m_slicerContainer[3];
+	iADockWidgetWrapper * m_dwInfo, * m_dwDataSets, * m_dwRenderer, * m_dwSlicer[3];  //!< dock widgets for dataset info and dataset list widgets
 
 	QMap<uint, std::shared_ptr<iAChannelData> > m_channels;
 	uint m_nextChannelID;
@@ -303,6 +300,4 @@ private:
 	std::map<size_t, std::shared_ptr<iADataSetViewer>> m_dataSetViewers;//!< viewer for a currently loaded dataset; manages all aspects of showing the dataset, e.g. in 3D renderer, slicer, etc.
 
 	vtkSmartPointer<iAvtkInteractStyleActor> m_manualMoveStyle[4];      //!< for syncing the manual registration between views
-
-	std::shared_ptr<Ui_Mdichild> m_ui;
 };

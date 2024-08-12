@@ -27,6 +27,7 @@
 #include <iAQVTKWidget.h>
 #include <iARenderer.h>
 #include <iARunAsync.h>
+#include <iADefaultSettings.h>
 #include <iAToolsITK.h>
 #include <iAThemeHelper.h>
 
@@ -120,7 +121,8 @@ const QString PercentAttribute("PERCENT");
 const QString IDColumnAttribute("IDColumn");
 const QString LabelAttribute("Label");
 const QString LabelAttributePore("LabelId");
-const QString ClassesProjectFile("Classes");
+const QString ClassesProjectKey("Classes");
+const QString MeanObjectsProjectKey("MeanObjects");
 
 namespace
 {
@@ -157,68 +159,111 @@ namespace
 	}
 }
 
-// define class here directly instead of using iAQTtoUIConnector; when using iAQTtoUIConnector we cannot forward-define because of the templates!
-class iAPolarPlotWidget : public QDockWidget, public Ui_FeatureScoutPP
+//! define class here directly instead of using iAQTtoUIConnector, to be able to forward-declare
+class iAPolarPlotWidget : public QWidget, public Ui_FeatureScoutPP
 {
 public:
-	iAPolarPlotWidget(QWidget* parent) : QDockWidget(parent)
+	iAPolarPlotWidget(QWidget* parent) : QWidget(parent)
 	{
 		setupUi(this);
 	}
 };
 
-const int dlg_FeatureScout::PCMinTicksCount = 2;
+//! define class here directly instead of using iAQTtoUIConnector, to be able to forward-declare
+class iAClassExplorer: public QWidget, public Ui_FeatureScoutCE
+{
+public:
+	iAClassExplorer(QWidget* parent) : QWidget(parent)
+	{
+		setupUi(this);
+	}
+};
 
-const QString dlg_FeatureScout::DlgObjectName("FeatureScoutMainDlg");
+namespace
+{
+	const QString PCLineWidth = "Line Width";
+	const QString PCOpacity = "Opacity";
+	const QString PCTickCount = "Tick Count";
+	const QString PCFontSize = "Font Size";
+
+	const int PCMinTickCount = 2; //!< minimum number of ticks
+}
+
+inline constexpr char FeatureScoutPCSettingsName[] = "FeatureScout: Parallel Coordinates";
+inline constexpr char FeatureScoutPCSettingsMenu[] = "Default Settings/FeatureScout: Parallel Coordinates";
+//! a FeatureScout slicer window.
+class iAFeatureScoutPCSettings : iASettingsObject<FeatureScoutPCSettingsMenu, iAFeatureScoutPCSettings>
+{
+public:
+	static iAAttributes& defaultAttributes()
+	{
+		static iAAttributes attr;
+		if (attr.isEmpty())
+		{
+			addAttr(attr, PCLineWidth, iAValueType::Continuous, 0.1, 0.001, 100000);     //!< width of the line for each object
+			addAttr(attr, PCOpacity, iAValueType::Discrete, 90, 0, 255);                 //!< opacity of lines
+			addAttr(attr, PCTickCount, iAValueType::Discrete, 10, PCMinTickCount, 255);  //!< count of ticks per axis
+			addAttr(attr, PCFontSize, iAValueType::Discrete, 12, 0, 255);                //!< font size of titles and tick labels
+			selfRegister();
+		}
+		return attr;
+	}
+};
+
 const QString dlg_FeatureScout::UnclassifiedColorName("darkGray");
 
 dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType objectType, QString const& fileName,
 	iAObjectsData const * objData, iAObjectVis* objVis) :
-	QDockWidget(parent),
 	m_activeChild(parent),
-	m_elementCount(objData->m_table->GetNumberOfColumns()),
-	m_objectCount(objData->m_table->GetNumberOfRows()),
+	m_renderer(parent->renderer()),
+	m_objCnt(objData->m_table->GetNumberOfRows()),
+	m_colCnt(objData->m_table->GetNumberOfColumns()),
 	m_objectType(objectType),
 	m_draw3DPolarPlot(false),
 	m_renderMode(rmSingleClass),
 	m_singleObjectSelected(false),
 	m_visType(objData->m_visType),
 	m_sourcePath(parent->filePath()),
+	m_columnMapping(objData->m_colMapping),
 	m_csvTable(objData->m_table),
+	m_elementTable(vtkSmartPointer<vtkTable>::New()),
 	m_chartTable(vtkSmartPointer<vtkTable>::New()),
-	m_multiClassLUT(vtkSmartPointer<vtkLookupTable>::New()),
-	m_classTreeModel(new QStandardItemModel()),
-	m_elementTableModel(nullptr),
-	m_pcLineWidth(0.1f),
-	m_pcFontSize(15),
-	m_pcTickCount(10),
-	m_pcOpacity(90),
-	m_renderer(parent->renderer()),
-	m_blobManager(new iABlobManager()),
+	m_columnVisibility(m_colCnt, false),
+	m_lengthDistrView(vtkSmartPointer<vtkContextView>::New()),
+	m_pcView(vtkSmartPointer<vtkContextView>::New()),
+	m_pcConnections(vtkSmartPointer<vtkEventQtSlotConnect>::New()),
+	m_pcMultiClassLUT(vtkSmartPointer<vtkLookupTable>::New()),
+	m_classTreeView(new QTreeView()),
+	m_elementTableView(new QTableView()),
+	m_classTreeModel(new QStandardItemModel(this)),
+	m_elementTableModel(new QStandardItemModel(static_cast<int>(m_colCnt - 1), 4, this)),
+	m_blobManager(std::make_unique<iABlobManager>()),
 	m_blobVisDialog(new dlg_blobVisualization()),
-	m_dwPC(nullptr),
+	m_dvContextView(vtkSmartPointer<vtkContextView>::New()),
+	m_pcWidget(new iAQVTKWidget()),
+	m_polarPlotWidget(new iAQVTKWidget()),
+	m_lengthDistrWidget(new iAQVTKWidget()),
+	m_ppWidget(new iAPolarPlotWidget(m_activeChild)),
+	m_classExplorer(new iAClassExplorer(parent)),
+	m_dwPC(new iADockWidgetWrapper(m_pcWidget, "Parallel Coordinates", "FeatureScoutPC", "https://github.com/3dct/open_iA/wiki/FeatureScout")),
+	m_dwPP(new iADockWidgetWrapper(m_ppWidget, "Orientation Plot", "FeatureScoutPP", "https://github.com/3dct/open_iA/wiki/FeatureScout")),
+	m_dwCE(new iADockWidgetWrapper(m_classExplorer, "Class Explorer", "FeatureScoutMainDlg", "https://github.com/3dct/open_iA/wiki/FeatureScout")),
 	m_dwDV(nullptr),
 	m_dwSPM(nullptr),
-	m_dwPP(nullptr),
-	m_ui(new Ui_FeatureScoutCE),
-	m_columnMapping(objData->m_colMapping),
 	m_splom(new iAFeatureScoutSPLOM()),
 	m_3dvis(objVis)
 {
-	m_ui->setupUi(this);
-	setObjectName(DlgObjectName);
-	this->setupPolarPlotResolution(3.0);
+	setupPolarPlotResolution(3.0);
 
 	m_chartTable->DeepCopy(m_csvTable);
-	m_tableList.push_back(m_chartTable);
+	m_tableList.push_back(m_chartTable); // at start, the unclassified class contains all objects; could be skipped if classes are loaded later...
 
 	initFeatureScoutUI();
 	m_lengthDistrWidget->hide();
 
-	// Initialize the models for QtViews
 	initColumnVisibility();
+	setupClassExplorer();
 	setupViews();
-	setupModel();
 	setupConnections();
 
 	if (objData->m_visType != iAObjectVisType::UseVolume && m_activeChild->dataSetMap().empty())
@@ -228,7 +273,7 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType objectType, 
 	}
 	if (objData->m_visType == iAObjectVisType::UseVolume)
 	{
-		SingleRendering();
+		singleRendering();
 	}
 	if (m_3dvis)
 	{
@@ -242,22 +287,15 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType objectType, 
 		int dimens[3] = { 50, 50, 50 };
 		m_blobManager->SetDimensions(dimens);
 	}
-	// set first column of the classTreeView to minimal (not stretched)
-	m_classTreeView->resizeColumnToContents(0);
-	m_classTreeView->header()->setStretchLastSection(false);
-	m_classTreeView->setExpandsOnDoubleClick(false);
-	m_elementTableView->resizeColumnsToContents();
 }
 
 dlg_FeatureScout::~dlg_FeatureScout()
 {
-	delete m_blobManager;
-	delete m_elementTableModel;
-	delete m_classTreeModel;
 	delete m_dwPC;
 	delete m_dwDV;
 	delete m_dwSPM;
 	delete m_dwPP;
+	delete m_dwCE;
 }
 
 std::vector<size_t> dlg_FeatureScout::getPCSelection()
@@ -273,7 +311,7 @@ std::vector<size_t> dlg_FeatureScout::getPCSelection()
 	return selectedIndices;
 }
 
-void dlg_FeatureScout::pcViewMouseButtonCallBack(vtkObject*, unsigned long, void*, void*, vtkCommand*)
+void dlg_FeatureScout::pcSelectionChanged(vtkObject*, unsigned long, void*, void*, vtkCommand*)
 {
 	auto classSelectionIndices = getPCSelection();
 	m_splom->setFilteredSelection(classSelectionIndices);
@@ -285,7 +323,7 @@ void dlg_FeatureScout::pcViewMouseButtonCallBack(vtkObject*, unsigned long, void
 		size_t labelID = m_tableList[classID]->GetValue(filteredSelIdx, 0).ToUnsignedLongLong();
 		selectionIndices.push_back(labelID - 1);
 	}
-	RenderSelection(selectionIndices);
+	renderSelection(selectionIndices);
 }
 
 void dlg_FeatureScout::setPCChartData(bool specialRendering)
@@ -293,6 +331,7 @@ void dlg_FeatureScout::setPCChartData(bool specialRendering)
 	m_pcWidget->setEnabled(!specialRendering); // to disable selection
 	if (specialRendering)
 	{   // for the special renderings, we use all data:
+		m_chartTable = vtkSmartPointer<vtkTable>::New();
 		m_chartTable->DeepCopy(m_csvTable);
 	}
 	if (m_pcView->GetScene()->GetNumberOfItems() > 0)
@@ -301,13 +340,10 @@ void dlg_FeatureScout::setPCChartData(bool specialRendering)
 	}
 	m_pcChart = vtkSmartPointer<vtkChartParallelCoordinates>::New();
 	m_pcChart->GetPlot(0)->SetInputData(m_chartTable);
-	m_pcChart->GetPlot(0)->GetPen()->SetOpacity(m_pcOpacity);
-	m_pcChart->GetPlot(0)->SetWidth(m_pcLineWidth);
+	applyPCSettings(m_pcSettings);
 	m_pcView->GetScene()->AddItem(m_pcChart);
-	m_pcConnections->Connect(m_pcChart,
-		vtkCommand::SelectionChangedEvent,
-		this,
-		SLOT(pcViewMouseButtonCallBack(vtkObject*, unsigned long, void*, void*, vtkCommand*)));
+	m_pcConnections->Connect(m_pcChart, vtkCommand::SelectionChangedEvent, this,
+		SLOT(pcSelectionChanged(vtkObject*, unsigned long, void*, void*, vtkCommand*)));
 	updatePCColumnVisibility();
 }
 
@@ -340,7 +376,7 @@ void dlg_FeatureScout::renderLUTChanges(std::shared_ptr<iALookupTable> lut, size
 
 void dlg_FeatureScout::updatePCColumnVisibility()
 {
-	for (int j = 0; j < m_elementCount; ++j)
+	for (int j = 0; j < m_colCnt; ++j)
 	{
 		m_pcChart->SetColumnVisibility(m_csvTable->GetColumnName(j), m_columnVisibility[j]);
 	}
@@ -352,8 +388,6 @@ void dlg_FeatureScout::updatePCColumnVisibility()
 
 void dlg_FeatureScout::initColumnVisibility()
 {
-	m_columnVisibility.resize(m_elementCount);
-	std::fill(m_columnVisibility.begin(), m_columnVisibility.end(), false);
 	if (m_objectType == iAObjectType::Fibers) // Fibers - (a11, a22, a33,) theta, phi, xm, ym, zm, straightlength, diameter(, volume)
 	{
 		m_columnVisibility[(*m_columnMapping)[iACsvConfig::Theta]] =
@@ -376,82 +410,67 @@ void dlg_FeatureScout::initColumnVisibility()
 	}
 }
 
-void dlg_FeatureScout::setupModel()
+void dlg_FeatureScout::setupClassExplorer()
 {
-	// setup header data
 	m_elementTableModel->setHeaderData(0, Qt::Horizontal, tr("Element"));
-	m_elementTableModel->setHeaderData(1, Qt::Horizontal, tr("Minimal"));
-	m_elementTableModel->setHeaderData(2, Qt::Horizontal, tr("Maximal"));
+	m_elementTableModel->setHeaderData(1, Qt::Horizontal, tr("Minimum"));
+	m_elementTableModel->setHeaderData(2, Qt::Horizontal, tr("Maximum"));
 	m_elementTableModel->setHeaderData(3, Qt::Horizontal, tr("Average"));
-
-	// initialize checkboxes for the first column
-	for (int i = 0; i < m_elementCount - 1; ++i)
+	for (int i = 0; i < m_colCnt - 1; ++i)
 	{
 		Qt::CheckState checkState = (m_columnVisibility[i]) ? Qt::Checked : Qt::Unchecked;
 		m_elementTableModel->setData(m_elementTableModel->index(i, 0, QModelIndex()), checkState, Qt::CheckStateRole);
 		m_elementTableModel->item(i, 0)->setCheckable(true);
 	}
+	calculateElementTable();
+	initElementTableModel();
+	m_elementTableView->setModel(m_elementTableModel);
+	m_elementTableView->resizeColumnsToContents();
 
-	// initialize element values
-	this->calculateElementTable();
-	this->initElementTableModel();
-
-	// set up class tree headeritems
-	m_activeClassItem = new QStandardItem();
 	m_classTreeModel->setHorizontalHeaderItem(0, new QStandardItem("Class"));
 	m_classTreeModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
 	m_classTreeModel->setHorizontalHeaderItem(2, new QStandardItem("Percent"));
-
-	// initialize children for default class
-	this->initClassTreeModel();
+	QStandardItem* rootItem = m_classTreeModel->invisibleRootItem();
+	QList<QStandardItem*> stammItem = prepareRow("Unclassified", QString("%1").arg(m_objCnt), "100");
+	stammItem.first()->setData(QColor(UnclassifiedColorName), Qt::DecorationRole);
+	m_colorList.push_back(QColor("darkGray"));
+	rootItem->appendRow(stammItem);
+	for (int i = 0; i < m_objCnt; ++i)
+	{
+		vtkVariant v = m_chartTable->GetColumn(0)->GetVariantValue(i);
+		QStandardItem* item = new QStandardItem(QString::fromUtf8(v.ToString().c_str()).trimmed());
+		stammItem.first()->appendRow(item);
+	}
+	m_activeClassItem = stammItem.first();
+	m_classTreeView->setContextMenuPolicy(Qt::CustomContextMenu);
+	m_classExplorer->ClassLayout->addWidget(m_classTreeView);
+	m_classExplorer->ElementLayout->addWidget(m_elementTableView);
+	m_classTreeView->setModel(m_classTreeModel);
+	// set first column of the classTreeView to minimal (not stretched)
+	m_classTreeView->resizeColumnToContents(0);
+	m_classTreeView->header()->setStretchLastSection(false);
+	m_classTreeView->setExpandsOnDoubleClick(false);
 }
 
 void dlg_FeatureScout::setupViews()
 {
-	// declare element table model
-	m_elementTableModel = new QStandardItemModel(static_cast<int>(m_elementCount - 1), 4, this);
-	m_elementTable = vtkSmartPointer<vtkTable>::New();
-
-	//init Distribution View
-	m_dvContextView = vtkSmartPointer<vtkContextView>::New();
-
-	// initialize the QtTableView
-	m_classTreeView = new QTreeView();
-	m_elementTableView = new QTableView();
-
-	// setup context menu
-	m_classTreeView->setContextMenuPolicy(Qt::CustomContextMenu);
-
-	// set Widgets for the table views
-	m_ui->ClassLayout->addWidget(m_classTreeView);
-	m_ui->ElementLayout->addWidget(m_elementTableView);
-	// set models
-	m_elementTableView->setModel(m_elementTableModel);
-	m_classTreeView->setModel(m_classTreeModel);
-
-	// preparing chart and view for Parallel Coordinates
-	m_pcView = vtkSmartPointer<vtkContextView>::New();
-	m_lengthDistrView = vtkSmartPointer<vtkContextView>::New();
-	m_pcView->SetRenderWindow(m_pcWidget->renderWindow());
-	m_pcView->SetInteractor(m_pcWidget->interactor());
 	m_lengthDistrView->SetRenderWindow(m_lengthDistrWidget->renderWindow());
 	m_lengthDistrView->SetInteractor(m_lengthDistrWidget->interactor());
 
-	m_pcConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
-	// Gets right button release event (on a parallel coordinates).
+	m_pcView->SetRenderWindow(m_pcWidget->renderWindow());
+	m_pcView->SetInteractor(m_pcWidget->interactor());
 	m_pcConnections->Connect(m_pcWidget->renderWindow()->GetInteractor(),
 		vtkCommand::RightButtonReleaseEvent,
 		this,
 		SLOT(pcRightButtonReleased(vtkObject*, unsigned long, void*, void*, vtkCommand*)),
 		nullptr, 1.0);
-
-	// Gets right button press event (on a scatter plot).
 	m_pcConnections->Connect(m_pcWidget->renderWindow()->GetInteractor(),
 		vtkCommand::RightButtonPressEvent,
 		this,
 		SLOT(pcRightButtonPressed(vtkObject*, unsigned long, void*, void*, vtkCommand*)));
-
+	m_pcSettings = extractValues(iAFeatureScoutPCSettings::defaultAttributes());
 	setPCChartData(false);
+
 	updatePolarPlotView(m_chartTable);
 }
 
@@ -465,10 +484,10 @@ void dlg_FeatureScout::calculateElementTable()
 	auto v1Arr = vtkSmartPointer<vtkFloatArray >::New();	// minimum
 	auto v2Arr = vtkSmartPointer<vtkFloatArray >::New();	// maximal
 	auto v3Arr = vtkSmartPointer<vtkFloatArray >::New();	// average
-	nameArr->SetNumberOfValues(m_elementCount);
-	v1Arr->SetNumberOfValues(m_elementCount);
-	v2Arr->SetNumberOfValues(m_elementCount);
-	v3Arr->SetNumberOfValues(m_elementCount);
+	nameArr->SetNumberOfValues(m_colCnt);
+	v1Arr->SetNumberOfValues(m_colCnt);
+	v2Arr->SetNumberOfValues(m_colCnt);
+	v3Arr->SetNumberOfValues(m_colCnt);
 
 	// convert IDs in String to Int
 	nameArr->SetValue(0, m_csvTable->GetColumnName(0));
@@ -476,7 +495,7 @@ void dlg_FeatureScout::calculateElementTable()
 	v2Arr->SetValue(0, m_chartTable->GetColumn(0)->GetVariantValue(m_chartTable->GetNumberOfRows() - 1).ToFloat());
 	v3Arr->SetValue(0, 0);
 
-	for (int i = 1; i < m_elementCount; ++i)
+	for (int i = 1; i < m_colCnt; ++i)
 	{
 		nameArr->SetValue(i, m_csvTable->GetColumnName(i));
 		vtkDataArray* mmr = vtkDataArray::SafeDownCast(m_chartTable->GetColumn(i));
@@ -503,7 +522,7 @@ void dlg_FeatureScout::initElementTableModel(int idx)
 		m_elementTableView->showColumn(2);
 		m_elementTableView->showColumn(3);
 
-		for (int i = 0; i < m_elementCount - 1; ++i) // number of rows
+		for (int i = 0; i < m_colCnt - 1; ++i) // number of rows
 		{
 			for (int j = 0; j < 4; ++j)
 			{
@@ -515,7 +534,7 @@ void dlg_FeatureScout::initElementTableModel(int idx)
 				}
 				else
 				{
-					if (i == 0 || i == m_elementCount - 1)
+					if (i == 0 || i == m_colCnt - 1)
 					{
 						str = QString::number(v.ToInt());
 					}
@@ -539,12 +558,12 @@ void dlg_FeatureScout::initElementTableModel(int idx)
 		m_elementTableView->hideColumn(2);
 		m_elementTableView->hideColumn(3);
 
-		for (int i = 0; i < m_elementCount - 1; ++i)
+		for (int i = 0; i < m_colCnt - 1; ++i)
 		{
 			vtkVariant v = m_chartTable->GetValue(idx, i);
 			QString str = QString::number(v.ToDouble(), 'f', 2);
 
-			if (i == 0 || i == m_elementCount - 1)
+			if (i == 0 || i == m_colCnt - 1)
 			{
 				str = QString::number(v.ToInt());
 			}
@@ -554,55 +573,38 @@ void dlg_FeatureScout::initElementTableModel(int idx)
 	}
 }
 
-void dlg_FeatureScout::initClassTreeModel()
-{
-	QStandardItem* rootItem = m_classTreeModel->invisibleRootItem();
-	QList<QStandardItem*> stammItem = prepareRow("Unclassified", QString("%1").arg(m_objectCount), "100");
-	stammItem.first()->setData(QColor(UnclassifiedColorName), Qt::DecorationRole);
-	m_colorList.push_back(QColor("darkGray"));
-
-	rootItem->appendRow(stammItem);
-	for (int i = 0; i < m_objectCount; ++i)
-	{
-		vtkVariant v = m_chartTable->GetColumn(0)->GetVariantValue(i);
-		QStandardItem* item = new QStandardItem(QString::fromUtf8(v.ToString().c_str()).trimmed());
-		stammItem.first()->appendRow(item);
-	}
-	m_activeClassItem = stammItem.first();
-}
-
 void dlg_FeatureScout::setupConnections()
 {
 	// create ClassTreeView context menu actions
 	m_blobRendering = new QAction(tr("Enable blob rendering"), m_classTreeView);
 	m_blobRemoveRendering = new QAction(tr("Disable blob rendering"), m_classTreeView);
 	m_saveBlobMovie = new QAction(tr("Save blob movie"), m_classTreeView);
-	m_objectAdd = new QAction(tr("Add object"), m_classTreeView);
 	m_objectDelete = new QAction(tr("Delete object"), m_classTreeView);
 
-	connect(m_blobRendering, &QAction::triggered, this, &dlg_FeatureScout::EnableBlobRendering);
-	connect(m_blobRemoveRendering, &QAction::triggered, this, &dlg_FeatureScout::DisableBlobRendering);
-	connect(m_saveBlobMovie, &QAction::triggered, this, &dlg_FeatureScout::SaveBlobMovie);
-	connect(m_objectAdd, &QAction::triggered, this, &dlg_FeatureScout::addObject);
+	connect(m_blobRendering, &QAction::triggered, this, &dlg_FeatureScout::enableBlobRendering);
+	connect(m_blobRemoveRendering, &QAction::triggered, this, &dlg_FeatureScout::disableBlobRendering);
+	connect(m_saveBlobMovie, &QAction::triggered, this, &dlg_FeatureScout::saveBlobMovie);
 	connect(m_objectDelete, &QAction::triggered, this, &dlg_FeatureScout::deleteObject);
 	connect(m_classTreeView, &QTreeView::customContextMenuRequested, this, &dlg_FeatureScout::showContextMenu);
-	connect(m_ui->add_class, &QToolButton::clicked, this, &dlg_FeatureScout::ClassAddButton);
-	connect(m_ui->save_class, &QToolButton::released, this, &dlg_FeatureScout::ClassSaveButton);
-	connect(m_ui->load_class, &QToolButton::released, this, &dlg_FeatureScout::ClassLoadButton);
-	connect(m_ui->delete_class, &QToolButton::clicked, this, &dlg_FeatureScout::ClassDeleteButton);
-	connect(m_ui->savexml, &QToolButton::released, this, &dlg_FeatureScout::WisetexSaveButton);
-	connect(m_ui->export_class, &QPushButton::clicked, this, &dlg_FeatureScout::ExportClassButton);
-	connect(m_ui->distributionCSV, &QToolButton::released, this, &dlg_FeatureScout::CsvDVSaveButton);
+	connect(m_classExplorer->add_class, &QToolButton::clicked, this, &dlg_FeatureScout::classAddButton);
+	connect(m_classExplorer->save_class, &QToolButton::released, this, &dlg_FeatureScout::classSaveButton);
+	connect(m_classExplorer->load_class, &QToolButton::released, this, &dlg_FeatureScout::classLoadButton);
+	connect(m_classExplorer->delete_class, &QToolButton::clicked, this, &dlg_FeatureScout::classDeleteButton);
+	connect(m_classExplorer->savexml, &QToolButton::released, this, &dlg_FeatureScout::wisetexSaveButton);
+	connect(m_classExplorer->export_class, &QPushButton::clicked, this, &dlg_FeatureScout::classExportButton);
+	connect(m_classExplorer->distributionCSV, &QToolButton::released, this, &dlg_FeatureScout::csvDVSaveButton);
 
 	connect(m_elementTableModel, &QStandardItemModel::itemChanged, this, &dlg_FeatureScout::updateVisibility);
-	connect(m_classTreeView, &QTreeView::clicked, this, &dlg_FeatureScout::classClicked);
-	connect(m_classTreeView, &QTreeView::activated, this, &dlg_FeatureScout::classClicked);
-	connect(m_classTreeView, &QTreeView::doubleClicked, this, &dlg_FeatureScout::classDoubleClicked);
+	connect(m_classTreeView, &QTreeView::clicked, this, &dlg_FeatureScout::itemClicked);
+	connect(m_classTreeView, &QTreeView::activated, this, &dlg_FeatureScout::itemClicked);
+	connect(m_classTreeView, &QTreeView::doubleClicked, this, &dlg_FeatureScout::itemDoubleClicked);
 
 	connect(m_splom.get(), &iAFeatureScoutSPLOM::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart);
-	connect(m_splom.get(), &iAFeatureScoutSPLOM::addClass, this, &dlg_FeatureScout::ClassAddButton);
+	connect(m_splom.get(), &iAFeatureScoutSPLOM::addClass, this, &dlg_FeatureScout::classAddButton);
 	connect(m_splom.get(), &iAFeatureScoutSPLOM::parameterVisibilityChanged, this, &dlg_FeatureScout::spParameterVisibilityChanged);
 	connect(m_splom.get(), &iAFeatureScoutSPLOM::renderLUTChanges, this, &dlg_FeatureScout::renderLUTChanges);
+
+	connect(m_ppWidget->orientationColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_FeatureScout::renderOrientation);
 }
 
 void dlg_FeatureScout::multiClassRendering()
@@ -621,16 +623,16 @@ void dlg_FeatureScout::multiClassRendering()
 	}
 	m_renderMode = rmMultiClass;
 
-	double alpha = this->calculateOpacity(rootItem);
+	double alpha = calculateOpacity(rootItem);
 	m_splom->multiClassRendering(m_colorList);
 	m_splom->enableSelection(false);
 
-	// update lookup table in PC View
-	this->updateLookupTable(alpha);
-	this->setPCChartData(true);
-	static_cast<vtkPlotParallelCoordinates*>(m_pcChart->GetPlot(0))->SetScalarVisibility(1);
-	static_cast<vtkPlotParallelCoordinates*>(m_pcChart->GetPlot(0))->SetLookupTable(m_multiClassLUT);
-	static_cast<vtkPlotParallelCoordinates*>(m_pcChart->GetPlot(0))->SelectColorArray(iACsvIO::ColNameClassID);
+	updateMultiClassLookupTable(alpha);
+	setPCChartData(true);
+	auto plot = dynamic_cast<vtkPlotParallelCoordinates*>(m_pcChart->GetPlot(0));
+	plot->SetScalarVisibility(1);
+	plot->SetLookupTable(m_pcMultiClassLUT);
+	plot->SelectColorArray(iACsvIO::ColNameClassID);
 	m_pcChart->SetSize(m_pcChart->GetSize());
 	m_pcChart->GetPlot(0)->SetOpacity(0.8);
 	m_pcView->Render();
@@ -638,14 +640,14 @@ void dlg_FeatureScout::multiClassRendering()
 	m_3dvis->multiClassRendering(m_colorList, rootItem, alpha);
 }
 
-void dlg_FeatureScout::SingleRendering(int objectID)
+void dlg_FeatureScout::singleRendering(int objectID)
 {
 	int cID = m_activeClassItem->index().row();
 	QColor classColor = m_colorList.at(cID);
 	m_3dvis->renderSingle(objectID, cID, classColor, m_activeClassItem);
 }
 
-void dlg_FeatureScout::RenderSelection(std::vector<size_t> const& selInds)
+void dlg_FeatureScout::renderSelection(std::vector<size_t> const& selInds)
 {
 	showOrientationDistribution();
 
@@ -669,13 +671,13 @@ void dlg_FeatureScout::renderMeanObject()
 {
 	if (m_visType != iAObjectVisType::UseVolume)
 	{
-		QMessageBox::warning(this, "FeatureScout", "Mean objects feature only available for the Labeled Volume visualization at the moment!");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "Mean objects feature only available for the Labeled Volume visualization at the moment!");
 		return;
 	}
 	int classCount = m_classTreeModel->invisibleRootItem()->rowCount();
 	if (classCount < 2)	// unclassified class only
 	{
-		QMessageBox::warning(this, "FeatureScout", "No defined class (except the 'unclassified' class) - please create at least one class first!");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "No defined class (except the 'unclassified' class) - please create at least one class first!");
 		return;
 	}
 	m_renderMode = rmMeanObject;
@@ -722,7 +724,7 @@ void dlg_FeatureScout::renderOrientation()
 				std::cos(theta_rad) };
 			double* p = static_cast<double*>(oi->GetScalarPointer(theta, phi, 0));
 			vtkMath::Normalize(recCoord);
-			getColorMap(m_dwPP->orientationColorMap->currentIndex())(recCoord, p);
+			getColorMap(m_ppWidget->orientationColorMap->currentIndex())(recCoord, p);
 		}
 	}
 
@@ -776,11 +778,11 @@ void dlg_FeatureScout::renderOrientation()
 	renderer->ResetCamera();
 
 	// Projection grid and annotations
-	this->drawPolarPlotMesh(renderer);
-	this->drawAnnotations(renderer);
+	drawPolarPlotMesh(renderer);
+	drawAnnotations(renderer);
 
 	m_activeChild->updateViews();
-	m_dwPP->colorMapSelection->show();
+	m_ppWidget->colorMapSelection->show();
 	renW->Render();
 }
 
@@ -885,7 +887,7 @@ void dlg_FeatureScout::renderLengthDistribution()
 
 	m_3dvis->renderLengthDistribution(cTFun, extents, halfInc, m_objectType, range);
 
-	m_dwPP->colorMapSelection->hide();
+	m_ppWidget->colorMapSelection->hide();
 	showLengthDistribution(true, cTFun);
 	m_renderer->update();
 
@@ -901,29 +903,29 @@ void dlg_FeatureScout::renderLengthDistribution()
 	m_lengthDistrView->GetScene()->AddItem(chart);
 	m_lengthDistrWidget->renderWindow()->Render();
 	m_lengthDistrWidget->update();
-	m_dwPP->legendLayout->removeWidget(m_polarPlotWidget);
-	m_dwPP->legendLayout->addWidget(m_lengthDistrWidget);
+	m_ppWidget->legendLayout->removeWidget(m_polarPlotWidget);
+	m_ppWidget->legendLayout->addWidget(m_lengthDistrWidget);
 	m_polarPlotWidget->hide();
 	m_lengthDistrWidget->show();
 }
 
-void dlg_FeatureScout::ClassAddButton()
+void dlg_FeatureScout::classAddButton()
 {
 	vtkIdTypeArray* pcSelection = m_pcChart->GetPlot(0)->GetSelection();
 	auto CountObject = pcSelection->GetNumberOfTuples();
 	if (CountObject <= 0)
 	{
-		QMessageBox::warning(this, "FeatureScout", "No object was selected!");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "No object was selected!");
 		return;
 	}
 	if (CountObject == m_activeClassItem->rowCount() && m_activeClassItem->index().row() != 0)
 	{
-		QMessageBox::warning(this, "FeatureScout", "All items in current class are selected. There is no need to create a new class out of them. Please select only a subset of items!");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "All items in current class are selected. There is no need to create a new class out of them. Please select only a subset of items!");
 		return;
 	}
 	if (m_renderMode != rmSingleClass)
 	{
-		QMessageBox::warning(this, "FeatureScout", "Cannot add a class while in a special rendering mode "
+		QMessageBox::warning(m_activeChild, "FeatureScout", "Cannot add a class while in a special rendering mode "
 			"(Multi-Class, Fiber Length/Orientation Distribution). "
 			"Please click on a class first!");
 		return;
@@ -942,16 +944,16 @@ void dlg_FeatureScout::ClassAddButton()
 	m_colorList.push_back(cColor);
 	// get the root item from class tree
 	QStandardItem* rootItem = m_classTreeModel->invisibleRootItem();
-	QStandardItem* item;
 
 	// create a first level child under rootItem as new class
-	double percent = 100.0 * CountObject / m_objectCount;
-	QList<QStandardItem*> firstLevelItem = prepareRow(cText, QString("%1").arg(CountObject), QString::number(percent, 'f', 1));
-	firstLevelItem.first()->setData(cColor, Qt::DecorationRole);
+	double percent = 100.0 * CountObject / m_objCnt;
+	auto newClassRow = prepareRow(cText, QString("%1").arg(CountObject), QString::number(percent, 'f', 1));
+	auto newClassItem = newClassRow.first();
+	newClassItem->setData(cColor, Qt::DecorationRole);
 
 	int classID = rootItem->rowCount();
 	int objID = 0;
-	QList<int> kIdx; // list to regist the selected index of object IDs in m_activeClassItem
+	QList<int> kIdx; // list to register the selected index of object IDs in m_activeClassItem
 
 	// add new class
 	for (int i = 0; i < CountObject; ++i)
@@ -959,62 +961,66 @@ void dlg_FeatureScout::ClassAddButton()
 		// get objID from item->text()
 		vtkVariant v = pcSelection->GetVariantValue(i);
 		objID = v.ToInt() + 1;	//fibre index starting at 1 not at 0
-		objID = m_activeClassItem->child(v.ToInt())->text().toInt();
+		auto child = m_activeClassItem->child(v.ToInt());
+		if (!child)
+		{
+			LOG(lvlWarn, QString("Invalid state: Active class does not contain item (objID=%1) from selection!").arg(objID));
+			continue;
+		}
+		objID = child->text().toInt();
 
 		if (kIdx.contains(v.ToInt()))
 		{
-			LOG(lvlWarn, QString("Tried to add objID=%1, v=%2 to class which is already contained in other class!").arg(objID).arg(v.ToInt()));
+			LOG(lvlWarn, QString("Tried to add objID=%1 to class which is already contained in other class!").arg(objID));
+			continue;
 		}
-		else
-		{
-			kIdx.prepend(v.ToInt());
+		kIdx.prepend(v.ToInt());
 
-			// add item to the new class
-			QString str = QString("%1").arg(objID);
-			item = new QStandardItem(str);
-			firstLevelItem.first()->appendRow(item);
+		// add item to the new class
+		QString str = QString("%1").arg(objID);
+		newClassItem->appendRow(new QStandardItem(str));
 
-			m_csvTable->SetValue(objID - 1, m_elementCount - 1, classID); // update Class_ID column in csvTable
-		}
+		m_csvTable->SetValue(objID - 1, m_colCnt - 1, classID); // update Class_ID column in csvTable
 	}
 
 	// a simple check of the selections
 	if (kIdx.isEmpty())
 	{
-		QMessageBox::information(this, "FeatureScout", "Selected objects are already classified, please make a new selection.");
+		QMessageBox::information(m_activeChild, "FeatureScout", "Selected objects are already classified, please make a new selection.");
 		return;
 	}
 
 	if (kIdx.count() != CountObject)
 	{
-		QMessageBox::warning(this, "FeatureScout", "Selection Error, please make a new selection.");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "Selection Error, please make a new selection.");
 		return;
 	}
 	m_splom->classAdded(classID);
 
-	// append the new class to class tree
-	rootItem->appendRow(firstLevelItem);
+	rootItem->appendRow(newClassRow);
 
-	// remove items from m_activeClassItem from table button to top, otherwise you would make a wrong delete
+	// kIdx has indices in reverse order (from highest to lowest - see prepend above), otherwise wrong rows would be removed
 	for (int i = 0; i < CountObject; ++i)
 	{
 		m_activeClassItem->removeRow(kIdx.value(i));
 	}
 
 	updateClassStatistics(m_activeClassItem);
-	setActiveClassItem(firstLevelItem.first(), 1);
+	recalculateChartTable(m_activeClassItem);
+	recalculateChartTable(newClassItem);
+	setActiveClassItem(newClassItem);
 	calculateElementTable();
 	initElementTableModel();
 	setPCChartData();
 	m_classTreeView->collapseAll();
-	m_classTreeView->setCurrentIndex(firstLevelItem.first()->index());
+	m_classTreeView->setCurrentIndex(newClassItem->index());
 	updatePolarPlotView(m_chartTable);
-	SingleRendering();
+	singleRendering();
 }
 
 void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 {
-	if (QMessageBox::warning(this, "FeatureScout",
+	if (QMessageBox::warning(m_activeChild, "FeatureScout",
 		"This functionality is only available for FCP fiber/ feature characteristics pore csv formats at the moment. Are you sure you want to proceed?",
 		QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes)
 	{
@@ -1134,12 +1140,11 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 	}
 }
 
-void dlg_FeatureScout::CsvDVSaveButton()
+void dlg_FeatureScout::csvDVSaveButton()
 {
 	// Get selected rows out of elementTable
 	QModelIndexList indexes = m_elementTableView->selectionModel()->selection().indexes();
 	QList<ushort> characteristicsList;
-
 
 	iAAttributes params;
 	addAttr(params, "Save file", iAValueType::Boolean, false);
@@ -1166,11 +1171,11 @@ void dlg_FeatureScout::CsvDVSaveButton()
 
 	if (characteristicsList.count() == 0)
 	{
-		QMessageBox::information(this, "FeatureScout", "No characteristic specified in the element explorer.");
+		QMessageBox::information(m_activeChild, "FeatureScout", "No characteristic specified in the element explorer.");
 		return;
 	}
 
-	iAParameterDlg dlg(this, "Save Distribution CSV", params);
+	iAParameterDlg dlg(m_activeChild, "Save Distribution CSV", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
@@ -1180,14 +1185,14 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	bool showHistogram = values["Show histograms"].toBool();
 	if (!saveFile && !showHistogram)
 	{
-		QMessageBox::warning(this, "FeatureScout", "Please check either 'Save file' or 'Show histogram' (or both).");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "Please check either 'Save file' or 'Show histogram' (or both).");
 		return;
 	}
 
 	QString filename;
 	if (saveFile)
 	{
-		filename = QFileDialog::getSaveFileName(this, tr("Save characteristic distributions"), m_sourcePath, tr("CSV Files (*.csv *.CSV)"));
+		filename = QFileDialog::getSaveFileName(m_activeChild, tr("Save characteristic distributions"), m_sourcePath, tr("CSV Files (*.csv *.CSV)"));
 		if (filename.isEmpty())
 		{
 			return;
@@ -1344,7 +1349,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		if (!m_dwDV)
 		{
 			iAQVTKWidget* dvqvtkWidget(new iAQVTKWidget());
-			m_dwDV = new iADockWidgetWrapper(dvqvtkWidget, "Distribution View", "FeatureScoutDV");
+			m_dwDV = new iADockWidgetWrapper(dvqvtkWidget, "Distribution View", "FeatureScoutDV", "https://github.com/3dct/open_iA/wiki/FeatureScout");
 			m_dvContextView->SetRenderWindow(dvqvtkWidget->renderWindow());
 			m_dvContextView->SetInteractor(dvqvtkWidget->interactor());
 			m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwDV);
@@ -1358,16 +1363,16 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	}
 }
 
-void dlg_FeatureScout::WisetexSaveButton()
+void dlg_FeatureScout::wisetexSaveButton()
 {
 	if (!m_classTreeModel->invisibleRootItem()->hasChildren())
 	{
-		QMessageBox::warning(this, "FeatureScout", "No data available!");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "No data available!");
 		return;
 	}
 
 	//XML file save path
-	QString filename = QFileDialog::getSaveFileName(this, tr("Save File"), m_sourcePath, tr("XML Files (*.xml *.XML)"));
+	QString filename = QFileDialog::getSaveFileName(m_activeChild, tr("Save File"), m_sourcePath, tr("XML Files (*.xml *.XML)"));
 	if (filename.isEmpty())
 	{
 		return;
@@ -1376,7 +1381,7 @@ void dlg_FeatureScout::WisetexSaveButton()
 	QFile file(filename);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
-		QMessageBox::warning(this, "FeatureScout", "Could not open XML file for writing.");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "Could not open XML file for writing.");
 		return;
 	}
 
@@ -1390,17 +1395,17 @@ void dlg_FeatureScout::WisetexSaveButton()
 	stream.writeEndDocument();
 }
 
-void dlg_FeatureScout::ExportClassButton()
+void dlg_FeatureScout::classExportButton()
 {
 	// if no volume loaded, then exit
 	if (m_visType != iAObjectVisType::UseVolume)
 	{
 		if (m_activeChild->firstImageData() == nullptr)
 		{
-			QMessageBox::information(this, "FeatureScout", "Feature only available if labeled volume is loaded!");
+			QMessageBox::information(m_activeChild, "FeatureScout", "Feature only available if labeled volume is loaded!");
 			return;
 		}
-		else if (QMessageBox::question(this, "FeatureScout", "A labeled volume is required."
+		else if (QMessageBox::question(m_activeChild, "FeatureScout", "A labeled volume is required."
 			"You are not using labeled volume visualization - are you sure a labeled volume is loaded?",
 			QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes)
 			return;
@@ -1408,7 +1413,7 @@ void dlg_FeatureScout::ExportClassButton()
 	int classCount = m_classTreeModel->invisibleRootItem()->rowCount();
 	if (classCount < 2)	// unclassified class only
 	{
-		QMessageBox::warning(this, "FeatureScout", "No defined class (except the 'unclassified' class) - please create at least one class first!");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "No defined class (except the 'unclassified' class) - please create at least one class first!");
 		return;
 	}
 	auto img = m_activeChild->firstImageData();
@@ -1418,11 +1423,11 @@ void dlg_FeatureScout::ExportClassButton()
 	}
 	auto con = std::make_shared<iAConnector>();
 	con->setImage(img);
-	ITK_TYPED_CALL(CreateLabelledOutputMask, con->itkScalarType(), con);
+	ITK_TYPED_CALL(createLabelledOutputMask, con->itkScalarType(), con);
 }
 
 template <class T>
-void dlg_FeatureScout::CreateLabelledOutputMask(std::shared_ptr<iAConnector> con)
+void dlg_FeatureScout::createLabelledOutputMask(std::shared_ptr<iAConnector> con)
 {
 	typedef int ClassIDType;
 	typedef itk::Image<T, DIM>   InputImageType;
@@ -1448,7 +1453,7 @@ void dlg_FeatureScout::CreateLabelledOutputMask(std::shared_ptr<iAConnector> con
 	const QString modeFiberID = "Fiber ID";
 	const QString modeClassID = "Class ID";
 	addAttr(params, ParamValues, iAValueType::Categorical, QStringList() << modeFiberID << modeClassID);
-	iAParameterDlg dlg(this, "Save classification options", params, descr);
+	iAParameterDlg dlg(m_activeChild, "Save classification options", params, descr);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
@@ -1531,15 +1536,15 @@ namespace
 	}
 }
 
-void dlg_FeatureScout::ClassSaveButton()
+void dlg_FeatureScout::classSaveButton()
 {
 	if (m_classTreeModel->invisibleRootItem()->rowCount() == 1)
 	{
-		QMessageBox::warning(this, "FeatureScout", "No classes were defined.");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "No classes were defined.");
 		return;
 	}
 
-	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), m_sourcePath, tr("XML Files (*.xml *.XML)"));
+	QString fileName = QFileDialog::getSaveFileName(m_activeChild, tr("Save File"), m_sourcePath, tr("XML Files (*.xml *.XML)"));
 	if (fileName.isEmpty())
 	{
 		return;
@@ -1548,36 +1553,43 @@ void dlg_FeatureScout::ClassSaveButton()
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
 		LOG(lvlError, QString("Could not open classes XML file (%1) for writing.").arg(fileName));
-		QMessageBox::warning(
-			this, "FeatureScout", QString("Could not open classes XML file (%1) for writing.").arg(fileName));
+		QMessageBox::warning(m_activeChild, "FeatureScout", QString("Could not open classes XML file (%1) for writing.").arg(fileName));
 		return;
 	}
-
+	iAAttributes params;
+	const QString SaveOnlyID("Save only ID");
+	addAttr(params, SaveOnlyID, iAValueType::Boolean, true);
+	iAParameterDlg dlg(m_activeChild, "Save classes XML", params, "Whether to store only IDs (<em>Save only ID</em> checked, new default) "
+		"or whether all attribute values should be stored (old default, in versions in which this dialog is not available).");
+	if (!dlg.exec())
+	{
+		return;
+	}
 	QXmlStreamWriter stream(&file);
-	saveClassesXML(stream);
+	stream.setAutoFormatting(true);
+	saveClassesXML(stream, dlg.parameterValues()[SaveOnlyID].toBool());
 }
 
-void dlg_FeatureScout::saveClassesXML(QXmlStreamWriter& stream)
+void dlg_FeatureScout::saveClassesXML(QXmlStreamWriter& stream, bool idOnly)
 {
-	stream.setAutoFormatting(true);
 	stream.writeStartDocument();
 	stream.writeStartElement(IFVTag);
 	stream.writeAttribute(VersionAttribute, "1.0");
-	stream.writeAttribute(CountAllAttribute, QString("%1").arg(m_objectCount));
+	stream.writeAttribute(CountAllAttribute, QString("%1").arg(m_objCnt));
 	stream.writeAttribute(IDColumnAttribute, filterToXMLAttributeName(m_csvTable->GetColumnName(0)));  // store name of ID  -> TODO: ID mapping!
 
 	for (int i = 0; i < m_classTreeModel->invisibleRootItem()->rowCount(); ++i)
 	{
-		writeClassesAndChildren(&stream, m_classTreeModel->invisibleRootItem()->child(i));
+		writeClassesAndChildren(&stream, m_classTreeModel->invisibleRootItem()->child(i), idOnly);
 	}
 
 	stream.writeEndElement(); // ClassTree
 	stream.writeEndDocument();
 }
 
-void dlg_FeatureScout::ClassLoadButton()
+void dlg_FeatureScout::classLoadButton()
 {
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Load xml file"), m_sourcePath, tr("XML Files (*.xml *.XML)"));
+	QString fileName = QFileDialog::getOpenFileName(m_activeChild, tr("Load xml file"), m_sourcePath, tr("XML Files (*.xml *.XML)"));
 	if (fileName.isEmpty())
 	{
 		return;
@@ -1585,7 +1597,7 @@ void dlg_FeatureScout::ClassLoadButton()
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly))
 	{
-		QMessageBox::warning(this, "FeatureScout", "Class load error: Could not open source xml file.");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "Class load error: Could not open source xml file.");
 		return;
 	}
 	QXmlStreamReader reader(&file);
@@ -1598,40 +1610,30 @@ void dlg_FeatureScout::loadClassesXML(QXmlStreamReader& reader)
 	reader.readNext();  // skip xml tag?
 	reader.readNext();  // read IFV_Class_Tree element
 	QString IDColumnName = (m_objectType == iAObjectType::Fibers) ? LabelAttribute : LabelAttributePore;
-	if (reader.name() == IFVTag)
+	if (reader.name() != IFVTag) // incompatible xml file
 	{
-		// if the object number is not correct, stop the load process
-		auto xmlObjectCount = reader.attributes().value(CountAllAttribute).toString().toInt();
-		if (xmlObjectCount != m_objectCount)
-		{
-			QString msg = QString("Class load error: Object count in xml file (%1) does not match object count of current dataset (%2)"
-				", please check; the xml file was probably created from a different dataset.").arg(xmlObjectCount).arg(m_objectCount);
-			LOG(lvlWarn, msg);
-			QMessageBox::warning(this, "FeatureScout", msg);
-			return;
-		}
-		if (reader.attributes().hasAttribute(IDColumnAttribute))
-		{
-			IDColumnName = reader.attributes().value(IDColumnAttribute).toString();
-		}
-	}
-	else // incompatible xml file
-	{
-		LOG(lvlWarn, "Class load error: xml file incompatible with FeatureScout, please check.");
-		QMessageBox::warning(this, "FeatureScout", "Class load error: xml file incompatible with FeatureScout, please check.");
+		auto msg = QString("Class load error: xml file incompatible with FeatureScout (root element called %1 instead of %2), please check.").arg(reader.name()).arg(IFVTag);
+		LOG(lvlWarn, msg);
+		QMessageBox::warning(m_activeChild, "FeatureScout", msg);
 		return;
 	}
+	auto xmlObjectCount = reader.attributes().value(CountAllAttribute).toString().toInt();
+	if (xmlObjectCount != m_objCnt)
+	{
+		QString msg = QString("Class load error: Object count in xml file (%1) does not match object count of current dataset (%2)"
+			", please check; the xml file was probably created from a different dataset.").arg(xmlObjectCount).arg(m_objCnt);
+		LOG(lvlWarn, msg);
+		QMessageBox::warning(m_activeChild, "FeatureScout", msg);
+		return;
+	}
+	if (reader.attributes().hasAttribute(IDColumnAttribute))
+	{
+		IDColumnName = reader.attributes().value(IDColumnAttribute).toString();
+	}
 
-	m_chartTable->DeepCopy(m_csvTable); // reset charttable
 	m_tableList.clear();
-	m_tableList.push_back(m_chartTable);
 	m_colorList.clear();
-	m_classTreeModel->clear();
-
-	// init header names for class tree model
-	m_classTreeModel->setHorizontalHeaderItem(0, new QStandardItem("Class"));
-	m_classTreeModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
-	m_classTreeModel->setHorizontalHeaderItem(2, new QStandardItem("Percent"));
+	m_classTreeModel->removeRows(0, m_classTreeModel->rowCount());
 
 	int idxClass = 0;
 
@@ -1650,26 +1652,23 @@ void dlg_FeatureScout::loadClassesXML(QXmlStreamReader& reader)
 				{
 					LOG(lvlError, QString("Invalid XML: ID attribute %1 is not set!").arg(IDColumnName));
 				}
-				QStandardItem* item = new QStandardItem(label);
-
-				// add objects to firstLevelClassItem
-				activeItem->appendRow(item);
+				activeItem->appendRow(new QStandardItem(label));
 
 				// update Class_ID number in csvTable;
-				m_csvTable->SetValue(label.toInt() - 1, m_elementCount - 1, idxClass - 1);
+				m_csvTable->SetValue(label.toInt() - 1, m_colCnt - 1, idxClass - 1);
 				m_splom->changeClass(label.toInt() - 1, idxClass - 1);
 			}
 			else if (reader.name() == ClassTag)
 			{
 				// prepare the first level class items
-				const QString name = reader.attributes().value(NameAttribute).toString();
-				const QString color = reader.attributes().value(ColorAttribute).toString();
-				const QString count = reader.attributes().value(CountAttribute).toString();
-				const QString percent = reader.attributes().value(PercentAttribute).toString();
+				const auto name = reader.attributes().value(NameAttribute).toString();
+				const auto color = QColor(reader.attributes().value(ColorAttribute).toString());
+				const auto count = reader.attributes().value(CountAttribute).toString();
+				const auto percent = reader.attributes().value(PercentAttribute).toString();
 
 				QList<QStandardItem*> stammItem = prepareRow(name, count, percent);
-				stammItem.first()->setData(QColor(color), Qt::DecorationRole);
-				m_colorList.append(QColor(color));
+				stammItem.first()->setData(color, Qt::DecorationRole);
+				m_colorList.append(color);
 				rootItem->appendRow(stammItem);
 				activeItem = rootItem->child(idxClass);
 				++idxClass;
@@ -1684,22 +1683,20 @@ void dlg_FeatureScout::loadClassesXML(QXmlStreamReader& reader)
 
 	assert(rootItem->rowCount() == idxClass);
 
-	//upadate TableList
 	for (int i = 0; i < idxClass; ++i)
 	{
-		this->recalculateChartTable(rootItem->child(i));
+		recalculateChartTable(rootItem->child(i));
 	}
-	this->setActiveClassItem(rootItem->child(0), 0);
 	multiClassRendering();
 }
 
-void dlg_FeatureScout::ClassDeleteButton()
+void dlg_FeatureScout::classDeleteButton()
 {
 	QStandardItem* rootItem = m_classTreeModel->invisibleRootItem();
 	QStandardItem* stammItem = rootItem->child(0);
 	if (m_activeClassItem->index().row() == 0)
 	{
-		QMessageBox::warning(this, "FeatureScout", "You are trying to delete the unclassified class, please select another class.");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "You are trying to delete the unclassified class, please select another class.");
 		return;
 	}
 
@@ -1718,7 +1715,7 @@ void dlg_FeatureScout::ClassDeleteButton()
 	{
 		int labelID = m_activeClassItem->child(j)->text().toInt();
 		// update Class_ID column, prepare values for LookupTable
-		m_csvTable->SetValue(labelID - 1, m_elementCount - 1, 0);
+		m_csvTable->SetValue(labelID - 1, m_colCnt - 1, 0);
 		// append the deleted object IDs to list
 		list.append(labelID);
 	}
@@ -1753,29 +1750,26 @@ void dlg_FeatureScout::ClassDeleteButton()
 			for (int j = 0; j < item->rowCount(); ++j)
 			{
 				int labelID = item->child(j, 0)->text().toInt();
-				m_csvTable->SetValue(labelID - 1, m_elementCount - 1, classID);
+				m_csvTable->SetValue(labelID - 1, m_colCnt - 1, classID);
 			}
 			for (int k = 0; k < m_tableList[classID]->GetNumberOfRows(); ++k)
 			{
-				m_tableList[classID]->SetValue(k, m_elementCount - 1, classID);
+				m_tableList[classID]->SetValue(k, m_colCnt - 1, classID);
 			}
 			m_tableList[classID]->GetColumn(classID)->Modified();
 		}
 	}
 
-	// update statistics for m_activeClassItem
-	this->updateClassStatistics(stammItem);
-
-	// update m_tableList and setup m_activeClassItem
-	this->setActiveClassItem(stammItem, 2);
+	updateClassStatistics(stammItem);
+	recalculateChartTable(stammItem);
+	setActiveClassItem(stammItem);
 	QSignalBlocker ctvBlocker(m_classTreeView);
 	m_classTreeView->setCurrentIndex(m_classTreeView->model()->index(0, 0));
 
-	// update element view
-	this->setPCChartData();
-	this->calculateElementTable();
-	this->initElementTableModel();
-	this->SingleRendering();
+	setPCChartData();
+	calculateElementTable();
+	initElementTableModel();
+	singleRendering();
 	if (m_renderMode != rmSingleClass)
 	{
 		m_renderMode = rmSingleClass;
@@ -1789,12 +1783,13 @@ void dlg_FeatureScout::showScatterPlot()
 {
 	if (m_dwSPM)
 	{
-		QMessageBox::information(this, "FeatureScout", "Scatterplot Matrix already created.");
+		QMessageBox::information(m_activeChild, "FeatureScout", "Scatterplot Matrix already created.");
 		return;
 	}
 	QSignalBlocker spmBlock(m_splom.get()); // no need to trigger updates while we're creating SPM
 	m_splom->initScatterPlot(m_csvTable, m_columnVisibility);
-	m_dwSPM = new iADockWidgetWrapper(m_splom->matrixWidget(), "Scatter Plot Matrix", "FeatureScoutSPM");
+	m_dwSPM = new iADockWidgetWrapper(m_splom->matrixWidget(), "Scatter Plot Matrix", "FeatureScoutSPM",
+		"https://github.com/3dct/open_iA/wiki/FeatureScout");
 	m_activeChild->splitDockWidget(m_activeChild->renderDockWidget(), m_dwSPM, Qt::Vertical);
 	m_dwSPM->show();
 	m_dwSPM->raise();
@@ -1825,31 +1820,21 @@ void dlg_FeatureScout::showScatterPlot()
 
 void dlg_FeatureScout::showPCSettings()
 {
-	iAAttributes params;
-	addAttr(params, "Line Width", iAValueType::Continuous, QString::number(m_pcLineWidth, 'f', 2), 0.001, 100000);
-	addAttr(params, "Opacity", iAValueType::Discrete, m_pcOpacity, 0, 255);
-	addAttr(params, "Tick Count", iAValueType::Discrete, m_pcTickCount, 0, 255);
-	addAttr(params, "Font Size", iAValueType::Discrete, m_pcFontSize, 0, 255);
-
-	iAParameterDlg pcSettingsDlg(this, "Parallel Coordinates Settings", params);
-	if (pcSettingsDlg.exec() != QDialog::Accepted)
+	if (editSettingsDialog<dlg_FeatureScout>(iAFeatureScoutPCSettings::defaultAttributes(), m_pcSettings,
+		FeatureScoutPCSettingsName, *this, &dlg_FeatureScout::applyPCSettings))
 	{
-		return;
+		updateAxisProperties();
+		m_pcView->Update();
+		m_pcView->ResetCamera();
+		m_pcView->Render();
 	}
-	auto values = pcSettingsDlg.parameterValues();
-	m_pcLineWidth = values["Line Width"].toFloat();
-	m_pcOpacity   = values["Opacity"].toInt();
-	m_pcTickCount = values["Tick Count"].toInt();
-	m_pcFontSize  = values["Font Size"].toInt();
+}
 
-	m_pcChart->GetPlot(0)->GetPen()->SetOpacity(m_pcOpacity);
-	m_pcChart->GetPlot(0)->SetWidth(m_pcLineWidth);
-
-	updateAxisProperties();
-
-	m_pcView->Update();
-	m_pcView->ResetCamera();
-	m_pcView->Render();
+void dlg_FeatureScout::applyPCSettings(QVariantMap const& values)
+{
+	m_pcSettings = values;
+	m_pcChart->GetPlot(0)->GetPen()->SetOpacity(values[PCOpacity].toDouble());
+	m_pcChart->GetPlot(0)->SetWidth(values[PCLineWidth].toDouble());
 }
 
 void dlg_FeatureScout::saveMesh()
@@ -1857,7 +1842,7 @@ void dlg_FeatureScout::saveMesh()
 	// TODO: instad, make objectvis available in datasets!
 	if (m_visType == iAObjectVisType::UseVolume)
 	{
-		QMessageBox::warning(this, "FeatureScout", "Cannot export mesh for labelled volume visualization!");
+		QMessageBox::warning(m_activeChild, "FeatureScout", "Cannot export mesh for labelled volume visualization!");
 		return;
 	}
 	auto polyVis = dynamic_cast<iAColoredPolyObjectVis*>(m_3dvis);
@@ -1866,7 +1851,7 @@ void dlg_FeatureScout::saveMesh()
 		return;
 	}
 	QString defaultFilter = iAFileTypeRegistry::defaultExtFilterString(iADataSetType::Mesh);
-	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
+	QString fileName = QFileDialog::getSaveFileName(m_activeChild, tr("Save File"),
 		m_sourcePath,
 		iAFileTypeRegistry::registeredFileTypes(iAFileIO::Save, iADataSetType::Mesh),
 		&defaultFilter);
@@ -1879,14 +1864,14 @@ void dlg_FeatureScout::saveMesh()
 	if (!io || !io->isDataSetSupported(dataSet, fileName, iAFileIO::Save))
 	{
 		auto msg = QString("The chosen file format (%1) does not support this kind of dataset!").arg(io->name());
-		QMessageBox::warning(this, "Save: Error", msg);
+		QMessageBox::warning(m_activeChild, "Save: Error", msg);
 		LOG(lvlError, msg);
 	}
 	QVariantMap paramValues;
 	auto attr = io->parameter(iAFileIO::Save);
 	if (!attr.isEmpty())
 	{
-		iAParameterDlg dlg(this, "Save mesh parameters", attr);
+		iAParameterDlg dlg(m_activeChild, "Save mesh parameters", attr);
 		if (dlg.exec() != QDialog::Accepted)
 		{
 			return;
@@ -1905,7 +1890,7 @@ void dlg_FeatureScout::saveMesh()
 
 void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const& selInds)
 {  // If scatter plot selection changes, Parallel Coordinates gets informed
-	RenderSelection(selInds);
+	renderSelection(selInds);
 	QCoreApplication::processEvents();
 	auto sortedSelInds = m_splom->getFilteredSelection();
 	setPCSelection(sortedSelInds);
@@ -1933,23 +1918,24 @@ void dlg_FeatureScout::pcRightButtonPressed(vtkObject* obj, unsigned long, void*
 {
 	// Gets the right mouse button press event for scatter plot matrix.
 	vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast(obj);
-	m_mousePressPos[0] = iren->GetEventPosition()[0];
-	m_mousePressPos[1] = iren->GetEventPosition()[1];
+	m_pcMousePressPos[0] = iren->GetEventPosition()[0];
+	m_pcMousePressPos[1] = iren->GetEventPosition()[1];
 }
 
 void dlg_FeatureScout::pcRightButtonReleased(vtkObject* obj, unsigned long, void* client_data, void*, vtkCommand* command)
 {
 	Q_UNUSED(client_data);
+	Q_UNUSED(command);
 	// Gets the mouse button event for scatter plot matrix and opens a popup menu.
 	vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast(obj);
 	int* mouseReleasePos = iren->GetLastEventPosition();
-	if (mouseReleasePos[0] == m_mousePressPos[0] && mouseReleasePos[1] == m_mousePressPos[1])
+	if (mouseReleasePos[0] == m_pcMousePressPos[0] && mouseReleasePos[1] == m_pcMousePressPos[1])
 	{
-		command->AbortFlagOn();    // Consume event so the interactor style doesn't get it
+		//command->AbortFlagOn();  // Consume event so the interactor style doesn't get it -> not a good idea; right button somehow starts axis drag; if we consume, then axis drag mode doesn't stop!
 		QMenu popupMenu;
 		auto addClass = popupMenu.addAction("Add class");
 		addClass->setIcon(iAThemeHelper::icon("plus"));
-		connect(addClass, &QAction::triggered, this, &dlg_FeatureScout::ClassAddButton);
+		connect(addClass, &QAction::triggered, this, &dlg_FeatureScout::classAddButton);
 		auto pcSettings = popupMenu.addAction("Settings");
 		pcSettings->setIcon(iAThemeHelper::icon("settings_PC"));
 		connect(pcSettings, &QAction::triggered, this, &dlg_FeatureScout::showPCSettings);
@@ -1958,16 +1944,8 @@ void dlg_FeatureScout::pcRightButtonReleased(vtkObject* obj, unsigned long, void
 		// VTK delivers "device pixel" coordinates, while Qt expects "device independent pixel" coordinates
 		// (see https://doc.qt.io/qt-5/highdpi.html#glossary-of-high-dpi-terms); convert:
 		pt = pt / m_dwPC->devicePixelRatio();
+		// ToDo: Re-add "Suggest Classification" / "Accept Classification" functionality
 		popupMenu.exec(m_pcWidget->mapToGlobal(pt));
-	}
-	else
-	{
-		// semi-automatic classification not ported to new SPM yet
-		/*
-		QMenu* popupMenu = static_cast<QMenu*>( client_data );     // Reset to original SPM popup
-		if ( popupMenu->actions().count() > 1 )                    // Check if SPM or PC popups
-			popupMenu->actions().at( 1 )->setText( "Suggest Classification" );
-		*/
 	}
 }
 
@@ -2035,7 +2013,9 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 			m_classTreeModel->invisibleRootItem()->appendRow( firstLevelItem );
 
 			// update chartTable
-			this->setActiveClassItem( firstLevelItem.first(), 1 );
+			recalculateChartTable(m_activeClassItem);
+			recalculateChartTable(firstLevelItem.first());
+			setActiveClassItem(firstLevelItem.first());
 			m_classTreeView->setCurrentIndex( firstLevelItem.first()->index() );
 		}
 		else
@@ -2051,7 +2031,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 		removeRows( 0, m_classTreeModel->invisibleRootItem()->child( motherClassItem->index().row() )->rowCount() );
 
 	// Update statistics for motherClassItem
-	this->updateClassStatistics( m_classTreeModel->invisibleRootItem()->child( motherClassItem->index().row() ) );
+	updateClassStatistics( m_classTreeModel->invisibleRootItem()->child( motherClassItem->index().row() ) );
 
 	if ( m_activeClassItem->rowCount() == 0 && m_activeClassItem->index().row() != 0 )//new
 	{
@@ -2066,7 +2046,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 	initElementTableModel();
 	setPCChartData();
 	m_classTreeView->collapseAll();
-	SingleRendering();
+	singleRendering();
 	updatePolarPlotView( m_chartTable );
 
 	//Updates scatter plot matrix when a class is added.
@@ -2077,7 +2057,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 }
 */
 
-void dlg_FeatureScout::classDoubleClicked(const QModelIndex& index)
+void dlg_FeatureScout::itemDoubleClicked(const QModelIndex& index)
 {
 	QStandardItem* item;
 	// Gets right item from ClassTreeModel to remove AccesViolationError on item double click).
@@ -2116,7 +2096,7 @@ void dlg_FeatureScout::classDoubleClicked(const QModelIndex& index)
 			m_colorList[index.row()] = new_cColor;
 			item->setText(new_cText);
 			item->setData(new_cColor, Qt::DecorationRole);
-			this->SingleRendering();
+			singleRendering();
 			m_splom->clearSelection();
 			m_splom->setFilter(classID);
 			m_splom->setDotColor(StandardSPLOMDotColor);
@@ -2158,41 +2138,27 @@ void dlg_FeatureScout::showLengthDistribution(bool show, vtkScalarsToColors* lut
 	}
 	if (!show && m_lengthDistrWidget->isVisible())
 	{
-		m_dwPP->legendLayout->removeWidget(m_lengthDistrWidget);
-		m_dwPP->legendLayout->addWidget(m_polarPlotWidget);
+		m_ppWidget->legendLayout->removeWidget(m_lengthDistrWidget);
+		m_ppWidget->legendLayout->addWidget(m_polarPlotWidget);
 		m_lengthDistrWidget->hide();
 		m_polarPlotWidget->show();
 	}
-	m_dwPP->colorMapSelection->hide();
+	m_ppWidget->colorMapSelection->hide();
 }
 
-void dlg_FeatureScout::classClicked(const QModelIndex& index)
+void dlg_FeatureScout::itemClicked(const QModelIndex& index)
 {
-	showOrientationDistribution();
+	showLengthDistribution(false);
 
-	// Gets right Item from ClassTreeModel
-	QStandardItem* item;
+	// Gets right item depending on whether click was on class 'level'
+	auto item = (index.parent().row() == -1) ?
+		m_classTreeModel->item(index.row(), 0):
+		m_classTreeModel->itemFromIndex(index);
 
-	// checks if click on class 'level'
-	if (index.parent().row() == -1)
+	// Selected an empty class - nothing to render!
+	if (item->rowCount() == 0 && item->parent() == m_classTreeModel->invisibleRootItem())
 	{
-		item = m_classTreeModel->item(index.row(), 0);
-	}
-	else
-	{
-		item = m_classTreeModel->itemFromIndex(index);
-	}
-
-	// check if unclassified class is empty
-	if (m_classTreeModel->invisibleRootItem()->child(0) == item && item->rowCount() == 0)
-	{
-		QMessageBox::information(this, "FeatureScout", "Unclassified class contains no objects, please make another selection.");
-		return;
-	}
-	//MOD kMeans
-	if (item->rowCount() == 0 && item->parent()->index() == m_classTreeModel->invisibleRootItem()->index())
-	{
-		QMessageBox::information(this, "FeatureScout", "This class contains no object, please make another selection or delete the class.");
+		QMessageBox::information(m_activeChild, "FeatureScout", "This class contains no object, nothing to show!");
 		return;
 	}
 	QStandardItem* classItem = item->hasChildren() ? item : item->parent();
@@ -2207,7 +2173,7 @@ void dlg_FeatureScout::classClicked(const QModelIndex& index)
 		updatePolarPlotView(m_chartTable);
 		if (item->hasChildren())  // has children => a class was selected
 		{
-			SingleRendering();
+			singleRendering();
 			initElementTableModel();
 			m_splom->clearSelection();
 		}
@@ -2235,9 +2201,9 @@ void dlg_FeatureScout::classClicked(const QModelIndex& index)
 		m_pcView->Render();
 
 		// update elementTableView
-		this->initElementTableModel(sID);
+		initElementTableModel(sID);
 		int objectID = item->text().toInt();
-		this->SingleRendering(objectID);
+		singleRendering(objectID);
 		m_elementTableView->update();
 
 		// update SPLOM selection
@@ -2249,20 +2215,20 @@ void dlg_FeatureScout::classClicked(const QModelIndex& index)
 
 double dlg_FeatureScout::calculateOpacity(QStandardItem* item)
 {
-	// chart opacity dependence of number of objects
+	// chart opacity dependent of number of objects
 	// TODO: replace by some kind of logarithmic formula
 	// for multi rendering
 	if (item == m_classTreeModel->invisibleRootItem())
 	{
-		if (m_objectCount < 1000)
+		if (m_objCnt < 1000)
 		{
 			return 1.0;
 		}
-		if (m_objectCount < 3000)
+		if (m_objCnt < 3000)
 		{
 			return 0.8;
 		}
-		if (m_objectCount < 10000)
+		if (m_objCnt < 10000)
 		{
 			return 0.6;
 		}
@@ -2295,7 +2261,7 @@ double dlg_FeatureScout::calculateOpacity(QStandardItem* item)
 	return 1.0;
 }
 
-void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStandardItem* item) const
+void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStandardItem* item, bool idOnly) const
 {
 	writer->writeStartElement(ClassTag);
 	writer->writeAttribute(NameAttribute, item->text());
@@ -2308,7 +2274,7 @@ void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStanda
 	for (int i = 0; i < item->rowCount(); ++i)
 	{
 		writer->writeStartElement(ObjectTag);
-		for (int j = 0; j < m_elementCount; ++j)
+		for (int j = 0; j < m_colCnt && (!idOnly || j == 0); ++j)
 		{
 			vtkVariant v = m_csvTable->GetValue(item->child(i)->text().toInt() - 1, j);
 			vtkVariant v1 = m_elementTable->GetValue(j, 0);
@@ -2321,39 +2287,16 @@ void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStanda
 	writer->writeEndElement(); // end class tag
 }
 
-void dlg_FeatureScout::setActiveClassItem(QStandardItem* item, int situ)
+void dlg_FeatureScout::setActiveClassItem(QStandardItem* item)
 {
-	// check once more, if its really a class item
 	if (!item->hasChildren())
 	{
+		LOG(lvlError, "Invalid call to setActiveClassItem - given item is not a class!");
 		return;
 	}
-
-	if (situ == 0)	// class clicked
-	{
-		m_activeClassItem = item;
-		int id = item->index().row();
-		m_chartTable = m_tableList[id];
-	}
-	else if (situ == 1)	// add class
-	{
-		// recalculate the old active class
-		this->recalculateChartTable(m_activeClassItem);
-
-		// calculate the new class table and set up chartTable
-		this->recalculateChartTable(item);
-
-		m_activeClassItem = item;
-		int id = item->index().row();
-		m_chartTable = m_tableList[id];
-	}
-	else if (situ == 2)	// delete class
-	{
-		// merge the deleted class table to stamm table
-		this->recalculateChartTable(item);
-		m_activeClassItem = item;
-		m_chartTable = m_tableList[0];
-	}
+	m_activeClassItem = item;
+	int id = item->index().row();
+	m_chartTable = m_tableList[id];
 }
 
 void dlg_FeatureScout::recalculateChartTable(QStandardItem* item)
@@ -2367,14 +2310,14 @@ void dlg_FeatureScout::recalculateChartTable(QStandardItem* item)
 	auto arr = vtkSmartPointer<vtkIntArray>::New();
 	arr->SetName(m_chartTable->GetColumnName(0));
 	table->AddColumn(arr);
-	for (int i = 1; i < m_elementCount - 1; ++i)
+	for (int i = 1; i < m_colCnt - 1; ++i)
 	{
 		auto arrX = vtkSmartPointer<vtkFloatArray>::New();
 		arrX->SetName(m_chartTable->GetColumnName(i));
 		table->AddColumn(arrX);
 	}
 	auto arrI = vtkSmartPointer<vtkIntArray>::New();
-	arrI->SetName(m_chartTable->GetColumnName(m_elementCount - 1));
+	arrI->SetName(m_chartTable->GetColumnName(m_colCnt - 1));
 	table->AddColumn(arrI);
 
 	int oCount = item->rowCount();
@@ -2388,46 +2331,38 @@ void dlg_FeatureScout::recalculateChartTable(QStandardItem* item)
 		m_csvTable->GetRow(csvID - 1, arrRow);
 		table->SetRow(j, arrRow);
 	}
-
-	// if item already exists
 	int itemID = item->index().row();
-	if (itemID + 1 <= m_tableList.size())
-	{
-		// add the new active class table to m_tableList
-		m_tableList.insert(itemID, table);
-		// delete the old active class table
-		m_tableList.removeAt(itemID + 1);
+	if (itemID < m_tableList.size())
+	{   // if item already exists, replace:
+		m_tableList[itemID] = table;
 	}
 	else
-	{
-		// add the new table to the end of the m_tableList
-		// maka a copy to chartTable
+	{   // else add the new table at the end:
 		m_tableList.push_back(table);
-		m_chartTable = m_tableList[item->index().row()];
 	}
 }
 
-void dlg_FeatureScout::updateLookupTable(double alpha)
+void dlg_FeatureScout::updateMultiClassLookupTable(double alpha)
 {
 	auto lutNum = m_colorList.size();
-	m_multiClassLUT->SetNumberOfTableValues(lutNum);
+	m_pcMultiClassLUT->SetNumberOfTableValues(lutNum);
 	for (vtkIdType i = 0; i < lutNum; ++i)
 	{
-		m_multiClassLUT->SetTableValue(i,
+		m_pcMultiClassLUT->SetTableValue(i,
 			m_colorList.at(i).red() / 255.0,
 			m_colorList.at(i).green() / 255.0,
 			m_colorList.at(i).blue() / 255.0,
 			m_colorList.at(i).alpha() / 255.0);
 	}
 
-	m_multiClassLUT->SetRange(0, lutNum - 1);
-	m_multiClassLUT->SetAlpha(alpha);
-	m_multiClassLUT->Build();
+	m_pcMultiClassLUT->SetRange(0, lutNum - 1);
+	m_pcMultiClassLUT->SetAlpha(alpha);
+	m_pcMultiClassLUT->Build();
 }
 
-void dlg_FeatureScout::EnableBlobRendering()
+void dlg_FeatureScout::enableBlobRendering()
 {
-	if (!OpenBlobVisDialog())
+	if (!openBlobVisDialog())
 	{
 		return;
 	}
@@ -2464,7 +2399,7 @@ void dlg_FeatureScout::EnableBlobRendering()
 
 	QColor color = m_colorList.at(m_activeClassItem->index().row());
 	const double count = m_activeClassItem->rowCount();
-	const double percentage = 100.0 * count / m_objectCount;
+	const double percentage = 100.0 * count / m_objCnt;
 	blob->SetObjectType(MapObjectTypeToString(m_objectType));
 	blob->SetCluster(objects);
 	blob->SetName(m_activeClassItem->text());
@@ -2473,7 +2408,7 @@ void dlg_FeatureScout::EnableBlobRendering()
 	m_blobManager->Update();
 }
 
-void dlg_FeatureScout::DisableBlobRendering()
+void dlg_FeatureScout::disableBlobRendering()
 {
 	// delete blob for class
 	if (m_blobMap.contains(m_activeClassItem->text()))
@@ -2496,32 +2431,21 @@ void dlg_FeatureScout::showContextMenu(const QPoint& pnt)
 	QList<QAction*> actions;
 	if (m_classTreeView->indexAt(pnt).isValid())
 	{
-		if (item->hasChildren())
+		if (item->hasChildren()) // actions for classes:
 		{
 			actions.append(m_blobRendering);
 			actions.append(m_blobRemoveRendering);
 			actions.append(m_saveBlobMovie);
-			actions.append(m_objectAdd);
 		}
-		else if (item->parent()) // item also might have no children because it's an empty class!
-		{
-			if (item->parent()->index().row() != 0)
-			{
-				actions.append(m_objectDelete);
-			}
+		else if (item->parent() && item->parent()->index().row() != 0)
+		{                        // actions for single objects:
+			actions.append(m_objectDelete);
 		}
 	}
 	if (actions.count() > 0)
 	{
 		QMenu::exec(actions, m_classTreeView->mapToGlobal(pnt));
 	}
-}
-
-void dlg_FeatureScout::addObject()
-{
-	QMessageBox::warning(this, "FeatureScout", "Adding an object to the active class is not implemented yet!");
-	// checking Class_ID, delete the object from the formerly class, update the corresponding class Table in Table list
-	// adding the new object to the active class, update class table, reordering the label id...
 }
 
 void dlg_FeatureScout::deleteObject()
@@ -2535,18 +2459,18 @@ void dlg_FeatureScout::deleteObject()
 	// if the parent item is the unclassified item
 	if (item->parent()->index() == m_classTreeModel->invisibleRootItem()->child(0)->index())
 	{
-		QMessageBox::information(this, "FeatureScout", "An object in the unclassified class can not be deleted.");
+		QMessageBox::information(m_activeChild, "FeatureScout", "An object in the unclassified class can not be deleted.");
 		return;
 	}
 
 	if (item->parent()->rowCount() == 1)
 	{
-		this->ClassDeleteButton();
+		classDeleteButton();
 	}
 	else
 	{
 		int oID = item->text().toInt();
-		m_csvTable->SetValue(oID - 1, m_elementCount - 1, 0);
+		m_csvTable->SetValue(oID - 1, m_colCnt - 1, 0);
 
 		QStandardItem* sItem = m_classTreeModel->invisibleRootItem()->child(0);
 		QStandardItem* newItem = new QStandardItem(QString("%1").arg(oID));
@@ -2568,14 +2492,14 @@ void dlg_FeatureScout::deleteObject()
 			}
 			sItem->insertRow(i, newItem);
 		}
-		this->updateClassStatistics(sItem);
-		this->recalculateChartTable(sItem);
+		updateClassStatistics(sItem);
+		recalculateChartTable(sItem);
 
 		QStandardItem* rItem = item->parent();
 		rItem->removeRow(item->index().row());
-		this->updateClassStatistics(rItem);
-		this->recalculateChartTable(rItem);
-		this->setActiveClassItem(rItem, 0);
+		updateClassStatistics(rItem);
+		recalculateChartTable(rItem);
+		setActiveClassItem(rItem);
 	}
 }
 
@@ -2586,7 +2510,7 @@ void dlg_FeatureScout::updateClassStatistics(QStandardItem* item)
 	if (item->hasChildren())
 	{
 		rootItem->child(item->index().row(), 1)->setText(QString("%1").arg(item->rowCount()));
-		double percent = 100.0 * item->rowCount() / m_objectCount;
+		double percent = 100.0 * item->rowCount() / m_objCnt;
 		rootItem->child(item->index().row(), 2)->setText(QString::number(percent, 'f', 1));
 	}
 	else
@@ -2792,7 +2716,7 @@ void dlg_FeatureScout::updatePolarPlotView(vtkTable* it)
 
 	// calculate object probability and save it to a table
 	auto table = vtkSmartPointer<vtkTable>::New();
-	int maxCount = this->calcOrientationProbability(it, table); // maximal count of the object orientation
+	int maxCount = calcOrientationProbability(it, table); // maximal count of the object orientation
 
 	// Create a transfer function mapping scalar value to color
 	auto cTFun = vtkSmartPointer<vtkColorTransferFunction>::New();
@@ -2895,7 +2819,7 @@ void dlg_FeatureScout::setupPolarPlotResolution(float grad)
 	m_gThe = m_gThe + 1;
 }
 
-bool dlg_FeatureScout::OpenBlobVisDialog()
+bool dlg_FeatureScout::openBlobVisDialog()
 {
 	iABlobCluster* blob = nullptr;
 	if (m_blobMap.contains(m_activeClassItem->text()))
@@ -2918,7 +2842,7 @@ bool dlg_FeatureScout::OpenBlobVisDialog()
 	addAttr(params, "Dimension X", iAValueType::Discrete, blob ? blob->GetDimensions()[0] : m_blobManager->GetDimensions()[0]);
 	addAttr(params, "Dimension Y", iAValueType::Discrete, blob ? blob->GetDimensions()[1] : m_blobManager->GetDimensions()[1]);
 	addAttr(params, "Dimension Z", iAValueType::Discrete, blob ? blob->GetDimensions()[2] : m_blobManager->GetDimensions()[2]);
-	iAParameterDlg dlg(this, "Blob rendering preferences", params);
+	iAParameterDlg dlg(m_activeChild, "Blob rendering preferences", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return false;
@@ -2941,12 +2865,12 @@ bool dlg_FeatureScout::OpenBlobVisDialog()
 	return true;
 }
 
-void dlg_FeatureScout::SaveBlobMovie()
+void dlg_FeatureScout::saveBlobMovie()
 {
 	QString movie_file_types = GetAvailableMovieFormats();
 	if (movie_file_types.isEmpty())
 	{
-		QMessageBox::information(this, "Movie Export", "Sorry, but movie export support is disabled.");
+		QMessageBox::information(m_activeChild, "Movie Export", "Sorry, but movie export support is disabled.");
 		return;
 	}
 	iAAttributes params;
@@ -2978,7 +2902,7 @@ void dlg_FeatureScout::SaveBlobMovie()
 	addAttr(params, "Video quality", iAValueType::Discrete, 2, 0, 2);
 	addAttr(params, "Frame rate", iAValueType::Discrete, 25, 1, 1000);
 
-	iAParameterDlg dlg(this, "Blob movie rendering options", params,
+	iAParameterDlg dlg(m_activeChild, "Blob movie rendering options", params,
 		"Creates a movie of the blob, rotating around it. "
 		"The <em>video quality</em> specifies the quality of the output video "
 			"(range: 0..2, 0 - worst, 2 - best; default: 2). "
@@ -3022,7 +2946,7 @@ void dlg_FeatureScout::SaveBlobMovie()
 		gaussianBlurVariance,
 		dimX, dimY, dimZ,
 		QFileDialog::getSaveFileName(
-			this,
+			m_activeChild,
 			tr("Export movie %1").arg(mode),
 			fileInfo.absolutePath() + "/" + ((mode.isEmpty()) ? fileInfo.baseName() : fileInfo.baseName() + "_" + mode), movie_file_types),
 		imode,
@@ -3033,21 +2957,15 @@ void dlg_FeatureScout::SaveBlobMovie()
 
 void dlg_FeatureScout::initFeatureScoutUI()
 {
-	m_pcWidget = new iAQVTKWidget();
-	m_polarPlotWidget = new iAQVTKWidget();
-	m_lengthDistrWidget = new iAQVTKWidget();
-	m_dwPC = new iADockWidgetWrapper(m_pcWidget, "Parallel Coordinates", "FeatureScoutPC");
-	m_dwPP = new iAPolarPlotWidget(this);
-	m_dwPP->legendLayout->addWidget(m_polarPlotWidget);
-	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, this);
+	m_ppWidget->legendLayout->addWidget(m_polarPlotWidget);
+	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwCE);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPC);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPP);
-	m_dwPP->colorMapSelection->hide();
+	m_ppWidget->colorMapSelection->hide();
 	if (m_objectType == iAObjectType::Voids)
 	{
 		m_dwPP->hide();
 	}
-	connect(m_dwPP->orientationColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_FeatureScout::renderOrientation);
 }
 
 void dlg_FeatureScout::saveProject(QSettings& projectFile)
@@ -3058,24 +2976,31 @@ void dlg_FeatureScout::saveProject(QSettings& projectFile)
 	}
 	QString outXML;
 	QXmlStreamWriter writer(&outXML);
-	saveClassesXML(writer);
-	projectFile.setValue(ClassesProjectFile, outXML);
+	saveClassesXML(writer, true);
+	projectFile.setValue(ClassesProjectKey, outXML.replace("\n", ""));
+	if (m_meanObject)
+	{
+		projectFile.setValue(MeanObjectsProjectKey, true);
+	}
 }
 
 void dlg_FeatureScout::loadProject(QSettings const & projectFile)
 {
-	if (!projectFile.contains(ClassesProjectFile))
+	if (!projectFile.contains(ClassesProjectKey))
 	{
 		return;
 	}
-	QString classesString = projectFile.value(ClassesProjectFile).toString();
+	QString classesString = projectFile.value(ClassesProjectKey).toString();
 	QXmlStreamReader reader(classesString);
 	loadClassesXML(reader);
+	if (projectFile.value(MeanObjectsProjectKey, false).toBool())
+	{
+		renderMeanObject();
+	}
 }
 
 void dlg_FeatureScout::updateAxisProperties()
 {
-	m_pcTickCount = (m_pcTickCount < PCMinTicksCount) ? PCMinTicksCount : m_pcTickCount;
 	int visibleColIdx = 0;
 	for (int i = 0; i < static_cast<int>(m_pcChart->GetNumberOfAxes()); i++)
 	{
@@ -3089,14 +3014,14 @@ void dlg_FeatureScout::updateAxisProperties()
 			LOG(lvlWarn, QString("Invalid axis %1 in Parallel Coordinates!").arg(i));
 			continue;
 		}
-		axis->GetLabelProperties()->SetFontSize(m_pcFontSize);
-		axis->GetTitleProperties()->SetFontSize(m_pcFontSize);
+		axis->GetLabelProperties()->SetFontSize(m_pcSettings[PCFontSize].toInt());
+		axis->GetTitleProperties()->SetFontSize(m_pcSettings[PCFontSize].toInt());
 		vtkDataArray* columnData = vtkDataArray::SafeDownCast(m_chartTable->GetColumn(visibleColIdx));
 		double* const range = columnData->GetRange();
 		if (range[0] != range[1])
 		{
 			// if min == max, then leave NumberOfTicks at default -1, otherwise there will be no ticks and no lines shown
-			axis->SetNumberOfTicks(m_pcTickCount);
+			axis->SetNumberOfTicks(m_pcSettings[PCTickCount].toInt());
 		}
 		axis->Update();
 		++visibleColIdx;

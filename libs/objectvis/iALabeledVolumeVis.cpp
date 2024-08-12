@@ -5,6 +5,7 @@
 #include "iACsvConfig.h"
 #include "iAObjectsData.h"
 #include "iAObjectType.h"
+#include "iATransferFunction.h"
 
 #include <vtkColorTransferFunction.h>
 #include <vtkFloatArray.h>
@@ -13,11 +14,9 @@
 
 #include <QStandardItem>
 
-iALabeledVolumeVis::iALabeledVolumeVis(vtkColorTransferFunction* color, vtkPiecewiseFunction* opac,
-	iAObjectsData const* data, double const* bounds) :
+iALabeledVolumeVis::iALabeledVolumeVis(iATransferFunction* tf, iAObjectsData const* data, double const* bounds) :
 	iAObjectVis(data),
-	oTF(opac),
-	cTF(color)
+	m_tf(tf)
 {
 	std::copy(bounds, bounds + 6, m_bounds);
 }
@@ -35,13 +34,16 @@ void iALabeledVolumeVis::renderSelection( std::vector<size_t> const & sortedSelI
 	classRGB[1] = classColor.greenF();
 	classRGB[2] = classColor.blueF();
 
+	double prevRange[2];
+	m_tf->colorTF()->GetRange(prevRange);
+
 	// clear existing points
-	oTF->RemoveAllPoints();
-	cTF->RemoveAllPoints();
-	oTF->ClampingOff();
-	cTF->ClampingOff();
-	oTF->AddPoint( 0, backAlpha, 0.5, 1.0 );
-	cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+	m_tf->opacityTF()->RemoveAllPoints();
+	m_tf->colorTF()->RemoveAllPoints();
+	m_tf->opacityTF()->ClampingOff();
+	m_tf->colorTF()->ClampingOff();
+	m_tf->opacityTF()->AddPoint( 0, backAlpha, 0.5, 1.0 );
+	m_tf->colorTF()->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 
 	size_t const HidInvalid = std::numeric_limits<size_t>::max();
 	size_t hid = 0, next_hid = 1, prev_hid = HidInvalid;
@@ -98,114 +100,117 @@ void iALabeledVolumeVis::renderSelection( std::vector<size_t> const & sortedSelI
 		{
 			if ( starting )	// If we are in a sequence we have to set the ending (\)
 			{
-				oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid, alpha, 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
 
 				if ( hid_isASelection )
 				{
-					cTF->AddRGBPoint( hid - 0.5, 1.0, 0.0, 0.0, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid, 1.0, 0.0, 0.0, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+					m_tf->colorTF()->AddRGBPoint( hid - 0.5, 1.0, 0.0, 0.0, 0.5, 1.0 );
+					m_tf->colorTF()->AddRGBPoint( hid, 1.0, 0.0, 0.0, 0.5, 1.0 );
+					m_tf->colorTF()->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 				}
 				else
 				{
-					cTF->AddRGBPoint( hid - 0.5, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-					cTF->AddRGBPoint( hid, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+					m_tf->colorTF()->AddRGBPoint( hid - 0.5, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+					m_tf->colorTF()->AddRGBPoint( hid, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+					m_tf->colorTF()->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 				}
 
 				if ( previous_hid_isASelection )
-					cTF->AddRGBPoint( hid - 1 + 0.3, 1.0, 0.0, 0.0, 0.5, 1.0 );
+					m_tf->colorTF()->AddRGBPoint( hid - 1 + 0.3, 1.0, 0.0, 0.0, 0.5, 1.0 );
 				else
-					cTF->AddRGBPoint( hid - 1 + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+					m_tf->colorTF()->AddRGBPoint( hid - 1 + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
 				break;
 			}
 			else	// if we are not in a sequence we have to create the last tooth (/\)
 			{
-				oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid, alpha, 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
 
-				cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				m_tf->colorTF()->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				m_tf->colorTF()->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+				m_tf->colorTF()->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 				break;
 			}
 		}
 
 		if ( next_hid > hid + 1 && !starting )		//Create one single tooth
 		{
-			oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-			oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-			oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-			cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-			cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-			cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+			m_tf->opacityTF()->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
+			m_tf->opacityTF()->AddPoint( hid, alpha, 0.5, 1.0 );
+			m_tf->opacityTF()->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+			m_tf->colorTF()->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+			m_tf->colorTF()->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+			m_tf->colorTF()->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 		}
 		else if ( next_hid == hid + 1 && !starting )	//Creates the beginning of a sequence (/)
 		{
 			starting = true;
-			oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-			oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-			cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-			cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+			m_tf->opacityTF()->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
+			m_tf->opacityTF()->AddPoint( hid, alpha, 0.5, 1.0 );
+			m_tf->colorTF()->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+			m_tf->colorTF()->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
 		}
 		else if ( next_hid == hid + 1 && starting )	//Continues the started sequence (-)
 		{
 			if ( !hid_isASelection && previous_hid_isASelection )
 			{
-				cTF->AddRGBPoint( hid - 1 + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid - 0.5, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+				m_tf->colorTF()->AddRGBPoint( hid - 1 + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
+				m_tf->colorTF()->AddRGBPoint( hid - 0.5, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+				m_tf->colorTF()->AddRGBPoint( hid + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
 
-				oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid + 0.3, alpha, 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid + 0.3, alpha, 0.5, 1.0 );
 			}
 			else if ( hid_isASelection && !previous_hid_isASelection )
 			{
-				cTF->AddRGBPoint( hid - 0.5, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid - 1 + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+				m_tf->colorTF()->AddRGBPoint( hid - 0.5, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
+				m_tf->colorTF()->AddRGBPoint( hid + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
+				m_tf->colorTF()->AddRGBPoint( hid - 1 + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
 
-				oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid + 0.3, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid + 0.3, alpha, 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
 			}
 		}
 		else if ( next_hid > hid + 1 && starting )	//  (\)
 		{
 			starting = false;
 
-			oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
-			oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
-			oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-			oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+			m_tf->opacityTF()->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
+			m_tf->opacityTF()->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
+			m_tf->opacityTF()->AddPoint( hid, alpha, 0.5, 1.0 );
+			m_tf->opacityTF()->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
 
 			if ( previous_hid_isASelection )
-				cTF->AddRGBPoint( hid - 1 + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
+				m_tf->colorTF()->AddRGBPoint( hid - 1 + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
 			else
-				cTF->AddRGBPoint( hid - 1 + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+				m_tf->colorTF()->AddRGBPoint( hid - 1 + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
 
-			cTF->AddRGBPoint( hid - 0.5, red, green, blue, 0.5, 1.0 );
-			cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-			cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+			m_tf->colorTF()->AddRGBPoint( hid - 0.5, red, green, blue, 0.5, 1.0 );
+			m_tf->colorTF()->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+			m_tf->colorTF()->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 		}
 		prev_hid = hid;
 	}
 
 	if ( hid < static_cast<size_t>(m_data->m_table->GetNumberOfRows()) )	// Creates the very last points (for all objects)  if it's not created yet
 	{
-		oTF->AddPoint(m_data->m_table->GetNumberOfRows() + 0.3, backAlpha, 0.5, 1.0 );
-		cTF->AddRGBPoint(m_data->m_table->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+		m_tf->opacityTF()->AddPoint(m_data->m_table->GetNumberOfRows() + 0.3, backAlpha, 0.5, 1.0 );
+		m_tf->colorTF()->AddRGBPoint(m_data->m_table->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 	}
+	m_tf->ensureValidity(prevRange);
 	emit renderRequired();
 }
 
 void iALabeledVolumeVis::renderSingle(IndexType selectedObjID, int /*classID*/, QColor const & classColor, QStandardItem* activeClassItem )
 {
+	double prevRange[2];
+	m_tf->colorTF()->GetRange(prevRange);
 	int itemL = activeClassItem->rowCount();
 	double red   = classColor.redF(),
 		   green = classColor.greenF(),
@@ -215,31 +220,31 @@ void iALabeledVolumeVis::renderSingle(IndexType selectedObjID, int /*classID*/, 
 		   backRGB[3] = { 0.0, 0.0, 0.0 };
 
 	// clear existing points
-	oTF->RemoveAllPoints();
-	cTF->RemoveAllPoints();
+	m_tf->opacityTF()->RemoveAllPoints();
+	m_tf->colorTF()->RemoveAllPoints();
 
 	// set background opacity and color with clamping off
-	oTF->ClampingOff();
-	cTF->ClampingOff();
-	oTF->AddPoint(0, backAlpha);
-	cTF->AddRGBPoint(0, backRGB[0], backRGB[1], backRGB[2]);
+	m_tf->opacityTF()->ClampingOff();
+	m_tf->colorTF()->ClampingOff();
+	m_tf->opacityTF()->AddPoint(0, backAlpha);
+	m_tf->colorTF()->AddRGBPoint(0, backRGB[0], backRGB[1], backRGB[2]);
 	if (selectedObjID > 0 ) // for single object selection
 	{
 		if ( (selectedObjID - 1) >= 0)
 		{
-			oTF->AddPoint(selectedObjID - 0.5, backAlpha);
-			oTF->AddPoint(selectedObjID - 0.49, alpha);
-			cTF->AddRGBPoint(selectedObjID - 0.5, backRGB[0], backRGB[1], backRGB[2]);
-			cTF->AddRGBPoint(selectedObjID - 0.49, red, green, blue);
+			m_tf->opacityTF()->AddPoint(selectedObjID - 0.5, backAlpha);
+			m_tf->opacityTF()->AddPoint(selectedObjID - 0.49, alpha);
+			m_tf->colorTF()->AddRGBPoint(selectedObjID - 0.5, backRGB[0], backRGB[1], backRGB[2]);
+			m_tf->colorTF()->AddRGBPoint(selectedObjID - 0.49, red, green, blue);
 		}
-		oTF->AddPoint(selectedObjID, alpha);
-		cTF->AddRGBPoint(selectedObjID, red, green, blue);
+		m_tf->opacityTF()->AddPoint(selectedObjID, alpha);
+		m_tf->colorTF()->AddRGBPoint(selectedObjID, red, green, blue);
 		if ((selectedObjID + 1) <= m_data->m_table->GetNumberOfRows())
 		{
-			oTF->AddPoint(selectedObjID + 0.3, backAlpha);
-			oTF->AddPoint(selectedObjID + 0.29, alpha);
-			cTF->AddRGBPoint(selectedObjID + 0.3, backRGB[0], backRGB[1], backRGB[2]);
-			cTF->AddRGBPoint(selectedObjID + 0.29, red, green, blue);
+			m_tf->opacityTF()->AddPoint(selectedObjID + 0.3, backAlpha);
+			m_tf->opacityTF()->AddPoint(selectedObjID + 0.29, alpha);
+			m_tf->colorTF()->AddRGBPoint(selectedObjID + 0.3, backRGB[0], backRGB[1], backRGB[2]);
+			m_tf->colorTF()->AddRGBPoint(selectedObjID + 0.29, red, green, blue);
 		}
 	}
 	else // for single class selection
@@ -258,20 +263,20 @@ void iALabeledVolumeVis::renderSingle(IndexType selectedObjID, int /*classID*/, 
 			{
 				if ( starting )
 				{
-					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+					m_tf->opacityTF()->AddPoint( hid, alpha, 0.5, 1.0 );
+					m_tf->opacityTF()->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+					m_tf->colorTF()->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+					m_tf->colorTF()->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 					break;
 				}
 				else
 				{
-					oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+					m_tf->opacityTF()->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
+					m_tf->opacityTF()->AddPoint( hid, alpha, 0.5, 1.0 );
+					m_tf->opacityTF()->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+					m_tf->colorTF()->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+					m_tf->colorTF()->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+					m_tf->colorTF()->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 					break;
 				}
 			}
@@ -279,44 +284,47 @@ void iALabeledVolumeVis::renderSingle(IndexType selectedObjID, int /*classID*/, 
 			//Create one single tooth
 			if ( next_hid > hid + 1 && !starting )
 			{
-				oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid, alpha, 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+				m_tf->colorTF()->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				m_tf->colorTF()->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+				m_tf->colorTF()->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 			}
 			else if ( next_hid == hid + 1 && !starting )
 			{
 				starting = true;
-				oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid, alpha, 0.5, 1.0 );
+				m_tf->colorTF()->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				m_tf->colorTF()->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
 			}
 			else if ( next_hid == hid + 1 && starting )
 				continue;
 			else if ( next_hid > hid + 1 && starting )
 			{
 				starting = false;
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid, alpha, 0.5, 1.0 );
+				m_tf->opacityTF()->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+				m_tf->colorTF()->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+				m_tf->colorTF()->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 			}
 		}
 
 		if ( hid < m_data->m_table->GetNumberOfRows() )
 		{
-			oTF->AddPoint(m_data->m_table->GetNumberOfRows() + 0.3, backAlpha, 0.5, 1.0 );
-			cTF->AddRGBPoint(m_data->m_table->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+			m_tf->opacityTF()->AddPoint(m_data->m_table->GetNumberOfRows() + 0.3, backAlpha, 0.5, 1.0 );
+			m_tf->colorTF()->AddRGBPoint(m_data->m_table->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 		}
 	}
+	m_tf->ensureValidity(prevRange);
 	emit renderRequired();
 }
 
 void iALabeledVolumeVis::multiClassRendering( QList<QColor> const & classColors, QStandardItem* rootItem, double alpha )
 {
+	double prevRange[2];
+	m_tf->colorTF()->GetRange(prevRange);
 	double backAlpha = 0.00005;
 	double backRGB[3];
 	backRGB[0] = classColors.at(0).redF();
@@ -328,12 +336,14 @@ void iALabeledVolumeVis::multiClassRendering( QList<QColor> const & classColors,
 	double blue = 0.0;
 
 	// clear existing points
-	oTF->RemoveAllPoints();
-	cTF->RemoveAllPoints();
+	m_tf->opacityTF()->RemoveAllPoints();
+	m_tf->colorTF()->RemoveAllPoints();
 
 	// set background opacity and color
-	oTF->ClampingOff();
-	cTF->ClampingOff();
+	m_tf->opacityTF()->ClampingOff();
+	m_tf->colorTF()->ClampingOff();
+	m_tf->opacityTF()->AddPoint(0, backAlpha);
+	m_tf->colorTF()->AddRGBPoint(0, backRGB[0], backRGB[1], backRGB[2]);
 
 	// Iterate through all classes to render, starting with 0 unclassified, 1 Class1,...
 	for (int i = 0; i < classColors.size(); i++)
@@ -364,20 +374,20 @@ void iALabeledVolumeVis::multiClassRendering( QList<QColor> const & classColors,
 			{
 				if (starting)
 				{
-					oTF->AddPoint(hid, alpha, 0.5, 1.0);
-					oTF->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
-					cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
-					cTF->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
+					m_tf->opacityTF()->AddPoint(hid, alpha, 0.5, 1.0);
+					m_tf->opacityTF()->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
+					m_tf->colorTF()->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
+					m_tf->colorTF()->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 					break;
 				}
 				else
 				{
-					oTF->AddPoint(hid - 0.5, backAlpha, 0.5, 1.0);
-					oTF->AddPoint(hid, alpha, 0.5, 1.0);
-					oTF->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
-					cTF->AddRGBPoint(hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
-					cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
-					cTF->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
+					m_tf->opacityTF()->AddPoint(hid - 0.5, backAlpha, 0.5, 1.0);
+					m_tf->opacityTF()->AddPoint(hid, alpha, 0.5, 1.0);
+					m_tf->opacityTF()->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
+					m_tf->colorTF()->AddRGBPoint(hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
+					m_tf->colorTF()->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
+					m_tf->colorTF()->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 					break;
 				}
 			}
@@ -385,20 +395,20 @@ void iALabeledVolumeVis::multiClassRendering( QList<QColor> const & classColors,
 			//Create one single tooth
 			if (next_hid > hid + 1 && !starting)
 			{
-				oTF->AddPoint(hid - 0.5, backAlpha, 0.5, 1.0);
-				oTF->AddPoint(hid, alpha, 0.5, 1.0);
-				oTF->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
-				cTF->AddRGBPoint(hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
-				cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
-				cTF->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
+				m_tf->opacityTF()->AddPoint(hid - 0.5, backAlpha, 0.5, 1.0);
+				m_tf->opacityTF()->AddPoint(hid, alpha, 0.5, 1.0);
+				m_tf->opacityTF()->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
+				m_tf->colorTF()->AddRGBPoint(hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
+				m_tf->colorTF()->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
+				m_tf->colorTF()->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 			}
 			else if (next_hid == hid + 1 && !starting)
 			{
 				starting = true;
-				oTF->AddPoint(hid - 0.5, backAlpha, 0.5, 1.0);
-				oTF->AddPoint(hid, alpha, 0.5, 1.0);
-				cTF->AddRGBPoint(hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
-				cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
+				m_tf->opacityTF()->AddPoint(hid - 0.5, backAlpha, 0.5, 1.0);
+				m_tf->opacityTF()->AddPoint(hid, alpha, 0.5, 1.0);
+				m_tf->colorTF()->AddRGBPoint(hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
+				m_tf->colorTF()->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
 			}
 			else if (next_hid == hid + 1 && starting)
 				continue;
@@ -406,48 +416,51 @@ void iALabeledVolumeVis::multiClassRendering( QList<QColor> const & classColors,
 			else if (next_hid > hid + 1 && starting)
 			{
 				starting = false;
-				oTF->AddPoint(hid, alpha, 0.5, 1.0);
-				oTF->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
-				cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
-				cTF->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
+				m_tf->opacityTF()->AddPoint(hid, alpha, 0.5, 1.0);
+				m_tf->opacityTF()->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
+				m_tf->colorTF()->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
+				m_tf->colorTF()->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 			}
 		}
-
-		if ( hid < m_data->m_table->GetNumberOfRows() )
-		{
-			oTF->AddPoint(m_data->m_table->GetNumberOfRows() + 0.3, backAlpha, 0.5, 1.0);
-			cTF->AddRGBPoint(m_data->m_table->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
-		}
 	}
+	m_tf->opacityTF()->AddPoint(m_data->m_table->GetNumberOfRows()+0.3, backAlpha, 0.5, 1.0);
+	m_tf->colorTF()->AddRGBPoint(m_data->m_table->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
+	m_tf->ensureValidity(prevRange);
 	emit renderRequired();
 }
 
 void iALabeledVolumeVis::renderOrientationDistribution( vtkImageData* oi )
 {
+	double prevRange[2];
+	m_tf->colorTF()->GetRange(prevRange);
 	double backRGB[3];
 	backRGB[0] = 0.0; backRGB[1] = 0.0; backRGB[2] = 0.0;
 	double backAlpha = 0.0, alpha = 0.5;
 	// clear existing points
-	oTF->RemoveAllPoints();
-	cTF->RemoveAllPoints();
-	oTF->AddPoint( 0, backAlpha );
-	cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2] );
+	m_tf->opacityTF()->RemoveAllPoints();
+	m_tf->colorTF()->RemoveAllPoints();
+	m_tf->opacityTF()->AddPoint( 0, backAlpha );
+	m_tf->colorTF()->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2] );
 
 	for (IndexType objID = 0; objID < m_data->m_table->GetNumberOfRows(); ++objID )
 	{
 		QColor color = getOrientationColor( oi, objID );
-		oTF->AddPoint( objID + 1, alpha );
-		cTF->AddRGBPoint( objID + 1, color.redF(), color.greenF(), color.blueF() );
+		m_tf->opacityTF()->AddPoint( objID + 1, alpha );
+		m_tf->colorTF()->AddRGBPoint( objID + 1, color.redF(), color.greenF(), color.blueF() );
 	}
+	m_tf->ensureValidity(prevRange);
 	emit renderRequired();
 }
 
 void iALabeledVolumeVis::renderLengthDistribution( vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range )
 {
+	double prevRange[2];
+	m_tf->colorTF()->GetRange(prevRange);
 	// clear existing points
-	oTF->RemoveAllPoints();
-	cTF->RemoveAllPoints();
-	cTF->AddRGBPoint(0, 0.0, 0.0, 0.0);
+	m_tf->opacityTF()->RemoveAllPoints();
+	m_tf->colorTF()->RemoveAllPoints();
+	m_tf->opacityTF()->AddPoint(0, 0.0);
+	m_tf->colorTF()->AddRGBPoint(0, 0.0, 0.0, 0.0);
 
 	for (IndexType objID = 0; objID < m_data->m_table->GetNumberOfRows(); ++objID )
 	{
@@ -458,60 +471,61 @@ void iALabeledVolumeVis::renderLengthDistribution( vtkColorTransferFunction* ctF
 		{
 			if ( ll >= range[0] && ll < extents->GetValue( 0 ) + halfInc )
 			{
-				oTF->AddPoint( objID + 1 - 0.5, 0.0 );
-				oTF->AddPoint( objID + 1 + 0.3, 0.0 );
-				oTF->AddPoint( objID + 1, 1.0 );
+				m_tf->opacityTF()->AddPoint( objID + 1 - 0.5, 0.0 );
+				m_tf->opacityTF()->AddPoint( objID + 1 + 0.3, 0.0 );
+				m_tf->opacityTF()->AddPoint( objID + 1, 1.0 );
 			}
 			else if ( ll >= extents->GetValue( 0 ) + halfInc && ll < extents->GetValue( 1 ) + halfInc )
 			{
-				oTF->AddPoint( objID + 1 - 0.5, 0.0 );
-				oTF->AddPoint( objID + 1 + 0.3, 0.0 );
-				oTF->AddPoint( objID + 1, 0.03 );
+				m_tf->opacityTF()->AddPoint( objID + 1 - 0.5, 0.0 );
+				m_tf->opacityTF()->AddPoint( objID + 1 + 0.3, 0.0 );
+				m_tf->opacityTF()->AddPoint( objID + 1, 0.03 );
 			}
 			else if ( ll >= extents->GetValue( 1 ) + halfInc && ll < extents->GetValue( 2 ) + halfInc )
 			{
-				oTF->AddPoint( objID + 1 - 0.5, 0.0 );
-				oTF->AddPoint( objID + 1 + 0.3, 0.0 );
-				oTF->AddPoint( objID + 1, 0.03 );
+				m_tf->opacityTF()->AddPoint( objID + 1 - 0.5, 0.0 );
+				m_tf->opacityTF()->AddPoint( objID + 1 + 0.3, 0.0 );
+				m_tf->opacityTF()->AddPoint( objID + 1, 0.03 );
 			}
 			else if ( ll >= extents->GetValue( 2 ) + halfInc && ll < extents->GetValue( 5 ) + halfInc )
 			{
-				oTF->AddPoint( objID + 1 - 0.5, 0.0 );
-				oTF->AddPoint( objID + 1 + 0.3, 0.0 );
-				oTF->AddPoint( objID + 1, 0.015 );
+				m_tf->opacityTF()->AddPoint( objID + 1 - 0.5, 0.0 );
+				m_tf->opacityTF()->AddPoint( objID + 1 + 0.3, 0.0 );
+				m_tf->opacityTF()->AddPoint( objID + 1, 0.015 );
 			}
 			else if ( ll >= extents->GetValue( 5 ) + halfInc && ll <= extents->GetValue( 7 ) + halfInc )
 			{
-				oTF->AddPoint( objID + 1 - 0.5, 0.0 );
-				oTF->AddPoint( objID + 1 + 0.3, 0.0 );
-				oTF->AddPoint( objID + 1, 1.0 );
+				m_tf->opacityTF()->AddPoint( objID + 1 - 0.5, 0.0 );
+				m_tf->opacityTF()->AddPoint( objID + 1 + 0.3, 0.0 );
+				m_tf->opacityTF()->AddPoint( objID + 1, 1.0 );
 			}
 		}
 		else
 		{
 			if ( ll >= range[0] && ll < extents->GetValue( 0 ) + halfInc )
 			{
-				oTF->AddPoint( objID + 1 - 0.5, 0.0 );
-				oTF->AddPoint( objID + 1 + 0.3, 0.0 );
-				oTF->AddPoint( objID + 1, 0.5 );
+				m_tf->opacityTF()->AddPoint( objID + 1 - 0.5, 0.0 );
+				m_tf->opacityTF()->AddPoint( objID + 1 + 0.3, 0.0 );
+				m_tf->opacityTF()->AddPoint( objID + 1, 0.5 );
 			}
 			else if ( ll >= extents->GetValue( 0 ) + halfInc && ll < extents->GetValue( 1 ) + halfInc )
 			{
-				oTF->AddPoint( objID + 1 - 0.5, 0.0 );
-				oTF->AddPoint( objID + 1 + 0.3, 0.0 );
-				oTF->AddPoint( objID + 1, 0.5 );
+				m_tf->opacityTF()->AddPoint( objID + 1 - 0.5, 0.0 );
+				m_tf->opacityTF()->AddPoint( objID + 1 + 0.3, 0.0 );
+				m_tf->opacityTF()->AddPoint( objID + 1, 0.5 );
 			}
 			else if ( ll >= extents->GetValue( 5 ) + halfInc && ll <= extents->GetValue( 2 ) + halfInc )
 			{
-				oTF->AddPoint( objID + 1 - 0.5, 0.0 );
-				oTF->AddPoint( objID + 1 + 0.3, 0.0 );
-				oTF->AddPoint( objID + 1, 0.5 );
+				m_tf->opacityTF()->AddPoint( objID + 1 - 0.5, 0.0 );
+				m_tf->opacityTF()->AddPoint( objID + 1 + 0.3, 0.0 );
+				m_tf->opacityTF()->AddPoint( objID + 1, 0.5 );
 			}
 		}
-		cTF->AddRGBPoint( objID + 1, color.redF(), color.greenF(), color.blueF() );
-		cTF->AddRGBPoint( objID + 1 - 0.5, color.redF(), color.greenF(), color.blueF() );
-		cTF->AddRGBPoint( objID + 1 + 0.3, color.redF(), color.greenF(), color.blueF() );
+		m_tf->colorTF()->AddRGBPoint( objID + 1, color.redF(), color.greenF(), color.blueF() );
+		m_tf->colorTF()->AddRGBPoint( objID + 1 - 0.5, color.redF(), color.greenF(), color.blueF() );
+		m_tf->colorTF()->AddRGBPoint( objID + 1 + 0.3, color.redF(), color.greenF(), color.blueF() );
 	}
+	m_tf->ensureValidity(prevRange);
 	emit renderRequired();
 }
 

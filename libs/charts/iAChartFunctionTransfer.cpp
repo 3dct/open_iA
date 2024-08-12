@@ -384,8 +384,7 @@ int iAChartTransferFunction::opacity2PixelY(double opacity) const
 
 double iAChartTransferFunction::xOfs() const
 {
-	return m_chart->plots().empty() ? 0 :
-		m_chart->plots()[0]->data()->valueType() == iAValueType::Discrete ? 0.5 : 0;
+	return 0 /*!m_chart->plots().empty() && m_chart->plots()[0]->data()->valueType() == iAValueType::Discrete ? 0.5 : 0*/;
 }
 
 void iAChartTransferFunction::triggerOnChange()

@@ -2,11 +2,10 @@ set(FeatureScout_PRECOMPILE_INCLUDES
 <dlg_FeatureScout.h>
 <iABlobCluster.h>
 <iABlobManager.h>
-<iAFileUtils.h>
+<iAFeatureScoutTool.h>
 <iALog.h>
 <iAMainWindow.h>
 <iAMdiChild.h>
-<iAObjectType.h>
 <memory>
 <QList>
 <QMessageBox>

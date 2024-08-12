@@ -42,7 +42,8 @@ iAFuzzyFeatureTrackingTool::iAFuzzyFeatureTrackingTool( iAMainWindow * mainWnd, 
 	}
 
 	m_dlgDataView4DCT = new dlg_dataView4DCT(m_child, volumeViewers);
-	m_child->tabifyDockWidget(m_child->renderDockWidget(), new iADockWidgetWrapper(m_dlgDataView4DCT, "4DCT Data View", "DataView4DCT"));
+	m_child->tabifyDockWidget(m_child->renderDockWidget(), new iADockWidgetWrapper(m_dlgDataView4DCT, "4DCT Data View", "DataView4DCT",
+		"https://github.com/3dct/open_iA/wiki/4DCT"));
 	m_dlgTrackingGraph = new dlg_trackingGraph(m_child);
 	m_child->tabifyDockWidget(m_child->renderDockWidget(), m_dlgTrackingGraph);
 	std::vector<iAFeatureTracking*> trackedFeaturesForwards;

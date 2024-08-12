@@ -1085,14 +1085,15 @@ void iASensitivityInfo::createGUI()
 	iAJobListView::get()->addJob("Computing spatial overview", spatP, spatialVariationComputation, this);
 
 	m_gui->m_settings = new iASensitivitySettingsView(this);
-	auto dwSettings = new iADockWidgetWrapper(m_gui->m_settings, "Sensitivity Settings", "foeSensitivitySettings");
+	auto dwSettings = new iADockWidgetWrapper(m_gui->m_settings, "Sensitivity Settings", "foeSensitivitySettings",
+		"https://github.com/3dct/open_iA/wiki/FIAKER");
 	m_child->splitDockWidget(m_nextToDW, dwSettings, Qt::Horizontal);
 
 	//////////// Parameter Influence View                   ////////////
 	QColor headerColor(QApplication::palette().color(QPalette::Button));
 	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(m_data, m_gui, headerColor, headerColor /*ParamColor, OutputColor*/);
-	m_gui->m_dwParamInfluence =
-		new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence View", "foeParamInfluence");
+	m_gui->m_dwParamInfluence = new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence View",
+		"foeParamInfluence", "https://github.com/3dct/open_iA/wiki/FIAKER");
 	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::barAdded, this, &iASensitivityInfo::outputBarAdded);
 	connect(
 		m_gui->m_paramInfluenceView, &iAParameterInfluenceView::barRemoved, this, &iASensitivityInfo::outputBarRemoved);
@@ -1129,7 +1130,8 @@ void iASensitivityInfo::createGUI()
 		m_gui->m_algoInfo->setSelectedInput(m_gui->m_paramInfluenceView->selectedRow());
 	});
 	m_gui->m_algoInfo->setInSortOrder(m_gui->m_paramInfluenceView->paramIndicesSorted());
-	auto dwAlgoInfo = new iADockWidgetWrapper(m_gui->m_algoInfo, "In-Out Matrix", "foeAlgorithmInfo");
+	auto dwAlgoInfo = new iADockWidgetWrapper(
+		m_gui->m_algoInfo, "In-Out Matrix", "foeAlgorithmInfo", "https://github.com/3dct/open_iA/wiki/FIAKER");
 	m_child->splitDockWidget(dwSettings, dwAlgoInfo, Qt::Horizontal);
 	m_child->renderDockWidget()->setWindowTitle("Spatial View");
 
@@ -1139,12 +1141,14 @@ void iASensitivityInfo::createGUI()
 		measures.push_back(d.first);
 	}
 	QWidget* dissimDockContent = setupMatrixView(measures);
-	auto dwDissimMatrix = new iADockWidgetWrapper(dissimDockContent, "Dissimilarity Matrix", "foeMatrix");
+	auto dwDissimMatrix = new iADockWidgetWrapper(
+		dissimDockContent, "Dissimilarity Matrix", "foeMatrix", "https://github.com/3dct/open_iA/wiki/FIAKER");
 	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwDissimMatrix, Qt::Vertical);
 
 	m_gui->m_parameterListView = new iAParameterListView(
 		m_data->m_paramNames, m_data->m_paramValues, m_data->m_variedParams, m_data->m_resultDissimMatrix);
-	auto dwParamView = new iADockWidgetWrapper(m_gui->m_parameterListView, "Parameter View", "foeParameters");
+	auto dwParamView = new iADockWidgetWrapper(
+		m_gui->m_parameterListView, "Parameter View", "foeParameters", "https://github.com/3dct/open_iA/wiki/FIAKER");
 	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwParamView, Qt::Vertical);
 
 
@@ -1232,7 +1236,8 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_splitter->addWidget(m_gui->m_mdsSP);
 	m_gui->m_splitter->addWidget(m_gui->m_colorMapWidget);
 
-	auto dwSP = new iADockWidgetWrapper(m_gui->m_splitter, "Constellation Plots", "foeParamSP");
+	auto dwSP = new iADockWidgetWrapper(
+		m_gui->m_splitter, "Constellation Plots", "foeParamSP", "https://github.com/3dct/open_iA/wiki/FIAKER");
 	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwSP, Qt::Vertical);
 
 	m_gui->updateScatterPlotLUT();
@@ -1242,7 +1247,8 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_mdsSP->setPointInfo(ptInfo);
 
 	m_gui->m_diff3DWidget = new iAQVTKWidget();
-	m_gui->m_dwDiff3D = new iADockWidgetWrapper(m_gui->m_diff3DWidget, "Fiber Difference View", "foeDiff3D");
+	m_gui->m_dwDiff3D = new iADockWidgetWrapper(
+		m_gui->m_diff3DWidget, "Fiber Difference View", "foeDiff3D", "https://github.com/3dct/open_iA/wiki/FIAKER");
 	m_child->splitDockWidget(dwSettings, m_gui->m_dwDiff3D, Qt::Horizontal);
 	m_gui->m_diff3DRenderManager.addToBundle(m_main3DWin->GetRenderers()->GetFirstRenderer());
 	m_gui->m_diff3DWidget->renderWindow()->AddRenderer(m_gui->m_diff3DEmptyRenderer);

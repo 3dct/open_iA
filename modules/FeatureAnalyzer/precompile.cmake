@@ -6,6 +6,7 @@ set(FeatureAnalyzer_PRECOMPILE_INCLUDES
 <iAFeatureAnalyzerTool.h>
 <iALog.h>
 <iAMainWindow.h>
+<iAMathUtility.h>
 <iASegm3DView.h>
 <iASelection.h>
 <memory>

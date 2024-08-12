@@ -89,8 +89,16 @@ namespace
 		for (QString fileName : additionalInput)
 		{
 			auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Load);
-			QVariantMap dummyParams;    // TODO: CHECK whether I/O requires other parameters and error in that case!
+			QVariantMap dummyParams;
+			if (!io || !io->checkParams(dummyParams, iAFileIO::Load, fileName))
+			{
+				throw std::runtime_error(QString("No reader available for file %1, or not the right parameters (note that specifying file input parameters is currently not possible in Patch filter)!").arg(fileName).toStdString());
+			}
 			auto dataSet = io->load(fileName, dummyParams);
+			if (!dataSet)
+			{
+				throw std::runtime_error(QString("Reading file %1 failed!").arg(fileName).toStdString());
+			}
 			if (dataSet->type() == iADataSetType::Collection)
 			{
 				auto c = dynamic_cast<iADataCollection*>(dataSet.get());
@@ -229,9 +237,9 @@ namespace
 							{
 								QStringList captions;
 								captions << "x" << "y" << "z";
-								for (auto outValue : filter->outputValues())
+								for (auto outValueName : filter->outputValues().keys())
 								{
-									captions << outValue.first;
+									captions << outValueName;
 								}
 								outputBuffer.append(captions.join(","));
 							}
@@ -239,14 +247,16 @@ namespace
 							values << QString::number(x) << QString::number(y) << QString::number(z);
 							for (auto outValue : filter->outputValues())
 							{
-								values.append(outValue.second.toString());
+								values.append(outValue.toString());
 							}
 							outputBuffer.append(values.join(","));
 							if (doImage)
 							{
-								for (int i = 0; i < filter->outputValues().size(); ++i)
+								int i = 0;
+								for (auto value: filter->outputValues())
 								{
-									(dynamic_cast<OutputImageType*>(outputImages[i].GetPointer()))->SetPixel(outIdx, filter->outputValues()[i].second.toDouble());
+									(dynamic_cast<OutputImageType*>(outputImages[i].GetPointer()))->SetPixel(outIdx, value.toDouble());
+									++i;
 								}
 							}
 						}

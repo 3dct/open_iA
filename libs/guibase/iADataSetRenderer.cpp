@@ -6,14 +6,11 @@
 #include "iAValueTypeVectorHelpers.h"
 #include "iAvtkActorHelper.h"  // for showActor
 
-#include <iALog.h>
 #include <iAMainWindow.h>
+#include <iAvtkSourcePoly.h>
 
-#include <vtkActor.h>
-#include <vtkCallbackCommand.h>
+#include <vtkCommand.h>
 #include <vtkCubeSource.h>
-#include <vtkOutlineFilter.h>
-#include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 
@@ -26,33 +23,31 @@ public:
 	iAOutlineImpl(iAAABB const& box, vtkRenderer* renderer, QColor const& c) : m_renderer(renderer)
 	{
 		setBounds(box);
-		m_mapper->SetInputConnection(m_cubeSource->GetOutputPort());
-		m_actor->GetProperty()->SetRepresentationToWireframe();
-		m_actor->GetProperty()->SetShading(false);
-		m_actor->GetProperty()->SetOpacity(1);
+		m_cube.actor->GetProperty()->SetRepresentationToWireframe();
+		m_cube.actor->GetProperty()->SetShading(false);
+		m_cube.actor->GetProperty()->SetOpacity(1);
 		//m_actor->GetProperty()->SetLineWidth(2);
-		m_actor->GetProperty()->SetAmbient(1.0);
-		m_actor->GetProperty()->SetDiffuse(0.0);
-		m_actor->GetProperty()->SetSpecular(0.0);
+		m_cube.actor->GetProperty()->SetAmbient(1.0);
+		m_cube.actor->GetProperty()->SetDiffuse(0.0);
+		m_cube.actor->GetProperty()->SetSpecular(0.0);
 		setColor(c);
-		m_actor->SetPickable(false);
-		m_actor->SetMapper(m_mapper);
-		renderer->AddActor(m_actor);
+		m_cube.actor->SetPickable(false);
+		renderer->AddActor(m_cube.actor);
 	}
 	void setVisible(bool visible)
 	{
-		showActor(m_renderer, m_actor, visible);
+		showActor(m_renderer, m_cube.actor, visible);
 	}
 	void setOrientationAndPosition(QVector<double> pos, QVector<double> ori)
 	{
 		assert(pos.size() == 3);
 		assert(ori.size() == 3);
-		m_actor->SetPosition(pos.data());
-		m_actor->SetOrientation(ori.data());
+		m_cube.actor->SetPosition(pos.data());
+		m_cube.actor->SetOrientation(ori.data());
 	}
 	void setBounds(iAAABB const& box)
 	{
-		m_cubeSource->SetBounds(
+		m_cube.source->SetBounds(
 			box.minCorner().x(), box.maxCorner().x(),
 			box.minCorner().y(), box.maxCorner().y(),
 			box.minCorner().z(), box.maxCorner().z()
@@ -60,18 +55,16 @@ public:
 	}
 	void setColor(QColor const& c)
 	{
-		m_actor->GetProperty()->SetColor(c.redF(), c.greenF(), c.blueF());
+		m_cube.actor->GetProperty()->SetColor(c.redF(), c.greenF(), c.blueF());
 	}
 	QColor color() const
 	{
-		auto rgb = m_actor->GetProperty()->GetColor();
+		auto rgb = m_cube.actor->GetProperty()->GetColor();
 		return QColor(rgb[0], rgb[1], rgb[2]);
 	}
 
 private:
-	vtkNew<vtkCubeSource> m_cubeSource;
-	vtkNew<vtkPolyDataMapper> m_mapper;
-	vtkNew<vtkActor> m_actor;
+	iAvtkSourcePoly<vtkCubeSource> m_cube;
 	vtkRenderer* m_renderer;
 };
 

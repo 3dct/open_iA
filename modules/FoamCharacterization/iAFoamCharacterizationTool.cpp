@@ -90,7 +90,7 @@ iAFoamCharacterizationTool::iAFoamCharacterizationTool(iAMainWindow* mainWnd, iA
 	QGridLayout* pGridLayout(new QGridLayout(pWidget));
 	pGridLayout->addWidget(pGroupBox1);
 
-	iADockWidgetWrapper* pDockWidgetWrapper(new iADockWidgetWrapper(pWidget, tr("Foam characterization"), "FoamCharacterization"));
+	iADockWidgetWrapper* pDockWidgetWrapper(new iADockWidgetWrapper(pWidget, tr("Foam characterization"), "FoamCharacterization", "https://github.com/3dct/open_iA/wiki/Tools"));
 	child->tabifyDockWidget(child->renderDockWidget(), pDockWidgetWrapper);
 }
 

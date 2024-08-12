@@ -64,7 +64,7 @@ struct iAConverter<unsigned short>
 	}
 };
 
-//! Converts unsigned short to and from QString.
+//! Converts size type (typically 64 bit unsigned) to and from QString.
 template <>
 struct iAConverter<size_t>
 {
@@ -73,6 +73,20 @@ struct iAConverter<size_t>
 		return str.toULongLong(ok);
 	}
 	static QString toString(size_t n)
+	{
+		return QString::number(n);
+	}
+};
+
+//! Converts a 64 bit integer to and from QString.
+template <>
+struct iAConverter<int64_t>
+{
+	static int64_t toT(QString str, bool* ok)
+	{
+		return str.toLongLong(ok);
+	}
+	static QString toString(int64_t n)
 	{
 		return QString::number(n);
 	}

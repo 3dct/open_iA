@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "mdichild.h"
 
-#include "dlg_slicer.h"
-#include "ui_Mdichild.h"
+#include "iASlicerContainer.h"
 #include "ui_renderer.h"
 
 #include "iADataSetViewerImpl.h"
@@ -74,13 +73,13 @@
 
 #include <numbers>
 
-// avoid iQTtoUIConnector in order to avoid having to include that .h file in mdichild.h
-class dlg_renderer : public QDockWidget, public Ui_renderer
+//! avoid iAQTtoUIConnector to be able to forward-declare iARendererContainer
+class iARendererContainer : public QWidget, public Ui_renderer
 {
 public:
-	dlg_renderer(QWidget* parent = nullptr) : QDockWidget(parent)
+	iARendererContainer(QWidget* parent) : QWidget(parent)
 	{
-		this->setupUi(this);
+		setupUi(this);
 	}
 };
 
@@ -95,29 +94,34 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_slicerTransform(vtkSmartPointer<vtkTransform>::New()),
 	m_dataSetInfo(new QListWidget(this)),
 	m_dataSetListWidget(new iADataSetListWidget()),
-	m_dwInfo(new iADockWidgetWrapper(m_dataSetInfo, "Dataset Info", "DataInfo")),
-	m_dwDataSets(new iADockWidgetWrapper(m_dataSetListWidget, "Datasets", "DataSets")),
+	m_rendererContainer(new iARendererContainer(this)),
+	m_dwInfo(new iADockWidgetWrapper(m_dataSetInfo, "Dataset Info", "DataInfo", "https://github.com/3dct/open_iA/wiki/Core#widgets")),
+	m_dwDataSets(new iADockWidgetWrapper(m_dataSetListWidget, "Datasets", "DataSets", "https://github.com/3dct/open_iA/wiki/Dataset-List")),
+	m_dwRenderer(new iADockWidgetWrapper(m_rendererContainer, "3D Renderer", "renderer", "https://github.com/3dct/open_iA/wiki/3D-Renderer")),
 	m_nextChannelID(0),
 	m_magicLensChannel(NotExistingChannel),
 	m_magicLensDataSet(0),
 	m_interactionMode(imCamera),
-	m_nextDataSetID(0),
-	m_ui(std::make_shared<Ui_Mdichild>())
+	m_nextDataSetID(0)
 {
 	setAcceptDrops(true);
+	setWindowIcon(QIcon(QPixmap(":/images/iA.svg")));
 	setAttribute(Qt::WA_DeleteOnClose);
-	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
+	setTabShape(QTabWidget::Triangular);
+	setDockOptions(QMainWindow::AllowTabbedDocks | QMainWindow::AllowNestedDocks | QMainWindow::GroupedDragging);
 	setWindowModified(unsavedChanges);
-	m_ui->setupUi(this);
 	setCentralWidget(nullptr);
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
-	m_dwRenderer = new dlg_renderer(this);
 	addDockWidget(Qt::LeftDockWidgetArea, m_dwRenderer);
 	m_initialLayoutState = saveState();
 	for (int i = 0; i < 3; ++i)
 	{
-		m_slicer[i] = new iASlicerImpl(this, static_cast<iASlicerMode>(i), true, true, m_slicerTransform);
-		m_dwSlicer[i] = new dlg_slicer(m_slicer[i]);
+		auto sliceMode = static_cast<iASlicerMode>(i);
+		m_slicer[i] = new iASlicerImpl(this, sliceMode, true, true, m_slicerTransform);
+		auto sn = slicerModeString(sliceMode);
+		m_slicerContainer[i] = new iASlicerContainer(m_slicer[i]);
+		m_dwSlicer[i] = new iADockWidgetWrapper(m_slicerContainer[i], QString("Slice %1").arg(sn), QString("slice%1").arg(sn),
+			"https://github.com/3dct/open_iA/wiki/2D-Slicers");
 	}
 	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::XY], Qt::Horizontal);
 	splitDockWidget(m_dwSlicer[iASlicerMode::XY], m_dwSlicer[iASlicerMode::XZ], Qt::Vertical);
@@ -129,7 +133,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	splitDockWidget(m_dwRenderer, m_dwDataSets, Qt::Vertical);
 	splitDockWidget(m_dwDataSets, m_dwInfo, Qt::Horizontal);
 
-	m_renderer = new iARendererImpl(this, dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_dwRenderer->vtkWidgetRC->renderWindow()));
+	m_renderer = new iARendererImpl(this, dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_rendererContainer->vtkWidgetRC->renderWindow()));
 
 	connectSignalsToSlots();
 }
@@ -162,7 +166,7 @@ void MdiChild::connectSignalsToSlots()
 
 	connect(m_dataSetListWidget, &iADataSetListWidget::dataSetSelected, this, &iAMdiChild::dataSetSelected);
 
-	connect(m_renderer, &iARendererImpl::bgColorChanged, m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::setLensBackground);
+	connect(m_renderer, &iARendererImpl::bgColorChanged, m_rendererContainer->vtkWidgetRC, &iAFast3DMagicLensWidget::setLensBackground);
 	connect(m_renderer, &iARendererImpl::interactionModeChanged, this, [this](bool camera)
 	{
 		setInteractionMode(camera ? imCamera : imRegistration);
@@ -171,42 +175,42 @@ void MdiChild::connectSignalsToSlots()
 	{
 		for (int i = 0; i < 3; ++i)
 		{
-			m_dwSlicer[i]->showBorder(m_renderer->isShowSlicePlanes());
+			m_slicerContainer[i]->showBorder(m_renderer->isShowSlicePlanes());
 		}
 		auto s = m_renderer->settings()[iARendererImpl::MagicLensSize].toInt();
 		auto fw = m_renderer->settings()[iARendererImpl::MagicLensFrameWidth].toInt();
-		m_dwRenderer->vtkWidgetRC->setLensSize(s, s);
-		m_dwRenderer->vtkWidgetRC->setFrameWidth(fw);
+		m_rendererContainer->vtkWidgetRC->setLensSize(s, s);
+		m_rendererContainer->vtkWidgetRC->setFrameWidth(fw);
 	};
 	connect(m_renderer, &iARendererImpl::settingsChanged, this, adaptSlicerBorders);
 	adaptSlicerBorders();
-	m_dwRenderer->vtkWidgetRC->setContextMenuEnabled(true);
+	m_rendererContainer->vtkWidgetRC->setContextMenuEnabled(true);
 	// TODO: merge iAFast3DMagicLensWidget (at least iAQVTKWidget part) with iARenderer, then this can be moved there:
-	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::editSettings, m_renderer, &iARendererImpl::editSettings);
-	connect(m_dwRenderer->tbMax, &QPushButton::clicked, this, &MdiChild::maximizeRenderer);
-	connect(m_dwRenderer->pbToggleInteraction, &QPushButton::clicked, this, [this]
+	connect(m_rendererContainer->vtkWidgetRC, &iAFast3DMagicLensWidget::editSettings, m_renderer, &iARendererImpl::editSettings);
+	connect(m_rendererContainer->tbMax, &QPushButton::clicked, this, &MdiChild::maximizeRenderer);
+	connect(m_rendererContainer->pbToggleInteraction, &QPushButton::clicked, this, [this]
 	{
 		enableRendererInteraction(!isRendererInteractionEnabled());
 	});
-	connect(m_dwRenderer->pushPX,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::PX); });
-	connect(m_dwRenderer->pushPY,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::PY); });
-	connect(m_dwRenderer->pushPZ,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::PZ); });
-	connect(m_dwRenderer->pushMX,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::MX); });
-	connect(m_dwRenderer->pushMY,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::MY); });
-	connect(m_dwRenderer->pushMZ,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::MZ); });
-	connect(m_dwRenderer->pushIso, &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::Iso); });
-	connect(m_dwRenderer->pbSaveScreen, &QPushButton::clicked, this, &MdiChild::saveRC);
-	connect(m_dwRenderer->pbSaveMovie, &QPushButton::clicked, this, &MdiChild::saveMovRC);
+	connect(m_rendererContainer->pushPX,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::PX); });
+	connect(m_rendererContainer->pushPY,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::PY); });
+	connect(m_rendererContainer->pushPZ,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::PZ); });
+	connect(m_rendererContainer->pushMX,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::MX); });
+	connect(m_rendererContainer->pushMY,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::MY); });
+	connect(m_rendererContainer->pushMZ,  &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::MZ); });
+	connect(m_rendererContainer->pushIso, &QPushButton::clicked, this, [this] { m_renderer->setCamPosition(iACameraPosition::Iso); });
+	connect(m_rendererContainer->pbSaveScreen, &QPushButton::clicked, this, &MdiChild::saveRC);
+	connect(m_rendererContainer->pbSaveMovie, &QPushButton::clicked, this, &MdiChild::saveMovRC);
 	// { TODO: strange way to forward signals, find out why we need to do this and find better way:
-	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARendererImpl::mouseRightButtonReleasedSlot);
-	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARendererImpl::mouseLeftButtonReleasedSlot);
-	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::touchStart, m_renderer, &iARendererImpl::touchStart);
-	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::touchScale, m_renderer, &iARendererImpl::touchScaleSlot);
+	connect(m_rendererContainer->vtkWidgetRC, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARendererImpl::mouseRightButtonReleasedSlot);
+	connect(m_rendererContainer->vtkWidgetRC, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARendererImpl::mouseLeftButtonReleasedSlot);
+	connect(m_rendererContainer->vtkWidgetRC, &iAFast3DMagicLensWidget::touchStart, m_renderer, &iARendererImpl::touchStart);
+	connect(m_rendererContainer->vtkWidgetRC, &iAFast3DMagicLensWidget::touchScale, m_renderer, &iARendererImpl::touchScaleSlot);
 	//! }
 
 	for (int s = 0; s < iASlicerMode::SlicerCount; ++s)
 	{
-		connect(m_dwSlicer[s]->tbMax, &QPushButton::clicked, [this, s] { maximizeSlicer(s); });
+		connect(m_slicerContainer[s]->tbMax, &QPushButton::clicked, [this, s] { maximizeSlicer(s); });
 		connect(m_dwSlicer[s], &QDockWidget::visibilityChanged, [this, s] { m_renderer->showSlicePlane(s, m_dwSlicer[s]->isVisible()); });
 		m_manualMoveStyle[s] = vtkSmartPointer<iAvtkInteractStyleActor>::New();
 		connect(m_manualMoveStyle[s].Get(), &iAvtkInteractStyleActor::actorsUpdated, this, &iAMdiChild::updateViews);
@@ -252,9 +256,8 @@ void MdiChild::updatePositionMarker(double x, double y, double z, int mode)
 			continue;
 		}
 		if (m_slicerSettings.LinkViews && m_slicer[i]->hasChannel(0))  // TODO: check for whether dataset is shown in slicer?
-		{   // TODO: set "slice" based on world coordinates directly instead of spacing?
-			double spacing = m_slicer[i]->channel(0)->input()->GetSpacing()[i];
-			m_dwSlicer[i]->sbSlice->setValue(pos[mapSliceToGlobalAxis(i, iAAxisIndex::Z)] / spacing);
+		{
+			m_slicer[i]->setSlicePosition(pos[mapSliceToGlobalAxis(i, iAAxisIndex::Z)]);
 		}
 		if (m_slicer[i]->settings()[iASlicerImpl::ShowPosition].toBool())
 		{
@@ -631,17 +634,6 @@ void MdiChild::setPredefCamPos(int pos)
 
 void MdiChild::setSlice(int mode, int s)
 {
-	//Update Slicer if changed
-	if (m_dwSlicer[mode]->sbSlice->value() != s)
-	{
-		QSignalBlocker block(m_dwSlicer[mode]->sbSlice);
-		m_dwSlicer[mode]->sbSlice->setValue(s);
-	}
-	if (m_dwSlicer[mode]->verticalScrollBar->value() != s)
-	{
-		QSignalBlocker block(m_dwSlicer[mode]->verticalScrollBar);
-		m_dwSlicer[mode]->verticalScrollBar->setValue(s);
-	}
 	set3DSlicePlanePos(mode, s);
 }
 
@@ -669,9 +661,10 @@ void MdiChild::slicerRotationChanged(int mode, double angle)
 	}
 }
 
-void MdiChild::linkViews(bool l)
+void MdiChild::linkSliceViews(bool l)
 {
 	m_slicerSettings.LinkViews = l;
+	emit linkSliceViewsChanged(l);
 }
 
 void MdiChild::linkMDIs(bool lm)
@@ -770,7 +763,7 @@ void MdiChild::resetLayout()
 void MdiChild::applySlicerSettings(iASlicerSettings const& ss)
 {
 	m_slicerSettings = ss;
-	linkViews(ss.LinkViews);
+	linkSliceViews(ss.LinkViews);
 	linkMDIs(ss.LinkMDIs);
 	emit slicerSettingsChanged();
 }
@@ -832,11 +825,11 @@ void MdiChild::toggleMagicLens3D(bool isEnabled)
 			QMessageBox::warning(this, "3D magic lens", msg);
 			LOG(lvlWarn, msg);
 		}
-		m_dwRenderer->vtkWidgetRC->magicLensOn();
+		m_rendererContainer->vtkWidgetRC->magicLensOn();
 	}
 	else
 	{
-		m_dwRenderer->vtkWidgetRC->magicLensOff();
+		m_rendererContainer->vtkWidgetRC->magicLensOff();
 	}
 }
 
@@ -847,7 +840,7 @@ bool MdiChild::isMagicLens2DEnabled() const
 
 bool MdiChild::isMagicLens3DEnabled() const
 {
-	return m_dwRenderer->vtkWidgetRC->isMagicLensEnabled();
+	return m_rendererContainer->vtkWidgetRC->isMagicLensEnabled();
 }
 
 void MdiChild::updateDataSetInfo()
@@ -1036,7 +1029,7 @@ void MdiChild::updateRenderer()
 	m_renderer->update();
 	m_renderer->renderWindow()->GetInteractor()->Modified();
 	m_renderer->renderWindow()->GetInteractor()->Render();
-	m_dwRenderer->vtkWidgetRC->update();
+	m_rendererContainer->vtkWidgetRC->update();
 }
 
 void MdiChild::updateChannelOpacity(uint id, double opacity)
@@ -1166,17 +1159,17 @@ iASlicer* MdiChild::slicer(int mode)
 
 QWidget* MdiChild::rendererWidget()
 {
-	return m_dwRenderer->vtkWidgetRC;
+	return m_rendererContainer->vtkWidgetRC;
 }
 
 QSlider* MdiChild::slicerScrollBar(int mode)
 {
-	return m_dwSlicer[mode]->verticalScrollBar;
+	return m_slicerContainer[mode]->verticalScrollBar;
 }
 
 QHBoxLayout* MdiChild::slicerContainerLayout(int mode)
 {
-	return m_dwSlicer[mode]->horizontalLayout_2;
+	return m_slicerContainer[mode]->slicerContainerLayout;
 }
 
 QDockWidget* MdiChild::slicerDockWidget(int mode)
@@ -1265,7 +1258,7 @@ void MdiChild::reInitMagicLens(uint id, QString const& name, vtkSmartPointer<vtk
 
 vtkRenderer* MdiChild::magicLens3DRenderer() const
 {
-	return m_dwRenderer->vtkWidgetRC->getLensRenderer();
+	return m_rendererContainer->vtkWidgetRC->getLensRenderer();
 }
 
 QString MdiChild::filePath() const
@@ -1336,7 +1329,7 @@ void MdiChild::changeMagicLensDataSet(int chg)
 
 void MdiChild::set3DControlVisibility(bool visible)
 {
-	m_dwRenderer->widget3D->setVisible(visible);
+	m_rendererContainer->rendererControls->setVisible(visible);
 }
 
 std::shared_ptr<iADataSet> MdiChild::dataSet(size_t dataSetIdx) const

@@ -68,6 +68,7 @@
 #include <QTextStream>
 #include <QTimer>
 #include <QtXml/QDomDocument>
+#include <QWindow>
 
 namespace
 {
@@ -212,14 +213,14 @@ T* MainWindow::activeChild()
 }
 
 MainWindow::MainWindow(QString const & appName, QString const & version, QString const & buildInformation,
-	QString const & splashImage, QSplashScreen& splashScreen, iADockWidgetWrapper* dwJobs) :
+	QString const & splashImage, QSplashScreen& splashScreen) :
 	m_splashScreenImg(splashImage),
 	m_useSystemTheme(false),
 	m_moduleDispatcher( new iAModuleDispatcher( this ) ),
 	m_gitVersion(version),
 	m_buildInformation(buildInformation),
 	m_ui(std::make_shared<Ui_MainWindow>()),
-	m_dwJobs(dwJobs),
+	m_dwJobs(new iADockWidgetWrapper(iAJobListView::get(), "Job List", "Jobs")),
 	m_openJobListOnNewJob(false)
 {
 	assert(!m_mainWnd);
@@ -244,12 +245,12 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	readSettings();
 
 	showSplashMsg(splashScreen, "Setting up user interface...");
-	m_ui->actionLinkViews->setChecked(m_defaultSlicerSettings.LinkViews);//removed from readSettings, if is needed at all?
+	m_ui->actionLinkSliceViews->setChecked(m_defaultSlicerSettings.LinkViews);//removed from readSettings, if is needed at all?
 	m_ui->actionLinkMdis->setChecked(m_defaultSlicerSettings.LinkMDIs);
 	setCentralWidget(m_ui->mdiArea);
 	addDockWidget(Qt::RightDockWidgetArea, iALogWidget::get());
-	splitDockWidget(iALogWidget::get(), dwJobs, Qt::Vertical);
-	dwJobs->setFeatures(dwJobs->features() & ~QDockWidget::DockWidgetVerticalTitleBar);
+	splitDockWidget(iALogWidget::get(), m_dwJobs, Qt::Vertical);
+	m_dwJobs->setFeatures(m_dwJobs->features() & ~QDockWidget::DockWidgetVerticalTitleBar);
 
 	createRecentFileActions();
 	connectSignalsToSlots();
@@ -270,7 +271,6 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 			m_layout->setCurrentIndex(i);
 		}
 	}
-	m_layout->setStyleSheet("padding: 0");
 	m_layout->resize(m_layout->geometry().width(), 100);
 	m_layout->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 	m_ui->layoutToolbar->insertWidget(m_ui->actionSaveLayout, m_layout);
@@ -302,6 +302,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	addActionIcon(m_ui->actionSaveProject, "save-all");
 	addActionIcon(m_ui->actionEditProfilePoints, "profile-edit");
 	addActionIcon(m_ui->actionRawProfile, "profile-raw");
+	addActionIcon(m_ui->actionLinkSliceViews, "slicer-sync");
 	addActionIcon(m_ui->actionSyncCamera, "camera-sync");
 	addActionIcon(m_ui->actionInteractionModeCamera, "camera");
 	addActionIcon(m_ui->actionLoadCameraSettings, "camera-load");
@@ -682,8 +683,8 @@ void MainWindow::linkViews()
 	{
 		return;
 	}
-	m_defaultSlicerSettings.LinkViews = m_ui->actionLinkViews->isChecked();
-	activeMDI()->linkViews(m_defaultSlicerSettings.LinkViews);
+	m_defaultSlicerSettings.LinkViews = m_ui->actionLinkSliceViews->isChecked();
+	activeMDI()->linkSliceViews(m_defaultSlicerSettings.LinkViews);
 	LOG(lvlInfo, QString("Link Views: ").arg(iAConverter<bool>::toString(m_defaultSlicerSettings.LinkViews)));
 }
 
@@ -1154,7 +1155,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionYZ, &QAction::triggered, this, [childCall] { childCall(&MdiChild::maximizeSlicer, iASlicerMode::YZ); });
 	connect(m_ui->action3D, &QAction::triggered, this, [childCall] { childCall(&MdiChild::maximizeRenderer); } );
 	connect(m_ui->actionMultiViews, &QAction::triggered, this, [childCall] { childCall(&MdiChild::multiview); });
-	connect(m_ui->actionLinkViews, &QAction::triggered, this, &MainWindow::linkViews);
+	connect(m_ui->actionLinkSliceViews, &QAction::triggered, this, &MainWindow::linkViews);
 	connect(m_ui->actionLinkMdis, &QAction::triggered, this, &MainWindow::linkMDIs);
 	connect(m_ui->actionToggleSlicerInteraction, &QAction::triggered, this, &MainWindow::toggleSlicerInteraction);
 	connect(m_ui->actionToggleRendererInteraction, &QAction::triggered, this, [this, childCall] {
@@ -1791,42 +1792,110 @@ void MainWindow::loadArguments(int argc, char** argv)
 	bool doQuit = false;
 	int quitMS = 0;
 	bool separateWindows = false;
+	bool screenshot = false;
+	QString screenshotFileName;
+	int w = -1, h = -1;
 	for (int a = 1; a < argc; ++a)
 	{
 		if (QString(argv[a]).startsWith("--quit"))
 		{
 			++a;
-			bool ok;
-			quitMS = QString(argv[a]).toInt(&ok);
-			doQuit = ok;
+			bool ok = a < argc;
+			if (ok)
+			{
+				quitMS = QString(argv[a]).toInt(&ok);
+				doQuit = ok;
+			}
 			if (!ok)
 			{
-				LOG(lvlWarn, "Invalid --quit parameter; must be followed by an integer number (milliseconds) after which to quit, e.g. '--quit 1000'");
+				LOG(lvlWarn, "Command line arguments: Invalid --quit parameter; must be followed by an integer number (milliseconds) after which to quit, e.g. '--quit 1000'");
 			}
 		}
 		else if (QString(argv[a]).startsWith("--separate"))
 		{
 			separateWindows = true;
 		}
+		else if (QString(argv[a]).startsWith("--screenshot"))
+		{
+			++a;
+			if (a >= argc)
+			{
+				LOG(lvlWarn, "Command line arguments: Invalid --screenshot parameter; must be followed by a filename for the screenshot to be stored!");
+			}
+			screenshotFileName = QString(argv[a]);
+			screenshot = true;
+		}
+		else if (QString(argv[a]).startsWith("--size"))
+		{
+			++a;
+			bool ok = a < argc;
+			if (ok)
+			{
+				auto size = QString(argv[a]).split("x");
+				ok = size.size() == 2;
+				if (ok)
+				{
+					bool ok1, ok2;
+					w = size[0].toInt(&ok1);
+					h = size[1].toInt(&ok2);
+					ok = ok1 && ok2;
+				}
+			}
+			if (!ok)
+			{
+				LOG(lvlWarn, "Command line arguments: Invalid --size parameter; must be followed by a size in the format WxH (where W and H are width and height)!");
+			}
+		}
 		else
 		{
 			filesToLoad << QString::fromLocal8Bit(argv[a]);
 		}
+	}
+	if (screenshot && !doQuit)
+	{
+		LOG(lvlWarn, "Command line arguments: --screenshot was specified, but that will not have any effect without --quit parameter!");
+	}
+	if (w != -1 && h != -1)
+	{
+		// using devicePixelRatio() to get actual pixel values
+		setGeometry(0, 0, w / devicePixelRatio(), h / devicePixelRatio());
+		QGuiApplication::processEvents();
 	}
 	loadFiles(filesToLoad, iAChildSource::make(separateWindows) );
 	if (doQuit)
 	{
 		auto quitTimer = new QTimer();
 		quitTimer->setSingleShot(true);
-		auto quitFunc = [quitTimer]()
+		auto quitFunc = [quitTimer, quitMS, screenshot, screenshotFileName, this]()
 		{
 			if (iAJobListView::get()->isAnyJobRunning())
 			{
-				constexpr int RecheckTimeMS = 1000;
-				quitTimer->start(RecheckTimeMS);
+				quitTimer->start(quitMS);
 				return;
 			}
-			delete quitTimer;
+			if (screenshot)
+			{
+				QScreen* screen = QGuiApplication::primaryScreen();
+				if (auto const window = windowHandle())
+				{
+					screen = windowHandle()->screen();
+				}
+				if (!screen)
+				{
+					LOG(lvlWarn, "Could not get current screen!");
+				}
+				auto pixmap = screen->grabWindow(winId());
+				if (!pixmap.save(screenshotFileName))
+				{
+					LOG(lvlWarn, QString("Saving screenshot to file %1 failed!").arg(screenshotFileName));
+				}
+				else
+				{
+					LOG(lvlInfo, QString("Successfully stored screenshot to file %1.").arg(screenshotFileName));
+				}
+			}
+			LOG(lvlInfo, "Closing application because of --quit parameter");
+			quitTimer->deleteLater();
 			QApplication::closeAllWindows();
 		};
 		connect(quitTimer, &QTimer::timeout, this, quitFunc);
@@ -1958,7 +2027,7 @@ public:
 		return QProxyStyle::styleHint(hint, option, widget, returnData);
 	}
 
-	//! {
+	//! @{
 	//! For drawing the MDI controls (close, float, minimize buttons) in the menu bar
 	//! when MDI children are maximized
 	void drawSubControl(QStyleOptionComplex const * opt, QPainter* p, QWidget const* widget, SubControl subControl, QString const& iconName) const
@@ -2050,8 +2119,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	}
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
 	iALUT::loadMaps(QCoreApplication::applicationDirPath() + "/colormaps");
-	auto dwJobs = new iADockWidgetWrapper(iAJobListView::get(), "Job List", "Jobs");
-	MainWindow mainWin(appName, version, buildInformation, splashPath, splashScreen, dwJobs);
+	MainWindow mainWin(appName, version, buildInformation, splashPath, splashScreen);
 	connect(iASystemThemeWatcher::get(), &iASystemThemeWatcher::themeChanged, &mainWin,
 		[&mainWin](bool brightTheme) {
 			if (mainWin.m_useSystemTheme)

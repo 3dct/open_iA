@@ -27,6 +27,7 @@ public:
 	static constexpr const char InterpolateLinear[] = "Linear";
 	static constexpr const char ScalarOpacityUnitDistance[] = "Scalar Opacity Unit Distance";
 	static constexpr const char RendererType[] = "Renderer Type";
+	static constexpr const char BlendMode[] = "Blend Mode";
 	static constexpr const char SampleDistance[] = "Sample Distance";
 	static constexpr const char InteractiveAdjustSampleDistance[] = "Interactively Adjust Sample Distances";
 	static constexpr const char AutoAdjustSampleDistance[] = "Auto-Adjust Sample Distances";
@@ -58,3 +59,11 @@ private:
 	vtkSmartPointer<vtkSmartVolumeMapper> m_volMapper;
 	vtkImageData* m_image;
 };
+
+
+// ----- Setting Details -----
+
+//! maps the names of render modes available for volumes (Smart/Volume/GPU) to their IDs
+iAguibase_API QMap<QString, int> const& RenderModeMap();
+//! map the given render mode name to the matching VTK enum value
+iAguibase_API int mapRenderModeToEnum(QString const&);

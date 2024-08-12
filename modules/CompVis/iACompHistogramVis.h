@@ -4,8 +4,7 @@
 
 //CompVis
 #include "iACompVisOptions.h"
-#include "iACompHistogramTableData.h"
-#include "ui_CompHistogramTable.h"
+#include "iACompHistogramTableData.h"    // for bin::BinType
 
 //vtk
 #include <vtkSmartPointer.h>
@@ -14,14 +13,15 @@
 #include <QDockWidget>
 
 //CompVis
-class iAMainWindow;
+class iACompCombiTable;
+class iACompCurve;
+class iACompHistogramTable;
 class iACompUniformBinningData;
 class iACompUniformTable;
 class iACompVariableTable;
-class iACompHistogramTable;
-class iACompCurve;
-class iACompCombiTable;
 class iACsvDataStorage;
+
+class iAMainWindow;
 
 class iAQVTKWidget;
 
@@ -31,9 +31,8 @@ class vtkRenderer;
 class vtkCamera;
 
 
-class iACompHistogramVis : public QDockWidget, public Ui_CompHistogramTable
+class iACompHistogramVis : public QDockWidget
 {
-
 public:
 	iACompHistogramVis(iACompHistogramTable* table, iAMainWindow* parent, int amountDatasets, bool MDSComputedFlag);
 

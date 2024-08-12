@@ -12,6 +12,7 @@ set(MetaFilters_PRECOMPILE_INCLUDES
 <iANameMapper.h>
 <iAParameterNames.h>
 <iAProgress.h>
+<iASampleFilter.h>
 <iASampleOperation.h>
 <iASamplingMethod.h>
 <iASamplingMethodImpl.h>

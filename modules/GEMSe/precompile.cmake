@@ -10,11 +10,10 @@ set(GEMSe_PRECOMPILE_INCLUDES
 <iAClusterAttribChart.h>
 <iAColorTheme.h>
 <iAConnector.h>
-<iADataSet.h>
 <iAFakeTreeNode.h>
-<iAFileUtils.h>
 <iAGEMSeConstants.h>
 <iAGEMSeTool.h>
+<iAImageData.h>
 <iAImageNodeWidget.h>
 <iAImagePreviewWidget.h>
 <iAImageTree.h>

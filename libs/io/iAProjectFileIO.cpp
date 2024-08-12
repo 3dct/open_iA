@@ -68,25 +68,20 @@ std::shared_ptr<iADataSet> iAProjectFileIO::loadData(QString const& fileName, QV
 	{
 		settings.beginGroup(dataSetGroup(idx, settings.contains(dataSetGroup(idx, true) + "/" + iADataSet::FileNameKey) ? true: false));
 		QString dataSetFileName = MakeAbsolute(fi.absolutePath(), settings.value("File").toString());
-		try
+		auto io = iAFileTypeRegistry::createIO(dataSetFileName, iAFileIO::Load);
+		if (io)
 		{
-			auto io = iAFileTypeRegistry::createIO(dataSetFileName, iAFileIO::Load);
-			if (io)
+			auto dataSetParamValues = mapFromQSettings(settings);
+			auto currentDataSet = io->load(dataSetFileName, dataSetParamValues);
+			if (currentDataSet)
 			{
-				auto dataSetParamValues = mapFromQSettings(settings);
-				auto currentDataSet = io->load(dataSetFileName, dataSetParamValues);
 				currentDataSet->setMetaData(dataSetParamValues);
 				result->addDataSet(currentDataSet);
 			}
-		}
-		// catch exceptions here to skip only the current dataset on error, don't abort loading the whole project
-		catch (std::exception const & e)    // includes itk::ExceptionObject
-		{
-			LOG(lvlError, QString("Error loading file %1: %2").arg(fileName).arg(e.what()));
-		}
-		catch (...)
-		{
-			LOG(lvlError, QString("Unknown error while loading file %1!").arg(fileName));
+			else
+			{
+				LOG(lvlError, QString("Failed to load dataset %1, skipping...").arg(dataSetFileName));
+			}
 		}
 		settings.endGroup();
 		++idx;

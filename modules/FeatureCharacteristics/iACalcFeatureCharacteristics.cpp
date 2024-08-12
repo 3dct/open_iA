@@ -8,6 +8,7 @@ IAFILTER_DEFAULT_CLASS(iACalcFeatureCharacteristics);
 #include <defines.h>          // for DIM
 #include <iALog.h>
 #include <iAProgress.h>
+#include <iAVec3.h>
 
 // base
 #include <iAImageData.h>
@@ -17,8 +18,8 @@ IAFILTER_DEFAULT_CLASS(iACalcFeatureCharacteristics);
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshorten-64-to-32"
 #endif
+#include <itkCastImageFilter.h>
 #include <itkLabelImageToShapeLabelMapFilter.h>
-#include <itkLabelGeometryImageFilter.h>
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
@@ -27,8 +28,8 @@ IAFILTER_DEFAULT_CLASS(iACalcFeatureCharacteristics);
 
 #include <numbers>
 
-template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAProgress* progress,
-	QString pathCSV, bool feretDiameter, bool calculateAdvancedChars, bool calculateRoundness)
+template<class T> void calcFeatureCharacteristics(iAFilter* filter, itk::ImageBase<3>* itkImg,
+	QString pathCSV, bool feretDiameter, bool calculateAdvancedChars, bool calculateRoundness, bool computeAverages)
 {
 	// Cast image to type long
 	typedef itk::Image< T, DIM > InputImageType;
@@ -39,75 +40,7 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 	castfilter->Update();
 	typename LongImageType::Pointer longImage = castfilter->GetOutput();
 
-	// Writing pore csv file
-	double spacing = longImage->GetSpacing()[0];
-	std::ofstream fout( pathCSV.toStdString());
-
-	// Header of pore csv file
-	fout << "Spacing" << ',' << spacing << '\n'
-		<< "Voids\n"
-		<< '\n'
-		<< '\n'
-		<< "Label Id" << ','
-		<< "X1" << ','
-		<< "Y1" << ','
-		<< "Z1" << ','
-		<< "X2" << ','
-		<< "Y2" << ','
-		<< "Z2" << ','
-		<< "a11" << ','
-		<< "a22" << ','
-		<< "a33" << ','
-		<< "a12" << ','
-		<< "a13" << ','
-		<< "a23" << ','
-		<< "DimX" << ','
-		<< "DimY" << ','
-		<< "DimZ" << ','
-		<< "phi" << ','
-		<< "theta" << ','
-		<< "Xm" << ','
-		<< "Ym" << ','
-		<< "Zm" << ','
-		//<< "Shape factor" << ','
-		<< "Volume" << ','
-		<< "Roundness" << ','
-		<< "FeretDiam" << ','
-		<< "Flatness" << ','
-		<< "VoxDimX" << ','
-		<< "VoxDimY" << ','
-		<< "VoxDimZ" << ','
-		<< "MajorLength" << ','
-		<< "MinorLength" << ',';
-
-		if (calculateAdvancedChars)
-		{
-			fout << "Elongation" << ','
-				<< "Perimeter" << ','
-				<< "EquivalentSphericalRadius" << ','
-				<< "MiddleAxisLength" << ","
-				//<< "Sphericity" << ","
-				//<< "Surface " << ",";
-				/*<< "RadiusManually" << ","*/
-				<< "RatioAxisLongToAxisMiddle" << ","
-				<< "RatioMiddleToSmallest" << ","
-				<< "Dir2_X1" << "," << "Dir2_Y1" << "," << "Dir2_Z1" << ","
-				<< "Dir2_X2" << "," << "Dir_Y2" << "," << "Dir2_Z2" << ",";
-		}
-		fout << '\n';
-
-	// Initalisation of itk::LabelGeometryImageFilter for calculating pore parameters
-	auto labelGeometryImageFilter = itk::LabelGeometryImageFilter<LongImageType>::New();
-	labelGeometryImageFilter->SetInput( longImage );
-
-	// These generate optional outputs.
-	//labelGeometryImageFilter->CalculatePixelIndicesOn();
-	//labelGeometryImageFilter->CalculateOrientedBoundingBoxOn();
-	//labelGeometryImageFilter->CalculateOrientedLabelRegionsOn();
-	//labelGeometryImageFilter->CalculateOrientedIntensityRegionsOn();
-	labelGeometryImageFilter->Update();
-
-	// Initalisation of itk::LabelImageToShapeLabelMapFilter for calculating other pore parameters
+	filter->progress()->setStatus("Computing feature maps");
 	typedef unsigned long LabelType;
 	typedef itk::ShapeLabelObject<LabelType, DIM>	ShapeLabelObjectType;
 	typedef itk::LabelMap<ShapeLabelObjectType>	LabelMapType;
@@ -116,58 +49,68 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 	i2l->SetInput( longImage );
 	i2l->SetComputePerimeter(calculateAdvancedChars);
 	i2l->SetComputeFeretDiameter(feretDiameter);
+	i2l->SetComputeOrientedBoundingBox(true);
+	filter->progress()->observe(i2l);
 	i2l->Update();
 
 	LabelMapType *labelMap = i2l->GetOutput();
-	auto allLabels = labelGeometryImageFilter->GetLabels();
-
-	// Pore Characteristics calculation
-	for (auto labelValue: allLabels)
+	filter->progress()->setStatus("Computing individual characteristics and writing .csv");
+	// Writing pore csv file
+	double spc = longImage->GetSpacing()[0];
+	std::ofstream fout(pathCSV.toStdString());
+	// Header of pore csv file
+	fout << "Spacing," << spc << '\n'
+		<< "Voids\n\n\n"
+		<< "Label Id,"
+		<< "X1,Y1,Z1,"
+		<< "X2,Y2,Z2,"
+		<< "a11,a22,a33,a12,a13,a23,"
+		<< "DimX,DimY,DimZ,"
+		<< "phi,theta,"
+		<< "Xm,Ym,Zm,"
+		<< "Volume,"
+		<< "Roundness,"
+		<< "FeretDiam,"
+		<< "Flatness,"
+		<< "VoxDimX,VoxDimY,VoxDimZ,"
+		<< "MajorLength,MinorLength,";
+	if (calculateAdvancedChars)
 	{
-		if ( labelValue == 0 )	// label 0 = background
+		fout << "Elongation,"
+			<< "Perimeter,"
+			<< "EquivalentSphericalRadius,"
+			<< "MiddleAxisLength,"
+			<< "RatioAxisLongToAxisMiddle,"
+			<< "RatioMiddleToSmallest,"
+			<< "Dir2_X1,Dir2_Y1,Dir2_Z1,"
+			<< "Dir2_X2,Dir2_Y2,Dir2_Z2,";
+	}
+	fout << '\n';
+	std::array<double, 5> sums{};
+	for (itk::SizeValueType labelValue = 0; labelValue < labelMap->GetNumberOfLabelObjects(); ++labelValue)
+	{
+		ShapeLabelObjectType* labelObject = labelMap->GetNthLabelObject(labelValue);
+		iAVec3d centroid(labelObject->GetCentroid().data());
+		auto const& bb = labelObject->GetBoundingBox();
+		auto const& obbsize = labelObject->GetOrientedBoundingBoxSize();
+		double majorlength = obbsize[2];
+		double minorlength = obbsize[1];
+		auto bbsize = bb.GetSize().data();
+		double half_length = majorlength / 2.0;
+		auto const & eigenvectors = labelObject->GetPrincipalAxes();
+		auto const& eigenvalues = labelObject->GetPrincipalMoments();
+		const auto maxEVPos = 2;
+		// inverse direction to keep results comparable to results from before with LabelGeometry filter:
+		iAVec3d majDirEV(-eigenvectors[maxEVPos][0], -eigenvectors[maxEVPos][1], -eigenvectors[maxEVPos][2]);
+		auto pt1 = centroid + half_length * majDirEV;
+		auto pt2 = centroid - half_length * majDirEV;
+		auto dPt = pt1 - pt2;
+		if ( dPt.z() < 0 )
 		{
-			continue;
+			dPt = pt2 - pt1;
 		}
-		// Calculating start and and point of the pore's major principal axis
-		auto eigenvalue = labelGeometryImageFilter->GetEigenvalues(labelValue);
-		auto maxEigenvalue = std::max_element( std::begin( eigenvalue ), std::end( eigenvalue ) );
-		auto maxEigenvaluePos = std::distance( std::begin( eigenvalue ), maxEigenvalue );
-
-		std::vector<double> eigenvector(3);
-		eigenvector[0] = labelGeometryImageFilter->GetEigenvectors( labelValue )[0][maxEigenvaluePos];
-		eigenvector[1] = labelGeometryImageFilter->GetEigenvectors( labelValue )[1][maxEigenvaluePos];
-		eigenvector[2] = labelGeometryImageFilter->GetEigenvectors( labelValue )[2][maxEigenvaluePos];
-		std::vector<double> centroid(3);
-		centroid[0] = labelGeometryImageFilter->GetCentroid( labelValue )[0];
-		centroid[1] = labelGeometryImageFilter->GetCentroid( labelValue )[1];
-		centroid[2] = labelGeometryImageFilter->GetCentroid( labelValue )[2];
-
-		double half_length = labelGeometryImageFilter->GetMajorAxisLength( labelValue ) / 2.0;
-
-		double x1 = centroid[0] + half_length * eigenvector[0];
-		double y1 = centroid[1] + half_length * eigenvector[1];
-		double z1 = centroid[2] + half_length * eigenvector[2];
-		double x2 = centroid[0] - half_length * eigenvector[0];
-		double y2 = centroid[1] - half_length * eigenvector[1];
-		double z2 = centroid[2] - half_length * eigenvector[2];
-
-		// Preparing orientation and tensor calculation
-		double dx = x1 - x2;
-		double dy = y1 - y2;
-		double dz = z1 - z2;
-		double xm = ( x1 + x2 ) / 2.0f;
-		double ym = ( y1 + y2 ) / 2.0f;
-		double zm = ( z1 + z2 ) / 2.0f;
-
-		if ( dz < 0 )
-		{
-			dx = x2 - x1;
-			dy = y2 - y1;
-			dz = z2 - z1;
-		}
-
-		double phi = std::asin( dy / std::sqrt( dx*dx + dy*dy ) );
-		double theta = std::acos( dz / std::sqrt( dx*dx + dy*dy + dz*dz ) );
+		double phi   = std::asin(dPt.y() / std::sqrt(dPt.x() * dPt.x() + dPt.y() * dPt.y()) );
+		double theta = std::acos(dPt.z() / std::sqrt(dPt.x() * dPt.x() + dPt.y() * dPt.y() + dPt.z() * dPt.z()) );
 		double a11 = std::cos( phi )*std::cos( phi )*std::sin( theta )*std::sin( theta );
 		double a22 = std::sin( phi )*std::sin( phi )*std::sin( theta )*std::sin( theta );
 		double a33 = std::cos( theta )*std::cos( theta );
@@ -179,7 +122,7 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 		theta = ( theta*180.0f ) / std::numbers::pi;
 
 		// Locating the phi value to quadrant
-		if ( dx < 0 )
+		if ( dPt.x() < 0 )
 		{
 			phi = 180.0 - phi;
 		}
@@ -187,7 +130,7 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 		{
 			phi = phi + 360.0;
 		}
-		if ( dx == 0 && dy == 0 )
+		if ( dPt.x() == 0 && dPt.y() == 0)
 		{
 			phi = 0.0;
 			theta = 0.0;
@@ -197,14 +140,8 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 			a13 = 0.0;
 			a23 = 0.0;
 		}
-		double majorlength = labelGeometryImageFilter->GetMajorAxisLength( labelValue );
-		double minorlength = labelGeometryImageFilter->GetMinorAxisLength( labelValue );
-		auto dimX = std::abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[0] - labelGeometryImageFilter->GetBoundingBox( labelValue )[1] ) + 1;
-		auto dimY = std::abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[2] - labelGeometryImageFilter->GetBoundingBox( labelValue )[3] ) + 1;
-		auto dimZ = std::abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[4] - labelGeometryImageFilter->GetBoundingBox( labelValue )[5] ) + 1;
 
 		// Calculation of other pore characteristics and writing the csv file
-		ShapeLabelObjectType *labelObject = labelMap->GetNthLabelObject( labelValue -1); // debug -1 delated	// labelMap index contaions first pore at 0
 
 		// apparently the "roundness" delivered by the filter (GetRoundness), is not really reliable
 		// (values up to 2 when it should only produce values up to 1)
@@ -219,47 +156,28 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 				labelObject->GetRoundness() :
 				0.0);
 
-		fout << labelValue << ','
-			<< x1 * spacing << ',' 	// unit = microns
-			<< y1 * spacing << ',' 	// unit = microns
-			<< z1 * spacing << ',' 	// unit = microns
-			<< x2 * spacing << ','		// unit = microns
-			<< y2 * spacing << ','		// unit = microns
-			<< z2 * spacing << ','		// unit = microns
-			<< a11 << ','
-			<< a22 << ','
-			<< a33 << ','
-			<< a12 << ','
-			<< a13 << ','
-			<< a23 << ','
-			<< dimX * spacing << ','	// unit = microns
-			<< dimY * spacing << ','	// unit = microns
-			<< dimZ * spacing << ','	// unit = microns
-			<< phi << ','				// unit = °
-			<< theta << ','			// unit = °
-			<< xm * spacing << ',' 	// unit = microns
-			<< ym * spacing << ',' 	// unit = microns
-			<< zm * spacing << ',' 	// unit = microns
-			//<< poresPtr->operator[]( it->first ).getShapeFactor() << ','	//no that correct -> see roundness
-			<< labelGeometryImageFilter->GetVolume(labelValue)* std::pow(spacing, 3.0) << ','	// unit = microns^3
+		fout << labelValue+1 << ','
+			<< pt1.x() << ',' << pt1.y() << ',' << pt1.z() << ','     // physical units
+			<< pt2.x() << ',' << pt2.y() << ',' << pt2.z() << ','     // physical units
+			<< a11 << ','<< a22 << ','<< a33 << ','
+			<< a12 << ','<< a13 << ','<< a23 << ','
+			<< bbsize[0] * spc << ','              // physical units
+			<< bbsize[1] * spc << ','              // physical units
+			<< bbsize[2] * spc << ','              // physical units
+			<< phi << ',' << theta << ','              // unit = °
+			<< centroid.x() << ',' << centroid.y() << ',' << centroid.z() << ','     // physical units
+			<< labelObject->GetPhysicalSize() << ','   // physical units
 			<< roundness << ','
-			<< labelObject->GetFeretDiameter() << ','	// unit = microns
+			<< labelObject->GetFeretDiameter() << ','  // physical units
 			<< labelObject->GetFlatness() << ','
-			<< dimX << ','		// unit = voxels
-			<< dimY << ','		// unit = voxels
-			<< dimZ << ','		// unit = voxels
-			<< majorlength * spacing << ',' 	// unit = microns
-			<< minorlength * spacing << ','; 	// unit = microns
+			<< bbsize[0] << ','	<< bbsize[1] << ',' << bbsize[2] << ','	// unit = voxels
+			<< majorlength << ',' << minorlength << ',';                // physical units
 
 		if (calculateAdvancedChars)
 		{
-			//double sphericity = std::pow(std::numbers::pi, 1.0 / 3.0) * std::pow(6.0 * labelGeometryImageFilter->GetVolume(labelValue) * std::pow(spacing, 3.0), 2.0 / 3.0) / perimeter;
-			//double surface = 4.0 * std::numbers::pi *std::pow(equivSphericalRadius/**spacing*/,2.0);
-			//double sphericalRadiusManually = std::pow((6.0 / std::numbers::pi * labelGeometryImageFilter->GetVolume(labelValue) * std::pow(spacing, 3.0)), 1 / 3);
-				//std::pow(labelGeometryImageFilter->GetVolume(labelValue) * std::pow(spacing, 3.0) / (4.0 / 3.0 * std::numbers::pi), 1.0/3.0);  // Vsphere =  4/3*pI*r^3
-			double elongation = labelGeometryImageFilter->GetElongation(labelValue);
+			double elongation = labelObject->GetElongation();
 			double perimeter = labelObject->GetPerimeter();
-			double secondAxisLengh = 4 * std::sqrt(eigenvalue[1]); //second prinzipal axis
+			double secondAxisLengh = 4 * std::sqrt(eigenvalues[1]); //second principal axis
 			double equivSphericalRadius = labelObject->GetEquivalentSphericalRadius();
 			double ratioLongestToMiddle = majorlength / secondAxisLengh;
 			double ratioMiddleToSmallest = secondAxisLengh / minorlength;
@@ -268,9 +186,9 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 			int EWPos = 1; //should be lambda2, lambda1 < lambda2 < lambda3
 
 			//represents second principal axis
-			eigenvector_middle[0] = labelGeometryImageFilter->GetEigenvectors(labelValue)[0][EWPos];
-			eigenvector_middle[1] = labelGeometryImageFilter->GetEigenvectors(labelValue)[1][EWPos];
-			eigenvector_middle[2] = labelGeometryImageFilter->GetEigenvectors(labelValue)[2][EWPos];
+			eigenvector_middle[0] = eigenvectors[EWPos][0];
+			eigenvector_middle[1] = eigenvectors[EWPos][1];
+			eigenvector_middle[2] = eigenvectors[EWPos][2];
 
 			double half_axis2 =/* minorlength*/ secondAxisLengh / 2.0;
 
@@ -283,18 +201,33 @@ template<class T> void calcFeatureCharacteristics(itk::ImageBase<3>* itkImg, iAP
 			double p_z2 = centroid[2] - half_axis2 * eigenvector_middle[2];
 
 			fout << elongation << ','
-				<< perimeter/**spacing*/ << ','
-				<< equivSphericalRadius/**spacing */ << ','
-				<< secondAxisLengh * spacing << ","
+				<< perimeter << ','
+				<< equivSphericalRadius << ','
+				<< secondAxisLengh << ","
 				<< ratioLongestToMiddle << ","
 				<< ratioMiddleToSmallest << ",";
-			fout << p_x1*spacing << "," << p_y1*spacing << "," << p_z1*spacing << ","
-				 << p_x2*spacing << "," << p_y2*spacing << "," << p_z2*spacing << ",";
-
+			fout << p_x1 << "," << p_y1 << "," << p_z1 << ","
+				 << p_x2 << "," << p_y2 << "," << p_z2 << ",";
 		}
 		fout << '\n';
-
-		progress->emitProgress(labelValue * 100.0 / allLabels.size());
+		if (computeAverages)
+		{
+			sums[0] += labelObject->GetPhysicalSize();
+			sums[1] += phi;
+			sums[2] += theta;
+			sums[3] += roundness;
+			sums[4] += majorlength;
+		}
+		filter->progress()->emitProgress(labelValue * 100.0 / labelMap->GetNumberOfLabelObjects());
+	}
+	if (computeAverages)
+	{
+		filter->addOutputValue("Number of objects", static_cast<quint64>(labelMap->GetNumberOfLabelObjects()));
+		filter->addOutputValue("Volume average", sums[0] / labelMap->GetNumberOfLabelObjects());
+		filter->addOutputValue("Phi average", sums[1] / labelMap->GetNumberOfLabelObjects());
+		filter->addOutputValue("Theta average", sums[2] / labelMap->GetNumberOfLabelObjects());
+		filter->addOutputValue("Roundness average", sums[3] / labelMap->GetNumberOfLabelObjects());
+		filter->addOutputValue("Length average", sums[4] / labelMap->GetNumberOfLabelObjects());
 	}
 
 	fout.close();
@@ -304,16 +237,18 @@ iACalcFeatureCharacteristics::iACalcFeatureCharacteristics():
 	iAFilter("Calculate Feature Characteristics", "Feature Characteristics",
 		"Compute characteristics of the objects in a labelled dataset.<br/>"
 		"This filter takes a labelled image as input, and writes a table of the "
-		"characteristics of each of the features (=objects) in this image to  csv file with the given <em>Output CSV filename</em>."
+		"characteristics of each of the features (=objects) in this image to  csv "
+		"file with the given <em>Output CSV filename</em>."
 		"If you need a precise diameter, enable <em>Calculate Feret Diameter</em> "
 		"(but note that this increases computation time significantly!). "
 		"Note that the Feret Diameter is also required to compute an accurate roundness. "
 		"If you disable the Feret Diameter, an inaccurate roundness is provided (which can go over 1). "
 		"If you want to disable this roundness, disable <em>Calculate roundness</em>, "
-		"this will set roundness to 0 if no feret diameter available .<br/>"
+		"this will set roundness to 0 if no feret diameter is available.<br/>"
+		"When <em>Calculate averages</em> is enabled, the filter will also compute "
+		"average volume, phi, theta, roundness and length "
+		"and return them as output values.<br/>"
 		"For more information, see the "
-		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1LabelGeometryImageFilter.html\">"
-		"Label Geometry Image Filter</a> and the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1LabelImageToShapeLabelMapFilter.html\">"
 		"Label Image to Shape Label Map Filter </a> "
 		"in the ITK documentation.", 1, 0)
@@ -322,12 +257,16 @@ iACalcFeatureCharacteristics::iACalcFeatureCharacteristics():
 	addParameter("Calculate Feret Diameter", iAValueType::Boolean, false);
 	addParameter("Calculate roundness", iAValueType::Boolean, false);
 	addParameter("Calculate advanced void parameters", iAValueType::Boolean, false);
+	addParameter("Calculate averages", iAValueType::Boolean, false);
 }
 
 void iACalcFeatureCharacteristics::performWork(QVariantMap const & parameters)
 {
 	QString pathCSV = parameters["Output CSV filename"].toString();
-	ITK_TYPED_CALL(calcFeatureCharacteristics, inputScalarType(), imageInput(0)->itkImage(), progress(), pathCSV,
-		parameters["Calculate Feret Diameter"].toBool(), parameters["Calculate advanced void parameters"].toBool(), parameters["Calculate roundness"].toBool());
+	ITK_TYPED_CALL(calcFeatureCharacteristics, inputScalarType(), this, imageInput(0)->itkImage(), pathCSV,
+		parameters["Calculate Feret Diameter"].toBool(),
+		parameters["Calculate advanced void parameters"].toBool(),
+		parameters["Calculate roundness"].toBool(),
+		parameters["Calculate averages"].toBool());
 	LOG(lvlInfo, QString("Feature csv file created in: %1").arg(pathCSV));
 }

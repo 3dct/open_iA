@@ -21,7 +21,6 @@
 #include <iAFileUtils.h>
 #include <iAImageData.h>
 #include <iALog.h>
-#include <iAToolsVTK.h>    // for RenderModeMap
 #include <iATransferFunction.h>
 
 #include <vtkImageData.h>
@@ -163,7 +162,7 @@ bool iAFeatureScoutTool::init(iAMdiChild* child, iACsvConfig const& csvConfig, s
 		bounds = dynamic_cast<iAImageData*>(m_child->dataSet(m_objDataSetIdx).get())->vtkImage()->GetBounds();
 		m_objData = objData;
 		QColor defaultColor(dlg_FeatureScout::UnclassifiedColorName);
-		m_objVis = std::make_shared<iALabeledVolumeVis>(tf->colorTF(), tf->opacityTF(), objData.get(), bounds);
+		m_objVis = std::make_shared<iALabeledVolumeVis>(tf, objData.get(), bounds);
 		objVis = m_objVis.get();
 	}
 	else
@@ -197,7 +196,7 @@ bool iAFeatureScoutTool::init(iAMdiChild* child, iACsvConfig const& csvConfig, s
 		renderSettings[iADataSetRenderer::Shading] = true;
 		renderSettings[iADataSetRenderer::DiffuseLighting] = 1.6;
 		renderSettings[iADataSetRenderer::SpecularLighting] = 0.0;
-		renderSettings[iAVolumeRenderer::Interpolation] = iAVolumeRenderer::InterpolateLinear;
+		renderSettings[iAVolumeRenderer::Interpolation] = iAVolumeRenderer::InterpolateNearest;
 		for (auto key : RenderModeMap().keys())
 		{
 			if (RenderModeMap()[key] == vtkSmartVolumeMapper::RayCastRenderMode)
@@ -257,4 +256,9 @@ std::vector<size_t> iAFeatureScoutTool::selection()
 	auto viewer = dynamic_cast<iAObjectsViewer*>(m_child->dataSetViewer(m_objDataSetIdx));
 	auto objVis = viewer ? dynamic_cast<iAColoredPolyObjectVis*>(viewer->objectVis()) : nullptr;
 	return objVis ? objVis->selection(): std::vector<size_t>();
+}
+
+dlg_FeatureScout* iAFeatureScoutTool::featureScout()
+{
+	return m_featureScout;
 }

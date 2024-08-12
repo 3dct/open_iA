@@ -81,11 +81,11 @@ foreach(libdir ${children})
 
 		# Installation
 		if (WIN32)
-			install(TARGETS ${libname} RUNTIME DESTINATION .)
+			install(TARGETS ${libname} RUNTIME_DEPENDENCY_SET iADependencySet RUNTIME DESTINATION .)
 		elseif (FLATPAK_BUILD)
 			install(TARGETS ${libname} LIBRARY DESTINATION lib)
 		else ()
-			install(TARGETS ${libname} LIBRARY DESTINATION .)
+			install(TARGETS ${libname} RUNTIME_DEPENDENCY_SET iADependencySet LIBRARY DESTINATION .)
 		endif()
 	endif()
 endforeach()

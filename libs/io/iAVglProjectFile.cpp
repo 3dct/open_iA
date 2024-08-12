@@ -93,7 +93,7 @@ std::shared_ptr<iADataSet> iAVglProjectFile::loadData(
 						
 						auto list = pathRawFile.split("/");
 						QString pathToAdd("");
-						for (int pos = list.size()-1; pos != 0; pos--)
+						for (qsizetype pos = list.size()-1; pos != 0; pos--)
 						{
 							pathToAdd = "/" + list[pos] + pathToAdd;
 							auto nameOfFile = check_file.fileName();
@@ -181,7 +181,7 @@ std::shared_ptr<iADataSet> iAVglProjectFile::loadData(
 		if (io)
 		{
 			auto currentDataSet = io->load(dataset.second.Filename, iAparam);
-			if (currentDataSet != nullptr)
+			if (currentDataSet)
 			{
 				currentDataSet->setMetaData(iAparam);
 				result->addDataSet(currentDataSet);

@@ -1,0 +1,49 @@
+[General]
+UseMdiChild=true
+CameraPosition=-0.017995 -0.037987 0.105965
+CameraFocalPoint=0.0135 0.0135 0.0135
+CameraViewUp=-0.232681 0.881235 0.411441
+CameraParallelScale=0.028578838324886478
+CameraParallelProjection=0
+Layout="@ByteArray(\0\0\0\xff\0\0\0\0\xfd\0\0\0\x1\0\0\0\0\0\0\n\0\0\0\x5\x1f\xfc\x2\0\0\0\x3\xfc\0\0\0\0\0\0\x5\x1f\0\0\0\xba\0\xff\xff\xff\xfc\x1\0\0\0\x3\xfc\0\0\0\0\0\0\x4\x1d\0\0\0\xc7\0\xff\xff\xff\xfc\x2\0\0\0\t\xfb\0\0\0\x10\0r\0\x65\0n\0\x64\0\x65\0r\0\x65\0r\x1\0\0\0\0\0\0\x4\x1c\0\0\0.\0\xff\xff\xff\xfb\0\0\0\x16\0H\0i\0s\0t\0o\0g\0r\0\x61\0m\0\x31\0\x33\x1\0\0\x1\xe1\0\0\0\x62\0\0\0\0\0\0\0\0\xfc\0\0\x4\x1f\0\0\x1\0\0\0\0\x89\0\xff\xff\xff\xfc\x1\0\0\0\x2\xfc\0\0\0\0\0\0\x2*\0\0\0X\0\xff\xff\xff\xfc\x2\0\0\0\x2\xfb\0\0\0\x10\0\x44\0\x61\0t\0\x61\0S\0\x65\0t\0s\x1\0\0\x4\x1f\0\0\0\x84\0\0\0\x43\0\xff\xff\xff\xfb\0\0\0\x10\0\x44\0\x61\0t\0\x61\0I\0n\0\x66\0o\x1\0\0\x4\xa6\0\0\0y\0\0\0\x43\0\xff\xff\xff\xfb\0\0\0\x18\0S\0n\0\x61\0p\0s\0h\0o\0t\0L\0i\0s\0t\x1\0\0\x2-\0\0\x1\xf0\0\0\0l\0\xff\xff\xff\xfb\0\0\0\x14\0H\0i\0s\0t\0o\0g\0r\0\x61\0m\0\x31\0\0\0\0\0\xff\xff\xff\xff\0\0\0.\0\xff\xff\xff\xfb\0\0\0\x14\0H\0i\0s\0t\0o\0g\0r\0\x61\0m\0\x32\0\0\0\0\0\xff\xff\xff\xff\0\0\0\0\0\0\0\0\xfb\0\0\0\xe\0P\0r\0o\0\x66\0i\0l\0\x65\0\0\0\0\0\xff\xff\xff\xff\0\0\0.\0\xff\xff\xff\xfb\0\0\0\x14\0H\0i\0s\0t\0o\0g\0r\0\x61\0m\0\x33\0\0\0\0\0\xff\xff\xff\xff\0\0\0\0\0\0\0\0\xfb\0\0\0\xe\0P\0r\0o\0\x66\0i\0l\0\x65\0\0\0\0\0\xff\xff\xff\xff\0\0\0\0\0\0\0\0\xfb\0\0\0\x14\0H\0i\0s\0t\0o\0g\0r\0\x61\0m\0\x30\x1\0\0\x4\xa6\0\0\0y\0\0\0\0\0\0\0\0\xfc\0\0\x4 \0\0\x5\xe0\0\0\x1\xe5\0\xff\xff\xff\xfc\x2\0\0\0\x3\xfc\0\0\0\0\0\0\x2\xea\0\0\0.\0\xff\xff\xff\xfc\x1\0\0\0\x2\xfb\0\0\0\xe\0s\0l\0i\0\x63\0\x65\0X\0Y\x1\0\0\x4 \0\0\x3\x4\0\0\0\xf1\0\xff\xff\xff\xfb\0\0\0\xe\0s\0l\0i\0\x63\0\x65\0Y\0Z\x1\0\0\a'\0\0\x2\xd9\0\0\0\xf1\0\xff\xff\xff\xfc\0\0\x2\xed\0\0\x2\x32\0\0\0.\0\xff\xff\xff\xfc\x1\0\0\0\x2\xfb\0\0\0(\0\x41\0r\0\x62\0i\0t\0r\0\x61\0r\0y\0S\0l\0i\0\x63\0\x65\0V\0i\0\x65\0w\0\x65\0r\x1\0\0\x4 \0\0\x3\f\0\0\0\x14\0\xff\xff\xff\xfb\0\0\0\xe\0s\0l\0i\0\x63\0\x65\0X\0Z\x1\0\0\a/\0\0\x2\xd1\0\0\0\xf1\0\xff\xff\xff\xfc\0\0\x4\x1e\0\0\x1\x1\0\0\0\0\0\xff\xff\xff\xfc\x1\0\0\0\x1\xfb\0\0\0\x14\0\x43\0l\0i\0\x65\0n\0t\0L\0i\0s\0t\x1\0\0\x5\x8b\0\0\x1V\0\0\0\0\0\0\0\0\xfc\0\0\x5g\0\0\x1\x35\0\0\0\0\0\xff\xff\xff\xfc\x2\0\0\0\x5\xfb\0\0\0\x6\0X\0R\0\x46\x1\0\0\0\0\0\0\x2\x34\0\0\0\0\0\0\0\0\xfb\0\0\0\x14\0m\0o\0\x64\0\x61\0l\0i\0t\0i\0\x65\0s\x1\0\0\0\0\0\0\x1\xd4\0\0\0\0\0\0\0\0\xfb\0\0\0\x18\0v\0r\0\x44\0o\0\x63\0k\0W\0i\0\x64\0g\0\x65\0t\x1\0\0\x2,\0\0\0\x39\0\0\0\0\0\0\0\0\xfb\0\0\0\x1a\0I\0m\0\x61\0g\0\x65\0P\0r\0o\0p\0\x65\0r\0t\0y\x1\0\0\x1\xd8\0\0\x1\xcc\0\0\0\0\0\0\0\0\xfb\0\0\0\x14\0R\0\x65\0\x66\0S\0p\0\x65\0\x63\0t\0r\0\x61\x1\0\0\x3S\0\0\0\xaa\0\0\0\0\0\0\0\0\xfb\0\0\0\x1a\0S\0i\0m\0i\0l\0\x61\0r\0i\0t\0y\0M\0\x61\0p\0\0\0\0\0\xff\xff\xff\xff\0\0\0\0\0\0\0\0\xfc\0\0\x2v\0\0\0\xd9\0\0\0\0\0\xff\xff\xff\xfc\x1\0\0\0\x3\xfc\0\0\0\0\0\0\x3\xb7\0\0\0\0\0\xff\xff\xff\xfc\x1\0\0\0\x2\xfc\0\0\0\0\0\0\x3\xb7\0\0\0\0\0\xff\xff\xff\xfa\0\0\0\0\x1\0\0\0\x3\xfb\0\0\0\xe\0P\0r\0o\0\x66\0i\0l\0\x65\0\0\0\0\0\xff\xff\xff\xff\0\0\0\0\0\0\0\0\xfb\0\0\0&\0S\0p\0\x65\0\x63\0t\0r\0u\0m\0\x43\0h\0\x61\0r\0t\0W\0i\0\x64\0g\0\x65\0t\x1\0\0\0\0\xff\xff\xff\xff\0\0\0\0\0\0\0\0\xfb\0\0\0\x12\0H\0i\0s\0t\0o\0g\0r\0\x61\0m\x1\0\0\0\x15\0\0\t\xeb\0\0\0\0\0\0\0\0\xfb\0\0\0\b\0l\0o\0g\0s\x1\0\0\x5\xcd\0\0\0\xcf\0\0\0\0\0\0\0\0\xfb\0\0\0\x1c\0P\0i\0\x65\0\x43\0h\0\x61\0r\0t\0W\0i\0\x64\0g\0\x65\0t\x1\0\0\x6\xa6\0\0\x2*\0\0\0\0\0\0\0\0\xfb\0\0\0\x1a\0P\0\x65\0r\0i\0o\0\x64\0i\0\x63\0T\0\x61\0\x62\0l\0\x65\x1\0\0\b\xd4\0\0\x1,\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x5\x1f\0\0\0\x4\0\0\0\x4\0\0\0\b\0\0\0\b\xfc\0\0\0\0)"
+FileVersion=2
+
+[DataSet0]
+Ambient%20lighting=0.2
+Auto-Adjust%20Sample%20Distances=false
+Blend%20Mode=Composite
+Box%20Color=#000000
+Diffuse%20lighting=0.5
+File=test4x4x4.mhd
+Final%20Color%20Level=0.5
+Final%20Color%20Window=1
+Global%20Illumination%20Reach=0
+Histogram="13;3;0;0;0;0;0;0;0;0;0;0;0;0;13;35"
+Histogram%20Bins=16
+Histogram%20Logarithmic%20y%20axis=false
+ImageRange="0.0014223;0.997489"
+ImageStatistics="min=0.0014223, max=0.997489, µ=0.726317, σ=0.40157"
+Interactive%20Update%20Rate=1
+Interactively%20Adjust%20Sample%20Distances=false
+Interpolation=Nearest
+Name=test4x4x4
+Orientation="0,0,0"
+Pickable=true
+Position="0,0,0"
+RenderFlags=SRH
+Renderer%20Type="Default (GPU if available, else Software)"
+Sample%20Distance=1
+Scalar%20Opacity%20Unit%20Distance=0.001
+Shading=false
+Spacing="0.01,0.01,0.01"
+Specular%20lighting=0.7
+Specular%20power=10
+TransferFunction="<settings><functions><transfer><node blue=\"0\" green=\"0\" opacity=\"0.256522\" red=\"0\" value=\"0.0014223\"/><node blue=\"0\" green=\"0.666667\" opacity=\"0.252174\" red=\"0\" value=\"0.997489\"/></transfer></functions></settings>"
+Volumetric%20Scattering%20Blending=-1
+
+[Arbitrary%20Slice%20Plane]
+SnapshotCount=3
+Snapshot0="1;0.015, 0.015, 0.015;0, 0, 1"
+Snapshot1="2;0.015, 0.015, 0.015;0, -1, 0"
+Snapshot2="3;0.015, 0.015, 0.015;0, 0, 1"
+PlaneParameters="0.0305219, 0.00888169, -0.00512641;0.720557, -0.381445, 0.579048"

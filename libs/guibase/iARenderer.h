@@ -17,7 +17,6 @@ class vtkPoints;
 class vtkRenderer;
 class vtkRenderWindow;
 class vtkRenderWindowInteractor;
-class vtkTextActor;
 class vtkTransform;
 
 //! Class encapsulating a main and a label renderer for displaying 3D objects,
@@ -86,4 +85,5 @@ signals:
 	void cellsSelected(vtkPoints* selCellPoints);
 	void noCellsSelected();
 	void onSetCamera();
+	void ctrlShiftMouseWheel(int dir);
 };

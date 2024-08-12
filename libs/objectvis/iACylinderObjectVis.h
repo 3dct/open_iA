@@ -15,6 +15,7 @@ public:
 	static const int DefaultNumberOfCylinderSides = 12;
 	//! Creates a cylinder object visualization.
 	//! @param data the data of the objects
+	//! @param color the general color of the visualization
 	//! @param numberOfCylinderSides quality parameter for cylinder visualization (lower values lead to faster
 	//!        rendering but also less quality; minimum value that makes sense is 3 (then you get a triangular tube)
 	//! @param segmentSkip quality parameter for cylinder visualization (how many segments for curved fibers are

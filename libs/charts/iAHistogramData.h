@@ -58,6 +58,7 @@ public:
 	//! @param img a pointer to the vtk image for which to create the histogram
 	//! @param desiredNumBin the desired number of bins the data will be split into; can be adapted, depending on the actual number of different values in image
 	//! @param imgStatistics optional iAImageStatistics struct that will be filled with the statistical information determined while computing the histogram
+	//! @param component which component of the image the histogram should be created for (in case it has multiple components)
 	static std::shared_ptr<iAHistogramData> create(QString const& name,
 		vtkImageData* img, size_t desiredNumBin, iAImageStatistics* imgStatistics = nullptr, int component = 0);
 	//! create a histogram for the given (raw) data vector.
@@ -110,6 +111,9 @@ public:
 
 	//! compute the final bin count for a given image and desired bin count
 	static size_t finalNumBin(vtkImageData* img, size_t desiredNumBin);
+
+	//! compute the actual histogram range for the given range and number of bins
+	static double histoRange(double const range[2], size_t numBins, iAValueType valueType);
 
 private:
 	//! Set y value range from current data.

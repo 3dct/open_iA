@@ -65,74 +65,72 @@ class iACsvDataStorage
 {
    public:
 	iACsvDataStorage(QStringList* csvFiles, int headerLineNumber);
-	//read in the csv file
+	//! read in the csv file
 	QList<QStringList>* readCSV(QString csvFile);
-	//store the csv file data in a csvFileData data structure
+	//! store the csv file data in a csvFileData data structure
 	void storeCSVToVectorArray(QList<QStringList>* list, int headerLineNumber);
-	//returns the data of all csv files
+	//! returns the data of all csv files
 	QList<csvFileData>* getData();
 
-	//returns the names of the attributes without the label attribute
+	//! returns the names of the attributes without the label attribute
 	QStringList* getAttributeNamesWithoutLabel();
-	//returns the names of ALL attributes
+	//! returns the names of ALL attributes
 	QStringList* getAttributeNames();
 
 	QStringList* getDatasetNames();
 
-	//returns the total number of objects in all datasets
+	//! returns the total number of objects in all datasets
 	int getTotalNumberOfObjects();
 
-	//get the minimum value of all distributions/csv files
+	//! get the minimum value of all distributions/csv files
 	double getMinVal();
-	//set the minimum value of all distributions/csv files
+	//! set the minimum value of all distributions/csv files
 	void setMinVal(double minVal);
-	//get the maximum value of all distributions/csv files
+	//! get the maximum value of all distributions/csv files
 	double getMaxVal();
-	//set the maximum value of all distributions/csv files
+	//! set the maximum value of all distributions/csv files
 	void setMaxVal(double maxVal);
 
 	/*** MDS Calculation ***/
-	//get the 1d mds matrix result
+	//! get the 1d mds matrix result
 	csvDataType::ArrayType* getMDSData();
-	//set the 1d mds matrix result
+	//! set the 1d mds matrix result
 	void setMDSData(csvDataType::ArrayType* mdsData);
 
 	/*** 3D Rendering ***/
 	std::vector<std::shared_ptr<iAObjectsData>> const & getObjectData();
-	std::vector<iACsvConfig> const & getCsvConfigs();
 
    private:
-	//fill a list with the attribute names
-	   void initializeHeader(QList<QStringList>* list, QStringList* headers, int headerLineNumber);
-	//fill a vector array with all values
+	//! fill a list with the attribute names
+	void initializeHeader(QList<QStringList>* list, QStringList* headers, int headerLineNumber);
+	//! fill a vector array with all values
 	void initializeValueArray(QList<QStringList>* list, int const attrCount, csvDataType::ArrayType* values);
-	//resize the file to header & values without meta info in the first columns
+	//! resize the file to header & values without meta info in the first columns
 	void customizeCSVFile(QList<QStringList>* list, int headerLineNumber);
-	//creates a vtkTable storing the object that should be drawn and their mapping
+	//! creates a vtkTable storing the object that should be drawn and their mapping
 	void initializeObjectTableFor3DRendering();
 
-	//name of csvFiles
+	//! Names of csv files
 	QStringList* m_filenames;
 
-	//list containing all csv-files
-	//data = [[headerOfCSV1,valuesOfCSV1], [headerOfCSV2,valuesOfCSV2],...]
-	//header = [name1,name2,...] --> Strings
-	//values = [ [f1_val1,f1_val2,...], [f2_val1,f2_val2,...]]
+	//! list containing all csv-files
+	//! data = [[headerOfCSV1,valuesOfCSV1], [headerOfCSV2,valuesOfCSV2],...]
+	//! header = [name1,name2,...] --> Strings
+	//! values = [ [f1_val1,f1_val2,...], [f2_val1,f2_val2,...]]
 	QList<csvFileData>* m_data;
 
-	//stores the overall number of objects of all datasets
+	//! stores the overall number of objects of all datasets
 	int m_totalNumberOfObjects;
 
-	//stores the resulting 1D matrix of the mds computation
+	//! Stores the resulting 1D matrix of the MDS computation
 	csvDataType::ArrayType* m_MDSData;
 
-	/*** Initialization for Rendering with iAobjectvis***/
+	//! Initialization for Rendering with iAobjectvis
 	std::vector<std::shared_ptr<iAObjectsData>> m_objectData;
-	std::vector<iACsvConfig> m_csvConfigs;
 
-	//minimum value of all distributions/csv files
+	//! minimum value of all distributions/csv files
 	double m_minVal;
-	//maximum value of all distributions/csv file
+	//! maximum value of all distributions/csv file
 	double m_maxVal;
 
 };

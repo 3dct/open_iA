@@ -25,6 +25,8 @@
 
 #include <algorithm>
 
+#include <iALog.h>
+
 
 vtkStandardNewMacro(iAvtkTubeFilter);
 
@@ -103,10 +105,8 @@ int iAvtkTubeFilter::RequestData(
   vtkInformation *outInfo = outputVector->GetInformationObject(0);
 
   // get the input and output
-  vtkPolyData *input = vtkPolyData::SafeDownCast(
-    inInfo->Get(vtkDataObject::DATA_OBJECT()));
-  vtkPolyData *output = vtkPolyData::SafeDownCast(
-    outInfo->Get(vtkDataObject::DATA_OBJECT()));
+  auto input = dynamic_cast<vtkPolyData*>(inInfo->Get(vtkDataObject::DATA_OBJECT()));
+  auto output = dynamic_cast<vtkPolyData*>(outInfo->Get(vtkDataObject::DATA_OBJECT()));
 
   vtkPointData *pd=input->GetPointData();
   vtkPointData *outPD=output->GetPointData();
@@ -264,7 +264,8 @@ int iAvtkTubeFilter::RequestData(
     // while removing degenerate lines.
     if (npts < 2)
     {
-        continue; // skip tubing this polyline
+      LOG(lvlDebug, QString("Skipping line %1, less than 2 points").arg(inCellId));
+      continue; // skip tubing this polyline
     }
     std::vector<vtkIdType> ptsCopy(ptsOrig, ptsOrig + npts);
     vtkIdType* pts = ptsCopy.data();
@@ -273,6 +274,7 @@ int iAvtkTubeFilter::RequestData(
     npts = static_cast<vtkIdType>(std::unique(pts, pts + npts, IdPointsEqual(inPts)) - pts);
     if (npts < 2)
     {
+      LOG(lvlDebug, QString("Skipping line %1, less than 2 points after degenerate line removal").arg(inCellId));
       continue; //skip tubing this polyline
     }
 

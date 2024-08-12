@@ -1,14 +1,17 @@
 set(OPENIA_PRECOMPILE_HEADERS
 <cassert>
 <iALog.h>
+<iARendererInteractorStyle.h>
 <iARenderObserver.h>
 <iAToolsVTK.h>
 <iAvtkSourcePoly.h>
 <QColor>
+<QObject>
 <vector>
 <vtkCamera.h>
 <vtkCommand.h>
 <vtkCubeSource.h>
+<vtkInteractorStyleTrackballCamera.h>
 <vtkPlane.h>
 <vtkRenderer.h>
 <vtkRenderWindowInteractor.h>

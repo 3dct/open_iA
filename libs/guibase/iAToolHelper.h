@@ -6,6 +6,7 @@
 
 #include "iAMainWindow.h"
 #include "iAMdiChild.h"
+#include "iAQMenuHelper.h"
 
 //! helper function to add a tool to the current mdi child (if it exists)
 template <typename T>

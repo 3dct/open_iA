@@ -5,26 +5,8 @@
 #include <QString>
 
 //! Call a specific instance of a templated function based on ITK's scalar and pixel types
-//! Requirements:
-//! |function| return type must be void
-//!
-//! Usage:
-//!
-//! having for instance such |type| variable:
-//!   ColumnType type = INT;
-//! and such |foo| function definition:
-//!   template <ColumnType T>
-//!   void foo(t1 arg1, t2 arg2) {
-//!   }
-//!
-//! instead of writing (won't compile):
-//!   foo<type>(arg1, arg2);
-//! write this:
-//!   xxx_TYPED_CALL(foo, type, arg1, arg2);
-//!
-//!
-//! for foo with 0 arguments write this:
-//!   xxx_TYPED_CALL(foo, type, );
+//! @note function return type must be void
+//! @see iAConnector, iAITKIO
 #define ITK_EXTENDED_TYPED_CALL(function, itk_scalar_type, itk_pixel_type, ...) \
 {                                                                           \
 	if (itk_pixel_type == iAITKIO::PixelType::SCALAR)                       \
@@ -178,6 +160,8 @@
 }
 
 //! Call a specific instance of a templated function based on VTK's scalar type and number of components
+//! @note function return type must be void
+//! @see iAConnector
 #define VTK_EXTENDED_TYPED_CALL(function, vtk_scalar_type, number_of_components,...)     \
 {                                                                                        \
 	if ( number_of_components < 2 )                                                      \

@@ -46,3 +46,6 @@ QToolButton[objectName="tbPause"]  { qproperty-icon: url(:/images/media-pause.sv
 QToolButton[objectName="tbStop"]  { qproperty-icon: url(:/images/media-stop.svg); }
 QToolButton[objectName="tbPrev"]  { qproperty-icon: url(:/images/media-prev.svg); }
 QToolButton[objectName="tbNext"]  { qproperty-icon: url(:/images/media-next.svg); }
+QToolButton[qssClass="dockwidget-close"]  { qproperty-icon: url(:/images/dockwidget-close.svg); }
+QToolButton[qssClass="dockwidget-float"]  { qproperty-icon:url(:/images/dockwidget-float.svg); }
+QToolButton[qssClass="dockwidget-info"]  { qproperty-icon:url(:/images/info.svg); }

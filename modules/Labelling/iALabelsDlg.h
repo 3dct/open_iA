@@ -8,9 +8,9 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QDockWidget>
 #include <QList>
 #include <QMap>
+#include <QWidget>
 
 #include <memory>
 
@@ -19,24 +19,27 @@ class iAImageCoordinate;
 class iASlicer;
 class iAvtkImageData;
 class iAMdiChild;
-class Ui_labels;
 
-class QStandardItem;
-class QStandardItemModel;
+class Ui_labels;
+struct iAOverlayImage;
+struct iAOverlaySlicerData;
 
 class vtkLookupTable;
 class vtkObject;
 class vtkPiecewiseFunction;
 
-struct iAOverlayImage;
-struct iAOverlaySlicerData;
+class QSettings;
+class QStandardItem;
+class QStandardItemModel;
+class QXmlStreamReader;
+class QXmlStreamWriter;
 
-class Labelling_API iALabelsDlg : public QDockWidget
+class Labelling_API iALabelsDlg : public QWidget
 {
 	Q_OBJECT
 
 public:
-	iALabelsDlg(iAMdiChild* mdiChild, bool addMainSlicer = true);
+	iALabelsDlg(iAMdiChild* mdiChild);
 	int curLabelRow() const;
 	int seedCount(int labelIdx) const;
 	bool load(QString const& filename);
@@ -50,6 +53,9 @@ public:
 	int overlayImageIdBySlicer(iASlicer*);
 	//! Sets whether added seed points should be tracked as children of the label ist
 	void setSeedsTracking(bool enabled);
+
+	void saveState(QSettings& store);
+	void loadState(QSettings const & store);
 
 signals:
 	void seedsAdded(const QList<iASeed>&);
@@ -85,6 +91,8 @@ private:
 	void updateChannels(int imageId);
 	void updateChannel(iASlicer*);
 	int chooseOverlayImage(QString title);
+	void storeXML(QXmlStreamWriter& stream, bool extendedFormat);
+	bool loadXML(QXmlStreamReader& stream, int overlayImageId);
 
 	//! whether seeds are also tracked as entries in the label list
 	bool m_trackingSeeds;

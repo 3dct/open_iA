@@ -14,6 +14,7 @@
 #include <iAToolHelper.h>
 
 #include <iAAABB.h>
+#include <iAColorTheme.h>
 #include <iALog.h>
 #include <iAStringHelper.h>
 
@@ -31,7 +32,7 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QMetaEnum>
-#include <QRegularExpression>
+#include <QMessageBox>
 #include <QTableWidget>
 #include <QThread>
 #include <QToolButton>
@@ -40,6 +41,23 @@
 
 #include <cmath>
 #include <limits>
+
+enum class ClientState : int
+{
+	AwaitingProtocolNegotiation,  // client just connected and hasn't sent a protocol negotiation message with an acceptable protocol version yet
+	Idle,                         // currently, no ongoing "special" conversation
+	PendingDatasetAck,            // load dataset has been initiated; server has checked availability on his end and has sent out load dataset messages
+	PendingSingleClientDatasetAck,// this client has connected when a dataset was loaded, and it should now load this dataset to achieve a synced state
+	DatasetAcknowledged           // client has confirmed availability of dataset
+};
+
+enum class DataState : int
+{
+	NoDataset,
+	PendingClientAck,
+	//LoadingDataset,
+	DatasetLoaded
+};
 
 namespace
 {
@@ -110,23 +128,6 @@ namespace
 		ClearAll,
 		// must be last:
 		Count
-	};
-
-	enum class ClientState : int
-	{
-		AwaitingProtocolNegotiation,  // client just connected and hasn't sent a protocol negotiation message with an acceptable protocol version yet
-		Idle,                         // currently, no ongoing "special" conversation
-		PendingDatasetAck,            // load dataset has been initiated; server has checked availability on his end and has sent out load dataset messages
-		PendingSingleClientDatasetAck,// this client has connected when a dataset was loaded, and it should now load this dataset to achieve a synced state
-		DatasetAcknowledged           // client has confirmed availability of dataset
-	};
-
-	enum class DataState : int
-	{
-		NoDataset,
-		PendingClientAck,
-		//LoadingDataset,
-		DatasetLoaded
 	};
 
 	enum class ObjectID : quint64
@@ -208,6 +209,7 @@ namespace
 		return quat;
 	}
 
+/*
 	std::array<float, 3> quaternionToEulerAngles(std::array<float, 4> q)
 	{
 		double ayterm = 2 * (q[3] * q[1] - q[0] * q[2]);
@@ -221,6 +223,7 @@ namespace
 			const double RoundDegrees = 2;
 			a2[a] = std::round(a2[a] / RoundDegrees) * RoundDegrees;
 		}
+		return a2;
 	}
 
 	std::array<float, 4> eulerAnglesToQuaternion(std::array<float, 3> a)
@@ -240,9 +243,10 @@ namespace
 				cr* cp* sy - sr * sp * cy
 		};
 	}
+*/
 
 	std::array<float, 3> DefaultPlaneNormal = { 0, 0, 1 };
-	std::array<float, 3> DefaultCameraViewDirection = { 0, 0, -1 };
+//	std::array<float, 3> DefaultCameraViewDirection = { 0, 0, -1 };
 
 	QString toHexStr(QByteArray const & ba)
 	{
@@ -259,6 +263,7 @@ namespace
 
 	const quint64 NoSyncedClient = std::numeric_limits<quint64>::max();
 	const quint64 ServerID = 1000; // ID of the server (for syncing its view/camera to clients)
+	const quint64 ClientStartID = ServerID + 1;
 	const quint16 ServerPort = 8082;
 }
 
@@ -315,6 +320,9 @@ private:
 			std::copy(values.begin(), values.end(), dblVal.begin());
 			switch (objCmdType)
 			{
+			default:
+				LOG(lvlWarn, QString("Received unsupported/not implemented command %1!").arg(enumToIntegral(objCmdType)));
+				break;
 			case ObjectCommandType::SetMatrix:
 			{
 				// TODO: TEST / Check whether used!
@@ -351,13 +359,9 @@ private:
 			}
 			case ObjectCommandType::SetRotationQuaternion:
 			{
+				assert(N == 4);
 				// TODO: TEST / Check whether used!
-				const size_t QuatSize = 4;
-				std::array<double, QuatSize> q;
-				for (size_t i = 0; i < QuatSize; ++i)
-				{
-					q[i] = values[i];
-				}
+				auto & q = values;
 				double ayterm = 2 * (q[3] * q[1] - q[0] * q[2]);
 				std::array<double, 3> angles = {
 					vtkMath::DegreesFromRadians(
@@ -421,6 +425,9 @@ private:
 			std::copy(values.begin(), values.end(), dblVal.begin());
 			switch (objCmdType)
 			{
+			default:
+				LOG(lvlWarn, QString("Received unsupported/not implemented command %1!").arg(enumToIntegral(objCmdType)));
+				break;
 			case ObjectCommandType::SetMatrix:
 			{
 				// TODO: TEST / Check whether used!
@@ -467,7 +474,7 @@ private:
 			}
 			case ObjectCommandType::SetRotationNormalUp:
 			{
-				iAVec3d dir{ dblVal[0], dblVal[1], dblVal[2] };
+				iAVec3d dir{ -dblVal[0], -dblVal[1], -dblVal[2] };
 				iAVec3d up { dblVal[3], dblVal[4], dblVal[5] };
 				LOG(lvlInfo, QString("  Setting rotation, normal = (%1), up = (%2)")
 					.arg(dir.toString()).arg(up.toString()));
@@ -482,6 +489,7 @@ private:
 	enum iAClientTableColumn
 	{
 		ID,
+		Color,
 		Address,
 		Actions
 	};
@@ -489,11 +497,11 @@ private:
 public:
 	iAUnityWebsocketServerToolImpl(iAMainWindow* mainWnd, iAMdiChild* child) :
 		m_wsServer(new QWebSocketServer(iAUnityWebsocketServerTool::Name, QWebSocketServer::NonSecureMode, this)),
-		m_nextClientID(ServerID + 1),
+		m_nextClientID(ClientStartID),
 		m_dataState(DataState::NoDataset),
 		m_clientListContainer(new QWidget(child)),
 		m_clientTable(new QTableWidget(m_clientListContainer)),
-		m_clientListDW(new iADockWidgetWrapper(m_clientListContainer, "Client List", "ClientList")),
+		m_clientListDW(new iADockWidgetWrapper(m_clientListContainer, "Client List", "ClientList", "https://github.com/3dct/open_iA/wiki/Remote")),
 		m_syncedClientID(NoSyncedClient),
 		m_child(child)
 	{
@@ -535,7 +543,7 @@ public:
 		m_clientListContainer->layout()->setSpacing(1);
 		m_clientListContainer->layout()->addWidget(new QLabel(QString("Listening on %1:%2")
 			.arg(m_wsServer->serverAddress().toString()).arg(m_wsServer->serverPort())));
-		QStringList columnNames = QStringList() << "ID" << "Client address" << "Actions";
+		QStringList columnNames = QStringList() << "ID" << "Color" << "Client address" << "Actions";
 		m_clientTable->setColumnCount(static_cast<int>(columnNames.size()));
 		m_clientTable->setHorizontalHeaderLabels(columnNames);
 		m_clientTable->verticalHeader()->hide();
@@ -544,7 +552,7 @@ public:
 		m_clientTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 		m_clientListContainer->layout()->addWidget(m_clientTable);
 
-		m_dataSetID = 0;
+		m_dataSetID = child->firstImageDataSetIdx();
 		auto bounds = child->dataSetViewer(m_dataSetID)->renderer()->bounds();
 		m_maxSize = std::max({
 			bounds.maxCorner().x() - bounds.minCorner().x(),
@@ -552,9 +560,7 @@ public:
 			bounds.maxCorner().z() - bounds.minCorner().z(),
 		});
 		dynamic_cast<iAImageData*>(child->dataSet(m_dataSetID).get())->vtkImage()->GetSpacing(m_spacing.data());
-
-		connect(m_wsServer, &QWebSocketServer::newConnection, this,
-			[this, child]
+		connect(m_wsServer, &QWebSocketServer::newConnection, this, [this, child]
 		{
 			auto client = m_wsServer->nextPendingConnection();
 			LOG(lvlInfo, QString("%1: Client connected: %2:%3")
@@ -568,12 +574,25 @@ public:
 			auto idItem = new QTableWidgetItem(QString::number(clientID));
 			idItem->setData(Qt::UserRole, clientID);
 			m_clientTable->setItem(clientRow, iAClientTableColumn::ID, idItem);
+
+			auto theme = iAColorThemeManager::instance().theme("Brewer Paired (max. 12)");
+			auto colorIdx = (2 * (clientID - ClientStartID)) % theme->size();
+			auto clientColorBody = theme->color(colorIdx);
+			auto clientColorVec = theme->color((colorIdx + 1) % theme->size());
+			auto colorWidget = new QLabel("Test", m_clientTable);
+			//colorWidget->setGeometry(0, 0, 16, 16);
+			colorWidget->setMinimumSize(16, 16);
+			colorWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+			colorWidget->setAutoFillBackground(true);
+			colorWidget->setStyleSheet(QString("background-color: %1").arg(clientColorBody.name()));
+			m_clientTable->setCellWidget(clientRow, iAClientTableColumn::Color, colorWidget);
+
 			m_clientTable->setItem(clientRow, iAClientTableColumn::Address, new QTableWidgetItem(client->peerAddress().toString()));
 
-			auto w = new QWidget();
-			w->setLayout(new QHBoxLayout);
-			w->layout()->setContentsMargins(0, 0, 0, 0);
-			w->layout()->setSpacing(1);
+			auto actionWidget = new QWidget();
+			actionWidget->setLayout(new QHBoxLayout);
+			actionWidget->layout()->setContentsMargins(0, 0, 0, 0);
+			actionWidget->layout()->setSpacing(1);
 
 			auto syncAction = new QAction("Sync");
 			syncAction->setToolTip("Synchronize Views between this client and this window.");
@@ -597,29 +616,29 @@ public:
 				// trigger sync of last known camera? or just wait for next update...
 			});
 			iAMainWindow::get()->addActionIcon(syncAction, "update");
-			auto syncButton = new QToolButton(w);
+			auto syncButton = new QToolButton(actionWidget);
 			syncButton->setDefaultAction(syncAction);
 
 			auto disconnectAction = new QAction("Sync");
 			disconnectAction->setToolTip("Synchronize Views between this client and this window.");
 			disconnectAction->setCheckable(true);
 			disconnectAction->setChecked(false);
-			QObject::connect(disconnectAction, &QAction::triggered, m_clientTable, [this, clientID, disconnectAction]()
+			QObject::connect(disconnectAction, &QAction::triggered, m_clientTable, [this, clientID]()
 			{
 				m_clientSocket[clientID]->close(QWebSocketProtocol::CloseCodeNormal, "Server user manually requested client disconnect.");
 			});
 			iAMainWindow::get()->addActionIcon(disconnectAction, "close");
-			auto disconnectButton = new QToolButton(w);
+			auto disconnectButton = new QToolButton(actionWidget);
 			disconnectButton->setDefaultAction(disconnectAction);
 
-			w->layout()->addWidget(syncButton);
-			w->layout()->addWidget(disconnectButton);
-			m_clientTable->setCellWidget(clientRow, iAClientTableColumn::Actions, w);
+			actionWidget->layout()->addWidget(syncButton);
+			actionWidget->layout()->addWidget(disconnectButton);
+			m_clientTable->setCellWidget(clientRow, iAClientTableColumn::Actions, actionWidget);
 
 			m_clientSocket[clientID] = client;
 			m_clientState[clientID] = ClientState::AwaitingProtocolNegotiation;
 
-			m_clientCamVis[clientID] = std::make_unique<iACameraVis>(child->renderer()->renderer(), m_maxSize / 20);
+			m_clientCamVis[clientID] = std::make_unique<iACameraVis>(child->renderer()->renderer(), m_maxSize / 20, clientColorBody, clientColorVec);
 			connect(m_clientCamVis[clientID].get(), &iACameraVis::updateRequired, this, [this, clientID, child]
 			{
 				m_clientCamVis[clientID]->updateSource();
@@ -648,7 +667,7 @@ public:
 					.arg(iAUnityWebsocketServerTool::Name).arg(clientID)
 					.arg(elapsedTime));
 			});
-			connect(client, &QWebSocket::textMessageReceived, this, [this, clientID](QString message)
+			connect(client, &QWebSocket::textMessageReceived, this, [clientID](QString message)
 			{
 				LOG(lvlWarn, QString("%1: Client (ID=%2): TEXT MESSAGE received: %3!")
 					.arg(iAUnityWebsocketServerTool::Name).arg(clientID).arg(message));
@@ -966,174 +985,171 @@ private:
 				LOG(lvlError, QString("  Invalid command: missing subcommand; ignoring message!"));
 				return;
 			}
-			switch (m_clientState[clientID])
+			if (m_clientState[clientID] != ClientState::Idle)
 			{
-			case ClientState::Idle:
+				LOG(lvlWarn, "Received unexpected message while client not in Idle state!");
+			}
+			switch (type)
 			{
-				switch (type)
-				{
-				case MessageType::Command:
-				{
-					if (!isInEnum<CommandType>(rcvData[1]))
-					{  // encountered value and valid range output already in isInEnum!
-						LOG(lvlError, QString("  Invalid command: subcommand not in valid range; ignoring message!"));
-						return;
-					}
-					CommandType subcommand;
-					rcvStream >> subcommand;
-					if (subcommand == CommandType::Reset)
-					{
-						LOG(lvlInfo, QString("  Reset received"));
-						m_planeSliceTool->clearSnapshots();
-						clearSnapshots();
-						resetObjects();
-					}
-					else  // CommandType::LoadDataset:
-					{
-						LOG(lvlInfo, QString("  Load Dataset received"));
-						// https://forum.qt.io/topic/89832/reading-char-array-from-qdatastream
-						auto fnLen = readVal<quint32>(rcvStream);
-						QByteArray fnBytes;
-						fnBytes.resize(fnLen);
-						auto readBytes = rcvStream.readRawData(fnBytes.data(), fnLen);
-						if (static_cast<quint32>(readBytes) != fnLen)
-						{
-							LOG(lvlError,
-								QString("    Invalid message: expected length %1, actually read %2 bytes")
-									.arg(fnLen)
-									.arg(readBytes));
-							return;
-						}
-						QString fileName = QString::fromUtf8(fnBytes);
-						LOG(lvlInfo,
-							QString("  Client requested loading dataset from filename '%1' (len=%2).")
-								.arg(fileName)
-								.arg(fnLen));
-
-						if (!dataSetExists(fileName, child))
-						{
-							LOG(lvlWarn, "  Requested dataset does not exist, sending NAK!");
-							sendMessage(clientID, MessageType::NAK);
-							return;
-						}
-						sendDataLoadingRequest(fileName);
-					}
+			case MessageType::Command:
+			{
+				if (!isInEnum<CommandType>(rcvData[1]))
+				{  // encountered value and valid range output already in isInEnum!
+					LOG(lvlError, QString("  Invalid command: subcommand not in valid range; ignoring message!"));
 					return;
 				}
-				case MessageType::Object:
+				CommandType subcommand;
+				rcvStream >> subcommand;
+				if (subcommand == CommandType::Reset)
 				{
-					if (!isInEnum<ObjectCommandType>(rcvData[1]))
-					{  // encountered value and valid range output already in isInEnum!
-						LOG(lvlError, QString("  Invalid object message: subcommand not in valid range; ignoring message!"));
-						return;
-					}
-					ObjectCommandType objCommand;
-					rcvStream >> objCommand;
-					auto objID = readVal<quint64>(rcvStream);
-					LOG(lvlDebug, QString("  Object subcommand %1 for object ID %2").arg(static_cast<int>(objCommand)).arg(objID));
-					switch (objCommand)
-					{
-					case ObjectCommandType::SetMatrix:
-						processObjectTransform<16>(rcvStream, clientID, objID, objCommand, child);
-						break;
-					case ObjectCommandType::SetTranslation:
-						processObjectTransform<3>(rcvStream, clientID, objID, objCommand, child);
-						break;
-					case ObjectCommandType::SetScaling:
-						processObjectTransform<3>(rcvStream, clientID, objID, objCommand, child);
-						break;
-					case ObjectCommandType::SetRotationQuaternion:
-						processObjectTransform<4>(rcvStream, clientID, objID, objCommand, child);
-						break;
-					case ObjectCommandType::SetRotationEuler:
-					{
-						auto axis = readVal<quint8>(rcvStream);
-						float value = readVal<float>(rcvStream);
-						LOG(lvlDebug,
-							QString("  Object command=SetRotation (Euler Angles) received for object ID=%1 with axis=%3, "
-									"value=%4.")
-								.arg(static_cast<int>(objCommand))
-								.arg(objID)
-								.arg(axis)
-								.arg(value));
-						QByteArray outData;
-						QDataStream outStream(&outData, QIODevice::WriteOnly);
-						outStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
-						outStream << MessageType::Object << objCommand << objID << axis << value;
-						broadcastMsg(outData, clientID);
-						// TODO: local application!
-						break;
-					}
-					case ObjectCommandType::SetRotationNormalUp:
-						processObjectTransform<6>(rcvStream, clientID, objID, objCommand, child);
-						break;
-					default:
-						LOG(lvlWarn, QString("  Object subcommand %1 not implemented!").arg(static_cast<int>(objCommand)));
-						break;
-					}
-					break;
+					LOG(lvlInfo, QString("  Reset received"));
+					m_planeSliceTool->clearSnapshots();
+					clearSnapshots();
+					resetObjects();
 				}
-				case MessageType::Snapshot:
+				else  // CommandType::LoadDataset:
 				{
-					if (!isInEnum<SnapshotCommandType>(rcvData[1]))
-					{  // encountered value and valid range output already in isInEnum!
+					LOG(lvlInfo, QString("  Load Dataset received"));
+					// https://forum.qt.io/topic/89832/reading-char-array-from-qdatastream
+					auto fnLen = readVal<quint32>(rcvStream);
+					QByteArray fnBytes;
+					fnBytes.resize(fnLen);
+					auto readBytes = rcvStream.readRawData(fnBytes.data(), fnLen);
+					if (static_cast<quint32>(readBytes) != fnLen)
+					{
 						LOG(lvlError,
-							QString("  Invalid snapshot message: subcommand not in valid range; ignoring message!"));
+							QString("    Invalid message: expected length %1, actually read %2 bytes")
+								.arg(fnLen)
+								.arg(readBytes));
 						return;
 					}
-					SnapshotCommandType snapshotCommand;
-					rcvStream >> snapshotCommand;
-					switch (snapshotCommand)
+					QString fileName = QString::fromUtf8(fnBytes);
+					LOG(lvlInfo,
+						QString("  Client requested loading dataset from filename '%1' (len=%2).")
+							.arg(fileName)
+							.arg(fnLen));
+
+					if (!dataSetExists(fileName, child))
 					{
-					case SnapshotCommandType::Create:
-					{
-						iASnapshotInfo info{};
-						readArray(rcvStream, info.position);
-						unitToObjectPos(info.position);
-						std::array<float, 4> rotation;
-						readArray(rcvStream, rotation);
-						LOG(lvlWarn, QString("  New Snapshot: position %1, rotation %2: Note that rotation quaternion conversion is EXPERIMENTAL!")
-							.arg(arrayToString(info.position)).arg(arrayToString(rotation)));
-						info.normal = applyRotationToVector(DefaultPlaneNormal, rotation);
-						auto snapshotIDRow = m_planeSliceTool->addSnapshot(info);
-						addSnapshot(snapshotIDRow.first, info);
-						break;
+						LOG(lvlWarn, "  Requested dataset does not exist, sending NAK!");
+						sendMessage(clientID, MessageType::NAK);
+						return;
 					}
-					case SnapshotCommandType::CreatePosNormal:
-					{
-						iASnapshotInfo info{};
-						readArray(rcvStream, info.position);
-						unitToObjectPos(info.position);
-						readArray(rcvStream, info.normal);
-						LOG(lvlInfo, QString("  New Snapshot: position %1, normal %2")
-							.arg(arrayToString(info.position)).arg(arrayToString(info.normal)));
-						auto snapshotIDRow = m_planeSliceTool->addSnapshot(info);
-						addSnapshot(snapshotIDRow.first, info);
-						break;
-					}
-					case SnapshotCommandType::Remove:
-					{
-						auto snapshotID = readVal<quint64>(rcvStream);
-						m_planeSliceTool->removeSnapshot(snapshotID);
-						removeSnapshot(snapshotID);
-						break;
-					}
-					case SnapshotCommandType::ClearAll:
-						m_planeSliceTool->clearSnapshots();
-						clearSnapshots();
-						break;
-					}
+					sendDataLoadingRequest(fileName);
+				}
+				return;
+			}
+			case MessageType::Object:
+			{
+				if (!isInEnum<ObjectCommandType>(rcvData[1]))
+				{  // encountered value and valid range output already in isInEnum!
+					LOG(lvlError, QString("  Invalid object message: subcommand not in valid range; ignoring message!"));
+					return;
+				}
+				ObjectCommandType objCommand;
+				rcvStream >> objCommand;
+				auto objID = readVal<quint64>(rcvStream);
+				LOG(lvlDebug, QString("  Object subcommand %1 for object ID %2").arg(static_cast<int>(objCommand)).arg(objID));
+				switch (objCommand)
+				{
+				case ObjectCommandType::SetMatrix:
+					processObjectTransform<16>(rcvStream, clientID, objID, objCommand, child);
+					break;
+				case ObjectCommandType::SetTranslation:
+					processObjectTransform<3>(rcvStream, clientID, objID, objCommand, child);
+					break;
+				case ObjectCommandType::SetScaling:
+					processObjectTransform<3>(rcvStream, clientID, objID, objCommand, child);
+					break;
+				case ObjectCommandType::SetRotationQuaternion:
+					processObjectTransform<4>(rcvStream, clientID, objID, objCommand, child);
+					break;
+				case ObjectCommandType::SetRotationEuler:
+				{
+					auto axis = readVal<quint8>(rcvStream);
+					float value = readVal<float>(rcvStream);
+					LOG(lvlDebug,
+						QString("  Object command=SetRotation (Euler Angles) received for object ID=%1 with axis=%3, "
+								"value=%4.")
+							.arg(static_cast<int>(objCommand))
+							.arg(objID)
+							.arg(axis)
+							.arg(value));
+					QByteArray outData;
+					QDataStream outStream(&outData, QIODevice::WriteOnly);
+					outStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+					outStream << MessageType::Object << objCommand << objID << axis << value;
+					broadcastMsg(outData, clientID);
+					// TODO: local application!
 					break;
 				}
+				case ObjectCommandType::SetRotationNormalUp:
+					processObjectTransform<6>(rcvStream, clientID, objID, objCommand, child);
+					break;
+				default:
+					LOG(lvlWarn, QString("  Object subcommand %1 not implemented!").arg(static_cast<int>(objCommand)));
+					break;
 				}
 				break;
-			} /*
-							// implicitly handled through m_dataState code above switch
-						case ClientState::PendingDatasetAck:
-						{
-							break;
-						}
-						*/
+			}
+			case MessageType::Snapshot:
+			{
+				if (!isInEnum<SnapshotCommandType>(rcvData[1]))
+				{  // encountered value and valid range output already in isInEnum!
+					LOG(lvlError,
+						QString("  Invalid snapshot message: subcommand not in valid range; ignoring message!"));
+					return;
+				}
+				SnapshotCommandType snapshotCommand;
+				rcvStream >> snapshotCommand;
+				switch (snapshotCommand)
+				{
+				case SnapshotCommandType::Create:
+				{
+					iASnapshotInfo info{};
+					readArray(rcvStream, info.position);
+					unitToObjectPos(info.position);
+					std::array<float, 4> rotation;
+					readArray(rcvStream, rotation);
+					LOG(lvlWarn, QString("  New Snapshot: position %1, rotation %2: Note that rotation quaternion conversion is EXPERIMENTAL!")
+						.arg(arrayToString(info.position)).arg(arrayToString(rotation)));
+					info.normal = applyRotationToVector(DefaultPlaneNormal, rotation);
+					auto snapshotIDRow = m_planeSliceTool->addSnapshot(info);
+					addSnapshot(snapshotIDRow.first, info);
+					break;
+				}
+				case SnapshotCommandType::CreatePosNormal:
+				{
+					iASnapshotInfo info{};
+					readArray(rcvStream, info.position);
+					unitToObjectPos(info.position);
+					readArray(rcvStream, info.normal);
+					LOG(lvlInfo, QString("  New Snapshot: position %1, normal %2")
+						.arg(arrayToString(info.position)).arg(arrayToString(info.normal)));
+					auto snapshotIDRow = m_planeSliceTool->addSnapshot(info);
+					addSnapshot(snapshotIDRow.first, info);
+					break;
+				}
+				case SnapshotCommandType::Remove:
+				{
+					auto snapshotID = readVal<quint64>(rcvStream);
+					m_planeSliceTool->removeSnapshot(snapshotID);
+					removeSnapshot(snapshotID);
+					break;
+				}
+				case SnapshotCommandType::ClearAll:
+					m_planeSliceTool->clearSnapshots();
+					clearSnapshots();
+					break;
+				default:
+					LOG(lvlWarn, "Unsupported Snapshot command!");
+					break;
+				}
+				break;
+			}
+			default:
+				LOG(lvlWarn, "Unsupported Snapshot command!");
+				break;
 			}
 		}
 		catch (std::exception& e)
@@ -1270,10 +1286,15 @@ private slots:
 	}
 };
 
-const QString iAUnityWebsocketServerTool::Name("UnityWebSocketServer");
+const QString iAUnityWebsocketServerTool::Name("Unity Volume Interaction Server");
 
 std::shared_ptr<iATool> iAUnityWebsocketServerTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
 {
+	if (child->firstImageDataSetIdx() == iAMdiChild::NoDataSet || !child->dataSetViewer(child->firstImageDataSetIdx()))
+	{
+		QMessageBox::warning(mainWnd, iAUnityWebsocketServerTool::Name, "No image dataset loaded, or not fully initialized. Please try again later!");
+		return nullptr;
+	}
 	return std::make_shared<iAUnityWebsocketServerTool>(mainWnd, child);
 }
 

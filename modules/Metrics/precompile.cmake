@@ -1,3 +1,4 @@
 set(Metrics_PRECOMPILE_INCLUDES
-<iADataSet.h>
-<iATypedCallHelper.h>)
+<iAImageData.h>
+<iATypedCallHelper.h>
+<ImageHistogram.h>)

@@ -18,6 +18,33 @@ message(STATUS "CMake: ${CMAKE_VERSION}")
 #-------------------------
 option(openiA_TESTING_ENABLED "Whether to enable testing. This allows to run CTest/ CDash builds. Default: disabled." OFF)
 if (openiA_TESTING_ENABLED)
+
+	set(TEST_DATA_DIR "${TEST_DIR}/data")
+	set(TEST_IMG_DIR "${CMAKE_BINARY_DIR}/Testing/Temporary")
+
+	function(add_image_test)
+		set(oneValueArgs NAME)
+		set(multiValueArgs COMMAND)
+		cmake_parse_arguments(TEST "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+		if (DEFINED TEST_UNPARSED_ARGUMENTS)
+			message(SEND_ERROR "add_image_test called with unknown arguments '${TEST_UNPARSED_ARGUMENTS}'. Only NAME and COMMAND arguments are known!")
+		endif()
+		set(TEST_TEMPLATE_SCRIPT_FILE "${TEST_DIR}/run_test_with_img_output.cmake.in")
+		set(TEST_OUTPUT_FILE ${TEST_IMG_DIR}/${TEST_NAME}.png)
+		set(TEST_SCRIPT_NAME "${CMAKE_BINARY_DIR}/Test${TEST_NAME}.cmake")
+		configure_file(${TEST_TEMPLATE_SCRIPT_FILE} ${TEST_SCRIPT_NAME} @ONLY)
+		add_test(NAME ${TEST_NAME} COMMAND ${CMAKE_COMMAND} -P ${TEST_SCRIPT_NAME})
+	endfunction()
+
+	function(add_openfile_test)
+		set(oneValueArgs NAME FILENAME)
+		cmake_parse_arguments(TEST "" "${oneValueArgs}" "" ${ARGN} )
+		if (DEFINED TEST_UNPARSED_ARGUMENTS)
+			message(SEND_ERROR "add_openfile_test called with unknown arguments '${TEST_UNPARSED_ARGUMENTS}'. Only NAME and FILENAME arguments are known!")
+		endif()
+		add_image_test(NAME ${TEST_NAME} COMMAND ${TEST_GUI_EXECUTABLE} ${TEST_DATA_DIR}/${TEST_FILENAME} --quit 500 --screenshot ${TEST_IMG_DIR}/${TEST_NAME}.png --size 1920x1080)
+	endfunction()
+
 	message(STATUS "Testing enabled")
 	include (CTest)
 	enable_testing()
@@ -103,9 +130,8 @@ endif()
 # LIBRARIES
 #-------------------------
 
-# Prepare empty BUNDLE vars:
+# Prepare empty BUNDLE directory:
 set(BUNDLE_DIRS "")
-set(BUNDLE_LIBS "")
 
 # Suppress CMake warnings
 #    - triggered for OpenMP package
@@ -132,7 +158,7 @@ set(ITK_COMPONENTS
 	ITKIORAW        # apparently not included in ITKImageIO
 	ITKLabelMap
 	ITKMesh
-	ITKReview       # for LabelGeometryImageFilter
+	ITKReview       # for RobustAutomaticThresholdImageFilter (Segmentation)
 	ITKTestKernel   # for PipelineMonitorImageFilter
 	ITKVtkGlue
 	ITKWatersheds)
@@ -370,53 +396,60 @@ endif()
 # Install svg imageformats plugin:
 if (FLATPAK_BUILD)
 	# I guess plugins should all be available on Flatpak?
-	#	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION bin/imageformats)
-	#	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgIconPlugin>" DESTINATION bin/iconengines)
+	#	install(FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION bin/imageformats)
+	#	install(FILES "$<TARGET_FILE:Qt5::QSvgIconPlugin>" DESTINATION bin/iconengines)
 else()
 	find_package(Qt6QSvgPlugin REQUIRED PATHS ${Qt6Gui_DIR})
 	find_package(Qt6QSvgIconPlugin REQUIRED PATHS ${Qt6Gui_DIR})
-	INSTALL (FILES "$<TARGET_FILE:Qt6::QSvgIconPlugin>" DESTINATION iconengines)
-	list(APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt6::QSvgIconPlugin>")
-	INSTALL (FILES "$<TARGET_FILE:Qt6::QSvgPlugin>" DESTINATION imageformats)
-	list(APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt6::QSvgPlugin>")
+	install(IMPORTED_RUNTIME_ARTIFACTS Qt6::QSvgIconPlugin RUNTIME_DEPENDENCY_SET iADependencySet DESTINATION iconengines)
+	install(IMPORTED_RUNTIME_ARTIFACTS Qt6::QSvgPlugin RUNTIME_DEPENDENCY_SET iADependencySet DESTINATION imageformats)
 endif()
 # on windows, windows platform and style plugins are required:
 if (WIN32)
+#	find_package(Qt6QWindowsIntegrationPlugin REQUIRED PATHS ${Qt6Gui_DIR})
+#	install(IMPORTED_RUNTIME_ARTIFACTS RUNTIME_DEPENDENCY_SET iADependencySet Qt6::QWindowsIntegrationPlugin DESTINATION platforms)
+#	if (Qt6_VERSION VERSION_LESS "6.7")
+#		find_package(Qt6QWindowsVistaStylePlugin REQUIRED PATHS ${Qt6Widgets_DIR})
+#		install(IMPORTED_RUNTIME_ARTIFACTS RUNTIME_DEPENDENCY_SET iADependencySet Qt6::QWindowsVistaStylePlugin DESTINATION styles)
+#	else()
+#		find_package(Qt6QModernWindowsStylePlugin REQUIRED PATHS ${Qt6Widgets_DIR})
+#		install(IMPORTED_RUNTIME_ARTIFACTS RUNTIME_DEPENDENCY_SET iADependencySet Qt6::QModernWindowsStylePlugin DESTINATION styles)
+#	endif()
 	find_package(Qt6QWindowsIntegrationPlugin REQUIRED PATHS ${Qt6Gui_DIR})
+	install(FILES "$<TARGET_FILE:Qt6::QWindowsIntegrationPlugin>" DESTINATION platforms)
 	if (Qt6_VERSION VERSION_LESS "6.7")
 		find_package(Qt6QWindowsVistaStylePlugin REQUIRED PATHS ${Qt6Widgets_DIR})
-		INSTALL (FILES "$<TARGET_FILE:Qt6::QWindowsVistaStylePlugin>" DESTINATION styles)
+		install(FILES "$<TARGET_FILE:Qt6::QWindowsVistaStylePlugin>" DESTINATION styles)
 	else()
 		find_package(Qt6QModernWindowsStylePlugin REQUIRED PATHS ${Qt6Widgets_DIR})
-		INSTALL (FILES "$<TARGET_FILE:Qt6::QModernWindowsStylePlugin>" DESTINATION styles)
+		install(FILES "$<TARGET_FILE:Qt6::QModernWindowsStylePlugin>" DESTINATION styles)
 	endif()
-	INSTALL (FILES "$<TARGET_FILE:Qt6::QWindowsIntegrationPlugin>" DESTINATION platforms)
 endif()
 # on linux/unix, xcb platform plugin, and its plugins egl and glx are required:
 if (UNIX AND NOT APPLE AND NOT FLATPAK_BUILD)
 	find_package(Qt6QXcbIntegrationPlugin REQUIRED PATHS ${Qt6Gui_DIR})
 	find_package(Qt6QXcbEglIntegrationPlugin REQUIRED PATHS ${Qt6Gui_DIR})
 	find_package(Qt6QXcbGlxIntegrationPlugin REQUIRED PATHS ${Qt6Gui_DIR})
-	INSTALL (FILES "$<TARGET_FILE:Qt6::QXcbIntegrationPlugin>" DESTINATION platforms)
-	INSTALL (FILES "$<TARGET_FILE:Qt6::QXcbEglIntegrationPlugin>" DESTINATION xcbglintegrations)
-	INSTALL (FILES "$<TARGET_FILE:Qt6::QXcbGlxIntegrationPlugin>" DESTINATION xcbglintegrations)
+	install(IMPORTED_RUNTIME_ARTIFACTS Qt6::QXcbIntegrationPlugin RUNTIME_DEPENDENCY_SET iADependencySet DESTINATION platforms)
+	install(IMPORTED_RUNTIME_ARTIFACTS Qt6::QXcbEglIntegrationPlugin RUNTIME_DEPENDENCY_SET iADependencySet DESTINATION xcbglintegrations)
+	install(IMPORTED_RUNTIME_ARTIFACTS Qt6::QXcbGlxIntegrationPlugin RUNTIME_DEPENDENCY_SET iADependencySet DESTINATION xcbglintegrations)
 
 	# install icu:
 	# TODO: find out whether Qt was built with icu library dependencies
 	# (typically only the case if webengine/webkit were included); but there
 	# doesn't seem to be any CMake variable exposing this...
-	set(ICU_LIBS icudata icui18n icuuc)
-	foreach (ICU_LIB ${ICU_LIBS})
-		set(ICU_LIB_LINK ${QT_LIB_DIR}/lib${ICU_LIB}.so)
-		get_filename_component(ICU_SHAREDLIB "${ICU_LIB_LINK}" REALPATH)
-		get_filename_component(ICU_SHAREDLIB_NAMEONLY "${ICU_SHAREDLIB}" NAME)
-		string(LENGTH "${ICU_SHAREDLIB_NAMEONLY}" ICULIB_STRINGLEN)
-		MATH(EXPR ICULIB_STRINGLEN "${ICULIB_STRINGLEN}-2")
-		string(SUBSTRING "${ICU_SHAREDLIB_NAMEONLY}" 0 ${ICULIB_STRINGLEN} ICU_SHAREDLIB_DST)
-		if (EXISTS "${ICU_SHAREDLIB}")
-			INSTALL (FILES "${ICU_SHAREDLIB}" DESTINATION . RENAME "${ICU_SHAREDLIB_DST}")
-		endif()
-	endforeach()
+	#set(ICU_LIBS icudata icui18n icuuc)
+	#foreach (ICU_LIB ${ICU_LIBS})
+	#	set(ICU_LIB_LINK ${QT_LIB_DIR}/lib${ICU_LIB}.so)
+	#	get_filename_component(ICU_SHAREDLIB "${ICU_LIB_LINK}" REALPATH)
+	#	get_filename_component(ICU_SHAREDLIB_NAMEONLY "${ICU_SHAREDLIB}" NAME)
+	#	string(LENGTH "${ICU_SHAREDLIB_NAMEONLY}" ICULIB_STRINGLEN)
+	#	MATH(EXPR ICULIB_STRINGLEN "${ICULIB_STRINGLEN}-2")
+	#	string(SUBSTRING "${ICU_SHAREDLIB_NAMEONLY}" 0 ${ICULIB_STRINGLEN} ICU_SHAREDLIB_DST)
+	#	if (EXISTS "${ICU_SHAREDLIB}")
+	#		install(FILES "${ICU_SHAREDLIB}" DESTINATION . RENAME "${ICU_SHAREDLIB_DST}")
+	#	endif()
+	#endforeach()
 endif()
 list(APPEND BUNDLE_DIRS "${QT_LIB_DIR}")
 
@@ -704,12 +737,6 @@ if (MSVC)
 		set(WinDLLPaths "${OPENXR_PATH_WIN};${WinDLLPaths}")
 	endif()
 
-	if (ONNX_RUNTIME_LIBRARIES)
-		get_filename_component(ONNX_LIB_DIR ${ONNX_RUNTIME_LIBRARIES} DIRECTORY)
-		cmake_path(NATIVE_PATH ONNX_LIB_DIR ONNX_LIB_WIN_DIR)
-		set(WinDLLPaths "${ONNX_LIB_WIN_DIR};${WinDLLPaths}")
-	endif()
-
 	if (openiA_ENABLE_ASAN)
 		set(WinDLLPaths "$(VCToolsInstallDir)\\bin\\Hostx64\\x64;${WinDLLPaths}")
 	endif()
@@ -722,11 +749,6 @@ if (MSVC)
 	string(REPLACE ";" "\\;" EnvPathTmp "$ENV{PATH}")   # probably not strictly necessary?
 	set(TestEnvPath "${TestDllPaths}\\;${EnvPathTmp}")
 	# see tests/CMakeLists.txt or module/Segmentation/enabled.cmake for example usage
-endif()
-
-if (ONNX_RUNTIME_LIBRARIES)
-	get_filename_component(ONNX_LIB_DIR ${ONNX_RUNTIME_LIBRARIES} DIRECTORY)
-	list(APPEND BUNDLE_DIRS "${ONNX_LIB_DIR}")
 endif()
 
 

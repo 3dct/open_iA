@@ -26,11 +26,14 @@
 vtkSmartPointer<vtkGenericMovieWriter> GetMovieWriter(QString const & fileName, int quality, int fps)
 {
 	if (fileName.isEmpty())
+	{
 		return vtkSmartPointer<vtkGenericMovieWriter>();
+	}
 	vtkSmartPointer<vtkGenericMovieWriter> movieWriter;
 	// Try to create proper video encoder based on given file name.
 #ifdef VTK_USE_OGGTHEORA_ENCODER
-	if (fileName.endsWith(".ogv")) {
+	if (fileName.endsWith(".ogv"))
+	{
 		vtkSmartPointer<vtkOggTheoraWriter> oggwriter;
 		oggwriter = vtkSmartPointer<vtkOggTheoraWriter>::New();
 		oggwriter->SetQuality(quality);
@@ -39,7 +42,8 @@ vtkSmartPointer<vtkGenericMovieWriter> GetMovieWriter(QString const & fileName, 
 	}
 #endif
 #if defined(_WIN32) and defined(_MSC_VER) and defined(VTK_USE_AVIWRITER)
-	if (fileName.endsWith(".avi")) {
+	if (fileName.endsWith(".avi"))
+	{
 		vtkSmartPointer<vtkAVIWriter> aviwriter;
 		aviwriter = vtkSmartPointer<vtkAVIWriter>::New();
 		aviwriter->SetCompressorFourCC("XVID");

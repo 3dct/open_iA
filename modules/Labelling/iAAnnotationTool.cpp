@@ -46,11 +46,19 @@ const QString iAAnnotationTool::Name = "Annotation";
 
 namespace
 {
+	//! minimum opacity of the annotation when slicer currently not in the vicinity of its position
 	const double CaptionMinimumOpacity = 0.25;
+	//! opacity of the background when annotation is fully visible
 	const double CaptionBackgroundOpacity = 0.2;
+	//! width of the annotation frame when annotation is fully visible
 	const int CaptionFrameWidth = 2;
+	//! fraction of the dataset size over which the opacity should vary close to the annotation
+	const double LinearRampFraction = 0.05;
+	//! number of voxel layers over which the opacity should at least vary close to the annotation
+	const int MinVoxelVisible = 2;
 }
 
+//! GUI data for an annotation
 struct iAVtkAnnotationData
 {
 	std::array<vtkSmartPointer<vtkCaptionActor2D>, iASlicerMode::SlicerCount> m_txtActor;
@@ -63,7 +71,7 @@ public:
 	iAAnnotationToolUI(iAAnnotationTool* tool):
 		m_container(new QWidget),
 		m_table(new QTableWidget(m_container)),
-		m_dockWidget(new iADockWidgetWrapper(m_container, "Annotations", "dwAnnotations")),
+		m_dockWidget(new iADockWidgetWrapper(m_container, "Annotations", "dwAnnotations", "https://github.com/3dct/open_iA/wiki/Labeling")),
 		m_addButton(new QToolButton())
 	{
 		auto columnNames = QStringList() << "" << "Name" << "Coordinates" << "Show";
@@ -169,12 +177,12 @@ iAAnnotationTool::iAAnnotationTool(iAMainWindow* mainWnd, iAMdiChild* child):
 		auto s = child->slicer(i);
 		QObject::connect(s, &iASlicer::sliceNumberChanged, this, [this, i, s]()
 		{
-			const double LinearRampFraction = 0.05;
 			for (auto& a : m_ui->m_annotations)
 			{
 				double dist = std::abs(a.m_coord[s->mode()] - s->slicePosition());
 				auto sMinMax = s->sliceRange();
-				auto sRange = (sMinMax.second - sMinMax.first) * LinearRampFraction;
+				// annotation should either be visible 2 voxel layers, or for 5% of the dataset, whichever is larger:
+				auto sRange = std::max(s->sliceThickness()*2, (sMinMax.second - sMinMax.first) * LinearRampFraction);
 				double opacity = std::max(CaptionMinimumOpacity, // caption should have a minimum opacity
 					1 - dist / sRange);  // linearly decrease based on distance between current slice and annotation
 				auto vtkData = m_ui->m_vtkAnnotateData[a.m_id];

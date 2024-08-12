@@ -14,11 +14,10 @@ set(DEPENDENCIES_LIBRARIES
 #	ITKLabelMap                # for LabelImageToShapeLabelMapFilter
 #	ITKMathematicalMorphology  # for RegionalMinimaImageFilter
 #	ITKRegionGrowing           # for ConfidenceConnectedImageFilter, ConnectedThresholdImageFilter
-#	ITKReview                  # for LabelGeometryImageFilter, RobustAutomaticThresholdImageFilter
+#	ITKReview                  # for RobustAutomaticThresholdImageFilter
 #	ITKSmoothing               # for MedianImageFilter, RecursiveGaussianImageFilter
 #	ITKStatistics              # for ImageToHistogramFilter
 #	ITKThresholding            # for BinaryThresholdImageFilter
-#	ITKTransform               # for AffineTransform (dependency of LabelGeometryImageFilter)
 #	ITKWatersheds              # for MorphologicalWatershedImageFilter
 #)
 set(DEPENDENCIES_IA_TOOLKIT_DIRS

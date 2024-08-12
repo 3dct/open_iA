@@ -2,17 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-//CompVis
-#include "iACsvDataStorage.h"
-#include "iACompVisOptions.h"
-#include "iAComp3DWidgetInteractionStyle.h"
-#include "ui_CompHistogramTable.h"
 
 //Qt
 #include <QDockWidget>
 
 //vtk
 #include <vtkSmartPointer.h>
+
+class iAComp3DWidgetInteractionStyle;
 
 struct iACsvConfig;
 class iAColoredPolyObjectVis;
@@ -27,35 +24,19 @@ class vtkTable;
 class vtkInteractorObserver;
 class vtkRenderer;
 
-class iAComp3DWidget : public QDockWidget, public Ui_CompHistogramTable
+class iAComp3DWidget : public QDockWidget
 {
 	Q_OBJECT
 
 public:
 
-	iAComp3DWidget(iAMainWindow* parent, std::shared_ptr<iAObjectsData> objData, const iACsvConfig& csvConfig);
-
+	iAComp3DWidget(iAMainWindow* parent, std::shared_ptr<iAObjectsData> objData);
 	void showEvent(QShowEvent* event) override;
-
-	/*** Initialization ***/
-	void initializeInteraction();
-
-	/*** Rendering ***/
 	void renderWidget();
-	void addRendererToWidget(vtkSmartPointer<vtkRenderer> renderer);
-	void setInteractorStyleToWidget(vtkSmartPointer<vtkInteractorObserver> style);
-	void removeAllRendererFromWidget();
-
-	/*** Update ***/
 	void resetWidget();
 	void drawSelection(std::vector<size_t> selectedIds);
 
-
 private:
-
-	/*** Initialization ***/
-	void create3DVis(const iACsvConfig& csvConfig);
-
 	/*** Rendering ***/
 	std::shared_ptr<iAColoredPolyObjectVis> m_3dvisData;
 	std::shared_ptr<iAPolyObjectVisActor> m_3dvisActor;

@@ -3,93 +3,48 @@
 #include "iAComp3DWidget.h"
 
 //CompVis
-#include "iAMainWindow.h"
+#include "iAComp3DWidgetInteractionStyle.h"
 
 //iA
-#include "iAQVTKWidget.h"
-#include "iACsvConfig.h"
-#include "iAObjectsData.h"
-#include "iAEllipsoidObjectVis.h"
-#include "iACylinderObjectVis.h"
-#include "iAPolyObjectVisActor.h"
-#include "iAVec3.h"
-
-#include <QVBoxLayout>
+#include <iACsvConfig.h>
+#include <iACylinderObjectVis.h>
+#include <iAEllipsoidObjectVis.h>
+#include <iAMainWindow.h>
+#include <iAObjectsData.h>
+#include <iAPolyObjectVisActor.h>
+#include <iAQVTKWidget.h>
 
 #include <vtkInteractorObserver.h>
 #include <vtkRenderer.h>
-#include <vtkRendererCollection.h>
 #include <vtkRenderWindow.h>
-#include <vtkTable.h>
 
-#include <map>
-#include <vector>
+#include <QVBoxLayout>
+
 #include <algorithm>
+#include <vector>
 
 
-iAComp3DWidget::iAComp3DWidget(iAMainWindow* parent, std::shared_ptr<iAObjectsData> objData, const iACsvConfig& csvConfig) :
+iAComp3DWidget::iAComp3DWidget(iAMainWindow* parent, std::shared_ptr<iAObjectsData> objData) :
 	QDockWidget(parent),
 	m_objData(objData),
 	m_objectColor(QColor(140, 140, 140, 255)),
 	m_interactionStyle(vtkSmartPointer<iAComp3DWidgetInteractionStyle>::New())
 {
-	setupUi(this);
-
-	auto layout = new QVBoxLayout;
-	dockWidgetContents->setLayout(layout);
-
+	setWidget(new QWidget);
+	widget()->setLayout(new QVBoxLayout);
+	widget()->layout()->setContentsMargins(0, 0, 0, 0);
+	setFeatures(NoDockWidgetFeatures);
 	m_qvtkWidget = new iAQVTKWidget(this);
-	layout->addWidget(m_qvtkWidget);
+	widget()->layout()->addWidget(m_qvtkWidget);
 
 	m_renderer = vtkSmartPointer<vtkRenderer>::New();
-	addRendererToWidget(m_renderer);
+	m_qvtkWidget->renderWindow()->AddRenderer(m_renderer);
 
-	//interaction
-	initializeInteraction();
+	m_interactionStyle->setVisualization(this);
+	m_interactionStyle->SetDefaultRenderer(m_renderer);
+	m_qvtkWidget->interactor()->SetInteractorStyle(m_interactionStyle);
 
-	//rendering
-	create3DVis(csvConfig);
-}
-
-/*************** Rendering ****************************/
-void iAComp3DWidget::showEvent(QShowEvent* event)
-{
-	QDockWidget::showEvent(event);
-
-	renderWidget();
-}
-
-void iAComp3DWidget::renderWidget()
-{
-	m_qvtkWidget->renderWindow()->GetInteractor()->Render();
-}
-
-void iAComp3DWidget::addRendererToWidget(vtkSmartPointer<vtkRenderer> renderer)
-{
-	m_qvtkWidget->renderWindow()->AddRenderer(renderer);
-}
-
-void iAComp3DWidget::setInteractorStyleToWidget(vtkSmartPointer<vtkInteractorObserver> style)
-{
-	m_qvtkWidget->interactor()->SetInteractorStyle(style);
-}
-
-void iAComp3DWidget::removeAllRendererFromWidget()
-{
-	vtkRendererCollection* rendererList = m_qvtkWidget->renderWindow()->GetRenderers();
-
-	vtkCollectionSimpleIterator sit;
-	rendererList->InitTraversal(sit);
-	for (int i = 0; i < rendererList->GetNumberOfItems(); i++)
-	{
-		vtkRenderer* currRend = rendererList->GetNextRenderer(sit);
-		m_qvtkWidget->renderWindow()->RemoveRenderer(currRend);
-	}
-}
-
-/*************** Initialization ****************************/
-void iAComp3DWidget::create3DVis(const iACsvConfig& /*csvConfig*/)
-{
+	// create 3D object visualization:
 	if (m_objData->m_visType == iAObjectVisType::Cylinder)
 	{
 		m_3dvisData = std::make_shared<iACylinderObjectVis>(m_objData.get(), m_objectColor);
@@ -102,12 +57,21 @@ void iAComp3DWidget::create3DVis(const iACsvConfig& /*csvConfig*/)
 	m_3dvisActor->show();
 }
 
-void iAComp3DWidget::initializeInteraction()
+
+/*************** Rendering ****************************/
+
+void iAComp3DWidget::showEvent(QShowEvent* event)
 {
-	m_interactionStyle->setVisualization(this);
-	m_interactionStyle->SetDefaultRenderer(m_renderer);
-	setInteractorStyleToWidget(m_interactionStyle);
+	QDockWidget::showEvent(event);
+
+	renderWidget();
 }
+
+void iAComp3DWidget::renderWidget()
+{
+	m_qvtkWidget->renderWindow()->Render();
+}
+
 
 /*************** Update ****************************/
 

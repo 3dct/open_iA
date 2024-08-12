@@ -89,7 +89,7 @@ namespace
 }
 
 
-constexpr const char GraphRendererName[] = "Default Settings/Dataset Renderer: Graph";
+inline constexpr char GraphRendererName[] = "Default Settings/Dataset Renderer: Graph";
 
 //! Encapsulates the specifics of the settings of a graph renderer.
 //! Handles auto-registration of the settings with iASettingsManager (via deriving from iASettingsObject).
@@ -320,7 +320,7 @@ vtkProp3D* iAGraphRenderer::vtkProp()
 
 
 // ---------- iAMeshRenderer ----------
-constexpr const char SurfaceRendererName[] = "Default Settings/Dataset Renderer: Surface";
+inline constexpr char SurfaceRendererName[] = "Default Settings/Dataset Renderer: Surface";
 
 //! Encapsulates the specifics of the settings of a surface mesh renderer.
 //! Handles auto-registration of the settings with iASettingsManager (via deriving from iASettingsObject).

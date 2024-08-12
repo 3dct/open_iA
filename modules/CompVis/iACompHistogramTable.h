@@ -3,16 +3,18 @@
 #pragma once
 
 //CompVis
-#include "iACsvDataStorage.h"
-#include "iAMultidimensionalScaling.h"
-#include "iACompHistogramTableData.h"
 #include "iACompHistogramCalculation.h"
-#include "iACompHistogramVis.h"
 #include "iACompVisOptions.h"
 
-class iAMainWindow;
-class iACompVisMain;
+#include <map>
+
+class iACsvDataStorage;
+class iACompHistogramTableData;
+class iACompHistogramVis;
 class iACompUniformBinningData;
+class iACompVisMain;
+
+class iAMainWindow;
 
 class iACompHistogramTable
 {
@@ -55,8 +57,6 @@ class iACompHistogramTable
 		iACompVisOptions::binningType binningType, bin::BinType* data, int currBin, int amountOfBins);
 	iACompKernelDensityEstimationData* recomputeKernelDensityCurveUB();
 
-
-	//iACompHistogramTable(iAMainWindow* parent, iAMultidimensionalScaling* mds, iACsvDataStorage* m_dataStorage, iACompVisMain* main);
 	iACompHistogramTable(
 		iAMainWindow* parent, iACsvDataStorage* m_dataStorage, iACompVisMain* main, bool MDSComputedFlag);
 
