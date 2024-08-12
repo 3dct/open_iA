@@ -1236,7 +1236,10 @@ void iASlicerImpl::updateBackground()
 void iASlicerImpl::setBackground(QColor color)
 {
 	m_backgroundColor = color;
-	m_magicLens->setBackgroundColor(activeBGColor());
+	if (m_magicLens)
+	{
+		m_magicLens->setBackgroundColor(activeBGColor());
+	}
 	updateBackground();
 }
 
