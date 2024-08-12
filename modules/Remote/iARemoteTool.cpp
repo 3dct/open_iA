@@ -286,4 +286,4 @@ iARemoteTool::iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 
 iARemoteTool::~iARemoteTool() = default;
 
-const QString iARemoteTool::Name("NDTflix");
+const QString iARemoteTool::Name("Remote Render Server");
