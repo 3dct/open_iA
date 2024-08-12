@@ -26,6 +26,9 @@ iAbase_API void storeAttributes(QTextStream& out, iAAttributes const& attributes
 //! Find a descriptor with the given name and return its index
 iAbase_API int findAttribute(iAAttributes const& attributes, QString const& name);
 
+//! Get the default value of the descriptor with the given name
+iAbase_API QVariant getValue(iAAttributes const& attributes, QString const& name);
+
 //! Removes the attribute with the given name
 iAbase_API void removeAttribute(iAAttributes& attributes, QString const& name);
 

@@ -45,6 +45,16 @@ int findAttribute(iAAttributes const& attributes, QString const & name)
 	return -1;
 }
 
+QVariant getValue(iAAttributes const& attributes, QString const& name)
+{
+	auto idx = findAttribute(attributes, name);
+	if (idx == -1)
+	{
+		return QVariant();
+	}
+	return attributes[idx]->defaultValue();
+}
+
 void removeAttribute(iAAttributes& attributes, QString const& name)
 {
 	auto idx = findAttribute(attributes, name);
