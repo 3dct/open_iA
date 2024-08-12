@@ -37,9 +37,12 @@ void iAWebsocketAPI::init()
 	{
 		connect(m_wsServer, &QWebSocketServer::newConnection, this, &iAWebsocketAPI::onNewConnection);
 		connect(m_wsServer, &QWebSocketServer::closed, this, &iAWebsocketAPI::closed);
+		updateCaptionList(std::vector<iAAnnotation>());
 	}
-	std::vector<iAAnnotation> captions;
-	updateCaptionList(captions);
+	else
+	{
+		LOG(lvlError, QString("Could not bind to port %1!").arg(m_port));
+	}
 }
 
 bool iAWebsocketAPI::setRenderedImage(std::shared_ptr<iAJPGImage> img, QString viewID)

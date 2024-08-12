@@ -202,18 +202,19 @@ iARemoteTool::iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 
 	QString path = QCoreApplication::applicationDirPath() + "/RemoteClient";
 	addDirectorytoServer(path, m_httpServer.get(), m_wsPort);
-	quint16 port = getValue(iARemotePortSettings::defaultAttributes(), iARemotePortSettings::RemoteHTTPPort).toInt();
-	port = m_httpServer->listen(QHostAddress::Any, port);
-	if (port == 0)
+	quint16 httpPort = getValue(iARemotePortSettings::defaultAttributes(), iARemotePortSettings::RemoteHTTPPort).toInt();
+	httpPort = m_httpServer->listen(QHostAddress::Any, httpPort);
+	if (httpPort == 0)
 	{
-		LOG(lvlError, "Could not bind server!");
+		LOG(lvlError, QString("Could not bind HTTP server to port %1!").arg(httpPort));
+		return;
 	}
 	auto ports = m_httpServer->serverPorts();
 	if (ports.size() != 1)
 	{
 		LOG(lvlError, "Invalid number of server ports!");
 	}
-	LOG(lvlImportant, QString("You can reach the webserver under http://localhost:%1").arg(port));
+	LOG(lvlImportant, QString("You can reach the webserver under http://localhost:%1").arg(httpPort));
 #endif
 
 	connect(annotTool, &iAAnnotationTool::annotationsUpdated, m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::updateCaptionList);
@@ -230,7 +231,7 @@ iARemoteTool::iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	clientContainer->layout()->setSpacing(1);
 	auto listenStr = QString("Listening (websocket: %1)").arg(m_remoteRenderer->m_wsAPI->listenAddress());
 #ifdef QT_HTTPSERVER
-	listenStr += QString("; http: localhost:%1").arg(port);
+	listenStr += QString("; http: localhost:%1").arg(httpPort);
 #endif
 	clientContainer->layout()->addWidget(new iAQCropLabel(listenStr));
 	m_clientList = new QTableWidget(child);
