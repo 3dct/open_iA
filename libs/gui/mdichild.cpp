@@ -1506,6 +1506,7 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 		}
 	}
 	auto s = std::make_shared<QSettings>(projectFileName, QSettings::IniFormat);
+	s->clear();   // clear out existing entries (Qt initializes from a potentially existing file) to avoid stale information
 	s->setValue("UseMdiChild", true);
 	saveSettings(*s.get());
 	iAProjectFileIO io;
