@@ -29,10 +29,11 @@ void iAQCropLabel::setup(QString const& text)
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	setWidget(m_label);
+	setFixedHeight(m_label->height());
 }
 
 void iAQCropLabel::setText(QString const& text)
 {
-	setFixedHeight(m_label->height());
 	m_label->setText(text);
+	setFixedHeight(m_label->height());
 }
