@@ -25,7 +25,6 @@ public:
 	void addRenderWindow(vtkRenderWindow* window, QString const& viewID);
 	void removeRenderWindow(QString const& viewID);
 	vtkRenderWindow* renderWindow(QString const& viewID);
-
 	std::unique_ptr<iAWebsocketAPI> m_wsAPI;
 
 private:

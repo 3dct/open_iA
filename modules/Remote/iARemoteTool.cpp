@@ -31,9 +31,14 @@
 #include <QDir>
 #include <QFile>
 #include <QHttpServer>
+#include <QMimeDatabase>
+#include <QTextStream>
 
 namespace
 {
+	const int StandardWebSocketPort = 1234;
+	const int WebSocketPort = 6789;
+	const int HttpPort = 8080;
 
 	void addFileToServe(QString path, QString query, QString fileName, QHttpServer* server)
 	{
@@ -45,7 +50,25 @@ namespace
 				{
 					LOG(lvlError, QString("Could not open file to serve (%1) in given path (%2).").arg(fileName).arg(path));
 				}
-				return QHttpServerResponse::fromFile(path + "/" + fileName);
+				if (fileName == "scripts.js" || fileName == "main.js")
+				{
+					// adapted from QHttpServerResponse::fromFile
+					QFile file(fileToServe);
+					if (!file.open(QFile::ReadOnly))
+					{
+						return QHttpServerResponse(QHttpServerResponse::StatusCode::NotFound);
+					}
+					QTextStream s1(&file);
+					auto s = s1.readAll();
+					s.replace(QString(":%1").arg(StandardWebSocketPort), QString(":%1").arg(WebSocketPort));
+					file.close();
+					const auto mimeType = QMimeDatabase().mimeTypeForFileNameAndData(fileName, s.toUtf8()).name().toUtf8();
+					return QHttpServerResponse(mimeType, s.toUtf8());
+				}
+				else
+				{
+					return QHttpServerResponse::fromFile(fileToServe);
+				}
 			});
 
 		if (!routeCreated)
@@ -86,7 +109,7 @@ namespace
 
 iARemoteTool::iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iATool(mainWnd, child),
-	m_remoteRenderer(std::make_unique<iARemoteRenderer>(1234))
+	m_remoteRenderer(std::make_unique<iARemoteRenderer>(WebSocketPort))
 #ifdef QT_HTTPSERVER
 	, m_httpServer(std::make_unique<QHttpServer>())
 #endif
@@ -180,8 +203,7 @@ iARemoteTool::iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	addDirectorytoServer(path, m_httpServer.get());
 
 	// TODO: - find way to inject websocket port into served html? we could modify served file on the fly...
-	//       - then we would need to modify above check to only check for current child (no sense in serving same child twice)
-	auto port = m_httpServer->listen(QHostAddress::Any, 8080);
+	auto port = m_httpServer->listen(QHostAddress::Any, HttpPort);
 	if (port == 0)
 	{
 		LOG(lvlError, "Could not bind server!");
@@ -191,10 +213,7 @@ iARemoteTool::iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	{
 		LOG(lvlError, "Invalid number of server ports!");
 	}
-	if (port == 8080)
-	{
-		LOG(lvlImportant, QString("You can reach the webserver under http://localhost:%1").arg(port));
-	}
+	LOG(lvlImportant, QString("You can reach the webserver under http://localhost:%1").arg(port));
 #endif
 
 	connect(annotTool, &iAAnnotationTool::annotationsUpdated, m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::updateCaptionList);
