@@ -8,7 +8,6 @@
 #include <iALog.h>
 
 #include <QJsonArray>
-#include <QJsonDocument>
 #include <QJsonObject>
 #include <QWebSocketServer>
 #include <QWebSocket>
@@ -349,14 +348,6 @@ void iAWebsocketAPI::sendViewIDUpdate(std::shared_ptr<iAJPGImage> img, QString v
 		}
 	}
 }
-
-/*
-void iAWebsocketAPI::processBinaryMessage(QByteArray message)
-{
-	QWebSocket* client = qobject_cast<QWebSocket*>(sender());
-	LOG(lvlDebug, QString("Binary Message received!"));
-}
-*/
 
 void iAWebsocketAPI::socketDisconnected()
 {
