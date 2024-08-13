@@ -348,7 +348,7 @@ void iAVROctree::mapFibersToRegion(std::unordered_map<vtkIdType, vtkIdType> cons
 			for (vtkIdType i = 0; i < points->GetSize(); i++)
 			{
 				vtkIdType fiberiD = -1;
-				if (pointIDToCsvIndex.find(points->GetValue(i)) != pointIDToCsvIndex.end())
+				if (pointIDToCsvIndex.contains(points->GetValue(i)))
 				{
 					fiberiD = pointIDToCsvIndex.at(points->GetValue(i));
 				}

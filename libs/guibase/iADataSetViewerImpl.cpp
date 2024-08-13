@@ -135,7 +135,7 @@ void iAProjectViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			}
 			for (auto l : m_loadedDataSets)
 			{
-				if (m_renderedDataSets.find(l) == m_renderedDataSets.end())
+				if (!m_renderedDataSets.contains(l))
 				{
 					return;
 				}
@@ -172,7 +172,7 @@ std::map<iADataSetType, iADataSetViewerCreateFuncPtr>& dataSetViewerFactoryMap()
 
 std::shared_ptr<iADataSetViewer> createDataSetViewer(iADataSet* dataSet)
 {
-	if (dataSetViewerFactoryMap().find(dataSet->type()) == dataSetViewerFactoryMap().end())
+	if (!dataSetViewerFactoryMap().contains(dataSet->type()))
 	{
 		return std::shared_ptr<iADataSetViewer>();
 	}

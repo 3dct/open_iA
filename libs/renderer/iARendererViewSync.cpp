@@ -123,7 +123,7 @@ void iARendererViewSync::redrawOtherRenderers(vtkObject* caller, long unsigned i
 	{
 		auto rw = r->GetRenderWindow();
 		// no update if renderer was already removed from render window, or if that window was already updated
-		if (rw && updatedWindows.find(rw) == updatedWindows.end())
+		if (rw && !updatedWindows.contains(rw))
 		{
 			r->GetRenderWindow()->Render();
 			updatedWindows.insert(r->GetRenderWindow());

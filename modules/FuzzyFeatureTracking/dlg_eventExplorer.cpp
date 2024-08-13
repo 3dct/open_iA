@@ -540,7 +540,7 @@ void dlg_eventExplorer::chartSelectionChanged(vtkObject* /*obj*/)
 
 void dlg_eventExplorer::buildGraph(int id, int layer, int eventType, double uncertainty)
 {
-	if (m_tableToGraphId[layer].find(id) == m_tableToGraphId[layer].end())
+	if (!m_tableToGraphId[layer].contains(id))
 	{
 		vtkIdType vId = m_graph->AddVertex();
 		m_labels->InsertValue(vId, "[" + std::to_string((long long)id) + "]" + " (" + std::to_string((long long)uncertainty) + ")");
@@ -576,7 +576,7 @@ void dlg_eventExplorer::buildGraph(int id, int layer, int eventType, double unce
 
 void dlg_eventExplorer::buildSubGraph(int id, int layer)
 {
-	if (m_visitedNodes.find(id) == m_visitedNodes.end())
+	if (!m_visitedNodes.contains(id))
 	{
 		m_visitedNodes[id] = true;
 
@@ -594,7 +594,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 			{
 				if (c.id > 0 && c.isTakenForCurrentIteration)
 				{
-					if (m_tableToGraphId[layer - 1].find(c.id) == m_tableToGraphId[layer - 1].end())
+					if (!m_tableToGraphId[layer - 1].contains(c.id))
 					{
 						int featureEvent = 0;
 						//if (trackedFeaturesBackwards.at(layer - 1)->FromUtoV(c.id).size() > 0)
@@ -676,7 +676,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 			{
 				if (c.id > 0 && c.isTakenForCurrentIteration)
 				{
-					if (m_tableToGraphId[layer + 1].find(c.id) == m_tableToGraphId[layer + 1].end())
+					if (!m_tableToGraphId[layer + 1].contains(c.id))
 					{
 						int featureEvent = 0;
 						//if (trackedFeaturesBackwards.at(layer - 1)->FromUtoV(c.id).size() > 0)

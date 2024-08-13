@@ -191,7 +191,7 @@ void iAScatterPlotView::SelectionUpdated()
 	double* buf = static_cast<double*>(m_selectionImg->GetScalarPointer());
 	for (unsigned int v = 0; v<m_voxelCount; ++v)
 	{
-		*buf = selectedSet.find(v) != selectedSet.end() ? 1 : 0;
+		*buf = selectedSet.contains(v) ? 1 : 0;
 		buf++;
 	}
 	m_selectionImg->Modified();

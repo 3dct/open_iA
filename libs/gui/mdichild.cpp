@@ -324,9 +324,9 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 
 void MdiChild::removeDataSet(size_t dataSetIdx)
 {
-	if (m_dataSetViewers.find(dataSetIdx) == m_dataSetViewers.end())
+	if (!m_dataSetViewers.contains(dataSetIdx))
 	{
-		LOG(lvlDebug, QString("Trying to remove dataset idx=%1 which does not exist anymore!").arg(dataSetIdx));
+		LOG(lvlDebug, QString("Trying to remove dataset idx=%1 which does not exist (anymore?)!").arg(dataSetIdx));
 		return;
 	}
 	LOG(lvlDebug, QString("Removing dataset idx = %1.").arg(dataSetIdx));
@@ -1334,7 +1334,7 @@ void MdiChild::set3DControlVisibility(bool visible)
 
 std::shared_ptr<iADataSet> MdiChild::dataSet(size_t dataSetIdx) const
 {
-	if (m_dataSets.find(dataSetIdx) != m_dataSets.end())
+	if (m_dataSets.contains(dataSetIdx))
 	{
 		return m_dataSets.at(dataSetIdx);
 	}
@@ -1577,7 +1577,7 @@ void MdiChild::setInteractionMode(iAInteractionMode mode)
 			for (auto dataSet: m_dataSets)
 			{
 				if (dynamic_cast<iAImageData*>(dataSet.second.get()) &&
-					m_dataSetViewers.find(dataSet.first) != m_dataSetViewers.end() &&
+					m_dataSetViewers.contains(dataSet.first) &&
 					m_dataSetViewers[dataSet.first]->renderer()->isPickable())
 				{
 					dataSetIdx = dataSet.first;
@@ -1628,7 +1628,7 @@ void MdiChild::setDataSetMovable(size_t dataSetIdx)
 		LOG(lvlError, "Selected dataset is not an image.");
 		return;
 	}
-	assert(m_dataSetViewers.find(dataSetIdx) != m_dataSetViewers.end());
+	assert(m_dataSetViewers.contains(dataSetIdx));
 	auto img = imgData->vtkImage();
 	uint chID = m_dataSetViewers[dataSetIdx]->slicerChannelID();
 	iAChannelSlicerData* props[3];
