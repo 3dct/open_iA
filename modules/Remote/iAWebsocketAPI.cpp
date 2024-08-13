@@ -38,6 +38,7 @@ void iAWebsocketAPI::init()
 		connect(m_wsServer, &QWebSocketServer::newConnection, this, &iAWebsocketAPI::onNewConnection);
 		connect(m_wsServer, &QWebSocketServer::closed, this, &iAWebsocketAPI::closed);
 		updateCaptionList(std::vector<iAAnnotation>());
+		emit initSuccess();
 	}
 	else
 	{

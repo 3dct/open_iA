@@ -57,6 +57,7 @@ Q_SIGNALS:
 	void selectCaption(int capID);
 	void changeCaptionTitle(int capID, QString title);
 	void hideCaption(int capID);
+	void initSuccess();
 
 	void clientConnected(int clientID);
 	void clientDisconnected(int clientID);

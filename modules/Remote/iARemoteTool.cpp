@@ -116,20 +116,26 @@ iARemoteTool::iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	, m_httpServer(std::make_unique<QHttpServer>())
 #endif
 {
-	auto annotTool = getTool<iAAnnotationTool>(child);
+	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::initSuccess, this, &iARemoteTool::init);
+	m_remoteRenderer->start();
+}
+
+void iARemoteTool::init()
+{
+	auto annotTool = getTool<iAAnnotationTool>(m_child);
 	if (!annotTool)
 	{
-		auto newTool = std::make_shared<iAAnnotationTool>(mainWnd, child);
-		child->addTool(iAAnnotationTool::Name, newTool);
+		auto newTool = std::make_shared<iAAnnotationTool>(m_mainWindow, m_child);
+		m_child->addTool(iAAnnotationTool::Name, newTool);
 		annotTool = newTool.get();
 	}
-	m_remoteRenderer->addRenderWindow(child->renderer()->renderWindow(), "3D");
-	m_viewWidgets.insert("3D", child->rendererWidget());
+	m_remoteRenderer->addRenderWindow(m_child->renderer()->renderWindow(), "3D");
+	m_viewWidgets.insert("3D", m_child->rendererWidget());
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
-		m_remoteRenderer->addRenderWindow(child->slicer(i)->renderWindow(), slicerModeString(i));
-		child->slicer(i)->setShowTooltip(false);
-		m_viewWidgets.insert(slicerModeString(i), child->slicer(i));
+		m_remoteRenderer->addRenderWindow(m_child->slicer(i)->renderWindow(), slicerModeString(i));
+		m_child->slicer(i)->setShowTooltip(false);
+		m_viewWidgets.insert(slicerModeString(i), m_child->slicer(i));
 	}
 	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::controlCommand, this, [this]()
 		{
@@ -234,7 +240,7 @@ iARemoteTool::iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	listenStr += QString("; http: localhost:%1").arg(httpPort);
 #endif
 	clientContainer->layout()->addWidget(new iAQCropLabel(listenStr));
-	m_clientList = new QTableWidget(child);
+	m_clientList = new QTableWidget(clientContainer);
 	QStringList columnNames = { "id", "status", "sent", "received" };
 	m_clientList->setColumnCount(static_cast<int>(columnNames.size()));
 	m_clientList->setHorizontalHeaderLabels(columnNames);
@@ -245,7 +251,7 @@ iARemoteTool::iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	m_clientList->resizeColumnsToContents();
 	clientContainer->layout()->addWidget(m_clientList);
 	auto dw = new iADockWidgetWrapper(clientContainer, "Remote Rendering Clients", "RemoteClientList", "https://github.com/3dct/open_iA/wiki/Remote");
-	child->splitDockWidget(child->renderDockWidget(), dw, Qt::Vertical);
+	m_child->splitDockWidget(m_child->renderDockWidget(), dw, Qt::Vertical);
 
 	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::clientConnected, this, [this](quint64 id)
 		{

@@ -22,6 +22,8 @@ Q_OBJECT
 public:
 	iARemoteRenderer(int port);
 	~iARemoteRenderer();
+	//! start the websocket listening in separate thread
+	void start();
 	void addRenderWindow(vtkRenderWindow* window, QString const& viewID);
 	void removeRenderWindow(QString const& viewID);
 	vtkRenderWindow* renderWindow(QString const& viewID);

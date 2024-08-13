@@ -17,10 +17,14 @@ class QTableWidget;
 
 class iARemoteTool : public QObject, public iATool
 {
+	Q_OBJECT
 public:
 	static const QString Name;
 	iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child);
 	~iARemoteTool();
+
+private slots:
+	void init();
 
 private:
 	quint16 m_wsPort;

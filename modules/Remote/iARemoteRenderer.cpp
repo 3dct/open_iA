@@ -12,7 +12,7 @@
 
 #include <QThread>
 
-iARemoteRenderer::iARemoteRenderer(int port):
+iARemoteRenderer::iARemoteRenderer(int port) :
 	m_wsAPI(std::make_unique<iAWebsocketAPI>(port)),
 	m_wsThread(std::make_unique<QThread>())
 {
@@ -22,6 +22,10 @@ iARemoteRenderer::iARemoteRenderer(int port):
 	connect(this, &iARemoteRenderer::imageHasChanged, m_wsAPI.get(), &iAWebsocketAPI::sendViewIDUpdate);
 	connect(this, &iARemoteRenderer::finished, m_wsAPI.get(), &iAWebsocketAPI::close);
 	connect(this, &iARemoteRenderer::setRenderedImage, m_wsAPI.get(), &iAWebsocketAPI::setRenderedImage);
+}
+
+void iARemoteRenderer::start()
+{
 	m_wsThread->start();
 }
 
