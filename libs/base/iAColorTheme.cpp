@@ -324,17 +324,6 @@ namespace
 			DVLColors->addColor(QColor(118, 96, 138));
 			DVLColors->addColor(QColor(160, 82, 45));
 			themes.insert(DVLColors->name(), DVLColors);
-
-			auto brewerQual1 = std::make_shared<iAVectorColorTheme>("Brewer Qualitative 1 (max. 8)");
-			brewerQual1->addColor(QColor(27, 158, 119));
-			brewerQual1->addColor(QColor(217, 95, 2));
-			brewerQual1->addColor(QColor(117, 112, 179));
-			brewerQual1->addColor(QColor(231, 41, 138));
-			brewerQual1->addColor(QColor(102, 166, 30));
-			brewerQual1->addColor(QColor(230, 171, 2));
-			brewerQual1->addColor(QColor(166, 118, 29));
-			brewerQual1->addColor(QColor(102, 102, 102));
-			themes.insert(brewerQual1->name(), brewerQual1);
 		}
 		return themes;
 	}
