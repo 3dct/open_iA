@@ -1501,6 +1501,7 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 			}
 			if (!saveSuccess)
 			{
+				LOG(lvlWarn, QString("Storing dataset %1 failed. To save the project, please remove this dataset!"));
 				return false;
 			}
 		}
