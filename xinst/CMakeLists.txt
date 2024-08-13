@@ -23,8 +23,6 @@ if (NOT FLATPAK_BUILD)
 			PRE_EXCLUDE_REGEXES
 				[[api-ms-win-.*]]
 				[[ext-ms-.*]]
-				[[hvsifile.*]]
-				[[pdmutil.*]]
 				[[iabase\.dll]]
 				[[iacharts\.dll]]
 				[[iaguibase\.dll]]
@@ -33,7 +31,7 @@ if (NOT FLATPAK_BUILD)
 				[[iarenderer\.dll]]
 				[[iaslicer\.dll]]
 			POST_EXCLUDE_REGEXES
-				[[.*system32.*\.dll]]
+				[[.*(\\|/)system32(\\|/).*\.dll]]
 			DIRECTORIES	${BUNDLE_DIRS}
 			DESTINATION .
 		)
