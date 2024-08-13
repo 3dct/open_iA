@@ -38,7 +38,12 @@ void iAVerticalLabel::paintEvent(QPaintEvent*)
 	QFont f(painter.font());
 	f.setBold(true);
 	painter.setFont(f);
-	painter.drawText(0, 0, height(), width(), 0, text());
+#ifdef __linux__
+	const int Offset = 2;   // for some reason, on Linux, text is placed too far to the right and the width is a little to small (text is cut off at bottom) -> use "manual" correction offset
+#else
+	const int Offset = 0;
+#endif
+	painter.drawText(0, -Offset, height(), width()+Offset, Qt::AlignTop, text());
 }
 
 QSize iAVerticalLabel::minimumSizeHint() const
