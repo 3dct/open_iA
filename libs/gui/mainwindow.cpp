@@ -2121,7 +2121,8 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	iALUT::loadMaps(QCoreApplication::applicationDirPath() + "/colormaps");
 	MainWindow mainWin(appName, version, buildInformation, splashPath, splashScreen);
 	connect(iASystemThemeWatcher::get(), &iASystemThemeWatcher::themeChanged, &mainWin,
-		[&mainWin](bool brightTheme) {
+		[&mainWin](bool brightTheme)
+		{
 			if (mainWin.m_useSystemTheme)
 			{
 				LOG(lvlDebug, QString("System theme changed and configured to automatically adapt to it, changing to %1 mode (you can override this in the Preferences)!").arg(brightTheme?"bright":"dark"));

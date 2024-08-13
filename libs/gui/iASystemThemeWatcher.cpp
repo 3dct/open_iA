@@ -5,13 +5,19 @@
 #include <iALog.h>
 
 #include <QApplication>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+#include <QStyleHints>
+#else
 #include <QPalette>
 #include <QStyle>
-#include <QtConcurrent>
+#endif
 
 #include <memory>
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && QT_VERSION < QT_VERSION_CHECK(6, 5, 0)
+
+#include <QtConcurrent>
+
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
 #define NOMINMAX
@@ -21,7 +27,7 @@
 iASystemThemeWatcher::iASystemThemeWatcher():
 	m_isBright(iASystemThemeWatcher::isBrightTheme())
 {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && QT_VERSION < QT_VERSION_CHECK(6, 5, 0)
 	m_stopEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 	if (m_stopEvent == NULL)
 	{
@@ -39,7 +45,7 @@ iASystemThemeWatcher* iASystemThemeWatcher::get()
 	static auto tcn = []()
 	{
 		auto r = std::make_unique<iASystemThemeWatcher>();
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && QT_VERSION < QT_VERSION_CHECK(6, 5, 0)
 		auto result = r.get();
 		auto future = QtConcurrent::run([result]
 			{
@@ -101,58 +107,62 @@ iASystemThemeWatcher* iASystemThemeWatcher::get()
 		);
 #endif
 		return r;
-	} () ;  // directly call lambda instead of assigning it!
+	} () ;  // directly call lambda instead of assigning it; we assign the lambda return value!
 	return tcn.get();
 }
 
 bool iASystemThemeWatcher::isBrightTheme()
 {
-#ifdef _MSC_VER
-	/*
-	// not sure why but this code fails with error code 2:
-	auto ValueKey = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize\\AppsUseLightTheme");
-	DWORD value;
-	DWORD size = sizeof(DWORD);
-	auto readResult = RegQueryValueEx(HKEY_CURRENT_USER, ValueKey, NULL, NULL, reinterpret_cast<BYTE*>(&value), &size);
-	if (readResult != ERROR_SUCCESS)
-	{
-		LOG(lvlError, QString("    Error reading value; error: %1!").arg(readResult));
-		return true;
-	}
-	else
-	{
-		return (value == 1);
-	}
-	*/
-	// this check is also in Qt, at plugins\platforms\windows\qwindowstheme.h|cpp -> queryDarkMode
-	// on a quick glance this is not easy to access though, and not generically!
-	QSettings personalize(
-		"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", QSettings::NativeFormat);
-	return (personalize.value("AppsUseLightTheme").toInt() == 1);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+	return QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Light;
 #else
-#if (__APPLE__)
-	// inspired from https://stackoverflow.com/a/63035856
-	// in contrast to below, here even the standard palette seems to get overwritten, that's why setPalette is disabled (see mainwindow.cpp)
-	auto bg = qApp->palette().color(QPalette::Active, QPalette::Window);
-	constexpr int OSX_LIGHT_MODE = 236;   //constexpr int OSX_DARK_MODE  = 50;
-	//LOG(lvlDebug, QString("iASystemThemeWatcher: lightness: %1").arg(bg.lightness()));
-	auto bright = (bg.lightness() == OSX_LIGHT_MODE);
-#else
-	// inspired from comment on https://stackoverflow.com/a/69705673
-	// we need to get style's standard palette here because the application palette is overwritten and does not automatically adapt to system one!
-	auto const & p = qApp->style()->standardPalette();
-	auto textColor = p.color(QPalette::WindowText);
-	auto windowColor = p.color(QPalette::Window);
-	auto bright = textColor.value() < windowColor.value();
-	//LOG(lvlDebug, QString("iASystemThemeWatcher: isBrightTheme: textColor: %1; windowColor: %2; isBright: %3").arg(textColor.name()).arg(windowColor.name()).arg(bright));
-#endif
-	return bright;
+	#ifdef _MSC_VER
+		/*
+		// not sure why but this code fails with error code 2:
+		auto ValueKey = TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize\\AppsUseLightTheme");
+		DWORD value;
+		DWORD size = sizeof(DWORD);
+		auto readResult = RegQueryValueEx(HKEY_CURRENT_USER, ValueKey, NULL, NULL, reinterpret_cast<BYTE*>(&value), &size);
+		if (readResult != ERROR_SUCCESS)
+		{
+			LOG(lvlError, QString("    Error reading value; error: %1!").arg(readResult));
+			return true;
+		}
+		else
+		{
+			return (value == 1);
+		}
+		*/
+		// this check is also in Qt, at plugins\platforms\windows\qwindowstheme.h|cpp -> queryDarkMode
+		// on a quick glance this is not easy to access though, and not generically!
+		QSettings personalize(
+			"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", QSettings::NativeFormat);
+		return (personalize.value("AppsUseLightTheme").toInt() == 1);
+	#else
+	#if (__APPLE__)
+		// inspired from https://stackoverflow.com/a/63035856
+		// in contrast to below, here even the standard palette seems to get overwritten, that's why setPalette is disabled (see mainwindow.cpp)
+		auto bg = qApp->palette().color(QPalette::Active, QPalette::Window);
+		constexpr int OSX_LIGHT_MODE = 236;   //constexpr int OSX_DARK_MODE  = 50;
+		//LOG(lvlDebug, QString("iASystemThemeWatcher: lightness: %1").arg(bg.lightness()));
+		auto bright = (bg.lightness() == OSX_LIGHT_MODE);
+	#else
+		// inspired from comment on https://stackoverflow.com/a/69705673
+		// we need to get style's standard palette here because the application palette is overwritten and does not automatically adapt to system one!
+		auto const & p = qApp->style()->standardPalette();
+		auto textColor = p.color(QPalette::WindowText);
+		auto windowColor = p.color(QPalette::Window);
+		auto bright = textColor.value() < windowColor.value();
+		//LOG(lvlDebug, QString("iASystemThemeWatcher: isBrightTheme: textColor: %1; windowColor: %2; isBright: %3").arg(textColor.name()).arg(windowColor.name()).arg(bright));
+	#endif
+		return bright;
+	#endif
 #endif
 }
 
 void iASystemThemeWatcher::stop()
 {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && QT_VERSION < QT_VERSION_CHECK(6, 5, 0)
 	//LOG(lvlDebug, "iASystemThemeWatcher: Stopping!");
 	if (!SetEvent(get()->m_stopEvent))
 	{

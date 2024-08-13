@@ -22,11 +22,11 @@ public:
 	void checkForChange();
 
 signals:
-	//! notification  triggered when the theme switches between bright and dark
+	//! notification triggered when the theme switches between bright and dark
 	void themeChanged(bool brightTheme);
 
 private:
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && QT_VERSION < QT_VERSION_CHECK(6, 5, 0)
 	void* m_stopEvent;
 #endif
 	bool m_isBright;
