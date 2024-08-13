@@ -503,7 +503,7 @@ bool MdiChild::saveDataSet(std::shared_ptr<iADataSet> dataSet, QString const& fi
 	auto io = iAFileTypeRegistry::createIO(fileName, iAFileIO::Save);
 	if (!io || !io->isDataSetSupported(dataSet, fileName, iAFileIO::Save))
 	{
-		auto msg = QString("The chosen file format (%1) does not support this kind of dataset!").arg(io->name());
+		auto msg = QString("No I/O found for this dataset, or the chosen file format (%1) does not support this kind of dataset!").arg(io ? io->name(): "none");
 		QMessageBox::warning(this, "Save: Error", msg);
 		LOG(lvlError, msg);
 		return false;

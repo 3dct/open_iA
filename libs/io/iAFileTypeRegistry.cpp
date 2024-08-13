@@ -51,7 +51,7 @@ std::shared_ptr<iAFileIO> iAFileTypeRegistry::createIO(QString const& fileName, 
 		}
 	}
 	LOG(lvlWarn,
-		QString("Failed to load %1: There is no handler registered files with suffix '%2'")
+		QString("Failed to create I/O for %1: There is no handler registered for files with suffix '%2'")
 		.arg(fileName)
 		.arg(fi.suffix()));
 	return std::shared_ptr<iAFileIO>();
