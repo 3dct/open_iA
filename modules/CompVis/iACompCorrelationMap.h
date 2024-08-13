@@ -65,7 +65,7 @@ private:
 	void initializeLutForEdges();
 	void initializeLegend(vtkScalarBarWidget* widget);
 	void initializeEdges();
-	double colorEdges(vtkIdType startVertex, vtkIdType endVertex, std::map<QString, Correlation::CorrelationStore>* correlations, std::map<vtkIdType, QString>* vertices);
+	double colorEdges(vtkIdType startVertex, vtkIdType endVertex, std::map<QString, Correlation::CorrelationStore> const * correlations, std::map<vtkIdType, QString> const * vertices);
 
 	void initializeArcs();
 	void initializeLutForArcs();
@@ -83,8 +83,8 @@ private:
 
 	void renderWidget();
 
-	void updateEdges(std::map<QString, Correlation::CorrelationStore>* correlations);
-	void updateArcs(std::map<int, std::vector<double>>* pickStatistic);
+	void updateEdges(std::map<QString, Correlation::CorrelationStore> const * correlations);
+	void updateArcs(std::map<int, std::vector<double>> const * pickStatistic);
 	void removeOldActors();
 
 	iACorrelationCoefficient* m_corrCalculation;

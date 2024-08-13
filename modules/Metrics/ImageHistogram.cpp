@@ -169,7 +169,7 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 		gauss_knl.push_back(value);
 		sum+=value;
 	}
-	for(std::vector<double>::iterator iter=gauss_knl.begin(); iter<gauss_knl.end(); iter++)
+	for(auto iter=gauss_knl.begin(); iter<gauss_knl.end(); ++iter)
 		*iter /= sum;
 
 	// Generate derivated Gauss kernel
@@ -250,7 +250,7 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 				gauss_knl_P2P.push_back(value);
 				sum+=value;
 			}
-			for(std::vector<double>::iterator iter=gauss_knl_P2P.begin(); iter<gauss_knl_P2P.end(); iter++)
+			for(std::vector<double>::iterator iter=gauss_knl_P2P.begin(); iter<gauss_knl_P2P.end(); ++iter)
 				*iter /= sum;
 
 			ghist_y = Conv1D(hist_y,gauss_knl_P2P,1);
@@ -293,7 +293,7 @@ float cImageHistogram::CalcQ(std::vector<int> thrsh_IDX, std::vector<ClassMeasur
 	result.clear();
 
 	// Total count of data points
-	for (std::vector<unsigned long long>::iterator iter = hist_y.begin(); iter < hist_y.end(); iter++)
+	for (auto iter = hist_y.cbegin(); iter < hist_y.cend(); ++iter)
 	{
 		counttotal += *iter;
 	}
@@ -374,7 +374,7 @@ float cImageHistogram::CalcEntropy()
 	double H=0.0,Hmax=0.0,counttotal=0;
 
 	// Total count of data points
-	for (std::vector<unsigned long long>::iterator iter = hist_y.begin(); iter < hist_y.end(); iter++)
+	for (auto iter = hist_y.cbegin(); iter < hist_y.cend(); ++iter)
 	{
 		counttotal += *iter;
 	}
@@ -383,7 +383,7 @@ float cImageHistogram::CalcEntropy()
 	dHistPosList p;
 	dHistPos val;
 	int i=1;
-	for(std::vector<unsigned long long>::iterator iter = hist_y.begin(); iter < hist_y.end(); iter++)
+	for(auto iter = hist_y.cbegin(); iter < hist_y.cend(); ++iter)
 	{
 		val.idx=i;
 		val.y=*iter/counttotal;
@@ -396,12 +396,12 @@ float cImageHistogram::CalcEntropy()
 
 	// Test sum with and without sort
 	//double sss=0;
-	//for(dHistPosList::iterator iter = p.begin(); iter < p.end(); iter++)
+	//for(auto iter = p.begin(); iter < p.end(); ++iter)
 	//	sss += iter->y;
 
 	// Calculate Relative Shannon Entropy Hmax
 	Hmax = dlog2((double)bins);												// Maximal Shannon Entropy Hmax
-	for(dHistPosList::iterator iter = p.begin(); iter < p.end(); iter++)
+	for(auto iter = p.cbegin(); iter < p.cend(); ++iter)
 	{
 		//double mx = (iter->y*dlog2(iter->y));
 		if (iter->y >= DoubleEpsilon)
@@ -418,7 +418,7 @@ std::vector<int> cImageHistogram::GetValleyThreshold_IDX()
 {
 	std::vector<int> thrsh;
 
-	for (HistPosList::iterator iter = Valleys.begin(); iter < Valleys.end(); iter++)
+	for (auto iter = Valleys.cbegin(); iter < Valleys.cend(); ++iter)
 	{
 		thrsh.push_back(iter->idx);
 	}
@@ -430,7 +430,7 @@ std::vector<float> cImageHistogram::GetValleyThreshold()
 {
 	std::vector<float> thrsh;
 
-	for (HistPosList::iterator iter = Valleys.begin(); iter < Valleys.end(); iter++)
+	for (auto iter = Valleys.cbegin(); iter < Valleys.cend(); ++iter)
 	{
 		thrsh.push_back(iter->x);
 	}

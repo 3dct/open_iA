@@ -157,10 +157,8 @@ void iAEnergySpectrumWidget::drawAfterPlots(QPainter& painter)
 		painter.drawRect(drawRect);
 	}
 	QFontMetrics fm(painter.font());
-	QList<iACharacteristicEnergy*> keys = m_elementEnergies.keys();
-	for (QList<iACharacteristicEnergy*>::const_iterator it = keys.begin();
-		it != keys.end();
-		++it)
+	auto keys = m_elementEnergies.keys();
+	for (auto it = keys.cbegin(); it != keys.cend(); ++it)
 	{
 		iACharacteristicEnergy * element = (*it);
 		QColor color = m_elementEnergies[element];

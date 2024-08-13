@@ -208,7 +208,7 @@ namespace FishersNaturalBreaks
 	SizeT GetTotalCount(const ValueCountPairContainer& vcpc)
 	{
 		SizeT sum = 0;
-		ValueCountPairContainer::const_iterator i = vcpc.begin(), e = vcpc.end();
+		auto i = vcpc.begin(), e = vcpc.end();
 		for (sum = 0; i != e; ++i) sum += (*i).second;
 		return sum;
 	}

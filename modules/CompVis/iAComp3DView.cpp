@@ -58,7 +58,7 @@ iAComp3DView::iAComp3DView(iAMainWindow* parent, iACsvDataStorage* dataStorage) 
 }
 
 void iAComp3DView::update3DViews(
-	csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>>* pickStatistic)
+	csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>> const* pickStatistic)
 {
 	if (selectedData->empty() || m_dockWidgets->empty())
 	{
@@ -70,8 +70,7 @@ void iAComp3DView::update3DViews(
 	int indexInSelectedData = 0;
 	std::vector<double> allObjectLables = selectedData->at(0);
 
-	for (std::map<int, std::vector<double>>::const_iterator it = pickStatistic->begin(); it != pickStatistic->end();
-		++it)
+	for (auto it = pickStatistic->begin(); it != pickStatistic->end(); ++it)
 	{
 		int selectedDataInd = it->first;
 		if (selectedDataInd >= static_cast<int>(m_dockWidgets->size()))

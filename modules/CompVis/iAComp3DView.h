@@ -34,7 +34,7 @@ public:
 	void constructGridLayout(QGridLayout* layout);
 
 	/*** Update ***/
-	void update3DViews(csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>>* pickStatistic);
+	void update3DViews(csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>> const * pickStatistic);
 	void reset3DViews();
 
 private:

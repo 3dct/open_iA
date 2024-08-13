@@ -49,8 +49,7 @@ void iAPieChartWidget::paintEvent(QPaintEvent * e)
 	int pieCenterY = this->height() / 2;
 
 	double curStartAngle = 0;
-	for (QVector<iAPiePiece>::const_iterator it = m_pieces.begin();
-		it != m_pieces.end(); ++it)
+	for (auto it = m_pieces.cbegin(); it != m_pieces.cend(); ++it)
 	{
 		double alpha = vtkMath::Pi() * (curStartAngle + it->percentage*1.8) / 180;
 		int xSign = 1;

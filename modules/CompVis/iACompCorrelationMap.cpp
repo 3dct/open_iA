@@ -515,20 +515,20 @@ void iACompCorrelationMap::initializeEdges()
 	m_theme->SetLineWidth(iACompVisOptions::LINE_WIDTH);
 }
 
-double iACompCorrelationMap::colorEdges(vtkIdType startVertex, vtkIdType endVertex, std::map<QString, Correlation::CorrelationStore>* correlations, std::map<vtkIdType, QString>* vertices)
+double iACompCorrelationMap::colorEdges(vtkIdType startVertex, vtkIdType endVertex, std::map<QString, Correlation::CorrelationStore> const * correlations, std::map<vtkIdType, QString> const * vertices)
 {
 	//find name of startVertex
-	std::map<vtkIdType, QString >::const_iterator vertexIter = vertices->find(startVertex);
+	auto vertexIter = vertices->find(startVertex);
 	if (vertexIter == vertices->end()) return 0.0;
 	QString nameStartV = vertexIter->second;
 
 	//find name of endVertex
-	std::map<vtkIdType, QString >::const_iterator vertexIter1 = vertices->find(endVertex);
+	auto vertexIter1 = vertices->find(endVertex);
 	if (vertexIter1 == vertices->end()) return 0.0;
 	QString nameEndV = vertexIter1->second;
 
 	//find correlation value of both
-	std::map<QString, Correlation::CorrelationStore>::const_iterator pos = correlations->find(nameStartV);
+	auto pos = correlations->find(nameStartV);
 	if (pos == correlations->end()) return 0.0;
 	Correlation::CorrelationStore map = pos->second;
 
@@ -960,7 +960,7 @@ void iACompCorrelationMap::removeOldActors()
 	outerArcWithLegend->clear();
 }
 
-void iACompCorrelationMap::updateArcs(std::map<int, std::vector<double>>* pickStatistic)
+void iACompCorrelationMap::updateArcs(std::map<int, std::vector<double>> const * pickStatistic)
 {
 	QStringList allDatasetNames = *m_dataStorage->getDatasetNames();
 	QStringList names = QStringList();
@@ -983,7 +983,7 @@ void iACompCorrelationMap::updateArcs(std::map<int, std::vector<double>>* pickSt
 	double angle = 0.0;
 	double percent = 0.0;
 
-	for (std::map<int, std::vector<double>>::const_iterator it = pickStatistic->begin(); it != pickStatistic->end(); ++it)
+	for (auto it = pickStatistic->begin(); it != pickStatistic->end(); ++it)
 	{
 		std::vector<double> container = it->second;
 		sum += container.at(0);
@@ -992,7 +992,7 @@ void iACompCorrelationMap::updateArcs(std::map<int, std::vector<double>>* pickSt
 	percent = 2 * m_PI / sum; //theta = [0-pi]
 	angle = 360.0 / sum; //360 degree of circle
 
-	for (std::map<int, std::vector<double>>::const_iterator it = pickStatistic->begin(); it != pickStatistic->end(); ++it)
+	for (auto it = pickStatistic->begin(); it != pickStatistic->end(); ++it)
 	{
 		std::vector<double> container = it->second;
 
@@ -1105,7 +1105,7 @@ void iACompCorrelationMap::drawInnerArc(std::vector<double> dataPoints, double* 
 	drawGlyphs(glyphPositions,glyphColors, glyphScales);
 }
 
-void iACompCorrelationMap::updateEdges(std::map<QString, Correlation::CorrelationStore>* correlations)
+void iACompCorrelationMap::updateEdges(std::map<QString, Correlation::CorrelationStore> const * correlations)
 {
 	style->resetEdgeVisualization();
 

@@ -10,7 +10,7 @@
 
 
 // When the AMD OpenCL 1.2 installed, we need this line to do the work
-// if it does not work on your PC, just uncomment the following line 
+// if it does not work on your PC, just uncomment the following line
 #define CL_USE_DEPRECATED_OPENCL_1_1_APIS
 // now defined via CMake option:
 //#define CL_TARGET_OPENCL_VERSION 120
@@ -151,19 +151,19 @@ inline cl_float4 Vec3_to_cl_float4(const iAVec3f & v)
 
 /**
 * Get best fitting 1D local size given the global size and an OpenCL kernel.
-* Global size should be dividable by local size. And local size should not 
+* Global size should be dividable by local size. And local size should not
 * be more than the maximum number of threads that kernel can handle.
 */
 inline size_t GetLocalForKernel(const cl::Kernel kernel, const size_t global, const cl::Device device)
 {
-	size_t local; 
+	size_t local;
 	itk_clSafeCall(  kernel.getWorkGroupInfo(device, CL_KERNEL_WORK_GROUP_SIZE, &local)  );
 	while( 0 != global%local ) local--;
 	return local;
 }
 
-inline void cl_init(cl::Device			& device_out, 
-					cl::Context			& context_out, 
+inline void cl_init(cl::Device			& device_out,
+					cl::Context			& context_out,
 					cl::CommandQueue	& queue_out,
 					cl_device_type		devType = CL_DEVICE_TYPE_GPU)
 {
@@ -174,7 +174,7 @@ inline void cl_init(cl::Device			& device_out,
 	std::vector<cl::Device>	devices;
 	bool noDevices = true;
 	cl_uint maxCU = 0, maxClock = 0;
-	for(std::vector<cl::Platform>::const_iterator p = platforms.begin(); p != platforms.end(); ++p) 
+	for (auto p = platforms.cbegin(); p != platforms.cend(); ++p)
 	{
 		try
 		{
@@ -184,10 +184,10 @@ inline void cl_init(cl::Device			& device_out,
 		{
 			continue;
 		}
-		if( !devices.empty() ) 
+		if( !devices.empty() )
 		{
 			noDevices = false;
-			for(std::vector<cl::Device>::const_iterator d = devices.begin(); d != devices.end(); ++d) 
+			for (auto d = devices.cbegin(); d != devices.cend(); ++d)
 			{
 				cl_uint CU = 0, Clock = 0;
 				char buf[128];
@@ -201,13 +201,13 @@ inline void cl_init(cl::Device			& device_out,
 				{
 					maxCU = CU; maxClock = Clock;
 
-					//Initialize context, queue, and device 
+					//Initialize context, queue, and device
 					cl_context_properties	properties[] = {CL_CONTEXT_PLATFORM, (cl_context_properties)(*p)(), 0};
 					device_out = (*d)();
 					context_out = cl::Context(devices, properties);
 					queue_out = cl::CommandQueue(context_out, device_out);// create cl command queues
 				}
-			}			
+			}		
 		}
 	}
 	if(noDevices)

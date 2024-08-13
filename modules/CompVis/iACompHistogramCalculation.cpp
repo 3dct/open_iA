@@ -71,7 +71,7 @@ iACompHistogramCalculation::iACompHistogramCalculation(iACsvDataStorage* dataSto
 	dataStorage->setMinVal(m_minVal);
 }
 
-void iACompHistogramCalculation::orderDataPointsByDatasetAffiliation(std::vector<double>* histbinlist)
+void iACompHistogramCalculation::orderDataPointsByDatasetAffiliation(std::vector<double> const * histbinlist)
 {
 	m_datasets = new bin::BinType();
 	m_amountObjectsEveryDataset = csvFileData::getAmountObjectsEveryDataset(m_dataStorage->getData());
@@ -79,9 +79,9 @@ void iACompHistogramCalculation::orderDataPointsByDatasetAffiliation(std::vector
 	int add = 0;
 	for (int i = 0; i < static_cast<int>(m_amountObjectsEveryDataset->size()); i++)
 	{
-		std::vector<double>::const_iterator first = histbinlist->begin() + add;
+		auto first = histbinlist->begin() + add;
 		add += m_amountObjectsEveryDataset->at(i);
-		std::vector<double>::const_iterator last = histbinlist->begin() + add;
+		auto last = histbinlist->begin() + add;
 
 		std::vector<double> segment(first, last);
 		m_datasets->push_back(segment);

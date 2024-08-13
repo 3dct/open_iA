@@ -334,7 +334,7 @@ iAColorThemeManager::~iAColorThemeManager()
 
 iAColorTheme const * iAColorThemeManager::theme(QString const & name) const
 {
-	QMap<QString, iAColorTheme*>::const_iterator it = m_themes.find(name);
+	auto it = m_themes.find(name);
 	if (it == m_themes.end())
 	{
 		auto t = *m_themes.begin();

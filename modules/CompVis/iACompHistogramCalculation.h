@@ -51,7 +51,7 @@ public:
 
 private:
 
-	void orderDataPointsByDatasetAffiliation(std::vector<double>* histbinlist);
+	void orderDataPointsByDatasetAffiliation(std::vector<double> const * histbinlist);
 
 
 	iACsvDataStorage* m_dataStorage;

@@ -62,7 +62,7 @@ std::map<QString, Correlation::CorrelationStore>* iACorrelationCoefficient::calc
 			m_correlationFilter->ResetRequests();
 		}
 
-		/*for (Correlation::CorrelationStore::iterator it = corStore.begin(); it != corStore.end(); ++it)
+		/*for (auto it = corStore.cbegin(); it != corStore.cend(); ++it)
 		{
 			LOG(lvlDebug,it->first + " = " + QString::number(it->second));
 		}*/
@@ -71,12 +71,12 @@ std::map<QString, Correlation::CorrelationStore>* iACorrelationCoefficient::calc
 	}
 
 	//DEBUG
-	/*for (std::map <QString, Correlation::CorrelationStore>::iterator it1 = result->begin(); it1 != result->end(); ++it1)
+	/*for (auto it1 = result->cbegin(); it1 != result->cend(); ++it1)
 	{
 		LOG(lvlDebug,"");
 		LOG(lvlDebug,it1->first + " : ");
 		Correlation::CorrelationStore aa = it1->second;
-		for (Correlation::CorrelationStore::iterator it = aa.begin(); it != aa.end(); ++it)
+		for (auto it = aa.cbegin(); it != aa.cend(); ++it)
 		{
 			LOG(lvlDebug,it->first + " = " + QString::number(it->second));
 		}

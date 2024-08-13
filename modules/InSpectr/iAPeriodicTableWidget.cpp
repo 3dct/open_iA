@@ -30,7 +30,7 @@ void iAPeriodicTableWidget::drawElement(QPainter& painter, QPoint const & upperL
 	QRect elementRect(upperLeft, QSize(elementWidth, elementHeight));
 	painter.drawRect(elementRect);
 
-	QMap<QString, std::pair<double, QColor> >::const_iterator concIt =  m_concentration.find(PeriodicTable::elements[elemIdx].shortname.c_str());
+	auto concIt = m_concentration.find(PeriodicTable::elements[elemIdx].shortname.c_str());
 	if (concIt != m_concentration.end())
 	{
 		QRect concRect(elementRect);
@@ -129,9 +129,7 @@ void iAPeriodicTableWidget::paintEvent(QPaintEvent * e)
 
 int iAPeriodicTableWidget::getElementFromMousePos(QPoint pos)
 {
-	for (QVector<std::pair<QPoint, int> >::const_iterator it = m_elementPositions.begin();
-		it != m_elementPositions.end();
-		++it)
+	for (auto it = m_elementPositions.cbegin(); it != m_elementPositions.cend(); ++it)
 	{
 		QRect elemRect(it->first.x(), it->first.y(), m_elementWidth, m_elementHeight);
 		if (elemRect.contains(pos))

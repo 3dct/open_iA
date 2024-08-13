@@ -34,10 +34,7 @@ void free_matrix ( TReal **m, size_t nrow)
 
 bool anyElementAboveThreshold(std::shared_ptr<QVector<std::shared_ptr<iAEnergySpectrum> > > const & elements, int i, unsigned int threshold)
 {
-	for (
-		QVector<std::shared_ptr<iAEnergySpectrum> >::const_iterator it = elements->begin();
-		it != elements->end();
-		++it)
+	for (auto it = elements->cbegin(); it != elements->cend(); ++it)
 	{
 		if ((**it)[i] > threshold)
 		{

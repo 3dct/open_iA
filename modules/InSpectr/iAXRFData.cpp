@@ -144,7 +144,7 @@ public:
 				colorKey <<= COLOR_BITS;
 				colorKey |=  curColorValue;
 			}
-			std::map<unsigned long, unsigned long>::const_iterator it = colorMap.find(colorKey);
+			auto it = colorMap.find(colorKey);
 			if (it == colorMap.end())
 			{
 				colorMap.insert(std::make_pair(colorKey, lastColorIdx));
@@ -161,7 +161,7 @@ public:
 		auto colorTransfer = vtkSmartPointer<vtkDiscretizableColorTransferFunction>::New();
 		colorTransfer->DiscretizeOn();
 		colorTransfer->SetNumberOfValues(colorMap.size());
-		for (std::map<unsigned long, unsigned long>::const_iterator it = colorMap.begin(); it != colorMap.end(); ++it)
+		for (auto it = colorMap.cbegin(); it != colorMap.cend(); ++it)
 		{
 			unsigned long colorVal = it->first;
 			double colorComponents[COLOR_COMPONENTS];
@@ -227,7 +227,7 @@ bool isInRange(vtkSmartPointer<vtkImageData> const & img, int x, int y, int z, d
 
 bool iAXRFData::CheckFilters(int x, int y, int z, QVector<iASpectrumFilter> const & filter, iAFilterMode mode) const
 {
-	for (QVector<iASpectrumFilter>::const_iterator it = filter.begin(); it != filter.end(); ++it)
+	for (auto it = filter.begin(); it != filter.end(); ++it)
 	{
 		bool inRange = isInRange(m_data[it->binIdx], x, y, z, it->minVal, it->maxVal);
 		switch (mode)

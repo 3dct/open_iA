@@ -243,8 +243,7 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 				}
 
 				int progress = 0;
-				std::map<int, int>::const_iterator it;
-				for (it = meanObjectIds.begin(); it != meanObjectIds.end() && !aborter->isAborted(); ++it)
+				for (auto it = meanObjectIds.cbegin(); it != meanObjectIds.cend() && !aborter->isAborted(); ++it)
 				{
 					mask->SetLabel(it->first);
 					mask->Update();

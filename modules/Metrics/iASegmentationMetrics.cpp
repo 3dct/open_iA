@@ -47,9 +47,8 @@ void CalculateSegmentationMetrics(iAFilter* filter)
 	//filter->addOutputValue("False negatives", diceFilter->GetFalseNegativeError());
 	//filter->addOutputValue("False positives", diceFilter->GetFalsePositiveError());
 
-	typename DiceFilterType::MapType labelMap = diceFilter->GetLabelSetMeasures();
-	typename DiceFilterType::MapType::const_iterator it;
-	for (it = labelMap.begin(); it != labelMap.end(); ++it)
+	auto labelMap = diceFilter->GetLabelSetMeasures();
+	for (auto it = labelMap.cbegin(); it != labelMap.cend(); ++it)
 	{
 		if ((*it).first == 0)
 		{

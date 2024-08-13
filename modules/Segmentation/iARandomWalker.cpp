@@ -119,7 +119,7 @@ namespace
 		typedef itk::Image<T, DIM> ProbImageType;
 
 		ProbImageType* pImg = dynamic_cast<ProbImageType*>(image.GetPointer());
-		for (IndexMap::const_iterator it = indexMap.begin(); it != indexMap.end(); ++it)
+		for (auto it = indexMap.begin(); it != indexMap.end(); ++it)
 		{
 #ifdef USE_EIGEN
 			double imgVal = values.coeff(it.value());
